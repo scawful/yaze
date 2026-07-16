@@ -2941,25 +2941,46 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
         "out of scope for this encoder)."));
   }
 
-  // Write each region by dereferencing its pointer slot, mirroring
-  // `LoadBlocks`'s read path. We do not relocate the data — the four
-  // operand slots stay pointing at their existing SNES addresses.
+  // Preflight every destination needed by the final output before the first
+  // ROM write. Growth can reach a later pointer region that the shorter
+  // original buffer never needed to read; discovering a bad operand/address
+  // only inside the write loop would leave earlier regions partially mutated
+  // for direct callers that do not wrap this public API in a transaction.
   const int total_bytes = static_cast<int>(output.size());
+  struct BlockWriteDestination {
+    int pc;
+    int output_offset;
+    int length;
+  };
+  std::vector<BlockWriteDestination> write_destinations;
+  write_destinations.reserve(4);
   for (int r = 0; r < 4; ++r) {
-    const int slot = kPointerSlots[r];
-    const int snes =
-        (rom_data[slot + 2] << 16) | (rom_data[slot + 1] << 8) | rom_data[slot];
-    const int pc = SnesToPc(snes);
     const int off = r * kRegionSize;
     const int len = std::min(kRegionSize, total_bytes - off);
     if (len <= 0)
       break;
+
+    const int slot = kPointerSlots[r];
+    if (slot + 2 >= static_cast<int>(rom_data.size())) {
+      return absl::OutOfRangeError("Blocks pointer out of range");
+    }
+    RETURN_IF_ERROR(ValidateBlocksLoaderPointerOperand(rom_data, slot));
+    const int snes =
+        (rom_data[slot + 2] << 16) | (rom_data[slot + 1] << 8) | rom_data[slot];
+    const int pc = SnesToPc(snes);
     if (pc < 0 || pc + len > static_cast<int>(rom_data.size())) {
       return absl::OutOfRangeError("Blocks data region out of range");
     }
-    std::vector<uint8_t> chunk(output.begin() + off,
-                               output.begin() + off + len);
-    RETURN_IF_ERROR(rom->WriteVector(pc, chunk));
+    write_destinations.push_back({pc, off, len});
+  }
+
+  // Write each prevalidated region. We do not relocate the data — the four
+  // operand slots keep pointing at their existing SNES addresses.
+  for (const auto& destination : write_destinations) {
+    std::vector<uint8_t> chunk(
+        output.begin() + destination.output_offset,
+        output.begin() + destination.output_offset + destination.length);
+    RETURN_IF_ERROR(rom->WriteVector(destination.pc, chunk));
   }
 
   RETURN_IF_ERROR(
