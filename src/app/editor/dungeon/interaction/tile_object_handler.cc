@@ -9,11 +9,13 @@
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/dungeon/object_selection.h"
 #include "app/gfx/resource/arena.h"
+#include "app/platform/sdl_compat.h"
 #include "imgui/imgui.h"
 #include "util/i18n/tr.h"
 #include "util/log.h"
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/dungeon_limits.h"
+#include "zelda3/dungeon/geometry/object_geometry.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
 
@@ -23,6 +25,32 @@ namespace yaze::editor {
 
 namespace {
 constexpr size_t kMaxLayerBatchMutation = 128;
+constexpr int kGhostPreviewBufferSize = 512;
+
+bool ApplyRoomPaletteToGhost(const zelda3::Room& room, gfx::Bitmap& ghost) {
+  const gfx::Bitmap* sources[] = {
+      &room.bg1_buffer().bitmap(), &room.object_bg1_buffer().bitmap(),
+      &room.bg2_buffer().bitmap(), &room.object_bg2_buffer().bitmap()};
+  for (const gfx::Bitmap* source : sources) {
+    SDL_Surface* surface = source->surface();
+    SDL_Palette* palette = platform::GetSurfacePalette(surface);
+    if (!palette || palette->ncolors <= 0) {
+      continue;
+    }
+
+    std::vector<SDL_Color> colors(256, {0, 0, 0, 0});
+    const int color_count = std::min(palette->ncolors, 256);
+    std::copy_n(palette->colors, color_count, colors.begin());
+    colors[255] = {0, 0, 0, 0};
+    ghost.SetPalette(colors);
+    if (ghost.surface()) {
+      SDL_SetColorKey(ghost.surface(), SDL_TRUE, 255);
+      SDL_SetSurfaceBlendMode(ghost.surface(), SDL_BLENDMODE_BLEND);
+    }
+    return true;
+  }
+  return false;
+}
 
 struct LayerOrderEntry {
   zelda3::RoomObject object;
@@ -173,7 +201,6 @@ void TileObjectHandler::BeginPlacement() {
 
 void TileObjectHandler::CancelPlacement() {
   object_placement_mode_ = false;
-  ghost_preview_buffer_.reset();
 }
 
 bool TileObjectHandler::HandleClick(int canvas_x, int canvas_y) {
@@ -359,15 +386,22 @@ void TileObjectHandler::DrawGhostPreview() {
     return;
 
   auto [snap_canvas_x, snap_canvas_y] = RoomToCanvas(room_x, room_y);
-  auto [obj_width, obj_height] = CalculateObjectBounds(preview_object_);
+  const auto preview_geometry = CalculateGhostPreviewGeometry(preview_object_);
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   const ImVec2 preview_start = transform.RoomPixelsToScreen(ImVec2(
-      static_cast<float>(snap_canvas_x), static_cast<float>(snap_canvas_y)));
+      static_cast<float>(snap_canvas_x + preview_geometry.offset_x_tiles * 8),
+      static_cast<float>(snap_canvas_y + preview_geometry.offset_y_tiles * 8)));
   const ImVec2 preview_size = transform.RoomSizeToScreen(
-      ImVec2(static_cast<float>(obj_width), static_cast<float>(obj_height)));
+      ImVec2(static_cast<float>(preview_geometry.width_pixels),
+             static_cast<float>(preview_geometry.height_pixels)));
   const ImVec2 preview_end(preview_start.x + preview_size.x,
                            preview_start.y + preview_size.y);
+  const ImVec2 bitmap_start = transform.RoomPixelsToScreen(
+      ImVec2(static_cast<float>(snap_canvas_x -
+                                preview_geometry.render_anchor_x_tiles * 8),
+             static_cast<float>(snap_canvas_y -
+                                preview_geometry.render_anchor_y_tiles * 8)));
 
   zelda3::Room* room = GetRoom(ctx_->current_room_id);
   const size_t current_obj_count = room ? room->GetTileObjects().size() : 0;
@@ -378,23 +412,28 @@ void TileObjectHandler::DrawGhostPreview() {
       theme, capacity_state, theme.dungeon_selection_primary);
   bool drew_bitmap = false;
 
-  if (ghost_preview_buffer_) {
+  if (ghost_preview_buffer_ && ghost_preview_bitmap_ready_) {
     auto& bitmap = ghost_preview_buffer_->bitmap();
     if (bitmap.texture()) {
-      const ImVec2 bitmap_size = transform.RoomSizeToScreen(
-          ImVec2(static_cast<float>(bitmap.width()),
-                 static_cast<float>(bitmap.height())));
-      ImVec2 bitmap_end(preview_start.x + bitmap_size.x,
-                        preview_start.y + bitmap_size.y);
+      const int crop_width =
+          std::min(preview_geometry.buffer_width_pixels, bitmap.width());
+      const int crop_height =
+          std::min(preview_geometry.buffer_height_pixels, bitmap.height());
+      const ImVec2 bitmap_size = transform.RoomSizeToScreen(ImVec2(
+          static_cast<float>(crop_width), static_cast<float>(crop_height)));
+      const ImVec2 bitmap_end(bitmap_start.x + bitmap_size.x,
+                              bitmap_start.y + bitmap_size.y);
+      const ImVec2 uv_end(static_cast<float>(crop_width) / bitmap.width(),
+                          static_cast<float>(crop_height) / bitmap.height());
       ImVec4 tint = capacity_state == GhostCapacityState::kNormal
                         ? theme.text_primary
                         : GetPlacementAccentColor(theme, capacity_state,
                                                   theme.text_primary);
       tint.w = 0.70f;
-      draw_list->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
-                          preview_start, bitmap_end, ImVec2(0, 0), ImVec2(1, 1),
+      draw_list->AddImage((ImTextureID)(intptr_t)bitmap.texture(), bitmap_start,
+                          bitmap_end, ImVec2(0, 0), uv_end,
                           ImGui::GetColorU32(tint));
-      draw_list->AddRect(preview_start, bitmap_end,
+      draw_list->AddRect(preview_start, preview_end,
                          ImGui::GetColorU32(outline_color), 0.0f, 0, 2.0f);
       drew_bitmap = true;
     }
@@ -987,6 +1026,7 @@ void TileObjectHandler::SetPreviewObject(const zelda3::RoomObject& object) {
 }
 
 void TileObjectHandler::RenderGhostPreviewBitmap() {
+  ghost_preview_bitmap_ready_ = false;
   if (!ctx_ || !ctx_->rom || !ctx_->rom->is_loaded())
     return;
 
@@ -994,36 +1034,85 @@ void TileObjectHandler::RenderGhostPreviewBitmap() {
   if (!room || !room->IsLoaded())
     return;
 
-  auto [width, height] = CalculateObjectBounds(preview_object_);
-  width = std::max(width, 16);
-  height = std::max(height, 16);
+  const auto preview_geometry = CalculateGhostPreviewGeometry(preview_object_);
 
-  ghost_preview_buffer_ =
-      std::make_unique<gfx::BackgroundBuffer>(width, height);
+  // Keep one room-sized scratch texture for the handler lifetime. Replacing a
+  // textured bitmap during ImGui frame construction can invalidate draw-list
+  // texture handles, and repeatedly allocating previews leaks those handles.
+  if (!ghost_preview_buffer_) {
+    ghost_preview_buffer_ = std::make_unique<gfx::BackgroundBuffer>(
+        kGhostPreviewBufferSize, kGhostPreviewBufferSize);
+  }
+  ghost_preview_buffer_->EnsureBitmapInitialized();
+  ghost_preview_buffer_->ClearBuffer();
+  auto& bitmap = ghost_preview_buffer_->bitmap();
+  ApplyRoomPaletteToGhost(*room, bitmap);
+  std::fill(bitmap.mutable_data().begin(), bitmap.mutable_data().end(), 255);
+  bitmap.set_modified(true);
   const uint8_t* gfx_data = room->get_gfx_buffer().data();
 
   zelda3::ObjectDrawer drawer(ctx_->rom, ctx_->current_room_id, gfx_data);
   drawer.InitializeDrawRoutines();
 
+  // Replay at the same safe anchor ObjectGeometry uses for measurement so
+  // routines that draw upward or leftward do not clip against buffer origin.
+  auto render_object = preview_object_;
+  render_object.x_ = preview_geometry.render_anchor_x_tiles;
+  render_object.y_ = preview_geometry.render_anchor_y_tiles;
+  // A placement preview is a flattened visual. Force the replay through BG1
+  // so a sampled BG2-stream object cannot mask pixels in the same scratch
+  // buffer that it just rendered.
+  render_object.layer_ = zelda3::RoomObject::LayerType::BG1;
   auto status =
-      drawer.DrawObject(preview_object_, *ghost_preview_buffer_,
+      drawer.DrawObject(render_object, *ghost_preview_buffer_,
                         *ghost_preview_buffer_, ctx_->current_palette_group);
   if (!status.ok()) {
-    ghost_preview_buffer_.reset();
     return;
   }
 
-  auto& bitmap = ghost_preview_buffer_->bitmap();
   if (bitmap.size() > 0) {
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::CREATE, &bitmap);
+    bitmap.UpdateSurfacePixels();
+    if (bitmap.texture()) {
+      ghost_preview_create_queued_ = false;
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::UPDATE, &bitmap);
+    } else if (!ghost_preview_create_queued_) {
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::CREATE, &bitmap);
+      ghost_preview_create_queued_ = true;
+    }
     gfx::Arena::Get().ProcessTextureQueue(nullptr);
+    if (bitmap.texture()) {
+      ghost_preview_create_queued_ = false;
+    }
+    ghost_preview_bitmap_ready_ = true;
   }
 }
 
-std::pair<int, int> TileObjectHandler::CalculateObjectBounds(
+TileObjectHandler::GhostPreviewGeometry
+TileObjectHandler::CalculateGhostPreviewGeometry(
     const zelda3::RoomObject& object) {
-  return zelda3::DimensionService::Get().GetPixelDimensions(object);
+  const auto dimensions = zelda3::DimensionService::Get().GetDimensions(object);
+  const auto [resolved_anchor_x, resolved_anchor_y] =
+      zelda3::ObjectGeometry::Get().ResolveAnchor(object.id_, object.size_);
+  // ResolveAnchor supplies routine-specific headroom. Dimension offsets cover
+  // fallback/custom geometry too, so keep enough room for either source.
+  const int anchor_x =
+      std::max({0, resolved_anchor_x, -dimensions.offset_x_tiles});
+  const int anchor_y =
+      std::max({0, resolved_anchor_y, -dimensions.offset_y_tiles});
+  const int leading_x_tiles = anchor_x + dimensions.offset_x_tiles;
+  const int leading_y_tiles = anchor_y + dimensions.offset_y_tiles;
+  return GhostPreviewGeometry{
+      .render_anchor_x_tiles = anchor_x,
+      .render_anchor_y_tiles = anchor_y,
+      .offset_x_tiles = dimensions.offset_x_tiles,
+      .offset_y_tiles = dimensions.offset_y_tiles,
+      .width_pixels = dimensions.width_pixels(),
+      .height_pixels = dimensions.height_pixels(),
+      .buffer_width_pixels = (leading_x_tiles + dimensions.width_tiles) * 8,
+      .buffer_height_pixels = (leading_y_tiles + dimensions.height_tiles) * 8,
+  };
 }
 
 // ========================================================================

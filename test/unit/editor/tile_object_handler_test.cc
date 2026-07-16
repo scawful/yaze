@@ -1,14 +1,18 @@
 #include "app/editor/dungeon/interaction/tile_object_handler.h"
 #include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/object_selection.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gui/canvas/canvas.h"
+#include "app/platform/sdl_compat.h"
 #include "imgui/imgui.h"
 
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <array>
 
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
+#include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -39,6 +43,7 @@ class TestableTileObjectHandler : public TileObjectHandler {
 class TileObjectHandlerTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    gfx::Arena::Get().ClearTextureQueue();
     // Rooms use default constructor - no ROM needed for basic tests
 
     // Initialize ImGui
@@ -73,6 +78,8 @@ class TileObjectHandlerTest : public ::testing::Test {
   }
 
   void TearDown() override {
+    handler_.CancelPlacement();
+    gfx::Arena::Get().ClearTextureQueue();
     // Clear any test objects
     rooms_[0].ClearTileObjects();
     canvas_.reset();
@@ -156,13 +163,19 @@ TEST_F(TileObjectHandlerTest,
   handler_.CancelPlacement();
 }
 
-TEST_F(TileObjectHandlerTest, MarqueeAndPlacementGhostShareScrolledRoomOrigin) {
+TEST_F(TileObjectHandlerTest,
+       MarqueeAndUpLeftPlacementGhostShareCanvasTransform) {
   constexpr std::array<float, 3> kScales = {0.5f, 1.0f, 2.0f};
   constexpr std::array<ImVec2, 2> kScrolling = {ImVec2(48.0f, 24.0f),
                                                 ImVec2(-56.0f, -32.0f)};
   constexpr ImVec2 kRoomPixel(160.0f, 160.0f);
 
-  handler_.SetPreviewObject(CreateTestObject(0, 0, 0x00, 0x01));
+  const auto preview = CreateTestObject(0, 0, 0x12, 0xA3);
+  const auto preview_geometry =
+      TileObjectHandler::CalculateGhostPreviewGeometry(preview);
+  ASSERT_LT(preview_geometry.offset_x_tiles, 0);
+  ASSERT_LT(preview_geometry.offset_y_tiles, 0);
+  handler_.SetPreviewObject(preview);
   handler_.BeginPlacement();
 
   ImGuiIO& io = ImGui::GetIO();
@@ -190,9 +203,16 @@ TEST_F(TileObjectHandlerTest, MarqueeAndPlacementGhostShareScrolledRoomOrigin) {
       ImGui::Begin("DungeonCanvasTransformHost", nullptr,
                    ImGuiWindowFlags_NoSavedSettings);
       canvas_->DrawBackground(ImVec2(512, 512));
-      const ImVec2 expected_start =
+      const ImVec2 expected_room_origin =
           handler_.GetCanvasTransform().RoomPixelsToScreen(kRoomPixel);
-      io.MousePos = expected_start;
+      const ImVec2 expected_ghost_start =
+          handler_.GetCanvasTransform().RoomPixelsToScreen(
+              ImVec2(kRoomPixel.x + preview_geometry.offset_x_tiles * 8.0f,
+                     kRoomPixel.y + preview_geometry.offset_y_tiles * 8.0f));
+      const ImVec2 expected_ghost_size =
+          handler_.GetCanvasTransform().RoomSizeToScreen(ImVec2(
+              preview_geometry.width_pixels, preview_geometry.height_pixels));
+      io.MousePos = expected_room_origin;
 
       ImDrawList* draw_list = ImGui::GetWindowDrawList();
       selection_.BeginRectangleSelection(160, 160);
@@ -213,10 +233,16 @@ TEST_F(TileObjectHandlerTest, MarqueeAndPlacementGhostShareScrolledRoomOrigin) {
         const ImVec2 selection_start =
             draw_list->VtxBuffer[selection_vertex_start].pos;
         const ImVec2 ghost_start = draw_list->VtxBuffer[ghost_vertex_start].pos;
-        EXPECT_NEAR(selection_start.x, expected_start.x, 0.01f);
-        EXPECT_NEAR(selection_start.y, expected_start.y, 0.01f);
-        EXPECT_NEAR(ghost_start.x, expected_start.x, 0.01f);
-        EXPECT_NEAR(ghost_start.y, expected_start.y, 0.01f);
+        const ImVec2 ghost_end =
+            draw_list->VtxBuffer[ghost_vertex_start + 2].pos;
+        EXPECT_NEAR(selection_start.x, expected_room_origin.x, 0.01f);
+        EXPECT_NEAR(selection_start.y, expected_room_origin.y, 0.01f);
+        EXPECT_NEAR(ghost_start.x, expected_ghost_start.x, 0.01f);
+        EXPECT_NEAR(ghost_start.y, expected_ghost_start.y, 0.01f);
+        EXPECT_NEAR(ghost_end.x, expected_ghost_start.x + expected_ghost_size.x,
+                    0.01f);
+        EXPECT_NEAR(ghost_end.y, expected_ghost_start.y + expected_ghost_size.y,
+                    0.01f);
       }
 
       selection_.CancelRectangleSelection();
@@ -336,6 +362,190 @@ TEST_F(TileObjectHandlerTest, GhostCapacityStateBlocksWhenRoomIsFull) {
 
   EXPECT_EQ(handler_.GetPlacementGhostCapacityState(),
             TileObjectHandler::GhostCapacityState::kAtLimit);
+}
+
+TEST_F(TileObjectHandlerTest,
+       GhostPreviewGeometryPreservesUpwardAndLeftwardExtents) {
+  struct TestCase {
+    int16_t object_id;
+    uint8_t size;
+    int anchor_x;
+    int anchor_y;
+    int offset_x;
+    int offset_y;
+  };
+
+  // The first two need negative-axis headroom; 0x33 is the ordinary baseline,
+  // and 0x34 starts three tiles to the right of its encoded origin.
+  constexpr std::array<TestCase, 4> kCases{{
+      {0x09, 0x12, 0, 8, 0, -8},
+      {0xA3, 0x12, 5, 5, -5, -5},
+      {0x33, 0x12, 0, 0, 0, 0},
+      {0x34, 0x12, 0, 0, 3, 0},
+  }};
+
+  for (const auto& test_case : kCases) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << test_case.object_id);
+    const auto object = CreateTestObject(
+        /*x=*/0, /*y=*/0, test_case.size, test_case.object_id);
+    const auto geometry =
+        TileObjectHandler::CalculateGhostPreviewGeometry(object);
+
+    EXPECT_EQ(geometry.render_anchor_x_tiles, test_case.anchor_x);
+    EXPECT_EQ(geometry.render_anchor_y_tiles, test_case.anchor_y);
+    EXPECT_EQ(geometry.offset_x_tiles, test_case.offset_x);
+    EXPECT_EQ(geometry.offset_y_tiles, test_case.offset_y);
+    EXPECT_GE(geometry.render_anchor_x_tiles + geometry.offset_x_tiles, 0);
+    EXPECT_GE(geometry.render_anchor_y_tiles + geometry.offset_y_tiles, 0);
+    EXPECT_GT(geometry.width_pixels, 0);
+    EXPECT_GT(geometry.height_pixels, 0);
+    EXPECT_EQ(
+        geometry.buffer_width_pixels,
+        geometry.width_pixels +
+            (geometry.render_anchor_x_tiles + geometry.offset_x_tiles) * 8);
+    EXPECT_EQ(
+        geometry.buffer_height_pixels,
+        geometry.height_pixels +
+            (geometry.render_anchor_y_tiles + geometry.offset_y_tiles) * 8);
+  }
+}
+
+TEST_F(TileObjectHandlerTest,
+       GhostPreviewBitmapRendersPositiveOffsetWithoutClipping) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  rooms_.SetRom(&rom);
+  rooms_[0].SetLoaded(true);
+  ctx_.rom = &rom;
+
+  auto object = CreateTestObject(/*x=*/0, /*y=*/0, /*size=*/0x02,
+                                 /*id=*/0x34);
+  object.mutable_tiles().assign(
+      1, gfx::TileInfo(/*id=*/0, /*palette=*/0, /*v=*/false, /*h=*/false,
+                       /*o=*/false));
+  object.tiles_loaded_ = true;
+
+  const auto geometry =
+      TileObjectHandler::CalculateGhostPreviewGeometry(object);
+  ASSERT_EQ(geometry.offset_x_tiles, 3);
+  handler_.SetPreviewObject(object);
+  handler_.BeginPlacement();
+
+  const auto* buffer = handler_.ghost_preview_buffer_for_testing();
+  ASSERT_NE(buffer, nullptr);
+  const auto& bitmap = buffer->bitmap();
+  ASSERT_TRUE(bitmap.is_active());
+  ASSERT_GE(bitmap.width(), geometry.buffer_width_pixels);
+  ASSERT_GE(bitmap.height(), geometry.buffer_height_pixels);
+
+  const auto& coverage = buffer->coverage_data();
+  ASSERT_EQ(coverage.size(),
+            static_cast<size_t>(bitmap.width() * bitmap.height()));
+  const int first_drawn_x = geometry.offset_x_tiles * 8;
+  for (int y = 0; y < bitmap.height(); ++y) {
+    EXPECT_EQ(coverage[y * bitmap.width() + first_drawn_x - 1], 0);
+  }
+  const auto column_has_coverage = [&](int x) {
+    for (int y = 0; y < bitmap.height(); ++y) {
+      if (coverage[y * bitmap.width() + x] != 0) {
+        return true;
+      }
+    }
+    return false;
+  };
+  EXPECT_TRUE(column_has_coverage(first_drawn_x));
+  EXPECT_TRUE(column_has_coverage(geometry.buffer_width_pixels - 1));
+}
+
+TEST_F(TileObjectHandlerTest, GhostPreviewBitmapKeepsUpwardExtentVisible) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  rooms_.SetRom(&rom);
+  rooms_[0].SetLoaded(true);
+  ctx_.rom = &rom;
+
+  auto object = CreateTestObject(/*x=*/0, /*y=*/0, /*size=*/0x12,
+                                 /*id=*/0x09);
+  object.mutable_tiles().assign(
+      64, gfx::TileInfo(/*id=*/0, /*palette=*/0, /*v=*/false, /*h=*/false,
+                        /*o=*/false));
+  object.tiles_loaded_ = true;
+
+  const auto geometry =
+      TileObjectHandler::CalculateGhostPreviewGeometry(object);
+  ASSERT_LT(geometry.offset_y_tiles, 0);
+  handler_.SetPreviewObject(object);
+  handler_.BeginPlacement();
+
+  const auto* buffer = handler_.ghost_preview_buffer_for_testing();
+  ASSERT_NE(buffer, nullptr);
+  const auto& bitmap = buffer->bitmap();
+  ASSERT_TRUE(bitmap.is_active());
+  ASSERT_GE(bitmap.width(), geometry.buffer_width_pixels);
+  ASSERT_GE(bitmap.height(), geometry.buffer_height_pixels);
+  const auto& coverage = buffer->coverage_data();
+  EXPECT_TRUE(std::any_of(coverage.begin(), coverage.begin() + bitmap.width(),
+                          [](uint8_t covered) { return covered != 0; }));
+}
+
+TEST_F(TileObjectHandlerTest,
+       GhostPreviewFlattensSampledBg2ObjectAndSynchronizesSurface) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  rooms_.SetRom(&rom);
+  rooms_[0].SetLoaded(true);
+  ctx_.rom = &rom;
+  auto& room_gfx =
+      const_cast<std::array<uint8_t, 0x10000>&>(rooms_[0].get_gfx_buffer());
+  room_gfx.fill(1);
+  rooms_[0].bg1_buffer().EnsureBitmapInitialized();
+  std::vector<SDL_Color> room_palette(256);
+  for (int i = 0; i < 256; ++i) {
+    room_palette[i] = {static_cast<Uint8>(i), static_cast<Uint8>(255 - i),
+                       static_cast<Uint8>(i / 2), 255};
+  }
+  room_palette[255] = {0, 0, 0, 0};
+  rooms_[0].bg1_buffer().bitmap().SetPalette(room_palette);
+
+  auto object = CreateLayeredTestObject(
+      /*x=*/0, /*y=*/0, zelda3::RoomObject::LayerType::BG2,
+      /*size=*/0x02, /*id=*/0x33);
+  object.mutable_tiles().assign(
+      64, gfx::TileInfo(/*id=*/0, /*palette=*/0, /*v=*/false, /*h=*/false,
+                        /*o=*/false));
+  object.tiles_loaded_ = true;
+
+  handler_.SetPreviewObject(object);
+  handler_.BeginPlacement();
+
+  const auto* buffer = handler_.ghost_preview_buffer_for_testing();
+  ASSERT_NE(buffer, nullptr);
+  const auto& bitmap = buffer->bitmap();
+  const auto& coverage = buffer->coverage_data();
+  const auto drawn = std::find_if(coverage.begin(), coverage.end(),
+                                  [](uint8_t covered) { return covered != 0; });
+  ASSERT_NE(drawn, coverage.end());
+  const size_t drawn_index = std::distance(coverage.begin(), drawn);
+  ASSERT_NE(bitmap.at(drawn_index), 255);
+  ASSERT_NE(bitmap.surface(), nullptr);
+  const auto* surface_pixels =
+      static_cast<const uint8_t*>(bitmap.surface()->pixels);
+  const size_t surface_index =
+      (drawn_index / bitmap.width()) * bitmap.surface()->pitch +
+      (drawn_index % bitmap.width());
+  EXPECT_EQ(surface_pixels[surface_index], bitmap.at(drawn_index));
+  SDL_Palette* ghost_palette = platform::GetSurfacePalette(bitmap.surface());
+  ASSERT_NE(ghost_palette, nullptr);
+  const uint8_t color_index = bitmap.at(drawn_index);
+  EXPECT_EQ(ghost_palette->colors[color_index].r, room_palette[color_index].r);
+  EXPECT_EQ(ghost_palette->colors[color_index].g, room_palette[color_index].g);
+  EXPECT_EQ(ghost_palette->colors[color_index].b, room_palette[color_index].b);
+
+  ASSERT_EQ(gfx::Arena::Get().texture_command_queue_size(), 1);
+  handler_.CancelPlacement();
+  handler_.BeginPlacement();
+  EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 1);
 }
 
 // ============================================================================
