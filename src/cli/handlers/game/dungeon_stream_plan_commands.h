@@ -8,8 +8,10 @@
 
 namespace yaze::cli::handlers {
 
-// Read-only inventory and allocation-capacity diagnostics for manifest-owned
-// dungeon streams. This command never accepts --write.
+// Read-only inventory, alias/overlap, and free-space diagnostics for
+// manifest-owned dungeon streams. Despite its historical name, this command
+// neither accepts replacements nor emits an immutable move/write plan; that
+// replacement-aware output is pending.
 class DungeonStreamPlanCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const override { return "dungeon-stream-plan"; }

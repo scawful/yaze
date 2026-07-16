@@ -457,6 +457,67 @@ TEST(HackManifestTest, RejectsInvalidDungeonStreamPointerMetadata) {
   }
 }
 
+TEST(HackManifestTest, RejectsBank16PointerTableCrossingRuntimeCpuBank) {
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "sprites": {
+          "pointer_table":"0x09FF00",
+          "pointer_count":296,
+          "pointer_encoding":"bank16",
+          "pointer_bank":"0x09",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x098000","end":"0x099000"}],
+          "allocation_regions":[{"start":"0x098000","end":"0x099000"}]
+        }
+      })json"),
+                            "runtime CPU bank");
+}
+
+TEST(HackManifestTest, AcceptsBank16PointerTableEndingAtRuntimeBankEnd) {
+  HackManifest manifest;
+  const absl::Status status =
+      manifest.LoadFromString(ManifestWithDungeonStreams(R"json({
+        "sprites": {
+          "pointer_table":"0x09FDB0",
+          "pointer_count":296,
+          "pointer_encoding":"bank16",
+          "pointer_bank":"0x09",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x098000","end":"0x099000"}],
+          "allocation_regions":[{"start":"0x098000","end":"0x099000"}]
+        }
+      })json"));
+
+  ASSERT_TRUE(status.ok()) << status;
+  const auto* layout =
+      manifest.GetDungeonStreamLayout(DungeonStreamType::kSprites);
+  ASSERT_NE(layout, nullptr);
+  EXPECT_EQ((layout->pointer_table & 0xFFFFu) + layout->pointer_count * 2,
+            0x10000u);
+}
+
+TEST(HackManifestTest, AcceptsOracleSpritePointerTableAndAdjacentData) {
+  HackManifest manifest;
+  const absl::Status status =
+      manifest.LoadFromString(ManifestWithDungeonStreams(R"json({
+        "sprites": {
+          "pointer_table":"0x09D2B2",
+          "pointer_count":296,
+          "pointer_encoding":"bank16",
+          "pointer_bank":"0x09",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x09D502","end":"0x09EC9F"}],
+          "allocation_regions":[{"start":"0x09D502","end":"0x09EC9F"}]
+        }
+      })json"));
+
+  ASSERT_TRUE(status.ok()) << status;
+  const auto* layout =
+      manifest.GetDungeonStreamLayout(DungeonStreamType::kSprites);
+  ASSERT_NE(layout, nullptr);
+  EXPECT_EQ(layout->pointer_table + layout->pointer_count * 2,
+            layout->data_regions.front().start);
+}
+
 TEST(DungeonStreamLayoutAdapterTest,
      RejectsSpriteAllocationBeyondLegacySaveBoundary) {
   HackManifest manifest;

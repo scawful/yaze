@@ -414,6 +414,14 @@ absl::StatusOr<DungeonStreamLayout> ParseDungeonStreamLayout(
     return absl::InvalidArgumentError(absl::StrFormat(
         "%s pointer table extends beyond canonical LoROM address space", path));
   }
+  if (layout.pointer_encoding == DungeonPointerEncoding::kBank16) {
+    const uint64_t runtime_table_end =
+        static_cast<uint64_t>(layout.pointer_table & 0xFFFFu) + table_size;
+    if (runtime_table_end > 0x10000u) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s bank16 pointer table crosses its runtime CPU bank", path));
+    }
+  }
 
   return layout;
 }
