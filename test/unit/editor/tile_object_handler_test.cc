@@ -2,11 +2,18 @@
 #include "app/editor/dungeon/object_selection.h"
 #include "imgui/imgui.h"
 
-#include <gtest/gtest.h>
+#include <algorithm>
 #include <array>
+#include <vector>
+
+#include <gtest/gtest.h>
 
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
+#include "rom/rom.h"
+#include "rom/snes.h"
+#include "zelda3/dungeon/dungeon_block_codec.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -67,6 +74,34 @@ class TileObjectHandlerTest : public ::testing::Test {
     }
   }
 
+  void SetupBlockRom(const zelda3::PushableBlockEntry& entry) {
+    ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+    rooms_.SetRom(&rom_);
+
+    constexpr int kRegionPcs[4] = {0x113000, 0x113080, 0x113100, 0x113180};
+    constexpr int kOperands[4] = {
+        zelda3::kBlocksPointer1, zelda3::kBlocksPointer2,
+        zelda3::kBlocksPointer3, zelda3::kBlocksPointer4};
+    for (int region = 0; region < 4; ++region) {
+      const int operand = kOperands[region];
+      const uint32_t snes = PcToSnes(kRegionPcs[region]);
+      rom_.mutable_data()[operand - 1] = 0xBF;
+      rom_.mutable_data()[operand + 0] = snes & 0xFF;
+      rom_.mutable_data()[operand + 1] = (snes >> 8) & 0xFF;
+      rom_.mutable_data()[operand + 2] = (snes >> 16) & 0xFF;
+      rom_.mutable_data()[operand + 3] = 0x9D;
+    }
+
+    rom_.mutable_data()[zelda3::kBlocksLength] = 4;
+    rom_.mutable_data()[zelda3::kBlocksLength + 1] = 0;
+    const auto encoded = zelda3::EncodePushableBlockEntry(entry);
+    rom_.mutable_data()[kRegionPcs[0] + 0] = encoded.b1;
+    rom_.mutable_data()[kRegionPcs[0] + 1] = encoded.b2;
+    rom_.mutable_data()[kRegionPcs[0] + 2] = encoded.b3;
+    rom_.mutable_data()[kRegionPcs[0] + 3] = encoded.b4;
+  }
+
+  Rom rom_;
   DungeonRoomStore rooms_;
   ObjectSelection selection_;
   InteractionContext ctx_;
@@ -690,6 +725,57 @@ TEST_F(TileObjectHandlerTest, DuplicateObjects) {
   EXPECT_EQ(objects[1].y_, 18);
   EXPECT_EQ(objects[1].id_, 0x42);
   EXPECT_EQ(objects[1].size_, 0x03);
+}
+
+TEST_F(TileObjectHandlerTest,
+       NewBlockCopiesFromDuplicatePasteAndPlaceSurviveSaveReload) {
+  SetupBlockRom({/*room_id=*/0, /*px=*/10, /*py=*/20,
+                 /*draw_layer=*/1, /*behavior_layer=*/1});
+  auto& room = rooms_[0];
+  room.LoadBlocks();
+  ASSERT_EQ(room.GetTileObjects().size(), 1u);
+  ASSERT_EQ(room.GetTileObjects()[0].block_load_order(), 0);
+
+  const auto duplicate_indices = handler_.DuplicateObjects(0, {0}, 1, 0);
+  ASSERT_EQ(duplicate_indices, std::vector<size_t>({1}));
+
+  handler_.CopyObjectsToClipboard(0, {0});
+  const auto pasted_indices = handler_.PasteFromClipboard(0, 2, 0);
+  ASSERT_EQ(pasted_indices, std::vector<size_t>({2}));
+
+  const auto loaded_source = room.GetTileObjects()[0];
+  ASSERT_TRUE(handler_.PlaceObjectAt(0, loaded_source, 13, 20));
+  ASSERT_EQ(room.GetTileObjects().size(), 4u);
+  EXPECT_EQ(room.GetTileObjects()[0].block_load_order(), 0);
+  for (size_t index = 1; index < room.GetTileObjects().size(); ++index) {
+    EXPECT_EQ(room.GetTileObjects()[index].block_load_order(),
+              zelda3::RoomObject::kBlockLoadOrderNew)
+        << "new copy at index " << index << " must append instead of replacing";
+  }
+
+  // Ordinary movement must retain the original slot identity.
+  handler_.MoveObjects(0, {0}, 0, 1);
+  EXPECT_EQ(room.GetTileObjects()[0].block_load_order(), 0);
+
+  ASSERT_TRUE(zelda3::SaveAllBlocks(&rom_, zelda3::kNumberOfRooms,
+                                    [this](int room_id) -> const zelda3::Room* {
+                                      return rooms_.GetIfMaterialized(room_id);
+                                    })
+                  .ok());
+
+  zelda3::Room reopened(/*room_id=*/0, &rom_);
+  reopened.LoadBlocks();
+  ASSERT_EQ(reopened.GetTileObjects().size(), 4u);
+  std::vector<int> positions;
+  for (const auto& block : reopened.GetTileObjects()) {
+    positions.push_back(block.x());
+    EXPECT_EQ(block.GetLayerValue(), 1);
+    EXPECT_EQ(block.block_behavior_layer(), 1);
+  }
+  std::sort(positions.begin(), positions.end());
+  EXPECT_EQ(positions, std::vector<int>({10, 11, 12, 13}));
+  EXPECT_EQ(reopened.GetTileObjects()[0].y(), 21)
+      << "the original moved in place without losing its ROM slot";
 }
 
 // ============================================================================
