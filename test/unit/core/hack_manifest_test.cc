@@ -574,6 +574,57 @@ TEST(HackManifestTest, RejectsInvalidDungeonStreamRanges) {
         }
       })json"),
                             "not fully contained");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "sprites": {
+          "pointer_table":"0x038000",
+          "pointer_count":296,
+          "pointer_encoding":"bank16",
+          "pointer_bank":"0x09",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x0A8000","end":"0x0B8000"}],
+          "allocation_regions":[{"start":"0x0AE000","end":"0x0B8000"}]
+        }
+      })json"),
+                            "must stay within pointer_bank");
+}
+
+TEST(HackManifestTest, RejectsMirroredWramDungeonStreamAddresses) {
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0xFE8000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "WRAM bank");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0xFE8000","end":"0xFE9000"}],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "WRAM bank");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0xFE8000","end":"0xFE9000"}]
+        }
+      })json"),
+                            "WRAM bank");
 }
 
 TEST(HackManifestTest, RejectsCrossStreamDungeonRangeOverlap) {

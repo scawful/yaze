@@ -408,7 +408,9 @@ absl::StatusOr<DungeonStreamLayout> ParseDungeonStreamLayout(
   const uint64_t table_start_pc = SnesToPc(layout.pointer_table);
   const uint64_t table_size =
       pointer_width * static_cast<uint64_t>(layout.pointer_count);
-  if (table_size > kCanonicalLoRomSize - table_start_pc) {
+  const uint64_t table_end_pc = table_start_pc + table_size;
+  if (table_start_pc > kCanonicalLoRomSize ||
+      table_end_pc > kCanonicalLoRomSize) {
     return absl::InvalidArgumentError(absl::StrFormat(
         "%s pointer table extends beyond canonical LoROM address space", path));
   }
@@ -458,12 +460,14 @@ ParseDungeonStreamLayouts(const Json& root) {
     DungeonStreamLayout layout;
     ASSIGN_OR_RETURN(layout, ParseDungeonStreamLayout(stream, section[key]));
 
-    const uint32_t pointer_width =
+    const uint64_t pointer_width =
         layout.pointer_encoding == DungeonPointerEncoding::kLong24 ? 3 : 2;
-    const uint32_t table_start_pc = SnesToPc(layout.pointer_table);
-    const uint32_t table_end_pc =
-        table_start_pc + pointer_width * layout.pointer_count;
-    occupied_ranges.push_back({table_start_pc, table_end_pc,
+    const uint64_t table_start_pc = SnesToPc(layout.pointer_table);
+    const uint64_t table_end_pc =
+        table_start_pc +
+        pointer_width * static_cast<uint64_t>(layout.pointer_count);
+    occupied_ranges.push_back({static_cast<uint32_t>(table_start_pc),
+                               static_cast<uint32_t>(table_end_pc),
                                absl::StrFormat("%s.pointer_table", key)});
 
     for (size_t index = 0; index < layout.data_regions.size(); ++index) {

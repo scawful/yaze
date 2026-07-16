@@ -300,9 +300,9 @@ absl::StatusOr<uint32_t> DecodePointer(const Rom& rom,
         "Pointer word 0x%04X is not a LoROM address", snes & 0xFFFFu));
   }
   const uint8_t bank = static_cast<uint8_t>((snes >> 16) & 0xFFu);
-  if (bank == 0x7E || bank == 0x7F) {
-    return absl::FailedPreconditionError(absl::StrFormat(
-        "Pointer uses SNES WRAM bank 0x%02X instead of a ROM mirror", bank));
+  if (bank == 0x7E || bank == 0x7F || bank == 0xFE || bank == 0xFF) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Pointer uses SNES WRAM bank or mirror 0x%02X", bank));
   }
   const uint32_t pc = SnesToPc(snes);
   if (pc >= rom.size()) {
