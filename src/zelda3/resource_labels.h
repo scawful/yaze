@@ -72,6 +72,7 @@ class ResourceLabelProvider {
   void SetHackManifest(const core::HackManifest* manifest) {
     hack_manifest_ = manifest;
   }
+  const core::HackManifest* hack_manifest() const { return hack_manifest_; }
 
   /**
    * @brief Get a label for a resource by type and ID
