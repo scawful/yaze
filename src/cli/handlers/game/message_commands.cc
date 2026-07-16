@@ -117,6 +117,14 @@ std::string FormatManifestConflict(const core::WriteConflict& conflict) {
   return result;
 }
 
+bool IsCanonicalMappedLoRomAddress(uint32_t address) {
+  const uint8_t bank = static_cast<uint8_t>((address >> 16) & 0xFFu);
+  if (bank == 0x7E || bank == 0x7F || (address & 0xFFFFu) < 0x8000u) {
+    return false;
+  }
+  return PcToSnes(SnesToPc(address)) == address;
+}
+
 absl::StatusOr<ExpandedMutationContext> PreflightExpandedMutation(
     const resources::ArgumentParser& parser, const Rom& rom) {
   auto project_path = parser.GetString("project");
@@ -182,8 +190,8 @@ absl::StatusOr<ExpandedMutationContext> PreflightExpandedMutation(
   const auto& layout = manifest.message_layout();
   if (layout.data_start == 0 || layout.data_end == 0 ||
       layout.data_end < layout.data_start ||
-      (layout.data_start & 0xFFFFu) < 0x8000u ||
-      (layout.data_end & 0xFFFFu) < 0x8000u) {
+      !IsCanonicalMappedLoRomAddress(layout.data_start) ||
+      !IsCanonicalMappedLoRomAddress(layout.data_end)) {
     return absl::FailedPreconditionError(
         "Hack manifest does not define a valid LoROM expanded message region");
   }
