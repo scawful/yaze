@@ -2825,15 +2825,26 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
   //     preserved verbatim from `original_buffer`).
   //   - `appended`: blocks with `load_order == kBlockLoadOrderNew`,
   //     appended to the end in creation order.
+  struct EncodedBlock {
+    PushableBlockBytes bytes;
+    const RoomObject* source_object;
+  };
   std::unordered_set<uint16_t> owned_room_ids;
-  std::unordered_map<int, PushableBlockBytes> slot_replacements;
-  std::vector<PushableBlockBytes> appended;
+  std::unordered_map<int, EncodedBlock> slot_replacements;
+  std::vector<EncodedBlock> appended;
   for (int rid = 0; rid < room_count; ++rid) {
     const Room* room = room_lookup(rid);
     if (room == nullptr)
       continue;
-    if (!room->AreBlocksLoaded())
+    if (!room->AreBlocksLoaded()) {
+      if (room->blocks_dirty()) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Room 0x%03X has unsaved pushable-block edits, but its block "
+            "table is not loaded. Load the room's blocks before saving.",
+            rid));
+      }
       continue;  // Header-only — preserve its slots verbatim from ROM.
+    }
     owned_room_ids.insert(static_cast<uint16_t>(rid));
     for (const auto& obj : room->GetTileObjects()) {
       if ((obj.options() & ObjectOption::Block) != ObjectOption::Block)
@@ -2848,17 +2859,18 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
       encoded_entry.behavior_layer = obj.block_behavior_layer();
       const PushableBlockBytes encoded =
           EncodePushableBlockEntry(encoded_entry);
+      const EncodedBlock encoded_block{encoded, &obj};
       const int load_order = obj.block_load_order();
       if (load_order == RoomObject::kBlockLoadOrderNew) {
-        appended.push_back(encoded);
+        appended.push_back(encoded_block);
       } else if (load_order >= 0 && load_order < original_slot_count) {
         // First write wins: if a room loaded duplicate-load_order
         // entries (shouldn't happen but defensive), keep the first.
-        slot_replacements.emplace(load_order, encoded);
+        slot_replacements.emplace(load_order, encoded_block);
       } else {
         // load_order points outside the original buffer (e.g. ROM
         // changed under us). Treat as new.
-        appended.push_back(encoded);
+        appended.push_back(encoded_block);
       }
     }
   }
@@ -2867,6 +2879,17 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
   // materialized rooms and preserving the rest verbatim.
   std::vector<uint8_t> output;
   output.reserve(original_byte_len + appended.size() * 4);
+  std::vector<std::pair<const RoomObject*, int>> load_order_updates;
+  load_order_updates.reserve(slot_replacements.size() + appended.size());
+  const auto append_encoded_block =
+      [&output, &load_order_updates](const EncodedBlock& block) {
+        const int output_slot = static_cast<int>(output.size() / 4);
+        output.push_back(block.bytes.b1);
+        output.push_back(block.bytes.b2);
+        output.push_back(block.bytes.b3);
+        output.push_back(block.bytes.b4);
+        load_order_updates.emplace_back(block.source_object, output_slot);
+      };
   for (int slot = 0; slot < original_slot_count; ++slot) {
     const uint8_t b1 = original_buffer[slot * 4 + 0];
     const uint8_t b2 = original_buffer[slot * 4 + 1];
@@ -2878,10 +2901,7 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
         // shrinking the output.
         continue;
       }
-      output.push_back(it->second.b1);
-      output.push_back(it->second.b2);
-      output.push_back(it->second.b3);
-      output.push_back(it->second.b4);
+      append_encoded_block(it->second);
     } else {
       // Unmaterialized / header-only room: keep the original bytes.
       output.push_back(b1);
@@ -2893,11 +2913,22 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
   // Append newly-added blocks (load_order == kBlockLoadOrderNew) at the
   // tail in creation order. Anything in slot_replacements that didn't
   // match a slot was already routed to `appended` above.
-  for (const auto& nb : appended) {
-    output.push_back(nb.b1);
-    output.push_back(nb.b2);
-    output.push_back(nb.b3);
-    output.push_back(nb.b4);
+  for (const auto& block : appended) {
+    append_encoded_block(block);
+  }
+
+  // LoadAndBuildRoom's block scan is a do-while loop: it always reads the
+  // entry at $7EF940 before adding four and comparing against this byte
+  // length. A zero limit can therefore never terminate at the first boundary;
+  // the 16-bit index walks beyond the 0x200-byte WRAM table until it wraps.
+  // Fail before the first ROM write and keep edited rooms dirty rather than
+  // emitting a runtime-unsafe empty table.
+  if (output.empty()) {
+    return absl::FailedPreconditionError(
+        "Pushable-block table cannot be empty: ALTTP's runtime scan reads one "
+        "entry before comparing the byte-length limit. Keep at least one "
+        "pushable block, or patch the runtime loop before removing the last "
+        "entry.");
   }
 
   // Capacity check against the vanilla 128-entry cap.
@@ -2933,9 +2964,18 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
 
   RETURN_IF_ERROR(
       rom->WriteWord(kBlocksLength, static_cast<uint16_t>(total_bytes)));
+
+  // Deleting an entry compacts every following slot. Rebase each loaded
+  // object's identity to its committed output slot so a later no-op save does
+  // not try to replace the stale pre-compaction slot and silently drop it.
+  // This metadata stays untouched until every ROM write succeeds, matching
+  // the dirty-state failure contract below.
+  for (const auto& [object, load_order] : load_order_updates) {
+    const_cast<RoomObject*>(object)->set_block_load_order(load_order);
+  }
   for (int room_id = 0; room_id < room_count; ++room_id) {
     if (const Room* room = room_lookup(room_id);
-        room != nullptr && room->blocks_dirty()) {
+        room != nullptr && room->AreBlocksLoaded() && room->blocks_dirty()) {
       const_cast<Room*>(room)->ClearBlocksDirty();
     }
   }
