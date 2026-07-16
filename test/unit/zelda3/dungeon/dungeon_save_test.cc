@@ -550,6 +550,24 @@ TEST_F(DungeonSaveTest, SaveAllTorches_WritesLitBit) {
   EXPECT_EQ(rom_data[kTorchData + 5], 0xFF);
 }
 
+TEST_F(DungeonSaveTest, SaveAllTorches_RejectsLayerTwoWithoutMutatingRom) {
+  std::vector<Room> rooms(kNumberOfRooms);
+
+  RoomObject torch(0x150, 10, 20, 0, 2);
+  torch.set_options(ObjectOption::Torch);
+  rooms[1].AddTileObject(torch);
+  ASSERT_TRUE(rooms[1].torches_dirty());
+  const auto before = rom_->vector();
+
+  const auto status = SaveAllTorches(rom_.get(), rooms);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_NE(std::string(status.message()).find("special layer selector 2"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(rooms[1].torches_dirty());
+}
+
 TEST_F(DungeonSaveTest, SaveAllTorches_NoOpWhenUnchanged) {
   // Seed ROM with a torch blob identical to what SaveAllTorches would emit.
   // This should be a no-op (no writes) and keep the ROM clean.
@@ -1422,6 +1440,33 @@ TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_ClearsBlockDirtyAfterWrite) {
   EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 2], 0x14);
   EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], 0x4A);
   EXPECT_FALSE(room.blocks_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RejectsLayerTwoWithoutMutatingRom) {
+  SetupBlockRegions();
+  rom_->mutable_data()[kBlocksLength] = 0x00;
+  rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+
+  Room room(0, rom_.get());
+  room.LoadBlocks();
+  ASSERT_TRUE(room.AreBlocksLoaded());
+
+  RoomObject block(0x0E00, 10, 20, 0, 2);
+  block.set_options(ObjectOption::Block);
+  room.AddTileObject(block);
+  ASSERT_TRUE(room.blocks_dirty());
+  const auto before = rom_->vector();
+
+  const auto status = SaveAllBlocks(
+      rom_.get(), 1,
+      [&room](int rid) -> const Room* { return rid == 0 ? &room : nullptr; });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_NE(std::string(status.message()).find("special layer selector 2"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room.blocks_dirty());
 }
 
 TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_AllowsExactVanillaCapacity) {

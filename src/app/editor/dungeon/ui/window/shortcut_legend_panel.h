@@ -45,15 +45,15 @@ class ShortcutLegendPanel {
 
     ImGui::Spacing();
 
-    // ---- Layers ----
-    ImGui::TextDisabled(ICON_MD_LAYERS " Layers");
+    // ---- Stored placement ----
+    ImGui::TextDisabled(ICON_MD_LAYERS " Stored Placement");
     if (ImGui::BeginTable("##ShortcutsLayers", 2, kFlags)) {
       ImGui::TableSetupColumn("Action", ImGuiTableColumnFlags_WidthStretch);
       ImGui::TableSetupColumn("Shortcut", ImGuiTableColumnFlags_WidthFixed,
                               140);
-      ShortcutRow("Send to Layer 1", "1");
-      ShortcutRow("Send to Layer 2", "2");
-      ShortcutRow("Send to Layer 3", "3");
+      ShortcutRow("Primary / Upper layer (BG1)", "1");
+      ShortcutRow("BG2 overlay / Lower layer (BG2)", "2");
+      ShortcutRow("BG1 overlay stream (room objects)", "3");
       ShortcutRow("Bring to Front", "Ctrl+Shift+]");
       ShortcutRow("Send to Back", "Ctrl+Shift+[");
       ShortcutRow("Bring Forward", "Ctrl+]");
