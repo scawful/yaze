@@ -1,10 +1,10 @@
 #include "object_dimensions.h"
 
-#include <array>
 #include <limits>
 
 #include "core/features.h"
 #include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/moving_wall_semantics.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
@@ -105,16 +105,9 @@ std::pair<int, int> GetOpenChestPlatformDimensions(int size) {
   return {size_x * 2 + 10, size_y * 2 + 7};
 }
 
-constexpr std::array<int, 4> kMovingWallDirections = {5, 7, 11, 15};
-constexpr std::array<int, 4> kMovingWallObjectCounts = {8, 16, 24, 32};
-
-int GetMovingWallObjectCount(int size) {
-  return kMovingWallObjectCounts[size & 0x03];
-}
-
 std::pair<int, int> GetMovingWallDimensions(int size) {
-  const int direction = kMovingWallDirections[(size >> 2) & 0x03];
-  return {GetMovingWallObjectCount(size) + 3, direction * 2 + 6};
+  const int direction = moving_wall::DirectionForSize(size);
+  return {moving_wall::ObjectCountForSize(size) + 3, direction * 2 + 6};
 }
 }  // namespace
 
@@ -392,7 +385,7 @@ ObjectDimensionTable::SelectionBounds ObjectDimensionTable::GetSelectionBounds(
 
     // Moving wall west grows its fill left from the three-column platform.
     case 0xCD:
-      bounds.offset_x = -GetMovingWallObjectCount(size);
+      bounds.offset_x = -moving_wall::ObjectCountForSize(size);
       break;
 
     // Somaria line diagonal down-left (0xF86 / 0x206)

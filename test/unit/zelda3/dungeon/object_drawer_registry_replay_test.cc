@@ -17,6 +17,7 @@
 #include "rom/rom.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/dungeon_state.h"
+#include "zelda3/dungeon/moving_wall_semantics.h"
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room_object.h"
@@ -2892,16 +2893,14 @@ TEST(ObjectDrawerRegistryReplayTest,
   constexpr int kWestX = 36;
   constexpr int kEastX = 4;
   constexpr int kY = 4;
-  constexpr std::array<int, 4> kDirections = {5, 7, 11, 15};
-  constexpr std::array<int, 4> kCounts = {8, 16, 24, 32};
-
-  for (size_t direction_index = 0; direction_index < kDirections.size();
-       ++direction_index) {
-    for (size_t count_index = 0; count_index < kCounts.size(); ++count_index) {
+  for (size_t direction_index = 0;
+       direction_index < moving_wall::kDirections.size(); ++direction_index) {
+    for (size_t count_index = 0;
+         count_index < moving_wall::kObjectCounts.size(); ++count_index) {
       const uint8_t size =
           static_cast<uint8_t>((direction_index << 2) | count_index);
-      const int direction = kDirections[direction_index];
-      const int count = kCounts[count_index];
+      const int direction = moving_wall::kDirections[direction_index];
+      const int count = moving_wall::kObjectCounts[count_index];
       const int height = direction * 2 + 6;
       const size_t expected_writes = count * height + 9 + direction * 6;
 
