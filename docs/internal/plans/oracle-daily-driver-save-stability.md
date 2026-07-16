@@ -168,9 +168,12 @@ publishing the safety PR, also require:
 - A disposable Oracle build passed project-bundle verification (7/7) and
   object, sprite, and pot stream planning (296/296 valid slots for each kind,
   with zero issues or overlaps). Non-strict Oracle smoke also passed.
-- Strict readiness still fails only on the known content gap: D3 room `0x32`
-  has no authored custom collision. D4 rooms `0x25`/`0x27` and all four D6
-  track rooms pass.
+- Strict readiness reported only the known D3 content gap: room `0x32` has no
+  authored custom collision. Follow-up found that the passing D4 check does
+  not assert water-fill table membership; the old pipeline's second build had
+  dropped room `0x27` from that generated table. Oracle-of-Secrets PRs #107
+  and #109 preserve the tracked two-room table and add required-room
+  regression coverage. All four D6 track rooms pass.
 - The 50-cycle result is a focused pot persistence soak, not the complete
   daily-driver exit gate. Multi-domain edit cycles, backup restoration, a
   multi-hour GUI session, and Mesen room traversal remain required.
