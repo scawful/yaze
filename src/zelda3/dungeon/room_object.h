@@ -145,15 +145,13 @@ class RoomObject {
   auto options() const { return options_; }
   void set_options(ObjectOption options) { options_ = options; }
 
-  // For `ObjectOption::Block` objects only. Holds the original 0-based
-  // index of the corresponding 4-byte entry in the global pushable-block
-  // table at `SpecialUnderworldObjects_pushable_block` ($04:F1DE) at load
-  // time. Used by the `SaveAllBlocks` encoder to emit entries in the
-  // vanilla authoring order (which is interleaved across rooms; sorting
-  // by room_id would reshuffle bytes and break byte equality on no-op
-  // saves). User-added blocks have load_order == kBlockLoadOrderNew and
-  // are appended at the end in creation-order. Ignored for non-block
-  // objects.
+  // For `ObjectOption::Block` objects only. Holds the current committed
+  // 0-based index of the corresponding 4-byte global pushable-block entry.
+  // LoadBlocks initializes it from ROM; a successful structural save rebases
+  // it after deleted entries are compacted. This preserves vanilla's
+  // interleaved authoring order on later no-op saves. User-added blocks use
+  // kBlockLoadOrderNew until their first successful save assigns a committed
+  // tail slot. Ignored for non-block objects.
   int block_load_order() const { return block_load_order_; }
   void set_block_load_order(int order) { block_load_order_ = order; }
 
