@@ -176,29 +176,34 @@ TEST_F(DungeonEditorSystemIntegrationTest, UndoRedoFunctionality) {
 
 // Test save/load functionality
 TEST_F(DungeonEditorSystemIntegrationTest, SaveLoadFunctionality) {
-  // Set current room and capture the loaded baseline so the round-trip
-  // assertion measures save/reload preservation rather than absolute
-  // object count. Room::SaveObjects serializes the full tile_objects_
-  // vector (vanilla + inserts), so a successful save+reload should
-  // restore initial_count + 2 objects, not just the inserts.
+  // Vanilla object streams are tightly packed. Exercise an in-place edit with
+  // unchanged encoded size; growth is covered separately by fail-closed tests
+  // until the copy-on-write allocator is available.
   ASSERT_TRUE(dungeon_editor_system_->SetCurrentRoom(0x0000).ok());
 
   auto object_editor = dungeon_editor_system_->GetObjectEditor();
   ASSERT_NE(object_editor, nullptr);
   const size_t initial_count = object_editor->GetObjectCount();
+  ASSERT_GT(initial_count, 0u);
 
-  ASSERT_TRUE(object_editor->InsertObject(5, 5, 0x10, 0x0F, 0).ok());
-  ASSERT_TRUE(object_editor->InsertObject(10, 10, 0x20, 0x0F, 1).ok());
+  const auto& initial_object = object_editor->GetObjects().front();
+  const int moved_x = (initial_object.x() + 1) & 0x3F;
+  const int moved_y = (initial_object.y() + 1) & 0x3F;
+  ASSERT_TRUE(object_editor->MoveObject(0, moved_x, moved_y).ok());
+  ASSERT_TRUE(object_editor->GetRoom().object_stream_dirty());
 
   // Save room
-  ASSERT_TRUE(dungeon_editor_system_->SaveRoom(0x0000).ok());
+  const auto save_status = dungeon_editor_system_->SaveRoom(0x0000);
+  ASSERT_TRUE(save_status.ok()) << save_status.message();
 
   // Reload room
   ASSERT_TRUE(dungeon_editor_system_->ReloadRoom(0x0000).ok());
 
-  // Verify objects are still there
-  auto reloaded_objects = object_editor->GetObjects();
-  EXPECT_EQ(reloaded_objects.size(), initial_count + 2);
+  // Verify the edit and object count survived the round trip.
+  const auto& reloaded_objects = object_editor->GetObjects();
+  ASSERT_EQ(reloaded_objects.size(), initial_count);
+  EXPECT_EQ(reloaded_objects.front().x(), moved_x);
+  EXPECT_EQ(reloaded_objects.front().y(), moved_y);
 
   // Save entire dungeon
   ASSERT_TRUE(dungeon_editor_system_->SaveDungeon().ok());

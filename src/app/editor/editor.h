@@ -265,6 +265,14 @@ class Editor {
   // Save the editor state.
   virtual absl::Status Save() = 0;
 
+  // Coordinated-save lifecycle. Editors that clear model-level dirty state
+  // during Save() can override these hooks to checkpoint and restore it when a
+  // later serializer, validation gate, backup, or disk write fails. Default
+  // implementations keep existing editors source-compatible.
+  virtual absl::Status BeginSaveTransaction() { return absl::OkStatus(); }
+  virtual void RollbackSaveTransaction() {}
+  virtual void CommitSaveTransaction() {}
+
   // Update the editor state, ran every frame.
   virtual absl::Status Update() = 0;
 

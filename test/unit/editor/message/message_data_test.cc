@@ -211,6 +211,17 @@ TEST(MessageParseResultTest, ReportsNewlineWarning) {
   EXPECT_FALSE(result.warnings.empty());
 }
 
+TEST(MessageParseResultTest, RejectsOutOfRangeDictionaryIndex) {
+  auto last_valid = ParseMessageToDataWithDiagnostics("[D:60]");
+  EXPECT_TRUE(last_valid.ok());
+
+  auto first_invalid = ParseMessageToDataWithDiagnostics("[D:61]");
+  EXPECT_FALSE(first_invalid.ok());
+
+  auto wrapped_invalid = ParseMessageToDataWithDiagnostics("[D:FF]");
+  EXPECT_FALSE(wrapped_invalid.ok());
+}
+
 // ===========================================================================
 // Message Bundle Tests
 // ===========================================================================
@@ -399,6 +410,9 @@ TEST(FindMatchingElementTest, DictionaryToken) {
   elem = FindMatchingElement("[D:3F]");
   ASSERT_TRUE(elem.Active);
   EXPECT_EQ(elem.Value, DICTOFF + 0x3F);
+
+  elem = FindMatchingElement("[D:61]");
+  EXPECT_FALSE(elem.Active);
 }
 
 TEST(FindMatchingElementTest, InvalidToken) {
@@ -934,6 +948,33 @@ TEST(ExpandedBankTest, ReadExpandedTextDataEmpty) {
   auto messages =
       ReadExpandedTextData(rom_data.data(), kExpandedTextDataDefault);
   EXPECT_TRUE(messages.empty());
+}
+
+TEST(ExpandedBankTest, ReadExpandedTextDataHonorsInclusiveEnd) {
+  std::vector<uint8_t> rom_data(64, 0x00);
+  constexpr int kStart = 8;
+  rom_data[kStart + 0] = 0x00;  // A
+  rom_data[kStart + 1] = 0x7F;  // first message terminator / inclusive end
+  rom_data[kStart + 2] = 0x01;  // B, outside configured region
+  rom_data[kStart + 3] = 0x7F;
+  rom_data[kStart + 4] = 0xFF;
+
+  auto messages = ReadExpandedTextData(rom_data.data(), kStart, kStart + 1);
+  ASSERT_EQ(messages.size(), 1u);
+  EXPECT_EQ(messages[0].ContentsParsed, "A");
+}
+
+TEST(ExpandedBankTest, BankCommandDoesNotEscapeExpandedRegion) {
+  std::vector<uint8_t> rom_data(64, 0x00);
+  constexpr int kStart = 8;
+  rom_data[kStart + 0] = kBankSwitchCommand;
+  rom_data[kStart + 1] = 0x01;  // B
+  rom_data[kStart + 2] = kMessageTerminator;
+  rom_data[kStart + 3] = 0xFF;
+
+  auto messages = ReadExpandedTextData(rom_data.data(), kStart, kStart + 3);
+  ASSERT_EQ(messages.size(), 1u);
+  EXPECT_EQ(messages[0].ContentsParsed, "[BANK]B");
 }
 
 TEST(ExpandedBankTest, WriteExpandedTextData) {

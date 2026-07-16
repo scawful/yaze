@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <future>
 #include <iostream>
+#include <limits>
 #include <ostream>
 #include <set>
 #include <string>
@@ -32,6 +33,100 @@
 #include "zelda3/overworld/overworld_version_helper.h"
 
 namespace yaze::zelda3 {
+
+namespace {
+
+struct Map32StorageLayout {
+  std::array<int, 4> destinations{};
+  int storage_bytes_per_quadrant = 0;
+  int definition_capacity = 0;
+  bool expanded = false;
+};
+
+absl::StatusOr<Map32StorageLayout> ResolveMap32StorageLayout(
+    const Rom& rom, const zelda3_version_pointers& version_constants) {
+  const auto profile = DetectOverworldRomProfile(rom);
+
+  Map32StorageLayout layout;
+  layout.expanded = profile.has_expanded_tile32;
+  layout.destinations = {
+      static_cast<int>(version_constants.kMap32TileTL),
+      layout.expanded ? GetMap32TileTRExpanded()
+                      : static_cast<int>(version_constants.kMap32TileTR),
+      layout.expanded ? GetMap32TileBLExpanded()
+                      : static_cast<int>(version_constants.kMap32TileBL),
+      layout.expanded ? GetMap32TileBRExpanded()
+                      : static_cast<int>(version_constants.kMap32TileBR),
+  };
+
+  int usable_bytes = Map32StorageBytesForProfile(profile);
+  for (int destination : layout.destinations) {
+    if (destination < 0 || static_cast<size_t>(destination) >= rom.size()) {
+      return absl::OutOfRangeError(absl::StrFormat(
+          "Tile32 destination 0x%06X is outside the ROM", destination));
+    }
+    const size_t available = rom.size() - static_cast<size_t>(destination);
+    usable_bytes = std::min(usable_bytes,
+                            static_cast<int>(std::min<size_t>(
+                                available, std::numeric_limits<int>::max())));
+  }
+
+  // ROM EOF is not the only boundary: quadrant tables must not grow into the
+  // next configured destination. This matters for layouts such as the JP ROM,
+  // whose vanilla TL/TR and BL/BR spans are 0x33C0 rather than 0x33F0 bytes.
+  auto ordered_destinations = layout.destinations;
+  std::sort(ordered_destinations.begin(), ordered_destinations.end());
+  for (size_t i = 1; i < ordered_destinations.size(); ++i) {
+    const int span = ordered_destinations[i] - ordered_destinations[i - 1];
+    if (span <= 0) {
+      return absl::FailedPreconditionError(
+          "Tile32 destinations overlap or share the same address");
+    }
+    usable_bytes = std::min(usable_bytes, span);
+  }
+
+  // A partial packed group cannot store any additional definitions.
+  usable_bytes -= usable_bytes % kMap32BytesPerPackedGroup;
+  if (usable_bytes <= 0) {
+    return absl::ResourceExhaustedError(
+        "Tile32 destinations have no usable packed storage");
+  }
+
+  layout.storage_bytes_per_quadrant = usable_bytes;
+  layout.definition_capacity =
+      Map32DefinitionCapacityForStorageBytes(usable_bytes);
+  return layout;
+}
+
+absl::Status ValidateMap32DefinitionCount(size_t definition_count,
+                                          const Map32StorageLayout& layout) {
+  if (definition_count % kMap32DefinitionsPerPackedGroup != 0) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Tile32 definition count %zu is not aligned to a packed group of %d",
+        definition_count, kMap32DefinitionsPerPackedGroup));
+  }
+  if (definition_count > static_cast<size_t>(layout.definition_capacity)) {
+    return absl::ResourceExhaustedError(absl::StrFormat(
+        "Number of unique Tiles32: %zu Out of: %d\n"
+        "Unique Tile32 count exceeds the %s destination capacity; the ROM has "
+        "not been written",
+        definition_count, layout.definition_capacity,
+        layout.expanded ? "expanded" : "vanilla"));
+  }
+
+  const size_t required_bytes =
+      (definition_count / kMap32DefinitionsPerPackedGroup) *
+      kMap32BytesPerPackedGroup;
+  if (required_bytes > static_cast<size_t>(layout.storage_bytes_per_quadrant)) {
+    return absl::ResourceExhaustedError(absl::StrFormat(
+        "Tile32 definitions require %zu bytes per quadrant; destination "
+        "capacity is %d bytes",
+        required_bytes, layout.storage_bytes_per_quadrant));
+  }
+  return absl::OkStatus();
+}
+
+}  // namespace
 
 absl::Status Overworld::Load(Rom* rom) {
   gfx::ScopedTimer timer("Overworld::Load");
@@ -1304,9 +1399,8 @@ absl::Status Overworld::Save(Rom* rom) {
   RETURN_IF_ERROR(SaveMapOverlays())
   RETURN_IF_ERROR(SaveOverworldTilesType())
   RETURN_IF_ERROR(SaveDiggableTiles())
-  RETURN_IF_ERROR(SaveAreaSpecificBGColors())
   RETURN_IF_ERROR(SaveMusic())
-  RETURN_IF_ERROR(SaveAreaSizes())
+  RETURN_IF_ERROR(SaveCustomOverworldData())
   return absl::OkStatus();
 }
 
@@ -2538,6 +2632,9 @@ absl::Status Overworld::CreateTile32Tilemap() {
   tiles32_unique_.clear();
   tiles32_list_.clear();
 
+  ASSIGN_OR_RETURN(const auto storage_layout,
+                   ResolveMap32StorageLayout(*rom(), version_constants()));
+
   // Get all tiles16 and packs them into tiles32
   std::vector<uint64_t> all_tile_16 = GetAllTile16(map_tiles_);
 
@@ -2570,35 +2667,33 @@ absl::Status Overworld::CreateTile32Tilemap() {
     tiles32_unique_.emplace_back(padding_tile.GetPackedValue());
   }
 
-  if (tiles32_unique_.size() > LimitOfMap32) {
-    return absl::InternalError(absl::StrFormat(
-        "Number of unique Tiles32: %d Out of: %d\nUnique Tile32 count exceed "
-        "the limit\nThe ROM Has not been saved\nYou can fill maps with grass "
-        "tiles to free some space\nOr use the option Clear DW Tiles in the "
-        "Overworld Menu",
-        unique_tiles.size(), LimitOfMap32));
-  }
+  RETURN_IF_ERROR(
+      ValidateMap32DefinitionCount(tiles32_unique_.size(), storage_layout));
 
   if (core::FeatureFlags::get().kLogToConsole) {
     std::cout << "Number of unique Tiles32: " << tiles32_unique_.size()
               << " Saved:" << tiles32_unique_.size()
-              << " Out of: " << LimitOfMap32 << std::endl;
-  }
-
-  int v = tiles32_unique_.size();
-  for (int i = v; i < LimitOfMap32; i++) {
-    gfx::Tile32 padding_tile(420, 420, 420, 420);
-    tiles32_unique_.emplace_back(padding_tile.GetPackedValue());
+              << " Out of: " << storage_layout.definition_capacity << std::endl;
   }
 
   return absl::OkStatus();
 }
 
 absl::Status Overworld::SaveMap32Expanded() {
+  ASSIGN_OR_RETURN(const auto storage_layout,
+                   ResolveMap32StorageLayout(*rom(), version_constants()));
+  if (!storage_layout.expanded) {
+    return absl::FailedPreconditionError(
+        "Expanded Tile32 save requested for a vanilla Tile32 layout");
+  }
+  // Capacity and alignment must be checked before updating relocation pointers
+  // or writing any quadrant bytes.
+  RETURN_IF_ERROR(
+      ValidateMap32DefinitionCount(tiles32_unique_.size(), storage_layout));
+
   const int bottomLeft = GetMap32TileBLExpanded();
   const int bottomRight = GetMap32TileBRExpanded();
   const int topRight = GetMap32TileTRExpanded();
-  int limit = 0x8A80;
 
   // Updates the pointers too for the tile32
   // Top Right
@@ -2625,15 +2720,12 @@ absl::Status Overworld::SaveMap32Expanded() {
   RETURN_IF_ERROR(rom()->WriteLong(0x017788, PcToSnes(bottomRight + 4)));
   RETURN_IF_ERROR(rom()->WriteLong(0x01779A, PcToSnes(bottomRight + 5)));
 
-  constexpr int kTilesPer32x32Tile = 6;
   int unique_tile_index = 0;
-  int num_unique_tiles = tiles32_unique_.size();
+  const int encoded_bytes = static_cast<int>(tiles32_unique_.size() /
+                                             kMap32DefinitionsPerPackedGroup) *
+                            kMap32BytesPerPackedGroup;
 
-  for (int i = 0; i < num_unique_tiles; i += kTilesPer32x32Tile) {
-    if (unique_tile_index >= limit) {
-      return absl::AbortedError("Too many unique tile32 definitions.");
-    }
-
+  for (int i = 0; i < encoded_bytes; i += kMap32BytesPerPackedGroup) {
     // Top Left.
     auto top_left = version_constants().kMap32TileTL;
     RETURN_IF_ERROR(rom()->WriteByte(
@@ -2750,17 +2842,21 @@ absl::Status Overworld::SaveMap32Expanded() {
 
 absl::Status Overworld::SaveMap32Tiles() {
   util::logf("Saving Map32 Tiles");
-  constexpr int kMaxUniqueTiles = 0x4540;
-  constexpr int kTilesPer32x32Tile = 6;
+  ASSIGN_OR_RETURN(const auto storage_layout,
+                   ResolveMap32StorageLayout(*rom(), version_constants()));
+  if (storage_layout.expanded) {
+    return absl::FailedPreconditionError(
+        "Vanilla Tile32 save requested for an expanded Tile32 layout");
+  }
+  RETURN_IF_ERROR(
+      ValidateMap32DefinitionCount(tiles32_unique_.size(), storage_layout));
 
   int unique_tile_index = 0;
-  int num_unique_tiles = tiles32_unique_.size();
+  const int encoded_bytes = static_cast<int>(tiles32_unique_.size() /
+                                             kMap32DefinitionsPerPackedGroup) *
+                            kMap32BytesPerPackedGroup;
 
-  for (int i = 0; i < num_unique_tiles; i += kTilesPer32x32Tile) {
-    if (unique_tile_index >= kMaxUniqueTiles) {
-      return absl::AbortedError("Too many unique tile32 definitions.");
-    }
-
+  for (int i = 0; i < encoded_bytes; i += kMap32BytesPerPackedGroup) {
     // Top Left.
     auto top_left = version_constants().kMap32TileTL;
 
@@ -2871,7 +2967,6 @@ absl::Status Overworld::SaveMap32Tiles() {
                    0x0F))));
 
     unique_tile_index += 4;
-    num_unique_tiles += 2;
   }
 
   return absl::OkStatus();
@@ -3181,70 +3276,80 @@ absl::Status Overworld::SaveCustomOverworldASM(bool enable_bg_color,
 
   util::logf("Applying Custom Overworld ASM");
 
+  const auto write_enable_flag = [this](int address,
+                                        bool enabled) -> absl::Status {
+    ASSIGN_OR_RETURN(const uint8_t current, rom()->ReadByte(address));
+    if ((current != 0x00) == enabled) {
+      return absl::OkStatus();
+    }
+    return rom()->WriteByte(address, enabled ? 0xFF : 0x00);
+  };
+
   // v2+ features: BG color, main palette enable flags
   if (OverworldVersionHelper::SupportsCustomBGColors(cached_version_)) {
-    uint8_t enable_value = enable_bg_color ? 0xFF : 0x00;
-    RETURN_IF_ERROR(
-        rom()->WriteByte(OverworldCustomAreaSpecificBGEnabled, enable_value));
-
-    enable_value = enable_main_palette ? 0xFF : 0x00;
-    RETURN_IF_ERROR(
-        rom()->WriteByte(OverworldCustomMainPaletteEnabled, enable_value));
+    RETURN_IF_ERROR(write_enable_flag(OverworldCustomAreaSpecificBGEnabled,
+                                      enable_bg_color));
+    RETURN_IF_ERROR(write_enable_flag(OverworldCustomMainPaletteEnabled,
+                                      enable_main_palette));
 
     // Write the main palette table
-    for (int i = 0; i < kNumOverworldMaps; i++) {
-      RETURN_IF_ERROR(rom()->WriteByte(OverworldCustomMainPaletteArray + i,
-                                       overworld_maps_[i].main_palette()));
+    if (enable_main_palette) {
+      for (int i = 0; i < kNumOverworldMaps; i++) {
+        RETURN_IF_ERROR(rom()->WriteByte(OverworldCustomMainPaletteArray + i,
+                                         overworld_maps_[i].main_palette()));
+      }
     }
   }
 
   // v3+ features: mosaic, gfx groups, animated, overlays
   if (OverworldVersionHelper::SupportsAreaEnum(cached_version_)) {
-    uint8_t enable_value = enable_mosaic ? 0xFF : 0x00;
     RETURN_IF_ERROR(
-        rom()->WriteByte(OverworldCustomMosaicEnabled, enable_value));
-
-    enable_value = enable_gfx_groups ? 0xFF : 0x00;
+        write_enable_flag(OverworldCustomMosaicEnabled, enable_mosaic));
+    RETURN_IF_ERROR(write_enable_flag(OverworldCustomTileGFXGroupEnabled,
+                                      enable_gfx_groups));
     RETURN_IF_ERROR(
-        rom()->WriteByte(OverworldCustomTileGFXGroupEnabled, enable_value));
-
-    enable_value = enable_animated ? 0xFF : 0x00;
-    RETURN_IF_ERROR(
-        rom()->WriteByte(OverworldCustomAnimatedGFXEnabled, enable_value));
-
-    enable_value = enable_subscreen_overlay ? 0xFF : 0x00;
-    RETURN_IF_ERROR(
-        rom()->WriteByte(OverworldCustomSubscreenOverlayEnabled, enable_value));
+        write_enable_flag(OverworldCustomAnimatedGFXEnabled, enable_animated));
+    RETURN_IF_ERROR(write_enable_flag(OverworldCustomSubscreenOverlayEnabled,
+                                      enable_subscreen_overlay));
 
     // Write the mosaic table
-    for (int i = 0; i < kNumOverworldMaps; i++) {
-      const auto& mosaic = overworld_maps_[i].mosaic_expanded();
-      // .... udlr bit format
-      uint8_t mosaic_byte = (mosaic[0] ? 0x08 : 0x00) |  // up
-                            (mosaic[1] ? 0x04 : 0x00) |  // down
-                            (mosaic[2] ? 0x02 : 0x00) |  // left
-                            (mosaic[3] ? 0x01 : 0x00);   // right
+    if (enable_mosaic) {
+      for (int i = 0; i < kNumOverworldMaps; i++) {
+        const auto& mosaic = overworld_maps_[i].mosaic_expanded();
+        // .... udlr bit format
+        uint8_t mosaic_byte = (mosaic[0] ? 0x08 : 0x00) |  // up
+                              (mosaic[1] ? 0x04 : 0x00) |  // down
+                              (mosaic[2] ? 0x02 : 0x00) |  // left
+                              (mosaic[3] ? 0x01 : 0x00);   // right
 
-      RETURN_IF_ERROR(
-          rom()->WriteByte(OverworldCustomMosaicArray + i, mosaic_byte));
+        RETURN_IF_ERROR(
+            rom()->WriteByte(OverworldCustomMosaicArray + i, mosaic_byte));
+      }
     }
 
-    // Write the main and animated gfx tiles table
-    for (int i = 0; i < kNumOverworldMaps; i++) {
-      for (int j = 0; j < 8; j++) {
-        RETURN_IF_ERROR(
-            rom()->WriteByte(OverworldCustomTileGFXGroupArray + (i * 8) + j,
-                             overworld_maps_[i].custom_tileset(j)));
+    if (enable_gfx_groups) {
+      for (int i = 0; i < kNumOverworldMaps; i++) {
+        for (int j = 0; j < 8; j++) {
+          RETURN_IF_ERROR(
+              rom()->WriteByte(OverworldCustomTileGFXGroupArray + (i * 8) + j,
+                               overworld_maps_[i].custom_tileset(j)));
+        }
       }
-      RETURN_IF_ERROR(rom()->WriteByte(OverworldCustomAnimatedGFXArray + i,
-                                       overworld_maps_[i].animated_gfx()));
+    }
+    if (enable_animated) {
+      for (int i = 0; i < kNumOverworldMaps; i++) {
+        RETURN_IF_ERROR(rom()->WriteByte(OverworldCustomAnimatedGFXArray + i,
+                                         overworld_maps_[i].animated_gfx()));
+      }
     }
 
     // Write the subscreen overlay table
-    for (int i = 0; i < kNumOverworldMaps; i++) {
-      RETURN_IF_ERROR(
-          rom()->WriteShort(OverworldCustomSubscreenOverlayArray + (i * 2),
-                            overworld_maps_[i].subscreen_overlay()));
+    if (enable_subscreen_overlay) {
+      for (int i = 0; i < kNumOverworldMaps; i++) {
+        RETURN_IF_ERROR(
+            rom()->WriteShort(OverworldCustomSubscreenOverlayArray + (i * 2),
+                              overworld_maps_[i].subscreen_overlay()));
+      }
     }
   }
 
@@ -3266,6 +3371,37 @@ absl::Status Overworld::SaveAreaSpecificBGColors() {
         OverworldCustomAreaSpecificBGPalette + (i * 2), bg_color));
   }
 
+  return absl::OkStatus();
+}
+
+absl::Status Overworld::SaveCustomOverworldData() {
+  if (!rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  cached_version_ = OverworldVersionHelper::GetVersion(*rom_);
+  if (cached_version_ == OverworldVersion::kVanilla ||
+      cached_version_ == OverworldVersion::kZSCustomV1) {
+    return absl::OkStatus();
+  }
+
+  const auto enabled = [this](int address) {
+    return ReadRomByteOr(*rom_, address, 0x00) != 0x00;
+  };
+  const bool bg_color_enabled = enabled(OverworldCustomAreaSpecificBGEnabled);
+  const bool main_palette_enabled = enabled(OverworldCustomMainPaletteEnabled);
+  const bool mosaic_enabled = enabled(OverworldCustomMosaicEnabled);
+  const bool gfx_groups_enabled = enabled(OverworldCustomTileGFXGroupEnabled);
+  const bool subscreen_overlay_enabled =
+      enabled(OverworldCustomSubscreenOverlayEnabled);
+  const bool animated_enabled = enabled(OverworldCustomAnimatedGFXEnabled);
+  RETURN_IF_ERROR(SaveCustomOverworldASM(
+      bg_color_enabled, main_palette_enabled, mosaic_enabled,
+      gfx_groups_enabled, subscreen_overlay_enabled, animated_enabled));
+  if (bg_color_enabled) {
+    RETURN_IF_ERROR(SaveAreaSpecificBGColors());
+  }
+  RETURN_IF_ERROR(SaveAreaSizes());
   return absl::OkStatus();
 }
 

@@ -1,5 +1,6 @@
 #include "core/project.h"
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -32,6 +33,22 @@ class ScopedTempDir {
 
  private:
   std::filesystem::path path_;
+};
+
+class ScopedCurrentPath {
+ public:
+  explicit ScopedCurrentPath(const std::filesystem::path& path)
+      : original_path_(std::filesystem::current_path()) {
+    std::filesystem::current_path(path);
+  }
+
+  ~ScopedCurrentPath() {
+    std::error_code ec;
+    std::filesystem::current_path(original_path_, ec);
+  }
+
+ private:
+  std::filesystem::path original_path_;
 };
 
 void WriteTextFile(const std::filesystem::path& path, const std::string& data) {
@@ -244,19 +261,89 @@ hack_manifest_file=hack_manifest.json
 37=Thieves' Town
 )");
 
-  YazeProject project;
-  ASSERT_TRUE(project.Open(project_file.string()).ok());
-  EXPECT_FALSE(project.hack_manifest.loaded());
-  ASSERT_TRUE(project.hack_manifest.HasProjectRegistry());
+  {
+    ScopedCurrentPath current_path(temp.path());
+    const auto relative_project_file = project_file.filename();
+    ASSERT_FALSE(relative_project_file.is_absolute());
 
-  ASSERT_TRUE(project.resource_labels.contains("room"));
-  EXPECT_EQ(project.resource_labels["room"]["37"], "Water Grate");
+    YazeProject project;
+    ASSERT_TRUE(project.Open(relative_project_file.string()).ok());
+    EXPECT_TRUE(std::filesystem::path(project.filepath).is_absolute());
+    EXPECT_FALSE(project.hack_manifest.loaded());
+    ASSERT_TRUE(project.hack_manifest.HasProjectRegistry());
 
-  ASSERT_TRUE(project.Save().ok());
+    ASSERT_TRUE(project.resource_labels.contains("room"));
+    EXPECT_EQ(project.resource_labels["room"]["37"], "Water Grate");
+
+    ASSERT_TRUE(project.Save().ok());
+  }
   const auto saved = ReadTextFile(project_file);
   EXPECT_NE(saved.find("[labels_room]"), std::string::npos);
   EXPECT_NE(saved.find("37=Water Grate"), std::string::npos);
   EXPECT_EQ(saved.find("37=Thieves' Town"), std::string::npos);
+}
+
+TEST(ProjectPathsTest, ExplicitMissingHackManifestDoesNotUseFallback) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_manifest_paths"));
+
+  WriteTextFile(temp.path() / "rom.sfc", "not a real rom");
+  WriteTextFile(temp.path() / "hack_manifest.json", "{}");
+
+  const auto project_file = temp.path() / "Oracle.yaze";
+  WriteTextFile(project_file,
+                R"(
+[project]
+name=Oracle of Secrets
+
+[files]
+rom_filename=rom.sfc
+hack_manifest_file=manifests/missing.json
+)");
+
+  YazeProject project;
+  ASSERT_TRUE(project.Open(project_file.string()).ok());
+
+  const auto missing_manifest = temp.path() / "manifests" / "missing.json";
+  EXPECT_EQ(project.hack_manifest_file, missing_manifest.string());
+  EXPECT_FALSE(project.hack_manifest.loaded());
+
+  const auto validation = project.Validate();
+  EXPECT_FALSE(validation.ok());
+  EXPECT_NE(validation.message().find("Hack manifest file does not exist"),
+            std::string::npos);
+
+  const auto missing_files = project.GetMissingFiles();
+  EXPECT_NE(std::find(missing_files.begin(), missing_files.end(),
+                      missing_manifest.string()),
+            missing_files.end());
+}
+
+TEST(ProjectPathsTest, ExplicitMalformedHackManifestFailsValidation) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_malformed_manifest"));
+
+  WriteTextFile(temp.path() / "rom.sfc", "not a real rom");
+  WriteTextFile(temp.path() / "manifests" / "broken.json", "{not-json");
+  WriteTextFile(temp.path() / "hack_manifest.json", "{}");
+
+  const auto project_file = temp.path() / "Oracle.yaze";
+  WriteTextFile(project_file,
+                R"(
+[project]
+name=Oracle of Secrets
+
+[files]
+rom_filename=rom.sfc
+hack_manifest_file=manifests/broken.json
+)");
+
+  YazeProject project;
+  ASSERT_TRUE(project.Open(project_file.string()).ok());
+  EXPECT_FALSE(project.hack_manifest.loaded());
+
+  const auto validation = project.Validate();
+  EXPECT_FALSE(validation.ok());
+  EXPECT_NE(validation.message().find("Hack manifest file failed to load"),
+            std::string::npos);
 }
 
 }  // namespace yaze::project

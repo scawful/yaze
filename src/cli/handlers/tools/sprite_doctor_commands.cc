@@ -44,7 +44,7 @@ void ValidateSpritePointerTable(Rom* rom, DiagnosticReport& report,
 
     // Validate pointer points to valid sprite data region
     if (sprite_addr < zelda3::kSpritesData ||
-        sprite_addr >= zelda3::kSpritesEndData) {
+        sprite_addr >= zelda3::kSpritesDataEndExclusive) {
       if (verbose || invalid_count < 10) {
         DiagnosticFinding finding;
         finding.id = "invalid_sprite_ptr";

@@ -20,12 +20,37 @@ constexpr int kRoomObjectPointer = 0x874C;        // Object data pointer (Long)
 constexpr int kRoomHeaderPointer = 0xB5DD;        // Room header pointer (LONG)
 constexpr int kRoomHeaderPointerBank = 0xB5E7;    // Room header bank byte
 
+struct DungeonObjectDataRegion {
+  int begin;
+  int end;
+};
+
+// Half-open ZScream room-object sections. In-place saves may use the containing
+// section's end as a physical boundary when there is no later room pointer.
+constexpr std::array<DungeonObjectDataRegion, 5> kDungeonObjectDataRegions = {{
+    {0x050008, 0x053730},
+    {0x0F878A, 0x100000},
+    {0x01EB90, 0x020000},
+    {0x138000, 0x140000},
+    {0x148000, 0x150000},
+}};
+
+constexpr int GetDungeonObjectDataRegionEnd(int pc_address) {
+  for (const auto& region : kDungeonObjectDataRegions) {
+    if (pc_address >= region.begin && pc_address < region.end) {
+      return region.end;
+    }
+  }
+  return -1;
+}
+
 // === Palette Data ===
 constexpr int kDungeonsMainBgPalettePointers = 0xDEC4B;  // JP Same
 constexpr int kDungeonsPalettes = 0xDD734;               // Dungeon palette data
 
 // === Item & Sprite Data ===
 constexpr int kRoomItemsPointers = 0xDB69;      // JP 0xDB67
+constexpr int kRoomItemsDataEnd = 0xE6B2;       // Exclusive PC boundary
 constexpr int kRoomsSpritePointer = 0x4C298;    // JP Same (2-byte bank 09D62E)
 constexpr int kSpriteBlocksetPointer = 0x5B57;  // Sprite graphics pointer
 
@@ -42,8 +67,14 @@ constexpr int kBlocksPointer3 = 0x15B08;  // Block data pointer 3
 constexpr int kBlocksPointer4 = 0x15B0F;  // Block data pointer 4
 
 // === Chests ===
-constexpr int kChestsLengthPointer = 0xEBF6;  // Chest count pointer
-constexpr int kChestsDataPointer1 = 0xEBFB;   // Chest data start
+// The value at kChestsLengthPointer is a byte length, not a record count.
+// Vanilla reserves 0x01F8 bytes: 168 records at 3 bytes per record.
+constexpr int kChestsLengthPointer = 0xEBF6;
+constexpr int kChestsDataPointer1 = 0xEBFB;  // Chest data start
+constexpr int kChestTableRecordSize = 3;
+constexpr int kChestTableCapacityRecords = 168;
+constexpr int kChestTableCapacityBytes =
+    kChestTableRecordSize * kChestTableCapacityRecords;
 
 // === Torches ===
 constexpr int kTorchData = 0x2736A;            // JP 0x2704A
@@ -87,7 +118,9 @@ constexpr int kDoorPosRight = 0x19C6;         // Door position (right)
 // === Sprites ===
 constexpr int kSpritesData = 0x4D8B0;           // Sprite data start
 constexpr int kSpritesDataEmptyRoom = 0x4D8AE;  // Empty room sprite marker
-constexpr int kSpritesEndData = 0x4EC9E;        // Sprite data end
+constexpr int kSpritesEndData = 0x4EC9E;        // Last valid data byte
+constexpr int kSpritesDataEndExclusive =
+    kSpritesEndData + 1;  // Half-open sprite data boundary
 constexpr int kDungeonSpritePointers =
     0x090000;  // Dungeon sprite pointer table
 
