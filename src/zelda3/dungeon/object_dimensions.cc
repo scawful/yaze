@@ -791,9 +791,8 @@ void ObjectDimensionTable::InitializeDefaults() {
     dimensions_[id] = {3, 1, Dir::Horizontal, 1, false};
   }
 
-  // 0xB5: Weird 2x4 (uses 4x2 downwards routine)
-  dimensions_[0xB5] = {4, 0, Dir::Vertical, 2, false};
-  dimensions_[0xB5].zero_size_override = 26;
+  // 0xB5: Weird 2x4 - GetSize_1to16, repeated horizontally.
+  dimensions_[0xB5] = {2, 4, Dir::Horizontal, 2, false};
 
   // 0xB6-0xB7: Rightwards 2x4
   for (int id = 0xB6; id <= 0xB7; id++) {
