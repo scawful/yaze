@@ -134,8 +134,7 @@ class DungeonOraclePreflightCommandHandler : public resources::CommandHandler {
   // Probes --report path writability before the formatter starts.
   // Called by CommandHandler::Run() before formatter.BeginObject(), so a
   // failure here produces zero stdout output (pure stderr + non-zero exit).
-  absl::Status ValidateArgs(
-      const resources::ArgumentParser& parser) override;
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;

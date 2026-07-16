@@ -19,8 +19,8 @@ namespace yaze::cli::handlers {
 
 using json = nlohmann::json;
 
-resources::CommandHandler::Descriptor
-OracleSmokeCheckCommandHandler::Describe() const {
+resources::CommandHandler::Descriptor OracleSmokeCheckCommandHandler::Describe()
+    const {
   Descriptor desc;
   desc.display_name = "Oracle Smoke Check";
   desc.summary =
@@ -63,8 +63,7 @@ absl::Status OracleSmokeCheckCommandHandler::ValidateArgs(
   // Probe --report path before the formatter opens. Failure here emits nothing
   // to stdout (only stderr + non-zero exit), preserving the contract that
   // stdout is valid iff exit code is 0.
-  if (auto rp = parser.GetString("report");
-      rp.has_value() && !rp->empty()) {
+  if (auto rp = parser.GetString("report"); rp.has_value() && !rp->empty()) {
     const std::filesystem::path rp_path(*rp);
     std::error_code ec;
     const bool existed_before = std::filesystem::exists(rp_path, ec);
@@ -138,8 +137,7 @@ absl::Status OracleSmokeCheckCommandHandler::Execute(
     d4_opts.validate_water_fill_table = false;
     d4_opts.validate_custom_collision_maps = false;
     d4_opts.room_ids_requiring_custom_collision = {0x25, 0x27};
-    const auto d4_required =
-        zelda3::RunOracleRomSafetyPreflight(rom, d4_opts);
+    const auto d4_required = zelda3::RunOracleRomSafetyPreflight(rom, d4_opts);
     d4_required_ok = d4_required.ok();
     d4_readiness_state = "ran";
   }
@@ -152,19 +150,17 @@ absl::Status OracleSmokeCheckCommandHandler::Execute(
   // structural check above).
   DungeonMinecartAuditCommandHandler minecart_handler;
   std::string d6_out;
-  const bool d6_ok =
-      minecart_handler
-          .Run({"--rooms=0xA8,0xB8,0xD8,0xDA", "--include-track-objects",
-                "--format=json"},
-               rom, &d6_out)
-          .ok();
+  const bool d6_ok = minecart_handler
+                         .Run({"--rooms=0xA8,0xB8,0xD8,0xDA",
+                               "--include-track-objects", "--format=json"},
+                              rom, &d6_out)
+                         .ok();
 
   // Count D6 rooms with non-empty track_object_subtypes from audit output.
   int track_rooms_found = 0;
   {
     const auto d6_doc = json::parse(d6_out, nullptr, false);
-    if (!d6_doc.is_discarded() &&
-        d6_doc.contains("Dungeon Minecart Audit")) {
+    if (!d6_doc.is_discarded() && d6_doc.contains("Dungeon Minecart Audit")) {
       for (const auto& room :
            d6_doc["Dungeon Minecart Audit"].value("rooms", json::array())) {
         if (!room.value("track_object_subtypes", json::array()).empty()) {
@@ -187,8 +183,7 @@ absl::Status OracleSmokeCheckCommandHandler::Execute(
     d3_opts.validate_water_fill_table = false;
     d3_opts.validate_custom_collision_maps = false;
     d3_opts.room_ids_requiring_custom_collision = {0x32};
-    const auto d3_required =
-        zelda3::RunOracleRomSafetyPreflight(rom, d3_opts);
+    const auto d3_required = zelda3::RunOracleRomSafetyPreflight(rom, d3_opts);
     d3_ok = d3_required.ok();
     d3_readiness_state = "ran";
   }
@@ -263,8 +258,7 @@ absl::Status OracleSmokeCheckCommandHandler::Execute(
   formatter.BeginObject("d4_zora_temple");
   formatter.AddField("structural_ok", d4_structural_ok);
   formatter.AddField("water_fill_rooms_ok", d4_water_fill_rooms_ok);
-  formatter.AddField("required_rooms_check",
-                     std::string(d4_readiness_state));
+  formatter.AddField("required_rooms_check", std::string(d4_readiness_state));
   if (collision_write_support) {
     formatter.AddField("required_rooms_ok", d4_required_ok);
   }
@@ -290,8 +284,7 @@ absl::Status OracleSmokeCheckCommandHandler::Execute(
   // ------------------------------------------------------------------
   // Write report file (always written, pass or fail)
   // ------------------------------------------------------------------
-  if (auto rp = parser.GetString("report");
-      rp.has_value() && !rp->empty()) {
+  if (auto rp = parser.GetString("report"); rp.has_value() && !rp->empty()) {
     std::ofstream report_file(
         *rp, std::ios::out | std::ios::binary | std::ios::trunc);
     if (!report_file.is_open()) {
