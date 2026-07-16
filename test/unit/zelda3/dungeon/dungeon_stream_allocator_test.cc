@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <iomanip>
 #include <memory>
 #include <string>
 #include <vector>
@@ -199,6 +200,199 @@ TEST_F(DungeonStreamAllocatorTest, RejectsPcRangesThatMapThroughWramBanks) {
   EXPECT_EQ(inventory.status().code(), absl::StatusCode::kInvalidArgument);
   EXPECT_NE(std::string(inventory.status().message()).find("WRAM"),
             std::string::npos);
+}
+
+TEST_F(DungeonStreamAllocatorTest, RejectsDirectAndMirroredWramPointerBanks) {
+  const auto layout = ObjectLayout(1, {kObjectData, kObjectData + 0x20});
+
+  for (const uint8_t bank : {0x7E, 0x7F, 0xFE, 0xFF}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "bank=0x" << std::hex << static_cast<int>(bank));
+    WriteLong(kObjectTable, (static_cast<uint32_t>(bank) << 16) | 0x8000);
+
+    const auto inventory = InventoryDungeonStreams(*rom_, layout);
+
+    ASSERT_TRUE(inventory.ok()) << inventory.status();
+    ASSERT_FALSE(inventory->ok());
+    ASSERT_EQ(inventory->issues.size(), 1u);
+    EXPECT_EQ(inventory->issues[0].code,
+              DungeonStreamIssueCode::kInvalidPointer);
+    EXPECT_NE(inventory->issues[0].message.find("WRAM"), std::string::npos)
+        << inventory->issues[0].message;
+  }
+}
+
+TEST_F(DungeonStreamAllocatorTest,
+       RejectsPointerTableOverlapWithLivePointerSource) {
+  auto layout = ObjectLayout(1, {kObjectData, kObjectData + 0x20});
+  layout.pointer_table_pc = kRoomObjectPointer;
+
+  const auto inventory = InventoryDungeonStreams(*rom_, layout);
+
+  EXPECT_EQ(inventory.status().code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_NE(inventory.status().message().find("live pointer-table source"),
+            std::string::npos);
+}
+
+TEST_F(DungeonStreamAllocatorTest,
+       RejectsDataRangeOverlapWithLivePointerSource) {
+  const auto layout =
+      ObjectLayout(1, {kRoomObjectPointer, kRoomObjectPointer + 0x20});
+
+  const auto inventory = InventoryDungeonStreams(*rom_, layout);
+
+  EXPECT_EQ(inventory.status().code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_NE(inventory.status().message().find("live pointer-table source"),
+            std::string::npos);
+}
+
+TEST_F(DungeonStreamAllocatorTest,
+       RejectsPointerTableOverlapWithObjectDoorMetadata) {
+  auto layout = ObjectLayout(1, {kObjectData, kObjectData + 0x20});
+  layout.pointer_table_pc = kDoorPointers;
+
+  const auto inventory = InventoryDungeonStreams(*rom_, layout);
+
+  EXPECT_EQ(inventory.status().code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_NE(inventory.status().message().find("door-pointer table"),
+            std::string::npos);
+}
+
+TEST_F(DungeonStreamAllocatorTest,
+       RejectsDataRangeOverlapWithObjectDoorMetadata) {
+  const auto layout = ObjectLayout(1, {kDoorPointers, kDoorPointers + 0x20});
+
+  const auto inventory = InventoryDungeonStreams(*rom_, layout);
+
+  EXPECT_EQ(inventory.status().code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_NE(inventory.status().message().find("door-pointer table"),
+            std::string::npos);
+}
+
+TEST_F(DungeonStreamAllocatorTest, RejectsPointerTableAndDataRangeOverlap) {
+  const auto layout = ObjectLayout(1, {kObjectTable, kObjectTable + 0x20});
+
+  const auto inventory = InventoryDungeonStreams(*rom_, layout);
+
+  EXPECT_EQ(inventory.status().code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_NE(inventory.status().message().find("overlap the pointer table"),
+            std::string::npos);
+}
+
+TEST_F(DungeonStreamAllocatorTest,
+       RejectsRomWithoutCompleteObjectDoorPointerTable) {
+  constexpr uint32_t kCompleteDoorTableEnd = kDoorPointers + kNumberOfRooms * 3;
+  ASSERT_TRUE(
+      rom_->LoadFromData(std::vector<uint8_t>(kCompleteDoorTableEnd - 1, 0))
+          .ok());
+  const auto layout = ObjectLayout(1, {kObjectData, kObjectData + 0x20});
+
+  const auto inventory = InventoryDungeonStreams(*rom_, layout);
+
+  EXPECT_EQ(inventory.status().code(), absl::StatusCode::kOutOfRange);
+  EXPECT_NE(
+      inventory.status().message().find("Complete object door-pointer table"),
+      std::string::npos);
+}
+
+TEST_F(DungeonStreamAllocatorTest,
+       AllowsExactAdjacencyAroundLivePointerSource) {
+  constexpr uint32_t kTable = kRoomObjectPointer - 3;
+  constexpr uint32_t kData = kRoomObjectPointer + 3;
+  DungeonStreamLayout layout;
+  layout.kind = DungeonStreamKind::kObject;
+  layout.pointer_table_pc = kTable;
+  layout.pointer_count = 1;
+  layout.pointer_encoding = DungeonPointerEncoding::kLong24;
+  layout.data_ranges = {{kData, kData + 8}};
+  WriteLong(kRoomObjectPointer, PcToSnes(kTable));
+  WriteLong(kTable, PcToSnes(kData));
+  WriteBytes(kData, {0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+
+  const auto inventory = InventoryDungeonStreams(*rom_, layout);
+
+  ASSERT_TRUE(inventory.ok()) << inventory.status();
+  EXPECT_TRUE(inventory->ok());
+}
+
+TEST_F(DungeonStreamAllocatorTest,
+       AllowsExactAdjacencyAroundObjectDoorMetadata) {
+  constexpr uint32_t kCompleteDoorTableEnd = kDoorPointers + kNumberOfRooms * 3;
+  constexpr uint32_t kTable = kDoorPointers - 3;
+  constexpr uint32_t kData = kCompleteDoorTableEnd;
+  DungeonStreamLayout layout;
+  layout.kind = DungeonStreamKind::kObject;
+  layout.pointer_table_pc = kTable;
+  layout.pointer_count = 1;
+  layout.pointer_encoding = DungeonPointerEncoding::kLong24;
+  layout.data_ranges = {{kData, kData + 8}};
+  WriteLong(kRoomObjectPointer, PcToSnes(kTable));
+  WriteLong(kTable, PcToSnes(kData));
+  WriteBytes(kData, {0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+
+  const auto inventory = InventoryDungeonStreams(*rom_, layout);
+
+  ASSERT_TRUE(inventory.ok()) << inventory.status();
+  EXPECT_TRUE(inventory->ok());
+}
+
+TEST_F(DungeonStreamAllocatorTest,
+       RejectsFixedBankPointerTableCrossingRuntimeCpuBank) {
+  auto layout = SpriteLayout(296, {kSpriteData, kSpriteData + 0x20});
+  layout.pointer_table_pc = SnesToPc(0x09FF00);
+  WriteWord(kRoomsSpritePointer, 0xFF00);
+
+  const auto inventory = InventoryDungeonStreams(*rom_, layout);
+
+  EXPECT_EQ(inventory.status().code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_NE(inventory.status().message().find("runtime CPU bank"),
+            std::string::npos);
+}
+
+TEST_F(DungeonStreamAllocatorTest,
+       AllowsFixedBankPointerTableEndingExactlyAtRuntimeBankEnd) {
+  auto layout = SpriteLayout(296, {kSpriteData, kSpriteData + 0x20});
+  layout.pointer_table_pc = SnesToPc(0x09FDB0);
+  WriteWord(kRoomsSpritePointer, 0xFDB0);
+  WriteBytes(kSpriteData, {0x00, 0xFF});
+  for (uint32_t room_id = 0; room_id < layout.pointer_count; ++room_id) {
+    SetPointer(layout, room_id, kSpriteData);
+  }
+
+  const auto inventory = InventoryDungeonStreams(*rom_, layout);
+
+  ASSERT_TRUE(inventory.ok()) << inventory.status();
+  EXPECT_TRUE(inventory->ok());
+  EXPECT_EQ(inventory->streams.size(), 296u);
+}
+
+TEST_F(DungeonStreamAllocatorTest,
+       AcceptsOracleSpritePointerTableAndAdjacentDataLayout) {
+  constexpr uint32_t kOraclePointerTableSnes = 0x09D2B2;
+  constexpr uint32_t kOracleDataStartSnes = 0x09D502;
+  constexpr uint32_t kOracleDataEndSnes = 0x09EC9F;
+  DungeonStreamLayout layout;
+  layout.kind = DungeonStreamKind::kSprite;
+  layout.pointer_table_pc = SnesToPc(kOraclePointerTableSnes);
+  layout.pointer_count = 296;
+  layout.pointer_encoding = DungeonPointerEncoding::kFixedBank16;
+  layout.pointer_bank = 0x09;
+  layout.data_ranges = {
+      {SnesToPc(kOracleDataStartSnes), SnesToPc(kOracleDataEndSnes)}};
+  layout.allocation_ranges = layout.data_ranges;
+  WriteWord(kRoomsSpritePointer, kOraclePointerTableSnes & 0xFFFFu);
+  WriteBytes(SnesToPc(kOracleDataStartSnes), {0x00, 0xFF});
+  for (uint32_t room_id = 0; room_id < layout.pointer_count; ++room_id) {
+    SetPointer(layout, room_id, SnesToPc(kOracleDataStartSnes));
+  }
+
+  const auto inventory = InventoryDungeonStreams(*rom_, layout);
+
+  ASSERT_TRUE(inventory.ok()) << inventory.status();
+  EXPECT_TRUE(inventory->ok());
+  EXPECT_EQ(inventory->streams.size(), 296u);
+  EXPECT_EQ(layout.pointer_table_pc + layout.pointer_count * 2,
+            layout.data_ranges.front().begin);
 }
 
 TEST_F(DungeonStreamAllocatorTest,

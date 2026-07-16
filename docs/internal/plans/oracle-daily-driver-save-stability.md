@@ -68,8 +68,11 @@ not move all remaining dungeon or overworld polish into the `0.7.2` release.
 4. [x] Deterministically repack all pot pointers/streams inside a declared
    region.
 5. [x] Detach and relocate sprite streams inside declared bank `$09` capacity.
-6. [x] Add `z3ed` dry-run diagnostics for planned moves, aliases, and free
-   space.
+6. [x] Add read-only `z3ed` inventory diagnostics for aliases, overlaps, and
+   manifest-owned free space.
+7. [ ] Add replacement-aware immutable move/write-plan output. The current
+   `dungeon-stream-plan` command accepts no replacement payloads and does not
+   predict moves from inventory alone.
 
 **Estimate:** 4-5 full-time weeks for an allocator beta; 6-8 full-time weeks
 including OOS soak and emulator verification. At 10-15 hours/week, plan on
@@ -151,7 +154,9 @@ publishing the safety PR, also require:
   exact write fence before clearing dirty state.
 - The read-only `z3ed dungeon-stream-plan` command inventories the current OOS
   ROM as 296/296 valid object, sprite, and pot-item entries with zero parse
-  issues. The live run left both editable and patched ROM hashes unchanged.
+  issues. It reports aliases, overlaps, and free-space capacity, but does not
+  yet emit replacement-aware immutable moves. The live run left both editable
+  and patched ROM hashes unchanged.
 - The focused manifest, allocator, dungeon-save, sprite-relocation, CLI, and
   editor-persistence regression set passes 142/142 tests.
 - At this snapshot, pot items remained `repack_all` and failed closed for

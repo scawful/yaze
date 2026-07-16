@@ -101,12 +101,22 @@ Both `DungeonEditorV2` and `OverworldEditor` utilize the manifest before perform
 Ranges are half-open SNES LoROM addresses. `long24` pointer tables omit
 `pointer_bank`; `bank16` tables require it. Supported strategies are
 `copy_on_write` and `repack_all`. Allocation ranges must be contained in data
-ranges, and pointer/data ranges for different stream kinds may not overlap.
-Addresses in SNES WRAM banks `$7E`/`$7F` are rejected rather than treated as
-ROM locations; this also applies to normalized `pointer_bank` mirrors
-`$FE`/`$FF`. Until sprite stream discovery becomes layout-aware, sprite
-allocation ranges must end at or before the legacy exclusive boundary
+ranges. Pointer tables and data ranges must remain disjoint from each other,
+from the live object/sprite pointer-source operands, and, for objects, from the
+complete 296-entry door-pointer table. Exact half-open adjacency is valid.
+`bank16` pointer tables must also fit completely within the runtime CPU bank
+that contains their first byte. Pointer/data ranges for different stream kinds
+may not overlap. Addresses in SNES WRAM banks `$7E`/`$7F` are rejected rather
+than treated as ROM locations; this also applies to normalized `pointer_bank`
+mirrors `$FE`/`$FF`. Until sprite stream discovery becomes layout-aware,
+sprite allocation ranges must end at or before the legacy exclusive boundary
 `$09EC9F`.
+
+The historically named `z3ed dungeon-stream-plan` command is currently a
+read-only inventory diagnostic: it reports aliases, overlaps, occupied ranges,
+and manifest-owned free-space capacity. It does not accept replacement payloads
+or emit their immutable move/write plan. Replacement-aware move output remains
+pending rather than being inferred from inventory alone.
 
 ## Developer Workflow
 
