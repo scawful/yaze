@@ -1725,6 +1725,86 @@ TEST_F(DungeonSaveTest,
       << "Failed saves must not commit pending slot identities.";
 }
 
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_PreflightsNewRegionOperandBeforeWriting) {
+  SetupBlockRegions();
+  rom_->mutable_data()[kBlocksLength] = 0x00;
+  rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+  std::fill_n(rom_->mutable_data() + kBlocksRegion1Pc, 0x80, 0x11);
+
+  // The original empty table only needs region 1. Growth to 33 entries needs
+  // region 2, whose operand points at unrelated but otherwise in-range data.
+  // A malformed loader opcode must be caught before region 1 is written.
+  constexpr int kUnrelatedPc = 0x120000;
+  WriteLongPointer(kBlocksPointer2, PcToSnes(kUnrelatedPc));
+  rom_->mutable_data()[kBlocksPointer2 - 1] = 0xEA;  // Not LDA.l.
+  std::fill_n(rom_->mutable_data() + kUnrelatedPc, 4, 0x77);
+
+  Room room(0, rom_.get());
+  room.LoadBlocks();
+  ASSERT_TRUE(room.AreBlocksLoaded());
+  constexpr int kEntriesRequiringSecondRegion = 33;
+  for (int i = 0; i < kEntriesRequiringSecondRegion; ++i) {
+    room.AddTileObject(MakePushableBlock(i % 64, (i * 3) % 64, i % 2));
+  }
+  rom_->ClearDirty();
+  const auto before = rom_->vector();
+
+  const auto status = SaveAllBlocks(rom_.get(), 1, [&room](int room_id) {
+    return room_id == 0 ? &room : nullptr;
+  });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("LDA.l ...,X / STA.w"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_FALSE(rom_->dirty());
+  EXPECT_TRUE(room.blocks_dirty());
+  EXPECT_TRUE(std::all_of(
+      room.GetTileObjects().begin(), room.GetTileObjects().end(),
+      [](const RoomObject& block) {
+        return block.block_load_order() == RoomObject::kBlockLoadOrderNew;
+      }));
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_PreflightsNewRegionRangeBeforeWriting) {
+  SetupBlockRegions();
+  rom_->mutable_data()[kBlocksLength] = 0x00;
+  rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+  std::fill_n(rom_->mutable_data() + kBlocksRegion1Pc, 0x80, 0x22);
+
+  // Keep the region-2 loader instruction shape valid but point it beyond this
+  // fixture ROM. The saver must reject the destination before writing region 1.
+  WriteLongPointer(kBlocksPointer2, 0xFFFFFF);
+
+  Room room(0, rom_.get());
+  room.LoadBlocks();
+  ASSERT_TRUE(room.AreBlocksLoaded());
+  constexpr int kEntriesRequiringSecondRegion = 33;
+  for (int i = 0; i < kEntriesRequiringSecondRegion; ++i) {
+    room.AddTileObject(MakePushableBlock(i % 64, (i * 3) % 64, i % 2));
+  }
+  rom_->ClearDirty();
+  const auto before = rom_->vector();
+
+  const auto status = SaveAllBlocks(rom_.get(), 1, [&room](int room_id) {
+    return room_id == 0 ? &room : nullptr;
+  });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kOutOfRange);
+  EXPECT_NE(std::string(status.message()).find("data region out of range"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_FALSE(rom_->dirty());
+  EXPECT_TRUE(room.blocks_dirty());
+  EXPECT_TRUE(std::all_of(
+      room.GetTileObjects().begin(), room.GetTileObjects().end(),
+      [](const RoomObject& block) {
+        return block.block_load_order() == RoomObject::kBlockLoadOrderNew;
+      }));
+}
+
 TEST_F(DungeonSaveTest, LoadBlocks_ReadsFromDereferencedPointerRegion) {
   // Loader/saver invariant: `kBlocksPointer1..4` are 3-byte SNES
   // long-address operand slots embedded in the bank_02 LDA.l
