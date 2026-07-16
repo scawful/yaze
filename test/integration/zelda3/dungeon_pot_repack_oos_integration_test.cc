@@ -243,18 +243,22 @@ bool IsCanonicalEmptyPotStream(const std::vector<uint8_t>& stream) {
 }
 
 template <typename Predicate>
-const DungeonStreamAliasGroup* FindCanonicalEmptyAlias(
+std::vector<uint32_t> CollectCanonicalEmptyAliasRooms(
     const DungeonStreamInventory& inventory, Predicate&& is_empty) {
+  std::vector<uint32_t> room_ids;
   for (const DungeonStreamAliasGroup& alias : inventory.aliases) {
     const DungeonStreamRecord* record =
         alias.room_ids.empty()
             ? nullptr
             : FindRoomRecord(inventory, alias.room_ids.front());
     if (record != nullptr && is_empty(record->encoded_stream)) {
-      return &alias;
+      room_ids.insert(room_ids.end(), alias.room_ids.begin(),
+                      alias.room_ids.end());
     }
   }
-  return nullptr;
+  std::sort(room_ids.begin(), room_ids.end());
+  room_ids.erase(std::unique(room_ids.begin(), room_ids.end()), room_ids.end());
+  return room_ids;
 }
 
 std::vector<uint32_t> IntersectRoomIds(const std::vector<uint32_t>& first,
@@ -288,6 +292,20 @@ bool CoordinateIsOccupied(const Room& room, int x, int y) {
                      [x, y](const PotItem& item) {
                        return item.GetTileX() == x && item.GetTileY() == y;
                      });
+}
+
+std::vector<std::pair<uint8_t, uint8_t>> FindUsableCoordinates(const Room& room,
+                                                               size_t count) {
+  std::vector<std::pair<uint8_t, uint8_t>> positions;
+  for (int y = 8; y <= 24 && positions.size() < count; y += 4) {
+    for (int x = 8; x <= 24 && positions.size() < count; x += 4) {
+      if (!CoordinateIsOccupied(room, x, y)) {
+        positions.emplace_back(static_cast<uint8_t>(x),
+                               static_cast<uint8_t>(y));
+      }
+    }
+  }
+  return positions;
 }
 
 absl::StatusOr<DungeonStreamLayout> LoadManifestLayout(
@@ -356,6 +374,33 @@ absl::StatusOr<DungeonStreamLayout> LoadManifestLayout(
     }
   }
   return ::testing::AssertionSuccess();
+}
+
+TEST(DungeonPotRepackOosHelpersTest,
+     CollectsEveryMatchingCanonicalEmptyAliasGroup) {
+  DungeonStreamInventory inventory;
+  auto add_stream = [&inventory](uint32_t room_id,
+                                 std::vector<uint8_t> encoded_stream) {
+    DungeonStreamRecord record;
+    record.room_id = room_id;
+    record.encoded_stream = std::move(encoded_stream);
+    inventory.streams.push_back(std::move(record));
+  };
+  add_stream(1, {0x01, 0xFF});
+  add_stream(2, {0xFF, 0xFF});
+  add_stream(3, {0x01, 0xFF});
+  add_stream(4, {0xFF, 0xFF});
+  add_stream(6, {0xFF, 0xFF});
+  add_stream(8, {0xFF, 0xFF});
+  inventory.aliases = {
+      {0x1000, {1, 3}},
+      {0x2000, {2, 4}},
+      {0x3000, {6, 8}},
+  };
+
+  EXPECT_EQ(
+      CollectCanonicalEmptyAliasRooms(inventory, IsCanonicalEmptyPotStream),
+      std::vector<uint32_t>({2, 4, 6, 8}));
 }
 
 class DungeonPotRepackOosIntegrationTest : public ::testing::Test {
@@ -672,25 +717,28 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   ASSERT_EQ(sprite_before->streams.size(), kOracleRoomCount);
   ASSERT_EQ(pot_before->streams.size(), kOracleRoomCount);
 
-  const DungeonStreamAliasGroup* object_empty =
-      FindCanonicalEmptyAlias(*object_before, IsCanonicalEmptyObjectStream);
-  const DungeonStreamAliasGroup* sprite_empty =
-      FindCanonicalEmptyAlias(*sprite_before, IsCanonicalEmptySpriteStream);
-  const DungeonStreamAliasGroup* pot_empty =
-      FindCanonicalEmptyAlias(*pot_before, IsCanonicalEmptyPotStream);
-  ASSERT_NE(object_empty, nullptr)
+  const std::vector<uint32_t> object_empty_rooms =
+      CollectCanonicalEmptyAliasRooms(*object_before,
+                                      IsCanonicalEmptyObjectStream);
+  const std::vector<uint32_t> sprite_empty_rooms =
+      CollectCanonicalEmptyAliasRooms(*sprite_before,
+                                      IsCanonicalEmptySpriteStream);
+  const std::vector<uint32_t> pot_empty_rooms =
+      CollectCanonicalEmptyAliasRooms(*pot_before, IsCanonicalEmptyPotStream);
+  ASSERT_FALSE(object_empty_rooms.empty())
       << "Oracle ROM has no shared canonical-empty object stream";
-  ASSERT_NE(sprite_empty, nullptr)
+  ASSERT_FALSE(sprite_empty_rooms.empty())
       << "Oracle ROM has no shared canonical-empty sprite stream";
-  ASSERT_NE(pot_empty, nullptr)
+  ASSERT_FALSE(pot_empty_rooms.empty())
       << "Oracle ROM has no shared canonical-empty pot stream";
 
-  const std::vector<uint32_t> common_empty_rooms = IntersectRoomIds(
-      object_empty->room_ids, sprite_empty->room_ids, pot_empty->room_ids);
+  const std::vector<uint32_t> common_empty_rooms =
+      IntersectRoomIds(object_empty_rooms, sprite_empty_rooms, pot_empty_rooms);
   ASSERT_FALSE(common_empty_rooms.empty())
       << "Oracle ROM has no room shared by all three canonical-empty aliases";
 
   int selected_room = -1;
+  std::vector<std::pair<uint8_t, uint8_t>> free_positions;
   DungeonValidator validator;
   for (uint32_t room_id : common_empty_rooms) {
     Room probe = LoadRoomFromRom(&rom, static_cast<int>(room_id));
@@ -701,11 +749,19 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
         !validator.ValidateRoom(probe).is_valid) {
       continue;
     }
+    std::vector<std::pair<uint8_t, uint8_t>> candidate_positions =
+        FindUsableCoordinates(probe, 2);
+    if (candidate_positions.size() != 2) {
+      continue;
+    }
     selected_room = static_cast<int>(room_id);
+    free_positions = std::move(candidate_positions);
     break;
   }
   ASSERT_GE(selected_room, 0)
-      << "No canonical-empty intersection room passed editor validation";
+      << "No canonical-empty intersection room passed editor validation and "
+         "coordinate checks";
+  ASSERT_EQ(free_positions.size(), 2u);
   RecordProperty("multidomain_room", absl::StrFormat("0x%03X", selected_room));
 
   DungeonSaveFlagsGuard flags_guard;
@@ -726,18 +782,6 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   ASSERT_TRUE(edited_room.ArePotItemsLoaded());
   ASSERT_TRUE(edited_room.GetSprites().empty());
   ASSERT_TRUE(edited_room.GetPotItems().empty());
-
-  std::vector<std::pair<uint8_t, uint8_t>> free_positions;
-  for (int y = 8; y <= 24 && free_positions.size() < 2; y += 4) {
-    for (int x = 8; x <= 24 && free_positions.size() < 2; x += 4) {
-      if (!CoordinateIsOccupied(edited_room, x, y)) {
-        free_positions.emplace_back(static_cast<uint8_t>(x),
-                                    static_cast<uint8_t>(y));
-      }
-    }
-  }
-  ASSERT_EQ(free_positions.size(), 2u)
-      << "Could not find two free editor coordinates in the selected room";
 
   RoomObject replacement_object(0x10, free_positions[0].first,
                                 free_positions[0].second, 0, 0);
@@ -903,15 +947,17 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
     EXPECT_NE(sprite_after_selected->data_pc, sprite_before_selected->data_pc);
     EXPECT_NE(pot_after_selected->data_pc, pot_before_selected->data_pc);
 
-    for (const auto* alias : {object_empty, sprite_empty, pot_empty}) {
-      const DungeonStreamInventory* after_inventory =
-          alias == object_empty
-              ? &*object_after
-              : (alias == sprite_empty ? &*sprite_after : &*pot_after);
+    const std::pair<const DungeonStreamInventory*, const std::vector<uint32_t>*>
+        empty_domains[] = {
+            {&*object_after, &object_empty_rooms},
+            {&*sprite_after, &sprite_empty_rooms},
+            {&*pot_after, &pot_empty_rooms},
+        };
+    for (const auto& [after_inventory, empty_rooms] : empty_domains) {
       const DungeonStreamRecord* selected_after =
           FindRoomRecord(*after_inventory, selected_room);
       ASSERT_NE(selected_after, nullptr);
-      for (uint32_t alias_room : alias->room_ids) {
+      for (uint32_t alias_room : *empty_rooms) {
         if (alias_room == static_cast<uint32_t>(selected_room)) {
           continue;
         }
