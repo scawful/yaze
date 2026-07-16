@@ -42,6 +42,7 @@ namespace yaze::zelda3::test {
 namespace {
 
 constexpr uint32_t kOracleRoomCount = 296;
+constexpr int kSaveReopenCycles = 50;
 constexpr std::pair<const char*, const char*> kManifestEnvVars[] = {
     {"YAZE_TEST_HACK_MANIFEST_OOS", "Oracle manifest"},
     {"YAZE_TEST_HACK_MANIFEST", "hack manifest"},
@@ -255,6 +256,15 @@ class DungeonPotRepackOosIntegrationTest : public ::testing::Test {
   }
 
   void TearDown() override {
+    if (!source_rom_path_.empty() && !source_sha_before_.empty()) {
+      auto source_sha_after = ComputeSha256(source_rom_path_);
+      EXPECT_TRUE(source_sha_after.ok()) << source_sha_after.status().message();
+      if (source_sha_after.ok()) {
+        EXPECT_EQ(*source_sha_after, source_sha_before_)
+            << "The source Oracle ROM changed during the integration test";
+      }
+    }
+
     // YazeProject registers its manifest with the process-global resource
     // labels. Clear that non-owning pointer before the fixture is destroyed.
     GetResourceLabels().SetHackManifest(nullptr);
@@ -381,67 +391,77 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   ASSERT_FALSE(first_save_bytes.empty());
   dungeon_editor.reset();
 
-  Rom reopened;
-  ASSERT_TRUE(reopened.LoadFromFile(temp_rom_path_.string()).ok());
-  auto after = InventoryDungeonStreams(reopened, layout_);
-  ASSERT_TRUE(after.ok()) << after.status().message();
-  ASSERT_TRUE(after->ok()) << "Repacked Oracle pot inventory has issues";
-  ASSERT_EQ(after->streams.size(), kOracleRoomCount);
-  for (const DungeonStreamRecord& record : after->streams) {
-    EXPECT_TRUE(record.valid) << "Invalid room pointer: " << record.room_id;
-    EXPECT_TRUE(IsInsideAllocationRange(layout_, record))
-        << "Room pointer escaped the manifest allocation range: "
-        << record.room_id;
-  }
-
-  const DungeonStreamRecord* selected_after =
-      FindRoomRecord(*after, selected_room);
-  ASSERT_NE(selected_after, nullptr);
-  EXPECT_EQ(selected_after->encoded_stream, replacement_stream);
-  for (uint32_t alias_room : empty_alias->room_ids) {
-    if (alias_room == selected_room) {
-      continue;
+  {
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(temp_rom_path_.string()).ok());
+    auto after = InventoryDungeonStreams(reopened, layout_);
+    ASSERT_TRUE(after.ok()) << after.status().message();
+    ASSERT_TRUE(after->ok()) << "Repacked Oracle pot inventory has issues";
+    ASSERT_EQ(after->streams.size(), kOracleRoomCount);
+    for (const DungeonStreamRecord& record : after->streams) {
+      EXPECT_TRUE(record.valid) << "Invalid room pointer: " << record.room_id;
+      EXPECT_TRUE(IsInsideAllocationRange(layout_, record))
+          << "Room pointer escaped the manifest allocation range: "
+          << record.room_id;
     }
-    const DungeonStreamRecord* alias_after = FindRoomRecord(*after, alias_room);
-    ASSERT_NE(alias_after, nullptr);
-    EXPECT_EQ(alias_after->encoded_stream, std::vector<uint8_t>({0xFF, 0xFF}));
-    EXPECT_NE(alias_after->data_pc, selected_after->data_pc)
-        << "Selected room remained attached to shared-empty room "
-        << alias_room;
-  }
 
-  for (const DungeonStreamRecord& record_before : before->streams) {
-    if (record_before.room_id == selected_room) {
-      continue;
+    const DungeonStreamRecord* selected_after =
+        FindRoomRecord(*after, selected_room);
+    ASSERT_NE(selected_after, nullptr);
+    EXPECT_EQ(selected_after->encoded_stream, replacement_stream);
+    for (uint32_t alias_room : empty_alias->room_ids) {
+      if (alias_room == selected_room) {
+        continue;
+      }
+      const DungeonStreamRecord* alias_after =
+          FindRoomRecord(*after, alias_room);
+      ASSERT_NE(alias_after, nullptr);
+      EXPECT_EQ(alias_after->encoded_stream,
+                std::vector<uint8_t>({0xFF, 0xFF}));
+      EXPECT_NE(alias_after->data_pc, selected_after->data_pc)
+          << "Selected room remained attached to shared-empty room "
+          << alias_room;
     }
-    const DungeonStreamRecord* record_after =
-        FindRoomRecord(*after, record_before.room_id);
-    ASSERT_NE(record_after, nullptr);
-    EXPECT_EQ(record_after->encoded_stream, record_before.encoded_stream)
-        << "Semantic pot stream changed for untouched room "
-        << record_before.room_id;
+
+    for (const DungeonStreamRecord& record_before : before->streams) {
+      if (record_before.room_id == selected_room) {
+        continue;
+      }
+      const DungeonStreamRecord* record_after =
+          FindRoomRecord(*after, record_before.room_id);
+      ASSERT_NE(record_after, nullptr);
+      EXPECT_EQ(record_after->encoded_stream, record_before.encoded_stream)
+          << "Semantic pot stream changed for untouched room "
+          << record_before.room_id;
+    }
   }
 
-  auto repeated_editor = std::make_unique<editor::DungeonEditorV2>(&reopened);
-  dependencies.rom = &reopened;
-  repeated_editor->SetDependencies(dependencies);
-  Room& repeated_room = repeated_editor->rooms()[selected_room];
-  repeated_room = Room(static_cast<int>(selected_room), &reopened);
-  repeated_room.LoadPotItems();
-  ASSERT_EQ(EncodePotItems(repeated_room.GetPotItems()), replacement_stream);
-  repeated_room.MarkPotItemsDirty();
-  const absl::Status repeat_status =
-      repeated_editor->SaveRoom(static_cast<int>(selected_room));
-  ASSERT_TRUE(repeat_status.ok()) << repeat_status.message();
-  EXPECT_FALSE(repeated_room.pot_items_dirty());
-  ASSERT_TRUE(reopened.SaveToFile(save_settings).ok());
-  EXPECT_EQ(ReadFile(temp_rom_path_), first_save_bytes)
-      << "Repeating the same semantic save changed the ROM bytes";
+  for (int cycle = 1; cycle <= kSaveReopenCycles; ++cycle) {
+    SCOPED_TRACE(absl::StrFormat("save/close/reopen cycle %d", cycle));
+    {
+      Rom cycle_rom;
+      ASSERT_TRUE(cycle_rom.LoadFromFile(temp_rom_path_.string()).ok());
 
-  auto source_sha_after = ComputeSha256(source_rom_path_);
-  ASSERT_TRUE(source_sha_after.ok()) << source_sha_after.status().message();
-  EXPECT_EQ(*source_sha_after, source_sha_before_)
-      << "The source Oracle ROM changed during the integration test";
+      auto cycle_editor = std::make_unique<editor::DungeonEditorV2>(&cycle_rom);
+      dependencies.rom = &cycle_rom;
+      cycle_editor->SetDependencies(dependencies);
+      Room& cycle_room = cycle_editor->rooms()[selected_room];
+      cycle_room = Room(static_cast<int>(selected_room), &cycle_rom);
+      cycle_room.LoadPotItems();
+      ASSERT_EQ(EncodePotItems(cycle_room.GetPotItems()), replacement_stream);
+      cycle_room.MarkPotItemsDirty();
+
+      const absl::Status cycle_status =
+          cycle_editor->SaveRoom(static_cast<int>(selected_room));
+      ASSERT_TRUE(cycle_status.ok()) << cycle_status.message();
+      EXPECT_FALSE(cycle_room.pot_items_dirty());
+      ASSERT_TRUE(cycle_rom.SaveToFile(save_settings).ok());
+    }
+
+    ASSERT_EQ(ReadFile(temp_rom_path_), first_save_bytes)
+        << "Semantic save changed ROM bytes during cycle " << cycle;
+  }
+  RecordProperty("save_reopen_cycles", kSaveReopenCycles);
 }
 
 }  // namespace
