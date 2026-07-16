@@ -408,9 +408,19 @@ absl::StatusOr<DungeonStreamLayout> ParseDungeonStreamLayout(
   const uint64_t table_start_pc = SnesToPc(layout.pointer_table);
   const uint64_t table_size =
       pointer_width * static_cast<uint64_t>(layout.pointer_count);
-  if (table_size > kCanonicalLoRomSize - table_start_pc) {
+  const uint64_t table_end_pc = table_start_pc + table_size;
+  if (table_start_pc > kCanonicalLoRomSize ||
+      table_end_pc > kCanonicalLoRomSize) {
     return absl::InvalidArgumentError(absl::StrFormat(
         "%s pointer table extends beyond canonical LoROM address space", path));
+  }
+  if (layout.pointer_encoding == DungeonPointerEncoding::kBank16) {
+    const uint64_t runtime_table_end =
+        static_cast<uint64_t>(layout.pointer_table & 0xFFFFu) + table_size;
+    if (runtime_table_end > 0x10000u) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s bank16 pointer table crosses its runtime CPU bank", path));
+    }
   }
 
   return layout;
@@ -433,11 +443,15 @@ ParseDungeonStreamLayouts(const Json& root) {
       {{{"objects", DungeonStreamType::kObjects},
         {"sprites", DungeonStreamType::kSprites},
         {"pot_items", DungeonStreamType::kPotItems}}};
-  for (const auto& [key, value] : section.items()) {
-    (void)value;
-    const bool known =
-        std::any_of(kStreams.begin(), kStreams.end(),
-                    [&key](const auto& entry) { return key == entry.first; });
+  for (const auto& item : section.items()) {
+    const auto& key = item.key();
+    bool known = false;
+    for (const auto& entry : kStreams) {
+      if (key == entry.first) {
+        known = true;
+        break;
+      }
+    }
     if (!known) {
       return absl::InvalidArgumentError(absl::StrFormat(
           "dungeon_stream_regions contains unknown stream '%s'", key));
@@ -454,12 +468,14 @@ ParseDungeonStreamLayouts(const Json& root) {
     DungeonStreamLayout layout;
     ASSIGN_OR_RETURN(layout, ParseDungeonStreamLayout(stream, section[key]));
 
-    const uint32_t pointer_width =
+    const uint64_t pointer_width =
         layout.pointer_encoding == DungeonPointerEncoding::kLong24 ? 3 : 2;
-    const uint32_t table_start_pc = SnesToPc(layout.pointer_table);
-    const uint32_t table_end_pc =
-        table_start_pc + pointer_width * layout.pointer_count;
-    occupied_ranges.push_back({table_start_pc, table_end_pc,
+    const uint64_t table_start_pc = SnesToPc(layout.pointer_table);
+    const uint64_t table_end_pc =
+        table_start_pc +
+        pointer_width * static_cast<uint64_t>(layout.pointer_count);
+    occupied_ranges.push_back({static_cast<uint32_t>(table_start_pc),
+                               static_cast<uint32_t>(table_end_pc),
                                absl::StrFormat("%s.pointer_table", key)});
 
     for (size_t index = 0; index < layout.data_regions.size(); ++index) {

@@ -244,28 +244,66 @@ absl::StatusOr<DungeonStreamLayout> ValidateAndNormalizeLayout(
     return absl::InvalidArgumentError(
         "Dungeon stream pointer table maps through SNES WRAM banks $7E/$7F");
   }
+  if (layout.pointer_encoding == DungeonPointerEncoding::kFixedBank16) {
+    const uint32_t pointer_table_word =
+        PcToSnes(layout.pointer_table_pc) & 0xFFFFu;
+    const uint64_t runtime_table_end =
+        static_cast<uint64_t>(pointer_table_word) +
+        static_cast<uint64_t>(layout.pointer_count) * pointer_width;
+    if (runtime_table_end > 0x10000u) {
+      return absl::InvalidArgumentError(
+          "Fixed-bank-16 pointer table crosses its runtime CPU bank");
+    }
+  }
+
   const DungeonStreamPcRange pointer_source_range =
       KnownPointerSourceRange(layout.kind);
-  const DungeonStreamPcRange door_pointer_range =
-      layout.kind == DungeonStreamKind::kObject
-          ? DungeonStreamPcRange{kDoorPointers,
-                                 kDoorPointers + layout.pointer_count *
-                                                     static_cast<uint32_t>(3)}
-          : DungeonStreamPcRange{};
-  for (const auto& allocation : layout.allocation_ranges) {
-    if (Intersects(pointer_table_range, allocation)) {
+  if (pointer_source_range.begin < pointer_source_range.end) {
+    if (pointer_source_range.end > rom_size) {
+      return absl::OutOfRangeError(
+          "Live pointer-table source is outside the source ROM");
+    }
+    if (Intersects(pointer_table_range, pointer_source_range)) {
       return absl::InvalidArgumentError(
-          "Allocation ranges must not overlap the pointer table");
+          "Dungeon stream pointer table must not overlap the live "
+          "pointer-table source");
+    }
+  }
+
+  DungeonStreamPcRange door_pointer_range;
+  if (layout.kind == DungeonStreamKind::kObject) {
+    const uint64_t door_pointer_end =
+        static_cast<uint64_t>(kDoorPointers) +
+        static_cast<uint64_t>(kNumberOfRooms) * 3u;
+    if (door_pointer_end > rom_size) {
+      return absl::OutOfRangeError(
+          "Complete object door-pointer table is outside the source ROM");
+    }
+    door_pointer_range = {kDoorPointers,
+                          static_cast<uint32_t>(door_pointer_end)};
+    if (Intersects(pointer_table_range, door_pointer_range)) {
+      return absl::InvalidArgumentError(
+          "Dungeon stream pointer table must not overlap the object "
+          "door-pointer table");
+    }
+  }
+
+  for (const auto& data : layout.data_ranges) {
+    if (Intersects(pointer_table_range, data)) {
+      return absl::InvalidArgumentError(
+          "Dungeon stream data ranges must not overlap the pointer table");
     }
     if (pointer_source_range.begin < pointer_source_range.end &&
-        Intersects(pointer_source_range, allocation)) {
+        Intersects(pointer_source_range, data)) {
       return absl::InvalidArgumentError(
-          "Allocation ranges must not overlap the live pointer-table source");
+          "Dungeon stream data ranges must not overlap the live "
+          "pointer-table source");
     }
     if (door_pointer_range.begin < door_pointer_range.end &&
-        Intersects(door_pointer_range, allocation)) {
+        Intersects(door_pointer_range, data)) {
       return absl::InvalidArgumentError(
-          "Allocation ranges must not overlap the object door-pointer table");
+          "Dungeon stream data ranges must not overlap the object "
+          "door-pointer table");
     }
   }
 
@@ -300,9 +338,9 @@ absl::StatusOr<uint32_t> DecodePointer(const Rom& rom,
         "Pointer word 0x%04X is not a LoROM address", snes & 0xFFFFu));
   }
   const uint8_t bank = static_cast<uint8_t>((snes >> 16) & 0xFFu);
-  if (bank == 0x7E || bank == 0x7F) {
-    return absl::FailedPreconditionError(absl::StrFormat(
-        "Pointer uses SNES WRAM bank 0x%02X instead of a ROM mirror", bank));
+  if (bank == 0x7E || bank == 0x7F || bank == 0xFE || bank == 0xFF) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Pointer uses SNES WRAM bank or mirror 0x%02X", bank));
   }
   const uint32_t pc = SnesToPc(snes);
   if (pc >= rom.size()) {
