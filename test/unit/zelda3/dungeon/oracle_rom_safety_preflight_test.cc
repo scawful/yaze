@@ -228,6 +228,40 @@ TEST(OracleRomSafetyPreflightTest,
                                    : result.errors.front().message);
 }
 
+TEST(OracleRomSafetyPreflightTest, RequiredWaterFillRoomMustFitRuntimeByte) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  OracleRomSafetyPreflightOptions options;
+  options.validate_custom_collision_maps = false;
+  options.room_ids_requiring_water_fill_zones = {0x100};
+
+  const auto result = RunOracleRomSafetyPreflight(&rom, options);
+  EXPECT_FALSE(result.ok());
+  EXPECT_EQ(result.ToStatus().code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_TRUE(HasRoomError(
+      result, "ORACLE_REQUIRED_WATER_FILL_ROOM_OUT_OF_RANGE", 0x100));
+  EXPECT_FALSE(
+      HasRoomError(result, "ORACLE_REQUIRED_WATER_FILL_ROOM_MISSING", 0x100));
+}
+
+TEST(OracleRomSafetyPreflightTest,
+     WaterFillMembershipRemainsOptInForValidStructuralCallers) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ASSERT_TRUE(WriteWaterFillTable(&rom, {{.room_id = 0x25,
+                                          .sram_bit_mask = 0x02,
+                                          .fill_offsets = {0x0100}}})
+                  .ok());
+
+  OracleRomSafetyPreflightOptions options;
+  options.validate_custom_collision_maps = false;
+
+  const auto result = RunOracleRomSafetyPreflight(&rom, options);
+  EXPECT_TRUE(result.ok());
+  EXPECT_FALSE(HasErrorCode(result, "ORACLE_REQUIRED_WATER_FILL_ROOM_MISSING"));
+}
+
 // ---------------------------------------------------------------------------
 // SHA-256 utility tests
 // ---------------------------------------------------------------------------

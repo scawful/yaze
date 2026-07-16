@@ -24,6 +24,10 @@ namespace yaze::zelda3 {
 
 namespace {
 
+// WaterFillTable_Generated stores each room ID in a single byte even though
+// the dungeon editor supports room IDs through 0x127.
+constexpr int kMaxWaterFillRuntimeRoomId = 0xFF;
+
 void AddError(OracleRomSafetyPreflightResult* result, std::string code,
               std::string message, absl::StatusCode status_code,
               int room_id = -1) {
@@ -60,6 +64,20 @@ OracleRomSafetyPreflightResult RunOracleRomSafetyPreflight(
   if (!rom || !rom->is_loaded()) {
     AddError(&result, "ORACLE_ROM_NOT_LOADED", "ROM not loaded",
              absl::StatusCode::kInvalidArgument);
+    return result;
+  }
+
+  for (int room_id : options.room_ids_requiring_water_fill_zones) {
+    if (room_id < 0 || room_id > kMaxWaterFillRuntimeRoomId) {
+      AddError(&result, "ORACLE_REQUIRED_WATER_FILL_ROOM_OUT_OF_RANGE",
+               absl::StrFormat(
+                   "Required WaterFill room 0x%02X is out of valid range "
+                   "(0..0x%02X)",
+                   room_id, kMaxWaterFillRuntimeRoomId),
+               absl::StatusCode::kInvalidArgument, room_id);
+    }
+  }
+  if (!result.ok()) {
     return result;
   }
 
@@ -120,15 +138,6 @@ OracleRomSafetyPreflightResult RunOracleRomSafetyPreflight(
   if (!options.room_ids_requiring_water_fill_zones.empty()) {
     load_water_fill_table();
     for (int room_id : options.room_ids_requiring_water_fill_zones) {
-      if (room_id < 0 || room_id >= kNumberOfRooms) {
-        AddError(&result, "ORACLE_REQUIRED_WATER_FILL_ROOM_OUT_OF_RANGE",
-                 absl::StrFormat(
-                     "Required WaterFill room 0x%02X is out of valid range "
-                     "(0..0x%02X)",
-                     room_id, kNumberOfRooms - 1),
-                 absl::StatusCode::kInvalidArgument);
-        continue;
-      }
       if (!water_fill_table_loaded) {
         continue;
       }
