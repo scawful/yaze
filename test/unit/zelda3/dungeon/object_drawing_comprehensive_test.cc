@@ -115,7 +115,7 @@ int ExpectedSubtype3TileCount(int id) {
   }
   if (id == 0xFAA || id == 0xFAD || id == 0xFAE ||
       (id >= 0xFB4 && id <= 0xFB9) || id == 0xFCB || id == 0xFCC ||
-      id == 0xFD4 || id == 0xFE2 || id == 0xFF4 || id == 0xFF6 || id == 0xFF7) {
+      id == 0xFD4 || id == 0xFE2 || id == 0xFF6 || id == 0xFF7) {
     return 16;
   }
   // Turtle Rock pipes: 24 tiles (matches GetSubtype3TileCount; routine
@@ -139,6 +139,9 @@ int ExpectedSubtype3TileCount(int id) {
     return 32;
   }
   if (id == 0xFF1) {
+    return 64;
+  }
+  if (id == 0xFF4) {
     return 64;
   }
   if (id == 0xFF8) {
@@ -209,7 +212,7 @@ TEST_F(ObjectDrawingComprehensiveTest, DetectsType3Objects) {
 }
 
 TEST_F(ObjectDrawingComprehensiveTest,
-       LightBeamTilePayloadsCoverAllUsdasmBlocks) {
+       LightBeamAndFloorLightTilePayloadsCoverAllUsdasmBlocks) {
   ObjectParser parser(rom_.get());
 
   struct TestCase {
@@ -217,7 +220,8 @@ TEST_F(ObjectDrawingComprehensiveTest,
     size_t expected_tiles;
   };
 
-  for (const auto& test_case : {TestCase{0xFF0, 32}, TestCase{0xFF1, 64}}) {
+  for (const auto& test_case :
+       {TestCase{0xFF0, 32}, TestCase{0xFF1, 64}, TestCase{0xFF4, 64}}) {
     SCOPED_TRACE(test_case.object_id);
 
     auto info = parser.GetObjectSubtype(test_case.object_id);

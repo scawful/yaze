@@ -1377,6 +1377,14 @@ void ObjectDrawer::InitializeDrawRoutines() {
             state);
       };
 
+  ensure_index(DrawRoutineIds::kFloorLight);
+  draw_routines_[DrawRoutineIds::kFloorLight] =
+      [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
+         std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        self->DrawUsingRegistryRoutine(DrawRoutineIds::kFloorLight, obj, bg,
+                                       tiles, state);
+      };
+
   // Routine 130 - Custom Object (Oracle of Secrets 0x31, 0x32)
   // Uses external binary files instead of ROM tile data.
   // Requires CustomObjectManager initialization and enable_custom_objects flag.
@@ -3050,6 +3058,11 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
       break;
 
     case 105:  // BigLightBeam
+      width = 64;
+      height = 64;
+      break;
+
+    case DrawRoutineIds::kFloorLight:
       width = 64;
       height = 64;
       break;
