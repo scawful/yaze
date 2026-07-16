@@ -113,8 +113,8 @@ void CommandRegistry::RegisterHandlers(
             "z3ed dungeon-describe-room --room=5 --format=json"};
       } else if (name == "dungeon-stream-plan") {
         metadata.description =
-            "Inventory manifest-owned dungeon streams and allocation capacity "
-            "without modifying the ROM";
+            "Read-only stream inventory, alias/overlap, and free-space "
+            "diagnostics; replacement-aware immutable move output is pending";
         metadata.examples = {
             "z3ed dungeon-stream-plan --kind=objects "
             "--manifest=hack_manifest.json --rom=game.sfc --format=json",

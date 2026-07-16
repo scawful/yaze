@@ -388,7 +388,9 @@ TEST(DungeonStreamPlanCommandsTest, IsRegisteredWithReadOnlyHelp) {
   ASSERT_TRUE(registry.HasCommand("dungeon-stream-plan"));
   const std::string help = registry.GenerateHelp("dungeon-stream-plan");
   EXPECT_THAT(help, HasSubstr("--kind <objects|sprites|pot_items>"));
-  EXPECT_THAT(help, HasSubstr("without modifying the ROM"));
+  EXPECT_THAT(help, HasSubstr("alias/overlap"));
+  EXPECT_THAT(help, HasSubstr("free-space"));
+  EXPECT_THAT(help, HasSubstr("immutable move output is pending"));
 }
 
 }  // namespace
