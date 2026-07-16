@@ -90,8 +90,10 @@ void DisableRomWritesForTest() {
   d.kSavePits = false;
   d.kSaveBlocks = false;
   d.kSaveCollision = false;
+  d.kSaveWaterFillZones = false;
   d.kSaveChests = false;
   d.kSavePotItems = false;
+  d.kSaveEntrances = false;
   d.kSavePalettes = false;
 
   auto& o = flags.overworld;
@@ -114,7 +116,8 @@ TEST(EditorManagerOracleRomSafetyTest,
 
   // Create a ROM large enough to contain the expanded collision bank tail where
   // the Oracle WaterFill table is reserved.
-  const std::filesystem::path rom_path = MakeTempPath("yaze_oracle_rom_safety.sfc");
+  const std::filesystem::path rom_path =
+      MakeTempPath("yaze_oracle_rom_safety.sfc");
   ScopedFileCleanup cleanup{rom_path};
   std::vector<uint8_t> rom_data(2 * 1024 * 1024, 0x00);
   const std::string title = "YAZE TEST ROM";
@@ -165,11 +168,12 @@ TEST(EditorManagerOracleRomSafetyTest,
   // table region. SaveRom must refuse to write this to disk.
   const uint32_t snes_ptr = PcToSnes(zelda3::kWaterFillTableStart);
   const int ptr_offset = zelda3::kCustomCollisionRoomPointers;  // room 0
-  ASSERT_OK(rom->WriteByte(ptr_offset + 0, static_cast<uint8_t>(snes_ptr & 0xFF)));
   ASSERT_OK(
-      rom->WriteByte(ptr_offset + 1, static_cast<uint8_t>((snes_ptr >> 8) & 0xFF)));
-  ASSERT_OK(
-      rom->WriteByte(ptr_offset + 2, static_cast<uint8_t>((snes_ptr >> 16) & 0xFF)));
+      rom->WriteByte(ptr_offset + 0, static_cast<uint8_t>(snes_ptr & 0xFF)));
+  ASSERT_OK(rom->WriteByte(ptr_offset + 1,
+                           static_cast<uint8_t>((snes_ptr >> 8) & 0xFF)));
+  ASSERT_OK(rom->WriteByte(ptr_offset + 2,
+                           static_cast<uint8_t>((snes_ptr >> 16) & 0xFF)));
 
   // Also mutate an unrelated byte so we can verify the disk write is blocked.
   constexpr uint32_t kPcOffset = 0x1234;
@@ -183,6 +187,51 @@ TEST(EditorManagerOracleRomSafetyTest,
             original);
 }
 
+TEST(EditorManagerOracleRomSafetyTest,
+     SaveRomBlocksWhenConfiguredHackManifestDidNotLoad) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_path = MakeTempPath("yaze_missing_manifest_save.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  std::vector<uint8_t> rom_data(512 * 1024, 0x00);
+  {
+    std::ofstream out(rom_path, std::ios::binary | std::ios::trunc);
+    ASSERT_TRUE(out.is_open());
+    out.write(reinterpret_cast<const char*>(rom_data.data()),
+              static_cast<std::streamsize>(rom_data.size()));
+    ASSERT_TRUE(out.good());
+  }
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "MissingManifestSave";
+  project->filepath = (rom_path.parent_path() / "project.yaze").string();
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+  project->hack_manifest.Clear();
+  project->hack_manifest_file =
+      (rom_path.parent_path() / "missing-hack-manifest.json").string();
+
+  Rom* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  constexpr uint32_t kPcOffset = 0x1234;
+  ASSERT_OK(rom->WriteByte(kPcOffset, 0xA5));
+
+  auto status = manager->SaveRom();
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  EXPECT_NE(std::string(status.message()).find("missing or malformed"),
+            std::string::npos);
+  EXPECT_EQ(ReadByteAt(rom_path, kPcOffset), 0x00);
+}
+
 }  // namespace
 }  // namespace yaze::editor
-

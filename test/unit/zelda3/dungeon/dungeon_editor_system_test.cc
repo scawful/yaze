@@ -110,7 +110,8 @@ class DungeonEditorSystemTest : public ::testing::Test {
     WriteLongPointer(kChestsDataPointer1, PcToSnes(kChestDataPc));
     rom_->mutable_data()[kChestsLengthPointer] = 0x00;
     rom_->mutable_data()[kChestsLengthPointer + 1] = 0x00;
-    std::fill_n(rom_->mutable_data() + kChestDataPc, 0x100, 0x00);
+    std::fill_n(rom_->mutable_data() + kChestDataPc, kChestTableCapacityBytes,
+                0x00);
   }
 
   void SetupPotItemTable() {
@@ -133,7 +134,7 @@ class DungeonEditorSystemTest : public ::testing::Test {
 
   void SeedChestEntry(int room_id, uint8_t chest_id, bool big) {
     const uint16_t word = static_cast<uint16_t>(room_id) | (big ? 0x8000 : 0);
-    rom_->mutable_data()[kChestsLengthPointer] = 0x01;
+    rom_->mutable_data()[kChestsLengthPointer] = kChestTableRecordSize;
     rom_->mutable_data()[kChestsLengthPointer + 1] = 0x00;
     rom_->mutable_data()[kChestDataPc + 0] = word & 0xFF;
     rom_->mutable_data()[kChestDataPc + 1] = (word >> 8) & 0xFF;
@@ -171,6 +172,7 @@ TEST_F(DungeonEditorSystemTest, SaveRoomPersistsExternalRoomObjectsAndChests) {
 
   ASSERT_TRUE(object_editor->InsertObject(5, 5, 0x10, 0x0F, 0).ok());
   external_room.GetChests().push_back(chest_data{0x42, false});
+  external_room.MarkChestsDirty();
 
   ASSERT_TRUE(system.SaveRoom(0).ok());
 
@@ -189,6 +191,7 @@ TEST_F(DungeonEditorSystemTest, SaveRoomPersistsExternalRoomPotItemsAndHeader) {
   system.SetExternalRoom(&external_room);
 
   external_room.GetPotItems().push_back(PotItem{0x1234, 0x56});
+  external_room.MarkPotItemsDirty();
   external_room.SetPalette(0x2A);
   external_room.SetMessageId(0x1357);
 
@@ -214,6 +217,8 @@ TEST_F(DungeonEditorSystemTest, SaveRoomPreservesOtherRoomIndexedData) {
 
   external_room.GetChests().push_back(chest_data{0x21, false});
   external_room.GetPotItems().push_back(PotItem{0x1234, 0x56});
+  external_room.MarkChestsDirty();
+  external_room.MarkPotItemsDirty();
 
   ASSERT_TRUE(system.SaveRoom(0).ok());
 
@@ -247,12 +252,14 @@ TEST_F(DungeonEditorSystemTest, SaveDungeonPersistsAllCachedRooms) {
   ASSERT_TRUE(object_editor->InsertObject(5, 5, 0x10, 0x0F, 0).ok());
   object_editor->GetMutableRoom()->GetChests().push_back(
       chest_data{0x21, false});
+  object_editor->GetMutableRoom()->MarkChestsDirty();
 
   ASSERT_TRUE(system.SetCurrentRoom(1).ok());
   ASSERT_EQ(object_editor->GetRoom().id(), 1);
   ASSERT_TRUE(object_editor->InsertObject(10, 10, 0x20, 0x0F, 0).ok());
   object_editor->GetMutableRoom()->GetChests().push_back(
       chest_data{0x77, true});
+  object_editor->GetMutableRoom()->MarkChestsDirty();
 
   ASSERT_TRUE(system.SaveDungeon().ok());
 
@@ -287,6 +294,7 @@ TEST_F(DungeonEditorSystemTest,
   ASSERT_NE(object_editor, nullptr);
   object_editor->GetMutableRoom()->GetPotItems().push_back(
       PotItem{0x1234, 0x56});
+  object_editor->GetMutableRoom()->MarkPotItemsDirty();
   object_editor->GetMutableRoom()->SetPalette(0x11);
   object_editor->GetMutableRoom()->SetMessageId(0x2468);
 
@@ -294,6 +302,7 @@ TEST_F(DungeonEditorSystemTest,
   ASSERT_EQ(object_editor->GetRoom().id(), 1);
   object_editor->GetMutableRoom()->GetPotItems().push_back(
       PotItem{0x5678, 0x9A});
+  object_editor->GetMutableRoom()->MarkPotItemsDirty();
   object_editor->GetMutableRoom()->SetPalette(0x22);
   object_editor->GetMutableRoom()->SetMessageId(0x1357);
 

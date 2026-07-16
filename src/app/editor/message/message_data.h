@@ -217,8 +217,7 @@ std::string ReplaceAllDictionaryWords(
 // Returns std::nullopt when no match is found or query is empty.
 std::optional<size_t> FindTextMatch(std::string_view text,
                                     std::string_view query, size_t start_pos,
-                                    bool case_sensitive,
-                                    bool match_whole_word);
+                                    bool case_sensitive, bool match_whole_word);
 
 // Replaces query occurrences in text and returns replacement count.
 // If replace_all is false, only the first matching occurrence at/after
@@ -500,8 +499,10 @@ constexpr int kTextData2End = 0x773FF;
 
 // Reads all text data from the ROM and returns a vector of MessageData objects.
 // When max_pos > 0, the parser stops if pos exceeds max_pos (safety bound).
+// Set allow_bank_switch=false for contiguous banks such as expanded messages.
 std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos = kTextData,
-                                         int max_pos = -1);
+                                         int max_pos = -1,
+                                         bool allow_bank_switch = true);
 
 // Calls the file dialog and loads expanded messages from a BIN file.
 absl::Status LoadExpandedMessages(std::string& expanded_message_path,
@@ -510,7 +511,8 @@ absl::Status LoadExpandedMessages(std::string& expanded_message_path,
                                   std::vector<DictionaryEntry>& dictionary);
 
 // Serializes a vector of MessageData to a JSON object.
-nlohmann::json SerializeMessagesToJson(const std::vector<MessageData>& messages);
+nlohmann::json SerializeMessagesToJson(
+    const std::vector<MessageData>& messages);
 
 // Exports messages to a JSON file at the specified path.
 absl::Status ExportMessagesToJson(const std::string& path,
@@ -582,6 +584,10 @@ int GetExpandedTextDataEnd();
 // Messages are 0x7F-terminated, region is 0xFF-terminated.
 // Uses the same parsing as ReadAllTextData but for the expanded bank.
 std::vector<MessageData> ReadExpandedTextData(uint8_t* rom, int pos);
+
+// Bounded expanded-message reader. `end` is the inclusive final PC address;
+// parsing stops there even when the 0xFF region terminator is missing.
+std::vector<MessageData> ReadExpandedTextData(uint8_t* rom, int pos, int end);
 
 // Writes encoded messages to the expanded region of a ROM buffer.
 // Each message text is encoded via ParseMessageToData, terminated with 0x7F.

@@ -163,6 +163,7 @@ absl::Status DungeonPlaceSpriteCommandHandler::Execute(
       static_cast<uint8_t>(sprite_id), static_cast<uint8_t>(x),
       static_cast<uint8_t>(y), static_cast<uint8_t>(subtype),
       static_cast<uint8_t>(layer));
+  room.MarkSpritesDirty();
 
   formatter.BeginObject("Place Sprite");
   formatter.AddHexField("room_id", room_id, 2);
@@ -298,6 +299,7 @@ absl::Status DungeonRemoveSpriteCommandHandler::Execute(
 
   // Remove
   sprites.erase(sprites.begin() + remove_index);
+  room.MarkSpritesDirty();
   formatter.AddField("sprites_after", static_cast<int>(sprites.size()));
   formatter.AddField("mode", do_write ? "write" : "dry-run");
 

@@ -49,6 +49,7 @@ void PaletteManager::Initialize(zelda3::GameData* game_data) {
   // Clear any existing state
   modified_palettes_.clear();
   modified_colors_.clear();
+  save_transaction_snapshot_.reset();
   ClearHistory();
 }
 
@@ -64,6 +65,7 @@ void PaletteManager::Initialize(Rom* rom) {
   // Clear any existing state
   modified_palettes_.clear();
   modified_colors_.clear();
+  save_transaction_snapshot_.reset();
   ClearHistory();
 }
 
@@ -77,6 +79,7 @@ void PaletteManager::ResetForTesting() {
   next_callback_id_ = 1;
   batch_depth_ = 0;
   batch_changes_.clear();
+  save_transaction_snapshot_.reset();
   ClearHistory();
 }
 
@@ -335,6 +338,30 @@ absl::Status PaletteManager::SaveAllToRom() {
   NotifyListeners(event);
 
   return absl::OkStatus();
+}
+
+absl::Status PaletteManager::BeginSaveTransaction() {
+  if (save_transaction_snapshot_.has_value()) {
+    return absl::FailedPreconditionError(
+        "Palette save transaction is already active");
+  }
+  save_transaction_snapshot_ = SaveTransactionSnapshot{
+      original_palettes_, modified_palettes_, modified_colors_};
+  return absl::OkStatus();
+}
+
+void PaletteManager::RollbackSaveTransaction() {
+  if (!save_transaction_snapshot_.has_value()) {
+    return;
+  }
+  original_palettes_ = std::move(save_transaction_snapshot_->original_palettes);
+  modified_palettes_ = std::move(save_transaction_snapshot_->modified_palettes);
+  modified_colors_ = std::move(save_transaction_snapshot_->modified_colors);
+  save_transaction_snapshot_.reset();
+}
+
+void PaletteManager::CommitSaveTransaction() {
+  save_transaction_snapshot_.reset();
 }
 
 absl::Status PaletteManager::ApplyPreviewChanges() {

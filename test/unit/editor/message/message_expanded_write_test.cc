@@ -57,5 +57,44 @@ TEST(ExpandedMessageWriteTest, IsWriteFenceAware) {
   EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied);
 }
 
-}  // namespace yaze::editor
+TEST(ExpandedMessageWriteTest, InvalidTextFailsBeforeRomMutation) {
+  Rom rom = MakeRom(256);
+  const auto before = rom.vector();
 
+  auto status =
+      WriteExpandedTextData(&rom, /*start=*/100, /*end=*/120, {"A[UNKNOWN]B"});
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument) << status;
+  EXPECT_EQ(rom.vector(), before);
+}
+
+TEST(ExpandedMessageWriteTest, BankCommandFailsBeforeRomMutation) {
+  Rom rom = MakeRom(256);
+  const auto before = rom.vector();
+
+  auto status =
+      WriteExpandedTextData(&rom, /*start=*/100, /*end=*/120, {"A[BANK]B"});
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument) << status;
+  EXPECT_EQ(rom.vector(), before);
+}
+
+TEST(ExpandedMessageWriteTest, BankByteIsAllowedAsCommandArgument) {
+  Rom rom = MakeRom(256);
+
+  auto status =
+      WriteExpandedTextData(&rom, /*start=*/100, /*end=*/120, {"[W:80]A"});
+  EXPECT_TRUE(status.ok()) << status;
+  EXPECT_EQ(rom.vector()[100], 0x6B);
+  EXPECT_EQ(rom.vector()[101], 0x80);
+}
+
+TEST(ExpandedMessageWriteTest, LegacyWriterPreflightsBankCommand) {
+  std::vector<uint8_t> data(256, 0x5A);
+  const auto before = data;
+
+  auto status = WriteExpandedTextData(data.data(), /*start=*/100, /*end=*/120,
+                                      {"A", "B[BANK]"});
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument) << status;
+  EXPECT_EQ(data, before);
+}
+
+}  // namespace yaze::editor

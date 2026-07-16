@@ -333,8 +333,15 @@ absl::Status DungeonObjectEditor::MoveObject(size_t object_index, int new_x,
   }
 
   // Move the object
+  const bool changed = object.x() != new_x || object.y() != new_y;
+  if (changed) {
+    current_room_->MarkSaveDirtyForTileObject(object);
+  }
   object.set_x(new_x);
   object.set_y(new_y);
+  if (changed) {
+    current_room_->MarkSaveDirtyForTileObject(object);
+  }
 
   // Notify callbacks
   if (object_changed_callback_) {
@@ -370,7 +377,14 @@ absl::Status DungeonObjectEditor::ResizeObject(size_t object_index,
 
   // Resize the object
   auto& object = current_room_->GetTileObject(object_index);
+  const bool changed = object.size() != new_size;
+  if (changed) {
+    current_room_->MarkSaveDirtyForTileObject(object);
+  }
   object.set_size(new_size);
+  if (changed) {
+    current_room_->MarkSaveDirtyForTileObject(object);
+  }
 
   // Notify callbacks
   if (object_changed_callback_) {
@@ -413,8 +427,15 @@ absl::Status DungeonObjectEditor::BatchMoveObjects(
     new_x = std::max(0, std::min(63, new_x));
     new_y = std::max(0, std::min(63, new_y));
 
+    const bool changed = object.x() != new_x || object.y() != new_y;
+    if (changed) {
+      current_room_->MarkSaveDirtyForTileObject(object);
+    }
     object.set_x(new_x);
     object.set_y(new_y);
+    if (changed) {
+      current_room_->MarkSaveDirtyForTileObject(object);
+    }
 
     if (object_changed_callback_) {
       object_changed_callback_(index, object);
@@ -453,7 +474,15 @@ absl::Status DungeonObjectEditor::BatchChangeObjectLayer(
       // BothBG objects are rendered to BG1+BG2 regardless of their stored layer.
       continue;
     }
-    object.layer_ = static_cast<RoomObject::LayerType>(new_layer);
+    const auto target_layer = static_cast<RoomObject::LayerType>(new_layer);
+    const bool changed = object.layer_ != target_layer;
+    if (changed) {
+      current_room_->MarkSaveDirtyForTileObject(object);
+    }
+    object.layer_ = target_layer;
+    if (changed) {
+      current_room_->MarkSaveDirtyForTileObject(object);
+    }
 
     if (object_changed_callback_) {
       object_changed_callback_(index, object);
@@ -490,7 +519,14 @@ absl::Status DungeonObjectEditor::BatchResizeObjects(
     auto& object = current_room_->GetTileObject(index);
     // Only Type 1 objects typically support arbitrary sizing, but we allow it
     // for all here as the validation logic might vary.
+    const bool changed = object.size() != new_size;
+    if (changed) {
+      current_room_->MarkSaveDirtyForTileObject(object);
+    }
     object.set_size(new_size);
+    if (changed) {
+      current_room_->MarkSaveDirtyForTileObject(object);
+    }
 
     if (object_changed_callback_) {
       object_changed_callback_(index, object);
@@ -618,7 +654,14 @@ absl::Status DungeonObjectEditor::ChangeObjectType(size_t object_index,
   }
 
   auto& object = current_room_->GetTileObject(object_index);
+  const bool changed = object.id_ != new_type;
+  if (changed) {
+    current_room_->MarkSaveDirtyForTileObject(object);
+  }
   object.set_id(static_cast<int16_t>(new_type));
+  if (changed) {
+    current_room_->MarkSaveDirtyForTileObject(object);
+  }
 
   if (object_changed_callback_) {
     object_changed_callback_(object_index, object);
@@ -794,6 +837,14 @@ absl::Status DungeonObjectEditor::AlignSelectedObjects(Alignment alignment) {
       continue;
     auto& obj = current_room_->GetTileObject(index);
 
+    const bool changes_x = alignment == Alignment::Left ||
+                           alignment == Alignment::Right ||
+                           alignment == Alignment::CenterX;
+    const bool changed = changes_x ? obj.x() != ref_val : obj.y() != ref_val;
+    if (changed) {
+      current_room_->MarkSaveDirtyForTileObject(obj);
+    }
+
     switch (alignment) {
       case Alignment::Left:
       case Alignment::Right:
@@ -805,6 +856,10 @@ absl::Status DungeonObjectEditor::AlignSelectedObjects(Alignment alignment) {
       case Alignment::CenterY:
         obj.set_y(ref_val);
         break;
+    }
+
+    if (changed) {
+      current_room_->MarkSaveDirtyForTileObject(obj);
     }
 
     if (object_changed_callback_) {
@@ -844,7 +899,15 @@ absl::Status DungeonObjectEditor::ChangeObjectLayer(size_t object_index,
     // BothBG objects are rendered to BG1+BG2 regardless of their stored layer.
     return absl::OkStatus();
   }
-  object.layer_ = static_cast<RoomObject::LayerType>(new_layer);
+  const auto target_layer = static_cast<RoomObject::LayerType>(new_layer);
+  const bool changed = object.layer_ != target_layer;
+  if (changed) {
+    current_room_->MarkSaveDirtyForTileObject(object);
+  }
+  object.layer_ = target_layer;
+  if (changed) {
+    current_room_->MarkSaveDirtyForTileObject(object);
+  }
 
   if (object_changed_callback_) {
     object_changed_callback_(object_index, object);
@@ -1533,8 +1596,10 @@ void DungeonObjectEditor::DrawPropertyUI() {
         int x = obj.x();
         ImGui::SetNextItemWidth(-1);
         if (ImGui::InputInt("##X", &x, 1, 4)) {
-          if (x >= 0 && x < 64) {
+          if (x >= 0 && x < 64 && obj.x() != x) {
+            current_room_->MarkSaveDirtyForTileObject(obj);
             obj.set_x(x);
+            current_room_->MarkSaveDirtyForTileObject(obj);
             if (object_changed_callback_) {
               object_changed_callback_(obj_idx, obj);
             }
@@ -1549,8 +1614,10 @@ void DungeonObjectEditor::DrawPropertyUI() {
         int y = obj.y();
         ImGui::SetNextItemWidth(-1);
         if (ImGui::InputInt("##Y", &y, 1, 4)) {
-          if (y >= 0 && y < 64) {
+          if (y >= 0 && y < 64 && obj.y() != y) {
+            current_room_->MarkSaveDirtyForTileObject(obj);
             obj.set_y(y);
+            current_room_->MarkSaveDirtyForTileObject(obj);
             if (object_changed_callback_) {
               object_changed_callback_(obj_idx, obj);
             }
@@ -1574,7 +1641,9 @@ void DungeonObjectEditor::DrawPropertyUI() {
           int size = obj.size();
           ImGui::SetNextItemWidth(-1);
           if (ImGui::SliderInt("##Size", &size, 0, 15, "0x%02X")) {
+            current_room_->MarkSaveDirtyForTileObject(obj);
             obj.set_size(size);
+            current_room_->MarkSaveDirtyForTileObject(obj);
             if (object_changed_callback_) {
               object_changed_callback_(obj_idx, obj);
             }
@@ -1590,8 +1659,10 @@ void DungeonObjectEditor::DrawPropertyUI() {
         ImGui::SetNextItemWidth(-1);
         if (ImGui::InputInt("##ID", &id, 1, 16,
                             ImGuiInputTextFlags_CharsHexadecimal)) {
-          if (id >= 0 && id <= 0xFFF) {
+          if (id >= 0 && id <= 0xFFF && obj.id_ != id) {
+            current_room_->MarkSaveDirtyForTileObject(obj);
             obj.set_id(static_cast<int16_t>(id));
+            current_room_->MarkSaveDirtyForTileObject(obj);
             if (object_changed_callback_) {
               object_changed_callback_(obj_idx, obj);
             }
@@ -1615,7 +1686,8 @@ void DungeonObjectEditor::DrawPropertyUI() {
         if (semantics.draws_to_both_bgs) {
           ImGui::TextColored(theme.text_warning_yellow, "Both (BG1 + BG2)");
         } else {
-          ImGui::Text("%s", EffectiveBgLayerLabel(semantics.effective_bg_layer));
+          ImGui::Text("%s",
+                      EffectiveBgLayerLabel(semantics.effective_bg_layer));
         }
 
         ImGui::TableNextRow();
@@ -1629,8 +1701,10 @@ void DungeonObjectEditor::DrawPropertyUI() {
         }
         if (ImGui::Combo("##Layer", &layer,
                          "BG1 (Floor)\0BG2 (Objects)\0BG3 (Overlay)\0")) {
-          if (!semantics.draws_to_both_bgs) {
+          if (!semantics.draws_to_both_bgs && obj.GetLayerValue() != layer) {
+            current_room_->MarkSaveDirtyForTileObject(obj);
             obj.layer_ = static_cast<RoomObject::LayerType>(layer);
+            current_room_->MarkSaveDirtyForTileObject(obj);
             if (object_changed_callback_) {
               object_changed_callback_(obj_idx, obj);
             }
@@ -1686,7 +1760,8 @@ void DungeonObjectEditor::DrawPropertyUI() {
     gui::SectionHeader(ICON_MD_LAYERS, "Batch Layer", theme.text_info);
     size_t both_bg_count = 0;
     for (size_t idx : selection_state_.selected_objects) {
-      if (idx >= current_room_->GetTileObjectCount()) continue;
+      if (idx >= current_room_->GetTileObjectCount())
+        continue;
       const auto& obj = current_room_->GetTileObject(idx);
       if (GetObjectLayerSemantics(obj).draws_to_both_bgs) {
         ++both_bg_count;
@@ -1694,8 +1769,9 @@ void DungeonObjectEditor::DrawPropertyUI() {
     }
     if (both_bg_count > 0) {
       ImGui::TextColored(theme.text_warning_yellow,
-                         ICON_MD_INFO " %zu object%s draw%s to Both BGs and "
-                                      "won't be affected by layer changes",
+                         ICON_MD_INFO
+                         " %zu object%s draw%s to Both BGs and "
+                         "won't be affected by layer changes",
                          both_bg_count, both_bg_count == 1 ? "" : "s",
                          both_bg_count == 1 ? "s" : "");
       ImGui::Spacing();
@@ -1863,8 +1939,15 @@ absl::Status DungeonObjectEditor::HandleDragOperation(int current_x,
     new_x = std::max(0, std::min(63, new_x));
     new_y = std::max(0, std::min(63, new_y));
 
+    const bool changed = obj.x() != new_x || obj.y() != new_y;
+    if (changed) {
+      current_room_->MarkSaveDirtyForTileObject(obj);
+    }
     obj.set_x(new_x);
     obj.set_y(new_y);
+    if (changed) {
+      current_room_->MarkSaveDirtyForTileObject(obj);
+    }
 
     if (object_changed_callback_) {
       object_changed_callback_(obj_idx, obj);
