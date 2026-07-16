@@ -458,6 +458,12 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
     return 28;
   }
 
+  // HammerPegSingle (0xF96 = ASM 0x216) jumps to
+  // RoomDraw_Rightwards2x2 and consumes one fixed 2x2 tile block.
+  if (object_id == 0xF96) {
+    return 4;
+  }
+
   // BigChest (0xFB1 = ASM 0x231) and OpenBigChest (0xFB2 = ASM 0x232): 12 tiles
   // These use RoomDraw_1x3N_rightwards with N=4 (4 columns × 3 rows)
   if (object_id == 0xFB1 || object_id == 0xFB2) {

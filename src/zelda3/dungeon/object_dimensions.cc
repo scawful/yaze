@@ -359,7 +359,6 @@ ObjectDimensionTable::SelectionBounds ObjectDimensionTable::GetSelectionBounds(
     case 0x34:
     case 0x11F:
     case 0x120:
-    case 0xF96:
       bounds.offset_x = 3;
       break;
 
@@ -982,8 +981,8 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xF92] = {6, 8, Dir::None, 0, false};
   // Table/rock 4x3 repeated with 8-tile spacing
   dimensions_[0xF94] = {4, 3, Dir::Horizontal, 8, false};
-  // Single hammer peg (1x1 +3)
-  dimensions_[0xF96] = {4, 1, Dir::Horizontal, 1, false};
+  // Single hammer peg (fixed 2x2)
+  dimensions_[0xF96] = {2, 2, Dir::None, 0, false};
   // Boss shells (single 4x4)
   dimensions_[0xF95] = {4, 4, Dir::None, 0, false};
   dimensions_[0xFF2] = {4, 4, Dir::None, 0, false};

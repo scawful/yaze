@@ -300,6 +300,20 @@ TEST_F(ObjectParserTest, TurtleRockPipesProvideTwentyFourTiles) {
   }
 }
 
+TEST_F(ObjectParserTest, HammerPegUsesUsdasmSingle2x2RoutineAndFourTiles) {
+  auto& registry = zelda3::DrawRoutineRegistry::Get();
+  EXPECT_EQ(registry.GetRoutineIdForObject(0xF96),
+            zelda3::DrawRoutineIds::kSingle2x2);
+
+  auto parsed = parser_->ParseObject(0xF96);
+  ASSERT_TRUE(parsed.ok());
+  EXPECT_EQ(parsed->size(), 4u);
+
+  const auto info = parser_->GetObjectDrawInfo(0xF96);
+  EXPECT_EQ(info.tile_count, 4);
+  EXPECT_EQ(info.draw_routine_id, zelda3::DrawRoutineIds::kSingle2x2);
+}
+
 TEST_F(ObjectParserTest, DrawInfoOrientationFollowsRoutineCategory) {
   auto horizontal = parser_->GetObjectDrawInfo(0x33);
   EXPECT_TRUE(horizontal.is_horizontal);
@@ -417,9 +431,9 @@ TEST_F(ObjectParserTest, OverFetchClusterIdsRouteToAuditedRoutines) {
                  << "id=0x" << std::hex << id << " expects routine 28");
     EXPECT_EQ(registry.GetRoutineIdForObject(id), 28);
   }
-  // Subtype-2/3: routine 25 is `Rightwards1x1Solid_1to16_plus3`
+  // Subtype-2: routine 25 is `Rightwards1x1Solid_1to16_plus3`
   // (reads tiles[0]).
-  for (int id : {0x11F, 0x120, 0xF96}) {
+  for (int id : {0x11F, 0x120}) {
     SCOPED_TRACE(::testing::Message()
                  << "id=0x" << std::hex << id << " expects routine 25");
     EXPECT_EQ(registry.GetRoutineIdForObject(id), 25);

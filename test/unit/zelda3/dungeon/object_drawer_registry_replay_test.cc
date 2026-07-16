@@ -1932,6 +1932,21 @@ TEST(ObjectDrawerRegistryReplayTest, DrenchingWaterFaceDraws4x7RowMajor) {
   EXPECT_EQ(trace[27].tile_id, 227);
 }
 
+TEST(ObjectDrawerRegistryReplayTest, HammerPegDrawsSingleTwoByTwoAtAnchor) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 10;
+  constexpr int kY = 12;
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0F96, kX, kY,
+      /*size=*/9, RoomObject::LayerType::BG1, MakeSequentialTiles(/*count=*/4));
+
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+  const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+  ExpectTraceMatchesSnapshot(bg1, MakeColumnMajorSnapshot(kX, kY, 2, 2, 0));
+  EXPECT_TRUE(bg2.empty());
+}
+
 TEST(ObjectDrawerRegistryReplayTest,
      ArcheryGameTargetDoorDrawsTwoStacked3x3Sections) {
   ScopedCustomObjectsFlag disable_custom(false);
