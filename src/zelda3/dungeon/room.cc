@@ -2204,8 +2204,11 @@ absl::Status Room::SaveRoomHeader() {
       ((static_cast<uint8_t>(collision()) & 0x07) << 2) | (dark_room ? 1 : 0));
   // Preserve the full palette set ID byte (USDASM LoadRoomHeader uses 8-bit).
   uint8_t byte1 = palette_;
-  uint8_t byte7 = (staircase_plane(0) << 2) | (staircase_plane(1) << 4) |
-                  (staircase_plane(2) << 6);
+  // Byte 7 stores the pit target layer in bits 0-1 followed by the first
+  // three staircase target layers in consecutive two-bit fields.
+  uint8_t byte7 =
+      (pits_.target_layer & 0x03) | ((staircase_plane(0) & 0x03) << 2) |
+      ((staircase_plane(1) & 0x03) << 4) | ((staircase_plane(2) & 0x03) << 6);
 
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 0, byte0));
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 1, byte1));

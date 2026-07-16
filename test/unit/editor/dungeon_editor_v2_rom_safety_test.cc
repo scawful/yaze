@@ -915,6 +915,88 @@ TEST(DungeonEditorV2RomSafetyTest, SaveWritesRoomHeadersWhenEnabled) {
   EXPECT_EQ(reloaded_room.message_id(), 0x1357);
 }
 
+TEST(DungeonEditorV2RomSafetyTest,
+     CollectWriteRangesIncludesDirtyRoomMessageSlot) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SetupHeaderPointers(rom);
+  SeedHeaderBytes(rom, kRoom0HeaderPc,
+                  {0x00, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B,
+                   0x0C, 0x0D, 0x0E, 0x0F},
+                  /*message_id=*/0x1111, /*room_id=*/0);
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  auto& room = editor->rooms()[0];
+  room = zelda3::LoadRoomHeaderFromRom(&rom, 0);
+  room.SetLoaded(true);
+  room.SetMessageId(0x1357);
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveRoomHeaders = true;
+
+  const auto ranges = editor->CollectWriteRanges();
+  EXPECT_NE(
+      std::find(ranges.begin(), ranges.end(),
+                std::pair<uint32_t, uint32_t>{zelda3::kMessagesIdDungeon,
+                                              zelda3::kMessagesIdDungeon + 2}),
+      ranges.end());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     SaveRoomBlocksProtectedMessageSlotBeforeMutation) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SetupHeaderPointers(rom);
+  SeedHeaderBytes(rom, kRoom0HeaderPc,
+                  {0x00, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B,
+                   0x0C, 0x0D, 0x0E, 0x0F},
+                  /*message_id=*/0x1111, /*room_id=*/0);
+
+  auto project = MakeProjectWithManifest(R"json(
+{
+  "manifest_version": 3,
+  "protected_regions": {
+    "total_hooks": 1,
+    "regions": [
+      {
+        "start": "0x07F61D",
+        "end": "0x07F61F",
+        "size": 2,
+        "hook_count": 1,
+        "module": "DungeonMessageGuard"
+      }
+    ]
+  }
+}
+)json");
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project;
+  editor->SetDependencies(dependencies);
+  auto& room = editor->rooms()[0];
+  room = zelda3::LoadRoomHeaderFromRom(&rom, 0);
+  room.SetLoaded(true);
+  room.SetMessageId(0x1357);
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveRoomHeaders = true;
+  const auto before = rom.vector();
+
+  const auto status = editor->SaveRoom(0);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(room.header_dirty());
+}
+
 TEST(DungeonEditorV2RomSafetyTest, SaveSkipsRoomHeadersWhenDisabled) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
