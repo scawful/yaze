@@ -157,6 +157,24 @@ class RoomObject {
   int block_load_order() const { return block_load_order_; }
   void set_block_load_order(int order) { block_load_order_ = order; }
 
+  // Pushable-block bit 14 is independent of `layer_`: `layer_` stores the
+  // bit-13 draw target, while this selector is retained for runtime pit and
+  // collision behavior. It is preserved by edits and copies unless changed
+  // explicitly by a future dedicated behavior control.
+  uint8_t block_behavior_layer() const { return block_behavior_layer_; }
+  void set_block_behavior_layer(uint8_t layer) {
+    block_behavior_layer_ = layer & 0x01;
+  }
+
+  // Copying an editor entity must not claim the source block's ROM table slot.
+  // Ordinary C++ copies intentionally preserve load order for move validation,
+  // undo snapshots, and rendering; creation paths call this method explicitly.
+  RoomObject CopyForNewPlacement() const {
+    RoomObject copy = *this;
+    copy.block_load_order_ = kBlockLoadOrderNew;
+    return copy;
+  }
+
   bool all_bgs_ = false;
   bool lit_ = false;
 
@@ -192,10 +210,11 @@ class RoomObject {
   mutable int tile_count_ = 0;
   mutable int tile_data_ptr_ = -1;  // Pointer to tile data in ROM
 
-  // For ROM-backed rooms this is the object *list* index (0=primary, 1=BG2
-  // overlay, 2=BG1 overlay), matching `Room::EncodeObjects` buckets. The editor
-  // reuses the same 0..2 values; use MapRoomObjectListIndexToDrawLayer() before
-  // passing to ObjectDrawer.
+  // For room-stream objects this is the object *list* index (0=primary, 1=BG2
+  // overlay, 2=BG1 overlay), matching `Room::EncodeObjects` buckets; map it
+  // through MapRoomObjectListIndexToDrawLayer() before drawing. For torches and
+  // pushable blocks, values 0/1 are the special-table draw target. Pushable
+  // block behavior uses the independent `block_behavior_layer_` field.
   LayerType layer_;
   ObjectOption options_ = ObjectOption::Nothing;
 
@@ -205,6 +224,7 @@ class RoomObject {
   // vanilla entries.
   static constexpr int kBlockLoadOrderNew = -1;
   int block_load_order_ = kBlockLoadOrderNew;
+  uint8_t block_behavior_layer_ = 0;
 
   Rom* rom_;
 

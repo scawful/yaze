@@ -233,7 +233,7 @@ class DungeonObjectInteraction {
 
   // Stored placement assignment for selected objects. Stream 2 is available
   // only when every selected object belongs to the room object stream; torches
-  // and pushable blocks use a two-value special-table layer selector instead.
+  // and pushable blocks use a two-value special-table draw selector instead.
   bool CanAssignSelectedObjectsToLayer(int target_layer) const;
   bool SendSelectedToLayer(int target_layer);
 

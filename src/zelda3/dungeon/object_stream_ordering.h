@@ -25,8 +25,8 @@ struct ObjectStorageMutationResult {
 // Reassigns the selected objects' stored placement value. Room-stream objects
 // are removed from their old stream and appended to the target stream, matching
 // the editor's z-order operation. Torches and pushable blocks stay in place and
-// interpret values 0/1 as their special-table layer selector. A value of 2
-// is rejected atomically when any selected object uses a special table.
+// interpret values 0/1 as their special-table draw-layer selector. A value of
+// 2 is rejected atomically when any selected object uses a special table.
 inline absl::StatusOr<ObjectStorageMutationResult> ReassignObjectStorage(
     std::vector<RoomObject>& objects, const std::vector<size_t>& indices,
     int target_value) {
@@ -50,7 +50,7 @@ inline absl::StatusOr<ObjectStorageMutationResult> ReassignObjectStorage(
     if (selected[index] && UsesSpecialLayerSelector(objects[index]) &&
         target_value == 2) {
       return absl::InvalidArgumentError(
-          "Torches and pushable blocks only support upper/lower layer "
+          "Torches and pushable blocks only support upper/lower draw-layer "
           "selector values 0/1");
     }
     if (selected[index] && objects[index].GetLayerValue() != target_value) {
