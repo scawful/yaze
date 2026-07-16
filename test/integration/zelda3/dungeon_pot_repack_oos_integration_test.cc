@@ -76,11 +76,11 @@ void ConfigurePotOnlySave() {
   flags.kSavePalettes = false;
 }
 
-void ConfigureObjectSpritePotSave() {
+void ConfigureObjectSpriteHeaderPotSave() {
   auto& flags = core::FeatureFlags::get().dungeon;
   flags.kSaveObjects = true;
   flags.kSaveSprites = true;
-  flags.kSaveRoomHeaders = false;
+  flags.kSaveRoomHeaders = true;
   flags.kSaveTorches = false;
   flags.kSavePits = false;
   flags.kSaveBlocks = false;
@@ -686,7 +686,59 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
 }
 
 TEST_F(DungeonPotRepackOosIntegrationTest,
-       ObjectSpritePotSaveRoomSurvivesFiftyReopenCycles) {
+       AllRoomHeadersRoundTripByteIdentically) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(temp_rom_path_.string()).ok());
+  const std::vector<uint8_t> before = rom.vector();
+
+  for (int room_id = 0; room_id < static_cast<int>(kOracleRoomCount);
+       ++room_id) {
+    SCOPED_TRACE(absl::StrFormat("room 0x%03X", room_id));
+    Room room = LoadRoomHeaderFromRom(&rom, room_id);
+    ASSERT_TRUE(room.SaveRoomHeader().ok());
+  }
+
+  EXPECT_EQ(rom.vector(), before);
+}
+
+TEST_F(DungeonPotRepackOosIntegrationTest,
+       BlockPolicyRejectsMessageChangeThroughAsmOwnedHeaderBeforeMutation) {
+  constexpr int kRoomId = 0;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(temp_rom_path_.string()).ok());
+
+  DungeonSaveFlagsGuard flags_guard;
+  ConfigurePotOnlySave();
+  project_.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSavePotItems = false;
+  flags.kSaveRoomHeaders = true;
+
+  auto dungeon_editor = std::make_unique<editor::DungeonEditorV2>(&rom);
+  editor::EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project_;
+  dungeon_editor->SetDependencies(dependencies);
+
+  Room& room = dungeon_editor->rooms()[kRoomId];
+  room = LoadRoomFromRom(&rom, kRoomId);
+  room.SetMessageId(static_cast<uint16_t>(room.message_id() ^ 0x0001u));
+  const auto predicted_ranges = dungeon_editor->CollectWriteRanges();
+  EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
+                      std::pair<uint32_t, uint32_t>{kMessagesIdDungeon,
+                                                    kMessagesIdDungeon + 2}),
+            predicted_ranges.end());
+  const std::vector<uint8_t> before = rom.vector();
+
+  const absl::Status status = dungeon_editor->SaveRoom(kRoomId);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(room.header_dirty());
+}
+
+TEST_F(DungeonPotRepackOosIntegrationTest,
+       ObjectSpriteHeaderDoorPotSaveRoomSurvivesFiftyReopenCycles) {
   auto object_layout =
       LoadManifestLayout(project_, core::DungeonStreamType::kObjects,
                          core::DungeonWriteStrategy::kCopyOnWrite);
@@ -765,7 +817,7 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   RecordProperty("multidomain_room", absl::StrFormat("0x%03X", selected_room));
 
   DungeonSaveFlagsGuard flags_guard;
-  ConfigureObjectSpritePotSave();
+  ConfigureObjectSpriteHeaderPotSave();
 
   auto dungeon_editor = std::make_unique<editor::DungeonEditorV2>(&rom);
   editor::EditorDependencies dependencies;
@@ -782,14 +834,24 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   ASSERT_TRUE(edited_room.ArePotItemsLoaded());
   ASSERT_TRUE(edited_room.GetSprites().empty());
   ASSERT_TRUE(edited_room.GetPotItems().empty());
+  ASSERT_TRUE(edited_room.GetDoors().empty());
 
   RoomObject replacement_object(0x10, free_positions[0].first,
                                 free_positions[0].second, 0, 0);
   replacement_object.SetRom(&rom);
   ASSERT_TRUE(edited_room.AddObject(replacement_object).ok());
+  Room::Door replacement_door{};
+  replacement_door.position = 3;
+  replacement_door.direction = DoorDirection::North;
+  replacement_door.type = DoorType::NormalDoor;
+  edited_room.AddDoor(replacement_door);
+  constexpr uint32_t kReplacementDoorCount = 1;
   edited_room.GetSprites().emplace_back(0x10, free_positions[1].first,
                                         free_positions[1].second, 0, 0);
   edited_room.MarkSpritesDirty();
+  const uint16_t replacement_message_id =
+      static_cast<uint16_t>(edited_room.message_id() ^ 0x0001u);
+  edited_room.SetMessageId(replacement_message_id);
 
   std::vector<PotItem> replacement_items;
   std::vector<uint8_t> replacement_pot_stream;
@@ -877,12 +939,50 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   expect_range(layout_.pointer_table_pc,
                layout_.pointer_table_pc + layout_.pointer_count * 2u,
                "Missing complete pot pointer table prediction");
+  expect_range(kMessagesIdDungeon + selected_room * 2u,
+               kMessagesIdDungeon + selected_room * 2u + 2u,
+               "Missing selected dungeon message-ID prediction");
+
+  const auto header_table_snes = rom.ReadLong(kRoomHeaderPointer);
+  ASSERT_TRUE(header_table_snes.ok()) << header_table_snes.status().message();
+  const uint32_t header_table_pc = SnesToPc(*header_table_snes);
+  const auto header_pointer =
+      rom.ReadWord(header_table_pc + selected_room * 2u);
+  ASSERT_TRUE(header_pointer.ok()) << header_pointer.status().message();
+  const uint32_t selected_header_pc = SnesToPc(
+      (static_cast<uint32_t>(rom.data()[kRoomHeaderPointerBank]) << 16) |
+      *header_pointer);
+  expect_range(selected_header_pc, selected_header_pc + 14u,
+               "Missing selected room-header prediction");
+
+  const std::vector<std::pair<uint32_t, uint32_t>> opted_in_ranges = {
+      {selected_header_pc, selected_header_pc + 14u},
+      {kMessagesIdDungeon + selected_room * 2u,
+       kMessagesIdDungeon + selected_room * 2u + 2u},
+  };
+  const auto opted_in_conflicts =
+      project_.hack_manifest.AnalyzePcWriteRanges(opted_in_ranges);
+  ASSERT_EQ(opted_in_conflicts.size(), 1u);
+  EXPECT_EQ(opted_in_conflicts[0].ownership, core::AddressOwnership::kAsmOwned);
+  EXPECT_EQ((opted_in_conflicts[0].address >> 16) & 0xFFu, 0x22u);
+  const auto predicted_conflicts =
+      project_.hack_manifest.AnalyzePcWriteRanges(predicted_ranges);
+  ASSERT_EQ(predicted_conflicts.size(), 1u);
+  EXPECT_EQ(predicted_conflicts[0].address, opted_in_conflicts[0].address);
+  EXPECT_EQ(predicted_conflicts[0].ownership, opted_in_conflicts[0].ownership);
+
+  // Oracle relocates every room header into manifest-owned bank $22. Opt in
+  // only after proving the selected header/message prediction above; the
+  // all-room regression separately proves the header passthrough is exact.
+  project_.rom_metadata.write_policy = project::RomWritePolicy::kAllow;
+  RecordProperty("header_write_policy", "allow-selected-header-message");
 
   const std::vector<uint8_t> before_save_bytes = rom.vector();
   const absl::Status save_status = dungeon_editor->SaveRoom(selected_room);
   ASSERT_TRUE(save_status.ok()) << save_status.message();
   EXPECT_FALSE(edited_room.object_stream_dirty());
   EXPECT_FALSE(edited_room.sprites_dirty());
+  EXPECT_FALSE(edited_room.header_dirty());
   EXPECT_FALSE(edited_room.pot_items_dirty());
   ASSERT_EQ(rom.vector().size(), before_save_bytes.size());
   size_t uncovered_write_count = 0;
@@ -971,9 +1071,9 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
 
     auto door_pointer = reopened.ReadLong(kDoorPointers + selected_room * 3u);
     ASSERT_TRUE(door_pointer.ok()) << door_pointer.status().message();
-    EXPECT_EQ(
-        SnesToPc(*door_pointer),
-        object_after_selected->data_pc + replacement_object_stream.size() - 2u);
+    EXPECT_EQ(SnesToPc(*door_pointer), object_after_selected->data_pc +
+                                           replacement_object_stream.size() -
+                                           kReplacementDoorCount * 2u - 2u);
 
     Room reopened_room = LoadRoomFromRom(&reopened, selected_room);
     reopened_room.LoadSprites();
@@ -991,7 +1091,10 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
     EXPECT_EQ(ordinary_objects[0]->size(), replacement_object.size());
     EXPECT_EQ(ordinary_objects[0]->GetLayerValue(),
               replacement_object.GetLayerValue());
-    EXPECT_TRUE(reopened_room.GetDoors().empty());
+    ASSERT_EQ(reopened_room.GetDoors().size(), 1u);
+    EXPECT_EQ(reopened_room.GetDoors()[0].EncodeBytes(),
+              replacement_door.EncodeBytes());
+    EXPECT_EQ(reopened_room.message_id(), replacement_message_id);
 
     ASSERT_EQ(reopened_room.GetSprites().size(), 1u);
     EXPECT_EQ(reopened_room.GetSprites()[0].id(), 0x10);
@@ -1020,14 +1123,20 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
       ASSERT_EQ(cycle_room.EncodeSprites(), replacement_sprite_payload);
       ASSERT_EQ(EncodePotItems(cycle_room.GetPotItems()),
                 replacement_pot_stream);
+      ASSERT_EQ(cycle_room.message_id(), replacement_message_id);
+      ASSERT_EQ(cycle_room.GetDoors().size(), 1u);
+      ASSERT_EQ(cycle_room.GetDoors()[0].EncodeBytes(),
+                replacement_door.EncodeBytes());
       cycle_room.MarkObjectStreamDirty();
       cycle_room.MarkSpritesDirty();
+      cycle_room.MarkHeaderDirty();
       cycle_room.MarkPotItemsDirty();
 
       const absl::Status cycle_status = cycle_editor->SaveRoom(selected_room);
       ASSERT_TRUE(cycle_status.ok()) << cycle_status.message();
       EXPECT_FALSE(cycle_room.object_stream_dirty());
       EXPECT_FALSE(cycle_room.sprites_dirty());
+      EXPECT_FALSE(cycle_room.header_dirty());
       EXPECT_FALSE(cycle_room.pot_items_dirty());
       ASSERT_TRUE(cycle_rom.SaveToFile(save_settings).ok());
     }
