@@ -983,6 +983,20 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   Json synthetic_manifest =
       Json::parse(std::string(manifest_bytes.begin(), manifest_bytes.end()));
   synthetic_manifest["manifest_version"] = 3;
+  // The legacy v2 Oracle generator emitted one low-half hook address
+  // ($1E7F21). A v3 manifest must canonicalize every protected endpoint before
+  // adding editor exemptions; mirror that required generator migration in this
+  // test-local copy without weakening the production parser.
+  auto& protected_json = synthetic_manifest["protected_regions"]["regions"];
+  const auto& protected_regions = project_.hack_manifest.protected_regions();
+  ASSERT_TRUE(protected_json.is_array());
+  ASSERT_EQ(protected_json.size(), protected_regions.size());
+  for (size_t index = 0; index < protected_regions.size(); ++index) {
+    protected_json[index]["start"] = absl::StrFormat(
+        "0x%06X", PcToSnes(SnesToPc(protected_regions[index].start)));
+    protected_json[index]["end"] = absl::StrFormat(
+        "0x%06X", PcToSnes(SnesToPc(protected_regions[index].end)));
+  }
   synthetic_manifest["editor_managed_regions"] = {
       {"regions", Json::array({{{"start", "0x228280"}, {"end", "0x2292B0"}},
                                {{"start", "0x07F61D"}, {"end", "0x07F86D"}}})}};

@@ -375,6 +375,89 @@ absl::StatusOr<std::vector<SnesAddressRange>> ParseEditorManagedRegions(
   return ParseAddressRanges(section, "regions", kSection);
 }
 
+struct ParsedProtectedRegions {
+  int total_hooks = 0;
+  std::vector<ProtectedRegion> regions;
+};
+
+absl::StatusOr<uint32_t> ParseProtectedAddress(const Json& object,
+                                               const std::string& key,
+                                               const std::string& path,
+                                               bool require_mapped_lorom) {
+  if (require_mapped_lorom) {
+    return ParseLoRomAddress(object, key, path);
+  }
+  if (!object.contains(key)) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s.%s is required", path, key));
+  }
+
+  uint32_t address = 0;
+  ASSIGN_OR_RETURN(address, ParseStrictHexValue(object[key], path + "." + key,
+                                                /*maximum=*/0xFFFFFF));
+  return NormalizeSnesAddress(address);
+}
+
+absl::StatusOr<ParsedProtectedRegions> ParseProtectedRegions(
+    const Json& root, int manifest_version) {
+  ParsedProtectedRegions parsed;
+  constexpr const char* kSection = "protected_regions";
+  if (!root.contains(kSection)) {
+    return parsed;
+  }
+
+  const Json& section = root[kSection];
+  if (!section.is_object()) {
+    return absl::InvalidArgumentError("protected_regions must be an object");
+  }
+  if (!section.contains("regions") || !section["regions"].is_array()) {
+    return absl::InvalidArgumentError(
+        "protected_regions.regions must be an array");
+  }
+
+  parsed.total_hooks = section.value("total_hooks", 0);
+  parsed.regions.reserve(section["regions"].size());
+  // Version 3 is the first schema that can exempt editor-managed ranges, so
+  // its protected endpoints must be canonical mapped LoROM addresses. Legacy
+  // manifests still require structurally valid ranges, but retain low-half
+  // addresses emitted by older Oracle sources (for example $1E7F21).
+  const bool require_mapped_lorom = manifest_version >= 3;
+  size_t index = 0;
+  for (const Json& region_json : section["regions"]) {
+    const std::string path =
+        absl::StrFormat("protected_regions.regions[%zu]", index);
+    if (!region_json.is_object()) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("%s must be an object", path));
+    }
+
+    ProtectedRegion region;
+    ASSIGN_OR_RETURN(region.start,
+                     ParseProtectedAddress(region_json, "start", path,
+                                           require_mapped_lorom));
+    ASSIGN_OR_RETURN(region.end, ParseProtectedAddress(region_json, "end", path,
+                                                       require_mapped_lorom));
+    if (region.end <= region.start ||
+        SnesToPc(region.end) <= SnesToPc(region.start)) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s must be a non-empty half-open range with end > start", path));
+    }
+
+    region.hook_count = region_json.value("hook_count", 0);
+    region.module = region_json.value("module", "");
+    parsed.regions.push_back(std::move(region));
+    ++index;
+  }
+
+  // Unlike editor-managed and allocator ranges, protected hooks may overlap.
+  // FindProtectedRegion() deliberately walks backward across all candidates.
+  std::sort(parsed.regions.begin(), parsed.regions.end(),
+            [](const ProtectedRegion& lhs, const ProtectedRegion& rhs) {
+              return lhs.start < rhs.start;
+            });
+  return parsed;
+}
+
 bool PcRangeContains(const SnesAddressRange& outer,
                      const SnesAddressRange& inner) {
   return SnesToPc(outer.start) <= SnesToPc(inner.start) &&
@@ -606,6 +689,10 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
       dungeon_stream_layouts;
   ASSIGN_OR_RETURN(dungeon_stream_layouts, ParseDungeonStreamLayouts(root));
 
+  ParsedProtectedRegions protected_regions;
+  ASSIGN_OR_RETURN(protected_regions,
+                   ParseProtectedRegions(root, manifest_version_));
+
   // Build pipeline
   if (root.contains("build_pipeline")) {
     auto& pipeline = root["build_pipeline"];
@@ -615,33 +702,6 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
     build_pipeline_.entry_point = pipeline.value("entry_point", "");
     build_pipeline_.build_script = pipeline.value("build_script", "");
   }
-
-  // Protected regions
-  if (root.contains("protected_regions")) {
-    auto& protected_json = root["protected_regions"];
-    total_hooks_ = protected_json.value("total_hooks", 0);
-    if (protected_json.contains("regions") &&
-        protected_json["regions"].is_array()) {
-      for (auto& region_json : protected_json["regions"]) {
-        ProtectedRegion region;
-        ASSIGN_OR_RETURN(region.start, ParseHexAddress(region_json.value(
-                                           "start", "0x000000")));
-        ASSIGN_OR_RETURN(region.end,
-                         ParseHexAddress(region_json.value("end", "0x000000")));
-        region.start = NormalizeSnesAddress(region.start);
-        region.end = NormalizeSnesAddress(region.end);
-        region.hook_count = region_json.value("hook_count", 0);
-        region.module = region_json.value("module", "");
-        protected_regions_.push_back(region);
-      }
-    }
-  }
-
-  // Sort protected regions for binary search
-  std::sort(protected_regions_.begin(), protected_regions_.end(),
-            [](const ProtectedRegion& lhs, const ProtectedRegion& rhs) {
-              return lhs.start < rhs.start;
-            });
 
   // Owned banks
   if (root.contains("owned_banks") && root["owned_banks"].contains("banks")) {
@@ -752,6 +812,8 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
     }
   }
 
+  total_hooks_ = protected_regions.total_hooks;
+  protected_regions_ = std::move(protected_regions.regions);
   editor_managed_regions_ = std::move(editor_managed_regions);
   dungeon_stream_layouts_ = std::move(dungeon_stream_layouts);
   loaded_ = true;
