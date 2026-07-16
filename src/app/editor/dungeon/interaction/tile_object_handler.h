@@ -20,6 +20,17 @@ namespace yaze::editor {
 class TileObjectHandler : public BaseEntityHandler {
  public:
   using GhostCapacityState = PlacementCapacityState;
+  struct GhostPreviewGeometry {
+    int render_anchor_x_tiles = 0;
+    int render_anchor_y_tiles = 0;
+    int offset_x_tiles = 0;
+    int offset_y_tiles = 0;
+    int width_pixels = 8;
+    int height_pixels = 8;
+    int buffer_width_pixels = 8;
+    int buffer_height_pixels = 8;
+  };
+
   enum class PlacementBlockReason {
     kNone = 0,
     kInvalidRoom,
@@ -134,6 +145,14 @@ class TileObjectHandler : public BaseEntityHandler {
    */
   void SetPreviewObject(const zelda3::RoomObject& object);
 
+  /// Resolve the render anchor and visual extent used by placement previews.
+  static GhostPreviewGeometry CalculateGhostPreviewGeometry(
+      const zelda3::RoomObject& object);
+
+  const gfx::BackgroundBuffer* ghost_preview_buffer_for_testing() const {
+    return ghost_preview_buffer_.get();
+  }
+
   // ========================================================================
   // Clipboard Operations
   // ========================================================================
@@ -173,12 +192,13 @@ class TileObjectHandler : public BaseEntityHandler {
   PlacementBlockReason placement_block_reason_ = PlacementBlockReason::kNone;
   zelda3::RoomObject preview_object_{-1, 0, 0, 0};
   std::unique_ptr<gfx::BackgroundBuffer> ghost_preview_buffer_;
+  bool ghost_preview_bitmap_ready_ = false;
+  bool ghost_preview_create_queued_ = false;
 
   // Clipboard
   std::vector<zelda3::RoomObject> clipboard_;
 
   void RenderGhostPreviewBitmap();
-  std::pair<int, int> CalculateObjectBounds(const zelda3::RoomObject& object);
 
   // Drag state
   bool is_dragging_ = false;
