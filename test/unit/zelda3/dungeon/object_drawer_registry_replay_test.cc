@@ -1586,44 +1586,65 @@ TEST(ObjectDrawerRegistryReplayTest,
      LightBeamOnFloorMatchesUsdasmStackedBlocks) {
   ScopedCustomObjectsFlag disable_custom(false);
 
-  Rom rom;
-  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
-  rom.LoadFromData(dummy_rom);
-
-  ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
-
-  RoomObject obj(0x0FF0, /*x=*/10, /*y=*/20, /*size=*/0, /*layer=*/0);
-  obj.tiles_loaded_ = true;
-  obj.tiles_.clear();
-  for (int i = 0; i < 48; ++i) {
-    obj.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i),
-                                       /*pal=*/2, false, false, false));
-  }
-
-  gfx::BackgroundBuffer bg1(512, 512);
-  gfx::BackgroundBuffer bg2(512, 512);
-  gfx::PaletteGroup palette_group;
-
-  std::vector<ObjectDrawer::TileTrace> trace;
-  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
-
-  ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
+  constexpr int kX = 10;
+  constexpr int kY = 20;
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0FF0, kX, kY, /*size=*/0, RoomObject::LayerType::BG2,
+      MakeSequentialTiles(32));
   ASSERT_EQ(trace.size(), 48u);
 
-  auto key = [](int x, int y) {
-    return (y << 8) | x;
-  };
-  std::unordered_map<int, uint16_t> final_by_pos;
-  final_by_pos.reserve(trace.size());
-  for (const auto& t : trace) {
-    final_by_pos[key(t.x_tile, t.y_tile)] = t.tile_id;
-  }
+  for (int tile = 0; tile < 16; ++tile) {
+    SCOPED_TRACE(tile);
+    const int dx = tile / 4;
+    const int dy = tile % 4;
 
-  EXPECT_EQ(final_by_pos[key(10, 20)], 0);   // top block
-  EXPECT_EQ(final_by_pos[key(10, 22)], 16);  // middle block overwrites overlap
-  EXPECT_EQ(final_by_pos[key(13, 25)], 31);
-  EXPECT_EQ(final_by_pos[key(10, 26)], 32);  // bottom block
-  EXPECT_EQ(final_by_pos[key(13, 29)], 47);
+    EXPECT_EQ(trace[tile].x_tile, kX + dx);
+    EXPECT_EQ(trace[tile].y_tile, kY + dy);
+    EXPECT_EQ(trace[tile].tile_id, tile);
+
+    EXPECT_EQ(trace[16 + tile].x_tile, kX + dx);
+    EXPECT_EQ(trace[16 + tile].y_tile, kY + 2 + dy);
+    EXPECT_EQ(trace[16 + tile].tile_id, tile)
+        << "middle block must reset to obj2376";
+
+    EXPECT_EQ(trace[32 + tile].x_tile, kX + dx);
+    EXPECT_EQ(trace[32 + tile].y_tile, kY + 6 + dy);
+    EXPECT_EQ(trace[32 + tile].tile_id, 16 + tile)
+        << "bottom block must use obj2396";
+
+    EXPECT_EQ(trace[tile].layer,
+              static_cast<uint8_t>(RoomObject::LayerType::BG2));
+    EXPECT_EQ(trace[16 + tile].layer,
+              static_cast<uint8_t>(RoomObject::LayerType::BG2));
+    EXPECT_EQ(trace[32 + tile].layer,
+              static_cast<uint8_t>(RoomObject::LayerType::BG2));
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     BigLightBeamOnFloorMatchesUsdasmFloorLightGrid) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 10;
+  constexpr int kY = 20;
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0FF1, kX, kY, /*size=*/4, RoomObject::LayerType::BG2,
+      MakeSequentialTiles(64));
+  ASSERT_EQ(trace.size(), 64u);
+
+  for (int block = 0; block < 4; ++block) {
+    const int block_x = (block % 2) * 4;
+    const int block_y = (block / 2) * 4;
+    for (int tile = 0; tile < 16; ++tile) {
+      SCOPED_TRACE(::testing::Message()
+                   << "block=" << block << " tile=" << tile);
+      const auto& write = trace[block * 16 + tile];
+      EXPECT_EQ(write.x_tile, kX + block_x + tile / 4);
+      EXPECT_EQ(write.y_tile, kY + block_y + tile % 4);
+      EXPECT_EQ(write.tile_id, block * 16 + tile);
+      EXPECT_EQ(write.layer, static_cast<uint8_t>(RoomObject::LayerType::BG2));
+    }
+  }
 }
 
 TEST(ObjectDrawerPillarStrideTest, RightwardsPillar2x4Spaced4Uses6TileStride) {
