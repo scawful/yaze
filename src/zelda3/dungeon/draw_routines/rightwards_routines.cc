@@ -856,6 +856,19 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kWeird2x4_1to16,
+      .name = "Weird2x4_1to16",
+      .function = DrawRightwards2x4_1to16,
+      // USDASM: RoomDraw_Weird2x4_1_to_16 ($01:97DC) uses RoomDraw_Nx4
+      // through the current tilemap pointers, so object 0xB5 is single-layer.
+      .draws_to_both_bgs = false,
+      .base_width = 2,
+      .base_height = 4,
+      .min_tiles = 8,
+      .category = DrawRoutineInfo::Category::Rightwards,
+  });
+
+  registry.push_back(DrawRoutineInfo{
       .id = DrawRoutineIds::kRightwards2x4_1to16_BothBG,
       .name = "Rightwards2x4_1to16_BothBG",
       .function = DrawRightwards2x4_1to16_BothBG,
