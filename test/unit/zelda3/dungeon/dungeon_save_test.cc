@@ -557,6 +557,8 @@ TEST_F(DungeonSaveTest, SaveAllTorches_NoOpWhenUnchanged) {
       0x01, 0x00,  // room_id = 1
       0x14, 0xCA,  // torch word (x=10,y=20,selector=1,lit=1)
       0xFF, 0xFF,  // terminator
+      0xFF, 0xFF,  // standalone authoring padding
+      0xFF, 0xFF,  // standalone authoring padding
   };
   ASSERT_TRUE(
       rom_->WriteWord(kTorchesLengthPointer, static_cast<uint16_t>(blob.size()))
@@ -574,6 +576,8 @@ TEST_F(DungeonSaveTest, SaveAllTorches_NoOpWhenUnchanged) {
   EXPECT_TRUE(status.ok()) << status.message();
   EXPECT_FALSE(rooms[1].torches_dirty());
   EXPECT_FALSE(rom_->dirty());
+  EXPECT_TRUE(std::equal(blob.begin(), blob.end(),
+                         rom_->vector().begin() + kTorchData));
 }
 
 TEST_F(DungeonSaveTest, SaveAllTorches_HighYRoundTripsWithoutMutation) {
