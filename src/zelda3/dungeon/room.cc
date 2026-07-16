@@ -2473,6 +2473,13 @@ std::vector<TorchSegment> ParseRomTorchSegments(
     uint8_t b1 = rom_data[kTorchData + i];
     uint8_t b2 = rom_data[kTorchData + i + 1];
     if (b1 == 0xFF && b2 == 0xFF) {
+      // Vanilla contains standalone $FFFF padding between two authored room
+      // segments. Keep it as an unowned pass-through segment so a no-op save
+      // remains byte-identical instead of compacting the table.
+      TorchSegment padding;
+      padding.room_id = 0xFFFF;
+      padding.bytes = {0xFF, 0xFF};
+      segments.push_back(std::move(padding));
       i += 2;
       continue;
     }

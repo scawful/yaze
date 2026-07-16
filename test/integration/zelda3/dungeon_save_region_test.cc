@@ -507,13 +507,20 @@ TEST_F(DungeonSaveRegionTest,
 
   std::vector<Room> rooms;
   rooms.reserve(kNumberOfRooms);
+  size_t loaded_torch_count = 0;
   for (int i = 0; i < kNumberOfRooms; ++i) {
     rooms.emplace_back(i, rom_.get());
-    rooms.back().LoadObjects();
+    rooms.back().LoadTorches();
+    ASSERT_TRUE(rooms.back().AreTorchesLoaded());
+    loaded_torch_count += rooms.back().GetTileObjects().size();
   }
+  ASSERT_GT(loaded_torch_count, 0u)
+      << "The ROM-backed test must exercise decoded torch entries";
 
   auto status = SaveAllTorches(rom_.get(), rooms);
   ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_FALSE(rom_->dirty())
+      << "A byte-identical torch round-trip must not dirty the ROM";
 
   const auto& after = rom_->vector();
   int len_after =

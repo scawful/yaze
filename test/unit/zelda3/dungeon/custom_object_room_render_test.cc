@@ -360,6 +360,44 @@ TEST_F(CustomObjectRoomRenderTest,
 }
 
 TEST_F(CustomObjectRoomRenderTest,
+       LightableTorchSelectorDoesNotChangeBg1DrawTarget) {
+  RoomObject selector_zero_torch(/*id=*/0x150, /*x=*/3, /*y=*/4, /*size=*/0,
+                                 /*layer=*/0);
+  selector_zero_torch.set_options(ObjectOption::Torch);
+  selector_zero_torch.lit_ = false;
+  RoomObject selector_one_torch(/*id=*/0x150, /*x=*/8, /*y=*/9, /*size=*/0,
+                                /*layer=*/1);
+  selector_one_torch.set_options(ObjectOption::Torch);
+  selector_one_torch.lit_ = true;
+
+  Room room = MakeRoomWithObjects({selector_zero_torch, selector_one_torch});
+  RenderObjectBuffers(room);
+
+  const auto& bg1 = room.object_bg1_buffer();
+  const auto& bg2 = room.object_bg2_buffer();
+  const auto& bg1_bitmap = bg1.bitmap();
+  ASSERT_TRUE(bg1_bitmap.is_active());
+  ASSERT_TRUE(bg2.bitmap().is_active());
+
+  for (const auto [x, y] : {std::pair{3, 4}, std::pair{8, 9}}) {
+    const int pixel_index = PixelIndex(bg1_bitmap, x * 8, y * 8);
+    ASSERT_LT(pixel_index, static_cast<int>(bg1.coverage_data().size()));
+    ASSERT_LT(pixel_index, static_cast<int>(bg2.coverage_data().size()));
+    EXPECT_EQ(bg1.coverage_data()[pixel_index], 1)
+        << "Lightable torches should always render through upper/BG1";
+    EXPECT_EQ(bg2.coverage_data()[pixel_index], 0)
+        << "The stored selector must not route torch art to BG2";
+  }
+
+  ASSERT_EQ(room.GetTileObjects().size(), 2u);
+  EXPECT_EQ(room.GetTileObjects()[0].GetLayerValue(), 0);
+  EXPECT_FALSE(room.GetTileObjects()[0].lit_);
+  EXPECT_EQ(room.GetTileObjects()[1].GetLayerValue(), 1);
+  EXPECT_TRUE(room.GetTileObjects()[1].lit_)
+      << "Rendering must preserve the selector and initial lit state";
+}
+
+TEST_F(CustomObjectRoomRenderTest,
        SetTileObjectsMarksRoomAsObjectStreamLoaded) {
   Room room(/*room_id=*/0, rom_.get(), &game_data_);
   EXPECT_FALSE(room.AreObjectsLoaded());
