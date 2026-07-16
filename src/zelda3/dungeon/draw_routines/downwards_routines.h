@@ -176,6 +176,13 @@ void DrawDownwardsPots2x2_1to16(const DrawContext& ctx);
 void DrawDownwardsHammerPegs2x2_1to16(const DrawContext& ctx);
 
 /**
+ * @brief Draw a single tile downward for size + 8 rows
+ *
+ * Matches RoomDraw_DownwardsEdge1x1_1to16plus7 (objects 0x8B-0x8C).
+ */
+void DrawDownwardsEdge1x1_1to16plus7(const DrawContext& ctx);
+
+/**
  * @brief Register all downwards draw routines to the registry
  *
  * @param registry Vector of DrawRoutineInfo to register routines into

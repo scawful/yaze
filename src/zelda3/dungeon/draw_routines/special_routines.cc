@@ -2079,7 +2079,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .category = DrawRoutineInfo::Category::Special,
   });
 
-  // Vertical rails with CORNER+MIDDLE+END pattern (ID 117) - objects 0x8A-0x8C
+  // Long vertical rail with CORNER+MIDDLE+END pattern (ID 117) - object 0x8A
   // Matches horizontal rail 0x22 but in vertical orientation
   registry.push_back(DrawRoutineInfo{
       .id = DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23,  // 117
