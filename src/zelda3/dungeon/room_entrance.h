@@ -291,118 +291,63 @@ class RoomEntrance {
     if (!rom || !rom->is_loaded()) {
       return absl::FailedPreconditionError("ROM not loaded");
     }
-    if (!is_spawn_point) {
-      RETURN_IF_ERROR(
-          ValidateRegularDungeonEntranceForSave(*rom, *this, entrance_id));
-      RETURN_IF_ERROR(
-          rom->WriteShort(kEntranceRoom + (entrance_id * 2), room_));
-      RETURN_IF_ERROR(
-          rom->WriteShort(kEntranceYPosition + (entrance_id * 2), y_position_));
-      RETURN_IF_ERROR(
-          rom->WriteShort(kEntranceXPosition + (entrance_id * 2), x_position_));
-      RETURN_IF_ERROR(
-          rom->WriteShort(kEntranceYScroll + (entrance_id * 2), camera_y_));
-      RETURN_IF_ERROR(
-          rom->WriteShort(kEntranceXScroll + (entrance_id * 2), camera_x_));
-      RETURN_IF_ERROR(rom->WriteShort(
-          kEntranceCameraXTrigger + (entrance_id * 2), camera_trigger_x_));
-      RETURN_IF_ERROR(rom->WriteShort(
-          kEntranceCameraYTrigger + (entrance_id * 2), camera_trigger_y_));
-      RETURN_IF_ERROR(
-          rom->WriteShort(kEntranceExit + (entrance_id * 2), exit_));
-      RETURN_IF_ERROR(rom->WriteByte(kEntranceBlockset + entrance_id,
-                                     (uint8_t)(blockset_ & 0xFF)));
-      RETURN_IF_ERROR(rom->WriteByte(kEntranceMusic + entrance_id,
-                                     (uint8_t)(music_ & 0xFF)));
-      RETURN_IF_ERROR(rom->WriteByte(kEntranceDungeon + entrance_id,
-                                     (uint8_t)(dungeon_id_ & 0xFF)));
-      RETURN_IF_ERROR(
-          rom->WriteByte(kEntranceDoor + entrance_id, (uint8_t)(door_ & 0xFF)));
-      RETURN_IF_ERROR(rom->WriteByte(kEntranceFloor + entrance_id,
-                                     (uint8_t)(floor_ & 0xFF)));
-      RETURN_IF_ERROR(rom->WriteByte(kEntranceLadderBG + entrance_id,
-                                     (uint8_t)(ladder_bg_ & 0xFF)));
-      RETURN_IF_ERROR(rom->WriteByte(kEntrancescrolling + entrance_id,
-                                     (uint8_t)(scrolling_ & 0xFF)));
-      RETURN_IF_ERROR(rom->WriteByte(kEntranceScrollQuadrant + entrance_id,
-                                     (uint8_t)(scroll_quadrant_ & 0xFF)));
-      RETURN_IF_ERROR(rom->WriteByte(
-          kEntranceScrollEdge + 0 + (entrance_id * 8), camera_boundary_qn_));
-      RETURN_IF_ERROR(rom->WriteByte(
-          kEntranceScrollEdge + 1 + (entrance_id * 8), camera_boundary_fn_));
-      RETURN_IF_ERROR(rom->WriteByte(
-          kEntranceScrollEdge + 2 + (entrance_id * 8), camera_boundary_qs_));
-      RETURN_IF_ERROR(rom->WriteByte(
-          kEntranceScrollEdge + 3 + (entrance_id * 8), camera_boundary_fs_));
-      RETURN_IF_ERROR(rom->WriteByte(
-          kEntranceScrollEdge + 4 + (entrance_id * 8), camera_boundary_qw_));
-      RETURN_IF_ERROR(rom->WriteByte(
-          kEntranceScrollEdge + 5 + (entrance_id * 8), camera_boundary_fw_));
-      RETURN_IF_ERROR(rom->WriteByte(
-          kEntranceScrollEdge + 6 + (entrance_id * 8), camera_boundary_qe_));
-      RETURN_IF_ERROR(rom->WriteByte(
-          kEntranceScrollEdge + 7 + (entrance_id * 8), camera_boundary_fe_));
-    } else {
-      RETURN_IF_ERROR(
-          rom->WriteShort(kStartingEntranceroom + (entrance_id * 2), room_));
-      RETURN_IF_ERROR(rom->WriteShort(
-          kStartingEntranceYPosition + (entrance_id * 2), y_position_));
-      RETURN_IF_ERROR(rom->WriteShort(
-          kStartingEntranceXPosition + (entrance_id * 2), x_position_));
-      RETURN_IF_ERROR(rom->WriteShort(
-          kStartingEntranceYScroll + (entrance_id * 2), camera_y_));
-      RETURN_IF_ERROR(rom->WriteShort(
-          kStartingEntranceXScroll + (entrance_id * 2), camera_x_));
-      RETURN_IF_ERROR(
-          rom->WriteShort(kStartingEntranceCameraXTrigger + (entrance_id * 2),
-                          camera_trigger_x_));
-      RETURN_IF_ERROR(
-          rom->WriteShort(kStartingEntranceCameraYTrigger + (entrance_id * 2),
-                          camera_trigger_y_));
-      RETURN_IF_ERROR(
-          rom->WriteShort(kStartingEntranceexit + (entrance_id * 2), exit_));
-      RETURN_IF_ERROR(rom->WriteByte(kStartingEntranceBlockset + entrance_id,
-                                     (uint8_t)(blockset_ & 0xFF)));
-      RETURN_IF_ERROR(rom->WriteByte(kStartingEntrancemusic + entrance_id,
-                                     (uint8_t)(music_ & 0xFF)));
-      RETURN_IF_ERROR(rom->WriteByte(kStartingEntranceDungeon + entrance_id,
-                                     (uint8_t)(dungeon_id_ & 0xFF)));
-      RETURN_IF_ERROR(rom->WriteByte(kStartingEntranceDoor + entrance_id,
-                                     (uint8_t)(door_ & 0xFF)));
-      RETURN_IF_ERROR(rom->WriteByte(kStartingEntranceFloor + entrance_id,
-                                     (uint8_t)(floor_ & 0xFF)));
-      RETURN_IF_ERROR(rom->WriteByte(kStartingEntranceLadderBG + entrance_id,
-                                     (uint8_t)(ladder_bg_ & 0xFF)));
-      RETURN_IF_ERROR(rom->WriteByte(kStartingEntrancescrolling + entrance_id,
-                                     (uint8_t)(scrolling_ & 0xFF)));
-      RETURN_IF_ERROR(
-          rom->WriteByte(kStartingEntranceScrollQuadrant + entrance_id,
-                         (uint8_t)(scroll_quadrant_ & 0xFF)));
-      RETURN_IF_ERROR(
-          rom->WriteByte(kStartingEntranceScrollEdge + 0 + (entrance_id * 8),
-                         camera_boundary_qn_));
-      RETURN_IF_ERROR(
-          rom->WriteByte(kStartingEntranceScrollEdge + 1 + (entrance_id * 8),
-                         camera_boundary_fn_));
-      RETURN_IF_ERROR(
-          rom->WriteByte(kStartingEntranceScrollEdge + 2 + (entrance_id * 8),
-                         camera_boundary_qs_));
-      RETURN_IF_ERROR(
-          rom->WriteByte(kStartingEntranceScrollEdge + 3 + (entrance_id * 8),
-                         camera_boundary_fs_));
-      RETURN_IF_ERROR(
-          rom->WriteByte(kStartingEntranceScrollEdge + 4 + (entrance_id * 8),
-                         camera_boundary_qw_));
-      RETURN_IF_ERROR(
-          rom->WriteByte(kStartingEntranceScrollEdge + 5 + (entrance_id * 8),
-                         camera_boundary_fw_));
-      RETURN_IF_ERROR(
-          rom->WriteByte(kStartingEntranceScrollEdge + 6 + (entrance_id * 8),
-                         camera_boundary_qe_));
-      RETURN_IF_ERROR(
-          rom->WriteByte(kStartingEntranceScrollEdge + 7 + (entrance_id * 8),
-                         camera_boundary_fe_));
+    if (is_spawn_point) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Dungeon spawn point 0x%02X cannot be saved: spawn writes are "
+          "disabled until the dedicated spawn ROM schema is modeled safely",
+          entrance_id));
     }
+
+    // Deliberate defense in depth for direct callers outside the bulk editor
+    // preflight: reject model/ID mismatches before the first regular write.
+    RETURN_IF_ERROR(
+        ValidateRegularDungeonEntranceForSave(*rom, *this, entrance_id));
+    RETURN_IF_ERROR(rom->WriteShort(kEntranceRoom + (entrance_id * 2), room_));
+    RETURN_IF_ERROR(
+        rom->WriteShort(kEntranceYPosition + (entrance_id * 2), y_position_));
+    RETURN_IF_ERROR(
+        rom->WriteShort(kEntranceXPosition + (entrance_id * 2), x_position_));
+    RETURN_IF_ERROR(
+        rom->WriteShort(kEntranceYScroll + (entrance_id * 2), camera_y_));
+    RETURN_IF_ERROR(
+        rom->WriteShort(kEntranceXScroll + (entrance_id * 2), camera_x_));
+    RETURN_IF_ERROR(rom->WriteShort(kEntranceCameraXTrigger + (entrance_id * 2),
+                                    camera_trigger_x_));
+    RETURN_IF_ERROR(rom->WriteShort(kEntranceCameraYTrigger + (entrance_id * 2),
+                                    camera_trigger_y_));
+    RETURN_IF_ERROR(rom->WriteShort(kEntranceExit + (entrance_id * 2), exit_));
+    RETURN_IF_ERROR(rom->WriteByte(kEntranceBlockset + entrance_id,
+                                   (uint8_t)(blockset_ & 0xFF)));
+    RETURN_IF_ERROR(
+        rom->WriteByte(kEntranceMusic + entrance_id, (uint8_t)(music_ & 0xFF)));
+    RETURN_IF_ERROR(rom->WriteByte(kEntranceDungeon + entrance_id,
+                                   (uint8_t)(dungeon_id_ & 0xFF)));
+    RETURN_IF_ERROR(
+        rom->WriteByte(kEntranceDoor + entrance_id, (uint8_t)(door_ & 0xFF)));
+    RETURN_IF_ERROR(
+        rom->WriteByte(kEntranceFloor + entrance_id, (uint8_t)(floor_ & 0xFF)));
+    RETURN_IF_ERROR(rom->WriteByte(kEntranceLadderBG + entrance_id,
+                                   (uint8_t)(ladder_bg_ & 0xFF)));
+    RETURN_IF_ERROR(rom->WriteByte(kEntrancescrolling + entrance_id,
+                                   (uint8_t)(scrolling_ & 0xFF)));
+    RETURN_IF_ERROR(rom->WriteByte(kEntranceScrollQuadrant + entrance_id,
+                                   (uint8_t)(scroll_quadrant_ & 0xFF)));
+    RETURN_IF_ERROR(rom->WriteByte(kEntranceScrollEdge + 0 + (entrance_id * 8),
+                                   camera_boundary_qn_));
+    RETURN_IF_ERROR(rom->WriteByte(kEntranceScrollEdge + 1 + (entrance_id * 8),
+                                   camera_boundary_fn_));
+    RETURN_IF_ERROR(rom->WriteByte(kEntranceScrollEdge + 2 + (entrance_id * 8),
+                                   camera_boundary_qs_));
+    RETURN_IF_ERROR(rom->WriteByte(kEntranceScrollEdge + 3 + (entrance_id * 8),
+                                   camera_boundary_fs_));
+    RETURN_IF_ERROR(rom->WriteByte(kEntranceScrollEdge + 4 + (entrance_id * 8),
+                                   camera_boundary_qw_));
+    RETURN_IF_ERROR(rom->WriteByte(kEntranceScrollEdge + 5 + (entrance_id * 8),
+                                   camera_boundary_fw_));
+    RETURN_IF_ERROR(rom->WriteByte(kEntranceScrollEdge + 6 + (entrance_id * 8),
+                                   camera_boundary_qe_));
+    RETURN_IF_ERROR(rom->WriteByte(kEntranceScrollEdge + 7 + (entrance_id * 8),
+                                   camera_boundary_fe_));
     ClearDirty();
     return absl::OkStatus();
   }
@@ -467,6 +412,12 @@ inline absl::Status ValidateRegularDungeonEntranceForSave(
     return absl::InvalidArgumentError(absl::StrFormat(
         "Regular dungeon entrance 0x%02X is marked as a spawn point",
         entrance_id));
+  }
+  if (entrance.entrance_id_ != static_cast<uint16_t>(entrance_id)) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Regular dungeon entrance model ID 0x%02X does not match requested "
+        "save ID 0x%02X",
+        static_cast<int>(entrance.entrance_id_), entrance_id));
   }
   if (entrance.room_ < 0 || entrance.room_ >= kNumberOfRooms) {
     return absl::OutOfRangeError(absl::StrFormat(
@@ -533,14 +484,6 @@ inline absl::Status SaveAllDungeonEntrances(
   // Validate every participating regular record before the first write.
   RETURN_IF_ERROR(
       ValidateRegularDungeonEntrancesForSave(*rom, entrances, dirty_only));
-
-  for (int slot = 0; slot < kNumDungeonSpawnPoints; ++slot) {
-    auto& entrance = entrances[slot];
-    if (dirty_only && !entrance.dirty()) {
-      continue;
-    }
-    RETURN_IF_ERROR(entrance.Save(rom, slot, true));
-  }
 
   for (int entrance_id = 0; entrance_id < kNumRegularDungeonEntrances;
        ++entrance_id) {

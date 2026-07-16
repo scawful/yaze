@@ -1483,6 +1483,7 @@ TEST_F(DungeonSaveTest,
 
 TEST_F(DungeonSaveTest, SaveAllDungeonEntrances_WritesDirtyRegularEntrance) {
   std::array<RoomEntrance, kNumDungeonEntranceSlots> entrances{};
+  entrances[kNumDungeonSpawnPoints + 3] = RoomEntrance(rom_.get(), 3, false);
   auto& entrance = entrances[kNumDungeonSpawnPoints + 3];
   entrance.room_ = 0x0123;
   entrance.x_position_ = 0x0456;
@@ -1571,6 +1572,8 @@ TEST_F(DungeonSaveTest, CollectDirtyRegularDungeonEntranceWriteRangesIsExact) {
 TEST_F(DungeonSaveTest,
        SaveAllDungeonEntrances_PreflightsEveryRegularBeforeFirstWrite) {
   std::array<RoomEntrance, kNumDungeonEntranceSlots> entrances{};
+  entrances[kNumDungeonSpawnPoints] = RoomEntrance(rom_.get(), 0, false);
+  entrances[kNumDungeonSpawnPoints + 1] = RoomEntrance(rom_.get(), 1, false);
   auto& first = entrances[kNumDungeonSpawnPoints];
   first.room_ = 1;
   first.MarkDirty();
@@ -1606,6 +1609,8 @@ TEST_F(DungeonSaveTest,
 TEST_F(DungeonSaveTest,
        SaveAllDungeonEntrances_RejectsDirtySpawnBeforeMutation) {
   std::array<RoomEntrance, kNumDungeonEntranceSlots> entrances{};
+  entrances[kNumDungeonSpawnPoints] = RoomEntrance(rom_.get(), 0, false);
+  entrances[2] = RoomEntrance(rom_.get(), 2, true);
   auto& regular = entrances[kNumDungeonSpawnPoints];
   regular.room_ = 1;
   regular.MarkDirty();
@@ -1620,6 +1625,81 @@ TEST_F(DungeonSaveTest,
   EXPECT_EQ(rom_->vector(), before);
   EXPECT_TRUE(spawn.dirty());
   EXPECT_TRUE(regular.dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       RoomEntranceSave_DirectSpawnModelFailsClosedWithoutMutation) {
+  RoomEntrance spawn(rom_.get(), 2, true);
+  spawn.room_ = 0x0034;
+  spawn.MarkDirty();
+  const auto before = rom_->vector();
+
+  const absl::Status status = spawn.Save(rom_.get(), 2, true);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  EXPECT_NE(std::string(status.message()).find("dedicated spawn ROM schema"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(spawn.dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       RoomEntranceSave_RegularModelPassedAsSpawnFailsClosedWithoutMutation) {
+  RoomEntrance entrance(rom_.get(), 3, false);
+  entrance.room_ = 0x0123;
+  entrance.MarkDirty();
+  const auto before = rom_->vector();
+
+  const absl::Status status = entrance.Save(rom_.get(), 3, true);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  EXPECT_NE(std::string(status.message()).find("dedicated spawn ROM schema"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(entrance.dirty());
+}
+
+TEST_F(DungeonSaveTest, RoomEntranceSave_InvalidRegularIdsFailBeforeMutation) {
+  for (const int invalid_id : {-1, kNumRegularDungeonEntrances}) {
+    SCOPED_TRACE(invalid_id);
+    RoomEntrance entrance(rom_.get(), 3, false);
+    entrance.room_ = 0x0123;
+    entrance.MarkDirty();
+    const auto before = rom_->vector();
+
+    const absl::Status status = entrance.Save(rom_.get(), invalid_id, false);
+
+    EXPECT_EQ(status.code(), absl::StatusCode::kOutOfRange) << status;
+    EXPECT_EQ(rom_->vector(), before);
+    EXPECT_TRUE(entrance.dirty());
+  }
+}
+
+TEST_F(DungeonSaveTest,
+       RoomEntranceSave_SpawnModelAsRegularFailsBeforeMutation) {
+  RoomEntrance spawn(rom_.get(), 2, true);
+  spawn.room_ = 0x0034;
+  spawn.MarkDirty();
+  const auto before = rom_->vector();
+
+  const absl::Status status = spawn.Save(rom_.get(), 2, false);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument) << status;
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(spawn.dirty());
+}
+
+TEST_F(DungeonSaveTest, RoomEntranceSave_ModelIdMismatchFailsBeforeMutation) {
+  RoomEntrance entrance(rom_.get(), 3, false);
+  entrance.room_ = 0x0123;
+  entrance.MarkDirty();
+  const auto before = rom_->vector();
+
+  const absl::Status status = entrance.Save(rom_.get(), 4, false);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument) << status;
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(entrance.dirty());
 }
 
 TEST_F(DungeonSaveTest, SaveAllCollision_DirtyRoomWithoutCustomRegionFails) {
