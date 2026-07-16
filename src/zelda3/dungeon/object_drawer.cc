@@ -2929,11 +2929,9 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
     }
 
     // Special platform routines (80-82)
-    case 80:        // MovingWallWest
-    case 81:        // MovingWallEast
-      width = 64;   // 8 tiles wide
-      height = 64;  // 8 tiles tall
-      break;
+    case 80:  // MovingWallWest
+    case 81:  // MovingWallEast
+      return DimensionService::Get().GetPixelDimensions(object);
 
     case 82: {  // OpenChestPlatform
       int size_x = (size >> 2) & 0x03;

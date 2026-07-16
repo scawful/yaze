@@ -1,6 +1,7 @@
 #include "zelda3/dungeon/geometry/object_geometry.h"
 
 #include <algorithm>
+#include <array>
 #include <limits>
 
 #include "absl/status/status.h"
@@ -115,6 +116,14 @@ AnchorPos ChooseAnchor(const DrawRoutineInfo& routine,
       (object.id_ & 0x0F) == 0x06) {
     const int length = size_nibble + 1;
     anchor.x = std::clamp(length - 1, 0, DrawContext::kMaxTilesX - 1);
+    return anchor;
+  }
+
+  // The west-moving wall (0xCD) grows 8/16/24/32 fill columns left from its
+  // three-column platform anchor. Preserve that left extent during replay.
+  if (routine.id == DrawRoutineIds::kMovingWallWest) {
+    constexpr std::array<int, 4> kMovingWallObjectCounts = {8, 16, 24, 32};
+    anchor.x = kMovingWallObjectCounts[object.size_ & 0x03];
     return anchor;
   }
 

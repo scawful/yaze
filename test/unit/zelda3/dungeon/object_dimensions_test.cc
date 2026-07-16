@@ -7,6 +7,7 @@
 
 #include "gtest/gtest.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/geometry/object_geometry.h"
 #include "zelda3/dungeon/object_dimensions.h"
@@ -350,12 +351,9 @@ TEST_F(ObjectDimensionTableTest,
       return;
     }
 
-    // These routines are currently not deterministic under ObjectGeometry replay:
-    // - chest bounds depend on tile payload size (dummy payload forces 4x4 path)
-    // - moving wall routines are still placeholder no-op in replay
-    if (routine == DrawRoutineIds::kChest ||
-        routine == DrawRoutineIds::kMovingWallWest ||
-        routine == DrawRoutineIds::kMovingWallEast) {
+    // Chest bounds depend on tile payload size (dummy payload forces 4x4 path),
+    // so they are not deterministic under ObjectGeometry replay.
+    if (routine == DrawRoutineIds::kChest) {
       deterministic_skips += static_cast<int>(sizes.size());
       return;
     }
@@ -621,6 +619,76 @@ TEST_F(ObjectDimensionsTest,
   dims = drawer.CalculateObjectDimensions(floodgate);
   EXPECT_EQ(dims.first, 80);
   EXPECT_EQ(dims.second, 32);
+}
+
+TEST_F(ObjectDimensionsTest,
+       CalculatesSelectorDependentDimensionsForMovingWalls) {
+  ObjectDrawer drawer(rom_.get(), 0);
+
+  for (const int object_id : {0xCD, 0xCE}) {
+    RoomObject count_selector(object_id, 0, 0, /*size=*/0x01, 0);
+    EXPECT_EQ(drawer.CalculateObjectDimensions(count_selector),
+              std::make_pair(152, 128));
+
+    RoomObject direction_selector(object_id, 0, 0, /*size=*/0x04, 0);
+    EXPECT_EQ(drawer.CalculateObjectDimensions(direction_selector),
+              std::make_pair(88, 160));
+  }
+}
+
+TEST_F(ObjectDimensionTableTest,
+       MovingWallBoundsMatchUsdasmSplitSelectorsAndDirection) {
+  auto& table = ObjectDimensionTable::Get();
+  ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());
+  ObjectGeometry::Get().ClearCache();
+
+  constexpr std::array<int, 4> kDirections = {5, 7, 11, 15};
+  constexpr std::array<int, 4> kCounts = {8, 16, 24, 32};
+
+  for (size_t direction_index = 0; direction_index < kDirections.size();
+       ++direction_index) {
+    for (size_t count_index = 0; count_index < kCounts.size(); ++count_index) {
+      const uint8_t size =
+          static_cast<uint8_t>((direction_index << 2) | count_index);
+      const int expected_width = kCounts[count_index] + 3;
+      const int expected_height = kDirections[direction_index] * 2 + 6;
+
+      for (const int16_t object_id : {int16_t{0x00CD}, int16_t{0x00CE}}) {
+        SCOPED_TRACE(::testing::Message()
+                     << "object_id=0x" << std::hex << object_id << " size=0x"
+                     << static_cast<int>(size));
+        const int expected_offset_x =
+            object_id == 0x00CD ? -kCounts[count_index] : 0;
+
+        const auto selection = table.GetSelectionBounds(object_id, size);
+        EXPECT_EQ(selection.offset_x, expected_offset_x);
+        EXPECT_EQ(selection.offset_y, 0);
+        EXPECT_EQ(selection.width, expected_width);
+        EXPECT_EQ(selection.height, expected_height);
+
+        RoomObject object(object_id, /*x=*/40, /*y=*/10, size, /*layer=*/0);
+        const auto geometry = ObjectGeometry::Get().MeasureByObjectId(object);
+        ASSERT_TRUE(geometry.ok()) << geometry.status();
+        EXPECT_EQ(geometry->min_x_tiles, expected_offset_x);
+        EXPECT_EQ(geometry->min_y_tiles, 0);
+        EXPECT_EQ(geometry->width_tiles, expected_width);
+        EXPECT_EQ(geometry->height_tiles, expected_height);
+
+        const auto service = DimensionService::Get().GetDimensions(object);
+        EXPECT_EQ(service.offset_x_tiles, expected_offset_x);
+        EXPECT_EQ(service.offset_y_tiles, 0);
+        EXPECT_EQ(service.width_tiles, expected_width);
+        EXPECT_EQ(service.height_tiles, expected_height);
+
+        const auto [hit_x, hit_y, hit_width, hit_height] =
+            DimensionService::Get().GetHitTestBounds(object);
+        EXPECT_EQ(hit_x, object.x_ + expected_offset_x);
+        EXPECT_EQ(hit_y, object.y_);
+        EXPECT_EQ(hit_width, expected_width);
+        EXPECT_EQ(hit_height, expected_height);
+      }
+    }
+  }
 }
 
 TEST_F(ObjectDimensionTableTest,

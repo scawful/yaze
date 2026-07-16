@@ -1,5 +1,6 @@
 #include "object_dimensions.h"
 
+#include <array>
 #include <limits>
 
 #include "core/features.h"
@@ -103,6 +104,18 @@ std::pair<int, int> GetOpenChestPlatformDimensions(int size) {
   const int size_y = size & 0x03;
   return {size_x * 2 + 10, size_y * 2 + 7};
 }
+
+constexpr std::array<int, 4> kMovingWallDirections = {5, 7, 11, 15};
+constexpr std::array<int, 4> kMovingWallObjectCounts = {8, 16, 24, 32};
+
+int GetMovingWallObjectCount(int size) {
+  return kMovingWallObjectCounts[size & 0x03];
+}
+
+std::pair<int, int> GetMovingWallDimensions(int size) {
+  const int direction = kMovingWallDirections[(size >> 2) & 0x03];
+  return {GetMovingWallObjectCount(size) + 3, direction * 2 + 6};
+}
 }  // namespace
 
 ObjectDimensionTable& ObjectDimensionTable::Get() {
@@ -163,6 +176,9 @@ std::pair<int, int> ObjectDimensionTable::GetDimensions(int object_id,
   }
   if (object_id == 0xDC) {
     return GetOpenChestPlatformDimensions(size);
+  }
+  if (object_id == 0xCD || object_id == 0xCE) {
+    return GetMovingWallDimensions(size);
   }
   if (object_id == 0xD8 || object_id == 0xDA) {
     int size_x = ((size >> 2) & 0x03);
@@ -241,6 +257,9 @@ std::pair<int, int> ObjectDimensionTable::GetSelectionDimensions(
   }
   if (object_id == 0xDC) {
     return GetOpenChestPlatformDimensions(size);
+  }
+  if (object_id == 0xCD || object_id == 0xCE) {
+    return GetMovingWallDimensions(size);
   }
   if (object_id == 0xD8 || object_id == 0xDA) {
     int size_x = ((size >> 2) & 0x03);
@@ -371,9 +390,9 @@ ObjectDimensionTable::SelectionBounds ObjectDimensionTable::GetSelectionBounds(
       bounds.offset_y = 3;
       break;
 
-    // Moving wall east draws from x to x-2
-    case 0xCE:
-      bounds.offset_x = -2;
+    // Moving wall west grows its fill left from the three-column platform.
+    case 0xCD:
+      bounds.offset_x = -GetMovingWallObjectCount(size);
       break;
 
     // Somaria line diagonal down-left (0xF86 / 0x206)
@@ -835,9 +854,11 @@ void ObjectDimensionTable::InitializeDefaults() {
   // 0xCB-0xCC: Nothing (RoomDraw_Nothing_E)
   dimensions_[0xCB] = {1, 1, Dir::None, 0, false};
   dimensions_[0xCC] = {1, 1, Dir::None, 0, false};
-  // 0xCD-0xCE: Moving walls (3 tiles wide, 4 tiles tall base)
-  dimensions_[0xCD] = {3, 4, Dir::None, 0, false};
-  dimensions_[0xCE] = {3, 4, Dir::None, 0, false};
+  // 0xCD-0xCE: Moving walls. Size zero selects count=8 and direction=5,
+  // producing an 11x16 footprint; nonzero dimensions use the split selector
+  // tables in GetMovingWallDimensions.
+  dimensions_[0xCD] = {11, 16, Dir::None, 0, false};
+  dimensions_[0xCE] = {11, 16, Dir::None, 0, false};
 
   // 0xD1-0xD2: 4x4 floor patterns
   dimensions_[0xD1] = {0, 0, Dir::SuperSquare, 4, false};
