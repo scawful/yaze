@@ -34,6 +34,7 @@
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "test_utils.h"
+#include "test_utils/dungeon_editor_v2_regular_entrance_test_peer.h"
 #include "util/json.h"
 #include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/dungeon_validator.h"
@@ -684,6 +685,155 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
         << "Semantic save changed ROM bytes during cycle " << cycle;
   }
   RecordProperty("save_reopen_cycles", kSaveReopenCycles);
+}
+
+TEST_F(DungeonPotRepackOosIntegrationTest,
+       RegularEntranceSavePreservesEveryOtherSlotAndFiftyReopenCycles) {
+  constexpr int kEntranceId = 3;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(temp_rom_path_.string()).ok());
+
+  auto read_regular_record = [](const std::vector<uint8_t>& data,
+                                int entrance_id) {
+    std::vector<uint8_t> bytes;
+    for (const auto& [begin, end] :
+         RegularDungeonEntranceWriteRanges(entrance_id)) {
+      bytes.insert(bytes.end(), data.begin() + begin, data.begin() + end);
+    }
+    return bytes;
+  };
+
+  const std::vector<uint8_t> before_save_bytes = rom.vector();
+  std::array<std::vector<uint8_t>, kNumRegularDungeonEntrances>
+      regular_records_before;
+  for (int entrance_id = 0; entrance_id < kNumRegularDungeonEntrances;
+       ++entrance_id) {
+    regular_records_before[entrance_id] =
+        read_regular_record(before_save_bytes, entrance_id);
+  }
+  const std::vector<uint8_t> spawn_tables_before(
+      before_save_bytes.begin() + kStartingEntranceroom,
+      before_save_bytes.begin() + kStartingEntrancemusic +
+          kNumDungeonSpawnPoints);
+
+  DungeonSaveFlagsGuard flags_guard;
+  ConfigurePotOnlySave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSavePotItems = false;
+  flags.kSaveEntrances = true;
+
+  auto dungeon_editor = std::make_unique<editor::DungeonEditorV2>(&rom);
+  editor::EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project_;
+  dungeon_editor->SetDependencies(dependencies);
+  editor::DungeonEditorV2RegularEntranceTestPeer::LoadRegularEntranceFromRom(
+      *dungeon_editor, kEntranceId);
+  auto& entrance =
+      editor::DungeonEditorV2RegularEntranceTestPeer::RegularEntrance(
+          *dungeon_editor, kEntranceId);
+  const int original_room = entrance.room_;
+  const int replacement_room = (original_room + 1) % kNumberOfRooms;
+  ASSERT_NE(replacement_room, original_room);
+  entrance.room_ = static_cast<int16_t>(replacement_room);
+  entrance.MarkDirty();
+
+  const auto expected_ranges = RegularDungeonEntranceWriteRanges(kEntranceId);
+  ASSERT_EQ(expected_ranges.size(), 17u);
+  EXPECT_EQ(dungeon_editor->CollectWriteRanges(), expected_ranges);
+  EXPECT_TRUE(
+      project_.hack_manifest.AnalyzePcWriteRanges(expected_ranges).empty())
+      << "The production Oracle manifest unexpectedly owns a regular entrance "
+         "slot";
+
+  const absl::Status save_status = dungeon_editor->SaveRoom(0);
+  ASSERT_TRUE(save_status.ok()) << save_status.message();
+  EXPECT_FALSE(entrance.dirty());
+
+  const std::vector<uint8_t> after_save_bytes = rom.vector();
+  size_t changed_bytes = 0;
+  for (size_t offset = 0; offset < before_save_bytes.size(); ++offset) {
+    if (before_save_bytes[offset] == after_save_bytes[offset]) {
+      continue;
+    }
+    ++changed_bytes;
+    const bool covered =
+        std::any_of(expected_ranges.begin(), expected_ranges.end(),
+                    [offset](const DungeonEntranceWriteRange& range) {
+                      return range.first <= offset && offset < range.second;
+                    });
+    EXPECT_TRUE(covered) << "Write escaped regular entrance ranges at PC 0x"
+                         << std::hex << offset;
+  }
+  EXPECT_GT(changed_bytes, 0u);
+
+  for (int entrance_id = 0; entrance_id < kNumRegularDungeonEntrances;
+       ++entrance_id) {
+    if (entrance_id == kEntranceId) {
+      continue;
+    }
+    EXPECT_EQ(read_regular_record(after_save_bytes, entrance_id),
+              regular_records_before[entrance_id])
+        << "Unrelated regular entrance changed: 0x" << std::hex << entrance_id;
+  }
+  const std::vector<uint8_t> selected_after =
+      read_regular_record(after_save_bytes, kEntranceId);
+  ASSERT_EQ(selected_after.size(), 32u);
+  ASSERT_EQ(regular_records_before[kEntranceId].size(), 32u);
+  EXPECT_TRUE(std::equal(selected_after.begin() + 2, selected_after.end(),
+                         regular_records_before[kEntranceId].begin() + 2))
+      << "A non-room field changed in the selected regular entrance";
+  EXPECT_EQ(
+      std::vector<uint8_t>(after_save_bytes.begin() + kStartingEntranceroom,
+                           after_save_bytes.begin() + kStartingEntrancemusic +
+                               kNumDungeonSpawnPoints),
+      spawn_tables_before);
+
+  Rom::SaveSettings save_settings;
+  save_settings.filename = temp_rom_path_.string();
+  ASSERT_TRUE(rom.SaveToFile(save_settings).ok());
+  const std::vector<uint8_t> first_save_bytes = ReadFile(temp_rom_path_);
+  ASSERT_FALSE(first_save_bytes.empty());
+  dungeon_editor.reset();
+
+  {
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(temp_rom_path_.string()).ok());
+    const RoomEntrance reopened_entrance(&reopened, kEntranceId, false);
+    EXPECT_EQ(reopened_entrance.room_, replacement_room);
+    EXPECT_EQ(read_regular_record(reopened.vector(), kEntranceId),
+              selected_after);
+  }
+
+  for (int cycle = 1; cycle <= kSaveReopenCycles; ++cycle) {
+    SCOPED_TRACE(
+        absl::StrFormat("regular entrance save/reopen cycle %d", cycle));
+    Rom cycle_rom;
+    ASSERT_TRUE(cycle_rom.LoadFromFile(temp_rom_path_.string()).ok());
+    auto cycle_editor = std::make_unique<editor::DungeonEditorV2>(&cycle_rom);
+    editor::EditorDependencies cycle_dependencies = dependencies;
+    cycle_dependencies.rom = &cycle_rom;
+    cycle_editor->SetDependencies(cycle_dependencies);
+    editor::DungeonEditorV2RegularEntranceTestPeer::LoadRegularEntranceFromRom(
+        *cycle_editor, kEntranceId);
+    auto& cycle_entrance =
+        editor::DungeonEditorV2RegularEntranceTestPeer::RegularEntrance(
+            *cycle_editor, kEntranceId);
+    ASSERT_EQ(cycle_entrance.room_, replacement_room);
+    cycle_entrance.MarkDirty();
+
+    const absl::Status cycle_status = cycle_editor->SaveRoom(0);
+    ASSERT_TRUE(cycle_status.ok()) << cycle_status.message();
+    EXPECT_FALSE(cycle_entrance.dirty());
+    ASSERT_TRUE(cycle_rom.SaveToFile(save_settings).ok());
+    EXPECT_EQ(ReadFile(temp_rom_path_), first_save_bytes)
+        << "No-op regular entrance save changed ROM bytes during cycle "
+        << cycle;
+  }
+
+  RecordProperty("regular_entrance_id", kEntranceId);
+  RecordProperty("regular_entrance_save_reopen_cycles", kSaveReopenCycles);
+  RecordProperty("source_rom_sha256", source_sha_before_);
 }
 
 TEST_F(DungeonPotRepackOosIntegrationTest,
