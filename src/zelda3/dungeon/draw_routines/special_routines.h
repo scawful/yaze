@@ -425,15 +425,25 @@ void DrawBigKeyLock(const DrawContext& ctx);
 void DrawBombableFloor(const DrawContext& ctx);
 
 /**
- * @brief Draw moving wall (Type 1 objects 0xCD, 0xCE)
+ * @brief Draw the west-moving wall (Type 1 object 0xCD)
  *
- * ASM: RoomDraw_MovingWallWest ($019316), RoomDraw_MovingWallEast ($01935C)
- * Checks game state to determine if wall has moved.
+ * ASM: RoomDraw_MovingWallWest ($01:9190). The low two size bits select the
+ * horizontal fill count, the next two bits select the vertical direction
+ * count, and an already-moved wall draws nothing.
  *
  * @param ctx Draw context
- * @param is_west True for west wall (0xCD), false for east wall (0xCE)
  */
-void DrawMovingWall(const DrawContext& ctx, bool is_west);
+void DrawMovingWallWest(const DrawContext& ctx);
+
+/**
+ * @brief Draw the east-moving wall (Type 1 object 0xCE)
+ *
+ * ASM: RoomDraw_MovingWallEast ($01:921C). Uses the same split size selectors
+ * as the west wall and grows its horizontal fill to the right.
+ *
+ * @param ctx Draw context
+ */
+void DrawMovingWallEast(const DrawContext& ctx);
 
 // ============================================================================
 // Water Face Variants (based on room state)
