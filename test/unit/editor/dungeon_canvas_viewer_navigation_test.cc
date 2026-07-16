@@ -299,7 +299,7 @@ TEST(DungeonCanvasViewerContextMenuTest, DirectActionsPrecedeInsertSubmenu) {
 }
 
 TEST(DungeonCanvasViewerContextMenuTest,
-     SelectedObjectUsesDirectZAndLayerLabels) {
+     SelectedObjectUsesDirectZAndObjectStreamLabels) {
   ScopedImGuiContext imgui;
   DungeonRoomStore rooms;
   rooms[0].GetTileObjects().push_back(
@@ -316,20 +316,70 @@ TEST(DungeonCanvasViewerContextMenuTest,
   const size_t bring_front = FindLabelIndex(labels, "Bring to Front");
   const size_t send_back = FindLabelIndex(labels, "Send to Back");
   const size_t z_order = FindLabelIndex(labels, "Z Order");
-  const size_t layer_1 = FindLabelIndex(labels, "Layer 1");
-  const size_t layer_3 = FindLabelIndex(labels, "Layer 3");
+  const size_t primary = FindLabelIndex(labels, "Object Stream: Primary");
+  const size_t bg1_overlay =
+      FindLabelIndex(labels, "Object Stream: BG1 Overlay");
 
   ASSERT_LT(bring_front, labels.size());
   ASSERT_LT(send_back, labels.size());
   ASSERT_LT(z_order, labels.size());
-  ASSERT_LT(layer_1, labels.size());
-  ASSERT_LT(layer_3, labels.size());
+  ASSERT_LT(primary, labels.size());
+  ASSERT_LT(bg1_overlay, labels.size());
   EXPECT_LT(bring_front, z_order);
   EXPECT_LT(send_back, z_order);
-  EXPECT_LT(z_order, layer_1);
-  EXPECT_LT(layer_1, layer_3);
+  EXPECT_LT(z_order, primary);
+  EXPECT_LT(primary, bg1_overlay);
   EXPECT_EQ(FindLabelIndex(labels, "Increase Z"), labels.size());
   EXPECT_EQ(FindLabelIndex(labels, "Send to Layer 1"), labels.size());
+}
+
+TEST(DungeonCanvasViewerContextMenuTest,
+     SpecialObjectDoesNotOfferThirdStreamSelector) {
+  ScopedImGuiContext imgui;
+  DungeonRoomStore rooms;
+  zelda3::RoomObject torch{0x150, 10, 10, 0x00, 0};
+  torch.set_options(zelda3::ObjectOption::Torch);
+  rooms[0].GetTileObjects().push_back(torch);
+
+  DungeonCanvasViewer viewer;
+  viewer.SetRooms(&rooms);
+  viewer.object_interaction().SetCurrentRoom(&rooms, 0);
+  viewer.object_interaction().SetSelectedObjects({0});
+
+  const auto labels =
+      DungeonCanvasViewerTestPeer::SelectionContextMenuLabels(viewer, 0);
+
+  EXPECT_LT(FindLabelIndex(labels, "Upper Layer (BG1)"), labels.size());
+  EXPECT_LT(FindLabelIndex(labels, "Lower Layer (BG2)"), labels.size());
+  EXPECT_EQ(FindLabelIndex(labels, "Object Stream: BG1 Overlay"),
+            labels.size());
+}
+
+TEST(DungeonCanvasViewerContextMenuTest,
+     MixedObjectSelectionDoesNotOfferThirdStreamSelector) {
+  ScopedImGuiContext imgui;
+  DungeonRoomStore rooms;
+  rooms[0].GetTileObjects().push_back(
+      zelda3::RoomObject{0x01, 10, 10, 0x00, 0});
+  zelda3::RoomObject block{0x150, 12, 12, 0x00, 0};
+  block.set_options(zelda3::ObjectOption::Block);
+  rooms[0].GetTileObjects().push_back(block);
+
+  DungeonCanvasViewer viewer;
+  viewer.SetRooms(&rooms);
+  viewer.object_interaction().SetCurrentRoom(&rooms, 0);
+  viewer.object_interaction().SetSelectedObjects({0, 1});
+
+  const auto labels =
+      DungeonCanvasViewerTestPeer::SelectionContextMenuLabels(viewer, 0);
+
+  EXPECT_LT(FindLabelIndex(labels, "Placement 0: Primary / Upper Layer (BG1)"),
+            labels.size());
+  EXPECT_LT(
+      FindLabelIndex(labels, "Placement 1: BG2 Overlay / Lower Layer (BG2)"),
+      labels.size());
+  EXPECT_EQ(FindLabelIndex(labels, "Object Stream: BG1 Overlay"),
+            labels.size());
 }
 
 TEST(DungeonCanvasViewerPingTest, TriggerCanvasPingRectClampsToCanvasBounds) {

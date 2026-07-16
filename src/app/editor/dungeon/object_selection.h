@@ -41,13 +41,13 @@ class ObjectSelection {
     Rectangle,  // Rectangle drag selection
   };
 
-  // Layer filter constants
-  static constexpr int kLayerAll = -1;  // Select from all layers
+  // Stored placement filter constants
+  static constexpr int kLayerAll = -1;  // Select from all placements
   static constexpr int kMaskLayer =
-      -2;  // Mask mode: only BG2/Layer 1 objects (overlays)
-  static constexpr int kLayer1 = 0;  // BG1 (Layer 0)
-  static constexpr int kLayer2 = 1;  // BG2 (Layer 1) - overlay objects
-  static constexpr int kLayer3 = 2;  // BG3 (Layer 2)
+      -2;  // Mask mode: only stored value 1 objects (BG2 overlays)
+  static constexpr int kLayer1 = 0;  // Primary / upper layer (BG1)
+  static constexpr int kLayer2 = 1;  // BG2 overlay / lower layer (BG2)
+  static constexpr int kLayer3 = 2;  // BG1 overlay room stream
 
   explicit ObjectSelection() = default;
 
@@ -256,19 +256,19 @@ class ObjectSelection {
       case kMaskLayer:
         return "Mask Mode (BG2 Overlays)";
       case kLayer1:
-        return "Layer 1 (BG1)";
+        return "Primary / Upper layer (BG1)";
       case kLayer2:
-        return "Layer 2 (BG2)";
+        return "BG2 overlay / Lower layer (BG2)";
       case kLayer3:
-        return "Layer 3 (BG3)";
+        return "BG1 overlay (room stream only)";
       default:
-        return "All Layers";
+        return "All Stored Placements";
     }
   }
 
   /**
    * @brief Check if mask selection mode is active
-   * @return true if only BG2/Layer 1 objects can be selected
+   * @return true if only stored value 1 / BG2 overlay objects can be selected
    */
   bool IsMaskModeActive() const { return active_layer_filter_ == kMaskLayer; }
 
