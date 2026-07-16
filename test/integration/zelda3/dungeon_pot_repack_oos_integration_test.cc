@@ -34,6 +34,7 @@
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "test_utils.h"
+#include "util/json.h"
 #include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/dungeon_validator.h"
 #include "zelda3/dungeon/oracle_rom_safety_preflight.h"
@@ -971,11 +972,36 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   EXPECT_EQ(predicted_conflicts[0].address, opted_in_conflicts[0].address);
   EXPECT_EQ(predicted_conflicts[0].ownership, opted_in_conflicts[0].ownership);
 
-  // Oracle relocates every room header into manifest-owned bank $22. Opt in
-  // only after proving the selected header/message prediction above; the
-  // all-room regression separately proves the header passthrough is exact.
-  project_.rom_metadata.write_policy = project::RomWritePolicy::kAllow;
-  RecordProperty("header_write_policy", "allow-selected-header-message");
+  // Keep block policy and add only the two generator-owned metadata ranges to
+  // a test-local copy of the real manifest. This proves the exact override;
+  // the source Oracle manifest and project configuration remain untouched.
+  const std::filesystem::path manifest_path =
+      project_.GetAbsolutePath(project_.hack_manifest_file);
+  const std::vector<uint8_t> manifest_bytes = ReadFile(manifest_path);
+  ASSERT_FALSE(manifest_bytes.empty())
+      << "Could not read configured Oracle manifest: " << manifest_path;
+  Json synthetic_manifest =
+      Json::parse(std::string(manifest_bytes.begin(), manifest_bytes.end()));
+  synthetic_manifest["manifest_version"] = 3;
+  synthetic_manifest["editor_managed_regions"] = {
+      {"regions", Json::array({{{"start", "0x228280"}, {"end", "0x2292B0"}},
+                               {{"start", "0x07F61D"}, {"end", "0x07F86D"}}})}};
+  const absl::Status synthetic_status =
+      project_.hack_manifest.LoadFromString(synthetic_manifest.dump());
+  ASSERT_TRUE(synthetic_status.ok()) << synthetic_status.message();
+  project_.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+
+  EXPECT_EQ(
+      project_.hack_manifest.ClassifyAddress(PcToSnes(selected_header_pc)),
+      core::AddressOwnership::kVanillaSafe);
+  EXPECT_EQ(project_.hack_manifest.ClassifyAddress(0x228080),
+            core::AddressOwnership::kAsmOwned)
+      << "The exact header exemption must not permit unrelated bank-$22 data";
+  EXPECT_TRUE(
+      project_.hack_manifest.AnalyzePcWriteRanges(opted_in_ranges).empty());
+  EXPECT_TRUE(
+      project_.hack_manifest.AnalyzePcWriteRanges(predicted_ranges).empty());
+  RecordProperty("header_write_policy", "block-exact-editor-managed-regions");
 
   const std::vector<uint8_t> before_save_bytes = rom.vector();
   const absl::Status save_status = dungeon_editor->SaveRoom(selected_room);
