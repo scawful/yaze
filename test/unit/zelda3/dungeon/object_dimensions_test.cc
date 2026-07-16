@@ -10,6 +10,7 @@
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/geometry/object_geometry.h"
+#include "zelda3/dungeon/moving_wall_semantics.h"
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room_object.h"
@@ -642,23 +643,22 @@ TEST_F(ObjectDimensionTableTest,
   ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());
   ObjectGeometry::Get().ClearCache();
 
-  constexpr std::array<int, 4> kDirections = {5, 7, 11, 15};
-  constexpr std::array<int, 4> kCounts = {8, 16, 24, 32};
-
-  for (size_t direction_index = 0; direction_index < kDirections.size();
-       ++direction_index) {
-    for (size_t count_index = 0; count_index < kCounts.size(); ++count_index) {
+  for (size_t direction_index = 0;
+       direction_index < moving_wall::kDirections.size(); ++direction_index) {
+    for (size_t count_index = 0;
+         count_index < moving_wall::kObjectCounts.size(); ++count_index) {
       const uint8_t size =
           static_cast<uint8_t>((direction_index << 2) | count_index);
-      const int expected_width = kCounts[count_index] + 3;
-      const int expected_height = kDirections[direction_index] * 2 + 6;
+      const int expected_width = moving_wall::kObjectCounts[count_index] + 3;
+      const int expected_height =
+          moving_wall::kDirections[direction_index] * 2 + 6;
 
       for (const int16_t object_id : {int16_t{0x00CD}, int16_t{0x00CE}}) {
         SCOPED_TRACE(::testing::Message()
                      << "object_id=0x" << std::hex << object_id << " size=0x"
                      << static_cast<int>(size));
         const int expected_offset_x =
-            object_id == 0x00CD ? -kCounts[count_index] : 0;
+            object_id == 0x00CD ? -moving_wall::kObjectCounts[count_index] : 0;
 
         const auto selection = table.GetSelectionBounds(object_id, size);
         EXPECT_EQ(selection.offset_x, expected_offset_x);

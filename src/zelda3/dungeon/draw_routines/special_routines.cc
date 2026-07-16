@@ -8,6 +8,7 @@
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_state.h"
+#include "zelda3/dungeon/moving_wall_semantics.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
@@ -172,19 +173,9 @@ void DrawPlatform3x2(const DrawContext& ctx, int dx, int dy,
   WritePlatformTile(ctx, dx + 2, dy + 1, start_index + 5);
 }
 
-constexpr std::array<int, 4> kMovingWallDirections = {5, 7, 11, 15};
-constexpr std::array<int, 4> kMovingWallObjectCounts = {8, 16, 24, 32};
 constexpr int kMovingWallFillDataOffset = kRoomObjectTileAddress + 0x03D8;
 constexpr std::array<uint16_t, 3> kMovingWallFallbackFillWords = {
     0x3C15, 0x3C15, 0x3C15};
-
-int GetMovingWallDirection(uint8_t size) {
-  return kMovingWallDirections[(size >> 2) & 0x03];
-}
-
-int GetMovingWallObjectCount(uint8_t size) {
-  return kMovingWallObjectCounts[size & 0x03];
-}
 
 std::array<gfx::TileInfo, 3> LoadMovingWallFillTiles(const DrawContext& ctx) {
   std::array<gfx::TileInfo, 3> fill_tiles;
@@ -1295,8 +1286,8 @@ void DrawMovingWallWest(const DrawContext& ctx) {
     return;
   }
 
-  const int direction = GetMovingWallDirection(ctx.object.size_);
-  const int column_count = GetMovingWallObjectCount(ctx.object.size_);
+  const int direction = moving_wall::DirectionForSize(ctx.object.size_);
+  const int column_count = moving_wall::ObjectCountForSize(ctx.object.size_);
   const int height = direction * 2 + 6;
 
   // West writes the obj03D8 fill first, growing left from the object anchor,
@@ -1312,8 +1303,8 @@ void DrawMovingWallEast(const DrawContext& ctx) {
     return;
   }
 
-  const int direction = GetMovingWallDirection(ctx.object.size_);
-  const int column_count = GetMovingWallObjectCount(ctx.object.size_);
+  const int direction = moving_wall::DirectionForSize(ctx.object.size_);
+  const int column_count = moving_wall::ObjectCountForSize(ctx.object.size_);
   const int height = direction * 2 + 6;
 
   // East stamps the platform first, then grows the obj03D8 fill right from
