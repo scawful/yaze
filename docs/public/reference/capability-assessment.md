@@ -111,7 +111,7 @@ All commands support `--format=json` for machine consumption and can be scripted
 
 Purpose-built validation for the Oracle romhack:
 - `oracle-smoke-check` — D4 water system, D6 minecart, D3 prison structural validation
-- `dungeon-oracle-preflight` — water-fill region, custom collision maps, required room checks
+- `dungeon-oracle-preflight` — water-fill structure/required-room membership and custom collision checks
 - `oracle-menu-validate` — ASM menu data integrity
 - `oracle-menu-index` — menu asset scanning
 - Custom collision JSON import/export workflow

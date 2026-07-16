@@ -79,6 +79,25 @@ OracleRomSafetyPreflightResult RunOracleRomSafetyPreflight(
              absl::StatusCode::kFailedPrecondition);
   }
 
+  std::vector<WaterFillZoneEntry> water_fill_zones;
+  bool water_fill_table_load_attempted = false;
+  bool water_fill_table_loaded = false;
+  auto load_water_fill_table = [&]() {
+    if (water_fill_table_load_attempted) {
+      return;
+    }
+    water_fill_table_load_attempted = true;
+    auto zones_or = LoadWaterFillTable(rom);
+    if (!zones_or.ok()) {
+      AddError(&result, "ORACLE_WATER_FILL_TABLE_INVALID",
+               std::string(zones_or.status().message()),
+               zones_or.status().code());
+      return;
+    }
+    water_fill_zones = std::move(*zones_or);
+    water_fill_table_loaded = true;
+  };
+
   if (options.validate_water_fill_table &&
       HasWaterFillReservedRegion(rom_size)) {
     const auto& data = rom->vector();
@@ -92,11 +111,39 @@ OracleRomSafetyPreflightResult RunOracleRomSafetyPreflight(
           absl::StatusCode::kFailedPrecondition);
     }
 
-    auto zones_or = LoadWaterFillTable(rom);
-    if (!zones_or.ok()) {
-      AddError(&result, "ORACLE_WATER_FILL_TABLE_INVALID",
-               std::string(zones_or.status().message()),
-               zones_or.status().code());
+    load_water_fill_table();
+  }
+
+  // Check the runtime WaterFill table membership separately from custom
+  // collision. A room may have valid authored collision while still being
+  // absent from the table that WaterFill_FindRoomInTable actually scans.
+  if (!options.room_ids_requiring_water_fill_zones.empty()) {
+    load_water_fill_table();
+    for (int room_id : options.room_ids_requiring_water_fill_zones) {
+      if (room_id < 0 || room_id >= kNumberOfRooms) {
+        AddError(&result, "ORACLE_REQUIRED_WATER_FILL_ROOM_OUT_OF_RANGE",
+                 absl::StrFormat(
+                     "Required WaterFill room 0x%02X is out of valid range "
+                     "(0..0x%02X)",
+                     room_id, kNumberOfRooms - 1),
+                 absl::StatusCode::kInvalidArgument);
+        continue;
+      }
+      if (!water_fill_table_loaded) {
+        continue;
+      }
+      const bool found =
+          std::any_of(water_fill_zones.begin(), water_fill_zones.end(),
+                      [room_id](const WaterFillZoneEntry& zone) {
+                        return zone.room_id == room_id;
+                      });
+      if (!found) {
+        AddError(&result, "ORACLE_REQUIRED_WATER_FILL_ROOM_MISSING",
+                 absl::StrFormat(
+                     "Required room 0x%02X is missing from the WaterFill table",
+                     room_id),
+                 absl::StatusCode::kFailedPrecondition, room_id);
+      }
     }
   }
 
