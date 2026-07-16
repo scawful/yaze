@@ -52,6 +52,27 @@ require_subcommand() {
 require_subcommand "dungeon-oracle-preflight"
 require_subcommand "dungeon-minecart-audit"
 
+preflight_bool_field() {
+  local payload="$1"
+  local field="$2"
+
+  printf '%s' "$payload" | python3 -c '
+import json
+import sys
+
+try:
+    document = json.load(sys.stdin)
+    report = document["Dungeon Oracle Preflight"]
+    value = report[sys.argv[1]]
+except (KeyError, TypeError, ValueError, json.JSONDecodeError):
+    raise SystemExit(2)
+
+if type(value) is not bool:
+    raise SystemExit(2)
+print("true" if value else "false")
+' "$field"
+}
+
 # --- ROM discovery -----------------------------------------------------------
 ROM="${YAZE_TEST_ROM_OOS:-${YAZE_TEST_ROM_EXPANDED:-}}"
 if [[ -z "$ROM" ]]; then
@@ -88,6 +109,7 @@ d4_structural_ok=true
 d4_structural_out=""
 if ! d4_structural_out=$("$Z3ED" dungeon-oracle-preflight \
     --rom "$ROM" \
+    --skip-collision-maps \
     --format=json 2>/dev/null); then
   d4_structural_ok=false
 fi
@@ -100,6 +122,10 @@ if ! d4_water_fill_rooms_out=$("$Z3ED" dungeon-oracle-preflight \
     --required-water-fill-rooms=0x25,0x27 \
     --skip-collision-maps \
     --format=json 2>/dev/null); then
+  : # Parse the focused field even when unrelated checks make the command fail.
+fi
+if ! d4_water_fill_rooms_ok=$(preflight_bool_field \
+    "$d4_water_fill_rooms_out" "required_water_fill_rooms_ok"); then
   d4_water_fill_rooms_ok=false
 fi
 
@@ -111,6 +137,10 @@ if ! d4_required_rooms_out=$("$Z3ED" dungeon-oracle-preflight \
     --required-collision-rooms=0x25,0x27 \
     --skip-collision-maps \
     --format=json 2>/dev/null); then
+  : # Readiness comes from required_rooms_ok, not aggregate command status.
+fi
+if ! d4_required_rooms_ok=$(preflight_bool_field \
+    "$d4_required_rooms_out" "required_rooms_ok"); then
   d4_required_rooms_ok=false
 fi
 
@@ -133,8 +163,9 @@ if ! d3_out=$("$Z3ED" dungeon-oracle-preflight \
     --required-collision-rooms=0x32 \
     --skip-collision-maps \
     --format=json 2>/dev/null); then
-  # Non-zero exit means room 0x32 has no authored collision — a known gap,
-  # not a structural failure. Treat as informational.
+  : # Readiness comes from required_rooms_ok, not aggregate command status.
+fi
+if ! d3_ok=$(preflight_bool_field "$d3_out" "required_rooms_ok"); then
   d3_ok=false
 fi
 

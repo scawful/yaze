@@ -139,6 +139,9 @@ Exit codes:
 1. It does not support `--strict-readiness`; D4/D3 collision readiness remains
    informational. D4 WaterFill membership is structural in both commands.
 2. It defaults to `scripts/z3ed` rather than the system PATH z3ed.
+Focused shell preflights pass `--skip-collision-maps` and consume their explicit
+JSON booleans (`required_water_fill_rooms_ok` / `required_rooms_ok`) rather than
+aggregate command status. Missing or malformed focused fields fail closed.
 Use the C++ command (`z3ed oracle-smoke-check`) for consistent semantics in CI.
 
 ## CI Gate (`.github/workflows/ci.yml` — `oracle-smoke-check` job)
