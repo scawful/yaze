@@ -2,14 +2,17 @@
 #include "util/i18n/tr.h"
 
 #include <algorithm>
+#include <limits>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/message/message_id_resolver.h"
+#include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -25,6 +28,7 @@
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "rom/rom.h"
 #include "rom/transaction.h"
+#include "rom/write_fence.h"
 #include "util/file_util.h"
 #include "util/hex.h"
 #include "util/log.h"
@@ -69,6 +73,11 @@ constexpr ImGuiTableFlags kMessageTableFlags = ImGuiTableFlags_Hideable |
 
 void MessageEditor::Initialize() {
   font_graphics_loaded_ = false;
+  dirty_state_ = {};
+  transaction_dirty_snapshot_ = {};
+  transaction_saved_domains_ = {};
+  transaction_expanded_address_snapshot_.clear();
+  save_transaction_active_ = false;
   // Register panels with WorkspaceWindowManager (dependency injection)
   if (!dependencies_.window_manager)
     return;
@@ -725,6 +734,7 @@ void MessageEditor::DrawExpandedMessageSettings() {
       } else {
         parsed_messages_.insert(parsed_messages_.end(), parsed_expanded.begin(),
                                 parsed_expanded.end());
+        MarkDomainDirty(SaveDomain::kExpandedMessages);
       }
     }
   }
@@ -756,6 +766,7 @@ void MessageEditor::DrawExpandedMessageSettings() {
       new_message.Address = expanded_messages_.back().Address +
                             expanded_messages_.back().Data.size();
       expanded_messages_.push_back(new_message);
+      MarkDomainDirty(SaveDomain::kExpandedMessages);
       const int display_id = expanded_message_base_id_ + new_message.ID;
       if (display_id >= 0 &&
           static_cast<size_t>(display_id) >= parsed_messages_.size()) {
@@ -843,6 +854,9 @@ void MessageEditor::DrawDictionary() {
 
 void MessageEditor::UpdateCurrentMessageFromText(const std::string& text) {
   PushUndoSnapshot();
+
+  MarkDomainDirty(current_message_is_expanded_ ? SaveDomain::kExpandedMessages
+                                               : SaveDomain::kVanillaMessages);
 
   auto parse_result = ParseMessageToDataWithDiagnostics(text);
   current_parse_errors_ = parse_result.errors;
@@ -1045,6 +1059,12 @@ void MessageEditor::ImportMessageBundleFromFile(const std::string& path) {
   if (applied > 0 && rom_) {
     rom_->set_dirty(true);
   }
+  if (vanilla_updated > 0) {
+    MarkDomainDirty(SaveDomain::kVanillaMessages);
+  }
+  if (expanded_modified) {
+    MarkDomainDirty(SaveDomain::kExpandedMessages);
+  }
 }
 
 void MessageEditor::DrawMessagePreview() {
@@ -1108,89 +1128,343 @@ absl::Status MessageEditor::Save() {
         "Current message has parse errors: %s", current_parse_errors_.front()));
   }
 
-  ScopedRomTransaction transaction(*rom());
-
-  for (int i = 0; i < kWidthArraySize; i++) {
-    RETURN_IF_ERROR(rom()->WriteByte(kCharactersWidth + i,
-                                     message_preview_.width_array[i]));
-  }
-
-  int pos = kTextData;
-  bool in_second_bank = false;
-
-  for (const auto& message : list_of_texts_) {
-    for (const auto value : message.Data) {
-      RETURN_IF_ERROR(rom()->WriteByte(pos, value));
-
-      if (value == kBlockTerminator) {
-        // Make sure we didn't go over the space available in the first block.
-        // 0x7FFF available.
-        if (!in_second_bank && pos > kTextDataEnd) {
-          return absl::InternalError(DisplayTextOverflowError(pos, true));
-        }
-
-        // Switch to the second block.
-        pos = kTextData2 - 1;
-        in_second_bank = true;
-      }
-
-      pos++;
-    }
-
-    RETURN_IF_ERROR(rom()->WriteByte(pos++, kMessageTerminator));
-  }
-
-  // Verify that we didn't go over the space available for the second block.
-  // 0x14BF available.
-  if (!in_second_bank && pos > kTextDataEnd) {
-    return absl::InternalError(DisplayTextOverflowError(pos, true));
-  }
-  if (in_second_bank && pos > kTextData2End) {
-    return absl::InternalError(DisplayTextOverflowError(pos, false));
-  }
-
-  RETURN_IF_ERROR(rom()->WriteByte(pos, 0xFF));
-
-  // Also save expanded messages to main ROM if any are loaded
-  if (!expanded_messages_.empty()) {
-    auto status = SaveExpandedMessages();
-    if (!status.ok()) {
-      return status;
-    }
-  }
-
-  transaction.Commit();
-  return absl::OkStatus();
+  return SaveDirtyDomains(/*include_font_widths=*/true,
+                          /*include_vanilla_messages=*/true,
+                          /*include_expanded_messages=*/true);
 }
 
-absl::Status MessageEditor::SaveExpandedMessages() {
-  if (expanded_messages_.empty()) {
-    return absl::OkStatus();
-  }
-
+absl::StatusOr<MessageEditor::SavePlan> MessageEditor::BuildSavePlan(
+    bool include_font_widths, bool include_vanilla_messages,
+    bool include_expanded_messages) const {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
-  // Collect all expanded message text strings (mirrors CLI message-write path)
-  std::vector<std::string> all_texts;
-  all_texts.reserve(expanded_messages_.size());
-  for (const auto& msg : expanded_messages_) {
-    all_texts.push_back(msg.RawString);
+  SavePlan plan;
+
+  if (include_font_widths && dirty_state_.font_widths) {
+    plan.saves_font_widths = true;
+    plan.writes.push_back(
+        {SaveDomain::kFontWidths, kCharactersWidth,
+         std::vector<uint8_t>(message_preview_.width_array.begin(),
+                              message_preview_.width_array.end())});
   }
 
-  // Write to main ROM buffer at the expanded text data region
-  RETURN_IF_ERROR(WriteExpandedTextData(rom_, GetExpandedTextDataStart(),
-                                        GetExpandedTextDataEnd(), all_texts));
+  if (include_vanilla_messages && dirty_state_.vanilla_messages) {
+    std::vector<uint8_t> primary;
+    std::vector<uint8_t> secondary;
+    constexpr size_t kPrimaryCapacity = kTextDataEnd - kTextData + 1;
+    constexpr size_t kSecondaryCapacity = kTextData2End - kTextData2 + 1;
+    primary.reserve(kPrimaryCapacity);
+    secondary.reserve(kSecondaryCapacity);
 
-  // Recalculate addresses after sequential write
-  int pos = GetExpandedTextDataStart();
-  for (auto& msg : expanded_messages_) {
-    msg.Address = pos;
-    pos += static_cast<int>(msg.Data.size()) + 1;  // +1 for 0x7F terminator
+    bool in_second_bank = false;
+    auto append_byte = [&](uint8_t value, bool is_bank_switch) -> absl::Status {
+      auto& destination = in_second_bank ? secondary : primary;
+      const size_t capacity =
+          in_second_bank ? kSecondaryCapacity : kPrimaryCapacity;
+      if (destination.size() >= capacity) {
+        const int overflow_pos = (in_second_bank ? kTextData2 : kTextData) +
+                                 static_cast<int>(destination.size());
+        return absl::ResourceExhaustedError(
+            DisplayTextOverflowError(overflow_pos, !in_second_bank));
+      }
+      destination.push_back(value);
+      if (!in_second_bank && is_bank_switch) {
+        in_second_bank = true;
+      }
+      return absl::OkStatus();
+    };
+
+    for (const auto& message : list_of_texts_) {
+      bool next_byte_is_command_argument = false;
+      for (uint8_t value : message.Data) {
+        const bool is_command_argument = next_byte_is_command_argument;
+        next_byte_is_command_argument = false;
+        RETURN_IF_ERROR(append_byte(
+            value, !is_command_argument && value == kBankSwitchCommand));
+        if (!is_command_argument) {
+          const auto command = FindMatchingCommand(value);
+          next_byte_is_command_argument =
+              command.has_value() && command->HasArgument;
+        }
+      }
+      RETURN_IF_ERROR(
+          append_byte(kMessageTerminator, /*is_bank_switch=*/false));
+    }
+    RETURN_IF_ERROR(append_byte(0xFF, /*is_bank_switch=*/false));
+
+    plan.saves_vanilla_messages = true;
+    if (!primary.empty()) {
+      plan.writes.push_back(
+          {SaveDomain::kVanillaMessages, kTextData, std::move(primary)});
+    }
+    if (!secondary.empty()) {
+      plan.writes.push_back(
+          {SaveDomain::kVanillaMessages, kTextData2, std::move(secondary)});
+    }
+  }
+
+  if (include_expanded_messages && dirty_state_.expanded_messages &&
+      !expanded_messages_.empty()) {
+    const int start = GetExpandedTextDataStart();
+    const int end = GetExpandedTextDataEnd();
+    if (start < 0 || end < start) {
+      return absl::InvalidArgumentError("Invalid expanded message region");
+    }
+    if (static_cast<uint64_t>(start) >= rom_->size() ||
+        static_cast<uint64_t>(end) >= rom_->size()) {
+      return absl::OutOfRangeError(
+          "Expanded message region is outside the ROM");
+    }
+
+    const int64_t capacity = static_cast<int64_t>(end) - start + 1;
+    std::vector<uint8_t> bytes;
+    bytes.reserve(static_cast<size_t>(capacity));
+    plan.expanded_message_addresses.reserve(expanded_messages_.size());
+
+    for (size_t index = 0; index < expanded_messages_.size(); ++index) {
+      const auto& message = expanded_messages_[index];
+      auto parsed = ParseMessageToDataWithDiagnostics(message.RawString);
+      if (!parsed.ok()) {
+        return absl::InvalidArgumentError(
+            absl::StrFormat("Expanded message %d is invalid: %s",
+                            static_cast<int>(index), parsed.errors.front()));
+      }
+      if (message.RawString.find("[BANK]") != std::string::npos) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Expanded message %d contains [BANK], which is only valid in the "
+            "vanilla message stream",
+            static_cast<int>(index)));
+      }
+
+      const int64_t needed = static_cast<int64_t>(parsed.bytes.size()) + 1;
+      if (static_cast<int64_t>(bytes.size()) + needed + 1 > capacity) {
+        return absl::ResourceExhaustedError(absl::StrFormat(
+            "Expanded message data exceeds bank boundary "
+            "(at message %d, used=%d, needed=%d, capacity=%d, end=0x%06X)",
+            static_cast<int>(index), static_cast<int>(bytes.size()),
+            static_cast<int>(needed), static_cast<int>(capacity), end));
+      }
+
+      plan.expanded_message_addresses.push_back(start +
+                                                static_cast<int>(bytes.size()));
+      bytes.insert(bytes.end(), parsed.bytes.begin(), parsed.bytes.end());
+      bytes.push_back(kMessageTerminator);
+    }
+    bytes.push_back(0xFF);
+
+    plan.saves_expanded_messages = true;
+    plan.writes.push_back({SaveDomain::kExpandedMessages,
+                           static_cast<uint32_t>(start), std::move(bytes)});
+  }
+
+  for (const auto& write : plan.writes) {
+    const uint64_t end =
+        static_cast<uint64_t>(write.start) + write.bytes.size();
+    if (end > rom_->size() || end > std::numeric_limits<uint32_t>::max()) {
+      return absl::OutOfRangeError(absl::StrFormat(
+          "Message save range [0x%06X, 0x%06llX) is outside the ROM",
+          write.start, static_cast<unsigned long long>(end)));
+    }
+  }
+
+  return plan;
+}
+
+absl::Status MessageEditor::ValidateSavePlan(const SavePlan& plan) const {
+  if (!dependencies_.project ||
+      !dependencies_.project->hack_manifest.loaded() || plan.writes.empty()) {
+    return absl::OkStatus();
+  }
+
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  ranges.reserve(plan.writes.size());
+  for (const auto& write : plan.writes) {
+    ranges.emplace_back(write.start, write.end());
+  }
+
+  const auto& yaze_project = *dependencies_.project;
+  if (yaze_project.rom_metadata.write_policy ==
+          project::RomWritePolicy::kBlock &&
+      plan.saves_expanded_messages &&
+      absl::StrContains(yaze_project.hack_manifest.hack_name(),
+                        "Oracle of Secrets")) {
+    return absl::PermissionDeniedError(
+        "Oracle of Secrets expanded messages are owned by ASM. No message "
+        "bytes were written; keep the draft in Yaze, edit Core/message.asm, "
+        "rebuild Oracle of Secrets, and reopen the rebuilt ROM before "
+        "retrying.");
+  }
+
+  const auto status = ValidateHackManifestSaveConflicts(
+      yaze_project.hack_manifest, yaze_project.rom_metadata.write_policy,
+      ranges, "message data", "MessageEditor", dependencies_.toast_manager);
+  return status;
+}
+
+absl::Status MessageEditor::ApplySavePlan(const SavePlan& plan) {
+  if (plan.writes.empty()) {
+    return absl::OkStatus();
+  }
+
+  yaze::rom::WriteFence fence;
+  for (const auto& write : plan.writes) {
+    const char* label = "MessageData";
+    switch (write.domain) {
+      case SaveDomain::kFontWidths:
+        label = "MessageFontWidths";
+        break;
+      case SaveDomain::kVanillaMessages:
+        label = "VanillaMessageBank";
+        break;
+      case SaveDomain::kExpandedMessages:
+        label = "ExpandedMessageBank";
+        break;
+    }
+    RETURN_IF_ERROR(fence.Allow(write.start, write.end(), label));
+  }
+
+  ScopedRomTransaction transaction(*rom_);
+  yaze::rom::ScopedWriteFence fence_scope(rom_, &fence);
+  for (const auto& write : plan.writes) {
+    RETURN_IF_ERROR(
+        rom_->WriteVector(static_cast<int>(write.start), write.bytes));
+  }
+  transaction.Commit();
+
+  if (plan.saves_expanded_messages) {
+    for (size_t index = 0; index < expanded_messages_.size() &&
+                           index < plan.expanded_message_addresses.size();
+         ++index) {
+      expanded_messages_[index].Address =
+          plan.expanded_message_addresses[index];
+    }
+    SyncCurrentExpandedMessageAddress();
   }
 
   return absl::OkStatus();
+}
+
+absl::Status MessageEditor::SaveDirtyDomains(bool include_font_widths,
+                                             bool include_vanilla_messages,
+                                             bool include_expanded_messages) {
+  ASSIGN_OR_RETURN(const SavePlan plan,
+                   BuildSavePlan(include_font_widths, include_vanilla_messages,
+                                 include_expanded_messages));
+  RETURN_IF_ERROR(ValidateSavePlan(plan));
+  RETURN_IF_ERROR(ApplySavePlan(plan));
+  RecordSavedDomains(plan);
+  return absl::OkStatus();
+}
+
+absl::Status MessageEditor::SaveExpandedMessages() {
+  return SaveDirtyDomains(/*include_font_widths=*/false,
+                          /*include_vanilla_messages=*/false,
+                          /*include_expanded_messages=*/true);
+}
+
+absl::Status MessageEditor::BeginSaveTransaction() {
+  if (save_transaction_active_) {
+    return absl::FailedPreconditionError(
+        "Message save transaction is already active");
+  }
+  transaction_dirty_snapshot_ = dirty_state_;
+  transaction_saved_domains_ = {};
+  transaction_expanded_address_snapshot_.clear();
+  transaction_expanded_address_snapshot_.reserve(expanded_messages_.size());
+  for (const auto& message : expanded_messages_) {
+    transaction_expanded_address_snapshot_.push_back(message.Address);
+  }
+  save_transaction_active_ = true;
+  return absl::OkStatus();
+}
+
+void MessageEditor::RollbackSaveTransaction() {
+  if (!save_transaction_active_) {
+    return;
+  }
+  dirty_state_ = transaction_dirty_snapshot_;
+  for (size_t index = 0; index < expanded_messages_.size() &&
+                         index < transaction_expanded_address_snapshot_.size();
+       ++index) {
+    expanded_messages_[index].Address =
+        transaction_expanded_address_snapshot_[index];
+  }
+  SyncCurrentExpandedMessageAddress();
+  transaction_dirty_snapshot_ = {};
+  transaction_saved_domains_ = {};
+  transaction_expanded_address_snapshot_.clear();
+  save_transaction_active_ = false;
+}
+
+void MessageEditor::CommitSaveTransaction() {
+  if (!save_transaction_active_) {
+    return;
+  }
+  ClearSavedDomains(transaction_saved_domains_);
+  transaction_dirty_snapshot_ = {};
+  transaction_saved_domains_ = {};
+  transaction_expanded_address_snapshot_.clear();
+  save_transaction_active_ = false;
+}
+
+void MessageEditor::MarkDomainDirty(SaveDomain domain) {
+  bool* dirty = nullptr;
+  bool* transaction_saved = nullptr;
+  switch (domain) {
+    case SaveDomain::kFontWidths:
+      dirty = &dirty_state_.font_widths;
+      transaction_saved = &transaction_saved_domains_.font_widths;
+      break;
+    case SaveDomain::kVanillaMessages:
+      dirty = &dirty_state_.vanilla_messages;
+      transaction_saved = &transaction_saved_domains_.vanilla_messages;
+      break;
+    case SaveDomain::kExpandedMessages:
+      dirty = &dirty_state_.expanded_messages;
+      transaction_saved = &transaction_saved_domains_.expanded_messages;
+      break;
+  }
+  *dirty = true;
+  if (save_transaction_active_) {
+    *transaction_saved = false;
+  }
+  if (rom_) {
+    rom_->set_dirty(true);
+  }
+}
+
+void MessageEditor::RecordSavedDomains(const SavePlan& plan) {
+  DirtyState saved{plan.saves_font_widths, plan.saves_vanilla_messages,
+                   plan.saves_expanded_messages};
+  if (!save_transaction_active_) {
+    ClearSavedDomains(saved);
+    return;
+  }
+  transaction_saved_domains_.font_widths |= saved.font_widths;
+  transaction_saved_domains_.vanilla_messages |= saved.vanilla_messages;
+  transaction_saved_domains_.expanded_messages |= saved.expanded_messages;
+}
+
+void MessageEditor::ClearSavedDomains(const DirtyState& saved) {
+  if (saved.font_widths) {
+    dirty_state_.font_widths = false;
+  }
+  if (saved.vanilla_messages) {
+    dirty_state_.vanilla_messages = false;
+  }
+  if (saved.expanded_messages) {
+    dirty_state_.expanded_messages = false;
+  }
+}
+
+void MessageEditor::SyncCurrentExpandedMessageAddress() {
+  if (!current_message_is_expanded_ || current_message_index_ < 0 ||
+      current_message_index_ >= static_cast<int>(expanded_messages_.size())) {
+    return;
+  }
+  current_message_.Address = expanded_messages_[current_message_index_].Address;
 }
 
 absl::Status MessageEditor::LoadExpandedMessagesFromRom() {
@@ -1221,6 +1495,7 @@ absl::Status MessageEditor::LoadExpandedMessagesFromRom() {
   }
 
   expanded_message_path_ = "(ROM)";
+  dirty_state_.expanded_messages = false;
   return absl::OkStatus();
 }
 
@@ -1366,6 +1641,8 @@ void MessageEditor::ApplySnapshot(const MessageSnapshot& snapshot) {
   if (rom_) {
     rom_->set_dirty(true);
   }
+  MarkDomainDirty(snapshot.is_expanded ? SaveDomain::kExpandedMessages
+                                       : SaveDomain::kVanillaMessages);
   DrawMessagePreview();
 }
 
