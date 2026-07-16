@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <iomanip>
 #include <memory>
 #include <string>
 #include <vector>
@@ -191,6 +192,26 @@ TEST_F(DungeonStreamAllocatorTest, RejectsPcRangesThatMapThroughWramBanks) {
   EXPECT_EQ(inventory.status().code(), absl::StatusCode::kInvalidArgument);
   EXPECT_NE(std::string(inventory.status().message()).find("WRAM"),
             std::string::npos);
+}
+
+TEST_F(DungeonStreamAllocatorTest, RejectsDirectAndMirroredWramPointerBanks) {
+  const auto layout = ObjectLayout(1, {kObjectData, kObjectData + 0x20});
+
+  for (const uint8_t bank : {0x7E, 0x7F, 0xFE, 0xFF}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "bank=0x" << std::hex << static_cast<int>(bank));
+    WriteLong(kObjectTable, (static_cast<uint32_t>(bank) << 16) | 0x8000);
+
+    const auto inventory = InventoryDungeonStreams(*rom_, layout);
+
+    ASSERT_TRUE(inventory.ok()) << inventory.status();
+    ASSERT_FALSE(inventory->ok());
+    ASSERT_EQ(inventory->issues.size(), 1u);
+    EXPECT_EQ(inventory->issues[0].code,
+              DungeonStreamIssueCode::kInvalidPointer);
+    EXPECT_NE(inventory->issues[0].message.find("WRAM"), std::string::npos)
+        << inventory->issues[0].message;
+  }
 }
 
 TEST_F(DungeonStreamAllocatorTest,
