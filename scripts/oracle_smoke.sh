@@ -5,7 +5,7 @@
 # Each check targets a focused room subset; no full-ROM scans.
 #
 # Subsystems:
-#   D4 Zora Temple  — structural preflight + required collision rooms 0x25, 0x27
+#   D4 Zora Temple  — structural preflight + required WaterFill rooms 0x25, 0x27
 #   D6 Goron Mines  — minecart audit on rooms 0xA8, 0xB8, 0xD8, 0xDA
 #   D3 Kalyxo Castle — preflight with required collision room 0x32
 #
@@ -14,14 +14,14 @@
 #   1  — z3ed missing, or a structural preflight failure
 #
 # Notes:
-#   - Authoring readiness checks (required rooms for D4/D3) are informational.
-#   - They are emitted in JSON output but do not fail the script exit code.
+#   - D4 WaterFill table membership is structural and fails the script.
+#   - D3 collision readiness remains informational.
 #
 # Usage:
-#   YAZE_TEST_ROM_OOS=/path/to/oos168.sfc ./scripts/oracle_smoke.sh
+#   YAZE_TEST_ROM_OOS=/path/to/oos168x.sfc ./scripts/oracle_smoke.sh
 #
 # Environment:
-#   YAZE_TEST_ROM_OOS   Oracle expanded ROM path (preferred)
+#   YAZE_TEST_ROM_OOS   Patched Oracle ROM path (preferred)
 #   YAZE_TEST_ROM_EXPANDED  Alternate env var
 #   Z3ED                Path/command for z3ed (default: ./scripts/z3ed)
 
@@ -56,9 +56,9 @@ require_subcommand "dungeon-minecart-audit"
 ROM="${YAZE_TEST_ROM_OOS:-${YAZE_TEST_ROM_EXPANDED:-}}"
 if [[ -z "$ROM" ]]; then
   for candidate in \
+    "roms/oos168x.sfc" "Roms/oos168x.sfc" \
     "roms/oos168.sfc" "Roms/oos168.sfc" \
-    "../roms/oos168.sfc" "../../roms/oos168.sfc" \
-    "roms/oos168x.sfc" "Roms/oos168x.sfc"; do
+    "../roms/oos168.sfc" "../../roms/oos168.sfc"; do
     if [[ -f "$candidate" ]]; then
       ROM="$candidate"
       break
@@ -67,7 +67,7 @@ if [[ -z "$ROM" ]]; then
 fi
 
 if [[ -z "$ROM" ]] || [[ ! -f "$ROM" ]]; then
-  echo '{"ok":true,"status":"skipped","reason":"Oracle ROM not found. Set YAZE_TEST_ROM_OOS to oos168.sfc path."}'
+  echo '{"ok":true,"status":"skipped","reason":"Oracle ROM not found. Set YAZE_TEST_ROM_OOS to patched oos168x.sfc path."}'
   exit 0
 fi
 
@@ -80,12 +80,12 @@ if ! d4_structural_out=$("$Z3ED" dungeon-oracle-preflight \
   d4_structural_ok=false
 fi
 
-# --- D4 Zora Temple: required rooms (informational readiness) ----------------
+# --- D4 Zora Temple: required WaterFill table rooms --------------------------
 d4_required_rooms_ok=true
 d4_required_rooms_out=""
 if ! d4_required_rooms_out=$("$Z3ED" dungeon-oracle-preflight \
     --rom "$ROM" \
-    --required-collision-rooms=0x25,0x27 \
+    --required-water-fill-rooms=0x25,0x27 \
     --format=json 2>/dev/null); then
   d4_required_rooms_ok=false
 fi
@@ -115,14 +115,13 @@ fi
 
 # --- Aggregate and emit -------------------------------------------------------
 overall_ok=true
-if ! $d4_structural_ok; then
+if ! $d4_structural_ok || ! $d4_required_rooms_ok; then
   overall_ok=false
 fi
 
-# D4 required-rooms, D6, and D3 non-zero exits are informational; don't fail
-# the smoke overall.
+# D6 and D3 non-zero exits are informational; don't fail the smoke overall.
 # unless we want strict mode.  Uncomment below for strict:
-# if ! $d4_required_rooms_ok || ! $d6_ok || ! $d3_ok; then overall_ok=false; fi
+# if ! $d6_ok || ! $d3_ok; then overall_ok=false; fi
 
 status="pass"
 if ! $overall_ok; then
@@ -135,8 +134,8 @@ printf '  "ok": %s,\n' "$overall_ok"
 printf '  "status": "%s",\n' "$status"
 printf '  "rom": "%s",\n' "$ROM"
 printf '  "checks": {\n'
-printf '    "d4_zora_temple": { "structural_ok": %s, "required_rooms_ok": %s, "required_rooms": ["0x25","0x27"] },\n' \
-  "$d4_structural_ok" "$d4_required_rooms_ok"
+printf '    "d4_zora_temple": { "structural_ok": %s, "water_fill_rooms_ok": %s, "required_rooms_ok": %s, "required_water_fill_rooms": ["0x25","0x27"] },\n' \
+  "$d4_structural_ok" "$d4_required_rooms_ok" "$d4_required_rooms_ok"
 printf '    "d6_goron_mines": { "ok": %s, "rooms": ["0xA8","0xB8","0xD8","0xDA"] },\n' "$d6_ok"
 printf '    "d3_kalyxo_castle": { "ok": %s, "required_rooms": ["0x32"] }\n' "$d3_ok"
 printf '  }\n'

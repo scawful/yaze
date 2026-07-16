@@ -20,6 +20,7 @@
 #include "absl/strings/str_format.h"
 #include "cli/handlers/game/dungeon_collision_commands.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/water_fill_zone.h"
 
 namespace yaze::cli {
 namespace {
@@ -48,6 +49,16 @@ absl::Status InjectCollisionTile(Rom* rom, int room_id, int offset,
   const auto status = handler.Run({"--in", tmp, "--format=json"}, rom, &out);
   std::filesystem::remove(tmp);
   return status;
+}
+
+absl::Status WriteD4WaterFillTable(Rom* rom, bool include_room_27) {
+  std::vector<zelda3::WaterFillZoneEntry> zones = {
+      {.room_id = 0x25, .sram_bit_mask = 0x02, .fill_offsets = {0x0B45}}};
+  if (include_room_27) {
+    zones.push_back(
+        {.room_id = 0x27, .sram_bit_mask = 0x01, .fill_offsets = {0x03EA}});
+  }
+  return zelda3::WriteWaterFillTable(rom, zones);
 }
 
 // ---------------------------------------------------------------------------
@@ -183,6 +194,50 @@ TEST(DungeonOraclePreflightTest, InvalidRoomIdInRequiredListErrors) {
   std::string out;
   const auto status = handler.Run(
       {"--required-collision-rooms=not_a_hex", "--format=json"}, &rom, &out);
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+}
+
+TEST(DungeonOraclePreflightTest,
+     RequiredWaterFillRoomsFailsForStructurallyValidOneRoomTable) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
+  ASSERT_TRUE(WriteD4WaterFillTable(&rom, /*include_room_27=*/false).ok());
+
+  handlers::DungeonOraclePreflightCommandHandler handler;
+  std::string out;
+  const auto status = handler.Run(
+      {"--required-water-fill-rooms=0x25,0x27", "--format=json"}, &rom, &out);
+  EXPECT_FALSE(status.ok());
+  EXPECT_THAT(out, HasSubstr("\"water_fill_table_ok\": true"));
+  EXPECT_THAT(out, HasSubstr("\"required_water_fill_rooms_ok\": false"));
+  EXPECT_THAT(out, HasSubstr("ORACLE_REQUIRED_WATER_FILL_ROOM_MISSING"));
+  EXPECT_THAT(out, HasSubstr("\"required_water_fill_rooms_checked\": 2"));
+}
+
+TEST(DungeonOraclePreflightTest,
+     RequiredWaterFillRoomsPassForTrackedD4TwoRoomTable) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
+  ASSERT_TRUE(WriteD4WaterFillTable(&rom, /*include_room_27=*/true).ok());
+
+  handlers::DungeonOraclePreflightCommandHandler handler;
+  std::string out;
+  const auto status = handler.Run(
+      {"--required-water-fill-rooms=0x25,0x27", "--format=json"}, &rom, &out);
+  EXPECT_TRUE(status.ok()) << status.message() << "\n" << out;
+  EXPECT_THAT(out, HasSubstr("\"required_water_fill_rooms_ok\": true"));
+  EXPECT_THAT(out, HasSubstr("\"required_water_fill_rooms_checked\": 2"));
+}
+
+TEST(DungeonOraclePreflightTest, InvalidRequiredWaterFillRoomErrors) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
+
+  handlers::DungeonOraclePreflightCommandHandler handler;
+  std::string out;
+  const auto status = handler.Run(
+      {"--required-water-fill-rooms=not_a_hex", "--format=json"}, &rom, &out);
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
 }
