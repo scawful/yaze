@@ -175,6 +175,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/story_event_graph_test.cc
     unit/core/story_event_graph_query_test.cc
     unit/core/rom_hash_test.cc
+    unit/core/oracle_rom_fixture_test.cc
     unit/core/project_paths_test.cc
     unit/core/project_bundle_test.cc
     unit/core/project_bundle_path_test.cc
@@ -749,6 +750,18 @@ if(YAZE_BUILD_TESTS)
   yaze_add_test_suite(yaze_test_benchmark "benchmark" OFF ${BENCHMARK_TEST_SOURCES})
 
   # --- z3ed CLI Smoke Test ---
+  if(UNIX)
+    add_test(
+      NAME oracle_smoke_script_test
+      COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/dev/test-oracle-smoke.sh
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+    set_tests_properties(oracle_smoke_script_test PROPERTIES
+      LABELS "stable;cli;oracle"
+      TIMEOUT 30
+    )
+  endif()
+
   # Add z3ed self-test as a ctest entry if z3ed target exists
   if(TARGET z3ed)
     add_test(

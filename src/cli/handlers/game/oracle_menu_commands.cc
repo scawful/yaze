@@ -477,9 +477,7 @@ absl::Status DungeonOraclePreflightCommandHandler::Execute(
   }
 
   if (failed) {
-    return absl::FailedPreconditionError(
-        absl::StrFormat("Oracle ROM preflight failed (%d error(s))",
-                        static_cast<int>(preflight.errors.size())));
+    return preflight.ToStatus();
   }
   return absl::OkStatus();
 }

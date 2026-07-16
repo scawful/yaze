@@ -136,8 +136,8 @@ Exit codes:
 - `1` — structural failure, or (in `--strict-readiness`) readiness gap on an expanded ROM
 
 **Shell wrapper** (`scripts/oracle_smoke.sh`) differs from the C++ command in two ways:
-1. It does not support `--strict-readiness`; D3 collision readiness remains informational.
-   D4 WaterFill membership is structural in both commands.
+1. It does not support `--strict-readiness`; D4/D3 collision readiness remains
+   informational. D4 WaterFill membership is structural in both commands.
 2. It defaults to `scripts/z3ed` rather than the system PATH z3ed.
 Use the C++ command (`z3ed oracle-smoke-check`) for consistent semantics in CI.
 
@@ -241,8 +241,8 @@ Current smoke semantics:
 
 - Exit `0`: structural checks pass (ROM is safe for workflow development)
 - Exit `1`: structural preflight failure or missing required `z3ed` subcommand
-- D4 WaterFill table membership is structural; D3 collision readiness remains
-  informational in JSON output (`ok`)
+- D4 WaterFill table membership is structural; D4/D3 collision readiness
+  remains informational in JSON output (`required_rooms_ok` / `ok`)
 
 ### 3) Run focused subsystem checks
 

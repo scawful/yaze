@@ -7,11 +7,9 @@
 //
 // All tests skip cleanly via GTEST_SKIP() if the ROM is absent.
 
-#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <string>
-#include <vector>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -19,6 +17,7 @@
 #include "absl/status/status.h"
 #include "cli/handlers/game/oracle_smoke_check_commands.h"
 #include "nlohmann/json.hpp"
+#include "oracle_rom_fixture.h"
 #include "rom/rom.h"
 
 namespace yaze::test {
@@ -26,29 +25,10 @@ namespace {
 
 using json = nlohmann::json;
 
-std::string FindOracleRom() {
-  for (const char* env_var : {"YAZE_TEST_ROM_OOS", "YAZE_TEST_ROM_EXPANDED",
-                              "YAZE_TEST_ROM_EXPANDED_PATH"}) {
-    if (const char* path = std::getenv(env_var)) {
-      if (std::filesystem::exists(path))
-        return path;
-    }
-  }
-  for (const auto& dir : {".", "roms", "Roms", "../roms", "../../roms"}) {
-    for (const auto& name :
-         {"oos168x.sfc", "oos168.sfc", "oracle_of_secrets.sfc"}) {
-      std::filesystem::path path = std::filesystem::path(dir) / name;
-      if (std::filesystem::exists(path))
-        return path.string();
-    }
-  }
-  return "";
-}
-
 class OracleSmokeCheckIntegrationTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    rom_path_ = FindOracleRom();
+    rom_path_ = FindOracleRomFixture();
     if (rom_path_.empty()) {
       GTEST_SKIP() << "Oracle ROM fixture not found. "
                       "Set YAZE_TEST_ROM_OOS to patched oos168x.sfc path.";

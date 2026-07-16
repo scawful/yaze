@@ -19,6 +19,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "cli/handlers/game/dungeon_collision_commands.h"
+#include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "zelda3/dungeon/water_fill_zone.h"
 
@@ -26,6 +27,7 @@ namespace yaze::cli {
 namespace {
 
 using ::testing::HasSubstr;
+using json = nlohmann::json;
 
 constexpr int kSmallRomSize = 0x100000;  // no water-fill region
 constexpr int kFullRomSize = 0x200000;   // water-fill region present
@@ -59,6 +61,10 @@ absl::Status WriteD4WaterFillTable(Rom* rom, bool include_room_27) {
         {.room_id = 0x27, .sram_bit_mask = 0x01, .fill_offsets = {0x03EA}});
   }
   return zelda3::WriteWaterFillTable(rom, zones);
+}
+
+const json& GetPreflightReport(const json& document) {
+  return document.at("Dungeon Oracle Preflight");
 }
 
 // ---------------------------------------------------------------------------
@@ -209,10 +215,17 @@ TEST(DungeonOraclePreflightTest,
   const auto status = handler.Run(
       {"--required-water-fill-rooms=0x25,0x27", "--format=json"}, &rom, &out);
   EXPECT_FALSE(status.ok());
-  EXPECT_THAT(out, HasSubstr("\"water_fill_table_ok\": true"));
-  EXPECT_THAT(out, HasSubstr("\"required_water_fill_rooms_ok\": false"));
-  EXPECT_THAT(out, HasSubstr("ORACLE_REQUIRED_WATER_FILL_ROOM_MISSING"));
-  EXPECT_THAT(out, HasSubstr("\"required_water_fill_rooms_checked\": 2"));
+
+  const auto document = json::parse(out);
+  const auto& report = GetPreflightReport(document);
+  EXPECT_FALSE(report.at("ok").get<bool>());
+  EXPECT_TRUE(report.at("water_fill_table_ok").get<bool>());
+  EXPECT_EQ(report.at("required_water_fill_rooms_checked").get<int>(), 2);
+  EXPECT_FALSE(report.at("required_water_fill_rooms_ok").get<bool>());
+  ASSERT_EQ(report.at("errors").size(), 1u) << report.dump(2);
+  EXPECT_EQ(report.at("errors").at(0).at("code").get<std::string>(),
+            "ORACLE_REQUIRED_WATER_FILL_ROOM_MISSING");
+  EXPECT_EQ(report.at("errors").at(0).at("room_id").get<std::string>(), "0x27");
 }
 
 TEST(DungeonOraclePreflightTest,
@@ -226,8 +239,22 @@ TEST(DungeonOraclePreflightTest,
   const auto status = handler.Run(
       {"--required-water-fill-rooms=0x25,0x27", "--format=json"}, &rom, &out);
   EXPECT_TRUE(status.ok()) << status.message() << "\n" << out;
-  EXPECT_THAT(out, HasSubstr("\"required_water_fill_rooms_ok\": true"));
-  EXPECT_THAT(out, HasSubstr("\"required_water_fill_rooms_checked\": 2"));
+
+  const auto document = json::parse(out);
+  const auto& report = GetPreflightReport(document);
+  EXPECT_TRUE(report.at("ok").get<bool>());
+  EXPECT_TRUE(report.at("water_fill_table_ok").get<bool>());
+  EXPECT_EQ(report.at("required_water_fill_rooms_checked").get<int>(), 2);
+  EXPECT_TRUE(report.at("required_water_fill_rooms_ok").get<bool>());
+  EXPECT_TRUE(report.at("errors").empty());
+
+  const auto zones_or = zelda3::LoadWaterFillTable(&rom);
+  ASSERT_TRUE(zones_or.ok()) << zones_or.status().message();
+  ASSERT_EQ(zones_or->size(), 2u);
+  EXPECT_EQ(zones_or->at(0).room_id, 0x25);
+  EXPECT_EQ(zones_or->at(0).sram_bit_mask, 0x02);
+  EXPECT_EQ(zones_or->at(1).room_id, 0x27);
+  EXPECT_EQ(zones_or->at(1).sram_bit_mask, 0x01);
 }
 
 TEST(DungeonOraclePreflightTest, InvalidRequiredWaterFillRoomErrors) {
@@ -240,6 +267,51 @@ TEST(DungeonOraclePreflightTest, InvalidRequiredWaterFillRoomErrors) {
       {"--required-water-fill-rooms=not_a_hex", "--format=json"}, &rom, &out);
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+}
+
+TEST(DungeonOraclePreflightTest,
+     RequiredWaterFillRoomAboveByteRangeIsInvalidArgument) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
+
+  handlers::DungeonOraclePreflightCommandHandler handler;
+  std::string out;
+  const auto status = handler.Run({"--required-water-fill-rooms=0x100",
+                                   "--skip-collision-maps", "--format=json"},
+                                  &rom, &out);
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+
+  const auto document = json::parse(out);
+  const auto& report = GetPreflightReport(document);
+  EXPECT_FALSE(report.at("ok").get<bool>());
+  ASSERT_EQ(report.at("errors").size(), 1u) << report.dump(2);
+  EXPECT_EQ(report.at("errors").at(0).at("code").get<std::string>(),
+            "ORACLE_REQUIRED_WATER_FILL_ROOM_OUT_OF_RANGE");
+  EXPECT_EQ(report.at("errors").at(0).at("status").get<std::string>(),
+            "INVALID_ARGUMENT");
+  EXPECT_EQ(report.at("errors").at(0).at("room_id").get<std::string>(),
+            "0x100");
+}
+
+TEST(DungeonOraclePreflightTest,
+     StructurallyValidWaterFillTableStillPassesWithoutMembershipOptIn) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
+  ASSERT_TRUE(WriteD4WaterFillTable(&rom, /*include_room_27=*/false).ok());
+
+  handlers::DungeonOraclePreflightCommandHandler handler;
+  std::string out;
+  const auto status =
+      handler.Run({"--skip-collision-maps", "--format=json"}, &rom, &out);
+  EXPECT_TRUE(status.ok()) << status.message() << "\n" << out;
+
+  const auto document = json::parse(out);
+  const auto& report = GetPreflightReport(document);
+  EXPECT_TRUE(report.at("ok").get<bool>());
+  EXPECT_TRUE(report.at("water_fill_table_ok").get<bool>());
+  EXPECT_FALSE(report.contains("required_water_fill_rooms_checked"));
+  EXPECT_FALSE(report.contains("required_water_fill_rooms_ok"));
 }
 
 // ---------------------------------------------------------------------------

@@ -54,6 +54,7 @@ struct OracleRomSafetyPreflightOptions {
   // This is intentionally separate from custom-collision requirements: the
   // Oracle runtime looks up water-fill behavior by room in its own table, so
   // authored collision alone cannot prove that a water gate is configured.
+  // Runtime table room IDs are byte-sized and must be in 0x00..0xFF.
   // The check runs independently of validate_water_fill_table and preserves
   // structural-only behavior when this list is empty.
   // Errors use code "ORACLE_REQUIRED_WATER_FILL_ROOM_MISSING".
