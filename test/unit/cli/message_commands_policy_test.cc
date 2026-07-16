@@ -226,6 +226,31 @@ TEST(MessageCommandsPolicyTest, UnrelatedProjectRomIsRejected) {
   EXPECT_EQ(rom.vector(), before);
 }
 
+TEST(MessageCommandsPolicyTest, WramMessageRegionIsRejected) {
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "active.sfc";
+  WriteBinaryFile(rom_path, MakeMessageRomData());
+  const fs::path project_path =
+      CreateProject(temp.path(), rom_path, "Other Hack", "allow", false);
+  auto manifest = nlohmann::json::parse(MakeManifest("Other Hack", false));
+  manifest["messages"]["data_start"] = "0x7E8000";
+  manifest["messages"]["data_end"] = "0x7E80FF";
+  WriteTextFile(temp.path() / "hack_manifest.json", manifest.dump(2));
+  Rom rom = LoadRom(rom_path);
+  const auto before = rom.vector();
+
+  handlers::MessageWriteCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--id=0", "--text=B", "--project=" + project_path.string(),
+                   "--format=json"},
+                  &rom, &output);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << output;
+  EXPECT_THAT(std::string(status.message()), HasSubstr("valid LoROM"));
+  EXPECT_EQ(rom.vector(), before);
+}
+
 TEST(MessageCommandsPolicyTest, MixedApplyLateFailureLeavesRomUnchanged) {
   ScopedTempDir temp;
   const fs::path rom_path = temp.path() / "active.sfc";
