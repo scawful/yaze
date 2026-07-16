@@ -1433,13 +1433,12 @@ void Room::RenderObjectsToBackground() {
   constexpr uint16_t kRoomDrawObj_TorchLit = 0x0ECA;
   for (const auto& obj : tile_objects_) {
     if ((obj.options() & ObjectOption::Block) != ObjectOption::Nothing) {
-      // The special-table bit 14 remains the block's behavioral layer
-      // selector. RoomDraw_PushableBlock masks it before drawing and uses the
-      // upper/BG1 tilemap pointers left active by the final object-stream pass.
+      // SpecialUnderworldObjects bit 13 chooses the draw tilemap. Bit 14 is an
+      // independent behavior/pit selector retained in block metadata and must
+      // not affect rendering.
       (void)drawer.DrawRoomDrawObjectData2x2(
-          static_cast<uint16_t>(obj.id_), obj.x_, obj.y_,
-          RoomObject::LayerType::BG1, kRoomDrawObj_PushableBlock,
-          object_bg1_buffer_, object_bg2_buffer_);
+          static_cast<uint16_t>(obj.id_), obj.x_, obj.y_, obj.layer_,
+          kRoomDrawObj_PushableBlock, object_bg1_buffer_, object_bg2_buffer_);
       continue;
     }
     if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
@@ -2533,15 +2532,16 @@ std::vector<uint8_t> EncodeTorchSegmentForRoom(int room_id, const Room& room) {
   return bytes;
 }
 
-absl::Status ValidateSpecialObjectLayerSelector(const RoomObject& object,
-                                                int room_id,
-                                                const char* object_type) {
+absl::Status ValidateSpecialObjectDrawLayerSelector(const RoomObject& object,
+                                                    int room_id,
+                                                    const char* object_type) {
   const uint8_t selector = object.GetLayerValue();
   if (selector <= 1) {
     return absl::OkStatus();
   }
   return absl::InvalidArgumentError(absl::StrFormat(
-      "%s in room 0x%03X has invalid special layer selector %d; expected 0 "
+      "%s in room 0x%03X has invalid special draw-layer selector %d; "
+      "expected 0 "
       "(upper/BG1) or 1 (lower/BG2)",
       object_type, room_id, selector));
 }
@@ -2580,7 +2580,7 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
     for (const auto& object : room->GetTileObjects()) {
       if ((object.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
         RETURN_IF_ERROR(
-            ValidateSpecialObjectLayerSelector(object, room_id, "Torch"));
+            ValidateSpecialObjectDrawLayerSelector(object, room_id, "Torch"));
       }
     }
     owned_rooms[room_id] = true;
@@ -2839,12 +2839,13 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
       if ((obj.options() & ObjectOption::Block) != ObjectOption::Block)
         continue;
       RETURN_IF_ERROR(
-          ValidateSpecialObjectLayerSelector(obj, rid, "Pushable block"));
+          ValidateSpecialObjectDrawLayerSelector(obj, rid, "Pushable block"));
       PushableBlockEntry encoded_entry;
       encoded_entry.room_id = static_cast<uint16_t>(rid);
       encoded_entry.px = obj.x();
       encoded_entry.py = obj.y();
-      encoded_entry.layer = obj.GetLayerValue();
+      encoded_entry.draw_layer = obj.GetLayerValue();
+      encoded_entry.behavior_layer = obj.block_behavior_layer();
       const PushableBlockBytes encoded =
           EncodePushableBlockEntry(encoded_entry);
       const int load_order = obj.block_load_order();
@@ -3384,9 +3385,10 @@ void Room::LoadBlocks() {
     if (entry.room_id != room_id_)
       continue;
 
-    RoomObject block_obj(0x0E00, entry.px, entry.py, 0, entry.layer);
+    RoomObject block_obj(0x0E00, entry.px, entry.py, 0, entry.draw_layer);
     block_obj.SetRom(rom_);
     block_obj.set_options(ObjectOption::Block);
+    block_obj.set_block_behavior_layer(entry.behavior_layer);
     // Capture the entry's slot index in the global buffer so
     // SaveAllBlocks can emit entries in vanilla authoring order
     // (interleaved across rooms; sorting by room_id would reshuffle
@@ -3394,8 +3396,8 @@ void Room::LoadBlocks() {
     block_obj.set_block_load_order(i / 4);
     tile_objects_.push_back(block_obj);
 
-    LOG_DEBUG("Room", "Loaded block at (%d,%d) layer=%d", entry.px, entry.py,
-              entry.layer);
+    LOG_DEBUG("Room", "Loaded block at (%d,%d) draw_layer=%d behavior_layer=%d",
+              entry.px, entry.py, entry.draw_layer, entry.behavior_layer);
   }
   blocks_loaded_ = true;
 }
