@@ -282,6 +282,28 @@ TEST(MessageCommandsPolicyTest, PermittedNonOracleProjectCanWriteExpanded) {
             editor::FindMatchingCharacter('B'));
 }
 
+TEST(MessageCommandsPolicyTest, WarnPolicyReportsExpandedRegionConflict) {
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "active.sfc";
+  WriteBinaryFile(rom_path, MakeMessageRomData());
+  const fs::path project_path =
+      CreateProject(temp.path(), rom_path, "Other Hack", "warn", false);
+  Rom rom = LoadRom(rom_path);
+
+  handlers::MessageWriteCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--id=0", "--text=B", "--project=" + project_path.string(),
+                   "--format=json"},
+                  &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status << "\n" << output;
+  EXPECT_THAT(output, HasSubstr("write_policy_warning"));
+  EXPECT_THAT(output, HasSubstr("conflicts with hack manifest"));
+  EXPECT_EQ(rom.vector()[editor::kExpandedTextDataDefault],
+            editor::FindMatchingCharacter('B'));
+}
+
 TEST(MessageCommandsPolicyTest,
      MissingManifestIdRangeStillRejectsOversizedIdBeforeAllocation) {
   ScopedTempDir temp;
