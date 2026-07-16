@@ -248,7 +248,10 @@ class DungeonSaveTest : public ::testing::Test {
     layout.pointer_count = kNumberOfRooms;
     layout.pointer_encoding = DungeonPointerEncoding::kFixedBank16;
     layout.pointer_bank = 0x01;
-    layout.data_ranges = {{kPotRoom0Pc, 0x010000}};
+    layout.data_ranges = {
+        {kPotRoom0Pc, kRoomItemsPointers},
+        {kRoomItemsPointers + kNumberOfRooms * 2, 0x010000},
+    };
     layout.allocation_ranges = {allocation};
     return layout;
   }
