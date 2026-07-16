@@ -13,7 +13,7 @@ The object rendering pipeline has been validated against the ALTTP disassembly:
 - BothBG flag propagation ✅
 - Tile count lookup tables ✅
 
-**Known Minor Issues**: Some specific objects (vertical rails, doors, certain edge patterns) may have visual discrepancies that require individual verification against the game. The global pit-damage table still uses protected ROM-region preservation; pushable blocks now round-trip through a room-aware encoder but remain capped to the existing vanilla table unless a future repointing pass expands it.
+**Known Minor Issues**: Some specific objects (vertical rails, doors, certain edge patterns) may have visual discrepancies that require individual verification against the game. The global pit-damage table still uses protected ROM-region preservation; pushable blocks now round-trip through a room-aware encoder but remain capped to the existing vanilla table unless a future repointing pass expands it. Successful structural saves rebase loaded blocks to their compacted table slots so later no-op saves remain stable; transaction rollback restores those identities with the ROM. The encoder fails closed when a dirty room's blocks were not loaded, and it rejects deleting the final global block entry because vanilla's do-while runtime scan cannot safely use a zero-byte limit.
 
 ## Architecture Overview
 

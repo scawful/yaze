@@ -1434,13 +1434,12 @@ void Room::RenderObjectsToBackground() {
   constexpr uint16_t kRoomDrawObj_TorchLit = 0x0ECA;
   for (const auto& obj : tile_objects_) {
     if ((obj.options() & ObjectOption::Block) != ObjectOption::Nothing) {
-      // The special-table bit 14 remains the block's behavioral layer
-      // selector. RoomDraw_PushableBlock masks it before drawing and uses the
-      // upper/BG1 tilemap pointers left active by the final object-stream pass.
+      // SpecialUnderworldObjects bit 13 chooses the draw tilemap. Bit 14 is an
+      // independent behavior/pit selector retained in block metadata and must
+      // not affect rendering.
       (void)drawer.DrawRoomDrawObjectData2x2(
-          static_cast<uint16_t>(obj.id_), obj.x_, obj.y_,
-          RoomObject::LayerType::BG1, kRoomDrawObj_PushableBlock,
-          object_bg1_buffer_, object_bg2_buffer_);
+          static_cast<uint16_t>(obj.id_), obj.x_, obj.y_, obj.layer_,
+          kRoomDrawObj_PushableBlock, object_bg1_buffer_, object_bg2_buffer_);
       continue;
     }
     if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
@@ -2538,15 +2537,16 @@ std::vector<uint8_t> EncodeTorchSegmentForRoom(int room_id, const Room& room) {
   return bytes;
 }
 
-absl::Status ValidateSpecialObjectLayerSelector(const RoomObject& object,
-                                                int room_id,
-                                                const char* object_type) {
+absl::Status ValidateSpecialObjectDrawLayerSelector(const RoomObject& object,
+                                                    int room_id,
+                                                    const char* object_type) {
   const uint8_t selector = object.GetLayerValue();
   if (selector <= 1) {
     return absl::OkStatus();
   }
   return absl::InvalidArgumentError(absl::StrFormat(
-      "%s in room 0x%03X has invalid special layer selector %d; expected 0 "
+      "%s in room 0x%03X has invalid special draw-layer selector %d; "
+      "expected 0 "
       "(upper/BG1) or 1 (lower/BG2)",
       object_type, room_id, selector));
 }
@@ -2585,7 +2585,7 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
     for (const auto& object : room->GetTileObjects()) {
       if ((object.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
         RETURN_IF_ERROR(
-            ValidateSpecialObjectLayerSelector(object, room_id, "Torch"));
+            ValidateSpecialObjectDrawLayerSelector(object, room_id, "Torch"));
       }
     }
     owned_rooms[room_id] = true;
@@ -2830,39 +2830,52 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
   //     preserved verbatim from `original_buffer`).
   //   - `appended`: blocks with `load_order == kBlockLoadOrderNew`,
   //     appended to the end in creation order.
+  struct EncodedBlock {
+    PushableBlockBytes bytes;
+    const RoomObject* source_object;
+  };
   std::unordered_set<uint16_t> owned_room_ids;
-  std::unordered_map<int, PushableBlockBytes> slot_replacements;
-  std::vector<PushableBlockBytes> appended;
+  std::unordered_map<int, EncodedBlock> slot_replacements;
+  std::vector<EncodedBlock> appended;
   for (int rid = 0; rid < room_count; ++rid) {
     const Room* room = room_lookup(rid);
     if (room == nullptr)
       continue;
-    if (!room->AreBlocksLoaded())
+    if (!room->AreBlocksLoaded()) {
+      if (room->blocks_dirty()) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Room 0x%03X has unsaved pushable-block edits, but its block "
+            "table is not loaded. Load the room's blocks before saving.",
+            rid));
+      }
       continue;  // Header-only — preserve its slots verbatim from ROM.
+    }
     owned_room_ids.insert(static_cast<uint16_t>(rid));
     for (const auto& obj : room->GetTileObjects()) {
       if ((obj.options() & ObjectOption::Block) != ObjectOption::Block)
         continue;
       RETURN_IF_ERROR(
-          ValidateSpecialObjectLayerSelector(obj, rid, "Pushable block"));
+          ValidateSpecialObjectDrawLayerSelector(obj, rid, "Pushable block"));
       PushableBlockEntry encoded_entry;
       encoded_entry.room_id = static_cast<uint16_t>(rid);
       encoded_entry.px = obj.x();
       encoded_entry.py = obj.y();
-      encoded_entry.layer = obj.GetLayerValue();
+      encoded_entry.draw_layer = obj.GetLayerValue();
+      encoded_entry.behavior_layer = obj.block_behavior_layer();
       const PushableBlockBytes encoded =
           EncodePushableBlockEntry(encoded_entry);
+      const EncodedBlock encoded_block{encoded, &obj};
       const int load_order = obj.block_load_order();
       if (load_order == RoomObject::kBlockLoadOrderNew) {
-        appended.push_back(encoded);
+        appended.push_back(encoded_block);
       } else if (load_order >= 0 && load_order < original_slot_count) {
         // First write wins: if a room loaded duplicate-load_order
         // entries (shouldn't happen but defensive), keep the first.
-        slot_replacements.emplace(load_order, encoded);
+        slot_replacements.emplace(load_order, encoded_block);
       } else {
         // load_order points outside the original buffer (e.g. ROM
         // changed under us). Treat as new.
-        appended.push_back(encoded);
+        appended.push_back(encoded_block);
       }
     }
   }
@@ -2871,6 +2884,17 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
   // materialized rooms and preserving the rest verbatim.
   std::vector<uint8_t> output;
   output.reserve(original_byte_len + appended.size() * 4);
+  std::vector<std::pair<const RoomObject*, int>> load_order_updates;
+  load_order_updates.reserve(slot_replacements.size() + appended.size());
+  const auto append_encoded_block =
+      [&output, &load_order_updates](const EncodedBlock& block) {
+        const int output_slot = static_cast<int>(output.size() / 4);
+        output.push_back(block.bytes.b1);
+        output.push_back(block.bytes.b2);
+        output.push_back(block.bytes.b3);
+        output.push_back(block.bytes.b4);
+        load_order_updates.emplace_back(block.source_object, output_slot);
+      };
   for (int slot = 0; slot < original_slot_count; ++slot) {
     const uint8_t b1 = original_buffer[slot * 4 + 0];
     const uint8_t b2 = original_buffer[slot * 4 + 1];
@@ -2882,10 +2906,7 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
         // shrinking the output.
         continue;
       }
-      output.push_back(it->second.b1);
-      output.push_back(it->second.b2);
-      output.push_back(it->second.b3);
-      output.push_back(it->second.b4);
+      append_encoded_block(it->second);
     } else {
       // Unmaterialized / header-only room: keep the original bytes.
       output.push_back(b1);
@@ -2897,11 +2918,22 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
   // Append newly-added blocks (load_order == kBlockLoadOrderNew) at the
   // tail in creation order. Anything in slot_replacements that didn't
   // match a slot was already routed to `appended` above.
-  for (const auto& nb : appended) {
-    output.push_back(nb.b1);
-    output.push_back(nb.b2);
-    output.push_back(nb.b3);
-    output.push_back(nb.b4);
+  for (const auto& block : appended) {
+    append_encoded_block(block);
+  }
+
+  // LoadAndBuildRoom's block scan is a do-while loop: it always reads the
+  // entry at $7EF940 before adding four and comparing against this byte
+  // length. A zero limit can therefore never terminate at the first boundary;
+  // the 16-bit index walks beyond the 0x200-byte WRAM table until it wraps.
+  // Fail before the first ROM write and keep edited rooms dirty rather than
+  // emitting a runtime-unsafe empty table.
+  if (output.empty()) {
+    return absl::FailedPreconditionError(
+        "Pushable-block table cannot be empty: ALTTP's runtime scan reads one "
+        "entry before comparing the byte-length limit. Keep at least one "
+        "pushable block, or patch the runtime loop before removing the last "
+        "entry.");
   }
 
   // Capacity check against the vanilla 128-entry cap.
@@ -2914,32 +2946,62 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
         "out of scope for this encoder)."));
   }
 
-  // Write each region by dereferencing its pointer slot, mirroring
-  // `LoadBlocks`'s read path. We do not relocate the data — the four
-  // operand slots stay pointing at their existing SNES addresses.
+  // Preflight every destination needed by the final output before the first
+  // ROM write. Growth can reach a later pointer region that the shorter
+  // original buffer never needed to read; discovering a bad operand/address
+  // only inside the write loop would leave earlier regions partially mutated
+  // for direct callers that do not wrap this public API in a transaction.
   const int total_bytes = static_cast<int>(output.size());
+  struct BlockWriteDestination {
+    int pc;
+    int output_offset;
+    int length;
+  };
+  std::vector<BlockWriteDestination> write_destinations;
+  write_destinations.reserve(4);
   for (int r = 0; r < 4; ++r) {
-    const int slot = kPointerSlots[r];
-    const int snes =
-        (rom_data[slot + 2] << 16) | (rom_data[slot + 1] << 8) | rom_data[slot];
-    const int pc = SnesToPc(snes);
     const int off = r * kRegionSize;
     const int len = std::min(kRegionSize, total_bytes - off);
     if (len <= 0)
       break;
+
+    const int slot = kPointerSlots[r];
+    if (slot + 2 >= static_cast<int>(rom_data.size())) {
+      return absl::OutOfRangeError("Blocks pointer out of range");
+    }
+    RETURN_IF_ERROR(ValidateBlocksLoaderPointerOperand(rom_data, slot));
+    const int snes =
+        (rom_data[slot + 2] << 16) | (rom_data[slot + 1] << 8) | rom_data[slot];
+    const int pc = SnesToPc(snes);
     if (pc < 0 || pc + len > static_cast<int>(rom_data.size())) {
       return absl::OutOfRangeError("Blocks data region out of range");
     }
-    std::vector<uint8_t> chunk(output.begin() + off,
-                               output.begin() + off + len);
-    RETURN_IF_ERROR(rom->WriteVector(pc, chunk));
+    write_destinations.push_back({pc, off, len});
+  }
+
+  // Write each prevalidated region. We do not relocate the data — the four
+  // operand slots keep pointing at their existing SNES addresses.
+  for (const auto& destination : write_destinations) {
+    std::vector<uint8_t> chunk(
+        output.begin() + destination.output_offset,
+        output.begin() + destination.output_offset + destination.length);
+    RETURN_IF_ERROR(rom->WriteVector(destination.pc, chunk));
   }
 
   RETURN_IF_ERROR(
       rom->WriteWord(kBlocksLength, static_cast<uint16_t>(total_bytes)));
+
+  // Deleting an entry compacts every following slot. Rebase each loaded
+  // object's identity to its committed output slot so a later no-op save does
+  // not try to replace the stale pre-compaction slot and silently drop it.
+  // This metadata stays untouched until every ROM write succeeds, matching
+  // the dirty-state failure contract below.
+  for (const auto& [object, load_order] : load_order_updates) {
+    const_cast<RoomObject*>(object)->set_block_load_order(load_order);
+  }
   for (int room_id = 0; room_id < room_count; ++room_id) {
     if (const Room* room = room_lookup(room_id);
-        room != nullptr && room->blocks_dirty()) {
+        room != nullptr && room->AreBlocksLoaded() && room->blocks_dirty()) {
       const_cast<Room*>(room)->ClearBlocksDirty();
     }
   }
@@ -3389,9 +3451,10 @@ void Room::LoadBlocks() {
     if (entry.room_id != room_id_)
       continue;
 
-    RoomObject block_obj(0x0E00, entry.px, entry.py, 0, entry.layer);
+    RoomObject block_obj(0x0E00, entry.px, entry.py, 0, entry.draw_layer);
     block_obj.SetRom(rom_);
     block_obj.set_options(ObjectOption::Block);
+    block_obj.set_block_behavior_layer(entry.behavior_layer);
     // Capture the entry's slot index in the global buffer so
     // SaveAllBlocks can emit entries in vanilla authoring order
     // (interleaved across rooms; sorting by room_id would reshuffle
@@ -3399,8 +3462,8 @@ void Room::LoadBlocks() {
     block_obj.set_block_load_order(i / 4);
     tile_objects_.push_back(block_obj);
 
-    LOG_DEBUG("Room", "Loaded block at (%d,%d) layer=%d", entry.px, entry.py,
-              entry.layer);
+    LOG_DEBUG("Room", "Loaded block at (%d,%d) draw_layer=%d behavior_layer=%d",
+              entry.px, entry.py, entry.draw_layer, entry.behavior_layer);
   }
   blocks_loaded_ = true;
 }
