@@ -70,6 +70,14 @@ graph TD
 *   **`ObjectDimensionTable`**: Provides hit-testing bounds for objects. This is distinct from the visual rendering size and is derived from ROM data tables.
 *   **`ObjectTemplateManager`**: Allows creating and instantiating groups of objects (templates).
 
+Chest persistence treats the global 168-record table as an ordered physical
+stream rather than regrouping it by room. One-for-one dirty-room edits reuse
+their existing occurrences, untouched and unknown-room records keep their raw
+bytes and relative order, removals compact the live stream, and growth appends
+in room-ID order. Capacity and manifest conflicts are checked before writes;
+the runtime length and full live pointer target are declared as possible write
+ranges while the pointer operand remains read-only.
+
 ## Key Files & Components
 
 ### Data & State
