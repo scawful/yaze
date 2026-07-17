@@ -152,9 +152,9 @@ void DungeonCanvasViewer::DrawRoomDebugWindow(zelda3::Room& room, int room_id) {
             "even when previewed in Blind's room."));
       }
 
-      bool rupee_floor_active = editor_state->IsRupeeFloorActive(room_id);
-      if (ImGui::Checkbox(tr("Rupee Floor Active"), &rupee_floor_active)) {
-        editor_state->SetRupeeFloorActive(room_id, rupee_floor_active);
+      bool rupee_floor_cleared = editor_state->IsRupeeFloorCleared(room_id);
+      if (ImGui::Checkbox(tr("Rupee Floor Cleared"), &rupee_floor_cleared)) {
+        editor_state->SetRupeeFloorCleared(room_id, rupee_floor_cleared);
         preview_state_changed = true;
       }
 

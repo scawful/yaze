@@ -1297,8 +1297,8 @@ void ObjectDrawer::InitializeDrawRoutines() {
       });
 
   // Routine 115 - RupeeFloor (special pattern for 0xF92)
-  // ASM: RoomDraw_RupeeFloor - draws 3 columns of 2-tile pairs at 3 Y positions
-  // Pattern: 6 tiles wide, 8 rows tall with gaps (rows 2 and 5 are empty)
+  // ASM: RoomDraw_RupeeFloor - draws 3 one-tile columns two tiles apart.
+  // Pattern: 5 tiles wide, 8 rows tall with gaps (rows 2 and 5 are empty).
   draw_routines_.push_back(
       [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
@@ -3141,8 +3141,8 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
       break;
 
     case 115:  // RupeeFloor (special pattern)
-      // 6 tiles wide (3 columns x 2 tiles) x 8 tiles tall = 48x64 pixels
-      width = 48;
+      // Columns at x + 0, +2, +4 bound a 5x8-tile area = 40x64 pixels.
+      width = 40;
       height = 64;
       break;
 
