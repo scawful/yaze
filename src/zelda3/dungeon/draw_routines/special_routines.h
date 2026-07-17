@@ -421,11 +421,10 @@ void DrawPrisonCell(const DrawContext& ctx);
 void DrawBigKeyLock(const DrawContext& ctx);
 
 /**
- * @brief Draw bombable floor (Type 3 object 0x247)
+ * @brief Draw bombable floor (Type 3 object 0xFC7 / ASM object 0x247)
  *
- * ASM: RoomDraw_BombableFloor ($019B7A)
- * Registers floor position for bombing interaction.
- * Checks if already bombed via room flags.
+ * ASM: RoomDraw_BombableFloor ($01:B3E1)
+ * Draws one of two 4x4 states using the current room's floor-open preview.
  *
  * @param ctx Draw context
  */

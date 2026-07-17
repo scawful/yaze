@@ -120,6 +120,7 @@ TEST(ObjectGeometryTest, MeasureByObjectIdSubtype3SpecialsHaveUsdasmBounds) {
       {0x0F90, 0x00, 2, 2},  // Single2x2
       {0x0F92, 0x00, 5, 8},  // RupeeFloor
       {0x0FB1, 0x00, 4, 3},  // Single4x3
+      {0x0FC7, 0x00, 4, 4},  // BombableFloor
       {0x0FE6, 0x00, 4, 4},  // Actual4x4
       {0x0FEB, 0x00, 4, 4},  // Single4x4
   };
