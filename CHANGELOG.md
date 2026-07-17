@@ -3,7 +3,11 @@
 High-level release summary. For detailed notes, see
 `docs/public/reference/changelog.md`.
 
-## 0.7.2 (July 12, 2026)
+## 0.8.0 (in development)
+- Development line for the Dungeon Editor completion milestone. See
+  `docs/internal/plans/release-ladder-0x-2026.md` for scope.
+
+## 0.7.2 (July 17, 2026)
 - **Dungeon RC Stabilization**:
   - Persisted the latest dungeon save-domain follow-through for entrances and special objects.
   - Rendered dungeon object/sprite selector previews by default and kept workbench-local tools open for mixed Workbench/Window workflows.

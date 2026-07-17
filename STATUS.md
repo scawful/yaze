@@ -1,11 +1,11 @@
 # yaze Status
 
-## Current Release
-- **Version**: v0.7.2 (final release prep on `master`; latest tagged release is
-  v0.7.1 from April 19, 2026)
-- **Focus**: Final package/smoke validation for the post-0.7.1 dungeon RC,
-  followed by the 0.8.0 Dungeon Editor completion milestone.
-- **Next milestone**: `0.8.0` dungeon completion — see
+## Current Development
+- **Version**: v0.8.0 development (latest tagged release: v0.7.2, July 17,
+  2026)
+- **Focus**: Dungeon Editor completion, persistence stability, and Oracle
+  daily-driver readiness.
+- **Milestone plan**: `0.8.0` dungeon completion — see
   `docs/internal/plans/release-ladder-0x-2026.md` and
   `docs/internal/plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md`.
 - **Beta-feedback backlog**:
@@ -45,11 +45,13 @@
   Linux, macOS, and Windows, including the automated Windows zip layout and
   `z3ed.exe --help` smoke ([run 29211528653](https://github.com/scawful/yaze/actions/runs/29211528653)).
 
-### Remaining Release Gates
-- On Windows, manually launch the packaged `yaze.exe` and complete the clean-ROM
-  open, Save As, and reopen smoke.
-- Merge the release-metadata PR, tag `v0.7.2`, and verify the release workflow
-  artifacts and checksums.
+### Release Follow-up
+- v0.7.2 is tagged at merge commit `8fed46dc`; tag-triggered workflow run
+  [29608567567](https://github.com/scawful/yaze/actions/runs/29608567567)
+  owns its artifact builds, checksum verification, and publication.
+- The deferred interactive packaged-Windows open, Save As, and reopen smoke is
+  tracked in GitHub issue #107; a confirmed startup or save regression remains
+  hotfix criteria.
 
 ## 0.7.0 Validation Snapshot (historical)
 - `ctest --preset mac-ai-unit --output-on-failure` → **1622/1622 passed**
