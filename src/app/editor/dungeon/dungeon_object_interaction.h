@@ -231,8 +231,11 @@ class DungeonObjectInteraction {
   bool SetObjectSize(size_t index, uint8_t size);
   bool SetObjectLayer(size_t index, zelda3::RoomObject::LayerType layer);
 
-  // Layer assignment for selected objects
-  void SendSelectedToLayer(int target_layer);
+  // Stored placement assignment for selected objects. Stream 2 is available
+  // only when every selected object belongs to the room object stream; torches
+  // and pushable blocks use a two-value special-table draw selector instead.
+  bool CanAssignSelectedObjectsToLayer(int target_layer) const;
+  bool SendSelectedToLayer(int target_layer);
 
   // Object ordering (changes draw order within the layer)
   // SNES draws objects in list order - first objects appear behind, last on top
