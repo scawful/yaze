@@ -138,7 +138,9 @@ Purpose-built validation for the Oracle romhack:
 
 2. **GFX sheet editing depth** — ZScream and Hyrule Magic allow individual 8x8 tile editing, GFX import/export, and animated tile preview. yaze's graphics editor is primarily a viewer.
 
-3. **Dungeon persistence model gaps** — The global pit-damage table has a fixed-capacity encoder but no room-editor UI toggle yet, and pushable blocks do not yet repoint/expand beyond the vanilla table capacity.
+3. **Dungeon persistence model gaps** — The global pit-damage table now has a
+   fixed-capacity room-membership editor, but neither it nor pushable blocks
+   repoints/expands beyond the vanilla table capacity.
 
 4. **Screen editors** — Title screen, file select, and pause-menu world-map editors are basic compared to competitors and need clearer UX/test coverage.
 
