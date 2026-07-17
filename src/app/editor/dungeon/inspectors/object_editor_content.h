@@ -5,6 +5,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_selection_snapshot.h"
@@ -13,6 +14,10 @@
 #include "zelda3/dungeon/dungeon_object_editor.h"
 
 namespace yaze::editor {
+
+bool SyncObjectEditorSelectionToCanvas(
+    DungeonObjectInteraction& interaction,
+    const std::vector<size_t>& editor_selected_indices);
 
 class ObjectEditorContent : public WindowContent {
  public:
