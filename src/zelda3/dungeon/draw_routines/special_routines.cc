@@ -1252,34 +1252,33 @@ void DrawBigKeyLock(const DrawContext& ctx) {
 }
 
 void DrawBombableFloor(const DrawContext& ctx) {
-  // ASM: RoomDraw_BombableFloor ($019B7A)
-  // Checks room flags to see if floor has been bombed
-
-  bool is_bombed = false;
-  if (ctx.state) {
-    is_bombed = ctx.state->IsFloorBombable(ctx.room_id);
+  // USDASM RoomDraw_BombableFloor ($01:B3E1) draws four 2x2 quadrants.
+  // ParseSubtype3 stores the intact obj0220 block at tiles[0..15] and the
+  // non-contiguous obj05BA replacement block at tiles[16..31]. Each quadrant
+  // is ordered upper-left, lower-left, upper-right, lower-right.
+  if (ctx.tiles.size() < 16) {
+    return;
   }
 
-  if (is_bombed) {
-    // Draw hole (use second tile set if available)
-    if (ctx.tiles.size() >= 8) {
-      for (int y = 0; y < 2; ++y) {
-        for (int x = 0; x < 2; ++x) {
-          DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                       ctx.object.y_ + y,
-                                       ctx.tiles[4 + y * 2 + x]);
-        }
-      }
-      return;
-    }
-  }
+  // Vanilla persists this state for room 0x65, while ROM hacks can relocate
+  // the floor (Oracle of Secrets uses 0xAD). Keep preview selection keyed to
+  // the current room instead of hardcoding a vanilla room ID.
+  const bool is_open = ctx.state != nullptr &&
+                       ctx.state->IsFloorBombable(ctx.room_id) &&
+                       ctx.tiles.size() >= 32;
+  const size_t state_offset = is_open ? 16 : 0;
 
-  // Draw intact floor (2x2 pattern)
-  if (ctx.tiles.size() >= 4) {
-    for (int y = 0; y < 2; ++y) {
+  for (int block_y = 0; block_y < 2; ++block_y) {
+    for (int block_x = 0; block_x < 2; ++block_x) {
+      const size_t block_offset =
+          state_offset + static_cast<size_t>((block_y * 2 + block_x) * 4);
       for (int x = 0; x < 2; ++x) {
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                     ctx.object.y_ + y, ctx.tiles[y * 2 + x]);
+        for (int y = 0; y < 2; ++y) {
+          DrawRoutineUtils::WriteTile8(
+              ctx.target_bg, ctx.object.x_ + block_x * 2 + x,
+              ctx.object.y_ + block_y * 2 + y,
+              ctx.tiles[block_offset + static_cast<size_t>(x * 2 + y)]);
+        }
       }
     }
   }
@@ -1795,9 +1794,9 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .name = "BombableFloor",
       .function = DrawBombableFloor,
       .draws_to_both_bgs = false,
-      .base_width = 2,
-      .base_height = 2,
-      .min_tiles = 4,  // 2x2 block
+      .base_width = 4,
+      .base_height = 4,
+      .min_tiles = 16,  // One complete 4x4 state
       .category = DrawRoutineInfo::Category::Special,
   });
 

@@ -642,7 +642,7 @@ TEST_F(DungeonObjectRomValidationTest, Subtype3BombableFloorParserMatchesRom) {
   zelda3::ObjectParser parser(rom_.get());
   auto parsed_or = parser.ParseObject(static_cast<int16_t>(0xFC7));
   ASSERT_TRUE(parsed_or.ok());
-  EXPECT_EQ(parsed_or->size(), 8u);
+  EXPECT_EQ(parsed_or->size(), 32u);
 }
 
 }  // namespace test

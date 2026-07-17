@@ -8,6 +8,7 @@
 #include "core/features.h"
 #include "mocks/mock_rom.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace test {
@@ -121,6 +122,38 @@ TEST_F(ObjectParserTest, RupeeFloorLoadsExactTwoWordPayload) {
 
   const auto draw_info = parser_->GetObjectDrawInfo(0xF92);
   EXPECT_EQ(draw_info.tile_count, 2);
+}
+
+TEST_F(ObjectParserTest, BombableFloorLoadsBothFourByFourStates) {
+  auto result = parser_->ParseObject(0xFC7);
+  ASSERT_TRUE(result.ok());
+  ASSERT_EQ(result->size(), 32u);
+
+  // The second state comes from fixed obj05BA, not the 16 words following
+  // the object's obj0220 pointer.
+  const auto& data = mock_rom_->data();
+  const int table_addr =
+      zelda3::kRoomObjectSubtype3 + ((0xFC7 - 0xF80) & 0x7F) * 2;
+  const int intact_addr = zelda3::kRoomObjectTileAddress + data[table_addr] +
+                          (static_cast<int>(data[table_addr + 1]) << 8);
+  auto decode_at = [&](int address) {
+    const uint16_t word =
+        data[address] | (static_cast<uint16_t>(data[address + 1]) << 8);
+    return gfx::WordToTileInfo(word);
+  };
+  constexpr int kStateTileCount = 16;
+  const int open_addr = zelda3::kRoomObjectTileAddress + 0x05BA;
+  for (int i = 0; i < kStateTileCount; ++i) {
+    SCOPED_TRACE(::testing::Message() << "tile=" << i);
+    EXPECT_TRUE((*result)[i] == decode_at(intact_addr + i * 2));
+    EXPECT_TRUE((*result)[kStateTileCount + i] == decode_at(open_addr + i * 2));
+  }
+  EXPECT_FALSE((*result)[kStateTileCount] ==
+               decode_at(intact_addr + kStateTileCount * 2));
+
+  const auto draw_info = parser_->GetObjectDrawInfo(0xFC7);
+  EXPECT_EQ(draw_info.tile_count, 32);
+  EXPECT_EQ(draw_info.draw_routine_id, zelda3::DrawRoutineIds::kBombableFloor);
 }
 
 TEST_F(ObjectParserTest, GetObjectSubtype) {
