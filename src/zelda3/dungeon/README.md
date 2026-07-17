@@ -2,7 +2,7 @@
 
 This directory contains the core business logic, data structures, and rendering algorithms for the `The Legend of Zelda: A Link to the Past` dungeon system. It serves as the backend for the editor UI found in `src/app/editor/dungeon`.
 
-## Current Status (May 2026)
+## Current Status (July 2026)
 
 **Core System: Stable** with focused regression coverage around object rendering, room persistence, object tile editing, and editor/save plumbing.
 
@@ -19,7 +19,11 @@ verification against the game. The global pit-damage table now supports
 fixed-capacity membership edits while preserving its protected ROM region for
 no-op saves; pushable blocks round-trip through a room-aware encoder but remain
 capped to the existing vanilla table unless a future repointing pass expands
-it.
+it. Successful block-table saves rebase loaded blocks to their compacted table
+slots so later no-op saves remain stable, and transaction rollback restores
+those identities with the ROM. The encoder fails closed when a dirty room's
+blocks were not loaded and rejects deleting the final global block entry
+because vanilla's do-while runtime scan cannot safely use a zero-byte limit.
 
 ## Architecture Overview
 

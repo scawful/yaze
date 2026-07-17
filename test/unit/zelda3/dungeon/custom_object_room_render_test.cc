@@ -1,10 +1,12 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <utility>
 #include <vector>
 
 #include "core/features.h"
@@ -12,6 +14,7 @@
 #include "rom/snes.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/dungeon/dungeon_block_codec.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_layout.h"
@@ -322,6 +325,90 @@ TEST_F(CustomObjectRoomRenderTest,
 
   EXPECT_EQ(bg2_bitmap.data()[overlay_index], 33)
       << "BG2 overlay list should render through the BG2 object buffer";
+}
+
+TEST_F(CustomObjectRoomRenderTest,
+       PushableBlockDrawTargetIsIndependentFromBehaviorSelector) {
+  RoomObject upper_block(/*id=*/0x0E00, /*x=*/3, /*y=*/4, /*size=*/0,
+                         /*layer=*/0);
+  upper_block.set_options(ObjectOption::Block);
+  upper_block.set_block_behavior_layer(1);
+  RoomObject lower_block(/*id=*/0x0E00, /*x=*/8, /*y=*/9, /*size=*/0,
+                         /*layer=*/1);
+  lower_block.set_options(ObjectOption::Block);
+  lower_block.set_block_behavior_layer(0);
+
+  Room room = MakeRoomWithObjects({upper_block, lower_block});
+  RenderObjectBuffers(room);
+
+  const auto& bg1 = room.object_bg1_buffer();
+  const auto& bg2 = room.object_bg2_buffer();
+  const auto& bg1_bitmap = bg1.bitmap();
+  ASSERT_TRUE(bg1_bitmap.is_active());
+  ASSERT_TRUE(bg2.bitmap().is_active());
+
+  const int upper_pixel = PixelIndex(bg1_bitmap, 3 * 8, 4 * 8);
+  const int lower_pixel = PixelIndex(bg1_bitmap, 8 * 8, 9 * 8);
+  ASSERT_LT(upper_pixel, static_cast<int>(bg1.coverage_data().size()));
+  ASSERT_LT(lower_pixel, static_cast<int>(bg2.coverage_data().size()));
+  EXPECT_EQ(bg1.coverage_data()[upper_pixel], 1);
+  EXPECT_EQ(bg2.coverage_data()[upper_pixel], 0);
+  EXPECT_EQ(bg1.coverage_data()[lower_pixel], 0);
+  EXPECT_EQ(bg2.coverage_data()[lower_pixel], 1);
+
+  ASSERT_EQ(room.GetTileObjects().size(), 2u);
+  EXPECT_EQ(room.GetTileObjects()[0].GetLayerValue(), 0);
+  EXPECT_EQ(room.GetTileObjects()[0].block_behavior_layer(), 1);
+  EXPECT_EQ(room.GetTileObjects()[1].GetLayerValue(), 1);
+  EXPECT_EQ(room.GetTileObjects()[1].block_behavior_layer(), 0);
+}
+
+TEST_F(CustomObjectRoomRenderTest,
+       ExactVanillaPushableWordsRenderToTheirBit13Targets) {
+  struct Sample {
+    uint16_t room_id;
+    uint16_t word;
+  };
+  constexpr std::array<Sample, 4> kSamples = {{
+      {0x00A8, 0x36E0},
+      {0x0066, 0x383C},
+      {0x002C, 0x2814},
+      {0x00CA, 0x56B2},
+  }};
+
+  std::vector<RoomObject> blocks;
+  for (const auto& sample : kSamples) {
+    const PushableBlockBytes bytes{
+        static_cast<uint8_t>(sample.room_id & 0xFF),
+        static_cast<uint8_t>((sample.room_id >> 8) & 0xFF),
+        static_cast<uint8_t>(sample.word & 0xFF),
+        static_cast<uint8_t>((sample.word >> 8) & 0xFF),
+    };
+    const auto entry = DecodePushableBlockEntry(bytes);
+    RoomObject block(0x0E00, entry.px, entry.py, 0, entry.draw_layer);
+    block.set_options(ObjectOption::Block);
+    block.set_block_behavior_layer(entry.behavior_layer);
+    blocks.push_back(block);
+  }
+
+  Room room = MakeRoomWithObjects(blocks);
+  RenderObjectBuffers(room);
+  const auto& bg1 = room.object_bg1_buffer();
+  const auto& bg2 = room.object_bg2_buffer();
+
+  // $36E0, $383C, and $2814 have bit 13 set and must render on BG2.
+  for (const auto [x, y] :
+       {std::pair{48, 45}, std::pair{30, 48}, std::pair{10, 16}}) {
+    const int pixel = PixelIndex(bg1.bitmap(), x * 8, y * 8);
+    EXPECT_EQ(bg1.coverage_data()[pixel], 0);
+    EXPECT_EQ(bg2.coverage_data()[pixel], 1);
+  }
+
+  // $56B2 proves bit 14 is independent: behavior=lower, draw=upper/BG1.
+  const int behavior_only_pixel = PixelIndex(bg1.bitmap(), 25 * 8, 45 * 8);
+  EXPECT_EQ(bg1.coverage_data()[behavior_only_pixel], 1);
+  EXPECT_EQ(bg2.coverage_data()[behavior_only_pixel], 0);
+  EXPECT_EQ(room.GetTileObjects()[3].block_behavior_layer(), 1);
 }
 
 TEST_F(CustomObjectRoomRenderTest,
