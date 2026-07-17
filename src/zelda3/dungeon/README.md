@@ -13,7 +13,17 @@ The object rendering pipeline has been validated against the ALTTP disassembly:
 - BothBG flag propagation ✅
 - Tile count lookup tables ✅
 
-**Known Minor Issues**: Some specific objects (vertical rails, doors, certain edge patterns) may have visual discrepancies that require individual verification against the game. The global pit-damage table still uses protected ROM-region preservation; pushable blocks now round-trip through a room-aware encoder but remain capped to the existing vanilla table unless a future repointing pass expands it. Successful structural saves rebase loaded blocks to their compacted table slots so later no-op saves remain stable; transaction rollback restores those identities with the ROM. The encoder fails closed when a dirty room's blocks were not loaded, and it rejects deleting the final global block entry because vanilla's do-while runtime scan cannot safely use a zero-byte limit.
+**Known Minor Issues**: Some specific objects (vertical rails, doors, certain
+edge patterns) may have visual discrepancies that require individual
+verification against the game. The global pit-damage table now supports
+fixed-capacity membership edits while preserving its protected ROM region for
+no-op saves; pushable blocks round-trip through a room-aware encoder but remain
+capped to the existing vanilla table unless a future repointing pass expands
+it. Successful block-table saves rebase loaded blocks to their compacted table
+slots so later no-op saves remain stable, and transaction rollback restores
+those identities with the ROM. The encoder fails closed when a dirty room's
+blocks were not loaded and rejects deleting the final global block entry
+because vanilla's do-while runtime scan cannot safely use a zero-byte limit.
 
 ## Architecture Overview
 
@@ -119,5 +129,10 @@ graph TD
     *Action*: Audit and deprecate old loading paths in favor of the robust parser.
 
 5.  **Pit/Block Persistence**:
-    The pit-damage table still saves by preserving its existing ROM blob after pointer validation. Pushable blocks are editable and save through a room-aware encoder, including add/delete/move cases, but do not yet repoint or expand the four vanilla data regions.
-    *Action*: Keep pit-damage preservation unless a dedicated editing surface is added; treat block repointing/expansion as a separate ROM-layout feature.
+    The pit-damage table preserves its existing ROM blob after pointer
+    validation unless the fixed-capacity workbench membership editor marks the
+    table dirty. Pushable blocks are editable and save through a room-aware
+    encoder, including add/delete/move cases, but do not yet repoint or expand
+    the four vanilla data regions.
+    *Action*: Treat pit/block repointing and capacity expansion as separate
+    ROM-layout features.

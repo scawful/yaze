@@ -3,12 +3,12 @@
 This file is a short pointer. The canonical roadmap lives in
 `docs/internal/roadmap.md`.
 
-## Current Focus (v0.7.x)
-- 0.7.1 packaging: welcome-screen overhaul + dungeon editor parity/polish
-  (see `docs/internal/plans/0.7.1-release-plan.md`)
-- z3dk toolchain integration scoped for 0.8.0
-  (see `docs/internal/plans/z3dk-integration-0.8.0.md`)
-- Tile16/overworld/dungeon parity cleanup and targeted regression tests
+## Current Focus (v0.8.x)
+- 0.8.0 Dungeon Editor completion: object parity, persistence stability, and
+  Oracle daily-driver readiness
+  (see `docs/internal/plans/release-ladder-0x-2026.md`)
+- Bounded z3ed, z3dk, Oracle AI, and Oracle of Secrets supporting work
+- Targeted Tile16, overworld, and dungeon regression coverage
 
 ## References
 - `docs/internal/roadmap.md` (canonical)
