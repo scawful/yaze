@@ -12,6 +12,7 @@
 #include "rom/snes.h"
 #include "rom/transaction.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/object_stream_ordering.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/water_fill_zone.h"
 
@@ -806,6 +807,58 @@ TEST(DungeonEditorV2RomSafetyTest, UndoSnapshotLeakDetection) {
   editor->FinalizeUndoAction(0);
   EXPECT_FALSE(editor->has_pending_undo_)
       << "has_pending_undo_ should be false after final FinalizeUndoAction";
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     ObjectStreamUndoRedoRestoresSelectionIdentity) {
+  test::MockRom rom;
+  ASSERT_TRUE(rom.SetTestData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  DungeonSaveFlagsGuard guard;
+  core::FeatureFlags::get().dungeon.kUseWorkbench = false;
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  auto& room = editor->rooms()[0];
+  room.SetLoaded(true);
+  room.ClearTileObjects();
+  room.AddTileObject(zelda3::RoomObject(/*id=*/0x11, /*x=*/10, /*y=*/10,
+                                        /*size=*/0, /*layer=*/0));
+  room.AddTileObject(zelda3::RoomObject(/*id=*/0x22, /*x=*/20, /*y=*/20,
+                                        /*size=*/0, /*layer=*/0));
+  room.AddTileObject(zelda3::RoomObject(/*id=*/0x33, /*x=*/30, /*y=*/30,
+                                        /*size=*/0, /*layer=*/1));
+
+  auto* viewer = editor->GetViewerForRoom(0);
+  ASSERT_NE(viewer, nullptr);
+  auto& interaction = viewer->object_interaction();
+  interaction.SetCurrentRoom(&editor->rooms(), 0);
+  interaction.SetSelectedObjects({0});
+
+  editor->BeginUndoSnapshot(0);
+  auto mutation =
+      zelda3::ReassignObjectStorage(room.GetTileObjects(), {0}, /*layer=*/1);
+  ASSERT_TRUE(mutation.ok()) << mutation.status();
+  ASSERT_TRUE(mutation->changed);
+  ASSERT_THAT(mutation->selected_indices, ::testing::ElementsAre(2));
+  interaction.SetSelectedObjects(mutation->selected_indices);
+  editor->FinalizeUndoAction(0);
+
+  ASSERT_EQ(room.GetTileObjects().size(), 3u);
+  EXPECT_EQ(room.GetTileObjects()[2].id_, 0x11);
+  EXPECT_THAT(interaction.GetSelectedObjectIndices(),
+              ::testing::ElementsAre(2));
+
+  ASSERT_TRUE(editor->Undo().ok());
+  ASSERT_EQ(room.GetTileObjects().size(), 3u);
+  EXPECT_EQ(room.GetTileObjects()[0].id_, 0x11);
+  EXPECT_THAT(interaction.GetSelectedObjectIndices(),
+              ::testing::ElementsAre(0));
+
+  ASSERT_TRUE(editor->Redo().ok());
+  ASSERT_EQ(room.GetTileObjects().size(), 3u);
+  EXPECT_EQ(room.GetTileObjects()[2].id_, 0x11);
+  EXPECT_THAT(interaction.GetSelectedObjectIndices(),
+              ::testing::ElementsAre(2));
 }
 
 TEST(DungeonEditorV2RomSafetyTest, ViewerCacheLRUEviction) {
