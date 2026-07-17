@@ -1,6 +1,12 @@
 # Changelog
 
-## 0.7.2 (July 12, 2026)
+## 0.8.0 (in development)
+
+### Dungeon Editor completion
+- Opened the post-v0.7.2 development line for dungeon correctness, object
+  parity, persistence stability, and Oracle daily-driver readiness.
+
+## 0.7.2 (July 17, 2026)
 
 ### Dungeon Editor Follow-through
 - Made room navigation collapse into a compact 2x2 grid in tighter layouts instead of squeezing into a thin inline strip.

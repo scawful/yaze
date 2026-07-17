@@ -3,7 +3,7 @@
 ## v0.7.2
 
 **Type:** Dungeon RC + Fail-Closed Save Safety + Build/CI Hardening
-**Date:** 2026-07-12
+**Date:** 2026-07-17
 
 ### 🏰 Dungeon RC Stabilization
 - Rendered dungeon object and sprite previews by default so selector browsing
