@@ -1,36 +1,27 @@
 # Roadmap
 
-**Last Updated: June 11, 2026**
+**Last Updated: July 17, 2026**
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
 
 ---
 
-## Current Focus (v0.7.2 development)
+## Current Focus (v0.8.0 development)
 
-`master` moved to 0.7.2 immediately after tagging `v0.7.1` on April 19, 2026.
-The current line is post-release stabilization and follow-through work. The
+The 0.8.0 development line follows the `v0.7.2` tag from July 17, 2026. The
 next several minors are planned around finishing the main ALTTP editors first,
 with `z3ed`, `z3dk`, Oracle AI, and Oracle of Secrets support tracked as
-secondary trains. See `docs/internal/plans/0.7.1-release-plan.md` for the
-shipped 0.7.1 bundle, `docs/public/release-notes.md` for the published release
-summary, and `docs/internal/plans/release-ladder-0x-2026.md` for the
-editor-first `0.x` sequencing.
+bounded secondary trains.
 
-**0.7.2 themes:**
-- Release/build follow-through: keep workflows, scripts, and docs aligned with
-  the per-preset `build/presets/<preset>` binary layout
-- Editor source-layout stabilization after the 0.7.1 reorg: retire legacy
-  headers, keep canonical `shell/`, `registry/`, and `system/*` paths aligned
-- Dungeon UX/save-path follow-through: keep room-nav/workbench layout
-  responsive, protect visible room area in constrained panes, and harden the
-  persistence handoff path that feeds the broader `0.8.0` dungeon milestone
-- Editor-first `0.8.0+` planning: keep the next minors anchored on core ALTTP
-  editor completion while scheduling `z3ed`, `z3dk`, Oracle AI, and OoS work
-  in bounded secondary slices
+**0.8.0 themes:**
+- Complete remaining Dungeon Editor object draw and stream-semantics parity.
+- Harden dungeon persistence and project workflows for Oracle daily-driver
+  use without relaxing fail-closed ROM safety.
+- Keep editor and CLI regression coverage aligned across vanilla and Oracle
+  formats while avoiding broad platform-test churn.
 
-**Latest shipped release:** `v0.7.1` (April 19, 2026).
-**Next planned feature milestone:** `0.8.0`, tracked in
+**Latest tagged release:** `v0.7.2` (July 17, 2026).
+**Current feature milestone:** `0.8.0`, tracked in
 `docs/internal/plans/release-ladder-0x-2026.md`.
 
 ---
@@ -278,7 +269,7 @@ Mobile testing and review companion for desktop development.
 
 ---
 
-## Future (v0.8.0+)
+## Release Ladder (v0.8.0+)
 
 - **Editor-first release ladder**: `0.8.0` through `0.12.0` are planned
   primarily around Dungeon, Overworld, secondary editor parity, Music/Memory,
@@ -300,6 +291,16 @@ Mobile testing and review companion for desktop development.
 ---
 
 ## Release History
+
+### v0.7.2 (July 2026)
+- Dungeon RC stabilization: default object/sprite previews, broader save-domain
+  persistence, door-position guardrails, canonical room-object labels, and
+  object-overlap regression coverage.
+- Fail-closed save safety: whole-ROM transactional saves, retry-state
+  preservation, bounded dungeon/message/overworld/project writes, and safer
+  Save As continuation.
+- Pit-damage membership controls and pushable-block loader/capacity guards.
+- Localization plus desktop, CLI, WASM, packaging, and CI reliability work.
 
 ### v0.7.1 (April 2026)
 - Welcome screen overhaul: RecentProjectsModel extraction, sidecar metadata
