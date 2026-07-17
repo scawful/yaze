@@ -180,8 +180,11 @@ class ObjectParser {
    * @brief Get tile count for subtype 3 objects
    *
    * Different subtype 3 objects have different tile counts:
+   * - BigKeyLock (0xF98): 4 tiles (one closed 2x2 block)
    * - BombableFloor (0xFC7): 32 tiles (two non-contiguous 4x4 states)
-   * - BigChest/OpenBigChest (0xFB1-0xFB2): 12 tiles (4x3)
+   * - Chest/OpenChest (0xF99/0xF9A): 8/4 tiles (stateful/fixed 2x2)
+   * - BigChest/OpenBigChest (0xFB1/0xFB2): 24/12 tiles
+   *   (stateful/fixed 4x3)
    * - TableRock4x3 variants: 12 tiles
    * - 4x4 objects: 16 tiles
    * - Most others: 8 tiles
