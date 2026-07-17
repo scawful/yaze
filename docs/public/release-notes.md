@@ -1,9 +1,9 @@
 # Release Notes
 
-## v0.7.2 (in development)
+## v0.7.2
 
-**Type:** Post-0.7.1 Dungeon RC + Build/CI Hardening
-**Date:** TBD
+**Type:** Dungeon RC + Fail-Closed Save Safety + Build/CI Hardening
+**Date:** 2026-07-12
 
 ### 🏰 Dungeon RC Stabilization
 - Rendered dungeon object and sprite previews by default so selector browsing
@@ -18,16 +18,43 @@
   `room_object.h`, including newly named logic-only and rare decor objects.
 - Preserved zero-tile `DrawNothing` logic objects as no-payload cases while
   keeping the conservative fallback for uncataloged drawable objects.
+- Added editable pit-damage room membership controls and protected the
+  pushable-block loader from invalid pointer operands and table-capacity
+  overruns.
+- Added ROM-backed regression coverage for pit-damage persistence,
+  pushable-block boundaries, and a pinned room `0x001` BG1/BG2 object-overlap
+  pixel.
 
 ### 🌎 Overworld Follow-through
 - Added a right-click Tile16 sampling action to the overworld canvas context
   menu, covering the common eyedropper workflow without opening the Tile16
   editor first.
 
+### 🛡️ Fail-Closed Save Safety
+- Made multi-editor saves transactional across the complete ROM, so a late
+  validation, backup, or file-write failure rolls back the attempted save and
+  keeps the user's edits available to retry.
+- Preserved the selected Save As destination across ROM-hash, pot-item, and
+  ASM-conflict confirmations and rejected stale confirmations after switching
+  ROM sessions.
+- Made unsupported dungeon object, sprite, pot-item, and chest growth stop
+  with an actionable error rather than guessing relocation space or partially
+  rewriting shared streams.
+- Strengthened expanded-message, custom-overworld, palette, project-path,
+  manifest, and hash validation with vanilla and Oracle regression coverage.
+
 ### 🧱 Build & CI Stabilization
 - Fixed the WASM/browser build after the 0.7.1 editor reorg by excluding the stale `yaze_debug_inspector.cc` path that still referenced removed `PanelManager`-era editor APIs.
 - Added `project_graph_tool.cc` back to the WASM AI source list so `ProjectGraphTool` links correctly in browser builds.
 - Skipped POSIX-shell-dependent project-action tests on Windows, keeping the Windows Core matrix green while a real cross-platform script-runner rewrite is deferred.
+- Stabilized fork pull-request checks, WASM builds, and the memory-sanitizer
+  gate used by the release matrix.
+
+### 🌐 Localization & Desktop Reliability
+- Added the internationalization catalog pipeline and French localization.
+- Initialized native file dialogs explicitly on Linux and Windows.
+- Hardened session restore, SDL startup, asset lookup, configuration loading,
+  ROM handling, and CLI error paths.
 
 ### 🧰 CLI & Agent Tooling
 - Updated `scripts/z3ed` to resolve binaries under `build/presets/<preset>/bin/`, which restores `z3ed` discovery for CI presets and preset-specific local builds.
@@ -39,6 +66,8 @@
 ### Deferred Follow-Up
 - Complete the 0.8.0 dungeon milestone: remaining rare-object parity, pit/block
   first-class encoders, and deeper BG1/BG2 overlay-stream validation.
+- Add manifest-backed copy-on-write allocation for shared dungeon streams so
+  safe growth can proceed after the 0.7.2 fail-closed containment release.
 - Refresh or remove the stale web debug inspector against the current post-reorg editor APIs.
 - Replace POSIX-shell-only project-action test scaffolding with a cross-platform test harness.
 
