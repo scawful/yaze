@@ -17,7 +17,7 @@
 #include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/geometry/object_geometry.h"
 #include "zelda3/dungeon/object_drawer.h"
-#include "zelda3/dungeon/object_layer_semantics.h"
+#include "zelda3/dungeon/object_stream_ordering.h"
 
 #include "app/editor/dungeon/dungeon_snapping.h"
 
@@ -683,16 +683,16 @@ void TileObjectHandler::UpdateObjectsSize(int room_id,
   NotifyChange(room);
 }
 
-void TileObjectHandler::UpdateObjectsLayer(int room_id,
+bool TileObjectHandler::UpdateObjectsLayer(int room_id,
                                            const std::vector<size_t>& indices,
                                            int new_layer) {
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
-    return;
+    return false;
   if (new_layer < 0 || new_layer > 2) {
     LOG_WARN("TileObjectHandler",
              "Rejected layer update with invalid target layer: %d", new_layer);
-    return;
+    return false;
   }
   auto& objects = room->GetTileObjects();
   std::vector<size_t> deduped_indices;
@@ -707,93 +707,35 @@ void TileObjectHandler::UpdateObjectsLayer(int room_id,
     }
   }
   if (deduped_indices.empty()) {
-    return;
+    return false;
   }
 
   if (deduped_indices.size() > kMaxLayerBatchMutation) {
     LOG_WARN("TileObjectHandler",
              "Rejected layer batch mutation of %zu objects (max %zu)",
              deduped_indices.size(), kMaxLayerBatchMutation);
-    return;
+    return false;
   }
 
-  int current_bg3_count = 0;
-  for (const auto& object : objects) {
-    if (object.GetLayerValue() == 2) {
-      ++current_bg3_count;
-    }
+  auto candidate_objects = objects;
+  auto mutation = zelda3::ReassignObjectStorage(candidate_objects,
+                                                deduped_indices, new_layer);
+  if (!mutation.ok()) {
+    LOG_WARN("TileObjectHandler", "Rejected object stream mutation: %s",
+             std::string(mutation.status().message()).c_str());
+    return false;
   }
-
-  int moving_to_bg3 = 0;
-  int moving_from_bg3 = 0;
-  auto target_layer = static_cast<zelda3::RoomObject::LayerType>(new_layer);
-  for (size_t index : deduped_indices) {
-    const auto& object = objects[index];
-    const auto semantics = zelda3::GetObjectLayerSemantics(object);
-    if (semantics.draws_to_both_bgs &&
-        target_layer != zelda3::RoomObject::LayerType::BG1) {
-      continue;
-    }
-    if (object.layer_ == target_layer) {
-      continue;
-    }
-    if (object.GetLayerValue() == 2) {
-      ++moving_from_bg3;
-    }
-    if (new_layer == 2) {
-      ++moving_to_bg3;
-    }
-  }
-  const int projected_bg3_count =
-      current_bg3_count - moving_from_bg3 + moving_to_bg3;
-  if (projected_bg3_count > zelda3::kMaxBg3Objects) {
-    LOG_WARN("TileObjectHandler",
-             "Rejected layer mutation: projected BG3 count %d exceeds max %d",
-             projected_bg3_count, zelda3::kMaxBg3Objects);
-    return;
-  }
-
-  const std::unordered_set<size_t> selected_set(deduped_indices.begin(),
-                                                deduped_indices.end());
-  std::array<std::vector<LayerOrderEntry>, 3> buckets;
-  std::vector<LayerOrderEntry> moved_to_target_layer;
-  bool changed = false;
-  for (size_t index = 0; index < objects.size(); ++index) {
-    auto object = objects[index];
-    const bool selected = selected_set.count(index) > 0;
-    if (!selected) {
-      buckets[LayerBucketIndex(object)].push_back(
-          LayerOrderEntry{std::move(object), false});
-      continue;
-    }
-    const auto semantics = zelda3::GetObjectLayerSemantics(object);
-    if (semantics.draws_to_both_bgs &&
-        target_layer != zelda3::RoomObject::LayerType::BG1) {
-      buckets[LayerBucketIndex(object)].push_back(
-          LayerOrderEntry{std::move(object), true});
-      continue;
-    }
-    if (object.layer_ == target_layer) {
-      buckets[LayerBucketIndex(object)].push_back(
-          LayerOrderEntry{std::move(object), true});
-      continue;
-    }
-    object.layer_ = target_layer;
-    moved_to_target_layer.push_back(LayerOrderEntry{std::move(object), true});
-    changed = true;
-  }
-  if (!changed) {
-    return;
-  }
-
-  for (auto& entry : moved_to_target_layer) {
-    buckets[new_layer].push_back(std::move(entry));
+  if (!mutation->changed) {
+    return true;
   }
 
   if (ctx_)
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
-  FlattenLayerBuckets(objects, buckets, ctx_ ? ctx_->selection : nullptr);
+  objects = std::move(candidate_objects);
+  RestoreObjectSelection(ctx_ ? ctx_->selection : nullptr,
+                         mutation->selected_indices);
   NotifyChange(room);
+  return true;
 }
 
 std::vector<size_t> TileObjectHandler::DuplicateObjects(
@@ -811,7 +753,7 @@ std::vector<size_t> TileObjectHandler::DuplicateObjects(
   const size_t base_index = objects.size();
   for (size_t index : indices) {
     if (index < objects.size()) {
-      auto clone = objects[index];
+      auto clone = objects[index].CopyForNewPlacement();
       clone.x_ = std::clamp(static_cast<int>(clone.x_ + delta_x), 0, 63);
       clone.y_ = std::clamp(static_cast<int>(clone.y_ + delta_y), 0, 63);
       objects.push_back(clone);
@@ -1009,7 +951,7 @@ bool TileObjectHandler::PlaceObjectAt(int room_id,
   placement_block_reason_ = PlacementBlockReason::kNone;
   if (ctx_)
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
-  auto new_obj = object;
+  auto new_obj = object.CopyForNewPlacement();
   new_obj.x_ = std::clamp(x, 0, 63);
   new_obj.y_ = std::clamp(y, 0, 63);
   room->AddTileObject(new_obj);
@@ -1148,6 +1090,7 @@ std::vector<size_t> TileObjectHandler::PasteFromClipboard(int room_id,
   size_t base_index = room->GetTileObjects().size();
 
   for (auto obj : clipboard_) {
+    obj = obj.CopyForNewPlacement();
     obj.x_ = std::clamp(obj.x_ + offset_x, 0, 63);
     obj.y_ = std::clamp(obj.y_ + offset_y, 0, 63);
     obj.tiles_loaded_ = false;
