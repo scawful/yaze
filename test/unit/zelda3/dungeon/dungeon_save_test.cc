@@ -1542,6 +1542,145 @@ TEST_F(DungeonSaveTest,
   EXPECT_FALSE(loaded_room.blocks_dirty());
 }
 
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_SaveUndoRedoSaveReconcilesStaleSlotIdentities) {
+  SetupBlockRegions();
+  constexpr int kLoadedRoomId = 0x10B;
+  constexpr int kUnmaterializedRoomId = 0xA8;
+  const auto first_loaded_entry =
+      EncodePushableBlockEntry({/*room_id=*/kLoadedRoomId, /*px=*/10, /*py=*/20,
+                                /*draw_layer=*/0, /*behavior_layer=*/0});
+  const auto second_loaded_entry =
+      EncodePushableBlockEntry({/*room_id=*/kLoadedRoomId, /*px=*/30, /*py=*/21,
+                                /*draw_layer=*/1, /*behavior_layer=*/1});
+  const auto unmaterialized_entry = EncodePushableBlockEntry(
+      {/*room_id=*/kUnmaterializedRoomId, /*px=*/25, /*py=*/45,
+       /*draw_layer=*/0, /*behavior_layer=*/1});
+  const std::array<PushableBlockBytes, 3> entries = {
+      first_loaded_entry, unmaterialized_entry, second_loaded_entry};
+  for (size_t slot = 0; slot < entries.size(); ++slot) {
+    const int pc = kBlocksRegion1Pc + static_cast<int>(slot * 4);
+    rom_->mutable_data()[pc + 0] = entries[slot].b1;
+    rom_->mutable_data()[pc + 1] = entries[slot].b2;
+    rom_->mutable_data()[pc + 2] = entries[slot].b3;
+    rom_->mutable_data()[pc + 3] = entries[slot].b4;
+  }
+  rom_->mutable_data()[kBlocksLength] = 0x0C;
+  rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+
+  Room loaded_room(kLoadedRoomId, rom_.get());
+  loaded_room.LoadBlocks();
+  ASSERT_EQ(loaded_room.GetTileObjects().size(), 2u);
+  const std::vector<RoomObject> before_objects = loaded_room.GetTileObjects();
+
+  loaded_room.RemoveTileObject(0);
+  ASSERT_EQ(loaded_room.GetTileObjects().size(), 1u);
+  const std::vector<RoomObject> after_objects = loaded_room.GetTileObjects();
+  ASSERT_EQ(after_objects[0].block_load_order(), 2);
+
+  const auto lookup = [&loaded_room](int room_id) -> const Room* {
+    return room_id == kLoadedRoomId ? &loaded_room : nullptr;
+  };
+  const auto delete_status = SaveAllBlocks(rom_.get(), kNumberOfRooms, lookup);
+  ASSERT_TRUE(delete_status.ok()) << delete_status.message();
+  ASSERT_EQ(rom_->data()[kBlocksLength], 0x08);
+  ASSERT_EQ(loaded_room.GetTileObjects()[0].block_load_order(), 1);
+
+  // DungeonObjectsAction restores these complete vectors. The pre-save
+  // snapshot still claims slots 0 and 2, while the committed table is now
+  // [unmaterialized_entry, second_loaded_entry]. Slot 0 therefore belongs to
+  // another room and slot 2 is no longer materialized; neither stale identity
+  // may replace or discard the unmaterialized neighbor.
+  loaded_room.SetTileObjects(before_objects);
+  ASSERT_TRUE(loaded_room.blocks_dirty());
+  const auto undo_save_status =
+      SaveAllBlocks(rom_.get(), kNumberOfRooms, lookup);
+  ASSERT_TRUE(undo_save_status.ok()) << undo_save_status.message();
+  EXPECT_EQ(rom_->data()[kBlocksLength], 0x0C);
+  EXPECT_FALSE(loaded_room.blocks_dirty());
+
+  Room reopened_loaded_after_undo(kLoadedRoomId, rom_.get());
+  Room reopened_neighbor_after_undo(kUnmaterializedRoomId, rom_.get());
+  reopened_loaded_after_undo.LoadBlocks();
+  reopened_neighbor_after_undo.LoadBlocks();
+  ASSERT_EQ(reopened_loaded_after_undo.GetTileObjects().size(), 2u);
+  std::vector<int> undo_loaded_x;
+  for (const auto& object : reopened_loaded_after_undo.GetTileObjects()) {
+    undo_loaded_x.push_back(object.x());
+  }
+  std::sort(undo_loaded_x.begin(), undo_loaded_x.end());
+  EXPECT_EQ(undo_loaded_x, (std::vector<int>{10, 30}));
+  ASSERT_EQ(reopened_neighbor_after_undo.GetTileObjects().size(), 1u);
+  EXPECT_EQ(reopened_neighbor_after_undo.GetTileObjects()[0].x(), 25);
+
+  // Redo restores the post-delete snapshot, whose sole block still carries
+  // the old slot-2 identity. A second reconciliation must preserve both that
+  // block and the unmaterialized neighbor.
+  loaded_room.SetTileObjects(after_objects);
+  ASSERT_TRUE(loaded_room.blocks_dirty());
+  const auto redo_save_status =
+      SaveAllBlocks(rom_.get(), kNumberOfRooms, lookup);
+  ASSERT_TRUE(redo_save_status.ok()) << redo_save_status.message();
+  EXPECT_EQ(rom_->data()[kBlocksLength], 0x08);
+  EXPECT_FALSE(loaded_room.blocks_dirty());
+
+  Room reopened_loaded_after_redo(kLoadedRoomId, rom_.get());
+  Room reopened_neighbor_after_redo(kUnmaterializedRoomId, rom_.get());
+  reopened_loaded_after_redo.LoadBlocks();
+  reopened_neighbor_after_redo.LoadBlocks();
+  ASSERT_EQ(reopened_loaded_after_redo.GetTileObjects().size(), 1u);
+  EXPECT_EQ(reopened_loaded_after_redo.GetTileObjects()[0].x(), 30);
+  ASSERT_EQ(reopened_neighbor_after_redo.GetTileObjects().size(), 1u);
+  EXPECT_EQ(reopened_neighbor_after_redo.GetTileObjects()[0].x(), 25);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RejectsDuplicateStaleSlotClaim) {
+  SetupBlockRegions();
+  const auto entry =
+      EncodePushableBlockEntry({/*room_id=*/1, /*px=*/10, /*py=*/20,
+                                /*draw_layer=*/0, /*behavior_layer=*/0});
+  rom_->mutable_data()[kBlocksRegion1Pc + 0] = entry.b1;
+  rom_->mutable_data()[kBlocksRegion1Pc + 1] = entry.b2;
+  rom_->mutable_data()[kBlocksRegion1Pc + 2] = entry.b3;
+  rom_->mutable_data()[kBlocksRegion1Pc + 3] = entry.b4;
+
+  Room room(0, rom_.get());
+  room.LoadBlocks();
+  ASSERT_TRUE(room.AreBlocksLoaded());
+  ASSERT_TRUE(room.GetTileObjects().empty());
+  RoomObject first = MakePushableBlock(/*px=*/11, /*py=*/20,
+                                       /*draw_layer=*/0);
+  first.set_block_load_order(0);
+  room.AddTileObject(first);
+  RoomObject second = MakePushableBlock(/*px=*/12, /*py=*/20,
+                                        /*draw_layer=*/0);
+  second.set_block_load_order(0);
+  room.AddTileObject(second);
+  ASSERT_TRUE(room.blocks_dirty());
+  ASSERT_EQ(room.GetTileObjects().size(), 2u);
+  ASSERT_EQ(room.GetTileObjects()[0].block_load_order(), 0);
+  ASSERT_EQ(room.GetTileObjects()[1].block_load_order(), 0);
+  rom_->ClearDirty();
+  const auto before = rom_->vector();
+
+  const auto status =
+      SaveAllBlocks(rom_.get(), 1, [&room](int room_id) -> const Room* {
+        return room_id == 0 ? &room : nullptr;
+      });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("multiple pushable blocks"),
+            std::string::npos);
+  EXPECT_NE(std::string(status.message()).find("load-order slot 0"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_FALSE(rom_->dirty());
+  EXPECT_TRUE(room.blocks_dirty());
+  EXPECT_EQ(room.GetTileObjects()[0].block_load_order(), 0);
+  EXPECT_EQ(room.GetTileObjects()[1].block_load_order(), 0);
+}
+
 TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_EditedBlockUpdatesRegion) {
   // Real encoder invariant #2: an in-memory edit (here, moving the
   // block from px=10 to px=30) writes back through the pointed
@@ -1726,15 +1865,85 @@ TEST_F(DungeonSaveTest,
 }
 
 TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RejectsAliasedPagesWithoutMutation) {
+  SetupBlockRegions();
+  WriteLongPointer(kBlocksPointer2, PcToSnes(kBlocksRegion1Pc));
+  rom_->ClearDirty();
+  const auto before = rom_->vector();
+
+  const auto status =
+      SaveAllBlocks(rom_.get(), 1, [](int) -> const Room* { return nullptr; });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("data pages 1 and 2 overlap"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_FALSE(rom_->dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RejectsMalformedUnusedPageWithoutMutation) {
+  SetupBlockRegions();
+  // A one-entry table only reads page 1, but every loader page is a possible
+  // future write destination and must be validated before any save mutation.
+  rom_->mutable_data()[kBlocksPointer4 - 1] = 0xEA;  // Not LDA.l.
+  rom_->ClearDirty();
+  const auto before = rom_->vector();
+
+  const auto status =
+      SaveAllBlocks(rom_.get(), 1, [](int) -> const Room* { return nullptr; });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("LDA.l ...,X / STA.w"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_FALSE(rom_->dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RejectsLengthMetadataOverlapWithoutMutation) {
+  SetupBlockRegions();
+  WriteLongPointer(kBlocksPointer1, PcToSnes(kBlocksLength));
+  rom_->ClearDirty();
+  const auto before = rom_->vector();
+
+  const auto status =
+      SaveAllBlocks(rom_.get(), 1, [](int) -> const Room* { return nullptr; });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("length metadata"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_FALSE(rom_->dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RejectsLoaderMetadataOverlapWithoutMutation) {
+  SetupBlockRegions();
+  WriteLongPointer(kBlocksPointer1, PcToSnes(kBlocksPointer1 - 1));
+  rom_->ClearDirty();
+  const auto before = rom_->vector();
+
+  const auto status =
+      SaveAllBlocks(rom_.get(), 1, [](int) -> const Room* { return nullptr; });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("opcode/operand metadata"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_FALSE(rom_->dirty());
+}
+
+TEST_F(DungeonSaveTest,
        SaveAllBlocks_RoomAware_PreflightsNewRegionOperandBeforeWriting) {
   SetupBlockRegions();
   rom_->mutable_data()[kBlocksLength] = 0x00;
   rom_->mutable_data()[kBlocksLength + 1] = 0x00;
   std::fill_n(rom_->mutable_data() + kBlocksRegion1Pc, 0x80, 0x11);
 
-  // The original empty table only needs region 1. Growth to 33 entries needs
-  // region 2, whose operand points at unrelated but otherwise in-range data.
-  // A malformed loader opcode must be caught before region 1 is written.
+  // Growth to 33 entries needs region 2, whose operand points at unrelated but
+  // otherwise in-range data. A malformed loader opcode must be caught before
+  // region 1 is written.
   constexpr int kUnrelatedPc = 0x120000;
   WriteLongPointer(kBlocksPointer2, PcToSnes(kUnrelatedPc));
   rom_->mutable_data()[kBlocksPointer2 - 1] = 0xEA;  // Not LDA.l.
