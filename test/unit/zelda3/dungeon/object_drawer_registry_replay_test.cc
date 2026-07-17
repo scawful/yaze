@@ -41,6 +41,7 @@ class FakeDungeonState : public DungeonState {
   int open_lock_room_id = -1;
   int water_face_active_room_id = -1;
   int bombed_floor_room_id = -1;
+  int cleared_rupee_floor_room_id = -1;
   bool dam_floodgate_open = false;
   bool wall_moved = false;
 
@@ -67,7 +68,9 @@ class FakeDungeonState : public DungeonState {
   bool IsFloorBombable(int room_id) const override {
     return room_id == bombed_floor_room_id;
   }
-  bool IsRupeeFloorActive(int /*room_id*/) const override { return false; }
+  bool IsRupeeFloorCleared(int room_id) const override {
+    return room_id == cleared_rupee_floor_room_id;
+  }
 
   bool IsCrystalSwitchBlue() const override { return true; }
 };
@@ -1583,6 +1586,75 @@ TEST(ObjectDrawerRegistryReplayTest, Waterfall48UsesStartMiddleEndTileBlocks) {
   EXPECT_EQ(by_pos[key(8, 6)], 106);
   EXPECT_EQ(by_pos[key(8, 7)], 107);
   EXPECT_EQ(by_pos[key(8, 8)], 108);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     RupeeFloorMatchesUsdasmSparseFiveByEightPattern) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 7;
+  constexpr int kY = 11;
+  constexpr uint16_t kTopTile = 0x500;
+  const auto tiles = MakeSequentialTiles(2, kTopTile);
+
+  for (const auto layer :
+       {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+    SCOPED_TRACE(static_cast<int>(layer));
+    const auto trace = ReplayObjectTrace(
+        /*object_id=*/0x0F92, kX, kY, /*size=*/0, layer, tiles);
+    ASSERT_EQ(trace.size(), 18u);
+    EXPECT_EQ(FilterTraceByLayer(trace, layer).size(), 18u);
+    const auto other_layer = layer == RoomObject::LayerType::BG1
+                                 ? RoomObject::LayerType::BG2
+                                 : RoomObject::LayerType::BG1;
+    EXPECT_TRUE(FilterTraceByLayer(trace, other_layer).empty());
+
+    size_t index = 0;
+    for (int col = 0; col < 3; ++col) {
+      const int x = kX + col * 2;
+      for (int row : {0, 3, 6}) {
+        ASSERT_LT(index, trace.size());
+        EXPECT_EQ(trace[index].x_tile, x);
+        EXPECT_EQ(trace[index].y_tile, kY + row);
+        EXPECT_EQ(trace[index].tile_id, kTopTile);
+        ++index;
+      }
+      for (int row : {1, 4, 7}) {
+        ASSERT_LT(index, trace.size());
+        EXPECT_EQ(trace[index].x_tile, x);
+        EXPECT_EQ(trace[index].y_tile, kY + row);
+        EXPECT_EQ(trace[index].tile_id, kTopTile + 1);
+        ++index;
+      }
+    }
+    EXPECT_EQ(index, trace.size());
+    ExpectTraceBounds(trace, kX, kY, kX + 4, kY + 7);
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     RupeeFloorHidesOnlyWhenCurrentRoomIsCleared) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  const auto tiles = MakeSequentialTiles(2);
+  FakeDungeonState state;
+
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0F92, /*x=*/3, /*y=*/5, /*size=*/0,
+      RoomObject::LayerType::BG1, tiles, &state);
+  EXPECT_EQ(trace.size(), 18u) << "uncleared room keeps rupees visible";
+
+  state.cleared_rupee_floor_room_id = 1;
+  trace =
+      ReplayObjectTrace(/*object_id=*/0x0F92, /*x=*/3, /*y=*/5,
+                        /*size=*/0, RoomObject::LayerType::BG1, tiles, &state);
+  EXPECT_EQ(trace.size(), 18u) << "another room's flag must not hide rupees";
+
+  state.cleared_rupee_floor_room_id = 0;
+  trace =
+      ReplayObjectTrace(/*object_id=*/0x0F92, /*x=*/3, /*y=*/5,
+                        /*size=*/0, RoomObject::LayerType::BG1, tiles, &state);
+  EXPECT_TRUE(trace.empty()) << "current-room cleared state suppresses writes";
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
