@@ -2,7 +2,7 @@
 
 This directory contains the core business logic, data structures, and rendering algorithms for the `The Legend of Zelda: A Link to the Past` dungeon system. It serves as the backend for the editor UI found in `src/app/editor/dungeon`.
 
-## Current Status (May 2026)
+## Current Status (July 2026)
 
 **Core System: Stable** with focused regression coverage around object rendering, room persistence, object tile editing, and editor/save plumbing.
 
