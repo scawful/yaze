@@ -39,16 +39,22 @@ struct ScopedCustomObjectsFlag {
 class FakeDungeonState : public DungeonState {
  public:
   int open_lock_room_id = -1;
+  std::set<std::pair<int, int>> open_chest_slots;
+  std::set<std::pair<int, int>> open_big_key_lock_slots;
+  mutable std::vector<std::pair<int, int>> chest_queries;
+  mutable std::vector<std::pair<int, int>> big_key_lock_queries;
   int water_face_active_room_id = -1;
   int bombed_floor_room_id = -1;
   int cleared_rupee_floor_room_id = -1;
   bool dam_floodgate_open = false;
+  bool big_chest_open = false;
   bool wall_moved = false;
 
-  bool IsChestOpen(int /*room_id*/, int /*chest_index*/) const override {
-    return false;
+  bool IsChestOpen(int room_id, int chest_index) const override {
+    chest_queries.emplace_back(room_id, chest_index);
+    return open_chest_slots.contains({room_id, chest_index});
   }
-  bool IsBigChestOpen() const override { return false; }
+  bool IsBigChestOpen() const override { return big_chest_open; }
 
   bool IsDoorOpen(int room_id, int door_index) const override {
     if (door_index != 0) {
@@ -57,6 +63,10 @@ class FakeDungeonState : public DungeonState {
     return room_id == open_lock_room_id;
   }
   bool IsDoorSwitchActive(int /*room_id*/) const override { return false; }
+  bool IsBigKeyLockOpen(int room_id, int room_event_index) const override {
+    big_key_lock_queries.emplace_back(room_id, room_event_index);
+    return open_big_key_lock_slots.contains({room_id, room_event_index});
+  }
   bool IsWaterFaceActive(int room_id) const override {
     return room_id == water_face_active_room_id;
   }
@@ -1955,7 +1965,7 @@ TEST(ObjectDrawerRegistryReplayTest,
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
-     RegistryRoutinesUseObjectDrawerRoomIdForStateQueries) {
+     BigKeyLockUsesObjectDrawerRoomIdAndColumnMajorTiles) {
   ScopedCustomObjectsFlag disable_custom(false);
 
   Rom rom;
@@ -1966,12 +1976,11 @@ TEST(ObjectDrawerRegistryReplayTest,
   ObjectDrawer drawer(&rom, /*room_id=*/0x42, /*room_gfx_buffer=*/nullptr);
 
   FakeDungeonState state;
-  state.open_lock_room_id = 0x42;
 
   RoomObject lock(0x0F98, /*x=*/10, /*y=*/10, /*size=*/0, /*layer=*/0);
   lock.tiles_loaded_ = true;
   lock.tiles_.clear();
-  for (int i = 0; i < 8; ++i) {
+  for (int i = 0; i < 4; ++i) {
     lock.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2,
                                         false, false, false));
   }
@@ -1985,9 +1994,242 @@ TEST(ObjectDrawerRegistryReplayTest,
 
   ASSERT_TRUE(drawer.DrawObject(lock, bg1, bg2, palette_group, &state).ok());
   ASSERT_EQ(trace.size(), 4u);
+  EXPECT_EQ(state.big_key_lock_queries,
+            (std::vector<std::pair<int, int>>{{0x42, 0}}));
 
-  // When opened, BigKeyLock draws the second 2x2 tile set (tiles[4..7]).
-  EXPECT_EQ(trace[0].tile_id, lock.tiles_[4].id_);
+  const auto expected = MakeColumnMajorSnapshot(/*x=*/10, /*y=*/10,
+                                                /*width=*/2, /*height=*/2,
+                                                /*start_tile_id=*/0);
+  ExpectTraceMatchesSnapshot(trace, expected);
+
+  state.open_big_key_lock_slots.insert({0x42, 0});
+  state.big_key_lock_queries.clear();
+  drawer.ResetChestIndex();
+  trace.clear();
+  ASSERT_TRUE(drawer.DrawObject(lock, bg1, bg2, palette_group, &state).ok());
+  EXPECT_TRUE(trace.empty());
+  EXPECT_EQ(state.big_key_lock_queries,
+            (std::vector<std::pair<int, int>>{{0x42, 0}}));
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     BigKeyLockSharesOrderedRoomEventSlotsWithChests) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0x42, /*room_gfx_buffer=*/nullptr);
+
+  RoomObject chest(0x0F99, /*x=*/2, /*y=*/2, /*size=*/0, /*layer=*/0);
+  chest.tiles_loaded_ = true;
+  chest.tiles_ = MakeSequentialTiles(/*count=*/4, /*start_tile_id=*/100);
+
+  RoomObject first_lock(0x0F98, /*x=*/10, /*y=*/10, /*size=*/0, /*layer=*/0);
+  first_lock.tiles_loaded_ = true;
+  first_lock.tiles_ = MakeSequentialTiles(/*count=*/4, /*start_tile_id=*/200);
+
+  RoomObject second_lock(0x0F98, /*x=*/20, /*y=*/20, /*size=*/0, /*layer=*/0);
+  second_lock.tiles_loaded_ = true;
+  second_lock.tiles_ = MakeSequentialTiles(/*count=*/4, /*start_tile_id=*/300);
+
+  FakeDungeonState state;
+  // Slot 0 is the chest, slot 1 is the first lock, and slot 2 is the second.
+  state.open_big_key_lock_slots.insert({0x42, 1});
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+  ASSERT_TRUE(
+      drawer.DrawObjectList({chest}, bg1, bg2, palette_group, &state).ok());
+  ASSERT_TRUE(drawer
+                  .DrawObjectList({first_lock, second_lock}, bg1, bg2,
+                                  palette_group, &state,
+                                  /*layout_bg1=*/nullptr,
+                                  /*reset_room_event_indices=*/false)
+                  .ok());
+
+  EXPECT_EQ(state.big_key_lock_queries,
+            (std::vector<std::pair<int, int>>{{0x42, 1}, {0x42, 2}}));
+  ASSERT_EQ(trace.size(), 8u);
+  for (size_t i = 0; i < 4; ++i) {
+    EXPECT_EQ(trace[i].object_id, 0x0F99);
+  }
+  for (size_t i = 4; i < trace.size(); ++i) {
+    EXPECT_EQ(trace[i].object_id, 0x0F98);
+  }
+  ExpectTraceMatchesSnapshot(
+      std::vector<ObjectDrawer::TileTrace>(trace.begin() + 4, trace.end()),
+      MakeColumnMajorSnapshot(/*x=*/20, /*y=*/20, /*width=*/2, /*height=*/2,
+                              /*start_tile_id=*/300));
+
+  // RoomDraw_Chest maintains a separate chest counter, then copies that next
+  // value into the shared room-event counter. A chest after a lock therefore
+  // resynchronizes (rather than simply incrementing) the next lock slot.
+  state.chest_queries.clear();
+  state.big_key_lock_queries.clear();
+  trace.clear();
+  ASSERT_TRUE(drawer
+                  .DrawObjectList({first_lock, chest, second_lock}, bg1, bg2,
+                                  palette_group, &state)
+                  .ok());
+  EXPECT_EQ(state.chest_queries, (std::vector<std::pair<int, int>>{{0x42, 0}}));
+  EXPECT_EQ(state.big_key_lock_queries,
+            (std::vector<std::pair<int, int>>{{0x42, 0}, {0x42, 1}}));
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     ChestOpcodesConsumeOnlyTheirAuthoritativeRoomEventSlots) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  struct Case {
+    int16_t object_id;
+    int tile_count;
+    int width;
+    int height;
+    int expected_lock_slot;
+    bool queries_chest;
+  };
+  const std::array cases = {
+      Case{0x0F99, 8, 2, 2, 1, true},
+      Case{0x0F9A, 4, 2, 2, 0, false},
+      Case{0x0FB1, 24, 4, 3, 1, true},
+      Case{0x0FB2, 12, 4, 3, 0, false},
+  };
+
+  for (const auto& test_case : cases) {
+    SCOPED_TRACE(::testing::Message()
+                 << "prefix_id=0x" << std::hex << test_case.object_id);
+
+    Rom rom;
+    std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+    rom.LoadFromData(dummy_rom);
+    ObjectDrawer drawer(&rom, /*room_id=*/0x42,
+                        /*room_gfx_buffer=*/nullptr);
+
+    RoomObject prefix(test_case.object_id, /*x=*/2, /*y=*/2, /*size=*/0,
+                      /*layer=*/0);
+    prefix.tiles_loaded_ = true;
+    prefix.tiles_ =
+        MakeSequentialTiles(test_case.tile_count, /*start_tile_id=*/100);
+
+    RoomObject lock(0x0F98, /*x=*/20, /*y=*/20, /*size=*/0, /*layer=*/0);
+    lock.tiles_loaded_ = true;
+    lock.tiles_ = MakeSequentialTiles(/*count=*/4, /*start_tile_id=*/900);
+
+    FakeDungeonState state;
+    state.open_big_key_lock_slots.insert({0x42, test_case.expected_lock_slot});
+
+    gfx::BackgroundBuffer bg1(512, 512);
+    gfx::BackgroundBuffer bg2(512, 512);
+    gfx::PaletteGroup palette_group;
+    std::vector<ObjectDrawer::TileTrace> trace;
+    drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+    ASSERT_TRUE(
+        drawer.DrawObjectList({prefix, lock}, bg1, bg2, palette_group, &state)
+            .ok());
+    EXPECT_EQ(state.chest_queries,
+              test_case.queries_chest
+                  ? (std::vector<std::pair<int, int>>{{0x42, 0}})
+                  : (std::vector<std::pair<int, int>>{}));
+    EXPECT_EQ(state.big_key_lock_queries,
+              (std::vector<std::pair<int, int>>{
+                  {0x42, test_case.expected_lock_slot}}));
+    ExpectTraceMatchesSnapshot(
+        trace, MakeColumnMajorSnapshot(/*x=*/2, /*y=*/2, test_case.width,
+                                       test_case.height,
+                                       /*start_tile_id=*/100));
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     StatefulBigChestUsesOpenedTilesAndResynchronizesRoomEventSlot) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+  ObjectDrawer drawer(&rom, /*room_id=*/0x42, /*room_gfx_buffer=*/nullptr);
+
+  RoomObject big_chest(0x0FB1, /*x=*/2, /*y=*/2, /*size=*/0, /*layer=*/0);
+  big_chest.tiles_loaded_ = true;
+  big_chest.tiles_ = MakeSequentialTiles(/*count=*/24, /*start_tile_id=*/100);
+
+  RoomObject first_lock(0x0F98, /*x=*/20, /*y=*/20, /*size=*/0, /*layer=*/0);
+  first_lock.tiles_loaded_ = true;
+  first_lock.tiles_ = MakeSequentialTiles(/*count=*/4, /*start_tile_id=*/900);
+  RoomObject second_lock(0x0F98, /*x=*/24, /*y=*/24, /*size=*/0, /*layer=*/0);
+  second_lock.tiles_loaded_ = true;
+  second_lock.tiles_ = MakeSequentialTiles(/*count=*/4, /*start_tile_id=*/904);
+
+  FakeDungeonState state;
+  state.open_chest_slots.insert({0x42, 0});
+  state.open_big_key_lock_slots.insert({0x42, 0});
+  state.open_big_key_lock_slots.insert({0x42, 1});
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+  ASSERT_TRUE(drawer
+                  .DrawObjectList({first_lock, big_chest, second_lock}, bg1,
+                                  bg2, palette_group, &state)
+                  .ok());
+  EXPECT_EQ(state.chest_queries, (std::vector<std::pair<int, int>>{{0x42, 0}}));
+  EXPECT_EQ(state.big_key_lock_queries,
+            (std::vector<std::pair<int, int>>{{0x42, 0}, {0x42, 1}}));
+  ExpectTraceMatchesSnapshot(
+      trace, MakeColumnMajorSnapshot(/*x=*/2, /*y=*/2, /*width=*/4,
+                                     /*height=*/3, /*start_tile_id=*/112));
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     LegacyBigChestOverrideDoesNotOpenSmallChests) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+  ObjectDrawer drawer(&rom, /*room_id=*/0x42, /*room_gfx_buffer=*/nullptr);
+
+  RoomObject small_chest(0x0F99, /*x=*/2, /*y=*/2, /*size=*/0, /*layer=*/0);
+  small_chest.tiles_loaded_ = true;
+  small_chest.tiles_ = MakeSequentialTiles(/*count=*/8, /*start_tile_id=*/100);
+  RoomObject big_chest(0x0FB1, /*x=*/10, /*y=*/10, /*size=*/0, /*layer=*/0);
+  big_chest.tiles_loaded_ = true;
+  big_chest.tiles_ = MakeSequentialTiles(/*count=*/24, /*start_tile_id=*/200);
+
+  FakeDungeonState state;
+  state.big_chest_open = true;
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+  std::vector<ObjectDrawer::TileTrace> trace;
+  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+  ASSERT_TRUE(drawer
+                  .DrawObjectList({small_chest, big_chest}, bg1, bg2,
+                                  palette_group, &state)
+                  .ok());
+  EXPECT_EQ(state.chest_queries,
+            (std::vector<std::pair<int, int>>{{0x42, 0}, {0x42, 1}}));
+  ASSERT_EQ(trace.size(), 16u);
+  ExpectTraceMatchesSnapshot(
+      std::vector<ObjectDrawer::TileTrace>(trace.begin(), trace.begin() + 4),
+      MakeColumnMajorSnapshot(/*x=*/2, /*y=*/2, /*width=*/2, /*height=*/2,
+                              /*start_tile_id=*/100));
+  ExpectTraceMatchesSnapshot(
+      std::vector<ObjectDrawer::TileTrace>(trace.begin() + 4, trace.end()),
+      MakeColumnMajorSnapshot(/*x=*/10, /*y=*/10, /*width=*/4, /*height=*/3,
+                              /*start_tile_id=*/212));
 }
 
 TEST(ObjectDrawerRegistryReplayTest,

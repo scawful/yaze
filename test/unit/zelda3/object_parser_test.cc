@@ -124,6 +124,110 @@ TEST_F(ObjectParserTest, RupeeFloorLoadsExactTwoWordPayload) {
   EXPECT_EQ(draw_info.tile_count, 2);
 }
 
+TEST_F(ObjectParserTest, BigKeyLockLoadsExactClosedTwoByTwoPayload) {
+  auto result = parser_->ParseObject(0xF98);
+  ASSERT_TRUE(result.ok());
+  EXPECT_EQ(result->size(), 4u);
+
+  const auto draw_info = parser_->GetObjectDrawInfo(0xF98);
+  EXPECT_EQ(draw_info.tile_count, 4);
+  EXPECT_EQ(draw_info.draw_routine_id, zelda3::DrawRoutineIds::kBigKeyLock);
+}
+
+TEST_F(ObjectParserTest, ChestVariantsLoadExactStatePayloads) {
+  struct Case {
+    int object_id;
+    size_t expected_tiles;
+  };
+  for (const auto& test_case :
+       {Case{0xF99, 8}, Case{0xF9A, 4}, Case{0xFB1, 24}, Case{0xFB2, 12}}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << test_case.object_id);
+    auto parsed = parser_->ParseObject(test_case.object_id);
+    ASSERT_TRUE(parsed.ok());
+    EXPECT_EQ(parsed->size(), test_case.expected_tiles);
+    EXPECT_EQ(parser_->GetObjectDrawInfo(test_case.object_id).tile_count,
+              test_case.expected_tiles);
+  }
+}
+
+TEST_F(ObjectParserTest, RuntimeLiteralObjectsIgnoreRelocatedTablePointers) {
+  auto* data = mock_rom_->mutable_data();
+  auto write_pointer = [&](int object_id, uint16_t offset) {
+    const int table_addr =
+        zelda3::kRoomObjectSubtype3 + ((object_id - 0xF80) & 0x7F) * 2;
+    data[table_addr] = static_cast<uint8_t>(offset & 0xFF);
+    data[table_addr + 1] = static_cast<uint8_t>(offset >> 8);
+  };
+  auto write_word = [&](int address, uint16_t word) {
+    data[address] = static_cast<uint8_t>(word & 0xFF);
+    data[address + 1] = static_cast<uint8_t>(word >> 8);
+  };
+
+  auto write_words = [&](uint16_t offset, int count, uint16_t first_word) {
+    for (int i = 0; i < count; ++i) {
+      write_word(zelda3::kRoomObjectTileAddress + offset + i * 2,
+                 static_cast<uint16_t>(first_word + i));
+    }
+  };
+
+  // Move all five pointer-table entries. F98/F99/FB1 must ignore their moved
+  // entries because their routines load literal data blocks; F9A/FB2 are
+  // direct-open routines and must continue following their moved pointers.
+  constexpr uint16_t kMovedBigKeyLockOffset = 0x0100;
+  constexpr uint16_t kMovedChestOffset = 0x0180;
+  constexpr uint16_t kMovedOpenChestOffset = 0x0200;
+  constexpr uint16_t kMovedBigChestOffset = 0x0280;
+  constexpr uint16_t kMovedOpenBigChestOffset = 0x0300;
+  write_pointer(0xF98, kMovedBigKeyLockOffset);
+  write_pointer(0xF99, kMovedChestOffset);
+  write_pointer(0xF9A, kMovedOpenChestOffset);
+  write_pointer(0xFB1, kMovedBigChestOffset);
+  write_pointer(0xFB2, kMovedOpenBigChestOffset);
+
+  write_words(0x1494, 4, 0x0040);   // BigKeyLock literal
+  write_words(0x149C, 4, 0x0080);   // Chest closed literal
+  write_words(0x14A4, 4, 0x0100);   // Chest opened literal
+  write_words(0x14AC, 12, 0x0200);  // BigChest closed literal
+  write_words(0x14C4, 12, 0x0300);  // BigChest opened literal
+
+  write_words(kMovedBigKeyLockOffset, 4, 0x03C0);
+  write_words(kMovedChestOffset, 4, 0x03A0);
+  write_words(kMovedOpenChestOffset, 4, 0x0180);
+  write_words(kMovedBigChestOffset, 12, 0x0360);
+  write_words(kMovedOpenBigChestOffset, 12, 0x0140);
+
+  auto lock = parser_->ParseObject(0xF98);
+  auto chest = parser_->ParseObject(0xF99);
+  auto open_chest = parser_->ParseObject(0xF9A);
+  auto big_chest = parser_->ParseObject(0xFB1);
+  auto open_big_chest = parser_->ParseObject(0xFB2);
+  ASSERT_TRUE(lock.ok());
+  ASSERT_TRUE(chest.ok());
+  ASSERT_TRUE(open_chest.ok());
+  ASSERT_TRUE(big_chest.ok());
+  ASSERT_TRUE(open_big_chest.ok());
+
+  for (int i = 0; i < 4; ++i) {
+    EXPECT_TRUE((*lock)[i] ==
+                gfx::WordToTileInfo(static_cast<uint16_t>(0x0040 + i)));
+    EXPECT_TRUE((*chest)[i] ==
+                gfx::WordToTileInfo(static_cast<uint16_t>(0x0080 + i)));
+    EXPECT_TRUE((*chest)[4 + i] ==
+                gfx::WordToTileInfo(static_cast<uint16_t>(0x0100 + i)));
+    EXPECT_TRUE((*open_chest)[i] ==
+                gfx::WordToTileInfo(static_cast<uint16_t>(0x0180 + i)));
+  }
+  for (int i = 0; i < 12; ++i) {
+    EXPECT_TRUE((*big_chest)[i] ==
+                gfx::WordToTileInfo(static_cast<uint16_t>(0x0200 + i)));
+    EXPECT_TRUE((*big_chest)[12 + i] ==
+                gfx::WordToTileInfo(static_cast<uint16_t>(0x0300 + i)));
+    EXPECT_TRUE((*open_big_chest)[i] ==
+                gfx::WordToTileInfo(static_cast<uint16_t>(0x0140 + i)));
+  }
+}
+
 TEST_F(ObjectParserTest, BombableFloorLoadsBothFourByFourStates) {
   auto result = parser_->ParseObject(0xFC7);
   ASSERT_TRUE(result.ok());
@@ -207,7 +311,7 @@ TEST_F(ObjectParserTest, DrawInfoUsesSubtypeTileCountLookup) {
   EXPECT_EQ(info_subtype2.tile_count, 20);
 
   auto info_subtype3 = parser_->GetObjectDrawInfo(0xFB1);
-  EXPECT_EQ(info_subtype3.tile_count, 12);
+  EXPECT_EQ(info_subtype3.tile_count, 24);
 
   // 2026-04-25 audit: kSubtype1TileLengths previously stored 0 for
   // 0x47/0x48 and the parser defaulted to 8. The actual `Waterfall47`
@@ -490,13 +594,7 @@ TEST_F(ObjectParserTest, OverFetchClusterIdsRouteToAuditedRoutines) {
                  << "id=0x" << std::hex << id << " expects routine 110");
     EXPECT_EQ(registry.GetRoutineIdForObject(id), 110);
   }
-  // Subtype-3: routine 39 is `DrawChest`. Audit initially proposed
-  // tightening the parser fallback to 4 here, but
-  // `special_routines.cc:157-167` shows the open-state branch reads
-  // tiles[4..7]; tightening to 4 would force `TileAtWrapped` to
-  // substitute closed-state bytes for open-chest previews. Pin the
-  // registry mapping so the routine attribution stays correct even
-  // if the parser fallback is later tightened to 8 with a comment.
+  // Subtype-3: routine 39 dispatches stateful F99 and fixed-open F9A by ID.
   for (int id : {0xF99, 0xF9A}) {
     SCOPED_TRACE(::testing::Message()
                  << "id=0x" << std::hex << id << " expects routine 39");

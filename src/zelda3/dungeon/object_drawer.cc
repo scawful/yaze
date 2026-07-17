@@ -388,8 +388,8 @@ absl::Status ObjectDrawer::DrawObjectList(
     const std::vector<RoomObject>& objects, gfx::BackgroundBuffer& bg1,
     gfx::BackgroundBuffer& bg2, const gfx::PaletteGroup& palette_group,
     [[maybe_unused]] const DungeonState* state,
-    gfx::BackgroundBuffer* layout_bg1, bool reset_chest_index) {
-  if (reset_chest_index) {
+    gfx::BackgroundBuffer* layout_bg1, bool reset_room_event_indices) {
+  if (reset_room_event_indices) {
     ResetChestIndex();
   }
   absl::Status status = absl::OkStatus();
@@ -735,7 +735,7 @@ void ObjectDrawer::InitializeDrawRoutines() {
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
         self->DrawUsingRegistryRoutine(38, obj, bg, tiles, state);
       });
-  // Routine 39 - Chest rendering (small + big)
+  // Routine 39 - Small chest rendering (stateful F99 / fixed-open F9A)
   draw_routines_.push_back(
       [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
@@ -1111,11 +1111,11 @@ void ObjectDrawer::InitializeDrawRoutines() {
         self->DrawUsingRegistryRoutine(91, obj, bg, tiles, state);
       });
 
-  // Routine 92 - Big Key Lock (Type 3 object 0x218)
+  // Routine 92 - Big Key Lock (Yaze 0xF98 / ASM object 0x218)
   draw_routines_.push_back(
       [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
-        self->DrawUsingRegistryRoutine(92, obj, bg, tiles, state);
+        self->DrawBigKeyLock(obj, bg, tiles, state);
       });
 
   // Routine 93 - Bombable Floor (Type 3 object 0x247)
@@ -1292,6 +1292,10 @@ void ObjectDrawer::InitializeDrawRoutines() {
   draw_routines_.push_back(
       [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        if (obj.id_ == 0xFB1) {
+          self->DrawBigChest(obj, bg, tiles, state);
+          return;
+        }
         self->DrawUsingRegistryRoutine(DrawRoutineIds::kSingle4x3, obj, bg,
                                        tiles, state);
       });
@@ -1893,9 +1897,15 @@ void ObjectDrawer::DrawDoorIndicator(gfx::BackgroundBuffer& bg, int tile_x,
 void ObjectDrawer::DrawChest(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                              std::span<const gfx::TileInfo> tiles,
                              [[maybe_unused]] const DungeonState* state) {
-  // ASM: RoomDraw_Chest - draws a SINGLE chest (2x2) without size-based repetition
-  // 0xF99 = closed chest, 0xF9A = open chest
-  // The size byte is NOT used for repetition
+  // USDASM RoomDraw_OpenChest draws F9A's fixed open graphic directly and
+  // does not read or advance either chest/event counter.
+  if (obj.id_ == 0xF9A) {
+    DrawUsingRegistryRoutine(DrawRoutineIds::kSingle2x2, obj, bg, tiles, state);
+    return;
+  }
+
+  // USDASM RoomDraw_Chest draws F99 as a single stateful 2x2 chest. The size
+  // byte is not used for repetition.
 
   // Determine if chest is open
   bool is_open = false;
@@ -1903,8 +1913,10 @@ void ObjectDrawer::DrawChest(const RoomObject& obj, gfx::BackgroundBuffer& bg,
     is_open = state->IsChestOpen(room_id_, current_chest_index_);
   }
 
-  // Increment index for next chest
+  // RoomDraw_Chest advances the chest-only $0496 counter, then copies its next
+  // value into the shared chest/lock $0498 counter.
   current_chest_index_++;
+  current_room_event_index_ = current_chest_index_;
 
   // Draw SINGLE chest - no repetition based on size
   // Standard chests are 2x2 (4 tiles)
@@ -1928,6 +1940,42 @@ void ObjectDrawer::DrawChest(const RoomObject& obj, gfx::BackgroundBuffer& bg,
     WriteTile8(bg, obj.x_ + 1, obj.y_, tiles[2]);      // top-right
     WriteTile8(bg, obj.x_ + 1, obj.y_ + 1, tiles[3]);  // bottom-right
   }
+}
+
+void ObjectDrawer::DrawBigChest(const RoomObject& obj,
+                                gfx::BackgroundBuffer& bg,
+                                std::span<const gfx::TileInfo> tiles,
+                                const DungeonState* state) {
+  // USDASM RoomDraw_BigChest uses the chest-only $0496 slot for its room flag,
+  // advances it once, then copies the next value into shared $0498. FB2 uses
+  // RoomDraw_OpenBigChest directly and never reaches this stateful wrapper.
+  bool is_open = false;
+  if (state) {
+    is_open = state->IsBigChestOpen(room_id_, current_chest_index_);
+  }
+
+  current_chest_index_++;
+  current_room_event_index_ = current_chest_index_;
+
+  constexpr size_t kBigChestStateTileCount = 12;
+  if (is_open && tiles.size() >= kBigChestStateTileCount * 2) {
+    tiles = tiles.subspan(kBigChestStateTileCount, kBigChestStateTileCount);
+  }
+  DrawUsingRegistryRoutine(DrawRoutineIds::kSingle4x3, obj, bg, tiles, state);
+}
+
+void ObjectDrawer::DrawBigKeyLock(const RoomObject& obj,
+                                  gfx::BackgroundBuffer& bg,
+                                  std::span<const gfx::TileInfo> tiles,
+                                  const DungeonState* state) {
+  // USDASM RoomDraw_BigKeyLock indexes $0402 through the shared $0498
+  // chest/lock slot. An opened lock advances the slot but writes no tiles.
+  const int room_event_index = current_room_event_index_++;
+  if (state && state->IsBigKeyLockOpen(room_id_, room_event_index)) {
+    return;
+  }
+
+  DrawUsingRegistryRoutine(DrawRoutineIds::kBigKeyLock, obj, bg, tiles, state);
 }
 
 void ObjectDrawer::DrawNothing(const RoomObject& obj, gfx::BackgroundBuffer& bg,
@@ -3007,7 +3055,7 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
 
     case 92:  // BigKeyLock
       width = 16;
-      height = 24;
+      height = 16;
       break;
 
     case 93:  // BombableFloor

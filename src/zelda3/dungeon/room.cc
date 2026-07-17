@@ -1341,8 +1341,9 @@ void Room::RenderObjectsToBackground() {
   // Pass bg1_buffer_ for BG2 mask propagation so pits/layer masks can create
   // holes in BG1 that reveal BG2 beneath.
   //
-  // Three DrawObjectList passes match USDASM list order; chest indices continue
-  // across passes (reset_chest_index only on the first non-empty pass).
+  // Three DrawObjectList passes match USDASM list order; the shared chest/
+  // big-key-lock event index continues across passes (reset only on the first
+  // non-empty pass).
   std::vector<std::vector<RoomObject>> by_list(3);
   for (const auto& obj : tile_objects_) {
     // Torches and pushable blocks are NOT part of the room object stream.
@@ -1365,15 +1366,15 @@ void Room::RenderObjectsToBackground() {
   }
 
   absl::Status status = absl::OkStatus();
-  bool reset_chest_for_next_chunk = true;
+  bool reset_room_events_for_next_chunk = true;
   for (int pass = 0; pass < 3; ++pass) {
     if (by_list[pass].empty()) {
       continue;
     }
     auto chunk_status = drawer.DrawObjectList(
         by_list[pass], object_bg1_buffer_, object_bg2_buffer_, palette_group,
-        dungeon_state_.get(), &bg1_buffer_, reset_chest_for_next_chunk);
-    reset_chest_for_next_chunk = false;
+        dungeon_state_.get(), &bg1_buffer_, reset_room_events_for_next_chunk);
+    reset_room_events_for_next_chunk = false;
     if (!chunk_status.ok() && status.ok()) {
       status = chunk_status;
     }
