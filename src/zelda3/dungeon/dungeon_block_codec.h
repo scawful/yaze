@@ -11,16 +11,16 @@ namespace zelda3 {
 // 128 max entries × 4 bytes). The runtime scan in bank_01.asm:1162 walks the
 // flat table entry-by-entry and matches on `room_id`; there is no per-room
 // terminator. The renderer entry `RoomDraw_PushableBlock` at $01:B4D6 reads
-// the encoded word with `AND.w #$3FFF` (low 14 bits = position+layer) before
-// using it as a tilemap index, and `PushBlock_CheckForPit` at $01:D8D4
-// selects the layer via `AND.w #$4000` — i.e. layer is bit 14 of the word,
-// not bit 13.
+// the encoded word with `AND.w #$3FFF` (low 14 bits = position) before using it
+// as a tilemap index. `PushBlock_CheckForPit` at $01:D8D4 tests bit 14 and
+// branches to `.lower_layer` when set, so bit 14 is the special layer selector,
+// not part of the draw address and not bit 13.
 //
 // Word layout (b4 << 8 | b3):
 //   bit 0      : unused (always 0; LSL-by-1 padding)
 //   bits 1..6  : px (6 bits, range 0..63)
 //   bits 7..13 : py (7 bits, range 0..127)
-//   bit 14     : layer (0 = BG2, 1 = BG1)
+//   bit 14     : layer selector (0 = upper/BG1, 1 = lower/BG2)
 //   bit 15     : unused (always 0 in vanilla)
 //
 // This module replaces ad-hoc bit twiddling that previously lived in
@@ -33,7 +33,7 @@ struct PushableBlockEntry {
   uint16_t room_id = 0;
   uint8_t px = 0;     // 0..63
   uint8_t py = 0;     // 0..127
-  uint8_t layer = 0;  // 0..1
+  uint8_t layer = 0;  // 0=upper/BG1, 1=lower/BG2
 };
 
 struct PushableBlockBytes {

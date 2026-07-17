@@ -126,7 +126,10 @@ class TileObjectHandler : public BaseEntityHandler {
   void UpdateObjectsSize(int room_id, const std::vector<size_t>& indices,
                          uint8_t new_size);
 
-  void UpdateObjectsLayer(int room_id, const std::vector<size_t>& indices,
+  // Returns false when the request is rejected. Accepted no-op updates return
+  // true so inspector controls can distinguish validation failures from an
+  // already-selected target.
+  bool UpdateObjectsLayer(int room_id, const std::vector<size_t>& indices,
                           int new_layer);
 
   /**
