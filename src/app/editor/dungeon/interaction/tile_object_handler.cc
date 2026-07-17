@@ -708,7 +708,7 @@ std::vector<size_t> TileObjectHandler::DuplicateObjects(
   const size_t base_index = objects.size();
   for (size_t index : indices) {
     if (index < objects.size()) {
-      auto clone = objects[index];
+      auto clone = objects[index].CopyForNewPlacement();
       clone.x_ = std::clamp(static_cast<int>(clone.x_ + delta_x), 0, 63);
       clone.y_ = std::clamp(static_cast<int>(clone.y_ + delta_y), 0, 63);
       objects.push_back(clone);
@@ -906,7 +906,7 @@ bool TileObjectHandler::PlaceObjectAt(int room_id,
   placement_block_reason_ = PlacementBlockReason::kNone;
   if (ctx_)
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
-  auto new_obj = object;
+  auto new_obj = object.CopyForNewPlacement();
   new_obj.x_ = std::clamp(x, 0, 63);
   new_obj.y_ = std::clamp(y, 0, 63);
   room->AddTileObject(new_obj);
@@ -995,6 +995,7 @@ std::vector<size_t> TileObjectHandler::PasteFromClipboard(int room_id,
   size_t base_index = room->GetTileObjects().size();
 
   for (auto obj : clipboard_) {
+    obj = obj.CopyForNewPlacement();
     obj.x_ = std::clamp(obj.x_ + offset_x, 0, 63);
     obj.y_ = std::clamp(obj.y_ + offset_y, 0, 63);
     obj.tiles_loaded_ = false;

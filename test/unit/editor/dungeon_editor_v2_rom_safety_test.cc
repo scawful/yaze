@@ -1,7 +1,9 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 
+#include <array>
 #include <cstdint>
 #include <memory>
+#include <utility>
 #include <vector>
 
 #include "core/features.h"
@@ -11,6 +13,7 @@
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "rom/transaction.h"
+#include "zelda3/dungeon/dungeon_block_codec.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/object_stream_ordering.h"
 #include "zelda3/dungeon/room.h"
@@ -56,11 +59,29 @@ constexpr int kHeaderTablePc = 0x0F6000;
 constexpr int kRoom0HeaderPc = 0x114000;
 constexpr int kRoom1HeaderPc = 0x114020;
 constexpr int kRoom2HeaderPc = 0x114040;
+constexpr int kBlocksRegion1Pc = 0x115000;
+constexpr int kBlocksRegion2Pc = 0x115080;
+constexpr int kBlocksRegion3Pc = 0x115100;
+constexpr int kBlocksRegion4Pc = 0x115180;
 
 void WriteLongPointer(Rom& rom, int addr, uint32_t snes_addr) {
   rom.mutable_data()[addr + 0] = snes_addr & 0xFF;
   rom.mutable_data()[addr + 1] = (snes_addr >> 8) & 0xFF;
   rom.mutable_data()[addr + 2] = (snes_addr >> 16) & 0xFF;
+}
+
+void SetupBlockTable(Rom& rom) {
+  const std::array<std::pair<int, int>, 4> pointer_regions = {
+      std::pair{zelda3::kBlocksPointer1, kBlocksRegion1Pc},
+      std::pair{zelda3::kBlocksPointer2, kBlocksRegion2Pc},
+      std::pair{zelda3::kBlocksPointer3, kBlocksRegion3Pc},
+      std::pair{zelda3::kBlocksPointer4, kBlocksRegion4Pc},
+  };
+  for (const auto& [operand_pc, region_pc] : pointer_regions) {
+    rom.mutable_data()[operand_pc - 1] = 0xBF;  // LDA.l operand,X
+    WriteLongPointer(rom, operand_pc, PcToSnes(region_pc));
+    rom.mutable_data()[operand_pc + 3] = 0x9D;  // STA.w addr,X
+  }
 }
 
 void SetupChestTable(Rom& rom) {
@@ -307,6 +328,64 @@ TEST(DungeonEditorV2RomSafetyTest,
 
   EXPECT_TRUE(entrance.dirty());
   EXPECT_EQ(rom.vector(), before);
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     LateCoordinatorRollbackRestoresBlockSlotIdentity) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SetupBlockTable(rom);
+
+  const auto deleted_entry = zelda3::EncodePushableBlockEntry(
+      {/*room_id=*/0, /*px=*/10, /*py=*/20, /*draw_layer=*/0,
+       /*behavior_layer=*/0});
+  const auto surviving_entry = zelda3::EncodePushableBlockEntry(
+      {/*room_id=*/0, /*px=*/30, /*py=*/21, /*draw_layer=*/1,
+       /*behavior_layer=*/1});
+  const auto unmaterialized_entry = zelda3::EncodePushableBlockEntry(
+      {/*room_id=*/1, /*px=*/25, /*py=*/45, /*draw_layer=*/0,
+       /*behavior_layer=*/1});
+  const std::array<zelda3::PushableBlockBytes, 3> entries = {
+      deleted_entry, surviving_entry, unmaterialized_entry};
+  for (size_t slot = 0; slot < entries.size(); ++slot) {
+    const int pc = kBlocksRegion1Pc + static_cast<int>(slot * 4);
+    rom.mutable_data()[pc + 0] = entries[slot].b1;
+    rom.mutable_data()[pc + 1] = entries[slot].b2;
+    rom.mutable_data()[pc + 2] = entries[slot].b3;
+    rom.mutable_data()[pc + 3] = entries[slot].b4;
+  }
+  rom.mutable_data()[zelda3::kBlocksLength] = 0x0C;
+  rom.mutable_data()[zelda3::kBlocksLength + 1] = 0x00;
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  auto& room = editor->rooms()[0];
+  room.LoadBlocks();
+  ASSERT_EQ(room.GetTileObjects().size(), 2u);
+  room.RemoveTileObject(0);
+  ASSERT_TRUE(room.blocks_dirty());
+  ASSERT_EQ(room.GetTileObjects()[0].block_load_order(), 1);
+  const auto before = rom.vector();
+
+  ScopedRomTransaction rom_transaction(rom);
+  ASSERT_TRUE(editor->BeginSaveTransaction().ok());
+  ASSERT_TRUE(zelda3::SaveAllBlocks(&rom, zelda3::kNumberOfRooms,
+                                    [&editor](int room_id) {
+                                      return editor->rooms().GetIfMaterialized(
+                                          room_id);
+                                    })
+                  .ok());
+  EXPECT_FALSE(room.blocks_dirty());
+  EXPECT_EQ(room.GetTileObjects()[0].block_load_order(), 0);
+  EXPECT_NE(rom.vector(), before);
+
+  // Simulate a later editor/conflict/disk failure after block saving already
+  // committed its writes and rebased the in-memory slot identity.
+  editor->RollbackSaveTransaction();
+  rom_transaction.Rollback();
+
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(room.blocks_dirty());
+  EXPECT_EQ(room.GetTileObjects()[0].block_load_order(), 1);
 }
 
 TEST(DungeonEditorV2RomSafetyTest,

@@ -137,8 +137,8 @@ Subsystem for accurate SNES-style layer compositing of dungeon room renders.
    - Add broader editor/integration coverage around apply/reload/save flows.
    - Revisit selector/browser preview quality after the current object-selector refactor settles.
 2. **Save Pipeline Follow-up**:
-   - Decide whether the global pit-damage table needs an editing surface or should remain protected passthrough data.
-   - Treat pushable-block table repointing/expansion as a separate ROM-layout feature; the current encoder intentionally stays within the vanilla four-region cap.
+   - Keep pit-damage edits within the fixed-capacity membership table; treat repointing or capacity expansion as a separate ROM-layout feature.
+   - Treat pushable-block table repointing/expansion as a separate ROM-layout feature; the current encoder intentionally stays within the vanilla four-region cap. It fails closed for dirty-but-unloaded room state and when an edit would empty the global table: `LoadAndBuildRoom` scans at least one entry before comparing the byte-length immediate, so zero is not a safe runtime limit without an engine patch. Successful compaction rebases loaded block slot identities only after all ROM writes commit, and the editor transaction snapshot restores those identities if a later save stage rolls back.
    - Add broader integration coverage for door/chest/pot/collision/entrance/write flows beyond the current unit and ROM-safety tests.
 3. **Test Coverage**: Add integration tests that:
    - Place/delete objects and verify `Room::EncodeObjects` output changes in ROM.

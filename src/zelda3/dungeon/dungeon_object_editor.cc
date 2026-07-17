@@ -469,7 +469,7 @@ absl::Status DungeonObjectEditor::BatchChangeObjectLayer(
     }
     if (new_layer == 2 && UsesSpecialLayerSelector(objects[index])) {
       return absl::InvalidArgumentError(
-          "Torches and pushable blocks only support upper/lower layer "
+          "Torches and pushable blocks only support upper/lower draw-layer "
           "selector values 0/1");
     }
     change_needed |= objects[index].GetLayerValue() != new_layer;
@@ -586,7 +586,8 @@ std::optional<size_t> DungeonObjectEditor::DuplicateObject(size_t object_index,
   // Create undo point
   CreateUndoPoint();
 
-  auto object = current_room_->GetTileObject(object_index);
+  auto object =
+      current_room_->GetTileObject(object_index).CopyForNewPlacement();
 
   // Offset position
   int new_x = object.x() + offset_x;
@@ -640,7 +641,7 @@ std::vector<size_t> DungeonObjectEditor::PasteObjects() {
 
   for (const auto& obj : clipboard_) {
     // Paste with slight offset to make it visible
-    RoomObject new_obj = obj;
+    RoomObject new_obj = obj.CopyForNewPlacement();
 
     // Logic to ensure it stays in bounds if we were to support mouse-position pasting
     // For now, just paste at original location + offset, or perhaps center of screen
@@ -1747,10 +1748,7 @@ void DungeonObjectEditor::DrawPropertyUI() {
 
       if (ImGui::Button(ICON_MD_CONTENT_COPY " Duplicate",
                         ImVec2(button_width, 0))) {
-        RoomObject duplicate = obj;
-        duplicate.set_x(obj.x() + 1);
-        auto status = current_room_->AddObject(duplicate);
-        (void)status;
+        (void)DuplicateObject(obj_idx, /*offset_x=*/1, /*offset_y=*/0);
       }
     }
   } else {
@@ -1782,7 +1780,7 @@ void DungeonObjectEditor::DrawPropertyUI() {
       if (has_room_stream_object) {
         ImGui::TextWrapped(
             "Mixed selection: values apply as object streams to room objects "
-            "and special layer selectors to torches/blocks.");
+            "and special draw-layer selectors to torches/blocks.");
       }
       static int batch_special_layer = 0;
       batch_special_layer = std::clamp(batch_special_layer, 0, 1);
