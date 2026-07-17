@@ -40,6 +40,7 @@ class FakeDungeonState : public DungeonState {
  public:
   int open_lock_room_id = -1;
   int water_face_active_room_id = -1;
+  int bombed_floor_room_id = -1;
   bool dam_floodgate_open = false;
   bool wall_moved = false;
 
@@ -63,7 +64,9 @@ class FakeDungeonState : public DungeonState {
   }
 
   bool IsWallMoved(int /*room_id*/) const override { return wall_moved; }
-  bool IsFloorBombable(int /*room_id*/) const override { return false; }
+  bool IsFloorBombable(int room_id) const override {
+    return room_id == bombed_floor_room_id;
+  }
   bool IsRupeeFloorActive(int /*room_id*/) const override { return false; }
 
   bool IsCrystalSwitchBlue() const override { return true; }
@@ -1644,6 +1647,35 @@ TEST(ObjectDrawerRegistryReplayTest,
       EXPECT_EQ(write.tile_id, block * 16 + tile);
       EXPECT_EQ(write.layer, static_cast<uint8_t>(RoomObject::LayerType::BG2));
     }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     BigLightBeamUsesFixedEastAtticBombedFloorStateWhenAvailable) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kEastAtticRoomId = 0x65;
+  constexpr int kX = 10;
+  constexpr int kY = 20;
+  const auto tiles = MakeSequentialTiles(64);
+  FakeDungeonState state;
+
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0FF1, kX, kY, /*size=*/4, RoomObject::LayerType::BG1,
+      tiles, &state);
+  EXPECT_TRUE(trace.empty());
+
+  state.bombed_floor_room_id = kEastAtticRoomId - 1;
+  trace = ReplayObjectTrace(/*object_id=*/0x0FF1, kX, kY, /*size=*/4,
+                            RoomObject::LayerType::BG1, tiles, &state);
+  EXPECT_TRUE(trace.empty());
+
+  state.bombed_floor_room_id = kEastAtticRoomId;
+  trace = ReplayObjectTrace(/*object_id=*/0x0FF1, kX, kY, /*size=*/4,
+                            RoomObject::LayerType::BG1, tiles, &state);
+  ASSERT_EQ(trace.size(), 64u);
+  for (const auto& write : trace) {
+    EXPECT_EQ(write.layer, static_cast<uint8_t>(RoomObject::LayerType::BG1));
   }
 }
 
