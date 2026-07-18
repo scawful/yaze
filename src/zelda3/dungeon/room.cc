@@ -3,6 +3,7 @@
 #include <yaze.h>
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <functional>
 #include <limits>
@@ -1445,12 +1446,12 @@ void Room::RenderObjectsToBackground() {
     if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
       const uint16_t off =
           obj.lit_ ? kRoomDrawObj_TorchLit : kRoomDrawObj_TorchUnlit;
-      // RoomDraw_LightableTorch masks selector/lit bits before drawing and
-      // uses the upper/BG1 pointers left active by the final object pass.
+      // RoomDraw_LightableTorch retains bit 13 in its masked tilemap offset,
+      // so the stored draw layer selects upper/BG1 or lower/BG2. Reserved bit
+      // 14 and the lit bit do not affect the draw target.
       (void)drawer.DrawRoomDrawObjectData2x2(
-          static_cast<uint16_t>(obj.id_), obj.x_, obj.y_,
-          RoomObject::LayerType::BG1, off, object_bg1_buffer_,
-          object_bg2_buffer_);
+          static_cast<uint16_t>(obj.id_), obj.x_, obj.y_, obj.layer_, off,
+          object_bg1_buffer_, object_bg2_buffer_);
       continue;
     }
   }
@@ -2424,15 +2425,17 @@ void Room::LoadTorches() {
         const LightableTorchEntry entry = DecodeLightableTorchEntry({b1, b2});
 
         // Create torch object (ID 0x150)
-        RoomObject torch_obj(0x150, entry.px, entry.py, 0, entry.selector);
+        RoomObject torch_obj(0x150, entry.px, entry.py, 0, entry.draw_layer);
         torch_obj.SetRom(rom_);
         torch_obj.set_options(ObjectOption::Torch);
+        torch_obj.set_torch_reserved_bit(entry.reserved);
         torch_obj.lit_ = entry.lit;
 
         tile_objects_.push_back(torch_obj);
 
-        LOG_DEBUG("Room", "Loaded torch at (%d,%d) selector=%d lit=%d",
-                  entry.px, entry.py, entry.selector, entry.lit);
+        LOG_DEBUG(
+            "Room", "Loaded torch at (%d,%d) draw_layer=%d reserved=%d lit=%d",
+            entry.px, entry.py, entry.draw_layer, entry.reserved, entry.lit);
 
         i += 2;
       }
@@ -2524,7 +2527,8 @@ std::vector<uint8_t> EncodeTorchSegmentForRoom(int room_id, const Room& room) {
     const LightableTorchBytes encoded = EncodeLightableTorchEntry({
         .px = static_cast<uint8_t>(obj.x()),
         .py = static_cast<uint8_t>(obj.y()),
-        .selector = static_cast<uint8_t>(obj.GetLayerValue() & 1),
+        .draw_layer = static_cast<uint8_t>(obj.GetLayerValue() & 1),
+        .reserved = obj.torch_reserved_bit(),
         .lit = obj.lit_,
     });
     bytes.push_back(encoded.low);
@@ -2549,6 +2553,19 @@ absl::Status ValidateSpecialObjectDrawLayerSelector(const RoomObject& object,
       "expected 0 "
       "(upper/BG1) or 1 (lower/BG2)",
       object_type, room_id, selector));
+}
+
+absl::Status ValidateLightableTorchForSave(const RoomObject& object,
+                                           int room_id) {
+  RETURN_IF_ERROR(
+      ValidateSpecialObjectDrawLayerSelector(object, room_id, "Torch"));
+  if (object.x() <= 0x3E && object.y() <= 0x3E) {
+    return absl::OkStatus();
+  }
+  return absl::InvalidArgumentError(absl::StrFormat(
+      "Torch in room 0x%03X has invalid position (%d,%d); expected x/y in "
+      "range 0..62",
+      room_id, object.x(), object.y()));
 }
 
 }  // namespace
@@ -2584,8 +2601,7 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
     }
     for (const auto& object : room->GetTileObjects()) {
       if ((object.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
-        RETURN_IF_ERROR(
-            ValidateSpecialObjectDrawLayerSelector(object, room_id, "Torch"));
+        RETURN_IF_ERROR(ValidateLightableTorchForSave(object, room_id));
       }
     }
     owned_rooms[room_id] = true;
@@ -2709,9 +2725,18 @@ absl::Status SaveAllPits(Rom* rom, PitDamageTable* pit_damage_table) {
 
 namespace {
 
+constexpr int kBlocksRegionSize = 0x80;
+constexpr std::array<int, 4> kBlocksPointerSlots = {
+    kBlocksPointer1, kBlocksPointer2, kBlocksPointer3, kBlocksPointer4};
+
+bool HalfOpenRangesOverlap(int first_begin, int first_end, int second_begin,
+                           int second_end) {
+  return first_begin < second_end && second_begin < first_end;
+}
+
 absl::Status ValidateBlocksLoaderPointerOperand(
     const std::vector<uint8_t>& rom_data, int operand_pc) {
-  if (operand_pc <= 0 || operand_pc + 3 >= static_cast<int>(rom_data.size())) {
+  if (operand_pc <= 0 || operand_pc + 5 >= static_cast<int>(rom_data.size())) {
     return absl::OutOfRangeError("Blocks pointer operand out of range");
   }
   // The block table pointers are the 3-byte operands in the US USDASM
@@ -2735,6 +2760,72 @@ absl::Status ValidateBlocksLoaderPointerOperand(
   return absl::OkStatus();
 }
 
+absl::Status PreflightBlocksLoaderDestinations(
+    const std::vector<uint8_t>& rom_data, std::array<int, 4>* destination_pcs) {
+  if (kBlocksLength < 0 ||
+      kBlocksLength + 1 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Blocks length out of range");
+  }
+
+  for (size_t page = 0; page < kBlocksPointerSlots.size(); ++page) {
+    const int operand_pc = kBlocksPointerSlots[page];
+    RETURN_IF_ERROR(ValidateBlocksLoaderPointerOperand(rom_data, operand_pc));
+    const int snes = (rom_data[operand_pc + 2] << 16) |
+                     (rom_data[operand_pc + 1] << 8) | rom_data[operand_pc];
+    const int data_pc = SnesToPc(snes);
+    if (data_pc < 0 ||
+        data_pc + kBlocksRegionSize > static_cast<int>(rom_data.size())) {
+      return absl::OutOfRangeError(absl::StrFormat(
+          "Blocks data region out of range for loader page %d", page + 1));
+    }
+    (*destination_pcs)[page] = data_pc;
+  }
+
+  constexpr int kLengthMetadataEnd = kBlocksLength + 2;
+  for (size_t page = 0; page < destination_pcs->size(); ++page) {
+    const int page_begin = (*destination_pcs)[page];
+    const int page_end = page_begin + kBlocksRegionSize;
+    if (HalfOpenRangesOverlap(page_begin, page_end, kBlocksLength,
+                              kLengthMetadataEnd)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Blocks data page %d at PC [0x%05X, 0x%05X) overlaps block-table "
+          "length metadata [0x%05X, 0x%05X)",
+          page + 1, page_begin, page_end, kBlocksLength, kLengthMetadataEnd));
+    }
+
+    for (size_t loader = 0; loader < kBlocksPointerSlots.size(); ++loader) {
+      // Each destination operand is embedded in a seven-byte loader
+      // instruction: BF ll hh bb 9D ll hh. Treat the complete instruction as
+      // metadata so a table write cannot corrupt either opcode or operand.
+      const int loader_begin = kBlocksPointerSlots[loader] - 1;
+      const int loader_end = kBlocksPointerSlots[loader] + 6;
+      if (HalfOpenRangesOverlap(page_begin, page_end, loader_begin,
+                                loader_end)) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Blocks data page %d at PC [0x%05X, 0x%05X) overlaps loader %d "
+            "opcode/operand metadata [0x%05X, 0x%05X)",
+            page + 1, page_begin, page_end, loader + 1, loader_begin,
+            loader_end));
+      }
+    }
+
+    for (size_t previous = 0; previous < page; ++previous) {
+      const int previous_begin = (*destination_pcs)[previous];
+      const int previous_end = previous_begin + kBlocksRegionSize;
+      if (HalfOpenRangesOverlap(page_begin, page_end, previous_begin,
+                                previous_end)) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Blocks data pages %d and %d overlap at PC ranges [0x%05X, "
+            "0x%05X) and [0x%05X, 0x%05X)",
+            previous + 1, page + 1, previous_begin, previous_end, page_begin,
+            page_end));
+      }
+    }
+  }
+
+  return absl::OkStatus();
+}
+
 }  // namespace
 
 absl::Status SaveAllBlocks(Rom* rom) {
@@ -2747,27 +2838,18 @@ absl::Status SaveAllBlocks(Rom* rom) {
   }
   int blocks_count =
       (rom_data[kBlocksLength + 1] << 8) | rom_data[kBlocksLength];
+  std::array<int, 4> destination_pcs{};
+  RETURN_IF_ERROR(
+      PreflightBlocksLoaderDestinations(rom_data, &destination_pcs));
   if (blocks_count <= 0) {
     return absl::OkStatus();
   }
-  const int kRegionSize = 0x80;
-  int ptrs[4] = {kBlocksPointer1, kBlocksPointer2, kBlocksPointer3,
-                 kBlocksPointer4};
   for (int r = 0; r < 4; ++r) {
-    if (ptrs[r] + 2 >= static_cast<int>(rom_data.size())) {
-      return absl::OutOfRangeError("Blocks pointer out of range");
-    }
-    RETURN_IF_ERROR(ValidateBlocksLoaderPointerOperand(rom_data, ptrs[r]));
-    int snes = (rom_data[ptrs[r] + 2] << 16) | (rom_data[ptrs[r] + 1] << 8) |
-               rom_data[ptrs[r]];
-    int pc = SnesToPc(snes);
-    int off = r * kRegionSize;
-    int len = std::min(kRegionSize, blocks_count - off);
+    const int pc = destination_pcs[r];
+    int off = r * kBlocksRegionSize;
+    int len = std::min(kBlocksRegionSize, blocks_count - off);
     if (len <= 0)
       break;
-    if (pc < 0 || pc + len > static_cast<int>(rom_data.size())) {
-      return absl::OutOfRangeError("Blocks data region out of range");
-    }
     std::vector<uint8_t> chunk(rom_data.begin() + pc,
                                rom_data.begin() + pc + len);
     RETURN_IF_ERROR(rom->WriteVector(pc, chunk));
@@ -2787,9 +2869,9 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
     return absl::OutOfRangeError("Blocks length out of range");
   }
 
-  const int kRegionSize = 0x80;
-  const int kPointerSlots[4] = {kBlocksPointer1, kBlocksPointer2,
-                                kBlocksPointer3, kBlocksPointer4};
+  std::array<int, 4> destination_pcs{};
+  RETURN_IF_ERROR(
+      PreflightBlocksLoaderDestinations(rom_data, &destination_pcs));
 
   // Read the original block buffer by dereferencing the four pointer
   // slots. We need this so unmaterialized / header-only rooms can have
@@ -2802,21 +2884,11 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
   const int original_byte_len = std::max(0, original_count_word);
   std::vector<uint8_t> original_buffer(original_byte_len, 0);
   for (int r = 0; r < 4; ++r) {
-    const int slot = kPointerSlots[r];
-    if (slot + 2 >= static_cast<int>(rom_data.size())) {
-      return absl::OutOfRangeError("Blocks pointer out of range");
-    }
-    RETURN_IF_ERROR(ValidateBlocksLoaderPointerOperand(rom_data, slot));
-    const int snes =
-        (rom_data[slot + 2] << 16) | (rom_data[slot + 1] << 8) | rom_data[slot];
-    const int pc = SnesToPc(snes);
-    const int off = r * kRegionSize;
-    const int len = std::min(kRegionSize, original_byte_len - off);
+    const int pc = destination_pcs[r];
+    const int off = r * kBlocksRegionSize;
+    const int len = std::min(kBlocksRegionSize, original_byte_len - off);
     if (len <= 0)
       break;
-    if (pc < 0 || pc + len > static_cast<int>(rom_data.size())) {
-      return absl::OutOfRangeError("Blocks data region out of range");
-    }
     std::copy_n(rom_data.begin() + pc, len, original_buffer.begin() + off);
   }
   const int original_slot_count = original_byte_len / 4;
@@ -2835,6 +2907,7 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
     const RoomObject* source_object;
   };
   std::unordered_set<uint16_t> owned_room_ids;
+  std::unordered_set<int> claimed_load_orders;
   std::unordered_map<int, EncodedBlock> slot_replacements;
   std::vector<EncodedBlock> appended;
   for (int rid = 0; rid < room_count; ++rid) {
@@ -2866,11 +2939,27 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
           EncodePushableBlockEntry(encoded_entry);
       const EncodedBlock encoded_block{encoded, &obj};
       const int load_order = obj.block_load_order();
+      if (load_order >= 0 && !claimed_load_orders.insert(load_order).second) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Room 0x%03X has multiple pushable blocks claiming non-new "
+            "load-order slot %d",
+            rid, load_order));
+      }
       if (load_order == RoomObject::kBlockLoadOrderNew) {
         appended.push_back(encoded_block);
       } else if (load_order >= 0 && load_order < original_slot_count) {
-        // First write wins: if a room loaded duplicate-load_order
-        // entries (shouldn't happen but defensive), keep the first.
+        const int original_offset = load_order * 4;
+        const uint16_t original_room_id =
+            static_cast<uint16_t>(original_buffer[original_offset] |
+                                  (original_buffer[original_offset + 1] << 8));
+        if (original_room_id != static_cast<uint16_t>(rid)) {
+          // Undo/redo snapshots can restore the load order that was valid
+          // before a prior save compacted the global table. Never let that
+          // stale identity replace a different room's entry; preserve the
+          // object by appending it as a newly reconciled entry instead.
+          appended.push_back(encoded_block);
+          continue;
+        }
         slot_replacements.emplace(load_order, encoded_block);
       } else {
         // load_order points outside the original buffer (e.g. ROM
@@ -2937,7 +3026,7 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
   }
 
   // Capacity check against the vanilla 128-entry cap.
-  const int kMaxEntries = (4 * kRegionSize) / 4;
+  const int kMaxEntries = (4 * kBlocksRegionSize) / 4;
   if (static_cast<int>(output.size() / 4) > kMaxEntries) {
     return absl::FailedPreconditionError(absl::StrCat(
         "Pushable-block table overflow: ", output.size() / 4,
@@ -2946,11 +3035,10 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
         "out of scope for this encoder)."));
   }
 
-  // Preflight every destination needed by the final output before the first
-  // ROM write. Growth can reach a later pointer region that the shorter
-  // original buffer never needed to read; discovering a bad operand/address
-  // only inside the write loop would leave earlier regions partially mutated
-  // for direct callers that do not wrap this public API in a transaction.
+  // Build the write plan from the four destinations preflighted above. Doing
+  // the topology check before encoding means direct callers that do not wrap
+  // this public API in a transaction cannot discover a bad later page only
+  // after an earlier page has already been written.
   const int total_bytes = static_cast<int>(output.size());
   struct BlockWriteDestination {
     int pc;
@@ -2960,23 +3048,11 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
   std::vector<BlockWriteDestination> write_destinations;
   write_destinations.reserve(4);
   for (int r = 0; r < 4; ++r) {
-    const int off = r * kRegionSize;
-    const int len = std::min(kRegionSize, total_bytes - off);
+    const int off = r * kBlocksRegionSize;
+    const int len = std::min(kBlocksRegionSize, total_bytes - off);
     if (len <= 0)
       break;
-
-    const int slot = kPointerSlots[r];
-    if (slot + 2 >= static_cast<int>(rom_data.size())) {
-      return absl::OutOfRangeError("Blocks pointer out of range");
-    }
-    RETURN_IF_ERROR(ValidateBlocksLoaderPointerOperand(rom_data, slot));
-    const int snes =
-        (rom_data[slot + 2] << 16) | (rom_data[slot + 1] << 8) | rom_data[slot];
-    const int pc = SnesToPc(snes);
-    if (pc < 0 || pc + len > static_cast<int>(rom_data.size())) {
-      return absl::OutOfRangeError("Blocks data region out of range");
-    }
-    write_destinations.push_back({pc, off, len});
+    write_destinations.push_back({destination_pcs[r], off, len});
   }
 
   // Write each prevalidated region. We do not relocate the data — the four
