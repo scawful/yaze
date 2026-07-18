@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdio>
 
+#include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/drag_drop.h"
@@ -168,8 +169,10 @@ void DungeonCanvasViewer::HandleRoomCanvasDropTargets(zelda3::Room& room,
                                                       int room_id) {
   gui::RoomObjectDragPayload obj_drop;
   if (gui::AcceptRoomObjectDrop(&obj_drop)) {
-    auto [tile_x, tile_y] = DungeonRenderingHelpers::ScreenToRoomCoordinates(
-        ImGui::GetMousePos(), canvas_.zero_point(), canvas_.global_scale());
+    const DungeonCanvasTransform transform(
+        canvas_.zero_point(), canvas_.scrolling(), canvas_.global_scale());
+    auto [tile_x, tile_y] = transform.ScreenToRoomTiles(
+        ImGui::GetMousePos(), dungeon_coords::kTileSize);
     if (tile_x >= 0 && tile_x < 64 && tile_y >= 0 && tile_y < 64) {
       const uint8_t object_size = obj_drop.size;
       zelda3::RoomObject new_obj(static_cast<int16_t>(obj_drop.object_id),
@@ -186,11 +189,13 @@ void DungeonCanvasViewer::HandleRoomCanvasDropTargets(zelda3::Room& room,
 
   gui::SpriteDragPayload sprite_drop;
   if (gui::AcceptSpriteDrop(&sprite_drop)) {
-    auto [tile_x, tile_y] = DungeonRenderingHelpers::ScreenToRoomCoordinates(
-        ImGui::GetMousePos(), canvas_.zero_point(), canvas_.global_scale());
-    int sprite_x = (tile_x * 8) / 16;
-    int sprite_y = (tile_y * 8) / 16;
-    if (sprite_x >= 0 && sprite_x < 32 && sprite_y >= 0 && sprite_y < 32) {
+    const DungeonCanvasTransform transform(
+        canvas_.zero_point(), canvas_.scrolling(), canvas_.global_scale());
+    const auto [room_x, room_y] =
+        transform.ScreenToRoomPixelCoordinates(ImGui::GetMousePos());
+    if (dungeon_coords::IsWithinBounds(room_x, room_y)) {
+      const int sprite_x = room_x / dungeon_coords::kSpriteTileSize;
+      const int sprite_y = room_y / dungeon_coords::kSpriteTileSize;
       zelda3::Sprite new_sprite(static_cast<uint8_t>(sprite_drop.sprite_id),
                                 static_cast<uint8_t>(sprite_x),
                                 static_cast<uint8_t>(sprite_y), 0, 0);
