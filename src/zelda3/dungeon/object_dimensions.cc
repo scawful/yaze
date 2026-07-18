@@ -11,8 +11,7 @@ namespace yaze {
 namespace zelda3 {
 
 namespace {
-bool GetSomariaLineDimensions(int object_id, int size, int* width,
-                              int* height) {
+bool GetSomariaLineDimensions(int object_id, int* width, int* height) {
   if (!width || !height) {
     return false;
   }
@@ -21,75 +20,8 @@ bool GetSomariaLineDimensions(int object_id, int size, int* width,
     return false;
   }
 
-  int length = (size & 0x0F) + 1;
-  int sub_id = object_id & 0x0F;
-  int dx = 1;
-  int dy = 0;
-  switch (sub_id) {
-    case 0x03:
-      dx = 1;
-      dy = 0;
-      break;
-    case 0x04:
-      dx = 0;
-      dy = 1;
-      break;
-    case 0x05:
-      dx = 1;
-      dy = 1;
-      break;
-    case 0x06:
-      dx = -1;
-      dy = 1;
-      break;
-    case 0x07:
-      dx = 1;
-      dy = 0;
-      break;
-    case 0x08:
-      dx = 0;
-      dy = 1;
-      break;
-    case 0x09:
-      dx = 1;
-      dy = 1;
-      break;
-    case 0x0A:
-      dx = 1;
-      dy = 0;
-      break;
-    case 0x0B:
-      dx = 0;
-      dy = 1;
-      break;
-    case 0x0C:
-      dx = 1;
-      dy = 1;
-      break;
-    case 0x0E:
-      dx = 1;
-      dy = 0;
-      break;
-    case 0x0F:
-      dx = 0;
-      dy = 1;
-      break;
-    default:
-      dx = 1;
-      dy = 0;
-      break;
-  }
-
-  if (dx != 0 && dy != 0) {
-    *width = length;
-    *height = length;
-  } else if (dx != 0) {
-    *width = length;
-    *height = 1;
-  } else {
-    *width = 1;
-    *height = length;
-  }
+  *width = 1;
+  *height = 1;
   return true;
 }
 
@@ -160,8 +92,7 @@ std::pair<int, int> ObjectDimensionTable::GetDimensions(int object_id,
                                                         int size) const {
   int somaria_width = 0;
   int somaria_height = 0;
-  if (GetSomariaLineDimensions(object_id, size, &somaria_width,
-                               &somaria_height)) {
+  if (GetSomariaLineDimensions(object_id, &somaria_width, &somaria_height)) {
     return {somaria_width, somaria_height};
   }
   if (object_id == 0xC1) {
@@ -241,8 +172,7 @@ std::pair<int, int> ObjectDimensionTable::GetSelectionDimensions(
     int object_id, int size) const {
   int somaria_width = 0;
   int somaria_height = 0;
-  if (GetSomariaLineDimensions(object_id, size, &somaria_width,
-                               &somaria_height)) {
+  if (GetSomariaLineDimensions(object_id, &somaria_width, &somaria_height)) {
     return {somaria_width, somaria_height};
   }
   if (object_id == 0xC1) {
@@ -387,13 +317,6 @@ ObjectDimensionTable::SelectionBounds ObjectDimensionTable::GetSelectionBounds(
     case 0xCD:
       bounds.offset_x = -moving_wall::ObjectCountForSize(size);
       break;
-
-    // Somaria line diagonal down-left (0xF86 / 0x206)
-    case 0xF86: {
-      int length = (size & 0x0F) + 1;
-      bounds.offset_x = -(length - 1);
-      break;
-    }
 
     default:
       break;
@@ -974,6 +897,13 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xF80] = {4, 5, Dir::None, 0, false};
   dimensions_[0xF81] = {4, 5, Dir::None, 0, false};
   dimensions_[0xF82] = {4, 7, Dir::None, 0, false};
+
+  // Somaria path pieces each write one tile at the object anchor.
+  for (int id = 0xF83; id <= 0xF8C; id++) {
+    dimensions_[id] = {1, 1, Dir::None, 0, false};
+  }
+  dimensions_[0xF8E] = {1, 1, Dir::None, 0, false};
+  dimensions_[0xF8F] = {1, 1, Dir::None, 0, false};
 
   // Prison cell bars (10x4 tiles)
   dimensions_[0xF8D] = {10, 4, Dir::None, 0, false};

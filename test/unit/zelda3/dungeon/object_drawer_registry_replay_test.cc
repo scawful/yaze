@@ -243,6 +243,30 @@ void WriteBinaryFile(const std::filesystem::path& path,
   ASSERT_TRUE(out.good());
 }
 
+TEST(ObjectDrawerRegistryReplayTest,
+     SomariaPathPiecesDrawOneTileAtTheObjectAnchor) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  // USDASM RoomDraw_SomariaLine performs one load/store and returns. Objects
+  // 0x203-0x20C, 0x20E, and 0x20F select distinct one-word tile data entries;
+  // their size bits must not be interpreted as a repeated line length.
+  constexpr int16_t kObjectIds[] = {0xF83, 0xF84, 0xF85, 0xF86, 0xF87, 0xF88,
+                                    0xF89, 0xF8A, 0xF8B, 0xF8C, 0xF8E, 0xF8F};
+  constexpr int kX = 20;
+  constexpr int kY = 20;
+  constexpr uint16_t kTileId = 0x0123;
+
+  for (int16_t object_id : kObjectIds) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << object_id);
+    auto trace = ReplayObjectTrace(object_id, kX, kY, /*size=*/0x0C,
+                                   RoomObject::LayerType::BG1,
+                                   MakeSequentialTiles(/*count=*/1, kTileId));
+    const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+    ExpectTraceMatchesSnapshot(bg1, {{kX, kY, kTileId}});
+  }
+}
+
 std::array<uint8_t, 0x10000> MakeOpaqueDoorGfx() {
   std::array<uint8_t, 0x10000> gfx{};
   gfx.fill(1);
