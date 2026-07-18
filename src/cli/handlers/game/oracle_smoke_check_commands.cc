@@ -96,8 +96,8 @@ absl::Status OracleSmokeCheckCommandHandler::Execute(
   // ------------------------------------------------------------------
   // D4 Zora Temple — structural preflight
   // ------------------------------------------------------------------
-  // Validates water-fill reserved region and table. Does NOT require specific
-  // room collision data (that's a readiness check, below).
+  // Validates the water-fill reserved region/table and requires runtime table
+  // membership for D4 rooms. Authored room collision is a readiness check.
   zelda3::OracleRomSafetyPreflightOptions structural_opts;
   structural_opts.require_water_fill_reserved_region = true;
   structural_opts.require_custom_collision_write_support = false;
@@ -292,7 +292,8 @@ absl::Status OracleSmokeCheckCommandHandler::Execute(
           "oracle-smoke-check: cannot open report file: %s", *rp));
     }
     report_file << report.dump(2) << "\n";
-    if (!report_file.good()) {
+    report_file.close();
+    if (report_file.fail()) {
       return absl::InternalError(absl::StrFormat(
           "oracle-smoke-check: failed writing report: %s", *rp));
     }

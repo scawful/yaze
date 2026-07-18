@@ -261,6 +261,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_manager_project_actions_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc
     unit/editor/editor_manager_oracle_rom_safety_test.cc
+    unit/editor/oracle_hack_workflow_backend_test.cc
     unit/editor/editor_set_test.cc
     unit/editor/paint_util_test.cc
     unit/editor/map_properties_context_menu_test.cc
