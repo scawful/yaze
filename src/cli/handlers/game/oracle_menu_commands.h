@@ -94,7 +94,8 @@ class DungeonOraclePreflightCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const override { return "dungeon-oracle-preflight"; }
   std::string GetUsage() const override {
-    return "dungeon-oracle-preflight [--required-collision-rooms <hex,hex,...>] "
+    return "dungeon-oracle-preflight [--required-collision-rooms "
+           "<hex,hex,...>] "
            "[--require-write-support] [--skip-collision-maps] "
            "[--report <path>] [--format <json|text>]";
   }
@@ -119,8 +120,8 @@ class DungeonOraclePreflightCommandHandler : public resources::CommandHandler {
         {"--skip-collision-maps",
          "Skip per-room collision pointer validation (faster, for ROM doctor)",
          ""},
-        {"--report",
-         "Write the JSON report to this path in addition to stdout", ""},
+        {"--report", "Write the JSON report to this path in addition to stdout",
+         ""},
     };
     return descriptor;
   }
@@ -128,8 +129,7 @@ class DungeonOraclePreflightCommandHandler : public resources::CommandHandler {
   // Probes --report path writability before the formatter starts.
   // Called by CommandHandler::Run() before formatter.BeginObject(), so a
   // failure here produces zero stdout output (pure stderr + non-zero exit).
-  absl::Status ValidateArgs(
-      const resources::ArgumentParser& parser) override;
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;

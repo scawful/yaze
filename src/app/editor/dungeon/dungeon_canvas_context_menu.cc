@@ -5,6 +5,8 @@
 #include <utility>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_canvas_transform.h"
+#include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
@@ -106,9 +108,13 @@ DungeonCanvasViewer::GetObjectUnderContextCursor(int room_id) {
   }
 
   const ImGuiIO& io = ImGui::GetIO();
-  const ImVec2 canvas_pos = canvas_.zero_point();
-  const int canvas_x = static_cast<int>(io.MousePos.x - canvas_pos.x);
-  const int canvas_y = static_cast<int>(io.MousePos.y - canvas_pos.y);
+  const DungeonCanvasTransform transform(
+      canvas_.zero_point(), canvas_.scrolling(), canvas_.global_scale());
+  const auto [canvas_x, canvas_y] =
+      transform.ScreenToRoomPixelCoordinates(io.MousePos);
+  if (!dungeon_coords::IsWithinBounds(canvas_x, canvas_y)) {
+    return std::nullopt;
+  }
   const auto hovered_index = object_interaction_.entity_coordinator()
                                  .tile_handler()
                                  .GetEntityAtPosition(canvas_x, canvas_y);
