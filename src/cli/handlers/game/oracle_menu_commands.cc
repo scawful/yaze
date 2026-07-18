@@ -468,7 +468,8 @@ absl::Status DungeonOraclePreflightCommandHandler::Execute(
                           *report_path));
     }
     report_file << report_content;
-    if (!report_file.good()) {
+    report_file.close();
+    if (report_file.fail()) {
       return absl::InternalError(
           absl::StrFormat("dungeon-oracle-preflight: failed while writing "
                           "report file: %s",
