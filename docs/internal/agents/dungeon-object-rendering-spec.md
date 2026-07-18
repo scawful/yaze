@@ -38,7 +38,7 @@ Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optio
   - `RoomDraw_GetSize_1to15or32` at $01B0CC: nibble 0 → 32 tiles; otherwise nibble value.
   - After calling any helper: `$B2` holds the final count; `$B4` is cleared.
 - Type 2 format (`byte0 >= $FC`) uses tables at `.type2_data_offset` ($0183F0) and `.type2_routine` ($018470). No size field; fixed dimensions per routine.
-- Type 3 format (`id >= $F8`) uses `.type3_data_offset` ($0184F0) and `.type3_routine` ($0185F0). Some use size nibble (e.g., Somaria lines); most are fixed-size objects like chests and stair blocks.
+- Type 3 format (`id >= $F8`) uses `.type3_data_offset` ($0184F0) and `.type3_routine` ($0185F0). Somaria path pieces and most other Type 3 objects have fixed draw footprints; some routines select different tiles or footprints from room state.
 
 ## Draw Routine Families & Expected Symbology
 - Type 1 routine table: `.type1_routine` at `$018200`.
@@ -54,7 +54,7 @@ Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optio
   - IDs 0x135–0x13F: water-hop stairs, spiral stairs, sanctuary wall, magic bat altar—fixed-size, no size nibble.
 - Type 3 routines (`.type3_routine`):
   - Chests/big chests (0x218–0x232) are single 1×1 anchors; selection should stay 1 tile.
-  - Somaria lines (0x203–0x20C/0x20E) use the size nibble as a tile count; they extend along X with no Y growth.
+  - Somaria path pieces (ASM 0x203–0x20C, 0x20E, and 0x20F; yaze 0xF83–0xF8C, 0xF8E, and 0xF8F) each select one tile word and write it once at the object anchor. Size bits do not extend a piece.
   - Pipes (0x23A–0x23D) are fixed 2×? rectangles; use arrows that match their orientation.
 
 ## Ceiling and Large Object Ground Truth
