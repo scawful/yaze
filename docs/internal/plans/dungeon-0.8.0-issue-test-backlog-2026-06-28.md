@@ -23,7 +23,8 @@ Source: post-agent audit of the 0.8.0 dungeon drawing/editing slice.
 
 2. **Pit-damage membership editor UI**
    - Status: inspector controls implemented for fixed-capacity room replacement; view-model coverage guards replacement/victim defaults and fixed-capacity swaps; ImGui click automation for the Add/Replace buttons landed in PR #65.
-   - Problem: `PitDamageTable` can encode fixed-capacity `RoomsWithPitDamage`, but no panel toggles membership.
+   - Problem addressed: `PitDamageTable` could encode fixed-capacity
+     `RoomsWithPitDamage`, but no panel toggled membership.
    - Done when: the dungeon editor exposes room membership, marks the table dirty, saves via `SaveAllPits(rom, table)`, and reloads the edited membership.
    - Tests: view-model/unit test for toggling; ROM-backed save/reload test; no-op save stays byte-identical.
 
