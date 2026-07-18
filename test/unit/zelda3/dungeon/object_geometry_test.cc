@@ -69,14 +69,20 @@ TEST(ObjectGeometryTest, DiagonalCeilingBoundsMatchRenderForAllAnchors) {
   }
 }
 
-TEST(ObjectGeometryTest, SomariaLineDownLeftPreservesNegativeXExtent) {
-  RoomObject obj(/*id=*/0x0F86, /*x=*/0, /*y=*/0, /*size=*/0x03);
-  auto bounds = ObjectGeometry::Get().MeasureByObjectId(obj);
-  ASSERT_TRUE(bounds.ok());
-  EXPECT_EQ(bounds->min_x_tiles, -3);  // length 4 reaches three tiles left
-  EXPECT_EQ(bounds->min_y_tiles, 0);
-  EXPECT_EQ(bounds->width_tiles, 4);
-  EXPECT_EQ(bounds->height_tiles, 4);
+TEST(ObjectGeometryTest, SomariaPathPiecesAreSingleTileObjects) {
+  constexpr int16_t kObjectIds[] = {0xF83, 0xF84, 0xF85, 0xF86, 0xF87, 0xF88,
+                                    0xF89, 0xF8A, 0xF8B, 0xF8C, 0xF8E, 0xF8F};
+
+  for (int16_t object_id : kObjectIds) {
+    SCOPED_TRACE(absl::StrFormat("object_id=0x%04X", object_id));
+    RoomObject obj(object_id, /*x=*/0, /*y=*/0, /*size=*/0x0F);
+    auto bounds = ObjectGeometry::Get().MeasureByObjectId(obj);
+    ASSERT_TRUE(bounds.ok());
+    EXPECT_EQ(bounds->min_x_tiles, 0);
+    EXPECT_EQ(bounds->min_y_tiles, 0);
+    EXPECT_EQ(bounds->width_tiles, 1);
+    EXPECT_EQ(bounds->height_tiles, 1);
+  }
 }
 
 TEST(ObjectGeometryTest, WeirdCornerBottomBothBGUsesUsdasm3x4Shape) {

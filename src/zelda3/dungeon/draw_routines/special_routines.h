@@ -53,16 +53,12 @@ void CustomDraw(const DrawContext& ctx);
 void DrawDoorSwitcherer(const DrawContext& ctx);
 
 /**
- * @brief Draw Somaria line in various directions
+ * @brief Draw one Somaria path tile at the object anchor
  *
- * Pattern: Somaria Line (objects 0x203-0x20F, 0x214)
- * Draws a line of tiles based on direction encoded in object ID.
- * Direction mapping:
- *   0x03: Horizontal right
- *   0x04: Vertical down
- *   0x05: Diagonal down-right
- *   0x06: Diagonal down-left
- *   0x07-0x0F: Various other patterns
+ * Pattern: ASM objects 0x203-0x20C, 0x20E, and 0x20F (decoded by yaze as
+ * 0xF83-0xF8C, 0xF8E, and 0xF8F). Each object-data pointer selects one tile
+ * word, and RoomDraw_SomariaLine writes that word once. Size bits do not
+ * extend an individual path piece.
  *
  * @param ctx Draw context containing object, tiles, and target buffer
  */
