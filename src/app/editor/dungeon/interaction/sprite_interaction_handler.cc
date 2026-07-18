@@ -34,7 +34,9 @@ bool SpriteInteractionHandler::HandleClick(int canvas_x, int canvas_y) {
     return false;
 
   if (sprite_placement_mode_) {
-    PlaceSpriteAtPosition(canvas_x, canvas_y);
+    if (IsWithinBounds(canvas_x, canvas_y)) {
+      PlaceSpriteAtPosition(canvas_x, canvas_y);
+    }
     return true;
   }
 
@@ -102,14 +104,9 @@ void SpriteInteractionHandler::DrawGhostPreview() {
   if (!pointer_screen_pos.has_value())
     return;
 
-  ImVec2 canvas_pos = canvas->zero_point();
-  float scale = GetCanvasScale();
-
-  // Convert to room coordinates (sprites use 16-pixel grid)
-  int canvas_x =
-      static_cast<int>((pointer_screen_pos->x - canvas_pos.x) / scale);
-  int canvas_y =
-      static_cast<int>((pointer_screen_pos->y - canvas_pos.y) / scale);
+  const DungeonCanvasTransform transform = GetCanvasTransform();
+  const auto [canvas_x, canvas_y] =
+      transform.ScreenToRoomPixelCoordinates(*pointer_screen_pos);
 
   // Snap to 16-pixel grid
   int snapped_x = (canvas_x / dungeon_coords::kSpriteTileSize) *
@@ -122,10 +119,11 @@ void SpriteInteractionHandler::DrawGhostPreview() {
   const auto capacity_state = GetPlacementGhostCapacityState();
 
   // Draw ghost rectangle for sprite preview
-  ImVec2 rect_min(canvas_pos.x + snapped_x * scale,
-                  canvas_pos.y + snapped_y * scale);
-  ImVec2 rect_max(rect_min.x + dungeon_coords::kSpriteTileSize * scale,
-                  rect_min.y + dungeon_coords::kSpriteTileSize * scale);
+  const ImVec2 rect_min = transform.RoomPixelsToScreen(
+      ImVec2(static_cast<float>(snapped_x), static_cast<float>(snapped_y)));
+  const ImVec2 rect_size = transform.RoomSizeToScreen(
+      ImVec2(dungeon_coords::kSpriteTileSize, dungeon_coords::kSpriteTileSize));
+  const ImVec2 rect_max(rect_min.x + rect_size.x, rect_min.y + rect_size.y);
 
   const auto& theme = AgentUI::GetTheme();
   const ImVec4 base_color =
@@ -190,12 +188,12 @@ void SpriteInteractionHandler::DrawSelectionHighlight() {
   }
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 canvas_pos = GetCanvasZeroPoint();
-  float scale = GetCanvasScale();
-
-  ImVec2 pos(canvas_pos.x + pixel_x * scale, canvas_pos.y + pixel_y * scale);
-  ImVec2 size(dungeon_coords::kSpriteTileSize * scale,
-              dungeon_coords::kSpriteTileSize * scale);
+  const DungeonCanvasTransform transform = GetCanvasTransform();
+  const float scale = transform.scale();
+  const ImVec2 pos = transform.RoomPixelsToScreen(
+      ImVec2(static_cast<float>(pixel_x), static_cast<float>(pixel_y)));
+  const ImVec2 size = transform.RoomSizeToScreen(
+      ImVec2(dungeon_coords::kSpriteTileSize, dungeon_coords::kSpriteTileSize));
 
   // Animated selection
   static float pulse = 0.0f;
@@ -218,17 +216,12 @@ void SpriteInteractionHandler::DrawSelectionHighlight() {
 
 std::optional<size_t> SpriteInteractionHandler::GetEntityAtPosition(
     int canvas_x, int canvas_y) const {
-  if (!HasValidContext())
+  if (!HasValidContext() || !IsWithinBounds(canvas_x, canvas_y))
     return std::nullopt;
 
   auto* room = ctx_->GetCurrentRoomConst();
   if (!room)
     return std::nullopt;
-
-  // Convert screen coordinates to room coordinates
-  float scale = GetCanvasScale();
-  int room_x = static_cast<int>(canvas_x / scale);
-  int room_y = static_cast<int>(canvas_y / scale);
 
   // Check sprites (16x16 hitbox)
   const auto& sprites = room->GetSprites();
@@ -240,10 +233,10 @@ std::optional<size_t> SpriteInteractionHandler::GetEntityAtPosition(
     int sprite_y = sprite.y() * dungeon_coords::kSpriteTileSize;
 
     // 16x16 hitbox
-    if (room_x >= sprite_x &&
-        room_x < sprite_x + dungeon_coords::kSpriteTileSize &&
-        room_y >= sprite_y &&
-        room_y < sprite_y + dungeon_coords::kSpriteTileSize) {
+    if (canvas_x >= sprite_x &&
+        canvas_x < sprite_x + dungeon_coords::kSpriteTileSize &&
+        canvas_y >= sprite_y &&
+        canvas_y < sprite_y + dungeon_coords::kSpriteTileSize) {
       return i;
     }
   }
@@ -376,12 +369,8 @@ void SpriteInteractionHandler::PlaceSpriteAtPosition(int canvas_x,
 
 std::pair<int, int> SpriteInteractionHandler::CanvasToSpriteCoords(
     int canvas_x, int canvas_y) const {
-  float scale = GetCanvasScale();
-  // Convert to pixel coordinates, then to sprite tile coordinates
-  int pixel_x = static_cast<int>(canvas_x / scale);
-  int pixel_y = static_cast<int>(canvas_y / scale);
-  return {pixel_x / dungeon_coords::kSpriteTileSize,
-          pixel_y / dungeon_coords::kSpriteTileSize};
+  return {canvas_x / dungeon_coords::kSpriteTileSize,
+          canvas_y / dungeon_coords::kSpriteTileSize};
 }
 
 }  // namespace yaze::editor

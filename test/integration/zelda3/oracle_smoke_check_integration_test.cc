@@ -27,19 +27,19 @@ namespace {
 using json = nlohmann::json;
 
 std::string FindOracleRom() {
-  for (const char* env_var :
-       {"YAZE_TEST_ROM_OOS", "YAZE_TEST_ROM_EXPANDED",
-        "YAZE_TEST_ROM_EXPANDED_PATH"}) {
+  for (const char* env_var : {"YAZE_TEST_ROM_OOS", "YAZE_TEST_ROM_EXPANDED",
+                              "YAZE_TEST_ROM_EXPANDED_PATH"}) {
     if (const char* path = std::getenv(env_var)) {
-      if (std::filesystem::exists(path)) return path;
+      if (std::filesystem::exists(path))
+        return path;
     }
   }
   for (const auto& dir : {".", "roms", "Roms", "../roms", "../../roms"}) {
     for (const auto& name :
          {"oos168.sfc", "oos168x.sfc", "oracle_of_secrets.sfc"}) {
-      std::filesystem::path path =
-          std::filesystem::path(dir) / name;
-      if (std::filesystem::exists(path)) return path.string();
+      std::filesystem::path path = std::filesystem::path(dir) / name;
+      if (std::filesystem::exists(path))
+        return path.string();
     }
   }
   return "";
@@ -65,7 +65,7 @@ class OracleSmokeCheckIntegrationTest : public ::testing::Test {
 const json& GetSmoke(const json& doc) {
   static const json kEmpty = json::object();
   return doc.contains("Oracle Smoke Check") ? doc.at("Oracle Smoke Check")
-                                             : kEmpty;
+                                            : kEmpty;
 }
 
 // ---------------------------------------------------------------------------
@@ -123,10 +123,8 @@ TEST_F(OracleSmokeCheckIntegrationTest, StrictReadinessReportsD4D3Readiness) {
   EXPECT_TRUE(d4.at("required_rooms_ok").is_boolean());
 
   // D6 and D3 ok fields present and boolean.
-  EXPECT_TRUE(
-      checks.value("d6_goron_mines", json::object()).contains("ok"));
-  EXPECT_TRUE(
-      checks.value("d3_kalyxo_castle", json::object()).contains("ok"));
+  EXPECT_TRUE(checks.value("d6_goron_mines", json::object()).contains("ok"));
+  EXPECT_TRUE(checks.value("d3_kalyxo_castle", json::object()).contains("ok"));
 }
 
 TEST_F(OracleSmokeCheckIntegrationTest, D6GoronMinesAuditAlwaysOk) {
@@ -147,9 +145,9 @@ TEST_F(OracleSmokeCheckIntegrationTest, D6GoronMinesAuditAlwaysOk) {
 }
 
 TEST_F(OracleSmokeCheckIntegrationTest, ReportFileContainsAllCheckKeys) {
-  const auto report_path =
-      (std::filesystem::temp_directory_path() /
-       "yaze_smoke_check_integration_report.json").string();
+  const auto report_path = (std::filesystem::temp_directory_path() /
+                            "yaze_smoke_check_integration_report.json")
+                               .string();
 
   cli::handlers::OracleSmokeCheckCommandHandler handler;
   std::string out;

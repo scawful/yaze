@@ -10,6 +10,11 @@ on:
         description: 'Version to release (e.g., v1.0.0)'
         required: true
         type: string
+      publish:
+        description: 'Publish the GitHub release after builds and tests pass'
+        required: false
+        default: false
+        type: boolean
 
 env:
   VERSION: ${{ github.event.inputs.version || github.ref_name }}
@@ -315,7 +320,7 @@ jobs:
           Write-Host "=== Package files created ==="
           Get-ChildItem packages/*.exe, packages/*.zip -ErrorAction SilentlyContinue
 
-      - name: Validate Windows artifacts
+      - name: Validate and smoke-test Windows artifacts
         if: matrix.platform == 'windows'
         shell: pwsh
         run: |
@@ -337,6 +342,7 @@ jobs:
           foreach ($zip in $zips) {
             Write-Host "Validating: $($zip.FullName)"
             python scripts/release/validate-archive.py $zip.FullName
+            ./scripts/release/smoke-windows-package.ps1 -ArchivePath $zip.FullName
           }
 
       - name: Upload build artifacts
@@ -424,7 +430,7 @@ jobs:
     name: "Create Release"
     needs: [release-preflight, build, test]  # Tests are informational only in pre-1.0
     runs-on: ubuntu-22.04
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'push' || inputs.publish == true
 
     steps:
       - name: Checkout code
