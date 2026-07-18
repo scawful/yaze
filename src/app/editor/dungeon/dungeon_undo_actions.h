@@ -1,8 +1,9 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_UNDO_ACTIONS_H_
 #define YAZE_APP_EDITOR_DUNGEON_UNDO_ACTIONS_H_
 
-#include <functional>
+#include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -20,30 +21,33 @@ namespace editor {
  * @class DungeonObjectsAction
  * @brief Undoable action for dungeon room object edits.
  *
- * Captures a full snapshot of a room's tile objects before and after
- * an editing operation. Undo restores the before-state, Redo restores
- * the after-state, using a caller-provided restore callback that
- * applies the snapshot back into the room.
+ * Captures a full snapshot of a room's tile objects and object selection
+ * before and after an editing operation. Undo restores the before-state,
+ * Redo restores the after-state, using a caller-provided restore callback
+ * that applies the snapshot back into the room.
  */
 class DungeonObjectsAction : public UndoAction {
  public:
-  using RestoreFn = std::function<void(int room_id,
-                                       const std::vector<zelda3::RoomObject>&)>;
+  using RestoreFn =
+      std::function<void(int room_id, const std::vector<zelda3::RoomObject>&,
+                         const std::vector<size_t>& selected_indices)>;
 
-  DungeonObjectsAction(int room_id,
-                       std::vector<zelda3::RoomObject> before,
+  DungeonObjectsAction(int room_id, std::vector<zelda3::RoomObject> before,
+                       std::vector<size_t> before_selection,
                        std::vector<zelda3::RoomObject> after,
-                       RestoreFn restore)
+                       std::vector<size_t> after_selection, RestoreFn restore)
       : room_id_(room_id),
         before_(std::move(before)),
+        before_selection_(std::move(before_selection)),
         after_(std::move(after)),
+        after_selection_(std::move(after_selection)),
         restore_(std::move(restore)) {}
 
   absl::Status Undo() override {
     if (!restore_) {
       return absl::InternalError("DungeonObjectsAction: no restore callback");
     }
-    restore_(room_id_, before_);
+    restore_(room_id_, before_, before_selection_);
     return absl::OkStatus();
   }
 
@@ -51,7 +55,7 @@ class DungeonObjectsAction : public UndoAction {
     if (!restore_) {
       return absl::InternalError("DungeonObjectsAction: no restore callback");
     }
-    restore_(room_id_, after_);
+    restore_(room_id_, after_, after_selection_);
     return absl::OkStatus();
   }
 
@@ -61,7 +65,9 @@ class DungeonObjectsAction : public UndoAction {
 
   size_t MemoryUsage() const override {
     // Rough estimate: each RoomObject is ~40-80 bytes
-    return (before_.size() + after_.size()) * sizeof(zelda3::RoomObject);
+    return (before_.size() + after_.size()) * sizeof(zelda3::RoomObject) +
+           (before_selection_.size() + after_selection_.size()) *
+               sizeof(size_t);
   }
 
   bool CanMergeWith(const UndoAction& /*prev*/) const override {
@@ -73,12 +79,14 @@ class DungeonObjectsAction : public UndoAction {
  private:
   int room_id_;
   std::vector<zelda3::RoomObject> before_;
+  std::vector<size_t> before_selection_;
   std::vector<zelda3::RoomObject> after_;
+  std::vector<size_t> after_selection_;
   RestoreFn restore_;
 };
 
 struct WaterFillSnapshot {
-  uint8_t sram_bit_mask = 0;  // Bit in $7EF411 (0x00 = Auto/unspecified)
+  uint8_t sram_bit_mask = 0;      // Bit in $7EF411 (0x00 = Auto/unspecified)
   std::vector<uint16_t> offsets;  // Each offset = Y*64 + X (0..4095)
 };
 
@@ -132,8 +140,7 @@ class DungeonCustomCollisionAction : public UndoAction {
 
 class DungeonWaterFillAction : public UndoAction {
  public:
-  using RestoreFn =
-      std::function<void(int room_id, const WaterFillSnapshot&)>;
+  using RestoreFn = std::function<void(int room_id, const WaterFillSnapshot&)>;
 
   DungeonWaterFillAction(int room_id, WaterFillSnapshot before,
                          WaterFillSnapshot after, RestoreFn restore)
