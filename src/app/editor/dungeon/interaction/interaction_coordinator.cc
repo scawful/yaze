@@ -13,6 +13,8 @@
 #include "absl/strings/str_format.h"
 #include "imgui/imgui.h"
 
+#include "app/editor/dungeon/dungeon_canvas_transform.h"
+#include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/dungeon/dungeon_snapping.h"
 #include "app/gui/core/agent_theme.h"
 #include "zelda3/dungeon/room_object.h"
@@ -159,6 +161,10 @@ bool InteractionCoordinator::HandleClick(int canvas_x, int canvas_y) {
 
   if (door_handler_.HandleOverlayClick(canvas_x, canvas_y)) {
     return true;
+  }
+
+  if (!dungeon_coords::IsWithinBounds(canvas_x, canvas_y)) {
+    return false;
   }
 
   // In select mode, only handle the click if the cursor is over an entity or object.
@@ -371,6 +377,9 @@ std::optional<SelectedEntity> InteractionCoordinator::GetEntityAtPosition(
 std::vector<SelectedEntity> InteractionCoordinator::GetEntitiesAtPosition(
     int canvas_x, int canvas_y) const {
   std::vector<SelectedEntity> hits;
+  if (!dungeon_coords::IsWithinBounds(canvas_x, canvas_y)) {
+    return hits;
+  }
   if (auto door = door_handler_.GetEntityAtPosition(canvas_x, canvas_y)) {
     hits.push_back(SelectedEntity{EntityType::Door, *door});
   }
@@ -1144,9 +1153,11 @@ void InteractionCoordinator::UpdateSelectionCycleHudPreview() {
     return;
   }
 
-  const ImVec2 canvas_pos = ctx_->canvas->zero_point();
-  const int canvas_x = static_cast<int>(io.MousePos.x - canvas_pos.x);
-  const int canvas_y = static_cast<int>(io.MousePos.y - canvas_pos.y);
+  const DungeonCanvasTransform transform(ctx_->canvas->zero_point(),
+                                         ctx_->canvas->scrolling(),
+                                         ctx_->canvas->global_scale());
+  const auto [canvas_x, canvas_y] =
+      transform.ScreenToRoomPixelCoordinates(io.MousePos);
   const auto hits = GetEntitiesAtPosition(canvas_x, canvas_y);
   if (hits.size() < 2) {
     cycle_last_hits_.clear();
@@ -1242,8 +1253,10 @@ void InteractionCoordinator::DrawMultiEntitySelectionHighlights() {
 
   const auto& theme = AgentUI::GetTheme();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  const ImVec2 canvas_pos = ctx_->canvas->zero_point();
-  const float scale = ctx_->canvas->global_scale();
+  const DungeonCanvasTransform transform(ctx_->canvas->zero_point(),
+                                         ctx_->canvas->scrolling(),
+                                         ctx_->canvas->global_scale());
+  const float scale = transform.scale();
   const float pulse =
       0.6f + 0.4f * std::sin(static_cast<float>(ImGui::GetTime()) * 6.0f);
 
@@ -1255,8 +1268,11 @@ void InteractionCoordinator::DrawMultiEntitySelectionHighlights() {
     }
 
     auto [x, y, w, h] = *bounds;
-    ImVec2 start(canvas_pos.x + x * scale, canvas_pos.y + y * scale);
-    ImVec2 end(start.x + w * scale, start.y + h * scale);
+    ImVec2 start = transform.RoomPixelsToScreen(
+        ImVec2(static_cast<float>(x), static_cast<float>(y)));
+    const ImVec2 size = transform.RoomSizeToScreen(
+        ImVec2(static_cast<float>(w), static_cast<float>(h)));
+    ImVec2 end(start.x + size.x, start.y + size.y);
     constexpr float kMargin = 2.0f;
     start.x -= kMargin;
     start.y -= kMargin;
