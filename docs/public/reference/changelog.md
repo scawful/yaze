@@ -1,6 +1,12 @@
 # Changelog
 
-## 0.7.2 (In Development)
+## 0.8.0 (in development)
+
+### Dungeon Editor completion
+- Opened the post-v0.7.2 development line for dungeon correctness, object
+  parity, persistence stability, and Oracle daily-driver readiness.
+
+## 0.7.2 (July 17, 2026)
 
 ### Dungeon Editor Follow-through
 - Made room navigation collapse into a compact 2x2 grid in tighter layouts instead of squeezing into a thin inline strip.
@@ -17,10 +23,41 @@
   payloads instead of forcing an 8-tile fallback.
 - Sourced room-object labels from the canonical dungeon object tables and
   exported type-specific and unified room-object resource labels.
+- Added editable pit-damage room membership controls and kept pit-damage ROM
+  tests in the integration suite where their ROM dependency is explicit.
+- Rejected invalid pushable-block loader operands before pointer arithmetic and
+  pinned both operand shape and table-capacity boundaries in tests.
+- Added a hardcoded room `0x001` BG1/BG2 overlap pixel golden so object-stream
+  compositing regressions fail with a focused diagnostic.
 
 ### Overworld Follow-through
 - Added a canvas context-menu Tile16 sampling action for the ZScream-style
   right-click eyedropper workflow.
+
+### Save Safety and Project Reliability
+- Made coordinated editor saves whole-ROM transactional: a late serializer,
+  validation, backup, or disk-write failure now restores the in-memory ROM and
+  leaves dirty edits available for retry.
+- Preserved Save As destinations through ROM-hash, pot-item, and ASM-conflict
+  confirmations, bound pending saves to their originating ROM session, and
+  consumed confirmation bypasses safely.
+- Made dungeon object, sprite, pot-item, and chest saves fail closed on
+  unsupported growth or ambiguous shared-stream ownership instead of guessing
+  free space or leaving partial repacks behind.
+- Hardened expanded-message, Map32/custom-overworld, palette, manifest,
+  project-path, CRC32, and SHA-1 boundaries, including headered-ROM and
+  vanilla/Oracle round-trip regression coverage.
+
+### Localization and Platform Reliability
+- Added the internationalization catalog pipeline and French localization.
+- Initialized native file dialogs explicitly on Linux and Windows.
+- Hardened session restore, SDL startup, asset lookup, configuration loading,
+  ROM handling, and CLI failure paths.
+
+### Build and Test Reliability
+- Stabilized fork pull-request checks, WASM builds, and the memory-sanitizer
+  gate across the release matrix.
+- Added GUI automation for pit-damage inspector membership edits.
 
 ## 0.7.1 (April 19, 2026)
 

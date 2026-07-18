@@ -49,7 +49,9 @@ bool DoorInteractionHandler::HandleClick(int canvas_x, int canvas_y) {
     return false;
 
   if (door_placement_mode_) {
-    PlaceDoorAtSnappedPosition(canvas_x, canvas_y);
+    if (IsWithinBounds(canvas_x, canvas_y)) {
+      PlaceDoorAtSnappedPosition(canvas_x, canvas_y);
+    }
     return true;
   }
 
@@ -137,18 +139,19 @@ bool DoorInteractionHandler::HandleOverlayClick(int canvas_x, int canvas_y) {
   const auto& door = doors[*selected_door_index_];
   const auto [tile_x, tile_y] = door.GetTileCoords();
   const auto dims = door.GetEditorDimensions();
-  const ImVec2 canvas_pos = GetCanvasZeroPoint();
-  const float scale = GetCanvasScale();
-  const ImVec2 door_pos(canvas_pos.x + tile_x * 8 * scale,
-                        canvas_pos.y + tile_y * 8 * scale);
-  const ImVec2 door_size(dims.width_tiles * 8 * scale,
-                         dims.height_tiles * 8 * scale);
+  const DungeonCanvasTransform transform = GetCanvasTransform();
+  const float scale = transform.scale();
+  const ImVec2 door_pos =
+      transform.RoomPixelsToScreen(ImVec2(tile_x * 8.0f, tile_y * 8.0f));
+  const ImVec2 door_size = transform.RoomSizeToScreen(
+      ImVec2(dims.width_tiles * 8.0f, dims.height_tiles * 8.0f));
   const auto badge = BuildPairBadgeOverlay(door, door_pos, door_size, scale);
   if (!badge.has_value() || badge->target_room_id < 0) {
     return false;
   }
 
-  const ImVec2 screen_pos(canvas_pos.x + canvas_x, canvas_pos.y + canvas_y);
+  const ImVec2 screen_pos = transform.RoomPixelsToScreen(
+      ImVec2(static_cast<float>(canvas_x), static_cast<float>(canvas_y)));
   const ImVec2 badge_max(badge->screen_pos.x + badge->screen_size.x,
                          badge->screen_pos.y + badge->screen_size.y);
   if (screen_pos.x < badge->screen_pos.x ||
@@ -173,14 +176,13 @@ void DoorInteractionHandler::DrawGhostPreview() {
   if (!door_placement_mode_ || !HasValidContext())
     return;
 
-  auto* canvas = ctx_->canvas;
   const auto pointer_screen_pos = GetPointerScreenPosition();
   if (!pointer_screen_pos.has_value())
     return;
 
-  ImVec2 canvas_pos = canvas->zero_point();
-  int canvas_x = static_cast<int>(pointer_screen_pos->x - canvas_pos.x);
-  int canvas_y = static_cast<int>(pointer_screen_pos->y - canvas_pos.y);
+  const DungeonCanvasTransform transform = GetCanvasTransform();
+  const auto [canvas_x, canvas_y] =
+      transform.ScreenToRoomPixelCoordinates(*pointer_screen_pos);
 
   // Try to update snapped position
   if (!UpdateSnappedPosition(canvas_x, canvas_y)) {
@@ -211,12 +213,13 @@ void DoorInteractionHandler::DrawGhostPreview() {
 
   // Draw ghost preview
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  float scale = GetCanvasScale();
-
-  ImVec2 preview_start(canvas_pos.x + snap_canvas_x * scale,
-                       canvas_pos.y + snap_canvas_y * scale);
-  ImVec2 preview_end(preview_start.x + door_width_px * scale,
-                     preview_start.y + door_height_px * scale);
+  const float scale = transform.scale();
+  const ImVec2 preview_start = transform.RoomPixelsToScreen(ImVec2(
+      static_cast<float>(snap_canvas_x), static_cast<float>(snap_canvas_y)));
+  const ImVec2 preview_size = transform.RoomSizeToScreen(ImVec2(
+      static_cast<float>(door_width_px), static_cast<float>(door_height_px)));
+  const ImVec2 preview_end(preview_start.x + preview_size.x,
+                           preview_start.y + preview_size.y);
 
   const auto& theme = AgentUI::GetTheme();
 
@@ -322,12 +325,12 @@ void DoorInteractionHandler::DrawSelectionHighlight() {
   }
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 canvas_pos = GetCanvasZeroPoint();
-  float scale = GetCanvasScale();
-
-  ImVec2 pos(canvas_pos.x + tile_x * 8 * scale,
-             canvas_pos.y + tile_y * 8 * scale);
-  ImVec2 size(dims.width_tiles * 8 * scale, dims.height_tiles * 8 * scale);
+  const DungeonCanvasTransform transform = GetCanvasTransform();
+  const float scale = transform.scale();
+  const ImVec2 pos =
+      transform.RoomPixelsToScreen(ImVec2(tile_x * 8.0f, tile_y * 8.0f));
+  const ImVec2 size = transform.RoomSizeToScreen(
+      ImVec2(dims.width_tiles * 8.0f, dims.height_tiles * 8.0f));
 
   // Animated selection
   static float pulse = 0.0f;
@@ -463,17 +466,12 @@ void DoorInteractionHandler::NavigateToPairBadge(
 
 std::optional<size_t> DoorInteractionHandler::GetEntityAtPosition(
     int canvas_x, int canvas_y) const {
-  if (!HasValidContext())
+  if (!HasValidContext() || !IsWithinBounds(canvas_x, canvas_y))
     return std::nullopt;
 
   auto* room = ctx_->GetCurrentRoomConst();
   if (!room)
     return std::nullopt;
-
-  // Convert screen coordinates to room coordinates
-  float scale = GetCanvasScale();
-  int room_x = static_cast<int>(canvas_x / scale);
-  int room_y = static_cast<int>(canvas_y / scale);
 
   const auto& doors = room->GetDoors();
   for (size_t i = 0; i < doors.size(); ++i) {
@@ -481,8 +479,8 @@ std::optional<size_t> DoorInteractionHandler::GetEntityAtPosition(
 
     auto [door_x, door_y, door_w, door_h] = door.GetEditorBounds();
 
-    if (room_x >= door_x && room_x < door_x + door_w && room_y >= door_y &&
-        room_y < door_y + door_h) {
+    if (canvas_x >= door_x && canvas_x < door_x + door_w &&
+        canvas_y >= door_y && canvas_y < door_y + door_h) {
       return i;
     }
   }
@@ -713,8 +711,7 @@ void DoorInteractionHandler::DrawSnapIndicators() {
       drag_x, drag_y, direction);
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 canvas_pos = GetCanvasZeroPoint();
-  float scale = GetCanvasScale();
+  const DungeonCanvasTransform transform = GetCanvasTransform();
   const auto& theme = AgentUI::GetTheme();
   zelda3::DoorType indicator_type = preview_door_type_;
   auto* room = GetCurrentRoom();
@@ -732,10 +729,12 @@ void DoorInteractionHandler::DrawSnapIndicators() {
     float pixel_x = tile_x * 8.0f;
     float pixel_y = tile_y * 8.0f;
 
-    ImVec2 snap_start(canvas_pos.x + pixel_x * scale,
-                      canvas_pos.y + pixel_y * scale);
-    ImVec2 snap_end(snap_start.x + dims.width_pixels() * scale,
-                    snap_start.y + dims.height_pixels() * scale);
+    const ImVec2 snap_start =
+        transform.RoomPixelsToScreen(ImVec2(pixel_x, pixel_y));
+    const ImVec2 snap_size = transform.RoomSizeToScreen(
+        ImVec2(dims.width_pixels(), dims.height_pixels()));
+    const ImVec2 snap_end(snap_start.x + snap_size.x,
+                          snap_start.y + snap_size.y);
 
     if (pos == nearest_snap) {
       ImVec4 highlight(theme.dungeon_selection_primary.x,
