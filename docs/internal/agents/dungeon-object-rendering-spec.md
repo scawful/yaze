@@ -20,7 +20,7 @@ Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optio
   4) Primary room objects: restores the room’s object pointer (`RoomData_ObjectDataPointers`) and runs `RoomDraw_DrawAllObjects` again (BA now points past the layout byte).
   5) BG2 overlay list: skips the `0xFFFF` sentinel (`INC BA` twice), reloads pointer tables with `RoomData_TilemapPointers_lower_layer`, and draws a third object list to BG2.
   6) BG1 overlay list: skips the next `0xFFFF`, reloads pointer tables with `RoomData_TilemapPointers_upper_layer`, and draws the final object list to BG1.
-  7) Pushable blocks (`$7EF940`) and torches (`$7EFB40`) are drawn after the four passes.
+  7) Pushable blocks (`$7EF940`) and torches (`$7EFB40`) are drawn after the four passes. Both use stored bit 13 to select upper/BG1 or lower/BG2: their draw routines mask the encoded word with `AND #$3FFF`, retaining bit 13 in the offset from the installed upper/BG1 tilemap base. Pushable-block bit 14 controls behavior/pit checks; torch bit 14 is reserved and bit 15 selects the initially lit art.
 - Implication: BG merge and layer type are **not** exclusive—four object streams are processed in order, with explicit pointer swaps for BG2 then BG1 overlays. Layout objects should never overdraw later passes; if they do in the editor, the pass order is wrong.
 
 ## Object Encoding (RoomDraw_RoomObject at $01893C)
@@ -38,7 +38,7 @@ Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optio
   - `RoomDraw_GetSize_1to15or32` at $01B0CC: nibble 0 → 32 tiles; otherwise nibble value.
   - After calling any helper: `$B2` holds the final count; `$B4` is cleared.
 - Type 2 format (`byte0 >= $FC`) uses tables at `.type2_data_offset` ($0183F0) and `.type2_routine` ($018470). No size field; fixed dimensions per routine.
-- Type 3 format (`id >= $F8`) uses `.type3_data_offset` ($0184F0) and `.type3_routine` ($0185F0). Some use size nibble (e.g., Somaria lines); most are fixed-size objects like chests and stair blocks.
+- Type 3 format (`id >= $F8`) uses `.type3_data_offset` ($0184F0) and `.type3_routine` ($0185F0). Somaria path pieces and most other Type 3 objects have fixed draw footprints; some routines select different tiles or footprints from room state.
 
 ## Draw Routine Families & Expected Symbology
 - Type 1 routine table: `.type1_routine` at `$018200`.
@@ -54,7 +54,7 @@ Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optio
   - IDs 0x135–0x13F: water-hop stairs, spiral stairs, sanctuary wall, magic bat altar—fixed-size, no size nibble.
 - Type 3 routines (`.type3_routine`):
   - Chests/big chests (0x218–0x232) are single 1×1 anchors; selection should stay 1 tile.
-  - Somaria lines (0x203–0x20C/0x20E) use the size nibble as a tile count; they extend along X with no Y growth.
+  - Somaria path pieces (ASM 0x203–0x20C, 0x20E, and 0x20F; yaze 0xF83–0xF8C, 0xF8E, and 0xF8F) each select one tile word and write it once at the object anchor. Size bits do not extend a piece.
   - Pipes (0x23A–0x23D) are fixed 2×? rectangles; use arrows that match their orientation.
 
 ## Ceiling and Large Object Ground Truth

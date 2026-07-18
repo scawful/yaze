@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/dungeon_snapping.h"
@@ -231,8 +232,11 @@ class DungeonObjectInteraction {
   bool SetObjectSize(size_t index, uint8_t size);
   bool SetObjectLayer(size_t index, zelda3::RoomObject::LayerType layer);
 
-  // Layer assignment for selected objects
-  void SendSelectedToLayer(int target_layer);
+  // Stored placement assignment for selected objects. Stream 2 is available
+  // only when every selected object belongs to the room object stream; torches
+  // and pushable blocks use a two-value special-table draw selector instead.
+  bool CanAssignSelectedObjectsToLayer(int target_layer) const;
+  bool SendSelectedToLayer(int target_layer);
 
   // Object ordering (changes draw order within the layer)
   // SNES draws objects in list order - first objects appear behind, last on top
@@ -300,6 +304,11 @@ class DungeonObjectInteraction {
   }
 
  private:
+  DungeonCanvasTransform GetCanvasTransform() const {
+    return DungeonCanvasTransform(canvas_->zero_point(), canvas_->scrolling(),
+                                  canvas_->global_scale());
+  }
+
   gui::Canvas* canvas_;
   zelda3::DungeonEditorSystem* editor_system_ = nullptr;
   DungeonRoomStore* rooms_ = nullptr;

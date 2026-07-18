@@ -103,15 +103,17 @@ TEST_F(ObjectParserTest, ParseSubtype2Object) {
 }
 
 TEST_F(ObjectParserTest, ParseSubtype3Object) {
-  // 0xF83 is in the subtype-3 ID range (0xF80-0xFFF) and falls through
-  // GetSubtype3TileCount's special-case ladder to the default 8 tiles.
-  // (0x201 was previously used here, but DetermineSubtype routes anything
-  // < 0xF80 to subtype 2, so the old test exercised ParseSubtype2.)
-  auto result = parser_->ParseObject(0xF83);
-  ASSERT_TRUE(result.ok());
-
-  const auto& tiles = result.value();
-  EXPECT_EQ(tiles.size(), 8);
+  // ASM objects 0x203-0x20C, 0x20E, and 0x20F each point to one tile word;
+  // RoomDraw_SomariaLine writes that word once at the object anchor.
+  constexpr int16_t kObjectIds[] = {0xF83, 0xF84, 0xF85, 0xF86, 0xF87, 0xF88,
+                                    0xF89, 0xF8A, 0xF8B, 0xF8C, 0xF8E, 0xF8F};
+  for (int16_t object_id : kObjectIds) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << object_id);
+    auto result = parser_->ParseObject(object_id);
+    ASSERT_TRUE(result.ok());
+    EXPECT_EQ(result->size(), 1u);
+  }
 }
 
 TEST_F(ObjectParserTest, GetObjectSubtype) {
