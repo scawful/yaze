@@ -36,7 +36,7 @@ std::string FormatSize(uintmax_t size_bytes) {
 
 std::string SeverityToString(core::OracleMenuValidationSeverity severity) {
   return severity == core::OracleMenuValidationSeverity::kError ? "error"
-                                                                 : "warning";
+                                                                : "warning";
 }
 
 std::string FormatIssueLine(const core::OracleMenuValidationIssue& issue) {
@@ -46,9 +46,8 @@ std::string FormatIssueLine(const core::OracleMenuValidationIssue& issue) {
                            issue.message, issue.asm_path, issue.line);
   }
   if (!issue.asm_path.empty()) {
-    return absl::StrFormat("[%s] %s: %s (%s)",
-                           SeverityToString(issue.severity), issue.code,
-                           issue.message, issue.asm_path);
+    return absl::StrFormat("[%s] %s: %s (%s)", SeverityToString(issue.severity),
+                           issue.code, issue.message, issue.asm_path);
   }
   return absl::StrFormat("[%s] %s: %s", SeverityToString(issue.severity),
                          issue.code, issue.message);
@@ -232,7 +231,8 @@ absl::Status OracleMenuValidateCommandHandler::Execute(
   formatter.AddField("bin_count", static_cast<int>(registry.bins.size()));
   formatter.AddField("draw_routine_count",
                      static_cast<int>(registry.draw_routines.size()));
-  formatter.AddField("component_count", static_cast<int>(registry.components.size()));
+  formatter.AddField("component_count",
+                     static_cast<int>(registry.components.size()));
   formatter.AddField("max_row", max_row);
   formatter.AddField("max_col", max_col);
   formatter.AddField("strict", strict);
@@ -304,8 +304,7 @@ absl::Status DungeonOraclePreflightCommandHandler::Execute(
       rooms_opt.has_value()) {
     for (absl::string_view token :
          absl::StrSplit(rooms_opt.value(), ',', absl::SkipEmpty())) {
-      std::string trimmed =
-          std::string(absl::StripAsciiWhitespace(token));
+      std::string trimmed = std::string(absl::StripAsciiWhitespace(token));
       int room_id = 0;
       if (!util::ParseHexString(trimmed, &room_id)) {
         return absl::InvalidArgumentError(absl::StrFormat(
@@ -400,9 +399,9 @@ absl::Status DungeonOraclePreflightCommandHandler::Execute(
   if (!required_rooms.empty()) {
     formatter.AddField("required_rooms_checked",
                        static_cast<int>(required_rooms.size()));
-    formatter.AddField("required_rooms_check",
-                       required_check_ran ? std::string("ran")
-                                          : std::string("skipped"));
+    formatter.AddField("required_rooms_check", required_check_ran
+                                                   ? std::string("ran")
+                                                   : std::string("skipped"));
     if (required_check_ran) {
       formatter.AddField("required_rooms_ok", required_rooms_ok);
     }
@@ -428,8 +427,8 @@ absl::Status DungeonOraclePreflightCommandHandler::Execute(
   if (auto report_path = parser.GetString("report");
       report_path.has_value() && !report_path->empty()) {
     const std::string report_content = report.dump(2) + "\n";
-    std::ofstream report_file(*report_path,
-                              std::ios::out | std::ios::binary | std::ios::trunc);
+    std::ofstream report_file(
+        *report_path, std::ios::out | std::ios::binary | std::ios::trunc);
     if (!report_file.is_open()) {
       return absl::PermissionDeniedError(
           absl::StrFormat("dungeon-oracle-preflight: cannot open report file "
