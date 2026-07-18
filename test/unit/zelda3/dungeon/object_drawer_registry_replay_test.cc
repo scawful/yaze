@@ -243,6 +243,30 @@ void WriteBinaryFile(const std::filesystem::path& path,
   ASSERT_TRUE(out.good());
 }
 
+TEST(ObjectDrawerRegistryReplayTest,
+     SomariaPathPiecesDrawOneTileAtTheObjectAnchor) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  // USDASM RoomDraw_SomariaLine performs one load/store and returns. Objects
+  // 0x203-0x20C, 0x20E, and 0x20F select distinct one-word tile data entries;
+  // their size bits must not be interpreted as a repeated line length.
+  constexpr int16_t kObjectIds[] = {0xF83, 0xF84, 0xF85, 0xF86, 0xF87, 0xF88,
+                                    0xF89, 0xF8A, 0xF8B, 0xF8C, 0xF8E, 0xF8F};
+  constexpr int kX = 20;
+  constexpr int kY = 20;
+  constexpr uint16_t kTileId = 0x0123;
+
+  for (int16_t object_id : kObjectIds) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << object_id);
+    auto trace = ReplayObjectTrace(object_id, kX, kY, /*size=*/0x0C,
+                                   RoomObject::LayerType::BG1,
+                                   MakeSequentialTiles(/*count=*/1, kTileId));
+    const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+    ExpectTraceMatchesSnapshot(bg1, {{kX, kY, kTileId}});
+  }
+}
+
 std::array<uint8_t, 0x10000> MakeOpaqueDoorGfx() {
   std::array<uint8_t, 0x10000> gfx{};
   gfx.fill(1);
@@ -3018,7 +3042,7 @@ TEST(ObjectDrawerRegistryReplayTest, MovingWallsDrawNothingAfterWallMoved) {
                  << "object_id=0x" << std::hex << object_id);
     auto trace = ReplayObjectTrace(object_id, /*x=*/36, /*y=*/4, /*size=*/0,
                                    RoomObject::LayerType::BG1,
-                                   MakeSequentialTiles(/*count=*/28), &state);
+                                   MakeSequentialTiles(/*count=*/24), &state);
     EXPECT_TRUE(trace.empty());
   }
 }
@@ -3039,7 +3063,7 @@ TEST(ObjectDrawerRegistryReplayTest,
       const int direction = moving_wall::kDirections[direction_index];
       const int count = moving_wall::kObjectCounts[count_index];
       const int height = direction * 2 + 6;
-      const size_t expected_writes = count * height + 9 + direction * 6;
+      const size_t expected_writes = count * height + 18 + direction * 6;
 
       for (const int16_t object_id : {int16_t{0x00CD}, int16_t{0x00CE}}) {
         SCOPED_TRACE(::testing::Message()
@@ -3048,7 +3072,7 @@ TEST(ObjectDrawerRegistryReplayTest,
         const int object_x = object_id == 0x00CD ? kWestX : kEastX;
         auto trace = ReplayObjectTrace(object_id, object_x, kY, size,
                                        RoomObject::LayerType::BG1,
-                                       MakeSequentialTiles(/*count=*/28));
+                                       MakeSequentialTiles(/*count=*/24));
         const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
 
         ASSERT_EQ(bg1.size(), expected_writes);
@@ -3079,12 +3103,12 @@ TEST(ObjectDrawerRegistryReplayTest,
 
   auto west_trace = ReplayObjectTrace(
       /*object_id=*/0x00CD, kX, kY, /*size=*/0, RoomObject::LayerType::BG1,
-      MakeSequentialTiles(/*count=*/28), nullptr, fill_words);
+      MakeSequentialTiles(/*count=*/24), nullptr, fill_words);
   const auto west = FilterTraceByLayer(west_trace, RoomObject::LayerType::BG1);
 
   // West fill grows eight columns left from the anchor. Its top/middle/bottom
-  // tiles come from obj03D8, while the 3x3 corner and repeated 3x2 vertical
-  // wall use object payload slots 0..14.
+  // tiles come from obj03D8, while the 3x3 corners and repeated 3x2 vertical
+  // wall use object payload slots 0..23.
   EXPECT_EQ(LastTileIdAt(west, kX - 8, kY + 0), 0x011);
   EXPECT_EQ(LastTileIdAt(west, kX - 8, kY + 1), 0x022);
   EXPECT_EQ(LastTileIdAt(west, kX - 8, kY + 15), 0x033);
@@ -3092,19 +3116,25 @@ TEST(ObjectDrawerRegistryReplayTest,
   EXPECT_EQ(LastTileIdAt(west, kX + 2, kY + 2), 8);
   EXPECT_EQ(LastTileIdAt(west, kX + 0, kY + 3), 9);
   EXPECT_EQ(LastTileIdAt(west, kX + 2, kY + 4), 14);
+  EXPECT_EQ(LastTileIdAt(west, kX + 0, kY + 13), 15);
+  EXPECT_EQ(LastTileIdAt(west, kX + 1, kY + 14), 19);
+  EXPECT_EQ(LastTileIdAt(west, kX + 2, kY + 15), 23);
 
   auto east_trace = ReplayObjectTrace(
       /*object_id=*/0x00CE, kX, kY, /*size=*/0, RoomObject::LayerType::BG1,
-      MakeSequentialTiles(/*count=*/28), nullptr, fill_words);
+      MakeSequentialTiles(/*count=*/24), nullptr, fill_words);
   const auto east = FilterTraceByLayer(east_trace, RoomObject::LayerType::BG1);
 
   // East keeps the wall at the anchor and grows the fill rightward. Like west,
-  // it resets X to obj03D8 before drawing the fill; payload slots 0..14 remain
-  // dedicated to the corner and vertical wall.
+  // it resets X to obj03D8 before drawing the fill; payload slots 0..23 remain
+  // dedicated to the corners and vertical wall.
   EXPECT_EQ(LastTileIdAt(east, kX + 0, kY + 0), 0);
   EXPECT_EQ(LastTileIdAt(east, kX + 2, kY + 2), 8);
   EXPECT_EQ(LastTileIdAt(east, kX + 0, kY + 3), 9);
   EXPECT_EQ(LastTileIdAt(east, kX + 2, kY + 4), 14);
+  EXPECT_EQ(LastTileIdAt(east, kX + 0, kY + 13), 15);
+  EXPECT_EQ(LastTileIdAt(east, kX + 1, kY + 14), 19);
+  EXPECT_EQ(LastTileIdAt(east, kX + 2, kY + 15), 23);
   EXPECT_EQ(LastTileIdAt(east, kX + 3, kY + 0), 0x011);
   EXPECT_EQ(LastTileIdAt(east, kX + 3, kY + 1), 0x022);
   EXPECT_EQ(LastTileIdAt(east, kX + 3, kY + 15), 0x033);

@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/dungeon_snapping.h"
@@ -303,6 +304,11 @@ class DungeonObjectInteraction {
   }
 
  private:
+  DungeonCanvasTransform GetCanvasTransform() const {
+    return DungeonCanvasTransform(canvas_->zero_point(), canvas_->scrolling(),
+                                  canvas_->global_scale());
+  }
+
   gui::Canvas* canvas_;
   zelda3::DungeonEditorSystem* editor_system_ = nullptr;
   DungeonRoomStore* rooms_ = nullptr;

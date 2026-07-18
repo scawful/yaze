@@ -412,17 +412,19 @@ TEST_F(CustomObjectRoomRenderTest,
 }
 
 TEST_F(CustomObjectRoomRenderTest,
-       LightableTorchSelectorDoesNotChangeBg1DrawTarget) {
-  RoomObject selector_zero_torch(/*id=*/0x150, /*x=*/3, /*y=*/4, /*size=*/0,
-                                 /*layer=*/0);
-  selector_zero_torch.set_options(ObjectOption::Torch);
-  selector_zero_torch.lit_ = false;
-  RoomObject selector_one_torch(/*id=*/0x150, /*x=*/8, /*y=*/9, /*size=*/0,
-                                /*layer=*/1);
-  selector_one_torch.set_options(ObjectOption::Torch);
-  selector_one_torch.lit_ = true;
+       LightableTorchDrawLayerRoutesToEncodedBackground) {
+  RoomObject upper_torch(/*id=*/0x150, /*x=*/3, /*y=*/4, /*size=*/0,
+                         /*layer=*/0);
+  upper_torch.set_options(ObjectOption::Torch);
+  upper_torch.set_torch_reserved_bit(1);
+  upper_torch.lit_ = false;
+  RoomObject lower_torch(/*id=*/0x150, /*x=*/8, /*y=*/9, /*size=*/0,
+                         /*layer=*/1);
+  lower_torch.set_options(ObjectOption::Torch);
+  lower_torch.set_torch_reserved_bit(0);
+  lower_torch.lit_ = true;
 
-  Room room = MakeRoomWithObjects({selector_zero_torch, selector_one_torch});
+  Room room = MakeRoomWithObjects({upper_torch, lower_torch});
   RenderObjectBuffers(room);
 
   const auto& bg1 = room.object_bg1_buffer();
@@ -431,22 +433,65 @@ TEST_F(CustomObjectRoomRenderTest,
   ASSERT_TRUE(bg1_bitmap.is_active());
   ASSERT_TRUE(bg2.bitmap().is_active());
 
-  for (const auto [x, y] : {std::pair{3, 4}, std::pair{8, 9}}) {
-    const int pixel_index = PixelIndex(bg1_bitmap, x * 8, y * 8);
-    ASSERT_LT(pixel_index, static_cast<int>(bg1.coverage_data().size()));
-    ASSERT_LT(pixel_index, static_cast<int>(bg2.coverage_data().size()));
-    EXPECT_EQ(bg1.coverage_data()[pixel_index], 1)
-        << "Lightable torches should always render through upper/BG1";
-    EXPECT_EQ(bg2.coverage_data()[pixel_index], 0)
-        << "The stored selector must not route torch art to BG2";
-  }
+  const int upper_pixel = PixelIndex(bg1_bitmap, 3 * 8, 4 * 8);
+  const int lower_pixel = PixelIndex(bg1_bitmap, 8 * 8, 9 * 8);
+  ASSERT_LT(upper_pixel, static_cast<int>(bg1.coverage_data().size()));
+  ASSERT_LT(lower_pixel, static_cast<int>(bg2.coverage_data().size()));
+  EXPECT_EQ(bg1.coverage_data()[upper_pixel], 1);
+  EXPECT_EQ(bg2.coverage_data()[upper_pixel], 0);
+  EXPECT_EQ(bg1.coverage_data()[lower_pixel], 0);
+  EXPECT_EQ(bg2.coverage_data()[lower_pixel], 1);
 
   ASSERT_EQ(room.GetTileObjects().size(), 2u);
   EXPECT_EQ(room.GetTileObjects()[0].GetLayerValue(), 0);
+  EXPECT_EQ(room.GetTileObjects()[0].torch_reserved_bit(), 1);
   EXPECT_FALSE(room.GetTileObjects()[0].lit_);
   EXPECT_EQ(room.GetTileObjects()[1].GetLayerValue(), 1);
+  EXPECT_EQ(room.GetTileObjects()[1].torch_reserved_bit(), 0);
   EXPECT_TRUE(room.GetTileObjects()[1].lit_)
-      << "Rendering must preserve the selector and initial lit state";
+      << "Rendering must preserve the draw layer, reserved bit, and lit state";
+}
+
+TEST_F(CustomObjectRoomRenderTest,
+       RawLowerLayerTorchLoadsRendersAndSavesByteExactly) {
+  const std::vector<uint8_t> blob = {
+      0x01, 0x00,  // room_id = 1
+      0x14, 0xEA,  // x=10,y=20,draw=BG2,reserved=1,lit=1
+      0xFF, 0xFF,  // terminator
+  };
+  ASSERT_TRUE(
+      rom_->WriteWord(kTorchesLengthPointer, static_cast<uint16_t>(blob.size()))
+          .ok());
+  ASSERT_TRUE(rom_->WriteVector(kTorchData, blob).ok());
+  rom_->ClearDirty();
+
+  Room room(/*room_id=*/1, rom_.get(), &game_data_);
+  room.LoadTorches();
+  ASSERT_TRUE(room.AreTorchesLoaded());
+  ASSERT_EQ(room.GetTileObjects().size(), 1u);
+  const RoomObject& torch = room.GetTileObjects().front();
+  EXPECT_EQ(torch.x(), 10);
+  EXPECT_EQ(torch.y(), 20);
+  EXPECT_EQ(torch.GetLayerValue(), 1);
+  EXPECT_EQ(torch.torch_reserved_bit(), 1);
+  EXPECT_TRUE(torch.lit_);
+
+  RenderObjectBuffers(room);
+  const auto& bg1 = room.object_bg1_buffer();
+  const auto& bg2 = room.object_bg2_buffer();
+  const int pixel = PixelIndex(bg1.bitmap(), 10 * 8, 20 * 8);
+  ASSERT_LT(pixel, static_cast<int>(bg2.coverage_data().size()));
+  EXPECT_EQ(bg1.coverage_data()[pixel], 0);
+  EXPECT_EQ(bg2.coverage_data()[pixel], 1);
+
+  const auto status = SaveAllTorches(rom_.get(), kNumberOfRooms,
+                                     [&room](int room_id) -> const Room* {
+                                       return room_id == 1 ? &room : nullptr;
+                                     });
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_FALSE(rom_->dirty());
+  EXPECT_TRUE(std::equal(blob.begin(), blob.end(),
+                         rom_->vector().begin() + kTorchData));
 }
 
 TEST_F(CustomObjectRoomRenderTest,
