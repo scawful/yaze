@@ -23,6 +23,7 @@
 #include "rom/write_fence.h"
 #include "util/log.h"
 #include "zelda3/dungeon/dungeon_block_codec.h"
+#include "zelda3/dungeon/dungeon_torch_codec.h"
 #include "zelda3/dungeon/editor_dungeon_state.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/palette_debug.h"
@@ -1445,6 +1446,9 @@ void Room::RenderObjectsToBackground() {
     if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
       const uint16_t off =
           obj.lit_ ? kRoomDrawObj_TorchLit : kRoomDrawObj_TorchUnlit;
+      // RoomDraw_LightableTorch retains bit 13 in its masked tilemap offset,
+      // so the stored draw layer selects upper/BG1 or lower/BG2. Reserved bit
+      // 14 and the lit bit do not affect the draw target.
       (void)drawer.DrawRoomDrawObjectData2x2(
           static_cast<uint16_t>(obj.id_), obj.x_, obj.y_, obj.layer_, off,
           object_bg1_buffer_, object_bg2_buffer_);
@@ -2418,23 +2422,20 @@ void Room::LoadTorches() {
           break;
         }
 
-        // Decode torch position and properties
-        int address = ((b2 & 0x1F) << 8 | b1) >> 1;
-        uint8_t px = address % 64;
-        uint8_t py = address >> 6;
-        uint8_t layer = (b2 & 0x20) >> 5;
-        bool lit = (b2 & 0x80) == 0x80;
+        const LightableTorchEntry entry = DecodeLightableTorchEntry({b1, b2});
 
         // Create torch object (ID 0x150)
-        RoomObject torch_obj(0x150, px, py, 0, layer);
+        RoomObject torch_obj(0x150, entry.px, entry.py, 0, entry.draw_layer);
         torch_obj.SetRom(rom_);
         torch_obj.set_options(ObjectOption::Torch);
-        torch_obj.lit_ = lit;
+        torch_obj.set_torch_reserved_bit(entry.reserved);
+        torch_obj.lit_ = entry.lit;
 
         tile_objects_.push_back(torch_obj);
 
-        LOG_DEBUG("Room", "Loaded torch at (%d,%d) layer=%d lit=%d", px, py,
-                  layer, lit);
+        LOG_DEBUG(
+            "Room", "Loaded torch at (%d,%d) draw_layer=%d reserved=%d lit=%d",
+            entry.px, entry.py, entry.draw_layer, entry.reserved, entry.lit);
 
         i += 2;
       }
@@ -2475,6 +2476,13 @@ std::vector<TorchSegment> ParseRomTorchSegments(
     uint8_t b1 = rom_data[kTorchData + i];
     uint8_t b2 = rom_data[kTorchData + i + 1];
     if (b1 == 0xFF && b2 == 0xFF) {
+      // Vanilla contains standalone $FFFF padding between two authored room
+      // segments. Keep it as an unowned pass-through segment so a no-op save
+      // remains byte-identical instead of compacting the table.
+      TorchSegment padding;
+      padding.room_id = 0xFFFF;
+      padding.bytes = {0xFF, 0xFF};
+      segments.push_back(std::move(padding));
       i += 2;
       continue;
     }
@@ -2516,15 +2524,15 @@ std::vector<uint8_t> EncodeTorchSegmentForRoom(int room_id, const Room& room) {
       bytes.push_back(room_id & 0xFF);
       bytes.push_back((room_id >> 8) & 0xFF);
     }
-    int address = obj.x() + (obj.y() * 64);
-    int word = address << 1;
-    uint8_t b1 = word & 0xFF;
-    uint8_t b2 = ((word >> 8) & 0x1F) | ((obj.GetLayerValue() & 1) << 5);
-    if (obj.lit_) {
-      b2 |= 0x80;
-    }
-    bytes.push_back(b1);
-    bytes.push_back(b2);
+    const LightableTorchBytes encoded = EncodeLightableTorchEntry({
+        .px = static_cast<uint8_t>(obj.x()),
+        .py = static_cast<uint8_t>(obj.y()),
+        .draw_layer = static_cast<uint8_t>(obj.GetLayerValue() & 1),
+        .reserved = obj.torch_reserved_bit(),
+        .lit = obj.lit_,
+    });
+    bytes.push_back(encoded.low);
+    bytes.push_back(encoded.high);
   }
   if (!bytes.empty()) {
     bytes.push_back(0xFF);
@@ -2545,6 +2553,19 @@ absl::Status ValidateSpecialObjectDrawLayerSelector(const RoomObject& object,
       "expected 0 "
       "(upper/BG1) or 1 (lower/BG2)",
       object_type, room_id, selector));
+}
+
+absl::Status ValidateLightableTorchForSave(const RoomObject& object,
+                                           int room_id) {
+  RETURN_IF_ERROR(
+      ValidateSpecialObjectDrawLayerSelector(object, room_id, "Torch"));
+  if (object.x() <= 0x3E && object.y() <= 0x3E) {
+    return absl::OkStatus();
+  }
+  return absl::InvalidArgumentError(absl::StrFormat(
+      "Torch in room 0x%03X has invalid position (%d,%d); expected x/y in "
+      "range 0..62",
+      room_id, object.x(), object.y()));
 }
 
 }  // namespace
@@ -2580,8 +2601,7 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
     }
     for (const auto& object : room->GetTileObjects()) {
       if ((object.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
-        RETURN_IF_ERROR(
-            ValidateSpecialObjectDrawLayerSelector(object, room_id, "Torch"));
+        RETURN_IF_ERROR(ValidateLightableTorchForSave(object, room_id));
       }
     }
     owned_rooms[room_id] = true;
