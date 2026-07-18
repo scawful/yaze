@@ -1,6 +1,8 @@
 #include "app/editor/dungeon/interaction/tile_object_handler.h"
+#include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/object_selection.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gui/canvas/canvas.h"
 #include "app/platform/sdl_compat.h"
 #include "imgui/imgui.h"
 
@@ -37,6 +39,11 @@ zelda3::RoomObject CreateLayeredTestObject(uint8_t x, uint8_t y,
   return object;
 }
 
+class TestableTileObjectHandler : public TileObjectHandler {
+ public:
+  using BaseEntityHandler::GetCanvasTransform;
+};
+
 // Test fixture for TileObjectHandler tests
 class TileObjectHandlerTest : public ::testing::Test {
  protected:
@@ -46,12 +53,23 @@ class TileObjectHandlerTest : public ::testing::Test {
 
     // Initialize ImGui
     ImGui::CreateContext();
-    ImGui::GetIO().DisplaySize = ImVec2(1024, 768);
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(1600, 1400);
+    io.DeltaTime = 1.0f / 60.0f;
+    io.Fonts->AddFontDefault();
+    unsigned char* pixels = nullptr;
+    int atlas_width = 0;
+    int atlas_height = 0;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &atlas_width, &atlas_height);
+
+    canvas_ = std::make_unique<gui::Canvas>(
+        "TestDungeonCanvas", ImVec2(512, 512), gui::CanvasGridSize::k16x16);
 
     // Set up context
     ctx_.rooms = &rooms_;
     ctx_.current_room_id = 0;
     ctx_.selection = &selection_;
+    ctx_.canvas = canvas_.get();
     ctx_.on_mutation = [this]() {
       mutation_count_++;
       last_mutation_domain_ = ctx_.last_mutation_domain;
@@ -69,6 +87,7 @@ class TileObjectHandlerTest : public ::testing::Test {
     gfx::Arena::Get().ClearTextureQueue();
     // Clear any test objects
     rooms_[0].ClearTileObjects();
+    canvas_.reset();
     ImGui::DestroyContext();
   }
 
@@ -109,8 +128,9 @@ class TileObjectHandlerTest : public ::testing::Test {
   Rom rom_;
   DungeonRoomStore rooms_;
   ObjectSelection selection_;
+  std::unique_ptr<gui::Canvas> canvas_;
   InteractionContext ctx_;
-  TileObjectHandler handler_;
+  TestableTileObjectHandler handler_;
   int mutation_count_ = 0;
   int invalidate_count_ = 0;
   MutationDomain last_mutation_domain_ = MutationDomain::kUnknown;
@@ -134,6 +154,137 @@ TEST_F(TileObjectHandlerTest, PlaceObjectAtValidPosition) {
   EXPECT_GT(mutation_count_, 0);
   EXPECT_EQ(last_mutation_domain_, MutationDomain::kTileObjects);
   EXPECT_EQ(last_invalidation_domain_, MutationDomain::kTileObjects);
+}
+
+TEST_F(TileObjectHandlerTest,
+       PlacementAndHitTestingStayStableAcrossZoomAndPan) {
+  constexpr std::array<float, 3> kScales = {0.5f, 1.0f, 2.0f};
+  constexpr std::array<ImVec2, 2> kScrolling = {ImVec2(48.0f, 24.0f),
+                                                ImVec2(-56.0f, -32.0f)};
+  constexpr ImVec2 kPlacementRoomPixel(160.0f, 160.0f);
+  constexpr ImVec2 kHitRoomPixel(164.0f, 164.0f);
+
+  handler_.SetPreviewObject(CreateTestObject(0, 0, 0x00, 0x01));
+  handler_.BeginPlacement();
+  for (const ImVec2 scrolling : kScrolling) {
+    for (const float scale : kScales) {
+      rooms_[0].ClearTileObjects();
+      canvas_->set_scrolling(scrolling);
+      canvas_->set_global_scale(scale);
+      const DungeonCanvasTransform transform = handler_.GetCanvasTransform();
+
+      const auto [placement_x, placement_y] =
+          transform.ScreenToRoomPixelCoordinates(
+              transform.RoomPixelsToScreen(kPlacementRoomPixel));
+      ASSERT_TRUE(handler_.HandleClick(placement_x, placement_y));
+
+      ASSERT_EQ(rooms_[0].GetTileObjects().size(), 1u)
+          << "scale=" << scale << ", scroll=" << scrolling.x << ","
+          << scrolling.y;
+      EXPECT_EQ(rooms_[0].GetTileObjects()[0].x_, 20);
+      EXPECT_EQ(rooms_[0].GetTileObjects()[0].y_, 20);
+
+      const auto [hit_x, hit_y] = transform.ScreenToRoomPixelCoordinates(
+          transform.RoomPixelsToScreen(kHitRoomPixel));
+      const auto hit = handler_.GetEntityAtPosition(hit_x, hit_y);
+      ASSERT_TRUE(hit.has_value())
+          << "scale=" << scale << ", scroll=" << scrolling.x << ","
+          << scrolling.y;
+      EXPECT_EQ(*hit, 0u);
+    }
+  }
+  handler_.CancelPlacement();
+}
+
+TEST_F(TileObjectHandlerTest,
+       MarqueeAndUpLeftPlacementGhostShareCanvasTransform) {
+  constexpr std::array<float, 3> kScales = {0.5f, 1.0f, 2.0f};
+  constexpr std::array<ImVec2, 2> kScrolling = {ImVec2(48.0f, 24.0f),
+                                                ImVec2(-56.0f, -32.0f)};
+  constexpr ImVec2 kRoomPixel(160.0f, 160.0f);
+
+  const auto preview = CreateTestObject(0, 0, 0x12, 0xA3);
+  const auto preview_geometry =
+      TileObjectHandler::CalculateGhostPreviewGeometry(preview);
+  ASSERT_LT(preview_geometry.offset_x_tiles, 0);
+  ASSERT_LT(preview_geometry.offset_y_tiles, 0);
+  handler_.SetPreviewObject(preview);
+  handler_.BeginPlacement();
+
+  ImGuiIO& io = ImGui::GetIO();
+  io.AddMousePosEvent(100.0f, 100.0f);
+  ImGui::NewFrame();
+  ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(1400.0f, 1200.0f), ImGuiCond_Always);
+  ImGui::Begin("DungeonCanvasTransformHost", nullptr,
+               ImGuiWindowFlags_NoSavedSettings);
+  canvas_->DrawBackground(ImVec2(512, 512));
+  ImGui::End();
+  ImGui::Render();
+
+  for (const ImVec2 scrolling : kScrolling) {
+    for (const float scale : kScales) {
+      canvas_->set_scrolling(scrolling);
+      canvas_->set_global_scale(scale);
+      const ImVec2 mouse_hint =
+          handler_.GetCanvasTransform().RoomPixelsToScreen(kRoomPixel);
+
+      io.AddMousePosEvent(mouse_hint.x, mouse_hint.y);
+      ImGui::NewFrame();
+      ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always);
+      ImGui::SetNextWindowSize(ImVec2(1400.0f, 1200.0f), ImGuiCond_Always);
+      ImGui::Begin("DungeonCanvasTransformHost", nullptr,
+                   ImGuiWindowFlags_NoSavedSettings);
+      canvas_->DrawBackground(ImVec2(512, 512));
+      const ImVec2 expected_room_origin =
+          handler_.GetCanvasTransform().RoomPixelsToScreen(kRoomPixel);
+      const ImVec2 expected_ghost_start =
+          handler_.GetCanvasTransform().RoomPixelsToScreen(
+              ImVec2(kRoomPixel.x + preview_geometry.offset_x_tiles * 8.0f,
+                     kRoomPixel.y + preview_geometry.offset_y_tiles * 8.0f));
+      const ImVec2 expected_ghost_size =
+          handler_.GetCanvasTransform().RoomSizeToScreen(ImVec2(
+              preview_geometry.width_pixels, preview_geometry.height_pixels));
+      io.MousePos = expected_room_origin;
+
+      ImDrawList* draw_list = ImGui::GetWindowDrawList();
+      selection_.BeginRectangleSelection(160, 160);
+      selection_.UpdateRectangleSelection(176, 176);
+      const int selection_vertex_start = draw_list->VtxBuffer.Size;
+      selection_.DrawRectangleSelectionBox(canvas_.get());
+      const int ghost_vertex_start = draw_list->VtxBuffer.Size;
+      handler_.DrawGhostPreview();
+
+      const bool drew_selection =
+          draw_list->VtxBuffer.Size >= selection_vertex_start + 4;
+      const bool drew_ghost =
+          draw_list->VtxBuffer.Size >= ghost_vertex_start + 4;
+      EXPECT_TRUE(canvas_->IsMouseHovering());
+      EXPECT_TRUE(drew_selection);
+      EXPECT_TRUE(drew_ghost);
+      if (drew_selection && drew_ghost) {
+        const ImVec2 selection_start =
+            draw_list->VtxBuffer[selection_vertex_start].pos;
+        const ImVec2 ghost_start = draw_list->VtxBuffer[ghost_vertex_start].pos;
+        const ImVec2 ghost_end =
+            draw_list->VtxBuffer[ghost_vertex_start + 2].pos;
+        EXPECT_NEAR(selection_start.x, expected_room_origin.x, 0.01f);
+        EXPECT_NEAR(selection_start.y, expected_room_origin.y, 0.01f);
+        EXPECT_NEAR(ghost_start.x, expected_ghost_start.x, 0.01f);
+        EXPECT_NEAR(ghost_start.y, expected_ghost_start.y, 0.01f);
+        EXPECT_NEAR(ghost_end.x, expected_ghost_start.x + expected_ghost_size.x,
+                    0.01f);
+        EXPECT_NEAR(ghost_end.y, expected_ghost_start.y + expected_ghost_size.y,
+                    0.01f);
+      }
+
+      selection_.CancelRectangleSelection();
+      ImGui::End();
+      ImGui::Render();
+    }
+  }
+
+  handler_.CancelPlacement();
 }
 
 TEST_F(TileObjectHandlerTest, MoveObjectMarksObjectStreamDirty) {
