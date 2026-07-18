@@ -1023,14 +1023,14 @@ void ObjectDrawer::InitializeDrawRoutines() {
         self->DrawUsingRegistryRoutine(79, obj, bg, tiles, state);
       });
 
-  // Routine 80 - Moving Wall West (object 0xCD, 28 tiles)
+  // Routine 80 - Moving Wall West (object 0xCD, 24 tiles)
   draw_routines_.push_back(
       [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
         self->DrawUsingRegistryRoutine(80, obj, bg, tiles, state);
       });
 
-  // Routine 81 - Moving Wall East (object 0xCE, 28 tiles)
+  // Routine 81 - Moving Wall East (object 0xCE, 24 tiles)
   draw_routines_.push_back(
       [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {

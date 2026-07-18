@@ -215,6 +215,10 @@ void DrawMovingWallPlatform(const DrawContext& ctx, int direction) {
     DrawPlatform3x2(ctx, /*dx=*/0, /*dy=*/3 + i * 2,
                     /*start_index=*/9);
   }
+  // The ASM advances six words past the vertical pattern before stamping the
+  // second 3x3 corner (payload slots 15..23).
+  DrawPlatform1x3Rightwards(ctx, /*dx=*/0, /*dy=*/3 + direction * 2,
+                            /*start_index=*/15, /*columns=*/3);
 }
 
 void DrawOpenChestPlatformSegment(const DrawContext& ctx, int dy,
@@ -1210,7 +1214,7 @@ void DrawBombableFloor(const DrawContext& ctx) {
 void DrawMovingWallWest(const DrawContext& ctx) {
   // USDASM RoomDraw_MovingWallWest ($01:9190): moved walls emit no tiles.
   if ((ctx.state != nullptr && ctx.state->IsWallMoved(ctx.room_id)) ||
-      ctx.tiles.size() < 15) {
+      ctx.tiles.size() < 24) {
     return;
   }
 
@@ -1227,7 +1231,7 @@ void DrawMovingWallWest(const DrawContext& ctx) {
 void DrawMovingWallEast(const DrawContext& ctx) {
   // USDASM RoomDraw_MovingWallEast ($01:921C): moved walls emit no tiles.
   if ((ctx.state != nullptr && ctx.state->IsWallMoved(ctx.room_id)) ||
-      ctx.tiles.size() < 15) {
+      ctx.tiles.size() < 24) {
     return;
   }
 
@@ -1983,7 +1987,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 0,   // Variable: count selector + 3 platform columns
       .base_height = 0,  // Variable: 2 * direction selector + 6
-      .min_tiles = 15,
+      .min_tiles = 24,
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1994,7 +1998,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 0,   // Variable: count selector + 3 platform columns
       .base_height = 0,  // Variable: 2 * direction selector + 6
-      .min_tiles = 15,
+      .min_tiles = 24,
       .category = DrawRoutineInfo::Category::Special,
   });
 
