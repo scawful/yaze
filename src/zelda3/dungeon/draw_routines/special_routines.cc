@@ -333,87 +333,15 @@ void DrawDoorSwitcherer(const DrawContext& ctx) {
 }
 
 void DrawSomariaLine(const DrawContext& ctx) {
-  // Pattern: Somaria Line (objects 0x203-0x20F, 0x214)
-  // Draws a line of tiles based on direction encoded in object ID
-  // Direction mapping based on ZScream reference:
-  //   0x03: Horizontal right
-  //   0x04: Vertical down
-  //   0x05: Diagonal down-right
-  //   0x06: Diagonal down-left
-  //   0x07-0x09: Variations
-  //   0x0A-0x0C: More variations
-  //   0x0E-0x0F: Additional patterns
-  //   0x14: Another line type
-
-  if (ctx.tiles.empty())
+  // USDASM RoomDraw_SomariaLine writes one object-data word at the object's
+  // anchor. The apparent path is assembled from separate subtype-3 objects;
+  // the object's size bits do not extend an individual piece.
+  if (ctx.tiles.empty()) {
     return;
-
-  int length = (ctx.object.size_ & 0x0F) + 1;
-  int obj_subid = ctx.object.id_ & 0x0F;  // Low nibble determines direction
-
-  // Determine direction based on object sub-ID
-  int dx = 1, dy = 0;  // Default: horizontal right
-  switch (obj_subid) {
-    case 0x03:
-      dx = 1;
-      dy = 0;
-      break;  // Horizontal right
-    case 0x04:
-      dx = 0;
-      dy = 1;
-      break;  // Vertical down
-    case 0x05:
-      dx = 1;
-      dy = 1;
-      break;  // Diagonal down-right
-    case 0x06:
-      dx = -1;
-      dy = 1;
-      break;  // Diagonal down-left
-    case 0x07:
-      dx = 1;
-      dy = 0;
-      break;  // Horizontal (variant)
-    case 0x08:
-      dx = 0;
-      dy = 1;
-      break;  // Vertical (variant)
-    case 0x09:
-      dx = 1;
-      dy = 1;
-      break;  // Diagonal (variant)
-    case 0x0A:
-      dx = 1;
-      dy = 0;
-      break;  // Horizontal
-    case 0x0B:
-      dx = 0;
-      dy = 1;
-      break;  // Vertical
-    case 0x0C:
-      dx = 1;
-      dy = 1;
-      break;  // Diagonal
-    case 0x0E:
-      dx = 1;
-      dy = 0;
-      break;  // Horizontal
-    case 0x0F:
-      dx = 0;
-      dy = 1;
-      break;  // Vertical
-    default:
-      dx = 1;
-      dy = 0;
-      break;  // Default horizontal
   }
 
-  // Draw tiles along the path using first tile (Somaria uses single tile)
-  for (int i = 0; i < length; ++i) {
-    size_t tile_idx = i % ctx.tiles.size();  // Cycle through tiles if multiple
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + (i * dx),
-                                 ctx.object.y_ + (i * dy), ctx.tiles[tile_idx]);
-  }
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
+                               ctx.tiles.front());
 }
 
 void DrawWaterFace(const DrawContext& ctx) {
@@ -1476,8 +1404,9 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .name = "SomariaLine",
       .function = DrawSomariaLine,
       .draws_to_both_bgs = false,
-      .base_width = 0,  // Variable
-      .base_height = 0,
+      .base_width = 1,
+      .base_height = 1,
+      .min_tiles = 1,
       .category = DrawRoutineInfo::Category::Special,
   });
 
