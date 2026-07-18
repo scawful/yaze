@@ -1446,12 +1446,12 @@ void Room::RenderObjectsToBackground() {
     if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
       const uint16_t off =
           obj.lit_ ? kRoomDrawObj_TorchLit : kRoomDrawObj_TorchUnlit;
-      // RoomDraw_LightableTorch masks selector/lit bits before drawing and
-      // uses the upper/BG1 pointers left active by the final object pass.
+      // RoomDraw_LightableTorch retains bit 13 in its masked tilemap offset,
+      // so the stored draw layer selects upper/BG1 or lower/BG2. Reserved bit
+      // 14 and the lit bit do not affect the draw target.
       (void)drawer.DrawRoomDrawObjectData2x2(
-          static_cast<uint16_t>(obj.id_), obj.x_, obj.y_,
-          RoomObject::LayerType::BG1, off, object_bg1_buffer_,
-          object_bg2_buffer_);
+          static_cast<uint16_t>(obj.id_), obj.x_, obj.y_, obj.layer_, off,
+          object_bg1_buffer_, object_bg2_buffer_);
       continue;
     }
   }
@@ -2425,15 +2425,17 @@ void Room::LoadTorches() {
         const LightableTorchEntry entry = DecodeLightableTorchEntry({b1, b2});
 
         // Create torch object (ID 0x150)
-        RoomObject torch_obj(0x150, entry.px, entry.py, 0, entry.selector);
+        RoomObject torch_obj(0x150, entry.px, entry.py, 0, entry.draw_layer);
         torch_obj.SetRom(rom_);
         torch_obj.set_options(ObjectOption::Torch);
+        torch_obj.set_torch_reserved_bit(entry.reserved);
         torch_obj.lit_ = entry.lit;
 
         tile_objects_.push_back(torch_obj);
 
-        LOG_DEBUG("Room", "Loaded torch at (%d,%d) selector=%d lit=%d",
-                  entry.px, entry.py, entry.selector, entry.lit);
+        LOG_DEBUG(
+            "Room", "Loaded torch at (%d,%d) draw_layer=%d reserved=%d lit=%d",
+            entry.px, entry.py, entry.draw_layer, entry.reserved, entry.lit);
 
         i += 2;
       }
@@ -2525,7 +2527,8 @@ std::vector<uint8_t> EncodeTorchSegmentForRoom(int room_id, const Room& room) {
     const LightableTorchBytes encoded = EncodeLightableTorchEntry({
         .px = static_cast<uint8_t>(obj.x()),
         .py = static_cast<uint8_t>(obj.y()),
-        .selector = static_cast<uint8_t>(obj.GetLayerValue() & 1),
+        .draw_layer = static_cast<uint8_t>(obj.GetLayerValue() & 1),
+        .reserved = obj.torch_reserved_bit(),
         .lit = obj.lit_,
     });
     bytes.push_back(encoded.low);
@@ -2550,6 +2553,19 @@ absl::Status ValidateSpecialObjectDrawLayerSelector(const RoomObject& object,
       "expected 0 "
       "(upper/BG1) or 1 (lower/BG2)",
       object_type, room_id, selector));
+}
+
+absl::Status ValidateLightableTorchForSave(const RoomObject& object,
+                                           int room_id) {
+  RETURN_IF_ERROR(
+      ValidateSpecialObjectDrawLayerSelector(object, room_id, "Torch"));
+  if (object.x() <= 0x3E && object.y() <= 0x3E) {
+    return absl::OkStatus();
+  }
+  return absl::InvalidArgumentError(absl::StrFormat(
+      "Torch in room 0x%03X has invalid position (%d,%d); expected x/y in "
+      "range 0..62",
+      room_id, object.x(), object.y()));
 }
 
 }  // namespace
@@ -2585,8 +2601,7 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
     }
     for (const auto& object : room->GetTileObjects()) {
       if ((object.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
-        RETURN_IF_ERROR(
-            ValidateSpecialObjectDrawLayerSelector(object, room_id, "Torch"));
+        RETURN_IF_ERROR(ValidateLightableTorchForSave(object, room_id));
       }
     }
     owned_rooms[room_id] = true;

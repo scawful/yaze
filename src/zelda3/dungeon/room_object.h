@@ -164,6 +164,14 @@ class RoomObject {
     block_behavior_layer_ = layer & 0x01;
   }
 
+  // Lightable-torch bit 14 is reserved by the runtime table. Keep it separate
+  // from `layer_`, which stores the bit-13 BG1/BG2 draw target, so ordinary
+  // edits and copies do not discard authoring data that yaze does not expose.
+  uint8_t torch_reserved_bit() const { return torch_reserved_bit_; }
+  void set_torch_reserved_bit(uint8_t reserved) {
+    torch_reserved_bit_ = reserved & 0x01;
+  }
+
   // Copying an editor entity must not claim the source block's ROM table slot.
   // Ordinary C++ copies intentionally preserve load order for move validation,
   // undo snapshots, and rendering; creation paths call this method explicitly.
@@ -212,7 +220,7 @@ class RoomObject {
   // overlay, 2=BG1 overlay), matching `Room::EncodeObjects` buckets; map it
   // through MapRoomObjectListIndexToDrawLayer() before drawing. For torches and
   // pushable blocks, values 0/1 are the special-table draw target. Pushable
-  // block behavior uses the independent `block_behavior_layer_` field.
+  // block behavior and the torch reserved bit use independent fields.
   LayerType layer_;
   ObjectOption options_ = ObjectOption::Nothing;
 
@@ -223,6 +231,7 @@ class RoomObject {
   static constexpr int kBlockLoadOrderNew = -1;
   int block_load_order_ = kBlockLoadOrderNew;
   uint8_t block_behavior_layer_ = 0;
+  uint8_t torch_reserved_bit_ = 0;
 
   Rom* rom_;
 
