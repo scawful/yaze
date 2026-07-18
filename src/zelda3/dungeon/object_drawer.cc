@@ -2643,9 +2643,8 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
     }
 
     case 33:  // Somaria Line
-      // Variable length, estimate from size
-      size = size & 0x0F;
-      width = 8 + size * 8;
+      // Each subtype-3 path piece is one 8x8 tile.
+      width = 8;
       height = 8;
       break;
 
