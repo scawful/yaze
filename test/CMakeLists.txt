@@ -264,6 +264,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/oracle_hack_workflow_backend_test.cc
     unit/editor/editor_set_test.cc
     unit/editor/paint_util_test.cc
+    unit/editor/dungeon_canvas_transform_test.cc
     unit/editor/map_properties_context_menu_test.cc
     unit/editor/dungeon_layout_defaults_test.cc
     unit/editor/dungeon_selection_snapshot_test.cc
@@ -321,6 +322,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/dungeon_validator_test.cc
     unit/zelda3/dungeon/door_position_test.cc
     unit/zelda3/dungeon/dungeon_block_codec_test.cc
+    unit/zelda3/dungeon/dungeon_torch_codec_test.cc
     unit/zelda3/dungeon/room_object_encoding_test.cc
     unit/zelda3/dungeon/room_object_set_id_test.cc
     unit/zelda3/custom_object_test.cc
@@ -611,6 +613,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/room_object_set_id_test.cc
     unit/zelda3/dungeon/dungeon_limits_test.cc
     unit/zelda3/dungeon/dungeon_block_codec_test.cc
+    unit/zelda3/dungeon/dungeon_torch_codec_test.cc
     unit/zelda3/dungeon/dungeon_validator_test.cc
     unit/zelda3/dungeon/dungeon_object_editor_dirty_test.cc
     unit/zelda3/dungeon/object_layer_semantics_test.cc

@@ -3,6 +3,7 @@
 #include <array>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "rom/rom.h"
@@ -215,9 +216,11 @@ class DungeonSaveTest : public ::testing::Test {
     rom_->mutable_data()[operand_pc + 3] = 0x9D;  // STA.w addr,X
   }
 
-  static RoomObject MakePushableBlock(int px, int py, int layer) {
-    RoomObject block(0x0E00, px, py, 0, layer);
+  static RoomObject MakePushableBlock(int px, int py, int draw_layer,
+                                      int behavior_layer = 0) {
+    RoomObject block(0x0E00, px, py, 0, draw_layer);
     block.set_options(ObjectOption::Block);
+    block.set_block_behavior_layer(behavior_layer);
     return block;
   }
 
@@ -541,11 +544,68 @@ TEST_F(DungeonSaveTest, SaveAllTorches_WritesLitBit) {
   EXPECT_EQ(rom_data[kTorchData + 0], 0x01);
   EXPECT_EQ(rom_data[kTorchData + 1], 0x00);
 
-  // word = ((x + y*64) << 1) with layer in bit 13 and lit in bit 15.
+  // word = ((x + y*64) << 1) with draw layer in bit 13 and lit in bit 15.
   EXPECT_EQ(rom_data[kTorchData + 2], 0x14);  // low byte
   EXPECT_EQ(rom_data[kTorchData + 3],
-            0xAA);  // high byte: layer + lit + address bits
+            0xAA);  // high byte: draw layer + lit + address bits
 
+  EXPECT_EQ(rom_data[kTorchData + 4], 0xFF);
+  EXPECT_EQ(rom_data[kTorchData + 5], 0xFF);
+}
+
+TEST_F(DungeonSaveTest, SaveAllTorches_RejectsLayerTwoWithoutMutatingRom) {
+  std::vector<Room> rooms(kNumberOfRooms);
+
+  RoomObject torch(0x150, 10, 20, 0, 2);
+  torch.set_options(ObjectOption::Torch);
+  rooms[1].AddTileObject(torch);
+  ASSERT_TRUE(rooms[1].torches_dirty());
+  const auto before = rom_->vector();
+
+  const auto status = SaveAllTorches(rom_.get(), rooms);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_NE(std::string(status.message()).find("draw-layer selector 2"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(rooms[1].torches_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllTorches_RejectsOutOfBoundsTwoByTwoAnchorWithoutMutatingRom) {
+  for (const auto [x, y] : {std::pair{63, 20}, std::pair{10, 63}}) {
+    SCOPED_TRACE("x=" + std::to_string(x) + " y=" + std::to_string(y));
+    std::vector<Room> rooms(kNumberOfRooms);
+    RoomObject torch(0x150, x, y, 0, 0);
+    torch.set_options(ObjectOption::Torch);
+    rooms[1].AddTileObject(torch);
+    ASSERT_TRUE(rooms[1].torches_dirty());
+    const auto before = rom_->vector();
+
+    const auto status = SaveAllTorches(rom_.get(), rooms);
+
+    EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+    EXPECT_NE(std::string(status.message()).find("expected x/y in range 0..62"),
+              std::string::npos);
+    EXPECT_EQ(rom_->vector(), before);
+    EXPECT_TRUE(rooms[1].torches_dirty());
+  }
+}
+
+TEST_F(DungeonSaveTest, SaveAllTorches_AcceptsMaxInBoundsTwoByTwoAnchor) {
+  std::vector<Room> rooms(kNumberOfRooms);
+  RoomObject torch(0x150, 62, 62, 0, 0);
+  torch.set_options(ObjectOption::Torch);
+  rooms[1].AddTileObject(torch);
+
+  const auto status = SaveAllTorches(rom_.get(), rooms);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  const auto& rom_data = rom_->vector();
+  EXPECT_EQ(rom_data[kTorchData + 0], 0x01);
+  EXPECT_EQ(rom_data[kTorchData + 1], 0x00);
+  EXPECT_EQ(rom_data[kTorchData + 2], 0x7C);
+  EXPECT_EQ(rom_data[kTorchData + 3], 0x1F);
   EXPECT_EQ(rom_data[kTorchData + 4], 0xFF);
   EXPECT_EQ(rom_data[kTorchData + 5], 0xFF);
 }
@@ -555,8 +615,10 @@ TEST_F(DungeonSaveTest, SaveAllTorches_NoOpWhenUnchanged) {
   // This should be a no-op (no writes) and keep the ROM clean.
   std::vector<uint8_t> blob = {
       0x01, 0x00,  // room_id = 1
-      0x14, 0xAA,  // torch word (x=10,y=20,layer=1,lit=1)
+      0x14, 0xAA,  // torch word (x=10,y=20,draw_layer=1,lit=1)
       0xFF, 0xFF,  // terminator
+      0xFF, 0xFF,  // standalone authoring padding
+      0xFF, 0xFF,  // standalone authoring padding
   };
   ASSERT_TRUE(
       rom_->WriteWord(kTorchesLengthPointer, static_cast<uint16_t>(blob.size()))
@@ -574,15 +636,51 @@ TEST_F(DungeonSaveTest, SaveAllTorches_NoOpWhenUnchanged) {
   EXPECT_TRUE(status.ok()) << status.message();
   EXPECT_FALSE(rooms[1].torches_dirty());
   EXPECT_FALSE(rom_->dirty());
+  EXPECT_TRUE(std::equal(blob.begin(), blob.end(),
+                         rom_->vector().begin() + kTorchData));
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllTorches_LowerLayerReservedBitRoundTripsWithoutMutation) {
+  std::vector<uint8_t> blob = {
+      0x01, 0x00,  // room_id = 1
+      0x14, 0xEA,  // torch word (x=10,y=20,draw=1,reserved=1,lit=1)
+      0xFF, 0xFF,  // terminator
+  };
+  ASSERT_TRUE(
+      rom_->WriteWord(kTorchesLengthPointer, static_cast<uint16_t>(blob.size()))
+          .ok());
+  ASSERT_TRUE(rom_->WriteVector(kTorchData, blob).ok());
+  rom_->ClearDirty();
+
+  Room room(1, rom_.get());
+  room.LoadTorches();
+  ASSERT_TRUE(room.AreTorchesLoaded());
+  ASSERT_EQ(room.GetTileObjects().size(), 1u);
+  const RoomObject& torch = room.GetTileObjects().front();
+  EXPECT_EQ(torch.x(), 10);
+  EXPECT_EQ(torch.y(), 20);
+  EXPECT_EQ(torch.GetLayerValue(), 1);
+  EXPECT_EQ(torch.torch_reserved_bit(), 1);
+  EXPECT_TRUE(torch.lit_);
+
+  const auto status = SaveAllTorches(rom_.get(), kNumberOfRooms,
+                                     [&room](int room_id) -> const Room* {
+                                       return room_id == 1 ? &room : nullptr;
+                                     });
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_FALSE(rom_->dirty());
+  EXPECT_TRUE(std::equal(blob.begin(), blob.end(),
+                         rom_->vector().begin() + kTorchData));
 }
 
 TEST_F(DungeonSaveTest, SaveAllTorches_LoadedRoomCanDeleteLastTorch) {
   std::vector<uint8_t> blob = {
       0x01, 0x00,  // room_id = 1
-      0x14, 0xAA,  // torch word (x=10,y=20,layer=1,lit=1)
+      0x14, 0xAA,  // torch word (x=10,y=20,draw_layer=1,lit=1)
       0xFF, 0xFF,  // terminator
       0x02, 0x00,  // room_id = 2
-      0x0A, 0x03,  // torch word (x=5,y=6,layer=0,lit=0)
+      0x0A, 0x03,  // torch word (x=5,y=6,draw_layer=0,lit=0)
       0xFF, 0xFF,  // terminator
   };
   ASSERT_TRUE(
@@ -1194,13 +1292,13 @@ TEST_F(DungeonSaveTest,
   // slot 1 (room 5, NOT materialized). Save with a lookup that only
   // returns room_ for id=0. Both slots must come out unchanged.
   SetupBlockRegions();
-  // Slot 0: room 0, px=10, py=20, layer=1 (word 0x4A14).
+  // Slot 0: room 0, px=10, py=20, upper draw, lower behavior (0x4A14).
   rom_->mutable_data()[kBlocksRegion1Pc + 0] = 0x00;
   rom_->mutable_data()[kBlocksRegion1Pc + 1] = 0x00;
   rom_->mutable_data()[kBlocksRegion1Pc + 2] = 0x14;
   rom_->mutable_data()[kBlocksRegion1Pc + 3] = 0x4A;
-  // Slot 1: room 5, px=15, py=25, layer=0.
-  //   word = (15 << 1) | (25 << 7) | (0 << 14) = 30 | 3200 = 0x0C9E
+  // Slot 1: room 5, px=15, py=25, both selectors clear.
+  //   word = (15 << 1) | (25 << 7) = 30 | 3200 = 0x0C9E
   //   → b3 = 0x9E, b4 = 0x0C.
   rom_->mutable_data()[kBlocksRegion1Pc + 4] = 0x05;
   rom_->mutable_data()[kBlocksRegion1Pc + 5] = 0x00;
@@ -1258,8 +1356,8 @@ TEST_F(DungeonSaveTest,
   room_->LoadBlocks();
   ASSERT_EQ(room_->GetTileObjects().size(), 1U);
 
-  // Edit room 0's block: px 10 → 30. New word: (30<<1)|(20<<7)|(1<<14)
-  // = 0x4A3C → b3 = 0x3C, b4 = 0x4A.
+  // Edit room 0's block: px 10 -> 30. The independent lower behavior bit is
+  // preserved: (30<<1)|(20<<7)|(1<<14) = 0x4A3C.
   for (auto& obj : room_->GetTileObjects()) {
     if ((obj.options() & ObjectOption::Block) == ObjectOption::Block) {
       obj.set_x(30);
@@ -1295,7 +1393,7 @@ TEST_F(DungeonSaveTest,
   // follow-up.
   SetupBlockRegions();
   // Replace the fixture's sample 0xAA..0xDD with a real entry for
-  // room 0 at (px=10, py=20, layer=1) — the same shape used by
+  // room 0 at (px=10, py=20, draw=upper, behavior=lower) -- the same shape used by
   // LoadBlocks_ReadsFromDereferencedPointerRegion.
   rom_->mutable_data()[kBlocksRegion1Pc + 0] = 0x00;
   rom_->mutable_data()[kBlocksRegion1Pc + 1] = 0x00;
@@ -1324,6 +1422,343 @@ TEST_F(DungeonSaveTest,
   EXPECT_EQ(rom_->data()[kBlocksLength + 1], 0x00);
 }
 
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RejectsDeletingFinalEntryWithoutMutation) {
+  SetupBlockRegions();
+  const auto only_entry =
+      EncodePushableBlockEntry({/*room_id=*/0, /*px=*/10, /*py=*/20,
+                                /*draw_layer=*/1, /*behavior_layer=*/0});
+  rom_->mutable_data()[kBlocksRegion1Pc + 0] = only_entry.b1;
+  rom_->mutable_data()[kBlocksRegion1Pc + 1] = only_entry.b2;
+  rom_->mutable_data()[kBlocksRegion1Pc + 2] = only_entry.b3;
+  rom_->mutable_data()[kBlocksRegion1Pc + 3] = only_entry.b4;
+
+  Room room0(0, rom_.get());
+  Room room1(1, rom_.get());
+  room0.LoadBlocks();
+  room1.LoadBlocks();
+  ASSERT_TRUE(room0.AreBlocksLoaded());
+  ASSERT_TRUE(room1.AreBlocksLoaded());
+  ASSERT_EQ(room0.GetTileObjects().size(), 1u);
+  ASSERT_TRUE(room1.GetTileObjects().empty());
+
+  room0.RemoveTileObject(0);
+  room1.MarkBlocksDirty();
+  ASSERT_TRUE(room0.blocks_dirty());
+  ASSERT_TRUE(room1.blocks_dirty());
+  const auto before = rom_->vector();
+
+  const auto status = SaveAllBlocks(
+      rom_.get(), 2, [&room0, &room1](int room_id) -> const Room* {
+        if (room_id == 0)
+          return &room0;
+        if (room_id == 1)
+          return &room1;
+        return nullptr;
+      });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("cannot be empty"),
+            std::string::npos);
+  EXPECT_NE(std::string(status.message()).find("at least one"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_EQ(rom_->data()[kBlocksLength], 0x04);
+  EXPECT_EQ(rom_->data()[kBlocksLength + 1], 0x00);
+  EXPECT_TRUE(room0.blocks_dirty());
+  EXPECT_TRUE(room1.blocks_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RejectsDirtyUnloadedRoomWithoutMutation) {
+  SetupBlockRegions();
+  Room room(0, rom_.get());
+  room.AddTileObject(MakePushableBlock(/*px=*/10, /*py=*/20,
+                                       /*draw_layer=*/1));
+  ASSERT_FALSE(room.AreBlocksLoaded());
+  ASSERT_TRUE(room.blocks_dirty());
+  ASSERT_EQ(room.GetTileObjects().size(), 1u);
+  ASSERT_EQ(room.GetTileObjects()[0].block_load_order(),
+            RoomObject::kBlockLoadOrderNew);
+  const auto before = rom_->vector();
+
+  const auto status =
+      SaveAllBlocks(rom_.get(), 1, [&room](int room_id) -> const Room* {
+        return room_id == 0 ? &room : nullptr;
+      });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("Room 0x000"),
+            std::string::npos);
+  EXPECT_NE(std::string(status.message()).find("block table is not loaded"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room.blocks_dirty());
+  EXPECT_EQ(room.GetTileObjects()[0].block_load_order(),
+            RoomObject::kBlockLoadOrderNew);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_OneEntryWritesFourByteRuntimeLimit) {
+  SetupBlockRegions();
+  const auto surviving_entry =
+      EncodePushableBlockEntry({/*room_id=*/0, /*px=*/10, /*py=*/20,
+                                /*draw_layer=*/1, /*behavior_layer=*/0});
+  const auto deleted_entry =
+      EncodePushableBlockEntry({/*room_id=*/1, /*px=*/15, /*py=*/25,
+                                /*draw_layer=*/0, /*behavior_layer=*/1});
+  rom_->mutable_data()[kBlocksRegion1Pc + 0] = surviving_entry.b1;
+  rom_->mutable_data()[kBlocksRegion1Pc + 1] = surviving_entry.b2;
+  rom_->mutable_data()[kBlocksRegion1Pc + 2] = surviving_entry.b3;
+  rom_->mutable_data()[kBlocksRegion1Pc + 3] = surviving_entry.b4;
+  rom_->mutable_data()[kBlocksRegion1Pc + 4] = deleted_entry.b1;
+  rom_->mutable_data()[kBlocksRegion1Pc + 5] = deleted_entry.b2;
+  rom_->mutable_data()[kBlocksRegion1Pc + 6] = deleted_entry.b3;
+  rom_->mutable_data()[kBlocksRegion1Pc + 7] = deleted_entry.b4;
+  rom_->mutable_data()[kBlocksLength] = 0x08;
+  rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+
+  Room room0(0, rom_.get());
+  Room room1(1, rom_.get());
+  room0.LoadBlocks();
+  room1.LoadBlocks();
+  ASSERT_EQ(room0.GetTileObjects().size(), 1u);
+  ASSERT_EQ(room1.GetTileObjects().size(), 1u);
+  EXPECT_EQ(room0.GetTileObjects()[0].block_load_order(), 0);
+  EXPECT_EQ(room1.GetTileObjects()[0].block_load_order(), 1);
+
+  room0.MarkBlocksDirty();
+  room1.RemoveTileObject(0);
+  const auto status = SaveAllBlocks(
+      rom_.get(), 2, [&room0, &room1](int room_id) -> const Room* {
+        if (room_id == 0)
+          return &room0;
+        if (room_id == 1)
+          return &room1;
+        return nullptr;
+      });
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 0], surviving_entry.b1);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 1], surviving_entry.b2);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 2], surviving_entry.b3);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], surviving_entry.b4);
+  // The runtime adds four after processing its first entry, then compares
+  // against this immediate. Four is therefore the exact safe minimum.
+  EXPECT_EQ(rom_->data()[kBlocksLength], 0x04);
+  EXPECT_EQ(rom_->data()[kBlocksLength + 1], 0x00);
+  EXPECT_EQ(room0.GetTileObjects()[0].block_load_order(), 0);
+  EXPECT_FALSE(room0.blocks_dirty());
+  EXPECT_FALSE(room1.blocks_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RebasesCompactedSlotsBeforeSecondSave) {
+  SetupBlockRegions();
+  constexpr int kLoadedRoomId = 0x10B;
+  constexpr int kUnmaterializedRoomId = 0xA8;
+  const auto deleted_entry =
+      EncodePushableBlockEntry({/*room_id=*/kLoadedRoomId, /*px=*/10, /*py=*/20,
+                                /*draw_layer=*/0, /*behavior_layer=*/0});
+  const auto surviving_entry =
+      EncodePushableBlockEntry({/*room_id=*/kLoadedRoomId, /*px=*/30, /*py=*/21,
+                                /*draw_layer=*/1, /*behavior_layer=*/1});
+  const auto unmaterialized_entry = EncodePushableBlockEntry(
+      {/*room_id=*/kUnmaterializedRoomId, /*px=*/25, /*py=*/45,
+       /*draw_layer=*/0, /*behavior_layer=*/1});
+  const std::array<PushableBlockBytes, 3> entries = {
+      deleted_entry, surviving_entry, unmaterialized_entry};
+  for (size_t slot = 0; slot < entries.size(); ++slot) {
+    const int pc = kBlocksRegion1Pc + static_cast<int>(slot * 4);
+    rom_->mutable_data()[pc + 0] = entries[slot].b1;
+    rom_->mutable_data()[pc + 1] = entries[slot].b2;
+    rom_->mutable_data()[pc + 2] = entries[slot].b3;
+    rom_->mutable_data()[pc + 3] = entries[slot].b4;
+  }
+  rom_->mutable_data()[kBlocksLength] = 0x0C;
+  rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+
+  Room loaded_room(kLoadedRoomId, rom_.get());
+  loaded_room.LoadBlocks();
+  ASSERT_EQ(loaded_room.GetTileObjects().size(), 2u);
+  EXPECT_EQ(loaded_room.GetTileObjects()[0].block_load_order(), 0);
+  EXPECT_EQ(loaded_room.GetTileObjects()[1].block_load_order(), 1);
+
+  loaded_room.RemoveTileObject(0);
+  ASSERT_EQ(loaded_room.GetTileObjects().size(), 1u);
+  ASSERT_EQ(loaded_room.GetTileObjects()[0].block_load_order(), 1);
+  const auto lookup = [&loaded_room](int room_id) -> const Room* {
+    return room_id == kLoadedRoomId ? &loaded_room : nullptr;
+  };
+
+  const auto first_status = SaveAllBlocks(rom_.get(), kNumberOfRooms, lookup);
+  ASSERT_TRUE(first_status.ok()) << first_status.message();
+  EXPECT_EQ(rom_->data()[kBlocksLength], 0x08);
+  EXPECT_EQ(rom_->data()[kBlocksLength + 1], 0x00);
+  EXPECT_EQ(loaded_room.GetTileObjects()[0].block_load_order(), 0)
+      << "The surviving loaded block compacted from slot 1 to slot 0.";
+  EXPECT_FALSE(loaded_room.blocks_dirty());
+  const std::array<PushableBlockBytes, 2> expected_after_delete = {
+      surviving_entry, unmaterialized_entry};
+  for (size_t slot = 0; slot < expected_after_delete.size(); ++slot) {
+    const int pc = kBlocksRegion1Pc + static_cast<int>(slot * 4);
+    EXPECT_EQ(rom_->data()[pc + 0], expected_after_delete[slot].b1);
+    EXPECT_EQ(rom_->data()[pc + 1], expected_after_delete[slot].b2);
+    EXPECT_EQ(rom_->data()[pc + 2], expected_after_delete[slot].b3);
+    EXPECT_EQ(rom_->data()[pc + 3], expected_after_delete[slot].b4);
+  }
+
+  // A second ordinary no-op save must use the rebased slot 0 identity. With
+  // the stale pre-compaction identity (1), slot 0 appears deleted and the
+  // unmaterialized room's shifted neighbor is the only entry left.
+  const auto before_second_save = rom_->vector();
+  const auto second_status = SaveAllBlocks(rom_.get(), kNumberOfRooms, lookup);
+  ASSERT_TRUE(second_status.ok()) << second_status.message();
+  EXPECT_EQ(rom_->vector(), before_second_save);
+  EXPECT_EQ(rom_->data()[kBlocksLength], 0x08);
+  EXPECT_EQ(loaded_room.GetTileObjects()[0].block_load_order(), 0);
+  EXPECT_FALSE(loaded_room.blocks_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_SaveUndoRedoSaveReconcilesStaleSlotIdentities) {
+  SetupBlockRegions();
+  constexpr int kLoadedRoomId = 0x10B;
+  constexpr int kUnmaterializedRoomId = 0xA8;
+  const auto first_loaded_entry =
+      EncodePushableBlockEntry({/*room_id=*/kLoadedRoomId, /*px=*/10, /*py=*/20,
+                                /*draw_layer=*/0, /*behavior_layer=*/0});
+  const auto second_loaded_entry =
+      EncodePushableBlockEntry({/*room_id=*/kLoadedRoomId, /*px=*/30, /*py=*/21,
+                                /*draw_layer=*/1, /*behavior_layer=*/1});
+  const auto unmaterialized_entry = EncodePushableBlockEntry(
+      {/*room_id=*/kUnmaterializedRoomId, /*px=*/25, /*py=*/45,
+       /*draw_layer=*/0, /*behavior_layer=*/1});
+  const std::array<PushableBlockBytes, 3> entries = {
+      first_loaded_entry, unmaterialized_entry, second_loaded_entry};
+  for (size_t slot = 0; slot < entries.size(); ++slot) {
+    const int pc = kBlocksRegion1Pc + static_cast<int>(slot * 4);
+    rom_->mutable_data()[pc + 0] = entries[slot].b1;
+    rom_->mutable_data()[pc + 1] = entries[slot].b2;
+    rom_->mutable_data()[pc + 2] = entries[slot].b3;
+    rom_->mutable_data()[pc + 3] = entries[slot].b4;
+  }
+  rom_->mutable_data()[kBlocksLength] = 0x0C;
+  rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+
+  Room loaded_room(kLoadedRoomId, rom_.get());
+  loaded_room.LoadBlocks();
+  ASSERT_EQ(loaded_room.GetTileObjects().size(), 2u);
+  const std::vector<RoomObject> before_objects = loaded_room.GetTileObjects();
+
+  loaded_room.RemoveTileObject(0);
+  ASSERT_EQ(loaded_room.GetTileObjects().size(), 1u);
+  const std::vector<RoomObject> after_objects = loaded_room.GetTileObjects();
+  ASSERT_EQ(after_objects[0].block_load_order(), 2);
+
+  const auto lookup = [&loaded_room](int room_id) -> const Room* {
+    return room_id == kLoadedRoomId ? &loaded_room : nullptr;
+  };
+  const auto delete_status = SaveAllBlocks(rom_.get(), kNumberOfRooms, lookup);
+  ASSERT_TRUE(delete_status.ok()) << delete_status.message();
+  ASSERT_EQ(rom_->data()[kBlocksLength], 0x08);
+  ASSERT_EQ(loaded_room.GetTileObjects()[0].block_load_order(), 1);
+
+  // DungeonObjectsAction restores these complete vectors. The pre-save
+  // snapshot still claims slots 0 and 2, while the committed table is now
+  // [unmaterialized_entry, second_loaded_entry]. Slot 0 therefore belongs to
+  // another room and slot 2 is no longer materialized; neither stale identity
+  // may replace or discard the unmaterialized neighbor.
+  loaded_room.SetTileObjects(before_objects);
+  ASSERT_TRUE(loaded_room.blocks_dirty());
+  const auto undo_save_status =
+      SaveAllBlocks(rom_.get(), kNumberOfRooms, lookup);
+  ASSERT_TRUE(undo_save_status.ok()) << undo_save_status.message();
+  EXPECT_EQ(rom_->data()[kBlocksLength], 0x0C);
+  EXPECT_FALSE(loaded_room.blocks_dirty());
+
+  Room reopened_loaded_after_undo(kLoadedRoomId, rom_.get());
+  Room reopened_neighbor_after_undo(kUnmaterializedRoomId, rom_.get());
+  reopened_loaded_after_undo.LoadBlocks();
+  reopened_neighbor_after_undo.LoadBlocks();
+  ASSERT_EQ(reopened_loaded_after_undo.GetTileObjects().size(), 2u);
+  std::vector<int> undo_loaded_x;
+  for (const auto& object : reopened_loaded_after_undo.GetTileObjects()) {
+    undo_loaded_x.push_back(object.x());
+  }
+  std::sort(undo_loaded_x.begin(), undo_loaded_x.end());
+  EXPECT_EQ(undo_loaded_x, (std::vector<int>{10, 30}));
+  ASSERT_EQ(reopened_neighbor_after_undo.GetTileObjects().size(), 1u);
+  EXPECT_EQ(reopened_neighbor_after_undo.GetTileObjects()[0].x(), 25);
+
+  // Redo restores the post-delete snapshot, whose sole block still carries
+  // the old slot-2 identity. A second reconciliation must preserve both that
+  // block and the unmaterialized neighbor.
+  loaded_room.SetTileObjects(after_objects);
+  ASSERT_TRUE(loaded_room.blocks_dirty());
+  const auto redo_save_status =
+      SaveAllBlocks(rom_.get(), kNumberOfRooms, lookup);
+  ASSERT_TRUE(redo_save_status.ok()) << redo_save_status.message();
+  EXPECT_EQ(rom_->data()[kBlocksLength], 0x08);
+  EXPECT_FALSE(loaded_room.blocks_dirty());
+
+  Room reopened_loaded_after_redo(kLoadedRoomId, rom_.get());
+  Room reopened_neighbor_after_redo(kUnmaterializedRoomId, rom_.get());
+  reopened_loaded_after_redo.LoadBlocks();
+  reopened_neighbor_after_redo.LoadBlocks();
+  ASSERT_EQ(reopened_loaded_after_redo.GetTileObjects().size(), 1u);
+  EXPECT_EQ(reopened_loaded_after_redo.GetTileObjects()[0].x(), 30);
+  ASSERT_EQ(reopened_neighbor_after_redo.GetTileObjects().size(), 1u);
+  EXPECT_EQ(reopened_neighbor_after_redo.GetTileObjects()[0].x(), 25);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RejectsDuplicateStaleSlotClaim) {
+  SetupBlockRegions();
+  const auto entry =
+      EncodePushableBlockEntry({/*room_id=*/1, /*px=*/10, /*py=*/20,
+                                /*draw_layer=*/0, /*behavior_layer=*/0});
+  rom_->mutable_data()[kBlocksRegion1Pc + 0] = entry.b1;
+  rom_->mutable_data()[kBlocksRegion1Pc + 1] = entry.b2;
+  rom_->mutable_data()[kBlocksRegion1Pc + 2] = entry.b3;
+  rom_->mutable_data()[kBlocksRegion1Pc + 3] = entry.b4;
+
+  Room room(0, rom_.get());
+  room.LoadBlocks();
+  ASSERT_TRUE(room.AreBlocksLoaded());
+  ASSERT_TRUE(room.GetTileObjects().empty());
+  RoomObject first = MakePushableBlock(/*px=*/11, /*py=*/20,
+                                       /*draw_layer=*/0);
+  first.set_block_load_order(0);
+  room.AddTileObject(first);
+  RoomObject second = MakePushableBlock(/*px=*/12, /*py=*/20,
+                                        /*draw_layer=*/0);
+  second.set_block_load_order(0);
+  room.AddTileObject(second);
+  ASSERT_TRUE(room.blocks_dirty());
+  ASSERT_EQ(room.GetTileObjects().size(), 2u);
+  ASSERT_EQ(room.GetTileObjects()[0].block_load_order(), 0);
+  ASSERT_EQ(room.GetTileObjects()[1].block_load_order(), 0);
+  rom_->ClearDirty();
+  const auto before = rom_->vector();
+
+  const auto status =
+      SaveAllBlocks(rom_.get(), 1, [&room](int room_id) -> const Room* {
+        return room_id == 0 ? &room : nullptr;
+      });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("multiple pushable blocks"),
+            std::string::npos);
+  EXPECT_NE(std::string(status.message()).find("load-order slot 0"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_FALSE(rom_->dirty());
+  EXPECT_TRUE(room.blocks_dirty());
+  EXPECT_EQ(room.GetTileObjects()[0].block_load_order(), 0);
+  EXPECT_EQ(room.GetTileObjects()[1].block_load_order(), 0);
+}
+
 TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_EditedBlockUpdatesRegion) {
   // Real encoder invariant #2: an in-memory edit (here, moving the
   // block from px=10 to px=30) writes back through the pointed
@@ -1333,13 +1768,13 @@ TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_EditedBlockUpdatesRegion) {
   rom_->mutable_data()[kBlocksRegion1Pc + 0] = 0x00;
   rom_->mutable_data()[kBlocksRegion1Pc + 1] = 0x00;
   rom_->mutable_data()[kBlocksRegion1Pc + 2] = 0x14;  // px=10
-  rom_->mutable_data()[kBlocksRegion1Pc + 3] = 0x4A;  // py=20, layer=1
+  rom_->mutable_data()[kBlocksRegion1Pc + 3] = 0x4A;  // py=20, behavior=lower
 
   room_->LoadBlocks();
   ASSERT_EQ(room_->GetTileObjects().size(), 1U);
 
   // Mutate px to 30 in place. New encoded word:
-  //   word = (30 << 1) | (20 << 7) | (1 << 14)
+  //   word = (30 << 1) | (20 << 7) | (behavior_layer << 14)
   //        = 60 | 2560 | 16384 = 19004 = 0x4A3C
   // → b3 = 0x3C, b4 = 0x4A.
   for (auto& obj : room_->GetTileObjects()) {
@@ -1373,6 +1808,9 @@ TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_ClearsBlockDirtyAfterWrite) {
   block.set_options(ObjectOption::Block);
   room.AddTileObject(block);
   ASSERT_TRUE(room.blocks_dirty());
+  ASSERT_EQ(room.GetTileObjects().size(), 1u);
+  EXPECT_EQ(room.GetTileObjects()[0].block_load_order(),
+            RoomObject::kBlockLoadOrderNew);
 
   auto status = SaveAllBlocks(rom_.get(), 1, [&room](int rid) -> const Room* {
     return rid == 0 ? &room : nullptr;
@@ -1384,8 +1822,36 @@ TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_ClearsBlockDirtyAfterWrite) {
   EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 0], 0x00);
   EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 1], 0x00);
   EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 2], 0x14);
-  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], 0x4A);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], 0x2A);
+  EXPECT_EQ(room.GetTileObjects()[0].block_load_order(), 0);
   EXPECT_FALSE(room.blocks_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RejectsLayerTwoWithoutMutatingRom) {
+  SetupBlockRegions();
+  rom_->mutable_data()[kBlocksLength] = 0x00;
+  rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+
+  Room room(0, rom_.get());
+  room.LoadBlocks();
+  ASSERT_TRUE(room.AreBlocksLoaded());
+
+  RoomObject block(0x0E00, 10, 20, 0, 2);
+  block.set_options(ObjectOption::Block);
+  room.AddTileObject(block);
+  ASSERT_TRUE(room.blocks_dirty());
+  const auto before = rom_->vector();
+
+  const auto status = SaveAllBlocks(
+      rom_.get(), 1,
+      [&room](int rid) -> const Room* { return rid == 0 ? &room : nullptr; });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_NE(std::string(status.message()).find("draw-layer selector 2"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room.blocks_dirty());
 }
 
 TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_AllowsExactVanillaCapacity) {
@@ -1399,7 +1865,7 @@ TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_AllowsExactVanillaCapacity) {
 
   constexpr int kVanillaBlockCapacity = 128;
   for (int i = 0; i < kVanillaBlockCapacity; ++i) {
-    room.AddTileObject(MakePushableBlock(i % 64, (i * 3) % 128, i % 2));
+    room.AddTileObject(MakePushableBlock(i % 64, (i * 3) % 64, i % 2));
   }
 
   const auto status = SaveAllBlocks(
@@ -1417,8 +1883,8 @@ TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_AllowsExactVanillaCapacity) {
   EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], first.b4);
 
   const auto last = EncodePushableBlockEntry(
-      {0, static_cast<uint8_t>(127 % 64), static_cast<uint8_t>((127 * 3) % 128),
-       static_cast<uint8_t>(127 % 2)});
+      {0, static_cast<uint8_t>(127 % 64), static_cast<uint8_t>((127 * 3) % 64),
+       static_cast<uint8_t>(127 % 2), 0});
   const int last_entry_pc = kBlocksRegion4Pc + 0x7C;
   EXPECT_EQ(rom_->data()[last_entry_pc + 0], last.b1);
   EXPECT_EQ(rom_->data()[last_entry_pc + 1], last.b2);
@@ -1443,7 +1909,7 @@ TEST_F(DungeonSaveTest,
 
   constexpr int kOverflowEntryCount = 129;
   for (int i = 0; i < kOverflowEntryCount; ++i) {
-    room.AddTileObject(MakePushableBlock(i % 64, (i * 3) % 128, i % 2));
+    room.AddTileObject(MakePushableBlock(i % 64, (i * 3) % 64, i % 2));
   }
 
   const auto status = SaveAllBlocks(
@@ -1468,6 +1934,162 @@ TEST_F(DungeonSaveTest,
                           [](uint8_t b) { return b == 0x44; }));
   EXPECT_TRUE(room.blocks_dirty())
       << "Failed saves must not mark overflowing block edits clean.";
+  EXPECT_TRUE(std::all_of(
+      room.GetTileObjects().begin(), room.GetTileObjects().end(),
+      [](const RoomObject& block) {
+        return block.block_load_order() == RoomObject::kBlockLoadOrderNew;
+      }))
+      << "Failed saves must not commit pending slot identities.";
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RejectsAliasedPagesWithoutMutation) {
+  SetupBlockRegions();
+  WriteLongPointer(kBlocksPointer2, PcToSnes(kBlocksRegion1Pc));
+  rom_->ClearDirty();
+  const auto before = rom_->vector();
+
+  const auto status =
+      SaveAllBlocks(rom_.get(), 1, [](int) -> const Room* { return nullptr; });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("data pages 1 and 2 overlap"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_FALSE(rom_->dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RejectsMalformedUnusedPageWithoutMutation) {
+  SetupBlockRegions();
+  // A one-entry table only reads page 1, but every loader page is a possible
+  // future write destination and must be validated before any save mutation.
+  rom_->mutable_data()[kBlocksPointer4 - 1] = 0xEA;  // Not LDA.l.
+  rom_->ClearDirty();
+  const auto before = rom_->vector();
+
+  const auto status =
+      SaveAllBlocks(rom_.get(), 1, [](int) -> const Room* { return nullptr; });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("LDA.l ...,X / STA.w"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_FALSE(rom_->dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RejectsLengthMetadataOverlapWithoutMutation) {
+  SetupBlockRegions();
+  WriteLongPointer(kBlocksPointer1, PcToSnes(kBlocksLength));
+  rom_->ClearDirty();
+  const auto before = rom_->vector();
+
+  const auto status =
+      SaveAllBlocks(rom_.get(), 1, [](int) -> const Room* { return nullptr; });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("length metadata"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_FALSE(rom_->dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RejectsLoaderMetadataOverlapWithoutMutation) {
+  SetupBlockRegions();
+  WriteLongPointer(kBlocksPointer1, PcToSnes(kBlocksPointer1 - 1));
+  rom_->ClearDirty();
+  const auto before = rom_->vector();
+
+  const auto status =
+      SaveAllBlocks(rom_.get(), 1, [](int) -> const Room* { return nullptr; });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("opcode/operand metadata"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_FALSE(rom_->dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_PreflightsNewRegionOperandBeforeWriting) {
+  SetupBlockRegions();
+  rom_->mutable_data()[kBlocksLength] = 0x00;
+  rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+  std::fill_n(rom_->mutable_data() + kBlocksRegion1Pc, 0x80, 0x11);
+
+  // Growth to 33 entries needs region 2, whose operand points at unrelated but
+  // otherwise in-range data. A malformed loader opcode must be caught before
+  // region 1 is written.
+  constexpr int kUnrelatedPc = 0x120000;
+  WriteLongPointer(kBlocksPointer2, PcToSnes(kUnrelatedPc));
+  rom_->mutable_data()[kBlocksPointer2 - 1] = 0xEA;  // Not LDA.l.
+  std::fill_n(rom_->mutable_data() + kUnrelatedPc, 4, 0x77);
+
+  Room room(0, rom_.get());
+  room.LoadBlocks();
+  ASSERT_TRUE(room.AreBlocksLoaded());
+  constexpr int kEntriesRequiringSecondRegion = 33;
+  for (int i = 0; i < kEntriesRequiringSecondRegion; ++i) {
+    room.AddTileObject(MakePushableBlock(i % 64, (i * 3) % 64, i % 2));
+  }
+  rom_->ClearDirty();
+  const auto before = rom_->vector();
+
+  const auto status = SaveAllBlocks(rom_.get(), 1, [&room](int room_id) {
+    return room_id == 0 ? &room : nullptr;
+  });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("LDA.l ...,X / STA.w"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_FALSE(rom_->dirty());
+  EXPECT_TRUE(room.blocks_dirty());
+  EXPECT_TRUE(std::all_of(
+      room.GetTileObjects().begin(), room.GetTileObjects().end(),
+      [](const RoomObject& block) {
+        return block.block_load_order() == RoomObject::kBlockLoadOrderNew;
+      }));
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_PreflightsNewRegionRangeBeforeWriting) {
+  SetupBlockRegions();
+  rom_->mutable_data()[kBlocksLength] = 0x00;
+  rom_->mutable_data()[kBlocksLength + 1] = 0x00;
+  std::fill_n(rom_->mutable_data() + kBlocksRegion1Pc, 0x80, 0x22);
+
+  // Keep the region-2 loader instruction shape valid but point it beyond this
+  // fixture ROM. The saver must reject the destination before writing region 1.
+  WriteLongPointer(kBlocksPointer2, 0xFFFFFF);
+
+  Room room(0, rom_.get());
+  room.LoadBlocks();
+  ASSERT_TRUE(room.AreBlocksLoaded());
+  constexpr int kEntriesRequiringSecondRegion = 33;
+  for (int i = 0; i < kEntriesRequiringSecondRegion; ++i) {
+    room.AddTileObject(MakePushableBlock(i % 64, (i * 3) % 64, i % 2));
+  }
+  rom_->ClearDirty();
+  const auto before = rom_->vector();
+
+  const auto status = SaveAllBlocks(rom_.get(), 1, [&room](int room_id) {
+    return room_id == 0 ? &room : nullptr;
+  });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kOutOfRange);
+  EXPECT_NE(std::string(status.message()).find("data region out of range"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_FALSE(rom_->dirty());
+  EXPECT_TRUE(room.blocks_dirty());
+  EXPECT_TRUE(std::all_of(
+      room.GetTileObjects().begin(), room.GetTileObjects().end(),
+      [](const RoomObject& block) {
+        return block.block_load_order() == RoomObject::kBlockLoadOrderNew;
+      }));
 }
 
 TEST_F(DungeonSaveTest, LoadBlocks_ReadsFromDereferencedPointerRegion) {
@@ -1485,8 +2107,9 @@ TEST_F(DungeonSaveTest, LoadBlocks_ReadsFromDereferencedPointerRegion) {
   SetupBlockRegions();
 
   // Overwrite the fixture's sample 0xAA..0xDD seed with an encoded
-  // pushable-block entry for room_id=0 at (px=10, py=20, layer=1):
-  //   word = (px << 1) | (py << 7) | (layer << 14)
+  // pushable-block entry for room_id=0 at (px=10, py=20), upper draw and
+  // lower behavior:
+  //   word = (px << 1) | (py << 7) | (behavior_layer << 14)
   //        = 20 | 2560 | 16384 = 18964 = 0x4A14
   rom_->mutable_data()[kBlocksRegion1Pc + 0] = 0x00;  // room_id lo
   rom_->mutable_data()[kBlocksRegion1Pc + 1] = 0x00;  // room_id hi
@@ -1502,12 +2125,55 @@ TEST_F(DungeonSaveTest, LoadBlocks_ReadsFromDereferencedPointerRegion) {
     ++block_count;
     EXPECT_EQ(obj.x(), 10);
     EXPECT_EQ(obj.y(), 20);
-    EXPECT_EQ(obj.GetLayerValue(), 1);
+    EXPECT_EQ(obj.GetLayerValue(), 0);
+    EXPECT_EQ(obj.block_behavior_layer(), 1);
   }
   EXPECT_EQ(block_count, 1)
       << "LoadBlocks must dereference kBlocksPointer1 as a 3-byte SNES "
          "long-address operand and load block data from the pointed "
          "region — not from the operand slot itself.";
+}
+
+TEST_F(DungeonSaveTest,
+       PushableBlockIndependentSelectorsSurviveEditSaveAndReopen) {
+  SetupBlockRegions();
+  // Exact vanilla room 0xCA sample: $56B2 decodes to (25,45), draws on
+  // upper/BG1 (bit 13 clear), and uses lower-layer pit behavior (bit 14 set).
+  rom_->mutable_data()[kBlocksRegion1Pc + 0] = 0xCA;
+  rom_->mutable_data()[kBlocksRegion1Pc + 1] = 0x00;
+  rom_->mutable_data()[kBlocksRegion1Pc + 2] = 0xB2;
+  rom_->mutable_data()[kBlocksRegion1Pc + 3] = 0x56;
+
+  Room room(/*room_id=*/0xCA, rom_.get());
+  room.LoadBlocks();
+  ASSERT_EQ(room.GetTileObjects().size(), 1u);
+  auto& block = room.GetTileObjects()[0];
+  EXPECT_EQ(block.x(), 25);
+  EXPECT_EQ(block.y(), 45);
+  EXPECT_EQ(block.GetLayerValue(), 0);
+  EXPECT_EQ(block.block_behavior_layer(), 1);
+
+  // Exercise a normal editor mutation: move right and change only the draw
+  // target. The behavior bit must stay set independently.
+  block.set_x(26);
+  block.layer_ = RoomObject::LayerType::BG2;
+  room.MarkBlocksDirty();
+  ASSERT_TRUE(SaveAllBlocks(rom_.get(), kNumberOfRooms,
+                            [&room](int room_id) -> const Room* {
+                              return room_id == room.id() ? &room : nullptr;
+                            })
+                  .ok());
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 2], 0xB4);
+  EXPECT_EQ(rom_->data()[kBlocksRegion1Pc + 3], 0x76);
+
+  Room reopened(/*room_id=*/0xCA, rom_.get());
+  reopened.LoadBlocks();
+  ASSERT_EQ(reopened.GetTileObjects().size(), 1u);
+  const auto& reopened_block = reopened.GetTileObjects()[0];
+  EXPECT_EQ(reopened_block.x(), 26);
+  EXPECT_EQ(reopened_block.y(), 45);
+  EXPECT_EQ(reopened_block.GetLayerValue(), 1);
+  EXPECT_EQ(reopened_block.block_behavior_layer(), 1);
 }
 
 }  // namespace test
