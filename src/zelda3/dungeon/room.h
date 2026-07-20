@@ -210,6 +210,7 @@ class Room {
     bool blocks = false;
     bool custom_collision = false;
     bool water_fill = false;
+    uint8_t water_fill_sram_bit_mask = 0;
     std::vector<BlockLoadOrder> block_load_orders;
   };
 
@@ -597,6 +598,7 @@ class Room {
         .blocks = save_dirty_state_.blocks,
         .custom_collision = custom_collision_dirty_,
         .water_fill = water_fill_dirty_,
+        .water_fill_sram_bit_mask = water_fill_zone_.sram_bit_mask,
     };
     for (size_t index = 0; index < tile_objects_.size(); ++index) {
       const auto& object = tile_objects_[index];
@@ -619,6 +621,7 @@ class Room {
     save_dirty_state_.blocks = snapshot.blocks;
     custom_collision_dirty_ = snapshot.custom_collision;
     water_fill_dirty_ = snapshot.water_fill;
+    water_fill_zone_.sram_bit_mask = snapshot.water_fill_sram_bit_mask;
     for (const auto& block : snapshot.block_load_orders) {
       if (block.tile_object_index >= tile_objects_.size())
         continue;
