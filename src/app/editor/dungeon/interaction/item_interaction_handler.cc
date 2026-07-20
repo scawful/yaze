@@ -24,7 +24,9 @@ bool ItemInteractionHandler::HandleClick(int canvas_x, int canvas_y) {
     return false;
 
   if (item_placement_mode_) {
-    PlaceItemAtPosition(canvas_x, canvas_y);
+    if (IsWithinBounds(canvas_x, canvas_y)) {
+      PlaceItemAtPosition(canvas_x, canvas_y);
+    }
     return true;
   }
 
@@ -61,28 +63,29 @@ void ItemInteractionHandler::HandleRelease() {
     return;
   }
 
-  float scale = GetCanvasScale();
-
-  // Convert to pixel coordinates
-  int pixel_x = static_cast<int>(drag_current_pos_.x / scale);
-  int pixel_y = static_cast<int>(drag_current_pos_.y / scale);
+  const int pixel_x = std::clamp(static_cast<int>(drag_current_pos_.x), 0,
+                                 dungeon_coords::kRoomPixelWidth - 1);
+  const int pixel_y = std::clamp(static_cast<int>(drag_current_pos_.y), 0,
+                                 dungeon_coords::kRoomPixelHeight - 1);
 
   // PotItem position encoding:
   // high byte * 16 = Y, low byte * 4 = X
-  int encoded_x = pixel_x / 4;
-  int encoded_y = pixel_y / 16;
-
-  // Clamp to valid range
-  encoded_x = std::clamp(encoded_x, 0, 255);
-  encoded_y = std::clamp(encoded_y, 0, 255);
+  const int encoded_x = pixel_x / 4;
+  const int encoded_y = pixel_y / 16;
+  const uint16_t next_position =
+      static_cast<uint16_t>((encoded_y << 8) | encoded_x);
 
   auto& pot_items = room->GetPotItems();
   if (*selected_item_index_ < pot_items.size()) {
+    if (pot_items[*selected_item_index_].position == next_position) {
+      is_dragging_ = false;
+      return;
+    }
+
     ctx_->NotifyMutation(MutationDomain::kItems);
-
-    pot_items[*selected_item_index_].position =
-        static_cast<uint16_t>((encoded_y << 8) | encoded_x);
-
+    pot_items[*selected_item_index_].position = next_position;
+    room->MarkPotItemsDirty();
+    ctx_->NotifyInvalidateCache(MutationDomain::kItems);
     ctx_->NotifyEntityChanged();
   }
 
@@ -98,14 +101,9 @@ void ItemInteractionHandler::DrawGhostPreview() {
   if (!pointer_screen_pos.has_value())
     return;
 
-  ImVec2 canvas_pos = canvas->zero_point();
-  float scale = GetCanvasScale();
-
-  // Convert to room coordinates (items use 8-pixel grid for fine positioning)
-  int canvas_x =
-      static_cast<int>((pointer_screen_pos->x - canvas_pos.x) / scale);
-  int canvas_y =
-      static_cast<int>((pointer_screen_pos->y - canvas_pos.y) / scale);
+  const DungeonCanvasTransform transform = GetCanvasTransform();
+  const auto [canvas_x, canvas_y] =
+      transform.ScreenToRoomPixelCoordinates(*pointer_screen_pos);
 
   // Snap to 8-pixel grid
   int snapped_x =
@@ -114,9 +112,10 @@ void ItemInteractionHandler::DrawGhostPreview() {
       (canvas_y / dungeon_coords::kTileSize) * dungeon_coords::kTileSize;
 
   // Draw ghost rectangle for item preview
-  ImVec2 rect_min(canvas_pos.x + snapped_x * scale,
-                  canvas_pos.y + snapped_y * scale);
-  ImVec2 rect_max(rect_min.x + 16 * scale, rect_min.y + 16 * scale);
+  const ImVec2 rect_min = transform.RoomPixelsToScreen(
+      ImVec2(static_cast<float>(snapped_x), static_cast<float>(snapped_y)));
+  const ImVec2 rect_size = transform.RoomSizeToScreen(ImVec2(16, 16));
+  const ImVec2 rect_max(rect_min.x + rect_size.x, rect_min.y + rect_size.y);
 
   const auto& theme = AgentUI::GetTheme();
   ImVec4 fill_color = theme.dungeon_selection_primary;
@@ -153,20 +152,19 @@ void ItemInteractionHandler::DrawSelectionHighlight() {
 
   // If dragging, use current drag position
   if (is_dragging_) {
-    float scale = GetCanvasScale();
-    pixel_x = static_cast<int>(drag_current_pos_.x / scale);
-    pixel_y = static_cast<int>(drag_current_pos_.y / scale);
+    pixel_x = static_cast<int>(drag_current_pos_.x);
+    pixel_y = static_cast<int>(drag_current_pos_.y);
     // Snap to 8-pixel grid
     pixel_x = (pixel_x / dungeon_coords::kTileSize) * dungeon_coords::kTileSize;
     pixel_y = (pixel_y / dungeon_coords::kTileSize) * dungeon_coords::kTileSize;
   }
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 canvas_pos = GetCanvasZeroPoint();
-  float scale = GetCanvasScale();
-
-  ImVec2 pos(canvas_pos.x + pixel_x * scale, canvas_pos.y + pixel_y * scale);
-  ImVec2 size(16 * scale, 16 * scale);
+  const DungeonCanvasTransform transform = GetCanvasTransform();
+  const float scale = transform.scale();
+  const ImVec2 pos = transform.RoomPixelsToScreen(
+      ImVec2(static_cast<float>(pixel_x), static_cast<float>(pixel_y)));
+  const ImVec2 size = transform.RoomSizeToScreen(ImVec2(16, 16));
 
   // Animated selection
   static float pulse = 0.0f;
@@ -189,17 +187,12 @@ void ItemInteractionHandler::DrawSelectionHighlight() {
 
 std::optional<size_t> ItemInteractionHandler::GetEntityAtPosition(
     int canvas_x, int canvas_y) const {
-  if (!HasValidContext())
+  if (!HasValidContext() || !IsWithinBounds(canvas_x, canvas_y))
     return std::nullopt;
 
   auto* room = ctx_->GetCurrentRoomConst();
   if (!room)
     return std::nullopt;
-
-  // Convert screen coordinates to room coordinates
-  float scale = GetCanvasScale();
-  int room_x = static_cast<int>(canvas_x / scale);
-  int room_y = static_cast<int>(canvas_y / scale);
 
   // Check pot items
   const auto& pot_items = room->GetPotItems();
@@ -210,8 +203,8 @@ std::optional<size_t> ItemInteractionHandler::GetEntityAtPosition(
     int item_y = pot_item.GetPixelY();
 
     // 16x16 hitbox
-    if (room_x >= item_x && room_x < item_x + 16 && room_y >= item_y &&
-        room_y < item_y + 16) {
+    if (canvas_x >= item_x && canvas_x < item_x + 16 && canvas_y >= item_y &&
+        canvas_y < item_y + 16) {
       return i;
     }
   }
@@ -314,11 +307,8 @@ void ItemInteractionHandler::PlaceItemAtPosition(int canvas_x, int canvas_y) {
   if (!room)
     return;
 
-  float scale = GetCanvasScale();
-
-  // Convert to pixel coordinates
-  int pixel_x = static_cast<int>(canvas_x / scale);
-  int pixel_y = static_cast<int>(canvas_y / scale);
+  int pixel_x = canvas_x;
+  int pixel_y = canvas_y;
 
   // PotItem position encoding:
   // high byte * 16 = Y, low byte * 4 = X

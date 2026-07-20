@@ -211,11 +211,11 @@ bool HandleHelpOrVersion(int argc, char** argv) {
   for (int i = 1; i < argc; ++i) {
     const std::string arg = argv[i];
     if (arg == "--version") {
-      std::cout << "yaze 0.7.2\n";
+      std::cout << "yaze " << YAZE_VERSION_STRING << "\n";
       return true;
     }
     if (arg == "--help" || arg == "-h") {
-      std::cout << argv[0] << " (yaze 0.7.2)\n"
+      std::cout << argv[0] << " (yaze " << YAZE_VERSION_STRING << ")\n"
                 << "Usage: " << argv[0] << " [flags]\n\nFlags:\n";
       auto flags = yaze::util::global_flag_registry()->AllFlags();
       std::sort(flags.begin(), flags.end(),

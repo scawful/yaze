@@ -3,8 +3,9 @@
 #include <algorithm>
 
 #include "absl/strings/str_format.h"
-#include "app/gui/core/theme_manager.h"
+#include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/gui/core/agent_theme.h"
+#include "app/gui/core/theme_manager.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
 #include "zelda3/dungeon/dimension_service.h"
@@ -90,7 +91,8 @@ void ObjectSelection::SelectAll(size_t object_count) {
   NotifySelectionChanged();
 }
 
-void ObjectSelection::SelectAll(const std::vector<zelda3::RoomObject>& objects) {
+void ObjectSelection::SelectAll(
+    const std::vector<zelda3::RoomObject>& objects) {
   selected_indices_.clear();
   for (size_t i = 0; i < objects.size(); ++i) {
     // Only select objects that pass the layer filter
@@ -212,8 +214,9 @@ void ObjectSelection::DrawSelectionHighlights(
   }
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 canvas_pos = canvas->zero_point();
-  float scale = canvas->global_scale();
+  const DungeonCanvasTransform transform(
+      canvas->zero_point(), canvas->scrolling(), canvas->global_scale());
+  const float scale = transform.scale();
 
   for (size_t index : selected_indices_) {
     if (index >= objects.size()) {
@@ -247,11 +250,11 @@ void ObjectSelection::DrawSelectionHighlights(
     obj_x += offset_x;
     obj_y += offset_y;
 
-    // Apply scale and canvas offset
-    ImVec2 obj_start(canvas_pos.x + obj_x * scale,
-                     canvas_pos.y + obj_y * scale);
-    ImVec2 obj_end(obj_start.x + pixel_width * scale,
-                   obj_start.y + pixel_height * scale);
+    ImVec2 obj_start = transform.RoomPixelsToScreen(
+        ImVec2(static_cast<float>(obj_x), static_cast<float>(obj_y)));
+    const ImVec2 obj_size = transform.RoomSizeToScreen(ImVec2(
+        static_cast<float>(pixel_width), static_cast<float>(pixel_height)));
+    ImVec2 obj_end(obj_start.x + obj_size.x, obj_start.y + obj_size.y);
 
     // Expand selection box slightly for visibility
     constexpr float margin = 2.0f;
@@ -298,15 +301,20 @@ void ObjectSelection::DrawSelectionHighlights(
   }
 }
 
-ImVec4 ObjectSelection::GetLayerTypeColor(const zelda3::RoomObject& object) const {
+ImVec4 ObjectSelection::GetLayerTypeColor(
+    const zelda3::RoomObject& object) const {
   const auto& theme = AgentUI::GetTheme();
   int layer = object.GetLayerValue();
 
   switch (layer) {
-    case 0: return theme.dungeon_outline_layer0;
-    case 1: return theme.dungeon_outline_layer1;
-    case 2: return theme.dungeon_outline_layer2;
-    default: return theme.status_inactive;
+    case 0:
+      return theme.dungeon_outline_layer0;
+    case 1:
+      return theme.dungeon_outline_layer1;
+    case 2:
+      return theme.dungeon_outline_layer2;
+    default:
+      return theme.status_inactive;
   }
 }
 
@@ -317,25 +325,26 @@ void ObjectSelection::DrawRectangleSelectionBox(gui::Canvas* canvas) {
 
   const auto& theme = AgentUI::GetTheme();
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 canvas_pos = canvas->zero_point();
-  float scale = canvas->global_scale();
+  const DungeonCanvasTransform transform(
+      canvas->zero_point(), canvas->scrolling(), canvas->global_scale());
 
   // Get normalized bounds
   auto [min_x, min_y, max_x, max_y] = GetRectangleSelectionBounds();
 
-  // Apply scale and canvas offset
-  ImVec2 box_start(canvas_pos.x + min_x * scale, canvas_pos.y + min_y * scale);
-  ImVec2 box_end(canvas_pos.x + max_x * scale, canvas_pos.y + max_y * scale);
+  const ImVec2 box_start = transform.RoomPixelsToScreen(
+      ImVec2(static_cast<float>(min_x), static_cast<float>(min_y)));
+  const ImVec2 box_end = transform.RoomPixelsToScreen(
+      ImVec2(static_cast<float>(max_x), static_cast<float>(max_y)));
 
   // Draw selection box with theme selection color
   // Border: High-contrast at 0.85f alpha
   ImU32 border_color = ImGui::ColorConvertFloat4ToU32(
-      ImVec4(theme.selection_secondary.x, theme.selection_secondary.y, theme.selection_secondary.z,
-             0.85f));
+      ImVec4(theme.selection_secondary.x, theme.selection_secondary.y,
+             theme.selection_secondary.z, 0.85f));
   // Fill: Subtle at 0.15f alpha
   ImU32 fill_color = ImGui::ColorConvertFloat4ToU32(
-      ImVec4(theme.selection_secondary.x, theme.selection_secondary.y, theme.selection_secondary.z,
-             0.15f));
+      ImVec4(theme.selection_secondary.x, theme.selection_secondary.y,
+             theme.selection_secondary.z, 0.15f));
 
   draw_list->AddRectFilled(box_start, box_end, fill_color);
   draw_list->AddRect(box_start, box_end, border_color, 0.0f, 0, 2.0f);
@@ -346,13 +355,13 @@ void ObjectSelection::DrawRectangleSelectionBox(gui::Canvas* canvas) {
 // ============================================================================
 
 std::pair<int, int> ObjectSelection::RoomToCanvasCoordinates(int room_x,
-                                                              int room_y) {
+                                                             int room_y) {
   // Dungeon tiles are 8x8 pixels
   return {room_x * 8, room_y * 8};
 }
 
 std::pair<int, int> ObjectSelection::CanvasToRoomCoordinates(int canvas_x,
-                                                              int canvas_y) {
+                                                             int canvas_y) {
   // Convert pixels back to tiles (round down)
   return {canvas_x / 8, canvas_y / 8};
 }
@@ -397,7 +406,8 @@ bool ObjectSelection::IsObjectInRectangle(const zelda3::RoomObject& object,
   return x_overlap && y_overlap;
 }
 
-bool ObjectSelection::PassesLayerFilter(const zelda3::RoomObject& object) const {
+bool ObjectSelection::PassesLayerFilter(
+    const zelda3::RoomObject& object) const {
   // If no layer filter is active, all objects pass
   if (active_layer_filter_ == kLayerAll) {
     return true;
