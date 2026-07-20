@@ -538,12 +538,15 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
       object_id == 0xFEF) {
     return 12;
   }
-  // Light beams
+  // LightBeamOnFloor (0xFF0 / ASM 0x270) reads two unique 4x4 blocks:
+  // obj2376 is reused for the top and overlapping middle stamps, then
+  // obj2396 supplies the bottom stamp.
   if (object_id == 0xFF0) {
-    return 16;
+    return 32;
   }
+  // BigLightBeamOnFloor (0xFF1 / ASM 0x271) draws four unique 4x4 blocks.
   if (object_id == 0xFF1) {
-    return 36;
+    return 64;
   }
   // Ganon Triforce floor decor (two 4x4 blocks -> 32 tiles)
   if (object_id == 0xFF8) {

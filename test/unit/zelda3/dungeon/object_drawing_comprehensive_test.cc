@@ -140,10 +140,10 @@ int ExpectedSubtype3TileCount(int id) {
     return 12;
   }
   if (id == 0xFF0) {
-    return 16;
+    return 32;
   }
   if (id == 0xFF1) {
-    return 36;
+    return 64;
   }
   if (id == 0xFF8) {
     return 32;
@@ -209,6 +209,28 @@ TEST_F(ObjectDrawingComprehensiveTest, DetectsType3Objects) {
     int expected = ExpectedSubtype3TileCount(id);
     EXPECT_EQ(info->max_tile_count, expected)
         << "Type 3 tile count mismatch for ID 0x" << std::hex << id;
+  }
+}
+
+TEST_F(ObjectDrawingComprehensiveTest,
+       LightBeamTilePayloadsCoverAllUsdasmBlocks) {
+  ObjectParser parser(rom_.get());
+
+  struct TestCase {
+    int16_t object_id;
+    size_t expected_tiles;
+  };
+
+  for (const auto& test_case : {TestCase{0xFF0, 32}, TestCase{0xFF1, 64}}) {
+    SCOPED_TRACE(test_case.object_id);
+
+    auto info = parser.GetObjectSubtype(test_case.object_id);
+    ASSERT_TRUE(info.ok()) << info.status();
+    EXPECT_EQ(info->max_tile_count, test_case.expected_tiles);
+
+    auto tiles = parser.ParseObject(test_case.object_id);
+    ASSERT_TRUE(tiles.ok()) << tiles.status();
+    EXPECT_EQ(tiles->size(), test_case.expected_tiles);
   }
 }
 
