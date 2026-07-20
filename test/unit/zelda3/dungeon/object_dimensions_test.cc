@@ -251,6 +251,47 @@ TEST_F(ObjectDimensionTableTest, HammerPegUsesFixedTwoByTwoBounds) {
   }
 }
 
+TEST_F(ObjectDimensionTableTest, VerticalRailVariantsUseUsdasmLengths) {
+  auto& table = ObjectDimensionTable::Get();
+  ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());
+
+  for (uint8_t size : {0, 5, 15}) {
+    SCOPED_TRACE(::testing::Message() << "size=" << static_cast<int>(size));
+
+    auto [long_width, long_height] = table.GetDimensions(0x8A, size);
+    EXPECT_EQ(long_width, 1);
+    EXPECT_EQ(long_height, static_cast<int>(size) + 23);
+
+    for (int object_id : {0x8B, 0x8C}) {
+      SCOPED_TRACE(::testing::Message()
+                   << " object_id=0x" << std::hex << object_id);
+      const int expected_height = static_cast<int>(size) + 8;
+      auto [width, height] = table.GetDimensions(object_id, size);
+      EXPECT_EQ(width, 1);
+      EXPECT_EQ(height, expected_height);
+
+      const auto selection = table.GetSelectionBounds(object_id, size);
+      EXPECT_EQ(selection.offset_x, 0);
+      EXPECT_EQ(selection.offset_y, 0);
+      EXPECT_EQ(selection.width, 1);
+      EXPECT_EQ(selection.height, expected_height);
+
+      const RoomObject object(object_id, 0, 0, size, 0);
+      auto geometry = ObjectGeometry::Get().MeasureByObjectId(object);
+      ASSERT_TRUE(geometry.ok());
+      EXPECT_EQ(geometry->min_x_tiles, 0);
+      EXPECT_EQ(geometry->min_y_tiles, 0);
+      EXPECT_EQ(geometry->width_tiles, 1);
+      EXPECT_EQ(geometry->height_tiles, expected_height);
+
+      auto [legacy_width, legacy_height] =
+          ObjectDrawer(rom_.get(), 0).CalculateObjectDimensions(object);
+      EXPECT_EQ(legacy_width, 8);
+      EXPECT_EQ(legacy_height, expected_height * 8);
+    }
+  }
+}
+
 TEST_F(ObjectDimensionTableTest,
        ReportedPlatformAndDecorObjectsUseUsdasmFootprints) {
   auto& table = ObjectDimensionTable::Get();
