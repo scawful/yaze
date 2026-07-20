@@ -565,6 +565,41 @@ TEST(DungeonEditorV2RomSafetyTest,
 }
 
 TEST(DungeonEditorV2RomSafetyTest,
+     SaveRoomRollbackRestoresNormalizedWaterFillMasks) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SetupChestTable(rom);
+  // The chest length operand is a byte count and must be divisible by three.
+  rom.mutable_data()[zelda3::kChestsLengthPointer] = 0x01;
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  auto& first_room = editor->rooms()[0];
+  first_room.SetWaterFillTile(/*x=*/1, /*y=*/1, /*filled=*/true);
+  first_room.set_water_fill_sram_bit_mask(0x01);
+  first_room.MarkChestsDirty();
+  auto& second_room = editor->rooms()[1];
+  second_room.SetWaterFillTile(/*x=*/2, /*y=*/2, /*filled=*/true);
+  second_room.set_water_fill_sram_bit_mask(0x01);
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveWaterFillZones = true;
+  flags.kSaveChests = true;
+
+  const auto before = rom.vector();
+  const auto status = editor->SaveRoom(0);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(first_room.water_fill_sram_bit_mask(), 0x01);
+  EXPECT_EQ(second_room.water_fill_sram_bit_mask(), 0x01);
+  EXPECT_TRUE(first_room.water_fill_dirty());
+  EXPECT_TRUE(second_room.water_fill_dirty());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
      LateCoordinatorRollbackRestoresEntranceDirtyState) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
