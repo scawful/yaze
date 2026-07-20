@@ -383,6 +383,7 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/room_integration_test.cc
     integration/zelda3/dungeon/pit_damage_table_test.cc
     integration/zelda3/dungeon_save_region_test.cc
+    integration/zelda3/dungeon_pot_repack_oos_integration_test.cc
     integration/zelda3/dungeon_object_rendering_tests.cc
     # NOTE: dungeon_object_rom_validation_test.cc is intentionally NOT listed
     # here. It is registered exclusively into yaze_test_rom_dependent below
