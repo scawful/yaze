@@ -48,6 +48,17 @@ struct OracleRomSafetyPreflightOptions {
   // Rooms are checked independently of validate_custom_collision_maps.
   // Errors use code "ORACLE_REQUIRED_ROOM_MISSING_COLLISION".
   std::vector<int> room_ids_requiring_custom_collision;
+
+  // Room IDs that must be present in the editor-authored WaterFill table.
+  //
+  // This is intentionally separate from custom-collision requirements: the
+  // Oracle runtime looks up water-fill behavior by room in its own table, so
+  // authored collision alone cannot prove that a water gate is configured.
+  // Runtime table room IDs are byte-sized and must be in 0x00..0xFF.
+  // The check runs independently of validate_water_fill_table and preserves
+  // structural-only behavior when this list is empty.
+  // Errors use code "ORACLE_REQUIRED_WATER_FILL_ROOM_MISSING".
+  std::vector<int> room_ids_requiring_water_fill_zones;
 };
 
 // Run Oracle ROM safety checks used by save/import write paths.

@@ -113,5 +113,37 @@ TEST_F(DungeonObjectEditorDirtyTest,
   EXPECT_FALSE(special_room.object_stream_dirty());
 }
 
+TEST_F(DungeonObjectEditorDirtyTest,
+       DuplicateAndPasteResetLoadedBlockSlotWhileMovePreservesIt) {
+  Room special_room(1, &rom_);
+  RoomObject block(0x0E00, 10, 10, 0, 1);
+  block.set_options(ObjectOption::Block);
+  block.set_block_behavior_layer(1);
+  block.set_block_load_order(7);
+  ASSERT_TRUE(special_room.AddObject(block).ok());
+  special_room.ClearSaveDirtyState();
+  editor_->SetExternalRoom(&special_room);
+
+  ASSERT_TRUE(editor_->MoveObject(0, 11, 10).ok());
+  EXPECT_EQ(special_room.GetTileObjects()[0].block_load_order(), 7);
+
+  const auto duplicate_index = editor_->DuplicateObject(0, 1, 0);
+  ASSERT_TRUE(duplicate_index.has_value());
+  EXPECT_EQ(special_room.GetTileObjects()[*duplicate_index].block_load_order(),
+            RoomObject::kBlockLoadOrderNew);
+  EXPECT_EQ(
+      special_room.GetTileObjects()[*duplicate_index].block_behavior_layer(),
+      1);
+
+  editor_->CopySelectedObjects({0});
+  const auto pasted_indices = editor_->PasteObjects();
+  ASSERT_EQ(pasted_indices.size(), 1u);
+  EXPECT_EQ(special_room.GetTileObjects()[pasted_indices[0]].block_load_order(),
+            RoomObject::kBlockLoadOrderNew);
+  EXPECT_EQ(
+      special_room.GetTileObjects()[pasted_indices[0]].block_behavior_layer(),
+      1);
+}
+
 }  // namespace
 }  // namespace yaze::zelda3
