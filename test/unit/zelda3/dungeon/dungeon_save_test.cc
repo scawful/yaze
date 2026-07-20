@@ -233,11 +233,43 @@ class DungeonSaveTest : public ::testing::Test {
     rom_->mutable_data()[kPotRoom2Pc + 1] = 0xFF;
   }
 
+  void SetupSharedPotItemTable() {
+    rom_->mutable_data()[kPotRoom0Pc + 0] = 0xFF;
+    rom_->mutable_data()[kPotRoom0Pc + 1] = 0xFF;
+    for (int room_id = 0; room_id < kNumberOfRooms; ++room_id) {
+      SetPotRoomPointer(room_id, kPotRoom0Pc);
+    }
+  }
+
+  DungeonStreamLayout MakePotRepackLayout(
+      DungeonStreamPcRange allocation) const {
+    DungeonStreamLayout layout;
+    layout.kind = DungeonStreamKind::kPotItem;
+    layout.pointer_table_pc = kRoomItemsPointers;
+    layout.pointer_count = kNumberOfRooms;
+    layout.pointer_encoding = DungeonPointerEncoding::kFixedBank16;
+    layout.pointer_bank = 0x01;
+    layout.data_ranges = {
+        {kPotRoom0Pc, kRoomItemsPointers},
+        {kRoomItemsPointers + kNumberOfRooms * 2, 0x010000},
+    };
+    layout.allocation_ranges = {allocation};
+    return layout;
+  }
+
   void SetPotRoomPointer(int room_id, int pc_addr) {
     const uint16_t pointer = static_cast<uint16_t>(PcToSnes(pc_addr));
     const int ptr_off = kRoomItemsPointers + room_id * 2;
     rom_->mutable_data()[ptr_off] = pointer & 0xFF;
     rom_->mutable_data()[ptr_off + 1] = (pointer >> 8) & 0xFF;
+  }
+
+  int GetPotRoomPointer(int room_id) const {
+    const int ptr_off = kRoomItemsPointers + room_id * 2;
+    const uint16_t pointer =
+        static_cast<uint16_t>(rom_->data()[ptr_off]) |
+        (static_cast<uint16_t>(rom_->data()[ptr_off + 1]) << 8);
+    return static_cast<int>(SnesToPc(0x010000u | pointer));
   }
 
   void SeedPotItemBytes(int pc_addr, std::initializer_list<uint8_t> bytes) {
@@ -1445,6 +1477,62 @@ TEST_F(DungeonSaveTest, SaveAllPotItems_SharedStreamFailsWithoutMutation) {
   const auto status = SaveAllPotItems(rom_.get(), rooms);
 
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(rooms[0].pot_items_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllPotItems_RepackDetachesDirtyRoomFromSharedEmptyStream) {
+  SetupSharedPotItemTable();
+  auto layout = MakePotRepackLayout({0x00E100, 0x00E140});
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].GetPotItems().push_back(PotItem{0x1234, 0x56});
+  rooms[0].MarkPotItemsDirty();
+
+  const auto status =
+      SaveAllPotItems(rom_.get(), absl::MakeConstSpan(rooms), &layout);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_FALSE(rooms[0].pot_items_dirty());
+  EXPECT_EQ(GetPotRoomPointer(0), 0x00E100);
+  EXPECT_EQ(GetPotRoomPointer(1), 0x00E105);
+  EXPECT_NE(GetPotRoomPointer(0), GetPotRoomPointer(1));
+  Room reloaded(0, rom_.get());
+  reloaded.LoadPotItems();
+  ASSERT_EQ(reloaded.GetPotItems().size(), 1u);
+  EXPECT_EQ(reloaded.GetPotItems()[0].position, 0x1234);
+  EXPECT_EQ(reloaded.GetPotItems()[0].item, 0x56);
+}
+
+TEST_F(DungeonSaveTest, SaveAllPotItems_RepackAcceptsExactFit) {
+  SetupSharedPotItemTable();
+  auto layout = MakePotRepackLayout({0x00E100, 0x00E107});
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].GetPotItems().push_back(PotItem{0x1234, 0x56});
+  rooms[0].MarkPotItemsDirty();
+
+  const auto status =
+      SaveAllPotItems(rom_.get(), absl::MakeConstSpan(rooms), &layout);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_FALSE(rooms[0].pot_items_dirty());
+  EXPECT_EQ(GetPotRoomPointer(0), 0x00E100);
+  EXPECT_EQ(GetPotRoomPointer(1), 0x00E105);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllPotItems_RepackFailurePreservesRomAndDirtyState) {
+  SetupSharedPotItemTable();
+  auto layout = MakePotRepackLayout({0x00E100, 0x00E106});
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].GetPotItems().push_back(PotItem{0x1234, 0x56});
+  rooms[0].MarkPotItemsDirty();
+  const auto before = rom_->vector();
+
+  const auto status =
+      SaveAllPotItems(rom_.get(), absl::MakeConstSpan(rooms), &layout);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
   EXPECT_EQ(rom_->vector(), before);
   EXPECT_TRUE(rooms[0].pot_items_dirty());
 }
