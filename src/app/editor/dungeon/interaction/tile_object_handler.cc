@@ -9,13 +9,15 @@
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/dungeon/object_selection.h"
 #include "app/gfx/resource/arena.h"
+#include "app/platform/sdl_compat.h"
 #include "imgui/imgui.h"
 #include "util/i18n/tr.h"
 #include "util/log.h"
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/dungeon_limits.h"
+#include "zelda3/dungeon/geometry/object_geometry.h"
 #include "zelda3/dungeon/object_drawer.h"
-#include "zelda3/dungeon/object_layer_semantics.h"
+#include "zelda3/dungeon/object_stream_ordering.h"
 
 #include "app/editor/dungeon/dungeon_snapping.h"
 
@@ -23,6 +25,32 @@ namespace yaze::editor {
 
 namespace {
 constexpr size_t kMaxLayerBatchMutation = 128;
+constexpr int kGhostPreviewBufferSize = 512;
+
+bool ApplyRoomPaletteToGhost(const zelda3::Room& room, gfx::Bitmap& ghost) {
+  const gfx::Bitmap* sources[] = {
+      &room.bg1_buffer().bitmap(), &room.object_bg1_buffer().bitmap(),
+      &room.bg2_buffer().bitmap(), &room.object_bg2_buffer().bitmap()};
+  for (const gfx::Bitmap* source : sources) {
+    SDL_Surface* surface = source->surface();
+    SDL_Palette* palette = platform::GetSurfacePalette(surface);
+    if (!palette || palette->ncolors <= 0) {
+      continue;
+    }
+
+    std::vector<SDL_Color> colors(256, {0, 0, 0, 0});
+    const int color_count = std::min(palette->ncolors, 256);
+    std::copy_n(palette->colors, color_count, colors.begin());
+    colors[255] = {0, 0, 0, 0};
+    ghost.SetPalette(colors);
+    if (ghost.surface()) {
+      SDL_SetColorKey(ghost.surface(), SDL_TRUE, 255);
+      SDL_SetSurfaceBlendMode(ghost.surface(), SDL_BLENDMODE_BLEND);
+    }
+    return true;
+  }
+  return false;
+}
 
 struct LayerOrderEntry {
   zelda3::RoomObject object;
@@ -173,7 +201,6 @@ void TileObjectHandler::BeginPlacement() {
 
 void TileObjectHandler::CancelPlacement() {
   object_placement_mode_ = false;
-  ghost_preview_buffer_.reset();
 }
 
 bool TileObjectHandler::HandleClick(int canvas_x, int canvas_y) {
@@ -350,26 +377,31 @@ void TileObjectHandler::DrawGhostPreview() {
     return;
   }
 
-  ImVec2 canvas_pos = GetCanvasZeroPoint();
-  float scale = GetCanvasScale();
+  const DungeonCanvasTransform transform = GetCanvasTransform();
+  const auto [canvas_x, canvas_y] =
+      transform.ScreenToRoomPixelCoordinates(*pointer_screen_pos);
+  auto [room_x, room_y] = CanvasToRoom(canvas_x, canvas_y);
 
-  ImVec2 canvas_mouse_pos = ImVec2(pointer_screen_pos->x - canvas_pos.x,
-                                   pointer_screen_pos->y - canvas_pos.y);
-  auto [room_x, room_y] = CanvasToRoom(static_cast<int>(canvas_mouse_pos.x),
-                                       static_cast<int>(canvas_mouse_pos.y));
-
-  if (!IsWithinBounds(static_cast<int>(canvas_mouse_pos.x),
-                      static_cast<int>(canvas_mouse_pos.y)))
+  if (!IsWithinBounds(canvas_x, canvas_y))
     return;
 
   auto [snap_canvas_x, snap_canvas_y] = RoomToCanvas(room_x, room_y);
-  auto [obj_width, obj_height] = CalculateObjectBounds(preview_object_);
+  const auto preview_geometry = CalculateGhostPreviewGeometry(preview_object_);
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 preview_start(canvas_pos.x + snap_canvas_x * scale,
-                       canvas_pos.y + snap_canvas_y * scale);
-  ImVec2 preview_end(preview_start.x + obj_width * scale,
-                     preview_start.y + obj_height * scale);
+  const ImVec2 preview_start = transform.RoomPixelsToScreen(ImVec2(
+      static_cast<float>(snap_canvas_x + preview_geometry.offset_x_tiles * 8),
+      static_cast<float>(snap_canvas_y + preview_geometry.offset_y_tiles * 8)));
+  const ImVec2 preview_size = transform.RoomSizeToScreen(
+      ImVec2(static_cast<float>(preview_geometry.width_pixels),
+             static_cast<float>(preview_geometry.height_pixels)));
+  const ImVec2 preview_end(preview_start.x + preview_size.x,
+                           preview_start.y + preview_size.y);
+  const ImVec2 bitmap_start = transform.RoomPixelsToScreen(
+      ImVec2(static_cast<float>(snap_canvas_x -
+                                preview_geometry.render_anchor_x_tiles * 8),
+             static_cast<float>(snap_canvas_y -
+                                preview_geometry.render_anchor_y_tiles * 8)));
 
   zelda3::Room* room = GetRoom(ctx_->current_room_id);
   const size_t current_obj_count = room ? room->GetTileObjects().size() : 0;
@@ -380,20 +412,28 @@ void TileObjectHandler::DrawGhostPreview() {
       theme, capacity_state, theme.dungeon_selection_primary);
   bool drew_bitmap = false;
 
-  if (ghost_preview_buffer_) {
+  if (ghost_preview_buffer_ && ghost_preview_bitmap_ready_) {
     auto& bitmap = ghost_preview_buffer_->bitmap();
     if (bitmap.texture()) {
-      ImVec2 bitmap_end(preview_start.x + bitmap.width() * scale,
-                        preview_start.y + bitmap.height() * scale);
+      const int crop_width =
+          std::min(preview_geometry.buffer_width_pixels, bitmap.width());
+      const int crop_height =
+          std::min(preview_geometry.buffer_height_pixels, bitmap.height());
+      const ImVec2 bitmap_size = transform.RoomSizeToScreen(ImVec2(
+          static_cast<float>(crop_width), static_cast<float>(crop_height)));
+      const ImVec2 bitmap_end(bitmap_start.x + bitmap_size.x,
+                              bitmap_start.y + bitmap_size.y);
+      const ImVec2 uv_end(static_cast<float>(crop_width) / bitmap.width(),
+                          static_cast<float>(crop_height) / bitmap.height());
       ImVec4 tint = capacity_state == GhostCapacityState::kNormal
                         ? theme.text_primary
                         : GetPlacementAccentColor(theme, capacity_state,
                                                   theme.text_primary);
       tint.w = 0.70f;
-      draw_list->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
-                          preview_start, bitmap_end, ImVec2(0, 0), ImVec2(1, 1),
+      draw_list->AddImage((ImTextureID)(intptr_t)bitmap.texture(), bitmap_start,
+                          bitmap_end, ImVec2(0, 0), uv_end,
                           ImGui::GetColorU32(tint));
-      draw_list->AddRect(preview_start, bitmap_end,
+      draw_list->AddRect(preview_start, preview_end,
                          ImGui::GetColorU32(outline_color), 0.0f, 0, 2.0f);
       drew_bitmap = true;
     }
@@ -452,6 +492,9 @@ void TileObjectHandler::DrawSelectionHighlight() {
 
 std::optional<size_t> TileObjectHandler::GetEntityAtPosition(
     int canvas_x, int canvas_y) const {
+  if (!HasValidContext() || !IsWithinBounds(canvas_x, canvas_y)) {
+    return std::nullopt;
+  }
   auto* room =
       const_cast<TileObjectHandler*>(this)->GetRoom(ctx_->current_room_id);
   if (!room)
@@ -551,25 +594,27 @@ void TileObjectHandler::DrawSmartGuides(
   guide_color.w = 0.78f;
   const ImU32 color = ImGui::GetColorU32(guide_color);
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  const ImVec2 canvas_pos = ctx_->canvas->zero_point();
-  const float scale = ctx_->canvas->global_scale();
-  const float width = dungeon_coords::kRoomPixelWidth * scale;
-  const float height = dungeon_coords::kRoomPixelHeight * scale;
+  const DungeonCanvasTransform transform = GetCanvasTransform();
+  const ImVec2 canvas_pos = transform.room_origin_screen();
+  const ImVec2 room_size = transform.RoomSizeToScreen(ImVec2(
+      dungeon_coords::kRoomPixelWidth, dungeon_coords::kRoomPixelHeight));
 
   const size_t vertical_count =
       std::min(vertical_guides.size(), kMaxGuidesPerAxis);
   for (size_t i = 0; i < vertical_count; ++i) {
-    const float x = canvas_pos.x + vertical_guides[i] * scale;
+    const float x =
+        transform.RoomPixelsToScreen(ImVec2(vertical_guides[i], 0.0f)).x;
     DrawDashedLine(draw_list, ImVec2(x, canvas_pos.y),
-                   ImVec2(x, canvas_pos.y + height), color, 1.2f);
+                   ImVec2(x, canvas_pos.y + room_size.y), color, 1.2f);
   }
 
   const size_t horizontal_count =
       std::min(horizontal_guides.size(), kMaxGuidesPerAxis);
   for (size_t i = 0; i < horizontal_count; ++i) {
-    const float y = canvas_pos.y + horizontal_guides[i] * scale;
+    const float y =
+        transform.RoomPixelsToScreen(ImVec2(0.0f, horizontal_guides[i])).y;
     DrawDashedLine(draw_list, ImVec2(canvas_pos.x, y),
-                   ImVec2(canvas_pos.x + width, y), color, 1.2f);
+                   ImVec2(canvas_pos.x + room_size.x, y), color, 1.2f);
   }
 }
 
@@ -638,16 +683,16 @@ void TileObjectHandler::UpdateObjectsSize(int room_id,
   NotifyChange(room);
 }
 
-void TileObjectHandler::UpdateObjectsLayer(int room_id,
+bool TileObjectHandler::UpdateObjectsLayer(int room_id,
                                            const std::vector<size_t>& indices,
                                            int new_layer) {
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
-    return;
+    return false;
   if (new_layer < 0 || new_layer > 2) {
     LOG_WARN("TileObjectHandler",
              "Rejected layer update with invalid target layer: %d", new_layer);
-    return;
+    return false;
   }
   auto& objects = room->GetTileObjects();
   std::vector<size_t> deduped_indices;
@@ -662,93 +707,35 @@ void TileObjectHandler::UpdateObjectsLayer(int room_id,
     }
   }
   if (deduped_indices.empty()) {
-    return;
+    return false;
   }
 
   if (deduped_indices.size() > kMaxLayerBatchMutation) {
     LOG_WARN("TileObjectHandler",
              "Rejected layer batch mutation of %zu objects (max %zu)",
              deduped_indices.size(), kMaxLayerBatchMutation);
-    return;
+    return false;
   }
 
-  int current_bg3_count = 0;
-  for (const auto& object : objects) {
-    if (object.GetLayerValue() == 2) {
-      ++current_bg3_count;
-    }
+  auto candidate_objects = objects;
+  auto mutation = zelda3::ReassignObjectStorage(candidate_objects,
+                                                deduped_indices, new_layer);
+  if (!mutation.ok()) {
+    LOG_WARN("TileObjectHandler", "Rejected object stream mutation: %s",
+             std::string(mutation.status().message()).c_str());
+    return false;
   }
-
-  int moving_to_bg3 = 0;
-  int moving_from_bg3 = 0;
-  auto target_layer = static_cast<zelda3::RoomObject::LayerType>(new_layer);
-  for (size_t index : deduped_indices) {
-    const auto& object = objects[index];
-    const auto semantics = zelda3::GetObjectLayerSemantics(object);
-    if (semantics.draws_to_both_bgs &&
-        target_layer != zelda3::RoomObject::LayerType::BG1) {
-      continue;
-    }
-    if (object.layer_ == target_layer) {
-      continue;
-    }
-    if (object.GetLayerValue() == 2) {
-      ++moving_from_bg3;
-    }
-    if (new_layer == 2) {
-      ++moving_to_bg3;
-    }
-  }
-  const int projected_bg3_count =
-      current_bg3_count - moving_from_bg3 + moving_to_bg3;
-  if (projected_bg3_count > zelda3::kMaxBg3Objects) {
-    LOG_WARN("TileObjectHandler",
-             "Rejected layer mutation: projected BG3 count %d exceeds max %d",
-             projected_bg3_count, zelda3::kMaxBg3Objects);
-    return;
-  }
-
-  const std::unordered_set<size_t> selected_set(deduped_indices.begin(),
-                                                deduped_indices.end());
-  std::array<std::vector<LayerOrderEntry>, 3> buckets;
-  std::vector<LayerOrderEntry> moved_to_target_layer;
-  bool changed = false;
-  for (size_t index = 0; index < objects.size(); ++index) {
-    auto object = objects[index];
-    const bool selected = selected_set.count(index) > 0;
-    if (!selected) {
-      buckets[LayerBucketIndex(object)].push_back(
-          LayerOrderEntry{std::move(object), false});
-      continue;
-    }
-    const auto semantics = zelda3::GetObjectLayerSemantics(object);
-    if (semantics.draws_to_both_bgs &&
-        target_layer != zelda3::RoomObject::LayerType::BG1) {
-      buckets[LayerBucketIndex(object)].push_back(
-          LayerOrderEntry{std::move(object), true});
-      continue;
-    }
-    if (object.layer_ == target_layer) {
-      buckets[LayerBucketIndex(object)].push_back(
-          LayerOrderEntry{std::move(object), true});
-      continue;
-    }
-    object.layer_ = target_layer;
-    moved_to_target_layer.push_back(LayerOrderEntry{std::move(object), true});
-    changed = true;
-  }
-  if (!changed) {
-    return;
-  }
-
-  for (auto& entry : moved_to_target_layer) {
-    buckets[new_layer].push_back(std::move(entry));
+  if (!mutation->changed) {
+    return true;
   }
 
   if (ctx_)
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
-  FlattenLayerBuckets(objects, buckets, ctx_ ? ctx_->selection : nullptr);
+  objects = std::move(candidate_objects);
+  RestoreObjectSelection(ctx_ ? ctx_->selection : nullptr,
+                         mutation->selected_indices);
   NotifyChange(room);
+  return true;
 }
 
 std::vector<size_t> TileObjectHandler::DuplicateObjects(
@@ -766,7 +753,7 @@ std::vector<size_t> TileObjectHandler::DuplicateObjects(
   const size_t base_index = objects.size();
   for (size_t index : indices) {
     if (index < objects.size()) {
-      auto clone = objects[index];
+      auto clone = objects[index].CopyForNewPlacement();
       clone.x_ = std::clamp(static_cast<int>(clone.x_ + delta_x), 0, 63);
       clone.y_ = std::clamp(static_cast<int>(clone.y_ + delta_y), 0, 63);
       objects.push_back(clone);
@@ -964,7 +951,7 @@ bool TileObjectHandler::PlaceObjectAt(int room_id,
   placement_block_reason_ = PlacementBlockReason::kNone;
   if (ctx_)
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
-  auto new_obj = object;
+  auto new_obj = object.CopyForNewPlacement();
   new_obj.x_ = std::clamp(x, 0, 63);
   new_obj.y_ = std::clamp(y, 0, 63);
   room->AddTileObject(new_obj);
@@ -981,6 +968,7 @@ void TileObjectHandler::SetPreviewObject(const zelda3::RoomObject& object) {
 }
 
 void TileObjectHandler::RenderGhostPreviewBitmap() {
+  ghost_preview_bitmap_ready_ = false;
   if (!ctx_ || !ctx_->rom || !ctx_->rom->is_loaded())
     return;
 
@@ -988,36 +976,85 @@ void TileObjectHandler::RenderGhostPreviewBitmap() {
   if (!room || !room->IsLoaded())
     return;
 
-  auto [width, height] = CalculateObjectBounds(preview_object_);
-  width = std::max(width, 16);
-  height = std::max(height, 16);
+  const auto preview_geometry = CalculateGhostPreviewGeometry(preview_object_);
 
-  ghost_preview_buffer_ =
-      std::make_unique<gfx::BackgroundBuffer>(width, height);
+  // Keep one room-sized scratch texture for the handler lifetime. Replacing a
+  // textured bitmap during ImGui frame construction can invalidate draw-list
+  // texture handles, and repeatedly allocating previews leaks those handles.
+  if (!ghost_preview_buffer_) {
+    ghost_preview_buffer_ = std::make_unique<gfx::BackgroundBuffer>(
+        kGhostPreviewBufferSize, kGhostPreviewBufferSize);
+  }
+  ghost_preview_buffer_->EnsureBitmapInitialized();
+  ghost_preview_buffer_->ClearBuffer();
+  auto& bitmap = ghost_preview_buffer_->bitmap();
+  ApplyRoomPaletteToGhost(*room, bitmap);
+  std::fill(bitmap.mutable_data().begin(), bitmap.mutable_data().end(), 255);
+  bitmap.set_modified(true);
   const uint8_t* gfx_data = room->get_gfx_buffer().data();
 
   zelda3::ObjectDrawer drawer(ctx_->rom, ctx_->current_room_id, gfx_data);
   drawer.InitializeDrawRoutines();
 
+  // Replay at the same safe anchor ObjectGeometry uses for measurement so
+  // routines that draw upward or leftward do not clip against buffer origin.
+  auto render_object = preview_object_;
+  render_object.x_ = preview_geometry.render_anchor_x_tiles;
+  render_object.y_ = preview_geometry.render_anchor_y_tiles;
+  // A placement preview is a flattened visual. Force the replay through BG1
+  // so a sampled BG2-stream object cannot mask pixels in the same scratch
+  // buffer that it just rendered.
+  render_object.layer_ = zelda3::RoomObject::LayerType::BG1;
   auto status =
-      drawer.DrawObject(preview_object_, *ghost_preview_buffer_,
+      drawer.DrawObject(render_object, *ghost_preview_buffer_,
                         *ghost_preview_buffer_, ctx_->current_palette_group);
   if (!status.ok()) {
-    ghost_preview_buffer_.reset();
     return;
   }
 
-  auto& bitmap = ghost_preview_buffer_->bitmap();
   if (bitmap.size() > 0) {
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::CREATE, &bitmap);
+    bitmap.UpdateSurfacePixels();
+    if (bitmap.texture()) {
+      ghost_preview_create_queued_ = false;
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::UPDATE, &bitmap);
+    } else if (!ghost_preview_create_queued_) {
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::CREATE, &bitmap);
+      ghost_preview_create_queued_ = true;
+    }
     gfx::Arena::Get().ProcessTextureQueue(nullptr);
+    if (bitmap.texture()) {
+      ghost_preview_create_queued_ = false;
+    }
+    ghost_preview_bitmap_ready_ = true;
   }
 }
 
-std::pair<int, int> TileObjectHandler::CalculateObjectBounds(
+TileObjectHandler::GhostPreviewGeometry
+TileObjectHandler::CalculateGhostPreviewGeometry(
     const zelda3::RoomObject& object) {
-  return zelda3::DimensionService::Get().GetPixelDimensions(object);
+  const auto dimensions = zelda3::DimensionService::Get().GetDimensions(object);
+  const auto [resolved_anchor_x, resolved_anchor_y] =
+      zelda3::ObjectGeometry::Get().ResolveAnchor(object.id_, object.size_);
+  // ResolveAnchor supplies routine-specific headroom. Dimension offsets cover
+  // fallback/custom geometry too, so keep enough room for either source.
+  const int anchor_x =
+      std::max({0, resolved_anchor_x, -dimensions.offset_x_tiles});
+  const int anchor_y =
+      std::max({0, resolved_anchor_y, -dimensions.offset_y_tiles});
+  const int leading_x_tiles = anchor_x + dimensions.offset_x_tiles;
+  const int leading_y_tiles = anchor_y + dimensions.offset_y_tiles;
+  return GhostPreviewGeometry{
+      .render_anchor_x_tiles = anchor_x,
+      .render_anchor_y_tiles = anchor_y,
+      .offset_x_tiles = dimensions.offset_x_tiles,
+      .offset_y_tiles = dimensions.offset_y_tiles,
+      .width_pixels = dimensions.width_pixels(),
+      .height_pixels = dimensions.height_pixels(),
+      .buffer_width_pixels = (leading_x_tiles + dimensions.width_tiles) * 8,
+      .buffer_height_pixels = (leading_y_tiles + dimensions.height_tiles) * 8,
+  };
 }
 
 // ========================================================================
@@ -1053,6 +1090,7 @@ std::vector<size_t> TileObjectHandler::PasteFromClipboard(int room_id,
   size_t base_index = room->GetTileObjects().size();
 
   for (auto obj : clipboard_) {
+    obj = obj.CopyForNewPlacement();
     obj.x_ = std::clamp(obj.x_ + offset_x, 0, 63);
     obj.y_ = std::clamp(obj.y_ + offset_y, 0, 63);
     obj.tiles_loaded_ = false;

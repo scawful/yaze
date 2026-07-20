@@ -111,6 +111,35 @@ TEST(WaterFillZoneTest, WriteRejectsInvalidMask) {
   EXPECT_FALSE(status.ok());
 }
 
+TEST(WaterFillZoneTest, WriteRejectsRoomIdOutsideRuntimeByteRange) {
+  auto rom = MakeDummyRom(0x200000);
+  const auto rom_before = rom->vector();
+
+  WaterFillZoneEntry z;
+  z.room_id = 0x125;
+  z.sram_bit_mask = 0x01;
+  z.fill_offsets = {0};
+
+  const auto status = WriteWaterFillTable(rom.get(), {z});
+  EXPECT_EQ(status.code(), absl::StatusCode::kOutOfRange);
+  EXPECT_EQ(rom->vector(), rom_before);
+}
+
+TEST(WaterFillZoneTest, WriteAcceptsMaximumRuntimeRoomId) {
+  auto rom = MakeDummyRom(0x200000);
+
+  WaterFillZoneEntry z;
+  z.room_id = 0xFF;
+  z.sram_bit_mask = 0x01;
+  z.fill_offsets = {0};
+
+  ASSERT_TRUE(WriteWaterFillTable(rom.get(), {z}).ok());
+  const auto loaded_or = LoadWaterFillTable(rom.get());
+  ASSERT_TRUE(loaded_or.ok()) << loaded_or.status().message();
+  ASSERT_EQ(loaded_or->size(), 1u);
+  EXPECT_EQ(loaded_or->front().room_id, 0xFF);
+}
+
 TEST(WaterFillZoneTest, WriteRejectsDuplicateMask) {
   auto rom = MakeDummyRom(0x200000);
 
@@ -368,6 +397,24 @@ TEST(WaterFillZoneTest, NormalizeMasksRejectsTooManyZones) {
   EXPECT_EQ(st.code(), absl::StatusCode::kInvalidArgument);
 }
 
+TEST(WaterFillZoneTest, NormalizeMasksRejectsRoomIdOutsideRuntimeByteRange) {
+  WaterFillZoneEntry invalid;
+  invalid.room_id = 0x125;
+  invalid.sram_bit_mask = 0;
+  invalid.fill_offsets = {2, 1, 1};
+  WaterFillZoneEntry valid;
+  valid.room_id = 0x25;
+  valid.sram_bit_mask = 0;
+  valid.fill_offsets = {0};
+  std::vector<WaterFillZoneEntry> zones = {invalid, valid};
+
+  const auto status = NormalizeWaterFillZoneMasks(&zones);
+  EXPECT_EQ(status.code(), absl::StatusCode::kOutOfRange);
+  ASSERT_EQ(zones.size(), 2u);
+  EXPECT_EQ(zones[0].room_id, 0x125);
+  EXPECT_EQ(zones[0].fill_offsets, (std::vector<uint16_t>{2, 1, 1}));
+}
+
 #if defined(YAZE_WITH_JSON)
 
 TEST(WaterFillZoneTest, JsonDumpThenLoadRoundTripNormalizes) {
@@ -404,6 +451,16 @@ TEST(WaterFillZoneTest, JsonDumpThenLoadRoundTripNormalizes) {
   EXPECT_EQ(loaded[1].fill_offsets, (std::vector<uint16_t>{0, 10, 4095}));
 }
 
+TEST(WaterFillZoneTest, JsonDumpRejectsRoomIdOutsideRuntimeByteRange) {
+  WaterFillZoneEntry z;
+  z.room_id = 0x125;
+  z.sram_bit_mask = 0x01;
+  z.fill_offsets = {0};
+
+  const auto json_or = DumpWaterFillZonesToJsonString({z});
+  EXPECT_EQ(json_or.status().code(), absl::StatusCode::kOutOfRange);
+}
+
 TEST(WaterFillZoneTest, JsonLoadRejectsDuplicateRoom) {
   constexpr const char* kJson = R"json(
 {
@@ -431,6 +488,20 @@ TEST(WaterFillZoneTest, JsonLoadRejectsOutOfRangeOffset) {
 
   auto zones_or = LoadWaterFillZonesFromJsonString(kJson);
   EXPECT_FALSE(zones_or.ok());
+}
+
+TEST(WaterFillZoneTest, JsonLoadRejectsRoomIdOutsideRuntimeByteRange) {
+  constexpr const char* kJson = R"json(
+{
+  "version": 1,
+  "zones": [
+    { "room_id": "0x125", "mask": 1, "offsets": [ 0 ] }
+  ]
+}
+)json";
+
+  const auto zones_or = LoadWaterFillZonesFromJsonString(kJson);
+  EXPECT_EQ(zones_or.status().code(), absl::StatusCode::kInvalidArgument);
 }
 
 #else
