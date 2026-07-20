@@ -14,6 +14,7 @@
 #include "app/platform/window.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
+#include "zelda3/dungeon/object_stream_ordering.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -459,33 +460,64 @@ absl::Status DungeonObjectEditor::BatchChangeObjectLayer(
     return absl::InvalidArgumentError("Invalid layer");
   }
 
+  const std::vector<size_t> requested_indices = indices;
+  auto& objects = current_room_->GetTileObjects();
+  bool change_needed = false;
+  for (size_t index : requested_indices) {
+    if (index >= objects.size()) {
+      continue;
+    }
+    if (new_layer == 2 && UsesSpecialLayerSelector(objects[index])) {
+      return absl::InvalidArgumentError(
+          "Torches and pushable blocks only support upper/lower draw-layer "
+          "selector values 0/1");
+    }
+    change_needed |= objects[index].GetLayerValue() != new_layer;
+  }
+  if (!change_needed) {
+    return absl::OkStatus();
+  }
+
   // Create undo point
   auto status = CreateUndoPoint();
   if (!status.ok()) {
     return status;
   }
 
-  for (size_t index : indices) {
-    if (index >= current_room_->GetTileObjectCount())
-      continue;
+  const std::vector<RoomObject> before = objects;
+  auto mutation = ReassignObjectStorage(objects, requested_indices, new_layer);
+  if (!mutation.ok()) {
+    return mutation.status();
+  }
 
-    auto& object = current_room_->GetTileObject(index);
-    if (GetObjectLayerSemantics(object).draws_to_both_bgs) {
-      // BothBG objects are rendered to BG1+BG2 regardless of their stored layer.
-      continue;
-    }
-    const auto target_layer = static_cast<RoomObject::LayerType>(new_layer);
-    const bool changed = object.layer_ != target_layer;
-    if (changed) {
-      current_room_->MarkSaveDirtyForTileObject(object);
-    }
-    object.layer_ = target_layer;
-    if (changed) {
-      current_room_->MarkSaveDirtyForTileObject(object);
-    }
+  for (size_t old_index : mutation->changed_old_indices) {
+    const size_t new_index = mutation->old_to_new_index[old_index];
+    current_room_->MarkSaveDirtyForTileObject(before[old_index]);
+    current_room_->MarkSaveDirtyForTileObject(objects[new_index]);
+  }
 
-    if (object_changed_callback_) {
-      object_changed_callback_(index, object);
+  std::vector<size_t> remapped_selection;
+  remapped_selection.reserve(selection_state_.selected_objects.size());
+  for (size_t old_index : selection_state_.selected_objects) {
+    if (old_index < mutation->old_to_new_index.size()) {
+      remapped_selection.push_back(mutation->old_to_new_index[old_index]);
+    }
+  }
+  std::sort(remapped_selection.begin(), remapped_selection.end());
+  remapped_selection.erase(
+      std::unique(remapped_selection.begin(), remapped_selection.end()),
+      remapped_selection.end());
+  if (remapped_selection != selection_state_.selected_objects) {
+    selection_state_.selected_objects = std::move(remapped_selection);
+    if (selection_changed_callback_) {
+      selection_changed_callback_(selection_state_);
+    }
+  }
+
+  if (object_changed_callback_) {
+    for (size_t old_index : mutation->changed_old_indices) {
+      const size_t new_index = mutation->old_to_new_index[old_index];
+      object_changed_callback_(new_index, objects[new_index]);
     }
   }
 
@@ -554,7 +586,8 @@ std::optional<size_t> DungeonObjectEditor::DuplicateObject(size_t object_index,
   // Create undo point
   CreateUndoPoint();
 
-  auto object = current_room_->GetTileObject(object_index);
+  auto object =
+      current_room_->GetTileObject(object_index).CopyForNewPlacement();
 
   // Offset position
   int new_x = object.x() + offset_x;
@@ -608,7 +641,7 @@ std::vector<size_t> DungeonObjectEditor::PasteObjects() {
 
   for (const auto& obj : clipboard_) {
     // Paste with slight offset to make it visible
-    RoomObject new_obj = obj;
+    RoomObject new_obj = obj.CopyForNewPlacement();
 
     // Logic to ensure it stays in bounds if we were to support mouse-position pasting
     // For now, just paste at original location + offset, or perhaps center of screen
@@ -888,36 +921,7 @@ absl::Status DungeonObjectEditor::ChangeObjectLayer(size_t object_index,
     return absl::InvalidArgumentError("Invalid layer");
   }
 
-  // Create undo point
-  auto status = CreateUndoPoint();
-  if (!status.ok()) {
-    return status;
-  }
-
-  auto& object = current_room_->GetTileObject(object_index);
-  if (GetObjectLayerSemantics(object).draws_to_both_bgs) {
-    // BothBG objects are rendered to BG1+BG2 regardless of their stored layer.
-    return absl::OkStatus();
-  }
-  const auto target_layer = static_cast<RoomObject::LayerType>(new_layer);
-  const bool changed = object.layer_ != target_layer;
-  if (changed) {
-    current_room_->MarkSaveDirtyForTileObject(object);
-  }
-  object.layer_ = target_layer;
-  if (changed) {
-    current_room_->MarkSaveDirtyForTileObject(object);
-  }
-
-  if (object_changed_callback_) {
-    object_changed_callback_(object_index, object);
-  }
-
-  if (room_changed_callback_) {
-    room_changed_callback_();
-  }
-
-  return absl::OkStatus();
+  return BatchChangeObjectLayer({object_index}, new_layer);
 }
 
 absl::Status DungeonObjectEditor::HandleScrollWheel(int delta, int x, int y,
@@ -1674,51 +1678,53 @@ void DungeonObjectEditor::DrawPropertyUI() {
 
       ImGui::Spacing();
 
-      // ========== Layer Section ==========
-      gui::SectionHeader(ICON_MD_LAYERS, "Layer", theme.text_info);
+      const bool uses_room_stream = UsesRoomObjectStream(obj);
+      const bool draws_to_both_bgs =
+          uses_room_stream && GetObjectLayerSemantics(obj).draws_to_both_bgs;
+      gui::SectionHeader(ICON_MD_LAYERS,
+                         uses_room_stream ? "Object Stream" : "Special Layer",
+                         theme.text_info);
+      bool storage_changed = false;
       if (gui::BeginPropertyTable("##LayerProps")) {
-        const auto semantics = GetObjectLayerSemantics(obj);
-
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("Draws To");
-        ImGui::TableNextColumn();
-        if (semantics.draws_to_both_bgs) {
-          ImGui::TextColored(theme.text_warning_yellow, "Both (BG1 + BG2)");
-        } else {
-          ImGui::Text("%s",
-                      EffectiveBgLayerLabel(semantics.effective_bg_layer));
+        if (uses_room_stream) {
+          const auto semantics = GetObjectLayerSemantics(obj);
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text("Draws To");
+          ImGui::TableNextColumn();
+          if (semantics.draws_to_both_bgs) {
+            ImGui::TextColored(theme.text_warning_yellow, "Both (BG1 + BG2)");
+          } else {
+            ImGui::Text("%s",
+                        EffectiveBgLayerLabel(semantics.effective_bg_layer));
+          }
         }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Layer");
+        ImGui::Text("%s", uses_room_stream ? "Stream" : "Selector");
         ImGui::TableNextColumn();
         int layer = obj.GetLayerValue();
         ImGui::SetNextItemWidth(-1);
-        if (semantics.draws_to_both_bgs) {
-          ImGui::BeginDisabled();
-        }
-        if (ImGui::Combo("##Layer", &layer,
-                         "BG1 (Floor)\0BG2 (Objects)\0BG3 (Overlay)\0")) {
-          if (!semantics.draws_to_both_bgs && obj.GetLayerValue() != layer) {
-            current_room_->MarkSaveDirtyForTileObject(obj);
-            obj.layer_ = static_cast<RoomObject::LayerType>(layer);
-            current_room_->MarkSaveDirtyForTileObject(obj);
-            if (object_changed_callback_) {
-              object_changed_callback_(obj_idx, obj);
-            }
+        const char* choices = uses_room_stream
+                                  ? "Primary\0BG2 overlay\0BG1 overlay\0"
+                                  : "Upper layer (BG1)\0Lower layer (BG2)\0";
+        if (ImGui::Combo("##Layer", &layer, choices)) {
+          if (obj.GetLayerValue() != layer) {
+            storage_changed = ChangeObjectLayer(obj_idx, layer).ok();
           }
         }
-        if (semantics.draws_to_both_bgs) {
-          ImGui::EndDisabled();
+        if (draws_to_both_bgs) {
           ImGui::SameLine();
           gui::HelpMarker(
-              "This object draws to both BG1 and BG2 in the engine. The stored "
-              "layer selection does not affect rendering.");
+              "This object draws to both BG1 and BG2. Its object stream still "
+              "controls draw order and ROM serialization.");
         }
 
         gui::EndPropertyTable();
+      }
+      if (storage_changed) {
+        return;
       }
 
       ImGui::Spacing();
@@ -1742,10 +1748,7 @@ void DungeonObjectEditor::DrawPropertyUI() {
 
       if (ImGui::Button(ICON_MD_CONTENT_COPY " Duplicate",
                         ImVec2(button_width, 0))) {
-        RoomObject duplicate = obj;
-        duplicate.set_x(obj.x() + 1);
-        auto status = current_room_->AddObject(duplicate);
-        (void)status;
+        (void)DuplicateObject(obj_idx, /*offset_x=*/1, /*offset_y=*/0);
       }
     }
   } else {
@@ -1756,39 +1759,49 @@ void DungeonObjectEditor::DrawPropertyUI() {
 
     ImGui::Spacing();
 
-    // ========== Batch Layer ==========
-    gui::SectionHeader(ICON_MD_LAYERS, "Batch Layer", theme.text_info);
-    size_t both_bg_count = 0;
-    for (size_t idx : selection_state_.selected_objects) {
-      if (idx >= current_room_->GetTileObjectCount())
+    bool has_room_stream_object = false;
+    bool has_special_table_object = false;
+    for (size_t index : selection_state_.selected_objects) {
+      if (index >= current_room_->GetTileObjectCount()) {
         continue;
-      const auto& obj = current_room_->GetTileObject(idx);
-      if (GetObjectLayerSemantics(obj).draws_to_both_bgs) {
-        ++both_bg_count;
+      }
+      if (UsesRoomObjectStream(current_room_->GetTileObject(index))) {
+        has_room_stream_object = true;
+      } else {
+        has_special_table_object = true;
       }
     }
-    if (both_bg_count > 0) {
-      ImGui::TextColored(theme.text_warning_yellow,
-                         ICON_MD_INFO
-                         " %zu object%s draw%s to Both BGs and "
-                         "won't be affected by layer changes",
-                         both_bg_count, both_bg_count == 1 ? "" : "s",
-                         both_bg_count == 1 ? "s" : "");
-      ImGui::Spacing();
-    }
-    static int batch_layer = 0;
-    ImGui::SetNextItemWidth(-1);
-    const bool all_both_bg =
-        (both_bg_count == selection_state_.selected_objects.size());
-    if (all_both_bg) {
-      ImGui::BeginDisabled();
-    }
-    if (ImGui::Combo("##BatchLayer", &batch_layer,
-                     "BG1 (Floor)\0BG2 (Objects)\0BG3 (Overlay)\0")) {
-      BatchChangeObjectLayer(selection_state_.selected_objects, batch_layer);
-    }
-    if (all_both_bg) {
-      ImGui::EndDisabled();
+
+    if (has_special_table_object) {
+      gui::SectionHeader(
+          ICON_MD_LAYERS,
+          has_room_stream_object ? "Batch Placement" : "Batch Special Layer",
+          theme.text_info);
+      if (has_room_stream_object) {
+        ImGui::TextWrapped(
+            "Mixed selection: values apply as object streams to room objects "
+            "and special draw-layer selectors to torches/blocks.");
+      }
+      static int batch_special_layer = 0;
+      batch_special_layer = std::clamp(batch_special_layer, 0, 1);
+      ImGui::SetNextItemWidth(-1);
+      const char* choices = has_room_stream_object
+                                ? "Primary / Upper layer (BG1)\0BG2 overlay / "
+                                  "Lower layer (BG2)\0"
+                                : "Upper layer (BG1)\0Lower layer (BG2)\0";
+      if (ImGui::Combo("##BatchSpecialLayer", &batch_special_layer, choices)) {
+        BatchChangeObjectLayer(selection_state_.selected_objects,
+                               batch_special_layer);
+      }
+    } else {
+      gui::SectionHeader(ICON_MD_LAYERS, "Batch Object Stream",
+                         theme.text_info);
+      static int batch_stream = 0;
+      ImGui::SetNextItemWidth(-1);
+      if (ImGui::Combo("##BatchStream", &batch_stream,
+                       "Primary\0BG2 overlay\0BG1 overlay\0")) {
+        BatchChangeObjectLayer(selection_state_.selected_objects, batch_stream);
+      }
     }
 
     ImGui::Spacing();

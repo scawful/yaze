@@ -41,6 +41,7 @@
 #include "rom/rom.h"
 #include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/pit_damage_table.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_layer_manager.h"
@@ -66,11 +67,22 @@ const char* GetObjectCategory(int object_id) {
 const char* GetObjectStreamName(int layer_value) {
   switch (layer_value) {
     case 0:
-      return "Layer 1 (Primary)";
+      return "Primary";
     case 1:
-      return "Layer 2 (BG2 overlay)";
+      return "BG2 overlay";
     case 2:
-      return "Layer 3 (BG1 overlay)";
+      return "BG1 overlay";
+    default:
+      return "Unknown";
+  }
+}
+
+const char* GetSpecialLayerName(int layer_value) {
+  switch (layer_value) {
+    case 0:
+      return "Upper layer (BG1)";
+    case 1:
+      return "Lower layer (BG2)";
     default:
       return "Unknown";
   }
@@ -2374,6 +2386,18 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
       // captures its own undo snapshot.
       auto& tile_handler = interaction.entity_coordinator().tile_handler();
       const std::vector<size_t> selection_copy(indices.begin(), indices.end());
+      bool has_room_stream_object = false;
+      bool has_special_layer_object = false;
+      for (const size_t index : selection_copy) {
+        if (index >= objects.size()) {
+          continue;
+        }
+        if (zelda3::UsesRoomObjectStream(objects[index])) {
+          has_room_stream_object = true;
+        } else {
+          has_special_layer_object = true;
+        }
+      }
 
       workbench::DrawInspectorSectionHeader(ICON_MD_OPEN_WITH " Bulk Edit");
 
@@ -2410,15 +2434,31 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
       }
 
       ImGui::Spacing();
-      ImGui::TextDisabled(tr("Layer (set all)"));
-      if (ImGui::SmallButton(tr("Primary##BulkLayer0")))
-        tile_handler.UpdateObjectsLayer(room_id, selection_copy, 0);
-      ImGui::SameLine();
-      if (ImGui::SmallButton(tr("BG2##BulkLayer1")))
-        tile_handler.UpdateObjectsLayer(room_id, selection_copy, 1);
-      ImGui::SameLine();
-      if (ImGui::SmallButton(tr("BG1##BulkLayer2")))
-        tile_handler.UpdateObjectsLayer(room_id, selection_copy, 2);
+      if (has_room_stream_object && !has_special_layer_object) {
+        ImGui::TextDisabled(tr("Object stream (set all)"));
+        if (ImGui::SmallButton(tr("Primary##BulkPlacement0")))
+          tile_handler.UpdateObjectsLayer(room_id, selection_copy, 0);
+        ImGui::SameLine();
+        if (ImGui::SmallButton(tr("BG2 overlay##BulkPlacement1")))
+          tile_handler.UpdateObjectsLayer(room_id, selection_copy, 1);
+        ImGui::SameLine();
+        if (ImGui::SmallButton(tr("BG1 overlay##BulkPlacement2")))
+          tile_handler.UpdateObjectsLayer(room_id, selection_copy, 2);
+      } else if (has_special_layer_object && !has_room_stream_object) {
+        ImGui::TextDisabled(tr("Special layer (set all)"));
+        if (ImGui::SmallButton(tr("Upper (BG1)##BulkPlacement0")))
+          tile_handler.UpdateObjectsLayer(room_id, selection_copy, 0);
+        ImGui::SameLine();
+        if (ImGui::SmallButton(tr("Lower (BG2)##BulkPlacement1")))
+          tile_handler.UpdateObjectsLayer(room_id, selection_copy, 1);
+      } else {
+        ImGui::TextDisabled(tr("Stored placement (mixed selection)"));
+        if (ImGui::SmallButton(tr("Primary / Upper (BG1)##BulkPlacement0")))
+          tile_handler.UpdateObjectsLayer(room_id, selection_copy, 0);
+        ImGui::SameLine();
+        if (ImGui::SmallButton(tr("BG2 overlay / Lower (BG2)##BulkPlacement1")))
+          tile_handler.UpdateObjectsLayer(room_id, selection_copy, 1);
+      }
 
       ImGui::Spacing();
       ImGui::TextDisabled(tr("Stacking"));
@@ -2488,6 +2528,10 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
         auto& obj = objects[idx];
         const std::string obj_name = zelda3::GetObjectName(obj.id_);
         const int subtype = zelda3::GetObjectSubtype(obj.id_);
+        const bool uses_room_stream = zelda3::UsesRoomObjectStream(obj);
+        int displayed_layer = obj.GetLayerValue();
+        const int pixel_x = obj.x_ * 8;
+        const int pixel_y = obj.y_ * 8;
 
         // Name + category header
         workbench::DrawInspectorSectionHeader(ICON_MD_CATEGORY
@@ -2545,28 +2589,37 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
             }
           });
 
-          // ZScream names this as Layer 1/2/3; the tooltip keeps the ROM stream
-          // mapping visible without making the control harder to scan.
-          gui::LayoutHelpers::PropertyRow("Layer", [&]() {
-            int layer = static_cast<int>(obj.GetLayerValue());
-            const char* layer_names[] = {"Layer 1 (Primary)",
-                                         "Layer 2 (BG2 overlay)",
-                                         "Layer 3 (BG1 overlay)"};
-            ImGui::SetNextItemWidth(-1);
-            if (ImGui::Combo("##SelObjLayer", &layer, layer_names,
-                             IM_ARRAYSIZE(layer_names))) {
-              layer = std::clamp(layer, 0, 2);
-              interaction.SetObjectLayer(
-                  idx, static_cast<zelda3::RoomObject::LayerType>(layer));
-            }
-          });
-          gui::LayoutHelpers::PropertyRow("Z/Route", [&]() {
-            ImGui::TextDisabled("%s", GetObjectStreamName(obj.GetLayerValue()));
+          gui::LayoutHelpers::PropertyRow(
+              uses_room_stream ? "Stream" : "Layer", [&]() {
+                int layer = displayed_layer;
+                const char* stream_names[] = {"Primary", "BG2 overlay",
+                                              "BG1 overlay"};
+                const char* special_layer_names[] = {"Upper layer (BG1)",
+                                                     "Lower layer (BG2)"};
+                ImGui::SetNextItemWidth(-1);
+                if (ImGui::Combo(
+                        "##SelObjLayer", &layer,
+                        uses_room_stream ? stream_names : special_layer_names,
+                        uses_room_stream ? IM_ARRAYSIZE(stream_names)
+                                         : IM_ARRAYSIZE(special_layer_names))) {
+                  const int max_layer = uses_room_stream ? 2 : 1;
+                  layer = std::clamp(layer, 0, max_layer);
+                  if (interaction.SetObjectLayer(
+                          idx,
+                          static_cast<zelda3::RoomObject::LayerType>(layer))) {
+                    displayed_layer = layer;
+                  }
+                }
+              });
+          gui::LayoutHelpers::PropertyRow("Route", [&]() {
+            ImGui::TextDisabled(
+                "%s", uses_room_stream ? GetObjectStreamName(displayed_layer)
+                                       : GetSpecialLayerName(displayed_layer));
           });
 
           // Pixel coords (read-only info)
           gui::LayoutHelpers::PropertyRow("Pixel", [&]() {
-            ImGui::TextDisabled("(%d, %d)", obj.x_ * 8, obj.y_ * 8);
+            ImGui::TextDisabled("(%d, %d)", pixel_x, pixel_y);
           });
 
           ImGui::EndTable();
