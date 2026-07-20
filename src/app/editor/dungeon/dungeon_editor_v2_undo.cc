@@ -174,6 +174,13 @@ void DungeonEditorV2::BeginUndoSnapshot(int room_id) {
 
   pending_undo_.room_id = room_id;
   pending_undo_.before_objects = rooms_[room_id].GetTileObjects();
+  pending_undo_.before_selection.clear();
+  if (auto* viewer = GetViewerForRoom(room_id);
+      viewer &&
+      (!IsWorkbenchWorkflowEnabled() || viewer->current_room_id() == room_id)) {
+    pending_undo_.before_selection =
+        viewer->object_interaction().GetSelectedObjectIndices();
+  }
   has_pending_undo_ = true;
 }
 
@@ -184,22 +191,32 @@ void DungeonEditorV2::FinalizeUndoAction(int room_id) {
     return;
 
   auto after_objects = rooms_[room_id].GetTileObjects();
+  std::vector<size_t> after_selection;
+  if (auto* viewer = GetViewerForRoom(room_id);
+      viewer &&
+      (!IsWorkbenchWorkflowEnabled() || viewer->current_room_id() == room_id)) {
+    after_selection = viewer->object_interaction().GetSelectedObjectIndices();
+  }
 
   auto action = std::make_unique<DungeonObjectsAction>(
       room_id, std::move(pending_undo_.before_objects),
-      std::move(after_objects),
-      [this](int rid, const std::vector<zelda3::RoomObject>& objects) {
-        RestoreRoomObjects(rid, objects);
+      std::move(pending_undo_.before_selection), std::move(after_objects),
+      std::move(after_selection),
+      [this](int rid, const std::vector<zelda3::RoomObject>& objects,
+             const std::vector<size_t>& selected_indices) {
+        RestoreRoomObjects(rid, objects, selected_indices);
       });
   undo_manager_.Push(std::move(action));
 
   pending_undo_.room_id = -1;
   pending_undo_.before_objects.clear();
+  pending_undo_.before_selection.clear();
   has_pending_undo_ = false;
 }
 
 void DungeonEditorV2::RestoreRoomObjects(
-    int room_id, const std::vector<zelda3::RoomObject>& objects) {
+    int room_id, const std::vector<zelda3::RoomObject>& objects,
+    const std::vector<size_t>& selected_indices) {
   if (room_id < 0 || room_id >= static_cast<int>(rooms_.size()))
     return;
 
@@ -208,6 +225,15 @@ void DungeonEditorV2::RestoreRoomObjects(
   room.SetTileObjects(objects);
   room.RenderRoomGraphics();
   if (auto* viewer = GetViewerForRoom(room_id)) {
+    std::vector<size_t> valid_selection;
+    for (size_t index : selected_indices) {
+      if (index < objects.size()) {
+        valid_selection.push_back(index);
+      }
+    }
+    if (!IsWorkbenchWorkflowEnabled() || viewer->current_room_id() == room_id) {
+      viewer->object_interaction().SetSelectedObjects(valid_selection);
+    }
     viewer->TriggerObjectChangePing(previous_objects, objects);
     undo_restore_triggered_ping_ = true;
   }

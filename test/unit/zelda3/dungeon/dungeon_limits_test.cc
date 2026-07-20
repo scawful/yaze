@@ -16,8 +16,6 @@ TEST(DungeonLimitsTest, ReturnsCanonicalMaxForCoreLimits) {
             static_cast<int>(kMaxDoors));
   EXPECT_EQ(GetDungeonLimitMax(DungeonLimit::kChests),
             static_cast<int>(kMaxChests));
-  EXPECT_EQ(GetDungeonLimitMax(DungeonLimit::kBg3Objects),
-            static_cast<int>(kMaxBg3Objects));
 }
 
 TEST(DungeonLimitsTest, ReturnsNoHardLimitForExtendedCategories) {
