@@ -175,6 +175,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/story_event_graph_test.cc
     unit/core/story_event_graph_query_test.cc
     unit/core/rom_hash_test.cc
+    unit/core/oracle_rom_fixture_test.cc
     unit/core/project_paths_test.cc
     unit/core/project_bundle_test.cc
     unit/core/project_bundle_path_test.cc
@@ -188,6 +189,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
+    unit/cli/dungeon_stream_plan_commands_test.cc
     unit/cli/editor_completion_command_handlers_test.cc
     unit/cli/dungeon_minecart_audit_test.cc
     unit/cli/dungeon_oracle_preflight_test.cc
@@ -260,6 +262,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_manager_project_actions_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc
     unit/editor/editor_manager_oracle_rom_safety_test.cc
+    unit/editor/oracle_hack_workflow_backend_test.cc
     unit/editor/editor_set_test.cc
     unit/editor/paint_util_test.cc
     unit/editor/dungeon_canvas_transform_test.cc
@@ -328,6 +331,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/dungeon_object_editor_dirty_test.cc
     unit/zelda3/dungeon/dungeon_save_test.cc
     unit/zelda3/dungeon/dungeon_editor_system_test.cc
+    unit/zelda3/dungeon/dungeon_stream_allocator_test.cc
     unit/zelda3/dungeon/sprite_relocation_test.cc
     unit/zelda3/dungeon/bpp_conversion_test.cc
     unit/zelda3/dungeon/dimension_cross_validation_test.cc
@@ -539,6 +543,8 @@ if(YAZE_BUILD_TESTS)
     unit/gui/canvas_context_menu_role_test.cc
     unit/zelda3/resource_labels_test.cc
     unit/zelda3/sprite_render_preview_test.cc
+    unit/zelda3/dungeon/dungeon_stream_allocator_test.cc
+    unit/cli/dungeon_stream_plan_commands_test.cc
   )
   set(QUICK_UNIT_EDITOR_TEST_SOURCES
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
@@ -752,6 +758,18 @@ if(YAZE_BUILD_TESTS)
   yaze_add_test_suite(yaze_test_benchmark "benchmark" OFF ${BENCHMARK_TEST_SOURCES})
 
   # --- z3ed CLI Smoke Test ---
+  if(UNIX)
+    add_test(
+      NAME oracle_smoke_script_test
+      COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/dev/test-oracle-smoke.sh
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+    set_tests_properties(oracle_smoke_script_test PROPERTIES
+      LABELS "stable;cli;oracle"
+      TIMEOUT 30
+    )
+  endif()
+
   # Add z3ed self-test as a ctest entry if z3ed target exists
   if(TARGET z3ed)
     add_test(

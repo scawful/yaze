@@ -1,17 +1,15 @@
-// Integration tests for oracle-smoke-check against the Oracle expanded ROM.
+// Integration tests for oracle-smoke-check against the patched Oracle ROM.
 //
 // Fixture discovery (in priority order):
 //   1. YAZE_TEST_ROM_OOS env var
 //   2. YAZE_TEST_ROM_EXPANDED env var
-//   3. Auto-search: roms/oos168.sfc, Roms/oos168.sfc, ../roms/oos168.sfc
+//   3. Auto-search: oos168x.sfc before the editable oos168.sfc base ROM
 //
 // All tests skip cleanly via GTEST_SKIP() if the ROM is absent.
 
-#include <cstdlib>
 #include <filesystem>
 #include <fstream>
 #include <string>
-#include <vector>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -19,6 +17,7 @@
 #include "absl/status/status.h"
 #include "cli/handlers/game/oracle_smoke_check_commands.h"
 #include "nlohmann/json.hpp"
+#include "oracle_rom_fixture.h"
 #include "rom/rom.h"
 
 namespace yaze::test {
@@ -26,32 +25,13 @@ namespace {
 
 using json = nlohmann::json;
 
-std::string FindOracleRom() {
-  for (const char* env_var : {"YAZE_TEST_ROM_OOS", "YAZE_TEST_ROM_EXPANDED",
-                              "YAZE_TEST_ROM_EXPANDED_PATH"}) {
-    if (const char* path = std::getenv(env_var)) {
-      if (std::filesystem::exists(path))
-        return path;
-    }
-  }
-  for (const auto& dir : {".", "roms", "Roms", "../roms", "../../roms"}) {
-    for (const auto& name :
-         {"oos168.sfc", "oos168x.sfc", "oracle_of_secrets.sfc"}) {
-      std::filesystem::path path = std::filesystem::path(dir) / name;
-      if (std::filesystem::exists(path))
-        return path.string();
-    }
-  }
-  return "";
-}
-
 class OracleSmokeCheckIntegrationTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    rom_path_ = FindOracleRom();
+    rom_path_ = FindOracleRomFixture();
     if (rom_path_.empty()) {
       GTEST_SKIP() << "Oracle ROM fixture not found. "
-                      "Set YAZE_TEST_ROM_OOS to oos168.sfc path.";
+                      "Set YAZE_TEST_ROM_OOS to patched oos168x.sfc path.";
     }
     ASSERT_TRUE(rom_.LoadFromFile(rom_path_).ok())
         << "Failed to load ROM: " << rom_path_;
@@ -73,7 +53,9 @@ const json& GetSmoke(const json& doc) {
 // ---------------------------------------------------------------------------
 
 TEST_F(OracleSmokeCheckIntegrationTest, DefaultModePassesStructuralCheck) {
-  // oos168.sfc is a properly expanded ROM → structural checks must pass.
+  // oos168x.sfc contains the generated runtime WaterFill table, so structural
+  // checks must pass. The editable oos168.sfc base may not contain that table
+  // until the Oracle build applies its generated ASM.
   cli::handlers::OracleSmokeCheckCommandHandler handler;
   std::string out;
   const auto status = handler.Run({"--format=json"}, &rom_, &out);
@@ -91,7 +73,13 @@ TEST_F(OracleSmokeCheckIntegrationTest, DefaultModePassesStructuralCheck) {
                   .value("d4_zora_temple", json::object())
                   .value("structural_ok", false))
       << "D4 structural check failed on Oracle ROM — water-fill region may be "
-         "missing or table corrupted. Full output:\n"
+         "missing, corrupted, or missing rooms 0x25/0x27. Full output:\n"
+      << out;
+  EXPECT_TRUE(smoke.value("checks", json::object())
+                  .value("d4_zora_temple", json::object())
+                  .value("water_fill_rooms_ok", false))
+      << "Tracked Oracle WaterFill table must contain rooms 0x25 and 0x27. "
+         "Full output:\n"
       << out;
 }
 
@@ -171,6 +159,9 @@ TEST_F(OracleSmokeCheckIntegrationTest, ReportFileContainsAllCheckKeys) {
   EXPECT_TRUE(report.at("checks")
                   .value("d4_zora_temple", json::object())
                   .value("structural_ok", false));
+  EXPECT_TRUE(report.at("checks")
+                  .value("d4_zora_temple", json::object())
+                  .value("water_fill_rooms_ok", false));
 
   std::filesystem::remove(report_path);
 }
