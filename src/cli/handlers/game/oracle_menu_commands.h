@@ -96,6 +96,7 @@ class DungeonOraclePreflightCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const override {
     return "dungeon-oracle-preflight [--required-collision-rooms "
            "<hex,hex,...>] "
+           "[--required-water-fill-rooms <hex,hex,...>] "
            "[--require-write-support] [--skip-collision-maps] "
            "[--report <path>] [--format <json|text>]";
   }
@@ -111,7 +112,11 @@ class DungeonOraclePreflightCommandHandler : public resources::CommandHandler {
     descriptor.entries = {
         {"--required-collision-rooms",
          "Comma-separated hex room IDs that must have authored custom "
-         "collision data (e.g. 0x25,0x27 for D4 water gates)",
+         "collision data (e.g. 0x32 for the D3 prison)",
+         ""},
+        {"--required-water-fill-rooms",
+         "Comma-separated hex room IDs that must be present in the runtime "
+         "WaterFill table (e.g. 0x25,0x27 for D4 water gates)",
          ""},
         {"--require-write-support",
          "Also require expanded custom collision write region (needed for "
