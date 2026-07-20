@@ -1327,7 +1327,7 @@ void ObjectDrawer::InitializeDrawRoutines() {
     }
   };
 
-  // Routine 117 - Vertical rails with CORNER+MIDDLE+END pattern (0x8A-0x8C)
+  // Routine 117 - Long vertical rail with CORNER+MIDDLE+END pattern (0x8A)
   // ASM: RoomDraw_DownwardsHasEdge1x1_1to16_plus23 - matches horizontal 0x22
   ensure_index(117);
   draw_routines_[117] =
@@ -1366,6 +1366,15 @@ void ObjectDrawer::InitializeDrawRoutines() {
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
         self->DrawUsingRegistryRoutine(DrawRoutineIds::kDamFloodGate, obj, bg,
                                        tiles, state);
+      };
+
+  ensure_index(DrawRoutineIds::kDownwardsEdge1x1_1to16plus7);
+  draw_routines_[DrawRoutineIds::kDownwardsEdge1x1_1to16plus7] =
+      [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
+         std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        self->DrawUsingRegistryRoutine(
+            DrawRoutineIds::kDownwardsEdge1x1_1to16plus7, obj, bg, tiles,
+            state);
       };
 
   // Routine 130 - Custom Object (Oracle of Secrets 0x31, 0x32)
@@ -2550,6 +2559,16 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
       height = 8;
       break;
     }
+    case DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23:
+      size = size & 0x0F;
+      width = 8;
+      height = (size + 23) * 8;
+      break;
+    case DrawRoutineIds::kDownwardsEdge1x1_1to16plus7:
+      size = size & 0x0F;
+      width = 8;
+      height = (size + 8) * 8;
+      break;
     case 25:  // RoomDraw_Rightwards1x1Solid_1to16_plus3
     {
       // ASM: GetSize_1to16_timesA(4), so count = size + 4
