@@ -31,6 +31,7 @@ namespace zelda3 {
 
 class DungeonState;
 class RoomLayerManager;
+struct DungeonStreamLayout;
 
 std::vector<SDL_Color> BuildDungeonRenderPalette(
     const gfx::SnesPalette& dungeon_palette,
@@ -209,6 +210,7 @@ class Room {
     bool blocks = false;
     bool custom_collision = false;
     bool water_fill = false;
+    uint8_t water_fill_sram_bit_mask = 0;
     std::vector<BlockLoadOrder> block_load_orders;
   };
 
@@ -596,6 +598,7 @@ class Room {
         .blocks = save_dirty_state_.blocks,
         .custom_collision = custom_collision_dirty_,
         .water_fill = water_fill_dirty_,
+        .water_fill_sram_bit_mask = water_fill_zone_.sram_bit_mask,
     };
     for (size_t index = 0; index < tile_objects_.size(); ++index) {
       const auto& object = tile_objects_[index];
@@ -618,6 +621,7 @@ class Room {
     save_dirty_state_.blocks = snapshot.blocks;
     custom_collision_dirty_ = snapshot.custom_collision;
     water_fill_dirty_ = snapshot.water_fill;
+    water_fill_zone_.sram_bit_mask = snapshot.water_fill_sram_bit_mask;
     for (const auto& block : snapshot.block_load_orders) {
       if (block.tile_object_index >= tile_objects_.size())
         continue;
@@ -927,9 +931,9 @@ class Room {
                             int& nbr_of_staircase);
 
   // Object saving (Phase 1, Task 1.3)
-  absl::Status SaveObjects();
+  absl::Status SaveObjects(const DungeonStreamLayout* layout = nullptr);
   std::vector<uint8_t> EncodeObjects() const;
-  absl::Status SaveSprites();
+  absl::Status SaveSprites(const DungeonStreamLayout* layout = nullptr);
   std::vector<uint8_t> EncodeSprites() const;
   absl::Status SaveRoomHeader();
 
@@ -1141,7 +1145,9 @@ absl::Status SaveAllCollision(Rom* rom, int room_count,
 // Scan all room sprite pointers and return the highest used PC address end.
 int FindMaxUsedSpriteAddress(Rom* rom);
 
-// Relocate a room's sprite payload into free tail space and update its pointer.
+// Legacy compatibility helper: relocate a room's sprite payload into free tail
+// space and update its pointer. The old stream is deliberately preserved;
+// manifest-backed saves should use DungeonStreamAllocator instead.
 absl::Status RelocateSpriteData(Rom* rom, int room_id,
                                 const std::vector<uint8_t>& encoded_bytes);
 

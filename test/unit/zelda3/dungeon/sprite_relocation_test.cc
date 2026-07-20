@@ -156,17 +156,19 @@ TEST_F(SpriteRelocationTest, RelocateSpriteData_UpdatesPointerTable) {
   EXPECT_EQ(rom_->data()[ptr_off + 1], (snes >> 8) & 0xFF);
 }
 
-TEST_F(SpriteRelocationTest, RelocateSpriteData_ZeroFillsOldSlot) {
+TEST_F(SpriteRelocationTest, RelocateSpriteData_PreservesUnsharedOldSlot) {
   SetAllRoomPointers(kSpritesData + 0x20);
   SetRoomPointer(0, kSpritesData);
   WriteSpriteStream(kSpritesData + 0x20, 0x00, EncodeSpritePayload(0));
-  WriteSpriteStream(kSpritesData, 0x00, EncodeSpritePayload(2));
+  const auto old_payload = EncodeSpritePayload(2);
+  WriteSpriteStream(kSpritesData, 0x00, old_payload);
 
   auto status = RelocateSpriteData(rom_.get(), 0, EncodeSpritePayload(4));
   ASSERT_TRUE(status.ok()) << status.message();
 
-  for (int i = 0; i < 8; ++i) {
-    EXPECT_EQ(rom_->data()[kSpritesData + i], 0x00);
+  EXPECT_EQ(rom_->data()[kSpritesData], 0x00);
+  for (size_t i = 0; i < old_payload.size(); ++i) {
+    EXPECT_EQ(rom_->data()[kSpritesData + 1 + i], old_payload[i]);
   }
 }
 

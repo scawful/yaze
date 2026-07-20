@@ -1,5 +1,6 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <memory>
@@ -7,6 +8,7 @@
 #include <vector>
 
 #include "core/features.h"
+#include "core/project.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "mocks/mock_rom.h"
@@ -55,6 +57,9 @@ constexpr int kPotRoom2Pc = 0x008040;
 constexpr int kRoom0SpritePc = 0x049000;
 constexpr int kRoom1SpritePc = 0x049020;
 constexpr int kRoom2SpritePc = 0x049040;
+constexpr int kSpritePointerTablePc = 0x048000;
+constexpr int kSpriteAllocationPc = 0x04A000;
+constexpr int kObjectAllocationPc = 0x140000;
 constexpr int kHeaderTablePc = 0x0F6000;
 constexpr int kRoom0HeaderPc = 0x114000;
 constexpr int kRoom1HeaderPc = 0x114020;
@@ -111,6 +116,39 @@ void SetupRoomObjectPointers(Rom& rom) {
   WriteEmptyObjectStream(rom, kRoom0ObjectPc);
   WriteEmptyObjectStream(rom, kRoom1ObjectPc);
   WriteEmptyObjectStream(rom, kRoom2ObjectPc);
+}
+
+void SetupSharedRoomObjectPointers(Rom& rom) {
+  WriteLongPointer(rom, zelda3::kRoomObjectPointer, PcToSnes(0x0F8000));
+  for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    WriteLongPointer(rom, 0x0F8000 + room_id * 3, PcToSnes(kRoom0ObjectPc));
+  }
+  WriteEmptyObjectStream(rom, kRoom0ObjectPc);
+}
+
+void SetupSharedSpritePointers(Rom& rom) {
+  const uint16_t table_pointer =
+      static_cast<uint16_t>(PcToSnes(kSpritePointerTablePc));
+  rom.mutable_data()[zelda3::kRoomsSpritePointer] = table_pointer & 0xFF;
+  rom.mutable_data()[zelda3::kRoomsSpritePointer + 1] =
+      (table_pointer >> 8) & 0xFF;
+
+  const uint16_t stream_pointer =
+      static_cast<uint16_t>(PcToSnes(kRoom0SpritePc));
+  for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    const int slot = kSpritePointerTablePc + room_id * 2;
+    rom.mutable_data()[slot] = stream_pointer & 0xFF;
+    rom.mutable_data()[slot + 1] = (stream_pointer >> 8) & 0xFF;
+  }
+  rom.mutable_data()[kRoom0SpritePc] = 0x00;
+  rom.mutable_data()[kRoom0SpritePc + 1] = 0xFF;
+}
+
+project::YazeProject MakeProjectWithManifest(const char* json) {
+  project::YazeProject project;
+  EXPECT_TRUE(project.hack_manifest.LoadFromString(json).ok());
+  project.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  return project;
 }
 
 void SetupSpritePointers(Rom& rom) {
@@ -238,6 +276,233 @@ TEST(DungeonEditorV2RomSafetyTest, SaveRoomBlocksInvalidRoomBeforeWriting) {
 }
 
 TEST(DungeonEditorV2RomSafetyTest,
+     SaveRoomDetachesSharedObjectStreamWithManifestAllocator) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SetupSharedRoomObjectPointers(rom);
+  const std::vector<uint8_t> old_stream(rom.data() + kRoom0ObjectPc,
+                                        rom.data() + kRoom0ObjectPc + 16);
+
+  auto project = MakeProjectWithManifest(R"json(
+{
+  "manifest_version": 3,
+  "dungeon_stream_regions": {
+    "objects": {
+      "pointer_table": "0x1F8000",
+      "pointer_count": 296,
+      "pointer_encoding": "long24",
+      "strategy": "copy_on_write",
+      "data_regions": [
+        {"start": "0x208000", "end": "0x208100"},
+        {"start": "0x288000", "end": "0x298000"}
+      ],
+      "allocation_regions": [
+        {"start": "0x288000", "end": "0x298000"}
+      ]
+    }
+  }
+}
+)json");
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project;
+  editor->SetDependencies(dependencies);
+
+  auto& room = editor->rooms()[0];
+  room.SetLoaded(true);
+  ASSERT_TRUE(room.AddObject(zelda3::RoomObject(0x10, 10, 10, 0, 0)).ok());
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+
+  const auto write_ranges = editor->CollectWriteRanges();
+  EXPECT_NE(
+      std::find(write_ranges.begin(), write_ranges.end(),
+                std::pair<uint32_t, uint32_t>{kObjectAllocationPc, 0x148000}),
+      write_ranges.end());
+  EXPECT_NE(std::find(write_ranges.begin(), write_ranges.end(),
+                      std::pair<uint32_t, uint32_t>{0x0F8000, 0x0F8003}),
+            write_ranges.end());
+  EXPECT_NE(std::find(write_ranges.begin(), write_ranges.end(),
+                      std::pair<uint32_t, uint32_t>{zelda3::kDoorPointers,
+                                                    zelda3::kDoorPointers + 3}),
+            write_ranges.end());
+
+  const auto status = editor->SaveRoom(0);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  ASSERT_TRUE(rom.ReadLong(0x0F8000).ok());
+  EXPECT_EQ(SnesToPc(*rom.ReadLong(0x0F8000)), kObjectAllocationPc);
+  EXPECT_EQ(SnesToPc(*rom.ReadLong(0x0F8003)), kRoom0ObjectPc);
+  EXPECT_TRUE(std::equal(old_stream.begin(), old_stream.end(),
+                         rom.data() + kRoom0ObjectPc));
+  EXPECT_FALSE(room.object_stream_dirty());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     SaveRoomDetachesSharedSpriteStreamWithManifestAllocator) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SetupSharedSpritePointers(rom);
+  const std::vector<uint8_t> old_stream(rom.data() + kRoom0SpritePc,
+                                        rom.data() + kRoom0SpritePc + 8);
+
+  auto project = MakeProjectWithManifest(R"json(
+{
+  "manifest_version": 3,
+  "dungeon_stream_regions": {
+    "sprites": {
+      "pointer_table": "0x098000",
+      "pointer_count": 296,
+      "pointer_encoding": "bank16",
+      "pointer_bank": "0x09",
+      "strategy": "copy_on_write",
+      "data_regions": [
+        {"start": "0x099000", "end": "0x099100"},
+        {"start": "0x09A000", "end": "0x09B000"}
+      ],
+      "allocation_regions": [
+        {"start": "0x09A000", "end": "0x09B000"}
+      ]
+    }
+  }
+}
+)json");
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project;
+  editor->SetDependencies(dependencies);
+
+  auto& room = editor->rooms()[0];
+  room.SetLoaded(true);
+  room.GetSprites().emplace_back(0x10, 10, 10, 0, 0);
+  room.MarkSpritesDirty();
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveSprites = true;
+
+  const auto write_ranges = editor->CollectWriteRanges();
+  EXPECT_NE(
+      std::find(write_ranges.begin(), write_ranges.end(),
+                std::pair<uint32_t, uint32_t>{kSpriteAllocationPc, 0x04B000}),
+      write_ranges.end());
+  EXPECT_NE(std::find(write_ranges.begin(), write_ranges.end(),
+                      std::pair<uint32_t, uint32_t>{kSpritePointerTablePc,
+                                                    kSpritePointerTablePc + 2}),
+            write_ranges.end());
+
+  const auto status = editor->SaveRoom(0);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  const uint16_t room0_pointer = *rom.ReadWord(kSpritePointerTablePc + 0 * 2);
+  const uint16_t room1_pointer = *rom.ReadWord(kSpritePointerTablePc + 1 * 2);
+  EXPECT_EQ(SnesToPc(0x090000u | room0_pointer), kSpriteAllocationPc);
+  EXPECT_EQ(SnesToPc(0x090000u | room1_pointer), kRoom0SpritePc);
+  EXPECT_TRUE(std::equal(old_stream.begin(), old_stream.end(),
+                         rom.data() + kRoom0SpritePc));
+  EXPECT_FALSE(room.sprites_dirty());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     SaveRoomBlocksProtectedDoorPointerWriteWithoutCowLayout) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SetupRoomObjectPointers(rom);
+
+  auto project = MakeProjectWithManifest(R"json(
+{
+  "manifest_version": 3,
+  "protected_regions": {
+    "total_hooks": 1,
+    "regions": [
+      {
+        "start": "0x1F83C0",
+        "end": "0x1F83C3",
+        "size": 3,
+        "hook_count": 1,
+        "module": "DoorGuard"
+      }
+    ]
+  }
+}
+)json");
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project;
+  editor->SetDependencies(dependencies);
+  auto& room = editor->rooms()[0];
+  room.SetLoaded(true);
+  room.AddDoor(zelda3::Room::Door{});
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  const auto before = rom.vector();
+
+  const auto status = editor->SaveRoom(0);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(room.object_stream_dirty());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     SaveRoomBlocksProtectedPotItemWriteBeforeMutation) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SetupPotItemTable(rom);
+
+  auto project = MakeProjectWithManifest(R"json(
+{
+  "manifest_version": 3,
+  "protected_regions": {
+    "total_hooks": 1,
+    "regions": [
+      {
+        "start": "0x018000",
+        "end": "0x018005",
+        "size": 5,
+        "hook_count": 1,
+        "module": "PotGuard"
+      }
+    ]
+  }
+}
+)json");
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project;
+  editor->SetDependencies(dependencies);
+  auto& room = editor->rooms()[0];
+  room.SetLoaded(true);
+  room.GetPotItems().push_back(zelda3::PotItem{0x1234, 0x56});
+  room.MarkPotItemsDirty();
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSavePotItems = true;
+  const auto before = rom.vector();
+
+  const auto status = editor->SaveRoom(0);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(room.pot_items_dirty());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
      SaveRoomRollsBackEarlierWritesOnLateFailure) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
@@ -297,6 +562,41 @@ TEST(DungeonEditorV2RomSafetyTest,
   EXPECT_EQ(rom.data()[kRoom0HeaderPc + 1], 0x00);
   EXPECT_TRUE(room.header_dirty());
   EXPECT_TRUE(room.chests_dirty());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     SaveRoomRollbackRestoresNormalizedWaterFillMasks) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SetupChestTable(rom);
+  // The chest length operand is a byte count and must be divisible by three.
+  rom.mutable_data()[zelda3::kChestsLengthPointer] = 0x01;
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  auto& first_room = editor->rooms()[0];
+  first_room.SetWaterFillTile(/*x=*/1, /*y=*/1, /*filled=*/true);
+  first_room.set_water_fill_sram_bit_mask(0x01);
+  first_room.MarkChestsDirty();
+  auto& second_room = editor->rooms()[1];
+  second_room.SetWaterFillTile(/*x=*/2, /*y=*/2, /*filled=*/true);
+  second_room.set_water_fill_sram_bit_mask(0x01);
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveWaterFillZones = true;
+  flags.kSaveChests = true;
+
+  const auto before = rom.vector();
+  const auto status = editor->SaveRoom(0);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(first_room.water_fill_sram_bit_mask(), 0x01);
+  EXPECT_EQ(second_room.water_fill_sram_bit_mask(), 0x01);
+  EXPECT_TRUE(first_room.water_fill_dirty());
+  EXPECT_TRUE(second_room.water_fill_dirty());
 }
 
 TEST(DungeonEditorV2RomSafetyTest,

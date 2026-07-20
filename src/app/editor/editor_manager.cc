@@ -3585,6 +3585,12 @@ absl::Status EditorManager::SaveRomInternal(
   // below remains mandatory because serializers may introduce a violation.
   RETURN_IF_ERROR(CheckOracleRomSafetyPreSave(current_rom));
 
+  // Serializers clear their dirty flags after a successful in-memory write.
+  // Capture their conservative write prediction first so conflict protection
+  // still has a fail-closed fallback when the on-disk ROM cannot be read.
+  const auto predicted_dungeon_write_ranges =
+      current_editor_set->CollectDungeonWriteRanges();
+
   ScopedRomTransaction rom_transaction(*current_rom);
   ScopedEditorSaveTransactions editor_transactions;
 
@@ -3651,7 +3657,7 @@ absl::Status EditorManager::SaveRomInternal(
       }
 
       if (write_ranges.empty() && !diff_computed) {
-        write_ranges = current_editor_set->CollectDungeonWriteRanges();
+        write_ranges = predicted_dungeon_write_ranges;
       }
 
       if (!write_ranges.empty()) {
