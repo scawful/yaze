@@ -23,6 +23,7 @@
 #include "rom/write_fence.h"
 #include "util/log.h"
 #include "zelda3/dungeon/dungeon_block_codec.h"
+#include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/dungeon_torch_codec.h"
 #include "zelda3/dungeon/editor_dungeon_state.h"
 #include "zelda3/dungeon/object_drawer.h"
@@ -417,17 +418,74 @@ int MeasureSpriteStreamSize(const std::vector<uint8_t>& rom_data,
   return std::max(0, cursor - sprite_address);
 }
 
-bool IsSpritePointerShared(const std::vector<uint8_t>& rom_data, int table_pc,
-                           int room_id, int sprite_address) {
-  for (int r = 0; r < kNumberOfRooms; ++r) {
-    if (r == room_id) {
-      continue;
-    }
-    if (ReadRoomSpriteAddressPc(rom_data, table_pc, r) == sprite_address) {
+absl::Status RelocateDungeonStream(Rom* rom, int room_id,
+                                   DungeonStreamKind expected_kind,
+                                   const DungeonStreamLayout& layout,
+                                   std::vector<uint8_t> encoded_stream) {
+  if (layout.kind != expected_kind) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Room %d relocation layout has the wrong dungeon stream kind",
+        room_id));
+  }
+
+  ASSIGN_OR_RETURN(const DungeonStreamInventory inventory,
+                   InventoryDungeonStreams(*rom, layout));
+  ASSIGN_OR_RETURN(
+      const DungeonStreamWritePlan plan,
+      PlanDungeonStreamWrites(inventory, {{static_cast<uint32_t>(room_id),
+                                           std::move(encoded_stream)}}));
+  return ApplyDungeonStreamWritePlan(rom, plan);
+}
+
+absl::StatusOr<bool> DungeonStreamRequiresCopyOnWrite(
+    const Rom& rom, int room_id, DungeonStreamKind expected_kind,
+    const DungeonStreamLayout& layout, size_t replacement_size) {
+  if (layout.kind != expected_kind) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Room %d save layout has the wrong dungeon stream kind", room_id));
+  }
+  if (room_id < 0 || static_cast<uint32_t>(room_id) >= layout.pointer_count) {
+    return absl::OutOfRangeError(
+        "Room ID is outside the dungeon stream layout");
+  }
+
+  ASSIGN_OR_RETURN(const DungeonStreamInventory inventory,
+                   InventoryDungeonStreams(rom, layout));
+  if (!inventory.ok()) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Dungeon stream inventory has %zu issue(s); refusing an in-place "
+        "save",
+        inventory.issues.size()));
+  }
+
+  const auto contains_room = [room_id](const std::vector<uint32_t>& owners) {
+    return std::find(owners.begin(), owners.end(),
+                     static_cast<uint32_t>(room_id)) != owners.end();
+  };
+  for (const auto& alias : inventory.aliases) {
+    if (contains_room(alias.room_ids)) {
       return true;
     }
   }
-  return false;
+  for (const auto& overlap : inventory.overlaps) {
+    if (contains_room(overlap.first_room_ids) ||
+        contains_room(overlap.second_room_ids)) {
+      return true;
+    }
+  }
+
+  const auto& record = inventory.streams[room_id];
+  const uint64_t replacement_end =
+      static_cast<uint64_t>(record.data_pc) + replacement_size;
+  const uint32_t bank_end = ((record.data_pc / 0x8000u) + 1u) * 0x8000u;
+  const bool stays_in_declared_data =
+      replacement_end <= bank_end &&
+      std::any_of(inventory.layout.data_ranges.begin(),
+                  inventory.layout.data_ranges.end(), [&](const auto& range) {
+                    return range.begin <= record.data_pc &&
+                           replacement_end <= range.end;
+                  });
+  return !stays_in_declared_data;
 }
 
 }  // namespace
@@ -1828,6 +1886,14 @@ std::vector<uint8_t> Room::EncodeSprites() const {
     bytes.push_back(b1);
     bytes.push_back(b2);
     bytes.push_back(b3);
+
+    // Key drops are stored as hidden marker sprites immediately after the
+    // sprite that owns the drop. Keep these bytes in sync with LoadSprites().
+    if (sprite.key_drop() == 1) {
+      bytes.insert(bytes.end(), {0xFE, 0x00, 0xE4});
+    } else if (sprite.key_drop() == 2) {
+      bytes.insert(bytes.end(), {0xFD, 0x00, 0xE4});
+    }
   }
 
   // Terminator
@@ -1901,13 +1967,7 @@ absl::Status RelocateSpriteData(Rom* rom, int room_id,
     return absl::OutOfRangeError("Sprite address out of range");
   }
 
-  const int hard_end =
-      std::min(static_cast<int>(rom_data.size()), kSpritesDataEndExclusive);
-  const int old_stream_size =
-      MeasureSpriteStreamSize(rom_data, old_sprite_address, hard_end);
   const uint8_t sort_mode = rom_data[old_sprite_address];
-  const bool old_pointer_shared = IsSpritePointerShared(
-      rom_data, sprite_pointer, room_id, old_sprite_address);
 
   const int write_pos = FindMaxUsedSpriteAddress(rom);
   const size_t required_size = 1u + encoded_bytes.size();
@@ -1938,17 +1998,10 @@ absl::Status RelocateSpriteData(Rom* rom, int room_id,
   RETURN_IF_ERROR(rom->WriteByte(ptr_off, snes_addr & 0xFF));
   RETURN_IF_ERROR(rom->WriteByte(ptr_off + 1, (snes_addr >> 8) & 0xFF));
 
-  if (!old_pointer_shared && old_stream_size > 0 &&
-      old_sprite_address + old_stream_size <=
-          static_cast<int>(rom_data.size())) {
-    RETURN_IF_ERROR(rom->WriteVector(
-        old_sprite_address, std::vector<uint8_t>(old_stream_size, 0x00)));
-  }
-
   return absl::OkStatus();
 }
 
-absl::Status Room::SaveObjects() {
+absl::Status Room::SaveObjects(const DungeonStreamLayout* layout) {
   if (rom_ == nullptr) {
     return absl::InvalidArgumentError("ROM pointer is null");
   }
@@ -1959,12 +2012,40 @@ absl::Status Room::SaveObjects() {
   const auto& rom_data = rom()->vector();
   ASSIGN_OR_RETURN(const PhysicalStreamInfo stream_info,
                    GetObjectStreamInfo(rom_data, room_id_));
-  if (stream_info.shared) {
+  const auto encoded_bytes = EncodeObjects();
+  bool requires_copy_on_write = false;
+  if (layout != nullptr) {
+    ASSIGN_OR_RETURN(requires_copy_on_write,
+                     DungeonStreamRequiresCopyOnWrite(
+                         *rom_, room_id_, DungeonStreamKind::kObject, *layout,
+                         encoded_bytes.size() + 2u));
+  }
+  const auto relocate = [&]() -> absl::Status {
+    if (stream_info.address + 2 > static_cast<int>(rom_data.size())) {
+      return absl::OutOfRangeError("Object stream header is out of range");
+    }
+    std::vector<uint8_t> replacement = {rom_data[stream_info.address],
+                                        rom_data[stream_info.address + 1]};
+    replacement.insert(replacement.end(), encoded_bytes.begin(),
+                       encoded_bytes.end());
+    RETURN_IF_ERROR(RelocateDungeonStream(rom_, room_id_,
+                                          DungeonStreamKind::kObject, *layout,
+                                          std::move(replacement)));
+    ClearObjectStreamDirty();
+    return absl::OkStatus();
+  };
+  if (stream_info.shared || requires_copy_on_write) {
+    if (layout != nullptr) {
+      return relocate();
+    }
     return absl::FailedPreconditionError(absl::StrFormat(
         "Room %d object stream at PC 0x%06X is shared; repacking is required",
         room_id_, stream_info.address));
   }
   if (stream_info.capacity() <= 2) {
+    if (layout != nullptr) {
+      return relocate();
+    }
     return absl::FailedPreconditionError(absl::StrFormat(
         "Room %d object stream has no safe physical boundary", room_id_));
   }
@@ -1973,12 +2054,14 @@ absl::Status Room::SaveObjects() {
   const int write_pos = stream_info.address + 2;
 
   // Encode all objects
-  const auto encoded_bytes = EncodeObjects();
   const int available_payload_size = stream_info.capacity() - 2;
 
   // Validate against the nearest greater physical pointer, not the next room
   // ID. Pointer tables are not ordered by room ID in vanilla or expanded ROMs.
   if (encoded_bytes.size() > static_cast<size_t>(available_payload_size)) {
+    if (layout != nullptr) {
+      return relocate();
+    }
     return absl::ResourceExhaustedError(absl::StrFormat(
         "Room %d object data too large! Size: %d, Available: %d", room_id_,
         static_cast<int>(encoded_bytes.size()), available_payload_size));
@@ -2008,7 +2091,7 @@ absl::Status Room::SaveObjects() {
   return absl::OkStatus();
 }
 
-absl::Status Room::SaveSprites() {
+absl::Status Room::SaveSprites(const DungeonStreamLayout* layout) {
   if (rom_ == nullptr) {
     return absl::InvalidArgumentError("ROM pointer is null");
   }
@@ -2023,12 +2106,36 @@ absl::Status Room::SaveSprites() {
 
   ASSIGN_OR_RETURN(const PhysicalStreamInfo stream_info,
                    GetSpriteStreamInfo(rom_data, room_id_));
-  if (stream_info.shared) {
+  const auto encoded_bytes = EncodeSprites();
+  bool requires_copy_on_write = false;
+  if (layout != nullptr) {
+    ASSIGN_OR_RETURN(requires_copy_on_write,
+                     DungeonStreamRequiresCopyOnWrite(
+                         *rom_, room_id_, DungeonStreamKind::kSprite, *layout,
+                         encoded_bytes.size() + 1u));
+  }
+  const auto relocate = [&]() -> absl::Status {
+    std::vector<uint8_t> replacement = {rom_data[stream_info.address]};
+    replacement.insert(replacement.end(), encoded_bytes.begin(),
+                       encoded_bytes.end());
+    RETURN_IF_ERROR(RelocateDungeonStream(rom_, room_id_,
+                                          DungeonStreamKind::kSprite, *layout,
+                                          std::move(replacement)));
+    ClearSpritesDirty();
+    return absl::OkStatus();
+  };
+  if (stream_info.shared || requires_copy_on_write) {
+    if (layout != nullptr) {
+      return relocate();
+    }
     return absl::FailedPreconditionError(absl::StrFormat(
         "Room %d sprite stream at PC 0x%06X is shared; repacking is required",
         room_id_, stream_info.address));
   }
   if (stream_info.capacity() <= 1) {
+    if (layout != nullptr) {
+      return relocate();
+    }
     return absl::FailedPreconditionError(absl::StrFormat(
         "Room %d sprite stream has no safe physical boundary", room_id_));
   }
@@ -2041,8 +2148,10 @@ absl::Status Room::SaveSprites() {
         "Room %d has invalid sprite payload address", room_id_));
   }
 
-  const auto encoded_bytes = EncodeSprites();
   if (static_cast<int>(encoded_bytes.size()) > available_payload_size) {
+    if (layout != nullptr) {
+      return relocate();
+    }
     return absl::ResourceExhaustedError(absl::StrFormat(
         "Room %d sprite data too large! Size: %d, Available: %d; repacking "
         "is required",
