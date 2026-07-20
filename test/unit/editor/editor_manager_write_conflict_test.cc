@@ -347,6 +347,87 @@ TEST(EditorManagerWriteConflictTest,
 }
 
 TEST(EditorManagerWriteConflictTest,
+     UnreadableDiskUsesPreSerializationDungeonWriteRangeSnapshot) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  constexpr int kHeaderTablePc = 0x10000;
+  constexpr int kHeaderPc = 0x12000;
+  const std::filesystem::path rom_path =
+      MakeTempFilePath("yaze_unreadable_disk_conflict_test.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  std::vector<uint8_t> rom_data(512 * 1024, 0x00);
+  WriteLongPointer(&rom_data, zelda3::kRoomHeaderPointer,
+                   PcToSnes(kHeaderTablePc));
+  const uint32_t header_snes = PcToSnes(kHeaderPc);
+  rom_data[zelda3::kRoomHeaderPointerBank] =
+      static_cast<uint8_t>((header_snes >> 16) & 0xFF);
+  rom_data[kHeaderTablePc] = static_cast<uint8_t>(header_snes & 0xFF);
+  rom_data[kHeaderTablePc + 1] =
+      static_cast<uint8_t>((header_snes >> 8) & 0xFF);
+  {
+    std::ofstream out(rom_path, std::ios::binary | std::ios::trunc);
+    ASSERT_TRUE(out.is_open());
+    out.write(reinterpret_cast<const char*>(rom_data.data()),
+              static_cast<std::streamsize>(rom_data.size()));
+    ASSERT_TRUE(out.good());
+  }
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  core::FeatureFlags::get().dungeon.kSaveRoomHeaders = true;
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "UnreadableDiskConflictTest";
+  project->filepath = (rom_path.parent_path() / "project.yaze").string();
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+  ASSERT_OK(project->hack_manifest.LoadFromString(absl::StrFormat(
+      R"json({
+        "manifest_version": 1,
+        "hack_name": "unreadable_disk_test",
+        "protected_regions": {
+          "regions": [
+            {"start": "0x%06X", "end": "0x%06X", "module": "test"}
+          ]
+        }
+      })json",
+      header_snes, header_snes + 14)));
+
+  auto* editor_set = manager->GetCurrentEditorSet();
+  ASSERT_NE(editor_set, nullptr);
+  auto* dungeon =
+      editor_set->GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  auto& room = dungeon->rooms()[0];
+  room.SetLoaded(true);
+  room.SetPalette(0x2A);
+  ASSERT_TRUE(room.header_dirty());
+  ASSERT_FALSE(dungeon->CollectWriteRanges().empty());
+  const auto before_save = manager->GetCurrentRom()->vector();
+
+  std::error_code remove_error;
+  ASSERT_TRUE(std::filesystem::remove(rom_path, remove_error));
+  ASSERT_FALSE(remove_error) << remove_error.message();
+  ASSERT_FALSE(std::filesystem::exists(rom_path));
+
+  const auto blocked = manager->SaveRom();
+
+  EXPECT_EQ(blocked.code(), absl::StatusCode::kCancelled) << blocked;
+  ASSERT_FALSE(manager->pending_write_conflicts().empty());
+  EXPECT_EQ(manager->pending_write_conflicts()[0].address, header_snes);
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), before_save);
+  EXPECT_TRUE(room.header_dirty());
+  EXPECT_FALSE(std::filesystem::exists(rom_path));
+}
+
+TEST(EditorManagerWriteConflictTest,
      OpenRomOrProjectDefersWhileSessionHasPendingDungeonChanges) {
   ScopedImGuiContext imgui;
 
