@@ -140,10 +140,10 @@ void CommandRegistry::RegisterHandlers(
             "Oracle ROM safety preflight: water-fill region/table, collision "
             "maps, and optional required-room checks";
         metadata.examples = {
-            "z3ed dungeon-oracle-preflight --rom oos168.sfc --format=json",
-            "z3ed dungeon-oracle-preflight --rom oos168.sfc "
-            "--required-collision-rooms=0x25,0x27 --format=json",
-            "z3ed dungeon-oracle-preflight --rom oos168.sfc "
+            "z3ed dungeon-oracle-preflight --rom oos168x.sfc --format=json",
+            "z3ed dungeon-oracle-preflight --rom oos168x.sfc "
+            "--required-water-fill-rooms=0x25,0x27 --format=json",
+            "z3ed dungeon-oracle-preflight --rom oos168x.sfc "
             "--report=/tmp/preflight.json"};
       } else if (name == "dungeon-set-collision-tile") {
         metadata.description =
