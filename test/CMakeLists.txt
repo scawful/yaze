@@ -175,6 +175,7 @@ if(YAZE_BUILD_TESTS)
     unit/core/story_event_graph_test.cc
     unit/core/story_event_graph_query_test.cc
     unit/core/rom_hash_test.cc
+    unit/core/oracle_rom_fixture_test.cc
     unit/core/project_paths_test.cc
     unit/core/project_bundle_test.cc
     unit/core/project_bundle_path_test.cc
@@ -261,8 +262,10 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_manager_project_actions_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc
     unit/editor/editor_manager_oracle_rom_safety_test.cc
+    unit/editor/oracle_hack_workflow_backend_test.cc
     unit/editor/editor_set_test.cc
     unit/editor/paint_util_test.cc
+    unit/editor/dungeon_canvas_transform_test.cc
     unit/editor/map_properties_context_menu_test.cc
     unit/editor/dungeon_layout_defaults_test.cc
     unit/editor/dungeon_selection_snapshot_test.cc
@@ -320,6 +323,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/dungeon_validator_test.cc
     unit/zelda3/dungeon/door_position_test.cc
     unit/zelda3/dungeon/dungeon_block_codec_test.cc
+    unit/zelda3/dungeon/dungeon_torch_codec_test.cc
     unit/zelda3/dungeon/room_object_encoding_test.cc
     unit/zelda3/dungeon/room_object_set_id_test.cc
     unit/zelda3/custom_object_test.cc
@@ -614,6 +618,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/room_object_set_id_test.cc
     unit/zelda3/dungeon/dungeon_limits_test.cc
     unit/zelda3/dungeon/dungeon_block_codec_test.cc
+    unit/zelda3/dungeon/dungeon_torch_codec_test.cc
     unit/zelda3/dungeon/dungeon_validator_test.cc
     unit/zelda3/dungeon/dungeon_object_editor_dirty_test.cc
     unit/zelda3/dungeon/object_layer_semantics_test.cc
@@ -754,6 +759,18 @@ if(YAZE_BUILD_TESTS)
   yaze_add_test_suite(yaze_test_benchmark "benchmark" OFF ${BENCHMARK_TEST_SOURCES})
 
   # --- z3ed CLI Smoke Test ---
+  if(UNIX)
+    add_test(
+      NAME oracle_smoke_script_test
+      COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/dev/test-oracle-smoke.sh
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+    set_tests_properties(oracle_smoke_script_test PROPERTIES
+      LABELS "stable;cli;oracle"
+      TIMEOUT 30
+    )
+  endif()
+
   # Add z3ed self-test as a ctest entry if z3ed target exists
   if(TARGET z3ed)
     add_test(
