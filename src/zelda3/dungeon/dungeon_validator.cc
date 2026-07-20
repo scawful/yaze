@@ -50,22 +50,18 @@ ValidationResult DungeonValidator::ValidateRoom(const Room& room) {
   }
 
   // Check bounds
-  int bg3_count = 0;
   for (const auto& obj : room.GetTileObjects()) {
     const int layer = static_cast<int>(obj.GetLayerValue());
     if (layer < 0 || layer > 2) {
       result.errors.push_back(absl::StrFormat(
           "Object 0x%02X has invalid layer %d", obj.id_, layer));
       result.is_valid = false;
-    } else if (layer == 2) {
-      ++bg3_count;
     }
-
-    const auto semantics = GetObjectLayerSemantics(obj);
-    if (layer == 2 && semantics.draws_to_both_bgs) {
+    if (UsesSpecialLayerSelector(obj) && layer > 1) {
       result.errors.push_back(absl::StrFormat(
-          "Object 0x%02X in BG3 is marked as Both-BGs (unsafe layer state)",
-          obj.id_));
+          "Special-table object 0x%02X has invalid layer selector %d; "
+          "expected upper/BG1 (0) or lower/BG2 (1)",
+          obj.id_, layer));
       result.is_valid = false;
     }
 
@@ -74,13 +70,6 @@ ValidationResult DungeonValidator::ValidateRoom(const Room& room) {
           "Object 0x%02X out of bounds at (%d, %d)", obj.id_, obj.x_, obj.y_));
       result.is_valid = false;
     }
-  }
-
-  if (bg3_count > kMaxBg3Objects) {
-    result.errors.push_back(absl::StrFormat(
-        "Too many BG3 objects (%d > %d). Reduce background-layer object count.",
-        bg3_count, kMaxBg3Objects));
-    result.is_valid = false;
   }
 
   return result;

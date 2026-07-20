@@ -418,7 +418,7 @@ void DrawRoutineRegistry::BuildObjectMapping() {
   object_to_routine_map_[0xF93] = 110;
   object_to_routine_map_[0xF94] = 30;
   object_to_routine_map_[0xF95] = 106;
-  object_to_routine_map_[0xF96] = 25;
+  object_to_routine_map_[0xF96] = DrawRoutineIds::kSingle2x2;
   object_to_routine_map_[0xF97] = 97;
   object_to_routine_map_[0xF98] = 92;
   object_to_routine_map_[0xF99] = 39;
