@@ -9,6 +9,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_state.h"
+#include "zelda3/dungeon/moving_wall_semantics.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -108,13 +109,10 @@ AnchorPos ChooseAnchor(const DrawRoutineInfo& routine,
     return anchor;
   }
 
-  // Somaria line down-left (0xF86 / subtype-3 0x206) writes one tile per step
-  // while moving leftward. Give replay enough X headroom so the left extent is
-  // preserved instead of being clipped off at the canvas edge.
-  if (routine.id == DrawRoutineIds::kSomariaLine &&
-      (object.id_ & 0x0F) == 0x06) {
-    const int length = size_nibble + 1;
-    anchor.x = std::clamp(length - 1, 0, DrawContext::kMaxTilesX - 1);
+  // The west-moving wall (0xCD) grows 8/16/24/32 fill columns left from its
+  // three-column platform anchor. Preserve that left extent during replay.
+  if (routine.id == DrawRoutineIds::kMovingWallWest) {
+    anchor.x = moving_wall::ObjectCountForSize(object.size_);
     return anchor;
   }
 
