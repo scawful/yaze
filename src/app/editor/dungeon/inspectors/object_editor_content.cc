@@ -18,6 +18,20 @@
 
 namespace yaze::editor {
 
+bool SyncObjectEditorSelectionToCanvas(
+    DungeonObjectInteraction& interaction,
+    const std::vector<size_t>& editor_selected_indices) {
+  if (interaction.GetSelectedObjectIndices() == editor_selected_indices) {
+    return false;
+  }
+  // Canvas selection callbacks mirror back into DungeonObjectEditor. Copy the
+  // target first so those callbacks cannot invalidate the source vector while
+  // ObjectSelection is being rebuilt.
+  const std::vector<size_t> target_indices = editor_selected_indices;
+  interaction.SetSelectedObjects(target_indices);
+  return true;
+}
+
 namespace {
 
 using InspectorStat = std::pair<const char*, std::string>;
@@ -27,6 +41,29 @@ struct InspectorAction {
   std::function<void()> action;
   bool enabled = true;
 };
+
+const char* GetStoredPlacementLabel(const zelda3::RoomObject& object) {
+  if (zelda3::UsesRoomObjectStream(object)) {
+    switch (object.GetLayerValue()) {
+      case 0:
+        return "Primary";
+      case 1:
+        return "BG2 overlay";
+      case 2:
+        return "BG1 overlay";
+      default:
+        return "Unknown";
+    }
+  }
+  switch (object.GetLayerValue()) {
+    case 0:
+      return "Upper layer (BG1)";
+    case 1:
+      return "Lower layer (BG2)";
+    default:
+      return "Unknown";
+  }
+}
 
 constexpr std::array<zelda3::DoorType, 20> kInspectorDoorTypes = {{
     zelda3::DoorType::NormalDoor,         zelda3::DoorType::NormalDoorLower,
@@ -282,6 +319,9 @@ void ObjectEditorContent::Draw(bool* p_open) {
   if (selection_snapshot_.HasObjectSelection()) {
     DrawSelectedObjectInfo();
     object_editor_->DrawPropertyUI();
+    SyncObjectEditorSelectionToCanvas(
+        viewer->object_interaction(),
+        object_editor_->GetSelection().selected_objects);
   } else if (selection_snapshot_.kind == DungeonSelectionKind::Door) {
     DrawSelectedDoorInfo();
   } else if (selection_snapshot_.kind == DungeonSelectionKind::Sprite) {
@@ -414,12 +454,14 @@ void ObjectEditorContent::DrawSelectedObjectInfo() {
       DrawInspectorSummaryGrid(
           "##SelectedObjectInfo",
           {{"Position", absl::StrFormat("(%d, %d)", obj.x_, obj.y_)},
-           {"Layer", obj.layer_ == zelda3::RoomObject::BG1   ? "BG1"
-                     : obj.layer_ == zelda3::RoomObject::BG2 ? "BG2"
-                                                             : "BG3"},
+           {zelda3::UsesRoomObjectStream(obj) ? "Object stream"
+                                              : "Special layer",
+            GetStoredPlacementLabel(obj)},
            {"Size", absl::StrFormat("0x%02X", obj.size_)},
-           {"Draws",
-            zelda3::EffectiveBgLayerLabel(semantics.effective_bg_layer)}});
+           {zelda3::UsesRoomObjectStream(obj) ? "Draws" : "Role",
+            zelda3::UsesRoomObjectStream(obj)
+                ? zelda3::EffectiveBgLayerLabel(semantics.effective_bg_layer)
+                : "Special-table layer selector"}});
       ImGui::Spacing();
     }
     return;

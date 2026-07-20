@@ -632,6 +632,7 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
   EXPECT_EQ(drawer.GetDrawRoutineId(0xF8D), DrawRoutineIds::kPrisonCell);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xF90), DrawRoutineIds::kSingle2x2);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xF92), DrawRoutineIds::kRupeeFloor);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xF96), DrawRoutineIds::kSingle2x2);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFB1), DrawRoutineIds::kSingle4x3);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFD5), DrawRoutineIds::kUtility3x5);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFBA),
