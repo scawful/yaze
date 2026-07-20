@@ -113,6 +113,57 @@ struct BuildPipeline {
 };
 
 /**
+ * @brief Dungeon stream kinds with allocator layouts in the hack manifest.
+ */
+enum class DungeonStreamType : uint8_t {
+  kObjects,
+  kSprites,
+  kPotItems,
+};
+
+/**
+ * @brief Encoding used by entries in a dungeon stream pointer table.
+ */
+enum class DungeonPointerEncoding : uint8_t {
+  kLong24,
+  kBank16,
+};
+
+/**
+ * @brief Save strategy allowed for a dungeon stream layout.
+ */
+enum class DungeonWriteStrategy : uint8_t {
+  kCopyOnWrite,
+  kRepackAll,
+};
+
+/**
+ * @brief A half-open [start, end) range of canonical LoROM SNES addresses.
+ */
+struct SnesAddressRange {
+  uint32_t start = 0;
+  uint32_t end = 0;
+};
+
+/**
+ * @brief Explicit pointer and storage layout for one dungeon stream.
+ *
+ * data_regions describe all live stream storage that may be referenced by the
+ * pointer table. allocation_regions are the stricter subset that new writes
+ * may allocate from. Keeping these concepts separate prevents an allocator
+ * from treating merely readable legacy data as free space.
+ */
+struct DungeonStreamLayout {
+  uint32_t pointer_table = 0;
+  uint32_t pointer_count = 0;
+  DungeonPointerEncoding pointer_encoding = DungeonPointerEncoding::kLong24;
+  std::optional<uint8_t> pointer_bank;
+  DungeonWriteStrategy strategy = DungeonWriteStrategy::kCopyOnWrite;
+  std::vector<SnesAddressRange> data_regions;
+  std::vector<SnesAddressRange> allocation_regions;
+};
+
+/**
  * @brief A conflict detected when yaze wants to write to an ASM-owned address.
  */
 struct WriteConflict {
@@ -324,6 +375,21 @@ class HackManifest {
 
   [[nodiscard]] bool IsExpandedMessage(uint16_t message_id) const;
 
+  // ─── Dungeon Stream Allocation Layouts ────────────────────────────
+
+  /**
+   * @brief Get an explicitly declared dungeon stream layout.
+   *
+   * Returns nullptr when the optional manifest section or requested stream is
+   * absent. A present but malformed section causes LoadFromString() to fail.
+   */
+  [[nodiscard]] const DungeonStreamLayout* GetDungeonStreamLayout(
+      DungeonStreamType stream) const;
+
+  [[nodiscard]] bool HasDungeonStreamLayouts() const {
+    return !dungeon_stream_layouts_.empty();
+  }
+
   // ─── Protected Regions ──────────────────────────────────
 
   [[nodiscard]] const std::vector<ProtectedRegion>& protected_regions() const {
@@ -434,6 +500,10 @@ class HackManifest {
 
   // Message layout
   MessageLayout message_layout_{};
+
+  // Explicit dungeon stream layouts, indexed by stream kind.
+  std::unordered_map<DungeonStreamType, DungeonStreamLayout>
+      dungeon_stream_layouts_;
 
   // Build pipeline
   BuildPipeline build_pipeline_;

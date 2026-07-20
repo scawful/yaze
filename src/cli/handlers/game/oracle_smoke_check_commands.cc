@@ -96,16 +96,28 @@ absl::Status OracleSmokeCheckCommandHandler::Execute(
   // ------------------------------------------------------------------
   // D4 Zora Temple — structural preflight
   // ------------------------------------------------------------------
-  // Validates water-fill reserved region and table. Does NOT require specific
-  // room collision data (that's a readiness check, below).
+  // Validates the water-fill reserved region/table and requires runtime table
+  // membership for D4 rooms. Authored room collision is a readiness check.
   zelda3::OracleRomSafetyPreflightOptions structural_opts;
   structural_opts.require_water_fill_reserved_region = true;
   structural_opts.require_custom_collision_write_support = false;
   structural_opts.validate_water_fill_table = true;
   structural_opts.validate_custom_collision_maps = false;
+  structural_opts.room_ids_requiring_water_fill_zones = {0x25, 0x27};
   const auto structural =
       zelda3::RunOracleRomSafetyPreflight(rom, structural_opts);
   const bool d4_structural_ok = structural.ok();
+  bool d4_water_fill_rooms_ok = true;
+  for (const auto& error : structural.errors) {
+    if (error.code == "ORACLE_REQUIRED_WATER_FILL_ROOM_MISSING" ||
+        error.code == "ORACLE_REQUIRED_WATER_FILL_ROOM_OUT_OF_RANGE" ||
+        error.code == "ORACLE_WATER_FILL_REGION_MISSING" ||
+        error.code == "ORACLE_WATER_FILL_HEADER_CORRUPT" ||
+        error.code == "ORACLE_WATER_FILL_TABLE_INVALID") {
+      d4_water_fill_rooms_ok = false;
+      break;
+    }
+  }
 
   // Whether the ROM's custom-collision write region exists determines if
   // required-room checks can actually run. Mirror the preflight library's
@@ -200,6 +212,8 @@ absl::Status OracleSmokeCheckCommandHandler::Execute(
 
   json d4_json = json::object();
   d4_json["structural_ok"] = d4_structural_ok;
+  d4_json["water_fill_rooms_ok"] = d4_water_fill_rooms_ok;
+  d4_json["required_water_fill_rooms"] = json::array({"0x25", "0x27"});
   d4_json["required_rooms_check"] = d4_readiness_state;
   if (collision_write_support) {
     d4_json["required_rooms_ok"] = d4_required_ok;
@@ -243,6 +257,7 @@ absl::Status OracleSmokeCheckCommandHandler::Execute(
 
   formatter.BeginObject("d4_zora_temple");
   formatter.AddField("structural_ok", d4_structural_ok);
+  formatter.AddField("water_fill_rooms_ok", d4_water_fill_rooms_ok);
   formatter.AddField("required_rooms_check", std::string(d4_readiness_state));
   if (collision_write_support) {
     formatter.AddField("required_rooms_ok", d4_required_ok);
@@ -277,7 +292,8 @@ absl::Status OracleSmokeCheckCommandHandler::Execute(
           "oracle-smoke-check: cannot open report file: %s", *rp));
     }
     report_file << report.dump(2) << "\n";
-    if (!report_file.good()) {
+    report_file.close();
+    if (report_file.fail()) {
       return absl::InternalError(absl::StrFormat(
           "oracle-smoke-check: failed writing report: %s", *rp));
     }
