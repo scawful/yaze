@@ -1972,6 +1972,36 @@ TEST(ObjectDrawerRegistryReplayTest, HammerPegDrawsSingleTwoByTwoAtAnchor) {
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
+     VerticalJumpLedgesDrawOneTileForSizePlusEightRows) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 10;
+  constexpr int kY = 12;
+  constexpr uint16_t kTile = 0x0240;
+  for (int object_id : {0x008B, 0x008C}) {
+    for (uint8_t size : {uint8_t{0}, uint8_t{5}, uint8_t{15}}) {
+      SCOPED_TRACE(::testing::Message()
+                   << "object_id=0x" << std::hex << object_id
+                   << " size=" << std::dec << static_cast<int>(size));
+      auto trace = ReplayObjectTrace(
+          object_id, kX, kY, size, RoomObject::LayerType::BG1,
+          MakeSequentialTiles(/*count=*/3, /*start_tile_id=*/kTile));
+
+      const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+      const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+      const int expected_rows = static_cast<int>(size) + 8;
+      ASSERT_EQ(static_cast<int>(bg1.size()), expected_rows);
+      EXPECT_TRUE(bg2.empty());
+      for (int row = 0; row < expected_rows; ++row) {
+        EXPECT_EQ(bg1[row].x_tile, kX);
+        EXPECT_EQ(bg1[row].y_tile, kY + row);
+        EXPECT_EQ(bg1[row].tile_id, kTile);
+      }
+    }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
      ArcheryGameTargetDoorDrawsTwoStacked3x3Sections) {
   ScopedCustomObjectsFlag disable_custom(false);
 

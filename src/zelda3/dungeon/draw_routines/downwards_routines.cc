@@ -603,6 +603,18 @@ void DrawDownwardsHammerPegs2x2_1to16(const DrawContext& ctx) {
   DrawDownwardsPots2x2_1to16(ctx);
 }
 
+void DrawDownwardsEdge1x1_1to16plus7(const DrawContext& ctx) {
+  const int count = (ctx.object.size_ & 0x0F) + 8;
+  if (ctx.tiles.empty()) {
+    return;
+  }
+
+  for (int row = 0; row < count; ++row) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
+                                 ctx.object.y_ + row, ctx.tiles[0]);
+  }
+}
+
 void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
   using Category = DrawRoutineInfo::Category;
 
@@ -849,6 +861,16 @@ void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
                       .base_width = 2,
                       .base_height = 2,
                       .min_tiles = 4,
+                      .category = Category::Downwards});
+
+  registry.push_back(
+      DrawRoutineInfo{.id = DrawRoutineIds::kDownwardsEdge1x1_1to16plus7,
+                      .name = "DownwardsEdge1x1_1to16plus7",
+                      .function = DrawDownwardsEdge1x1_1to16plus7,
+                      .draws_to_both_bgs = false,
+                      .base_width = 1,
+                      .base_height = 8,
+                      .min_tiles = 1,
                       .category = Category::Downwards});
 }
 

@@ -21,6 +21,7 @@
 // - 0xB0-0xB1: routine 72 (DrawRightwardsEdge1x1_1to16plus7)
 // - 0xBC: routine 73 (DrawRightwardsPots2x2_1to16)
 // - 0xBD: routine 74 (DrawRightwardsHammerPegs2x2_1to16)
+// - 0x8B-0x8C: routine 122 (DrawDownwardsEdge1x1_1to16plus7)
 //
 // Step 3 Diagonal Ceiling Routines (IDs 75-78):
 // - 0xA0, 0xA5, 0xA9: routine 75 (DrawDiagonalCeilingTopLeft)
@@ -351,6 +352,43 @@ TEST_F(DrawRoutineMappingTest,
 }
 
 TEST_F(DrawRoutineMappingTest,
+       DownwardsEdgePlus7RepeatsOneTileForSizePlusEightRows) {
+  auto& reg = DrawRoutineRegistry::Get();
+  const DrawRoutineInfo* info =
+      reg.GetRoutineInfo(DrawRoutineIds::kDownwardsEdge1x1_1to16plus7);
+  ASSERT_NE(info, nullptr);
+
+  const std::vector<gfx::TileInfo> tiles = {
+      MakeTile(0x0310, 3), MakeTile(0x0311, 4), MakeTile(0x0312, 5)};
+  constexpr int kAnchorX = 9;
+  constexpr int kAnchorY = 6;
+
+  for (uint8_t size : {uint8_t{0}, uint8_t{5}, uint8_t{15}}) {
+    SCOPED_TRACE(::testing::Message() << "size=" << static_cast<int>(size));
+    gfx::BackgroundBuffer bg;
+    const RoomObject object(0x8B, kAnchorX, kAnchorY, size, 0);
+    DrawContext ctx{bg,
+                    object,
+                    std::span<const gfx::TileInfo>(tiles),
+                    /*state=*/nullptr,
+                    rom_.get(),
+                    /*room_id=*/0,
+                    /*room_gfx_buffer=*/nullptr,
+                    /*secondary_bg=*/nullptr};
+    info->function(ctx);
+
+    const int expected_rows = static_cast<int>(size) + 8;
+    const auto points = CollectNonZeroTiles(bg);
+    ASSERT_EQ(static_cast<int>(points.size()), expected_rows);
+    for (int row = 0; row < expected_rows; ++row) {
+      EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, kAnchorX, kAnchorY + row),
+                tiles[0].id_)
+          << "row=" << row;
+    }
+  }
+}
+
+TEST_F(DrawRoutineMappingTest,
        DownwardsCornerVariantsSkipOpeningCapWhenCornerAlreadyExists) {
   auto& reg = DrawRoutineRegistry::Get();
   const std::vector<gfx::TileInfo> tiles = {
@@ -449,6 +487,15 @@ TEST_F(DrawRoutineMappingTest, VerifiesPhase4Step2Mappings) {
   // 0xB0-0xB1: routine 72 (RightwardsEdge1x1_1to16plus7)
   EXPECT_EQ(drawer.GetDrawRoutineId(0xB0), 72);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xB1), 72);
+
+  // USDASM $018314-$018318: only 0x8A is the +23 long rail; 0x8B/0x8C
+  // use the single-tile downwards +7 routine.
+  EXPECT_EQ(drawer.GetDrawRoutineId(0x8A),
+            DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0x8B),
+            DrawRoutineIds::kDownwardsEdge1x1_1to16plus7);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0x8C),
+            DrawRoutineIds::kDownwardsEdge1x1_1to16plus7);
 }
 
 TEST_F(DrawRoutineMappingTest, VerifiesPhase4Step3DiagonalCeilingMappings) {
