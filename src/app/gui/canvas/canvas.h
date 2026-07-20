@@ -349,6 +349,7 @@ class Canvas {
   ImVec2 ToCanvasPos(ImVec2 local) const;
   auto scrolling() const { return scrolling_; }
   void set_scrolling(ImVec2 scroll) {
+    state_.geometry.scrolling = scroll;
     scrolling_ = scroll;
     config_.scrolling = scroll;  // Sync to config for persistence
   }

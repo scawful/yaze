@@ -7,6 +7,8 @@
 #include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_canvas_transform.h"
+#include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/graphics/screen_editor_internal.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/agent_theme.h"
@@ -15,6 +17,7 @@
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dimension_service.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite.h"
 
@@ -153,14 +156,21 @@ bool DrawSpritePreviewPixels(const gui::CanvasRuntime& rt,
   return drew_any_pixel;
 }
 
-const char* GetObjectStreamLabel(int layer_value) {
+const char* GetStoredPlacementLabel(const zelda3::RoomObject& object) {
+  const int layer_value = object.GetLayerValue();
+  if (!zelda3::UsesRoomObjectStream(object)) {
+    if (layer_value == 0) {
+      return "Upper BG1";
+    }
+    return layer_value == 1 ? "Lower BG2" : "Invalid selector";
+  }
   switch (layer_value) {
     case 0:
-      return "L1 Primary";
+      return "Primary";
     case 1:
-      return "L2 BG2";
+      return "BG2 overlay";
     case 2:
-      return "L3 BG1";
+      return "BG1 overlay";
     default:
       return "Unknown";
   }
@@ -303,9 +313,16 @@ void DungeonCanvasViewer::HandleTouchLongPressContextMenu(
     const ImVec2 gesture_pos = gesture_long_press
                                    ? touch_handler_.GetGesturePosition()
                                    : ImGui::GetMousePos();
-    const float scale = rt.scale > 0.0f ? rt.scale : 1.0f;
-    const float rel_x = (gesture_pos.x - rt.canvas_p0.x) / scale;
-    const float rel_y = (gesture_pos.y - rt.canvas_p0.y) / scale;
+    const DungeonCanvasTransform transform(rt.canvas_p0, rt.scrolling,
+                                           rt.scale);
+    const ImVec2 room_pos = transform.ScreenToRoomPixels(gesture_pos);
+    const auto [room_x, room_y] =
+        transform.ScreenToRoomPixelCoordinates(gesture_pos);
+    if (!dungeon_coords::IsWithinBounds(room_x, room_y)) {
+      return;
+    }
+    const float rel_x = room_pos.x;
+    const float rel_y = room_pos.y;
     const bool is_touch = gui::LayoutHelpers::IsTouchDevice();
     const int hit_size = is_touch ? 24 : 16;
 
@@ -460,12 +477,10 @@ void DungeonCanvasViewer::DrawObjectPositionOutlines(
     std::string label;
     if (obj.id_ >= 0x100) {
       label = absl::StrFormat("0x%03X\n%s\n%s  [%dx%d]", obj.id_, name.c_str(),
-                              GetObjectStreamLabel(obj.GetLayerValue()), width,
-                              height);
+                              GetStoredPlacementLabel(obj), width, height);
     } else {
       label = absl::StrFormat("0x%02X\n%s\n%s  [%dx%d]", obj.id_, name.c_str(),
-                              GetObjectStreamLabel(obj.GetLayerValue()), width,
-                              height);
+                              GetStoredPlacementLabel(obj), width, height);
     }
     gui::DrawText(rt, label, canvas_x + 1, canvas_y + 1);
   }
