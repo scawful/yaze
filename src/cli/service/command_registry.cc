@@ -111,6 +111,15 @@ void CommandRegistry::RegisterHandlers(
       if (name == "dungeon-describe-room") {
         metadata.examples = {
             "z3ed dungeon-describe-room --room=5 --format=json"};
+      } else if (name == "dungeon-stream-plan") {
+        metadata.description =
+            "Read-only stream inventory, alias/overlap, and free-space "
+            "diagnostics; replacement-aware immutable move output is pending";
+        metadata.examples = {
+            "z3ed dungeon-stream-plan --kind=objects "
+            "--manifest=hack_manifest.json --rom=game.sfc --format=json",
+            "z3ed dungeon-stream-plan --kind=pot_items "
+            "--manifest=hack_manifest.json --rom=game.sfc --format=text"};
       } else if (name == "dungeon-place-sprite") {
         metadata.description =
             "Place a dungeon sprite (dry-run by default, --write to apply)";
