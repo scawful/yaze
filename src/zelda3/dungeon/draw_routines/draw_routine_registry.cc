@@ -237,12 +237,12 @@ void DrawRoutineRegistry::BuildObjectMapping() {
   object_to_routine_map_[0x87] = 46;
   object_to_routine_map_[0x88] = 66;
   object_to_routine_map_[0x89] = 67;
+  // USDASM $018314-$018318: 0x8A is the long capped rail, while 0x8B/0x8C
+  // are single-tile jump ledges repeated for size + 8 rows.
   object_to_routine_map_[0x8A] =
       DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23;
-  object_to_routine_map_[0x8B] =
-      DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23;
-  object_to_routine_map_[0x8C] =
-      DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23;
+  object_to_routine_map_[0x8B] = DrawRoutineIds::kDownwardsEdge1x1_1to16plus7;
+  object_to_routine_map_[0x8C] = DrawRoutineIds::kDownwardsEdge1x1_1to16plus7;
   object_to_routine_map_[0x8D] = 13;
   object_to_routine_map_[0x8E] = 13;
   object_to_routine_map_[0x8F] = 69;
