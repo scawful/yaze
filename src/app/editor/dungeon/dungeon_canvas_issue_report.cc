@@ -61,14 +61,21 @@ constexpr char kIssueReportCaptureButtonLabel[] =
 constexpr char kIssueReportRecaptureButtonLabel[] =
     ICON_MD_PHOTO_CAMERA " Re-capture Screenshot";
 
-const char* GetObjectStreamLabel(int layer_value) {
+const char* GetStoredPlacementLabel(const zelda3::RoomObject& object) {
+  const int layer_value = object.GetLayerValue();
+  if (!zelda3::UsesRoomObjectStream(object)) {
+    if (layer_value == 0) {
+      return "Upper layer (BG1)";
+    }
+    return layer_value == 1 ? "Lower layer (BG2)" : "Invalid selector";
+  }
   switch (layer_value) {
     case 0:
-      return "Layer 1 (Primary)";
+      return "Primary";
     case 1:
-      return "Layer 2 (BG2 overlay)";
+      return "BG2 overlay";
     case 2:
-      return "Layer 3 (BG1 overlay)";
+      return "BG1 overlay";
     default:
       return "Unknown";
   }
@@ -107,9 +114,15 @@ std::string BuildEffectiveBlockListSummary(const zelda3::Room& room) {
 
 std::string BuildSelectedObjectSemanticsSummary(const zelda3::RoomObject& obj) {
   const auto semantics = zelda3::GetObjectLayerSemantics(obj);
+  if (!zelda3::UsesRoomObjectStream(obj)) {
+    return absl::StrFormat(
+        "storage=special-table selector=%d (%s) routine=%d both_bgs=%s",
+        obj.GetLayerValue(), GetStoredPlacementLabel(obj), semantics.routine_id,
+        semantics.draws_to_both_bgs ? "yes" : "no");
+  }
   return absl::StrFormat(
       "stream=%s draw_layer=%d effective_bg=%s routine=%d both_bgs=%s",
-      GetObjectStreamLabel(obj.GetLayerValue()),
+      GetStoredPlacementLabel(obj),
       static_cast<int>(
           zelda3::MapRoomObjectListIndexToDrawLayer(obj.GetLayerValue())),
       zelda3::EffectiveBgLayerLabel(semantics.effective_bg_layer),

@@ -145,7 +145,7 @@ class ObjectGeometry {
    * Replay-style preview/editor pipelines that call ObjectDrawer::DrawObject
    * with hardcoded coordinates clip routines that draw upward or leftward
    * (acute diagonals 0x09-0x14 / 0x15-0x20, diagonal ceilings 0xA0-0xAC,
-   * somaria line down-left 0xF86). This returns the same anchor that
+   * and moving wall west 0xCD). This returns the same anchor that
    * ObjectGeometry uses internally for MeasureRoutine, so callers can
    * position their RoomObject at coordinates that keep the full extent
    * within the trace canvas.
