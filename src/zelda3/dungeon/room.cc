@@ -3471,8 +3471,9 @@ absl::Status SaveAllChests(Rom* rom, int room_count,
 }
 
 template <typename RoomLookup>
-absl::Status SaveAllPotItemsImpl(Rom* rom, int room_count,
-                                 RoomLookup&& room_lookup) {
+absl::Status SaveAllPotItemsImpl(
+    Rom* rom, int room_count, RoomLookup&& room_lookup,
+    const DungeonStreamLayout* repack_layout = nullptr) {
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
@@ -3480,6 +3481,45 @@ absl::Status SaveAllPotItemsImpl(Rom* rom, int room_count,
   if (kRoomItemsPointers + (kNumberOfRooms * 2) >
       static_cast<int>(rom_data.size())) {
     return absl::OutOfRangeError("Room items pointer table out of range");
+  }
+
+  const int room_limit = std::min(room_count, kNumberOfRooms);
+  if (repack_layout != nullptr) {
+    std::vector<DungeonStreamReplacement> replacements;
+    for (int room_id = 0; room_id < room_limit; ++room_id) {
+      const Room* room = room_lookup(room_id);
+      if (room == nullptr || !room->pot_items_dirty()) {
+        continue;
+      }
+
+      DungeonStreamReplacement replacement;
+      replacement.room_id = static_cast<uint32_t>(room_id);
+      replacement.encoded_stream.reserve(room->GetPotItems().size() * 3 + 2);
+      for (const PotItem& item : room->GetPotItems()) {
+        replacement.encoded_stream.push_back(item.position & 0xFF);
+        replacement.encoded_stream.push_back((item.position >> 8) & 0xFF);
+        replacement.encoded_stream.push_back(item.item);
+      }
+      replacement.encoded_stream.push_back(0xFF);
+      replacement.encoded_stream.push_back(0xFF);
+      replacements.push_back(std::move(replacement));
+    }
+    if (replacements.empty()) {
+      return absl::OkStatus();
+    }
+
+    ASSIGN_OR_RETURN(const DungeonStreamInventory inventory,
+                     InventoryDungeonStreams(*rom, *repack_layout));
+    ASSIGN_OR_RETURN(const DungeonStreamWritePlan plan,
+                     PlanDungeonStreamRepack(inventory, replacements));
+    RETURN_IF_ERROR(ApplyDungeonStreamWritePlan(rom, plan));
+    for (const DungeonStreamReplacement& replacement : replacements) {
+      if (const Room* room = room_lookup(replacement.room_id);
+          room != nullptr) {
+        const_cast<Room*>(room)->ClearPotItemsDirty();
+      }
+    }
+    return absl::OkStatus();
   }
 
   struct PendingPotItemWrite {
@@ -3491,7 +3531,6 @@ absl::Status SaveAllPotItemsImpl(Rom* rom, int room_count,
   // Build and validate every dirty write before touching the ROM. A later
   // shared/overfull stream must not leave earlier rooms partially written.
   std::vector<PendingPotItemWrite> pending_writes;
-  const int room_limit = std::min(room_count, kNumberOfRooms);
   for (int room_id = 0; room_id < room_limit; ++room_id) {
     const Room* room = room_lookup(room_id);
     if (room == nullptr || !room->pot_items_dirty()) {
@@ -3551,10 +3590,23 @@ absl::Status SaveAllPotItems(Rom* rom, absl::Span<const Room> rooms) {
                              [&rooms](int room_id) { return &rooms[room_id]; });
 }
 
+absl::Status SaveAllPotItems(Rom* rom, absl::Span<const Room> rooms,
+                             const DungeonStreamLayout* repack_layout) {
+  return SaveAllPotItemsImpl(
+      rom, static_cast<int>(rooms.size()),
+      [&rooms](int room_id) { return &rooms[room_id]; }, repack_layout);
+}
+
 absl::Status SaveAllPotItems(
     Rom* rom, int room_count,
     const std::function<const Room*(int)>& room_lookup) {
   return SaveAllPotItemsImpl(rom, room_count, room_lookup);
+}
+
+absl::Status SaveAllPotItems(Rom* rom, int room_count,
+                             const std::function<const Room*(int)>& room_lookup,
+                             const DungeonStreamLayout* repack_layout) {
+  return SaveAllPotItemsImpl(rom, room_count, room_lookup, repack_layout);
 }
 
 void Room::LoadBlocks() {

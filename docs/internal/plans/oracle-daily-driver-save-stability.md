@@ -1,6 +1,6 @@
 # Oracle Daily-Driver Save Stability
 
-**Status:** ACTIVE - Wave 1 published; Wave 2 object/sprite COW implemented
+**Status:** ACTIVE - Wave 1 published; Wave 2 allocator and pot repack under review
 **Owner (Agent ID):** CODEX
 **Created:** 2026-07-11
 **Last Reviewed:** 2026-07-15
@@ -65,7 +65,7 @@ not move all remaining dungeon or overworld polish into the `0.7.2` release.
    immutable write plan before changing any byte.
 3. [x] Detach and relocate shared/overflowing object streams, including object
    and door pointer updates.
-4. [ ] Deterministically repack all pot pointers/streams inside a declared
+4. [x] Deterministically repack all pot pointers/streams inside a declared
    region.
 5. [x] Detach and relocate sprite streams inside declared bank `$09` capacity.
 6. [x] Add read-only `z3ed` inventory diagnostics for aliases, overlaps, and
@@ -159,5 +159,26 @@ publishing the safety PR, also require:
   and patched ROM hashes unchanged.
 - The focused manifest, allocator, dungeon-save, sprite-relocation, CLI, and
   editor-persistence regression set passes 142/142 tests.
-- Pot items remain `repack_all` and fail closed for growth; publishing the OOS
-  manifest-generator counterpart is also still pending.
+- At this snapshot, pot items remained `repack_all` and failed closed for
+  growth; publishing the OOS manifest-generator counterpart was also pending.
+
+### 2026-07-15 pot soak and Oracle pipeline snapshot
+
+- The pot repacker is wired through the production `DungeonEditorV2::SaveRoom`
+  path and remains constrained to its manifest-declared region.
+- Direct-manifest and project fixtures each passed 50 bounded
+  save/destroy/reopen cycles. Every cycle reloaded the disposable ROM and
+  matched the expected pot bytes exactly; the canonical OOS source hash was
+  unchanged.
+- A disposable Oracle build passed project-bundle verification (7/7) and
+  object, sprite, and pot stream planning (296/296 valid slots for each kind,
+  with zero issues or overlaps). Non-strict Oracle smoke also passed.
+- Strict readiness reported only the known D3 content gap: room `0x32` has no
+  authored custom collision. Follow-up found that the passing D4 check does
+  not assert water-fill table membership; the old pipeline's second build had
+  dropped room `0x27` from that generated table. Oracle-of-Secrets PRs #107
+  and #109 preserve the tracked two-room table and add required-room
+  regression coverage. All four D6 track rooms pass.
+- The 50-cycle result is a focused pot persistence soak, not the complete
+  daily-driver exit gate. Multi-domain edit cycles, backup restoration, a
+  multi-hour GUI session, and Mesen room traversal remain required.
