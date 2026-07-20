@@ -28,9 +28,6 @@ inline constexpr size_t kMaxDoors = 16;
 // Maximum tile objects before processing lag on original hardware.
 inline constexpr size_t kMaxTileObjects = 400;
 
-// BG3-layer object guardrail for unstable rendering on real SNES.
-inline constexpr size_t kMaxBg3Objects = 128;
-
 // Sentinel for categories that are counted but intentionally not hard-limited.
 inline constexpr int kNoHardLimit = std::numeric_limits<int>::max();
 
@@ -40,7 +37,6 @@ enum class DungeonLimit {
   kSprites,
   kDoors,
   kChests,
-  kBg3Objects,
   // Extended categories used by Room::GetLimitedObjectCounts().
   Overlords,
   SpecialDoors,
@@ -65,8 +61,6 @@ inline constexpr const char* GetDungeonLimitLabel(DungeonLimit limit) {
       return "Doors";
     case DungeonLimit::kChests:
       return "Chests";
-    case DungeonLimit::kBg3Objects:
-      return "BG3 Objects";
     case DungeonLimit::Overlords:
       return "Overlords";
     case DungeonLimit::SpecialDoors:
@@ -110,8 +104,6 @@ inline constexpr int GetDungeonLimitMax(DungeonLimit limit) {
       return static_cast<int>(kMaxDoors);
     case DungeonLimit::kChests:
       return static_cast<int>(kMaxChests);
-    case DungeonLimit::kBg3Objects:
-      return static_cast<int>(kMaxBg3Objects);
     case DungeonLimit::Overlords:
     case DungeonLimit::SpecialDoors:
     case DungeonLimit::StairsTransition:
@@ -134,7 +126,6 @@ inline std::map<DungeonLimit, int> CreateLimitCounter() {
       {DungeonLimit::kSprites, 0},
       {DungeonLimit::kDoors, 0},
       {DungeonLimit::kChests, 0},
-      {DungeonLimit::kBg3Objects, 0},
   };
 }
 

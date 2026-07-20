@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
@@ -36,7 +37,7 @@ std::string FormatSize(uintmax_t size_bytes) {
 
 std::string SeverityToString(core::OracleMenuValidationSeverity severity) {
   return severity == core::OracleMenuValidationSeverity::kError ? "error"
-                                                                 : "warning";
+                                                                : "warning";
 }
 
 std::string FormatIssueLine(const core::OracleMenuValidationIssue& issue) {
@@ -46,12 +47,32 @@ std::string FormatIssueLine(const core::OracleMenuValidationIssue& issue) {
                            issue.message, issue.asm_path, issue.line);
   }
   if (!issue.asm_path.empty()) {
-    return absl::StrFormat("[%s] %s: %s (%s)",
-                           SeverityToString(issue.severity), issue.code,
-                           issue.message, issue.asm_path);
+    return absl::StrFormat("[%s] %s: %s (%s)", SeverityToString(issue.severity),
+                           issue.code, issue.message, issue.asm_path);
   }
   return absl::StrFormat("[%s] %s: %s", SeverityToString(issue.severity),
                          issue.code, issue.message);
+}
+
+absl::StatusOr<std::vector<int>> ParseHexRoomList(
+    const resources::ArgumentParser& parser, const std::string& flag_name) {
+  std::vector<int> room_ids;
+  const auto rooms_opt = parser.GetString(flag_name);
+  if (!rooms_opt.has_value()) {
+    return room_ids;
+  }
+
+  for (absl::string_view token :
+       absl::StrSplit(*rooms_opt, ',', absl::SkipEmpty())) {
+    const std::string trimmed = std::string(absl::StripAsciiWhitespace(token));
+    int room_id = 0;
+    if (!util::ParseHexString(trimmed, &room_id)) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Invalid room ID in --%s: '%s'", flag_name, trimmed));
+    }
+    room_ids.push_back(room_id);
+  }
+  return room_ids;
 }
 
 }  // namespace
@@ -232,7 +253,8 @@ absl::Status OracleMenuValidateCommandHandler::Execute(
   formatter.AddField("bin_count", static_cast<int>(registry.bins.size()));
   formatter.AddField("draw_routine_count",
                      static_cast<int>(registry.draw_routines.size()));
-  formatter.AddField("component_count", static_cast<int>(registry.components.size()));
+  formatter.AddField("component_count",
+                     static_cast<int>(registry.components.size()));
   formatter.AddField("max_row", max_row);
   formatter.AddField("max_col", max_col);
   formatter.AddField("strict", strict);
@@ -298,22 +320,10 @@ absl::Status DungeonOraclePreflightCommandHandler::Execute(
   // --report path was already probed in ValidateArgs() (before the formatter
   // was created), so a write failure here cannot produce contradictory output.
 
-  // Parse optional required-collision-rooms list.
-  std::vector<int> required_rooms;
-  if (auto rooms_opt = parser.GetString("required-collision-rooms");
-      rooms_opt.has_value()) {
-    for (absl::string_view token :
-         absl::StrSplit(rooms_opt.value(), ',', absl::SkipEmpty())) {
-      std::string trimmed =
-          std::string(absl::StripAsciiWhitespace(token));
-      int room_id = 0;
-      if (!util::ParseHexString(trimmed, &room_id)) {
-        return absl::InvalidArgumentError(absl::StrFormat(
-            "Invalid room ID in --required-collision-rooms: '%s'", trimmed));
-      }
-      required_rooms.push_back(room_id);
-    }
-  }
+  ASSIGN_OR_RETURN(const auto required_collision_rooms,
+                   ParseHexRoomList(parser, "required-collision-rooms"));
+  ASSIGN_OR_RETURN(const auto required_water_fill_rooms,
+                   ParseHexRoomList(parser, "required-water-fill-rooms"));
 
   // Build preflight options from flags.
   zelda3::OracleRomSafetyPreflightOptions options;
@@ -323,7 +333,8 @@ absl::Status DungeonOraclePreflightCommandHandler::Execute(
   options.validate_water_fill_table = true;
   options.validate_custom_collision_maps =
       !parser.HasFlag("skip-collision-maps");
-  options.room_ids_requiring_custom_collision = required_rooms;
+  options.room_ids_requiring_custom_collision = required_collision_rooms;
+  options.room_ids_requiring_water_fill_zones = required_water_fill_rooms;
 
   // Run the preflight.
   const auto preflight = zelda3::RunOracleRomSafetyPreflight(rom, options);
@@ -333,6 +344,7 @@ absl::Status DungeonOraclePreflightCommandHandler::Execute(
   bool water_fill_table_ok = true;
   bool custom_collision_maps_ok = true;
   bool required_rooms_ok = true;
+  bool required_water_fill_rooms_ok = true;
   for (const auto& err : preflight.errors) {
     if (err.code == "ORACLE_WATER_FILL_REGION_MISSING" ||
         err.code == "ORACLE_COLLISION_WRITE_REGION_MISSING") {
@@ -346,7 +358,14 @@ absl::Status DungeonOraclePreflightCommandHandler::Execute(
     } else if (err.code == "ORACLE_REQUIRED_ROOM_MISSING_COLLISION" ||
                err.code == "ORACLE_REQUIRED_ROOM_OUT_OF_RANGE") {
       required_rooms_ok = false;
+    } else if (err.code == "ORACLE_REQUIRED_WATER_FILL_ROOM_MISSING" ||
+               err.code == "ORACLE_REQUIRED_WATER_FILL_ROOM_OUT_OF_RANGE") {
+      required_water_fill_rooms_ok = false;
     }
+  }
+  if (!required_water_fill_rooms.empty() &&
+      (!water_fill_region_ok || !water_fill_table_ok)) {
+    required_water_fill_rooms_ok = false;
   }
 
   const bool failed = !preflight.ok();
@@ -355,7 +374,7 @@ absl::Status DungeonOraclePreflightCommandHandler::Execute(
   // HasCustomCollisionWriteSupport in the preflight library, so on a small ROM
   // the check is silently skipped. Reflect that honestly in the output.
   const bool required_check_ran =
-      !required_rooms.empty() &&
+      !required_collision_rooms.empty() &&
       zelda3::HasCustomCollisionWriteSupport(rom->vector().size());
 
   // Build a machine-readable JSON report in parallel with the formatter so
@@ -368,12 +387,18 @@ absl::Status DungeonOraclePreflightCommandHandler::Execute(
   report["water_fill_table_ok"] = water_fill_table_ok;
   report["custom_collision_maps_ok"] = custom_collision_maps_ok;
 
-  if (!required_rooms.empty()) {
-    report["required_rooms_checked"] = static_cast<int>(required_rooms.size());
+  if (!required_collision_rooms.empty()) {
+    report["required_rooms_checked"] =
+        static_cast<int>(required_collision_rooms.size());
     report["required_rooms_check"] = required_check_ran ? "ran" : "skipped";
     if (required_check_ran) {
       report["required_rooms_ok"] = required_rooms_ok;
     }
+  }
+  if (!required_water_fill_rooms.empty()) {
+    report["required_water_fill_rooms_checked"] =
+        static_cast<int>(required_water_fill_rooms.size());
+    report["required_water_fill_rooms_ok"] = required_water_fill_rooms_ok;
   }
 
   json errors_arr = json::array();
@@ -397,15 +422,21 @@ absl::Status DungeonOraclePreflightCommandHandler::Execute(
   formatter.AddField("water_fill_region_ok", water_fill_region_ok);
   formatter.AddField("water_fill_table_ok", water_fill_table_ok);
   formatter.AddField("custom_collision_maps_ok", custom_collision_maps_ok);
-  if (!required_rooms.empty()) {
+  if (!required_collision_rooms.empty()) {
     formatter.AddField("required_rooms_checked",
-                       static_cast<int>(required_rooms.size()));
-    formatter.AddField("required_rooms_check",
-                       required_check_ran ? std::string("ran")
-                                          : std::string("skipped"));
+                       static_cast<int>(required_collision_rooms.size()));
+    formatter.AddField("required_rooms_check", required_check_ran
+                                                   ? std::string("ran")
+                                                   : std::string("skipped"));
     if (required_check_ran) {
       formatter.AddField("required_rooms_ok", required_rooms_ok);
     }
+  }
+  if (!required_water_fill_rooms.empty()) {
+    formatter.AddField("required_water_fill_rooms_checked",
+                       static_cast<int>(required_water_fill_rooms.size()));
+    formatter.AddField("required_water_fill_rooms_ok",
+                       required_water_fill_rooms_ok);
   }
   formatter.BeginArray("errors");
   for (const auto& err : preflight.errors) {
@@ -428,8 +459,8 @@ absl::Status DungeonOraclePreflightCommandHandler::Execute(
   if (auto report_path = parser.GetString("report");
       report_path.has_value() && !report_path->empty()) {
     const std::string report_content = report.dump(2) + "\n";
-    std::ofstream report_file(*report_path,
-                              std::ios::out | std::ios::binary | std::ios::trunc);
+    std::ofstream report_file(
+        *report_path, std::ios::out | std::ios::binary | std::ios::trunc);
     if (!report_file.is_open()) {
       return absl::PermissionDeniedError(
           absl::StrFormat("dungeon-oracle-preflight: cannot open report file "
@@ -437,7 +468,8 @@ absl::Status DungeonOraclePreflightCommandHandler::Execute(
                           *report_path));
     }
     report_file << report_content;
-    if (!report_file.good()) {
+    report_file.close();
+    if (report_file.fail()) {
       return absl::InternalError(
           absl::StrFormat("dungeon-oracle-preflight: failed while writing "
                           "report file: %s",
@@ -446,9 +478,7 @@ absl::Status DungeonOraclePreflightCommandHandler::Execute(
   }
 
   if (failed) {
-    return absl::FailedPreconditionError(
-        absl::StrFormat("Oracle ROM preflight failed (%d error(s))",
-                        static_cast<int>(preflight.errors.size())));
+    return preflight.ToStatus();
   }
   return absl::OkStatus();
 }
