@@ -634,9 +634,12 @@ void ObjectDimensionTable::InitializeDefaults() {
   // 0x89: Downwards Block 2x2 spaced 2
   dimensions_[0x89] = {2, 2, Dir::Vertical, 4, false};
 
-  // 0x8A-0x8C: Edge variants (+23)
-  for (int id = 0x8A; id <= 0x8C; id++) {
-    dimensions_[id] = {1, 23, Dir::Vertical, 1, false};
+  // 0x8A: long rail with corner/middle/end (+23 total base span).
+  dimensions_[0x8A] = {1, 23, Dir::Vertical, 1, false};
+
+  // 0x8B-0x8C: single-tile jump ledges (+7 => size + 8 rows).
+  for (int id = 0x8B; id <= 0x8C; id++) {
+    dimensions_[id] = {1, 8, Dir::Vertical, 1, false};
   }
 
   // 0x8D-0x8E: Downwards Edge 1x1
