@@ -184,17 +184,14 @@ TEST_F(ObjectParserTest, DrawInfoUsesSubtypeTileCountLookup) {
 // (`ZScreamDungeon/ZeldaFullEditor/Data/DungeonObjectData.cs:184`) is the
 // upstream provenance source for `kSubtype1TileLengths` in
 // `src/zelda3/dungeon/object_parser.cc`. A full byte-for-byte audit
-// confirmed 246/248 entries identical. Only `0x47` and `0x48`
-// (Waterfall47/Waterfall48) diverge: ZScream stores `0` and falls back to
-// 8 tiles at runtime (under-fetch — `TileAtWrapped` substitutes wrong
-// tiles for index >= 8); yaze ships the routine-body-proven counts
-// (`15` / `9`) per commits `e9938002` and `c12c3178`.
+// confirmed the original table provenance. Yaze keeps a small allowlist of
+// routine-body-proven corrections where ZScream under-fetches or over-fetches.
 //
 // This test pins the parity result so future drift on either side is
 // caught: a change in the production yaze table that contradicts ZScream
 // at a non-divergent ID will fail; a new yaze divergence not in
-// `kKnownDivergences` will fail; if ZScream fixes Waterfall47/48
-// upstream, the existing divergence assertions will fail and the
+// `kKnownDivergences` will fail; if ZScream fixes an allowlisted count
+// upstream, the corresponding divergence assertion will fail and the
 // allowlist can be retired entry by entry.
 TEST_F(ObjectParserTest,
        Subtype1TileLengthsMatchZScreamReferenceExceptKnownDivergences) {
@@ -227,7 +224,7 @@ TEST_F(ObjectParserTest,
     const char* justification;
   };
   // Allowlist of known intentional yaze corrections of upstream ZScream
-  // under-fetches. Add entries only when the underlying routine body
+  // payload counts. Add entries only when the underlying routine body
   // proves the count divergence; cite the routine source location.
   static const Divergence kKnownDivergences[] = {
       {0x47, 15,
@@ -235,6 +232,12 @@ TEST_F(ObjectParserTest,
        "ZScream's 0->8 fallback under-fetched and TileAtWrapped "
        "substituted wrong tiles for index>=8 (commits e9938002/c12c3178)."},
       {0x48, 9, "DrawWaterfall48 reads tiles[0..8]; same pattern as 0x47."},
+      {0xCD, 24,
+       "RoomDraw_MovingWallWest reads obj072A words 0..23; ZScream's 28 "
+       "over-fetches four words from obj075A."},
+      {0xCE, 24,
+       "RoomDraw_MovingWallEast reads obj075A words 0..23; ZScream's 28 "
+       "over-fetches four words from obj078A."},
       {0xD3, 0, "DrawNothing wall-moved check; no tile payload is consumed."},
       {0xD4, 0, "DrawNothing wall-moved check; no tile payload is consumed."},
       {0xD5, 0, "DrawNothing wall-moved check; no tile payload is consumed."},
