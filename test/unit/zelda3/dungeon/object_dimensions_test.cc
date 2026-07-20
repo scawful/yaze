@@ -224,6 +224,33 @@ TEST_F(ObjectDimensionTableTest, ChestObjectsHaveFixedSize) {
   EXPECT_EQ(h2, 4);
 }
 
+TEST_F(ObjectDimensionTableTest, HammerPegUsesFixedTwoByTwoBounds) {
+  auto& table = ObjectDimensionTable::Get();
+  ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());
+
+  for (uint8_t size : {0, 9, 15}) {
+    SCOPED_TRACE(::testing::Message() << "size=" << static_cast<int>(size));
+
+    auto [width, height] = table.GetDimensions(0xF96, size);
+    EXPECT_EQ(width, 2);
+    EXPECT_EQ(height, 2);
+
+    const auto selection = table.GetSelectionBounds(0xF96, size);
+    EXPECT_EQ(selection.offset_x, 0);
+    EXPECT_EQ(selection.offset_y, 0);
+    EXPECT_EQ(selection.width, 2);
+    EXPECT_EQ(selection.height, 2);
+
+    const RoomObject object(0xF96, 0, 0, size, 0);
+    auto geometry = ObjectGeometry::Get().MeasureByObjectId(object);
+    ASSERT_TRUE(geometry.ok());
+    EXPECT_EQ(geometry->min_x_tiles, 0);
+    EXPECT_EQ(geometry->min_y_tiles, 0);
+    EXPECT_EQ(geometry->width_tiles, 2);
+    EXPECT_EQ(geometry->height_tiles, 2);
+  }
+}
+
 TEST_F(ObjectDimensionTableTest,
        ReportedPlatformAndDecorObjectsUseUsdasmFootprints) {
   auto& table = ObjectDimensionTable::Get();

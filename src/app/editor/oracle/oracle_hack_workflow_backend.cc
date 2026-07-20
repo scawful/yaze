@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include "absl/strings/str_format.h"
 #include "app/emu/mesen/mesen_socket_client.h"
 #include "cli/handlers/game/oracle_menu_commands.h"
 #include "cli/handlers/game/oracle_smoke_check_commands.h"
@@ -15,8 +16,10 @@ namespace {
 absl::StatusOr<core::OracleProgressionState> ReadOracleProgressionState(
     emu::mesen::MesenSocketClient& client) {
   constexpr uint32_t kBaseAddress = 0x7EF000;
-  constexpr uint16_t kStartOffset = core::OracleProgressionState::kPendantOffset;
-  constexpr uint16_t kEndOffset = core::OracleProgressionState::kSideQuestOffset;
+  constexpr uint16_t kStartOffset =
+      core::OracleProgressionState::kPendantOffset;
+  constexpr uint16_t kEndOffset =
+      core::OracleProgressionState::kSideQuestOffset;
   constexpr size_t kReadLength = kEndOffset - kStartOffset + 1;
   constexpr uint32_t kReadAddress = kBaseAddress + kStartOffset;
 
@@ -43,6 +46,32 @@ absl::StatusOr<core::OracleProgressionState> ReadOracleProgressionState(
   return state;
 }
 
+bool MatchesExpectedPreflightStatus(
+    const oracle_validation::PreflightResult& preflight,
+    const absl::Status& status) {
+  if (preflight.ok) {
+    return preflight.error_count == 0 && preflight.errors.empty() &&
+           status.ok();
+  }
+
+  if (status.ok() || preflight.error_count <= 0 ||
+      preflight.errors.size() !=
+          static_cast<std::size_t>(preflight.error_count)) {
+    return false;
+  }
+
+  const auto& first_error = preflight.errors.front();
+  std::string expected_message = first_error.message;
+  if (preflight.error_count > 1) {
+    expected_message =
+        absl::StrFormat("%s (plus %d additional safety issue(s))",
+                        first_error.message, preflight.error_count - 1);
+  }
+
+  return first_error.status_code == absl::StatusCodeToString(status.code()) &&
+         expected_message == status.message();
+}
+
 }  // namespace
 
 std::string OracleHackWorkflowBackend::GetBackendId() const {
@@ -65,20 +94,34 @@ oracle_validation::OracleRunResult OracleHackWorkflowBackend::RunValidation(
 
     cli::handlers::DungeonOraclePreflightCommandHandler handler;
     auto status = handler.Run(args, rom_context, &result.raw_output);
-    result.command_ok =
-        status.ok() || status.code() == absl::StatusCode::kFailedPrecondition;
     result.status_code = status.code();
-    if (!status.ok() && status.code() != absl::StatusCode::kFailedPrecondition) {
-      result.error_message = std::string(status.message());
+
+    if (result.raw_output.empty()) {
+      result.error_message = status.ok()
+                                 ? "dungeon-oracle-preflight produced no output"
+                                 : std::string(status.message());
       return result;
     }
 
     auto parsed = oracle_validation::ParsePreflightOutput(result.raw_output);
-    if (parsed.ok()) {
-      result.preflight = *parsed;
-    } else {
+    if (!parsed.ok()) {
       result.json_parse_failed = true;
+      result.error_message = status.ok()
+                                 ? std::string(parsed.status().message())
+                                 : std::string(status.message());
+      return result;
     }
+
+    result.preflight = *parsed;
+    if (MatchesExpectedPreflightStatus(*parsed, status)) {
+      result.command_ok = true;
+      return result;
+    }
+
+    result.error_message =
+        status.ok()
+            ? "dungeon-oracle-preflight output did not match command status"
+            : std::string(status.message());
     return result;
   }
 
@@ -120,7 +163,8 @@ OracleHackWorkflowBackend::GetProgressionState(
 }
 
 void OracleHackWorkflowBackend::SetProgressionState(
-    core::HackManifest& manifest, const core::OracleProgressionState& state) const {
+    core::HackManifest& manifest,
+    const core::OracleProgressionState& state) const {
   manifest.SetOracleProgressionState(state);
 }
 

@@ -459,6 +459,12 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
     return 28;
   }
 
+  // HammerPegSingle (0xF96 = ASM 0x216) jumps to
+  // RoomDraw_Rightwards2x2 and consumes one fixed 2x2 tile block.
+  if (object_id == 0xF96) {
+    return 4;
+  }
+
   // Somaria path pieces (ASM objects 0x203-0x20C, 0x20E, and 0x20F) each
   // point to one tile word. RoomDraw_SomariaLine writes that word once.
   if ((object_id >= 0xF83 && object_id <= 0xF8C) || object_id == 0xF8E ||
