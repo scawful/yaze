@@ -1,12 +1,14 @@
 #include "special_routines.h"
 
 #include <algorithm>
+#include <array>
 
 #include "core/features.h"
 #include "util/log.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_state.h"
+#include "zelda3/dungeon/moving_wall_semantics.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
@@ -169,6 +171,54 @@ void DrawPlatform3x2(const DrawContext& ctx, int dx, int dy,
   WritePlatformTile(ctx, dx + 0, dy + 1, start_index + 3);
   WritePlatformTile(ctx, dx + 1, dy + 1, start_index + 4);
   WritePlatformTile(ctx, dx + 2, dy + 1, start_index + 5);
+}
+
+constexpr int kMovingWallFillDataOffset = kRoomObjectTileAddress + 0x03D8;
+constexpr std::array<uint16_t, 3> kMovingWallFallbackFillWords = {
+    0x3C15, 0x3C15, 0x3C15};
+
+std::array<gfx::TileInfo, 3> LoadMovingWallFillTiles(const DrawContext& ctx) {
+  std::array<gfx::TileInfo, 3> fill_tiles;
+  for (size_t i = 0; i < fill_tiles.size(); ++i) {
+    uint16_t word = kMovingWallFallbackFillWords[i];
+    if (ctx.rom != nullptr) {
+      const auto word_or = ctx.rom->ReadWord(kMovingWallFillDataOffset +
+                                             static_cast<int>(i * 2));
+      if (word_or.ok()) {
+        word = *word_or;
+      }
+    }
+    fill_tiles[i] = gfx::WordToTileInfo(word);
+  }
+  return fill_tiles;
+}
+
+void DrawMovingWallFill(const DrawContext& ctx, int start_x, int column_count,
+                        int height) {
+  const auto fill_tiles = LoadMovingWallFillTiles(ctx);
+  for (int x = 0; x < column_count; ++x) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, start_x + x, ctx.object.y_,
+                                 fill_tiles[0]);
+    for (int y = 1; y < height - 1; ++y) {
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, start_x + x,
+                                   ctx.object.y_ + y, fill_tiles[1]);
+    }
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, start_x + x,
+                                 ctx.object.y_ + height - 1, fill_tiles[2]);
+  }
+}
+
+void DrawMovingWallPlatform(const DrawContext& ctx, int direction) {
+  DrawPlatform1x3Rightwards(ctx, /*dx=*/0, /*dy=*/0, /*start_index=*/0,
+                            /*columns=*/3);
+  for (int i = 0; i < direction; ++i) {
+    DrawPlatform3x2(ctx, /*dx=*/0, /*dy=*/3 + i * 2,
+                    /*start_index=*/9);
+  }
+  // The ASM advances six words past the vertical pattern before stamping the
+  // second 3x3 corner (payload slots 15..23).
+  DrawPlatform1x3Rightwards(ctx, /*dx=*/0, /*dy=*/3 + direction * 2,
+                            /*start_index=*/15, /*columns=*/3);
 }
 
 void DrawOpenChestPlatformSegment(const DrawContext& ctx, int dy,
@@ -1161,36 +1211,38 @@ void DrawBombableFloor(const DrawContext& ctx) {
   }
 }
 
-void DrawMovingWall(const DrawContext& ctx, bool is_west) {
-  // ASM: RoomDraw_MovingWallWest ($019316), RoomDraw_MovingWallEast ($01935C)
-  // Checks if wall has moved based on game state
-  (void)is_west;  // Direction affects which way wall moves
-
-  bool has_moved = false;
-  if (ctx.state) {
-    has_moved = ctx.state->IsWallMoved(ctx.room_id);
-  }
-
-  // Draw wall in current position
-  // Size determines wall length
-  int size = (ctx.object.size_ & 0x0F) + 1;
-
-  if (ctx.tiles.size() < 4)
+void DrawMovingWallWest(const DrawContext& ctx) {
+  // USDASM RoomDraw_MovingWallWest ($01:9190): moved walls emit no tiles.
+  if ((ctx.state != nullptr && ctx.state->IsWallMoved(ctx.room_id)) ||
+      ctx.tiles.size() < 24) {
     return;
-
-  for (int s = 0; s < size; ++s) {
-    int offset = has_moved ? 2 : 0;  // Offset position if wall has moved
-    int x = ctx.object.x_ + offset;
-    int y = ctx.object.y_ + (s * 2);
-
-    // Draw 2x2 wall segment
-    for (int dy = 0; dy < 2; ++dy) {
-      for (int dx = 0; dx < 2; ++dx) {
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, x + dx, y + dy,
-                                     ctx.tiles[dy * 2 + dx]);
-      }
-    }
   }
+
+  const int direction = moving_wall::DirectionForSize(ctx.object.size_);
+  const int column_count = moving_wall::ObjectCountForSize(ctx.object.size_);
+  const int height = direction * 2 + 6;
+
+  // West writes the obj03D8 fill first, growing left from the object anchor,
+  // then stamps the 3x3 corner and repeated 3x2 vertical wall at the anchor.
+  DrawMovingWallFill(ctx, ctx.object.x_ - column_count, column_count, height);
+  DrawMovingWallPlatform(ctx, direction);
+}
+
+void DrawMovingWallEast(const DrawContext& ctx) {
+  // USDASM RoomDraw_MovingWallEast ($01:921C): moved walls emit no tiles.
+  if ((ctx.state != nullptr && ctx.state->IsWallMoved(ctx.room_id)) ||
+      ctx.tiles.size() < 24) {
+    return;
+  }
+
+  const int direction = moving_wall::DirectionForSize(ctx.object.size_);
+  const int column_count = moving_wall::ObjectCountForSize(ctx.object.size_);
+  const int height = direction * 2 + 6;
+
+  // East stamps the platform first, then grows the obj03D8 fill right from
+  // the first column beyond the three-tile-wide platform.
+  DrawMovingWallPlatform(ctx, direction);
+  DrawMovingWallFill(ctx, ctx.object.x_ + 3, column_count, height);
 }
 
 // ============================================================================
@@ -1931,26 +1983,22 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
   registry.push_back(DrawRoutineInfo{
       .id = DrawRoutineIds::kMovingWallWest,  // 80
       .name = "MovingWallWest",
-      .function =
-          [](const DrawContext& ctx) { DrawMovingWall(ctx, /*is_west=*/true); },
+      .function = DrawMovingWallWest,
       .draws_to_both_bgs = false,
-      .base_width = 4,
-      .base_height = 8,
-      .min_tiles = 4,
+      .base_width = 0,   // Variable: count selector + 3 platform columns
+      .base_height = 0,  // Variable: 2 * direction selector + 6
+      .min_tiles = 24,
       .category = DrawRoutineInfo::Category::Special,
   });
 
   registry.push_back(DrawRoutineInfo{
       .id = DrawRoutineIds::kMovingWallEast,  // 81
       .name = "MovingWallEast",
-      .function =
-          [](const DrawContext& ctx) {
-            DrawMovingWall(ctx, /*is_west=*/false);
-          },
+      .function = DrawMovingWallEast,
       .draws_to_both_bgs = false,
-      .base_width = 4,
-      .base_height = 8,
-      .min_tiles = 4,
+      .base_width = 0,   // Variable: count selector + 3 platform columns
+      .base_height = 0,  // Variable: 2 * direction selector + 6
+      .min_tiles = 24,
       .category = DrawRoutineInfo::Category::Special,
   });
 

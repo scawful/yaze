@@ -1023,14 +1023,14 @@ void ObjectDrawer::InitializeDrawRoutines() {
         self->DrawUsingRegistryRoutine(79, obj, bg, tiles, state);
       });
 
-  // Routine 80 - Moving Wall West (object 0xCD, 28 tiles)
+  // Routine 80 - Moving Wall West (object 0xCD, 24 tiles)
   draw_routines_.push_back(
       [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
         self->DrawUsingRegistryRoutine(80, obj, bg, tiles, state);
       });
 
-  // Routine 81 - Moving Wall East (object 0xCE, 28 tiles)
+  // Routine 81 - Moving Wall East (object 0xCE, 24 tiles)
   draw_routines_.push_back(
       [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
@@ -2928,11 +2928,9 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
     }
 
     // Special platform routines (80-82)
-    case 80:        // MovingWallWest
-    case 81:        // MovingWallEast
-      width = 64;   // 8 tiles wide
-      height = 64;  // 8 tiles tall
-      break;
+    case 80:  // MovingWallWest
+    case 81:  // MovingWallEast
+      return DimensionService::Get().GetPixelDimensions(object);
 
     case 82: {  // OpenChestPlatform
       int size_x = (size >> 2) & 0x03;
