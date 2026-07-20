@@ -29,18 +29,24 @@ namespace yaze::zelda3 {
 namespace {
 
 constexpr int kRoomCount = kNumberOfRooms;
+constexpr int kWaterFillRuntimeRoomCount = 0x100;
 constexpr int kGridSize = 64;
 constexpr int kGridTiles = kGridSize * kGridSize;
 constexpr uint16_t kCollisionSingleTileMarker = 0xF0F0;
 constexpr uint16_t kCollisionEndMarker = 0xFFFF;
+
+bool IsWaterFillRuntimeRoomId(int room_id) {
+  return room_id >= 0 && room_id < kWaterFillRuntimeRoomCount;
+}
 
 bool IsSingleBitMask(uint8_t mask) {
   return mask != 0 && (mask & (mask - 1)) == 0;
 }
 
 absl::Status ValidateZone(const WaterFillZoneEntry& z) {
-  if (z.room_id < 0 || z.room_id >= kRoomCount) {
-    return absl::OutOfRangeError("WaterFillZoneEntry room_id out of range");
+  if (!IsWaterFillRuntimeRoomId(z.room_id)) {
+    return absl::OutOfRangeError(
+        "WaterFillZoneEntry room_id must fit the runtime room byte");
   }
   if (!IsSingleBitMask(z.sram_bit_mask)) {
     return absl::InvalidArgumentError(
@@ -352,7 +358,7 @@ absl::Status WriteWaterFillTable(Rom* rom,
 
   // Header entries with placeholder offsets.
   for (const auto& z : normalized) {
-    bytes.push_back(static_cast<uint8_t>(z.room_id & 0xFF));
+    bytes.push_back(static_cast<uint8_t>(z.room_id));
     bytes.push_back(z.sram_bit_mask);
     bytes.push_back(0x00);  // data_offset lo
     bytes.push_back(0x00);  // data_offset hi
@@ -496,6 +502,13 @@ absl::Status NormalizeWaterFillZoneMasks(std::vector<WaterFillZoneEntry>* zones)
         zones->size()));
   }
 
+  for (const auto& z : *zones) {
+    if (!IsWaterFillRuntimeRoomId(z.room_id)) {
+      return absl::OutOfRangeError(absl::StrFormat(
+          "WaterFill room_id must fit the runtime room byte: %d", z.room_id));
+    }
+  }
+
   // Ensure stable room ordering + deterministic offset layout.
   *zones = DedupAndSort(std::move(*zones));
 
@@ -505,10 +518,6 @@ absl::Status NormalizeWaterFillZoneMasks(std::vector<WaterFillZoneEntry>* zones)
   unassigned.reserve(zones->size());
 
   for (auto& z : *zones) {
-    if (z.room_id < 0 || z.room_id >= kRoomCount) {
-      return absl::OutOfRangeError(
-          absl::StrFormat("WaterFill room_id out of range: %d", z.room_id));
-    }
     if (seen_rooms.contains(z.room_id)) {
       return absl::InvalidArgumentError(
           absl::StrFormat("Duplicate water fill zone for room 0x%02X", z.room_id));
@@ -561,6 +570,10 @@ absl::StatusOr<std::string> DumpWaterFillZonesToJsonString(
               return a.room_id < b.room_id;
             });
   for (auto& z : sorted) {
+    if (!IsWaterFillRuntimeRoomId(z.room_id)) {
+      return absl::OutOfRangeError(absl::StrFormat(
+          "WaterFill room_id must fit the runtime room byte: %d", z.room_id));
+    }
     std::sort(z.fill_offsets.begin(), z.fill_offsets.end());
     z.fill_offsets.erase(
         std::unique(z.fill_offsets.begin(), z.fill_offsets.end()),
@@ -646,9 +659,9 @@ absl::StatusOr<std::vector<WaterFillZoneEntry>> LoadWaterFillZonesFromJsonString
         : item.contains("room")  ? item["room"]
                                  : json();
     const auto room_id_opt = parse_int(room_v);
-    if (!room_id_opt.has_value() || *room_id_opt < 0 ||
-        *room_id_opt >= kNumberOfRooms) {
-      return absl::InvalidArgumentError("Invalid room_id in water fill JSON");
+    if (!room_id_opt.has_value() || !IsWaterFillRuntimeRoomId(*room_id_opt)) {
+      return absl::InvalidArgumentError(
+          "Invalid room_id in water fill JSON (must fit runtime room byte)");
     }
     const int room_id = *room_id_opt;
 
