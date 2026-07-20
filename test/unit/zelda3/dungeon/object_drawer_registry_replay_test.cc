@@ -8,6 +8,7 @@
 #include <set>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "app/gfx/render/background_buffer.h"
@@ -16,6 +17,7 @@
 #include "rom/rom.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/dungeon_state.h"
+#include "zelda3/dungeon/moving_wall_semantics.h"
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room_object.h"
@@ -39,6 +41,7 @@ class FakeDungeonState : public DungeonState {
   int open_lock_room_id = -1;
   int water_face_active_room_id = -1;
   bool dam_floodgate_open = false;
+  bool wall_moved = false;
 
   bool IsChestOpen(int /*room_id*/, int /*chest_index*/) const override {
     return false;
@@ -59,7 +62,7 @@ class FakeDungeonState : public DungeonState {
     return dam_floodgate_open;
   }
 
-  bool IsWallMoved(int /*room_id*/) const override { return false; }
+  bool IsWallMoved(int /*room_id*/) const override { return wall_moved; }
   bool IsFloorBombable(int /*room_id*/) const override { return false; }
   bool IsRupeeFloorActive(int /*room_id*/) const override { return false; }
 
@@ -87,9 +90,17 @@ std::vector<gfx::TileInfo> MakeSequentialTiles(int count,
 std::vector<ObjectDrawer::TileTrace> ReplayObjectTrace(
     int16_t object_id, int x, int y, uint8_t size, RoomObject::LayerType layer,
     const std::vector<gfx::TileInfo>& tiles,
-    const DungeonState* state = nullptr) {
+    const DungeonState* state = nullptr,
+    const std::vector<std::pair<int, uint16_t>>& rom_words = {}) {
   Rom rom;
   std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  for (const auto& [address, word] : rom_words) {
+    if (address < 0 || address + 1 >= static_cast<int>(dummy_rom.size())) {
+      continue;
+    }
+    dummy_rom[address] = static_cast<uint8_t>(word & 0xFF);
+    dummy_rom[address + 1] = static_cast<uint8_t>(word >> 8);
+  }
   rom.LoadFromData(dummy_rom);
 
   ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
@@ -2881,6 +2892,115 @@ TEST(ObjectDrawerRegistryReplayTest,
   EXPECT_EQ(LastTileIdAt(bg1, kX + 7, kY + 6), 66);
   EXPECT_EQ(LastTileIdAt(bg1, kX + 6, kY + 7), 65);
   EXPECT_EQ(LastTileIdAt(bg1, kX + 7, kY + 7), 67);
+}
+
+TEST(ObjectDrawerRegistryReplayTest, MovingWallsDrawNothingAfterWallMoved) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  FakeDungeonState state;
+  state.wall_moved = true;
+
+  for (const int16_t object_id : {int16_t{0x00CD}, int16_t{0x00CE}}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << object_id);
+    auto trace = ReplayObjectTrace(object_id, /*x=*/36, /*y=*/4, /*size=*/0,
+                                   RoomObject::LayerType::BG1,
+                                   MakeSequentialTiles(/*count=*/24), &state);
+    EXPECT_TRUE(trace.empty());
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     MovingWallsUseIndependentDirectionAndCountSelectors) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kWestX = 36;
+  constexpr int kEastX = 4;
+  constexpr int kY = 4;
+  for (size_t direction_index = 0;
+       direction_index < moving_wall::kDirections.size(); ++direction_index) {
+    for (size_t count_index = 0;
+         count_index < moving_wall::kObjectCounts.size(); ++count_index) {
+      const uint8_t size =
+          static_cast<uint8_t>((direction_index << 2) | count_index);
+      const int direction = moving_wall::kDirections[direction_index];
+      const int count = moving_wall::kObjectCounts[count_index];
+      const int height = direction * 2 + 6;
+      const size_t expected_writes = count * height + 18 + direction * 6;
+
+      for (const int16_t object_id : {int16_t{0x00CD}, int16_t{0x00CE}}) {
+        SCOPED_TRACE(::testing::Message()
+                     << "object_id=0x" << std::hex << object_id << " size=0x"
+                     << static_cast<int>(size));
+        const int object_x = object_id == 0x00CD ? kWestX : kEastX;
+        auto trace = ReplayObjectTrace(object_id, object_x, kY, size,
+                                       RoomObject::LayerType::BG1,
+                                       MakeSequentialTiles(/*count=*/24));
+        const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+
+        ASSERT_EQ(bg1.size(), expected_writes);
+        if (object_id == 0x00CD) {
+          ExpectTraceBounds(bg1, object_x - count, kY, object_x + 2,
+                            kY + height - 1);
+        } else {
+          ExpectTraceBounds(bg1, object_x, kY, object_x + count + 2,
+                            kY + height - 1);
+        }
+      }
+    }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     MovingWallsUseUsdasmCornerVerticalAndFillTileLayout) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 36;
+  constexpr int kY = 4;
+  constexpr int kFillDataOffset = kRoomObjectTileAddress + 0x03D8;
+  const std::vector<std::pair<int, uint16_t>> fill_words = {
+      {kFillDataOffset + 0, 0x0411},
+      {kFillDataOffset + 2, 0x0822},
+      {kFillDataOffset + 4, 0x0C33},
+  };
+
+  auto west_trace = ReplayObjectTrace(
+      /*object_id=*/0x00CD, kX, kY, /*size=*/0, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/24), nullptr, fill_words);
+  const auto west = FilterTraceByLayer(west_trace, RoomObject::LayerType::BG1);
+
+  // West fill grows eight columns left from the anchor. Its top/middle/bottom
+  // tiles come from obj03D8, while the 3x3 corners and repeated 3x2 vertical
+  // wall use object payload slots 0..23.
+  EXPECT_EQ(LastTileIdAt(west, kX - 8, kY + 0), 0x011);
+  EXPECT_EQ(LastTileIdAt(west, kX - 8, kY + 1), 0x022);
+  EXPECT_EQ(LastTileIdAt(west, kX - 8, kY + 15), 0x033);
+  EXPECT_EQ(LastTileIdAt(west, kX + 0, kY + 0), 0);
+  EXPECT_EQ(LastTileIdAt(west, kX + 2, kY + 2), 8);
+  EXPECT_EQ(LastTileIdAt(west, kX + 0, kY + 3), 9);
+  EXPECT_EQ(LastTileIdAt(west, kX + 2, kY + 4), 14);
+  EXPECT_EQ(LastTileIdAt(west, kX + 0, kY + 13), 15);
+  EXPECT_EQ(LastTileIdAt(west, kX + 1, kY + 14), 19);
+  EXPECT_EQ(LastTileIdAt(west, kX + 2, kY + 15), 23);
+
+  auto east_trace = ReplayObjectTrace(
+      /*object_id=*/0x00CE, kX, kY, /*size=*/0, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/24), nullptr, fill_words);
+  const auto east = FilterTraceByLayer(east_trace, RoomObject::LayerType::BG1);
+
+  // East keeps the wall at the anchor and grows the fill rightward. Like west,
+  // it resets X to obj03D8 before drawing the fill; payload slots 0..23 remain
+  // dedicated to the corners and vertical wall.
+  EXPECT_EQ(LastTileIdAt(east, kX + 0, kY + 0), 0);
+  EXPECT_EQ(LastTileIdAt(east, kX + 2, kY + 2), 8);
+  EXPECT_EQ(LastTileIdAt(east, kX + 0, kY + 3), 9);
+  EXPECT_EQ(LastTileIdAt(east, kX + 2, kY + 4), 14);
+  EXPECT_EQ(LastTileIdAt(east, kX + 0, kY + 13), 15);
+  EXPECT_EQ(LastTileIdAt(east, kX + 1, kY + 14), 19);
+  EXPECT_EQ(LastTileIdAt(east, kX + 2, kY + 15), 23);
+  EXPECT_EQ(LastTileIdAt(east, kX + 3, kY + 0), 0x011);
+  EXPECT_EQ(LastTileIdAt(east, kX + 3, kY + 1), 0x022);
+  EXPECT_EQ(LastTileIdAt(east, kX + 3, kY + 15), 0x033);
 }
 
 TEST(ObjectDrawerRegistryReplayTest, DownwardsBarUsesUsdasmTopThenBodyRows) {

@@ -9,6 +9,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_state.h"
+#include "zelda3/dungeon/moving_wall_semantics.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -105,6 +106,13 @@ AnchorPos ChooseAnchor(const DrawRoutineInfo& routine,
     if (mirror_y) {
       anchor.y = std::clamp(side - 1, 0, DrawContext::kMaxTilesY - 1);
     }
+    return anchor;
+  }
+
+  // The west-moving wall (0xCD) grows 8/16/24/32 fill columns left from its
+  // three-column platform anchor. Preserve that left extent during replay.
+  if (routine.id == DrawRoutineIds::kMovingWallWest) {
+    anchor.x = moving_wall::ObjectCountForSize(object.size_);
     return anchor;
   }
 
