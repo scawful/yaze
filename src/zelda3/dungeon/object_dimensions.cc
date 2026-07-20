@@ -939,7 +939,6 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xFCC] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFD4] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFE2] = {4, 4, Dir::Horizontal, 4, false};
-  dimensions_[0xFF4] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFF6] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFF7] = {4, 4, Dir::Horizontal, 4, false};
   // Utility + archery patterns
@@ -957,6 +956,7 @@ void ObjectDimensionTable::InitializeDefaults() {
   // Light beams + Triforce floor
   dimensions_[0xFF0] = {4, 10, Dir::None, 0, false};
   dimensions_[0xFF1] = {8, 8, Dir::None, 0, false};
+  dimensions_[0xFF4] = {8, 8, Dir::None, 0, false};
   dimensions_[0xFF8] = {8, 8, Dir::None, 0, false};
   // Table rock 4x3 (repeatable with 8-tile spacing)
   dimensions_[0xFF9] = {4, 3, Dir::Horizontal, 8, false};

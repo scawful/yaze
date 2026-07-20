@@ -506,7 +506,7 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
   if (object_id == 0xFAA || object_id == 0xFAD || object_id == 0xFAE ||
       (object_id >= 0xFB4 && object_id <= 0xFB9) || object_id == 0xFCB ||
       object_id == 0xFCC || object_id == 0xFD4 || object_id == 0xFE2 ||
-      object_id == 0xFF4 || object_id == 0xFF6 || object_id == 0xFF7) {
+      object_id == 0xFF6 || object_id == 0xFF7) {
     return 16;
   }
   // Turtle Rock pipes: 24 tiles (proven from routine bodies, not just
@@ -546,6 +546,11 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
   }
   // BigLightBeamOnFloor (0xFF1 / ASM 0x271) draws four unique 4x4 blocks.
   if (object_id == 0xFF1) {
+    return 64;
+  }
+  // FloorLight (0xFF4 / ASM 0x274) unconditionally draws four unique 4x4
+  // blocks in an 8x8 grid.
+  if (object_id == 0xFF4) {
     return 64;
   }
   // Ganon Triforce floor decor (two 4x4 blocks -> 32 tiles)
