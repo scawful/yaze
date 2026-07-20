@@ -490,19 +490,21 @@ void DrawHorizontalTurtleRockPipe(const DrawContext& ctx) {
 
 void DrawLightBeamOnFloor(const DrawContext& ctx) {
   // ASM: RoomDraw_LightBeamOnFloor ($01A7B6)
-  // Draw three 4x4 blocks at y offsets 0, +2, +6.
-  if (ctx.tiles.empty())
+  // Draw three 4x4 blocks at y offsets 0, +2, +6. The middle block resets X
+  // to obj2376 and reuses tiles 0..15; the bottom block uses obj2396 at
+  // tiles 16..31.
+  if (ctx.tiles.size() < 32)
     return;
   Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/0, /*start_index=*/0);
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/2, /*start_index=*/16);
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/6, /*start_index=*/32);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/2, /*start_index=*/0);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/6, /*start_index=*/16);
 }
 
 void DrawBigLightBeamOnFloor(const DrawContext& ctx) {
   // ASM: RoomDraw_BigLightBeamOnFloor / RoomDraw_FloorLight
   // The active path draws four 4x4 blocks in a 2x2 grid (8x8 footprint).
   // State-gating on $7EF0CA is not currently modeled in DungeonState.
-  if (ctx.tiles.empty())
+  if (ctx.tiles.size() < 64)
     return;
 
   Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/0, /*start_index=*/0);
@@ -1840,6 +1842,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 10,
+      .min_tiles = 32,
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1850,6 +1853,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 8,
       .base_height = 8,
+      .min_tiles = 64,
       .category = DrawRoutineInfo::Category::Special,
   });
 
