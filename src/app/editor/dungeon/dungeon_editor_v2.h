@@ -243,6 +243,8 @@ class DungeonEditorV2 : public Editor {
   friend class DungeonEditorV2RegularEntranceTestPeer;
   friend class DungeonEditorV2SpawnRejectionTestPeer;
   friend class DungeonEditorV2RomSafetyTest_UndoSnapshotLeakDetection_Test;
+  friend class
+      DungeonEditorV2RomSafetyTest_ObjectStreamUndoRedoRestoresSelectionIdentity_Test;
   friend class DungeonEditorV2RomSafetyTest_ViewerCacheLRUEviction_Test;
   friend class
       DungeonEditorV2RomSafetyTest_ViewerCacheNeverEvictsActiveRooms_Test;
@@ -397,6 +399,7 @@ class DungeonEditorV2 : public Editor {
   struct PendingUndo {
     int room_id = -1;
     std::vector<zelda3::RoomObject> before_objects;
+    std::vector<size_t> before_selection;
   };
   PendingUndo pending_undo_;
   bool has_pending_undo_ = false;
@@ -434,7 +437,8 @@ class DungeonEditorV2 : public Editor {
   void BeginUndoSnapshot(int room_id);
   void FinalizeUndoAction(int room_id);
   void RestoreRoomObjects(int room_id,
-                          const std::vector<zelda3::RoomObject>& objects);
+                          const std::vector<zelda3::RoomObject>& objects,
+                          const std::vector<size_t>& selected_indices);
 
   void BeginCollisionUndoSnapshot(int room_id);
   void FinalizeCollisionUndoAction(int room_id);

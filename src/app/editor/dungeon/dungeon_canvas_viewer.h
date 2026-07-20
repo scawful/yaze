@@ -771,7 +771,8 @@ class DungeonCanvasViewer {
   const DungeonRenderingHelpers::CollisionOverlayCache&
   GetCollisionOverlayCache(int room_id);
 
-  // Draw semi-transparent overlay on BG2/Layer 1 objects when mask mode is active
+  // Draw semi-transparent overlay on stored value 1 / BG2 overlay objects when
+  // mask mode is active.
   void DrawMaskHighlights(const gui::CanvasRuntime& rt,
                           const zelda3::Room& room);
   void DrawPersistentDebugWindows(int room_id);
@@ -932,9 +933,9 @@ class DungeonCanvasViewer {
     bool show_type1_objects = true;   // Standard objects (0x00-0xFF)
     bool show_type2_objects = true;   // Extended objects (0x100-0x1FF)
     bool show_type3_objects = true;   // Special objects (0xF00-0xFFF)
-    bool show_layer0_objects = true;  // Layer 0 (BG1)
-    bool show_layer1_objects = true;  // Layer 1 (BG2)
-    bool show_layer2_objects = true;  // Layer 2 (BG3)
+    bool show_layer0_objects = true;  // Primary / upper layer (BG1)
+    bool show_layer1_objects = true;  // BG2 overlay / lower layer (BG2)
+    bool show_layer2_objects = true;  // BG1 overlay room stream
   };
   ObjectOutlineToggles object_outline_toggles_;
 
