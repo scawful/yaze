@@ -9,9 +9,11 @@
 #include <string>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/ui_constants.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_tile.h"
+#include "app/gui/canvas/canvas_pipelines.h"
 #include "core/project.h"
 #include "gtest/gtest.h"
 #include "zelda3/dungeon/palette_debug.h"
@@ -23,6 +25,14 @@ struct PingRectSnapshot {
   int y = 0;
   int w = 0;
   int h = 0;
+};
+
+struct PendingScrollFrameSnapshot {
+  ImVec2 canvas_origin;
+  ImVec2 applied_scroll;
+  ImVec2 background_origin;
+  ImVec2 overlay_origin;
+  std::pair<int, int> background_origin_room_pixel;
 };
 
 class DungeonCanvasViewerTestPeer {
@@ -96,6 +106,49 @@ class DungeonCanvasViewerTestPeer {
       labels.push_back(item.label);
     }
     return labels;
+  }
+
+  static PendingScrollFrameSnapshot ConsumePendingScrollAndCaptureTransforms(
+      DungeonCanvasViewer& viewer, int tile_x, int tile_y, float scale,
+      ImVec2 initial_scroll, ImVec2 canvas_size) {
+    viewer.canvas_.set_global_scale(scale);
+    viewer.canvas_.set_scrolling(initial_scroll);
+    viewer.ScrollToTile(tile_x, tile_y);
+
+    gui::CanvasFrameOptions frame_opts;
+    frame_opts.canvas_size = canvas_size;
+    frame_opts.draw_context_menu = false;
+    frame_opts.draw_grid = false;
+    frame_opts.draw_overlay = false;
+    frame_opts.render_popups = false;
+
+    auto canvas_rt = gui::BeginCanvas(viewer.canvas_, frame_opts);
+    viewer.ConsumePendingCanvasScroll(canvas_rt);
+    canvas_rt.scrolling = viewer.canvas_.scrolling();
+
+    gfx::Bitmap bitmap(16, 16, 8, std::vector<uint8_t>(16 * 16, 0));
+    bitmap.set_texture(&bitmap);
+    const int bitmap_vertex_start = canvas_rt.draw_list->VtxBuffer.Size;
+    viewer.canvas_.DrawBitmap(bitmap, 0, 0, scale, 255);
+
+    PendingScrollFrameSnapshot snapshot;
+    snapshot.canvas_origin = canvas_rt.canvas_p0;
+    snapshot.applied_scroll = canvas_rt.scrolling;
+    if (canvas_rt.draw_list->VtxBuffer.Size >= bitmap_vertex_start + 4) {
+      snapshot.background_origin =
+          canvas_rt.draw_list->VtxBuffer[bitmap_vertex_start].pos;
+    }
+
+    const DungeonCanvasTransform overlay_and_input_transform(
+        canvas_rt.canvas_p0, canvas_rt.scrolling, canvas_rt.scale);
+    snapshot.overlay_origin =
+        overlay_and_input_transform.RoomPixelsToScreen(ImVec2(0, 0));
+    snapshot.background_origin_room_pixel =
+        overlay_and_input_transform.ScreenToRoomPixelCoordinates(
+            snapshot.background_origin);
+
+    gui::EndCanvas(viewer.canvas_, canvas_rt, frame_opts);
+    return snapshot;
   }
 };
 
@@ -281,6 +334,43 @@ TEST(DungeonCanvasViewerNavigationTest, ScrollToTileStoresPendingTarget) {
   EXPECT_EQ(viewer.GetPendingScrollTarget()->second, 34);
 }
 
+TEST(DungeonCanvasViewerNavigationTest,
+     PendingScrollAlignsBackgroundOverlayAndInputInSameFrame) {
+  ScopedImGuiContext imgui;
+  ImGuiIO& io = ImGui::GetIO();
+  io.DeltaTime = 1.0f / 60.0f;
+  io.Fonts->AddFontDefault();
+  unsigned char* font_pixels = nullptr;
+  int font_width = 0;
+  int font_height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&font_pixels, &font_width, &font_height);
+
+  ImGui::NewFrame();
+  ImGui::SetNextWindowPos(ImVec2(20.0f, 30.0f), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(1300.0f, 1100.0f), ImGuiCond_Always);
+  ImGui::Begin("PendingScrollCanvasHost", nullptr,
+               ImGuiWindowFlags_NoSavedSettings);
+
+  DungeonCanvasViewer viewer;
+  const PendingScrollFrameSnapshot snapshot =
+      DungeonCanvasViewerTestPeer::ConsumePendingScrollAndCaptureTransforms(
+          viewer, 48, 40, 2.0f, ImVec2(-64.0f, -32.0f), ImVec2(512.0f, 512.0f));
+
+  ImGui::End();
+  ImGui::Render();
+
+  EXPECT_FALSE(viewer.HasPendingScrollTarget());
+  EXPECT_NEAR(snapshot.applied_scroll.x, -512.0f, 0.01f);
+  EXPECT_NEAR(snapshot.applied_scroll.y, -384.0f, 0.01f);
+  EXPECT_NEAR(snapshot.background_origin.x,
+              snapshot.canvas_origin.x + snapshot.applied_scroll.x, 0.01f);
+  EXPECT_NEAR(snapshot.background_origin.y,
+              snapshot.canvas_origin.y + snapshot.applied_scroll.y, 0.01f);
+  EXPECT_NEAR(snapshot.overlay_origin.x, snapshot.background_origin.x, 0.01f);
+  EXPECT_NEAR(snapshot.overlay_origin.y, snapshot.background_origin.y, 0.01f);
+  EXPECT_EQ(snapshot.background_origin_room_pixel, std::make_pair(0, 0));
+}
+
 TEST(DungeonCanvasViewerContextMenuTest, DirectActionsPrecedeInsertSubmenu) {
   ScopedImGuiContext imgui;
   DungeonCanvasViewer viewer;
@@ -299,7 +389,7 @@ TEST(DungeonCanvasViewerContextMenuTest, DirectActionsPrecedeInsertSubmenu) {
 }
 
 TEST(DungeonCanvasViewerContextMenuTest,
-     SelectedObjectUsesDirectZAndLayerLabels) {
+     SelectedObjectUsesDirectZAndObjectStreamLabels) {
   ScopedImGuiContext imgui;
   DungeonRoomStore rooms;
   rooms[0].GetTileObjects().push_back(
@@ -316,20 +406,70 @@ TEST(DungeonCanvasViewerContextMenuTest,
   const size_t bring_front = FindLabelIndex(labels, "Bring to Front");
   const size_t send_back = FindLabelIndex(labels, "Send to Back");
   const size_t z_order = FindLabelIndex(labels, "Z Order");
-  const size_t layer_1 = FindLabelIndex(labels, "Layer 1");
-  const size_t layer_3 = FindLabelIndex(labels, "Layer 3");
+  const size_t primary = FindLabelIndex(labels, "Object Stream: Primary");
+  const size_t bg1_overlay =
+      FindLabelIndex(labels, "Object Stream: BG1 Overlay");
 
   ASSERT_LT(bring_front, labels.size());
   ASSERT_LT(send_back, labels.size());
   ASSERT_LT(z_order, labels.size());
-  ASSERT_LT(layer_1, labels.size());
-  ASSERT_LT(layer_3, labels.size());
+  ASSERT_LT(primary, labels.size());
+  ASSERT_LT(bg1_overlay, labels.size());
   EXPECT_LT(bring_front, z_order);
   EXPECT_LT(send_back, z_order);
-  EXPECT_LT(z_order, layer_1);
-  EXPECT_LT(layer_1, layer_3);
+  EXPECT_LT(z_order, primary);
+  EXPECT_LT(primary, bg1_overlay);
   EXPECT_EQ(FindLabelIndex(labels, "Increase Z"), labels.size());
   EXPECT_EQ(FindLabelIndex(labels, "Send to Layer 1"), labels.size());
+}
+
+TEST(DungeonCanvasViewerContextMenuTest,
+     SpecialObjectDoesNotOfferThirdStreamSelector) {
+  ScopedImGuiContext imgui;
+  DungeonRoomStore rooms;
+  zelda3::RoomObject torch{0x150, 10, 10, 0x00, 0};
+  torch.set_options(zelda3::ObjectOption::Torch);
+  rooms[0].GetTileObjects().push_back(torch);
+
+  DungeonCanvasViewer viewer;
+  viewer.SetRooms(&rooms);
+  viewer.object_interaction().SetCurrentRoom(&rooms, 0);
+  viewer.object_interaction().SetSelectedObjects({0});
+
+  const auto labels =
+      DungeonCanvasViewerTestPeer::SelectionContextMenuLabels(viewer, 0);
+
+  EXPECT_LT(FindLabelIndex(labels, "Upper Layer (BG1)"), labels.size());
+  EXPECT_LT(FindLabelIndex(labels, "Lower Layer (BG2)"), labels.size());
+  EXPECT_EQ(FindLabelIndex(labels, "Object Stream: BG1 Overlay"),
+            labels.size());
+}
+
+TEST(DungeonCanvasViewerContextMenuTest,
+     MixedObjectSelectionDoesNotOfferThirdStreamSelector) {
+  ScopedImGuiContext imgui;
+  DungeonRoomStore rooms;
+  rooms[0].GetTileObjects().push_back(
+      zelda3::RoomObject{0x01, 10, 10, 0x00, 0});
+  zelda3::RoomObject block{0x150, 12, 12, 0x00, 0};
+  block.set_options(zelda3::ObjectOption::Block);
+  rooms[0].GetTileObjects().push_back(block);
+
+  DungeonCanvasViewer viewer;
+  viewer.SetRooms(&rooms);
+  viewer.object_interaction().SetCurrentRoom(&rooms, 0);
+  viewer.object_interaction().SetSelectedObjects({0, 1});
+
+  const auto labels =
+      DungeonCanvasViewerTestPeer::SelectionContextMenuLabels(viewer, 0);
+
+  EXPECT_LT(FindLabelIndex(labels, "Placement 0: Primary / Upper Layer (BG1)"),
+            labels.size());
+  EXPECT_LT(
+      FindLabelIndex(labels, "Placement 1: BG2 Overlay / Lower Layer (BG2)"),
+      labels.size());
+  EXPECT_EQ(FindLabelIndex(labels, "Object Stream: BG1 Overlay"),
+            labels.size());
 }
 
 TEST(DungeonCanvasViewerPingTest, TriggerCanvasPingRectClampsToCanvasBounds) {

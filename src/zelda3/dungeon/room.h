@@ -196,6 +196,11 @@ struct WaterFillZoneMap {
 class Room {
  public:
   struct SaveDirtySnapshot {
+    struct BlockLoadOrder {
+      size_t tile_object_index;
+      int load_order;
+    };
+
     bool header = false;
     bool object_stream = false;
     bool sprites = false;
@@ -205,6 +210,7 @@ class Room {
     bool blocks = false;
     bool custom_collision = false;
     bool water_fill = false;
+    std::vector<BlockLoadOrder> block_load_orders;
   };
 
   Room();
@@ -581,7 +587,7 @@ class Room {
   void ClearSaveDirtyState() { save_dirty_state_ = {}; }
 
   SaveDirtySnapshot CaptureSaveDirtySnapshot() const {
-    return SaveDirtySnapshot{
+    SaveDirtySnapshot snapshot{
         .header = save_dirty_state_.header,
         .object_stream = save_dirty_state_.object_stream,
         .sprites = save_dirty_state_.sprites,
@@ -592,6 +598,15 @@ class Room {
         .custom_collision = custom_collision_dirty_,
         .water_fill = water_fill_dirty_,
     };
+    for (size_t index = 0; index < tile_objects_.size(); ++index) {
+      const auto& object = tile_objects_[index];
+      if ((object.options() & ObjectOption::Block) != ObjectOption::Nothing) {
+        snapshot.block_load_orders.push_back(
+            {.tile_object_index = index,
+             .load_order = object.block_load_order()});
+      }
+    }
+    return snapshot;
   }
 
   void RestoreSaveDirtySnapshot(const SaveDirtySnapshot& snapshot) {
@@ -604,6 +619,14 @@ class Room {
     save_dirty_state_.blocks = snapshot.blocks;
     custom_collision_dirty_ = snapshot.custom_collision;
     water_fill_dirty_ = snapshot.water_fill;
+    for (const auto& block : snapshot.block_load_orders) {
+      if (block.tile_object_index >= tile_objects_.size())
+        continue;
+      auto& object = tile_objects_[block.tile_object_index];
+      if ((object.options() & ObjectOption::Block) != ObjectOption::Nothing) {
+        object.set_block_load_order(block.load_order);
+      }
+    }
   }
 
   // For undo/redo functionality
@@ -1096,14 +1119,15 @@ absl::Status SaveAllPits(Rom* rom, PitDamageTable* pit_damage_table);
 // keep this path. New callers should use the room-aware overload below.
 absl::Status SaveAllBlocks(Rom* rom);
 
-// Encode pushable blocks from the given rooms back into the four
-// pointer-dereferenced data regions. Blocks are sorted by their original
-// `block_load_order_` ascending (so vanilla no-op saves preserve byte
-// order); user-added blocks (load_order == -1) tail the buffer in
-// creation order. The total entry count is written to the
-// `kBlocksLength` immediate. Returns FailedPrecondition if the encoded
-// buffer would exceed the 128-entry vanilla cap (4 regions × 0x80 bytes
-// / 4 bytes per entry).
+// Encode pushable blocks from loaded rooms back into the four
+// pointer-dereferenced data regions while preserving unmaterialized entries.
+// Existing blocks retain their committed `block_load_order_`; user-added
+// blocks tail the buffer in creation order. After every ROM write succeeds,
+// loaded objects are rebased to their emitted slots and encoded rooms become
+// clean. Returns FailedPrecondition before mutation if a dirty room's blocks
+// are not loaded, the final buffer is empty (the vanilla do-while scan requires
+// one entry), or it exceeds the 128-entry vanilla cap (4 regions × 0x80 bytes /
+// 4 bytes per entry).
 absl::Status SaveAllBlocks(Rom* rom, int room_count,
                            const std::function<const Room*(int)>& room_lookup);
 

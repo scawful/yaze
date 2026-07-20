@@ -4,14 +4,14 @@
 
 #include "core/features.h"
 #include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/moving_wall_semantics.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace zelda3 {
 
 namespace {
-bool GetSomariaLineDimensions(int object_id, int size, int* width,
-                              int* height) {
+bool GetSomariaLineDimensions(int object_id, int* width, int* height) {
   if (!width || !height) {
     return false;
   }
@@ -20,75 +20,8 @@ bool GetSomariaLineDimensions(int object_id, int size, int* width,
     return false;
   }
 
-  int length = (size & 0x0F) + 1;
-  int sub_id = object_id & 0x0F;
-  int dx = 1;
-  int dy = 0;
-  switch (sub_id) {
-    case 0x03:
-      dx = 1;
-      dy = 0;
-      break;
-    case 0x04:
-      dx = 0;
-      dy = 1;
-      break;
-    case 0x05:
-      dx = 1;
-      dy = 1;
-      break;
-    case 0x06:
-      dx = -1;
-      dy = 1;
-      break;
-    case 0x07:
-      dx = 1;
-      dy = 0;
-      break;
-    case 0x08:
-      dx = 0;
-      dy = 1;
-      break;
-    case 0x09:
-      dx = 1;
-      dy = 1;
-      break;
-    case 0x0A:
-      dx = 1;
-      dy = 0;
-      break;
-    case 0x0B:
-      dx = 0;
-      dy = 1;
-      break;
-    case 0x0C:
-      dx = 1;
-      dy = 1;
-      break;
-    case 0x0E:
-      dx = 1;
-      dy = 0;
-      break;
-    case 0x0F:
-      dx = 0;
-      dy = 1;
-      break;
-    default:
-      dx = 1;
-      dy = 0;
-      break;
-  }
-
-  if (dx != 0 && dy != 0) {
-    *width = length;
-    *height = length;
-  } else if (dx != 0) {
-    *width = length;
-    *height = 1;
-  } else {
-    *width = 1;
-    *height = length;
-  }
+  *width = 1;
+  *height = 1;
   return true;
 }
 
@@ -102,6 +35,11 @@ std::pair<int, int> GetOpenChestPlatformDimensions(int size) {
   const int size_x = (size >> 2) & 0x03;
   const int size_y = size & 0x03;
   return {size_x * 2 + 10, size_y * 2 + 7};
+}
+
+std::pair<int, int> GetMovingWallDimensions(int size) {
+  const int direction = moving_wall::DirectionForSize(size);
+  return {moving_wall::ObjectCountForSize(size) + 3, direction * 2 + 6};
 }
 }  // namespace
 
@@ -154,8 +92,7 @@ std::pair<int, int> ObjectDimensionTable::GetDimensions(int object_id,
                                                         int size) const {
   int somaria_width = 0;
   int somaria_height = 0;
-  if (GetSomariaLineDimensions(object_id, size, &somaria_width,
-                               &somaria_height)) {
+  if (GetSomariaLineDimensions(object_id, &somaria_width, &somaria_height)) {
     return {somaria_width, somaria_height};
   }
   if (object_id == 0xC1) {
@@ -163,6 +100,9 @@ std::pair<int, int> ObjectDimensionTable::GetDimensions(int object_id,
   }
   if (object_id == 0xDC) {
     return GetOpenChestPlatformDimensions(size);
+  }
+  if (object_id == 0xCD || object_id == 0xCE) {
+    return GetMovingWallDimensions(size);
   }
   if (object_id == 0xD8 || object_id == 0xDA) {
     int size_x = ((size >> 2) & 0x03);
@@ -232,8 +172,7 @@ std::pair<int, int> ObjectDimensionTable::GetSelectionDimensions(
     int object_id, int size) const {
   int somaria_width = 0;
   int somaria_height = 0;
-  if (GetSomariaLineDimensions(object_id, size, &somaria_width,
-                               &somaria_height)) {
+  if (GetSomariaLineDimensions(object_id, &somaria_width, &somaria_height)) {
     return {somaria_width, somaria_height};
   }
   if (object_id == 0xC1) {
@@ -241,6 +180,9 @@ std::pair<int, int> ObjectDimensionTable::GetSelectionDimensions(
   }
   if (object_id == 0xDC) {
     return GetOpenChestPlatformDimensions(size);
+  }
+  if (object_id == 0xCD || object_id == 0xCE) {
+    return GetMovingWallDimensions(size);
   }
   if (object_id == 0xD8 || object_id == 0xDA) {
     int size_x = ((size >> 2) & 0x03);
@@ -371,17 +313,10 @@ ObjectDimensionTable::SelectionBounds ObjectDimensionTable::GetSelectionBounds(
       bounds.offset_y = 3;
       break;
 
-    // Moving wall east draws from x to x-2
-    case 0xCE:
-      bounds.offset_x = -2;
+    // Moving wall west grows its fill left from the three-column platform.
+    case 0xCD:
+      bounds.offset_x = -moving_wall::ObjectCountForSize(size);
       break;
-
-    // Somaria line diagonal down-left (0xF86 / 0x206)
-    case 0xF86: {
-      int length = (size & 0x0F) + 1;
-      bounds.offset_x = -(length - 1);
-      break;
-    }
 
     default:
       break;
@@ -835,9 +770,11 @@ void ObjectDimensionTable::InitializeDefaults() {
   // 0xCB-0xCC: Nothing (RoomDraw_Nothing_E)
   dimensions_[0xCB] = {1, 1, Dir::None, 0, false};
   dimensions_[0xCC] = {1, 1, Dir::None, 0, false};
-  // 0xCD-0xCE: Moving walls (3 tiles wide, 4 tiles tall base)
-  dimensions_[0xCD] = {3, 4, Dir::None, 0, false};
-  dimensions_[0xCE] = {3, 4, Dir::None, 0, false};
+  // 0xCD-0xCE: Moving walls. Size zero selects count=8 and direction=5,
+  // producing an 11x16 footprint; nonzero dimensions use the split selector
+  // tables in GetMovingWallDimensions.
+  dimensions_[0xCD] = {11, 16, Dir::None, 0, false};
+  dimensions_[0xCE] = {11, 16, Dir::None, 0, false};
 
   // 0xD1-0xD2: 4x4 floor patterns
   dimensions_[0xD1] = {0, 0, Dir::SuperSquare, 4, false};
@@ -960,6 +897,13 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xF80] = {4, 5, Dir::None, 0, false};
   dimensions_[0xF81] = {4, 5, Dir::None, 0, false};
   dimensions_[0xF82] = {4, 7, Dir::None, 0, false};
+
+  // Somaria path pieces each write one tile at the object anchor.
+  for (int id = 0xF83; id <= 0xF8C; id++) {
+    dimensions_[id] = {1, 1, Dir::None, 0, false};
+  }
+  dimensions_[0xF8E] = {1, 1, Dir::None, 0, false};
+  dimensions_[0xF8F] = {1, 1, Dir::None, 0, false};
 
   // Prison cell bars (10x4 tiles)
   dimensions_[0xF8D] = {10, 4, Dir::None, 0, false};
