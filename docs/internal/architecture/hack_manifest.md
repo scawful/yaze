@@ -17,18 +17,34 @@ ROM addresses are classified based on who "owns" the data (SNES address space):
 ### 2. Protected Regions
 Contiguous blocks of memory (usually in vanilla banks) that contain ASM hooks. Yaze uses these to warn users or block writes that would be overwritten by the next build.
 
-### 3. Address Spaces (PC vs SNES)
+### 3. Editor-Managed Regions
+Manifest v3 may declare exact editor-owned ranges, including subranges inside
+a bank that would otherwise be classified as ASM-owned. These are
+generator-authored exemptions, not a replacement for project `write_policy`.
+Classification precedence is:
+
+1. an overlapping protected/hook region is blocked;
+2. an exact `editor_managed_regions` range is permitted;
+3. whole-bank ownership applies everywhere else.
+
+All ranges use half-open `[start, end)` semantics. Analysis splits writes at
+override, protected-region, and bank boundaries, so a range is allowed only for
+the exact exempt portion. FastROM mirrors are normalized before validation;
+overlapping exemptions after normalization are rejected, while exact adjacency
+is valid.
+
+### 4. Address Spaces (PC vs SNES)
 - The manifest uses **SNES LoROM addresses** (as emitted by `org $XXXXXX` in ASM).
 - Most editors compute write targets as **PC file offsets** (ROM byte offsets).
 - Use `HackManifest::AnalyzePcWriteRanges(...)` when validating editor writes.
 
-### 4. Resource Labels
+### 5. Resource Labels
 The manifest can define human-readable names for custom hack features:
 - **Room Tags**: Custom AI or trigger routines.
 - **SRAM Variables**: Custom memory locations for game state.
 - **Messages**: Layout metadata for expanded message IDs (ranges and data pointers).
 
-### 5. Dungeon Stream Allocation
+### 6. Dungeon Stream Allocation
 
 Variable-length dungeon objects, sprites, and pot items use per-room pointer
 tables. A manifest may describe their layout with `dungeon_stream_regions`.
@@ -63,7 +79,7 @@ Both `DungeonEditorV2` and `OverworldEditor` utilize the manifest before perform
 
 ```json
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "hack_name": "Oracle of Secrets",
   "protected_regions": {
     "regions": [
@@ -73,6 +89,12 @@ Both `DungeonEditorV2` and `OverworldEditor` utilize the manifest before perform
   "owned_banks": {
     "banks": [
       {"bank":"0x1E", "ownership":"asm_owned"}
+    ]
+  },
+  "editor_managed_regions": {
+    "regions": [
+      {"start":"0x228280", "end":"0x2292B0"},
+      {"start":"0x07F61D", "end":"0x07F86D"}
     ]
   },
   "room_tags": {
@@ -111,6 +133,15 @@ than treated as ROM locations; this also applies to normalized `pointer_bank`
 mirrors `$FE`/`$FF`. Until sprite stream discovery becomes layout-aware,
 sprite allocation ranges must end at or before the legacy exclusive boundary
 `$09EC9F`.
+
+`editor_managed_regions` is optional, but when present it requires
+`manifest_version` 3 or newer and a non-empty `regions` array. Each `start` and
+`end` must be a strict hexadecimal string naming a mapped LoROM address.
+Generators should derive these bounds from the live development-ROM layout and
+emit only data that yaze actually owns. For Oracle of Secrets, room headers and
+per-room message IDs qualify; expanded message bodies in bank `$2F` do not.
+Malformed, empty, reversed, or overlapping exemptions make manifest loading
+fail closed.
 
 The historically named `z3ed dungeon-stream-plan` command is currently a
 read-only inventory diagnostic: it reports aliases, overlaps, occupied ranges,
