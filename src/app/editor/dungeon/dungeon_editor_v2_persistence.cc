@@ -582,6 +582,11 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
           ranges.emplace_back(header_location, header_location + 14);
         }
       }
+      const int message_address = zelda3::kMessagesIdDungeon + (room_id * 2);
+      if (message_address >= 0 &&
+          message_address + 1 < static_cast<int>(rom_data.size())) {
+        ranges.emplace_back(message_address, message_address + 2);
+      }
     }
 
     // Object range
@@ -813,6 +818,11 @@ absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
           int header_location = yaze::SnesToPc(address);
           ranges.emplace_back(header_location, header_location + 14);
         }
+      }
+      const int message_address = zelda3::kMessagesIdDungeon + (room_id * 2);
+      if (message_address >= 0 &&
+          message_address + 1 < static_cast<int>(rom_data.size())) {
+        ranges.emplace_back(message_address, message_address + 2);
       }
     }
 
