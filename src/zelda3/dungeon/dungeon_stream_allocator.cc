@@ -667,18 +667,9 @@ absl::Status ValidatePlanAgainstInventory(
     return absl::AbortedError(
         "Write plan does not match the current inventory snapshot");
   }
-  if (plan.payload_writes.empty() ||
-      plan.payload_writes.size() != plan.pointer_writes.size()) {
+  if (plan.payload_writes.empty()) {
     return absl::InvalidArgumentError(
-        "Write plan must contain matching payload and pointer writes");
-  }
-  const size_t expected_auxiliary_count =
-      plan.layout.kind == DungeonStreamKind::kObject
-          ? plan.payload_writes.size()
-          : 0;
-  if (plan.auxiliary_pointer_writes.size() != expected_auxiliary_count) {
-    return absl::InvalidArgumentError(
-        "Write plan has the wrong number of auxiliary pointer writes");
+        "Write plan must contain at least one payload write");
   }
   if (!IsSortedUniqueByRoom(plan.payload_writes) ||
       !IsSortedUniqueByRoom(plan.pointer_writes) ||
@@ -688,14 +679,60 @@ absl::Status ValidatePlanAgainstInventory(
         "Write plan must be strictly sorted by room ID");
   }
 
+  switch (plan.mode) {
+    case DungeonStreamWriteMode::kCopyOnWrite: {
+      if (plan.payload_writes.size() != plan.pointer_writes.size()) {
+        return absl::InvalidArgumentError(
+            "Copy-on-write plan must contain matching payload and pointer "
+            "writes");
+      }
+      const size_t expected_auxiliary_count =
+          plan.layout.kind == DungeonStreamKind::kObject
+              ? plan.payload_writes.size()
+              : 0;
+      if (plan.auxiliary_pointer_writes.size() != expected_auxiliary_count) {
+        return absl::InvalidArgumentError(
+            "Copy-on-write plan has the wrong number of auxiliary pointer "
+            "writes");
+      }
+      break;
+    }
+    case DungeonStreamWriteMode::kRepackAll:
+      if (plan.layout.kind != DungeonStreamKind::kPotItem ||
+          plan.layout.pointer_encoding !=
+              DungeonPointerEncoding::kFixedBank16) {
+        return absl::InvalidArgumentError(
+            "Repack-all plans currently support only fixed-bank pot-item "
+            "streams");
+      }
+      if (plan.layout.pointer_count != kNumberOfRooms) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Pot-item repack requires exactly %d pointers", kNumberOfRooms));
+      }
+      if (plan.layout.allocation_ranges.size() != 1) {
+        return absl::InvalidArgumentError(
+            "Pot-item repack requires exactly one normalized allocation "
+            "range");
+      }
+      if (plan.pointer_writes.size() != plan.layout.pointer_count) {
+        return absl::InvalidArgumentError(
+            "Repack-all plan must update every pointer-table entry");
+      }
+      if (!plan.auxiliary_pointer_writes.empty()) {
+        return absl::InvalidArgumentError(
+            "Pot-item repack plan must not contain auxiliary pointers");
+      }
+      break;
+  }
+
   std::vector<DungeonStreamPcRange> planned_payloads;
   planned_payloads.reserve(plan.payload_writes.size());
+  std::map<std::vector<uint8_t>, size_t> payload_by_pointer;
+  std::map<std::vector<uint8_t>, uint32_t> address_by_payload;
   const uint32_t pointer_width = PointerWidth(plan.layout.pointer_encoding);
   for (size_t i = 0; i < plan.payload_writes.size(); ++i) {
     const auto& payload = plan.payload_writes[i];
-    const auto& pointer = plan.pointer_writes[i];
-    if (payload.room_id != pointer.room_id ||
-        payload.room_id >= plan.layout.pointer_count || payload.bytes.empty()) {
+    if (payload.room_id >= plan.layout.pointer_count || payload.bytes.empty()) {
       return absl::InvalidArgumentError("Write plan room mapping is invalid");
     }
     auto encoded_status =
@@ -716,14 +753,18 @@ absl::Status ValidatePlanAgainstInventory(
       return absl::FailedPreconditionError(
           "Planned payload crosses a LoROM bank boundary");
     }
-    const bool in_declared_free = std::any_of(
-        inventory.allocatable_free_intervals.begin(),
-        inventory.allocatable_free_intervals.end(),
+    const auto& allowed_ranges = plan.mode == DungeonStreamWriteMode::kRepackAll
+                                     ? plan.layout.allocation_ranges
+                                     : inventory.allocatable_free_intervals;
+    const bool in_allowed_range = std::any_of(
+        allowed_ranges.begin(), allowed_ranges.end(),
         [&](const auto& range) { return Contains(range, payload_range); });
-    if (!in_declared_free) {
+    if (!in_allowed_range) {
       return absl::FailedPreconditionError(absl::StrFormat(
-          "Payload for room %u is outside declared allocator-owned free space",
-          payload.room_id));
+          "Payload for room %u is outside declared allocator-owned %s",
+          payload.room_id,
+          plan.mode == DungeonStreamWriteMode::kRepackAll ? "repack space"
+                                                          : "free space"));
     }
     for (const auto& prior : planned_payloads) {
       if (Intersects(prior, payload_range)) {
@@ -736,14 +777,29 @@ absl::Status ValidatePlanAgainstInventory(
     if (!expected_pointer.ok()) {
       return expected_pointer.status();
     }
-    const uint32_t expected_slot =
-        plan.layout.pointer_table_pc + payload.room_id * pointer_width;
-    if (pointer.address != expected_slot ||
-        pointer.bytes != *expected_pointer) {
+    if (!payload_by_pointer.emplace(*expected_pointer, i).second) {
       return absl::InvalidArgumentError(
-          "Pointer write does not match its planned payload");
+          "Multiple payload writes encode the same pointer target");
     }
-    if (plan.layout.kind == DungeonStreamKind::kObject) {
+    if (plan.mode == DungeonStreamWriteMode::kRepackAll &&
+        !address_by_payload.emplace(payload.bytes, payload.address).second) {
+      return absl::InvalidArgumentError(
+          "Write plan contains duplicate logical payloads");
+    }
+
+    if (plan.mode == DungeonStreamWriteMode::kCopyOnWrite) {
+      const auto& pointer = plan.pointer_writes[i];
+      const uint32_t expected_slot =
+          plan.layout.pointer_table_pc + payload.room_id * pointer_width;
+      if (pointer.room_id != payload.room_id ||
+          pointer.address != expected_slot ||
+          pointer.bytes != *expected_pointer) {
+        return absl::InvalidArgumentError(
+            "Pointer write does not match its planned payload");
+      }
+    }
+    if (plan.mode == DungeonStreamWriteMode::kCopyOnWrite &&
+        plan.layout.kind == DungeonStreamKind::kObject) {
       const auto& auxiliary = plan.auxiliary_pointer_writes[i];
       auto door_offset = ObjectDoorListOffset(payload.bytes);
       if (!door_offset.ok()) {
@@ -765,6 +821,37 @@ absl::Status ValidatePlanAgainstInventory(
           inventory.source_size) {
         return absl::OutOfRangeError(
             "Object door-pointer write is outside the source ROM");
+      }
+    }
+  }
+
+  if (plan.mode == DungeonStreamWriteMode::kRepackAll) {
+    std::vector<uint32_t> lowest_room_by_payload(
+        plan.payload_writes.size(), std::numeric_limits<uint32_t>::max());
+    std::vector<bool> referenced_payloads(plan.payload_writes.size(), false);
+    for (uint32_t room_id = 0; room_id < plan.layout.pointer_count; ++room_id) {
+      const auto& pointer = plan.pointer_writes[room_id];
+      const uint32_t expected_slot =
+          plan.layout.pointer_table_pc + room_id * pointer_width;
+      if (pointer.room_id != room_id || pointer.address != expected_slot) {
+        return absl::InvalidArgumentError(
+            "Repack-all pointer writes must cover every room in order");
+      }
+      const auto payload_it = payload_by_pointer.find(pointer.bytes);
+      if (payload_it == payload_by_pointer.end()) {
+        return absl::InvalidArgumentError(
+            "Repack-all pointer does not target a planned payload");
+      }
+      const size_t payload_index = payload_it->second;
+      referenced_payloads[payload_index] = true;
+      lowest_room_by_payload[payload_index] =
+          std::min(lowest_room_by_payload[payload_index], room_id);
+    }
+    for (size_t i = 0; i < plan.payload_writes.size(); ++i) {
+      if (!referenced_payloads[i] ||
+          plan.payload_writes[i].room_id != lowest_room_by_payload[i]) {
+        return absl::InvalidArgumentError(
+            "Repack-all payload owner must be its lowest referencing room");
       }
     }
   }
@@ -838,6 +925,8 @@ absl::StatusOr<DungeonStreamInventory> InventoryDungeonStreams(
 
     record.logical_end_pc = *logical_end;
     record.valid = true;
+    record.encoded_stream.assign(bytes.begin() + record.data_pc,
+                                 bytes.begin() + record.logical_end_pc);
     inventory.streams.push_back(record);
     const size_t index = inventory.streams.size() - 1;
     valid_by_start[record.data_pc].push_back(index);
@@ -925,6 +1014,7 @@ absl::StatusOr<DungeonStreamWritePlan> PlanDungeonStreamWrites(
   plan.layout = inventory.layout;
   plan.source_size = inventory.source_size;
   plan.source_crc32 = inventory.source_crc32;
+  plan.mode = DungeonStreamWriteMode::kCopyOnWrite;
   if (plan.layout.kind == DungeonStreamKind::kObject &&
       static_cast<uint64_t>(kDoorPointers) +
               static_cast<uint64_t>(plan.layout.pointer_count) * 3 >
@@ -966,6 +1056,144 @@ absl::StatusOr<DungeonStreamWritePlan> PlanDungeonStreamWrites(
            std::move(*door_pointer)});
     }
     ConsumeInterval(&free, {*address, *address + size});
+  }
+  return plan;
+}
+
+absl::StatusOr<DungeonStreamWritePlan> PlanDungeonStreamRepack(
+    const DungeonStreamInventory& inventory,
+    const std::vector<DungeonStreamReplacement>& requested_replacements) {
+  if (!inventory.ok()) {
+    return absl::FailedPreconditionError(
+        "Cannot repack streams from an inventory with stream issues");
+  }
+  if (inventory.layout.kind != DungeonStreamKind::kPotItem ||
+      inventory.layout.pointer_encoding !=
+          DungeonPointerEncoding::kFixedBank16) {
+    return absl::InvalidArgumentError(
+        "Repack-all currently supports only fixed-bank pot-item streams");
+  }
+  if (inventory.layout.pointer_count != kNumberOfRooms) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Pot-item repack requires exactly %d pointers", kNumberOfRooms));
+  }
+  if (inventory.layout.allocation_ranges.size() != 1) {
+    return absl::InvalidArgumentError(
+        "Pot-item repack requires exactly one normalized allocation range");
+  }
+  if (inventory.streams.size() != inventory.layout.pointer_count) {
+    return absl::FailedPreconditionError(
+        "Pot-item inventory does not cover every pointer-table entry");
+  }
+
+  std::vector<std::vector<uint8_t>> logical_streams(
+      inventory.layout.pointer_count);
+  std::vector<bool> seen_rooms(inventory.layout.pointer_count, false);
+  for (const DungeonStreamRecord& record : inventory.streams) {
+    if (!record.valid || record.room_id >= inventory.layout.pointer_count ||
+        seen_rooms[record.room_id] || record.encoded_stream.empty() ||
+        record.encoded_stream.size() != record.size()) {
+      return absl::FailedPreconditionError(
+          "Pot-item inventory contains an incomplete logical stream snapshot");
+    }
+    seen_rooms[record.room_id] = true;
+    logical_streams[record.room_id] = record.encoded_stream;
+  }
+  if (std::find(seen_rooms.begin(), seen_rooms.end(), false) !=
+      seen_rooms.end()) {
+    return absl::FailedPreconditionError(
+        "Pot-item inventory is missing a room stream snapshot");
+  }
+
+  std::vector<DungeonStreamReplacement> replacements = requested_replacements;
+  std::sort(replacements.begin(), replacements.end(),
+            [](const auto& a, const auto& b) { return a.room_id < b.room_id; });
+  for (size_t i = 0; i < replacements.size(); ++i) {
+    const DungeonStreamReplacement& replacement = replacements[i];
+    if (replacement.room_id >= inventory.layout.pointer_count) {
+      return absl::OutOfRangeError("Replacement room ID is out of range");
+    }
+    if (i > 0 && replacements[i - 1].room_id == replacement.room_id) {
+      return absl::InvalidArgumentError("Replacement room IDs must be unique");
+    }
+    const absl::Status status = ValidateCompleteEncodedStream(
+        inventory.layout.kind, replacement.encoded_stream);
+    if (!status.ok()) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Room %u replacement is invalid: %s",
+                          replacement.room_id, status.message()));
+    }
+    logical_streams[replacement.room_id] = replacement.encoded_stream;
+  }
+
+  const uint32_t bank_begin = SnesToPc(
+      (static_cast<uint32_t>(inventory.layout.pointer_bank) << 16) | 0x8000u);
+  const uint32_t bank_end = bank_begin + kLoRomBankSize;
+  uint64_t available_bytes = 0;
+  for (const DungeonStreamPcRange& range : inventory.layout.allocation_ranges) {
+    if (range.begin < bank_begin || range.end > bank_end) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Pot-item repack range [0x%06X,0x%06X) crosses or lies outside "
+          "fixed pointer bank 0x%02X",
+          range.begin, range.end, inventory.layout.pointer_bank));
+    }
+    available_bytes += static_cast<uint64_t>(range.end) - range.begin;
+  }
+
+  struct RepackGroup {
+    uint32_t owner_room = 0;
+    std::vector<uint8_t> bytes;
+    std::vector<uint32_t> room_ids;
+  };
+  std::map<std::vector<uint8_t>, std::vector<uint32_t>> rooms_by_payload;
+  for (uint32_t room_id = 0; room_id < inventory.layout.pointer_count;
+       ++room_id) {
+    rooms_by_payload[logical_streams[room_id]].push_back(room_id);
+  }
+  std::vector<RepackGroup> groups;
+  groups.reserve(rooms_by_payload.size());
+  uint64_t required_bytes = 0;
+  for (auto& [bytes, room_ids] : rooms_by_payload) {
+    required_bytes += bytes.size();
+    groups.push_back({room_ids.front(), std::move(bytes), std::move(room_ids)});
+  }
+  if (required_bytes > available_bytes) {
+    return absl::ResourceExhaustedError(
+        absl::StrCat("Pot-item repack needs ", required_bytes,
+                     " bytes but declared ranges provide ", available_bytes));
+  }
+  std::sort(groups.begin(), groups.end(), [](const auto& a, const auto& b) {
+    return a.owner_room < b.owner_room;
+  });
+
+  DungeonStreamWritePlan plan;
+  plan.layout = inventory.layout;
+  plan.source_size = inventory.source_size;
+  plan.source_crc32 = inventory.source_crc32;
+  plan.mode = DungeonStreamWriteMode::kRepackAll;
+  plan.payload_writes.reserve(groups.size());
+  plan.pointer_writes.reserve(inventory.layout.pointer_count);
+
+  std::vector<uint32_t> target_by_room(inventory.layout.pointer_count, 0);
+  uint32_t next_address = inventory.layout.allocation_ranges.front().begin;
+  for (const RepackGroup& group : groups) {
+    const uint32_t address = next_address;
+    plan.payload_writes.push_back({group.owner_room, address, group.bytes});
+    for (const uint32_t room_id : group.room_ids) {
+      target_by_room[room_id] = address;
+    }
+    next_address += static_cast<uint32_t>(group.bytes.size());
+  }
+
+  const uint32_t pointer_width =
+      PointerWidth(inventory.layout.pointer_encoding);
+  for (uint32_t room_id = 0; room_id < inventory.layout.pointer_count;
+       ++room_id) {
+    ASSIGN_OR_RETURN(std::vector<uint8_t> pointer,
+                     EncodePointer(inventory.layout, target_by_room[room_id]));
+    plan.pointer_writes.push_back(
+        {room_id, inventory.layout.pointer_table_pc + room_id * pointer_width,
+         std::move(pointer)});
   }
   return plan;
 }
