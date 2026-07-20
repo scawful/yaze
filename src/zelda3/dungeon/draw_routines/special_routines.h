@@ -53,16 +53,12 @@ void CustomDraw(const DrawContext& ctx);
 void DrawDoorSwitcherer(const DrawContext& ctx);
 
 /**
- * @brief Draw Somaria line in various directions
+ * @brief Draw one Somaria path tile at the object anchor
  *
- * Pattern: Somaria Line (objects 0x203-0x20F, 0x214)
- * Draws a line of tiles based on direction encoded in object ID.
- * Direction mapping:
- *   0x03: Horizontal right
- *   0x04: Vertical down
- *   0x05: Diagonal down-right
- *   0x06: Diagonal down-left
- *   0x07-0x0F: Various other patterns
+ * Pattern: ASM objects 0x203-0x20C, 0x20E, and 0x20F (decoded by yaze as
+ * 0xF83-0xF8C, 0xF8E, and 0xF8F). Each object-data pointer selects one tile
+ * word, and RoomDraw_SomariaLine writes that word once. Size bits do not
+ * extend an individual path piece.
  *
  * @param ctx Draw context containing object, tiles, and target buffer
  */
@@ -425,15 +421,25 @@ void DrawBigKeyLock(const DrawContext& ctx);
 void DrawBombableFloor(const DrawContext& ctx);
 
 /**
- * @brief Draw moving wall (Type 1 objects 0xCD, 0xCE)
+ * @brief Draw the west-moving wall (Type 1 object 0xCD)
  *
- * ASM: RoomDraw_MovingWallWest ($019316), RoomDraw_MovingWallEast ($01935C)
- * Checks game state to determine if wall has moved.
+ * ASM: RoomDraw_MovingWallWest ($01:9190). The low two size bits select the
+ * horizontal fill count, the next two bits select the vertical direction
+ * count, and an already-moved wall draws nothing.
  *
  * @param ctx Draw context
- * @param is_west True for west wall (0xCD), false for east wall (0xCE)
  */
-void DrawMovingWall(const DrawContext& ctx, bool is_west);
+void DrawMovingWallWest(const DrawContext& ctx);
+
+/**
+ * @brief Draw the east-moving wall (Type 1 object 0xCE)
+ *
+ * ASM: RoomDraw_MovingWallEast ($01:921C). Uses the same split size selectors
+ * as the west wall and grows its horizontal fill to the right.
+ *
+ * @param ctx Draw context
+ */
+void DrawMovingWallEast(const DrawContext& ctx);
 
 // ============================================================================
 // Water Face Variants (based on room state)

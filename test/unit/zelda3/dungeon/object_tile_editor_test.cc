@@ -41,10 +41,10 @@ gfx::PaletteGroup MakeTestPaletteGroup() {
 // Pins ObjectTileEditor::CaptureObjectLayout against the canonical
 // ObjectGeometry bounds for routines that draw upward or leftward. The
 // preview pipeline previously anchored at hardcoded (2, 2); routines
-// like acute diagonals (0x09-0x14 / 0x15-0x20), diagonal ceilings
-// (0xA0-0xAC), and somaria line down-left (0xF86) wrote tiles at
-// negative tile coordinates, which DrawRoutineUtils::WriteTile8 drops
-// via IsValidTilePosition before the trace hook fires. The selector
+// like acute diagonals (0x09-0x14 / 0x15-0x20) and diagonal ceilings
+// (0xA0-0xAC) wrote tiles at negative tile coordinates, which
+// DrawRoutineUtils::WriteTile8 drops via IsValidTilePosition before the trace
+// hook fires. The selector
 // preview, tooltip cell grid, and ObjectTileEditor panel all consume
 // CaptureObjectLayout output, so previews of those object families
 // were silently clipped (e.g. 0xA3 BottomRight diagonal ceiling
@@ -68,7 +68,7 @@ TEST(ObjectTileEditorTest, CaptureLayoutBoundsMatchObjectGeometry) {
   //   0x09: acute diagonal (Diagonal category, routine 5) -> upward.
   //   0x12: diagonal grave BothBG (routine 6) -> downward, baseline.
   //   0xA3: diagonal ceiling BottomRight (routine 78) -> up + left.
-  //   0xF86: somaria line down-left (kSomariaLine, id-bit 0x06) -> left.
+  //   0xF86: single-tile somaria path piece -> subtype-3 baseline.
   //   0x33: 4x4 block rightward (routine 16) -> baseline, anchor (0,0).
   for (int16_t object_id : {int16_t{0x09}, int16_t{0x12}, int16_t{0x33},
                             int16_t{0xA3}, int16_t{0xF86}}) {

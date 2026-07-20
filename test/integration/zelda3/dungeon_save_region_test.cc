@@ -7,6 +7,7 @@
 #include <gtest/gtest.h>
 
 #include <array>
+#include <iomanip>
 #include <set>
 #include <vector>
 
@@ -14,6 +15,7 @@
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "test_utils.h"
+#include "zelda3/dungeon/dungeon_block_codec.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
 
@@ -387,6 +389,83 @@ TEST_F(DungeonSaveRegionTest, SaveAllBlocksPreservesRegion) {
   }
 }
 
+TEST_F(DungeonSaveRegionTest,
+       VanillaPushableBlockWordsDecodeAndReencodeByteExactly) {
+  const auto& data = rom_->vector();
+  ASSERT_LT(kBlocksLength + 1, static_cast<int>(data.size()));
+  const int blocks_count = (data[kBlocksLength + 1] << 8) | data[kBlocksLength];
+  ASSERT_GT(blocks_count, 0);
+  ASSERT_EQ(blocks_count % 4, 0);
+
+  constexpr int kRegionSize = 0x80;
+  const int pointers[4] = {kBlocksPointer1, kBlocksPointer2, kBlocksPointer3,
+                           kBlocksPointer4};
+  std::vector<uint8_t> block_bytes;
+  block_bytes.reserve(blocks_count);
+  for (int region = 0; region < 4; ++region) {
+    const int operand = pointers[region];
+    ASSERT_LT(operand + 2, static_cast<int>(data.size()));
+    const int snes =
+        (data[operand + 2] << 16) | (data[operand + 1] << 8) | data[operand];
+    const int pc = static_cast<int>(SnesToPc(static_cast<uint32_t>(snes)));
+    const int offset = region * kRegionSize;
+    const int length = std::min(kRegionSize, blocks_count - offset);
+    if (length <= 0) {
+      break;
+    }
+    ASSERT_GE(pc, 0);
+    ASSERT_LE(pc + length, static_cast<int>(data.size()));
+    block_bytes.insert(block_bytes.end(), data.begin() + pc,
+                       data.begin() + pc + length);
+  }
+  ASSERT_EQ(block_bytes.size(), static_cast<size_t>(blocks_count));
+
+  struct ExpectedSample {
+    uint16_t room_id;
+    uint16_t word;
+    uint8_t px;
+    uint8_t py;
+    uint8_t draw_layer;
+    uint8_t behavior_layer;
+    bool found = false;
+  };
+  std::array<ExpectedSample, 4> samples = {{
+      {0x00A8, 0x36E0, 48, 45, 1, 0},
+      {0x0066, 0x383C, 30, 48, 1, 0},
+      {0x002C, 0x2814, 10, 16, 1, 0},
+      {0x00CA, 0x56B2, 25, 45, 0, 1},
+  }};
+
+  for (size_t offset = 0; offset < block_bytes.size(); offset += 4) {
+    const PushableBlockBytes bytes{
+        block_bytes[offset + 0], block_bytes[offset + 1],
+        block_bytes[offset + 2], block_bytes[offset + 3]};
+    const auto entry = DecodePushableBlockEntry(bytes);
+    const auto encoded = EncodePushableBlockEntry(entry);
+    EXPECT_EQ(encoded.b1, bytes.b1) << "entry offset " << offset;
+    EXPECT_EQ(encoded.b2, bytes.b2) << "entry offset " << offset;
+    EXPECT_EQ(encoded.b3, bytes.b3) << "entry offset " << offset;
+    EXPECT_EQ(encoded.b4, bytes.b4) << "entry offset " << offset;
+
+    const uint16_t word = static_cast<uint16_t>(bytes.b3 | (bytes.b4 << 8));
+    for (auto& sample : samples) {
+      if (entry.room_id != sample.room_id || word != sample.word) {
+        continue;
+      }
+      sample.found = true;
+      EXPECT_EQ(entry.px, sample.px);
+      EXPECT_EQ(entry.py, sample.py);
+      EXPECT_EQ(entry.draw_layer, sample.draw_layer);
+      EXPECT_EQ(entry.behavior_layer, sample.behavior_layer);
+    }
+  }
+
+  for (const auto& sample : samples) {
+    EXPECT_TRUE(sample.found) << "missing vanilla room 0x" << std::hex
+                              << sample.room_id << " word 0x" << sample.word;
+  }
+}
+
 // --- Blocks: room-aware encoder vanilla round-trip ---
 //
 // Materialize every room with `LoadBlocks` so the new encoder's
@@ -507,13 +586,20 @@ TEST_F(DungeonSaveRegionTest,
 
   std::vector<Room> rooms;
   rooms.reserve(kNumberOfRooms);
+  size_t loaded_torch_count = 0;
   for (int i = 0; i < kNumberOfRooms; ++i) {
     rooms.emplace_back(i, rom_.get());
-    rooms.back().LoadObjects();
+    rooms.back().LoadTorches();
+    ASSERT_TRUE(rooms.back().AreTorchesLoaded());
+    loaded_torch_count += rooms.back().GetTileObjects().size();
   }
+  ASSERT_GT(loaded_torch_count, 0u)
+      << "The ROM-backed test must exercise decoded torch entries";
 
   auto status = SaveAllTorches(rom_.get(), rooms);
   ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_FALSE(rom_->dirty())
+      << "A byte-identical torch round-trip must not dirty the ROM";
 
   const auto& after = rom_->vector();
   int len_after =
