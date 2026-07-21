@@ -714,9 +714,8 @@ void ObjectDimensionTable::InitializeDefaults() {
     dimensions_[id] = {3, 1, Dir::Horizontal, 1, false};
   }
 
-  // 0xB5: Weird 2x4 (uses 4x2 downwards routine)
-  dimensions_[0xB5] = {4, 0, Dir::Vertical, 2, false};
-  dimensions_[0xB5].zero_size_override = 26;
+  // 0xB5: Weird 2x4 - GetSize_1to16, repeated horizontally.
+  dimensions_[0xB5] = {2, 4, Dir::Horizontal, 2, false};
 
   // 0xB6-0xB7: Rightwards 2x4
   for (int id = 0xB6; id <= 0xB7; id++) {
@@ -939,7 +938,6 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xFCC] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFD4] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFE2] = {4, 4, Dir::Horizontal, 4, false};
-  dimensions_[0xFF4] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFF6] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFF7] = {4, 4, Dir::Horizontal, 4, false};
   // Utility + archery patterns
@@ -957,6 +955,7 @@ void ObjectDimensionTable::InitializeDefaults() {
   // Light beams + Triforce floor
   dimensions_[0xFF0] = {4, 10, Dir::None, 0, false};
   dimensions_[0xFF1] = {8, 8, Dir::None, 0, false};
+  dimensions_[0xFF4] = {8, 8, Dir::None, 0, false};
   dimensions_[0xFF8] = {8, 8, Dir::None, 0, false};
   // Table rock 4x3 (repeatable with 8-tile spacing)
   dimensions_[0xFF9] = {4, 3, Dir::Horizontal, 8, false};

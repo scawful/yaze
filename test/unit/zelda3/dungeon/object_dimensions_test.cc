@@ -292,6 +292,72 @@ TEST_F(ObjectDimensionTableTest, VerticalRailVariantsUseUsdasmLengths) {
   }
 }
 
+TEST_F(ObjectDimensionTableTest, FloorLightUsesFixedEightByEightBounds) {
+  auto& table = ObjectDimensionTable::Get();
+  ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());
+
+  for (uint8_t size : {uint8_t{0}, uint8_t{1}, uint8_t{13}, uint8_t{15}}) {
+    SCOPED_TRACE(::testing::Message() << "size=" << static_cast<int>(size));
+
+    auto [width, height] = table.GetDimensions(0xFF4, size);
+    EXPECT_EQ(width, 8);
+    EXPECT_EQ(height, 8);
+
+    const auto selection = table.GetSelectionBounds(0xFF4, size);
+    EXPECT_EQ(selection.offset_x, 0);
+    EXPECT_EQ(selection.offset_y, 0);
+    EXPECT_EQ(selection.width, 8);
+    EXPECT_EQ(selection.height, 8);
+
+    const RoomObject object(0xFF4, 0, 0, size, 0);
+    auto geometry = ObjectGeometry::Get().MeasureByObjectId(object);
+    ASSERT_TRUE(geometry.ok());
+    EXPECT_EQ(geometry->min_x_tiles, 0);
+    EXPECT_EQ(geometry->min_y_tiles, 0);
+    EXPECT_EQ(geometry->width_tiles, 8);
+    EXPECT_EQ(geometry->height_tiles, 8);
+
+    auto [legacy_width, legacy_height] =
+        ObjectDrawer(rom_.get(), 0).CalculateObjectDimensions(object);
+    EXPECT_EQ(legacy_width, 64);
+    EXPECT_EQ(legacy_height, 64);
+  }
+}
+
+TEST_F(ObjectDimensionTableTest,
+       ArcheryCurtainsUseHorizontalSizePlusOneBounds) {
+  auto& table = ObjectDimensionTable::Get();
+  ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());
+
+  for (uint8_t size : {uint8_t{0}, uint8_t{5}, uint8_t{15}}) {
+    SCOPED_TRACE(::testing::Message() << "size=" << static_cast<int>(size));
+    const int expected_width = (static_cast<int>(size) + 1) * 2;
+
+    auto [width, height] = table.GetDimensions(0xB5, size);
+    EXPECT_EQ(width, expected_width);
+    EXPECT_EQ(height, 4);
+
+    const auto selection = table.GetSelectionBounds(0xB5, size);
+    EXPECT_EQ(selection.offset_x, 0);
+    EXPECT_EQ(selection.offset_y, 0);
+    EXPECT_EQ(selection.width, expected_width);
+    EXPECT_EQ(selection.height, 4);
+
+    const RoomObject object(0xB5, 0, 0, size, 0);
+    auto geometry = ObjectGeometry::Get().MeasureByObjectId(object);
+    ASSERT_TRUE(geometry.ok());
+    EXPECT_EQ(geometry->min_x_tiles, 0);
+    EXPECT_EQ(geometry->min_y_tiles, 0);
+    EXPECT_EQ(geometry->width_tiles, expected_width);
+    EXPECT_EQ(geometry->height_tiles, 4);
+
+    auto [legacy_width, legacy_height] =
+        ObjectDrawer(rom_.get(), 0).CalculateObjectDimensions(object);
+    EXPECT_EQ(legacy_width, expected_width * 8);
+    EXPECT_EQ(legacy_height, 32);
+  }
+}
+
 TEST_F(ObjectDimensionTableTest,
        ReportedPlatformAndDecorObjectsUseUsdasmFootprints) {
   auto& table = ObjectDimensionTable::Get();
