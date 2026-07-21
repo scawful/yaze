@@ -6,6 +6,8 @@ They are correctness references, not recordings of yaze's current renderer.
 ## `vanilla_room_012_mesen_left_wall_48x64.png`
 
 - Captured: 2026-07-21, Mesen2 OOS 1.0, headless on macOS arm64.
+  - executable SHA-256:
+    `90d1d12e9d091cfbd4b8aba112517a9654e13cb7b9bdc1637391933c244b6ace`
 - Room: `0x012` (Sanctuary).
 - ROM loaded by Mesen: canonical US ROM followed by 1 MiB of zero padding:
   - first 1 MiB SHA-1: `6d4f10a8b10e10dbe624cb23cf03b88bb8252973`
