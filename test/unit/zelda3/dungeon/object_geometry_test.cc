@@ -2,9 +2,27 @@
 
 #include "absl/strings/str_format.h"
 #include "gtest/gtest.h"
+#include "zelda3/dungeon/dungeon_state.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze::zelda3 {
+
+namespace {
+
+class ActiveWaterFaceState final : public DungeonState {
+ public:
+  bool IsChestOpen(int, int) const override { return false; }
+  bool IsBigChestOpen() const override { return false; }
+  bool IsDoorOpen(int, int) const override { return false; }
+  bool IsDoorSwitchActive(int) const override { return false; }
+  bool IsWaterFaceActive(int) const override { return true; }
+  bool IsWallMoved(int) const override { return false; }
+  bool IsFloorBombable(int) const override { return false; }
+  bool IsRupeeFloorActive(int) const override { return false; }
+  bool IsCrystalSwitchBlue() const override { return true; }
+};
+
+}  // namespace
 
 TEST(ObjectGeometryTest, Rightwards2x2UsesThirtyTwoWhenSizeZero) {
   RoomObject obj(/*id=*/0x00, /*x=*/0, /*y=*/0, /*size=*/0);
@@ -147,6 +165,24 @@ TEST(ObjectGeometryTest,
   ASSERT_TRUE(bounds.ok());
   EXPECT_EQ(bounds->width_tiles, 4);
   EXPECT_EQ(bounds->height_tiles, 5);
+}
+
+TEST(ObjectGeometryTest,
+     MeasureByObjectIdForStateKeepsWaterFaceBranchesDistinct) {
+  RoomObject obj(/*id=*/0x0F80, /*x=*/0, /*y=*/0, /*size=*/0);
+
+  auto default_bounds =
+      ObjectGeometry::Get().MeasureByObjectIdForState(obj, nullptr);
+  ASSERT_TRUE(default_bounds.ok());
+  EXPECT_EQ(default_bounds->width_tiles, 4);
+  EXPECT_EQ(default_bounds->height_tiles, 3);
+
+  ActiveWaterFaceState active_state;
+  auto active_bounds =
+      ObjectGeometry::Get().MeasureByObjectIdForState(obj, &active_state);
+  ASSERT_TRUE(active_bounds.ok());
+  EXPECT_EQ(active_bounds->width_tiles, 4);
+  EXPECT_EQ(active_bounds->height_tiles, 5);
 }
 
 TEST(ObjectGeometryTest, MeasureByObjectIdMigratedSpecialsHaveUsdasmBounds) {
