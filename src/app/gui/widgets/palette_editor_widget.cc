@@ -6,6 +6,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gfx/util/palette_manager.h"
 #include "app/gui/core/color.h"
 #include "app/gui/core/popup_id.h"
 #include "app/gui/core/theme_manager.h"
@@ -21,6 +22,57 @@ namespace yaze {
 namespace gui {
 
 namespace {
+
+enum class DungeonRenderPaletteSource {
+  kHud,
+  kDungeonMain,
+};
+
+struct DungeonRenderColorTarget {
+  DungeonRenderPaletteSource source;
+  int palette_index;
+  int color_index;
+};
+
+std::optional<DungeonRenderColorTarget> ResolveDungeonRenderColorTarget(
+    int display_index, int dungeon_palette_id) {
+  if (display_index < 0 || display_index >= 128) {
+    return std::nullopt;
+  }
+  if (display_index < 32) {
+    return DungeonRenderColorTarget{DungeonRenderPaletteSource::kHud, 0,
+                                    display_index};
+  }
+
+  const int local_index = display_index - 32;
+  const int row = local_index / 16;
+  const int col = local_index % 16;
+  if (row >= 6 || col == 0) {
+    return std::nullopt;
+  }
+
+  return DungeonRenderColorTarget{DungeonRenderPaletteSource::kDungeonMain,
+                                  dungeon_palette_id, row * 15 + (col - 1)};
+}
+
+const char* PaletteManagerGroupName(DungeonRenderPaletteSource source) {
+  return source == DungeonRenderPaletteSource::kHud ? "hud" : "dungeon_main";
+}
+
+const gfx::PaletteGroup& PaletteGroupForTarget(
+    const zelda3::GameData& game_data, const DungeonRenderColorTarget& target) {
+  return target.source == DungeonRenderPaletteSource::kHud
+             ? game_data.palette_groups.hud
+             : game_data.palette_groups.dungeon_main;
+}
+
+std::string DungeonRenderColorSourceLabel(
+    const DungeonRenderColorTarget& target) {
+  if (target.source == DungeonRenderPaletteSource::kHud) {
+    return "HUD / floor-ceiling";
+  }
+  return absl::StrFormat("Dungeon row %d", target.color_index / 15 + 2);
+}
 
 const char* RomPaletteGroupNameGetter(void* user_data, int idx) {
   auto* names = static_cast<std::vector<std::string>*>(user_data);
@@ -94,6 +146,38 @@ void PaletteEditorWidget::Initialize(Rom* rom) {
   // Legacy mode - no palette loading without game_data
   current_palette_id_ = 0;
   selected_color_index_ = -1;
+}
+
+absl::Status PaletteEditorWidget::ApplyDungeonRenderColorEdit(
+    int display_index, std::optional<gfx::SnesColor> color) {
+  if (!game_data_) {
+    return absl::FailedPreconditionError("GameData not loaded");
+  }
+
+  const auto target =
+      ResolveDungeonRenderColorTarget(display_index, current_palette_id_);
+  if (!target.has_value()) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Dungeon render palette slot %d is reserved or out of range",
+        display_index));
+  }
+
+  auto& palette_manager = gfx::PaletteManager::Get();
+  const char* group_name = PaletteManagerGroupName(target->source);
+  absl::Status status =
+      color.has_value()
+          ? palette_manager.SetColor(group_name, target->palette_index,
+                                     target->color_index, *color)
+          : palette_manager.ResetColor(group_name, target->palette_index,
+                                       target->color_index);
+  if (!status.ok()) {
+    return status;
+  }
+
+  if (on_palette_changed_) {
+    on_palette_changed_(current_palette_id_);
+  }
+  return absl::OkStatus();
 }
 
 // --- Embedded Draw Method (from simple editor) ---
@@ -233,64 +317,10 @@ void PaletteEditorWidget::DrawColorPicker() {
   }
 }
 
-bool PaletteEditorWidget::ResolveDungeonRenderSelection(
-    gfx::SnesPalette** palette, int* color_index, std::string* source_label) {
-  if (!game_data_ || !palette || !color_index || selected_color_index_ < 0) {
-    return false;
-  }
-
-  const int display_index = selected_color_index_;
-  if (display_index < 32) {
-    if (game_data_->palette_groups.hud.empty()) {
-      return false;
-    }
-    *palette = game_data_->palette_groups.hud.mutable_palette(0);
-    *color_index = display_index;
-    if (source_label) {
-      *source_label = "HUD / floor-ceiling";
-    }
-    return true;
-  }
-
-  const int local_index = display_index - 32;
-  const int row = local_index / 16;
-  const int col = local_index % 16;
-  if (row < 0 || row >= 6 || col == 0) {
-    return false;
-  }
-
-  auto& dungeon_pal_group = game_data_->palette_groups.dungeon_main;
-  if (dungeon_pal_group.empty() || current_palette_id_ < 0 ||
-      current_palette_id_ >= static_cast<int>(dungeon_pal_group.size())) {
-    return false;
-  }
-
-  *palette = dungeon_pal_group.mutable_palette(current_palette_id_);
-  *color_index = row * 15 + (col - 1);
-  if (source_label) {
-    *source_label = absl::StrFormat("Dungeon row %d", row + 2);
-  }
-  return true;
-}
-
 void PaletteEditorWidget::DrawDungeonRenderPalette() {
   ImGui::TextDisabled(
       tr("Rows 0-1: HUD / floor / ceiling  |  Rows 2-7: Dungeon main"));
   const float swatch_size = ComputeSwatchSize(/*columns=*/16, 14.0f, 28.0f);
-
-  gfx::SnesPalette* dungeon_palette = nullptr;
-  if (!game_data_->palette_groups.dungeon_main.empty() &&
-      current_palette_id_ >= 0 &&
-      current_palette_id_ <
-          static_cast<int>(game_data_->palette_groups.dungeon_main.size())) {
-    dungeon_palette = game_data_->palette_groups.dungeon_main.mutable_palette(
-        current_palette_id_);
-  }
-
-  gfx::SnesPalette* hud_palette = nullptr;
-  if (!game_data_->palette_groups.hud.empty()) {
-    hud_palette = game_data_->palette_groups.hud.mutable_palette(0);
-  }
 
   for (int i = 0; i < 128; ++i) {
     if (i % 16 != 0) {
@@ -298,28 +328,22 @@ void PaletteEditorWidget::DrawDungeonRenderPalette() {
     }
 
     gfx::SnesColor color(0);
-    gfx::SnesColor* source_color = nullptr;
     bool editable = false;
     std::string tooltip_label = "Reserved / transparent";
     int source_index = -1;
 
-    if (i < 32 && hud_palette && i < static_cast<int>(hud_palette->size())) {
-      color = (*hud_palette)[i];
-      source_color = &(*hud_palette)[i];
-      editable = true;
-      tooltip_label = "HUD / floor-ceiling";
-      source_index = i;
-    } else if (i >= 32 && dungeon_palette) {
-      const int local_index = i - 32;
-      const int row = local_index / 16;
-      const int col = local_index % 16;
-      if (row < 6 && col > 0) {
-        source_index = row * 15 + (col - 1);
-        if (source_index < static_cast<int>(dungeon_palette->size())) {
-          color = (*dungeon_palette)[source_index];
-          source_color = &(*dungeon_palette)[source_index];
+    const auto target = ResolveDungeonRenderColorTarget(i, current_palette_id_);
+    if (target.has_value()) {
+      const auto& group = PaletteGroupForTarget(*game_data_, *target);
+      if (target->palette_index >= 0 &&
+          target->palette_index < static_cast<int>(group.size())) {
+        const auto& palette = group.palette_ref(target->palette_index);
+        if (target->color_index >= 0 &&
+            target->color_index < static_cast<int>(palette.size())) {
+          color = palette[target->color_index];
           editable = true;
-          tooltip_label = absl::StrFormat("Dungeon row %d", row + 2);
+          tooltip_label = DungeonRenderColorSourceLabel(*target);
+          source_index = target->color_index;
         }
       }
     }
@@ -347,14 +371,18 @@ void PaletteEditorWidget::DrawDungeonRenderPalette() {
       temp_color_ = display_color;
       editing_color_ = display_color;
     }
+    gfx::SnesColor dropped_color = color;
     if (editable &&
-        AcceptImGuiColorDrop(source_color, swatch_min, swatch_max)) {
-      selected_color_index_ = i;
-      editing_color_index_ = i;
-      temp_color_ = source_color->rgb();
-      editing_color_ = temp_color_;
-      if (on_palette_changed_) {
-        on_palette_changed_(current_palette_id_);
+        AcceptImGuiColorDrop(&dropped_color, swatch_min, swatch_max)) {
+      const absl::Status status = ApplyDungeonRenderColorEdit(i, dropped_color);
+      if (status.ok()) {
+        selected_color_index_ = i;
+        editing_color_index_ = i;
+        temp_color_ = dropped_color.rgb();
+        editing_color_ = temp_color_;
+      } else {
+        LOG_ERROR("PaletteEditorWidget", "Failed to apply dropped color: %s",
+                  status.message().data());
       }
     }
 
@@ -384,27 +412,46 @@ float PaletteEditorWidget::ComputeSwatchSize(int columns, float min_size,
 }
 
 void PaletteEditorWidget::DrawDungeonRenderColorPicker() {
-  gfx::SnesPalette* palette = nullptr;
-  int color_index = -1;
-  std::string source_label;
-  if (!ResolveDungeonRenderSelection(&palette, &color_index, &source_label) ||
-      !palette || color_index < 0 ||
-      color_index >= static_cast<int>(palette->size())) {
+  const auto target = ResolveDungeonRenderColorTarget(selected_color_index_,
+                                                      current_palette_id_);
+  if (!game_data_ || !target.has_value()) {
     selected_color_index_ = -1;
     editing_color_index_ = -1;
     return;
   }
 
-  ImGui::SeparatorText(
-      absl::StrFormat("%s Color %d", source_label, color_index).c_str());
+  const auto& group = PaletteGroupForTarget(*game_data_, *target);
+  if (target->palette_index < 0 ||
+      target->palette_index >= static_cast<int>(group.size())) {
+    selected_color_index_ = -1;
+    editing_color_index_ = -1;
+    return;
+  }
+  const auto& palette = group.palette_ref(target->palette_index);
+  if (target->color_index < 0 ||
+      target->color_index >= static_cast<int>(palette.size())) {
+    selected_color_index_ = -1;
+    editing_color_index_ = -1;
+    return;
+  }
 
-  auto original_color = (*palette)[color_index];
+  ImGui::SeparatorText(absl::StrFormat("%s Color %d",
+                                       DungeonRenderColorSourceLabel(*target),
+                                       target->color_index)
+                           .c_str());
+
+  const gfx::SnesColor current_color = palette[target->color_index];
+  gfx::SnesColor edited_color = current_color;
   if (gui::SnesColorEdit4(
-          "Color", &(*palette)[color_index],
+          "Color", &edited_color,
           ImGuiColorEditFlags_NoAlpha | ImGuiColorEditFlags_PickerHueWheel)) {
-    editing_color_ = gui::ConvertSnesColorToImVec4((*palette)[color_index]);
-    if (on_palette_changed_) {
-      on_palette_changed_(current_palette_id_);
+    const absl::Status status =
+        ApplyDungeonRenderColorEdit(selected_color_index_, edited_color);
+    if (status.ok()) {
+      editing_color_ = gui::ConvertSnesColorToImVec4(edited_color);
+    } else {
+      LOG_ERROR("PaletteEditorWidget", "Failed to apply palette color: %s",
+                status.message().data());
     }
   }
 
@@ -412,15 +459,19 @@ void PaletteEditorWidget::DrawDungeonRenderColorPicker() {
               static_cast<int>(editing_color_.x * 255),
               static_cast<int>(editing_color_.y * 255),
               static_cast<int>(editing_color_.z * 255));
-  ImGui::Text(tr("SNES BGR555: 0x%04X"), original_color.snes());
+  ImGui::Text(tr("SNES BGR555: 0x%04X"), current_color.snes());
 
   if (gui::ThemedButton("Reset to Original")) {
-    editing_color_ =
-        ImVec4(original_color.rgb().x / 255.0f, original_color.rgb().y / 255.0f,
-               original_color.rgb().z / 255.0f, 1.0f);
-    (*palette)[color_index] = original_color;
-    if (on_palette_changed_) {
-      on_palette_changed_(current_palette_id_);
+    const absl::Status status =
+        ApplyDungeonRenderColorEdit(selected_color_index_, std::nullopt);
+    if (status.ok()) {
+      const gfx::SnesColor reset_color = gfx::PaletteManager::Get().GetColor(
+          PaletteManagerGroupName(target->source), target->palette_index,
+          target->color_index);
+      editing_color_ = gui::ConvertSnesColorToImVec4(reset_color);
+    } else {
+      LOG_ERROR("PaletteEditorWidget", "Failed to reset palette color: %s",
+                status.message().data());
     }
   }
 }
