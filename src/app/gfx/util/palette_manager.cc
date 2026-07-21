@@ -17,6 +17,13 @@ void PaletteManager::Initialize(zelda3::GameData* game_data) {
     return;
   }
 
+  // Editors are loaded lazily and may share the same GameData instance. Do not
+  // discard another editor's pending palette edits when it initializes the
+  // already-bound manager.
+  if (game_data_ == game_data && rom_ == game_data->rom()) {
+    return;
+  }
+
   game_data_ = game_data;
   rom_ = game_data->rom();
 
