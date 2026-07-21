@@ -116,6 +116,15 @@ TEST_F(ObjectParserTest, ParseSubtype3Object) {
   }
 }
 
+TEST_F(ObjectParserTest, RupeeFloorLoadsExactTwoWordPayload) {
+  auto result = parser_->ParseObject(0xF92);
+  ASSERT_TRUE(result.ok());
+  EXPECT_EQ(result->size(), 2u);
+
+  const auto draw_info = parser_->GetObjectDrawInfo(0xF92);
+  EXPECT_EQ(draw_info.tile_count, 2);
+}
+
 TEST_F(ObjectParserTest, GetObjectSubtype) {
   // Subtype 1: Object IDs 0x00-0xFF
   auto result1 = parser_->GetObjectSubtype(0x01);
