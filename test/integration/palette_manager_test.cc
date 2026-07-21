@@ -7,6 +7,7 @@
 #include <optional>
 
 #include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/palette/palette_editor.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/widgets/palette_editor_widget.h"
@@ -395,7 +396,8 @@ TEST_F(PaletteManagerTest, DungeonRenderEditsMapToManagedHudAndDungeonColors) {
   EXPECT_EQ(callback_count, 3);
 }
 
-TEST_F(PaletteManagerTest, DungeonRenderEditPersistsThroughDungeonEditorSave) {
+TEST_F(PaletteManagerTest,
+       DungeonRenderEditSurvivesPaletteEditorLoadAndPersistsThroughSave) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
   zelda3::GameData game_data(&rom);
@@ -423,6 +425,13 @@ TEST_F(PaletteManagerTest, DungeonRenderEditPersistsThroughDungeonEditorSave) {
   ASSERT_TRUE(
       widget.ApplyDungeonRenderColorEdit(kDungeonDisplayIndex, edited_color)
           .ok());
+  ASSERT_TRUE(manager.HasUnsavedChanges());
+  ASSERT_TRUE(manager.IsColorModified("dungeon_main", 1, kDungeonColorIndex));
+
+  editor::PaletteEditor palette_editor(&rom);
+  palette_editor.SetGameData(&game_data);
+  const absl::Status palette_load_status = palette_editor.Load();
+  ASSERT_TRUE(palette_load_status.ok()) << palette_load_status.message();
   ASSERT_TRUE(manager.HasUnsavedChanges());
   ASSERT_TRUE(manager.IsColorModified("dungeon_main", 1, kDungeonColorIndex));
 
