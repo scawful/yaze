@@ -271,6 +271,8 @@ class WorkspaceWindowManager {
    * @return Pointer to window content, or nullptr if not found
    */
   WindowContent* GetWindowContent(const std::string& window_id);
+  WindowContent* GetWindowContent(size_t session_id,
+                                  const std::string& window_id);
 
   /**
    * @brief Draw all visible WindowContent instances (central drawing)

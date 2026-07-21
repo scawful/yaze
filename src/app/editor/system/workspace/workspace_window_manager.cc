@@ -610,7 +610,7 @@ void WorkspaceWindowManager::RegisterWindowContent(
     EnforceResourceWindowLimits(resource_panel->GetResourceType());
   }
 
-  std::string panel_id = panel->GetId();
+  const std::string panel_id = ResolveBaseWindowId(panel->GetId());
 
   // Auto-register WindowDescriptor for sidebar/menu visibility
   WindowDescriptor descriptor = BuildDescriptorFromPanel(*panel);
@@ -618,24 +618,66 @@ void WorkspaceWindowManager::RegisterWindowContent(
   // Check if panel should be visible by default
   bool visible_by_default = panel->IsVisibleByDefault();
 
-  // Register the descriptor (creates visibility flag)
-  RegisterPanel(active_session_, descriptor);
+  // Store session content under the same final ID as its descriptor. Otherwise
+  // loading this editor in a second ROM session replaces the first session's
+  // instance because both use the same unprefixed base ID.
+  // Reuse an existing mapping even if the total session count changed since
+  // initial registration; switching between prefixed and unprefixed IDs during
+  // a reload would leave two live instances for the same session.
+  std::string instance_id;
+  bool descriptor_preexisting = false;
+  if (panel->GetScope() == WindowScope::kSession) {
+    if (const auto* session_mapping =
+            FindSessionWindowMapping(active_session_)) {
+      if (auto mapping_it = session_mapping->find(panel_id);
+          mapping_it != session_mapping->end() &&
+          cards_.contains(mapping_it->second)) {
+        instance_id = mapping_it->second;
+        descriptor_preexisting = true;
+      }
+    }
+  } else {
+    descriptor_preexisting = cards_.contains(panel_id);
+  }
+  if (instance_id.empty()) {
+    // Register the descriptor (creates visibility storage and session mapping).
+    RegisterPanel(active_session_, descriptor);
+    instance_id = GetPrefixedWindowId(active_session_, panel_id);
+  }
+  if (instance_id.empty()) {
+    instance_id = MakeWindowId(active_session_, panel_id, panel->GetScope());
+  }
 
-  auto existing = panel_instances_.find(panel_id);
+  // Descriptors created here must not capture the first content instance.
+  // Resolve IsEnabled through the owning slot so same-session reloads can
+  // replace content without leaving a dangling callback. Descriptors that an
+  // editor registered explicitly keep their richer editor-owned condition.
+  if (!descriptor_preexisting) {
+    if (auto descriptor_it = cards_.find(instance_id);
+        descriptor_it != cards_.end()) {
+      descriptor_it->second.enabled_condition = [this, instance_id]() {
+        auto instance_it = panel_instances_.find(instance_id);
+        return instance_it != panel_instances_.end() &&
+               instance_it->second->IsEnabled();
+      };
+    }
+  }
+
+  auto existing = panel_instances_.find(instance_id);
   if (existing != panel_instances_.end()) {
     // Editor content objects capture the owning editor/session. When a project
     // or session reloads, keeping the old instance leaves stale callbacks that
     // can dereference freed editor state on the next draw.
     existing->second->OnClose();
-    gui::GetAnimator().ClearAnimationsForPanel(panel_id);
-    UntrackResourceWindow(panel_id);
+    gui::GetAnimator().ClearAnimationsForPanel(instance_id);
+    UntrackResourceWindow(instance_id);
     existing->second = std::move(panel);
-    TrackResourceWindow(panel_id, resource_panel);
+    TrackResourceWindow(instance_id, resource_panel);
     if (visible_by_default) {
       OpenWindowImpl(active_session_, panel_id);
     }
     LOG_INFO("WorkspaceWindowManager", "Replaced WindowContent: %s",
-             panel_id.c_str());
+             instance_id.c_str());
     return;
   }
 
@@ -645,12 +687,12 @@ void WorkspaceWindowManager::RegisterWindowContent(
   }
 
   // Store the WindowContent instance
-  panel_instances_[panel_id] = std::move(panel);
+  panel_instances_[instance_id] = std::move(panel);
 
-  TrackResourceWindow(panel_id, resource_panel);
+  TrackResourceWindow(instance_id, resource_panel);
 
   LOG_INFO("WorkspaceWindowManager", "Registered WindowContent: %s (%s)",
-           panel_id.c_str(), descriptor.display_name.c_str());
+           instance_id.c_str(), descriptor.display_name.c_str());
 }
 
 // ============================================================================
@@ -696,30 +738,79 @@ void WorkspaceWindowManager::MarkPanelUsed(const std::string& panel_id) {
 
 void WorkspaceWindowManager::UnregisterWindowContent(
     const std::string& panel_id) {
-  UntrackResourceWindow(panel_id);
-  auto it = panel_instances_.find(panel_id);
+  size_t owner_session = active_session_;
+  std::string base_panel_id = GetBaseIdForPrefixedId(owner_session, panel_id);
+  std::string instance_id;
+
+  if (!base_panel_id.empty()) {
+    instance_id = panel_id;
+  } else {
+    const std::string requested_base_id = ResolveBaseWindowId(panel_id);
+    if (const auto* active_mapping =
+            FindSessionWindowMapping(active_session_)) {
+      if (auto mapping_it = active_mapping->find(requested_base_id);
+          mapping_it != active_mapping->end()) {
+        base_panel_id = requested_base_id;
+        instance_id = mapping_it->second;
+      }
+    }
+  }
+
+  // Resource-limit eviction can target content owned by an inactive session.
+  // Resolve an explicitly qualified ID back to its owner before unregistering.
+  if (instance_id.empty()) {
+    for (const auto& [session_id, reverse_mapping] :
+         session_reverse_card_mapping_) {
+      if (auto reverse_it = reverse_mapping.find(panel_id);
+          reverse_it != reverse_mapping.end()) {
+        owner_session = session_id;
+        base_panel_id = reverse_it->second;
+        instance_id = panel_id;
+        break;
+      }
+    }
+  }
+  if (instance_id.empty()) {
+    base_panel_id = ResolveBaseWindowId(panel_id);
+    instance_id = GetPrefixedWindowId(owner_session, base_panel_id);
+  }
+  if (instance_id.empty()) {
+    instance_id = panel_id;
+  }
+
+  UntrackResourceWindow(instance_id);
+  auto it = panel_instances_.find(instance_id);
   if (it != panel_instances_.end()) {
     // Call OnClose before removing
     it->second->OnClose();
-    gui::GetAnimator().ClearAnimationsForPanel(panel_id);
+    gui::GetAnimator().ClearAnimationsForPanel(instance_id);
     panel_instances_.erase(it);
-    registry_panel_ids_.erase(panel_id);
-    global_panel_ids_.erase(panel_id);
+    registry_panel_ids_.erase(base_panel_id);
+    global_panel_ids_.erase(instance_id);
     LOG_INFO("WorkspaceWindowManager", "Unregistered WindowContent: %s",
-             panel_id.c_str());
+             instance_id.c_str());
   }
 
   // Also unregister the descriptor
-  UnregisterPanel(active_session_, panel_id);
+  UnregisterPanel(owner_session, base_panel_id);
 }
 
 WindowContent* WorkspaceWindowManager::GetWindowContent(
     const std::string& panel_id) {
-  auto it = panel_instances_.find(panel_id);
-  if (it != panel_instances_.end()) {
-    return it->second.get();
+  return GetWindowContent(active_session_, panel_id);
+}
+
+WindowContent* WorkspaceWindowManager::GetWindowContent(
+    size_t session_id, const std::string& panel_id) {
+  std::string base_panel_id = GetBaseIdForPrefixedId(session_id, panel_id);
+  if (base_panel_id.empty()) {
+    base_panel_id = ResolveBaseWindowId(panel_id);
   }
-  return nullptr;
+  std::string instance_id = GetPrefixedWindowId(session_id, base_panel_id);
+  if (instance_id.empty()) {
+    instance_id = panel_id;
+  }
+  return FindPanelInstance(instance_id, base_panel_id);
 }
 
 WindowContent* WorkspaceWindowManager::FindPanelInstance(

@@ -52,6 +52,32 @@ class MockGlobalEditorPanel final : public WindowContent {
   std::string category_;
 };
 
+class MockSessionOwnedPanel final : public WindowContent {
+ public:
+  MockSessionOwnedPanel(int owner, int* draw_count, int* destroy_count,
+                        bool enabled = true)
+      : owner_(owner),
+        draw_count_(draw_count),
+        destroy_count_(destroy_count),
+        enabled_(enabled) {}
+  ~MockSessionOwnedPanel() override { ++*destroy_count_; }
+
+  std::string GetId() const override { return "palette.dungeon_main"; }
+  std::string GetDisplayName() const override { return "Dungeon Palettes"; }
+  std::string GetIcon() const override { return "ICON_PALETTE"; }
+  std::string GetEditorCategory() const override { return "Palette"; }
+  bool IsEnabled() const override { return enabled_; }
+  void Draw(bool* /*p_open*/) override { ++*draw_count_; }
+
+  int owner() const { return owner_; }
+
+ private:
+  int owner_;
+  int* draw_count_;
+  int* destroy_count_;
+  bool enabled_;
+};
+
 TEST(WorkspaceWindowManagerPolicyTest,
      ShowHideCallsOnOpenOnCloseForEditorPanelInstances) {
   WorkspaceWindowManager pm;
@@ -180,6 +206,62 @@ TEST(WorkspaceWindowManagerPolicyTest,
   auto* panel = dynamic_cast<MockEditorPanelWithHooks*>(second);
   ASSERT_NE(panel, nullptr);
   EXPECT_EQ(panel->open_count, 1);
+}
+
+TEST(WorkspaceWindowManagerPolicyTest,
+     SessionWindowContentKeepsDistinctOwnersAndClosesBeforeSessionRemoval) {
+  WorkspaceWindowManager wm;
+  int first_draws = 0;
+  int second_draws = 0;
+  int reload_draws = 0;
+  int first_destroys = 0;
+  int second_destroys = 0;
+  int reload_destroys = 0;
+
+  wm.RegisterSession(0);
+  wm.RegisterSession(1);
+  wm.SetActiveSession(0);
+  wm.RegisterWindowContent(std::make_unique<MockSessionOwnedPanel>(
+      0, &first_draws, &first_destroys));
+  auto* first = dynamic_cast<MockSessionOwnedPanel*>(
+      wm.GetWindowContent(0, "palette.dungeon_main"));
+  ASSERT_NE(first, nullptr);
+  EXPECT_EQ(first->owner(), 0);
+
+  wm.SetActiveSession(1);
+  wm.RegisterWindowContent(std::make_unique<MockSessionOwnedPanel>(
+      1, &second_draws, &second_destroys));
+  auto* second = dynamic_cast<MockSessionOwnedPanel*>(
+      wm.GetWindowContent(1, "palette.dungeon_main"));
+  ASSERT_NE(second, nullptr);
+  EXPECT_EQ(second->owner(), 1);
+  EXPECT_NE(first, second);
+
+  first->Draw(nullptr);
+  second->Draw(nullptr);
+  EXPECT_EQ(first_draws, 1);
+  EXPECT_EQ(second_draws, 1);
+
+  wm.UnregisterSession(1);
+  EXPECT_EQ(second_destroys, 1);
+  EXPECT_EQ(first_destroys, 0);
+  EXPECT_EQ(wm.GetWindowContent(0, "palette.dungeon_main"), first);
+  first->Draw(nullptr);
+  EXPECT_EQ(first_draws, 2);
+
+  wm.RegisterWindowContent(std::make_unique<MockSessionOwnedPanel>(
+      0, &reload_draws, &reload_destroys, false));
+  auto* reloaded = dynamic_cast<MockSessionOwnedPanel*>(
+      wm.GetWindowContent(0, "palette.dungeon_main"));
+  ASSERT_NE(reloaded, nullptr);
+  EXPECT_NE(reloaded, first);
+  EXPECT_EQ(first_destroys, 1);
+  EXPECT_EQ(reload_destroys, 0);
+  EXPECT_EQ(wm.GetWindowsInSession(0).size(), 1u);
+  const auto* descriptor = wm.GetWindowDescriptor(0, "palette.dungeon_main");
+  ASSERT_NE(descriptor, nullptr);
+  ASSERT_TRUE(static_cast<bool>(descriptor->enabled_condition));
+  EXPECT_FALSE(descriptor->enabled_condition());
 }
 
 TEST(WorkspaceWindowManagerPolicyTest,

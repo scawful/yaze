@@ -11,6 +11,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/palette/palette_group_panel.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
@@ -103,9 +104,10 @@ void DisableRomWritesForTest() {
 }
 
 std::filesystem::path CreateMinimalRomFile(const std::string& basename,
-                                           const std::string& title) {
+                                           const std::string& title,
+                                           size_t rom_size = 512 * 1024) {
   const std::filesystem::path rom_path = MakeTempFilePath(basename);
-  std::vector<uint8_t> rom_data(512 * 1024, 0x00);
+  std::vector<uint8_t> rom_data(rom_size, 0x00);
   for (size_t i = 0; i < title.size() && (0x7FC0 + i) < rom_data.size(); ++i) {
     rom_data[0x7FC0 + i] = static_cast<uint8_t>(title[i]);
   }
@@ -730,6 +732,121 @@ TEST(EditorManagerWriteConflictTest,
   EXPECT_EQ(gfx::PaletteManager::Get().GetColor("dungeon_main", 0, 0).snes(),
             0x1111);
   EXPECT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges(first_game_data));
+
+  manager.reset();
+  gfx::PaletteManager::Get().ResetForTesting();
+}
+
+TEST(EditorManagerWriteConflictTest,
+     SaveAndContinueRefusesToDiscardDisabledPaletteWrites) {
+  ScopedImGuiContext imgui;
+  FeatureFlagsGuard flags_guard;
+  gfx::PaletteManager::Get().ResetForTesting();
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_palette_disabled_a.sfc", "PALETTE DISABLED A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_palette_disabled_b.sfc", "PALETTE DISABLED B");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  DisableRomWritesForTest();
+
+  auto* first_game_data = manager->GetCurrentGameData();
+  SeedCurrentDungeonPalette(manager.get(), 0x0100);
+  ASSERT_TRUE(gfx::PaletteManager::Get()
+                  .SetColor("dungeon_main", 0, 0, gfx::SnesColor(0x1111))
+                  .ok());
+  ASSERT_OK(manager->SaveRom());
+  ASSERT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges(first_game_data));
+
+  manager->SwitchToSession(1);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionSaveAndContinue();
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_EQ(manager->GetActiveSessionCount(), 2u);
+  EXPECT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges(first_game_data));
+
+  manager->CloseCurrentSession();
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionSaveAndContinue();
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_EQ(manager->GetActiveSessionCount(), 2u);
+  EXPECT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges(first_game_data));
+
+  manager->Quit();
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionSaveAndContinue();
+  EXPECT_FALSE(manager->quit());
+  EXPECT_EQ(manager->GetActiveSessionCount(), 2u);
+  EXPECT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges(first_game_data));
+
+  manager.reset();
+  gfx::PaletteManager::Get().ResetForTesting();
+}
+
+TEST(EditorManagerWriteConflictTest,
+     PalettePanelsRemainSessionOwnedAcrossSwitchAndCloseDraw) {
+  ScopedImGuiContext imgui;
+  gfx::PaletteManager::Get().ResetForTesting();
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a = CreateMinimalRomFile("yaze_palette_panels_a.sfc",
+                                          "PALETTE PANELS A", 1024 * 1024);
+  const auto rom_b = CreateMinimalRomFile("yaze_palette_panels_b.sfc",
+                                          "PALETTE PANELS B", 1024 * 1024);
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  auto* first_panel = dynamic_cast<DungeonMainPalettePanel*>(
+      manager->window_manager().GetWindowContent(0, "palette.dungeon_main"));
+  ASSERT_NE(first_panel, nullptr);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  auto* second_panel = dynamic_cast<DungeonMainPalettePanel*>(
+      manager->window_manager().GetWindowContent(1, "palette.dungeon_main"));
+  ASSERT_NE(second_panel, nullptr);
+  EXPECT_NE(first_panel, second_panel);
+
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_EQ(
+      manager->window_manager().GetWindowContent(0, "palette.dungeon_main"),
+      first_panel);
+
+  manager->SwitchToSession(1);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  manager->CloseCurrentSession();
+  ASSERT_EQ(manager->GetActiveSessionCount(), 1u);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_EQ(
+      manager->window_manager().GetWindowContent(0, "palette.dungeon_main"),
+      first_panel);
+
+  ImGuiIO& io = ImGui::GetIO();
+  io.DisplaySize = ImVec2(1280.0f, 720.0f);
+  io.DeltaTime = 1.0f / 60.0f;
+  ImGui::NewFrame();
+  first_panel->Draw(nullptr);
+  ImGui::EndFrame();
 
   manager.reset();
   gfx::PaletteManager::Get().ResetForTesting();
