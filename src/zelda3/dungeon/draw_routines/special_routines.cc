@@ -17,6 +17,8 @@ namespace draw_routines {
 
 namespace {
 
+constexpr int kThievesTownEastAtticRoomId = 0x65;
+
 const gfx::TileInfo& TileAtWrapped(std::span<const gfx::TileInfo> tiles,
                                    size_t index) {
   return tiles[index % tiles.size()];
@@ -511,10 +513,15 @@ void DrawLightBeamOnFloor(const DrawContext& ctx) {
 }
 
 void DrawBigLightBeamOnFloor(const DrawContext& ctx) {
-  // ASM: RoomDraw_BigLightBeamOnFloor ($01A7D3) falls through to
-  // RoomDraw_FloorLight when its state bit is active.
-  // The active path draws four 4x4 blocks in a 2x2 grid (8x8 footprint).
-  // State-gating on $7EF0CA is not currently modeled in DungeonState.
+  // ASM: RoomDraw_BigLightBeamOnFloor ($01A7D3) reads the persisted
+  // bombed-floor flag for fixed room 0x065 ($7EF0CA & $0100), then falls
+  // through to RoomDraw_FloorLight when it is active. Do not use ctx.room_id.
+  // Null state is reserved for object/geometry previews, which keep the beam
+  // visible and measurable.
+  if (ctx.state != nullptr &&
+      !ctx.state->IsFloorBombable(kThievesTownEastAtticRoomId)) {
+    return;
+  }
   DrawFloorLightGrid(ctx);
 }
 
@@ -598,39 +605,26 @@ void DrawSingle4x3(const DrawContext& ctx) {
 }
 
 void DrawRupeeFloor(const DrawContext& ctx) {
-  // ASM: RoomDraw_RupeeFloor ($019AA9), preview shape:
-  // 3 columns of 2-tile pairs at rows [0..1], [3..4], [6..7].
-  if (ctx.tiles.size() < 2)
+  // USDASM RoomDraw_RupeeFloor ($01:9AA9-$01:9AED) exits when the
+  // current-room $0402 & $1000 event is set. State-free selector/geometry
+  // previews remain visible.
+  if ((ctx.state != nullptr && ctx.state->IsRupeeFloorCleared(ctx.room_id)) ||
+      ctx.tiles.size() < 2) {
     return;
+  }
 
+  constexpr std::array<int, 3> kTopRows = {0, 3, 6};
+  constexpr std::array<int, 3> kBottomRows = {1, 4, 7};
   for (int col = 0; col < 3; ++col) {
-    int x = ctx.object.x_ + (col * 2);
-
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[0]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, ctx.object.y_,
-                                 ctx.tiles[0]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + 1,
-                                 ctx.tiles[1]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, ctx.object.y_ + 1,
-                                 ctx.tiles[1]);
-
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + 3,
-                                 ctx.tiles[0]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, ctx.object.y_ + 3,
-                                 ctx.tiles[0]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + 4,
-                                 ctx.tiles[1]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, ctx.object.y_ + 4,
-                                 ctx.tiles[1]);
-
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + 6,
-                                 ctx.tiles[0]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, ctx.object.y_ + 6,
-                                 ctx.tiles[0]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + 7,
-                                 ctx.tiles[1]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, ctx.object.y_ + 7,
-                                 ctx.tiles[1]);
+    const int x = ctx.object.x_ + col * 2;
+    for (int row : kTopRows) {
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + row,
+                                   ctx.tiles[0]);
+    }
+    for (int row : kBottomRows) {
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + row,
+                                   ctx.tiles[1]);
+    }
   }
 }
 
@@ -1956,7 +1950,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .name = "RupeeFloor",
       .function = DrawRupeeFloor,
       .draws_to_both_bgs = false,
-      .base_width = 6,
+      .base_width = 5,
       .base_height = 8,
       .min_tiles = 2,
       .category = DrawRoutineInfo::Category::Special,

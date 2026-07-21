@@ -1,5 +1,6 @@
 #include "palette_manager.h"
 
+#include <algorithm>
 #include <chrono>
 
 #include "absl/strings/str_format.h"
@@ -329,6 +330,44 @@ size_t PaletteManager::GetModifiedColorCount(
     }
   }
   return count;
+}
+
+std::vector<std::pair<uint32_t, uint32_t>>
+PaletteManager::GetModifiedColorWriteRanges() const {
+  return GetModifiedColorWriteRanges(game_data_);
+}
+
+std::vector<std::pair<uint32_t, uint32_t>>
+PaletteManager::GetModifiedColorWriteRanges(
+    const zelda3::GameData* game_data) const {
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  const auto* state = FindState(game_data);
+  if (state == nullptr) {
+    return ranges;
+  }
+  ranges.reserve(GetModifiedColorCount(game_data));
+
+  for (const auto& [group_name, palette_map] : state->modified_colors) {
+    for (const auto& [palette_index, color_indices] : palette_map) {
+      for (int color_index : color_indices) {
+        const uint32_t begin =
+            GetPaletteAddress(group_name, palette_index, color_index);
+        ranges.emplace_back(begin, begin + 2u);
+      }
+    }
+  }
+
+  std::sort(ranges.begin(), ranges.end());
+  std::vector<std::pair<uint32_t, uint32_t>> coalesced;
+  coalesced.reserve(ranges.size());
+  for (const auto& range : ranges) {
+    if (coalesced.empty() || coalesced.back().second < range.first) {
+      coalesced.push_back(range);
+      continue;
+    }
+    coalesced.back().second = std::max(coalesced.back().second, range.second);
+  }
+  return coalesced;
 }
 
 // ========== Persistence ==========

@@ -910,7 +910,7 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xF8D] = {10, 4, Dir::None, 0, false};
   dimensions_[0xF97] = {10, 4, Dir::None, 0, false};
   // Rupee floor pattern
-  dimensions_[0xF92] = {6, 8, Dir::None, 0, false};
+  dimensions_[0xF92] = {5, 8, Dir::None, 0, false};
   // Table/rock 4x3 repeated with 8-tile spacing
   dimensions_[0xF94] = {4, 3, Dir::Horizontal, 8, false};
   // Single hammer peg (fixed 2x2)

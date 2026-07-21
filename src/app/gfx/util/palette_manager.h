@@ -9,6 +9,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -207,6 +208,18 @@ class PaletteManager {
    * @brief Count modified colors for a specific ROM session.
    */
   size_t GetModifiedColorCount(const zelda3::GameData* game_data) const;
+
+  /**
+   * @brief Get exact, coalesced half-open ROM ranges for modified colors.
+   */
+  std::vector<std::pair<uint32_t, uint32_t>> GetModifiedColorWriteRanges()
+      const;
+
+  /**
+   * @brief Get modified-color ranges for a session without activating it.
+   */
+  std::vector<std::pair<uint32_t, uint32_t>> GetModifiedColorWriteRanges(
+      const zelda3::GameData* game_data) const;
 
   // ========== Persistence ==========
 

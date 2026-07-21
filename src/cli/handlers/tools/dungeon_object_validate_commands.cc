@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <fstream>
 #include <limits>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -17,6 +18,8 @@
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_types.h"
+#include "zelda3/dungeon/dungeon_state.h"
+#include "zelda3/dungeon/geometry/object_geometry.h"
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
@@ -209,17 +212,128 @@ std::vector<int> BuildObjectIds(const absl::StatusOr<int>& object_arg) {
   return object_ids;
 }
 
-std::vector<int> BuildSizes(const absl::StatusOr<int>& size_arg) {
+bool IsType1ObjectId(int object_id) {
+  return object_id >= kType1Start && object_id <= kType1End;
+}
+
+bool IsType2ObjectId(int object_id) {
+  return object_id >= kType2Start && object_id <= kType2End;
+}
+
+bool IsType3ObjectId(int object_id) {
+  return object_id >= kType3Start && object_id <= kType3End;
+}
+
+int EncodedType3Size(int object_id) {
+  // Type 3 stores the low two X bits and low two Y bits in the object ID.
+  // RoomObject::DecodeObjectFromBytes folds the same bits into size_ with the
+  // two bit-pairs swapped, so each Type 3 ID has exactly one encodable size.
+  const int id_low_nibble = object_id & 0x0F;
+  return ((id_low_nibble & 0x03) << 2) | ((id_low_nibble >> 2) & 0x03);
+}
+
+std::vector<int> BuildSizesForObject(int object_id,
+                                     const absl::StatusOr<int>& size_arg,
+                                     bool all_sizes) {
+  // Type 2 has no encoded size field. Type 3 folds its size bits into the ID,
+  // so neither subtype can be meaningfully swept independently.
+  if (IsType2ObjectId(object_id)) {
+    return {0};
+  }
+  if (IsType3ObjectId(object_id)) {
+    return {EncodedType3Size(object_id)};
+  }
   if (size_arg.ok()) {
     return {size_arg.value()};
+  }
+  if (all_sizes && IsType1ObjectId(object_id)) {
+    std::vector<int> sizes;
+    sizes.reserve(16);
+    for (int size = 0; size <= 0x0F; ++size) {
+      sizes.push_back(size);
+    }
+    return sizes;
   }
   return {0, 1, 2, 7, 15};
 }
 
+class ActiveValidationState final : public zelda3::DungeonState {
+ public:
+  bool IsChestOpen(int, int) const override { return true; }
+  bool IsBigChestOpen() const override { return true; }
+  bool IsDoorOpen(int, int) const override { return true; }
+  bool IsDoorSwitchActive(int) const override { return true; }
+  bool IsWaterFaceActive(int) const override { return true; }
+  bool IsDamFloodgateOpen(int) const override { return true; }
+  bool IsWallMoved(int) const override { return true; }
+  bool IsFloorBombable(int) const override { return true; }
+  bool IsRupeeFloorCleared(int) const override { return true; }
+  bool IsCrystalSwitchBlue() const override { return false; }
+};
+
+enum class StateProfileKind { kDefault, kActive };
+
+struct StateProfile {
+  const char* name = "default";
+  const zelda3::DungeonState* state = nullptr;
+  StateProfileKind kind = StateProfileKind::kDefault;
+};
+
+std::vector<StateProfile> BuildStateProfiles(
+    bool all_states, const ActiveValidationState* active_state) {
+  std::vector<StateProfile> profiles{
+      {"default", nullptr, StateProfileKind::kDefault}};
+  if (all_states) {
+    profiles.push_back({"active", active_state, StateProfileKind::kActive});
+  }
+  return profiles;
+}
+
+bool IsExpectedEmptyState(int object_id, const StateProfile& profile) {
+  // Fail closed: this hand-maintained whitelist contains only USDASM-proven
+  // branches that intentionally erase themselves after their state activates.
+  return profile.kind == StateProfileKind::kActive &&
+         (object_id == 0x0CD || object_id == 0x0CE || object_id == 0xF92);
+}
+
+zelda3::DimensionService::DimensionResult ResolveExpectedBounds(
+    const zelda3::RoomObject& object, const zelda3::DungeonState* state,
+    bool expected_empty) {
+  auto geometry =
+      zelda3::ObjectGeometry::Get().MeasureByObjectIdForState(object, state);
+  if (geometry.ok() && (expected_empty || (geometry->width_tiles > 0 &&
+                                           geometry->height_tiles > 0))) {
+    return {
+        .offset_x_tiles = geometry->min_x_tiles,
+        .offset_y_tiles = geometry->min_y_tiles,
+        .width_tiles = geometry->width_tiles,
+        .height_tiles = geometry->height_tiles,
+    };
+  }
+  return zelda3::DimensionService::Get().GetDimensions(object);
+}
+
+class ScopedCustomObjectsDisabled {
+ public:
+  ScopedCustomObjectsDisabled()
+      : previous_(core::FeatureFlags::get().kEnableCustomObjects) {
+    core::FeatureFlags::get().kEnableCustomObjects = false;
+  }
+
+  ~ScopedCustomObjectsDisabled() {
+    core::FeatureFlags::get().kEnableCustomObjects = previous_;
+  }
+
+ private:
+  bool previous_ = false;
+};
+
 struct ValidationResult {
   int object_id = 0;
   int size = 0;
+  std::string state_profile = "default";
   bool has_tiles = false;
+  bool expected_has_tiles = true;
   int trace_width = 0;
   int trace_height = 0;
   int trace_min_x = 0;
@@ -243,55 +357,59 @@ struct ValidationResult {
     if (!has_tiles) {
       if (include_room_fields && has_room_context) {
         return absl::StrFormat(
-            "room 0x%02X obj#%d (0x%03X size %d @%d,%d L%d): no tiles drawn",
-            room_id, object_index, object_id, size, object_x, object_y,
-            object_layer);
+            "room 0x%02X obj#%d (0x%03X size %d state %s @%d,%d L%d): no "
+            "tiles drawn",
+            room_id, object_index, object_id, size, state_profile, object_x,
+            object_y, object_layer);
       }
-      return absl::StrFormat("obj 0x%03X size %d: no tiles drawn", object_id,
-                             size);
+      return absl::StrFormat("obj 0x%03X size %d state %s: no tiles drawn",
+                             object_id, size, state_profile);
     }
     std::string status = (size_mismatch || offset_mismatch) ? "MISMATCH" : "OK";
     if (include_room_fields && has_room_context) {
       return absl::StrFormat(
-          "room 0x%02X obj#%d (0x%03X size %d @%d,%d L%d): %s trace=%dx%d "
+          "room 0x%02X obj#%d (0x%03X size %d state %s @%d,%d L%d): %s "
+          "trace=%dx%d "
           "offset=(%d,%d) expected=%dx%d expected_offset=(%d,%d)",
-          room_id, object_index, object_id, size, object_x, object_y,
-          object_layer, status, trace_width, trace_height, trace_offset_x,
-          trace_offset_y, expected_width, expected_height, expected_offset_x,
-          expected_offset_y);
+          room_id, object_index, object_id, size, state_profile, object_x,
+          object_y, object_layer, status, trace_width, trace_height,
+          trace_offset_x, trace_offset_y, expected_width, expected_height,
+          expected_offset_x, expected_offset_y);
     }
     return absl::StrFormat(
-        "obj 0x%03X size %d: %s trace=%dx%d min=(%d,%d) offset=(%d,%d) "
+        "obj 0x%03X size %d state %s: %s trace=%dx%d min=(%d,%d) "
+        "offset=(%d,%d) "
         "expected=%dx%d expected_offset=(%d,%d)",
-        object_id, size, status, trace_width, trace_height, trace_min_x,
-        trace_min_y, trace_offset_x, trace_offset_y, expected_width,
-        expected_height, expected_offset_x, expected_offset_y);
+        object_id, size, state_profile, status, trace_width, trace_height,
+        trace_min_x, trace_min_y, trace_offset_x, trace_offset_y,
+        expected_width, expected_height, expected_offset_x, expected_offset_y);
   }
 
   std::string FormatJson(bool include_room_fields) const {
     if (include_room_fields && has_room_context) {
       return absl::StrFormat(
-          R"({"object_id":"0x%03X","size":%d,"has_tiles":%s,)"
+          R"({"object_id":"0x%03X","size":%d,"state_profile":"%s","has_tiles":%s,"expected_has_tiles":%s,)"
           R"("trace_width":%d,"trace_height":%d,"trace_min_x":%d,"trace_min_y":%d,)"
           R"("trace_offset_x":%d,"trace_offset_y":%d,)"
           R"("expected_width":%d,"expected_height":%d,"expected_offset_x":%d,"expected_offset_y":%d,)"
           R"("room_id":%d,"object_index":%d,"object_x":%d,"object_y":%d,"object_layer":%d,)"
           R"("size_mismatch":%s,"offset_mismatch":%s})",
-          object_id, size, has_tiles ? "true" : "false", trace_width,
-          trace_height, trace_min_x, trace_min_y, trace_offset_x,
-          trace_offset_y, expected_width, expected_height, expected_offset_x,
-          expected_offset_y, room_id, object_index, object_x, object_y,
-          object_layer, size_mismatch ? "true" : "false",
-          offset_mismatch ? "true" : "false");
+          object_id, size, state_profile, has_tiles ? "true" : "false",
+          expected_has_tiles ? "true" : "false", trace_width, trace_height,
+          trace_min_x, trace_min_y, trace_offset_x, trace_offset_y,
+          expected_width, expected_height, expected_offset_x, expected_offset_y,
+          room_id, object_index, object_x, object_y, object_layer,
+          size_mismatch ? "true" : "false", offset_mismatch ? "true" : "false");
     }
     return absl::StrFormat(
-        R"({"object_id":"0x%03X","size":%d,"has_tiles":%s,)"
+        R"({"object_id":"0x%03X","size":%d,"state_profile":"%s","has_tiles":%s,"expected_has_tiles":%s,)"
         R"("trace_width":%d,"trace_height":%d,"trace_min_x":%d,"trace_min_y":%d,)"
         R"("trace_offset_x":%d,"trace_offset_y":%d,)"
         R"("expected_width":%d,"expected_height":%d,"expected_offset_x":%d,"expected_offset_y":%d,)"
         R"("size_mismatch":%s,"offset_mismatch":%s})",
-        object_id, size, has_tiles ? "true" : "false", trace_width,
-        trace_height, trace_min_x, trace_min_y, trace_offset_x, trace_offset_y,
+        object_id, size, state_profile, has_tiles ? "true" : "false",
+        expected_has_tiles ? "true" : "false", trace_width, trace_height,
+        trace_min_x, trace_min_y, trace_offset_x, trace_offset_y,
         expected_width, expected_height, expected_offset_x, expected_offset_y,
         size_mismatch ? "true" : "false", offset_mismatch ? "true" : "false");
   }
@@ -305,6 +423,8 @@ struct ReportPaths {
 struct TraceDumpCase {
   int object_id = 0;
   int size = 0;
+  std::string state_profile = "default";
+  bool expected_has_tiles = true;
   bool has_room_context = false;
   int room_id = -1;
   int object_index = -1;
@@ -340,8 +460,9 @@ ReportPaths ResolveReportPaths(const std::string& report_base) {
 }
 
 absl::Status WriteJsonReport(const ReportPaths& paths, bool include_room_fields,
-                             int object_count, int size_cases, int test_cases,
-                             int mismatch_count, int empty_traces,
+                             int object_count, int size_cases, int state_cases,
+                             int test_cases, int mismatch_count,
+                             int empty_traces, int expected_empty_traces,
                              int negative_offsets, int skipped_nothing,
                              const std::vector<ValidationResult>& mismatches) {
   std::ofstream out(paths.json_path);
@@ -354,9 +475,12 @@ absl::Status WriteJsonReport(const ReportPaths& paths, bool include_room_fields,
   out << "  \"summary\": {\n";
   out << absl::StrFormat("    \"object_count\": %d,\n", object_count);
   out << absl::StrFormat("    \"size_cases\": %d,\n", size_cases);
+  out << absl::StrFormat("    \"state_cases\": %d,\n", state_cases);
   out << absl::StrFormat("    \"test_cases\": %d,\n", test_cases);
   out << absl::StrFormat("    \"mismatch_count\": %d,\n", mismatch_count);
   out << absl::StrFormat("    \"empty_traces\": %d,\n", empty_traces);
+  out << absl::StrFormat("    \"expected_empty_traces\": %d,\n",
+                         expected_empty_traces);
   out << absl::StrFormat("    \"negative_offsets\": %d,\n", negative_offsets);
   out << absl::StrFormat("    \"skipped_nothing\": %d\n", skipped_nothing);
   out << "  },\n";
@@ -382,8 +506,8 @@ absl::Status WriteCsvReport(const ReportPaths& paths, bool include_room_fields,
         absl::StrFormat("Failed to open report file: %s", paths.csv_path));
   }
 
-  out << "category,object_id,size,has_tiles,trace_width,trace_height,trace_min_"
-         "x,trace_min_y,";
+  out << "category,object_id,size,state_profile,has_tiles,expected_has_tiles,"
+         "trace_width,trace_height,trace_min_x,trace_min_y,";
   if (include_room_fields) {
     out << "trace_offset_x,trace_offset_y,room_id,object_index,object_x,object_"
            "y,object_layer,";
@@ -393,7 +517,9 @@ absl::Status WriteCsvReport(const ReportPaths& paths, bool include_room_fields,
   auto write_row = [&](const ValidationResult& result) {
     const std::string category = result.has_tiles ? "mismatch" : "empty";
     out << category << "," << absl::StrFormat("0x%03X", result.object_id) << ","
-        << result.size << "," << (result.has_tiles ? "true" : "false") << ","
+        << result.size << "," << result.state_profile << ","
+        << (result.has_tiles ? "true" : "false") << ","
+        << (result.expected_has_tiles ? "true" : "false") << ","
         << result.trace_width << "," << result.trace_height << ","
         << result.trace_min_x << "," << result.trace_min_y << ",";
     if (include_room_fields) {
@@ -439,7 +565,8 @@ std::vector<zelda3::ObjectDrawer::TileTrace> NormalizeTrace(
 }
 
 absl::Status WriteTraceDump(const std::string& path, bool include_room_fields,
-                            int empty_case_count,
+                            int unexpected_empty_case_count,
+                            int expected_empty_case_count,
                             const std::vector<TraceDumpCase>& cases) {
   std::ofstream out(path);
   if (!out.is_open()) {
@@ -450,7 +577,13 @@ absl::Status WriteTraceDump(const std::string& path, bool include_room_fields,
   out << "{\n";
   out << absl::StrFormat("  \"case_count\": %d,\n",
                          static_cast<int>(cases.size()));
-  out << absl::StrFormat("  \"empty_case_count\": %d,\n", empty_case_count);
+  out << absl::StrFormat(
+      "  \"empty_case_count\": %d,\n",
+      unexpected_empty_case_count + expected_empty_case_count);
+  out << absl::StrFormat("  \"unexpected_empty_case_count\": %d,\n",
+                         unexpected_empty_case_count);
+  out << absl::StrFormat("  \"expected_empty_case_count\": %d,\n",
+                         expected_empty_case_count);
   out << "  \"cases\": [\n";
 
   for (size_t i = 0; i < cases.size(); ++i) {
@@ -460,6 +593,10 @@ absl::Status WriteTraceDump(const std::string& path, bool include_room_fields,
                            entry.object_id);
     out << absl::StrFormat("      \"object_id_dec\": %d,\n", entry.object_id);
     out << absl::StrFormat("      \"size\": %d,\n", entry.size);
+    out << absl::StrFormat("      \"state_profile\": \"%s\",\n",
+                           entry.state_profile);
+    out << absl::StrFormat("      \"expected_has_tiles\": %s,\n",
+                           entry.expected_has_tiles ? "true" : "false");
     if (include_room_fields && entry.has_room_context) {
       out << absl::StrFormat("      \"room_id\": %d,\n", entry.room_id);
       out << absl::StrFormat("      \"object_index\": %d,\n",
@@ -507,12 +644,30 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
   auto room_arg = parser.GetInt("room");
   auto report_arg = parser.GetString("report");
   auto trace_out_arg = parser.GetString("trace-out");
-  bool verbose = parser.HasFlag("verbose");
+  const bool verbose = parser.HasFlag("verbose");
+  const bool all_sizes = parser.HasFlag("all-sizes");
+  const bool all_states = parser.HasFlag("all-states");
+  if (all_sizes && size_arg.ok()) {
+    return absl::InvalidArgumentError(
+        "--all-sizes cannot be combined with --size");
+  }
+  if (size_arg.ok() && (size_arg.value() < 0 || size_arg.value() > 0x0F)) {
+    return absl::InvalidArgumentError("Object size must be between 0 and 15");
+  }
   const bool room_mode = room_arg.ok();
   const int room_id = room_mode ? room_arg.value() : -1;
   if (room_mode && (room_id < 0 || room_id >= kNumRooms)) {
     return absl::InvalidArgumentError(
         absl::StrFormat("Room ID must be between 0 and %d", kNumRooms - 1));
+  }
+  if (room_mode && (size_arg.ok() || all_sizes)) {
+    return absl::InvalidArgumentError(
+        "--room cannot be combined with --size or --all-sizes");
+  }
+  if (size_arg.ok() &&
+      (!object_arg.ok() || !IsType1ObjectId(object_arg.value()))) {
+    return absl::InvalidArgumentError(
+        "--size requires a Type 1 --object (0x000-0x0F7)");
   }
 
   // Initialize ObjectDimensionTable so DimensionService's fallback path works.
@@ -521,14 +676,20 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
   if (!load_status.ok()) {
     return load_status;
   }
-  auto& dim_service = zelda3::DimensionService::Get();
-
   std::vector<int> object_ids = BuildObjectIds(object_arg);
-  std::vector<int> sizes = BuildSizes(size_arg);
+  ActiveValidationState active_state;
+  const std::vector<StateProfile> state_profiles =
+      BuildStateProfiles(all_states, &active_state);
 
-  zelda3::ObjectDrawer drawer(rom, 0, nullptr);
   std::vector<zelda3::ObjectDrawer::TileTrace> trace;
-  drawer.SetTraceCollector(&trace, true);
+  std::vector<std::unique_ptr<zelda3::ObjectDrawer>> profile_drawers;
+  profile_drawers.reserve(state_profiles.size());
+  for (size_t i = 0; i < state_profiles.size(); ++i) {
+    auto drawer = std::make_unique<zelda3::ObjectDrawer>(
+        rom, room_mode ? room_id : 0, nullptr);
+    drawer->SetTraceCollector(&trace, true);
+    profile_drawers.push_back(std::move(drawer));
+  }
 
   gfx::BackgroundBuffer bg1(512, 512);
   gfx::BackgroundBuffer bg2(512, 512);
@@ -537,6 +698,7 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
   int total_tests = 0;
   int mismatch_count = 0;
   int empty_trace_count = 0;
+  int expected_empty_trace_count = 0;
   int negative_offset_count = 0;
   int skipped_nothing = 0;
   int room_object_count = 0;
@@ -544,15 +706,25 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
   std::vector<ValidationResult> empty_traces;
   std::vector<TraceDumpCase> trace_cases;
 
+  int size_case_count = room_mode ? 1 : 0;
+  if (!room_mode) {
+    for (int object_id : object_ids) {
+      size_case_count = std::max(
+          size_case_count,
+          static_cast<int>(
+              BuildSizesForObject(object_id, size_arg, all_sizes).size()));
+    }
+  }
+
   ReportPaths report_paths = ResolveReportPaths(
       report_arg.has_value() ? report_arg.value() : std::string());
   const bool write_trace_dump = trace_out_arg.has_value();
   if (write_trace_dump) {
-    trace_cases.reserve(object_ids.size() * sizes.size());
+    trace_cases.reserve(object_ids.size() * size_case_count *
+                        state_profiles.size());
   }
 
-  bool prev_custom_objects = core::FeatureFlags::get().kEnableCustomObjects;
-  core::FeatureFlags::get().kEnableCustomObjects = false;
+  ScopedCustomObjectsDisabled custom_objects_disabled;
 
   if (room_mode) {
     zelda3::Room room = zelda3::LoadRoomHeaderFromRom(rom, room_id);
@@ -566,131 +738,32 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
     for (size_t idx = 0; idx < room_objects.size(); ++idx) {
       const auto& room_obj = room_objects[idx];
       int object_id = room_obj.id_;
-      int routine_id = drawer.GetDrawRoutineId(object_id);
+      int routine_id =
+          zelda3::DrawRoutineRegistry::Get().GetRoutineIdForObject(object_id);
       if (routine_id == zelda3::DrawRoutineIds::kNothing) {
         skipped_nothing++;
         continue;
       }
-      total_tests++;
-      trace.clear();
-
-      zelda3::RoomObject obj = room_obj;
-      obj.SetRom(rom);
-      auto draw_status = drawer.DrawObject(obj, bg1, bg2, palette_group);
-      if (!draw_status.ok()) {
-        return draw_status;
-      }
-
-      auto expected_bounds = dim_service.GetDimensions(obj);
-      expected_bounds = detail::ClipSelectionBoundsToRoom(
-          object_id, obj.size_, expected_bounds, obj.x_, obj.y_);
-
-      TraceBounds bounds = ComputeBounds(trace);
-      if (write_trace_dump) {
-        TraceDumpCase trace_case{};
-        trace_case.object_id = object_id;
-        trace_case.size = obj.size_;
-        trace_case.has_room_context = true;
-        trace_case.room_id = room_id;
-        trace_case.object_index = static_cast<int>(idx);
-        trace_case.object_x = obj.x_;
-        trace_case.object_y = obj.y_;
-        trace_case.object_layer = obj.GetLayerValue();
-        trace_case.tiles = NormalizeTrace(trace);
-        trace_cases.push_back(std::move(trace_case));
-      }
-
-      ValidationResult result{};
-      result.object_id = object_id;
-      result.size = obj.size_;
-      result.has_room_context = true;
-      result.room_id = room_id;
-      result.object_index = static_cast<int>(idx);
-      result.object_x = obj.x_;
-      result.object_y = obj.y_;
-      result.object_layer = obj.GetLayerValue();
-      result.expected_width = expected_bounds.width_tiles;
-      result.expected_height = expected_bounds.height_tiles;
-      result.expected_offset_x = expected_bounds.offset_x_tiles;
-      result.expected_offset_y = expected_bounds.offset_y_tiles;
-
-      if (!bounds.has_tiles) {
-        empty_trace_count++;
-        result.has_tiles = false;
-        result.trace_width = 0;
-        result.trace_height = 0;
-        result.trace_min_x = 0;
-        result.trace_min_y = 0;
-        result.trace_offset_x = 0;
-        result.trace_offset_y = 0;
-        result.size_mismatch = true;
-        result.offset_mismatch = false;
-        mismatch_count++;
-        mismatches.push_back(result);
-        if (verbose) {
-          empty_traces.push_back(result);
-        }
-        continue;
-      }
-
-      result.has_tiles = true;
-      result.trace_width = bounds.width;
-      result.trace_height = bounds.height;
-      result.trace_min_x = bounds.min_x;
-      result.trace_min_y = bounds.min_y;
-      result.trace_offset_x = bounds.min_x - obj.x_;
-      result.trace_offset_y = bounds.min_y - obj.y_;
-      result.size_mismatch = (bounds.width != expected_bounds.width_tiles ||
-                              bounds.height != expected_bounds.height_tiles);
-      result.offset_mismatch =
-          (result.trace_offset_x != expected_bounds.offset_x_tiles ||
-           result.trace_offset_y != expected_bounds.offset_y_tiles);
-
-      if (expected_bounds.offset_x_tiles < 0 ||
-          expected_bounds.offset_y_tiles < 0) {
-        negative_offset_count++;
-      }
-
-      if (result.size_mismatch || result.offset_mismatch) {
-        mismatch_count++;
-        mismatches.push_back(result);
-      }
-    }
-  } else {
-    for (int object_id : object_ids) {
-      int routine_id = drawer.GetDrawRoutineId(object_id);
-      if (routine_id == zelda3::DrawRoutineIds::kNothing) {
-        skipped_nothing++;
-        continue;
-      }
-      for (int size : sizes) {
+      for (size_t profile_index = 0; profile_index < state_profiles.size();
+           ++profile_index) {
+        const auto& profile = state_profiles[profile_index];
+        auto& drawer = *profile_drawers[profile_index];
         total_tests++;
         trace.clear();
 
-        // Use a temporary object at origin (0,0) to get initial dimensions,
-        // then choose a safe origin that keeps bounds within the room canvas.
-        zelda3::RoomObject temp_obj(object_id, 0, 0, static_cast<uint8_t>(size),
-                                    0);
-        auto expected_bounds = dim_service.GetDimensions(temp_obj);
-        const auto [origin_x, origin_y] =
-            ChooseOriginForExpectedBounds(expected_bounds);
-
-        zelda3::RoomObject obj(object_id, origin_x, origin_y,
-                               static_cast<uint8_t>(size), 0);
-        obj.layer_ = zelda3::RoomObject::LayerType::BG1;
-
-        // Re-query with the positioned object so DimensionService sees the
-        // final coordinates, then apply room-boundary clipping.
-        expected_bounds = dim_service.GetDimensions(obj);
-        expected_bounds = detail::ClipSelectionBoundsToRoom(
-            object_id, size, expected_bounds, obj.x_, obj.y_);
-
-        if (expected_bounds.offset_x_tiles < 0 ||
-            expected_bounds.offset_y_tiles < 0) {
-          negative_offset_count++;
+        zelda3::RoomObject obj = room_obj;
+        obj.SetRom(rom);
+        const bool expected_empty = IsExpectedEmptyState(object_id, profile);
+        const bool expected_has_tiles = !expected_empty;
+        auto expected_bounds =
+            ResolveExpectedBounds(obj, profile.state, expected_empty);
+        if (expected_has_tiles) {
+          expected_bounds = detail::ClipSelectionBoundsToRoom(
+              object_id, obj.size_, expected_bounds, obj.x_, obj.y_);
         }
 
-        auto draw_status = drawer.DrawObject(obj, bg1, bg2, palette_group);
+        auto draw_status =
+            drawer.DrawObject(obj, bg1, bg2, palette_group, profile.state);
         if (!draw_status.ok()) {
           return draw_status;
         }
@@ -699,26 +772,43 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
         if (write_trace_dump) {
           TraceDumpCase trace_case{};
           trace_case.object_id = object_id;
-          trace_case.size = size;
+          trace_case.size = obj.size_;
+          trace_case.state_profile = profile.name;
+          trace_case.expected_has_tiles = expected_has_tiles;
+          trace_case.has_room_context = true;
+          trace_case.room_id = room_id;
+          trace_case.object_index = static_cast<int>(idx);
+          trace_case.object_x = obj.x_;
+          trace_case.object_y = obj.y_;
+          trace_case.object_layer = obj.GetLayerValue();
           trace_case.tiles = NormalizeTrace(trace);
           trace_cases.push_back(std::move(trace_case));
         }
+
+        ValidationResult result{};
+        result.object_id = object_id;
+        result.size = obj.size_;
+        result.state_profile = profile.name;
+        result.expected_has_tiles = expected_has_tiles;
+        result.has_room_context = true;
+        result.room_id = room_id;
+        result.object_index = static_cast<int>(idx);
+        result.object_x = obj.x_;
+        result.object_y = obj.y_;
+        result.object_layer = obj.GetLayerValue();
+        result.expected_width = expected_bounds.width_tiles;
+        result.expected_height = expected_bounds.height_tiles;
+        result.expected_offset_x = expected_bounds.offset_x_tiles;
+        result.expected_offset_y = expected_bounds.offset_y_tiles;
+
         if (!bounds.has_tiles) {
-          empty_trace_count++;
-          ValidationResult result{};
-          result.object_id = object_id;
-          result.size = size;
           result.has_tiles = false;
-          result.trace_width = 0;
-          result.trace_height = 0;
-          result.trace_min_x = 0;
-          result.trace_min_y = 0;
-          result.expected_width = expected_bounds.width_tiles;
-          result.expected_height = expected_bounds.height_tiles;
-          result.expected_offset_x = expected_bounds.offset_x_tiles;
-          result.expected_offset_y = expected_bounds.offset_y_tiles;
+          if (!expected_has_tiles) {
+            expected_empty_trace_count++;
+            continue;
+          }
+          empty_trace_count++;
           result.size_mismatch = true;
-          result.offset_mismatch = false;
           mismatch_count++;
           mismatches.push_back(result);
           if (verbose) {
@@ -727,9 +817,6 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
           continue;
         }
 
-        ValidationResult result{};
-        result.object_id = object_id;
-        result.size = size;
         result.has_tiles = true;
         result.trace_width = bounds.width;
         result.trace_height = bounds.height;
@@ -737,15 +824,18 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
         result.trace_min_y = bounds.min_y;
         result.trace_offset_x = bounds.min_x - obj.x_;
         result.trace_offset_y = bounds.min_y - obj.y_;
-        result.expected_width = expected_bounds.width_tiles;
-        result.expected_height = expected_bounds.height_tiles;
-        result.expected_offset_x = expected_bounds.offset_x_tiles;
-        result.expected_offset_y = expected_bounds.offset_y_tiles;
-        result.size_mismatch = (bounds.width != expected_bounds.width_tiles ||
-                                bounds.height != expected_bounds.height_tiles);
+        result.size_mismatch = !expected_has_tiles ||
+                               bounds.width != expected_bounds.width_tiles ||
+                               bounds.height != expected_bounds.height_tiles;
         result.offset_mismatch =
+            expected_has_tiles &&
             (result.trace_offset_x != expected_bounds.offset_x_tiles ||
              result.trace_offset_y != expected_bounds.offset_y_tiles);
+
+        if (expected_has_tiles && (expected_bounds.offset_x_tiles < 0 ||
+                                   expected_bounds.offset_y_tiles < 0)) {
+          negative_offset_count++;
+        }
 
         if (result.size_mismatch || result.offset_mismatch) {
           mismatch_count++;
@@ -753,17 +843,128 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
         }
       }
     }
-  }
+  } else {
+    for (int object_id : object_ids) {
+      int routine_id =
+          zelda3::DrawRoutineRegistry::Get().GetRoutineIdForObject(object_id);
+      if (routine_id == zelda3::DrawRoutineIds::kNothing) {
+        skipped_nothing++;
+        continue;
+      }
+      const std::vector<int> object_sizes =
+          BuildSizesForObject(object_id, size_arg, all_sizes);
+      for (int size : object_sizes) {
+        for (size_t profile_index = 0; profile_index < state_profiles.size();
+             ++profile_index) {
+          const auto& profile = state_profiles[profile_index];
+          auto& drawer = *profile_drawers[profile_index];
+          drawer.ResetChestIndex();
+          total_tests++;
+          trace.clear();
 
-  core::FeatureFlags::get().kEnableCustomObjects = prev_custom_objects;
+          // Measure this concrete state first, then choose an origin that keeps
+          // negative/upward anchors inside the trace canvas.
+          zelda3::RoomObject temp_obj(object_id, 0, 0,
+                                      static_cast<uint8_t>(size), 0);
+          const bool expected_empty = IsExpectedEmptyState(object_id, profile);
+          const bool expected_has_tiles = !expected_empty;
+          auto expected_bounds =
+              ResolveExpectedBounds(temp_obj, profile.state, expected_empty);
+          const auto [origin_x, origin_y] =
+              expected_has_tiles
+                  ? ChooseOriginForExpectedBounds(expected_bounds)
+                  : std::pair<int, int>{0, 0};
+
+          zelda3::RoomObject obj(object_id, origin_x, origin_y,
+                                 static_cast<uint8_t>(size), 0);
+          obj.layer_ = zelda3::RoomObject::LayerType::BG1;
+
+          expected_bounds =
+              ResolveExpectedBounds(obj, profile.state, expected_empty);
+          if (expected_has_tiles) {
+            expected_bounds = detail::ClipSelectionBoundsToRoom(
+                object_id, size, expected_bounds, obj.x_, obj.y_);
+          }
+
+          if (expected_has_tiles && (expected_bounds.offset_x_tiles < 0 ||
+                                     expected_bounds.offset_y_tiles < 0)) {
+            negative_offset_count++;
+          }
+
+          auto draw_status =
+              drawer.DrawObject(obj, bg1, bg2, palette_group, profile.state);
+          if (!draw_status.ok()) {
+            return draw_status;
+          }
+
+          TraceBounds bounds = ComputeBounds(trace);
+          if (write_trace_dump) {
+            TraceDumpCase trace_case{};
+            trace_case.object_id = object_id;
+            trace_case.size = size;
+            trace_case.state_profile = profile.name;
+            trace_case.expected_has_tiles = expected_has_tiles;
+            trace_case.tiles = NormalizeTrace(trace);
+            trace_cases.push_back(std::move(trace_case));
+          }
+
+          ValidationResult result{};
+          result.object_id = object_id;
+          result.size = size;
+          result.state_profile = profile.name;
+          result.expected_has_tiles = expected_has_tiles;
+          result.expected_width = expected_bounds.width_tiles;
+          result.expected_height = expected_bounds.height_tiles;
+          result.expected_offset_x = expected_bounds.offset_x_tiles;
+          result.expected_offset_y = expected_bounds.offset_y_tiles;
+
+          if (!bounds.has_tiles) {
+            result.has_tiles = false;
+            if (!expected_has_tiles) {
+              expected_empty_trace_count++;
+              continue;
+            }
+            empty_trace_count++;
+            result.size_mismatch = true;
+            mismatch_count++;
+            mismatches.push_back(result);
+            if (verbose) {
+              empty_traces.push_back(result);
+            }
+            continue;
+          }
+
+          result.has_tiles = true;
+          result.trace_width = bounds.width;
+          result.trace_height = bounds.height;
+          result.trace_min_x = bounds.min_x;
+          result.trace_min_y = bounds.min_y;
+          result.trace_offset_x = bounds.min_x - obj.x_;
+          result.trace_offset_y = bounds.min_y - obj.y_;
+          result.size_mismatch = !expected_has_tiles ||
+                                 bounds.width != expected_bounds.width_tiles ||
+                                 bounds.height != expected_bounds.height_tiles;
+          result.offset_mismatch =
+              expected_has_tiles &&
+              (result.trace_offset_x != expected_bounds.offset_x_tiles ||
+               result.trace_offset_y != expected_bounds.offset_y_tiles);
+
+          if (result.size_mismatch || result.offset_mismatch) {
+            mismatch_count++;
+            mismatches.push_back(result);
+          }
+        }
+      }
+    }
+  }
 
   const int object_count =
       room_mode ? room_object_count : static_cast<int>(object_ids.size());
-  auto json_status =
-      WriteJsonReport(report_paths, room_mode, object_count,
-                      room_mode ? 1 : static_cast<int>(sizes.size()),
-                      total_tests, mismatch_count, empty_trace_count,
-                      negative_offset_count, skipped_nothing, mismatches);
+  auto json_status = WriteJsonReport(
+      report_paths, room_mode, object_count, size_case_count,
+      static_cast<int>(state_profiles.size()), total_tests, mismatch_count,
+      empty_trace_count, expected_empty_trace_count, negative_offset_count,
+      skipped_nothing, mismatches);
   if (!json_status.ok()) {
     return json_status;
   }
@@ -774,8 +975,9 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
   }
 
   if (write_trace_dump) {
-    auto trace_status = WriteTraceDump(trace_out_arg.value(), room_mode,
-                                       empty_trace_count, trace_cases);
+    auto trace_status =
+        WriteTraceDump(trace_out_arg.value(), room_mode, empty_trace_count,
+                       expected_empty_trace_count, trace_cases);
     if (!trace_status.ok()) {
       return trace_status;
     }
@@ -783,11 +985,12 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
   }
 
   formatter.AddField("object_count", object_count);
-  formatter.AddField("size_cases",
-                     room_mode ? 1 : static_cast<int>(sizes.size()));
+  formatter.AddField("size_cases", size_case_count);
+  formatter.AddField("state_cases", static_cast<int>(state_profiles.size()));
   formatter.AddField("test_cases", total_tests);
   formatter.AddField("mismatch_count", mismatch_count);
   formatter.AddField("empty_traces", empty_trace_count);
+  formatter.AddField("expected_empty_traces", expected_empty_trace_count);
   formatter.AddField("negative_offsets", negative_offset_count);
   formatter.AddField("skipped_nothing", skipped_nothing);
   if (room_mode) {
