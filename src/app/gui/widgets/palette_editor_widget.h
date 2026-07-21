@@ -3,8 +3,10 @@
 
 #include <functional>
 #include <map>
+#include <optional>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"
 #include "imgui/imgui.h"
@@ -48,26 +50,29 @@ class PaletteEditorWidget {
     dungeon_render_palette_mode_ = enabled;
   }
 
+  // Apply one editable CGRAM slot from the dungeon render palette. Passing a
+  // color records the edit through PaletteManager; std::nullopt resets the
+  // slot to PaletteManager's original ROM snapshot. The palette-change
+  // callback is fired only after a successful managed edit.
+  absl::Status ApplyDungeonRenderColorEdit(int display_index,
+                                           std::optional<gfx::SnesColor> color);
+
   bool IsROMLoaded() const { return rom_ != nullptr; }
   int GetCurrentGroupIndex() const { return current_group_index_; }
   void DrawROMPaletteSelector();
 
  private:
- void DrawPaletteGrid(gfx::SnesPalette& palette, int cols = 15);
+  void DrawPaletteGrid(gfx::SnesPalette& palette, int cols = 15);
   void DrawColorEditControls(gfx::SnesColor& color, int color_index);
   void DrawPaletteAnalysis(const gfx::SnesPalette& palette);
   void LoadROMPalettes();
-  float ComputeSwatchSize(int columns, float min_size,
-                          float max_size) const;
+  float ComputeSwatchSize(int columns, float min_size, float max_size) const;
 
   // For embedded view
   void DrawPaletteSelector();
   void DrawColorPicker();
   void DrawDungeonRenderPalette();
   void DrawDungeonRenderColorPicker();
-  bool ResolveDungeonRenderSelection(gfx::SnesPalette** palette,
-                                     int* color_index,
-                                     std::string* source_label);
 
   zelda3::GameData* game_data_ = nullptr;
   Rom* rom_ = nullptr;  // Legacy, deprecated
