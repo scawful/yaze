@@ -90,11 +90,7 @@ void SessionCoordinator::CreateNewSession() {
       user_settings_, next_session_id_++, editor_registry_));
   UpdateSessionCount();
 
-  // Set as active session
-  active_session_index_ = sessions_.size() - 1;
-  if (window_manager_) {
-    window_manager_->SetActiveSession(GetActiveSessionId());
-  }
+  const size_t new_session_index = sessions_.size() - 1;
 
   // Configure the new session
   if (editor_manager_) {
@@ -103,10 +99,11 @@ void SessionCoordinator::CreateNewSession() {
   }
 
   LOG_INFO("SessionCoordinator", "Created new session %zu (total: %zu)",
-           active_session_index_, session_count_);
+           new_session_index, session_count_);
 
   // Notify observers
-  NotifySessionCreated(active_session_index_, sessions_.back().get());
+  NotifySessionCreated(new_session_index, sessions_.back().get());
+  ActivateCreatedSession(new_session_index);
 
   ShowSessionOperationResult("Create Session", true);
 }
@@ -127,11 +124,7 @@ void SessionCoordinator::DuplicateCurrentSession() {
       user_settings_, next_session_id_++, editor_registry_));
   UpdateSessionCount();
 
-  // Set as active session
-  active_session_index_ = sessions_.size() - 1;
-  if (window_manager_) {
-    window_manager_->SetActiveSession(GetActiveSessionId());
-  }
+  const size_t new_session_index = sessions_.size() - 1;
 
   // Configure the new session
   if (editor_manager_) {
@@ -140,12 +133,40 @@ void SessionCoordinator::DuplicateCurrentSession() {
   }
 
   LOG_INFO("SessionCoordinator", "Duplicated session %zu (total: %zu)",
-           active_session_index_, session_count_);
+           new_session_index, session_count_);
 
   // Notify observers
-  NotifySessionCreated(active_session_index_, sessions_.back().get());
+  NotifySessionCreated(new_session_index, sessions_.back().get());
+  ActivateCreatedSession(new_session_index);
 
   ShowSessionOperationResult("Duplicate Session", true);
+}
+
+void SessionCoordinator::ActivateCreatedSession(size_t index) {
+  if (!IsValidSessionIndex(index)) {
+    return;
+  }
+
+  // There is no previous active index for the first session, so force the
+  // normal switch notification that binds global editor/session context.
+  if (sessions_.size() == 1) {
+    active_session_index_ = index;
+    if (window_manager_) {
+      window_manager_->SetActiveSession(GetSessionId(index));
+    }
+    NotifySessionSwitched(index, index, sessions_[index].get(),
+                          /*transient=*/false);
+    return;
+  }
+
+  // Route activation through EditorManager when available. Besides publishing
+  // the normal switch lifecycle, this preserves the existing unsaved-work
+  // guard for the session being left behind.
+  if (editor_manager_) {
+    editor_manager_->RequestSwitchToSession(index);
+  } else {
+    SwitchToSession(index);
+  }
 }
 
 void SessionCoordinator::RequestCloseCurrentSession() {

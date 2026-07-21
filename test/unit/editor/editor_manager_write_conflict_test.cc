@@ -721,6 +721,165 @@ TEST(EditorManagerWriteConflictTest,
 }
 
 TEST(EditorManagerWriteConflictTest,
+     CreateAndDuplicateSessionsUseFullSwitchLifecycle) {
+  ScopedImGuiContext imgui;
+  gfx::PaletteManager::Get().ResetForTesting();
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_path =
+      CreateMinimalRomFile("yaze_create_rebind.sfc", "CREATE REBIND");
+  ScopedFileCleanup cleanup{rom_path};
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+
+  manager->window_manager().SetActiveCategory("Dungeon", /*notify=*/false);
+  Editor* first_dungeon =
+      manager->GetCurrentEditorSet()->GetEditor(EditorType::kDungeon);
+  ASSERT_NE(first_dungeon, nullptr);
+  manager->SetCurrentEditor(first_dungeon);
+
+  auto* properties_panel = manager->right_drawer_manager()->properties_panel();
+  ASSERT_NE(properties_panel, nullptr);
+  int first_selection = 0;
+  SelectionContext selection;
+  selection.type = SelectionType::kDungeonObject;
+  selection.data = &first_selection;
+  properties_panel->SetSelection(selection);
+
+  manager->CreateNewSession();
+
+  ASSERT_EQ(manager->GetActiveSessionCount(), 2u);
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  EXPECT_EQ(manager->GetCurrentSessionId(), 1u);
+  EXPECT_EQ(manager->window_manager().GetActiveSessionId(), 1u);
+  auto* created_rom = manager->GetCurrentRom();
+  auto* created_game_data = manager->GetCurrentGameData();
+  Editor* created_dungeon =
+      manager->GetCurrentEditorSet()->GetEditor(EditorType::kDungeon);
+  auto* created_settings = manager->GetCurrentEditorSet()->GetSettingsPanel();
+  ASSERT_NE(created_rom, nullptr);
+  ASSERT_NE(created_game_data, nullptr);
+  ASSERT_NE(created_dungeon, nullptr);
+  ASSERT_NE(created_settings, nullptr);
+  EXPECT_EQ(ContentRegistry::Context::rom(), created_rom);
+  EXPECT_EQ(ContentRegistry::Context::game_data(), created_game_data);
+  EXPECT_EQ(manager->GetCurrentEditor(), created_dungeon);
+  EXPECT_EQ(ContentRegistry::Context::current_editor(), created_dungeon);
+  EXPECT_EQ(ContentRegistry::Context::editor_window_context("Dungeon"),
+            created_dungeon);
+  EXPECT_EQ(manager->right_drawer_manager()->settings_panel(),
+            created_settings);
+  EXPECT_FALSE(properties_panel->HasSelection());
+
+  SeedCurrentDungeonPalette(manager.get(), 0x0100);
+  ASSERT_TRUE(gfx::PaletteManager::Get().IsManaging(created_game_data));
+  int created_selection = 0;
+  selection.data = &created_selection;
+  properties_panel->SetSelection(selection);
+
+  manager->DuplicateCurrentSession();
+
+  ASSERT_EQ(manager->GetActiveSessionCount(), 3u);
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 2u);
+  EXPECT_EQ(manager->GetCurrentSessionId(), 2u);
+  EXPECT_EQ(manager->window_manager().GetActiveSessionId(), 2u);
+  auto* duplicated_rom = manager->GetCurrentRom();
+  auto* duplicated_game_data = manager->GetCurrentGameData();
+  Editor* duplicated_dungeon =
+      manager->GetCurrentEditorSet()->GetEditor(EditorType::kDungeon);
+  auto* duplicated_settings =
+      manager->GetCurrentEditorSet()->GetSettingsPanel();
+  ASSERT_NE(duplicated_rom, nullptr);
+  ASSERT_NE(duplicated_game_data, nullptr);
+  ASSERT_NE(duplicated_dungeon, nullptr);
+  ASSERT_NE(duplicated_settings, nullptr);
+  EXPECT_NE(duplicated_rom, created_rom);
+  EXPECT_NE(duplicated_game_data, created_game_data);
+  EXPECT_EQ(ContentRegistry::Context::rom(), duplicated_rom);
+  EXPECT_EQ(ContentRegistry::Context::game_data(), duplicated_game_data);
+  EXPECT_EQ(manager->GetCurrentEditor(), duplicated_dungeon);
+  EXPECT_EQ(ContentRegistry::Context::current_editor(), duplicated_dungeon);
+  EXPECT_EQ(ContentRegistry::Context::editor_window_context("Dungeon"),
+            duplicated_dungeon);
+  EXPECT_EQ(manager->right_drawer_manager()->settings_panel(),
+            duplicated_settings);
+  EXPECT_FALSE(properties_panel->HasSelection());
+  EXPECT_FALSE(gfx::PaletteManager::Get().IsManaging(created_game_data));
+
+  manager.reset();
+  gfx::PaletteManager::Get().ResetForTesting();
+}
+
+TEST(EditorManagerWriteConflictTest, FirstCreatedSessionBindsEditorContext) {
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->window_manager().SetActiveCategory("Dungeon", /*notify=*/false);
+
+  manager->CreateNewSession();
+
+  ASSERT_EQ(manager->GetActiveSessionCount(), 1u);
+  EXPECT_EQ(manager->GetCurrentSessionId(), 0u);
+  EXPECT_EQ(manager->window_manager().GetActiveSessionId(), 0u);
+  EXPECT_EQ(ContentRegistry::Context::rom(), manager->GetCurrentRom());
+  EXPECT_EQ(ContentRegistry::Context::game_data(),
+            manager->GetCurrentGameData());
+  Editor* dungeon =
+      manager->GetCurrentEditorSet()->GetEditor(EditorType::kDungeon);
+  auto* settings = manager->GetCurrentEditorSet()->GetSettingsPanel();
+  ASSERT_NE(dungeon, nullptr);
+  ASSERT_NE(settings, nullptr);
+  EXPECT_EQ(manager->GetCurrentEditor(), dungeon);
+  EXPECT_EQ(ContentRegistry::Context::current_editor(), dungeon);
+  EXPECT_EQ(ContentRegistry::Context::editor_window_context("Dungeon"),
+            dungeon);
+  EXPECT_EQ(manager->right_drawer_manager()->settings_panel(), settings);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     CreatedSessionActivationHonorsUnsavedWorkGuard) {
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_path =
+      CreateMinimalRomFile("yaze_create_guard.sfc", "CREATE GUARD");
+  ScopedFileCleanup cleanup{rom_path};
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  Rom* source_rom = manager->GetCurrentRom();
+  auto* source_game_data = manager->GetCurrentGameData();
+  ASSERT_NE(source_rom, nullptr);
+  ASSERT_NE(source_game_data, nullptr);
+  MarkCurrentDungeonRoomPending(manager.get());
+
+  manager->CreateNewSession();
+
+  EXPECT_EQ(manager->GetActiveSessionCount(), 2u);
+  EXPECT_EQ(manager->GetCurrentSessionId(), 0u);
+  EXPECT_EQ(manager->GetCurrentRom(), source_rom);
+  EXPECT_EQ(ContentRegistry::Context::rom(), source_rom);
+  EXPECT_EQ(ContentRegistry::Context::game_data(), source_game_data);
+  EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetCurrentSessionId(), 1u);
+  EXPECT_EQ(ContentRegistry::Context::rom(), manager->GetCurrentRom());
+  EXPECT_EQ(ContentRegistry::Context::game_data(),
+            manager->GetCurrentGameData());
+}
+
+TEST(EditorManagerWriteConflictTest,
      QuitDefersWhileAnySessionHasPendingDungeonChanges) {
   ScopedImGuiContext imgui;
 
