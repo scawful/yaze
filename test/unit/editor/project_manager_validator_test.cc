@@ -188,4 +188,43 @@ TEST(ProjectManagerValidatorTest, HasActiveProjectAfterBundleOpen) {
   EXPECT_TRUE(mgr.HasActiveProject());
 }
 
+TEST(ProjectManagerValidatorTest, FinalizeProjectCreationPersistsDescriptor) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_pm_finalize"));
+  const auto rom_path = temp.path() / "source.sfc";
+  WriteTextFile(rom_path, "rom");
+
+  ProjectManager mgr(nullptr);
+  ASSERT_TRUE(mgr.CreateNewProject().ok());
+  ASSERT_TRUE(mgr.SetProjectRom(rom_path.string()).ok());
+  ASSERT_TRUE(mgr.FinalizeProjectCreation("Oracle Test", "").ok());
+
+  const auto expected_path = temp.path() / "Oracle_Test.yaze";
+  EXPECT_EQ(mgr.GetCurrentProject().filepath, expected_path.string());
+  EXPECT_TRUE(std::filesystem::exists(expected_path));
+
+  project::YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(expected_path.string()).ok());
+  EXPECT_EQ(reopened.name, "Oracle Test");
+  EXPECT_EQ(reopened.rom_filename, rom_path.string());
+}
+
+TEST(ProjectManagerValidatorTest,
+     FinalizeProjectCreationKeepsPendingStateWhenSaveFails) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_pm_finalize_failure"));
+  const auto rom_path = temp.path() / "source.sfc";
+  const auto blocker = temp.path() / "not_a_directory";
+  WriteTextFile(rom_path, "rom");
+  WriteTextFile(blocker, "blocker");
+
+  ProjectManager mgr(nullptr);
+  ASSERT_TRUE(mgr.CreateNewProject().ok());
+  ASSERT_TRUE(mgr.SetProjectRom(rom_path.string()).ok());
+  const auto status = mgr.FinalizeProjectCreation(
+      "Cannot Save", (blocker / "project.yaze").string());
+
+  EXPECT_FALSE(status.ok());
+  EXPECT_TRUE(mgr.IsPendingRomSelection());
+  EXPECT_FALSE(std::filesystem::exists(blocker / "project.yaze"));
+}
+
 }  // namespace yaze::editor

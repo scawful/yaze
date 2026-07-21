@@ -319,7 +319,6 @@ absl::Status ProjectManager::SetProjectRom(const std::string& rom_path) {
 #endif
 
   current_project_.rom_filename = rom_path;
-  pending_rom_selection_ = false;
 
   if (toast_manager_) {
     toast_manager_->Show(
@@ -341,12 +340,14 @@ absl::Status ProjectManager::FinalizeProjectCreation(
 
   if (!project_path.empty()) {
     current_project_.filepath = project_path;
+  } else if (!current_project_.rom_filename.empty()) {
+    current_project_.filepath =
+        (std::filesystem::path(current_project_.rom_filename).parent_path() /
+         GenerateProjectFilename(project_name))
+            .string();
   } else {
     current_project_.filepath = GenerateProjectFilename(project_name);
   }
-
-  pending_rom_selection_ = false;
-  pending_template_name_.clear();
 
   // Initialize project structure if we have a directory
   std::string project_dir;
@@ -363,6 +364,13 @@ absl::Status ProjectManager::FinalizeProjectCreation(
       }
     }
   }
+
+  // A project is not complete until its descriptor exists on disk. Keep the
+  // pending workflow intact on failure so callers can retry or cancel.
+  RETURN_IF_ERROR(current_project_.Save());
+
+  pending_rom_selection_ = false;
+  pending_template_name_.clear();
 
   if (toast_manager_) {
     toast_manager_->Show(absl::StrFormat("Project created: %s", project_name),
