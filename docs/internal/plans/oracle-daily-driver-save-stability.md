@@ -202,3 +202,17 @@ publishing the safety PR, also require:
   `5ba81e1e8827d263eb15f774adbe32ec42d1f60b9db44af608f77c01b41bc3d1`.
   The canonical `Roms/oos168.sfc` remained unchanged at
   `d289b2408c3ccc312abeadf274f04f475106034fcab8ebff3f307fd229db4799`.
+
+### 2026-07-15 combined daily-driver soak snapshot
+
+- `AllDailyDriverDomainsSurviveFiftyReopenCycles` now saves an object, door,
+  sprite, room-header palette/message ID, pot stream, chest, and regular
+  entrance in one production `SaveRoom` transaction.
+- An observation fence records the complete 14-byte room-header write before a
+  deliberate 169th chest returns the exact capacity error. The transaction
+  restores all ROM bytes and every dirty retry flag; removing the extra chest
+  then succeeds without rebuilding the editor or its COW plans.
+- Fifty save/destroy/reopen cycles preserve all edited semantics and reproduce
+  identical temporary-ROM bytes. The canonical OOS ROM and manifest remain at
+  SHA-256 `d289b2408c3ccc312abeadf274f04f475106034fcab8ebff3f307fd229db4799`
+  and `807155365ca8a83c0aacfdc3f7d0550a5d03463be409d0400dfff8d6fb90ff74`.

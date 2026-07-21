@@ -271,6 +271,34 @@ absl::Status ValidatePotItemManifestConflicts(
       save_scope, "DungeonEditorV2", toast_manager);
 }
 
+absl::Status ValidateRegularDungeonEntranceSavePreflight(
+    const project::YazeProject* project, Rom* rom,
+    const std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots>&
+        entrances,
+    absl::string_view save_scope, ToastManager* toast_manager) {
+  if (rom == nullptr || !rom->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  // Field and ROM-bound validation must happen even without a manifest. This
+  // runs before any editor save domain mutates the shared ROM buffer.
+  RETURN_IF_ERROR(zelda3::RejectUnsupportedDungeonSpawnPointSaves(entrances));
+  RETURN_IF_ERROR(
+      zelda3::ValidateRegularDungeonEntrancesForSave(*rom, entrances));
+
+  if (project == nullptr || !project->hack_manifest.loaded()) {
+    return absl::OkStatus();
+  }
+  const auto ranges =
+      zelda3::CollectDirtyRegularDungeonEntranceWriteRanges(entrances);
+  if (ranges.empty()) {
+    return absl::OkStatus();
+  }
+  return ValidateHackManifestSaveConflicts(
+      project->hack_manifest, project->rom_metadata.write_policy, ranges,
+      save_scope, "DungeonEditorV2", toast_manager);
+}
+
 absl::Status ValidateChestManifestConflicts(const project::YazeProject* project,
                                             Rom* rom,
                                             const DungeonRoomStore& rooms,
@@ -387,6 +415,12 @@ absl::Status DungeonEditorV2::Save() {
   }
 
   const auto& flags = core::FeatureFlags::get().dungeon;
+
+  if (flags.kSaveEntrances) {
+    RETURN_IF_ERROR(ValidateRegularDungeonEntranceSavePreflight(
+        dependencies_.project, rom_, entrances_, "regular dungeon entrances",
+        dependencies_.toast_manager));
+  }
 
   if (flags.kSaveChests) {
     RETURN_IF_ERROR(ValidateChestManifestConflicts(
@@ -521,6 +555,12 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
 
   const auto& flags = core::FeatureFlags::get().dungeon;
   const auto& rom_data = rom_->vector();
+
+  if (flags.kSaveEntrances) {
+    auto entrance_ranges =
+        zelda3::CollectDirtyRegularDungeonEntranceWriteRanges(entrances_);
+    ranges.insert(ranges.end(), entrance_ranges.begin(), entrance_ranges.end());
+  }
 
   auto append_declared_cow_ranges = [&](core::DungeonStreamType stream_type,
                                         bool stream_dirty, int room_id) {
@@ -710,6 +750,13 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
     }
 
     const auto& flags = core::FeatureFlags::get().dungeon;
+    if (flags.kSaveEntrances) {
+      RETURN_IF_ERROR(ValidateRegularDungeonEntranceSavePreflight(
+          dependencies_.project, rom_, entrances_,
+          absl::StrFormat("regular dungeon entrances (Apply Room 0x%03X)",
+                          room_id),
+          dependencies_.toast_manager));
+    }
     if (flags.kSaveChests) {
       RETURN_IF_ERROR(ValidateChestManifestConflicts(
           dependencies_.project, rom_, rooms_,
