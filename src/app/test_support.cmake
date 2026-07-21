@@ -75,6 +75,9 @@ if(TARGET ImGuiTestEngine)
 endif()
 
 if(PNG_FOUND)
+  target_compile_definitions(yaze_test_support PUBLIC
+    YAZE_HAS_VISUAL_DIFF_ENGINE=1
+  )
   target_link_libraries(yaze_test_support PUBLIC PNG::PNG)
 endif()
 
