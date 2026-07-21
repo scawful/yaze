@@ -298,5 +298,170 @@ TEST(EditorManagerProjectActionsTest,
 #endif  // _WIN32
 }
 
+TEST(EditorManagerProjectActionsTest,
+     ProjectPanelOnlyClearsDirtyStateAfterSuccessfulSave) {
+  ProjectManagementPanel panel;
+  project::YazeProject project;
+  project.name = "Panel Save";
+  project.filepath = "panel-save.yaze";
+  panel.SetProject(&project, /*dirty=*/true);
+
+  panel.SetSaveProjectCallback(
+      []() { return absl::InternalError("expected save failure"); });
+  EXPECT_FALSE(panel.SaveProjectEdits().ok());
+  EXPECT_TRUE(panel.IsProjectDirty());
+
+  panel.SetSaveProjectCallback([]() { return absl::OkStatus(); });
+  EXPECT_TRUE(panel.SaveProjectEdits().ok());
+  EXPECT_FALSE(panel.IsProjectDirty());
+}
+
+TEST(EditorManagerProjectActionsTest,
+     ProjectFileDraftStateRoundTripsWithoutClearingModification) {
+  ProjectFileEditor editor;
+  project::YazeProject project;
+  editor.SetProject(&project);
+  editor.NewFile();
+  editor.set_active(true);
+
+  const ProjectFileEditorState draft = editor.CaptureState();
+  ASSERT_TRUE(draft.initialized);
+  ASSERT_TRUE(draft.modified);
+  ASSERT_TRUE(draft.active);
+  ASSERT_FALSE(draft.text.empty());
+
+  editor.ResetForProject(nullptr);
+  EXPECT_FALSE(editor.IsInitialized());
+  EXPECT_FALSE(editor.IsModified());
+
+  editor.RestoreState(draft, &project);
+  const ProjectFileEditorState restored = editor.CaptureState();
+  EXPECT_EQ(restored.filepath, draft.filepath);
+  EXPECT_EQ(restored.text, draft.text);
+  EXPECT_TRUE(restored.initialized);
+  EXPECT_TRUE(restored.modified);
+  EXPECT_TRUE(restored.active);
+}
+
+TEST(EditorManagerProjectActionsTest, ProjectFileSaveIsByteStable) {
+  ScopedTempDir temp_dir(MakeTempDir("yaze_project_file_roundtrip"));
+  const auto project_path = temp_dir.path / "roundtrip.yaze";
+  const std::string original = "[project]\nname=Round Trip\n\n";
+  {
+    std::ofstream out(project_path, std::ios::binary | std::ios::trunc);
+    ASSERT_TRUE(out.is_open());
+    out << original;
+  }
+
+  ProjectFileEditor editor;
+  ASSERT_OK(editor.LoadFile(project_path.string()));
+  ASSERT_OK(editor.SaveFile());
+  EXPECT_EQ(ReadFile(project_path), original);
+}
+
+TEST(EditorManagerProjectActionsTest,
+     ProjectFileSaveGuardPreservesDraftOnFailure) {
+  ScopedTempDir temp_dir(MakeTempDir("yaze_project_file_guard"));
+  const auto project_path = temp_dir.path / "guarded.yaze";
+  ProjectFileEditor editor;
+  editor.NewFile();
+  editor.SetSaveGuardCallback(
+      []() { return absl::FailedPreconditionError("conflicting draft"); });
+
+  auto status = editor.SaveFileAs(project_path.string());
+  EXPECT_FALSE(status.ok());
+  EXPECT_TRUE(editor.IsModified());
+  EXPECT_FALSE(std::filesystem::exists(project_path));
+}
+
+TEST(EditorManagerProjectActionsTest,
+     ProjectDirtyStateIsSessionOwnedAndSavedBeforeSwitch) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_project_dirty_sessions"));
+  const auto rom_a = temp_dir.path / "a.sfc";
+  const auto rom_b = temp_dir.path / "b.sfc";
+  const auto project_a = temp_dir.path / "a.yaze";
+  WriteRomFile(rom_a, "PROJECT DIRTY A");
+  WriteRomFile(rom_b, "PROJECT DIRTY B");
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "Session A Project";
+  project->filepath = project_a.string();
+  manager->MarkCurrentProjectDirty();
+
+  manager->SwitchToSession(1);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_NE(manager->GetPendingUnsavedSessionActionPrompt().find(
+                "unsaved project settings"),
+            std::string::npos);
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 1u);
+
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_TRUE(manager->IsCurrentProjectDirty());
+
+  manager->SwitchToSession(1);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionSaveAndContinue();
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  EXPECT_TRUE(std::filesystem::exists(project_a));
+
+  manager->SwitchToSession(0);
+  EXPECT_FALSE(manager->IsCurrentProjectDirty());
+}
+
+TEST(EditorManagerProjectActionsTest,
+     SaveAndContinueRefusesProjectDraftWithoutDestination) {
+  ScopedImGuiContext imgui;
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  ScopedTempDir temp_dir(MakeTempDir("yaze_project_draft_guard"));
+  const auto rom_a = temp_dir.path / "a.sfc";
+  const auto rom_b = temp_dir.path / "b.sfc";
+  WriteRomFile(rom_a, "PROJECT DRAFT A");
+  WriteRomFile(rom_b, "PROJECT DRAFT B");
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+
+  auto* file_editor = manager->project_file_editor();
+  ASSERT_NE(file_editor, nullptr);
+  file_editor->NewFile();
+  file_editor->set_active(true);
+
+  manager->SwitchToSession(1);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_NE(manager->GetPendingUnsavedSessionActionPrompt().find(
+                "unsaved project-file draft"),
+            std::string::npos);
+  manager->ConfirmPendingUnsavedSessionActionSaveAndContinue();
+
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_TRUE(file_editor->IsModified());
+  ASSERT_FALSE(manager->toast_manager()->GetHistory().empty());
+  EXPECT_NE(manager->toast_manager()->GetHistory().front().message.find(
+                "use Save As first"),
+            std::string::npos);
+}
+
 }  // namespace
 }  // namespace yaze::editor
