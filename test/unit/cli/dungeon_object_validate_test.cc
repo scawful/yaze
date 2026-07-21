@@ -112,5 +112,34 @@ TEST(DungeonObjectValidateTest,
   EXPECT_THAT(output, ::testing::HasSubstr("\"mismatch_count\": 0"));
 }
 
+TEST(DungeonObjectValidateTest,
+     CanonicalDoubledAndBarPayloadsAvoidSingleTileFallbackMismatches) {
+  for (const char* object_arg : {"--object=0x03C", "--object=0x04C"}) {
+    SCOPED_TRACE(object_arg);
+    DungeonObjectValidateCommandHandler handler;
+    const auto report_base =
+        std::filesystem::temp_directory_path() /
+        (std::string("yaze_dungeon_payload_count_") + object_arg + "_test");
+    const auto json_report = report_base.string() + ".json";
+    const auto csv_report = report_base.string() + ".csv";
+    std::filesystem::remove(json_report);
+    std::filesystem::remove(csv_report);
+
+    std::string output;
+    auto status =
+        handler.Run({"--mock-rom", object_arg, "--size=0", "--format=json",
+                     "--report=" + report_base.string()},
+                    nullptr, &output);
+    std::filesystem::remove(json_report);
+    std::filesystem::remove(csv_report);
+
+    ASSERT_TRUE(status.ok()) << status;
+    EXPECT_THAT(output, ::testing::HasSubstr("\"test_cases\": 1"));
+    EXPECT_THAT(output, ::testing::HasSubstr("\"mismatch_count\": 0"));
+    EXPECT_THAT(output, ::testing::HasSubstr("\"empty_traces\": 0"));
+    EXPECT_THAT(output, ::testing::HasSubstr("\"mismatches\": []"));
+  }
+}
+
 }  // namespace
 }  // namespace yaze::cli
