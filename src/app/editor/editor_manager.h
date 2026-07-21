@@ -443,6 +443,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   const project::YazeProject* GetCurrentProject() const {
     return &current_project_;
   }
+  void MarkCurrentProjectDirty();
+  bool IsCurrentProjectDirty() const;
   core::VersionManager* GetVersionManager() { return version_manager_.get(); }
 
   // Show project management panel in right sidebar
@@ -450,6 +452,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
 
   // Show project file editor
   void ShowProjectFileEditor();
+  ProjectFileEditor* project_file_editor() { return &project_file_editor_; }
 
  private:
   absl::Status DrawRomSelector() = delete;  // Moved to UICoordinator
@@ -607,11 +610,14 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void UpdateCurrentRomHash();
   void ApplyDefaultBackupPolicy();
   void CaptureRuntimeFeatureFlags();
+  void CaptureActiveProjectEditingState();
   void CaptureActiveProjectContext();
   void DetachActiveProjectContext();
   void BindProjectContextToSession(RomSession* session,
                                    const project::YazeProject& project);
   bool RestoreProjectContextForSession(RomSession* session);
+  void RestoreProjectEditingStateForSession(RomSession* session);
+  absl::Status SaveActiveProjectEditingWork();
   void ApplyCurrentProjectRuntimeContext();
   absl::StatusOr<const project::YazeProject*>
   PrepareActiveProjectContextForSave();
@@ -662,6 +668,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void ExecutePendingUnsavedSessionAction(
       const PendingUnsavedSessionAction& action);
   bool SessionHasPendingUnsavedWork(size_t session_index) const;
+  bool SessionHasPendingRomWork(size_t session_index) const;
   bool HasAnySessionPendingUnsavedWork() const;
   int PendingDungeonRoomCountForSession(size_t session_index) const;
   size_t PendingPaletteColorCountForSession(size_t session_index) const;

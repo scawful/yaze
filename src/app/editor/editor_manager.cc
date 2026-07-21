@@ -799,6 +799,14 @@ void EditorManager::InitializeSubsystems() {
   // Initialize ProjectManagementPanel for project/version management
   project_management_panel_ = std::make_unique<ProjectManagementPanel>();
   project_management_panel_->SetToastManager(&toast_manager_);
+  project_file_editor_.SetSaveGuardCallback([this]() {
+    CaptureActiveProjectEditingState();
+    if (IsCurrentProjectDirty()) {
+      return absl::FailedPreconditionError(
+          "Project settings also have unsaved changes; save them first");
+    }
+    return absl::OkStatus();
+  });
   window_manager_.RegisterWindowContent(
       std::make_unique<workflow::ProjectWorkflowOutputPanel>());
   project_management_panel_->SetSwapRomCallback([this]() {
@@ -836,6 +844,7 @@ void EditorManager::InitializeSubsystems() {
           absl::StrFormat("Failed to save project: %s", status.message()),
           ToastType::kError);
     }
+    return status;
   });
   project_management_panel_->SetBrowseFolderCallback(
       [this](const std::string& type) {
@@ -853,6 +862,10 @@ void EditorManager::InitializeSubsystems() {
             }
           } else if (type == "assets") {
             current_project_.assets_folder = folder_path;
+          }
+          MarkCurrentProjectDirty();
+          if (project_management_panel_) {
+            project_management_panel_->SetProject(&current_project_, true);
           }
           toast_manager_.Show(absl::StrFormat("%s folder set: %s", type.c_str(),
                                               folder_path.c_str()),
@@ -1201,6 +1214,7 @@ void EditorManager::CaptureActiveProjectContext() {
     return;
   }
 
+  CaptureActiveProjectEditingState();
   CaptureRuntimeFeatureFlags();
   const auto index =
       ResolveSessionIndexById(*active_project_context_session_id_);
@@ -1224,6 +1238,29 @@ void EditorManager::CaptureActiveProjectContext() {
   }
   current_project_.feature_flags = session->feature_flags;
   session->project_context = current_project_;
+}
+
+void EditorManager::CaptureActiveProjectEditingState() {
+  if (!active_project_context_session_id_.has_value() ||
+      !session_coordinator_) {
+    return;
+  }
+
+  const auto index =
+      ResolveSessionIndexById(*active_project_context_session_id_);
+  if (!index.has_value()) {
+    return;
+  }
+  auto* session =
+      static_cast<RomSession*>(session_coordinator_->GetSession(*index));
+  if (!session) {
+    return;
+  }
+
+  if (project_management_panel_) {
+    session->project_dirty = project_management_panel_->IsProjectDirty();
+  }
+  session->project_file_editor_state = project_file_editor_.CaptureState();
 }
 
 void EditorManager::DetachActiveProjectContext() {
@@ -1294,7 +1331,29 @@ bool EditorManager::RestoreProjectContextForSession(RomSession* session) {
   active_project_context_session_id_ = session->session_id();
   runtime_feature_flags_session_id_ = session->session_id();
   ApplyCurrentProjectRuntimeContext();
+  RestoreProjectEditingStateForSession(session);
   return true;
+}
+
+void EditorManager::RestoreProjectEditingStateForSession(RomSession* session) {
+  if (!session) {
+    if (project_management_panel_) {
+      project_management_panel_->SetProject(nullptr);
+    }
+    project_file_editor_.ResetForProject(nullptr);
+    return;
+  }
+
+  if (project_management_panel_) {
+    project_management_panel_->SetProject(&current_project_,
+                                          session->project_dirty);
+  }
+  if (session->project_file_editor_state.initialized) {
+    project_file_editor_.RestoreState(session->project_file_editor_state,
+                                      &current_project_);
+  } else {
+    project_file_editor_.ResetForProject(&current_project_);
+  }
 }
 
 absl::StatusOr<const project::YazeProject*>
@@ -3223,6 +3282,7 @@ void EditorManager::DrawSecondaryWindows() {
 
   // Project and performance tools
   project_file_editor_.Draw();
+  CaptureActiveProjectEditingState();
 
   if (ui_coordinator_ && ui_coordinator_->IsPerformanceDashboardVisible()) {
     gfx::PerformanceDashboard::Get().SetVisible(true);
@@ -4480,6 +4540,15 @@ absl::Status EditorManager::LoadProjectWithRom() {
 }
 
 absl::Status EditorManager::SaveProject() {
+  CaptureActiveProjectEditingState();
+  if (session_coordinator_) {
+    if (auto* session = session_coordinator_->GetActiveRomSession();
+        session && session->project_file_editor_state.initialized &&
+        session->project_file_editor_state.modified) {
+      return absl::FailedPreconditionError(
+          "Raw project file also has unsaved changes; save it first");
+    }
+  }
   CaptureActiveProjectContext();
   if (!current_project_.project_opened()) {
     return CreateNewProject();
@@ -4512,8 +4581,80 @@ absl::Status EditorManager::SaveProject() {
   }
 
   auto status = current_project_.Save();
+  if (status.ok()) {
+    if (project_management_panel_) {
+      project_management_panel_->SetProjectDirty(false);
+    }
+    if (session_coordinator_) {
+      if (auto* session = session_coordinator_->GetActiveRomSession()) {
+        session->project_dirty = false;
+      }
+    }
+  }
   CaptureActiveProjectContext();
   return status;
+}
+
+void EditorManager::MarkCurrentProjectDirty() {
+  if (project_management_panel_) {
+    project_management_panel_->SetProjectDirty(true);
+  }
+  if (session_coordinator_) {
+    if (auto* session = session_coordinator_->GetActiveRomSession()) {
+      session->project_dirty = true;
+    }
+  }
+}
+
+bool EditorManager::IsCurrentProjectDirty() const {
+  if (!session_coordinator_) {
+    return project_management_panel_ &&
+           project_management_panel_->IsProjectDirty();
+  }
+  const auto* session = session_coordinator_->GetActiveRomSession();
+  return session != nullptr && session->project_dirty;
+}
+
+absl::Status EditorManager::SaveActiveProjectEditingWork() {
+  if (!session_coordinator_) {
+    return absl::FailedPreconditionError("No session coordinator");
+  }
+  auto* session = session_coordinator_->GetActiveRomSession();
+  if (!session) {
+    return absl::FailedPreconditionError("No active ROM session");
+  }
+
+  CaptureActiveProjectEditingState();
+  const bool project_dirty = session->project_dirty;
+  const bool project_file_dirty =
+      session->project_file_editor_state.initialized &&
+      session->project_file_editor_state.modified;
+
+  if (project_dirty && project_file_dirty) {
+    return absl::FailedPreconditionError(
+        "Project settings and raw project file both have unsaved changes; "
+        "save one explicitly before continuing");
+  }
+
+  if (project_dirty) {
+    if (!current_project_.project_opened() ||
+        current_project_.filepath.empty()) {
+      return absl::FailedPreconditionError(
+          "Project settings have no project file to save");
+    }
+    RETURN_IF_ERROR(SaveProject());
+  }
+
+  if (project_file_dirty) {
+    if (project_file_editor_.filepath().empty()) {
+      return absl::FailedPreconditionError(
+          "Project file draft has no destination; use Save As first");
+    }
+    RETURN_IF_ERROR(project_file_editor_.SaveFile());
+    session->project_file_editor_state = project_file_editor_.CaptureState();
+  }
+
+  return absl::OkStatus();
 }
 
 void EditorManager::ResolvePotItemSaveConfirmation(
@@ -4539,6 +4680,15 @@ void EditorManager::ResolvePotItemSaveConfirmation(
 }
 
 absl::Status EditorManager::SaveProjectAs() {
+  CaptureActiveProjectEditingState();
+  if (session_coordinator_) {
+    if (auto* session = session_coordinator_->GetActiveRomSession();
+        session && session->project_file_editor_state.initialized &&
+        session->project_file_editor_state.modified) {
+      return absl::FailedPreconditionError(
+          "Raw project file also has unsaved changes; save it first");
+    }
+  }
   CaptureActiveProjectContext();
   // Get current project name for default filename
   std::string default_name = current_project_.project_opened()
@@ -4563,6 +4713,14 @@ absl::Status EditorManager::SaveProjectAs() {
 
   auto save_status = current_project_.Save();
   if (save_status.ok()) {
+    if (project_management_panel_) {
+      project_management_panel_->SetProjectDirty(false);
+    }
+    if (session_coordinator_) {
+      if (auto* session = session_coordinator_->GetActiveRomSession()) {
+        session->project_dirty = false;
+      }
+    }
     SyncLayoutScopeFromCurrentProject();
 
     // Add to recent files
@@ -5128,25 +5286,25 @@ std::string EditorManager::GetPendingUnsavedSessionActionPrompt() const {
 
 std::string EditorManager::GetPendingUnsavedSessionActionSaveLabel() const {
   if (!pending_unsaved_session_action_) {
-    return "Save ROM";
+    return "Save Work";
   }
 
   switch (pending_unsaved_session_action_->type) {
     case PendingUnsavedSessionAction::Type::kOpenRomDialog:
     case PendingUnsavedSessionAction::Type::kOpenRomOrProjectPath:
-      return "Save ROM & Open";
+      return "Save Work & Open";
     case PendingUnsavedSessionAction::Type::kOpenProjectDialog:
-      return "Save ROM & Open Project";
+      return "Save Work & Open Project";
     case PendingUnsavedSessionAction::Type::kSwitchSession:
-      return "Save ROM & Switch";
+      return "Save Work & Switch";
     case PendingUnsavedSessionAction::Type::kCloseSession:
-      return "Save ROM & Close";
+      return "Save Work & Close";
     case PendingUnsavedSessionAction::Type::kQuit:
-      return ModifiedSessionCount() == 1 ? "Save ROM & Quit"
-                                         : "Save Modified ROMs & Quit";
+      return ModifiedSessionCount() == 1 ? "Save Work & Quit"
+                                         : "Save Modified Work & Quit";
   }
 
-  return "Save ROM";
+  return "Save Work";
 }
 
 std::string EditorManager::GetPendingUnsavedSessionActionContinueLabel() const {
@@ -5195,7 +5353,10 @@ void EditorManager::ConfirmPendingUnsavedSessionActionSaveAndContinue() {
     }
 
     session_coordinator_->SwitchToSession(*session_index);
-    RETURN_IF_ERROR(SaveRom());
+    RETURN_IF_ERROR(SaveActiveProjectEditingWork());
+    if (SessionHasPendingRomWork(*session_index)) {
+      RETURN_IF_ERROR(SaveRom());
+    }
 
     // A successful file write does not necessarily mean every pending editor
     // domain participated in the save. For example, dungeon palette saving is
@@ -5288,6 +5449,7 @@ void EditorManager::CancelPendingUnsavedSessionAction() {
 
 bool EditorManager::MaybeGuardPendingSessionAction(
     PendingUnsavedSessionAction action) {
+  CaptureActiveProjectEditingState();
   const auto source_index = ResolveSessionIndexById(action.source_session_id);
   const bool has_pending_work =
       action.type == PendingUnsavedSessionAction::Type::kQuit
@@ -5369,6 +5531,20 @@ bool EditorManager::SessionHasPendingUnsavedWork(size_t session_index) const {
   auto* session =
       static_cast<RomSession*>(session_coordinator_->GetSession(session_index));
   return session != nullptr &&
+         (SessionHasPendingRomWork(session_index) || session->project_dirty ||
+          (session->project_file_editor_state.initialized &&
+           session->project_file_editor_state.modified));
+}
+
+bool EditorManager::SessionHasPendingRomWork(size_t session_index) const {
+  if (!session_coordinator_ ||
+      !session_coordinator_->IsValidSessionIndex(session_index)) {
+    return false;
+  }
+
+  auto* session =
+      static_cast<RomSession*>(session_coordinator_->GetSession(session_index));
+  return session != nullptr &&
          ((session->rom.is_loaded() && session->rom.dirty()) ||
           PendingDungeonRoomCountForSession(session_index) > 0 ||
           gfx::PaletteManager::Get().HasUnsavedChanges(&session->game_data));
@@ -5440,6 +5616,10 @@ std::string EditorManager::DescribePendingUnsavedWork(
   const int pending_rooms = PendingDungeonRoomCountForSession(session_index);
   const size_t pending_palette_colors =
       PendingPaletteColorCountForSession(session_index);
+  const bool project_dirty = session != nullptr && session->project_dirty;
+  const bool project_file_dirty =
+      session != nullptr && session->project_file_editor_state.initialized &&
+      session->project_file_editor_state.modified;
 
   std::vector<std::string> work;
   if (pending_rooms > 0) {
@@ -5453,6 +5633,12 @@ std::string EditorManager::DescribePendingUnsavedWork(
   }
   if (rom_dirty) {
     work.emplace_back("unsaved ROM-buffer changes");
+  }
+  if (project_dirty) {
+    work.emplace_back("unsaved project settings");
+  }
+  if (project_file_dirty) {
+    work.emplace_back("an unsaved project-file draft");
   }
   return work.empty() ? "unsaved work" : absl::StrJoin(work, " and ");
 }
@@ -5474,8 +5660,7 @@ std::string EditorManager::DescribeAllPendingUnsavedWork() const {
   }
 
   return absl::StrFormat(
-      "%d sessions have unapplied dungeon or palette edits, or unsaved "
-      "ROM-buffer changes.",
+      "%d sessions have unsaved ROM, dungeon, palette, or project work.",
       modified_sessions);
 }
 
@@ -5616,7 +5801,8 @@ void EditorManager::ShowProjectManagement() {
   if (right_drawer_manager_) {
     // Update project panel context before showing
     if (project_management_panel_) {
-      project_management_panel_->SetProject(&current_project_);
+      project_management_panel_->SetProject(&current_project_,
+                                            IsCurrentProjectDirty());
       project_management_panel_->SetVersionManager(version_manager_.get());
       project_management_panel_->SetRom(GetCurrentRom());
     }
@@ -5626,8 +5812,17 @@ void EditorManager::ShowProjectManagement() {
 }
 
 void EditorManager::ShowProjectFileEditor() {
-  // Load the current project file into the editor
-  if (!current_project_.filepath.empty()) {
+  CaptureActiveProjectEditingState();
+  auto* session = session_coordinator_
+                      ? session_coordinator_->GetActiveRomSession()
+                      : nullptr;
+
+  // Preserve an existing draft for this session. Only load from disk the first
+  // time this session opens the project-file editor.
+  if (session && session->project_file_editor_state.initialized) {
+    project_file_editor_.RestoreState(session->project_file_editor_state,
+                                      &current_project_);
+  } else if (!current_project_.filepath.empty()) {
     auto status = project_file_editor_.LoadFile(current_project_.filepath);
     if (!status.ok()) {
       toast_manager_.Show(
@@ -5635,11 +5830,16 @@ void EditorManager::ShowProjectFileEditor() {
           ToastType::kError);
       return;
     }
+  } else {
+    project_file_editor_.ResetForProject(&current_project_);
   }
   // Set the project pointer for label import functionality
   project_file_editor_.SetProject(&current_project_);
   // Activate the editor window
   project_file_editor_.set_active(true);
+  if (session) {
+    session->project_file_editor_state = project_file_editor_.CaptureState();
+  }
 }
 
 void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,

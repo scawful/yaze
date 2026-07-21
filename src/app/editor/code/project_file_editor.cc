@@ -155,8 +155,46 @@ void ProjectFileEditor::Draw() {
   // Main editor
   ImVec2 editor_size = ImGui::GetContentRegionAvail();
   text_editor_.Render("##ProjectEditor", editor_size);
+  if (text_editor_.IsTextChanged()) {
+    modified_ = true;
+  }
 
   ImGui::End();
+}
+
+ProjectFileEditorState ProjectFileEditor::CaptureState() const {
+  ProjectFileEditorState state;
+  state.filepath = filepath_;
+  state.text = GetDocumentText();
+  state.initialized = initialized_;
+  state.active = active_;
+  state.modified = modified_;
+  state.show_validation = show_validation_;
+  state.validation_errors = validation_errors_;
+  return state;
+}
+
+void ProjectFileEditor::RestoreState(const ProjectFileEditorState& state,
+                                     project::YazeProject* project) {
+  project_ = project;
+  filepath_ = state.filepath;
+  text_editor_.SetText(state.text);
+  initialized_ = state.initialized;
+  active_ = state.active;
+  modified_ = state.modified;
+  show_validation_ = state.show_validation;
+  validation_errors_ = state.validation_errors;
+}
+
+void ProjectFileEditor::ResetForProject(project::YazeProject* project) {
+  project_ = project;
+  filepath_.clear();
+  text_editor_.SetText("");
+  initialized_ = false;
+  active_ = false;
+  modified_ = false;
+  show_validation_ = true;
+  validation_errors_.clear();
 }
 
 absl::Status ProjectFileEditor::LoadFile(const std::string& filepath) {
@@ -169,6 +207,7 @@ absl::Status ProjectFileEditor::LoadFile(const std::string& filepath) {
   if (storage_or.ok()) {
     text_editor_.SetText(storage_or.value());
     filepath_ = filepath;
+    initialized_ = true;
     modified_ = false;
     ValidateContent();
     return absl::OkStatus();
@@ -187,6 +226,7 @@ absl::Status ProjectFileEditor::LoadFile(const std::string& filepath) {
 
   text_editor_.SetText(buffer.str());
   filepath_ = filepath;
+  initialized_ = true;
   modified_ = false;
 
   ValidateContent();
@@ -203,6 +243,13 @@ absl::Status ProjectFileEditor::SaveFile() {
 }
 
 absl::Status ProjectFileEditor::SaveFileAs(const std::string& filepath) {
+  if (save_guard_callback_) {
+    auto status = save_guard_callback_();
+    if (!status.ok()) {
+      return status;
+    }
+  }
+
   // Ensure .yaze extension
   std::string final_path = filepath;
   if (!absl::EndsWith(final_path, ".yaze")) {
@@ -215,11 +262,12 @@ absl::Status ProjectFileEditor::SaveFileAs(const std::string& filepath) {
     key = "project";
   }
   auto storage_status =
-      platform::WasmStorage::SaveProject(key, text_editor_.GetText());
+      platform::WasmStorage::SaveProject(key, GetDocumentText());
   if (!storage_status.ok()) {
     return storage_status;
   }
   filepath_ = final_path;
+  initialized_ = true;
   modified_ = false;
   auto& recent_mgr = project::RecentFilesManager::GetInstance();
   recent_mgr.AddFile(filepath_);
@@ -232,10 +280,11 @@ absl::Status ProjectFileEditor::SaveFileAs(const std::string& filepath) {
         absl::StrFormat("Cannot create file: %s", final_path));
   }
 
-  file << text_editor_.GetText();
+  file << GetDocumentText();
   file.close();
 
   filepath_ = final_path;
+  initialized_ = true;
   modified_ = false;
 
   // Add to recent files
@@ -368,6 +417,7 @@ last_saved_at=
 
   text_editor_.SetText(template_content);
   filepath_.clear();
+  initialized_ = true;
   modified_ = true;
   validation_errors_.clear();
 }
@@ -380,7 +430,7 @@ void ProjectFileEditor::ApplySyntaxHighlighting() {
 void ProjectFileEditor::ValidateContent() {
   validation_errors_.clear();
 
-  std::string content = text_editor_.GetText();
+  std::string content = GetDocumentText();
   std::vector<std::string> lines = absl::StrSplit(content, '\n');
 
   std::string current_section;
@@ -427,6 +477,16 @@ void ProjectFileEditor::ValidateContent() {
   if (validation_errors_.empty() && show_validation_ && toast_manager_) {
     toast_manager_->Show("Project file validation passed", ToastType::kSuccess);
   }
+}
+
+std::string ProjectFileEditor::GetDocumentText() const {
+  std::string text = text_editor_.GetText();
+  // TextEditor emits one synthetic trailing newline for its final line.
+  // Exclude that sentinel so capture/restore and load/save are byte-stable.
+  if (!text.empty() && text.back() == '\n') {
+    text.pop_back();
+  }
+  return text;
 }
 
 void ProjectFileEditor::ShowValidationErrors() {
