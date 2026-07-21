@@ -1010,6 +1010,58 @@ TEST(EditorManagerWriteConflictTest,
 }
 
 TEST(EditorManagerWriteConflictTest,
+     PendingInactiveCloseTracksStableTargetAcrossIndexCompaction) {
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_stable_close_a.sfc", "STABLE CLOSE A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_stable_close_b.sfc", "STABLE CLOSE B");
+  const auto rom_c =
+      CreateMinimalRomFile("yaze_stable_close_c.sfc", "STABLE CLOSE C");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+  ScopedFileCleanup cleanup_c{rom_c};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_c.string()));
+  Rom* surviving_rom = manager->GetCurrentRom();
+  ASSERT_NE(surviving_rom, nullptr);
+
+  manager->SwitchToSession(1);
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x2345, 0x6A));
+  manager->SwitchToSession(0);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_EQ(manager->GetCurrentSessionId(), 0u);
+
+  manager->RemoveSession(1);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+
+  // The pending target is stable session 1. Closing stable session 0 compacts
+  // that target from UI index 1 to UI index 0 while the popup remains open.
+  manager->CloseCurrentSession();
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  ASSERT_EQ(manager->GetActiveSessionCount(), 2u);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
+
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
+  EXPECT_EQ(manager->GetCurrentSessionId(), 2u);
+  EXPECT_EQ(manager->GetCurrentRom(), surviving_rom);
+  EXPECT_EQ(manager->GetCurrentRom()->filename(), rom_c.string());
+  EXPECT_EQ(ReadByteAt(rom_b, 0x2345), 0x00);
+}
+
+TEST(EditorManagerWriteConflictTest,
      SaveAndContinueRefusesToDiscardDisabledPaletteWrites) {
   ScopedImGuiContext imgui;
   FeatureFlagsGuard flags_guard;
