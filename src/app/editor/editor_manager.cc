@@ -3136,7 +3136,7 @@ void EditorManager::RefreshHackWorkflowBackend() {
 absl::Status EditorManager::LoadRom() {
   if (!MaybeGuardPendingSessionAction(
           {PendingUnsavedSessionAction::Type::kOpenRomDialog,
-           GetCurrentSessionIndex()})) {
+           GetCurrentSessionId()})) {
     return absl::OkStatus();
   }
 
@@ -3795,7 +3795,7 @@ absl::Status EditorManager::ResumePendingRomSave() {
 absl::Status EditorManager::OpenRomOrProject(const std::string& filename) {
   if (!MaybeGuardPendingSessionAction(
           {PendingUnsavedSessionAction::Type::kOpenRomOrProjectPath,
-           GetCurrentSessionIndex(), SIZE_MAX, filename})) {
+           GetCurrentSessionId(), SIZE_MAX, filename})) {
     return absl::OkStatus();
   }
 
@@ -3944,7 +3944,7 @@ absl::Status EditorManager::CreateNewProject(const std::string& template_name) {
 absl::Status EditorManager::OpenProject() {
   if (!MaybeGuardPendingSessionAction(
           {PendingUnsavedSessionAction::Type::kOpenProjectDialog,
-           GetCurrentSessionIndex()})) {
+           GetCurrentSessionId()})) {
     return absl::OkStatus();
   }
 
@@ -4802,10 +4802,10 @@ void EditorManager::CloseCurrentSession() {
     return;
   }
 
-  const size_t current_index = GetCurrentSessionIndex();
+  const size_t current_session_id = GetCurrentSessionId();
   if (!MaybeGuardPendingSessionAction(
-          {PendingUnsavedSessionAction::Type::kCloseSession, current_index,
-           current_index})) {
+          {PendingUnsavedSessionAction::Type::kCloseSession, current_session_id,
+           current_session_id})) {
     return;
   }
 
@@ -4814,12 +4814,15 @@ void EditorManager::CloseCurrentSession() {
 }
 
 void EditorManager::RemoveSession(size_t index) {
-  if (!session_coordinator_) {
+  if (!session_coordinator_ ||
+      !session_coordinator_->IsValidSessionIndex(index)) {
     return;
   }
 
+  const size_t session_id = session_coordinator_->GetSessionId(index);
   if (!MaybeGuardPendingSessionAction(
-          {PendingUnsavedSessionAction::Type::kCloseSession, index, index})) {
+          {PendingUnsavedSessionAction::Type::kCloseSession, session_id,
+           session_id})) {
     return;
   }
 
@@ -4833,13 +4836,16 @@ void EditorManager::SwitchToSession(size_t index) {
   }
 
   const size_t current_index = GetCurrentSessionIndex();
-  if (index == current_index) {
+  if (index == current_index ||
+      !session_coordinator_->IsValidSessionIndex(index)) {
     return;
   }
 
+  const size_t current_session_id = GetCurrentSessionId();
+  const size_t target_session_id = session_coordinator_->GetSessionId(index);
   if (!MaybeGuardPendingSessionAction(
-          {PendingUnsavedSessionAction::Type::kSwitchSession, current_index,
-           index})) {
+          {PendingUnsavedSessionAction::Type::kSwitchSession,
+           current_session_id, target_session_id})) {
     return;
   }
 
@@ -4859,6 +4865,21 @@ bool EditorManager::HasPendingUnsavedSessionAction() const {
   return pending_unsaved_session_action_.has_value();
 }
 
+std::optional<size_t> EditorManager::ResolveSessionIndexById(
+    size_t session_id) const {
+  if (!session_coordinator_ || session_id == SIZE_MAX) {
+    return std::nullopt;
+  }
+
+  for (size_t index = 0; index < session_coordinator_->GetTotalSessionCount();
+       ++index) {
+    if (session_coordinator_->GetSessionId(index) == session_id) {
+      return index;
+    }
+  }
+  return std::nullopt;
+}
+
 std::string EditorManager::GetPendingUnsavedSessionActionPrompt() const {
   if (!pending_unsaved_session_action_) {
     return "";
@@ -4870,12 +4891,14 @@ std::string EditorManager::GetPendingUnsavedSessionActionPrompt() const {
                            DescribeAllPendingUnsavedWork());
   }
 
+  const auto source_index = ResolveSessionIndexById(action.source_session_id);
   const std::string session_name =
-      session_coordinator_ ? session_coordinator_->GetSessionDisplayName(
-                                 action.source_session_index)
-                           : "Current Session";
-  const std::string work =
-      DescribePendingUnsavedWork(action.source_session_index);
+      source_index.has_value()
+          ? session_coordinator_->GetSessionDisplayName(*source_index)
+          : "Closed Session";
+  const std::string work = source_index.has_value()
+                               ? DescribePendingUnsavedWork(*source_index)
+                               : "unsaved work";
 
   switch (action.type) {
     case PendingUnsavedSessionAction::Type::kOpenRomDialog:
@@ -4962,25 +4985,28 @@ void EditorManager::ConfirmPendingUnsavedSessionActionSaveAndContinue() {
     popup_manager_->Hide(PopupID::kUnsavedSessionChanges);
   }
 
-  const size_t original_session = GetCurrentSessionIndex();
-  auto save_modified_session = [this](size_t session_index) -> absl::Status {
-    if (!session_coordinator_ ||
-        !session_coordinator_->IsValidSessionIndex(session_index) ||
-        !SessionHasPendingUnsavedWork(session_index)) {
+  const size_t original_session_id = GetCurrentSessionId();
+  auto save_modified_session = [this](size_t session_id) -> absl::Status {
+    const auto session_index = ResolveSessionIndexById(session_id);
+    if (!session_index.has_value()) {
+      return absl::FailedPreconditionError(
+          "The ROM session is no longer available");
+    }
+    if (!SessionHasPendingUnsavedWork(*session_index)) {
       return absl::OkStatus();
     }
 
-    session_coordinator_->SwitchToSession(session_index);
+    session_coordinator_->SwitchToSession(*session_index);
     RETURN_IF_ERROR(SaveRom());
 
     // A successful file write does not necessarily mean every pending editor
     // domain participated in the save. For example, dungeon palette saving is
     // user-configurable. Never execute a destructive follow-up while work that
     // the confirmation dialog promised to save is still pending.
-    if (SessionHasPendingUnsavedWork(session_index)) {
+    if (SessionHasPendingUnsavedWork(*session_index)) {
       return absl::FailedPreconditionError(
           absl::StrFormat("Save completed, but session still has %s",
-                          DescribePendingUnsavedWork(session_index)));
+                          DescribePendingUnsavedWork(*session_index)));
     }
     return absl::OkStatus();
   };
@@ -4988,25 +5014,31 @@ void EditorManager::ConfirmPendingUnsavedSessionActionSaveAndContinue() {
   absl::Status save_status = absl::OkStatus();
   if (action.type == PendingUnsavedSessionAction::Type::kQuit) {
     if (session_coordinator_) {
+      std::vector<size_t> session_ids;
+      session_ids.reserve(session_coordinator_->GetTotalSessionCount());
       for (size_t i = 0; i < session_coordinator_->GetTotalSessionCount();
            ++i) {
-        save_status = save_modified_session(i);
+        session_ids.push_back(session_coordinator_->GetSessionId(i));
+      }
+      for (const size_t session_id : session_ids) {
+        save_status = save_modified_session(session_id);
         if (!save_status.ok()) {
           break;
         }
       }
     }
   } else {
-    save_status = save_modified_session(action.source_session_index);
+    save_status = save_modified_session(action.source_session_id);
   }
 
   if (!save_status.ok()) {
     const bool resumable_confirmation = absl::IsCancelled(save_status) &&
                                         HasPendingRomSaveConfirmation() &&
                                         PendingRomSaveMatchesActiveSession();
-    if (!resumable_confirmation && session_coordinator_ &&
-        session_coordinator_->IsValidSessionIndex(original_session)) {
-      session_coordinator_->SwitchToSession(original_session);
+    const auto original_session_index =
+        ResolveSessionIndexById(original_session_id);
+    if (!resumable_confirmation && original_session_index.has_value()) {
+      session_coordinator_->SwitchToSession(*original_session_index);
     }
 
     if (absl::IsCancelled(save_status)) {
@@ -5025,10 +5057,12 @@ void EditorManager::ConfirmPendingUnsavedSessionActionSaveAndContinue() {
   // the original session back before compacting the target index so the same
   // stable session remains active after the close.
   if (action.type == PendingUnsavedSessionAction::Type::kCloseSession &&
-      session_coordinator_ &&
-      session_coordinator_->IsValidSessionIndex(original_session) &&
-      original_session != action.target_session_index) {
-    session_coordinator_->SwitchToSession(original_session);
+      original_session_id != action.target_session_id) {
+    const auto original_session_index =
+        ResolveSessionIndexById(original_session_id);
+    if (original_session_index.has_value()) {
+      session_coordinator_->SwitchToSession(*original_session_index);
+    }
   }
 
   ExecutePendingUnsavedSessionAction(action);
@@ -5056,10 +5090,12 @@ void EditorManager::CancelPendingUnsavedSessionAction() {
 
 bool EditorManager::MaybeGuardPendingSessionAction(
     PendingUnsavedSessionAction action) {
+  const auto source_index = ResolveSessionIndexById(action.source_session_id);
   const bool has_pending_work =
       action.type == PendingUnsavedSessionAction::Type::kQuit
           ? HasAnySessionPendingUnsavedWork()
-          : SessionHasPendingUnsavedWork(action.source_session_index);
+          : source_index.has_value() &&
+                SessionHasPendingUnsavedWork(*source_index);
   if (!has_pending_work) {
     return true;
   }
@@ -5103,13 +5139,21 @@ void EditorManager::ExecutePendingUnsavedSessionAction(
     }
     case PendingUnsavedSessionAction::Type::kSwitchSession:
       if (session_coordinator_) {
-        session_coordinator_->SwitchToSession(action.target_session_index);
+        const auto target_index =
+            ResolveSessionIndexById(action.target_session_id);
+        if (target_index.has_value()) {
+          session_coordinator_->SwitchToSession(*target_index);
+        }
       }
       break;
     case PendingUnsavedSessionAction::Type::kCloseSession:
       if (session_coordinator_) {
-        session_coordinator_->RemoveSession(action.target_session_index);
-        UpdateCurrentRomHash();
+        const auto target_index =
+            ResolveSessionIndexById(action.target_session_id);
+        if (target_index.has_value()) {
+          session_coordinator_->RemoveSession(*target_index);
+          UpdateCurrentRomHash();
+        }
       }
       break;
     case PendingUnsavedSessionAction::Type::kQuit:

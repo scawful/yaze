@@ -637,11 +637,12 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
     };
 
     Type type = Type::kOpenRomDialog;
-    size_t source_session_index = SIZE_MAX;
-    size_t target_session_index = SIZE_MAX;
+    size_t source_session_id = SIZE_MAX;
+    size_t target_session_id = SIZE_MAX;
     std::string path;
   };
 
+  std::optional<size_t> ResolveSessionIndexById(size_t session_id) const;
   bool MaybeGuardPendingSessionAction(PendingUnsavedSessionAction action);
   void ExecutePendingUnsavedSessionAction(
       const PendingUnsavedSessionAction& action);
