@@ -490,6 +490,9 @@ if(YAZE_BUILD_TESTS)
 
   yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
   yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})
+  target_compile_definitions(yaze_test_integration PRIVATE
+    YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
+  )
   if(YAZE_ENABLE_ROM_TESTS)
     target_compile_definitions(yaze_test_integration PRIVATE
       YAZE_ENABLE_ROM_TESTS=1
