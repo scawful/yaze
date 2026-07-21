@@ -18,9 +18,11 @@
 #include "app/gfx/util/palette_manager.h"
 #include "app/startup_flags.h"
 #include "core/features.h"
+#include "core/rom_settings.h"
 #include "rom/rom_diff.h"
 #include "rom/snes.h"
 #include "testing.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 
 #include "imgui/imgui.h"
@@ -38,6 +40,25 @@ struct ScopedFileCleanup {
   ~ScopedFileCleanup() {
     std::error_code ec;
     std::filesystem::remove(path, ec);
+  }
+};
+
+struct ScopedDirectoryCleanup {
+  std::filesystem::path path;
+  ~ScopedDirectoryCleanup() {
+    std::error_code ec;
+    std::filesystem::remove_all(path, ec);
+  }
+};
+
+struct ProjectRuntimeGuard {
+  core::RomAddressOverrides address_overrides =
+      core::RomSettings::Get().address_overrides();
+  zelda3::CustomObjectManager::State custom_objects =
+      zelda3::CustomObjectManager::Get().SnapshotState();
+  ~ProjectRuntimeGuard() {
+    core::RomSettings::Get().SetAddressOverrides(address_overrides);
+    zelda3::CustomObjectManager::Get().RestoreState(custom_objects);
   }
 };
 
@@ -648,6 +669,189 @@ TEST(EditorManagerWriteConflictTest,
 }
 
 TEST(EditorManagerWriteConflictTest,
+     SessionSwitchRestoresExactProjectPolicyFlagsAndRuntime) {
+  FeatureFlagsGuard flags_guard;
+  ProjectRuntimeGuard runtime_guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_project_context_a.sfc", "PROJECT CONTEXT A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_project_context_b.sfc", "PROJECT CONTEXT B");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  DisableRomWritesForTest();
+  auto* project_a = manager->GetCurrentProject();
+  ASSERT_NE(project_a, nullptr);
+  project_a->name = "Session Context A";
+  project_a->filepath =
+      (rom_a.parent_path() / "session_context_a.yaze").string();
+  project_a->rom_filename = "different-a.sfc";
+  project_a->workspace_settings.backup_on_save = false;
+  project_a->rom_metadata.write_policy = project::RomWritePolicy::kAllow;
+  project_a->rom_metadata.expected_hash = "deadbeef";
+  project_a->rom_address_overrides.addresses["session_probe"] = 0x111111;
+  project_a->custom_objects_folder = "objects-a";
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  DisableRomWritesForTest();
+  auto* project_b = manager->GetCurrentProject();
+  ASSERT_NE(project_b, nullptr);
+  project_b->name = "Session Context B";
+  project_b->filepath =
+      (rom_b.parent_path() / "session_context_b.yaze").string();
+  project_b->rom_filename = "different-b.sfc";
+  project_b->workspace_settings.backup_on_save = false;
+  project_b->rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  project_b->rom_metadata.expected_hash = "deadbeef";
+  project_b->rom_address_overrides.addresses["session_probe"] = 0x222222;
+  project_b->custom_objects_folder = "objects-b";
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 0u);
+  EXPECT_EQ(manager->GetCurrentProject()->name, "Session Context A");
+  EXPECT_EQ(manager->GetProjectRomWritePolicy(),
+            project::RomWritePolicy::kAllow);
+  EXPECT_FALSE(core::FeatureFlags::get().kEnableCustomObjects);
+  EXPECT_EQ(
+      core::RomSettings::Get().address_overrides().GetAddress("session_probe"),
+      0x111111u);
+  EXPECT_EQ(zelda3::CustomObjectManager::Get().GetBasePath(),
+            (rom_a.parent_path() / "objects-a").string());
+
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x2345, 0x6A));
+  ASSERT_OK(manager->SaveRom());
+  EXPECT_EQ(ReadByteAt(rom_a, 0x2345), 0x6A);
+
+  manager->SwitchToSession(1);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
+  EXPECT_EQ(manager->GetCurrentProject()->name, "Session Context B");
+  EXPECT_EQ(manager->GetProjectRomWritePolicy(),
+            project::RomWritePolicy::kBlock);
+  EXPECT_TRUE(core::FeatureFlags::get().kEnableCustomObjects);
+  EXPECT_EQ(
+      core::RomSettings::Get().address_overrides().GetAddress("session_probe"),
+      0x222222u);
+  EXPECT_EQ(zelda3::CustomObjectManager::Get().GetBasePath(),
+            (rom_b.parent_path() / "objects-b").string());
+
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x2345, 0x7B));
+  const auto blocked = manager->SaveRom();
+  EXPECT_EQ(blocked.code(), absl::StatusCode::kPermissionDenied) << blocked;
+  EXPECT_EQ(ReadByteAt(rom_b, 0x2345), 0x00);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     MultiSessionQuitSavesEachRomWithItsOwnBackupContext) {
+  FeatureFlagsGuard flags_guard;
+  ProjectRuntimeGuard runtime_guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_quit_context_a.sfc", "QUIT CONTEXT A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_quit_context_b.sfc", "QUIT CONTEXT B");
+  const auto backup_a = MakeTempFilePath("yaze_backups_context_a");
+  const auto backup_b = MakeTempFilePath("yaze_backups_context_b");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+  ScopedDirectoryCleanup cleanup_backup_a{backup_a};
+  ScopedDirectoryCleanup cleanup_backup_b{backup_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  DisableRomWritesForTest();
+  auto* project_a = manager->GetCurrentProject();
+  ASSERT_NE(project_a, nullptr);
+  project_a->name = "Quit Context A";
+  project_a->filepath = (rom_a.parent_path() / "quit_context_a.yaze").string();
+  project_a->workspace_settings.backup_on_save = true;
+  project_a->rom_backup_folder = backup_a.string();
+  project_a->rom_metadata.write_policy = project::RomWritePolicy::kAllow;
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  DisableRomWritesForTest();
+  auto* project_b = manager->GetCurrentProject();
+  ASSERT_NE(project_b, nullptr);
+  project_b->name = "Quit Context B";
+  project_b->filepath = (rom_b.parent_path() / "quit_context_b.yaze").string();
+  project_b->workspace_settings.backup_on_save = true;
+  project_b->rom_backup_folder = backup_b.string();
+  project_b->rom_metadata.write_policy = project::RomWritePolicy::kAllow;
+
+  manager->SwitchToSession(0);
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x3456, 0x4A));
+  manager->SwitchToSession(1);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x3456, 0x5B));
+
+  manager->Quit();
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionSaveAndContinue();
+
+  EXPECT_TRUE(manager->quit());
+  EXPECT_EQ(ReadByteAt(rom_a, 0x3456), 0x4A);
+  EXPECT_EQ(ReadByteAt(rom_b, 0x3456), 0x5B);
+  EXPECT_EQ(std::distance(std::filesystem::directory_iterator(backup_a),
+                          std::filesystem::directory_iterator()),
+            1);
+  EXPECT_EQ(std::distance(std::filesystem::directory_iterator(backup_b),
+                          std::filesystem::directory_iterator()),
+            1);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     SaveFailsClosedWhenSessionProjectContextIsUnresolved) {
+  FeatureFlagsGuard flags_guard;
+  ProjectRuntimeGuard runtime_guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_resolved_context.sfc", "RESOLVED CONTEXT");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_unresolved_context.sfc", "NO CONTEXT");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  manager->SwitchToSession(0);
+
+  auto* unresolved =
+      static_cast<RomSession*>(manager->session_coordinator()->GetSession(1));
+  ASSERT_NE(unresolved, nullptr);
+  unresolved->project_context.reset();
+
+  manager->SwitchToSession(1);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x2345, 0x6A));
+  const auto status = manager->SaveRom();
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  EXPECT_EQ(ReadByteAt(rom_b, 0x2345), 0x00);
+}
+
+TEST(EditorManagerWriteConflictTest,
      OpenRomOrProjectDefersWhileSessionHasPendingDungeonChanges) {
   ScopedImGuiContext imgui;
 
@@ -1081,6 +1285,9 @@ TEST(EditorManagerWriteConflictTest,
 
   manager->SwitchToSession(1);
   ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
+  // Save controls are session-owned; configure the inactive target before
+  // leaving it rather than relying on the active session's globals.
+  DisableRomWritesForTest();
   ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x2345, 0x6A));
   manager->SwitchToSession(2);
   ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
@@ -1094,7 +1301,6 @@ TEST(EditorManagerWriteConflictTest,
   manager->window_manager().SetActiveCategory("Dungeon", /*notify=*/false);
   manager->SetCurrentEditor(active_dungeon);
 
-  DisableRomWritesForTest();
   manager->RemoveSession(1);
   ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
   manager->ConfirmPendingUnsavedSessionActionSaveAndContinue();
@@ -1133,12 +1339,6 @@ TEST(EditorManagerWriteConflictTest,
   ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
 
   manager->SwitchToSession(0);
-  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x2345, 0x6A));
-  manager->SwitchToSession(1);
-  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
-  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
-  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
-
   DisableRomWritesForTest();
   auto* project = manager->GetCurrentProject();
   ASSERT_NE(project, nullptr);
@@ -1148,6 +1348,12 @@ TEST(EditorManagerWriteConflictTest,
   project->workspace_settings.backup_on_save = false;
   project->rom_metadata.write_policy = project::RomWritePolicy::kWarn;
   project->rom_metadata.expected_hash = "deadbeef";
+
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x2345, 0x6A));
+  manager->SwitchToSession(1);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
 
   manager->RemoveSession(0);
   ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
