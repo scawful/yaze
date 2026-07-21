@@ -1167,6 +1167,160 @@ void EditorManager::RefreshResourceLabelProvider() {
             current_project_.project_opened() ? "true" : "false");
 }
 
+void EditorManager::CaptureRuntimeFeatureFlags() {
+  if (!runtime_feature_flags_session_id_.has_value() || !session_coordinator_) {
+    return;
+  }
+
+  const auto index =
+      ResolveSessionIndexById(*runtime_feature_flags_session_id_);
+  if (!index.has_value()) {
+    runtime_feature_flags_session_id_.reset();
+    return;
+  }
+
+  auto* session =
+      static_cast<RomSession*>(session_coordinator_->GetSession(*index));
+  if (!session) {
+    runtime_feature_flags_session_id_.reset();
+    return;
+  }
+
+  session->feature_flags = core::FeatureFlags::get();
+  if (session->project_context.has_value()) {
+    session->project_context->feature_flags = session->feature_flags;
+  }
+  if (active_project_context_session_id_ == runtime_feature_flags_session_id_) {
+    current_project_.feature_flags = session->feature_flags;
+  }
+}
+
+void EditorManager::CaptureActiveProjectContext() {
+  if (!active_project_context_session_id_.has_value() ||
+      !session_coordinator_) {
+    return;
+  }
+
+  CaptureRuntimeFeatureFlags();
+  const auto index =
+      ResolveSessionIndexById(*active_project_context_session_id_);
+  if (!index.has_value()) {
+    active_project_context_session_id_.reset();
+    return;
+  }
+
+  auto* session =
+      static_cast<RomSession*>(session_coordinator_->GetSession(*index));
+  if (!session) {
+    active_project_context_session_id_.reset();
+    return;
+  }
+
+  // The singleton can temporarily belong to another session while all editor
+  // windows are ticked. Only use that value when it still belongs to this
+  // project owner; otherwise its session-owned copy is authoritative.
+  if (runtime_feature_flags_session_id_ == active_project_context_session_id_) {
+    session->feature_flags = core::FeatureFlags::get();
+  }
+  current_project_.feature_flags = session->feature_flags;
+  session->project_context = current_project_;
+}
+
+void EditorManager::DetachActiveProjectContext() {
+  CaptureActiveProjectContext();
+  active_project_context_session_id_.reset();
+  runtime_feature_flags_session_id_.reset();
+}
+
+void EditorManager::BindProjectContextToSession(
+    RomSession* session, const project::YazeProject& project) {
+  if (!session) {
+    return;
+  }
+  session->project_context = project;
+  session->feature_flags = project.feature_flags;
+}
+
+void EditorManager::ApplyCurrentProjectRuntimeContext() {
+  core::FeatureFlags::get() = current_project_.feature_flags;
+  zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+
+  core::RomSettings::Get().SetAddressOverrides(
+      current_project_.rom_address_overrides);
+  if (current_project_.custom_object_files.empty()) {
+    zelda3::CustomObjectManager::Get().ClearObjectFileMap();
+  } else {
+    zelda3::CustomObjectManager::Get().SetObjectFileMap(
+        current_project_.custom_object_files);
+  }
+  zelda3::CustomObjectManager::Get().Initialize(
+      current_project_.custom_objects_folder.empty()
+          ? ""
+          : current_project_.GetAbsolutePath(
+                current_project_.custom_objects_folder));
+
+  if (current_project_.project_opened()) {
+    rom_lifecycle_.ApplyDefaultBackupPolicy(
+        current_project_.workspace_settings.backup_on_save,
+        current_project_.GetAbsolutePath(current_project_.rom_backup_folder),
+        current_project_.workspace_settings.backup_retention_count,
+        current_project_.workspace_settings.backup_keep_daily,
+        current_project_.workspace_settings.backup_keep_daily_days);
+  } else {
+    ApplyDefaultBackupPolicy();
+  }
+
+  rom_lifecycle_.SetProjectContext(&current_project_);
+  ContentRegistry::Context::SetCurrentProject(&current_project_);
+  SyncLayoutScopeFromCurrentProject();
+  RefreshHackWorkflowBackend();
+  if (project_management_panel_) {
+    project_management_panel_->SetProject(&current_project_);
+    project_management_panel_->SetVersionManager(version_manager_.get());
+    project_management_panel_->SetRom(GetCurrentRom());
+  }
+}
+
+bool EditorManager::RestoreProjectContextForSession(RomSession* session) {
+  if (!session || !session->project_context.has_value()) {
+    active_project_context_session_id_.reset();
+    runtime_feature_flags_session_id_.reset();
+    rom_lifecycle_.SetProjectContext(nullptr);
+    return false;
+  }
+
+  current_project_ = *session->project_context;
+  session->feature_flags = current_project_.feature_flags;
+  active_project_context_session_id_ = session->session_id();
+  runtime_feature_flags_session_id_ = session->session_id();
+  ApplyCurrentProjectRuntimeContext();
+  return true;
+}
+
+absl::StatusOr<const project::YazeProject*>
+EditorManager::PrepareActiveProjectContextForSave() {
+  if (!session_coordinator_) {
+    return absl::FailedPreconditionError("No session coordinator");
+  }
+  auto* session = session_coordinator_->GetActiveRomSession();
+  if (!session || !session->rom.is_loaded()) {
+    return absl::FailedPreconditionError("No active ROM session");
+  }
+
+  CaptureRuntimeFeatureFlags();
+  if (!active_project_context_session_id_.has_value() ||
+      *active_project_context_session_id_ != session->session_id()) {
+    return absl::FailedPreconditionError(
+        "Active ROM session project context is not restored");
+  }
+  CaptureActiveProjectContext();
+  if (!session->project_context.has_value()) {
+    return absl::FailedPreconditionError(
+        "Active ROM session has no project/save context");
+  }
+  return &*session->project_context;
+}
+
 void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
                                           bool transient) {
   // Confirmation consent and Save As targets belong to the ROM that started
@@ -1174,6 +1328,23 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
   // context switches are temporary and must not consume the active request.
   if (!transient) {
     CancelPendingRomSave(/*hide_popups=*/true);
+    CaptureRuntimeFeatureFlags();
+    CaptureActiveProjectContext();
+    if (!RestoreProjectContextForSession(session)) {
+      LOG_ERROR("EditorManager",
+                "Session %zu has no project context; saves are disabled",
+                new_index);
+    }
+  } else {
+    // Frame iteration must not copy full projects or reset project-wide caches.
+    // Feature flags are cheap and directly affect per-editor draw/save paths.
+    CaptureRuntimeFeatureFlags();
+    if (session) {
+      core::FeatureFlags::get() = session->feature_flags;
+      runtime_feature_flags_session_id_ = session->session_id();
+    } else {
+      runtime_feature_flags_session_id_.reset();
+    }
   }
 
   // Palette edit history and dirty tracking are session-owned. Select the
@@ -1236,11 +1407,17 @@ void EditorManager::HandleSessionCreated(size_t index, RomSession* session) {
   if (pending_rom_save_.has_value() && !PendingRomSaveMatchesActiveSession()) {
     CancelPendingRomSave(/*hide_popups=*/true);
   }
+  CaptureActiveProjectContext();
+  if (session && !session->project_context.has_value()) {
+    BindProjectContextToSession(session, current_project_);
+  }
+
   const size_t session_id = session ? session->session_id() : index;
   window_manager_.RegisterRegistryWindowContentsForSession(session_id);
   window_manager_.RestorePinnedState(user_settings_.prefs().pinned_panels);
   if (session_coordinator_ &&
       index == session_coordinator_->GetActiveSessionIndex()) {
+    RestoreProjectContextForSession(session);
     gfx::PaletteManager::Get().ActivateSession(session ? &session->game_data
                                                        : nullptr);
     UpdateCurrentRomHash();
@@ -1262,6 +1439,14 @@ void EditorManager::HandleSessionClosed(size_t index) {
         session_coordinator_->IsValidSessionIndex(index)
             ? static_cast<RomSession*>(session_coordinator_->GetSession(index))
             : nullptr;
+    if (closing_session != nullptr &&
+        active_project_context_session_id_ == closing_session->session_id()) {
+      CaptureActiveProjectContext();
+      active_project_context_session_id_.reset();
+      if (runtime_feature_flags_session_id_ == closing_session->session_id()) {
+        runtime_feature_flags_session_id_.reset();
+      }
+    }
     palette_session = active_session;
     if (closing_session != nullptr && active_session == closing_session &&
         session_count > 1) {
@@ -3176,9 +3361,10 @@ absl::Status EditorManager::LoadRomInternal() {
                                 GetCurrentSessionId());
     UpdateCurrentRomHash();
 
-    core::RomSettings::Get().ClearOverrides();
-    zelda3::CustomObjectManager::Get().ClearObjectFileMap();
-    ApplyDefaultBackupPolicy();
+    // HandleSessionCreated binds the project context that governed this open.
+    // Reapply it here rather than partially clearing global runtime state.
+    ApplyCurrentProjectRuntimeContext();
+    CaptureActiveProjectContext();
 
     // Keep ResourceLabelProvider in sync with the newly-active ROM session
     // before any editors/assets query room/sprite names.
@@ -3562,6 +3748,21 @@ absl::Status EditorManager::SaveRomInternal(
     return absl::InvalidArgumentError("No filename provided for save as");
   }
 
+  ASSIGN_OR_RETURN(const project::YazeProject* save_project,
+                   PrepareActiveProjectContextForSave());
+  // Hash/write/safety checks must read the same immutable session snapshot as
+  // the rest of this save, never a process-global project left by another ROM.
+  rom_lifecycle_.SetProjectContext(save_project);
+  struct LifecycleProjectContextGuard {
+    RomLifecycleManager* lifecycle = nullptr;
+    project::YazeProject* restore = nullptr;
+    ~LifecycleProjectContextGuard() {
+      if (lifecycle) {
+        lifecycle->SetProjectContext(restore);
+      }
+    }
+  } lifecycle_project_guard{&rom_lifecycle_, &current_project_};
+
   // --- State machine checks (delegated to RomLifecycleManager) ---
   if (rom_lifecycle_.IsRomWriteConfirmPending()) {
     return absl::CancelledError("Save pending confirmation");
@@ -3617,13 +3818,13 @@ absl::Status EditorManager::SaveRomInternal(
   }
 
   // --- Backup policy setup ---
-  if (current_project_.project_opened()) {
+  if (save_project->project_opened()) {
     rom_lifecycle_.ApplyDefaultBackupPolicy(
-        current_project_.workspace_settings.backup_on_save,
-        current_project_.GetAbsolutePath(current_project_.rom_backup_folder),
-        current_project_.workspace_settings.backup_retention_count,
-        current_project_.workspace_settings.backup_keep_daily,
-        current_project_.workspace_settings.backup_keep_daily_days);
+        save_project->workspace_settings.backup_on_save,
+        save_project->GetAbsolutePath(save_project->rom_backup_folder),
+        save_project->workspace_settings.backup_retention_count,
+        save_project->workspace_settings.backup_keep_daily,
+        save_project->workspace_settings.backup_keep_daily_days);
   } else {
     rom_lifecycle_.ApplyDefaultBackupPolicy(
         user_settings_.prefs().backup_before_save, "", 20, true, 14);
@@ -3674,8 +3875,7 @@ absl::Status EditorManager::SaveRomInternal(
   RETURN_IF_ERROR(CheckOracleRomSafetyPreSave(current_rom));
 
   // --- Write conflict check (ASM-owned address protection) ---
-  if (current_project_.project_opened() &&
-      current_project_.hack_manifest.loaded()) {
+  if (save_project->project_opened() && save_project->hack_manifest.loaded()) {
     if (!rom_lifecycle_.ShouldBypassWriteConflict()) {
       std::vector<std::pair<uint32_t, uint32_t>> write_ranges;
       bool diff_computed = false;
@@ -3711,7 +3911,7 @@ absl::Status EditorManager::SaveRomInternal(
 
       if (!write_ranges.empty()) {
         auto conflicts =
-            current_project_.hack_manifest.AnalyzePcWriteRanges(write_ranges);
+            save_project->hack_manifest.AnalyzePcWriteRanges(write_ranges);
         if (!conflicts.empty()) {
           rom_lifecycle_.SetPendingWriteConflicts(std::move(conflicts));
           if (popup_manager_) {
@@ -3832,8 +4032,12 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
   if (absl::EndsWith(filename, ".yaze") ||
       absl::EndsWith(filename, ".zsproj") ||
       absl::EndsWith(filename, ".yazeproj")) {
-    // Open the project file
-    RETURN_IF_ERROR(current_project_.Open(filename));
+    // Parse first so a failed project open cannot destroy the active session's
+    // working context. Detach only when the incoming project is ready.
+    project::YazeProject incoming_project;
+    RETURN_IF_ERROR(incoming_project.Open(filename));
+    DetachActiveProjectContext();
+    current_project_ = std::move(incoming_project);
     SyncLayoutScopeFromCurrentProject();
     RefreshHackWorkflowBackend();
 
@@ -3868,6 +4072,7 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
     // Apply project feature flags to both session and global singleton
     session->feature_flags = current_project_.feature_flags;
     core::FeatureFlags::get() = current_project_.feature_flags;
+    CaptureActiveProjectContext();
 
     // Keep ResourceLabelProvider in sync with the active ROM session before
     // editors register room/sprite labels.
@@ -3925,6 +4130,7 @@ absl::Status EditorManager::CreateNewProject(const std::string& template_name) {
   // Delegate to ProjectManager
   auto status = project_manager_.CreateNewProject(template_name);
   if (status.ok()) {
+    DetachActiveProjectContext();
     current_project_ = project_manager_.GetCurrentProject();
     SyncLayoutScopeFromCurrentProject();
 
@@ -3972,6 +4178,7 @@ absl::Status EditorManager::OpenProjectInternal() {
       popup_manager_->Show("Project Repair");
     }
 
+    DetachActiveProjectContext();
     current_project_ = std::move(new_project);
     SyncLayoutScopeFromCurrentProject();
 
@@ -4165,32 +4372,8 @@ absl::Status EditorManager::LoadProjectWithRom() {
       current_project_.custom_object_files.size());
 #endif
 
-  core::RomSettings::Get().SetAddressOverrides(
-      current_project_.rom_address_overrides);
-  if (!current_project_.custom_object_files.empty()) {
-    zelda3::CustomObjectManager::Get().SetObjectFileMap(
-        current_project_.custom_object_files);
-  } else {
-    zelda3::CustomObjectManager::Get().ClearObjectFileMap();
-  }
-  if (!current_project_.custom_objects_folder.empty()) {
-    zelda3::CustomObjectManager::Get().Initialize(
-        current_project_.GetAbsolutePath(
-            current_project_.custom_objects_folder));
-  } else {
-    // Avoid inheriting stale singleton state from previous projects.
-    zelda3::CustomObjectManager::Get().Initialize("");
-  }
-  rom_file_manager_.SetBackupBeforeSave(
-      current_project_.workspace_settings.backup_on_save);
-  rom_file_manager_.SetBackupFolder(
-      current_project_.GetAbsolutePath(current_project_.rom_backup_folder));
-  rom_file_manager_.SetBackupRetentionCount(
-      current_project_.workspace_settings.backup_retention_count);
-  rom_file_manager_.SetBackupKeepDaily(
-      current_project_.workspace_settings.backup_keep_daily);
-  rom_file_manager_.SetBackupKeepDailyDays(
-      current_project_.workspace_settings.backup_keep_daily_days);
+  BindProjectContextToSession(session, current_project_);
+  RestoreProjectContextForSession(session);
 
   if (auto* rom = GetCurrentRom(); rom && rom->is_loaded()) {
     if (IsRomHashMismatch()) {
@@ -4258,6 +4441,7 @@ absl::Status EditorManager::LoadProjectWithRom() {
       current_project_.workspace_settings.backup_on_save;
   ImGui::GetIO().FontGlobalScale = user_settings_.prefs().font_global_scale;
 
+  CaptureActiveProjectContext();
   RefreshHackWorkflowBackend();
 
   status_bar_.ClearProjectWorkflowStatus();
@@ -4296,6 +4480,7 @@ absl::Status EditorManager::LoadProjectWithRom() {
 }
 
 absl::Status EditorManager::SaveProject() {
+  CaptureActiveProjectContext();
   if (!current_project_.project_opened()) {
     return CreateNewProject();
   }
@@ -4326,7 +4511,9 @@ absl::Status EditorManager::SaveProject() {
     }
   }
 
-  return current_project_.Save();
+  auto status = current_project_.Save();
+  CaptureActiveProjectContext();
+  return status;
 }
 
 void EditorManager::ResolvePotItemSaveConfirmation(
@@ -4352,6 +4539,7 @@ void EditorManager::ResolvePotItemSaveConfirmation(
 }
 
 absl::Status EditorManager::SaveProjectAs() {
+  CaptureActiveProjectContext();
   // Get current project name for default filename
   std::string default_name = current_project_.project_opened()
                                  ? current_project_.GetDisplayName()
@@ -4391,6 +4579,8 @@ absl::Status EditorManager::SaveProjectAs() {
         absl::StrFormat("Failed to save project: %s", save_status.message()),
         editor::ToastType::kError);
   }
+
+  CaptureActiveProjectContext();
 
   return save_status;
 }
@@ -4676,7 +4866,14 @@ absl::Status EditorManager::ImportProject(const std::string& project_path) {
   // Delegate to ProjectManager for import logic
   RETURN_IF_ERROR(project_manager_.ImportProject(project_path));
   // Sync local project reference
+  DetachActiveProjectContext();
   current_project_ = project_manager_.GetCurrentProject();
+  if (session_coordinator_) {
+    if (auto* session = session_coordinator_->GetActiveRomSession()) {
+      BindProjectContextToSession(session, current_project_);
+      RestoreProjectContextForSession(session);
+    }
+  }
   SyncLayoutScopeFromCurrentProject();
   RefreshHackWorkflowBackend();
   return absl::OkStatus();
@@ -4688,6 +4885,7 @@ absl::Status EditorManager::RepairCurrentProject() {
   }
 
   RETURN_IF_ERROR(current_project_.RepairProject());
+  CaptureActiveProjectContext();
   toast_manager_.Show("Project repaired successfully",
                       editor::ToastType::kSuccess);
 

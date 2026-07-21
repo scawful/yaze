@@ -567,6 +567,12 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   gfx::IRenderer* renderer_ = nullptr;
 
   project::YazeProject current_project_;
+  // current_project_ is a stable-address working copy owned by the active
+  // user-facing session. Stable IDs survive UI-index compaction.
+  std::optional<size_t> active_project_context_session_id_;
+  // The global FeatureFlags singleton is also rebound during transient frame
+  // iteration, so track which session currently owns its value separately.
+  std::optional<size_t> runtime_feature_flags_session_id_;
   std::unique_ptr<core::VersionManager> version_manager_;
   SharedClipboard shared_clipboard_;
   std::unique_ptr<PopupManager> popup_manager_;
@@ -600,6 +606,15 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void PersistInputConfig(const emu::input::InputConfig& config);
   void UpdateCurrentRomHash();
   void ApplyDefaultBackupPolicy();
+  void CaptureRuntimeFeatureFlags();
+  void CaptureActiveProjectContext();
+  void DetachActiveProjectContext();
+  void BindProjectContextToSession(RomSession* session,
+                                   const project::YazeProject& project);
+  bool RestoreProjectContextForSession(RomSession* session);
+  void ApplyCurrentProjectRuntimeContext();
+  absl::StatusOr<const project::YazeProject*>
+  PrepareActiveProjectContextForSave();
   ProjectWorkflowStatus MakeBuildStatus(const std::string& summary,
                                         const std::string& detail,
                                         ProjectWorkflowState state,

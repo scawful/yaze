@@ -17,6 +17,7 @@
 #include "app/editor/graphics/gfx_group_workspace_state.h"
 #include "core/asar_wrapper.h"  // For AsarSymbol (backend-agnostic symbol shape)
 #include "core/features.h"
+#include "core/project.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
 
@@ -157,6 +158,9 @@ struct RomSession {
   std::string custom_name;  // User-defined session name
   std::string filepath;     // ROM filepath for duplicate detection
   core::FeatureFlags::Flags feature_flags;  // Per-session feature flags
+  // Full project/save policy snapshot for this ROM. An empty optional means
+  // the session has not yet been bound to a project context and must not save.
+  std::optional<project::YazeProject> project_context;
   bool game_data_loaded = false;
   std::array<bool, kEditorTypeCount> editor_initialized{};
   std::array<bool, kEditorTypeCount> editor_assets_loaded{};

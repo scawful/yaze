@@ -883,10 +883,21 @@ absl::StatusOr<RomSession*> SessionCoordinator::CreateSessionFromRom(
   session->filepath = filepath;
 
   UpdateSessionCount();
-  SwitchToSession(new_session_index);
-
-  // Notify observers
+  // Let observers attach project/runtime context before the session becomes
+  // active. This prevents a switch from briefly exposing an unbound ROM.
   NotifySessionCreated(new_session_index, session.get());
+
+  if (sessions_.size() == 1) {
+    active_session_index_ = new_session_index;
+    if (window_manager_) {
+      window_manager_->SetActiveSession(GetSessionId(new_session_index));
+    }
+    NotifySessionSwitched(new_session_index, new_session_index, session.get(),
+                          /*transient=*/false);
+  } else {
+    SwitchToSession(new_session_index);
+  }
+
   NotifySessionRomLoaded(new_session_index, session.get());
 
   return session.get();
