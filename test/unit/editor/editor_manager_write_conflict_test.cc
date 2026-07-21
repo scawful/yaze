@@ -953,6 +953,63 @@ TEST(EditorManagerWriteConflictTest,
 }
 
 TEST(EditorManagerWriteConflictTest,
+     InactiveSaveAndClosePreservesResumableWriteConfirmation) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_inactive_confirm_a.sfc", "INACTIVE CONFIRM A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_inactive_confirm_b.sfc", "INACTIVE CONFIRM B");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+
+  manager->SwitchToSession(0);
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x2345, 0x6A));
+  manager->SwitchToSession(1);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
+
+  DisableRomWritesForTest();
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "InactiveConfirmationTest";
+  project->filepath =
+      (rom_a.parent_path() / "inactive_confirmation_project.yaze").string();
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.write_policy = project::RomWritePolicy::kWarn;
+  project->rom_metadata.expected_hash = "deadbeef";
+
+  manager->RemoveSession(0);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionSaveAndContinue();
+
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetActiveSessionCount(), 2u);
+  EXPECT_EQ(manager->GetCurrentSessionId(), 0u);
+  EXPECT_TRUE(manager->IsRomWriteConfirmPending());
+  ASSERT_NE(manager->popup_manager(), nullptr);
+  EXPECT_TRUE(manager->popup_manager()->IsVisible(PopupID::kRomWriteConfirm));
+
+  manager->ConfirmRomWrite();
+  ASSERT_OK(manager->ResumePendingRomSave());
+  EXPECT_FALSE(manager->IsRomWriteConfirmPending());
+  EXPECT_EQ(manager->GetCurrentSessionId(), 0u);
+  EXPECT_EQ(ReadByteAt(rom_a, 0x2345), 0x6A);
+  EXPECT_EQ(ReadByteAt(rom_b, 0x2345), 0x00);
+}
+
+TEST(EditorManagerWriteConflictTest,
      SaveAndContinueRefusesToDiscardDisabledPaletteWrites) {
   ScopedImGuiContext imgui;
   FeatureFlagsGuard flags_guard;
