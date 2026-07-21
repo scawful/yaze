@@ -213,6 +213,20 @@ std::vector<std::pair<uint32_t, uint32_t>> CollectDirtyPotItemWriteRanges(
   return ranges;
 }
 
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+CollectDirtyChestWriteRanges(const Rom* rom, const DungeonRoomStore& rooms) {
+  bool any_dirty = false;
+  rooms.ForEachMaterialized([&](int, const zelda3::Room& room) {
+    if (room.chests_dirty()) {
+      any_dirty = true;
+    }
+  });
+  if (!any_dirty) {
+    return std::vector<std::pair<uint32_t, uint32_t>>{};
+  }
+  return zelda3::GetChestTableWriteRanges(rom);
+}
+
 absl::Status SaveAllPotItemsForProject(const project::YazeProject* project,
                                        Rom* rom, DungeonRoomStore& rooms) {
   std::optional<zelda3::DungeonStreamLayout> repack_layout;
@@ -257,6 +271,49 @@ absl::Status ValidatePotItemManifestConflicts(
       save_scope, "DungeonEditorV2", toast_manager);
 }
 
+absl::Status ValidateRegularDungeonEntranceSavePreflight(
+    const project::YazeProject* project, Rom* rom,
+    const std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots>&
+        entrances,
+    absl::string_view save_scope, ToastManager* toast_manager) {
+  if (rom == nullptr || !rom->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  // Field and ROM-bound validation must happen even without a manifest. This
+  // runs before any editor save domain mutates the shared ROM buffer.
+  RETURN_IF_ERROR(zelda3::RejectUnsupportedDungeonSpawnPointSaves(entrances));
+  RETURN_IF_ERROR(
+      zelda3::ValidateRegularDungeonEntrancesForSave(*rom, entrances));
+
+  if (project == nullptr || !project->hack_manifest.loaded()) {
+    return absl::OkStatus();
+  }
+  const auto ranges =
+      zelda3::CollectDirtyRegularDungeonEntranceWriteRanges(entrances);
+  if (ranges.empty()) {
+    return absl::OkStatus();
+  }
+  return ValidateHackManifestSaveConflicts(
+      project->hack_manifest, project->rom_metadata.write_policy, ranges,
+      save_scope, "DungeonEditorV2", toast_manager);
+}
+
+absl::Status ValidateChestManifestConflicts(const project::YazeProject* project,
+                                            Rom* rom,
+                                            const DungeonRoomStore& rooms,
+                                            absl::string_view save_scope,
+                                            ToastManager* toast_manager) {
+  ASSIGN_OR_RETURN(const auto ranges, CollectDirtyChestWriteRanges(rom, rooms));
+  if (ranges.empty() || project == nullptr ||
+      !project->hack_manifest.loaded()) {
+    return absl::OkStatus();
+  }
+  return ValidateHackManifestSaveConflicts(
+      project->hack_manifest, project->rom_metadata.write_policy, ranges,
+      save_scope, "DungeonEditorV2", toast_manager);
+}
+
 }  // namespace
 
 absl::Status DungeonEditorV2::BeginSaveTransaction() {
@@ -269,6 +326,10 @@ absl::Status DungeonEditorV2::BeginSaveTransaction() {
   auto& palette_manager = gfx::PaletteManager::Get();
   if (core::FeatureFlags::get().dungeon.kSavePalettes &&
       palette_manager.HasUnsavedChanges()) {
+    if (!palette_manager.IsManaging(game_data_)) {
+      return absl::FailedPreconditionError(
+          "Cannot save dungeon palettes from a different ROM session");
+    }
     RETURN_IF_ERROR(palette_manager.BeginSaveTransaction());
     snapshot.has_palette_transaction = true;
   }
@@ -359,21 +420,38 @@ absl::Status DungeonEditorV2::Save() {
 
   const auto& flags = core::FeatureFlags::get().dungeon;
 
+  if (flags.kSaveEntrances) {
+    RETURN_IF_ERROR(ValidateRegularDungeonEntranceSavePreflight(
+        dependencies_.project, rom_, entrances_, "regular dungeon entrances",
+        dependencies_.toast_manager));
+  }
+
+  if (flags.kSaveChests) {
+    RETURN_IF_ERROR(ValidateChestManifestConflicts(
+        dependencies_.project, rom_, rooms_, "chest table",
+        dependencies_.toast_manager));
+  }
   if (flags.kSavePotItems) {
     RETURN_IF_ERROR(ValidatePotItemManifestConflicts(
         dependencies_.project, rom_, rooms_, "pot items",
         dependencies_.toast_manager));
   }
 
-  if (flags.kSavePalettes && gfx::PaletteManager::Get().HasUnsavedChanges()) {
-    auto status = gfx::PaletteManager::Get().SaveAllToRom();
+  auto& palette_manager = gfx::PaletteManager::Get();
+  if (flags.kSavePalettes && palette_manager.HasUnsavedChanges()) {
+    if (!palette_manager.IsManaging(game_data_)) {
+      return absl::FailedPreconditionError(
+          "Cannot save dungeon palettes from a different ROM session");
+    }
+    const size_t modified_color_count = palette_manager.GetModifiedColorCount();
+    auto status = palette_manager.SaveAllToRom();
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save palette changes: %s",
                 status.message().data());
       return status;
     }
     LOG_INFO("DungeonEditorV2", "Saved %zu modified colors to ROM",
-             gfx::PaletteManager::Get().GetModifiedColorCount());
+             modified_color_count);
   }
 
   if (flags.kSaveObjects || flags.kSaveSprites || flags.kSaveRoomHeaders) {
@@ -488,6 +566,18 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
   const auto& flags = core::FeatureFlags::get().dungeon;
   const auto& rom_data = rom_->vector();
 
+  auto& palette_manager = gfx::PaletteManager::Get();
+  if (flags.kSavePalettes && palette_manager.IsManaging(game_data_)) {
+    auto palette_ranges = palette_manager.GetModifiedColorWriteRanges();
+    ranges.insert(ranges.end(), palette_ranges.begin(), palette_ranges.end());
+  }
+
+  if (flags.kSaveEntrances) {
+    auto entrance_ranges =
+        zelda3::CollectDirtyRegularDungeonEntranceWriteRanges(entrances_);
+    ranges.insert(ranges.end(), entrance_ranges.begin(), entrance_ranges.end());
+  }
+
   auto append_declared_cow_ranges = [&](core::DungeonStreamType stream_type,
                                         bool stream_dirty, int room_id) {
     if (!stream_dirty || dependencies_.project == nullptr ||
@@ -558,6 +648,19 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
         ranges.emplace_back(zelda3::kCustomCollisionDataPosition,
                             zelda3::kCustomCollisionDataSoftEnd);
       }
+    }
+  }
+
+  // Chests use one global fixed-capacity table. A dirty room may change the
+  // runtime byte length and any slot inside the live pointer target, so report
+  // both complete write ranges before serializers clear dirty state.
+  if (flags.kSaveChests) {
+    auto chest_ranges = CollectDirtyChestWriteRanges(rom_, rooms_);
+    if (chest_ranges.ok()) {
+      ranges.insert(ranges.end(), chest_ranges->begin(), chest_ranges->end());
+    } else {
+      LOG_WARN("DungeonEditorV2", "Could not predict chest write ranges: %s",
+               chest_ranges.status().message().data());
     }
   }
 
@@ -663,14 +766,32 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
     }
 
     const auto& flags = core::FeatureFlags::get().dungeon;
+    if (flags.kSaveEntrances) {
+      RETURN_IF_ERROR(ValidateRegularDungeonEntranceSavePreflight(
+          dependencies_.project, rom_, entrances_,
+          absl::StrFormat("regular dungeon entrances (Apply Room 0x%03X)",
+                          room_id),
+          dependencies_.toast_manager));
+    }
+    if (flags.kSaveChests) {
+      RETURN_IF_ERROR(ValidateChestManifestConflicts(
+          dependencies_.project, rom_, rooms_,
+          absl::StrFormat("chest table for room 0x%03X", room_id),
+          dependencies_.toast_manager));
+    }
     if (flags.kSavePotItems) {
       RETURN_IF_ERROR(ValidatePotItemManifestConflicts(
           dependencies_.project, rom_, rooms_,
           absl::StrFormat("pot items for room 0x%03X", room_id),
           dependencies_.toast_manager));
     }
-    if (flags.kSavePalettes && gfx::PaletteManager::Get().HasUnsavedChanges()) {
-      auto status = gfx::PaletteManager::Get().SaveAllToRom();
+    auto& palette_manager = gfx::PaletteManager::Get();
+    if (flags.kSavePalettes && palette_manager.HasUnsavedChanges()) {
+      if (!palette_manager.IsManaging(game_data_)) {
+        return absl::FailedPreconditionError(
+            "Cannot save dungeon palettes from a different ROM session");
+      }
+      auto status = palette_manager.SaveAllToRom();
       if (!status.ok()) {
         LOG_ERROR("DungeonEditorV2", "Failed to save palette changes: %s",
                   status.message().data());

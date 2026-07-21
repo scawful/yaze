@@ -43,6 +43,8 @@ namespace yaze {
 namespace editor {
 
 class CustomCollisionPanel;
+class DungeonEditorV2RegularEntranceTestPeer;
+class DungeonEditorV2SpawnRejectionTestPeer;
 class MinecartTrackEditorPanel;
 class ObjectTileEditorPanel;
 class OverlayManagerPanel;
@@ -238,6 +240,8 @@ class DungeonEditorV2 : public Editor {
   const std::deque<int>& GetRecentRooms() const { return recent_rooms_; }
 
  private:
+  friend class DungeonEditorV2RegularEntranceTestPeer;
+  friend class DungeonEditorV2SpawnRejectionTestPeer;
   friend class DungeonEditorV2RomSafetyTest_UndoSnapshotLeakDetection_Test;
   friend class
       DungeonEditorV2RomSafetyTest_ObjectStreamUndoRedoRestoresSelectionIdentity_Test;

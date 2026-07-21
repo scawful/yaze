@@ -289,6 +289,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_workbench_content_test.cc
     unit/editor/dungeon_issue_report_storage_test.cc
     unit/editor/dungeon_usage_tracker_test.cc
+    unit/editor/dungeon_entrance_edit_policy_test.cc
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
     unit/editor/dungeon_overlay_controls_test.cc
     unit/editor/dungeon_object_selector_palette_test.cc
@@ -490,6 +491,9 @@ if(YAZE_BUILD_TESTS)
 
   yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
   yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})
+  target_compile_definitions(yaze_test_integration PRIVATE
+    YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
+  )
   if(YAZE_ENABLE_ROM_TESTS)
     target_compile_definitions(yaze_test_integration PRIVATE
       YAZE_ENABLE_ROM_TESTS=1

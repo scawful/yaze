@@ -1297,8 +1297,8 @@ void ObjectDrawer::InitializeDrawRoutines() {
       });
 
   // Routine 115 - RupeeFloor (special pattern for 0xF92)
-  // ASM: RoomDraw_RupeeFloor - draws 3 columns of 2-tile pairs at 3 Y positions
-  // Pattern: 6 tiles wide, 8 rows tall with gaps (rows 2 and 5 are empty)
+  // ASM: RoomDraw_RupeeFloor - draws 3 one-tile columns two tiles apart.
+  // Pattern: 5 tiles wide, 8 rows tall with gaps (rows 2 and 5 are empty).
   draw_routines_.push_back(
       [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
@@ -1375,6 +1375,22 @@ void ObjectDrawer::InitializeDrawRoutines() {
         self->DrawUsingRegistryRoutine(
             DrawRoutineIds::kDownwardsEdge1x1_1to16plus7, obj, bg, tiles,
             state);
+      };
+
+  ensure_index(DrawRoutineIds::kFloorLight);
+  draw_routines_[DrawRoutineIds::kFloorLight] =
+      [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
+         std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        self->DrawUsingRegistryRoutine(DrawRoutineIds::kFloorLight, obj, bg,
+                                       tiles, state);
+      };
+
+  ensure_index(DrawRoutineIds::kWeird2x4_1to16);
+  draw_routines_[DrawRoutineIds::kWeird2x4_1to16] =
+      [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
+         std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        self->DrawUsingRegistryRoutine(DrawRoutineIds::kWeird2x4_1to16, obj, bg,
+                                       tiles, state);
       };
 
   // Routine 130 - Custom Object (Oracle of Secrets 0x31, 0x32)
@@ -2409,10 +2425,17 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
       height = 32;                  // 4 tiles tall
       break;
     }
+    case DrawRoutineIds::kWeird2x4_1to16: {  // Archery curtains (object 0xB5)
+      const int count = (size & 0x0F) + 1;
+      width = count * 16;
+      height = 32;
+      break;
+    }
+
     case 2:  // RoomDraw_Rightwards2x4spaced4_1to16 (objects 0x03-0x04)
     case 3:  // RoomDraw_Rightwards2x4spaced4_1to16_BothBG (objects 0x05-0x06)
     {
-      // ASM: GetSize_1to16, draws 2x4 tiles with 4-tile adjacent spacing
+      // ASM: GetSize_1to16, so both routines repeat size + 1 times.
       size = size & 0x0F;
       int count = size + 1;
       width = count * 16;  // 2 tiles wide per repetition (adjacent)
@@ -3053,6 +3076,11 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
       height = 64;
       break;
 
+    case DrawRoutineIds::kFloorLight:
+      width = 64;
+      height = 64;
+      break;
+
     case 106:  // BossShell4x4
       width = 32;
       height = 32;
@@ -3112,8 +3140,8 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
       break;
 
     case 115:  // RupeeFloor (special pattern)
-      // 6 tiles wide (3 columns x 2 tiles) x 8 tiles tall = 48x64 pixels
-      width = 48;
+      // Columns at x + 0, +2, +4 bound a 5x8-tile area = 40x64 pixels.
+      width = 40;
       height = 64;
       break;
 
