@@ -14,6 +14,8 @@
 namespace yaze {
 namespace zelda3 {
 
+class DungeonState;
+
 /**
  * @brief Simple rectangle for selection bounds
  */
@@ -132,12 +134,26 @@ class ObjectGeometry {
   absl::StatusOr<GeometryBounds> MeasureByObjectId(
       const RoomObject& object) const;
 
+  // Measure the concrete footprint produced for an explicit runtime state.
+  // Unlike MeasureByObjectId(), this does not substitute the largest known
+  // stateful footprint and is therefore suitable for draw-trace validation.
+  // A null state measures the routine's default branch.
+  absl::StatusOr<GeometryBounds> MeasureByObjectIdForState(
+      const RoomObject& object, const DungeonState* state) const;
+
   // Clear the measurement cache (e.g., after routine registry changes).
   void ClearCache();
 
   // Measure bounds for a specific routine metadata entry.
   absl::StatusOr<GeometryBounds> MeasureRoutine(const DrawRoutineInfo& routine,
                                                 const RoomObject& object) const;
+
+  // State-specific counterpart to MeasureRoutine(). This bypasses the
+  // editor-selection policy that intentionally measures the largest stable
+  // state for objects such as the empty water face.
+  absl::StatusOr<GeometryBounds> MeasureRoutineForState(
+      const DrawRoutineInfo& routine, const RoomObject& object,
+      const DungeonState* state) const;
 
   /**
    * @brief Resolve the canvas anchor (x, y) for a given object's draw routine.

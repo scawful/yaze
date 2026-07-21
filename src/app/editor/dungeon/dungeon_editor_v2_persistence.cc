@@ -566,6 +566,13 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
   const auto& flags = core::FeatureFlags::get().dungeon;
   const auto& rom_data = rom_->vector();
 
+  auto& palette_manager = gfx::PaletteManager::Get();
+  if (flags.kSavePalettes) {
+    auto palette_ranges =
+        palette_manager.GetModifiedColorWriteRanges(game_data_);
+    ranges.insert(ranges.end(), palette_ranges.begin(), palette_ranges.end());
+  }
+
   if (flags.kSaveEntrances) {
     auto entrance_ranges =
         zelda3::CollectDirtyRegularDungeonEntranceWriteRanges(entrances_);

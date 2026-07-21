@@ -42,7 +42,9 @@ class DungeonState {
   // Object State
   virtual bool IsWallMoved(int room_id) const = 0;
   virtual bool IsFloorBombable(int room_id) const = 0;
-  virtual bool IsRupeeFloorActive(int room_id) const = 0;
+  // True once the room's rupee-floor reward has been collected. USDASM's
+  // RoomDraw_RupeeFloor suppresses the object while this room flag is set.
+  virtual bool IsRupeeFloorCleared(int room_id) const = 0;
 
   // General Flags
   virtual bool IsCrystalSwitchBlue() const = 0;
