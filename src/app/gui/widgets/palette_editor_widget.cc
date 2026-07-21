@@ -163,6 +163,10 @@ absl::Status PaletteEditorWidget::ApplyDungeonRenderColorEdit(
   }
 
   auto& palette_manager = gfx::PaletteManager::Get();
+  if (!palette_manager.IsManaging(game_data_)) {
+    return absl::FailedPreconditionError(
+        "PaletteManager is bound to a different ROM session");
+  }
   const char* group_name = PaletteManagerGroupName(target->source);
   absl::Status status =
       color.has_value()

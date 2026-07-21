@@ -110,6 +110,11 @@ class PaletteManager {
   }
 
   /**
+   * @brief Check whether the manager is bound to this exact GameData and ROM.
+   */
+  bool IsManaging(const zelda3::GameData* game_data) const;
+
+  /**
    * @brief Reset all state for test isolation
    */
   void ResetForTesting();

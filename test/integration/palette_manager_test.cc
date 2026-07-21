@@ -397,6 +397,99 @@ TEST_F(PaletteManagerTest, DungeonRenderEditsMapToManagedHudAndDungeonColors) {
 }
 
 TEST_F(PaletteManagerTest,
+       DungeonRenderEditRejectsManagerBoundToDifferentRomSession) {
+  Rom first_rom;
+  Rom second_rom;
+  ASSERT_TRUE(first_rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  ASSERT_TRUE(second_rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData first_game_data(&first_rom);
+  zelda3::GameData second_game_data(&second_rom);
+  SeedPaletteGroup(first_game_data.palette_groups.get_group("dungeon_main"), 2,
+                   90, 0x0200);
+  SeedPaletteGroup(second_game_data.palette_groups.get_group("dungeon_main"), 2,
+                   90, 0x0300);
+
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&first_game_data);
+
+  gui::PaletteEditorWidget stale_widget;
+  stale_widget.Initialize(&first_game_data);
+  stale_widget.SetDungeonRenderPaletteMode(true);
+  stale_widget.SetCurrentPaletteId(1);
+  int callback_count = 0;
+  stale_widget.SetOnPaletteChanged([&](int) { ++callback_count; });
+
+  constexpr int kDungeonDisplayIndex = 99;
+  constexpr int kDungeonColorIndex = 62;
+  const SnesColor first_original =
+      first_game_data.palette_groups.dungeon_main.palette_ref(
+          1)[kDungeonColorIndex];
+  const SnesColor second_original =
+      second_game_data.palette_groups.dungeon_main.palette_ref(
+          1)[kDungeonColorIndex];
+
+  manager.Initialize(&second_game_data);
+  ASSERT_TRUE(manager.IsManaging(&second_game_data));
+  ASSERT_FALSE(manager.HasUnsavedChanges());
+
+  const absl::Status edit_status = stale_widget.ApplyDungeonRenderColorEdit(
+      kDungeonDisplayIndex, SnesColor(0x7C00));
+  EXPECT_EQ(edit_status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(first_game_data.palette_groups.dungeon_main
+                .palette_ref(1)[kDungeonColorIndex]
+                .snes(),
+            first_original.snes());
+  EXPECT_EQ(second_game_data.palette_groups.dungeon_main
+                .palette_ref(1)[kDungeonColorIndex]
+                .snes(),
+            second_original.snes());
+  EXPECT_EQ(callback_count, 0);
+  EXPECT_FALSE(manager.HasUnsavedChanges());
+}
+
+TEST_F(PaletteManagerTest,
+       DungeonPaletteSaveRejectsManagerBoundToDifferentRomSession) {
+  Rom first_rom;
+  Rom second_rom;
+  ASSERT_TRUE(first_rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  ASSERT_TRUE(second_rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData first_game_data(&first_rom);
+  zelda3::GameData second_game_data(&second_rom);
+  SeedPaletteGroup(first_game_data.palette_groups.get_group("dungeon_main"), 2,
+                   90, 0x0200);
+  SeedPaletteGroup(second_game_data.palette_groups.get_group("dungeon_main"), 2,
+                   90, 0x0300);
+
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&second_game_data);
+  constexpr int kDungeonColorIndex = 62;
+  const uint32_t second_color_address =
+      GetPaletteAddress("dungeon_main", 1, kDungeonColorIndex);
+  ASSERT_TRUE(second_rom.ReadWord(second_color_address).ok());
+  const uint16_t second_rom_color = *second_rom.ReadWord(second_color_address);
+  ASSERT_TRUE(
+      manager.SetColor("dungeon_main", 1, kDungeonColorIndex, SnesColor(0x7C00))
+          .ok());
+  ASSERT_TRUE(manager.HasUnsavedChanges());
+
+  DungeonSaveFlagsGuard flags_guard;
+  ConfigurePaletteOnlyDungeonSave();
+  editor::DungeonEditorV2 dungeon_editor(&first_rom);
+  editor::EditorDependencies dependencies;
+  dependencies.rom = &first_rom;
+  dependencies.game_data = &first_game_data;
+  dungeon_editor.SetDependencies(dependencies);
+  dungeon_editor.SetGameData(&first_game_data);
+
+  const absl::Status save_status = dungeon_editor.Save();
+  EXPECT_EQ(save_status.code(), absl::StatusCode::kFailedPrecondition);
+  ASSERT_TRUE(second_rom.ReadWord(second_color_address).ok());
+  EXPECT_EQ(*second_rom.ReadWord(second_color_address), second_rom_color);
+  EXPECT_TRUE(manager.HasUnsavedChanges());
+  EXPECT_TRUE(manager.IsColorModified("dungeon_main", 1, kDungeonColorIndex));
+}
+
+TEST_F(PaletteManagerTest,
        DungeonRenderEditSurvivesPaletteEditorLoadAndPersistsThroughSave) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
