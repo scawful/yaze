@@ -1,5 +1,6 @@
 #include "palette_manager.h"
 
+#include <algorithm>
 #include <chrono>
 
 #include "absl/strings/str_format.h"
@@ -14,6 +15,13 @@ namespace gfx {
 
 void PaletteManager::Initialize(zelda3::GameData* game_data) {
   if (!game_data) {
+    return;
+  }
+
+  // Editors are loaded lazily and may share the same GameData instance. Do not
+  // discard another editor's pending palette edits when it initializes the
+  // already-bound manager.
+  if (IsManaging(game_data)) {
     return;
   }
 
@@ -51,6 +59,11 @@ void PaletteManager::Initialize(zelda3::GameData* game_data) {
   modified_colors_.clear();
   save_transaction_snapshot_.reset();
   ClearHistory();
+}
+
+bool PaletteManager::IsManaging(const zelda3::GameData* game_data) const {
+  return game_data != nullptr && game_data_ == game_data &&
+         rom_ == game_data->rom();
 }
 
 void PaletteManager::Initialize(Rom* rom) {
@@ -252,6 +265,34 @@ size_t PaletteManager::GetModifiedColorCount() const {
     }
   }
   return count;
+}
+
+std::vector<std::pair<uint32_t, uint32_t>>
+PaletteManager::GetModifiedColorWriteRanges() const {
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  ranges.reserve(GetModifiedColorCount());
+
+  for (const auto& [group_name, palette_map] : modified_colors_) {
+    for (const auto& [palette_index, color_indices] : palette_map) {
+      for (int color_index : color_indices) {
+        const uint32_t begin =
+            GetPaletteAddress(group_name, palette_index, color_index);
+        ranges.emplace_back(begin, begin + 2u);
+      }
+    }
+  }
+
+  std::sort(ranges.begin(), ranges.end());
+  std::vector<std::pair<uint32_t, uint32_t>> coalesced;
+  coalesced.reserve(ranges.size());
+  for (const auto& range : ranges) {
+    if (coalesced.empty() || coalesced.back().second < range.first) {
+      coalesced.push_back(range);
+      continue;
+    }
+    coalesced.back().second = std::max(coalesced.back().second, range.second);
+  }
+  return coalesced;
 }
 
 // ========== Persistence ==========

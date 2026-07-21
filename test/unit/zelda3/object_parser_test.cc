@@ -189,6 +189,41 @@ TEST_F(ObjectParserTest, DrawInfoUsesSubtypeTileCountLookup) {
   EXPECT_EQ(info_waterfall48.tile_count, 9);
 }
 
+TEST_F(ObjectParserTest,
+       CanonicalDoubledAndBarPayloadCountsMatchDrawerContracts) {
+  struct TestCase {
+    int16_t object_id;
+    int expected_tiles;
+    int expected_routine;
+  };
+
+  for (const auto& test_case : {
+           TestCase{0x3C, 8,
+                    zelda3::DrawRoutineIds::kRightwardsDoubled2x2spaced2_1to16},
+           TestCase{0x4C, 12, zelda3::DrawRoutineIds::kRightwardsBar4x3_1to16},
+       }) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << test_case.object_id);
+
+    auto parsed = parser_->ParseObject(test_case.object_id);
+    ASSERT_TRUE(parsed.ok()) << parsed.status();
+    EXPECT_EQ(parsed->size(), static_cast<size_t>(test_case.expected_tiles));
+
+    auto subtype = parser_->GetObjectSubtype(test_case.object_id);
+    ASSERT_TRUE(subtype.ok()) << subtype.status();
+    EXPECT_EQ(subtype->max_tile_count, test_case.expected_tiles);
+
+    const auto draw_info = parser_->GetObjectDrawInfo(test_case.object_id);
+    EXPECT_EQ(draw_info.tile_count, test_case.expected_tiles);
+    EXPECT_EQ(draw_info.draw_routine_id, test_case.expected_routine);
+
+    const auto* routine = zelda3::DrawRoutineRegistry::Get().GetRoutineInfo(
+        test_case.expected_routine);
+    ASSERT_NE(routine, nullptr);
+    EXPECT_EQ(routine->min_tiles, test_case.expected_tiles);
+  }
+}
+
 // 2026-04-25 ZScream parity diff. ZScream's `subtype1Lengths` array
 // (`ZScreamDungeon/ZeldaFullEditor/Data/DungeonObjectData.cs:184`) is the
 // upstream provenance source for `kSubtype1TileLengths` in
@@ -236,11 +271,18 @@ TEST_F(ObjectParserTest,
   // payload counts. Add entries only when the underlying routine body
   // proves the count divergence; cite the routine source location.
   static const Divergence kKnownDivergences[] = {
+      {0x3C, 8,
+       "DrawRightwardsDoubled2x2spaced2_1to16 (rightwards_routines.cc) "
+       "indexes tiles[0..7]; ZScream's 4 under-fetches the second 2x2 "
+       "stamp."},
       {0x47, 15,
        "DrawWaterfall47 (special_routines.cc) reads tiles[0..14]; "
        "ZScream's 0->8 fallback under-fetched and TileAtWrapped "
        "substituted wrong tiles for index>=8 (commits e9938002/c12c3178)."},
       {0x48, 9, "DrawWaterfall48 reads tiles[0..8]; same pattern as 0x47."},
+      {0x4C, 12,
+       "DrawRightwardsBar4x3_1to16 (rightwards_routines.cc) indexes "
+       "tiles[0..11]; ZScream's 9 under-fetches the fourth 3-tile column."},
       {0xCD, 24,
        "RoomDraw_MovingWallWest reads obj072A words 0..23; ZScream's 28 "
        "over-fetches four words from obj075A."},

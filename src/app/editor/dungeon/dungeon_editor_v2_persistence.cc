@@ -326,6 +326,10 @@ absl::Status DungeonEditorV2::BeginSaveTransaction() {
   auto& palette_manager = gfx::PaletteManager::Get();
   if (core::FeatureFlags::get().dungeon.kSavePalettes &&
       palette_manager.HasUnsavedChanges()) {
+    if (!palette_manager.IsManaging(game_data_)) {
+      return absl::FailedPreconditionError(
+          "Cannot save dungeon palettes from a different ROM session");
+    }
     RETURN_IF_ERROR(palette_manager.BeginSaveTransaction());
     snapshot.has_palette_transaction = true;
   }
@@ -433,15 +437,21 @@ absl::Status DungeonEditorV2::Save() {
         dependencies_.toast_manager));
   }
 
-  if (flags.kSavePalettes && gfx::PaletteManager::Get().HasUnsavedChanges()) {
-    auto status = gfx::PaletteManager::Get().SaveAllToRom();
+  auto& palette_manager = gfx::PaletteManager::Get();
+  if (flags.kSavePalettes && palette_manager.HasUnsavedChanges()) {
+    if (!palette_manager.IsManaging(game_data_)) {
+      return absl::FailedPreconditionError(
+          "Cannot save dungeon palettes from a different ROM session");
+    }
+    const size_t modified_color_count = palette_manager.GetModifiedColorCount();
+    auto status = palette_manager.SaveAllToRom();
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save palette changes: %s",
                 status.message().data());
       return status;
     }
     LOG_INFO("DungeonEditorV2", "Saved %zu modified colors to ROM",
-             gfx::PaletteManager::Get().GetModifiedColorCount());
+             modified_color_count);
   }
 
   if (flags.kSaveObjects || flags.kSaveSprites || flags.kSaveRoomHeaders) {
@@ -555,6 +565,12 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
 
   const auto& flags = core::FeatureFlags::get().dungeon;
   const auto& rom_data = rom_->vector();
+
+  auto& palette_manager = gfx::PaletteManager::Get();
+  if (flags.kSavePalettes && palette_manager.IsManaging(game_data_)) {
+    auto palette_ranges = palette_manager.GetModifiedColorWriteRanges();
+    ranges.insert(ranges.end(), palette_ranges.begin(), palette_ranges.end());
+  }
 
   if (flags.kSaveEntrances) {
     auto entrance_ranges =
@@ -769,8 +785,13 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
           absl::StrFormat("pot items for room 0x%03X", room_id),
           dependencies_.toast_manager));
     }
-    if (flags.kSavePalettes && gfx::PaletteManager::Get().HasUnsavedChanges()) {
-      auto status = gfx::PaletteManager::Get().SaveAllToRom();
+    auto& palette_manager = gfx::PaletteManager::Get();
+    if (flags.kSavePalettes && palette_manager.HasUnsavedChanges()) {
+      if (!palette_manager.IsManaging(game_data_)) {
+        return absl::FailedPreconditionError(
+            "Cannot save dungeon palettes from a different ROM session");
+      }
+      auto status = palette_manager.SaveAllToRom();
       if (!status.ok()) {
         LOG_ERROR("DungeonEditorV2", "Failed to save palette changes: %s",
                   status.message().data());
