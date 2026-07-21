@@ -290,6 +290,8 @@ std::vector<StateProfile> BuildStateProfiles(
 }
 
 bool IsExpectedEmptyState(int object_id, const StateProfile& profile) {
+  // Fail closed: this hand-maintained whitelist contains only USDASM-proven
+  // branches that intentionally erase themselves after their state activates.
   return profile.kind == StateProfileKind::kActive &&
          (object_id == 0x0CD || object_id == 0x0CE);
 }
