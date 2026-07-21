@@ -20,6 +20,7 @@
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/session_types.h"
 #include "app/editor/system/editor_registry.h"
+#include "app/gfx/util/palette_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
@@ -1071,6 +1072,10 @@ bool SessionCoordinator::IsSessionModified(size_t index) const {
 
   const auto& session = sessions_[index];
   if (session->rom.is_loaded() && session->rom.dirty()) {
+    return true;
+  }
+
+  if (gfx::PaletteManager::Get().HasUnsavedChanges(&session->game_data)) {
     return true;
   }
 

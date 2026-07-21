@@ -12,6 +12,9 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/null_renderer.h"
+#include "app/gfx/types/snes_color.h"
+#include "app/gfx/types/snes_palette.h"
+#include "app/gfx/util/palette_manager.h"
 #include "app/startup_flags.h"
 #include "core/features.h"
 #include "rom/rom_diff.h"
@@ -123,6 +126,19 @@ void MarkCurrentDungeonRoomPending(EditorManager* manager) {
   ASSERT_NE(dungeon, nullptr);
   dungeon->rooms()[0].SetPalette(0x2A);
   EXPECT_EQ(dungeon->PendingRoomCount(), 1);
+}
+
+void SeedCurrentDungeonPalette(EditorManager* manager, uint16_t seed) {
+  ASSERT_NE(manager, nullptr);
+  auto* game_data = manager->GetCurrentGameData();
+  ASSERT_NE(game_data, nullptr);
+  auto* group = game_data->palette_groups.get_group("dungeon_main");
+  ASSERT_NE(group, nullptr);
+  group->clear();
+  gfx::SnesPalette palette;
+  palette.AddColor(gfx::SnesColor(seed));
+  group->AddPalette(palette);
+  gfx::PaletteManager::Get().Initialize(game_data);
 }
 
 void WriteLongPointer(std::vector<uint8_t>* data, int offset, uint32_t value) {
@@ -642,6 +658,81 @@ TEST(EditorManagerWriteConflictTest,
 
   manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
   EXPECT_TRUE(manager->quit());
+}
+
+TEST(EditorManagerWriteConflictTest,
+     PaletteOnlyChangesPromptAndSurviveSwitchAndCloseLifecycle) {
+  ScopedImGuiContext imgui;
+  gfx::PaletteManager::Get().ResetForTesting();
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_palette_guard_a.sfc", "PALETTE GUARD A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_palette_guard_b.sfc", "PALETTE GUARD B");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  auto* first_game_data = manager->GetCurrentGameData();
+  SeedCurrentDungeonPalette(manager.get(), 0x0100);
+  ASSERT_TRUE(gfx::PaletteManager::Get()
+                  .SetColor("dungeon_main", 0, 0, gfx::SnesColor(0x1111))
+                  .ok());
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_NE(manager->GetPendingUnsavedSessionActionPrompt().find(
+                "1 unapplied palette color"),
+            std::string::npos);
+  EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
+
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_EQ(manager->GetActiveSessionCount(), 2u);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  auto* second_game_data = manager->GetCurrentGameData();
+  SeedCurrentDungeonPalette(manager.get(), 0x0200);
+  ASSERT_TRUE(gfx::PaletteManager::Get()
+                  .SetColor("dungeon_main", 0, 0, gfx::SnesColor(0x2222))
+                  .ok());
+
+  manager->SwitchToSession(0);
+  EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_TRUE(gfx::PaletteManager::Get().IsManaging(first_game_data));
+  EXPECT_EQ(gfx::PaletteManager::Get().GetColor("dungeon_main", 0, 0).snes(),
+            0x1111);
+  EXPECT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges(first_game_data));
+  EXPECT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges(second_game_data));
+
+  manager->SwitchToSession(1);
+  EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  EXPECT_TRUE(gfx::PaletteManager::Get().IsManaging(second_game_data));
+  EXPECT_EQ(gfx::PaletteManager::Get().GetColor("dungeon_main", 0, 0).snes(),
+            0x2222);
+
+  manager->CloseCurrentSession();
+  EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+
+  ASSERT_EQ(manager->GetActiveSessionCount(), 1u);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_TRUE(gfx::PaletteManager::Get().IsManaging(first_game_data));
+  EXPECT_EQ(gfx::PaletteManager::Get().GetColor("dungeon_main", 0, 0).snes(),
+            0x1111);
+  EXPECT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges(first_game_data));
+
+  manager.reset();
+  gfx::PaletteManager::Get().ResetForTesting();
 }
 
 }  // namespace

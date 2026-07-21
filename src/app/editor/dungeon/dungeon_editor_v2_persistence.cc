@@ -325,7 +325,7 @@ absl::Status DungeonEditorV2::BeginSaveTransaction() {
   SaveTransactionSnapshot snapshot;
   auto& palette_manager = gfx::PaletteManager::Get();
   if (core::FeatureFlags::get().dungeon.kSavePalettes &&
-      palette_manager.HasUnsavedChanges()) {
+      palette_manager.HasUnsavedChanges(game_data_)) {
     if (!palette_manager.IsManaging(game_data_)) {
       return absl::FailedPreconditionError(
           "Cannot save dungeon palettes from a different ROM session");
@@ -438,7 +438,7 @@ absl::Status DungeonEditorV2::Save() {
   }
 
   auto& palette_manager = gfx::PaletteManager::Get();
-  if (flags.kSavePalettes && palette_manager.HasUnsavedChanges()) {
+  if (flags.kSavePalettes && palette_manager.HasUnsavedChanges(game_data_)) {
     if (!palette_manager.IsManaging(game_data_)) {
       return absl::FailedPreconditionError(
           "Cannot save dungeon palettes from a different ROM session");
@@ -780,7 +780,7 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
           dependencies_.toast_manager));
     }
     auto& palette_manager = gfx::PaletteManager::Get();
-    if (flags.kSavePalettes && palette_manager.HasUnsavedChanges()) {
+    if (flags.kSavePalettes && palette_manager.HasUnsavedChanges(game_data_)) {
       if (!palette_manager.IsManaging(game_data_)) {
         return absl::FailedPreconditionError(
             "Cannot save dungeon palettes from a different ROM session");
