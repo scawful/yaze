@@ -2,9 +2,27 @@
 
 #include "absl/strings/str_format.h"
 #include "gtest/gtest.h"
+#include "zelda3/dungeon/dungeon_state.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze::zelda3 {
+
+namespace {
+
+class ActiveWaterFaceState final : public DungeonState {
+ public:
+  bool IsChestOpen(int, int) const override { return false; }
+  bool IsBigChestOpen() const override { return false; }
+  bool IsDoorOpen(int, int) const override { return false; }
+  bool IsDoorSwitchActive(int) const override { return false; }
+  bool IsWaterFaceActive(int) const override { return true; }
+  bool IsWallMoved(int) const override { return false; }
+  bool IsFloorBombable(int) const override { return false; }
+  bool IsRupeeFloorCleared(int) const override { return false; }
+  bool IsCrystalSwitchBlue() const override { return true; }
+};
+
+}  // namespace
 
 TEST(ObjectGeometryTest, Rightwards2x2UsesThirtyTwoWhenSizeZero) {
   RoomObject obj(/*id=*/0x00, /*x=*/0, /*y=*/0, /*size=*/0);
@@ -69,14 +87,20 @@ TEST(ObjectGeometryTest, DiagonalCeilingBoundsMatchRenderForAllAnchors) {
   }
 }
 
-TEST(ObjectGeometryTest, SomariaLineDownLeftPreservesNegativeXExtent) {
-  RoomObject obj(/*id=*/0x0F86, /*x=*/0, /*y=*/0, /*size=*/0x03);
-  auto bounds = ObjectGeometry::Get().MeasureByObjectId(obj);
-  ASSERT_TRUE(bounds.ok());
-  EXPECT_EQ(bounds->min_x_tiles, -3);  // length 4 reaches three tiles left
-  EXPECT_EQ(bounds->min_y_tiles, 0);
-  EXPECT_EQ(bounds->width_tiles, 4);
-  EXPECT_EQ(bounds->height_tiles, 4);
+TEST(ObjectGeometryTest, SomariaPathPiecesAreSingleTileObjects) {
+  constexpr int16_t kObjectIds[] = {0xF83, 0xF84, 0xF85, 0xF86, 0xF87, 0xF88,
+                                    0xF89, 0xF8A, 0xF8B, 0xF8C, 0xF8E, 0xF8F};
+
+  for (int16_t object_id : kObjectIds) {
+    SCOPED_TRACE(absl::StrFormat("object_id=0x%04X", object_id));
+    RoomObject obj(object_id, /*x=*/0, /*y=*/0, /*size=*/0x0F);
+    auto bounds = ObjectGeometry::Get().MeasureByObjectId(obj);
+    ASSERT_TRUE(bounds.ok());
+    EXPECT_EQ(bounds->min_x_tiles, 0);
+    EXPECT_EQ(bounds->min_y_tiles, 0);
+    EXPECT_EQ(bounds->width_tiles, 1);
+    EXPECT_EQ(bounds->height_tiles, 1);
+  }
 }
 
 TEST(ObjectGeometryTest, WeirdCornerBottomBothBGUsesUsdasm3x4Shape) {
@@ -142,6 +166,71 @@ TEST(ObjectGeometryTest,
   ASSERT_TRUE(bounds.ok());
   EXPECT_EQ(bounds->width_tiles, 4);
   EXPECT_EQ(bounds->height_tiles, 5);
+}
+
+TEST(ObjectGeometryTest,
+     MeasureByObjectIdForStateKeepsWaterFaceBranchesDistinct) {
+  RoomObject obj(/*id=*/0x0F80, /*x=*/0, /*y=*/0, /*size=*/0);
+
+  auto default_bounds =
+      ObjectGeometry::Get().MeasureByObjectIdForState(obj, nullptr);
+  ASSERT_TRUE(default_bounds.ok());
+  EXPECT_EQ(default_bounds->width_tiles, 4);
+  EXPECT_EQ(default_bounds->height_tiles, 3);
+
+  ActiveWaterFaceState active_state;
+  auto active_bounds =
+      ObjectGeometry::Get().MeasureByObjectIdForState(obj, &active_state);
+  ASSERT_TRUE(active_bounds.ok());
+  EXPECT_EQ(active_bounds->width_tiles, 4);
+  EXPECT_EQ(active_bounds->height_tiles, 5);
+}
+
+TEST(ObjectGeometryTest, SmallChestGeometryUsesCanonicalTwoByTwoPayload) {
+  ObjectGeometry::Get().ClearCache();
+
+  for (const int16_t object_id : {int16_t{0x0F99}, int16_t{0x0F9A}}) {
+    SCOPED_TRACE(absl::StrFormat("object_id=0x%03X", object_id));
+    RoomObject obj(object_id, /*x=*/0, /*y=*/0, /*size=*/0);
+
+    auto editor_bounds = ObjectGeometry::Get().MeasureByObjectId(obj);
+    ASSERT_TRUE(editor_bounds.ok());
+    EXPECT_EQ(editor_bounds->width_tiles, 2);
+    EXPECT_EQ(editor_bounds->height_tiles, 2);
+
+    auto default_state_bounds =
+        ObjectGeometry::Get().MeasureByObjectIdForState(obj, nullptr);
+    ASSERT_TRUE(default_state_bounds.ok());
+    EXPECT_EQ(default_state_bounds->width_tiles, 2);
+    EXPECT_EQ(default_state_bounds->height_tiles, 2);
+  }
+}
+
+TEST(ObjectGeometryTest, Subtype1ChestGeometryKeepsFourByFourPayload) {
+  ObjectGeometry::Get().ClearCache();
+
+  struct ChestCase {
+    int16_t object_id;
+    uint8_t size;
+  };
+  for (const auto& test_case : {
+           ChestCase{0x00F9, 0x00},
+           ChestCase{0x00FD, 0x0F},
+       }) {
+    SCOPED_TRACE(absl::StrFormat("object_id=0x%03X", test_case.object_id));
+    RoomObject obj(test_case.object_id, /*x=*/0, /*y=*/0, test_case.size);
+
+    auto editor_bounds = ObjectGeometry::Get().MeasureByObjectId(obj);
+    ASSERT_TRUE(editor_bounds.ok());
+    EXPECT_EQ(editor_bounds->width_tiles, 4);
+    EXPECT_EQ(editor_bounds->height_tiles, 4);
+
+    auto default_state_bounds =
+        ObjectGeometry::Get().MeasureByObjectIdForState(obj, nullptr);
+    ASSERT_TRUE(default_state_bounds.ok());
+    EXPECT_EQ(default_state_bounds->width_tiles, 4);
+    EXPECT_EQ(default_state_bounds->height_tiles, 4);
+  }
 }
 
 TEST(ObjectGeometryTest, MeasureByObjectIdMigratedSpecialsHaveUsdasmBounds) {

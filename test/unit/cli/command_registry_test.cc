@@ -55,7 +55,9 @@ TEST(CommandRegistryTest, DungeonOraclePreflightHelpIncludesExamples) {
   const std::string help = registry.GenerateHelp("dungeon-oracle-preflight");
 
   EXPECT_THAT(help, ::testing::HasSubstr("Examples:"));
-  EXPECT_THAT(help, ::testing::HasSubstr("required-collision-rooms"));
+  EXPECT_THAT(help, ::testing::HasSubstr("--rom oos168x.sfc"));
+  EXPECT_THAT(help, ::testing::Not(::testing::HasSubstr("--rom oos168.sfc")));
+  EXPECT_THAT(help, ::testing::HasSubstr("required-water-fill-rooms"));
   EXPECT_THAT(help, ::testing::HasSubstr("--report="));
 }
 

@@ -3,6 +3,7 @@
 #include <yaze.h>
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <functional>
 #include <limits>
@@ -22,6 +23,7 @@
 #include "rom/write_fence.h"
 #include "util/log.h"
 #include "zelda3/dungeon/dungeon_block_codec.h"
+#include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/dungeon_torch_codec.h"
 #include "zelda3/dungeon/editor_dungeon_state.h"
 #include "zelda3/dungeon/object_drawer.h"
@@ -416,17 +418,74 @@ int MeasureSpriteStreamSize(const std::vector<uint8_t>& rom_data,
   return std::max(0, cursor - sprite_address);
 }
 
-bool IsSpritePointerShared(const std::vector<uint8_t>& rom_data, int table_pc,
-                           int room_id, int sprite_address) {
-  for (int r = 0; r < kNumberOfRooms; ++r) {
-    if (r == room_id) {
-      continue;
-    }
-    if (ReadRoomSpriteAddressPc(rom_data, table_pc, r) == sprite_address) {
+absl::Status RelocateDungeonStream(Rom* rom, int room_id,
+                                   DungeonStreamKind expected_kind,
+                                   const DungeonStreamLayout& layout,
+                                   std::vector<uint8_t> encoded_stream) {
+  if (layout.kind != expected_kind) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Room %d relocation layout has the wrong dungeon stream kind",
+        room_id));
+  }
+
+  ASSIGN_OR_RETURN(const DungeonStreamInventory inventory,
+                   InventoryDungeonStreams(*rom, layout));
+  ASSIGN_OR_RETURN(
+      const DungeonStreamWritePlan plan,
+      PlanDungeonStreamWrites(inventory, {{static_cast<uint32_t>(room_id),
+                                           std::move(encoded_stream)}}));
+  return ApplyDungeonStreamWritePlan(rom, plan);
+}
+
+absl::StatusOr<bool> DungeonStreamRequiresCopyOnWrite(
+    const Rom& rom, int room_id, DungeonStreamKind expected_kind,
+    const DungeonStreamLayout& layout, size_t replacement_size) {
+  if (layout.kind != expected_kind) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Room %d save layout has the wrong dungeon stream kind", room_id));
+  }
+  if (room_id < 0 || static_cast<uint32_t>(room_id) >= layout.pointer_count) {
+    return absl::OutOfRangeError(
+        "Room ID is outside the dungeon stream layout");
+  }
+
+  ASSIGN_OR_RETURN(const DungeonStreamInventory inventory,
+                   InventoryDungeonStreams(rom, layout));
+  if (!inventory.ok()) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Dungeon stream inventory has %zu issue(s); refusing an in-place "
+        "save",
+        inventory.issues.size()));
+  }
+
+  const auto contains_room = [room_id](const std::vector<uint32_t>& owners) {
+    return std::find(owners.begin(), owners.end(),
+                     static_cast<uint32_t>(room_id)) != owners.end();
+  };
+  for (const auto& alias : inventory.aliases) {
+    if (contains_room(alias.room_ids)) {
       return true;
     }
   }
-  return false;
+  for (const auto& overlap : inventory.overlaps) {
+    if (contains_room(overlap.first_room_ids) ||
+        contains_room(overlap.second_room_ids)) {
+      return true;
+    }
+  }
+
+  const auto& record = inventory.streams[room_id];
+  const uint64_t replacement_end =
+      static_cast<uint64_t>(record.data_pc) + replacement_size;
+  const uint32_t bank_end = ((record.data_pc / 0x8000u) + 1u) * 0x8000u;
+  const bool stays_in_declared_data =
+      replacement_end <= bank_end &&
+      std::any_of(inventory.layout.data_ranges.begin(),
+                  inventory.layout.data_ranges.end(), [&](const auto& range) {
+                    return range.begin <= record.data_pc &&
+                           replacement_end <= range.end;
+                  });
+  return !stays_in_declared_data;
 }
 
 }  // namespace
@@ -1445,12 +1504,12 @@ void Room::RenderObjectsToBackground() {
     if ((obj.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
       const uint16_t off =
           obj.lit_ ? kRoomDrawObj_TorchLit : kRoomDrawObj_TorchUnlit;
-      // RoomDraw_LightableTorch masks selector/lit bits before drawing and
-      // uses the upper/BG1 pointers left active by the final object pass.
+      // RoomDraw_LightableTorch retains bit 13 in its masked tilemap offset,
+      // so the stored draw layer selects upper/BG1 or lower/BG2. Reserved bit
+      // 14 and the lit bit do not affect the draw target.
       (void)drawer.DrawRoomDrawObjectData2x2(
-          static_cast<uint16_t>(obj.id_), obj.x_, obj.y_,
-          RoomObject::LayerType::BG1, off, object_bg1_buffer_,
-          object_bg2_buffer_);
+          static_cast<uint16_t>(obj.id_), obj.x_, obj.y_, obj.layer_, off,
+          object_bg1_buffer_, object_bg2_buffer_);
       continue;
     }
   }
@@ -1827,6 +1886,14 @@ std::vector<uint8_t> Room::EncodeSprites() const {
     bytes.push_back(b1);
     bytes.push_back(b2);
     bytes.push_back(b3);
+
+    // Key drops are stored as hidden marker sprites immediately after the
+    // sprite that owns the drop. Keep these bytes in sync with LoadSprites().
+    if (sprite.key_drop() == 1) {
+      bytes.insert(bytes.end(), {0xFE, 0x00, 0xE4});
+    } else if (sprite.key_drop() == 2) {
+      bytes.insert(bytes.end(), {0xFD, 0x00, 0xE4});
+    }
   }
 
   // Terminator
@@ -1900,13 +1967,7 @@ absl::Status RelocateSpriteData(Rom* rom, int room_id,
     return absl::OutOfRangeError("Sprite address out of range");
   }
 
-  const int hard_end =
-      std::min(static_cast<int>(rom_data.size()), kSpritesDataEndExclusive);
-  const int old_stream_size =
-      MeasureSpriteStreamSize(rom_data, old_sprite_address, hard_end);
   const uint8_t sort_mode = rom_data[old_sprite_address];
-  const bool old_pointer_shared = IsSpritePointerShared(
-      rom_data, sprite_pointer, room_id, old_sprite_address);
 
   const int write_pos = FindMaxUsedSpriteAddress(rom);
   const size_t required_size = 1u + encoded_bytes.size();
@@ -1937,17 +1998,10 @@ absl::Status RelocateSpriteData(Rom* rom, int room_id,
   RETURN_IF_ERROR(rom->WriteByte(ptr_off, snes_addr & 0xFF));
   RETURN_IF_ERROR(rom->WriteByte(ptr_off + 1, (snes_addr >> 8) & 0xFF));
 
-  if (!old_pointer_shared && old_stream_size > 0 &&
-      old_sprite_address + old_stream_size <=
-          static_cast<int>(rom_data.size())) {
-    RETURN_IF_ERROR(rom->WriteVector(
-        old_sprite_address, std::vector<uint8_t>(old_stream_size, 0x00)));
-  }
-
   return absl::OkStatus();
 }
 
-absl::Status Room::SaveObjects() {
+absl::Status Room::SaveObjects(const DungeonStreamLayout* layout) {
   if (rom_ == nullptr) {
     return absl::InvalidArgumentError("ROM pointer is null");
   }
@@ -1958,12 +2012,40 @@ absl::Status Room::SaveObjects() {
   const auto& rom_data = rom()->vector();
   ASSIGN_OR_RETURN(const PhysicalStreamInfo stream_info,
                    GetObjectStreamInfo(rom_data, room_id_));
-  if (stream_info.shared) {
+  const auto encoded_bytes = EncodeObjects();
+  bool requires_copy_on_write = false;
+  if (layout != nullptr) {
+    ASSIGN_OR_RETURN(requires_copy_on_write,
+                     DungeonStreamRequiresCopyOnWrite(
+                         *rom_, room_id_, DungeonStreamKind::kObject, *layout,
+                         encoded_bytes.size() + 2u));
+  }
+  const auto relocate = [&]() -> absl::Status {
+    if (stream_info.address + 2 > static_cast<int>(rom_data.size())) {
+      return absl::OutOfRangeError("Object stream header is out of range");
+    }
+    std::vector<uint8_t> replacement = {rom_data[stream_info.address],
+                                        rom_data[stream_info.address + 1]};
+    replacement.insert(replacement.end(), encoded_bytes.begin(),
+                       encoded_bytes.end());
+    RETURN_IF_ERROR(RelocateDungeonStream(rom_, room_id_,
+                                          DungeonStreamKind::kObject, *layout,
+                                          std::move(replacement)));
+    ClearObjectStreamDirty();
+    return absl::OkStatus();
+  };
+  if (stream_info.shared || requires_copy_on_write) {
+    if (layout != nullptr) {
+      return relocate();
+    }
     return absl::FailedPreconditionError(absl::StrFormat(
         "Room %d object stream at PC 0x%06X is shared; repacking is required",
         room_id_, stream_info.address));
   }
   if (stream_info.capacity() <= 2) {
+    if (layout != nullptr) {
+      return relocate();
+    }
     return absl::FailedPreconditionError(absl::StrFormat(
         "Room %d object stream has no safe physical boundary", room_id_));
   }
@@ -1972,12 +2054,14 @@ absl::Status Room::SaveObjects() {
   const int write_pos = stream_info.address + 2;
 
   // Encode all objects
-  const auto encoded_bytes = EncodeObjects();
   const int available_payload_size = stream_info.capacity() - 2;
 
   // Validate against the nearest greater physical pointer, not the next room
   // ID. Pointer tables are not ordered by room ID in vanilla or expanded ROMs.
   if (encoded_bytes.size() > static_cast<size_t>(available_payload_size)) {
+    if (layout != nullptr) {
+      return relocate();
+    }
     return absl::ResourceExhaustedError(absl::StrFormat(
         "Room %d object data too large! Size: %d, Available: %d", room_id_,
         static_cast<int>(encoded_bytes.size()), available_payload_size));
@@ -2007,7 +2091,7 @@ absl::Status Room::SaveObjects() {
   return absl::OkStatus();
 }
 
-absl::Status Room::SaveSprites() {
+absl::Status Room::SaveSprites(const DungeonStreamLayout* layout) {
   if (rom_ == nullptr) {
     return absl::InvalidArgumentError("ROM pointer is null");
   }
@@ -2022,12 +2106,36 @@ absl::Status Room::SaveSprites() {
 
   ASSIGN_OR_RETURN(const PhysicalStreamInfo stream_info,
                    GetSpriteStreamInfo(rom_data, room_id_));
-  if (stream_info.shared) {
+  const auto encoded_bytes = EncodeSprites();
+  bool requires_copy_on_write = false;
+  if (layout != nullptr) {
+    ASSIGN_OR_RETURN(requires_copy_on_write,
+                     DungeonStreamRequiresCopyOnWrite(
+                         *rom_, room_id_, DungeonStreamKind::kSprite, *layout,
+                         encoded_bytes.size() + 1u));
+  }
+  const auto relocate = [&]() -> absl::Status {
+    std::vector<uint8_t> replacement = {rom_data[stream_info.address]};
+    replacement.insert(replacement.end(), encoded_bytes.begin(),
+                       encoded_bytes.end());
+    RETURN_IF_ERROR(RelocateDungeonStream(rom_, room_id_,
+                                          DungeonStreamKind::kSprite, *layout,
+                                          std::move(replacement)));
+    ClearSpritesDirty();
+    return absl::OkStatus();
+  };
+  if (stream_info.shared || requires_copy_on_write) {
+    if (layout != nullptr) {
+      return relocate();
+    }
     return absl::FailedPreconditionError(absl::StrFormat(
         "Room %d sprite stream at PC 0x%06X is shared; repacking is required",
         room_id_, stream_info.address));
   }
   if (stream_info.capacity() <= 1) {
+    if (layout != nullptr) {
+      return relocate();
+    }
     return absl::FailedPreconditionError(absl::StrFormat(
         "Room %d sprite stream has no safe physical boundary", room_id_));
   }
@@ -2040,8 +2148,10 @@ absl::Status Room::SaveSprites() {
         "Room %d has invalid sprite payload address", room_id_));
   }
 
-  const auto encoded_bytes = EncodeSprites();
   if (static_cast<int>(encoded_bytes.size()) > available_payload_size) {
+    if (layout != nullptr) {
+      return relocate();
+    }
     return absl::ResourceExhaustedError(absl::StrFormat(
         "Room %d sprite data too large! Size: %d, Available: %d; repacking "
         "is required",
@@ -2103,8 +2213,11 @@ absl::Status Room::SaveRoomHeader() {
       ((static_cast<uint8_t>(collision()) & 0x07) << 2) | (dark_room ? 1 : 0));
   // Preserve the full palette set ID byte (USDASM LoadRoomHeader uses 8-bit).
   uint8_t byte1 = palette_;
-  uint8_t byte7 = (staircase_plane(0) << 2) | (staircase_plane(1) << 4) |
-                  (staircase_plane(2) << 6);
+  // Byte 7 stores the pit target layer in bits 0-1 followed by the first
+  // three staircase target layers in consecutive two-bit fields.
+  uint8_t byte7 =
+      (pits_.target_layer & 0x03) | ((staircase_plane(0) & 0x03) << 2) |
+      ((staircase_plane(1) & 0x03) << 4) | ((staircase_plane(2) & 0x03) << 6);
 
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 0, byte0));
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 1, byte1));
@@ -2424,15 +2537,17 @@ void Room::LoadTorches() {
         const LightableTorchEntry entry = DecodeLightableTorchEntry({b1, b2});
 
         // Create torch object (ID 0x150)
-        RoomObject torch_obj(0x150, entry.px, entry.py, 0, entry.selector);
+        RoomObject torch_obj(0x150, entry.px, entry.py, 0, entry.draw_layer);
         torch_obj.SetRom(rom_);
         torch_obj.set_options(ObjectOption::Torch);
+        torch_obj.set_torch_reserved_bit(entry.reserved);
         torch_obj.lit_ = entry.lit;
 
         tile_objects_.push_back(torch_obj);
 
-        LOG_DEBUG("Room", "Loaded torch at (%d,%d) selector=%d lit=%d",
-                  entry.px, entry.py, entry.selector, entry.lit);
+        LOG_DEBUG(
+            "Room", "Loaded torch at (%d,%d) draw_layer=%d reserved=%d lit=%d",
+            entry.px, entry.py, entry.draw_layer, entry.reserved, entry.lit);
 
         i += 2;
       }
@@ -2524,7 +2639,8 @@ std::vector<uint8_t> EncodeTorchSegmentForRoom(int room_id, const Room& room) {
     const LightableTorchBytes encoded = EncodeLightableTorchEntry({
         .px = static_cast<uint8_t>(obj.x()),
         .py = static_cast<uint8_t>(obj.y()),
-        .selector = static_cast<uint8_t>(obj.GetLayerValue() & 1),
+        .draw_layer = static_cast<uint8_t>(obj.GetLayerValue() & 1),
+        .reserved = obj.torch_reserved_bit(),
         .lit = obj.lit_,
     });
     bytes.push_back(encoded.low);
@@ -2549,6 +2665,19 @@ absl::Status ValidateSpecialObjectDrawLayerSelector(const RoomObject& object,
       "expected 0 "
       "(upper/BG1) or 1 (lower/BG2)",
       object_type, room_id, selector));
+}
+
+absl::Status ValidateLightableTorchForSave(const RoomObject& object,
+                                           int room_id) {
+  RETURN_IF_ERROR(
+      ValidateSpecialObjectDrawLayerSelector(object, room_id, "Torch"));
+  if (object.x() <= 0x3E && object.y() <= 0x3E) {
+    return absl::OkStatus();
+  }
+  return absl::InvalidArgumentError(absl::StrFormat(
+      "Torch in room 0x%03X has invalid position (%d,%d); expected x/y in "
+      "range 0..62",
+      room_id, object.x(), object.y()));
 }
 
 }  // namespace
@@ -2584,8 +2713,7 @@ absl::Status SaveAllTorchesImpl(Rom* rom, int room_count,
     }
     for (const auto& object : room->GetTileObjects()) {
       if ((object.options() & ObjectOption::Torch) != ObjectOption::Nothing) {
-        RETURN_IF_ERROR(
-            ValidateSpecialObjectDrawLayerSelector(object, room_id, "Torch"));
+        RETURN_IF_ERROR(ValidateLightableTorchForSave(object, room_id));
       }
     }
     owned_rooms[room_id] = true;
@@ -2709,9 +2837,18 @@ absl::Status SaveAllPits(Rom* rom, PitDamageTable* pit_damage_table) {
 
 namespace {
 
+constexpr int kBlocksRegionSize = 0x80;
+constexpr std::array<int, 4> kBlocksPointerSlots = {
+    kBlocksPointer1, kBlocksPointer2, kBlocksPointer3, kBlocksPointer4};
+
+bool HalfOpenRangesOverlap(int first_begin, int first_end, int second_begin,
+                           int second_end) {
+  return first_begin < second_end && second_begin < first_end;
+}
+
 absl::Status ValidateBlocksLoaderPointerOperand(
     const std::vector<uint8_t>& rom_data, int operand_pc) {
-  if (operand_pc <= 0 || operand_pc + 3 >= static_cast<int>(rom_data.size())) {
+  if (operand_pc <= 0 || operand_pc + 5 >= static_cast<int>(rom_data.size())) {
     return absl::OutOfRangeError("Blocks pointer operand out of range");
   }
   // The block table pointers are the 3-byte operands in the US USDASM
@@ -2735,6 +2872,72 @@ absl::Status ValidateBlocksLoaderPointerOperand(
   return absl::OkStatus();
 }
 
+absl::Status PreflightBlocksLoaderDestinations(
+    const std::vector<uint8_t>& rom_data, std::array<int, 4>* destination_pcs) {
+  if (kBlocksLength < 0 ||
+      kBlocksLength + 1 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Blocks length out of range");
+  }
+
+  for (size_t page = 0; page < kBlocksPointerSlots.size(); ++page) {
+    const int operand_pc = kBlocksPointerSlots[page];
+    RETURN_IF_ERROR(ValidateBlocksLoaderPointerOperand(rom_data, operand_pc));
+    const int snes = (rom_data[operand_pc + 2] << 16) |
+                     (rom_data[operand_pc + 1] << 8) | rom_data[operand_pc];
+    const int data_pc = SnesToPc(snes);
+    if (data_pc < 0 ||
+        data_pc + kBlocksRegionSize > static_cast<int>(rom_data.size())) {
+      return absl::OutOfRangeError(absl::StrFormat(
+          "Blocks data region out of range for loader page %d", page + 1));
+    }
+    (*destination_pcs)[page] = data_pc;
+  }
+
+  constexpr int kLengthMetadataEnd = kBlocksLength + 2;
+  for (size_t page = 0; page < destination_pcs->size(); ++page) {
+    const int page_begin = (*destination_pcs)[page];
+    const int page_end = page_begin + kBlocksRegionSize;
+    if (HalfOpenRangesOverlap(page_begin, page_end, kBlocksLength,
+                              kLengthMetadataEnd)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Blocks data page %d at PC [0x%05X, 0x%05X) overlaps block-table "
+          "length metadata [0x%05X, 0x%05X)",
+          page + 1, page_begin, page_end, kBlocksLength, kLengthMetadataEnd));
+    }
+
+    for (size_t loader = 0; loader < kBlocksPointerSlots.size(); ++loader) {
+      // Each destination operand is embedded in a seven-byte loader
+      // instruction: BF ll hh bb 9D ll hh. Treat the complete instruction as
+      // metadata so a table write cannot corrupt either opcode or operand.
+      const int loader_begin = kBlocksPointerSlots[loader] - 1;
+      const int loader_end = kBlocksPointerSlots[loader] + 6;
+      if (HalfOpenRangesOverlap(page_begin, page_end, loader_begin,
+                                loader_end)) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Blocks data page %d at PC [0x%05X, 0x%05X) overlaps loader %d "
+            "opcode/operand metadata [0x%05X, 0x%05X)",
+            page + 1, page_begin, page_end, loader + 1, loader_begin,
+            loader_end));
+      }
+    }
+
+    for (size_t previous = 0; previous < page; ++previous) {
+      const int previous_begin = (*destination_pcs)[previous];
+      const int previous_end = previous_begin + kBlocksRegionSize;
+      if (HalfOpenRangesOverlap(page_begin, page_end, previous_begin,
+                                previous_end)) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Blocks data pages %d and %d overlap at PC ranges [0x%05X, "
+            "0x%05X) and [0x%05X, 0x%05X)",
+            previous + 1, page + 1, previous_begin, previous_end, page_begin,
+            page_end));
+      }
+    }
+  }
+
+  return absl::OkStatus();
+}
+
 }  // namespace
 
 absl::Status SaveAllBlocks(Rom* rom) {
@@ -2747,27 +2950,18 @@ absl::Status SaveAllBlocks(Rom* rom) {
   }
   int blocks_count =
       (rom_data[kBlocksLength + 1] << 8) | rom_data[kBlocksLength];
+  std::array<int, 4> destination_pcs{};
+  RETURN_IF_ERROR(
+      PreflightBlocksLoaderDestinations(rom_data, &destination_pcs));
   if (blocks_count <= 0) {
     return absl::OkStatus();
   }
-  const int kRegionSize = 0x80;
-  int ptrs[4] = {kBlocksPointer1, kBlocksPointer2, kBlocksPointer3,
-                 kBlocksPointer4};
   for (int r = 0; r < 4; ++r) {
-    if (ptrs[r] + 2 >= static_cast<int>(rom_data.size())) {
-      return absl::OutOfRangeError("Blocks pointer out of range");
-    }
-    RETURN_IF_ERROR(ValidateBlocksLoaderPointerOperand(rom_data, ptrs[r]));
-    int snes = (rom_data[ptrs[r] + 2] << 16) | (rom_data[ptrs[r] + 1] << 8) |
-               rom_data[ptrs[r]];
-    int pc = SnesToPc(snes);
-    int off = r * kRegionSize;
-    int len = std::min(kRegionSize, blocks_count - off);
+    const int pc = destination_pcs[r];
+    int off = r * kBlocksRegionSize;
+    int len = std::min(kBlocksRegionSize, blocks_count - off);
     if (len <= 0)
       break;
-    if (pc < 0 || pc + len > static_cast<int>(rom_data.size())) {
-      return absl::OutOfRangeError("Blocks data region out of range");
-    }
     std::vector<uint8_t> chunk(rom_data.begin() + pc,
                                rom_data.begin() + pc + len);
     RETURN_IF_ERROR(rom->WriteVector(pc, chunk));
@@ -2787,9 +2981,9 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
     return absl::OutOfRangeError("Blocks length out of range");
   }
 
-  const int kRegionSize = 0x80;
-  const int kPointerSlots[4] = {kBlocksPointer1, kBlocksPointer2,
-                                kBlocksPointer3, kBlocksPointer4};
+  std::array<int, 4> destination_pcs{};
+  RETURN_IF_ERROR(
+      PreflightBlocksLoaderDestinations(rom_data, &destination_pcs));
 
   // Read the original block buffer by dereferencing the four pointer
   // slots. We need this so unmaterialized / header-only rooms can have
@@ -2802,21 +2996,11 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
   const int original_byte_len = std::max(0, original_count_word);
   std::vector<uint8_t> original_buffer(original_byte_len, 0);
   for (int r = 0; r < 4; ++r) {
-    const int slot = kPointerSlots[r];
-    if (slot + 2 >= static_cast<int>(rom_data.size())) {
-      return absl::OutOfRangeError("Blocks pointer out of range");
-    }
-    RETURN_IF_ERROR(ValidateBlocksLoaderPointerOperand(rom_data, slot));
-    const int snes =
-        (rom_data[slot + 2] << 16) | (rom_data[slot + 1] << 8) | rom_data[slot];
-    const int pc = SnesToPc(snes);
-    const int off = r * kRegionSize;
-    const int len = std::min(kRegionSize, original_byte_len - off);
+    const int pc = destination_pcs[r];
+    const int off = r * kBlocksRegionSize;
+    const int len = std::min(kBlocksRegionSize, original_byte_len - off);
     if (len <= 0)
       break;
-    if (pc < 0 || pc + len > static_cast<int>(rom_data.size())) {
-      return absl::OutOfRangeError("Blocks data region out of range");
-    }
     std::copy_n(rom_data.begin() + pc, len, original_buffer.begin() + off);
   }
   const int original_slot_count = original_byte_len / 4;
@@ -2835,6 +3019,7 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
     const RoomObject* source_object;
   };
   std::unordered_set<uint16_t> owned_room_ids;
+  std::unordered_set<int> claimed_load_orders;
   std::unordered_map<int, EncodedBlock> slot_replacements;
   std::vector<EncodedBlock> appended;
   for (int rid = 0; rid < room_count; ++rid) {
@@ -2866,11 +3051,27 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
           EncodePushableBlockEntry(encoded_entry);
       const EncodedBlock encoded_block{encoded, &obj};
       const int load_order = obj.block_load_order();
+      if (load_order >= 0 && !claimed_load_orders.insert(load_order).second) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Room 0x%03X has multiple pushable blocks claiming non-new "
+            "load-order slot %d",
+            rid, load_order));
+      }
       if (load_order == RoomObject::kBlockLoadOrderNew) {
         appended.push_back(encoded_block);
       } else if (load_order >= 0 && load_order < original_slot_count) {
-        // First write wins: if a room loaded duplicate-load_order
-        // entries (shouldn't happen but defensive), keep the first.
+        const int original_offset = load_order * 4;
+        const uint16_t original_room_id =
+            static_cast<uint16_t>(original_buffer[original_offset] |
+                                  (original_buffer[original_offset + 1] << 8));
+        if (original_room_id != static_cast<uint16_t>(rid)) {
+          // Undo/redo snapshots can restore the load order that was valid
+          // before a prior save compacted the global table. Never let that
+          // stale identity replace a different room's entry; preserve the
+          // object by appending it as a newly reconciled entry instead.
+          appended.push_back(encoded_block);
+          continue;
+        }
         slot_replacements.emplace(load_order, encoded_block);
       } else {
         // load_order points outside the original buffer (e.g. ROM
@@ -2937,7 +3138,7 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
   }
 
   // Capacity check against the vanilla 128-entry cap.
-  const int kMaxEntries = (4 * kRegionSize) / 4;
+  const int kMaxEntries = (4 * kBlocksRegionSize) / 4;
   if (static_cast<int>(output.size() / 4) > kMaxEntries) {
     return absl::FailedPreconditionError(absl::StrCat(
         "Pushable-block table overflow: ", output.size() / 4,
@@ -2946,11 +3147,10 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
         "out of scope for this encoder)."));
   }
 
-  // Preflight every destination needed by the final output before the first
-  // ROM write. Growth can reach a later pointer region that the shorter
-  // original buffer never needed to read; discovering a bad operand/address
-  // only inside the write loop would leave earlier regions partially mutated
-  // for direct callers that do not wrap this public API in a transaction.
+  // Build the write plan from the four destinations preflighted above. Doing
+  // the topology check before encoding means direct callers that do not wrap
+  // this public API in a transaction cannot discover a bad later page only
+  // after an earlier page has already been written.
   const int total_bytes = static_cast<int>(output.size());
   struct BlockWriteDestination {
     int pc;
@@ -2960,23 +3160,11 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
   std::vector<BlockWriteDestination> write_destinations;
   write_destinations.reserve(4);
   for (int r = 0; r < 4; ++r) {
-    const int off = r * kRegionSize;
-    const int len = std::min(kRegionSize, total_bytes - off);
+    const int off = r * kBlocksRegionSize;
+    const int len = std::min(kBlocksRegionSize, total_bytes - off);
     if (len <= 0)
       break;
-
-    const int slot = kPointerSlots[r];
-    if (slot + 2 >= static_cast<int>(rom_data.size())) {
-      return absl::OutOfRangeError("Blocks pointer out of range");
-    }
-    RETURN_IF_ERROR(ValidateBlocksLoaderPointerOperand(rom_data, slot));
-    const int snes =
-        (rom_data[slot + 2] << 16) | (rom_data[slot + 1] << 8) | rom_data[slot];
-    const int pc = SnesToPc(snes);
-    if (pc < 0 || pc + len > static_cast<int>(rom_data.size())) {
-      return absl::OutOfRangeError("Blocks data region out of range");
-    }
-    write_destinations.push_back({pc, off, len});
+    write_destinations.push_back({destination_pcs[r], off, len});
   }
 
   // Write each prevalidated region. We do not relocate the data — the four
@@ -3116,29 +3304,89 @@ absl::Status SaveAllCollision(Rom* rom, int room_count,
   return SaveAllCollisionImpl(rom, room_count, room_lookup);
 }
 
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+GetChestTableWriteRanges(const Rom* rom) {
+  if (rom == nullptr || !rom->is_loaded()) {
+    return absl::InvalidArgumentError("ROM not loaded");
+  }
+  const auto& rom_data = rom->vector();
+  if (kChestsLengthPointer + 1 >= static_cast<int>(rom_data.size()) ||
+      kChestsDataPointer1 + 2 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Chest pointers out of range");
+  }
+
+  const uint32_t data_pointer =
+      (static_cast<uint32_t>(rom_data[kChestsDataPointer1 + 2]) << 16) |
+      (static_cast<uint32_t>(rom_data[kChestsDataPointer1 + 1]) << 8) |
+      rom_data[kChestsDataPointer1];
+  const uint32_t data_pc = SnesToPc(data_pointer);
+  if (data_pc > rom_data.size() ||
+      static_cast<size_t>(kChestTableCapacityBytes) >
+          rom_data.size() - static_cast<size_t>(data_pc)) {
+    return absl::OutOfRangeError("Chest data region out of range");
+  }
+  const uint32_t data_end =
+      data_pc + static_cast<uint32_t>(kChestTableCapacityBytes);
+  const auto overlaps = [](uint32_t begin, uint32_t end, uint32_t other_begin,
+                           uint32_t other_end) {
+    return begin < other_end && other_begin < end;
+  };
+  if (overlaps(data_pc, data_end, kChestsLengthPointer,
+               kChestsLengthPointer + 2) ||
+      overlaps(data_pc, data_end, kChestsDataPointer1,
+               kChestsDataPointer1 + 3)) {
+    return absl::FailedPreconditionError(
+        "Chest data region overlaps chest metadata operands");
+  }
+
+  return std::vector<std::pair<uint32_t, uint32_t>>{
+      {static_cast<uint32_t>(kChestsLengthPointer),
+       static_cast<uint32_t>(kChestsLengthPointer + 2)},
+      {data_pc, data_end},
+  };
+}
+
 namespace {
 
-// Parse current ROM chest data into per-room lists (room_id, chest_data).
+struct PhysicalChestRecord {
+  uint16_t word = 0;
+  uint8_t item = 0;
+
+  uint16_t room_id() const { return word & 0x7FFF; }
+};
+
+// Parse current ROM chest data without grouping or normalizing records.
 // `byte_length` is the runtime byte count at kChestsLengthPointer.
-std::vector<std::vector<std::pair<uint8_t, bool>>> ParseRomChests(
+std::vector<PhysicalChestRecord> ParsePhysicalRomChests(
     const std::vector<uint8_t>& rom_data, int cpos, int byte_length) {
-  std::vector<std::vector<std::pair<uint8_t, bool>>> per_room(kNumberOfRooms);
+  std::vector<PhysicalChestRecord> records;
   const int record_count = byte_length / kChestTableRecordSize;
+  records.reserve(record_count);
   for (int i = 0; i < record_count; ++i) {
     const int off = cpos + i * kChestTableRecordSize;
     if (off < 0 ||
         off + kChestTableRecordSize > static_cast<int>(rom_data.size())) {
       break;
     }
-    uint16_t word = (rom_data[off + 1] << 8) | rom_data[off];
-    uint16_t room_id = word & 0x7FFF;
-    bool big = (word & 0x8000) != 0;
-    uint8_t id = rom_data[off + 2];
-    if (room_id < kNumberOfRooms) {
-      per_room[room_id].emplace_back(id, big);
-    }
+    const uint16_t word =
+        (static_cast<uint16_t>(rom_data[off + 1]) << 8) | rom_data[off];
+    records.push_back(PhysicalChestRecord{word, rom_data[off + 2]});
   }
-  return per_room;
+  return records;
+}
+
+void AppendChestRecord(std::vector<uint8_t>* bytes, uint16_t word,
+                       uint8_t item) {
+  bytes->push_back(word & 0xFF);
+  bytes->push_back((word >> 8) & 0xFF);
+  bytes->push_back(item);
+}
+
+void AppendEditedChestRecord(std::vector<uint8_t>* bytes, int room_id,
+                             const chest_data& chest) {
+  const uint16_t word = static_cast<uint16_t>(room_id) |
+                        (chest.size ? static_cast<uint16_t>(0x8000) : 0);
+  AppendChestRecord(bytes, word, chest.id);
 }
 
 int ReadRoomPotItemAddressPc(const std::vector<uint8_t>& rom_data,
@@ -3190,7 +3438,7 @@ absl::StatusOr<PhysicalStreamInfo> GetPotItemStreamInfo(
 template <typename RoomLookup>
 absl::Status SaveAllChestsImpl(Rom* rom, int room_count,
                                RoomLookup&& room_lookup) {
-  if (!rom || !rom->is_loaded()) {
+  if (rom == nullptr || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
   const auto& rom_data = rom->vector();
@@ -3199,14 +3447,20 @@ absl::Status SaveAllChestsImpl(Rom* rom, int room_count,
     return absl::OutOfRangeError("Chest pointers out of range");
   }
   const int room_limit = std::min(room_count, kNumberOfRooms);
+  std::vector<const Room*> dirty_rooms(kNumberOfRooms, nullptr);
   bool any_dirty = false;
   for (int room_id = 0; room_id < room_limit; ++room_id) {
     const Room* room = room_lookup(room_id);
-    any_dirty = any_dirty || (room != nullptr && room->chests_dirty());
+    if (room != nullptr && room->chests_dirty()) {
+      dirty_rooms[room_id] = room;
+      any_dirty = true;
+    }
   }
   if (!any_dirty) {
     return absl::OkStatus();
   }
+
+  ASSIGN_OR_RETURN(auto write_ranges, GetChestTableWriteRanges(rom));
 
   const int byte_length = (rom_data[kChestsLengthPointer + 1] << 8) |
                           rom_data[kChestsLengthPointer];
@@ -3216,60 +3470,92 @@ absl::Status SaveAllChestsImpl(Rom* rom, int room_count,
         absl::StrFormat("Chest table byte length %d is invalid (capacity %d)",
                         byte_length, kChestTableCapacityBytes));
   }
-  const int cpos = static_cast<int>(SnesToPc(
-      (static_cast<uint32_t>(rom_data[kChestsDataPointer1 + 2]) << 16) |
-      (static_cast<uint32_t>(rom_data[kChestsDataPointer1 + 1]) << 8) |
-      rom_data[kChestsDataPointer1]));
-  if (cpos < 0 ||
-      cpos + kChestTableCapacityBytes > static_cast<int>(rom_data.size())) {
-    return absl::OutOfRangeError("Chest data region out of range");
+  const int cpos = static_cast<int>(write_ranges[1].first);
+  const auto physical_records =
+      ParsePhysicalRomChests(rom_data, cpos, byte_length);
+  if (physical_records.size() !=
+      static_cast<size_t>(byte_length / kChestTableRecordSize)) {
+    return absl::OutOfRangeError("Chest data region is truncated");
   }
-  const auto rom_chests = ParseRomChests(rom_data, cpos, byte_length);
 
-  std::vector<uint8_t> bytes;
-  bytes.reserve(byte_length);
-  for (int room_id = 0; room_id < kNumberOfRooms; ++room_id) {
-    const Room* room = room_id < room_limit ? room_lookup(room_id) : nullptr;
-    const bool room_dirty = room != nullptr && room->chests_dirty();
-    const auto* chests = room != nullptr ? &room->GetChests() : nullptr;
-    if (!room_dirty) {
-      for (const auto& [id, big] : rom_chests[room_id]) {
-        uint16_t word = room_id | (big ? 0x8000 : 0);
-        bytes.push_back(word & 0xFF);
-        bytes.push_back((word >> 8) & 0xFF);
-        bytes.push_back(id);
-      }
-    } else if (chests != nullptr) {
-      for (const auto& c : *chests) {
-        uint16_t word = room_id | (c.size ? 0x8000 : 0);
-        bytes.push_back(word & 0xFF);
-        bytes.push_back((word >> 8) & 0xFF);
-        bytes.push_back(c.id);
-      }
+  std::vector<size_t> old_counts(kNumberOfRooms, 0);
+  for (const PhysicalChestRecord& record : physical_records) {
+    if (record.room_id() < kNumberOfRooms) {
+      ++old_counts[record.room_id()];
     }
   }
 
-  if (bytes.size() > static_cast<size_t>(kChestTableCapacityBytes)) {
-    return absl::ResourceExhaustedError(
-        absl::StrFormat("Chest table has %d records; capacity is %d",
-                        static_cast<int>(bytes.size() / kChestTableRecordSize),
-                        kChestTableCapacityRecords));
+  size_t final_record_count = physical_records.size();
+  for (int room_id = 0; room_id < room_limit; ++room_id) {
+    if (dirty_rooms[room_id] == nullptr) {
+      continue;
+    }
+    final_record_count -= old_counts[room_id];
+    final_record_count += dirty_rooms[room_id]->GetChests().size();
+  }
+  if (final_record_count > static_cast<size_t>(kChestTableCapacityRecords)) {
+    return absl::ResourceExhaustedError(absl::StrFormat(
+        "Chest table has %d records; capacity is %d",
+        static_cast<int>(final_record_count), kChestTableCapacityRecords));
+  }
+
+  std::vector<uint8_t> bytes;
+  bytes.reserve(final_record_count * kChestTableRecordSize);
+  std::vector<size_t> seen_counts(kNumberOfRooms, 0);
+  for (const PhysicalChestRecord& record : physical_records) {
+    const uint16_t room_id = record.room_id();
+    const Room* dirty_room =
+        room_id < kNumberOfRooms ? dirty_rooms[room_id] : nullptr;
+    if (dirty_room == nullptr) {
+      AppendChestRecord(&bytes, record.word, record.item);
+      continue;
+    }
+
+    const size_t occurrence = seen_counts[room_id]++;
+    const auto& replacements = dirty_room->GetChests();
+    if (occurrence < replacements.size()) {
+      AppendEditedChestRecord(&bytes, room_id, replacements[occurrence]);
+    }
+  }
+
+  // Growth has no existing physical slot. Append extras in room-ID order so
+  // repeated saves are deterministic while every pre-existing record keeps its
+  // relative position.
+  for (int room_id = 0; room_id < room_limit; ++room_id) {
+    const Room* dirty_room = dirty_rooms[room_id];
+    if (dirty_room == nullptr) {
+      continue;
+    }
+    const auto& replacements = dirty_room->GetChests();
+    for (size_t i = seen_counts[room_id]; i < replacements.size(); ++i) {
+      AppendEditedChestRecord(&bytes, room_id, replacements[i]);
+    }
+  }
+
+  if (bytes.size() != final_record_count * kChestTableRecordSize) {
+    return absl::InternalError("Chest save plan size mismatch");
   }
 
   const bool length_changed = byte_length != static_cast<int>(bytes.size());
   const bool data_changed =
       !std::equal(bytes.begin(), bytes.end(), rom_data.begin() + cpos);
+  yaze::rom::WriteFence fence;
+  RETURN_IF_ERROR(fence.Allow(write_ranges[0].first, write_ranges[0].second,
+                              "ChestTableLength"));
+  RETURN_IF_ERROR(fence.Allow(write_ranges[1].first, write_ranges[1].second,
+                              "ChestTableData"));
+  yaze::rom::ScopedWriteFence scope(rom, &fence);
+
+  if (data_changed) {
+    RETURN_IF_ERROR(rom->WriteVector(cpos, bytes));
+  }
   if (length_changed) {
     RETURN_IF_ERROR(rom->WriteWord(kChestsLengthPointer,
                                    static_cast<uint16_t>(bytes.size())));
   }
-  if (data_changed) {
-    RETURN_IF_ERROR(rom->WriteVector(cpos, bytes));
-  }
   for (int room_id = 0; room_id < room_limit; ++room_id) {
-    if (const Room* room = room_lookup(room_id);
-        room != nullptr && room->chests_dirty()) {
-      const_cast<Room*>(room)->ClearChestsDirty();
+    if (dirty_rooms[room_id] != nullptr) {
+      const_cast<Room*>(dirty_rooms[room_id])->ClearChestsDirty();
     }
   }
   return absl::OkStatus();
@@ -3286,8 +3572,9 @@ absl::Status SaveAllChests(Rom* rom, int room_count,
 }
 
 template <typename RoomLookup>
-absl::Status SaveAllPotItemsImpl(Rom* rom, int room_count,
-                                 RoomLookup&& room_lookup) {
+absl::Status SaveAllPotItemsImpl(
+    Rom* rom, int room_count, RoomLookup&& room_lookup,
+    const DungeonStreamLayout* repack_layout = nullptr) {
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
@@ -3295,6 +3582,45 @@ absl::Status SaveAllPotItemsImpl(Rom* rom, int room_count,
   if (kRoomItemsPointers + (kNumberOfRooms * 2) >
       static_cast<int>(rom_data.size())) {
     return absl::OutOfRangeError("Room items pointer table out of range");
+  }
+
+  const int room_limit = std::min(room_count, kNumberOfRooms);
+  if (repack_layout != nullptr) {
+    std::vector<DungeonStreamReplacement> replacements;
+    for (int room_id = 0; room_id < room_limit; ++room_id) {
+      const Room* room = room_lookup(room_id);
+      if (room == nullptr || !room->pot_items_dirty()) {
+        continue;
+      }
+
+      DungeonStreamReplacement replacement;
+      replacement.room_id = static_cast<uint32_t>(room_id);
+      replacement.encoded_stream.reserve(room->GetPotItems().size() * 3 + 2);
+      for (const PotItem& item : room->GetPotItems()) {
+        replacement.encoded_stream.push_back(item.position & 0xFF);
+        replacement.encoded_stream.push_back((item.position >> 8) & 0xFF);
+        replacement.encoded_stream.push_back(item.item);
+      }
+      replacement.encoded_stream.push_back(0xFF);
+      replacement.encoded_stream.push_back(0xFF);
+      replacements.push_back(std::move(replacement));
+    }
+    if (replacements.empty()) {
+      return absl::OkStatus();
+    }
+
+    ASSIGN_OR_RETURN(const DungeonStreamInventory inventory,
+                     InventoryDungeonStreams(*rom, *repack_layout));
+    ASSIGN_OR_RETURN(const DungeonStreamWritePlan plan,
+                     PlanDungeonStreamRepack(inventory, replacements));
+    RETURN_IF_ERROR(ApplyDungeonStreamWritePlan(rom, plan));
+    for (const DungeonStreamReplacement& replacement : replacements) {
+      if (const Room* room = room_lookup(replacement.room_id);
+          room != nullptr) {
+        const_cast<Room*>(room)->ClearPotItemsDirty();
+      }
+    }
+    return absl::OkStatus();
   }
 
   struct PendingPotItemWrite {
@@ -3306,7 +3632,6 @@ absl::Status SaveAllPotItemsImpl(Rom* rom, int room_count,
   // Build and validate every dirty write before touching the ROM. A later
   // shared/overfull stream must not leave earlier rooms partially written.
   std::vector<PendingPotItemWrite> pending_writes;
-  const int room_limit = std::min(room_count, kNumberOfRooms);
   for (int room_id = 0; room_id < room_limit; ++room_id) {
     const Room* room = room_lookup(room_id);
     if (room == nullptr || !room->pot_items_dirty()) {
@@ -3366,10 +3691,23 @@ absl::Status SaveAllPotItems(Rom* rom, absl::Span<const Room> rooms) {
                              [&rooms](int room_id) { return &rooms[room_id]; });
 }
 
+absl::Status SaveAllPotItems(Rom* rom, absl::Span<const Room> rooms,
+                             const DungeonStreamLayout* repack_layout) {
+  return SaveAllPotItemsImpl(
+      rom, static_cast<int>(rooms.size()),
+      [&rooms](int room_id) { return &rooms[room_id]; }, repack_layout);
+}
+
 absl::Status SaveAllPotItems(
     Rom* rom, int room_count,
     const std::function<const Room*(int)>& room_lookup) {
   return SaveAllPotItemsImpl(rom, room_count, room_lookup);
+}
+
+absl::Status SaveAllPotItems(Rom* rom, int room_count,
+                             const std::function<const Room*(int)>& room_lookup,
+                             const DungeonStreamLayout* repack_layout) {
+  return SaveAllPotItemsImpl(rom, room_count, room_lookup, repack_layout);
 }
 
 void Room::LoadBlocks() {

@@ -166,6 +166,25 @@ TEST_F(ObjectDimensionTableTest, GetBaseDimensionsReturnsDefaults) {
   EXPECT_EQ(dh, 2);
 }
 
+TEST_F(ObjectDimensionTableTest, SomariaPathBaseDimensionsAreSingleTile) {
+  auto& table = ObjectDimensionTable::Get();
+  ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());
+
+  constexpr int16_t kObjectIds[] = {0xF83, 0xF84, 0xF85, 0xF86, 0xF87, 0xF88,
+                                    0xF89, 0xF8A, 0xF8B, 0xF8C, 0xF8E, 0xF8F};
+  for (int16_t object_id : kObjectIds) {
+    SCOPED_TRACE(absl::StrFormat("object_id=0x%04X", object_id));
+    auto [width, height] = table.GetBaseDimensions(object_id);
+    EXPECT_EQ(width, 1);
+    EXPECT_EQ(height, 1);
+  }
+
+  // The intervening prison-cell object and later table/rock object are not
+  // RoomDraw_SomariaLine entries.
+  EXPECT_EQ(table.GetBaseDimensions(0xF8D), std::make_pair(10, 4));
+  EXPECT_EQ(table.GetBaseDimensions(0xF94), std::make_pair(4, 3));
+}
+
 TEST_F(ObjectDimensionTableTest, GetDimensionsAccountsForSize) {
   auto& table = ObjectDimensionTable::Get();
   table.LoadFromRom(rom_.get());
@@ -745,15 +764,15 @@ TEST_F(ObjectDimensionsTest, CalculatesDimensionsForType3Objects) {
 TEST_F(ObjectDimensionsTest, CalculatesDimensionsForSomariaLine) {
   ObjectDrawer drawer(rom_.get(), 0);
 
-  // Test object 0x203 (Somaria Line)
-  // NOTE: Subtype 3 objects (0x200+) are not yet mapped to draw routines.
-  // Falls back to default dimension calculation: (size + 1) * 8
-  // With size 0: width = 8, height = 8
-
-  RoomObject obj203(0x203, 10, 10, 0, 0);
-  auto dims = drawer.CalculateObjectDimensions(obj203);
-  EXPECT_EQ(dims.first, 8);  // Default fallback for unmapped objects
-  EXPECT_EQ(dims.second, 8);
+  constexpr int16_t kObjectIds[] = {0xF83, 0xF84, 0xF85, 0xF86, 0xF87, 0xF88,
+                                    0xF89, 0xF8A, 0xF8B, 0xF8C, 0xF8E, 0xF8F};
+  for (int16_t object_id : kObjectIds) {
+    SCOPED_TRACE(object_id);
+    RoomObject object(object_id, 10, 10, /*size=*/0x0F, 0);
+    auto dims = drawer.CalculateObjectDimensions(object);
+    EXPECT_EQ(dims.first, 8);
+    EXPECT_EQ(dims.second, 8);
+  }
 }
 
 TEST_F(ObjectDimensionsTest,

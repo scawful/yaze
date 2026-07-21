@@ -122,7 +122,7 @@ TEST_F(DungeonObjectRomValidationTest, TileCountTable_KnownValues) {
   // 0x00-0x0F:  4,  8,  8,  8,  8,  8,  8,  4,  4,  5,  5,  5,  5,  5,  5,  5
   // 0x10-0x1F:  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5
   // 0x20-0x2F:  5,  9,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  6
-  // 0x30-0x3F:  6,  1,  1, 16,  1,  1, 16, 16,  6,  8, 12, 12,  4,  8,  4,  3
+  // 0x30-0x3F:  6,  1,  1, 16,  1,  1, 16, 16,  6,  8, 12, 12,  8,  8,  4,  3
   std::vector<TileCountTest> tests = {
       {0x00, 4, "Floor object"},
       {0x01, 8, "Wall rightwards 2x4"},
@@ -131,6 +131,8 @@ TEST_F(DungeonObjectRomValidationTest, TileCountTable_KnownValues) {
       {0x22, 3, "Edge rightwards has edge"},  // 3 tiles
       {0x34, 1, "Solid 1x1 block"},
       {0x33, 16, "4x4 block"},  // kSubtype1TileLengths[0x33] = 16
+      {0x3C, 8, "Doubled 2x2 decoration"},
+      {0x4C, 12, "Rightwards 4x3 bar"},
   };
 
   for (const auto& test : tests) {
