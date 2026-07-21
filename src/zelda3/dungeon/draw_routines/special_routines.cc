@@ -17,6 +17,8 @@ namespace draw_routines {
 
 namespace {
 
+constexpr int kThievesTownEastAtticRoomId = 0x65;
+
 const gfx::TileInfo& TileAtWrapped(std::span<const gfx::TileInfo> tiles,
                                    size_t index) {
   return tiles[index % tiles.size()];
@@ -72,6 +74,16 @@ void Draw4x4ColumnMajor(const DrawContext& ctx, int x_offset, int y_offset,
                         size_t start_index) {
   DrawColumnMajor(ctx.target_bg, ctx.object.x_ + x_offset,
                   ctx.object.y_ + y_offset, 4, 4, ctx.tiles, start_index);
+}
+
+void DrawFloorLightGrid(const DrawContext& ctx) {
+  if (ctx.tiles.size() < 64)
+    return;
+
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/0, /*start_index=*/0);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/4, /*y_offset=*/0, /*start_index=*/16);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/4, /*start_index=*/32);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/4, /*y_offset=*/4, /*start_index=*/48);
 }
 
 void Draw4x4ColumnMajorTo(gfx::BackgroundBuffer& bg, const RoomObject& object,
@@ -490,25 +502,32 @@ void DrawHorizontalTurtleRockPipe(const DrawContext& ctx) {
 
 void DrawLightBeamOnFloor(const DrawContext& ctx) {
   // ASM: RoomDraw_LightBeamOnFloor ($01A7B6)
-  // Draw three 4x4 blocks at y offsets 0, +2, +6.
-  if (ctx.tiles.empty())
+  // Draw three 4x4 blocks at y offsets 0, +2, +6. The middle block resets X
+  // to obj2376 and reuses tiles 0..15; the bottom block uses obj2396 at
+  // tiles 16..31.
+  if (ctx.tiles.size() < 32)
     return;
   Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/0, /*start_index=*/0);
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/2, /*start_index=*/16);
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/6, /*start_index=*/32);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/2, /*start_index=*/0);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/6, /*start_index=*/16);
 }
 
 void DrawBigLightBeamOnFloor(const DrawContext& ctx) {
-  // ASM: RoomDraw_BigLightBeamOnFloor / RoomDraw_FloorLight
-  // The active path draws four 4x4 blocks in a 2x2 grid (8x8 footprint).
-  // State-gating on $7EF0CA is not currently modeled in DungeonState.
-  if (ctx.tiles.empty())
+  // ASM: RoomDraw_BigLightBeamOnFloor ($01A7D3) reads the persisted
+  // bombed-floor flag for fixed room 0x065 ($7EF0CA & $0100), then falls
+  // through to RoomDraw_FloorLight when it is active. Do not use ctx.room_id.
+  // Null state is reserved for object/geometry previews, which keep the beam
+  // visible and measurable.
+  if (ctx.state != nullptr &&
+      !ctx.state->IsFloorBombable(kThievesTownEastAtticRoomId)) {
     return;
+  }
+  DrawFloorLightGrid(ctx);
+}
 
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/0, /*start_index=*/0);
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/4, /*y_offset=*/0, /*start_index=*/16);
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/4, /*start_index=*/32);
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/4, /*y_offset=*/4, /*start_index=*/48);
+void DrawFloorLight(const DrawContext& ctx) {
+  // ASM: RoomDraw_FloorLight ($01A7DC) is unconditional for object 0x274.
+  DrawFloorLightGrid(ctx);
 }
 
 void DrawBossShell4x4(const DrawContext& ctx) {
@@ -586,39 +605,26 @@ void DrawSingle4x3(const DrawContext& ctx) {
 }
 
 void DrawRupeeFloor(const DrawContext& ctx) {
-  // ASM: RoomDraw_RupeeFloor ($019AA9), preview shape:
-  // 3 columns of 2-tile pairs at rows [0..1], [3..4], [6..7].
-  if (ctx.tiles.size() < 2)
+  // USDASM RoomDraw_RupeeFloor ($01:9AA9-$01:9AED) exits when the
+  // current-room $0402 & $1000 event is set. State-free selector/geometry
+  // previews remain visible.
+  if ((ctx.state != nullptr && ctx.state->IsRupeeFloorCleared(ctx.room_id)) ||
+      ctx.tiles.size() < 2) {
     return;
+  }
 
+  constexpr std::array<int, 3> kTopRows = {0, 3, 6};
+  constexpr std::array<int, 3> kBottomRows = {1, 4, 7};
   for (int col = 0; col < 3; ++col) {
-    int x = ctx.object.x_ + (col * 2);
-
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_, ctx.tiles[0]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, ctx.object.y_,
-                                 ctx.tiles[0]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + 1,
-                                 ctx.tiles[1]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, ctx.object.y_ + 1,
-                                 ctx.tiles[1]);
-
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + 3,
-                                 ctx.tiles[0]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, ctx.object.y_ + 3,
-                                 ctx.tiles[0]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + 4,
-                                 ctx.tiles[1]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, ctx.object.y_ + 4,
-                                 ctx.tiles[1]);
-
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + 6,
-                                 ctx.tiles[0]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, ctx.object.y_ + 6,
-                                 ctx.tiles[0]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + 7,
-                                 ctx.tiles[1]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, ctx.object.y_ + 7,
-                                 ctx.tiles[1]);
+    const int x = ctx.object.x_ + col * 2;
+    for (int row : kTopRows) {
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + row,
+                                   ctx.tiles[0]);
+    }
+    for (int row : kBottomRows) {
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + row,
+                                   ctx.tiles[1]);
+    }
   }
 }
 
@@ -1178,34 +1184,33 @@ void DrawBigKeyLock(const DrawContext& ctx) {
 }
 
 void DrawBombableFloor(const DrawContext& ctx) {
-  // ASM: RoomDraw_BombableFloor ($019B7A)
-  // Checks room flags to see if floor has been bombed
-
-  bool is_bombed = false;
-  if (ctx.state) {
-    is_bombed = ctx.state->IsFloorBombable(ctx.room_id);
+  // USDASM RoomDraw_BombableFloor ($01:B3E1) draws four 2x2 quadrants.
+  // ParseSubtype3 stores the intact obj0220 block at tiles[0..15] and the
+  // non-contiguous obj05BA replacement block at tiles[16..31]. Each quadrant
+  // is ordered upper-left, lower-left, upper-right, lower-right.
+  if (ctx.tiles.size() < 16) {
+    return;
   }
 
-  if (is_bombed) {
-    // Draw hole (use second tile set if available)
-    if (ctx.tiles.size() >= 8) {
-      for (int y = 0; y < 2; ++y) {
-        for (int x = 0; x < 2; ++x) {
-          DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                       ctx.object.y_ + y,
-                                       ctx.tiles[4 + y * 2 + x]);
-        }
-      }
-      return;
-    }
-  }
+  // Vanilla persists this state for room 0x65, while ROM hacks can relocate
+  // the floor (Oracle of Secrets uses 0xAD). Keep preview selection keyed to
+  // the current room instead of hardcoding a vanilla room ID.
+  const bool is_open = ctx.state != nullptr &&
+                       ctx.state->IsFloorBombable(ctx.room_id) &&
+                       ctx.tiles.size() >= 32;
+  const size_t state_offset = is_open ? 16 : 0;
 
-  // Draw intact floor (2x2 pattern)
-  if (ctx.tiles.size() >= 4) {
-    for (int y = 0; y < 2; ++y) {
+  for (int block_y = 0; block_y < 2; ++block_y) {
+    for (int block_x = 0; block_x < 2; ++block_x) {
+      const size_t block_offset =
+          state_offset + static_cast<size_t>((block_y * 2 + block_x) * 4);
       for (int x = 0; x < 2; ++x) {
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                     ctx.object.y_ + y, ctx.tiles[y * 2 + x]);
+        for (int y = 0; y < 2; ++y) {
+          DrawRoutineUtils::WriteTile8(
+              ctx.target_bg, ctx.object.x_ + block_x * 2 + x,
+              ctx.object.y_ + block_y * 2 + y,
+              ctx.tiles[block_offset + static_cast<size_t>(x * 2 + y)]);
+        }
       }
     }
   }
@@ -1722,9 +1727,9 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .name = "BombableFloor",
       .function = DrawBombableFloor,
       .draws_to_both_bgs = false,
-      .base_width = 2,
-      .base_height = 2,
-      .min_tiles = 4,  // 2x2 block
+      .base_width = 4,
+      .base_height = 4,
+      .min_tiles = 16,  // One complete 4x4 state
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1840,6 +1845,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 10,
+      .min_tiles = 32,
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1850,6 +1856,18 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 8,
       .base_height = 8,
+      .min_tiles = 64,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kFloorLight,  // 123
+      .name = "FloorLight",
+      .function = DrawFloorLight,
+      .draws_to_both_bgs = false,
+      .base_width = 8,
+      .base_height = 8,
+      .min_tiles = 64,
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1931,7 +1949,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .name = "RupeeFloor",
       .function = DrawRupeeFloor,
       .draws_to_both_bgs = false,
-      .base_width = 6,
+      .base_width = 5,
       .base_height = 8,
       .min_tiles = 2,
       .category = DrawRoutineInfo::Category::Special,

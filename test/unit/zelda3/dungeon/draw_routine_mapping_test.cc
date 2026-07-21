@@ -488,6 +488,19 @@ TEST_F(DrawRoutineMappingTest, VerifiesPhase4Step2Mappings) {
   EXPECT_EQ(drawer.GetDrawRoutineId(0xB0), 72);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xB1), 72);
 
+  // USDASM $0197DC-$0197EC: 0xB5 repeats a 2x4 stamp horizontally for
+  // size + 1 blocks through the current (single-layer) tilemap pointers.
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xB5), DrawRoutineIds::kWeird2x4_1to16);
+  const DrawRoutineInfo* curtains = DrawRoutineRegistry::Get().GetRoutineInfo(
+      DrawRoutineIds::kWeird2x4_1to16);
+  ASSERT_NE(curtains, nullptr);
+  EXPECT_EQ(curtains->base_width, 2);
+  EXPECT_EQ(curtains->base_height, 4);
+  EXPECT_EQ(curtains->min_tiles, 8);
+  EXPECT_FALSE(curtains->draws_to_both_bgs);
+  EXPECT_TRUE(DrawRoutineRegistry::Get().RoutineDrawsToBothBGs(
+      DrawRoutineIds::kRightwards2x4_1to16));
+
   // USDASM $018314-$018318: only 0x8A is the +23 long rail; 0x8B/0x8C
   // use the single-tile downwards +7 routine.
   EXPECT_EQ(drawer.GetDrawRoutineId(0x8A),
@@ -694,8 +707,17 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFF0), DrawRoutineIds::kLightBeam);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFF1), DrawRoutineIds::kBigLightBeam);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFF2), DrawRoutineIds::kBossShell4x4);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFF4), DrawRoutineIds::kFloorLight);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFF8),
             DrawRoutineIds::kGanonTriforceFloorDecor);
+
+  const DrawRoutineInfo* floor_light =
+      DrawRoutineRegistry::Get().GetRoutineInfo(DrawRoutineIds::kFloorLight);
+  ASSERT_NE(floor_light, nullptr);
+  EXPECT_EQ(floor_light->base_width, 8);
+  EXPECT_EQ(floor_light->base_height, 8);
+  EXPECT_EQ(floor_light->min_tiles, 64);
+  EXPECT_FALSE(floor_light->draws_to_both_bgs);
 }
 
 }  // namespace zelda3

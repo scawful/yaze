@@ -38,6 +38,10 @@
 // - IDs `0xCD` and `0xCE` consume 24 words: top corner (9), vertical
 //   pattern (6), and bottom corner (9). ZScream's count of 28 crosses into
 //   the next object's data block, so yaze uses the routine-proven count.
+// - IDs `0x3C` and `0x4C` consume 8 and 12 words respectively. Their
+//   registry routines index the complete 4x2 and 4x3 payloads, while
+//   ZScream's counts of 4 and 9 under-fetch the final stamp/column and make
+//   ObjectDrawer fall back to a single tile.
 // - 2026-04-25 ZScream parity diff: full byte-for-byte comparison
 //   against ZScream's `subtype1Lengths` (`DungeonObjectData.cs:184`)
 //   remains pinned, with routine-body-proven corrections allowlisted.
@@ -49,8 +53,8 @@ static constexpr uint8_t kSubtype1TileLengths[0xF8] = {
      4,  8,  8,  8,  8,  8,  8,  4,  4,  5,  5,  5,  5,  5,  5,  5,  // 0x00-0x0F
      5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  // 0x10-0x1F
      5,  9,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  6,  // 0x20-0x2F
-     6,  1,  1, 16,  1,  1, 16, 16,  6,  8, 12, 12,  4,  8,  4,  3,  // 0x30-0x3F
-     3,  3,  3,  3,  3,  3,  3, 15,  9,  8,  8,  4,  9, 16, 16, 16,  // 0x40-0x4F (0x47=Waterfall47:15, 0x48=Waterfall48:9)
+     6,  1,  1, 16,  1,  1, 16, 16,  6,  8, 12, 12,  8,  8,  4,  3,  // 0x30-0x3F (0x3C=Doubled2x2:8)
+     3,  3,  3,  3,  3,  3,  3, 15,  9,  8,  8,  4, 12, 16, 16, 16,  // 0x40-0x4F (0x47=Waterfall47:15, 0x48=Waterfall48:9, 0x4C=Bar4x3:12)
      1, 18, 18,  4,  1,  8,  8,  1,  1,  1,  1, 18, 18, 15,  4,  3,  // 0x50-0x5F
      4,  8,  8,  8,  8,  8,  8,  4,  4,  3,  1,  1,  6,  6,  1,  1,  // 0x60-0x6F
     16,  1,  1, 16, 16,  8, 16, 16,  4,  1,  1,  4,  1,  4,  1,  8,  // 0x70-0x7F
@@ -324,6 +328,9 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype2(
 
 absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
     int16_t object_id) {
+  constexpr int kBombableFloorOpenTileOffset = 0x05BA;
+  constexpr int kBombableFloorStateTileCount = 16;
+
   // Type 3 object IDs are 0xF80-0xFFF (128 objects)
   // Table index should be 0-127, calculated by subtracting base offset 0xF80
   int index = (object_id - 0xF80) & 0x7F;
@@ -341,6 +348,27 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
 
   // Determine tile count based on object ID
   int tile_count = GetSubtype3TileCount(object_id);
+
+  // BombableFloor's intact 4x4 block starts at the object's pointer, while
+  // USDASM's replacement 4x4 block lives separately at obj05BA. Keep the two
+  // 16-word states adjacent in the parsed payload for stateful rendering.
+  if (object_id == 0xFC7) {
+    auto intact_tiles =
+        ReadTileData(tile_data_ptr, kBombableFloorStateTileCount);
+    if (!intact_tiles.ok()) {
+      return intact_tiles.status();
+    }
+    auto open_tiles =
+        ReadTileData(kRoomObjectTileAddress + kBombableFloorOpenTileOffset,
+                     kBombableFloorStateTileCount);
+    if (!open_tiles.ok()) {
+      return open_tiles.status();
+    }
+    intact_tiles->insert(intact_tiles->end(), open_tiles->begin(),
+                         open_tiles->end());
+    return intact_tiles;
+  }
+
   return ReadTileData(tile_data_ptr, tile_count);
 }
 
@@ -459,10 +487,23 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
     return 28;
   }
 
+  // RupeeFloor (0xF92 = ASM 0x212) reads the two words at obj1DD6 and
+  // repeats them at fixed positions.
+  if (object_id == 0xF92) {
+    return 2;
+  }
+
   // HammerPegSingle (0xF96 = ASM 0x216) jumps to
   // RoomDraw_Rightwards2x2 and consumes one fixed 2x2 tile block.
   if (object_id == 0xF96) {
     return 4;
+  }
+
+  // BombableFloor (0xFC7 = ASM 0x247) has two non-contiguous 4x4 states:
+  // 16 intact words from the object pointer and 16 replacement words at
+  // obj05BA. ParseSubtype3 loads and concatenates both spans.
+  if (object_id == 0xFC7) {
+    return 32;
   }
 
   // Somaria path pieces (ASM objects 0x203-0x20C, 0x20E, and 0x20F) each
@@ -506,7 +547,7 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
   if (object_id == 0xFAA || object_id == 0xFAD || object_id == 0xFAE ||
       (object_id >= 0xFB4 && object_id <= 0xFB9) || object_id == 0xFCB ||
       object_id == 0xFCC || object_id == 0xFD4 || object_id == 0xFE2 ||
-      object_id == 0xFF4 || object_id == 0xFF6 || object_id == 0xFF7) {
+      object_id == 0xFF6 || object_id == 0xFF7) {
     return 16;
   }
   // Turtle Rock pipes: 24 tiles (proven from routine bodies, not just
@@ -538,12 +579,20 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
       object_id == 0xFEF) {
     return 12;
   }
-  // Light beams
+  // LightBeamOnFloor (0xFF0 / ASM 0x270) reads two unique 4x4 blocks:
+  // obj2376 is reused for the top and overlapping middle stamps, then
+  // obj2396 supplies the bottom stamp.
   if (object_id == 0xFF0) {
-    return 16;
+    return 32;
   }
+  // BigLightBeamOnFloor (0xFF1 / ASM 0x271) draws four unique 4x4 blocks.
   if (object_id == 0xFF1) {
-    return 36;
+    return 64;
+  }
+  // FloorLight (0xFF4 / ASM 0x274) unconditionally draws four unique 4x4
+  // blocks in an 8x8 grid.
+  if (object_id == 0xFF4) {
+    return 64;
   }
   // Ganon Triforce floor decor (two 4x4 blocks -> 32 tiles)
   if (object_id == 0xFF8) {

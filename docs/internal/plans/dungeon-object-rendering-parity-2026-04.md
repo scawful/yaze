@@ -8,6 +8,13 @@
 
 **Progress (2026-06-28):** Added ROM-backed room regression fixtures for five vanilla rooms plus per-layer/composite checksums. These are drift guards against current renderer output, not independent emulator/screenshot truth. Not done: explicit stream-vs-buffer type separation, golden screenshot ROI, and remaining rare-object visual parity.
 
+**Progress (2026-07-21):** Added an independent Mesen2 screenshot baseline
+for the stable left-wall ROI in vanilla room `0x012`. The headless integration
+test compares all 3,072 RGBA pixels exactly and skips for missing/noncanonical
+US ROM data. Room `0x001` already pins a sparse BG1/BG2 overlap winner, so the
+independent ROI plus overlap done criterion is complete. Broader Sanctuary
+floor/background palette parity remains open.
+
 **Primary spec:** [dungeon-object-rendering-spec.md](../agents/dungeon-object-rendering-spec.md) (USDASM `bank_01.asm`)
 
 **Related handoff:** [HANDOFF_BG2_MASKING_FIX.md](../hand-off/HANDOFF_BG2_MASKING_FIX.md)
@@ -162,8 +169,8 @@ Run Phase F early in parallel with A; it reduces future mistakes.
 - [ ] No use of `LayerType` for ROM stream index without explicit conversion.
 - [x] `dungeon-object-rendering-spec.md` implementation table updated: three-stream object build order marked done.
 - [x] At least one ROM-integrated room-render drift test added.
-- [ ] Add one independent emulator/screenshot ROI baseline and one mask-geometry/overlap pixel assertion.
-- [ ] E2E optional: golden screenshot test documented and either enabled in CI or marked with clear skip rationale.
+- [x] Add one independent emulator/screenshot ROI baseline and one mask-geometry/overlap pixel assertion.
+- [x] E2E optional: golden screenshot test documented and either enabled in CI or marked with clear skip rationale.
 
 ## Verification commands (for implementers)
 
