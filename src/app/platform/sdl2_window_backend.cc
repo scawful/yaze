@@ -179,7 +179,6 @@ WindowEvent SDL2WindowBackend::ConvertSDL2Event(const SDL_Event& sdl_event) {
   switch (sdl_event.type) {
     case SDL_QUIT:
       event.type = WindowEventType::Quit;
-      active_ = false;
       break;
 
     case SDL_KEYDOWN:
@@ -242,7 +241,6 @@ WindowEvent SDL2WindowBackend::ConvertSDL2Event(const SDL_Event& sdl_event) {
       switch (sdl_event.window.event) {
         case SDL_WINDOWEVENT_CLOSE:
           event.type = WindowEventType::Close;
-          active_ = false;
           break;
 
         case SDL_WINDOWEVENT_SIZE_CHANGED:

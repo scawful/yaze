@@ -180,7 +180,6 @@ WindowEvent SDL3WindowBackend::ConvertSDL3Event(const SDL_Event& sdl_event) {
     // =========================================================================
     case SDL_EVENT_QUIT:
       event.type = WindowEventType::Quit;
-      active_ = false;
       break;
 
     // =========================================================================
@@ -257,7 +256,6 @@ WindowEvent SDL3WindowBackend::ConvertSDL3Event(const SDL_Event& sdl_event) {
     // =========================================================================
     case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
       event.type = WindowEventType::Close;
-      active_ = false;
       break;
 
     case SDL_EVENT_WINDOW_RESIZED:
