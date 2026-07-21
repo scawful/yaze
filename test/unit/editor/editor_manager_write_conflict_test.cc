@@ -153,6 +153,17 @@ void DrawPalettePanelOnce(DungeonMainPalettePanel* panel) {
   ImGui::EndFrame();
 }
 
+void UpdateSessionEditorsFrame(EditorManager* manager) {
+  ASSERT_NE(manager, nullptr);
+  ASSERT_NE(manager->session_coordinator(), nullptr);
+  ImGuiIO& io = ImGui::GetIO();
+  io.DisplaySize = ImVec2(1280.0f, 720.0f);
+  io.DeltaTime = 1.0f / 60.0f;
+  ImGui::NewFrame();
+  manager->session_coordinator()->UpdateSessions();
+  ImGui::EndFrame();
+}
+
 void WriteLongPointer(std::vector<uint8_t>* data, int offset, uint32_t value) {
   ASSERT_NE(data, nullptr);
   ASSERT_GE(offset, 0);
@@ -576,6 +587,67 @@ TEST(EditorManagerWriteConflictTest,
 }
 
 TEST(EditorManagerWriteConflictTest,
+     FrameSessionIterationPreservesSaveConfirmationAndActiveEditor) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_frame_context_a.sfc", "FRAME CONTEXT A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_frame_context_b.sfc", "FRAME CONTEXT B");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+
+  auto* inactive_dungeon =
+      manager->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+          EditorType::kDungeon);
+  ASSERT_NE(inactive_dungeon, nullptr);
+  *inactive_dungeon->active() = true;
+
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  auto* active_rom = manager->GetCurrentRom();
+  auto* active_dungeon =
+      manager->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+          EditorType::kDungeon);
+  ASSERT_NE(active_rom, nullptr);
+  ASSERT_NE(active_dungeon, nullptr);
+  manager->SetCurrentEditor(active_dungeon);
+
+  DisableRomWritesForTest();
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "FrameContextTest";
+  project->filepath =
+      (rom_a.parent_path() / "frame_context_project.yaze").string();
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.write_policy = project::RomWritePolicy::kWarn;
+  project->rom_metadata.expected_hash = "deadbeef";
+  ASSERT_TRUE(manager->IsRomHashMismatch());
+  ASSERT_OK(active_rom->WriteByte(0x1234, 0x7F));
+
+  const auto paused = manager->SaveRom();
+  ASSERT_EQ(paused.code(), absl::StatusCode::kCancelled) << paused;
+  ASSERT_TRUE(manager->IsRomWriteConfirmPending());
+
+  UpdateSessionEditorsFrame(manager.get());
+
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_EQ(manager->GetCurrentRom(), active_rom);
+  EXPECT_TRUE(manager->IsRomWriteConfirmPending());
+  EXPECT_EQ(manager->GetCurrentEditor(), active_dungeon);
+  EXPECT_EQ(ContentRegistry::Context::current_editor(), active_dungeon);
+}
+
+TEST(EditorManagerWriteConflictTest,
      OpenRomOrProjectDefersWhileSessionHasPendingDungeonChanges) {
   ScopedImGuiContext imgui;
 
@@ -745,6 +817,139 @@ TEST(EditorManagerWriteConflictTest,
 
   manager.reset();
   gfx::PaletteManager::Get().ResetForTesting();
+}
+
+TEST(EditorManagerWriteConflictTest,
+     ActiveCloseFullyRebindsSurvivingSessionContext) {
+  ScopedImGuiContext imgui;
+  gfx::PaletteManager::Get().ResetForTesting();
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_close_rebind_a.sfc", "CLOSE REBIND A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_close_rebind_b.sfc", "CLOSE REBIND B");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  SeedCurrentDungeonPalette(manager.get(), 0x0100);
+  Rom* first_rom = manager->GetCurrentRom();
+  auto* first_game_data = manager->GetCurrentGameData();
+  Editor* first_dungeon =
+      manager->GetCurrentEditorSet()->GetEditor(EditorType::kDungeon);
+  ASSERT_NE(first_rom, nullptr);
+  ASSERT_NE(first_game_data, nullptr);
+  ASSERT_NE(first_dungeon, nullptr);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  SeedCurrentDungeonPalette(manager.get(), 0x0200);
+  Rom* second_rom = manager->GetCurrentRom();
+  auto* second_game_data = manager->GetCurrentGameData();
+  Editor* second_dungeon =
+      manager->GetCurrentEditorSet()->GetEditor(EditorType::kDungeon);
+  auto* second_settings = manager->GetCurrentEditorSet()->GetSettingsPanel();
+  ASSERT_NE(second_rom, nullptr);
+  ASSERT_NE(second_game_data, nullptr);
+  ASSERT_NE(second_dungeon, nullptr);
+  ASSERT_NE(second_settings, nullptr);
+
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentRom(), first_rom);
+  manager->window_manager().SetActiveCategory("Dungeon", /*notify=*/false);
+  manager->SetCurrentEditor(first_dungeon);
+  ASSERT_NE(manager->right_drawer_manager(), nullptr);
+  auto* properties_panel = manager->right_drawer_manager()->properties_panel();
+  ASSERT_NE(properties_panel, nullptr);
+  int closing_selection = 0;
+  SelectionContext selection;
+  selection.type = SelectionType::kDungeonObject;
+  selection.data = &closing_selection;
+  properties_panel->SetSelection(selection);
+  ASSERT_TRUE(properties_panel->HasSelection());
+
+  manager->CloseCurrentSession();
+
+  ASSERT_EQ(manager->GetActiveSessionCount(), 1u);
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_EQ(manager->GetCurrentSessionId(), 1u);
+  EXPECT_EQ(manager->window_manager().GetActiveSessionId(), 1u);
+  EXPECT_EQ(manager->GetCurrentRom(), second_rom);
+  EXPECT_EQ(manager->GetCurrentGameData(), second_game_data);
+  EXPECT_EQ(ContentRegistry::Context::rom(), second_rom);
+  EXPECT_EQ(ContentRegistry::Context::game_data(), second_game_data);
+  EXPECT_EQ(manager->GetCurrentEditor(), second_dungeon);
+  EXPECT_EQ(ContentRegistry::Context::current_editor(), second_dungeon);
+  EXPECT_EQ(ContentRegistry::Context::editor_window_context("Dungeon"),
+            second_dungeon);
+  EXPECT_EQ(manager->right_drawer_manager()->settings_panel(), second_settings);
+  EXPECT_FALSE(properties_panel->HasSelection());
+  EXPECT_TRUE(gfx::PaletteManager::Get().IsManaging(second_game_data));
+
+  manager.reset();
+  gfx::PaletteManager::Get().ResetForTesting();
+}
+
+TEST(EditorManagerWriteConflictTest,
+     SavingAndClosingInactiveSessionPreservesActiveStableSession) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_inactive_close_a.sfc", "INACTIVE CLOSE A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_inactive_close_b.sfc", "INACTIVE CLOSE B");
+  const auto rom_c =
+      CreateMinimalRomFile("yaze_inactive_close_c.sfc", "INACTIVE CLOSE C");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+  ScopedFileCleanup cleanup_c{rom_c};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_c.string()));
+  ASSERT_EQ(manager->GetCurrentSessionId(), 2u);
+
+  manager->SwitchToSession(1);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x2345, 0x6A));
+  manager->SwitchToSession(2);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_EQ(manager->GetCurrentSessionId(), 2u);
+  Rom* active_rom = manager->GetCurrentRom();
+  Editor* active_dungeon =
+      manager->GetCurrentEditorSet()->GetEditor(EditorType::kDungeon);
+  ASSERT_NE(active_rom, nullptr);
+  ASSERT_NE(active_dungeon, nullptr);
+  manager->window_manager().SetActiveCategory("Dungeon", /*notify=*/false);
+  manager->SetCurrentEditor(active_dungeon);
+
+  DisableRomWritesForTest();
+  manager->RemoveSession(1);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionSaveAndContinue();
+
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetActiveSessionCount(), 2u);
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  EXPECT_EQ(manager->GetCurrentSessionId(), 2u);
+  EXPECT_EQ(manager->window_manager().GetActiveSessionId(), 2u);
+  EXPECT_EQ(manager->GetCurrentRom(), active_rom);
+  EXPECT_EQ(manager->GetCurrentRom()->filename(), rom_c.string());
+  EXPECT_EQ(manager->GetCurrentEditor(), active_dungeon);
+  EXPECT_EQ(ContentRegistry::Context::current_editor(), active_dungeon);
+  EXPECT_EQ(ReadByteAt(rom_b, 0x2345), 0x6A);
 }
 
 TEST(EditorManagerWriteConflictTest,

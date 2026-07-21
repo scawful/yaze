@@ -175,7 +175,9 @@ class SessionCoordinator {
   bool IsSessionModified(size_t index) const;
 
  private:
-  void NotifySessionSwitched(size_t index, RomSession* session);
+  void SwitchToSessionInternal(size_t index, bool transient);
+  void NotifySessionSwitched(size_t old_index, size_t new_index,
+                             RomSession* session, bool transient);
   void NotifySessionCreated(size_t index, RomSession* session);
   void NotifySessionClosed(size_t index);
   void NotifySessionRomLoaded(size_t index, RomSession* session);
