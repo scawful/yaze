@@ -1044,9 +1044,9 @@ void ConfigurePanelShortcuts(const ShortcutDependencies& deps,
 
   auto* window_manager = deps.window_manager;
   auto* user_settings = deps.user_settings;
-  int session_id = deps.session_coordinator
-                       ? deps.session_coordinator->GetActiveSessionIndex()
-                       : 0;
+  size_t session_id = deps.session_coordinator
+                          ? deps.session_coordinator->GetActiveSessionId()
+                          : 0;
 
   // Get all categories and panels
   auto categories = window_manager->GetAllCategories();

@@ -739,12 +739,27 @@ void WorkspaceWindowManager::MarkPanelUsed(const std::string& panel_id) {
 void WorkspaceWindowManager::UnregisterWindowContent(
     const std::string& panel_id) {
   size_t owner_session = active_session_;
-  std::string base_panel_id = GetBaseIdForPrefixedId(owner_session, panel_id);
+  std::string base_panel_id;
   std::string instance_id;
 
-  if (!base_panel_id.empty()) {
-    instance_id = panel_id;
-  } else {
+  // Resource eviction supplies the exact tracked instance ID. Resolve that
+  // identity before treating an unprefixed ID as a base ID in the active
+  // session; otherwise an inactive single-session-era instance can evict the
+  // active session's newer prefixed instance with the same base ID.
+  if (panel_instances_.contains(panel_id)) {
+    for (const auto& [session_id, reverse_mapping] :
+         session_reverse_card_mapping_) {
+      if (auto reverse_it = reverse_mapping.find(panel_id);
+          reverse_it != reverse_mapping.end()) {
+        owner_session = session_id;
+        base_panel_id = reverse_it->second;
+        instance_id = panel_id;
+        break;
+      }
+    }
+  }
+
+  if (instance_id.empty()) {
     const std::string requested_base_id = ResolveBaseWindowId(panel_id);
     if (const auto* active_mapping =
             FindSessionWindowMapping(active_session_)) {
@@ -756,8 +771,8 @@ void WorkspaceWindowManager::UnregisterWindowContent(
     }
   }
 
-  // Resource-limit eviction can target content owned by an inactive session.
-  // Resolve an explicitly qualified ID back to its owner before unregistering.
+  // Resolve a qualified descriptor without a live content instance as a
+  // fallback for callers cleaning up partially registered content.
   if (instance_id.empty()) {
     for (const auto& [session_id, reverse_mapping] :
          session_reverse_card_mapping_) {
@@ -802,15 +817,20 @@ WindowContent* WorkspaceWindowManager::GetWindowContent(
 
 WindowContent* WorkspaceWindowManager::GetWindowContent(
     size_t session_id, const std::string& panel_id) {
+  const auto* session_mapping = FindSessionWindowMapping(session_id);
+  if (!session_mapping) {
+    return nullptr;
+  }
+
   std::string base_panel_id = GetBaseIdForPrefixedId(session_id, panel_id);
   if (base_panel_id.empty()) {
     base_panel_id = ResolveBaseWindowId(panel_id);
   }
-  std::string instance_id = GetPrefixedWindowId(session_id, base_panel_id);
-  if (instance_id.empty()) {
-    instance_id = panel_id;
+  auto mapping_it = session_mapping->find(base_panel_id);
+  if (mapping_it == session_mapping->end()) {
+    return nullptr;
   }
-  return FindPanelInstance(instance_id, base_panel_id);
+  return FindPanelInstance(mapping_it->second, base_panel_id);
 }
 
 WindowContent* WorkspaceWindowManager::FindPanelInstance(

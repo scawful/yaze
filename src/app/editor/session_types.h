@@ -162,10 +162,14 @@ struct RomSession {
   std::array<bool, kEditorTypeCount> editor_assets_loaded{};
 
   RomSession() = default;
+  RomSession(UserSettings* user_settings, size_t session_id,
+             EditorRegistry* editor_registry = nullptr);
   explicit RomSession(Rom&& r, UserSettings* user_settings = nullptr,
                       size_t session_id = 0,
                       EditorRegistry* editor_registry = nullptr);
   ~RomSession();
+
+  size_t session_id() const { return editors.session_id(); }
 
   // Get display name (custom name or ROM title)
   std::string GetDisplayName() const;

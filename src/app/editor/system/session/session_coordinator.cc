@@ -86,11 +86,15 @@ void SessionCoordinator::CreateNewSession() {
   }
 
   // Create new empty session
-  sessions_.push_back(std::make_unique<RomSession>());
+  sessions_.push_back(std::make_unique<RomSession>(
+      user_settings_, next_session_id_++, editor_registry_));
   UpdateSessionCount();
 
   // Set as active session
   active_session_index_ = sessions_.size() - 1;
+  if (window_manager_) {
+    window_manager_->SetActiveSession(GetActiveSessionId());
+  }
 
   // Configure the new session
   if (editor_manager_) {
@@ -119,11 +123,15 @@ void SessionCoordinator::DuplicateCurrentSession() {
   // Create new empty session (cannot actually duplicate due to non-movable
   // editors)
   // TODO: Implement proper duplication when editors become movable
-  sessions_.push_back(std::make_unique<RomSession>());
+  sessions_.push_back(std::make_unique<RomSession>(
+      user_settings_, next_session_id_++, editor_registry_));
   UpdateSessionCount();
 
   // Set as active session
   active_session_index_ = sessions_.size() - 1;
+  if (window_manager_) {
+    window_manager_->SetActiveSession(GetActiveSessionId());
+  }
 
   // Configure the new session
   if (editor_manager_) {
@@ -157,9 +165,11 @@ void SessionCoordinator::CloseSession(size_t index) {
     return;
   }
 
-  // Unregister cards for this session
+  const size_t session_id = GetSessionId(index);
+
+  // Unregister cards for this stable session identity.
   if (window_manager_) {
-    window_manager_->UnregisterSession(index);
+    window_manager_->UnregisterSession(session_id);
   }
 
   // Notify observers before removal
@@ -172,6 +182,9 @@ void SessionCoordinator::CloseSession(size_t index) {
   // Adjust active session index
   if (active_session_index_ >= index && active_session_index_ > 0) {
     active_session_index_--;
+  }
+  if (window_manager_ && !sessions_.empty()) {
+    window_manager_->SetActiveSession(GetActiveSessionId());
   }
 
   LOG_INFO("SessionCoordinator", "Closed session %zu (total: %zu)", index,
@@ -192,7 +205,7 @@ void SessionCoordinator::SwitchToSession(size_t index) {
   active_session_index_ = index;
 
   if (window_manager_) {
-    window_manager_->SetActiveSession(index);
+    window_manager_->SetActiveSession(GetSessionId(index));
   }
 
   // Only notify if actually switching to a different session
@@ -207,6 +220,17 @@ void SessionCoordinator::ActivateSession(size_t index) {
 
 size_t SessionCoordinator::GetActiveSessionIndex() const {
   return active_session_index_;
+}
+
+size_t SessionCoordinator::GetActiveSessionId() const {
+  return GetSessionId(active_session_index_);
+}
+
+size_t SessionCoordinator::GetSessionId(size_t index) const {
+  if (!IsValidSessionIndex(index)) {
+    return 0;
+  }
+  return sessions_[index]->session_id();
 }
 
 void* SessionCoordinator::GetActiveSession() const {
@@ -606,25 +630,25 @@ void SessionCoordinator::UpdateSessionCount() {
 // Panel coordination across sessions
 void SessionCoordinator::ShowAllPanelsInActiveSession() {
   if (window_manager_) {
-    window_manager_->ShowAllWindowsInSession(active_session_index_);
+    window_manager_->ShowAllWindowsInSession(GetActiveSessionId());
   }
 }
 
 void SessionCoordinator::HideAllPanelsInActiveSession() {
   if (window_manager_) {
-    window_manager_->HideAllWindowsInSession(active_session_index_);
+    window_manager_->HideAllWindowsInSession(GetActiveSessionId());
   }
 }
 
 void SessionCoordinator::ShowPanelsInCategory(const std::string& category) {
   if (window_manager_) {
-    window_manager_->ShowAllWindowsInCategory(active_session_index_, category);
+    window_manager_->ShowAllWindowsInCategory(GetActiveSessionId(), category);
   }
 }
 
 void SessionCoordinator::HidePanelsInCategory(const std::string& category) {
   if (window_manager_) {
-    window_manager_->HideAllWindowsInCategory(active_session_index_, category);
+    window_manager_->HideAllWindowsInCategory(GetActiveSessionId(), category);
   }
 }
 
@@ -802,18 +826,19 @@ absl::Status SessionCoordinator::SaveSessionAs(size_t session_index,
 
 absl::StatusOr<RomSession*> SessionCoordinator::CreateSessionFromRom(
     Rom&& rom, const std::string& filepath) {
-  size_t new_session_id = sessions_.size();
+  const size_t new_session_id = next_session_id_++;
+  const size_t new_session_index = sessions_.size();
   sessions_.push_back(std::make_unique<RomSession>(
       std::move(rom), user_settings_, new_session_id, editor_registry_));
   auto& session = sessions_.back();
   session->filepath = filepath;
 
   UpdateSessionCount();
-  SwitchToSession(new_session_id);
+  SwitchToSession(new_session_index);
 
   // Notify observers
-  NotifySessionCreated(new_session_id, session.get());
-  NotifySessionRomLoaded(new_session_id, session.get());
+  NotifySessionCreated(new_session_index, session.get());
+  NotifySessionRomLoaded(new_session_index, session.get());
 
   return session.get();
 }
@@ -848,8 +873,8 @@ void SessionCoordinator::ClearAllSessions() {
 
   // Unregister all session cards
   if (window_manager_) {
-    for (size_t i = 0; i < sessions_.size(); ++i) {
-      window_manager_->UnregisterSession(i);
+    for (const auto& session : sessions_) {
+      window_manager_->UnregisterSession(session->session_id());
     }
   }
 

@@ -275,6 +275,11 @@ MemoryEditor* EditorSet::GetMemoryEditor() const {
   return GetEditorAs<MemoryEditor>(EditorType::kHex);
 }
 
+RomSession::RomSession(UserSettings* user_settings, size_t session_id,
+                       EditorRegistry* editor_registry)
+    : game_data(&rom),
+      editors(&rom, &game_data, user_settings, session_id, editor_registry) {}
+
 RomSession::RomSession(Rom&& r, UserSettings* user_settings, size_t session_id,
                        EditorRegistry* editor_registry)
     : rom(std::move(r)),

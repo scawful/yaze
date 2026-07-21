@@ -1202,7 +1202,8 @@ void EditorManager::HandleSessionSwitched(size_t new_index,
       category != WorkspaceWindowManager::kDashboardCategory) {
     auto it = user_settings_.prefs().panel_visibility_state.find(category);
     if (it != user_settings_.prefs().panel_visibility_state.end()) {
-      window_manager_.RestoreVisibilityState(new_index, it->second);
+      const size_t session_id = session ? session->session_id() : new_index;
+      window_manager_.RestoreVisibilityState(session_id, it->second);
     }
   }
 
@@ -1221,7 +1222,8 @@ void EditorManager::HandleSessionCreated(size_t index, RomSession* session) {
   if (pending_rom_save_.has_value() && !PendingRomSaveMatchesActiveSession()) {
     CancelPendingRomSave(/*hide_popups=*/true);
   }
-  window_manager_.RegisterRegistryWindowContentsForSession(index);
+  const size_t session_id = session ? session->session_id() : index;
+  window_manager_.RegisterRegistryWindowContentsForSession(session_id);
   window_manager_.RestorePinnedState(user_settings_.prefs().pinned_panels);
   if (session_coordinator_ &&
       index == session_coordinator_->GetActiveSessionIndex()) {
@@ -2861,7 +2863,7 @@ void EditorManager::DrawInterface() {
   // Update and draw status bar
   status_bar_.SetRom(GetCurrentRom());
   if (session_coordinator_) {
-    status_bar_.SetSessionInfo(GetCurrentSessionId(),
+    status_bar_.SetSessionInfo(GetCurrentSessionIndex(),
                                session_coordinator_->GetActiveSessionCount());
   }
 
@@ -5298,18 +5300,18 @@ void EditorManager::ConfigureSession(RomSession* session) {
 
 // SessionScope implementation
 EditorManager::SessionScope::SessionScope(EditorManager* manager,
-                                          size_t session_id)
+                                          size_t session_index)
     : manager_(manager),
       prev_rom_(manager->GetCurrentRom()),
       prev_editor_set_(manager->GetCurrentEditorSet()),
-      prev_session_id_(manager->GetCurrentSessionId()) {
+      prev_session_index_(manager->GetCurrentSessionIndex()) {
   // Set new session context
-  manager_->session_coordinator_->SwitchToSession(session_id);
+  manager_->session_coordinator_->SwitchToSession(session_index);
 }
 
 EditorManager::SessionScope::~SessionScope() {
   // Restore previous context
-  manager_->session_coordinator_->SwitchToSession(prev_session_id_);
+  manager_->session_coordinator_->SwitchToSession(prev_session_index_);
 }
 
 bool EditorManager::HasDuplicateSession(const std::string& filepath) {
