@@ -40,6 +40,8 @@ class FakeDungeonState : public DungeonState {
  public:
   int open_lock_room_id = -1;
   int water_face_active_room_id = -1;
+  int bombed_floor_room_id = -1;
+  int cleared_rupee_floor_room_id = -1;
   bool dam_floodgate_open = false;
   bool wall_moved = false;
 
@@ -63,8 +65,12 @@ class FakeDungeonState : public DungeonState {
   }
 
   bool IsWallMoved(int /*room_id*/) const override { return wall_moved; }
-  bool IsFloorBombable(int /*room_id*/) const override { return false; }
-  bool IsRupeeFloorActive(int /*room_id*/) const override { return false; }
+  bool IsFloorBombable(int room_id) const override {
+    return room_id == bombed_floor_room_id;
+  }
+  bool IsRupeeFloorCleared(int room_id) const override {
+    return room_id == cleared_rupee_floor_room_id;
+  }
 
   bool IsCrystalSwitchBlue() const override { return true; }
 };
@@ -1607,47 +1613,198 @@ TEST(ObjectDrawerRegistryReplayTest, Waterfall48UsesStartMiddleEndTileBlocks) {
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
+     RupeeFloorMatchesUsdasmSparseFiveByEightPattern) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 7;
+  constexpr int kY = 11;
+  constexpr uint16_t kTopTile = 0x500;
+  const auto tiles = MakeSequentialTiles(2, kTopTile);
+
+  for (const auto layer :
+       {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+    SCOPED_TRACE(static_cast<int>(layer));
+    const auto trace = ReplayObjectTrace(
+        /*object_id=*/0x0F92, kX, kY, /*size=*/0, layer, tiles);
+    ASSERT_EQ(trace.size(), 18u);
+    EXPECT_EQ(FilterTraceByLayer(trace, layer).size(), 18u);
+    const auto other_layer = layer == RoomObject::LayerType::BG1
+                                 ? RoomObject::LayerType::BG2
+                                 : RoomObject::LayerType::BG1;
+    EXPECT_TRUE(FilterTraceByLayer(trace, other_layer).empty());
+
+    size_t index = 0;
+    for (int col = 0; col < 3; ++col) {
+      const int x = kX + col * 2;
+      for (int row : {0, 3, 6}) {
+        ASSERT_LT(index, trace.size());
+        EXPECT_EQ(trace[index].x_tile, x);
+        EXPECT_EQ(trace[index].y_tile, kY + row);
+        EXPECT_EQ(trace[index].tile_id, kTopTile);
+        ++index;
+      }
+      for (int row : {1, 4, 7}) {
+        ASSERT_LT(index, trace.size());
+        EXPECT_EQ(trace[index].x_tile, x);
+        EXPECT_EQ(trace[index].y_tile, kY + row);
+        EXPECT_EQ(trace[index].tile_id, kTopTile + 1);
+        ++index;
+      }
+    }
+    EXPECT_EQ(index, trace.size());
+    ExpectTraceBounds(trace, kX, kY, kX + 4, kY + 7);
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     RupeeFloorHidesOnlyWhenCurrentRoomIsCleared) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  const auto tiles = MakeSequentialTiles(2);
+  FakeDungeonState state;
+
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0F92, /*x=*/3, /*y=*/5, /*size=*/0,
+      RoomObject::LayerType::BG1, tiles, &state);
+  EXPECT_EQ(trace.size(), 18u) << "uncleared room keeps rupees visible";
+
+  state.cleared_rupee_floor_room_id = 1;
+  trace =
+      ReplayObjectTrace(/*object_id=*/0x0F92, /*x=*/3, /*y=*/5,
+                        /*size=*/0, RoomObject::LayerType::BG1, tiles, &state);
+  EXPECT_EQ(trace.size(), 18u) << "another room's flag must not hide rupees";
+
+  state.cleared_rupee_floor_room_id = 0;
+  trace =
+      ReplayObjectTrace(/*object_id=*/0x0F92, /*x=*/3, /*y=*/5,
+                        /*size=*/0, RoomObject::LayerType::BG1, tiles, &state);
+  EXPECT_TRUE(trace.empty()) << "current-room cleared state suppresses writes";
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
      LightBeamOnFloorMatchesUsdasmStackedBlocks) {
   ScopedCustomObjectsFlag disable_custom(false);
 
-  Rom rom;
-  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
-  rom.LoadFromData(dummy_rom);
-
-  ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
-
-  RoomObject obj(0x0FF0, /*x=*/10, /*y=*/20, /*size=*/0, /*layer=*/0);
-  obj.tiles_loaded_ = true;
-  obj.tiles_.clear();
-  for (int i = 0; i < 48; ++i) {
-    obj.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i),
-                                       /*pal=*/2, false, false, false));
-  }
-
-  gfx::BackgroundBuffer bg1(512, 512);
-  gfx::BackgroundBuffer bg2(512, 512);
-  gfx::PaletteGroup palette_group;
-
-  std::vector<ObjectDrawer::TileTrace> trace;
-  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
-
-  ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
+  constexpr int kX = 10;
+  constexpr int kY = 20;
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0FF0, kX, kY, /*size=*/0, RoomObject::LayerType::BG2,
+      MakeSequentialTiles(32));
   ASSERT_EQ(trace.size(), 48u);
 
-  auto key = [](int x, int y) {
-    return (y << 8) | x;
-  };
-  std::unordered_map<int, uint16_t> final_by_pos;
-  final_by_pos.reserve(trace.size());
-  for (const auto& t : trace) {
-    final_by_pos[key(t.x_tile, t.y_tile)] = t.tile_id;
-  }
+  for (int tile = 0; tile < 16; ++tile) {
+    SCOPED_TRACE(tile);
+    const int dx = tile / 4;
+    const int dy = tile % 4;
 
-  EXPECT_EQ(final_by_pos[key(10, 20)], 0);   // top block
-  EXPECT_EQ(final_by_pos[key(10, 22)], 16);  // middle block overwrites overlap
-  EXPECT_EQ(final_by_pos[key(13, 25)], 31);
-  EXPECT_EQ(final_by_pos[key(10, 26)], 32);  // bottom block
-  EXPECT_EQ(final_by_pos[key(13, 29)], 47);
+    EXPECT_EQ(trace[tile].x_tile, kX + dx);
+    EXPECT_EQ(trace[tile].y_tile, kY + dy);
+    EXPECT_EQ(trace[tile].tile_id, tile);
+
+    EXPECT_EQ(trace[16 + tile].x_tile, kX + dx);
+    EXPECT_EQ(trace[16 + tile].y_tile, kY + 2 + dy);
+    EXPECT_EQ(trace[16 + tile].tile_id, tile)
+        << "middle block must reset to obj2376";
+
+    EXPECT_EQ(trace[32 + tile].x_tile, kX + dx);
+    EXPECT_EQ(trace[32 + tile].y_tile, kY + 6 + dy);
+    EXPECT_EQ(trace[32 + tile].tile_id, 16 + tile)
+        << "bottom block must use obj2396";
+
+    EXPECT_EQ(trace[tile].layer,
+              static_cast<uint8_t>(RoomObject::LayerType::BG2));
+    EXPECT_EQ(trace[16 + tile].layer,
+              static_cast<uint8_t>(RoomObject::LayerType::BG2));
+    EXPECT_EQ(trace[32 + tile].layer,
+              static_cast<uint8_t>(RoomObject::LayerType::BG2));
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     BigLightBeamOnFloorMatchesUsdasmFloorLightGrid) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 10;
+  constexpr int kY = 20;
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0FF1, kX, kY, /*size=*/4, RoomObject::LayerType::BG2,
+      MakeSequentialTiles(64));
+  ASSERT_EQ(trace.size(), 64u);
+
+  for (int block = 0; block < 4; ++block) {
+    const int block_x = (block % 2) * 4;
+    const int block_y = (block / 2) * 4;
+    for (int tile = 0; tile < 16; ++tile) {
+      SCOPED_TRACE(::testing::Message()
+                   << "block=" << block << " tile=" << tile);
+      const auto& write = trace[block * 16 + tile];
+      EXPECT_EQ(write.x_tile, kX + block_x + tile / 4);
+      EXPECT_EQ(write.y_tile, kY + block_y + tile % 4);
+      EXPECT_EQ(write.tile_id, block * 16 + tile);
+      EXPECT_EQ(write.layer, static_cast<uint8_t>(RoomObject::LayerType::BG2));
+    }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     BigLightBeamUsesFixedEastAtticBombedFloorStateWhenAvailable) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kEastAtticRoomId = 0x65;
+  constexpr int kX = 10;
+  constexpr int kY = 20;
+  const auto tiles = MakeSequentialTiles(64);
+  FakeDungeonState state;
+
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0FF1, kX, kY, /*size=*/4, RoomObject::LayerType::BG1,
+      tiles, &state);
+  EXPECT_TRUE(trace.empty());
+
+  state.bombed_floor_room_id = kEastAtticRoomId - 1;
+  trace = ReplayObjectTrace(/*object_id=*/0x0FF1, kX, kY, /*size=*/4,
+                            RoomObject::LayerType::BG1, tiles, &state);
+  EXPECT_TRUE(trace.empty());
+
+  state.bombed_floor_room_id = kEastAtticRoomId;
+  trace = ReplayObjectTrace(/*object_id=*/0x0FF1, kX, kY, /*size=*/4,
+                            RoomObject::LayerType::BG1, tiles, &state);
+  ASSERT_EQ(trace.size(), 64u);
+  for (const auto& write : trace) {
+    EXPECT_EQ(write.layer, static_cast<uint8_t>(RoomObject::LayerType::BG1));
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     FloorLightDrawsUnconditionalSizeInvariantGridOnSelectedLayer) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 10;
+  constexpr int kY = 20;
+  for (const auto layer :
+       {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+    for (uint8_t size : {uint8_t{0}, uint8_t{1}, uint8_t{13}, uint8_t{15}}) {
+      SCOPED_TRACE(::testing::Message() << "layer=" << static_cast<int>(layer)
+                                        << " size=" << static_cast<int>(size));
+      auto trace = ReplayObjectTrace(/*object_id=*/0x0FF4, kX, kY, size, layer,
+                                     MakeSequentialTiles(64));
+      ASSERT_EQ(trace.size(), 64u);
+
+      for (int block = 0; block < 4; ++block) {
+        const int block_x = (block % 2) * 4;
+        const int block_y = (block / 2) * 4;
+        for (int tile = 0; tile < 16; ++tile) {
+          SCOPED_TRACE(::testing::Message()
+                       << "block=" << block << " tile=" << tile);
+          const auto& write = trace[block * 16 + tile];
+          EXPECT_EQ(write.x_tile, kX + block_x + tile / 4);
+          EXPECT_EQ(write.y_tile, kY + block_y + tile % 4);
+          EXPECT_EQ(write.tile_id, block * 16 + tile);
+          EXPECT_EQ(write.layer, static_cast<uint8_t>(layer));
+        }
+      }
+    }
+  }
 }
 
 TEST(ObjectDrawerPillarStrideTest, RightwardsPillar2x4Spaced4Uses6TileStride) {
@@ -1996,6 +2153,45 @@ TEST(ObjectDrawerRegistryReplayTest,
         EXPECT_EQ(bg1[row].x_tile, kX);
         EXPECT_EQ(bg1[row].y_tile, kY + row);
         EXPECT_EQ(bg1[row].tile_id, kTile);
+      }
+    }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     ArcheryCurtainsRepeatTwoByFourStampOnSelectedLayer) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 10;
+  constexpr int kY = 12;
+  constexpr uint16_t kFirstTile = 0x0240;
+  for (const auto layer :
+       {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+    for (uint8_t size : {uint8_t{0}, uint8_t{5}, uint8_t{15}}) {
+      SCOPED_TRACE(::testing::Message() << "layer=" << static_cast<int>(layer)
+                                        << " size=" << static_cast<int>(size));
+      auto trace = ReplayObjectTrace(
+          /*object_id=*/0x00B5, kX, kY, size, layer,
+          MakeSequentialTiles(/*count=*/8, /*start_tile_id=*/kFirstTile));
+
+      const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+      const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+      const auto& selected = layer == RoomObject::LayerType::BG1 ? bg1 : bg2;
+      const auto& other = layer == RoomObject::LayerType::BG1 ? bg2 : bg1;
+      const int block_count = static_cast<int>(size) + 1;
+      ASSERT_EQ(static_cast<int>(selected.size()), block_count * 8);
+      EXPECT_TRUE(other.empty());
+
+      for (int block = 0; block < block_count; ++block) {
+        for (int column = 0; column < 2; ++column) {
+          for (int row = 0; row < 4; ++row) {
+            const int trace_index = block * 8 + column * 4 + row;
+            EXPECT_EQ(selected[trace_index].x_tile, kX + block * 2 + column);
+            EXPECT_EQ(selected[trace_index].y_tile, kY + row);
+            EXPECT_EQ(selected[trace_index].tile_id,
+                      kFirstTile + column * 4 + row);
+          }
+        }
       }
     }
   }
