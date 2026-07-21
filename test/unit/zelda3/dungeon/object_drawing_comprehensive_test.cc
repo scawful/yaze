@@ -25,15 +25,17 @@ namespace zelda3 {
 // Expected tile counts from kSubtype1TileLengths table in object_parser.cc
 // (kept in sync with the production table; 2026-04-25 audit corrected
 // 0x47/0x48 from 0 (fallback 8) to the real Waterfall47/48 routine
-// counts of 15/9; the moving-wall parity audit corrected 0xCD/0xCE from
-// ZScream's over-fetched 28 words to the 24 words their routines consume).
+// counts of 15/9; 0x3C/0x4C now load the full 8/12-word payloads consumed
+// by their 4x2/4x3 registry routines; the moving-wall parity audit corrected
+// 0xCD/0xCE from ZScream's over-fetched 28 words to the 24 words their
+// routines consume).
 // clang-format off
 static constexpr uint8_t kExpectedTileCounts[0xF8] = {
      4,  8,  8,  8,  8,  8,  8,  4,  4,  5,  5,  5,  5,  5,  5,  5,  // 0x00-0x0F
      5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  // 0x10-0x1F
      5,  9,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  6,  // 0x20-0x2F
-     6,  1,  1, 16,  1,  1, 16, 16,  6,  8, 12, 12,  4,  8,  4,  3,  // 0x30-0x3F
-     3,  3,  3,  3,  3,  3,  3, 15,  9,  8,  8,  4,  9, 16, 16, 16,  // 0x40-0x4F (0x47=Waterfall47:15, 0x48=Waterfall48:9)
+     6,  1,  1, 16,  1,  1, 16, 16,  6,  8, 12, 12,  8,  8,  4,  3,  // 0x30-0x3F (0x3C=Doubled2x2:8)
+     3,  3,  3,  3,  3,  3,  3, 15,  9,  8,  8,  4, 12, 16, 16, 16,  // 0x40-0x4F (0x47=Waterfall47:15, 0x48=Waterfall48:9, 0x4C=Bar4x3:12)
      1, 18, 18,  4,  1,  8,  8,  1,  1,  1,  1, 18, 18, 15,  4,  3,  // 0x50-0x5F
      4,  8,  8,  8,  8,  8,  8,  4,  4,  3,  1,  1,  6,  6,  1,  1,  // 0x60-0x6F
     16,  1,  1, 16, 16,  8, 16, 16,  4,  1,  1,  4,  1,  4,  1,  8,  // 0x70-0x7F
@@ -93,6 +95,8 @@ int ExpectedSubtype3TileCount(int id) {
     return 20;
   if (id == 0xF82)
     return 28;
+  if (id == 0xF92)
+    return 2;
   if (id == 0xF96)
     return 4;
   if ((id >= 0xF83 && id <= 0xF8C) || id == 0xF8E || id == 0xF8F) {
@@ -119,7 +123,7 @@ int ExpectedSubtype3TileCount(int id) {
   }
   if (id == 0xFAA || id == 0xFAD || id == 0xFAE ||
       (id >= 0xFB4 && id <= 0xFB9) || id == 0xFCB || id == 0xFCC ||
-      id == 0xFD4 || id == 0xFE2 || id == 0xFF4 || id == 0xFF6 || id == 0xFF7) {
+      id == 0xFD4 || id == 0xFE2 || id == 0xFF6 || id == 0xFF7) {
     return 16;
   }
   // Turtle Rock pipes: 24 tiles (matches GetSubtype3TileCount; routine
@@ -140,10 +144,13 @@ int ExpectedSubtype3TileCount(int id) {
     return 12;
   }
   if (id == 0xFF0) {
-    return 16;
+    return 32;
   }
   if (id == 0xFF1) {
-    return 36;
+    return 64;
+  }
+  if (id == 0xFF4) {
+    return 64;
   }
   if (id == 0xFF8) {
     return 32;
@@ -209,6 +216,29 @@ TEST_F(ObjectDrawingComprehensiveTest, DetectsType3Objects) {
     int expected = ExpectedSubtype3TileCount(id);
     EXPECT_EQ(info->max_tile_count, expected)
         << "Type 3 tile count mismatch for ID 0x" << std::hex << id;
+  }
+}
+
+TEST_F(ObjectDrawingComprehensiveTest,
+       LightBeamAndFloorLightTilePayloadsCoverAllUsdasmBlocks) {
+  ObjectParser parser(rom_.get());
+
+  struct TestCase {
+    int16_t object_id;
+    size_t expected_tiles;
+  };
+
+  for (const auto& test_case :
+       {TestCase{0xFF0, 32}, TestCase{0xFF1, 64}, TestCase{0xFF4, 64}}) {
+    SCOPED_TRACE(test_case.object_id);
+
+    auto info = parser.GetObjectSubtype(test_case.object_id);
+    ASSERT_TRUE(info.ok()) << info.status();
+    EXPECT_EQ(info->max_tile_count, test_case.expected_tiles);
+
+    auto tiles = parser.ParseObject(test_case.object_id);
+    ASSERT_TRUE(tiles.ok()) << tiles.status();
+    EXPECT_EQ(tiles->size(), test_case.expected_tiles);
   }
 }
 
@@ -345,6 +375,8 @@ TEST_F(ObjectDrawingComprehensiveTest, TileCountLookupTable_SpecialCases) {
       {0x00, 4, "Floor tile 2x2"},
       {0x01, 8, "Wall segment 2x4"},
       {0x33, 16, "Large block 4x4"},
+      {0x3C, 8, "Doubled 2x2 decoration (4x2 payload)"},
+      {0x4C, 12, "Rightwards bar (4x3 payload)"},
       {0xA4, 24, "Large special object"},
       {0xC1, 68, "Very large object"},
       {0xCD, 24, "Moving wall"},
@@ -371,6 +403,49 @@ TEST_F(ObjectDrawingComprehensiveTest, TileCountLookupTable_SpecialCases) {
     ASSERT_TRUE(info.ok()) << "Failed for " << tc.description;
     EXPECT_EQ(info->max_tile_count, tc.expected_tiles)
         << tc.description << " (0x" << std::hex << tc.object_id << ")";
+  }
+}
+
+TEST_F(ObjectDrawingComprehensiveTest,
+       CanonicalDoubledAndBarPayloadsReachFullDrawerRoutines) {
+  struct TestCase {
+    int16_t object_id;
+    int expected_tiles;
+    int expected_routine;
+    int expected_max_y;
+  };
+
+  for (const auto& test_case : {
+           TestCase{0x3C, 8, DrawRoutineIds::kRightwardsDoubled2x2spaced2_1to16,
+                    10},
+           TestCase{0x4C, 12, DrawRoutineIds::kRightwardsBar4x3_1to16, 11},
+       }) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << test_case.object_id);
+
+    ObjectParser parser(rom_.get());
+    auto parsed = parser.ParseObject(test_case.object_id);
+    ASSERT_TRUE(parsed.ok()) << parsed.status();
+    ASSERT_EQ(parsed->size(), static_cast<size_t>(test_case.expected_tiles));
+
+    ObjectDrawer drawer(rom_.get(), /*room_id=*/0);
+    EXPECT_EQ(drawer.GetDrawRoutineId(test_case.object_id),
+              test_case.expected_routine);
+
+    RoomObject object(test_case.object_id, /*x=*/8, /*y=*/9, /*size=*/0,
+                      /*layer=*/0);
+    gfx::BackgroundBuffer bg1(512, 512);
+    gfx::BackgroundBuffer bg2(512, 512);
+    gfx::PaletteGroup palette_group;
+    std::vector<ObjectDrawer::TileTrace> trace;
+    drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+    ASSERT_TRUE(drawer.DrawObject(object, bg1, bg2, palette_group).ok());
+    ASSERT_EQ(trace.size(), static_cast<size_t>(test_case.expected_tiles));
+    EXPECT_EQ(trace.front().x_tile, 8);
+    EXPECT_EQ(trace.front().y_tile, 9);
+    EXPECT_EQ(trace.back().x_tile, 11);
+    EXPECT_EQ(trace.back().y_tile, test_case.expected_max_y);
   }
 }
 

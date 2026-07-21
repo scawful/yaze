@@ -12,6 +12,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/status/statusor.h"
 #include "absl/types/span.h"
 
 #include "app/gfx/render/background_buffer.h"
@@ -1151,7 +1152,17 @@ int FindMaxUsedSpriteAddress(Rom* rom);
 absl::Status RelocateSpriteData(Rom* rom, int room_id,
                                 const std::vector<uint8_t>& encoded_bytes);
 
-// Aggregate chests from all rooms and write to ROM. Preserves ROM data for rooms not loaded.
+// Returns the complete set of PC ranges that the global chest serializer may
+// write: the two-byte runtime length operand and the live pointer target's
+// fixed-capacity data region. The three-byte pointer operand itself is read
+// only and is deliberately excluded.
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+GetChestTableWriteRanges(const Rom* rom);
+
+// Aggregate chests from all rooms and write to ROM. Dirty rooms replace their
+// existing occurrences one-for-one in physical-table order. Untouched and
+// unknown-room records retain their exact bytes and relative order; surplus
+// occurrences are removed and additional records are appended by room ID.
 absl::Status SaveAllChests(Rom* rom, absl::Span<const Room> rooms);
 absl::Status SaveAllChests(Rom* rom, int room_count,
                            const std::function<const Room*(int)>& room_lookup);

@@ -110,16 +110,16 @@ class EditorDungeonState : public DungeonState {
     floor_bombable_states_[room_id] = bombed;
   }
 
-  bool IsRupeeFloorActive(int room_id) const override {
-    auto it = rupee_floor_states_.find(room_id);
-    if (it != rupee_floor_states_.end()) {
+  bool IsRupeeFloorCleared(int room_id) const override {
+    auto it = rupee_floor_cleared_states_.find(room_id);
+    if (it != rupee_floor_cleared_states_.end()) {
       return it->second;
     }
-    return false;  // Default hidden/inactive
+    return false;  // Default visible/uncollected
   }
 
-  void SetRupeeFloorActive(int room_id, bool active) {
-    rupee_floor_states_[room_id] = active;
+  void SetRupeeFloorCleared(int room_id, bool cleared) {
+    rupee_floor_cleared_states_[room_id] = cleared;
   }
 
   // General Flags
@@ -136,7 +136,7 @@ class EditorDungeonState : public DungeonState {
     dam_floodgate_open_states_.clear();
     wall_moved_states_.clear();
     floor_bombable_states_.clear();
-    rupee_floor_states_.clear();
+    rupee_floor_cleared_states_.clear();
     crystal_switch_blue_ = true;  // Default blue
   }
 
@@ -155,7 +155,7 @@ class EditorDungeonState : public DungeonState {
 
   std::map<int, bool> wall_moved_states_;
   std::map<int, bool> floor_bombable_states_;
-  std::map<int, bool> rupee_floor_states_;
+  std::map<int, bool> rupee_floor_cleared_states_;
 
   bool crystal_switch_blue_ = true;
 };

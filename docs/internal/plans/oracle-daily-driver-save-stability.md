@@ -31,6 +31,10 @@ not move all remaining dungeon or overworld polish into the `0.7.2` release.
 - Shared or over-capacity dungeon streams relocate only when the manifest
   grants an explicit copy-on-write layout; otherwise they fail without
   mutation.
+- Preserve the global chest table's physical order: dirty-room occurrences are
+  replaced one-for-one, surplus occurrences are removed, and growth appends in
+  room-ID order. A full 168-record table rejects growth before mutation while
+  retaining unknown raw records.
 - Keep OOS autosave, dungeon-map saving, and graphics-sheet saving disabled
   during the guarded beta.
 
@@ -182,3 +186,33 @@ publishing the safety PR, also require:
 - The 50-cycle result is a focused pot persistence soak, not the complete
   daily-driver exit gate. Multi-domain edit cycles, backup restoration, a
   multi-hour GUI session, and Mesen room traversal remain required.
+
+### 2026-07-15 chest-table stability snapshot
+
+- The chest serializer now preserves the physical record stream instead of
+  regrouping it by room. Focused unit coverage verifies nonmonotonic no-op
+  saves, one-for-one edits, unknown records, deterministic shrink/growth,
+  capacity rejection, exact predicted ranges, and manifest denial through
+  both selected-room and all-room save entry points.
+- The real OOS table is full at 168 records. A disposable-copy integration
+  test first rejects a 169th record without mutation, then changes one existing
+  occurrence in place and verifies the semantic chest sequence for all 296
+  rooms.
+- Fifty save/destroy/reopen cycles reproduced temporary-ROM SHA-256
+  `5ba81e1e8827d263eb15f774adbe32ec42d1f60b9db44af608f77c01b41bc3d1`.
+  The canonical `Roms/oos168.sfc` remained unchanged at
+  `d289b2408c3ccc312abeadf274f04f475106034fcab8ebff3f307fd229db4799`.
+
+### 2026-07-15 combined daily-driver soak snapshot
+
+- `AllDailyDriverDomainsSurviveFiftyReopenCycles` now saves an object, door,
+  sprite, room-header palette/message ID, pot stream, chest, and regular
+  entrance in one production `SaveRoom` transaction.
+- An observation fence records the complete 14-byte room-header write before a
+  deliberate 169th chest returns the exact capacity error. The transaction
+  restores all ROM bytes and every dirty retry flag; removing the extra chest
+  then succeeds without rebuilding the editor or its COW plans.
+- Fifty save/destroy/reopen cycles preserve all edited semantics and reproduce
+  identical temporary-ROM bytes. The canonical OOS ROM and manifest remain at
+  SHA-256 `d289b2408c3ccc312abeadf274f04f475106034fcab8ebff3f307fd229db4799`
+  and `807155365ca8a83c0aacfdc3f7d0550a5d03463be409d0400dfff8d6fb90ff74`.

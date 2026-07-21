@@ -1,4 +1,5 @@
-// ROM-gated integration coverage for manifest-backed Oracle pot-item repacks.
+// ROM-gated integration coverage for manifest-backed Oracle dungeon saves,
+// including pot-item repacks and full chest-table stability.
 //
 // Fixtures:
 //   YAZE_TEST_ROM_OOS or YAZE_TEST_ROM_EXPANDED
@@ -33,7 +34,9 @@
 #include "core/project.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "rom/write_fence.h"
 #include "test_utils.h"
+#include "test_utils/dungeon_editor_v2_regular_entrance_test_peer.h"
 #include "util/json.h"
 #include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/dungeon_validator.h"
@@ -77,7 +80,23 @@ void ConfigurePotOnlySave() {
   flags.kSavePalettes = false;
 }
 
-void ConfigureObjectSpriteHeaderPotSave() {
+void ConfigureChestOnlySave() {
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveSprites = false;
+  flags.kSaveRoomHeaders = false;
+  flags.kSaveTorches = false;
+  flags.kSavePits = false;
+  flags.kSaveBlocks = false;
+  flags.kSaveCollision = false;
+  flags.kSaveWaterFillZones = false;
+  flags.kSaveChests = true;
+  flags.kSavePotItems = false;
+  flags.kSaveEntrances = false;
+  flags.kSavePalettes = false;
+}
+
+void ConfigureDailyDriverSave() {
   auto& flags = core::FeatureFlags::get().dungeon;
   flags.kSaveObjects = true;
   flags.kSaveSprites = true;
@@ -87,9 +106,9 @@ void ConfigureObjectSpriteHeaderPotSave() {
   flags.kSaveBlocks = false;
   flags.kSaveCollision = false;
   flags.kSaveWaterFillZones = false;
-  flags.kSaveChests = false;
+  flags.kSaveChests = true;
   flags.kSavePotItems = true;
-  flags.kSaveEntrances = false;
+  flags.kSaveEntrances = true;
   flags.kSavePalettes = false;
 }
 
@@ -179,6 +198,26 @@ std::vector<uint8_t> EncodePotItems(const std::vector<PotItem>& items) {
   encoded.push_back(0xFF);
   encoded.push_back(0xFF);
   return encoded;
+}
+
+using ChestSequence = std::vector<std::pair<uint8_t, bool>>;
+
+std::vector<ChestSequence> ReadAllChestSequences(Rom* rom) {
+  std::vector<ChestSequence> sequences(kOracleRoomCount);
+  for (uint32_t room_id = 0; room_id < kOracleRoomCount; ++room_id) {
+    Room room(static_cast<int>(room_id), rom);
+    room.LoadChests();
+    for (const chest_data& chest : room.GetChests()) {
+      sequences[room_id].emplace_back(chest.id, chest.size);
+    }
+  }
+  return sequences;
+}
+
+uint16_t ReadChestTableByteLength(const Rom& rom) {
+  return static_cast<uint16_t>(
+      rom.data()[kChestsLengthPointer] |
+      (static_cast<uint16_t>(rom.data()[kChestsLengthPointer + 1]) << 8));
 }
 
 const DungeonStreamRecord* FindRoomRecord(
@@ -449,6 +488,12 @@ class DungeonPotRepackOosIntegrationTest : public ::testing::Test {
           << project_path;
     }
 
+    source_manifest_path_ =
+        project_.GetAbsolutePath(project_.hack_manifest_file);
+    auto manifest_sha = ComputeSha256(source_manifest_path_);
+    ASSERT_TRUE(manifest_sha.ok()) << manifest_sha.status().message();
+    source_manifest_sha_before_ = *manifest_sha;
+
     const core::DungeonStreamLayout* manifest_layout =
         project_.hack_manifest.GetDungeonStreamLayout(
             core::DungeonStreamType::kPotItems);
@@ -486,6 +531,17 @@ class DungeonPotRepackOosIntegrationTest : public ::testing::Test {
             << "The source Oracle ROM changed during the integration test";
       }
     }
+    if (!source_manifest_path_.empty() &&
+        !source_manifest_sha_before_.empty()) {
+      auto manifest_sha_after = ComputeSha256(source_manifest_path_);
+      EXPECT_TRUE(manifest_sha_after.ok())
+          << manifest_sha_after.status().message();
+      if (manifest_sha_after.ok()) {
+        EXPECT_EQ(*manifest_sha_after, source_manifest_sha_before_)
+            << "The source Oracle manifest changed during the integration "
+               "test";
+      }
+    }
 
     // YazeProject registers its manifest with the process-global resource
     // labels. Clear that non-owning pointer before the fixture is destroyed.
@@ -507,6 +563,8 @@ class DungeonPotRepackOosIntegrationTest : public ::testing::Test {
 
   std::string source_rom_path_;
   std::string source_sha_before_;
+  std::string source_manifest_path_;
+  std::string source_manifest_sha_before_;
   std::filesystem::path temp_dir_;
   std::filesystem::path temp_rom_path_;
   project::YazeProject project_;
@@ -687,6 +745,308 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
 }
 
 TEST_F(DungeonPotRepackOosIntegrationTest,
+       RegularEntranceSavePreservesEveryOtherSlotAndFiftyReopenCycles) {
+  constexpr int kEntranceId = 3;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(temp_rom_path_.string()).ok());
+
+  auto read_regular_record = [](const std::vector<uint8_t>& data,
+                                int entrance_id) {
+    std::vector<uint8_t> bytes;
+    for (const auto& [begin, end] :
+         RegularDungeonEntranceWriteRanges(entrance_id)) {
+      bytes.insert(bytes.end(), data.begin() + begin, data.begin() + end);
+    }
+    return bytes;
+  };
+
+  const std::vector<uint8_t> before_save_bytes = rom.vector();
+  std::array<std::vector<uint8_t>, kNumRegularDungeonEntrances>
+      regular_records_before;
+  for (int entrance_id = 0; entrance_id < kNumRegularDungeonEntrances;
+       ++entrance_id) {
+    regular_records_before[entrance_id] =
+        read_regular_record(before_save_bytes, entrance_id);
+  }
+  const std::vector<uint8_t> spawn_tables_before(
+      before_save_bytes.begin() + kStartingEntranceroom,
+      before_save_bytes.begin() + kStartingEntrancemusic +
+          kNumDungeonSpawnPoints);
+
+  DungeonSaveFlagsGuard flags_guard;
+  ConfigurePotOnlySave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSavePotItems = false;
+  flags.kSaveEntrances = true;
+
+  auto dungeon_editor = std::make_unique<editor::DungeonEditorV2>(&rom);
+  editor::EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project_;
+  dungeon_editor->SetDependencies(dependencies);
+  editor::DungeonEditorV2RegularEntranceTestPeer::LoadRegularEntranceFromRom(
+      *dungeon_editor, kEntranceId);
+  auto& entrance =
+      editor::DungeonEditorV2RegularEntranceTestPeer::RegularEntrance(
+          *dungeon_editor, kEntranceId);
+  const int original_room = entrance.room_;
+  const int replacement_room = (original_room + 1) % kNumberOfRooms;
+  ASSERT_NE(replacement_room, original_room);
+  entrance.room_ = static_cast<int16_t>(replacement_room);
+  entrance.MarkDirty();
+
+  const auto expected_ranges = RegularDungeonEntranceWriteRanges(kEntranceId);
+  ASSERT_EQ(expected_ranges.size(), 17u);
+  EXPECT_EQ(dungeon_editor->CollectWriteRanges(), expected_ranges);
+  EXPECT_TRUE(
+      project_.hack_manifest.AnalyzePcWriteRanges(expected_ranges).empty())
+      << "The production Oracle manifest unexpectedly owns a regular entrance "
+         "slot";
+
+  const absl::Status save_status = dungeon_editor->SaveRoom(0);
+  ASSERT_TRUE(save_status.ok()) << save_status.message();
+  EXPECT_FALSE(entrance.dirty());
+
+  const std::vector<uint8_t> after_save_bytes = rom.vector();
+  size_t changed_bytes = 0;
+  for (size_t offset = 0; offset < before_save_bytes.size(); ++offset) {
+    if (before_save_bytes[offset] == after_save_bytes[offset]) {
+      continue;
+    }
+    ++changed_bytes;
+    const bool covered =
+        std::any_of(expected_ranges.begin(), expected_ranges.end(),
+                    [offset](const DungeonEntranceWriteRange& range) {
+                      return range.first <= offset && offset < range.second;
+                    });
+    EXPECT_TRUE(covered) << "Write escaped regular entrance ranges at PC 0x"
+                         << std::hex << offset;
+  }
+  EXPECT_GT(changed_bytes, 0u);
+
+  for (int entrance_id = 0; entrance_id < kNumRegularDungeonEntrances;
+       ++entrance_id) {
+    if (entrance_id == kEntranceId) {
+      continue;
+    }
+    EXPECT_EQ(read_regular_record(after_save_bytes, entrance_id),
+              regular_records_before[entrance_id])
+        << "Unrelated regular entrance changed: 0x" << std::hex << entrance_id;
+  }
+  const std::vector<uint8_t> selected_after =
+      read_regular_record(after_save_bytes, kEntranceId);
+  ASSERT_EQ(selected_after.size(), 32u);
+  ASSERT_EQ(regular_records_before[kEntranceId].size(), 32u);
+  EXPECT_TRUE(std::equal(selected_after.begin() + 2, selected_after.end(),
+                         regular_records_before[kEntranceId].begin() + 2))
+      << "A non-room field changed in the selected regular entrance";
+  EXPECT_EQ(
+      std::vector<uint8_t>(after_save_bytes.begin() + kStartingEntranceroom,
+                           after_save_bytes.begin() + kStartingEntrancemusic +
+                               kNumDungeonSpawnPoints),
+      spawn_tables_before);
+
+  Rom::SaveSettings save_settings;
+  save_settings.filename = temp_rom_path_.string();
+  ASSERT_TRUE(rom.SaveToFile(save_settings).ok());
+  const std::vector<uint8_t> first_save_bytes = ReadFile(temp_rom_path_);
+  ASSERT_FALSE(first_save_bytes.empty());
+  dungeon_editor.reset();
+
+  {
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(temp_rom_path_.string()).ok());
+    const RoomEntrance reopened_entrance(&reopened, kEntranceId, false);
+    EXPECT_EQ(reopened_entrance.room_, replacement_room);
+    EXPECT_EQ(read_regular_record(reopened.vector(), kEntranceId),
+              selected_after);
+  }
+
+  for (int cycle = 1; cycle <= kSaveReopenCycles; ++cycle) {
+    SCOPED_TRACE(
+        absl::StrFormat("regular entrance save/reopen cycle %d", cycle));
+    Rom cycle_rom;
+    ASSERT_TRUE(cycle_rom.LoadFromFile(temp_rom_path_.string()).ok());
+    auto cycle_editor = std::make_unique<editor::DungeonEditorV2>(&cycle_rom);
+    editor::EditorDependencies cycle_dependencies = dependencies;
+    cycle_dependencies.rom = &cycle_rom;
+    cycle_editor->SetDependencies(cycle_dependencies);
+    editor::DungeonEditorV2RegularEntranceTestPeer::LoadRegularEntranceFromRom(
+        *cycle_editor, kEntranceId);
+    auto& cycle_entrance =
+        editor::DungeonEditorV2RegularEntranceTestPeer::RegularEntrance(
+            *cycle_editor, kEntranceId);
+    ASSERT_EQ(cycle_entrance.room_, replacement_room);
+    cycle_entrance.MarkDirty();
+
+    const absl::Status cycle_status = cycle_editor->SaveRoom(0);
+    ASSERT_TRUE(cycle_status.ok()) << cycle_status.message();
+    EXPECT_FALSE(cycle_entrance.dirty());
+    ASSERT_TRUE(cycle_rom.SaveToFile(save_settings).ok());
+    EXPECT_EQ(ReadFile(temp_rom_path_), first_save_bytes)
+        << "No-op regular entrance save changed ROM bytes during cycle "
+        << cycle;
+  }
+
+  RecordProperty("regular_entrance_id", kEntranceId);
+  RecordProperty("regular_entrance_save_reopen_cycles", kSaveReopenCycles);
+  RecordProperty("source_rom_sha256", source_sha_before_);
+}
+
+TEST_F(DungeonPotRepackOosIntegrationTest,
+       FullChestTablePreservesAllRoomsAcrossFiftyReopenCycles) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(temp_rom_path_.string()).ok());
+  ASSERT_EQ(ReadChestTableByteLength(rom), kChestTableCapacityBytes)
+      << "The Oracle chest stability fixture must exercise all 168 records";
+
+  const std::vector<ChestSequence> original_sequences =
+      ReadAllChestSequences(&rom);
+  ASSERT_EQ(original_sequences.size(), kOracleRoomCount);
+  const auto selected_iter = std::find_if(
+      original_sequences.begin(), original_sequences.end(),
+      [](const ChestSequence& sequence) { return sequence.size() == 1; });
+  ASSERT_NE(selected_iter, original_sequences.end())
+      << "Oracle ROM has no one-chest room for a one-for-one edit";
+  const uint32_t selected_room = static_cast<uint32_t>(
+      std::distance(original_sequences.begin(), selected_iter));
+
+  auto chest_ranges = GetChestTableWriteRanges(&rom);
+  ASSERT_TRUE(chest_ranges.ok()) << chest_ranges.status().message();
+  ASSERT_EQ(chest_ranges->size(), 2u);
+  const uint32_t chest_data_pc = (*chest_ranges)[1].first;
+  int selected_record = -1;
+  for (int record = 0; record < kChestTableCapacityRecords; ++record) {
+    const uint32_t offset =
+        chest_data_pc + record * static_cast<uint32_t>(kChestTableRecordSize);
+    const uint16_t word = static_cast<uint16_t>(
+        rom.data()[offset] |
+        (static_cast<uint16_t>(rom.data()[offset + 1]) << 8));
+    if ((word & 0x7FFF) == selected_room) {
+      ASSERT_EQ(selected_record, -1)
+          << "Selected room unexpectedly has multiple physical records";
+      selected_record = record;
+    }
+  }
+  ASSERT_GE(selected_record, 0);
+  const uint32_t selected_record_pc =
+      chest_data_pc +
+      selected_record * static_cast<uint32_t>(kChestTableRecordSize);
+
+  DungeonSaveFlagsGuard flags_guard;
+  ConfigureChestOnlySave();
+  auto dungeon_editor = std::make_unique<editor::DungeonEditorV2>(&rom);
+  editor::EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project_;
+  dungeon_editor->SetDependencies(dependencies);
+
+  Room& edited_room = dungeon_editor->rooms()[selected_room];
+  edited_room = Room(static_cast<int>(selected_room), &rom);
+  edited_room.LoadChests();
+  ASSERT_EQ(edited_room.GetChests().size(), 1u);
+
+  // Oracle currently consumes every physical chest slot. Prove growth is
+  // rejected before either ROM bytes or editor dirty state are cleared.
+  edited_room.GetChests().push_back(chest_data{0x01, false});
+  edited_room.MarkChestsDirty();
+  const std::vector<uint8_t> before_growth_attempt = rom.vector();
+  const absl::Status growth_status =
+      dungeon_editor->SaveRoom(static_cast<int>(selected_room));
+  EXPECT_EQ(growth_status.code(), absl::StatusCode::kResourceExhausted)
+      << growth_status;
+  EXPECT_EQ(rom.vector(), before_growth_attempt);
+  EXPECT_TRUE(edited_room.chests_dirty());
+
+  // Convert the failed growth into a one-for-one edit. The physical record
+  // remains in place while every other byte and all 296 room semantics remain
+  // stable.
+  edited_room.GetChests().pop_back();
+  const uint8_t replacement_item = edited_room.GetChests()[0].id ^ 0x01u;
+  const bool replacement_size = !edited_room.GetChests()[0].size;
+  edited_room.GetChests()[0].id = replacement_item;
+  edited_room.GetChests()[0].size = replacement_size;
+  edited_room.MarkChestsDirty();
+  std::vector<ChestSequence> expected_sequences = original_sequences;
+  expected_sequences[selected_room][0] =
+      std::pair<uint8_t, bool>{replacement_item, replacement_size};
+
+  const auto predicted_ranges = dungeon_editor->CollectWriteRanges();
+  EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
+                      (*chest_ranges)[0]),
+            predicted_ranges.end());
+  EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
+                      (*chest_ranges)[1]),
+            predicted_ranges.end());
+  EXPECT_FALSE(std::any_of(
+      predicted_ranges.begin(), predicted_ranges.end(), [](const auto& range) {
+        constexpr uint32_t kPointerBegin = kChestsDataPointer1;
+        constexpr uint32_t kPointerEnd = kChestsDataPointer1 + 3;
+        return range.first < kPointerEnd && kPointerBegin < range.second;
+      }));
+
+  const std::vector<uint8_t> before_edit = rom.vector();
+  const absl::Status save_status =
+      dungeon_editor->SaveRoom(static_cast<int>(selected_room));
+  ASSERT_TRUE(save_status.ok()) << save_status.message();
+  EXPECT_FALSE(edited_room.chests_dirty());
+  ASSERT_EQ(ReadChestTableByteLength(rom), kChestTableCapacityBytes);
+  EXPECT_EQ(rom.data()[selected_record_pc], before_edit[selected_record_pc]);
+  EXPECT_TRUE(std::equal(before_edit.begin(),
+                         before_edit.begin() + selected_record_pc,
+                         rom.vector().begin()));
+  EXPECT_TRUE(std::equal(
+      before_edit.begin() + selected_record_pc + kChestTableRecordSize,
+      before_edit.end(),
+      rom.vector().begin() + selected_record_pc + kChestTableRecordSize));
+
+  Rom::SaveSettings save_settings;
+  save_settings.filename = temp_rom_path_.string();
+  ASSERT_TRUE(rom.SaveToFile(save_settings).ok());
+  auto first_save_sha = ComputeSha256(temp_rom_path_.string());
+  ASSERT_TRUE(first_save_sha.ok()) << first_save_sha.status().message();
+  dungeon_editor.reset();
+
+  {
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(temp_rom_path_.string()).ok());
+    EXPECT_EQ(ReadAllChestSequences(&reopened), expected_sequences);
+  }
+
+  for (int cycle = 1; cycle <= kSaveReopenCycles; ++cycle) {
+    SCOPED_TRACE(absl::StrFormat("chest save/close/reopen cycle %d", cycle));
+    Rom cycle_rom;
+    ASSERT_TRUE(cycle_rom.LoadFromFile(temp_rom_path_.string()).ok());
+    EXPECT_EQ(ReadAllChestSequences(&cycle_rom), expected_sequences);
+
+    auto cycle_editor = std::make_unique<editor::DungeonEditorV2>(&cycle_rom);
+    dependencies.rom = &cycle_rom;
+    cycle_editor->SetDependencies(dependencies);
+    Room& cycle_room = cycle_editor->rooms()[selected_room];
+    cycle_room = Room(static_cast<int>(selected_room), &cycle_rom);
+    cycle_room.LoadChests();
+    ASSERT_EQ(cycle_room.GetChests().size(), 1u);
+    EXPECT_EQ(cycle_room.GetChests()[0].id, replacement_item);
+    EXPECT_EQ(cycle_room.GetChests()[0].size, replacement_size);
+    cycle_room.MarkChestsDirty();
+
+    const absl::Status cycle_status =
+        cycle_editor->SaveRoom(static_cast<int>(selected_room));
+    ASSERT_TRUE(cycle_status.ok()) << cycle_status.message();
+    EXPECT_FALSE(cycle_room.chests_dirty());
+    ASSERT_TRUE(cycle_rom.SaveToFile(save_settings).ok());
+    auto cycle_sha = ComputeSha256(temp_rom_path_.string());
+    ASSERT_TRUE(cycle_sha.ok()) << cycle_sha.status().message();
+    EXPECT_EQ(*cycle_sha, *first_save_sha)
+        << "No-op chest save changed ROM bytes during cycle " << cycle;
+  }
+  RecordProperty("chest_record_count", kChestTableCapacityRecords);
+  RecordProperty("chest_room_semantics_checked", kOracleRoomCount);
+  RecordProperty("chest_save_reopen_cycles", kSaveReopenCycles);
+  RecordProperty("chest_stable_sha256", *first_save_sha);
+}
+
+TEST_F(DungeonPotRepackOosIntegrationTest,
        AllRoomHeadersRoundTripByteIdentically) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromFile(temp_rom_path_.string()).ok());
@@ -739,7 +1099,7 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
 }
 
 TEST_F(DungeonPotRepackOosIntegrationTest,
-       ObjectSpriteHeaderDoorPotSaveRoomSurvivesFiftyReopenCycles) {
+       AllDailyDriverDomainsSurviveFiftyReopenCycles) {
   auto object_layout =
       LoadManifestLayout(project_, core::DungeonStreamType::kObjects,
                          core::DungeonWriteStrategy::kCopyOnWrite);
@@ -817,8 +1177,29 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   ASSERT_EQ(free_positions.size(), 2u);
   RecordProperty("multidomain_room", absl::StrFormat("0x%03X", selected_room));
 
+  ASSERT_EQ(ReadChestTableByteLength(rom), kChestTableCapacityBytes)
+      << "The daily-driver rollback probe requires Oracle's full chest table";
+  const std::vector<ChestSequence> original_chest_sequences =
+      ReadAllChestSequences(&rom);
+  int chest_room_id = -1;
+  for (size_t room_id = 0; room_id < original_chest_sequences.size();
+       ++room_id) {
+    if (static_cast<int>(room_id) != selected_room &&
+        original_chest_sequences[room_id].size() == 1u) {
+      chest_room_id = static_cast<int>(room_id);
+      break;
+    }
+  }
+  ASSERT_GE(chest_room_id, 0)
+      << "Oracle ROM has no independent one-chest room for the combined save";
+  RecordProperty("daily_driver_chest_room",
+                 absl::StrFormat("0x%03X", chest_room_id));
+
+  constexpr int kEntranceId = 3;
+  RecordProperty("daily_driver_regular_entrance", kEntranceId);
+
   DungeonSaveFlagsGuard flags_guard;
-  ConfigureObjectSpriteHeaderPotSave();
+  ConfigureDailyDriverSave();
 
   auto dungeon_editor = std::make_unique<editor::DungeonEditorV2>(&rom);
   editor::EditorDependencies dependencies;
@@ -837,6 +1218,29 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   ASSERT_TRUE(edited_room.GetPotItems().empty());
   ASSERT_TRUE(edited_room.GetDoors().empty());
 
+  Room& edited_chest_room = dungeon_editor->rooms()[chest_room_id];
+  edited_chest_room = LoadRoomFromRom(&rom, chest_room_id);
+  ASSERT_EQ(edited_chest_room.GetChests().size(), 1u);
+  const uint8_t replacement_chest_item =
+      edited_chest_room.GetChests()[0].id ^ 0x01u;
+  const bool replacement_chest_size = !edited_chest_room.GetChests()[0].size;
+  // Oracle uses all 168 records. Keep a 169th record dirty until the first
+  // SaveRoom call so the transaction has to roll back domains written before
+  // the chest serializer reaches its capacity failure.
+  edited_chest_room.GetChests().push_back(chest_data{0x01, false});
+  edited_chest_room.MarkChestsDirty();
+
+  editor::DungeonEditorV2RegularEntranceTestPeer::LoadRegularEntranceFromRom(
+      *dungeon_editor, kEntranceId);
+  auto& edited_entrance =
+      editor::DungeonEditorV2RegularEntranceTestPeer::RegularEntrance(
+          *dungeon_editor, kEntranceId);
+  const int replacement_entrance_room =
+      (edited_entrance.room_ + 1) % kNumberOfRooms;
+  ASSERT_NE(replacement_entrance_room, edited_entrance.room_);
+  edited_entrance.room_ = static_cast<int16_t>(replacement_entrance_room);
+  edited_entrance.MarkDirty();
+
   RoomObject replacement_object(0x10, free_positions[0].first,
                                 free_positions[0].second, 0, 0);
   replacement_object.SetRom(&rom);
@@ -852,6 +1256,9 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   edited_room.MarkSpritesDirty();
   const uint16_t replacement_message_id =
       static_cast<uint16_t>(edited_room.message_id() ^ 0x0001u);
+  const uint8_t replacement_palette =
+      static_cast<uint8_t>((edited_room.palette() + 1u) % 72u);
+  edited_room.SetPalette(replacement_palette);
   edited_room.SetMessageId(replacement_message_id);
 
   std::vector<PotItem> replacement_items;
@@ -943,6 +1350,16 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   expect_range(kMessagesIdDungeon + selected_room * 2u,
                kMessagesIdDungeon + selected_room * 2u + 2u,
                "Missing selected dungeon message-ID prediction");
+  for (const DungeonEntranceWriteRange& range :
+       RegularDungeonEntranceWriteRanges(kEntranceId)) {
+    expect_range(range.first, range.second,
+                 "Missing regular entrance range prediction");
+  }
+  auto chest_write_ranges = GetChestTableWriteRanges(&rom);
+  ASSERT_TRUE(chest_write_ranges.ok()) << chest_write_ranges.status().message();
+  for (const auto& [begin, end] : *chest_write_ranges) {
+    expect_range(begin, end, "Missing chest-table range prediction");
+  }
 
   const auto header_table_snes = rom.ReadLong(kRoomHeaderPointer);
   ASSERT_TRUE(header_table_snes.ok()) << header_table_snes.status().message();
@@ -1017,6 +1434,49 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
       project_.hack_manifest.AnalyzePcWriteRanges(predicted_ranges).empty());
   RecordProperty("header_write_policy", "block-exact-editor-managed-regions");
 
+  const std::vector<uint8_t> before_failed_save = rom.vector();
+  rom::WriteFence failed_save_writes;
+  ASSERT_TRUE(failed_save_writes
+                  .Allow(0, static_cast<uint32_t>(rom.size()),
+                         "ObserveDailyDriverRollback")
+                  .ok());
+  absl::Status failed_save_status;
+  {
+    rom::ScopedWriteFence observe_failed_save(&rom, &failed_save_writes);
+    failed_save_status = dungeon_editor->SaveRoom(selected_room);
+  }
+  EXPECT_EQ(failed_save_status.code(), absl::StatusCode::kResourceExhausted)
+      << failed_save_status;
+  EXPECT_EQ(std::string(failed_save_status.message()),
+            "Chest table has 169 records; capacity is 168");
+  EXPECT_NE(std::find_if(failed_save_writes.written_ranges().begin(),
+                         failed_save_writes.written_ranges().end(),
+                         [selected_header_pc](const auto& range) {
+                           return range.first <= selected_header_pc &&
+                                  range.second >= selected_header_pc + 14u;
+                         }),
+            failed_save_writes.written_ranges().end())
+      << "SaveRoomData did not write the complete room header before the late "
+         "chest-capacity failure";
+  EXPECT_EQ(rom.vector(), before_failed_save)
+      << "Late chest-capacity failure did not roll back prior domain writes";
+  EXPECT_TRUE(edited_room.object_stream_dirty());
+  EXPECT_TRUE(edited_room.sprites_dirty());
+  EXPECT_TRUE(edited_room.header_dirty());
+  EXPECT_TRUE(edited_room.pot_items_dirty());
+  EXPECT_TRUE(edited_chest_room.chests_dirty());
+  EXPECT_TRUE(edited_entrance.dirty());
+
+  ASSERT_EQ(edited_chest_room.GetChests().size(), 2u);
+  edited_chest_room.GetChests().pop_back();
+  edited_chest_room.GetChests()[0].id = replacement_chest_item;
+  edited_chest_room.GetChests()[0].size = replacement_chest_size;
+  edited_chest_room.MarkChestsDirty();
+  std::vector<ChestSequence> expected_chest_sequences =
+      original_chest_sequences;
+  expected_chest_sequences[chest_room_id][0] =
+      std::pair<uint8_t, bool>{replacement_chest_item, replacement_chest_size};
+
   const std::vector<uint8_t> before_save_bytes = rom.vector();
   const absl::Status save_status = dungeon_editor->SaveRoom(selected_room);
   ASSERT_TRUE(save_status.ok()) << save_status.message();
@@ -1024,6 +1484,8 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   EXPECT_FALSE(edited_room.sprites_dirty());
   EXPECT_FALSE(edited_room.header_dirty());
   EXPECT_FALSE(edited_room.pot_items_dirty());
+  EXPECT_FALSE(edited_chest_room.chests_dirty());
+  EXPECT_FALSE(edited_entrance.dirty());
   ASSERT_EQ(rom.vector().size(), before_save_bytes.size());
   size_t uncovered_write_count = 0;
   size_t first_uncovered_write = 0;
@@ -1063,6 +1525,9 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
     ASSERT_TRUE(sprite_after.ok()) << sprite_after.status().message();
     auto pot_after = InventoryDungeonStreams(reopened, layout_);
     ASSERT_TRUE(pot_after.ok()) << pot_after.status().message();
+    EXPECT_EQ(ReadAllChestSequences(&reopened), expected_chest_sequences);
+    const RoomEntrance reopened_entrance(&reopened, kEntranceId, false);
+    EXPECT_EQ(reopened_entrance.room_, replacement_entrance_room);
 
     EXPECT_TRUE(InventoryPreservesUntouchedRooms(
         *object_before, *object_after, *object_layout, selected_room,
@@ -1134,6 +1599,7 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
     ASSERT_EQ(reopened_room.GetDoors().size(), 1u);
     EXPECT_EQ(reopened_room.GetDoors()[0].EncodeBytes(),
               replacement_door.EncodeBytes());
+    EXPECT_EQ(reopened_room.palette(), replacement_palette);
     EXPECT_EQ(reopened_room.message_id(), replacement_message_id);
 
     ASSERT_EQ(reopened_room.GetSprites().size(), 1u);
@@ -1163,14 +1629,30 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
       ASSERT_EQ(cycle_room.EncodeSprites(), replacement_sprite_payload);
       ASSERT_EQ(EncodePotItems(cycle_room.GetPotItems()),
                 replacement_pot_stream);
+      ASSERT_EQ(cycle_room.palette(), replacement_palette);
       ASSERT_EQ(cycle_room.message_id(), replacement_message_id);
       ASSERT_EQ(cycle_room.GetDoors().size(), 1u);
       ASSERT_EQ(cycle_room.GetDoors()[0].EncodeBytes(),
                 replacement_door.EncodeBytes());
+
+      Room& cycle_chest_room = cycle_editor->rooms()[chest_room_id];
+      cycle_chest_room = LoadRoomFromRom(&cycle_rom, chest_room_id);
+      ASSERT_EQ(cycle_chest_room.GetChests().size(), 1u);
+      EXPECT_EQ(cycle_chest_room.GetChests()[0].id, replacement_chest_item);
+      EXPECT_EQ(cycle_chest_room.GetChests()[0].size, replacement_chest_size);
+      editor::DungeonEditorV2RegularEntranceTestPeer::
+          LoadRegularEntranceFromRom(*cycle_editor, kEntranceId);
+      auto& cycle_entrance =
+          editor::DungeonEditorV2RegularEntranceTestPeer::RegularEntrance(
+              *cycle_editor, kEntranceId);
+      EXPECT_EQ(cycle_entrance.room_, replacement_entrance_room);
+
       cycle_room.MarkObjectStreamDirty();
       cycle_room.MarkSpritesDirty();
       cycle_room.MarkHeaderDirty();
       cycle_room.MarkPotItemsDirty();
+      cycle_chest_room.MarkChestsDirty();
+      cycle_entrance.MarkDirty();
 
       const absl::Status cycle_status = cycle_editor->SaveRoom(selected_room);
       ASSERT_TRUE(cycle_status.ok()) << cycle_status.message();
@@ -1178,13 +1660,19 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
       EXPECT_FALSE(cycle_room.sprites_dirty());
       EXPECT_FALSE(cycle_room.header_dirty());
       EXPECT_FALSE(cycle_room.pot_items_dirty());
+      EXPECT_FALSE(cycle_chest_room.chests_dirty());
+      EXPECT_FALSE(cycle_entrance.dirty());
       ASSERT_TRUE(cycle_rom.SaveToFile(save_settings).ok());
     }
 
     ASSERT_EQ(ReadFile(temp_rom_path_), first_save_bytes)
         << "Multi-domain save changed ROM bytes during cycle " << cycle;
   }
-  RecordProperty("multidomain_save_reopen_cycles", kSaveReopenCycles);
+  RecordProperty("daily_driver_save_reopen_cycles", kSaveReopenCycles);
+  RecordProperty("daily_driver_late_failure_rollback", true);
+  RecordProperty("daily_driver_cow_retry_after_rollback", true);
+  RecordProperty("source_rom_sha256", source_sha_before_);
+  RecordProperty("source_manifest_sha256", source_manifest_sha_before_);
 }
 
 }  // namespace

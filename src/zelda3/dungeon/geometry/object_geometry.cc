@@ -42,7 +42,7 @@ class MeasurementDungeonState final : public DungeonState {
   bool IsDamFloodgateOpen(int /*room_id*/) const override { return false; }
   bool IsWallMoved(int /*room_id*/) const override { return false; }
   bool IsFloorBombable(int /*room_id*/) const override { return false; }
-  bool IsRupeeFloorActive(int /*room_id*/) const override { return false; }
+  bool IsRupeeFloorCleared(int /*room_id*/) const override { return false; }
   bool IsCrystalSwitchBlue() const override { return true; }
 
  private:
@@ -185,14 +185,31 @@ std::pair<int, int> ObjectGeometry::ResolveAnchor(int16_t object_id,
 
 absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureRoutine(
     const DrawRoutineInfo& routine, const RoomObject& object) const {
+  return MeasureRoutineForState(routine, object,
+                                SelectMeasurementState(routine));
+}
+
+absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureRoutineForState(
+    const DrawRoutineInfo& routine, const RoomObject& object,
+    const DungeonState* state) const {
   // Anchor object so routines that move upward or leftward stay within bounds.
   RoomObject adjusted = object;
   const AnchorPos anchor = ChooseAnchor(routine, object);
   adjusted.x_ = anchor.x;
   adjusted.y_ = anchor.y;
 
-  // Allocate a dummy tile list large enough for every routine.
+  // Allocate a dummy tile list large enough for every routine. Chest geometry
+  // is payload-sensitive: the canonical subtype-3 small-chest objects
+  // (0xF99/0xF9A) use routine 39 with four tiles, while a 16+ tile span makes
+  // that routine take its 4x4 subtype-1 chest path. Big chests use their own
+  // routine (114), so constrain only those two small-chest object IDs to the
+  // routine's declared minimum payload.
   static const std::vector<gfx::TileInfo> kTiles = MakeDummyTiles();
+  const uint16_t object_id = static_cast<uint16_t>(object.id_);
+  const bool is_small_chest = routine.id == DrawRoutineIds::kChest &&
+                              (object_id == 0x0F99 || object_id == 0x0F9A);
+  const size_t measurement_tile_count =
+      is_small_chest ? static_cast<size_t>(routine.min_tiles) : kTiles.size();
 
   gfx::BackgroundBuffer bg(DrawContext::kMaxTilesX * 8,
                            DrawContext::kMaxTilesY * 8);
@@ -200,8 +217,9 @@ absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureRoutine(
   DrawContext ctx{
       .target_bg = bg,
       .object = adjusted,
-      .tiles = std::span<const gfx::TileInfo>(kTiles.data(), kTiles.size()),
-      .state = SelectMeasurementState(routine),
+      .tiles =
+          std::span<const gfx::TileInfo>(kTiles.data(), measurement_tile_count),
+      .state = state,
       .rom = nullptr,
       .room_id = 0,
       .room_gfx_buffer = nullptr,
@@ -266,6 +284,28 @@ absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureByObjectId(
     cache_[key] = *result;
   }
   return result;
+}
+
+absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureByObjectIdForState(
+    const RoomObject& object, const DungeonState* state) const {
+  const int routine_id =
+      DrawRoutineRegistry::Get().GetRoutineIdForObject(object.id_);
+  if (routine_id < 0) {
+    return absl::NotFoundError(
+        absl::StrFormat("No routine mapping for object 0x%03X", object.id_));
+  }
+
+  const DrawRoutineInfo* routine = LookupRoutine(routine_id);
+  if (routine == nullptr) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Unknown routine id %d", routine_id));
+  }
+
+  auto bounds = MeasureRoutineForState(*routine, object, state);
+  if (!bounds.ok()) {
+    return bounds;
+  }
+  return ApplySelectionBounds(*bounds, routine_id);
 }
 
 void ObjectGeometry::ClearCache() {
