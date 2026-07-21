@@ -200,7 +200,7 @@ void DrawSingle4x4(const DrawContext& ctx);
 void DrawSingle4x3(const DrawContext& ctx);
 
 /**
- * @brief Draw the blue rupee floor pattern (6x8 with gaps)
+ * @brief Draw the blue rupee floor pattern (5x8 bounds with gaps)
  *
  * ASM: RoomDraw_RupeeFloor ($019AA9)
  */

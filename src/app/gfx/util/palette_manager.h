@@ -9,6 +9,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -186,6 +187,12 @@ class PaletteManager {
    * @brief Get count of modified colors across all groups
    */
   size_t GetModifiedColorCount() const;
+
+  /**
+   * @brief Get exact, coalesced half-open ROM ranges for modified colors
+   */
+  std::vector<std::pair<uint32_t, uint32_t>> GetModifiedColorWriteRanges()
+      const;
 
   // ========== Persistence ==========
 
