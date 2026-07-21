@@ -637,7 +637,24 @@ TEST_F(DungeonObjectRomValidationTest, Subtype3BigKeyLockParserMatchesRom) {
   zelda3::ObjectParser parser(rom_.get());
   auto parsed_or = parser.ParseObject(static_cast<int16_t>(0xF98));
   ASSERT_TRUE(parsed_or.ok());
-  EXPECT_EQ(parsed_or->size(), 8u);
+  EXPECT_EQ(parsed_or->size(), 4u);
+}
+
+TEST_F(DungeonObjectRomValidationTest, Subtype3ChestVariantsMatchRom) {
+  zelda3::ObjectParser parser(rom_.get());
+  struct Case {
+    int object_id;
+    size_t expected_tiles;
+  };
+  for (const auto& test_case :
+       {Case{0xF99, 8}, Case{0xF9A, 4}, Case{0xFB1, 24}, Case{0xFB2, 12}}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << test_case.object_id);
+    auto parsed_or =
+        parser.ParseObject(static_cast<int16_t>(test_case.object_id));
+    ASSERT_TRUE(parsed_or.ok());
+    EXPECT_EQ(parsed_or->size(), test_case.expected_tiles);
+  }
 }
 
 TEST_F(DungeonObjectRomValidationTest, Subtype3BombableFloorParserMatchesRom) {
