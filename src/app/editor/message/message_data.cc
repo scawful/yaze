@@ -1270,16 +1270,25 @@ absl::Status WriteAllTextData(Rom* rom,
   bool in_second_bank = false;
 
   for (const auto& message : messages) {
+    bool next_byte_is_command_argument = false;
     for (uint8_t value : message.Data) {
       RETURN_IF_ERROR(rom->WriteByte(pos, value));
 
-      if (value == kBankSwitchCommand) {
+      const bool is_command_argument = next_byte_is_command_argument;
+      next_byte_is_command_argument = false;
+      if (!is_command_argument && value == kBankSwitchCommand) {
         if (!in_second_bank && pos > kTextDataEnd) {
           return absl::ResourceExhaustedError(absl::StrFormat(
               "Text data exceeds first bank (pos 0x%06X)", pos));
         }
         pos = kTextData2 - 1;
         in_second_bank = true;
+      }
+
+      if (!is_command_argument) {
+        const auto command = FindMatchingCommand(value);
+        next_byte_is_command_argument =
+            command.has_value() && command->HasArgument;
       }
 
       pos++;
