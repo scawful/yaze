@@ -5001,7 +5001,10 @@ void EditorManager::ConfirmPendingUnsavedSessionActionSaveAndContinue() {
   }
 
   if (!save_status.ok()) {
-    if (session_coordinator_ &&
+    const bool resumable_confirmation = absl::IsCancelled(save_status) &&
+                                        HasPendingRomSaveConfirmation() &&
+                                        PendingRomSaveMatchesActiveSession();
+    if (!resumable_confirmation && session_coordinator_ &&
         session_coordinator_->IsValidSessionIndex(original_session)) {
       session_coordinator_->SwitchToSession(original_session);
     }
