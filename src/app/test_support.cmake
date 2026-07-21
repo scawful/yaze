@@ -74,7 +74,10 @@ if(TARGET ImGuiTestEngine)
   message(STATUS "  - ImGui test engine enabled in yaze_test_support")
 endif()
 
-if(PNG_FOUND)
+if(YAZE_ENABLE_VISUAL_DIFF_ENGINE)
+  target_compile_definitions(yaze_test_support PUBLIC
+    YAZE_HAS_VISUAL_DIFF_ENGINE=1
+  )
   target_link_libraries(yaze_test_support PUBLIC PNG::PNG)
 endif()
 
