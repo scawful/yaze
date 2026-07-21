@@ -18,7 +18,7 @@ class ActiveWaterFaceState final : public DungeonState {
   bool IsWaterFaceActive(int) const override { return true; }
   bool IsWallMoved(int) const override { return false; }
   bool IsFloorBombable(int) const override { return false; }
-  bool IsRupeeFloorActive(int) const override { return false; }
+  bool IsRupeeFloorCleared(int) const override { return false; }
   bool IsCrystalSwitchBlue() const override { return true; }
 };
 
