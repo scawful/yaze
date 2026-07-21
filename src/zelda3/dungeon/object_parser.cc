@@ -328,6 +328,9 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype2(
 
 absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
     int16_t object_id) {
+  constexpr int kBombableFloorOpenTileOffset = 0x05BA;
+  constexpr int kBombableFloorStateTileCount = 16;
+
   // Type 3 object IDs are 0xF80-0xFFF (128 objects)
   // Table index should be 0-127, calculated by subtracting base offset 0xF80
   int index = (object_id - 0xF80) & 0x7F;
@@ -345,6 +348,27 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
 
   // Determine tile count based on object ID
   int tile_count = GetSubtype3TileCount(object_id);
+
+  // BombableFloor's intact 4x4 block starts at the object's pointer, while
+  // USDASM's replacement 4x4 block lives separately at obj05BA. Keep the two
+  // 16-word states adjacent in the parsed payload for stateful rendering.
+  if (object_id == 0xFC7) {
+    auto intact_tiles =
+        ReadTileData(tile_data_ptr, kBombableFloorStateTileCount);
+    if (!intact_tiles.ok()) {
+      return intact_tiles.status();
+    }
+    auto open_tiles =
+        ReadTileData(kRoomObjectTileAddress + kBombableFloorOpenTileOffset,
+                     kBombableFloorStateTileCount);
+    if (!open_tiles.ok()) {
+      return open_tiles.status();
+    }
+    intact_tiles->insert(intact_tiles->end(), open_tiles->begin(),
+                         open_tiles->end());
+    return intact_tiles;
+  }
+
   return ReadTileData(tile_data_ptr, tile_count);
 }
 
@@ -473,6 +497,13 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
   // RoomDraw_Rightwards2x2 and consumes one fixed 2x2 tile block.
   if (object_id == 0xF96) {
     return 4;
+  }
+
+  // BombableFloor (0xFC7 = ASM 0x247) has two non-contiguous 4x4 states:
+  // 16 intact words from the object pointer and 16 replacement words at
+  // obj05BA. ParseSubtype3 loads and concatenates both spans.
+  if (object_id == 0xFC7) {
+    return 32;
   }
 
   // Somaria path pieces (ASM objects 0x203-0x20C, 0x20E, and 0x20F) each
