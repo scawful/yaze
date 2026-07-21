@@ -18,6 +18,7 @@
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/session/user_settings.h"
 #include "app/gfx/util/palette_manager.h"
+#include "core/version_manager.h"
 
 namespace yaze::editor {
 

@@ -24,7 +24,8 @@
 
 namespace yaze::core {
 class AsarWrapper;
-}
+class VersionManager;
+}  // namespace yaze::core
 
 namespace yaze::zelda3 {
 class Overworld;
@@ -164,6 +165,10 @@ struct RomSession {
   std::optional<project::YazeProject> project_context;
   bool project_dirty = false;
   ProjectFileEditorState project_file_editor_state;
+  // VersionManager keeps a raw project pointer internally, so its lifetime
+  // must be tied to the stable, session-owned project_context above. Editors
+  // cache this pointer for their entire lifetime.
+  std::unique_ptr<core::VersionManager> version_manager;
   bool game_data_loaded = false;
   std::array<bool, kEditorTypeCount> editor_initialized{};
   std::array<bool, kEditorTypeCount> editor_assets_loaded{};

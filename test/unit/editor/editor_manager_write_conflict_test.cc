@@ -141,6 +141,23 @@ std::filesystem::path CreateMinimalRomFile(const std::string& basename,
   return rom_path;
 }
 
+std::filesystem::path CreateProjectFile(
+    const std::string& basename, const std::string& name,
+    const std::filesystem::path& rom_path,
+    const project::WorkspaceSettings& workspace_settings,
+    const std::filesystem::path& git_repository) {
+  std::filesystem::path project_path = git_repository / (basename + ".yaze");
+
+  project::YazeProject project;
+  project.name = name;
+  project.filepath = project_path.string();
+  project.rom_filename = rom_path.string();
+  project.workspace_settings = workspace_settings;
+  project.git_repository = git_repository.string();
+  EXPECT_OK(project.Save());
+  return project_path;
+}
+
 void MarkCurrentDungeonRoomPending(EditorManager* manager) {
   auto* editor_set = manager->GetCurrentEditorSet();
   ASSERT_NE(editor_set, nullptr);
@@ -749,6 +766,216 @@ TEST(EditorManagerWriteConflictTest,
   const auto blocked = manager->SaveRom();
   EXPECT_EQ(blocked.code(), absl::StatusCode::kPermissionDenied) << blocked;
   EXPECT_EQ(ReadByteAt(rom_b, 0x2345), 0x00);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     ProjectDependenciesAndVersionManagersRemainSessionOwned) {
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_owned_context_a.sfc", "OWNED CONTEXT A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_owned_context_b.sfc", "OWNED CONTEXT B");
+  const auto git_a = MakeTempFilePath("yaze_owned_context_git_a");
+  const auto git_b = MakeTempFilePath("yaze_owned_context_git_b");
+  ASSERT_TRUE(std::filesystem::create_directories(git_a));
+  ASSERT_TRUE(std::filesystem::create_directories(git_b));
+  const auto project_a =
+      CreateProjectFile("yaze_owned_context_a", "Owned Project A", rom_a,
+                        project::WorkspaceSettings{}, git_a);
+  const auto project_b =
+      CreateProjectFile("yaze_owned_context_b", "Owned Project B", rom_b,
+                        project::WorkspaceSettings{}, git_b);
+  ScopedFileCleanup cleanup_rom_a{rom_a};
+  ScopedFileCleanup cleanup_rom_b{rom_b};
+  ScopedFileCleanup cleanup_project_a{project_a};
+  ScopedFileCleanup cleanup_project_b{project_b};
+  ScopedDirectoryCleanup cleanup_git_a{git_a};
+  ScopedDirectoryCleanup cleanup_git_b{git_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(project_a.string()));
+  auto* session_a =
+      static_cast<RomSession*>(manager->session_coordinator()->GetSession(0));
+  ASSERT_NE(session_a, nullptr);
+  ASSERT_TRUE(session_a->project_context.has_value());
+  ASSERT_NE(session_a->version_manager, nullptr);
+  auto* dungeon_a =
+      session_a->editors.GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
+  ASSERT_NE(dungeon_a, nullptr);
+  auto* project_ptr_a = &*session_a->project_context;
+  auto* version_ptr_a = session_a->version_manager.get();
+  EXPECT_EQ(dungeon_a->project(), project_ptr_a);
+  EXPECT_EQ(dungeon_a->version_manager(), version_ptr_a);
+
+  ASSERT_OK(manager->OpenRomOrProject(project_b.string()));
+  auto* session_b =
+      static_cast<RomSession*>(manager->session_coordinator()->GetSession(1));
+  ASSERT_NE(session_b, nullptr);
+  ASSERT_TRUE(session_b->project_context.has_value());
+  ASSERT_NE(session_b->version_manager, nullptr);
+  auto* dungeon_b =
+      session_b->editors.GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
+  ASSERT_NE(dungeon_b, nullptr);
+
+  EXPECT_EQ(&*session_a->project_context, project_ptr_a);
+  EXPECT_EQ(session_a->version_manager.get(), version_ptr_a);
+  EXPECT_EQ(dungeon_a->project(), project_ptr_a);
+  EXPECT_EQ(dungeon_a->version_manager(), version_ptr_a);
+  EXPECT_EQ(dungeon_b->project(), &*session_b->project_context);
+  EXPECT_EQ(dungeon_b->version_manager(), session_b->version_manager.get());
+  EXPECT_NE(dungeon_a->project(), dungeon_b->project());
+  EXPECT_NE(dungeon_a->version_manager(), dungeon_b->version_manager());
+  EXPECT_EQ(manager->GetVersionManager(), session_b->version_manager.get());
+
+  manager->SwitchToSession(0);
+  EXPECT_EQ(manager->GetVersionManager(), version_ptr_a);
+  EXPECT_EQ(manager->GetCurrentProject()->name, "Owned Project A");
+  // This call dereferences VersionManager's cached project pointer and would
+  // be a use-after-free when opening Project B replaced global ownership.
+  EXPECT_TRUE(version_ptr_a->IsGitInitialized());
+}
+
+TEST(EditorManagerWriteConflictTest,
+     RawRomOpenedFromProjectGetsNeutralSessionContext) {
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto project_rom =
+      CreateMinimalRomFile("yaze_project_then_raw_a.sfc", "PROJECT THEN RAW A");
+  const auto raw_rom =
+      CreateMinimalRomFile("yaze_project_then_raw_b.sfc", "PROJECT THEN RAW B");
+  const auto git_root = MakeTempFilePath("yaze_project_then_raw_git");
+  ASSERT_TRUE(std::filesystem::create_directories(git_root));
+  project::WorkspaceSettings project_workspace;
+  project_workspace.font_global_scale = 1.75f;
+  const auto project_path = CreateProjectFile(
+      "yaze_project_then_raw", "Project Context Must Not Leak", project_rom,
+      project_workspace, git_root);
+  ScopedFileCleanup cleanup_project_rom{project_rom};
+  ScopedFileCleanup cleanup_raw_rom{raw_rom};
+  ScopedFileCleanup cleanup_project{project_path};
+  ScopedDirectoryCleanup cleanup_git{git_root};
+
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  auto* project_session =
+      static_cast<RomSession*>(manager->session_coordinator()->GetSession(0));
+  ASSERT_NE(project_session, nullptr);
+  ASSERT_TRUE(project_session->project_context.has_value());
+  project_session->project_context->custom_objects_folder = "project-objects";
+  project_session->project_context->rom_address_overrides.addresses["probe"] =
+      0x123456;
+
+  ASSERT_OK(manager->OpenRomOrProject(raw_rom.string()));
+  auto* raw_session =
+      static_cast<RomSession*>(manager->session_coordinator()->GetSession(1));
+  ASSERT_NE(raw_session, nullptr);
+  ASSERT_TRUE(raw_session->project_context.has_value());
+  EXPECT_FALSE(raw_session->project_context->project_opened());
+  EXPECT_TRUE(raw_session->project_context->name.empty());
+  EXPECT_TRUE(raw_session->project_context->filepath.empty());
+  EXPECT_TRUE(raw_session->project_context->rom_filename.empty());
+  EXPECT_TRUE(raw_session->project_context->custom_objects_folder.empty());
+  EXPECT_TRUE(
+      raw_session->project_context->rom_address_overrides.addresses.empty());
+
+  auto* raw_dungeon =
+      raw_session->editors.GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
+  ASSERT_NE(raw_dungeon, nullptr);
+  EXPECT_EQ(raw_dungeon->project(), &*raw_session->project_context);
+  EXPECT_EQ(raw_dungeon->version_manager(), raw_session->version_manager.get());
+  EXPECT_NE(raw_dungeon->project(), &*project_session->project_context);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     ProjectWorkspaceSettingsStayIsolatedAcrossSessionSave) {
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_workspace_a.sfc", "WORKSPACE A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_workspace_b.sfc", "WORKSPACE B");
+  const auto git_a = MakeTempFilePath("yaze_workspace_git_a");
+  const auto git_b = MakeTempFilePath("yaze_workspace_git_b");
+  ASSERT_TRUE(std::filesystem::create_directories(git_a));
+  ASSERT_TRUE(std::filesystem::create_directories(git_b));
+
+  project::WorkspaceSettings workspace_a;
+  workspace_a.font_global_scale = 1.1f;
+  workspace_a.autosave_enabled = true;
+  workspace_a.autosave_interval_secs = 101.0f;
+  workspace_a.backup_on_save = true;
+  project::WorkspaceSettings workspace_b;
+  workspace_b.font_global_scale = 1.6f;
+  workspace_b.autosave_enabled = false;
+  workspace_b.autosave_interval_secs = 202.0f;
+  workspace_b.backup_on_save = false;
+  const auto project_a = CreateProjectFile(
+      "yaze_workspace_a", "Workspace Project A", rom_a, workspace_a, git_a);
+  const auto project_b = CreateProjectFile(
+      "yaze_workspace_b", "Workspace Project B", rom_b, workspace_b, git_b);
+  ScopedFileCleanup cleanup_rom_a{rom_a};
+  ScopedFileCleanup cleanup_rom_b{rom_b};
+  ScopedFileCleanup cleanup_project_a{project_a};
+  ScopedFileCleanup cleanup_project_b{project_b};
+  ScopedDirectoryCleanup cleanup_git_a{git_a};
+  ScopedDirectoryCleanup cleanup_git_b{git_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(project_a.string()));
+  manager->user_settings().prefs().font_global_scale = 1.25f;
+  manager->user_settings().prefs().autosave_enabled = false;
+  manager->user_settings().prefs().autosave_interval = 111.0f;
+  manager->user_settings().prefs().backup_before_save = false;
+
+  ASSERT_OK(manager->OpenRomOrProject(project_b.string()));
+  EXPECT_FLOAT_EQ(manager->user_settings().prefs().font_global_scale, 1.6f);
+  EXPECT_FALSE(manager->user_settings().prefs().autosave_enabled);
+  EXPECT_FLOAT_EQ(manager->user_settings().prefs().autosave_interval, 202.0f);
+  EXPECT_FALSE(manager->user_settings().prefs().backup_before_save);
+  manager->user_settings().prefs().font_global_scale = 1.75f;
+  manager->user_settings().prefs().autosave_enabled = true;
+  manager->user_settings().prefs().autosave_interval = 222.0f;
+  manager->user_settings().prefs().backup_before_save = true;
+
+  manager->SwitchToSession(0);
+  EXPECT_FLOAT_EQ(manager->user_settings().prefs().font_global_scale, 1.25f);
+  EXPECT_FALSE(manager->user_settings().prefs().autosave_enabled);
+  EXPECT_FLOAT_EQ(manager->user_settings().prefs().autosave_interval, 111.0f);
+  EXPECT_FALSE(manager->user_settings().prefs().backup_before_save);
+  ASSERT_OK(manager->SaveProject());
+
+  manager->SwitchToSession(1);
+  EXPECT_FLOAT_EQ(manager->user_settings().prefs().font_global_scale, 1.75f);
+  EXPECT_TRUE(manager->user_settings().prefs().autosave_enabled);
+  EXPECT_FLOAT_EQ(manager->user_settings().prefs().autosave_interval, 222.0f);
+  EXPECT_TRUE(manager->user_settings().prefs().backup_before_save);
+  ASSERT_OK(manager->SaveProject());
+
+  project::YazeProject saved_a;
+  project::YazeProject saved_b;
+  ASSERT_OK(saved_a.Open(project_a.string()));
+  ASSERT_OK(saved_b.Open(project_b.string()));
+  EXPECT_FLOAT_EQ(saved_a.workspace_settings.font_global_scale, 1.25f);
+  EXPECT_FALSE(saved_a.workspace_settings.autosave_enabled);
+  EXPECT_FLOAT_EQ(saved_a.workspace_settings.autosave_interval_secs, 111.0f);
+  EXPECT_FALSE(saved_a.workspace_settings.backup_on_save);
+  EXPECT_FLOAT_EQ(saved_b.workspace_settings.font_global_scale, 1.75f);
+  EXPECT_TRUE(saved_b.workspace_settings.autosave_enabled);
+  EXPECT_FLOAT_EQ(saved_b.workspace_settings.autosave_interval_secs, 222.0f);
+  EXPECT_TRUE(saved_b.workspace_settings.backup_on_save);
 }
 
 TEST(EditorManagerWriteConflictTest,
