@@ -148,6 +148,14 @@ void SessionCoordinator::DuplicateCurrentSession() {
   ShowSessionOperationResult("Duplicate Session", true);
 }
 
+void SessionCoordinator::RequestCloseCurrentSession() {
+  if (editor_manager_) {
+    editor_manager_->RequestCloseSession(active_session_index_);
+  } else {
+    CloseCurrentSession();
+  }
+}
+
 void SessionCoordinator::CloseCurrentSession() {
   CloseSession(active_session_index_);
 }
@@ -364,7 +372,7 @@ void SessionCoordinator::DrawSessionSwitcher() {
   ImGui::SameLine();
   if (HasMultipleSessions() &&
       ImGui::Button(absl::StrFormat("%s Close", ICON_MD_CLOSE).c_str())) {
-    CloseCurrentSession();
+    RequestCloseCurrentSession();
   }
 
   ImGui::End();

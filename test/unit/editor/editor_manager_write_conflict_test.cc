@@ -712,7 +712,7 @@ TEST(EditorManagerWriteConflictTest,
   EXPECT_EQ(manager->GetCurrentSessionIndex(), 1u);
   MarkCurrentDungeonRoomPending(manager.get());
 
-  manager->CloseCurrentSession();
+  manager->session_coordinator()->RequestCloseCurrentSession();
   EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
   EXPECT_EQ(manager->GetActiveSessionCount(), 2u);
 
