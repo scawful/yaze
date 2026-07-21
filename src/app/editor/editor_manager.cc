@@ -799,14 +799,14 @@ void EditorManager::InitializeSubsystems() {
   // Initialize ProjectManagementPanel for project/version management
   project_management_panel_ = std::make_unique<ProjectManagementPanel>();
   project_management_panel_->SetToastManager(&toast_manager_);
-  project_file_editor_.SetSaveGuardCallback([this]() {
-    CaptureActiveProjectEditingState();
-    if (IsCurrentProjectDirty()) {
-      return absl::FailedPreconditionError(
-          "Project settings also have unsaved changes; save them first");
-    }
-    return absl::OkStatus();
-  });
+  project_file_editor_.SetSaveGuardCallback(
+      [this](const std::string& filepath, const std::string& contents) {
+        return PrepareRawProjectFileSave(filepath, contents);
+      });
+  project_file_editor_.SetSaveCompleteCallback(
+      [this](const std::string& filepath, const std::string& contents) {
+        return CommitRawProjectFileSave(filepath, contents);
+      });
   window_manager_.RegisterWindowContent(
       std::make_unique<workflow::ProjectWorkflowOutputPanel>());
   project_management_panel_->SetSwapRomCallback([this]() {
@@ -814,20 +814,21 @@ void EditorManager::InitializeSubsystems() {
     auto rom_path = util::FileDialogWrapper::ShowOpenFileDialog(
         util::MakeRomFileDialogOptions(false));
     if (!rom_path.empty()) {
-      current_project_.rom_filename = rom_path;
-      auto status = current_project_.Save();
+      auto status = SwapProjectRom(rom_path);
       if (status.ok()) {
-        toast_manager_.Show("Project ROM updated. Reload to apply changes.",
+        toast_manager_.Show("Project ROM updated and reloaded.",
                             ToastType::kSuccess);
       } else {
-        toast_manager_.Show("Failed to update project ROM", ToastType::kError);
+        toast_manager_.Show(absl::StrFormat("Failed to update project ROM: %s",
+                                            status.message()),
+                            ToastType::kError);
       }
     }
   });
   project_management_panel_->SetReloadRomCallback([this]() {
     if (current_project_.project_opened() &&
         !current_project_.rom_filename.empty()) {
-      auto status = LoadProjectWithRom();
+      auto status = ReloadProjectRom();
       if (!status.ok()) {
         toast_manager_.Show(
             absl::StrFormat("Failed to reload ROM: %s", status.message()),
@@ -1284,6 +1285,154 @@ void EditorManager::DetachActiveProjectContext() {
   }
 }
 
+void EditorManager::RestoreProjectContextAfterFailedOpen(
+    std::optional<size_t> previous_session_id) {
+  pending_project_open_transition_ = false;
+  pending_project_open_previous_session_id_.reset();
+  if (previous_session_id.has_value() && session_coordinator_) {
+    const auto index = ResolveSessionIndexById(*previous_session_id);
+    if (index.has_value()) {
+      auto* previous_session =
+          static_cast<RomSession*>(session_coordinator_->GetSession(*index));
+      if (previous_session) {
+        if (session_coordinator_->GetActiveSessionIndex() != *index) {
+          session_coordinator_->SwitchToSession(*index);
+        } else {
+          RestoreProjectContextForSession(previous_session);
+        }
+        return;
+      }
+    }
+  }
+
+  current_project_ = project::YazeProject();
+  active_project_context_session_id_.reset();
+  runtime_feature_flags_session_id_.reset();
+  version_manager_ = nullptr;
+  ApplyCurrentProjectRuntimeContext();
+  project_file_editor_.ResetForProject(&current_project_);
+}
+
+absl::Status EditorManager::DiscardProvisionalSessionCreatedSince(
+    size_t previous_session_count) {
+  if (!session_coordinator_ ||
+      session_coordinator_->GetTotalSessionCount() <= previous_session_count) {
+    return absl::OkStatus();
+  }
+  auto* provisional_session = session_coordinator_->GetActiveRomSession();
+  if (!provisional_session) {
+    return absl::InternalError(
+        "A provisional session was created but is not active");
+  }
+  return session_coordinator_->DiscardProvisionalSession(
+      provisional_session->session_id());
+}
+
+bool EditorManager::ProjectFileDraftTargetsCurrentProject() const {
+  if (current_project_.filepath.empty() ||
+      project_file_editor_.filepath().empty()) {
+    return false;
+  }
+  return SessionCoordinator::PathsReferToSameBackingFile(
+      project_file_editor_.filepath(), current_project_.filepath);
+}
+
+absl::Status EditorManager::PrepareRawProjectFileSave(
+    const std::string& filepath, const std::string& contents) {
+  CaptureActiveProjectEditingState();
+  const bool targets_current = !current_project_.filepath.empty() &&
+                               SessionCoordinator::PathsReferToSameBackingFile(
+                                   filepath, current_project_.filepath);
+  if (!targets_current) {
+    // Save As to a separate descriptor is the deterministic escape hatch when
+    // both the structured panel and raw document have edits.
+    return absl::OkStatus();
+  }
+  if (IsCurrentProjectDirty()) {
+    return absl::FailedPreconditionError(
+        "Project settings also have unsaved changes; use raw Save As to "
+        "preserve this draft, then save the project settings");
+  }
+
+  auto* session = session_coordinator_
+                      ? session_coordinator_->GetActiveRomSession()
+                      : nullptr;
+  if (!session || !session->rom.is_loaded()) {
+    return absl::FailedPreconditionError(
+        "No active ROM session for this project file");
+  }
+
+  project::YazeProject parsed_project;
+  RETURN_IF_ERROR(parsed_project.LoadFromString(contents, filepath));
+  if (!parsed_project.project_opened()) {
+    return absl::InvalidArgumentError(
+        "Raw project file must contain a non-empty project name");
+  }
+  if (parsed_project.rom_filename.empty() ||
+      !(SessionCoordinator::PathsReferToSameBackingFile(
+            parsed_project.rom_filename, session->filepath) ||
+        SessionCoordinator::PathsReferToSameBackingFile(
+            parsed_project.rom_filename, session->rom.filename()))) {
+    return absl::FailedPreconditionError(
+        "Raw project file cannot change the ROM backing file of a loaded "
+        "session; use Project Management > Swap ROM");
+  }
+  return session_coordinator_->CheckBackingFileAvailable(
+      parsed_project.rom_filename, session->session_id());
+}
+
+absl::Status EditorManager::CommitRawProjectFileSave(
+    const std::string& filepath, const std::string& contents) {
+  if (current_project_.filepath.empty() ||
+      !SessionCoordinator::PathsReferToSameBackingFile(
+          filepath, current_project_.filepath)) {
+    return absl::OkStatus();
+  }
+
+  auto* session = session_coordinator_
+                      ? session_coordinator_->GetActiveRomSession()
+                      : nullptr;
+  if (!session) {
+    return absl::FailedPreconditionError("No active ROM session");
+  }
+
+  project::YazeProject parsed_project;
+  RETURN_IF_ERROR(parsed_project.LoadFromString(contents, filepath));
+  current_project_ = std::move(parsed_project);
+  BindProjectContextToSession(session, current_project_);
+  session->project_dirty = false;
+  active_project_context_session_id_ = session->session_id();
+  runtime_feature_flags_session_id_ = session->session_id();
+  version_manager_ = session->version_manager.get();
+  ApplyCurrentProjectRuntimeContext();
+  if (project_management_panel_) {
+    project_management_panel_->SetProject(&current_project_, false);
+  }
+  return absl::OkStatus();
+}
+
+void EditorManager::RebaseCleanProjectFileDraft(const std::string& filepath) {
+  if (!session_coordinator_ || filepath.empty()) {
+    return;
+  }
+  auto* session = session_coordinator_->GetActiveRomSession();
+  if (!session || !session->project_file_editor_state.initialized ||
+      session->project_file_editor_state.modified) {
+    return;
+  }
+
+  const bool was_active = project_file_editor_.is_active();
+  auto status = project_file_editor_.LoadFile(filepath);
+  if (!status.ok()) {
+    LOG_WARN("EditorManager", "Failed to rebase raw project editor: %s",
+             status.message());
+    return;
+  }
+  project_file_editor_.SetProject(&current_project_);
+  project_file_editor_.set_active(was_active);
+  session->project_file_editor_state = project_file_editor_.CaptureState();
+}
+
 void EditorManager::BindProjectContextToSession(
     RomSession* session, const project::YazeProject& project) {
   if (!session) {
@@ -1353,7 +1502,11 @@ void EditorManager::ApplyCurrentProjectRuntimeContext() {
   SyncLayoutScopeFromCurrentProject();
   RefreshHackWorkflowBackend();
   if (project_management_panel_) {
-    project_management_panel_->SetProject(&current_project_);
+    const auto* session = session_coordinator_
+                              ? session_coordinator_->GetActiveRomSession()
+                              : nullptr;
+    project_management_panel_->SetProject(
+        &current_project_, session != nullptr && session->project_dirty);
     project_management_panel_->SetVersionManager(version_manager_);
     project_management_panel_->SetRom(GetCurrentRom());
   }
@@ -1437,10 +1590,14 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
   // the request. Never carry them across a user session switch. Frame-level
   // context switches are temporary and must not consume the active request.
   if (!transient) {
+    ++project_rom_selection_generation_;
+    pending_project_rom_selection_.reset();
+    pending_project_open_transition_ = false;
+    pending_project_open_previous_session_id_.reset();
     CancelPendingRomSave(/*hide_popups=*/true);
     CaptureRuntimeFeatureFlags();
     CaptureActiveProjectContext();
-    if (!RestoreProjectContextForSession(session)) {
+    if (!RestoreProjectContextForSession(session) && session != nullptr) {
       LOG_ERROR("EditorManager",
                 "Session %zu has no project context; saves are disabled",
                 new_index);
@@ -1463,9 +1620,9 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
                                                      : nullptr);
 
   // Update RightDrawerManager with the new session's settings editor
-  if (right_drawer_manager_ && session) {
+  if (right_drawer_manager_) {
     right_drawer_manager_->SetSettingsPanel(
-        session->editors.GetSettingsPanel());
+        session ? session->editors.GetSettingsPanel() : nullptr);
   }
 
   // Update properties panel with new ROM
@@ -1474,6 +1631,9 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
       selection_properties_panel_.ClearSelection();
     }
     selection_properties_panel_.SetRom(&session->rom);
+  } else {
+    selection_properties_panel_.ClearSelection();
+    selection_properties_panel_.SetRom(nullptr);
   }
 
   // Update ContentRegistry context with current session's ROM and GameData
@@ -1493,7 +1653,7 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
   RefreshResourceLabelProvider();
 
   const std::string category = window_manager_.GetActiveCategory();
-  if (!category.empty() &&
+  if (session != nullptr && !category.empty() &&
       category != WorkspaceWindowManager::kDashboardCategory) {
     auto it = user_settings_.prefs().panel_visibility_state.find(category);
     if (it != user_settings_.prefs().panel_visibility_state.end()) {
@@ -2069,14 +2229,20 @@ void EditorManager::SetupDialogCallbacks() {
         flags.kSaveDungeonMaps = options.save_dungeon_maps;
         flags.kSaveAllPalettes = options.save_all_palettes;
         flags.kSaveGfxGroups = options.save_gfx_groups;
+        if (session_coordinator_) {
+          if (auto* session = session_coordinator_->GetActiveRomSession()) {
+            session->feature_flags = flags;
+          }
+        }
 
         // Create project if requested
         if (options.create_project && !options.project_name.empty()) {
-          project_manager_.SetProjectRom(GetCurrentRom()->filename());
-          auto status = project_manager_.FinalizeProjectCreation(
-              options.project_name, options.project_path);
+          auto status =
+              FinalizeNewProject(options.project_name, options.project_path);
           if (!status.ok()) {
-            toast_manager_.Show("Failed to create project", ToastType::kError);
+            toast_manager_.Show(absl::StrFormat("Failed to create project: %s",
+                                                status.message()),
+                                ToastType::kError);
           } else {
             toast_manager_.Show("Project created: " + options.project_name,
                                 ToastType::kSuccess);
@@ -2098,21 +2264,12 @@ void EditorManager::SetupWelcomeScreenCallbacks() {
   // Initialize welcome screen callbacks
   welcome_screen_.SetOpenRomCallback([this]() { status_ = LoadRom(); });
 
-  welcome_screen_.SetNewProjectCallback([this]() {
-    status_ = CreateNewProject();
-    if (status_.ok() && ui_coordinator_) {
-      ui_coordinator_->SetWelcomeScreenVisible(false);
-      ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
-    }
-  });
+  welcome_screen_.SetNewProjectCallback(
+      [this]() { status_ = CreateNewProject(); });
 
   welcome_screen_.SetNewProjectWithTemplateCallback(
       [this](const std::string& template_name) {
         status_ = CreateNewProject(template_name);
-        if (status_.ok() && ui_coordinator_) {
-          ui_coordinator_->SetWelcomeScreenVisible(false);
-          ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
-        }
       });
 
   welcome_screen_.SetOpenProjectCallback([this](const std::string& filepath) {
@@ -2953,7 +3110,7 @@ void EditorManager::UpdateEditorState() {
     autosave_timer_ += ImGui::GetIO().DeltaTime;
     if (autosave_timer_ >= user_settings_.prefs().autosave_interval) {
       autosave_timer_ = 0.0f;
-      auto st = SaveRom();
+      auto st = AutosaveActiveSession();
       if (st.ok()) {
         toast_manager_.Show("Autosave completed", editor::ToastType::kSuccess);
       } else if (absl::IsCancelled(st)) {
@@ -3477,6 +3634,10 @@ absl::Status EditorManager::LoadRomInternal() {
     Rom temp_rom;
     RETURN_IF_ERROR(rom_file_manager_.LoadRom(&temp_rom, file_name));
 
+    const std::optional<size_t> previous_session_id =
+        active_project_context_session_id_;
+    const size_t previous_session_count =
+        session_coordinator_->GetTotalSessionCount();
     auto session_or = session_coordinator_->CreateSessionFromRom(
         std::move(temp_rom), file_name);
     if (!session_or.ok()) {
@@ -3505,10 +3666,21 @@ absl::Status EditorManager::LoadRomInternal() {
     const bool is_first_time_rom_path =
         std::find(recent_files.begin(), recent_files.end(), file_name) ==
         recent_files.end();
+    auto asset_status = LoadAssetsForMode();
+    if (!asset_status.ok()) {
+      auto rollback_status =
+          DiscardProvisionalSessionCreatedSince(previous_session_count);
+      RestoreProjectContextAfterFailedOpen(previous_session_id);
+      if (!rollback_status.ok()) {
+        return absl::InternalError(
+            absl::StrFormat("%s; session rollback failed: %s",
+                            asset_status.message(), rollback_status.message()));
+      }
+      return asset_status;
+    }
+
     manager.AddFile(file_name);
     manager.Save();
-
-    RETURN_IF_ERROR(LoadAssetsForMode());
 
     if (ui_coordinator_) {
       ui_coordinator_->SetWelcomeScreenVisible(false);
@@ -4170,13 +4342,21 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
       RETURN_IF_ERROR(session_coordinator_->CheckBackingFileAvailable(
           incoming_project.rom_filename));
     }
+    const std::optional<size_t> previous_session_id =
+        active_project_context_session_id_;
+    pending_project_open_transition_ = true;
+    pending_project_open_previous_session_id_ = previous_session_id;
     DetachActiveProjectContext();
     current_project_ = std::move(incoming_project);
     SyncLayoutScopeFromCurrentProject();
     RefreshHackWorkflowBackend();
 
     // Load ROM directly from project - don't prompt user
-    return LoadProjectWithRom();
+    auto project_status = LoadProjectWithRom();
+    if (!project_status.ok()) {
+      RestoreProjectContextAfterFailedOpen(previous_session_id);
+    }
+    return project_status;
   } else {
 #ifdef __EMSCRIPTEN__
     app::platform::WasmLoadingManager::UpdateProgress(loading_handle, 0.05f);
@@ -4188,6 +4368,10 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
     RETURN_IF_ERROR(rom_file_manager_.LoadRom(&temp_rom, filename));
     RETURN_IF_ERROR(rom_lifecycle_.CheckRomOpenPolicy(&temp_rom));
 
+    const std::optional<size_t> previous_session_id =
+        active_project_context_session_id_;
+    const size_t previous_session_count =
+        session_coordinator_->GetTotalSessionCount();
     auto session_or = session_coordinator_->CreateSessionFromRom(
         std::move(temp_rom), filename);
     if (!session_or.ok()) {
@@ -4238,10 +4422,21 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
     // Pass the loading handle to LoadAssets and dismiss our guard
     // LoadAssets will manage closing the indicator when done
     loading_guard.dismiss();
-    RETURN_IF_ERROR(LoadAssetsForMode(loading_handle));
+    auto asset_status = LoadAssetsForMode(loading_handle);
 #else
-    RETURN_IF_ERROR(LoadAssetsForMode());
+    auto asset_status = LoadAssetsForMode();
 #endif
+    if (!asset_status.ok()) {
+      auto rollback_status =
+          DiscardProvisionalSessionCreatedSince(previous_session_count);
+      RestoreProjectContextAfterFailedOpen(previous_session_id);
+      if (!rollback_status.ok()) {
+        return absl::InternalError(
+            absl::StrFormat("%s; session rollback failed: %s",
+                            asset_status.message(), rollback_status.message()));
+      }
+      return asset_status;
+    }
 
     // Hide welcome screen and show editor selection when ROM is loaded
     ui_coordinator_->SetWelcomeScreenVisible(false);
@@ -4257,24 +4452,155 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
 }
 
 absl::Status EditorManager::CreateNewProject(const std::string& template_name) {
-  // Delegate to ProjectManager
-  auto status = project_manager_.CreateNewProject(template_name);
-  if (status.ok()) {
-    DetachActiveProjectContext();
-    current_project_ = project_manager_.GetCurrentProject();
-    SyncLayoutScopeFromCurrentProject();
-
-    // Trigger ROM selection dialog - projects need a ROM to be useful
-    // LoadRom() opens file dialog and shows ROM load options when ROM is loaded
-    status = LoadRom();
-#if !(defined(__APPLE__) && TARGET_OS_IOS == 1)
-    if (status.ok() && ui_coordinator_) {
-      ui_coordinator_->SetWelcomeScreenVisible(false);
-      ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
-    }
-#endif
+  if (HasAnySessionPendingUnsavedWork()) {
+    return absl::FailedPreconditionError(
+        "Save or discard pending session work before creating a project");
   }
-  return status;
+
+  if (!ui_coordinator_) {
+    return absl::FailedPreconditionError(
+        "Project creation dialog is not available");
+  }
+  ui_coordinator_->OpenNewProjectDialog(
+      template_name.empty() ? "Vanilla ROM Hack" : template_name);
+  return absl::OkStatus();
+}
+
+absl::Status EditorManager::CreateNewProjectFromRom(
+    const std::string& template_name, const std::string& rom_path,
+    const std::string& project_name, const std::string& project_path) {
+  if (rom_path.empty() || project_name.empty()) {
+    return absl::InvalidArgumentError("ROM path and project name are required");
+  }
+  if (absl::EndsWith(rom_path, ".yaze") ||
+      absl::EndsWith(rom_path, ".yazeproj") ||
+      absl::EndsWith(rom_path, ".zsproj")) {
+    return absl::InvalidArgumentError(
+        "New projects require a ROM file, not a project descriptor");
+  }
+  if (HasAnySessionPendingUnsavedWork()) {
+    return absl::FailedPreconditionError(
+        "Save or discard pending session work before creating a project");
+  }
+
+  auto* reusable_session = session_coordinator_
+                               ? session_coordinator_->GetActiveRomSession()
+                               : nullptr;
+  const bool reuse_active_raw_session =
+      reusable_session && reusable_session->rom.is_loaded() &&
+      SessionCoordinator::PathsReferToSameBackingFile(
+          rom_path, reusable_session->rom.filename()) &&
+      (!current_project_.project_opened() ||
+       project_manager_.IsPendingRomSelection());
+  const std::optional<size_t> previous_session_id =
+      active_project_context_session_id_;
+  const size_t previous_session_count =
+      session_coordinator_ ? session_coordinator_->GetTotalSessionCount() : 0;
+  RETURN_IF_ERROR(project_manager_.CreateNewProject(template_name));
+  auto rom_status = project_manager_.SetProjectRom(rom_path);
+  if (!rom_status.ok()) {
+    project_manager_.CancelPendingProject();
+    return rom_status;
+  }
+  auto target_status = project_manager_.ValidateProjectCreationTarget(
+      project_name, project_path);
+  if (!target_status.ok()) {
+    project_manager_.CancelPendingProject();
+    return target_status;
+  }
+
+  if (reuse_active_raw_session) {
+    return FinalizeNewProject(project_name, project_path);
+  }
+
+  DetachActiveProjectContext();
+  current_project_ = project_manager_.GetCurrentProject();
+  SyncLayoutScopeFromCurrentProject();
+
+  auto open_status = OpenRomOrProjectInternal(rom_path);
+  if (!open_status.ok()) {
+    project_manager_.CancelPendingProject();
+    RestoreProjectContextAfterFailedOpen(previous_session_id);
+    return open_status;
+  }
+
+  auto finalize_status = FinalizeNewProject(project_name, project_path);
+  if (!finalize_status.ok()) {
+    auto rollback_status =
+        DiscardProvisionalSessionCreatedSince(previous_session_count);
+    RestoreProjectContextAfterFailedOpen(previous_session_id);
+    if (!rollback_status.ok()) {
+      return absl::InternalError(absl::StrFormat(
+          "%s; session rollback failed: %s", finalize_status.message(),
+          rollback_status.message()));
+    }
+  }
+  return finalize_status;
+}
+
+absl::Status EditorManager::FinalizeNewProject(
+    const std::string& project_name, const std::string& project_path) {
+  if (!session_coordinator_) {
+    return absl::FailedPreconditionError("No session coordinator");
+  }
+  auto* session = session_coordinator_->GetActiveRomSession();
+  if (!session || !session->rom.is_loaded()) {
+    return absl::FailedPreconditionError(
+        "Load a ROM before finalizing the project");
+  }
+
+  // The ROM-load-options dialog can create a project directly from an
+  // already-open raw ROM. Start from a clean shell in that path rather than
+  // reusing ProjectManager state left by an earlier project/import.
+  const bool created_project_shell = !project_manager_.IsPendingRomSelection();
+  if (created_project_shell) {
+    RETURN_IF_ERROR(project_manager_.CreateNewProject());
+  }
+
+  auto project_rom_status =
+      project_manager_.SetProjectRom(session->rom.filename());
+  if (!project_rom_status.ok()) {
+    project_manager_.CancelPendingProject();
+    return project_rom_status;
+  }
+  auto& pending_project = project_manager_.GetCurrentProject();
+  if (created_project_shell) {
+    // ROM-load options apply their selected flags directly to the raw session.
+    // Guided creation already configured the pending template, including when
+    // it reuses an existing raw-ROM session.
+    pending_project.feature_flags = session->feature_flags;
+  }
+  pending_project.workspace_settings.font_global_scale =
+      user_settings_.prefs().font_global_scale;
+  pending_project.workspace_settings.autosave_enabled =
+      user_settings_.prefs().autosave_enabled;
+  pending_project.workspace_settings.autosave_interval_secs =
+      user_settings_.prefs().autosave_interval;
+  pending_project.workspace_settings.backup_on_save =
+      user_settings_.prefs().backup_before_save;
+
+  auto finalize_status =
+      project_manager_.FinalizeProjectCreation(project_name, project_path);
+  if (!finalize_status.ok()) {
+    project_manager_.CancelPendingProject();
+    return finalize_status;
+  }
+
+  current_project_ = project_manager_.GetCurrentProject();
+  BindProjectContextToSession(session, current_project_);
+  session->project_dirty = false;
+  active_project_context_session_id_ = session->session_id();
+  runtime_feature_flags_session_id_ = session->session_id();
+  RestoreProjectContextForSession(session);
+  if (version_manager_) {
+    (void)version_manager_->InitializeGit();
+    current_project_.git_repository = session->project_context->git_repository;
+    BindProjectContextToSession(session, current_project_);
+  }
+  RebaseCleanProjectFileDraft(current_project_.filepath);
+  ApplyCurrentProjectRuntimeContext();
+  CaptureActiveProjectContext();
+  return absl::OkStatus();
 }
 
 absl::Status EditorManager::OpenProject() {
@@ -4313,11 +4639,19 @@ absl::Status EditorManager::OpenProjectInternal() {
       popup_manager_->Show("Project Repair");
     }
 
+    const std::optional<size_t> previous_session_id =
+        active_project_context_session_id_;
+    pending_project_open_transition_ = true;
+    pending_project_open_previous_session_id_ = previous_session_id;
     DetachActiveProjectContext();
     current_project_ = std::move(new_project);
     SyncLayoutScopeFromCurrentProject();
 
-    return LoadProjectWithRom();
+    auto project_status = LoadProjectWithRom();
+    if (!project_status.ok()) {
+      RestoreProjectContextAfterFailedOpen(previous_session_id);
+    }
+    return project_status;
   };
 
 #if defined(__APPLE__) && TARGET_OS_IOS == 1
@@ -4331,9 +4665,41 @@ absl::Status EditorManager::OpenProjectInternal() {
 #endif
 }
 
+absl::Status EditorManager::ValidateProjectRomSelection(
+    const std::string& rom_path) {
+  RETURN_IF_ERROR(session_coordinator_->CheckBackingFileAvailable(rom_path));
+
+  Rom candidate_rom;
+  RETURN_IF_ERROR(rom_file_manager_.LoadRom(&candidate_rom, rom_path));
+  RETURN_IF_ERROR(rom_lifecycle_.CheckRomOpenPolicy(&candidate_rom));
+
+  pending_project_rom_selection_ = PendingProjectRomSelection{
+      .previous_path = current_project_.rom_filename,
+      .candidate_path = rom_path,
+  };
+  return absl::OkStatus();
+}
+
 absl::Status EditorManager::LoadProjectWithRom() {
+  auto pending_selection = std::move(pending_project_rom_selection_);
+  pending_project_rom_selection_.reset();
+  std::string project_rom_path = pending_selection.has_value()
+                                     ? pending_selection->candidate_path
+                                     : current_project_.rom_filename;
+  const std::string previous_project_rom_path =
+      pending_selection.has_value() ? pending_selection->previous_path
+                                    : current_project_.rom_filename;
+  bool persist_selected_rom = pending_selection.has_value();
+  auto abandon_selected_rom = [&]() {
+    if (!persist_selected_rom) {
+      return;
+    }
+    current_project_.rom_filename = previous_project_rom_path;
+    pending_project_rom_selection_.reset();
+  };
+
   // Check if project has a ROM file specified
-  if (current_project_.rom_filename.empty()) {
+  if (project_rom_path.empty()) {
     // No ROM specified - prompt user to select one
     toast_manager_.Show(
         "Project has no ROM file configured. Please select a ROM.",
@@ -4353,13 +4719,37 @@ absl::Status EditorManager::LoadProjectWithRom() {
             "ROM is downloading from iCloud. Reopen the project in a few "
             "seconds.",
             ToastType::kInfo, 6.0f);
-        return absl::OkStatus();
+        return absl::UnavailableError(
+            "Project ROM is not available from iCloud yet");
       }
     }
+    const std::string target_project_filepath = current_project_.filepath;
+    const std::optional<size_t> target_session_id =
+        active_project_context_session_id_;
+    const uint64_t selection_generation = ++project_rom_selection_generation_;
     util::FileDialogWrapper::ShowOpenFileDialogAsync(
         util::MakeRomFileDialogOptions(false),
-        [this](const std::string& rom_path) {
+        [this, target_project_filepath, target_session_id,
+         selection_generation](const std::string& rom_path) {
+          if (selection_generation != project_rom_selection_generation_ ||
+              current_project_.filepath != target_project_filepath ||
+              active_project_context_session_id_ != target_session_id) {
+            toast_manager_.Show(
+                "ROM selection ignored because the active project changed",
+                ToastType::kWarning);
+            return;
+          }
+          const bool restore_pending_transition =
+              pending_project_open_transition_;
+          const std::optional<size_t> previous_session_id =
+              pending_project_open_previous_session_id_;
+          auto restore_after_failure = [&]() {
+            if (restore_pending_transition) {
+              RestoreProjectContextAfterFailedOpen(previous_session_id);
+            }
+          };
           if (rom_path.empty()) {
+            restore_after_failure();
             return;
           }
           auto path_status =
@@ -4367,15 +4757,16 @@ absl::Status EditorManager::LoadProjectWithRom() {
           if (!path_status.ok()) {
             toast_manager_.Show(std::string(path_status.message()),
                                 ToastType::kError);
+            restore_after_failure();
             return;
           }
-          current_project_.rom_filename = rom_path;
-          auto save_status = current_project_.Save();
-          if (!save_status.ok()) {
+          auto selection_status = ValidateProjectRomSelection(rom_path);
+          if (!selection_status.ok()) {
             toast_manager_.Show(
                 absl::StrFormat("Failed to update project ROM: %s",
-                                save_status.message()),
+                                selection_status.message()),
                 ToastType::kError);
+            restore_after_failure();
             return;
           }
           auto status = LoadProjectWithRom();
@@ -4384,6 +4775,7 @@ absl::Status EditorManager::LoadProjectWithRom() {
                 absl::StrFormat("Failed to load project ROM: %s",
                                 status.message()),
                 ToastType::kError);
+            restore_after_failure();
           }
         });
     return absl::OkStatus();
@@ -4391,48 +4783,74 @@ absl::Status EditorManager::LoadProjectWithRom() {
     auto rom_path = util::FileDialogWrapper::ShowOpenFileDialog(
         util::MakeRomFileDialogOptions(false));
     if (rom_path.empty()) {
-      return absl::OkStatus();
+      return absl::CancelledError("Project ROM selection cancelled");
     }
     RETURN_IF_ERROR(session_coordinator_->CheckBackingFileAvailable(rom_path));
-    current_project_.rom_filename = rom_path;
-    // Save updated project
-    RETURN_IF_ERROR(current_project_.Save());
+    project_rom_path = rom_path;
+    persist_selected_rom = true;
 #endif
   }
 
-  RETURN_IF_ERROR(session_coordinator_->CheckBackingFileAvailable(
-      current_project_.rom_filename));
+  auto backing_status =
+      session_coordinator_->CheckBackingFileAvailable(project_rom_path);
+  if (!backing_status.ok()) {
+    abandon_selected_rom();
+    return backing_status;
+  }
 
   // Load ROM from project
   Rom temp_rom;
-  auto load_status =
-      rom_file_manager_.LoadRom(&temp_rom, current_project_.rom_filename);
+  auto load_status = rom_file_manager_.LoadRom(&temp_rom, project_rom_path);
   if (!load_status.ok()) {
     // ROM file not found or invalid - prompt user to select new ROM
     toast_manager_.Show(
         absl::StrFormat("Could not load ROM '%s': %s. Please select a new ROM.",
-                        current_project_.rom_filename, load_status.message()),
+                        project_rom_path, load_status.message()),
         editor::ToastType::kWarning, 5.0f);
 #if defined(__APPLE__) && TARGET_OS_IOS == 1
+    abandon_selected_rom();
     // If the ROM is inside a .yazeproj bundle its path may not be readable
     // yet because iCloud hasn't finished downloading it.  Saving any other
     // path here would corrupt the project file with a temporary location.
     // Show guidance and bail without touching current_project_.rom_filename.
     {
-      auto rom_parent =
-          std::filesystem::path(current_project_.rom_filename).parent_path();
+      auto rom_parent = std::filesystem::path(project_rom_path).parent_path();
       if (rom_parent.extension() == ".yazeproj") {
         toast_manager_.Show(
             "ROM is still downloading from iCloud. Try reopening the project "
             "in a moment.",
             ToastType::kInfo, 6.0f);
-        return absl::OkStatus();
+        return absl::UnavailableError(
+            "Project ROM is still downloading from iCloud");
       }
     }
+    const std::string target_project_filepath = current_project_.filepath;
+    const std::optional<size_t> target_session_id =
+        active_project_context_session_id_;
+    const uint64_t selection_generation = ++project_rom_selection_generation_;
     util::FileDialogWrapper::ShowOpenFileDialogAsync(
         util::MakeRomFileDialogOptions(false),
-        [this](const std::string& rom_path) {
+        [this, target_project_filepath, target_session_id,
+         selection_generation](const std::string& rom_path) {
+          if (selection_generation != project_rom_selection_generation_ ||
+              current_project_.filepath != target_project_filepath ||
+              active_project_context_session_id_ != target_session_id) {
+            toast_manager_.Show(
+                "ROM selection ignored because the active project changed",
+                ToastType::kWarning);
+            return;
+          }
+          const bool restore_pending_transition =
+              pending_project_open_transition_;
+          const std::optional<size_t> previous_session_id =
+              pending_project_open_previous_session_id_;
+          auto restore_after_failure = [&]() {
+            if (restore_pending_transition) {
+              RestoreProjectContextAfterFailedOpen(previous_session_id);
+            }
+          };
           if (rom_path.empty()) {
+            restore_after_failure();
             return;
           }
           auto path_status =
@@ -4440,15 +4858,16 @@ absl::Status EditorManager::LoadProjectWithRom() {
           if (!path_status.ok()) {
             toast_manager_.Show(std::string(path_status.message()),
                                 ToastType::kError);
+            restore_after_failure();
             return;
           }
-          current_project_.rom_filename = rom_path;
-          auto save_status = current_project_.Save();
-          if (!save_status.ok()) {
+          auto selection_status = ValidateProjectRomSelection(rom_path);
+          if (!selection_status.ok()) {
             toast_manager_.Show(
                 absl::StrFormat("Failed to update project ROM: %s",
-                                save_status.message()),
+                                selection_status.message()),
                 ToastType::kError);
+            restore_after_failure();
             return;
           }
           auto status = LoadProjectWithRom();
@@ -4457,6 +4876,7 @@ absl::Status EditorManager::LoadProjectWithRom() {
                 absl::StrFormat("Failed to load project ROM: %s",
                                 status.message()),
                 ToastType::kError);
+            restore_after_failure();
           }
         });
     return absl::OkStatus();
@@ -4464,20 +4884,31 @@ absl::Status EditorManager::LoadProjectWithRom() {
     auto rom_path = util::FileDialogWrapper::ShowOpenFileDialog(
         util::MakeRomFileDialogOptions(false));
     if (rom_path.empty()) {
-      return absl::OkStatus();
+      return absl::CancelledError("Project ROM selection cancelled");
     }
     RETURN_IF_ERROR(session_coordinator_->CheckBackingFileAvailable(rom_path));
-    current_project_.rom_filename = rom_path;
-    RETURN_IF_ERROR(current_project_.Save());
+    project_rom_path = rom_path;
+    persist_selected_rom = true;
     RETURN_IF_ERROR(rom_file_manager_.LoadRom(&temp_rom, rom_path));
 #endif
   }
 
-  RETURN_IF_ERROR(rom_lifecycle_.CheckRomOpenPolicy(&temp_rom));
+  auto policy_status = rom_lifecycle_.CheckRomOpenPolicy(&temp_rom);
+  if (!policy_status.ok()) {
+    abandon_selected_rom();
+    return policy_status;
+  }
 
+  if (persist_selected_rom) {
+    current_project_.rom_filename = project_rom_path;
+  }
+
+  const size_t previous_session_count =
+      session_coordinator_->GetTotalSessionCount();
   auto session_or = session_coordinator_->CreateSessionFromRom(
-      std::move(temp_rom), current_project_.rom_filename);
+      std::move(temp_rom), project_rom_path);
   if (!session_or.ok()) {
+    abandon_selected_rom();
     return session_or.status();
   }
   RomSession* session = *session_or;
@@ -4573,7 +5004,34 @@ absl::Status EditorManager::LoadProjectWithRom() {
   // palette entries resolve project registry labels on first render.
   RefreshResourceLabelProvider();
 
-  RETURN_IF_ERROR(LoadAssetsForMode());
+  auto asset_status = LoadAssetsForMode();
+  if (!asset_status.ok()) {
+    abandon_selected_rom();
+    auto rollback_status =
+        DiscardProvisionalSessionCreatedSince(previous_session_count);
+    if (!rollback_status.ok()) {
+      return absl::InternalError(
+          absl::StrFormat("%s; session rollback failed: %s",
+                          asset_status.message(), rollback_status.message()));
+    }
+    return asset_status;
+  }
+
+  if (persist_selected_rom) {
+    auto save_status = current_project_.Save();
+    if (!save_status.ok()) {
+      abandon_selected_rom();
+      auto rollback_status =
+          DiscardProvisionalSessionCreatedSince(previous_session_count);
+      if (!rollback_status.ok()) {
+        return absl::InternalError(
+            absl::StrFormat("%s; session rollback failed: %s",
+                            save_status.message(), rollback_status.message()));
+      }
+      return save_status;
+    }
+    pending_project_rom_selection_.reset();
+  }
 
   // Hide welcome screen and show editor selection when project ROM is loaded
   if (ui_coordinator_) {
@@ -4631,7 +5089,146 @@ absl::Status EditorManager::LoadProjectWithRom() {
                                       current_project_.GetDisplayName()),
                       editor::ToastType::kSuccess);
 
+  pending_project_open_transition_ = false;
+  pending_project_open_previous_session_id_.reset();
   return absl::OkStatus();
+}
+
+absl::Status EditorManager::ReplaceActiveSessionRom(
+    Rom&& rom, const std::string& filepath) {
+  if (!session_coordinator_) {
+    return absl::FailedPreconditionError("No session coordinator");
+  }
+  auto* session = session_coordinator_->GetActiveRomSession();
+  if (!session) {
+    return absl::FailedPreconditionError("No active ROM session");
+  }
+
+  Rom previous_rom = session->rom;
+  const std::string previous_filepath = session->filepath;
+  gfx::PaletteManager::Get().ReleaseSession(&session->game_data);
+  session->rom = std::move(rom);
+  session->filepath = filepath;
+  session->game_data.Clear();
+  session->game_data.set_rom(&session->rom);
+  session->editors.SetGameData(&session->game_data);
+  ResetAssetState(session);
+  ConfigureSession(session);
+  HandleSessionRomLoaded(GetCurrentSessionIndex(), &session->rom);
+  UpdateCurrentRomHash();
+  auto load_status = LoadAssetsForMode();
+  if (!load_status.ok()) {
+    // Loading editors is fallible. Restore the prior ROM and rebuild its
+    // assets so a failed reload never leaves a half-initialized live session.
+    gfx::PaletteManager::Get().ReleaseSession(&session->game_data);
+    session->rom = std::move(previous_rom);
+    session->filepath = previous_filepath;
+    session->game_data.Clear();
+    session->game_data.set_rom(&session->rom);
+    session->editors.SetGameData(&session->game_data);
+    ResetAssetState(session);
+    ConfigureSession(session);
+    HandleSessionRomLoaded(GetCurrentSessionIndex(), &session->rom);
+    UpdateCurrentRomHash();
+    auto rollback_status = LoadAssetsForMode();
+    ApplyCurrentProjectRuntimeContext();
+    if (!rollback_status.ok()) {
+      return absl::InternalError(absl::StrFormat(
+          "ROM reload failed (%s) and restoring prior assets failed (%s)",
+          load_status.message(), rollback_status.message()));
+    }
+    return load_status;
+  }
+  ApplyCurrentProjectRuntimeContext();
+  return absl::OkStatus();
+}
+
+absl::Status EditorManager::SwapProjectRom(const std::string& rom_path) {
+  if (rom_path.empty()) {
+    return absl::InvalidArgumentError("ROM path cannot be empty");
+  }
+  if (!session_coordinator_) {
+    return absl::FailedPreconditionError("No session coordinator");
+  }
+  auto* session = session_coordinator_->GetActiveRomSession();
+  if (!session || !session->rom.is_loaded() ||
+      !current_project_.project_opened()) {
+    return absl::FailedPreconditionError("No active project ROM session");
+  }
+  if (SessionHasPendingRomWork(GetCurrentSessionIndex())) {
+    return absl::FailedPreconditionError(
+        "Save or discard ROM edits before swapping the project ROM");
+  }
+  CaptureActiveProjectEditingState();
+  if (session->project_file_editor_state.initialized &&
+      session->project_file_editor_state.modified &&
+      ProjectFileDraftTargetsCurrentProject()) {
+    return absl::FailedPreconditionError(
+        "Preserve the raw project-file draft before swapping ROMs");
+  }
+
+  RETURN_IF_ERROR(session_coordinator_->CheckBackingFileAvailable(
+      rom_path, session->session_id()));
+  Rom replacement_rom;
+  RETURN_IF_ERROR(rom_file_manager_.LoadRom(&replacement_rom, rom_path));
+  RETURN_IF_ERROR(rom_lifecycle_.CheckRomOpenPolicy(&replacement_rom));
+
+  const std::string old_rom_path = current_project_.rom_filename;
+  current_project_.rom_filename = rom_path;
+  auto save_status = current_project_.Save();
+  if (!save_status.ok()) {
+    current_project_.rom_filename = old_rom_path;
+    return save_status;
+  }
+
+  BindProjectContextToSession(session, current_project_);
+  auto replace_status =
+      ReplaceActiveSessionRom(std::move(replacement_rom), rom_path);
+  if (!replace_status.ok()) {
+    current_project_.rom_filename = old_rom_path;
+    auto rollback_status = current_project_.Save();
+    BindProjectContextToSession(session, current_project_);
+    ApplyCurrentProjectRuntimeContext();
+    if (!rollback_status.ok()) {
+      return absl::InternalError(absl::StrFormat(
+          "ROM swap failed (%s) and restoring the project descriptor failed "
+          "(%s)",
+          replace_status.message(), rollback_status.message()));
+    }
+    return replace_status;
+  }
+  session->project_dirty = false;
+  if (project_management_panel_) {
+    project_management_panel_->SetProjectDirty(false);
+  }
+  RebaseCleanProjectFileDraft(current_project_.filepath);
+  CaptureActiveProjectContext();
+  return absl::OkStatus();
+}
+
+absl::Status EditorManager::ReloadProjectRom() {
+  if (!session_coordinator_) {
+    return absl::FailedPreconditionError("No session coordinator");
+  }
+  auto* session = session_coordinator_->GetActiveRomSession();
+  if (!session || !session->rom.is_loaded() ||
+      !current_project_.project_opened() ||
+      current_project_.rom_filename.empty()) {
+    return absl::FailedPreconditionError("No active project ROM to reload");
+  }
+  if (SessionHasPendingRomWork(GetCurrentSessionIndex())) {
+    return absl::FailedPreconditionError(
+        "Save or discard ROM edits before reloading from disk");
+  }
+
+  RETURN_IF_ERROR(session_coordinator_->CheckBackingFileAvailable(
+      current_project_.rom_filename, session->session_id()));
+  Rom replacement_rom;
+  RETURN_IF_ERROR(rom_file_manager_.LoadRom(&replacement_rom,
+                                            current_project_.rom_filename));
+  RETURN_IF_ERROR(rom_lifecycle_.CheckRomOpenPolicy(&replacement_rom));
+  return ReplaceActiveSessionRom(std::move(replacement_rom),
+                                 current_project_.rom_filename);
 }
 
 absl::Status EditorManager::SaveProject() {
@@ -4639,9 +5236,11 @@ absl::Status EditorManager::SaveProject() {
   if (session_coordinator_) {
     if (auto* session = session_coordinator_->GetActiveRomSession();
         session && session->project_file_editor_state.initialized &&
-        session->project_file_editor_state.modified) {
+        session->project_file_editor_state.modified &&
+        ProjectFileDraftTargetsCurrentProject()) {
       return absl::FailedPreconditionError(
-          "Raw project file also has unsaved changes; save it first");
+          "Raw project file also has unsaved changes; use raw Save As to "
+          "preserve that draft before saving project settings");
     }
   }
   CaptureActiveProjectContext();
@@ -4685,6 +5284,7 @@ absl::Status EditorManager::SaveProject() {
         session->project_dirty = false;
       }
     }
+    RebaseCleanProjectFileDraft(current_project_.filepath);
   }
   CaptureActiveProjectContext();
   return status;
@@ -4725,10 +5325,11 @@ absl::Status EditorManager::SaveActiveProjectEditingWork() {
       session->project_file_editor_state.initialized &&
       session->project_file_editor_state.modified;
 
-  if (project_dirty && project_file_dirty) {
+  if (project_dirty && project_file_dirty &&
+      ProjectFileDraftTargetsCurrentProject()) {
     return absl::FailedPreconditionError(
         "Project settings and raw project file both have unsaved changes; "
-        "save one explicitly before continuing");
+        "use raw Save As to preserve the draft, then save project settings");
   }
 
   if (project_dirty) {
@@ -4749,6 +5350,22 @@ absl::Status EditorManager::SaveActiveProjectEditingWork() {
     session->project_file_editor_state = project_file_editor_.CaptureState();
   }
 
+  return absl::OkStatus();
+}
+
+absl::Status EditorManager::AutosaveActiveSession() {
+  if (!session_coordinator_) {
+    return absl::FailedPreconditionError("No session coordinator");
+  }
+  const size_t session_index = GetCurrentSessionIndex();
+  RETURN_IF_ERROR(SaveActiveProjectEditingWork());
+  if (SessionHasPendingRomWork(session_index)) {
+    RETURN_IF_ERROR(SaveRom());
+  }
+  if (SessionHasPendingUnsavedWork(session_index)) {
+    return absl::FailedPreconditionError(
+        "Autosave left unsaved project or ROM work");
+  }
   return absl::OkStatus();
 }
 
@@ -4775,16 +5392,6 @@ void EditorManager::ResolvePotItemSaveConfirmation(
 }
 
 absl::Status EditorManager::SaveProjectAs() {
-  CaptureActiveProjectEditingState();
-  if (session_coordinator_) {
-    if (auto* session = session_coordinator_->GetActiveRomSession();
-        session && session->project_file_editor_state.initialized &&
-        session->project_file_editor_state.modified) {
-      return absl::FailedPreconditionError(
-          "Raw project file also has unsaved changes; save it first");
-    }
-  }
-  CaptureActiveProjectContext();
   // Get current project name for default filename
   std::string default_name = current_project_.project_opened()
                                  ? current_project_.GetDisplayName()
@@ -4796,10 +5403,33 @@ absl::Status EditorManager::SaveProjectAs() {
     return absl::OkStatus();
   }
 
+  return SaveProjectAs(file_path);
+}
+
+absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
+  if (filepath.empty()) {
+    return absl::InvalidArgumentError("Project file path cannot be empty");
+  }
+  CaptureActiveProjectEditingState();
+  CaptureActiveProjectContext();
+  std::string file_path = filepath;
+
   // Ensure a project extension.
   if (!(absl::EndsWith(file_path, ".yaze") ||
         absl::EndsWith(file_path, ".yazeproj"))) {
     file_path += ".yaze";
+  }
+
+  if (session_coordinator_) {
+    if (auto* session = session_coordinator_->GetActiveRomSession();
+        session && session->project_file_editor_state.initialized &&
+        session->project_file_editor_state.modified &&
+        SessionCoordinator::PathsReferToSameBackingFile(
+            session->project_file_editor_state.filepath, file_path)) {
+      return absl::FailedPreconditionError(
+          "Raw project draft targets the selected file; preserve it with "
+          "raw Save As before overwriting that destination");
+    }
   }
 
   // Update project filepath and save
@@ -4817,6 +5447,7 @@ absl::Status EditorManager::SaveProjectAs() {
       }
     }
     SyncLayoutScopeFromCurrentProject();
+    RebaseCleanProjectFileDraft(file_path);
 
     // Add to recent files
     auto& manager = project::RecentFilesManager::GetInstance();
@@ -5893,6 +6524,9 @@ bool EditorManager::HasDuplicateSession(const std::string& filepath) {
  * - emulator: For accessing emulator functionality (music editor playback)
  */
 void EditorManager::ShowProjectManagement() {
+  // Menu actions can run before the next Update() frame captures drawer
+  // edits. Preserve the panel's current dirty bit before rebinding it.
+  CaptureActiveProjectEditingState();
   if (right_drawer_manager_) {
     // Update project panel context before showing
     if (project_management_panel_) {
@@ -5914,6 +6548,15 @@ void EditorManager::ShowProjectFileEditor() {
 
   // Preserve an existing draft for this session. Only load from disk the first
   // time this session opens the project-file editor.
+  if (session && session->project_file_editor_state.initialized &&
+      !session->project_file_editor_state.modified &&
+      !current_project_.filepath.empty() &&
+      !SessionCoordinator::PathsReferToSameBackingFile(
+          session->project_file_editor_state.filepath,
+          current_project_.filepath)) {
+    RebaseCleanProjectFileDraft(current_project_.filepath);
+  }
+
   if (session && session->project_file_editor_state.initialized) {
     project_file_editor_.RestoreState(session->project_file_editor_state,
                                       &current_project_);

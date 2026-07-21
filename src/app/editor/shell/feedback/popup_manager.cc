@@ -599,8 +599,25 @@ void PopupManager::DrawNewProjectPopup() {
 
   if (Button(absl::StrFormat("%s Create Project", ICON_MD_ADD).c_str(),
              ::yaze::gui::kDefaultModalSize)) {
-    if (!project_filepath.empty() && !project_name.empty()) {
-      auto status = editor_manager_->CreateNewProject();
+    if (!project_filepath.empty() && !project_name.empty() &&
+        !rom_filename.empty()) {
+      auto status = editor_manager_->CreateNewProjectFromRom(
+          "Basic ROM Hack", rom_filename, project_name, project_filepath);
+      if (status.ok()) {
+        auto* project = editor_manager_->GetCurrentProject();
+        if (project) {
+          if (!labels_filename.empty()) {
+            project->labels_filename = labels_filename;
+          }
+          if (!code_folder.empty()) {
+            project->code_folder = code_folder;
+          }
+          if (!labels_filename.empty() || !code_folder.empty()) {
+            editor_manager_->MarkCurrentProjectDirty();
+            status = editor_manager_->SaveProject();
+          }
+        }
+      }
       if (status.ok()) {
         // Clear fields
         project_name = "";
@@ -609,6 +626,8 @@ void PopupManager::DrawNewProjectPopup() {
         labels_filename = "";
         code_folder = "";
         Hide(PopupID::kNewProject);
+      } else {
+        SetStatus(status);
       }
     }
   }

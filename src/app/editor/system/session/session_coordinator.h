@@ -94,6 +94,11 @@ class SessionCoordinator {
   absl::Status CheckBackingFileAvailable(
       const std::string& filepath,
       std::optional<size_t> excluded_session_id = std::nullopt) const;
+  /// Compare filesystem identities after canonicalization, including hard
+  /// links on native platforms. This is also used for project-descriptor
+  /// ownership checks outside the coordinator.
+  static bool PathsReferToSameBackingFile(const std::string& lhs,
+                                          const std::string& rhs);
   bool HasDuplicateSession(const std::string& filepath) const;
 
   // Session UI components
@@ -137,6 +142,9 @@ class SessionCoordinator {
   absl::Status SaveSessionAs(size_t session_index, const std::string& filename);
   absl::StatusOr<RomSession*> CreateSessionFromRom(Rom&& rom,
                                                    const std::string& filepath);
+  // Remove a just-created session after a failed open transaction. Unlike the
+  // user-facing close flow, this may return the coordinator to zero sessions.
+  absl::Status DiscardProvisionalSession(size_t session_id);
 
   // Session cleanup
   void CleanupClosedSessions();

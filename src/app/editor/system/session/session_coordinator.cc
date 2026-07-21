@@ -62,7 +62,8 @@ std::filesystem::path NormalizeBackingFilePath(const std::string& filepath) {
   return path.lexically_normal();
 }
 
-bool RefersToSameBackingFile(const std::string& lhs, const std::string& rhs) {
+bool PathsReferToSameBackingFile(const std::string& lhs,
+                                 const std::string& rhs) {
   if (lhs.empty() || rhs.empty()) {
     return false;
   }
@@ -78,6 +79,11 @@ bool RefersToSameBackingFile(const std::string& lhs, const std::string& rhs) {
 }
 
 }  // namespace
+
+bool SessionCoordinator::PathsReferToSameBackingFile(const std::string& lhs,
+                                                     const std::string& rhs) {
+  return editor::PathsReferToSameBackingFile(lhs, rhs);
+}
 
 SessionCoordinator::SessionCoordinator(WorkspaceWindowManager* window_manager,
                                        ToastManager* toast_manager,
@@ -375,8 +381,8 @@ absl::Status SessionCoordinator::CheckBackingFileAvailable(
     }
 
     const std::string rom_filepath = session->rom.filename();
-    if (RefersToSameBackingFile(filepath, session->filepath) ||
-        RefersToSameBackingFile(filepath, rom_filepath)) {
+    if (PathsReferToSameBackingFile(filepath, session->filepath) ||
+        PathsReferToSameBackingFile(filepath, rom_filepath)) {
       const std::string& owner_path =
           session->filepath.empty() ? rom_filepath : session->filepath;
       return absl::AlreadyExistsError(absl::StrFormat(
@@ -967,6 +973,49 @@ absl::StatusOr<RomSession*> SessionCoordinator::CreateSessionFromRom(
   NotifySessionRomLoaded(new_session_index, session.get());
 
   return session.get();
+}
+
+absl::Status SessionCoordinator::DiscardProvisionalSession(size_t session_id) {
+  auto session_it =
+      std::find_if(sessions_.begin(), sessions_.end(),
+                   [session_id](const std::unique_ptr<RomSession>& session) {
+                     return session && session->session_id() == session_id;
+                   });
+  if (session_it == sessions_.end()) {
+    return absl::NotFoundError(
+        absl::StrFormat("Session %zu is no longer available", session_id));
+  }
+
+  const size_t index =
+      static_cast<size_t>(std::distance(sessions_.begin(), session_it));
+  const bool closing_active_session = index == active_session_index_;
+  if (window_manager_) {
+    window_manager_->UnregisterSession(session_id);
+  }
+  NotifySessionClosed(index);
+  sessions_.erase(session_it);
+  UpdateSessionCount();
+
+  if (sessions_.empty()) {
+    active_session_index_ = 0;
+    NotifySessionSwitched(index, 0, nullptr, /*transient=*/false);
+  } else {
+    if (active_session_index_ >= index && active_session_index_ > 0) {
+      active_session_index_--;
+    }
+    if (window_manager_) {
+      window_manager_->SetActiveSession(GetActiveSessionId());
+    }
+    if (closing_active_session) {
+      NotifySessionSwitched(index, active_session_index_,
+                            sessions_[active_session_index_].get(),
+                            /*transient=*/false);
+    }
+  }
+
+  LOG_WARN("SessionCoordinator",
+           "Discarded provisional session %zu after failed open", session_id);
+  return absl::OkStatus();
 }
 
 void SessionCoordinator::CleanupClosedSessions() {

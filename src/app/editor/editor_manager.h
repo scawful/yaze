@@ -416,9 +416,18 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status OpenRomOrProject(const std::string& filename);
   absl::Status CreateNewProject(
       const std::string& template_name = "Basic ROM Hack");
+  absl::Status CreateNewProjectFromRom(
+      const std::string& template_name, const std::string& rom_path,
+      const std::string& project_name,
+      const std::string& project_path = std::string());
+  absl::Status FinalizeNewProject(
+      const std::string& project_name,
+      const std::string& project_path = std::string());
   absl::Status OpenProject();
   absl::Status SaveProject();
   absl::Status SaveProjectAs();
+  absl::Status SaveProjectAs(const std::string& filepath);
+  absl::Status AutosaveActiveSession();
   absl::Status BuildCurrentProject();
   void QueueBuildCurrentProject();
   void CancelQueuedProjectBuild();
@@ -439,6 +448,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
 
   // Project management
   absl::Status LoadProjectWithRom();
+  absl::Status SwapProjectRom(const std::string& rom_path);
+  absl::Status ReloadProjectRom();
   project::YazeProject* GetCurrentProject() { return &current_project_; }
   const project::YazeProject* GetCurrentProject() const {
     return &current_project_;
@@ -453,6 +464,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // Show project file editor
   void ShowProjectFileEditor();
   ProjectFileEditor* project_file_editor() { return &project_file_editor_; }
+  ProjectManagementPanel* project_management_panel() {
+    return project_management_panel_.get();
+  }
 
  private:
   absl::Status DrawRomSelector() = delete;  // Moved to UICoordinator
@@ -570,6 +584,14 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   gfx::IRenderer* renderer_ = nullptr;
 
   project::YazeProject current_project_;
+  struct PendingProjectRomSelection {
+    std::string previous_path;
+    std::string candidate_path;
+  };
+  std::optional<PendingProjectRomSelection> pending_project_rom_selection_;
+  uint64_t project_rom_selection_generation_ = 0;
+  bool pending_project_open_transition_ = false;
+  std::optional<size_t> pending_project_open_previous_session_id_;
   // current_project_ is a stable-address working copy owned by the active
   // user-facing session. Stable IDs survive UI-index compaction.
   std::optional<size_t> active_project_context_session_id_;
@@ -621,6 +643,17 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   bool RestoreProjectContextForSession(RomSession* session);
   void RestoreProjectEditingStateForSession(RomSession* session);
   absl::Status SaveActiveProjectEditingWork();
+  absl::Status PrepareRawProjectFileSave(const std::string& filepath,
+                                         const std::string& contents);
+  absl::Status CommitRawProjectFileSave(const std::string& filepath,
+                                        const std::string& contents);
+  absl::Status ReplaceActiveSessionRom(Rom&& rom, const std::string& filepath);
+  bool ProjectFileDraftTargetsCurrentProject() const;
+  void RebaseCleanProjectFileDraft(const std::string& filepath);
+  void RestoreProjectContextAfterFailedOpen(
+      std::optional<size_t> previous_session_id);
+  absl::Status DiscardProvisionalSessionCreatedSince(
+      size_t previous_session_count);
   void ApplyCurrentProjectRuntimeContext();
   absl::StatusOr<const project::YazeProject*>
   PrepareActiveProjectContextForSave();
@@ -649,6 +682,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status LoadRomInternal();
   absl::Status OpenRomOrProjectInternal(const std::string& filename);
   absl::Status OpenProjectInternal();
+  absl::Status ValidateProjectRomSelection(const std::string& rom_path);
 
   struct PendingUnsavedSessionAction {
     enum class Type {
