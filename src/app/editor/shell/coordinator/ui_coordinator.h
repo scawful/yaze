@@ -95,6 +95,11 @@ class UICoordinator {
   // Welcome screen and project UI
   void DrawWelcomeScreen();
   void DrawProjectHelp();
+  void OpenNewProjectDialog(
+      const std::string& initial_template = "Vanilla ROM Hack") {
+    new_project_dialog_.Open(initial_template);
+  }
+  bool IsNewProjectDialogOpen() const { return new_project_dialog_.IsOpen(); }
 
   // Window management UI
   void DrawWindowManagementUI();

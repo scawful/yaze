@@ -229,6 +229,17 @@ absl::Status ProjectManager::CreateFromTemplate(
   current_project_ = project::YazeProject();
   current_project_.name = project_name;
   current_project_.filepath = GenerateProjectFilename(project_name);
+  const std::string preset_name =
+      template_name == "Basic ROM Hack" ? "Vanilla ROM Hack" : template_name;
+  const auto zso_templates = GetZsoTemplates();
+  if (std::any_of(zso_templates.begin(), zso_templates.end(),
+                  [&preset_name](const auto& project_template) {
+                    return project_template.name == preset_name;
+                  })) {
+    RETURN_IF_ERROR(ApplyZsoPreset(preset_name));
+  }
+  pending_rom_selection_ = true;
+  pending_template_name_ = template_name;
 
   if (toast_manager_) {
     toast_manager_->Show(
@@ -330,24 +341,62 @@ absl::Status ProjectManager::SetProjectRom(const std::string& rom_path) {
   return absl::OkStatus();
 }
 
-absl::Status ProjectManager::FinalizeProjectCreation(
-    const std::string& project_name, const std::string& project_path) {
+std::string ProjectManager::ResolveProjectCreationPath(
+    const std::string& project_name, const std::string& project_path) const {
+  if (!project_path.empty()) {
+#ifndef __EMSCRIPTEN__
+    const std::filesystem::path requested_path(project_path);
+    std::error_code directory_error;
+    if (requested_path.extension() != ".yazeproj" &&
+        std::filesystem::is_directory(requested_path, directory_error)) {
+      return (requested_path / GenerateProjectFilename(project_name)).string();
+    }
+#endif
+    return project_path;
+  }
+  if (!current_project_.rom_filename.empty()) {
+    return (std::filesystem::path(current_project_.rom_filename).parent_path() /
+            GenerateProjectFilename(project_name))
+        .string();
+  }
+  return GenerateProjectFilename(project_name);
+}
+
+absl::Status ProjectManager::ValidateProjectCreationTarget(
+    const std::string& project_name, const std::string& project_path) const {
   if (project_name.empty()) {
     return absl::InvalidArgumentError("Project name cannot be empty");
   }
 
-  current_project_.name = project_name;
+  const std::string target_filepath =
+      ResolveProjectCreationPath(project_name, project_path);
 
-  if (!project_path.empty()) {
-    current_project_.filepath = project_path;
-  } else if (!current_project_.rom_filename.empty()) {
-    current_project_.filepath =
-        (std::filesystem::path(current_project_.rom_filename).parent_path() /
-         GenerateProjectFilename(project_name))
-            .string();
-  } else {
-    current_project_.filepath = GenerateProjectFilename(project_name);
+#ifndef __EMSCRIPTEN__
+  std::error_code exists_error;
+  const bool target_exists =
+      std::filesystem::exists(target_filepath, exists_error);
+  if (exists_error) {
+    return absl::InternalError(
+        absl::StrFormat("Could not inspect project file %s: %s",
+                        target_filepath, exists_error.message()));
   }
+  if (target_exists) {
+    return absl::AlreadyExistsError(
+        absl::StrFormat("Project file already exists: %s", target_filepath));
+  }
+#endif
+
+  return absl::OkStatus();
+}
+
+absl::Status ProjectManager::FinalizeProjectCreation(
+    const std::string& project_name, const std::string& project_path) {
+  RETURN_IF_ERROR(ValidateProjectCreationTarget(project_name, project_path));
+  const std::string target_filepath =
+      ResolveProjectCreationPath(project_name, project_path);
+
+  current_project_.name = project_name;
+  current_project_.filepath = target_filepath;
 
   // Initialize project structure if we have a directory
   std::string project_dir;
@@ -367,7 +416,7 @@ absl::Status ProjectManager::FinalizeProjectCreation(
 
   // A project is not complete until its descriptor exists on disk. Keep the
   // pending workflow intact on failure so callers can retry or cancel.
-  RETURN_IF_ERROR(current_project_.Save());
+  RETURN_IF_ERROR(current_project_.SaveNew());
 
   pending_rom_selection_ = false;
   pending_template_name_.clear();

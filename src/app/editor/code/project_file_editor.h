@@ -36,6 +36,11 @@ struct ProjectFileEditorState {
  */
 class ProjectFileEditor {
  public:
+  using SaveGuardCallback = std::function<absl::Status(
+      const std::string& filepath, const std::string& contents)>;
+  using SaveCompleteCallback = std::function<absl::Status(
+      const std::string& filepath, const std::string& contents)>;
+
   ProjectFileEditor();
 
   void Draw();
@@ -88,14 +93,20 @@ class ProjectFileEditor {
   void SetToastManager(ToastManager* toast_manager) {
     toast_manager_ = toast_manager;
   }
-  void SetSaveGuardCallback(std::function<absl::Status()> callback) {
+  void SetSaveGuardCallback(SaveGuardCallback callback) {
     save_guard_callback_ = std::move(callback);
   }
+  void SetSaveCompleteCallback(SaveCompleteCallback callback) {
+    save_complete_callback_ = std::move(callback);
+  }
+
+  // New/Open must never discard a modified draft implicitly.
+  absl::Status CanReplaceDocument() const;
 
   /**
    * @brief Create a new empty project file
    */
-  void NewFile();
+  absl::Status NewFile();
 
   /**
    * @brief Set the project pointer for label import operations
@@ -122,7 +133,8 @@ class ProjectFileEditor {
   std::vector<std::string> validation_errors_;
   ToastManager* toast_manager_ = nullptr;
   project::YazeProject* project_ = nullptr;
-  std::function<absl::Status()> save_guard_callback_;
+  SaveGuardCallback save_guard_callback_;
+  SaveCompleteCallback save_complete_callback_;
 };
 
 }  // namespace editor

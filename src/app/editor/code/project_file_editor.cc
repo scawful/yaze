@@ -1,9 +1,13 @@
 #include "app/editor/code/project_file_editor.h"
 #include "util/i18n/tr.h"
 
+#include <atomic>
+#include <chrono>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <system_error>
 
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
@@ -14,13 +18,43 @@
 #include "core/project.h"
 #include "imgui/imgui.h"
 #include "util/file_util.h"
+#include "util/macro.h"
 #include "yaze_config.h"
 
 #ifdef __EMSCRIPTEN__
 #include "app/platform/wasm/wasm_storage.h"
+#elif defined(_WIN32)
+#include <windows.h>
 #endif
 namespace yaze {
 namespace editor {
+
+namespace {
+
+std::filesystem::path MakeRawProjectSaveTempPath(
+    const std::filesystem::path& target_path) {
+  static std::atomic<uint64_t> next_temp_id{0};
+  const auto timestamp =
+      std::chrono::steady_clock::now().time_since_epoch().count();
+  std::filesystem::path temp_path = target_path;
+  temp_path +=
+      ".tmp." + std::to_string(timestamp) + "." +
+      std::to_string(next_temp_id.fetch_add(1, std::memory_order_relaxed));
+  return temp_path;
+}
+
+#ifdef __EMSCRIPTEN__
+std::string ProjectStorageKey(const project::YazeProject* project,
+                              const std::string& filepath) {
+  if (project != nullptr && project->filepath == filepath) {
+    return project->MakeStorageKey("project");
+  }
+  std::string key = std::filesystem::path(filepath).stem().string();
+  return key.empty() ? "project" : key;
+}
+#endif
+
+}  // namespace
 
 ProjectFileEditor::ProjectFileEditor() {
   text_editor_.SetLanguageDefinition(TextEditor::LanguageDefinition::C());
@@ -46,7 +80,10 @@ void ProjectFileEditor::Draw() {
                         ImGuiTableFlags_SizingFixedFit)) {
     ImGui::TableNextColumn();
     if (ImGui::Button(absl::StrFormat("%s New", ICON_MD_NOTE_ADD).c_str())) {
-      NewFile();
+      auto status = NewFile();
+      if (!status.ok() && toast_manager_) {
+        toast_manager_->Show(std::string(status.message()), ToastType::kError);
+      }
     }
 
     ImGui::TableNextColumn();
@@ -198,11 +235,9 @@ void ProjectFileEditor::ResetForProject(project::YazeProject* project) {
 }
 
 absl::Status ProjectFileEditor::LoadFile(const std::string& filepath) {
+  RETURN_IF_ERROR(CanReplaceDocument());
 #ifdef __EMSCRIPTEN__
-  std::string key = std::filesystem::path(filepath).stem().string();
-  if (key.empty()) {
-    key = "project";
-  }
+  const std::string key = ProjectStorageKey(project_, filepath);
   auto storage_or = platform::WasmStorage::LoadProject(key);
   if (storage_or.ok()) {
     text_editor_.SetText(storage_or.value());
@@ -243,28 +278,25 @@ absl::Status ProjectFileEditor::SaveFile() {
 }
 
 absl::Status ProjectFileEditor::SaveFileAs(const std::string& filepath) {
-  if (save_guard_callback_) {
-    auto status = save_guard_callback_();
-    if (!status.ok()) {
-      return status;
-    }
-  }
-
   // Ensure .yaze extension
   std::string final_path = filepath;
   if (!absl::EndsWith(final_path, ".yaze")) {
     final_path += ".yaze";
   }
+  const std::string contents = GetDocumentText();
+
+  if (save_guard_callback_) {
+    RETURN_IF_ERROR(save_guard_callback_(final_path, contents));
+  }
 
 #ifdef __EMSCRIPTEN__
-  std::string key = std::filesystem::path(final_path).stem().string();
-  if (key.empty()) {
-    key = "project";
-  }
-  auto storage_status =
-      platform::WasmStorage::SaveProject(key, GetDocumentText());
+  const std::string key = ProjectStorageKey(project_, final_path);
+  auto storage_status = platform::WasmStorage::SaveProject(key, contents);
   if (!storage_status.ok()) {
     return storage_status;
+  }
+  if (save_complete_callback_) {
+    RETURN_IF_ERROR(save_complete_callback_(final_path, contents));
   }
   filepath_ = final_path;
   initialized_ = true;
@@ -274,14 +306,52 @@ absl::Status ProjectFileEditor::SaveFileAs(const std::string& filepath) {
   recent_mgr.Save();
   return absl::OkStatus();
 #else
-  std::ofstream file(final_path);
+  const std::filesystem::path target_path(final_path);
+  const std::filesystem::path temp_path =
+      MakeRawProjectSaveTempPath(target_path);
+  std::ofstream file(temp_path, std::ios::binary | std::ios::trunc);
   if (!file.is_open()) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Cannot create file: %s", final_path));
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Cannot create temporary project file: %s", temp_path.string()));
   }
 
-  file << GetDocumentText();
+  file.write(contents.data(), static_cast<std::streamsize>(contents.size()));
+  file.flush();
+  if (!file.good()) {
+    file.close();
+    std::error_code remove_error;
+    std::filesystem::remove(temp_path, remove_error);
+    return absl::InternalError(
+        absl::StrFormat("Failed to write project file: %s", final_path));
+  }
   file.close();
+  if (file.fail()) {
+    std::error_code remove_error;
+    std::filesystem::remove(temp_path, remove_error);
+    return absl::InternalError(
+        absl::StrFormat("Failed to close project file: %s", final_path));
+  }
+
+  std::error_code rename_error;
+#if defined(_WIN32)
+  if (!::MoveFileExW(temp_path.c_str(), target_path.c_str(),
+                     MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
+    rename_error = std::error_code(static_cast<int>(::GetLastError()),
+                                   std::system_category());
+  }
+#else
+  std::filesystem::rename(temp_path, target_path, rename_error);
+#endif
+  if (rename_error) {
+    std::error_code remove_error;
+    std::filesystem::remove(temp_path, remove_error);
+    return absl::InternalError(absl::StrFormat(
+        "Failed to replace project file: %s", rename_error.message()));
+  }
+
+  if (save_complete_callback_) {
+    RETURN_IF_ERROR(save_complete_callback_(final_path, contents));
+  }
 
   filepath_ = final_path;
   initialized_ = true;
@@ -296,7 +366,16 @@ absl::Status ProjectFileEditor::SaveFileAs(const std::string& filepath) {
 #endif
 }
 
-void ProjectFileEditor::NewFile() {
+absl::Status ProjectFileEditor::CanReplaceDocument() const {
+  if (initialized_ && modified_) {
+    return absl::FailedPreconditionError(
+        "Project-file draft has unsaved changes; use Save or Save As first");
+  }
+  return absl::OkStatus();
+}
+
+absl::Status ProjectFileEditor::NewFile() {
+  RETURN_IF_ERROR(CanReplaceDocument());
   // Create a template project file
   const std::string template_content = absl::StrFormat(
       R"(# yaze Project File
@@ -420,6 +499,7 @@ last_saved_at=
   initialized_ = true;
   modified_ = true;
   validation_errors_.clear();
+  return absl::OkStatus();
 }
 
 void ProjectFileEditor::ApplySyntaxHighlighting() {

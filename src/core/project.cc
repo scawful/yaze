@@ -1,8 +1,11 @@
 #include "core/project.h"
 
 #include <algorithm>
+#include <atomic>
 #include <cctype>
+#include <cerrno>
 #include <chrono>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -28,6 +31,10 @@
 
 #ifdef __EMSCRIPTEN__
 #include "app/platform/wasm/wasm_storage.h"
+#elif defined(_WIN32)
+#include <windows.h>
+#else
+#include <unistd.h>
 #endif
 
 // #ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
@@ -187,6 +194,95 @@ std::string ResolveOptionalPath(const std::filesystem::path& base_dir,
 std::string BasenameLower(const std::string& path) {
   return ToLowerCopy(std::filesystem::path(path).filename().string());
 }
+
+#ifndef __EMSCRIPTEN__
+uint64_t CurrentProcessIdForProjectSave() {
+#if defined(_WIN32)
+  return static_cast<uint64_t>(::GetCurrentProcessId());
+#else
+  return static_cast<uint64_t>(::getpid());
+#endif
+}
+
+std::filesystem::path MakeProjectSaveTempPath(
+    const std::filesystem::path& target_path) {
+  static std::atomic<uint64_t> next_temp_id{0};
+  std::filesystem::path temp_path = target_path;
+  temp_path +=
+      ".tmp." + std::to_string(CurrentProcessIdForProjectSave()) + "." +
+      std::to_string(next_temp_id.fetch_add(1, std::memory_order_relaxed));
+  return temp_path;
+}
+
+void RemoveProjectSaveTempFile(const std::filesystem::path& temp_path) {
+  std::error_code remove_error;
+  std::filesystem::remove(temp_path, remove_error);
+}
+
+absl::Status WriteProjectFileAtomically(
+    const std::filesystem::path& target_path, const std::string& contents,
+    bool replace_existing) {
+  const std::filesystem::path temp_path = MakeProjectSaveTempPath(target_path);
+  std::ofstream file(temp_path, std::ios::binary | std::ios::trunc);
+  if (!file.is_open()) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Cannot create temporary project file: %s", temp_path.string()));
+  }
+
+  file.write(contents.data(), static_cast<std::streamsize>(contents.size()));
+  file.flush();
+  if (!file.good()) {
+    file.close();
+    RemoveProjectSaveTempFile(temp_path);
+    return absl::InternalError(absl::StrFormat(
+        "Failed to write temporary project file: %s", temp_path.string()));
+  }
+
+  file.close();
+  if (file.fail()) {
+    RemoveProjectSaveTempFile(temp_path);
+    return absl::InternalError(absl::StrFormat(
+        "Failed to close temporary project file: %s", temp_path.string()));
+  }
+
+  std::error_code rename_error;
+#if defined(_WIN32)
+  const DWORD move_flags =
+      MOVEFILE_WRITE_THROUGH |
+      (replace_existing ? MOVEFILE_REPLACE_EXISTING : static_cast<DWORD>(0));
+  if (!::MoveFileExW(temp_path.c_str(), target_path.c_str(), move_flags)) {
+    rename_error = std::error_code(static_cast<int>(::GetLastError()),
+                                   std::system_category());
+  }
+#else
+  if (replace_existing) {
+    std::filesystem::rename(temp_path, target_path, rename_error);
+  } else if (::link(temp_path.c_str(), target_path.c_str()) != 0) {
+    rename_error = std::error_code(errno, std::generic_category());
+  } else {
+    RemoveProjectSaveTempFile(temp_path);
+  }
+#endif
+  if (rename_error) {
+    RemoveProjectSaveTempFile(temp_path);
+    bool target_already_exists = rename_error == std::errc::file_exists;
+#if defined(_WIN32)
+    target_already_exists = target_already_exists ||
+                            rename_error.value() == ERROR_FILE_EXISTS ||
+                            rename_error.value() == ERROR_ALREADY_EXISTS;
+#endif
+    if (!replace_existing && target_already_exists) {
+      return absl::AlreadyExistsError(absl::StrFormat(
+          "Project file already exists: %s", target_path.string()));
+    }
+    return absl::InternalError(
+        absl::StrFormat("Failed to replace project file %s: %s",
+                        target_path.string(), rename_error.message()));
+  }
+
+  return absl::OkStatus();
+}
+#endif
 }  // namespace
 
 std::string RomRoleToString(RomRole role) {
@@ -480,6 +576,41 @@ absl::Status YazeProject::Open(const std::string& project_path) {
 
 absl::Status YazeProject::Save() {
   return SaveToYazeFormat();
+}
+
+absl::Status YazeProject::SaveNew() {
+  return SaveToYazeFormat(false);
+}
+
+absl::Status YazeProject::LoadFromString(const std::string& content,
+                                         const std::string& project_path) {
+  if (project_path.empty()) {
+    return absl::InvalidArgumentError("Project file path cannot be empty");
+  }
+
+  *this = YazeProject();
+
+#ifndef __EMSCRIPTEN__
+  std::error_code ec;
+  const auto absolute_path =
+      std::filesystem::absolute(project_path, ec).lexically_normal();
+  filepath =
+      ec ? std::filesystem::path(project_path).lexically_normal().string()
+         : absolute_path.string();
+#else
+  filepath = project_path;
+#endif
+  format = ProjectFormat::kYazeNative;
+  try {
+    RETURN_IF_ERROR(ParseFromString(content));
+  } catch (const std::exception& error) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Invalid project file value: %s", error.what()));
+  }
+  NormalizePathsToAbsolute();
+  TryLoadZ3dkConfig();
+  TryLoadHackManifest();
+  return absl::OkStatus();
 }
 
 absl::Status YazeProject::SaveAs(const std::string& new_path) {
@@ -1117,7 +1248,7 @@ absl::Status YazeProject::LoadFromYazeFormat(const std::string& project_path) {
   return ParseFromString(buffer.str());
 }
 
-absl::Status YazeProject::SaveToYazeFormat() {
+absl::Status YazeProject::SaveToYazeFormat(bool replace_existing) {
   // Update last modified timestamp
   auto now = std::chrono::system_clock::now();
   auto time_t = std::chrono::system_clock::to_time_t(now);
@@ -1135,6 +1266,7 @@ absl::Status YazeProject::SaveToYazeFormat() {
   ASSIGN_OR_RETURN(auto serialized, SerializeToString());
 
 #ifdef __EMSCRIPTEN__
+  (void)replace_existing;
   auto storage_status =
       platform::WasmStorage::SaveProject(MakeStorageKey("project"), serialized);
   if (!storage_status.ok()) {
@@ -1142,13 +1274,8 @@ absl::Status YazeProject::SaveToYazeFormat() {
   }
 #else
   if (!filepath.empty()) {
-    std::ofstream file(filepath);
-    if (!file.is_open()) {
-      return absl::InvalidArgumentError(
-          absl::StrFormat("Cannot create project file: %s", filepath));
-    }
-    file << serialized;
-    file.close();
+    RETURN_IF_ERROR(
+        WriteProjectFileAtomically(filepath, serialized, replace_existing));
   }
 #endif
 

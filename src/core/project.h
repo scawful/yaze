@@ -275,7 +275,15 @@ struct YazeProject {
   absl::Status Create(const std::string& project_name,
                       const std::string& base_path);
   absl::Status Open(const std::string& project_path);
+  // Parse an in-memory native project descriptor as if it lived at
+  // `project_path`. Used by the raw project editor to validate and adopt a
+  // draft before it replaces the active descriptor on disk.
+  absl::Status LoadFromString(const std::string& content,
+                              const std::string& project_path);
   absl::Status Save();
+  // Create a new descriptor without replacing a file that appeared after the
+  // caller's preflight check.
+  absl::Status SaveNew();
   absl::Status SaveAs(const std::string& new_path);
   absl::Status ImportZScreamProject(const std::string& zscream_project_path);
   absl::Status ExportForZScream(const std::string& target_path);
@@ -341,7 +349,7 @@ struct YazeProject {
   absl::StatusOr<std::string> SerializeToString() const;
   absl::Status ParseFromString(const std::string& content);
   absl::Status LoadFromYazeFormat(const std::string& project_path);
-  absl::Status SaveToYazeFormat();
+  absl::Status SaveToYazeFormat(bool replace_existing = true);
   absl::Status ImportFromZScreamFormat(const std::string& project_path);
 
 #ifdef YAZE_ENABLE_JSON_PROJECT_FORMAT
