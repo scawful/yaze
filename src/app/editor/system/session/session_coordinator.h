@@ -64,6 +64,7 @@ class SessionCoordinator {
   // Session lifecycle management
   void CreateNewSession();
   void DuplicateCurrentSession();
+  void RequestCloseCurrentSession();
   void CloseCurrentSession();
   void CloseSession(size_t index);
   void RemoveSession(size_t index);
