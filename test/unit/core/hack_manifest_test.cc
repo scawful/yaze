@@ -79,6 +79,9 @@ void ExpectManifestLoadFailure(const std::string& json,
   EXPECT_FALSE(status.ok());
   EXPECT_FALSE(manifest.loaded());
   EXPECT_FALSE(manifest.HasDungeonStreamLayouts());
+  EXPECT_TRUE(manifest.protected_regions().empty());
+  EXPECT_TRUE(manifest.editor_managed_regions().empty());
+  EXPECT_FALSE(manifest.IsEditorManaged(0x228880));
   EXPECT_NE(std::string(status.message()).find(message_fragment),
             std::string::npos)
       << status;
@@ -153,7 +156,7 @@ TEST(HackManifestTest, LoadsAndClassifiesAddresses) {
   EXPECT_EQ(manifest.ClassifyAddress(0x808000), AddressOwnership::kHookPatched);
   EXPECT_EQ(manifest.ClassifyAddress(0x81CC14), AddressOwnership::kHookPatched);
 
-  // Bank ownership has priority over protected regions.
+  // Whole-bank ownership applies when no more-specific rule exists.
   EXPECT_EQ(manifest.ClassifyAddress(0x1E8000), AddressOwnership::kAsmOwned);
   EXPECT_FALSE(manifest.IsWriteOverwritten(0x20AF20));  // shared bank
   EXPECT_TRUE(manifest.IsWriteOverwritten(0x1E8000));   // asm owned
@@ -202,6 +205,221 @@ TEST(HackManifestTest, LoadsAndClassifiesAddresses) {
     saw_pc_hook_patched |= (c.ownership == AddressOwnership::kHookPatched);
   }
   EXPECT_TRUE(saw_pc_hook_patched);
+}
+
+TEST(HackManifestTest,
+     EditorManagedRegionsSplitOwnedWritesAndKeepProtectedHooksBlocked) {
+  constexpr const char* kJson = R"json(
+{
+  "manifest_version": 3,
+  "protected_regions": {
+    "regions": [
+      {"start":"0x228880","end":"0x228890","module":"CriticalHook"}
+    ]
+  },
+  "editor_managed_regions": {
+    "regions": [
+      {"start":"0x228800","end":"0x228900"},
+      {"start":"0x07F61D","end":"0x07F86D"}
+    ]
+  },
+  "owned_banks": {
+    "banks": [
+      {"bank":"0x22","bank_start":"0x228000","bank_end":"0x22FFFF","ownership":"asm_owned","ownership_note":"Bank 22 ASM"}
+    ]
+  }
+}
+)json";
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadFromString(kJson).ok());
+  ASSERT_EQ(manifest.editor_managed_regions().size(), 2u);
+
+  // Exact [start, end) boundaries and FastROM mirrors classify identically.
+  EXPECT_EQ(manifest.ClassifyAddress(0x2287FF), AddressOwnership::kAsmOwned);
+  EXPECT_EQ(manifest.ClassifyAddress(0x228800), AddressOwnership::kVanillaSafe);
+  EXPECT_EQ(manifest.ClassifyAddress(0xA28800), AddressOwnership::kVanillaSafe);
+  EXPECT_EQ(manifest.ClassifyAddress(0x2288FF), AddressOwnership::kVanillaSafe);
+  EXPECT_EQ(manifest.ClassifyAddress(0x228900), AddressOwnership::kAsmOwned);
+  EXPECT_TRUE(manifest.IsEditorManaged(0x228800));
+  EXPECT_FALSE(manifest.IsWriteOverwritten(0x228800));
+
+  // An explicit hook remains blocked even inside the editor-managed region.
+  EXPECT_TRUE(manifest.IsEditorManaged(0x228880));
+  EXPECT_TRUE(manifest.IsProtected(0x228880));
+  EXPECT_EQ(manifest.ClassifyAddress(0x228880), AddressOwnership::kHookPatched);
+  EXPECT_TRUE(manifest.IsWriteOverwritten(0x228880));
+
+  const auto conflicts = manifest.AnalyzeWriteRanges({{0x2287F0, 0x228910}});
+  ASSERT_EQ(conflicts.size(), 3u);
+  EXPECT_EQ(conflicts[0].address, 0x2287F0u);
+  EXPECT_EQ(conflicts[0].ownership, AddressOwnership::kAsmOwned);
+  EXPECT_EQ(conflicts[0].module, "Bank 22 ASM");
+  EXPECT_EQ(conflicts[1].address, 0x228880u);
+  EXPECT_EQ(conflicts[1].ownership, AddressOwnership::kHookPatched);
+  EXPECT_EQ(conflicts[1].module, "CriticalHook");
+  EXPECT_EQ(conflicts[2].address, 0x228900u);
+  EXPECT_EQ(conflicts[2].ownership, AddressOwnership::kAsmOwned);
+
+  const uint32_t pc_start = SnesToPc(0x2287F0);
+  const uint32_t pc_end = SnesToPc(0x228910);
+  const auto pc_conflicts = manifest.AnalyzePcWriteRanges({{pc_start, pc_end}});
+  ASSERT_EQ(pc_conflicts.size(), conflicts.size());
+  for (size_t index = 0; index < conflicts.size(); ++index) {
+    EXPECT_EQ(pc_conflicts[index].address, conflicts[index].address);
+    EXPECT_EQ(pc_conflicts[index].ownership, conflicts[index].ownership);
+    EXPECT_EQ(pc_conflicts[index].module, conflicts[index].module);
+  }
+
+  EXPECT_TRUE(manifest.AnalyzeWriteRanges({{0x228800, 0x228880}}).empty());
+  EXPECT_TRUE(
+      manifest.AnalyzePcWriteRanges({{SnesToPc(0x228800), SnesToPc(0x228880)}})
+          .empty());
+}
+
+TEST(HackManifestTest, EditorManagedRegionsAllowAdjacentNormalizedRanges) {
+  constexpr const char* kJson = R"json(
+{
+  "manifest_version": 3,
+  "editor_managed_regions": {
+    "regions": [
+      {"start":"0x228100","end":"0x228180"},
+      {"start":"0xA28180","end":"0xA28200"}
+    ]
+  },
+  "owned_banks": {
+    "banks": [
+      {"bank":"0x22","bank_start":"0x228000","bank_end":"0x22FFFF","ownership":"asm_owned"}
+    ]
+  }
+}
+)json";
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadFromString(kJson).ok());
+  EXPECT_TRUE(manifest.IsEditorManaged(0x22817F));
+  EXPECT_TRUE(manifest.IsEditorManaged(0x228180));
+  EXPECT_FALSE(manifest.IsEditorManaged(0x228200));
+  EXPECT_TRUE(manifest.AnalyzeWriteRanges({{0x228100, 0x228200}}).empty());
+
+  ASSERT_TRUE(
+      manifest.LoadFromString(R"json({"manifest_version":3})json").ok());
+  EXPECT_TRUE(manifest.editor_managed_regions().empty());
+  EXPECT_FALSE(manifest.IsEditorManaged(0x228180));
+}
+
+TEST(HackManifestTest, RejectsMalformedEditorManagedRegions) {
+  const std::pair<const char*, const char*> invalid_manifests[] = {
+      {R"json({"manifest_version":2,"editor_managed_regions":{"regions":[{"start":"0x228100","end":"0x228200"}]}})json",
+       "requires manifest_version 3"},
+      {R"json({"manifest_version":"3","editor_managed_regions":{"regions":[{"start":"0x228100","end":"0x228200"}]}})json",
+       "manifest_version must be"},
+      {R"json({"manifest_version":3,"editor_managed_regions":[]})json",
+       "must be a non-empty object"},
+      {R"json({"manifest_version":3,"editor_managed_regions":{}})json",
+       "must be a non-empty object"},
+      {R"json({"manifest_version":3,"editor_managed_regions":{"regions":[]}})json",
+       "regions must be a non-empty array"},
+      {R"json({"manifest_version":3,"editor_managed_regions":{"regions":[{"start":2261248,"end":"0x228200"}]}})json",
+       "start must be a hexadecimal string"},
+      {R"json({"manifest_version":3,"editor_managed_regions":{"regions":[{"start":"0x220100","end":"0x228200"}]}})json",
+       "must be a mapped LoROM address"},
+      {R"json({"manifest_version":3,"editor_managed_regions":{"regions":[{"start":"0x228200","end":"0x228100"}]}})json",
+       "end > start"},
+      {R"json({"manifest_version":3,"editor_managed_regions":{"regions":[{"start":"0x228100","end":"0x228200"},{"start":"0x228180","end":"0x228280"}]}})json",
+       "regions overlap"},
+      {R"json({"manifest_version":3,"editor_managed_regions":{"regions":[{"start":"0x228100","end":"0x228200"},{"start":"0xA28180","end":"0xA28280"}]}})json",
+       "regions overlap"},
+  };
+
+  for (const auto& [json, message] : invalid_manifests) {
+    SCOPED_TRACE(json);
+    ExpectManifestLoadFailure(json, message);
+  }
+}
+
+TEST(HackManifestTest,
+     RejectsMalformedProtectedRegionsBeforeActivatingEditorExemption) {
+  const std::pair<const char*, const char*> invalid_manifests[] = {
+      {R"json({"manifest_version":3,"protected_regions":[],"editor_managed_regions":{"regions":[{"start":"0x228800","end":"0x228900"}]}})json",
+       "protected_regions must be an object"},
+      {R"json({"manifest_version":3,"protected_regions":{"regions":{}},"editor_managed_regions":{"regions":[{"start":"0x228800","end":"0x228900"}]}})json",
+       "protected_regions.regions must be an array"},
+      {R"json({"manifest_version":3,"protected_regions":{"regions":["not-an-object"]},"editor_managed_regions":{"regions":[{"start":"0x228800","end":"0x228900"}]}})json",
+       "protected_regions.regions[0] must be an object"},
+      {R"json({"manifest_version":3,"protected_regions":{"regions":[{"end":"0x228890"}]},"editor_managed_regions":{"regions":[{"start":"0x228800","end":"0x228900"}]}})json",
+       "protected_regions.regions[0].start is required"},
+      {R"json({"manifest_version":3,"protected_regions":{"regions":[{"start":"0x228880"}]},"editor_managed_regions":{"regions":[{"start":"0x228800","end":"0x228900"}]}})json",
+       "protected_regions.regions[0].end is required"},
+      {R"json({"manifest_version":3,"protected_regions":{"regions":[{"start":2263168,"end":"0x228890"}]},"editor_managed_regions":{"regions":[{"start":"0x228800","end":"0x228900"}]}})json",
+       "start must be a hexadecimal string"},
+      {R"json({"manifest_version":3,"protected_regions":{"regions":[{"start":"0x228890","end":"0x228880"}]},"editor_managed_regions":{"regions":[{"start":"0x228800","end":"0x228900"}]}})json",
+       "end > start"},
+      {R"json({"manifest_version":3,"protected_regions":{"regions":[{"start":"0x220100","end":"0x228880"}]},"editor_managed_regions":{"regions":[{"start":"0x228800","end":"0x228900"}]}})json",
+       "must be a mapped LoROM address"},
+      {R"json({"manifest_version":2,"protected_regions":{"regions":[{"start":"0x1E7F21"}]}})json",
+       "protected_regions.regions[0].end is required"},
+  };
+
+  for (const auto& [json, message] : invalid_manifests) {
+    SCOPED_TRACE(json);
+    ExpectManifestLoadFailure(json, message);
+  }
+}
+
+TEST(HackManifestTest, LegacyProtectedRegionAllowsOracleLowHalfAddress) {
+  constexpr const char* kJson = R"json(
+{
+  "manifest_version": 2,
+  "protected_regions": {
+    "total_hooks": 1,
+    "regions": [
+      {"start":"0x1E7F21","end":"0x1E7F25","hook_count":1,"module":"Sprites"}
+    ]
+  }
+}
+)json";
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadFromString(kJson).ok());
+  ASSERT_TRUE(manifest.loaded());
+  ASSERT_EQ(manifest.protected_regions().size(), 1u);
+  EXPECT_TRUE(manifest.IsProtected(0x1E7F21));
+  EXPECT_EQ(manifest.protected_regions()[0].module, "Sprites");
+}
+
+TEST(HackManifestTest, ProtectedRegionsAllowOverlapAndPreserveMetadata) {
+  constexpr const char* kJson = R"json(
+{
+  "manifest_version": 3,
+  "protected_regions": {
+    "total_hooks": 3,
+    "regions": [
+      {"start":"0x228870","end":"0x2288A0","hook_count":2,"module":"OuterHooks"},
+      {"start":"0x228880","end":"0x228890","hook_count":1,"module":"CriticalHook"}
+    ]
+  }
+}
+)json";
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadFromString(kJson).ok());
+  ASSERT_TRUE(manifest.loaded());
+  ASSERT_EQ(manifest.protected_regions().size(), 2u);
+  EXPECT_EQ(manifest.total_hooks(), 3);
+  EXPECT_EQ(manifest.protected_regions()[0].module, "OuterHooks");
+  EXPECT_EQ(manifest.protected_regions()[0].hook_count, 2);
+  EXPECT_EQ(manifest.protected_regions()[1].module, "CriticalHook");
+  EXPECT_EQ(manifest.protected_regions()[1].hook_count, 1);
+
+  const auto conflicts = manifest.AnalyzeWriteRanges({{0x228875, 0x228895}});
+  ASSERT_EQ(conflicts.size(), 3u);
+  EXPECT_EQ(conflicts[0].address, 0x228875u);
+  EXPECT_EQ(conflicts[0].module, "OuterHooks");
+  EXPECT_EQ(conflicts[1].address, 0x228880u);
+  EXPECT_EQ(conflicts[1].module, "CriticalHook");
+  EXPECT_EQ(conflicts[2].address, 0x228890u);
+  EXPECT_EQ(conflicts[2].module, "OuterHooks");
 }
 
 TEST(HackManifestTest, ReloadClearsPreviousState) {
