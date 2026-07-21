@@ -185,6 +185,13 @@ std::pair<int, int> ObjectGeometry::ResolveAnchor(int16_t object_id,
 
 absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureRoutine(
     const DrawRoutineInfo& routine, const RoomObject& object) const {
+  return MeasureRoutineForState(routine, object,
+                                SelectMeasurementState(routine));
+}
+
+absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureRoutineForState(
+    const DrawRoutineInfo& routine, const RoomObject& object,
+    const DungeonState* state) const {
   // Anchor object so routines that move upward or leftward stay within bounds.
   RoomObject adjusted = object;
   const AnchorPos anchor = ChooseAnchor(routine, object);
@@ -201,7 +208,7 @@ absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureRoutine(
       .target_bg = bg,
       .object = adjusted,
       .tiles = std::span<const gfx::TileInfo>(kTiles.data(), kTiles.size()),
-      .state = SelectMeasurementState(routine),
+      .state = state,
       .rom = nullptr,
       .room_id = 0,
       .room_gfx_buffer = nullptr,
@@ -266,6 +273,28 @@ absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureByObjectId(
     cache_[key] = *result;
   }
   return result;
+}
+
+absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureByObjectIdForState(
+    const RoomObject& object, const DungeonState* state) const {
+  const int routine_id =
+      DrawRoutineRegistry::Get().GetRoutineIdForObject(object.id_);
+  if (routine_id < 0) {
+    return absl::NotFoundError(
+        absl::StrFormat("No routine mapping for object 0x%03X", object.id_));
+  }
+
+  const DrawRoutineInfo* routine = LookupRoutine(routine_id);
+  if (routine == nullptr) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Unknown routine id %d", routine_id));
+  }
+
+  auto bounds = MeasureRoutineForState(*routine, object, state);
+  if (!bounds.ok()) {
+    return bounds;
+  }
+  return ApplySelectionBounds(*bounds, routine_id);
 }
 
 void ObjectGeometry::ClearCache() {
