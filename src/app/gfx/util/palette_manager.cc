@@ -17,6 +17,13 @@ void PaletteManager::Initialize(zelda3::GameData* game_data) {
     return;
   }
 
+  // Editors are loaded lazily and may share the same GameData instance. Do not
+  // discard another editor's pending palette edits when it initializes the
+  // already-bound manager.
+  if (IsManaging(game_data)) {
+    return;
+  }
+
   game_data_ = game_data;
   rom_ = game_data->rom();
 
@@ -51,6 +58,11 @@ void PaletteManager::Initialize(zelda3::GameData* game_data) {
   modified_colors_.clear();
   save_transaction_snapshot_.reset();
   ClearHistory();
+}
+
+bool PaletteManager::IsManaging(const zelda3::GameData* game_data) const {
+  return game_data != nullptr && game_data_ == game_data &&
+         rom_ == game_data->rom();
 }
 
 void PaletteManager::Initialize(Rom* rom) {
