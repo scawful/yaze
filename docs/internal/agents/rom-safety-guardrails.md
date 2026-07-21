@@ -55,6 +55,8 @@ Fail-closed checks include:
 - Corrupted water-fill header (`ORACLE_WATER_FILL_HEADER_CORRUPT`)
 - Invalid/overlapping collision pointers (`ORACLE_COLLISION_POINTER_INVALID`)
 - Invalid water-fill table state (`ORACLE_WATER_FILL_TABLE_INVALID`)
+- Missing required runtime WaterFill entries
+  (`ORACLE_REQUIRED_WATER_FILL_ROOM_MISSING`)
 
 For CLI imports, preflight details are included in `--report` output under
 `preflight` (`ok` + structured `errors[]`).
@@ -94,16 +96,16 @@ Single z3ed command that runs all three Oracle subsystem checks in one pass.
 
 ```bash
 # Default mode: structural checks only (fast, safe to run in CI)
-z3ed oracle-smoke-check --rom path/to/oos168.sfc --format=json
+z3ed oracle-smoke-check --rom path/to/oos168x.sfc --format=json
 
 # Strict-readiness mode: also fail when D4/D3 rooms lack authored collision
-z3ed oracle-smoke-check --rom path/to/oos168.sfc --strict-readiness --format=json
+z3ed oracle-smoke-check --rom path/to/oos168x.sfc --strict-readiness --format=json
 
 # D6 regression gate: require all 4 rooms to have track rail objects
-z3ed oracle-smoke-check --rom path/to/oos168.sfc --min-d6-track-rooms=4 --format=json
+z3ed oracle-smoke-check --rom path/to/oos168x.sfc --min-d6-track-rooms=4 --format=json
 
 # With JSON report file
-z3ed oracle-smoke-check --rom path/to/oos168.sfc --report /tmp/smoke.json
+z3ed oracle-smoke-check --rom path/to/oos168x.sfc --report /tmp/smoke.json
 ```
 
 Output contract:
@@ -113,7 +115,8 @@ Output contract:
 | `ok` | yes | true iff exit=0 |
 | `status` | yes | `"pass"` or `"fail"` |
 | `strict_readiness` | yes | flag state |
-| `checks.d4_zora_temple.structural_ok` | yes | water-fill region/table valid |
+| `checks.d4_zora_temple.structural_ok` | yes | water-fill region/table valid and rooms 0x25/0x27 present |
+| `checks.d4_zora_temple.water_fill_rooms_ok` | yes | runtime WaterFill table contains rooms 0x25 and 0x27 |
 | `checks.d4_zora_temple.required_rooms_check` | yes | `"ran"` or `"skipped"` |
 | `checks.d4_zora_temple.required_rooms_ok` | only when `"ran"` | rooms 0x25/0x27 have collision |
 | `checks.d6_goron_mines.ok` | yes | minecart audit ran on 0xA8/0xB8/0xD8/0xDA |
@@ -133,8 +136,12 @@ Exit codes:
 - `1` — structural failure, or (in `--strict-readiness`) readiness gap on an expanded ROM
 
 **Shell wrapper** (`scripts/oracle_smoke.sh`) differs from the C++ command in two ways:
-1. It does not support `--strict-readiness`; D4/D3 readiness gaps are always informational.
+1. It does not support `--strict-readiness`; D4/D3 collision readiness remains
+   informational. D4 WaterFill membership is structural in both commands.
 2. It defaults to `scripts/z3ed` rather than the system PATH z3ed.
+Focused shell preflights pass `--skip-collision-maps` and consume their explicit
+JSON booleans (`required_water_fill_rooms_ok` / `required_rooms_ok`) rather than
+aggregate command status. Missing or malformed focused fields fail closed.
 Use the C++ command (`z3ed oracle-smoke-check`) for consistent semantics in CI.
 
 ## CI Gate (`.github/workflows/ci.yml` — `oracle-smoke-check` job)
@@ -144,7 +151,8 @@ The `oracle-smoke-check` CI job runs on both **pull requests** and **push** to
 repos), the ROM-dependent steps are individually skipped and the job **completes
 successfully** — it does not fail on missing ROM. To enable the full smoke:
 
-1. Add a repository secret `ORACLE_ROM_URL` pointing to a downloadable `oos168.sfc` URL
+1. Add a repository secret `ORACLE_ROM_URL` pointing to a downloadable patched
+   `oos168x.sfc` URL
    (e.g., a GitHub Release asset from the `oracle-of-secrets` repo).
 2. The job downloads the ROM, configures CMake (`cmake --preset ci-macos`), builds z3ed,
    and runs two checks:
@@ -163,6 +171,7 @@ Without that setting the check is advisory.
 
 **Structural check fails when**:
 - The Oracle ROM's water-fill region or table is structurally invalid
+- The runtime WaterFill table omits D4 room 0x25 or 0x27
 - Fewer than 4 D6 rooms have track rail objects
 
 **Informational only**: D4/D3 readiness gaps (rooms lack authored collision) surface in the
@@ -235,15 +244,16 @@ Current smoke semantics:
 
 - Exit `0`: structural checks pass (ROM is safe for workflow development)
 - Exit `1`: structural preflight failure or missing required `z3ed` subcommand
-- D4 required-room and D3 required-room readiness are informational fields in
-  JSON output (`required_rooms_ok` / `ok`), not exit-code failures
+- D4 WaterFill table membership is structural; D4/D3 collision readiness
+  remains informational in JSON output (`required_rooms_ok` / `ok`)
 
 ### 3) Run focused subsystem checks
 
 D4 Zora Temple (water gate/dam/drain):
 
-- Structural: `./scripts/z3ed dungeon-oracle-preflight --rom roms/oos168.sfc --format=json`
-- Required rooms: `./scripts/z3ed dungeon-oracle-preflight --rom roms/oos168.sfc --required-collision-rooms=0x25,0x27 --format=json`
+- Structural: `./scripts/z3ed dungeon-oracle-preflight --rom roms/oos168x.sfc --format=json`
+- Required runtime WaterFill rooms: `./scripts/z3ed dungeon-oracle-preflight --rom roms/oos168x.sfc --required-water-fill-rooms=0x25,0x27 --format=json`
+- Optional authored collision readiness: `./scripts/z3ed dungeon-oracle-preflight --rom roms/oos168.sfc --required-collision-rooms=0x25,0x27 --format=json`
 
 D6 Goron Mines (minecart):
 

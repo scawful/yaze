@@ -1,9 +1,11 @@
 #include "core/hack_manifest.h"
 
 #include <algorithm>
+#include <array>
 #include <cctype>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <limits>
 #include <sstream>
 #include <utility>
@@ -95,6 +97,539 @@ uint32_t NormalizeSnesAddress(uint32_t address) {
   return address;
 }
 
+constexpr uint64_t kCanonicalLoRomSize = 0x400000;
+
+const char* DungeonStreamTypeToString(DungeonStreamType stream) {
+  switch (stream) {
+    case DungeonStreamType::kObjects:
+      return "objects";
+    case DungeonStreamType::kSprites:
+      return "sprites";
+    case DungeonStreamType::kPotItems:
+      return "pot_items";
+  }
+  return "unknown";
+}
+
+absl::StatusOr<uint32_t> ParseStrictHexValue(const Json& value,
+                                             const std::string& field,
+                                             uint32_t maximum) {
+  if (!value.is_string()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s must be a hexadecimal string", field));
+  }
+
+  const std::string input = value.get<std::string>();
+  size_t digits_begin = 0;
+  if (!input.empty() && input.front() == '$') {
+    digits_begin = 1;
+  } else if (input.size() >= 2 && input[0] == '0' &&
+             (input[1] == 'x' || input[1] == 'X')) {
+    digits_begin = 2;
+  }
+  if (digits_begin == input.size()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s has no hexadecimal digits", field));
+  }
+  for (size_t index = digits_begin; index < input.size(); ++index) {
+    if (!std::isxdigit(static_cast<unsigned char>(input[index]))) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s contains an invalid hexadecimal value '%s'", field, input));
+    }
+  }
+
+  try {
+    const uint64_t parsed =
+        std::stoull(input.substr(digits_begin), nullptr, 16);
+    if (parsed > maximum) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("%s value '%s' exceeds 0x%X", field, input, maximum));
+    }
+    return static_cast<uint32_t>(parsed);
+  } catch (const std::exception& exc) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Invalid hexadecimal value for %s ('%s'): %s", field,
+                        input, exc.what()));
+  }
+}
+
+absl::StatusOr<int> ParseManifestVersion(const Json& root) {
+  if (!root.contains("manifest_version")) {
+    return 0;
+  }
+
+  const Json& value = root["manifest_version"];
+  uint64_t version = 0;
+  if (value.is_number_unsigned()) {
+    version = value.get<uint64_t>();
+  } else if (value.is_number_integer()) {
+    const int64_t signed_version = value.get<int64_t>();
+    if (signed_version < 0) {
+      return absl::InvalidArgumentError(
+          "manifest_version must be a non-negative integer");
+    }
+    version = static_cast<uint64_t>(signed_version);
+  } else {
+    return absl::InvalidArgumentError(
+        "manifest_version must be a non-negative integer");
+  }
+
+  if (version > static_cast<uint64_t>(std::numeric_limits<int>::max())) {
+    return absl::InvalidArgumentError("manifest_version is too large");
+  }
+  return static_cast<int>(version);
+}
+
+absl::StatusOr<uint32_t> ParseLoRomAddress(const Json& object,
+                                           const std::string& key,
+                                           const std::string& path) {
+  if (!object.contains(key)) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s.%s is required", path, key));
+  }
+
+  uint32_t address = 0;
+  ASSIGN_OR_RETURN(address, ParseStrictHexValue(object[key], path + "." + key,
+                                                /*maximum=*/0xFFFFFF));
+  address = NormalizeSnesAddress(address);
+  const uint8_t bank = static_cast<uint8_t>((address >> 16) & 0xFF);
+  if (bank == 0x7E || bank == 0x7F) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s.%s must not use SNES WRAM bank 0x%02X", path, key, bank));
+  }
+  if ((address & 0xFFFF) < 0x8000) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s.%s must be a mapped LoROM address (low word >= 0x8000)", path,
+        key));
+  }
+  if (NormalizeSnesAddress(PcToSnes(SnesToPc(address))) != address) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s.%s is not convertible to a canonical LoROM address", path, key));
+  }
+  return address;
+}
+
+absl::StatusOr<uint32_t> ParsePointerCount(const Json& object,
+                                           const std::string& path) {
+  constexpr const char* kField = "pointer_count";
+  constexpr uint32_t kMaxDungeonPointerCount = 296;
+  if (!object.contains(kField)) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s.%s is required", path, kField));
+  }
+
+  const Json& value = object[kField];
+  uint64_t count = 0;
+  if (value.is_number_unsigned()) {
+    count = value.get<uint64_t>();
+  } else if (value.is_number_integer()) {
+    const int64_t signed_count = value.get<int64_t>();
+    if (signed_count <= 0) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("%s.%s must be greater than zero", path, kField));
+    }
+    count = static_cast<uint64_t>(signed_count);
+  } else {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s.%s must be an integer", path, kField));
+  }
+
+  if (count == 0 || count > kMaxDungeonPointerCount) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s.%s must be in [1, %u]", path, kField, kMaxDungeonPointerCount));
+  }
+  return static_cast<uint32_t>(count);
+}
+
+absl::StatusOr<DungeonPointerEncoding> ParsePointerEncoding(
+    const Json& object, const std::string& path) {
+  constexpr const char* kField = "pointer_encoding";
+  if (!object.contains(kField) || !object[kField].is_string()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s.%s must be 'long24' or 'bank16'", path, kField));
+  }
+  const std::string value = object[kField].get<std::string>();
+  if (value == "long24") {
+    return DungeonPointerEncoding::kLong24;
+  }
+  if (value == "bank16") {
+    return DungeonPointerEncoding::kBank16;
+  }
+  return absl::InvalidArgumentError(
+      absl::StrFormat("%s.%s has unknown encoding '%s'", path, kField, value));
+}
+
+absl::StatusOr<DungeonWriteStrategy> ParseWriteStrategy(
+    const Json& object, const std::string& path) {
+  constexpr const char* kField = "strategy";
+  if (!object.contains(kField) || !object[kField].is_string()) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s.%s must be 'copy_on_write' or 'repack_all'", path, kField));
+  }
+  const std::string value = object[kField].get<std::string>();
+  if (value == "copy_on_write") {
+    return DungeonWriteStrategy::kCopyOnWrite;
+  }
+  if (value == "repack_all") {
+    return DungeonWriteStrategy::kRepackAll;
+  }
+  return absl::InvalidArgumentError(
+      absl::StrFormat("%s.%s has unknown strategy '%s'", path, kField, value));
+}
+
+struct NamedPcRange {
+  uint32_t start;
+  uint32_t end;
+  std::string name;
+};
+
+absl::Status ValidateDisjointRanges(std::vector<NamedPcRange> ranges,
+                                    const std::string& description) {
+  std::sort(ranges.begin(), ranges.end(),
+            [](const NamedPcRange& lhs, const NamedPcRange& rhs) {
+              return lhs.start < rhs.start ||
+                     (lhs.start == rhs.start && lhs.end < rhs.end);
+            });
+  if (ranges.empty()) {
+    return absl::OkStatus();
+  }
+
+  NamedPcRange active = ranges.front();
+  for (size_t index = 1; index < ranges.size(); ++index) {
+    const NamedPcRange& current = ranges[index];
+    if (current.start < active.end) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("%s overlap: %s conflicts with %s", description,
+                          current.name, active.name));
+    }
+    if (current.end > active.end) {
+      active = current;
+    }
+  }
+  return absl::OkStatus();
+}
+
+absl::StatusOr<std::vector<SnesAddressRange>> ParseAddressRanges(
+    const Json& object, const std::string& key, const std::string& path) {
+  const std::string field_path = path + "." + key;
+  if (!object.contains(key) || !object[key].is_array() || object[key].empty()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s must be a non-empty array", field_path));
+  }
+
+  std::vector<SnesAddressRange> ranges;
+  std::vector<NamedPcRange> pc_ranges;
+  ranges.reserve(object[key].size());
+  pc_ranges.reserve(object[key].size());
+  size_t index = 0;
+  for (const Json& range_json : object[key]) {
+    const std::string range_path =
+        absl::StrFormat("%s[%zu]", field_path, index);
+    if (!range_json.is_object()) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("%s must be an object", range_path));
+    }
+
+    SnesAddressRange range;
+    ASSIGN_OR_RETURN(range.start,
+                     ParseLoRomAddress(range_json, "start", range_path));
+    ASSIGN_OR_RETURN(range.end,
+                     ParseLoRomAddress(range_json, "end", range_path));
+    const uint32_t pc_start = SnesToPc(range.start);
+    const uint32_t pc_end = SnesToPc(range.end);
+    if (range.end <= range.start || pc_end <= pc_start) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s must be a non-empty half-open range with end > start",
+          range_path));
+    }
+
+    ranges.push_back(range);
+    pc_ranges.push_back({pc_start, pc_end, range_path});
+    ++index;
+  }
+
+  RETURN_IF_ERROR(ValidateDisjointRanges(std::move(pc_ranges), field_path));
+  std::sort(ranges.begin(), ranges.end(),
+            [](const SnesAddressRange& lhs, const SnesAddressRange& rhs) {
+              return lhs.start < rhs.start;
+            });
+  return ranges;
+}
+
+absl::StatusOr<std::vector<SnesAddressRange>> ParseEditorManagedRegions(
+    const Json& root, int manifest_version) {
+  constexpr const char* kSection = "editor_managed_regions";
+  if (!root.contains(kSection)) {
+    return std::vector<SnesAddressRange>{};
+  }
+  if (manifest_version < 3) {
+    return absl::InvalidArgumentError(
+        "editor_managed_regions requires manifest_version 3 or newer");
+  }
+
+  const Json& section = root[kSection];
+  if (!section.is_object() || section.empty()) {
+    return absl::InvalidArgumentError(
+        "editor_managed_regions must be a non-empty object");
+  }
+  return ParseAddressRanges(section, "regions", kSection);
+}
+
+struct ParsedProtectedRegions {
+  int total_hooks = 0;
+  std::vector<ProtectedRegion> regions;
+};
+
+absl::StatusOr<uint32_t> ParseProtectedAddress(const Json& object,
+                                               const std::string& key,
+                                               const std::string& path,
+                                               bool require_mapped_lorom) {
+  if (require_mapped_lorom) {
+    return ParseLoRomAddress(object, key, path);
+  }
+  if (!object.contains(key)) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s.%s is required", path, key));
+  }
+
+  uint32_t address = 0;
+  ASSIGN_OR_RETURN(address, ParseStrictHexValue(object[key], path + "." + key,
+                                                /*maximum=*/0xFFFFFF));
+  return NormalizeSnesAddress(address);
+}
+
+absl::StatusOr<ParsedProtectedRegions> ParseProtectedRegions(
+    const Json& root, int manifest_version) {
+  ParsedProtectedRegions parsed;
+  constexpr const char* kSection = "protected_regions";
+  if (!root.contains(kSection)) {
+    return parsed;
+  }
+
+  const Json& section = root[kSection];
+  if (!section.is_object()) {
+    return absl::InvalidArgumentError("protected_regions must be an object");
+  }
+  if (!section.contains("regions") || !section["regions"].is_array()) {
+    return absl::InvalidArgumentError(
+        "protected_regions.regions must be an array");
+  }
+
+  parsed.total_hooks = section.value("total_hooks", 0);
+  parsed.regions.reserve(section["regions"].size());
+  // Version 3 is the first schema that can exempt editor-managed ranges, so
+  // its protected endpoints must be canonical mapped LoROM addresses. Legacy
+  // manifests still require structurally valid ranges, but retain low-half
+  // addresses emitted by older Oracle sources (for example $1E7F21).
+  const bool require_mapped_lorom = manifest_version >= 3;
+  size_t index = 0;
+  for (const Json& region_json : section["regions"]) {
+    const std::string path =
+        absl::StrFormat("protected_regions.regions[%zu]", index);
+    if (!region_json.is_object()) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("%s must be an object", path));
+    }
+
+    ProtectedRegion region;
+    ASSIGN_OR_RETURN(region.start,
+                     ParseProtectedAddress(region_json, "start", path,
+                                           require_mapped_lorom));
+    ASSIGN_OR_RETURN(region.end, ParseProtectedAddress(region_json, "end", path,
+                                                       require_mapped_lorom));
+    if (region.end <= region.start ||
+        SnesToPc(region.end) <= SnesToPc(region.start)) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s must be a non-empty half-open range with end > start", path));
+    }
+
+    region.hook_count = region_json.value("hook_count", 0);
+    region.module = region_json.value("module", "");
+    parsed.regions.push_back(std::move(region));
+    ++index;
+  }
+
+  // Unlike editor-managed and allocator ranges, protected hooks may overlap.
+  // FindProtectedRegion() deliberately walks backward across all candidates.
+  std::sort(parsed.regions.begin(), parsed.regions.end(),
+            [](const ProtectedRegion& lhs, const ProtectedRegion& rhs) {
+              return lhs.start < rhs.start;
+            });
+  return parsed;
+}
+
+bool PcRangeContains(const SnesAddressRange& outer,
+                     const SnesAddressRange& inner) {
+  return SnesToPc(outer.start) <= SnesToPc(inner.start) &&
+         SnesToPc(inner.end) <= SnesToPc(outer.end);
+}
+
+absl::StatusOr<DungeonStreamLayout> ParseDungeonStreamLayout(
+    DungeonStreamType stream, const Json& json) {
+  const std::string path = absl::StrFormat("dungeon_stream_regions.%s",
+                                           DungeonStreamTypeToString(stream));
+  if (!json.is_object()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s must be an object", path));
+  }
+
+  DungeonStreamLayout layout;
+  ASSIGN_OR_RETURN(layout.pointer_table,
+                   ParseLoRomAddress(json, "pointer_table", path));
+  ASSIGN_OR_RETURN(layout.pointer_count, ParsePointerCount(json, path));
+  ASSIGN_OR_RETURN(layout.pointer_encoding, ParsePointerEncoding(json, path));
+  ASSIGN_OR_RETURN(layout.strategy, ParseWriteStrategy(json, path));
+  ASSIGN_OR_RETURN(layout.data_regions,
+                   ParseAddressRanges(json, "data_regions", path));
+  ASSIGN_OR_RETURN(layout.allocation_regions,
+                   ParseAddressRanges(json, "allocation_regions", path));
+
+  if (layout.pointer_encoding == DungeonPointerEncoding::kBank16) {
+    if (!json.contains("pointer_bank")) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("%s.pointer_bank is required for bank16", path));
+    }
+    uint32_t bank = 0;
+    ASSIGN_OR_RETURN(
+        bank, ParseStrictHexValue(json["pointer_bank"], path + ".pointer_bank",
+                                  /*maximum=*/0xFF));
+    if (bank >= 0x80) {
+      bank &= 0x7F;
+    }
+    if (bank == 0x7E || bank == 0x7F) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s.pointer_bank must not use SNES WRAM bank 0x%02X", path, bank));
+    }
+    layout.pointer_bank = static_cast<uint8_t>(bank);
+
+    const uint32_t bank_start_snes = (bank << 16) | 0x8000;
+    const uint32_t bank_start_pc = SnesToPc(bank_start_snes);
+    const uint64_t bank_end_pc = static_cast<uint64_t>(bank_start_pc) + 0x8000;
+    for (const SnesAddressRange& range : layout.data_regions) {
+      if (SnesToPc(range.start) < bank_start_pc ||
+          SnesToPc(range.end) > bank_end_pc) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "%s.data_regions must stay within pointer_bank 0x%02X for "
+            "bank16 encoding",
+            path, bank));
+      }
+    }
+  } else if (json.contains("pointer_bank")) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s.pointer_bank is not allowed for long24", path));
+  }
+
+  for (const SnesAddressRange& allocation : layout.allocation_regions) {
+    const bool contained =
+        std::any_of(layout.data_regions.begin(), layout.data_regions.end(),
+                    [&allocation](const SnesAddressRange& data) {
+                      return PcRangeContains(data, allocation);
+                    });
+    if (!contained) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s allocation range [0x%06X, 0x%06X) is not fully contained in "
+          "a data_region",
+          path, allocation.start, allocation.end));
+    }
+  }
+
+  const uint64_t pointer_width =
+      layout.pointer_encoding == DungeonPointerEncoding::kLong24 ? 3 : 2;
+  const uint64_t table_start_pc = SnesToPc(layout.pointer_table);
+  const uint64_t table_size =
+      pointer_width * static_cast<uint64_t>(layout.pointer_count);
+  const uint64_t table_end_pc = table_start_pc + table_size;
+  if (table_start_pc > kCanonicalLoRomSize ||
+      table_end_pc > kCanonicalLoRomSize) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s pointer table extends beyond canonical LoROM address space", path));
+  }
+  if (layout.pointer_encoding == DungeonPointerEncoding::kBank16) {
+    const uint64_t runtime_table_end =
+        static_cast<uint64_t>(layout.pointer_table & 0xFFFFu) + table_size;
+    if (runtime_table_end > 0x10000u) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s bank16 pointer table crosses its runtime CPU bank", path));
+    }
+  }
+
+  return layout;
+}
+
+absl::StatusOr<std::unordered_map<DungeonStreamType, DungeonStreamLayout>>
+ParseDungeonStreamLayouts(const Json& root) {
+  std::unordered_map<DungeonStreamType, DungeonStreamLayout> layouts;
+  if (!root.contains("dungeon_stream_regions")) {
+    return layouts;
+  }
+
+  const Json& section = root["dungeon_stream_regions"];
+  if (!section.is_object() || section.empty()) {
+    return absl::InvalidArgumentError(
+        "dungeon_stream_regions must be a non-empty object");
+  }
+
+  constexpr std::array<std::pair<const char*, DungeonStreamType>, 3> kStreams =
+      {{{"objects", DungeonStreamType::kObjects},
+        {"sprites", DungeonStreamType::kSprites},
+        {"pot_items", DungeonStreamType::kPotItems}}};
+  for (const auto& item : section.items()) {
+    const auto& key = item.key();
+    bool known = false;
+    for (const auto& entry : kStreams) {
+      if (key == entry.first) {
+        known = true;
+        break;
+      }
+    }
+    if (!known) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "dungeon_stream_regions contains unknown stream '%s'", key));
+    }
+  }
+
+  std::vector<NamedPcRange> occupied_ranges;
+  std::vector<NamedPcRange> allocation_ranges;
+  for (const auto& [key, stream] : kStreams) {
+    if (!section.contains(key)) {
+      continue;
+    }
+
+    DungeonStreamLayout layout;
+    ASSIGN_OR_RETURN(layout, ParseDungeonStreamLayout(stream, section[key]));
+
+    const uint64_t pointer_width =
+        layout.pointer_encoding == DungeonPointerEncoding::kLong24 ? 3 : 2;
+    const uint64_t table_start_pc = SnesToPc(layout.pointer_table);
+    const uint64_t table_end_pc =
+        table_start_pc +
+        pointer_width * static_cast<uint64_t>(layout.pointer_count);
+    occupied_ranges.push_back({static_cast<uint32_t>(table_start_pc),
+                               static_cast<uint32_t>(table_end_pc),
+                               absl::StrFormat("%s.pointer_table", key)});
+
+    for (size_t index = 0; index < layout.data_regions.size(); ++index) {
+      const auto& range = layout.data_regions[index];
+      occupied_ranges.push_back(
+          {SnesToPc(range.start), SnesToPc(range.end),
+           absl::StrFormat("%s.data_regions[%zu]", key, index)});
+    }
+    for (size_t index = 0; index < layout.allocation_regions.size(); ++index) {
+      const auto& range = layout.allocation_regions[index];
+      allocation_ranges.push_back(
+          {SnesToPc(range.start), SnesToPc(range.end),
+           absl::StrFormat("%s.allocation_regions[%zu]", key, index)});
+    }
+    layouts.emplace(stream, std::move(layout));
+  }
+
+  RETURN_IF_ERROR(ValidateDisjointRanges(std::move(occupied_ranges),
+                                         "dungeon stream pointer/data ranges"));
+  RETURN_IF_ERROR(ValidateDisjointRanges(std::move(allocation_ranges),
+                                         "dungeon stream allocation ranges"));
+  return layouts;
+}
+
 }  // namespace
 
 void HackManifest::Reset() {
@@ -103,6 +638,7 @@ void HackManifest::Reset() {
   hack_name_.clear();
   total_hooks_ = 0;
   protected_regions_.clear();
+  editor_managed_regions_.clear();
   owned_banks_.clear();
   room_tag_map_.clear();
   room_tags_.clear();
@@ -111,6 +647,7 @@ void HackManifest::Reset() {
   sram_map_.clear();
   sram_variables_.clear();
   message_layout_ = MessageLayout{};
+  dungeon_stream_layouts_.clear();
   build_pipeline_ = BuildPipeline{};
   project_registry_ = ProjectRegistry{};
   oracle_progression_state_.reset();
@@ -137,8 +674,24 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
         std::string("Failed to parse manifest JSON: ") + exc.what());
   }
 
-  manifest_version_ = root.value("manifest_version", 0);
+  if (!root.is_object()) {
+    return absl::InvalidArgumentError("Hack manifest root must be an object");
+  }
+
+  ASSIGN_OR_RETURN(manifest_version_, ParseManifestVersion(root));
   hack_name_ = root.value("hack_name", "");
+
+  std::vector<SnesAddressRange> editor_managed_regions;
+  ASSIGN_OR_RETURN(editor_managed_regions,
+                   ParseEditorManagedRegions(root, manifest_version_));
+
+  std::unordered_map<DungeonStreamType, DungeonStreamLayout>
+      dungeon_stream_layouts;
+  ASSIGN_OR_RETURN(dungeon_stream_layouts, ParseDungeonStreamLayouts(root));
+
+  ParsedProtectedRegions protected_regions;
+  ASSIGN_OR_RETURN(protected_regions,
+                   ParseProtectedRegions(root, manifest_version_));
 
   // Build pipeline
   if (root.contains("build_pipeline")) {
@@ -149,33 +702,6 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
     build_pipeline_.entry_point = pipeline.value("entry_point", "");
     build_pipeline_.build_script = pipeline.value("build_script", "");
   }
-
-  // Protected regions
-  if (root.contains("protected_regions")) {
-    auto& protected_json = root["protected_regions"];
-    total_hooks_ = protected_json.value("total_hooks", 0);
-    if (protected_json.contains("regions") &&
-        protected_json["regions"].is_array()) {
-      for (auto& region_json : protected_json["regions"]) {
-        ProtectedRegion region;
-        ASSIGN_OR_RETURN(region.start, ParseHexAddress(region_json.value(
-                                           "start", "0x000000")));
-        ASSIGN_OR_RETURN(region.end,
-                         ParseHexAddress(region_json.value("end", "0x000000")));
-        region.start = NormalizeSnesAddress(region.start);
-        region.end = NormalizeSnesAddress(region.end);
-        region.hook_count = region_json.value("hook_count", 0);
-        region.module = region_json.value("module", "");
-        protected_regions_.push_back(region);
-      }
-    }
-  }
-
-  // Sort protected regions for binary search
-  std::sort(protected_regions_.begin(), protected_regions_.end(),
-            [](const ProtectedRegion& lhs, const ProtectedRegion& rhs) {
-              return lhs.start < rhs.start;
-            });
 
   // Owned banks
   if (root.contains("owned_banks") && root["owned_banks"].contains("banks")) {
@@ -286,6 +812,10 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
     }
   }
 
+  total_hooks_ = protected_regions.total_hooks;
+  protected_regions_ = std::move(protected_regions.regions);
+  editor_managed_regions_ = std::move(editor_managed_regions);
+  dungeon_stream_layouts_ = std::move(dungeon_stream_layouts);
   loaded_ = true;
   return absl::OkStatus();
 }
@@ -296,45 +826,69 @@ AddressOwnership HackManifest::ClassifyAddress(uint32_t address) const {
 
   address = NormalizeSnesAddress(address);
 
-  // Check bank ownership first
-  uint8_t bank = static_cast<uint8_t>((address >> 16) & 0xFF);
-  auto bank_it = owned_banks_.find(bank);
-  if (bank_it != owned_banks_.end()) {
-    return bank_it->second.ownership;
-  }
-
-  // Check protected regions (binary search since they're sorted)
+  // Explicit hooks always win, including hooks that overlap an exact
+  // editor-managed exemption inside an ASM-owned bank.
   if (IsProtected(address)) {
     return AddressOwnership::kHookPatched;
+  }
+
+  if (IsEditorManaged(address)) {
+    return AddressOwnership::kVanillaSafe;
+  }
+
+  const uint8_t bank = static_cast<uint8_t>((address >> 16) & 0xFF);
+  const auto bank_it = owned_banks_.find(bank);
+  if (bank_it != owned_banks_.end()) {
+    return bank_it->second.ownership;
   }
 
   return AddressOwnership::kVanillaSafe;
 }
 
 bool HackManifest::IsWriteOverwritten(uint32_t address) const {
-  auto ownership = ClassifyAddress(address);
+  const AddressOwnership ownership = ClassifyAddress(address);
   return ownership == AddressOwnership::kHookPatched ||
          ownership == AddressOwnership::kAsmOwned ||
          ownership == AddressOwnership::kAsmExpansion;
 }
 
-bool HackManifest::IsProtected(uint32_t address) const {
+const ProtectedRegion* HackManifest::FindProtectedRegion(
+    uint32_t address) const {
   address = NormalizeSnesAddress(address);
 
-  // Binary search for the region containing this address
-  auto iter = std::upper_bound(
+  // Start with the last possible region, then walk backwards so nested or
+  // overlapping protected regions cannot hide an earlier containing hook.
+  const auto upper = std::upper_bound(
       protected_regions_.begin(), protected_regions_.end(), address,
       [](uint32_t addr, const ProtectedRegion& region) {
         return addr < region.start;
       });
 
-  if (iter != protected_regions_.begin()) {
-    --iter;
+  for (auto iter = std::make_reverse_iterator(upper);
+       iter != protected_regions_.rend(); ++iter) {
     if (address >= iter->start && address < iter->end) {
-      return true;
+      return &*iter;
     }
   }
-  return false;
+  return nullptr;
+}
+
+bool HackManifest::IsProtected(uint32_t address) const {
+  return FindProtectedRegion(address) != nullptr;
+}
+
+bool HackManifest::IsEditorManaged(uint32_t address) const {
+  address = NormalizeSnesAddress(address);
+  const auto upper = std::upper_bound(
+      editor_managed_regions_.begin(), editor_managed_regions_.end(), address,
+      [](uint32_t addr, const SnesAddressRange& region) {
+        return addr < region.start;
+      });
+  if (upper == editor_managed_regions_.begin()) {
+    return false;
+  }
+  const SnesAddressRange& region = *std::prev(upper);
+  return region.start <= address && address < region.end;
 }
 
 std::optional<AddressOwnership> HackManifest::GetBankOwnership(
@@ -383,56 +937,68 @@ std::vector<WriteConflict> HackManifest::AnalyzeWriteRanges(
       continue;
     }
 
-    // 1) Conflicts at the bank level (asm_owned/asm_expansion/mirror/ram/shared)
-    // Only report banks that are truly ASM-owned (not shared).
-    uint32_t cur = start;
-    while (cur < end) {
-      const uint8_t bank = static_cast<uint8_t>((cur >> 16) & 0xFF);
-      const uint32_t next_bank = (cur & 0xFF0000) + 0x010000;
-      const uint32_t seg_end = std::min(end, next_bank);
+    // Classify one segment at a time. Every possible ownership transition is
+    // a boundary: bank edges, exact editor-managed edges, and hook edges.
+    // This prevents a partially exempt write from bypassing an owned neighbor.
+    std::vector<uint32_t> boundaries = {start, end};
+    const uint64_t first_bank_boundary =
+        (static_cast<uint64_t>(start) & 0xFF0000u) + 0x010000u;
+    for (uint64_t boundary = first_bank_boundary; boundary < end;
+         boundary += 0x010000u) {
+      boundaries.push_back(static_cast<uint32_t>(boundary));
+    }
+    auto add_range_boundaries = [start, end, &boundaries](const auto& regions) {
+      for (const auto& region : regions) {
+        if (region.start < end && start < region.end) {
+          boundaries.push_back(std::max(start, region.start));
+          boundaries.push_back(std::min(end, region.end));
+        }
+      }
+    };
+    add_range_boundaries(editor_managed_regions_);
+    add_range_boundaries(protected_regions_);
 
-      auto bank_it = owned_banks_.find(bank);
-      if (bank_it != owned_banks_.end()) {
-        const auto ownership = bank_it->second.ownership;
-        if (IsAsmOwned(ownership) &&
-            ownership != AddressOwnership::kHookPatched) {
-          WriteConflict conflict;
-          conflict.address = cur;
-          conflict.ownership = ownership;
-          conflict.module = bank_it->second.ownership_note;
-          conflicts.push_back(std::move(conflict));
+    std::sort(boundaries.begin(), boundaries.end());
+    boundaries.erase(std::unique(boundaries.begin(), boundaries.end()),
+                     boundaries.end());
+
+    bool previous_was_conflict = false;
+    AddressOwnership previous_ownership = AddressOwnership::kVanillaSafe;
+    std::string previous_module;
+    for (size_t index = 0; index + 1 < boundaries.size(); ++index) {
+      const uint32_t segment_start = boundaries[index];
+      if (segment_start >= boundaries[index + 1]) {
+        continue;
+      }
+
+      const AddressOwnership ownership = ClassifyAddress(segment_start);
+      if (!IsAsmOwned(ownership)) {
+        previous_was_conflict = false;
+        continue;
+      }
+
+      std::string module;
+      if (ownership == AddressOwnership::kHookPatched) {
+        if (const ProtectedRegion* protected_region =
+                FindProtectedRegion(segment_start);
+            protected_region != nullptr) {
+          module = protected_region->module;
+        }
+      } else {
+        const uint8_t bank = static_cast<uint8_t>((segment_start >> 16) & 0xFF);
+        if (const auto bank_it = owned_banks_.find(bank);
+            bank_it != owned_banks_.end()) {
+          module = bank_it->second.ownership_note;
         }
       }
 
-      cur = seg_end;
-    }
-
-    // 2) Conflicts from hook-patched protected regions (vanilla banks).
-    // protected_regions_ is sorted by start, with [start, end) semantics.
-    auto iter = std::upper_bound(
-        protected_regions_.begin(), protected_regions_.end(), start,
-        [](uint32_t addr, const ProtectedRegion& region) {
-          return addr < region.start;
-        });
-
-    if (iter != protected_regions_.begin()) {
-      auto prev = iter;
-      --prev;
-      if (prev->end > start) {
-        iter = prev;
+      if (!previous_was_conflict || ownership != previous_ownership ||
+          module != previous_module) {
+        conflicts.push_back({segment_start, ownership, module});
       }
-    }
-
-    for (; iter != protected_regions_.end() && iter->start < end; ++iter) {
-      const uint32_t overlap_start = std::max(start, iter->start);
-      const uint32_t overlap_end = std::min(end, iter->end);
-      if (overlap_start < overlap_end) {
-        WriteConflict conflict;
-        conflict.address = overlap_start;
-        conflict.ownership = AddressOwnership::kHookPatched;
-        conflict.module = iter->module;
-        conflicts.push_back(std::move(conflict));
-      }
+      previous_was_conflict = true;
+      previous_ownership = ownership;
+      previous_module = std::move(module);
     }
   }
 
@@ -481,6 +1047,12 @@ std::string HackManifest::GetSramVariableName(uint32_t address) const {
 bool HackManifest::IsExpandedMessage(uint16_t message_id) const {
   return message_id >= message_layout_.first_expanded_id &&
          message_id <= message_layout_.last_expanded_id;
+}
+
+const DungeonStreamLayout* HackManifest::GetDungeonStreamLayout(
+    DungeonStreamType stream) const {
+  const auto iter = dungeon_stream_layouts_.find(stream);
+  return iter == dungeon_stream_layouts_.end() ? nullptr : &iter->second;
 }
 
 // ============================================================================

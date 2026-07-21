@@ -104,15 +104,17 @@ TEST_F(ObjectParserTest, ParseSubtype2Object) {
 }
 
 TEST_F(ObjectParserTest, ParseSubtype3Object) {
-  // 0xF83 is in the subtype-3 ID range (0xF80-0xFFF) and falls through
-  // GetSubtype3TileCount's special-case ladder to the default 8 tiles.
-  // (0x201 was previously used here, but DetermineSubtype routes anything
-  // < 0xF80 to subtype 2, so the old test exercised ParseSubtype2.)
-  auto result = parser_->ParseObject(0xF83);
-  ASSERT_TRUE(result.ok());
-
-  const auto& tiles = result.value();
-  EXPECT_EQ(tiles.size(), 8);
+  // ASM objects 0x203-0x20C, 0x20E, and 0x20F each point to one tile word;
+  // RoomDraw_SomariaLine writes that word once at the object anchor.
+  constexpr int16_t kObjectIds[] = {0xF83, 0xF84, 0xF85, 0xF86, 0xF87, 0xF88,
+                                    0xF89, 0xF8A, 0xF8B, 0xF8C, 0xF8E, 0xF8F};
+  for (int16_t object_id : kObjectIds) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << object_id);
+    auto result = parser_->ParseObject(object_id);
+    ASSERT_TRUE(result.ok());
+    EXPECT_EQ(result->size(), 1u);
+  }
 }
 
 TEST_F(ObjectParserTest, RupeeFloorLoadsExactTwoWordPayload) {
@@ -324,21 +326,53 @@ TEST_F(ObjectParserTest, DrawInfoUsesSubtypeTileCountLookup) {
   EXPECT_EQ(info_waterfall48.tile_count, 9);
 }
 
+TEST_F(ObjectParserTest,
+       CanonicalDoubledAndBarPayloadCountsMatchDrawerContracts) {
+  struct TestCase {
+    int16_t object_id;
+    int expected_tiles;
+    int expected_routine;
+  };
+
+  for (const auto& test_case : {
+           TestCase{0x3C, 8,
+                    zelda3::DrawRoutineIds::kRightwardsDoubled2x2spaced2_1to16},
+           TestCase{0x4C, 12, zelda3::DrawRoutineIds::kRightwardsBar4x3_1to16},
+       }) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << test_case.object_id);
+
+    auto parsed = parser_->ParseObject(test_case.object_id);
+    ASSERT_TRUE(parsed.ok()) << parsed.status();
+    EXPECT_EQ(parsed->size(), static_cast<size_t>(test_case.expected_tiles));
+
+    auto subtype = parser_->GetObjectSubtype(test_case.object_id);
+    ASSERT_TRUE(subtype.ok()) << subtype.status();
+    EXPECT_EQ(subtype->max_tile_count, test_case.expected_tiles);
+
+    const auto draw_info = parser_->GetObjectDrawInfo(test_case.object_id);
+    EXPECT_EQ(draw_info.tile_count, test_case.expected_tiles);
+    EXPECT_EQ(draw_info.draw_routine_id, test_case.expected_routine);
+
+    const auto* routine = zelda3::DrawRoutineRegistry::Get().GetRoutineInfo(
+        test_case.expected_routine);
+    ASSERT_NE(routine, nullptr);
+    EXPECT_EQ(routine->min_tiles, test_case.expected_tiles);
+  }
+}
+
 // 2026-04-25 ZScream parity diff. ZScream's `subtype1Lengths` array
 // (`ZScreamDungeon/ZeldaFullEditor/Data/DungeonObjectData.cs:184`) is the
 // upstream provenance source for `kSubtype1TileLengths` in
 // `src/zelda3/dungeon/object_parser.cc`. A full byte-for-byte audit
-// confirmed 246/248 entries identical. Only `0x47` and `0x48`
-// (Waterfall47/Waterfall48) diverge: ZScream stores `0` and falls back to
-// 8 tiles at runtime (under-fetch — `TileAtWrapped` substitutes wrong
-// tiles for index >= 8); yaze ships the routine-body-proven counts
-// (`15` / `9`) per commits `e9938002` and `c12c3178`.
+// confirmed the original table provenance. Yaze keeps a small allowlist of
+// routine-body-proven corrections where ZScream under-fetches or over-fetches.
 //
 // This test pins the parity result so future drift on either side is
 // caught: a change in the production yaze table that contradicts ZScream
 // at a non-divergent ID will fail; a new yaze divergence not in
-// `kKnownDivergences` will fail; if ZScream fixes Waterfall47/48
-// upstream, the existing divergence assertions will fail and the
+// `kKnownDivergences` will fail; if ZScream fixes an allowlisted count
+// upstream, the corresponding divergence assertion will fail and the
 // allowlist can be retired entry by entry.
 TEST_F(ObjectParserTest,
        Subtype1TileLengthsMatchZScreamReferenceExceptKnownDivergences) {
@@ -371,14 +405,27 @@ TEST_F(ObjectParserTest,
     const char* justification;
   };
   // Allowlist of known intentional yaze corrections of upstream ZScream
-  // under-fetches. Add entries only when the underlying routine body
+  // payload counts. Add entries only when the underlying routine body
   // proves the count divergence; cite the routine source location.
   static const Divergence kKnownDivergences[] = {
+      {0x3C, 8,
+       "DrawRightwardsDoubled2x2spaced2_1to16 (rightwards_routines.cc) "
+       "indexes tiles[0..7]; ZScream's 4 under-fetches the second 2x2 "
+       "stamp."},
       {0x47, 15,
        "DrawWaterfall47 (special_routines.cc) reads tiles[0..14]; "
        "ZScream's 0->8 fallback under-fetched and TileAtWrapped "
        "substituted wrong tiles for index>=8 (commits e9938002/c12c3178)."},
       {0x48, 9, "DrawWaterfall48 reads tiles[0..8]; same pattern as 0x47."},
+      {0x4C, 12,
+       "DrawRightwardsBar4x3_1to16 (rightwards_routines.cc) indexes "
+       "tiles[0..11]; ZScream's 9 under-fetches the fourth 3-tile column."},
+      {0xCD, 24,
+       "RoomDraw_MovingWallWest reads obj072A words 0..23; ZScream's 28 "
+       "over-fetches four words from obj075A."},
+      {0xCE, 24,
+       "RoomDraw_MovingWallEast reads obj075A words 0..23; ZScream's 28 "
+       "over-fetches four words from obj078A."},
       {0xD3, 0, "DrawNothing wall-moved check; no tile payload is consumed."},
       {0xD4, 0, "DrawNothing wall-moved check; no tile payload is consumed."},
       {0xD5, 0, "DrawNothing wall-moved check; no tile payload is consumed."},

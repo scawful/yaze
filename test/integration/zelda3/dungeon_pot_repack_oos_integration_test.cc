@@ -1,0 +1,1679 @@
+// ROM-gated integration coverage for manifest-backed Oracle dungeon saves,
+// including pot-item repacks and full chest-table stability.
+//
+// Fixtures:
+//   YAZE_TEST_ROM_OOS or YAZE_TEST_ROM_EXPANDED
+//   YAZE_TEST_HACK_MANIFEST_OOS or YAZE_TEST_HACK_MANIFEST
+//
+// A Yaze project may be supplied instead of a manifest with
+// YAZE_TEST_PROJECT_OOS or YAZE_TEST_PROJECT. The source ROM is never opened
+// for writing; every mutation is performed on a temporary copy.
+
+#include <gtest/gtest.h>
+
+#include <algorithm>
+#include <atomic>
+#include <chrono>
+#include <cstdint>
+#include <cstdlib>
+#include <filesystem>
+#include <fstream>
+#include <iterator>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "core/dungeon_stream_layout_adapter.h"
+#include "core/features.h"
+#include "core/hack_manifest.h"
+#include "core/project.h"
+#include "rom/rom.h"
+#include "rom/snes.h"
+#include "rom/write_fence.h"
+#include "test_utils.h"
+#include "test_utils/dungeon_editor_v2_regular_entrance_test_peer.h"
+#include "util/json.h"
+#include "zelda3/dungeon/dungeon_stream_allocator.h"
+#include "zelda3/dungeon/dungeon_validator.h"
+#include "zelda3/dungeon/oracle_rom_safety_preflight.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/resource_labels.h"
+
+namespace yaze::zelda3::test {
+namespace {
+
+constexpr uint32_t kOracleRoomCount = 296;
+constexpr int kSaveReopenCycles = 50;
+constexpr std::pair<const char*, const char*> kManifestEnvVars[] = {
+    {"YAZE_TEST_HACK_MANIFEST_OOS", "Oracle manifest"},
+    {"YAZE_TEST_HACK_MANIFEST", "hack manifest"},
+};
+constexpr std::pair<const char*, const char*> kProjectEnvVars[] = {
+    {"YAZE_TEST_PROJECT_OOS", "Oracle project"},
+    {"YAZE_TEST_PROJECT", "Yaze project"},
+};
+
+struct DungeonSaveFlagsGuard {
+  decltype(core::FeatureFlags::get().dungeon) previous =
+      core::FeatureFlags::get().dungeon;
+  ~DungeonSaveFlagsGuard() { core::FeatureFlags::get().dungeon = previous; }
+};
+
+void ConfigurePotOnlySave() {
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveSprites = false;
+  flags.kSaveRoomHeaders = false;
+  flags.kSaveTorches = false;
+  flags.kSavePits = false;
+  flags.kSaveBlocks = false;
+  flags.kSaveCollision = false;
+  flags.kSaveWaterFillZones = false;
+  flags.kSaveChests = false;
+  flags.kSavePotItems = true;
+  flags.kSaveEntrances = false;
+  flags.kSavePalettes = false;
+}
+
+void ConfigureChestOnlySave() {
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveSprites = false;
+  flags.kSaveRoomHeaders = false;
+  flags.kSaveTorches = false;
+  flags.kSavePits = false;
+  flags.kSaveBlocks = false;
+  flags.kSaveCollision = false;
+  flags.kSaveWaterFillZones = false;
+  flags.kSaveChests = true;
+  flags.kSavePotItems = false;
+  flags.kSaveEntrances = false;
+  flags.kSavePalettes = false;
+}
+
+void ConfigureDailyDriverSave() {
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = true;
+  flags.kSaveSprites = true;
+  flags.kSaveRoomHeaders = true;
+  flags.kSaveTorches = false;
+  flags.kSavePits = false;
+  flags.kSaveBlocks = false;
+  flags.kSaveCollision = false;
+  flags.kSaveWaterFillZones = false;
+  flags.kSaveChests = true;
+  flags.kSavePotItems = true;
+  flags.kSaveEntrances = true;
+  flags.kSavePalettes = false;
+}
+
+absl::StatusOr<std::filesystem::path> CreateUniqueTempDir() {
+  static std::atomic<uint64_t> sequence = 0;
+  const auto nonce =
+      std::chrono::steady_clock::now().time_since_epoch().count();
+  const std::filesystem::path base = std::filesystem::temp_directory_path();
+  for (uint32_t attempt = 0; attempt < 100; ++attempt) {
+    const std::filesystem::path candidate =
+        base / absl::StrFormat("yaze_oos_pot_repack_%lld_%llu_%u", nonce,
+                               sequence.fetch_add(1), attempt);
+    std::error_code create_error;
+    if (std::filesystem::create_directory(candidate, create_error)) {
+      std::error_code permission_error;
+      std::filesystem::permissions(candidate, std::filesystem::perms::owner_all,
+                                   std::filesystem::perm_options::replace,
+                                   permission_error);
+      if (permission_error) {
+        std::error_code cleanup_error;
+        std::filesystem::remove_all(candidate, cleanup_error);
+        return absl::InternalError(absl::StrFormat(
+            "Could not secure private pot-repack temp directory: %s%s",
+            permission_error.message(),
+            cleanup_error ? absl::StrFormat("; cleanup also failed: %s",
+                                            cleanup_error.message())
+                          : ""));
+      }
+      return candidate;
+    }
+    if (create_error) {
+      return absl::InternalError(absl::StrFormat(
+          "Could not create private pot-repack temp directory: %s",
+          create_error.message()));
+    }
+  }
+  return absl::AlreadyExistsError(
+      "Could not allocate a collision-free pot-repack temp directory");
+}
+
+std::string FirstConfiguredPath(const std::pair<const char*, const char*>* vars,
+                                size_t count, std::string* configured_var) {
+  for (size_t i = 0; i < count; ++i) {
+    if (const char* value = std::getenv(vars[i].first); value != nullptr) {
+      if (configured_var != nullptr) {
+        *configured_var = vars[i].first;
+      }
+      return value;
+    }
+  }
+  return {};
+}
+
+std::string ResolveOracleRomPath() {
+  // The Oracle-specific fixture must win even when a generic expanded ROM is
+  // also configured in the developer's environment.
+  for (const char* env_var : {"YAZE_TEST_ROM_OOS", "YAZE_TEST_ROM_EXPANDED",
+                              "YAZE_TEST_ROM_EXPANDED_PATH"}) {
+    if (const char* value = std::getenv(env_var);
+        value != nullptr && std::filesystem::exists(value)) {
+      return value;
+    }
+  }
+
+  // Retain the test harness's compile-time expanded-ROM fallback.
+  return ::yaze::test::TestRomManager::GetRomPath(
+      ::yaze::test::RomRole::kExpanded);
+}
+
+std::vector<uint8_t> ReadFile(const std::filesystem::path& path) {
+  std::ifstream file(path, std::ios::binary);
+  if (!file.is_open()) {
+    return {};
+  }
+  return std::vector<uint8_t>(std::istreambuf_iterator<char>(file),
+                              std::istreambuf_iterator<char>());
+}
+
+std::vector<uint8_t> EncodePotItems(const std::vector<PotItem>& items) {
+  std::vector<uint8_t> encoded;
+  encoded.reserve(items.size() * 3 + 2);
+  for (const PotItem& item : items) {
+    encoded.push_back(item.position & 0xFF);
+    encoded.push_back((item.position >> 8) & 0xFF);
+    encoded.push_back(item.item);
+  }
+  encoded.push_back(0xFF);
+  encoded.push_back(0xFF);
+  return encoded;
+}
+
+using ChestSequence = std::vector<std::pair<uint8_t, bool>>;
+
+std::vector<ChestSequence> ReadAllChestSequences(Rom* rom) {
+  std::vector<ChestSequence> sequences(kOracleRoomCount);
+  for (uint32_t room_id = 0; room_id < kOracleRoomCount; ++room_id) {
+    Room room(static_cast<int>(room_id), rom);
+    room.LoadChests();
+    for (const chest_data& chest : room.GetChests()) {
+      sequences[room_id].emplace_back(chest.id, chest.size);
+    }
+  }
+  return sequences;
+}
+
+uint16_t ReadChestTableByteLength(const Rom& rom) {
+  return static_cast<uint16_t>(
+      rom.data()[kChestsLengthPointer] |
+      (static_cast<uint16_t>(rom.data()[kChestsLengthPointer + 1]) << 8));
+}
+
+const DungeonStreamRecord* FindRoomRecord(
+    const DungeonStreamInventory& inventory, uint32_t room_id) {
+  const auto iter =
+      std::find_if(inventory.streams.begin(), inventory.streams.end(),
+                   [room_id](const DungeonStreamRecord& record) {
+                     return record.room_id == room_id;
+                   });
+  return iter == inventory.streams.end() ? nullptr : &*iter;
+}
+
+bool IsInsideAllocationRange(const DungeonStreamLayout& layout,
+                             const DungeonStreamRecord& record) {
+  return std::any_of(layout.allocation_ranges.begin(),
+                     layout.allocation_ranges.end(),
+                     [&record](const DungeonStreamPcRange& range) {
+                       return range.begin <= record.data_pc &&
+                              record.logical_end_pc <= range.end;
+                     });
+}
+
+bool IsInsideDataRange(const DungeonStreamLayout& layout,
+                       const DungeonStreamRecord& record) {
+  return std::any_of(layout.data_ranges.begin(), layout.data_ranges.end(),
+                     [&record](const DungeonStreamPcRange& range) {
+                       return range.begin <= record.data_pc &&
+                              record.logical_end_pc <= range.end;
+                     });
+}
+
+bool IsCanonicalEmptyObjectStream(const std::vector<uint8_t>& stream) {
+  if (stream.size() < 8) {
+    return false;
+  }
+
+  size_t cursor = 2;  // Preserve the floor/layout header.
+  for (int list = 0; list < 2; ++list) {
+    if (cursor + 2 > stream.size() || stream[cursor] != 0xFF ||
+        stream[cursor + 1] != 0xFF) {
+      return false;
+    }
+    cursor += 2;
+  }
+
+  // Empty Oracle rooms either terminate list 2 directly or include an
+  // explicit empty door list.
+  if (cursor + 2 == stream.size() && stream[cursor] == 0xFF &&
+      stream[cursor + 1] == 0xFF) {
+    return true;
+  }
+  return cursor + 4 == stream.size() && stream[cursor] == 0xF0 &&
+         stream[cursor + 1] == 0xFF && stream[cursor + 2] == 0xFF &&
+         stream[cursor + 3] == 0xFF;
+}
+
+bool IsCanonicalEmptySpriteStream(const std::vector<uint8_t>& stream) {
+  return stream.size() == 2 && stream[1] == 0xFF;
+}
+
+bool IsCanonicalEmptyPotStream(const std::vector<uint8_t>& stream) {
+  return stream == std::vector<uint8_t>({0xFF, 0xFF});
+}
+
+template <typename Predicate>
+std::vector<uint32_t> CollectCanonicalEmptyAliasRooms(
+    const DungeonStreamInventory& inventory, Predicate&& is_empty) {
+  std::vector<uint32_t> room_ids;
+  for (const DungeonStreamAliasGroup& alias : inventory.aliases) {
+    const DungeonStreamRecord* record =
+        alias.room_ids.empty()
+            ? nullptr
+            : FindRoomRecord(inventory, alias.room_ids.front());
+    if (record != nullptr && is_empty(record->encoded_stream)) {
+      room_ids.insert(room_ids.end(), alias.room_ids.begin(),
+                      alias.room_ids.end());
+    }
+  }
+  std::sort(room_ids.begin(), room_ids.end());
+  room_ids.erase(std::unique(room_ids.begin(), room_ids.end()), room_ids.end());
+  return room_ids;
+}
+
+std::vector<uint32_t> IntersectRoomIds(const std::vector<uint32_t>& first,
+                                       const std::vector<uint32_t>& second,
+                                       const std::vector<uint32_t>& third) {
+  std::vector<uint32_t> common;
+  for (uint32_t room_id : first) {
+    if (std::find(second.begin(), second.end(), room_id) != second.end() &&
+        std::find(third.begin(), third.end(), room_id) != third.end()) {
+      common.push_back(room_id);
+    }
+  }
+  std::sort(common.begin(), common.end());
+  return common;
+}
+
+bool CoordinateIsOccupied(const Room& room, int x, int y) {
+  if (std::any_of(room.GetTileObjects().begin(), room.GetTileObjects().end(),
+                  [x, y](const RoomObject& object) {
+                    return object.x() == x && object.y() == y;
+                  })) {
+    return true;
+  }
+  if (std::any_of(room.GetSprites().begin(), room.GetSprites().end(),
+                  [x, y](const Sprite& sprite) {
+                    return sprite.x() == x && sprite.y() == y;
+                  })) {
+    return true;
+  }
+  return std::any_of(room.GetPotItems().begin(), room.GetPotItems().end(),
+                     [x, y](const PotItem& item) {
+                       return item.GetTileX() == x && item.GetTileY() == y;
+                     });
+}
+
+std::vector<std::pair<uint8_t, uint8_t>> FindUsableCoordinates(const Room& room,
+                                                               size_t count) {
+  std::vector<std::pair<uint8_t, uint8_t>> positions;
+  for (int y = 8; y <= 24 && positions.size() < count; y += 4) {
+    for (int x = 8; x <= 24 && positions.size() < count; x += 4) {
+      if (!CoordinateIsOccupied(room, x, y)) {
+        positions.emplace_back(static_cast<uint8_t>(x),
+                               static_cast<uint8_t>(y));
+      }
+    }
+  }
+  return positions;
+}
+
+absl::StatusOr<DungeonStreamLayout> LoadManifestLayout(
+    const project::YazeProject& project, core::DungeonStreamType stream_type,
+    core::DungeonWriteStrategy expected_strategy) {
+  const core::DungeonStreamLayout* manifest_layout =
+      project.hack_manifest.GetDungeonStreamLayout(stream_type);
+  if (manifest_layout == nullptr) {
+    return absl::FailedPreconditionError(
+        "Oracle manifest is missing a required dungeon stream layout");
+  }
+  if (manifest_layout->strategy != expected_strategy) {
+    return absl::FailedPreconditionError(
+        "Oracle dungeon stream layout uses the wrong write strategy");
+  }
+  return core::ToDungeonStreamAllocatorLayout(stream_type, *manifest_layout);
+}
+
+::testing::AssertionResult InventoryPreservesUntouchedRooms(
+    const DungeonStreamInventory& before, const DungeonStreamInventory& after,
+    const DungeonStreamLayout& layout, uint32_t selected_room,
+    const std::vector<uint8_t>& selected_stream,
+    bool preserve_untouched_addresses) {
+  if (!after.ok()) {
+    return ::testing::AssertionFailure() << "Reopened inventory contains "
+                                         << after.issues.size() << " issue(s)";
+  }
+  if (after.streams.size() != before.streams.size()) {
+    return ::testing::AssertionFailure()
+           << "Stream slot count changed from " << before.streams.size()
+           << " to " << after.streams.size();
+  }
+
+  for (const DungeonStreamRecord& record_before : before.streams) {
+    const DungeonStreamRecord* record_after =
+        FindRoomRecord(after, record_before.room_id);
+    if (record_after == nullptr) {
+      return ::testing::AssertionFailure()
+             << "Missing reopened room " << record_before.room_id;
+    }
+    if (!record_after->valid || !IsInsideDataRange(layout, *record_after)) {
+      return ::testing::AssertionFailure()
+             << "Invalid reopened stream for room " << record_before.room_id;
+    }
+    if (record_before.room_id == selected_room) {
+      if (record_after->encoded_stream != selected_stream) {
+        return ::testing::AssertionFailure()
+               << "Selected room stream did not round trip";
+      }
+      if (!IsInsideAllocationRange(layout, *record_after)) {
+        return ::testing::AssertionFailure()
+               << "Selected room escaped its allocation range";
+      }
+      continue;
+    }
+    if (record_after->encoded_stream != record_before.encoded_stream) {
+      return ::testing::AssertionFailure()
+             << "Untouched room " << record_before.room_id
+             << " changed semantically";
+    }
+    if (preserve_untouched_addresses &&
+        record_after->data_pc != record_before.data_pc) {
+      return ::testing::AssertionFailure()
+             << "Untouched room " << record_before.room_id
+             << " moved during copy-on-write";
+    }
+  }
+  return ::testing::AssertionSuccess();
+}
+
+TEST(DungeonPotRepackOosHelpersTest,
+     CollectsEveryMatchingCanonicalEmptyAliasGroup) {
+  DungeonStreamInventory inventory;
+  auto add_stream = [&inventory](uint32_t room_id,
+                                 std::vector<uint8_t> encoded_stream) {
+    DungeonStreamRecord record;
+    record.room_id = room_id;
+    record.encoded_stream = std::move(encoded_stream);
+    inventory.streams.push_back(std::move(record));
+  };
+  add_stream(1, {0x01, 0xFF});
+  add_stream(2, {0xFF, 0xFF});
+  add_stream(3, {0x01, 0xFF});
+  add_stream(4, {0xFF, 0xFF});
+  add_stream(6, {0xFF, 0xFF});
+  add_stream(8, {0xFF, 0xFF});
+  inventory.aliases = {
+      {0x1000, {1, 3}},
+      {0x2000, {2, 4}},
+      {0x3000, {6, 8}},
+  };
+
+  EXPECT_EQ(
+      CollectCanonicalEmptyAliasRooms(inventory, IsCanonicalEmptyPotStream),
+      std::vector<uint32_t>({2, 4, 6, 8}));
+}
+
+class DungeonPotRepackOosIntegrationTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    if (std::getenv("YAZE_SKIP_ROM_TESTS") != nullptr) {
+      GTEST_SKIP() << "ROM testing disabled via YAZE_SKIP_ROM_TESTS. Test: "
+                      "DungeonPotRepackOosIntegrationTest";
+    }
+    source_rom_path_ = ResolveOracleRomPath();
+    if (source_rom_path_.empty()) {
+      GTEST_SKIP() << "Oracle ROM fixture not found. Set YAZE_TEST_ROM_OOS "
+                      "or YAZE_TEST_ROM_EXPANDED.";
+    }
+
+    std::string configured_manifest_var;
+    std::string configured_project_var;
+    const std::string manifest_path =
+        FirstConfiguredPath(kManifestEnvVars, std::size(kManifestEnvVars),
+                            &configured_manifest_var);
+    const std::string project_path = FirstConfiguredPath(
+        kProjectEnvVars, std::size(kProjectEnvVars), &configured_project_var);
+    if (manifest_path.empty() && project_path.empty()) {
+      GTEST_SKIP() << "Oracle pot repack manifest not configured. Set "
+                      "YAZE_TEST_HACK_MANIFEST_OOS or "
+                      "YAZE_TEST_PROJECT_OOS.";
+    }
+
+    if (!manifest_path.empty()) {
+      ASSERT_TRUE(std::filesystem::exists(manifest_path))
+          << configured_manifest_var << " does not exist: " << manifest_path;
+      const absl::Status status =
+          project_.hack_manifest.LoadFromFile(manifest_path);
+      ASSERT_TRUE(status.ok()) << status.message();
+      project_.hack_manifest_file = manifest_path;
+      project_.rom_filename = source_rom_path_;
+      project_.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+    } else {
+      ASSERT_TRUE(std::filesystem::exists(project_path))
+          << configured_project_var << " does not exist: " << project_path;
+      const absl::Status status = project_.Open(project_path);
+      ASSERT_TRUE(status.ok()) << status.message();
+      ASSERT_TRUE(project_.hack_manifest.loaded())
+          << "Project did not load its configured hack manifest: "
+          << project_path;
+    }
+
+    source_manifest_path_ =
+        project_.GetAbsolutePath(project_.hack_manifest_file);
+    auto manifest_sha = ComputeSha256(source_manifest_path_);
+    ASSERT_TRUE(manifest_sha.ok()) << manifest_sha.status().message();
+    source_manifest_sha_before_ = *manifest_sha;
+
+    const core::DungeonStreamLayout* manifest_layout =
+        project_.hack_manifest.GetDungeonStreamLayout(
+            core::DungeonStreamType::kPotItems);
+    ASSERT_NE(manifest_layout, nullptr)
+        << "Oracle manifest has no pot_items dungeon stream layout";
+    ASSERT_EQ(manifest_layout->strategy,
+              core::DungeonWriteStrategy::kRepackAll);
+    auto layout = core::ToDungeonStreamAllocatorLayout(
+        core::DungeonStreamType::kPotItems, *manifest_layout);
+    ASSERT_TRUE(layout.ok()) << layout.status().message();
+    layout_ = std::move(*layout);
+    ASSERT_EQ(layout_.pointer_count, kOracleRoomCount);
+
+    auto temp_dir = CreateUniqueTempDir();
+    ASSERT_TRUE(temp_dir.ok()) << temp_dir.status().message();
+    temp_dir_ = std::move(*temp_dir);
+    temp_rom_path_ = temp_dir_ / "oos-pot-repack-test.sfc";
+    std::error_code copy_error;
+    ASSERT_TRUE(std::filesystem::copy_file(
+        source_rom_path_, temp_rom_path_,
+        std::filesystem::copy_options::overwrite_existing, copy_error))
+        << copy_error.message();
+
+    auto source_sha = ComputeSha256(source_rom_path_);
+    ASSERT_TRUE(source_sha.ok()) << source_sha.status().message();
+    source_sha_before_ = *source_sha;
+  }
+
+  void TearDown() override {
+    if (!source_rom_path_.empty() && !source_sha_before_.empty()) {
+      auto source_sha_after = ComputeSha256(source_rom_path_);
+      EXPECT_TRUE(source_sha_after.ok()) << source_sha_after.status().message();
+      if (source_sha_after.ok()) {
+        EXPECT_EQ(*source_sha_after, source_sha_before_)
+            << "The source Oracle ROM changed during the integration test";
+      }
+    }
+    if (!source_manifest_path_.empty() &&
+        !source_manifest_sha_before_.empty()) {
+      auto manifest_sha_after = ComputeSha256(source_manifest_path_);
+      EXPECT_TRUE(manifest_sha_after.ok())
+          << manifest_sha_after.status().message();
+      if (manifest_sha_after.ok()) {
+        EXPECT_EQ(*manifest_sha_after, source_manifest_sha_before_)
+            << "The source Oracle manifest changed during the integration "
+               "test";
+      }
+    }
+
+    // YazeProject registers its manifest with the process-global resource
+    // labels. Clear that non-owning pointer before the fixture is destroyed.
+    GetResourceLabels().SetHackManifest(nullptr);
+    if (!temp_dir_.empty()) {
+      std::error_code cleanup_error;
+      std::filesystem::remove_all(temp_dir_, cleanup_error);
+      EXPECT_FALSE(cleanup_error)
+          << "Failed to remove private ROM temp directory " << temp_dir_ << ": "
+          << cleanup_error.message();
+      std::error_code exists_error;
+      EXPECT_FALSE(std::filesystem::exists(temp_dir_, exists_error))
+          << "Private ROM temp directory leaked: " << temp_dir_;
+      EXPECT_FALSE(exists_error)
+          << "Could not verify private ROM temp cleanup: "
+          << exists_error.message();
+    }
+  }
+
+  std::string source_rom_path_;
+  std::string source_sha_before_;
+  std::string source_manifest_path_;
+  std::string source_manifest_sha_before_;
+  std::filesystem::path temp_dir_;
+  std::filesystem::path temp_rom_path_;
+  project::YazeProject project_;
+  DungeonStreamLayout layout_;
+};
+
+TEST_F(DungeonPotRepackOosIntegrationTest,
+       SharedEmptyOwnerDetachesAndRoundTripsDeterministically) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(temp_rom_path_.string()).ok());
+
+  auto before = InventoryDungeonStreams(rom, layout_);
+  ASSERT_TRUE(before.ok()) << before.status().message();
+  ASSERT_TRUE(before->ok()) << "Oracle pot inventory contains stream issues";
+  ASSERT_EQ(before->streams.size(), kOracleRoomCount);
+
+  const DungeonStreamAliasGroup* empty_alias = nullptr;
+  for (const DungeonStreamAliasGroup& alias : before->aliases) {
+    const DungeonStreamRecord* record =
+        alias.room_ids.empty()
+            ? nullptr
+            : FindRoomRecord(*before, alias.room_ids.front());
+    if (record != nullptr &&
+        record->encoded_stream == std::vector<uint8_t>({0xFF, 0xFF})) {
+      empty_alias = &alias;
+      break;
+    }
+  }
+  ASSERT_NE(empty_alias, nullptr)
+      << "Oracle ROM has no shared canonical-empty pot stream";
+  ASSERT_GT(empty_alias->room_ids.size(), 1u);
+
+  // The deterministic repacker defines a payload's owner as its lowest room
+  // ID. Editing that actual shared-empty owner exercises ownership transfer as
+  // well as alias detachment.
+  const uint32_t selected_room = *std::min_element(
+      empty_alias->room_ids.begin(), empty_alias->room_ids.end());
+
+  // Pick a valid, in-room green-rupee item whose five-byte stream is new to
+  // this ROM. A unique payload exercises the real 9-byte-capacity edge rather
+  // than accidentally deduplicating with an existing room.
+  std::vector<PotItem> replacement_items;
+  std::vector<uint8_t> replacement_stream;
+  for (uint16_t x = 0x10; x < 0x80; ++x) {
+    std::vector<PotItem> candidate{{static_cast<uint16_t>(0x1000 | x), 0x01}};
+    std::vector<uint8_t> encoded = EncodePotItems(candidate);
+    const bool already_present =
+        std::any_of(before->streams.begin(), before->streams.end(),
+                    [&encoded](const DungeonStreamRecord& record) {
+                      return record.encoded_stream == encoded;
+                    });
+    if (!already_present) {
+      replacement_items = std::move(candidate);
+      replacement_stream = std::move(encoded);
+      break;
+    }
+  }
+  ASSERT_EQ(replacement_items.size(), 1u)
+      << "Could not construct a unique valid one-item pot stream";
+
+  DungeonSaveFlagsGuard flags_guard;
+  ConfigurePotOnlySave();
+
+  auto dungeon_editor = std::make_unique<editor::DungeonEditorV2>(&rom);
+  editor::EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project_;
+  dungeon_editor->SetDependencies(dependencies);
+
+  Room& edited_room = dungeon_editor->rooms()[selected_room];
+  edited_room = Room(static_cast<int>(selected_room), &rom);
+  edited_room.LoadPotItems();
+  ASSERT_TRUE(edited_room.GetPotItems().empty());
+  edited_room.GetPotItems() = replacement_items;
+  edited_room.MarkPotItemsDirty();
+
+  const auto predicted_ranges = dungeon_editor->CollectWriteRanges();
+  for (const DungeonStreamPcRange& range : layout_.allocation_ranges) {
+    EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
+                        std::pair<uint32_t, uint32_t>{range.begin, range.end}),
+              predicted_ranges.end())
+        << "Editor persistence omitted a declared pot allocation range";
+  }
+  const uint32_t pointer_width =
+      layout_.pointer_encoding == DungeonPointerEncoding::kLong24 ? 3u : 2u;
+  EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
+                      std::pair<uint32_t, uint32_t>{
+                          layout_.pointer_table_pc,
+                          layout_.pointer_table_pc +
+                              layout_.pointer_count * pointer_width}),
+            predicted_ranges.end())
+      << "Editor persistence omitted the complete pot pointer table";
+
+  const absl::Status save_status =
+      dungeon_editor->SaveRoom(static_cast<int>(selected_room));
+  ASSERT_TRUE(save_status.ok()) << save_status.message();
+  EXPECT_FALSE(edited_room.pot_items_dirty());
+  RecordProperty("repack_edit_mode", "unique-one-item");
+
+  Rom::SaveSettings save_settings;
+  save_settings.filename = temp_rom_path_.string();
+  ASSERT_TRUE(rom.SaveToFile(save_settings).ok());
+  const std::vector<uint8_t> first_save_bytes = ReadFile(temp_rom_path_);
+  ASSERT_FALSE(first_save_bytes.empty());
+  dungeon_editor.reset();
+
+  {
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(temp_rom_path_.string()).ok());
+    auto after = InventoryDungeonStreams(reopened, layout_);
+    ASSERT_TRUE(after.ok()) << after.status().message();
+    ASSERT_TRUE(after->ok()) << "Repacked Oracle pot inventory has issues";
+    ASSERT_EQ(after->streams.size(), kOracleRoomCount);
+    for (const DungeonStreamRecord& record : after->streams) {
+      EXPECT_TRUE(record.valid) << "Invalid room pointer: " << record.room_id;
+      EXPECT_TRUE(IsInsideAllocationRange(layout_, record))
+          << "Room pointer escaped the manifest allocation range: "
+          << record.room_id;
+    }
+
+    const DungeonStreamRecord* selected_after =
+        FindRoomRecord(*after, selected_room);
+    ASSERT_NE(selected_after, nullptr);
+    EXPECT_EQ(selected_after->encoded_stream, replacement_stream);
+    for (uint32_t alias_room : empty_alias->room_ids) {
+      if (alias_room == selected_room) {
+        continue;
+      }
+      const DungeonStreamRecord* alias_after =
+          FindRoomRecord(*after, alias_room);
+      ASSERT_NE(alias_after, nullptr);
+      EXPECT_EQ(alias_after->encoded_stream,
+                std::vector<uint8_t>({0xFF, 0xFF}));
+      EXPECT_NE(alias_after->data_pc, selected_after->data_pc)
+          << "Selected room remained attached to shared-empty room "
+          << alias_room;
+    }
+
+    for (const DungeonStreamRecord& record_before : before->streams) {
+      if (record_before.room_id == selected_room) {
+        continue;
+      }
+      const DungeonStreamRecord* record_after =
+          FindRoomRecord(*after, record_before.room_id);
+      ASSERT_NE(record_after, nullptr);
+      EXPECT_EQ(record_after->encoded_stream, record_before.encoded_stream)
+          << "Semantic pot stream changed for untouched room "
+          << record_before.room_id;
+    }
+  }
+
+  for (int cycle = 1; cycle <= kSaveReopenCycles; ++cycle) {
+    SCOPED_TRACE(absl::StrFormat("save/close/reopen cycle %d", cycle));
+    {
+      Rom cycle_rom;
+      ASSERT_TRUE(cycle_rom.LoadFromFile(temp_rom_path_.string()).ok());
+
+      auto cycle_editor = std::make_unique<editor::DungeonEditorV2>(&cycle_rom);
+      dependencies.rom = &cycle_rom;
+      cycle_editor->SetDependencies(dependencies);
+      Room& cycle_room = cycle_editor->rooms()[selected_room];
+      cycle_room = Room(static_cast<int>(selected_room), &cycle_rom);
+      cycle_room.LoadPotItems();
+      ASSERT_EQ(EncodePotItems(cycle_room.GetPotItems()), replacement_stream);
+      cycle_room.MarkPotItemsDirty();
+
+      const absl::Status cycle_status =
+          cycle_editor->SaveRoom(static_cast<int>(selected_room));
+      ASSERT_TRUE(cycle_status.ok()) << cycle_status.message();
+      EXPECT_FALSE(cycle_room.pot_items_dirty());
+      ASSERT_TRUE(cycle_rom.SaveToFile(save_settings).ok());
+    }
+
+    ASSERT_EQ(ReadFile(temp_rom_path_), first_save_bytes)
+        << "Semantic save changed ROM bytes during cycle " << cycle;
+  }
+  RecordProperty("save_reopen_cycles", kSaveReopenCycles);
+}
+
+TEST_F(DungeonPotRepackOosIntegrationTest,
+       RegularEntranceSavePreservesEveryOtherSlotAndFiftyReopenCycles) {
+  constexpr int kEntranceId = 3;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(temp_rom_path_.string()).ok());
+
+  auto read_regular_record = [](const std::vector<uint8_t>& data,
+                                int entrance_id) {
+    std::vector<uint8_t> bytes;
+    for (const auto& [begin, end] :
+         RegularDungeonEntranceWriteRanges(entrance_id)) {
+      bytes.insert(bytes.end(), data.begin() + begin, data.begin() + end);
+    }
+    return bytes;
+  };
+
+  const std::vector<uint8_t> before_save_bytes = rom.vector();
+  std::array<std::vector<uint8_t>, kNumRegularDungeonEntrances>
+      regular_records_before;
+  for (int entrance_id = 0; entrance_id < kNumRegularDungeonEntrances;
+       ++entrance_id) {
+    regular_records_before[entrance_id] =
+        read_regular_record(before_save_bytes, entrance_id);
+  }
+  const std::vector<uint8_t> spawn_tables_before(
+      before_save_bytes.begin() + kStartingEntranceroom,
+      before_save_bytes.begin() + kStartingEntrancemusic +
+          kNumDungeonSpawnPoints);
+
+  DungeonSaveFlagsGuard flags_guard;
+  ConfigurePotOnlySave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSavePotItems = false;
+  flags.kSaveEntrances = true;
+
+  auto dungeon_editor = std::make_unique<editor::DungeonEditorV2>(&rom);
+  editor::EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project_;
+  dungeon_editor->SetDependencies(dependencies);
+  editor::DungeonEditorV2RegularEntranceTestPeer::LoadRegularEntranceFromRom(
+      *dungeon_editor, kEntranceId);
+  auto& entrance =
+      editor::DungeonEditorV2RegularEntranceTestPeer::RegularEntrance(
+          *dungeon_editor, kEntranceId);
+  const int original_room = entrance.room_;
+  const int replacement_room = (original_room + 1) % kNumberOfRooms;
+  ASSERT_NE(replacement_room, original_room);
+  entrance.room_ = static_cast<int16_t>(replacement_room);
+  entrance.MarkDirty();
+
+  const auto expected_ranges = RegularDungeonEntranceWriteRanges(kEntranceId);
+  ASSERT_EQ(expected_ranges.size(), 17u);
+  EXPECT_EQ(dungeon_editor->CollectWriteRanges(), expected_ranges);
+  EXPECT_TRUE(
+      project_.hack_manifest.AnalyzePcWriteRanges(expected_ranges).empty())
+      << "The production Oracle manifest unexpectedly owns a regular entrance "
+         "slot";
+
+  const absl::Status save_status = dungeon_editor->SaveRoom(0);
+  ASSERT_TRUE(save_status.ok()) << save_status.message();
+  EXPECT_FALSE(entrance.dirty());
+
+  const std::vector<uint8_t> after_save_bytes = rom.vector();
+  size_t changed_bytes = 0;
+  for (size_t offset = 0; offset < before_save_bytes.size(); ++offset) {
+    if (before_save_bytes[offset] == after_save_bytes[offset]) {
+      continue;
+    }
+    ++changed_bytes;
+    const bool covered =
+        std::any_of(expected_ranges.begin(), expected_ranges.end(),
+                    [offset](const DungeonEntranceWriteRange& range) {
+                      return range.first <= offset && offset < range.second;
+                    });
+    EXPECT_TRUE(covered) << "Write escaped regular entrance ranges at PC 0x"
+                         << std::hex << offset;
+  }
+  EXPECT_GT(changed_bytes, 0u);
+
+  for (int entrance_id = 0; entrance_id < kNumRegularDungeonEntrances;
+       ++entrance_id) {
+    if (entrance_id == kEntranceId) {
+      continue;
+    }
+    EXPECT_EQ(read_regular_record(after_save_bytes, entrance_id),
+              regular_records_before[entrance_id])
+        << "Unrelated regular entrance changed: 0x" << std::hex << entrance_id;
+  }
+  const std::vector<uint8_t> selected_after =
+      read_regular_record(after_save_bytes, kEntranceId);
+  ASSERT_EQ(selected_after.size(), 32u);
+  ASSERT_EQ(regular_records_before[kEntranceId].size(), 32u);
+  EXPECT_TRUE(std::equal(selected_after.begin() + 2, selected_after.end(),
+                         regular_records_before[kEntranceId].begin() + 2))
+      << "A non-room field changed in the selected regular entrance";
+  EXPECT_EQ(
+      std::vector<uint8_t>(after_save_bytes.begin() + kStartingEntranceroom,
+                           after_save_bytes.begin() + kStartingEntrancemusic +
+                               kNumDungeonSpawnPoints),
+      spawn_tables_before);
+
+  Rom::SaveSettings save_settings;
+  save_settings.filename = temp_rom_path_.string();
+  ASSERT_TRUE(rom.SaveToFile(save_settings).ok());
+  const std::vector<uint8_t> first_save_bytes = ReadFile(temp_rom_path_);
+  ASSERT_FALSE(first_save_bytes.empty());
+  dungeon_editor.reset();
+
+  {
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(temp_rom_path_.string()).ok());
+    const RoomEntrance reopened_entrance(&reopened, kEntranceId, false);
+    EXPECT_EQ(reopened_entrance.room_, replacement_room);
+    EXPECT_EQ(read_regular_record(reopened.vector(), kEntranceId),
+              selected_after);
+  }
+
+  for (int cycle = 1; cycle <= kSaveReopenCycles; ++cycle) {
+    SCOPED_TRACE(
+        absl::StrFormat("regular entrance save/reopen cycle %d", cycle));
+    Rom cycle_rom;
+    ASSERT_TRUE(cycle_rom.LoadFromFile(temp_rom_path_.string()).ok());
+    auto cycle_editor = std::make_unique<editor::DungeonEditorV2>(&cycle_rom);
+    editor::EditorDependencies cycle_dependencies = dependencies;
+    cycle_dependencies.rom = &cycle_rom;
+    cycle_editor->SetDependencies(cycle_dependencies);
+    editor::DungeonEditorV2RegularEntranceTestPeer::LoadRegularEntranceFromRom(
+        *cycle_editor, kEntranceId);
+    auto& cycle_entrance =
+        editor::DungeonEditorV2RegularEntranceTestPeer::RegularEntrance(
+            *cycle_editor, kEntranceId);
+    ASSERT_EQ(cycle_entrance.room_, replacement_room);
+    cycle_entrance.MarkDirty();
+
+    const absl::Status cycle_status = cycle_editor->SaveRoom(0);
+    ASSERT_TRUE(cycle_status.ok()) << cycle_status.message();
+    EXPECT_FALSE(cycle_entrance.dirty());
+    ASSERT_TRUE(cycle_rom.SaveToFile(save_settings).ok());
+    EXPECT_EQ(ReadFile(temp_rom_path_), first_save_bytes)
+        << "No-op regular entrance save changed ROM bytes during cycle "
+        << cycle;
+  }
+
+  RecordProperty("regular_entrance_id", kEntranceId);
+  RecordProperty("regular_entrance_save_reopen_cycles", kSaveReopenCycles);
+  RecordProperty("source_rom_sha256", source_sha_before_);
+}
+
+TEST_F(DungeonPotRepackOosIntegrationTest,
+       FullChestTablePreservesAllRoomsAcrossFiftyReopenCycles) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(temp_rom_path_.string()).ok());
+  ASSERT_EQ(ReadChestTableByteLength(rom), kChestTableCapacityBytes)
+      << "The Oracle chest stability fixture must exercise all 168 records";
+
+  const std::vector<ChestSequence> original_sequences =
+      ReadAllChestSequences(&rom);
+  ASSERT_EQ(original_sequences.size(), kOracleRoomCount);
+  const auto selected_iter = std::find_if(
+      original_sequences.begin(), original_sequences.end(),
+      [](const ChestSequence& sequence) { return sequence.size() == 1; });
+  ASSERT_NE(selected_iter, original_sequences.end())
+      << "Oracle ROM has no one-chest room for a one-for-one edit";
+  const uint32_t selected_room = static_cast<uint32_t>(
+      std::distance(original_sequences.begin(), selected_iter));
+
+  auto chest_ranges = GetChestTableWriteRanges(&rom);
+  ASSERT_TRUE(chest_ranges.ok()) << chest_ranges.status().message();
+  ASSERT_EQ(chest_ranges->size(), 2u);
+  const uint32_t chest_data_pc = (*chest_ranges)[1].first;
+  int selected_record = -1;
+  for (int record = 0; record < kChestTableCapacityRecords; ++record) {
+    const uint32_t offset =
+        chest_data_pc + record * static_cast<uint32_t>(kChestTableRecordSize);
+    const uint16_t word = static_cast<uint16_t>(
+        rom.data()[offset] |
+        (static_cast<uint16_t>(rom.data()[offset + 1]) << 8));
+    if ((word & 0x7FFF) == selected_room) {
+      ASSERT_EQ(selected_record, -1)
+          << "Selected room unexpectedly has multiple physical records";
+      selected_record = record;
+    }
+  }
+  ASSERT_GE(selected_record, 0);
+  const uint32_t selected_record_pc =
+      chest_data_pc +
+      selected_record * static_cast<uint32_t>(kChestTableRecordSize);
+
+  DungeonSaveFlagsGuard flags_guard;
+  ConfigureChestOnlySave();
+  auto dungeon_editor = std::make_unique<editor::DungeonEditorV2>(&rom);
+  editor::EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project_;
+  dungeon_editor->SetDependencies(dependencies);
+
+  Room& edited_room = dungeon_editor->rooms()[selected_room];
+  edited_room = Room(static_cast<int>(selected_room), &rom);
+  edited_room.LoadChests();
+  ASSERT_EQ(edited_room.GetChests().size(), 1u);
+
+  // Oracle currently consumes every physical chest slot. Prove growth is
+  // rejected before either ROM bytes or editor dirty state are cleared.
+  edited_room.GetChests().push_back(chest_data{0x01, false});
+  edited_room.MarkChestsDirty();
+  const std::vector<uint8_t> before_growth_attempt = rom.vector();
+  const absl::Status growth_status =
+      dungeon_editor->SaveRoom(static_cast<int>(selected_room));
+  EXPECT_EQ(growth_status.code(), absl::StatusCode::kResourceExhausted)
+      << growth_status;
+  EXPECT_EQ(rom.vector(), before_growth_attempt);
+  EXPECT_TRUE(edited_room.chests_dirty());
+
+  // Convert the failed growth into a one-for-one edit. The physical record
+  // remains in place while every other byte and all 296 room semantics remain
+  // stable.
+  edited_room.GetChests().pop_back();
+  const uint8_t replacement_item = edited_room.GetChests()[0].id ^ 0x01u;
+  const bool replacement_size = !edited_room.GetChests()[0].size;
+  edited_room.GetChests()[0].id = replacement_item;
+  edited_room.GetChests()[0].size = replacement_size;
+  edited_room.MarkChestsDirty();
+  std::vector<ChestSequence> expected_sequences = original_sequences;
+  expected_sequences[selected_room][0] =
+      std::pair<uint8_t, bool>{replacement_item, replacement_size};
+
+  const auto predicted_ranges = dungeon_editor->CollectWriteRanges();
+  EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
+                      (*chest_ranges)[0]),
+            predicted_ranges.end());
+  EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
+                      (*chest_ranges)[1]),
+            predicted_ranges.end());
+  EXPECT_FALSE(std::any_of(
+      predicted_ranges.begin(), predicted_ranges.end(), [](const auto& range) {
+        constexpr uint32_t kPointerBegin = kChestsDataPointer1;
+        constexpr uint32_t kPointerEnd = kChestsDataPointer1 + 3;
+        return range.first < kPointerEnd && kPointerBegin < range.second;
+      }));
+
+  const std::vector<uint8_t> before_edit = rom.vector();
+  const absl::Status save_status =
+      dungeon_editor->SaveRoom(static_cast<int>(selected_room));
+  ASSERT_TRUE(save_status.ok()) << save_status.message();
+  EXPECT_FALSE(edited_room.chests_dirty());
+  ASSERT_EQ(ReadChestTableByteLength(rom), kChestTableCapacityBytes);
+  EXPECT_EQ(rom.data()[selected_record_pc], before_edit[selected_record_pc]);
+  EXPECT_TRUE(std::equal(before_edit.begin(),
+                         before_edit.begin() + selected_record_pc,
+                         rom.vector().begin()));
+  EXPECT_TRUE(std::equal(
+      before_edit.begin() + selected_record_pc + kChestTableRecordSize,
+      before_edit.end(),
+      rom.vector().begin() + selected_record_pc + kChestTableRecordSize));
+
+  Rom::SaveSettings save_settings;
+  save_settings.filename = temp_rom_path_.string();
+  ASSERT_TRUE(rom.SaveToFile(save_settings).ok());
+  auto first_save_sha = ComputeSha256(temp_rom_path_.string());
+  ASSERT_TRUE(first_save_sha.ok()) << first_save_sha.status().message();
+  dungeon_editor.reset();
+
+  {
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(temp_rom_path_.string()).ok());
+    EXPECT_EQ(ReadAllChestSequences(&reopened), expected_sequences);
+  }
+
+  for (int cycle = 1; cycle <= kSaveReopenCycles; ++cycle) {
+    SCOPED_TRACE(absl::StrFormat("chest save/close/reopen cycle %d", cycle));
+    Rom cycle_rom;
+    ASSERT_TRUE(cycle_rom.LoadFromFile(temp_rom_path_.string()).ok());
+    EXPECT_EQ(ReadAllChestSequences(&cycle_rom), expected_sequences);
+
+    auto cycle_editor = std::make_unique<editor::DungeonEditorV2>(&cycle_rom);
+    dependencies.rom = &cycle_rom;
+    cycle_editor->SetDependencies(dependencies);
+    Room& cycle_room = cycle_editor->rooms()[selected_room];
+    cycle_room = Room(static_cast<int>(selected_room), &cycle_rom);
+    cycle_room.LoadChests();
+    ASSERT_EQ(cycle_room.GetChests().size(), 1u);
+    EXPECT_EQ(cycle_room.GetChests()[0].id, replacement_item);
+    EXPECT_EQ(cycle_room.GetChests()[0].size, replacement_size);
+    cycle_room.MarkChestsDirty();
+
+    const absl::Status cycle_status =
+        cycle_editor->SaveRoom(static_cast<int>(selected_room));
+    ASSERT_TRUE(cycle_status.ok()) << cycle_status.message();
+    EXPECT_FALSE(cycle_room.chests_dirty());
+    ASSERT_TRUE(cycle_rom.SaveToFile(save_settings).ok());
+    auto cycle_sha = ComputeSha256(temp_rom_path_.string());
+    ASSERT_TRUE(cycle_sha.ok()) << cycle_sha.status().message();
+    EXPECT_EQ(*cycle_sha, *first_save_sha)
+        << "No-op chest save changed ROM bytes during cycle " << cycle;
+  }
+  RecordProperty("chest_record_count", kChestTableCapacityRecords);
+  RecordProperty("chest_room_semantics_checked", kOracleRoomCount);
+  RecordProperty("chest_save_reopen_cycles", kSaveReopenCycles);
+  RecordProperty("chest_stable_sha256", *first_save_sha);
+}
+
+TEST_F(DungeonPotRepackOosIntegrationTest,
+       AllRoomHeadersRoundTripByteIdentically) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(temp_rom_path_.string()).ok());
+  const std::vector<uint8_t> before = rom.vector();
+
+  for (int room_id = 0; room_id < static_cast<int>(kOracleRoomCount);
+       ++room_id) {
+    SCOPED_TRACE(absl::StrFormat("room 0x%03X", room_id));
+    Room room = LoadRoomHeaderFromRom(&rom, room_id);
+    ASSERT_TRUE(room.SaveRoomHeader().ok());
+  }
+
+  EXPECT_EQ(rom.vector(), before);
+}
+
+TEST_F(DungeonPotRepackOosIntegrationTest,
+       BlockPolicyRejectsMessageChangeThroughAsmOwnedHeaderBeforeMutation) {
+  constexpr int kRoomId = 0;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(temp_rom_path_.string()).ok());
+
+  DungeonSaveFlagsGuard flags_guard;
+  ConfigurePotOnlySave();
+  project_.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSavePotItems = false;
+  flags.kSaveRoomHeaders = true;
+
+  auto dungeon_editor = std::make_unique<editor::DungeonEditorV2>(&rom);
+  editor::EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project_;
+  dungeon_editor->SetDependencies(dependencies);
+
+  Room& room = dungeon_editor->rooms()[kRoomId];
+  room = LoadRoomFromRom(&rom, kRoomId);
+  room.SetMessageId(static_cast<uint16_t>(room.message_id() ^ 0x0001u));
+  const auto predicted_ranges = dungeon_editor->CollectWriteRanges();
+  EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
+                      std::pair<uint32_t, uint32_t>{kMessagesIdDungeon,
+                                                    kMessagesIdDungeon + 2}),
+            predicted_ranges.end());
+  const std::vector<uint8_t> before = rom.vector();
+
+  const absl::Status status = dungeon_editor->SaveRoom(kRoomId);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(room.header_dirty());
+}
+
+TEST_F(DungeonPotRepackOosIntegrationTest,
+       AllDailyDriverDomainsSurviveFiftyReopenCycles) {
+  auto object_layout =
+      LoadManifestLayout(project_, core::DungeonStreamType::kObjects,
+                         core::DungeonWriteStrategy::kCopyOnWrite);
+  ASSERT_TRUE(object_layout.ok()) << object_layout.status().message();
+  auto sprite_layout =
+      LoadManifestLayout(project_, core::DungeonStreamType::kSprites,
+                         core::DungeonWriteStrategy::kCopyOnWrite);
+  ASSERT_TRUE(sprite_layout.ok()) << sprite_layout.status().message();
+  ASSERT_EQ(object_layout->pointer_count, kOracleRoomCount);
+  ASSERT_EQ(sprite_layout->pointer_count, kOracleRoomCount);
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(temp_rom_path_.string()).ok());
+
+  auto object_before = InventoryDungeonStreams(rom, *object_layout);
+  ASSERT_TRUE(object_before.ok()) << object_before.status().message();
+  ASSERT_TRUE(object_before->ok())
+      << "Oracle object inventory contains stream issues";
+  auto sprite_before = InventoryDungeonStreams(rom, *sprite_layout);
+  ASSERT_TRUE(sprite_before.ok()) << sprite_before.status().message();
+  ASSERT_TRUE(sprite_before->ok())
+      << "Oracle sprite inventory contains stream issues";
+  auto pot_before = InventoryDungeonStreams(rom, layout_);
+  ASSERT_TRUE(pot_before.ok()) << pot_before.status().message();
+  ASSERT_TRUE(pot_before->ok())
+      << "Oracle pot inventory contains stream issues";
+  ASSERT_EQ(object_before->streams.size(), kOracleRoomCount);
+  ASSERT_EQ(sprite_before->streams.size(), kOracleRoomCount);
+  ASSERT_EQ(pot_before->streams.size(), kOracleRoomCount);
+
+  const std::vector<uint32_t> object_empty_rooms =
+      CollectCanonicalEmptyAliasRooms(*object_before,
+                                      IsCanonicalEmptyObjectStream);
+  const std::vector<uint32_t> sprite_empty_rooms =
+      CollectCanonicalEmptyAliasRooms(*sprite_before,
+                                      IsCanonicalEmptySpriteStream);
+  const std::vector<uint32_t> pot_empty_rooms =
+      CollectCanonicalEmptyAliasRooms(*pot_before, IsCanonicalEmptyPotStream);
+  ASSERT_FALSE(object_empty_rooms.empty())
+      << "Oracle ROM has no shared canonical-empty object stream";
+  ASSERT_FALSE(sprite_empty_rooms.empty())
+      << "Oracle ROM has no shared canonical-empty sprite stream";
+  ASSERT_FALSE(pot_empty_rooms.empty())
+      << "Oracle ROM has no shared canonical-empty pot stream";
+
+  const std::vector<uint32_t> common_empty_rooms =
+      IntersectRoomIds(object_empty_rooms, sprite_empty_rooms, pot_empty_rooms);
+  ASSERT_FALSE(common_empty_rooms.empty())
+      << "Oracle ROM has no room shared by all three canonical-empty aliases";
+
+  int selected_room = -1;
+  std::vector<std::pair<uint8_t, uint8_t>> free_positions;
+  DungeonValidator validator;
+  for (uint32_t room_id : common_empty_rooms) {
+    Room probe = LoadRoomFromRom(&rom, static_cast<int>(room_id));
+    probe.LoadSprites();
+    if (!probe.IsLoaded() || !probe.AreObjectsLoaded() ||
+        !probe.AreSpritesLoaded() || !probe.ArePotItemsLoaded() ||
+        !probe.GetSprites().empty() || !probe.GetPotItems().empty() ||
+        !validator.ValidateRoom(probe).is_valid) {
+      continue;
+    }
+    std::vector<std::pair<uint8_t, uint8_t>> candidate_positions =
+        FindUsableCoordinates(probe, 2);
+    if (candidate_positions.size() != 2) {
+      continue;
+    }
+    selected_room = static_cast<int>(room_id);
+    free_positions = std::move(candidate_positions);
+    break;
+  }
+  ASSERT_GE(selected_room, 0)
+      << "No canonical-empty intersection room passed editor validation and "
+         "coordinate checks";
+  ASSERT_EQ(free_positions.size(), 2u);
+  RecordProperty("multidomain_room", absl::StrFormat("0x%03X", selected_room));
+
+  ASSERT_EQ(ReadChestTableByteLength(rom), kChestTableCapacityBytes)
+      << "The daily-driver rollback probe requires Oracle's full chest table";
+  const std::vector<ChestSequence> original_chest_sequences =
+      ReadAllChestSequences(&rom);
+  int chest_room_id = -1;
+  for (size_t room_id = 0; room_id < original_chest_sequences.size();
+       ++room_id) {
+    if (static_cast<int>(room_id) != selected_room &&
+        original_chest_sequences[room_id].size() == 1u) {
+      chest_room_id = static_cast<int>(room_id);
+      break;
+    }
+  }
+  ASSERT_GE(chest_room_id, 0)
+      << "Oracle ROM has no independent one-chest room for the combined save";
+  RecordProperty("daily_driver_chest_room",
+                 absl::StrFormat("0x%03X", chest_room_id));
+
+  constexpr int kEntranceId = 3;
+  RecordProperty("daily_driver_regular_entrance", kEntranceId);
+
+  DungeonSaveFlagsGuard flags_guard;
+  ConfigureDailyDriverSave();
+
+  auto dungeon_editor = std::make_unique<editor::DungeonEditorV2>(&rom);
+  editor::EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project_;
+  dungeon_editor->SetDependencies(dependencies);
+
+  Room& edited_room = dungeon_editor->rooms()[selected_room];
+  edited_room = LoadRoomFromRom(&rom, selected_room);
+  edited_room.LoadSprites();
+  ASSERT_TRUE(edited_room.IsLoaded());
+  ASSERT_TRUE(edited_room.AreObjectsLoaded());
+  ASSERT_TRUE(edited_room.AreSpritesLoaded());
+  ASSERT_TRUE(edited_room.ArePotItemsLoaded());
+  ASSERT_TRUE(edited_room.GetSprites().empty());
+  ASSERT_TRUE(edited_room.GetPotItems().empty());
+  ASSERT_TRUE(edited_room.GetDoors().empty());
+
+  Room& edited_chest_room = dungeon_editor->rooms()[chest_room_id];
+  edited_chest_room = LoadRoomFromRom(&rom, chest_room_id);
+  ASSERT_EQ(edited_chest_room.GetChests().size(), 1u);
+  const uint8_t replacement_chest_item =
+      edited_chest_room.GetChests()[0].id ^ 0x01u;
+  const bool replacement_chest_size = !edited_chest_room.GetChests()[0].size;
+  // Oracle uses all 168 records. Keep a 169th record dirty until the first
+  // SaveRoom call so the transaction has to roll back domains written before
+  // the chest serializer reaches its capacity failure.
+  edited_chest_room.GetChests().push_back(chest_data{0x01, false});
+  edited_chest_room.MarkChestsDirty();
+
+  editor::DungeonEditorV2RegularEntranceTestPeer::LoadRegularEntranceFromRom(
+      *dungeon_editor, kEntranceId);
+  auto& edited_entrance =
+      editor::DungeonEditorV2RegularEntranceTestPeer::RegularEntrance(
+          *dungeon_editor, kEntranceId);
+  const int replacement_entrance_room =
+      (edited_entrance.room_ + 1) % kNumberOfRooms;
+  ASSERT_NE(replacement_entrance_room, edited_entrance.room_);
+  edited_entrance.room_ = static_cast<int16_t>(replacement_entrance_room);
+  edited_entrance.MarkDirty();
+
+  RoomObject replacement_object(0x10, free_positions[0].first,
+                                free_positions[0].second, 0, 0);
+  replacement_object.SetRom(&rom);
+  ASSERT_TRUE(edited_room.AddObject(replacement_object).ok());
+  Room::Door replacement_door{};
+  replacement_door.position = 3;
+  replacement_door.direction = DoorDirection::North;
+  replacement_door.type = DoorType::NormalDoor;
+  edited_room.AddDoor(replacement_door);
+  constexpr uint32_t kReplacementDoorCount = 1;
+  edited_room.GetSprites().emplace_back(0x10, free_positions[1].first,
+                                        free_positions[1].second, 0, 0);
+  edited_room.MarkSpritesDirty();
+  const uint16_t replacement_message_id =
+      static_cast<uint16_t>(edited_room.message_id() ^ 0x0001u);
+  const uint8_t replacement_palette =
+      static_cast<uint8_t>((edited_room.palette() + 1u) % 72u);
+  edited_room.SetPalette(replacement_palette);
+  edited_room.SetMessageId(replacement_message_id);
+
+  std::vector<PotItem> replacement_items;
+  std::vector<uint8_t> replacement_pot_stream;
+  for (uint16_t x = 0x10; x < 0x80; ++x) {
+    std::vector<PotItem> candidate{{static_cast<uint16_t>(0x1000 | x), 0x01}};
+    if (CoordinateIsOccupied(edited_room, candidate[0].GetTileX(),
+                             candidate[0].GetTileY())) {
+      continue;
+    }
+    std::vector<uint8_t> encoded = EncodePotItems(candidate);
+    const bool already_present =
+        std::any_of(pot_before->streams.begin(), pot_before->streams.end(),
+                    [&encoded](const DungeonStreamRecord& record) {
+                      return record.encoded_stream == encoded;
+                    });
+    if (!already_present) {
+      replacement_items = std::move(candidate);
+      replacement_pot_stream = std::move(encoded);
+      break;
+    }
+  }
+  ASSERT_EQ(replacement_items.size(), 1u)
+      << "Could not construct a unique valid one-item pot stream";
+  edited_room.GetPotItems() = replacement_items;
+  edited_room.MarkPotItemsDirty();
+  ASSERT_TRUE(validator.ValidateRoom(edited_room).is_valid);
+
+  const DungeonStreamRecord* object_before_selected =
+      FindRoomRecord(*object_before, selected_room);
+  const DungeonStreamRecord* sprite_before_selected =
+      FindRoomRecord(*sprite_before, selected_room);
+  const DungeonStreamRecord* pot_before_selected =
+      FindRoomRecord(*pot_before, selected_room);
+  ASSERT_NE(object_before_selected, nullptr);
+  ASSERT_NE(sprite_before_selected, nullptr);
+  ASSERT_NE(pot_before_selected, nullptr);
+  ASSERT_GE(object_before_selected->encoded_stream.size(), 2u);
+  ASSERT_GE(sprite_before_selected->encoded_stream.size(), 1u);
+
+  const std::vector<uint8_t> replacement_object_payload =
+      edited_room.EncodeObjects();
+  std::vector<uint8_t> replacement_object_stream{
+      object_before_selected->encoded_stream[0],
+      object_before_selected->encoded_stream[1]};
+  replacement_object_stream.insert(replacement_object_stream.end(),
+                                   replacement_object_payload.begin(),
+                                   replacement_object_payload.end());
+  const std::vector<uint8_t> replacement_sprite_payload =
+      edited_room.EncodeSprites();
+  std::vector<uint8_t> replacement_sprite_stream{
+      sprite_before_selected->encoded_stream[0]};
+  replacement_sprite_stream.insert(replacement_sprite_stream.end(),
+                                   replacement_sprite_payload.begin(),
+                                   replacement_sprite_payload.end());
+
+  const auto predicted_ranges = dungeon_editor->CollectWriteRanges();
+  auto expect_range = [&predicted_ranges](uint32_t begin, uint32_t end,
+                                          const char* label) {
+    EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
+                        std::pair<uint32_t, uint32_t>{begin, end}),
+              predicted_ranges.end())
+        << label;
+  };
+  for (const DungeonStreamPcRange& range : object_layout->allocation_ranges) {
+    expect_range(range.begin, range.end,
+                 "Missing object allocation range prediction");
+  }
+  expect_range(object_layout->pointer_table_pc + selected_room * 3u,
+               object_layout->pointer_table_pc + selected_room * 3u + 3u,
+               "Missing selected object pointer prediction");
+  expect_range(kDoorPointers + selected_room * 3u,
+               kDoorPointers + selected_room * 3u + 3u,
+               "Missing selected door pointer prediction");
+  for (const DungeonStreamPcRange& range : sprite_layout->allocation_ranges) {
+    expect_range(range.begin, range.end,
+                 "Missing sprite allocation range prediction");
+  }
+  expect_range(sprite_layout->pointer_table_pc + selected_room * 2u,
+               sprite_layout->pointer_table_pc + selected_room * 2u + 2u,
+               "Missing selected sprite pointer prediction");
+  for (const DungeonStreamPcRange& range : layout_.allocation_ranges) {
+    expect_range(range.begin, range.end,
+                 "Missing pot allocation range prediction");
+  }
+  expect_range(layout_.pointer_table_pc,
+               layout_.pointer_table_pc + layout_.pointer_count * 2u,
+               "Missing complete pot pointer table prediction");
+  expect_range(kMessagesIdDungeon + selected_room * 2u,
+               kMessagesIdDungeon + selected_room * 2u + 2u,
+               "Missing selected dungeon message-ID prediction");
+  for (const DungeonEntranceWriteRange& range :
+       RegularDungeonEntranceWriteRanges(kEntranceId)) {
+    expect_range(range.first, range.second,
+                 "Missing regular entrance range prediction");
+  }
+  auto chest_write_ranges = GetChestTableWriteRanges(&rom);
+  ASSERT_TRUE(chest_write_ranges.ok()) << chest_write_ranges.status().message();
+  for (const auto& [begin, end] : *chest_write_ranges) {
+    expect_range(begin, end, "Missing chest-table range prediction");
+  }
+
+  const auto header_table_snes = rom.ReadLong(kRoomHeaderPointer);
+  ASSERT_TRUE(header_table_snes.ok()) << header_table_snes.status().message();
+  const uint32_t header_table_pc = SnesToPc(*header_table_snes);
+  const auto header_pointer =
+      rom.ReadWord(header_table_pc + selected_room * 2u);
+  ASSERT_TRUE(header_pointer.ok()) << header_pointer.status().message();
+  const uint32_t selected_header_pc = SnesToPc(
+      (static_cast<uint32_t>(rom.data()[kRoomHeaderPointerBank]) << 16) |
+      *header_pointer);
+  expect_range(selected_header_pc, selected_header_pc + 14u,
+               "Missing selected room-header prediction");
+
+  const std::vector<std::pair<uint32_t, uint32_t>> opted_in_ranges = {
+      {selected_header_pc, selected_header_pc + 14u},
+      {kMessagesIdDungeon + selected_room * 2u,
+       kMessagesIdDungeon + selected_room * 2u + 2u},
+  };
+  const auto opted_in_conflicts =
+      project_.hack_manifest.AnalyzePcWriteRanges(opted_in_ranges);
+  ASSERT_EQ(opted_in_conflicts.size(), 1u);
+  EXPECT_EQ(opted_in_conflicts[0].ownership, core::AddressOwnership::kAsmOwned);
+  EXPECT_EQ((opted_in_conflicts[0].address >> 16) & 0xFFu, 0x22u);
+  const auto predicted_conflicts =
+      project_.hack_manifest.AnalyzePcWriteRanges(predicted_ranges);
+  ASSERT_EQ(predicted_conflicts.size(), 1u);
+  EXPECT_EQ(predicted_conflicts[0].address, opted_in_conflicts[0].address);
+  EXPECT_EQ(predicted_conflicts[0].ownership, opted_in_conflicts[0].ownership);
+
+  // Keep block policy and add only the two generator-owned metadata ranges to
+  // a test-local copy of the real manifest. This proves the exact override;
+  // the source Oracle manifest and project configuration remain untouched.
+  const std::filesystem::path manifest_path =
+      project_.GetAbsolutePath(project_.hack_manifest_file);
+  const std::vector<uint8_t> manifest_bytes = ReadFile(manifest_path);
+  ASSERT_FALSE(manifest_bytes.empty())
+      << "Could not read configured Oracle manifest: " << manifest_path;
+  Json synthetic_manifest =
+      Json::parse(std::string(manifest_bytes.begin(), manifest_bytes.end()));
+  synthetic_manifest["manifest_version"] = 3;
+  // The legacy v2 Oracle generator emitted one low-half hook address
+  // ($1E7F21). A v3 manifest must canonicalize every protected endpoint before
+  // adding editor exemptions; mirror that required generator migration in this
+  // test-local copy without weakening the production parser.
+  auto& protected_json = synthetic_manifest["protected_regions"]["regions"];
+  const auto& protected_regions = project_.hack_manifest.protected_regions();
+  ASSERT_TRUE(protected_json.is_array());
+  ASSERT_EQ(protected_json.size(), protected_regions.size());
+  for (size_t index = 0; index < protected_regions.size(); ++index) {
+    protected_json[index]["start"] = absl::StrFormat(
+        "0x%06X", PcToSnes(SnesToPc(protected_regions[index].start)));
+    protected_json[index]["end"] = absl::StrFormat(
+        "0x%06X", PcToSnes(SnesToPc(protected_regions[index].end)));
+  }
+  synthetic_manifest["editor_managed_regions"] = {
+      {"regions", Json::array({{{"start", "0x228280"}, {"end", "0x2292B0"}},
+                               {{"start", "0x07F61D"}, {"end", "0x07F86D"}}})}};
+  const absl::Status synthetic_status =
+      project_.hack_manifest.LoadFromString(synthetic_manifest.dump());
+  ASSERT_TRUE(synthetic_status.ok()) << synthetic_status.message();
+  project_.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+
+  EXPECT_EQ(
+      project_.hack_manifest.ClassifyAddress(PcToSnes(selected_header_pc)),
+      core::AddressOwnership::kVanillaSafe);
+  EXPECT_EQ(project_.hack_manifest.ClassifyAddress(0x228080),
+            core::AddressOwnership::kAsmOwned)
+      << "The exact header exemption must not permit unrelated bank-$22 data";
+  EXPECT_TRUE(
+      project_.hack_manifest.AnalyzePcWriteRanges(opted_in_ranges).empty());
+  EXPECT_TRUE(
+      project_.hack_manifest.AnalyzePcWriteRanges(predicted_ranges).empty());
+  RecordProperty("header_write_policy", "block-exact-editor-managed-regions");
+
+  const std::vector<uint8_t> before_failed_save = rom.vector();
+  rom::WriteFence failed_save_writes;
+  ASSERT_TRUE(failed_save_writes
+                  .Allow(0, static_cast<uint32_t>(rom.size()),
+                         "ObserveDailyDriverRollback")
+                  .ok());
+  absl::Status failed_save_status;
+  {
+    rom::ScopedWriteFence observe_failed_save(&rom, &failed_save_writes);
+    failed_save_status = dungeon_editor->SaveRoom(selected_room);
+  }
+  EXPECT_EQ(failed_save_status.code(), absl::StatusCode::kResourceExhausted)
+      << failed_save_status;
+  EXPECT_EQ(std::string(failed_save_status.message()),
+            "Chest table has 169 records; capacity is 168");
+  EXPECT_NE(std::find_if(failed_save_writes.written_ranges().begin(),
+                         failed_save_writes.written_ranges().end(),
+                         [selected_header_pc](const auto& range) {
+                           return range.first <= selected_header_pc &&
+                                  range.second >= selected_header_pc + 14u;
+                         }),
+            failed_save_writes.written_ranges().end())
+      << "SaveRoomData did not write the complete room header before the late "
+         "chest-capacity failure";
+  EXPECT_EQ(rom.vector(), before_failed_save)
+      << "Late chest-capacity failure did not roll back prior domain writes";
+  EXPECT_TRUE(edited_room.object_stream_dirty());
+  EXPECT_TRUE(edited_room.sprites_dirty());
+  EXPECT_TRUE(edited_room.header_dirty());
+  EXPECT_TRUE(edited_room.pot_items_dirty());
+  EXPECT_TRUE(edited_chest_room.chests_dirty());
+  EXPECT_TRUE(edited_entrance.dirty());
+
+  ASSERT_EQ(edited_chest_room.GetChests().size(), 2u);
+  edited_chest_room.GetChests().pop_back();
+  edited_chest_room.GetChests()[0].id = replacement_chest_item;
+  edited_chest_room.GetChests()[0].size = replacement_chest_size;
+  edited_chest_room.MarkChestsDirty();
+  std::vector<ChestSequence> expected_chest_sequences =
+      original_chest_sequences;
+  expected_chest_sequences[chest_room_id][0] =
+      std::pair<uint8_t, bool>{replacement_chest_item, replacement_chest_size};
+
+  const std::vector<uint8_t> before_save_bytes = rom.vector();
+  const absl::Status save_status = dungeon_editor->SaveRoom(selected_room);
+  ASSERT_TRUE(save_status.ok()) << save_status.message();
+  EXPECT_FALSE(edited_room.object_stream_dirty());
+  EXPECT_FALSE(edited_room.sprites_dirty());
+  EXPECT_FALSE(edited_room.header_dirty());
+  EXPECT_FALSE(edited_room.pot_items_dirty());
+  EXPECT_FALSE(edited_chest_room.chests_dirty());
+  EXPECT_FALSE(edited_entrance.dirty());
+  ASSERT_EQ(rom.vector().size(), before_save_bytes.size());
+  size_t uncovered_write_count = 0;
+  size_t first_uncovered_write = 0;
+  for (size_t offset = 0; offset < before_save_bytes.size(); ++offset) {
+    if (before_save_bytes[offset] == rom.vector()[offset]) {
+      continue;
+    }
+    const bool covered =
+        std::any_of(predicted_ranges.begin(), predicted_ranges.end(),
+                    [offset](const std::pair<uint32_t, uint32_t>& range) {
+                      return range.first <= offset && offset < range.second;
+                    });
+    if (!covered) {
+      if (uncovered_write_count == 0) {
+        first_uncovered_write = offset;
+      }
+      ++uncovered_write_count;
+    }
+  }
+  EXPECT_EQ(uncovered_write_count, 0u)
+      << "First write outside CollectWriteRanges at PC 0x" << std::hex
+      << first_uncovered_write;
+
+  Rom::SaveSettings save_settings;
+  save_settings.filename = temp_rom_path_.string();
+  ASSERT_TRUE(rom.SaveToFile(save_settings).ok());
+  const std::vector<uint8_t> first_save_bytes = ReadFile(temp_rom_path_);
+  ASSERT_FALSE(first_save_bytes.empty());
+  dungeon_editor.reset();
+
+  {
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(temp_rom_path_.string()).ok());
+    auto object_after = InventoryDungeonStreams(reopened, *object_layout);
+    ASSERT_TRUE(object_after.ok()) << object_after.status().message();
+    auto sprite_after = InventoryDungeonStreams(reopened, *sprite_layout);
+    ASSERT_TRUE(sprite_after.ok()) << sprite_after.status().message();
+    auto pot_after = InventoryDungeonStreams(reopened, layout_);
+    ASSERT_TRUE(pot_after.ok()) << pot_after.status().message();
+    EXPECT_EQ(ReadAllChestSequences(&reopened), expected_chest_sequences);
+    const RoomEntrance reopened_entrance(&reopened, kEntranceId, false);
+    EXPECT_EQ(reopened_entrance.room_, replacement_entrance_room);
+
+    EXPECT_TRUE(InventoryPreservesUntouchedRooms(
+        *object_before, *object_after, *object_layout, selected_room,
+        replacement_object_stream, /*preserve_untouched_addresses=*/true));
+    EXPECT_TRUE(InventoryPreservesUntouchedRooms(
+        *sprite_before, *sprite_after, *sprite_layout, selected_room,
+        replacement_sprite_stream, /*preserve_untouched_addresses=*/true));
+    EXPECT_TRUE(InventoryPreservesUntouchedRooms(
+        *pot_before, *pot_after, layout_, selected_room, replacement_pot_stream,
+        /*preserve_untouched_addresses=*/false));
+
+    const DungeonStreamRecord* object_after_selected =
+        FindRoomRecord(*object_after, selected_room);
+    const DungeonStreamRecord* sprite_after_selected =
+        FindRoomRecord(*sprite_after, selected_room);
+    const DungeonStreamRecord* pot_after_selected =
+        FindRoomRecord(*pot_after, selected_room);
+    ASSERT_NE(object_after_selected, nullptr);
+    ASSERT_NE(sprite_after_selected, nullptr);
+    ASSERT_NE(pot_after_selected, nullptr);
+    EXPECT_NE(object_after_selected->data_pc, object_before_selected->data_pc);
+    EXPECT_NE(sprite_after_selected->data_pc, sprite_before_selected->data_pc);
+    EXPECT_NE(pot_after_selected->data_pc, pot_before_selected->data_pc);
+
+    const std::pair<const DungeonStreamInventory*, const std::vector<uint32_t>*>
+        empty_domains[] = {
+            {&*object_after, &object_empty_rooms},
+            {&*sprite_after, &sprite_empty_rooms},
+            {&*pot_after, &pot_empty_rooms},
+        };
+    for (const auto& [after_inventory, empty_rooms] : empty_domains) {
+      const DungeonStreamRecord* selected_after =
+          FindRoomRecord(*after_inventory, selected_room);
+      ASSERT_NE(selected_after, nullptr);
+      for (uint32_t alias_room : *empty_rooms) {
+        if (alias_room == static_cast<uint32_t>(selected_room)) {
+          continue;
+        }
+        const DungeonStreamRecord* alias_after =
+            FindRoomRecord(*after_inventory, alias_room);
+        ASSERT_NE(alias_after, nullptr);
+        EXPECT_NE(alias_after->data_pc, selected_after->data_pc)
+            << "Selected room remained attached to room " << alias_room;
+      }
+    }
+
+    auto door_pointer = reopened.ReadLong(kDoorPointers + selected_room * 3u);
+    ASSERT_TRUE(door_pointer.ok()) << door_pointer.status().message();
+    EXPECT_EQ(SnesToPc(*door_pointer), object_after_selected->data_pc +
+                                           replacement_object_stream.size() -
+                                           kReplacementDoorCount * 2u - 2u);
+
+    Room reopened_room = LoadRoomFromRom(&reopened, selected_room);
+    reopened_room.LoadSprites();
+    std::vector<const RoomObject*> ordinary_objects;
+    for (const RoomObject& object : reopened_room.GetTileObjects()) {
+      if ((object.options() & ObjectOption::Torch) == ObjectOption::Nothing &&
+          (object.options() & ObjectOption::Block) == ObjectOption::Nothing) {
+        ordinary_objects.push_back(&object);
+      }
+    }
+    ASSERT_EQ(ordinary_objects.size(), 1u);
+    EXPECT_EQ(ordinary_objects[0]->id_, replacement_object.id_);
+    EXPECT_EQ(ordinary_objects[0]->x(), replacement_object.x());
+    EXPECT_EQ(ordinary_objects[0]->y(), replacement_object.y());
+    EXPECT_EQ(ordinary_objects[0]->size(), replacement_object.size());
+    EXPECT_EQ(ordinary_objects[0]->GetLayerValue(),
+              replacement_object.GetLayerValue());
+    ASSERT_EQ(reopened_room.GetDoors().size(), 1u);
+    EXPECT_EQ(reopened_room.GetDoors()[0].EncodeBytes(),
+              replacement_door.EncodeBytes());
+    EXPECT_EQ(reopened_room.palette(), replacement_palette);
+    EXPECT_EQ(reopened_room.message_id(), replacement_message_id);
+
+    ASSERT_EQ(reopened_room.GetSprites().size(), 1u);
+    EXPECT_EQ(reopened_room.GetSprites()[0].id(), 0x10);
+    EXPECT_EQ(reopened_room.GetSprites()[0].x(), free_positions[1].first);
+    EXPECT_EQ(reopened_room.GetSprites()[0].y(), free_positions[1].second);
+    EXPECT_EQ(reopened_room.GetSprites()[0].subtype(), 0);
+    EXPECT_EQ(reopened_room.GetSprites()[0].layer(), 0);
+    EXPECT_EQ(EncodePotItems(reopened_room.GetPotItems()),
+              replacement_pot_stream);
+  }
+
+  for (int cycle = 1; cycle <= kSaveReopenCycles; ++cycle) {
+    SCOPED_TRACE(absl::StrFormat("multi-domain save/reopen cycle %d", cycle));
+    {
+      Rom cycle_rom;
+      ASSERT_TRUE(cycle_rom.LoadFromFile(temp_rom_path_.string()).ok());
+      auto cycle_editor = std::make_unique<editor::DungeonEditorV2>(&cycle_rom);
+      editor::EditorDependencies cycle_dependencies = dependencies;
+      cycle_dependencies.rom = &cycle_rom;
+      cycle_editor->SetDependencies(cycle_dependencies);
+
+      Room& cycle_room = cycle_editor->rooms()[selected_room];
+      cycle_room = LoadRoomFromRom(&cycle_rom, selected_room);
+      cycle_room.LoadSprites();
+      ASSERT_EQ(cycle_room.EncodeObjects(), replacement_object_payload);
+      ASSERT_EQ(cycle_room.EncodeSprites(), replacement_sprite_payload);
+      ASSERT_EQ(EncodePotItems(cycle_room.GetPotItems()),
+                replacement_pot_stream);
+      ASSERT_EQ(cycle_room.palette(), replacement_palette);
+      ASSERT_EQ(cycle_room.message_id(), replacement_message_id);
+      ASSERT_EQ(cycle_room.GetDoors().size(), 1u);
+      ASSERT_EQ(cycle_room.GetDoors()[0].EncodeBytes(),
+                replacement_door.EncodeBytes());
+
+      Room& cycle_chest_room = cycle_editor->rooms()[chest_room_id];
+      cycle_chest_room = LoadRoomFromRom(&cycle_rom, chest_room_id);
+      ASSERT_EQ(cycle_chest_room.GetChests().size(), 1u);
+      EXPECT_EQ(cycle_chest_room.GetChests()[0].id, replacement_chest_item);
+      EXPECT_EQ(cycle_chest_room.GetChests()[0].size, replacement_chest_size);
+      editor::DungeonEditorV2RegularEntranceTestPeer::
+          LoadRegularEntranceFromRom(*cycle_editor, kEntranceId);
+      auto& cycle_entrance =
+          editor::DungeonEditorV2RegularEntranceTestPeer::RegularEntrance(
+              *cycle_editor, kEntranceId);
+      EXPECT_EQ(cycle_entrance.room_, replacement_entrance_room);
+
+      cycle_room.MarkObjectStreamDirty();
+      cycle_room.MarkSpritesDirty();
+      cycle_room.MarkHeaderDirty();
+      cycle_room.MarkPotItemsDirty();
+      cycle_chest_room.MarkChestsDirty();
+      cycle_entrance.MarkDirty();
+
+      const absl::Status cycle_status = cycle_editor->SaveRoom(selected_room);
+      ASSERT_TRUE(cycle_status.ok()) << cycle_status.message();
+      EXPECT_FALSE(cycle_room.object_stream_dirty());
+      EXPECT_FALSE(cycle_room.sprites_dirty());
+      EXPECT_FALSE(cycle_room.header_dirty());
+      EXPECT_FALSE(cycle_room.pot_items_dirty());
+      EXPECT_FALSE(cycle_chest_room.chests_dirty());
+      EXPECT_FALSE(cycle_entrance.dirty());
+      ASSERT_TRUE(cycle_rom.SaveToFile(save_settings).ok());
+    }
+
+    ASSERT_EQ(ReadFile(temp_rom_path_), first_save_bytes)
+        << "Multi-domain save changed ROM bytes during cycle " << cycle;
+  }
+  RecordProperty("daily_driver_save_reopen_cycles", kSaveReopenCycles);
+  RecordProperty("daily_driver_late_failure_rollback", true);
+  RecordProperty("daily_driver_cow_retry_after_rollback", true);
+  RecordProperty("source_rom_sha256", source_sha_before_);
+  RecordProperty("source_manifest_sha256", source_manifest_sha_before_);
+}
+
+}  // namespace
+}  // namespace yaze::zelda3::test
