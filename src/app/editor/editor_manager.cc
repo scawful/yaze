@@ -4955,7 +4955,18 @@ void EditorManager::ConfirmPendingUnsavedSessionActionSaveAndContinue() {
     }
 
     session_coordinator_->SwitchToSession(session_index);
-    return SaveRom();
+    RETURN_IF_ERROR(SaveRom());
+
+    // A successful file write does not necessarily mean every pending editor
+    // domain participated in the save. For example, dungeon palette saving is
+    // user-configurable. Never execute a destructive follow-up while work that
+    // the confirmation dialog promised to save is still pending.
+    if (SessionHasPendingUnsavedWork(session_index)) {
+      return absl::FailedPreconditionError(
+          absl::StrFormat("Save completed, but session still has %s",
+                          DescribePendingUnsavedWork(session_index)));
+    }
+    return absl::OkStatus();
   };
 
   absl::Status save_status = absl::OkStatus();

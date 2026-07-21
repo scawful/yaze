@@ -142,12 +142,12 @@ PaletteGroupPanel::PaletteGroupPanel(const std::string& group_name,
 }
 
 void PaletteGroupPanel::Draw(bool* p_open) {
-  if (!rom_ || !rom_->is_loaded()) {
-    return;
-  }
   if (!IsManagedSession()) {
     ImGui::TextDisabled(
         tr("Palette controls are unavailable for an inactive ROM session."));
+    return;
+  }
+  if (!rom_ || !rom_->is_loaded()) {
     return;
   }
 
