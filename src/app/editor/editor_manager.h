@@ -445,7 +445,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   }
   void MarkCurrentProjectDirty();
   bool IsCurrentProjectDirty() const;
-  core::VersionManager* GetVersionManager() { return version_manager_.get(); }
+  core::VersionManager* GetVersionManager() { return version_manager_; }
 
   // Show project management panel in right sidebar
   void ShowProjectManagement();
@@ -576,7 +576,10 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // The global FeatureFlags singleton is also rebound during transient frame
   // iteration, so track which session currently owns its value separately.
   std::optional<size_t> runtime_feature_flags_session_id_;
-  std::unique_ptr<core::VersionManager> version_manager_;
+  // Non-owning view of the active session's VersionManager. Each RomSession
+  // owns its manager so EditorSet dependency pointers remain valid while that
+  // session is inactive.
+  core::VersionManager* version_manager_ = nullptr;
   SharedClipboard shared_clipboard_;
   std::unique_ptr<PopupManager> popup_manager_;
   ToastManager toast_manager_;

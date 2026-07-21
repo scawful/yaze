@@ -1236,8 +1236,19 @@ void EditorManager::CaptureActiveProjectContext() {
   if (runtime_feature_flags_session_id_ == active_project_context_session_id_) {
     session->feature_flags = core::FeatureFlags::get();
   }
+  // These preferences are exposed through global runtime settings, but they
+  // are project workspace state. Capture them before leaving the session so a
+  // later SaveProject cannot copy another session's values into this project.
+  current_project_.workspace_settings.font_global_scale =
+      user_settings_.prefs().font_global_scale;
+  current_project_.workspace_settings.autosave_enabled =
+      user_settings_.prefs().autosave_enabled;
+  current_project_.workspace_settings.autosave_interval_secs =
+      user_settings_.prefs().autosave_interval;
+  current_project_.workspace_settings.backup_on_save =
+      user_settings_.prefs().backup_before_save;
   current_project_.feature_flags = session->feature_flags;
-  session->project_context = current_project_;
+  BindProjectContextToSession(session, current_project_);
 }
 
 void EditorManager::CaptureActiveProjectEditingState() {
@@ -1267,6 +1278,10 @@ void EditorManager::DetachActiveProjectContext() {
   CaptureActiveProjectContext();
   active_project_context_session_id_.reset();
   runtime_feature_flags_session_id_.reset();
+  version_manager_ = nullptr;
+  if (project_management_panel_) {
+    project_management_panel_->SetVersionManager(nullptr);
+  }
 }
 
 void EditorManager::BindProjectContextToSession(
@@ -1274,13 +1289,39 @@ void EditorManager::BindProjectContextToSession(
   if (!session) {
     return;
   }
-  session->project_context = project;
+  const bool needs_version_manager =
+      !session->project_context.has_value() || !session->version_manager;
+  if (session->project_context.has_value()) {
+    *session->project_context = project;
+  } else {
+    session->project_context.emplace(project);
+  }
+  if (needs_version_manager) {
+    session->version_manager =
+        std::make_unique<core::VersionManager>(&*session->project_context);
+  }
   session->feature_flags = project.feature_flags;
+  // Configure after the stable context and VersionManager exist. EditorSet
+  // instances are created before SessionCreatedEvent, so their first
+  // dependency pass can legitimately have no project yet.
+  ConfigureSession(session);
 }
 
 void EditorManager::ApplyCurrentProjectRuntimeContext() {
   core::FeatureFlags::get() = current_project_.feature_flags;
   zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+
+  user_settings_.prefs().font_global_scale =
+      current_project_.workspace_settings.font_global_scale;
+  user_settings_.prefs().autosave_enabled =
+      current_project_.workspace_settings.autosave_enabled;
+  user_settings_.prefs().autosave_interval =
+      current_project_.workspace_settings.autosave_interval_secs;
+  user_settings_.prefs().backup_before_save =
+      current_project_.workspace_settings.backup_on_save;
+  if (ImGui::GetCurrentContext() != nullptr) {
+    ImGui::GetIO().FontGlobalScale = user_settings_.prefs().font_global_scale;
+  }
 
   core::RomSettings::Get().SetAddressOverrides(
       current_project_.rom_address_overrides);
@@ -1313,7 +1354,7 @@ void EditorManager::ApplyCurrentProjectRuntimeContext() {
   RefreshHackWorkflowBackend();
   if (project_management_panel_) {
     project_management_panel_->SetProject(&current_project_);
-    project_management_panel_->SetVersionManager(version_manager_.get());
+    project_management_panel_->SetVersionManager(version_manager_);
     project_management_panel_->SetRom(GetCurrentRom());
   }
 }
@@ -1323,10 +1364,20 @@ bool EditorManager::RestoreProjectContextForSession(RomSession* session) {
     active_project_context_session_id_.reset();
     runtime_feature_flags_session_id_.reset();
     rom_lifecycle_.SetProjectContext(nullptr);
+    version_manager_ = nullptr;
+    if (project_management_panel_) {
+      project_management_panel_->SetVersionManager(nullptr);
+    }
     return false;
   }
 
+  if (!session->version_manager) {
+    session->version_manager =
+        std::make_unique<core::VersionManager>(&*session->project_context);
+    ConfigureSession(session);
+  }
   current_project_ = *session->project_context;
+  version_manager_ = session->version_manager.get();
   session->feature_flags = current_project_.feature_flags;
   active_project_context_session_id_ = session->session_id();
   runtime_feature_flags_session_id_ = session->session_id();
@@ -1468,7 +1519,16 @@ void EditorManager::HandleSessionCreated(size_t index, RomSession* session) {
   }
   CaptureActiveProjectContext();
   if (session && !session->project_context.has_value()) {
-    BindProjectContextToSession(session, current_project_);
+    // A parsed project deliberately detaches the prior owner before creating
+    // its ROM session. Normal raw-ROM and empty-session opens must instead get
+    // a neutral context, not a copy of whichever project happened to be active.
+    if (!active_project_context_session_id_.has_value() &&
+        current_project_.project_opened()) {
+      BindProjectContextToSession(session, current_project_);
+    } else {
+      project::YazeProject neutral_project;
+      BindProjectContextToSession(session, neutral_project);
+    }
   }
 
   const size_t session_id = session ? session->session_id() : index;
@@ -1504,6 +1564,10 @@ void EditorManager::HandleSessionClosed(size_t index) {
       active_project_context_session_id_.reset();
       if (runtime_feature_flags_session_id_ == closing_session->session_id()) {
         runtime_feature_flags_session_id_.reset();
+      }
+      version_manager_ = nullptr;
+      if (project_management_panel_) {
+        project_management_panel_->SetVersionManager(nullptr);
       }
     }
     palette_session = active_session;
@@ -4111,11 +4175,6 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
     SyncLayoutScopeFromCurrentProject();
     RefreshHackWorkflowBackend();
 
-    // Initialize VersionManager for the project
-    version_manager_ =
-        std::make_unique<core::VersionManager>(&current_project_);
-    version_manager_->InitializeGit();  // Try to init git if configured
-
     // Load ROM directly from project - don't prompt user
     return LoadProjectWithRom();
   } else {
@@ -4257,11 +4316,6 @@ absl::Status EditorManager::OpenProjectInternal() {
     DetachActiveProjectContext();
     current_project_ = std::move(new_project);
     SyncLayoutScopeFromCurrentProject();
-
-    // Initialize VersionManager for the project
-    version_manager_ =
-        std::make_unique<core::VersionManager>(&current_project_);
-    version_manager_->InitializeGit();
 
     return LoadProjectWithRom();
   };
@@ -4469,6 +4523,12 @@ absl::Status EditorManager::LoadProjectWithRom() {
 
   BindProjectContextToSession(session, current_project_);
   RestoreProjectContextForSession(session);
+  if (version_manager_) {
+    // Preserve the existing best-effort Git initialization behavior, now
+    // against the stable session-owned project object.
+    (void)version_manager_->InitializeGit();
+    current_project_.git_repository = session->project_context->git_repository;
+  }
 
   if (auto* rom = GetCurrentRom(); rom && rom->is_loaded()) {
     if (IsRomHashMismatch()) {
@@ -4563,7 +4623,7 @@ absl::Status EditorManager::LoadProjectWithRom() {
   // Update project management panel with loaded project
   if (project_management_panel_) {
     project_management_panel_->SetProject(&current_project_);
-    project_management_panel_->SetVersionManager(version_manager_.get());
+    project_management_panel_->SetVersionManager(version_manager_);
     project_management_panel_->SetRom(GetCurrentRom());
   }
 
@@ -5838,7 +5898,7 @@ void EditorManager::ShowProjectManagement() {
     if (project_management_panel_) {
       project_management_panel_->SetProject(&current_project_,
                                             IsCurrentProjectDirty());
-      project_management_panel_->SetVersionManager(version_manager_.get());
+      project_management_panel_->SetVersionManager(version_manager_);
       project_management_panel_->SetRom(GetCurrentRom());
     }
     right_drawer_manager_->ToggleDrawer(
@@ -5892,8 +5952,17 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
   deps.shortcut_manager = &shortcut_manager_;
   deps.shared_clipboard = &shared_clipboard_;
   deps.user_settings = &user_settings_;
-  deps.project = &current_project_;
-  deps.version_manager = version_manager_.get();
+  if (session_coordinator_) {
+    const auto session_index = ResolveSessionIndexById(session_id);
+    if (session_index.has_value()) {
+      auto* session = static_cast<RomSession*>(
+          session_coordinator_->GetSession(*session_index));
+      if (session && session->project_context.has_value()) {
+        deps.project = &*session->project_context;
+        deps.version_manager = session->version_manager.get();
+      }
+    }
+  }
   deps.global_context = editor_context_.get();
   deps.status_bar = &status_bar_;
   deps.renderer = renderer_;
