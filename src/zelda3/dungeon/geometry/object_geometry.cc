@@ -199,15 +199,17 @@ absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureRoutineForState(
   adjusted.y_ = anchor.y;
 
   // Allocate a dummy tile list large enough for every routine. Chest geometry
-  // is payload-sensitive: the canonical small-chest objects (0xF99/0xF9A)
-  // use routine 39 with four tiles, while a 16+ tile span makes that routine
-  // take its unrelated 4x4 fallback. Big chests use their own routine (114),
-  // so constrain only the small-chest routine to its declared payload.
+  // is payload-sensitive: the canonical subtype-3 small-chest objects
+  // (0xF99/0xF9A) use routine 39 with four tiles, while a 16+ tile span makes
+  // that routine take its 4x4 subtype-1 chest path. Big chests use their own
+  // routine (114), so constrain only those two small-chest object IDs to the
+  // routine's declared minimum payload.
   static const std::vector<gfx::TileInfo> kTiles = MakeDummyTiles();
+  const uint16_t object_id = static_cast<uint16_t>(object.id_);
+  const bool is_small_chest = routine.id == DrawRoutineIds::kChest &&
+                              (object_id == 0x0F99 || object_id == 0x0F9A);
   const size_t measurement_tile_count =
-      routine.id == DrawRoutineIds::kChest
-          ? static_cast<size_t>(routine.min_tiles)
-          : kTiles.size();
+      is_small_chest ? static_cast<size_t>(routine.min_tiles) : kTiles.size();
 
   gfx::BackgroundBuffer bg(DrawContext::kMaxTilesX * 8,
                            DrawContext::kMaxTilesY * 8);
