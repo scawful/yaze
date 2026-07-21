@@ -29,6 +29,11 @@ Source: post-agent audit of the 0.8.0 dungeon drawing/editing slice.
    - Tests: view-model/unit test for toggling; ROM-backed save/reload test; no-op save stays byte-identical.
 
 3. **Independent golden room screenshot ROI**
+   - Status: complete for a stable vanilla room `0x012` left-wall ROI. The
+     committed Mesen2 PNG is compared against yaze headlessly with an exact
+     3,072-pixel RGBA assertion; fixture provenance, coordinates, update steps,
+     and ROM skip policy are documented beside the baseline. Broader room
+     floor/background palette parity remains open.
    - Problem: current fixture checksums guard yaze renderer drift, not correctness against emulator or screenshot truth.
    - Done when: one stable room ROI has a committed PNG/baseline, update procedure, and tolerance/skip rationale.
    - Tests: E2E or headless visual diff for room `0x001` or `0x016`.
