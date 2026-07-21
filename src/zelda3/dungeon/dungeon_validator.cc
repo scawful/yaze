@@ -5,6 +5,18 @@
 
 namespace yaze {
 namespace zelda3 {
+namespace {
+
+constexpr int16_t kBigKeyLockObjectId = 0xF98;
+constexpr int16_t kSmallChestObjectId = 0xF99;
+constexpr int16_t kBigChestObjectId = 0xFB1;
+constexpr size_t kMaxStatefulRoomEventSlots = 6;
+
+bool IsStatefulChest(int16_t object_id) {
+  return object_id == kSmallChestObjectId || object_id == kBigChestObjectId;
+}
+
+}  // namespace
 
 ValidationResult DungeonValidator::ValidateRoom(const Room& room) {
   ValidationResult result;
@@ -47,6 +59,46 @@ ValidationResult DungeonValidator::ValidateRoom(const Room& room) {
         "Too many chests (%d > %d). Item collection flags will conflict.",
         chest_count, kMaxChests));
     result.is_valid = false;
+  }
+
+  // Stateful chests and big-key locks share a six-entry room-event table in
+  // the game engine. Chests use a chest-only index and then synchronize the
+  // shared index, so a chest after a lock reuses an earlier event slot.
+  // Validate the encoded stream order (primary, BG2 overlay, BG1 overlay), not
+  // the editor vector order, which may interleave objects from those lists.
+  size_t stateful_room_event_count = 0;
+  bool saw_big_key_lock = false;
+  int first_chest_after_lock = -1;
+  for (uint8_t list_index = 0; list_index < 3; ++list_index) {
+    for (const auto& obj : room.GetTileObjects()) {
+      if (!UsesRoomObjectStream(obj) || obj.GetLayerValue() != list_index) {
+        continue;
+      }
+
+      if (obj.id_ == kBigKeyLockObjectId) {
+        saw_big_key_lock = true;
+        ++stateful_room_event_count;
+      } else if (IsStatefulChest(obj.id_)) {
+        ++stateful_room_event_count;
+        if (saw_big_key_lock && first_chest_after_lock < 0) {
+          first_chest_after_lock = obj.id_;
+        }
+      }
+    }
+  }
+
+  if (first_chest_after_lock >= 0) {
+    result.warnings.push_back(absl::StrFormat(
+        "Stateful chest 0x%03X appears after big-key lock 0xF98 in "
+        "room-object stream order; move stateful chests before locks to avoid "
+        "room-state slot conflicts.",
+        first_chest_after_lock));
+  }
+  if (stateful_room_event_count > kMaxStatefulRoomEventSlots) {
+    result.warnings.push_back(absl::StrFormat(
+        "Room uses %zu stateful chest/lock slots; the engine supports at most "
+        "%zu.",
+        stateful_room_event_count, kMaxStatefulRoomEventSlots));
   }
 
   // Check bounds

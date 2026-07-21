@@ -1,5 +1,6 @@
 #include "zelda3/dungeon/dungeon_validator.h"
 
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -12,6 +13,16 @@
 namespace yaze {
 namespace zelda3 {
 namespace {
+
+bool HasWarningContaining(const ValidationResult& result,
+                          std::string_view needle) {
+  for (const auto& warning : result.warnings) {
+    if (warning.find(needle) != std::string::npos) {
+      return true;
+    }
+  }
+  return false;
+}
 
 TEST(DungeonValidatorTest, AcceptsBothBgObjectsInOverlayStreams) {
   Rom rom;
@@ -145,6 +156,139 @@ TEST(DungeonValidatorTest, RejectsTooManyChestObjects) {
   EXPECT_TRUE(found_chest_err)
       << "Expected chest overflow error, got: "
       << (result.errors.empty() ? "(none)" : result.errors[0]);
+}
+
+TEST(DungeonValidatorTest, AcceptsStatefulChestsBeforeBigKeyLocks) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  Room room(/*room_id=*/0, &rom);
+  for (int i = 0; i < 4; ++i) {
+    const int16_t chest_id = i % 2 == 0 ? 0xF99 : 0xFB1;
+    ASSERT_TRUE(room.AddObject(RoomObject(chest_id, /*x=*/i * 4, /*y=*/0,
+                                          /*size=*/0, /*layer=*/0))
+                    .ok());
+  }
+  for (int i = 0; i < 2; ++i) {
+    ASSERT_TRUE(room.AddObject(RoomObject(0xF98, /*x=*/i * 4, /*y=*/8,
+                                          /*size=*/0, /*layer=*/2))
+                    .ok());
+  }
+
+  const auto result = DungeonValidator().ValidateRoom(room);
+
+  EXPECT_TRUE(result.is_valid);
+  EXPECT_TRUE(result.errors.empty());
+  EXPECT_TRUE(result.warnings.empty());
+}
+
+TEST(DungeonValidatorTest, WarnsForEachStatefulChestVariantAfterLock) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  for (const int16_t chest_id : {int16_t{0xF99}, int16_t{0xFB1}}) {
+    Room room(/*room_id=*/0, &rom);
+    ASSERT_TRUE(room.AddObject(RoomObject(0xF98, /*x=*/0, /*y=*/0,
+                                          /*size=*/0, /*layer=*/0))
+                    .ok());
+    ASSERT_TRUE(room.AddObject(RoomObject(chest_id, /*x=*/8, /*y=*/0,
+                                          /*size=*/0, /*layer=*/0))
+                    .ok());
+
+    const auto result = DungeonValidator().ValidateRoom(room);
+
+    EXPECT_TRUE(result.is_valid);
+    EXPECT_TRUE(result.errors.empty());
+    EXPECT_TRUE(HasWarningContaining(result, "appears after big-key lock"));
+  }
+}
+
+TEST(DungeonValidatorTest, UsesEncodedListOrderForRoomEventWarnings) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  Room invalid_room(/*room_id=*/0, &rom);
+  // The chest is first in the editor vector, but list 1 is encoded after the
+  // list-0 lock. A raw vector scan would miss this ordering hazard.
+  ASSERT_TRUE(invalid_room
+                  .AddObject(RoomObject(0xF99, /*x=*/8, /*y=*/0,
+                                        /*size=*/0, /*layer=*/1))
+                  .ok());
+  ASSERT_TRUE(invalid_room
+                  .AddObject(RoomObject(0xF98, /*x=*/0, /*y=*/0,
+                                        /*size=*/0, /*layer=*/0))
+                  .ok());
+
+  const auto invalid_result = DungeonValidator().ValidateRoom(invalid_room);
+
+  EXPECT_TRUE(invalid_result.is_valid);
+  EXPECT_TRUE(invalid_result.errors.empty());
+  EXPECT_TRUE(
+      HasWarningContaining(invalid_result, "appears after big-key lock"));
+
+  Room valid_room(/*room_id=*/0, &rom);
+  // Conversely, raw vector order has the lock first, but the primary-list
+  // chest is encoded before the list-2 lock and must remain valid.
+  ASSERT_TRUE(valid_room
+                  .AddObject(RoomObject(0xF98, /*x=*/0, /*y=*/0,
+                                        /*size=*/0, /*layer=*/2))
+                  .ok());
+  ASSERT_TRUE(valid_room
+                  .AddObject(RoomObject(0xF99, /*x=*/8, /*y=*/0,
+                                        /*size=*/0, /*layer=*/0))
+                  .ok());
+
+  const auto valid_result = DungeonValidator().ValidateRoom(valid_room);
+
+  EXPECT_TRUE(valid_result.is_valid);
+  EXPECT_TRUE(valid_result.errors.empty());
+  EXPECT_TRUE(valid_result.warnings.empty());
+}
+
+TEST(DungeonValidatorTest, FixedOpenChestsDoNotConsumeRoomEventSlots) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  Room room(/*room_id=*/0, &rom);
+  ASSERT_TRUE(room.AddObject(RoomObject(0xF98, /*x=*/0, /*y=*/0,
+                                        /*size=*/0, /*layer=*/0))
+                  .ok());
+  for (int i = 0; i < 8; ++i) {
+    const int16_t open_chest_id = i % 2 == 0 ? 0xF9A : 0xFB2;
+    ASSERT_TRUE(room.AddObject(RoomObject(open_chest_id, /*x=*/i * 4,
+                                          /*y=*/8, /*size=*/0, /*layer=*/0))
+                    .ok());
+  }
+
+  const auto result = DungeonValidator().ValidateRoom(room);
+
+  EXPECT_TRUE(result.is_valid);
+  EXPECT_TRUE(result.errors.empty());
+  EXPECT_TRUE(result.warnings.empty());
+}
+
+TEST(DungeonValidatorTest, WarnsWhenRoomEventConsumersExceedSixSlots) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  Room room(/*room_id=*/0, &rom);
+  for (int i = 0; i < 4; ++i) {
+    ASSERT_TRUE(room.AddObject(RoomObject(0xF99, /*x=*/i * 4, /*y=*/0,
+                                          /*size=*/0, /*layer=*/0))
+                    .ok());
+  }
+  for (int i = 0; i < 3; ++i) {
+    ASSERT_TRUE(room.AddObject(RoomObject(0xF98, /*x=*/i * 4, /*y=*/8,
+                                          /*size=*/0, /*layer=*/0))
+                    .ok());
+  }
+
+  const auto result = DungeonValidator().ValidateRoom(room);
+
+  EXPECT_TRUE(result.is_valid);
+  EXPECT_TRUE(result.errors.empty());
+  EXPECT_TRUE(HasWarningContaining(result, "engine supports at most 6"));
+  EXPECT_FALSE(HasWarningContaining(result, "appears after big-key lock"));
 }
 
 }  // namespace
