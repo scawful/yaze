@@ -205,6 +205,33 @@ TEST(ObjectGeometryTest, SmallChestGeometryUsesCanonicalTwoByTwoPayload) {
   }
 }
 
+TEST(ObjectGeometryTest, Subtype1ChestGeometryKeepsFourByFourPayload) {
+  ObjectGeometry::Get().ClearCache();
+
+  struct ChestCase {
+    int16_t object_id;
+    uint8_t size;
+  };
+  for (const auto& test_case : {
+           ChestCase{0x00F9, 0x00},
+           ChestCase{0x00FD, 0x0F},
+       }) {
+    SCOPED_TRACE(absl::StrFormat("object_id=0x%03X", test_case.object_id));
+    RoomObject obj(test_case.object_id, /*x=*/0, /*y=*/0, test_case.size);
+
+    auto editor_bounds = ObjectGeometry::Get().MeasureByObjectId(obj);
+    ASSERT_TRUE(editor_bounds.ok());
+    EXPECT_EQ(editor_bounds->width_tiles, 4);
+    EXPECT_EQ(editor_bounds->height_tiles, 4);
+
+    auto default_state_bounds =
+        ObjectGeometry::Get().MeasureByObjectIdForState(obj, nullptr);
+    ASSERT_TRUE(default_state_bounds.ok());
+    EXPECT_EQ(default_state_bounds->width_tiles, 4);
+    EXPECT_EQ(default_state_bounds->height_tiles, 4);
+  }
+}
+
 TEST(ObjectGeometryTest, MeasureByObjectIdMigratedSpecialsHaveUsdasmBounds) {
   struct Case {
     int16_t object_id;
