@@ -238,25 +238,35 @@ TEST(DungeonObjectValidateTest, AllStatesReportsDefaultAndActiveProfiles) {
 }
 
 TEST(DungeonObjectValidateTest, AllStatesTracksExpectedEmptyBranches) {
+  struct ExpectedEmptyCase {
+    const char* object_arg;
+    const char* label;
+    bool needs_size;
+  };
+
   for (const auto& test_case : {
-           std::pair{"--object=0x0CD", "west"},
-           std::pair{"--object=0x0CE", "east"},
+           ExpectedEmptyCase{"--object=0x0CD", "west", true},
+           ExpectedEmptyCase{"--object=0x0CE", "east", true},
+           ExpectedEmptyCase{"--object=0xF92", "rupee_floor", false},
        }) {
-    SCOPED_TRACE(test_case.first);
+    SCOPED_TRACE(test_case.object_arg);
     DungeonObjectValidateCommandHandler handler;
     ScopedValidationReport report(std::string("yaze_dungeon_expected_empty_") +
-                                  test_case.second + "_report_test");
+                                  test_case.label + "_report_test");
     const auto trace_path = std::filesystem::temp_directory_path() /
                             (std::string("yaze_dungeon_expected_empty_") +
-                             test_case.second + "_trace_test.json");
+                             test_case.label + "_trace_test.json");
     std::filesystem::remove(trace_path);
 
+    std::vector<std::string> args{"--mock-rom", test_case.object_arg};
+    if (test_case.needs_size) {
+      args.emplace_back("--size=0");
+    }
+    args.insert(args.end(), {"--all-states", "--trace-out", trace_path.string(),
+                             "--format=json", report.argument()});
+
     std::string output;
-    auto status =
-        handler.Run({"--mock-rom", test_case.first, "--size=0", "--all-states",
-                     "--trace-out", trace_path.string(), "--format=json",
-                     report.argument()},
-                    nullptr, &output);
+    auto status = handler.Run(args, nullptr, &output);
 
     ASSERT_TRUE(status.ok()) << status;
     const auto json = nlohmann::json::parse(output);
