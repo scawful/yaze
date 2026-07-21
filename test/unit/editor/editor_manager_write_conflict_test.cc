@@ -143,6 +143,16 @@ void SeedCurrentDungeonPalette(EditorManager* manager, uint16_t seed) {
   gfx::PaletteManager::Get().Initialize(game_data);
 }
 
+void DrawPalettePanelOnce(DungeonMainPalettePanel* panel) {
+  ASSERT_NE(panel, nullptr);
+  ImGuiIO& io = ImGui::GetIO();
+  io.DisplaySize = ImVec2(1280.0f, 720.0f);
+  io.DeltaTime = 1.0f / 60.0f;
+  ImGui::NewFrame();
+  panel->Draw(nullptr);
+  ImGui::EndFrame();
+}
+
 void WriteLongPointer(std::vector<uint8_t>* data, int offset, uint32_t value) {
   ASSERT_NE(data, nullptr);
   ASSERT_GE(offset, 0);
@@ -841,12 +851,151 @@ TEST(EditorManagerWriteConflictTest,
       manager->window_manager().GetWindowContent(0, "palette.dungeon_main"),
       first_panel);
 
-  ImGuiIO& io = ImGui::GetIO();
-  io.DisplaySize = ImVec2(1280.0f, 720.0f);
-  io.DeltaTime = 1.0f / 60.0f;
-  ImGui::NewFrame();
-  first_panel->Draw(nullptr);
-  ImGui::EndFrame();
+  DrawPalettePanelOnce(first_panel);
+
+  manager.reset();
+  gfx::PaletteManager::Get().ResetForTesting();
+}
+
+TEST(EditorManagerWriteConflictTest,
+     PalettePanelsSurviveCloseFirstThenOpenNewSession) {
+  ScopedImGuiContext imgui;
+  gfx::PaletteManager::Get().ResetForTesting();
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a = CreateMinimalRomFile("yaze_palette_close_first_a.sfc",
+                                          "PALETTE CLOSE FIRST A", 1024 * 1024);
+  const auto rom_b = CreateMinimalRomFile("yaze_palette_close_first_b.sfc",
+                                          "PALETTE CLOSE FIRST B", 1024 * 1024);
+  const auto rom_c = CreateMinimalRomFile("yaze_palette_close_first_c.sfc",
+                                          "PALETTE CLOSE FIRST C", 1024 * 1024);
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+  ScopedFileCleanup cleanup_c{rom_c};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  ASSERT_NE(manager->window_manager().GetWindowContent(
+                manager->GetCurrentSessionId(), "palette.dungeon_main"),
+            nullptr);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
+  auto* second_panel = dynamic_cast<DungeonMainPalettePanel*>(
+      manager->window_manager().GetWindowContent(1, "palette.dungeon_main"));
+  ASSERT_NE(second_panel, nullptr);
+
+  manager->RemoveSession(0);
+  ASSERT_EQ(manager->GetActiveSessionCount(), 1u);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
+  EXPECT_EQ(manager->window_manager().GetActiveSessionId(), 1u);
+  EXPECT_EQ(
+      manager->window_manager().GetWindowContent(1, "palette.dungeon_main"),
+      second_panel);
+  EXPECT_EQ(
+      manager->window_manager().GetWindowContent(0, "palette.dungeon_main"),
+      nullptr);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_c.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 2u);
+  auto* third_panel = dynamic_cast<DungeonMainPalettePanel*>(
+      manager->window_manager().GetWindowContent(2, "palette.dungeon_main"));
+  ASSERT_NE(third_panel, nullptr);
+  EXPECT_NE(third_panel, second_panel);
+  EXPECT_EQ(
+      manager->window_manager().GetWindowContent(1, "palette.dungeon_main"),
+      second_panel);
+
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
+  DrawPalettePanelOnce(second_panel);
+
+  manager.reset();
+  gfx::PaletteManager::Get().ResetForTesting();
+}
+
+TEST(EditorManagerWriteConflictTest,
+     PalettePanelsSurviveCloseMiddleThenOpenNewSession) {
+  ScopedImGuiContext imgui;
+  gfx::PaletteManager::Get().ResetForTesting();
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a = CreateMinimalRomFile(
+      "yaze_palette_close_middle_a.sfc", "PALETTE CLOSE MIDDLE A", 1024 * 1024);
+  const auto rom_b = CreateMinimalRomFile(
+      "yaze_palette_close_middle_b.sfc", "PALETTE CLOSE MIDDLE B", 1024 * 1024);
+  const auto rom_c = CreateMinimalRomFile(
+      "yaze_palette_close_middle_c.sfc", "PALETTE CLOSE MIDDLE C", 1024 * 1024);
+  const auto rom_d = CreateMinimalRomFile(
+      "yaze_palette_close_middle_d.sfc", "PALETTE CLOSE MIDDLE D", 1024 * 1024);
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+  ScopedFileCleanup cleanup_c{rom_c};
+  ScopedFileCleanup cleanup_d{rom_d};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  auto* first_panel = dynamic_cast<DungeonMainPalettePanel*>(
+      manager->window_manager().GetWindowContent(0, "palette.dungeon_main"));
+  ASSERT_NE(first_panel, nullptr);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  ASSERT_NE(
+      manager->window_manager().GetWindowContent(1, "palette.dungeon_main"),
+      nullptr);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_c.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  auto* third_panel = dynamic_cast<DungeonMainPalettePanel*>(
+      manager->window_manager().GetWindowContent(2, "palette.dungeon_main"));
+  ASSERT_NE(third_panel, nullptr);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 2u);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 2u);
+
+  manager->RemoveSession(1);
+  ASSERT_EQ(manager->GetActiveSessionCount(), 2u);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 2u);
+  EXPECT_EQ(manager->window_manager().GetActiveSessionId(), 2u);
+  EXPECT_EQ(
+      manager->window_manager().GetWindowContent(0, "palette.dungeon_main"),
+      first_panel);
+  EXPECT_EQ(
+      manager->window_manager().GetWindowContent(2, "palette.dungeon_main"),
+      third_panel);
+  EXPECT_EQ(
+      manager->window_manager().GetWindowContent(1, "palette.dungeon_main"),
+      nullptr);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_d.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 2u);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 3u);
+  auto* fourth_panel = dynamic_cast<DungeonMainPalettePanel*>(
+      manager->window_manager().GetWindowContent(3, "palette.dungeon_main"));
+  ASSERT_NE(fourth_panel, nullptr);
+  EXPECT_NE(fourth_panel, third_panel);
+  EXPECT_EQ(
+      manager->window_manager().GetWindowContent(2, "palette.dungeon_main"),
+      third_panel);
+
+  manager->SwitchToSession(1);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 2u);
+  DrawPalettePanelOnce(third_panel);
 
   manager.reset();
   gfx::PaletteManager::Get().ResetForTesting();

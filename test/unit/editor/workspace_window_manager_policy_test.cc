@@ -2,8 +2,11 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
 #include <string>
 #include <unordered_map>
+
+#include "app/editor/system/workspace/resource_panel.h"
 
 namespace yaze::editor {
 namespace {
@@ -76,6 +79,29 @@ class MockSessionOwnedPanel final : public WindowContent {
   int* draw_count_;
   int* destroy_count_;
   bool enabled_;
+};
+
+class MockSessionResourcePanel final : public ResourceWindowContent {
+ public:
+  MockSessionResourcePanel(size_t owner, int resource_id,
+                           std::array<int, 2>* destroy_counts)
+      : owner_(owner),
+        resource_id_(resource_id),
+        destroy_counts_(destroy_counts) {
+    SetSessionId(owner);
+  }
+  ~MockSessionResourcePanel() override { ++(*destroy_counts_)[owner_]; }
+
+  int GetResourceId() const override { return resource_id_; }
+  std::string GetResourceType() const override { return "room"; }
+  std::string GetIcon() const override { return "ICON_ROOM"; }
+  std::string GetEditorCategory() const override { return "Dungeon"; }
+  void Draw(bool* /*p_open*/) override {}
+
+ private:
+  size_t owner_;
+  int resource_id_;
+  std::array<int, 2>* destroy_counts_;
 };
 
 TEST(WorkspaceWindowManagerPolicyTest,
@@ -262,6 +288,44 @@ TEST(WorkspaceWindowManagerPolicyTest,
   ASSERT_NE(descriptor, nullptr);
   ASSERT_TRUE(static_cast<bool>(descriptor->enabled_condition));
   EXPECT_FALSE(descriptor->enabled_condition());
+}
+
+TEST(WorkspaceWindowManagerPolicyTest,
+     ResourceEvictionPrefersExactInactiveUnprefixedInstance) {
+  WorkspaceWindowManager wm;
+  std::array<int, 2> destroy_counts{};
+  constexpr char kSharedResourceId[] = "Dungeon.room_0";
+
+  wm.RegisterSession(0);
+  wm.SetActiveSession(0);
+  wm.RegisterWindowContent(
+      std::make_unique<MockSessionResourcePanel>(0, 0, &destroy_counts));
+  auto* inactive_resource = wm.GetWindowContent(0, kSharedResourceId);
+  ASSERT_NE(inactive_resource, nullptr);
+
+  wm.RegisterSession(1);
+  wm.SetActiveSession(1);
+  wm.RegisterWindowContent(
+      std::make_unique<MockSessionResourcePanel>(1, 0, &destroy_counts));
+  auto* active_resource = wm.GetWindowContent(1, kSharedResourceId);
+  ASSERT_NE(active_resource, nullptr);
+  ASSERT_NE(active_resource, inactive_resource);
+
+  // Fill the room-panel limit, then add one more. The oldest tracked ID is
+  // session 0's exact unprefixed instance, while session 1 owns a prefixed
+  // instance with the same base ID.
+  for (int resource_id = 1; resource_id <= 6; ++resource_id) {
+    wm.RegisterWindowContent(std::make_unique<MockSessionResourcePanel>(
+        1, resource_id, &destroy_counts));
+  }
+  wm.RegisterWindowContent(
+      std::make_unique<MockSessionResourcePanel>(1, 7, &destroy_counts));
+
+  EXPECT_EQ(destroy_counts[0], 1);
+  EXPECT_EQ(destroy_counts[1], 0);
+  EXPECT_EQ(wm.GetWindowContent(0, kSharedResourceId), nullptr);
+  EXPECT_EQ(wm.GetWindowContent(1, kSharedResourceId), active_resource);
+  EXPECT_NE(wm.GetWindowDescriptor(1, kSharedResourceId), nullptr);
 }
 
 TEST(WorkspaceWindowManagerPolicyTest,

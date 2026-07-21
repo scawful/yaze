@@ -1134,7 +1134,7 @@ void PopupManager::DrawSessionManagerPopup() {
   Spacing();
 
   size_t session_count = editor_manager_->GetActiveSessionCount();
-  size_t active_session = editor_manager_->GetCurrentSessionId();
+  size_t active_session = editor_manager_->GetCurrentSessionIndex();
 
   Text(tr("Active Sessions: %zu"), session_count);
   Spacing();

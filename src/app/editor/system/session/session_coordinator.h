@@ -72,7 +72,12 @@ class SessionCoordinator {
 
   // Session activation and queries
   void ActivateSession(size_t index);
+  /// Compact zero-based UI position in sessions_.
   size_t GetActiveSessionIndex() const;
+  /// Stable workspace identity that is never reused while this coordinator lives.
+  size_t GetActiveSessionId() const;
+  /// Resolve a compact UI index to its stable workspace identity.
+  size_t GetSessionId(size_t index) const;
   void* GetActiveSession() const;
   RomSession* GetActiveRomSession() const;
   Rom* GetCurrentRom() const;
@@ -187,6 +192,7 @@ class SessionCoordinator {
   // Session state
   size_t active_session_index_ = 0;
   size_t session_count_ = 0;
+  size_t next_session_id_ = 0;
 
   // UI state
   bool show_session_switcher_ = false;

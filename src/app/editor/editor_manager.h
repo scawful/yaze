@@ -228,14 +228,15 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
       right_drawer_manager_->SetActiveEditor(editor->type());
     }
   }
+  /// Stable workspace identity; unlike the UI index, it does not compact.
   size_t GetCurrentSessionId() const {
-    return session_coordinator_ ? session_coordinator_->GetActiveSessionIndex()
+    return session_coordinator_ ? session_coordinator_->GetActiveSessionId()
                                 : 0;
   }
   UICoordinator* ui_coordinator() { return ui_coordinator_.get(); }
   yaze::zelda3::Overworld* overworld() const;
 
-  // Session management helpers
+  // Session management helpers (compact, zero-based UI ordering)
   size_t GetCurrentSessionIndex() const;
 
   // Get current session's feature flags (falls back to global if no session)
@@ -680,14 +681,14 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // RAII helper for clean session context switching
   class SessionScope {
    public:
-    SessionScope(EditorManager* manager, size_t session_id);
+    SessionScope(EditorManager* manager, size_t session_index);
     ~SessionScope();
 
    private:
     EditorManager* manager_;
     Rom* prev_rom_;
     EditorSet* prev_editor_set_;
-    size_t prev_session_id_;
+    size_t prev_session_index_;
   };
 
   void ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,

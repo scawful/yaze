@@ -771,7 +771,7 @@ void UICoordinator::SetSessionSwitcherVisible(bool visible) {
 }
 
 void UICoordinator::ShowCommandPalette() {
-  const size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  const size_t session_id = session_coordinator_.GetActiveSessionId();
   if (command_palette_initialized_) {
     RefreshCommandPalette(session_id);
   } else {
@@ -790,7 +790,7 @@ void UICoordinator::SetCommandPaletteVisible(bool visible) {
 
 // Emulator visibility delegates to WorkspaceWindowManager (single source of truth)
 bool UICoordinator::IsEmulatorVisible() const {
-  size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  size_t session_id = session_coordinator_.GetActiveSessionId();
   auto emulator_windows =
       window_manager_.GetWindowsInCategory(session_id, "Emulator");
   for (const auto& window : emulator_windows) {
@@ -802,7 +802,7 @@ bool UICoordinator::IsEmulatorVisible() const {
 }
 
 void UICoordinator::SetEmulatorVisible(bool visible) {
-  size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  size_t session_id = session_coordinator_.GetActiveSessionId();
   if (visible) {
     auto default_windows =
         LayoutPresets::GetDefaultWindows(EditorType::kEmulator);
@@ -819,7 +819,7 @@ void UICoordinator::SetEmulatorVisible(bool visible) {
 // when the user closed a single Assembly panel via its window close button;
 // reading through the category means the user's last interaction always wins.
 bool UICoordinator::IsAsmEditorVisible() const {
-  size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  size_t session_id = session_coordinator_.GetActiveSessionId();
   auto windows = window_manager_.GetWindowsInCategory(session_id, "Assembly");
   for (const auto& window : windows) {
     if (window.visibility_flag && *window.visibility_flag) {
@@ -830,7 +830,7 @@ bool UICoordinator::IsAsmEditorVisible() const {
 }
 
 void UICoordinator::SetAsmEditorVisible(bool visible) {
-  size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  size_t session_id = session_coordinator_.GetActiveSessionId();
   if (visible) {
     auto default_windows =
         LayoutPresets::GetDefaultWindows(EditorType::kAssembly);
@@ -1071,7 +1071,7 @@ void UICoordinator::DrawCommandPalette() {
 
   // Initialize command palette on first use
   if (!command_palette_initialized_) {
-    InitializeCommandPalette(session_coordinator_.GetActiveSessionIndex());
+    InitializeCommandPalette(session_coordinator_.GetActiveSessionId());
   }
 
   using namespace ImGui;
