@@ -97,7 +97,8 @@ std::vector<ObjectDrawer::TileTrace> ReplayObjectTrace(
     int16_t object_id, int x, int y, uint8_t size, RoomObject::LayerType layer,
     const std::vector<gfx::TileInfo>& tiles,
     const DungeonState* state = nullptr,
-    const std::vector<std::pair<int, uint16_t>>& rom_words = {}) {
+    const std::vector<std::pair<int, uint16_t>>& rom_words = {},
+    int room_id = 0) {
   Rom rom;
   std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
   for (const auto& [address, word] : rom_words) {
@@ -109,7 +110,7 @@ std::vector<ObjectDrawer::TileTrace> ReplayObjectTrace(
   }
   rom.LoadFromData(dummy_rom);
 
-  ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
+  ObjectDrawer drawer(&rom, room_id, /*room_gfx_buffer=*/nullptr);
   RoomObject obj(object_id, x, y, size, static_cast<int>(layer));
   obj.tiles_loaded_ = true;
   obj.tiles_ = tiles;
@@ -1679,6 +1680,51 @@ TEST(ObjectDrawerRegistryReplayTest,
       ReplayObjectTrace(/*object_id=*/0x0F92, /*x=*/3, /*y=*/5,
                         /*size=*/0, RoomObject::LayerType::BG1, tiles, &state);
   EXPECT_TRUE(trace.empty()) << "current-room cleared state suppresses writes";
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     BombableFloorMatchesUsdasmFourByFourStateMatrices) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  // Oracle of Secrets relocates this floor from vanilla room 0x65 to 0xAD.
+  // The preview state must therefore follow the current room ID.
+  constexpr int kBombableFloorRoomId = 0xAD;
+  constexpr int kX = 9;
+  constexpr int kY = 11;
+  constexpr std::array<int, 16> kPayloadIndexByPosition = {
+      0, 2, 4, 6, 1, 3, 5, 7, 8, 10, 12, 14, 9, 11, 13, 15};
+  const auto tiles = MakeSequentialTiles(32);
+  FakeDungeonState state;
+
+  auto assert_state = [&](const std::vector<ObjectDrawer::TileTrace>& trace,
+                          int state_offset) {
+    ASSERT_EQ(trace.size(), 16u);
+    ExpectTraceBounds(trace, kX, kY, kX + 3, kY + 3);
+    for (int y = 0; y < 4; ++y) {
+      for (int x = 0; x < 4; ++x) {
+        SCOPED_TRACE(::testing::Message() << "x=" << x << " y=" << y);
+        EXPECT_EQ(LastTileIdAt(trace, kX + x, kY + y),
+                  state_offset + kPayloadIndexByPosition[y * 4 + x]);
+      }
+    }
+  };
+
+  auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0FC7, kX, kY, /*size=*/0, RoomObject::LayerType::BG1,
+      tiles, &state, {}, kBombableFloorRoomId);
+  assert_state(trace, /*state_offset=*/0);
+
+  state.bombed_floor_room_id = kBombableFloorRoomId;
+  trace = ReplayObjectTrace(/*object_id=*/0x0FC7, kX, kY, /*size=*/0,
+                            RoomObject::LayerType::BG1, tiles, &state, {},
+                            kBombableFloorRoomId);
+  assert_state(trace, /*state_offset=*/16);
+
+  trace = ReplayObjectTrace(
+      /*object_id=*/0x0FC7, kX, kY, /*size=*/0, RoomObject::LayerType::BG1,
+      tiles, &state, {},
+      /*room_id=*/kBombableFloorRoomId - 1);
+  assert_state(trace, /*state_offset=*/0);
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
