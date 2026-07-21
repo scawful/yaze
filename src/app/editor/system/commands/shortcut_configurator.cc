@@ -635,42 +635,48 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
         shortcut_manager, "Show Dungeon Panels",
         {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_D},
         [window_manager]() {
-          window_manager->ShowAllWindowsInCategory(0, "Dungeon");
+          window_manager->ShowAllWindowsInCategory(
+              window_manager->GetActiveSessionId(), "Dungeon");
         },
         Shortcut::Scope::kEditor);
     RegisterIfValid(
         shortcut_manager, "Show Dungeon Windows",
         {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_D},
         [window_manager]() {
-          window_manager->ShowAllWindowsInCategory(0, "Dungeon");
+          window_manager->ShowAllWindowsInCategory(
+              window_manager->GetActiveSessionId(), "Dungeon");
         },
         Shortcut::Scope::kEditor);
     RegisterIfValid(
         shortcut_manager, "Show Graphics Panels",
         {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_G},
         [window_manager]() {
-          window_manager->ShowAllWindowsInCategory(0, "Graphics");
+          window_manager->ShowAllWindowsInCategory(
+              window_manager->GetActiveSessionId(), "Graphics");
         },
         Shortcut::Scope::kEditor);
     RegisterIfValid(
         shortcut_manager, "Show Graphics Windows",
         {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_G},
         [window_manager]() {
-          window_manager->ShowAllWindowsInCategory(0, "Graphics");
+          window_manager->ShowAllWindowsInCategory(
+              window_manager->GetActiveSessionId(), "Graphics");
         },
         Shortcut::Scope::kEditor);
     RegisterIfValid(
         shortcut_manager, "Show Screen Panels",
         {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_S},
         [window_manager]() {
-          window_manager->ShowAllWindowsInCategory(0, "Screen");
+          window_manager->ShowAllWindowsInCategory(
+              window_manager->GetActiveSessionId(), "Screen");
         },
         Shortcut::Scope::kEditor);
     RegisterIfValid(
         shortcut_manager, "Show Screen Windows",
         {ImGuiMod_Ctrl, ImGuiMod_Alt, ImGuiKey_S},
         [window_manager]() {
-          window_manager->ShowAllWindowsInCategory(0, "Screen");
+          window_manager->ShowAllWindowsInCategory(
+              window_manager->GetActiveSessionId(), "Screen");
         },
         Shortcut::Scope::kEditor);
   }
@@ -857,7 +863,7 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
   // ============================================================================
   if (window_manager) {
     auto categories = window_manager->GetAllCategories();
-    int session_id = 0;  // Default session for command registration
+    const size_t registration_session_id = window_manager->GetActiveSessionId();
 
     shortcut_manager->RegisterCommand(
         "View: Show Panel Browser",
@@ -867,7 +873,8 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
         [window_manager]() { window_manager->TriggerShowWindowBrowser(); });
 
     for (const auto& category : categories) {
-      auto windows = window_manager->GetWindowsInCategory(session_id, category);
+      auto windows = window_manager->GetWindowsInCategory(
+          registration_session_id, category);
       for (const auto& window : windows) {
         const std::string window_id = window.card_id;
         const std::string display_name = window.display_name;
@@ -876,21 +883,24 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
             absl::StrFormat("View: Show %s", display_name),
             [window_manager, window_id]() {
               if (window_manager) {
-                window_manager->OpenWindow(0, window_id);
+                window_manager->OpenWindow(window_manager->GetActiveSessionId(),
+                                           window_id);
               }
             });
         shortcut_manager->RegisterCommand(
             absl::StrFormat("View: Hide %s", display_name),
             [window_manager, window_id]() {
               if (window_manager) {
-                window_manager->CloseWindow(0, window_id);
+                window_manager->CloseWindow(
+                    window_manager->GetActiveSessionId(), window_id);
               }
             });
         shortcut_manager->RegisterCommand(
             absl::StrFormat("View: Toggle %s", display_name),
             [window_manager, window_id]() {
               if (window_manager) {
-                window_manager->ToggleWindow(0, window_id);
+                window_manager->ToggleWindow(
+                    window_manager->GetActiveSessionId(), window_id);
               }
             });
 
@@ -898,21 +908,24 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
             absl::StrFormat("View: Open %s Window", display_name),
             [window_manager, window_id]() {
               if (window_manager) {
-                window_manager->OpenWindow(0, window_id);
+                window_manager->OpenWindow(window_manager->GetActiveSessionId(),
+                                           window_id);
               }
             });
         shortcut_manager->RegisterCommand(
             absl::StrFormat("View: Close %s Window", display_name),
             [window_manager, window_id]() {
               if (window_manager) {
-                window_manager->CloseWindow(0, window_id);
+                window_manager->CloseWindow(
+                    window_manager->GetActiveSessionId(), window_id);
               }
             });
         shortcut_manager->RegisterCommand(
             absl::StrFormat("View: Toggle %s Window", display_name),
             [window_manager, window_id]() {
               if (window_manager) {
-                window_manager->ToggleWindow(0, window_id);
+                window_manager->ToggleWindow(
+                    window_manager->GetActiveSessionId(), window_id);
               }
             });
       }
@@ -921,28 +934,32 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
           absl::StrFormat("View: Show All %s Panels", category),
           [window_manager, category]() {
             if (window_manager) {
-              window_manager->ShowAllWindowsInCategory(0, category);
+              window_manager->ShowAllWindowsInCategory(
+                  window_manager->GetActiveSessionId(), category);
             }
           });
       shortcut_manager->RegisterCommand(
           absl::StrFormat("View: Hide All %s Panels", category),
           [window_manager, category]() {
             if (window_manager) {
-              window_manager->HideAllWindowsInCategory(0, category);
+              window_manager->HideAllWindowsInCategory(
+                  window_manager->GetActiveSessionId(), category);
             }
           });
       shortcut_manager->RegisterCommand(
           absl::StrFormat("View: Show All %s Windows", category),
           [window_manager, category]() {
             if (window_manager) {
-              window_manager->ShowAllWindowsInCategory(0, category);
+              window_manager->ShowAllWindowsInCategory(
+                  window_manager->GetActiveSessionId(), category);
             }
           });
       shortcut_manager->RegisterCommand(
           absl::StrFormat("View: Hide All %s Windows", category),
           [window_manager, category]() {
             if (window_manager) {
-              window_manager->HideAllWindowsInCategory(0, category);
+              window_manager->HideAllWindowsInCategory(
+                  window_manager->GetActiveSessionId(), category);
             }
           });
     }
@@ -1079,9 +1096,10 @@ void ConfigurePanelShortcuts(const ShortcutDependencies& deps,
           if (panel.shortcut_scope == WindowDescriptor::ShortcutScope::kPanel) {
             std::string toggle_id = "view.toggle." + panel.card_id;
             RegisterIfValid(shortcut_manager, toggle_id, keys,
-                            [window_manager, panel_id_copy, session_id]() {
-                              window_manager->ToggleWindow(session_id,
-                                                           panel_id_copy);
+                            [window_manager, panel_id_copy]() {
+                              window_manager->ToggleWindow(
+                                  window_manager->GetActiveSessionId(),
+                                  panel_id_copy);
                             });
           }
         }

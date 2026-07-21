@@ -36,7 +36,8 @@ class ShortcutConfiguratorTest : public ::testing::Test {
     descriptor.card_id = "test.demo";
     descriptor.display_name = "Demo";
     descriptor.icon = "ICON_DEMO";
-    descriptor.category = "Test";
+    descriptor.category = "Dungeon";
+    descriptor.shortcut_hint = "Ctrl+Alt+M";
     descriptor.visibility_flag = &test_window_visible_;
     descriptor.priority = 1;
     window_manager->RegisterWindow(0, descriptor);
@@ -60,10 +61,26 @@ class ShortcutConfiguratorTest : public ::testing::Test {
     return shortcuts;
   }
 
+  void RegisterSecondSessionDemoWindow() {
+    auto* window_manager = editor_manager_->GetWindowManager();
+    window_manager->RegisterSession(1);
+
+    WindowDescriptor descriptor;
+    descriptor.card_id = "test.demo";
+    descriptor.display_name = "Demo";
+    descriptor.icon = "ICON_DEMO";
+    descriptor.category = "Dungeon";
+    descriptor.shortcut_hint = "Ctrl+Alt+M";
+    descriptor.visibility_flag = &second_window_visible_;
+    descriptor.priority = 1;
+    window_manager->RegisterWindow(1, descriptor);
+  }
+
   std::unique_ptr<gfx::NullRenderer> renderer_;
   std::unique_ptr<EditorManager> editor_manager_;
   ImGuiContext* imgui_context_ = nullptr;
   bool test_window_visible_ = false;
+  bool second_window_visible_ = false;
 };
 
 TEST_F(ShortcutConfiguratorTest, RegistersWindowBrowserAndDrawerAliases) {
@@ -116,6 +133,32 @@ TEST_F(ShortcutConfiguratorTest,
 
   shortcuts.ExecuteShortcut("View: Toggle Demo Window");
   EXPECT_FALSE(test_window_visible_);
+}
+
+TEST_F(ShortcutConfiguratorTest,
+       WindowActionsRouteToActiveSessionAtInvokeTime) {
+  RegisterSecondSessionDemoWindow();
+  ShortcutManager shortcuts = ConfigureShortcuts();
+
+  ShortcutDependencies deps;
+  deps.window_manager = editor_manager_->GetWindowManager();
+  ConfigurePanelShortcuts(deps, &shortcuts);
+
+  auto* window_manager = editor_manager_->GetWindowManager();
+  window_manager->SetActiveSession(1);
+
+  shortcuts.ExecuteShortcut("Show Dungeon Panels");
+  EXPECT_FALSE(test_window_visible_);
+  EXPECT_TRUE(second_window_visible_);
+
+  second_window_visible_ = false;
+  shortcuts.ExecuteShortcut("View: Open Demo Window");
+  EXPECT_FALSE(test_window_visible_);
+  EXPECT_TRUE(second_window_visible_);
+
+  shortcuts.ExecuteShortcut("view.toggle.test.demo");
+  EXPECT_FALSE(test_window_visible_);
+  EXPECT_FALSE(second_window_visible_);
 }
 
 }  // namespace
