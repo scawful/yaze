@@ -3401,10 +3401,12 @@ absl::Status EditorManager::LoadRomInternal() {
       return OpenRomOrProjectInternal(file_name);
     }
 
-    if (session_coordinator_->HasDuplicateSession(file_name)) {
-      toast_manager_.Show("ROM already open in another session",
+    auto path_status =
+        session_coordinator_->CheckBackingFileAvailable(file_name);
+    if (!path_status.ok()) {
+      toast_manager_.Show(std::string(path_status.message()),
                           editor::ToastType::kWarning);
-      return absl::OkStatus();
+      return path_status;
     }
 
     // Delegate ROM loading to RomFileManager
@@ -3807,6 +3809,10 @@ absl::Status EditorManager::SaveRomInternal(
   if (save_as_filename.has_value() && save_as_filename->empty()) {
     return absl::InvalidArgumentError("No filename provided for save as");
   }
+  if (save_as_filename.has_value()) {
+    RETURN_IF_ERROR(session_coordinator_->CheckBackingFileAvailable(
+        *save_as_filename, GetCurrentSessionId()));
+  }
 
   ASSIGN_OR_RETURN(const project::YazeProject* save_project,
                    PrepareActiveProjectContextForSave());
@@ -4096,6 +4102,10 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
     // working context. Detach only when the incoming project is ready.
     project::YazeProject incoming_project;
     RETURN_IF_ERROR(incoming_project.Open(filename));
+    if (!incoming_project.rom_filename.empty()) {
+      RETURN_IF_ERROR(session_coordinator_->CheckBackingFileAvailable(
+          incoming_project.rom_filename));
+    }
     DetachActiveProjectContext();
     current_project_ = std::move(incoming_project);
     SyncLayoutScopeFromCurrentProject();
@@ -4115,6 +4125,7 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
                                                      "Loading ROM data...");
 #endif
     Rom temp_rom;
+    RETURN_IF_ERROR(session_coordinator_->CheckBackingFileAvailable(filename));
     RETURN_IF_ERROR(rom_file_manager_.LoadRom(&temp_rom, filename));
     RETURN_IF_ERROR(rom_lifecycle_.CheckRomOpenPolicy(&temp_rom));
 
@@ -4227,6 +4238,11 @@ absl::Status EditorManager::OpenProjectInternal() {
     project::YazeProject new_project;
     RETURN_IF_ERROR(new_project.Open(file_path));
 
+    if (!new_project.rom_filename.empty()) {
+      RETURN_IF_ERROR(session_coordinator_->CheckBackingFileAvailable(
+          new_project.rom_filename));
+    }
+
     // Validate project
     auto validation_status = new_project.Validate();
     if (!validation_status.ok()) {
@@ -4292,6 +4308,13 @@ absl::Status EditorManager::LoadProjectWithRom() {
           if (rom_path.empty()) {
             return;
           }
+          auto path_status =
+              session_coordinator_->CheckBackingFileAvailable(rom_path);
+          if (!path_status.ok()) {
+            toast_manager_.Show(std::string(path_status.message()),
+                                ToastType::kError);
+            return;
+          }
           current_project_.rom_filename = rom_path;
           auto save_status = current_project_.Save();
           if (!save_status.ok()) {
@@ -4316,11 +4339,15 @@ absl::Status EditorManager::LoadProjectWithRom() {
     if (rom_path.empty()) {
       return absl::OkStatus();
     }
+    RETURN_IF_ERROR(session_coordinator_->CheckBackingFileAvailable(rom_path));
     current_project_.rom_filename = rom_path;
     // Save updated project
     RETURN_IF_ERROR(current_project_.Save());
 #endif
   }
+
+  RETURN_IF_ERROR(session_coordinator_->CheckBackingFileAvailable(
+      current_project_.rom_filename));
 
   // Load ROM from project
   Rom temp_rom;
@@ -4354,6 +4381,13 @@ absl::Status EditorManager::LoadProjectWithRom() {
           if (rom_path.empty()) {
             return;
           }
+          auto path_status =
+              session_coordinator_->CheckBackingFileAvailable(rom_path);
+          if (!path_status.ok()) {
+            toast_manager_.Show(std::string(path_status.message()),
+                                ToastType::kError);
+            return;
+          }
           current_project_.rom_filename = rom_path;
           auto save_status = current_project_.Save();
           if (!save_status.ok()) {
@@ -4378,6 +4412,7 @@ absl::Status EditorManager::LoadProjectWithRom() {
     if (rom_path.empty()) {
       return absl::OkStatus();
     }
+    RETURN_IF_ERROR(session_coordinator_->CheckBackingFileAvailable(rom_path));
     current_project_.rom_filename = rom_path;
     RETURN_IF_ERROR(current_project_.Save());
     RETURN_IF_ERROR(rom_file_manager_.LoadRom(&temp_rom, rom_path));

@@ -3,6 +3,7 @@
 
 #include <deque>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -87,6 +88,12 @@ class SessionCoordinator {
   void* GetSession(size_t index) const;
   bool HasMultipleSessions() const;
   size_t GetActiveSessionCount() const;
+  /// Reject a ROM path already owned by another loaded session. The optional
+  /// exclusion is a stable session ID, used by Save As to allow its owner to
+  /// retain the same backing file while still rejecting every other session.
+  absl::Status CheckBackingFileAvailable(
+      const std::string& filepath,
+      std::optional<size_t> excluded_session_id = std::nullopt) const;
   bool HasDuplicateSession(const std::string& filepath) const;
 
   // Session UI components

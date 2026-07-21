@@ -37,6 +37,48 @@
 namespace yaze {
 namespace editor {
 
+namespace {
+
+std::filesystem::path NormalizeBackingFilePath(const std::string& filepath) {
+  std::filesystem::path path(filepath);
+  if (path.empty()) {
+    return path;
+  }
+
+#ifndef __EMSCRIPTEN__
+  std::error_code ec;
+  auto absolute_path = std::filesystem::absolute(path, ec);
+  if (!ec) {
+    path = std::move(absolute_path);
+  }
+
+  ec.clear();
+  auto canonical_path = std::filesystem::weakly_canonical(path, ec);
+  if (!ec) {
+    path = std::move(canonical_path);
+  }
+#endif
+
+  return path.lexically_normal();
+}
+
+bool RefersToSameBackingFile(const std::string& lhs, const std::string& rhs) {
+  if (lhs.empty() || rhs.empty()) {
+    return false;
+  }
+
+#ifndef __EMSCRIPTEN__
+  std::error_code ec;
+  if (std::filesystem::equivalent(lhs, rhs, ec) && !ec) {
+    return true;
+  }
+#endif
+
+  return NormalizeBackingFilePath(lhs) == NormalizeBackingFilePath(rhs);
+}
+
+}  // namespace
+
 SessionCoordinator::SessionCoordinator(WorkspaceWindowManager* window_manager,
                                        ToastManager* toast_manager,
                                        UserSettings* user_settings)
@@ -318,17 +360,36 @@ size_t SessionCoordinator::GetActiveSessionCount() const {
   return session_count_;
 }
 
-bool SessionCoordinator::HasDuplicateSession(
-    const std::string& filepath) const {
-  if (filepath.empty())
-    return false;
+absl::Status SessionCoordinator::CheckBackingFileAvailable(
+    const std::string& filepath,
+    std::optional<size_t> excluded_session_id) const {
+  if (filepath.empty()) {
+    return absl::OkStatus();
+  }
 
   for (const auto& session : sessions_) {
-    if (session->filepath == filepath) {
-      return true;
+    if (!session || !session->rom.is_loaded() ||
+        (excluded_session_id.has_value() &&
+         session->session_id() == *excluded_session_id)) {
+      continue;
+    }
+
+    const std::string rom_filepath = session->rom.filename();
+    if (RefersToSameBackingFile(filepath, session->filepath) ||
+        RefersToSameBackingFile(filepath, rom_filepath)) {
+      const std::string& owner_path =
+          session->filepath.empty() ? rom_filepath : session->filepath;
+      return absl::AlreadyExistsError(absl::StrFormat(
+          "ROM backing file '%s' is already open in session %zu ('%s')",
+          filepath, session->session_id(), owner_path));
     }
   }
-  return false;
+  return absl::OkStatus();
+}
+
+bool SessionCoordinator::HasDuplicateSession(
+    const std::string& filepath) const {
+  return !CheckBackingFileAvailable(filepath).ok();
 }
 
 void SessionCoordinator::DrawSessionSwitcher() {
@@ -875,6 +936,11 @@ absl::Status SessionCoordinator::SaveSessionAs(size_t session_index,
 
 absl::StatusOr<RomSession*> SessionCoordinator::CreateSessionFromRom(
     Rom&& rom, const std::string& filepath) {
+  auto path_status = CheckBackingFileAvailable(filepath);
+  if (!path_status.ok()) {
+    return path_status;
+  }
+
   const size_t new_session_id = next_session_id_++;
   const size_t new_session_index = sessions_.size();
   sessions_.push_back(std::make_unique<RomSession>(
