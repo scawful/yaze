@@ -2,14 +2,58 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
+#include <memory>
+#include <optional>
+
+#include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
+#include "app/gui/widgets/palette_editor_widget.h"
+#include "core/features.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
 
 namespace yaze {
 namespace gfx {
 namespace {
+
+struct DungeonSaveFlagsGuard {
+  decltype(core::FeatureFlags::get().dungeon) previous =
+      core::FeatureFlags::get().dungeon;
+  ~DungeonSaveFlagsGuard() { core::FeatureFlags::get().dungeon = previous; }
+};
+
+void ConfigurePaletteOnlyDungeonSave() {
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveSprites = false;
+  flags.kSaveRoomHeaders = false;
+  flags.kSaveTorches = false;
+  flags.kSavePits = false;
+  flags.kSaveBlocks = false;
+  flags.kSaveCollision = false;
+  flags.kSaveWaterFillZones = false;
+  flags.kSaveChests = false;
+  flags.kSavePotItems = false;
+  flags.kSaveEntrances = false;
+  flags.kSavePalettes = true;
+}
+
+void SeedPaletteGroup(PaletteGroup* group, int palette_count, int color_count,
+                      uint16_t seed) {
+  ASSERT_NE(group, nullptr);
+  group->clear();
+  for (int palette_index = 0; palette_index < palette_count; ++palette_index) {
+    SnesPalette palette;
+    for (int color_index = 0; color_index < color_count; ++color_index) {
+      palette.AddColor(SnesColor(static_cast<uint16_t>(
+          (seed + palette_index * color_count + color_index) & 0x7FFF)));
+    }
+    group->AddPalette(palette);
+  }
+}
 
 // Test fixture for PaletteManager integration tests
 class PaletteManagerTest : public ::testing::Test {
@@ -280,6 +324,136 @@ TEST_F(PaletteManagerTest, SaveTransactionRollbackRestoresRetryState) {
 
   ASSERT_TRUE(manager.ResetColor("ow_main", 0, 0).ok());
   EXPECT_EQ(manager.GetColor("ow_main", 0, 0).snes(), 0x0000);
+}
+
+TEST_F(PaletteManagerTest, DungeonRenderEditsMapToManagedHudAndDungeonColors) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData game_data(&rom);
+  SeedPaletteGroup(game_data.palette_groups.get_group("hud"), 1, 32, 0x0100);
+  SeedPaletteGroup(game_data.palette_groups.get_group("dungeon_main"), 2, 90,
+                   0x0200);
+
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&game_data);
+
+  gui::PaletteEditorWidget widget;
+  widget.Initialize(&game_data);
+  widget.SetDungeonRenderPaletteMode(true);
+  widget.SetCurrentPaletteId(1);
+  int callback_count = 0;
+  int callback_palette = -1;
+  widget.SetOnPaletteChanged([&](int palette_id) {
+    ++callback_count;
+    callback_palette = palette_id;
+  });
+
+  constexpr int kHudDisplayIndex = 17;
+  constexpr int kDungeonDisplayIndex = 99;
+  constexpr int kDungeonColorIndex = 62;
+  const SnesColor original_dungeon_color =
+      manager.GetColor("dungeon_main", 1, kDungeonColorIndex);
+  const SnesColor new_hud_color(0x001F);
+  const SnesColor new_dungeon_color(0x7C00);
+
+  ASSERT_TRUE(
+      widget.ApplyDungeonRenderColorEdit(kHudDisplayIndex, new_hud_color).ok());
+  ASSERT_TRUE(
+      widget
+          .ApplyDungeonRenderColorEdit(kDungeonDisplayIndex, new_dungeon_color)
+          .ok());
+
+  EXPECT_TRUE(manager.IsColorModified("hud", 0, kHudDisplayIndex));
+  EXPECT_TRUE(manager.IsColorModified("dungeon_main", 1, kDungeonColorIndex));
+  EXPECT_EQ(manager.GetColor("hud", 0, kHudDisplayIndex).snes(),
+            new_hud_color.snes());
+  EXPECT_EQ(manager.GetColor("dungeon_main", 1, kDungeonColorIndex).snes(),
+            new_dungeon_color.snes());
+  EXPECT_EQ(callback_count, 2);
+  EXPECT_EQ(callback_palette, 1);
+
+  std::array<uint16_t, 256> cgram{};
+  const auto& dungeon_palette =
+      game_data.palette_groups.dungeon_main.palette_ref(1);
+  const auto& hud_palette = game_data.palette_groups.hud.palette_ref(0);
+  zelda3::LoadDungeonRenderPaletteToCgram(cgram, dungeon_palette, &hud_palette);
+  EXPECT_EQ(cgram[kHudDisplayIndex], new_hud_color.snes());
+  EXPECT_EQ(cgram[kDungeonDisplayIndex], new_dungeon_color.snes());
+
+  ASSERT_TRUE(
+      widget.ApplyDungeonRenderColorEdit(kDungeonDisplayIndex, std::nullopt)
+          .ok());
+  EXPECT_EQ(manager.GetColor("dungeon_main", 1, kDungeonColorIndex).snes(),
+            original_dungeon_color.snes());
+  EXPECT_EQ(callback_count, 3);
+
+  constexpr int kReservedRowStart = 96;
+  const absl::Status reserved_status =
+      widget.ApplyDungeonRenderColorEdit(kReservedRowStart, new_dungeon_color);
+  EXPECT_FALSE(reserved_status.ok());
+  EXPECT_EQ(reserved_status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(callback_count, 3);
+}
+
+TEST_F(PaletteManagerTest, DungeonRenderEditPersistsThroughDungeonEditorSave) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData game_data(&rom);
+  SeedPaletteGroup(game_data.palette_groups.get_group("dungeon_main"), 2, 90,
+                   0x0200);
+
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&game_data);
+
+  gui::PaletteEditorWidget widget;
+  widget.Initialize(&game_data);
+  widget.SetDungeonRenderPaletteMode(true);
+  widget.SetCurrentPaletteId(1);
+
+  constexpr int kDungeonDisplayIndex = 99;
+  constexpr int kDungeonColorIndex = 62;
+  const SnesColor edited_color(0x1234);
+  const uint32_t color_address =
+      GetPaletteAddress("dungeon_main", 1, kDungeonColorIndex);
+  ASSERT_TRUE(rom.ReadWord(color_address - 2).ok());
+  ASSERT_TRUE(rom.ReadWord(color_address + 2).ok());
+  const uint16_t previous_color = *rom.ReadWord(color_address - 2);
+  const uint16_t next_color = *rom.ReadWord(color_address + 2);
+
+  ASSERT_TRUE(
+      widget.ApplyDungeonRenderColorEdit(kDungeonDisplayIndex, edited_color)
+          .ok());
+  ASSERT_TRUE(manager.HasUnsavedChanges());
+  ASSERT_TRUE(manager.IsColorModified("dungeon_main", 1, kDungeonColorIndex));
+
+  DungeonSaveFlagsGuard flags_guard;
+  ConfigurePaletteOnlyDungeonSave();
+  auto dungeon_editor = std::make_unique<editor::DungeonEditorV2>(&rom);
+  editor::EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.game_data = &game_data;
+  dungeon_editor->SetDependencies(dependencies);
+  dungeon_editor->SetGameData(&game_data);
+
+  const absl::Status save_status = dungeon_editor->Save();
+  ASSERT_TRUE(save_status.ok()) << save_status.message();
+
+  ASSERT_TRUE(rom.ReadWord(color_address).ok());
+  EXPECT_EQ(*rom.ReadWord(color_address), edited_color.snes());
+  EXPECT_EQ(*rom.ReadWord(color_address - 2), previous_color);
+  EXPECT_EQ(*rom.ReadWord(color_address + 2), next_color);
+
+  PaletteGroupMap reloaded_groups;
+  const absl::Status reload_status =
+      LoadAllPalettes(rom.vector(), reloaded_groups);
+  ASSERT_TRUE(reload_status.ok()) << reload_status.message();
+  ASSERT_GT(reloaded_groups.dungeon_main.size(), 1u);
+  ASSERT_GT(reloaded_groups.dungeon_main.palette_ref(1).size(),
+            static_cast<size_t>(kDungeonColorIndex));
+  EXPECT_EQ(
+      reloaded_groups.dungeon_main.palette_ref(1)[kDungeonColorIndex].snes(),
+      edited_color.snes());
+  EXPECT_FALSE(manager.HasUnsavedChanges());
 }
 
 TEST_F(PaletteManagerTest, DiscardGroupWithoutInitializationIsNoOp) {
