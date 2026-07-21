@@ -876,6 +876,102 @@ TEST(DungeonEditorV2RomSafetyTest, SaveWritesChestsWhenEnabled) {
   EXPECT_TRUE(reloaded_room.GetChests()[1].size);
 }
 
+TEST(DungeonEditorV2RomSafetyTest,
+     CollectWriteRangesIncludesDirtyChestTableButNotPointerOperand) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SetupChestTable(rom);
+  SeedChestEntry(rom, /*room_id=*/0, /*chest_id=*/0x55, /*big=*/false);
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  auto& room = editor->rooms()[0];
+  room = zelda3::Room(0, &rom);
+  room.LoadChests();
+  ASSERT_EQ(room.GetChests().size(), 1u);
+  room.GetChests()[0].id = 0x56;
+  room.MarkChestsDirty();
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveChests = true;
+
+  const auto ranges = editor->CollectWriteRanges();
+  EXPECT_NE(std::find(ranges.begin(), ranges.end(),
+                      std::pair<uint32_t, uint32_t>{
+                          zelda3::kChestsLengthPointer,
+                          zelda3::kChestsLengthPointer + 2}),
+            ranges.end());
+  EXPECT_NE(std::find(ranges.begin(), ranges.end(),
+                      std::pair<uint32_t, uint32_t>{
+                          kChestDataPc,
+                          kChestDataPc + zelda3::kChestTableCapacityBytes}),
+            ranges.end());
+  EXPECT_FALSE(std::any_of(ranges.begin(), ranges.end(), [](const auto& range) {
+    constexpr uint32_t kPointerBegin = zelda3::kChestsDataPointer1;
+    constexpr uint32_t kPointerEnd = zelda3::kChestsDataPointer1 + 3;
+    return range.first < kPointerEnd && kPointerBegin < range.second;
+  })) << "The read-only chest pointer operand must not be predicted as a write";
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     SaveRoomBlocksProtectedChestTableBeforeMutation) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SetupChestTable(rom);
+  SeedChestEntry(rom, /*room_id=*/0, /*chest_id=*/0x55, /*big=*/false);
+
+  auto project = MakeProjectWithManifest(R"json(
+{
+  "manifest_version": 3,
+  "protected_regions": {
+    "total_hooks": 1,
+    "regions": [
+      {
+        "start": "0x228000",
+        "end": "0x228003",
+        "size": 3,
+        "hook_count": 1,
+        "module": "ChestGuard"
+      }
+    ]
+  }
+}
+)json");
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project;
+  editor->SetDependencies(dependencies);
+  auto& room = editor->rooms()[0];
+  room = zelda3::Room(0, &rom);
+  room.LoadChests();
+  ASSERT_EQ(room.GetChests().size(), 1u);
+  room.GetChests()[0].id = 0x56;
+  room.MarkChestsDirty();
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveChests = true;
+  const auto before = rom.vector();
+
+  const auto status = editor->SaveRoom(0);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(room.chests_dirty());
+
+  const auto save_all_status = editor->Save();
+  EXPECT_EQ(save_all_status.code(), absl::StatusCode::kPermissionDenied)
+      << save_all_status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(room.chests_dirty());
+}
+
 TEST(DungeonEditorV2RomSafetyTest, SaveSkipsChestsWhenDisabled) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());

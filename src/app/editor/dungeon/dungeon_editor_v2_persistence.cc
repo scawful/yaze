@@ -213,6 +213,20 @@ std::vector<std::pair<uint32_t, uint32_t>> CollectDirtyPotItemWriteRanges(
   return ranges;
 }
 
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+CollectDirtyChestWriteRanges(const Rom* rom, const DungeonRoomStore& rooms) {
+  bool any_dirty = false;
+  rooms.ForEachMaterialized([&](int, const zelda3::Room& room) {
+    if (room.chests_dirty()) {
+      any_dirty = true;
+    }
+  });
+  if (!any_dirty) {
+    return std::vector<std::pair<uint32_t, uint32_t>>{};
+  }
+  return zelda3::GetChestTableWriteRanges(rom);
+}
+
 absl::Status SaveAllPotItemsForProject(const project::YazeProject* project,
                                        Rom* rom, DungeonRoomStore& rooms) {
   std::optional<zelda3::DungeonStreamLayout> repack_layout;
@@ -250,6 +264,21 @@ absl::Status ValidatePotItemManifestConflicts(
   }
   const auto ranges = CollectDirtyPotItemWriteRanges(project, rom, rooms);
   if (ranges.empty()) {
+    return absl::OkStatus();
+  }
+  return ValidateHackManifestSaveConflicts(
+      project->hack_manifest, project->rom_metadata.write_policy, ranges,
+      save_scope, "DungeonEditorV2", toast_manager);
+}
+
+absl::Status ValidateChestManifestConflicts(const project::YazeProject* project,
+                                            Rom* rom,
+                                            const DungeonRoomStore& rooms,
+                                            absl::string_view save_scope,
+                                            ToastManager* toast_manager) {
+  ASSIGN_OR_RETURN(const auto ranges, CollectDirtyChestWriteRanges(rom, rooms));
+  if (ranges.empty() || project == nullptr ||
+      !project->hack_manifest.loaded()) {
     return absl::OkStatus();
   }
   return ValidateHackManifestSaveConflicts(
@@ -359,6 +388,11 @@ absl::Status DungeonEditorV2::Save() {
 
   const auto& flags = core::FeatureFlags::get().dungeon;
 
+  if (flags.kSaveChests) {
+    RETURN_IF_ERROR(ValidateChestManifestConflicts(
+        dependencies_.project, rom_, rooms_, "chest table",
+        dependencies_.toast_manager));
+  }
   if (flags.kSavePotItems) {
     RETURN_IF_ERROR(ValidatePotItemManifestConflicts(
         dependencies_.project, rom_, rooms_, "pot items",
@@ -561,6 +595,19 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
     }
   }
 
+  // Chests use one global fixed-capacity table. A dirty room may change the
+  // runtime byte length and any slot inside the live pointer target, so report
+  // both complete write ranges before serializers clear dirty state.
+  if (flags.kSaveChests) {
+    auto chest_ranges = CollectDirtyChestWriteRanges(rom_, rooms_);
+    if (chest_ranges.ok()) {
+      ranges.insert(ranges.end(), chest_ranges->begin(), chest_ranges->end());
+    } else {
+      LOG_WARN("DungeonEditorV2", "Could not predict chest write ranges: %s",
+               chest_ranges.status().message().data());
+    }
+  }
+
   rooms_.ForEachLoaded([&](int room_id, const zelda3::Room& room) {
     room_id = room.id();
 
@@ -663,6 +710,12 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
     }
 
     const auto& flags = core::FeatureFlags::get().dungeon;
+    if (flags.kSaveChests) {
+      RETURN_IF_ERROR(ValidateChestManifestConflicts(
+          dependencies_.project, rom_, rooms_,
+          absl::StrFormat("chest table for room 0x%03X", room_id),
+          dependencies_.toast_manager));
+    }
     if (flags.kSavePotItems) {
       RETURN_IF_ERROR(ValidatePotItemManifestConflicts(
           dependencies_.project, rom_, rooms_,
