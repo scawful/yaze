@@ -25,14 +25,17 @@ namespace zelda3 {
 // Expected tile counts from kSubtype1TileLengths table in object_parser.cc
 // (kept in sync with the production table; 2026-04-25 audit corrected
 // 0x47/0x48 from 0 (fallback 8) to the real Waterfall47/48 routine
-// counts of 15/9).
+// counts of 15/9; 0x3C/0x4C now load the full 8/12-word payloads consumed
+// by their 4x2/4x3 registry routines; the moving-wall parity audit corrected
+// 0xCD/0xCE from ZScream's over-fetched 28 words to the 24 words their
+// routines consume).
 // clang-format off
 static constexpr uint8_t kExpectedTileCounts[0xF8] = {
      4,  8,  8,  8,  8,  8,  8,  4,  4,  5,  5,  5,  5,  5,  5,  5,  // 0x00-0x0F
      5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  // 0x10-0x1F
      5,  9,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  6,  // 0x20-0x2F
-     6,  1,  1, 16,  1,  1, 16, 16,  6,  8, 12, 12,  4,  8,  4,  3,  // 0x30-0x3F
-     3,  3,  3,  3,  3,  3,  3, 15,  9,  8,  8,  4,  9, 16, 16, 16,  // 0x40-0x4F (0x47=Waterfall47:15, 0x48=Waterfall48:9)
+     6,  1,  1, 16,  1,  1, 16, 16,  6,  8, 12, 12,  8,  8,  4,  3,  // 0x30-0x3F (0x3C=Doubled2x2:8)
+     3,  3,  3,  3,  3,  3,  3, 15,  9,  8,  8,  4, 12, 16, 16, 16,  // 0x40-0x4F (0x47=Waterfall47:15, 0x48=Waterfall48:9, 0x4C=Bar4x3:12)
      1, 18, 18,  4,  1,  8,  8,  1,  1,  1,  1, 18, 18, 15,  4,  3,  // 0x50-0x5F
      4,  8,  8,  8,  8,  8,  8,  4,  4,  3,  1,  1,  6,  6,  1,  1,  // 0x60-0x6F
     16,  1,  1, 16, 16,  8, 16, 16,  4,  1,  1,  4,  1,  4,  1,  8,  // 0x70-0x7F
@@ -40,7 +43,7 @@ static constexpr uint8_t kExpectedTileCounts[0xF8] = {
      8,  8,  4,  4, 16,  4,  4,  1,  1,  1,  1,  1,  1,  1,  1,  1,  // 0x90-0x9F
      1,  1,  1,  1, 24,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  // 0xA0-0xAF
      1,  1, 16,  3,  3,  8,  8,  8,  4,  4, 16,  4,  4,  4,  1,  1,  // 0xB0-0xBF
-     1, 68,  1,  1,  8,  8,  8,  8,  8,  8,  8,  1,  1, 28, 28,  1,  // 0xC0-0xCF
+     1, 68,  1,  1,  8,  8,  8,  8,  8,  8,  8,  1,  1, 24, 24,  1,  // 0xC0-0xCF
      1,  8,  8,  0,  0,  0,  0,  1,  8,  8,  8,  8, 21, 16,  4,  8,  // 0xD0-0xDF
      8,  8,  8,  8,  8,  8,  8,  8,  8,  1,  1,  1,  1,  1,  1,  1,  // 0xE0-0xEF
      1,  1,  1,  1,  1,  1,  1,  1                                   // 0xF0-0xF7
@@ -98,6 +101,9 @@ int ExpectedSubtype3TileCount(int id) {
     return 4;
   if (id == 0xFC7)
     return 32;
+  if ((id >= 0xF83 && id <= 0xF8C) || id == 0xF8E || id == 0xF8F) {
+    return 1;
+  }
   if (id == 0xFB1 || id == 0xFB2) {
     return 12;
   }
@@ -371,10 +377,12 @@ TEST_F(ObjectDrawingComprehensiveTest, TileCountLookupTable_SpecialCases) {
       {0x00, 4, "Floor tile 2x2"},
       {0x01, 8, "Wall segment 2x4"},
       {0x33, 16, "Large block 4x4"},
+      {0x3C, 8, "Doubled 2x2 decoration (4x2 payload)"},
+      {0x4C, 12, "Rightwards bar (4x3 payload)"},
       {0xA4, 24, "Large special object"},
       {0xC1, 68, "Very large object"},
-      {0xCD, 28, "Moving wall"},
-      {0xCE, 28, "Moving wall variant"},
+      {0xCD, 24, "Moving wall"},
+      {0xCE, 24, "Moving wall variant"},
       {0xD3, 0, "Wall moved check"},
       {0xD4, 0, "Wall moved check variant"},
       {0xD5, 0, "Wall moved check variant"},
@@ -397,6 +405,49 @@ TEST_F(ObjectDrawingComprehensiveTest, TileCountLookupTable_SpecialCases) {
     ASSERT_TRUE(info.ok()) << "Failed for " << tc.description;
     EXPECT_EQ(info->max_tile_count, tc.expected_tiles)
         << tc.description << " (0x" << std::hex << tc.object_id << ")";
+  }
+}
+
+TEST_F(ObjectDrawingComprehensiveTest,
+       CanonicalDoubledAndBarPayloadsReachFullDrawerRoutines) {
+  struct TestCase {
+    int16_t object_id;
+    int expected_tiles;
+    int expected_routine;
+    int expected_max_y;
+  };
+
+  for (const auto& test_case : {
+           TestCase{0x3C, 8, DrawRoutineIds::kRightwardsDoubled2x2spaced2_1to16,
+                    10},
+           TestCase{0x4C, 12, DrawRoutineIds::kRightwardsBar4x3_1to16, 11},
+       }) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << test_case.object_id);
+
+    ObjectParser parser(rom_.get());
+    auto parsed = parser.ParseObject(test_case.object_id);
+    ASSERT_TRUE(parsed.ok()) << parsed.status();
+    ASSERT_EQ(parsed->size(), static_cast<size_t>(test_case.expected_tiles));
+
+    ObjectDrawer drawer(rom_.get(), /*room_id=*/0);
+    EXPECT_EQ(drawer.GetDrawRoutineId(test_case.object_id),
+              test_case.expected_routine);
+
+    RoomObject object(test_case.object_id, /*x=*/8, /*y=*/9, /*size=*/0,
+                      /*layer=*/0);
+    gfx::BackgroundBuffer bg1(512, 512);
+    gfx::BackgroundBuffer bg2(512, 512);
+    gfx::PaletteGroup palette_group;
+    std::vector<ObjectDrawer::TileTrace> trace;
+    drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+
+    ASSERT_TRUE(drawer.DrawObject(object, bg1, bg2, palette_group).ok());
+    ASSERT_EQ(trace.size(), static_cast<size_t>(test_case.expected_tiles));
+    EXPECT_EQ(trace.front().x_tile, 8);
+    EXPECT_EQ(trace.front().y_tile, 9);
+    EXPECT_EQ(trace.back().x_tile, 11);
+    EXPECT_EQ(trace.back().y_tile, test_case.expected_max_y);
   }
 }
 

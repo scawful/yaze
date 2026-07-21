@@ -105,5 +105,20 @@ TEST(RoomHeaderPaletteTest, DarkRoomPreservesLayerHighBitsOnSave) {
   EXPECT_EQ(rom.vector()[data.header_pc + 0], byte0);
 }
 
+TEST(RoomHeaderPaletteTest,
+     HeaderByteSevenRoundTripsPitAndStaircaseLayersExactly) {
+  Rom rom;
+  auto data = BuildHeaderRomData(/*byte0=*/0x00, /*palette_id=*/0x00);
+  data.dummy_rom[data.header_pc + 7] = 0xE7;
+  data.dummy_rom[data.header_pc + 8] = 0x02;
+  ASSERT_TRUE(rom.LoadFromData(data.dummy_rom).ok());
+
+  Room room = LoadRoomHeaderFromRom(&rom, kTestRoomId);
+  const std::vector<uint8_t> before = rom.vector();
+
+  ASSERT_TRUE(room.SaveRoomHeader().ok());
+  EXPECT_EQ(rom.vector(), before);
+}
+
 }  // namespace
 }  // namespace yaze::zelda3::test

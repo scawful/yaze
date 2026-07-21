@@ -35,11 +35,16 @@
 //   `CheckIfWallIsMoved` flag tests). Their tile-count entry is `0`
 //   because those routines have no tile payload. Other uncataloged zero
 //   entries still use the conservative 8-tile fallback.
+// - IDs `0xCD` and `0xCE` consume 24 words: top corner (9), vertical
+//   pattern (6), and bottom corner (9). ZScream's count of 28 crosses into
+//   the next object's data block, so yaze uses the routine-proven count.
+// - IDs `0x3C` and `0x4C` consume 8 and 12 words respectively. Their
+//   registry routines index the complete 4x2 and 4x3 payloads, while
+//   ZScream's counts of 4 and 9 under-fetch the final stamp/column and make
+//   ObjectDrawer fall back to a single tile.
 // - 2026-04-25 ZScream parity diff: full byte-for-byte comparison
 //   against ZScream's `subtype1Lengths` (`DungeonObjectData.cs:184`)
-//   shows 246/248 entries identical. The only divergences are
-//   `0x47` (yaze=15, ZScream=0) and `0x48` (yaze=9, ZScream=0) —
-//   both intentional yaze corrections of ZScream's under-fetch.
+//   remains pinned, with routine-body-proven corrections allowlisted.
 //   The pin lives in `object_parser_test.cc::Subtype1TileLengths`
 //   `MatchesZScreamReferenceExceptAtKnownDivergences` and detects
 //   future drift in either direction.
@@ -48,8 +53,8 @@ static constexpr uint8_t kSubtype1TileLengths[0xF8] = {
      4,  8,  8,  8,  8,  8,  8,  4,  4,  5,  5,  5,  5,  5,  5,  5,  // 0x00-0x0F
      5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  // 0x10-0x1F
      5,  9,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  6,  // 0x20-0x2F
-     6,  1,  1, 16,  1,  1, 16, 16,  6,  8, 12, 12,  4,  8,  4,  3,  // 0x30-0x3F
-     3,  3,  3,  3,  3,  3,  3, 15,  9,  8,  8,  4,  9, 16, 16, 16,  // 0x40-0x4F (0x47=Waterfall47:15, 0x48=Waterfall48:9)
+     6,  1,  1, 16,  1,  1, 16, 16,  6,  8, 12, 12,  8,  8,  4,  3,  // 0x30-0x3F (0x3C=Doubled2x2:8)
+     3,  3,  3,  3,  3,  3,  3, 15,  9,  8,  8,  4, 12, 16, 16, 16,  // 0x40-0x4F (0x47=Waterfall47:15, 0x48=Waterfall48:9, 0x4C=Bar4x3:12)
      1, 18, 18,  4,  1,  8,  8,  1,  1,  1,  1, 18, 18, 15,  4,  3,  // 0x50-0x5F
      4,  8,  8,  8,  8,  8,  8,  4,  4,  3,  1,  1,  6,  6,  1,  1,  // 0x60-0x6F
     16,  1,  1, 16, 16,  8, 16, 16,  4,  1,  1,  4,  1,  4,  1,  8,  // 0x70-0x7F
@@ -57,7 +62,7 @@ static constexpr uint8_t kSubtype1TileLengths[0xF8] = {
      8,  8,  4,  4, 16,  4,  4,  1,  1,  1,  1,  1,  1,  1,  1,  1,  // 0x90-0x9F
      1,  1,  1,  1, 24,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  // 0xA0-0xAF
      1,  1, 16,  3,  3,  8,  8,  8,  4,  4, 16,  4,  4,  4,  1,  1,  // 0xB0-0xBF
-     1, 68,  1,  1,  8,  8,  8,  8,  8,  8,  8,  1,  1, 28, 28,  1,  // 0xC0-0xCF
+     1, 68,  1,  1,  8,  8,  8,  8,  8,  8,  8,  1,  1, 24, 24,  1,  // 0xC0-0xCF (0xCD/0xCE use 24-word platform payloads)
      1,  8,  8,  0,  0,  0,  0,  1,  8,  8,  8,  8, 21, 16,  4,  8,  // 0xD0-0xDF (0xD3..0xD6: DrawNothing logic; tiles unused)
      8,  8,  8,  8,  8,  8,  8,  8,  8,  1,  1,  1,  1,  1,  1,  1,  // 0xE0-0xEF
      1,  1,  1,  1,  1,  1,  1,  1                                   // 0xF0-0xF7
@@ -499,6 +504,13 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
   // obj05BA. ParseSubtype3 loads and concatenates both spans.
   if (object_id == 0xFC7) {
     return 32;
+  }
+
+  // Somaria path pieces (ASM objects 0x203-0x20C, 0x20E, and 0x20F) each
+  // point to one tile word. RoomDraw_SomariaLine writes that word once.
+  if ((object_id >= 0xF83 && object_id <= 0xF8C) || object_id == 0xF8E ||
+      object_id == 0xF8F) {
+    return 1;
   }
 
   // BigChest (0xFB1 = ASM 0x231) and OpenBigChest (0xFB2 = ASM 0x232): 12 tiles
