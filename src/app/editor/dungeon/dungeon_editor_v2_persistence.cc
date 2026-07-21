@@ -443,7 +443,8 @@ absl::Status DungeonEditorV2::Save() {
       return absl::FailedPreconditionError(
           "Cannot save dungeon palettes from a different ROM session");
     }
-    const size_t modified_color_count = palette_manager.GetModifiedColorCount();
+    const size_t modified_color_count =
+        palette_manager.GetModifiedColorCount(game_data_);
     auto status = palette_manager.SaveAllToRom();
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save palette changes: %s",
