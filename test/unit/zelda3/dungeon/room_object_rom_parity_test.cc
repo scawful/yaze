@@ -145,7 +145,7 @@ struct StateStub : public DungeonState {
   bool IsDoorSwitchActive(int) const override { return false; }
   bool IsWallMoved(int) const override { return false; }
   bool IsFloorBombable(int) const override { return floor_bombable; }
-  bool IsRupeeFloorActive(int) const override { return false; }
+  bool IsRupeeFloorCleared(int) const override { return false; }
   bool IsCrystalSwitchBlue() const override { return false; }
 };
 

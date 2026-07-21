@@ -463,6 +463,12 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
     return 28;
   }
 
+  // RupeeFloor (0xF92 = ASM 0x212) reads the two words at obj1DD6 and
+  // repeats them at fixed positions.
+  if (object_id == 0xF92) {
+    return 2;
+  }
+
   // HammerPegSingle (0xF96 = ASM 0x216) jumps to
   // RoomDraw_Rightwards2x2 and consumes one fixed 2x2 tile block.
   if (object_id == 0xF96) {

@@ -267,7 +267,7 @@ class ActiveValidationState final : public zelda3::DungeonState {
   bool IsDamFloodgateOpen(int) const override { return true; }
   bool IsWallMoved(int) const override { return true; }
   bool IsFloorBombable(int) const override { return true; }
-  bool IsRupeeFloorActive(int) const override { return true; }
+  bool IsRupeeFloorCleared(int) const override { return true; }
   bool IsCrystalSwitchBlue() const override { return false; }
 };
 
@@ -293,7 +293,7 @@ bool IsExpectedEmptyState(int object_id, const StateProfile& profile) {
   // Fail closed: this hand-maintained whitelist contains only USDASM-proven
   // branches that intentionally erase themselves after their state activates.
   return profile.kind == StateProfileKind::kActive &&
-         (object_id == 0x0CD || object_id == 0x0CE);
+         (object_id == 0x0CD || object_id == 0x0CE || object_id == 0xF92);
 }
 
 zelda3::DimensionService::DimensionResult ResolveExpectedBounds(

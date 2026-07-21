@@ -42,7 +42,7 @@ class MeasurementDungeonState final : public DungeonState {
   bool IsDamFloodgateOpen(int /*room_id*/) const override { return false; }
   bool IsWallMoved(int /*room_id*/) const override { return false; }
   bool IsFloorBombable(int /*room_id*/) const override { return false; }
-  bool IsRupeeFloorActive(int /*room_id*/) const override { return false; }
+  bool IsRupeeFloorCleared(int /*room_id*/) const override { return false; }
   bool IsCrystalSwitchBlue() const override { return true; }
 
  private:
