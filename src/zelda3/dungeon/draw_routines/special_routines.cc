@@ -261,66 +261,43 @@ void DrawOpenChestPlatformSegment(const DrawContext& ctx, int dy,
 }  // namespace
 
 void DrawChest(const DrawContext& ctx, int chest_index) {
-  // Determine if chest is open
-  bool is_open = false;
-  if (ctx.state) {
+  // Routine 39 is used only by stateful Chest (F99) and fixed OpenChest
+  // (F9A). BigChest uses its separate 4x3 routine.
+  bool is_open = ctx.object.id_ == 0xF9A;
+  if (!is_open && ctx.state) {
     is_open = ctx.state->IsChestOpen(ctx.room_id, chest_index);
   }
 
-  // Draw logic
-  // Heuristic: If we have extra tiles loaded, assume they are for the open
-  // state. Standard chests are 2x2 (4 tiles). Big chests are 4x4 (16 tiles). If
-  // we have double the tiles, use the second half for open state.
-
-  if (is_open) {
-    if (ctx.tiles.size() >= 32) {
-      // Big chest open tiles (indices 16-31)
-      // Draw 4x4 pattern
-      for (int x = 0; x < 4; ++x) {
-        for (int y = 0; y < 4; ++y) {
-          DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                       ctx.object.y_ + y,
-                                       ctx.tiles[16 + x * 4 + y]);
-        }
-      }
-      return;
-    }
-    if (ctx.tiles.size() >= 8 && ctx.tiles.size() < 16) {
-      // Small chest open tiles (indices 4-7)
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
-                                   ctx.tiles[4]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
-                                   ctx.object.y_ + 1, ctx.tiles[5]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                   ctx.object.y_, ctx.tiles[6]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                   ctx.object.y_ + 1, ctx.tiles[7]);
-      return;
-    }
-    // If no extra tiles, fall through to draw closed chest (better than
-    // nothing)
-  }
-
-  // Fallback to standard 4x4 or 2x2 drawing based on tile count
-  if (ctx.tiles.size() >= 16) {
-    // Draw 4x4 pattern in COLUMN-MAJOR order
+  // Preserve the legacy subtype-1 0xF8-0xFD family handled by this registry
+  // routine. The subtype-3 chest opcodes below are always 2x2.
+  if (ctx.object.id_ < 0xF80 && ctx.tiles.size() >= 16) {
+    size_t start_index = is_open && ctx.tiles.size() >= 32 ? 16 : 0;
     for (int x = 0; x < 4; ++x) {
       for (int y = 0; y < 4; ++y) {
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                     ctx.object.y_ + y, ctx.tiles[x * 4 + y]);
+        DrawRoutineUtils::WriteTile8(
+            ctx.target_bg, ctx.object.x_ + x, ctx.object.y_ + y,
+            ctx.tiles[start_index + static_cast<size_t>(x * 4 + y)]);
       }
     }
-  } else if (ctx.tiles.size() >= 4) {
-    // Draw 2x2 pattern in COLUMN-MAJOR order
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
-                                 ctx.tiles[0]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
-                                 ctx.object.y_ + 1, ctx.tiles[1]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                 ctx.object.y_, ctx.tiles[2]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                 ctx.object.y_ + 1, ctx.tiles[3]);
+    return;
   }
+
+  size_t start_index = 0;
+  if (is_open && ctx.object.id_ == 0xF99 && ctx.tiles.size() >= 8) {
+    start_index = 4;
+  }
+  if (ctx.tiles.size() < start_index + 4) {
+    return;
+  }
+
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
+                               ctx.tiles[start_index]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_ + 1,
+                               ctx.tiles[start_index + 1]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, ctx.object.y_,
+                               ctx.tiles[start_index + 2]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
+                               ctx.object.y_ + 1, ctx.tiles[start_index + 3]);
 }
 
 void DrawNothing([[maybe_unused]] const DrawContext& ctx) {
@@ -1148,39 +1125,11 @@ void DrawPrisonCell(const DrawContext& ctx) {
 
 void DrawBigKeyLock(const DrawContext& ctx) {
   // ASM: RoomDraw_BigKeyLock ($0198AE)
-  // Checks room flags via RoomFlagMask to see if lock is already opened
-  // For editor, we draw the closed state by default
-
-  bool is_opened = false;
-  if (ctx.state) {
-    // Check if this specific lock has been opened via door state
-    is_opened = ctx.state->IsDoorOpen(ctx.room_id, 0);  // Lock uses door slot 0
-  }
-
-  if (is_opened) {
-    // Draw open lock (if different tiles available)
-    if (ctx.tiles.size() >= 8) {
-      // Use second set of tiles for open state
-      for (int y = 0; y < 2; ++y) {
-        for (int x = 0; x < 2; ++x) {
-          DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                       ctx.object.y_ + y,
-                                       ctx.tiles[4 + y * 2 + x]);
-        }
-      }
-      return;
-    }
-  }
-
-  // Draw closed lock (2x2 pattern)
-  if (ctx.tiles.size() >= 4) {
-    for (int y = 0; y < 2; ++y) {
-      for (int x = 0; x < 2; ++x) {
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                     ctx.object.y_ + y, ctx.tiles[y * 2 + x]);
-      }
-    }
-  }
+  // The opened-state room-event check and shared chest/lock slot advancement
+  // live in ObjectDrawer, which owns stream ordering. The ROM routine's closed
+  // branch jumps to RoomDraw_Rightwards2x2 and consumes obj1494 in column-major
+  // order; there is no second tile state.
+  DrawSingle2x2(ctx);
 }
 
 void DrawBombableFloor(const DrawContext& ctx) {

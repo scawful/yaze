@@ -143,6 +143,7 @@ TEST(ObjectGeometryTest, MeasureByObjectIdSubtype3SpecialsHaveUsdasmBounds) {
   const Case cases[] = {
       {0x0F90, 0x00, 2, 2},  // Single2x2
       {0x0F92, 0x00, 5, 8},  // RupeeFloor
+      {0x0F98, 0x00, 2, 2},  // BigKeyLock
       {0x0FB1, 0x00, 4, 3},  // Single4x3
       {0x0FC7, 0x00, 4, 4},  // BombableFloor
       {0x0FE6, 0x00, 4, 4},  // Actual4x4
@@ -251,6 +252,8 @@ TEST(ObjectGeometryTest, MeasureByObjectIdMigratedSpecialsHaveUsdasmBounds) {
       {0x0FD5, 0x00, 3, 5},   // Utility3x5
       {0x0FBA, 0x00, 4, 6},   // VerticalTurtleRockPipe
       {0x0FBC, 0x00, 6, 4},   // HorizontalTurtleRockPipe
+      {0x0F99, 0x00, 2, 2},   // Chest
+      {0x0F9A, 0x00, 2, 2},   // OpenChest
       {0x0FF0, 0x00, 4, 10},  // LightBeamOnFloor
       {0x0FF1, 0x00, 8, 8},   // BigLightBeamOnFloor
       {0x0FF2, 0x00, 4, 4},   // BossShell4x4

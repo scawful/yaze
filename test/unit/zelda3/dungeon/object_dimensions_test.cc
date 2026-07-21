@@ -251,6 +251,38 @@ TEST_F(ObjectDimensionTableTest, HammerPegUsesFixedTwoByTwoBounds) {
   }
 }
 
+TEST_F(ObjectDimensionTableTest, BigKeyLockUsesFixedTwoByTwoBounds) {
+  auto& table = ObjectDimensionTable::Get();
+  ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());
+
+  for (uint8_t size : {uint8_t{0}, uint8_t{7}, uint8_t{15}}) {
+    SCOPED_TRACE(::testing::Message() << "size=" << static_cast<int>(size));
+
+    auto [width, height] = table.GetDimensions(0xF98, size);
+    EXPECT_EQ(width, 2);
+    EXPECT_EQ(height, 2);
+
+    const auto selection = table.GetSelectionBounds(0xF98, size);
+    EXPECT_EQ(selection.offset_x, 0);
+    EXPECT_EQ(selection.offset_y, 0);
+    EXPECT_EQ(selection.width, 2);
+    EXPECT_EQ(selection.height, 2);
+
+    const RoomObject object(0xF98, 0, 0, size, 0);
+    auto geometry = ObjectGeometry::Get().MeasureByObjectId(object);
+    ASSERT_TRUE(geometry.ok());
+    EXPECT_EQ(geometry->min_x_tiles, 0);
+    EXPECT_EQ(geometry->min_y_tiles, 0);
+    EXPECT_EQ(geometry->width_tiles, 2);
+    EXPECT_EQ(geometry->height_tiles, 2);
+
+    auto [legacy_width, legacy_height] =
+        ObjectDrawer(rom_.get(), 0).CalculateObjectDimensions(object);
+    EXPECT_EQ(legacy_width, 16);
+    EXPECT_EQ(legacy_height, 16);
+  }
+}
+
 TEST_F(ObjectDimensionTableTest, RupeeFloorUsesFixedFiveByEightBounds) {
   auto& table = ObjectDimensionTable::Get();
   ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());

@@ -70,8 +70,11 @@ class ObjectDrawer {
     }
   };
 
-  // Chest index tracking for state queries
-  void ResetChestIndex() { current_chest_index_ = 0; }
+  // Reset the chest-only and shared chest/big-key-lock room-event indexes.
+  void ResetChestIndex() {
+    current_chest_index_ = 0;
+    current_room_event_index_ = 0;
+  }
   void SetAllowTrackCornerAliases(bool allow) {
     allow_track_corner_aliases_ = allow;
   }
@@ -102,8 +105,9 @@ class ObjectDrawer {
    * @param bg2 Background layer 2 buffer (object buffer)
    * @param palette_group Current palette group for color mapping
    * @param layout_bg1 Optional layout buffer to mask for BG2 object transparency
-   * @param reset_chest_index If true, reset per-room chest counter before drawing
-   *        (set false on subsequent USDASM list passes; see Room::RenderObjectsToBackground)
+   * @param reset_room_event_indices If true, reset the chest-only and shared
+   *        chest/lock counters before drawing (set false on subsequent USDASM
+   *        list passes; see Room::RenderObjectsToBackground)
    * @return Status of the drawing operation
    */
   absl::Status DrawObjectList(const std::vector<RoomObject>& objects,
@@ -112,7 +116,7 @@ class ObjectDrawer {
                               const gfx::PaletteGroup& palette_group,
                               const DungeonState* state = nullptr,
                               gfx::BackgroundBuffer* layout_bg1 = nullptr,
-                              bool reset_chest_index = true);
+                              bool reset_room_event_indices = true);
 
   /**
    * @brief Get draw routine ID for an object
@@ -198,6 +202,12 @@ class ObjectDrawer {
   void DrawChest(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                  std::span<const gfx::TileInfo> tiles,
                  const DungeonState* state = nullptr);
+  void DrawBigChest(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                    std::span<const gfx::TileInfo> tiles,
+                    const DungeonState* state = nullptr);
+  void DrawBigKeyLock(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                      std::span<const gfx::TileInfo> tiles,
+                      const DungeonState* state = nullptr);
 
   void DrawNothing(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                    std::span<const gfx::TileInfo> tiles,
@@ -292,6 +302,7 @@ class ObjectDrawer {
   Rom* rom_;
   int room_id_;
   mutable int current_chest_index_ = 0;
+  mutable int current_room_event_index_ = 0;
   bool allow_track_corner_aliases_ = true;
   gfx::BackgroundBuffer* registry_secondary_bg_ = nullptr;
   RoomObject::LayerType registry_primary_layer_ = RoomObject::LayerType::BG1;

@@ -141,13 +141,14 @@ std::vector<ObjectDrawer::TileTrace> ReplayRomObjectTrace(::yaze::Rom* rom,
 // "no-edit"/closed/intact behaviour; callers flip individual flags to test the
 // alternate branch. All other queries return safe defaults.
 struct StateStub : public DungeonState {
-  bool door_open = false;
+  bool big_key_lock_open = false;
   int bombed_floor_room_id = -1;
 
   bool IsChestOpen(int, int) const override { return false; }
   bool IsBigChestOpen() const override { return false; }
-  bool IsDoorOpen(int, int) const override { return door_open; }
+  bool IsDoorOpen(int, int) const override { return false; }
   bool IsDoorSwitchActive(int) const override { return false; }
+  bool IsBigKeyLockOpen(int, int) const override { return big_key_lock_open; }
   bool IsWallMoved(int) const override { return false; }
   bool IsFloorBombable(int room_id) const override {
     return room_id == bombed_floor_room_id;
@@ -389,7 +390,7 @@ TEST_P(RoomObjectRomParityTest,
 //   1. Read raw bytes from the Subtype-3 tile pointer table (`kSubtype3Base`)
 //      and decode its raw 16-bit words from `kTileDataBase + offset`.
 //   2. Compare the decoded tiles against ObjectParser::ParseObject output.
-//   3. For drawer state branches (BigKeyLock door open/closed, BombableFloor
+//   3. For drawer state branches (BigKeyLock event open/closed, BombableFloor
 //      intact/bombed), drive the trace path with a DungeonState stub and
 //      verify the routine selects the expected sub-range of parsed tiles.
 //
@@ -397,8 +398,8 @@ TEST_P(RoomObjectRomParityTest,
 //   - DrawPrisonCell (97) at 1077-1135: 5 cols x 4 rows x 2 sides per BG;
 //     reads tiles[0..3] (row-indexed); registered draws_to_both_bgs=true so
 //     ObjectDrawer dispatches the routine twice (BG1, then BG2).
-//   - DrawBigKeyLock (92) at 1137-1172: 2x2 tiles[0..3] when closed; 2x2
-//     tiles[4..7] when open (only if tiles.size() >= 8).
+//   - DrawBigKeyLock (92): column-major 2x2 tiles[0..3] when closed; no tile
+//     writes when the corresponding shared chest/lock room-event slot is set.
 //   - DrawBombableFloor (93): four 2x2 quadrants from tiles[0..15], or the
 //     separately stored obj05BA replacement block at tiles[16..31] when the
 //     current room's selected bombed-floor preview state is active.
@@ -435,14 +436,14 @@ TEST_P(RoomObjectRomParityTest, BigKeyLockParserMatchesRawRomWords) {
   ObjectParser parser(rom_.get());
   const int id = 0xF98;
   const int addr = Subtype3TileDataAddr(*rom_, id);
-  const auto expected = DecodeTilesFromRom(*rom_, addr, /*count=*/8);
+  const auto expected = DecodeTilesFromRom(*rom_, addr, /*count=*/4);
 
   auto parsed_or = parser.ParseObject(static_cast<int16_t>(id));
   ASSERT_TRUE(parsed_or.ok()) << parsed_or.status();
   const auto& parsed = parsed_or.value();
-  ASSERT_EQ(parsed.size(), 8u)
-      << "BigKeyLock needs 8 parsed tiles: closed branch reads tiles[0..3], "
-         "open branch reads tiles[4..7] iff size >= 8.";
+  ASSERT_EQ(parsed.size(), 4u)
+      << "BigKeyLock consumes only the four obj1494 words; the next four "
+         "belong to the Chest object at obj149C.";
 
   for (size_t i = 0; i < expected.size(); ++i) {
     SCOPED_TRACE(absl::StrFormat("tile idx=%zu", i));
@@ -531,18 +532,18 @@ TEST_P(RoomObjectRomParityTest, PrisonCellDrawerWritesSymmetricBarsBothBGs) {
   EXPECT_EQ(idx, bg1.size());
 }
 
-TEST_P(RoomObjectRomParityTest, BigKeyLockDrawerSelectsTilesByDoorState) {
+TEST_P(RoomObjectRomParityTest, BigKeyLockDrawerMatchesRoomEventState) {
   SCOPED_TRACE(::yaze::test::TestRomManager::GetRomRoleName(GetParam()));
   const int base_x = 6;
   const int base_y = 8;
 
   // ROM-parsed tiles for direct comparison against drawer trace.
   const int addr = Subtype3TileDataAddr(*rom_, 0xF98);
-  const auto rom_tiles = DecodeTilesFromRom(*rom_, addr, 8);
+  const auto rom_tiles = DecodeTilesFromRom(*rom_, addr, 4);
 
-  // Closed branch: state.door_open == false -> tiles[0..3].
+  // Closed branch: the room-event slot is clear -> tiles[0..3].
   StateStub closed;
-  closed.door_open = false;
+  closed.big_key_lock_open = false;
   const auto closed_trace = ReplayRomObjectTraceWithState(
       rom_.get(), 0xF98, base_x, base_y, /*size=*/0, &closed);
   const auto closed_bg1 =
@@ -550,34 +551,24 @@ TEST_P(RoomObjectRomParityTest, BigKeyLockDrawerSelectsTilesByDoorState) {
   ASSERT_EQ(closed_bg1.size(), 4u)
       << "BigKeyLock closed branch writes 4 tiles in 2x2";
   EXPECT_TRUE(FilterByLayer(closed_trace, RoomObject::LayerType::BG2).empty());
-  // 2x2 row-major: (0,0) (1,0) (0,1) (1,1) -> tiles[0] tiles[1] tiles[2] tiles[3]
+  // RoomDraw_Rightwards2x2 emits column-major: TL, BL, TR, BR.
   for (int t = 0; t < 4; ++t) {
     SCOPED_TRACE(absl::StrFormat("closed t=%d", t));
-    const int dx = t & 1;
-    const int dy = t >> 1;
+    const int dx = t >> 1;
+    const int dy = t & 1;
     EXPECT_EQ(closed_bg1[t].x_tile, base_x + dx);
     EXPECT_EQ(closed_bg1[t].y_tile, base_y + dy);
     EXPECT_EQ(closed_bg1[t].tile_id, rom_tiles[t].id_)
         << "closed branch must use tiles[0..3]";
   }
 
-  // Open branch: state.door_open == true -> tiles[4..7].
+  // Open branch: the room-event slot is set -> no replacement graphics.
   StateStub open;
-  open.door_open = true;
+  open.big_key_lock_open = true;
   const auto open_trace = ReplayRomObjectTraceWithState(
       rom_.get(), 0xF98, base_x, base_y, /*size=*/0, &open);
-  const auto open_bg1 = FilterByLayer(open_trace, RoomObject::LayerType::BG1);
-  ASSERT_EQ(open_bg1.size(), 4u)
-      << "BigKeyLock open branch writes 4 tiles in 2x2";
-  for (int t = 0; t < 4; ++t) {
-    SCOPED_TRACE(absl::StrFormat("open t=%d", t));
-    const int dx = t & 1;
-    const int dy = t >> 1;
-    EXPECT_EQ(open_bg1[t].x_tile, base_x + dx);
-    EXPECT_EQ(open_bg1[t].y_tile, base_y + dy);
-    EXPECT_EQ(open_bg1[t].tile_id, rom_tiles[4 + t].id_)
-        << "open branch must use tiles[4..7]";
-  }
+  EXPECT_TRUE(open_trace.empty())
+      << "USDASM's opened BigKeyLock branch advances its event slot and RTSes";
 }
 
 TEST_P(RoomObjectRomParityTest, BombableFloorDrawerSelectsTilesByFloorState) {
