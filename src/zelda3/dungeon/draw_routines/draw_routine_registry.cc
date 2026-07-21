@@ -283,7 +283,7 @@ void DrawRoutineRegistry::BuildObjectMapping() {
   object_to_routine_map_[0xB2] = 16;
   object_to_routine_map_[0xB3] = 22;
   object_to_routine_map_[0xB4] = 22;
-  object_to_routine_map_[0xB5] = 8;
+  object_to_routine_map_[0xB5] = DrawRoutineIds::kWeird2x4_1to16;
   object_to_routine_map_[0xB6] = 1;
   object_to_routine_map_[0xB7] = 1;
   object_to_routine_map_[0xB8] = 0;

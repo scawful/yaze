@@ -1385,6 +1385,14 @@ void ObjectDrawer::InitializeDrawRoutines() {
                                        tiles, state);
       };
 
+  ensure_index(DrawRoutineIds::kWeird2x4_1to16);
+  draw_routines_[DrawRoutineIds::kWeird2x4_1to16] =
+      [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
+         std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        self->DrawUsingRegistryRoutine(DrawRoutineIds::kWeird2x4_1to16, obj, bg,
+                                       tiles, state);
+      };
+
   // Routine 130 - Custom Object (Oracle of Secrets 0x31, 0x32)
   // Uses external binary files instead of ROM tile data.
   // Requires CustomObjectManager initialization and enable_custom_objects flag.
@@ -2417,10 +2425,17 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
       height = 32;                  // 4 tiles tall
       break;
     }
+    case DrawRoutineIds::kWeird2x4_1to16: {  // Archery curtains (object 0xB5)
+      const int count = (size & 0x0F) + 1;
+      width = count * 16;
+      height = 32;
+      break;
+    }
+
     case 2:  // RoomDraw_Rightwards2x4spaced4_1to16 (objects 0x03-0x04)
     case 3:  // RoomDraw_Rightwards2x4spaced4_1to16_BothBG (objects 0x05-0x06)
     {
-      // ASM: GetSize_1to16, draws 2x4 tiles with 4-tile adjacent spacing
+      // ASM: GetSize_1to16, so both routines repeat size + 1 times.
       size = size & 0x0F;
       int count = size + 1;
       width = count * 16;  // 2 tiles wide per repetition (adjacent)
