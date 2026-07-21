@@ -19,6 +19,12 @@
 
 namespace yaze::editor {
 
+namespace {
+
+constexpr int kThievesTownEastAtticRoomId = 0x65;
+
+}  // namespace
+
 void DungeonCanvasViewer::DrawPersistentDebugWindows(int room_id) {
   if (!rooms_ || !rom_ || !rom_->is_loaded()) {
     return;
@@ -129,6 +135,22 @@ void DungeonCanvasViewer::DrawRoomDebugWindow(zelda3::Room& room, int room_id) {
       if (ImGui::Checkbox(tr("Bombed Floor Open"), &floor_bombed)) {
         editor_state->SetFloorBombable(room_id, floor_bombed);
         preview_state_changed = true;
+      }
+
+      // FF1 in Blind's room reads room 0x065's persisted attic-floor flag,
+      // not the current room's flag.
+      bool blind_light_active =
+          editor_state->IsFloorBombable(kThievesTownEastAtticRoomId);
+      if (ImGui::Checkbox(tr("East Attic Open / Blind Light"),
+                          &blind_light_active)) {
+        editor_state->SetFloorBombable(kThievesTownEastAtticRoomId,
+                                       blind_light_active);
+        preview_state_changed = true;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(tr(
+            "Object FF1 uses the persisted bombed-floor flag for room 0x065, "
+            "even when previewed in Blind's room."));
       }
 
       bool rupee_floor_active = editor_state->IsRupeeFloorActive(room_id);

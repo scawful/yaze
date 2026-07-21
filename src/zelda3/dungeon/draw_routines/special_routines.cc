@@ -17,6 +17,8 @@ namespace draw_routines {
 
 namespace {
 
+constexpr int kThievesTownEastAtticRoomId = 0x65;
+
 const gfx::TileInfo& TileAtWrapped(std::span<const gfx::TileInfo> tiles,
                                    size_t index) {
   return tiles[index % tiles.size()];
@@ -511,10 +513,15 @@ void DrawLightBeamOnFloor(const DrawContext& ctx) {
 }
 
 void DrawBigLightBeamOnFloor(const DrawContext& ctx) {
-  // ASM: RoomDraw_BigLightBeamOnFloor ($01A7D3) falls through to
-  // RoomDraw_FloorLight when its state bit is active.
-  // The active path draws four 4x4 blocks in a 2x2 grid (8x8 footprint).
-  // State-gating on $7EF0CA is not currently modeled in DungeonState.
+  // ASM: RoomDraw_BigLightBeamOnFloor ($01A7D3) reads the persisted
+  // bombed-floor flag for fixed room 0x065 ($7EF0CA & $0100), then falls
+  // through to RoomDraw_FloorLight when it is active. Do not use ctx.room_id.
+  // Null state is reserved for object/geometry previews, which keep the beam
+  // visible and measurable.
+  if (ctx.state != nullptr &&
+      !ctx.state->IsFloorBombable(kThievesTownEastAtticRoomId)) {
+    return;
+  }
   DrawFloorLightGrid(ctx);
 }
 
