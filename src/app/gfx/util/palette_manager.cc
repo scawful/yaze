@@ -12,20 +12,58 @@
 namespace yaze {
 namespace gfx {
 
+PaletteManager::SessionState* PaletteManager::CurrentState() {
+  if (!game_data_) {
+    return &unbound_state_;
+  }
+  return &session_states_.try_emplace(game_data_).first->second;
+}
+
+const PaletteManager::SessionState* PaletteManager::CurrentState() const {
+  if (!game_data_) {
+    return &unbound_state_;
+  }
+  auto it = session_states_.find(game_data_);
+  return it == session_states_.end() ? &unbound_state_ : &it->second;
+}
+
+const PaletteManager::SessionState* PaletteManager::FindState(
+    const zelda3::GameData* game_data) const {
+  if (!game_data) {
+    return nullptr;
+  }
+  auto it = session_states_.find(game_data);
+  return it == session_states_.end() ? nullptr : &it->second;
+}
+
+bool PaletteManager::IsInitialized() const {
+  if (!game_data_) {
+    return rom_ != nullptr;
+  }
+  const auto* state = FindState(game_data_);
+  return state != nullptr && state->initialized && rom_ == game_data_->rom();
+}
+
+void PaletteManager::ActivateSession(zelda3::GameData* game_data) {
+  game_data_ = game_data;
+  rom_ = game_data ? game_data->rom() : nullptr;
+  if (game_data) {
+    session_states_.try_emplace(game_data);
+  }
+}
+
 void PaletteManager::Initialize(zelda3::GameData* game_data) {
   if (!game_data) {
     return;
   }
 
-  // Editors are loaded lazily and may share the same GameData instance. Do not
-  // discard another editor's pending palette edits when it initializes the
-  // already-bound manager.
-  if (IsManaging(game_data)) {
+  ActivateSession(game_data);
+  auto* state = CurrentState();
+  if (state->initialized) {
     return;
   }
 
-  game_data_ = game_data;
-  rom_ = game_data->rom();
+  *state = SessionState{};
 
   // Load original palette snapshots for all groups
   auto* palette_groups = &game_data_->palette_groups;
@@ -45,7 +83,7 @@ void PaletteManager::Initialize(zelda3::GameData* game_data) {
         for (size_t i = 0; i < group->size(); i++) {
           originals.push_back(group->palette(i));
         }
-        original_palettes_[group_name] = originals;
+        state->original_palettes[group_name] = originals;
       }
     } catch (const std::exception& e) {
       // Group doesn't exist, skip
@@ -53,16 +91,23 @@ void PaletteManager::Initialize(zelda3::GameData* game_data) {
     }
   }
 
-  // Clear any existing state
-  modified_palettes_.clear();
-  modified_colors_.clear();
-  save_transaction_snapshot_.reset();
-  ClearHistory();
+  state->initialized = true;
 }
 
 bool PaletteManager::IsManaging(const zelda3::GameData* game_data) const {
-  return game_data != nullptr && game_data_ == game_data &&
+  return game_data != nullptr && game_data_ == game_data && IsInitialized() &&
          rom_ == game_data->rom();
+}
+
+void PaletteManager::ReleaseSession(const zelda3::GameData* game_data) {
+  if (!game_data) {
+    return;
+  }
+  if (game_data_ == game_data) {
+    game_data_ = nullptr;
+    rom_ = nullptr;
+  }
+  session_states_.erase(game_data);
 }
 
 void PaletteManager::Initialize(Rom* rom) {
@@ -71,28 +116,18 @@ void PaletteManager::Initialize(Rom* rom) {
   if (!rom) {
     return;
   }
-  rom_ = rom;
   game_data_ = nullptr;
-
-  // Clear any existing state
-  modified_palettes_.clear();
-  modified_colors_.clear();
-  save_transaction_snapshot_.reset();
-  ClearHistory();
+  rom_ = rom;
+  unbound_state_ = SessionState{};
 }
 
 void PaletteManager::ResetForTesting() {
   game_data_ = nullptr;
   rom_ = nullptr;
-  original_palettes_.clear();
-  modified_palettes_.clear();
-  modified_colors_.clear();
+  session_states_.clear();
+  unbound_state_ = SessionState{};
   change_listeners_.clear();
   next_callback_id_ = 1;
-  batch_depth_ = 0;
-  batch_changes_.clear();
-  save_transaction_snapshot_.reset();
-  ClearHistory();
 }
 
 // ========== Color Operations ==========
@@ -167,9 +202,9 @@ absl::Status PaletteManager::SetColor(const std::string& group_name,
     auto timestamp_ms = std::chrono::duration_cast<std::chrono::milliseconds>(
                             now.time_since_epoch())
                             .count();
-    batch_changes_.push_back({group_name, palette_index, color_index,
-                              original_color, new_color,
-                              static_cast<uint64_t>(timestamp_ms)});
+    CurrentState()->batch_changes.push_back(
+        {group_name, palette_index, color_index, original_color, new_color,
+         static_cast<uint64_t>(timestamp_ms)});
   }
 
   return absl::OkStatus();
@@ -188,8 +223,10 @@ absl::Status PaletteManager::ResetPalette(const std::string& group_name,
   }
 
   // Check if original snapshot exists
-  auto it = original_palettes_.find(group_name);
-  if (it == original_palettes_.end() || palette_index >= it->second.size()) {
+  auto* state = CurrentState();
+  auto it = state->original_palettes.find(group_name);
+  if (it == state->original_palettes.end() || palette_index < 0 ||
+      palette_index >= it->second.size()) {
     return absl::NotFoundError("Original palette not found");
   }
 
@@ -202,8 +239,20 @@ absl::Status PaletteManager::ResetPalette(const std::string& group_name,
   *group->mutable_palette(palette_index) = it->second[palette_index];
 
   // Clear modified flags for this palette
-  modified_palettes_[group_name].erase(palette_index);
-  modified_colors_[group_name].erase(palette_index);
+  if (auto modified_it = state->modified_palettes.find(group_name);
+      modified_it != state->modified_palettes.end()) {
+    modified_it->second.erase(palette_index);
+    if (modified_it->second.empty()) {
+      state->modified_palettes.erase(modified_it);
+    }
+  }
+  if (auto colors_it = state->modified_colors.find(group_name);
+      colors_it != state->modified_colors.end()) {
+    colors_it->second.erase(palette_index);
+    if (colors_it->second.empty()) {
+      state->modified_colors.erase(colors_it);
+    }
+  }
 
   // Notify listeners
   PaletteChangeEvent event{PaletteChangeEvent::Type::kPaletteReset, group_name,
@@ -216,26 +265,32 @@ absl::Status PaletteManager::ResetPalette(const std::string& group_name,
 // ========== Dirty Tracking ==========
 
 bool PaletteManager::HasUnsavedChanges() const {
-  return !modified_palettes_.empty();
+  return !CurrentState()->modified_palettes.empty();
+}
+
+bool PaletteManager::HasUnsavedChanges(
+    const zelda3::GameData* game_data) const {
+  const auto* state = FindState(game_data);
+  return state != nullptr && !state->modified_palettes.empty();
 }
 
 std::vector<std::string> PaletteManager::GetModifiedGroups() const {
   std::vector<std::string> groups;
-  for (const auto& [group_name, _] : modified_palettes_) {
+  for (const auto& [group_name, _] : CurrentState()->modified_palettes) {
     groups.push_back(group_name);
   }
   return groups;
 }
 
 bool PaletteManager::IsGroupModified(const std::string& group_name) const {
-  auto it = modified_palettes_.find(group_name);
-  return it != modified_palettes_.end() && !it->second.empty();
+  auto it = CurrentState()->modified_palettes.find(group_name);
+  return it != CurrentState()->modified_palettes.end() && !it->second.empty();
 }
 
 bool PaletteManager::IsPaletteModified(const std::string& group_name,
                                        int palette_index) const {
-  auto it = modified_palettes_.find(group_name);
-  if (it == modified_palettes_.end()) {
+  auto it = CurrentState()->modified_palettes.find(group_name);
+  if (it == CurrentState()->modified_palettes.end()) {
     return false;
   }
   return it->second.contains(palette_index);
@@ -243,8 +298,8 @@ bool PaletteManager::IsPaletteModified(const std::string& group_name,
 
 bool PaletteManager::IsColorModified(const std::string& group_name,
                                      int palette_index, int color_index) const {
-  auto group_it = modified_colors_.find(group_name);
-  if (group_it == modified_colors_.end()) {
+  auto group_it = CurrentState()->modified_colors.find(group_name);
+  if (group_it == CurrentState()->modified_colors.end()) {
     return false;
   }
 
@@ -257,8 +312,18 @@ bool PaletteManager::IsColorModified(const std::string& group_name,
 }
 
 size_t PaletteManager::GetModifiedColorCount() const {
+  return GetModifiedColorCount(game_data_);
+}
+
+size_t PaletteManager::GetModifiedColorCount(
+    const zelda3::GameData* game_data) const {
+  const auto* state = FindState(game_data);
+  if (state == nullptr) {
+    return 0;
+  }
+
   size_t count = 0;
-  for (const auto& [_, palette_map] : modified_colors_) {
+  for (const auto& [_, palette_map] : state->modified_colors) {
     for (const auto& [__, color_set] : palette_map) {
       count += color_set.size();
     }
@@ -288,8 +353,9 @@ absl::Status PaletteManager::SaveGroup(const std::string& group_name) {
   }
 
   // Get modified palettes for this group
-  auto pal_it = modified_palettes_.find(group_name);
-  if (pal_it == modified_palettes_.end() || pal_it->second.empty()) {
+  auto pal_it = CurrentState()->modified_palettes.find(group_name);
+  if (pal_it == CurrentState()->modified_palettes.end() ||
+      pal_it->second.empty()) {
     // No changes to save
     return absl::OkStatus();
   }
@@ -299,8 +365,9 @@ absl::Status PaletteManager::SaveGroup(const std::string& group_name) {
     auto* palette = group->mutable_palette(palette_idx);
 
     // Get modified colors for this palette
-    auto color_it = modified_colors_[group_name].find(palette_idx);
-    if (color_it != modified_colors_[group_name].end()) {
+    auto color_it =
+        CurrentState()->modified_colors[group_name].find(palette_idx);
+    if (color_it != CurrentState()->modified_colors[group_name].end()) {
       for (int color_idx : color_it->second) {
         // Calculate ROM address using the helper function
         uint32_t address =
@@ -313,7 +380,7 @@ absl::Status PaletteManager::SaveGroup(const std::string& group_name) {
   }
 
   // Update original snapshots
-  auto& originals = original_palettes_[group_name];
+  auto& originals = CurrentState()->original_palettes[group_name];
   for (size_t i = 0; i < group->size() && i < originals.size(); i++) {
     originals[i] = group->palette(i);
   }
@@ -353,27 +420,37 @@ absl::Status PaletteManager::SaveAllToRom() {
 }
 
 absl::Status PaletteManager::BeginSaveTransaction() {
-  if (save_transaction_snapshot_.has_value()) {
+  if (!IsInitialized()) {
+    return absl::FailedPreconditionError("PaletteManager not initialized");
+  }
+
+  auto* state = CurrentState();
+  if (state->save_transaction_snapshot.has_value()) {
     return absl::FailedPreconditionError(
         "Palette save transaction is already active");
   }
-  save_transaction_snapshot_ = SaveTransactionSnapshot{
-      original_palettes_, modified_palettes_, modified_colors_};
+  state->save_transaction_snapshot =
+      SaveTransactionSnapshot{state->original_palettes,
+                              state->modified_palettes, state->modified_colors};
   return absl::OkStatus();
 }
 
 void PaletteManager::RollbackSaveTransaction() {
-  if (!save_transaction_snapshot_.has_value()) {
+  auto* state = CurrentState();
+  if (!state->save_transaction_snapshot.has_value()) {
     return;
   }
-  original_palettes_ = std::move(save_transaction_snapshot_->original_palettes);
-  modified_palettes_ = std::move(save_transaction_snapshot_->modified_palettes);
-  modified_colors_ = std::move(save_transaction_snapshot_->modified_colors);
-  save_transaction_snapshot_.reset();
+  state->original_palettes =
+      std::move(state->save_transaction_snapshot->original_palettes);
+  state->modified_palettes =
+      std::move(state->save_transaction_snapshot->modified_palettes);
+  state->modified_colors =
+      std::move(state->save_transaction_snapshot->modified_colors);
+  state->save_transaction_snapshot.reset();
 }
 
 void PaletteManager::CommitSaveTransaction() {
-  save_transaction_snapshot_.reset();
+  CurrentState()->save_transaction_snapshot.reset();
 }
 
 absl::Status PaletteManager::ApplyPreviewChanges() {
@@ -411,14 +488,14 @@ void PaletteManager::DiscardGroup(const std::string& group_name) {
   }
 
   // Get modified palettes
-  auto pal_it = modified_palettes_.find(group_name);
-  if (pal_it == modified_palettes_.end()) {
+  auto pal_it = CurrentState()->modified_palettes.find(group_name);
+  if (pal_it == CurrentState()->modified_palettes.end()) {
     return;
   }
 
   // Restore from original snapshots
-  auto orig_it = original_palettes_.find(group_name);
-  if (orig_it != original_palettes_.end()) {
+  auto orig_it = CurrentState()->original_palettes.find(group_name);
+  if (orig_it != CurrentState()->original_palettes.end()) {
     for (int palette_idx : pal_it->second) {
       if (palette_idx < orig_it->second.size()) {
         *group->mutable_palette(palette_idx) = orig_it->second[palette_idx];
@@ -460,8 +537,8 @@ void PaletteManager::Undo() {
     return;
   }
 
-  auto change = undo_stack_.back();
-  undo_stack_.pop_back();
+  auto change = CurrentState()->undo_stack.back();
+  CurrentState()->undo_stack.pop_back();
 
   // Restore original color
   auto* group = GetMutableGroup(change.group_name);
@@ -469,11 +546,12 @@ void PaletteManager::Undo() {
     auto* palette = group->mutable_palette(change.palette_index);
     if (change.color_index < palette->size()) {
       (*palette)[change.color_index] = change.original_color;
+      MarkModified(change.group_name, change.palette_index, change.color_index);
     }
   }
 
   // Move to redo stack
-  redo_stack_.push_back(change);
+  CurrentState()->redo_stack.push_back(change);
 
   // Notify listeners
   PaletteChangeEvent event{PaletteChangeEvent::Type::kColorChanged,
@@ -487,8 +565,8 @@ void PaletteManager::Redo() {
     return;
   }
 
-  auto change = redo_stack_.back();
-  redo_stack_.pop_back();
+  auto change = CurrentState()->redo_stack.back();
+  CurrentState()->redo_stack.pop_back();
 
   // Reapply new color
   auto* group = GetMutableGroup(change.group_name);
@@ -496,11 +574,12 @@ void PaletteManager::Redo() {
     auto* palette = group->mutable_palette(change.palette_index);
     if (change.color_index < palette->size()) {
       (*palette)[change.color_index] = change.new_color;
+      MarkModified(change.group_name, change.palette_index, change.color_index);
     }
   }
 
   // Move back to undo stack
-  undo_stack_.push_back(change);
+  CurrentState()->undo_stack.push_back(change);
 
   // Notify listeners
   PaletteChangeEvent event{PaletteChangeEvent::Type::kColorChanged,
@@ -510,8 +589,24 @@ void PaletteManager::Redo() {
 }
 
 void PaletteManager::ClearHistory() {
-  undo_stack_.clear();
-  redo_stack_.clear();
+  CurrentState()->undo_stack.clear();
+  CurrentState()->redo_stack.clear();
+}
+
+bool PaletteManager::CanUndo() const {
+  return !CurrentState()->undo_stack.empty();
+}
+
+bool PaletteManager::CanRedo() const {
+  return !CurrentState()->redo_stack.empty();
+}
+
+size_t PaletteManager::GetUndoStackSize() const {
+  return CurrentState()->undo_stack.size();
+}
+
+size_t PaletteManager::GetRedoStackSize() const {
+  return CurrentState()->redo_stack.size();
 }
 
 // ========== Change Notifications ==========
@@ -529,22 +624,23 @@ void PaletteManager::UnregisterChangeListener(int callback_id) {
 // ========== Batch Operations ==========
 
 void PaletteManager::BeginBatch() {
-  batch_depth_++;
-  if (batch_depth_ == 1) {
-    batch_changes_.clear();
+  CurrentState()->batch_depth++;
+  if (CurrentState()->batch_depth == 1) {
+    CurrentState()->batch_changes.clear();
   }
 }
 
 void PaletteManager::EndBatch() {
-  if (batch_depth_ == 0) {
+  if (CurrentState()->batch_depth == 0) {
     return;
   }
 
-  batch_depth_--;
+  CurrentState()->batch_depth--;
 
-  if (batch_depth_ == 0 && !batch_changes_.empty()) {
+  if (CurrentState()->batch_depth == 0 &&
+      !CurrentState()->batch_changes.empty()) {
     // Commit all batch changes as a single undo step
-    for (const auto& change : batch_changes_) {
+    for (const auto& change : CurrentState()->batch_changes) {
       RecordChange(change);
 
       // Notify listeners for each change
@@ -554,8 +650,12 @@ void PaletteManager::EndBatch() {
       NotifyListeners(event);
     }
 
-    batch_changes_.clear();
+    CurrentState()->batch_changes.clear();
   }
+}
+
+bool PaletteManager::InBatch() const {
+  return CurrentState()->batch_depth > 0;
 }
 
 // ========== Private Helpers ==========
@@ -593,13 +693,15 @@ const PaletteGroup* PaletteManager::GetGroup(
 SnesColor PaletteManager::GetOriginalColor(const std::string& group_name,
                                            int palette_index,
                                            int color_index) const {
-  auto it = original_palettes_.find(group_name);
-  if (it == original_palettes_.end() || palette_index >= it->second.size()) {
+  const auto* state = CurrentState();
+  auto it = state->original_palettes.find(group_name);
+  if (it == state->original_palettes.end() || palette_index < 0 ||
+      palette_index >= it->second.size()) {
     return SnesColor();
   }
 
   const auto& palette = it->second[palette_index];
-  if (color_index >= palette.size()) {
+  if (color_index < 0 || color_index >= palette.size()) {
     return SnesColor();
   }
 
@@ -607,15 +709,15 @@ SnesColor PaletteManager::GetOriginalColor(const std::string& group_name,
 }
 
 void PaletteManager::RecordChange(const PaletteColorChange& change) {
-  undo_stack_.push_back(change);
+  CurrentState()->undo_stack.push_back(change);
 
   // Limit history size
-  if (undo_stack_.size() > kMaxUndoHistory) {
-    undo_stack_.pop_front();
+  if (CurrentState()->undo_stack.size() > kMaxUndoHistory) {
+    CurrentState()->undo_stack.pop_front();
   }
 
   // Clear redo stack (can't redo after a new change)
-  redo_stack_.clear();
+  CurrentState()->redo_stack.clear();
 }
 
 void PaletteManager::NotifyListeners(const PaletteChangeEvent& event) {
@@ -626,13 +728,57 @@ void PaletteManager::NotifyListeners(const PaletteChangeEvent& event) {
 
 void PaletteManager::MarkModified(const std::string& group_name,
                                   int palette_index, int color_index) {
-  modified_palettes_[group_name].insert(palette_index);
-  modified_colors_[group_name][palette_index].insert(color_index);
+  auto* state = CurrentState();
+  const auto* group = GetGroup(group_name);
+  const auto original_it = state->original_palettes.find(group_name);
+  const bool matches_original =
+      group != nullptr && palette_index >= 0 && palette_index < group->size() &&
+      color_index >= 0 &&
+      color_index < group->palette_ref(palette_index).size() &&
+      original_it != state->original_palettes.end() &&
+      palette_index < original_it->second.size() &&
+      color_index < original_it->second[palette_index].size() &&
+      group->palette_ref(palette_index)[color_index].snes() ==
+          original_it->second[palette_index][color_index].snes();
+
+  if (!matches_original) {
+    state->modified_palettes[group_name].insert(palette_index);
+    state->modified_colors[group_name][palette_index].insert(color_index);
+    return;
+  }
+
+  if (auto group_it = state->modified_colors.find(group_name);
+      group_it != state->modified_colors.end()) {
+    if (auto palette_it = group_it->second.find(palette_index);
+        palette_it != group_it->second.end()) {
+      palette_it->second.erase(color_index);
+      if (palette_it->second.empty()) {
+        group_it->second.erase(palette_it);
+      }
+    }
+    if (group_it->second.empty()) {
+      state->modified_colors.erase(group_it);
+    }
+  }
+
+  const auto colors_group_it = state->modified_colors.find(group_name);
+  const bool palette_still_modified =
+      colors_group_it != state->modified_colors.end() &&
+      colors_group_it->second.contains(palette_index);
+  if (!palette_still_modified) {
+    if (auto group_it = state->modified_palettes.find(group_name);
+        group_it != state->modified_palettes.end()) {
+      group_it->second.erase(palette_index);
+      if (group_it->second.empty()) {
+        state->modified_palettes.erase(group_it);
+      }
+    }
+  }
 }
 
 void PaletteManager::ClearModifiedFlags(const std::string& group_name) {
-  modified_palettes_.erase(group_name);
-  modified_colors_.erase(group_name);
+  CurrentState()->modified_palettes.erase(group_name);
+  CurrentState()->modified_colors.erase(group_name);
 }
 
 }  // namespace gfx

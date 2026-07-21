@@ -640,6 +640,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   bool SessionHasPendingUnsavedWork(size_t session_index) const;
   bool HasAnySessionPendingUnsavedWork() const;
   int PendingDungeonRoomCountForSession(size_t session_index) const;
+  size_t PendingPaletteColorCountForSession(size_t session_index) const;
   int ModifiedSessionCount() const;
   std::string DescribePendingUnsavedWork(size_t session_index) const;
   std::string DescribeAllPendingUnsavedWork() const;

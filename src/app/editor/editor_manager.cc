@@ -67,6 +67,7 @@
 #include "app/gfx/debug/performance/performance_dashboard.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gfx/util/palette_manager.h"
 #include "app/gui/animation/animator.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
@@ -1172,6 +1173,11 @@ void EditorManager::HandleSessionSwitched(size_t new_index,
   // the request. Never carry them across a session switch.
   CancelPendingRomSave(/*hide_popups=*/true);
 
+  // Palette edit history and dirty tracking are session-owned. Select the
+  // matching state before any session-specific editor or save action runs.
+  gfx::PaletteManager::Get().ActivateSession(session ? &session->game_data
+                                                     : nullptr);
+
   // Update RightDrawerManager with the new session's settings editor
   if (right_drawer_manager_ && session) {
     right_drawer_manager_->SetSettingsPanel(
@@ -1219,6 +1225,8 @@ void EditorManager::HandleSessionCreated(size_t index, RomSession* session) {
   window_manager_.RestorePinnedState(user_settings_.prefs().pinned_panels);
   if (session_coordinator_ &&
       index == session_coordinator_->GetActiveSessionIndex()) {
+    gfx::PaletteManager::Get().ActivateSession(session ? &session->game_data
+                                                       : nullptr);
     UpdateCurrentRomHash();
   }
   LOG_INFO("EditorManager", "Session %zu created via EventBus", index);
@@ -1226,6 +1234,28 @@ void EditorManager::HandleSessionCreated(size_t index, RomSession* session) {
 
 void EditorManager::HandleSessionClosed(size_t index) {
   CancelPendingRomSave(/*hide_popups=*/true);
+
+  // SessionClosedEvent is emitted before the owning RomSession is erased and
+  // before the active index is adjusted. Bind the surviving session now so the
+  // closing session's destructor cannot leave PaletteManager unbound.
+  RomSession* palette_session = nullptr;
+  if (session_coordinator_) {
+    const size_t session_count = session_coordinator_->GetTotalSessionCount();
+    auto* active_session = session_coordinator_->GetActiveRomSession();
+    auto* closing_session =
+        session_coordinator_->IsValidSessionIndex(index)
+            ? static_cast<RomSession*>(session_coordinator_->GetSession(index))
+            : nullptr;
+    palette_session = active_session;
+    if (closing_session != nullptr && active_session == closing_session &&
+        session_count > 1) {
+      const size_t replacement_index = index > 0 ? index - 1 : 1;
+      palette_session = static_cast<RomSession*>(
+          session_coordinator_->GetSession(replacement_index));
+    }
+  }
+  gfx::PaletteManager::Get().ActivateSession(
+      palette_session ? &palette_session->game_data : nullptr);
 
   // Update ContentRegistry - it will be set to new active ROM on next switch
   // If no sessions remain, clear the context
@@ -2437,6 +2467,7 @@ absl::Status EditorManager::EnsureGameDataLoaded() {
   auto* game_data = &session->game_data;
   auto* editor_set = &session->editors;
   editor_set->SetGameData(game_data);
+  gfx::PaletteManager::Get().Initialize(game_data);
 
   ContentRegistry::Context::SetGameData(game_data);
   session->game_data_loaded = true;
@@ -3270,6 +3301,7 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   update_progress("Loading graphics sheets...");
 #endif
   // Load all Zelda3-specific data (metadata, palettes, gfx groups, graphics)
+  gfx::PaletteManager::Get().ReleaseSession(&current_session->game_data);
   RETURN_IF_ERROR(
       zelda3::LoadGameData(*current_rom, current_session->game_data));
   current_session->game_data_loaded = true;
@@ -3282,6 +3314,7 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
   // on first construction via EditorSet.
   auto* game_data = &current_session->game_data;
   current_editor_set->SetGameData(game_data);
+  gfx::PaletteManager::Get().Initialize(game_data);
 
   struct LoadStep {
     EditorType type;
@@ -4707,6 +4740,7 @@ absl::Status EditorManager::RestoreRomBackup(const std::string& backup_path) {
 
   if (session_coordinator_) {
     if (auto* session = session_coordinator_->GetActiveRomSession()) {
+      gfx::PaletteManager::Get().ReleaseSession(&session->game_data);
       ResetAssetState(session);
     }
   }
@@ -5054,7 +5088,8 @@ bool EditorManager::SessionHasPendingUnsavedWork(size_t session_index) const {
       static_cast<RomSession*>(session_coordinator_->GetSession(session_index));
   return session != nullptr &&
          ((session->rom.is_loaded() && session->rom.dirty()) ||
-          PendingDungeonRoomCountForSession(session_index) > 0);
+          PendingDungeonRoomCountForSession(session_index) > 0 ||
+          gfx::PaletteManager::Get().HasUnsavedChanges(&session->game_data));
 }
 
 bool EditorManager::HasAnySessionPendingUnsavedWork() const {
@@ -5079,6 +5114,20 @@ int EditorManager::PendingDungeonRoomCountForSession(
     return dungeon_editor->PendingRoomCount();
   }
   return 0;
+}
+
+size_t EditorManager::PendingPaletteColorCountForSession(
+    size_t session_index) const {
+  if (!session_coordinator_ ||
+      !session_coordinator_->IsValidSessionIndex(session_index)) {
+    return 0;
+  }
+
+  auto* session =
+      static_cast<RomSession*>(session_coordinator_->GetSession(session_index));
+  return session != nullptr ? gfx::PaletteManager::Get().GetModifiedColorCount(
+                                  &session->game_data)
+                            : 0;
 }
 
 int EditorManager::ModifiedSessionCount() const {
@@ -5107,20 +5156,23 @@ std::string EditorManager::DescribePendingUnsavedWork(
   const bool rom_dirty =
       session != nullptr && session->rom.is_loaded() && session->rom.dirty();
   const int pending_rooms = PendingDungeonRoomCountForSession(session_index);
+  const size_t pending_palette_colors =
+      PendingPaletteColorCountForSession(session_index);
 
-  if (rom_dirty && pending_rooms > 0) {
-    return absl::StrFormat(
-        "%d unapplied dungeon room%s and unsaved ROM-buffer changes",
-        pending_rooms, pending_rooms == 1 ? "" : "s");
-  }
+  std::vector<std::string> work;
   if (pending_rooms > 0) {
-    return absl::StrFormat("%d unapplied dungeon room%s", pending_rooms,
-                           pending_rooms == 1 ? "" : "s");
+    work.push_back(absl::StrFormat("%d unapplied dungeon room%s", pending_rooms,
+                                   pending_rooms == 1 ? "" : "s"));
+  }
+  if (pending_palette_colors > 0) {
+    work.push_back(absl::StrFormat("%zu unapplied palette color%s",
+                                   pending_palette_colors,
+                                   pending_palette_colors == 1 ? "" : "s"));
   }
   if (rom_dirty) {
-    return "unsaved ROM-buffer changes";
+    work.emplace_back("unsaved ROM-buffer changes");
   }
-  return "unsaved work";
+  return work.empty() ? "unsaved work" : absl::StrJoin(work, " and ");
 }
 
 std::string EditorManager::DescribeAllPendingUnsavedWork() const {
@@ -5140,7 +5192,8 @@ std::string EditorManager::DescribeAllPendingUnsavedWork() const {
   }
 
   return absl::StrFormat(
-      "%d sessions have unapplied dungeon edits or unsaved ROM-buffer changes.",
+      "%d sessions have unapplied dungeon or palette edits, or unsaved "
+      "ROM-buffer changes.",
       modified_sessions);
 }
 

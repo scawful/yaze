@@ -17,6 +17,7 @@
 #include "app/editor/sprite/sprite_editor.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/session/user_settings.h"
+#include "app/gfx/util/palette_manager.h"
 
 namespace yaze::editor {
 
@@ -281,6 +282,10 @@ RomSession::RomSession(Rom&& r, UserSettings* user_settings, size_t session_id,
       editors(&rom, &game_data, user_settings, session_id, editor_registry) {
   filepath = rom.filename();
   feature_flags = core::FeatureFlags::Flags{};
+}
+
+RomSession::~RomSession() {
+  gfx::PaletteManager::Get().ReleaseSession(&game_data);
 }
 
 std::string RomSession::GetDisplayName() const {
