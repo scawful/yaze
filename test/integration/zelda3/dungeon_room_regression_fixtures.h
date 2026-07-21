@@ -102,8 +102,10 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
                      "case for intentional half-color compositing.",
             .required_object_id = 0x108,
             .expected_layer_merge_id = 4,
-            .composite_checksum = 15050647377517055913ull,
-            .object_bg1_checksum = 6850420073741519993ull,
+            // FF1 now honors the inactive room-0x065 bombed-floor state, so
+            // the default room render correctly omits the big light beam.
+            .composite_checksum = 7101433555545613415ull,
+            .object_bg1_checksum = 3344402020867724551ull,
             .object_bg2_checksum = 10195791645045441415ull,
             .layout_bg1_checksum = 8945647139078008391ull,
             .composite_non_backdrop_pixels = 208440,

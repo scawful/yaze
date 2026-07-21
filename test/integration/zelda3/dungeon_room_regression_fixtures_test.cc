@@ -2,12 +2,22 @@
 
 #include <cstdint>
 #include <cstdlib>
+#if defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
+#include <filesystem>
+#endif
 #include <iostream>
 #include <string>
 #include <vector>
 
+#if defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
+#include "app/platform/sdl_compat.h"
+#include "app/testing/visual_diff_engine.h"
+#endif
 #include "integration/zelda3/dungeon_room_regression_fixtures.h"
 #include "test_utils.h"
+#if defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
+#include "util/rom_hash.h"
+#endif
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/game_data.h"
@@ -57,6 +67,47 @@ constexpr uint8_t kRoom001ObjectOverlapBg2Pixel = 34;
 constexpr uint8_t kRoom001ObjectOverlapBg1Priority = 1;
 constexpr uint8_t kRoom001ObjectOverlapBg2Priority = 0;
 constexpr uint8_t kRoom001ObjectOverlapCompositePixel = 33;
+
+#if defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
+constexpr size_t kCanonicalUsRomSize = 0x100000;
+constexpr char kCanonicalUsRomSha1[] =
+    "6d4f10a8b10e10dbe624cb23cf03b88bb8252973";
+constexpr int kRoom012MesenRoiX = 32;
+constexpr int kRoom012MesenRoiY = 80;
+constexpr int kRoom012YazeRoiX = 160;
+constexpr int kRoom012YazeRoiY = 353;
+constexpr int kRoom012RoiWidth = 48;
+constexpr int kRoom012RoiHeight = 64;
+
+::yaze::test::Screenshot CaptureRgbaRegion(const gfx::Bitmap& bitmap, int x,
+                                           int y, int width, int height) {
+  ::yaze::test::Screenshot screenshot;
+  screenshot.width = width;
+  screenshot.height = height;
+  screenshot.source = "yaze dungeon room composite";
+  screenshot.data.resize(static_cast<size_t>(width) * height * 4, 0xFF);
+
+  SDL_Palette* palette = platform::GetSurfacePalette(bitmap.surface());
+  for (int roi_y = 0; roi_y < height; ++roi_y) {
+    for (int roi_x = 0; roi_x < width; ++roi_x) {
+      const uint8_t palette_index =
+          bitmap.data()[(y + roi_y) * bitmap.width() + x + roi_x];
+      const size_t output_index =
+          static_cast<size_t>((roi_y * width + roi_x) * 4);
+      if (palette && static_cast<int>(palette_index) < palette->ncolors) {
+        screenshot.data[output_index] = palette->colors[palette_index].r;
+        screenshot.data[output_index + 1] = palette->colors[palette_index].g;
+        screenshot.data[output_index + 2] = palette->colors[palette_index].b;
+      } else {
+        screenshot.data[output_index] = 0;
+        screenshot.data[output_index + 1] = 0;
+        screenshot.data[output_index + 2] = 0;
+      }
+    }
+  }
+  return screenshot;
+}
+#endif
 
 RoomLayerFingerprints CaptureRoomLayerFingerprints(Rom* rom,
                                                    GameData* game_data,
@@ -285,6 +336,73 @@ TEST_F(DungeonRoomRegressionFixturesTest,
       << "Room 0x001 overlap pixel (" << kRoom001ObjectOverlapX << ","
       << kRoom001ObjectOverlapY << ") should preserve the golden BG1-over-BG2 "
       << "priority winner";
+}
+
+TEST_F(DungeonRoomRegressionFixturesTest,
+       Room012WallRoiMatchesIndependentMesenBaseline) {
+#if !defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
+  GTEST_SKIP() << "libpng-backed VisualDiffEngine is unavailable.";
+#else
+  if (rom_.size() < kCanonicalUsRomSize) {
+    GTEST_SKIP() << "Mesen baseline requires the canonical US ROM data.";
+  }
+  const std::string base_sha1 =
+      util::ComputeSha1Hex(rom_.data(), kCanonicalUsRomSize);
+  if (base_sha1 != kCanonicalUsRomSha1) {
+    GTEST_SKIP() << "Mesen baseline was captured from US ROM SHA-1 "
+                 << kCanonicalUsRomSha1 << "; loaded ROM begins with "
+                 << base_sha1 << ".";
+  }
+
+  Room room = LoadRoomFromRom(&rom_, 0x012);
+  room.SetGameData(&game_data_);
+  room.LoadSprites();
+  room.LoadRoomGraphics();
+  room.RenderRoomGraphics();
+
+  RoomLayerManager layer_manager;
+  const auto& composite = room.GetCompositeBitmap(layer_manager);
+  ASSERT_TRUE(composite.is_active());
+  ASSERT_NE(composite.surface(), nullptr);
+  ASSERT_NE(composite.data(), nullptr);
+  ASSERT_GE(composite.width(), kRoom012YazeRoiX + kRoom012RoiWidth);
+  ASSERT_GE(composite.height(), kRoom012YazeRoiY + kRoom012RoiHeight);
+
+  const auto actual =
+      CaptureRgbaRegion(composite, kRoom012YazeRoiX, kRoom012YazeRoiY,
+                        kRoom012RoiWidth, kRoom012RoiHeight);
+  ASSERT_TRUE(actual.IsValid());
+
+  const std::filesystem::path baseline_path =
+      std::filesystem::path(YAZE_TEST_FIXTURE_DIR) / "visual" / "dungeon" /
+      "vanilla_room_012_mesen_left_wall_48x64.png";
+  auto expected_or =
+      ::yaze::test::VisualDiffEngine::LoadPng(baseline_path.string());
+  ASSERT_TRUE(expected_or.ok())
+      << "Unable to load Mesen baseline " << baseline_path << ": "
+      << expected_or.status();
+  const auto& expected = *expected_or;
+  ASSERT_EQ(expected.width, kRoom012RoiWidth);
+  ASSERT_EQ(expected.height, kRoom012RoiHeight);
+
+  ::yaze::test::VisualDiffConfig config;
+  config.tolerance = 1.0f;
+  config.color_threshold = 0;
+  config.generate_diff_image = false;
+  config.algorithm = ::yaze::test::VisualDiffConfig::Algorithm::kPixelExact;
+  ::yaze::test::VisualDiffEngine diff_engine(config);
+  const auto result = diff_engine.CompareScreenshots(actual, expected);
+
+  EXPECT_TRUE(result.identical)
+      << "Yaze room 0x012 ROI (" << kRoom012YazeRoiX << "," << kRoom012YazeRoiY
+      << ") differs from the Mesen screen ROI (" << kRoom012MesenRoiX << ","
+      << kRoom012MesenRoiY << "): " << result.Format();
+  EXPECT_TRUE(result.passed) << result.Format();
+  EXPECT_EQ(result.differing_pixels, 0);
+  EXPECT_EQ(result.total_pixels, kRoom012RoiWidth * kRoom012RoiHeight);
+  EXPECT_TRUE(actual.data == expected.data)
+      << "Mesen and yaze ROI RGBA bytes must match exactly.";
+#endif
 }
 
 TEST_F(DungeonRoomRegressionFixturesTest, PerLayerFingerprintsMatchGolden) {
