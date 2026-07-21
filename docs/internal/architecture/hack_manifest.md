@@ -17,16 +17,49 @@ ROM addresses are classified based on who "owns" the data (SNES address space):
 ### 2. Protected Regions
 Contiguous blocks of memory (usually in vanilla banks) that contain ASM hooks. Yaze uses these to warn users or block writes that would be overwritten by the next build.
 
-### 3. Address Spaces (PC vs SNES)
+### 3. Editor-Managed Regions
+Manifest v3 may declare exact editor-owned ranges, including subranges inside
+a bank that would otherwise be classified as ASM-owned. These are
+generator-authored exemptions, not a replacement for project `write_policy`.
+Classification precedence is:
+
+1. an overlapping protected/hook region is blocked;
+2. an exact `editor_managed_regions` range is permitted;
+3. whole-bank ownership applies everywhere else.
+
+All ranges use half-open `[start, end)` semantics. Analysis splits writes at
+override, protected-region, and bank boundaries, so a range is allowed only for
+the exact exempt portion. FastROM mirrors are normalized before validation;
+overlapping exemptions after normalization are rejected, while exact adjacency
+is valid.
+
+### 4. Address Spaces (PC vs SNES)
 - The manifest uses **SNES LoROM addresses** (as emitted by `org $XXXXXX` in ASM).
 - Most editors compute write targets as **PC file offsets** (ROM byte offsets).
 - Use `HackManifest::AnalyzePcWriteRanges(...)` when validating editor writes.
 
-### 4. Resource Labels
+### 5. Resource Labels
 The manifest can define human-readable names for custom hack features:
 - **Room Tags**: Custom AI or trigger routines.
 - **SRAM Variables**: Custom memory locations for game state.
 - **Messages**: Layout metadata for expanded message IDs (ranges and data pointers).
+
+### 6. Dungeon Stream Allocation
+
+Variable-length dungeon objects, sprites, and pot items use per-room pointer
+tables. A manifest may describe their layout with `dungeon_stream_regions`.
+Two range lists are intentionally distinct:
+
+- `data_regions` contains every address that an existing live pointer may
+  reference.
+- `allocation_regions` is the smaller, explicit subset where yaze may place a
+  new stream.
+
+The allocator derives free intervals only by subtracting strictly parsed live
+streams from declared allocation regions. It never treats a run of `00` or
+`FF` bytes as proof of free space. A present but malformed layout makes the
+manifest load fail closed; an absent layout leaves legacy in-place saves and
+their capacity checks unchanged.
 
 ## Integration Points
 
@@ -46,7 +79,7 @@ Both `DungeonEditorV2` and `OverworldEditor` utilize the manifest before perform
 
 ```json
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "hack_name": "Oracle of Secrets",
   "protected_regions": {
     "regions": [
@@ -58,13 +91,63 @@ Both `DungeonEditorV2` and `OverworldEditor` utilize the manifest before perform
       {"bank":"0x1E", "ownership":"asm_owned"}
     ]
   },
+  "editor_managed_regions": {
+    "regions": [
+      {"start":"0x228280", "end":"0x2292B0"},
+      {"start":"0x07F61D", "end":"0x07F86D"}
+    ]
+  },
   "room_tags": {
     "tags": [
       {"tag_id":"0x39", "name":"CustomTag"}
     ]
+  },
+  "dungeon_stream_regions": {
+    "sprites": {
+      "pointer_table": "0x09D2B2",
+      "pointer_count": 296,
+      "pointer_encoding": "bank16",
+      "pointer_bank": "0x09",
+      "strategy": "copy_on_write",
+      "data_regions": [
+        {"start":"0x09D502", "end":"0x09EC9F"}
+      ],
+      "allocation_regions": [
+        {"start":"0x09D502", "end":"0x09EC9F"}
+      ]
+    }
   }
 }
 ```
+
+Ranges are half-open SNES LoROM addresses. `long24` pointer tables omit
+`pointer_bank`; `bank16` tables require it. Supported strategies are
+`copy_on_write` and `repack_all`. Allocation ranges must be contained in data
+ranges. Pointer tables and data ranges must remain disjoint from each other,
+from the live object/sprite pointer-source operands, and, for objects, from the
+complete 296-entry door-pointer table. Exact half-open adjacency is valid.
+`bank16` pointer tables must also fit completely within the runtime CPU bank
+that contains their first byte. Pointer/data ranges for different stream kinds
+may not overlap. Addresses in SNES WRAM banks `$7E`/`$7F` are rejected rather
+than treated as ROM locations; this also applies to normalized `pointer_bank`
+mirrors `$FE`/`$FF`. Until sprite stream discovery becomes layout-aware,
+sprite allocation ranges must end at or before the legacy exclusive boundary
+`$09EC9F`.
+
+`editor_managed_regions` is optional, but when present it requires
+`manifest_version` 3 or newer and a non-empty `regions` array. Each `start` and
+`end` must be a strict hexadecimal string naming a mapped LoROM address.
+Generators should derive these bounds from the live development-ROM layout and
+emit only data that yaze actually owns. For Oracle of Secrets, room headers and
+per-room message IDs qualify; expanded message bodies in bank `$2F` do not.
+Malformed, empty, reversed, or overlapping exemptions make manifest loading
+fail closed.
+
+The historically named `z3ed dungeon-stream-plan` command is currently a
+read-only inventory diagnostic: it reports aliases, overlaps, occupied ranges,
+and manifest-owned free-space capacity. It does not accept replacement payloads
+or emit their immutable move/write plan. Replacement-aware move output remains
+pending rather than being inferred from inventory alone.
 
 ## Developer Workflow
 

@@ -14,6 +14,7 @@
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/water_fill_zone.h"
 
 namespace yaze::zelda3 {
 namespace {
@@ -22,6 +23,16 @@ bool HasErrorCode(const OracleRomSafetyPreflightResult& result,
                   const std::string& code) {
   for (const auto& err : result.errors) {
     if (err.code == code) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool HasRoomError(const OracleRomSafetyPreflightResult& result,
+                  const std::string& code, int room_id) {
+  for (const auto& err : result.errors) {
+    if (err.code == code && err.room_id == room_id) {
       return true;
     }
   }
@@ -65,13 +76,14 @@ TEST(OracleRomSafetyPreflightTest,
   const uint32_t snes_ptr = PcToSnes(kWaterFillTableStart);
   const int ptr_offset = kCustomCollisionRoomPointers;  // room 0 pointer
   ASSERT_TRUE(
-      rom.WriteByte(ptr_offset + 0, static_cast<uint8_t>(snes_ptr & 0xFF)).ok());
-  ASSERT_TRUE(
-      rom.WriteByte(ptr_offset + 1, static_cast<uint8_t>((snes_ptr >> 8) & 0xFF))
+      rom.WriteByte(ptr_offset + 0, static_cast<uint8_t>(snes_ptr & 0xFF))
           .ok());
-  ASSERT_TRUE(
-      rom.WriteByte(ptr_offset + 2, static_cast<uint8_t>((snes_ptr >> 16) & 0xFF))
-          .ok());
+  ASSERT_TRUE(rom.WriteByte(ptr_offset + 1,
+                            static_cast<uint8_t>((snes_ptr >> 8) & 0xFF))
+                  .ok());
+  ASSERT_TRUE(rom.WriteByte(ptr_offset + 2,
+                            static_cast<uint8_t>((snes_ptr >> 16) & 0xFF))
+                  .ok());
 
   OracleRomSafetyPreflightOptions options;
   options.require_water_fill_reserved_region = true;
@@ -93,8 +105,7 @@ TEST(OracleRomSafetyPreflightTest,
 // "ORACLE_REQUIRED_ROOM_MISSING_COLLISION".
 // ---------------------------------------------------------------------------
 
-TEST(OracleRomSafetyPreflightTest,
-     SucceedsWhenRequiredRoomHasCollisionData) {
+TEST(OracleRomSafetyPreflightTest, SucceedsWhenRequiredRoomHasCollisionData) {
   // Import stop-tile data into room 0x32 (D3 prison entrance) then verify
   // the required-room check passes.
   Rom rom;
@@ -110,8 +121,10 @@ TEST(OracleRomSafetyPreflightTest,
     const std::string json =
         R"({"version":1,"rooms":[{"room_id":"0x32","tiles":[[100,184]]}]})";
     const auto tmp = (std::filesystem::temp_directory_path() /
-                      "yaze_prison_preflight_ok.json").string();
-    std::ofstream out_file(tmp, std::ios::out | std::ios::binary | std::ios::trunc);
+                      "yaze_prison_preflight_ok.json")
+                         .string();
+    std::ofstream out_file(tmp,
+                           std::ios::out | std::ios::binary | std::ios::trunc);
     out_file << json;
     out_file.close();
 
@@ -128,12 +141,12 @@ TEST(OracleRomSafetyPreflightTest,
   options.room_ids_requiring_custom_collision = {0x32};
 
   const auto result = RunOracleRomSafetyPreflight(&rom, options);
-  EXPECT_TRUE(result.ok())
-      << (result.errors.empty() ? "" : result.errors[0].message);
+  EXPECT_TRUE(result.ok()) << (result.errors.empty()
+                                   ? ""
+                                   : result.errors[0].message);
 }
 
-TEST(OracleRomSafetyPreflightTest,
-     FailsWhenRequiredRoomHasNoCollisionData) {
+TEST(OracleRomSafetyPreflightTest, FailsWhenRequiredRoomHasNoCollisionData) {
   // Room 0x32 with no authored data → preflight must report
   // ORACLE_REQUIRED_ROOM_MISSING_COLLISION.
   Rom rom;
@@ -150,8 +163,7 @@ TEST(OracleRomSafetyPreflightTest,
   EXPECT_TRUE(HasErrorCode(result, "ORACLE_REQUIRED_ROOM_MISSING_COLLISION"));
 }
 
-TEST(OracleRomSafetyPreflightTest,
-     EmptyRequiredRoomListSkipsCheck) {
+TEST(OracleRomSafetyPreflightTest, EmptyRequiredRoomListSkipsCheck) {
   // No required rooms → preflight must not add any MISSING_COLLISION errors.
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
@@ -167,6 +179,87 @@ TEST(OracleRomSafetyPreflightTest,
   for (const auto& err : result.errors) {
     EXPECT_NE(err.code, "ORACLE_REQUIRED_ROOM_MISSING_COLLISION");
   }
+}
+
+// ---------------------------------------------------------------------------
+// WaterFill runtime-table membership tests
+// ---------------------------------------------------------------------------
+
+TEST(OracleRomSafetyPreflightTest,
+     StructurallyValidOneRoomWaterFillTableFailsRequiredMembership) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ASSERT_TRUE(WriteWaterFillTable(&rom, {{.room_id = 0x25,
+                                          .sram_bit_mask = 0x02,
+                                          .fill_offsets = {0x0100}}})
+                  .ok());
+
+  OracleRomSafetyPreflightOptions options;
+  options.validate_custom_collision_maps = false;
+  options.room_ids_requiring_water_fill_zones = {0x25, 0x27};
+
+  const auto result = RunOracleRomSafetyPreflight(&rom, options);
+  EXPECT_FALSE(result.ok());
+  EXPECT_FALSE(
+      HasRoomError(result, "ORACLE_REQUIRED_WATER_FILL_ROOM_MISSING", 0x25));
+  EXPECT_TRUE(
+      HasRoomError(result, "ORACLE_REQUIRED_WATER_FILL_ROOM_MISSING", 0x27));
+  EXPECT_FALSE(HasErrorCode(result, "ORACLE_WATER_FILL_TABLE_INVALID"));
+}
+
+TEST(OracleRomSafetyPreflightTest,
+     TrackedD4TwoRoomWaterFillTablePassesRequiredMembership) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ASSERT_TRUE(
+      WriteWaterFillTable(
+          &rom,
+          {{.room_id = 0x25, .sram_bit_mask = 0x02, .fill_offsets = {0x0B45}},
+           {.room_id = 0x27, .sram_bit_mask = 0x01, .fill_offsets = {0x03EA}}})
+          .ok());
+
+  OracleRomSafetyPreflightOptions options;
+  options.validate_custom_collision_maps = false;
+  options.room_ids_requiring_water_fill_zones = {0x25, 0x27};
+
+  const auto result = RunOracleRomSafetyPreflight(&rom, options);
+  EXPECT_TRUE(result.ok()) << (result.errors.empty()
+                                   ? ""
+                                   : result.errors.front().message);
+}
+
+TEST(OracleRomSafetyPreflightTest, RequiredWaterFillRoomMustFitRuntimeByte) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  OracleRomSafetyPreflightOptions options;
+  options.validate_custom_collision_maps = false;
+  options.room_ids_requiring_water_fill_zones = {0x100};
+
+  const auto result = RunOracleRomSafetyPreflight(&rom, options);
+  EXPECT_FALSE(result.ok());
+  EXPECT_EQ(result.ToStatus().code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_TRUE(HasRoomError(
+      result, "ORACLE_REQUIRED_WATER_FILL_ROOM_OUT_OF_RANGE", 0x100));
+  EXPECT_FALSE(
+      HasRoomError(result, "ORACLE_REQUIRED_WATER_FILL_ROOM_MISSING", 0x100));
+}
+
+TEST(OracleRomSafetyPreflightTest,
+     WaterFillMembershipRemainsOptInForValidStructuralCallers) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ASSERT_TRUE(WriteWaterFillTable(&rom, {{.room_id = 0x25,
+                                          .sram_bit_mask = 0x02,
+                                          .fill_offsets = {0x0100}}})
+                  .ok());
+
+  OracleRomSafetyPreflightOptions options;
+  options.validate_custom_collision_maps = false;
+
+  const auto result = RunOracleRomSafetyPreflight(&rom, options);
+  EXPECT_TRUE(result.ok());
+  EXPECT_FALSE(HasErrorCode(result, "ORACLE_REQUIRED_WATER_FILL_ROOM_MISSING"));
 }
 
 // ---------------------------------------------------------------------------

@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
 #include "app/gui/core/touch_input.h"
@@ -82,8 +83,8 @@ class BaseEntityHandler {
   /**
    * @brief Handle mouse drag
    *
-   * @param current_pos Current mouse position (screen coords)
-   * @param delta Mouse movement since last frame
+   * @param current_pos Current unscaled room-pixel position
+   * @param delta Mouse movement since last frame (screen pixels)
    */
   virtual void HandleDrag(ImVec2 current_pos, ImVec2 delta) = 0;
 
@@ -216,14 +217,13 @@ class BaseEntityHandler {
     return ctx_->canvas->zero_point();
   }
 
-  /**
-   * @brief Get canvas global scale
-   */
-  float GetCanvasScale() const {
-    if (!ctx_ || !ctx_->canvas)
-      return 1.0f;
-    float scale = ctx_->canvas->global_scale();
-    return scale > 0.0f ? scale : 1.0f;
+  DungeonCanvasTransform GetCanvasTransform() const {
+    if (!ctx_ || !ctx_->canvas) {
+      return DungeonCanvasTransform(ImVec2(0, 0), ImVec2(0, 0), 1.0f);
+    }
+    return DungeonCanvasTransform(ctx_->canvas->zero_point(),
+                                  ctx_->canvas->scrolling(),
+                                  ctx_->canvas->global_scale());
   }
 
   std::optional<ImVec2> GetPointerScreenPosition() const {
@@ -231,28 +231,30 @@ class BaseEntityHandler {
       return std::nullopt;
     }
 
+    const DungeonCanvasTransform transform = GetCanvasTransform();
+    const auto is_within_room = [&transform](ImVec2 screen_pos) {
+      const auto [room_x, room_y] =
+          transform.ScreenToRoomPixelCoordinates(screen_pos);
+      return dungeon_coords::IsWithinBounds(room_x, room_y);
+    };
+
     if (ctx_->canvas->IsMouseHovering()) {
-      return ImGui::GetIO().MousePos;
+      const ImVec2 mouse_pos = ImGui::GetIO().MousePos;
+      if (is_within_room(mouse_pos)) {
+        return mouse_pos;
+      }
     }
 
     if (!gui::TouchInput::IsTouchActive()) {
       return std::nullopt;
     }
 
-    const ImVec2 canvas_pos = ctx_->canvas->zero_point();
-    const ImVec2 canvas_size = ctx_->canvas->canvas_size();
-    const float scale = GetCanvasScale();
-    const ImVec2 canvas_max(canvas_pos.x + canvas_size.x * scale,
-                            canvas_pos.y + canvas_size.y * scale);
     for (int i = 0; i < gui::TouchInput::kMaxTouchPoints; ++i) {
       const auto touch = gui::TouchInput::GetTouchPoint(i);
       if (!touch.active) {
         continue;
       }
-      if (touch.position.x >= canvas_pos.x &&
-          touch.position.y >= canvas_pos.y &&
-          touch.position.x <= canvas_max.x &&
-          touch.position.y <= canvas_max.y) {
+      if (is_within_room(touch.position)) {
         return touch.position;
       }
     }

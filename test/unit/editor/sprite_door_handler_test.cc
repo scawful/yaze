@@ -1,3 +1,4 @@
+#include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/interaction/door_interaction_handler.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
 #include "app/editor/dungeon/interaction/item_interaction_handler.h"
@@ -17,6 +18,11 @@ namespace {
 // ============================================================================
 // Sprite Interaction Handler Tests
 // ============================================================================
+
+class TestableSpriteInteractionHandler : public SpriteInteractionHandler {
+ public:
+  using BaseEntityHandler::GetCanvasTransform;
+};
 
 class SpriteInteractionHandlerTest : public ::testing::Test {
  protected:
@@ -57,7 +63,7 @@ class SpriteInteractionHandlerTest : public ::testing::Test {
   std::unique_ptr<gui::Canvas> canvas_;
   DungeonRoomStore rooms_;
   InteractionContext ctx_;
-  SpriteInteractionHandler handler_;
+  TestableSpriteInteractionHandler handler_;
   int mutation_count_ = 0;
   int invalidate_count_ = 0;
 };
@@ -71,6 +77,59 @@ TEST_F(SpriteInteractionHandlerTest, PlacementSucceedsUnderLimit) {
 
   EXPECT_FALSE(handler_.was_placement_blocked());
   EXPECT_EQ(rooms_[0].GetSprites().size(), 1);
+}
+
+TEST_F(SpriteInteractionHandlerTest,
+       PlacementOutsideRoomDoesNotMutateOrAppend) {
+  handler_.SetSpriteId(0x42);
+  handler_.BeginPlacement();
+
+  EXPECT_TRUE(handler_.HandleClick(-1, 80));
+  EXPECT_TRUE(handler_.HandleClick(dungeon_coords::kRoomPixelWidth, 80));
+
+  EXPECT_TRUE(rooms_[0].GetSprites().empty());
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+}
+
+TEST_F(SpriteInteractionHandlerTest,
+       PlacementAndHitTestingStayStableAcrossZoomAndPan) {
+  constexpr std::array<float, 3> kScales = {0.5f, 1.0f, 2.0f};
+  constexpr std::array<ImVec2, 2> kScrolling = {ImVec2(48.0f, 24.0f),
+                                                ImVec2(-56.0f, -32.0f)};
+  constexpr ImVec2 kPlacementRoomPixel(80.0f, 96.0f);
+  constexpr ImVec2 kHitRoomPixel(88.0f, 104.0f);
+
+  for (const ImVec2 scrolling : kScrolling) {
+    for (const float scale : kScales) {
+      rooms_[0].GetSprites().clear();
+      canvas_->set_scrolling(scrolling);
+      canvas_->set_global_scale(scale);
+      const DungeonCanvasTransform transform = handler_.GetCanvasTransform();
+
+      handler_.SetSpriteId(0x42);
+      handler_.BeginPlacement();
+      const auto [placement_x, placement_y] =
+          transform.ScreenToRoomPixelCoordinates(
+              transform.RoomPixelsToScreen(kPlacementRoomPixel));
+      ASSERT_TRUE(handler_.HandleClick(placement_x, placement_y));
+      handler_.CancelPlacement();
+
+      ASSERT_EQ(rooms_[0].GetSprites().size(), 1u)
+          << "scale=" << scale << ", scroll=" << scrolling.x << ","
+          << scrolling.y;
+      EXPECT_EQ(rooms_[0].GetSprites()[0].x(), 5);
+      EXPECT_EQ(rooms_[0].GetSprites()[0].y(), 6);
+
+      const auto [hit_x, hit_y] = transform.ScreenToRoomPixelCoordinates(
+          transform.RoomPixelsToScreen(kHitRoomPixel));
+      const auto hit = handler_.GetEntityAtPosition(hit_x, hit_y);
+      ASSERT_TRUE(hit.has_value())
+          << "scale=" << scale << ", scroll=" << scrolling.x << ","
+          << scrolling.y;
+      EXPECT_EQ(*hit, 0u);
+    }
+  }
 }
 
 TEST_F(SpriteInteractionHandlerTest, PlacementBlocksAtSpriteLimit) {
@@ -245,6 +304,18 @@ TEST_F(DoorInteractionHandlerTest, PlacementModeLifecycle) {
   EXPECT_FALSE(handler_.IsPlacementActive());
 }
 
+TEST_F(DoorInteractionHandlerTest, PlacementOutsideRoomDoesNotMutateOrAppend) {
+  handler_.SetDoorType(zelda3::DoorType::NormalDoor);
+  handler_.BeginPlacement();
+
+  EXPECT_TRUE(handler_.HandleClick(-1, 16));
+  EXPECT_TRUE(handler_.HandleClick(dungeon_coords::kRoomPixelWidth, 16));
+
+  EXPECT_TRUE(rooms_[0].GetDoors().empty());
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+}
+
 TEST_F(DoorInteractionHandlerTest, GhostCapacityStateIsNormalBelowLastSlot) {
   AddDoors(14);
 
@@ -346,9 +417,8 @@ TEST_F(DoorInteractionHandlerTest,
   ASSERT_EQ(door_w, 32);
   ASSERT_EQ(door_h, 32);
 
-  const float scale = canvas_->global_scale();
-  const int hit_x = static_cast<int>((door_x + (door_w / 2)) * scale);
-  const int hit_y = static_cast<int>((door_y + door_h - 4) * scale);
+  const int hit_x = door_x + (door_w / 2);
+  const int hit_y = door_y + door_h - 4;
   const auto hit = handler_.GetEntityAtPosition(hit_x, hit_y);
   ASSERT_TRUE(hit.has_value());
   EXPECT_EQ(*hit, 0u);
@@ -456,6 +526,43 @@ class ItemInteractionHandlerTest : public ::testing::Test {
   int mutation_count_ = 0;
   int invalidate_count_ = 0;
 };
+
+TEST_F(ItemInteractionHandlerTest, PlacementOutsideRoomDoesNotMutateOrAppend) {
+  handler_.SetItemId(0x42);
+  handler_.BeginPlacement();
+
+  EXPECT_TRUE(handler_.HandleClick(80, -1));
+  EXPECT_TRUE(handler_.HandleClick(80, dungeon_coords::kRoomPixelHeight));
+
+  EXPECT_TRUE(rooms_[0].GetPotItems().empty());
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+}
+
+TEST_F(ItemInteractionHandlerTest, DragReleaseClampsToRoomAndMarksMutation) {
+  rooms_[0].GetPotItems().push_back(zelda3::PotItem{0, 0x42});
+  ASSERT_TRUE(handler_.HandleClick(0, 0));
+
+  handler_.HandleDrag(ImVec2(5000.0f, 5000.0f), ImVec2(0, 0));
+  handler_.HandleRelease();
+
+  ASSERT_EQ(rooms_[0].GetPotItems().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelX(), 508);
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelY(), 496);
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_EQ(invalidate_count_, 1);
+}
+
+TEST_F(ItemInteractionHandlerTest, ClickReleaseWithoutMovementDoesNotMutate) {
+  rooms_[0].GetPotItems().push_back(zelda3::PotItem{0x0408, 0x42});
+  ASSERT_TRUE(handler_.HandleClick(32, 64));
+
+  handler_.HandleRelease();
+
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].position, 0x0408);
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+}
 
 TEST_F(ItemInteractionHandlerTest, DeleteAllClearsItemsAndFiresCallbacks) {
   AddItems(4);

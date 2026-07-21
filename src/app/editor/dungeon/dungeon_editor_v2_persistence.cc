@@ -7,11 +7,13 @@
 #include <cstdio>
 #include <iterator>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 #include "absl/types/span.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
@@ -53,6 +55,7 @@
 #include "app/gfx/util/palette_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_config.h"
+#include "core/dungeon_stream_layout_adapter.h"
 #include "core/features.h"
 #include "core/project.h"
 #include "dungeon_editor_v2.h"
@@ -64,6 +67,7 @@
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/dungeon_validator.h"
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/room.h"
@@ -146,6 +150,170 @@ absl::Status SaveWaterFillZones(Rom* rom, DungeonRoomStore& rooms) {
   return absl::OkStatus();
 }
 
+std::vector<std::pair<uint32_t, uint32_t>> CollectDirtyPotItemWriteRanges(
+    const project::YazeProject* project, const Rom* rom,
+    const DungeonRoomStore& rooms) {
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  if (rom == nullptr || !rom->is_loaded()) {
+    return ranges;
+  }
+
+  bool any_dirty = false;
+  rooms.ForEachMaterialized([&](int, const zelda3::Room& room) {
+    if (room.pot_items_dirty()) {
+      any_dirty = true;
+    }
+  });
+  if (!any_dirty) {
+    return ranges;
+  }
+
+  if (project != nullptr && project->hack_manifest.loaded()) {
+    const auto* layout = project->hack_manifest.GetDungeonStreamLayout(
+        core::DungeonStreamType::kPotItems);
+    if (layout != nullptr &&
+        layout->strategy == core::DungeonWriteStrategy::kRepackAll) {
+      for (const auto& range : layout->allocation_regions) {
+        ranges.emplace_back(yaze::SnesToPc(range.start),
+                            yaze::SnesToPc(range.end));
+      }
+      const uint32_t pointer_width =
+          layout->pointer_encoding == core::DungeonPointerEncoding::kLong24
+              ? 3u
+              : 2u;
+      const uint32_t pointer_table_pc = yaze::SnesToPc(layout->pointer_table);
+      ranges.emplace_back(
+          pointer_table_pc,
+          pointer_table_pc + layout->pointer_count * pointer_width);
+      return ranges;
+    }
+  }
+
+  const auto& rom_data = rom->vector();
+  rooms.ForEachMaterialized([&](int room_id, const zelda3::Room& room) {
+    if (!room.pot_items_dirty()) {
+      return;
+    }
+    const int pointer_slot = zelda3::kRoomItemsPointers + room_id * 2;
+    if (pointer_slot < 0 ||
+        pointer_slot + 1 >= static_cast<int>(rom_data.size())) {
+      return;
+    }
+    const uint16_t pointer =
+        (static_cast<uint16_t>(rom_data[pointer_slot + 1]) << 8) |
+        rom_data[pointer_slot];
+    if (pointer < 0x8000) {
+      return;
+    }
+    const uint32_t stream_pc = yaze::SnesToPc(0x010000u | pointer);
+    const uint32_t encoded_size =
+        static_cast<uint32_t>(room.GetPotItems().size() * 3 + 2);
+    ranges.emplace_back(stream_pc, stream_pc + encoded_size);
+  });
+  return ranges;
+}
+
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+CollectDirtyChestWriteRanges(const Rom* rom, const DungeonRoomStore& rooms) {
+  bool any_dirty = false;
+  rooms.ForEachMaterialized([&](int, const zelda3::Room& room) {
+    if (room.chests_dirty()) {
+      any_dirty = true;
+    }
+  });
+  if (!any_dirty) {
+    return std::vector<std::pair<uint32_t, uint32_t>>{};
+  }
+  return zelda3::GetChestTableWriteRanges(rom);
+}
+
+absl::Status SaveAllPotItemsForProject(const project::YazeProject* project,
+                                       Rom* rom, DungeonRoomStore& rooms) {
+  std::optional<zelda3::DungeonStreamLayout> repack_layout;
+  bool any_dirty = false;
+  rooms.ForEachMaterialized([&](int, const zelda3::Room& room) {
+    if (room.pot_items_dirty()) {
+      any_dirty = true;
+    }
+  });
+  if (any_dirty && project != nullptr && project->hack_manifest.loaded()) {
+    const auto* manifest_layout = project->hack_manifest.GetDungeonStreamLayout(
+        core::DungeonStreamType::kPotItems);
+    if (manifest_layout != nullptr &&
+        manifest_layout->strategy == core::DungeonWriteStrategy::kRepackAll) {
+      ASSIGN_OR_RETURN(
+          zelda3::DungeonStreamLayout allocator_layout,
+          core::ToDungeonStreamAllocatorLayout(
+              core::DungeonStreamType::kPotItems, *manifest_layout));
+      repack_layout = std::move(allocator_layout);
+    }
+  }
+
+  return zelda3::SaveAllPotItems(
+      rom, static_cast<int>(rooms.size()),
+      [&rooms](int room_id) { return rooms.GetIfMaterialized(room_id); },
+      repack_layout.has_value() ? &*repack_layout : nullptr);
+}
+
+absl::Status ValidatePotItemManifestConflicts(
+    const project::YazeProject* project, Rom* rom,
+    const DungeonRoomStore& rooms, absl::string_view save_scope,
+    ToastManager* toast_manager) {
+  if (project == nullptr || !project->hack_manifest.loaded()) {
+    return absl::OkStatus();
+  }
+  const auto ranges = CollectDirtyPotItemWriteRanges(project, rom, rooms);
+  if (ranges.empty()) {
+    return absl::OkStatus();
+  }
+  return ValidateHackManifestSaveConflicts(
+      project->hack_manifest, project->rom_metadata.write_policy, ranges,
+      save_scope, "DungeonEditorV2", toast_manager);
+}
+
+absl::Status ValidateRegularDungeonEntranceSavePreflight(
+    const project::YazeProject* project, Rom* rom,
+    const std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots>&
+        entrances,
+    absl::string_view save_scope, ToastManager* toast_manager) {
+  if (rom == nullptr || !rom->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  // Field and ROM-bound validation must happen even without a manifest. This
+  // runs before any editor save domain mutates the shared ROM buffer.
+  RETURN_IF_ERROR(zelda3::RejectUnsupportedDungeonSpawnPointSaves(entrances));
+  RETURN_IF_ERROR(
+      zelda3::ValidateRegularDungeonEntrancesForSave(*rom, entrances));
+
+  if (project == nullptr || !project->hack_manifest.loaded()) {
+    return absl::OkStatus();
+  }
+  const auto ranges =
+      zelda3::CollectDirtyRegularDungeonEntranceWriteRanges(entrances);
+  if (ranges.empty()) {
+    return absl::OkStatus();
+  }
+  return ValidateHackManifestSaveConflicts(
+      project->hack_manifest, project->rom_metadata.write_policy, ranges,
+      save_scope, "DungeonEditorV2", toast_manager);
+}
+
+absl::Status ValidateChestManifestConflicts(const project::YazeProject* project,
+                                            Rom* rom,
+                                            const DungeonRoomStore& rooms,
+                                            absl::string_view save_scope,
+                                            ToastManager* toast_manager) {
+  ASSIGN_OR_RETURN(const auto ranges, CollectDirtyChestWriteRanges(rom, rooms));
+  if (ranges.empty() || project == nullptr ||
+      !project->hack_manifest.loaded()) {
+    return absl::OkStatus();
+  }
+  return ValidateHackManifestSaveConflicts(
+      project->hack_manifest, project->rom_metadata.write_policy, ranges,
+      save_scope, "DungeonEditorV2", toast_manager);
+}
+
 }  // namespace
 
 absl::Status DungeonEditorV2::BeginSaveTransaction() {
@@ -158,6 +326,10 @@ absl::Status DungeonEditorV2::BeginSaveTransaction() {
   auto& palette_manager = gfx::PaletteManager::Get();
   if (core::FeatureFlags::get().dungeon.kSavePalettes &&
       palette_manager.HasUnsavedChanges()) {
+    if (!palette_manager.IsManaging(game_data_)) {
+      return absl::FailedPreconditionError(
+          "Cannot save dungeon palettes from a different ROM session");
+    }
     RETURN_IF_ERROR(palette_manager.BeginSaveTransaction());
     snapshot.has_palette_transaction = true;
   }
@@ -248,15 +420,38 @@ absl::Status DungeonEditorV2::Save() {
 
   const auto& flags = core::FeatureFlags::get().dungeon;
 
-  if (flags.kSavePalettes && gfx::PaletteManager::Get().HasUnsavedChanges()) {
-    auto status = gfx::PaletteManager::Get().SaveAllToRom();
+  if (flags.kSaveEntrances) {
+    RETURN_IF_ERROR(ValidateRegularDungeonEntranceSavePreflight(
+        dependencies_.project, rom_, entrances_, "regular dungeon entrances",
+        dependencies_.toast_manager));
+  }
+
+  if (flags.kSaveChests) {
+    RETURN_IF_ERROR(ValidateChestManifestConflicts(
+        dependencies_.project, rom_, rooms_, "chest table",
+        dependencies_.toast_manager));
+  }
+  if (flags.kSavePotItems) {
+    RETURN_IF_ERROR(ValidatePotItemManifestConflicts(
+        dependencies_.project, rom_, rooms_, "pot items",
+        dependencies_.toast_manager));
+  }
+
+  auto& palette_manager = gfx::PaletteManager::Get();
+  if (flags.kSavePalettes && palette_manager.HasUnsavedChanges()) {
+    if (!palette_manager.IsManaging(game_data_)) {
+      return absl::FailedPreconditionError(
+          "Cannot save dungeon palettes from a different ROM session");
+    }
+    const size_t modified_color_count = palette_manager.GetModifiedColorCount();
+    auto status = palette_manager.SaveAllToRom();
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save palette changes: %s",
                 status.message().data());
       return status;
     }
     LOG_INFO("DungeonEditorV2", "Saved %zu modified colors to ROM",
-             gfx::PaletteManager::Get().GetModifiedColorCount());
+             modified_color_count);
   }
 
   if (flags.kSaveObjects || flags.kSaveSprites || flags.kSaveRoomHeaders) {
@@ -339,9 +534,8 @@ absl::Status DungeonEditorV2::Save() {
   }
 
   if (flags.kSavePotItems) {
-    auto status = zelda3::SaveAllPotItems(
-        rom_, static_cast<int>(rooms_.size()),
-        [this](int room_id) { return rooms_.GetIfMaterialized(room_id); });
+    auto status =
+        SaveAllPotItemsForProject(dependencies_.project, rom_, rooms_);
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save pot items: %s",
                 status.message().data());
@@ -371,6 +565,47 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
 
   const auto& flags = core::FeatureFlags::get().dungeon;
   const auto& rom_data = rom_->vector();
+
+  auto& palette_manager = gfx::PaletteManager::Get();
+  if (flags.kSavePalettes && palette_manager.IsManaging(game_data_)) {
+    auto palette_ranges = palette_manager.GetModifiedColorWriteRanges();
+    ranges.insert(ranges.end(), palette_ranges.begin(), palette_ranges.end());
+  }
+
+  if (flags.kSaveEntrances) {
+    auto entrance_ranges =
+        zelda3::CollectDirtyRegularDungeonEntranceWriteRanges(entrances_);
+    ranges.insert(ranges.end(), entrance_ranges.begin(), entrance_ranges.end());
+  }
+
+  auto append_declared_cow_ranges = [&](core::DungeonStreamType stream_type,
+                                        bool stream_dirty, int room_id) {
+    if (!stream_dirty || dependencies_.project == nullptr ||
+        !dependencies_.project->hack_manifest.loaded()) {
+      return;
+    }
+    const auto* layout =
+        dependencies_.project->hack_manifest.GetDungeonStreamLayout(
+            stream_type);
+    if (layout == nullptr ||
+        layout->strategy != core::DungeonWriteStrategy::kCopyOnWrite ||
+        room_id < 0 ||
+        static_cast<uint32_t>(room_id) >= layout->pointer_count) {
+      return;
+    }
+
+    for (const auto& range : layout->allocation_regions) {
+      ranges.emplace_back(yaze::SnesToPc(range.start),
+                          yaze::SnesToPc(range.end));
+    }
+    const uint32_t pointer_width =
+        layout->pointer_encoding == core::DungeonPointerEncoding::kLong24 ? 3u
+                                                                          : 2u;
+    const uint32_t pointer_slot =
+        yaze::SnesToPc(layout->pointer_table) +
+        static_cast<uint32_t>(room_id) * pointer_width;
+    ranges.emplace_back(pointer_slot, pointer_slot + pointer_width);
+  };
 
   // Oracle of Secrets: the water fill table lives in a reserved tail region.
   // Include it in write-range reporting whenever we have dirty water fill data,
@@ -416,6 +651,19 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
     }
   }
 
+  // Chests use one global fixed-capacity table. A dirty room may change the
+  // runtime byte length and any slot inside the live pointer target, so report
+  // both complete write ranges before serializers clear dirty state.
+  if (flags.kSaveChests) {
+    auto chest_ranges = CollectDirtyChestWriteRanges(rom_, rooms_);
+    if (chest_ranges.ok()) {
+      ranges.insert(ranges.end(), chest_ranges->begin(), chest_ranges->end());
+    } else {
+      LOG_WARN("DungeonEditorV2", "Could not predict chest write ranges: %s",
+               chest_ranges.status().message().data());
+    }
+  }
+
   rooms_.ForEachLoaded([&](int room_id, const zelda3::Room& room) {
     room_id = room.id();
 
@@ -437,10 +685,18 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
           ranges.emplace_back(header_location, header_location + 14);
         }
       }
+      const int message_address = zelda3::kMessagesIdDungeon + (room_id * 2);
+      if (message_address >= 0 &&
+          message_address + 1 < static_cast<int>(rom_data.size())) {
+        ranges.emplace_back(message_address, message_address + 2);
+      }
     }
 
     // Object range
     if (flags.kSaveObjects && room.object_stream_dirty()) {
+      const uint32_t door_slot =
+          zelda3::kDoorPointers + static_cast<uint32_t>(room_id) * 3u;
+      ranges.emplace_back(door_slot, door_slot + 3u);
       if (zelda3::kRoomObjectPointer + 2 < static_cast<int>(rom_data.size())) {
         int obj_ptr_table = (rom_data[zelda3::kRoomObjectPointer + 2] << 16) |
                             (rom_data[zelda3::kRoomObjectPointer + 1] << 8) |
@@ -460,7 +716,45 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
         }
       }
     }
+
+    // Sprite stream (sort byte + encoded sprite records/terminator).
+    if (flags.kSaveSprites && room.sprites_dirty() &&
+        zelda3::kRoomsSpritePointer + 1 < static_cast<int>(rom_data.size())) {
+      const uint32_t table_snes =
+          0x090000u |
+          (static_cast<uint32_t>(rom_data[zelda3::kRoomsSpritePointer + 1])
+           << 8) |
+          rom_data[zelda3::kRoomsSpritePointer];
+      const int table_pc = yaze::SnesToPc(table_snes);
+      const int pointer_slot = table_pc + room_id * 2;
+      if (pointer_slot >= 0 &&
+          pointer_slot + 1 < static_cast<int>(rom_data.size())) {
+        const uint16_t pointer =
+            (static_cast<uint16_t>(rom_data[pointer_slot + 1]) << 8) |
+            rom_data[pointer_slot];
+        if (pointer >= 0x8000) {
+          const uint32_t stream_pc = yaze::SnesToPc(0x090000u | pointer);
+          ranges.emplace_back(stream_pc,
+                              stream_pc + room.EncodeSprites().size() + 1);
+        }
+      }
+    }
+
+    append_declared_cow_ranges(core::DungeonStreamType::kObjects,
+                               flags.kSaveObjects && room.object_stream_dirty(),
+                               room_id);
+    append_declared_cow_ranges(core::DungeonStreamType::kSprites,
+                               flags.kSaveSprites && room.sprites_dirty(),
+                               room_id);
   });
+
+  // Pot items are saved after room-local streams but still participate in the
+  // same whole-ROM transaction and manifest preflight.
+  if (flags.kSavePotItems) {
+    auto pot_ranges =
+        CollectDirtyPotItemWriteRanges(dependencies_.project, rom_, rooms_);
+    ranges.insert(ranges.end(), pot_ranges.begin(), pot_ranges.end());
+  }
 
   return ranges;
 }
@@ -472,8 +766,32 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
     }
 
     const auto& flags = core::FeatureFlags::get().dungeon;
-    if (flags.kSavePalettes && gfx::PaletteManager::Get().HasUnsavedChanges()) {
-      auto status = gfx::PaletteManager::Get().SaveAllToRom();
+    if (flags.kSaveEntrances) {
+      RETURN_IF_ERROR(ValidateRegularDungeonEntranceSavePreflight(
+          dependencies_.project, rom_, entrances_,
+          absl::StrFormat("regular dungeon entrances (Apply Room 0x%03X)",
+                          room_id),
+          dependencies_.toast_manager));
+    }
+    if (flags.kSaveChests) {
+      RETURN_IF_ERROR(ValidateChestManifestConflicts(
+          dependencies_.project, rom_, rooms_,
+          absl::StrFormat("chest table for room 0x%03X", room_id),
+          dependencies_.toast_manager));
+    }
+    if (flags.kSavePotItems) {
+      RETURN_IF_ERROR(ValidatePotItemManifestConflicts(
+          dependencies_.project, rom_, rooms_,
+          absl::StrFormat("pot items for room 0x%03X", room_id),
+          dependencies_.toast_manager));
+    }
+    auto& palette_manager = gfx::PaletteManager::Get();
+    if (flags.kSavePalettes && palette_manager.HasUnsavedChanges()) {
+      if (!palette_manager.IsManaging(game_data_)) {
+        return absl::FailedPreconditionError(
+            "Cannot save dungeon palettes from a different ROM session");
+      }
+      auto status = palette_manager.SaveAllToRom();
       if (!status.ok()) {
         LOG_ERROR("DungeonEditorV2", "Failed to save palette changes: %s",
                   status.message().data());
@@ -512,9 +830,8 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
           [this](int id) { return rooms_.GetIfMaterialized(id); }));
     }
     if (flags.kSavePotItems) {
-      RETURN_IF_ERROR(zelda3::SaveAllPotItems(
-          rom_, static_cast<int>(rooms_.size()),
-          [this](int id) { return rooms_.GetIfMaterialized(id); }));
+      RETURN_IF_ERROR(
+          SaveAllPotItemsForProject(dependencies_.project, rom_, rooms_));
     }
     if (flags.kSaveEntrances) {
       RETURN_IF_ERROR(zelda3::SaveAllDungeonEntrances(rom_, entrances_));
@@ -564,6 +881,41 @@ absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
 
   const auto& flags = core::FeatureFlags::get().dungeon;
 
+  // A present copy-on-write layout is an explicit capability grant from the
+  // project manifest. Without it, Room retains the Wave 1 fail-closed behavior
+  // for shared or over-capacity streams.
+  std::optional<zelda3::DungeonStreamLayout> object_cow_layout;
+  std::optional<zelda3::DungeonStreamLayout> sprite_cow_layout;
+  if (dependencies_.project && dependencies_.project->hack_manifest.loaded()) {
+    const auto& manifest = dependencies_.project->hack_manifest;
+    auto load_cow_layout =
+        [&](core::DungeonStreamType stream_type, bool stream_dirty,
+            std::optional<zelda3::DungeonStreamLayout>* out) -> absl::Status {
+      if (!stream_dirty) {
+        return absl::OkStatus();
+      }
+      const auto* manifest_layout =
+          manifest.GetDungeonStreamLayout(stream_type);
+      if (manifest_layout == nullptr ||
+          manifest_layout->strategy !=
+              core::DungeonWriteStrategy::kCopyOnWrite) {
+        return absl::OkStatus();
+      }
+      ASSIGN_OR_RETURN(
+          zelda3::DungeonStreamLayout allocator_layout,
+          core::ToDungeonStreamAllocatorLayout(stream_type, *manifest_layout));
+      *out = std::move(allocator_layout);
+      return absl::OkStatus();
+    };
+
+    RETURN_IF_ERROR(load_cow_layout(
+        core::DungeonStreamType::kObjects,
+        flags.kSaveObjects && room.object_stream_dirty(), &object_cow_layout));
+    RETURN_IF_ERROR(load_cow_layout(core::DungeonStreamType::kSprites,
+                                    flags.kSaveSprites && room.sprites_dirty(),
+                                    &sprite_cow_layout));
+  }
+
   // HACK MANIFEST VALIDATION
   if (dependencies_.project && dependencies_.project->hack_manifest.loaded()) {
     std::vector<std::pair<uint32_t, uint32_t>> ranges;
@@ -571,7 +923,7 @@ absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
     const auto& rom_data = rom_->vector();
 
     // 1. Validate Header Range
-    if (flags.kSaveRoomHeaders) {
+    if (flags.kSaveRoomHeaders && room.header_dirty()) {
       if (zelda3::kRoomHeaderPointer + 2 < static_cast<int>(rom_data.size())) {
         int header_ptr_table =
             (rom_data[zelda3::kRoomHeaderPointer + 2] << 16) |
@@ -588,10 +940,18 @@ absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
           ranges.emplace_back(header_location, header_location + 14);
         }
       }
+      const int message_address = zelda3::kMessagesIdDungeon + (room_id * 2);
+      if (message_address >= 0 &&
+          message_address + 1 < static_cast<int>(rom_data.size())) {
+        ranges.emplace_back(message_address, message_address + 2);
+      }
     }
 
     // 2. Validate Object Range
-    if (flags.kSaveObjects) {
+    if (flags.kSaveObjects && room.object_stream_dirty()) {
+      const uint32_t door_slot =
+          zelda3::kDoorPointers + static_cast<uint32_t>(room_id) * 3u;
+      ranges.emplace_back(door_slot, door_slot + 3u);
       if (zelda3::kRoomObjectPointer + 2 < static_cast<int>(rom_data.size())) {
         int obj_ptr_table = (rom_data[zelda3::kRoomObjectPointer + 2] << 16) |
                             (rom_data[zelda3::kRoomObjectPointer + 1] << 8) |
@@ -616,6 +976,53 @@ absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
       }
     }
 
+    // 3. Validate the current sprite stream for the in-place fast path.
+    if (flags.kSaveSprites && room.sprites_dirty() &&
+        zelda3::kRoomsSpritePointer + 1 < static_cast<int>(rom_data.size())) {
+      const uint32_t table_snes =
+          0x090000u |
+          (static_cast<uint32_t>(rom_data[zelda3::kRoomsSpritePointer + 1])
+           << 8) |
+          rom_data[zelda3::kRoomsSpritePointer];
+      const int table_pc = yaze::SnesToPc(table_snes);
+      const int pointer_slot = table_pc + room_id * 2;
+      if (pointer_slot >= 0 &&
+          pointer_slot + 1 < static_cast<int>(rom_data.size())) {
+        const uint16_t pointer =
+            (static_cast<uint16_t>(rom_data[pointer_slot + 1]) << 8) |
+            rom_data[pointer_slot];
+        if (pointer >= 0x8000) {
+          const uint32_t stream_pc = yaze::SnesToPc(0x090000u | pointer);
+          ranges.emplace_back(stream_pc,
+                              stream_pc + room.EncodeSprites().size() + 1);
+        }
+      }
+    }
+
+    // A COW fallback may write anywhere in its explicitly declared allocator
+    // arena, followed by the selected room's pointer slot(s). Validate those
+    // possible writes before Room mutates the ROM. This is intentionally
+    // conservative; in-place saves still remain a subset of the allowed set.
+    auto append_cow_ranges = [&](const zelda3::DungeonStreamLayout& layout) {
+      for (const auto& range : layout.allocation_ranges) {
+        ranges.emplace_back(range.begin, range.end);
+      }
+      const uint32_t pointer_width =
+          layout.pointer_encoding == zelda3::DungeonPointerEncoding::kLong24
+              ? 3u
+              : 2u;
+      const uint32_t pointer_slot =
+          layout.pointer_table_pc +
+          static_cast<uint32_t>(room_id) * pointer_width;
+      ranges.emplace_back(pointer_slot, pointer_slot + pointer_width);
+    };
+    if (object_cow_layout.has_value()) {
+      append_cow_ranges(*object_cow_layout);
+    }
+    if (sprite_cow_layout.has_value()) {
+      append_cow_ranges(*sprite_cow_layout);
+    }
+
     // `ranges` are PC offsets (ROM file offsets). The hack manifest is in SNES
     // address space (LoROM), so convert before analysis.
     const auto write_policy = dependencies_.project->rom_metadata.write_policy;
@@ -625,7 +1032,8 @@ absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
   }
 
   if (flags.kSaveObjects && room.object_stream_dirty()) {
-    auto status = room.SaveObjects();
+    auto status = room.SaveObjects(
+        object_cow_layout.has_value() ? &*object_cow_layout : nullptr);
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save room objects: %s",
                 status.message().data());
@@ -634,7 +1042,8 @@ absl::Status DungeonEditorV2::SaveRoomData(int room_id) {
   }
 
   if (flags.kSaveSprites && room.sprites_dirty()) {
-    auto status = room.SaveSprites();
+    auto status = room.SaveSprites(
+        sprite_cow_layout.has_value() ? &*sprite_cow_layout : nullptr);
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save room sprites: %s",
                 status.message().data());

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <filesystem>
@@ -131,6 +132,20 @@ void WriteLongPointer(std::vector<uint8_t>* data, int offset, uint32_t value) {
   (*data)[offset] = static_cast<uint8_t>(value & 0xFF);
   (*data)[offset + 1] = static_cast<uint8_t>((value >> 8) & 0xFF);
   (*data)[offset + 2] = static_cast<uint8_t>((value >> 16) & 0xFF);
+}
+
+void SetupSharedPotItemTable(std::vector<uint8_t>* data) {
+  ASSERT_NE(data, nullptr);
+  constexpr int kSharedStreamPc = 0xE000;
+  const uint16_t pointer = static_cast<uint16_t>(PcToSnes(kSharedStreamPc));
+  for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    const int slot = zelda3::kRoomItemsPointers + room_id * 2;
+    ASSERT_LT(slot + 1, static_cast<int>(data->size()));
+    (*data)[slot] = pointer & 0xFF;
+    (*data)[slot + 1] = (pointer >> 8) & 0xFF;
+  }
+  (*data)[kSharedStreamPc] = 0xFF;
+  (*data)[kSharedStreamPc + 1] = 0xFF;
 }
 
 TEST(EditorManagerWriteConflictTest, SaveRomBlocksAndAllowsBypass) {
@@ -344,6 +359,192 @@ TEST(EditorManagerWriteConflictTest,
   EXPECT_FALSE(room.header_dirty());
   EXPECT_EQ(ReadByteAt(rom_path, kProtectedPc), 0xA5);
   EXPECT_EQ(ReadByteAt(rom_path, kHeaderPc + 1), 0x2A);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     UnreadableDiskUsesPreSerializationDungeonWriteRangeSnapshot) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  constexpr int kHeaderTablePc = 0x10000;
+  constexpr int kHeaderPc = 0x12000;
+  const std::filesystem::path rom_path =
+      MakeTempFilePath("yaze_unreadable_disk_conflict_test.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  std::vector<uint8_t> rom_data(512 * 1024, 0x00);
+  WriteLongPointer(&rom_data, zelda3::kRoomHeaderPointer,
+                   PcToSnes(kHeaderTablePc));
+  const uint32_t header_snes = PcToSnes(kHeaderPc);
+  rom_data[zelda3::kRoomHeaderPointerBank] =
+      static_cast<uint8_t>((header_snes >> 16) & 0xFF);
+  rom_data[kHeaderTablePc] = static_cast<uint8_t>(header_snes & 0xFF);
+  rom_data[kHeaderTablePc + 1] =
+      static_cast<uint8_t>((header_snes >> 8) & 0xFF);
+  {
+    std::ofstream out(rom_path, std::ios::binary | std::ios::trunc);
+    ASSERT_TRUE(out.is_open());
+    out.write(reinterpret_cast<const char*>(rom_data.data()),
+              static_cast<std::streamsize>(rom_data.size()));
+    ASSERT_TRUE(out.good());
+  }
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  core::FeatureFlags::get().dungeon.kSaveRoomHeaders = true;
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "UnreadableDiskConflictTest";
+  project->filepath = (rom_path.parent_path() / "project.yaze").string();
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+  ASSERT_OK(project->hack_manifest.LoadFromString(absl::StrFormat(
+      R"json({
+        "manifest_version": 1,
+        "hack_name": "unreadable_disk_test",
+        "protected_regions": {
+          "regions": [
+            {"start": "0x%06X", "end": "0x%06X", "module": "test"}
+          ]
+        }
+      })json",
+      header_snes, header_snes + 14)));
+
+  auto* editor_set = manager->GetCurrentEditorSet();
+  ASSERT_NE(editor_set, nullptr);
+  auto* dungeon =
+      editor_set->GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  auto& room = dungeon->rooms()[0];
+  room.SetLoaded(true);
+  room.SetPalette(0x2A);
+  ASSERT_TRUE(room.header_dirty());
+  ASSERT_FALSE(dungeon->CollectWriteRanges().empty());
+  const auto before_save = manager->GetCurrentRom()->vector();
+
+  std::error_code remove_error;
+  ASSERT_TRUE(std::filesystem::remove(rom_path, remove_error));
+  ASSERT_FALSE(remove_error) << remove_error.message();
+  ASSERT_FALSE(std::filesystem::exists(rom_path));
+
+  const auto blocked = manager->SaveRom();
+
+  EXPECT_EQ(blocked.code(), absl::StatusCode::kCancelled) << blocked;
+  ASSERT_FALSE(manager->pending_write_conflicts().empty());
+  EXPECT_EQ(manager->pending_write_conflicts()[0].address, header_snes);
+  EXPECT_EQ(manager->GetCurrentRom()->vector(), before_save);
+  EXPECT_TRUE(room.header_dirty());
+  EXPECT_FALSE(std::filesystem::exists(rom_path));
+}
+
+TEST(EditorManagerWriteConflictTest,
+     PotRepackLateConflictRestoresRomAndDirtyState) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const std::filesystem::path rom_path =
+      MakeTempFilePath("yaze_pot_repack_rollback_test.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  std::vector<uint8_t> rom_data(512 * 1024, 0x00);
+  SetupSharedPotItemTable(&rom_data);
+  {
+    std::ofstream out(rom_path, std::ios::binary | std::ios::trunc);
+    ASSERT_TRUE(out.is_open());
+    out.write(reinterpret_cast<const char*>(rom_data.data()),
+              static_cast<std::streamsize>(rom_data.size()));
+    ASSERT_TRUE(out.good());
+  }
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  core::FeatureFlags::get().dungeon.kSavePotItems = true;
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "PotRepackRollbackTest";
+  project->filepath = (rom_path.parent_path() / "project.yaze").string();
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+  project->rom_metadata.write_policy = project::RomWritePolicy::kAllow;
+  ASSERT_OK(project->hack_manifest.LoadFromString(R"json(
+{
+  "manifest_version": 3,
+  "hack_name": "pot_repack_rollback_test",
+  "protected_regions": {
+    "regions": [
+      {"start": "0x01E100", "end": "0x01E140", "module": "test"}
+    ]
+  },
+  "dungeon_stream_regions": {
+    "pot_items": {
+      "pointer_table": "0x01DB69",
+      "pointer_count": 296,
+      "pointer_encoding": "bank16",
+      "pointer_bank": "0x01",
+      "strategy": "repack_all",
+      "data_regions": [
+        {"start": "0x01E000", "end": "0x01E140"}
+      ],
+      "allocation_regions": [
+        {"start": "0x01E100", "end": "0x01E140"}
+      ]
+    }
+  }
+}
+)json"));
+
+  auto* editor_set = manager->GetCurrentEditorSet();
+  ASSERT_NE(editor_set, nullptr);
+  auto* dungeon =
+      editor_set->GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  auto& room = dungeon->rooms()[0];
+  room.GetPotItems().push_back(zelda3::PotItem{0x1234, 0x56});
+  room.MarkPotItemsDirty();
+  ASSERT_TRUE(room.pot_items_dirty());
+
+  const auto predicted_ranges = dungeon->CollectWriteRanges();
+  EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
+                      std::pair<uint32_t, uint32_t>{0x00E100, 0x00E140}),
+            predicted_ranges.end());
+  EXPECT_NE(
+      std::find(predicted_ranges.begin(), predicted_ranges.end(),
+                std::pair<uint32_t, uint32_t>{
+                    zelda3::kRoomItemsPointers,
+                    zelda3::kRoomItemsPointers + zelda3::kNumberOfRooms * 2}),
+      predicted_ranges.end());
+
+  Rom* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  const auto before_save = rom->vector();
+
+  const auto paused = manager->SaveRom();
+  EXPECT_EQ(paused.code(), absl::StatusCode::kCancelled) << paused;
+  ASSERT_TRUE(manager->HasPendingPotItemSaveConfirmation());
+
+  std::error_code remove_error;
+  ASSERT_TRUE(std::filesystem::remove(rom_path, remove_error));
+  ASSERT_FALSE(remove_error) << remove_error.message();
+  ASSERT_FALSE(std::filesystem::exists(rom_path));
+
+  manager->ResolvePotItemSaveConfirmation(
+      EditorManager::PotItemSaveDecision::kSaveWithPotItems);
+
+  ASSERT_FALSE(manager->pending_write_conflicts().empty());
+  EXPECT_EQ(manager->pending_write_conflicts()[0].address, 0x01E100u);
+  EXPECT_EQ(rom->vector(), before_save);
+  EXPECT_TRUE(room.pot_items_dirty());
+  EXPECT_FALSE(std::filesystem::exists(rom_path));
 }
 
 TEST(EditorManagerWriteConflictTest,
