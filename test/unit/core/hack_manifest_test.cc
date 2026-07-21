@@ -7,8 +7,11 @@
 #include <fstream>
 #include <string>
 
+#include "absl/strings/str_format.h"
+#include "core/dungeon_stream_layout_adapter.h"
 #include "gtest/gtest.h"
 #include "rom/snes.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 
 namespace yaze::core {
 
@@ -63,6 +66,25 @@ void WriteTextFile(const std::filesystem::path& path,
       << "Failed to open file for writing: " << path.string();
   file << content;
   file.close();
+}
+
+std::string ManifestWithDungeonStreams(const std::string& streams) {
+  return "{\"manifest_version\":2,\"dungeon_stream_regions\":" + streams + "}";
+}
+
+void ExpectManifestLoadFailure(const std::string& json,
+                               const std::string& message_fragment) {
+  HackManifest manifest;
+  const absl::Status status = manifest.LoadFromString(json);
+  EXPECT_FALSE(status.ok());
+  EXPECT_FALSE(manifest.loaded());
+  EXPECT_FALSE(manifest.HasDungeonStreamLayouts());
+  EXPECT_TRUE(manifest.protected_regions().empty());
+  EXPECT_TRUE(manifest.editor_managed_regions().empty());
+  EXPECT_FALSE(manifest.IsEditorManaged(0x228880));
+  EXPECT_NE(std::string(status.message()).find(message_fragment),
+            std::string::npos)
+      << status;
 }
 
 }  // namespace
@@ -134,7 +156,7 @@ TEST(HackManifestTest, LoadsAndClassifiesAddresses) {
   EXPECT_EQ(manifest.ClassifyAddress(0x808000), AddressOwnership::kHookPatched);
   EXPECT_EQ(manifest.ClassifyAddress(0x81CC14), AddressOwnership::kHookPatched);
 
-  // Bank ownership has priority over protected regions.
+  // Whole-bank ownership applies when no more-specific rule exists.
   EXPECT_EQ(manifest.ClassifyAddress(0x1E8000), AddressOwnership::kAsmOwned);
   EXPECT_FALSE(manifest.IsWriteOverwritten(0x20AF20));  // shared bank
   EXPECT_TRUE(manifest.IsWriteOverwritten(0x1E8000));   // asm owned
@@ -183,6 +205,221 @@ TEST(HackManifestTest, LoadsAndClassifiesAddresses) {
     saw_pc_hook_patched |= (c.ownership == AddressOwnership::kHookPatched);
   }
   EXPECT_TRUE(saw_pc_hook_patched);
+}
+
+TEST(HackManifestTest,
+     EditorManagedRegionsSplitOwnedWritesAndKeepProtectedHooksBlocked) {
+  constexpr const char* kJson = R"json(
+{
+  "manifest_version": 3,
+  "protected_regions": {
+    "regions": [
+      {"start":"0x228880","end":"0x228890","module":"CriticalHook"}
+    ]
+  },
+  "editor_managed_regions": {
+    "regions": [
+      {"start":"0x228800","end":"0x228900"},
+      {"start":"0x07F61D","end":"0x07F86D"}
+    ]
+  },
+  "owned_banks": {
+    "banks": [
+      {"bank":"0x22","bank_start":"0x228000","bank_end":"0x22FFFF","ownership":"asm_owned","ownership_note":"Bank 22 ASM"}
+    ]
+  }
+}
+)json";
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadFromString(kJson).ok());
+  ASSERT_EQ(manifest.editor_managed_regions().size(), 2u);
+
+  // Exact [start, end) boundaries and FastROM mirrors classify identically.
+  EXPECT_EQ(manifest.ClassifyAddress(0x2287FF), AddressOwnership::kAsmOwned);
+  EXPECT_EQ(manifest.ClassifyAddress(0x228800), AddressOwnership::kVanillaSafe);
+  EXPECT_EQ(manifest.ClassifyAddress(0xA28800), AddressOwnership::kVanillaSafe);
+  EXPECT_EQ(manifest.ClassifyAddress(0x2288FF), AddressOwnership::kVanillaSafe);
+  EXPECT_EQ(manifest.ClassifyAddress(0x228900), AddressOwnership::kAsmOwned);
+  EXPECT_TRUE(manifest.IsEditorManaged(0x228800));
+  EXPECT_FALSE(manifest.IsWriteOverwritten(0x228800));
+
+  // An explicit hook remains blocked even inside the editor-managed region.
+  EXPECT_TRUE(manifest.IsEditorManaged(0x228880));
+  EXPECT_TRUE(manifest.IsProtected(0x228880));
+  EXPECT_EQ(manifest.ClassifyAddress(0x228880), AddressOwnership::kHookPatched);
+  EXPECT_TRUE(manifest.IsWriteOverwritten(0x228880));
+
+  const auto conflicts = manifest.AnalyzeWriteRanges({{0x2287F0, 0x228910}});
+  ASSERT_EQ(conflicts.size(), 3u);
+  EXPECT_EQ(conflicts[0].address, 0x2287F0u);
+  EXPECT_EQ(conflicts[0].ownership, AddressOwnership::kAsmOwned);
+  EXPECT_EQ(conflicts[0].module, "Bank 22 ASM");
+  EXPECT_EQ(conflicts[1].address, 0x228880u);
+  EXPECT_EQ(conflicts[1].ownership, AddressOwnership::kHookPatched);
+  EXPECT_EQ(conflicts[1].module, "CriticalHook");
+  EXPECT_EQ(conflicts[2].address, 0x228900u);
+  EXPECT_EQ(conflicts[2].ownership, AddressOwnership::kAsmOwned);
+
+  const uint32_t pc_start = SnesToPc(0x2287F0);
+  const uint32_t pc_end = SnesToPc(0x228910);
+  const auto pc_conflicts = manifest.AnalyzePcWriteRanges({{pc_start, pc_end}});
+  ASSERT_EQ(pc_conflicts.size(), conflicts.size());
+  for (size_t index = 0; index < conflicts.size(); ++index) {
+    EXPECT_EQ(pc_conflicts[index].address, conflicts[index].address);
+    EXPECT_EQ(pc_conflicts[index].ownership, conflicts[index].ownership);
+    EXPECT_EQ(pc_conflicts[index].module, conflicts[index].module);
+  }
+
+  EXPECT_TRUE(manifest.AnalyzeWriteRanges({{0x228800, 0x228880}}).empty());
+  EXPECT_TRUE(
+      manifest.AnalyzePcWriteRanges({{SnesToPc(0x228800), SnesToPc(0x228880)}})
+          .empty());
+}
+
+TEST(HackManifestTest, EditorManagedRegionsAllowAdjacentNormalizedRanges) {
+  constexpr const char* kJson = R"json(
+{
+  "manifest_version": 3,
+  "editor_managed_regions": {
+    "regions": [
+      {"start":"0x228100","end":"0x228180"},
+      {"start":"0xA28180","end":"0xA28200"}
+    ]
+  },
+  "owned_banks": {
+    "banks": [
+      {"bank":"0x22","bank_start":"0x228000","bank_end":"0x22FFFF","ownership":"asm_owned"}
+    ]
+  }
+}
+)json";
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadFromString(kJson).ok());
+  EXPECT_TRUE(manifest.IsEditorManaged(0x22817F));
+  EXPECT_TRUE(manifest.IsEditorManaged(0x228180));
+  EXPECT_FALSE(manifest.IsEditorManaged(0x228200));
+  EXPECT_TRUE(manifest.AnalyzeWriteRanges({{0x228100, 0x228200}}).empty());
+
+  ASSERT_TRUE(
+      manifest.LoadFromString(R"json({"manifest_version":3})json").ok());
+  EXPECT_TRUE(manifest.editor_managed_regions().empty());
+  EXPECT_FALSE(manifest.IsEditorManaged(0x228180));
+}
+
+TEST(HackManifestTest, RejectsMalformedEditorManagedRegions) {
+  const std::pair<const char*, const char*> invalid_manifests[] = {
+      {R"json({"manifest_version":2,"editor_managed_regions":{"regions":[{"start":"0x228100","end":"0x228200"}]}})json",
+       "requires manifest_version 3"},
+      {R"json({"manifest_version":"3","editor_managed_regions":{"regions":[{"start":"0x228100","end":"0x228200"}]}})json",
+       "manifest_version must be"},
+      {R"json({"manifest_version":3,"editor_managed_regions":[]})json",
+       "must be a non-empty object"},
+      {R"json({"manifest_version":3,"editor_managed_regions":{}})json",
+       "must be a non-empty object"},
+      {R"json({"manifest_version":3,"editor_managed_regions":{"regions":[]}})json",
+       "regions must be a non-empty array"},
+      {R"json({"manifest_version":3,"editor_managed_regions":{"regions":[{"start":2261248,"end":"0x228200"}]}})json",
+       "start must be a hexadecimal string"},
+      {R"json({"manifest_version":3,"editor_managed_regions":{"regions":[{"start":"0x220100","end":"0x228200"}]}})json",
+       "must be a mapped LoROM address"},
+      {R"json({"manifest_version":3,"editor_managed_regions":{"regions":[{"start":"0x228200","end":"0x228100"}]}})json",
+       "end > start"},
+      {R"json({"manifest_version":3,"editor_managed_regions":{"regions":[{"start":"0x228100","end":"0x228200"},{"start":"0x228180","end":"0x228280"}]}})json",
+       "regions overlap"},
+      {R"json({"manifest_version":3,"editor_managed_regions":{"regions":[{"start":"0x228100","end":"0x228200"},{"start":"0xA28180","end":"0xA28280"}]}})json",
+       "regions overlap"},
+  };
+
+  for (const auto& [json, message] : invalid_manifests) {
+    SCOPED_TRACE(json);
+    ExpectManifestLoadFailure(json, message);
+  }
+}
+
+TEST(HackManifestTest,
+     RejectsMalformedProtectedRegionsBeforeActivatingEditorExemption) {
+  const std::pair<const char*, const char*> invalid_manifests[] = {
+      {R"json({"manifest_version":3,"protected_regions":[],"editor_managed_regions":{"regions":[{"start":"0x228800","end":"0x228900"}]}})json",
+       "protected_regions must be an object"},
+      {R"json({"manifest_version":3,"protected_regions":{"regions":{}},"editor_managed_regions":{"regions":[{"start":"0x228800","end":"0x228900"}]}})json",
+       "protected_regions.regions must be an array"},
+      {R"json({"manifest_version":3,"protected_regions":{"regions":["not-an-object"]},"editor_managed_regions":{"regions":[{"start":"0x228800","end":"0x228900"}]}})json",
+       "protected_regions.regions[0] must be an object"},
+      {R"json({"manifest_version":3,"protected_regions":{"regions":[{"end":"0x228890"}]},"editor_managed_regions":{"regions":[{"start":"0x228800","end":"0x228900"}]}})json",
+       "protected_regions.regions[0].start is required"},
+      {R"json({"manifest_version":3,"protected_regions":{"regions":[{"start":"0x228880"}]},"editor_managed_regions":{"regions":[{"start":"0x228800","end":"0x228900"}]}})json",
+       "protected_regions.regions[0].end is required"},
+      {R"json({"manifest_version":3,"protected_regions":{"regions":[{"start":2263168,"end":"0x228890"}]},"editor_managed_regions":{"regions":[{"start":"0x228800","end":"0x228900"}]}})json",
+       "start must be a hexadecimal string"},
+      {R"json({"manifest_version":3,"protected_regions":{"regions":[{"start":"0x228890","end":"0x228880"}]},"editor_managed_regions":{"regions":[{"start":"0x228800","end":"0x228900"}]}})json",
+       "end > start"},
+      {R"json({"manifest_version":3,"protected_regions":{"regions":[{"start":"0x220100","end":"0x228880"}]},"editor_managed_regions":{"regions":[{"start":"0x228800","end":"0x228900"}]}})json",
+       "must be a mapped LoROM address"},
+      {R"json({"manifest_version":2,"protected_regions":{"regions":[{"start":"0x1E7F21"}]}})json",
+       "protected_regions.regions[0].end is required"},
+  };
+
+  for (const auto& [json, message] : invalid_manifests) {
+    SCOPED_TRACE(json);
+    ExpectManifestLoadFailure(json, message);
+  }
+}
+
+TEST(HackManifestTest, LegacyProtectedRegionAllowsOracleLowHalfAddress) {
+  constexpr const char* kJson = R"json(
+{
+  "manifest_version": 2,
+  "protected_regions": {
+    "total_hooks": 1,
+    "regions": [
+      {"start":"0x1E7F21","end":"0x1E7F25","hook_count":1,"module":"Sprites"}
+    ]
+  }
+}
+)json";
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadFromString(kJson).ok());
+  ASSERT_TRUE(manifest.loaded());
+  ASSERT_EQ(manifest.protected_regions().size(), 1u);
+  EXPECT_TRUE(manifest.IsProtected(0x1E7F21));
+  EXPECT_EQ(manifest.protected_regions()[0].module, "Sprites");
+}
+
+TEST(HackManifestTest, ProtectedRegionsAllowOverlapAndPreserveMetadata) {
+  constexpr const char* kJson = R"json(
+{
+  "manifest_version": 3,
+  "protected_regions": {
+    "total_hooks": 3,
+    "regions": [
+      {"start":"0x228870","end":"0x2288A0","hook_count":2,"module":"OuterHooks"},
+      {"start":"0x228880","end":"0x228890","hook_count":1,"module":"CriticalHook"}
+    ]
+  }
+}
+)json";
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadFromString(kJson).ok());
+  ASSERT_TRUE(manifest.loaded());
+  ASSERT_EQ(manifest.protected_regions().size(), 2u);
+  EXPECT_EQ(manifest.total_hooks(), 3);
+  EXPECT_EQ(manifest.protected_regions()[0].module, "OuterHooks");
+  EXPECT_EQ(manifest.protected_regions()[0].hook_count, 2);
+  EXPECT_EQ(manifest.protected_regions()[1].module, "CriticalHook");
+  EXPECT_EQ(manifest.protected_regions()[1].hook_count, 1);
+
+  const auto conflicts = manifest.AnalyzeWriteRanges({{0x228875, 0x228895}});
+  ASSERT_EQ(conflicts.size(), 3u);
+  EXPECT_EQ(conflicts[0].address, 0x228875u);
+  EXPECT_EQ(conflicts[0].module, "OuterHooks");
+  EXPECT_EQ(conflicts[1].address, 0x228880u);
+  EXPECT_EQ(conflicts[1].module, "CriticalHook");
+  EXPECT_EQ(conflicts[2].address, 0x228890u);
+  EXPECT_EQ(conflicts[2].module, "OuterHooks");
 }
 
 TEST(HackManifestTest, ReloadClearsPreviousState) {
@@ -243,6 +480,453 @@ TEST(HackManifestTest, ParsesMessageLayout) {
   EXPECT_TRUE(manifest.IsExpandedMessage(0x1D1));
   EXPECT_FALSE(manifest.IsExpandedMessage(0x18C));
   EXPECT_FALSE(manifest.IsExpandedMessage(0x1D2));
+}
+
+TEST(HackManifestTest, ParsesDungeonStreamLayouts) {
+  constexpr const char* kJson = R"json(
+{
+  "manifest_version": 2,
+  "dungeon_stream_regions": {
+    "objects": {
+      "pointer_table": "0x828000",
+      "pointer_count": 296,
+      "pointer_encoding": "long24",
+      "strategy": "copy_on_write",
+      "data_regions": [
+        {"start":"0xA98000","end":"0xAA8000"},
+        {"start":"0x2B8000","end":"0x2C8000"}
+      ],
+      "allocation_regions": [
+        {"start":"0xA9C000","end":"0xAA8000"}
+      ]
+    },
+    "sprites": {
+      "pointer_table": "0x038000",
+      "pointer_count": 296,
+      "pointer_encoding": "bank16",
+      "pointer_bank": "0x89",
+      "strategy": "copy_on_write",
+      "data_regions": [
+        {"start":"0x898000","end":"0x8A8000"}
+      ],
+      "allocation_regions": [
+        {"start":"0x89E000","end":"0x8A8000"}
+      ]
+    },
+    "pot_items": {
+      "pointer_table": "0x048000",
+      "pointer_count": 296,
+      "pointer_encoding": "bank16",
+      "pointer_bank": "0x01",
+      "strategy": "repack_all",
+      "data_regions": [
+        {"start":"0x018000","end":"0x028000"}
+      ],
+      "allocation_regions": [
+        {"start":"0x018000","end":"0x028000"}
+      ]
+    }
+  }
+}
+)json";
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadFromString(kJson).ok());
+  ASSERT_TRUE(manifest.loaded());
+  ASSERT_TRUE(manifest.HasDungeonStreamLayouts());
+
+  const auto* objects =
+      manifest.GetDungeonStreamLayout(DungeonStreamType::kObjects);
+  ASSERT_NE(objects, nullptr);
+  EXPECT_EQ(objects->pointer_table, 0x028000);
+  EXPECT_EQ(objects->pointer_count, 296u);
+  EXPECT_EQ(objects->pointer_encoding, DungeonPointerEncoding::kLong24);
+  EXPECT_FALSE(objects->pointer_bank.has_value());
+  EXPECT_EQ(objects->strategy, DungeonWriteStrategy::kCopyOnWrite);
+  ASSERT_EQ(objects->data_regions.size(), 2u);
+  EXPECT_EQ(objects->data_regions[0].start, 0x298000);
+  EXPECT_EQ(objects->allocation_regions[0].start, 0x29C000);
+
+  const auto* sprites =
+      manifest.GetDungeonStreamLayout(DungeonStreamType::kSprites);
+  ASSERT_NE(sprites, nullptr);
+  EXPECT_EQ(sprites->pointer_encoding, DungeonPointerEncoding::kBank16);
+  ASSERT_TRUE(sprites->pointer_bank.has_value());
+  EXPECT_EQ(*sprites->pointer_bank, 0x09);
+
+  const auto* pot_items =
+      manifest.GetDungeonStreamLayout(DungeonStreamType::kPotItems);
+  ASSERT_NE(pot_items, nullptr);
+  EXPECT_EQ(pot_items->strategy, DungeonWriteStrategy::kRepackAll);
+  EXPECT_EQ(pot_items->allocation_regions[0].end, 0x028000);
+}
+
+TEST(HackManifestTest, DungeonStreamSectionIsOptional) {
+  HackManifest manifest;
+  ASSERT_TRUE(
+      manifest.LoadFromString(R"json({"manifest_version":2})json").ok());
+  EXPECT_TRUE(manifest.loaded());
+  EXPECT_FALSE(manifest.HasDungeonStreamLayouts());
+  EXPECT_EQ(manifest.GetDungeonStreamLayout(DungeonStreamType::kObjects),
+            nullptr);
+}
+
+TEST(HackManifestTest, RejectsMalformedDungeonStreamSectionTypes) {
+  ExpectManifestLoadFailure(
+      R"json({"manifest_version":2,"dungeon_stream_regions":[]})json",
+      "non-empty object");
+  ExpectManifestLoadFailure(
+      ManifestWithDungeonStreams(R"json({"objects":[]})json"),
+      "objects must be an object");
+  ExpectManifestLoadFailure(
+      ManifestWithDungeonStreams(R"json({"unknown_stream":{}})json"),
+      "unknown stream");
+}
+
+TEST(HackManifestTest, RejectsInvalidDungeonStreamPointerMetadata) {
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "pointer_count is required");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "sprites": {
+          "pointer_table":"0x038000",
+          "pointer_count":296,
+          "pointer_encoding":"bank16",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x098000","end":"0x0A8000"}],
+          "allocation_regions":[{"start":"0x09E000","end":"0x0A8000"}]
+        }
+      })json"),
+                            "pointer_bank is required");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "pointer_bank":"0x29",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "pointer_bank is not allowed");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":297,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "must be in [1, 296]");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":0,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "must be in [1, 296]");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "sprites": {
+          "pointer_table":"0x038000",
+          "pointer_count":296,
+          "pointer_encoding":"bank16",
+          "pointer_bank":"0xGG",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x098000","end":"0x0A8000"}],
+          "allocation_regions":[{"start":"0x09E000","end":"0x0A8000"}]
+        }
+      })json"),
+                            "invalid hexadecimal value");
+
+  for (const char* bank : {"0x7E", "0x7F", "0xFE", "0xFF"}) {
+    ExpectManifestLoadFailure(ManifestWithDungeonStreams(absl::StrFormat(
+                                  R"json({
+        "sprites": {
+          "pointer_table":"0x038000",
+          "pointer_count":296,
+          "pointer_encoding":"bank16",
+          "pointer_bank":"%s",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x098000","end":"0x0A8000"}],
+          "allocation_regions":[{"start":"0x09E000","end":"0x0A8000"}]
+        }
+      })json",
+                                  bank)),
+                              "WRAM bank");
+  }
+}
+
+TEST(HackManifestTest, RejectsBank16PointerTableCrossingRuntimeCpuBank) {
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "sprites": {
+          "pointer_table":"0x09FF00",
+          "pointer_count":296,
+          "pointer_encoding":"bank16",
+          "pointer_bank":"0x09",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x098000","end":"0x099000"}],
+          "allocation_regions":[{"start":"0x098000","end":"0x099000"}]
+        }
+      })json"),
+                            "runtime CPU bank");
+}
+
+TEST(HackManifestTest, AcceptsBank16PointerTableEndingAtRuntimeBankEnd) {
+  HackManifest manifest;
+  const absl::Status status =
+      manifest.LoadFromString(ManifestWithDungeonStreams(R"json({
+        "sprites": {
+          "pointer_table":"0x09FDB0",
+          "pointer_count":296,
+          "pointer_encoding":"bank16",
+          "pointer_bank":"0x09",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x098000","end":"0x099000"}],
+          "allocation_regions":[{"start":"0x098000","end":"0x099000"}]
+        }
+      })json"));
+
+  ASSERT_TRUE(status.ok()) << status;
+  const auto* layout =
+      manifest.GetDungeonStreamLayout(DungeonStreamType::kSprites);
+  ASSERT_NE(layout, nullptr);
+  EXPECT_EQ((layout->pointer_table & 0xFFFFu) + layout->pointer_count * 2,
+            0x10000u);
+}
+
+TEST(HackManifestTest, AcceptsOracleSpritePointerTableAndAdjacentData) {
+  HackManifest manifest;
+  const absl::Status status =
+      manifest.LoadFromString(ManifestWithDungeonStreams(R"json({
+        "sprites": {
+          "pointer_table":"0x09D2B2",
+          "pointer_count":296,
+          "pointer_encoding":"bank16",
+          "pointer_bank":"0x09",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x09D502","end":"0x09EC9F"}],
+          "allocation_regions":[{"start":"0x09D502","end":"0x09EC9F"}]
+        }
+      })json"));
+
+  ASSERT_TRUE(status.ok()) << status;
+  const auto* layout =
+      manifest.GetDungeonStreamLayout(DungeonStreamType::kSprites);
+  ASSERT_NE(layout, nullptr);
+  EXPECT_EQ(layout->pointer_table + layout->pointer_count * 2,
+            layout->data_regions.front().start);
+}
+
+TEST(DungeonStreamLayoutAdapterTest,
+     RejectsSpriteAllocationBeyondLegacySaveBoundary) {
+  HackManifest manifest;
+  ASSERT_TRUE(manifest
+                  .LoadFromString(ManifestWithDungeonStreams(R"json({
+        "sprites": {
+          "pointer_table":"0x038000",
+          "pointer_count":1,
+          "pointer_encoding":"bank16",
+          "pointer_bank":"0x09",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x098000","end":"0x0A8000"}],
+          "allocation_regions":[{"start":"0x09E000","end":"0x0A8000"}]
+        }
+      })json"))
+                  .ok());
+  const auto* layout =
+      manifest.GetDungeonStreamLayout(DungeonStreamType::kSprites);
+  ASSERT_NE(layout, nullptr);
+
+  const auto converted =
+      ToDungeonStreamAllocatorLayout(DungeonStreamType::kSprites, *layout);
+
+  ASSERT_FALSE(converted.ok());
+  EXPECT_EQ(converted.status().code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_NE(converted.status().message().find("legacy sprite data boundary"),
+            std::string::npos)
+      << converted.status();
+  EXPECT_LT(zelda3::kSpritesDataEndExclusive, SnesToPc(0x0A8000));
+}
+
+TEST(HackManifestTest, RejectsInvalidDungeonStreamRanges) {
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x7E8000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "WRAM bank");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[42],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "data_regions[0] must be an object");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "allocation_regions must be a non-empty array");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x020000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "mapped LoROM address");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x298000"}],
+          "allocation_regions":[{"start":"0x298000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "end > start");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[
+            {"start":"0x298000","end":"0x2A8000"},
+            {"start":"0x29C000","end":"0x2A8000"}
+          ],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "data_regions overlap");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x2B8000","end":"0x2C8000"}]
+        }
+      })json"),
+                            "not fully contained");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "sprites": {
+          "pointer_table":"0x038000",
+          "pointer_count":296,
+          "pointer_encoding":"bank16",
+          "pointer_bank":"0x09",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x0A8000","end":"0x0B8000"}],
+          "allocation_regions":[{"start":"0x0AE000","end":"0x0B8000"}]
+        }
+      })json"),
+                            "must stay within pointer_bank");
+}
+
+TEST(HackManifestTest, RejectsMirroredWramDungeonStreamAddresses) {
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0xFE8000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "WRAM bank");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0xFE8000","end":"0xFE9000"}],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "WRAM bank");
+
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0xFE8000","end":"0xFE9000"}]
+        }
+      })json"),
+                            "WRAM bank");
+}
+
+TEST(HackManifestTest, RejectsCrossStreamDungeonRangeOverlap) {
+  ExpectManifestLoadFailure(ManifestWithDungeonStreams(R"json({
+        "objects": {
+          "pointer_table":"0x028000",
+          "pointer_count":296,
+          "pointer_encoding":"long24",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x298000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x29C000","end":"0x2A8000"}]
+        },
+        "sprites": {
+          "pointer_table":"0x038000",
+          "pointer_count":296,
+          "pointer_encoding":"bank16",
+          "pointer_bank":"0x29",
+          "strategy":"copy_on_write",
+          "data_regions":[{"start":"0x29E000","end":"0x2A8000"}],
+          "allocation_regions":[{"start":"0x29E000","end":"0x2A8000"}]
+        }
+      })json"),
+                            "pointer/data ranges overlap");
 }
 
 TEST(HackManifestTest, NormalizesMirroredAddressesOnLoad) {

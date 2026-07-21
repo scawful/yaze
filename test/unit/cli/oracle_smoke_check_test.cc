@@ -7,6 +7,7 @@
 //
 // Key correctness assertions (beyond JSON shape):
 //   - Small ROM → structural failure reported
+//   - A D4 WaterFill table missing room 0x27 → structural failure reported
 //   - Strict-readiness mode fails when rooms lack collision data
 //   - Default mode passes even when D4/D3 rooms lack collision (informational)
 //   - --report writes valid JSON with all check keys
@@ -28,6 +29,7 @@
 #include "cli/handlers/game/dungeon_collision_commands.h"
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
+#include "zelda3/dungeon/water_fill_zone.h"
 
 namespace yaze::cli {
 namespace {
@@ -56,6 +58,16 @@ absl::Status InjectCollisionTile(Rom* rom, int room_id, int offset) {
   return status;
 }
 
+absl::Status WriteD4WaterFillTable(Rom* rom, bool include_room_27 = true) {
+  std::vector<zelda3::WaterFillZoneEntry> zones = {
+      {.room_id = 0x25, .sram_bit_mask = 0x02, .fill_offsets = {0x0B45}}};
+  if (include_room_27) {
+    zones.push_back(
+        {.room_id = 0x27, .sram_bit_mask = 0x01, .fill_offsets = {0x03EA}});
+  }
+  return zelda3::WriteWaterFillTable(rom, zones);
+}
+
 // Navigate into the "Oracle Smoke Check" wrapper that BeginObject emits at
 // indent_level > 0 (from inside Execute()).
 const json& GetSmoke(const json& doc) {
@@ -70,10 +82,12 @@ const json& GetSmoke(const json& doc) {
 // ---------------------------------------------------------------------------
 
 TEST(OracleSmokeCheckTest, FullRomPassesStructuralCheckByDefault) {
-  // A 0x200000 blank ROM satisfies all structural checks.
+  // A 0x200000 ROM with the tracked D4 WaterFill rooms satisfies all
+  // structural checks.
   // Required-room gaps are informational and don't fail the default mode.
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
+  ASSERT_TRUE(WriteD4WaterFillTable(&rom).ok());
 
   handlers::OracleSmokeCheckCommandHandler handler;
   std::string out;
@@ -86,6 +100,29 @@ TEST(OracleSmokeCheckTest, FullRomPassesStructuralCheckByDefault) {
   EXPECT_TRUE(smoke.value("ok", false));
   EXPECT_EQ(smoke.value("status", ""), "pass");
   EXPECT_FALSE(smoke.value("strict_readiness", true));
+  EXPECT_TRUE(smoke.value("checks", json::object())
+                  .value("d4_zora_temple", json::object())
+                  .value("water_fill_rooms_ok", false));
+}
+
+TEST(OracleSmokeCheckTest, OneRoomWaterFillTableFailsD4StructuralMembership) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
+  ASSERT_TRUE(WriteD4WaterFillTable(&rom, /*include_room_27=*/false).ok());
+
+  handlers::OracleSmokeCheckCommandHandler handler;
+  std::string out;
+  const auto status = handler.Run({"--format=json"}, &rom, &out);
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+
+  const auto doc = json::parse(out, nullptr, false);
+  ASSERT_FALSE(doc.is_discarded());
+  const auto& d4 = GetSmoke(doc)
+                       .value("checks", json::object())
+                       .value("d4_zora_temple", json::object());
+  EXPECT_FALSE(d4.value("structural_ok", true));
+  EXPECT_FALSE(d4.value("water_fill_rooms_ok", true));
 }
 
 TEST(OracleSmokeCheckTest, SmallRomFailsStructuralAndSkipsReadiness) {
@@ -135,6 +172,7 @@ TEST(OracleSmokeCheckTest, StrictReadinessFailsOnBlankRom) {
   // With --strict-readiness, D4/D3 rooms lacking collision data fail overall.
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
+  ASSERT_TRUE(WriteD4WaterFillTable(&rom).ok());
 
   handlers::OracleSmokeCheckCommandHandler handler;
   std::string out;
@@ -161,6 +199,7 @@ TEST(OracleSmokeCheckTest, StrictReadinessPassesWhenAllRoomsHaveCollision) {
   // --strict-readiness passes.
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
+  ASSERT_TRUE(WriteD4WaterFillTable(&rom).ok());
 
   ASSERT_TRUE(InjectCollisionTile(&rom, 0x25, 100).ok());
   ASSERT_TRUE(InjectCollisionTile(&rom, 0x27, 200).ok());
@@ -192,6 +231,7 @@ TEST(OracleSmokeCheckTest, StrictReadinessPassesWhenAllRoomsHaveCollision) {
 TEST(OracleSmokeCheckTest, JsonContainsAllRequiredCheckKeys) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
+  ASSERT_TRUE(WriteD4WaterFillTable(&rom).ok());
 
   handlers::OracleSmokeCheckCommandHandler handler;
   std::string out;
@@ -213,8 +253,9 @@ TEST(OracleSmokeCheckTest, JsonContainsAllRequiredCheckKeys) {
   EXPECT_TRUE(checks.contains("d6_goron_mines"));
   EXPECT_TRUE(checks.contains("d3_kalyxo_castle"));
 
-  // D4 must have both structural and readiness fields
+  // D4 must have structural, WaterFill membership, and readiness fields.
   EXPECT_TRUE(checks.at("d4_zora_temple").contains("structural_ok"));
+  EXPECT_TRUE(checks.at("d4_zora_temple").contains("water_fill_rooms_ok"));
   EXPECT_TRUE(checks.at("d4_zora_temple").contains("required_rooms_ok"));
 
   // D6 and D3 must have ok field
@@ -223,10 +264,12 @@ TEST(OracleSmokeCheckTest, JsonContainsAllRequiredCheckKeys) {
 }
 
 TEST(OracleSmokeCheckTest, DefaultModeD4StructuralOkTrueOnFullRom) {
-  // Correctness: full ROM → structural_ok=true, required_rooms_check="ran",
-  // required_rooms_ok=false (blank ROM = no collision authored).
+  // Correctness: the tracked D4 table makes both structural_ok and
+  // water_fill_rooms_ok true; blank collision data still leaves readiness
+  // false.
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
+  ASSERT_TRUE(WriteD4WaterFillTable(&rom).ok());
 
   handlers::OracleSmokeCheckCommandHandler handler;
   std::string out;
@@ -238,6 +281,7 @@ TEST(OracleSmokeCheckTest, DefaultModeD4StructuralOkTrueOnFullRom) {
                        .value("checks", json::object())
                        .value("d4_zora_temple", json::object());
   EXPECT_TRUE(d4.value("structural_ok", false));
+  EXPECT_TRUE(d4.value("water_fill_rooms_ok", false));
   // Readiness check ran (ROM is expanded).
   EXPECT_EQ(d4.value("required_rooms_check", ""), std::string("ran"));
   // Rooms 0x25/0x27 lack collision on a blank ROM.
@@ -258,6 +302,7 @@ TEST(OracleSmokeCheckTest, DefaultModeD4StructuralOkTrueOnFullRom) {
 TEST(OracleSmokeCheckTest, ReportWriteFailsOnUnwritablePathWithEmptyStdout) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
+  ASSERT_TRUE(WriteD4WaterFillTable(&rom).ok());
 
   handlers::OracleSmokeCheckCommandHandler handler;
   std::string out;
@@ -274,6 +319,7 @@ TEST(OracleSmokeCheckTest, ReportWriteFailsOnUnwritablePathWithEmptyStdout) {
 TEST(OracleSmokeCheckTest, ReportWriteSucceedsAndContainsAllCheckKeys) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
+  ASSERT_TRUE(WriteD4WaterFillTable(&rom).ok());
 
   const auto report_path = (std::filesystem::temp_directory_path() /
                             "yaze_oracle_smoke_check_report.json")
@@ -297,6 +343,9 @@ TEST(OracleSmokeCheckTest, ReportWriteSucceedsAndContainsAllCheckKeys) {
   EXPECT_TRUE(report.at("checks").contains("d4_zora_temple"));
   EXPECT_TRUE(report.at("checks").contains("d6_goron_mines"));
   EXPECT_TRUE(report.at("checks").contains("d3_kalyxo_castle"));
+  EXPECT_TRUE(report.at("checks")
+                  .at("d4_zora_temple")
+                  .value("water_fill_rooms_ok", false));
 
   std::error_code cleanup_ec;
   std::filesystem::remove(report_path, cleanup_ec);
@@ -329,6 +378,7 @@ TEST(OracleSmokeCheckTest, StrictReadinessFailureMessageSaysStrictReadiness) {
   // failure is readiness-only and the message must say "(strict-readiness)".
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
+  ASSERT_TRUE(WriteD4WaterFillTable(&rom).ok());
 
   handlers::OracleSmokeCheckCommandHandler handler;
   std::string out;
@@ -352,6 +402,7 @@ TEST(OracleSmokeCheckTest, MinD6TrackRoomsZeroPreservesDefaultBehavior) {
   // min=0 (default) — blank ROM has no track objects but still passes D6 gate.
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
+  ASSERT_TRUE(WriteD4WaterFillTable(&rom).ok());
 
   handlers::OracleSmokeCheckCommandHandler handler;
   std::string out;
@@ -373,6 +424,7 @@ TEST(OracleSmokeCheckTest, MinD6TrackRoomsFailsWhenThresholdNotMet) {
   // Blank ROM has no track objects — threshold of 1 must cause failure.
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
+  ASSERT_TRUE(WriteD4WaterFillTable(&rom).ok());
 
   handlers::OracleSmokeCheckCommandHandler handler;
   std::string out;
@@ -399,6 +451,7 @@ TEST(OracleSmokeCheckTest,
   // "(strict-readiness)" — the D6 gate is a structural concern.
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
+  ASSERT_TRUE(WriteD4WaterFillTable(&rom).ok());
 
   handlers::OracleSmokeCheckCommandHandler handler;
   std::string out;
@@ -414,6 +467,7 @@ TEST(OracleSmokeCheckTest, MinD6TrackRoomsNegativeIsRejectedInValidateArgs) {
   // ValidateArgs must reject negative values before the formatter opens.
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
+  ASSERT_TRUE(WriteD4WaterFillTable(&rom).ok());
 
   handlers::OracleSmokeCheckCommandHandler handler;
   std::string out;

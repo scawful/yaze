@@ -6,6 +6,7 @@
 #include <string>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/agent_theme.h"
@@ -288,59 +289,58 @@ void DungeonCanvasViewer::DrawLayerInfoWindow(int room_id) {
 void DungeonCanvasViewer::DrawRoomCanvasOverlays(const gui::CanvasRuntime& rt,
                                                  zelda3::Room& room,
                                                  int room_id) {
+  const DungeonCanvasTransform transform(rt.canvas_p0, rt.scrolling, rt.scale);
+  const ImVec2 room_origin = transform.room_origin_screen();
+  const float scale = transform.scale();
+
   if (show_object_bounds_) {
     DrawObjectPositionOutlines(rt, room);
   }
 
   if (show_track_collision_overlay_) {
     DungeonRenderingHelpers::DrawTrackCollisionOverlay(
-        ImGui::GetWindowDrawList(), canvas_.zero_point(),
-        canvas_.global_scale(), GetCollisionOverlayCache(room.id()),
-        track_collision_config_, track_direction_map_enabled_,
-        track_tile_order_, switch_tile_order_, show_track_collision_legend_);
+        ImGui::GetWindowDrawList(), room_origin, scale,
+        GetCollisionOverlayCache(room.id()), track_collision_config_,
+        track_direction_map_enabled_, track_tile_order_, switch_tile_order_,
+        show_track_collision_legend_);
   }
 
   if (show_custom_collision_overlay_) {
     DungeonRenderingHelpers::DrawCustomCollisionOverlay(
-        ImGui::GetWindowDrawList(), canvas_.zero_point(),
-        canvas_.global_scale(), room);
+        ImGui::GetWindowDrawList(), room_origin, scale, room);
   }
 
   if (show_water_fill_overlay_) {
     DungeonRenderingHelpers::DrawWaterFillOverlay(ImGui::GetWindowDrawList(),
-                                                  canvas_.zero_point(),
-                                                  canvas_.global_scale(), room);
+                                                  room_origin, scale, room);
   }
 
   if (show_camera_quadrant_overlay_) {
     DungeonRenderingHelpers::DrawCameraQuadrantOverlay(
-        ImGui::GetWindowDrawList(), canvas_.zero_point(),
-        canvas_.global_scale(), room);
+        ImGui::GetWindowDrawList(), room_origin, scale, room);
   }
 
   if (show_minecart_sprite_overlay_) {
     DungeonRenderingHelpers::DrawMinecartSpriteOverlay(
-        ImGui::GetWindowDrawList(), canvas_.zero_point(),
-        canvas_.global_scale(), room, minecart_sprite_ids_,
-        track_collision_config_);
+        ImGui::GetWindowDrawList(), room_origin, scale, room,
+        minecart_sprite_ids_, track_collision_config_);
   }
 
   if (show_track_gap_overlay_) {
     DungeonRenderingHelpers::DrawTrackGapOverlay(
-        ImGui::GetWindowDrawList(), canvas_.zero_point(),
-        canvas_.global_scale(), room, GetCollisionOverlayCache(room.id()));
+        ImGui::GetWindowDrawList(), room_origin, scale, room,
+        GetCollisionOverlayCache(room.id()));
   }
 
   if (show_track_route_overlay_) {
     DungeonRenderingHelpers::DrawTrackRouteOverlay(
-        ImGui::GetWindowDrawList(), canvas_.zero_point(),
-        canvas_.global_scale(), GetCollisionOverlayCache(room.id()));
+        ImGui::GetWindowDrawList(), room_origin, scale,
+        GetCollisionOverlayCache(room.id()));
   }
 
   if (show_custom_objects_overlay_) {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    const ImVec2 canvas_pos = canvas_.zero_point();
-    const float scale = canvas_.global_scale();
+    const ImVec2 canvas_pos = room_origin;
     const ImVec4 info = gui::GetInfoColor();
     const ImU32 fill_color =
         ImGui::GetColorU32(ImVec4(info.x, info.y, info.z, 0.25f));
@@ -386,8 +386,7 @@ void DungeonCanvasViewer::DrawRoomCanvasOverlays(const gui::CanvasRuntime& rt,
     const auto& tracks = minecart_track_panel_->GetTracks();
     if (show_tracks && !tracks.empty()) {
       ImDrawList* draw_list = ImGui::GetWindowDrawList();
-      const ImVec2 canvas_pos = canvas_.zero_point();
-      const float scale = canvas_.global_scale();
+      const ImVec2 canvas_pos = room_origin;
       const auto& theme = AgentUI::GetTheme();
       const int active_track =
           minecart_track_panel_->IsPickingCoordinates()
@@ -434,9 +433,10 @@ void DungeonCanvasViewer::DrawCoordinateOverlayHud(int room_id) {
 
   // Plain locals (not structured bindings): the DrawCanvasHUD lambda below
   // captures these, which is ill-formed on clang<16 / gcc<8 (C++17).
-  const std::pair<int, int> tile_coords =
-      DungeonRenderingHelpers::ScreenToRoomCoordinates(
-          ImGui::GetMousePos(), canvas_.zero_point(), canvas_.global_scale());
+  const DungeonCanvasTransform transform(
+      canvas_.zero_point(), canvas_.scrolling(), canvas_.global_scale());
+  const std::pair<int, int> tile_coords = transform.ScreenToRoomTiles(
+      ImGui::GetMousePos(), dungeon_coords::kTileSize);
   const int tile_x = tile_coords.first;
   const int tile_y = tile_coords.second;
   if (tile_x < 0 || tile_x >= 64 || tile_y < 0 || tile_y >= 64) {

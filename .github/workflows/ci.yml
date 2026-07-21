@@ -508,7 +508,7 @@ jobs:
           else
             echo "available=false" >> "$GITHUB_OUTPUT"
             echo "::notice::ORACLE_ROM_URL secret not set — ROM-dependent steps will be skipped."
-            echo "::notice::To enable: add ORACLE_ROM_URL secret pointing to oos168.sfc download URL."
+            echo "::notice::To enable: add ORACLE_ROM_URL secret pointing to patched oos168x.sfc download URL."
           fi
 
       - name: Download Oracle ROM
