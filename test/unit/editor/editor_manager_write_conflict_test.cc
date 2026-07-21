@@ -590,6 +590,16 @@ TEST(EditorManagerWriteConflictTest,
   room.MarkPotItemsDirty();
   ASSERT_TRUE(room.pot_items_dirty());
 
+  Rom* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  const auto before_save = rom->vector();
+
+  const auto paused = manager->SaveRom();
+  EXPECT_EQ(paused.code(), absl::StatusCode::kCancelled) << paused;
+  ASSERT_TRUE(manager->HasPendingPotItemSaveConfirmation());
+
+  // The first save snapshots the mutable manager project into the stable
+  // session-owned editor context before pausing for pot-item confirmation.
   const auto predicted_ranges = dungeon->CollectWriteRanges();
   EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
                       std::pair<uint32_t, uint32_t>{0x00E100, 0x00E140}),
@@ -600,14 +610,6 @@ TEST(EditorManagerWriteConflictTest,
                     zelda3::kRoomItemsPointers,
                     zelda3::kRoomItemsPointers + zelda3::kNumberOfRooms * 2}),
       predicted_ranges.end());
-
-  Rom* rom = manager->GetCurrentRom();
-  ASSERT_NE(rom, nullptr);
-  const auto before_save = rom->vector();
-
-  const auto paused = manager->SaveRom();
-  EXPECT_EQ(paused.code(), absl::StatusCode::kCancelled) << paused;
-  ASSERT_TRUE(manager->HasPendingPotItemSaveConfirmation());
 
   std::error_code remove_error;
   ASSERT_TRUE(std::filesystem::remove(rom_path, remove_error));
