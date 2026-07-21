@@ -74,6 +74,16 @@ void Draw4x4ColumnMajor(const DrawContext& ctx, int x_offset, int y_offset,
                   ctx.object.y_ + y_offset, 4, 4, ctx.tiles, start_index);
 }
 
+void DrawFloorLightGrid(const DrawContext& ctx) {
+  if (ctx.tiles.size() < 64)
+    return;
+
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/0, /*start_index=*/0);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/4, /*y_offset=*/0, /*start_index=*/16);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/4, /*start_index=*/32);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/4, /*y_offset=*/4, /*start_index=*/48);
+}
+
 void Draw4x4ColumnMajorTo(gfx::BackgroundBuffer& bg, const RoomObject& object,
                           std::span<const gfx::TileInfo> tiles) {
   DrawColumnMajor(bg, object.x_, object.y_, 4, 4, tiles);
@@ -490,25 +500,27 @@ void DrawHorizontalTurtleRockPipe(const DrawContext& ctx) {
 
 void DrawLightBeamOnFloor(const DrawContext& ctx) {
   // ASM: RoomDraw_LightBeamOnFloor ($01A7B6)
-  // Draw three 4x4 blocks at y offsets 0, +2, +6.
-  if (ctx.tiles.empty())
+  // Draw three 4x4 blocks at y offsets 0, +2, +6. The middle block resets X
+  // to obj2376 and reuses tiles 0..15; the bottom block uses obj2396 at
+  // tiles 16..31.
+  if (ctx.tiles.size() < 32)
     return;
   Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/0, /*start_index=*/0);
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/2, /*start_index=*/16);
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/6, /*start_index=*/32);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/2, /*start_index=*/0);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/6, /*start_index=*/16);
 }
 
 void DrawBigLightBeamOnFloor(const DrawContext& ctx) {
-  // ASM: RoomDraw_BigLightBeamOnFloor / RoomDraw_FloorLight
+  // ASM: RoomDraw_BigLightBeamOnFloor ($01A7D3) falls through to
+  // RoomDraw_FloorLight when its state bit is active.
   // The active path draws four 4x4 blocks in a 2x2 grid (8x8 footprint).
   // State-gating on $7EF0CA is not currently modeled in DungeonState.
-  if (ctx.tiles.empty())
-    return;
+  DrawFloorLightGrid(ctx);
+}
 
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/0, /*start_index=*/0);
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/4, /*y_offset=*/0, /*start_index=*/16);
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/4, /*start_index=*/32);
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/4, /*y_offset=*/4, /*start_index=*/48);
+void DrawFloorLight(const DrawContext& ctx) {
+  // ASM: RoomDraw_FloorLight ($01A7DC) is unconditional for object 0x274.
+  DrawFloorLightGrid(ctx);
 }
 
 void DrawBossShell4x4(const DrawContext& ctx) {
@@ -1840,6 +1852,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 10,
+      .min_tiles = 32,
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1850,6 +1863,18 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 8,
       .base_height = 8,
+      .min_tiles = 64,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kFloorLight,  // 123
+      .name = "FloorLight",
+      .function = DrawFloorLight,
+      .draws_to_both_bgs = false,
+      .base_width = 8,
+      .base_height = 8,
+      .min_tiles = 64,
       .category = DrawRoutineInfo::Category::Special,
   });
 
