@@ -121,8 +121,10 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
                      "holes that reveal BG2 beneath.",
             .required_object_id = 0x022,
             .expected_layer_merge_id = 0,
-            .composite_checksum = 2235057642521521912ull,
-            .object_bg1_checksum = 10968006760376370579ull,
+            // Room 0x004 contains six F92 rupee-floor objects. Their
+            // USDASM-accurate sparse five-by-eight pattern changes BG1.
+            .composite_checksum = 5477542344832277612ull,
+            .object_bg1_checksum = 16713002165790269043ull,
             .object_bg2_checksum = 11028269878064776067ull,
             .layout_bg1_checksum = 17333734306328304163ull,
             .composite_non_backdrop_pixels = 262144,
