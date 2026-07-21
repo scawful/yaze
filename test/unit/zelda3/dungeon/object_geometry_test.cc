@@ -185,6 +185,26 @@ TEST(ObjectGeometryTest,
   EXPECT_EQ(active_bounds->height_tiles, 5);
 }
 
+TEST(ObjectGeometryTest, SmallChestGeometryUsesCanonicalTwoByTwoPayload) {
+  ObjectGeometry::Get().ClearCache();
+
+  for (const int16_t object_id : {int16_t{0x0F99}, int16_t{0x0F9A}}) {
+    SCOPED_TRACE(absl::StrFormat("object_id=0x%03X", object_id));
+    RoomObject obj(object_id, /*x=*/0, /*y=*/0, /*size=*/0);
+
+    auto editor_bounds = ObjectGeometry::Get().MeasureByObjectId(obj);
+    ASSERT_TRUE(editor_bounds.ok());
+    EXPECT_EQ(editor_bounds->width_tiles, 2);
+    EXPECT_EQ(editor_bounds->height_tiles, 2);
+
+    auto default_state_bounds =
+        ObjectGeometry::Get().MeasureByObjectIdForState(obj, nullptr);
+    ASSERT_TRUE(default_state_bounds.ok());
+    EXPECT_EQ(default_state_bounds->width_tiles, 2);
+    EXPECT_EQ(default_state_bounds->height_tiles, 2);
+  }
+}
+
 TEST(ObjectGeometryTest, MeasureByObjectIdMigratedSpecialsHaveUsdasmBounds) {
   struct Case {
     int16_t object_id;
