@@ -2055,6 +2055,45 @@ TEST(ObjectDrawerRegistryReplayTest,
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
+     ArcheryCurtainsRepeatTwoByFourStampOnSelectedLayer) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 10;
+  constexpr int kY = 12;
+  constexpr uint16_t kFirstTile = 0x0240;
+  for (const auto layer :
+       {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+    for (uint8_t size : {uint8_t{0}, uint8_t{5}, uint8_t{15}}) {
+      SCOPED_TRACE(::testing::Message() << "layer=" << static_cast<int>(layer)
+                                        << " size=" << static_cast<int>(size));
+      auto trace = ReplayObjectTrace(
+          /*object_id=*/0x00B5, kX, kY, size, layer,
+          MakeSequentialTiles(/*count=*/8, /*start_tile_id=*/kFirstTile));
+
+      const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+      const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+      const auto& selected = layer == RoomObject::LayerType::BG1 ? bg1 : bg2;
+      const auto& other = layer == RoomObject::LayerType::BG1 ? bg2 : bg1;
+      const int block_count = static_cast<int>(size) + 1;
+      ASSERT_EQ(static_cast<int>(selected.size()), block_count * 8);
+      EXPECT_TRUE(other.empty());
+
+      for (int block = 0; block < block_count; ++block) {
+        for (int column = 0; column < 2; ++column) {
+          for (int row = 0; row < 4; ++row) {
+            const int trace_index = block * 8 + column * 4 + row;
+            EXPECT_EQ(selected[trace_index].x_tile, kX + block * 2 + column);
+            EXPECT_EQ(selected[trace_index].y_tile, kY + row);
+            EXPECT_EQ(selected[trace_index].tile_id,
+                      kFirstTile + column * 4 + row);
+          }
+        }
+      }
+    }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
      ArcheryGameTargetDoorDrawsTwoStacked3x3Sections) {
   ScopedCustomObjectsFlag disable_custom(false);
 

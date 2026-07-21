@@ -41,6 +41,7 @@ constexpr int kRightwardsPillar2x4spaced4_1to16 = 29;
 constexpr int kRightwardsDecor4x3spaced4_1to16 = 30;
 constexpr int kRightwardsDoubled2x2spaced2_1to16 = 31;
 constexpr int kRightwardsDecor2x2spaced12_1to16 = 32;
+constexpr int kWeird2x4_1to16 = 124;
 
 // Diagonal routines (5-6, 17-18)
 constexpr int kDiagonalAcute_1to16 = 5;
