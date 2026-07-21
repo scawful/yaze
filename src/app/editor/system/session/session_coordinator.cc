@@ -44,14 +44,14 @@ SessionCoordinator::SessionCoordinator(WorkspaceWindowManager* window_manager,
       toast_manager_(toast_manager),
       user_settings_(user_settings) {}
 
-void SessionCoordinator::NotifySessionSwitched(size_t index,
-                                               RomSession* session) {
+void SessionCoordinator::NotifySessionSwitched(size_t old_index,
+                                               size_t new_index,
+                                               RomSession* session,
+                                               bool transient) {
   // Publish event to EventBus
   if (event_bus_) {
-    // Track previous index for the event (before we update active_session_index_)
-    size_t old_index = active_session_index_;
     event_bus_->Publish(
-        SessionSwitchedEvent::Create(old_index, index, session));
+        SessionSwitchedEvent::Create(old_index, new_index, session, transient));
   }
 }
 
@@ -166,6 +166,7 @@ void SessionCoordinator::CloseSession(size_t index) {
   }
 
   const size_t session_id = GetSessionId(index);
+  const bool closing_active_session = index == active_session_index_;
 
   // Unregister cards for this stable session identity.
   if (window_manager_) {
@@ -187,6 +188,16 @@ void SessionCoordinator::CloseSession(size_t index) {
     window_manager_->SetActiveSession(GetActiveSessionId());
   }
 
+  // Closing the active session can leave global editor, ROM, palette, and
+  // drawer context pointing at the destroyed RomSession. Reuse the normal
+  // session-switch lifecycle after the erase so every context observes the
+  // surviving session.
+  if (closing_active_session && !sessions_.empty()) {
+    NotifySessionSwitched(index, active_session_index_,
+                          sessions_[active_session_index_].get(),
+                          /*transient=*/false);
+  }
+
   LOG_INFO("SessionCoordinator", "Closed session %zu (total: %zu)", index,
            session_count_);
 
@@ -198,6 +209,10 @@ void SessionCoordinator::RemoveSession(size_t index) {
 }
 
 void SessionCoordinator::SwitchToSession(size_t index) {
+  SwitchToSessionInternal(index, /*transient=*/false);
+}
+
+void SessionCoordinator::SwitchToSessionInternal(size_t index, bool transient) {
   if (!IsValidSessionIndex(index))
     return;
 
@@ -210,7 +225,7 @@ void SessionCoordinator::SwitchToSession(size_t index) {
 
   // Only notify if actually switching to a different session
   if (old_index != index) {
-    NotifySessionSwitched(index, sessions_[index].get());
+    NotifySessionSwitched(old_index, index, sessions_[index].get(), transient);
   }
 }
 
@@ -661,6 +676,8 @@ void SessionCoordinator::UpdateSessions() {
     return;
 
   size_t original_session_idx = active_session_index_;
+  Editor* original_editor =
+      editor_manager_ ? editor_manager_->GetCurrentEditor() : nullptr;
 
   for (size_t session_idx = 0; session_idx < sessions_.size(); ++session_idx) {
     auto& session = sessions_[session_idx];
@@ -672,7 +689,7 @@ void SessionCoordinator::UpdateSessions() {
     }
 
     // Switch context
-    SwitchToSession(session_idx);
+    SwitchToSessionInternal(session_idx, /*transient=*/true);
 
     for (auto editor : session->editors.active_editors_) {
       if (*editor->active()) {
@@ -750,7 +767,10 @@ void SessionCoordinator::UpdateSessions() {
   }
 
   // Restore original session context
-  SwitchToSession(original_session_idx);
+  SwitchToSessionInternal(original_session_idx, /*transient=*/true);
+  if (editor_manager_) {
+    editor_manager_->SetCurrentEditor(original_editor);
+  }
 }
 
 bool SessionCoordinator::IsSessionActive(size_t index) const {

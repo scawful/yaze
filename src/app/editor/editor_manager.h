@@ -155,6 +155,12 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   const WorkspaceWindowManager& window_manager() const {
     return window_manager_;
   }
+  SessionCoordinator* session_coordinator() {
+    return session_coordinator_.get();
+  }
+  const SessionCoordinator* session_coordinator() const {
+    return session_coordinator_.get();
+  }
   [[deprecated("Use window_host() instead.")]] PanelHost* panel_host() {
     return window_host_.get();
   }
@@ -190,7 +196,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
     return session_coordinator_ ? session_coordinator_->GetCurrentEditorSet()
                                 : nullptr;
   }
-  auto GetCurrentEditor() const -> Editor* { return current_editor_; }
+  auto GetCurrentEditor() const -> Editor* override { return current_editor_; }
   std::string GetCurrentRomHash() const {
     return rom_lifecycle_.current_rom_hash();
   }
@@ -476,7 +482,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
       const std::vector<std::string>& available_categories) const;
 
   // Session event handlers (EventBus subscribers)
-  void HandleSessionSwitched(size_t new_index, RomSession* session);
+  void HandleSessionSwitched(size_t new_index, RomSession* session,
+                             bool transient = false);
   void HandleSessionCreated(size_t index, RomSession* session);
   void HandleSessionClosed(size_t index);
   // Initialization helpers (extracted from constructor for readability)

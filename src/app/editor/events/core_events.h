@@ -29,7 +29,8 @@ struct RomLoadedEvent : public Event {
   std::string filename;
   size_t session_id = 0;
 
-  static RomLoadedEvent Create(Rom* r, const std::string& file, size_t session) {
+  static RomLoadedEvent Create(Rom* r, const std::string& file,
+                               size_t session) {
     RomLoadedEvent e;
     e.rom = r;
     e.filename = file;
@@ -66,7 +67,7 @@ struct RomModifiedEvent : public Event {
   size_t session_id = 0;
 
   static RomModifiedEvent Create(Rom* r, size_t session, uint32_t addr = 0,
-                                  size_t bytes = 0) {
+                                 size_t bytes = 0) {
     RomModifiedEvent e;
     e.rom = r;
     e.session_id = session;
@@ -89,13 +90,16 @@ struct SessionSwitchedEvent : public Event {
   size_t old_index = 0;
   size_t new_index = 0;
   RomSession* session = nullptr;
+  bool transient = false;
 
   static SessionSwitchedEvent Create(size_t old_idx, size_t new_idx,
-                                     RomSession* sess) {
+                                     RomSession* sess,
+                                     bool is_transient = false) {
     SessionSwitchedEvent e;
     e.old_index = old_idx;
     e.new_index = new_idx;
     e.session = sess;
+    e.transient = is_transient;
     return e;
   }
 };
@@ -158,14 +162,16 @@ struct EditorSwitchedEvent : public Event {
  * status bar updates, or property panel refreshes.
  */
 struct SelectionChangedEvent : public Event {
-  std::string source;              // Source editor: "overworld", "dungeon", "graphics", etc.
-  std::vector<int> selected_ids;   // IDs of selected items (tiles, rooms, sprites, etc.)
-  int primary_id = -1;             // Primary selection (first or focused item)
+  std::string
+      source;  // Source editor: "overworld", "dungeon", "graphics", etc.
+  std::vector<int>
+      selected_ids;     // IDs of selected items (tiles, rooms, sprites, etc.)
+  int primary_id = -1;  // Primary selection (first or focused item)
   size_t session_id = 0;
 
   static SelectionChangedEvent Create(const std::string& src,
-                                       const std::vector<int>& ids,
-                                       size_t session = 0) {
+                                      const std::vector<int>& ids,
+                                      size_t session = 0) {
     SelectionChangedEvent e;
     e.source = src;
     e.selected_ids = ids;
@@ -175,7 +181,7 @@ struct SelectionChangedEvent : public Event {
   }
 
   static SelectionChangedEvent CreateSingle(const std::string& src, int id,
-                                             size_t session = 0) {
+                                            size_t session = 0) {
     SelectionChangedEvent e;
     e.source = src;
     e.selected_ids = {id};
@@ -185,7 +191,7 @@ struct SelectionChangedEvent : public Event {
   }
 
   static SelectionChangedEvent CreateEmpty(const std::string& src,
-                                            size_t session = 0) {
+                                           size_t session = 0) {
     SelectionChangedEvent e;
     e.source = src;
     e.selected_ids = {};
@@ -205,16 +211,16 @@ struct SelectionChangedEvent : public Event {
  * More granular than PanelToggleEvent - includes session context.
  */
 struct PanelVisibilityChangedEvent : public Event {
-  std::string panel_id;      // Panel identifier (may be session-prefixed)
-  std::string base_panel_id; // Base panel ID without session prefix
-  std::string category;      // Panel category ("Dungeon", "Overworld", etc.)
-  bool visible = false;      // New visibility state
+  std::string panel_id;       // Panel identifier (may be session-prefixed)
+  std::string base_panel_id;  // Base panel ID without session prefix
+  std::string category;       // Panel category ("Dungeon", "Overworld", etc.)
+  bool visible = false;       // New visibility state
   size_t session_id = 0;
 
   static PanelVisibilityChangedEvent Create(const std::string& id,
-                                             const std::string& base_id,
-                                             const std::string& cat,
-                                             bool vis, size_t session = 0) {
+                                            const std::string& base_id,
+                                            const std::string& cat, bool vis,
+                                            size_t session = 0) {
     PanelVisibilityChangedEvent e;
     e.panel_id = id;
     e.base_panel_id = base_id;
@@ -231,13 +237,14 @@ struct PanelVisibilityChangedEvent : public Event {
  * Use for synchronized zoom across linked views or status bar updates.
  */
 struct ZoomChangedEvent : public Event {
-  std::string source;     // Source canvas: "overworld_canvas", "dungeon_canvas", etc.
+  std::string
+      source;  // Source canvas: "overworld_canvas", "dungeon_canvas", etc.
   float old_zoom = 1.0f;  // Previous zoom level
   float new_zoom = 1.0f;  // New zoom level
   size_t session_id = 0;
 
   static ZoomChangedEvent Create(const std::string& src, float old_z,
-                                  float new_z, size_t session = 0) {
+                                 float new_z, size_t session = 0) {
     ZoomChangedEvent e;
     e.source = src;
     e.old_zoom = old_z;

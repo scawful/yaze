@@ -24,6 +24,7 @@ class ISessionConfigurator {
   virtual ~ISessionConfigurator() = default;
   virtual void ConfigureSession(RomSession* session) = 0;
   virtual void SetCurrentEditor(Editor* editor) = 0;
+  virtual Editor* GetCurrentEditor() const = 0;
   virtual void RequestSwitchToSession(size_t index) = 0;
   virtual void RequestCloseSession(size_t index) = 0;
 };

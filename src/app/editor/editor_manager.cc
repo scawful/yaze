@@ -1005,7 +1005,7 @@ void EditorManager::SubscribeToEvents() {
   // (replaces SessionObserver pattern)
   event_bus_.Subscribe<SessionSwitchedEvent>(
       [this](const SessionSwitchedEvent& e) {
-        HandleSessionSwitched(e.new_index, e.session);
+        HandleSessionSwitched(e.new_index, e.session, e.transient);
       });
 
   event_bus_.Subscribe<SessionCreatedEvent>(
@@ -1167,11 +1167,14 @@ void EditorManager::RefreshResourceLabelProvider() {
             current_project_.project_opened() ? "true" : "false");
 }
 
-void EditorManager::HandleSessionSwitched(size_t new_index,
-                                          RomSession* session) {
+void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
+                                          bool transient) {
   // Confirmation consent and Save As targets belong to the ROM that started
-  // the request. Never carry them across a session switch.
-  CancelPendingRomSave(/*hide_popups=*/true);
+  // the request. Never carry them across a user session switch. Frame-level
+  // context switches are temporary and must not consume the active request.
+  if (!transient) {
+    CancelPendingRomSave(/*hide_popups=*/true);
+  }
 
   // Palette edit history and dirty tracking are session-owned. Select the
   // matching state before any session-specific editor or save action runs.
@@ -1186,6 +1189,9 @@ void EditorManager::HandleSessionSwitched(size_t new_index,
 
   // Update properties panel with new ROM
   if (session) {
+    if (!transient) {
+      selection_properties_panel_.ClearSelection();
+    }
     selection_properties_panel_.SetRom(&session->rom);
   }
 
@@ -1193,6 +1199,14 @@ void EditorManager::HandleSessionSwitched(size_t new_index,
   ContentRegistry::Context::SetRom(session ? &session->rom : nullptr);
   ContentRegistry::Context::SetGameData(session ? &session->game_data
                                                 : nullptr);
+
+  // current_editor_ is also session-owned. Resolve it from the newly active
+  // EditorSet, or clear it when the current category has no editor backing.
+  const std::string active_category = window_manager_.GetActiveCategory();
+  Editor* active_editor = ResolveEditorForCategory(active_category);
+  SetCurrentEditor(active_editor);
+  ContentRegistry::Context::SetEditorWindowContext(active_category,
+                                                   active_editor);
 
   // Keep room/sprite labels in sync with active session context.
   RefreshResourceLabelProvider();
@@ -5002,6 +5016,16 @@ void EditorManager::ConfirmPendingUnsavedSessionActionSaveAndContinue() {
           ToastType::kError);
     }
     return;
+  }
+
+  // Saving an inactive close target temporarily activates that session. Put
+  // the original session back before compacting the target index so the same
+  // stable session remains active after the close.
+  if (action.type == PendingUnsavedSessionAction::Type::kCloseSession &&
+      session_coordinator_ &&
+      session_coordinator_->IsValidSessionIndex(original_session) &&
+      original_session != action.target_session_index) {
+    session_coordinator_->SwitchToSession(original_session);
   }
 
   ExecutePendingUnsavedSessionAction(action);
