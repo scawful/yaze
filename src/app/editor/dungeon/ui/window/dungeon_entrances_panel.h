@@ -3,12 +3,13 @@
 
 #include <functional>
 #include <string>
-#include "util/i18n/tr.h"
 
+#include "app/editor/dungeon/dungeon_entrance_edit_policy.h"
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "imgui/imgui.h"
+#include "util/i18n/tr.h"
 #include "zelda3/common.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/resource_labels.h"
@@ -58,10 +59,16 @@ class DungeonEntrancesPanel : public WindowContent {
     }
 
     auto& current_entrance = (*entrances_)[*current_entrance_id_];
+    const bool properties_editable =
+        CanEditDungeonEntrance(*current_entrance_id_, current_entrance);
     bool changed = false;
 
     // Entrance properties
     ImGui::Text(tr("Entrance ID: %04X"), current_entrance.entrance_id_);
+    if (!properties_editable) {
+      ImGui::TextWrapped(tr(kDungeonSpawnReadOnlyReason));
+    }
+    ImGui::BeginDisabled(!properties_editable);
     changed |= gui::InputHexWord("Room ID", &current_entrance.room_);
     ImGui::SameLine();
     changed |= gui::InputHexByte("Dungeon ID", &current_entrance.dungeon_id_,
@@ -120,10 +127,10 @@ class DungeonEntrancesPanel : public WindowContent {
     ImGui::SameLine();
     changed |= gui::InputHexByte("##FW", &current_entrance.camera_boundary_fw_,
                                  50.f, true);
+    ImGui::EndDisabled();
 
-    if (changed) {
-      current_entrance.MarkDirty();
-    }
+    MarkDungeonEntranceDirtyIfEditable(*current_entrance_id_, current_entrance,
+                                       changed);
 
     ImGui::Separator();
 

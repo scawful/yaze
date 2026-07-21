@@ -6,6 +6,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/core/content_registry.h"
+#include "app/editor/dungeon/dungeon_entrance_edit_policy.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/events/core_events.h"
 #include "app/gui/core/icons.h"
@@ -339,9 +340,15 @@ void DungeonRoomSelector::DrawEntranceSelectorInternal(bool show_properties) {
       current_entrance_id_ = 0;
     }
     auto& current_entrance = (*entrances_)[current_entrance_id_];
+    const bool properties_editable =
+        CanEditDungeonEntrance(current_entrance_id_, current_entrance);
     bool changed = false;
 
     // Keep the full property editor in the standalone entrance panel.
+    if (!properties_editable) {
+      ImGui::TextWrapped(tr(kDungeonSpawnReadOnlyReason));
+    }
+    ImGui::BeginDisabled(!properties_editable);
     if (ImGui::BeginTable("EntranceProps", 4, ImGuiTableFlags_Borders)) {
       ImGui::TableSetupColumn("Core", ImGuiTableColumnFlags_WidthStretch);
       ImGui::TableSetupColumn("Position", ImGuiTableColumnFlags_WidthStretch);
@@ -375,10 +382,12 @@ void DungeonRoomSelector::DrawEntranceSelectorInternal(bool show_properties) {
 
       ImGui::EndTable();
     }
+    ImGui::EndDisabled();
 
     ImGui::Separator();
     if (ImGui::CollapsingHeader(tr("Camera Boundaries"))) {
       ImGui::Text(tr("                North   East    South   West"));
+      ImGui::BeginDisabled(!properties_editable);
       ImGui::Text(tr("Quadrant      "));
       SameLine();
       changed |= gui::InputHexByte("##QN",
@@ -406,10 +415,10 @@ void DungeonRoomSelector::DrawEntranceSelectorInternal(bool show_properties) {
       SameLine();
       changed |= gui::InputHexByte("##FW",
                                    &current_entrance.camera_boundary_fw_, 40.f);
+      ImGui::EndDisabled();
     }
-    if (changed) {
-      current_entrance.MarkDirty();
-    }
+    MarkDungeonEntranceDirtyIfEditable(current_entrance_id_, current_entrance,
+                                       changed);
     ImGui::Separator();
   }
 
