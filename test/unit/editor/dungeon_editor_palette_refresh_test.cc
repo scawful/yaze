@@ -4,8 +4,12 @@
 #include <memory>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
 #include "app/platform/sdl_compat.h"
+#include "framework/mock_renderer.h"
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
@@ -35,6 +39,7 @@ void SeedPaletteGroup(gfx::PaletteGroup* group, int palette_count,
 class DungeonEditorPaletteRefreshTest : public ::testing::Test {
  protected:
   void SetUp() override {
+    gfx::Arena::Get().ClearTextureQueue();
     gfx::PaletteManager::Get().ResetForTesting();
 
     ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
@@ -84,7 +89,10 @@ class DungeonEditorPaletteRefreshTest : public ::testing::Test {
     editor_->SetGameData(&game_data_);
   }
 
-  void TearDown() override { gfx::PaletteManager::Get().ResetForTesting(); }
+  void TearDown() override {
+    gfx::Arena::Get().ClearTextureQueue();
+    gfx::PaletteManager::Get().ResetForTesting();
+  }
 
   void RenderToCleanState(zelda3::Room& room) {
     room.RenderRoomGraphics();
@@ -212,6 +220,85 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   EXPECT_EQ(unrelated_before.r, unrelated_after.r);
   EXPECT_EQ(unrelated_before.g, unrelated_after.g);
   EXPECT_EQ(unrelated_before.b, unrelated_after.b);
+}
+
+TEST_F(DungeonEditorPaletteRefreshTest,
+       CachedRoomRefreshesThroughViewerCompositePreparation) {
+  constexpr int kCurrentRoomId = 0;
+  constexpr int kCachedRoomId = 1;
+  constexpr int kHudDisplayIndex = 17;
+  editor_->current_room_id_ = kCurrentRoomId;
+
+  auto& cached_room = editor_->rooms_[kCachedRoomId];
+  cached_room.SetPalette(6);  // Resolves away from selected palette 3.
+  cached_room.SetTileObjects({});
+
+  ::testing::NiceMock<yaze::test::MockRenderer> renderer;
+  DungeonCanvasViewer viewer(&rom_);
+  viewer.SetGameData(&game_data_);
+  viewer.SetRenderer(&renderer);
+  viewer.SetRooms(&editor_->rooms_);
+
+  EXPECT_CALL(renderer, CreateTexture).Times(::testing::AtLeast(1));
+  EXPECT_CALL(renderer, UpdateTexture).Times(::testing::AtLeast(1));
+  gfx::Bitmap* first_composite =
+      viewer.PrepareRoomCompositeBitmap(kCachedRoomId);
+  ASSERT_NE(first_composite, nullptr);
+  gfx::Arena::Get().ProcessTextureQueue(&renderer);
+  ASSERT_NE(first_composite->texture(), nullptr);
+  ASSERT_FALSE(cached_room.IsCompositeDirty());
+  ASSERT_TRUE(::testing::Mock::VerifyAndClearExpectations(&renderer));
+
+  const SDL_Color before =
+      ReadSurfacePaletteColor(cached_room, kHudDisplayIndex);
+  const gfx::SnesColor edited_color(0x03E0);
+
+  editor_->palette_editor_.Initialize(&game_data_);
+  editor_->palette_editor_.SetDungeonRenderPaletteMode(true);
+  editor_->palette_editor_.SetCurrentPaletteId(3);
+  editor_->palette_editor_.SetOnPaletteChanged(
+      [this](gui::DungeonPaletteChange change) {
+        editor_->InvalidateDungeonPaletteUsers(change);
+      });
+
+  ASSERT_TRUE(editor_->palette_editor_
+                  .ApplyDungeonRenderColorEdit(kHudDisplayIndex, edited_color)
+                  .ok());
+  ASSERT_TRUE(cached_room.IsCompositeDirty());
+
+  // Exercise the connected/compare composite preparation path. The test must
+  // not call Room::RenderRoomGraphics directly after the edit.
+  EXPECT_CALL(renderer, UpdateTexture).Times(::testing::AtLeast(1));
+  gfx::Bitmap* refreshed_composite =
+      viewer.PrepareRoomCompositeBitmap(kCachedRoomId);
+  ASSERT_EQ(refreshed_composite, first_composite);
+  gfx::Arena::Get().ProcessTextureQueue(&renderer);
+
+  const SDL_Color after =
+      ReadSurfacePaletteColor(cached_room, kHudDisplayIndex);
+  EXPECT_NE(before.g, after.g);
+  ExpectSurfaceColor(after, edited_color);
+  EXPECT_FALSE(cached_room.IsCompositeDirty());
+  EXPECT_NE(refreshed_composite->texture(), nullptr);
+}
+
+TEST_F(DungeonEditorPaletteRefreshTest,
+       LegacyPaletteIdCallbackRemainsSupported) {
+  gui::PaletteEditorWidget widget;
+  widget.Initialize(&game_data_);
+  widget.SetDungeonRenderPaletteMode(true);
+  widget.SetCurrentPaletteId(3);
+
+  int notified_palette_id = -1;
+  widget.SetOnPaletteChanged([&notified_palette_id](int palette_id) {
+    notified_palette_id = palette_id;
+  });
+
+  ASSERT_TRUE(widget
+                  .ApplyDungeonRenderColorEdit(
+                      /*display_index=*/33, gfx::SnesColor(0x4210))
+                  .ok());
+  EXPECT_EQ(notified_palette_id, 3);
 }
 
 }  // namespace yaze::editor

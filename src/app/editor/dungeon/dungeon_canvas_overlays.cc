@@ -539,10 +539,9 @@ gfx::Bitmap* DungeonCanvasViewer::PrepareRoomCompositeBitmap(int room_id) {
     return nullptr;
   }
   auto& room = *room_ptr;
-  auto& bg1_bitmap = room.bg1_buffer().bitmap();
-  if (!bg1_bitmap.is_active() || bg1_bitmap.width() == 0) {
-    (void)LoadAndRenderRoomGraphics(room_id);
-  }
+  // Connected/compare views revisit already-materialized rooms. Honor Room's
+  // render dirtiness so those cached buffers refresh lazily before compositing.
+  room.PrepareForRender(current_entrance_blockset_);
 
   auto& layer_mgr = GetRoomLayerManager(room_id);
   layer_mgr.ApplyLayerMerging(room.layer_merging());
