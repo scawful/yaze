@@ -63,6 +63,11 @@ fixture.
 - Corresponding yaze 512x512 room crop: `(x=368, y=336, w=32, h=32)`.
 - The independently produced intact and bombed full frames differed in 997
   pixels, all inside this 32x32 ROI.
+- Uncommitted 256x224 full-frame SHA-256 (provenance only):
+  - intact:
+    `1805c55adda601f0f151c1949d382969082b234fd64f6e508f71d5a44f481d80`
+  - bombed:
+    `968264871d29d44344cec6c4ca81e0e989641f827ded3f6d7daabee85216e1aa`
 - Fixture SHA-256:
   - intact:
     `e9f422c47be7f27c3f6e2de30027181e52b784b43a62717ad62a76dd0995269e`
@@ -77,6 +82,122 @@ upper-layer pixels. Room `0x065` has only four `0xFF0` objects in list 1 and no
 BothBG object there. The resulting upper layout/object render is compared as
 exact RGBA bytes. The test retains the canonical first-MiB SHA-1 and libpng
 skip policy used by the Sanctuary baseline.
+
+### Exact room `0x065` reproduction commands
+
+Each Pro Action Replay code below is a 24-bit ROM address followed by its
+replacement byte. These 19 transient codes were active for both captures:
+
+| Purpose | Exact PAR codes |
+| --- | --- |
+| room `0x0065` | `02C87B65 02C87C00` |
+| camera bounds | `02CABD0D 02CABE0C 02CABF0D 02CAC00D 02CAC10A 02CAC20A 02CAC30A 02CAC40B` |
+| horizontal scroll `0x0B00` | `02CDAD00 02CDAE0B` |
+| vertical scroll `0x0D10` | `02CEB710 02CEB80D` |
+| Link Y `0x0DC0` | `02CFC1C0 02CFC20D` |
+| Link X `0x0B30` | `02D0CB30 02D0CC0B` |
+| quadrant `0x12` | `02D6D312` |
+
+The exact run loaded an initialized same-ROM state named
+`bombfloor-prebootstrap.mss`, SHA-256
+`93d72d93d4260356de87107ddf10b9f1ffe099d0f8b0e497af7a5f3e98b77590`.
+The state is not required as a fixture: when it is unavailable, boot the same
+ROM to any fully initialized gameplay state, pause, and save that state as
+`PREBOOTSTRAP`. Both captures must start from that same file. The original
+full-frame hashes above identify the preserved run; a replacement bootstrap
+may change unrelated full-frame pixels, but the two fresh frames must still
+differ only in the documented ROI.
+
+From an Oracle of Secrets checkout, with generic local paths:
+
+```bash
+OOS_ROOT=/path/to/oracle-of-secrets
+ROM=/path/to/padded-canonical-us-alttp.sfc
+PREBOOTSTRAP=/path/to/bombfloor-prebootstrap.mss
+OUT=/tmp/bombfloor-golden
+INSTANCE="oos-bombfloor-golden-$(date +%Y%m%d_%H%M%S)"
+SOCKET="/tmp/mesen2-${INSTANCE}.sock"
+mkdir -p "$OUT"
+
+"$OOS_ROOT/scripts/Mesen2/mesen2_launch_instance.sh" \
+  --instance "$INSTANCE" --owner "$USER" --source golden-capture \
+  --rom "$ROM" --socket "$SOCKET" --headless --no-save-settings \
+  --no-copy-settings --no-state-set
+for _ in {1..40}; do [[ -S "$SOCKET" ]] && break; sleep 0.25; done
+M2=(python3 "$OOS_ROOT/scripts/Mesen2/mesen2_client.py" --socket "$SOCKET")
+"${M2[@]}" health
+# To create a replacement after reaching initialized gameplay:
+# "${M2[@]}" pause && "${M2[@]}" save --path "$PREBOOTSTRAP"
+
+"${M2[@]}" cheat clear
+PAR_CODES=(
+  02C87B65 02C87C00
+  02CABD0D 02CABE0C 02CABF0D 02CAC00D
+  02CAC10A 02CAC20A 02CAC30A 02CAC40B
+  02CDAD00 02CDAE0B 02CEB710 02CEB80D
+  02CFC1C0 02CFC20D 02D0CB30 02D0CC0B 02D6D312
+)
+for code in "${PAR_CODES[@]}"; do "${M2[@]}" cheat add "$code"; done
+
+read_hex() {
+  "${M2[@]}" mem-read "$1" --len "$2" --json |
+    python3 -c 'import json,sys; print(json.load(sys.stdin)["bytes"])'
+}
+
+capture_state() {
+  local name=$1 persistent_bytes=$2 runtime_event_bytes=$3
+  "${M2[@]}" load "$PREBOOTSTRAP"
+  "${M2[@]}" pause
+  "${M2[@]}" mem-write 0x7EF3CC '00'
+  "${M2[@]}" mem-write 0x7EF3C5 '01'
+  "${M2[@]}" mem-write 0x7EF36C '18 18'
+  "${M2[@]}" mem-write 0x7E010E '34 00'
+  "${M2[@]}" mem-write 0x7EF0CA "$persistent_bytes"
+  "${M2[@]}" mem-write 0x7E0010 '05'
+  "${M2[@]}" mem-write 0x7E0011 '00'
+  "${M2[@]}" mem-write 0x7E001B '00'
+  "${M2[@]}" run --frames 300 --pause-after true
+  test "$(read_hex 0x7E00A0 2)" = 6500
+  test "$(read_hex 0x7E0402 2)" = "$runtime_event_bytes"
+
+  "${M2[@]}" mem-write 0x002107 '03' --memtype SnesMemory
+  "${M2[@]}" mem-write 0x7E001C '01 00'
+  "${M2[@]}" mem-write 0x7E0099 '00 00'
+  "${M2[@]}" run --frames 3 --pause-after true
+  "${M2[@]}" screenshot --out "$OUT/${name}-full.png"
+}
+
+capture_state intact '00 00' '0000'
+capture_state bombed '00 01' '0010'
+```
+
+Crop and validate the independent pair with Pillow:
+
+```bash
+python3 - "$OUT" <<'PY'
+from pathlib import Path
+from PIL import Image
+import sys
+
+root = Path(sys.argv[1])
+box = (112, 63, 144, 95)
+for state in ("intact", "bombed"):
+    image = Image.open(root / f"{state}-full.png")
+    image.convert("RGBA").crop(box).save(
+        root / f"vanilla_room_065_mesen_bombable_floor_{state}_32x32.png"
+    )
+
+a = Image.open(root / "intact-full.png").convert("RGB")
+b = Image.open(root / "bombed-full.png").convert("RGB")
+changed = [(x, y) for y in range(a.height) for x in range(a.width)
+           if a.getpixel((x, y)) != b.getpixel((x, y))]
+bbox = (min(x for x, _ in changed), min(y for _, y in changed),
+        max(x for x, _ in changed) + 1, max(y for _, y in changed) + 1)
+assert len(changed) == 997
+assert bbox == box
+PY
+shasum -a 256 "$OUT"/*.png
+```
 
 ## Updating a baseline
 
