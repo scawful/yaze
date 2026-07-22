@@ -26,6 +26,10 @@ This repo is used to edit ROM hacks (including Oracle of Secrets). Treat ROM wri
   `dungeon-set-collision-tile`, and `dungeon-set-room-property` wrap their
   serializer, required backup, and disk commit in `ScopedRomTransaction`. Any
   failure restores the caller's ROM bytes, filename, size, and dirty state.
+- Dungeon `layout`, `floor1`, and `floor2` edits use a separate object-stream
+  header dirty mask. They preserve unrelated header bits and object payload,
+  save after any dirty object payload, and fail closed on shared streams unless
+  a `copy_on_write` object-stream manifest supplies allocator-owned space.
 - Non-dry-run `dungeon-import-custom-collision-json` and
   `dungeon-import-water-fill-json` use the same transaction and required-backup
   contract, then immediately save the active ROM. With `--sandbox`, the active
