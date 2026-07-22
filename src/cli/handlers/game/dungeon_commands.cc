@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <fstream>
 #include <limits>
+#include <memory>
 #include <optional>
 #include <sstream>
 #include <vector>
@@ -134,6 +135,26 @@ void MergeStopTiles(const zelda3::CustomCollisionMap& existing,
       generated.tiles[i] = existing.tiles[i];
     }
   }
+}
+
+absl::Status SaveTrackCollisionRom(Rom* rom,
+                                   const resources::ArgumentParser& parser,
+                                   resources::OutputFormatter& formatter) {
+  if (parser.HasFlag("mock-rom")) {
+    formatter.AddField("save_status", "mock-rom-skipped");
+    return absl::OkStatus();
+  }
+
+  Rom::SaveSettings save_settings;
+  save_settings.require_backup = true;
+  auto save_status = rom->SaveToFile(save_settings);
+  if (!save_status.ok()) {
+    formatter.AddField("save_error", std::string(save_status.message()));
+    return save_status;
+  }
+
+  formatter.AddField("save_status", "saved");
+  return absl::OkStatus();
 }
 
 // Helper to load sprite registry from file if --sprite-registry flag is provided
@@ -955,6 +976,10 @@ absl::Status DungeonGenerateTrackCollisionCommandHandler::Execute(
   }
 
   bool is_batch = room_ids.size() > 1;
+  std::unique_ptr<ScopedRomTransaction> transaction;
+  if (do_write) {
+    transaction = std::make_unique<ScopedRomTransaction>(*rom);
+  }
 
   if (is_batch) {
     // Batch mode: aggregate results with per-room detail
@@ -1016,7 +1041,8 @@ absl::Status DungeonGenerateTrackCollisionCommandHandler::Execute(
           formatter.EndObject();
           formatter.EndArray();
           formatter.EndObject();
-          return absl::InternalError(
+          return absl::Status(
+              write_status.code(),
               absl::StrFormat("Write failed for room 0x%03X: %s", room_id,
                               write_status.message()));
         }
@@ -1035,14 +1061,12 @@ absl::Status DungeonGenerateTrackCollisionCommandHandler::Execute(
 
     // Save ROM once after all rooms are written
     if (do_write) {
-      Rom::SaveSettings save_settings;
-      save_settings.backup = true;
-      auto save_status = rom->SaveToFile(save_settings);
+      auto save_status = SaveTrackCollisionRom(rom, parser, formatter);
       if (!save_status.ok()) {
-        formatter.AddField("save_error", std::string(save_status.message()));
-      } else {
-        formatter.AddField("save_status", "saved");
+        formatter.EndObject();
+        return save_status;
       }
+      transaction->Commit();
     }
 
     // Aggregated totals
@@ -1094,17 +1118,16 @@ absl::Status DungeonGenerateTrackCollisionCommandHandler::Execute(
           zelda3::WriteTrackCollision(rom, room_id, result->collision_map);
       if (!write_status.ok()) {
         formatter.AddField("write_error", std::string(write_status.message()));
+        formatter.EndObject();
+        return write_status;
       } else {
         formatter.AddField("write_status", "success");
-        // Save ROM back to disk
-        Rom::SaveSettings save_settings;
-        save_settings.backup = true;
-        auto save_status = rom->SaveToFile(save_settings);
+        auto save_status = SaveTrackCollisionRom(rom, parser, formatter);
         if (!save_status.ok()) {
-          formatter.AddField("save_error", std::string(save_status.message()));
-        } else {
-          formatter.AddField("save_status", "saved");
+          formatter.EndObject();
+          return save_status;
         }
+        transaction->Commit();
       }
     }
 

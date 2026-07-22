@@ -31,10 +31,10 @@ class Rom {
     bool backup = false;
     bool save_new = false;
     std::string filename;
-    // Unlike the legacy best-effort `backup` flag, back up an existing save
-    // target and fail before replacing it if that backup cannot be created.
-    // A new target has no previous bytes to protect. This implies backup
-    // creation when `backup` is false.
+    // Require a successful backup of an existing save target before replacing
+    // it. Unlike the legacy best-effort `backup` flag, backup failure aborts
+    // the save. A new target has no previous bytes to protect. This implies
+    // backup creation when `backup` is false.
     bool require_backup = false;
   };
 
