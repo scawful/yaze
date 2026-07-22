@@ -23,6 +23,10 @@
 namespace yaze::zelda3::test {
 namespace {
 
+// The seeded source pixel is 1. Palette 2 contributes 32, and room 0's
+// underworld destination block uses right-palette expansion (+8).
+constexpr uint8_t kPaletteTwoRightSlotPixel = 41;
+
 class CustomObjectRoomRenderTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -166,7 +170,7 @@ TEST_F(CustomObjectRoomRenderTest,
 
   const int pixel_index = PixelIndex(bitmap, /*x=*/3 * 8, /*y=*/4 * 8);
   ASSERT_LT(pixel_index, static_cast<int>(bitmap.size()));
-  EXPECT_EQ(bitmap.data()[pixel_index], 33)
+  EXPECT_EQ(bitmap.data()[pixel_index], kPaletteTwoRightSlotPixel)
       << "Custom object should draw visible pixels onto the room canvas";
   EXPECT_EQ(room.object_bg1_buffer().coverage_data()[pixel_index], 1);
 }
@@ -209,7 +213,7 @@ TEST_F(CustomObjectRoomRenderTest,
 
   const int pixel_index = PixelIndex(bitmap, /*x=*/6 * 8, /*y=*/7 * 8);
   ASSERT_LT(pixel_index, static_cast<int>(bitmap.size()));
-  EXPECT_EQ(bitmap.data()[pixel_index], 33)
+  EXPECT_EQ(bitmap.data()[pixel_index], kPaletteTwoRightSlotPixel)
       << "Corner alias object should render from its mapped custom bin";
   EXPECT_EQ(room.object_bg1_buffer().coverage_data()[pixel_index], 1);
 }
@@ -231,7 +235,7 @@ TEST_F(CustomObjectRoomRenderTest,
 
   const int pixel_index = PixelIndex(bitmap, /*x=*/6 * 8, /*y=*/7 * 8);
   ASSERT_LT(pixel_index, static_cast<int>(bitmap.size()));
-  EXPECT_NE(bitmap.data()[pixel_index], 33)
+  EXPECT_NE(bitmap.data()[pixel_index], kPaletteTwoRightSlotPixel)
       << "Vanilla wall corners should not be hijacked by track alias files in "
          "rooms without 0x31";
 }
@@ -318,12 +322,12 @@ TEST_F(CustomObjectRoomRenderTest,
   ASSERT_LT(primary_index, static_cast<int>(bg1_bitmap.size()));
   ASSERT_LT(overlay_index, static_cast<int>(bg1_bitmap.size()));
 
-  EXPECT_EQ(bg1_bitmap.data()[primary_index], 33)
+  EXPECT_EQ(bg1_bitmap.data()[primary_index], kPaletteTwoRightSlotPixel)
       << "Primary room-object list should render through the BG1 object buffer";
   EXPECT_EQ(bg2_bitmap.data()[primary_index], 255)
       << "Primary room-object list should not land in the BG2 overlay buffer";
 
-  EXPECT_EQ(bg2_bitmap.data()[overlay_index], 33)
+  EXPECT_EQ(bg2_bitmap.data()[overlay_index], kPaletteTwoRightSlotPixel)
       << "BG2 overlay list should render through the BG2 object buffer";
 }
 
