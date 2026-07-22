@@ -12,6 +12,7 @@
 #include "app/editor/core/content_registry.h"
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/null_renderer.h"
+#include "app/gfx/util/palette_manager.h"
 #include "testing.h"
 
 #include "imgui/imgui.h"
@@ -1001,6 +1002,7 @@ TEST(EditorManagerProjectActionsTest,
 TEST(EditorManagerProjectActionsTest,
      ProjectRomReloadReplacesActiveSessionInPlace) {
   ScopedImGuiContext imgui;
+  gfx::PaletteManager::Get().ResetForTesting();
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
   manager->Initialize(renderer.get(), "");
@@ -1014,6 +1016,8 @@ TEST(EditorManagerProjectActionsTest,
   ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
 
   Rom* const rom_address = manager->GetCurrentRom();
+  auto* const game_data_address = manager->GetCurrentGameData();
+  ASSERT_TRUE(gfx::PaletteManager::Get().IsSessionActive(game_data_address));
   const size_t session_count =
       manager->session_coordinator()->GetTotalSessionCount();
   manager->MarkCurrentProjectDirty();
@@ -1021,12 +1025,17 @@ TEST(EditorManagerProjectActionsTest,
   WriteRomFile(rom_path, "AFTER RELOAD");
   ASSERT_OK(manager->ReloadProjectRom());
   EXPECT_EQ(manager->GetCurrentRom(), rom_address);
+  EXPECT_EQ(manager->GetCurrentGameData(), game_data_address);
+  EXPECT_TRUE(gfx::PaletteManager::Get().IsSessionActive(game_data_address));
   EXPECT_EQ(manager->session_coordinator()->GetTotalSessionCount(),
             session_count);
   EXPECT_NE(manager->GetCurrentRom()->title().find("AFTER RELOAD"),
             std::string::npos);
   EXPECT_TRUE(manager->IsCurrentProjectDirty());
   EXPECT_TRUE(manager->project_management_panel()->IsProjectDirty());
+
+  manager.reset();
+  gfx::PaletteManager::Get().ResetForTesting();
 }
 
 TEST(EditorManagerProjectActionsTest,

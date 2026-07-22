@@ -95,9 +95,13 @@ void PaletteManager::Initialize(zelda3::GameData* game_data) {
   state->initialized = true;
 }
 
-bool PaletteManager::IsManaging(const zelda3::GameData* game_data) const {
-  return game_data != nullptr && game_data_ == game_data && IsInitialized() &&
+bool PaletteManager::IsSessionActive(const zelda3::GameData* game_data) const {
+  return game_data != nullptr && game_data_ == game_data &&
          rom_ == game_data->rom();
+}
+
+bool PaletteManager::IsManaging(const zelda3::GameData* game_data) const {
+  return IsSessionActive(game_data) && IsInitialized();
 }
 
 void PaletteManager::ReleaseSession(const zelda3::GameData* game_data) {
