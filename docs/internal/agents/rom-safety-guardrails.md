@@ -37,6 +37,10 @@ This repo is used to edit ROM hacks (including Oracle of Secrets). Treat ROM wri
   remains; use a trusted directory that other processes cannot modify.
   Collision/water JSON export reports use the same active-ROM alias guard and
   are also rejected with `--sandbox`.
+- `dungeon-generate-track-collision --write` applies the same contract to a
+  single room or the complete `--rooms` batch. Batch serialization and the one
+  required-backup disk save are all-or-nothing; a later-room failure restores
+  every earlier room mutation.
 - Other CLI writers that still set only `backup=true` remain best-effort and
   must be audited before opting into the strict transaction path.
 
