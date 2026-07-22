@@ -236,13 +236,13 @@ TEST(WorkspaceWindowManagerPolicyTest,
 
 TEST(WorkspaceWindowManagerPolicyTest,
      SessionWindowContentKeepsDistinctOwnersAndClosesBeforeSessionRemoval) {
-  WorkspaceWindowManager wm;
   int first_draws = 0;
   int second_draws = 0;
   int reload_draws = 0;
   int first_destroys = 0;
   int second_destroys = 0;
   int reload_destroys = 0;
+  WorkspaceWindowManager wm;
 
   wm.RegisterSession(0);
   wm.RegisterSession(1);
@@ -292,8 +292,8 @@ TEST(WorkspaceWindowManagerPolicyTest,
 
 TEST(WorkspaceWindowManagerPolicyTest,
      ResourceEvictionPrefersExactInactiveUnprefixedInstance) {
-  WorkspaceWindowManager wm;
   std::array<int, 2> destroy_counts{};
+  WorkspaceWindowManager wm;
   constexpr char kSharedResourceId[] = "Dungeon.room_0";
 
   wm.RegisterSession(0);
