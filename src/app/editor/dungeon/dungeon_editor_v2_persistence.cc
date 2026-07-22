@@ -271,10 +271,12 @@ absl::Status ValidatePotItemManifestConflicts(
       save_scope, "DungeonEditorV2", toast_manager);
 }
 
-absl::Status ValidateRegularDungeonEntranceSavePreflight(
+absl::Status ValidateDungeonEntranceSavePreflight(
     const project::YazeProject* project, Rom* rom,
     const std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots>&
         entrances,
+    const std::array<zelda3::DungeonSpawnPoint, zelda3::kNumDungeonSpawnPoints>&
+        spawn_points,
     absl::string_view save_scope, ToastManager* toast_manager) {
   if (rom == nullptr || !rom->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
@@ -285,12 +287,17 @@ absl::Status ValidateRegularDungeonEntranceSavePreflight(
   RETURN_IF_ERROR(zelda3::RejectUnsupportedDungeonSpawnPointSaves(entrances));
   RETURN_IF_ERROR(
       zelda3::ValidateRegularDungeonEntrancesForSave(*rom, entrances));
+  RETURN_IF_ERROR(
+      zelda3::ValidateDungeonSpawnPointsForSave(*rom, spawn_points));
 
   if (project == nullptr || !project->hack_manifest.loaded()) {
     return absl::OkStatus();
   }
-  const auto ranges =
+  auto ranges =
       zelda3::CollectDirtyRegularDungeonEntranceWriteRanges(entrances);
+  auto spawn_ranges =
+      zelda3::CollectDirtyDungeonSpawnPointWriteRanges(spawn_points);
+  ranges.insert(ranges.end(), spawn_ranges.begin(), spawn_ranges.end());
   if (ranges.empty()) {
     return absl::OkStatus();
   }
@@ -340,6 +347,9 @@ absl::Status DungeonEditorV2::BeginSaveTransaction() {
   for (size_t i = 0; i < entrances_.size(); ++i) {
     snapshot.entrance_dirty_states[i] = entrances_[i].dirty();
   }
+  for (size_t i = 0; i < spawn_points_.size(); ++i) {
+    snapshot.spawn_dirty_states[i] = spawn_points_[i].dirty();
+  }
   if (game_data_ != nullptr) {
     snapshot.has_pit_damage_table = true;
     snapshot.pit_damage_dirty = game_data_->pit_damage_table.dirty();
@@ -363,6 +373,13 @@ void DungeonEditorV2::RollbackSaveTransaction() {
       entrances_[i].MarkDirty();
     } else {
       entrances_[i].ClearDirty();
+    }
+  }
+  for (size_t i = 0; i < spawn_points_.size(); ++i) {
+    if (save_transaction_snapshot_->spawn_dirty_states[i]) {
+      spawn_points_[i].MarkDirty();
+    } else {
+      spawn_points_[i].ClearDirty();
     }
   }
   if (save_transaction_snapshot_->has_pit_damage_table &&
@@ -421,9 +438,9 @@ absl::Status DungeonEditorV2::Save() {
   const auto& flags = core::FeatureFlags::get().dungeon;
 
   if (flags.kSaveEntrances) {
-    RETURN_IF_ERROR(ValidateRegularDungeonEntranceSavePreflight(
-        dependencies_.project, rom_, entrances_, "regular dungeon entrances",
-        dependencies_.toast_manager));
+    RETURN_IF_ERROR(ValidateDungeonEntranceSavePreflight(
+        dependencies_.project, rom_, entrances_, spawn_points_,
+        "dungeon entrances and spawn points", dependencies_.toast_manager));
   }
 
   if (flags.kSaveChests) {
@@ -550,6 +567,12 @@ absl::Status DungeonEditorV2::Save() {
                 status.message().data());
       return status;
     }
+    status = zelda3::SaveAllDungeonSpawnPoints(rom_, spawn_points_);
+    if (!status.ok()) {
+      LOG_ERROR("DungeonEditorV2", "Failed to save dungeon spawn points: %s",
+                status.message().data());
+      return status;
+    }
   }
 
   return absl::OkStatus();
@@ -576,6 +599,9 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
     auto entrance_ranges =
         zelda3::CollectDirtyRegularDungeonEntranceWriteRanges(entrances_);
     ranges.insert(ranges.end(), entrance_ranges.begin(), entrance_ranges.end());
+    auto spawn_ranges =
+        zelda3::CollectDirtyDungeonSpawnPointWriteRanges(spawn_points_);
+    ranges.insert(ranges.end(), spawn_ranges.begin(), spawn_ranges.end());
   }
 
   auto append_declared_cow_ranges = [&](core::DungeonStreamType stream_type,
@@ -767,10 +793,11 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
 
     const auto& flags = core::FeatureFlags::get().dungeon;
     if (flags.kSaveEntrances) {
-      RETURN_IF_ERROR(ValidateRegularDungeonEntranceSavePreflight(
-          dependencies_.project, rom_, entrances_,
-          absl::StrFormat("regular dungeon entrances (Apply Room 0x%03X)",
-                          room_id),
+      RETURN_IF_ERROR(ValidateDungeonEntranceSavePreflight(
+          dependencies_.project, rom_, entrances_, spawn_points_,
+          absl::StrFormat(
+              "dungeon entrances and spawn points (Apply Room 0x%03X)",
+              room_id),
           dependencies_.toast_manager));
     }
     if (flags.kSaveChests) {
@@ -835,6 +862,7 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
     }
     if (flags.kSaveEntrances) {
       RETURN_IF_ERROR(zelda3::SaveAllDungeonEntrances(rom_, entrances_));
+      RETURN_IF_ERROR(zelda3::SaveAllDungeonSpawnPoints(rom_, spawn_points_));
     }
 
     return absl::OkStatus();
