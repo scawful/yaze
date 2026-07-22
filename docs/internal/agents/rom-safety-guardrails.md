@@ -11,6 +11,19 @@ This repo is used to edit ROM hacks (including Oracle of Secrets). Treat ROM wri
   - Project setting: `workspace_settings.backup_on_save=true`
   - Backups are managed via `RomFileManager` retention/daily keep.
 
+## CLI Save Transaction Contract
+
+- `Rom::SaveSettings::backup` keeps its legacy best-effort behavior.
+- Safety-critical CLI writes can set `require_backup=true`. A required backup
+  is copied to a same-directory temporary path and renamed into place only
+  after the copy completes; failure returns before the ROM target is replaced.
+- `dungeon-place-sprite`, `dungeon-remove-sprite`, `dungeon-place-object`, and
+  `dungeon-set-collision-tile` wrap their serializer, required backup, and disk
+  commit in `ScopedRomTransaction`. Any failure restores the caller's ROM
+  bytes, filename, size, and dirty state.
+- Other CLI writers that still set only `backup=true` remain best-effort and
+  must be audited before opting into the strict transaction path.
+
 ## Save-Time Write Fences (C++)
 
 Yaze supports a strict allow-list for save-time writes:
