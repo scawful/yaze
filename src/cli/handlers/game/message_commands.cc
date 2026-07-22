@@ -1,15 +1,25 @@
 #include "cli/handlers/game/message_commands.h"
 
 #include <algorithm>
+#include <cstddef>
+#include <exception>
+#include <filesystem>
 #include <fstream>
+#include <limits>
+#include <optional>
 #include <sstream>
 
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "absl/strings/ascii.h"
+#include "absl/strings/match.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 
 #include "app/editor/message/message_data.h"
+#include "rom/snes.h"
+#include "rom/transaction.h"
+#include "zelda3/resource_labels.h"
 
 ABSL_DECLARE_FLAG(std::string, rom);
 
@@ -43,6 +53,235 @@ std::vector<editor::MessageData> ReadExpandedMessages(const Rom& rom) {
                            static_cast<int>(rom.size()) - 1);
   return editor::ReadExpandedTextData(const_cast<uint8_t*>(rom.data()), start,
                                       end);
+}
+
+std::vector<editor::MessageData> ReadExpandedMessages(const Rom& rom, int start,
+                                                      int end) {
+  if (start < 0 || end < start || static_cast<size_t>(start) >= rom.size()) {
+    return {};
+  }
+  end = std::min(end, static_cast<int>(rom.size()) - 1);
+  return editor::ReadExpandedTextData(const_cast<uint8_t*>(rom.data()), start,
+                                      end);
+}
+
+struct ExpandedMutationContext {
+  project::YazeProject project;
+  int start = 0;
+  int end = 0;
+  int message_limit = -1;
+  std::string policy_warning;
+};
+
+class ScopedHackManifestBindingRestore {
+ public:
+  explicit ScopedHackManifestBindingRestore(
+      zelda3::ResourceLabelProvider& provider)
+      : provider_(provider), previous_(provider.hack_manifest()) {}
+
+  ScopedHackManifestBindingRestore(const ScopedHackManifestBindingRestore&) =
+      delete;
+  ScopedHackManifestBindingRestore& operator=(
+      const ScopedHackManifestBindingRestore&) = delete;
+
+  ~ScopedHackManifestBindingRestore() { provider_.SetHackManifest(previous_); }
+
+ private:
+  zelda3::ResourceLabelProvider& provider_;
+  const core::HackManifest* previous_ = nullptr;
+};
+
+absl::StatusOr<std::filesystem::path> CanonicalExistingPath(
+    const std::string& path, absl::string_view label) {
+  if (path.empty()) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("%s path is empty", label));
+  }
+
+  std::error_code ec;
+  auto canonical_path = std::filesystem::canonical(path, ec);
+  if (ec) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Cannot resolve %s path '%s': %s", label, path, ec.message()));
+  }
+  return canonical_path;
+}
+
+std::string FormatManifestConflict(const core::WriteConflict& conflict) {
+  std::string result =
+      absl::StrFormat("address 0x%06X is %s", conflict.address,
+                      core::AddressOwnershipToString(conflict.ownership));
+  if (!conflict.module.empty()) {
+    absl::StrAppend(&result, " (Module: ", conflict.module, ")");
+  }
+  return result;
+}
+
+bool IsCanonicalMappedLoRomAddress(uint32_t address) {
+  const uint8_t bank = static_cast<uint8_t>((address >> 16) & 0xFFu);
+  if (bank == 0x7E || bank == 0x7F || (address & 0xFFFFu) < 0x8000u) {
+    return false;
+  }
+  return PcToSnes(SnesToPc(address)) == address;
+}
+
+absl::StatusOr<ExpandedMutationContext> PreflightExpandedMutation(
+    const resources::ArgumentParser& parser, const Rom& rom) {
+  auto project_path = parser.GetString("project");
+  if (!project_path.has_value() || project_path->empty()) {
+    return absl::FailedPreconditionError(
+        "Expanded message mutation requires explicit --project so Yaze can "
+        "verify ROM ownership and write policy");
+  }
+  if (!rom.is_loaded()) {
+    return absl::FailedPreconditionError("ROM is not loaded");
+  }
+
+  ExpandedMutationContext context;
+  auto& resource_labels = zelda3::GetResourceLabels();
+  absl::Status open_status;
+  {
+    // YazeProject::Open temporarily installs its manifest in the
+    // process-global label provider. Restore the embedding application's prior
+    // non-owning pointer on every path, including malformed project data that
+    // throws from a parser.
+    ScopedHackManifestBindingRestore restore_manifest(resource_labels);
+    try {
+      open_status = context.project.Open(*project_path);
+    } catch (const std::exception& error) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Cannot load project '%s': %s", *project_path, error.what()));
+    } catch (...) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Cannot load project '%s': unknown project parse error",
+          *project_path));
+    }
+  }
+  if (!open_status.ok()) {
+    return absl::Status(open_status.code(),
+                        absl::StrFormat("Cannot load project '%s': %s",
+                                        *project_path, open_status.message()));
+  }
+
+  auto active_rom_path_or = CanonicalExistingPath(rom.filename(), "active ROM");
+  if (!active_rom_path_or.ok()) {
+    return active_rom_path_or.status();
+  }
+  auto project_rom_path_or = CanonicalExistingPath(
+      context.project.GetAbsolutePath(context.project.rom_filename),
+      "project ROM");
+  if (!project_rom_path_or.ok()) {
+    return project_rom_path_or.status();
+  }
+  if (*active_rom_path_or != *project_rom_path_or) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Project ROM mismatch: active ROM is '%s' but --project binds to '%s'",
+        active_rom_path_or->string(), project_rom_path_or->string()));
+  }
+
+  const auto& manifest = context.project.hack_manifest;
+  if (!manifest.loaded()) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Project '%s' has no loaded hack manifest; configure a valid "
+        "hack_manifest_file before mutating expanded messages",
+        *project_path));
+  }
+
+  const auto& layout = manifest.message_layout();
+  if (layout.data_start == 0 || layout.data_end == 0 ||
+      layout.data_end < layout.data_start ||
+      !IsCanonicalMappedLoRomAddress(layout.data_start) ||
+      !IsCanonicalMappedLoRomAddress(layout.data_end)) {
+    return absl::FailedPreconditionError(
+        "Hack manifest does not define a valid LoROM expanded message region");
+  }
+
+  const uint32_t start = SnesToPc(layout.data_start);
+  const uint32_t end = SnesToPc(layout.data_end);
+  if (end < start ||
+      end > static_cast<uint32_t>(std::numeric_limits<int>::max()) ||
+      end >= rom.size()) {
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Configured expanded message region [0x%06X, 0x%06X] is outside the "
+        "active ROM (size=0x%zX)",
+        start, end, rom.size()));
+  }
+  context.start = static_cast<int>(start);
+  context.end = static_cast<int>(end);
+
+  // Even a manifest without ID metadata has a strict physical upper bound:
+  // each message requires at least a 0x7F terminator and the bank needs a final
+  // 0xFF. Keeping this limit finite prevents hostile IDs from driving a huge
+  // sparse-vector allocation.
+  const int region_capacity = context.end - context.start + 1;
+  const int capacity_message_limit = std::max(0, region_capacity - 1);
+  context.message_limit = capacity_message_limit;
+  if (layout.expanded_count > 0) {
+    context.message_limit =
+        std::min(layout.expanded_count, capacity_message_limit);
+  }
+  if (layout.last_expanded_id >= layout.first_expanded_id &&
+      (layout.first_expanded_id != 0 || layout.last_expanded_id != 0)) {
+    const int declared_limit =
+        static_cast<int>(layout.last_expanded_id - layout.first_expanded_id) +
+        1;
+    context.message_limit = std::min(context.message_limit, declared_limit);
+  }
+
+  const std::string lowered_hack_name =
+      absl::AsciiStrToLower(manifest.hack_name());
+  if (context.project.rom_metadata.write_policy ==
+          project::RomWritePolicy::kBlock &&
+      absl::StrContains(lowered_hack_name, "oracle of secrets")) {
+    return absl::PermissionDeniedError(
+        "Oracle of Secrets expanded messages are owned by ASM. No message "
+        "bytes were written; edit Core/message.asm, rebuild Oracle of Secrets, "
+        "and reopen the rebuilt ROM before retrying.");
+  }
+
+  const auto conflicts =
+      manifest.AnalyzePcWriteRanges({{start, static_cast<uint32_t>(end + 1u)}});
+  if (!conflicts.empty()) {
+    const std::string detail = FormatManifestConflict(conflicts.front());
+    if (context.project.rom_metadata.write_policy ==
+        project::RomWritePolicy::kBlock) {
+      return absl::PermissionDeniedError(absl::StrFormat(
+          "Expanded message mutation blocked by hack manifest: %s", detail));
+    }
+    if (context.project.rom_metadata.write_policy ==
+        project::RomWritePolicy::kWarn) {
+      context.policy_warning = absl::StrFormat(
+          "Expanded message region conflicts with hack manifest: %s", detail);
+    }
+  }
+
+  return context;
+}
+
+absl::Status ValidateExpandedMessageId(int id,
+                                       const ExpandedMutationContext& context) {
+  if (id < 0) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Invalid expanded message ID: %d", id));
+  }
+  if (context.message_limit >= 0 && id >= context.message_limit) {
+    return absl::OutOfRangeError(absl::StrFormat(
+        "Expanded message ID %d is outside the manifest range (count=%d)", id,
+        context.message_limit));
+  }
+  return absl::OkStatus();
+}
+
+absl::Status ValidateExpandedMessageBankSize(
+    size_t message_count, const ExpandedMutationContext& context) {
+  if (context.message_limit >= 0 &&
+      message_count > static_cast<size_t>(context.message_limit)) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Expanded message bank contains %zu messages, exceeding the manifest "
+        "limit of %d; no changes were applied",
+        message_count, context.message_limit));
+  }
+  return absl::OkStatus();
 }
 }  // namespace
 
@@ -581,51 +820,72 @@ absl::Status MessageImportBundleCommandHandler::Execute(
       return absl::OkStatus();
     }
 
+    std::optional<ExpandedMutationContext> expanded_context;
+    if (IncludeExpanded(range) && has_expanded_entries) {
+      auto context_or = PreflightExpandedMutation(parser, *active_rom);
+      if (!context_or.ok()) {
+        error_count++;
+        formatter.AddField("status", "error");
+        formatter.AddField("error", std::string(context_or.status().message()));
+        formatter.AddField("parse_error_count", parse_error_count);
+        formatter.AddField("error_count", error_count);
+        formatter.EndObject();
+        return context_or.status();
+      }
+      expanded_context.emplace(std::move(context_or.value()));
+      if (!expanded_context->policy_warning.empty()) {
+        formatter.AddField("write_policy_warning",
+                           expanded_context->policy_warning);
+      }
+    }
+
+    // Build both replacement banks and validate every selected ID before the
+    // first ROM write. This keeps a bad expanded ID from landing after a
+    // successful vanilla mutation in a mixed bundle.
+    std::vector<editor::MessageData> vanilla_messages;
     if (IncludeVanilla(range) && has_vanilla_entries) {
-      auto vanilla_messages = editor::ReadAllTextData(
+      vanilla_messages = editor::ReadAllTextData(
           const_cast<uint8_t*>(active_rom->data()), editor::kTextData);
-      for (const auto& parsed : parsed_entries) {
-        if (parsed.entry.bank != editor::MessageBank::kVanilla) {
-          continue;
-        }
+    }
+
+    std::vector<std::string> expanded_texts;
+    if (expanded_context.has_value()) {
+      const auto expanded_messages = ReadExpandedMessages(
+          *active_rom, expanded_context->start, expanded_context->end);
+      auto bank_size_status = ValidateExpandedMessageBankSize(
+          expanded_messages.size(), *expanded_context);
+      if (!bank_size_status.ok()) {
+        formatter.AddField("status", "error");
+        formatter.AddField("error", std::string(bank_size_status.message()));
+        formatter.EndObject();
+        return bank_size_status;
+      }
+      expanded_texts.reserve(expanded_messages.size());
+      for (const auto& message : expanded_messages) {
+        expanded_texts.push_back(message.RawString);
+      }
+    }
+
+    for (const auto& parsed : parsed_entries) {
+      if (parsed.entry.bank == editor::MessageBank::kVanilla) {
         if (parsed.entry.id < 0 ||
             parsed.entry.id >= static_cast<int>(vanilla_messages.size())) {
           has_errors = true;
           error_count++;
           continue;
         }
-        auto& msg = vanilla_messages[parsed.entry.id];
-        msg.RawString = parsed.entry.text;
-        msg.ContentsParsed = parsed.entry.text;
-        msg.Data = parsed.parse.bytes;
-        msg.DataParsed = parsed.parse.bytes;
-        applied_updates++;
-      }
-
-      if (!has_errors) {
-        auto status = editor::WriteAllTextData(active_rom, vanilla_messages);
-        if (!status.ok()) {
-          formatter.AddField("status", "error");
-          formatter.AddField("error", std::string(status.message()));
-          formatter.EndObject();
-          return absl::OkStatus();
-        }
-      }
-    }
-
-    if (IncludeExpanded(range) && has_expanded_entries) {
-      auto expanded_messages = ReadExpandedMessages(*active_rom);
-      std::vector<std::string> expanded_texts;
-      expanded_texts.reserve(expanded_messages.size());
-      for (const auto& msg : expanded_messages) {
-        expanded_texts.push_back(msg.RawString);
-      }
-
-      for (const auto& parsed : parsed_entries) {
-        if (parsed.entry.bank != editor::MessageBank::kExpanded) {
+        auto& message = vanilla_messages[parsed.entry.id];
+        message.RawString = parsed.entry.text;
+        message.ContentsParsed = parsed.entry.text;
+        message.Data = parsed.parse.bytes;
+        message.DataParsed = parsed.parse.bytes;
+      } else {
+        if (!expanded_context.has_value()) {
           continue;
         }
-        if (parsed.entry.id < 0) {
+        const auto id_status =
+            ValidateExpandedMessageId(parsed.entry.id, *expanded_context);
+        if (!id_status.ok()) {
           has_errors = true;
           error_count++;
           continue;
@@ -634,35 +894,47 @@ absl::Status MessageImportBundleCommandHandler::Execute(
           expanded_texts.resize(parsed.entry.id + 1);
         }
         expanded_texts[parsed.entry.id] = parsed.entry.text;
-        applied_updates++;
       }
-
-      if (!has_errors) {
-        auto status = editor::WriteExpandedTextData(
-            active_rom, editor::GetExpandedTextDataStart(),
-            editor::GetExpandedTextDataEnd(), expanded_texts);
-        if (!status.ok()) {
-          formatter.AddField("status", "error");
-          formatter.AddField("error", std::string(status.message()));
-          formatter.EndObject();
-          return absl::OkStatus();
-        }
-      }
+      applied_updates++;
     }
 
     if (has_errors) {
       formatter.AddField("status", "error");
       formatter.AddField("error", "Invalid message IDs; no changes applied");
     } else {
+      ScopedRomTransaction transaction(*active_rom);
+      if (IncludeVanilla(range) && has_vanilla_entries) {
+        auto status = editor::WriteAllTextData(active_rom, vanilla_messages);
+        if (!status.ok()) {
+          formatter.AddField("status", "error");
+          formatter.AddField("error", std::string(status.message()));
+          formatter.EndObject();
+          return status;
+        }
+      }
+
+      if (expanded_context.has_value()) {
+        auto status = editor::WriteExpandedTextData(
+            active_rom, expanded_context->start, expanded_context->end,
+            expanded_texts);
+        if (!status.ok()) {
+          formatter.AddField("status", "error");
+          formatter.AddField("error", std::string(status.message()));
+          formatter.EndObject();
+          return status;
+        }
+      }
+
       if (active_rom->dirty()) {
         auto save_status = active_rom->SaveToFile({.save_new = false});
         if (!save_status.ok()) {
           formatter.AddField("status", "error");
           formatter.AddField("error", std::string(save_status.message()));
           formatter.EndObject();
-          return absl::OkStatus();
+          return save_status;
         }
       }
+      transaction.Commit();
       formatter.AddField("status", "success");
       formatter.AddField("applied_messages", applied_updates);
     }
@@ -704,37 +976,51 @@ absl::Status MessageWriteCommandHandler::Execute(
     return absl::InvalidArgumentError("Encoding produced no bytes");
   }
 
+  auto context_or = PreflightExpandedMutation(parser, *rom);
+  if (!context_or.ok()) {
+    return context_or.status();
+  }
+  auto context = std::move(context_or.value());
+  auto id_status = ValidateExpandedMessageId(msg_id, context);
+  if (!id_status.ok()) {
+    return id_status;
+  }
+
   // Read existing expanded messages to find the target
-  auto expanded = ReadExpandedMessages(*rom);
+  auto expanded = ReadExpandedMessages(*rom, context.start, context.end);
+  auto bank_size_status =
+      ValidateExpandedMessageBankSize(expanded.size(), context);
+  if (!bank_size_status.ok()) {
+    return bank_size_status;
+  }
 
   // Build the full message list, inserting/replacing at msg_id
   std::vector<std::string> all_texts;
-  bool replaced = false;
+  all_texts.reserve(expanded.size());
   for (const auto& msg : expanded) {
-    if (msg.ID == msg_id) {
-      all_texts.push_back(text);
-      replaced = true;
-    } else {
-      all_texts.push_back(msg.RawString);
-    }
+    all_texts.push_back(msg.RawString);
   }
-  if (!replaced) {
-    // Append as new message
-    all_texts.push_back(text);
+  if (msg_id >= static_cast<int>(all_texts.size())) {
+    all_texts.resize(msg_id + 1);
   }
+  all_texts[msg_id] = text;
 
   // Write back
-  auto status = editor::WriteExpandedTextData(
-      rom, editor::GetExpandedTextDataStart(), editor::GetExpandedTextDataEnd(),
-      all_texts);
+  ScopedRomTransaction transaction(*rom);
+  auto status =
+      editor::WriteExpandedTextData(rom, context.start, context.end, all_texts);
   if (!status.ok())
     return status;
+  transaction.Commit();
 
   formatter.BeginObject("Message Write Result");
   formatter.AddField("id", msg_id);
   formatter.AddField("text", text);
   formatter.AddField("encoded_length", static_cast<int>(bytes.size()));
   formatter.AddField("status", "success");
+  if (!context.policy_warning.empty()) {
+    formatter.AddField("write_policy_warning", context.policy_warning);
+  }
   if (!warnings.empty()) {
     formatter.BeginArray("line_width_warnings");
     for (const auto& warning : warnings) {
