@@ -35,6 +35,12 @@ void SyncModifiedBitmapToSurface(gfx::Bitmap& bitmap, const char* layer_name) {
     return;
   }
 
+  if (bitmap.depth() != 8) {
+    LOG_DEBUG("ObjectDrawer", "%s bitmap depth is not indexed 8bpp: %d",
+              layer_name, bitmap.depth());
+    return;
+  }
+
   const int width = bitmap.width();
   const int height = bitmap.height();
   if (width <= 0 || height <= 0 || surface->w < width || surface->h < height ||
