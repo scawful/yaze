@@ -257,6 +257,8 @@ class DungeonEditorV2 : public Editor {
       DungeonEditorV2RomSafetyTest_SaveAllRoomsRollsBackEarlierWritesOnLateFailure_Test;
   friend class
       DungeonEditorV2RomSafetyTest_LateCoordinatorRollbackRestoresEntranceDirtyState_Test;
+  friend class
+      DungeonEditorPaletteRefreshTest_InvalidatesRoomsUsingEditedResolvedPalette_Test;
 
   gfx::IRenderer* renderer_ = nullptr;
 
@@ -274,6 +276,7 @@ class DungeonEditorV2 : public Editor {
 
   // Sync all sub-panels to the current room configuration
   void SyncPanelsToRoom(int room_id);
+  void InvalidateDungeonPaletteUsers(int palette_id);
   uint8_t ResolveSelectedEntranceBlocksetForRoom(int room_id) const;
   void ApplyEntranceRenderContext(int room_id);
   void ConfigureViewerRenderContext(DungeonCanvasViewer* viewer, int room_id);
