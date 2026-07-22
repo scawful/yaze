@@ -152,7 +152,9 @@ These commands operate directly on ROM data (no GUI required).
 - `dungeon-list-sprites --room <hex>`
 - `dungeon-list-objects --room <hex>`
 - `dungeon-list-custom-collision --room <hex> [--tiles <hex,hex,...>] [--nonzero] [--all]`
+- `dungeon-export-custom-collision-json --out <path> [--room <hex> | --rooms <hex,hex,...> | --all] [--report <path>] [--sandbox]`
 - `dungeon-import-custom-collision-json --in <path> [--dry-run [--report <path>]] [--sandbox | --mock-rom] [--replace-all --force]`
+- `dungeon-export-water-fill-json --out <path> [--room <hex> | --rooms <hex,hex,...> | --all] [--report <path>] [--sandbox]`
 - `dungeon-import-water-fill-json --in <path> [--dry-run [--report <path>]] [--sandbox | --mock-rom] [--strict-masks]`
 - `dungeon-minecart-audit [--room <hex> | --rooms <hex,hex,...> | --all] [--only-issues]`
 - `dungeon-map --room <hex> [--layer <0|1|2>]` *(overlays Oracle custom collision tiles when present)*
@@ -180,11 +182,13 @@ sandbox copy; the source ROM and its directory remain unchanged. `--mock-rom`
 is an in-memory test mode and is rejected when combined with `--sandbox`.
 `--report` is accepted only with a non-sandbox `--dry-run`; write-mode and
 sandbox imports reject it before ROM or sandbox work. Report paths must not
-alias the active ROM, including through symlinks or hardlinks. Reports use a
-direct file write after a final identity recheck; use a trusted directory
-because a local path-swap race remains between that check and open.
-Collision/water JSON export reports use the same ROM-alias check and cannot be
-combined with `--sandbox`.
+alias the active ROM, including through symlinks or hardlinks. Reports are
+staged in exclusive same-directory temporary files and published with
+rename/replace after a final path-identity check. Collision/water JSON exports
+use the same ROM-alias checks; when `--out` and `--report` are published
+together, a partial publication is rolled back before the command returns.
+Exports may use `--sandbox`; their explicit `--out` and `--report` artifacts
+must remain separate from both the sandbox ROM and its source ROM.
 
 When `--spawn` is set, the ID must be `0x00`-`0x06`. Both entrance commands
 report the dedicated spawn fields (`quadrant`, `overworld_door_tilemap`, and
