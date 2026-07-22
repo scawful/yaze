@@ -1065,62 +1065,55 @@ void DrawStraightInterRoomStairs(const DrawContext& ctx) {
 
 void DrawPrisonCell(const DrawContext& ctx) {
   // ASM: RoomDraw_PrisonCell ($019C44)
-  // Draws prison cell bars to BOTH BG layers with horizontal flip for symmetry
-  // The ASM writes to $7E2xxx (BG1) and also uses ORA #$4000 for horizontal flip
-  // Pattern: 5 iterations drawing a complex bar pattern
-
-  if (ctx.tiles.size() < 6)
+  // The routine selects the current object-list tilemap through $BF, then
+  // writes one sparse 16x4 cell. Offsets below are the tile-coordinate form of
+  // the long writes at $019C5A-$019CC5. In particular, columns 7 and 8 remain
+  // open on rows 1-3 so objects drawn earlier (room 0x080's big-key lock) show
+  // through the cell opening.
+  if (ctx.tiles.size() < 6) {
     return;
+  }
 
-  // Prison cell layout based on ASM analysis:
-  // The routine draws 5 columns of bars, each with specific tile patterns
-  // Tiles at positions: (x, y), (x+7, y) for outer bars
-  // Middle bars with horizontal flip on one side
+  const int base_x = ctx.object.x_;
+  const int base_y = ctx.object.y_;
 
-  int base_x = ctx.object.x_;
-  int base_y = ctx.object.y_;
+  auto with_horizontal_mirror = [](gfx::TileInfo tile) {
+    // USDASM uses ORA #$4000 for these writes: force H-flip on rather than
+    // toggling whatever bit a modified ROM supplied in obj1488.
+    tile.horizontal_mirror_ = true;
+    return tile;
+  };
 
-  // Draw the prison cell pattern - 5 vertical bar segments
   for (int col = 0; col < 5; ++col) {
-    int x_offset = col;
-
-    // Each column has 4 rows of tiles
-    for (int row = 0; row < 4; ++row) {
-      size_t tile_idx = (row < static_cast<int>(ctx.tiles.size())) ? row : 0;
-
-      // Left side bar
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x_offset,
-                                   base_y + row, ctx.tiles[tile_idx]);
-
-      // Right side bar (mirrored horizontally)
-      auto mirrored_tile = ctx.tiles[tile_idx];
-      mirrored_tile.horizontal_mirror_ = !mirrored_tile.horizontal_mirror_;
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 9 - x_offset,
-                                   base_y + row, mirrored_tile);
-    }
+    const int left_x = base_x + 2 + col;
+    const int right_x = base_x + 9 + col;
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, left_x, base_y, ctx.tiles[1]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, base_y, ctx.tiles[1]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, left_x, base_y + 1,
+                                 ctx.tiles[2]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, base_y + 1,
+                                 with_horizontal_mirror(ctx.tiles[2]));
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, left_x, base_y + 2,
+                                 ctx.tiles[4]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, base_y + 2,
+                                 with_horizontal_mirror(ctx.tiles[4]));
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, left_x, base_y + 3,
+                                 ctx.tiles[5]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, base_y + 3,
+                                 with_horizontal_mirror(ctx.tiles[5]));
   }
 
-  // If we have a secondary BG buffer, draw the same pattern there
-  // This ensures the prison bars appear on both background layers
-  if (ctx.HasSecondaryBG()) {
-    for (int col = 0; col < 5; ++col) {
-      int x_offset = col;
-
-      for (int row = 0; row < 4; ++row) {
-        size_t tile_idx = (row < static_cast<int>(ctx.tiles.size())) ? row : 0;
-
-        // Left side bar
-        DrawRoutineUtils::WriteTile8(*ctx.secondary_bg, base_x + x_offset,
-                                     base_y + row, ctx.tiles[tile_idx]);
-
-        // Right side bar (mirrored)
-        auto mirrored_tile = ctx.tiles[tile_idx];
-        mirrored_tile.horizontal_mirror_ = !mirrored_tile.horizontal_mirror_;
-        DrawRoutineUtils::WriteTile8(*ctx.secondary_bg, base_x + 9 - x_offset,
-                                     base_y + row, mirrored_tile);
-      }
-    }
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, base_y, ctx.tiles[0]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 15, base_y,
+                               with_horizontal_mirror(ctx.tiles[0]));
+  for (int x_offset : {1, 7, 8, 14}) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x_offset, base_y,
+                                 ctx.tiles[1]);
   }
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, base_y + 2,
+                               ctx.tiles[3]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 14, base_y + 2,
+                               with_horizontal_mirror(ctx.tiles[3]));
 }
 
 void DrawBigKeyLock(const DrawContext& ctx) {
@@ -1716,14 +1709,16 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .category = DrawRoutineInfo::Category::Special,
   });
 
-  // Prison cell (Type 3 objects 0x20D, 0x217) draws to both BG layers.
+  // Prison cell (Type 3 objects 0x20D, 0x217) writes only to the tilemap
+  // selected by the current object stream ($BF in USDASM).
   registry.push_back(DrawRoutineInfo{
       .id = 97,  // DrawPrisonCell
       .name = "PrisonCell",
       .function = DrawPrisonCell,
-      .draws_to_both_bgs = true,
-      .base_width = 10,  // Columns x..x+9
+      .draws_to_both_bgs = false,
+      .base_width = 16,
       .base_height = 4,
+      .min_tiles = 6,
       .category = DrawRoutineInfo::Category::Special,
   });
 

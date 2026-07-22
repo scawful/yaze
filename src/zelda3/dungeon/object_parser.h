@@ -180,6 +180,7 @@ class ObjectParser {
    * @brief Get tile count for subtype 3 objects
    *
    * Different subtype 3 objects have different tile counts:
+   * - PrisonCell aliases (0xF8D/0xF97): 6 tiles from literal obj1488
    * - BigKeyLock (0xF98): 4 tiles (one closed 2x2 block)
    * - BombableFloor (0xFC7): 32 tiles (two non-contiguous 4x4 states)
    * - Chest/OpenChest (0xF99/0xF9A): 8/4 tiles (stateful/fixed 2x2)
