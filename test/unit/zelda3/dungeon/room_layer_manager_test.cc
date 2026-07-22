@@ -1,5 +1,5 @@
-#include "gtest/gtest.h"
 #include "zelda3/dungeon/room_layer_manager.h"
+#include "gtest/gtest.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze {
@@ -24,7 +24,8 @@ TEST_F(RoomLayerManagerTest, DefaultVisibilityAllLayersVisible) {
 TEST_F(RoomLayerManagerTest, SetLayerVisibleWorks) {
   manager_.SetLayerVisible(LayerType::BG1_Objects, false);
   EXPECT_FALSE(manager_.IsLayerVisible(LayerType::BG1_Objects));
-  EXPECT_TRUE(manager_.IsLayerVisible(LayerType::BG1_Layout));  // Others unchanged
+  EXPECT_TRUE(
+      manager_.IsLayerVisible(LayerType::BG1_Layout));  // Others unchanged
 
   manager_.SetLayerVisible(LayerType::BG1_Objects, true);
   EXPECT_TRUE(manager_.IsLayerVisible(LayerType::BG1_Objects));
@@ -33,13 +34,15 @@ TEST_F(RoomLayerManagerTest, SetLayerVisibleWorks) {
 TEST_F(RoomLayerManagerTest, ResetRestoresDefaults) {
   manager_.SetLayerVisible(LayerType::BG1_Layout, false);
   manager_.SetLayerVisible(LayerType::BG2_Objects, false);
-  manager_.SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Translucent);
+  manager_.SetLayerBlendMode(LayerType::BG2_Layout,
+                             LayerBlendMode::Translucent);
 
   manager_.Reset();
 
   EXPECT_TRUE(manager_.IsLayerVisible(LayerType::BG1_Layout));
   EXPECT_TRUE(manager_.IsLayerVisible(LayerType::BG2_Objects));
-  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Layout), LayerBlendMode::Normal);
+  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Layout),
+            LayerBlendMode::Normal);
 }
 
 // =============================================================================
@@ -47,15 +50,18 @@ TEST_F(RoomLayerManagerTest, ResetRestoresDefaults) {
 // =============================================================================
 
 TEST_F(RoomLayerManagerTest, DefaultBlendModeIsNormal) {
-  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG1_Layout), LayerBlendMode::Normal);
-  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Layout), LayerBlendMode::Normal);
+  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG1_Layout),
+            LayerBlendMode::Normal);
+  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Layout),
+            LayerBlendMode::Normal);
 }
 
 TEST_F(RoomLayerManagerTest, SetBlendModeUpdatesAlpha) {
   manager_.SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Normal);
   EXPECT_EQ(manager_.GetLayerAlpha(LayerType::BG2_Layout), 255);
 
-  manager_.SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Translucent);
+  manager_.SetLayerBlendMode(LayerType::BG2_Layout,
+                             LayerBlendMode::Translucent);
   EXPECT_EQ(manager_.GetLayerAlpha(LayerType::BG2_Layout), 180);
 
   manager_.SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Off);
@@ -128,7 +134,8 @@ TEST_F(RoomLayerManagerTest, ApplyLayerMergingNormal) {
   manager_.ApplyLayerMerging(merge);
 
   EXPECT_FALSE(manager_.IsBG2OnTop());  // Normal has Layer2OnTop=false
-  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Layout), LayerBlendMode::Normal);
+  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Layout),
+            LayerBlendMode::Normal);
 }
 
 TEST_F(RoomLayerManagerTest, ApplyLayerMergingTranslucent) {
@@ -136,19 +143,24 @@ TEST_F(RoomLayerManagerTest, ApplyLayerMergingTranslucent) {
   manager_.ApplyLayerMerging(merge);
 
   EXPECT_TRUE(manager_.IsBG2OnTop());
-  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Layout), LayerBlendMode::Translucent);
-  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Objects), LayerBlendMode::Translucent);
+  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Layout),
+            LayerBlendMode::Translucent);
+  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Objects),
+            LayerBlendMode::Translucent);
 }
 
 TEST_F(RoomLayerManagerTest, ApplyLayerMergingOff) {
   LayerMergeType merge{0x00, "Off", false, false, false};
   manager_.ApplyLayerMerging(merge);
 
-  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Layout), LayerBlendMode::Normal);
-  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Objects), LayerBlendMode::Normal);
+  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Layout),
+            LayerBlendMode::Normal);
+  EXPECT_EQ(manager_.GetLayerBlendMode(LayerType::BG2_Objects),
+            LayerBlendMode::Normal);
 }
 
-TEST_F(RoomLayerManagerTest, ApplyRoomEffectMovingWaterPromotesBG2Translucency) {
+TEST_F(RoomLayerManagerTest,
+       ApplyRoomEffectMovingWaterPromotesBG2Translucency) {
   manager_.SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Normal);
   manager_.SetLayerBlendMode(LayerType::BG2_Objects, LayerBlendMode::Normal);
 
@@ -177,15 +189,21 @@ TEST_F(RoomLayerManagerTest, ApplyRoomEffectPreservesExplicitBlendModes) {
 // =============================================================================
 
 TEST_F(RoomLayerManagerTest, GetLayerNameReturnsCorrectStrings) {
-  EXPECT_STREQ(RoomLayerManager::GetLayerName(LayerType::BG1_Layout), "BG1 Layout");
-  EXPECT_STREQ(RoomLayerManager::GetLayerName(LayerType::BG1_Objects), "BG1 Objects");
-  EXPECT_STREQ(RoomLayerManager::GetLayerName(LayerType::BG2_Layout), "BG2 Layout");
-  EXPECT_STREQ(RoomLayerManager::GetLayerName(LayerType::BG2_Objects), "BG2 Objects");
+  EXPECT_STREQ(RoomLayerManager::GetLayerName(LayerType::BG1_Layout),
+               "BG1 Layout");
+  EXPECT_STREQ(RoomLayerManager::GetLayerName(LayerType::BG1_Objects),
+               "BG1 Objects");
+  EXPECT_STREQ(RoomLayerManager::GetLayerName(LayerType::BG2_Layout),
+               "BG2 Layout");
+  EXPECT_STREQ(RoomLayerManager::GetLayerName(LayerType::BG2_Objects),
+               "BG2 Objects");
 }
 
 TEST_F(RoomLayerManagerTest, GetBlendModeNameReturnsCorrectStrings) {
-  EXPECT_STREQ(RoomLayerManager::GetBlendModeName(LayerBlendMode::Normal), "Normal");
-  EXPECT_STREQ(RoomLayerManager::GetBlendModeName(LayerBlendMode::Translucent), "Translucent");
+  EXPECT_STREQ(RoomLayerManager::GetBlendModeName(LayerBlendMode::Normal),
+               "Normal");
+  EXPECT_STREQ(RoomLayerManager::GetBlendModeName(LayerBlendMode::Translucent),
+               "Translucent");
   EXPECT_STREQ(RoomLayerManager::GetBlendModeName(LayerBlendMode::Off), "Off");
 }
 
