@@ -152,7 +152,7 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   editor_->palette_editor_.Initialize(&game_data_);
   editor_->palette_editor_.SetDungeonRenderPaletteMode(true);
   editor_->palette_editor_.SetCurrentPaletteId(3);
-  editor_->palette_editor_.SetOnPaletteChanged(
+  editor_->palette_editor_.SetOnDungeonPaletteChanged(
       [this](gui::DungeonPaletteChange change) {
         editor_->InvalidateDungeonPaletteUsers(change);
       });
@@ -191,7 +191,7 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   editor_->palette_editor_.Initialize(&game_data_);
   editor_->palette_editor_.SetDungeonRenderPaletteMode(true);
   editor_->palette_editor_.SetCurrentPaletteId(3);
-  editor_->palette_editor_.SetOnPaletteChanged(
+  editor_->palette_editor_.SetOnDungeonPaletteChanged(
       [this](gui::DungeonPaletteChange change) {
         editor_->InvalidateDungeonPaletteUsers(change);
       });
@@ -256,7 +256,7 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   editor_->palette_editor_.Initialize(&game_data_);
   editor_->palette_editor_.SetDungeonRenderPaletteMode(true);
   editor_->palette_editor_.SetCurrentPaletteId(3);
-  editor_->palette_editor_.SetOnPaletteChanged(
+  editor_->palette_editor_.SetOnDungeonPaletteChanged(
       [this](gui::DungeonPaletteChange change) {
         editor_->InvalidateDungeonPaletteUsers(change);
       });
@@ -283,15 +283,71 @@ TEST_F(DungeonEditorPaletteRefreshTest,
 }
 
 TEST_F(DungeonEditorPaletteRefreshTest,
-       LegacyPaletteIdCallbackRemainsSupported) {
+       CachedCompositePreparationPreservesTargetEntranceContext) {
+  constexpr int kCachedRoomId = 1;
+  constexpr uint8_t kTargetEntranceBlockset = 1;
+  constexpr uint8_t kViewerEntranceBlockset = 2;
+  constexpr uint8_t kTargetSheet = 9;
+  constexpr uint8_t kViewerSheet = 10;
+  game_data_.main_blockset_ids[kTargetEntranceBlockset][0] = kTargetSheet;
+  game_data_.main_blockset_ids[kViewerEntranceBlockset][0] = kViewerSheet;
+
+  DungeonRoomStore rooms(&rom_, &game_data_);
+  auto& cached_room = rooms[kCachedRoomId];
+  cached_room.SetTileObjects({});
+  cached_room.SetRenderEntranceBlockset(kTargetEntranceBlockset);
+  cached_room.PrepareForRender();
+  ASSERT_EQ(cached_room.render_entrance_blockset(), kTargetEntranceBlockset);
+  ASSERT_EQ(cached_room.blocks()[0], kTargetSheet);
+  cached_room.MarkGraphicsDirty();
+
+  DungeonCanvasViewer viewer(&rom_);
+  viewer.SetGameData(&game_data_);
+  viewer.SetRooms(&rooms);
+  viewer.SetEntranceRenderContext(/*entrance_id=*/0x12,
+                                  kViewerEntranceBlockset);
+
+  ASSERT_NE(viewer.PrepareRoomCompositeBitmap(kCachedRoomId), nullptr);
+  EXPECT_EQ(cached_room.render_entrance_blockset(), kTargetEntranceBlockset);
+  EXPECT_EQ(cached_room.blocks()[0], kTargetSheet);
+  EXPECT_NE(cached_room.blocks()[0], kViewerSheet);
+  gfx::Arena::Get().ClearTextureQueue();
+}
+
+TEST_F(DungeonEditorPaletteRefreshTest,
+       CompareViewerScopesEntranceContextToRequestedRoom) {
+  constexpr int kCompareRoomId = 1;
+  constexpr int kUnrelatedRoomId = 2;
+  constexpr uint8_t kEntranceBlockset = 3;
+  editor_->current_room_id_ = 0;
+  editor_->current_entrance_id_ = 0;
+  editor_->entrances_[0].room_ = kCompareRoomId;
+  editor_->entrances_[0].blockset_ = kEntranceBlockset;
+
+  DungeonCanvasViewer* compare_viewer =
+      editor_->GetWorkbenchCompareViewer(kCompareRoomId);
+  ASSERT_NE(compare_viewer, nullptr);
+  EXPECT_EQ(compare_viewer->current_entrance_id(), 0);
+  EXPECT_EQ(compare_viewer->current_entrance_blockset(), kEntranceBlockset);
+
+  compare_viewer = editor_->GetWorkbenchCompareViewer(kUnrelatedRoomId);
+  ASSERT_NE(compare_viewer, nullptr);
+  EXPECT_EQ(compare_viewer->current_entrance_id(), -1);
+  EXPECT_EQ(compare_viewer->current_entrance_blockset(), 0xFF);
+}
+
+TEST_F(DungeonEditorPaletteRefreshTest,
+       LegacyPaletteIdCallbackSupportsGenericLambdaAndNullReset) {
   gui::PaletteEditorWidget widget;
   widget.Initialize(&game_data_);
   widget.SetDungeonRenderPaletteMode(true);
   widget.SetCurrentPaletteId(3);
 
   int notified_palette_id = -1;
-  widget.SetOnPaletteChanged([&notified_palette_id](int palette_id) {
+  int callback_count = 0;
+  widget.SetOnPaletteChanged([&](auto palette_id) {
     notified_palette_id = palette_id;
+    ++callback_count;
   });
 
   ASSERT_TRUE(widget
@@ -299,6 +355,14 @@ TEST_F(DungeonEditorPaletteRefreshTest,
                       /*display_index=*/33, gfx::SnesColor(0x4210))
                   .ok());
   EXPECT_EQ(notified_palette_id, 3);
+  EXPECT_EQ(callback_count, 1);
+
+  widget.SetOnPaletteChanged(nullptr);
+  ASSERT_TRUE(widget
+                  .ApplyDungeonRenderColorEdit(
+                      /*display_index=*/34, gfx::SnesColor(0x5294))
+                  .ok());
+  EXPECT_EQ(callback_count, 1);
 }
 
 }  // namespace yaze::editor
