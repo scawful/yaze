@@ -78,6 +78,13 @@ constexpr int kRoom012YazeRoiX = 160;
 constexpr int kRoom012YazeRoiY = 353;
 constexpr int kRoom012RoiWidth = 48;
 constexpr int kRoom012RoiHeight = 64;
+constexpr int kRoom012MesenCarpetX = 128;
+constexpr int kRoom012MesenCarpetY = 64;
+constexpr int kRoom012YazeCarpetX = 256;
+constexpr int kRoom012YazeCarpetY = 337;
+constexpr uint8_t kRoom012CarpetR = 107;
+constexpr uint8_t kRoom012CarpetG = 33;
+constexpr uint8_t kRoom012CarpetB = 33;
 
 ::yaze::test::Screenshot CaptureRgbaRegion(const gfx::Bitmap& bitmap, int x,
                                            int y, int width, int height) {
@@ -402,6 +409,49 @@ TEST_F(DungeonRoomRegressionFixturesTest,
   EXPECT_EQ(result.total_pixels, kRoom012RoiWidth * kRoom012RoiHeight);
   EXPECT_TRUE(actual.data == expected.data)
       << "Mesen and yaze ROI RGBA bytes must match exactly.";
+#endif
+}
+
+TEST_F(DungeonRoomRegressionFixturesTest,
+       Room012CarpetPixelMatchesIndependentMesenBaseline) {
+#if !defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
+  GTEST_SKIP() << "libpng-backed VisualDiffEngine is unavailable.";
+#else
+  SCOPED_TRACE(::testing::Message()
+               << "Mesen carpet pixel (" << kRoom012MesenCarpetX << ","
+               << kRoom012MesenCarpetY << ")");
+  if (rom_.size() < kCanonicalUsRomSize) {
+    GTEST_SKIP() << "Mesen baseline requires the canonical US ROM data.";
+  }
+  const std::string base_sha1 =
+      util::ComputeSha1Hex(rom_.data(), kCanonicalUsRomSize);
+  if (base_sha1 != kCanonicalUsRomSha1) {
+    GTEST_SKIP() << "Mesen baseline was captured from US ROM SHA-1 "
+                 << kCanonicalUsRomSha1 << "; loaded ROM begins with "
+                 << base_sha1 << ".";
+  }
+
+  Room room = LoadRoomFromRom(&rom_, 0x012);
+  room.SetGameData(&game_data_);
+  room.LoadSprites();
+  room.LoadRoomGraphics();
+  room.RenderRoomGraphics();
+
+  RoomLayerManager layer_manager;
+  const auto& composite = room.GetCompositeBitmap(layer_manager);
+  ASSERT_TRUE(composite.is_active());
+  ASSERT_NE(composite.surface(), nullptr);
+  ASSERT_GT(composite.width(), kRoom012YazeCarpetX);
+  ASSERT_GT(composite.height(), kRoom012YazeCarpetY);
+
+  const auto actual = CaptureRgbaRegion(composite, kRoom012YazeCarpetX,
+                                        kRoom012YazeCarpetY, 1, 1);
+  ASSERT_TRUE(actual.IsValid());
+  ASSERT_EQ(actual.data.size(), 4u);
+  EXPECT_EQ(actual.data[0], kRoom012CarpetR);
+  EXPECT_EQ(actual.data[1], kRoom012CarpetG);
+  EXPECT_EQ(actual.data[2], kRoom012CarpetB);
+  EXPECT_EQ(actual.data[3], 0xFF);
 #endif
 }
 

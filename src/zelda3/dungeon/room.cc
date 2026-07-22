@@ -901,22 +901,25 @@ void Room::CopyRoomGraphicsToBuffer() {
   //
   // For background graphics sets, the game selects Left/Right based on the
   // active main graphics group ($0AA1) and the slot index ($0F).
-  // For UW groups (< $20), slots 4-7 use Right; for OW groups (>= $20), the
-  // Right slots are {2,3,4,7}. We mirror this by shifting non-zero pixels by
-  // +8 when copying those background blocks into current_gfx16_.
+  // InitializeTilesets starts $0F at 7 for destination block 0 and decrements
+  // it through destination block 7, so the runtime slot is 7 - block. For UW
+  // groups (< $20), runtime slots 4-7 use Right; for OW groups (>= $20), the
+  // Right runtime slots are {2,3,4,7}.
   const uint8_t active_main_blockset =
       resolved_main_blockset_ != 0xFF
           ? resolved_main_blockset_
           : (render_entrance_blockset_ != 0xFF ? render_entrance_blockset_
                                                : blockset_);
-  auto is_right_palette_background_slot = [&](int slot) -> bool {
-    if (slot < 0 || slot >= 8) {
+  auto is_right_palette_background_slot = [&](int block) -> bool {
+    if (block < 0 || block >= 8) {
       return false;
     }
+    const int runtime_slot = 7 - block;
     if (active_main_blockset < 0x20) {
-      return slot >= 4;
+      return runtime_slot >= 4;
     }
-    return (slot == 2 || slot == 3 || slot == 4 || slot == 7);
+    return (runtime_slot == 2 || runtime_slot == 3 || runtime_slot == 4 ||
+            runtime_slot == 7);
   };
 
   // Process each of the 16 graphics blocks
