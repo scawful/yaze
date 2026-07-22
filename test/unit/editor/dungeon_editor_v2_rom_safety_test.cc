@@ -326,6 +326,7 @@ TEST(DungeonEditorV2RomSafetyTest,
   auto& room = editor->rooms()[0];
   room.SetLoaded(true);
   ASSERT_TRUE(room.AddObject(zelda3::RoomObject(0x10, 10, 10, 0, 0)).ok());
+  room.SetLayoutId(3);
 
   DungeonSaveFlagsGuard guard;
   ConfigureMinimalDungeonSave();
@@ -351,7 +352,9 @@ TEST(DungeonEditorV2RomSafetyTest,
   EXPECT_EQ(SnesToPc(*rom.ReadLong(0x0F8003)), kRoom0ObjectPc);
   EXPECT_TRUE(std::equal(old_stream.begin(), old_stream.end(),
                          rom.data() + kRoom0ObjectPc));
+  EXPECT_EQ((rom.data()[kObjectAllocationPc + 1] >> 2) & 0x07, 3);
   EXPECT_FALSE(room.object_stream_dirty());
+  EXPECT_FALSE(room.object_stream_header_dirty());
 }
 
 TEST(DungeonEditorV2RomSafetyTest,
@@ -1576,6 +1579,42 @@ TEST(DungeonEditorV2RomSafetyTest,
 
   editor->rooms()[0].SetPalette(0x2A);
   EXPECT_FALSE(editor->CollectWriteRanges().empty());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     SaveRoomPersistsObjectHeaderPropertiesUnderSaveObjects) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SetupRoomObjectPointers(rom);
+  rom.mutable_data()[kRoom0ObjectPc] = 0xA5;
+  rom.mutable_data()[kRoom0ObjectPc + 1] = 0xE3;
+  const std::vector<uint8_t> payload_before(rom.data() + kRoom0ObjectPc + 2,
+                                            rom.data() + kRoom0ObjectPc + 10);
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  editor->rooms()[0] = zelda3::LoadRoomFromRom(&rom, 0);
+  editor->rooms()[0].SetLayoutId(3);
+  editor->rooms()[0].set_floor1(2);
+  editor->rooms()[0].set_floor2(4);
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+
+  const auto write_ranges = editor->CollectWriteRanges();
+  EXPECT_NE(std::find(write_ranges.begin(), write_ranges.end(),
+                      std::pair<uint32_t, uint32_t>{kRoom0ObjectPc,
+                                                    kRoom0ObjectPc + 2}),
+            write_ranges.end());
+  ASSERT_TRUE(editor->SaveRoom(0).ok());
+
+  const zelda3::Room reloaded = zelda3::LoadRoomFromRom(&rom, 0);
+  EXPECT_EQ(reloaded.layout_id(), 3);
+  EXPECT_EQ(reloaded.floor1(), 2);
+  EXPECT_EQ(reloaded.floor2(), 4);
+  EXPECT_EQ(rom.data()[kRoom0ObjectPc + 1] & 0xE3, 0xE3);
+  EXPECT_TRUE(std::equal(payload_before.begin(), payload_before.end(),
+                         rom.data() + kRoom0ObjectPc + 2));
+  EXPECT_FALSE(editor->rooms()[0].object_stream_header_dirty());
 }
 
 TEST(DungeonEditorV2RomSafetyTest, PendingRoomCountTracksRoomDirtyState) {
