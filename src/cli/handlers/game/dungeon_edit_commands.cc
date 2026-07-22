@@ -15,6 +15,7 @@
 #include "core/project.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "rom/transaction.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/room.h"
@@ -83,7 +84,7 @@ absl::Status ValidateSpriteCoord(int value, char axis) {
 absl::Status SaveRomWithBackup(Rom* rom,
                                resources::OutputFormatter& formatter) {
   Rom::SaveSettings save_settings;
-  save_settings.backup = true;
+  save_settings.require_backup = true;
   auto disk_status = rom->SaveToFile(save_settings);
   if (!disk_status.ok()) {
     formatter.AddField("save_error", std::string(disk_status.message()));
@@ -91,6 +92,24 @@ absl::Status SaveRomWithBackup(Rom* rom,
   }
 
   formatter.AddField("save_status", "saved");
+  return absl::OkStatus();
+}
+
+template <typename Mutation>
+absl::Status MutateAndSaveRomWithBackup(Rom* rom,
+                                        resources::OutputFormatter& formatter,
+                                        Mutation&& mutation) {
+  ScopedRomTransaction transaction(*rom);
+
+  auto write_status = std::forward<Mutation>(mutation)();
+  if (!write_status.ok()) {
+    formatter.AddField("write_error", std::string(write_status.message()));
+    return write_status;
+  }
+  formatter.AddField("write_status", "success");
+
+  RETURN_IF_ERROR(SaveRomWithBackup(rom, formatter));
+  transaction.Commit();
   return absl::OkStatus();
 }
 
@@ -315,18 +334,11 @@ absl::Status DungeonPlaceSpriteCommandHandler::Execute(
   formatter.AddField("mode", do_write ? "write" : "dry-run");
 
   if (do_write) {
-    auto save_status = room.SaveSprites();
+    auto save_status = MutateAndSaveRomWithBackup(
+        rom, formatter, [&room]() { return room.SaveSprites(); });
     if (!save_status.ok()) {
-      formatter.AddField("write_error", std::string(save_status.message()));
       formatter.EndObject();
       return save_status;
-    }
-    formatter.AddField("write_status", "success");
-
-    auto disk_status = SaveRomWithBackup(rom, formatter);
-    if (!disk_status.ok()) {
-      formatter.EndObject();
-      return disk_status;
     }
   }
 
@@ -440,18 +452,11 @@ absl::Status DungeonRemoveSpriteCommandHandler::Execute(
   formatter.AddField("mode", do_write ? "write" : "dry-run");
 
   if (do_write) {
-    auto save_status = room.SaveSprites();
+    auto save_status = MutateAndSaveRomWithBackup(
+        rom, formatter, [&room]() { return room.SaveSprites(); });
     if (!save_status.ok()) {
-      formatter.AddField("write_error", std::string(save_status.message()));
       formatter.EndObject();
       return save_status;
-    }
-    formatter.AddField("write_status", "success");
-
-    auto disk_status = SaveRomWithBackup(rom, formatter);
-    if (!disk_status.ok()) {
-      formatter.EndObject();
-      return disk_status;
     }
   }
 
@@ -593,18 +598,11 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
   formatter.AddField("preflight_status", "success");
 
   if (do_write) {
-    auto save_status = room.SaveObjects(layout);
+    auto save_status = MutateAndSaveRomWithBackup(
+        rom, formatter, [&room, layout]() { return room.SaveObjects(layout); });
     if (!save_status.ok()) {
-      formatter.AddField("write_error", std::string(save_status.message()));
       formatter.EndObject();
       return save_status;
-    }
-    formatter.AddField("write_status", "success");
-
-    auto disk_status = SaveRomWithBackup(rom, formatter);
-    if (!disk_status.ok()) {
-      formatter.EndObject();
-      return disk_status;
     }
   }
 
@@ -712,20 +710,15 @@ absl::Status DungeonSetCollisionTileCommandHandler::Execute(
   formatter.EndArray();
 
   if (do_write) {
-    // Flush collision changes to ROM
-    std::array<zelda3::Room, 1> rooms_arr = {std::move(room)};
-    auto save_status = zelda3::SaveAllCollision(rom, absl::MakeSpan(rooms_arr));
+    auto save_status =
+        MutateAndSaveRomWithBackup(rom, formatter, [&rom, &room]() mutable {
+          // Flush collision changes to ROM.
+          std::array<zelda3::Room, 1> rooms_arr = {std::move(room)};
+          return zelda3::SaveAllCollision(rom, absl::MakeSpan(rooms_arr));
+        });
     if (!save_status.ok()) {
-      formatter.AddField("write_error", std::string(save_status.message()));
       formatter.EndObject();
       return save_status;
-    }
-    formatter.AddField("write_status", "success");
-
-    auto disk_status = SaveRomWithBackup(rom, formatter);
-    if (!disk_status.ok()) {
-      formatter.EndObject();
-      return disk_status;
     }
   }
 
