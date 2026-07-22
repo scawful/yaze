@@ -16,6 +16,16 @@
 namespace yaze {
 namespace gui {
 
+enum class DungeonRenderPaletteSource {
+  kHud,
+  kDungeonMain,
+};
+
+struct DungeonPaletteChange {
+  int palette_id;
+  DungeonRenderPaletteSource source;
+};
+
 class PaletteEditorWidget {
  public:
   PaletteEditorWidget() = default;
@@ -38,8 +48,21 @@ class PaletteEditorWidget {
   void SavePaletteBackup(const gfx::SnesPalette& palette);
   bool RestorePaletteBackup(gfx::SnesPalette& palette);
 
-  // Callback when palette is modified
-  void SetOnPaletteChanged(std::function<void(int palette_id)> callback) {
+  // Original palette-id-only callback retained for source compatibility.
+  void SetOnPaletteChanged(std::function<void(int)> callback) {
+    if (!callback) {
+      on_palette_changed_ = {};
+      return;
+    }
+    on_palette_changed_ = [callback](DungeonPaletteChange change) {
+      callback(change.palette_id);
+    };
+  }
+
+  // Typed callback for dungeon rendering consumers that must distinguish
+  // shared HUD edits from palette-scoped dungeon-main edits.
+  void SetOnDungeonPaletteChanged(
+      std::function<void(DungeonPaletteChange)> callback) {
     on_palette_changed_ = callback;
   }
 
@@ -92,7 +115,7 @@ class PaletteEditorWidget {
   ImVec4 editing_color_{0, 0, 0, 1};
 
   // Callback for palette changes
-  std::function<void(int palette_id)> on_palette_changed_;
+  std::function<void(DungeonPaletteChange)> on_palette_changed_;
 
   // Color editing state
   int editing_color_index_ = -1;
