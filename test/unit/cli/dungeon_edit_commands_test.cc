@@ -23,6 +23,10 @@
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
+
 namespace yaze::cli {
 namespace {
 
@@ -69,6 +73,7 @@ int CountBackupArtifacts(const std::filesystem::path& rom_path) {
 void CleanupRomArtifacts(const std::filesystem::path& rom_path) {
   std::error_code ec;
   std::filesystem::remove(rom_path, ec);
+  std::filesystem::remove_all(rom_path.string() + ".tmp", ec);
 
   const auto parent = rom_path.parent_path();
   const std::string prefix = rom_path.filename().string() + "_backup_";
@@ -232,6 +237,18 @@ void WriteSpriteStream(Rom* rom, int pc_addr, uint8_t sort_mode,
   ASSERT_TRUE(rom->WriteVector(pc_addr, std::move(bytes)).ok());
 }
 
+std::vector<uint8_t> EncodeSpritePayload(int count, uint8_t id_base = 0x10) {
+  std::vector<uint8_t> payload;
+  payload.reserve(count * 3 + 1);
+  for (int i = 0; i < count; ++i) {
+    payload.push_back(0x0A + (i & 0x07));
+    payload.push_back(0x0B + (i & 0x07));
+    payload.push_back(id_base + i);
+  }
+  payload.push_back(0xFF);
+  return payload;
+}
+
 TEST(DungeonEditCommandsTest, PlaceSpriteRejectsInvalidX) {
   handlers::DungeonPlaceSpriteCommandHandler handler;
   std::string output;
@@ -393,6 +410,69 @@ TEST(DungeonEditCommandsTest,
 }
 
 TEST(DungeonEditCommandsTest,
+     PlaceSpriteRequiredBackupFailureRollsBackCallerRom) {
+#if defined(_WIN32)
+  GTEST_SKIP() << "NAME_MAX backup failure fixture is POSIX-only";
+#else
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+
+  rom.mutable_data()[zelda3::kRoomsSpritePointer] = 0x00;
+  rom.mutable_data()[zelda3::kRoomsSpritePointer + 1] = 0x80;
+  const int table_pc = SnesToPc(0x098000);
+  for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    SetRoomSpritePointer(&rom, table_pc, room_id, zelda3::kSpritesData + 0x20);
+  }
+  SetRoomSpritePointer(&rom, table_pc, 0, zelda3::kSpritesData);
+  WriteSpriteStream(&rom, zelda3::kSpritesData, 0x00, EncodeSpritePayload(0));
+  WriteSpriteStream(&rom, zelda3::kSpritesData + 0x20, 0x00,
+                    EncodeSpritePayload(0));
+
+  const auto parent = std::filesystem::temp_directory_path();
+  const long name_max = pathconf(parent.c_str(), _PC_NAME_MAX);
+  if (name_max < 128) {
+    GTEST_SKIP() << "Filesystem does not expose a usable NAME_MAX";
+  }
+  const auto nonce =
+      std::chrono::steady_clock::now().time_since_epoch().count();
+  std::string filename = "yaze_required_backup_" + std::to_string(nonce);
+  const size_t target_length = static_cast<size_t>(name_max) - 4;
+  ASSERT_LT(filename.size(), target_length);
+  filename.append(target_length - filename.size(), 'r');
+
+  ScopedRomArtifactsCleanup cleanup(parent / filename);
+  WriteRomFile(rom, cleanup.rom_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+  const int pointer_before = ReadRoomSpritePointerPc(rom, table_pc, 0);
+  const bool dirty_before = rom.dirty();
+  const std::string filename_before = rom.filename();
+
+  handlers::DungeonPlaceSpriteCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--room=0x00", "--id=0xA3", "--x=16", "--y=21",
+                   "--subtype=4", "--write", "--format=json"},
+                  &rom, &output);
+
+  EXPECT_FALSE(status.ok());
+  EXPECT_THAT(std::string(status.message()), HasSubstr("required ROM backup"));
+  EXPECT_THAT(output, HasSubstr("\"write_status\": \"success\""));
+  EXPECT_THAT(output, HasSubstr("\"save_error\""));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.dirty(), dirty_before);
+  EXPECT_EQ(rom.filename(), filename_before);
+  EXPECT_EQ(ReadRoomSpritePointerPc(rom, table_pc, 0), pointer_before);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_FALSE(std::filesystem::exists(cleanup.rom_path.string() + ".tmp"));
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+#endif
+}
+
+TEST(DungeonEditCommandsTest,
      PlaceObjectDryRunMatchesManifestlessWriteFailure) {
   Rom rom;
   InitializeTightObjectRom(&rom);
@@ -493,6 +573,48 @@ TEST(DungeonEditCommandsTest,
   zelda3::Room untouched = zelda3::LoadRoomFromRom(&reopened, 1);
   EXPECT_TRUE(untouched.GetTileObjects().empty());
   EXPECT_EQ(ReadRoomObjectPointerPc(reopened, 1), kObjectDataPc + 10);
+}
+
+TEST(DungeonEditCommandsTest,
+     PlaceObjectDiskSaveFailureRollsBackCowPlanAndCallerRom) {
+  Rom rom;
+  InitializeTightObjectRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  ASSERT_TRUE(
+      std::filesystem::create_directory(cleanup.rom_path.string() + ".tmp"));
+
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+  const int pointer_before = ReadRoomObjectPointerPc(rom, 0);
+  const bool dirty_before = rom.dirty();
+  const std::string filename_before = rom.filename();
+
+  handlers::DungeonPlaceObjectCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--id=0x0031", "--x=1", "--y=2", "--size=6",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--write", "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsInternal(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("Could not open temp ROM file for writing"));
+  EXPECT_THAT(output, HasSubstr("\"preflight_status\": \"success\""));
+  EXPECT_THAT(output, HasSubstr("\"write_status\": \"success\""));
+  EXPECT_THAT(output, HasSubstr("\"save_error\""));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.dirty(), dirty_before);
+  EXPECT_EQ(rom.filename(), filename_before);
+  EXPECT_EQ(ReadRoomObjectPointerPc(rom, 0), pointer_before);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 1);
 }
 
 TEST(DungeonEditCommandsTest,
