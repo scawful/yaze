@@ -26,6 +26,10 @@ This repo is used to edit ROM hacks (including Oracle of Secrets). Treat ROM wri
   `dungeon-set-collision-tile`, and `dungeon-set-room-property` wrap their
   serializer, required backup, and disk commit in `ScopedRomTransaction`. Any
   failure restores the caller's ROM bytes, filename, size, and dirty state.
+- `dungeon-generate-track-collision --write` applies the same contract to a
+  single room or the complete `--rooms` batch. Batch serialization and the one
+  required-backup disk save are all-or-nothing; a later-room failure restores
+  every earlier room mutation.
 - Other CLI writers that still set only `backup=true` remain best-effort and
   must be audited before opting into the strict transaction path.
 
