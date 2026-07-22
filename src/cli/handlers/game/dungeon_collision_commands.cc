@@ -3,27 +3,37 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <filesystem>
 #include <fstream>
+#include <ios>
 #include <sstream>
 #include <string>
+#include <system_error>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
+#include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
 #include "absl/status/status.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
+#include "absl/strings/string_view.h"
 #include "absl/types/span.h"
 #include "cli/util/hex_util.h"
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
+#include "rom/transaction.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/oracle_rom_safety_preflight.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/water_fill_zone.h"
+
+ABSL_DECLARE_FLAG(bool, sandbox);
 
 namespace yaze {
 namespace cli {
@@ -144,11 +154,119 @@ absl::Status WriteTextFile(const std::string& path,
     return absl::PermissionDeniedError(
         absl::StrFormat("Cannot open file for writing: %s", path));
   }
-  out << content;
-  if (!out.good()) {
+  out.write(content.data(), static_cast<std::streamsize>(content.size()));
+  out.flush();
+  const bool write_failed = !out.good();
+  out.close();
+  if (write_failed || out.fail()) {
     return absl::InternalError(
         absl::StrFormat("Failed while writing file: %s", path));
   }
+  return absl::OkStatus();
+}
+
+absl::Status ValidateImportArguments(const resources::ArgumentParser& parser,
+                                     absl::string_view command_name) {
+  RETURN_IF_ERROR(parser.RequireArgs({"in"}));
+  const bool has_report = parser.GetString("report").has_value();
+  const bool sandbox_requested =
+      parser.HasFlag("sandbox") || absl::GetFlag(FLAGS_sandbox);
+  if (has_report && !parser.HasFlag("dry-run")) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s: --report is supported only with --dry-run; write-mode imports "
+        "must rely on command output and ROM backup verification",
+        command_name));
+  }
+  if (has_report && sandbox_requested) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s: --report cannot be combined with --sandbox; run the reported "
+        "dry-run against the source ROM",
+        command_name));
+  }
+  if (parser.HasFlag("mock-rom") && sandbox_requested) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s: --mock-rom and --sandbox are mutually exclusive", command_name));
+  }
+  return absl::OkStatus();
+}
+
+absl::Status ValidateExportArguments(const resources::ArgumentParser& parser,
+                                     absl::string_view command_name) {
+  RETURN_IF_ERROR(parser.RequireArgs({"out"}));
+  const bool sandbox_requested =
+      parser.HasFlag("sandbox") || absl::GetFlag(FLAGS_sandbox);
+  if (parser.GetString("report").has_value() && sandbox_requested) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s: --report cannot be combined with --sandbox; export from the "
+        "source ROM or omit --report",
+        command_name));
+  }
+  return absl::OkStatus();
+}
+
+absl::StatusOr<std::filesystem::path> NormalizedAbsolutePath(
+    const std::filesystem::path& path) {
+  std::error_code absolute_ec;
+  std::filesystem::path absolute = std::filesystem::absolute(path, absolute_ec);
+  if (absolute_ec) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Cannot normalize path %s: %s", path.string(), absolute_ec.message()));
+  }
+  return absolute.lexically_normal();
+}
+
+absl::StatusOr<bool> PathsAlias(const std::filesystem::path& lhs,
+                                const std::filesystem::path& rhs) {
+  ASSIGN_OR_RETURN(const auto normalized_lhs, NormalizedAbsolutePath(lhs));
+  ASSIGN_OR_RETURN(const auto normalized_rhs, NormalizedAbsolutePath(rhs));
+  if (normalized_lhs == normalized_rhs) {
+    return true;
+  }
+
+  std::error_code equivalent_ec;
+  const bool equivalent = std::filesystem::equivalent(
+      normalized_lhs, normalized_rhs, equivalent_ec);
+  if (!equivalent_ec) {
+    return equivalent;
+  }
+
+  // equivalent() reports an error when either path does not exist. Lexical
+  // normalization above is sufficient in that case. If both paths do exist,
+  // fail closed rather than risk truncating a ROM we could not compare.
+  std::error_code lhs_exists_ec;
+  std::error_code rhs_exists_ec;
+  const bool lhs_exists =
+      std::filesystem::exists(normalized_lhs, lhs_exists_ec);
+  const bool rhs_exists =
+      std::filesystem::exists(normalized_rhs, rhs_exists_ec);
+  if (lhs_exists_ec || rhs_exists_ec || (lhs_exists && rhs_exists)) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Could not safely compare paths %s and %s: %s", normalized_lhs.string(),
+        normalized_rhs.string(), equivalent_ec.message()));
+  }
+  return false;
+}
+
+absl::Status RejectReportRomAliases(const resources::ArgumentParser& parser,
+                                    const Rom* rom) {
+  const auto report_path_value = parser.GetString("report");
+  if (!report_path_value.has_value() || report_path_value->empty()) {
+    return absl::OkStatus();
+  }
+
+  const std::filesystem::path report_path(*report_path_value);
+  if (rom != nullptr && !rom->filename().empty()) {
+    ASSIGN_OR_RETURN(
+        const bool aliases_active_rom,
+        PathsAlias(report_path, std::filesystem::path(rom->filename())));
+    if (aliases_active_rom) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "--report path aliases the active ROM; choose a separate report "
+          "file: %s",
+          report_path.string()));
+    }
+  }
+
   return absl::OkStatus();
 }
 
@@ -211,7 +329,8 @@ absl::Status WriteReportIfRequested(const resources::ArgumentParser& parser,
 }
 
 absl::Status FinalizeWithReport(const resources::ArgumentParser& parser,
-                                json report, const absl::Status& status) {
+                                json report, const absl::Status& status,
+                                const Rom* protected_rom = nullptr) {
   if (!status.ok()) {
     report["status"] = "error";
     report["error"] = json{
@@ -220,7 +339,13 @@ absl::Status FinalizeWithReport(const resources::ArgumentParser& parser,
     };
   }
 
-  const auto report_status = WriteReportIfRequested(parser, report);
+  absl::Status report_status = absl::OkStatus();
+  if (protected_rom != nullptr) {
+    report_status = RejectReportRomAliases(parser, protected_rom);
+  }
+  if (report_status.ok()) {
+    report_status = WriteReportIfRequested(parser, report);
+  }
   if (!report_status.ok()) {
     if (status.ok()) {
       return report_status;
@@ -250,6 +375,41 @@ json BuildPreflightJson(
   }
   out["errors"] = std::move(errors);
   return out;
+}
+
+template <typename Serializer>
+absl::Status SerializeAndPersistImport(Rom* rom,
+                                       const resources::ArgumentParser& parser,
+                                       json* report, Serializer&& serializer) {
+  ScopedRomTransaction transaction(*rom);
+
+  const absl::Status write_status = std::forward<Serializer>(serializer)();
+  if (!write_status.ok()) {
+    (*report)["write_error"] = std::string(write_status.message());
+    return write_status;
+  }
+  (*report)["write_status"] = "success";
+
+  // Unit-test and embedding callers can explicitly request an in-memory write.
+  // A sandbox ROM is file-backed, so it follows the normal save path and writes
+  // only its sandbox copy.
+  if (parser.HasFlag("mock-rom")) {
+    (*report)["save_status"] = "mock-rom-skipped";
+    transaction.Commit();
+    return absl::OkStatus();
+  }
+
+  Rom::SaveSettings save_settings;
+  save_settings.require_backup = true;
+  const absl::Status save_status = rom->SaveToFile(save_settings);
+  if (!save_status.ok()) {
+    (*report)["save_error"] = std::string(save_status.message());
+    return save_status;
+  }
+
+  (*report)["save_status"] = "saved";
+  transaction.Commit();
+  return absl::OkStatus();
 }
 
 std::vector<int> RequiredCollisionRoomsForImportedWaterFillZones(
@@ -359,6 +519,8 @@ absl::Status DungeonListCustomCollisionCommandHandler::Execute(
 absl::Status DungeonExportCustomCollisionJsonCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
+  RETURN_IF_ERROR(RejectReportRomAliases(parser, rom));
+
   json report = BuildBaseReport(GetName(), /*dry_run=*/false);
   const absl::Status status = [&]() -> absl::Status {
     ASSIGN_OR_RETURN(const auto room_ids, ParseRoomSelection(parser));
@@ -406,12 +568,19 @@ absl::Status DungeonExportCustomCollisionJsonCommandHandler::Execute(
     return absl::OkStatus();
   }();
 
-  return FinalizeWithReport(parser, std::move(report), status);
+  return FinalizeWithReport(parser, std::move(report), status, rom);
 }
 
 absl::Status DungeonImportCustomCollisionJsonCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
+  const absl::Status report_alias_status = RejectReportRomAliases(parser, rom);
+  if (!report_alias_status.ok()) {
+    // FinalizeWithReport would write to the rejected path and could truncate
+    // the active ROM. Return this guard failure directly.
+    return report_alias_status;
+  }
+
   const bool dry_run = parser.HasFlag("dry-run");
   json report = BuildBaseReport(GetName(), dry_run);
   const absl::Status status = [&]() -> absl::Status {
@@ -506,7 +675,9 @@ absl::Status DungeonImportCustomCollisionJsonCommandHandler::Execute(
     report["replace_all_clears"] = replace_all_clears;
 
     if (!dry_run) {
-      RETURN_IF_ERROR(zelda3::SaveAllCollision(rom, absl::MakeSpan(rooms)));
+      RETURN_IF_ERROR(SerializeAndPersistImport(rom, parser, &report, [&]() {
+        return zelda3::SaveAllCollision(rom, absl::MakeSpan(rooms));
+      }));
     }
 
     report["populated_rooms"] = populated_rooms;
@@ -521,17 +692,25 @@ absl::Status DungeonImportCustomCollisionJsonCommandHandler::Execute(
                        static_cast<int>(imported_rooms.size()));
     formatter.AddField("populated_rooms", populated_rooms);
     formatter.AddField("cleared_rooms", cleared_rooms);
+    if (!dry_run) {
+      formatter.AddField("write_status",
+                         report.value("write_status", std::string("unknown")));
+      formatter.AddField("save_status",
+                         report.value("save_status", std::string("unknown")));
+    }
     formatter.AddField("status", "success");
     formatter.EndObject();
     return absl::OkStatus();
   }();
 
-  return FinalizeWithReport(parser, std::move(report), status);
+  return FinalizeWithReport(parser, std::move(report), status, rom);
 }
 
 absl::Status DungeonExportWaterFillJsonCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
+  RETURN_IF_ERROR(RejectReportRomAliases(parser, rom));
+
   json report = BuildBaseReport(GetName(), /*dry_run=*/false);
   const absl::Status status = [&]() -> absl::Status {
     const std::string out_path = parser.GetString("out").value();
@@ -569,12 +748,19 @@ absl::Status DungeonExportWaterFillJsonCommandHandler::Execute(
     return absl::OkStatus();
   }();
 
-  return FinalizeWithReport(parser, std::move(report), status);
+  return FinalizeWithReport(parser, std::move(report), status, rom);
 }
 
 absl::Status DungeonImportWaterFillJsonCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
+  const absl::Status report_alias_status = RejectReportRomAliases(parser, rom);
+  if (!report_alias_status.ok()) {
+    // FinalizeWithReport would write to the rejected path and could truncate
+    // the active ROM. Return this guard failure directly.
+    return report_alias_status;
+  }
+
   const bool dry_run = parser.HasFlag("dry-run");
   const bool strict_masks = parser.HasFlag("strict-masks");
   json report = BuildBaseReport(GetName(), dry_run);
@@ -642,7 +828,9 @@ absl::Status DungeonImportWaterFillJsonCommandHandler::Execute(
     }
 
     if (!dry_run) {
-      RETURN_IF_ERROR(zelda3::WriteWaterFillTable(rom, zones));
+      RETURN_IF_ERROR(SerializeAndPersistImport(rom, parser, &report, [&]() {
+        return zelda3::WriteWaterFillTable(rom, zones);
+      }));
     }
 
     formatter.BeginObject("Water Fill Import");
@@ -651,12 +839,38 @@ absl::Status DungeonImportWaterFillJsonCommandHandler::Execute(
     formatter.AddField("strict_masks", strict_masks);
     formatter.AddField("zone_count", static_cast<int>(zones.size()));
     formatter.AddField("normalized_masks", normalized_masks);
+    if (!dry_run) {
+      formatter.AddField("write_status",
+                         report.value("write_status", std::string("unknown")));
+      formatter.AddField("save_status",
+                         report.value("save_status", std::string("unknown")));
+    }
     formatter.AddField("status", "success");
     formatter.EndObject();
     return absl::OkStatus();
   }();
 
-  return FinalizeWithReport(parser, std::move(report), status);
+  return FinalizeWithReport(parser, std::move(report), status, rom);
+}
+
+absl::Status DungeonImportCustomCollisionJsonCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  return ValidateImportArguments(parser, GetName());
+}
+
+absl::Status DungeonExportCustomCollisionJsonCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  return ValidateExportArguments(parser, GetName());
+}
+
+absl::Status DungeonExportWaterFillJsonCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  return ValidateExportArguments(parser, GetName());
+}
+
+absl::Status DungeonImportWaterFillJsonCommandHandler::ValidateArgs(
+    const resources::ArgumentParser& parser) {
+  return ValidateImportArguments(parser, GetName());
 }
 
 }  // namespace handlers
