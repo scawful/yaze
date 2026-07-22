@@ -117,6 +117,14 @@ class PaletteManager {
   void ActivateSession(zelda3::GameData* game_data);
 
   /**
+   * @brief Check whether this exact GameData is the active palette session.
+   *
+   * Unlike IsManaging(), this may be true before lazy-loaded palette assets
+   * have been initialized.
+   */
+  bool IsSessionActive(const zelda3::GameData* game_data) const;
+
+  /**
    * @brief Check whether the manager is bound to this exact GameData and ROM.
    */
   bool IsManaging(const zelda3::GameData* game_data) const;

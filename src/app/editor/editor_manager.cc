@@ -5112,6 +5112,7 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
   session->game_data.Clear();
   session->game_data.set_rom(&session->rom);
   session->editors.SetGameData(&session->game_data);
+  gfx::PaletteManager::Get().ActivateSession(&session->game_data);
   ResetAssetState(session);
   ConfigureSession(session);
   HandleSessionRomLoaded(GetCurrentSessionIndex(), &session->rom);
@@ -5126,6 +5127,7 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
     session->game_data.Clear();
     session->game_data.set_rom(&session->rom);
     session->editors.SetGameData(&session->game_data);
+    gfx::PaletteManager::Get().ActivateSession(&session->game_data);
     ResetAssetState(session);
     ConfigureSession(session);
     HandleSessionRomLoaded(GetCurrentSessionIndex(), &session->rom);
