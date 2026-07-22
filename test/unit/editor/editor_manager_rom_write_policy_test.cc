@@ -360,12 +360,20 @@ TEST(EditorManagerBackupRestoreTest,
   ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
   const auto rom_path = temp_dir / "oracle-copy.sfc";
   WriteTestRom(rom_path, "BACKUP RESTORE");
+  {
+    std::ofstream labels(rom_path.string() + ".labels",
+                         std::ios::out | std::ios::trunc);
+    ASSERT_TRUE(labels.is_open());
+    labels << "[rooms]\n0=On-disk room label\n";
+    ASSERT_TRUE(labels.good());
+  }
 
   ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
   DisableRomWritesForTest();
 
   Rom* const active_rom = manager->GetCurrentRom();
   ASSERT_NE(active_rom, nullptr);
+  active_rom->resource_label()->EditLabel("rooms", "0", "In-memory room label");
   constexpr uint32_t kPcOffset = 0x1234;
   constexpr uint8_t kOriginal = 0x00;
   constexpr uint8_t kEdited = 0xA5;
@@ -385,6 +393,10 @@ TEST(EditorManagerBackupRestoreTest,
   ASSERT_TRUE(active_rom->ReadByte(kPcOffset).ok());
   EXPECT_EQ(*active_rom->ReadByte(kPcOffset), kOriginal);
   EXPECT_TRUE(active_rom->dirty());
+  EXPECT_EQ(active_rom->resource_label()->GetLabel("rooms", "0"),
+            "In-memory room label");
+  EXPECT_EQ(active_rom->resource_label()->filename_,
+            std::filesystem::absolute(rom_path).string() + ".labels");
   // Restore is staged: the backing file remains untouched until Save ROM.
   EXPECT_EQ(ReadByteAt(rom_path, kPcOffset), kEdited);
   auto* const session = manager->session_coordinator()->GetActiveRomSession();
@@ -438,12 +450,20 @@ TEST(EditorManagerBackupRestoreTest,
   ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
   const auto rom_path = temp_dir / "oracle-copy.sfc";
   const auto backup_path = temp_dir / "oracle-copy_backup_manual.sfc";
+  const auto corrupt_backup_path = temp_dir / "oracle-copy_backup_corrupt.sfc";
   const auto expanded_backup_path =
       temp_dir / "oracle-copy_backup_size-change.sfc";
   const auto unrelated_path = temp_dir / "unrelated.sfc";
   WriteTestRom(rom_path, "RESTORE GUARDS");
   std::filesystem::copy_file(rom_path, backup_path);
   std::filesystem::copy_file(rom_path, unrelated_path);
+  {
+    std::ofstream corrupt(corrupt_backup_path,
+                          std::ios::binary | std::ios::trunc);
+    ASSERT_TRUE(corrupt.is_open());
+    corrupt.put('\0');
+    ASSERT_TRUE(corrupt.good());
+  }
 
   ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
   DisableRomWritesForTest();
@@ -465,6 +485,16 @@ TEST(EditorManagerBackupRestoreTest,
       << unrelated_status;
   EXPECT_EQ(manager->GetCurrentRom(), active_rom);
   EXPECT_EQ(active_rom->size(), 512u * 1024u);
+
+  const std::string title_before_corrupt_restore = active_rom->title();
+  const auto corrupt_status =
+      manager->RestoreRomBackup(corrupt_backup_path.string());
+  EXPECT_EQ(corrupt_status.code(), absl::StatusCode::kInvalidArgument)
+      << corrupt_status;
+  EXPECT_EQ(manager->GetCurrentRom(), active_rom);
+  EXPECT_EQ(active_rom->size(), 512u * 1024u);
+  EXPECT_EQ(active_rom->title(), title_before_corrupt_restore);
+  EXPECT_FALSE(active_rom->dirty());
 
   std::vector<uint8_t> expanded_data(1024 * 1024, 0x00);
   const std::string expanded_title = "RESTORE EXPANDED";
