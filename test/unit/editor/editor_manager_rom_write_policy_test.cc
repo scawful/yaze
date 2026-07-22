@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -341,6 +342,133 @@ TEST(EditorManagerRomWritePolicyTest,
   EXPECT_TRUE(status2.ok()) << status2.message();
   EXPECT_EQ(ReadByteAt(rom_path, static_cast<std::streamoff>(kPcOffset)),
             mutated);
+}
+
+TEST(EditorManagerBackupRestoreTest,
+     AutomaticBackupRestoreStagesAndCommitsAReversibleRoundTrip) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = true;
+
+  const auto temp_dir = MakeTempFilePath("yaze_backup_restore_round_trip");
+  ScopedDirectoryCleanup cleanup{temp_dir};
+  ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
+  const auto rom_path = temp_dir / "oracle-copy.sfc";
+  WriteTestRom(rom_path, "BACKUP RESTORE");
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+
+  Rom* const active_rom = manager->GetCurrentRom();
+  ASSERT_NE(active_rom, nullptr);
+  constexpr uint32_t kPcOffset = 0x1234;
+  constexpr uint8_t kOriginal = 0x00;
+  constexpr uint8_t kEdited = 0xA5;
+  ASSERT_OK(active_rom->WriteByte(kPcOffset, kEdited));
+  ASSERT_OK(manager->SaveRom());
+  EXPECT_FALSE(active_rom->dirty());
+  EXPECT_EQ(ReadByteAt(rom_path, kPcOffset), kEdited);
+
+  const auto initial_backups = manager->GetRomBackups();
+  ASSERT_EQ(initial_backups.size(), 1u);
+  EXPECT_EQ(ReadByteAt(initial_backups.front().path, kPcOffset), kOriginal);
+
+  ASSERT_OK(manager->RestoreRomBackup(initial_backups.front().path));
+  EXPECT_EQ(manager->GetCurrentRom(), active_rom);
+  EXPECT_EQ(active_rom->filename(),
+            std::filesystem::absolute(rom_path).string());
+  ASSERT_TRUE(active_rom->ReadByte(kPcOffset).ok());
+  EXPECT_EQ(*active_rom->ReadByte(kPcOffset), kOriginal);
+  EXPECT_TRUE(active_rom->dirty());
+  // Restore is staged: the backing file remains untouched until Save ROM.
+  EXPECT_EQ(ReadByteAt(rom_path, kPcOffset), kEdited);
+
+  // Backup names include millisecond precision; ensure this second save gets
+  // its own entry even on very fast filesystems.
+  std::this_thread::sleep_for(std::chrono::milliseconds(2));
+  ASSERT_OK(manager->SaveRom());
+  EXPECT_FALSE(active_rom->dirty());
+  EXPECT_EQ(ReadByteAt(rom_path, kPcOffset), kOriginal);
+
+  const auto final_backups = manager->GetRomBackups();
+  ASSERT_EQ(final_backups.size(), 2u);
+  bool preserved_original = false;
+  bool preserved_edited = false;
+  for (const auto& backup : final_backups) {
+    const uint8_t value = ReadByteAt(backup.path, kPcOffset);
+    preserved_original |= value == kOriginal;
+    preserved_edited |= value == kEdited;
+  }
+  EXPECT_TRUE(preserved_original);
+  EXPECT_TRUE(preserved_edited);
+}
+
+TEST(EditorManagerBackupRestoreTest,
+     RestoreRejectsDirtySessionAndAllowsManagedSizeChange) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto temp_dir = MakeTempFilePath("yaze_backup_restore_guards");
+  ScopedDirectoryCleanup cleanup{temp_dir};
+  ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
+  const auto rom_path = temp_dir / "oracle-copy.sfc";
+  const auto backup_path = temp_dir / "oracle-copy_backup_manual.sfc";
+  const auto expanded_backup_path =
+      temp_dir / "oracle-copy_backup_size-change.sfc";
+  const auto unrelated_path = temp_dir / "unrelated.sfc";
+  WriteTestRom(rom_path, "RESTORE GUARDS");
+  std::filesystem::copy_file(rom_path, backup_path);
+  std::filesystem::copy_file(rom_path, unrelated_path);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  Rom* const active_rom = manager->GetCurrentRom();
+  ASSERT_NE(active_rom, nullptr);
+  constexpr uint32_t kPcOffset = 0x1234;
+  ASSERT_OK(active_rom->WriteByte(kPcOffset, 0xA5));
+
+  const auto dirty_status = manager->RestoreRomBackup(backup_path.string());
+  EXPECT_EQ(dirty_status.code(), absl::StatusCode::kFailedPrecondition)
+      << dirty_status;
+  ASSERT_TRUE(active_rom->ReadByte(kPcOffset).ok());
+  EXPECT_EQ(*active_rom->ReadByte(kPcOffset), 0xA5);
+  active_rom->ClearDirty();
+
+  const auto unrelated_status =
+      manager->RestoreRomBackup(unrelated_path.string());
+  EXPECT_EQ(unrelated_status.code(), absl::StatusCode::kInvalidArgument)
+      << unrelated_status;
+  EXPECT_EQ(manager->GetCurrentRom(), active_rom);
+  EXPECT_EQ(active_rom->size(), 512u * 1024u);
+
+  std::vector<uint8_t> expanded_data(1024 * 1024, 0x00);
+  const std::string expanded_title = "RESTORE EXPANDED";
+  for (size_t i = 0; i < expanded_title.size(); ++i) {
+    expanded_data[0x7FC0 + i] = static_cast<uint8_t>(expanded_title[i]);
+  }
+  {
+    std::ofstream out(expanded_backup_path, std::ios::binary | std::ios::trunc);
+    ASSERT_TRUE(out.is_open());
+    out.write(reinterpret_cast<const char*>(expanded_data.data()),
+              static_cast<std::streamsize>(expanded_data.size()));
+    ASSERT_TRUE(out.good());
+  }
+
+  ASSERT_OK(manager->RestoreRomBackup(expanded_backup_path.string()));
+  EXPECT_EQ(manager->GetCurrentRom(), active_rom);
+  EXPECT_EQ(active_rom->size(), 1024u * 1024u);
+  EXPECT_NE(active_rom->title().find(expanded_title), std::string::npos);
+  EXPECT_TRUE(active_rom->dirty());
 }
 
 TEST(EditorManagerRomWritePolicyTest,
