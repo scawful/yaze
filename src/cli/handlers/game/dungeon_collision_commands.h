@@ -49,6 +49,11 @@ class DungeonExportCustomCollisionJsonCommandHandler
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;
+
+  absl::Status ExecuteWithContext(
+      Rom* rom, const resources::ArgumentParser& parser,
+      resources::OutputFormatter& formatter,
+      const resources::CommandInvocationContext& invocation_context) override;
 };
 
 class DungeonImportCustomCollisionJsonCommandHandler
@@ -95,6 +100,11 @@ class DungeonExportWaterFillJsonCommandHandler
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;
+
+  absl::Status ExecuteWithContext(
+      Rom* rom, const resources::ArgumentParser& parser,
+      resources::OutputFormatter& formatter,
+      const resources::CommandInvocationContext& invocation_context) override;
 };
 
 class DungeonImportWaterFillJsonCommandHandler
