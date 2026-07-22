@@ -1,23 +1,47 @@
 #include "cli/handlers/game/dungeon_collision_commands.h"
 
+#include <algorithm>
 #include <chrono>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <string>
+#include <system_error>
+#include <utility>
 #include <vector>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
 #include "absl/status/status.h"
+#include "cli/service/rom/rom_sandbox_manager.h"
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
+#include "rom/snes.h"
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/track_collision_generator.h"
 #include "zelda3/dungeon/water_fill_zone.h"
+
+ABSL_DECLARE_FLAG(bool, sandbox);
 
 namespace yaze::cli {
 namespace {
+
+class ScopedSandboxFlag {
+ public:
+  explicit ScopedSandboxFlag(bool value)
+      : original_(absl::GetFlag(FLAGS_sandbox)) {
+    absl::SetFlag(&FLAGS_sandbox, value);
+  }
+  ~ScopedSandboxFlag() { absl::SetFlag(&FLAGS_sandbox, original_); }
+
+ private:
+  bool original_;
+};
 
 std::string ReadFile(const std::filesystem::path& path) {
   std::ifstream in(path, std::ios::in | std::ios::binary);
@@ -30,12 +54,115 @@ void WriteFile(const std::filesystem::path& path, const std::string& contents) {
   out << contents;
 }
 
+std::vector<uint8_t> ReadFileBytes(const std::filesystem::path& path) {
+  std::ifstream in(path, std::ios::in | std::ios::binary);
+  return std::vector<uint8_t>(std::istreambuf_iterator<char>(in),
+                              std::istreambuf_iterator<char>());
+}
+
+void WriteRomFile(const Rom& rom, const std::filesystem::path& path) {
+  std::ofstream out(path, std::ios::out | std::ios::binary | std::ios::trunc);
+  ASSERT_TRUE(out.is_open());
+  out.write(reinterpret_cast<const char*>(rom.data()),
+            static_cast<std::streamsize>(rom.size()));
+  ASSERT_TRUE(out.good());
+}
+
+class ScopedTempDirectory {
+ public:
+  explicit ScopedTempDirectory(const char* label) {
+    const auto nonce =
+        std::chrono::steady_clock::now().time_since_epoch().count();
+    path_ = std::filesystem::temp_directory_path() /
+            ("yaze_collision_json_" + std::string(label) + "_" +
+             std::to_string(nonce));
+    std::error_code ec;
+    EXPECT_TRUE(std::filesystem::create_directories(path_, ec)) << ec.message();
+  }
+
+  ~ScopedTempDirectory() {
+    std::error_code ec;
+    std::filesystem::remove_all(path_, ec);
+  }
+
+  const std::filesystem::path& path() const { return path_; }
+
+ private:
+  std::filesystem::path path_;
+};
+
+class ScopedSandboxRoot {
+ public:
+  explicit ScopedSandboxRoot(const std::filesystem::path& root)
+      : original_root_(RomSandboxManager::Instance().RootDirectory()) {
+    RomSandboxManager::Instance().SetRootDirectory(root);
+  }
+
+  ~ScopedSandboxRoot() {
+    if (!sandbox_id_.empty()) {
+      RomSandboxManager::Instance().RemoveSandbox(sandbox_id_).IgnoreError();
+    }
+    RomSandboxManager::Instance().SetRootDirectory(original_root_);
+  }
+
+  void Track(std::string sandbox_id) { sandbox_id_ = std::move(sandbox_id); }
+
+ private:
+  std::filesystem::path original_root_;
+  std::string sandbox_id_;
+};
+
+std::vector<std::filesystem::path> FindBackupArtifacts(
+    const std::filesystem::path& rom_path) {
+  std::vector<std::filesystem::path> backups;
+  std::error_code ec;
+  const std::string prefix = rom_path.filename().string() + "_backup_";
+  for (const auto& entry :
+       std::filesystem::directory_iterator(rom_path.parent_path(), ec)) {
+    if (ec || !entry.is_regular_file()) {
+      continue;
+    }
+    if (entry.path().filename().string().rfind(prefix, 0) == 0) {
+      backups.push_back(entry.path());
+    }
+  }
+  std::sort(backups.begin(), backups.end());
+  return backups;
+}
+
+void SetLong(Rom* rom, int address, uint32_t value) {
+  ASSERT_TRUE(rom->WriteByte(address, value & 0xFF).ok());
+  ASSERT_TRUE(rom->WriteByte(address + 1, (value >> 8) & 0xFF).ok());
+  ASSERT_TRUE(rom->WriteByte(address + 2, (value >> 16) & 0xFF).ok());
+}
+
+void WriteSingleCollisionImport(const std::filesystem::path& path) {
+  WriteFile(path,
+            "{\n"
+            "  \"version\": 1,\n"
+            "  \"rooms\": [\n"
+            "    { \"room_id\": \"0x25\", \"tiles\": [ [65, \"0xB7\"] ] }\n"
+            "  ]\n"
+            "}\n");
+}
+
+void WriteSingleWaterFillImport(const std::filesystem::path& path) {
+  WriteFile(
+      path,
+      "{\n"
+      "  \"version\": 1,\n"
+      "  \"zones\": [\n"
+      "    { \"room_id\": \"0x30\", \"mask\": \"0x01\", \"offsets\": [100] }\n"
+      "  ]\n"
+      "}\n");
+}
+
 void SeedCustomCollisionRooms(Rom* rom, const std::vector<int>& room_ids) {
   const auto nonce =
       std::chrono::steady_clock::now().time_since_epoch().count();
-  const auto in_path = std::filesystem::temp_directory_path() /
-                       ("yaze_seed_required_collision_" +
-                        std::to_string(nonce) + ".json");
+  const auto in_path =
+      std::filesystem::temp_directory_path() /
+      ("yaze_seed_required_collision_" + std::to_string(nonce) + ".json");
 
   nlohmann::json payload;
   payload["version"] = 1;
@@ -51,8 +178,8 @@ void SeedCustomCollisionRooms(Rom* rom, const std::vector<int>& room_ids) {
 
   handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
   std::string output;
-  const auto status =
-      handler.Run({"--in", in_path.string(), "--format=json"}, rom, &output);
+  const auto status = handler.Run(
+      {"--in", in_path.string(), "--mock-rom", "--format=json"}, rom, &output);
   ASSERT_TRUE(status.ok()) << status.message();
 
   std::filesystem::remove(in_path);
@@ -67,27 +194,27 @@ TEST(DungeonCollisionJsonCommandsTest, CustomCollisionImportExportRoundTrip) {
   const auto out_path = std::filesystem::temp_directory_path() /
                         "yaze_custom_collision_export_test.json";
 
-  WriteFile(in_path,
-            "{\n"
-            "  \"version\": 1,\n"
-            "  \"rooms\": [\n"
-            "    { \"room_id\": \"0x25\", \"tiles\": [ [65, 8], [66, \"0xB7\"] ] }\n"
-            "  ]\n"
-            "}\n");
+  WriteFile(
+      in_path,
+      "{\n"
+      "  \"version\": 1,\n"
+      "  \"rooms\": [\n"
+      "    { \"room_id\": \"0x25\", \"tiles\": [ [65, 8], [66, \"0xB7\"] ] }\n"
+      "  ]\n"
+      "}\n");
 
   handlers::DungeonImportCustomCollisionJsonCommandHandler import_handler;
   std::string import_output;
-  auto import_status =
-      import_handler.Run({"--in", in_path.string(), "--format=json"}, &rom,
-                         &import_output);
+  auto import_status = import_handler.Run(
+      {"--in", in_path.string(), "--mock-rom", "--format=json"}, &rom,
+      &import_output);
   ASSERT_TRUE(import_status.ok()) << import_status.message();
 
   handlers::DungeonExportCustomCollisionJsonCommandHandler export_handler;
   std::string export_output;
-  auto export_status =
-      export_handler.Run({"--room=0x25", "--out", out_path.string(),
-                          "--format=json"},
-                         &rom, &export_output);
+  auto export_status = export_handler.Run(
+      {"--room=0x25", "--out", out_path.string(), "--format=json"}, &rom,
+      &export_output);
   ASSERT_TRUE(export_status.ok()) << export_status.message();
 
   auto rooms_or =
@@ -122,8 +249,8 @@ TEST(DungeonCollisionJsonCommandsTest,
 
   handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
   std::string output;
-  const auto status = handler.Run({"--in", in_path.string(), "--format=json"},
-                                  &rom, &output);
+  const auto status =
+      handler.Run({"--in", in_path.string(), "--format=json"}, &rom, &output);
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
 
@@ -137,19 +264,20 @@ TEST(DungeonCollisionJsonCommandsTest, WaterFillImportNormalizesMasks) {
 
   const auto in_path = std::filesystem::temp_directory_path() /
                        "yaze_water_fill_import_test.json";
-  WriteFile(in_path,
-            "{\n"
-            "  \"version\": 1,\n"
-            "  \"zones\": [\n"
-            "    { \"room_id\": \"0x27\", \"mask\": \"0x01\", \"offsets\": [100] },\n"
-            "    { \"room_id\": \"0x25\", \"mask\": \"0x01\", \"offsets\": [200] }\n"
-            "  ]\n"
-            "}\n");
+  WriteFile(
+      in_path,
+      "{\n"
+      "  \"version\": 1,\n"
+      "  \"zones\": [\n"
+      "    { \"room_id\": \"0x27\", \"mask\": \"0x01\", \"offsets\": [100] },\n"
+      "    { \"room_id\": \"0x25\", \"mask\": \"0x01\", \"offsets\": [200] }\n"
+      "  ]\n"
+      "}\n");
 
   handlers::DungeonImportWaterFillJsonCommandHandler handler;
   std::string output;
-  const auto status =
-      handler.Run({"--in", in_path.string(), "--format=json"}, &rom, &output);
+  const auto status = handler.Run(
+      {"--in", in_path.string(), "--mock-rom", "--format=json"}, &rom, &output);
   ASSERT_TRUE(status.ok()) << status.message();
 
   auto zones_or = zelda3::LoadWaterFillTable(&rom);
@@ -193,7 +321,8 @@ TEST(DungeonCollisionJsonCommandsTest, WaterFillExportRespectsRoomFilter) {
   std::filesystem::remove(out_path);
 }
 
-TEST(DungeonCollisionJsonCommandsTest, CustomCollisionImportDryRunDoesNotWrite) {
+TEST(DungeonCollisionJsonCommandsTest,
+     CustomCollisionImportDryRunDoesNotWrite) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
 
@@ -221,15 +350,741 @@ TEST(DungeonCollisionJsonCommandsTest, CustomCollisionImportDryRunDoesNotWrite) 
   std::filesystem::remove(in_path);
 }
 
+TEST(DungeonCollisionJsonCommandsTest,
+     CustomCollisionImportPersistsBackupAndReopens) {
+  ScopedTempDirectory temp("custom_reopen");
+  const auto rom_path = temp.path() / "target.sfc";
+  const auto in_path = temp.path() / "collision.json";
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  zelda3::CustomCollisionMap preserved_map;
+  preserved_map.has_data = true;
+  preserved_map.tiles[130] = 0xBA;
+  ASSERT_TRUE(zelda3::WriteTrackCollision(&rom, 0x26, preserved_map).ok());
+  WriteRomFile(rom, rom_path);
+  rom.set_filename(rom_path.string());
+  rom.set_dirty(false);
+  const std::vector<uint8_t> disk_before = ReadFileBytes(rom_path);
+
+  WriteFile(
+      in_path,
+      "{\n"
+      "  \"version\": 1,\n"
+      "  \"rooms\": [\n"
+      "    { \"room_id\": \"0x25\", \"tiles\": [ [65, \"0xB7\"], [66, 8] ] }\n"
+      "  ]\n"
+      "}\n");
+
+  handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--in", in_path.string(), "--format=json"}, &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_THAT(output, testing::HasSubstr("\"write_status\": \"success\""));
+  EXPECT_THAT(output, testing::HasSubstr("\"save_status\": \"saved\""));
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_NE(ReadFileBytes(rom_path), disk_before);
+
+  const auto backups = FindBackupArtifacts(rom_path);
+  ASSERT_EQ(backups.size(), 1u);
+  EXPECT_EQ(ReadFileBytes(backups.front()), disk_before);
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(rom_path.string()).ok());
+  auto map_or = zelda3::LoadCustomCollisionMap(&reopened, 0x25);
+  ASSERT_TRUE(map_or.ok()) << map_or.status();
+  ASSERT_TRUE(map_or->has_data);
+  EXPECT_EQ(map_or->tiles[65], 0xB7);
+  EXPECT_EQ(map_or->tiles[66], 8);
+
+  auto preserved_or = zelda3::LoadCustomCollisionMap(&reopened, 0x26);
+  ASSERT_TRUE(preserved_or.ok()) << preserved_or.status();
+  ASSERT_TRUE(preserved_or->has_data);
+  EXPECT_EQ(preserved_or->tiles[130], 0xBA);
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     WaterFillImportPersistsNormalizedTableBackupAndReopens) {
+  ScopedTempDirectory temp("water_reopen");
+  const auto rom_path = temp.path() / "target.sfc";
+  const auto in_path = temp.path() / "water.json";
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  WriteRomFile(rom, rom_path);
+  rom.set_filename(rom_path.string());
+  rom.set_dirty(false);
+  const std::vector<uint8_t> disk_before = ReadFileBytes(rom_path);
+
+  WriteFile(
+      in_path,
+      "{\n"
+      "  \"version\": 1,\n"
+      "  \"zones\": [\n"
+      "    { \"room_id\": \"0x31\", \"mask\": \"0x01\", \"offsets\": [200] },\n"
+      "    { \"room_id\": \"0x30\", \"mask\": \"0x01\", \"offsets\": [100, "
+      "101] }\n"
+      "  ]\n"
+      "}\n");
+
+  handlers::DungeonImportWaterFillJsonCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--in", in_path.string(), "--format=json"}, &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_THAT(output, testing::HasSubstr("\"write_status\": \"success\""));
+  EXPECT_THAT(output, testing::HasSubstr("\"save_status\": \"saved\""));
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_NE(ReadFileBytes(rom_path), disk_before);
+
+  const auto backups = FindBackupArtifacts(rom_path);
+  ASSERT_EQ(backups.size(), 1u);
+  EXPECT_EQ(ReadFileBytes(backups.front()), disk_before);
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(rom_path.string()).ok());
+  auto zones_or = zelda3::LoadWaterFillTable(&reopened);
+  ASSERT_TRUE(zones_or.ok()) << zones_or.status();
+  ASSERT_EQ(zones_or->size(), 2u);
+  EXPECT_EQ((*zones_or)[0].room_id, 0x30);
+  EXPECT_EQ((*zones_or)[0].sram_bit_mask, 0x01);
+  EXPECT_EQ((*zones_or)[0].fill_offsets, (std::vector<uint16_t>{100, 101}));
+  EXPECT_EQ((*zones_or)[1].room_id, 0x31);
+  EXPECT_EQ((*zones_or)[1].sram_bit_mask, 0x02);
+  EXPECT_EQ((*zones_or)[1].fill_offsets, (std::vector<uint16_t>{200}));
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     CustomCollisionSandboxWritesOnlySandboxCopyOnce) {
+  ScopedTempDirectory temp("sandbox");
+  ScopedSandboxRoot sandbox_root(temp.path() / "sandboxes");
+  const auto source_path = temp.path() / "source.sfc";
+  const auto in_path = temp.path() / "collision.json";
+
+  Rom source_rom;
+  ASSERT_TRUE(
+      source_rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  WriteRomFile(source_rom, source_path);
+  source_rom.set_filename(source_path.string());
+  source_rom.set_dirty(true);
+  const std::vector<uint8_t> source_before = ReadFileBytes(source_path);
+
+  WriteFile(in_path,
+            "{\n"
+            "  \"version\": 1,\n"
+            "  \"rooms\": [\n"
+            "    { \"room_id\": \"0x25\", \"tiles\": [ [65, \"0xB7\"] ] }\n"
+            "  ]\n"
+            "}\n");
+
+  handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--in", in_path.string(), "--sandbox", "--format=json"},
+                  &source_rom, &output);
+  auto sandbox_or = RomSandboxManager::Instance().ActiveSandbox();
+  if (sandbox_or.ok()) {
+    sandbox_root.Track(sandbox_or->id);
+  }
+  ASSERT_TRUE(status.ok()) << status;
+  ASSERT_TRUE(sandbox_or.ok()) << sandbox_or.status();
+
+  EXPECT_EQ(source_rom.vector(), source_before);
+  EXPECT_EQ(ReadFileBytes(source_path), source_before);
+  EXPECT_TRUE(source_rom.dirty());
+  EXPECT_TRUE(FindBackupArtifacts(source_path).empty());
+
+  const auto sandbox_backups = FindBackupArtifacts(sandbox_or->rom_path);
+  ASSERT_EQ(sandbox_backups.size(), 1u);
+  // A second generic auto-save would back up the already-modified sandbox.
+  EXPECT_EQ(ReadFileBytes(sandbox_backups.front()), source_before);
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(sandbox_or->rom_path.string()).ok());
+  auto map_or = zelda3::LoadCustomCollisionMap(&reopened, 0x25);
+  ASSERT_TRUE(map_or.ok()) << map_or.status();
+  ASSERT_TRUE(map_or->has_data);
+  EXPECT_EQ(map_or->tiles[65], 0xB7);
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     CustomCollisionReportNormalizedRomAliasIsRejectedWithoutMutation) {
+  ScopedTempDirectory temp("normalized_alias");
+  const auto rom_path = temp.path() / "target.sfc";
+  const auto in_path = temp.path() / "collision.json";
+  const auto lexical_parent = temp.path() / "lexical_parent";
+  ASSERT_TRUE(std::filesystem::create_directory(lexical_parent));
+  const auto report_alias = lexical_parent / ".." / rom_path.filename();
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  WriteRomFile(rom, rom_path);
+  rom.set_filename(rom_path.string());
+  rom.set_dirty(false);
+  WriteSingleCollisionImport(in_path);
+
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFileBytes(rom_path);
+
+  handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--in", in_path.string(), "--dry-run", "--report",
+                   report_alias.string(), "--format=json"},
+                  &rom, &output);
+
+  EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              testing::HasSubstr("aliases the active ROM"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_EQ(ReadFileBytes(rom_path), disk_before);
+  EXPECT_TRUE(FindBackupArtifacts(rom_path).empty());
+  EXPECT_FALSE(std::filesystem::exists(rom_path.string() + ".tmp"));
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     CustomCollisionReportSymlinkRomAliasIsRejectedWithoutMutation) {
+  ScopedTempDirectory temp("symlink_alias");
+  const auto rom_path = temp.path() / "target.sfc";
+  const auto in_path = temp.path() / "collision.json";
+  const auto report_alias = temp.path() / "report-link.json";
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  WriteRomFile(rom, rom_path);
+  rom.set_filename(rom_path.string());
+  rom.set_dirty(false);
+  WriteSingleCollisionImport(in_path);
+
+  std::error_code link_ec;
+  std::filesystem::create_symlink(rom_path, report_alias, link_ec);
+  if (link_ec) {
+    GTEST_SKIP() << "Symlinks unavailable: " << link_ec.message();
+  }
+
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFileBytes(rom_path);
+
+  handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--in", in_path.string(), "--dry-run", "--report",
+                   report_alias.string(), "--format=json"},
+                  &rom, &output);
+
+  EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              testing::HasSubstr("aliases the active ROM"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_EQ(ReadFileBytes(rom_path), disk_before);
+  EXPECT_TRUE(std::filesystem::is_symlink(report_alias));
+  EXPECT_TRUE(FindBackupArtifacts(rom_path).empty());
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     WaterFillReportHardlinkRomAliasIsRejectedWithoutMutation) {
+  ScopedTempDirectory temp("hardlink_alias");
+  const auto rom_path = temp.path() / "target.sfc";
+  const auto in_path = temp.path() / "water.json";
+  const auto report_alias = temp.path() / "report-hardlink.json";
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  WriteRomFile(rom, rom_path);
+  rom.set_filename(rom_path.string());
+  rom.set_dirty(false);
+  WriteSingleWaterFillImport(in_path);
+
+  std::error_code link_ec;
+  std::filesystem::create_hard_link(rom_path, report_alias, link_ec);
+  if (link_ec) {
+    GTEST_SKIP() << "Hardlinks unavailable: " << link_ec.message();
+  }
+
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFileBytes(rom_path);
+
+  handlers::DungeonImportWaterFillJsonCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--in", in_path.string(), "--dry-run", "--report",
+                   report_alias.string(), "--format=json"},
+                  &rom, &output);
+
+  EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              testing::HasSubstr("aliases the active ROM"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_EQ(ReadFileBytes(rom_path), disk_before);
+  EXPECT_TRUE(std::filesystem::exists(report_alias));
+  EXPECT_TRUE(FindBackupArtifacts(rom_path).empty());
+}
+
+TEST(DungeonCollisionJsonCommandsTest, ExportReportsCannotAliasActiveRom) {
+  ScopedTempDirectory temp("export_report_alias");
+  const auto rom_path = temp.path() / "target.sfc";
+  const auto collision_out = temp.path() / "collision.json";
+  const auto water_out = temp.path() / "water.json";
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  WriteRomFile(rom, rom_path);
+  rom.set_filename(rom_path.string());
+  rom.set_dirty(false);
+  const std::vector<uint8_t> disk_before = ReadFileBytes(rom_path);
+
+  handlers::DungeonExportCustomCollisionJsonCommandHandler collision_handler;
+  std::string collision_output;
+  const absl::Status collision_status =
+      collision_handler.Run({"--out", collision_out.string(), "--all",
+                             "--report", rom_path.string(), "--format=json"},
+                            &rom, &collision_output);
+  EXPECT_TRUE(absl::IsInvalidArgument(collision_status)) << collision_status;
+  EXPECT_THAT(std::string(collision_status.message()),
+              testing::HasSubstr("aliases the active ROM"));
+
+  handlers::DungeonExportWaterFillJsonCommandHandler water_handler;
+  std::string water_output;
+  const absl::Status water_status =
+      water_handler.Run({"--out", water_out.string(), "--all", "--report",
+                         rom_path.string(), "--format=json"},
+                        &rom, &water_output);
+  EXPECT_TRUE(absl::IsInvalidArgument(water_status)) << water_status;
+  EXPECT_THAT(std::string(water_status.message()),
+              testing::HasSubstr("aliases the active ROM"));
+
+  EXPECT_EQ(ReadFileBytes(rom_path), disk_before);
+  EXPECT_FALSE(std::filesystem::exists(collision_out));
+  EXPECT_FALSE(std::filesystem::exists(water_out));
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     DryRunReportCannotAliasUnicodeEquivalentRom) {
+  ScopedTempDirectory temp("unicode_rom_alias");
+  const auto rom_path = temp.path() / "\xC3\xA9.sfc";  // NFC: e-acute.
+  const auto in_path = temp.path() / "collision.json";
+  const auto report_path = temp.path() / "e\xCC\x81.sfc";  // NFD.
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  WriteRomFile(rom, rom_path);
+  rom.set_filename(rom_path.string());
+  rom.set_dirty(false);
+  WriteSingleCollisionImport(in_path);
+
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFileBytes(rom_path);
+
+  std::error_code equivalent_ec;
+  const bool unicode_equivalent =
+      std::filesystem::equivalent(rom_path, report_path, equivalent_ec);
+  if (equivalent_ec || !unicode_equivalent) {
+    GTEST_SKIP() << "Filesystem does not equate NFC/NFD paths";
+  }
+
+  handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--in", in_path.string(), "--dry-run", "--report",
+                   report_path.string(), "--format=json"},
+                  &rom, &output);
+
+  EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              testing::HasSubstr("aliases the active ROM"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_EQ(ReadFileBytes(rom_path), disk_before);
+  EXPECT_TRUE(FindBackupArtifacts(rom_path).empty());
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     SandboxMaterializationFailurePreservesSourceDirty) {
+  ScopedTempDirectory temp("sandbox_save_failure");
+  ScopedSandboxRoot sandbox_root(temp.path() / "sandboxes");
+
+  Rom source_rom;
+  ASSERT_TRUE(
+      source_rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  // A trailing separator gives the source path an empty filename. The manager
+  // can create its sandbox directory, but SaveToFile cannot replace that
+  // directory with the ROM file, forcing the materialization save to fail.
+  source_rom.set_filename(temp.path().string() + "/");
+  source_rom.set_dirty(true);
+
+  const absl::StatusOr<RomSandboxManager::SandboxMetadata> sandbox_or =
+      RomSandboxManager::Instance().CreateSandbox(source_rom, "test failure");
+
+  EXPECT_FALSE(sandbox_or.ok());
+  EXPECT_TRUE(source_rom.dirty());
+  EXPECT_TRUE(
+      absl::IsNotFound(RomSandboxManager::Instance().ActiveSandbox().status()));
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     CustomCollisionDryRunReportFailureDoesNotMutateRom) {
+  ScopedTempDirectory temp("directory_report");
+  const auto rom_path = temp.path() / "target.sfc";
+  const auto in_path = temp.path() / "collision.json";
+  const auto report_path = temp.path() / "report-directory";
+  ASSERT_TRUE(std::filesystem::create_directory(report_path));
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  WriteRomFile(rom, rom_path);
+  rom.set_filename(rom_path.string());
+  rom.set_dirty(true);
+  WriteSingleCollisionImport(in_path);
+
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFileBytes(rom_path);
+
+  handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
+  std::string output = "untouched";
+  const absl::Status status =
+      handler.Run({"--in", in_path.string(), "--dry-run", "--report",
+                   report_path.string(), "--format=json"},
+                  &rom, &output);
+
+  EXPECT_TRUE(absl::IsPermissionDenied(status)) << status;
+  EXPECT_THAT(output, testing::HasSubstr("\"mode\": \"dry-run\""));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(rom.dirty());
+  EXPECT_EQ(ReadFileBytes(rom_path), disk_before);
+  EXPECT_TRUE(std::filesystem::is_directory(report_path));
+  EXPECT_TRUE(FindBackupArtifacts(rom_path).empty());
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     ReportsRejectWriteModeAndSandboxBeforeContext) {
+  ScopedSandboxFlag sandbox_flag(false);
+  ScopedTempDirectory temp("write_report_rejected");
+  ScopedSandboxRoot sandbox_root(temp.path() / "sandboxes");
+  const auto source_path = temp.path() / "source.sfc";
+  const auto collision_path = temp.path() / "collision.json";
+  const auto water_path = temp.path() / "water.json";
+  const auto report_path = temp.path() / "report.json";
+  const auto collision_out = temp.path() / "collision-export.json";
+  const auto water_out = temp.path() / "water-export.json";
+
+  Rom source_rom;
+  ASSERT_TRUE(
+      source_rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  WriteRomFile(source_rom, source_path);
+  source_rom.set_filename(source_path.string());
+  source_rom.set_dirty(true);
+  WriteSingleCollisionImport(collision_path);
+  WriteSingleWaterFillImport(water_path);
+
+  const std::vector<uint8_t> before = source_rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFileBytes(source_path);
+  handlers::DungeonImportCustomCollisionJsonCommandHandler collision_handler;
+  handlers::DungeonImportWaterFillJsonCommandHandler water_handler;
+  handlers::DungeonExportCustomCollisionJsonCommandHandler collision_export;
+  handlers::DungeonExportWaterFillJsonCommandHandler water_export;
+
+  for (const std::vector<std::string>& mode_args :
+       {std::vector<std::string>{}, std::vector<std::string>{"--mock-rom"},
+        std::vector<std::string>{"--sandbox"}}) {
+    std::vector<std::string> collision_args = {"--in", collision_path.string(),
+                                               "--report", report_path.string(),
+                                               "--format=json"};
+    collision_args.insert(collision_args.end(), mode_args.begin(),
+                          mode_args.end());
+    std::string collision_output = "untouched";
+    const absl::Status collision_status =
+        collision_handler.Run(collision_args, &source_rom, &collision_output);
+    EXPECT_TRUE(absl::IsInvalidArgument(collision_status)) << collision_status;
+    EXPECT_THAT(
+        std::string(collision_status.message()),
+        testing::HasSubstr("--report is supported only with --dry-run"));
+    EXPECT_EQ(collision_output, "untouched");
+
+    std::vector<std::string> water_args = {"--in", water_path.string(),
+                                           "--report", report_path.string(),
+                                           "--format=json"};
+    water_args.insert(water_args.end(), mode_args.begin(), mode_args.end());
+    std::string water_output = "untouched";
+    const absl::Status water_status =
+        water_handler.Run(water_args, &source_rom, &water_output);
+    EXPECT_TRUE(absl::IsInvalidArgument(water_status)) << water_status;
+    EXPECT_THAT(
+        std::string(water_status.message()),
+        testing::HasSubstr("--report is supported only with --dry-run"));
+    EXPECT_EQ(water_output, "untouched");
+  }
+
+  for (auto* handler :
+       {static_cast<resources::CommandHandler*>(&collision_handler),
+        static_cast<resources::CommandHandler*>(&water_handler)}) {
+    const std::filesystem::path& input =
+        handler == &collision_handler ? collision_path : water_path;
+    std::string output = "untouched";
+    const absl::Status status =
+        handler->Run({"--in", input.string(), "--dry-run", "--sandbox",
+                      "--report", report_path.string(), "--format=json"},
+                     &source_rom, &output);
+    EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+    EXPECT_THAT(std::string(status.message()),
+                testing::HasSubstr("--report cannot be combined with "
+                                   "--sandbox"));
+    EXPECT_EQ(output, "untouched");
+  }
+
+  for (auto* handler :
+       {static_cast<resources::CommandHandler*>(&collision_export),
+        static_cast<resources::CommandHandler*>(&water_export)}) {
+    const std::filesystem::path& out =
+        handler == &collision_export ? collision_out : water_out;
+    std::string output = "untouched";
+    const absl::Status status =
+        handler->Run({"--out", out.string(), "--all", "--sandbox", "--report",
+                      report_path.string(), "--format=json"},
+                     &source_rom, &output);
+    EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+    EXPECT_THAT(std::string(status.message()),
+                testing::HasSubstr("--report cannot be combined with "
+                                   "--sandbox"));
+    EXPECT_EQ(output, "untouched");
+  }
+
+  {
+    ScopedSandboxFlag global_sandbox(true);
+    std::string output = "untouched";
+    const absl::Status status = collision_handler.Run(
+        {"--in", collision_path.string(), "--dry-run", "--report",
+         report_path.string(), "--format=json"},
+        &source_rom, &output);
+    EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+    EXPECT_THAT(std::string(status.message()),
+                testing::HasSubstr("--report cannot be combined with "
+                                   "--sandbox"));
+    EXPECT_EQ(output, "untouched");
+
+    for (auto* handler :
+         {static_cast<resources::CommandHandler*>(&collision_export),
+          static_cast<resources::CommandHandler*>(&water_export)}) {
+      const std::filesystem::path& out =
+          handler == &collision_export ? collision_out : water_out;
+      output = "untouched";
+      const absl::Status export_status =
+          handler->Run({"--out", out.string(), "--all", "--report",
+                        report_path.string(), "--format=json"},
+                       &source_rom, &output);
+      EXPECT_TRUE(absl::IsInvalidArgument(export_status)) << export_status;
+      EXPECT_THAT(std::string(export_status.message()),
+                  testing::HasSubstr("--report cannot be combined with "
+                                     "--sandbox"));
+      EXPECT_EQ(output, "untouched");
+    }
+  }
+
+  EXPECT_EQ(source_rom.vector(), before);
+  EXPECT_TRUE(source_rom.dirty());
+  EXPECT_EQ(ReadFileBytes(source_path), disk_before);
+  EXPECT_FALSE(std::filesystem::exists(report_path));
+  EXPECT_FALSE(std::filesystem::exists(collision_out));
+  EXPECT_FALSE(std::filesystem::exists(water_out));
+  EXPECT_TRUE(FindBackupArtifacts(source_path).empty());
+  EXPECT_TRUE(
+      absl::IsNotFound(RomSandboxManager::Instance().ActiveSandbox().status()));
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     MockRomAndSandboxAreRejectedForBothImportsBeforeMutation) {
+  ScopedTempDirectory temp("mock_sandbox");
+  ScopedSandboxRoot sandbox_root(temp.path() / "sandboxes");
+  const auto source_path = temp.path() / "source.sfc";
+  const auto collision_path = temp.path() / "collision.json";
+  const auto water_path = temp.path() / "water.json";
+
+  Rom source_rom;
+  ASSERT_TRUE(
+      source_rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  WriteRomFile(source_rom, source_path);
+  source_rom.set_filename(source_path.string());
+  source_rom.set_dirty(true);
+  WriteSingleCollisionImport(collision_path);
+  WriteSingleWaterFillImport(water_path);
+
+  const std::vector<uint8_t> before = source_rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFileBytes(source_path);
+
+  handlers::DungeonImportCustomCollisionJsonCommandHandler collision_handler;
+  std::string collision_output = "untouched";
+  const absl::Status collision_status =
+      collision_handler.Run({"--in", collision_path.string(), "--mock-rom",
+                             "--sandbox", "--format=json"},
+                            &source_rom, &collision_output);
+  EXPECT_TRUE(absl::IsInvalidArgument(collision_status)) << collision_status;
+  EXPECT_THAT(std::string(collision_status.message()),
+              testing::HasSubstr("mutually exclusive"));
+  EXPECT_EQ(collision_output, "untouched");
+
+  handlers::DungeonImportWaterFillJsonCommandHandler water_handler;
+  std::string water_output = "untouched";
+  const absl::Status water_status = water_handler.Run(
+      {"--in", water_path.string(), "--mock-rom", "--sandbox", "--format=json"},
+      &source_rom, &water_output);
+  EXPECT_TRUE(absl::IsInvalidArgument(water_status)) << water_status;
+  EXPECT_THAT(std::string(water_status.message()),
+              testing::HasSubstr("mutually exclusive"));
+  EXPECT_EQ(water_output, "untouched");
+
+  EXPECT_EQ(source_rom.vector(), before);
+  EXPECT_TRUE(source_rom.dirty());
+  EXPECT_EQ(ReadFileBytes(source_path), disk_before);
+  EXPECT_TRUE(FindBackupArtifacts(source_path).empty());
+  EXPECT_TRUE(
+      absl::IsNotFound(RomSandboxManager::Instance().ActiveSandbox().status()));
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     CustomCollisionSerializerFailureRollsBackPartialWrites) {
+  ScopedTempDirectory temp("serializer_failure");
+  const auto rom_path = temp.path() / "target.sfc";
+  const auto in_path = temp.path() / "collision.json";
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+
+  // Leave room for exactly one imported one-tile map. The second room then
+  // fails after the first room has already changed data and its pointer.
+  const int existing_pc = zelda3::kCustomCollisionDataSoftEnd - 17;
+  SetLong(&rom, zelda3::kCustomCollisionRoomPointers, PcToSnes(existing_pc));
+  ASSERT_TRUE(
+      rom.WriteVector(existing_pc, std::vector<uint8_t>{0xF0, 0xF0, 0x00, 0x00,
+                                                        0xB7, 0xFF, 0xFF})
+          .ok());
+  WriteRomFile(rom, rom_path);
+  rom.set_filename(rom_path.string());
+  rom.set_dirty(false);
+
+  WriteFile(in_path,
+            "{\n"
+            "  \"version\": 1,\n"
+            "  \"rooms\": [\n"
+            "    { \"room_id\": \"0x20\", \"tiles\": [ [1, \"0xB7\"] ] },\n"
+            "    { \"room_id\": \"0x21\", \"tiles\": [ [2, \"0xB8\"] ] }\n"
+            "  ]\n"
+            "}\n");
+
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFileBytes(rom_path);
+  const std::string filename_before = rom.filename();
+  const bool dirty_before = rom.dirty();
+
+  handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--in", in_path.string(), "--format=json"}, &rom, &output);
+
+  EXPECT_TRUE(absl::IsResourceExhausted(status)) << status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.filename(), filename_before);
+  EXPECT_EQ(rom.dirty(), dirty_before);
+  EXPECT_EQ(ReadFileBytes(rom_path), disk_before);
+  EXPECT_TRUE(FindBackupArtifacts(rom_path).empty());
+  EXPECT_FALSE(std::filesystem::exists(rom_path.string() + ".tmp"));
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     CustomCollisionRequiredBackupFailureRollsBackCallerRom) {
+  ScopedTempDirectory temp("backup_failure");
+  const auto rom_path = temp.path() / "target.sfc";
+  const auto in_path = temp.path() / "collision.json";
+  ASSERT_TRUE(std::filesystem::create_directory(rom_path));
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  rom.set_filename(rom_path.string());
+  rom.set_dirty(false);
+  WriteFile(in_path,
+            "{\n"
+            "  \"version\": 1,\n"
+            "  \"rooms\": [\n"
+            "    { \"room_id\": \"0x25\", \"tiles\": [ [65, \"0xB7\"] ] }\n"
+            "  ]\n"
+            "}\n");
+
+  const std::vector<uint8_t> before = rom.vector();
+  const std::string filename_before = rom.filename();
+  const bool dirty_before = rom.dirty();
+
+  handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--in", in_path.string(), "--format=json"}, &rom, &output);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              testing::HasSubstr("Could not create required ROM backup"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.filename(), filename_before);
+  EXPECT_EQ(rom.dirty(), dirty_before);
+  EXPECT_TRUE(std::filesystem::is_directory(rom_path));
+  EXPECT_FALSE(std::filesystem::exists(rom_path.string() + ".tmp"));
+  EXPECT_TRUE(FindBackupArtifacts(rom_path).empty());
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     WaterFillDiskSaveFailureRollsBackAndRetainsBackup) {
+  ScopedTempDirectory temp("disk_failure");
+  const auto rom_path = temp.path() / "target.sfc";
+  const auto in_path = temp.path() / "water.json";
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  WriteRomFile(rom, rom_path);
+  rom.set_filename(rom_path.string());
+  rom.set_dirty(false);
+  ASSERT_TRUE(std::filesystem::create_directory(rom_path.string() + ".tmp"));
+
+  WriteFile(
+      in_path,
+      "{\n"
+      "  \"version\": 1,\n"
+      "  \"zones\": [\n"
+      "    { \"room_id\": \"0x30\", \"mask\": \"0x01\", \"offsets\": [100] }\n"
+      "  ]\n"
+      "}\n");
+
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFileBytes(rom_path);
+  const std::string filename_before = rom.filename();
+  const bool dirty_before = rom.dirty();
+
+  handlers::DungeonImportWaterFillJsonCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--in", in_path.string(), "--format=json"}, &rom, &output);
+
+  EXPECT_TRUE(absl::IsInternal(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              testing::HasSubstr("Could not open temp ROM file for writing"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.filename(), filename_before);
+  EXPECT_EQ(rom.dirty(), dirty_before);
+  EXPECT_EQ(ReadFileBytes(rom_path), disk_before);
+  EXPECT_TRUE(std::filesystem::is_directory(rom_path.string() + ".tmp"));
+
+  const auto backups = FindBackupArtifacts(rom_path);
+  ASSERT_EQ(backups.size(), 1u);
+  EXPECT_EQ(ReadFileBytes(backups.front()), disk_before);
+}
+
 TEST(DungeonCollisionJsonCommandsTest, CustomCollisionReplaceAllRequiresForce) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
 
   const auto in_path = std::filesystem::temp_directory_path() /
                        "yaze_custom_collision_replace_all_requires_force.json";
-  const auto report_path =
-      std::filesystem::temp_directory_path() /
-      "yaze_custom_collision_replace_all_requires_force.report.json";
   WriteFile(in_path,
             "{\n"
             "  \"version\": 1,\n"
@@ -241,21 +1096,14 @@ TEST(DungeonCollisionJsonCommandsTest, CustomCollisionReplaceAllRequiresForce) {
   handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
   std::string output;
   const auto status =
-      handler.Run({"--in", in_path.string(), "--replace-all",
-                   "--report", report_path.string(), "--format=json"},
+      handler.Run({"--in", in_path.string(), "--replace-all", "--format=json"},
                   &rom, &output);
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
-
-  const auto report = nlohmann::json::parse(ReadFile(report_path));
-  EXPECT_EQ(report.value("command", ""), "dungeon-import-custom-collision-json");
-  EXPECT_EQ(report.value("status", ""), "error");
-  EXPECT_TRUE(report.value("replace_all", false));
-  EXPECT_FALSE(report.value("force", true));
-  EXPECT_EQ(report["error"].value("code", ""), "FAILED_PRECONDITION");
+  EXPECT_THAT(std::string(status.message()),
+              testing::HasSubstr("--replace-all requires --force"));
 
   std::filesystem::remove(in_path);
-  std::filesystem::remove(report_path);
 }
 
 TEST(DungeonCollisionJsonCommandsTest, WaterFillImportDryRunDoesNotWrite) {
@@ -265,13 +1113,14 @@ TEST(DungeonCollisionJsonCommandsTest, WaterFillImportDryRunDoesNotWrite) {
 
   const auto in_path =
       std::filesystem::temp_directory_path() / "yaze_water_fill_dry_run.json";
-  WriteFile(in_path,
-            "{\n"
-            "  \"version\": 1,\n"
-            "  \"zones\": [\n"
-            "    { \"room_id\": \"0x27\", \"mask\": \"0x01\", \"offsets\": [100] }\n"
-            "  ]\n"
-            "}\n");
+  WriteFile(
+      in_path,
+      "{\n"
+      "  \"version\": 1,\n"
+      "  \"zones\": [\n"
+      "    { \"room_id\": \"0x27\", \"mask\": \"0x01\", \"offsets\": [100] }\n"
+      "  ]\n"
+      "}\n");
 
   handlers::DungeonImportWaterFillJsonCommandHandler handler;
   std::string output;
@@ -292,23 +1141,24 @@ TEST(DungeonCollisionJsonCommandsTest,
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
 
-  const auto in_path =
-      std::filesystem::temp_directory_path() / "yaze_water_fill_required_room.json";
+  const auto in_path = std::filesystem::temp_directory_path() /
+                       "yaze_water_fill_required_room.json";
   const auto report_path = std::filesystem::temp_directory_path() /
                            "yaze_water_fill_required_room.report.json";
-  WriteFile(in_path,
-            "{\n"
-            "  \"version\": 1,\n"
-            "  \"zones\": [\n"
-            "    { \"room_id\": \"0x25\", \"mask\": \"0x01\", \"offsets\": [100] }\n"
-            "  ]\n"
-            "}\n");
+  WriteFile(
+      in_path,
+      "{\n"
+      "  \"version\": 1,\n"
+      "  \"zones\": [\n"
+      "    { \"room_id\": \"0x25\", \"mask\": \"0x01\", \"offsets\": [100] }\n"
+      "  ]\n"
+      "}\n");
 
   handlers::DungeonImportWaterFillJsonCommandHandler handler;
   std::string output;
   const auto status =
-      handler.Run({"--in", in_path.string(), "--dry-run",
-                   "--report", report_path.string(), "--format=json"},
+      handler.Run({"--in", in_path.string(), "--dry-run", "--report",
+                   report_path.string(), "--format=json"},
                   &rom, &output);
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
@@ -338,21 +1188,22 @@ TEST(DungeonCollisionJsonCommandsTest,
 
   const auto in_path =
       std::filesystem::temp_directory_path() / "yaze_water_fill_strict.json";
-  const auto report_path =
-      std::filesystem::temp_directory_path() / "yaze_water_fill_strict.report.json";
-  WriteFile(in_path,
-            "{\n"
-            "  \"version\": 1,\n"
-            "  \"zones\": [\n"
-            "    { \"room_id\": \"0x25\", \"mask\": \"0x01\", \"offsets\": [10] },\n"
-            "    { \"room_id\": \"0x27\", \"mask\": \"0x01\", \"offsets\": [20] }\n"
-            "  ]\n"
-            "}\n");
+  const auto report_path = std::filesystem::temp_directory_path() /
+                           "yaze_water_fill_strict.report.json";
+  WriteFile(
+      in_path,
+      "{\n"
+      "  \"version\": 1,\n"
+      "  \"zones\": [\n"
+      "    { \"room_id\": \"0x25\", \"mask\": \"0x01\", \"offsets\": [10] },\n"
+      "    { \"room_id\": \"0x27\", \"mask\": \"0x01\", \"offsets\": [20] }\n"
+      "  ]\n"
+      "}\n");
 
   handlers::DungeonImportWaterFillJsonCommandHandler handler;
   std::string output;
   const auto status =
-      handler.Run({"--in", in_path.string(), "--strict-masks",
+      handler.Run({"--in", in_path.string(), "--dry-run", "--strict-masks",
                    "--report", report_path.string(), "--format=json"},
                   &rom, &output);
   EXPECT_FALSE(status.ok());
@@ -397,19 +1248,20 @@ TEST(DungeonCollisionJsonCommandsTest,
       std::filesystem::temp_directory_path() / "yaze_water_fill_preflight.json";
   const auto report_path = std::filesystem::temp_directory_path() /
                            "yaze_water_fill_preflight.report.json";
-  WriteFile(in_path,
-            "{\n"
-            "  \"version\": 1,\n"
-            "  \"zones\": [\n"
-            "    { \"room_id\": \"0x25\", \"mask\": \"0x01\", \"offsets\": [32] }\n"
-            "  ]\n"
-            "}\n");
+  WriteFile(
+      in_path,
+      "{\n"
+      "  \"version\": 1,\n"
+      "  \"zones\": [\n"
+      "    { \"room_id\": \"0x25\", \"mask\": \"0x01\", \"offsets\": [32] }\n"
+      "  ]\n"
+      "}\n");
 
   handlers::DungeonImportWaterFillJsonCommandHandler handler;
   std::string output;
   const auto status =
-      handler.Run({"--in", in_path.string(), "--dry-run",
-                   "--report", report_path.string(), "--format=json"},
+      handler.Run({"--in", in_path.string(), "--dry-run", "--report",
+                   report_path.string(), "--format=json"},
                   &rom, &output);
   EXPECT_FALSE(status.ok());
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
@@ -436,24 +1288,25 @@ TEST(DungeonCollisionJsonCommandsTest,
 // SRAM bit masks.
 // ---------------------------------------------------------------------------
 
-TEST(DungeonCollisionJsonCommandsTest,
-     ZoraTempleProfileBothRoomsRoundtrip) {
+TEST(DungeonCollisionJsonCommandsTest, ZoraTempleProfileBothRoomsRoundtrip) {
   // Write both D4 zones with correct masks, then export+verify both survive.
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
   SeedCustomCollisionRooms(&rom, {0x25, 0x27});
 
-  const auto in_path = std::filesystem::temp_directory_path() /
-                       "yaze_d4_profile_import.json";
-  const auto out_path = std::filesystem::temp_directory_path() /
-                        "yaze_d4_profile_export.json";
+  const auto in_path =
+      std::filesystem::temp_directory_path() / "yaze_d4_profile_import.json";
+  const auto out_path =
+      std::filesystem::temp_directory_path() / "yaze_d4_profile_export.json";
 
   WriteFile(in_path,
             "{\n"
             "  \"version\": 1,\n"
             "  \"zones\": [\n"
-            "    { \"room_id\": \"0x25\", \"mask\": \"0x02\", \"offsets\": [100, 101] },\n"
-            "    { \"room_id\": \"0x27\", \"mask\": \"0x01\", \"offsets\": [200, 201] }\n"
+            "    { \"room_id\": \"0x25\", \"mask\": \"0x02\", \"offsets\": "
+            "[100, 101] },\n"
+            "    { \"room_id\": \"0x27\", \"mask\": \"0x01\", \"offsets\": "
+            "[200, 201] }\n"
             "  ]\n"
             "}\n");
 
@@ -461,19 +1314,19 @@ TEST(DungeonCollisionJsonCommandsTest,
   std::string import_output;
   ASSERT_TRUE(
       import_handler
-          .Run({"--in", in_path.string(), "--format=json"}, &rom, &import_output)
+          .Run({"--in", in_path.string(), "--mock-rom", "--format=json"}, &rom,
+               &import_output)
           .ok());
 
   handlers::DungeonExportWaterFillJsonCommandHandler export_handler;
   std::string export_output;
-  ASSERT_TRUE(
-      export_handler
-          .Run({"--rooms=0x25,0x27", "--out", out_path.string(), "--format=json"},
-               &rom, &export_output)
-          .ok());
+  ASSERT_TRUE(export_handler
+                  .Run({"--rooms=0x25,0x27", "--out", out_path.string(),
+                        "--format=json"},
+                       &rom, &export_output)
+                  .ok());
 
-  auto zones_or =
-      zelda3::LoadWaterFillZonesFromJsonString(ReadFile(out_path));
+  auto zones_or = zelda3::LoadWaterFillZonesFromJsonString(ReadFile(out_path));
   ASSERT_TRUE(zones_or.ok()) << zones_or.status().message();
   ASSERT_EQ(zones_or->size(), 2u);
 
@@ -507,21 +1360,22 @@ TEST(DungeonCollisionJsonCommandsTest,
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
   SeedCustomCollisionRooms(&rom, {0x25, 0x27});
 
-  const auto in_path = std::filesystem::temp_directory_path() /
-                       "yaze_d4_mask_norm.json";
-  WriteFile(in_path,
-            "{\n"
-            "  \"version\": 1,\n"
-            "  \"zones\": [\n"
-            "    { \"room_id\": \"0x27\", \"mask\": \"0x00\", \"offsets\": [50] },\n"
-            "    { \"room_id\": \"0x25\", \"mask\": \"0x00\", \"offsets\": [60] }\n"
-            "  ]\n"
-            "}\n");
+  const auto in_path =
+      std::filesystem::temp_directory_path() / "yaze_d4_mask_norm.json";
+  WriteFile(
+      in_path,
+      "{\n"
+      "  \"version\": 1,\n"
+      "  \"zones\": [\n"
+      "    { \"room_id\": \"0x27\", \"mask\": \"0x00\", \"offsets\": [50] },\n"
+      "    { \"room_id\": \"0x25\", \"mask\": \"0x00\", \"offsets\": [60] }\n"
+      "  ]\n"
+      "}\n");
 
   handlers::DungeonImportWaterFillJsonCommandHandler handler;
   std::string output;
-  const auto status =
-      handler.Run({"--in", in_path.string(), "--format=json"}, &rom, &output);
+  const auto status = handler.Run(
+      {"--in", in_path.string(), "--mock-rom", "--format=json"}, &rom, &output);
   ASSERT_TRUE(status.ok()) << status.message();
 
   auto zones_or = zelda3::LoadWaterFillTable(&rom);
@@ -545,8 +1399,10 @@ TEST(DungeonCollisionJsonCommandsTest,
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
 
   std::vector<zelda3::WaterFillZoneEntry> zones;
-  zones.push_back({.room_id = 0x25, .sram_bit_mask = 0x02, .fill_offsets = {1, 2}});
-  zones.push_back({.room_id = 0x27, .sram_bit_mask = 0x01, .fill_offsets = {3, 4}});
+  zones.push_back(
+      {.room_id = 0x25, .sram_bit_mask = 0x02, .fill_offsets = {1, 2}});
+  zones.push_back(
+      {.room_id = 0x27, .sram_bit_mask = 0x01, .fill_offsets = {3, 4}});
   ASSERT_TRUE(zelda3::WriteWaterFillTable(&rom, zones).ok());
 
   const auto out_path = std::filesystem::temp_directory_path() /
@@ -554,8 +1410,9 @@ TEST(DungeonCollisionJsonCommandsTest,
   handlers::DungeonExportWaterFillJsonCommandHandler handler;
   std::string output;
   ASSERT_TRUE(
-      handler.Run({"--room=0x25", "--out", out_path.string(), "--format=json"},
-                  &rom, &output)
+      handler
+          .Run({"--room=0x25", "--out", out_path.string(), "--format=json"},
+               &rom, &output)
           .ok());
 
   auto exported_or =

@@ -24,6 +24,17 @@ This repo is used to edit ROM hacks (including Oracle of Secrets). Treat ROM wri
   `dungeon-set-collision-tile` wrap their serializer, required backup, and disk
   commit in `ScopedRomTransaction`. Any failure restores the caller's ROM
   bytes, filename, size, and dirty state.
+- Non-dry-run `dungeon-import-custom-collision-json` and
+  `dungeon-import-water-fill-json` use the same transaction and required-backup
+  contract, then immediately save the active ROM. With `--sandbox`, the active
+  target is the sandbox copy; the source ROM is not saved or backed up.
+- Import `--report` is accepted only with a non-sandbox `--dry-run`; every
+  write-mode or sandbox invocation rejects it before ROM loading or sandbox
+  creation. Report paths must not alias the active ROM. The guard is rechecked
+  immediately before the direct report write, but a local path-swap TOCTOU
+  remains; use a trusted directory that other processes cannot modify.
+  Collision/water JSON export reports use the same active-ROM alias guard and
+  are also rejected with `--sandbox`.
 - Other CLI writers that still set only `backup=true` remain best-effort and
   must be audited before opting into the strict transaction path.
 
@@ -226,7 +237,16 @@ When importing dungeon collision or water-fill JSON, use a two-step flow:
 Safety semantics:
 
 - `--dry-run` performs full parsing/validation and emits impact counts without writing.
-- `--report <path>` writes machine-readable JSON with `status`, `mode`, and structured error code/message.
+- Without `--dry-run`, imports immediately save the active ROM with a required
+  backup. `--sandbox` redirects that one save and its backup to the sandbox
+  copy, leaving the source ROM and source directory unchanged.
+- `--mock-rom` is an explicit in-memory test mode and cannot be combined with
+  `--sandbox`; the command rejects that combination before creating a sandbox.
+- `--report <path>` is non-sandbox dry-run-only and writes machine-readable
+  JSON with `status`, `mode`, and structured error code/message. It must name a
+  separate writable file, never the active ROM through a direct, normalized,
+  symlink, or hardlink path. Use a trusted report directory because a local
+  path swap between the identity check and open is not guarded.
 - `dungeon-import-custom-collision-json --replace-all` is destructive and requires `--force` in write mode.
 - `dungeon-import-water-fill-json --strict-masks` fails closed if SRAM mask normalization would be needed.
 
