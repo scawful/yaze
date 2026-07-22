@@ -295,7 +295,10 @@ absl::Status ProjectFileEditor::SaveFileAs(const std::string& filepath) {
 
 #ifdef __EMSCRIPTEN__
   const std::string key = ProjectStorageKey(project_, final_path);
-  auto storage_status = platform::WasmStorage::SaveProject(key, contents);
+  const bool replace_existing =
+      !filepath_.empty() && ProjectStorageKey(project_, filepath_) == key;
+  auto storage_status =
+      platform::WasmStorage::SaveProject(key, contents, replace_existing);
   if (!storage_status.ok()) {
     return storage_status;
   }
