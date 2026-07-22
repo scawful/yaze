@@ -339,12 +339,9 @@ TEST_F(RomTest, BestEffortBackupFailureStillSaves) {
 TEST_F(RomTest, RequiredBackupFailureRollsBackTransactionAndLeavesNoArtifacts) {
   ScopedTempDirectory temp;
   const auto target = temp.path() / "target.sfc";
-  const auto missing_source = temp.path() / "missing-source.sfc";
-  const std::vector<uint8_t> disk_before = {0xAA, 0xBB, 0xCC};
-  WriteFileBytes(target, disk_before);
+  ASSERT_TRUE(std::filesystem::create_directory(target));
 
   EXPECT_OK(rom_.LoadFromData(kMockRomData));
-  rom_.set_filename(missing_source.string());
   const auto rom_before = rom_.vector();
   const bool dirty_before = rom_.dirty();
   const std::string filename_before = rom_.filename();
@@ -366,9 +363,38 @@ TEST_F(RomTest, RequiredBackupFailureRollsBackTransactionAndLeavesNoArtifacts) {
   EXPECT_EQ(rom_.vector(), rom_before);
   EXPECT_EQ(rom_.dirty(), dirty_before);
   EXPECT_EQ(rom_.filename(), filename_before);
-  EXPECT_EQ(ReadFileBytes(target), disk_before);
+  EXPECT_TRUE(std::filesystem::is_directory(target));
   EXPECT_FALSE(std::filesystem::exists(target.string() + ".tmp"));
   EXPECT_EQ(CountFilesWithPrefix(temp.path(), "target.sfc_backup_"), 0);
+}
+
+TEST_F(RomTest, RequiredBackupProtectsExistingSaveAsTarget) {
+  ScopedTempDirectory temp;
+  const auto source = temp.path() / "source.sfc";
+  const auto target = temp.path() / "target.sfc";
+  const std::vector<uint8_t> source_bytes = {0x10, 0x20, 0x30};
+  const std::vector<uint8_t> target_before = {0xAA, 0xBB, 0xCC};
+  WriteFileBytes(source, source_bytes);
+  WriteFileBytes(target, target_before);
+
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
+  rom_.set_filename(source.string());
+
+  Rom::SaveSettings settings;
+  settings.require_backup = true;
+  settings.filename = target.string();
+  EXPECT_OK(rom_.SaveToFile(settings));
+
+  EXPECT_EQ(ReadFileBytes(target), rom_.vector());
+  std::vector<std::filesystem::path> backups;
+  for (const auto& entry : std::filesystem::directory_iterator(temp.path())) {
+    if (entry.path().filename().string().rfind("target.sfc_backup_", 0) == 0) {
+      backups.push_back(entry.path());
+    }
+  }
+  ASSERT_EQ(backups.size(), 1);
+  EXPECT_EQ(ReadFileBytes(backups.front()), target_before);
+  EXPECT_EQ(CountFilesWithPrefix(temp.path(), "source.sfc_backup_"), 0);
 }
 
 TEST_F(RomTest, TransactionRollbackRestoresOriginals) {
