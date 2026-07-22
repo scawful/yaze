@@ -383,6 +383,158 @@ TEST_F(DungeonSaveTest, SaveObjects_SharedStreamFailsWithoutMutation) {
 }
 
 TEST_F(DungeonSaveTest,
+       SaveObjectStreamHeaderUsesPerFieldRmwAndPreservesPayload) {
+  constexpr int kStreamPc = 0x100000;
+  WriteEmptyObjectStream(kStreamPc, 0xA5, 0xE3);
+  const std::vector<uint8_t> payload(rom_->data() + kStreamPc + 2,
+                                     rom_->data() + kStreamPc + 10);
+
+  room_->set_floor1(0x02);
+  EXPECT_TRUE(room_->object_stream_header_dirty());
+  EXPECT_FALSE(room_->object_stream_dirty());
+  ASSERT_TRUE(room_->SaveObjectStreamHeader().ok());
+  EXPECT_EQ(rom_->data()[kStreamPc], 0xA2);
+  EXPECT_EQ(rom_->data()[kStreamPc + 1], 0xE3);
+
+  room_->set_floor2(0x03);
+  ASSERT_TRUE(room_->SaveObjectStreamHeader().ok());
+  EXPECT_EQ(rom_->data()[kStreamPc], 0x32);
+  EXPECT_EQ(rom_->data()[kStreamPc + 1], 0xE3);
+
+  room_->SetLayoutId(0x04);
+  ASSERT_TRUE(room_->SaveObjectStreamHeader().ok());
+  EXPECT_EQ(rom_->data()[kStreamPc], 0x32);
+  EXPECT_EQ(rom_->data()[kStreamPc + 1], 0xF3);
+  EXPECT_TRUE(
+      std::equal(payload.begin(), payload.end(), rom_->data() + kStreamPc + 2));
+  EXPECT_FALSE(room_->object_stream_header_dirty());
+  EXPECT_FALSE(room_->object_stream_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjectStreamHeaderRejectsOutOfRangeValueWithoutMutation) {
+  WriteEmptyObjectStream(0x100000, 0xA5, 0xE3);
+  room_->SetLayoutId(0x08);
+  const auto before = rom_->vector();
+
+  const auto status = room_->SaveObjectStreamHeader();
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->object_stream_header_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjectStreamHeaderSharedStreamFailsClosedWithoutManifest) {
+  SetObjectRoomPointer(1, 0x100000);
+  WriteEmptyObjectStream(0x100000, 0xA5, 0xE3);
+  room_->SetLayoutId(0x03);
+  const auto before = rom_->vector();
+
+  const auto status = room_->SaveObjectStreamHeader();
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->object_stream_header_dirty());
+  EXPECT_FALSE(room_->object_stream_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjectStreamHeaderDetachesSharedStreamWithManifestLayout) {
+  constexpr int kOldStreamPc = 0x100000;
+  constexpr int kRelocatedStreamPc = 0x100200;
+  SetObjectRoomPointer(1, kOldStreamPc);
+  WriteEmptyObjectStream(kOldStreamPc, 0xA5, 0xE3);
+  const std::vector<uint8_t> old_stream(rom_->data() + kOldStreamPc,
+                                        rom_->data() + kOldStreamPc + 10);
+  room_->set_floor2(0x03);
+  const auto layout = MakeObjectLayout();
+
+  const auto status = room_->SaveObjectStreamHeader(&layout);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(GetObjectRoomPointer(0), kRelocatedStreamPc);
+  EXPECT_EQ(GetObjectRoomPointer(1), kOldStreamPc);
+  EXPECT_EQ(GetDoorPointer(0), kRelocatedStreamPc + 8);
+  EXPECT_TRUE(std::equal(old_stream.begin(), old_stream.end(),
+                         rom_->data() + kOldStreamPc));
+  EXPECT_EQ(rom_->data()[kRelocatedStreamPc], 0x35);
+  EXPECT_EQ(rom_->data()[kRelocatedStreamPc + 1], 0xE3);
+  EXPECT_TRUE(std::equal(old_stream.begin() + 2, old_stream.end(),
+                         rom_->data() + kRelocatedStreamPc + 2));
+  EXPECT_FALSE(room_->object_stream_header_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjectStreamHeaderDetachesOverlappingSuffixWithManifestLayout) {
+  constexpr int kOwnerStreamPc = 0x100000;
+  constexpr int kSuffixStreamPc = kOwnerStreamPc + 2;
+  constexpr int kRelocatedStreamPc = 0x100200;
+  SetObjectRoomPointer(0, kSuffixStreamPc);
+  SetObjectRoomPointer(1, kOwnerStreamPc);
+  ASSERT_TRUE(rom_->WriteVector(kOwnerStreamPc, {0x00, 0x00, 0xFF, 0xFF, 0xFF,
+                                                 0xFF, 0xFF, 0xFF, 0xFF, 0xFF})
+                  .ok());
+  const std::vector<uint8_t> owner_stream(rom_->data() + kOwnerStreamPc,
+                                          rom_->data() + kOwnerStreamPc + 10);
+  room_->SetLayoutId(0x03);
+  const auto layout = MakeObjectLayout();
+
+  const auto status = room_->SaveObjectStreamHeader(&layout);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(GetObjectRoomPointer(0), kRelocatedStreamPc);
+  EXPECT_EQ(GetObjectRoomPointer(1), kOwnerStreamPc);
+  EXPECT_TRUE(std::equal(owner_stream.begin(), owner_stream.end(),
+                         rom_->data() + kOwnerStreamPc));
+  EXPECT_EQ(rom_->data()[kRelocatedStreamPc], 0xFF);
+  EXPECT_EQ(rom_->data()[kRelocatedStreamPc + 1], 0xEF);
+  EXPECT_TRUE(std::equal(owner_stream.begin() + 4, owner_stream.end(),
+                         rom_->data() + kRelocatedStreamPc + 2));
+  EXPECT_FALSE(room_->object_stream_header_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjectStreamHeaderAllocatorExhaustionRollsBackRomAndDirtyState) {
+  SetObjectRoomPointer(1, 0x100000);
+  WriteEmptyObjectStream(0x100000, 0xA5, 0xE3);
+  room_->set_floor1(0x02);
+  const auto before = rom_->vector();
+  const auto layout = MakeObjectLayout({0x100200, 0x100204});
+
+  const auto status = room_->SaveObjectStreamHeader(&layout);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->object_stream_header_dirty());
+  EXPECT_FALSE(room_->object_stream_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjectsThenHeaderPreservesCombinedPayloadAndPropertyEdits) {
+  constexpr int kOldStreamPc = 0x100000;
+  constexpr int kRelocatedStreamPc = 0x100200;
+  SetObjectRoomPointer(1, kOldStreamPc);
+  WriteEmptyObjectStream(kOldStreamPc, 0xA5, 0xE3);
+  ASSERT_TRUE(room_->AddObject(RoomObject(0x10, 10, 10, 0, 0)).ok());
+  room_->SetLayoutId(0x03);
+  const auto encoded = room_->EncodeObjects();
+  const auto layout = MakeObjectLayout();
+
+  ASSERT_TRUE(room_->SaveObjects(&layout).ok());
+  ASSERT_TRUE(room_->SaveObjectStreamHeader(&layout).ok());
+
+  EXPECT_EQ(GetObjectRoomPointer(0), kRelocatedStreamPc);
+  EXPECT_EQ(GetObjectRoomPointer(1), kOldStreamPc);
+  EXPECT_EQ(rom_->data()[kRelocatedStreamPc], 0xA5);
+  EXPECT_EQ(rom_->data()[kRelocatedStreamPc + 1], 0xEF);
+  EXPECT_TRUE(std::equal(encoded.begin(), encoded.end(),
+                         rom_->data() + kRelocatedStreamPc + 2));
+  EXPECT_FALSE(room_->object_stream_dirty());
+  EXPECT_FALSE(room_->object_stream_header_dirty());
+}
+
+TEST_F(DungeonSaveTest,
        SaveObjects_SharedStreamDetachesWithDeclaredAllocatorSpace) {
   constexpr int kOldStreamPc = 0x100000;
   constexpr int kRelocatedStreamPc = 0x100200;

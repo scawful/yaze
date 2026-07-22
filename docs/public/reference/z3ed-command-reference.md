@@ -160,7 +160,7 @@ These commands operate directly on ROM data (no GUI required).
 - `dungeon-export-room --room <hex> --output <file>`
 - `dungeon-place-object --room <hex> --id <hex> --x <int> --y <int> [--size <int>] [--layer <0|1|2>] [--manifest <path>] [--write]`
 - `dungeon-get-room-tiles --room <hex>` *(stubbed)*
-- `dungeon-set-room-property --room <hex> --property <name> --value <value>` *(stubbed)*
+- `dungeon-set-room-property --room <hex> --property <name> --value <value> [--manifest <path>]`
 
 `dungeon-place-object` is a dry-run unless `--write` is supplied. Both modes
 execute the same immutable capacity preflight. In-place edits can proceed
@@ -170,6 +170,13 @@ an explicit manifest defines `dungeon_stream_regions.objects` with the
 ownership guard: protected current-stream, allocation, object-pointer, or
 door-pointer writes are rejected before either dry-run or write can mutate ROM
 bytes.
+
+`dungeon-set-room-property` accepts `layout`/`layout_id` values `0`-`7` and
+`floor1`/`floor2` values `0`-`15`. These properties are persisted in the
+two-byte object-stream header with per-field read/modify/write; unrelated bits
+and the object payload remain unchanged. A shared stream requires the same
+manifest-backed `copy_on_write` capability described above. Successful
+non-mock writes require a completed destination backup before replacement.
 
 When `--spawn` is set, the ID must be `0x00`-`0x06`. Both entrance commands
 report the dedicated spawn fields (`quadrant`, `overworld_door_tilemap`, and
