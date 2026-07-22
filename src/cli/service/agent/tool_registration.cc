@@ -162,24 +162,40 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
       "dungeon-export-custom-collision-json --out=<path> "
       "[--room=<id>|--rooms=<ids>|--all] [--report=<path>]",
       {}, true, true, DungeonExportCustomCollisionJsonCommandHandler)
-  REGISTER_BUILTIN_AGENT_TOOL(
-      "dungeon-import-custom-collision-json", "dungeon",
-      "Import custom collision maps from JSON",
-      "dungeon-import-custom-collision-json --in=<path> "
-      "[--dry-run] [--replace-all --force] [--report=<path>]",
-      {}, true, true, DungeonImportCustomCollisionJsonCommandHandler)
+  RegisterBuiltinTool<DungeonImportCustomCollisionJsonCommandHandler>(
+      registry,
+      {"dungeon-import-custom-collision-json",
+       "dungeon",
+       "Import custom collision maps and immediately save unless --dry-run",
+       "dungeon-import-custom-collision-json --in=<path> "
+       "[--dry-run [--report=<path>]] [--sandbox | --mock-rom] "
+       "[--replace-all --force]",
+       {},
+       true,
+       true,
+       ToolAccess::kMutating,
+       {},
+       {"dry-run", "sandbox", "mock-rom", "replace-all", "force"}});
   REGISTER_BUILTIN_AGENT_TOOL(
       "dungeon-export-water-fill-json", "dungeon",
       "Export water fill zones to JSON",
       "dungeon-export-water-fill-json --out=<path> "
       "[--room=<id>|--rooms=<ids>|--all] [--report=<path>]",
       {}, true, true, DungeonExportWaterFillJsonCommandHandler)
-  REGISTER_BUILTIN_AGENT_TOOL(
-      "dungeon-import-water-fill-json", "dungeon",
-      "Import water fill zones from JSON",
-      "dungeon-import-water-fill-json --in=<path> [--dry-run] "
-      "[--strict-masks] [--report=<path>]",
-      {}, true, true, DungeonImportWaterFillJsonCommandHandler)
+  RegisterBuiltinTool<DungeonImportWaterFillJsonCommandHandler>(
+      registry,
+      {"dungeon-import-water-fill-json",
+       "dungeon",
+       "Import water fill zones and immediately save unless --dry-run",
+       "dungeon-import-water-fill-json --in=<path> "
+       "[--dry-run [--report=<path>]] [--sandbox | --mock-rom] "
+       "[--strict-masks]",
+       {},
+       true,
+       true,
+       ToolAccess::kMutating,
+       {},
+       {"dry-run", "sandbox", "mock-rom", "strict-masks"}});
   REGISTER_BUILTIN_AGENT_TOOL(
       "dungeon-minecart-audit", "dungeon",
       "Audit minecart-related room data (objects/sprites/collision)",
