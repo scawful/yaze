@@ -618,37 +618,47 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
   formatter.AddField("property", property);
   formatter.AddField("value", value);
 
-  // Use existing dungeon system
-  zelda3::DungeonEditorSystem dungeon_editor(rom);
-  auto room_or = dungeon_editor.GetRoom(room_id);
-  if (!room_or.ok()) {
+  if (room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
+    const absl::Status room_status =
+        absl::InvalidArgumentError("Invalid room ID");
     formatter.AddField("status", "error");
-    formatter.AddField("error", room_or.status().ToString());
+    formatter.AddField("error", room_status.ToString());
     formatter.EndObject();
-    return room_or.status();
+    return room_status;
   }
-
-  auto& room = room_or.value();
 
   int parsed_value = 0;
   if (!ParseHexString(value, &parsed_value)) {
-    return absl::InvalidArgumentError(absl::StrFormat(
-        "Invalid value format: %s (expected integer/hex)", value));
+    const absl::Status value_status =
+        absl::InvalidArgumentError(absl::StrFormat(
+            "Invalid value format: %s (expected integer/hex)", value));
+    formatter.AddField("status", "error");
+    formatter.AddField("error", std::string(value_status.message()));
+    formatter.EndObject();
+    return value_status;
   }
 
   const std::string prop = absl::AsciiStrToLower(property);
+  if (prop == "layout" || prop == "layout_id" || prop == "floor1" ||
+      prop == "floor2") {
+    const absl::Status property_status = absl::UnimplementedError(
+        absl::StrFormat("Property %s is stored in the dungeon object-stream "
+                        "header; persistence is not implemented",
+                        property));
+    formatter.AddField("status", "error");
+    formatter.AddField("error", std::string(property_status.message()));
+    formatter.EndObject();
+    return property_status;
+  }
+
+  zelda3::Room room = zelda3::LoadRoomHeaderFromRom(rom, room_id);
+  ScopedRomTransaction transaction(*rom);
   if (prop == "palette") {
     room.SetPalette(static_cast<uint8_t>(parsed_value & 0xFF));
   } else if (prop == "blockset") {
     room.SetBlockset(static_cast<uint8_t>(parsed_value & 0xFF));
   } else if (prop == "spriteset") {
     room.SetSpriteset(static_cast<uint8_t>(parsed_value & 0xFF));
-  } else if (prop == "layout" || prop == "layout_id") {
-    room.SetLayoutId(static_cast<uint8_t>(parsed_value & 0xFF));
-  } else if (prop == "floor1") {
-    room.set_floor1(static_cast<uint8_t>(parsed_value & 0xFF));
-  } else if (prop == "floor2") {
-    room.set_floor2(static_cast<uint8_t>(parsed_value & 0xFF));
   } else if (prop == "effect") {
     room.SetEffect(static_cast<zelda3::EffectKey>(parsed_value & 0xFF));
   } else if (prop == "tag1") {
@@ -658,21 +668,39 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
   } else if (prop == "holewarp") {
     room.SetHolewarp(static_cast<uint8_t>(parsed_value & 0xFF));
   } else {
-    return absl::InvalidArgumentError(
+    const absl::Status property_status = absl::InvalidArgumentError(
         absl::StrFormat("Unsupported property: %s", property));
+    formatter.AddField("status", "error");
+    formatter.AddField("error", std::string(property_status.message()));
+    formatter.EndObject();
+    return property_status;
   }
 
-  RETURN_IF_ERROR(room.SaveRoomHeader());
+  const absl::Status write_status = room.SaveRoomHeader();
+  if (!write_status.ok()) {
+    formatter.AddField("status", "error");
+    formatter.AddField("write_error", std::string(write_status.message()));
+    formatter.EndObject();
+    return write_status;
+  }
 
-  formatter.AddField("status", "success");
   if (parser.HasFlag("mock-rom")) {
+    transaction.Commit();
     formatter.AddField("save_status", "mock-rom-skipped");
   } else {
     Rom::SaveSettings save_settings;
-    save_settings.backup = true;
-    RETURN_IF_ERROR(rom->SaveToFile(save_settings));
+    save_settings.require_backup = true;
+    const absl::Status save_status = rom->SaveToFile(save_settings);
+    if (!save_status.ok()) {
+      formatter.AddField("status", "error");
+      formatter.AddField("save_error", std::string(save_status.message()));
+      formatter.EndObject();
+      return save_status;
+    }
+    transaction.Commit();
     formatter.AddField("save_status", "saved");
   }
+  formatter.AddField("status", "success");
   formatter.EndObject();
 
   return absl::OkStatus();
