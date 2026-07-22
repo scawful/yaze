@@ -500,11 +500,10 @@ TEST_F(DungeonRoomRegressionFixturesTest,
     ASSERT_NE(state, nullptr);
     state->SetFloorBombable(0x065, test_case.bombed);
 
-    // The Mesen fixtures isolate the raw upper SNES tilemap. Yaze's normal
-    // combined render lets lower-tilemap masks clear upper-layer pixels for
-    // the editor composite, so omit list 1 before rendering this BG1-only
-    // comparison. Room 0x065 has no BothBG objects in that list.
-    auto& objects = room.GetTileObjects();
+    // The Mesen fixtures isolate the raw upper SNES tilemap. Keep the complete
+    // room stream: lower-layer reveal masks are now deferred until compositing
+    // and must be inactive when both BG2 layers are hidden below.
+    const auto& objects = room.GetTileObjects();
     const auto lower_list_count = std::count_if(
         objects.begin(), objects.end(),
         [](const RoomObject& obj) { return obj.GetLayerValue() == 1; });
@@ -515,12 +514,6 @@ TEST_F(DungeonRoomRegressionFixturesTest,
             << "Room 0x065 BG1-only reconstruction assumptions changed.";
       }
     }
-    objects.erase(std::remove_if(objects.begin(), objects.end(),
-                                 [](const RoomObject& object) {
-                                   return object.GetLayerValue() == 1;
-                                 }),
-                  objects.end());
-
     room.LoadSprites();
     room.SetRenderEntranceBlockset(kRoom065EntranceBlockset);
     room.RenderRoomGraphics();

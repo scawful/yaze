@@ -2518,7 +2518,10 @@ TEST(ObjectDrawerRegistryReplayTest,
   }
 }
 
-TEST(ObjectDrawerMaskPropagationTest, Layer2PitMaskMarksBG1Transparent) {
+constexpr uint8_t kBG2ObjectRevealMask =
+    static_cast<uint8_t>(gfx::BG1RevealMaskSource::kBG2Objects);
+
+TEST(ObjectDrawerMaskPropagationTest, Layer2PitMaskRecordsBG1Reveal) {
   ScopedCustomObjectsFlag disable_custom(false);
 
   Rom rom;
@@ -2568,9 +2571,10 @@ TEST(ObjectDrawerMaskPropagationTest, Layer2PitMaskMarksBG1Transparent) {
                               /*state=*/nullptr, /*layout_bg1=*/&layout_bg1)
                   .ok());
 
-  // Both the object BG1 buffer and the layout BG1 buffer should be masked.
-  EXPECT_EQ(obj_bg1.bitmap().data()[idx], 255);
-  EXPECT_EQ(layout_bg1.bitmap().data()[idx], 255);
+  EXPECT_EQ(obj_bg1.bitmap().data()[idx], 10);
+  EXPECT_EQ(layout_bg1.bitmap().data()[idx], 11);
+  EXPECT_NE(obj_bg1.bg1_reveal_mask_data()[idx] & kBG2ObjectRevealMask, 0);
+  EXPECT_NE(layout_bg1.bg1_reveal_mask_data()[idx] & kBG2ObjectRevealMask, 0);
 }
 
 TEST(ObjectDrawerMaskPropagationTest, Layer2LargeCeilingMasksBG1Transparent) {
@@ -2617,8 +2621,10 @@ TEST(ObjectDrawerMaskPropagationTest, Layer2LargeCeilingMasksBG1Transparent) {
                               /*state=*/nullptr, /*layout_bg1=*/&layout_bg1)
                   .ok());
 
-  EXPECT_EQ(obj_bg1.bitmap().data()[idx], 255);
-  EXPECT_EQ(layout_bg1.bitmap().data()[idx], 255);
+  EXPECT_EQ(obj_bg1.bitmap().data()[idx], 10);
+  EXPECT_EQ(layout_bg1.bitmap().data()[idx], 11);
+  EXPECT_NE(obj_bg1.bg1_reveal_mask_data()[idx] & kBG2ObjectRevealMask, 0);
+  EXPECT_NE(layout_bg1.bg1_reveal_mask_data()[idx] & kBG2ObjectRevealMask, 0);
 }
 
 TEST(ObjectDrawerMaskPropagationTest, Layer2WaterFloorMasksBG1Transparent) {
@@ -2668,8 +2674,10 @@ TEST(ObjectDrawerMaskPropagationTest, Layer2WaterFloorMasksBG1Transparent) {
                               /*state=*/nullptr, /*layout_bg1=*/&layout_bg1)
                   .ok());
 
-  EXPECT_EQ(obj_bg1.bitmap().data()[idx], 255);
-  EXPECT_EQ(layout_bg1.bitmap().data()[idx], 255);
+  EXPECT_EQ(obj_bg1.bitmap().data()[idx], 10);
+  EXPECT_EQ(layout_bg1.bitmap().data()[idx], 11);
+  EXPECT_NE(obj_bg1.bg1_reveal_mask_data()[idx] & kBG2ObjectRevealMask, 0);
+  EXPECT_NE(layout_bg1.bg1_reveal_mask_data()[idx] & kBG2ObjectRevealMask, 0);
 }
 
 TEST(ObjectDrawerMaskPropagationTest, Layer2FloodWaterMasksBG1Transparent) {
@@ -2721,8 +2729,12 @@ TEST(ObjectDrawerMaskPropagationTest, Layer2FloodWaterMasksBG1Transparent) {
                                 /*layout_bg1=*/&layout_bg1)
                     .ok());
 
-    EXPECT_EQ(obj_bg1.bitmap().data()[idx], 255) << object_id;
-    EXPECT_EQ(layout_bg1.bitmap().data()[idx], 255) << object_id;
+    EXPECT_EQ(obj_bg1.bitmap().data()[idx], 10) << object_id;
+    EXPECT_EQ(layout_bg1.bitmap().data()[idx], 11) << object_id;
+    EXPECT_NE(obj_bg1.bg1_reveal_mask_data()[idx] & kBG2ObjectRevealMask, 0)
+        << object_id;
+    EXPECT_NE(layout_bg1.bg1_reveal_mask_data()[idx] & kBG2ObjectRevealMask, 0)
+        << object_id;
   }
 }
 
@@ -2766,16 +2778,76 @@ TEST(ObjectDrawerMaskPropagationTest,
   const int opaque_idx = base_y * obj_bg1.bitmap().width() + base_x;
   const int transparent_idx = opaque_idx + 1;
   ASSERT_LT(transparent_idx, static_cast<int>(obj_bg1.bitmap().size()));
+  const auto obj_bg1_before = obj_bg1.bitmap().vector();
+  const auto layout_bg1_before = layout_bg1.bitmap().vector();
 
   ASSERT_TRUE(drawer
                   .DrawObject(obj, obj_bg1, obj_bg2, palette_group,
                               /*state=*/nullptr, /*layout_bg1=*/&layout_bg1)
                   .ok());
 
-  EXPECT_EQ(obj_bg1.bitmap().data()[opaque_idx], 255);
-  EXPECT_EQ(layout_bg1.bitmap().data()[opaque_idx], 255);
-  EXPECT_EQ(obj_bg1.bitmap().data()[transparent_idx], 10);
-  EXPECT_EQ(layout_bg1.bitmap().data()[transparent_idx], 11);
+  EXPECT_EQ(obj_bg1.bitmap().vector(), obj_bg1_before);
+  EXPECT_EQ(layout_bg1.bitmap().vector(), layout_bg1_before);
+  EXPECT_NE(obj_bg1.bg1_reveal_mask_data()[opaque_idx] & kBG2ObjectRevealMask,
+            0);
+  EXPECT_NE(
+      layout_bg1.bg1_reveal_mask_data()[opaque_idx] & kBG2ObjectRevealMask, 0);
+  EXPECT_EQ(
+      obj_bg1.bg1_reveal_mask_data()[transparent_idx] & kBG2ObjectRevealMask,
+      0);
+  EXPECT_EQ(
+      layout_bg1.bg1_reveal_mask_data()[transparent_idx] & kBG2ObjectRevealMask,
+      0);
+}
+
+TEST(ObjectDrawerMaskPropagationTest,
+     LaterBG1WriteClearsOnlyItsStreamRevealBit) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(1024 * 1024, 0)).ok());
+
+  std::array<uint8_t, 0x10000> gfx{};
+  gfx[0] = 1;
+
+  gfx::BackgroundBuffer obj_bg1(512, 512);
+  gfx::BackgroundBuffer obj_bg2(512, 512);
+  gfx::BackgroundBuffer layout_bg1(512, 512);
+  for (auto* buffer : {&obj_bg1, &obj_bg2, &layout_bg1}) {
+    buffer->EnsureBitmapInitialized();
+    buffer->bitmap().Fill(255);
+  }
+
+  ObjectDrawer drawer(&rom, /*room_id=*/0, gfx.data());
+  RoomObject lower(0x0034, /*x=*/2, /*y=*/3, /*size=*/0, /*layer=*/1);
+  lower.tiles_loaded_ = true;
+  lower.tiles_ = {gfx::TileInfo(/*id=*/0, /*pal=*/2, false, false, false)};
+  gfx::PaletteGroup palette_group;
+
+  ASSERT_TRUE(drawer
+                  .DrawObject(lower, obj_bg1, obj_bg2, palette_group,
+                              /*state=*/nullptr, /*layout_bg1=*/&layout_bg1)
+                  .ok());
+
+  const int pixel_x = (lower.x_ + 3) * 8;
+  const int pixel_y = lower.y_ * 8;
+  const int index = pixel_y * obj_bg1.bitmap().width() + pixel_x;
+  ASSERT_NE(obj_bg1.bg1_reveal_mask_data()[index] & kBG2ObjectRevealMask, 0);
+
+  obj_bg1.SetBG1RevealMaskRect(gfx::BG1RevealMaskSource::kBG2Layout, pixel_x,
+                               pixel_y, 1, 1);
+  RoomObject later_upper = lower;
+  later_upper.layer_ = RoomObject::LayerType::BG1;
+  ASSERT_TRUE(
+      drawer.DrawObject(later_upper, obj_bg1, obj_bg2, palette_group).ok());
+
+  const uint8_t remaining = obj_bg1.bg1_reveal_mask_data()[index];
+  EXPECT_EQ(remaining & kBG2ObjectRevealMask, 0);
+  EXPECT_NE(
+      remaining & static_cast<uint8_t>(gfx::BG1RevealMaskSource::kBG2Layout),
+      0);
+  EXPECT_NE(obj_bg1.bitmap().data()[index], 255);
+  EXPECT_NE(layout_bg1.bg1_reveal_mask_data()[index] & kBG2ObjectRevealMask, 0);
 }
 
 TEST(ObjectDrawerMaskPropagationTest, Layer2SpiralStairsUsePerPixelMasking) {
@@ -2826,10 +2898,18 @@ TEST(ObjectDrawerMaskPropagationTest, Layer2SpiralStairsUsePerPixelMasking) {
                               /*state=*/nullptr, /*layout_bg1=*/&layout_bg1)
                   .ok());
 
-  EXPECT_EQ(obj_bg1.bitmap().data()[opaque_idx], 255);
-  EXPECT_EQ(layout_bg1.bitmap().data()[opaque_idx], 255);
-  EXPECT_EQ(obj_bg1.bitmap().data()[transparent_idx], 10);
-  EXPECT_EQ(layout_bg1.bitmap().data()[transparent_idx], 11);
+  EXPECT_EQ(obj_bg1.bitmap().data()[opaque_idx], 10);
+  EXPECT_EQ(layout_bg1.bitmap().data()[opaque_idx], 11);
+  EXPECT_NE(obj_bg1.bg1_reveal_mask_data()[opaque_idx] & kBG2ObjectRevealMask,
+            0);
+  EXPECT_NE(
+      layout_bg1.bg1_reveal_mask_data()[opaque_idx] & kBG2ObjectRevealMask, 0);
+  EXPECT_EQ(
+      obj_bg1.bg1_reveal_mask_data()[transparent_idx] & kBG2ObjectRevealMask,
+      0);
+  EXPECT_EQ(
+      layout_bg1.bg1_reveal_mask_data()[transparent_idx] & kBG2ObjectRevealMask,
+      0);
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
@@ -3098,10 +3178,22 @@ TEST(ObjectDrawerMaskPropagationTest,
     const int transparent_idx = opaque_idx + 1;
 
     ASSERT_LT(transparent_idx, static_cast<int>(obj_bg1.bitmap().size()));
-    EXPECT_EQ(obj_bg1.bitmap().data()[opaque_idx], 255) << object_id;
-    EXPECT_EQ(layout_bg1.bitmap().data()[opaque_idx], 255) << object_id;
-    EXPECT_EQ(obj_bg1.bitmap().data()[transparent_idx], 10) << object_id;
-    EXPECT_EQ(layout_bg1.bitmap().data()[transparent_idx], 11) << object_id;
+    EXPECT_EQ(obj_bg1.bitmap().data()[opaque_idx], 10) << object_id;
+    EXPECT_EQ(layout_bg1.bitmap().data()[opaque_idx], 11) << object_id;
+    EXPECT_NE(obj_bg1.bg1_reveal_mask_data()[opaque_idx] & kBG2ObjectRevealMask,
+              0)
+        << object_id;
+    EXPECT_NE(
+        layout_bg1.bg1_reveal_mask_data()[opaque_idx] & kBG2ObjectRevealMask, 0)
+        << object_id;
+    EXPECT_EQ(
+        obj_bg1.bg1_reveal_mask_data()[transparent_idx] & kBG2ObjectRevealMask,
+        0)
+        << object_id;
+    EXPECT_EQ(layout_bg1.bg1_reveal_mask_data()[transparent_idx] &
+                  kBG2ObjectRevealMask,
+              0)
+        << object_id;
   }
 }
 

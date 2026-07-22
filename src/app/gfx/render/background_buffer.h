@@ -10,6 +10,11 @@
 namespace yaze {
 namespace gfx {
 
+enum class BG1RevealMaskSource : uint8_t {
+  kBG2Layout = 1 << 0,
+  kBG2Objects = 1 << 1,
+};
+
 class BackgroundBuffer {
  public:
   BackgroundBuffer(int width = 512, int height = 512);
@@ -52,6 +57,21 @@ class BackgroundBuffer {
   const std::vector<uint8_t>& coverage_data() const { return coverage_buffer_; }
   std::vector<uint8_t>& mutable_coverage_data();
 
+  // Per-pixel cross-layer reveal bits carried by raw BG1 target buffers.
+  // Each bit identifies the BG2 source layer that requested the reveal, so
+  // compositing can ignore that request when its owner is hidden while later
+  // BG1 writes can clear only the source bit they supersede.
+  void ClearBG1RevealMask();
+  void ClearBG1RevealMask(BG1RevealMaskSource source);
+  void ClearBG1RevealMaskRect(BG1RevealMaskSource source, int start_x,
+                              int start_y, int width, int height);
+  void SetBG1RevealMaskRect(BG1RevealMaskSource source, int start_x,
+                            int start_y, int width, int height);
+  const std::vector<uint8_t>& bg1_reveal_mask_data() const {
+    return bg1_reveal_mask_buffer_;
+  }
+  std::vector<uint8_t>& mutable_bg1_reveal_mask_data();
+
   // Accessors
   std::vector<uint16_t>& buffer() { return buffer_; }
   const std::vector<uint16_t>& buffer() const { return buffer_; }
@@ -62,10 +82,12 @@ class BackgroundBuffer {
   void EnsureTileBufferAllocated();
   void EnsurePriorityBufferAllocated();
   void EnsureCoverageBufferAllocated();
+  void EnsureBG1RevealMaskAllocated();
 
   std::vector<uint16_t> buffer_;
   std::vector<uint8_t> priority_buffer_;  // Per-pixel priority (0 or 1)
   std::vector<uint8_t> coverage_buffer_;  // Per-pixel coverage (0=unset,1=set)
+  std::vector<uint8_t> bg1_reveal_mask_buffer_;  // Per-pixel BG1 reveal mask
   gfx::Bitmap bitmap_;
   int width_;
   int height_;

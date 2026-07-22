@@ -34,6 +34,13 @@ void BackgroundBuffer::EnsureCoverageBufferAllocated() {
   }
 }
 
+void BackgroundBuffer::EnsureBG1RevealMaskAllocated() {
+  const size_t total_pixels = static_cast<size_t>(width_ * height_);
+  if (bg1_reveal_mask_buffer_.size() != total_pixels) {
+    bg1_reveal_mask_buffer_.assign(total_pixels, 0);
+  }
+}
+
 std::vector<uint8_t>& BackgroundBuffer::mutable_priority_data() {
   EnsurePriorityBufferAllocated();
   return priority_buffer_;
@@ -42,6 +49,11 @@ std::vector<uint8_t>& BackgroundBuffer::mutable_priority_data() {
 std::vector<uint8_t>& BackgroundBuffer::mutable_coverage_data() {
   EnsureCoverageBufferAllocated();
   return coverage_buffer_;
+}
+
+std::vector<uint8_t>& BackgroundBuffer::mutable_bg1_reveal_mask_data() {
+  EnsureBG1RevealMaskAllocated();
+  return bg1_reveal_mask_buffer_;
 }
 
 void BackgroundBuffer::SetTileAt(int x_pos, int y_pos, uint16_t value) {
@@ -76,6 +88,7 @@ void BackgroundBuffer::ClearBuffer() {
   }
   ClearPriorityBuffer();
   ClearCoverageBuffer();
+  ClearBG1RevealMask();
 }
 
 void BackgroundBuffer::ClearPriorityBuffer() {
@@ -89,6 +102,57 @@ void BackgroundBuffer::ClearCoverageBuffer() {
   // 0 indicates the layer never wrote here; 1 indicates it did.
   if (!coverage_buffer_.empty()) {
     std::fill(coverage_buffer_.begin(), coverage_buffer_.end(), 0);
+  }
+}
+
+void BackgroundBuffer::ClearBG1RevealMask() {
+  if (!bg1_reveal_mask_buffer_.empty()) {
+    std::fill(bg1_reveal_mask_buffer_.begin(), bg1_reveal_mask_buffer_.end(),
+              0);
+  }
+}
+
+void BackgroundBuffer::ClearBG1RevealMask(BG1RevealMaskSource source) {
+  if (bg1_reveal_mask_buffer_.empty()) {
+    return;
+  }
+  const uint8_t keep_mask = static_cast<uint8_t>(~static_cast<uint8_t>(source));
+  for (auto& value : bg1_reveal_mask_buffer_) {
+    value &= keep_mask;
+  }
+}
+
+void BackgroundBuffer::ClearBG1RevealMaskRect(BG1RevealMaskSource source,
+                                              int start_x, int start_y,
+                                              int width, int height) {
+  if (bg1_reveal_mask_buffer_.empty() || width <= 0 || height <= 0) {
+    return;
+  }
+  const uint8_t keep_mask = static_cast<uint8_t>(~static_cast<uint8_t>(source));
+  const int end_x = std::min(start_x + width, width_);
+  const int end_y = std::min(start_y + height, height_);
+  for (int y = std::max(start_y, 0); y < end_y; ++y) {
+    for (int x = std::max(start_x, 0); x < end_x; ++x) {
+      bg1_reveal_mask_buffer_[static_cast<size_t>(y * width_ + x)] &= keep_mask;
+    }
+  }
+}
+
+void BackgroundBuffer::SetBG1RevealMaskRect(BG1RevealMaskSource source,
+                                            int start_x, int start_y, int width,
+                                            int height) {
+  if (width <= 0 || height <= 0) {
+    return;
+  }
+  EnsureBG1RevealMaskAllocated();
+  const uint8_t source_mask = static_cast<uint8_t>(source);
+  const int end_x = std::min(start_x + width, width_);
+  const int end_y = std::min(start_y + height, height_);
+  for (int y = std::max(start_y, 0); y < end_y; ++y) {
+    for (int x = std::max(start_x, 0); x < end_x; ++x) {
+      bg1_reveal_mask_buffer_[static_cast<size_t>(y * width_ + x)] |=
+          source_mask;
+    }
   }
 }
 
