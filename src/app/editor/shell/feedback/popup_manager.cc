@@ -513,7 +513,7 @@ void PopupManager::DrawRomBackupManagerPopup() {
                         ToastType::kError);
           }
         } else if (auto* toast = editor_manager_->toast_manager()) {
-          toast->Show("Backup loaded; save ROM to commit the restore",
+          toast->Show("Backup loaded; inspect it, then save ROM to commit",
                       ToastType::kSuccess);
         }
       }

@@ -387,12 +387,27 @@ TEST(EditorManagerBackupRestoreTest,
   EXPECT_TRUE(active_rom->dirty());
   // Restore is staged: the backing file remains untouched until Save ROM.
   EXPECT_EQ(ReadByteAt(rom_path, kPcOffset), kEdited);
+  auto* const session = manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  EXPECT_TRUE(session->backup_restore_pending);
+
+  // Autosave is enabled by default, but a staged restore must require an
+  // explicit decision even when automatic backups are disabled.
+  manager->user_settings().prefs().backup_before_save = false;
+  const auto autosave_status = manager->AutosaveActiveSession();
+  EXPECT_EQ(autosave_status.code(), absl::StatusCode::kCancelled)
+      << autosave_status;
+  EXPECT_TRUE(active_rom->dirty());
+  EXPECT_TRUE(session->backup_restore_pending);
+  EXPECT_EQ(ReadByteAt(rom_path, kPcOffset), kEdited);
+  manager->user_settings().prefs().backup_before_save = true;
 
   // Backup names include millisecond precision; ensure this second save gets
   // its own entry even on very fast filesystems.
   std::this_thread::sleep_for(std::chrono::milliseconds(2));
   ASSERT_OK(manager->SaveRom());
   EXPECT_FALSE(active_rom->dirty());
+  EXPECT_FALSE(session->backup_restore_pending);
   EXPECT_EQ(ReadByteAt(rom_path, kPcOffset), kOriginal);
 
   const auto final_backups = manager->GetRomBackups();

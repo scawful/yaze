@@ -3105,8 +3105,14 @@ void EditorManager::UpdateEditorState() {
   // failed buffer while clearing its dirty bit.
   const bool current_session_has_unsaved_work =
       current_rom && SessionHasPendingUnsavedWork(GetCurrentSessionIndex());
+  const auto* current_session =
+      session_coordinator_ ? session_coordinator_->GetActiveRomSession()
+                           : nullptr;
+  const bool backup_restore_requires_explicit_save =
+      current_session != nullptr && current_session->backup_restore_pending;
   if (user_settings_.prefs().autosave_enabled &&
-      current_session_has_unsaved_work) {
+      current_session_has_unsaved_work &&
+      !backup_restore_requires_explicit_save) {
     autosave_timer_ += ImGui::GetIO().DeltaTime;
     if (autosave_timer_ >= user_settings_.prefs().autosave_interval) {
       autosave_timer_ = 0.0f;
@@ -4243,6 +4249,11 @@ absl::Status EditorManager::SaveRomInternal(
     editor_transactions.Commit();
     rom_transaction.Commit();
     UpdateCurrentRomHash();
+    if (session_coordinator_) {
+      if (auto* session = session_coordinator_->GetActiveRomSession()) {
+        session->backup_restore_pending = false;
+      }
+    }
     // Write-confirm bypass is single-use. Clear it after a successful save.
     rom_lifecycle_.CancelRomWriteConfirm();
 
@@ -5361,6 +5372,11 @@ absl::Status EditorManager::AutosaveActiveSession() {
   }
   const size_t session_index = GetCurrentSessionIndex();
   RETURN_IF_ERROR(SaveActiveProjectEditingWork());
+  const auto* session = session_coordinator_->GetActiveRomSession();
+  if (session != nullptr && session->backup_restore_pending) {
+    return absl::CancelledError(
+        "Staged backup restore requires an explicit Save ROM");
+  }
   if (SessionHasPendingRomWork(session_index)) {
     RETURN_IF_ERROR(SaveRom());
   }
@@ -5862,7 +5878,12 @@ absl::Status EditorManager::RestoreRomBackup(const std::string& backup_path) {
   // Restore is intentionally staged in memory. Mark it dirty so closing or
   // autosave cannot silently treat the on-disk source as already restored.
   restored_rom.set_dirty(true);
-  return ReplaceActiveSessionRom(std::move(restored_rom), original_filename);
+  RETURN_IF_ERROR(
+      ReplaceActiveSessionRom(std::move(restored_rom), original_filename));
+  if (auto* session = session_coordinator_->GetActiveRomSession()) {
+    session->backup_restore_pending = true;
+  }
+  return absl::OkStatus();
 }
 
 absl::Status EditorManager::PruneRomBackups() {
