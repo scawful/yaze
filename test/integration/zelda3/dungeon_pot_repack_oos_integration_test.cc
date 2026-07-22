@@ -29,6 +29,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "cli/handlers/game/dungeon_edit_commands.h"
 #include "core/dungeon_stream_layout_adapter.h"
 #include "core/features.h"
 #include "core/hack_manifest.h"
@@ -186,6 +187,22 @@ std::vector<uint8_t> ReadFile(const std::filesystem::path& path) {
   }
   return std::vector<uint8_t>(std::istreambuf_iterator<char>(file),
                               std::istreambuf_iterator<char>());
+}
+
+int CountBackupArtifacts(const std::filesystem::path& rom_path) {
+  std::error_code error;
+  const std::string prefix = rom_path.filename().string() + "_backup_";
+  int count = 0;
+  for (const auto& entry :
+       std::filesystem::directory_iterator(rom_path.parent_path(), error)) {
+    if (error || !entry.is_regular_file()) {
+      continue;
+    }
+    if (entry.path().filename().string().rfind(prefix, 0) == 0) {
+      ++count;
+    }
+  }
+  return count;
 }
 
 std::vector<uint8_t> EncodePotItems(const std::vector<PotItem>& items) {
@@ -571,6 +588,185 @@ class DungeonPotRepackOosIntegrationTest : public ::testing::Test {
   project::YazeProject project_;
   DungeonStreamLayout layout_;
 };
+
+TEST_F(DungeonPotRepackOosIntegrationTest,
+       DungeonPlaceObjectCliCowDryRunWriteAndReadback) {
+  constexpr int kRoomId = 0xA8;
+  constexpr int kObjectId = 0x0031;
+  constexpr int kX = 60;
+  constexpr int kY = 60;
+  constexpr int kSize = 6;
+
+  auto object_layout =
+      LoadManifestLayout(project_, core::DungeonStreamType::kObjects,
+                         core::DungeonWriteStrategy::kCopyOnWrite);
+  ASSERT_TRUE(object_layout.ok()) << object_layout.status().message();
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(temp_rom_path_.string()).ok());
+  auto before_inventory = InventoryDungeonStreams(rom, *object_layout);
+  ASSERT_TRUE(before_inventory.ok()) << before_inventory.status().message();
+  ASSERT_TRUE(before_inventory->ok())
+      << "Oracle object inventory contains stream issues";
+  const DungeonStreamRecord* before_record =
+      FindRoomRecord(*before_inventory, kRoomId);
+  ASSERT_NE(before_record, nullptr);
+
+  Room before_room = LoadRoomFromRom(&rom, kRoomId);
+  const size_t object_count_before = before_room.GetTileObjects().size();
+  const auto matching_object_count = [](const Room& room) {
+    return std::count_if(room.GetTileObjects().begin(),
+                         room.GetTileObjects().end(),
+                         [](const RoomObject& object) {
+                           return object.id_ == kObjectId && object.x() == kX &&
+                                  object.y() == kY && object.size() == kSize &&
+                                  object.GetLayerValue() == 0;
+                         });
+  };
+  const int matching_before = matching_object_count(before_room);
+  const std::vector<uint8_t> bytes_before = rom.vector();
+  auto disk_sha_before = ComputeSha256(temp_rom_path_.string());
+  ASSERT_TRUE(disk_sha_before.ok()) << disk_sha_before.status().message();
+  ASSERT_EQ(CountBackupArtifacts(temp_rom_path_), 0);
+
+  ::yaze::cli::handlers::DungeonPlaceObjectCommandHandler handler;
+  const std::vector<std::string> args = {
+      "--room=0xA8",  "--id=0x0031",
+      "--x=60",       "--y=60",
+      "--size=6",     absl::StrFormat("--manifest=%s", source_manifest_path_),
+      "--format=json"};
+
+  // Add a test-local guard over the real object allocation arena and prove
+  // both CLI modes reject before touching the caller ROM or disk. The source
+  // Oracle manifest remains immutable and is checked again in TearDown().
+  ASSERT_FALSE(object_layout->allocation_ranges.empty());
+  const DungeonStreamPcRange protected_allocation =
+      object_layout->allocation_ranges.front();
+  const std::vector<uint8_t> source_manifest_bytes =
+      ReadFile(source_manifest_path_);
+  ASSERT_FALSE(source_manifest_bytes.empty());
+  Json protected_manifest = Json::parse(
+      std::string(source_manifest_bytes.begin(), source_manifest_bytes.end()));
+  auto& protected_section = protected_manifest["protected_regions"];
+  if (!protected_section.is_object()) {
+    protected_section = Json::object();
+  }
+  auto& protected_regions = protected_section["regions"];
+  if (!protected_regions.is_array()) {
+    protected_regions = Json::array();
+  }
+  protected_regions.push_back(
+      {{"start",
+        absl::StrFormat("0x%06X", PcToSnes(protected_allocation.begin))},
+       {"end", absl::StrFormat("0x%06X", PcToSnes(protected_allocation.end))},
+       {"size", protected_allocation.end - protected_allocation.begin},
+       {"hook_count", 1},
+       {"module", "ObjectAllocatorGuard"}});
+  protected_section["total_hooks"] =
+      protected_section.value("total_hooks", 0) + 1;
+  const std::filesystem::path protected_manifest_path =
+      temp_dir_ / "oos-object-protected-manifest.json";
+  {
+    std::ofstream output(protected_manifest_path, std::ios::trunc);
+    ASSERT_TRUE(output.is_open());
+    output << protected_manifest.dump(2);
+    ASSERT_TRUE(output.good());
+  }
+
+  Rom protected_rom;
+  ASSERT_TRUE(protected_rom.LoadFromFile(temp_rom_path_.string()).ok());
+  const std::vector<uint8_t> protected_rom_before = protected_rom.vector();
+  const auto protected_pointer_slot =
+      object_layout->pointer_table_pc + kRoomId * 3u;
+  auto protected_pointer_before =
+      protected_rom.ReadLong(protected_pointer_slot);
+  ASSERT_TRUE(protected_pointer_before.ok())
+      << protected_pointer_before.status().message();
+  std::vector<std::string> protected_args = args;
+  protected_args[5] =
+      absl::StrFormat("--manifest=%s", protected_manifest_path.string());
+
+  std::string protected_dry_output;
+  const absl::Status protected_dry_status =
+      handler.Run(protected_args, &protected_rom, &protected_dry_output);
+  EXPECT_EQ(protected_dry_status.code(), absl::StatusCode::kPermissionDenied)
+      << protected_dry_status;
+  EXPECT_NE(protected_dry_output.find("\"preflight_status\": \"failed\""),
+            std::string::npos);
+  EXPECT_EQ(protected_rom.vector(), protected_rom_before);
+  EXPECT_EQ(ReadFile(temp_rom_path_), bytes_before);
+  auto protected_sha_after_dry = ComputeSha256(temp_rom_path_.string());
+  ASSERT_TRUE(protected_sha_after_dry.ok())
+      << protected_sha_after_dry.status().message();
+  EXPECT_EQ(*protected_sha_after_dry, *disk_sha_before);
+  EXPECT_EQ(*protected_rom.ReadLong(protected_pointer_slot),
+            *protected_pointer_before);
+  EXPECT_EQ(CountBackupArtifacts(temp_rom_path_), 0);
+
+  protected_args.push_back("--write");
+  std::string protected_write_output;
+  const absl::Status protected_write_status =
+      handler.Run(protected_args, &protected_rom, &protected_write_output);
+  EXPECT_EQ(protected_write_status.code(), protected_dry_status.code())
+      << protected_write_status;
+  EXPECT_EQ(protected_write_status.message(), protected_dry_status.message());
+  EXPECT_NE(protected_write_output.find("\"preflight_status\": \"failed\""),
+            std::string::npos);
+  EXPECT_EQ(protected_rom.vector(), protected_rom_before);
+  EXPECT_EQ(ReadFile(temp_rom_path_), bytes_before);
+  auto protected_sha_after_write = ComputeSha256(temp_rom_path_.string());
+  ASSERT_TRUE(protected_sha_after_write.ok())
+      << protected_sha_after_write.status().message();
+  EXPECT_EQ(*protected_sha_after_write, *disk_sha_before);
+  EXPECT_EQ(*protected_rom.ReadLong(protected_pointer_slot),
+            *protected_pointer_before);
+  EXPECT_EQ(CountBackupArtifacts(temp_rom_path_), 0);
+
+  std::string dry_output;
+  const absl::Status dry_status = handler.Run(args, &rom, &dry_output);
+  ASSERT_TRUE(dry_status.ok()) << dry_status.message();
+  EXPECT_NE(dry_output.find("\"mode\": \"dry-run\""), std::string::npos);
+  EXPECT_NE(dry_output.find("\"preflight_status\": \"success\""),
+            std::string::npos);
+  EXPECT_NE(dry_output.find("\"allocator_capability\": \"copy_on_write\""),
+            std::string::npos);
+  EXPECT_EQ(rom.vector(), bytes_before);
+  auto disk_sha_after_dry = ComputeSha256(temp_rom_path_.string());
+  ASSERT_TRUE(disk_sha_after_dry.ok()) << disk_sha_after_dry.status().message();
+  EXPECT_EQ(*disk_sha_after_dry, *disk_sha_before);
+  EXPECT_EQ(CountBackupArtifacts(temp_rom_path_), 0);
+
+  std::vector<std::string> write_args = args;
+  write_args.push_back("--write");
+  std::string write_output;
+  const absl::Status write_status =
+      handler.Run(write_args, &rom, &write_output);
+  ASSERT_TRUE(write_status.ok()) << write_status.message();
+  EXPECT_NE(write_output.find("\"preflight_status\": \"success\""),
+            std::string::npos);
+  EXPECT_NE(write_output.find("\"write_status\": \"success\""),
+            std::string::npos);
+  EXPECT_NE(write_output.find("\"save_status\": \"saved\""), std::string::npos);
+  EXPECT_NE(rom.vector(), bytes_before);
+  EXPECT_EQ(CountBackupArtifacts(temp_rom_path_), 1);
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(temp_rom_path_.string()).ok());
+  Room reopened_room = LoadRoomFromRom(&reopened, kRoomId);
+  EXPECT_EQ(reopened_room.GetTileObjects().size(), object_count_before + 1);
+  EXPECT_EQ(matching_object_count(reopened_room), matching_before + 1);
+
+  auto after_inventory = InventoryDungeonStreams(reopened, *object_layout);
+  ASSERT_TRUE(after_inventory.ok()) << after_inventory.status().message();
+  const DungeonStreamRecord* after_record =
+      FindRoomRecord(*after_inventory, kRoomId);
+  ASSERT_NE(after_record, nullptr);
+  EXPECT_NE(after_record->data_pc, before_record->data_pc);
+  EXPECT_TRUE(IsInsideAllocationRange(*object_layout, *after_record));
+  EXPECT_TRUE(InventoryPreservesUntouchedRooms(
+      *before_inventory, *after_inventory, *object_layout, kRoomId,
+      after_record->encoded_stream, /*preserve_untouched_addresses=*/true));
+}
 
 TEST_F(DungeonPotRepackOosIntegrationTest,
        SharedEmptyOwnerDetachesAndRoundTripsDeterministically) {
