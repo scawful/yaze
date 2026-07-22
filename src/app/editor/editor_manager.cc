@@ -5854,6 +5854,8 @@ absl::Status EditorManager::RestoreRomBackup(const std::string& backup_path) {
   }
 
   const std::string original_filename = rom->filename();
+  const project::ResourceLabelManager original_resource_labels =
+      *rom->resource_label();
   const auto backups = rom_file_manager_.ListBackups(original_filename);
   const bool is_managed_backup =
       std::any_of(backups.begin(), backups.end(), [&](const auto& backup) {
@@ -5875,6 +5877,10 @@ absl::Status EditorManager::RestoreRomBackup(const std::string& backup_path) {
   if (!original_filename.empty()) {
     restored_rom.set_filename(original_filename);
   }
+  // Normal ROM backups do not copy the active `.labels` sidecar. Preserve the
+  // session's loaded and in-memory resource labels instead of replacing them
+  // with the usually-empty `<backup>.labels` lookup from LoadFromFile().
+  *restored_rom.resource_label() = original_resource_labels;
   // Restore is intentionally staged in memory. Mark it dirty so closing or
   // autosave cannot silently treat the on-disk source as already restored.
   restored_rom.set_dirty(true);
