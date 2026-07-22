@@ -5832,20 +5832,37 @@ absl::Status EditorManager::RestoreRomBackup(const std::string& backup_path) {
   if (!rom) {
     return absl::FailedPreconditionError("No ROM loaded");
   }
-  const std::string original_filename = rom->filename();
-  RETURN_IF_ERROR(rom_file_manager_.LoadRom(rom, backup_path));
-  if (!original_filename.empty()) {
-    rom->set_filename(original_filename);
+  if (SessionHasPendingRomWork(GetCurrentSessionIndex())) {
+    return absl::FailedPreconditionError(
+        "Save or discard ROM edits before restoring a backup");
   }
 
-  if (session_coordinator_) {
-    if (auto* session = session_coordinator_->GetActiveRomSession()) {
-      gfx::PaletteManager::Get().ReleaseSession(&session->game_data);
-      ResetAssetState(session);
-    }
+  const std::string original_filename = rom->filename();
+  const auto backups = rom_file_manager_.ListBackups(original_filename);
+  const bool is_managed_backup =
+      std::any_of(backups.begin(), backups.end(), [&](const auto& backup) {
+        return SessionCoordinator::PathsReferToSameBackingFile(backup.path,
+                                                               backup_path);
+      });
+  if (!is_managed_backup) {
+    return absl::InvalidArgumentError(
+        "Selected file is not a managed backup for the active ROM");
   }
-  UpdateCurrentRomHash();
-  return LoadAssetsForMode();
+
+  // Load the backup away from the live session. Backups may legitimately have
+  // a different size when they predate a ROM expansion or shrink. Reusing the
+  // transactional ROM-replacement path keeps the prior ROM and editor assets
+  // recoverable if reloading the backup fails partway through.
+  Rom restored_rom;
+  RETURN_IF_ERROR(rom_file_manager_.LoadRom(&restored_rom, backup_path));
+
+  if (!original_filename.empty()) {
+    restored_rom.set_filename(original_filename);
+  }
+  // Restore is intentionally staged in memory. Mark it dirty so closing or
+  // autosave cannot silently treat the on-disk source as already restored.
+  restored_rom.set_dirty(true);
+  return ReplaceActiveSessionRom(std::move(restored_rom), original_filename);
 }
 
 absl::Status EditorManager::PruneRomBackups() {
