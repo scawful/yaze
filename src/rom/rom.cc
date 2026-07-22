@@ -94,6 +94,64 @@ std::string MakeSafeTimestamp(std::time_t now_c) {
   return timestamp;
 }
 
+absl::StatusOr<std::filesystem::path> GetAvailableBackupPath(
+    const std::filesystem::path& requested_path) {
+  std::filesystem::path candidate = requested_path;
+  for (int suffix = 1; suffix <= 1000; ++suffix) {
+    std::error_code exists_ec;
+    const bool exists = std::filesystem::exists(candidate, exists_ec);
+    if (exists_ec) {
+      return absl::InternalError(absl::StrCat(
+          "Could not inspect required ROM backup path: ", candidate.string(),
+          ": ", exists_ec.message()));
+    }
+    if (!exists) {
+      return candidate;
+    }
+    candidate = requested_path.string() + "_" + std::to_string(suffix);
+  }
+
+  return absl::ResourceExhaustedError(
+      "Could not allocate a unique required ROM backup path");
+}
+
+absl::Status CreateRequiredBackup(
+    const std::filesystem::path& source_path,
+    const std::filesystem::path& requested_backup_path) {
+  auto backup_path_or = GetAvailableBackupPath(requested_backup_path);
+  if (!backup_path_or.ok()) {
+    return backup_path_or.status();
+  }
+
+  const std::filesystem::path backup_path = *backup_path_or;
+  std::filesystem::path temp_path = backup_path;
+  temp_path += ".tmp";
+
+  std::error_code copy_ec;
+  const bool copied = std::filesystem::copy_file(
+      source_path, temp_path, std::filesystem::copy_options::none, copy_ec);
+  if (!copied || copy_ec) {
+    std::error_code cleanup_ec;
+    std::filesystem::remove(temp_path, cleanup_ec);
+    return absl::FailedPreconditionError(absl::StrCat(
+        "Could not create required ROM backup: ", source_path.string(), " -> ",
+        backup_path.string(), ": ",
+        copy_ec ? copy_ec.message() : "copy did not complete"));
+  }
+
+  std::error_code rename_ec;
+  std::filesystem::rename(temp_path, backup_path, rename_ec);
+  if (rename_ec) {
+    std::error_code cleanup_ec;
+    std::filesystem::remove(temp_path, cleanup_ec);
+    return absl::FailedPreconditionError(absl::StrCat(
+        "Could not finalize required ROM backup: ", backup_path.string(), ": ",
+        rename_ec.message()));
+  }
+
+  return absl::OkStatus();
+}
+
 #ifdef __EMSCRIPTEN__
 inline void MaybeBroadcastChange(uint32_t offset,
                                  const std::vector<uint8_t>& old_bytes,
@@ -306,17 +364,22 @@ absl::Status Rom::SaveToFile(const SaveSettings& settings) {
     filename = filename_;
   }
 
-  if (settings.backup) {
+  if (settings.backup || settings.require_backup) {
     auto now = std::chrono::system_clock::now();
     auto now_c = std::chrono::system_clock::to_time_t(now);
     std::string backup_filename =
         absl::StrCat(filename, "_backup_", MakeSafeTimestamp(now_c));
 
-    try {
-      std::filesystem::copy(filename_, backup_filename,
-                            std::filesystem::copy_options::overwrite_existing);
-    } catch (const std::filesystem::filesystem_error& e) {
-      LOG_WARN("Rom", "Could not create backup: %s", e.what());
+    if (settings.require_backup) {
+      RETURN_IF_ERROR(CreateRequiredBackup(filename_, backup_filename));
+    } else {
+      try {
+        std::filesystem::copy(
+            filename_, backup_filename,
+            std::filesystem::copy_options::overwrite_existing);
+      } catch (const std::filesystem::filesystem_error& e) {
+        LOG_WARN("Rom", "Could not create backup: %s", e.what());
+      }
     }
   }
 
