@@ -1,11 +1,19 @@
 #ifndef YAZE_SRC_CLI_HANDLERS_DUNGEON_COMMANDS_H_
 #define YAZE_SRC_CLI_HANDLERS_DUNGEON_COMMANDS_H_
 
+#include <string_view>
+
 #include "cli/service/resources/command_handler.h"
 
 namespace yaze {
 namespace cli {
 namespace handlers {
+
+// Writes the dedicated seven-record dungeon spawn schema. If object_title is
+// non-empty, the report is nested under an object with that name.
+absl::Status WriteDungeonSpawnPointReport(Rom* rom, int spawn_id,
+                                          resources::OutputFormatter& formatter,
+                                          std::string_view object_title);
 
 /**
  * @brief Command handler for listing sprites in a dungeon room
