@@ -2214,7 +2214,8 @@ absl::Status Room::SaveRoomHeader() {
       IsLight() || is_dark_ || bg2() == background2::DarkRoom;
   uint8_t byte0 = static_cast<uint8_t>(
       (layer2_mode_for_save << 5) |
-      ((static_cast<uint8_t>(collision()) & 0x07) << 2) | (dark_room ? 1 : 0));
+      ((static_cast<uint8_t>(collision()) & 0x07) << 2) |
+      (rom_data[header_location] & 0x02) | (dark_room ? 1 : 0));
   // Preserve the full palette set ID byte (USDASM LoadRoomHeader uses 8-bit).
   uint8_t byte1 = palette_;
   // Byte 7 stores the pit target layer in bits 0-1 followed by the first
@@ -2222,6 +2223,8 @@ absl::Status Room::SaveRoomHeader() {
   uint8_t byte7 =
       (pits_.target_layer & 0x03) | ((staircase_plane(0) & 0x03) << 2) |
       ((staircase_plane(1) & 0x03) << 4) | ((staircase_plane(2) & 0x03) << 6);
+  const uint8_t byte8 = static_cast<uint8_t>(
+      (rom_data[header_location + 8] & 0xFC) | (staircase_plane(3) & 0x03));
 
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 0, byte0));
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 1, byte1));
@@ -2234,7 +2237,7 @@ absl::Status Room::SaveRoomHeader() {
   RETURN_IF_ERROR(
       rom_->WriteByte(header_location + 6, static_cast<uint8_t>(tag2())));
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 7, byte7));
-  RETURN_IF_ERROR(rom_->WriteByte(header_location + 8, staircase_plane(3)));
+  RETURN_IF_ERROR(rom_->WriteByte(header_location + 8, byte8));
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 9, holewarp_));
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 10, staircase_room(0)));
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 11, staircase_room(1)));
