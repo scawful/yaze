@@ -15,6 +15,7 @@
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/dungeon_spawn_point.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/track_collision_generator.h"
@@ -67,6 +68,73 @@ absl::Status MaybeLoadSpriteRegistry(const resources::ArgumentParser& parser) {
 }
 
 }  // namespace
+
+absl::Status WriteDungeonSpawnPointReport(Rom* rom, int spawn_id,
+                                          resources::OutputFormatter& formatter,
+                                          std::string_view object_title) {
+  if (spawn_id < 0 || spawn_id >= zelda3::kNumDungeonSpawnPoints) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Dungeon spawn point ID %d out of range (0x00-0x06).", spawn_id));
+  }
+
+  auto spawn_or = zelda3::DungeonSpawnPoint::Load(*rom, spawn_id);
+  if (!spawn_or.ok()) {
+    return spawn_or.status();
+  }
+  const auto& spawn = spawn_or.value();
+
+  if (!object_title.empty()) {
+    formatter.BeginObject(std::string(object_title));
+  }
+
+  formatter.AddHexField("spawn_id", spawn_id, 2);
+  formatter.AddField("is_spawn_point", true);
+  formatter.AddHexField("room_id", spawn.room_id, 4);
+  formatter.AddHexField("dungeon_id", spawn.dungeon_id, 2);
+  formatter.AddHexField("quadrant", spawn.quadrant, 2);
+  formatter.AddHexField("overworld_door_tilemap", spawn.overworld_door_tilemap,
+                        4);
+  formatter.AddHexField("entrance_id", spawn.entrance_id, 4);
+
+  formatter.BeginObject("position");
+  formatter.AddField("x", static_cast<int>(spawn.x_coordinate));
+  formatter.AddField("y", static_cast<int>(spawn.y_coordinate));
+  formatter.EndObject();
+
+  formatter.BeginObject("camera");
+  formatter.AddField("horizontal_scroll",
+                     static_cast<int>(spawn.horizontal_scroll));
+  formatter.AddField("vertical_scroll",
+                     static_cast<int>(spawn.vertical_scroll));
+  formatter.AddField("trigger_x", static_cast<int>(spawn.camera_trigger_x));
+  formatter.AddField("trigger_y", static_cast<int>(spawn.camera_trigger_y));
+  formatter.EndObject();
+
+  formatter.BeginObject("properties");
+  formatter.AddHexField("main_gfx", spawn.main_gfx, 2);
+  formatter.AddHexField("floor", spawn.floor, 2);
+  formatter.AddHexField("layer", spawn.layer, 2);
+  formatter.AddHexField("camera_scroll_controller",
+                        spawn.camera_scroll_controller, 2);
+  formatter.AddHexField("song", spawn.song, 2);
+  formatter.EndObject();
+
+  formatter.BeginObject("camera_boundaries");
+  formatter.AddHexField("qn", spawn.camera_scroll_boundaries[0], 2);
+  formatter.AddHexField("fn", spawn.camera_scroll_boundaries[1], 2);
+  formatter.AddHexField("qs", spawn.camera_scroll_boundaries[2], 2);
+  formatter.AddHexField("fs", spawn.camera_scroll_boundaries[3], 2);
+  formatter.AddHexField("qw", spawn.camera_scroll_boundaries[4], 2);
+  formatter.AddHexField("fw", spawn.camera_scroll_boundaries[5], 2);
+  formatter.AddHexField("qe", spawn.camera_scroll_boundaries[6], 2);
+  formatter.AddHexField("fe", spawn.camera_scroll_boundaries[7], 2);
+  formatter.EndObject();
+
+  if (!object_title.empty()) {
+    formatter.EndObject();
+  }
+  return absl::OkStatus();
+}
 
 absl::Status DungeonListSpritesCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
@@ -299,8 +367,11 @@ absl::Status DungeonGetEntranceCommandHandler::Execute(
         "Invalid entrance ID format. Must be hex.");
   }
 
-  zelda3::RoomEntrance entrance(rom, static_cast<uint8_t>(entrance_id),
-                                is_spawn_point);
+  if (is_spawn_point) {
+    return WriteDungeonSpawnPointReport(rom, entrance_id, formatter, "");
+  }
+
+  zelda3::RoomEntrance entrance(rom, static_cast<uint8_t>(entrance_id), false);
 
   formatter.AddField("entrance_id", absl::StrFormat("0x%02X", entrance_id));
   formatter.AddField("is_spawn_point", is_spawn_point);
