@@ -53,6 +53,17 @@ class PaletteEditorWidget {
   void SetOnPaletteChanged(std::function<void(DungeonPaletteChange)> callback) {
     on_palette_changed_ = callback;
   }
+  // Preserve the original palette-id-only callback shape for callers that do
+  // not need to distinguish shared HUD edits from dungeon-main edits.
+  void SetOnPaletteChanged(std::function<void(int)> callback) {
+    if (!callback) {
+      on_palette_changed_ = {};
+      return;
+    }
+    on_palette_changed_ = [callback](DungeonPaletteChange change) {
+      callback(change.palette_id);
+    };
+  }
 
   // Get/Set current editing palette
   int GetCurrentPaletteId() const { return current_palette_id_; }

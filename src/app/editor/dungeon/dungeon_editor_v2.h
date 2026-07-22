@@ -261,6 +261,8 @@ class DungeonEditorV2 : public Editor {
       DungeonEditorPaletteRefreshTest_SharedHudEditRefreshesRoomUsingDifferentDungeonPalette_Test;
   friend class
       DungeonEditorPaletteRefreshTest_DungeonMainEditRefreshesResolvedAliasesOnly_Test;
+  friend class
+      DungeonEditorPaletteRefreshTest_CachedRoomRefreshesThroughViewerCompositePreparation_Test;
 
   gfx::IRenderer* renderer_ = nullptr;
 
