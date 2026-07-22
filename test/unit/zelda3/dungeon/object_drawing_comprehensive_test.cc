@@ -11,6 +11,8 @@
  * 6. BothBG flag propagation
  */
 
+#include <cstring>
+
 #include "gtest/gtest.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
@@ -1268,6 +1270,71 @@ TEST_F(ObjectDrawingComprehensiveTest, ParityObjectDrawerFallback) {
   RoomObject obj(0x00, 0, 0, 0, 0);
   auto status = drawer.DrawObject(obj, bg1, bg2, dummy_palette, nullptr);
   EXPECT_TRUE(status.ok()) << "DrawObject should not fail with empty tiles";
+}
+
+TEST_F(ObjectDrawingComprehensiveTest,
+       ObjectListSurfaceSyncHonorsPaddedRowPitch) {
+  constexpr int kWidth = 17;
+  constexpr int kHeight = 3;
+
+  gfx::BackgroundBuffer bg1(kWidth, kHeight);
+  gfx::BackgroundBuffer bg2(kWidth, kHeight);
+  bg1.EnsureBitmapInitialized();
+  bg2.EnsureBitmapInitialized();
+  ASSERT_NE(bg1.bitmap().surface(), nullptr);
+  ASSERT_NE(bg2.bitmap().surface(), nullptr);
+  ASSERT_GE(bg1.bitmap().surface()->pitch, bg1.bitmap().width());
+  ASSERT_GE(bg2.bitmap().surface()->pitch, bg2.bitmap().width());
+  if (bg1.bitmap().surface()->pitch == bg1.bitmap().width() ||
+      bg2.bitmap().surface()->pitch == bg2.bitmap().width()) {
+    GTEST_SKIP() << "SDL backend did not pad the indexed surface rows";
+  }
+
+  auto prepare_bitmap = [](gfx::Bitmap& bitmap, uint8_t seed) {
+    auto& data = bitmap.mutable_data();
+    ASSERT_EQ(data.size(), static_cast<size_t>(bitmap.width()) *
+                               static_cast<size_t>(bitmap.height()));
+    for (int y = 0; y < bitmap.height(); ++y) {
+      for (int x = 0; x < bitmap.width(); ++x) {
+        data[static_cast<size_t>(y * bitmap.width() + x)] =
+            static_cast<uint8_t>(seed + y * 32 + x);
+      }
+    }
+
+    SDL_LockSurface(bitmap.surface());
+    std::memset(bitmap.surface()->pixels, 0xEE,
+                static_cast<size_t>(bitmap.surface()->pitch) *
+                    static_cast<size_t>(bitmap.surface()->h));
+    SDL_UnlockSurface(bitmap.surface());
+    bitmap.set_modified(true);
+  };
+
+  prepare_bitmap(bg1.bitmap(), 0x10);
+  prepare_bitmap(bg2.bitmap(), 0x80);
+
+  ObjectDrawer drawer(rom_.get(), /*room_id=*/0);
+  gfx::PaletteGroup palette_group;
+  ASSERT_TRUE(drawer.DrawObjectList({}, bg1, bg2, palette_group).ok());
+
+  auto expect_surface_matches = [](const gfx::Bitmap& bitmap) {
+    SDL_LockSurface(bitmap.surface());
+    const auto* pixels = static_cast<const uint8_t*>(bitmap.surface()->pixels);
+    for (int y = 0; y < bitmap.height(); ++y) {
+      for (int x = 0; x < bitmap.width(); ++x) {
+        EXPECT_EQ(pixels[y * bitmap.surface()->pitch + x],
+                  bitmap.at(y * bitmap.width() + x))
+            << "mismatch at (" << x << ", " << y << ")";
+      }
+      for (int x = bitmap.width(); x < bitmap.surface()->pitch; ++x) {
+        EXPECT_EQ(pixels[y * bitmap.surface()->pitch + x], 0xEE)
+            << "surface padding was overwritten at row " << y;
+      }
+    }
+    SDL_UnlockSurface(bitmap.surface());
+  };
+
+  expect_surface_matches(bg1.bitmap());
+  expect_surface_matches(bg2.bitmap());
 }
 
 }  // namespace zelda3
