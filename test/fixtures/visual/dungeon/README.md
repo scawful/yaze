@@ -32,6 +32,52 @@ diff support. The separately asserted carpet pixel catches reversed SNES
 3bpp-to-4bpp Left/Right expansion without broadening the committed image
 fixture.
 
+## Room `0x065` bombable-floor state pair
+
+- Files:
+  - `vanilla_room_065_mesen_bombable_floor_intact_32x32.png`
+  - `vanilla_room_065_mesen_bombable_floor_bombed_32x32.png`
+- Captured: 2026-07-22, Mesen2 OOS 1.0, headless on macOS arm64.
+  - executable SHA-256:
+    `90d1d12e9d091cfbd4b8aba112517a9654e13cb7b9bdc1637391933c244b6ace`
+- ROM loaded by Mesen: the same padded canonical US ROM documented above.
+  - first 1 MiB SHA-1: `6d4f10a8b10e10dbe624cb23cf03b88bb8252973`
+  - complete 2 MiB SHA-1: `93fb2bd3e19c96c50f124f1dd02144bca7f0af78`
+  - complete 2 MiB CRC32: `81B312B0`
+- Runtime bootstrap: clear follower state, use entrance `0x34` (main graphics
+  group `0x0A`), then enter module `0x05`. Transient Pro Action Replay
+  overrides changed ROM reads to room `0x065`, camera bounds
+  `0D 0C 0D 0D 0A 0A 0A 0B`, horizontal scroll `0x0B00`, vertical scroll
+  `0x0D10`, Link position `(0x0B30,0x0DC0)`, and quadrant `0x12`. The ROM on
+  disk was not modified.
+- Persistent room state before bootstrap:
+  - intact: `$7EF0CA = 00 00`; settled `$7E0402 = 00 00`
+  - bombed: `$7EF0CA = 00 01`; settled `$7E0402 = 00 10`
+- After the room settled, the debugger wrote BG1SC `$2107 = 03`, main-screen
+  designation `$7E001C = 01`, sub-screen designation `$7E001D = 00`, and
+  color-math mirrors `$7E0099..$7E009A = 00 00`. Three frames were run before
+  capture. This exposes the raw upper 64x64 SNES tilemap rather than the
+  room's color-math composite.
+- Object: subtype-3 `0xFC7`, room-tile origin `(46,42)`.
+- Mesen source screenshots: 256x224; crop `(x=112, y=63, w=32, h=32)`.
+- Corresponding yaze 512x512 room crop: `(x=368, y=336, w=32, h=32)`.
+- The independently produced intact and bombed full frames differed in 997
+  pixels, all inside this 32x32 ROI.
+- Fixture SHA-256:
+  - intact:
+    `e9f422c47be7f27c3f6e2de30027181e52b784b43a62717ad62a76dd0995269e`
+  - bombed:
+    `46d548d067527a78e409008c7ef1b06d38d1082410438a7a7e38e6918451acee`
+
+The regression test explicitly selects the intact/bombed preview through
+`EditorDungeonState::SetFloorBombable`. It removes room-object list 1 from its
+test-local room copy before rendering: Mesen's fixture exposes only the upper
+tilemap, while yaze's normal editor composite lets lower-tilemap masks clear
+upper-layer pixels. Room `0x065` has only four `0xFF0` objects in list 1 and no
+BothBG object there. The resulting upper layout/object render is compared as
+exact RGBA bytes. The test retains the canonical first-MiB SHA-1 and libpng
+skip policy used by the Sanctuary baseline.
+
 ## Updating a baseline
 
 1. Boot the exact ROM above in an isolated Mesen2 instance and reproduce the
@@ -49,5 +95,9 @@ fixture.
    the coordinate change has a documented runtime explanation.
 5. Update the capture date, emulator version, hashes, coordinates, and focused
    regression test in the same change.
+
+For the room `0x065` state pair, reproduce both persistent-state values and
+the documented BG1-only PPU setup. Confirm that a fresh pair of full frames
+differs only inside the documented ROI before replacing either crop.
 
 ROM images, save states, and full-frame captures must not be committed.
