@@ -311,6 +311,90 @@ TEST_F(RoomLayerManagerTest, Coverage_ObjectTransparentWriteClearsLayout) {
 }
 
 TEST_F(RoomLayerManagerTest,
+       CrossLayerRevealMasksFollowOwnerVisibilityAndTargetOrder) {
+  for (const bool priority_compositing : {true, false}) {
+    SCOPED_TRACE(priority_compositing ? "priority" : "simple");
+    RoomLayerManager manager;
+    manager.SetPriorityCompositing(priority_compositing);
+
+    Room room(/*room_id=*/0, /*rom=*/nullptr);
+    for (auto* buffer :
+         {&room.bg1_buffer(), &room.bg2_buffer(), &room.object_bg1_buffer(),
+          &room.object_bg2_buffer()}) {
+      buffer->EnsureBitmapInitialized();
+      buffer->bitmap().Fill(255);
+      buffer->ClearPriorityBuffer();
+      buffer->ClearCoverageBuffer();
+      buffer->ClearBG1RevealMask();
+    }
+
+    // Layout-owned reveal at pixel 0.
+    room.bg1_buffer().bitmap().mutable_data()[0] = 11;
+    room.bg1_buffer().mutable_priority_data()[0] = 0;
+    room.bg2_buffer().bitmap().mutable_data()[0] = 21;
+    room.bg2_buffer().mutable_priority_data()[0] = 0;
+    room.bg1_buffer().SetBG1RevealMaskRect(gfx::BG1RevealMaskSource::kBG2Layout,
+                                           0, 0, 1, 1);
+
+    // Object-owned reveal at pixel 1.
+    room.object_bg1_buffer().bitmap().mutable_data()[1] = 12;
+    room.object_bg1_buffer().mutable_priority_data()[1] = 0;
+    room.object_bg1_buffer().mutable_coverage_data()[1] = 1;
+    room.object_bg2_buffer().bitmap().mutable_data()[1] = 22;
+    room.object_bg2_buffer().mutable_priority_data()[1] = 0;
+    room.object_bg2_buffer().mutable_coverage_data()[1] = 1;
+    room.object_bg1_buffer().SetBG1RevealMaskRect(
+        gfx::BG1RevealMaskSource::kBG2Objects, 1, 0, 1, 1);
+
+    // A layout reveal must not suppress a later BG1 object at pixel 2.
+    room.bg1_buffer().bitmap().mutable_data()[2] = 13;
+    room.bg2_buffer().bitmap().mutable_data()[2] = 23;
+    room.bg1_buffer().SetBG1RevealMaskRect(gfx::BG1RevealMaskSource::kBG2Layout,
+                                           2, 0, 1, 1);
+    room.object_bg1_buffer().bitmap().mutable_data()[2] = 14;
+    room.object_bg1_buffer().mutable_priority_data()[2] = 0;
+    room.object_bg1_buffer().mutable_coverage_data()[2] = 1;
+
+    // A later BG1 object has cleared its target's object-source bit at pixel 3;
+    // the corresponding layout-target bit must not punch through that object.
+    room.bg1_buffer().bitmap().mutable_data()[3] = 15;
+    room.bg1_buffer().SetBG1RevealMaskRect(
+        gfx::BG1RevealMaskSource::kBG2Objects, 3, 0, 1, 1);
+    room.object_bg1_buffer().bitmap().mutable_data()[3] = 16;
+    room.object_bg1_buffer().mutable_priority_data()[3] = 0;
+    room.object_bg1_buffer().mutable_coverage_data()[3] = 1;
+    room.object_bg2_buffer().bitmap().mutable_data()[3] = 24;
+    room.object_bg2_buffer().mutable_coverage_data()[3] = 1;
+
+    const auto raw_layout = room.bg1_buffer().bitmap().vector();
+    const auto raw_objects = room.object_bg1_buffer().bitmap().vector();
+    auto expect_pixels = [&](uint8_t pixel0, uint8_t pixel1) {
+      const auto& composite = room.GetCompositeBitmap(manager);
+      ASSERT_TRUE(composite.is_active());
+      EXPECT_EQ(composite.data()[0], pixel0);
+      EXPECT_EQ(composite.data()[1], pixel1);
+      EXPECT_EQ(composite.data()[2], 14);
+      EXPECT_EQ(composite.data()[3], 16);
+    };
+
+    expect_pixels(21, 22);
+
+    manager.SetLayerVisible(LayerType::BG2_Layout, false);
+    expect_pixels(11, 22);
+
+    manager.SetLayerVisible(LayerType::BG2_Layout, true);
+    manager.SetLayerVisible(LayerType::BG2_Objects, false);
+    expect_pixels(21, 12);
+
+    manager.SetLayerVisible(LayerType::BG2_Objects, true);
+    expect_pixels(21, 22);
+
+    EXPECT_EQ(room.bg1_buffer().bitmap().vector(), raw_layout);
+    EXPECT_EQ(room.object_bg1_buffer().bitmap().vector(), raw_objects);
+  }
+}
+
+TEST_F(RoomLayerManagerTest,
        CompositeCacheInvalidatesWhenLayerManagerStateChanges) {
   Room room(/*room_id=*/0, /*rom=*/nullptr);
   room.bg1_buffer().EnsureBitmapInitialized();

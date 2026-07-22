@@ -90,6 +90,38 @@ void RoomLayerManager::CompositeToOutput(Room& room,
   auto& bg2_layout = GetLayerBuffer(room, LayerType::BG2_Layout);
   auto& bg2_objects = GetLayerBuffer(room, LayerType::BG2_Objects);
 
+  auto layer_enabled = [&](LayerType type,
+                           const gfx::BackgroundBuffer& buffer) {
+    if (!IsLayerVisible(type) ||
+        GetLayerBlendMode(type) == LayerBlendMode::Off) {
+      return false;
+    }
+    const auto& bitmap = buffer.bitmap();
+    return bitmap.is_active() && bitmap.width() > 0;
+  };
+
+  const bool bg1_layout_on = layer_enabled(LayerType::BG1_Layout, bg1_layout);
+  const bool bg1_obj_on = layer_enabled(LayerType::BG1_Objects, bg1_objects);
+  const bool bg2_layout_on = layer_enabled(LayerType::BG2_Layout, bg2_layout);
+  const bool bg2_obj_on = layer_enabled(LayerType::BG2_Objects, bg2_objects);
+
+  auto bg1_revealed_at = [&](const gfx::BackgroundBuffer& target, int index) {
+    const auto& mask = target.bg1_reveal_mask_data();
+    if (index < 0 || index >= static_cast<int>(mask.size())) {
+      return false;
+    }
+    const uint8_t value = mask[index];
+    const bool layout_reveal =
+        bg2_layout_on &&
+        (value & static_cast<uint8_t>(gfx::BG1RevealMaskSource::kBG2Layout)) !=
+            0;
+    const bool object_reveal =
+        bg2_obj_on &&
+        (value & static_cast<uint8_t>(gfx::BG1RevealMaskSource::kBG2Objects)) !=
+            0;
+    return layout_reveal || object_reveal;
+  };
+
   // Copy palette from first available visible layer
   auto CopyPaletteIfNeeded = [&](const gfx::Bitmap& src_bitmap) {
     if (!palette_copied && src_bitmap.surface()) {
@@ -108,20 +140,6 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     // then resolve BG1 vs BG2 per-pixel using the stored priority buffers.
     // When BG2 is translucent (water rooms, color math), we blend colors
     // using the SDL palette instead of simple overwrite.
-    auto layer_enabled = [&](LayerType type, const gfx::BackgroundBuffer& buf) {
-      if (!IsLayerVisible(type)) {
-        return false;
-      }
-      if (GetLayerBlendMode(type) == LayerBlendMode::Off) {
-        return false;
-      }
-      const auto& bmp = buf.bitmap();
-      if (!bmp.is_active() || bmp.width() == 0) {
-        return false;
-      }
-      return true;
-    };
-
     // Ensure the output palette matches the room's SDL palette.
     if (layer_enabled(LayerType::BG1_Layout, bg1_layout)) {
       CopyPaletteIfNeeded(bg1_layout.bitmap());
@@ -229,11 +247,6 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     const auto& bg1_obj_cov = bg1_objects.coverage_data();
     const auto& bg2_obj_cov = bg2_objects.coverage_data();
 
-    const bool bg1_layout_on = layer_enabled(LayerType::BG1_Layout, bg1_layout);
-    const bool bg1_obj_on = layer_enabled(LayerType::BG1_Objects, bg1_objects);
-    const bool bg2_layout_on = layer_enabled(LayerType::BG2_Layout, bg2_layout);
-    const bool bg2_obj_on = layer_enabled(LayerType::BG2_Objects, bg2_objects);
-
     auto& dst_data = output.mutable_data();
     for (int idx = 0; idx < kPixelCount; ++idx) {
       uint8_t bg1_pixel = 255;
@@ -243,11 +256,15 @@ void RoomLayerManager::CompositeToOutput(Room& room,
           ((idx < static_cast<int>(bg1_obj_cov.size()) && bg1_obj_cov[idx] != 0) ||
            !IsTransparent(bg1_obj_px[idx]));
       if (bg1_obj_wrote) {
-        bg1_pixel = bg1_obj_px[idx];
-        bg1_pri = bg1_obj_pri[idx];
+        if (!bg1_revealed_at(bg1_objects, idx)) {
+          bg1_pixel = bg1_obj_px[idx];
+          bg1_pri = bg1_obj_pri[idx];
+        }
       } else if (bg1_layout_on && !IsTransparent(bg1_layout_px[idx])) {
-        bg1_pixel = bg1_layout_px[idx];
-        bg1_pri = bg1_layout_pri[idx];
+        if (!bg1_revealed_at(bg1_layout, idx)) {
+          bg1_pixel = bg1_layout_px[idx];
+          bg1_pri = bg1_layout_pri[idx];
+        }
       }
 
       uint8_t bg2_pixel = 255;
@@ -301,16 +318,15 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     // - Dark: Darkened blend (reduced brightness)
     // - Off: Layer is hidden
     //
-    // IMPORTANT: Transparent pixels (255) in BG1 layers ALWAYS reveal BG2 beneath.
-    // This is how pits work: mask objects write 255 to BG1, allowing BG2 to show.
-    auto CompositeLayer = [&](gfx::BackgroundBuffer& buffer, LayerType layer_type) {
-      if (!IsLayerVisible(layer_type)) return;
+    // Transparent BG1 pixels and active source-owned reveal bits expose BG2.
+    // The deferred bits preserve raw BG1 when their owning BG2 layer is hidden.
+    auto CompositeLayer = [&](gfx::BackgroundBuffer& buffer,
+                              LayerType layer_type) {
+      if (!layer_enabled(layer_type, buffer))
+        return;
 
       const auto& src_bitmap = buffer.bitmap();
-      if (!src_bitmap.is_active() || src_bitmap.width() == 0) return;
-
       LayerBlendMode blend_mode = GetLayerBlendMode(layer_type);
-      if (blend_mode == LayerBlendMode::Off) return;
 
       CopyPaletteIfNeeded(src_bitmap);
 
@@ -321,11 +337,16 @@ void RoomLayerManager::CompositeToOutput(Room& room,
       uint8_t layer_alpha = GetLayerAlpha(layer_type);
 
       for (int idx = 0; idx < kPixelCount; ++idx) {
+        const bool is_bg1_layer = layer_type == LayerType::BG1_Layout ||
+                                  layer_type == LayerType::BG1_Objects;
+        if (is_bg1_layer && bg1_revealed_at(buffer, idx)) {
+          continue;
+        }
         uint8_t src_pixel = src_data[idx];
 
-        // Skip transparent pixels (255 = fill color for undrawn areas)
-        // This is CRITICAL for pits: transparent BG1 pixels reveal BG2 beneath
-        if (IsTransparent(src_pixel)) continue;
+        // Skip transparent pixels (255 = fill color for undrawn areas).
+        if (IsTransparent(src_pixel))
+          continue;
 
         // Apply blend mode
         switch (blend_mode) {
