@@ -636,8 +636,8 @@ absl::Status DungeonEditorV2::Load() {
     owned_minecart_track_editor_panel_ = std::move(minecart_panel);
   }
 
-  palette_editor_.SetOnPaletteChanged([this](int palette_id) {
-    InvalidateDungeonPaletteUsers(palette_id);
+  palette_editor_.SetOnPaletteChanged([this](gui::DungeonPaletteChange change) {
+    InvalidateDungeonPaletteUsers(change);
 
     auto apply_palette = [this](DungeonCanvasViewer* viewer) {
       if (!viewer) {
@@ -771,8 +771,15 @@ absl::Status DungeonEditorV2::Load() {
   return absl::OkStatus();
 }
 
-void DungeonEditorV2::InvalidateDungeonPaletteUsers(int palette_id) {
-  if (palette_id < 0) {
+void DungeonEditorV2::InvalidateDungeonPaletteUsers(
+    gui::DungeonPaletteChange change) {
+  if (change.source == gui::DungeonRenderPaletteSource::kHud) {
+    rooms_.ForEachMaterialized(
+        [](int, zelda3::Room& room) { room.MarkGraphicsDirty(); });
+    return;
+  }
+
+  if (change.palette_id < 0) {
     return;
   }
 
@@ -780,8 +787,8 @@ void DungeonEditorV2::InvalidateDungeonPaletteUsers(int palette_id) {
   // property cache cannot detect this dependency change. Mark every cached
   // room that resolves to the edited concrete palette; inactive rooms will
   // redraw lazily the next time they are shown.
-  rooms_.ForEachMaterialized([palette_id](int, zelda3::Room& room) {
-    if (room.ResolveDungeonPaletteId() == palette_id) {
+  rooms_.ForEachMaterialized([change](int, zelda3::Room& room) {
+    if (room.ResolveDungeonPaletteId() == change.palette_id) {
       room.MarkGraphicsDirty();
     }
   });
