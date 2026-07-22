@@ -44,6 +44,15 @@ bool IsStopTile(uint8_t v) {
   return v >= kStopTileMin && v <= kStopTileMax;
 }
 
+bool IsEncodedRoomStreamObject(const zelda3::RoomObject& object) {
+  // Lightable torches and pushable blocks are synthesized from separate
+  // global tables after the encoded room object stream has been parsed.
+  return (object.options() & zelda3::ObjectOption::Torch) ==
+             zelda3::ObjectOption::Nothing &&
+         (object.options() & zelda3::ObjectOption::Block) ==
+             zelda3::ObjectOption::Nothing;
+}
+
 struct RoomPropertyManifestContext {
   core::HackManifest manifest;
   zelda3::DungeonStreamLayout allocator_layout;
@@ -310,6 +319,8 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
 
   // Load full room to get objects, doors, and stairs
   zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
+  const bool include_objects = parser.HasFlag("include-objects");
+  const auto& tile_objects = room.GetTileObjects();
 
   formatter.AddField("status", "success");
   formatter.AddField("name", absl::StrFormat("Room %d", room.id()));
@@ -329,10 +340,36 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
   formatter.AddField("tag2", static_cast<int>(room.tag2()));
 
   // Check object counts for simple heuristics
-  formatter.AddField("object_count",
-                     static_cast<int>(room.GetTileObjects().size()));
+  const int object_count = include_objects
+                               ? static_cast<int>(std::count_if(
+                                     tile_objects.begin(), tile_objects.end(),
+                                     IsEncodedRoomStreamObject))
+                               : static_cast<int>(tile_objects.size());
+  formatter.AddField("object_count", object_count);
 
   formatter.EndObject();
+
+  if (include_objects) {
+    formatter.BeginArray("objects");
+    int stream_index = 0;
+    for (const auto& object : tile_objects) {
+      if (!IsEncodedRoomStreamObject(object)) {
+        continue;
+      }
+
+      const auto encoded = object.EncodeObjectToBytes();
+      formatter.BeginObject();
+      formatter.AddHexField("object_id", static_cast<uint16_t>(object.id_), 3);
+      formatter.AddField("subtype", zelda3::RoomObject::DetermineObjectType(
+                                        encoded.b1, encoded.b3));
+      formatter.AddField("x", static_cast<int>(object.x()));
+      formatter.AddField("y", static_cast<int>(object.y()));
+      formatter.AddField("size", static_cast<int>(object.size()));
+      formatter.AddField("stream_index", stream_index++);
+      formatter.EndObject();
+    }
+    formatter.EndArray();
+  }
 
   // Export Doors
   formatter.BeginArray("doors");
