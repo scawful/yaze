@@ -1,6 +1,7 @@
 #include "object_drawer.h"
 
 #include <cstdio>
+#include <cstring>
 #include <filesystem>
 
 #include "absl/strings/str_format.h"
@@ -18,6 +19,46 @@
 
 namespace yaze {
 namespace zelda3 {
+namespace {
+
+void SyncModifiedBitmapToSurface(gfx::Bitmap& bitmap, const char* layer_name) {
+  SDL_Surface* surface = bitmap.surface();
+  if (!bitmap.modified() || surface == nullptr || bitmap.size() == 0) {
+    return;
+  }
+
+  const int width = bitmap.width();
+  const int height = bitmap.height();
+  if (width <= 0 || height <= 0 || surface->w < width || surface->h < height ||
+      surface->pitch < width) {
+    LOG_DEBUG("ObjectDrawer",
+              "%s surface dimensions cannot hold bitmap: surface=%dx%d "
+              "pitch=%d bitmap=%dx%d",
+              layer_name, surface->w, surface->h, surface->pitch, width,
+              height);
+    return;
+  }
+
+  const size_t row_bytes = static_cast<size_t>(width);
+  const size_t required_bytes = row_bytes * static_cast<size_t>(height);
+  if (bitmap.size() < required_bytes) {
+    LOG_DEBUG("ObjectDrawer", "%s bitmap data too small: data=%zu needed=%zu",
+              layer_name, bitmap.size(), required_bytes);
+    return;
+  }
+
+  SDL_LockSurface(surface);
+  auto* destination = static_cast<uint8_t*>(surface->pixels);
+  const uint8_t* source = bitmap.data();
+  for (int y = 0; y < height; ++y) {
+    std::memcpy(destination + static_cast<size_t>(y) *
+                                  static_cast<size_t>(surface->pitch),
+                source + static_cast<size_t>(y) * row_bytes, row_bytes);
+  }
+  SDL_UnlockSurface(surface);
+}
+
+}  // namespace
 
 ObjectDrawer::ObjectDrawer(Rom* rom, int room_id,
                            const uint8_t* room_gfx_buffer)
@@ -420,47 +461,10 @@ absl::Status ObjectDrawer::DrawObjectList(
   LOG_DEBUG("ObjectDrawer", "Buffer routing: to_BG1=%d, to_BG2=%d, BothBGs=%d",
             to_bg1, to_bg2, both_bgs);
 
-  // NOTE: Palette is already set in Room::RenderRoomGraphics() before calling
-  // this function. We just need to sync the pixel data to the SDL surface.
-  auto& bg1_bmp = bg1.bitmap();
-  auto& bg2_bmp = bg2.bitmap();
-
-  // Sync bitmap data to SDL surfaces (palette already applied)
-  if (bg1_bmp.modified() && bg1_bmp.surface() &&
-      bg1_bmp.mutable_data().size() > 0) {
-    SDL_LockSurface(bg1_bmp.surface());
-    // Safety check: ensure surface can hold the data
-    // Note: This assumes 8bpp surface where pitch >= width
-    size_t surface_size = bg1_bmp.surface()->h * bg1_bmp.surface()->pitch;
-    size_t buffer_size = bg1_bmp.mutable_data().size();
-
-    if (surface_size >= buffer_size) {
-      // TODO: Handle pitch mismatch properly (copy row by row)
-      // For now, just ensure we don't overflow
-      memcpy(bg1_bmp.surface()->pixels, bg1_bmp.mutable_data().data(),
-             buffer_size);
-    } else {
-      LOG_DEBUG("ObjectDrawer", "BG1 Surface too small: surf=%zu buf=%zu",
-                surface_size, buffer_size);
-    }
-    SDL_UnlockSurface(bg1_bmp.surface());
-  }
-
-  if (bg2_bmp.modified() && bg2_bmp.surface() &&
-      bg2_bmp.mutable_data().size() > 0) {
-    SDL_LockSurface(bg2_bmp.surface());
-    size_t surface_size = bg2_bmp.surface()->h * bg2_bmp.surface()->pitch;
-    size_t buffer_size = bg2_bmp.mutable_data().size();
-
-    if (surface_size >= buffer_size) {
-      memcpy(bg2_bmp.surface()->pixels, bg2_bmp.mutable_data().data(),
-             buffer_size);
-    } else {
-      LOG_DEBUG("ObjectDrawer", "BG2 Surface too small: surf=%zu buf=%zu",
-                surface_size, buffer_size);
-    }
-    SDL_UnlockSurface(bg2_bmp.surface());
-  }
+  // The palette is already applied by Room::RenderRoomGraphics(). SDL can pad
+  // indexed surface rows, so synchronize each row using the surface pitch.
+  SyncModifiedBitmapToSurface(bg1.bitmap(), "BG1");
+  SyncModifiedBitmapToSurface(bg2.bitmap(), "BG2");
 
   return status;
 }
