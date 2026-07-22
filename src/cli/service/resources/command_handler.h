@@ -1,7 +1,9 @@
 #ifndef YAZE_SRC_CLI_SERVICE_RESOURCES_COMMAND_HANDLER_H_
 #define YAZE_SRC_CLI_SERVICE_RESOURCES_COMMAND_HANDLER_H_
 
+#include <filesystem>
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -14,6 +16,15 @@
 namespace yaze {
 namespace cli {
 namespace resources {
+
+// Immutable ROM path identity captured for one CommandHandler::Run invocation.
+// The source path remains the caller's ROM when sandbox mode swaps the active
+// path to a command-local copy.
+struct CommandInvocationContext {
+  std::optional<std::filesystem::path> source_rom_path;
+  std::optional<std::filesystem::path> active_rom_path;
+  bool sandbox_enabled = false;
+};
 
 /**
  * @class CommandHandler
@@ -156,6 +167,19 @@ class CommandHandler {
    */
   virtual absl::Status Execute(Rom* rom, const ArgumentParser& parser,
                                OutputFormatter& formatter) = 0;
+
+  /**
+   * @brief Execute with immutable, invocation-scoped ROM path identity.
+   *
+   * Handlers that protect filesystem outputs from aliasing a source or
+   * sandbox ROM can override this hook. Existing handlers continue through
+   * Execute() without carrying mutable state on singleton handler instances.
+   */
+  virtual absl::Status ExecuteWithContext(
+      Rom* rom, const ArgumentParser& parser, OutputFormatter& formatter,
+      const CommandInvocationContext& invocation_context) {
+    return Execute(rom, parser, formatter);
+  }
 
   /**
    * @brief Get the default output format ("json" or "text")
