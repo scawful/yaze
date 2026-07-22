@@ -180,11 +180,12 @@ sandbox copy; the source ROM and its directory remain unchanged. `--mock-rom`
 is an in-memory test mode and is rejected when combined with `--sandbox`.
 `--report` is accepted only with a non-sandbox `--dry-run`; write-mode and
 sandbox imports reject it before ROM or sandbox work. Report paths must not
-alias the active ROM, including through symlinks or hardlinks. Reports use a
-direct file write after a final identity recheck; use a trusted directory
-because a local path-swap race remains between that check and open.
-Collision/water JSON export reports use the same ROM-alias check and cannot be
-combined with `--sandbox`.
+alias the active ROM, including through symlinks or hardlinks. Reports are
+staged in exclusive same-directory temporary files and published with
+rename/replace after a final path-identity check. Collision/water JSON exports
+use the same ROM-alias checks; when `--out` and `--report` are published
+together, a partial publication is rolled back before the command returns.
+Export reports cannot be combined with `--sandbox`.
 
 When `--spawn` is set, the ID must be `0x00`-`0x06`. Both entrance commands
 report the dedicated spawn fields (`quadrant`, `overworld_door_tilemap`, and
