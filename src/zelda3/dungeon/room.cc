@@ -1248,6 +1248,10 @@ void Room::LoadLayoutTilesToBuffer() {
     return;
   }
 
+  // Rebuild only layout-owned reveal requests. Room-object masks share this
+  // raw BG1 target and remain valid when just the layout is rerendered.
+  bg1_buffer_.ClearBG1RevealMask(gfx::BG1RevealMaskSource::kBG2Layout);
+
   // Load layout tiles from ROM if not already loaded
   layout_.SetRom(rom_);
   auto layout_status = layout_.LoadLayout(layout_id_);
@@ -1347,6 +1351,7 @@ void Room::RenderObjectsToBackground() {
   // correct tiles
   ObjectDrawer drawer(rom_, room_id_, current_gfx16_.data());
   drawer.SetAllowTrackCornerAliases(RoomUsesTrackCornerAliases(tile_objects_));
+  drawer.SetBG1RevealMaskSource(gfx::BG1RevealMaskSource::kBG2Objects);
   // NOTE: BothBG routines (ceiling corners, merged stairs, prison cells) are
   // handled by DrawRoutineRegistry's draws_to_both_bgs flag. The room object
   // stream is split here as primary -> BG2 overlay -> BG1 overlay, while the
@@ -1370,6 +1375,11 @@ void Room::RenderObjectsToBackground() {
   // can cause objects to incorrectly clear the layout.
   object_bg1_buffer_.ClearCoverageBuffer();
   object_bg2_buffer_.ClearCoverageBuffer();
+
+  // Room-object masks target both raw BG1 stacks. Clear only their source bit
+  // so layout-owned reveals survive an object-only rerender.
+  object_bg1_buffer_.ClearBG1RevealMask(gfx::BG1RevealMaskSource::kBG2Objects);
+  bg1_buffer_.ClearBG1RevealMask(gfx::BG1RevealMaskSource::kBG2Objects);
 
   // Log stream distribution for this room.
   // USDASM order is: main list -> BG2 overlay list -> BG1 overlay list.
@@ -1400,8 +1410,9 @@ void Room::RenderObjectsToBackground() {
   // `tile_objects_[].layer_` holds the list index (0/1/2) for save/load, not
   // the buffer name. Map with MapRoomObjectListIndexToDrawLayer before drawing.
   // BothBG routines still fan out to both buffers via DrawRoutineRegistry.
-  // Pass bg1_buffer_ for BG2 mask propagation so pits/layer masks can create
-  // holes in BG1 that reveal BG2 beneath.
+  // Pass bg1_buffer_ as the second raw BG1 target. BG2 room objects record
+  // deferred reveal bits on both layout and object targets without mutating
+  // either bitmap.
   //
   // Three DrawObjectList passes match USDASM list order; the shared chest/
   // big-key-lock event index continues across passes (reset only on the first

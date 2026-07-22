@@ -395,8 +395,7 @@ absl::Status ObjectDrawer::DrawObject(
   active_mask_source_bg_ = nullptr;
   registry_secondary_bg_ = nullptr;
 
-  // BG2 Mask Propagation: ONLY layer-2 mask/pit objects should mark BG1 as
-  // transparent.
+  // BG2 mask propagation is deferred to compositing so raw BG1 stays intact.
   //
   // Ordinary BG2 overlay objects now mask per-pixel as they draw, which keeps
   // transparent cutouts intact for platforms/statues/stairs. Full-rect masking
@@ -411,16 +410,15 @@ absl::Status ObjectDrawer::DrawObject(
     const auto [mask_px_x, mask_px_y, pixel_width, pixel_height] =
         DimensionService::Get().GetSelectionBoundsPixels(object);
 
-    LOG_DEBUG(
-        "ObjectDrawer",
-        "Pit mask 0x%03X at (%d,%d) -> marking %dx%d pixels transparent in BG1",
-        object.id_, mask_px_x / 8, mask_px_y / 8, pixel_width, pixel_height);
+    LOG_DEBUG("ObjectDrawer",
+              "Pit mask 0x%03X at (%d,%d) -> recording %dx%d BG1 reveal pixels",
+              object.id_, mask_px_x / 8, mask_px_y / 8, pixel_width,
+              pixel_height);
 
-    MarkBg1RectTransparent(bg1, mask_px_x, mask_px_y, pixel_width,
-                           pixel_height);
+    MarkBg1RectRevealed(bg1, mask_px_x, mask_px_y, pixel_width, pixel_height);
     if (layout_bg1 != nullptr) {
-      MarkBg1RectTransparent(*layout_bg1, mask_px_x, mask_px_y, pixel_width,
-                             pixel_height);
+      MarkBg1RectRevealed(*layout_bg1, mask_px_x, mask_px_y, pixel_width,
+                          pixel_height);
     }
   }
 
@@ -1503,6 +1501,8 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
         const int pixel_x = (start_tile_x + dx) * 8;
         const int pixel_y = (start_tile_y + dy) * 8;
 
+        target.ClearBG1RevealMaskRect(bg1_reveal_mask_source_, pixel_x, pixel_y,
+                                      8, 8);
         DrawTileToBitmap(bitmap, tile_info, pixel_x, pixel_y, room_gfx_buffer_);
 
         const uint8_t priority = tile_info.over_ ? 1 : 0;
@@ -1548,6 +1548,8 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
         const int pixel_x = (start_tile_x + dx) * 8;
         const int pixel_y = (start_tile_y + dy) * 8;
 
+        target.ClearBG1RevealMaskRect(bg1_reveal_mask_source_, pixel_x, pixel_y,
+                                      8, 8);
         DrawTileToBitmap(bitmap, tile_info, pixel_x, pixel_y, room_gfx_buffer_);
 
         const uint8_t priority = tile_info.over_ ? 1 : 0;
@@ -1892,6 +1894,9 @@ void ObjectDrawer::DrawDoorIndicator(gfx::BackgroundBuffer& bg, int tile_x,
   int bitmap_width = bitmap.width();
   int bitmap_height = bitmap.height();
 
+  bg.ClearBG1RevealMaskRect(bg1_reveal_mask_source_, pixel_x, pixel_y,
+                            pixel_width, pixel_height);
+
   // Draw filled rectangle with border
   for (int py = 0; py < pixel_height; py++) {
     for (int px = 0; px < pixel_width; px++) {
@@ -2086,43 +2091,14 @@ void ObjectDrawer::DrawRightwardsDecor4x3spaced4_1to16(
 // Utility Methods
 // ============================================================================
 
-void ObjectDrawer::MarkBg1RectTransparent(gfx::BackgroundBuffer& bg1,
-                                          int start_px, int start_py,
-                                          int pixel_width, int pixel_height) {
-  auto& bitmap = bg1.bitmap();
-  if (!bitmap.is_active() || bitmap.width() == 0) {
-    return;
-  }
-
-  int canvas_width = bitmap.width();
-  int canvas_height = bitmap.height();
-  auto& data = bitmap.mutable_data();
-
-  for (int py = start_py; py < start_py + pixel_height && py < canvas_height;
-       py++) {
-    if (py < 0)
-      continue;
-    for (int px = start_px; px < start_px + pixel_width && px < canvas_width;
-         px++) {
-      if (px < 0)
-        continue;
-      int idx = py * canvas_width + px;
-      if (idx >= 0 && idx < static_cast<int>(data.size())) {
-        data[idx] = 255;
-      }
-    }
-  }
-  bitmap.set_modified(true);
+void ObjectDrawer::MarkBg1RectRevealed(gfx::BackgroundBuffer& bg1, int start_px,
+                                       int start_py, int pixel_width,
+                                       int pixel_height) {
+  bg1.SetBG1RevealMaskRect(bg1_reveal_mask_source_, start_px, start_py,
+                           pixel_width, pixel_height);
 }
 
-void ObjectDrawer::MarkBG1Transparent(gfx::BackgroundBuffer& bg1, int tile_x,
-                                      int tile_y, int pixel_width,
-                                      int pixel_height) {
-  MarkBg1RectTransparent(bg1, tile_x * 8, tile_y * 8, pixel_width,
-                         pixel_height);
-}
-
-void ObjectDrawer::MarkBg1OpaqueTilePixelsTransparent(
+void ObjectDrawer::MarkBg1OpaqueTilePixelsRevealed(
     gfx::BackgroundBuffer& bg1, const gfx::TileInfo& tile_info, int pixel_x,
     int pixel_y, const uint8_t* tiledata) {
   auto& bitmap = bg1.bitmap();
@@ -2140,7 +2116,8 @@ void ObjectDrawer::MarkBg1OpaqueTilePixelsTransparent(
 
   const int tile_base_x = tile_col * 8;
   const int tile_base_y = tile_row * 1024;
-  bool any_pixels_changed = false;
+  auto& reveal_mask = bg1.mutable_bg1_reveal_mask_data();
+  const uint8_t source_mask = static_cast<uint8_t>(bg1_reveal_mask_source_);
 
   for (int py = 0; py < 8; ++py) {
     const int src_row = tile_info.vertical_mirror_ ? (7 - py) : py;
@@ -2163,16 +2140,8 @@ void ObjectDrawer::MarkBg1OpaqueTilePixelsTransparent(
       }
 
       const int dest_index = dest_y * bitmap.width() + dest_x;
-      auto& dst = bitmap.mutable_data()[dest_index];
-      if (dst != 255) {
-        dst = 255;
-        any_pixels_changed = true;
-      }
+      reveal_mask[dest_index] |= source_mask;
     }
-  }
-
-  if (any_pixels_changed) {
-    bitmap.set_modified(true);
   }
 }
 
@@ -2201,17 +2170,22 @@ void ObjectDrawer::WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
     return;
   }
 
-  // Draw single 8x8 tile directly to bitmap
-  DrawTileToBitmap(bitmap, tile_info, tile_x * 8, tile_y * 8, gfx_data);
+  // A later BG1 tilemap write supersedes an earlier reveal request from the
+  // same logical stream, including transparent pixels in the 8x8 footprint.
+  bg.ClearBG1RevealMaskRect(bg1_reveal_mask_source_, tile_x * 8, tile_y * 8, 8,
+                            8);
+
   const bool should_mark_bg1_mask =
       active_mask_source_bg_ != nullptr && (&bg == active_mask_source_bg_);
+  // Draw single 8x8 tile directly to bitmap.
+  DrawTileToBitmap(bitmap, tile_info, tile_x * 8, tile_y * 8, gfx_data);
   if (should_mark_bg1_mask && active_object_bg1_mask_ != nullptr) {
-    MarkBg1OpaqueTilePixelsTransparent(*active_object_bg1_mask_, tile_info,
-                                       tile_x * 8, tile_y * 8, gfx_data);
+    MarkBg1OpaqueTilePixelsRevealed(*active_object_bg1_mask_, tile_info,
+                                    tile_x * 8, tile_y * 8, gfx_data);
   }
   if (should_mark_bg1_mask && active_layout_bg1_mask_ != nullptr) {
-    MarkBg1OpaqueTilePixelsTransparent(*active_layout_bg1_mask_, tile_info,
-                                       tile_x * 8, tile_y * 8, gfx_data);
+    MarkBg1OpaqueTilePixelsRevealed(*active_layout_bg1_mask_, tile_info,
+                                    tile_x * 8, tile_y * 8, gfx_data);
   }
 
   // Mark coverage for the full 8x8 tile region (even if pixels are transparent).
@@ -3296,6 +3270,9 @@ void yaze::zelda3::ObjectDrawer::DrawMissingCustomObjectPlaceholder(
   const int width = bitmap.width();
   const int height = bitmap.height();
 
+  bg.ClearBG1RevealMaskRect(bg1_reveal_mask_source_, start_x, start_y,
+                            kPlaceholderSizePx, kPlaceholderSizePx);
+
   for (int py = 0; py < kPlaceholderSizePx; ++py) {
     const int dest_y = start_y + py;
     if (dest_y < 0 || dest_y >= height)
@@ -3421,6 +3398,8 @@ void yaze::zelda3::ObjectDrawer::DrawPotItem(uint8_t item_id, int x, int y,
   // Draw a 4x4 colored square as item indicator
   int bitmap_width = bitmap.width();
   int bitmap_height = bitmap.height();
+
+  bg.ClearBG1RevealMaskRect(bg1_reveal_mask_source_, pixel_x, pixel_y, 4, 4);
 
   for (int py = 0; py < 4; py++) {
     for (int px = 0; px < 4; px++) {
