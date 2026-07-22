@@ -12,6 +12,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <array>
 #include <atomic>
 #include <chrono>
 #include <cstdint>
@@ -890,6 +891,150 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
 
   RecordProperty("regular_entrance_id", kEntranceId);
   RecordProperty("regular_entrance_save_reopen_cycles", kSaveReopenCycles);
+  RecordProperty("source_rom_sha256", source_sha_before_);
+}
+
+TEST_F(DungeonPotRepackOosIntegrationTest,
+       SpawnPointSavePreservesEveryOtherSlotAndFiftyReopenCycles) {
+  constexpr int kSpawnId = 1;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(temp_rom_path_.string()).ok());
+
+  auto read_spawn_record = [](const std::vector<uint8_t>& data, int spawn_id) {
+    std::vector<uint8_t> bytes;
+    for (const auto& [begin, end] : DungeonSpawnPointWriteRanges(spawn_id)) {
+      bytes.insert(bytes.end(), data.begin() + begin, data.begin() + end);
+    }
+    return bytes;
+  };
+
+  const std::vector<uint8_t> before_save_bytes = rom.vector();
+  std::array<std::vector<uint8_t>, kNumDungeonSpawnPoints> spawn_records_before;
+  for (int spawn_id = 0; spawn_id < kNumDungeonSpawnPoints; ++spawn_id) {
+    spawn_records_before[spawn_id] =
+        read_spawn_record(before_save_bytes, spawn_id);
+  }
+  const std::vector<uint8_t> regular_tables_before(
+      before_save_bytes.begin() + kEntranceRoom,
+      before_save_bytes.begin() + kEntranceMusic + kNumRegularDungeonEntrances);
+
+  DungeonSaveFlagsGuard flags_guard;
+  ConfigurePotOnlySave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSavePotItems = false;
+  flags.kSaveEntrances = true;
+
+  auto dungeon_editor = std::make_unique<editor::DungeonEditorV2>(&rom);
+  editor::EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project_;
+  dungeon_editor->SetDependencies(dependencies);
+  ASSERT_TRUE(editor::DungeonEditorV2SpawnPointTestPeer::LoadSpawnPointFromRom(
+                  *dungeon_editor, kSpawnId)
+                  .ok());
+  auto& spawn = editor::DungeonEditorV2SpawnPointTestPeer::SpawnPoint(
+      *dungeon_editor, kSpawnId);
+  ASSERT_LE(spawn.room_id, kDungeonSpawnRoomIdMask);
+  ASSERT_LT(spawn.entrance_id, kNumRegularDungeonEntrances);
+  const uint16_t original_room = spawn.room_id;
+  const uint16_t replacement_room =
+      static_cast<uint16_t>((original_room + 1) & kDungeonSpawnRoomIdMask);
+  ASSERT_NE(replacement_room, original_room);
+  spawn.room_id = replacement_room;
+  spawn.MarkDirty();
+
+  const auto expected_ranges = DungeonSpawnPointWriteRanges(kSpawnId);
+  ASSERT_EQ(expected_ranges.size(), 17u);
+  EXPECT_EQ(dungeon_editor->CollectWriteRanges(), expected_ranges);
+  EXPECT_TRUE(
+      project_.hack_manifest.AnalyzePcWriteRanges(expected_ranges).empty())
+      << "The production Oracle manifest unexpectedly owns a dungeon spawn "
+         "point slot";
+
+  const absl::Status save_status = dungeon_editor->SaveRoom(0);
+  ASSERT_TRUE(save_status.ok()) << save_status.message();
+  EXPECT_FALSE(spawn.dirty());
+
+  const std::vector<uint8_t> after_save_bytes = rom.vector();
+  size_t changed_bytes = 0;
+  for (size_t offset = 0; offset < before_save_bytes.size(); ++offset) {
+    if (before_save_bytes[offset] == after_save_bytes[offset]) {
+      continue;
+    }
+    ++changed_bytes;
+    const bool covered =
+        std::any_of(expected_ranges.begin(), expected_ranges.end(),
+                    [offset](const DungeonSpawnPointWriteRange& range) {
+                      return range.first <= offset && offset < range.second;
+                    });
+    EXPECT_TRUE(covered) << "Write escaped dungeon spawn ranges at PC 0x"
+                         << std::hex << offset;
+  }
+  EXPECT_GT(changed_bytes, 0u);
+
+  for (int spawn_id = 0; spawn_id < kNumDungeonSpawnPoints; ++spawn_id) {
+    if (spawn_id == kSpawnId) {
+      continue;
+    }
+    EXPECT_EQ(read_spawn_record(after_save_bytes, spawn_id),
+              spawn_records_before[spawn_id])
+        << "Unrelated dungeon spawn changed: 0x" << std::hex << spawn_id;
+  }
+  const std::vector<uint8_t> selected_after =
+      read_spawn_record(after_save_bytes, kSpawnId);
+  ASSERT_EQ(selected_after.size(), 33u);
+  ASSERT_EQ(spawn_records_before[kSpawnId].size(), 33u);
+  EXPECT_TRUE(std::equal(selected_after.begin() + 2, selected_after.end(),
+                         spawn_records_before[kSpawnId].begin() + 2))
+      << "A non-room field changed in the selected dungeon spawn";
+  EXPECT_EQ(std::vector<uint8_t>(after_save_bytes.begin() + kEntranceRoom,
+                                 after_save_bytes.begin() + kEntranceMusic +
+                                     kNumRegularDungeonEntrances),
+            regular_tables_before);
+
+  Rom::SaveSettings save_settings;
+  save_settings.filename = temp_rom_path_.string();
+  ASSERT_TRUE(rom.SaveToFile(save_settings).ok());
+  const std::vector<uint8_t> first_save_bytes = ReadFile(temp_rom_path_);
+  ASSERT_FALSE(first_save_bytes.empty());
+  dungeon_editor.reset();
+
+  {
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(temp_rom_path_.string()).ok());
+    auto reopened_spawn = DungeonSpawnPoint::Load(reopened, kSpawnId);
+    ASSERT_TRUE(reopened_spawn.ok()) << reopened_spawn.status();
+    EXPECT_EQ(reopened_spawn->room_id, replacement_room);
+    EXPECT_EQ(read_spawn_record(reopened.vector(), kSpawnId), selected_after);
+  }
+
+  for (int cycle = 1; cycle <= kSaveReopenCycles; ++cycle) {
+    SCOPED_TRACE(absl::StrFormat("dungeon spawn save/reopen cycle %d", cycle));
+    Rom cycle_rom;
+    ASSERT_TRUE(cycle_rom.LoadFromFile(temp_rom_path_.string()).ok());
+    auto cycle_editor = std::make_unique<editor::DungeonEditorV2>(&cycle_rom);
+    editor::EditorDependencies cycle_dependencies = dependencies;
+    cycle_dependencies.rom = &cycle_rom;
+    cycle_editor->SetDependencies(cycle_dependencies);
+    ASSERT_TRUE(
+        editor::DungeonEditorV2SpawnPointTestPeer::LoadSpawnPointFromRom(
+            *cycle_editor, kSpawnId)
+            .ok());
+    auto& cycle_spawn = editor::DungeonEditorV2SpawnPointTestPeer::SpawnPoint(
+        *cycle_editor, kSpawnId);
+    ASSERT_EQ(cycle_spawn.room_id, replacement_room);
+    cycle_spawn.MarkDirty();
+
+    const absl::Status cycle_status = cycle_editor->SaveRoom(0);
+    ASSERT_TRUE(cycle_status.ok()) << cycle_status.message();
+    EXPECT_FALSE(cycle_spawn.dirty());
+    ASSERT_TRUE(cycle_rom.SaveToFile(save_settings).ok());
+    EXPECT_EQ(ReadFile(temp_rom_path_), first_save_bytes)
+        << "No-op dungeon spawn save changed ROM bytes during cycle " << cycle;
+  }
+
+  RecordProperty("dungeon_spawn_id", kSpawnId);
+  RecordProperty("dungeon_spawn_save_reopen_cycles", kSaveReopenCycles);
   RecordProperty("source_rom_sha256", source_sha_before_);
 }
 

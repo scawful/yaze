@@ -72,14 +72,14 @@ if (ImGui::BeginChild("##RoomsList", ImVec2(0, 0), true)) {
 - The 133 regular entrances are writable. Each dirty entrance predicts and
   preflights exactly 17 discontiguous PC ranges (32 unique bytes) before any
   save domain mutates the ROM.
-- The seven spawn-point records are intentionally read-only for now. A dirty
-  spawn record fails with `FailedPrecondition` and keeps its dirty state.
-- Spawn editing must not reuse the regular-entrance field model. The ROM schema
-  has only a quadrant byte at PC `0x15C2B` (no spawn in-door field), a 16-bit
-  overworld door tilemap at PC `0x15C32`, and a seven-word entrance-ID table at
-  PC `0x15C40` that `RoomEntrance` does not yet model. Spawn save support is
-  deferred until those fields have dedicated load/edit/save semantics and
-  production-ROM round-trip coverage.
+- The seven spawn-point records have a dedicated persistence model with exact
+  prediction/preflight ranges and save/reopen coverage. It preserves 9-bit room
+  semantics, the quadrant-only byte at PC `0x15C2B`, the full 16-bit overworld
+  door tilemap at PC `0x15C32`, and seven 16-bit entrance IDs at PC `0x15C40`.
+- Spawn properties remain read-only in the UI until it binds directly to
+  `DungeonSpawnPoint`. The legacy combined `RoomEntrance` spawn views still
+  fail closed if marked dirty; spawn editing must not reuse that regular-field
+  model.
 
 ## Recent Additions
 
@@ -149,7 +149,7 @@ Subsystem for accurate SNES-style layer compositing of dungeon room renders.
 2. **Save Pipeline Follow-up**:
    - Keep pit-damage edits within the fixed-capacity membership table; treat repointing or capacity expansion as a separate ROM-layout feature.
    - Treat pushable-block table repointing/expansion as a separate ROM-layout feature; the current encoder intentionally stays within the vanilla four-region cap. It fails closed for dirty-but-unloaded room state and when an edit would empty the global table: `LoadAndBuildRoom` scans at least one entry before comparing the byte-length immediate, so zero is not a safe runtime limit without an engine patch. Successful compaction rebases loaded block slot identities only after all ROM writes commit, and the editor transaction snapshot restores those identities if a later save stage rolls back.
-   - Model the spawn-only quadrant, overworld-door-tilemap, and entrance-ID tables before enabling spawn-point writes.
+   - Bind the read-only spawn property UI to `DungeonSpawnPoint` before enabling interactive spawn edits.
    - Add broader integration coverage for door/chest/pot/collision/entrance/write flows beyond the current unit and ROM-safety tests.
 3. **Test Coverage**: Add integration tests that:
    - Place/delete objects and verify `Room::EncodeObjects` output changes in ROM.
