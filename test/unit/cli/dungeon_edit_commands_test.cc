@@ -2,24 +2,36 @@
 #include "cli/handlers/game/dungeon_commands.h"
 
 #include <chrono>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <string>
 #include <system_error>
+#include <utility>
 #include <vector>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "absl/status/status.h"
+#include "absl/strings/str_format.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_object.h"
 
 namespace yaze::cli {
 namespace {
 
 using ::testing::HasSubstr;
+
+constexpr int kObjectPointerTablePc = 0x070000;
+constexpr int kObjectDataPc = 0x060000;
+constexpr int kObjectAllocationPc = 0x060100;
+constexpr int kObjectDataEndPc = 0x060200;
+constexpr int kSyntheticPotTerminatorPc = 0x00F000;
 
 void ExpectInvalidArgument(const absl::Status& status,
                            const std::string& message_fragment) {
@@ -77,6 +89,105 @@ struct ScopedRomArtifactsCleanup {
 
   std::filesystem::path rom_path;
 };
+
+struct ScopedFileCleanup {
+  explicit ScopedFileCleanup(std::filesystem::path path)
+      : file_path(std::move(path)) {}
+  ~ScopedFileCleanup() {
+    std::error_code ec;
+    std::filesystem::remove(file_path, ec);
+  }
+
+  std::filesystem::path file_path;
+};
+
+std::vector<uint8_t> ReadFile(const std::filesystem::path& path) {
+  std::ifstream input(path, std::ios::binary);
+  return std::vector<uint8_t>(std::istreambuf_iterator<char>(input),
+                              std::istreambuf_iterator<char>());
+}
+
+void WriteRomFile(const Rom& rom, const std::filesystem::path& path) {
+  std::ofstream output(path, std::ios::binary | std::ios::trunc);
+  ASSERT_TRUE(output.is_open());
+  output.write(reinterpret_cast<const char*>(rom.data()),
+               static_cast<std::streamsize>(rom.size()));
+  ASSERT_TRUE(output.good());
+}
+
+void WriteLong(Rom* rom, int address, uint32_t value) {
+  rom->mutable_data()[address] = value & 0xFF;
+  rom->mutable_data()[address + 1] = (value >> 8) & 0xFF;
+  rom->mutable_data()[address + 2] = (value >> 16) & 0xFF;
+}
+
+void SetRoomObjectPointer(Rom* rom, int room_id, int pc_addr) {
+  WriteLong(rom, kObjectPointerTablePc + room_id * 3, PcToSnes(pc_addr));
+}
+
+int ReadRoomObjectPointerPc(const Rom& rom, int room_id) {
+  const int pointer = kObjectPointerTablePc + room_id * 3;
+  const uint32_t snes = rom.data()[pointer] |
+                        (static_cast<uint32_t>(rom.data()[pointer + 1]) << 8) |
+                        (static_cast<uint32_t>(rom.data()[pointer + 2]) << 16);
+  return SnesToPc(snes);
+}
+
+void WriteEmptyObjectStream(Rom* rom, int pc_addr) {
+  const std::vector<uint8_t> stream = {0x00, 0x00, 0xFF, 0xFF, 0xFF,
+                                       0xFF, 0xF0, 0xFF, 0xFF, 0xFF};
+  ASSERT_TRUE(rom->WriteVector(pc_addr, stream).ok());
+}
+
+void InitializeTightObjectRom(Rom* rom) {
+  ASSERT_TRUE(rom->LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  WriteLong(rom, zelda3::kRoomObjectPointer, PcToSnes(kObjectPointerTablePc));
+  SetRoomObjectPointer(rom, 0, kObjectDataPc);
+  for (int room_id = 1; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    SetRoomObjectPointer(rom, room_id, kObjectDataPc + 10);
+  }
+  WriteEmptyObjectStream(rom, kObjectDataPc);
+  WriteEmptyObjectStream(rom, kObjectDataPc + 10);
+
+  // Keep LoadRoomFromRom's unrelated pot-item scan bounded in the synthetic
+  // fixture so the object-stream assertions stay focused and deterministic.
+  const uint16_t pot_pointer = PcToSnes(kSyntheticPotTerminatorPc) & 0xFFFF;
+  for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    const int pointer = zelda3::kRoomItemsPointers + room_id * 2;
+    rom->mutable_data()[pointer] = pot_pointer & 0xFF;
+    rom->mutable_data()[pointer + 1] = (pot_pointer >> 8) & 0xFF;
+  }
+  rom->mutable_data()[kSyntheticPotTerminatorPc] = 0xFF;
+  rom->mutable_data()[kSyntheticPotTerminatorPc + 1] = 0xFF;
+}
+
+void WriteObjectCowManifest(const std::filesystem::path& path) {
+  const std::string json = absl::StrFormat(
+      R"json({
+  "manifest_version": 3,
+  "dungeon_stream_regions": {
+    "objects": {
+      "pointer_table": "0x%06X",
+      "pointer_count": 296,
+      "pointer_encoding": "long24",
+      "strategy": "copy_on_write",
+      "data_regions": [
+        {"start": "0x%06X", "end": "0x%06X"}
+      ],
+      "allocation_regions": [
+        {"start": "0x%06X", "end": "0x%06X"}
+      ]
+    }
+  }
+})json",
+      PcToSnes(kObjectPointerTablePc), PcToSnes(kObjectDataPc),
+      PcToSnes(kObjectDataEndPc), PcToSnes(kObjectAllocationPc),
+      PcToSnes(kObjectDataEndPc));
+  std::ofstream output(path, std::ios::trunc);
+  ASSERT_TRUE(output.is_open());
+  output << json;
+  ASSERT_TRUE(output.good());
+}
 
 void SetRoomSpritePointer(Rom* rom, int table_pc, int room_id, int pc_addr) {
   const uint32_t snes = PcToSnes(pc_addr);
@@ -258,6 +369,109 @@ TEST(DungeonEditCommandsTest,
   EXPECT_EQ(rom.vector(), before);
   EXPECT_EQ(ReadRoomSpritePointerPc(rom, table_pc, 0), zelda3::kSpritesData);
   EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+}
+
+TEST(DungeonEditCommandsTest,
+     PlaceObjectDryRunMatchesManifestlessWriteFailure) {
+  Rom rom;
+  InitializeTightObjectRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  WriteRomFile(rom, cleanup.rom_path);
+  rom.set_filename(cleanup.rom_path.string());
+
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+  handlers::DungeonPlaceObjectCommandHandler handler;
+  const std::vector<std::string> args = {"--room=0x00", "--id=0x0031",
+                                         "--x=1",       "--y=2",
+                                         "--size=6",    "--format=json"};
+
+  std::string dry_output;
+  const absl::Status dry_status = handler.Run(args, &rom, &dry_output);
+  EXPECT_TRUE(absl::IsResourceExhausted(dry_status)) << dry_status;
+  EXPECT_THAT(dry_output, HasSubstr("\"mode\": \"dry-run\""));
+  EXPECT_THAT(dry_output, HasSubstr("\"preflight_status\": \"failed\""));
+  EXPECT_THAT(dry_output, HasSubstr("object data too large"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(ReadRoomObjectPointerPc(rom, 0), kObjectDataPc);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+
+  std::vector<std::string> write_args = args;
+  write_args.push_back("--write");
+  std::string write_output;
+  const absl::Status write_status =
+      handler.Run(write_args, &rom, &write_output);
+  EXPECT_EQ(write_status.code(), dry_status.code());
+  EXPECT_EQ(write_status.message(), dry_status.message());
+  EXPECT_THAT(write_output, HasSubstr("\"mode\": \"write\""));
+  EXPECT_THAT(write_output, HasSubstr("\"preflight_status\": \"failed\""));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(ReadRoomObjectPointerPc(rom, 0), kObjectDataPc);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+}
+
+TEST(DungeonEditCommandsTest,
+     PlaceObjectManifestDryRunAndWriteRelocatesAndReopens) {
+  Rom rom;
+  InitializeTightObjectRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+  handlers::DungeonPlaceObjectCommandHandler handler;
+  const std::vector<std::string> args = {
+      "--room=0x00",
+      "--id=0x0031",
+      "--x=1",
+      "--y=2",
+      "--size=6",
+      absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+      "--format=json"};
+
+  std::string dry_output;
+  const absl::Status dry_status = handler.Run(args, &rom, &dry_output);
+  ASSERT_TRUE(dry_status.ok()) << dry_status;
+  EXPECT_THAT(dry_output,
+              HasSubstr("\"allocator_capability\": \"copy_on_write\""));
+  EXPECT_THAT(dry_output, HasSubstr("\"preflight_status\": \"success\""));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(ReadRoomObjectPointerPc(rom, 0), kObjectDataPc);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+
+  std::vector<std::string> write_args = args;
+  write_args.push_back("--write");
+  std::string write_output;
+  const absl::Status write_status =
+      handler.Run(write_args, &rom, &write_output);
+  ASSERT_TRUE(write_status.ok()) << write_status;
+  EXPECT_THAT(write_output, HasSubstr("\"write_status\": \"success\""));
+  EXPECT_THAT(write_output, HasSubstr("\"save_status\": \"saved\""));
+  EXPECT_EQ(ReadRoomObjectPointerPc(rom, 0), kObjectAllocationPc);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 1);
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(cleanup.rom_path.string()).ok());
+  EXPECT_EQ(ReadRoomObjectPointerPc(reopened, 0), kObjectAllocationPc);
+  zelda3::Room room = zelda3::LoadRoomFromRom(&reopened, 0);
+  ASSERT_EQ(room.GetTileObjects().size(), 1u);
+  const zelda3::RoomObject& object = room.GetTileObjects().front();
+  EXPECT_EQ(object.id_, 0x0031);
+  EXPECT_EQ(object.x(), 1);
+  EXPECT_EQ(object.y(), 2);
+  EXPECT_EQ(object.size(), 6);
+  EXPECT_EQ(object.GetLayerValue(), 0);
+
+  zelda3::Room untouched = zelda3::LoadRoomFromRom(&reopened, 1);
+  EXPECT_TRUE(untouched.GetTileObjects().empty());
+  EXPECT_EQ(ReadRoomObjectPointerPc(reopened, 1), kObjectDataPc + 10);
 }
 
 }  // namespace

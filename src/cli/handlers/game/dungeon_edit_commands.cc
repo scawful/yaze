@@ -1,12 +1,17 @@
 #include "cli/handlers/game/dungeon_edit_commands.h"
 
+#include <optional>
+
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "cli/util/hex_util.h"
+#include "core/dungeon_stream_layout_adapter.h"
+#include "core/hack_manifest.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "util/macro.h"
+#include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/dungeon/track_collision_generator.h"
@@ -82,6 +87,51 @@ absl::Status SaveRomWithBackup(Rom* rom,
 
   formatter.AddField("save_status", "saved");
   return absl::OkStatus();
+}
+
+absl::StatusOr<std::optional<zelda3::DungeonStreamLayout>>
+LoadObjectCopyOnWriteLayout(const resources::ArgumentParser& parser) {
+  const auto manifest_path = parser.GetString("manifest");
+  if (!manifest_path.has_value()) {
+    return std::nullopt;
+  }
+
+  core::HackManifest manifest;
+  RETURN_IF_ERROR(manifest.LoadFromFile(*manifest_path));
+  const core::DungeonStreamLayout* manifest_layout =
+      manifest.GetDungeonStreamLayout(core::DungeonStreamType::kObjects);
+  if (manifest_layout == nullptr) {
+    return absl::FailedPreconditionError(
+        "Manifest does not define dungeon_stream_regions.objects");
+  }
+  if (manifest_layout->strategy != core::DungeonWriteStrategy::kCopyOnWrite) {
+    return absl::FailedPreconditionError(
+        "dungeon_stream_regions.objects must use copy_on_write");
+  }
+
+  zelda3::DungeonStreamLayout allocator_layout;
+  ASSIGN_OR_RETURN(allocator_layout,
+                   core::ToDungeonStreamAllocatorLayout(
+                       core::DungeonStreamType::kObjects, *manifest_layout));
+  return std::optional<zelda3::DungeonStreamLayout>(
+      std::move(allocator_layout));
+}
+
+absl::Status PreflightObjectSave(
+    const Rom& source_rom, int room_id, const zelda3::RoomObject& object,
+    const zelda3::DungeonStreamLayout* allocator_layout) {
+  // Exercise the exact Room::SaveObjects path against an isolated snapshot so
+  // dry-run capacity and allocator outcomes match --write without mutating the
+  // caller's ROM.
+  Rom scratch_rom;
+  Rom::LoadOptions options;
+  options.strip_header = false;
+  options.load_resource_labels = false;
+  RETURN_IF_ERROR(scratch_rom.LoadFromData(source_rom.vector(), options));
+
+  zelda3::Room scratch_room = zelda3::LoadRoomFromRom(&scratch_rom, room_id);
+  RETURN_IF_ERROR(scratch_room.AddObject(object));
+  return scratch_room.SaveObjects(allocator_layout);
 }
 
 }  // namespace
@@ -393,6 +443,11 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
     return absl::InvalidArgumentError("Size must be 0-255");
   }
 
+  std::optional<zelda3::DungeonStreamLayout> allocator_layout;
+  ASSIGN_OR_RETURN(allocator_layout, LoadObjectCopyOnWriteLayout(parser));
+  const zelda3::DungeonStreamLayout* layout =
+      allocator_layout.has_value() ? &*allocator_layout : nullptr;
+
   // Load room with full objects
   zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
 
@@ -418,6 +473,12 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
   formatter.AddField("size", size);
   formatter.AddField("layer", layer);
   formatter.AddField("objects_before", count_before);
+  if (const auto manifest_path = parser.GetString("manifest");
+      manifest_path.has_value()) {
+    formatter.AddField("manifest", *manifest_path);
+  }
+  formatter.AddField("allocator_capability",
+                     layout != nullptr ? "copy_on_write" : "none");
 
   // Add the object
   auto add_status = room.AddObject(obj);
@@ -431,8 +492,18 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
                      static_cast<int>(room.GetTileObjects().size()));
   formatter.AddField("mode", do_write ? "write" : "dry-run");
 
+  const auto preflight_status = PreflightObjectSave(*rom, room_id, obj, layout);
+  if (!preflight_status.ok()) {
+    formatter.AddField("preflight_status", "failed");
+    formatter.AddField("preflight_error",
+                       std::string(preflight_status.message()));
+    formatter.EndObject();
+    return preflight_status;
+  }
+  formatter.AddField("preflight_status", "success");
+
   if (do_write) {
-    auto save_status = room.SaveObjects();
+    auto save_status = room.SaveObjects(layout);
     if (!save_status.ok()) {
       formatter.AddField("write_error", std::string(save_status.message()));
       formatter.EndObject();
