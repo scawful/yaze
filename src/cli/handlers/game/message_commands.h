@@ -161,7 +161,8 @@ class MessageExportBundleCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const override { return "message-export-bundle"; }
   std::string GetUsage() const override {
-    return "message-export-bundle --output <path> [--range <all|vanilla|expanded>]"
+    return "message-export-bundle --output <path> [--range "
+           "<all|vanilla|expanded>]"
            " [--format <json|text>]";
   }
   bool RequiresRom() const override { return true; }
@@ -182,7 +183,8 @@ class MessageImportBundleCommandHandler : public resources::CommandHandler {
   std::string GetName() const override { return "message-import-bundle"; }
   std::string GetUsage() const override {
     return "message-import-bundle --file <path> [--apply] [--strict]"
-           " [--range <all|vanilla|expanded>] [--format <json|text>]";
+           " [--range <all|vanilla|expanded>] [--project <path>]"
+           " [--format <json|text>] (expanded --apply requires --project)";
   }
   bool RequiresRom() const override { return false; }
 
@@ -203,7 +205,8 @@ class MessageWriteCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const override { return "message-write"; }
   std::string GetUsage() const override {
-    return "message-write --id <id> --text <text> [--format <json|text>]";
+    return "message-write --id <id> --text <text> --project <path>"
+           " [--format <json|text>]";
   }
   bool RequiresRom() const override { return true; }
 
