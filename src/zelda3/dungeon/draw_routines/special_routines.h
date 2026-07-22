@@ -398,10 +398,10 @@ void DrawStraightInterRoomStairs(const DrawContext& ctx);
  * @brief Draw prison cell with bars (Type 3 objects 0x20D, 0x217)
  *
  * ASM: RoomDraw_PrisonCell ($019C44)
- * Draws to BOTH BG1 and BG2 with horizontal flip for symmetry.
- * Uses ctx.secondary_bg for dual-layer drawing when available.
+ * Draws a sparse 16x4 pattern on the current object-stream tilemap. Mirrored
+ * side bars leave the two center columns open below the top row.
  *
- * @param ctx Draw context with optional secondary_bg for dual-BG drawing
+ * @param ctx Draw context containing the target background and six tiles
  */
 void DrawPrisonCell(const DrawContext& ctx);
 

@@ -50,6 +50,7 @@ constexpr int kSubtype2Base = 0x83F0;
 constexpr int kSubtype3Base = 0x84F0;
 constexpr int kTileDataBase = 0x1B52;
 constexpr int kBombableFloorOpenTileOffset = 0x05BA;
+constexpr int kPrisonCellTileOffset = 0x1488;
 // Oracle of Secrets relocates this room-specific behavior from vanilla room
 // 0x65 to room 0xAD. Keep the preview test keyed to the current room supplied
 // to the drawer rather than baking in the vanilla room number.
@@ -395,9 +396,8 @@ TEST_P(RoomObjectRomParityTest,
 //      verify the routine selects the expected sub-range of parsed tiles.
 //
 // Routine bodies referenced (special_routines.cc):
-//   - DrawPrisonCell (97) at 1077-1135: 5 cols x 4 rows x 2 sides per BG;
-//     reads tiles[0..3] (row-indexed); registered draws_to_both_bgs=true so
-//     ObjectDrawer dispatches the routine twice (BG1, then BG2).
+//   - DrawPrisonCell (97): sparse 16x4 target-layer pattern matching the long
+//     tilemap writes at RoomDraw_PrisonCell ($019C44); reads tiles[0..5].
 //   - DrawBigKeyLock (92): column-major 2x2 tiles[0..3] when closed; no tile
 //     writes when the corresponding shared chest/lock room-event slot is set.
 //   - DrawBombableFloor (93): four 2x2 quadrants from tiles[0..15], or the
@@ -407,18 +407,16 @@ TEST_P(RoomObjectRomParityTest,
 TEST_P(RoomObjectRomParityTest, PrisonCellParserMatchesRawRomWords) {
   SCOPED_TRACE(::yaze::test::TestRomManager::GetRomRoleName(GetParam()));
   ObjectParser parser(rom_.get());
+  const auto expected = DecodeTilesFromRom(
+      *rom_, kTileDataBase + kPrisonCellTileOffset, /*count=*/6);
   for (int id : {0xF8D, 0xF97}) {
     SCOPED_TRACE(absl::StrFormat("object 0x%03X (PrisonCell)", id));
-    const int addr = Subtype3TileDataAddr(*rom_, id);
-    const auto expected = DecodeTilesFromRom(*rom_, addr, /*count=*/8);
 
     auto parsed_or = parser.ParseObject(static_cast<int16_t>(id));
     ASSERT_TRUE(parsed_or.ok()) << parsed_or.status();
     const auto& parsed = parsed_or.value();
-    ASSERT_EQ(parsed.size(), 8u)
-        << "PrisonCell parses 8 tiles via the subtype-3 default; routine "
-           "consumes tiles[0..3] but the >=6 early-return guard means parsing "
-           "below 6 would clip the routine to a no-op.";
+    ASSERT_EQ(parsed.size(), 6u)
+        << "Both PrisonCell aliases consume the six words at literal obj1488.";
 
     for (size_t i = 0; i < expected.size(); ++i) {
       SCOPED_TRACE(absl::StrFormat("tile idx=%zu", i));
@@ -477,59 +475,67 @@ TEST_P(RoomObjectRomParityTest, BombableFloorParserMatchesRawRomWords) {
   }
 }
 
-TEST_P(RoomObjectRomParityTest, PrisonCellDrawerWritesSymmetricBarsBothBGs) {
+TEST_P(RoomObjectRomParityTest,
+       PrisonCellDrawerMatchesSparseTargetLayerUsdasmWrites) {
   SCOPED_TRACE(::yaze::test::TestRomManager::GetRomRoleName(GetParam()));
-  // Use 0xF97 (PrisonCell second variant); 0xF8D shares the same routine.
-  // Origin chosen so the mirror offset (base_x + 9 - col) stays in-bounds.
+  // Origin chosen so the full x..x+15 span stays in-bounds.
   const int base_x = 5;
   const int base_y = 7;
-  const auto trace = ReplayRomObjectTrace(rom_.get(), 0xF97, base_x, base_y,
-                                          /*size=*/0);
+  const auto rom_tiles =
+      DecodeTilesFromRom(*rom_, kTileDataBase + kPrisonCellTileOffset, 6);
 
-  const auto bg1 = FilterByLayer(trace, RoomObject::LayerType::BG1);
-  const auto bg2 = FilterByLayer(trace, RoomObject::LayerType::BG2);
-  // Routine draws 5 cols * 4 rows * 2 sides = 40 writes per BG.
-  // PrisonCell is registered draws_to_both_bgs=true, so ObjectDrawer dispatches
-  // the routine twice with secondary_bg=nullptr each time -> 40+40 = 80.
-  ASSERT_EQ(bg1.size(), 40u) << "PrisonCell BG1 trace must cover 5x4x2 writes";
-  ASSERT_EQ(bg2.size(), 40u) << "PrisonCell BG2 trace must mirror BG1 writes";
-
-  // Read tiles parsed from ROM so we can compare tile_id.
-  const int addr = Subtype3TileDataAddr(*rom_, 0xF97);
-  const auto rom_tiles = DecodeTilesFromRom(*rom_, addr, 8);
-
-  // Routine ordering: outer col 0..4, inner row 0..3, emit (left bar, right
-  // bar) per (col,row). tile_idx = row.
-  size_t idx = 0;
+  struct ExpectedWrite {
+    int tile_index;
+    int x_offset;
+    int y_offset;
+    bool force_horizontal_mirror;
+  };
+  std::vector<ExpectedWrite> expected;
+  expected.reserve(48);
   for (int col = 0; col < 5; ++col) {
-    for (int row = 0; row < 4; ++row) {
-      SCOPED_TRACE(absl::StrFormat("col=%d row=%d", col, row));
-      ASSERT_LT(idx + 1, bg1.size());
+    expected.push_back({1, 2 + col, 0, false});
+    expected.push_back({1, 9 + col, 0, false});
+    expected.push_back({2, 2 + col, 1, false});
+    expected.push_back({2, 9 + col, 1, true});
+    expected.push_back({4, 2 + col, 2, false});
+    expected.push_back({4, 9 + col, 2, true});
+    expected.push_back({5, 2 + col, 3, false});
+    expected.push_back({5, 9 + col, 3, true});
+  }
+  expected.push_back({0, 0, 0, false});
+  expected.push_back({0, 15, 0, true});
+  for (int x_offset : {1, 7, 8, 14}) {
+    expected.push_back({1, x_offset, 0, false});
+  }
+  expected.push_back({3, 1, 2, false});
+  expected.push_back({3, 14, 2, true});
 
-      // Left bar at (base_x + col, base_y + row).
-      EXPECT_EQ(bg1[idx].x_tile, base_x + col);
-      EXPECT_EQ(bg1[idx].y_tile, base_y + row);
-      EXPECT_EQ(bg1[idx].tile_id, rom_tiles[row].id_);
-      EXPECT_EQ(bg2[idx].x_tile, base_x + col);
-      EXPECT_EQ(bg2[idx].y_tile, base_y + row);
-      EXPECT_EQ(bg2[idx].tile_id, rom_tiles[row].id_);
-      ++idx;
+  for (int object_id : {0xF8D, 0xF97}) {
+    SCOPED_TRACE(absl::StrFormat("object=0x%03X", object_id));
+    const auto trace =
+        ReplayRomObjectTrace(rom_.get(), object_id, base_x, base_y, /*size=*/0);
+    const auto bg1 = FilterByLayer(trace, RoomObject::LayerType::BG1);
+    const auto bg2 = FilterByLayer(trace, RoomObject::LayerType::BG2);
+    ASSERT_EQ(bg1.size(), 48u);
+    EXPECT_TRUE(bg2.empty())
+        << "RoomDraw_PrisonCell writes only to the $BF-selected tilemap";
 
-      // Right bar at (base_x + 9 - col, base_y + row), horizontally mirrored.
-      EXPECT_EQ(bg1[idx].x_tile, base_x + 9 - col);
-      EXPECT_EQ(bg1[idx].y_tile, base_y + row);
-      EXPECT_EQ(bg1[idx].tile_id, rom_tiles[row].id_);
-      EXPECT_TRUE(bg1[idx].flags & 0x1)
-          << "right bar must have horizontal_mirror set";
-      EXPECT_EQ(bg2[idx].x_tile, base_x + 9 - col);
-      EXPECT_EQ(bg2[idx].y_tile, base_y + row);
-      EXPECT_EQ(bg2[idx].tile_id, rom_tiles[row].id_);
-      EXPECT_TRUE(bg2[idx].flags & 0x1)
-          << "right bar BG2 mirror must also have horizontal_mirror set";
-      ++idx;
+    ASSERT_EQ(expected.size(), bg1.size());
+    for (size_t i = 0; i < expected.size(); ++i) {
+      SCOPED_TRACE(absl::StrFormat("write=%zu", i));
+      const auto& write = bg1[i];
+      const auto& want = expected[i];
+      const auto& tile = rom_tiles[want.tile_index];
+      EXPECT_EQ(write.x_tile, base_x + want.x_offset);
+      EXPECT_EQ(write.y_tile, base_y + want.y_offset);
+      EXPECT_EQ(write.tile_id, tile.id_);
+      EXPECT_EQ((write.flags & 0x1) != 0,
+                want.force_horizontal_mirror || tile.horizontal_mirror_);
+      EXPECT_EQ((write.flags & 0x2) != 0, tile.vertical_mirror_);
+      EXPECT_EQ((write.flags & 0x4) != 0, tile.over_);
+      EXPECT_EQ((write.flags >> 3) & 0x7, tile.palette_);
     }
   }
-  EXPECT_EQ(idx, bg1.size());
 }
 
 TEST_P(RoomObjectRomParityTest, BigKeyLockDrawerMatchesRoomEventState) {

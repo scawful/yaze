@@ -1078,7 +1078,6 @@ TEST_F(ObjectDrawingComprehensiveTest, ParityBothBGRoutinesCorrect) {
       35,  // k4x4Corner_BothBG
       36,  // kWeirdCornerBottom_BothBG
       37,  // kWeirdCornerTop_BothBG
-      97,  // kPrisonCell
   };
 
   for (int rid : bothbg_routines) {
@@ -1087,7 +1086,7 @@ TEST_F(ObjectDrawingComprehensiveTest, ParityBothBGRoutinesCorrect) {
   }
 
   // Verify some non-BothBG routines are NOT flagged
-  std::vector<int> non_bothbg = {0, 1, 3, 4, 5, 6, 16, 38, 39};
+  std::vector<int> non_bothbg = {0, 1, 3, 4, 5, 6, 16, 38, 39, 97};
   for (int rid : non_bothbg) {
     EXPECT_FALSE(reg.RoutineDrawsToBothBGs(rid))
         << "Routine " << rid << " should NOT have draws_to_both_bgs flag";

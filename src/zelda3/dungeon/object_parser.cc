@@ -330,6 +330,8 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
     int16_t object_id) {
   constexpr int kBombableFloorOpenTileOffset = 0x05BA;
   constexpr int kBombableFloorStateTileCount = 16;
+  constexpr int kPrisonCellTileOffset = 0x1488;
+  constexpr int kPrisonCellTileCount = 6;
   constexpr int kBigKeyLockTileOffset = 0x1494;
   constexpr int kClosedChestTileOffset = 0x149C;
   constexpr int kOpenChestTileOffset = 0x14A4;
@@ -374,6 +376,15 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
     intact_tiles->insert(intact_tiles->end(), open_tiles->begin(),
                          open_tiles->end());
     return intact_tiles;
+  }
+
+  // Both PrisonCell IDs dispatch to RoomDraw_PrisonCell, which ignores the
+  // subtype table pointer and loads literal obj1488. F8D's vanilla table entry
+  // does not point there, so following the table would render the two aliases
+  // differently even though the game does not.
+  if (object_id == 0xF8D || object_id == 0xF97) {
+    return ReadTileData(kRoomObjectTileAddress + kPrisonCellTileOffset,
+                        kPrisonCellTileCount);
   }
 
   // BigKeyLock overwrites the table-derived X register with obj1494 before
@@ -537,6 +548,12 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
   }
   if (object_id == 0xF82) {
     return 28;
+  }
+
+  // RoomDraw_PrisonCell loads literal obj1488 and consumes its six words for
+  // both object aliases.
+  if (object_id == 0xF8D || object_id == 0xF97) {
+    return 6;
   }
 
   // RupeeFloor (0xF92 = ASM 0x212) reads the two words at obj1DD6 and

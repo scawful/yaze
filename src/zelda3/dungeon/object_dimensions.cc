@@ -906,9 +906,9 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xF8E] = {1, 1, Dir::None, 0, false};
   dimensions_[0xF8F] = {1, 1, Dir::None, 0, false};
 
-  // Prison cell bars (10x4 tiles)
-  dimensions_[0xF8D] = {10, 4, Dir::None, 0, false};
-  dimensions_[0xF97] = {10, 4, Dir::None, 0, false};
+  // Prison cell bars ($019C44 spans x..x+15 and four rows)
+  dimensions_[0xF8D] = {16, 4, Dir::None, 0, false};
+  dimensions_[0xF97] = {16, 4, Dir::None, 0, false};
   // Rupee floor pattern
   dimensions_[0xF92] = {5, 8, Dir::None, 0, false};
   // Table/rock 4x3 repeated with 8-tile spacing
