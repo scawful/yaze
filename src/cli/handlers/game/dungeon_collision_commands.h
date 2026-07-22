@@ -41,7 +41,7 @@ class DungeonExportCustomCollisionJsonCommandHandler
   std::string GetUsage() const override {
     return "dungeon-export-custom-collision-json --out <path> "
            "[--room <room_id> | --rooms <hex,hex,...> | --all] "
-           "[--report <path>] "
+           "[--report <path>] [--sandbox] "
            "[--format <json|text>]";
   }
 
@@ -92,7 +92,7 @@ class DungeonExportWaterFillJsonCommandHandler
   std::string GetUsage() const override {
     return "dungeon-export-water-fill-json --out <path> "
            "[--room <room_id> | --rooms <hex,hex,...> | --all] "
-           "[--report <path>] "
+           "[--report <path>] [--sandbox] "
            "[--format <json|text>]";
   }
 
