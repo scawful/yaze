@@ -45,9 +45,7 @@ class DungeonExportCustomCollisionJsonCommandHandler
            "[--format <json|text>]";
   }
 
-  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return parser.RequireArgs({"out"});
-  }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;
@@ -60,22 +58,25 @@ class DungeonImportCustomCollisionJsonCommandHandler
     return "dungeon-import-custom-collision-json";
   }
   std::string GetDescription() const {
-    return "Import dungeon custom collision maps from JSON";
+    return "Validate custom collision JSON with --dry-run; otherwise import "
+           "and immediately save the active ROM (--sandbox saves only its "
+           "copy)";
   }
   std::string GetUsage() const override {
     return "dungeon-import-custom-collision-json --in <path> [--replace-all] "
-           "[--force] [--dry-run] [--report <path>] [--format <json|text>]";
+           "[--force] [--dry-run [--report <path>]] "
+           "[--sandbox | --mock-rom] "
+           "[--format <json|text>]";
   }
 
-  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return parser.RequireArgs({"in"});
-  }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;
 };
 
-class DungeonExportWaterFillJsonCommandHandler : public resources::CommandHandler {
+class DungeonExportWaterFillJsonCommandHandler
+    : public resources::CommandHandler {
  public:
   std::string GetName() const override {
     return "dungeon-export-water-fill-json";
@@ -90,30 +91,30 @@ class DungeonExportWaterFillJsonCommandHandler : public resources::CommandHandle
            "[--format <json|text>]";
   }
 
-  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return parser.RequireArgs({"out"});
-  }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;
 };
 
-class DungeonImportWaterFillJsonCommandHandler : public resources::CommandHandler {
+class DungeonImportWaterFillJsonCommandHandler
+    : public resources::CommandHandler {
  public:
   std::string GetName() const override {
     return "dungeon-import-water-fill-json";
   }
   std::string GetDescription() const {
-    return "Import dungeon water fill zones from JSON";
+    return "Validate water-fill JSON with --dry-run; otherwise import and "
+           "immediately save the active ROM (--sandbox saves only its copy)";
   }
   std::string GetUsage() const override {
-    return "dungeon-import-water-fill-json --in <path> [--dry-run] "
-           "[--strict-masks] [--report <path>] [--format <json|text>]";
+    return "dungeon-import-water-fill-json --in <path> "
+           "[--dry-run [--report <path>]] [--strict-masks] "
+           "[--sandbox | --mock-rom] "
+           "[--format <json|text>]";
   }
 
-  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
-    return parser.RequireArgs({"in"});
-  }
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;
