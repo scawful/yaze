@@ -23,11 +23,6 @@ namespace gui {
 
 namespace {
 
-enum class DungeonRenderPaletteSource {
-  kHud,
-  kDungeonMain,
-};
-
 struct DungeonRenderColorTarget {
   DungeonRenderPaletteSource source;
   int palette_index;
@@ -179,7 +174,7 @@ absl::Status PaletteEditorWidget::ApplyDungeonRenderColorEdit(
   }
 
   if (on_palette_changed_) {
-    on_palette_changed_(current_palette_id_);
+    on_palette_changed_({current_palette_id_, target->source});
   }
   return absl::OkStatus();
 }
@@ -298,7 +293,8 @@ void PaletteEditorWidget::DrawColorPicker() {
         gui::ConvertSnesColorToImVec4(palette[selected_color_index_]);
 
     if (on_palette_changed_) {
-      on_palette_changed_(current_palette_id_);
+      on_palette_changed_(
+          {current_palette_id_, DungeonRenderPaletteSource::kDungeonMain});
     }
   }
 
@@ -316,7 +312,8 @@ void PaletteEditorWidget::DrawColorPicker() {
     palette[selected_color_index_] = original_color;
     dungeon_pal_group[current_palette_id_] = palette;
     if (on_palette_changed_) {
-      on_palette_changed_(current_palette_id_);
+      on_palette_changed_(
+          {current_palette_id_, DungeonRenderPaletteSource::kDungeonMain});
     }
   }
 }
@@ -691,7 +688,8 @@ void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
       temp_color_ = palette[i].rgb();
       editing_color_ = temp_color_;
       if (on_palette_changed_) {
-        on_palette_changed_(current_palette_id_);
+        on_palette_changed_(
+            {current_palette_id_, DungeonRenderPaletteSource::kDungeonMain});
       }
     }
 
@@ -707,7 +705,8 @@ void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
       if (ImGui::MenuItem(tr("Reset to Black"))) {
         palette[i] = gfx::SnesColor(0);
         if (on_palette_changed_) {
-          on_palette_changed_(current_palette_id_);
+          on_palette_changed_(
+              {current_palette_id_, DungeonRenderPaletteSource::kDungeonMain});
         }
       }
       ImGui::EndPopup();
@@ -741,7 +740,8 @@ void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
           editing_color_ = temp_color_;
         }
         if (on_palette_changed_) {
-          on_palette_changed_(current_palette_id_);
+          on_palette_changed_(
+              {current_palette_id_, DungeonRenderPaletteSource::kDungeonMain});
         }
       }
       if (gui::PrimaryButton("Apply")) {
