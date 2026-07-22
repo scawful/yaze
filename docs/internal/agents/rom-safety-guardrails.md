@@ -13,7 +13,9 @@ This repo is used to edit ROM hacks (including Oracle of Secrets). Treat ROM wri
 
 ## CLI Save Transaction Contract
 
-- `Rom::SaveSettings::backup` keeps its legacy best-effort behavior.
+- `Rom::SaveSettings::backup` is best-effort: an existing save destination is
+  copied before replacement, a new destination has no prior bytes to back up,
+  and backup failure is logged without blocking the save.
 - Safety-critical CLI writes can set `require_backup=true`. If the save target
   already exists, that target (including a Save As destination) is copied to a
   same-directory temporary path and renamed into place only after the copy
@@ -28,6 +30,10 @@ This repo is used to edit ROM hacks (including Oracle of Secrets). Treat ROM wri
   header dirty mask. They preserve unrelated header bits and object payload,
   save after any dirty object payload, and fail closed on shared streams unless
   a `copy_on_write` object-stream manifest supplies allocator-owned space.
+- `dungeon-generate-track-collision --write` applies the same contract to a
+  single room or the complete `--rooms` batch. Batch serialization and the one
+  required-backup disk save are all-or-nothing; a later-room failure restores
+  every earlier room mutation.
 - Other CLI writers that still set only `backup=true` remain best-effort and
   must be audited before opting into the strict transaction path.
 
