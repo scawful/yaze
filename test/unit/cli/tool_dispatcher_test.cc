@@ -96,6 +96,26 @@ TEST(ToolDispatcherUnitTest, RegistryInitializesBuiltinToolsOnDemand) {
       ToolRegistry::Get().GetToolDefinition("build-status").has_value());
 }
 
+TEST(ToolDispatcherUnitTest,
+     CollisionImportToolsDeclareStructuredBooleanFlags) {
+  const auto custom = ToolRegistry::Get().GetToolDefinition(
+      "dungeon-import-custom-collision-json");
+  ASSERT_TRUE(custom.has_value());
+  EXPECT_THAT(custom->flag_args, Contains("dry-run"));
+  EXPECT_THAT(custom->flag_args, Contains("sandbox"));
+  EXPECT_THAT(custom->flag_args, Contains("mock-rom"));
+  EXPECT_THAT(custom->flag_args, Contains("replace-all"));
+  EXPECT_THAT(custom->flag_args, Contains("force"));
+
+  const auto water =
+      ToolRegistry::Get().GetToolDefinition("dungeon-import-water-fill-json");
+  ASSERT_TRUE(water.has_value());
+  EXPECT_THAT(water->flag_args, Contains("dry-run"));
+  EXPECT_THAT(water->flag_args, Contains("sandbox"));
+  EXPECT_THAT(water->flag_args, Contains("mock-rom"));
+  EXPECT_THAT(water->flag_args, Contains("strict-masks"));
+}
+
 TEST(ToolDispatcherUnitTest, SharedValidationRejectsMissingRequiredArgs) {
   ToolRegistry::Get().RegisterTool(
       {"test-required-arg",
