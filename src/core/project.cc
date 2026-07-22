@@ -219,8 +219,8 @@ void RemoveProjectSaveTempFile(const std::filesystem::path& temp_path) {
   std::filesystem::remove(temp_path, remove_error);
 }
 
-absl::Status WriteProjectFileAtomically(
-    const std::filesystem::path& target_path, const std::string& contents,
+absl::Status WriteProjectFileAtomicallyImpl(
+    const std::filesystem::path& target_path, absl::string_view contents,
     bool replace_existing) {
   const std::filesystem::path temp_path = MakeProjectSaveTempPath(target_path);
   std::ofstream file(temp_path, std::ios::binary | std::ios::trunc);
@@ -284,6 +284,16 @@ absl::Status WriteProjectFileAtomically(
 }
 #endif
 }  // namespace
+
+#ifndef __EMSCRIPTEN__
+absl::Status WriteProjectFileAtomically(absl::string_view target_path,
+                                        absl::string_view contents,
+                                        bool replace_existing) {
+  return WriteProjectFileAtomicallyImpl(
+      std::filesystem::path(std::string(target_path)), contents,
+      replace_existing);
+}
+#endif
 
 std::string RomRoleToString(RomRole role) {
   switch (role) {

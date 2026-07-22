@@ -157,6 +157,14 @@ RomRole ParseRomRole(absl::string_view value);
 std::string RomWritePolicyToString(RomWritePolicy policy);
 RomWritePolicy ParseRomWritePolicy(absl::string_view value);
 
+#ifndef __EMSCRIPTEN__
+// Atomically writes project descriptor contents. When replace_existing is
+// false, a target created after preflight is rejected without mutation.
+absl::Status WriteProjectFileAtomically(absl::string_view target_path,
+                                        absl::string_view contents,
+                                        bool replace_existing);
+#endif
+
 /**
  * @struct YazeProject
  * @brief Modern project structure with comprehensive settings consolidation

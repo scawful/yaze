@@ -254,6 +254,9 @@ TEST(ProjectManagerValidatorTest,
   const auto expected_path = destination / "Oracle_Test.yaze";
   EXPECT_EQ(mgr.GetCurrentProject().filepath, expected_path.string());
   EXPECT_TRUE(std::filesystem::exists(expected_path));
+  EXPECT_TRUE(std::filesystem::is_directory(destination / "assets"));
+  EXPECT_TRUE(std::filesystem::is_directory(destination / "scripts"));
+  EXPECT_TRUE(std::filesystem::is_directory(destination / "output"));
 }
 
 TEST(ProjectManagerValidatorTest,
