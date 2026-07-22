@@ -148,7 +148,7 @@ z3ed rom-generate-golden --rom_file zelda3.sfc --golden_file golden.sfc
 These commands operate directly on ROM data (no GUI required).
 
 ### Dungeon Commands
-- `dungeon-describe-room --room <hex>`
+- `dungeon-describe-room --room <hex> [--include-objects]`
 - `dungeon-list-sprites --room <hex>`
 - `dungeon-list-objects --room <hex>`
 - `dungeon-list-custom-collision --room <hex> [--tiles <hex,hex,...>] [--nonzero] [--all]`
@@ -206,6 +206,13 @@ Example:
 ```bash
 z3ed dungeon-describe-room --room=0x05 --rom=zelda3.sfc
 ```
+
+Add `--include-objects` for a read-only `objects` array in ROM-stream order.
+Each record reports hexadecimal `object_id`, `subtype` (`1`, `2`, or `3`),
+`x`, `y`, `size`, and zero-based `stream_index`. The reported `object_count`
+then equals the array length. Lightable torches and pushable blocks are omitted
+because they come from separate global tables rather than the encoded room
+object stream. Without the flag, the legacy output and count are unchanged.
 
 ### Overworld Commands
 - `overworld-describe-map --map <hex>`

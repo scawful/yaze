@@ -21,6 +21,7 @@
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/dungeon_torch_codec.h"
 #include "zelda3/dungeon/oracle_rom_safety_preflight.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
@@ -229,6 +230,48 @@ void InitializeTightObjectRom(Rom* rom) {
   rom->mutable_data()[kSyntheticPotTerminatorPc + 1] = 0xFF;
 }
 
+void InitializeDescribeRoomObjectsRom(Rom* rom) {
+  InitializeTightObjectRom(rom);
+
+  constexpr int kOtherRoomsObjectDataPc = kObjectDataPc + 0x40;
+  for (int room_id = 1; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    SetRoomObjectPointer(rom, room_id, kOtherRoomsObjectDataPc);
+  }
+  WriteEmptyObjectStream(rom, kOtherRoomsObjectDataPc);
+
+  std::vector<uint8_t> stream = {0x00, 0x00};
+  const auto append_object = [&stream](const zelda3::RoomObject& object) {
+    const auto bytes = object.EncodeObjectToBytes();
+    stream.push_back(bytes.b1);
+    stream.push_back(bytes.b2);
+    stream.push_back(bytes.b3);
+  };
+
+  append_object(zelda3::RoomObject(0x031, 1, 2, 6, 0));
+  stream.insert(stream.end(), {0xFF, 0xFF});
+  append_object(zelda3::RoomObject(0x112, 17, 34, 0, 1));
+  stream.insert(stream.end(), {0xFF, 0xFF});
+  append_object(zelda3::RoomObject(0xF92, 3, 4, 8, 2));
+  // Door records remain part of the room object/door stream, but are reported
+  // through the command's existing doors array rather than as tile objects.
+  stream.insert(stream.end(), {0xF0, 0xFF, 0x21, 0x04, 0xFF, 0xFF});
+  ASSERT_TRUE(rom->WriteVector(kObjectDataPc, std::move(stream)).ok());
+
+  const auto torch = zelda3::EncodeLightableTorchEntry(
+      {.px = 10, .py = 11, .draw_layer = 1, .reserved = 0, .lit = false});
+  constexpr uint16_t kTorchDataLength = 6;
+  rom->mutable_data()[zelda3::kTorchesLengthPointer] = kTorchDataLength & 0xFF;
+  rom->mutable_data()[zelda3::kTorchesLengthPointer + 1] =
+      (kTorchDataLength >> 8) & 0xFF;
+  rom->mutable_data()[zelda3::kTorchData] = 0x00;
+  rom->mutable_data()[zelda3::kTorchData + 1] = 0x00;
+  rom->mutable_data()[zelda3::kTorchData + 2] = torch.low;
+  rom->mutable_data()[zelda3::kTorchData + 3] = torch.high;
+  rom->mutable_data()[zelda3::kTorchData + 4] = 0xFF;
+  rom->mutable_data()[zelda3::kTorchData + 5] = 0xFF;
+  rom->set_dirty(false);
+}
+
 void WriteObjectCowManifest(const std::filesystem::path& path,
                             bool protect_allocation = false) {
   std::string protected_section;
@@ -391,6 +434,80 @@ TEST(DungeonEditCommandsTest, PlaceObjectRejectsRoomIdOutOfRange) {
                                   nullptr, &output);
 
   ExpectInvalidArgument(status, "Room ID out of range");
+}
+
+TEST(DungeonEditCommandsTest,
+     DescribeRoomWithoutObjectsFlagPreservesLegacyShapeAndCount) {
+  Rom rom;
+  InitializeDescribeRoomObjectsRom(&rom);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonDescribeRoomCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--room=0x00", "--format=json"}, &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  const auto result = nlohmann::json::parse(output);
+  EXPECT_FALSE(result.contains("objects"));
+  // The legacy count includes the synthesized lightable-torch table object.
+  EXPECT_EQ(result.at("properties").at("object_count"), 4);
+  ASSERT_EQ(result.at("doors").size(), 1u);
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest,
+     DescribeRoomIncludesEncodedObjectsInStreamOrderAndIsReadOnly) {
+  Rom rom;
+  InitializeDescribeRoomObjectsRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  WriteRomFile(rom, cleanup.rom_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+
+  handlers::DungeonDescribeRoomCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--include-objects", "--format=json"}, &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  const auto result = nlohmann::json::parse(output);
+  const auto& objects = result.at("objects");
+  ASSERT_EQ(objects.size(), 3u);
+  EXPECT_EQ(result.at("properties").at("object_count"), objects.size());
+
+  EXPECT_EQ(objects.at(0).at("object_id"), "0x031");
+  EXPECT_EQ(objects.at(0).at("subtype"), 1);
+  EXPECT_EQ(objects.at(0).at("x"), 1);
+  EXPECT_EQ(objects.at(0).at("y"), 2);
+  EXPECT_EQ(objects.at(0).at("size"), 6);
+  EXPECT_EQ(objects.at(0).at("stream_index"), 0);
+
+  EXPECT_EQ(objects.at(1).at("object_id"), "0x112");
+  EXPECT_EQ(objects.at(1).at("subtype"), 2);
+  EXPECT_EQ(objects.at(1).at("x"), 17);
+  EXPECT_EQ(objects.at(1).at("y"), 34);
+  EXPECT_EQ(objects.at(1).at("size"), 0);
+  EXPECT_EQ(objects.at(1).at("stream_index"), 1);
+
+  EXPECT_EQ(objects.at(2).at("object_id"), "0xF92");
+  EXPECT_EQ(objects.at(2).at("subtype"), 3);
+  EXPECT_EQ(objects.at(2).at("x"), 3);
+  EXPECT_EQ(objects.at(2).at("y"), 4);
+  EXPECT_EQ(objects.at(2).at("size"), 8);
+  EXPECT_EQ(objects.at(2).at("stream_index"), 2);
+
+  // The table-backed torch is intentionally absent, while the door parsed
+  // from the encoded stream remains available through the existing array.
+  ASSERT_EQ(result.at("doors").size(), 1u);
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
 }
 
 TEST(DungeonEditCommandsTest, SetCollisionTileRejectsRoomIdOutOfRange) {
