@@ -204,6 +204,7 @@ class Room {
 
     bool header = false;
     bool object_stream = false;
+    uint8_t object_stream_header = 0;
     bool sprites = false;
     bool chests = false;
     bool pot_items = false;
@@ -439,6 +440,12 @@ class Room {
   }
   bool object_stream_dirty() const { return save_dirty_state_.object_stream; }
   void ClearObjectStreamDirty() { save_dirty_state_.object_stream = false; }
+  bool object_stream_header_dirty() const {
+    return save_dirty_state_.object_stream_header != 0;
+  }
+  void ClearObjectStreamHeaderDirty() {
+    save_dirty_state_.object_stream_header = 0;
+  }
   void MarkGraphicsDirty() {
     dirty_state_.graphics = true;
     dirty_state_.textures = true;
@@ -580,6 +587,7 @@ class Room {
 
   bool HasUnsavedChanges() const {
     return save_dirty_state_.header || save_dirty_state_.object_stream ||
+           save_dirty_state_.object_stream_header != 0 ||
            save_dirty_state_.sprites || save_dirty_state_.chests ||
            save_dirty_state_.pot_items || save_dirty_state_.torches ||
            save_dirty_state_.blocks || custom_collision_dirty_ ||
@@ -592,6 +600,7 @@ class Room {
     SaveDirtySnapshot snapshot{
         .header = save_dirty_state_.header,
         .object_stream = save_dirty_state_.object_stream,
+        .object_stream_header = save_dirty_state_.object_stream_header,
         .sprites = save_dirty_state_.sprites,
         .chests = save_dirty_state_.chests,
         .pot_items = save_dirty_state_.pot_items,
@@ -615,6 +624,7 @@ class Room {
   void RestoreSaveDirtySnapshot(const SaveDirtySnapshot& snapshot) {
     save_dirty_state_.header = snapshot.header;
     save_dirty_state_.object_stream = snapshot.object_stream;
+    save_dirty_state_.object_stream_header = snapshot.object_stream_header;
     save_dirty_state_.sprites = snapshot.sprites;
     save_dirty_state_.chests = snapshot.chests;
     save_dirty_state_.pot_items = snapshot.pot_items;
@@ -907,6 +917,7 @@ class Room {
   void SetLayoutId(uint8_t id) {
     if (layout_id_ != id) {
       layout_id_ = id;
+      save_dirty_state_.object_stream_header |= kObjectHeaderLayoutDirty;
       MarkLayoutDirty();
     }
   }
@@ -917,12 +928,14 @@ class Room {
   void set_floor1(uint8_t value) {
     if (floor1_graphics_ != value) {
       floor1_graphics_ = value;
+      save_dirty_state_.object_stream_header |= kObjectHeaderFloor1Dirty;
       MarkGraphicsDirty();
     }
   }
   void set_floor2(uint8_t value) {
     if (floor2_graphics_ != value) {
       floor2_graphics_ = value;
+      save_dirty_state_.object_stream_header |= kObjectHeaderFloor2Dirty;
       MarkGraphicsDirty();
     }
   }
@@ -933,6 +946,8 @@ class Room {
 
   // Object saving (Phase 1, Task 1.3)
   absl::Status SaveObjects(const DungeonStreamLayout* layout = nullptr);
+  absl::Status SaveObjectStreamHeader(
+      const DungeonStreamLayout* layout = nullptr);
   std::vector<uint8_t> EncodeObjects() const;
   absl::Status SaveSprites(const DungeonStreamLayout* layout = nullptr);
   std::vector<uint8_t> EncodeSprites() const;
@@ -1000,12 +1015,17 @@ class Room {
   struct SaveDirtyState {
     bool header = false;
     bool object_stream = false;
+    uint8_t object_stream_header = 0;
     bool sprites = false;
     bool chests = false;
     bool pot_items = false;
     bool torches = false;
     bool blocks = false;
   };
+
+  static constexpr uint8_t kObjectHeaderFloor1Dirty = 1u << 0;
+  static constexpr uint8_t kObjectHeaderFloor2Dirty = 1u << 1;
+  static constexpr uint8_t kObjectHeaderLayoutDirty = 1u << 2;
 
   // Composite bitmap for merged layer output
   mutable gfx::Bitmap composite_bitmap_;
