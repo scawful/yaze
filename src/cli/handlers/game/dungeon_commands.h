@@ -177,7 +177,7 @@ class DungeonSetRoomPropertyCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const {
     return "dungeon-set-room-property --room <room_id> --property <property> "
-           "--value <value> [--format <json|text>]";
+           "--value <value> [--manifest <path>] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {

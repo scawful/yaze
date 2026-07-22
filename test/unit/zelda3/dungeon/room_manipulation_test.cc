@@ -217,6 +217,26 @@ TEST_F(RoomManipulationTest, TracksSpecialTileObjectSaveDomains) {
   EXPECT_TRUE(room_->HasUnsavedChanges());
 }
 
+TEST_F(RoomManipulationTest,
+       TracksObjectStreamHeaderDirtyStateAcrossSnapshots) {
+  room_->SetLayoutId(3);
+  room_->set_floor1(4);
+
+  EXPECT_TRUE(room_->object_stream_header_dirty());
+  EXPECT_FALSE(room_->object_stream_dirty());
+  EXPECT_TRUE(room_->HasUnsavedChanges());
+  const Room::SaveDirtySnapshot snapshot = room_->CaptureSaveDirtySnapshot();
+
+  room_->ClearSaveDirtyState();
+  EXPECT_FALSE(room_->object_stream_header_dirty());
+  EXPECT_FALSE(room_->HasUnsavedChanges());
+
+  room_->RestoreSaveDirtySnapshot(snapshot);
+  EXPECT_TRUE(room_->object_stream_header_dirty());
+  EXPECT_FALSE(room_->object_stream_dirty());
+  EXPECT_TRUE(room_->HasUnsavedChanges());
+}
+
 }  // namespace test
 }  // namespace zelda3
 }  // namespace yaze
