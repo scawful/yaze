@@ -2,10 +2,14 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
+#include <cerrno>
+#include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <ios>
+#include <limits>
 #include <sstream>
 #include <string>
 #include <system_error>
@@ -32,6 +36,16 @@
 #include "zelda3/dungeon/oracle_rom_safety_preflight.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/water_fill_zone.h"
+
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#else
+#include <fcntl.h>
+#include <unistd.h>
+#endif
 
 ABSL_DECLARE_FLAG(bool, sandbox);
 
@@ -147,28 +161,470 @@ absl::StatusOr<std::string> ReadTextFile(const std::string& path) {
   return ss.str();
 }
 
-absl::Status WriteTextFile(const std::string& path,
-                           const std::string& content) {
-  std::ofstream out(path, std::ios::out | std::ios::binary | std::ios::trunc);
-  if (!out.is_open()) {
-    return absl::PermissionDeniedError(
-        absl::StrFormat("Cannot open file for writing: %s", path));
+absl::StatusOr<std::filesystem::path> ResolveStableArtifactPath(
+    const std::filesystem::path& path) {
+  std::error_code absolute_ec;
+  std::filesystem::path absolute = std::filesystem::absolute(path, absolute_ec);
+  if (absolute_ec) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Cannot normalize path %s: %s", path.string(), absolute_ec.message()));
   }
-  out.write(content.data(), static_cast<std::streamsize>(content.size()));
-  out.flush();
-  const bool write_failed = !out.good();
-  out.close();
-  if (write_failed || out.fail()) {
+  absolute = absolute.lexically_normal();
+
+  // Resolve every existing component once. Publication then uses this stable
+  // path instead of following a caller-supplied parent symlink a second time.
+  std::error_code canonical_ec;
+  const std::filesystem::path canonical =
+      std::filesystem::weakly_canonical(absolute, canonical_ec);
+  if (canonical_ec) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Cannot safely resolve path %s: %s", absolute.string(),
+                        canonical_ec.message()));
+  }
+  const std::filesystem::path resolved = canonical.lexically_normal();
+  const std::filesystem::path parent = resolved.parent_path();
+  std::error_code parent_ec;
+  const auto parent_status = std::filesystem::status(parent, parent_ec);
+  if (parent_ec || !std::filesystem::exists(parent_status) ||
+      !std::filesystem::is_directory(parent_status)) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Artifact parent directory must already exist: %s%s", parent.string(),
+        !parent_ec ? "" : absl::StrFormat(" (%s)", parent_ec.message())));
+  }
+  return resolved;
+}
+
+std::filesystem::path NextArtifactTempPath(
+    const std::filesystem::path& target_path) {
+  static std::atomic<uint64_t> sequence{0};
+  const uint64_t tick = static_cast<uint64_t>(
+      std::chrono::steady_clock::now().time_since_epoch().count());
+  const uint64_t id = sequence.fetch_add(1, std::memory_order_relaxed);
+
+  std::filesystem::path temp_name = target_path.filename();
+  temp_name += absl::StrFormat(".yaze-tmp-%016x-%016x", tick, id);
+  const auto parent = target_path.parent_path().empty()
+                          ? std::filesystem::path(".")
+                          : target_path.parent_path();
+  return parent / temp_name;
+}
+
+absl::StatusOr<std::filesystem::path> WriteExclusiveArtifactTemp(
+    const std::filesystem::path& target_path, absl::string_view content) {
+  constexpr int kMaxCreateAttempts = 100;
+
+  for (int attempt = 0; attempt < kMaxCreateAttempts; ++attempt) {
+    const std::filesystem::path temp_path = NextArtifactTempPath(target_path);
+
+#if defined(_WIN32)
+    HANDLE file = CreateFileW(
+        temp_path.wstring().c_str(), GENERIC_WRITE, 0, nullptr, CREATE_NEW,
+        FILE_ATTRIBUTE_NORMAL | FILE_FLAG_WRITE_THROUGH, nullptr);
+    if (file == INVALID_HANDLE_VALUE) {
+      const DWORD error = GetLastError();
+      if (error == ERROR_FILE_EXISTS || error == ERROR_ALREADY_EXISTS) {
+        continue;
+      }
+      return absl::PermissionDeniedError(absl::StrFormat(
+          "Cannot create temporary artifact for %s: %s", target_path.string(),
+          std::error_code(static_cast<int>(error), std::system_category())
+              .message()));
+    }
+
+    size_t written_total = 0;
+    while (written_total < content.size()) {
+      const size_t remaining = content.size() - written_total;
+      const DWORD chunk = static_cast<DWORD>(
+          std::min<size_t>(remaining, std::numeric_limits<DWORD>::max()));
+      DWORD written = 0;
+      if (!WriteFile(file, content.data() + written_total, chunk, &written,
+                     nullptr) ||
+          written == 0) {
+        const DWORD error = GetLastError();
+        CloseHandle(file);
+        std::error_code cleanup_ec;
+        std::filesystem::remove(temp_path, cleanup_ec);
+        return absl::InternalError(absl::StrFormat(
+            "Failed while writing temporary artifact for %s: %s",
+            target_path.string(),
+            std::error_code(static_cast<int>(error), std::system_category())
+                .message()));
+      }
+      written_total += written;
+    }
+
+    if (!FlushFileBuffers(file)) {
+      const DWORD error = GetLastError();
+      CloseHandle(file);
+      std::error_code cleanup_ec;
+      std::filesystem::remove(temp_path, cleanup_ec);
+      return absl::InternalError(absl::StrFormat(
+          "Failed to flush temporary artifact for %s: %s", target_path.string(),
+          std::error_code(static_cast<int>(error), std::system_category())
+              .message()));
+    }
+    if (!CloseHandle(file)) {
+      const DWORD error = GetLastError();
+      std::error_code cleanup_ec;
+      std::filesystem::remove(temp_path, cleanup_ec);
+      return absl::InternalError(absl::StrFormat(
+          "Failed to close temporary artifact for %s: %s", target_path.string(),
+          std::error_code(static_cast<int>(error), std::system_category())
+              .message()));
+    }
+#else
+    const int fd =
+        open(temp_path.c_str(), O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+    if (fd < 0) {
+      const int error = errno;
+      if (error == EEXIST) {
+        continue;
+      }
+      return absl::PermissionDeniedError(absl::StrFormat(
+          "Cannot create temporary artifact for %s: %s", target_path.string(),
+          std::error_code(error, std::generic_category()).message()));
+    }
+
+    size_t written_total = 0;
+    while (written_total < content.size()) {
+      const size_t remaining = content.size() - written_total;
+      const size_t chunk = std::min<size_t>(remaining, 1024 * 1024);
+      const ssize_t written = write(fd, content.data() + written_total, chunk);
+      if (written < 0 && errno == EINTR) {
+        continue;
+      }
+      if (written <= 0) {
+        const int error = written < 0 ? errno : EIO;
+        close(fd);
+        std::error_code cleanup_ec;
+        std::filesystem::remove(temp_path, cleanup_ec);
+        return absl::InternalError(absl::StrFormat(
+            "Failed while writing temporary artifact for %s: %s",
+            target_path.string(),
+            std::error_code(error, std::generic_category()).message()));
+      }
+      written_total += static_cast<size_t>(written);
+    }
+
+    if (fsync(fd) != 0) {
+      const int error = errno;
+      close(fd);
+      std::error_code cleanup_ec;
+      std::filesystem::remove(temp_path, cleanup_ec);
+      return absl::InternalError(absl::StrFormat(
+          "Failed to flush temporary artifact for %s: %s", target_path.string(),
+          std::error_code(error, std::generic_category()).message()));
+    }
+    if (close(fd) != 0) {
+      const int error = errno;
+      std::error_code cleanup_ec;
+      std::filesystem::remove(temp_path, cleanup_ec);
+      return absl::InternalError(absl::StrFormat(
+          "Failed to close temporary artifact for %s: %s", target_path.string(),
+          std::error_code(error, std::generic_category()).message()));
+    }
+#endif
+
+    return temp_path;
+  }
+
+  return absl::ResourceExhaustedError(
+      absl::StrFormat("Could not allocate a unique temporary artifact for %s",
+                      target_path.string()));
+}
+
+absl::Status ReplaceArtifactFromTemp(const std::filesystem::path& temp_path,
+                                     const std::filesystem::path& target_path) {
+  std::error_code rename_ec;
+  std::filesystem::rename(temp_path, target_path, rename_ec);
+#if defined(_WIN32)
+  if (rename_ec) {
+    if (MoveFileExW(temp_path.wstring().c_str(), target_path.wstring().c_str(),
+                    MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
+      rename_ec.clear();
+    } else {
+      rename_ec = std::error_code(static_cast<int>(GetLastError()),
+                                  std::system_category());
+    }
+  }
+#endif
+  if (rename_ec) {
     return absl::InternalError(
-        absl::StrFormat("Failed while writing file: %s", path));
+        absl::StrFormat("Failed to publish artifact %s: %s",
+                        target_path.string(), rename_ec.message()));
   }
   return absl::OkStatus();
+}
+
+absl::Status ValidatePublishTarget(const std::filesystem::path& target_path) {
+  std::error_code status_ec;
+  const auto status = std::filesystem::symlink_status(target_path, status_ec);
+  if (status_ec && status_ec != std::errc::no_such_file_or_directory) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Cannot inspect artifact target %s: %s",
+                        target_path.string(), status_ec.message()));
+  }
+  if (!status_ec && std::filesystem::is_directory(status)) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Artifact target is a directory, not a file: %s",
+                        target_path.string()));
+  }
+  if (!status_ec && std::filesystem::exists(status) &&
+      !std::filesystem::is_regular_file(status) &&
+      !std::filesystem::is_symlink(status)) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Artifact target is not a replaceable file: %s", target_path.string()));
+  }
+  return absl::OkStatus();
+}
+
+absl::StatusOr<std::optional<std::filesystem::path>> CreateArtifactRollbackCopy(
+    const std::filesystem::path& target_path) {
+  std::error_code status_ec;
+  const auto status = std::filesystem::symlink_status(target_path, status_ec);
+  if (status_ec == std::errc::no_such_file_or_directory ||
+      (!status_ec && !std::filesystem::exists(status))) {
+    return std::nullopt;
+  }
+  if (status_ec) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Cannot inspect existing artifact %s: %s",
+                        target_path.string(), status_ec.message()));
+  }
+
+  constexpr int kMaxCreateAttempts = 100;
+  for (int attempt = 0; attempt < kMaxCreateAttempts; ++attempt) {
+    const std::filesystem::path rollback_path =
+        NextArtifactTempPath(target_path);
+    std::error_code copy_ec;
+    if (std::filesystem::is_symlink(status)) {
+      std::filesystem::copy_symlink(target_path, rollback_path, copy_ec);
+    } else {
+      std::filesystem::copy_file(target_path, rollback_path,
+                                 std::filesystem::copy_options::none, copy_ec);
+    }
+    if (!copy_ec) {
+      return rollback_path;
+    }
+    if (copy_ec == std::errc::file_exists) {
+      continue;
+    }
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Cannot preserve existing artifact %s before publication: %s",
+        target_path.string(), copy_ec.message()));
+  }
+
+  return absl::ResourceExhaustedError(
+      absl::StrFormat("Could not allocate a rollback copy for artifact %s",
+                      target_path.string()));
+}
+
+struct PendingArtifactPublication {
+  std::filesystem::path target_path;
+  std::string content;
+  std::filesystem::path temp_path;
+  std::optional<std::filesystem::path> rollback_path;
+  bool published = false;
+  bool preserve_rollback_copy = false;
+};
+
+void CleanupPendingArtifactFiles(
+    const std::vector<PendingArtifactPublication>& artifacts) {
+  for (const auto& artifact : artifacts) {
+    std::error_code cleanup_ec;
+    if (!artifact.temp_path.empty()) {
+      std::filesystem::remove(artifact.temp_path, cleanup_ec);
+    }
+    if (artifact.rollback_path.has_value() &&
+        !artifact.preserve_rollback_copy) {
+      cleanup_ec.clear();
+      std::filesystem::remove(*artifact.rollback_path, cleanup_ec);
+    }
+  }
+}
+
+absl::Status RollBackPublishedArtifacts(
+    std::vector<PendingArtifactPublication>* artifacts,
+    const absl::Status& publication_failure) {
+  absl::Status rollback_failure = absl::OkStatus();
+  for (auto it = artifacts->rbegin(); it != artifacts->rend(); ++it) {
+    if (!it->published) {
+      continue;
+    }
+
+    if (it->rollback_path.has_value()) {
+      const absl::Status restore_status =
+          ReplaceArtifactFromTemp(*it->rollback_path, it->target_path);
+      if (!restore_status.ok() && rollback_failure.ok()) {
+        it->preserve_rollback_copy = true;
+        rollback_failure = absl::InternalError(absl::StrFormat(
+            "%s; preserved the original artifact at %s",
+            restore_status.message(), it->rollback_path->string()));
+      } else if (!restore_status.ok()) {
+        it->preserve_rollback_copy = true;
+      } else if (restore_status.ok()) {
+        it->rollback_path.reset();
+      }
+    } else {
+      std::error_code remove_ec;
+      if (!std::filesystem::remove(it->target_path, remove_ec) || remove_ec) {
+        if (rollback_failure.ok()) {
+          rollback_failure = absl::InternalError(absl::StrFormat(
+              "Could not remove newly published artifact %s during rollback: "
+              "%s",
+              it->target_path.string(),
+              remove_ec ? remove_ec.message() : "artifact was missing"));
+        }
+      }
+    }
+    it->published = false;
+  }
+
+  if (!rollback_failure.ok()) {
+    return absl::DataLossError(absl::StrFormat(
+        "Artifact publication failed (%s) and rollback failed (%s)",
+        publication_failure.message(), rollback_failure.message()));
+  }
+  return publication_failure;
+}
+
+absl::Status RejectArtifactSetAliasesAfterPublication(
+    const std::vector<PendingArtifactPublication>& artifacts) {
+  for (size_t lhs_index = 0; lhs_index < artifacts.size(); ++lhs_index) {
+    for (size_t rhs_index = lhs_index + 1; rhs_index < artifacts.size();
+         ++rhs_index) {
+      std::error_code equivalent_ec;
+      if (std::filesystem::equivalent(artifacts[lhs_index].target_path,
+                                      artifacts[rhs_index].target_path,
+                                      equivalent_ec)) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Export artifact paths alias each other on this filesystem: %s "
+            "and %s",
+            artifacts[lhs_index].target_path.string(),
+            artifacts[rhs_index].target_path.string()));
+      }
+
+      if (!equivalent_ec) {
+        continue;
+      }
+
+      // A just-published target makes native case/Unicode aliases exist under
+      // both spellings. If both spellings now exist but the filesystem cannot
+      // compare them, fail closed and roll the publication back.
+      std::error_code lhs_exists_ec;
+      std::error_code rhs_exists_ec;
+      const bool lhs_exists = std::filesystem::exists(
+          artifacts[lhs_index].target_path, lhs_exists_ec);
+      const bool rhs_exists = std::filesystem::exists(
+          artifacts[rhs_index].target_path, rhs_exists_ec);
+      if (lhs_exists_ec || rhs_exists_ec || (lhs_exists && rhs_exists)) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Could not safely distinguish export artifact paths %s and %s: "
+            "%s",
+            artifacts[lhs_index].target_path.string(),
+            artifacts[rhs_index].target_path.string(),
+            equivalent_ec.message()));
+      }
+    }
+  }
+  return absl::OkStatus();
+}
+
+absl::Status PublishArtifactSetAtomically(
+    std::vector<PendingArtifactPublication> artifacts) {
+  for (const auto& artifact : artifacts) {
+    const absl::Status target_status =
+        ValidatePublishTarget(artifact.target_path);
+    if (!target_status.ok()) {
+      CleanupPendingArtifactFiles(artifacts);
+      return target_status;
+    }
+  }
+
+  for (auto& artifact : artifacts) {
+    auto temp_or =
+        WriteExclusiveArtifactTemp(artifact.target_path, artifact.content);
+    if (!temp_or.ok()) {
+      CleanupPendingArtifactFiles(artifacts);
+      return temp_or.status();
+    }
+    artifact.temp_path = *temp_or;
+  }
+
+  for (auto& artifact : artifacts) {
+    auto rollback_or = CreateArtifactRollbackCopy(artifact.target_path);
+    if (!rollback_or.ok()) {
+      CleanupPendingArtifactFiles(artifacts);
+      return rollback_or.status();
+    }
+    artifact.rollback_path = std::move(*rollback_or);
+  }
+
+  for (auto& artifact : artifacts) {
+    const absl::Status publish_status =
+        ReplaceArtifactFromTemp(artifact.temp_path, artifact.target_path);
+    if (!publish_status.ok()) {
+      const absl::Status final_status =
+          RollBackPublishedArtifacts(&artifacts, publish_status);
+      CleanupPendingArtifactFiles(artifacts);
+      return final_status;
+    }
+    artifact.temp_path.clear();
+    artifact.published = true;
+
+    const absl::Status alias_status =
+        RejectArtifactSetAliasesAfterPublication(artifacts);
+    if (!alias_status.ok()) {
+      const absl::Status final_status =
+          RollBackPublishedArtifacts(&artifacts, alias_status);
+      CleanupPendingArtifactFiles(artifacts);
+      return final_status;
+    }
+  }
+
+  CleanupPendingArtifactFiles(artifacts);
+  return absl::OkStatus();
+}
+
+absl::Status PublishResolvedTextFileAtomically(
+    const std::filesystem::path& target_path, absl::string_view content) {
+  std::vector<PendingArtifactPublication> artifacts;
+  artifacts.push_back(PendingArtifactPublication{
+      .target_path = target_path,
+      .content = std::string(content),
+  });
+  return PublishArtifactSetAtomically(std::move(artifacts));
+}
+
+absl::Status PublishExportArtifactsAtomically(
+    const std::filesystem::path& out_path, absl::string_view out_content,
+    const std::optional<std::filesystem::path>& report_path,
+    absl::string_view report_content) {
+  // Callers pass paths resolved and ROM-checked at command start. Do not follow
+  // the caller's raw path again after a parent symlink could have changed.
+  std::vector<PendingArtifactPublication> artifacts;
+  artifacts.push_back(PendingArtifactPublication{
+      .target_path = out_path,
+      .content = std::string(out_content),
+  });
+  if (report_path.has_value()) {
+    artifacts.push_back(PendingArtifactPublication{
+        .target_path = *report_path,
+        .content = std::string(report_content),
+    });
+  }
+  return PublishArtifactSetAtomically(std::move(artifacts));
 }
 
 absl::Status ValidateImportArguments(const resources::ArgumentParser& parser,
                                      absl::string_view command_name) {
   RETURN_IF_ERROR(parser.RequireArgs({"in"}));
-  const bool has_report = parser.GetString("report").has_value();
+  const auto report_path = parser.GetString("report");
+  const bool has_report = report_path.has_value();
+  if (has_report && report_path->empty()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s: --report cannot be empty", command_name));
+  }
   const bool sandbox_requested =
       parser.HasFlag("sandbox") || absl::GetFlag(FLAGS_sandbox);
   if (has_report && !parser.HasFlag("dry-run")) {
@@ -193,26 +649,21 @@ absl::Status ValidateImportArguments(const resources::ArgumentParser& parser,
 absl::Status ValidateExportArguments(const resources::ArgumentParser& parser,
                                      absl::string_view command_name) {
   RETURN_IF_ERROR(parser.RequireArgs({"out"}));
-  const bool sandbox_requested =
-      parser.HasFlag("sandbox") || absl::GetFlag(FLAGS_sandbox);
-  if (parser.GetString("report").has_value() && sandbox_requested) {
-    return absl::InvalidArgumentError(absl::StrFormat(
-        "%s: --report cannot be combined with --sandbox; export from the "
-        "source ROM or omit --report",
-        command_name));
+  if (parser.GetString("out")->empty()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s: --out cannot be empty", command_name));
+  }
+  if (const auto report = parser.GetString("report");
+      report.has_value() && report->empty()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s: --report cannot be empty", command_name));
   }
   return absl::OkStatus();
 }
 
 absl::StatusOr<std::filesystem::path> NormalizedAbsolutePath(
     const std::filesystem::path& path) {
-  std::error_code absolute_ec;
-  std::filesystem::path absolute = std::filesystem::absolute(path, absolute_ec);
-  if (absolute_ec) {
-    return absl::InvalidArgumentError(absl::StrFormat(
-        "Cannot normalize path %s: %s", path.string(), absolute_ec.message()));
-  }
-  return absolute.lexically_normal();
+  return ResolveStableArtifactPath(path);
 }
 
 absl::StatusOr<bool> PathsAlias(const std::filesystem::path& lhs,
@@ -247,14 +698,95 @@ absl::StatusOr<bool> PathsAlias(const std::filesystem::path& lhs,
   return false;
 }
 
-absl::Status RejectReportRomAliases(const resources::ArgumentParser& parser,
-                                    const Rom* rom) {
-  const auto report_path_value = parser.GetString("report");
-  if (!report_path_value.has_value() || report_path_value->empty()) {
-    return absl::OkStatus();
+absl::Status RejectArtifactRomAliases(
+    absl::string_view option_name, const std::filesystem::path& artifact_path,
+    const resources::CommandInvocationContext& invocation_context) {
+  if (invocation_context.active_rom_path.has_value()) {
+    ASSIGN_OR_RETURN(
+        const bool aliases_active_rom,
+        PathsAlias(artifact_path, *invocation_context.active_rom_path));
+    if (aliases_active_rom) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s path aliases the active ROM; choose a separate artifact file: "
+          "%s",
+          option_name, artifact_path.string()));
+    }
   }
 
-  const std::filesystem::path report_path(*report_path_value);
+  if (invocation_context.source_rom_path.has_value()) {
+    ASSIGN_OR_RETURN(
+        const bool aliases_source_rom,
+        PathsAlias(artifact_path, *invocation_context.source_rom_path));
+    if (aliases_source_rom) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s path aliases the %s; choose a separate artifact file: %s",
+          option_name,
+          invocation_context.sandbox_enabled ? "sandbox source ROM"
+                                             : "source ROM",
+          artifact_path.string()));
+    }
+  }
+
+  return absl::OkStatus();
+}
+
+struct ResolvedExportArtifactPaths {
+  std::filesystem::path out_path;
+  std::optional<std::filesystem::path> report_path;
+
+  bool operator==(const ResolvedExportArtifactPaths&) const = default;
+};
+
+absl::StatusOr<ResolvedExportArtifactPaths> ResolveExportArtifactPaths(
+    const resources::ArgumentParser& parser,
+    const resources::CommandInvocationContext& invocation_context) {
+  const auto out_path_value = parser.GetString("out");
+  if (!out_path_value.has_value() || out_path_value->empty()) {
+    return absl::InvalidArgumentError("--out must name an artifact file");
+  }
+
+  ASSIGN_OR_RETURN(const auto out_path,
+                   ResolveStableArtifactPath(*out_path_value));
+  RETURN_IF_ERROR(
+      RejectArtifactRomAliases("--out", out_path, invocation_context));
+
+  ResolvedExportArtifactPaths resolved_paths{.out_path = out_path};
+
+  const auto report_path_value = parser.GetString("report");
+  if (!report_path_value.has_value()) {
+    return resolved_paths;
+  }
+  if (report_path_value->empty()) {
+    return absl::InvalidArgumentError("--report must name an artifact file");
+  }
+
+  ASSIGN_OR_RETURN(const auto report_path,
+                   ResolveStableArtifactPath(*report_path_value));
+  RETURN_IF_ERROR(
+      RejectArtifactRomAliases("--report", report_path, invocation_context));
+
+  ASSIGN_OR_RETURN(const bool artifacts_alias,
+                   PathsAlias(out_path, report_path));
+  if (artifacts_alias) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "--out and --report paths alias each other; choose separate artifact "
+        "files: %s",
+        out_path.string()));
+  }
+
+  resolved_paths.report_path = report_path;
+  return resolved_paths;
+}
+
+absl::StatusOr<std::optional<std::filesystem::path>> ResolveReportArtifactPath(
+    const resources::ArgumentParser& parser, const Rom* rom) {
+  const auto report_path_value = parser.GetString("report");
+  if (!report_path_value.has_value() || report_path_value->empty()) {
+    return std::nullopt;
+  }
+
+  ASSIGN_OR_RETURN(const auto report_path,
+                   ResolveStableArtifactPath(*report_path_value));
   if (rom != nullptr && !rom->filename().empty()) {
     ASSIGN_OR_RETURN(
         const bool aliases_active_rom,
@@ -267,7 +799,7 @@ absl::Status RejectReportRomAliases(const resources::ArgumentParser& parser,
     }
   }
 
-  return absl::OkStatus();
+  return report_path;
 }
 
 std::string StatusCodeName(absl::StatusCode code) {
@@ -319,18 +851,18 @@ json BuildBaseReport(absl::string_view command_name, bool dry_run) {
   };
 }
 
-absl::Status WriteReportIfRequested(const resources::ArgumentParser& parser,
-                                    const json& report) {
-  auto report_path = parser.GetString("report");
-  if (!report_path.has_value()) {
-    return absl::OkStatus();
-  }
-  return WriteTextFile(*report_path, report.dump(2) + "\n");
+void AddStructuredError(resources::OutputFormatter& formatter,
+                        const absl::Status& status) {
+  formatter.AddField("status", "error");
+  formatter.BeginObject("error");
+  formatter.AddField("code", StatusCodeName(status.code()));
+  formatter.AddField("message", std::string(status.message()));
+  formatter.EndObject();
 }
 
-absl::Status FinalizeWithReport(const resources::ArgumentParser& parser,
-                                json report, const absl::Status& status,
-                                const Rom* protected_rom = nullptr) {
+absl::Status FinalizeWithReport(
+    const std::optional<std::filesystem::path>& resolved_report_path,
+    json report, const absl::Status& status) {
   if (!status.ok()) {
     report["status"] = "error";
     report["error"] = json{
@@ -340,11 +872,9 @@ absl::Status FinalizeWithReport(const resources::ArgumentParser& parser,
   }
 
   absl::Status report_status = absl::OkStatus();
-  if (protected_rom != nullptr) {
-    report_status = RejectReportRomAliases(parser, protected_rom);
-  }
-  if (report_status.ok()) {
-    report_status = WriteReportIfRequested(parser, report);
+  if (resolved_report_path.has_value()) {
+    report_status = PublishResolvedTextFileAtomically(*resolved_report_path,
+                                                      report.dump(2) + "\n");
   }
   if (!report_status.ok()) {
     if (status.ok()) {
@@ -356,6 +886,13 @@ absl::Status FinalizeWithReport(const resources::ArgumentParser& parser,
   }
 
   return status;
+}
+
+absl::Status FinalizeExportWithReport(
+    const ResolvedExportArtifactPaths& artifact_paths, json report,
+    const absl::Status& status) {
+  return FinalizeWithReport(artifact_paths.report_path, std::move(report),
+                            status);
 }
 
 json BuildPreflightJson(
@@ -519,14 +1056,37 @@ absl::Status DungeonListCustomCollisionCommandHandler::Execute(
 absl::Status DungeonExportCustomCollisionJsonCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  RETURN_IF_ERROR(RejectReportRomAliases(parser, rom));
+  resources::CommandInvocationContext invocation_context;
+  if (rom != nullptr && !rom->filename().empty()) {
+    invocation_context.source_rom_path = std::filesystem::path(rom->filename());
+    invocation_context.active_rom_path = std::filesystem::path(rom->filename());
+  }
+  return ExecuteWithContext(rom, parser, formatter, invocation_context);
+}
+
+absl::Status DungeonExportCustomCollisionJsonCommandHandler::ExecuteWithContext(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter,
+    const resources::CommandInvocationContext& invocation_context) {
+  auto artifact_paths_or =
+      ResolveExportArtifactPaths(parser, invocation_context);
+  if (!artifact_paths_or.ok()) {
+    AddStructuredError(formatter, artifact_paths_or.status());
+    return artifact_paths_or.status();
+  }
+  const ResolvedExportArtifactPaths artifact_paths = *artifact_paths_or;
 
   json report = BuildBaseReport(GetName(), /*dry_run=*/false);
+  std::string out_path;
+  std::string exported_json;
+  int requested_rooms = 0;
+  int exported_room_count = 0;
   const absl::Status status = [&]() -> absl::Status {
     ASSIGN_OR_RETURN(const auto room_ids, ParseRoomSelection(parser));
-    const std::string out_path = parser.GetString("out").value();
+    out_path = parser.GetString("out").value();
+    requested_rooms = static_cast<int>(room_ids.size());
     report["out_path"] = out_path;
-    report["requested_rooms"] = static_cast<int>(room_ids.size());
+    report["requested_rooms"] = requested_rooms;
 
     std::vector<zelda3::CustomCollisionRoomEntry> export_rooms;
     export_rooms.reserve(room_ids.size());
@@ -554,32 +1114,65 @@ absl::Status DungeonExportCustomCollisionJsonCommandHandler::Execute(
     }
 
     ASSIGN_OR_RETURN(
-        const std::string exported_json,
+        exported_json,
         zelda3::DumpCustomCollisionRoomsToJsonString(export_rooms));
-    RETURN_IF_ERROR(WriteTextFile(out_path, exported_json));
-    report["exported_rooms"] = static_cast<int>(export_rooms.size());
+    exported_room_count = static_cast<int>(export_rooms.size());
+    report["exported_rooms"] = exported_room_count;
 
-    formatter.BeginObject("Custom Collision Export");
-    formatter.AddField("out_path", out_path);
-    formatter.AddField("requested_rooms", static_cast<int>(room_ids.size()));
-    formatter.AddField("exported_rooms", static_cast<int>(export_rooms.size()));
-    formatter.AddField("status", "success");
-    formatter.EndObject();
     return absl::OkStatus();
   }();
 
-  return FinalizeWithReport(parser, std::move(report), status, rom);
+  // Resolve again after the export body as defense-in-depth against path
+  // identity changes between initial validation and publication.
+  auto final_artifact_paths_or =
+      ResolveExportArtifactPaths(parser, invocation_context);
+  absl::Status final_path_status = final_artifact_paths_or.status();
+  if (final_artifact_paths_or.ok() &&
+      *final_artifact_paths_or != artifact_paths) {
+    final_path_status = absl::FailedPreconditionError(
+        "Export artifact path identity changed during the command; no "
+        "artifact was published");
+  }
+
+  absl::Status final_status;
+  if (!status.ok()) {
+    // Do not let a coincident path re-resolution failure shadow the original
+    // business error. An unsafe final path suppresses report publication, but
+    // callers still receive the command failure that stopped the export.
+    final_status = final_path_status.ok()
+                       ? FinalizeExportWithReport(artifact_paths,
+                                                  std::move(report), status)
+                       : status;
+  } else if (!final_path_status.ok()) {
+    final_status = final_path_status;
+  } else {
+    final_status = PublishExportArtifactsAtomically(
+        artifact_paths.out_path, exported_json, artifact_paths.report_path,
+        report.dump(2) + "\n");
+  }
+  if (!final_status.ok()) {
+    AddStructuredError(formatter, final_status);
+    return final_status;
+  }
+
+  formatter.BeginObject("Custom Collision Export");
+  formatter.AddField("out_path", out_path);
+  formatter.AddField("requested_rooms", requested_rooms);
+  formatter.AddField("exported_rooms", exported_room_count);
+  formatter.AddField("status", "success");
+  formatter.EndObject();
+  return absl::OkStatus();
 }
 
 absl::Status DungeonImportCustomCollisionJsonCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  const absl::Status report_alias_status = RejectReportRomAliases(parser, rom);
-  if (!report_alias_status.ok()) {
-    // FinalizeWithReport would write to the rejected path and could truncate
-    // the active ROM. Return this guard failure directly.
-    return report_alias_status;
+  auto report_path_or = ResolveReportArtifactPath(parser, rom);
+  if (!report_path_or.ok()) {
+    AddStructuredError(formatter, report_path_or.status());
+    return report_path_or.status();
   }
+  const std::optional<std::filesystem::path> report_path = *report_path_or;
 
   const bool dry_run = parser.HasFlag("dry-run");
   json report = BuildBaseReport(GetName(), dry_run);
@@ -703,20 +1296,43 @@ absl::Status DungeonImportCustomCollisionJsonCommandHandler::Execute(
     return absl::OkStatus();
   }();
 
-  return FinalizeWithReport(parser, std::move(report), status, rom);
+  return FinalizeWithReport(report_path, std::move(report), status);
 }
 
 absl::Status DungeonExportWaterFillJsonCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  RETURN_IF_ERROR(RejectReportRomAliases(parser, rom));
+  resources::CommandInvocationContext invocation_context;
+  if (rom != nullptr && !rom->filename().empty()) {
+    invocation_context.source_rom_path = std::filesystem::path(rom->filename());
+    invocation_context.active_rom_path = std::filesystem::path(rom->filename());
+  }
+  return ExecuteWithContext(rom, parser, formatter, invocation_context);
+}
+
+absl::Status DungeonExportWaterFillJsonCommandHandler::ExecuteWithContext(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter,
+    const resources::CommandInvocationContext& invocation_context) {
+  auto artifact_paths_or =
+      ResolveExportArtifactPaths(parser, invocation_context);
+  if (!artifact_paths_or.ok()) {
+    AddStructuredError(formatter, artifact_paths_or.status());
+    return artifact_paths_or.status();
+  }
+  const ResolvedExportArtifactPaths artifact_paths = *artifact_paths_or;
 
   json report = BuildBaseReport(GetName(), /*dry_run=*/false);
+  std::string out_path;
+  std::string exported_json;
+  int requested_rooms = 0;
+  int exported_zone_count = 0;
   const absl::Status status = [&]() -> absl::Status {
-    const std::string out_path = parser.GetString("out").value();
+    out_path = parser.GetString("out").value();
     ASSIGN_OR_RETURN(const auto room_ids, ParseRoomSelection(parser));
+    requested_rooms = static_cast<int>(room_ids.size());
     report["out_path"] = out_path;
-    report["requested_rooms"] = static_cast<int>(room_ids.size());
+    report["requested_rooms"] = requested_rooms;
 
     if (!zelda3::HasWaterFillReservedRegion(rom->vector().size())) {
       return absl::FailedPreconditionError(
@@ -734,32 +1350,65 @@ absl::Status DungeonExportWaterFillJsonCommandHandler::Execute(
       filtered.push_back(zone);
     }
 
-    ASSIGN_OR_RETURN(const std::string exported_json,
+    ASSIGN_OR_RETURN(exported_json,
                      zelda3::DumpWaterFillZonesToJsonString(filtered));
-    RETURN_IF_ERROR(WriteTextFile(out_path, exported_json));
-    report["exported_zones"] = static_cast<int>(filtered.size());
+    exported_zone_count = static_cast<int>(filtered.size());
+    report["exported_zones"] = exported_zone_count;
 
-    formatter.BeginObject("Water Fill Export");
-    formatter.AddField("out_path", out_path);
-    formatter.AddField("requested_rooms", static_cast<int>(room_ids.size()));
-    formatter.AddField("exported_zones", static_cast<int>(filtered.size()));
-    formatter.AddField("status", "success");
-    formatter.EndObject();
     return absl::OkStatus();
   }();
 
-  return FinalizeWithReport(parser, std::move(report), status, rom);
+  // Resolve again after the export body as defense-in-depth against path
+  // identity changes between initial validation and publication.
+  auto final_artifact_paths_or =
+      ResolveExportArtifactPaths(parser, invocation_context);
+  absl::Status final_path_status = final_artifact_paths_or.status();
+  if (final_artifact_paths_or.ok() &&
+      *final_artifact_paths_or != artifact_paths) {
+    final_path_status = absl::FailedPreconditionError(
+        "Export artifact path identity changed during the command; no "
+        "artifact was published");
+  }
+
+  absl::Status final_status;
+  if (!status.ok()) {
+    // Do not let a coincident path re-resolution failure shadow the original
+    // business error. An unsafe final path suppresses report publication, but
+    // callers still receive the command failure that stopped the export.
+    final_status = final_path_status.ok()
+                       ? FinalizeExportWithReport(artifact_paths,
+                                                  std::move(report), status)
+                       : status;
+  } else if (!final_path_status.ok()) {
+    final_status = final_path_status;
+  } else {
+    final_status = PublishExportArtifactsAtomically(
+        artifact_paths.out_path, exported_json, artifact_paths.report_path,
+        report.dump(2) + "\n");
+  }
+  if (!final_status.ok()) {
+    AddStructuredError(formatter, final_status);
+    return final_status;
+  }
+
+  formatter.BeginObject("Water Fill Export");
+  formatter.AddField("out_path", out_path);
+  formatter.AddField("requested_rooms", requested_rooms);
+  formatter.AddField("exported_zones", exported_zone_count);
+  formatter.AddField("status", "success");
+  formatter.EndObject();
+  return absl::OkStatus();
 }
 
 absl::Status DungeonImportWaterFillJsonCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
-  const absl::Status report_alias_status = RejectReportRomAliases(parser, rom);
-  if (!report_alias_status.ok()) {
-    // FinalizeWithReport would write to the rejected path and could truncate
-    // the active ROM. Return this guard failure directly.
-    return report_alias_status;
+  auto report_path_or = ResolveReportArtifactPath(parser, rom);
+  if (!report_path_or.ok()) {
+    AddStructuredError(formatter, report_path_or.status());
+    return report_path_or.status();
   }
+  const std::optional<std::filesystem::path> report_path = *report_path_or;
 
   const bool dry_run = parser.HasFlag("dry-run");
   const bool strict_masks = parser.HasFlag("strict-masks");
@@ -850,7 +1499,7 @@ absl::Status DungeonImportWaterFillJsonCommandHandler::Execute(
     return absl::OkStatus();
   }();
 
-  return FinalizeWithReport(parser, std::move(report), status, rom);
+  return FinalizeWithReport(report_path, std::move(report), status);
 }
 
 absl::Status DungeonImportCustomCollisionJsonCommandHandler::ValidateArgs(
