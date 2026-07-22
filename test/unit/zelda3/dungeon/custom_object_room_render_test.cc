@@ -176,6 +176,62 @@ TEST_F(CustomObjectRoomRenderTest,
 }
 
 TEST_F(CustomObjectRoomRenderTest,
+       ObjectRerenderClearsOnlyObjectOwnedRevealBits) {
+  RoomObject lower(/*id=*/0x34, /*x=*/2, /*y=*/3, /*size=*/0, /*layer=*/1);
+  lower.tiles_loaded_ = true;
+  lower.tiles_ = {gfx::TileInfo(/*id=*/0, /*pal=*/2, false, false, false)};
+  Room room = MakeRoomWithObject(lower);
+  RenderObjectBuffers(room);
+
+  const uint8_t object_bit =
+      static_cast<uint8_t>(gfx::BG1RevealMaskSource::kBG2Objects);
+  const uint8_t layout_bit =
+      static_cast<uint8_t>(gfx::BG1RevealMaskSource::kBG2Layout);
+  const auto& initial_mask = room.object_bg1_buffer().bg1_reveal_mask_data();
+  const auto masked =
+      std::find_if(initial_mask.begin(), initial_mask.end(),
+                   [&](uint8_t value) { return (value & object_bit) != 0; });
+  ASSERT_NE(masked, initial_mask.end());
+  const size_t index = static_cast<size_t>(masked - initial_mask.begin());
+  const int x = static_cast<int>(index % 512);
+  const int y = static_cast<int>(index / 512);
+
+  room.object_bg1_buffer().SetBG1RevealMaskRect(
+      gfx::BG1RevealMaskSource::kBG2Layout, x, y, 1, 1);
+  room.bg1_buffer().SetBG1RevealMaskRect(gfx::BG1RevealMaskSource::kBG2Layout,
+                                         x, y, 1, 1);
+
+  room.SetTileObjects({});
+  room.MarkObjectsDirty();
+  RenderObjectBuffers(room);
+
+  EXPECT_EQ(room.object_bg1_buffer().bg1_reveal_mask_data()[index] & object_bit,
+            0);
+  EXPECT_NE(room.object_bg1_buffer().bg1_reveal_mask_data()[index] & layout_bit,
+            0);
+  EXPECT_EQ(room.bg1_buffer().bg1_reveal_mask_data()[index] & object_bit, 0);
+  EXPECT_NE(room.bg1_buffer().bg1_reveal_mask_data()[index] & layout_bit, 0);
+}
+
+TEST_F(CustomObjectRoomRenderTest, EmptyLayoutClearsOnlyLayoutOwnedRevealBits) {
+  WriteLayoutObjects(/*layout_id=*/0, {});
+  Room room(/*room_id=*/0, rom_.get(), &game_data_);
+  room.SetLayoutId(0);
+  room.bg1_buffer().SetBG1RevealMaskRect(gfx::BG1RevealMaskSource::kBG2Layout,
+                                         0, 0, 1, 1);
+  room.bg1_buffer().SetBG1RevealMaskRect(gfx::BG1RevealMaskSource::kBG2Objects,
+                                         0, 0, 1, 1);
+
+  room.LoadLayoutTilesToBuffer();
+
+  const uint8_t value = room.bg1_buffer().bg1_reveal_mask_data()[0];
+  EXPECT_EQ(value & static_cast<uint8_t>(gfx::BG1RevealMaskSource::kBG2Layout),
+            0);
+  EXPECT_NE(value & static_cast<uint8_t>(gfx::BG1RevealMaskSource::kBG2Objects),
+            0);
+}
+
+TEST_F(CustomObjectRoomRenderTest,
        MissingCustomObjectBinDrawsDiagnosticPlaceholderOnRoomCanvas) {
   EnableCustomObjects({"missing_track.bin"});
 
