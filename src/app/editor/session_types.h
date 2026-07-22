@@ -164,6 +164,9 @@ struct RomSession {
   // the session has not yet been bound to a project context and must not save.
   std::optional<project::YazeProject> project_context;
   bool project_dirty = false;
+  // A restored backup is staged for inspection and must never be committed by
+  // the periodic autosave path. Explicit Save ROM / Save As clears this flag.
+  bool backup_restore_pending = false;
   ProjectFileEditorState project_file_editor_state;
   // VersionManager keeps a raw project pointer internally, so its lifetime
   // must be tied to the stable, session-owned project_context above. Editors
