@@ -189,6 +189,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
+    unit/cli/dungeon_spawn_report_commands_test.cc
     unit/cli/dungeon_stream_plan_commands_test.cc
     unit/cli/editor_completion_command_handlers_test.cc
     unit/cli/dungeon_minecart_audit_test.cc
@@ -550,6 +551,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/resource_labels_test.cc
     unit/zelda3/sprite_render_preview_test.cc
     unit/zelda3/dungeon/dungeon_stream_allocator_test.cc
+    unit/cli/dungeon_spawn_report_commands_test.cc
     unit/cli/dungeon_stream_plan_commands_test.cc
     unit/cli/message_commands_policy_test.cc
   )
