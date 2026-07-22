@@ -41,7 +41,7 @@ class DungeonExportCustomCollisionJsonCommandHandler
   std::string GetUsage() const override {
     return "dungeon-export-custom-collision-json --out <path> "
            "[--room <room_id> | --rooms <hex,hex,...> | --all] "
-           "[--report <path>] "
+           "[--report <path>] [--sandbox] "
            "[--format <json|text>]";
   }
 
@@ -49,6 +49,11 @@ class DungeonExportCustomCollisionJsonCommandHandler
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;
+
+  absl::Status ExecuteWithContext(
+      Rom* rom, const resources::ArgumentParser& parser,
+      resources::OutputFormatter& formatter,
+      const resources::CommandInvocationContext& invocation_context) override;
 };
 
 class DungeonImportCustomCollisionJsonCommandHandler
@@ -87,7 +92,7 @@ class DungeonExportWaterFillJsonCommandHandler
   std::string GetUsage() const override {
     return "dungeon-export-water-fill-json --out <path> "
            "[--room <room_id> | --rooms <hex,hex,...> | --all] "
-           "[--report <path>] "
+           "[--report <path>] [--sandbox] "
            "[--format <json|text>]";
   }
 
@@ -95,6 +100,11 @@ class DungeonExportWaterFillJsonCommandHandler
 
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;
+
+  absl::Status ExecuteWithContext(
+      Rom* rom, const resources::ArgumentParser& parser,
+      resources::OutputFormatter& formatter,
+      const resources::CommandInvocationContext& invocation_context) override;
 };
 
 class DungeonImportWaterFillJsonCommandHandler
