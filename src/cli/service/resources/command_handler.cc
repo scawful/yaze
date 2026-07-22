@@ -6,6 +6,7 @@
 
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
+#include "absl/strings/str_format.h"
 #include "cli/service/rom/rom_sandbox_manager.h"
 #include "util/macro.h"
 
@@ -14,6 +15,31 @@ ABSL_DECLARE_FLAG(bool, sandbox);
 namespace yaze {
 namespace cli {
 namespace resources {
+namespace {
+
+absl::StatusOr<std::filesystem::path> CaptureRomPathIdentity(
+    const std::filesystem::path& path) {
+  std::error_code absolute_ec;
+  const std::filesystem::path absolute =
+      std::filesystem::absolute(path, absolute_ec).lexically_normal();
+  if (absolute_ec) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Cannot capture ROM path identity for %s: %s",
+                        path.string(), absolute_ec.message()));
+  }
+
+  std::error_code canonical_ec;
+  const std::filesystem::path canonical =
+      std::filesystem::weakly_canonical(absolute, canonical_ec);
+  if (canonical_ec) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Cannot capture ROM path identity for %s: %s",
+                        absolute.string(), canonical_ec.message()));
+  }
+  return canonical.lexically_normal();
+}
+
+}  // namespace
 
 absl::Status CommandHandler::Run(const std::vector<std::string>& args,
                                  Rom* rom_context,
@@ -79,12 +105,20 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
   Rom* rom = nullptr;
   std::optional<Rom> sandbox_rom;
   bool sandbox_enabled = false;
+  CommandInvocationContext invocation_context;
 
   // Set symbol provider regardless of ROM loading (it might load its own symbols)
   SetSymbolProvider(context.GetSymbolProvider());
 
   if (RequiresRom()) {
     ASSIGN_OR_RETURN(rom, context.GetRom());
+    if (!rom->filename().empty()) {
+      ASSIGN_OR_RETURN(
+          const auto rom_path_identity,
+          CaptureRomPathIdentity(std::filesystem::path(rom->filename())));
+      invocation_context.source_rom_path = rom_path_identity;
+      invocation_context.active_rom_path = rom_path_identity;
+    }
     SetRomContext(rom);
     SetProjectContext(context.GetProjectContext());
 
@@ -95,6 +129,14 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
       if (!sandbox_or.ok()) {
         return sandbox_or.status();
       }
+      invocation_context.sandbox_enabled = true;
+      if (!invocation_context.source_rom_path.has_value()) {
+        ASSIGN_OR_RETURN(invocation_context.source_rom_path,
+                         CaptureRomPathIdentity(
+                             std::filesystem::path(sandbox_or->source_rom)));
+      }
+      ASSIGN_OR_RETURN(invocation_context.active_rom_path,
+                       CaptureRomPathIdentity(sandbox_or->rom_path));
       sandbox_rom.emplace();
       auto load_status =
           sandbox_rom->LoadFromFile(sandbox_or->rom_path.string());
@@ -115,7 +157,8 @@ absl::Status CommandHandler::Run(const std::vector<std::string>& args,
   formatter.BeginObject(GetOutputTitle());
 
   // 9. Execute command business logic
-  auto execute_status = Execute(rom, parser, formatter);
+  auto execute_status =
+      ExecuteWithContext(rom, parser, formatter, invocation_context);
   if (!execute_status.ok()) {
     // Preserve structured output for failing commands so callers can inspect
     // machine-readable diagnostics even when status is non-OK.
