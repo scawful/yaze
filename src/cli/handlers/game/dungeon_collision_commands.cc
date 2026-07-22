@@ -1122,6 +1122,8 @@ absl::Status DungeonExportCustomCollisionJsonCommandHandler::ExecuteWithContext(
     return absl::OkStatus();
   }();
 
+  // Resolve again after the export body as defense-in-depth against path
+  // identity changes between initial validation and publication.
   auto final_artifact_paths_or =
       ResolveExportArtifactPaths(parser, invocation_context);
   absl::Status final_path_status = final_artifact_paths_or.status();
@@ -1132,11 +1134,18 @@ absl::Status DungeonExportCustomCollisionJsonCommandHandler::ExecuteWithContext(
         "artifact was published");
   }
 
-  absl::Status final_status = final_path_status;
-  if (final_path_status.ok() && !status.ok()) {
-    final_status =
-        FinalizeExportWithReport(artifact_paths, std::move(report), status);
-  } else if (final_path_status.ok()) {
+  absl::Status final_status;
+  if (!status.ok()) {
+    // Do not let a coincident path re-resolution failure shadow the original
+    // business error. An unsafe final path suppresses report publication, but
+    // callers still receive the command failure that stopped the export.
+    final_status = final_path_status.ok()
+                       ? FinalizeExportWithReport(artifact_paths,
+                                                  std::move(report), status)
+                       : status;
+  } else if (!final_path_status.ok()) {
+    final_status = final_path_status;
+  } else {
     final_status = PublishExportArtifactsAtomically(
         artifact_paths.out_path, exported_json, artifact_paths.report_path,
         report.dump(2) + "\n");
@@ -1349,6 +1358,8 @@ absl::Status DungeonExportWaterFillJsonCommandHandler::ExecuteWithContext(
     return absl::OkStatus();
   }();
 
+  // Resolve again after the export body as defense-in-depth against path
+  // identity changes between initial validation and publication.
   auto final_artifact_paths_or =
       ResolveExportArtifactPaths(parser, invocation_context);
   absl::Status final_path_status = final_artifact_paths_or.status();
@@ -1359,11 +1370,18 @@ absl::Status DungeonExportWaterFillJsonCommandHandler::ExecuteWithContext(
         "artifact was published");
   }
 
-  absl::Status final_status = final_path_status;
-  if (final_path_status.ok() && !status.ok()) {
-    final_status =
-        FinalizeExportWithReport(artifact_paths, std::move(report), status);
-  } else if (final_path_status.ok()) {
+  absl::Status final_status;
+  if (!status.ok()) {
+    // Do not let a coincident path re-resolution failure shadow the original
+    // business error. An unsafe final path suppresses report publication, but
+    // callers still receive the command failure that stopped the export.
+    final_status = final_path_status.ok()
+                       ? FinalizeExportWithReport(artifact_paths,
+                                                  std::move(report), status)
+                       : status;
+  } else if (!final_path_status.ok()) {
+    final_status = final_path_status;
+  } else {
     final_status = PublishExportArtifactsAtomically(
         artifact_paths.out_path, exported_json, artifact_paths.report_path,
         report.dump(2) + "\n");
