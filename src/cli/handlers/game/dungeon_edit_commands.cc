@@ -1,6 +1,10 @@
 #include "cli/handlers/game/dungeon_edit_commands.h"
 
+#include <cstdint>
+#include <limits>
 #include <optional>
+#include <utility>
+#include <vector>
 
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
@@ -8,6 +12,7 @@
 #include "cli/util/hex_util.h"
 #include "core/dungeon_stream_layout_adapter.h"
 #include "core/hack_manifest.h"
+#include "core/project.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "util/macro.h"
@@ -89,17 +94,27 @@ absl::Status SaveRomWithBackup(Rom* rom,
   return absl::OkStatus();
 }
 
-absl::StatusOr<std::optional<zelda3::DungeonStreamLayout>>
-LoadObjectCopyOnWriteLayout(const resources::ArgumentParser& parser) {
+struct ObjectSaveManifestContext {
+  core::HackManifest manifest;
+  zelda3::DungeonStreamLayout allocator_layout;
+  // A standalone --manifest is a safety capability, not permission to ignore
+  // ownership. Unlike a project, the CLI has no separate policy setting, so
+  // protected writes are always blocked.
+  project::RomWritePolicy write_policy = project::RomWritePolicy::kBlock;
+};
+
+absl::StatusOr<std::optional<ObjectSaveManifestContext>>
+LoadObjectSaveManifestContext(const resources::ArgumentParser& parser) {
   const auto manifest_path = parser.GetString("manifest");
   if (!manifest_path.has_value()) {
     return std::nullopt;
   }
 
-  core::HackManifest manifest;
-  RETURN_IF_ERROR(manifest.LoadFromFile(*manifest_path));
+  ObjectSaveManifestContext context;
+  RETURN_IF_ERROR(context.manifest.LoadFromFile(*manifest_path));
   const core::DungeonStreamLayout* manifest_layout =
-      manifest.GetDungeonStreamLayout(core::DungeonStreamType::kObjects);
+      context.manifest.GetDungeonStreamLayout(
+          core::DungeonStreamType::kObjects);
   if (manifest_layout == nullptr) {
     return absl::FailedPreconditionError(
         "Manifest does not define dungeon_stream_regions.objects");
@@ -109,17 +124,86 @@ LoadObjectCopyOnWriteLayout(const resources::ArgumentParser& parser) {
         "dungeon_stream_regions.objects must use copy_on_write");
   }
 
-  zelda3::DungeonStreamLayout allocator_layout;
-  ASSIGN_OR_RETURN(allocator_layout,
+  ASSIGN_OR_RETURN(context.allocator_layout,
                    core::ToDungeonStreamAllocatorLayout(
                        core::DungeonStreamType::kObjects, *manifest_layout));
-  return std::optional<zelda3::DungeonStreamLayout>(
-      std::move(allocator_layout));
+  return std::optional<ObjectSaveManifestContext>(std::move(context));
+}
+
+absl::Status ValidateObjectSaveManifestConflicts(
+    const Rom& source_rom, int room_id, const zelda3::Room& pending_room,
+    const ObjectSaveManifestContext& context) {
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+
+  // Match DungeonEditorV2's conservative object-save prediction: validate the
+  // selected in-place stream, the door pointer, every possible COW allocation,
+  // and the selected object-pointer slot before exercising either save path.
+  uint32_t object_pointer_table_snes = 0;
+  ASSIGN_OR_RETURN(object_pointer_table_snes,
+                   source_rom.ReadLong(zelda3::kRoomObjectPointer));
+  const uint32_t object_pointer_table_pc = SnesToPc(object_pointer_table_snes);
+  const uint64_t current_pointer_slot =
+      static_cast<uint64_t>(object_pointer_table_pc) +
+      static_cast<uint64_t>(room_id) * 3u;
+  if (current_pointer_slot + 3u > source_rom.size()) {
+    return absl::OutOfRangeError(
+        "Selected object pointer slot is outside the ROM");
+  }
+
+  uint32_t current_stream_snes = 0;
+  ASSIGN_OR_RETURN(current_stream_snes,
+                   source_rom.ReadLong(static_cast<int>(current_pointer_slot)));
+  const uint32_t current_stream_pc = SnesToPc(current_stream_snes);
+  const uint64_t current_stream_end = static_cast<uint64_t>(current_stream_pc) +
+                                      pending_room.EncodeObjects().size() + 2u;
+  if (current_stream_end > std::numeric_limits<uint32_t>::max()) {
+    return absl::OutOfRangeError("Selected object write range overflows");
+  }
+  ranges.emplace_back(current_stream_pc,
+                      static_cast<uint32_t>(current_stream_end));
+
+  const uint64_t door_pointer_slot =
+      static_cast<uint64_t>(zelda3::kDoorPointers) +
+      static_cast<uint64_t>(room_id) * 3u;
+  if (door_pointer_slot + 3u > std::numeric_limits<uint32_t>::max()) {
+    return absl::OutOfRangeError("Selected door pointer range overflows");
+  }
+  ranges.emplace_back(static_cast<uint32_t>(door_pointer_slot),
+                      static_cast<uint32_t>(door_pointer_slot + 3u));
+
+  for (const auto& range : context.allocator_layout.allocation_ranges) {
+    ranges.emplace_back(range.begin, range.end);
+  }
+  const uint32_t pointer_width = context.allocator_layout.pointer_encoding ==
+                                         zelda3::DungeonPointerEncoding::kLong24
+                                     ? 3u
+                                     : 2u;
+  const uint64_t cow_pointer_slot =
+      static_cast<uint64_t>(context.allocator_layout.pointer_table_pc) +
+      static_cast<uint64_t>(room_id) * pointer_width;
+  if (cow_pointer_slot + pointer_width > std::numeric_limits<uint32_t>::max()) {
+    return absl::OutOfRangeError("Selected COW pointer range overflows");
+  }
+  ranges.emplace_back(static_cast<uint32_t>(cow_pointer_slot),
+                      static_cast<uint32_t>(cow_pointer_slot + pointer_width));
+
+  const auto conflicts = context.manifest.AnalyzePcWriteRanges(ranges);
+  if (conflicts.empty() ||
+      context.write_policy != project::RomWritePolicy::kBlock) {
+    return absl::OkStatus();
+  }
+  return absl::PermissionDeniedError("Write conflict with Hack Manifest");
 }
 
 absl::Status PreflightObjectSave(
     const Rom& source_rom, int room_id, const zelda3::RoomObject& object,
-    const zelda3::DungeonStreamLayout* allocator_layout) {
+    const zelda3::Room& pending_room,
+    const ObjectSaveManifestContext* manifest_context) {
+  if (manifest_context != nullptr) {
+    RETURN_IF_ERROR(ValidateObjectSaveManifestConflicts(
+        source_rom, room_id, pending_room, *manifest_context));
+  }
+
   // Exercise the exact Room::SaveObjects path against an isolated snapshot so
   // dry-run capacity and allocator outcomes match --write without mutating the
   // caller's ROM.
@@ -131,7 +215,9 @@ absl::Status PreflightObjectSave(
 
   zelda3::Room scratch_room = zelda3::LoadRoomFromRom(&scratch_rom, room_id);
   RETURN_IF_ERROR(scratch_room.AddObject(object));
-  return scratch_room.SaveObjects(allocator_layout);
+  return scratch_room.SaveObjects(manifest_context != nullptr
+                                      ? &manifest_context->allocator_layout
+                                      : nullptr);
 }
 
 }  // namespace
@@ -443,10 +529,11 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
     return absl::InvalidArgumentError("Size must be 0-255");
   }
 
-  std::optional<zelda3::DungeonStreamLayout> allocator_layout;
-  ASSIGN_OR_RETURN(allocator_layout, LoadObjectCopyOnWriteLayout(parser));
+  std::optional<ObjectSaveManifestContext> manifest_context;
+  ASSIGN_OR_RETURN(manifest_context, LoadObjectSaveManifestContext(parser));
   const zelda3::DungeonStreamLayout* layout =
-      allocator_layout.has_value() ? &*allocator_layout : nullptr;
+      manifest_context.has_value() ? &manifest_context->allocator_layout
+                                   : nullptr;
 
   // Load room with full objects
   zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
@@ -476,6 +563,7 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
   if (const auto manifest_path = parser.GetString("manifest");
       manifest_path.has_value()) {
     formatter.AddField("manifest", *manifest_path);
+    formatter.AddField("manifest_write_policy", "block");
   }
   formatter.AddField("allocator_capability",
                      layout != nullptr ? "copy_on_write" : "none");
@@ -492,7 +580,9 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
                      static_cast<int>(room.GetTileObjects().size()));
   formatter.AddField("mode", do_write ? "write" : "dry-run");
 
-  const auto preflight_status = PreflightObjectSave(*rom, room_id, obj, layout);
+  const auto preflight_status = PreflightObjectSave(
+      *rom, room_id, obj, room,
+      manifest_context.has_value() ? &*manifest_context : nullptr);
   if (!preflight_status.ok()) {
     formatter.AddField("preflight_status", "failed");
     formatter.AddField("preflight_error",

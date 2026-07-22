@@ -165,7 +165,10 @@ These commands operate directly on ROM data (no GUI required).
 execute the same immutable capacity preflight. In-place edits can proceed
 without a manifest, but a shared or growing object stream fails closed unless
 an explicit manifest defines `dungeon_stream_regions.objects` with the
-`copy_on_write` strategy and allocator-owned space.
+`copy_on_write` strategy and allocator-owned space. The manifest remains an
+ownership guard: protected current-stream, allocation, object-pointer, or
+door-pointer writes are rejected before either dry-run or write can mutate ROM
+bytes.
 
 Example:
 ```bash

@@ -636,6 +636,92 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
       "--size=6",     absl::StrFormat("--manifest=%s", source_manifest_path_),
       "--format=json"};
 
+  // Add a test-local guard over the real object allocation arena and prove
+  // both CLI modes reject before touching the caller ROM or disk. The source
+  // Oracle manifest remains immutable and is checked again in TearDown().
+  ASSERT_FALSE(object_layout->allocation_ranges.empty());
+  const DungeonStreamPcRange protected_allocation =
+      object_layout->allocation_ranges.front();
+  const std::vector<uint8_t> source_manifest_bytes =
+      ReadFile(source_manifest_path_);
+  ASSERT_FALSE(source_manifest_bytes.empty());
+  Json protected_manifest = Json::parse(
+      std::string(source_manifest_bytes.begin(), source_manifest_bytes.end()));
+  auto& protected_section = protected_manifest["protected_regions"];
+  if (!protected_section.is_object()) {
+    protected_section = Json::object();
+  }
+  auto& protected_regions = protected_section["regions"];
+  if (!protected_regions.is_array()) {
+    protected_regions = Json::array();
+  }
+  protected_regions.push_back(
+      {{"start",
+        absl::StrFormat("0x%06X", PcToSnes(protected_allocation.begin))},
+       {"end", absl::StrFormat("0x%06X", PcToSnes(protected_allocation.end))},
+       {"size", protected_allocation.end - protected_allocation.begin},
+       {"hook_count", 1},
+       {"module", "ObjectAllocatorGuard"}});
+  protected_section["total_hooks"] =
+      protected_section.value("total_hooks", 0) + 1;
+  const std::filesystem::path protected_manifest_path =
+      temp_dir_ / "oos-object-protected-manifest.json";
+  {
+    std::ofstream output(protected_manifest_path, std::ios::trunc);
+    ASSERT_TRUE(output.is_open());
+    output << protected_manifest.dump(2);
+    ASSERT_TRUE(output.good());
+  }
+
+  Rom protected_rom;
+  ASSERT_TRUE(protected_rom.LoadFromFile(temp_rom_path_.string()).ok());
+  const std::vector<uint8_t> protected_rom_before = protected_rom.vector();
+  const auto protected_pointer_slot =
+      object_layout->pointer_table_pc + kRoomId * 3u;
+  auto protected_pointer_before =
+      protected_rom.ReadLong(protected_pointer_slot);
+  ASSERT_TRUE(protected_pointer_before.ok())
+      << protected_pointer_before.status().message();
+  std::vector<std::string> protected_args = args;
+  protected_args[5] =
+      absl::StrFormat("--manifest=%s", protected_manifest_path.string());
+
+  std::string protected_dry_output;
+  const absl::Status protected_dry_status =
+      handler.Run(protected_args, &protected_rom, &protected_dry_output);
+  EXPECT_EQ(protected_dry_status.code(), absl::StatusCode::kPermissionDenied)
+      << protected_dry_status;
+  EXPECT_NE(protected_dry_output.find("\"preflight_status\": \"failed\""),
+            std::string::npos);
+  EXPECT_EQ(protected_rom.vector(), protected_rom_before);
+  EXPECT_EQ(ReadFile(temp_rom_path_), bytes_before);
+  auto protected_sha_after_dry = ComputeSha256(temp_rom_path_.string());
+  ASSERT_TRUE(protected_sha_after_dry.ok())
+      << protected_sha_after_dry.status().message();
+  EXPECT_EQ(*protected_sha_after_dry, *disk_sha_before);
+  EXPECT_EQ(*protected_rom.ReadLong(protected_pointer_slot),
+            *protected_pointer_before);
+  EXPECT_EQ(CountBackupArtifacts(temp_rom_path_), 0);
+
+  protected_args.push_back("--write");
+  std::string protected_write_output;
+  const absl::Status protected_write_status =
+      handler.Run(protected_args, &protected_rom, &protected_write_output);
+  EXPECT_EQ(protected_write_status.code(), protected_dry_status.code())
+      << protected_write_status;
+  EXPECT_EQ(protected_write_status.message(), protected_dry_status.message());
+  EXPECT_NE(protected_write_output.find("\"preflight_status\": \"failed\""),
+            std::string::npos);
+  EXPECT_EQ(protected_rom.vector(), protected_rom_before);
+  EXPECT_EQ(ReadFile(temp_rom_path_), bytes_before);
+  auto protected_sha_after_write = ComputeSha256(temp_rom_path_.string());
+  ASSERT_TRUE(protected_sha_after_write.ok())
+      << protected_sha_after_write.status().message();
+  EXPECT_EQ(*protected_sha_after_write, *disk_sha_before);
+  EXPECT_EQ(*protected_rom.ReadLong(protected_pointer_slot),
+            *protected_pointer_before);
+  EXPECT_EQ(CountBackupArtifacts(temp_rom_path_), 0);
+
   std::string dry_output;
   const absl::Status dry_status = handler.Run(args, &rom, &dry_output);
   ASSERT_TRUE(dry_status.ok()) << dry_status.message();
