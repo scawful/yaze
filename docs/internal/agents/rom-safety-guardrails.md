@@ -13,17 +13,19 @@ This repo is used to edit ROM hacks (including Oracle of Secrets). Treat ROM wri
 
 ## CLI Save Transaction Contract
 
-- `Rom::SaveSettings::backup` keeps its legacy best-effort behavior.
+- `Rom::SaveSettings::backup` is best-effort: an existing save destination is
+  copied before replacement, a new destination has no prior bytes to back up,
+  and backup failure is logged without blocking the save.
 - Safety-critical CLI writes can set `require_backup=true`. If the save target
   already exists, that target (including a Save As destination) is copied to a
   same-directory temporary path and renamed into place only after the copy
   completes; failure returns before the ROM target is replaced. A new target
   has no previous bytes to back up. A completed required backup is retained if
   the later target write fails, so recovery bytes remain available.
-- `dungeon-place-sprite`, `dungeon-remove-sprite`, `dungeon-place-object`, and
-  `dungeon-set-collision-tile` wrap their serializer, required backup, and disk
-  commit in `ScopedRomTransaction`. Any failure restores the caller's ROM
-  bytes, filename, size, and dirty state.
+- `dungeon-place-sprite`, `dungeon-remove-sprite`, `dungeon-place-object`,
+  `dungeon-set-collision-tile`, and `dungeon-set-room-property` wrap their
+  serializer, required backup, and disk commit in `ScopedRomTransaction`. Any
+  failure restores the caller's ROM bytes, filename, size, and dirty state.
 - Non-dry-run `dungeon-import-custom-collision-json` and
   `dungeon-import-water-fill-json` use the same transaction and required-backup
   contract, then immediately save the active ROM. With `--sandbox`, the active
