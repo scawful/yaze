@@ -18,6 +18,8 @@ They are correctness references, not recordings of yaze's current renderer.
   underworld module.
 - Mesen source screenshot: 256x224; crop `(x=32, y=80, w=48, h=64)`.
 - Corresponding yaze 512x512 room crop: `(x=160, y=353, w=48, h=64)`.
+- Carpet diagnostic pixel: Mesen `(x=128, y=64)` is RGB `(107, 33, 33)`;
+  the corresponding yaze room pixel is `(x=256, y=337)`.
 - Fixture SHA-256:
   `8cc0cd0c1a79a86023cd4823340e3129c378f2d478e74297b62a6b20edbc020d`.
 
@@ -26,9 +28,9 @@ pixel-exact between Mesen and yaze. The test uses exact RGBA comparison: there
 is no GPU rasterization or antialiasing in either path, so a tolerance would
 hide real renderer drift. The test skips when no ROM is configured, the first
 1 MiB is not the canonical US ROM, or the build has no libpng-backed visual
-diff support. Larger Sanctuary floor/background regions currently expose
-palette differences and are deliberately not treated as passing parity
-evidence.
+diff support. The separately asserted carpet pixel catches reversed SNES
+3bpp-to-4bpp Left/Right expansion without broadening the committed image
+fixture.
 
 ## Updating a baseline
 

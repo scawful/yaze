@@ -14,13 +14,13 @@ namespace yaze::zelda3::test {
 
 // USDASM grounding:
 // - bank_00.asm LoadBackgroundGraphics chooses Expand3bppToVRAM_RightPalette for
-//   underworld (UW) background slots $0F >= 4 (i.e. the second half of the 8
-//   background sheets in the set). Right-palette expansion sets bit3 for any
-//   non-zero pixel, shifting values 1-7 to 9-15.
+//   underworld (UW) runtime slots $0F >= 4. InitializeTilesets loads destination
+//   blocks 0..7 while counting $0F down from 7..0. Right-palette expansion sets
+//   bit3 for any non-zero pixel, shifting values 1-7 to 9-15.
 //
 // In yaze we store sheets as 8BPP linear indices (one byte per pixel). To
 // mirror the runtime expansion, we apply the +8 shift when copying UW
-// background blocks 4-7 into the room's graphics buffer.
+// destination blocks 0-3 into the room's graphics buffer.
 TEST(RoomGraphicsPaletteTest,
      CopyRoomGraphicsToBuffer_ShiftsRightPaletteBlocks) {
   auto rom = std::make_unique<Rom>();
@@ -55,20 +55,20 @@ TEST(RoomGraphicsPaletteTest,
 
   const auto& gfx = room.get_gfx_buffer();
 
-  // Block 3 (UW background slot < 4): left palette (no shift).
+  // Destination block 3 is runtime slot 4: right palette shift.
   EXPECT_EQ(gfx[3 * 4096 + 0], 0);
-  EXPECT_EQ(gfx[3 * 4096 + 1], 1);
-  EXPECT_EQ(gfx[3 * 4096 + 2], 7);
+  EXPECT_EQ(gfx[3 * 4096 + 1], 9);
+  EXPECT_EQ(gfx[3 * 4096 + 2], 15);
 
-  // Block 4 (UW background slot >= 4): right palette shift (+8 for non-zero).
+  // Destination block 4 is runtime slot 3: left palette (no shift).
   EXPECT_EQ(gfx[4 * 4096 + 0], 0);
-  EXPECT_EQ(gfx[4 * 4096 + 1], 9);
-  EXPECT_EQ(gfx[4 * 4096 + 2], 15);
+  EXPECT_EQ(gfx[4 * 4096 + 1], 1);
+  EXPECT_EQ(gfx[4 * 4096 + 2], 7);
 
-  // Block 5 also shifted.
+  // Destination block 5 is runtime slot 2 and is also unshifted for UW.
   EXPECT_EQ(gfx[5 * 4096 + 0], 0);
-  EXPECT_EQ(gfx[5 * 4096 + 1], 9);
-  EXPECT_EQ(gfx[5 * 4096 + 2], 15);
+  EXPECT_EQ(gfx[5 * 4096 + 1], 1);
+  EXPECT_EQ(gfx[5 * 4096 + 2], 7);
 
   // Sprite blocks should NOT be shifted by this UW background rule.
   EXPECT_EQ(gfx[8 * 4096 + 0], 0);
@@ -101,15 +101,16 @@ TEST(RoomGraphicsPaletteTest,
 
   const auto& gfx = room.get_gfx_buffer();
 
-  // OW main groups ($0AA1 >= $20) use right palette for slots 2, 3, 4, and 7.
-  EXPECT_EQ(gfx[2 * 4096 + 1], 9);
+  // OW runtime slots 2, 3, 4, and 7 map to destination blocks 5, 4, 3, and 0.
+  EXPECT_EQ(gfx[0 * 4096 + 1], 9);
   EXPECT_EQ(gfx[3 * 4096 + 1], 9);
   EXPECT_EQ(gfx[4 * 4096 + 1], 9);
-  EXPECT_EQ(gfx[7 * 4096 + 1], 9);
+  EXPECT_EQ(gfx[5 * 4096 + 1], 9);
 
   EXPECT_EQ(gfx[1 * 4096 + 1], 1);
-  EXPECT_EQ(gfx[5 * 4096 + 1], 1);
+  EXPECT_EQ(gfx[2 * 4096 + 1], 1);
   EXPECT_EQ(gfx[6 * 4096 + 1], 1);
+  EXPECT_EQ(gfx[7 * 4096 + 1], 1);
   EXPECT_EQ(gfx[8 * 4096 + 1], 1);
 }
 
