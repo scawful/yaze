@@ -19,6 +19,7 @@
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/oracle_rom_safety_preflight.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -161,7 +162,27 @@ void InitializeTightObjectRom(Rom* rom) {
   rom->mutable_data()[kSyntheticPotTerminatorPc + 1] = 0xFF;
 }
 
-void WriteObjectCowManifest(const std::filesystem::path& path) {
+void WriteObjectCowManifest(const std::filesystem::path& path,
+                            bool protect_allocation = false) {
+  std::string protected_section;
+  if (protect_allocation) {
+    protected_section = absl::StrFormat(
+        R"json(,
+  "protected_regions": {
+    "total_hooks": 1,
+    "regions": [
+      {
+        "start": "0x%06X",
+        "end": "0x%06X",
+        "size": %d,
+        "hook_count": 1,
+        "module": "ObjectAllocatorGuard"
+      }
+    ]
+  })json",
+        PcToSnes(kObjectAllocationPc), PcToSnes(kObjectDataEndPc),
+        kObjectDataEndPc - kObjectAllocationPc);
+  }
   const std::string json = absl::StrFormat(
       R"json({
   "manifest_version": 3,
@@ -178,11 +199,11 @@ void WriteObjectCowManifest(const std::filesystem::path& path) {
         {"start": "0x%06X", "end": "0x%06X"}
       ]
     }
-  }
+  }%s
 })json",
       PcToSnes(kObjectPointerTablePc), PcToSnes(kObjectDataPc),
       PcToSnes(kObjectDataEndPc), PcToSnes(kObjectAllocationPc),
-      PcToSnes(kObjectDataEndPc));
+      PcToSnes(kObjectDataEndPc), protected_section);
   std::ofstream output(path, std::ios::trunc);
   ASSERT_TRUE(output.is_open());
   output << json;
@@ -472,6 +493,71 @@ TEST(DungeonEditCommandsTest,
   zelda3::Room untouched = zelda3::LoadRoomFromRom(&reopened, 1);
   EXPECT_TRUE(untouched.GetTileObjects().empty());
   EXPECT_EQ(ReadRoomObjectPointerPc(reopened, 1), kObjectDataPc + 10);
+}
+
+TEST(DungeonEditCommandsTest,
+     PlaceObjectProtectedCowRangeRejectsDryRunAndWriteBeforeMutation) {
+  Rom rom;
+  InitializeTightObjectRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteObjectCowManifest(manifest_cleanup.file_path,
+                         /*protect_allocation=*/true);
+  rom.set_filename(cleanup.rom_path.string());
+
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+  auto disk_hash_before = zelda3::ComputeSha256(cleanup.rom_path.string());
+  ASSERT_TRUE(disk_hash_before.ok()) << disk_hash_before.status();
+  const int pointer_before = ReadRoomObjectPointerPc(rom, 0);
+  const bool dirty_before = rom.dirty();
+
+  handlers::DungeonPlaceObjectCommandHandler handler;
+  const std::vector<std::string> args = {
+      "--room=0x00",
+      "--id=0x0031",
+      "--x=1",
+      "--y=2",
+      "--size=6",
+      absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+      "--format=json"};
+
+  std::string dry_output;
+  const absl::Status dry_status = handler.Run(args, &rom, &dry_output);
+  EXPECT_EQ(dry_status.code(), absl::StatusCode::kPermissionDenied)
+      << dry_status;
+  EXPECT_EQ(dry_status.message(), "Write conflict with Hack Manifest");
+  EXPECT_THAT(dry_output, HasSubstr("\"mode\": \"dry-run\""));
+  EXPECT_THAT(dry_output, HasSubstr("\"manifest_write_policy\": \"block\""));
+  EXPECT_THAT(dry_output, HasSubstr("\"preflight_status\": \"failed\""));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.dirty(), dirty_before);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  auto disk_hash_after_dry = zelda3::ComputeSha256(cleanup.rom_path.string());
+  ASSERT_TRUE(disk_hash_after_dry.ok()) << disk_hash_after_dry.status();
+  EXPECT_EQ(*disk_hash_after_dry, *disk_hash_before);
+  EXPECT_EQ(ReadRoomObjectPointerPc(rom, 0), pointer_before);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+
+  std::vector<std::string> write_args = args;
+  write_args.push_back("--write");
+  std::string write_output;
+  const absl::Status write_status =
+      handler.Run(write_args, &rom, &write_output);
+  EXPECT_EQ(write_status.code(), dry_status.code()) << write_status;
+  EXPECT_EQ(write_status.message(), dry_status.message());
+  EXPECT_THAT(write_output, HasSubstr("\"mode\": \"write\""));
+  EXPECT_THAT(write_output, HasSubstr("\"preflight_status\": \"failed\""));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.dirty(), dirty_before);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  auto disk_hash_after_write = zelda3::ComputeSha256(cleanup.rom_path.string());
+  ASSERT_TRUE(disk_hash_after_write.ok()) << disk_hash_after_write.status();
+  EXPECT_EQ(*disk_hash_after_write, *disk_hash_before);
+  EXPECT_EQ(ReadRoomObjectPointerPc(rom, 0), pointer_before);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
 }
 
 }  // namespace
