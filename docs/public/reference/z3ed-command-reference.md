@@ -156,6 +156,7 @@ These commands operate directly on ROM data (no GUI required).
 - `dungeon-map --room <hex> [--layer <0|1|2>]` *(overlays Oracle custom collision tiles when present)*
 - `dungeon-list-chests --room <hex>`
 - `dungeon-get-entrance --entrance <hex> [--spawn]`
+- `entrance-info --entrance <hex> [--spawn]`
 - `dungeon-export-room --room <hex> --output <file>`
 - `dungeon-place-object --room <hex> --id <hex> --x <int> --y <int> [--size <int>] [--layer <0|1|2>] [--manifest <path>] [--write]`
 - `dungeon-get-room-tiles --room <hex>` *(stubbed)*
@@ -169,6 +170,11 @@ an explicit manifest defines `dungeon_stream_regions.objects` with the
 ownership guard: protected current-stream, allocation, object-pointer, or
 door-pointer writes are rejected before either dry-run or write can mutate ROM
 bytes.
+
+When `--spawn` is set, the ID must be `0x00`-`0x06`. Both entrance commands
+report the dedicated spawn fields (`quadrant`, `overworld_door_tilemap`, and
+the linked regular `entrance_id`) and omit the regular-entrance-only `door`
+field.
 
 Example:
 ```bash
