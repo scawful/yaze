@@ -12,6 +12,7 @@
 #include "rom/rom.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/dungeon_spawn_point.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -39,38 +40,6 @@ constexpr int kEntrancescrolling = 0x1561A;       // 0x1537E 1byte --h- --v-
 constexpr int kEntranceScrollQuadrant = 0x1569F;  // 0x15403 1byte
 constexpr int kEntranceExit = 0x15724;            // 0x15488 2byte word
 constexpr int kEntranceMusic = 0x1582E;           // 0x15592
-
-// word value for each room
-constexpr int kStartingEntranceroom = 0x15B6E;  // 0x158D2
-
-// 8 bytes per room, HU, FU, HD, FD, HL, FL, HR, FR
-constexpr int kStartingEntranceScrollEdge = 0x15B7C;  // 0x158E0
-constexpr int kStartingEntranceYScroll = 0x15BB4;  // 0x14AA9 //2bytes each room
-constexpr int kStartingEntranceXScroll = 0x15BC2;  // 0x14BB3 //2bytes
-constexpr int kStartingEntranceYPosition = 0x15BD0;       // 0x14CBD 2bytes
-constexpr int kStartingEntranceXPosition = 0x15BDE;       // 0x14DC7 2bytes
-constexpr int kStartingEntranceCameraYTrigger = 0x15BEC;  // 0x14ED1 2bytes
-constexpr int kStartingEntranceCameraXTrigger = 0x15BFA;  // 0x14FDB 2bytes
-
-constexpr int kStartingEntranceBlockset = 0x15C08;  // 0x150E5 1byte
-constexpr int kStartingEntranceFloor = 0x15C0F;     // 0x1516A 1byte
-constexpr int kStartingEntranceDungeon = 0x15C16;  // 0x151EF 1byte (dungeon id)
-
-constexpr int kStartingEntranceDoor = 0x15C2B;  // 0x15274 1byte
-
-// 1 byte, ---b ---a b = bg2, a = need to check
-constexpr int kStartingEntranceLadderBG = 0x15C1D;  // 0x152F9
-// 1byte --h- --v-
-constexpr int kStartingEntrancescrolling = 0x15C24;       // 0x1537E
-constexpr int kStartingEntranceScrollQuadrant = 0x15C2B;  // 0x15403 1byte
-constexpr int kStartingEntranceexit = 0x15C32;   // 0x15488 //2byte word
-constexpr int kStartingEntrancemusic = 0x15C4E;  // 0x15592
-constexpr int kStartingEntranceentrance = 0x15C40;
-
-constexpr int kNumDungeonSpawnPoints = 0x07;
-constexpr int kNumRegularDungeonEntrances = 0x85;
-constexpr int kNumDungeonEntranceSlots =
-    kNumDungeonSpawnPoints + kNumRegularDungeonEntrances;
 
 using DungeonEntranceWriteRange = std::pair<uint32_t, uint32_t>;
 
@@ -164,6 +133,42 @@ class RoomEntrance {
   RoomEntrance() = default;
   RoomEntrance(Rom* rom, uint8_t entrance_id, bool is_spawn_point = false)
       : entrance_id_(entrance_id), is_spawn_point_(is_spawn_point) {
+    if (is_spawn_point) {
+      // This combined array remains a read-only navigation view for existing
+      // UI code. Authoritative spawn persistence uses DungeonSpawnPoint, which
+      // has distinct door-tilemap and entrance-ID fields.
+      auto loaded_spawn = DungeonSpawnPoint::Load(*rom, entrance_id);
+      if (!loaded_spawn.ok()) {
+        return;
+      }
+      const DungeonSpawnPoint& spawn = *loaded_spawn;
+      room_ = static_cast<int16_t>(spawn.room_id);
+      y_position_ = spawn.y_coordinate;
+      x_position_ = spawn.x_coordinate;
+      camera_x_ = spawn.horizontal_scroll;
+      camera_y_ = spawn.vertical_scroll;
+      camera_trigger_y_ = spawn.camera_trigger_y;
+      camera_trigger_x_ = spawn.camera_trigger_x;
+      blockset_ = spawn.main_gfx;
+      music_ = spawn.song;
+      dungeon_id_ = spawn.dungeon_id;
+      floor_ = spawn.floor;
+      door_ = 0;
+      ladder_bg_ = spawn.layer;
+      scrolling_ = spawn.camera_scroll_controller;
+      scroll_quadrant_ = spawn.quadrant;
+      exit_ = static_cast<int16_t>(spawn.overworld_door_tilemap);
+      camera_boundary_qn_ = spawn.camera_scroll_boundaries[0];
+      camera_boundary_fn_ = spawn.camera_scroll_boundaries[1];
+      camera_boundary_qs_ = spawn.camera_scroll_boundaries[2];
+      camera_boundary_fs_ = spawn.camera_scroll_boundaries[3];
+      camera_boundary_qw_ = spawn.camera_scroll_boundaries[4];
+      camera_boundary_fw_ = spawn.camera_scroll_boundaries[5];
+      camera_boundary_qe_ = spawn.camera_scroll_boundaries[6];
+      camera_boundary_fe_ = spawn.camera_scroll_boundaries[7];
+      return;
+    }
+
     room_ = static_cast<short>(
         (rom->data()[kEntranceRoom + (entrance_id * 2) + 1] << 8) +
         rom->data()[kEntranceRoom + (entrance_id * 2)]);
@@ -213,73 +218,6 @@ class RoomEntrance {
         rom->data()[kEntranceScrollEdge + 6 + (entrance_id * 8)];
     camera_boundary_fe_ =
         rom->data()[kEntranceScrollEdge + 7 + (entrance_id * 8)];
-
-    if (is_spawn_point) {
-      room_ = static_cast<short>(
-          (rom->data()[kStartingEntranceroom + (entrance_id * 2) + 1] << 8) +
-          rom->data()[kStartingEntranceroom + (entrance_id * 2)]);
-
-      y_position_ = static_cast<uint16_t>(
-          (rom->data()[kStartingEntranceYPosition + (entrance_id * 2) + 1]
-           << 8) +
-          rom->data()[kStartingEntranceYPosition + (entrance_id * 2)]);
-
-      x_position_ = static_cast<uint16_t>(
-          (rom->data()[kStartingEntranceXPosition + (entrance_id * 2) + 1]
-           << 8) +
-          rom->data()[kStartingEntranceXPosition + (entrance_id * 2)]);
-
-      camera_x_ = static_cast<uint16_t>(
-          (rom->data()[kStartingEntranceXScroll + (entrance_id * 2) + 1] << 8) +
-          rom->data()[kStartingEntranceXScroll + (entrance_id * 2)]);
-
-      camera_y_ = static_cast<uint16_t>(
-          (rom->data()[kStartingEntranceYScroll + (entrance_id * 2) + 1] << 8) +
-          rom->data()[kStartingEntranceYScroll + (entrance_id * 2)]);
-
-      camera_trigger_y_ = static_cast<uint16_t>(
-          (rom->data()[kStartingEntranceCameraYTrigger + (entrance_id * 2) + 1]
-           << 8) +
-          rom->data()[kStartingEntranceCameraYTrigger + (entrance_id * 2)]);
-
-      camera_trigger_x_ = static_cast<uint16_t>(
-          (rom->data()[kStartingEntranceCameraXTrigger + (entrance_id * 2) + 1]
-           << 8) +
-          rom->data()[kStartingEntranceCameraXTrigger + (entrance_id * 2)]);
-
-      blockset_ = rom->data()[kStartingEntranceBlockset + entrance_id];
-      music_ = rom->data()[kStartingEntrancemusic + entrance_id];
-      dungeon_id_ = rom->data()[kStartingEntranceDungeon + entrance_id];
-      floor_ = rom->data()[kStartingEntranceFloor + entrance_id];
-      door_ = rom->data()[kStartingEntranceDoor + entrance_id];
-
-      ladder_bg_ = rom->data()[kStartingEntranceLadderBG + entrance_id];
-      scrolling_ = rom->data()[kStartingEntrancescrolling + entrance_id];
-      scroll_quadrant_ =
-          rom->data()[kStartingEntranceScrollQuadrant + entrance_id];
-
-      exit_ = static_cast<short>(
-          ((rom->data()[kStartingEntranceexit + (entrance_id * 2) + 1] & 0x01)
-           << 8) +
-          rom->data()[kStartingEntranceexit + (entrance_id * 2)]);
-
-      camera_boundary_qn_ =
-          rom->data()[kStartingEntranceScrollEdge + 0 + (entrance_id * 8)];
-      camera_boundary_fn_ =
-          rom->data()[kStartingEntranceScrollEdge + 1 + (entrance_id * 8)];
-      camera_boundary_qs_ =
-          rom->data()[kStartingEntranceScrollEdge + 2 + (entrance_id * 8)];
-      camera_boundary_fs_ =
-          rom->data()[kStartingEntranceScrollEdge + 3 + (entrance_id * 8)];
-      camera_boundary_qw_ =
-          rom->data()[kStartingEntranceScrollEdge + 4 + (entrance_id * 8)];
-      camera_boundary_fw_ =
-          rom->data()[kStartingEntranceScrollEdge + 5 + (entrance_id * 8)];
-      camera_boundary_qe_ =
-          rom->data()[kStartingEntranceScrollEdge + 6 + (entrance_id * 8)];
-      camera_boundary_fe_ =
-          rom->data()[kStartingEntranceScrollEdge + 7 + (entrance_id * 8)];
-    }
   }
 
   bool dirty() const { return dirty_; }
@@ -294,7 +232,8 @@ class RoomEntrance {
     if (is_spawn_point) {
       return absl::FailedPreconditionError(absl::StrFormat(
           "Dungeon spawn point 0x%02X cannot be saved: spawn writes are "
-          "disabled until the dedicated spawn ROM schema is modeled safely",
+          "disabled through the legacy RoomEntrance model; use the dedicated "
+          "spawn ROM schema in DungeonSpawnPoint",
           entrance_id));
     }
 
@@ -461,8 +400,8 @@ inline absl::Status RejectUnsupportedDungeonSpawnPointSaves(
       continue;
     }
     return absl::FailedPreconditionError(absl::StrFormat(
-        "Dungeon spawn point 0x%02X is scheduled for save, but spawn saving "
-        "is deferred until its distinct ROM schema is modeled safely",
+        "Dungeon spawn point 0x%02X is scheduled for save through the legacy "
+        "RoomEntrance model; use the dedicated DungeonSpawnPoint model",
         spawn_id));
   }
   return absl::OkStatus();
@@ -475,9 +414,9 @@ inline absl::Status SaveAllDungeonEntrances(
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
-  // Spawn writes are not permitted through this coordinator until their
-  // distinct ROM schema is modeled. Reject them before validating or writing
-  // any regular record so prediction remains a complete list of allowed writes.
+  // The combined RoomEntrance array remains a read-only navigation view for
+  // spawn slots. Reject dirty legacy views before writing any regular record;
+  // authoritative spawn saves use SaveAllDungeonSpawnPoints separately.
   RETURN_IF_ERROR(
       RejectUnsupportedDungeonSpawnPointSaves(entrances, dirty_only));
 
