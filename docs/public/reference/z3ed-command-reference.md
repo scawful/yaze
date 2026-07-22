@@ -156,9 +156,15 @@ These commands operate directly on ROM data (no GUI required).
 - `dungeon-map --room <hex> [--layer <0|1|2>]` *(overlays Oracle custom collision tiles when present)*
 - `dungeon-list-chests --room <hex>`
 - `dungeon-get-entrance --entrance <hex> [--spawn]`
+- `entrance-info --entrance <hex> [--spawn]`
 - `dungeon-export-room --room <hex> --output <file>`
 - `dungeon-get-room-tiles --room <hex>` *(stubbed)*
 - `dungeon-set-room-property --room <hex> --property <name> --value <value>` *(stubbed)*
+
+When `--spawn` is set, the ID must be `0x00`-`0x06`. Both entrance commands
+report the dedicated spawn fields (`quadrant`, `overworld_door_tilemap`, and
+the linked regular `entrance_id`) and omit the regular-entrance-only `door`
+field.
 
 Example:
 ```bash
