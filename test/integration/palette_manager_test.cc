@@ -349,7 +349,7 @@ TEST_F(PaletteManagerTest, DungeonRenderEditsMapToManagedHudAndDungeonColors) {
   int callback_palette = -1;
   gui::DungeonRenderPaletteSource callback_source =
       gui::DungeonRenderPaletteSource::kDungeonMain;
-  widget.SetOnPaletteChanged([&](gui::DungeonPaletteChange change) {
+  widget.SetOnDungeonPaletteChanged([&](gui::DungeonPaletteChange change) {
     ++callback_count;
     callback_palette = change.palette_id;
     callback_source = change.source;
@@ -526,7 +526,7 @@ TEST_F(PaletteManagerTest,
   stale_widget.SetDungeonRenderPaletteMode(true);
   stale_widget.SetCurrentPaletteId(1);
   int callback_count = 0;
-  stale_widget.SetOnPaletteChanged(
+  stale_widget.SetOnDungeonPaletteChanged(
       [&](gui::DungeonPaletteChange) { ++callback_count; });
 
   constexpr int kDungeonDisplayIndex = 99;

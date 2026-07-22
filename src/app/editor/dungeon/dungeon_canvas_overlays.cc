@@ -541,7 +541,9 @@ gfx::Bitmap* DungeonCanvasViewer::PrepareRoomCompositeBitmap(int room_id) {
   auto& room = *room_ptr;
   // Connected/compare views revisit already-materialized rooms. Honor Room's
   // render dirtiness so those cached buffers refresh lazily before compositing.
-  room.PrepareForRender(current_entrance_blockset_);
+  // Do not apply this viewer's active-room entrance override to an arbitrary
+  // connected target; the room retains its own render context.
+  room.PrepareForRender();
 
   auto& layer_mgr = GetRoomLayerManager(room_id);
   layer_mgr.ApplyLayerMerging(room.layer_merging());

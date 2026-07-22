@@ -48,13 +48,7 @@ class PaletteEditorWidget {
   void SavePaletteBackup(const gfx::SnesPalette& palette);
   bool RestorePaletteBackup(gfx::SnesPalette& palette);
 
-  // Callback when a dungeon palette is modified. HUD colors are shared by
-  // every dungeon room; dungeon-main colors are scoped to palette_id.
-  void SetOnPaletteChanged(std::function<void(DungeonPaletteChange)> callback) {
-    on_palette_changed_ = callback;
-  }
-  // Preserve the original palette-id-only callback shape for callers that do
-  // not need to distinguish shared HUD edits from dungeon-main edits.
+  // Original palette-id-only callback retained for source compatibility.
   void SetOnPaletteChanged(std::function<void(int)> callback) {
     if (!callback) {
       on_palette_changed_ = {};
@@ -63,6 +57,13 @@ class PaletteEditorWidget {
     on_palette_changed_ = [callback](DungeonPaletteChange change) {
       callback(change.palette_id);
     };
+  }
+
+  // Typed callback for dungeon rendering consumers that must distinguish
+  // shared HUD edits from palette-scoped dungeon-main edits.
+  void SetOnDungeonPaletteChanged(
+      std::function<void(DungeonPaletteChange)> callback) {
+    on_palette_changed_ = callback;
   }
 
   // Get/Set current editing palette
