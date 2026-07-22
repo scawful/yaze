@@ -47,6 +47,8 @@ constexpr std::array<uint8_t, 14> kRoomHeaderSentinel = {
     0xE4, 0xCF, 0x77, 0x88, 0x99, 0xAA, 0xBB,
 };
 constexpr uint16_t kRoomMessageSentinel = 0xDDCC;
+constexpr uint8_t kObjectHeaderByte0 = 0xA5;
+constexpr uint8_t kObjectHeaderByte1 = 0xE3;
 
 void ExpectInvalidArgument(const absl::Status& status,
                            const std::string& message_fragment) {
@@ -161,6 +163,30 @@ void InitializeRoomHeaderRom(Rom* rom) {
   rom->mutable_data()[zelda3::kMessagesIdDungeon] = kRoomMessageSentinel & 0xFF;
   rom->mutable_data()[zelda3::kMessagesIdDungeon + 1] =
       (kRoomMessageSentinel >> 8) & 0xFF;
+
+  WriteLong(rom, zelda3::kRoomObjectPointer, PcToSnes(kObjectPointerTablePc));
+  WriteLong(rom, kObjectPointerTablePc, PcToSnes(kObjectDataPc));
+  for (int room_id = 1; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    WriteLong(rom, kObjectPointerTablePc + room_id * 3,
+              PcToSnes(kObjectDataPc + 0x10));
+  }
+  ASSERT_TRUE(rom->WriteVector(kObjectDataPc,
+                               {kObjectHeaderByte0, kObjectHeaderByte1, 0xFF,
+                                0xFF, 0xFF, 0xFF, 0xF0, 0xFF, 0xFF, 0xFF})
+                  .ok());
+  ASSERT_TRUE(
+      rom->WriteVector(kObjectDataPc + 0x10, {0x00, 0x00, 0xFF, 0xFF, 0xFF,
+                                              0xFF, 0xF0, 0xFF, 0xFF, 0xFF})
+          .ok());
+
+  const uint16_t pot_pointer = PcToSnes(kSyntheticPotTerminatorPc) & 0xFFFF;
+  for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    const int pointer = zelda3::kRoomItemsPointers + room_id * 2;
+    rom->mutable_data()[pointer] = pot_pointer & 0xFF;
+    rom->mutable_data()[pointer + 1] = (pot_pointer >> 8) & 0xFF;
+  }
+  rom->mutable_data()[kSyntheticPotTerminatorPc] = 0xFF;
+  rom->mutable_data()[kSyntheticPotTerminatorPc + 1] = 0xFF;
   rom->set_dirty(false);
 }
 
@@ -591,9 +617,60 @@ TEST(DungeonEditCommandsTest, SetRoomPropertyMockRomCommitsSerializedHeader) {
 }
 
 TEST(DungeonEditCommandsTest,
-     SetRoomPropertyRejectsUnimplementedObjectStreamPropertiesWithoutMutation) {
-  for (const std::string property :
-       {"layout", "layout_id", "floor1", "floor2"}) {
+     SetRoomPropertyPersistsObjectStreamHeaderFieldsWithPerFieldRmw) {
+  struct Case {
+    const char* property;
+    const char* value;
+    uint8_t expected_byte0;
+    uint8_t expected_byte1;
+    uint8_t expected_layout;
+    uint8_t expected_floor1;
+    uint8_t expected_floor2;
+  };
+  const std::array<Case, 4> cases = {{
+      {"layout", "0x03", kObjectHeaderByte0, 0xEF, 3, 5, 10},
+      {"layout_id", "0x04", kObjectHeaderByte0, 0xF3, 4, 5, 10},
+      {"floor1", "0x02", 0xA2, kObjectHeaderByte1, 0, 2, 10},
+      {"floor2", "0x03", 0x35, kObjectHeaderByte1, 0, 5, 3},
+  }};
+
+  for (const auto& test_case : cases) {
+    SCOPED_TRACE(test_case.property);
+    Rom rom;
+    InitializeRoomHeaderRom(&rom);
+    const std::vector<uint8_t> payload_before(rom.data() + kObjectDataPc + 2,
+                                              rom.data() + kObjectDataPc + 10);
+
+    handlers::DungeonSetRoomPropertyCommandHandler handler;
+    std::string output;
+    const absl::Status status = handler.Run(
+        {"--mock-rom", "--room=0x00",
+         "--property=" + std::string(test_case.property),
+         "--value=" + std::string(test_case.value), "--format=json"},
+        &rom, &output);
+
+    ASSERT_TRUE(status.ok()) << status;
+    EXPECT_EQ(rom.data()[kObjectDataPc], test_case.expected_byte0);
+    EXPECT_EQ(rom.data()[kObjectDataPc + 1], test_case.expected_byte1);
+    EXPECT_TRUE(std::equal(payload_before.begin(), payload_before.end(),
+                           rom.data() + kObjectDataPc + 2));
+    const zelda3::Room reloaded = zelda3::LoadRoomFromRom(&rom, 0);
+    EXPECT_EQ(reloaded.layout_id(), test_case.expected_layout);
+    EXPECT_EQ(reloaded.floor1(), test_case.expected_floor1);
+    EXPECT_EQ(reloaded.floor2(), test_case.expected_floor2);
+    EXPECT_THAT(output, HasSubstr("\"status\": \"success\""));
+    EXPECT_THAT(output, HasSubstr("\"save_status\": \"mock-rom-skipped\""));
+  }
+}
+
+TEST(DungeonEditCommandsTest,
+     SetRoomPropertyRejectsObjectStreamHeaderValuesOutsideEncodedRange) {
+  const std::array<std::pair<const char*, const char*>, 3> cases = {{
+      {"layout", "0x08"},
+      {"floor1", "0x10"},
+      {"floor2", "0x10"},
+  }};
+  for (const auto& [property, value] : cases) {
     SCOPED_TRACE(property);
     Rom rom;
     InitializeRoomHeaderRom(&rom);
@@ -601,31 +678,104 @@ TEST(DungeonEditCommandsTest,
     WriteRomFile(rom, cleanup.rom_path);
     rom.set_filename(cleanup.rom_path.string());
     rom.set_dirty(false);
-
-    const std::vector<uint8_t> before = rom.vector();
-    const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
-    const std::string filename_before = rom.filename();
+    const auto before = rom.vector();
 
     handlers::DungeonSetRoomPropertyCommandHandler handler;
     std::string output;
     const absl::Status status =
-        handler.Run({"--room=0x00", "--property=" + property, "--value=0x02",
-                     "--format=json"},
+        handler.Run({"--room=0x00", "--property=" + std::string(property),
+                     "--value=" + std::string(value), "--format=json"},
                     &rom, &output);
 
-    EXPECT_TRUE(absl::IsUnimplemented(status)) << status;
-    EXPECT_THAT(std::string(status.message()),
-                HasSubstr("object-stream header"));
-    EXPECT_THAT(std::string(status.message()),
-                HasSubstr("persistence is not implemented"));
-    EXPECT_THAT(output, HasSubstr("\"status\": \"error\""));
-    EXPECT_THAT(output, HasSubstr("\"error\""));
+    ExpectInvalidArgument(status, "must be in range");
     EXPECT_EQ(rom.vector(), before);
     EXPECT_FALSE(rom.dirty());
-    EXPECT_EQ(rom.filename(), filename_before);
-    EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
     EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+    EXPECT_FALSE(std::filesystem::exists(cleanup.rom_path.string() + ".tmp"));
   }
+}
+
+TEST(DungeonEditCommandsTest,
+     SetRoomPropertySharedObjectHeaderFailsClosedWithoutManifest) {
+  Rom rom;
+  InitializeRoomHeaderRom(&rom);
+  SetRoomObjectPointer(&rom, 1, kObjectDataPc);
+  rom.set_dirty(false);
+  const auto before = rom.vector();
+
+  handlers::DungeonSetRoomPropertyCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--mock-rom", "--room=0x00", "--property=layout",
+                   "--value=0x03", "--format=json"},
+                  &rom, &output);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()), HasSubstr("copy-on-write"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest,
+     SetRoomPropertySharedObjectHeaderUsesManifestCopyOnWrite) {
+  Rom rom;
+  InitializeRoomHeaderRom(&rom);
+  SetRoomObjectPointer(&rom, 1, kObjectDataPc);
+  rom.set_dirty(false);
+  const std::vector<uint8_t> old_stream(rom.data() + kObjectDataPc,
+                                        rom.data() + kObjectDataPc + 10);
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+
+  handlers::DungeonSetRoomPropertyCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--mock-rom", "--room=0x00", "--property=layout", "--value=0x03",
+       "--manifest=" + manifest_cleanup.file_path.string(), "--format=json"},
+      &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(ReadRoomObjectPointerPc(rom, 0), kObjectAllocationPc);
+  EXPECT_EQ(ReadRoomObjectPointerPc(rom, 1), kObjectDataPc);
+  EXPECT_TRUE(std::equal(old_stream.begin(), old_stream.end(),
+                         rom.data() + kObjectDataPc));
+  EXPECT_EQ(rom.data()[kObjectAllocationPc], kObjectHeaderByte0);
+  EXPECT_EQ(rom.data()[kObjectAllocationPc + 1], 0xEF);
+  EXPECT_TRUE(std::equal(old_stream.begin() + 2, old_stream.end(),
+                         rom.data() + kObjectAllocationPc + 2));
+  EXPECT_THAT(output, HasSubstr("\"allocator_capability\": \"copy_on_write\""));
+}
+
+TEST(DungeonEditCommandsTest,
+     SetRoomPropertyManifestPreflightFailureCreatesNoSaveArtifacts) {
+  Rom rom;
+  InitializeRoomHeaderRom(&rom);
+  SetRoomObjectPointer(&rom, 1, kObjectDataPc);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  WriteRomFile(rom, cleanup.rom_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteObjectCowManifest(manifest_cleanup.file_path,
+                         /*protect_allocation=*/true);
+  const auto before = rom.vector();
+  const auto disk_before = ReadFile(cleanup.rom_path);
+
+  handlers::DungeonSetRoomPropertyCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--property=layout", "--value=0x03",
+       "--manifest=" + manifest_cleanup.file_path.string(), "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsPermissionDenied(status)) << status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+  EXPECT_FALSE(std::filesystem::exists(cleanup.rom_path.string() + ".tmp"));
 }
 
 TEST(DungeonEditCommandsTest,
@@ -763,6 +913,110 @@ TEST(DungeonEditCommandsTest, SetRoomPropertySavesBackupAndReopens) {
   EXPECT_EQ(room.staircase_room(2), 0xAA);
   EXPECT_EQ(room.staircase_room(3), 0xBB);
   EXPECT_EQ(room.message_id(), kRoomMessageSentinel);
+}
+
+TEST(DungeonEditCommandsTest,
+     SetRoomPropertyObjectHeaderDiskFailureRollsBackCallerRom) {
+  Rom rom;
+  InitializeRoomHeaderRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  WriteRomFile(rom, cleanup.rom_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  ASSERT_TRUE(
+      std::filesystem::create_directory(cleanup.rom_path.string() + ".tmp"));
+
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+  handlers::DungeonSetRoomPropertyCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--property=layout", "--value=0x03", "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsInternal(status)) << status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  const auto backups = FindBackupArtifacts(cleanup.rom_path);
+  ASSERT_EQ(backups.size(), 1u);
+  EXPECT_EQ(ReadFile(backups.front()), disk_before);
+  EXPECT_THAT(output, HasSubstr("\"save_error\""));
+}
+
+TEST(DungeonEditCommandsTest,
+     SetRoomPropertyObjectHeaderRequiredBackupFailureRollsBackCallerRom) {
+#if defined(_WIN32)
+  GTEST_SKIP() << "NAME_MAX backup failure fixture is POSIX-only";
+#else
+  Rom rom;
+  InitializeRoomHeaderRom(&rom);
+  const auto parent = std::filesystem::temp_directory_path();
+  const long name_max = pathconf(parent.c_str(), _PC_NAME_MAX);
+  if (name_max < 128) {
+    GTEST_SKIP() << "Filesystem does not expose a usable NAME_MAX";
+  }
+  std::string filename =
+      "yaze_object_header_backup_" +
+      std::to_string(
+          std::chrono::steady_clock::now().time_since_epoch().count());
+  const size_t target_length = static_cast<size_t>(name_max) - 4;
+  ASSERT_LT(filename.size(), target_length);
+  filename.append(target_length - filename.size(), 'h');
+  ScopedRomArtifactsCleanup cleanup(parent / filename);
+  WriteRomFile(rom, cleanup.rom_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+  handlers::DungeonSetRoomPropertyCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--property=floor1", "--value=0x02", "--format=json"},
+      &rom, &output);
+
+  EXPECT_FALSE(status.ok());
+  EXPECT_THAT(std::string(status.message()), HasSubstr("required ROM backup"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+  EXPECT_FALSE(std::filesystem::exists(cleanup.rom_path.string() + ".tmp"));
+#endif
+}
+
+TEST(DungeonEditCommandsTest,
+     SetRoomPropertyObjectHeaderSavesBackupAndReopens) {
+  Rom rom;
+  InitializeRoomHeaderRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  WriteRomFile(rom, cleanup.rom_path);
+  rom.set_filename(cleanup.rom_path.string());
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+
+  handlers::DungeonSetRoomPropertyCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--property=layout", "--value=0x03", "--format=json"},
+      &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  std::vector<uint8_t> expected = disk_before;
+  expected[kObjectDataPc + 1] = 0xEF;
+  EXPECT_EQ(rom.vector(), expected);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), expected);
+  EXPECT_FALSE(rom.dirty());
+  const auto backups = FindBackupArtifacts(cleanup.rom_path);
+  ASSERT_EQ(backups.size(), 1u);
+  EXPECT_EQ(ReadFile(backups.front()), disk_before);
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(cleanup.rom_path.string()).ok());
+  const zelda3::Room room = zelda3::LoadRoomFromRom(&reopened, 0);
+  EXPECT_EQ(room.layout_id(), 3);
+  EXPECT_EQ(room.floor1(), 5);
+  EXPECT_EQ(room.floor2(), 10);
 }
 
 TEST(DungeonEditCommandsTest,

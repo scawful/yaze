@@ -48,7 +48,8 @@ absl::Status InjectCollisionTile(Rom* rom, int room_id, int offset,
   }
   handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
   std::string out;
-  const auto status = handler.Run({"--in", tmp, "--format=json"}, rom, &out);
+  const auto status =
+      handler.Run({"--in", tmp, "--mock-rom", "--format=json"}, rom, &out);
   std::filesystem::remove(tmp);
   return status;
 }

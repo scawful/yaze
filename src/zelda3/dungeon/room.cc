@@ -2095,6 +2095,104 @@ absl::Status Room::SaveObjects(const DungeonStreamLayout* layout) {
   return absl::OkStatus();
 }
 
+absl::Status Room::SaveObjectStreamHeader(const DungeonStreamLayout* layout) {
+  if (rom_ == nullptr) {
+    return absl::InvalidArgumentError("ROM pointer is null");
+  }
+  if (!object_stream_header_dirty()) {
+    return absl::OkStatus();
+  }
+  if (floor1_graphics_ > 0x0F || floor2_graphics_ > 0x0F) {
+    return absl::InvalidArgumentError(
+        "Dungeon floor graphics values must be in range 0..15");
+  }
+  if (layout_id_ > 0x07) {
+    return absl::InvalidArgumentError(
+        "Dungeon layout ID must be in range 0..7");
+  }
+
+  const auto& rom_data = rom_->vector();
+  ASSIGN_OR_RETURN(const PhysicalStreamInfo stream_info,
+                   GetObjectStreamInfo(rom_data, room_id_));
+  if (stream_info.address < 0 ||
+      stream_info.address + 1 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Object stream header is out of range");
+  }
+
+  const uint8_t dirty_mask = save_dirty_state_.object_stream_header;
+  auto patch_header = [&](std::vector<uint8_t>* stream) -> absl::Status {
+    if (stream == nullptr || stream->size() < 2) {
+      return absl::DataLossError(
+          "Object stream is missing its two-byte header");
+    }
+    if ((dirty_mask & kObjectHeaderFloor1Dirty) != 0) {
+      (*stream)[0] = static_cast<uint8_t>(((*stream)[0] & 0xF0) |
+                                          (floor1_graphics_ & 0x0F));
+    }
+    if ((dirty_mask & kObjectHeaderFloor2Dirty) != 0) {
+      (*stream)[0] =
+          static_cast<uint8_t>(((*stream)[0] & 0x0F) | (floor2_graphics_ << 4));
+    }
+    if ((dirty_mask & kObjectHeaderLayoutDirty) != 0) {
+      (*stream)[1] = static_cast<uint8_t>(((*stream)[1] & 0xE3) |
+                                          ((layout_id_ & 0x07) << 2));
+    }
+    return absl::OkStatus();
+  };
+
+  bool requires_copy_on_write = stream_info.shared;
+  std::vector<uint8_t> replacement;
+  if (layout != nullptr) {
+    if (layout->kind != DungeonStreamKind::kObject) {
+      return absl::InvalidArgumentError(
+          "Object-stream header save requires an object stream layout");
+    }
+    ASSIGN_OR_RETURN(const DungeonStreamInventory inventory,
+                     InventoryDungeonStreams(*rom_, *layout));
+    if (!inventory.ok()) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Dungeon stream inventory has %zu issue(s); refusing object "
+          "header save",
+          inventory.issues.size()));
+    }
+    if (room_id_ < 0 ||
+        static_cast<size_t>(room_id_) >= inventory.streams.size()) {
+      return absl::OutOfRangeError(
+          "Room ID is outside the dungeon stream layout");
+    }
+    replacement = inventory.streams[room_id_].encoded_stream;
+    bool layout_requires_copy_on_write = false;
+    ASSIGN_OR_RETURN(layout_requires_copy_on_write,
+                     DungeonStreamRequiresCopyOnWrite(
+                         *rom_, room_id_, DungeonStreamKind::kObject, *layout,
+                         replacement.size()));
+    requires_copy_on_write =
+        requires_copy_on_write || layout_requires_copy_on_write;
+  }
+
+  if (requires_copy_on_write) {
+    if (layout == nullptr) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Room %d object stream at PC 0x%06X is shared; a copy-on-write "
+          "manifest is required to save its header",
+          room_id_, stream_info.address));
+    }
+    RETURN_IF_ERROR(patch_header(&replacement));
+    RETURN_IF_ERROR(RelocateDungeonStream(rom_, room_id_,
+                                          DungeonStreamKind::kObject, *layout,
+                                          std::move(replacement)));
+    ClearObjectStreamHeaderDirty();
+    return absl::OkStatus();
+  }
+
+  std::vector<uint8_t> header = {rom_data[stream_info.address],
+                                 rom_data[stream_info.address + 1]};
+  RETURN_IF_ERROR(patch_header(&header));
+  RETURN_IF_ERROR(rom_->WriteVector(stream_info.address, std::move(header)));
+  ClearObjectStreamHeaderDirty();
+  return absl::OkStatus();
+}
+
 absl::Status Room::SaveSprites(const DungeonStreamLayout* layout) {
   if (rom_ == nullptr) {
     return absl::InvalidArgumentError("ROM pointer is null");
