@@ -157,8 +157,15 @@ These commands operate directly on ROM data (no GUI required).
 - `dungeon-list-chests --room <hex>`
 - `dungeon-get-entrance --entrance <hex> [--spawn]`
 - `dungeon-export-room --room <hex> --output <file>`
+- `dungeon-place-object --room <hex> --id <hex> --x <int> --y <int> [--size <int>] [--layer <0|1|2>] [--manifest <path>] [--write]`
 - `dungeon-get-room-tiles --room <hex>` *(stubbed)*
 - `dungeon-set-room-property --room <hex> --property <name> --value <value>` *(stubbed)*
+
+`dungeon-place-object` is a dry-run unless `--write` is supplied. Both modes
+execute the same immutable capacity preflight. In-place edits can proceed
+without a manifest, but a shared or growing object stream fails closed unless
+an explicit manifest defines `dungeon_stream_regions.objects` with the
+`copy_on_write` strategy and allocator-owned space.
 
 Example:
 ```bash
