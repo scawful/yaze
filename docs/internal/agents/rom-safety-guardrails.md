@@ -13,7 +13,9 @@ This repo is used to edit ROM hacks (including Oracle of Secrets). Treat ROM wri
 
 ## CLI Save Transaction Contract
 
-- `Rom::SaveSettings::backup` keeps its legacy best-effort behavior.
+- `Rom::SaveSettings::backup` is best-effort: an existing save destination is
+  copied before replacement, a new destination has no prior bytes to back up,
+  and backup failure is logged without blocking the save.
 - Safety-critical CLI writes can set `require_backup=true`. If the save target
   already exists, that target (including a Save As destination) is copied to a
   same-directory temporary path and renamed into place only after the copy

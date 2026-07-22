@@ -378,9 +378,9 @@ absl::Status Rom::SaveToFile(const SaveSettings& settings) {
     filename = filename_;
   }
 
-  // Strict mode must reason about the actual destination, including the
+  // Backup modes must reason about the actual destination, including the
   // timestamped path selected by save_new.
-  if (settings.require_backup && settings.save_new) {
+  if (settings.save_new) {
     auto now = std::chrono::system_clock::now();
     auto now_c = std::chrono::system_clock::to_time_t(now);
     auto filename_no_ext = filename.substr(0, filename.find_last_of("."));
@@ -408,25 +408,22 @@ absl::Status Rom::SaveToFile(const SaveSettings& settings) {
       RETURN_IF_ERROR(CreateRequiredBackup(target_path, backup_filename));
     }
   } else if (settings.backup) {
-    auto now = std::chrono::system_clock::now();
-    auto now_c = std::chrono::system_clock::to_time_t(now);
-    std::string backup_filename =
-        absl::StrCat(filename, "_backup_", MakeSafeTimestamp(now_c));
-
     try {
-      std::filesystem::copy(filename_, backup_filename,
-                            std::filesystem::copy_options::overwrite_existing);
+      const std::filesystem::path target_path(filename);
+      // Best-effort backups protect the file about to be replaced. A new
+      // destination has no previous bytes to preserve.
+      if (std::filesystem::exists(target_path)) {
+        auto now = std::chrono::system_clock::now();
+        auto now_c = std::chrono::system_clock::to_time_t(now);
+        std::string backup_filename =
+            absl::StrCat(filename, "_backup_", MakeSafeTimestamp(now_c));
+        std::filesystem::copy(
+            target_path, backup_filename,
+            std::filesystem::copy_options::overwrite_existing);
+      }
     } catch (const std::filesystem::filesystem_error& e) {
       LOG_WARN("Rom", "Could not create backup: %s", e.what());
     }
-  }
-
-  if (settings.save_new && !settings.require_backup) {
-    auto now = std::chrono::system_clock::now();
-    auto now_c = std::chrono::system_clock::to_time_t(now);
-    auto filename_no_ext = filename.substr(0, filename.find_last_of("."));
-    filename =
-        absl::StrCat(filename_no_ext, "_", MakeSafeTimestamp(now_c), ".sfc");
   }
 
   // Save stability: write to a temp file in the same directory and rename into
