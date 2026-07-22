@@ -1772,6 +1772,218 @@ TEST_F(DungeonSaveTest,
   EXPECT_TRUE(rooms[1].pot_items_dirty());
 }
 
+TEST_F(DungeonSaveTest, DungeonSpawnPointWriteRangesAreExactAndNonAliased) {
+  constexpr int kSpawnId = 2;
+  auto loaded = DungeonSpawnPoint::Load(*rom_, kSpawnId);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  std::array<DungeonSpawnPoint, kNumDungeonSpawnPoints> spawn_points{};
+  spawn_points[kSpawnId] = *loaded;
+  spawn_points[kSpawnId].MarkDirty();
+
+  const std::vector<DungeonSpawnPointWriteRange> expected = {
+      {kDungeonSpawnRoom + kSpawnId * 2, kDungeonSpawnRoom + kSpawnId * 2 + 2},
+      {kDungeonSpawnCameraScrollBoundaries + kSpawnId * 8,
+       kDungeonSpawnCameraScrollBoundaries + kSpawnId * 8 + 8},
+      {kDungeonSpawnHorizontalScroll + kSpawnId * 2,
+       kDungeonSpawnHorizontalScroll + kSpawnId * 2 + 2},
+      {kDungeonSpawnVerticalScroll + kSpawnId * 2,
+       kDungeonSpawnVerticalScroll + kSpawnId * 2 + 2},
+      {kDungeonSpawnYCoordinate + kSpawnId * 2,
+       kDungeonSpawnYCoordinate + kSpawnId * 2 + 2},
+      {kDungeonSpawnXCoordinate + kSpawnId * 2,
+       kDungeonSpawnXCoordinate + kSpawnId * 2 + 2},
+      {kDungeonSpawnCameraTriggerY + kSpawnId * 2,
+       kDungeonSpawnCameraTriggerY + kSpawnId * 2 + 2},
+      {kDungeonSpawnCameraTriggerX + kSpawnId * 2,
+       kDungeonSpawnCameraTriggerX + kSpawnId * 2 + 2},
+      {kDungeonSpawnMainGfx + kSpawnId, kDungeonSpawnMainGfx + kSpawnId + 1},
+      {kDungeonSpawnFloor + kSpawnId, kDungeonSpawnFloor + kSpawnId + 1},
+      {kDungeonSpawnDungeonId + kSpawnId,
+       kDungeonSpawnDungeonId + kSpawnId + 1},
+      {kDungeonSpawnLayer + kSpawnId, kDungeonSpawnLayer + kSpawnId + 1},
+      {kDungeonSpawnCameraScrollController + kSpawnId,
+       kDungeonSpawnCameraScrollController + kSpawnId + 1},
+      {kDungeonSpawnQuadrant + kSpawnId, kDungeonSpawnQuadrant + kSpawnId + 1},
+      {kDungeonSpawnOverworldDoorTilemap + kSpawnId * 2,
+       kDungeonSpawnOverworldDoorTilemap + kSpawnId * 2 + 2},
+      {kDungeonSpawnEntranceId + kSpawnId * 2,
+       kDungeonSpawnEntranceId + kSpawnId * 2 + 2},
+      {kDungeonSpawnSong + kSpawnId, kDungeonSpawnSong + kSpawnId + 1},
+  };
+
+  const auto ranges = CollectDirtyDungeonSpawnPointWriteRanges(spawn_points);
+  EXPECT_EQ(ranges, expected);
+  size_t unique_bytes = 0;
+  for (const auto& [begin, end] : ranges) {
+    unique_bytes += end - begin;
+  }
+  EXPECT_EQ(ranges.size(), 17u);
+  EXPECT_EQ(unique_bytes, 33u);
+  EXPECT_EQ(std::count(ranges.begin(), ranges.end(),
+                       DungeonSpawnPointWriteRange{
+                           kDungeonSpawnQuadrant + kSpawnId,
+                           kDungeonSpawnQuadrant + kSpawnId + 1}),
+            1);
+  EXPECT_EQ(kStartingEntranceDoor, kStartingEntranceScrollQuadrant);
+}
+
+TEST_F(DungeonSaveTest,
+       DungeonSpawnPointLoadKeepsRoomDoorTilemapAndEntranceIdDistinct) {
+  constexpr int kSpawnId = 1;
+  ASSERT_TRUE(rom_->WriteShort(kDungeonSpawnRoom + kSpawnId * 2, 0x01AB).ok());
+  ASSERT_TRUE(
+      rom_->WriteShort(kDungeonSpawnHorizontalScroll + kSpawnId * 2, 0x1234)
+          .ok());
+  ASSERT_TRUE(
+      rom_->WriteShort(kDungeonSpawnVerticalScroll + kSpawnId * 2, 0x5678)
+          .ok());
+  ASSERT_TRUE(rom_->WriteByte(kDungeonSpawnQuadrant + kSpawnId, 0x21).ok());
+  ASSERT_TRUE(
+      rom_->WriteShort(kDungeonSpawnOverworldDoorTilemap + kSpawnId * 2, 0xA5C3)
+          .ok());
+  ASSERT_TRUE(
+      rom_->WriteShort(kDungeonSpawnEntranceId + kSpawnId * 2, 0x0084).ok());
+
+  auto loaded = DungeonSpawnPoint::Load(*rom_, kSpawnId);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  EXPECT_EQ(loaded->room_id, 0x01AB);
+  EXPECT_EQ(loaded->horizontal_scroll, 0x1234);
+  EXPECT_EQ(loaded->vertical_scroll, 0x5678);
+  EXPECT_EQ(loaded->quadrant, 0x21);
+  EXPECT_EQ(loaded->overworld_door_tilemap, 0xA5C3);
+  EXPECT_EQ(loaded->entrance_id, 0x0084);
+
+  const RoomEntrance navigation_view(rom_.get(), kSpawnId, true);
+  EXPECT_EQ(navigation_view.room_, 0x01AB);
+  EXPECT_EQ(navigation_view.camera_x_, 0x1234);
+  EXPECT_EQ(navigation_view.camera_y_, 0x5678);
+  EXPECT_EQ(navigation_view.scroll_quadrant_, 0x21);
+  EXPECT_EQ(navigation_view.door_, 0);
+  EXPECT_EQ(static_cast<uint16_t>(navigation_view.exit_), 0xA5C3);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllDungeonSpawnPointsWritesOnlyExactDedicatedRecord) {
+  constexpr int kSpawnId = 2;
+  auto loaded = DungeonSpawnPoint::Load(*rom_, kSpawnId);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  std::array<DungeonSpawnPoint, kNumDungeonSpawnPoints> spawn_points{};
+  spawn_points[kSpawnId] = *loaded;
+  auto& spawn = spawn_points[kSpawnId];
+  spawn.room_id = 0x01AB;
+  spawn.camera_scroll_boundaries = {0x10, 0x11, 0x12, 0x13,
+                                    0x14, 0x15, 0x16, 0x17};
+  spawn.horizontal_scroll = 0x1234;
+  spawn.vertical_scroll = 0x2345;
+  spawn.y_coordinate = 0x3456;
+  spawn.x_coordinate = 0x4567;
+  spawn.camera_trigger_y = 0x5678;
+  spawn.camera_trigger_x = 0x6789;
+  spawn.main_gfx = 0x11;
+  spawn.floor = 0xFE;
+  spawn.dungeon_id = 0x22;
+  spawn.layer = 0x31;
+  spawn.camera_scroll_controller = 0x42;
+  spawn.quadrant = 0x21;
+  spawn.overworld_door_tilemap = 0xA5C3;
+  spawn.entrance_id = 0x0084;
+  spawn.song = 0x33;
+  spawn.MarkDirty();
+  const auto before = rom_->vector();
+  const auto expected_ranges = DungeonSpawnPointWriteRanges(kSpawnId);
+
+  const absl::Status status =
+      SaveAllDungeonSpawnPoints(rom_.get(), spawn_points);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_FALSE(spawn.dirty());
+  for (size_t pc = 0; pc < before.size(); ++pc) {
+    if (before[pc] == rom_->data()[pc]) {
+      continue;
+    }
+    EXPECT_TRUE(std::any_of(expected_ranges.begin(), expected_ranges.end(),
+                            [pc](const DungeonSpawnPointWriteRange& range) {
+                              return range.first <= pc && pc < range.second;
+                            }))
+        << "Spawn write escaped exact ranges at PC 0x" << std::hex << pc;
+  }
+
+  auto reopened = DungeonSpawnPoint::Load(*rom_, kSpawnId);
+  ASSERT_TRUE(reopened.ok()) << reopened.status();
+  EXPECT_EQ(reopened->room_id, 0x01AB);
+  EXPECT_EQ(
+      reopened->camera_scroll_boundaries,
+      (std::array<uint8_t, 8>{0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17}));
+  EXPECT_EQ(reopened->horizontal_scroll, 0x1234);
+  EXPECT_EQ(reopened->vertical_scroll, 0x2345);
+  EXPECT_EQ(reopened->y_coordinate, 0x3456);
+  EXPECT_EQ(reopened->x_coordinate, 0x4567);
+  EXPECT_EQ(reopened->camera_trigger_y, 0x5678);
+  EXPECT_EQ(reopened->camera_trigger_x, 0x6789);
+  EXPECT_EQ(reopened->main_gfx, 0x11);
+  EXPECT_EQ(reopened->floor, 0xFE);
+  EXPECT_EQ(reopened->dungeon_id, 0x22);
+  EXPECT_EQ(reopened->layer, 0x31);
+  EXPECT_EQ(reopened->camera_scroll_controller, 0x42);
+  EXPECT_EQ(reopened->overworld_door_tilemap, 0xA5C3);
+  EXPECT_EQ(reopened->entrance_id, 0x0084);
+  EXPECT_EQ(reopened->quadrant, 0x21);
+  EXPECT_EQ(reopened->song, 0x33);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllDungeonSpawnPointsPreflightsEveryRecordBeforeFirstWrite) {
+  std::array<DungeonSpawnPoint, kNumDungeonSpawnPoints> spawn_points{};
+  for (int spawn_id : {0, 1}) {
+    auto loaded = DungeonSpawnPoint::Load(*rom_, spawn_id);
+    ASSERT_TRUE(loaded.ok()) << loaded.status();
+    spawn_points[spawn_id] = *loaded;
+  }
+  spawn_points[0].room_id = 1;
+  spawn_points[0].MarkDirty();
+  spawn_points[1].room_id = 0x0200;
+  spawn_points[1].MarkDirty();
+  const auto before = rom_->vector();
+
+  const absl::Status status =
+      SaveAllDungeonSpawnPoints(rom_.get(), spawn_points);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kOutOfRange) << status;
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(spawn_points[0].dirty());
+  EXPECT_TRUE(spawn_points[1].dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       DungeonSpawnPointRejectsInvalidIdsAndTruncatedRomBeforeMutation) {
+  auto loaded = DungeonSpawnPoint::Load(*rom_, 2);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  loaded->room_id = 1;
+  loaded->MarkDirty();
+  const auto before = rom_->vector();
+
+  const absl::Status mismatch = loaded->Save(rom_.get(), 3);
+  EXPECT_EQ(mismatch.code(), absl::StatusCode::kInvalidArgument) << mismatch;
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(loaded->dirty());
+
+  loaded->entrance_id = kNumRegularDungeonEntrances;
+  const absl::Status invalid_entrance = loaded->Save(rom_.get(), 2);
+  EXPECT_EQ(invalid_entrance.code(), absl::StatusCode::kOutOfRange)
+      << invalid_entrance;
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(loaded->dirty());
+
+  Rom truncated;
+  ASSERT_TRUE(
+      truncated.LoadFromData(std::vector<uint8_t>(kDungeonSpawnSong, 0)).ok());
+  const auto truncated_before = truncated.vector();
+  auto truncated_load = DungeonSpawnPoint::Load(truncated, 0);
+  EXPECT_EQ(truncated_load.status().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(truncated.vector(), truncated_before);
+}
+
 TEST_F(DungeonSaveTest, SaveAllDungeonEntrances_WritesDirtyRegularEntrance) {
   std::array<RoomEntrance, kNumDungeonEntranceSlots> entrances{};
   entrances[kNumDungeonSpawnPoints + 3] = RoomEntrance(rom_.get(), 3, false);

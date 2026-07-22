@@ -778,6 +778,147 @@ TEST(DungeonEditorV2RomSafetyTest,
 }
 
 TEST(DungeonEditorV2RomSafetyTest,
+     CollectWriteRangesIncludesExactDirtySpawnPointRanges) {
+  constexpr int kSpawnId = 1;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  ASSERT_TRUE(DungeonEditorV2SpawnPointTestPeer::LoadSpawnPointFromRom(*editor,
+                                                                       kSpawnId)
+                  .ok());
+  auto& spawn =
+      DungeonEditorV2SpawnPointTestPeer::SpawnPoint(*editor, kSpawnId);
+  spawn.room_id = 0x0123;
+  spawn.MarkDirty();
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveEntrances = true;
+
+  EXPECT_EQ(editor->CollectWriteRanges(),
+            zelda3::DungeonSpawnPointWriteRanges(kSpawnId));
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     SaveRoomPersistsDedicatedSpawnPointAndClearsDirtyState) {
+  constexpr int kSpawnId = 1;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  ASSERT_TRUE(DungeonEditorV2SpawnPointTestPeer::LoadSpawnPointFromRom(*editor,
+                                                                       kSpawnId)
+                  .ok());
+  auto& spawn =
+      DungeonEditorV2SpawnPointTestPeer::SpawnPoint(*editor, kSpawnId);
+  spawn.room_id = 0x0123;
+  spawn.overworld_door_tilemap = 0xA5C3;
+  spawn.entrance_id = 0x0084;
+  spawn.MarkDirty();
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveEntrances = true;
+
+  const absl::Status status = editor->SaveRoom(0);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_FALSE(spawn.dirty());
+  auto reopened = zelda3::DungeonSpawnPoint::Load(rom, kSpawnId);
+  ASSERT_TRUE(reopened.ok()) << reopened.status();
+  EXPECT_EQ(reopened->room_id, 0x0123);
+  EXPECT_EQ(reopened->overworld_door_tilemap, 0xA5C3);
+  EXPECT_EQ(reopened->entrance_id, 0x0084);
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     LateCoordinatorRollbackRestoresSpawnPointDirtyState) {
+  constexpr int kSpawnId = 1;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  ASSERT_TRUE(DungeonEditorV2SpawnPointTestPeer::LoadSpawnPointFromRom(*editor,
+                                                                       kSpawnId)
+                  .ok());
+  auto& spawn =
+      DungeonEditorV2SpawnPointTestPeer::SpawnPoint(*editor, kSpawnId);
+  spawn.room_id = 0x0123;
+  spawn.MarkDirty();
+  const auto before = rom.vector();
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveEntrances = true;
+
+  ScopedRomTransaction rom_transaction(rom);
+  ASSERT_TRUE(editor->BeginSaveTransaction().ok());
+  ASSERT_TRUE(editor->Save().ok());
+  EXPECT_FALSE(spawn.dirty());
+  EXPECT_EQ(rom.ReadWord(zelda3::kDungeonSpawnRoom + kSpawnId * 2).value(),
+            0x0123);
+
+  editor->RollbackSaveTransaction();
+  rom_transaction.Rollback();
+
+  EXPECT_TRUE(spawn.dirty());
+  EXPECT_EQ(rom.vector(), before);
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     SaveRoomBlocksProtectedSpawnPointBeforeMutation) {
+  constexpr int kSpawnId = 1;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  auto project = MakeProjectWithManifest(R"json(
+{
+  "manifest_version": 3,
+  "protected_regions": {
+    "total_hooks": 1,
+    "regions": [
+      {
+        "start": "0x02DB70",
+        "end": "0x02DB72",
+        "size": 2,
+        "hook_count": 1,
+        "module": "SpawnPointGuard"
+      }
+    ]
+  }
+}
+)json");
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project;
+  editor->SetDependencies(dependencies);
+  ASSERT_TRUE(DungeonEditorV2SpawnPointTestPeer::LoadSpawnPointFromRom(*editor,
+                                                                       kSpawnId)
+                  .ok());
+  auto& spawn =
+      DungeonEditorV2SpawnPointTestPeer::SpawnPoint(*editor, kSpawnId);
+  spawn.room_id = 0x0123;
+  spawn.MarkDirty();
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveEntrances = true;
+  const auto before = rom.vector();
+
+  const absl::Status status = editor->SaveRoom(0);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(spawn.dirty());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
      SaveBlocksProtectedRegularEntranceBeforeMutation) {
   constexpr int kEntranceId = 3;
   Rom rom;

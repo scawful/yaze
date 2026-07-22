@@ -6,8 +6,8 @@
 namespace yaze::editor {
 
 inline constexpr char kDungeonSpawnReadOnlyReason[] =
-    "Spawn properties are read-only until their dedicated ROM schema is "
-    "supported.";
+    "Spawn properties are read-only until the UI binds to the dedicated "
+    "DungeonSpawnPoint model.";
 
 inline bool CanEditDungeonEntrance(int slot_index,
                                    const zelda3::RoomEntrance& entrance) {

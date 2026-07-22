@@ -381,6 +381,7 @@ absl::Status DungeonEditorV2::Load() {
   }
 
   RETURN_IF_ERROR(room_loader_.LoadRoomEntrances(entrances_));
+  RETURN_IF_ERROR(room_loader_.LoadDungeonSpawnPoints(spawn_points_));
 
   if (!game_data()) {
     return absl::FailedPreconditionError("GameData not available");
