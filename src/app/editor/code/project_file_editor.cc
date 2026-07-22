@@ -1,13 +1,9 @@
 #include "app/editor/code/project_file_editor.h"
 #include "util/i18n/tr.h"
 
-#include <atomic>
-#include <chrono>
-#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
-#include <system_error>
 
 #include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
@@ -23,25 +19,33 @@
 
 #ifdef __EMSCRIPTEN__
 #include "app/platform/wasm/wasm_storage.h"
-#elif defined(_WIN32)
-#include <windows.h>
 #endif
 namespace yaze {
 namespace editor {
 
 namespace {
 
-std::filesystem::path MakeRawProjectSaveTempPath(
-    const std::filesystem::path& target_path) {
-  static std::atomic<uint64_t> next_temp_id{0};
-  const auto timestamp =
-      std::chrono::steady_clock::now().time_since_epoch().count();
-  std::filesystem::path temp_path = target_path;
-  temp_path +=
-      ".tmp." + std::to_string(timestamp) + "." +
-      std::to_string(next_temp_id.fetch_add(1, std::memory_order_relaxed));
-  return temp_path;
+#ifndef __EMSCRIPTEN__
+bool PathsReferToSameProjectFile(const std::string& left,
+                                 const std::string& right) {
+  if (left.empty() || right.empty()) {
+    return false;
+  }
+
+  std::error_code equivalent_error;
+  if (std::filesystem::equivalent(left, right, equivalent_error)) {
+    return true;
+  }
+
+  std::error_code left_error;
+  std::error_code right_error;
+  const auto left_path =
+      std::filesystem::absolute(left, left_error).lexically_normal();
+  const auto right_path =
+      std::filesystem::absolute(right, right_error).lexically_normal();
+  return !left_error && !right_error && left_path == right_path;
 }
+#endif
 
 #ifdef __EMSCRIPTEN__
 std::string ProjectStorageKey(const project::YazeProject* project,
@@ -306,48 +310,10 @@ absl::Status ProjectFileEditor::SaveFileAs(const std::string& filepath) {
   recent_mgr.Save();
   return absl::OkStatus();
 #else
-  const std::filesystem::path target_path(final_path);
-  const std::filesystem::path temp_path =
-      MakeRawProjectSaveTempPath(target_path);
-  std::ofstream file(temp_path, std::ios::binary | std::ios::trunc);
-  if (!file.is_open()) {
-    return absl::InvalidArgumentError(absl::StrFormat(
-        "Cannot create temporary project file: %s", temp_path.string()));
-  }
-
-  file.write(contents.data(), static_cast<std::streamsize>(contents.size()));
-  file.flush();
-  if (!file.good()) {
-    file.close();
-    std::error_code remove_error;
-    std::filesystem::remove(temp_path, remove_error);
-    return absl::InternalError(
-        absl::StrFormat("Failed to write project file: %s", final_path));
-  }
-  file.close();
-  if (file.fail()) {
-    std::error_code remove_error;
-    std::filesystem::remove(temp_path, remove_error);
-    return absl::InternalError(
-        absl::StrFormat("Failed to close project file: %s", final_path));
-  }
-
-  std::error_code rename_error;
-#if defined(_WIN32)
-  if (!::MoveFileExW(temp_path.c_str(), target_path.c_str(),
-                     MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
-    rename_error = std::error_code(static_cast<int>(::GetLastError()),
-                                   std::system_category());
-  }
-#else
-  std::filesystem::rename(temp_path, target_path, rename_error);
-#endif
-  if (rename_error) {
-    std::error_code remove_error;
-    std::filesystem::remove(temp_path, remove_error);
-    return absl::InternalError(absl::StrFormat(
-        "Failed to replace project file: %s", rename_error.message()));
-  }
+  const bool replace_existing =
+      PathsReferToSameProjectFile(filepath_, final_path);
+  RETURN_IF_ERROR(project::WriteProjectFileAtomically(final_path, contents,
+                                                      replace_existing));
 
   if (save_complete_callback_) {
     RETURN_IF_ERROR(save_complete_callback_(final_path, contents));

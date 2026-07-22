@@ -398,12 +398,27 @@ absl::Status ProjectManager::FinalizeProjectCreation(
   current_project_.name = project_name;
   current_project_.filepath = target_filepath;
 
-  // Initialize project structure if we have a directory
   std::string project_dir;
 #ifndef __EMSCRIPTEN__
   project_dir =
       std::filesystem::path(current_project_.filepath).parent_path().string();
+  if (!project_dir.empty()) {
+    std::error_code directory_error;
+    std::filesystem::create_directories(project_dir, directory_error);
+    if (directory_error) {
+      return absl::InternalError(
+          absl::StrFormat("Could not create project directory %s: %s",
+                          project_dir, directory_error.message()));
+    }
+  }
 #endif
+
+  // A project is not complete until its descriptor exists on disk. Save it
+  // before provisioning auxiliary directories so a competing creator cannot
+  // leave orphaned structure after losing the atomic no-clobber race.
+  RETURN_IF_ERROR(current_project_.SaveNew());
+
+  // Initialize project structure if we have a directory.
   if (!project_dir.empty()) {
     auto status = InitializeProjectStructure(project_dir);
     if (!status.ok()) {
@@ -413,10 +428,6 @@ absl::Status ProjectManager::FinalizeProjectCreation(
       }
     }
   }
-
-  // A project is not complete until its descriptor exists on disk. Keep the
-  // pending workflow intact on failure so callers can retry or cancel.
-  RETURN_IF_ERROR(current_project_.SaveNew());
 
   pending_rom_selection_ = false;
   pending_template_name_.clear();

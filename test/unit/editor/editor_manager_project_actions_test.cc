@@ -393,6 +393,32 @@ TEST(EditorManagerProjectActionsTest, ProjectFileSaveIsByteStable) {
 }
 
 TEST(EditorManagerProjectActionsTest,
+     ProjectFileSaveAsRejectsExistingUnrelatedDescriptor) {
+  ScopedTempDir temp_dir(MakeTempDir("yaze_project_file_save_as_collision"));
+  const auto project_path = temp_dir.path / "existing.yaze";
+  const std::string original = "unrelated project descriptor\n";
+  {
+    std::ofstream out(project_path, std::ios::binary | std::ios::trunc);
+    ASSERT_TRUE(out.is_open());
+    out << original;
+  }
+
+  ProjectFileEditor editor;
+  ASSERT_OK(editor.NewFile());
+  const auto status = editor.SaveFileAs(project_path.string());
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kAlreadyExists);
+  EXPECT_TRUE(editor.IsModified());
+  EXPECT_TRUE(editor.filepath().empty());
+  EXPECT_EQ(ReadFile(project_path), original);
+
+  const std::string temp_prefix = project_path.filename().string() + ".tmp.";
+  for (const auto& entry : std::filesystem::directory_iterator(temp_dir.path)) {
+    EXPECT_NE(entry.path().filename().string().find(temp_prefix), 0u);
+  }
+}
+
+TEST(EditorManagerProjectActionsTest,
      ProjectFileSaveGuardPreservesDraftOnFailure) {
   ScopedTempDir temp_dir(MakeTempDir("yaze_project_file_guard"));
   const auto project_path = temp_dir.path / "guarded.yaze";
