@@ -257,6 +257,14 @@ class DungeonEditorV2 : public Editor {
       DungeonEditorV2RomSafetyTest_SaveAllRoomsRollsBackEarlierWritesOnLateFailure_Test;
   friend class
       DungeonEditorV2RomSafetyTest_LateCoordinatorRollbackRestoresEntranceDirtyState_Test;
+  friend class
+      DungeonEditorPaletteRefreshTest_SharedHudEditRefreshesRoomUsingDifferentDungeonPalette_Test;
+  friend class
+      DungeonEditorPaletteRefreshTest_DungeonMainEditRefreshesResolvedAliasesOnly_Test;
+  friend class
+      DungeonEditorPaletteRefreshTest_CachedRoomRefreshesThroughViewerCompositePreparation_Test;
+  friend class
+      DungeonEditorPaletteRefreshTest_CompareViewerScopesEntranceContextToRequestedRoom_Test;
 
   gfx::IRenderer* renderer_ = nullptr;
 
@@ -274,6 +282,7 @@ class DungeonEditorV2 : public Editor {
 
   // Sync all sub-panels to the current room configuration
   void SyncPanelsToRoom(int room_id);
+  void InvalidateDungeonPaletteUsers(gui::DungeonPaletteChange change);
   uint8_t ResolveSelectedEntranceBlocksetForRoom(int room_id) const;
   void ApplyEntranceRenderContext(int room_id);
   void ConfigureViewerRenderContext(DungeonCanvasViewer* viewer, int room_id);
@@ -293,7 +302,7 @@ class DungeonEditorV2 : public Editor {
   // Helper to get or create a viewer for a specific room
   DungeonCanvasViewer* GetViewerForRoom(int room_id);
   DungeonCanvasViewer* GetWorkbenchViewer();
-  DungeonCanvasViewer* GetWorkbenchCompareViewer();
+  DungeonCanvasViewer* GetWorkbenchCompareViewer(int room_id);
   void RefreshWorkbenchViewerRuntimeContext(DungeonCanvasViewer* viewer,
                                             int room_id);
   void TouchViewerLru(int room_id);

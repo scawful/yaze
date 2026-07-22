@@ -294,7 +294,7 @@ DungeonWorkbenchContent::DungeonWorkbenchContent(
     std::function<void(int)> on_save_room,
     std::function<void()> on_save_all_rooms,
     std::function<DungeonCanvasViewer*()> get_viewer,
-    std::function<DungeonCanvasViewer*()> get_compare_viewer,
+    std::function<DungeonCanvasViewer*(int)> get_compare_viewer,
     std::function<const std::deque<int>&()> get_recent_rooms,
     std::function<void(int)> forget_recent_room,
     std::function<void(bool)> set_workflow_mode, Rom* rom)
@@ -556,7 +556,7 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
 
   DungeonCanvasViewer* primary_viewer = get_viewer_ ? get_viewer_() : nullptr;
   DungeonCanvasViewer* compare_viewer =
-      get_compare_viewer_ ? get_compare_viewer_() : nullptr;
+      get_compare_viewer_ ? get_compare_viewer_(compare_room_id_) : nullptr;
   const float splitter_w = gui::UIConfig::kSplitterWidth;
   const float total_w = std::max(ImGui::GetContentRegionAvail().x, 1.0f);
   // Relaxed from 320 px to 260 px so the Inspect pane can breathe at widths
@@ -1088,6 +1088,9 @@ void DungeonWorkbenchContent::DrawSplitView(
   ImGui::TableSetupColumn("Compare", ImGuiTableColumnFlags_WidthStretch);
   ImGui::TableNextRow();
 
+  DungeonCanvasViewer* compare_viewer =
+      get_compare_viewer_ ? get_compare_viewer_(compare_room_id_) : nullptr;
+
   // Active pane (minimum height so canvas never collapses)
   ImGui::TableNextColumn();
   ImGui::AlignTextToFramePadding();
@@ -1108,9 +1111,7 @@ void DungeonWorkbenchContent::DrawSplitView(
   ImGui::TableNextColumn();
   ImGui::AlignTextToFramePadding();
   const project::YazeProject* compare_project =
-      get_compare_viewer_ && get_compare_viewer_()
-          ? get_compare_viewer_()->project()
-          : active_project;
+      compare_viewer ? compare_viewer->project() : active_project;
   ImGui::TextDisabled(
       ICON_MD_COMPARE_ARROWS " Compare [%03X] %s", compare_room_id_,
       dungeon_project_labels::GetRoomLabel(compare_project, compare_room_id_)
@@ -1119,8 +1120,7 @@ void DungeonWorkbenchContent::DrawSplitView(
   const bool split_compare_open = gui::LayoutHelpers::BeginContentChild(
       "##SplitCompare", ImVec2(0.0f, gui::UIConfig::kContentMinHeightCanvas));
   if (split_compare_open) {
-    if (auto* compare_viewer =
-            get_compare_viewer_ ? get_compare_viewer_() : nullptr) {
+    if (compare_viewer) {
       if (layout_state_.sync_split_view) {
         compare_viewer->canvas().ApplyScaleSnapshot(
             primary_viewer.canvas().GetConfig());

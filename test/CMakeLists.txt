@@ -293,6 +293,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_usage_tracker_test.cc
     unit/editor/dungeon_entrance_edit_policy_test.cc
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
+    unit/editor/dungeon_editor_palette_refresh_test.cc
     unit/editor/dungeon_overlay_controls_test.cc
     unit/editor/dungeon_object_selector_palette_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
@@ -584,6 +585,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_layout_defaults_test.cc
     unit/editor/dungeon_selection_snapshot_test.cc
     unit/editor/dungeon_canvas_viewer_navigation_test.cc
+    unit/editor/dungeon_editor_palette_refresh_test.cc
     unit/editor/dungeon_object_selector_palette_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/dungeon_workbench_content_test.cc

@@ -79,7 +79,7 @@ class DungeonWorkbenchContent : public WindowContent {
       std::function<void(int)> on_save_room,
       std::function<void()> on_save_all_rooms,
       std::function<DungeonCanvasViewer*()> get_viewer,
-      std::function<DungeonCanvasViewer*()> get_compare_viewer,
+      std::function<DungeonCanvasViewer*(int)> get_compare_viewer,
       std::function<const std::deque<int>&()> get_recent_rooms,
       std::function<void(int)> forget_recent_room,
       std::function<void(bool)> set_workflow_mode, Rom* rom = nullptr);
@@ -242,7 +242,7 @@ class DungeonWorkbenchContent : public WindowContent {
   std::function<void(int)> on_save_room_;
   std::function<void()> on_save_all_rooms_;
   std::function<DungeonCanvasViewer*()> get_viewer_;
-  std::function<DungeonCanvasViewer*()> get_compare_viewer_;
+  std::function<DungeonCanvasViewer*(int)> get_compare_viewer_;
   std::function<const std::deque<int>&()> get_recent_rooms_;
   std::function<void(int)> forget_recent_room_;
   std::function<void(bool)> set_workflow_mode_;
