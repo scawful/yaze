@@ -21,6 +21,14 @@ namespace yaze {
 namespace zelda3 {
 namespace {
 
+bool LockSurface(SDL_Surface* surface) {
+#if SDL_MAJOR_VERSION >= 3
+  return SDL_LockSurface(surface);
+#else
+  return SDL_LockSurface(surface) == 0;
+#endif
+}
+
 void SyncModifiedBitmapToSurface(gfx::Bitmap& bitmap, const char* layer_name) {
   SDL_Surface* surface = bitmap.surface();
   if (!bitmap.modified() || surface == nullptr || bitmap.size() == 0) {
@@ -47,7 +55,11 @@ void SyncModifiedBitmapToSurface(gfx::Bitmap& bitmap, const char* layer_name) {
     return;
   }
 
-  SDL_LockSurface(surface);
+  if (!LockSurface(surface)) {
+    LOG_DEBUG("ObjectDrawer", "%s surface lock failed: %s", layer_name,
+              SDL_GetError());
+    return;
+  }
   auto* destination = static_cast<uint8_t*>(surface->pixels);
   const uint8_t* source = bitmap.data();
   for (int y = 0; y < height; ++y) {

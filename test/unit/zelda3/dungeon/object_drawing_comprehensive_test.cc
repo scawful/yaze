@@ -1283,8 +1283,12 @@ TEST_F(ObjectDrawingComprehensiveTest,
   bg2.EnsureBitmapInitialized();
   ASSERT_NE(bg1.bitmap().surface(), nullptr);
   ASSERT_NE(bg2.bitmap().surface(), nullptr);
-  ASSERT_GT(bg1.bitmap().surface()->pitch, bg1.bitmap().width());
-  ASSERT_GT(bg2.bitmap().surface()->pitch, bg2.bitmap().width());
+  ASSERT_GE(bg1.bitmap().surface()->pitch, bg1.bitmap().width());
+  ASSERT_GE(bg2.bitmap().surface()->pitch, bg2.bitmap().width());
+  if (bg1.bitmap().surface()->pitch == bg1.bitmap().width() ||
+      bg2.bitmap().surface()->pitch == bg2.bitmap().width()) {
+    GTEST_SKIP() << "SDL backend did not pad the indexed surface rows";
+  }
 
   auto prepare_bitmap = [](gfx::Bitmap& bitmap, uint8_t seed) {
     auto& data = bitmap.mutable_data();
