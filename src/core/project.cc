@@ -1276,9 +1276,8 @@ absl::Status YazeProject::SaveToYazeFormat(bool replace_existing) {
   ASSIGN_OR_RETURN(auto serialized, SerializeToString());
 
 #ifdef __EMSCRIPTEN__
-  (void)replace_existing;
-  auto storage_status =
-      platform::WasmStorage::SaveProject(MakeStorageKey("project"), serialized);
+  auto storage_status = platform::WasmStorage::SaveProject(
+      MakeStorageKey("project"), serialized, replace_existing);
   if (!storage_status.ok()) {
     return storage_status;
   }
