@@ -5117,6 +5117,17 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
 
   Rom previous_rom = session->rom;
   const std::string previous_filepath = session->filepath;
+  auto invalidate_dungeon_state = [&session]() {
+    auto* editor = session->editors.GetExistingEditor(EditorType::kDungeon);
+    if (editor) {
+      static_cast<DungeonEditorV2*>(editor)
+          ->InvalidateRomBackedStateForReload();
+    }
+  };
+
+  // RomSession keeps a stable Rom address, so pointer-identity checks cannot
+  // detect that every byte is about to be replaced.
+  invalidate_dungeon_state();
   gfx::PaletteManager::Get().ReleaseSession(&session->game_data);
   session->rom = std::move(rom);
   session->filepath = filepath;
@@ -5132,6 +5143,7 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
   if (!load_status.ok()) {
     // Loading editors is fallible. Restore the prior ROM and rebuild its
     // assets so a failed reload never leaves a half-initialized live session.
+    invalidate_dungeon_state();
     gfx::PaletteManager::Get().ReleaseSession(&session->game_data);
     session->rom = std::move(previous_rom);
     session->filepath = previous_filepath;

@@ -71,6 +71,8 @@ class EditorSet {
 
   // Generic accessors
   Editor* GetEditor(EditorType type) const;
+  // Returns an already-created editor without materializing a lazy editor.
+  Editor* GetExistingEditor(EditorType type) const { return FindEditor(type); }
 
   template <typename T>
   T* GetEditorAs(EditorType type) const {

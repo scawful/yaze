@@ -99,11 +99,12 @@ DungeonEditorV2::DungeonEditorV2(Rom* rom)
   }
 }
 
-DungeonEditorV2::~DungeonEditorV2() {
+void DungeonEditorV2::DetachViewerBindings() {
   // Clear viewer references in panels BEFORE room_viewers_ is destroyed.
   // Panels are owned by WorkspaceWindowManager and outlive this editor, so they need
   // to have their viewer pointers cleared to prevent dangling pointer access.
   if (object_selector_panel_) {
+    object_selector_panel_->CancelPlacement();
     object_selector_panel_->SetCanvasViewer(nullptr);
   }
   if (object_editor_content_) {
@@ -126,6 +127,39 @@ DungeonEditorV2::~DungeonEditorV2() {
     water_fill_panel_->SetCanvasViewer(nullptr);
     water_fill_panel_->SetInteraction(nullptr);
   }
+}
+
+DungeonEditorV2::~DungeonEditorV2() {
+  DetachViewerBindings();
+}
+
+void DungeonEditorV2::InvalidateRomBackedStateForReload() {
+  DetachViewerBindings();
+  is_loaded_ = false;
+
+  // Viewers and rooms cache decoded pointers and data from the current ROM.
+  // Destroy viewers first so no interaction state can outlive its rooms.
+  room_viewers_.Clear();
+  workbench_viewer_.reset();
+  workbench_compare_viewer_.reset();
+
+  if (dungeon_editor_system_) {
+    if (auto object_editor = dungeon_editor_system_->GetObjectEditor()) {
+      (void)object_editor->ClearSelection();
+    }
+  }
+  dungeon_editor_system_.reset();
+  rooms_.Clear();
+
+  // Undo actions and in-flight snapshots retain room data from the old ROM.
+  undo_manager_.Clear();
+  save_transaction_snapshot_.reset();
+  pending_undo_ = {};
+  has_pending_undo_ = false;
+  pending_collision_undo_ = {};
+  pending_water_fill_undo_ = {};
+  pending_swap_ = {};
+  undo_restore_triggered_ping_ = false;
 }
 
 void DungeonEditorV2::Initialize() {
