@@ -447,8 +447,9 @@ void PopupManager::DrawRomBackupManagerPopup() {
   if (editor_manager_->IsRomBackupRestorePending()) {
     Separator();
     TextWrapped(
-        tr("A restored backup is staged in this session. Save ROM to "
-           "commit it, or discard it to reload the backing ROM."));
+        tr("A restored backup is staged in this session. Save ROM to commit "
+           "it. Discard reloads the backing ROM and abandons staged ROM-buffer "
+           "edits; resolve pending dungeon-room or palette edits first."));
     if (Button(ICON_MD_UNDO " Discard Restored Backup")) {
       auto status = editor_manager_->DiscardPendingRomBackupRestore();
       if (!status.ok()) {
