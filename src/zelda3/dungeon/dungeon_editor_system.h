@@ -78,6 +78,9 @@ class DungeonEditorSystem {
   // ROM management
   void SetROM(Rom* rom);
   void SetExternalRoom(Room* room);
+  // Discards managed rooms decoded from prior bytes while preserving this
+  // system and its shared object-editor instance.
+  absl::Status RefreshRomBackedState(Room* external_room, int current_room_id);
 
  private:
   absl::Status BindObjectEditorToCurrentRoom();
