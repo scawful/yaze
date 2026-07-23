@@ -5885,6 +5885,7 @@ absl::Status EditorManager::RestoreRomBackup(const std::string& backup_path) {
   if (!original_filename.empty()) {
     restored_rom.set_filename(original_filename);
   }
+  RETURN_IF_ERROR(rom_lifecycle_.CheckRomOpenPolicy(&restored_rom));
   // Normal ROM backups do not copy the active `.labels` sidecar. Preserve the
   // session's loaded and in-memory resource labels instead of replacing them
   // with the usually-empty `<backup>.labels` lookup from LoadFromFile().
