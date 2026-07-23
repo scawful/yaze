@@ -189,12 +189,15 @@ if(YAZE_BUILD_TESTS)
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
+    unit/cli/dungeon_track_collision_commands_test.cc
+    unit/cli/dungeon_spawn_report_commands_test.cc
     unit/cli/dungeon_stream_plan_commands_test.cc
     unit/cli/editor_completion_command_handlers_test.cc
     unit/cli/dungeon_minecart_audit_test.cc
     unit/cli/dungeon_oracle_preflight_test.cc
     unit/cli/oracle_smoke_check_test.cc
     unit/cli/oracle_menu_commands_test.cc
+    unit/cli/message_commands_policy_test.cc
     unit/cli/palette_commands_test.cc
     unit/cli/project_bundle_verify_test.cc
     unit/cli/project_bundle_archive_test.cc
@@ -290,6 +293,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_usage_tracker_test.cc
     unit/editor/dungeon_entrance_edit_policy_test.cc
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
+    unit/editor/dungeon_editor_palette_refresh_test.cc
     unit/editor/dungeon_overlay_controls_test.cc
     unit/editor/dungeon_object_selector_palette_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
@@ -549,7 +553,9 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/resource_labels_test.cc
     unit/zelda3/sprite_render_preview_test.cc
     unit/zelda3/dungeon/dungeon_stream_allocator_test.cc
+    unit/cli/dungeon_spawn_report_commands_test.cc
     unit/cli/dungeon_stream_plan_commands_test.cc
+    unit/cli/message_commands_policy_test.cc
   )
   set(QUICK_UNIT_EDITOR_TEST_SOURCES
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
@@ -579,6 +585,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_layout_defaults_test.cc
     unit/editor/dungeon_selection_snapshot_test.cc
     unit/editor/dungeon_canvas_viewer_navigation_test.cc
+    unit/editor/dungeon_editor_palette_refresh_test.cc
     unit/editor/dungeon_object_selector_palette_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/dungeon_workbench_content_test.cc
@@ -611,6 +618,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
+    unit/cli/dungeon_track_collision_commands_test.cc
     unit/cli/editor_completion_command_handlers_test.cc
     unit/zelda3/dungeon/water_fill_zone_test.cc
     unit/zelda3/dungeon/custom_collision_reserved_region_test.cc

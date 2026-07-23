@@ -9,6 +9,7 @@
 #include "absl/strings/str_format.h"
 #include "cli/util/hex_util.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/dungeon_spawn_point.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 
@@ -21,47 +22,47 @@ using util::ParseHexString;
 namespace {
 
 // ROM addresses for dungeon tables
-constexpr int kEntranceDungeon = 0x1548B;      // Dungeon ID per entrance
-constexpr int kDungeonsStartRooms = 0x7939;    // Start room per dungeon
-constexpr int kDungeonsEndRooms = 0x792D;      // End room per dungeon (unused)
-constexpr int kDungeonsBossRooms = 0x10954;    // Boss room per dungeon
-constexpr int kNumberOfDungeons = 14;          // Vanilla dungeons
-constexpr int kNumberOfEntrances = 0x84;       // Total entrances
+constexpr int kEntranceDungeon = 0x1548B;    // Dungeon ID per entrance
+constexpr int kDungeonsStartRooms = 0x7939;  // Start room per dungeon
+constexpr int kDungeonsEndRooms = 0x792D;    // End room per dungeon (unused)
+constexpr int kDungeonsBossRooms = 0x10954;  // Boss room per dungeon
+constexpr int kNumberOfDungeons = 14;        // Vanilla dungeons
+constexpr int kNumberOfEntrances = 0x84;     // Total entrances
 
 // Dungeon names (vanilla + common custom slots)
 const std::vector<std::string> kDungeonNames = {
-    "Sewers",                    // 0x00
-    "Hyrule Castle",             // 0x01
-    "Eastern Palace",            // 0x02
-    "Desert Palace",             // 0x03
-    "Agahnim's Tower",           // 0x04
-    "Swamp Palace",              // 0x05
-    "Palace of Darkness",        // 0x06
-    "Misery Mire",               // 0x07
-    "Skull Woods",               // 0x08
-    "Ice Palace",                // 0x09
-    "Tower of Hera",             // 0x0A
-    "Thieves' Town",             // 0x0B
-    "Turtle Rock",               // 0x0C
-    "Ganon's Tower",             // 0x0D
-    "Custom Dungeon 0E",         // 0x0E
-    "Custom Dungeon 0F",         // 0x0F
-    "Custom Dungeon 10",         // 0x10
-    "Custom Dungeon 11",         // 0x11
-    "Custom Dungeon 12",         // 0x12
-    "Custom Dungeon 13",         // 0x13
-    "Custom Dungeon 14",         // 0x14 (Oracle custom)
-    "Custom Dungeon 15",         // 0x15
-    "Custom Dungeon 16",         // 0x16
-    "Custom Dungeon 17",         // 0x17
-    "Custom Dungeon 18",         // 0x18
-    "Custom Dungeon 19",         // 0x19
-    "Custom Dungeon 1A",         // 0x1A
-    "Custom Dungeon 1B",         // 0x1B
-    "Custom Dungeon 1C",         // 0x1C
-    "Custom Dungeon 1D",         // 0x1D
-    "Custom Dungeon 1E",         // 0x1E
-    "Custom Dungeon 1F",         // 0x1F
+    "Sewers",              // 0x00
+    "Hyrule Castle",       // 0x01
+    "Eastern Palace",      // 0x02
+    "Desert Palace",       // 0x03
+    "Agahnim's Tower",     // 0x04
+    "Swamp Palace",        // 0x05
+    "Palace of Darkness",  // 0x06
+    "Misery Mire",         // 0x07
+    "Skull Woods",         // 0x08
+    "Ice Palace",          // 0x09
+    "Tower of Hera",       // 0x0A
+    "Thieves' Town",       // 0x0B
+    "Turtle Rock",         // 0x0C
+    "Ganon's Tower",       // 0x0D
+    "Custom Dungeon 0E",   // 0x0E
+    "Custom Dungeon 0F",   // 0x0F
+    "Custom Dungeon 10",   // 0x10
+    "Custom Dungeon 11",   // 0x11
+    "Custom Dungeon 12",   // 0x12
+    "Custom Dungeon 13",   // 0x13
+    "Custom Dungeon 14",   // 0x14 (Oracle custom)
+    "Custom Dungeon 15",   // 0x15
+    "Custom Dungeon 16",   // 0x16
+    "Custom Dungeon 17",   // 0x17
+    "Custom Dungeon 18",   // 0x18
+    "Custom Dungeon 19",   // 0x19
+    "Custom Dungeon 1A",   // 0x1A
+    "Custom Dungeon 1B",   // 0x1B
+    "Custom Dungeon 1C",   // 0x1C
+    "Custom Dungeon 1D",   // 0x1D
+    "Custom Dungeon 1E",   // 0x1E
+    "Custom Dungeon 1F",   // 0x1F
 };
 
 struct DungeonInfo {
@@ -110,8 +111,8 @@ absl::Status DungeonGroupCommandHandler::Execute(
 
     // Read boss room (2 bytes per dungeon)
     uint16_t boss_room_addr = kDungeonsBossRooms + (i * 2);
-    info.boss_room = rom->data()[boss_room_addr] |
-                     (rom->data()[boss_room_addr + 1] << 8);
+    info.boss_room =
+        rom->data()[boss_room_addr] | (rom->data()[boss_room_addr + 1] << 8);
 
     // Boss room 0xFFFF means no boss
     if (info.boss_room == 0xFFFF) {
@@ -124,7 +125,8 @@ absl::Status DungeonGroupCommandHandler::Execute(
   // Scan entrances to find room->dungeon mappings
   std::map<int, int> room_to_dungeon;
   for (int entrance_id = 0; entrance_id < kNumberOfEntrances; ++entrance_id) {
-    zelda3::RoomEntrance entrance(rom, static_cast<uint8_t>(entrance_id), false);
+    zelda3::RoomEntrance entrance(rom, static_cast<uint8_t>(entrance_id),
+                                  false);
 
     int dungeon_id = entrance.dungeon_id_;
     int room_id = entrance.room_;
@@ -146,11 +148,16 @@ absl::Status DungeonGroupCommandHandler::Execute(
   }
 
   // Also scan spawn points for additional room mappings
-  for (int spawn_id = 0; spawn_id < 0x14; ++spawn_id) {
-    zelda3::RoomEntrance spawn(rom, static_cast<uint8_t>(spawn_id), true);
+  for (int spawn_id = 0; spawn_id < zelda3::kNumDungeonSpawnPoints;
+       ++spawn_id) {
+    auto spawn_or = zelda3::DungeonSpawnPoint::Load(*rom, spawn_id);
+    if (!spawn_or.ok()) {
+      return spawn_or.status();
+    }
+    const auto& spawn = spawn_or.value();
 
-    int dungeon_id = spawn.dungeon_id_;
-    int room_id = spawn.room_;
+    int dungeon_id = spawn.dungeon_id;
+    int room_id = spawn.room_id;
 
     room_to_dungeon[room_id] = dungeon_id;
 

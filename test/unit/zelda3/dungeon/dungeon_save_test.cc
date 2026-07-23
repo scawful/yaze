@@ -383,6 +383,158 @@ TEST_F(DungeonSaveTest, SaveObjects_SharedStreamFailsWithoutMutation) {
 }
 
 TEST_F(DungeonSaveTest,
+       SaveObjectStreamHeaderUsesPerFieldRmwAndPreservesPayload) {
+  constexpr int kStreamPc = 0x100000;
+  WriteEmptyObjectStream(kStreamPc, 0xA5, 0xE3);
+  const std::vector<uint8_t> payload(rom_->data() + kStreamPc + 2,
+                                     rom_->data() + kStreamPc + 10);
+
+  room_->set_floor1(0x02);
+  EXPECT_TRUE(room_->object_stream_header_dirty());
+  EXPECT_FALSE(room_->object_stream_dirty());
+  ASSERT_TRUE(room_->SaveObjectStreamHeader().ok());
+  EXPECT_EQ(rom_->data()[kStreamPc], 0xA2);
+  EXPECT_EQ(rom_->data()[kStreamPc + 1], 0xE3);
+
+  room_->set_floor2(0x03);
+  ASSERT_TRUE(room_->SaveObjectStreamHeader().ok());
+  EXPECT_EQ(rom_->data()[kStreamPc], 0x32);
+  EXPECT_EQ(rom_->data()[kStreamPc + 1], 0xE3);
+
+  room_->SetLayoutId(0x04);
+  ASSERT_TRUE(room_->SaveObjectStreamHeader().ok());
+  EXPECT_EQ(rom_->data()[kStreamPc], 0x32);
+  EXPECT_EQ(rom_->data()[kStreamPc + 1], 0xF3);
+  EXPECT_TRUE(
+      std::equal(payload.begin(), payload.end(), rom_->data() + kStreamPc + 2));
+  EXPECT_FALSE(room_->object_stream_header_dirty());
+  EXPECT_FALSE(room_->object_stream_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjectStreamHeaderRejectsOutOfRangeValueWithoutMutation) {
+  WriteEmptyObjectStream(0x100000, 0xA5, 0xE3);
+  room_->SetLayoutId(0x08);
+  const auto before = rom_->vector();
+
+  const auto status = room_->SaveObjectStreamHeader();
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->object_stream_header_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjectStreamHeaderSharedStreamFailsClosedWithoutManifest) {
+  SetObjectRoomPointer(1, 0x100000);
+  WriteEmptyObjectStream(0x100000, 0xA5, 0xE3);
+  room_->SetLayoutId(0x03);
+  const auto before = rom_->vector();
+
+  const auto status = room_->SaveObjectStreamHeader();
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->object_stream_header_dirty());
+  EXPECT_FALSE(room_->object_stream_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjectStreamHeaderDetachesSharedStreamWithManifestLayout) {
+  constexpr int kOldStreamPc = 0x100000;
+  constexpr int kRelocatedStreamPc = 0x100200;
+  SetObjectRoomPointer(1, kOldStreamPc);
+  WriteEmptyObjectStream(kOldStreamPc, 0xA5, 0xE3);
+  const std::vector<uint8_t> old_stream(rom_->data() + kOldStreamPc,
+                                        rom_->data() + kOldStreamPc + 10);
+  room_->set_floor2(0x03);
+  const auto layout = MakeObjectLayout();
+
+  const auto status = room_->SaveObjectStreamHeader(&layout);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(GetObjectRoomPointer(0), kRelocatedStreamPc);
+  EXPECT_EQ(GetObjectRoomPointer(1), kOldStreamPc);
+  EXPECT_EQ(GetDoorPointer(0), kRelocatedStreamPc + 8);
+  EXPECT_TRUE(std::equal(old_stream.begin(), old_stream.end(),
+                         rom_->data() + kOldStreamPc));
+  EXPECT_EQ(rom_->data()[kRelocatedStreamPc], 0x35);
+  EXPECT_EQ(rom_->data()[kRelocatedStreamPc + 1], 0xE3);
+  EXPECT_TRUE(std::equal(old_stream.begin() + 2, old_stream.end(),
+                         rom_->data() + kRelocatedStreamPc + 2));
+  EXPECT_FALSE(room_->object_stream_header_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjectStreamHeaderDetachesOverlappingSuffixWithManifestLayout) {
+  constexpr int kOwnerStreamPc = 0x100000;
+  constexpr int kSuffixStreamPc = kOwnerStreamPc + 2;
+  constexpr int kRelocatedStreamPc = 0x100200;
+  SetObjectRoomPointer(0, kSuffixStreamPc);
+  SetObjectRoomPointer(1, kOwnerStreamPc);
+  ASSERT_TRUE(rom_->WriteVector(kOwnerStreamPc, {0x00, 0x00, 0xFF, 0xFF, 0xFF,
+                                                 0xFF, 0xFF, 0xFF, 0xFF, 0xFF})
+                  .ok());
+  const std::vector<uint8_t> owner_stream(rom_->data() + kOwnerStreamPc,
+                                          rom_->data() + kOwnerStreamPc + 10);
+  room_->SetLayoutId(0x03);
+  const auto layout = MakeObjectLayout();
+
+  const auto status = room_->SaveObjectStreamHeader(&layout);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(GetObjectRoomPointer(0), kRelocatedStreamPc);
+  EXPECT_EQ(GetObjectRoomPointer(1), kOwnerStreamPc);
+  EXPECT_TRUE(std::equal(owner_stream.begin(), owner_stream.end(),
+                         rom_->data() + kOwnerStreamPc));
+  EXPECT_EQ(rom_->data()[kRelocatedStreamPc], 0xFF);
+  EXPECT_EQ(rom_->data()[kRelocatedStreamPc + 1], 0xEF);
+  EXPECT_TRUE(std::equal(owner_stream.begin() + 4, owner_stream.end(),
+                         rom_->data() + kRelocatedStreamPc + 2));
+  EXPECT_FALSE(room_->object_stream_header_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjectStreamHeaderAllocatorExhaustionRollsBackRomAndDirtyState) {
+  SetObjectRoomPointer(1, 0x100000);
+  WriteEmptyObjectStream(0x100000, 0xA5, 0xE3);
+  room_->set_floor1(0x02);
+  const auto before = rom_->vector();
+  const auto layout = MakeObjectLayout({0x100200, 0x100204});
+
+  const auto status = room_->SaveObjectStreamHeader(&layout);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kResourceExhausted);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->object_stream_header_dirty());
+  EXPECT_FALSE(room_->object_stream_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjectsThenHeaderPreservesCombinedPayloadAndPropertyEdits) {
+  constexpr int kOldStreamPc = 0x100000;
+  constexpr int kRelocatedStreamPc = 0x100200;
+  SetObjectRoomPointer(1, kOldStreamPc);
+  WriteEmptyObjectStream(kOldStreamPc, 0xA5, 0xE3);
+  ASSERT_TRUE(room_->AddObject(RoomObject(0x10, 10, 10, 0, 0)).ok());
+  room_->SetLayoutId(0x03);
+  const auto encoded = room_->EncodeObjects();
+  const auto layout = MakeObjectLayout();
+
+  ASSERT_TRUE(room_->SaveObjects(&layout).ok());
+  ASSERT_TRUE(room_->SaveObjectStreamHeader(&layout).ok());
+
+  EXPECT_EQ(GetObjectRoomPointer(0), kRelocatedStreamPc);
+  EXPECT_EQ(GetObjectRoomPointer(1), kOldStreamPc);
+  EXPECT_EQ(rom_->data()[kRelocatedStreamPc], 0xA5);
+  EXPECT_EQ(rom_->data()[kRelocatedStreamPc + 1], 0xEF);
+  EXPECT_TRUE(std::equal(encoded.begin(), encoded.end(),
+                         rom_->data() + kRelocatedStreamPc + 2));
+  EXPECT_FALSE(room_->object_stream_dirty());
+  EXPECT_FALSE(room_->object_stream_header_dirty());
+}
+
+TEST_F(DungeonSaveTest,
        SaveObjects_SharedStreamDetachesWithDeclaredAllocatorSpace) {
   constexpr int kOldStreamPc = 0x100000;
   constexpr int kRelocatedStreamPc = 0x100200;
@@ -1770,6 +1922,218 @@ TEST_F(DungeonSaveTest,
   EXPECT_EQ(rom_->vector(), before);
   EXPECT_TRUE(rooms[0].pot_items_dirty());
   EXPECT_TRUE(rooms[1].pot_items_dirty());
+}
+
+TEST_F(DungeonSaveTest, DungeonSpawnPointWriteRangesAreExactAndNonAliased) {
+  constexpr int kSpawnId = 2;
+  auto loaded = DungeonSpawnPoint::Load(*rom_, kSpawnId);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  std::array<DungeonSpawnPoint, kNumDungeonSpawnPoints> spawn_points{};
+  spawn_points[kSpawnId] = *loaded;
+  spawn_points[kSpawnId].MarkDirty();
+
+  const std::vector<DungeonSpawnPointWriteRange> expected = {
+      {kDungeonSpawnRoom + kSpawnId * 2, kDungeonSpawnRoom + kSpawnId * 2 + 2},
+      {kDungeonSpawnCameraScrollBoundaries + kSpawnId * 8,
+       kDungeonSpawnCameraScrollBoundaries + kSpawnId * 8 + 8},
+      {kDungeonSpawnHorizontalScroll + kSpawnId * 2,
+       kDungeonSpawnHorizontalScroll + kSpawnId * 2 + 2},
+      {kDungeonSpawnVerticalScroll + kSpawnId * 2,
+       kDungeonSpawnVerticalScroll + kSpawnId * 2 + 2},
+      {kDungeonSpawnYCoordinate + kSpawnId * 2,
+       kDungeonSpawnYCoordinate + kSpawnId * 2 + 2},
+      {kDungeonSpawnXCoordinate + kSpawnId * 2,
+       kDungeonSpawnXCoordinate + kSpawnId * 2 + 2},
+      {kDungeonSpawnCameraTriggerY + kSpawnId * 2,
+       kDungeonSpawnCameraTriggerY + kSpawnId * 2 + 2},
+      {kDungeonSpawnCameraTriggerX + kSpawnId * 2,
+       kDungeonSpawnCameraTriggerX + kSpawnId * 2 + 2},
+      {kDungeonSpawnMainGfx + kSpawnId, kDungeonSpawnMainGfx + kSpawnId + 1},
+      {kDungeonSpawnFloor + kSpawnId, kDungeonSpawnFloor + kSpawnId + 1},
+      {kDungeonSpawnDungeonId + kSpawnId,
+       kDungeonSpawnDungeonId + kSpawnId + 1},
+      {kDungeonSpawnLayer + kSpawnId, kDungeonSpawnLayer + kSpawnId + 1},
+      {kDungeonSpawnCameraScrollController + kSpawnId,
+       kDungeonSpawnCameraScrollController + kSpawnId + 1},
+      {kDungeonSpawnQuadrant + kSpawnId, kDungeonSpawnQuadrant + kSpawnId + 1},
+      {kDungeonSpawnOverworldDoorTilemap + kSpawnId * 2,
+       kDungeonSpawnOverworldDoorTilemap + kSpawnId * 2 + 2},
+      {kDungeonSpawnEntranceId + kSpawnId * 2,
+       kDungeonSpawnEntranceId + kSpawnId * 2 + 2},
+      {kDungeonSpawnSong + kSpawnId, kDungeonSpawnSong + kSpawnId + 1},
+  };
+
+  const auto ranges = CollectDirtyDungeonSpawnPointWriteRanges(spawn_points);
+  EXPECT_EQ(ranges, expected);
+  size_t unique_bytes = 0;
+  for (const auto& [begin, end] : ranges) {
+    unique_bytes += end - begin;
+  }
+  EXPECT_EQ(ranges.size(), 17u);
+  EXPECT_EQ(unique_bytes, 33u);
+  EXPECT_EQ(std::count(ranges.begin(), ranges.end(),
+                       DungeonSpawnPointWriteRange{
+                           kDungeonSpawnQuadrant + kSpawnId,
+                           kDungeonSpawnQuadrant + kSpawnId + 1}),
+            1);
+  EXPECT_EQ(kStartingEntranceDoor, kStartingEntranceScrollQuadrant);
+}
+
+TEST_F(DungeonSaveTest,
+       DungeonSpawnPointLoadKeepsRoomDoorTilemapAndEntranceIdDistinct) {
+  constexpr int kSpawnId = 1;
+  ASSERT_TRUE(rom_->WriteShort(kDungeonSpawnRoom + kSpawnId * 2, 0x01AB).ok());
+  ASSERT_TRUE(
+      rom_->WriteShort(kDungeonSpawnHorizontalScroll + kSpawnId * 2, 0x1234)
+          .ok());
+  ASSERT_TRUE(
+      rom_->WriteShort(kDungeonSpawnVerticalScroll + kSpawnId * 2, 0x5678)
+          .ok());
+  ASSERT_TRUE(rom_->WriteByte(kDungeonSpawnQuadrant + kSpawnId, 0x21).ok());
+  ASSERT_TRUE(
+      rom_->WriteShort(kDungeonSpawnOverworldDoorTilemap + kSpawnId * 2, 0xA5C3)
+          .ok());
+  ASSERT_TRUE(
+      rom_->WriteShort(kDungeonSpawnEntranceId + kSpawnId * 2, 0x0084).ok());
+
+  auto loaded = DungeonSpawnPoint::Load(*rom_, kSpawnId);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  EXPECT_EQ(loaded->room_id, 0x01AB);
+  EXPECT_EQ(loaded->horizontal_scroll, 0x1234);
+  EXPECT_EQ(loaded->vertical_scroll, 0x5678);
+  EXPECT_EQ(loaded->quadrant, 0x21);
+  EXPECT_EQ(loaded->overworld_door_tilemap, 0xA5C3);
+  EXPECT_EQ(loaded->entrance_id, 0x0084);
+
+  const RoomEntrance navigation_view(rom_.get(), kSpawnId, true);
+  EXPECT_EQ(navigation_view.room_, 0x01AB);
+  EXPECT_EQ(navigation_view.camera_x_, 0x1234);
+  EXPECT_EQ(navigation_view.camera_y_, 0x5678);
+  EXPECT_EQ(navigation_view.scroll_quadrant_, 0x21);
+  EXPECT_EQ(navigation_view.door_, 0);
+  EXPECT_EQ(static_cast<uint16_t>(navigation_view.exit_), 0xA5C3);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllDungeonSpawnPointsWritesOnlyExactDedicatedRecord) {
+  constexpr int kSpawnId = 2;
+  auto loaded = DungeonSpawnPoint::Load(*rom_, kSpawnId);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  std::array<DungeonSpawnPoint, kNumDungeonSpawnPoints> spawn_points{};
+  spawn_points[kSpawnId] = *loaded;
+  auto& spawn = spawn_points[kSpawnId];
+  spawn.room_id = 0x01AB;
+  spawn.camera_scroll_boundaries = {0x10, 0x11, 0x12, 0x13,
+                                    0x14, 0x15, 0x16, 0x17};
+  spawn.horizontal_scroll = 0x1234;
+  spawn.vertical_scroll = 0x2345;
+  spawn.y_coordinate = 0x3456;
+  spawn.x_coordinate = 0x4567;
+  spawn.camera_trigger_y = 0x5678;
+  spawn.camera_trigger_x = 0x6789;
+  spawn.main_gfx = 0x11;
+  spawn.floor = 0xFE;
+  spawn.dungeon_id = 0x22;
+  spawn.layer = 0x31;
+  spawn.camera_scroll_controller = 0x42;
+  spawn.quadrant = 0x21;
+  spawn.overworld_door_tilemap = 0xA5C3;
+  spawn.entrance_id = 0x0084;
+  spawn.song = 0x33;
+  spawn.MarkDirty();
+  const auto before = rom_->vector();
+  const auto expected_ranges = DungeonSpawnPointWriteRanges(kSpawnId);
+
+  const absl::Status status =
+      SaveAllDungeonSpawnPoints(rom_.get(), spawn_points);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_FALSE(spawn.dirty());
+  for (size_t pc = 0; pc < before.size(); ++pc) {
+    if (before[pc] == rom_->data()[pc]) {
+      continue;
+    }
+    EXPECT_TRUE(std::any_of(expected_ranges.begin(), expected_ranges.end(),
+                            [pc](const DungeonSpawnPointWriteRange& range) {
+                              return range.first <= pc && pc < range.second;
+                            }))
+        << "Spawn write escaped exact ranges at PC 0x" << std::hex << pc;
+  }
+
+  auto reopened = DungeonSpawnPoint::Load(*rom_, kSpawnId);
+  ASSERT_TRUE(reopened.ok()) << reopened.status();
+  EXPECT_EQ(reopened->room_id, 0x01AB);
+  EXPECT_EQ(
+      reopened->camera_scroll_boundaries,
+      (std::array<uint8_t, 8>{0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17}));
+  EXPECT_EQ(reopened->horizontal_scroll, 0x1234);
+  EXPECT_EQ(reopened->vertical_scroll, 0x2345);
+  EXPECT_EQ(reopened->y_coordinate, 0x3456);
+  EXPECT_EQ(reopened->x_coordinate, 0x4567);
+  EXPECT_EQ(reopened->camera_trigger_y, 0x5678);
+  EXPECT_EQ(reopened->camera_trigger_x, 0x6789);
+  EXPECT_EQ(reopened->main_gfx, 0x11);
+  EXPECT_EQ(reopened->floor, 0xFE);
+  EXPECT_EQ(reopened->dungeon_id, 0x22);
+  EXPECT_EQ(reopened->layer, 0x31);
+  EXPECT_EQ(reopened->camera_scroll_controller, 0x42);
+  EXPECT_EQ(reopened->overworld_door_tilemap, 0xA5C3);
+  EXPECT_EQ(reopened->entrance_id, 0x0084);
+  EXPECT_EQ(reopened->quadrant, 0x21);
+  EXPECT_EQ(reopened->song, 0x33);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllDungeonSpawnPointsPreflightsEveryRecordBeforeFirstWrite) {
+  std::array<DungeonSpawnPoint, kNumDungeonSpawnPoints> spawn_points{};
+  for (int spawn_id : {0, 1}) {
+    auto loaded = DungeonSpawnPoint::Load(*rom_, spawn_id);
+    ASSERT_TRUE(loaded.ok()) << loaded.status();
+    spawn_points[spawn_id] = *loaded;
+  }
+  spawn_points[0].room_id = 1;
+  spawn_points[0].MarkDirty();
+  spawn_points[1].room_id = 0x0200;
+  spawn_points[1].MarkDirty();
+  const auto before = rom_->vector();
+
+  const absl::Status status =
+      SaveAllDungeonSpawnPoints(rom_.get(), spawn_points);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kOutOfRange) << status;
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(spawn_points[0].dirty());
+  EXPECT_TRUE(spawn_points[1].dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       DungeonSpawnPointRejectsInvalidIdsAndTruncatedRomBeforeMutation) {
+  auto loaded = DungeonSpawnPoint::Load(*rom_, 2);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  loaded->room_id = 1;
+  loaded->MarkDirty();
+  const auto before = rom_->vector();
+
+  const absl::Status mismatch = loaded->Save(rom_.get(), 3);
+  EXPECT_EQ(mismatch.code(), absl::StatusCode::kInvalidArgument) << mismatch;
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(loaded->dirty());
+
+  loaded->entrance_id = kNumRegularDungeonEntrances;
+  const absl::Status invalid_entrance = loaded->Save(rom_.get(), 2);
+  EXPECT_EQ(invalid_entrance.code(), absl::StatusCode::kOutOfRange)
+      << invalid_entrance;
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(loaded->dirty());
+
+  Rom truncated;
+  ASSERT_TRUE(
+      truncated.LoadFromData(std::vector<uint8_t>(kDungeonSpawnSong, 0)).ok());
+  const auto truncated_before = truncated.vector();
+  auto truncated_load = DungeonSpawnPoint::Load(truncated, 0);
+  EXPECT_EQ(truncated_load.status().code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(truncated.vector(), truncated_before);
 }
 
 TEST_F(DungeonSaveTest, SaveAllDungeonEntrances_WritesDirtyRegularEntrance) {

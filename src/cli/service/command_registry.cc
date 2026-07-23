@@ -138,12 +138,14 @@ void CommandRegistry::RegisterHandlers(
             "--rom=/tmp/oos-work.sfc --format=json"};
       } else if (name == "dungeon-place-object") {
         metadata.description =
-            "Place a dungeon object (tracks, rails, doors, etc.)";
+            "Place a dungeon object with immutable capacity/COW preflight "
+            "(dry-run by default)";
         metadata.examples = {
             "z3ed dungeon-place-object --room=0x98 --id=0x0031 --x=20 --y=20 "
             "--size=4 --rom=/tmp/oos-work.sfc --format=json",
             "z3ed dungeon-place-object --room=0x98 --id=0x0031 --x=20 --y=20 "
-            "--size=4 --write --rom=/tmp/oos-work.sfc --format=json"};
+            "--size=4 --manifest=hack_manifest.json --write "
+            "--rom=/tmp/oos-work.sfc --format=json"};
       } else if (name == "dungeon-oracle-preflight") {
         metadata.description =
             "Oracle ROM safety preflight: water-fill region/table, collision "

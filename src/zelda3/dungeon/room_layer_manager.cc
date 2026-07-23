@@ -16,11 +16,14 @@ namespace {
 
 // Helper to copy SDL palette from source surface to destination bitmap
 // Uses vector extraction + SetPalette for reliable palette application
-void ApplySDLPaletteToBitmap(SDL_Surface* src_surface, gfx::Bitmap& dst_bitmap) {
-  if (!src_surface || !src_surface->format) return;
+void ApplySDLPaletteToBitmap(SDL_Surface* src_surface,
+                             gfx::Bitmap& dst_bitmap) {
+  if (!src_surface || !src_surface->format)
+    return;
 
   SDL_Palette* src_pal = src_surface->format->palette;
-  if (!src_pal || src_pal->ncolors == 0) return;
+  if (!src_pal || src_pal->ncolors == 0)
+    return;
 
   // Extract palette colors into a vector
   std::vector<SDL_Color> colors(256);
@@ -47,7 +50,7 @@ void ApplySDLPaletteToBitmap(SDL_Surface* src_surface, gfx::Bitmap& dst_bitmap) 
 }  // namespace
 
 void RoomLayerManager::CompositeToOutput(Room& room,
-                                          gfx::Bitmap& output) const {
+                                         gfx::Bitmap& output) const {
   constexpr int kWidth = 512;
   constexpr int kHeight = 512;
   constexpr int kPixelCount = kWidth * kHeight;
@@ -56,11 +59,11 @@ void RoomLayerManager::CompositeToOutput(Room& room,
   static int last_room_id = -1;
   if (room.id() != last_room_id) {
     last_room_id = room.id();
-    LOG_DEBUG("LayerManager", "Room %03X: BG1_Layout(vis=%d,blend=%d) "
+    LOG_DEBUG("LayerManager",
+              "Room %03X: BG1_Layout(vis=%d,blend=%d) "
               "BG1_Objects(vis=%d,blend=%d) BG2_Layout(vis=%d,blend=%d) "
               "BG2_Objects(vis=%d,blend=%d) MergeType=%d",
-              room.id(),
-              IsLayerVisible(LayerType::BG1_Layout),
+              room.id(), IsLayerVisible(LayerType::BG1_Layout),
               static_cast<int>(GetLayerBlendMode(LayerType::BG1_Layout)),
               IsLayerVisible(LayerType::BG1_Objects),
               static_cast<int>(GetLayerBlendMode(LayerType::BG1_Objects)),
@@ -73,8 +76,7 @@ void RoomLayerManager::CompositeToOutput(Room& room,
 
   // Ensure output bitmap is properly sized
   if (output.width() != kWidth || output.height() != kHeight) {
-    output.Create(kWidth, kHeight, 8,
-                  std::vector<uint8_t>(kPixelCount, 0));
+    output.Create(kWidth, kHeight, 8, std::vector<uint8_t>(kPixelCount, 0));
   } else {
     // Clear to backdrop (0). Transparent pixels (255) from layers will reveal
     // this backdrop, matching SNES behavior when all layers are transparent.
@@ -89,6 +91,38 @@ void RoomLayerManager::CompositeToOutput(Room& room,
   auto& bg1_objects = GetLayerBuffer(room, LayerType::BG1_Objects);
   auto& bg2_layout = GetLayerBuffer(room, LayerType::BG2_Layout);
   auto& bg2_objects = GetLayerBuffer(room, LayerType::BG2_Objects);
+
+  auto layer_enabled = [&](LayerType type,
+                           const gfx::BackgroundBuffer& buffer) {
+    if (!IsLayerVisible(type) ||
+        GetLayerBlendMode(type) == LayerBlendMode::Off) {
+      return false;
+    }
+    const auto& bitmap = buffer.bitmap();
+    return bitmap.is_active() && bitmap.width() > 0;
+  };
+
+  const bool bg1_layout_on = layer_enabled(LayerType::BG1_Layout, bg1_layout);
+  const bool bg1_obj_on = layer_enabled(LayerType::BG1_Objects, bg1_objects);
+  const bool bg2_layout_on = layer_enabled(LayerType::BG2_Layout, bg2_layout);
+  const bool bg2_obj_on = layer_enabled(LayerType::BG2_Objects, bg2_objects);
+
+  auto bg1_revealed_at = [&](const gfx::BackgroundBuffer& target, int index) {
+    const auto& mask = target.bg1_reveal_mask_data();
+    if (index < 0 || index >= static_cast<int>(mask.size())) {
+      return false;
+    }
+    const uint8_t value = mask[index];
+    const bool layout_reveal =
+        bg2_layout_on &&
+        (value & static_cast<uint8_t>(gfx::BG1RevealMaskSource::kBG2Layout)) !=
+            0;
+    const bool object_reveal =
+        bg2_obj_on &&
+        (value & static_cast<uint8_t>(gfx::BG1RevealMaskSource::kBG2Objects)) !=
+            0;
+    return layout_reveal || object_reveal;
+  };
 
   // Copy palette from first available visible layer
   auto CopyPaletteIfNeeded = [&](const gfx::Bitmap& src_bitmap) {
@@ -108,20 +142,6 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     // then resolve BG1 vs BG2 per-pixel using the stored priority buffers.
     // When BG2 is translucent (water rooms, color math), we blend colors
     // using the SDL palette instead of simple overwrite.
-    auto layer_enabled = [&](LayerType type, const gfx::BackgroundBuffer& buf) {
-      if (!IsLayerVisible(type)) {
-        return false;
-      }
-      if (GetLayerBlendMode(type) == LayerBlendMode::Off) {
-        return false;
-      }
-      const auto& bmp = buf.bitmap();
-      if (!bmp.is_active() || bmp.width() == 0) {
-        return false;
-      }
-      return true;
-    };
-
     // Ensure the output palette matches the room's SDL palette.
     if (layer_enabled(LayerType::BG1_Layout, bg1_layout)) {
       CopyPaletteIfNeeded(bg1_layout.bitmap());
@@ -138,9 +158,10 @@ void RoomLayerManager::CompositeToOutput(Room& room,
 
     // Check if BG2 uses translucent blending (water rooms, color math effects).
     // When translucent, overlapping BG1+BG2 pixels are averaged in RGB space.
-    const bool bg2_translucent =
-        (GetLayerBlendMode(LayerType::BG2_Layout) == LayerBlendMode::Translucent) ||
-        (GetLayerBlendMode(LayerType::BG2_Objects) == LayerBlendMode::Translucent);
+    const bool bg2_translucent = (GetLayerBlendMode(LayerType::BG2_Layout) ==
+                                  LayerBlendMode::Translucent) ||
+                                 (GetLayerBlendMode(LayerType::BG2_Objects) ==
+                                  LayerBlendMode::Translucent);
 
     // Build palette lookup table for color blending (only when needed).
     // Extract from the output bitmap's SDL palette so we can do RGB math.
@@ -159,8 +180,9 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     // Searches within the same 16-color bank as the BG1 pixel to preserve
     // palette coherence (avoids cross-bank color artifacts).
     auto find_nearest_in_bank = [&](uint8_t base_idx, uint8_t r, uint8_t g,
-                                     uint8_t b) -> uint8_t {
-      if (pal_lut.empty()) return base_idx;
+                                    uint8_t b) -> uint8_t {
+      if (pal_lut.empty())
+        return base_idx;
       int bank_start = (base_idx / 16) * 16;
       int bank_end = bank_start + 16;
       int best_idx = base_idx;
@@ -187,8 +209,8 @@ void RoomLayerManager::CompositeToOutput(Room& room,
       if (pal_lut.empty() || winner_idx == other_idx) {
         return winner_idx;
       }
-      const size_t key =
-          (static_cast<size_t>(winner_idx) << 8) | static_cast<size_t>(other_idx);
+      const size_t key = (static_cast<size_t>(winner_idx) << 8) |
+                         static_cast<size_t>(other_idx);
       if (blend_cache_valid[key] != 0) {
         return blend_cache[key];
       }
@@ -229,33 +251,32 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     const auto& bg1_obj_cov = bg1_objects.coverage_data();
     const auto& bg2_obj_cov = bg2_objects.coverage_data();
 
-    const bool bg1_layout_on = layer_enabled(LayerType::BG1_Layout, bg1_layout);
-    const bool bg1_obj_on = layer_enabled(LayerType::BG1_Objects, bg1_objects);
-    const bool bg2_layout_on = layer_enabled(LayerType::BG2_Layout, bg2_layout);
-    const bool bg2_obj_on = layer_enabled(LayerType::BG2_Objects, bg2_objects);
-
     auto& dst_data = output.mutable_data();
     for (int idx = 0; idx < kPixelCount; ++idx) {
       uint8_t bg1_pixel = 255;
       uint8_t bg1_pri = 0;
       const bool bg1_obj_wrote =
-          bg1_obj_on &&
-          ((idx < static_cast<int>(bg1_obj_cov.size()) && bg1_obj_cov[idx] != 0) ||
-           !IsTransparent(bg1_obj_px[idx]));
+          bg1_obj_on && ((idx < static_cast<int>(bg1_obj_cov.size()) &&
+                          bg1_obj_cov[idx] != 0) ||
+                         !IsTransparent(bg1_obj_px[idx]));
       if (bg1_obj_wrote) {
-        bg1_pixel = bg1_obj_px[idx];
-        bg1_pri = bg1_obj_pri[idx];
+        if (!bg1_revealed_at(bg1_objects, idx)) {
+          bg1_pixel = bg1_obj_px[idx];
+          bg1_pri = bg1_obj_pri[idx];
+        }
       } else if (bg1_layout_on && !IsTransparent(bg1_layout_px[idx])) {
-        bg1_pixel = bg1_layout_px[idx];
-        bg1_pri = bg1_layout_pri[idx];
+        if (!bg1_revealed_at(bg1_layout, idx)) {
+          bg1_pixel = bg1_layout_px[idx];
+          bg1_pri = bg1_layout_pri[idx];
+        }
       }
 
       uint8_t bg2_pixel = 255;
       uint8_t bg2_pri = 0;
       const bool bg2_obj_wrote =
-          bg2_obj_on &&
-          ((idx < static_cast<int>(bg2_obj_cov.size()) && bg2_obj_cov[idx] != 0) ||
-           !IsTransparent(bg2_obj_px[idx]));
+          bg2_obj_on && ((idx < static_cast<int>(bg2_obj_cov.size()) &&
+                          bg2_obj_cov[idx] != 0) ||
+                         !IsTransparent(bg2_obj_px[idx]));
       if (bg2_obj_wrote) {
         bg2_pixel = bg2_obj_px[idx];
         bg2_pri = bg2_obj_pri[idx];
@@ -301,16 +322,15 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     // - Dark: Darkened blend (reduced brightness)
     // - Off: Layer is hidden
     //
-    // IMPORTANT: Transparent pixels (255) in BG1 layers ALWAYS reveal BG2 beneath.
-    // This is how pits work: mask objects write 255 to BG1, allowing BG2 to show.
-    auto CompositeLayer = [&](gfx::BackgroundBuffer& buffer, LayerType layer_type) {
-      if (!IsLayerVisible(layer_type)) return;
+    // Transparent BG1 pixels and active source-owned reveal bits expose BG2.
+    // The deferred bits preserve raw BG1 when their owning BG2 layer is hidden.
+    auto CompositeLayer = [&](gfx::BackgroundBuffer& buffer,
+                              LayerType layer_type) {
+      if (!layer_enabled(layer_type, buffer))
+        return;
 
       const auto& src_bitmap = buffer.bitmap();
-      if (!src_bitmap.is_active() || src_bitmap.width() == 0) return;
-
       LayerBlendMode blend_mode = GetLayerBlendMode(layer_type);
-      if (blend_mode == LayerBlendMode::Off) return;
 
       CopyPaletteIfNeeded(src_bitmap);
 
@@ -321,11 +341,16 @@ void RoomLayerManager::CompositeToOutput(Room& room,
       uint8_t layer_alpha = GetLayerAlpha(layer_type);
 
       for (int idx = 0; idx < kPixelCount; ++idx) {
+        const bool is_bg1_layer = layer_type == LayerType::BG1_Layout ||
+                                  layer_type == LayerType::BG1_Objects;
+        if (is_bg1_layer && bg1_revealed_at(buffer, idx)) {
+          continue;
+        }
         uint8_t src_pixel = src_data[idx];
 
-        // Skip transparent pixels (255 = fill color for undrawn areas)
-        // This is CRITICAL for pits: transparent BG1 pixels reveal BG2 beneath
-        if (IsTransparent(src_pixel)) continue;
+        // Skip transparent pixels (255 = fill color for undrawn areas).
+        if (IsTransparent(src_pixel))
+          continue;
 
         // Apply blend mode
         switch (blend_mode) {

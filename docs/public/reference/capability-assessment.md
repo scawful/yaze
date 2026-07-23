@@ -30,7 +30,7 @@ An honest assessment of yaze's current capabilities compared to Hyrule Magic and
 | Multi-room tab view | Yes | Yes | Yes |
 | Adjacent room navigation (Ctrl+arrows) | Yes | No | No |
 | Room save to ROM | Yes | Yes | Yes |
-| Room-state persistence coverage | Focused regression coverage (headers, torches, fixed-capacity pit-damage table, pushable blocks, custom collision, chests, pot items, dungeon entrances/spawn points; oversized pot-item saves fail loudly) | Mature | Mature |
+| Room-state persistence coverage | Focused regression coverage (headers, torches, fixed-capacity pit-damage table, pushable blocks, custom collision, chests, pot items, dungeon entrances, and dedicated spawn persistence; spawn UI remains read-only and oversized pot-item saves fail loudly) | Mature | Mature |
 | Sprite graphics rendering (actual tiles) | Partial (static vanilla tile preview + fallback boxes) | Yes | Yes |
 | Object tile preview in ghost | Yes (rendered bitmap) | No | No |
 | Object selector/browser previews | Yes (default-on rendered room-context thumbnails + fallback symbols) | Yes | Yes |

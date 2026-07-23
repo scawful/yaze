@@ -49,6 +49,12 @@ constexpr int kSubtype1Base = 0x8000;
 constexpr int kSubtype2Base = 0x83F0;
 constexpr int kSubtype3Base = 0x84F0;
 constexpr int kTileDataBase = 0x1B52;
+constexpr int kBombableFloorOpenTileOffset = 0x05BA;
+constexpr int kPrisonCellTileOffset = 0x1488;
+// Oracle of Secrets relocates this room-specific behavior from vanilla room
+// 0x65 to room 0xAD. Keep the preview test keyed to the current room supplied
+// to the drawer rather than baking in the vanilla room number.
+constexpr int kBombableFloorPreviewRoomId = 0xAD;
 
 // Wall corner variants: USDASM RoomDraw_4x4Corner_BothBG dispatches these.
 // All 8 IDs share the same 4x4 column-major routine; they differ in flip flags.
@@ -136,15 +142,18 @@ std::vector<ObjectDrawer::TileTrace> ReplayRomObjectTrace(::yaze::Rom* rom,
 // "no-edit"/closed/intact behaviour; callers flip individual flags to test the
 // alternate branch. All other queries return safe defaults.
 struct StateStub : public DungeonState {
-  bool door_open = false;
-  bool floor_bombable = false;
+  bool big_key_lock_open = false;
+  int bombed_floor_room_id = -1;
 
   bool IsChestOpen(int, int) const override { return false; }
   bool IsBigChestOpen() const override { return false; }
-  bool IsDoorOpen(int, int) const override { return door_open; }
+  bool IsDoorOpen(int, int) const override { return false; }
   bool IsDoorSwitchActive(int) const override { return false; }
+  bool IsBigKeyLockOpen(int, int) const override { return big_key_lock_open; }
   bool IsWallMoved(int) const override { return false; }
-  bool IsFloorBombable(int) const override { return floor_bombable; }
+  bool IsFloorBombable(int room_id) const override {
+    return room_id == bombed_floor_room_id;
+  }
   bool IsRupeeFloorCleared(int) const override { return false; }
   bool IsCrystalSwitchBlue() const override { return false; }
 };
@@ -153,13 +162,13 @@ struct StateStub : public DungeonState {
 // can exercise IsDoorOpen / IsFloorBombable branches inside the routine.
 std::vector<ObjectDrawer::TileTrace> ReplayRomObjectTraceWithState(
     ::yaze::Rom* rom, int16_t object_id, int x, int y, uint8_t size,
-    const DungeonState* state) {
+    const DungeonState* state, int room_id = 0) {
   RoomObject obj(object_id, x, y, size,
                  static_cast<int>(RoomObject::LayerType::BG1));
   obj.SetRom(rom);
   obj.EnsureTilesLoaded();
 
-  ObjectDrawer drawer(rom, /*room_id=*/0);
+  ObjectDrawer drawer(rom, room_id);
   gfx::BackgroundBuffer bg1(512, 512);
   gfx::BackgroundBuffer bg2(512, 512);
   gfx::PaletteGroup palette_group;
@@ -377,44 +386,37 @@ TEST_P(RoomObjectRomParityTest,
 // BombableFloor)
 // -----------------------------------------------------------------------------
 //
-// These tests stand in for the synthetic replay coverage in
-// object_drawer_registry_replay_test.cc. They:
+// These tests complement the synthetic replay coverage in
+// object_drawer_registry_replay_test.cc by checking real ROM payloads. They:
 //   1. Read raw bytes from the Subtype-3 tile pointer table (`kSubtype3Base`)
-//      and decode N consecutive 16-bit words from `kTileDataBase + offset`.
+//      and decode its raw 16-bit words from `kTileDataBase + offset`.
 //   2. Compare the decoded tiles against ObjectParser::ParseObject output.
-//   3. For drawer state branches (BigKeyLock door open/closed, BombableFloor
+//   3. For drawer state branches (BigKeyLock event open/closed, BombableFloor
 //      intact/bombed), drive the trace path with a DungeonState stub and
 //      verify the routine selects the expected sub-range of parsed tiles.
 //
 // Routine bodies referenced (special_routines.cc):
-//   - DrawPrisonCell (97) at 1077-1135: 5 cols x 4 rows x 2 sides per BG;
-//     reads tiles[0..3] (row-indexed); registered draws_to_both_bgs=true so
-//     ObjectDrawer dispatches the routine twice (BG1, then BG2).
-//   - DrawBigKeyLock (92) at 1137-1172: 2x2 tiles[0..3] when closed; 2x2
-//     tiles[4..7] when open (only if tiles.size() >= 8).
-//   - DrawBombableFloor (93) at 1174-1206: same shape as BigKeyLock but
-//     gated on IsFloorBombable.
-//
-// Current GetSubtype3TileCount returns 8 for all four IDs (default).  These
-// tests pin that contract end-to-end against ROM. If a future audit proves
-// a higher count is needed (e.g. a routine reads beyond tile index 7), the
-// expected_count constants below are the single edit point.
+//   - DrawPrisonCell (97): sparse 16x4 target-layer pattern matching the long
+//     tilemap writes at RoomDraw_PrisonCell ($019C44); reads tiles[0..5].
+//   - DrawBigKeyLock (92): column-major 2x2 tiles[0..3] when closed; no tile
+//     writes when the corresponding shared chest/lock room-event slot is set.
+//   - DrawBombableFloor (93): four 2x2 quadrants from tiles[0..15], or the
+//     separately stored obj05BA replacement block at tiles[16..31] when the
+//     current room's selected bombed-floor preview state is active.
 
 TEST_P(RoomObjectRomParityTest, PrisonCellParserMatchesRawRomWords) {
   SCOPED_TRACE(::yaze::test::TestRomManager::GetRomRoleName(GetParam()));
   ObjectParser parser(rom_.get());
+  const auto expected = DecodeTilesFromRom(
+      *rom_, kTileDataBase + kPrisonCellTileOffset, /*count=*/6);
   for (int id : {0xF8D, 0xF97}) {
     SCOPED_TRACE(absl::StrFormat("object 0x%03X (PrisonCell)", id));
-    const int addr = Subtype3TileDataAddr(*rom_, id);
-    const auto expected = DecodeTilesFromRom(*rom_, addr, /*count=*/8);
 
     auto parsed_or = parser.ParseObject(static_cast<int16_t>(id));
     ASSERT_TRUE(parsed_or.ok()) << parsed_or.status();
     const auto& parsed = parsed_or.value();
-    ASSERT_EQ(parsed.size(), 8u)
-        << "PrisonCell parses 8 tiles via the subtype-3 default; routine "
-           "consumes tiles[0..3] but the >=6 early-return guard means parsing "
-           "below 6 would clip the routine to a no-op.";
+    ASSERT_EQ(parsed.size(), 6u)
+        << "Both PrisonCell aliases consume the six words at literal obj1488.";
 
     for (size_t i = 0; i < expected.size(); ++i) {
       SCOPED_TRACE(absl::StrFormat("tile idx=%zu", i));
@@ -432,14 +434,14 @@ TEST_P(RoomObjectRomParityTest, BigKeyLockParserMatchesRawRomWords) {
   ObjectParser parser(rom_.get());
   const int id = 0xF98;
   const int addr = Subtype3TileDataAddr(*rom_, id);
-  const auto expected = DecodeTilesFromRom(*rom_, addr, /*count=*/8);
+  const auto expected = DecodeTilesFromRom(*rom_, addr, /*count=*/4);
 
   auto parsed_or = parser.ParseObject(static_cast<int16_t>(id));
   ASSERT_TRUE(parsed_or.ok()) << parsed_or.status();
   const auto& parsed = parsed_or.value();
-  ASSERT_EQ(parsed.size(), 8u)
-      << "BigKeyLock needs 8 parsed tiles: closed branch reads tiles[0..3], "
-         "open branch reads tiles[4..7] iff size >= 8.";
+  ASSERT_EQ(parsed.size(), 4u)
+      << "BigKeyLock consumes only the four obj1494 words; the next four "
+         "belong to the Chest object at obj149C.";
 
   for (size_t i = 0; i < expected.size(); ++i) {
     SCOPED_TRACE(absl::StrFormat("tile idx=%zu", i));
@@ -454,14 +456,16 @@ TEST_P(RoomObjectRomParityTest, BombableFloorParserMatchesRawRomWords) {
   ObjectParser parser(rom_.get());
   const int id = 0xFC7;
   const int addr = Subtype3TileDataAddr(*rom_, id);
-  const auto expected = DecodeTilesFromRom(*rom_, addr, /*count=*/8);
+  auto expected = DecodeTilesFromRom(*rom_, addr, /*count=*/16);
+  const auto open_tiles = DecodeTilesFromRom(
+      *rom_, kTileDataBase + kBombableFloorOpenTileOffset, /*count=*/16);
+  expected.insert(expected.end(), open_tiles.begin(), open_tiles.end());
 
   auto parsed_or = parser.ParseObject(static_cast<int16_t>(id));
   ASSERT_TRUE(parsed_or.ok()) << parsed_or.status();
   const auto& parsed = parsed_or.value();
-  ASSERT_EQ(parsed.size(), 8u)
-      << "BombableFloor needs 8 parsed tiles: intact branch reads tiles[0..3],"
-         " bombed branch reads tiles[4..7] iff size >= 8.";
+  ASSERT_EQ(parsed.size(), 32u)
+      << "BombableFloor needs two non-contiguous 16-word 4x4 states";
 
   for (size_t i = 0; i < expected.size(); ++i) {
     SCOPED_TRACE(absl::StrFormat("tile idx=%zu", i));
@@ -471,73 +475,81 @@ TEST_P(RoomObjectRomParityTest, BombableFloorParserMatchesRawRomWords) {
   }
 }
 
-TEST_P(RoomObjectRomParityTest, PrisonCellDrawerWritesSymmetricBarsBothBGs) {
+TEST_P(RoomObjectRomParityTest,
+       PrisonCellDrawerMatchesSparseTargetLayerUsdasmWrites) {
   SCOPED_TRACE(::yaze::test::TestRomManager::GetRomRoleName(GetParam()));
-  // Use 0xF97 (PrisonCell second variant); 0xF8D shares the same routine.
-  // Origin chosen so the mirror offset (base_x + 9 - col) stays in-bounds.
+  // Origin chosen so the full x..x+15 span stays in-bounds.
   const int base_x = 5;
   const int base_y = 7;
-  const auto trace = ReplayRomObjectTrace(rom_.get(), 0xF97, base_x, base_y,
-                                          /*size=*/0);
+  const auto rom_tiles =
+      DecodeTilesFromRom(*rom_, kTileDataBase + kPrisonCellTileOffset, 6);
 
-  const auto bg1 = FilterByLayer(trace, RoomObject::LayerType::BG1);
-  const auto bg2 = FilterByLayer(trace, RoomObject::LayerType::BG2);
-  // Routine draws 5 cols * 4 rows * 2 sides = 40 writes per BG.
-  // PrisonCell is registered draws_to_both_bgs=true, so ObjectDrawer dispatches
-  // the routine twice with secondary_bg=nullptr each time -> 40+40 = 80.
-  ASSERT_EQ(bg1.size(), 40u) << "PrisonCell BG1 trace must cover 5x4x2 writes";
-  ASSERT_EQ(bg2.size(), 40u) << "PrisonCell BG2 trace must mirror BG1 writes";
-
-  // Read tiles parsed from ROM so we can compare tile_id.
-  const int addr = Subtype3TileDataAddr(*rom_, 0xF97);
-  const auto rom_tiles = DecodeTilesFromRom(*rom_, addr, 8);
-
-  // Routine ordering: outer col 0..4, inner row 0..3, emit (left bar, right
-  // bar) per (col,row). tile_idx = row.
-  size_t idx = 0;
+  struct ExpectedWrite {
+    int tile_index;
+    int x_offset;
+    int y_offset;
+    bool force_horizontal_mirror;
+  };
+  std::vector<ExpectedWrite> expected;
+  expected.reserve(48);
   for (int col = 0; col < 5; ++col) {
-    for (int row = 0; row < 4; ++row) {
-      SCOPED_TRACE(absl::StrFormat("col=%d row=%d", col, row));
-      ASSERT_LT(idx + 1, bg1.size());
+    expected.push_back({1, 2 + col, 0, false});
+    expected.push_back({1, 9 + col, 0, false});
+    expected.push_back({2, 2 + col, 1, false});
+    expected.push_back({2, 9 + col, 1, true});
+    expected.push_back({4, 2 + col, 2, false});
+    expected.push_back({4, 9 + col, 2, true});
+    expected.push_back({5, 2 + col, 3, false});
+    expected.push_back({5, 9 + col, 3, true});
+  }
+  expected.push_back({0, 0, 0, false});
+  expected.push_back({0, 15, 0, true});
+  for (int x_offset : {1, 7, 8, 14}) {
+    expected.push_back({1, x_offset, 0, false});
+  }
+  expected.push_back({3, 1, 2, false});
+  expected.push_back({3, 14, 2, true});
 
-      // Left bar at (base_x + col, base_y + row).
-      EXPECT_EQ(bg1[idx].x_tile, base_x + col);
-      EXPECT_EQ(bg1[idx].y_tile, base_y + row);
-      EXPECT_EQ(bg1[idx].tile_id, rom_tiles[row].id_);
-      EXPECT_EQ(bg2[idx].x_tile, base_x + col);
-      EXPECT_EQ(bg2[idx].y_tile, base_y + row);
-      EXPECT_EQ(bg2[idx].tile_id, rom_tiles[row].id_);
-      ++idx;
+  for (int object_id : {0xF8D, 0xF97}) {
+    SCOPED_TRACE(absl::StrFormat("object=0x%03X", object_id));
+    const auto trace =
+        ReplayRomObjectTrace(rom_.get(), object_id, base_x, base_y, /*size=*/0);
+    const auto bg1 = FilterByLayer(trace, RoomObject::LayerType::BG1);
+    const auto bg2 = FilterByLayer(trace, RoomObject::LayerType::BG2);
+    ASSERT_EQ(bg1.size(), 48u);
+    EXPECT_TRUE(bg2.empty())
+        << "RoomDraw_PrisonCell writes only to the $BF-selected tilemap";
 
-      // Right bar at (base_x + 9 - col, base_y + row), horizontally mirrored.
-      EXPECT_EQ(bg1[idx].x_tile, base_x + 9 - col);
-      EXPECT_EQ(bg1[idx].y_tile, base_y + row);
-      EXPECT_EQ(bg1[idx].tile_id, rom_tiles[row].id_);
-      EXPECT_TRUE(bg1[idx].flags & 0x1)
-          << "right bar must have horizontal_mirror set";
-      EXPECT_EQ(bg2[idx].x_tile, base_x + 9 - col);
-      EXPECT_EQ(bg2[idx].y_tile, base_y + row);
-      EXPECT_EQ(bg2[idx].tile_id, rom_tiles[row].id_);
-      EXPECT_TRUE(bg2[idx].flags & 0x1)
-          << "right bar BG2 mirror must also have horizontal_mirror set";
-      ++idx;
+    ASSERT_EQ(expected.size(), bg1.size());
+    for (size_t i = 0; i < expected.size(); ++i) {
+      SCOPED_TRACE(absl::StrFormat("write=%zu", i));
+      const auto& write = bg1[i];
+      const auto& want = expected[i];
+      const auto& tile = rom_tiles[want.tile_index];
+      EXPECT_EQ(write.x_tile, base_x + want.x_offset);
+      EXPECT_EQ(write.y_tile, base_y + want.y_offset);
+      EXPECT_EQ(write.tile_id, tile.id_);
+      EXPECT_EQ((write.flags & 0x1) != 0,
+                want.force_horizontal_mirror || tile.horizontal_mirror_);
+      EXPECT_EQ((write.flags & 0x2) != 0, tile.vertical_mirror_);
+      EXPECT_EQ((write.flags & 0x4) != 0, tile.over_);
+      EXPECT_EQ((write.flags >> 3) & 0x7, tile.palette_);
     }
   }
-  EXPECT_EQ(idx, bg1.size());
 }
 
-TEST_P(RoomObjectRomParityTest, BigKeyLockDrawerSelectsTilesByDoorState) {
+TEST_P(RoomObjectRomParityTest, BigKeyLockDrawerMatchesRoomEventState) {
   SCOPED_TRACE(::yaze::test::TestRomManager::GetRomRoleName(GetParam()));
   const int base_x = 6;
   const int base_y = 8;
 
   // ROM-parsed tiles for direct comparison against drawer trace.
   const int addr = Subtype3TileDataAddr(*rom_, 0xF98);
-  const auto rom_tiles = DecodeTilesFromRom(*rom_, addr, 8);
+  const auto rom_tiles = DecodeTilesFromRom(*rom_, addr, 4);
 
-  // Closed branch: state.door_open == false -> tiles[0..3].
+  // Closed branch: the room-event slot is clear -> tiles[0..3].
   StateStub closed;
-  closed.door_open = false;
+  closed.big_key_lock_open = false;
   const auto closed_trace = ReplayRomObjectTraceWithState(
       rom_.get(), 0xF98, base_x, base_y, /*size=*/0, &closed);
   const auto closed_bg1 =
@@ -545,34 +557,24 @@ TEST_P(RoomObjectRomParityTest, BigKeyLockDrawerSelectsTilesByDoorState) {
   ASSERT_EQ(closed_bg1.size(), 4u)
       << "BigKeyLock closed branch writes 4 tiles in 2x2";
   EXPECT_TRUE(FilterByLayer(closed_trace, RoomObject::LayerType::BG2).empty());
-  // 2x2 row-major: (0,0) (1,0) (0,1) (1,1) -> tiles[0] tiles[1] tiles[2] tiles[3]
+  // RoomDraw_Rightwards2x2 emits column-major: TL, BL, TR, BR.
   for (int t = 0; t < 4; ++t) {
     SCOPED_TRACE(absl::StrFormat("closed t=%d", t));
-    const int dx = t & 1;
-    const int dy = t >> 1;
+    const int dx = t >> 1;
+    const int dy = t & 1;
     EXPECT_EQ(closed_bg1[t].x_tile, base_x + dx);
     EXPECT_EQ(closed_bg1[t].y_tile, base_y + dy);
     EXPECT_EQ(closed_bg1[t].tile_id, rom_tiles[t].id_)
         << "closed branch must use tiles[0..3]";
   }
 
-  // Open branch: state.door_open == true -> tiles[4..7].
+  // Open branch: the room-event slot is set -> no replacement graphics.
   StateStub open;
-  open.door_open = true;
+  open.big_key_lock_open = true;
   const auto open_trace = ReplayRomObjectTraceWithState(
       rom_.get(), 0xF98, base_x, base_y, /*size=*/0, &open);
-  const auto open_bg1 = FilterByLayer(open_trace, RoomObject::LayerType::BG1);
-  ASSERT_EQ(open_bg1.size(), 4u)
-      << "BigKeyLock open branch writes 4 tiles in 2x2";
-  for (int t = 0; t < 4; ++t) {
-    SCOPED_TRACE(absl::StrFormat("open t=%d", t));
-    const int dx = t & 1;
-    const int dy = t >> 1;
-    EXPECT_EQ(open_bg1[t].x_tile, base_x + dx);
-    EXPECT_EQ(open_bg1[t].y_tile, base_y + dy);
-    EXPECT_EQ(open_bg1[t].tile_id, rom_tiles[4 + t].id_)
-        << "open branch must use tiles[4..7]";
-  }
+  EXPECT_TRUE(open_trace.empty())
+      << "USDASM's opened BigKeyLock branch advances its event slot and RTSes";
 }
 
 TEST_P(RoomObjectRomParityTest, BombableFloorDrawerSelectsTilesByFloorState) {
@@ -581,43 +583,59 @@ TEST_P(RoomObjectRomParityTest, BombableFloorDrawerSelectsTilesByFloorState) {
   const int base_y = 11;
 
   const int addr = Subtype3TileDataAddr(*rom_, 0xFC7);
-  const auto rom_tiles = DecodeTilesFromRom(*rom_, addr, 8);
+  auto rom_tiles = DecodeTilesFromRom(*rom_, addr, 16);
+  const auto open_tiles = DecodeTilesFromRom(
+      *rom_, kTileDataBase + kBombableFloorOpenTileOffset, 16);
+  rom_tiles.insert(rom_tiles.end(), open_tiles.begin(), open_tiles.end());
+
+  auto expect_state = [&](const std::vector<ObjectDrawer::TileTrace>& trace,
+                          size_t state_offset) {
+    const auto bg1 = FilterByLayer(trace, RoomObject::LayerType::BG1);
+    ASSERT_EQ(bg1.size(), 16u)
+        << "BombableFloor state must cover one fixed 4x4 block";
+    EXPECT_TRUE(FilterByLayer(trace, RoomObject::LayerType::BG2).empty());
+
+    size_t trace_index = 0;
+    for (int block_y = 0; block_y < 2; ++block_y) {
+      for (int block_x = 0; block_x < 2; ++block_x) {
+        const size_t block_offset =
+            state_offset + static_cast<size_t>((block_y * 2 + block_x) * 4);
+        for (int x = 0; x < 2; ++x) {
+          for (int y = 0; y < 2; ++y) {
+            SCOPED_TRACE(
+                absl::StrFormat("state=%zu block=(%d,%d) local=(%d,%d)",
+                                state_offset, block_x, block_y, x, y));
+            ASSERT_LT(trace_index, bg1.size());
+            const size_t tile_index =
+                block_offset + static_cast<size_t>(x * 2 + y);
+            EXPECT_EQ(bg1[trace_index].x_tile, base_x + block_x * 2 + x);
+            EXPECT_EQ(bg1[trace_index].y_tile, base_y + block_y * 2 + y);
+            EXPECT_EQ(bg1[trace_index].tile_id, rom_tiles[tile_index].id_);
+            ++trace_index;
+          }
+        }
+      }
+    }
+    EXPECT_EQ(trace_index, bg1.size());
+  };
 
   StateStub intact;
-  intact.floor_bombable = false;
   const auto intact_trace = ReplayRomObjectTraceWithState(
-      rom_.get(), 0xFC7, base_x, base_y, /*size=*/0, &intact);
-  const auto intact_bg1 =
-      FilterByLayer(intact_trace, RoomObject::LayerType::BG1);
-  ASSERT_EQ(intact_bg1.size(), 4u)
-      << "BombableFloor intact branch writes 4 tiles in 2x2";
-  for (int t = 0; t < 4; ++t) {
-    SCOPED_TRACE(absl::StrFormat("intact t=%d", t));
-    const int dx = t & 1;
-    const int dy = t >> 1;
-    EXPECT_EQ(intact_bg1[t].x_tile, base_x + dx);
-    EXPECT_EQ(intact_bg1[t].y_tile, base_y + dy);
-    EXPECT_EQ(intact_bg1[t].tile_id, rom_tiles[t].id_)
-        << "intact branch must use tiles[0..3]";
-  }
+      rom_.get(), 0xFC7, base_x, base_y, /*size=*/0, &intact,
+      kBombableFloorPreviewRoomId);
+  expect_state(intact_trace, /*state_offset=*/0);
 
   StateStub bombed;
-  bombed.floor_bombable = true;
+  bombed.bombed_floor_room_id = kBombableFloorPreviewRoomId;
   const auto bombed_trace = ReplayRomObjectTraceWithState(
-      rom_.get(), 0xFC7, base_x, base_y, /*size=*/0, &bombed);
-  const auto bombed_bg1 =
-      FilterByLayer(bombed_trace, RoomObject::LayerType::BG1);
-  ASSERT_EQ(bombed_bg1.size(), 4u)
-      << "BombableFloor bombed branch writes 4 tiles in 2x2";
-  for (int t = 0; t < 4; ++t) {
-    SCOPED_TRACE(absl::StrFormat("bombed t=%d", t));
-    const int dx = t & 1;
-    const int dy = t >> 1;
-    EXPECT_EQ(bombed_bg1[t].x_tile, base_x + dx);
-    EXPECT_EQ(bombed_bg1[t].y_tile, base_y + dy);
-    EXPECT_EQ(bombed_bg1[t].tile_id, rom_tiles[4 + t].id_)
-        << "bombed branch must use tiles[4..7]";
-  }
+      rom_.get(), 0xFC7, base_x, base_y, /*size=*/0, &bombed,
+      kBombableFloorPreviewRoomId);
+  expect_state(bombed_trace, /*state_offset=*/16);
+
+  const auto other_room_trace = ReplayRomObjectTraceWithState(
+      rom_.get(), 0xFC7, base_x, base_y, /*size=*/0, &bombed,
+      kBombableFloorPreviewRoomId - 1);
+  expect_state(other_room_trace, /*state_offset=*/0);
 }
 
 }  // namespace

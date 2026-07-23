@@ -38,7 +38,7 @@ DungeonWorkbenchContent MakeWorkbenchForToolStateTests(
   return DungeonWorkbenchContent(
       nullptr, &current_room_id, [](int) {}, [](int, RoomSelectionIntent) {},
       [](int) {}, []() {}, []() -> DungeonCanvasViewer* { return nullptr; },
-      []() -> DungeonCanvasViewer* { return nullptr; },
+      [](int) -> DungeonCanvasViewer* { return nullptr; },
       [&recent_rooms]() -> const std::deque<int>& { return recent_rooms; },
       [](int) {}, [](bool) {});
 }

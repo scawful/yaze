@@ -44,6 +44,7 @@ namespace editor {
 
 class CustomCollisionPanel;
 class DungeonEditorV2RegularEntranceTestPeer;
+class DungeonEditorV2SpawnPointTestPeer;
 class DungeonEditorV2SpawnRejectionTestPeer;
 class MinecartTrackEditorPanel;
 class ObjectTileEditorPanel;
@@ -72,6 +73,7 @@ class WaterFillPanel;
  * OWNED by DungeonEditorV2 (use unique_ptr or direct member):
  * - rooms_ (std::array) - full ownership
  * - entrances_ (std::array) - full ownership
+ * - spawn_points_ (std::array) - full ownership
  * - room_viewers_ (map of unique_ptr) - owns canvas viewers per room
  * - dungeon_editor_system_ (unique_ptr) - owns editor system
  * - render_service_ (unique_ptr) - owns emulator render service
@@ -241,6 +243,7 @@ class DungeonEditorV2 : public Editor {
 
  private:
   friend class DungeonEditorV2RegularEntranceTestPeer;
+  friend class DungeonEditorV2SpawnPointTestPeer;
   friend class DungeonEditorV2SpawnRejectionTestPeer;
   friend class DungeonEditorV2RomSafetyTest_UndoSnapshotLeakDetection_Test;
   friend class
@@ -254,6 +257,14 @@ class DungeonEditorV2 : public Editor {
       DungeonEditorV2RomSafetyTest_SaveAllRoomsRollsBackEarlierWritesOnLateFailure_Test;
   friend class
       DungeonEditorV2RomSafetyTest_LateCoordinatorRollbackRestoresEntranceDirtyState_Test;
+  friend class
+      DungeonEditorPaletteRefreshTest_SharedHudEditRefreshesRoomUsingDifferentDungeonPalette_Test;
+  friend class
+      DungeonEditorPaletteRefreshTest_DungeonMainEditRefreshesResolvedAliasesOnly_Test;
+  friend class
+      DungeonEditorPaletteRefreshTest_CachedRoomRefreshesThroughViewerCompositePreparation_Test;
+  friend class
+      DungeonEditorPaletteRefreshTest_CompareViewerScopesEntranceContextToRequestedRoom_Test;
 
   gfx::IRenderer* renderer_ = nullptr;
 
@@ -271,6 +282,7 @@ class DungeonEditorV2 : public Editor {
 
   // Sync all sub-panels to the current room configuration
   void SyncPanelsToRoom(int room_id);
+  void InvalidateDungeonPaletteUsers(gui::DungeonPaletteChange change);
   uint8_t ResolveSelectedEntranceBlocksetForRoom(int room_id) const;
   void ApplyEntranceRenderContext(int room_id);
   void ConfigureViewerRenderContext(DungeonCanvasViewer* viewer, int room_id);
@@ -290,7 +302,7 @@ class DungeonEditorV2 : public Editor {
   // Helper to get or create a viewer for a specific room
   DungeonCanvasViewer* GetViewerForRoom(int room_id);
   DungeonCanvasViewer* GetWorkbenchViewer();
-  DungeonCanvasViewer* GetWorkbenchCompareViewer();
+  DungeonCanvasViewer* GetWorkbenchCompareViewer(int room_id);
   void RefreshWorkbenchViewerRuntimeContext(DungeonCanvasViewer* viewer,
                                             int room_id);
   void TouchViewerLru(int room_id);
@@ -305,10 +317,13 @@ class DungeonEditorV2 : public Editor {
   zelda3::GameData* game_data_ = nullptr;
   DungeonRoomStore rooms_;
   std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots> entrances_;
+  std::array<zelda3::DungeonSpawnPoint, zelda3::kNumDungeonSpawnPoints>
+      spawn_points_;
 
   struct SaveTransactionSnapshot {
     std::vector<std::pair<int, zelda3::Room::SaveDirtySnapshot>> room_states;
     std::array<bool, zelda3::kNumDungeonEntranceSlots> entrance_dirty_states{};
+    std::array<bool, zelda3::kNumDungeonSpawnPoints> spawn_dirty_states{};
     bool has_pit_damage_table = false;
     bool pit_damage_dirty = false;
     bool has_palette_transaction = false;

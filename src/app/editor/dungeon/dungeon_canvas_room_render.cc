@@ -149,16 +149,11 @@ void DungeonCanvasViewer::PrepareRoomStateForCanvas(zelda3::Room& room,
     room.LoadPotItems();
   }
 
-  auto& bg1_bitmap = room.bg1_buffer().bitmap();
-  const bool needs_render = !bg1_bitmap.is_active() || bg1_bitmap.width() == 0;
-
-  static int last_rendered_room = -1;
-  static bool has_rendered = false;
-  if (needs_render && (last_rendered_room != room_id || !has_rendered)) {
-    (void)LoadAndRenderRoomGraphics(room_id);
-    last_rendered_room = room_id;
-    has_rendered = true;
-  }
+  // Existing room buffers can still be stale after palette, object, or layout
+  // edits. Let Room's dirty-state-aware preparation decide whether the cached
+  // graphics need to be rebuilt instead of treating an allocated BG1 surface
+  // as proof that the room is current.
+  room.PrepareForRender(current_entrance_blockset_);
 
   if (rom_ && rom_->is_loaded()) {
     gfx::Arena::Get().ProcessTextureQueue(renderer_);
