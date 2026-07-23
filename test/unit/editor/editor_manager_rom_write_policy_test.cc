@@ -32,6 +32,14 @@ struct ScopedFileCleanup {
   }
 };
 
+struct ScopedDirectoryCleanup {
+  std::filesystem::path path;
+  ~ScopedDirectoryCleanup() {
+    std::error_code ec;
+    std::filesystem::remove_all(path, ec);
+  }
+};
+
 struct ScopedImGuiContext {
   ImGuiContext* ctx = nullptr;
   ScopedImGuiContext() {
@@ -81,6 +89,22 @@ void WriteTestRom(const std::filesystem::path& path,
   ASSERT_TRUE(out.good());
 }
 
+void WriteTestProject(const std::filesystem::path& path,
+                      const std::filesystem::path& rom_path) {
+  std::ofstream out(path, std::ios::out | std::ios::trunc);
+  ASSERT_TRUE(out.is_open());
+  out << "[project]\n"
+         "name=Backing File Identity Test\n\n"
+         "[files]\n"
+      << "rom_filename=" << rom_path.string() << "\n"
+      << "code_folder=\n"
+         "rom_backup_folder=backups\n"
+         "output_folder=output\n"
+         "labels_filename=\n"
+         "symbols_filename=\n";
+  ASSERT_TRUE(out.good());
+}
+
 void DisableRomWritesForTest() {
   auto& flags = core::FeatureFlags::get();
   flags.kSaveDungeonMaps = false;
@@ -107,6 +131,147 @@ void DisableRomWritesForTest() {
   o.kSaveOverworldExits = false;
   o.kSaveOverworldItems = false;
   o.kSaveOverworldProperties = false;
+}
+
+TEST(EditorManagerBackingFileIdentityTest,
+     RawRomOpenRejectsLexicalAliasOfActiveBackingFile) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_path = MakeTempFilePath("yaze_lexical_identity.sfc");
+  const auto alias_dir = MakeTempFilePath("yaze_lexical_alias_dir");
+  ScopedFileCleanup rom_cleanup{rom_path};
+  ScopedDirectoryCleanup alias_cleanup{alias_dir};
+  WriteTestRom(rom_path, "LEXICAL IDENTITY");
+  ASSERT_TRUE(std::filesystem::create_directory(alias_dir));
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  const auto alias_path = alias_dir / ".." / rom_path.filename();
+  const auto status = manager->OpenRomOrProject(alias_path.string());
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kAlreadyExists) << status;
+  EXPECT_NE(std::string(status.message()).find("already open"),
+            std::string::npos);
+  EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  EXPECT_EQ(manager->GetCurrentRom()->filename(), rom_path.string());
+}
+
+TEST(EditorManagerBackingFileIdentityTest,
+     RawRomOpenRejectsEquivalentHardLinkOfActiveBackingFile) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_path = MakeTempFilePath("yaze_canonical_identity.sfc");
+  const auto hard_link_path = MakeTempFilePath("yaze_canonical_alias.sfc");
+  ScopedFileCleanup rom_cleanup{rom_path};
+  ScopedFileCleanup hard_link_cleanup{hard_link_path};
+  WriteTestRom(rom_path, "CANONICAL IDENTITY");
+
+  std::error_code link_ec;
+  std::filesystem::create_hard_link(rom_path, hard_link_path, link_ec);
+  if (link_ec) {
+    GTEST_SKIP() << "Hard links unavailable: " << link_ec.message();
+  }
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  const auto status = manager->OpenRomOrProject(hard_link_path.string());
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kAlreadyExists) << status;
+  EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
+}
+
+TEST(EditorManagerBackingFileIdentityTest,
+     ProjectOpenRejectsRomOwnedByActiveSessionWithoutReplacingContext) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_path = MakeTempFilePath("yaze_project_identity.sfc");
+  auto project_path = MakeTempFilePath("yaze_project_identity");
+  project_path += ".yaze";
+  ScopedFileCleanup rom_cleanup{rom_path};
+  ScopedFileCleanup project_cleanup{project_path};
+  WriteTestRom(rom_path, "PROJECT IDENTITY");
+  WriteTestProject(project_path, rom_path);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  Rom* const active_rom = manager->GetCurrentRom();
+  const std::string active_project_path =
+      manager->GetCurrentProject()->filepath;
+
+  const auto status = manager->OpenRomOrProject(project_path.string());
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kAlreadyExists) << status;
+  EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
+  EXPECT_EQ(manager->GetCurrentRom(), active_rom);
+  EXPECT_EQ(manager->GetCurrentProject()->filepath, active_project_path);
+}
+
+TEST(EditorManagerBackingFileIdentityTest,
+     SaveRomAsRejectsOtherSessionButAllowsCurrentBackingFileAlias) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  const auto rom_a = MakeTempFilePath("yaze_save_as_owner_a.sfc");
+  const auto rom_b = MakeTempFilePath("yaze_save_as_owner_b.sfc");
+  const auto alias_dir = MakeTempFilePath("yaze_save_as_alias_dir");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+  ScopedDirectoryCleanup alias_cleanup{alias_dir};
+  WriteTestRom(rom_a, "SAVE AS OWNER A");
+  WriteTestRom(rom_b, "SAVE AS OWNER B");
+  ASSERT_TRUE(std::filesystem::create_directory(alias_dir));
+  const auto rom_a_alias = alias_dir / ".." / rom_a.filename();
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  Rom* const rom_b_buffer = manager->GetCurrentRom();
+  ASSERT_NE(rom_b_buffer, nullptr);
+
+  const auto collision = manager->SaveRomAs(rom_a_alias.string());
+  EXPECT_EQ(collision.code(), absl::StatusCode::kAlreadyExists) << collision;
+  EXPECT_EQ(rom_b_buffer->filename(), rom_b.string());
+  auto* session_b =
+      static_cast<RomSession*>(manager->session_coordinator()->GetSession(1));
+  ASSERT_NE(session_b, nullptr);
+  EXPECT_EQ(session_b->filepath, rom_b.string());
+
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  DisableRomWritesForTest();
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "Save As Current Owner";
+  project->filepath =
+      (rom_a.parent_path() / "save_as_current_owner.yaze").string();
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.write_policy = project::RomWritePolicy::kAllow;
+  project->rom_metadata.expected_hash.clear();
+
+  ASSERT_OK(manager->SaveRomAs(rom_a_alias.string()));
+  EXPECT_EQ(manager->GetCurrentRom()->filename(), rom_a_alias.string());
 }
 
 TEST(EditorManagerRomWritePolicyTest,

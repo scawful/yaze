@@ -37,16 +37,18 @@ constexpr TemplateDescriptor kTemplates[] = {
      1},
     {"ZSCustomOverworld v3", ICON_MD_TERRAIN, "ZSCustomOverworld v3",
      "Resize overworld areas and add custom map features.",
-     "Applies the ZSO3 patch: expanded overworld tables, extended palette "
-     "and GFX storage, and custom entrances/exits.",
+     "Configures editor save flags for a ROM that already uses ZSO3. It does "
+     "not install the ZSO3 ASM patch.",
      2},
     {"ZSCustomOverworld v2", ICON_MD_MAP, "ZSCustomOverworld v2",
      "Port an older hack that already uses ZSO v2.",
-     "Applies the legacy ZSO2 patch. Smaller feature set than v3.", 2},
+     "Configures editor save flags for a ROM that already uses legacy ZSO2. "
+     "It does not install the patch.",
+     2},
     {"Randomizer Compatible", ICON_MD_SHUFFLE, "Randomizer Compatible",
      "Build a ROM that has to work with ALTTPR or similar.",
-     "Keeps edits inside the surface randomizers patch over. Skips ASM "
-     "hooks and overworld remapping.",
+     "Uses conservative save flags that avoid ASM hooks and overworld "
+     "remapping; validate the finished ROM with your target randomizer.",
      3},
 };
 constexpr int kTemplateCount = sizeof(kTemplates) / sizeof(kTemplates[0]);
@@ -112,8 +114,8 @@ bool NewProjectDialog::Draw() {
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
     ImGui::TextWrapped(
         tr("Pick a template, point at the ROM it should build on, and give the "
-           "project a name. The project file will be saved in your configured "
-           "projects folder."));
+           "project a name. The project file will be saved beside the source "
+           "ROM."));
   }
   ImGui::Separator();
   ImGui::Spacing();
@@ -197,14 +199,19 @@ bool NewProjectDialog::Draw() {
   if (!can_create)
     ImGui::BeginDisabled();
   if (ImGui::Button(ICON_MD_ROCKET_LAUNCH " Create project", ImVec2(180, 0))) {
-    if (create_callback_) {
-      create_callback_(kTemplates[selected_template_].id, rom_path,
-                       project_name);
+    const auto status =
+        create_callback_ ? create_callback_(kTemplates[selected_template_].id,
+                                            rom_path, project_name)
+                         : absl::FailedPreconditionError(
+                               "Project creation callback is not configured");
+    if (!status.ok()) {
+      status_message_ = absl::StrFormat("Create failed: %s", status.message());
+    } else {
+      ImGui::CloseCurrentPopup();
+      Reset();
+      ImGui::EndPopup();
+      return false;
     }
-    ImGui::CloseCurrentPopup();
-    Reset();
-    ImGui::EndPopup();
-    return false;
   }
   if (!can_create)
     ImGui::EndDisabled();

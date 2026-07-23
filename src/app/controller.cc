@@ -119,7 +119,10 @@ void Controller::OnInput() {
     switch (event.type) {
       case platform::WindowEventType::Quit:
       case platform::WindowEventType::Close:
-        active_ = false;
+        // Native close requests must follow the same guarded quit path as the
+        // menu and keyboard shortcut. EditorManager keeps the application
+        // alive while the user resolves any unsaved-session prompt.
+        editor_manager_.Quit();
         break;
 
       case platform::WindowEventType::Minimized:

@@ -1,7 +1,9 @@
 #ifndef YAZE_APP_EDITOR_CODE_PROJECT_FILE_EDITOR_H_
 #define YAZE_APP_EDITOR_CODE_PROJECT_FILE_EDITOR_H_
 
+#include <functional>
 #include <string>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "app/gui/widgets/text_editor.h"
@@ -11,6 +13,16 @@ namespace yaze {
 namespace editor {
 
 class ToastManager;
+
+struct ProjectFileEditorState {
+  std::string filepath;
+  std::string text;
+  bool initialized = false;
+  bool active = false;
+  bool modified = false;
+  bool show_validation = true;
+  std::vector<std::string> validation_errors;
+};
 
 /**
  * @class ProjectFileEditor
@@ -24,6 +36,11 @@ class ToastManager;
  */
 class ProjectFileEditor {
  public:
+  using SaveGuardCallback = std::function<absl::Status(
+      const std::string& filepath, const std::string& contents)>;
+  using SaveCompleteCallback = std::function<absl::Status(
+      const std::string& filepath, const std::string& contents)>;
+
   ProjectFileEditor();
 
   void Draw();
@@ -46,12 +63,18 @@ class ProjectFileEditor {
   /**
    * @brief Get whether the file has unsaved changes
    */
-  bool IsModified() const { return text_editor_.IsTextChanged() || modified_; }
+  bool IsModified() const { return modified_; }
 
   /**
    * @brief Get the current filepath
    */
   const std::string& filepath() const { return filepath_; }
+  bool IsInitialized() const { return initialized_; }
+
+  ProjectFileEditorState CaptureState() const;
+  void RestoreState(const ProjectFileEditorState& state,
+                    project::YazeProject* project);
+  void ResetForProject(project::YazeProject* project);
 
   /**
    * @brief Set whether the editor window is active
@@ -62,6 +85,7 @@ class ProjectFileEditor {
    * @brief Get pointer to active state for ImGui
    */
   bool* active() { return &active_; }
+  bool is_active() const { return active_; }
 
   /**
    * @brief Set toast manager for notifications
@@ -69,11 +93,20 @@ class ProjectFileEditor {
   void SetToastManager(ToastManager* toast_manager) {
     toast_manager_ = toast_manager;
   }
+  void SetSaveGuardCallback(SaveGuardCallback callback) {
+    save_guard_callback_ = std::move(callback);
+  }
+  void SetSaveCompleteCallback(SaveCompleteCallback callback) {
+    save_complete_callback_ = std::move(callback);
+  }
+
+  // New/Open must never discard a modified draft implicitly.
+  absl::Status CanReplaceDocument() const;
 
   /**
    * @brief Create a new empty project file
    */
-  void NewFile();
+  absl::Status NewFile();
 
   /**
    * @brief Set the project pointer for label import operations
@@ -89,15 +122,19 @@ class ProjectFileEditor {
   void ApplySyntaxHighlighting();
   void ValidateContent();
   void ShowValidationErrors();
+  std::string GetDocumentText() const;
 
   TextEditor text_editor_;
   std::string filepath_;
+  bool initialized_ = false;
   bool active_ = false;
   bool modified_ = false;
   bool show_validation_ = true;
   std::vector<std::string> validation_errors_;
   ToastManager* toast_manager_ = nullptr;
   project::YazeProject* project_ = nullptr;
+  SaveGuardCallback save_guard_callback_;
+  SaveCompleteCallback save_complete_callback_;
 };
 
 }  // namespace editor

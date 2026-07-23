@@ -318,6 +318,10 @@ class Editor {
   // Accessors for common dependencies
   Rom* rom() const { return dependencies_.rom; }
   zelda3::GameData* game_data() const { return dependencies_.game_data; }
+  project::YazeProject* project() const { return dependencies_.project; }
+  core::VersionManager* version_manager() const {
+    return dependencies_.version_manager;
+  }
 
   // Get bundled context for sub-components
   EditorContext context() const { return dependencies_.context(); }
