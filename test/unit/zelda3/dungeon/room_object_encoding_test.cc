@@ -5,6 +5,8 @@
 // correctly for all three object types (Type1, Type2, Type3) based on
 // ZScream's proven implementation.
 
+#include <string>
+
 #include <gtest/gtest.h>
 
 #include "zelda3/dungeon/room_object.h"
@@ -51,6 +53,93 @@ TEST(RoomObjectEncodingTest, MapRoomObjectListIndexToDrawLayer) {
   EXPECT_EQ(MapRoomObjectListIndexToDrawLayer(1), RoomObject::LayerType::BG2);
   EXPECT_EQ(MapRoomObjectListIndexToDrawLayer(2), RoomObject::LayerType::BG3);
   EXPECT_EQ(MapRoomObjectListIndexToDrawLayer(99), RoomObject::LayerType::BG3);
+}
+
+TEST(RoomObjectEncodingTest, SaveGuardAcceptsRepresentableIdBoundaries) {
+  for (const int16_t id : {int16_t{0x000}, int16_t{0x0F7}, int16_t{0x100},
+                           int16_t{0x13F}, int16_t{0xF80}, int16_t{0xFFF}}) {
+    const RoomObject object(id, /*x=*/62, /*y=*/63, /*size=*/15,
+                            /*layer=*/2);
+
+    const auto status = ValidateRoomObjectStreamEntryForSave(object);
+
+    EXPECT_TRUE(status.ok()) << "id=" << id << ": " << status.message();
+  }
+}
+
+TEST(RoomObjectEncodingTest, SaveGuardRejectsAliasedIdRanges) {
+  for (const int16_t id : {int16_t{0x0F8}, int16_t{0x140}, int16_t{0x200},
+                           int16_t{0xF00}, int16_t{0xF7F}}) {
+    const RoomObject object(id, /*x=*/10, /*y=*/20, /*size=*/0,
+                            /*layer=*/0);
+
+    const auto status = ValidateRoomObjectStreamEntryForSave(object);
+
+    EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument) << "id=" << id;
+    EXPECT_NE(status.message().find("not representable"), std::string::npos)
+        << status.message();
+  }
+}
+
+TEST(RoomObjectEncodingTest, SaveGuardRejectsNonType2X63Discriminator) {
+  for (const int16_t id : {int16_t{0x010}, int16_t{0xF99}}) {
+    const RoomObject object(id, /*x=*/63, /*y=*/20, /*size=*/0,
+                            /*layer=*/0);
+
+    const auto status = ValidateRoomObjectStreamEntryForSave(object);
+
+    EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+    EXPECT_NE(status.message().find("Type 2 discriminator"), std::string::npos)
+        << status.message();
+  }
+
+  const RoomObject type2(/*id=*/0x100, /*x=*/63, /*y=*/59, /*size=*/0,
+                         /*layer=*/0);
+  EXPECT_TRUE(ValidateRoomObjectStreamEntryForSave(type2).ok());
+}
+
+TEST(RoomObjectEncodingTest, SaveGuardRejectsStreamControlPrefixes) {
+  const RoomObject list_terminator(/*id=*/0x100, /*x=*/63, /*y=*/60,
+                                   /*size=*/0, /*layer=*/0);
+  const RoomObject type1_door_marker(/*id=*/0x010, /*x=*/60, /*y=*/63,
+                                     /*size=*/3, /*layer=*/0);
+  const RoomObject type3_door_marker(/*id=*/0xF8C, /*x=*/60, /*y=*/63,
+                                     /*size=*/0, /*layer=*/0);
+
+  for (const RoomObject* object :
+       {&list_terminator, &type1_door_marker, &type3_door_marker}) {
+    const auto status = ValidateRoomObjectStreamEntryForSave(*object);
+
+    EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+    EXPECT_NE(status.message().find("reserved stream-control prefix"),
+              std::string::npos)
+        << status.message();
+  }
+}
+
+TEST(RoomObjectEncodingTest, SaveGuardRejectsInvalidLayerAndCoordinates) {
+  RoomObject invalid_layer(/*id=*/0x010, /*x=*/10, /*y=*/20, /*size=*/0,
+                           /*layer=*/0);
+  invalid_layer.layer_ = static_cast<RoomObject::LayerType>(3);
+  EXPECT_EQ(ValidateRoomObjectStreamEntryForSave(invalid_layer).code(),
+            absl::StatusCode::kInvalidArgument);
+
+  const RoomObject invalid_x(/*id=*/0x010, /*x=*/64, /*y=*/20, /*size=*/0,
+                             /*layer=*/0);
+  EXPECT_EQ(ValidateRoomObjectStreamEntryForSave(invalid_x).code(),
+            absl::StatusCode::kInvalidArgument);
+
+  const RoomObject invalid_y(/*id=*/0x010, /*x=*/10, /*y=*/64, /*size=*/0,
+                             /*layer=*/0);
+  EXPECT_EQ(ValidateRoomObjectStreamEntryForSave(invalid_y).code(),
+            absl::StatusCode::kInvalidArgument);
+}
+
+TEST(RoomObjectEncodingTest, SaveGuardDoesNotRejectLossySizeField) {
+  const RoomObject object(/*id=*/0x010, /*x=*/10, /*y=*/20, /*size=*/0xFF,
+                          /*layer=*/0);
+
+  EXPECT_TRUE(ValidateRoomObjectStreamEntryForSave(object).ok());
 }
 
 // Type 1 Object Encoding/Decoding Tests

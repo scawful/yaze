@@ -103,13 +103,17 @@ ValidationResult DungeonValidator::ValidateRoom(const Room& room) {
 
   // Check bounds
   for (const auto& obj : room.GetTileObjects()) {
-    const int layer = static_cast<int>(obj.GetLayerValue());
-    if (layer < 0 || layer > 2) {
-      result.errors.push_back(absl::StrFormat(
-          "Object 0x%02X has invalid layer %d", obj.id_, layer));
-      result.is_valid = false;
+    if (UsesRoomObjectStream(obj)) {
+      const absl::Status status = ValidateRoomObjectStreamEntryForSave(obj);
+      if (!status.ok()) {
+        result.errors.emplace_back(std::string(status.message()));
+        result.is_valid = false;
+      }
+      continue;
     }
-    if (UsesSpecialLayerSelector(obj) && layer > 1) {
+
+    const int layer = static_cast<int>(obj.GetLayerValue());
+    if (layer > 1) {
       result.errors.push_back(absl::StrFormat(
           "Special-table object 0x%02X has invalid layer selector %d; "
           "expected upper/BG1 (0) or lower/BG2 (1)",

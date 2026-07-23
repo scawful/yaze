@@ -247,13 +247,13 @@ int RoomObject::DetermineObjectType(uint8_t b1, uint8_t b3) {
     return 2;
   }
 
-  // Type 3: Objects with ID >= 0xF00
+  // Type 3: Representable object IDs 0xF80-0xFFF
   // These have b3 >= 0xF8 (top nibble is 0xF)
   if (b3 >= 0xF8) {
     return 3;
   }
 
-  // Type 1: Standard objects (ID 0x00-0xFF)
+  // Type 1: Representable object IDs 0x000-0x0F7
   return 1;
 }
 
@@ -313,17 +313,17 @@ RoomObject::ObjectBytes RoomObject::EncodeObjectToBytes() const {
 
   // Determine type based on object ID
   if (id_ >= 0x100 && id_ < 0x200) {
-    // Type 2: 111111xx xxxxyyyy yyiiiiii
+    // Type 2: 111111xx xxxxyyyy yyiiiiii (representable IDs 0x100-0x13F)
     bytes.b1 = 0xFC | ((x_ & 0x30) >> 4);
     bytes.b2 = ((x_ & 0x0F) << 4) | ((y_ & 0x3C) >> 2);
     bytes.b3 = ((y_ & 0x03) << 6) | (id_ & 0x3F);
   } else if (id_ >= 0xF00) {
-    // Type 3: xxxxxxii yyyyyyii 11111iii
+    // Type 3: xxxxxxii yyyyyyii 11111iii (representable IDs 0xF80-0xFFF)
     bytes.b1 = (x_ << 2) | (id_ & 0x03);
     bytes.b2 = (y_ << 2) | ((id_ >> 2) & 0x03);
     bytes.b3 = (id_ >> 4) & 0xFF;
   } else {
-    // Type 1: xxxxxxss yyyyyyss iiiiiiii
+    // Type 1: xxxxxxss yyyyyyss iiiiiiii (representable IDs 0x000-0x0F7)
     uint8_t clamped_size = size_ > 15 ? 15 : size_;
     bytes.b1 = (x_ << 2) | ((clamped_size >> 2) & 0x03);
     bytes.b2 = (y_ << 2) | (clamped_size & 0x03);
@@ -331,6 +331,75 @@ RoomObject::ObjectBytes RoomObject::EncodeObjectToBytes() const {
   }
 
   return bytes;
+}
+
+absl::Status ValidateRoomObjectStreamEntryForSave(const RoomObject& object) {
+  const int layer = object.GetLayerValue();
+  if (layer > 2) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Room object 0x%03X has invalid stream list index %d; expected 0..2",
+        object.id_, layer));
+  }
+  if (object.x_ > 63 || object.y_ > 63) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Room object 0x%03X has out-of-range coordinates (%d, %d); "
+        "expected 0..63",
+        object.id_, object.x_, object.y_));
+  }
+
+  int expected_type = 0;
+  if (object.id_ >= 0x000 && object.id_ <= 0x0F7) {
+    expected_type = 1;
+  } else if (object.id_ >= 0x100 && object.id_ <= 0x13F) {
+    expected_type = 2;
+  } else if (object.id_ >= 0xF80 && object.id_ <= 0xFFF) {
+    expected_type = 3;
+  } else {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Room object ID 0x%03X is not representable without aliasing; "
+        "expected 0x000..0x0F7, 0x100..0x13F, or 0xF80..0xFFF",
+        object.id_));
+  }
+
+  // Type 1/3 encode X in the upper six bits of byte 1. X=63 therefore
+  // produces the Type 2 discriminator (0xFC..0xFF) and decodes as another
+  // object family.
+  if (expected_type != 2 && object.x_ == 63) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Room object 0x%03X at x=63 collides with the Type 2 discriminator",
+        object.id_));
+  }
+
+  const RoomObject::ObjectBytes encoded = object.EncodeObjectToBytes();
+  if ((encoded.b1 == 0xFF && encoded.b2 == 0xFF) ||
+      (encoded.b1 == 0xF0 && encoded.b2 == 0xFF)) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Room object 0x%03X encodes with reserved stream-control prefix "
+        "0x%02X 0x%02X",
+        object.id_, encoded.b1, encoded.b2));
+  }
+
+  const int encoded_type =
+      RoomObject::DetermineObjectType(encoded.b1, encoded.b3);
+  if (encoded_type != expected_type) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Room object 0x%03X encodes with Type %d discriminator, expected "
+        "Type %d",
+        object.id_, encoded_type, expected_type));
+  }
+
+  const RoomObject decoded = RoomObject::DecodeObjectFromBytes(
+      encoded.b1, encoded.b2, encoded.b3,
+      static_cast<uint8_t>(object.GetLayerValue()));
+  if (decoded.id_ != object.id_ || decoded.x_ != object.x_ ||
+      decoded.y_ != object.y_) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Room object 0x%03X at (%d, %d) aliases to 0x%03X at (%d, %d) "
+        "after encoding",
+        object.id_, object.x_, object.y_, decoded.id_, decoded.x_, decoded.y_));
+  }
+
+  return absl::OkStatus();
 }
 
 }  // namespace zelda3
