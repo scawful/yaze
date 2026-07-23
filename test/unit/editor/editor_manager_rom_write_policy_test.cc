@@ -10,14 +10,36 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "core/features.h"
+#include "rom/snes.h"
 #include "testing.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/room.h"
 
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
+
+class DungeonEditorV2ReloadTestPeer {
+ public:
+  static DungeonCanvasViewer* GetViewerForRoom(DungeonEditorV2* editor,
+                                               int room_id) {
+    return editor->GetViewerForRoom(room_id);
+  }
+
+  static bool HasRoomViewer(const DungeonEditorV2& editor, int room_id) {
+    return editor.room_viewers_.Contains(room_id);
+  }
+
+  static bool HasNoViewers(const DungeonEditorV2& editor) {
+    return editor.room_viewers_.Empty() && !editor.workbench_viewer_ &&
+           !editor.workbench_compare_viewer_;
+  }
+};
+
 namespace {
 
 struct FeatureFlagsGuard {
@@ -83,6 +105,35 @@ void WriteTestRom(const std::filesystem::path& path,
   for (size_t i = 0; i < title.size() && (0x7FC0 + i) < rom_data.size(); ++i) {
     rom_data[0x7FC0 + i] = static_cast<uint8_t>(title[i]);
   }
+  std::ofstream out(path, std::ios::binary | std::ios::trunc);
+  ASSERT_TRUE(out.is_open());
+  out.write(reinterpret_cast<const char*>(rom_data.data()),
+            static_cast<std::streamsize>(rom_data.size()));
+  ASSERT_TRUE(out.good());
+}
+
+constexpr int kDungeonHeaderTablePc = 0x0F6000;
+constexpr int kDungeonRoom0HeaderPc = 0x114000;
+
+void WriteDungeonHeaderTestRom(const std::filesystem::path& path,
+                               uint8_t room_palette) {
+  std::vector<uint8_t> rom_data(2 * 1024 * 1024, 0x00);
+  const std::string title = "DUNGEON RESTORE";
+  for (size_t i = 0; i < title.size(); ++i) {
+    rom_data[0x7FC0 + i] = static_cast<uint8_t>(title[i]);
+  }
+
+  const uint32_t header_table_snes = PcToSnes(kDungeonHeaderTablePc);
+  rom_data[zelda3::kRoomHeaderPointer] = header_table_snes & 0xFF;
+  rom_data[zelda3::kRoomHeaderPointer + 1] = (header_table_snes >> 8) & 0xFF;
+  rom_data[zelda3::kRoomHeaderPointer + 2] = (header_table_snes >> 16) & 0xFF;
+
+  const uint32_t room_header_snes = PcToSnes(kDungeonRoom0HeaderPc);
+  rom_data[zelda3::kRoomHeaderPointerBank] = (room_header_snes >> 16) & 0xFF;
+  rom_data[kDungeonHeaderTablePc] = room_header_snes & 0xFF;
+  rom_data[kDungeonHeaderTablePc + 1] = (room_header_snes >> 8) & 0xFF;
+  rom_data[kDungeonRoom0HeaderPc + 1] = room_palette;
+
   std::ofstream out(path, std::ios::binary | std::ios::trunc);
   ASSERT_TRUE(out.is_open());
   out.write(reinterpret_cast<const char*>(rom_data.data()),
@@ -433,6 +484,73 @@ TEST(EditorManagerBackupRestoreTest,
   }
   EXPECT_TRUE(preserved_original);
   EXPECT_TRUE(preserved_edited);
+}
+
+TEST(EditorManagerBackupRestoreTest,
+     RestoreInvalidatesMaterializedDungeonState) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = true;
+
+  const auto temp_dir = MakeTempFilePath("yaze_backup_restore_dungeon_state");
+  ScopedDirectoryCleanup cleanup{temp_dir};
+  ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
+  const auto rom_path = temp_dir / "oracle-copy.sfc";
+  constexpr uint8_t kBackupPalette = 0x03;
+  constexpr uint8_t kEditedPalette = 0x2A;
+  WriteDungeonHeaderTestRom(rom_path, kBackupPalette);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  core::FeatureFlags::get().dungeon.kUseWorkbench = false;
+
+  Rom* const active_rom = manager->GetCurrentRom();
+  ASSERT_NE(active_rom, nullptr);
+  auto* dungeon = static_cast<DungeonEditorV2*>(
+      manager->GetCurrentEditorSet()->GetEditor(EditorType::kDungeon));
+  ASSERT_NE(dungeon, nullptr);
+
+  dungeon->rooms()[0] = zelda3::LoadRoomHeaderFromRom(active_rom, 0);
+  dungeon->rooms()[0].ClearSaveDirtyState();
+  ASSERT_EQ(dungeon->rooms()[0].palette(), kBackupPalette);
+  ASSERT_NE(DungeonEditorV2ReloadTestPeer::GetViewerForRoom(dungeon, 0),
+            nullptr);
+  ASSERT_TRUE(DungeonEditorV2ReloadTestPeer::HasRoomViewer(*dungeon, 0));
+
+  ASSERT_OK(active_rom->WriteByte(kDungeonRoom0HeaderPc + 1, kEditedPalette));
+  ASSERT_OK(manager->SaveRom());
+  const auto backups = manager->GetRomBackups();
+  ASSERT_EQ(backups.size(), 1u);
+  ASSERT_EQ(ReadByteAt(backups.front().path, kDungeonRoom0HeaderPc + 1),
+            kBackupPalette);
+
+  // Reflect the current edited ROM in the already-materialized model. Without
+  // explicit invalidation this room and its viewer survive the restore.
+  dungeon->rooms()[0] = zelda3::LoadRoomHeaderFromRom(active_rom, 0);
+  dungeon->rooms()[0].ClearSaveDirtyState();
+  ASSERT_EQ(dungeon->rooms()[0].palette(), kEditedPalette);
+  ASSERT_TRUE(DungeonEditorV2ReloadTestPeer::HasRoomViewer(*dungeon, 0));
+
+  ASSERT_OK(manager->RestoreRomBackup(backups.front().path));
+  EXPECT_EQ(manager->GetCurrentRom(), active_rom);
+  ASSERT_TRUE(active_rom->ReadByte(kDungeonRoom0HeaderPc + 1).ok());
+  EXPECT_EQ(*active_rom->ReadByte(kDungeonRoom0HeaderPc + 1), kBackupPalette);
+  EXPECT_EQ(dungeon->rooms().GetIfMaterialized(0), nullptr);
+  EXPECT_TRUE(DungeonEditorV2ReloadTestPeer::HasNoViewers(*dungeon));
+
+  dungeon->rooms()[0] = zelda3::LoadRoomHeaderFromRom(active_rom, 0);
+  dungeon->rooms()[0].ClearSaveDirtyState();
+  EXPECT_EQ(dungeon->rooms()[0].palette(), kBackupPalette);
+  auto* restored_viewer =
+      DungeonEditorV2ReloadTestPeer::GetViewerForRoom(dungeon, 0);
+  ASSERT_NE(restored_viewer, nullptr);
+  EXPECT_EQ(restored_viewer->rom(), active_rom);
+  EXPECT_EQ(restored_viewer->rooms(), &dungeon->rooms());
 }
 
 TEST(EditorManagerBackupRestoreTest,
