@@ -24,6 +24,16 @@ bool HasWarningContaining(const ValidationResult& result,
   return false;
 }
 
+bool HasErrorContaining(const ValidationResult& result,
+                        std::string_view needle) {
+  for (const auto& error : result.errors) {
+    if (error.find(needle) != std::string::npos) {
+      return true;
+    }
+  }
+  return false;
+}
+
 TEST(DungeonValidatorTest, AcceptsBothBgObjectsInOverlayStreams) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
@@ -51,8 +61,8 @@ TEST(DungeonValidatorTest, AcceptsMoreThan128ObjectsInOverlayStream) {
 
   Room room(/*room_id=*/0, &rom);
   for (int i = 0; i < 129; ++i) {
-    ASSERT_TRUE(room.AddObject(RoomObject(/*id=*/0x21, /*x=*/i % 64,
-                                          /*y=*/(i / 64) % 64,
+    ASSERT_TRUE(room.AddObject(RoomObject(/*id=*/0x21, /*x=*/i % 63,
+                                          /*y=*/(i / 63) % 64,
                                           /*size=*/0, /*layer=*/2))
                     .ok());
   }
@@ -99,6 +109,42 @@ TEST(DungeonValidatorTest, AcceptsValidRoomWithNormalObject) {
 
   DungeonValidator validator;
   const auto result = validator.ValidateRoom(room);
+
+  EXPECT_TRUE(result.is_valid);
+  EXPECT_TRUE(result.errors.empty());
+}
+
+TEST(DungeonValidatorTest, RejectsUnrepresentableRoomStreamObject) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  Room room(/*room_id=*/0, &rom);
+  ASSERT_TRUE(
+      room.AddObject(RoomObject(/*id=*/0x140, /*x=*/4, /*y=*/4, /*size=*/0,
+                                /*layer=*/0))
+          .ok());
+
+  const auto result = DungeonValidator().ValidateRoom(room);
+
+  EXPECT_FALSE(result.is_valid);
+  EXPECT_TRUE(HasErrorContaining(result, "not representable"));
+}
+
+TEST(DungeonValidatorTest, ExemptsSpecialTableObjectsFromRoomStreamCodec) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  Room room(/*room_id=*/0, &rom);
+  RoomObject torch(/*id=*/0x150, /*x=*/4, /*y=*/4, /*size=*/0,
+                   /*layer=*/0);
+  torch.set_options(ObjectOption::Torch);
+  ASSERT_TRUE(room.AddObject(torch).ok());
+  RoomObject block(/*id=*/0x0E00, /*x=*/8, /*y=*/8, /*size=*/0,
+                   /*layer=*/1);
+  block.set_options(ObjectOption::Block);
+  ASSERT_TRUE(room.AddObject(block).ok());
+
+  const auto result = DungeonValidator().ValidateRoom(room);
 
   EXPECT_TRUE(result.is_valid);
   EXPECT_TRUE(result.errors.empty());

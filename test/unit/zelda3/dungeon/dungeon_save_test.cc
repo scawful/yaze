@@ -356,6 +356,32 @@ TEST_F(DungeonSaveTest, SaveObjects_FitsInSpace) {
   EXPECT_TRUE(status.ok()) << status.message();
 }
 
+TEST_F(DungeonSaveTest,
+       SaveObjects_InvalidObjectFailsWithoutRomMutationAndStaysDirty) {
+  room_->AddTileObject(RoomObject(/*id=*/0x140, /*x=*/10, /*y=*/10,
+                                  /*size=*/0, /*layer=*/0));
+  const auto before = rom_->vector();
+
+  const auto status = room_->SaveObjects();
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->object_stream_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveObjects_StreamMarkerCollisionFailsWithoutRomMutationAndStaysDirty) {
+  room_->AddTileObject(RoomObject(/*id=*/0x010, /*x=*/60, /*y=*/63,
+                                  /*size=*/3, /*layer=*/0));
+  const auto before = rom_->vector();
+
+  const auto status = room_->SaveObjects();
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(room_->object_stream_dirty());
+}
+
 TEST_F(DungeonSaveTest, SaveObjects_TooLarge) {
   // Add MANY objects to exceed 256 bytes
   // Each object encodes to 3 bytes.

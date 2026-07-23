@@ -27,6 +27,7 @@
 #include "zelda3/dungeon/dungeon_torch_codec.h"
 #include "zelda3/dungeon/editor_dungeon_state.h"
 #include "zelda3/dungeon/object_drawer.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/palette_debug.h"
 #include "zelda3/dungeon/pit_damage_table.h"
 #include "zelda3/dungeon/room_layer_manager.h"
@@ -2023,6 +2024,12 @@ absl::Status Room::SaveObjects(const DungeonStreamLayout* layout) {
   }
   if (!object_stream_dirty()) {
     return absl::OkStatus();
+  }
+
+  for (const auto& object : tile_objects_) {
+    if (UsesRoomObjectStream(object)) {
+      RETURN_IF_ERROR(ValidateRoomObjectStreamEntryForSave(object));
+    }
   }
 
   const auto& rom_data = rom()->vector();
