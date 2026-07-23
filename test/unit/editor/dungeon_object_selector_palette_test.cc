@@ -75,6 +75,82 @@ TEST(DungeonObjectSelectorPaletteTest, ObjectPreviewsDefaultOn) {
   EXPECT_TRUE(selector.object_previews_enabled_for_testing());
 }
 
+TEST(DungeonObjectSelectorSizeTest,
+     ProgrammaticSelectionUsesPersistedSizeSemantics) {
+  DungeonObjectSelector selector;
+
+  selector.SelectObject(0x01);
+  EXPECT_EQ(selector.GetPreviewObject().size(), 2);
+
+  selector.SelectObject(0x02, -2);
+  EXPECT_EQ(selector.GetPreviewObject().id_, 0x02);
+  EXPECT_EQ(selector.GetPreviewObject().size(), 2);
+
+  selector.SelectObject(0x100);
+  EXPECT_EQ(selector.GetPreviewObject().size(), 0);
+
+  selector.SelectObject(0xF99);
+  EXPECT_EQ(selector.GetPreviewObject().size(), 0x06);
+}
+
+TEST(DungeonObjectSelectorSizeTest, CanonicalHelpersRespectCodecBoundaries) {
+  EXPECT_TRUE(zelda3::IsRoomObjectSizeEditable(0x000));
+  EXPECT_TRUE(zelda3::IsRoomObjectSizeEditable(0x0F7));
+  EXPECT_FALSE(zelda3::IsRoomObjectSizeEditable(0x0F8));
+  EXPECT_FALSE(zelda3::IsRoomObjectSizeEditable(0x100));
+
+  EXPECT_EQ(zelda3::CanonicalRoomObjectSize(0x0F7, 0xFF), 0x0F);
+  EXPECT_EQ(zelda3::CanonicalRoomObjectSize(0x100, 0x0A), 0);
+  EXPECT_EQ(zelda3::CanonicalRoomObjectSize(0x13F, 0x0A), 0);
+  EXPECT_EQ(zelda3::CanonicalRoomObjectSize(0xF80, 0), 0);
+  EXPECT_EQ(zelda3::CanonicalRoomObjectSize(0xF99, 0), 0x06);
+  EXPECT_EQ(zelda3::CanonicalRoomObjectSize(0xFFF, 0), 0x0F);
+
+  EXPECT_EQ(zelda3::DefaultRoomObjectSizeForPlacement(0x0F7), 2);
+  EXPECT_EQ(zelda3::DefaultRoomObjectSizeForPlacement(0x100), 0);
+  EXPECT_EQ(zelda3::DefaultRoomObjectSizeForPlacement(0xF99), 0x06);
+}
+
+TEST(DungeonObjectSelectorSizeTest,
+     UnpersistableOracleSubtypeLeavesSelectionAndPreviewUnchanged) {
+  DungeonObjectSelector selector;
+  int callback_count = 0;
+  selector.SetObjectSelectedCallback(
+      [&](const zelda3::RoomObject&) { ++callback_count; });
+
+  selector.SelectObject(0x31, 0x0C);
+  ASSERT_TRUE(selector.IsObjectLoaded());
+  ASSERT_EQ(selector.selected_object_id_for_testing(), 0x31);
+  ASSERT_EQ(selector.GetPreviewObject().id_, 0x31);
+  EXPECT_EQ(selector.GetPreviewObject().size(), 0x0C);
+  EXPECT_EQ(callback_count, 1);
+
+  selector.SelectObject(0x32, 0x12);
+
+  EXPECT_EQ(selector.selected_object_id_for_testing(), 0x31);
+  EXPECT_EQ(selector.GetPreviewObject().id_, 0x31);
+  EXPECT_EQ(selector.GetPreviewObject().size(), 0x0C);
+  EXPECT_EQ(callback_count, 1);
+}
+
+TEST(DungeonObjectSelectorSizeTest,
+     ChestCategoryUsesRepresentableType3ObjectIds) {
+  DungeonObjectSelector selector;
+
+  for (int object_id : {0xF99, 0xF9A, 0xFB1, 0xFB2, 0xFF5}) {
+    EXPECT_TRUE(DungeonObjectSelector::IsRepresentableChestObjectId(object_id));
+    EXPECT_TRUE(selector.matches_object_filter_for_testing(object_id, 3));
+    EXPECT_EQ(selector.object_type_symbol_for_testing(object_id), "C");
+  }
+
+  for (int object_id : {0xF9, 0xFA, 0xF98, 0xFB0}) {
+    EXPECT_FALSE(
+        DungeonObjectSelector::IsRepresentableChestObjectId(object_id));
+    EXPECT_FALSE(selector.matches_object_filter_for_testing(object_id, 3));
+    EXPECT_NE(selector.object_type_symbol_for_testing(object_id), "C");
+  }
+}
+
 }  // namespace
 }  // namespace editor
 }  // namespace yaze

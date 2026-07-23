@@ -1,5 +1,7 @@
 #include "room_object.h"
 
+#include <algorithm>
+
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "util/log.h"
@@ -332,6 +334,31 @@ RoomObject::ObjectBytes RoomObject::EncodeObjectToBytes() const {
   }
 
   return bytes;
+}
+
+bool IsRoomObjectSizeEditable(int object_id) {
+  return object_id >= 0x000 && object_id <= 0x0F7;
+}
+
+uint8_t CanonicalRoomObjectSize(int object_id, uint8_t requested_size) {
+  if (IsRoomObjectSizeEditable(object_id)) {
+    return std::min<uint8_t>(requested_size, 15);
+  }
+  if (object_id >= 0x100 && object_id <= 0x13F) {
+    return 0;
+  }
+  if (object_id >= 0xF80 && object_id <= 0xFFF) {
+    return static_cast<uint8_t>(((object_id & 0x03) << 2) |
+                                ((object_id >> 2) & 0x03));
+  }
+  return requested_size;
+}
+
+uint8_t DefaultRoomObjectSizeForPlacement(int object_id) {
+  if (IsRoomObjectSizeEditable(object_id)) {
+    return 2;
+  }
+  return CanonicalRoomObjectSize(object_id, 0);
 }
 
 absl::Status ValidateRoomObjectStreamEntryForSave(const RoomObject& object) {

@@ -105,6 +105,14 @@ class DungeonObjectSelector {
   bool object_previews_enabled_for_testing() const {
     return enable_object_previews_;
   }
+  int selected_object_id_for_testing() const { return selected_object_id_; }
+  bool matches_object_filter_for_testing(int obj_id, int filter_type) {
+    return MatchesObjectFilter(obj_id, filter_type);
+  }
+  std::string object_type_symbol_for_testing(int object_id) {
+    return GetObjectTypeSymbol(object_id);
+  }
+  static bool IsRepresentableChestObjectId(int object_id);
 
  private:
   bool MatchesObjectFilter(int obj_id, int filter_type);
