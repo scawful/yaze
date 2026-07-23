@@ -37,7 +37,8 @@ TEST(RoomObjectEncodingTest, DetermineObjectTypeType3) {
   // Type3: b3 >= 0xF8 AND b1 < 0xFC (Type 2 takes precedence when b1 >= 0xFC)
   EXPECT_EQ(RoomObject::DetermineObjectType(0x28, 0xF8), 3);
   EXPECT_EQ(RoomObject::DetermineObjectType(0x50, 0xF9), 3);
-  EXPECT_EQ(RoomObject::DetermineObjectType(0xFB, 0xFF), 3);  // b1 < 0xFC, so Type 3
+  EXPECT_EQ(RoomObject::DetermineObjectType(0xFB, 0xFF),
+            3);  // b1 < 0xFC, so Type 3
 }
 
 TEST(RoomObjectEncodingTest, DetermineObjectTypeBoundaryCollision) {
