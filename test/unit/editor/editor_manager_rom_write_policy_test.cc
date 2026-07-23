@@ -11,6 +11,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "app/application.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/dungeon/ui/window/overlay_manager_panel.h"
 #include "app/editor/editor_manager.h"
@@ -630,6 +631,38 @@ TEST(EditorManagerBackupRestoreTest,
   EXPECT_EQ(entrance_before->room_, kBackupEntranceRoom);
   EXPECT_EQ(DungeonEditorV2ReloadTestPeer::GetSpawnPoint(dungeon, 0),
             spawn_before);
+  EXPECT_EQ(spawn_before->room_id, kBackupSpawnRoom);
+
+  // Desktop/full asset loading reconstructs the dungeon panels and editor
+  // system before applying the same in-place room/viewer refresh. Exercise
+  // that path explicitly so the replacement panels cannot retain stale
+  // bindings after restore.
+  object_editor_before.reset();
+  ASSERT_OK(active_rom->WriteByte(kDungeonRoom0HeaderPc + 1, kEditedPalette));
+  ASSERT_OK(active_rom->WriteShort(zelda3::kEntranceRoom, kEditedEntranceRoom));
+  ASSERT_OK(
+      active_rom->WriteShort(zelda3::kDungeonSpawnRoom, kEditedSpawnRoom));
+  ASSERT_OK(manager->SaveRom());
+  AppConfig full_mode_config;
+  full_mode_config.startup_editor = "dungeon";
+  manager->SetStartupLoadHints(full_mode_config);
+  manager->SetAssetLoadMode(AssetLoadMode::kFull);
+  ASSERT_OK(manager->RestoreRomBackup(backups.front().path));
+
+  EXPECT_EQ(dungeon->rooms().GetIfMaterialized(0), room_before);
+  EXPECT_EQ(room_before->palette(), kBackupPalette);
+  EXPECT_EQ(DungeonEditorV2ReloadTestPeer::GetViewerForRoom(dungeon, 0),
+            viewer_before);
+  auto* const full_mode_overlay_panel =
+      DungeonEditorV2ReloadTestPeer::GetOverlayManagerPanel(dungeon);
+  ASSERT_NE(full_mode_overlay_panel, nullptr);
+  EXPECT_EQ(DungeonEditorV2ReloadTestPeer::GetOverlayGridBinding(dungeon),
+            overlay_toggle_before);
+  auto full_mode_object_editor =
+      DungeonEditorV2ReloadTestPeer::GetObjectEditor(dungeon);
+  ASSERT_NE(full_mode_object_editor, nullptr);
+  EXPECT_EQ(full_mode_object_editor->GetMutableRoom(), room_before);
+  EXPECT_EQ(entrance_before->room_, kBackupEntranceRoom);
   EXPECT_EQ(spawn_before->room_id, kBackupSpawnRoom);
 }
 
