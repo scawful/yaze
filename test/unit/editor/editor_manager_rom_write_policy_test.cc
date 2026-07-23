@@ -517,6 +517,60 @@ TEST(EditorManagerBackupRestoreTest,
 }
 
 TEST(EditorManagerBackupRestoreTest,
+     RestoreRejectsProjectBuildOutputBackingPath) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = true;
+
+  const auto temp_dir = MakeTempFilePath("yaze_backup_restore_build_output");
+  ScopedDirectoryCleanup cleanup{temp_dir};
+  ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
+  const auto dev_rom_path = temp_dir / "oracle-dev.sfc";
+  const auto build_rom_path = temp_dir / "oracle-build.sfc";
+  WriteTestRom(dev_rom_path, "RESTORE DEV");
+  WriteTestRom(build_rom_path, "RESTORE BUILD");
+
+  ASSERT_OK(manager->OpenRomOrProject(build_rom_path.string()));
+  DisableRomWritesForTest();
+  Rom* const active_rom = manager->GetCurrentRom();
+  ASSERT_NE(active_rom, nullptr);
+
+  constexpr uint32_t kPcOffset = 0x1234;
+  constexpr uint8_t kEdited = 0xA5;
+  ASSERT_OK(active_rom->WriteByte(kPcOffset, kEdited));
+  ASSERT_OK(manager->SaveRom());
+
+  const auto backups = manager->GetRomBackups();
+  ASSERT_EQ(backups.size(), 1u);
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "Backup Restore Build Output";
+  project->filepath = (temp_dir / "project.yaze").string();
+  project->rom_filename = dev_rom_path.filename().string();
+  project->build_target = build_rom_path.filename().string();
+  project->rom_metadata.write_policy = project::RomWritePolicy::kWarn;
+
+  const auto restore_status = manager->RestoreRomBackup(backups.front().path);
+
+  EXPECT_EQ(restore_status.code(), absl::StatusCode::kFailedPrecondition)
+      << restore_status;
+  EXPECT_NE(std::string(restore_status.message()).find("build output"),
+            std::string::npos);
+  EXPECT_EQ(manager->GetCurrentRom(), active_rom);
+  ASSERT_TRUE(active_rom->ReadByte(kPcOffset).ok());
+  EXPECT_EQ(*active_rom->ReadByte(kPcOffset), kEdited);
+  EXPECT_FALSE(active_rom->dirty());
+  EXPECT_FALSE(manager->IsRomBackupRestorePending());
+  EXPECT_EQ(ReadByteAt(build_rom_path, kPcOffset), kEdited);
+}
+
+TEST(EditorManagerBackupRestoreTest,
      DiscardPendingRomBackupRestoreReloadsBackingWithoutWriting) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
