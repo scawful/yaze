@@ -80,6 +80,9 @@ class ObjectTileEditor {
   // Capture: run object draw in trace_only mode, build editable layout
   absl::StatusOr<ObjectTileLayout> CaptureObjectLayout(
       int16_t object_id, const Room& room, const gfx::PaletteGroup& palette);
+  absl::StatusOr<ObjectTileLayout> CaptureObjectLayout(
+      int16_t object_id, const Room& room, const gfx::PaletteGroup& palette,
+      uint8_t object_size);
 
   // Render: draw layout to preview bitmap using room's gfx buffer
   absl::Status RenderLayoutToBitmap(const ObjectTileLayout& layout,

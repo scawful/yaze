@@ -522,8 +522,10 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                                                     : "thumbnails off"));
             ImGui::Separator();
 
+            const uint8_t preview_size =
+                zelda3::DefaultRoomObjectSizeForPlacement(obj_id);
             uint32_t layout_key = (static_cast<uint32_t>(obj_id) << 16) |
-                                  static_cast<uint32_t>(subtype);
+                                  static_cast<uint32_t>(preview_size);
             const bool can_capture_layout =
                 rom_ && rooms_ && current_room_id_ >= 0 &&
                 current_room_id_ < zelda3::kNumberOfRooms;
@@ -532,7 +534,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
               zelda3::ObjectTileEditor editor(rom_);
               auto& room_ref = (*rooms_)[current_room_id_];
               auto layout_or = editor.CaptureObjectLayout(
-                  obj_id, room_ref, current_palette_group_);
+                  obj_id, room_ref, current_palette_group_, preview_size);
               if (layout_or.ok()) {
                 layout_cache_[layout_key] = layout_or.value();
               }
@@ -725,7 +727,9 @@ bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
 
   // Check if already in cache
   // Key: (object_id << 32) | (subtype << 16) | (blockset << 8) | palette
-  int subtype = object.size_ & 0x1F;
+  const uint8_t preview_size =
+      zelda3::CanonicalRoomObjectSize(object.id_, object.size());
+  int subtype = preview_size & 0x1F;
   uint64_t cache_key = (static_cast<uint64_t>(object.id_) << 32) |
                        (static_cast<uint64_t>(subtype) << 16) |
                        (static_cast<uint64_t>(cached_preview_blockset_) << 8) |
@@ -742,8 +746,8 @@ bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
   const uint8_t* gfx_data = room.get_gfx_buffer().data();
 
   zelda3::ObjectTileEditor editor(rom_);
-  auto layout_or =
-      editor.CaptureObjectLayout(object.id_, room, current_palette_group_);
+  auto layout_or = editor.CaptureObjectLayout(
+      object.id_, room, current_palette_group_, preview_size);
   if (!layout_or.ok()) {
     return false;
   }
