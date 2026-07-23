@@ -16,6 +16,8 @@
 #include "app/editor/dungeon/ui/window/overlay_manager_panel.h"
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/null_renderer.h"
+#include "app/gfx/types/snes_palette.h"
+#include "app/gfx/util/palette_manager.h"
 #include "core/features.h"
 #include "rom/snes.h"
 #include "testing.h"
@@ -72,6 +74,11 @@ namespace {
 struct FeatureFlagsGuard {
   core::FeatureFlags::Flags prev = core::FeatureFlags::get();
   ~FeatureFlagsGuard() { core::FeatureFlags::get() = prev; }
+};
+
+struct PaletteManagerGuard {
+  PaletteManagerGuard() { gfx::PaletteManager::Get().ResetForTesting(); }
+  ~PaletteManagerGuard() { gfx::PaletteManager::Get().ResetForTesting(); }
 };
 
 struct ScopedFileCleanup {
@@ -969,6 +976,77 @@ TEST(EditorManagerBackupRestoreTest,
   EXPECT_TRUE(active_rom->dirty());
   EXPECT_TRUE(session->backup_restore_pending);
   EXPECT_EQ(dungeon->PendingRoomCount(), 1);
+  EXPECT_EQ(ReadByteAt(rom_path, kPcOffset), kEdited);
+}
+
+TEST(EditorManagerBackupRestoreTest,
+     DiscardPendingRomBackupRestoreRejectsPendingPaletteWrite) {
+  FeatureFlagsGuard guard;
+  PaletteManagerGuard palette_guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = true;
+
+  const auto temp_dir =
+      MakeTempFilePath("yaze_backup_restore_discard_pending_palette");
+  ScopedDirectoryCleanup cleanup{temp_dir};
+  ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
+  const auto rom_path = temp_dir / "oracle-copy.sfc";
+  WriteTestRom(rom_path, "DISCARD PENDING PALETTE");
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  Rom* const active_rom = manager->GetCurrentRom();
+  ASSERT_NE(active_rom, nullptr);
+
+  constexpr uint32_t kPcOffset = 0x1234;
+  constexpr uint8_t kOriginal = 0x00;
+  constexpr uint8_t kEdited = 0xA5;
+  ASSERT_OK(active_rom->WriteByte(kPcOffset, kEdited));
+  ASSERT_OK(manager->SaveRom());
+
+  const auto backups = manager->GetRomBackups();
+  ASSERT_EQ(backups.size(), 1u);
+  ASSERT_OK(manager->RestoreRomBackup(backups.front().path));
+
+  auto* const session = manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  ASSERT_TRUE(session->backup_restore_pending);
+  const std::string staged_hash = manager->GetCurrentRomHash();
+
+  auto* const game_data = manager->GetCurrentGameData();
+  ASSERT_NE(game_data, nullptr);
+  auto* const group = game_data->palette_groups.get_group("dungeon_main");
+  ASSERT_NE(group, nullptr);
+  group->clear();
+  gfx::SnesPalette palette;
+  palette.AddColor(gfx::SnesColor(0x0100));
+  group->AddPalette(palette);
+  gfx::PaletteManager::Get().Initialize(game_data);
+  ASSERT_OK(gfx::PaletteManager::Get().SetColor("dungeon_main", 0, 0,
+                                                gfx::SnesColor(0x1111)));
+  ASSERT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges(game_data));
+
+  const auto discard_status = manager->DiscardPendingRomBackupRestore();
+
+  EXPECT_EQ(discard_status.code(), absl::StatusCode::kFailedPrecondition)
+      << discard_status;
+  EXPECT_NE(std::string(discard_status.message())
+                .find("pending dungeon-room or palette edits"),
+            std::string::npos);
+  EXPECT_EQ(manager->GetCurrentRom(), active_rom);
+  ASSERT_TRUE(active_rom->ReadByte(kPcOffset).ok());
+  EXPECT_EQ(*active_rom->ReadByte(kPcOffset), kOriginal);
+  EXPECT_EQ(manager->GetCurrentRomHash(), staged_hash);
+  EXPECT_TRUE(active_rom->dirty());
+  EXPECT_TRUE(session->backup_restore_pending);
+  EXPECT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges(game_data));
+  EXPECT_EQ(gfx::PaletteManager::Get().GetColor("dungeon_main", 0, 0).snes(),
+            0x1111);
   EXPECT_EQ(ReadByteAt(rom_path, kPcOffset), kEdited);
 }
 
