@@ -10,6 +10,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "core/features.h"
@@ -640,6 +641,68 @@ TEST(EditorManagerBackupRestoreTest,
   EXPECT_EQ(manager->GetCurrentRomHash(), backing_hash);
   EXPECT_EQ(active_rom->resource_label()->GetLabel("rooms", "0"),
             "In-memory room label");
+}
+
+TEST(EditorManagerBackupRestoreTest,
+     DiscardPendingRomBackupRestoreRejectsPendingDungeonRoom) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = true;
+
+  const auto temp_dir =
+      MakeTempFilePath("yaze_backup_restore_discard_pending_room");
+  ScopedDirectoryCleanup cleanup{temp_dir};
+  ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
+  const auto rom_path = temp_dir / "oracle-copy.sfc";
+  WriteTestRom(rom_path, "DISCARD PENDING ROOM");
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  Rom* const active_rom = manager->GetCurrentRom();
+  ASSERT_NE(active_rom, nullptr);
+
+  constexpr uint32_t kPcOffset = 0x1234;
+  constexpr uint8_t kOriginal = 0x00;
+  constexpr uint8_t kEdited = 0xA5;
+  ASSERT_OK(active_rom->WriteByte(kPcOffset, kEdited));
+  ASSERT_OK(manager->SaveRom());
+
+  const auto backups = manager->GetRomBackups();
+  ASSERT_EQ(backups.size(), 1u);
+  ASSERT_OK(manager->RestoreRomBackup(backups.front().path));
+
+  auto* const session = manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  ASSERT_TRUE(session->backup_restore_pending);
+  const std::string staged_hash = manager->GetCurrentRomHash();
+
+  auto* const dungeon =
+      manager->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+          EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  dungeon->rooms()[0].SetPalette(0x2A);
+  ASSERT_EQ(dungeon->PendingRoomCount(), 1);
+
+  const auto discard_status = manager->DiscardPendingRomBackupRestore();
+
+  EXPECT_EQ(discard_status.code(), absl::StatusCode::kFailedPrecondition)
+      << discard_status;
+  EXPECT_NE(std::string(discard_status.message())
+                .find("pending dungeon-room or palette edits"),
+            std::string::npos);
+  EXPECT_EQ(manager->GetCurrentRom(), active_rom);
+  ASSERT_TRUE(active_rom->ReadByte(kPcOffset).ok());
+  EXPECT_EQ(*active_rom->ReadByte(kPcOffset), kOriginal);
+  EXPECT_EQ(manager->GetCurrentRomHash(), staged_hash);
+  EXPECT_TRUE(active_rom->dirty());
+  EXPECT_TRUE(session->backup_restore_pending);
+  EXPECT_EQ(dungeon->PendingRoomCount(), 1);
+  EXPECT_EQ(ReadByteAt(rom_path, kPcOffset), kEdited);
 }
 
 TEST(EditorManagerBackupRestoreTest,

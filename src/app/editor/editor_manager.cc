@@ -5877,8 +5877,8 @@ absl::Status EditorManager::RestoreRomBackup(const std::string& backup_path) {
 
   // Load the backup away from the live session. Backups may legitimately have
   // a different size when they predate a ROM expansion or shrink. Reusing the
-  // transactional ROM-replacement path keeps the prior ROM and editor assets
-  // recoverable if reloading the backup fails partway through.
+  // ROM-replacement path restores the prior ROM bytes and backing identity if
+  // rebuilding assets fails partway through.
   Rom restored_rom;
   RETURN_IF_ERROR(rom_file_manager_.LoadRom(&restored_rom, backup_path));
 
@@ -5913,14 +5913,22 @@ absl::Status EditorManager::DiscardPendingRomBackupRestore() {
     return absl::FailedPreconditionError("No restored backup is staged");
   }
 
+  const size_t session_index = GetCurrentSessionIndex();
+  if (PendingDungeonRoomCountForSession(session_index) > 0 ||
+      gfx::PaletteManager::Get().HasUnsavedChanges(&session->game_data)) {
+    return absl::FailedPreconditionError(
+        "Resolve pending dungeon-room or palette edits before discarding the "
+        "restored backup");
+  }
+
   const std::string backing_path = session->rom.filename();
   if (backing_path.empty()) {
     return absl::FailedPreconditionError("ROM has no backing file to reload");
   }
 
-  // Reload into scratch storage so any file or asset-loading failure leaves the
-  // staged restore intact. Resource labels are session work, not part of normal
-  // ROM backups, so preserve them across the byte-level discard.
+  // Load into scratch storage before touching the live session so file I/O
+  // failures preserve the staged ROM. Resource labels are session work, not
+  // part of normal ROM backups, so preserve them across the byte-level discard.
   const project::ResourceLabelManager resource_labels =
       *session->rom.resource_label();
   Rom backing_rom;
