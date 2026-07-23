@@ -5959,10 +5959,10 @@ absl::Status EditorManager::DiscardPendingRomBackupRestore() {
   }
 
   const size_t session_index = GetCurrentSessionIndex();
-  if (PendingDungeonRoomCountForSession(session_index) > 0 ||
+  if (HasPendingDungeonChangesForSession(session_index) ||
       gfx::PaletteManager::Get().HasUnsavedChanges(&session->game_data)) {
     return absl::FailedPreconditionError(
-        "Resolve pending dungeon-room or palette edits before discarding the "
+        "Resolve pending dungeon or palette edits before discarding the "
         "restored backup");
   }
 
@@ -6420,12 +6420,32 @@ bool EditorManager::SessionHasPendingRomWork(size_t session_index) const {
       static_cast<RomSession*>(session_coordinator_->GetSession(session_index));
   return session != nullptr &&
          ((session->rom.is_loaded() && session->rom.dirty()) ||
-          PendingDungeonRoomCountForSession(session_index) > 0 ||
+          HasPendingDungeonChangesForSession(session_index) ||
           gfx::PaletteManager::Get().HasUnsavedChanges(&session->game_data));
 }
 
 bool EditorManager::HasAnySessionPendingUnsavedWork() const {
   return ModifiedSessionCount() > 0;
+}
+
+bool EditorManager::HasPendingDungeonChangesForSession(
+    size_t session_index) const {
+  if (!session_coordinator_ ||
+      !session_coordinator_->IsValidSessionIndex(session_index)) {
+    return false;
+  }
+
+  auto* session =
+      static_cast<RomSession*>(session_coordinator_->GetSession(session_index));
+  if (!session) {
+    return false;
+  }
+
+  if (auto* dungeon_editor =
+          session->editors.GetEditorAs<DungeonEditorV2>(EditorType::kDungeon)) {
+    return dungeon_editor->HasPendingDungeonChanges();
+  }
+  return false;
 }
 
 int EditorManager::PendingDungeonRoomCountForSession(
@@ -6487,6 +6507,8 @@ std::string EditorManager::DescribePendingUnsavedWork(
       static_cast<RomSession*>(session_coordinator_->GetSession(session_index));
   const bool rom_dirty =
       session != nullptr && session->rom.is_loaded() && session->rom.dirty();
+  const bool pending_dungeon_changes =
+      HasPendingDungeonChangesForSession(session_index);
   const int pending_rooms = PendingDungeonRoomCountForSession(session_index);
   const size_t pending_palette_colors =
       PendingPaletteColorCountForSession(session_index);
@@ -6499,6 +6521,8 @@ std::string EditorManager::DescribePendingUnsavedWork(
   if (pending_rooms > 0) {
     work.push_back(absl::StrFormat("%d unapplied dungeon room%s", pending_rooms,
                                    pending_rooms == 1 ? "" : "s"));
+  } else if (pending_dungeon_changes) {
+    work.emplace_back("unapplied dungeon metadata");
   }
   if (pending_palette_colors > 0) {
     work.push_back(absl::StrFormat("%zu unapplied palette color%s",
