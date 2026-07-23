@@ -9,6 +9,7 @@
 namespace yaze::editor {
 
 class DungeonCanvasViewer;
+class DungeonEditorV2ReloadTestPeer;
 
 // Lightweight dockable panel that consolidates all overlay toggles.
 // Replaces the need to dig through context menus to toggle overlays.
@@ -89,6 +90,8 @@ class OverlayManagerPanel : public WindowContent {
   }
 
  private:
+  friend class DungeonEditorV2ReloadTestPeer;
+
   void OverlayToggle(const char* label, bool* value) {
     if (!value) {
       ImGui::BeginDisabled();

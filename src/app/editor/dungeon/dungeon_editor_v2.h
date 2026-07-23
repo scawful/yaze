@@ -156,9 +156,6 @@ class DungeonEditorV2 : public Editor {
   // ROM management
   void SetRom(Rom* rom) {
     const bool rom_changed = rom_ != rom;
-    if (rom_changed) {
-      InvalidateRomBackedStateForReload();
-    }
     rom_ = rom;
     room_loader_ = DungeonRoomLoader(rom);
     room_loader_.SetGameData(game_data_);
@@ -166,10 +163,17 @@ class DungeonEditorV2 : public Editor {
 
     // Propagate ROM to all rooms
     rooms_.SetRom(rom);
+    // Reset viewers on ROM change
+    if (rom_changed) {
+      rooms_.Clear();
+      room_viewers_.Clear();
+      workbench_viewer_.reset();
+      workbench_compare_viewer_.reset();
+    }
   }
-  // Clears materialized ROM-backed state while retaining stable editor and
-  // workspace objects. Call before replacing bytes in a same-address Rom.
-  void InvalidateRomBackedStateForReload();
+  // Reloads same-address ROM state in place so rooms, viewers, and workspace
+  // panel bindings retain stable addresses.
+  absl::Status RefreshRomBackedState();
   Rom* rom() const { return rom_; }
 
   // Room management
@@ -266,9 +270,8 @@ class DungeonEditorV2 : public Editor {
       DungeonEditorPaletteRefreshTest_CachedRoomRefreshesThroughViewerCompositePreparation_Test;
   friend class
       DungeonEditorPaletteRefreshTest_CompareViewerScopesEntranceContextToRequestedRoom_Test;
-  gfx::IRenderer* renderer_ = nullptr;
 
-  void DetachViewerBindings();
+  gfx::IRenderer* renderer_ = nullptr;
 
   // Draw the Room Panels
   void DrawRoomPanels();
@@ -276,6 +279,7 @@ class DungeonEditorV2 : public Editor {
 
   // Texture processing (critical for rendering)
   void ProcessDeferredTextures();
+  void ReloadWaterFillZones();
 
   // Room selection callback
   void OnRoomSelected(int room_id, bool request_focus = true);
