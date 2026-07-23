@@ -918,7 +918,7 @@ TEST(EditorManagerBackupRestoreTest,
 }
 
 TEST(EditorManagerBackupRestoreTest,
-     DiscardPendingRomBackupRestoreRejectsPendingDungeonRoom) {
+     DiscardPendingRomBackupRestoreRejectsPendingDungeonMetadata) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
 
@@ -955,19 +955,23 @@ TEST(EditorManagerBackupRestoreTest,
   ASSERT_TRUE(session->backup_restore_pending);
   const std::string staged_hash = manager->GetCurrentRomHash();
 
+  auto* const game_data = manager->GetCurrentGameData();
+  ASSERT_NE(game_data, nullptr);
+  game_data->pit_damage_table.MarkDirty();
+  ASSERT_TRUE(game_data->pit_damage_table.dirty());
   auto* const dungeon =
       manager->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
           EditorType::kDungeon);
   ASSERT_NE(dungeon, nullptr);
-  dungeon->rooms()[0].SetPalette(0x2A);
-  ASSERT_EQ(dungeon->PendingRoomCount(), 1);
+  ASSERT_EQ(dungeon->PendingRoomCount(), 0);
+  ASSERT_TRUE(dungeon->HasPendingDungeonChanges());
 
   const auto discard_status = manager->DiscardPendingRomBackupRestore();
 
   EXPECT_EQ(discard_status.code(), absl::StatusCode::kFailedPrecondition)
       << discard_status;
   EXPECT_NE(std::string(discard_status.message())
-                .find("pending dungeon-room or palette edits"),
+                .find("pending dungeon or palette edits"),
             std::string::npos);
   EXPECT_EQ(manager->GetCurrentRom(), active_rom);
   ASSERT_TRUE(active_rom->ReadByte(kPcOffset).ok());
@@ -975,7 +979,8 @@ TEST(EditorManagerBackupRestoreTest,
   EXPECT_EQ(manager->GetCurrentRomHash(), staged_hash);
   EXPECT_TRUE(active_rom->dirty());
   EXPECT_TRUE(session->backup_restore_pending);
-  EXPECT_EQ(dungeon->PendingRoomCount(), 1);
+  EXPECT_TRUE(game_data->pit_damage_table.dirty());
+  EXPECT_TRUE(dungeon->HasPendingDungeonChanges());
   EXPECT_EQ(ReadByteAt(rom_path, kPcOffset), kEdited);
 }
 
@@ -1036,7 +1041,7 @@ TEST(EditorManagerBackupRestoreTest,
   EXPECT_EQ(discard_status.code(), absl::StatusCode::kFailedPrecondition)
       << discard_status;
   EXPECT_NE(std::string(discard_status.message())
-                .find("pending dungeon-room or palette edits"),
+                .find("pending dungeon or palette edits"),
             std::string::npos);
   EXPECT_EQ(manager->GetCurrentRom(), active_rom);
   ASSERT_TRUE(active_rom->ReadByte(kPcOffset).ok());

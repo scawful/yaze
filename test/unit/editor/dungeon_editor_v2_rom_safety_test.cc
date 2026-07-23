@@ -1647,6 +1647,59 @@ TEST(DungeonEditorV2RomSafetyTest, PendingRoomCountTracksRoomDirtyState) {
 }
 
 TEST(DungeonEditorV2RomSafetyTest,
+     HasPendingDungeonChangesTracksRegularEntranceOnly) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  auto& entrance =
+      DungeonEditorV2RegularEntranceTestPeer::RegularEntrance(*editor, 0);
+  entrance.MarkDirty();
+
+  EXPECT_EQ(editor->PendingRoomCount(), 0);
+  EXPECT_FALSE(editor->HasPendingRoomChanges());
+  EXPECT_TRUE(editor->HasPendingDungeonChanges());
+
+  entrance.ClearDirty();
+  EXPECT_FALSE(editor->HasPendingDungeonChanges());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     HasPendingDungeonChangesTracksDedicatedSpawnOnly) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  auto& spawn = DungeonEditorV2SpawnPointTestPeer::SpawnPoint(*editor, 0);
+  spawn.MarkDirty();
+
+  EXPECT_EQ(editor->PendingRoomCount(), 0);
+  EXPECT_FALSE(editor->HasPendingRoomChanges());
+  EXPECT_TRUE(editor->HasPendingDungeonChanges());
+
+  spawn.ClearDirty();
+  EXPECT_FALSE(editor->HasPendingDungeonChanges());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     HasPendingDungeonChangesTracksPitDamageTableOnly) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  zelda3::GameData game_data(&rom);
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  editor->SetGameData(&game_data);
+  game_data.pit_damage_table.MarkDirty();
+
+  EXPECT_EQ(editor->PendingRoomCount(), 0);
+  EXPECT_FALSE(editor->HasPendingRoomChanges());
+  EXPECT_TRUE(editor->HasPendingDungeonChanges());
+
+  game_data.pit_damage_table.ClearDirty();
+  EXPECT_FALSE(editor->HasPendingDungeonChanges());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
      SaveTransactionRollbackRestoresRoomAndPitDirtyState) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
