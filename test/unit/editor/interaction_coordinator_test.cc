@@ -311,6 +311,7 @@ TEST_F(InteractionCoordinatorTest, NudgeSelectedDoorMovesAlongDoorAxisOnly) {
   const auto [expected_b1, expected_b2] = moved.EncodeBytes();
   EXPECT_EQ(moved.byte1, expected_b1);
   EXPECT_EQ(moved.byte2, expected_b2);
+  EXPECT_TRUE(rooms_[0].object_stream_dirty());
 }
 
 TEST_F(InteractionCoordinatorTest, SelectEntitiesInRectCapturesMixedEntities) {
@@ -366,6 +367,7 @@ TEST_F(InteractionCoordinatorTest, NudgeSelectedMovesMixedEntitySelection) {
   EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelX(), 88);
   EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelY(), 96);
   EXPECT_GT(invalidation_count_, 0);
+  EXPECT_TRUE(rooms_[0].object_stream_dirty());
   EXPECT_TRUE(rooms_[0].sprites_dirty());
   EXPECT_TRUE(rooms_[0].pot_items_dirty());
 }
