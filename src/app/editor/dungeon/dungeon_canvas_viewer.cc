@@ -168,6 +168,35 @@ void DungeonCanvasViewer::Draw(int room_id) {
   DrawDungeonCanvas(room_id);
 }
 
+void DungeonCanvasViewer::RefreshRomBackedState(Rom* rom,
+                                                zelda3::GameData* game_data,
+                                                DungeonRoomStore* rooms,
+                                                int room_id) {
+  ClearPreviewObject();
+  object_interaction_.CancelPlacement();
+  object_interaction_.mode_manager().CancelCurrentMode();
+  object_interaction_.ClearSelection();
+  object_interaction_.entity_coordinator().ClearAllEntitySelections();
+
+  SetRom(rom);
+  SetGameData(game_data);
+  SetRooms(rooms);
+  current_room_id_ = room_id;
+  object_interaction_.SetCurrentRoom(rooms, room_id);
+
+  collision_overlay_cache_.clear();
+  object_render_cache_.clear();
+  room_layer_managers_.clear();
+  last_palette_hash_ = 0;
+  prev_blockset_ = -1;
+  prev_palette_ = -1;
+  prev_layout_ = -1;
+  prev_spriteset_ = -1;
+  last_connected_matrix_room_id_ = -1;
+  change_ping_rects_.clear();
+  change_ping_start_time_ = -1.0;
+}
+
 void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   current_room_id_ = room_id;
   if (!ValidateRoomCanvasRequest(room_id)) {

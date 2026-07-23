@@ -135,7 +135,8 @@ EM_JS(int, idb_load_binary, (const char* store_name, const char* key, uint8_t** 
   });
 });
 
-EM_JS(int, idb_save_string, (const char* store_name, const char* key, const char* value), {
+EM_JS(int, idb_save_string, (const char* store_name, const char* key,
+                            const char* value, int replace_existing), {
   const asyncify = typeof Asyncify !== 'undefined' ? Asyncify : Module.Asyncify;
   return asyncify.handleAsync(function() {
     var storeName = UTF8ToString(store_name);
@@ -150,9 +151,18 @@ EM_JS(int, idb_save_string, (const char* store_name, const char* key, const char
         }
         var transaction = Module._yazeDB.transaction([storeName], 'readwrite');
         var store = transaction.objectStore(storeName);
-        var request = store.put(valueStr, keyStr);
+        var request = replace_existing
+          ? store.put(valueStr, keyStr)
+          : store.add(valueStr, keyStr);
         request.onsuccess = function() { resolve(0); };
-        request.onerror = function() {
+        request.onerror = function(event) {
+          if (!replace_existing && request.error &&
+              request.error.name === 'ConstraintError') {
+            event.preventDefault();
+            event.stopPropagation();
+            resolve(1);
+            return;
+          }
           console.error('Failed to save string:', request.error);
           resolve(-1);
         };
@@ -430,12 +440,19 @@ std::vector<std::string> WasmStorage::ListRoms() {
 }
 
 // Project Storage Operations
-absl::Status WasmStorage::SaveProject(const std::string& name, const std::string& json) {
+absl::Status WasmStorage::SaveProject(const std::string& name,
+                                      const std::string& json,
+                                      bool replace_existing) {
   EnsureInitialized();
   if (!initialized_.load()) {
     return absl::FailedPreconditionError("Storage not initialized");
   }
-  int result = idb_save_string(kProjectStoreName, name.c_str(), json.c_str());
+  int result = idb_save_string(kProjectStoreName, name.c_str(), json.c_str(),
+                               replace_existing);
+  if (!replace_existing && result == 1) {
+    return absl::AlreadyExistsError(
+        absl::StrFormat("Project '%s' already exists", name));
+  }
   if (result != 0) {
     return absl::InternalError(absl::StrFormat("Failed to save project '%s'", name));
   }
@@ -501,7 +518,8 @@ absl::Status WasmStorage::SavePreferences(const nlohmann::json& prefs) {
     return absl::FailedPreconditionError("Storage not initialized");
   }
   std::string json_str = prefs.dump();
-  int result = idb_save_string(kPreferencesStoreName, kPreferencesKey, json_str.c_str());
+  int result = idb_save_string(kPreferencesStoreName, kPreferencesKey,
+                               json_str.c_str(), true);
   if (result != 0) {
     return absl::InternalError("Failed to save preferences");
   }

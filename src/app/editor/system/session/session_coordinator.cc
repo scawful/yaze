@@ -20,6 +20,7 @@
 #include "app/editor/overworld/overworld_editor.h"
 #include "app/editor/session_types.h"
 #include "app/editor/system/editor_registry.h"
+#include "app/gfx/util/palette_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
@@ -36,6 +37,54 @@
 namespace yaze {
 namespace editor {
 
+namespace {
+
+std::filesystem::path NormalizeBackingFilePath(const std::string& filepath) {
+  std::filesystem::path path(filepath);
+  if (path.empty()) {
+    return path;
+  }
+
+#ifndef __EMSCRIPTEN__
+  std::error_code ec;
+  auto absolute_path = std::filesystem::absolute(path, ec);
+  if (!ec) {
+    path = std::move(absolute_path);
+  }
+
+  ec.clear();
+  auto canonical_path = std::filesystem::weakly_canonical(path, ec);
+  if (!ec) {
+    path = std::move(canonical_path);
+  }
+#endif
+
+  return path.lexically_normal();
+}
+
+bool PathsReferToSameBackingFile(const std::string& lhs,
+                                 const std::string& rhs) {
+  if (lhs.empty() || rhs.empty()) {
+    return false;
+  }
+
+#ifndef __EMSCRIPTEN__
+  std::error_code ec;
+  if (std::filesystem::equivalent(lhs, rhs, ec) && !ec) {
+    return true;
+  }
+#endif
+
+  return NormalizeBackingFilePath(lhs) == NormalizeBackingFilePath(rhs);
+}
+
+}  // namespace
+
+bool SessionCoordinator::PathsReferToSameBackingFile(const std::string& lhs,
+                                                     const std::string& rhs) {
+  return editor::PathsReferToSameBackingFile(lhs, rhs);
+}
+
 SessionCoordinator::SessionCoordinator(WorkspaceWindowManager* window_manager,
                                        ToastManager* toast_manager,
                                        UserSettings* user_settings)
@@ -43,14 +92,14 @@ SessionCoordinator::SessionCoordinator(WorkspaceWindowManager* window_manager,
       toast_manager_(toast_manager),
       user_settings_(user_settings) {}
 
-void SessionCoordinator::NotifySessionSwitched(size_t index,
-                                               RomSession* session) {
+void SessionCoordinator::NotifySessionSwitched(size_t old_index,
+                                               size_t new_index,
+                                               RomSession* session,
+                                               bool transient) {
   // Publish event to EventBus
   if (event_bus_) {
-    // Track previous index for the event (before we update active_session_index_)
-    size_t old_index = active_session_index_;
     event_bus_->Publish(
-        SessionSwitchedEvent::Create(old_index, index, session));
+        SessionSwitchedEvent::Create(old_index, new_index, session, transient));
   }
 }
 
@@ -85,11 +134,11 @@ void SessionCoordinator::CreateNewSession() {
   }
 
   // Create new empty session
-  sessions_.push_back(std::make_unique<RomSession>());
+  sessions_.push_back(std::make_unique<RomSession>(
+      user_settings_, next_session_id_++, editor_registry_));
   UpdateSessionCount();
 
-  // Set as active session
-  active_session_index_ = sessions_.size() - 1;
+  const size_t new_session_index = sessions_.size() - 1;
 
   // Configure the new session
   if (editor_manager_) {
@@ -98,10 +147,11 @@ void SessionCoordinator::CreateNewSession() {
   }
 
   LOG_INFO("SessionCoordinator", "Created new session %zu (total: %zu)",
-           active_session_index_, session_count_);
+           new_session_index, session_count_);
 
   // Notify observers
-  NotifySessionCreated(active_session_index_, sessions_.back().get());
+  NotifySessionCreated(new_session_index, sessions_.back().get());
+  ActivateCreatedSession(new_session_index);
 
   ShowSessionOperationResult("Create Session", true);
 }
@@ -118,11 +168,11 @@ void SessionCoordinator::DuplicateCurrentSession() {
   // Create new empty session (cannot actually duplicate due to non-movable
   // editors)
   // TODO: Implement proper duplication when editors become movable
-  sessions_.push_back(std::make_unique<RomSession>());
+  sessions_.push_back(std::make_unique<RomSession>(
+      user_settings_, next_session_id_++, editor_registry_));
   UpdateSessionCount();
 
-  // Set as active session
-  active_session_index_ = sessions_.size() - 1;
+  const size_t new_session_index = sessions_.size() - 1;
 
   // Configure the new session
   if (editor_manager_) {
@@ -131,12 +181,48 @@ void SessionCoordinator::DuplicateCurrentSession() {
   }
 
   LOG_INFO("SessionCoordinator", "Duplicated session %zu (total: %zu)",
-           active_session_index_, session_count_);
+           new_session_index, session_count_);
 
   // Notify observers
-  NotifySessionCreated(active_session_index_, sessions_.back().get());
+  NotifySessionCreated(new_session_index, sessions_.back().get());
+  ActivateCreatedSession(new_session_index);
 
   ShowSessionOperationResult("Duplicate Session", true);
+}
+
+void SessionCoordinator::ActivateCreatedSession(size_t index) {
+  if (!IsValidSessionIndex(index)) {
+    return;
+  }
+
+  // There is no previous active index for the first session, so force the
+  // normal switch notification that binds global editor/session context.
+  if (sessions_.size() == 1) {
+    active_session_index_ = index;
+    if (window_manager_) {
+      window_manager_->SetActiveSession(GetSessionId(index));
+    }
+    NotifySessionSwitched(index, index, sessions_[index].get(),
+                          /*transient=*/false);
+    return;
+  }
+
+  // Route activation through EditorManager when available. Besides publishing
+  // the normal switch lifecycle, this preserves the existing unsaved-work
+  // guard for the session being left behind.
+  if (editor_manager_) {
+    editor_manager_->RequestSwitchToSession(index);
+  } else {
+    SwitchToSession(index);
+  }
+}
+
+void SessionCoordinator::RequestCloseCurrentSession() {
+  if (editor_manager_) {
+    editor_manager_->RequestCloseSession(active_session_index_);
+  } else {
+    CloseCurrentSession();
+  }
 }
 
 void SessionCoordinator::CloseCurrentSession() {
@@ -156,9 +242,12 @@ void SessionCoordinator::CloseSession(size_t index) {
     return;
   }
 
-  // Unregister cards for this session
+  const size_t session_id = GetSessionId(index);
+  const bool closing_active_session = index == active_session_index_;
+
+  // Unregister cards for this stable session identity.
   if (window_manager_) {
-    window_manager_->UnregisterSession(index);
+    window_manager_->UnregisterSession(session_id);
   }
 
   // Notify observers before removal
@@ -172,6 +261,19 @@ void SessionCoordinator::CloseSession(size_t index) {
   if (active_session_index_ >= index && active_session_index_ > 0) {
     active_session_index_--;
   }
+  if (window_manager_ && !sessions_.empty()) {
+    window_manager_->SetActiveSession(GetActiveSessionId());
+  }
+
+  // Closing the active session can leave global editor, ROM, palette, and
+  // drawer context pointing at the destroyed RomSession. Reuse the normal
+  // session-switch lifecycle after the erase so every context observes the
+  // surviving session.
+  if (closing_active_session && !sessions_.empty()) {
+    NotifySessionSwitched(index, active_session_index_,
+                          sessions_[active_session_index_].get(),
+                          /*transient=*/false);
+  }
 
   LOG_INFO("SessionCoordinator", "Closed session %zu (total: %zu)", index,
            session_count_);
@@ -184,6 +286,10 @@ void SessionCoordinator::RemoveSession(size_t index) {
 }
 
 void SessionCoordinator::SwitchToSession(size_t index) {
+  SwitchToSessionInternal(index, /*transient=*/false);
+}
+
+void SessionCoordinator::SwitchToSessionInternal(size_t index, bool transient) {
   if (!IsValidSessionIndex(index))
     return;
 
@@ -191,12 +297,12 @@ void SessionCoordinator::SwitchToSession(size_t index) {
   active_session_index_ = index;
 
   if (window_manager_) {
-    window_manager_->SetActiveSession(index);
+    window_manager_->SetActiveSession(GetSessionId(index));
   }
 
   // Only notify if actually switching to a different session
   if (old_index != index) {
-    NotifySessionSwitched(index, sessions_[index].get());
+    NotifySessionSwitched(old_index, index, sessions_[index].get(), transient);
   }
 }
 
@@ -206,6 +312,17 @@ void SessionCoordinator::ActivateSession(size_t index) {
 
 size_t SessionCoordinator::GetActiveSessionIndex() const {
   return active_session_index_;
+}
+
+size_t SessionCoordinator::GetActiveSessionId() const {
+  return GetSessionId(active_session_index_);
+}
+
+size_t SessionCoordinator::GetSessionId(size_t index) const {
+  if (!IsValidSessionIndex(index)) {
+    return 0;
+  }
+  return sessions_[index]->session_id();
 }
 
 void* SessionCoordinator::GetActiveSession() const {
@@ -249,17 +366,36 @@ size_t SessionCoordinator::GetActiveSessionCount() const {
   return session_count_;
 }
 
-bool SessionCoordinator::HasDuplicateSession(
-    const std::string& filepath) const {
-  if (filepath.empty())
-    return false;
+absl::Status SessionCoordinator::CheckBackingFileAvailable(
+    const std::string& filepath,
+    std::optional<size_t> excluded_session_id) const {
+  if (filepath.empty()) {
+    return absl::OkStatus();
+  }
 
   for (const auto& session : sessions_) {
-    if (session->filepath == filepath) {
-      return true;
+    if (!session || !session->rom.is_loaded() ||
+        (excluded_session_id.has_value() &&
+         session->session_id() == *excluded_session_id)) {
+      continue;
+    }
+
+    const std::string rom_filepath = session->rom.filename();
+    if (PathsReferToSameBackingFile(filepath, session->filepath) ||
+        PathsReferToSameBackingFile(filepath, rom_filepath)) {
+      const std::string& owner_path =
+          session->filepath.empty() ? rom_filepath : session->filepath;
+      return absl::AlreadyExistsError(absl::StrFormat(
+          "ROM backing file '%s' is already open in session %zu ('%s')",
+          filepath, session->session_id(), owner_path));
     }
   }
-  return false;
+  return absl::OkStatus();
+}
+
+bool SessionCoordinator::HasDuplicateSession(
+    const std::string& filepath) const {
+  return !CheckBackingFileAvailable(filepath).ok();
 }
 
 void SessionCoordinator::DrawSessionSwitcher() {
@@ -324,7 +460,7 @@ void SessionCoordinator::DrawSessionSwitcher() {
   ImGui::SameLine();
   if (HasMultipleSessions() &&
       ImGui::Button(absl::StrFormat("%s Close", ICON_MD_CLOSE).c_str())) {
-    CloseCurrentSession();
+    RequestCloseCurrentSession();
   }
 
   ImGui::End();
@@ -605,25 +741,25 @@ void SessionCoordinator::UpdateSessionCount() {
 // Panel coordination across sessions
 void SessionCoordinator::ShowAllPanelsInActiveSession() {
   if (window_manager_) {
-    window_manager_->ShowAllWindowsInSession(active_session_index_);
+    window_manager_->ShowAllWindowsInSession(GetActiveSessionId());
   }
 }
 
 void SessionCoordinator::HideAllPanelsInActiveSession() {
   if (window_manager_) {
-    window_manager_->HideAllWindowsInSession(active_session_index_);
+    window_manager_->HideAllWindowsInSession(GetActiveSessionId());
   }
 }
 
 void SessionCoordinator::ShowPanelsInCategory(const std::string& category) {
   if (window_manager_) {
-    window_manager_->ShowAllWindowsInCategory(active_session_index_, category);
+    window_manager_->ShowAllWindowsInCategory(GetActiveSessionId(), category);
   }
 }
 
 void SessionCoordinator::HidePanelsInCategory(const std::string& category) {
   if (window_manager_) {
-    window_manager_->HideAllWindowsInCategory(active_session_index_, category);
+    window_manager_->HideAllWindowsInCategory(GetActiveSessionId(), category);
   }
 }
 
@@ -636,6 +772,8 @@ void SessionCoordinator::UpdateSessions() {
     return;
 
   size_t original_session_idx = active_session_index_;
+  Editor* original_editor =
+      editor_manager_ ? editor_manager_->GetCurrentEditor() : nullptr;
 
   for (size_t session_idx = 0; session_idx < sessions_.size(); ++session_idx) {
     auto& session = sessions_[session_idx];
@@ -647,7 +785,7 @@ void SessionCoordinator::UpdateSessions() {
     }
 
     // Switch context
-    SwitchToSession(session_idx);
+    SwitchToSessionInternal(session_idx, /*transient=*/true);
 
     for (auto editor : session->editors.active_editors_) {
       if (*editor->active()) {
@@ -725,7 +863,10 @@ void SessionCoordinator::UpdateSessions() {
   }
 
   // Restore original session context
-  SwitchToSession(original_session_idx);
+  SwitchToSessionInternal(original_session_idx, /*transient=*/true);
+  if (editor_manager_) {
+    editor_manager_->SetCurrentEditor(original_editor);
+  }
 }
 
 bool SessionCoordinator::IsSessionActive(size_t index) const {
@@ -801,20 +942,80 @@ absl::Status SessionCoordinator::SaveSessionAs(size_t session_index,
 
 absl::StatusOr<RomSession*> SessionCoordinator::CreateSessionFromRom(
     Rom&& rom, const std::string& filepath) {
-  size_t new_session_id = sessions_.size();
+  auto path_status = CheckBackingFileAvailable(filepath);
+  if (!path_status.ok()) {
+    return path_status;
+  }
+
+  const size_t new_session_id = next_session_id_++;
+  const size_t new_session_index = sessions_.size();
   sessions_.push_back(std::make_unique<RomSession>(
       std::move(rom), user_settings_, new_session_id, editor_registry_));
   auto& session = sessions_.back();
   session->filepath = filepath;
 
   UpdateSessionCount();
-  SwitchToSession(new_session_id);
+  // Let observers attach project/runtime context before the session becomes
+  // active. This prevents a switch from briefly exposing an unbound ROM.
+  NotifySessionCreated(new_session_index, session.get());
 
-  // Notify observers
-  NotifySessionCreated(new_session_id, session.get());
-  NotifySessionRomLoaded(new_session_id, session.get());
+  if (sessions_.size() == 1) {
+    active_session_index_ = new_session_index;
+    if (window_manager_) {
+      window_manager_->SetActiveSession(GetSessionId(new_session_index));
+    }
+    NotifySessionSwitched(new_session_index, new_session_index, session.get(),
+                          /*transient=*/false);
+  } else {
+    SwitchToSession(new_session_index);
+  }
+
+  NotifySessionRomLoaded(new_session_index, session.get());
 
   return session.get();
+}
+
+absl::Status SessionCoordinator::DiscardProvisionalSession(size_t session_id) {
+  auto session_it =
+      std::find_if(sessions_.begin(), sessions_.end(),
+                   [session_id](const std::unique_ptr<RomSession>& session) {
+                     return session && session->session_id() == session_id;
+                   });
+  if (session_it == sessions_.end()) {
+    return absl::NotFoundError(
+        absl::StrFormat("Session %zu is no longer available", session_id));
+  }
+
+  const size_t index =
+      static_cast<size_t>(std::distance(sessions_.begin(), session_it));
+  const bool closing_active_session = index == active_session_index_;
+  if (window_manager_) {
+    window_manager_->UnregisterSession(session_id);
+  }
+  NotifySessionClosed(index);
+  sessions_.erase(session_it);
+  UpdateSessionCount();
+
+  if (sessions_.empty()) {
+    active_session_index_ = 0;
+    NotifySessionSwitched(index, 0, nullptr, /*transient=*/false);
+  } else {
+    if (active_session_index_ >= index && active_session_index_ > 0) {
+      active_session_index_--;
+    }
+    if (window_manager_) {
+      window_manager_->SetActiveSession(GetActiveSessionId());
+    }
+    if (closing_active_session) {
+      NotifySessionSwitched(index, active_session_index_,
+                            sessions_[active_session_index_].get(),
+                            /*transient=*/false);
+    }
+  }
+
+  LOG_WARN("SessionCoordinator",
+           "Discarded provisional session %zu after failed open", session_id);
+  return absl::OkStatus();
 }
 
 void SessionCoordinator::CleanupClosedSessions() {
@@ -847,8 +1048,8 @@ void SessionCoordinator::ClearAllSessions() {
 
   // Unregister all session cards
   if (window_manager_) {
-    for (size_t i = 0; i < sessions_.size(); ++i) {
-      window_manager_->UnregisterSession(i);
+    for (const auto& session : sessions_) {
+      window_manager_->UnregisterSession(session->session_id());
     }
   }
 
@@ -1071,6 +1272,10 @@ bool SessionCoordinator::IsSessionModified(size_t index) const {
 
   const auto& session = sessions_[index];
   if (session->rom.is_loaded() && session->rom.dirty()) {
+    return true;
+  }
+
+  if (gfx::PaletteManager::Get().HasUnsavedChanges(&session->game_data)) {
     return true;
   }
 

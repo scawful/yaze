@@ -6,6 +6,7 @@
 #include <memory>
 #include <mutex>
 #include <queue>
+#include <utility>
 
 #include "absl/status/status.h"
 #include "app/editor/editor_manager.h"
@@ -51,8 +52,14 @@ class Controller {
                         const std::string& cards);
 
   // Window visibility control (for service mode)
-  void ShowWindow() { if (window_backend_) window_backend_->ShowWindow(); }
-  void HideWindow() { if (window_backend_) window_backend_->HideWindow(); }
+  void ShowWindow() {
+    if (window_backend_)
+      window_backend_->ShowWindow();
+  }
+  void HideWindow() {
+    if (window_backend_)
+      window_backend_->HideWindow();
+  }
 
   auto window() -> SDL_Window* {
     return window_backend_ ? window_backend_->GetNativeWindow() : nullptr;
@@ -70,6 +77,12 @@ class Controller {
 
   // Window backend accessor
   platform::IWindowBackend* window_backend() { return window_backend_.get(); }
+
+  // Dependency-injection seam for focused controller event tests.
+  void SetWindowBackendForTesting(
+      std::unique_ptr<platform::IWindowBackend> window_backend) {
+    window_backend_ = std::move(window_backend);
+  }
 
   // Load a ROM file and initialize all editors for testing
   // This performs the full initialization flow including LoadAssets()

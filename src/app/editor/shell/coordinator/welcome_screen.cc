@@ -1585,9 +1585,9 @@ void WelcomeScreen::DrawTemplatesSection() {
       "No custom ASM required — works with any vanilla ROM",
       "Overworld layout stays identical to the original"};
   const char* zso3_details[] = {
-      "Unlocks wider / taller overworld areas",
-      "Adds custom entrances, exits, items, and properties",
-      "Extends palettes, GFX groups, and dungeon maps"};
+      "Enables editor support for wider / taller overworld areas",
+      "Enables custom entrance, exit, item, and property saves",
+      "Requires a ROM that already includes the ZSO3 ASM patch"};
   const char* zso2_details[] = {
       "Older overworld expansion with parent-area system",
       "Lighter footprint than v3 — good for ports of legacy hacks",
@@ -1606,22 +1606,22 @@ void WelcomeScreen::DrawTemplatesSection() {
        kHyruleGreen},
       {ICON_MD_TERRAIN, "ZSCustomOverworld v3",
        "You want to resize overworld areas and add custom map features.",
-       "Applies the ZSO3 patch: expands the overworld table, extends palette "
-       "and GFX group storage, and enables custom entrances/exits.",
+       "Configures editor save flags for a ROM that already uses ZSO3. This "
+       "template does not install the ZSO3 ASM patch.",
        /*skill_level=*/2, "ZSCustomOverworld v3", zso3_details,
        static_cast<int>(sizeof(zso3_details) / sizeof(zso3_details[0])),
        kMasterSwordBlue},
       {ICON_MD_MAP, "ZSCustomOverworld v2",
        "You're porting an older hack that already uses ZSO v2.",
-       "Applies the legacy ZSO2 patch. Smaller set of customizations than v3; "
-       "pick this only if you need compatibility with an existing ZSO2 hack.",
+       "Configures editor save flags for an existing ZSO2 ROM. It does not "
+       "install the patch; use this for compatibility with a legacy hack.",
        /*skill_level=*/2, "ZSCustomOverworld v2", zso2_details,
        static_cast<int>(sizeof(zso2_details) / sizeof(zso2_details[0])),
        kShadowPurple},
       {ICON_MD_SHUFFLE, "Randomizer Compatible",
        "You're building a ROM that has to work with ALTTPR or similar.",
-       "Keeps your changes inside the surface that randomizers patch over, so "
-       "seeds keep working. Skips ASM hooks and overworld remapping.",
+       "Uses conservative save flags that skip ASM hooks and overworld "
+       "remapping. Validate the finished ROM with your target randomizer.",
        /*skill_level=*/3, "Randomizer Compatible", rando_details,
        static_cast<int>(sizeof(rando_details) / sizeof(rando_details[0])),
        kSpiritOrange},

@@ -1,10 +1,12 @@
 #ifndef YAZE_APP_EDITOR_SHELL_WINDOWS_PROJECT_MANAGEMENT_PANEL_H_
 #define YAZE_APP_EDITOR_SHELL_WINDOWS_PROJECT_MANAGEMENT_PANEL_H_
 
+#include <array>
 #include <functional>
 #include <string>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "app/editor/system/session/project_workflow_status.h"
 #include "core/project.h"
 #include "core/version_manager.h"
@@ -32,7 +34,7 @@ class ProjectManagementPanel {
   ProjectManagementPanel() = default;
 
   // Dependencies
-  void SetProject(project::YazeProject* project) { project_ = project; }
+  void SetProject(project::YazeProject* project, bool dirty = false);
   void SetVersionManager(core::VersionManager* manager) {
     version_manager_ = manager;
   }
@@ -42,7 +44,7 @@ class ProjectManagementPanel {
   // Callbacks for actions that need EditorManager
   using SwapRomCallback = std::function<void()>;
   using ReloadRomCallback = std::function<void()>;
-  using SaveProjectCallback = std::function<void()>;
+  using SaveProjectCallback = std::function<absl::Status()>;
   using BuildProjectCallback = std::function<void()>;
   using CancelBuildCallback = std::function<void()>;
   using RunProjectCallback = std::function<void()>;
@@ -75,6 +77,10 @@ class ProjectManagementPanel {
     build_log_output_ = output;
   }
 
+  bool IsProjectDirty() const { return project_dirty_; }
+  void SetProjectDirty(bool dirty) { project_dirty_ = dirty; }
+  absl::Status SaveProjectEdits();
+
   // Main draw entry point
   void Draw();
 
@@ -85,6 +91,7 @@ class ProjectManagementPanel {
   void DrawVersionControl();
   void DrawSnapshotHistory();
   void DrawQuickActions();
+  void ReloadProjectBuffers();
 
   project::YazeProject* project_ = nullptr;
   core::VersionManager* version_manager_ = nullptr;
@@ -110,6 +117,13 @@ class ProjectManagementPanel {
 
   // Project edit state
   bool project_dirty_ = false;
+  std::array<char, 256> name_buffer_{};
+  std::array<char, 256> author_buffer_{};
+  std::array<char, 1024> description_buffer_{};
+  std::array<char, 512> code_buffer_{};
+  std::array<char, 512> assets_buffer_{};
+  std::array<char, 256> build_buffer_{};
+  std::array<char, 512> script_buffer_{};
 
   ProjectWorkflowStatus build_status_;
   ProjectWorkflowStatus run_status_;

@@ -122,6 +122,73 @@ symbols_filename=symbols.txt
   EXPECT_NE(saved.find("rom_backup_folder=backups"), std::string::npos);
 }
 
+#ifndef __EMSCRIPTEN__
+TEST(ProjectPathsTest, SaveAtomicallyReplacesExistingDescriptor) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_atomic_save"));
+  const auto project_file = temp.path() / "Atomic.yaze";
+  WriteTextFile(project_file, "old descriptor contents");
+
+  YazeProject project;
+  project.filepath = project_file.string();
+  project.name = "Atomic Replacement";
+  ASSERT_TRUE(project.Save().ok());
+
+  const auto saved = ReadTextFile(project_file);
+  EXPECT_EQ(saved.find("old descriptor contents"), std::string::npos);
+  EXPECT_NE(saved.find("name=Atomic Replacement"), std::string::npos);
+
+  const std::string temp_prefix = project_file.filename().string() + ".tmp.";
+  for (const auto& entry : std::filesystem::directory_iterator(temp.path())) {
+    EXPECT_NE(entry.path().filename().string().rfind(temp_prefix, 0), 0u)
+        << "Temporary project file was not cleaned up: "
+        << entry.path().string();
+  }
+}
+
+TEST(ProjectPathsTest, SaveNewNeverReplacesExistingDescriptor) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_exclusive_save"));
+  const auto project_file = temp.path() / "Exclusive.yaze";
+
+  YazeProject original;
+  original.filepath = project_file.string();
+  original.name = "Original Project";
+  ASSERT_TRUE(original.SaveNew().ok());
+  const std::string original_contents = ReadTextFile(project_file);
+
+  YazeProject competing;
+  competing.filepath = project_file.string();
+  competing.name = "Competing Project";
+  const auto status = competing.SaveNew();
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kAlreadyExists);
+  EXPECT_EQ(ReadTextFile(project_file), original_contents);
+}
+
+TEST(ProjectPathsTest, SaveFailurePreservesExistingTarget) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_atomic_failure"));
+  const auto project_file = temp.path() / "Blocked.yaze";
+  std::filesystem::create_directories(project_file);
+  const auto marker = project_file / "original.txt";
+  WriteTextFile(marker, "original target");
+
+  YazeProject project;
+  project.filepath = project_file.string();
+  project.name = "Cannot Replace";
+  const auto status = project.Save();
+
+  EXPECT_FALSE(status.ok());
+  EXPECT_TRUE(std::filesystem::is_directory(project_file));
+  EXPECT_EQ(ReadTextFile(marker), "original target");
+
+  const std::string temp_prefix = project_file.filename().string() + ".tmp.";
+  for (const auto& entry : std::filesystem::directory_iterator(temp.path())) {
+    EXPECT_NE(entry.path().filename().string().rfind(temp_prefix, 0), 0u)
+        << "Temporary project file was not cleaned up: "
+        << entry.path().string();
+  }
+}
+#endif
+
 TEST(ProjectPathsTest, OpenLoadsZ3dkConfigWhenPresent) {
   ScopedTempDir temp(MakeUniqueTempDir("yaze_project_z3dk_paths"));
 

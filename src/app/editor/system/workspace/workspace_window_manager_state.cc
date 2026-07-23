@@ -4,6 +4,7 @@
 
 #include <algorithm>
 
+#include "app/gui/animation/animator.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
 
@@ -535,6 +536,17 @@ void WorkspaceWindowManager::UnregisterSessionPanels(size_t session_id) {
     }
     const std::string base_card_id =
         GetBaseIdForPrefixedId(session_id, prefixed_card_id);
+    // Registry instances are deliberately shared. Editor-created session
+    // content is owned by this descriptor and must die before its RomSession.
+    if (registry_panel_ids_.find(base_card_id) == registry_panel_ids_.end()) {
+      if (auto instance_it = panel_instances_.find(prefixed_card_id);
+          instance_it != panel_instances_.end()) {
+        instance_it->second->OnClose();
+        gui::GetAnimator().ClearAnimationsForPanel(prefixed_card_id);
+        UntrackResourceWindow(prefixed_card_id);
+        panel_instances_.erase(instance_it);
+      }
+    }
     if (!base_card_id.empty()) {
       RememberPinnedStateForRemovedWindow(session_id, base_card_id,
                                           prefixed_card_id);

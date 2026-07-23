@@ -55,6 +55,13 @@ void WriteTextFile(const std::filesystem::path& path, const std::string& data) {
   file << data;
 }
 
+std::string ReadTextFile(const std::filesystem::path& path) {
+  std::ifstream file(path);
+  EXPECT_TRUE(file.is_open()) << "Failed to open: " << path.string();
+  return std::string(std::istreambuf_iterator<char>(file),
+                     std::istreambuf_iterator<char>());
+}
+
 // Minimal portable project file content (paths relative to its directory).
 std::string MinimalProjectFile(const std::string& name) {
   return "[project]\nname=" + name +
@@ -186,6 +193,119 @@ TEST(ProjectManagerValidatorTest, HasActiveProjectAfterBundleOpen) {
   ProjectManager mgr(nullptr);
   ASSERT_TRUE(mgr.OpenProject(bundle.string()).ok());
   EXPECT_TRUE(mgr.HasActiveProject());
+}
+
+TEST(ProjectManagerValidatorTest, CreateFromTemplateWaitsForRomSelection) {
+  ProjectManager mgr(nullptr);
+  ASSERT_TRUE(
+      mgr.CreateFromTemplate("Dungeon Editor Project", "Temple Hack").ok());
+
+  EXPECT_TRUE(mgr.IsPendingRomSelection());
+  EXPECT_EQ(mgr.GetProjectName(), "Temple Hack");
+}
+
+TEST(ProjectManagerValidatorTest,
+     CreateFromTemplateAppliesConfigurationPresetWithoutClaimingAsm) {
+  ProjectManager mgr(nullptr);
+  ASSERT_TRUE(mgr.CreateFromTemplate("ZSCustomOverworld v3", "ZSO Hack").ok());
+
+  const auto& flags = mgr.GetCurrentProject().feature_flags;
+  EXPECT_TRUE(flags.overworld.kLoadCustomOverworld);
+  EXPECT_TRUE(flags.overworld.kSaveOverworldMaps);
+  EXPECT_TRUE(flags.kSaveAllPalettes);
+  EXPECT_TRUE(flags.kSaveGfxGroups);
+  EXPECT_FALSE(flags.overworld.kApplyZSCustomOverworldASM);
+}
+
+TEST(ProjectManagerValidatorTest, FinalizeProjectCreationPersistsDescriptor) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_pm_finalize"));
+  const auto rom_path = temp.path() / "source.sfc";
+  WriteTextFile(rom_path, "rom");
+
+  ProjectManager mgr(nullptr);
+  ASSERT_TRUE(mgr.CreateNewProject().ok());
+  ASSERT_TRUE(mgr.SetProjectRom(rom_path.string()).ok());
+  ASSERT_TRUE(mgr.FinalizeProjectCreation("Oracle Test", "").ok());
+
+  const auto expected_path = temp.path() / "Oracle_Test.yaze";
+  EXPECT_EQ(mgr.GetCurrentProject().filepath, expected_path.string());
+  EXPECT_TRUE(std::filesystem::exists(expected_path));
+
+  project::YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(expected_path.string()).ok());
+  EXPECT_EQ(reopened.name, "Oracle Test");
+  EXPECT_EQ(reopened.rom_filename, rom_path.string());
+}
+
+TEST(ProjectManagerValidatorTest,
+     FinalizeProjectCreationAcceptsDestinationDirectory) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_pm_finalize_directory"));
+  const auto rom_path = temp.path() / "source.sfc";
+  const auto destination = temp.path() / "projects";
+  WriteTextFile(rom_path, "rom");
+  std::filesystem::create_directories(destination);
+
+  ProjectManager mgr(nullptr);
+  ASSERT_TRUE(mgr.CreateNewProject().ok());
+  ASSERT_TRUE(mgr.SetProjectRom(rom_path.string()).ok());
+  ASSERT_TRUE(
+      mgr.FinalizeProjectCreation("Oracle Test", destination.string()).ok());
+
+  const auto expected_path = destination / "Oracle_Test.yaze";
+  EXPECT_EQ(mgr.GetCurrentProject().filepath, expected_path.string());
+  EXPECT_TRUE(std::filesystem::exists(expected_path));
+  EXPECT_TRUE(std::filesystem::is_directory(destination / "assets"));
+  EXPECT_TRUE(std::filesystem::is_directory(destination / "scripts"));
+  EXPECT_TRUE(std::filesystem::is_directory(destination / "output"));
+}
+
+TEST(ProjectManagerValidatorTest,
+     FinalizeProjectCreationKeepsPendingStateWhenSaveFails) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_pm_finalize_failure"));
+  const auto rom_path = temp.path() / "source.sfc";
+  const auto blocker = temp.path() / "not_a_directory";
+  WriteTextFile(rom_path, "rom");
+  WriteTextFile(blocker, "blocker");
+
+  ProjectManager mgr(nullptr);
+  ASSERT_TRUE(mgr.CreateNewProject().ok());
+  ASSERT_TRUE(mgr.SetProjectRom(rom_path.string()).ok());
+  const auto status = mgr.FinalizeProjectCreation(
+      "Cannot Save", (blocker / "project.yaze").string());
+
+  EXPECT_FALSE(status.ok());
+  EXPECT_TRUE(mgr.IsPendingRomSelection());
+  EXPECT_FALSE(std::filesystem::exists(blocker / "project.yaze"));
+
+  const auto retry_path = temp.path() / "retry.yaze";
+  ASSERT_TRUE(
+      mgr.FinalizeProjectCreation("Retry Project", retry_path.string()).ok());
+  EXPECT_FALSE(mgr.IsPendingRomSelection());
+  EXPECT_TRUE(std::filesystem::exists(retry_path));
+  EXPECT_EQ(mgr.GetCurrentProject().filepath, retry_path.string());
+}
+
+TEST(ProjectManagerValidatorTest,
+     FinalizeProjectCreationRejectsExistingDescriptorWithoutSideEffects) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_pm_finalize_existing"));
+  const auto rom_path = temp.path() / "source.sfc";
+  const auto project_dir = temp.path() / "project";
+  const auto project_path = project_dir / "existing.yaze";
+  WriteTextFile(rom_path, "rom");
+  WriteTextFile(project_path, "original descriptor");
+
+  ProjectManager mgr(nullptr);
+  ASSERT_TRUE(mgr.CreateNewProject().ok());
+  ASSERT_TRUE(mgr.SetProjectRom(rom_path.string()).ok());
+  const auto status =
+      mgr.FinalizeProjectCreation("Must Not Replace", project_path.string());
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kAlreadyExists);
+  EXPECT_TRUE(mgr.IsPendingRomSelection());
+  EXPECT_EQ(ReadTextFile(project_path), "original descriptor");
+  EXPECT_FALSE(std::filesystem::exists(project_dir / "assets"));
+  EXPECT_FALSE(std::filesystem::exists(project_dir / "scripts"));
+  EXPECT_FALSE(std::filesystem::exists(project_dir / "output"));
 }
 
 }  // namespace yaze::editor
