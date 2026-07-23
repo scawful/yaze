@@ -664,6 +664,43 @@ TEST(EditorManagerBackupRestoreTest,
   EXPECT_EQ(full_mode_object_editor->GetMutableRoom(), room_before);
   EXPECT_EQ(entrance_before->room_, kBackupEntranceRoom);
   EXPECT_EQ(spawn_before->room_id, kBackupSpawnRoom);
+
+  // A full reload can skip an already-initialized dungeon editor when another
+  // startup surface is active. Its refreshed state must remain marked loaded,
+  // otherwise the next activation reconstructs the preserved panels again.
+  auto* const full_mode_object_editor_ptr = full_mode_object_editor.get();
+  full_mode_object_editor.reset();
+  ASSERT_OK(active_rom->WriteByte(kDungeonRoom0HeaderPc + 1, kEditedPalette));
+  ASSERT_OK(active_rom->WriteShort(zelda3::kEntranceRoom, kEditedEntranceRoom));
+  ASSERT_OK(
+      active_rom->WriteShort(zelda3::kDungeonSpawnRoom, kEditedSpawnRoom));
+  ASSERT_OK(manager->SaveRom());
+  AppConfig inactive_dungeon_config;
+  inactive_dungeon_config.startup_editor = "assembly";
+  manager->SetStartupLoadHints(inactive_dungeon_config);
+  ASSERT_OK(manager->RestoreRomBackup(backups.front().path));
+
+  auto* const restored_session =
+      manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(restored_session, nullptr);
+  const size_t dungeon_index = EditorTypeIndex(EditorType::kDungeon);
+  EXPECT_TRUE(restored_session->editor_initialized[dungeon_index]);
+  EXPECT_TRUE(restored_session->editor_assets_loaded[dungeon_index]);
+  EXPECT_EQ(DungeonEditorV2ReloadTestPeer::GetOverlayManagerPanel(dungeon),
+            full_mode_overlay_panel);
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  EXPECT_EQ(DungeonEditorV2ReloadTestPeer::GetOverlayManagerPanel(dungeon),
+            full_mode_overlay_panel);
+  auto inactive_full_mode_object_editor =
+      DungeonEditorV2ReloadTestPeer::GetObjectEditor(dungeon);
+  EXPECT_EQ(inactive_full_mode_object_editor.get(),
+            full_mode_object_editor_ptr);
+  EXPECT_EQ(inactive_full_mode_object_editor->GetMutableRoom(), room_before);
+  EXPECT_EQ(DungeonEditorV2ReloadTestPeer::GetOverlayGridBinding(dungeon),
+            overlay_toggle_before);
+  EXPECT_EQ(room_before->palette(), kBackupPalette);
+  EXPECT_EQ(entrance_before->room_, kBackupEntranceRoom);
+  EXPECT_EQ(spawn_before->room_id, kBackupSpawnRoom);
 }
 
 TEST(EditorManagerBackupRestoreTest,
