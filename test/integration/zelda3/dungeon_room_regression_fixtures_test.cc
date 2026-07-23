@@ -64,11 +64,11 @@ struct RoomLayerFingerprints {
 constexpr int kRoom001ObjectOverlapX = 45;
 constexpr int kRoom001ObjectOverlapY = 120;
 constexpr int kRoom001ObjectOverlapIndex = 61485;
-constexpr uint8_t kRoom001ObjectOverlapBg1Pixel = 33;
-constexpr uint8_t kRoom001ObjectOverlapBg2Pixel = 34;
+constexpr uint8_t kRoom001ObjectOverlapBg1Pixel = 41;
+constexpr uint8_t kRoom001ObjectOverlapBg2Pixel = 42;
 constexpr uint8_t kRoom001ObjectOverlapBg1Priority = 1;
 constexpr uint8_t kRoom001ObjectOverlapBg2Priority = 0;
-constexpr uint8_t kRoom001ObjectOverlapCompositePixel = 33;
+constexpr uint8_t kRoom001ObjectOverlapCompositePixel = 41;
 
 #if defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
 constexpr size_t kCanonicalUsRomSize = 0x100000;
@@ -311,8 +311,8 @@ TEST_F(DungeonRoomRegressionFixturesTest,
   // Broad checksums catch drift but do not explain *where* compositing changed.
   // Pin one sparse golden overlap pixel from room 0x001, which exercises
   // primary, BG2-overlay, and BG1-overlay object streams. The sampled pixel is
-  // BG1 high-priority object pixel 33 over BG2 low-priority object pixel 34,
-  // so SNES Mode 1 compositing must leave palette index 33 on top.
+  // BG1 high-priority object pixel 0x29 over BG2 low-priority object pixel
+  // 0x2A, so SNES Mode 1 compositing must leave palette index 0x29 on top.
   Room room(0x001, &rom_, &game_data_);
   room.LoadRoomGraphics();
   room.LoadObjects();
