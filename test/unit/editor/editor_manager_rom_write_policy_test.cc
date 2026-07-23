@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <memory>
 #include <string>
 #include <thread>
 #include <vector>
@@ -11,6 +12,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/dungeon/ui/window/overlay_manager_panel.h"
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "core/features.h"
@@ -34,9 +36,33 @@ class DungeonEditorV2ReloadTestPeer {
     return editor.room_viewers_.Contains(room_id);
   }
 
-  static bool HasNoViewers(const DungeonEditorV2& editor) {
-    return editor.room_viewers_.Empty() && !editor.workbench_viewer_ &&
-           !editor.workbench_compare_viewer_;
+  static zelda3::RoomEntrance* GetRegularEntrance(DungeonEditorV2* editor,
+                                                  int entrance_id) {
+    return &editor->entrances_[zelda3::kNumDungeonSpawnPoints + entrance_id];
+  }
+
+  static zelda3::DungeonSpawnPoint* GetSpawnPoint(DungeonEditorV2* editor,
+                                                  int spawn_id) {
+    return &editor->spawn_points_[spawn_id];
+  }
+
+  static std::shared_ptr<zelda3::DungeonObjectEditor> GetObjectEditor(
+      DungeonEditorV2* editor) {
+    return editor->dungeon_editor_system_->GetObjectEditor();
+  }
+
+  static OverlayManagerPanel* GetOverlayManagerPanel(DungeonEditorV2* editor) {
+    return editor->overlay_manager_panel_;
+  }
+
+  static bool* GetOverlayGridBinding(DungeonEditorV2* editor) {
+    return editor->overlay_manager_panel_
+               ? editor->overlay_manager_panel_->state_.show_grid
+               : nullptr;
+  }
+
+  static void SyncPanelsToRoom(DungeonEditorV2* editor, int room_id) {
+    editor->SyncPanelsToRoom(room_id);
   }
 };
 
@@ -116,7 +142,8 @@ constexpr int kDungeonHeaderTablePc = 0x0F6000;
 constexpr int kDungeonRoom0HeaderPc = 0x114000;
 
 void WriteDungeonHeaderTestRom(const std::filesystem::path& path,
-                               uint8_t room_palette) {
+                               uint8_t room_palette, uint16_t entrance_room_id,
+                               uint16_t spawn_room_id) {
   std::vector<uint8_t> rom_data(2 * 1024 * 1024, 0x00);
   const std::string title = "DUNGEON RESTORE";
   for (size_t i = 0; i < title.size(); ++i) {
@@ -133,6 +160,10 @@ void WriteDungeonHeaderTestRom(const std::filesystem::path& path,
   rom_data[kDungeonHeaderTablePc] = room_header_snes & 0xFF;
   rom_data[kDungeonHeaderTablePc + 1] = (room_header_snes >> 8) & 0xFF;
   rom_data[kDungeonRoom0HeaderPc + 1] = room_palette;
+  rom_data[zelda3::kEntranceRoom] = entrance_room_id & 0xFF;
+  rom_data[zelda3::kEntranceRoom + 1] = (entrance_room_id >> 8) & 0xFF;
+  rom_data[zelda3::kDungeonSpawnRoom] = spawn_room_id & 0xFF;
+  rom_data[zelda3::kDungeonSpawnRoom + 1] = (spawn_room_id >> 8) & 0xFF;
 
   std::ofstream out(path, std::ios::binary | std::ios::trunc);
   ASSERT_TRUE(out.is_open());
@@ -487,7 +518,7 @@ TEST(EditorManagerBackupRestoreTest,
 }
 
 TEST(EditorManagerBackupRestoreTest,
-     RestoreInvalidatesMaterializedDungeonState) {
+     RestoreRefreshesMaterializedDungeonStateInPlace) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
 
@@ -503,11 +534,17 @@ TEST(EditorManagerBackupRestoreTest,
   const auto rom_path = temp_dir / "oracle-copy.sfc";
   constexpr uint8_t kBackupPalette = 0x03;
   constexpr uint8_t kEditedPalette = 0x2A;
-  WriteDungeonHeaderTestRom(rom_path, kBackupPalette);
+  constexpr uint16_t kBackupEntranceRoom = 0x0012;
+  constexpr uint16_t kEditedEntranceRoom = 0x0023;
+  constexpr uint16_t kBackupSpawnRoom = 0x0034;
+  constexpr uint16_t kEditedSpawnRoom = 0x0045;
+  WriteDungeonHeaderTestRom(rom_path, kBackupPalette, kBackupEntranceRoom,
+                            kBackupSpawnRoom);
 
   ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
   DisableRomWritesForTest();
   core::FeatureFlags::get().dungeon.kUseWorkbench = false;
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kDungeon));
 
   Rom* const active_rom = manager->GetCurrentRom();
   ASSERT_NE(active_rom, nullptr);
@@ -518,39 +555,82 @@ TEST(EditorManagerBackupRestoreTest,
   dungeon->rooms()[0] = zelda3::LoadRoomHeaderFromRom(active_rom, 0);
   dungeon->rooms()[0].ClearSaveDirtyState();
   ASSERT_EQ(dungeon->rooms()[0].palette(), kBackupPalette);
-  ASSERT_NE(DungeonEditorV2ReloadTestPeer::GetViewerForRoom(dungeon, 0),
-            nullptr);
+  auto* const room_before = dungeon->rooms().GetIfMaterialized(0);
+  auto* const viewer_before =
+      DungeonEditorV2ReloadTestPeer::GetViewerForRoom(dungeon, 0);
+  ASSERT_NE(room_before, nullptr);
+  ASSERT_NE(viewer_before, nullptr);
+  DungeonEditorV2ReloadTestPeer::SyncPanelsToRoom(dungeon, 0);
+  auto* const overlay_panel_before =
+      DungeonEditorV2ReloadTestPeer::GetOverlayManagerPanel(dungeon);
+  ASSERT_NE(overlay_panel_before, nullptr);
+  bool* const overlay_toggle_before = viewer_before->mutable_show_grid();
+  ASSERT_NE(overlay_toggle_before, nullptr);
+  ASSERT_EQ(DungeonEditorV2ReloadTestPeer::GetOverlayGridBinding(dungeon),
+            overlay_toggle_before);
   ASSERT_TRUE(DungeonEditorV2ReloadTestPeer::HasRoomViewer(*dungeon, 0));
+  ASSERT_OK(dungeon->RefreshRomBackedState());
+
+  auto* const entrance_before =
+      DungeonEditorV2ReloadTestPeer::GetRegularEntrance(dungeon, 0);
+  auto* const spawn_before =
+      DungeonEditorV2ReloadTestPeer::GetSpawnPoint(dungeon, 0);
+  auto object_editor_before =
+      DungeonEditorV2ReloadTestPeer::GetObjectEditor(dungeon);
+  ASSERT_NE(object_editor_before, nullptr);
+  ASSERT_EQ(dungeon->rooms().GetIfMaterialized(0), room_before);
+  ASSERT_EQ(DungeonEditorV2ReloadTestPeer::GetViewerForRoom(dungeon, 0),
+            viewer_before);
+  ASSERT_EQ(viewer_before->mutable_show_grid(), overlay_toggle_before);
+  ASSERT_EQ(object_editor_before->GetMutableRoom(), room_before);
+  ASSERT_EQ(entrance_before->room_, kBackupEntranceRoom);
+  ASSERT_EQ(spawn_before->room_id, kBackupSpawnRoom);
 
   ASSERT_OK(active_rom->WriteByte(kDungeonRoom0HeaderPc + 1, kEditedPalette));
+  ASSERT_OK(active_rom->WriteShort(zelda3::kEntranceRoom, kEditedEntranceRoom));
+  ASSERT_OK(
+      active_rom->WriteShort(zelda3::kDungeonSpawnRoom, kEditedSpawnRoom));
   ASSERT_OK(manager->SaveRom());
   const auto backups = manager->GetRomBackups();
   ASSERT_EQ(backups.size(), 1u);
   ASSERT_EQ(ReadByteAt(backups.front().path, kDungeonRoom0HeaderPc + 1),
             kBackupPalette);
 
-  // Reflect the current edited ROM in the already-materialized model. Without
-  // explicit invalidation this room and its viewer survive the restore.
-  dungeon->rooms()[0] = zelda3::LoadRoomHeaderFromRom(active_rom, 0);
-  dungeon->rooms()[0].ClearSaveDirtyState();
-  ASSERT_EQ(dungeon->rooms()[0].palette(), kEditedPalette);
+  ASSERT_OK(dungeon->RefreshRomBackedState());
+  ASSERT_EQ(room_before->palette(), kEditedPalette);
+  ASSERT_EQ(entrance_before->room_, kEditedEntranceRoom);
+  ASSERT_EQ(spawn_before->room_id, kEditedSpawnRoom);
+  ASSERT_EQ(dungeon->rooms().GetIfMaterialized(0), room_before);
+  ASSERT_EQ(DungeonEditorV2ReloadTestPeer::GetViewerForRoom(dungeon, 0),
+            viewer_before);
   ASSERT_TRUE(DungeonEditorV2ReloadTestPeer::HasRoomViewer(*dungeon, 0));
 
   ASSERT_OK(manager->RestoreRomBackup(backups.front().path));
   EXPECT_EQ(manager->GetCurrentRom(), active_rom);
   ASSERT_TRUE(active_rom->ReadByte(kDungeonRoom0HeaderPc + 1).ok());
   EXPECT_EQ(*active_rom->ReadByte(kDungeonRoom0HeaderPc + 1), kBackupPalette);
-  EXPECT_EQ(dungeon->rooms().GetIfMaterialized(0), nullptr);
-  EXPECT_TRUE(DungeonEditorV2ReloadTestPeer::HasNoViewers(*dungeon));
-
-  dungeon->rooms()[0] = zelda3::LoadRoomHeaderFromRom(active_rom, 0);
-  dungeon->rooms()[0].ClearSaveDirtyState();
-  EXPECT_EQ(dungeon->rooms()[0].palette(), kBackupPalette);
-  auto* restored_viewer =
-      DungeonEditorV2ReloadTestPeer::GetViewerForRoom(dungeon, 0);
-  ASSERT_NE(restored_viewer, nullptr);
-  EXPECT_EQ(restored_viewer->rom(), active_rom);
-  EXPECT_EQ(restored_viewer->rooms(), &dungeon->rooms());
+  EXPECT_EQ(dungeon->rooms().GetIfMaterialized(0), room_before);
+  EXPECT_EQ(room_before->palette(), kBackupPalette);
+  EXPECT_EQ(DungeonEditorV2ReloadTestPeer::GetViewerForRoom(dungeon, 0),
+            viewer_before);
+  EXPECT_EQ(viewer_before->mutable_show_grid(), overlay_toggle_before);
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kDungeon));
+  ASSERT_EQ(DungeonEditorV2ReloadTestPeer::GetOverlayManagerPanel(dungeon),
+            overlay_panel_before);
+  EXPECT_EQ(DungeonEditorV2ReloadTestPeer::GetOverlayGridBinding(dungeon),
+            overlay_toggle_before);
+  EXPECT_EQ(viewer_before->rom(), active_rom);
+  EXPECT_EQ(viewer_before->rooms(), &dungeon->rooms());
+  auto object_editor_after =
+      DungeonEditorV2ReloadTestPeer::GetObjectEditor(dungeon);
+  EXPECT_EQ(object_editor_after.get(), object_editor_before.get());
+  EXPECT_EQ(object_editor_after->GetMutableRoom(), room_before);
+  EXPECT_EQ(DungeonEditorV2ReloadTestPeer::GetRegularEntrance(dungeon, 0),
+            entrance_before);
+  EXPECT_EQ(entrance_before->room_, kBackupEntranceRoom);
+  EXPECT_EQ(DungeonEditorV2ReloadTestPeer::GetSpawnPoint(dungeon, 0),
+            spawn_before);
+  EXPECT_EQ(spawn_before->room_id, kBackupSpawnRoom);
 }
 
 TEST(EditorManagerBackupRestoreTest,

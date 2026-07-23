@@ -227,6 +227,31 @@ void DungeonEditorSystem::SetExternalRoom(Room* room) {
   }
 }
 
+absl::Status DungeonEditorSystem::RefreshRomBackedState(Room* external_room,
+                                                        int current_room_id) {
+  // Move the shared object editor away from managed Room storage before
+  // clearing it. Panels retain this object-editor instance across ROM reloads.
+  external_room_ = external_room;
+  if (object_editor_) {
+    (void)object_editor_->ClearSelection();
+    object_editor_->ClearHistory();
+    object_editor_->SetExternalRoom(external_room_);
+  }
+
+  rooms_.clear();
+  ClearHistory();
+  editor_state_.is_dirty = false;
+
+  if (current_room_id < 0 || current_room_id >= kNumberOfRooms) {
+    return absl::OkStatus();
+  }
+  editor_state_.current_room_id = current_room_id;
+  if (external_room_ != nullptr) {
+    return BindObjectEditorToCurrentRoom();
+  }
+  return LoadRoomData(current_room_id);
+}
+
 absl::Status DungeonEditorSystem::BindObjectEditorToCurrentRoom() {
   if (!object_editor_) {
     return absl::OkStatus();

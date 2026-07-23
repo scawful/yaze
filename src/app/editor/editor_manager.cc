@@ -5117,17 +5117,21 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
 
   Rom previous_rom = session->rom;
   const std::string previous_filepath = session->filepath;
-  auto invalidate_dungeon_state = [&session]() {
-    auto* editor = session->editors.GetExistingEditor(EditorType::kDungeon);
-    if (editor) {
-      static_cast<DungeonEditorV2*>(editor)
-          ->InvalidateRomBackedStateForReload();
+  const bool game_data_was_loaded = session->game_data_loaded;
+  auto* dungeon_editor = static_cast<DungeonEditorV2*>(
+      session->editors.GetExistingEditor(EditorType::kDungeon));
+  const size_t dungeon_index = EditorTypeIndex(EditorType::kDungeon);
+  const bool dungeon_was_initialized =
+      session->editor_initialized[dungeon_index];
+  const bool dungeon_assets_were_loaded =
+      session->editor_assets_loaded[dungeon_index];
+  auto restore_lazy_dungeon_asset_state = [&]() {
+    if (asset_load_mode_ == AssetLoadMode::kLazy && dungeon_editor) {
+      session->editor_initialized[dungeon_index] = dungeon_was_initialized;
+      session->editor_assets_loaded[dungeon_index] = dungeon_assets_were_loaded;
     }
   };
 
-  // RomSession keeps a stable Rom address, so pointer-identity checks cannot
-  // detect that every byte is about to be replaced.
-  invalidate_dungeon_state();
   gfx::PaletteManager::Get().ReleaseSession(&session->game_data);
   session->rom = std::move(rom);
   session->filepath = filepath;
@@ -5140,10 +5144,18 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
   HandleSessionRomLoaded(GetCurrentSessionIndex(), &session->rom);
   UpdateCurrentRomHash();
   auto load_status = LoadAssetsForMode();
+  if (load_status.ok() && game_data_was_loaded && !session->game_data_loaded) {
+    load_status = EnsureGameDataLoaded();
+  }
+  if (load_status.ok() && dungeon_editor) {
+    load_status = dungeon_editor->RefreshRomBackedState();
+    if (load_status.ok()) {
+      restore_lazy_dungeon_asset_state();
+    }
+  }
   if (!load_status.ok()) {
     // Loading editors is fallible. Restore the prior ROM and rebuild its
     // assets so a failed reload never leaves a half-initialized live session.
-    invalidate_dungeon_state();
     gfx::PaletteManager::Get().ReleaseSession(&session->game_data);
     session->rom = std::move(previous_rom);
     session->filepath = previous_filepath;
@@ -5156,6 +5168,21 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
     HandleSessionRomLoaded(GetCurrentSessionIndex(), &session->rom);
     UpdateCurrentRomHash();
     auto rollback_status = LoadAssetsForMode();
+    if (game_data_was_loaded && !session->game_data_loaded) {
+      auto game_data_status = EnsureGameDataLoaded();
+      if (rollback_status.ok()) {
+        rollback_status = game_data_status;
+      }
+    }
+    if (dungeon_editor) {
+      auto dungeon_status = dungeon_editor->RefreshRomBackedState();
+      if (dungeon_status.ok()) {
+        restore_lazy_dungeon_asset_state();
+      }
+      if (rollback_status.ok()) {
+        rollback_status = dungeon_status;
+      }
+    }
     ApplyCurrentProjectRuntimeContext();
     if (!rollback_status.ok()) {
       return absl::InternalError(absl::StrFormat(
