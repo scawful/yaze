@@ -89,6 +89,21 @@ void DoorInteractionHandler::HandleRelease() {
     return;
   }
 
+  auto& doors = room->GetDoors();
+  if (*selected_door_index_ >= doors.size()) {
+    is_dragging_ = false;
+    return;
+  }
+
+  // HandleClick primes drag state so a selected door can move immediately, but
+  // a plain click must not canonicalize distinct ROM positions that share the
+  // same visual snap slot.
+  if (drag_current_pos_.x == drag_start_pos_.x &&
+      drag_current_pos_.y == drag_start_pos_.y) {
+    is_dragging_ = false;
+    return;
+  }
+
   int drag_x = static_cast<int>(drag_current_pos_.x);
   int drag_y = static_cast<int>(drag_current_pos_.y);
 
@@ -100,19 +115,18 @@ void DoorInteractionHandler::HandleRelease() {
         drag_x, drag_y, direction);
 
     if (zelda3::DoorPositionManager::IsValidPosition(position, direction)) {
-      ctx_->NotifyMutation(MutationDomain::kDoors);
-
-      auto& doors = room->GetDoors();
-      if (*selected_door_index_ < doors.size()) {
-        doors[*selected_door_index_].position = position;
-        doors[*selected_door_index_].direction = direction;
+      auto& door = doors[*selected_door_index_];
+      if (door.position != position || door.direction != direction) {
+        ctx_->NotifyMutation(MutationDomain::kDoors);
+        door.position = position;
+        door.direction = direction;
 
         // Re-encode bytes for ROM storage
-        auto [b1, b2] = doors[*selected_door_index_].EncodeBytes();
-        doors[*selected_door_index_].byte1 = b1;
-        doors[*selected_door_index_].byte2 = b2;
+        auto [b1, b2] = door.EncodeBytes();
+        door.byte1 = b1;
+        door.byte2 = b2;
 
-        room->MarkObjectsDirty();
+        room->MarkObjectStreamDirty();
         ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
       }
     }
@@ -582,7 +596,7 @@ bool DoorInteractionHandler::NudgeSelected(int delta_x, int delta_y) {
   auto [b1, b2] = door.EncodeBytes();
   door.byte1 = b1;
   door.byte2 = b2;
-  room->MarkObjectsDirty();
+  room->MarkObjectStreamDirty();
   ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
   ctx_->NotifyEntityChanged();
   return true;
@@ -612,7 +626,7 @@ bool DoorInteractionHandler::MutateDoorType(size_t index,
   door.byte1 = b1;
   door.byte2 = b2;
 
-  room->MarkObjectsDirty();
+  room->MarkObjectStreamDirty();
   ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
   ctx_->NotifyEntityChanged();
   return true;
