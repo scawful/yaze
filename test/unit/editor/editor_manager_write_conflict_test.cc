@@ -11,12 +11,18 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/palette/palette_group_panel.h"
 #include "app/gfx/backend/null_renderer.h"
+#include "app/gfx/types/snes_color.h"
+#include "app/gfx/types/snes_palette.h"
+#include "app/gfx/util/palette_manager.h"
 #include "app/startup_flags.h"
 #include "core/features.h"
+#include "core/rom_settings.h"
 #include "rom/rom_diff.h"
 #include "rom/snes.h"
 #include "testing.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 
 #include "imgui/imgui.h"
@@ -34,6 +40,25 @@ struct ScopedFileCleanup {
   ~ScopedFileCleanup() {
     std::error_code ec;
     std::filesystem::remove(path, ec);
+  }
+};
+
+struct ScopedDirectoryCleanup {
+  std::filesystem::path path;
+  ~ScopedDirectoryCleanup() {
+    std::error_code ec;
+    std::filesystem::remove_all(path, ec);
+  }
+};
+
+struct ProjectRuntimeGuard {
+  core::RomAddressOverrides address_overrides =
+      core::RomSettings::Get().address_overrides();
+  zelda3::CustomObjectManager::State custom_objects =
+      zelda3::CustomObjectManager::Get().SnapshotState();
+  ~ProjectRuntimeGuard() {
+    core::RomSettings::Get().SetAddressOverrides(address_overrides);
+    zelda3::CustomObjectManager::Get().RestoreState(custom_objects);
   }
 };
 
@@ -100,9 +125,10 @@ void DisableRomWritesForTest() {
 }
 
 std::filesystem::path CreateMinimalRomFile(const std::string& basename,
-                                           const std::string& title) {
+                                           const std::string& title,
+                                           size_t rom_size = 512 * 1024) {
   const std::filesystem::path rom_path = MakeTempFilePath(basename);
-  std::vector<uint8_t> rom_data(512 * 1024, 0x00);
+  std::vector<uint8_t> rom_data(rom_size, 0x00);
   for (size_t i = 0; i < title.size() && (0x7FC0 + i) < rom_data.size(); ++i) {
     rom_data[0x7FC0 + i] = static_cast<uint8_t>(title[i]);
   }
@@ -115,6 +141,23 @@ std::filesystem::path CreateMinimalRomFile(const std::string& basename,
   return rom_path;
 }
 
+std::filesystem::path CreateProjectFile(
+    const std::string& basename, const std::string& name,
+    const std::filesystem::path& rom_path,
+    const project::WorkspaceSettings& workspace_settings,
+    const std::filesystem::path& git_repository) {
+  std::filesystem::path project_path = git_repository / (basename + ".yaze");
+
+  project::YazeProject project;
+  project.name = name;
+  project.filepath = project_path.string();
+  project.rom_filename = rom_path.string();
+  project.workspace_settings = workspace_settings;
+  project.git_repository = git_repository.string();
+  EXPECT_OK(project.Save());
+  return project_path;
+}
+
 void MarkCurrentDungeonRoomPending(EditorManager* manager) {
   auto* editor_set = manager->GetCurrentEditorSet();
   ASSERT_NE(editor_set, nullptr);
@@ -123,6 +166,40 @@ void MarkCurrentDungeonRoomPending(EditorManager* manager) {
   ASSERT_NE(dungeon, nullptr);
   dungeon->rooms()[0].SetPalette(0x2A);
   EXPECT_EQ(dungeon->PendingRoomCount(), 1);
+}
+
+void SeedCurrentDungeonPalette(EditorManager* manager, uint16_t seed) {
+  ASSERT_NE(manager, nullptr);
+  auto* game_data = manager->GetCurrentGameData();
+  ASSERT_NE(game_data, nullptr);
+  auto* group = game_data->palette_groups.get_group("dungeon_main");
+  ASSERT_NE(group, nullptr);
+  group->clear();
+  gfx::SnesPalette palette;
+  palette.AddColor(gfx::SnesColor(seed));
+  group->AddPalette(palette);
+  gfx::PaletteManager::Get().Initialize(game_data);
+}
+
+void DrawPalettePanelOnce(DungeonMainPalettePanel* panel) {
+  ASSERT_NE(panel, nullptr);
+  ImGuiIO& io = ImGui::GetIO();
+  io.DisplaySize = ImVec2(1280.0f, 720.0f);
+  io.DeltaTime = 1.0f / 60.0f;
+  ImGui::NewFrame();
+  panel->Draw(nullptr);
+  ImGui::EndFrame();
+}
+
+void UpdateSessionEditorsFrame(EditorManager* manager) {
+  ASSERT_NE(manager, nullptr);
+  ASSERT_NE(manager->session_coordinator(), nullptr);
+  ImGuiIO& io = ImGui::GetIO();
+  io.DisplaySize = ImVec2(1280.0f, 720.0f);
+  io.DeltaTime = 1.0f / 60.0f;
+  ImGui::NewFrame();
+  manager->session_coordinator()->UpdateSessions();
+  ImGui::EndFrame();
 }
 
 void WriteLongPointer(std::vector<uint8_t>* data, int offset, uint32_t value) {
@@ -513,6 +590,16 @@ TEST(EditorManagerWriteConflictTest,
   room.MarkPotItemsDirty();
   ASSERT_TRUE(room.pot_items_dirty());
 
+  Rom* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  const auto before_save = rom->vector();
+
+  const auto paused = manager->SaveRom();
+  EXPECT_EQ(paused.code(), absl::StatusCode::kCancelled) << paused;
+  ASSERT_TRUE(manager->HasPendingPotItemSaveConfirmation());
+
+  // The first save snapshots the mutable manager project into the stable
+  // session-owned editor context before pausing for pot-item confirmation.
   const auto predicted_ranges = dungeon->CollectWriteRanges();
   EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
                       std::pair<uint32_t, uint32_t>{0x00E100, 0x00E140}),
@@ -523,14 +610,6 @@ TEST(EditorManagerWriteConflictTest,
                     zelda3::kRoomItemsPointers,
                     zelda3::kRoomItemsPointers + zelda3::kNumberOfRooms * 2}),
       predicted_ranges.end());
-
-  Rom* rom = manager->GetCurrentRom();
-  ASSERT_NE(rom, nullptr);
-  const auto before_save = rom->vector();
-
-  const auto paused = manager->SaveRom();
-  EXPECT_EQ(paused.code(), absl::StatusCode::kCancelled) << paused;
-  ASSERT_TRUE(manager->HasPendingPotItemSaveConfirmation());
 
   std::error_code remove_error;
   ASSERT_TRUE(std::filesystem::remove(rom_path, remove_error));
@@ -545,6 +624,460 @@ TEST(EditorManagerWriteConflictTest,
   EXPECT_EQ(rom->vector(), before_save);
   EXPECT_TRUE(room.pot_items_dirty());
   EXPECT_FALSE(std::filesystem::exists(rom_path));
+}
+
+TEST(EditorManagerWriteConflictTest,
+     FrameSessionIterationPreservesSaveConfirmationAndActiveEditor) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_frame_context_a.sfc", "FRAME CONTEXT A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_frame_context_b.sfc", "FRAME CONTEXT B");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+
+  auto* inactive_dungeon =
+      manager->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+          EditorType::kDungeon);
+  ASSERT_NE(inactive_dungeon, nullptr);
+  *inactive_dungeon->active() = true;
+
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  auto* active_rom = manager->GetCurrentRom();
+  auto* active_dungeon =
+      manager->GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+          EditorType::kDungeon);
+  ASSERT_NE(active_rom, nullptr);
+  ASSERT_NE(active_dungeon, nullptr);
+  manager->SetCurrentEditor(active_dungeon);
+
+  DisableRomWritesForTest();
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "FrameContextTest";
+  project->filepath =
+      (rom_a.parent_path() / "frame_context_project.yaze").string();
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.write_policy = project::RomWritePolicy::kWarn;
+  project->rom_metadata.expected_hash = "deadbeef";
+  ASSERT_TRUE(manager->IsRomHashMismatch());
+  ASSERT_OK(active_rom->WriteByte(0x1234, 0x7F));
+
+  const auto paused = manager->SaveRom();
+  ASSERT_EQ(paused.code(), absl::StatusCode::kCancelled) << paused;
+  ASSERT_TRUE(manager->IsRomWriteConfirmPending());
+
+  UpdateSessionEditorsFrame(manager.get());
+
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_EQ(manager->GetCurrentRom(), active_rom);
+  EXPECT_TRUE(manager->IsRomWriteConfirmPending());
+  EXPECT_EQ(manager->GetCurrentEditor(), active_dungeon);
+  EXPECT_EQ(ContentRegistry::Context::current_editor(), active_dungeon);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     SessionSwitchRestoresExactProjectPolicyFlagsAndRuntime) {
+  FeatureFlagsGuard flags_guard;
+  ProjectRuntimeGuard runtime_guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_project_context_a.sfc", "PROJECT CONTEXT A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_project_context_b.sfc", "PROJECT CONTEXT B");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  DisableRomWritesForTest();
+  auto* project_a = manager->GetCurrentProject();
+  ASSERT_NE(project_a, nullptr);
+  project_a->name = "Session Context A";
+  project_a->filepath =
+      (rom_a.parent_path() / "session_context_a.yaze").string();
+  project_a->rom_filename = "different-a.sfc";
+  project_a->workspace_settings.backup_on_save = false;
+  project_a->rom_metadata.write_policy = project::RomWritePolicy::kAllow;
+  project_a->rom_metadata.expected_hash = "deadbeef";
+  project_a->rom_address_overrides.addresses["session_probe"] = 0x111111;
+  project_a->custom_objects_folder = "objects-a";
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  DisableRomWritesForTest();
+  auto* project_b = manager->GetCurrentProject();
+  ASSERT_NE(project_b, nullptr);
+  project_b->name = "Session Context B";
+  project_b->filepath =
+      (rom_b.parent_path() / "session_context_b.yaze").string();
+  project_b->rom_filename = "different-b.sfc";
+  project_b->workspace_settings.backup_on_save = false;
+  project_b->rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  project_b->rom_metadata.expected_hash = "deadbeef";
+  project_b->rom_address_overrides.addresses["session_probe"] = 0x222222;
+  project_b->custom_objects_folder = "objects-b";
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 0u);
+  EXPECT_EQ(manager->GetCurrentProject()->name, "Session Context A");
+  EXPECT_EQ(manager->GetProjectRomWritePolicy(),
+            project::RomWritePolicy::kAllow);
+  EXPECT_FALSE(core::FeatureFlags::get().kEnableCustomObjects);
+  EXPECT_EQ(
+      core::RomSettings::Get().address_overrides().GetAddress("session_probe"),
+      0x111111u);
+  EXPECT_EQ(zelda3::CustomObjectManager::Get().GetBasePath(),
+            (rom_a.parent_path() / "objects-a").string());
+
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x2345, 0x6A));
+  ASSERT_OK(manager->SaveRom());
+  EXPECT_EQ(ReadByteAt(rom_a, 0x2345), 0x6A);
+
+  manager->SwitchToSession(1);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
+  EXPECT_EQ(manager->GetCurrentProject()->name, "Session Context B");
+  EXPECT_EQ(manager->GetProjectRomWritePolicy(),
+            project::RomWritePolicy::kBlock);
+  EXPECT_TRUE(core::FeatureFlags::get().kEnableCustomObjects);
+  EXPECT_EQ(
+      core::RomSettings::Get().address_overrides().GetAddress("session_probe"),
+      0x222222u);
+  EXPECT_EQ(zelda3::CustomObjectManager::Get().GetBasePath(),
+            (rom_b.parent_path() / "objects-b").string());
+
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x2345, 0x7B));
+  const auto blocked = manager->SaveRom();
+  EXPECT_EQ(blocked.code(), absl::StatusCode::kPermissionDenied) << blocked;
+  EXPECT_EQ(ReadByteAt(rom_b, 0x2345), 0x00);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     ProjectDependenciesAndVersionManagersRemainSessionOwned) {
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_owned_context_a.sfc", "OWNED CONTEXT A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_owned_context_b.sfc", "OWNED CONTEXT B");
+  const auto git_a = MakeTempFilePath("yaze_owned_context_git_a");
+  const auto git_b = MakeTempFilePath("yaze_owned_context_git_b");
+  ASSERT_TRUE(std::filesystem::create_directories(git_a));
+  ASSERT_TRUE(std::filesystem::create_directories(git_b));
+  const auto project_a =
+      CreateProjectFile("yaze_owned_context_a", "Owned Project A", rom_a,
+                        project::WorkspaceSettings{}, git_a);
+  const auto project_b =
+      CreateProjectFile("yaze_owned_context_b", "Owned Project B", rom_b,
+                        project::WorkspaceSettings{}, git_b);
+  ScopedFileCleanup cleanup_rom_a{rom_a};
+  ScopedFileCleanup cleanup_rom_b{rom_b};
+  ScopedFileCleanup cleanup_project_a{project_a};
+  ScopedFileCleanup cleanup_project_b{project_b};
+  ScopedDirectoryCleanup cleanup_git_a{git_a};
+  ScopedDirectoryCleanup cleanup_git_b{git_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(project_a.string()));
+  auto* session_a =
+      static_cast<RomSession*>(manager->session_coordinator()->GetSession(0));
+  ASSERT_NE(session_a, nullptr);
+  ASSERT_TRUE(session_a->project_context.has_value());
+  ASSERT_NE(session_a->version_manager, nullptr);
+  auto* dungeon_a =
+      session_a->editors.GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
+  ASSERT_NE(dungeon_a, nullptr);
+  auto* project_ptr_a = &*session_a->project_context;
+  auto* version_ptr_a = session_a->version_manager.get();
+  EXPECT_EQ(dungeon_a->project(), project_ptr_a);
+  EXPECT_EQ(dungeon_a->version_manager(), version_ptr_a);
+
+  ASSERT_OK(manager->OpenRomOrProject(project_b.string()));
+  auto* session_b =
+      static_cast<RomSession*>(manager->session_coordinator()->GetSession(1));
+  ASSERT_NE(session_b, nullptr);
+  ASSERT_TRUE(session_b->project_context.has_value());
+  ASSERT_NE(session_b->version_manager, nullptr);
+  auto* dungeon_b =
+      session_b->editors.GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
+  ASSERT_NE(dungeon_b, nullptr);
+
+  EXPECT_EQ(&*session_a->project_context, project_ptr_a);
+  EXPECT_EQ(session_a->version_manager.get(), version_ptr_a);
+  EXPECT_EQ(dungeon_a->project(), project_ptr_a);
+  EXPECT_EQ(dungeon_a->version_manager(), version_ptr_a);
+  EXPECT_EQ(dungeon_b->project(), &*session_b->project_context);
+  EXPECT_EQ(dungeon_b->version_manager(), session_b->version_manager.get());
+  EXPECT_NE(dungeon_a->project(), dungeon_b->project());
+  EXPECT_NE(dungeon_a->version_manager(), dungeon_b->version_manager());
+  EXPECT_EQ(manager->GetVersionManager(), session_b->version_manager.get());
+
+  manager->SwitchToSession(0);
+  EXPECT_EQ(manager->GetVersionManager(), version_ptr_a);
+  EXPECT_EQ(manager->GetCurrentProject()->name, "Owned Project A");
+  // This call dereferences VersionManager's cached project pointer and would
+  // be a use-after-free when opening Project B replaced global ownership.
+  EXPECT_TRUE(version_ptr_a->IsGitInitialized());
+}
+
+TEST(EditorManagerWriteConflictTest,
+     RawRomOpenedFromProjectGetsNeutralSessionContext) {
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto project_rom =
+      CreateMinimalRomFile("yaze_project_then_raw_a.sfc", "PROJECT THEN RAW A");
+  const auto raw_rom =
+      CreateMinimalRomFile("yaze_project_then_raw_b.sfc", "PROJECT THEN RAW B");
+  const auto git_root = MakeTempFilePath("yaze_project_then_raw_git");
+  ASSERT_TRUE(std::filesystem::create_directories(git_root));
+  project::WorkspaceSettings project_workspace;
+  project_workspace.font_global_scale = 1.75f;
+  const auto project_path = CreateProjectFile(
+      "yaze_project_then_raw", "Project Context Must Not Leak", project_rom,
+      project_workspace, git_root);
+  ScopedFileCleanup cleanup_project_rom{project_rom};
+  ScopedFileCleanup cleanup_raw_rom{raw_rom};
+  ScopedFileCleanup cleanup_project{project_path};
+  ScopedDirectoryCleanup cleanup_git{git_root};
+
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  auto* project_session =
+      static_cast<RomSession*>(manager->session_coordinator()->GetSession(0));
+  ASSERT_NE(project_session, nullptr);
+  ASSERT_TRUE(project_session->project_context.has_value());
+  project_session->project_context->custom_objects_folder = "project-objects";
+  project_session->project_context->rom_address_overrides.addresses["probe"] =
+      0x123456;
+
+  ASSERT_OK(manager->OpenRomOrProject(raw_rom.string()));
+  auto* raw_session =
+      static_cast<RomSession*>(manager->session_coordinator()->GetSession(1));
+  ASSERT_NE(raw_session, nullptr);
+  ASSERT_TRUE(raw_session->project_context.has_value());
+  EXPECT_FALSE(raw_session->project_context->project_opened());
+  EXPECT_TRUE(raw_session->project_context->name.empty());
+  EXPECT_TRUE(raw_session->project_context->filepath.empty());
+  EXPECT_TRUE(raw_session->project_context->rom_filename.empty());
+  EXPECT_TRUE(raw_session->project_context->custom_objects_folder.empty());
+  EXPECT_TRUE(
+      raw_session->project_context->rom_address_overrides.addresses.empty());
+
+  auto* raw_dungeon =
+      raw_session->editors.GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
+  ASSERT_NE(raw_dungeon, nullptr);
+  EXPECT_EQ(raw_dungeon->project(), &*raw_session->project_context);
+  EXPECT_EQ(raw_dungeon->version_manager(), raw_session->version_manager.get());
+  EXPECT_NE(raw_dungeon->project(), &*project_session->project_context);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     ProjectWorkspaceSettingsStayIsolatedAcrossSessionSave) {
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_workspace_a.sfc", "WORKSPACE A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_workspace_b.sfc", "WORKSPACE B");
+  const auto git_a = MakeTempFilePath("yaze_workspace_git_a");
+  const auto git_b = MakeTempFilePath("yaze_workspace_git_b");
+  ASSERT_TRUE(std::filesystem::create_directories(git_a));
+  ASSERT_TRUE(std::filesystem::create_directories(git_b));
+
+  project::WorkspaceSettings workspace_a;
+  workspace_a.font_global_scale = 1.1f;
+  workspace_a.autosave_enabled = true;
+  workspace_a.autosave_interval_secs = 101.0f;
+  workspace_a.backup_on_save = true;
+  project::WorkspaceSettings workspace_b;
+  workspace_b.font_global_scale = 1.6f;
+  workspace_b.autosave_enabled = false;
+  workspace_b.autosave_interval_secs = 202.0f;
+  workspace_b.backup_on_save = false;
+  const auto project_a = CreateProjectFile(
+      "yaze_workspace_a", "Workspace Project A", rom_a, workspace_a, git_a);
+  const auto project_b = CreateProjectFile(
+      "yaze_workspace_b", "Workspace Project B", rom_b, workspace_b, git_b);
+  ScopedFileCleanup cleanup_rom_a{rom_a};
+  ScopedFileCleanup cleanup_rom_b{rom_b};
+  ScopedFileCleanup cleanup_project_a{project_a};
+  ScopedFileCleanup cleanup_project_b{project_b};
+  ScopedDirectoryCleanup cleanup_git_a{git_a};
+  ScopedDirectoryCleanup cleanup_git_b{git_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(project_a.string()));
+  manager->user_settings().prefs().font_global_scale = 1.25f;
+  manager->user_settings().prefs().autosave_enabled = false;
+  manager->user_settings().prefs().autosave_interval = 111.0f;
+  manager->user_settings().prefs().backup_before_save = false;
+
+  ASSERT_OK(manager->OpenRomOrProject(project_b.string()));
+  EXPECT_FLOAT_EQ(manager->user_settings().prefs().font_global_scale, 1.6f);
+  EXPECT_FALSE(manager->user_settings().prefs().autosave_enabled);
+  EXPECT_FLOAT_EQ(manager->user_settings().prefs().autosave_interval, 202.0f);
+  EXPECT_FALSE(manager->user_settings().prefs().backup_before_save);
+  manager->user_settings().prefs().font_global_scale = 1.75f;
+  manager->user_settings().prefs().autosave_enabled = true;
+  manager->user_settings().prefs().autosave_interval = 222.0f;
+  manager->user_settings().prefs().backup_before_save = true;
+
+  manager->SwitchToSession(0);
+  EXPECT_FLOAT_EQ(manager->user_settings().prefs().font_global_scale, 1.25f);
+  EXPECT_FALSE(manager->user_settings().prefs().autosave_enabled);
+  EXPECT_FLOAT_EQ(manager->user_settings().prefs().autosave_interval, 111.0f);
+  EXPECT_FALSE(manager->user_settings().prefs().backup_before_save);
+  ASSERT_OK(manager->SaveProject());
+
+  manager->SwitchToSession(1);
+  EXPECT_FLOAT_EQ(manager->user_settings().prefs().font_global_scale, 1.75f);
+  EXPECT_TRUE(manager->user_settings().prefs().autosave_enabled);
+  EXPECT_FLOAT_EQ(manager->user_settings().prefs().autosave_interval, 222.0f);
+  EXPECT_TRUE(manager->user_settings().prefs().backup_before_save);
+  ASSERT_OK(manager->SaveProject());
+
+  project::YazeProject saved_a;
+  project::YazeProject saved_b;
+  ASSERT_OK(saved_a.Open(project_a.string()));
+  ASSERT_OK(saved_b.Open(project_b.string()));
+  EXPECT_FLOAT_EQ(saved_a.workspace_settings.font_global_scale, 1.25f);
+  EXPECT_FALSE(saved_a.workspace_settings.autosave_enabled);
+  EXPECT_FLOAT_EQ(saved_a.workspace_settings.autosave_interval_secs, 111.0f);
+  EXPECT_FALSE(saved_a.workspace_settings.backup_on_save);
+  EXPECT_FLOAT_EQ(saved_b.workspace_settings.font_global_scale, 1.75f);
+  EXPECT_TRUE(saved_b.workspace_settings.autosave_enabled);
+  EXPECT_FLOAT_EQ(saved_b.workspace_settings.autosave_interval_secs, 222.0f);
+  EXPECT_TRUE(saved_b.workspace_settings.backup_on_save);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     MultiSessionQuitSavesEachRomWithItsOwnBackupContext) {
+  FeatureFlagsGuard flags_guard;
+  ProjectRuntimeGuard runtime_guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_quit_context_a.sfc", "QUIT CONTEXT A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_quit_context_b.sfc", "QUIT CONTEXT B");
+  const auto backup_a = MakeTempFilePath("yaze_backups_context_a");
+  const auto backup_b = MakeTempFilePath("yaze_backups_context_b");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+  ScopedDirectoryCleanup cleanup_backup_a{backup_a};
+  ScopedDirectoryCleanup cleanup_backup_b{backup_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  DisableRomWritesForTest();
+  auto* project_a = manager->GetCurrentProject();
+  ASSERT_NE(project_a, nullptr);
+  project_a->name = "Quit Context A";
+  project_a->filepath = (rom_a.parent_path() / "quit_context_a.yaze").string();
+  project_a->workspace_settings.backup_on_save = true;
+  project_a->rom_backup_folder = backup_a.string();
+  project_a->rom_metadata.write_policy = project::RomWritePolicy::kAllow;
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  DisableRomWritesForTest();
+  auto* project_b = manager->GetCurrentProject();
+  ASSERT_NE(project_b, nullptr);
+  project_b->name = "Quit Context B";
+  project_b->filepath = (rom_b.parent_path() / "quit_context_b.yaze").string();
+  project_b->workspace_settings.backup_on_save = true;
+  project_b->rom_backup_folder = backup_b.string();
+  project_b->rom_metadata.write_policy = project::RomWritePolicy::kAllow;
+
+  manager->SwitchToSession(0);
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x3456, 0x4A));
+  manager->SwitchToSession(1);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x3456, 0x5B));
+
+  manager->Quit();
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionSaveAndContinue();
+
+  EXPECT_TRUE(manager->quit());
+  EXPECT_EQ(ReadByteAt(rom_a, 0x3456), 0x4A);
+  EXPECT_EQ(ReadByteAt(rom_b, 0x3456), 0x5B);
+  EXPECT_EQ(std::distance(std::filesystem::directory_iterator(backup_a),
+                          std::filesystem::directory_iterator()),
+            1);
+  EXPECT_EQ(std::distance(std::filesystem::directory_iterator(backup_b),
+                          std::filesystem::directory_iterator()),
+            1);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     SaveFailsClosedWhenSessionProjectContextIsUnresolved) {
+  FeatureFlagsGuard flags_guard;
+  ProjectRuntimeGuard runtime_guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_resolved_context.sfc", "RESOLVED CONTEXT");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_unresolved_context.sfc", "NO CONTEXT");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  manager->SwitchToSession(0);
+
+  auto* unresolved =
+      static_cast<RomSession*>(manager->session_coordinator()->GetSession(1));
+  ASSERT_NE(unresolved, nullptr);
+  unresolved->project_context.reset();
+
+  manager->SwitchToSession(1);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x2345, 0x6A));
+  const auto status = manager->SaveRom();
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  EXPECT_EQ(ReadByteAt(rom_b, 0x2345), 0x00);
 }
 
 TEST(EditorManagerWriteConflictTest,
@@ -612,12 +1145,171 @@ TEST(EditorManagerWriteConflictTest,
   EXPECT_EQ(manager->GetCurrentSessionIndex(), 1u);
   MarkCurrentDungeonRoomPending(manager.get());
 
-  manager->CloseCurrentSession();
+  manager->session_coordinator()->RequestCloseCurrentSession();
   EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
   EXPECT_EQ(manager->GetActiveSessionCount(), 2u);
 
   manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
   EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     CreateAndDuplicateSessionsUseFullSwitchLifecycle) {
+  ScopedImGuiContext imgui;
+  gfx::PaletteManager::Get().ResetForTesting();
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_path =
+      CreateMinimalRomFile("yaze_create_rebind.sfc", "CREATE REBIND");
+  ScopedFileCleanup cleanup{rom_path};
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+
+  manager->window_manager().SetActiveCategory("Dungeon", /*notify=*/false);
+  Editor* first_dungeon =
+      manager->GetCurrentEditorSet()->GetEditor(EditorType::kDungeon);
+  ASSERT_NE(first_dungeon, nullptr);
+  manager->SetCurrentEditor(first_dungeon);
+
+  auto* properties_panel = manager->right_drawer_manager()->properties_panel();
+  ASSERT_NE(properties_panel, nullptr);
+  int first_selection = 0;
+  SelectionContext selection;
+  selection.type = SelectionType::kDungeonObject;
+  selection.data = &first_selection;
+  properties_panel->SetSelection(selection);
+
+  manager->CreateNewSession();
+
+  ASSERT_EQ(manager->GetActiveSessionCount(), 2u);
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  EXPECT_EQ(manager->GetCurrentSessionId(), 1u);
+  EXPECT_EQ(manager->window_manager().GetActiveSessionId(), 1u);
+  auto* created_rom = manager->GetCurrentRom();
+  auto* created_game_data = manager->GetCurrentGameData();
+  Editor* created_dungeon =
+      manager->GetCurrentEditorSet()->GetEditor(EditorType::kDungeon);
+  auto* created_settings = manager->GetCurrentEditorSet()->GetSettingsPanel();
+  ASSERT_NE(created_rom, nullptr);
+  ASSERT_NE(created_game_data, nullptr);
+  ASSERT_NE(created_dungeon, nullptr);
+  ASSERT_NE(created_settings, nullptr);
+  EXPECT_EQ(ContentRegistry::Context::rom(), created_rom);
+  EXPECT_EQ(ContentRegistry::Context::game_data(), created_game_data);
+  EXPECT_EQ(manager->GetCurrentEditor(), created_dungeon);
+  EXPECT_EQ(ContentRegistry::Context::current_editor(), created_dungeon);
+  EXPECT_EQ(ContentRegistry::Context::editor_window_context("Dungeon"),
+            created_dungeon);
+  EXPECT_EQ(manager->right_drawer_manager()->settings_panel(),
+            created_settings);
+  EXPECT_FALSE(properties_panel->HasSelection());
+
+  SeedCurrentDungeonPalette(manager.get(), 0x0100);
+  ASSERT_TRUE(gfx::PaletteManager::Get().IsManaging(created_game_data));
+  int created_selection = 0;
+  selection.data = &created_selection;
+  properties_panel->SetSelection(selection);
+
+  manager->DuplicateCurrentSession();
+
+  ASSERT_EQ(manager->GetActiveSessionCount(), 3u);
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 2u);
+  EXPECT_EQ(manager->GetCurrentSessionId(), 2u);
+  EXPECT_EQ(manager->window_manager().GetActiveSessionId(), 2u);
+  auto* duplicated_rom = manager->GetCurrentRom();
+  auto* duplicated_game_data = manager->GetCurrentGameData();
+  Editor* duplicated_dungeon =
+      manager->GetCurrentEditorSet()->GetEditor(EditorType::kDungeon);
+  auto* duplicated_settings =
+      manager->GetCurrentEditorSet()->GetSettingsPanel();
+  ASSERT_NE(duplicated_rom, nullptr);
+  ASSERT_NE(duplicated_game_data, nullptr);
+  ASSERT_NE(duplicated_dungeon, nullptr);
+  ASSERT_NE(duplicated_settings, nullptr);
+  EXPECT_NE(duplicated_rom, created_rom);
+  EXPECT_NE(duplicated_game_data, created_game_data);
+  EXPECT_EQ(ContentRegistry::Context::rom(), duplicated_rom);
+  EXPECT_EQ(ContentRegistry::Context::game_data(), duplicated_game_data);
+  EXPECT_EQ(manager->GetCurrentEditor(), duplicated_dungeon);
+  EXPECT_EQ(ContentRegistry::Context::current_editor(), duplicated_dungeon);
+  EXPECT_EQ(ContentRegistry::Context::editor_window_context("Dungeon"),
+            duplicated_dungeon);
+  EXPECT_EQ(manager->right_drawer_manager()->settings_panel(),
+            duplicated_settings);
+  EXPECT_FALSE(properties_panel->HasSelection());
+  EXPECT_FALSE(gfx::PaletteManager::Get().IsManaging(created_game_data));
+
+  manager.reset();
+  gfx::PaletteManager::Get().ResetForTesting();
+}
+
+TEST(EditorManagerWriteConflictTest, FirstCreatedSessionBindsEditorContext) {
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->window_manager().SetActiveCategory("Dungeon", /*notify=*/false);
+
+  manager->CreateNewSession();
+
+  ASSERT_EQ(manager->GetActiveSessionCount(), 1u);
+  EXPECT_EQ(manager->GetCurrentSessionId(), 0u);
+  EXPECT_EQ(manager->window_manager().GetActiveSessionId(), 0u);
+  EXPECT_EQ(ContentRegistry::Context::rom(), manager->GetCurrentRom());
+  EXPECT_EQ(ContentRegistry::Context::game_data(),
+            manager->GetCurrentGameData());
+  Editor* dungeon =
+      manager->GetCurrentEditorSet()->GetEditor(EditorType::kDungeon);
+  auto* settings = manager->GetCurrentEditorSet()->GetSettingsPanel();
+  ASSERT_NE(dungeon, nullptr);
+  ASSERT_NE(settings, nullptr);
+  EXPECT_EQ(manager->GetCurrentEditor(), dungeon);
+  EXPECT_EQ(ContentRegistry::Context::current_editor(), dungeon);
+  EXPECT_EQ(ContentRegistry::Context::editor_window_context("Dungeon"),
+            dungeon);
+  EXPECT_EQ(manager->right_drawer_manager()->settings_panel(), settings);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     CreatedSessionActivationHonorsUnsavedWorkGuard) {
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_path =
+      CreateMinimalRomFile("yaze_create_guard.sfc", "CREATE GUARD");
+  ScopedFileCleanup cleanup{rom_path};
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  Rom* source_rom = manager->GetCurrentRom();
+  auto* source_game_data = manager->GetCurrentGameData();
+  ASSERT_NE(source_rom, nullptr);
+  ASSERT_NE(source_game_data, nullptr);
+  MarkCurrentDungeonRoomPending(manager.get());
+
+  manager->CreateNewSession();
+
+  EXPECT_EQ(manager->GetActiveSessionCount(), 2u);
+  EXPECT_EQ(manager->GetCurrentSessionId(), 0u);
+  EXPECT_EQ(manager->GetCurrentRom(), source_rom);
+  EXPECT_EQ(ContentRegistry::Context::rom(), source_rom);
+  EXPECT_EQ(ContentRegistry::Context::game_data(), source_game_data);
+  EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetCurrentSessionId(), 1u);
+  EXPECT_EQ(ContentRegistry::Context::rom(), manager->GetCurrentRom());
+  EXPECT_EQ(ContentRegistry::Context::game_data(),
+            manager->GetCurrentGameData());
 }
 
 TEST(EditorManagerWriteConflictTest,
@@ -642,6 +1334,579 @@ TEST(EditorManagerWriteConflictTest,
 
   manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
   EXPECT_TRUE(manager->quit());
+}
+
+TEST(EditorManagerWriteConflictTest,
+     PaletteOnlyChangesPromptAndSurviveSwitchAndCloseLifecycle) {
+  ScopedImGuiContext imgui;
+  gfx::PaletteManager::Get().ResetForTesting();
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_palette_guard_a.sfc", "PALETTE GUARD A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_palette_guard_b.sfc", "PALETTE GUARD B");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  auto* first_game_data = manager->GetCurrentGameData();
+  SeedCurrentDungeonPalette(manager.get(), 0x0100);
+  ASSERT_TRUE(gfx::PaletteManager::Get()
+                  .SetColor("dungeon_main", 0, 0, gfx::SnesColor(0x1111))
+                  .ok());
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_NE(manager->GetPendingUnsavedSessionActionPrompt().find(
+                "1 unapplied palette color"),
+            std::string::npos);
+  EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
+
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_EQ(manager->GetActiveSessionCount(), 2u);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  auto* second_game_data = manager->GetCurrentGameData();
+  SeedCurrentDungeonPalette(manager.get(), 0x0200);
+  ASSERT_TRUE(gfx::PaletteManager::Get()
+                  .SetColor("dungeon_main", 0, 0, gfx::SnesColor(0x2222))
+                  .ok());
+
+  manager->SwitchToSession(0);
+  EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_TRUE(gfx::PaletteManager::Get().IsManaging(first_game_data));
+  EXPECT_EQ(gfx::PaletteManager::Get().GetColor("dungeon_main", 0, 0).snes(),
+            0x1111);
+  EXPECT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges(first_game_data));
+  EXPECT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges(second_game_data));
+
+  manager->SwitchToSession(1);
+  EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  EXPECT_TRUE(gfx::PaletteManager::Get().IsManaging(second_game_data));
+  EXPECT_EQ(gfx::PaletteManager::Get().GetColor("dungeon_main", 0, 0).snes(),
+            0x2222);
+
+  manager->CloseCurrentSession();
+  EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+
+  ASSERT_EQ(manager->GetActiveSessionCount(), 1u);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_TRUE(gfx::PaletteManager::Get().IsManaging(first_game_data));
+  EXPECT_EQ(gfx::PaletteManager::Get().GetColor("dungeon_main", 0, 0).snes(),
+            0x1111);
+  EXPECT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges(first_game_data));
+
+  manager.reset();
+  gfx::PaletteManager::Get().ResetForTesting();
+}
+
+TEST(EditorManagerWriteConflictTest,
+     ActiveCloseFullyRebindsSurvivingSessionContext) {
+  ScopedImGuiContext imgui;
+  gfx::PaletteManager::Get().ResetForTesting();
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_close_rebind_a.sfc", "CLOSE REBIND A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_close_rebind_b.sfc", "CLOSE REBIND B");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  SeedCurrentDungeonPalette(manager.get(), 0x0100);
+  Rom* first_rom = manager->GetCurrentRom();
+  auto* first_game_data = manager->GetCurrentGameData();
+  Editor* first_dungeon =
+      manager->GetCurrentEditorSet()->GetEditor(EditorType::kDungeon);
+  ASSERT_NE(first_rom, nullptr);
+  ASSERT_NE(first_game_data, nullptr);
+  ASSERT_NE(first_dungeon, nullptr);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  SeedCurrentDungeonPalette(manager.get(), 0x0200);
+  Rom* second_rom = manager->GetCurrentRom();
+  auto* second_game_data = manager->GetCurrentGameData();
+  Editor* second_dungeon =
+      manager->GetCurrentEditorSet()->GetEditor(EditorType::kDungeon);
+  auto* second_settings = manager->GetCurrentEditorSet()->GetSettingsPanel();
+  ASSERT_NE(second_rom, nullptr);
+  ASSERT_NE(second_game_data, nullptr);
+  ASSERT_NE(second_dungeon, nullptr);
+  ASSERT_NE(second_settings, nullptr);
+
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentRom(), first_rom);
+  manager->window_manager().SetActiveCategory("Dungeon", /*notify=*/false);
+  manager->SetCurrentEditor(first_dungeon);
+  ASSERT_NE(manager->right_drawer_manager(), nullptr);
+  auto* properties_panel = manager->right_drawer_manager()->properties_panel();
+  ASSERT_NE(properties_panel, nullptr);
+  int closing_selection = 0;
+  SelectionContext selection;
+  selection.type = SelectionType::kDungeonObject;
+  selection.data = &closing_selection;
+  properties_panel->SetSelection(selection);
+  ASSERT_TRUE(properties_panel->HasSelection());
+
+  manager->CloseCurrentSession();
+
+  ASSERT_EQ(manager->GetActiveSessionCount(), 1u);
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_EQ(manager->GetCurrentSessionId(), 1u);
+  EXPECT_EQ(manager->window_manager().GetActiveSessionId(), 1u);
+  EXPECT_EQ(manager->GetCurrentRom(), second_rom);
+  EXPECT_EQ(manager->GetCurrentGameData(), second_game_data);
+  EXPECT_EQ(ContentRegistry::Context::rom(), second_rom);
+  EXPECT_EQ(ContentRegistry::Context::game_data(), second_game_data);
+  EXPECT_EQ(manager->GetCurrentEditor(), second_dungeon);
+  EXPECT_EQ(ContentRegistry::Context::current_editor(), second_dungeon);
+  EXPECT_EQ(ContentRegistry::Context::editor_window_context("Dungeon"),
+            second_dungeon);
+  EXPECT_EQ(manager->right_drawer_manager()->settings_panel(), second_settings);
+  EXPECT_FALSE(properties_panel->HasSelection());
+  EXPECT_TRUE(gfx::PaletteManager::Get().IsManaging(second_game_data));
+
+  manager.reset();
+  gfx::PaletteManager::Get().ResetForTesting();
+}
+
+TEST(EditorManagerWriteConflictTest,
+     SavingAndClosingInactiveSessionPreservesActiveStableSession) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_inactive_close_a.sfc", "INACTIVE CLOSE A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_inactive_close_b.sfc", "INACTIVE CLOSE B");
+  const auto rom_c =
+      CreateMinimalRomFile("yaze_inactive_close_c.sfc", "INACTIVE CLOSE C");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+  ScopedFileCleanup cleanup_c{rom_c};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_c.string()));
+  ASSERT_EQ(manager->GetCurrentSessionId(), 2u);
+
+  manager->SwitchToSession(1);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
+  // Save controls are session-owned; configure the inactive target before
+  // leaving it rather than relying on the active session's globals.
+  DisableRomWritesForTest();
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x2345, 0x6A));
+  manager->SwitchToSession(2);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_EQ(manager->GetCurrentSessionId(), 2u);
+  Rom* active_rom = manager->GetCurrentRom();
+  Editor* active_dungeon =
+      manager->GetCurrentEditorSet()->GetEditor(EditorType::kDungeon);
+  ASSERT_NE(active_rom, nullptr);
+  ASSERT_NE(active_dungeon, nullptr);
+  manager->window_manager().SetActiveCategory("Dungeon", /*notify=*/false);
+  manager->SetCurrentEditor(active_dungeon);
+
+  manager->RemoveSession(1);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionSaveAndContinue();
+
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetActiveSessionCount(), 2u);
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  EXPECT_EQ(manager->GetCurrentSessionId(), 2u);
+  EXPECT_EQ(manager->window_manager().GetActiveSessionId(), 2u);
+  EXPECT_EQ(manager->GetCurrentRom(), active_rom);
+  EXPECT_EQ(manager->GetCurrentRom()->filename(), rom_c.string());
+  EXPECT_EQ(manager->GetCurrentEditor(), active_dungeon);
+  EXPECT_EQ(ContentRegistry::Context::current_editor(), active_dungeon);
+  EXPECT_EQ(ReadByteAt(rom_b, 0x2345), 0x6A);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     InactiveSaveAndClosePreservesResumableWriteConfirmation) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_inactive_confirm_a.sfc", "INACTIVE CONFIRM A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_inactive_confirm_b.sfc", "INACTIVE CONFIRM B");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+
+  manager->SwitchToSession(0);
+  DisableRomWritesForTest();
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->name = "InactiveConfirmationTest";
+  project->filepath =
+      (rom_a.parent_path() / "inactive_confirmation_project.yaze").string();
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.write_policy = project::RomWritePolicy::kWarn;
+  project->rom_metadata.expected_hash = "deadbeef";
+
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x2345, 0x6A));
+  manager->SwitchToSession(1);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
+
+  manager->RemoveSession(0);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionSaveAndContinue();
+
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetActiveSessionCount(), 2u);
+  EXPECT_EQ(manager->GetCurrentSessionId(), 0u);
+  EXPECT_TRUE(manager->IsRomWriteConfirmPending());
+  ASSERT_NE(manager->popup_manager(), nullptr);
+  EXPECT_TRUE(manager->popup_manager()->IsVisible(PopupID::kRomWriteConfirm));
+
+  manager->ConfirmRomWrite();
+  ASSERT_OK(manager->ResumePendingRomSave());
+  EXPECT_FALSE(manager->IsRomWriteConfirmPending());
+  EXPECT_EQ(manager->GetCurrentSessionId(), 0u);
+  EXPECT_EQ(ReadByteAt(rom_a, 0x2345), 0x6A);
+  EXPECT_EQ(ReadByteAt(rom_b, 0x2345), 0x00);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     PendingInactiveCloseTracksStableTargetAcrossIndexCompaction) {
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_stable_close_a.sfc", "STABLE CLOSE A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_stable_close_b.sfc", "STABLE CLOSE B");
+  const auto rom_c =
+      CreateMinimalRomFile("yaze_stable_close_c.sfc", "STABLE CLOSE C");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+  ScopedFileCleanup cleanup_c{rom_c};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_c.string()));
+  Rom* surviving_rom = manager->GetCurrentRom();
+  ASSERT_NE(surviving_rom, nullptr);
+
+  manager->SwitchToSession(1);
+  ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x2345, 0x6A));
+  manager->SwitchToSession(0);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+  ASSERT_EQ(manager->GetCurrentSessionId(), 0u);
+
+  manager->RemoveSession(1);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+
+  // The pending target is stable session 1. Closing stable session 0 compacts
+  // that target from UI index 1 to UI index 0 while the popup remains open.
+  manager->CloseCurrentSession();
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  ASSERT_EQ(manager->GetActiveSessionCount(), 2u);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
+
+  manager->ConfirmPendingUnsavedSessionActionDiscardAndContinue();
+
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetActiveSessionCount(), 1u);
+  EXPECT_EQ(manager->GetCurrentSessionId(), 2u);
+  EXPECT_EQ(manager->GetCurrentRom(), surviving_rom);
+  EXPECT_EQ(manager->GetCurrentRom()->filename(), rom_c.string());
+  EXPECT_EQ(ReadByteAt(rom_b, 0x2345), 0x00);
+}
+
+TEST(EditorManagerWriteConflictTest,
+     SaveAndContinueRefusesToDiscardDisabledPaletteWrites) {
+  ScopedImGuiContext imgui;
+  FeatureFlagsGuard flags_guard;
+  gfx::PaletteManager::Get().ResetForTesting();
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  const auto rom_a =
+      CreateMinimalRomFile("yaze_palette_disabled_a.sfc", "PALETTE DISABLED A");
+  const auto rom_b =
+      CreateMinimalRomFile("yaze_palette_disabled_b.sfc", "PALETTE DISABLED B");
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  DisableRomWritesForTest();
+
+  auto* first_game_data = manager->GetCurrentGameData();
+  SeedCurrentDungeonPalette(manager.get(), 0x0100);
+  ASSERT_TRUE(gfx::PaletteManager::Get()
+                  .SetColor("dungeon_main", 0, 0, gfx::SnesColor(0x1111))
+                  .ok());
+  ASSERT_OK(manager->SaveRom());
+  ASSERT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges(first_game_data));
+
+  manager->SwitchToSession(1);
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionSaveAndContinue();
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_EQ(manager->GetActiveSessionCount(), 2u);
+  EXPECT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges(first_game_data));
+
+  manager->CloseCurrentSession();
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionSaveAndContinue();
+  EXPECT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_EQ(manager->GetActiveSessionCount(), 2u);
+  EXPECT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges(first_game_data));
+
+  manager->Quit();
+  ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->ConfirmPendingUnsavedSessionActionSaveAndContinue();
+  EXPECT_FALSE(manager->quit());
+  EXPECT_EQ(manager->GetActiveSessionCount(), 2u);
+  EXPECT_TRUE(gfx::PaletteManager::Get().HasUnsavedChanges(first_game_data));
+
+  manager.reset();
+  gfx::PaletteManager::Get().ResetForTesting();
+}
+
+TEST(EditorManagerWriteConflictTest,
+     PalettePanelsRemainSessionOwnedAcrossSwitchAndCloseDraw) {
+  ScopedImGuiContext imgui;
+  gfx::PaletteManager::Get().ResetForTesting();
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a = CreateMinimalRomFile("yaze_palette_panels_a.sfc",
+                                          "PALETTE PANELS A", 1024 * 1024);
+  const auto rom_b = CreateMinimalRomFile("yaze_palette_panels_b.sfc",
+                                          "PALETTE PANELS B", 1024 * 1024);
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  auto* first_panel = dynamic_cast<DungeonMainPalettePanel*>(
+      manager->window_manager().GetWindowContent(0, "palette.dungeon_main"));
+  ASSERT_NE(first_panel, nullptr);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  auto* second_panel = dynamic_cast<DungeonMainPalettePanel*>(
+      manager->window_manager().GetWindowContent(1, "palette.dungeon_main"));
+  ASSERT_NE(second_panel, nullptr);
+  EXPECT_NE(first_panel, second_panel);
+
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_EQ(
+      manager->window_manager().GetWindowContent(0, "palette.dungeon_main"),
+      first_panel);
+
+  manager->SwitchToSession(1);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  manager->CloseCurrentSession();
+  ASSERT_EQ(manager->GetActiveSessionCount(), 1u);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  EXPECT_EQ(
+      manager->window_manager().GetWindowContent(0, "palette.dungeon_main"),
+      first_panel);
+
+  DrawPalettePanelOnce(first_panel);
+
+  manager.reset();
+  gfx::PaletteManager::Get().ResetForTesting();
+}
+
+TEST(EditorManagerWriteConflictTest,
+     PalettePanelsSurviveCloseFirstThenOpenNewSession) {
+  ScopedImGuiContext imgui;
+  gfx::PaletteManager::Get().ResetForTesting();
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a = CreateMinimalRomFile("yaze_palette_close_first_a.sfc",
+                                          "PALETTE CLOSE FIRST A", 1024 * 1024);
+  const auto rom_b = CreateMinimalRomFile("yaze_palette_close_first_b.sfc",
+                                          "PALETTE CLOSE FIRST B", 1024 * 1024);
+  const auto rom_c = CreateMinimalRomFile("yaze_palette_close_first_c.sfc",
+                                          "PALETTE CLOSE FIRST C", 1024 * 1024);
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+  ScopedFileCleanup cleanup_c{rom_c};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  ASSERT_NE(manager->window_manager().GetWindowContent(
+                manager->GetCurrentSessionId(), "palette.dungeon_main"),
+            nullptr);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
+  auto* second_panel = dynamic_cast<DungeonMainPalettePanel*>(
+      manager->window_manager().GetWindowContent(1, "palette.dungeon_main"));
+  ASSERT_NE(second_panel, nullptr);
+
+  manager->RemoveSession(0);
+  ASSERT_EQ(manager->GetActiveSessionCount(), 1u);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 0u);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
+  EXPECT_EQ(manager->window_manager().GetActiveSessionId(), 1u);
+  EXPECT_EQ(
+      manager->window_manager().GetWindowContent(1, "palette.dungeon_main"),
+      second_panel);
+  EXPECT_EQ(
+      manager->window_manager().GetWindowContent(0, "palette.dungeon_main"),
+      nullptr);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_c.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 2u);
+  auto* third_panel = dynamic_cast<DungeonMainPalettePanel*>(
+      manager->window_manager().GetWindowContent(2, "palette.dungeon_main"));
+  ASSERT_NE(third_panel, nullptr);
+  EXPECT_NE(third_panel, second_panel);
+  EXPECT_EQ(
+      manager->window_manager().GetWindowContent(1, "palette.dungeon_main"),
+      second_panel);
+
+  manager->SwitchToSession(0);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 1u);
+  DrawPalettePanelOnce(second_panel);
+
+  manager.reset();
+  gfx::PaletteManager::Get().ResetForTesting();
+}
+
+TEST(EditorManagerWriteConflictTest,
+     PalettePanelsSurviveCloseMiddleThenOpenNewSession) {
+  ScopedImGuiContext imgui;
+  gfx::PaletteManager::Get().ResetForTesting();
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_a = CreateMinimalRomFile(
+      "yaze_palette_close_middle_a.sfc", "PALETTE CLOSE MIDDLE A", 1024 * 1024);
+  const auto rom_b = CreateMinimalRomFile(
+      "yaze_palette_close_middle_b.sfc", "PALETTE CLOSE MIDDLE B", 1024 * 1024);
+  const auto rom_c = CreateMinimalRomFile(
+      "yaze_palette_close_middle_c.sfc", "PALETTE CLOSE MIDDLE C", 1024 * 1024);
+  const auto rom_d = CreateMinimalRomFile(
+      "yaze_palette_close_middle_d.sfc", "PALETTE CLOSE MIDDLE D", 1024 * 1024);
+  ScopedFileCleanup cleanup_a{rom_a};
+  ScopedFileCleanup cleanup_b{rom_b};
+  ScopedFileCleanup cleanup_c{rom_c};
+  ScopedFileCleanup cleanup_d{rom_d};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_a.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  auto* first_panel = dynamic_cast<DungeonMainPalettePanel*>(
+      manager->window_manager().GetWindowContent(0, "palette.dungeon_main"));
+  ASSERT_NE(first_panel, nullptr);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  ASSERT_NE(
+      manager->window_manager().GetWindowContent(1, "palette.dungeon_main"),
+      nullptr);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_c.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  auto* third_panel = dynamic_cast<DungeonMainPalettePanel*>(
+      manager->window_manager().GetWindowContent(2, "palette.dungeon_main"));
+  ASSERT_NE(third_panel, nullptr);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 2u);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 2u);
+
+  manager->RemoveSession(1);
+  ASSERT_EQ(manager->GetActiveSessionCount(), 2u);
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 1u);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 2u);
+  EXPECT_EQ(manager->window_manager().GetActiveSessionId(), 2u);
+  EXPECT_EQ(
+      manager->window_manager().GetWindowContent(0, "palette.dungeon_main"),
+      first_panel);
+  EXPECT_EQ(
+      manager->window_manager().GetWindowContent(2, "palette.dungeon_main"),
+      third_panel);
+  EXPECT_EQ(
+      manager->window_manager().GetWindowContent(1, "palette.dungeon_main"),
+      nullptr);
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_d.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  ASSERT_EQ(manager->GetCurrentSessionIndex(), 2u);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 3u);
+  auto* fourth_panel = dynamic_cast<DungeonMainPalettePanel*>(
+      manager->window_manager().GetWindowContent(3, "palette.dungeon_main"));
+  ASSERT_NE(fourth_panel, nullptr);
+  EXPECT_NE(fourth_panel, third_panel);
+  EXPECT_EQ(
+      manager->window_manager().GetWindowContent(2, "palette.dungeon_main"),
+      third_panel);
+
+  manager->SwitchToSession(1);
+  ASSERT_EQ(manager->GetCurrentSessionId(), 2u);
+  DrawPalettePanelOnce(third_panel);
+
+  manager.reset();
+  gfx::PaletteManager::Get().ResetForTesting();
 }
 
 }  // namespace

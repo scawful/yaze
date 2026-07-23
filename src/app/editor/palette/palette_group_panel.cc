@@ -142,6 +142,11 @@ PaletteGroupPanel::PaletteGroupPanel(const std::string& group_name,
 }
 
 void PaletteGroupPanel::Draw(bool* p_open) {
+  if (!IsManagedSession()) {
+    ImGui::TextDisabled(
+        tr("Palette controls are unavailable for an inactive ROM session."));
+    return;
+  }
   if (!rom_ || !rom_->is_loaded()) {
     return;
   }
@@ -539,6 +544,14 @@ void PaletteGroupPanel::DrawBatchOperationsPopup() {
 
 void PaletteGroupPanel::SetColor(int palette_index, int color_index,
                                  const gfx::SnesColor& new_color) {
+  if (!IsManagedSession()) {
+    if (toast_manager_) {
+      toast_manager_->Show("Cannot edit palettes from an inactive ROM session",
+                           ToastType::kError);
+    }
+    return;
+  }
+
   // Delegate to PaletteManager for centralized tracking and undo/redo
   auto status = gfx::PaletteManager::Get().SetColor(group_name_, palette_index,
                                                     color_index, new_color);
@@ -558,11 +571,18 @@ void PaletteGroupPanel::SetColor(int palette_index, int color_index,
 }
 
 absl::Status PaletteGroupPanel::SaveToRom() {
+  if (!IsManagedSession()) {
+    return absl::FailedPreconditionError(
+        "Cannot save palettes from an inactive ROM session");
+  }
   // Delegate to PaletteManager for centralized save operation
   return gfx::PaletteManager::Get().SaveGroup(group_name_);
 }
 
 void PaletteGroupPanel::DiscardChanges() {
+  if (!IsManagedSession()) {
+    return;
+  }
   // Delegate to PaletteManager for centralized discard operation
   gfx::PaletteManager::Get().DiscardGroup(group_name_);
 
@@ -571,11 +591,17 @@ void PaletteGroupPanel::DiscardChanges() {
 }
 
 void PaletteGroupPanel::ResetPalette(int palette_index) {
+  if (!IsManagedSession()) {
+    return;
+  }
   // Delegate to PaletteManager for centralized reset operation
   gfx::PaletteManager::Get().ResetPalette(group_name_, palette_index);
 }
 
 void PaletteGroupPanel::ResetColor(int palette_index, int color_index) {
+  if (!IsManagedSession()) {
+    return;
+  }
   // Delegate to PaletteManager for centralized reset operation
   gfx::PaletteManager::Get().ResetColor(group_name_, palette_index,
                                         color_index);
@@ -584,16 +610,25 @@ void PaletteGroupPanel::ResetColor(int palette_index, int color_index) {
 // ========== History Management ==========
 
 void PaletteGroupPanel::Undo() {
+  if (!IsManagedSession()) {
+    return;
+  }
   // Delegate to PaletteManager's global undo system
   gfx::PaletteManager::Get().Undo();
 }
 
 void PaletteGroupPanel::Redo() {
+  if (!IsManagedSession()) {
+    return;
+  }
   // Delegate to PaletteManager's global redo system
   gfx::PaletteManager::Get().Redo();
 }
 
 void PaletteGroupPanel::ClearHistory() {
+  if (!IsManagedSession()) {
+    return;
+  }
   // Delegate to PaletteManager's global history
   gfx::PaletteManager::Get().ClearHistory();
 }
@@ -601,6 +636,9 @@ void PaletteGroupPanel::ClearHistory() {
 // ========== State Queries ==========
 
 bool PaletteGroupPanel::IsPaletteModified(int palette_index) const {
+  if (!IsManagedSession()) {
+    return false;
+  }
   // Query PaletteManager for modification status
   return gfx::PaletteManager::Get().IsPaletteModified(group_name_,
                                                       palette_index);
@@ -608,22 +646,34 @@ bool PaletteGroupPanel::IsPaletteModified(int palette_index) const {
 
 bool PaletteGroupPanel::IsColorModified(int palette_index,
                                         int color_index) const {
+  if (!IsManagedSession()) {
+    return false;
+  }
   // Query PaletteManager for modification status
   return gfx::PaletteManager::Get().IsColorModified(group_name_, palette_index,
                                                     color_index);
 }
 
 bool PaletteGroupPanel::HasUnsavedChanges() const {
+  if (!IsManagedSession()) {
+    return false;
+  }
   // Query PaletteManager for group-specific modification status
   return gfx::PaletteManager::Get().IsGroupModified(group_name_);
 }
 
 bool PaletteGroupPanel::CanUndo() const {
+  if (!IsManagedSession()) {
+    return false;
+  }
   // Query PaletteManager for global undo availability
   return gfx::PaletteManager::Get().CanUndo();
 }
 
 bool PaletteGroupPanel::CanRedo() const {
+  if (!IsManagedSession()) {
+    return false;
+  }
   // Query PaletteManager for global redo availability
   return gfx::PaletteManager::Get().CanRedo();
 }
@@ -651,6 +701,11 @@ absl::Status PaletteGroupPanel::WriteColorToRom(int palette_index,
   uint32_t address =
       gfx::GetPaletteAddress(group_name_, palette_index, color_index);
   return rom_->WriteColor(address, color);
+}
+
+bool PaletteGroupPanel::IsManagedSession() const {
+  return game_data_ != nullptr &&
+         gfx::PaletteManager::Get().IsManaging(game_data_);
 }
 
 // MarkModified and ClearModified removed - PaletteManager handles tracking now
@@ -693,6 +748,10 @@ std::string PaletteGroupPanel::ExportToJson() const {
 }
 
 absl::Status PaletteGroupPanel::ImportFromJson(const std::string& json) {
+  if (!IsManagedSession()) {
+    return absl::FailedPreconditionError(
+        "Cannot import palettes into an inactive ROM session");
+  }
 #if !defined(YAZE_WITH_JSON)
   return absl::UnimplementedError("JSON support is disabled");
 #else
@@ -843,6 +902,10 @@ std::string PaletteGroupPanel::ExportToClipboard() const {
 }
 
 absl::Status PaletteGroupPanel::ImportFromClipboard() {
+  if (!IsManagedSession()) {
+    return absl::FailedPreconditionError(
+        "Cannot import palettes into an inactive ROM session");
+  }
   auto* palette = GetMutablePalette(selected_palette_);
   if (!palette) {
     return absl::FailedPreconditionError("No palette selected");

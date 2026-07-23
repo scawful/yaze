@@ -3,6 +3,7 @@
 
 #include <deque>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -64,6 +65,7 @@ class SessionCoordinator {
   // Session lifecycle management
   void CreateNewSession();
   void DuplicateCurrentSession();
+  void RequestCloseCurrentSession();
   void CloseCurrentSession();
   void CloseSession(size_t index);
   void RemoveSession(size_t index);
@@ -72,7 +74,12 @@ class SessionCoordinator {
 
   // Session activation and queries
   void ActivateSession(size_t index);
+  /// Compact zero-based UI position in sessions_.
   size_t GetActiveSessionIndex() const;
+  /// Stable workspace identity that is never reused while this coordinator lives.
+  size_t GetActiveSessionId() const;
+  /// Resolve a compact UI index to its stable workspace identity.
+  size_t GetSessionId(size_t index) const;
   void* GetActiveSession() const;
   RomSession* GetActiveRomSession() const;
   Rom* GetCurrentRom() const;
@@ -81,6 +88,17 @@ class SessionCoordinator {
   void* GetSession(size_t index) const;
   bool HasMultipleSessions() const;
   size_t GetActiveSessionCount() const;
+  /// Reject a ROM path already owned by another loaded session. The optional
+  /// exclusion is a stable session ID, used by Save As to allow its owner to
+  /// retain the same backing file while still rejecting every other session.
+  absl::Status CheckBackingFileAvailable(
+      const std::string& filepath,
+      std::optional<size_t> excluded_session_id = std::nullopt) const;
+  /// Compare filesystem identities after canonicalization, including hard
+  /// links on native platforms. This is also used for project-descriptor
+  /// ownership checks outside the coordinator.
+  static bool PathsReferToSameBackingFile(const std::string& lhs,
+                                          const std::string& rhs);
   bool HasDuplicateSession(const std::string& filepath) const;
 
   // Session UI components
@@ -124,6 +142,9 @@ class SessionCoordinator {
   absl::Status SaveSessionAs(size_t session_index, const std::string& filename);
   absl::StatusOr<RomSession*> CreateSessionFromRom(Rom&& rom,
                                                    const std::string& filepath);
+  // Remove a just-created session after a failed open transaction. Unlike the
+  // user-facing close flow, this may return the coordinator to zero sessions.
+  absl::Status DiscardProvisionalSession(size_t session_id);
 
   // Session cleanup
   void CleanupClosedSessions();
@@ -170,7 +191,10 @@ class SessionCoordinator {
   bool IsSessionModified(size_t index) const;
 
  private:
-  void NotifySessionSwitched(size_t index, RomSession* session);
+  void ActivateCreatedSession(size_t index);
+  void SwitchToSessionInternal(size_t index, bool transient);
+  void NotifySessionSwitched(size_t old_index, size_t new_index,
+                             RomSession* session, bool transient);
   void NotifySessionCreated(size_t index, RomSession* session);
   void NotifySessionClosed(size_t index);
   void NotifySessionRomLoaded(size_t index, RomSession* session);
@@ -187,6 +211,7 @@ class SessionCoordinator {
   // Session state
   size_t active_session_index_ = 0;
   size_t session_count_ = 0;
+  size_t next_session_id_ = 0;
 
   // UI state
   bool show_session_switcher_ = false;

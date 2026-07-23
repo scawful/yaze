@@ -579,6 +579,10 @@ absl::Status PaletteEditor::Save() {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
+  if (!game_data() || !gfx::PaletteManager::Get().IsManaging(game_data())) {
+    return absl::FailedPreconditionError(
+        "Cannot save palettes from an inactive ROM session");
+  }
 
   // Delegate to PaletteManager for centralized save
   RETURN_IF_ERROR(gfx::PaletteManager::Get().SaveAllToRom());
@@ -590,8 +594,9 @@ absl::Status PaletteEditor::Save() {
 }
 
 absl::Status PaletteEditor::Undo() {
-  if (!gfx::PaletteManager::Get().IsInitialized()) {
-    return absl::FailedPreconditionError("PaletteManager not initialized");
+  if (!game_data() || !gfx::PaletteManager::Get().IsManaging(game_data())) {
+    return absl::FailedPreconditionError(
+        "Cannot undo palettes from an inactive ROM session");
   }
 
   gfx::PaletteManager::Get().Undo();
@@ -599,8 +604,9 @@ absl::Status PaletteEditor::Undo() {
 }
 
 absl::Status PaletteEditor::Redo() {
-  if (!gfx::PaletteManager::Get().IsInitialized()) {
-    return absl::FailedPreconditionError("PaletteManager not initialized");
+  if (!game_data() || !gfx::PaletteManager::Get().IsManaging(game_data())) {
+    return absl::FailedPreconditionError(
+        "Cannot redo palettes from an inactive ROM session");
   }
 
   gfx::PaletteManager::Get().Redo();
@@ -965,6 +971,12 @@ void PaletteEditor::DrawToolset() {
 }
 
 void PaletteEditor::DrawControlPanel() {
+  if (!game_data() || !gfx::PaletteManager::Get().IsManaging(game_data())) {
+    ImGui::TextDisabled(
+        tr("Palette controls are unavailable for an inactive ROM session."));
+    return;
+  }
+
   // Toolbar with quick toggles
   DrawToolset();
 

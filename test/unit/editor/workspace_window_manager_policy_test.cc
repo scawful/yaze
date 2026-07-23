@@ -2,8 +2,11 @@
 
 #include <gtest/gtest.h>
 
+#include <array>
 #include <string>
 #include <unordered_map>
+
+#include "app/editor/system/workspace/resource_panel.h"
 
 namespace yaze::editor {
 namespace {
@@ -50,6 +53,55 @@ class MockGlobalEditorPanel final : public WindowContent {
  private:
   std::string id_;
   std::string category_;
+};
+
+class MockSessionOwnedPanel final : public WindowContent {
+ public:
+  MockSessionOwnedPanel(int owner, int* draw_count, int* destroy_count,
+                        bool enabled = true)
+      : owner_(owner),
+        draw_count_(draw_count),
+        destroy_count_(destroy_count),
+        enabled_(enabled) {}
+  ~MockSessionOwnedPanel() override { ++*destroy_count_; }
+
+  std::string GetId() const override { return "palette.dungeon_main"; }
+  std::string GetDisplayName() const override { return "Dungeon Palettes"; }
+  std::string GetIcon() const override { return "ICON_PALETTE"; }
+  std::string GetEditorCategory() const override { return "Palette"; }
+  bool IsEnabled() const override { return enabled_; }
+  void Draw(bool* /*p_open*/) override { ++*draw_count_; }
+
+  int owner() const { return owner_; }
+
+ private:
+  int owner_;
+  int* draw_count_;
+  int* destroy_count_;
+  bool enabled_;
+};
+
+class MockSessionResourcePanel final : public ResourceWindowContent {
+ public:
+  MockSessionResourcePanel(size_t owner, int resource_id,
+                           std::array<int, 2>* destroy_counts)
+      : owner_(owner),
+        resource_id_(resource_id),
+        destroy_counts_(destroy_counts) {
+    SetSessionId(owner);
+  }
+  ~MockSessionResourcePanel() override { ++(*destroy_counts_)[owner_]; }
+
+  int GetResourceId() const override { return resource_id_; }
+  std::string GetResourceType() const override { return "room"; }
+  std::string GetIcon() const override { return "ICON_ROOM"; }
+  std::string GetEditorCategory() const override { return "Dungeon"; }
+  void Draw(bool* /*p_open*/) override {}
+
+ private:
+  size_t owner_;
+  int resource_id_;
+  std::array<int, 2>* destroy_counts_;
 };
 
 TEST(WorkspaceWindowManagerPolicyTest,
@@ -180,6 +232,100 @@ TEST(WorkspaceWindowManagerPolicyTest,
   auto* panel = dynamic_cast<MockEditorPanelWithHooks*>(second);
   ASSERT_NE(panel, nullptr);
   EXPECT_EQ(panel->open_count, 1);
+}
+
+TEST(WorkspaceWindowManagerPolicyTest,
+     SessionWindowContentKeepsDistinctOwnersAndClosesBeforeSessionRemoval) {
+  int first_draws = 0;
+  int second_draws = 0;
+  int reload_draws = 0;
+  int first_destroys = 0;
+  int second_destroys = 0;
+  int reload_destroys = 0;
+  WorkspaceWindowManager wm;
+
+  wm.RegisterSession(0);
+  wm.RegisterSession(1);
+  wm.SetActiveSession(0);
+  wm.RegisterWindowContent(std::make_unique<MockSessionOwnedPanel>(
+      0, &first_draws, &first_destroys));
+  auto* first = dynamic_cast<MockSessionOwnedPanel*>(
+      wm.GetWindowContent(0, "palette.dungeon_main"));
+  ASSERT_NE(first, nullptr);
+  EXPECT_EQ(first->owner(), 0);
+
+  wm.SetActiveSession(1);
+  wm.RegisterWindowContent(std::make_unique<MockSessionOwnedPanel>(
+      1, &second_draws, &second_destroys));
+  auto* second = dynamic_cast<MockSessionOwnedPanel*>(
+      wm.GetWindowContent(1, "palette.dungeon_main"));
+  ASSERT_NE(second, nullptr);
+  EXPECT_EQ(second->owner(), 1);
+  EXPECT_NE(first, second);
+
+  first->Draw(nullptr);
+  second->Draw(nullptr);
+  EXPECT_EQ(first_draws, 1);
+  EXPECT_EQ(second_draws, 1);
+
+  wm.UnregisterSession(1);
+  EXPECT_EQ(second_destroys, 1);
+  EXPECT_EQ(first_destroys, 0);
+  EXPECT_EQ(wm.GetWindowContent(0, "palette.dungeon_main"), first);
+  first->Draw(nullptr);
+  EXPECT_EQ(first_draws, 2);
+
+  wm.RegisterWindowContent(std::make_unique<MockSessionOwnedPanel>(
+      0, &reload_draws, &reload_destroys, false));
+  auto* reloaded = dynamic_cast<MockSessionOwnedPanel*>(
+      wm.GetWindowContent(0, "palette.dungeon_main"));
+  ASSERT_NE(reloaded, nullptr);
+  EXPECT_NE(reloaded, first);
+  EXPECT_EQ(first_destroys, 1);
+  EXPECT_EQ(reload_destroys, 0);
+  EXPECT_EQ(wm.GetWindowsInSession(0).size(), 1u);
+  const auto* descriptor = wm.GetWindowDescriptor(0, "palette.dungeon_main");
+  ASSERT_NE(descriptor, nullptr);
+  ASSERT_TRUE(static_cast<bool>(descriptor->enabled_condition));
+  EXPECT_FALSE(descriptor->enabled_condition());
+}
+
+TEST(WorkspaceWindowManagerPolicyTest,
+     ResourceEvictionPrefersExactInactiveUnprefixedInstance) {
+  std::array<int, 2> destroy_counts{};
+  WorkspaceWindowManager wm;
+  constexpr char kSharedResourceId[] = "Dungeon.room_0";
+
+  wm.RegisterSession(0);
+  wm.SetActiveSession(0);
+  wm.RegisterWindowContent(
+      std::make_unique<MockSessionResourcePanel>(0, 0, &destroy_counts));
+  auto* inactive_resource = wm.GetWindowContent(0, kSharedResourceId);
+  ASSERT_NE(inactive_resource, nullptr);
+
+  wm.RegisterSession(1);
+  wm.SetActiveSession(1);
+  wm.RegisterWindowContent(
+      std::make_unique<MockSessionResourcePanel>(1, 0, &destroy_counts));
+  auto* active_resource = wm.GetWindowContent(1, kSharedResourceId);
+  ASSERT_NE(active_resource, nullptr);
+  ASSERT_NE(active_resource, inactive_resource);
+
+  // Fill the room-panel limit, then add one more. The oldest tracked ID is
+  // session 0's exact unprefixed instance, while session 1 owns a prefixed
+  // instance with the same base ID.
+  for (int resource_id = 1; resource_id <= 6; ++resource_id) {
+    wm.RegisterWindowContent(std::make_unique<MockSessionResourcePanel>(
+        1, resource_id, &destroy_counts));
+  }
+  wm.RegisterWindowContent(
+      std::make_unique<MockSessionResourcePanel>(1, 7, &destroy_counts));
+
+  EXPECT_EQ(destroy_counts[0], 1);
+  EXPECT_EQ(destroy_counts[1], 0);
+  EXPECT_EQ(wm.GetWindowContent(0, kSharedResourceId), nullptr);
+  EXPECT_EQ(wm.GetWindowContent(1, kSharedResourceId), active_resource);
+  EXPECT_NE(wm.GetWindowDescriptor(1, kSharedResourceId), nullptr);
 }
 
 TEST(WorkspaceWindowManagerPolicyTest,

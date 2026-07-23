@@ -1,6 +1,8 @@
 #include "app/editor/shell/windows/project_management_panel.h"
 #include "util/i18n/tr.h"
 
+#include <algorithm>
+
 #include "absl/strings/str_format.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gui/core/icons.h"
@@ -16,6 +18,13 @@ namespace yaze {
 namespace editor {
 
 namespace {
+
+template <size_t N>
+void CopyToBuffer(std::array<char, N>* buffer, const std::string& value) {
+  buffer->fill('\0');
+  const size_t length = std::min(value.size(), N - 1);
+  std::copy_n(value.data(), length, buffer->data());
+}
 
 ImVec4 WorkflowColor(ProjectWorkflowState state) {
   switch (state) {
@@ -64,6 +73,47 @@ void DrawWorkflowCard(const ProjectWorkflowStatus& status,
 }
 
 }  // namespace
+
+void ProjectManagementPanel::SetProject(project::YazeProject* project,
+                                        bool dirty) {
+  project_ = project;
+  project_dirty_ = dirty;
+  history_cache_.clear();
+  history_dirty_ = true;
+  ReloadProjectBuffers();
+}
+
+void ProjectManagementPanel::ReloadProjectBuffers() {
+  if (!project_) {
+    name_buffer_.fill('\0');
+    author_buffer_.fill('\0');
+    description_buffer_.fill('\0');
+    code_buffer_.fill('\0');
+    assets_buffer_.fill('\0');
+    build_buffer_.fill('\0');
+    script_buffer_.fill('\0');
+    return;
+  }
+
+  CopyToBuffer(&name_buffer_, project_->name);
+  CopyToBuffer(&author_buffer_, project_->metadata.author);
+  CopyToBuffer(&description_buffer_, project_->metadata.description);
+  CopyToBuffer(&code_buffer_, project_->code_folder);
+  CopyToBuffer(&assets_buffer_, project_->assets_folder);
+  CopyToBuffer(&build_buffer_, project_->build_target);
+  CopyToBuffer(&script_buffer_, project_->build_script);
+}
+
+absl::Status ProjectManagementPanel::SaveProjectEdits() {
+  if (!save_project_callback_) {
+    return absl::FailedPreconditionError("Project save callback unavailable");
+  }
+  auto status = save_project_callback_();
+  if (status.ok()) {
+    project_dirty_ = false;
+  }
+  return status;
+}
 
 void ProjectManagementPanel::Draw() {
   if (!project_) {
@@ -139,40 +189,28 @@ void ProjectManagementPanel::DrawProjectOverview() {
 
   // Editable Project Name
   ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Project Name:"));
-  static char name_buffer[256] = {};
-  if (name_buffer[0] == '\0' && !project_->name.empty()) {
-    strncpy(name_buffer, project_->name.c_str(), sizeof(name_buffer) - 1);
-  }
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-  if (ImGui::InputText("##project_name", name_buffer, sizeof(name_buffer))) {
-    project_->name = name_buffer;
+  if (ImGui::InputText("##project_name", name_buffer_.data(),
+                       name_buffer_.size())) {
+    project_->name = name_buffer_.data();
     project_dirty_ = true;
   }
 
   // Editable Author
   ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Author:"));
-  static char author_buffer[256] = {};
-  if (author_buffer[0] == '\0' && !project_->metadata.author.empty()) {
-    strncpy(author_buffer, project_->metadata.author.c_str(),
-            sizeof(author_buffer) - 1);
-  }
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-  if (ImGui::InputText("##author", author_buffer, sizeof(author_buffer))) {
-    project_->metadata.author = author_buffer;
+  if (ImGui::InputText("##author", author_buffer_.data(),
+                       author_buffer_.size())) {
+    project_->metadata.author = author_buffer_.data();
     project_dirty_ = true;
   }
 
   // Editable Description
   ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Description:"));
-  static char desc_buffer[1024] = {};
-  if (desc_buffer[0] == '\0' && !project_->metadata.description.empty()) {
-    strncpy(desc_buffer, project_->metadata.description.c_str(),
-            sizeof(desc_buffer) - 1);
-  }
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-  if (ImGui::InputTextMultiline("##description", desc_buffer,
-                                sizeof(desc_buffer), ImVec2(0, 60))) {
-    project_->metadata.description = desc_buffer;
+  if (ImGui::InputTextMultiline("##description", description_buffer_.data(),
+                                description_buffer_.size(), ImVec2(0, 60))) {
+    project_->metadata.description = description_buffer_.data();
     project_dirty_ = true;
   }
 
@@ -441,10 +479,7 @@ void ProjectManagementPanel::DrawQuickActions() {
   }
 
   if (ImGui::Button(ICON_MD_SAVE " Save Project", ImVec2(button_width, 0))) {
-    if (save_project_callback_) {
-      save_project_callback_();
-      project_dirty_ = false;
-    }
+    (void)SaveProjectEdits();
   }
 
   if (ImGui::Button(ICON_MD_BUILD " Build Project", ImVec2(button_width, 0))) {
@@ -495,14 +530,10 @@ void ProjectManagementPanel::DrawQuickActions() {
 
   // Editable Code folder
   ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Code Folder:"));
-  static char code_buffer[512] = {};
-  if (code_buffer[0] == '\0' && !project_->code_folder.empty()) {
-    strncpy(code_buffer, project_->code_folder.c_str(),
-            sizeof(code_buffer) - 1);
-  }
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 32);
-  if (ImGui::InputText("##code_folder", code_buffer, sizeof(code_buffer))) {
-    project_->code_folder = code_buffer;
+  if (ImGui::InputText("##code_folder", code_buffer_.data(),
+                       code_buffer_.size())) {
+    project_->code_folder = code_buffer_.data();
     project_dirty_ = true;
   }
   ImGui::SameLine();
@@ -517,15 +548,10 @@ void ProjectManagementPanel::DrawQuickActions() {
 
   // Editable Assets folder
   ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Assets Folder:"));
-  static char assets_buffer[512] = {};
-  if (assets_buffer[0] == '\0' && !project_->assets_folder.empty()) {
-    strncpy(assets_buffer, project_->assets_folder.c_str(),
-            sizeof(assets_buffer) - 1);
-  }
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 32);
-  if (ImGui::InputText("##assets_folder", assets_buffer,
-                       sizeof(assets_buffer))) {
-    project_->assets_folder = assets_buffer;
+  if (ImGui::InputText("##assets_folder", assets_buffer_.data(),
+                       assets_buffer_.size())) {
+    project_->assets_folder = assets_buffer_.data();
     project_dirty_ = true;
   }
   ImGui::SameLine();
@@ -540,28 +566,19 @@ void ProjectManagementPanel::DrawQuickActions() {
 
   // Editable Build target
   ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Build Target:"));
-  static char build_buffer[256] = {};
-  if (build_buffer[0] == '\0' && !project_->build_target.empty()) {
-    strncpy(build_buffer, project_->build_target.c_str(),
-            sizeof(build_buffer) - 1);
-  }
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-  if (ImGui::InputText("##build_target", build_buffer, sizeof(build_buffer))) {
-    project_->build_target = build_buffer;
+  if (ImGui::InputText("##build_target", build_buffer_.data(),
+                       build_buffer_.size())) {
+    project_->build_target = build_buffer_.data();
     project_dirty_ = true;
   }
 
   // Build script
   ImGui::TextColored(gui::GetTextSecondaryVec4(), tr("Build Script:"));
-  static char script_buffer[512] = {};
-  if (script_buffer[0] == '\0' && !project_->build_script.empty()) {
-    strncpy(script_buffer, project_->build_script.c_str(),
-            sizeof(script_buffer) - 1);
-  }
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-  if (ImGui::InputText("##build_script", script_buffer,
-                       sizeof(script_buffer))) {
-    project_->build_script = script_buffer;
+  if (ImGui::InputText("##build_script", script_buffer_.data(),
+                       script_buffer_.size())) {
+    project_->build_script = script_buffer_.data();
     project_dirty_ = true;
   }
 }

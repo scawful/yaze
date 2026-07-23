@@ -42,6 +42,42 @@ TEST(WindowBackendFactoryTest, CreateGlfwFallsBackToDefault) {
   EXPECT_EQ(glfw_backend->GetBackendName(), default_backend->GetBackendName());
 }
 
+TEST(WindowBackendFactoryTest, NativeQuitEventDoesNotDeactivateBackend) {
+  const bool initialized_events = SDL_WasInit(SDL_INIT_EVENTS) != 0;
+#ifdef YAZE_USE_SDL3
+  if (!initialized_events && !SDL_InitSubSystem(SDL_INIT_EVENTS)) {
+    GTEST_SKIP() << "SDL event subsystem unavailable: " << SDL_GetError();
+  }
+#else
+  if (!initialized_events && SDL_InitSubSystem(SDL_INIT_EVENTS) != 0) {
+    GTEST_SKIP() << "SDL event subsystem unavailable: " << SDL_GetError();
+  }
+#endif
+
+  auto backend = WindowBackendFactory::Create(WindowBackendType::Auto);
+  ASSERT_NE(backend, nullptr);
+  backend->SetActive(true);
+
+  SDL_Event native_event{};
+#ifdef YAZE_USE_SDL3
+  native_event.type = SDL_EVENT_QUIT;
+  ASSERT_TRUE(SDL_PushEvent(&native_event)) << SDL_GetError();
+#else
+  native_event.type = SDL_QUIT;
+  ASSERT_EQ(SDL_PushEvent(&native_event), 1) << SDL_GetError();
+#endif
+
+  WindowEvent event;
+  ASSERT_TRUE(backend->PollEvent(event));
+  EXPECT_EQ(event.type, WindowEventType::Quit);
+  EXPECT_TRUE(backend->IsActive());
+
+  backend.reset();
+  if (!initialized_events) {
+    SDL_QuitSubSystem(SDL_INIT_EVENTS);
+  }
+}
+
 }  // namespace test
 }  // namespace platform
 }  // namespace yaze

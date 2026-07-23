@@ -155,6 +155,12 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   const WorkspaceWindowManager& window_manager() const {
     return window_manager_;
   }
+  SessionCoordinator* session_coordinator() {
+    return session_coordinator_.get();
+  }
+  const SessionCoordinator* session_coordinator() const {
+    return session_coordinator_.get();
+  }
   [[deprecated("Use window_host() instead.")]] PanelHost* panel_host() {
     return window_host_.get();
   }
@@ -190,7 +196,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
     return session_coordinator_ ? session_coordinator_->GetCurrentEditorSet()
                                 : nullptr;
   }
-  auto GetCurrentEditor() const -> Editor* { return current_editor_; }
+  auto GetCurrentEditor() const -> Editor* override { return current_editor_; }
   std::string GetCurrentRomHash() const {
     return rom_lifecycle_.current_rom_hash();
   }
@@ -228,14 +234,15 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
       right_drawer_manager_->SetActiveEditor(editor->type());
     }
   }
+  /// Stable workspace identity; unlike the UI index, it does not compact.
   size_t GetCurrentSessionId() const {
-    return session_coordinator_ ? session_coordinator_->GetActiveSessionIndex()
+    return session_coordinator_ ? session_coordinator_->GetActiveSessionId()
                                 : 0;
   }
   UICoordinator* ui_coordinator() { return ui_coordinator_.get(); }
   yaze::zelda3::Overworld* overworld() const;
 
-  // Session management helpers
+  // Session management helpers (compact, zero-based UI ordering)
   size_t GetCurrentSessionIndex() const;
 
   // Get current session's feature flags (falls back to global if no session)
@@ -409,9 +416,18 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status OpenRomOrProject(const std::string& filename);
   absl::Status CreateNewProject(
       const std::string& template_name = "Basic ROM Hack");
+  absl::Status CreateNewProjectFromRom(
+      const std::string& template_name, const std::string& rom_path,
+      const std::string& project_name,
+      const std::string& project_path = std::string());
+  absl::Status FinalizeNewProject(
+      const std::string& project_name,
+      const std::string& project_path = std::string());
   absl::Status OpenProject();
   absl::Status SaveProject();
   absl::Status SaveProjectAs();
+  absl::Status SaveProjectAs(const std::string& filepath);
+  absl::Status AutosaveActiveSession();
   absl::Status BuildCurrentProject();
   void QueueBuildCurrentProject();
   void CancelQueuedProjectBuild();
@@ -432,17 +448,25 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
 
   // Project management
   absl::Status LoadProjectWithRom();
+  absl::Status SwapProjectRom(const std::string& rom_path);
+  absl::Status ReloadProjectRom();
   project::YazeProject* GetCurrentProject() { return &current_project_; }
   const project::YazeProject* GetCurrentProject() const {
     return &current_project_;
   }
-  core::VersionManager* GetVersionManager() { return version_manager_.get(); }
+  void MarkCurrentProjectDirty();
+  bool IsCurrentProjectDirty() const;
+  core::VersionManager* GetVersionManager() { return version_manager_; }
 
   // Show project management panel in right sidebar
   void ShowProjectManagement();
 
   // Show project file editor
   void ShowProjectFileEditor();
+  ProjectFileEditor* project_file_editor() { return &project_file_editor_; }
+  ProjectManagementPanel* project_management_panel() {
+    return project_management_panel_.get();
+  }
 
  private:
   absl::Status DrawRomSelector() = delete;  // Moved to UICoordinator
@@ -475,7 +499,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
       const std::vector<std::string>& available_categories) const;
 
   // Session event handlers (EventBus subscribers)
-  void HandleSessionSwitched(size_t new_index, RomSession* session);
+  void HandleSessionSwitched(size_t new_index, RomSession* session,
+                             bool transient = false);
   void HandleSessionCreated(size_t index, RomSession* session);
   void HandleSessionClosed(size_t index);
   // Initialization helpers (extracted from constructor for readability)
@@ -559,7 +584,24 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   gfx::IRenderer* renderer_ = nullptr;
 
   project::YazeProject current_project_;
-  std::unique_ptr<core::VersionManager> version_manager_;
+  struct PendingProjectRomSelection {
+    std::string previous_path;
+    std::string candidate_path;
+  };
+  std::optional<PendingProjectRomSelection> pending_project_rom_selection_;
+  uint64_t project_rom_selection_generation_ = 0;
+  bool pending_project_open_transition_ = false;
+  std::optional<size_t> pending_project_open_previous_session_id_;
+  // current_project_ is a stable-address working copy owned by the active
+  // user-facing session. Stable IDs survive UI-index compaction.
+  std::optional<size_t> active_project_context_session_id_;
+  // The global FeatureFlags singleton is also rebound during transient frame
+  // iteration, so track which session currently owns its value separately.
+  std::optional<size_t> runtime_feature_flags_session_id_;
+  // Non-owning view of the active session's VersionManager. Each RomSession
+  // owns its manager so EditorSet dependency pointers remain valid while that
+  // session is inactive.
+  core::VersionManager* version_manager_ = nullptr;
   SharedClipboard shared_clipboard_;
   std::unique_ptr<PopupManager> popup_manager_;
   ToastManager toast_manager_;
@@ -592,6 +634,29 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void PersistInputConfig(const emu::input::InputConfig& config);
   void UpdateCurrentRomHash();
   void ApplyDefaultBackupPolicy();
+  void CaptureRuntimeFeatureFlags();
+  void CaptureActiveProjectEditingState();
+  void CaptureActiveProjectContext();
+  void DetachActiveProjectContext();
+  void BindProjectContextToSession(RomSession* session,
+                                   const project::YazeProject& project);
+  bool RestoreProjectContextForSession(RomSession* session);
+  void RestoreProjectEditingStateForSession(RomSession* session);
+  absl::Status SaveActiveProjectEditingWork();
+  absl::Status PrepareRawProjectFileSave(const std::string& filepath,
+                                         const std::string& contents);
+  absl::Status CommitRawProjectFileSave(const std::string& filepath,
+                                        const std::string& contents);
+  absl::Status ReplaceActiveSessionRom(Rom&& rom, const std::string& filepath);
+  bool ProjectFileDraftTargetsCurrentProject() const;
+  void RebaseCleanProjectFileDraft(const std::string& filepath);
+  void RestoreProjectContextAfterFailedOpen(
+      std::optional<size_t> previous_session_id);
+  absl::Status DiscardProvisionalSessionCreatedSince(
+      size_t previous_session_count);
+  void ApplyCurrentProjectRuntimeContext();
+  absl::StatusOr<const project::YazeProject*>
+  PrepareActiveProjectContextForSave();
   ProjectWorkflowStatus MakeBuildStatus(const std::string& summary,
                                         const std::string& detail,
                                         ProjectWorkflowState state,
@@ -617,6 +682,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   absl::Status LoadRomInternal();
   absl::Status OpenRomOrProjectInternal(const std::string& filename);
   absl::Status OpenProjectInternal();
+  absl::Status ValidateProjectRomSelection(const std::string& rom_path);
 
   struct PendingUnsavedSessionAction {
     enum class Type {
@@ -629,17 +695,20 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
     };
 
     Type type = Type::kOpenRomDialog;
-    size_t source_session_index = SIZE_MAX;
-    size_t target_session_index = SIZE_MAX;
+    size_t source_session_id = SIZE_MAX;
+    size_t target_session_id = SIZE_MAX;
     std::string path;
   };
 
+  std::optional<size_t> ResolveSessionIndexById(size_t session_id) const;
   bool MaybeGuardPendingSessionAction(PendingUnsavedSessionAction action);
   void ExecutePendingUnsavedSessionAction(
       const PendingUnsavedSessionAction& action);
   bool SessionHasPendingUnsavedWork(size_t session_index) const;
+  bool SessionHasPendingRomWork(size_t session_index) const;
   bool HasAnySessionPendingUnsavedWork() const;
   int PendingDungeonRoomCountForSession(size_t session_index) const;
+  size_t PendingPaletteColorCountForSession(size_t session_index) const;
   int ModifiedSessionCount() const;
   std::string DescribePendingUnsavedWork(size_t session_index) const;
   std::string DescribeAllPendingUnsavedWork() const;
@@ -679,14 +748,14 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // RAII helper for clean session context switching
   class SessionScope {
    public:
-    SessionScope(EditorManager* manager, size_t session_id);
+    SessionScope(EditorManager* manager, size_t session_index);
     ~SessionScope();
 
    private:
     EditorManager* manager_;
     Rom* prev_rom_;
     EditorSet* prev_editor_set_;
-    size_t prev_session_id_;
+    size_t prev_session_index_;
   };
 
   void ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,

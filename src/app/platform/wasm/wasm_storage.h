@@ -64,10 +64,12 @@ class WasmStorage {
    * @brief Save project JSON data
    * @param name Project name/identifier
    * @param json JSON string containing project data
+   * @param replace_existing Whether an existing project may be replaced
    * @return Status indicating success or failure
    */
   static absl::Status SaveProject(const std::string& name,
-                                  const std::string& json);
+                                  const std::string& json,
+                                  bool replace_existing = true);
 
   /**
    * @brief Load project JSON data

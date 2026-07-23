@@ -278,6 +278,11 @@ class DungeonCanvasViewer {
     connected_graph_cache_start_room_id_ = -1;
     connected_graph_cache_ = ConnectedRoomGraphData{};
   }
+  // Rebind ROM-backed context without replacing this viewer. This preserves
+  // panel aliases into viewer state while discarding selections and caches
+  // that may refer to data decoded from the previous ROM bytes.
+  void RefreshRomBackedState(Rom* rom, zelda3::GameData* game_data,
+                             DungeonRoomStore* rooms, int room_id);
   DungeonRoomStore* rooms() const { return rooms_; }
   bool HasRooms() const { return rooms_ != nullptr; }
 

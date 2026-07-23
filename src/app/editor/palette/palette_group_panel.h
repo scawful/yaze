@@ -9,13 +9,13 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/editor/system/editor_panel.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
+#include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
-#include "app/editor/system/editor_panel.h"
-#include "app/gui/core/icons.h"
 
 namespace yaze {
 namespace editor {
@@ -81,9 +81,9 @@ class PaletteGroupPanel : public WindowContent {
    * @param game_data GameData instance for palette access
    */
   PaletteGroupPanel(const std::string& group_name,
-                   const std::string& display_name, Rom* rom,
-                   zelda3::GameData* game_data = nullptr);
-  
+                    const std::string& display_name, Rom* rom,
+                    zelda3::GameData* game_data = nullptr);
+
   void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
 
   virtual ~PaletteGroupPanel() = default;
@@ -101,9 +101,13 @@ class PaletteGroupPanel : public WindowContent {
   // WindowContent Implementation
   std::string GetId() const override { return "palette." + group_name_; }
   std::string GetDisplayName() const override { return display_name_; }
-  std::string GetIcon() const override { return ICON_MD_PALETTE; } // Default, override in derived
+  std::string GetIcon() const override {
+    return ICON_MD_PALETTE;
+  }  // Default, override in derived
   std::string GetEditorCategory() const override { return "Palette"; }
-  int GetPriority() const override { return 50; } // Default, override in derived
+  int GetPriority() const override {
+    return 50;
+  }  // Default, override in derived
 
   // ========== Panel Control ==========
 
@@ -258,6 +262,9 @@ class PaletteGroupPanel : public WindowContent {
   absl::Status WriteColorToRom(int palette_index, int color_index,
                                const gfx::SnesColor& color);
 
+  /// Return true only while PaletteManager is bound to this panel's session.
+  bool IsManagedSession() const;
+
   /**
    * @brief Mark palette as modified
    */
@@ -274,7 +281,7 @@ class PaletteGroupPanel : public WindowContent {
   std::string display_name_;  // Display name (e.g., "Overworld Main")
   Rom* rom_;                  // ROM instance
   zelda3::GameData* game_data_ = nullptr;  // GameData instance
-  bool show_ = false;         // Visibility flag
+  bool show_ = false;                      // Visibility flag
 
   // Selection state
   int selected_palette_ = 0;      // Currently selected palette index
@@ -303,7 +310,8 @@ class PaletteGroupPanel : public WindowContent {
  */
 class OverworldMainPalettePanel : public PaletteGroupPanel {
  public:
-  explicit OverworldMainPalettePanel(Rom* rom, zelda3::GameData* game_data = nullptr);
+  explicit OverworldMainPalettePanel(Rom* rom,
+                                     zelda3::GameData* game_data = nullptr);
   ~OverworldMainPalettePanel() override = default;
 
  protected:
@@ -329,7 +337,8 @@ class OverworldMainPalettePanel : public PaletteGroupPanel {
  */
 class OverworldAnimatedPalettePanel : public PaletteGroupPanel {
  public:
-  explicit OverworldAnimatedPalettePanel(Rom* rom, zelda3::GameData* game_data = nullptr);
+  explicit OverworldAnimatedPalettePanel(Rom* rom,
+                                         zelda3::GameData* game_data = nullptr);
   ~OverworldAnimatedPalettePanel() override = default;
 
  protected:
@@ -355,7 +364,8 @@ class OverworldAnimatedPalettePanel : public PaletteGroupPanel {
  */
 class DungeonMainPalettePanel : public PaletteGroupPanel {
  public:
-  explicit DungeonMainPalettePanel(Rom* rom, zelda3::GameData* game_data = nullptr);
+  explicit DungeonMainPalettePanel(Rom* rom,
+                                   zelda3::GameData* game_data = nullptr);
   ~DungeonMainPalettePanel() override = default;
 
  protected:
@@ -399,8 +409,6 @@ class SpritePalettePanel : public PaletteGroupPanel {
   std::string GetIcon() const override { return ICON_MD_PETS; }
   int GetPriority() const override { return 50; }
 
-
-
  private:
   static PaletteGroupMetadata InitializeMetadata();
   static const PaletteGroupMetadata metadata_;
@@ -414,7 +422,8 @@ class SpritePalettePanel : public PaletteGroupPanel {
  */
 class SpritesAux1PalettePanel : public PaletteGroupPanel {
  public:
-  explicit SpritesAux1PalettePanel(Rom* rom, zelda3::GameData* game_data = nullptr);
+  explicit SpritesAux1PalettePanel(Rom* rom,
+                                   zelda3::GameData* game_data = nullptr);
   ~SpritesAux1PalettePanel() override = default;
 
  protected:
@@ -441,7 +450,8 @@ class SpritesAux1PalettePanel : public PaletteGroupPanel {
  */
 class SpritesAux2PalettePanel : public PaletteGroupPanel {
  public:
-  explicit SpritesAux2PalettePanel(Rom* rom, zelda3::GameData* game_data = nullptr);
+  explicit SpritesAux2PalettePanel(Rom* rom,
+                                   zelda3::GameData* game_data = nullptr);
   ~SpritesAux2PalettePanel() override = default;
 
  protected:
@@ -468,7 +478,8 @@ class SpritesAux2PalettePanel : public PaletteGroupPanel {
  */
 class SpritesAux3PalettePanel : public PaletteGroupPanel {
  public:
-  explicit SpritesAux3PalettePanel(Rom* rom, zelda3::GameData* game_data = nullptr);
+  explicit SpritesAux3PalettePanel(Rom* rom,
+                                   zelda3::GameData* game_data = nullptr);
   ~SpritesAux3PalettePanel() override = default;
 
  protected:
@@ -494,7 +505,8 @@ class SpritesAux3PalettePanel : public PaletteGroupPanel {
  */
 class EquipmentPalettePanel : public PaletteGroupPanel {
  public:
-  explicit EquipmentPalettePanel(Rom* rom, zelda3::GameData* game_data = nullptr);
+  explicit EquipmentPalettePanel(Rom* rom,
+                                 zelda3::GameData* game_data = nullptr);
   ~EquipmentPalettePanel() override = default;
 
  protected:

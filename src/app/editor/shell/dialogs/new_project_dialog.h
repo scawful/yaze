@@ -4,6 +4,8 @@
 #include <functional>
 #include <string>
 
+#include "absl/status/status.h"
+
 namespace yaze {
 namespace editor {
 
@@ -17,9 +19,9 @@ class NewProjectDialog {
  public:
   // Invoked when the user hits "Create". All three strings are non-empty by
   // the time the callback fires; the dialog enforces it on the UI side.
-  using CreateCallback = std::function<void(const std::string& template_name,
-                                            const std::string& rom_path,
-                                            const std::string& project_name)>;
+  using CreateCallback = std::function<absl::Status(
+      const std::string& template_name, const std::string& rom_path,
+      const std::string& project_name)>;
 
   void SetCreateCallback(CreateCallback cb) {
     create_callback_ = std::move(cb);

@@ -103,19 +103,8 @@ UICoordinator::UICoordinator(
 #endif
   });
 
-  welcome_screen_->SetNewProjectCallback([this]() {
-    if (editor_manager_) {
-      auto status = editor_manager_->CreateNewProject();
-      if (!status.ok()) {
-        toast_manager_.Show(
-            absl::StrFormat("Failed to create project: %s", status.message()),
-            ToastType::kError);
-      } else {
-        // Transition to Dashboard on successful project creation
-        SetStartupSurface(StartupSurface::kDashboard);
-      }
-    }
-  });
+  welcome_screen_->SetNewProjectCallback(
+      [this]() { new_project_dialog_.Open("Vanilla ROM Hack"); });
 
   // Template-driven creation now opens the guided dialog instead of chaining
   // straight into CreateNewProject -> LoadRom. The dialog calls back into
@@ -127,30 +116,24 @@ UICoordinator::UICoordinator(
 
   new_project_dialog_.SetCreateCallback(
       [this](const std::string& template_name, const std::string& rom_path,
-             const std::string& project_name) {
-        if (!editor_manager_)
-          return;
-        auto status = editor_manager_->CreateNewProject(template_name);
+             const std::string& project_name) -> absl::Status {
+        if (!editor_manager_) {
+          return absl::FailedPreconditionError(
+              "Editor manager is not available");
+        }
+        auto status = editor_manager_->CreateNewProjectFromRom(
+            template_name, rom_path, project_name);
         if (!status.ok()) {
           toast_manager_.Show(
               absl::StrFormat("Failed to create project: %s", status.message()),
               ToastType::kError);
-          return;
-        }
-        // Project shell is in place; now open the user's ROM. OpenRomOrProject
-        // handles both ROM and project files, and emits its own toasts on failure.
-        auto rom_status = editor_manager_->OpenRomOrProject(rom_path);
-        if (!rom_status.ok()) {
-          toast_manager_.Show(
-              absl::StrFormat("Project created but ROM failed to load: %s",
-                              rom_status.message()),
-              ToastType::kWarning);
-          return;
+          return status;
         }
         toast_manager_.Show(absl::StrFormat("Created project \"%s\" from %s",
                                             project_name, template_name),
                             ToastType::kSuccess);
         SetStartupSurface(StartupSurface::kDashboard);
+        return absl::OkStatus();
       });
 
   welcome_screen_->SetOpenProjectCallback([this](const std::string& filepath) {
@@ -771,7 +754,7 @@ void UICoordinator::SetSessionSwitcherVisible(bool visible) {
 }
 
 void UICoordinator::ShowCommandPalette() {
-  const size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  const size_t session_id = session_coordinator_.GetActiveSessionId();
   if (command_palette_initialized_) {
     RefreshCommandPalette(session_id);
   } else {
@@ -790,7 +773,7 @@ void UICoordinator::SetCommandPaletteVisible(bool visible) {
 
 // Emulator visibility delegates to WorkspaceWindowManager (single source of truth)
 bool UICoordinator::IsEmulatorVisible() const {
-  size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  size_t session_id = session_coordinator_.GetActiveSessionId();
   auto emulator_windows =
       window_manager_.GetWindowsInCategory(session_id, "Emulator");
   for (const auto& window : emulator_windows) {
@@ -802,7 +785,7 @@ bool UICoordinator::IsEmulatorVisible() const {
 }
 
 void UICoordinator::SetEmulatorVisible(bool visible) {
-  size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  size_t session_id = session_coordinator_.GetActiveSessionId();
   if (visible) {
     auto default_windows =
         LayoutPresets::GetDefaultWindows(EditorType::kEmulator);
@@ -819,7 +802,7 @@ void UICoordinator::SetEmulatorVisible(bool visible) {
 // when the user closed a single Assembly panel via its window close button;
 // reading through the category means the user's last interaction always wins.
 bool UICoordinator::IsAsmEditorVisible() const {
-  size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  size_t session_id = session_coordinator_.GetActiveSessionId();
   auto windows = window_manager_.GetWindowsInCategory(session_id, "Assembly");
   for (const auto& window : windows) {
     if (window.visibility_flag && *window.visibility_flag) {
@@ -830,7 +813,7 @@ bool UICoordinator::IsAsmEditorVisible() const {
 }
 
 void UICoordinator::SetAsmEditorVisible(bool visible) {
-  size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  size_t session_id = session_coordinator_.GetActiveSessionId();
   if (visible) {
     auto default_windows =
         LayoutPresets::GetDefaultWindows(EditorType::kAssembly);
@@ -893,6 +876,9 @@ void UICoordinator::DrawWelcomeScreen() {
 
   // Use centralized visibility check
   if (!ShouldShowWelcome()) {
+    // Project creation can start from the menu or command palette while the
+    // welcome surface is hidden.
+    new_project_dialog_.Draw();
     return;
   }
 
@@ -915,9 +901,7 @@ void UICoordinator::DrawWelcomeScreen() {
   bool is_open = true;
   welcome_screen_->Show(&is_open);
 
-  // Dialog is drawn after the welcome screen so its popup layers above the
-  // welcome window. Kept outside the ShouldShowWelcome short-circuit above
-  // because the dialog stays owned here even when welcome is hidden.
+  // Draw after the welcome window so the modal layers above it.
   new_project_dialog_.Draw();
 
   // If user closed it via X button, respect that and transition to appropriate state
@@ -1071,7 +1055,7 @@ void UICoordinator::DrawCommandPalette() {
 
   // Initialize command palette on first use
   if (!command_palette_initialized_) {
-    InitializeCommandPalette(session_coordinator_.GetActiveSessionIndex());
+    InitializeCommandPalette(session_coordinator_.GetActiveSessionId());
   }
 
   using namespace ImGui;
@@ -1629,16 +1613,7 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
     };
     welcome_callbacks.create_from_template =
         [this](const std::string& template_name) {
-          if (!editor_manager_)
-            return;
-          auto status = editor_manager_->CreateNewProject(template_name);
-          if (!status.ok()) {
-            toast_manager_.Show(absl::StrFormat("Failed to create project: %s",
-                                                status.message()),
-                                ToastType::kError);
-          } else {
-            SetStartupSurface(StartupSurface::kDashboard);
-          }
+          new_project_dialog_.Open(template_name);
         };
     welcome_callbacks.dismiss_welcome = [this]() {
       welcome_screen_manually_closed_ = true;
