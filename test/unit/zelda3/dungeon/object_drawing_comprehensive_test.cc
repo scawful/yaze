@@ -97,6 +97,8 @@ int ExpectedSubtype3TileCount(int id) {
     return 20;
   if (id == 0xF82)
     return 28;
+  if (id == 0xF8D || id == 0xF97)
+    return 6;
   if (id == 0xF92)
     return 2;
   if (id == 0xF96)
