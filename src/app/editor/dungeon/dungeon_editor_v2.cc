@@ -1187,6 +1187,25 @@ bool DungeonEditorV2::HasPendingRoomChanges() const {
   return PendingRoomCount() > 0;
 }
 
+bool DungeonEditorV2::HasPendingDungeonChanges() const {
+  if (HasPendingRoomChanges()) {
+    return true;
+  }
+  if (std::any_of(entrances_.begin(), entrances_.end(),
+                  [](const zelda3::RoomEntrance& entrance) {
+                    return entrance.dirty();
+                  })) {
+    return true;
+  }
+  if (std::any_of(spawn_points_.begin(), spawn_points_.end(),
+                  [](const zelda3::DungeonSpawnPoint& spawn) {
+                    return spawn.dirty();
+                  })) {
+    return true;
+  }
+  return game_data_ != nullptr && game_data_->pit_damage_table.dirty();
+}
+
 bool DungeonEditorV2::CurrentRoomHasPendingChanges() const {
   if (current_room_id_ < 0 ||
       current_room_id_ >= static_cast<int>(rooms_.size())) {
