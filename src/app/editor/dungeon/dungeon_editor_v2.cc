@@ -296,7 +296,11 @@ absl::Status DungeonEditorV2::RefreshRomBackedState() {
   if (object_tile_editor_panel_) {
     object_tile_editor_panel_->SetCurrentPaletteGroup(current_palette_group_);
   }
+  if (room_tag_editor_panel_) {
+    room_tag_editor_panel_->SetRooms(&rooms_);
+  }
   if (minecart_track_editor_panel_) {
+    minecart_track_editor_panel_->SetRooms(&rooms_);
     minecart_track_editor_panel_->SetRom(rom_);
   }
   if (workbench_panel_) {
