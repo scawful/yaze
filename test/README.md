@@ -502,7 +502,7 @@ The dungeon object parity test suite validates that the editor's drawing pipelin
 | `ParityAllRoutineIdsInBounds` | All routine IDs index within the draw routines array |
 | `ParityPaletteOffsetBanks` | Palettes 2-7 map to correct 16-color SDL banks |
 | `ParityPitMaskObjectsIdentified` | Water/pit overlay objects flagged correctly |
-| `ParityBothBGRoutinesCorrect` | Dual-layer routines (corners, prison cells) have draws_to_both_bgs |
+| `ParityBothBGRoutinesCorrect` | Explicit dual-layer routines are flagged; target-only routines (including prison cells) are not |
 | `ParityWaterObjectsLayerCorrect` | Water overlay objects route to BG2 |
 | `ParityType3WaterFaceRoutines` | Water face objects use expected routines (94/95/96) |
 | `ParitySubtype1TileCountsComplete` | All subtype 1 objects have non-zero tile counts |

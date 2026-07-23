@@ -3198,7 +3198,7 @@ TEST(ObjectDrawerMaskPropagationTest,
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
-     PrisonCellDrawsToBothBuffersWhenMarkedBothBG) {
+     PrisonCellDrawsOnlyToObjectStreamTargetLayer) {
   ScopedCustomObjectsFlag disable_custom(false);
 
   Rom rom;
@@ -3219,27 +3219,31 @@ TEST(ObjectDrawerRegistryReplayTest,
 
   // PrisonCell maps to routine 97. ZScream "0x20D" corresponds to 0xF8D in
   // our decoded Type 3 ID space (0xF80 + 0x0D).
-  RoomObject cell(0x0F8D, /*x=*/2, /*y=*/2, /*size=*/0, /*layer=*/0);
-  cell.tiles_loaded_ = true;
-  cell.tiles_.clear();
-  for (int i = 0; i < 6; ++i) {
-    cell.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2,
-                                        false, false, false));
-  }
-
   gfx::PaletteGroup palette_group;
-  ASSERT_TRUE(drawer.DrawObject(cell, bg1, bg2, palette_group).ok());
+  for (const auto layer :
+       {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+    SCOPED_TRACE(static_cast<int>(layer));
+    RoomObject cell(0x0F8D, /*x=*/2, /*y=*/2, /*size=*/0,
+                    static_cast<int>(layer));
+    cell.tiles_loaded_ = true;
+    cell.tiles_.clear();
+    for (int i = 0; i < 6; ++i) {
+      cell.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2,
+                                          /*vertical=*/false,
+                                          /*horizontal=*/true, /*over=*/false));
+    }
 
-  const int px = cell.x_ * 8;
-  const int py = cell.y_ * 8;
-  const int idx = py * bg1.bitmap().width() + px;
-  ASSERT_GE(idx, 0);
-  ASSERT_LT(idx, static_cast<int>(bg1.bitmap().size()));
-
-  // Routine 97 is marked draws_to_both_bgs=true in the registry, so ObjectDrawer
-  // should execute it once for BG1 and once for BG2.
-  EXPECT_NE(bg1.bitmap().data()[idx], 255);
-  EXPECT_NE(bg2.bitmap().data()[idx], 255);
+    std::vector<ObjectDrawer::TileTrace> trace;
+    drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+    ASSERT_TRUE(drawer.DrawObject(cell, bg1, bg2, palette_group).ok());
+    ASSERT_EQ(trace.size(), 48u);
+    for (const auto& write : trace) {
+      EXPECT_EQ(write.layer, static_cast<uint8_t>(layer));
+      EXPECT_NE(write.flags & 0x1, 0)
+          << "USDASM ORA #$4000 must not toggle an existing H-flip off";
+    }
+    drawer.ClearTraceCollector();
+  }
 }
 
 TEST(ObjectDrawerCannonHoleTest,
