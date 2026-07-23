@@ -5125,10 +5125,13 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
       session->editor_initialized[dungeon_index];
   const bool dungeon_assets_were_loaded =
       session->editor_assets_loaded[dungeon_index];
-  auto restore_lazy_dungeon_asset_state = [&]() {
-    if (asset_load_mode_ == AssetLoadMode::kLazy && dungeon_editor) {
-      session->editor_initialized[dungeon_index] = dungeon_was_initialized;
-      session->editor_assets_loaded[dungeon_index] = dungeon_assets_were_loaded;
+  auto restore_dungeon_asset_state = [&]() {
+    if (dungeon_editor) {
+      session->editor_initialized[dungeon_index] =
+          session->editor_initialized[dungeon_index] || dungeon_was_initialized;
+      session->editor_assets_loaded[dungeon_index] =
+          session->editor_assets_loaded[dungeon_index] ||
+          dungeon_assets_were_loaded;
     }
   };
 
@@ -5150,7 +5153,7 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
   if (load_status.ok() && dungeon_editor) {
     load_status = dungeon_editor->RefreshRomBackedState();
     if (load_status.ok()) {
-      restore_lazy_dungeon_asset_state();
+      restore_dungeon_asset_state();
     }
   }
   if (!load_status.ok()) {
@@ -5177,7 +5180,7 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
     if (dungeon_editor) {
       auto dungeon_status = dungeon_editor->RefreshRomBackedState();
       if (dungeon_status.ok()) {
-        restore_lazy_dungeon_asset_state();
+        restore_dungeon_asset_state();
       }
       if (rollback_status.ok()) {
         rollback_status = dungeon_status;
@@ -5925,9 +5928,12 @@ absl::Status EditorManager::RestoreRomBackup(const std::string& backup_path) {
   restored_rom.set_dirty(true);
   RETURN_IF_ERROR(
       ReplaceActiveSessionRom(std::move(restored_rom), original_filename));
-  if (auto* session = session_coordinator_->GetActiveRomSession()) {
-    session->backup_restore_pending = true;
+  auto* restored_session = session_coordinator_->GetActiveRomSession();
+  if (!restored_session) {
+    return absl::InternalError(
+        "ROM backup restored without an active session to stage it");
   }
+  restored_session->backup_restore_pending = true;
   return absl::OkStatus();
 }
 
