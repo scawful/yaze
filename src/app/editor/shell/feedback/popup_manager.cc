@@ -444,6 +444,27 @@ void PopupManager::DrawRomBackupManagerPopup() {
   Separator();
   TextWrapped(tr("Backup folder: %s"), backup_dir.c_str());
 
+  if (editor_manager_->IsRomBackupRestorePending()) {
+    Separator();
+    TextWrapped(
+        tr("A restored backup is staged in this session. Save ROM to commit "
+           "it. Discard reloads the backing ROM and abandons staged ROM-buffer "
+           "edits; resolve pending dungeon-room or palette edits first."));
+    if (Button(ICON_MD_UNDO " Discard Restored Backup")) {
+      auto status = editor_manager_->DiscardPendingRomBackupRestore();
+      if (!status.ok()) {
+        if (auto* toast = editor_manager_->toast_manager()) {
+          toast->Show(absl::StrFormat("Discard failed: %s", status.message()),
+                      ToastType::kError);
+        }
+      } else if (auto* toast = editor_manager_->toast_manager()) {
+        toast->Show("Restored backup discarded; reloaded ROM from disk",
+                    ToastType::kSuccess);
+      }
+    }
+    Separator();
+  }
+
   if (Button(ICON_MD_DELETE_SWEEP " Prune Backups")) {
     auto status = editor_manager_->PruneRomBackups();
     if (!status.ok()) {

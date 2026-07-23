@@ -35,8 +35,10 @@ supported features and AI configuration.
   timestamped backup. Use `File > ROM Backups... > Restore` to stage a backup
   in the current session, inspect it, then use `Save ROM` to commit it. Keep
   **Backup Before Save** enabled so that commit also preserves the ROM version
-  it replaces. Autosave remains paused until you explicitly commit or discard
-  the staged restore.
+  it replaces. Autosave remains paused until you either commit with `Save ROM`
+  or choose `Discard Restored Backup` in the ROM Backups popup to abandon the
+  staged ROM-buffer edits and reload the unchanged backing ROM. Resolve pending
+  dungeon-room or palette edits before discarding.
 - **Overworld vs. World Map**: the Overworld Editor edits playable areas; Screen
   Editor > Overworld Map edits the pause-menu map art.
 - **Experiment Flags**: Try new features via `File > Options > Experiment Flags`.
