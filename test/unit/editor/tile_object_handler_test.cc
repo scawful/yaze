@@ -634,6 +634,56 @@ TEST_F(TileObjectHandlerTest, ResizeMultipleObjects) {
   EXPECT_EQ(objects[2].size_, 9);  // 7 + 2
 }
 
+TEST_F(TileObjectHandlerTest, ResizeSkipsFixedSizeObjects) {
+  AddTestObjects({CreateTestObject(5, 5, 0x00, 0x100),
+                  CreateTestObject(10, 10, 0x06, 0xF99)});
+  rooms_[0].ClearSaveDirtyState();
+  mutation_count_ = 0;
+  invalidate_count_ = 0;
+
+  handler_.ResizeObjects(0, {0, 1}, 1);
+
+  const auto& objects = rooms_[0].GetTileObjects();
+  EXPECT_EQ(objects[0].size_, 0);
+  EXPECT_EQ(objects[1].size_, 0x06);
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+}
+
+TEST_F(TileObjectHandlerTest, ResizeMixedSelectionChangesOnlyType1) {
+  AddTestObjects({CreateTestObject(5, 5, 0x03, 0x01),
+                  CreateTestObject(10, 10, 0x00, 0x100),
+                  CreateTestObject(15, 15, 0x06, 0xF99)});
+  rooms_[0].ClearSaveDirtyState();
+  mutation_count_ = 0;
+  invalidate_count_ = 0;
+
+  handler_.ResizeObjects(0, {0, 1, 2}, 1);
+
+  const auto& objects = rooms_[0].GetTileObjects();
+  EXPECT_EQ(objects[0].size_, 0x04);
+  EXPECT_EQ(objects[1].size_, 0);
+  EXPECT_EQ(objects[2].size_, 0x06);
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_EQ(invalidate_count_, 1);
+  EXPECT_TRUE(rooms_[0].object_stream_dirty());
+}
+
+TEST_F(TileObjectHandlerTest, ResizeAtType1LimitIsNoOp) {
+  AddTestObjects({CreateTestObject(5, 5, 0x0F, 0x01)});
+  rooms_[0].ClearSaveDirtyState();
+  mutation_count_ = 0;
+  invalidate_count_ = 0;
+
+  handler_.ResizeObjects(0, {0}, 1);
+
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0x0F);
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+}
+
 // ============================================================================
 // Property Update Tests
 // ============================================================================
@@ -656,6 +706,56 @@ TEST_F(TileObjectHandlerTest, UpdateObjectSize) {
   const auto& objects = rooms_[0].GetTileObjects();
   EXPECT_EQ(objects[0].size_, 0x0A);
   EXPECT_FALSE(objects[0].tiles_loaded_);
+}
+
+TEST_F(TileObjectHandlerTest, UpdateObjectSizeClampsType1) {
+  AddTestObjects({CreateTestObject(5, 5, 0x00, 0x01)});
+
+  handler_.UpdateObjectsSize(0, {0}, 0xFF);
+
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0x0F);
+}
+
+TEST_F(TileObjectHandlerTest, UpdateObjectSizeSkipsFixedSizeObject) {
+  AddTestObjects({CreateTestObject(5, 5, 0x00, 0x100)});
+  rooms_[0].ClearSaveDirtyState();
+  mutation_count_ = 0;
+  invalidate_count_ = 0;
+
+  handler_.UpdateObjectsSize(0, {0}, 0x0A);
+
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0);
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+}
+
+TEST_F(TileObjectHandlerTest, UpdateObjectIdCanonicalizesFixedSizeFamily) {
+  AddTestObjects({CreateTestObject(5, 5, 0x07, 0x01)});
+
+  handler_.UpdateObjectsId(0, {0}, 0x100);
+
+  const auto& object = rooms_[0].GetTileObjects()[0];
+  EXPECT_EQ(object.id_, 0x100);
+  EXPECT_EQ(object.size_, 0);
+
+  handler_.UpdateObjectsId(0, {0}, 0xF99);
+  EXPECT_EQ(object.id_, 0xF99);
+  EXPECT_EQ(object.size_, 0x06);
+}
+
+TEST_F(TileObjectHandlerTest, UpdateObjectIdWithSameIdIsNoOp) {
+  AddTestObjects({CreateTestObject(5, 5, 0x07, 0x01)});
+  rooms_[0].ClearSaveDirtyState();
+  mutation_count_ = 0;
+  invalidate_count_ = 0;
+
+  handler_.UpdateObjectsId(0, {0}, 0x01);
+
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0x07);
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
 }
 
 TEST_F(TileObjectHandlerTest, UpdateObjectLayer) {
