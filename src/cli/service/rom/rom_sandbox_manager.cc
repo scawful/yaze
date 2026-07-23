@@ -114,7 +114,11 @@ RomSandboxManager::CreateSandbox(Rom& rom, absl::string_view description) {
   settings.save_new = false;
   settings.backup = false;
 
+  // Materializing a sandbox is not a save of the caller's source ROM. Preserve
+  // its editor state even though SaveToFile clears dirty on a successful write.
+  const bool source_dirty = rom.dirty();
   absl::Status save_status = rom.SaveToFile(settings);
+  rom.set_dirty(source_dirty);
   if (!save_status.ok()) {
     std::error_code cleanup_ec;
     std::filesystem::remove_all(sandbox_dir, cleanup_ec);

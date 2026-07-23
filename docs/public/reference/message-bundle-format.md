@@ -74,5 +74,12 @@ z3ed message-import-bundle --file messages.json --strict
 
 Import and apply to ROM:
 ```
-z3ed message-import-bundle --file messages.json --apply
+z3ed message-import-bundle --file messages.json --apply --range vanilla
+```
+
+Applying expanded entries also requires the matching Yaze project so `z3ed`
+can validate the active ROM, manifest ownership, and project write policy:
+```
+z3ed message-import-bundle --file messages.json --apply \
+  --rom path/to/rom.sfc --project path/to/project.yaze
 ```

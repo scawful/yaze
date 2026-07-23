@@ -44,7 +44,7 @@ class ObjectDrawer {
    * @param bg1 Background layer 1 buffer (object buffer)
    * @param bg2 Background layer 2 buffer (object buffer)
    * @param palette_group Current palette group for color mapping
-   * @param layout_bg1 Optional layout buffer to mask for BG2 object transparency
+   * @param layout_bg1 Optional second BG1 target for room-object reveal masks
    * @return Status of the drawing operation
    */
   absl::Status DrawObject(const RoomObject& object, gfx::BackgroundBuffer& bg1,
@@ -70,10 +70,16 @@ class ObjectDrawer {
     }
   };
 
-  // Chest index tracking for state queries
-  void ResetChestIndex() { current_chest_index_ = 0; }
+  // Reset the chest-only and shared chest/big-key-lock room-event indexes.
+  void ResetChestIndex() {
+    current_chest_index_ = 0;
+    current_room_event_index_ = 0;
+  }
   void SetAllowTrackCornerAliases(bool allow) {
     allow_track_corner_aliases_ = allow;
+  }
+  void SetBG1RevealMaskSource(gfx::BG1RevealMaskSource source) {
+    bg1_reveal_mask_source_ = source;
   }
 
   /**
@@ -101,9 +107,10 @@ class ObjectDrawer {
    * @param bg1 Background layer 1 buffer (object buffer)
    * @param bg2 Background layer 2 buffer (object buffer)
    * @param palette_group Current palette group for color mapping
-   * @param layout_bg1 Optional layout buffer to mask for BG2 object transparency
-   * @param reset_chest_index If true, reset per-room chest counter before drawing
-   *        (set false on subsequent USDASM list passes; see Room::RenderObjectsToBackground)
+   * @param layout_bg1 Optional second BG1 target for room-object reveal masks
+   * @param reset_room_event_indices If true, reset the chest-only and shared
+   *        chest/lock counters before drawing (set false on subsequent USDASM
+   *        list passes; see Room::RenderObjectsToBackground)
    * @return Status of the drawing operation
    */
   absl::Status DrawObjectList(const std::vector<RoomObject>& objects,
@@ -112,7 +119,7 @@ class ObjectDrawer {
                               const gfx::PaletteGroup& palette_group,
                               const DungeonState* state = nullptr,
                               gfx::BackgroundBuffer* layout_bg1 = nullptr,
-                              bool reset_chest_index = true);
+                              bool reset_room_event_indices = true);
 
   /**
    * @brief Get draw routine ID for an object
@@ -198,6 +205,12 @@ class ObjectDrawer {
   void DrawChest(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                  std::span<const gfx::TileInfo> tiles,
                  const DungeonState* state = nullptr);
+  void DrawBigChest(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                    std::span<const gfx::TileInfo> tiles,
+                    const DungeonState* state = nullptr);
+  void DrawBigKeyLock(const RoomObject& obj, gfx::BackgroundBuffer& bg,
+                      std::span<const gfx::TileInfo> tiles,
+                      const DungeonState* state = nullptr);
 
   void DrawNothing(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                    std::span<const gfx::TileInfo> tiles,
@@ -241,28 +254,13 @@ class ObjectDrawer {
   // Uses metadata instead of hardcoded routine IDs
   static bool RoutineDrawsToBothBGs(int routine_id);
 
-  /**
-   * @brief Mark BG1 pixels as transparent where BG2 overlay objects are drawn
-   *
-   * This creates "holes" in BG1 that allow BG2 content to show through,
-   * matching SNES behavior where Layer 1 objects only write to BG2 tilemap.
-   *
-   * @param bg1 Background layer 1 buffer to mark transparent
-   * @param tile_x Object X position in tiles
-   * @param tile_y Object Y position in tiles
-   * @param pixel_width Width of the object in pixels
-   * @param pixel_height Height of the object in pixels
-   */
-  void MarkBG1Transparent(gfx::BackgroundBuffer& bg1, int tile_x, int tile_y,
-                          int pixel_width, int pixel_height);
-
-  // Pixel-space variant for explicit rectangular transparency writes.
-  void MarkBg1RectTransparent(gfx::BackgroundBuffer& bg1, int start_px,
-                              int start_py, int pixel_width, int pixel_height);
-  void MarkBg1OpaqueTilePixelsTransparent(gfx::BackgroundBuffer& bg1,
-                                          const gfx::TileInfo& tile_info,
-                                          int pixel_x, int pixel_y,
-                                          const uint8_t* tiledata);
+  // Record a deferred BG1 reveal instead of mutating the raw BG1 pixels.
+  void MarkBg1RectRevealed(gfx::BackgroundBuffer& bg1, int start_px,
+                           int start_py, int pixel_width, int pixel_height);
+  void MarkBg1OpaqueTilePixelsRevealed(gfx::BackgroundBuffer& bg1,
+                                       const gfx::TileInfo& tile_info,
+                                       int pixel_x, int pixel_y,
+                                       const uint8_t* tiledata);
   static bool RequiresRectangularBg1Mask(const RoomObject& object);
 
   // Door indicator fallback when graphics unavailable
@@ -292,6 +290,7 @@ class ObjectDrawer {
   Rom* rom_;
   int room_id_;
   mutable int current_chest_index_ = 0;
+  mutable int current_room_event_index_ = 0;
   bool allow_track_corner_aliases_ = true;
   gfx::BackgroundBuffer* registry_secondary_bg_ = nullptr;
   RoomObject::LayerType registry_primary_layer_ = RoomObject::LayerType::BG1;
@@ -299,6 +298,8 @@ class ObjectDrawer {
   gfx::BackgroundBuffer* active_object_bg1_mask_ = nullptr;
   gfx::BackgroundBuffer* active_layout_bg1_mask_ = nullptr;
   gfx::BackgroundBuffer* active_mask_source_bg_ = nullptr;
+  gfx::BG1RevealMaskSource bg1_reveal_mask_source_ =
+      gfx::BG1RevealMaskSource::kBG2Objects;
   const uint8_t*
       room_gfx_buffer_;  // Room-specific graphics buffer (current_gfx16_)
 

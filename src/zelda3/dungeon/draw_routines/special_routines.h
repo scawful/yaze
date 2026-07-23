@@ -8,12 +8,12 @@ namespace zelda3 {
 namespace draw_routines {
 
 /**
- * @brief Draw chest object (big or small) with open/closed state support
+ * @brief Draw a small chest with open/closed state support
  *
- * Pattern: Chest drawing (objects 0x140-0x14F big chests, 0x150-0x15F small
- * chests) Determines chest state from DungeonState and draws appropriate
- * graphic. Standard chests are 2x2 (4 tiles), big chests are 4x4 (16 tiles).
- * If we have double the tiles, use the second half for open state.
+ * USDASM: RoomDraw_Chest (F99) selects between two 2x2 blocks;
+ * RoomDraw_OpenChest (F9A) draws its fixed open 2x2 block. The registry also
+ * preserves its legacy subtype-1 4x4 family; subtype-3 big chests use the
+ * separate 4x3 routine.
  *
  * @param ctx Draw context containing object, tiles, state, and target buffer
  * @param chest_index Index of this chest in the room (0-based)
@@ -398,30 +398,29 @@ void DrawStraightInterRoomStairs(const DrawContext& ctx);
  * @brief Draw prison cell with bars (Type 3 objects 0x20D, 0x217)
  *
  * ASM: RoomDraw_PrisonCell ($019C44)
- * Draws to BOTH BG1 and BG2 with horizontal flip for symmetry.
- * Uses ctx.secondary_bg for dual-layer drawing when available.
+ * Draws a sparse 16x4 pattern on the current object-stream tilemap. Mirrored
+ * side bars leave the two center columns open below the top row.
  *
- * @param ctx Draw context with optional secondary_bg for dual-BG drawing
+ * @param ctx Draw context containing the target background and six tiles
  */
 void DrawPrisonCell(const DrawContext& ctx);
 
 /**
- * @brief Draw big key lock (Type 3 object 0x218)
+ * @brief Draw a closed big key lock (Yaze 0xF98 / ASM object 0x218)
  *
  * ASM: RoomDraw_BigKeyLock ($0198AE)
- * Registers lock position in $06E0.
- * Checks room flags to determine if already opened.
+ * Draws the four obj1494 words as one column-major 2x2 block. ObjectDrawer
+ * owns the shared chest/lock event-slot check; an opened lock emits no tiles.
  *
  * @param ctx Draw context
  */
 void DrawBigKeyLock(const DrawContext& ctx);
 
 /**
- * @brief Draw bombable floor (Type 3 object 0x247)
+ * @brief Draw bombable floor (Type 3 object 0xFC7 / ASM object 0x247)
  *
- * ASM: RoomDraw_BombableFloor ($019B7A)
- * Registers floor position for bombing interaction.
- * Checks if already bombed via room flags.
+ * ASM: RoomDraw_BombableFloor ($01:B3E1)
+ * Draws one of two 4x4 states using the current room's floor-open preview.
  *
  * @param ctx Draw context
  */

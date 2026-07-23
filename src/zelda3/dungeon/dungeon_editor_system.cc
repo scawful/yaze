@@ -14,6 +14,7 @@ namespace {
 
 absl::Status SaveSingleRoomState(Rom* rom, Room& room) {
   RETURN_IF_ERROR(room.SaveObjects());
+  RETURN_IF_ERROR(room.SaveObjectStreamHeader());
   RETURN_IF_ERROR(room.SaveSprites());
   RETURN_IF_ERROR(room.SaveRoomHeader());
 
@@ -94,6 +95,7 @@ absl::Status DungeonEditorSystem::SaveDungeon() {
       continue;
     }
     RETURN_IF_ERROR(room->SaveObjects());
+    RETURN_IF_ERROR(room->SaveObjectStreamHeader());
     RETURN_IF_ERROR(room->SaveSprites());
     RETURN_IF_ERROR(room->SaveRoomHeader());
   }

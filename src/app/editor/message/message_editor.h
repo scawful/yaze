@@ -2,11 +2,13 @@
 #define YAZE_APP_EDITOR_MESSAGE_EDITOR_H
 
 #include <array>
+#include <cstdint>
 #include <optional>
 #include <string>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "app/editor/editor.h"
 #include "app/editor/message/message_data.h"
 #include "app/editor/message/message_preview.h"
@@ -22,6 +24,7 @@ namespace yaze {
 namespace editor {
 
 class MessageEditorTestPeer;
+class MessageEditorSaveTestPeer;
 
 constexpr int kGfxFont = 0x70000;  // 2bpp format
 constexpr int kCharactersWidth = 0x74ADF;
@@ -65,6 +68,9 @@ class MessageEditor : public Editor {
   bool OpenMessageById(int display_id);
 
   absl::Status Save() override;
+  absl::Status BeginSaveTransaction() override;
+  void RollbackSaveTransaction() override;
+  void CommitSaveTransaction() override;
   absl::Status SaveExpandedMessages();
   absl::Status LoadExpandedMessagesFromRom();
   int CalculateExpandedBankUsage() const;
@@ -83,6 +89,48 @@ class MessageEditor : public Editor {
 
  private:
   friend class MessageEditorTestPeer;
+  friend class MessageEditorSaveTestPeer;
+
+  enum class SaveDomain {
+    kFontWidths,
+    kVanillaMessages,
+    kExpandedMessages,
+  };
+
+  struct PlannedWrite {
+    SaveDomain domain;
+    uint32_t start;
+    std::vector<uint8_t> bytes;
+
+    uint32_t end() const { return start + static_cast<uint32_t>(bytes.size()); }
+  };
+
+  struct SavePlan {
+    std::vector<PlannedWrite> writes;
+    std::vector<int> expanded_message_addresses;
+    bool saves_font_widths = false;
+    bool saves_vanilla_messages = false;
+    bool saves_expanded_messages = false;
+  };
+
+  struct DirtyState {
+    bool font_widths = false;
+    bool vanilla_messages = false;
+    bool expanded_messages = false;
+  };
+
+  absl::StatusOr<SavePlan> BuildSavePlan(bool include_font_widths,
+                                         bool include_vanilla_messages,
+                                         bool include_expanded_messages) const;
+  absl::Status ValidateSavePlan(const SavePlan& plan) const;
+  absl::Status ApplySavePlan(const SavePlan& plan);
+  absl::Status SaveDirtyDomains(bool include_font_widths,
+                                bool include_vanilla_messages,
+                                bool include_expanded_messages);
+  void MarkDomainDirty(SaveDomain domain);
+  void RecordSavedDomains(const SavePlan& plan);
+  void ClearSavedDomains(const DirtyState& saved);
+  void SyncCurrentExpandedMessageAddress();
 
   bool case_sensitive_ = false;
   bool match_whole_word_ = false;
@@ -117,6 +165,11 @@ class MessageEditor : public Editor {
   int expanded_message_base_id_ = 0;
   int current_message_index_ = 0;
   bool current_message_is_expanded_ = false;
+  DirtyState dirty_state_;
+  DirtyState transaction_dirty_snapshot_;
+  DirtyState transaction_saved_domains_;
+  std::vector<int> transaction_expanded_address_snapshot_;
+  bool save_transaction_active_ = false;
 
   // Undo/Redo - delegates to UndoManager (inherited from Editor)
   std::optional<MessageSnapshot> pending_undo_before_;

@@ -119,18 +119,28 @@ TEST_F(ObjectDrawerTest, EditorDungeonStateTracksPreviewStateFlagsPerRoom) {
   EXPECT_FALSE(state_->IsWallMoved(kRoomA));
   EXPECT_FALSE(state_->IsFloorBombable(kRoomA));
   EXPECT_FALSE(state_->IsRupeeFloorCleared(kRoomA));
+  EXPECT_FALSE(state_->IsBigChestOpen(kRoomA, 1));
+  EXPECT_FALSE(state_->IsBigKeyLockOpen(kRoomA, 1));
 
   state_->SetWaterFaceActive(kRoomA, true);
   state_->SetDamFloodgateOpen(kRoomA, true);
   state_->SetWallMoved(kRoomA, true);
   state_->SetFloorBombable(kRoomA, true);
   state_->SetRupeeFloorCleared(kRoomA, true);
+  state_->SetChestOpen(kRoomA, 1, true);
 
   EXPECT_TRUE(state_->IsWaterFaceActive(kRoomA));
   EXPECT_TRUE(state_->IsDamFloodgateOpen(kRoomA));
   EXPECT_TRUE(state_->IsWallMoved(kRoomA));
   EXPECT_TRUE(state_->IsFloorBombable(kRoomA));
   EXPECT_TRUE(state_->IsRupeeFloorCleared(kRoomA));
+  EXPECT_TRUE(state_->IsBigChestOpen(kRoomA, 1));
+  EXPECT_TRUE(state_->IsBigKeyLockOpen(kRoomA, 1));
+
+  state_->SetChestOpen(kRoomA, 1, false);
+  state_->SetBigChestOpen(true);
+  EXPECT_TRUE(state_->IsBigChestOpen(kRoomA, 1));
+  EXPECT_TRUE(state_->IsBigChestOpen(kRoomB, 1));
 
   EXPECT_FALSE(state_->IsWaterFaceActive(kRoomB));
   EXPECT_FALSE(state_->IsDamFloodgateOpen(kRoomB));
@@ -145,6 +155,8 @@ TEST_F(ObjectDrawerTest, EditorDungeonStateTracksPreviewStateFlagsPerRoom) {
   EXPECT_FALSE(state_->IsWallMoved(kRoomA));
   EXPECT_FALSE(state_->IsFloorBombable(kRoomA));
   EXPECT_FALSE(state_->IsRupeeFloorCleared(kRoomA));
+  EXPECT_FALSE(state_->IsBigChestOpen(kRoomA, 1));
+  EXPECT_FALSE(state_->IsBigKeyLockOpen(kRoomA, 1));
 }
 
 TEST_F(ObjectDrawerTest, Single4x4DrawsColumnMajorTiles) {

@@ -181,7 +181,7 @@ TEST_F(ObjectDimensionTableTest, SomariaPathBaseDimensionsAreSingleTile) {
 
   // The intervening prison-cell object and later table/rock object are not
   // RoomDraw_SomariaLine entries.
-  EXPECT_EQ(table.GetBaseDimensions(0xF8D), std::make_pair(10, 4));
+  EXPECT_EQ(table.GetBaseDimensions(0xF8D), std::make_pair(16, 4));
   EXPECT_EQ(table.GetBaseDimensions(0xF94), std::make_pair(4, 3));
 }
 
@@ -251,6 +251,71 @@ TEST_F(ObjectDimensionTableTest, HammerPegUsesFixedTwoByTwoBounds) {
   }
 }
 
+TEST_F(ObjectDimensionTableTest, BigKeyLockUsesFixedTwoByTwoBounds) {
+  auto& table = ObjectDimensionTable::Get();
+  ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());
+
+  for (uint8_t size : {uint8_t{0}, uint8_t{7}, uint8_t{15}}) {
+    SCOPED_TRACE(::testing::Message() << "size=" << static_cast<int>(size));
+
+    auto [width, height] = table.GetDimensions(0xF98, size);
+    EXPECT_EQ(width, 2);
+    EXPECT_EQ(height, 2);
+
+    const auto selection = table.GetSelectionBounds(0xF98, size);
+    EXPECT_EQ(selection.offset_x, 0);
+    EXPECT_EQ(selection.offset_y, 0);
+    EXPECT_EQ(selection.width, 2);
+    EXPECT_EQ(selection.height, 2);
+
+    const RoomObject object(0xF98, 0, 0, size, 0);
+    auto geometry = ObjectGeometry::Get().MeasureByObjectId(object);
+    ASSERT_TRUE(geometry.ok());
+    EXPECT_EQ(geometry->min_x_tiles, 0);
+    EXPECT_EQ(geometry->min_y_tiles, 0);
+    EXPECT_EQ(geometry->width_tiles, 2);
+    EXPECT_EQ(geometry->height_tiles, 2);
+
+    auto [legacy_width, legacy_height] =
+        ObjectDrawer(rom_.get(), 0).CalculateObjectDimensions(object);
+    EXPECT_EQ(legacy_width, 16);
+    EXPECT_EQ(legacy_height, 16);
+  }
+}
+
+TEST_F(ObjectDimensionTableTest, PrisonCellUsesFixedSixteenByFourBounds) {
+  auto& table = ObjectDimensionTable::Get();
+  ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());
+
+  for (int object_id : {0xF8D, 0xF97}) {
+    SCOPED_TRACE(::testing::Message() << "object=0x" << std::hex << object_id);
+    for (uint8_t size : {uint8_t{0}, uint8_t{7}, uint8_t{15}}) {
+      auto [width, height] = table.GetDimensions(object_id, size);
+      EXPECT_EQ(width, 16);
+      EXPECT_EQ(height, 4);
+
+      const auto selection = table.GetSelectionBounds(object_id, size);
+      EXPECT_EQ(selection.offset_x, 0);
+      EXPECT_EQ(selection.offset_y, 0);
+      EXPECT_EQ(selection.width, 16);
+      EXPECT_EQ(selection.height, 4);
+
+      const RoomObject object(object_id, 0, 0, size, 0);
+      auto geometry = ObjectGeometry::Get().MeasureByObjectId(object);
+      ASSERT_TRUE(geometry.ok());
+      EXPECT_EQ(geometry->min_x_tiles, 0);
+      EXPECT_EQ(geometry->min_y_tiles, 0);
+      EXPECT_EQ(geometry->width_tiles, 16);
+      EXPECT_EQ(geometry->height_tiles, 4);
+
+      auto [legacy_width, legacy_height] =
+          ObjectDrawer(rom_.get(), 0).CalculateObjectDimensions(object);
+      EXPECT_EQ(legacy_width, 128);
+      EXPECT_EQ(legacy_height, 32);
+    }
+  }
+}
+
 TEST_F(ObjectDimensionTableTest, RupeeFloorUsesFixedFiveByEightBounds) {
   auto& table = ObjectDimensionTable::Get();
   ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());
@@ -280,6 +345,38 @@ TEST_F(ObjectDimensionTableTest, RupeeFloorUsesFixedFiveByEightBounds) {
         ObjectDrawer(rom_.get(), 0).CalculateObjectDimensions(object);
     EXPECT_EQ(legacy_width, 40);
     EXPECT_EQ(legacy_height, 64);
+  }
+}
+
+TEST_F(ObjectDimensionTableTest, BombableFloorUsesFixedFourByFourBounds) {
+  auto& table = ObjectDimensionTable::Get();
+  ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());
+
+  for (uint8_t size : {uint8_t{0}, uint8_t{7}, uint8_t{15}}) {
+    SCOPED_TRACE(::testing::Message() << "size=" << static_cast<int>(size));
+
+    auto [width, height] = table.GetDimensions(0xFC7, size);
+    EXPECT_EQ(width, 4);
+    EXPECT_EQ(height, 4);
+
+    const auto selection = table.GetSelectionBounds(0xFC7, size);
+    EXPECT_EQ(selection.offset_x, 0);
+    EXPECT_EQ(selection.offset_y, 0);
+    EXPECT_EQ(selection.width, 4);
+    EXPECT_EQ(selection.height, 4);
+
+    const RoomObject object(0xFC7, 0, 0, size, 0);
+    auto geometry = ObjectGeometry::Get().MeasureByObjectId(object);
+    ASSERT_TRUE(geometry.ok());
+    EXPECT_EQ(geometry->min_x_tiles, 0);
+    EXPECT_EQ(geometry->min_y_tiles, 0);
+    EXPECT_EQ(geometry->width_tiles, 4);
+    EXPECT_EQ(geometry->height_tiles, 4);
+
+    auto [legacy_width, legacy_height] =
+        ObjectDrawer(rom_.get(), 0).CalculateObjectDimensions(object);
+    EXPECT_EQ(legacy_width, 32);
+    EXPECT_EQ(legacy_height, 32);
   }
 }
 

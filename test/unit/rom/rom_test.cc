@@ -3,10 +3,12 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <string>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -14,6 +16,10 @@
 #include "rom/transaction.h"
 #include "test_utils.h"
 #include "testing.h"
+
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
 
 namespace yaze {
 namespace test {
@@ -26,6 +32,72 @@ const static std::vector<uint8_t> kMockRomData = {
     0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15,
     0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
 };
+
+class ScopedTempDirectory {
+ public:
+  ScopedTempDirectory() {
+    const auto nonce =
+        std::chrono::steady_clock::now().time_since_epoch().count();
+    path_ = std::filesystem::temp_directory_path() /
+            ("yaze_rom_save_test_" + std::to_string(nonce));
+    std::filesystem::create_directories(path_);
+  }
+
+  ~ScopedTempDirectory() {
+    std::error_code ec;
+    std::filesystem::remove_all(path_, ec);
+  }
+
+  const std::filesystem::path& path() const { return path_; }
+
+ private:
+  std::filesystem::path path_;
+};
+
+std::vector<uint8_t> ReadFileBytes(const std::filesystem::path& path) {
+  std::ifstream input(path, std::ios::binary);
+  return std::vector<uint8_t>(std::istreambuf_iterator<char>(input),
+                              std::istreambuf_iterator<char>());
+}
+
+void WriteFileBytes(const std::filesystem::path& path,
+                    const std::vector<uint8_t>& bytes) {
+  std::ofstream output(path, std::ios::binary | std::ios::trunc);
+  ASSERT_TRUE(output.is_open());
+  output.write(reinterpret_cast<const char*>(bytes.data()),
+               static_cast<std::streamsize>(bytes.size()));
+  ASSERT_TRUE(output.good());
+}
+
+int CountFilesWithPrefix(const std::filesystem::path& directory,
+                         const std::string& prefix) {
+  std::error_code ec;
+  int count = 0;
+  for (const auto& entry : std::filesystem::directory_iterator(directory, ec)) {
+    if (ec) {
+      return count;
+    }
+    if (entry.path().filename().string().rfind(prefix, 0) == 0) {
+      ++count;
+    }
+  }
+  return count;
+}
+
+std::vector<std::filesystem::path> FindFilesWithPrefix(
+    const std::filesystem::path& directory, const std::string& prefix) {
+  std::vector<std::filesystem::path> matches;
+  std::error_code ec;
+  for (const auto& entry : std::filesystem::directory_iterator(directory, ec)) {
+    if (ec) {
+      break;
+    }
+    if (entry.path().filename().string().rfind(prefix, 0) == 0) {
+      matches.push_back(entry.path());
+    }
+  }
+  return matches;
+}
 
 class RomTest : public ::testing::Test {
  protected:
@@ -261,6 +333,173 @@ TEST_F(RomTest, SaveTruncatesExistingFile) {
   EXPECT_EQ(file_bytes.size(), kMockRomData.size());
   ASSERT_FALSE(file_bytes.empty());
   EXPECT_EQ(file_bytes[0], 0xEE);
+}
+
+TEST_F(RomTest, BestEffortBackupProtectsExistingSaveAsTarget) {
+  ScopedTempDirectory temp;
+  const auto source = temp.path() / "source.sfc";
+  const auto target = temp.path() / "target.sfc";
+  const std::vector<uint8_t> source_bytes = {0x10, 0x20, 0x30};
+  const std::vector<uint8_t> target_before = {0xAA, 0xBB, 0xCC};
+  WriteFileBytes(source, source_bytes);
+  WriteFileBytes(target, target_before);
+
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
+  rom_.set_filename(source.string());
+
+  Rom::SaveSettings settings;
+  settings.backup = true;
+  settings.filename = target.string();
+  EXPECT_OK(rom_.SaveToFile(settings));
+
+  EXPECT_EQ(ReadFileBytes(target), rom_.vector());
+  const auto backups = FindFilesWithPrefix(temp.path(), "target.sfc_backup_");
+  ASSERT_EQ(backups.size(), 1);
+  EXPECT_EQ(ReadFileBytes(backups.front()), target_before);
+  EXPECT_EQ(CountFilesWithPrefix(temp.path(), "source.sfc_backup_"), 0);
+}
+
+TEST_F(RomTest, BestEffortBackupSkipsMissingSaveAsTarget) {
+  ScopedTempDirectory temp;
+  const auto source = temp.path() / "source.sfc";
+  const auto target = temp.path() / "target.sfc";
+  WriteFileBytes(source, {0x10, 0x20, 0x30});
+
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
+  rom_.set_filename(source.string());
+
+  Rom::SaveSettings settings;
+  settings.backup = true;
+  settings.filename = target.string();
+  EXPECT_OK(rom_.SaveToFile(settings));
+
+  EXPECT_EQ(ReadFileBytes(target), rom_.vector());
+  EXPECT_EQ(CountFilesWithPrefix(temp.path(), "target.sfc_backup_"), 0);
+  EXPECT_EQ(CountFilesWithPrefix(temp.path(), "source.sfc_backup_"), 0);
+}
+
+TEST_F(RomTest, BestEffortBackupSameTargetCreatesBackup) {
+  ScopedTempDirectory temp;
+  const auto target = temp.path() / "target.sfc";
+  const std::vector<uint8_t> target_before = {0xAA, 0xBB, 0xCC};
+  WriteFileBytes(target, target_before);
+
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
+  rom_.set_filename(target.string());
+
+  Rom::SaveSettings settings;
+  settings.backup = true;
+  EXPECT_OK(rom_.SaveToFile(settings));
+
+  EXPECT_EQ(ReadFileBytes(target), rom_.vector());
+  const auto backups = FindFilesWithPrefix(temp.path(), "target.sfc_backup_");
+  ASSERT_EQ(backups.size(), 1);
+  EXPECT_EQ(ReadFileBytes(backups.front()), target_before);
+}
+
+TEST_F(RomTest, BestEffortBackupSaveNewSkipsUnreplacedBaseTarget) {
+  ScopedTempDirectory temp;
+  const auto base_target = temp.path() / "target.sfc";
+  const std::vector<uint8_t> target_before = {0xAA, 0xBB, 0xCC};
+  WriteFileBytes(base_target, target_before);
+
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
+
+  Rom::SaveSettings settings;
+  settings.backup = true;
+  settings.save_new = true;
+  settings.filename = base_target.string();
+  EXPECT_OK(rom_.SaveToFile(settings));
+
+  EXPECT_EQ(ReadFileBytes(base_target), target_before);
+  EXPECT_EQ(CountFilesWithPrefix(temp.path(), "target.sfc_backup_"), 0);
+  const auto saved_files = FindFilesWithPrefix(temp.path(), "target_");
+  ASSERT_EQ(saved_files.size(), 1);
+  EXPECT_EQ(ReadFileBytes(saved_files.front()), rom_.vector());
+}
+
+TEST_F(RomTest, BestEffortBackupFailureStillSaves) {
+#if defined(_WIN32)
+  GTEST_SKIP() << "A portable best-effort backup failure needs POSIX "
+                  "component-length semantics";
+#else
+  ScopedTempDirectory temp;
+  const long name_max = pathconf(temp.path().c_str(), _PC_NAME_MAX);
+  if (name_max < 64) {
+    GTEST_SKIP() << "Could not determine a usable component-length limit";
+  }
+  // The target and its .tmp sibling fit within the filesystem's component
+  // limit, while the timestamped backup name does not.
+  const auto target =
+      temp.path() / std::string(static_cast<size_t>(name_max) - 5, 't');
+  WriteFileBytes(target, {0xAA, 0xBB, 0xCC});
+
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
+  rom_.set_filename(target.string());
+
+  Rom::SaveSettings settings;
+  settings.backup = true;
+  EXPECT_OK(rom_.SaveToFile(settings));
+
+  EXPECT_EQ(ReadFileBytes(target), rom_.vector());
+  EXPECT_EQ(CountFilesWithPrefix(temp.path(), target.filename().string()), 1);
+#endif
+}
+
+TEST_F(RomTest, RequiredBackupFailureRollsBackTransactionAndLeavesNoArtifacts) {
+  ScopedTempDirectory temp;
+  const auto target = temp.path() / "target.sfc";
+  ASSERT_TRUE(std::filesystem::create_directory(target));
+
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
+  const auto rom_before = rom_.vector();
+  const bool dirty_before = rom_.dirty();
+  const std::string filename_before = rom_.filename();
+
+  {
+    ScopedRomTransaction transaction(rom_);
+    EXPECT_OK(rom_.WriteByte(0, 0xEE));
+
+    Rom::SaveSettings settings;
+    settings.require_backup = true;
+    settings.filename = target.string();
+    const absl::Status status = rom_.SaveToFile(settings);
+
+    EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+    EXPECT_THAT(std::string(status.message()),
+                ::testing::HasSubstr("Could not create required ROM backup"));
+  }
+
+  EXPECT_EQ(rom_.vector(), rom_before);
+  EXPECT_EQ(rom_.dirty(), dirty_before);
+  EXPECT_EQ(rom_.filename(), filename_before);
+  EXPECT_TRUE(std::filesystem::is_directory(target));
+  EXPECT_FALSE(std::filesystem::exists(target.string() + ".tmp"));
+  EXPECT_EQ(CountFilesWithPrefix(temp.path(), "target.sfc_backup_"), 0);
+}
+
+TEST_F(RomTest, RequiredBackupProtectsExistingSaveAsTarget) {
+  ScopedTempDirectory temp;
+  const auto source = temp.path() / "source.sfc";
+  const auto target = temp.path() / "target.sfc";
+  const std::vector<uint8_t> source_bytes = {0x10, 0x20, 0x30};
+  const std::vector<uint8_t> target_before = {0xAA, 0xBB, 0xCC};
+  WriteFileBytes(source, source_bytes);
+  WriteFileBytes(target, target_before);
+
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
+  rom_.set_filename(source.string());
+
+  Rom::SaveSettings settings;
+  settings.require_backup = true;
+  settings.filename = target.string();
+  EXPECT_OK(rom_.SaveToFile(settings));
+
+  EXPECT_EQ(ReadFileBytes(target), rom_.vector());
+  const auto backups = FindFilesWithPrefix(temp.path(), "target.sfc_backup_");
+  ASSERT_EQ(backups.size(), 1);
+  EXPECT_EQ(ReadFileBytes(backups.front()), target_before);
+  EXPECT_EQ(CountFilesWithPrefix(temp.path(), "source.sfc_backup_"), 0);
 }
 
 TEST_F(RomTest, TransactionRollbackRestoresOriginals) {

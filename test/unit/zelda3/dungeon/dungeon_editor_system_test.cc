@@ -205,6 +205,33 @@ TEST_F(DungeonEditorSystemTest, SaveRoomPersistsExternalRoomPotItemsAndHeader) {
   EXPECT_EQ(reloaded.message_id(), 0x1357);
 }
 
+TEST_F(DungeonEditorSystemTest,
+       SaveRoomPersistsLayoutAndFloorObjectStreamHeaderFields) {
+  DungeonEditorSystem system(rom_.get());
+  ASSERT_TRUE(system.Initialize().ok());
+
+  rom_->mutable_data()[kRoom0ObjectPc] = 0xA5;
+  rom_->mutable_data()[kRoom0ObjectPc + 1] = 0xE3;
+  const std::vector<uint8_t> payload_before(rom_->data() + kRoom0ObjectPc + 2,
+                                            rom_->data() + kRoom0ObjectPc + 10);
+  Room external_room = LoadRoomFromRom(rom_.get(), 0);
+  system.SetExternalRoom(&external_room);
+
+  external_room.SetLayoutId(3);
+  external_room.set_floor1(2);
+  external_room.set_floor2(4);
+  ASSERT_TRUE(system.SaveRoom(0).ok());
+
+  Room reloaded = LoadRoomFromRom(rom_.get(), 0);
+  EXPECT_EQ(reloaded.layout_id(), 3);
+  EXPECT_EQ(reloaded.floor1(), 2);
+  EXPECT_EQ(reloaded.floor2(), 4);
+  EXPECT_EQ(rom_->data()[kRoom0ObjectPc + 1] & 0xE3, 0xE3);
+  EXPECT_TRUE(std::equal(payload_before.begin(), payload_before.end(),
+                         rom_->data() + kRoom0ObjectPc + 2));
+  EXPECT_FALSE(external_room.object_stream_header_dirty());
+}
+
 TEST_F(DungeonEditorSystemTest, SaveRoomPreservesOtherRoomIndexedData) {
   DungeonEditorSystem system(rom_.get());
   ASSERT_TRUE(system.Initialize().ok());

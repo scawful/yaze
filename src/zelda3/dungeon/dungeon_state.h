@@ -19,11 +19,26 @@ class DungeonState {
 
   // Chest State
   virtual bool IsChestOpen(int room_id, int chest_index) const = 0;
+  // Legacy editor-wide big-chest preview override.
   virtual bool IsBigChestOpen() const = 0;
+  // Runtime big chests use the same room+slot flag domain as small chests.
+  // Preserve the legacy global preview toggle as a compatibility override.
+  virtual bool IsBigChestOpen(int room_id, int chest_index) const {
+    return IsChestOpen(room_id, chest_index) || IsBigChestOpen();
+  }
 
   // Door State
   virtual bool IsDoorOpen(int room_id, int door_index) const = 0;
   virtual bool IsDoorSwitchActive(int room_id) const = 0;
+
+  // Big-key locks share the room-event slot counter used by chests in the
+  // original engine ($0498 / RoomFlagMask). Keep this separate from door
+  // state so rooms with multiple locks or a chest before a lock can be
+  // previewed correctly. Existing state implementations inherit chest-slot
+  // behavior until they need a distinct lock preview control.
+  virtual bool IsBigKeyLockOpen(int room_id, int room_event_index) const {
+    return IsChestOpen(room_id, room_event_index);
+  }
 
   // Water Face State (Type 3 object 0xF80 active variant)
   // Default false so implementations can opt in without breaking callers.

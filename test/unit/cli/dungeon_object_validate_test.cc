@@ -248,6 +248,7 @@ TEST(DungeonObjectValidateTest, AllStatesTracksExpectedEmptyBranches) {
            ExpectedEmptyCase{"--object=0x0CD", "west", true},
            ExpectedEmptyCase{"--object=0x0CE", "east", true},
            ExpectedEmptyCase{"--object=0xF92", "rupee_floor", false},
+           ExpectedEmptyCase{"--object=0xF98", "big_key_lock", false},
        }) {
     SCOPED_TRACE(test_case.object_arg);
     DungeonObjectValidateCommandHandler handler;

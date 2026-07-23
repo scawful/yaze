@@ -34,6 +34,9 @@ class EditorDungeonState : public DungeonState {
   }
 
   bool IsBigChestOpen() const override { return big_chest_open_; }
+  bool IsBigChestOpen(int room_id, int chest_index) const override {
+    return IsChestOpen(room_id, chest_index) || big_chest_open_;
+  }
   void SetBigChestOpen(bool open) { big_chest_open_ = open; }
 
   // Door State

@@ -11,6 +11,50 @@ This repo is used to edit ROM hacks (including Oracle of Secrets). Treat ROM wri
   - Project setting: `workspace_settings.backup_on_save=true`
   - Backups are managed via `RomFileManager` retention/daily keep.
 
+## CLI Save Transaction Contract
+
+- `Rom::SaveSettings::backup` is best-effort: an existing save destination is
+  copied before replacement, a new destination has no prior bytes to back up,
+  and backup failure is logged without blocking the save.
+- Safety-critical CLI writes can set `require_backup=true`. If the save target
+  already exists, that target (including a Save As destination) is copied to a
+  same-directory temporary path and renamed into place only after the copy
+  completes; failure returns before the ROM target is replaced. A new target
+  has no previous bytes to back up. A completed required backup is retained if
+  the later target write fails, so recovery bytes remain available.
+- `dungeon-place-sprite`, `dungeon-remove-sprite`, `dungeon-place-object`,
+  `dungeon-set-collision-tile`, and `dungeon-set-room-property` wrap their
+  serializer, required backup, and disk commit in `ScopedRomTransaction`. Any
+  failure restores the caller's ROM bytes, filename, size, and dirty state.
+- Dungeon `layout`, `floor1`, and `floor2` edits use a separate object-stream
+  header dirty mask. They preserve unrelated header bits and object payload,
+  save after any dirty object payload, and fail closed on shared streams unless
+  a `copy_on_write` object-stream manifest supplies allocator-owned space.
+- Non-dry-run `dungeon-import-custom-collision-json` and
+  `dungeon-import-water-fill-json` use the same transaction and required-backup
+  contract, then immediately save the active ROM. With `--sandbox`, the active
+  target is the sandbox copy; the source ROM is not saved or backed up.
+- Import `--report` is accepted only with a non-sandbox `--dry-run`; every
+  write-mode or sandbox invocation rejects it before ROM loading or sandbox
+  creation. Report paths must not alias the active ROM. The guard is rechecked
+  immediately before publishing the report.
+- Collision/water JSON exports carry command-scoped source and active ROM path
+  identities, including the sandbox copy path. `--out` and `--report` must not
+  alias either ROM or each other through normalized, symlink, or hardlink
+  paths. Both JSON artifacts are written to exclusive same-directory temporary
+  files and atomically replaced. Existing artifacts receive command-local
+  rollback copies, so a later publication failure restores any earlier member
+  of the output/report pair. A target-link swap cannot truncate a ROM inode.
+  Export reports are allowed with `--sandbox` under these guards. Artifact
+  parent directories must already exist and should be trusted: replacing an
+  ancestor directory entry concurrently remains outside this guard.
+- `dungeon-generate-track-collision --write` applies the same contract to a
+  single room or the complete `--rooms` batch. Batch serialization and the one
+  required-backup disk save are all-or-nothing; a later-room failure restores
+  every earlier room mutation.
+- Other CLI writers that still set only `backup=true` remain best-effort and
+  must be audited before opting into the strict transaction path.
+
 ## Save-Time Write Fences (C++)
 
 Yaze supports a strict allow-list for save-time writes:
@@ -210,7 +254,18 @@ When importing dungeon collision or water-fill JSON, use a two-step flow:
 Safety semantics:
 
 - `--dry-run` performs full parsing/validation and emits impact counts without writing.
-- `--report <path>` writes machine-readable JSON with `status`, `mode`, and structured error code/message.
+- Without `--dry-run`, imports immediately save the active ROM with a required
+  backup. `--sandbox` redirects that one save and its backup to the sandbox
+  copy, leaving the source ROM and source directory unchanged.
+- `--mock-rom` is an explicit in-memory test mode and cannot be combined with
+  `--sandbox`; the command rejects that combination before creating a sandbox.
+- `--report <path>` is non-sandbox dry-run-only and writes machine-readable
+  JSON with `status`, `mode`, and structured error code/message. It must name a
+  separate writable file, never the active ROM through a direct, normalized,
+  symlink, or hardlink path. Reports are published through an exclusive
+  same-directory temporary file and atomic replacement. Use an existing,
+  trusted parent directory; concurrent ancestor-directory replacement remains
+  outside this guard.
 - `dungeon-import-custom-collision-json --replace-all` is destructive and requires `--force` in write mode.
 - `dungeon-import-water-fill-json --strict-masks` fails closed if SRAM mask normalization would be needed.
 

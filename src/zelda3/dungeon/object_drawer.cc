@@ -1,6 +1,7 @@
 #include "object_drawer.h"
 
 #include <cstdio>
+#include <cstring>
 #include <filesystem>
 
 #include "absl/strings/str_format.h"
@@ -18,6 +19,64 @@
 
 namespace yaze {
 namespace zelda3 {
+namespace {
+
+bool LockSurface(SDL_Surface* surface) {
+#if SDL_MAJOR_VERSION >= 3
+  return SDL_LockSurface(surface);
+#else
+  return SDL_LockSurface(surface) == 0;
+#endif
+}
+
+void SyncModifiedBitmapToSurface(gfx::Bitmap& bitmap, const char* layer_name) {
+  SDL_Surface* surface = bitmap.surface();
+  if (!bitmap.modified() || surface == nullptr || bitmap.size() == 0) {
+    return;
+  }
+
+  if (bitmap.depth() != 8) {
+    LOG_DEBUG("ObjectDrawer", "%s bitmap depth is not indexed 8bpp: %d",
+              layer_name, bitmap.depth());
+    return;
+  }
+
+  const int width = bitmap.width();
+  const int height = bitmap.height();
+  if (width <= 0 || height <= 0 || surface->w < width || surface->h < height ||
+      surface->pitch < width) {
+    LOG_DEBUG("ObjectDrawer",
+              "%s surface dimensions cannot hold bitmap: surface=%dx%d "
+              "pitch=%d bitmap=%dx%d",
+              layer_name, surface->w, surface->h, surface->pitch, width,
+              height);
+    return;
+  }
+
+  const size_t row_bytes = static_cast<size_t>(width);
+  const size_t required_bytes = row_bytes * static_cast<size_t>(height);
+  if (bitmap.size() < required_bytes) {
+    LOG_DEBUG("ObjectDrawer", "%s bitmap data too small: data=%zu needed=%zu",
+              layer_name, bitmap.size(), required_bytes);
+    return;
+  }
+
+  if (!LockSurface(surface)) {
+    LOG_DEBUG("ObjectDrawer", "%s surface lock failed: %s", layer_name,
+              SDL_GetError());
+    return;
+  }
+  auto* destination = static_cast<uint8_t*>(surface->pixels);
+  const uint8_t* source = bitmap.data();
+  for (int y = 0; y < height; ++y) {
+    std::memcpy(destination + static_cast<size_t>(y) *
+                                  static_cast<size_t>(surface->pitch),
+                source + static_cast<size_t>(y) * row_bytes, row_bytes);
+  }
+  SDL_UnlockSurface(surface);
+}
+
+}  // namespace
 
 ObjectDrawer::ObjectDrawer(Rom* rom, int room_id,
                            const uint8_t* room_gfx_buffer)
@@ -336,8 +395,7 @@ absl::Status ObjectDrawer::DrawObject(
   active_mask_source_bg_ = nullptr;
   registry_secondary_bg_ = nullptr;
 
-  // BG2 Mask Propagation: ONLY layer-2 mask/pit objects should mark BG1 as
-  // transparent.
+  // BG2 mask propagation is deferred to compositing so raw BG1 stays intact.
   //
   // Ordinary BG2 overlay objects now mask per-pixel as they draw, which keeps
   // transparent cutouts intact for platforms/statues/stairs. Full-rect masking
@@ -352,16 +410,15 @@ absl::Status ObjectDrawer::DrawObject(
     const auto [mask_px_x, mask_px_y, pixel_width, pixel_height] =
         DimensionService::Get().GetSelectionBoundsPixels(object);
 
-    LOG_DEBUG(
-        "ObjectDrawer",
-        "Pit mask 0x%03X at (%d,%d) -> marking %dx%d pixels transparent in BG1",
-        object.id_, mask_px_x / 8, mask_px_y / 8, pixel_width, pixel_height);
+    LOG_DEBUG("ObjectDrawer",
+              "Pit mask 0x%03X at (%d,%d) -> recording %dx%d BG1 reveal pixels",
+              object.id_, mask_px_x / 8, mask_px_y / 8, pixel_width,
+              pixel_height);
 
-    MarkBg1RectTransparent(bg1, mask_px_x, mask_px_y, pixel_width,
-                           pixel_height);
+    MarkBg1RectRevealed(bg1, mask_px_x, mask_px_y, pixel_width, pixel_height);
     if (layout_bg1 != nullptr) {
-      MarkBg1RectTransparent(*layout_bg1, mask_px_x, mask_px_y, pixel_width,
-                             pixel_height);
+      MarkBg1RectRevealed(*layout_bg1, mask_px_x, mask_px_y, pixel_width,
+                          pixel_height);
     }
   }
 
@@ -388,8 +445,8 @@ absl::Status ObjectDrawer::DrawObjectList(
     const std::vector<RoomObject>& objects, gfx::BackgroundBuffer& bg1,
     gfx::BackgroundBuffer& bg2, const gfx::PaletteGroup& palette_group,
     [[maybe_unused]] const DungeonState* state,
-    gfx::BackgroundBuffer* layout_bg1, bool reset_chest_index) {
-  if (reset_chest_index) {
+    gfx::BackgroundBuffer* layout_bg1, bool reset_room_event_indices) {
+  if (reset_room_event_indices) {
     ResetChestIndex();
   }
   absl::Status status = absl::OkStatus();
@@ -420,47 +477,10 @@ absl::Status ObjectDrawer::DrawObjectList(
   LOG_DEBUG("ObjectDrawer", "Buffer routing: to_BG1=%d, to_BG2=%d, BothBGs=%d",
             to_bg1, to_bg2, both_bgs);
 
-  // NOTE: Palette is already set in Room::RenderRoomGraphics() before calling
-  // this function. We just need to sync the pixel data to the SDL surface.
-  auto& bg1_bmp = bg1.bitmap();
-  auto& bg2_bmp = bg2.bitmap();
-
-  // Sync bitmap data to SDL surfaces (palette already applied)
-  if (bg1_bmp.modified() && bg1_bmp.surface() &&
-      bg1_bmp.mutable_data().size() > 0) {
-    SDL_LockSurface(bg1_bmp.surface());
-    // Safety check: ensure surface can hold the data
-    // Note: This assumes 8bpp surface where pitch >= width
-    size_t surface_size = bg1_bmp.surface()->h * bg1_bmp.surface()->pitch;
-    size_t buffer_size = bg1_bmp.mutable_data().size();
-
-    if (surface_size >= buffer_size) {
-      // TODO: Handle pitch mismatch properly (copy row by row)
-      // For now, just ensure we don't overflow
-      memcpy(bg1_bmp.surface()->pixels, bg1_bmp.mutable_data().data(),
-             buffer_size);
-    } else {
-      LOG_DEBUG("ObjectDrawer", "BG1 Surface too small: surf=%zu buf=%zu",
-                surface_size, buffer_size);
-    }
-    SDL_UnlockSurface(bg1_bmp.surface());
-  }
-
-  if (bg2_bmp.modified() && bg2_bmp.surface() &&
-      bg2_bmp.mutable_data().size() > 0) {
-    SDL_LockSurface(bg2_bmp.surface());
-    size_t surface_size = bg2_bmp.surface()->h * bg2_bmp.surface()->pitch;
-    size_t buffer_size = bg2_bmp.mutable_data().size();
-
-    if (surface_size >= buffer_size) {
-      memcpy(bg2_bmp.surface()->pixels, bg2_bmp.mutable_data().data(),
-             buffer_size);
-    } else {
-      LOG_DEBUG("ObjectDrawer", "BG2 Surface too small: surf=%zu buf=%zu",
-                surface_size, buffer_size);
-    }
-    SDL_UnlockSurface(bg2_bmp.surface());
-  }
+  // The palette is already applied by Room::RenderRoomGraphics(). SDL can pad
+  // indexed surface rows, so synchronize each row using the surface pitch.
+  SyncModifiedBitmapToSurface(bg1.bitmap(), "BG1");
+  SyncModifiedBitmapToSurface(bg2.bitmap(), "BG2");
 
   return status;
 }
@@ -735,7 +755,7 @@ void ObjectDrawer::InitializeDrawRoutines() {
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
         self->DrawUsingRegistryRoutine(38, obj, bg, tiles, state);
       });
-  // Routine 39 - Chest rendering (small + big)
+  // Routine 39 - Small chest rendering (stateful F99 / fixed-open F9A)
   draw_routines_.push_back(
       [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
@@ -1111,11 +1131,11 @@ void ObjectDrawer::InitializeDrawRoutines() {
         self->DrawUsingRegistryRoutine(91, obj, bg, tiles, state);
       });
 
-  // Routine 92 - Big Key Lock (Type 3 object 0x218)
+  // Routine 92 - Big Key Lock (Yaze 0xF98 / ASM object 0x218)
   draw_routines_.push_back(
       [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
-        self->DrawUsingRegistryRoutine(92, obj, bg, tiles, state);
+        self->DrawBigKeyLock(obj, bg, tiles, state);
       });
 
   // Routine 93 - Bombable Floor (Type 3 object 0x247)
@@ -1147,8 +1167,7 @@ void ObjectDrawer::InitializeDrawRoutines() {
       });
 
   // Routine 97 - Prison Cell (Type 3 objects 0x20D, 0x217)
-  // This routine draws to both BG1 and BG2 with horizontal flip symmetry
-  // Note: secondary_bg is set in DrawObject() for dual-BG objects
+  // USDASM selects one tilemap through $BF and draws a sparse 16x4 pattern.
   draw_routines_.push_back(
       [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
@@ -1292,6 +1311,10 @@ void ObjectDrawer::InitializeDrawRoutines() {
   draw_routines_.push_back(
       [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        if (obj.id_ == 0xFB1) {
+          self->DrawBigChest(obj, bg, tiles, state);
+          return;
+        }
         self->DrawUsingRegistryRoutine(DrawRoutineIds::kSingle4x3, obj, bg,
                                        tiles, state);
       });
@@ -1477,6 +1500,8 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
         const int pixel_x = (start_tile_x + dx) * 8;
         const int pixel_y = (start_tile_y + dy) * 8;
 
+        target.ClearBG1RevealMaskRect(bg1_reveal_mask_source_, pixel_x, pixel_y,
+                                      8, 8);
         DrawTileToBitmap(bitmap, tile_info, pixel_x, pixel_y, room_gfx_buffer_);
 
         const uint8_t priority = tile_info.over_ ? 1 : 0;
@@ -1522,6 +1547,8 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
         const int pixel_x = (start_tile_x + dx) * 8;
         const int pixel_y = (start_tile_y + dy) * 8;
 
+        target.ClearBG1RevealMaskRect(bg1_reveal_mask_source_, pixel_x, pixel_y,
+                                      8, 8);
         DrawTileToBitmap(bitmap, tile_info, pixel_x, pixel_y, room_gfx_buffer_);
 
         const uint8_t priority = tile_info.over_ ? 1 : 0;
@@ -1866,6 +1893,9 @@ void ObjectDrawer::DrawDoorIndicator(gfx::BackgroundBuffer& bg, int tile_x,
   int bitmap_width = bitmap.width();
   int bitmap_height = bitmap.height();
 
+  bg.ClearBG1RevealMaskRect(bg1_reveal_mask_source_, pixel_x, pixel_y,
+                            pixel_width, pixel_height);
+
   // Draw filled rectangle with border
   for (int py = 0; py < pixel_height; py++) {
     for (int px = 0; px < pixel_width; px++) {
@@ -1893,9 +1923,15 @@ void ObjectDrawer::DrawDoorIndicator(gfx::BackgroundBuffer& bg, int tile_x,
 void ObjectDrawer::DrawChest(const RoomObject& obj, gfx::BackgroundBuffer& bg,
                              std::span<const gfx::TileInfo> tiles,
                              [[maybe_unused]] const DungeonState* state) {
-  // ASM: RoomDraw_Chest - draws a SINGLE chest (2x2) without size-based repetition
-  // 0xF99 = closed chest, 0xF9A = open chest
-  // The size byte is NOT used for repetition
+  // USDASM RoomDraw_OpenChest draws F9A's fixed open graphic directly and
+  // does not read or advance either chest/event counter.
+  if (obj.id_ == 0xF9A) {
+    DrawUsingRegistryRoutine(DrawRoutineIds::kSingle2x2, obj, bg, tiles, state);
+    return;
+  }
+
+  // USDASM RoomDraw_Chest draws F99 as a single stateful 2x2 chest. The size
+  // byte is not used for repetition.
 
   // Determine if chest is open
   bool is_open = false;
@@ -1903,8 +1939,10 @@ void ObjectDrawer::DrawChest(const RoomObject& obj, gfx::BackgroundBuffer& bg,
     is_open = state->IsChestOpen(room_id_, current_chest_index_);
   }
 
-  // Increment index for next chest
+  // RoomDraw_Chest advances the chest-only $0496 counter, then copies its next
+  // value into the shared chest/lock $0498 counter.
   current_chest_index_++;
+  current_room_event_index_ = current_chest_index_;
 
   // Draw SINGLE chest - no repetition based on size
   // Standard chests are 2x2 (4 tiles)
@@ -1928,6 +1966,42 @@ void ObjectDrawer::DrawChest(const RoomObject& obj, gfx::BackgroundBuffer& bg,
     WriteTile8(bg, obj.x_ + 1, obj.y_, tiles[2]);      // top-right
     WriteTile8(bg, obj.x_ + 1, obj.y_ + 1, tiles[3]);  // bottom-right
   }
+}
+
+void ObjectDrawer::DrawBigChest(const RoomObject& obj,
+                                gfx::BackgroundBuffer& bg,
+                                std::span<const gfx::TileInfo> tiles,
+                                const DungeonState* state) {
+  // USDASM RoomDraw_BigChest uses the chest-only $0496 slot for its room flag,
+  // advances it once, then copies the next value into shared $0498. FB2 uses
+  // RoomDraw_OpenBigChest directly and never reaches this stateful wrapper.
+  bool is_open = false;
+  if (state) {
+    is_open = state->IsBigChestOpen(room_id_, current_chest_index_);
+  }
+
+  current_chest_index_++;
+  current_room_event_index_ = current_chest_index_;
+
+  constexpr size_t kBigChestStateTileCount = 12;
+  if (is_open && tiles.size() >= kBigChestStateTileCount * 2) {
+    tiles = tiles.subspan(kBigChestStateTileCount, kBigChestStateTileCount);
+  }
+  DrawUsingRegistryRoutine(DrawRoutineIds::kSingle4x3, obj, bg, tiles, state);
+}
+
+void ObjectDrawer::DrawBigKeyLock(const RoomObject& obj,
+                                  gfx::BackgroundBuffer& bg,
+                                  std::span<const gfx::TileInfo> tiles,
+                                  const DungeonState* state) {
+  // USDASM RoomDraw_BigKeyLock indexes $0402 through the shared $0498
+  // chest/lock slot. An opened lock advances the slot but writes no tiles.
+  const int room_event_index = current_room_event_index_++;
+  if (state && state->IsBigKeyLockOpen(room_id_, room_event_index)) {
+    return;
+  }
+
+  DrawUsingRegistryRoutine(DrawRoutineIds::kBigKeyLock, obj, bg, tiles, state);
 }
 
 void ObjectDrawer::DrawNothing(const RoomObject& obj, gfx::BackgroundBuffer& bg,
@@ -2016,43 +2090,14 @@ void ObjectDrawer::DrawRightwardsDecor4x3spaced4_1to16(
 // Utility Methods
 // ============================================================================
 
-void ObjectDrawer::MarkBg1RectTransparent(gfx::BackgroundBuffer& bg1,
-                                          int start_px, int start_py,
-                                          int pixel_width, int pixel_height) {
-  auto& bitmap = bg1.bitmap();
-  if (!bitmap.is_active() || bitmap.width() == 0) {
-    return;
-  }
-
-  int canvas_width = bitmap.width();
-  int canvas_height = bitmap.height();
-  auto& data = bitmap.mutable_data();
-
-  for (int py = start_py; py < start_py + pixel_height && py < canvas_height;
-       py++) {
-    if (py < 0)
-      continue;
-    for (int px = start_px; px < start_px + pixel_width && px < canvas_width;
-         px++) {
-      if (px < 0)
-        continue;
-      int idx = py * canvas_width + px;
-      if (idx >= 0 && idx < static_cast<int>(data.size())) {
-        data[idx] = 255;
-      }
-    }
-  }
-  bitmap.set_modified(true);
+void ObjectDrawer::MarkBg1RectRevealed(gfx::BackgroundBuffer& bg1, int start_px,
+                                       int start_py, int pixel_width,
+                                       int pixel_height) {
+  bg1.SetBG1RevealMaskRect(bg1_reveal_mask_source_, start_px, start_py,
+                           pixel_width, pixel_height);
 }
 
-void ObjectDrawer::MarkBG1Transparent(gfx::BackgroundBuffer& bg1, int tile_x,
-                                      int tile_y, int pixel_width,
-                                      int pixel_height) {
-  MarkBg1RectTransparent(bg1, tile_x * 8, tile_y * 8, pixel_width,
-                         pixel_height);
-}
-
-void ObjectDrawer::MarkBg1OpaqueTilePixelsTransparent(
+void ObjectDrawer::MarkBg1OpaqueTilePixelsRevealed(
     gfx::BackgroundBuffer& bg1, const gfx::TileInfo& tile_info, int pixel_x,
     int pixel_y, const uint8_t* tiledata) {
   auto& bitmap = bg1.bitmap();
@@ -2070,7 +2115,8 @@ void ObjectDrawer::MarkBg1OpaqueTilePixelsTransparent(
 
   const int tile_base_x = tile_col * 8;
   const int tile_base_y = tile_row * 1024;
-  bool any_pixels_changed = false;
+  auto& reveal_mask = bg1.mutable_bg1_reveal_mask_data();
+  const uint8_t source_mask = static_cast<uint8_t>(bg1_reveal_mask_source_);
 
   for (int py = 0; py < 8; ++py) {
     const int src_row = tile_info.vertical_mirror_ ? (7 - py) : py;
@@ -2093,16 +2139,8 @@ void ObjectDrawer::MarkBg1OpaqueTilePixelsTransparent(
       }
 
       const int dest_index = dest_y * bitmap.width() + dest_x;
-      auto& dst = bitmap.mutable_data()[dest_index];
-      if (dst != 255) {
-        dst = 255;
-        any_pixels_changed = true;
-      }
+      reveal_mask[dest_index] |= source_mask;
     }
-  }
-
-  if (any_pixels_changed) {
-    bitmap.set_modified(true);
   }
 }
 
@@ -2131,17 +2169,22 @@ void ObjectDrawer::WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
     return;
   }
 
-  // Draw single 8x8 tile directly to bitmap
-  DrawTileToBitmap(bitmap, tile_info, tile_x * 8, tile_y * 8, gfx_data);
+  // A later BG1 tilemap write supersedes an earlier reveal request from the
+  // same logical stream, including transparent pixels in the 8x8 footprint.
+  bg.ClearBG1RevealMaskRect(bg1_reveal_mask_source_, tile_x * 8, tile_y * 8, 8,
+                            8);
+
   const bool should_mark_bg1_mask =
       active_mask_source_bg_ != nullptr && (&bg == active_mask_source_bg_);
+  // Draw single 8x8 tile directly to bitmap.
+  DrawTileToBitmap(bitmap, tile_info, tile_x * 8, tile_y * 8, gfx_data);
   if (should_mark_bg1_mask && active_object_bg1_mask_ != nullptr) {
-    MarkBg1OpaqueTilePixelsTransparent(*active_object_bg1_mask_, tile_info,
-                                       tile_x * 8, tile_y * 8, gfx_data);
+    MarkBg1OpaqueTilePixelsRevealed(*active_object_bg1_mask_, tile_info,
+                                    tile_x * 8, tile_y * 8, gfx_data);
   }
   if (should_mark_bg1_mask && active_layout_bg1_mask_ != nullptr) {
-    MarkBg1OpaqueTilePixelsTransparent(*active_layout_bg1_mask_, tile_info,
-                                       tile_x * 8, tile_y * 8, gfx_data);
+    MarkBg1OpaqueTilePixelsRevealed(*active_layout_bg1_mask_, tile_info,
+                                    tile_x * 8, tile_y * 8, gfx_data);
   }
 
   // Mark coverage for the full 8x8 tile region (even if pixels are transparent).
@@ -3006,7 +3049,7 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
 
     case 92:  // BigKeyLock
       width = 16;
-      height = 24;
+      height = 16;
       break;
 
     case 93:  // BombableFloor
@@ -3032,7 +3075,7 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
       break;
 
     case 97:        // PrisonCell
-      width = 80;   // 10 tiles
+      width = 128;  // 16 tiles
       height = 32;  // 4 tiles
       break;
 
@@ -3226,6 +3269,9 @@ void yaze::zelda3::ObjectDrawer::DrawMissingCustomObjectPlaceholder(
   const int width = bitmap.width();
   const int height = bitmap.height();
 
+  bg.ClearBG1RevealMaskRect(bg1_reveal_mask_source_, start_x, start_y,
+                            kPlaceholderSizePx, kPlaceholderSizePx);
+
   for (int py = 0; py < kPlaceholderSizePx; ++py) {
     const int dest_y = start_y + py;
     if (dest_y < 0 || dest_y >= height)
@@ -3351,6 +3397,8 @@ void yaze::zelda3::ObjectDrawer::DrawPotItem(uint8_t item_id, int x, int y,
   // Draw a 4x4 colored square as item indicator
   int bitmap_width = bitmap.width();
   int bitmap_height = bitmap.height();
+
+  bg.ClearBG1RevealMaskRect(bg1_reveal_mask_source_, pixel_x, pixel_y, 4, 4);
 
   for (int py = 0; py < 4; py++) {
     for (int px = 0; px < 4; px++) {
