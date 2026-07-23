@@ -1352,10 +1352,11 @@ void Room::RenderObjectsToBackground() {
   ObjectDrawer drawer(rom_, room_id_, current_gfx16_.data());
   drawer.SetAllowTrackCornerAliases(RoomUsesTrackCornerAliases(tile_objects_));
   drawer.SetBG1RevealMaskSource(gfx::BG1RevealMaskSource::kBG2Objects);
-  // NOTE: BothBG routines (ceiling corners, merged stairs, prison cells) are
-  // handled by DrawRoutineRegistry's draws_to_both_bgs flag. The room object
-  // stream is split here as primary -> BG2 overlay -> BG1 overlay, while the
-  // layout pass is rendered separately by RoomLayout::Draw.
+  // NOTE: Routines that explicitly write both tilemaps (ceiling corners and
+  // merged stairs) are handled by DrawRoutineRegistry's draws_to_both_bgs
+  // flag. The room object stream is split here as primary -> BG2 overlay ->
+  // BG1 overlay, while the layout pass is rendered separately by
+  // RoomLayout::Draw.
 
   // Clear object buffers before rendering
   // IMPORTANT: Fill with 255 (transparent color key) so objects overlay correctly

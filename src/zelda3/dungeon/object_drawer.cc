@@ -1167,8 +1167,7 @@ void ObjectDrawer::InitializeDrawRoutines() {
       });
 
   // Routine 97 - Prison Cell (Type 3 objects 0x20D, 0x217)
-  // This routine draws to both BG1 and BG2 with horizontal flip symmetry
-  // Note: secondary_bg is set in DrawObject() for dual-BG objects
+  // USDASM selects one tilemap through $BF and draws a sparse 16x4 pattern.
   draw_routines_.push_back(
       [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
@@ -3076,7 +3075,7 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
       break;
 
     case 97:        // PrisonCell
-      width = 80;   // 10 tiles
+      width = 128;  // 16 tiles
       height = 32;  // 4 tiles
       break;
 

@@ -129,7 +129,7 @@ Subsystem for accurate SNES-style layer compositing of dungeon room renders.
 
 **Draw Routine Registry:**
 - **DrawRoutineRegistry** (`zelda3/dungeon/draw_routines/draw_routine_registry.{h,cc}`) — Singleton mapping all 448 vanilla object IDs to routine IDs (0–130). 100% coverage: 256 subtype 1, 64 subtype 2, 128 subtype 3.
-- Per-routine metadata includes `draws_to_both_bgs` flag for routines that explicitly write both tilemaps (e.g., routine 2/kRightwards2x4, routine 19/Corner4x4, routine 97/PrisonCell).
+- Per-routine metadata includes `draws_to_both_bgs` for routines that explicitly write both tilemaps (for example, routine 2/kRightwards2x4 and routine 19/Corner4x4). Routine 97/PrisonCell follows the current object-stream tilemap selected by `$BF` and is not dual-layer.
 
 **Validation:**
 - 19 parity tests in `test/unit/zelda3/dungeon/object_drawing_comprehensive_test.cc` validate routine coverage, palette offsets, pit/mask identification, BothBG flags, water layer semantics, room effects, and layer merge behavior.

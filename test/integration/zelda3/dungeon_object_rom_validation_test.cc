@@ -629,7 +629,8 @@ TEST_F(DungeonObjectRomValidationTest, Subtype3PrisonCellParserMatchesRom) {
     SCOPED_TRACE(id);
     auto parsed_or = parser.ParseObject(static_cast<int16_t>(id));
     ASSERT_TRUE(parsed_or.ok());
-    EXPECT_EQ(parsed_or->size(), 8u);
+    EXPECT_EQ(parsed_or->size(), 6u)
+        << "RoomDraw_PrisonCell loads the six words at literal obj1488";
   }
 }
 
