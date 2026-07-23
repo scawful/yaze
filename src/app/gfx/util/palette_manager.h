@@ -106,14 +106,33 @@ class PaletteManager {
   /**
    * @brief Check if manager is initialized
    */
-  bool IsInitialized() const {
-    return game_data_ != nullptr || rom_ != nullptr;
-  }
+  bool IsInitialized() const;
+
+  /**
+   * @brief Select the palette state for a ROM session without resnapshotting it.
+   *
+   * Session activation may happen before GameData assets are loaded. Initialize()
+   * creates the original-palette snapshot once those assets are available.
+   */
+  void ActivateSession(zelda3::GameData* game_data);
+
+  /**
+   * @brief Check whether this exact GameData is the active palette session.
+   *
+   * Unlike IsManaging(), this may be true before lazy-loaded palette assets
+   * have been initialized.
+   */
+  bool IsSessionActive(const zelda3::GameData* game_data) const;
 
   /**
    * @brief Check whether the manager is bound to this exact GameData and ROM.
    */
   bool IsManaging(const zelda3::GameData* game_data) const;
+
+  /**
+   * @brief Forget all palette tracking for a closing or reloaded ROM session.
+   */
+  void ReleaseSession(const zelda3::GameData* game_data);
 
   /**
    * @brief Reset all state for test isolation
@@ -162,6 +181,11 @@ class PaletteManager {
   bool HasUnsavedChanges() const;
 
   /**
+   * @brief Check a specific ROM session without changing the active binding.
+   */
+  bool HasUnsavedChanges(const zelda3::GameData* game_data) const;
+
+  /**
    * @brief Get list of modified palette group names
    */
   std::vector<std::string> GetModifiedGroups() const;
@@ -189,10 +213,21 @@ class PaletteManager {
   size_t GetModifiedColorCount() const;
 
   /**
-   * @brief Get exact, coalesced half-open ROM ranges for modified colors
+   * @brief Count modified colors for a specific ROM session.
+   */
+  size_t GetModifiedColorCount(const zelda3::GameData* game_data) const;
+
+  /**
+   * @brief Get exact, coalesced half-open ROM ranges for modified colors.
    */
   std::vector<std::pair<uint32_t, uint32_t>> GetModifiedColorWriteRanges()
       const;
+
+  /**
+   * @brief Get modified-color ranges for a session without activating it.
+   */
+  std::vector<std::pair<uint32_t, uint32_t>> GetModifiedColorWriteRanges(
+      const zelda3::GameData* game_data) const;
 
   // ========== Persistence ==========
 
@@ -249,22 +284,22 @@ class PaletteManager {
   /**
    * @brief Check if undo is available
    */
-  bool CanUndo() const { return !undo_stack_.empty(); }
+  bool CanUndo() const;
 
   /**
    * @brief Check if redo is available
    */
-  bool CanRedo() const { return !redo_stack_.empty(); }
+  bool CanRedo() const;
 
   /**
    * @brief Get size of undo stack
    */
-  size_t GetUndoStackSize() const { return undo_stack_.size(); }
+  size_t GetUndoStackSize() const;
 
   /**
    * @brief Get size of redo stack
    */
-  size_t GetRedoStackSize() const { return redo_stack_.size(); }
+  size_t GetRedoStackSize() const;
 
   /**
    * @brief Clear undo/redo history
@@ -300,7 +335,7 @@ class PaletteManager {
   /**
    * @brief Check if currently in a batch operation
    */
-  bool InBatch() const { return batch_depth_ > 0; }
+  bool InBatch() const;
 
  private:
   PaletteManager() = default;
@@ -329,6 +364,32 @@ class PaletteManager {
   /// Helper: Clear modified flags for a group
   void ClearModifiedFlags(const std::string& group_name);
 
+  struct SaveTransactionSnapshot {
+    std::unordered_map<std::string, std::vector<SnesPalette>> original_palettes;
+    std::unordered_map<std::string, std::unordered_set<int>> modified_palettes;
+    std::unordered_map<std::string,
+                       std::unordered_map<int, std::unordered_set<int>>>
+        modified_colors;
+  };
+
+  struct SessionState {
+    bool initialized = false;
+    std::unordered_map<std::string, std::vector<SnesPalette>> original_palettes;
+    std::unordered_map<std::string, std::unordered_set<int>> modified_palettes;
+    std::unordered_map<std::string,
+                       std::unordered_map<int, std::unordered_set<int>>>
+        modified_colors;
+    std::optional<SaveTransactionSnapshot> save_transaction_snapshot;
+    std::deque<PaletteColorChange> undo_stack;
+    std::deque<PaletteColorChange> redo_stack;
+    int batch_depth = 0;
+    std::vector<PaletteColorChange> batch_changes;
+  };
+
+  SessionState* CurrentState();
+  const SessionState* CurrentState() const;
+  const SessionState* FindState(const zelda3::GameData* game_data) const;
+
   // ========== Member Variables ==========
 
   /// GameData instance (not owned) - preferred
@@ -337,41 +398,17 @@ class PaletteManager {
   /// ROM instance (not owned) - legacy, used when game_data_ is null
   Rom* rom_ = nullptr;
 
-  /// Original palette snapshots (loaded from ROM for reset/comparison)
-  /// Key: group_name, Value: vector of original palettes
-  std::unordered_map<std::string, std::vector<SnesPalette>> original_palettes_;
+  /// Per-GameData state. RomSession owns the keys and releases them on teardown.
+  std::unordered_map<const zelda3::GameData*, SessionState> session_states_;
 
-  /// Modified tracking
-  /// Key: group_name, Value: set of modified palette indices
-  std::unordered_map<std::string, std::unordered_set<int>> modified_palettes_;
+  /// State used only before a GameData session is selected (legacy/tests).
+  SessionState unbound_state_;
 
-  /// Detailed color modification tracking
-  /// Key: group_name, Value: map of palette_index -> set of color indices
-  std::unordered_map<std::string,
-                     std::unordered_map<int, std::unordered_set<int>>>
-      modified_colors_;
-
-  struct SaveTransactionSnapshot {
-    std::unordered_map<std::string, std::vector<SnesPalette>> original_palettes;
-    std::unordered_map<std::string, std::unordered_set<int>> modified_palettes;
-    std::unordered_map<std::string,
-                       std::unordered_map<int, std::unordered_set<int>>>
-        modified_colors;
-  };
-  std::optional<SaveTransactionSnapshot> save_transaction_snapshot_;
-
-  /// Undo/redo stacks
-  std::deque<PaletteColorChange> undo_stack_;
-  std::deque<PaletteColorChange> redo_stack_;
   static constexpr size_t kMaxUndoHistory = 500;
 
   /// Change listeners
   std::unordered_map<int, ChangeCallback> change_listeners_;
   int next_callback_id_ = 1;
-
-  /// Batch operation support
-  int batch_depth_ = 0;
-  std::vector<PaletteColorChange> batch_changes_;
 };
 
 }  // namespace gfx

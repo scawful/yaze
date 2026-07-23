@@ -332,7 +332,7 @@ absl::Status DungeonEditorV2::BeginSaveTransaction() {
   SaveTransactionSnapshot snapshot;
   auto& palette_manager = gfx::PaletteManager::Get();
   if (core::FeatureFlags::get().dungeon.kSavePalettes &&
-      palette_manager.HasUnsavedChanges()) {
+      palette_manager.HasUnsavedChanges(game_data_)) {
     if (!palette_manager.IsManaging(game_data_)) {
       return absl::FailedPreconditionError(
           "Cannot save dungeon palettes from a different ROM session");
@@ -455,12 +455,13 @@ absl::Status DungeonEditorV2::Save() {
   }
 
   auto& palette_manager = gfx::PaletteManager::Get();
-  if (flags.kSavePalettes && palette_manager.HasUnsavedChanges()) {
+  if (flags.kSavePalettes && palette_manager.HasUnsavedChanges(game_data_)) {
     if (!palette_manager.IsManaging(game_data_)) {
       return absl::FailedPreconditionError(
           "Cannot save dungeon palettes from a different ROM session");
     }
-    const size_t modified_color_count = palette_manager.GetModifiedColorCount();
+    const size_t modified_color_count =
+        palette_manager.GetModifiedColorCount(game_data_);
     auto status = palette_manager.SaveAllToRom();
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save palette changes: %s",
@@ -590,8 +591,9 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
   const auto& rom_data = rom_->vector();
 
   auto& palette_manager = gfx::PaletteManager::Get();
-  if (flags.kSavePalettes && palette_manager.IsManaging(game_data_)) {
-    auto palette_ranges = palette_manager.GetModifiedColorWriteRanges();
+  if (flags.kSavePalettes) {
+    auto palette_ranges =
+        palette_manager.GetModifiedColorWriteRanges(game_data_);
     ranges.insert(ranges.end(), palette_ranges.begin(), palette_ranges.end());
   }
 
@@ -847,7 +849,7 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
           dependencies_.toast_manager));
     }
     auto& palette_manager = gfx::PaletteManager::Get();
-    if (flags.kSavePalettes && palette_manager.HasUnsavedChanges()) {
+    if (flags.kSavePalettes && palette_manager.HasUnsavedChanges(game_data_)) {
       if (!palette_manager.IsManaging(game_data_)) {
         return absl::FailedPreconditionError(
             "Cannot save dungeon palettes from a different ROM session");

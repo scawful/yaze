@@ -84,7 +84,10 @@ class ProjectManager {
    * @param project_path Path to save project file
    */
   absl::Status FinalizeProjectCreation(const std::string& project_name,
-                                        const std::string& project_path);
+                                       const std::string& project_path);
+  absl::Status ValidateProjectCreationTarget(
+      const std::string& project_name,
+      const std::string& project_path = std::string()) const;
 
   /**
    * @brief Cancel pending project creation
@@ -110,7 +113,8 @@ class ProjectManager {
   /**
    * @brief Get ZSO-specific project templates
    */
-  static std::vector<project::ProjectManager::ProjectTemplate> GetZsoTemplates();
+  static std::vector<project::ProjectManager::ProjectTemplate>
+  GetZsoTemplates();
 
   /**
    * @brief Apply a ZSO preset to the current project
@@ -130,6 +134,8 @@ class ProjectManager {
   // Helper methods
   absl::Status LoadProjectFromFile(const std::string& filename);
   absl::Status SaveProjectToFile(const std::string& filename);
+  std::string ResolveProjectCreationPath(const std::string& project_name,
+                                         const std::string& project_path) const;
   std::string GenerateProjectFilename(const std::string& project_name) const;
   bool IsValidProjectFile(const std::string& filename) const;
   absl::Status InitializeProjectStructure(const std::string& project_path);

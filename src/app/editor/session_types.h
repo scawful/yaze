@@ -13,16 +13,19 @@
 #include <utility>
 #include <vector>
 
+#include "app/editor/code/project_file_editor.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_workspace_state.h"
 #include "core/asar_wrapper.h"  // For AsarSymbol (backend-agnostic symbol shape)
 #include "core/features.h"
+#include "core/project.h"
 #include "rom/rom.h"
 #include "zelda3/game_data.h"
 
 namespace yaze::core {
 class AsarWrapper;
-}
+class VersionManager;
+}  // namespace yaze::core
 
 namespace yaze::zelda3 {
 class Overworld;
@@ -157,14 +160,28 @@ struct RomSession {
   std::string custom_name;  // User-defined session name
   std::string filepath;     // ROM filepath for duplicate detection
   core::FeatureFlags::Flags feature_flags;  // Per-session feature flags
+  // Full project/save policy snapshot for this ROM. An empty optional means
+  // the session has not yet been bound to a project context and must not save.
+  std::optional<project::YazeProject> project_context;
+  bool project_dirty = false;
+  ProjectFileEditorState project_file_editor_state;
+  // VersionManager keeps a raw project pointer internally, so its lifetime
+  // must be tied to the stable, session-owned project_context above. Editors
+  // cache this pointer for their entire lifetime.
+  std::unique_ptr<core::VersionManager> version_manager;
   bool game_data_loaded = false;
   std::array<bool, kEditorTypeCount> editor_initialized{};
   std::array<bool, kEditorTypeCount> editor_assets_loaded{};
 
   RomSession() = default;
+  RomSession(UserSettings* user_settings, size_t session_id,
+             EditorRegistry* editor_registry = nullptr);
   explicit RomSession(Rom&& r, UserSettings* user_settings = nullptr,
                       size_t session_id = 0,
                       EditorRegistry* editor_registry = nullptr);
+  ~RomSession();
+
+  size_t session_id() const { return editors.session_id(); }
 
   // Get display name (custom name or ROM title)
   std::string GetDisplayName() const;

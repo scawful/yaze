@@ -430,7 +430,7 @@ TEST_F(PaletteManagerTest,
   std::sort(expected.begin(), expected.end());
 
   EXPECT_EQ(manager.GetModifiedColorWriteRanges(), expected);
-  EXPECT_EQ(manager.GetModifiedColorWriteRanges(), expected);
+  EXPECT_EQ(manager.GetModifiedColorWriteRanges(&game_data), expected);
 
   DungeonSaveFlagsGuard flags_guard;
   ConfigurePaletteOnlyDungeonSave();
@@ -441,6 +441,71 @@ TEST_F(PaletteManagerTest,
   dungeon_editor.SetDependencies(dependencies);
   dungeon_editor.SetGameData(&game_data);
   EXPECT_EQ(dungeon_editor.CollectWriteRanges(), expected);
+}
+
+TEST_F(PaletteManagerTest,
+       DungeonWriteRangesStayIsolatedAcrossSessionSwitches) {
+  Rom first_rom;
+  Rom second_rom;
+  ASSERT_TRUE(first_rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  ASSERT_TRUE(second_rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData first_game_data(&first_rom);
+  zelda3::GameData second_game_data(&second_rom);
+  SeedPaletteGroup(first_game_data.palette_groups.get_group("dungeon_main"), 2,
+                   90, 0x0200);
+  SeedPaletteGroup(second_game_data.palette_groups.get_group("dungeon_main"), 2,
+                   90, 0x0300);
+
+  constexpr int kPaletteIndex = 1;
+  constexpr int kFirstColorIndex = 62;
+  constexpr int kSecondColorIndex = 66;
+  const uint32_t first_address =
+      GetPaletteAddress("dungeon_main", kPaletteIndex, kFirstColorIndex);
+  const uint32_t second_address =
+      GetPaletteAddress("dungeon_main", kPaletteIndex, kSecondColorIndex);
+  const std::vector<std::pair<uint32_t, uint32_t>> first_expected = {
+      {first_address, first_address + 2}};
+  const std::vector<std::pair<uint32_t, uint32_t>> second_expected = {
+      {second_address, second_address + 2}};
+
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&first_game_data);
+  ASSERT_TRUE(manager
+                  .SetColor("dungeon_main", kPaletteIndex, kFirstColorIndex,
+                            SnesColor(0x1111))
+                  .ok());
+  manager.Initialize(&second_game_data);
+  ASSERT_TRUE(manager
+                  .SetColor("dungeon_main", kPaletteIndex, kSecondColorIndex,
+                            SnesColor(0x2222))
+                  .ok());
+
+  EXPECT_EQ(manager.GetModifiedColorWriteRanges(), second_expected);
+  EXPECT_EQ(manager.GetModifiedColorWriteRanges(&first_game_data),
+            first_expected);
+  EXPECT_EQ(manager.GetModifiedColorWriteRanges(&second_game_data),
+            second_expected);
+
+  DungeonSaveFlagsGuard flags_guard;
+  ConfigurePaletteOnlyDungeonSave();
+  editor::DungeonEditorV2 first_editor(&first_rom);
+  editor::DungeonEditorV2 second_editor(&second_rom);
+  first_editor.SetGameData(&first_game_data);
+  second_editor.SetGameData(&second_game_data);
+  EXPECT_EQ(first_editor.CollectWriteRanges(), first_expected);
+  EXPECT_EQ(second_editor.CollectWriteRanges(), second_expected);
+
+  manager.ActivateSession(&first_game_data);
+  EXPECT_EQ(manager.GetModifiedColorWriteRanges(), first_expected);
+  EXPECT_EQ(manager.GetModifiedColorWriteRanges(&second_game_data),
+            second_expected);
+  EXPECT_EQ(first_editor.CollectWriteRanges(), first_expected);
+  EXPECT_EQ(second_editor.CollectWriteRanges(), second_expected);
+
+  manager.ActivateSession(&second_game_data);
+  EXPECT_EQ(manager.GetModifiedColorWriteRanges(), second_expected);
+  EXPECT_EQ(manager.GetModifiedColorWriteRanges(&first_game_data),
+            first_expected);
 }
 
 TEST_F(PaletteManagerTest,
@@ -558,7 +623,7 @@ TEST_F(PaletteManagerTest,
 }
 
 TEST_F(PaletteManagerTest,
-       DungeonPaletteSaveRejectsManagerBoundToDifferentRomSession) {
+       DungeonPaletteSaveIgnoresChangesOwnedByDifferentRomSession) {
   Rom first_rom;
   Rom second_rom;
   ASSERT_TRUE(first_rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
@@ -592,11 +657,122 @@ TEST_F(PaletteManagerTest,
   dungeon_editor.SetGameData(&first_game_data);
 
   const absl::Status save_status = dungeon_editor.Save();
-  EXPECT_EQ(save_status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_TRUE(save_status.ok()) << save_status.message();
   ASSERT_TRUE(second_rom.ReadWord(second_color_address).ok());
   EXPECT_EQ(*second_rom.ReadWord(second_color_address), second_rom_color);
   EXPECT_TRUE(manager.HasUnsavedChanges());
   EXPECT_TRUE(manager.IsColorModified("dungeon_main", 1, kDungeonColorIndex));
+}
+
+TEST_F(PaletteManagerTest,
+       SessionStateSurvivesSwitchesWithSaveResetAndUndoIsolation) {
+  Rom first_rom;
+  Rom second_rom;
+  ASSERT_TRUE(first_rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  ASSERT_TRUE(second_rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData first_game_data(&first_rom);
+  zelda3::GameData second_game_data(&second_rom);
+  SeedPaletteGroup(first_game_data.palette_groups.get_group("dungeon_main"), 2,
+                   90, 0x0200);
+  SeedPaletteGroup(second_game_data.palette_groups.get_group("dungeon_main"), 2,
+                   90, 0x0300);
+
+  constexpr int kPaletteIndex = 1;
+  constexpr int kColorIndex = 62;
+  const uint32_t color_address =
+      GetPaletteAddress("dungeon_main", kPaletteIndex, kColorIndex);
+  const uint16_t first_original = first_game_data.palette_groups.dungeon_main
+                                      .palette_ref(kPaletteIndex)[kColorIndex]
+                                      .snes();
+  const uint16_t second_original = second_game_data.palette_groups.dungeon_main
+                                       .palette_ref(kPaletteIndex)[kColorIndex]
+                                       .snes();
+  const uint16_t first_rom_original = *first_rom.ReadWord(color_address);
+  const uint16_t second_rom_original = *second_rom.ReadWord(color_address);
+
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&first_game_data);
+  ASSERT_TRUE(manager
+                  .SetColor("dungeon_main", kPaletteIndex, kColorIndex,
+                            SnesColor(0x1111))
+                  .ok());
+  EXPECT_TRUE(manager.HasUnsavedChanges(&first_game_data));
+  EXPECT_EQ(manager.GetUndoStackSize(), 1u);
+
+  manager.Initialize(&second_game_data);
+  EXPECT_TRUE(manager.IsManaging(&second_game_data));
+  EXPECT_FALSE(manager.HasUnsavedChanges());
+  ASSERT_TRUE(manager
+                  .SetColor("dungeon_main", kPaletteIndex, kColorIndex,
+                            SnesColor(0x2222))
+                  .ok());
+  EXPECT_TRUE(manager.HasUnsavedChanges(&first_game_data));
+  EXPECT_TRUE(manager.HasUnsavedChanges(&second_game_data));
+
+  manager.Undo();
+  EXPECT_EQ(manager.GetColor("dungeon_main", kPaletteIndex, kColorIndex).snes(),
+            second_original);
+  EXPECT_FALSE(manager.HasUnsavedChanges(&second_game_data));
+  EXPECT_TRUE(manager.HasUnsavedChanges(&first_game_data));
+  EXPECT_TRUE(manager.CanRedo());
+  manager.Redo();
+  EXPECT_EQ(manager.GetColor("dungeon_main", kPaletteIndex, kColorIndex).snes(),
+            0x2222);
+
+  manager.ActivateSession(&first_game_data);
+  ASSERT_TRUE(manager.IsManaging(&first_game_data));
+  EXPECT_EQ(manager.GetColor("dungeon_main", kPaletteIndex, kColorIndex).snes(),
+            0x1111);
+  EXPECT_EQ(manager.GetUndoStackSize(), 1u);
+  ASSERT_TRUE(manager.ResetPalette("dungeon_main", kPaletteIndex).ok());
+  EXPECT_EQ(manager.GetColor("dungeon_main", kPaletteIndex, kColorIndex).snes(),
+            first_original);
+  EXPECT_FALSE(manager.HasUnsavedChanges(&first_game_data));
+  EXPECT_TRUE(manager.HasUnsavedChanges(&second_game_data));
+
+  ASSERT_TRUE(manager
+                  .SetColor("dungeon_main", kPaletteIndex, kColorIndex,
+                            SnesColor(0x3333))
+                  .ok());
+  ASSERT_TRUE(manager.SaveAllToRom().ok());
+  EXPECT_EQ(*first_rom.ReadWord(color_address), 0x3333);
+  EXPECT_EQ(*second_rom.ReadWord(color_address), second_rom_original);
+  EXPECT_FALSE(manager.HasUnsavedChanges(&first_game_data));
+  EXPECT_TRUE(manager.HasUnsavedChanges(&second_game_data));
+
+  manager.ActivateSession(&second_game_data);
+  ASSERT_TRUE(manager.IsManaging(&second_game_data));
+  EXPECT_EQ(manager.GetColor("dungeon_main", kPaletteIndex, kColorIndex).snes(),
+            0x2222);
+  ASSERT_TRUE(manager.SaveAllToRom().ok());
+  EXPECT_EQ(*second_rom.ReadWord(color_address), 0x2222);
+  EXPECT_NE(*first_rom.ReadWord(color_address), first_rom_original);
+  EXPECT_FALSE(manager.HasUnsavedChanges(&second_game_data));
+}
+
+TEST_F(PaletteManagerTest, ReleaseSessionPreservesOtherSessionState) {
+  Rom first_rom;
+  Rom second_rom;
+  ASSERT_TRUE(first_rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  ASSERT_TRUE(second_rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData first_game_data(&first_rom);
+  zelda3::GameData second_game_data(&second_rom);
+  SeedPaletteGroup(first_game_data.palette_groups.get_group("dungeon_main"), 2,
+                   90, 0x0200);
+  SeedPaletteGroup(second_game_data.palette_groups.get_group("dungeon_main"), 2,
+                   90, 0x0300);
+
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&first_game_data);
+  ASSERT_TRUE(manager.SetColor("dungeon_main", 1, 62, SnesColor(0x1111)).ok());
+  manager.Initialize(&second_game_data);
+  ASSERT_TRUE(manager.SetColor("dungeon_main", 1, 62, SnesColor(0x2222)).ok());
+
+  manager.ReleaseSession(&first_game_data);
+  EXPECT_FALSE(manager.HasUnsavedChanges(&first_game_data));
+  EXPECT_TRUE(manager.IsManaging(&second_game_data));
+  EXPECT_TRUE(manager.HasUnsavedChanges(&second_game_data));
+  EXPECT_EQ(manager.GetColor("dungeon_main", 1, 62).snes(), 0x2222);
 }
 
 TEST_F(PaletteManagerTest,

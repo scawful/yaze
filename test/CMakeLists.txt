@@ -722,6 +722,7 @@ if(YAZE_BUILD_TESTS)
   set(GUI_TEST_SOURCES
     gui_test_utils.cc
     e2e/framework_smoke_test.cc
+    e2e/controller_window_close_test.cc
     e2e/dungeon_editor_smoke_test.cc
     e2e/canvas_selection_test.cc
     e2e/dungeon_e2e_tests.cc

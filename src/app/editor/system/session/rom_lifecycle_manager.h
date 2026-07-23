@@ -53,6 +53,12 @@ class RomLifecycleManager {
   /// construction time, e.g. EditorManager's member initialization).
   void Initialize(Dependencies deps);
 
+  /// Select the project policy used by subsequent hash/write/safety checks.
+  /// The caller retains ownership and must keep the project alive.
+  void SetProjectContext(const project::YazeProject* project) {
+    project_ = project;
+  }
+
   // =========================================================================
   // ROM Hash & Write Policy
   // =========================================================================
@@ -172,7 +178,7 @@ class RomLifecycleManager {
   SessionCoordinator* session_coordinator_ = nullptr;
   ToastManager* toast_manager_ = nullptr;
   PopupManager* popup_manager_ = nullptr;
-  project::YazeProject* project_ = nullptr;
+  const project::YazeProject* project_ = nullptr;
 
   // ROM hash state
   std::string current_rom_hash_;

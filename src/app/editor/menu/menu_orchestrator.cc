@@ -360,7 +360,7 @@ void MenuOrchestrator::AddPanelsMenuItems() {
     return;
   }
 
-  const size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  const size_t session_id = session_coordinator_.GetActiveSessionId();
   std::string active_category = window_manager_->GetActiveCategory();
   auto all_categories = window_manager_->GetAllCategories(session_id);
 
@@ -502,7 +502,7 @@ void MenuOrchestrator::AddHackWorkflowMenuItems() {
   std::map<std::string, std::vector<WorkflowItem>> grouped_items;
 
   if (window_manager_) {
-    const size_t session_id = session_coordinator_.GetActiveSessionIndex();
+    const size_t session_id = session_coordinator_.GetActiveSessionId();
     const auto categories = window_manager_->GetAllCategories(session_id);
     for (const auto& category : categories) {
       for (const auto& descriptor :
@@ -903,7 +903,7 @@ void MenuOrchestrator::AddSidebarSubmenu() {
 
   ImGui::Separator();
 
-  const size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  const size_t session_id = session_coordinator_.GetActiveSessionId();
   std::vector<std::string> categories;
   if (window_manager_) {
     categories = window_manager_->GetAllCategories(session_id);
@@ -1405,7 +1405,7 @@ void MenuOrchestrator::OnShowLayoutDesigner() {
     return;
   }
 
-  const size_t session_id = session_coordinator_.GetActiveSessionIndex();
+  const size_t session_id = session_coordinator_.GetActiveSessionId();
   if (manager->GetActiveCategory().empty() ||
       manager->GetActiveCategory() ==
           WorkspaceWindowManager::kDashboardCategory) {
