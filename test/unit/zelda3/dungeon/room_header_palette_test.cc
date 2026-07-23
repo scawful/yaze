@@ -120,5 +120,19 @@ TEST(RoomHeaderPaletteTest,
   EXPECT_EQ(rom.vector(), before);
 }
 
+TEST(RoomHeaderPaletteTest, ReservedHeaderBitsRoundTripExactly) {
+  constexpr uint8_t byte0 = static_cast<uint8_t>((5 << 5) | (3 << 2) | 0x03);
+  Rom rom;
+  auto data = BuildHeaderRomData(byte0, /*palette_id=*/0x00);
+  data.dummy_rom[data.header_pc + 8] = 0xFE;
+  ASSERT_TRUE(rom.LoadFromData(data.dummy_rom).ok());
+
+  Room room = LoadRoomHeaderFromRom(&rom, kTestRoomId);
+  const std::vector<uint8_t> before = rom.vector();
+
+  ASSERT_TRUE(room.SaveRoomHeader().ok());
+  EXPECT_EQ(rom.vector(), before);
+}
+
 }  // namespace
 }  // namespace yaze::zelda3::test

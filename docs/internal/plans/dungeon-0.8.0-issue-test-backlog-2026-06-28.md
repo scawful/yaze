@@ -32,8 +32,10 @@ Source: post-agent audit of the 0.8.0 dungeon drawing/editing slice.
    - Status: complete for a stable vanilla room `0x012` left-wall ROI. The
      committed Mesen2 PNG is compared against yaze headlessly with an exact
      3,072-pixel RGBA assertion; fixture provenance, coordinates, update steps,
-     and ROM skip policy are documented beside the baseline. Broader room
-     floor/background palette parity remains open.
+     and ROM skip policy are documented beside the baseline. Two additional
+     exact 32x32 Mesen2 baselines now pin room `0x065` subtype-3 `0xFC7`
+     BombableFloor in intact and bombed states. Broader room floor/background
+     palette parity remains open.
    - Problem: current fixture checksums guard yaze renderer drift, not correctness against emulator or screenshot truth.
    - Done when: one stable room ROI has a committed PNG/baseline, update procedure, and tolerance/skip rationale.
    - Tests: E2E or headless visual diff for room `0x001` or `0x016`.
@@ -48,7 +50,12 @@ Source: post-agent audit of the 0.8.0 dungeon drawing/editing slice.
    - Done when: one vanilla or synthetic room asserts the expected top pixel from primary/BG2-overlay/BG1-overlay ordering.
 
 5. **Rare subtype-3 parser parity**
-   - Problem: current parser replay checks added size coverage for PrisonCell / BigKeyLock / BombableFloor, but not raw byte/token parity for those routines.
+   - Status: complete. `RoomObjectRomParityTest` compares PrisonCell,
+     BigKeyLock, and BombableFloor parser payloads with raw ROM words and pins
+     their stateful drawer traces. BombableFloor additionally has independent
+     exact-RGBA Mesen baselines for both room `0x065` states.
+   - Problem addressed: parser replay checks initially covered size but not raw
+     byte/token parity or independent runtime pixels for these routines.
    - Done when: tests compare decoded object metadata against the ROM object table row or fixture bytes, not only `parsed.size()`.
 
 6. **PitDamageTable validation policy**

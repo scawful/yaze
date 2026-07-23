@@ -261,66 +261,43 @@ void DrawOpenChestPlatformSegment(const DrawContext& ctx, int dy,
 }  // namespace
 
 void DrawChest(const DrawContext& ctx, int chest_index) {
-  // Determine if chest is open
-  bool is_open = false;
-  if (ctx.state) {
+  // Routine 39 is used only by stateful Chest (F99) and fixed OpenChest
+  // (F9A). BigChest uses its separate 4x3 routine.
+  bool is_open = ctx.object.id_ == 0xF9A;
+  if (!is_open && ctx.state) {
     is_open = ctx.state->IsChestOpen(ctx.room_id, chest_index);
   }
 
-  // Draw logic
-  // Heuristic: If we have extra tiles loaded, assume they are for the open
-  // state. Standard chests are 2x2 (4 tiles). Big chests are 4x4 (16 tiles). If
-  // we have double the tiles, use the second half for open state.
-
-  if (is_open) {
-    if (ctx.tiles.size() >= 32) {
-      // Big chest open tiles (indices 16-31)
-      // Draw 4x4 pattern
-      for (int x = 0; x < 4; ++x) {
-        for (int y = 0; y < 4; ++y) {
-          DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                       ctx.object.y_ + y,
-                                       ctx.tiles[16 + x * 4 + y]);
-        }
-      }
-      return;
-    }
-    if (ctx.tiles.size() >= 8 && ctx.tiles.size() < 16) {
-      // Small chest open tiles (indices 4-7)
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
-                                   ctx.tiles[4]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
-                                   ctx.object.y_ + 1, ctx.tiles[5]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                   ctx.object.y_, ctx.tiles[6]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                   ctx.object.y_ + 1, ctx.tiles[7]);
-      return;
-    }
-    // If no extra tiles, fall through to draw closed chest (better than
-    // nothing)
-  }
-
-  // Fallback to standard 4x4 or 2x2 drawing based on tile count
-  if (ctx.tiles.size() >= 16) {
-    // Draw 4x4 pattern in COLUMN-MAJOR order
+  // Preserve the legacy subtype-1 0xF8-0xFD family handled by this registry
+  // routine. The subtype-3 chest opcodes below are always 2x2.
+  if (ctx.object.id_ < 0xF80 && ctx.tiles.size() >= 16) {
+    size_t start_index = is_open && ctx.tiles.size() >= 32 ? 16 : 0;
     for (int x = 0; x < 4; ++x) {
       for (int y = 0; y < 4; ++y) {
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                     ctx.object.y_ + y, ctx.tiles[x * 4 + y]);
+        DrawRoutineUtils::WriteTile8(
+            ctx.target_bg, ctx.object.x_ + x, ctx.object.y_ + y,
+            ctx.tiles[start_index + static_cast<size_t>(x * 4 + y)]);
       }
     }
-  } else if (ctx.tiles.size() >= 4) {
-    // Draw 2x2 pattern in COLUMN-MAJOR order
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
-                                 ctx.tiles[0]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
-                                 ctx.object.y_ + 1, ctx.tiles[1]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                 ctx.object.y_, ctx.tiles[2]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
-                                 ctx.object.y_ + 1, ctx.tiles[3]);
+    return;
   }
+
+  size_t start_index = 0;
+  if (is_open && ctx.object.id_ == 0xF99 && ctx.tiles.size() >= 8) {
+    start_index = 4;
+  }
+  if (ctx.tiles.size() < start_index + 4) {
+    return;
+  }
+
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
+                               ctx.tiles[start_index]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_ + 1,
+                               ctx.tiles[start_index + 1]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, ctx.object.y_,
+                               ctx.tiles[start_index + 2]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1,
+                               ctx.object.y_ + 1, ctx.tiles[start_index + 3]);
 }
 
 void DrawNothing([[maybe_unused]] const DrawContext& ctx) {
@@ -1088,130 +1065,94 @@ void DrawStraightInterRoomStairs(const DrawContext& ctx) {
 
 void DrawPrisonCell(const DrawContext& ctx) {
   // ASM: RoomDraw_PrisonCell ($019C44)
-  // Draws prison cell bars to BOTH BG layers with horizontal flip for symmetry
-  // The ASM writes to $7E2xxx (BG1) and also uses ORA #$4000 for horizontal flip
-  // Pattern: 5 iterations drawing a complex bar pattern
-
-  if (ctx.tiles.size() < 6)
+  // The routine selects the current object-list tilemap through $BF, then
+  // writes one sparse 16x4 cell. Offsets below are the tile-coordinate form of
+  // the long writes at $019C5A-$019CC5. In particular, columns 7 and 8 remain
+  // open on rows 1-3 so objects drawn earlier (room 0x080's big-key lock) show
+  // through the cell opening.
+  if (ctx.tiles.size() < 6) {
     return;
+  }
 
-  // Prison cell layout based on ASM analysis:
-  // The routine draws 5 columns of bars, each with specific tile patterns
-  // Tiles at positions: (x, y), (x+7, y) for outer bars
-  // Middle bars with horizontal flip on one side
+  const int base_x = ctx.object.x_;
+  const int base_y = ctx.object.y_;
 
-  int base_x = ctx.object.x_;
-  int base_y = ctx.object.y_;
+  auto with_horizontal_mirror = [](gfx::TileInfo tile) {
+    // USDASM uses ORA #$4000 for these writes: force H-flip on rather than
+    // toggling whatever bit a modified ROM supplied in obj1488.
+    tile.horizontal_mirror_ = true;
+    return tile;
+  };
 
-  // Draw the prison cell pattern - 5 vertical bar segments
   for (int col = 0; col < 5; ++col) {
-    int x_offset = col;
-
-    // Each column has 4 rows of tiles
-    for (int row = 0; row < 4; ++row) {
-      size_t tile_idx = (row < static_cast<int>(ctx.tiles.size())) ? row : 0;
-
-      // Left side bar
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x_offset,
-                                   base_y + row, ctx.tiles[tile_idx]);
-
-      // Right side bar (mirrored horizontally)
-      auto mirrored_tile = ctx.tiles[tile_idx];
-      mirrored_tile.horizontal_mirror_ = !mirrored_tile.horizontal_mirror_;
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 9 - x_offset,
-                                   base_y + row, mirrored_tile);
-    }
+    const int left_x = base_x + 2 + col;
+    const int right_x = base_x + 9 + col;
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, left_x, base_y, ctx.tiles[1]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, base_y, ctx.tiles[1]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, left_x, base_y + 1,
+                                 ctx.tiles[2]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, base_y + 1,
+                                 with_horizontal_mirror(ctx.tiles[2]));
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, left_x, base_y + 2,
+                                 ctx.tiles[4]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, base_y + 2,
+                                 with_horizontal_mirror(ctx.tiles[4]));
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, left_x, base_y + 3,
+                                 ctx.tiles[5]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, base_y + 3,
+                                 with_horizontal_mirror(ctx.tiles[5]));
   }
 
-  // If we have a secondary BG buffer, draw the same pattern there
-  // This ensures the prison bars appear on both background layers
-  if (ctx.HasSecondaryBG()) {
-    for (int col = 0; col < 5; ++col) {
-      int x_offset = col;
-
-      for (int row = 0; row < 4; ++row) {
-        size_t tile_idx = (row < static_cast<int>(ctx.tiles.size())) ? row : 0;
-
-        // Left side bar
-        DrawRoutineUtils::WriteTile8(*ctx.secondary_bg, base_x + x_offset,
-                                     base_y + row, ctx.tiles[tile_idx]);
-
-        // Right side bar (mirrored)
-        auto mirrored_tile = ctx.tiles[tile_idx];
-        mirrored_tile.horizontal_mirror_ = !mirrored_tile.horizontal_mirror_;
-        DrawRoutineUtils::WriteTile8(*ctx.secondary_bg, base_x + 9 - x_offset,
-                                     base_y + row, mirrored_tile);
-      }
-    }
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, base_y, ctx.tiles[0]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 15, base_y,
+                               with_horizontal_mirror(ctx.tiles[0]));
+  for (int x_offset : {1, 7, 8, 14}) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x_offset, base_y,
+                                 ctx.tiles[1]);
   }
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, base_y + 2,
+                               ctx.tiles[3]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 14, base_y + 2,
+                               with_horizontal_mirror(ctx.tiles[3]));
 }
 
 void DrawBigKeyLock(const DrawContext& ctx) {
   // ASM: RoomDraw_BigKeyLock ($0198AE)
-  // Checks room flags via RoomFlagMask to see if lock is already opened
-  // For editor, we draw the closed state by default
-
-  bool is_opened = false;
-  if (ctx.state) {
-    // Check if this specific lock has been opened via door state
-    is_opened = ctx.state->IsDoorOpen(ctx.room_id, 0);  // Lock uses door slot 0
-  }
-
-  if (is_opened) {
-    // Draw open lock (if different tiles available)
-    if (ctx.tiles.size() >= 8) {
-      // Use second set of tiles for open state
-      for (int y = 0; y < 2; ++y) {
-        for (int x = 0; x < 2; ++x) {
-          DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                       ctx.object.y_ + y,
-                                       ctx.tiles[4 + y * 2 + x]);
-        }
-      }
-      return;
-    }
-  }
-
-  // Draw closed lock (2x2 pattern)
-  if (ctx.tiles.size() >= 4) {
-    for (int y = 0; y < 2; ++y) {
-      for (int x = 0; x < 2; ++x) {
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                     ctx.object.y_ + y, ctx.tiles[y * 2 + x]);
-      }
-    }
-  }
+  // The opened-state room-event check and shared chest/lock slot advancement
+  // live in ObjectDrawer, which owns stream ordering. The ROM routine's closed
+  // branch jumps to RoomDraw_Rightwards2x2 and consumes obj1494 in column-major
+  // order; there is no second tile state.
+  DrawSingle2x2(ctx);
 }
 
 void DrawBombableFloor(const DrawContext& ctx) {
-  // ASM: RoomDraw_BombableFloor ($019B7A)
-  // Checks room flags to see if floor has been bombed
-
-  bool is_bombed = false;
-  if (ctx.state) {
-    is_bombed = ctx.state->IsFloorBombable(ctx.room_id);
+  // USDASM RoomDraw_BombableFloor ($01:B3E1) draws four 2x2 quadrants.
+  // ParseSubtype3 stores the intact obj0220 block at tiles[0..15] and the
+  // non-contiguous obj05BA replacement block at tiles[16..31]. Each quadrant
+  // is ordered upper-left, lower-left, upper-right, lower-right.
+  if (ctx.tiles.size() < 16) {
+    return;
   }
 
-  if (is_bombed) {
-    // Draw hole (use second tile set if available)
-    if (ctx.tiles.size() >= 8) {
-      for (int y = 0; y < 2; ++y) {
-        for (int x = 0; x < 2; ++x) {
-          DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                       ctx.object.y_ + y,
-                                       ctx.tiles[4 + y * 2 + x]);
-        }
-      }
-      return;
-    }
-  }
+  // Vanilla persists this state for room 0x65, while ROM hacks can relocate
+  // the floor (Oracle of Secrets uses 0xAD). Keep preview selection keyed to
+  // the current room instead of hardcoding a vanilla room ID.
+  const bool is_open = ctx.state != nullptr &&
+                       ctx.state->IsFloorBombable(ctx.room_id) &&
+                       ctx.tiles.size() >= 32;
+  const size_t state_offset = is_open ? 16 : 0;
 
-  // Draw intact floor (2x2 pattern)
-  if (ctx.tiles.size() >= 4) {
-    for (int y = 0; y < 2; ++y) {
+  for (int block_y = 0; block_y < 2; ++block_y) {
+    for (int block_x = 0; block_x < 2; ++block_x) {
+      const size_t block_offset =
+          state_offset + static_cast<size_t>((block_y * 2 + block_x) * 4);
       for (int x = 0; x < 2; ++x) {
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
-                                     ctx.object.y_ + y, ctx.tiles[y * 2 + x]);
+        for (int y = 0; y < 2; ++y) {
+          DrawRoutineUtils::WriteTile8(
+              ctx.target_bg, ctx.object.x_ + block_x * 2 + x,
+              ctx.object.y_ + block_y * 2 + y,
+              ctx.tiles[block_offset + static_cast<size_t>(x * 2 + y)]);
+        }
       }
     }
   }
@@ -1728,9 +1669,9 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .name = "BombableFloor",
       .function = DrawBombableFloor,
       .draws_to_both_bgs = false,
-      .base_width = 2,
-      .base_height = 2,
-      .min_tiles = 4,  // 2x2 block
+      .base_width = 4,
+      .base_height = 4,
+      .min_tiles = 16,  // One complete 4x4 state
       .category = DrawRoutineInfo::Category::Special,
   });
 
@@ -1768,14 +1709,16 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .category = DrawRoutineInfo::Category::Special,
   });
 
-  // Prison cell (Type 3 objects 0x20D, 0x217) draws to both BG layers.
+  // Prison cell (Type 3 objects 0x20D, 0x217) writes only to the tilemap
+  // selected by the current object stream ($BF in USDASM).
   registry.push_back(DrawRoutineInfo{
       .id = 97,  // DrawPrisonCell
       .name = "PrisonCell",
       .function = DrawPrisonCell,
-      .draws_to_both_bgs = true,
-      .base_width = 10,  // Columns x..x+9
+      .draws_to_both_bgs = false,
+      .base_width = 16,
       .base_height = 4,
+      .min_tiles = 6,
       .category = DrawRoutineInfo::Category::Special,
   });
 

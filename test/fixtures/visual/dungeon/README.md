@@ -18,6 +18,8 @@ They are correctness references, not recordings of yaze's current renderer.
   underworld module.
 - Mesen source screenshot: 256x224; crop `(x=32, y=80, w=48, h=64)`.
 - Corresponding yaze 512x512 room crop: `(x=160, y=353, w=48, h=64)`.
+- Carpet diagnostic pixel: Mesen `(x=128, y=64)` is RGB `(107, 33, 33)`;
+  the corresponding yaze room pixel is `(x=256, y=337)`.
 - Fixture SHA-256:
   `8cc0cd0c1a79a86023cd4823340e3129c378f2d478e74297b62a6b20edbc020d`.
 
@@ -26,9 +28,176 @@ pixel-exact between Mesen and yaze. The test uses exact RGBA comparison: there
 is no GPU rasterization or antialiasing in either path, so a tolerance would
 hide real renderer drift. The test skips when no ROM is configured, the first
 1 MiB is not the canonical US ROM, or the build has no libpng-backed visual
-diff support. Larger Sanctuary floor/background regions currently expose
-palette differences and are deliberately not treated as passing parity
-evidence.
+diff support. The separately asserted carpet pixel catches reversed SNES
+3bpp-to-4bpp Left/Right expansion without broadening the committed image
+fixture.
+
+## Room `0x065` bombable-floor state pair
+
+- Files:
+  - `vanilla_room_065_mesen_bombable_floor_intact_32x32.png`
+  - `vanilla_room_065_mesen_bombable_floor_bombed_32x32.png`
+- Captured: 2026-07-22, Mesen2 OOS 1.0, headless on macOS arm64.
+  - executable SHA-256:
+    `90d1d12e9d091cfbd4b8aba112517a9654e13cb7b9bdc1637391933c244b6ace`
+- ROM loaded by Mesen: the same padded canonical US ROM documented above.
+  - first 1 MiB SHA-1: `6d4f10a8b10e10dbe624cb23cf03b88bb8252973`
+  - complete 2 MiB SHA-1: `93fb2bd3e19c96c50f124f1dd02144bca7f0af78`
+  - complete 2 MiB CRC32: `81B312B0`
+- Runtime bootstrap: clear follower state, use entrance `0x34` (main graphics
+  group `0x0A`), then enter module `0x05`. Transient Pro Action Replay
+  overrides changed ROM reads to room `0x065`, camera bounds
+  `0D 0C 0D 0D 0A 0A 0A 0B`, horizontal scroll `0x0B00`, vertical scroll
+  `0x0D10`, Link position `(0x0B30,0x0DC0)`, and quadrant `0x12`. The ROM on
+  disk was not modified.
+- Persistent room state before bootstrap:
+  - intact: `$7EF0CA = 00 00`; settled `$7E0402 = 00 00`
+  - bombed: `$7EF0CA = 00 01`; settled `$7E0402 = 00 10`
+- After the room settled, the debugger wrote BG1SC `$2107 = 03`, main-screen
+  designation `$7E001C = 01`, sub-screen designation `$7E001D = 00`, and
+  color-math mirrors `$7E0099..$7E009A = 00 00`. Three frames were run before
+  capture. This exposes the raw upper 64x64 SNES tilemap rather than the
+  room's color-math composite.
+- Object: subtype-3 `0xFC7`, room-tile origin `(46,42)`.
+- Mesen source screenshots: 256x224; crop `(x=112, y=63, w=32, h=32)`.
+- Corresponding yaze 512x512 room crop: `(x=368, y=336, w=32, h=32)`.
+- The independently produced intact and bombed full frames differed in 997
+  pixels, all inside this 32x32 ROI.
+- Uncommitted 256x224 full-frame SHA-256 (provenance only):
+  - intact:
+    `1805c55adda601f0f151c1949d382969082b234fd64f6e508f71d5a44f481d80`
+  - bombed:
+    `968264871d29d44344cec6c4ca81e0e989641f827ded3f6d7daabee85216e1aa`
+- Fixture SHA-256:
+  - intact:
+    `e9f422c47be7f27c3f6e2de30027181e52b784b43a62717ad62a76dd0995269e`
+  - bombed:
+    `46d548d067527a78e409008c7ef1b06d38d1082410438a7a7e38e6918451acee`
+
+The regression test explicitly selects the intact/bombed preview through
+`EditorDungeonState::SetFloorBombable`. It removes room-object list 1 from its
+test-local room copy before rendering: Mesen's fixture exposes only the upper
+tilemap, while yaze's normal editor composite lets lower-tilemap masks clear
+upper-layer pixels. Room `0x065` has only four `0xFF0` objects in list 1 and no
+BothBG object there. The resulting upper layout/object render is compared as
+exact RGBA bytes. The test retains the canonical first-MiB SHA-1 and libpng
+skip policy used by the Sanctuary baseline.
+
+### Exact room `0x065` reproduction commands
+
+Each Pro Action Replay code below is a 24-bit ROM address followed by its
+replacement byte. These 19 transient codes were active for both captures:
+
+| Purpose | Exact PAR codes |
+| --- | --- |
+| room `0x0065` | `02C87B65 02C87C00` |
+| camera bounds | `02CABD0D 02CABE0C 02CABF0D 02CAC00D 02CAC10A 02CAC20A 02CAC30A 02CAC40B` |
+| horizontal scroll `0x0B00` | `02CDAD00 02CDAE0B` |
+| vertical scroll `0x0D10` | `02CEB710 02CEB80D` |
+| Link Y `0x0DC0` | `02CFC1C0 02CFC20D` |
+| Link X `0x0B30` | `02D0CB30 02D0CC0B` |
+| quadrant `0x12` | `02D6D312` |
+
+The exact run loaded an initialized same-ROM state named
+`bombfloor-prebootstrap.mss`, SHA-256
+`93d72d93d4260356de87107ddf10b9f1ffe099d0f8b0e497af7a5f3e98b77590`.
+The state is not required as a fixture: when it is unavailable, boot the same
+ROM to any fully initialized gameplay state, pause, and save that state as
+`PREBOOTSTRAP`. Both captures must start from that same file. The original
+full-frame hashes above identify the preserved run; a replacement bootstrap
+may change unrelated full-frame pixels, but the two fresh frames must still
+differ only in the documented ROI.
+
+From an Oracle of Secrets checkout, with generic local paths:
+
+```bash
+OOS_ROOT=/path/to/oracle-of-secrets
+ROM=/path/to/padded-canonical-us-alttp.sfc
+PREBOOTSTRAP=/path/to/bombfloor-prebootstrap.mss
+OUT=/tmp/bombfloor-golden
+INSTANCE="oos-bombfloor-golden-$(date +%Y%m%d_%H%M%S)"
+SOCKET="/tmp/mesen2-${INSTANCE}.sock"
+mkdir -p "$OUT"
+
+"$OOS_ROOT/scripts/Mesen2/mesen2_launch_instance.sh" \
+  --instance "$INSTANCE" --owner "$USER" --source golden-capture \
+  --rom "$ROM" --socket "$SOCKET" --headless --no-save-settings \
+  --no-copy-settings --no-state-set
+for _ in {1..40}; do [[ -S "$SOCKET" ]] && break; sleep 0.25; done
+M2=(python3 "$OOS_ROOT/scripts/Mesen2/mesen2_client.py" --socket "$SOCKET")
+"${M2[@]}" health
+# To create a replacement after reaching initialized gameplay:
+# "${M2[@]}" pause && "${M2[@]}" save --path "$PREBOOTSTRAP"
+
+"${M2[@]}" cheat clear
+PAR_CODES=(
+  02C87B65 02C87C00
+  02CABD0D 02CABE0C 02CABF0D 02CAC00D
+  02CAC10A 02CAC20A 02CAC30A 02CAC40B
+  02CDAD00 02CDAE0B 02CEB710 02CEB80D
+  02CFC1C0 02CFC20D 02D0CB30 02D0CC0B 02D6D312
+)
+for code in "${PAR_CODES[@]}"; do "${M2[@]}" cheat add "$code"; done
+
+read_hex() {
+  "${M2[@]}" mem-read "$1" --len "$2" --json |
+    python3 -c 'import json,sys; print(json.load(sys.stdin)["bytes"])'
+}
+
+capture_state() {
+  local name=$1 persistent_bytes=$2 runtime_event_bytes=$3
+  "${M2[@]}" load "$PREBOOTSTRAP"
+  "${M2[@]}" pause
+  "${M2[@]}" mem-write 0x7EF3CC '00'
+  "${M2[@]}" mem-write 0x7EF3C5 '01'
+  "${M2[@]}" mem-write 0x7EF36C '18 18'
+  "${M2[@]}" mem-write 0x7E010E '34 00'
+  "${M2[@]}" mem-write 0x7EF0CA "$persistent_bytes"
+  "${M2[@]}" mem-write 0x7E0010 '05'
+  "${M2[@]}" mem-write 0x7E0011 '00'
+  "${M2[@]}" mem-write 0x7E001B '00'
+  "${M2[@]}" run --frames 300 --pause-after true
+  test "$(read_hex 0x7E00A0 2)" = 6500
+  test "$(read_hex 0x7E0402 2)" = "$runtime_event_bytes"
+
+  "${M2[@]}" mem-write 0x002107 '03' --memtype SnesMemory
+  "${M2[@]}" mem-write 0x7E001C '01 00'
+  "${M2[@]}" mem-write 0x7E0099 '00 00'
+  "${M2[@]}" run --frames 3 --pause-after true
+  "${M2[@]}" screenshot --out "$OUT/${name}-full.png"
+}
+
+capture_state intact '00 00' '0000'
+capture_state bombed '00 01' '0010'
+```
+
+Crop and validate the independent pair with Pillow:
+
+```bash
+python3 - "$OUT" <<'PY'
+from pathlib import Path
+from PIL import Image
+import sys
+
+root = Path(sys.argv[1])
+box = (112, 63, 144, 95)
+for state in ("intact", "bombed"):
+    image = Image.open(root / f"{state}-full.png")
+    image.convert("RGBA").crop(box).save(
+        root / f"vanilla_room_065_mesen_bombable_floor_{state}_32x32.png"
+    )
+
+a = Image.open(root / "intact-full.png").convert("RGB")
+b = Image.open(root / "bombed-full.png").convert("RGB")
+changed = [(x, y) for y in range(a.height) for x in range(a.width)
+           if a.getpixel((x, y)) != b.getpixel((x, y))]
+bbox = (min(x for x, _ in changed), min(y for _, y in changed),
+        max(x for x, _ in changed) + 1, max(y for _, y in changed) + 1)
+assert len(changed) == 997
+assert bbox == box
+PY
+shasum -a 256 "$OUT"/*.png
+```
 
 ## Updating a baseline
 
@@ -47,5 +216,9 @@ evidence.
    the coordinate change has a documented runtime explanation.
 5. Update the capture date, emulator version, hashes, coordinates, and focused
    regression test in the same change.
+
+For the room `0x065` state pair, reproduce both persistent-state values and
+the documented BG1-only PPU setup. Confirm that a fresh pair of full frames
+differs only inside the documented ROI before replacing either crop.
 
 ROM images, save states, and full-frame captures must not be committed.

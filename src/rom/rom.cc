@@ -11,6 +11,7 @@
 #include <iostream>
 #include <new>
 #include <string>
+#include <system_error>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -92,6 +93,77 @@ std::string MakeSafeTimestamp(std::time_t now_c) {
     }
   }
   return timestamp;
+}
+
+absl::StatusOr<std::filesystem::path> GetAvailableBackupPath(
+    const std::filesystem::path& requested_path) {
+  std::filesystem::path candidate = requested_path;
+  for (int suffix = 1; suffix <= 1000; ++suffix) {
+    std::error_code exists_ec;
+    const bool exists = std::filesystem::exists(candidate, exists_ec);
+    if (exists_ec) {
+      return absl::InternalError(absl::StrCat(
+          "Could not inspect required ROM backup path: ", candidate.string(),
+          ": ", exists_ec.message()));
+    }
+    if (!exists) {
+      return candidate;
+    }
+    candidate = requested_path.string() + "_" + std::to_string(suffix);
+  }
+
+  return absl::ResourceExhaustedError(
+      "Could not allocate a unique required ROM backup path");
+}
+
+#if !defined(__EMSCRIPTEN__)
+void BestEffortFsyncFile(const std::filesystem::path& path);
+void BestEffortFsyncParentDir(const std::filesystem::path& file_path);
+#endif
+
+absl::Status CreateRequiredBackup(
+    const std::filesystem::path& source_path,
+    const std::filesystem::path& requested_backup_path) {
+  auto backup_path_or = GetAvailableBackupPath(requested_backup_path);
+  if (!backup_path_or.ok()) {
+    return backup_path_or.status();
+  }
+
+  const std::filesystem::path backup_path = *backup_path_or;
+  std::filesystem::path temp_path = backup_path;
+  temp_path += ".tmp";
+
+  std::error_code copy_ec;
+  const bool copied = std::filesystem::copy_file(
+      source_path, temp_path, std::filesystem::copy_options::none, copy_ec);
+  if (!copied || copy_ec) {
+    std::error_code cleanup_ec;
+    std::filesystem::remove(temp_path, cleanup_ec);
+    return absl::FailedPreconditionError(absl::StrCat(
+        "Could not create required ROM backup: ", source_path.string(), " -> ",
+        backup_path.string(), ": ",
+        copy_ec ? copy_ec.message() : "copy did not complete"));
+  }
+
+#if !defined(__EMSCRIPTEN__)
+  BestEffortFsyncFile(temp_path);
+#endif
+
+  std::error_code rename_ec;
+  std::filesystem::rename(temp_path, backup_path, rename_ec);
+  if (rename_ec) {
+    std::error_code cleanup_ec;
+    std::filesystem::remove(temp_path, cleanup_ec);
+    return absl::FailedPreconditionError(absl::StrCat(
+        "Could not finalize required ROM backup: ", backup_path.string(), ": ",
+        rename_ec.message()));
+  }
+
+#if !defined(__EMSCRIPTEN__)
+  BestEffortFsyncParentDir(backup_path);
+#endif
+
+  return absl::OkStatus();
 }
 
 #ifdef __EMSCRIPTEN__
@@ -306,26 +378,52 @@ absl::Status Rom::SaveToFile(const SaveSettings& settings) {
     filename = filename_;
   }
 
-  if (settings.backup) {
-    auto now = std::chrono::system_clock::now();
-    auto now_c = std::chrono::system_clock::to_time_t(now);
-    std::string backup_filename =
-        absl::StrCat(filename, "_backup_", MakeSafeTimestamp(now_c));
-
-    try {
-      std::filesystem::copy(filename_, backup_filename,
-                            std::filesystem::copy_options::overwrite_existing);
-    } catch (const std::filesystem::filesystem_error& e) {
-      LOG_WARN("Rom", "Could not create backup: %s", e.what());
-    }
-  }
-
+  // Backup modes must reason about the actual destination, including the
+  // timestamped path selected by save_new.
   if (settings.save_new) {
     auto now = std::chrono::system_clock::now();
     auto now_c = std::chrono::system_clock::to_time_t(now);
     auto filename_no_ext = filename.substr(0, filename.find_last_of("."));
     filename =
         absl::StrCat(filename_no_ext, "_", MakeSafeTimestamp(now_c), ".sfc");
+  }
+
+  if (settings.require_backup) {
+    const std::filesystem::path target_path(filename);
+    std::error_code exists_ec;
+    const bool target_exists = std::filesystem::exists(target_path, exists_ec);
+    if (exists_ec) {
+      return absl::FailedPreconditionError(absl::StrCat(
+          "Could not inspect required ROM backup target: ", filename, ": ",
+          exists_ec.message()));
+    }
+
+    // A strict backup protects the file that is about to be replaced, not the
+    // ROM's original load path. A new target has no previous bytes to protect.
+    if (target_exists) {
+      auto now = std::chrono::system_clock::now();
+      auto now_c = std::chrono::system_clock::to_time_t(now);
+      std::string backup_filename =
+          absl::StrCat(filename, "_backup_", MakeSafeTimestamp(now_c));
+      RETURN_IF_ERROR(CreateRequiredBackup(target_path, backup_filename));
+    }
+  } else if (settings.backup) {
+    try {
+      const std::filesystem::path target_path(filename);
+      // Best-effort backups protect the file about to be replaced. A new
+      // destination has no previous bytes to preserve.
+      if (std::filesystem::exists(target_path)) {
+        auto now = std::chrono::system_clock::now();
+        auto now_c = std::chrono::system_clock::to_time_t(now);
+        std::string backup_filename =
+            absl::StrCat(filename, "_backup_", MakeSafeTimestamp(now_c));
+        std::filesystem::copy(
+            target_path, backup_filename,
+            std::filesystem::copy_options::overwrite_existing);
+      }
+    } catch (const std::filesystem::filesystem_error& e) {
+      LOG_WARN("Rom", "Could not create backup: %s", e.what());
+    }
   }
 
   // Save stability: write to a temp file in the same directory and rename into
@@ -360,13 +458,17 @@ absl::Status Rom::SaveToFile(const SaveSettings& settings) {
   std::error_code rename_ec;
   std::filesystem::rename(temp_path, target_path, rename_ec);
 #if defined(_WIN32)
-  // Windows may fail rename when the destination exists; fall back to remove +
-  // rename (non-atomic but still avoids partial/truncated writes).
-  if (rename_ec && std::filesystem::exists(target_path)) {
-    std::error_code rm_target_ec;
-    std::filesystem::remove(target_path, rm_target_ec);
-    rename_ec.clear();
-    std::filesystem::rename(temp_path, target_path, rename_ec);
+  // Windows may reject std::filesystem::rename when the destination exists.
+  // Replace it without deleting the original first, so a failed replacement
+  // does not leave the target missing.
+  if (rename_ec) {
+    if (MoveFileExW(temp_path.wstring().c_str(), target_path.wstring().c_str(),
+                    MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
+      rename_ec.clear();
+    } else {
+      rename_ec = std::error_code(static_cast<int>(GetLastError()),
+                                  std::system_category());
+    }
   }
 #endif
   if (rename_ec) {

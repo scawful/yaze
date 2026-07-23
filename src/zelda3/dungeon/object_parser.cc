@@ -328,6 +328,18 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype2(
 
 absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
     int16_t object_id) {
+  constexpr int kBombableFloorOpenTileOffset = 0x05BA;
+  constexpr int kBombableFloorStateTileCount = 16;
+  constexpr int kPrisonCellTileOffset = 0x1488;
+  constexpr int kPrisonCellTileCount = 6;
+  constexpr int kBigKeyLockTileOffset = 0x1494;
+  constexpr int kClosedChestTileOffset = 0x149C;
+  constexpr int kOpenChestTileOffset = 0x14A4;
+  constexpr int kChestStateTileCount = 4;
+  constexpr int kClosedBigChestTileOffset = 0x14AC;
+  constexpr int kOpenBigChestTileOffset = 0x14C4;
+  constexpr int kBigChestStateTileCount = 12;
+
   // Type 3 object IDs are 0xF80-0xFFF (128 objects)
   // Table index should be 0-127, calculated by subtracting base offset 0xF80
   int index = (object_id - 0xF80) & 0x7F;
@@ -345,6 +357,81 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
 
   // Determine tile count based on object ID
   int tile_count = GetSubtype3TileCount(object_id);
+
+  // BombableFloor's intact 4x4 block starts at the object's pointer, while
+  // USDASM's replacement 4x4 block lives separately at obj05BA. Keep the two
+  // 16-word states adjacent in the parsed payload for stateful rendering.
+  if (object_id == 0xFC7) {
+    auto intact_tiles =
+        ReadTileData(tile_data_ptr, kBombableFloorStateTileCount);
+    if (!intact_tiles.ok()) {
+      return intact_tiles.status();
+    }
+    auto open_tiles =
+        ReadTileData(kRoomObjectTileAddress + kBombableFloorOpenTileOffset,
+                     kBombableFloorStateTileCount);
+    if (!open_tiles.ok()) {
+      return open_tiles.status();
+    }
+    intact_tiles->insert(intact_tiles->end(), open_tiles->begin(),
+                         open_tiles->end());
+    return intact_tiles;
+  }
+
+  // Both PrisonCell IDs dispatch to RoomDraw_PrisonCell, which ignores the
+  // subtype table pointer and loads literal obj1488. F8D's vanilla table entry
+  // does not point there, so following the table would render the two aliases
+  // differently even though the game does not.
+  if (object_id == 0xF8D || object_id == 0xF97) {
+    return ReadTileData(kRoomObjectTileAddress + kPrisonCellTileOffset,
+                        kPrisonCellTileCount);
+  }
+
+  // BigKeyLock overwrites the table-derived X register with obj1494 before
+  // drawing. Follow the runtime literal so a relocated F98 table entry does
+  // not change the editor while the game continues using obj1494.
+  if (object_id == 0xF98) {
+    return ReadTileData(kRoomObjectTileAddress + kBigKeyLockTileOffset,
+                        kChestStateTileCount);
+  }
+
+  // Chest overwrites X with obj149C/obj14A4 for its closed/open branches.
+  if (object_id == 0xF99) {
+    auto closed_tiles = ReadTileData(
+        kRoomObjectTileAddress + kClosedChestTileOffset, kChestStateTileCount);
+    if (!closed_tiles.ok()) {
+      return closed_tiles.status();
+    }
+    auto open_tiles = ReadTileData(
+        kRoomObjectTileAddress + kOpenChestTileOffset, kChestStateTileCount);
+    if (!open_tiles.ok()) {
+      return open_tiles.status();
+    }
+    closed_tiles->insert(closed_tiles->end(), open_tiles->begin(),
+                         open_tiles->end());
+    return closed_tiles;
+  }
+
+  // BigChest likewise overwrites X with obj14AC/obj14C4. F9A/FB2 remain
+  // direct-open routines and legitimately use their table-derived pointers.
+  if (object_id == 0xFB1) {
+    auto closed_tiles =
+        ReadTileData(kRoomObjectTileAddress + kClosedBigChestTileOffset,
+                     kBigChestStateTileCount);
+    if (!closed_tiles.ok()) {
+      return closed_tiles.status();
+    }
+    auto open_tiles =
+        ReadTileData(kRoomObjectTileAddress + kOpenBigChestTileOffset,
+                     kBigChestStateTileCount);
+    if (!open_tiles.ok()) {
+      return open_tiles.status();
+    }
+    closed_tiles->insert(closed_tiles->end(), open_tiles->begin(),
+                         open_tiles->end());
+    return closed_tiles;
+  }
+
   return ReadTileData(tile_data_ptr, tile_count);
 }
 
@@ -463,6 +550,12 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
     return 28;
   }
 
+  // RoomDraw_PrisonCell loads literal obj1488 and consumes its six words for
+  // both object aliases.
+  if (object_id == 0xF8D || object_id == 0xF97) {
+    return 6;
+  }
+
   // RupeeFloor (0xF92 = ASM 0x212) reads the two words at obj1DD6 and
   // repeats them at fixed positions.
   if (object_id == 0xF92) {
@@ -475,6 +568,29 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
     return 4;
   }
 
+  // BigKeyLock (0xF98 = ASM 0x218) loads literal obj1494 and consumes exactly
+  // one fixed 2x2 block. The following four words belong to obj149C (Chest),
+  // not to an alternate lock state.
+  if (object_id == 0xF98) {
+    return 4;
+  }
+
+  // Chest (F99) carries both closed/open 2x2 states. OpenChest (F9A) is
+  // already the fixed open state and consumes one 2x2 payload.
+  if (object_id == 0xF99) {
+    return 8;
+  }
+  if (object_id == 0xF9A) {
+    return 4;
+  }
+
+  // BombableFloor (0xFC7 = ASM 0x247) has two non-contiguous 4x4 states:
+  // 16 intact words from the object pointer and 16 replacement words at
+  // obj05BA. ParseSubtype3 loads and concatenates both spans.
+  if (object_id == 0xFC7) {
+    return 32;
+  }
+
   // Somaria path pieces (ASM objects 0x203-0x20C, 0x20E, and 0x20F) each
   // point to one tile word. RoomDraw_SomariaLine writes that word once.
   if ((object_id >= 0xF83 && object_id <= 0xF8C) || object_id == 0xF8E ||
@@ -482,9 +598,12 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
     return 1;
   }
 
-  // BigChest (0xFB1 = ASM 0x231) and OpenBigChest (0xFB2 = ASM 0x232): 12 tiles
-  // These use RoomDraw_1x3N_rightwards with N=4 (4 columns × 3 rows)
-  if (object_id == 0xFB1 || object_id == 0xFB2) {
+  // BigChest (FB1) carries closed/open 4x3 states. OpenBigChest (FB2) is the
+  // fixed open state. Both draw through RoomDraw_1x3N_rightwards with N=4.
+  if (object_id == 0xFB1) {
+    return 24;
+  }
+  if (object_id == 0xFB2) {
     return 12;
   }
   // TableRock4x3 variants (0xF94, 0xFCE, 0xFE7-0xFE8, 0xFEC-0xFED): 12 tiles

@@ -9,6 +9,7 @@
 
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
+#include "cli/handlers/game/dungeon_commands.h"
 #include "cli/util/hex_util.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
@@ -322,14 +323,18 @@ absl::Status EntranceInfoCommandHandler::Execute(
         "Invalid entrance ID format. Must be hex (e.g., 0x08).");
   }
 
+  if (is_spawn_point) {
+    return WriteDungeonSpawnPointReport(rom, entrance_id, formatter,
+                                        "entrance");
+  }
+
   // Validate entrance ID range
   if (entrance_id < 0 || entrance_id > 0x84) {
     return absl::InvalidArgumentError(absl::StrFormat(
         "Entrance ID 0x%02X out of range (0x00-0x84).", entrance_id));
   }
 
-  zelda3::RoomEntrance entrance(rom, static_cast<uint8_t>(entrance_id),
-                                is_spawn_point);
+  zelda3::RoomEntrance entrance(rom, static_cast<uint8_t>(entrance_id), false);
 
   formatter.BeginObject("entrance");
   formatter.AddField("entrance_id", absl::StrFormat("0x%02X", entrance_id));

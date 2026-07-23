@@ -31,22 +31,29 @@ class Rom {
     bool backup = false;
     bool save_new = false;
     std::string filename;
+    // Require a successful backup of an existing save target before replacing
+    // it. Unlike the legacy best-effort `backup` flag, backup failure aborts
+    // the save. A new target has no previous bytes to protect. This implies
+    // backup creation when `backup` is false.
+    bool require_backup = false;
   };
 
   struct LoadOptions {
     bool strip_header = true;
     bool load_resource_labels = true;
-    
+
     static LoadOptions Defaults() { return LoadOptions{}; }
   };
 
   Rom() = default;
   ~Rom() = default;
 
-  absl::Status LoadFromFile(const std::string& filename,
-                            const LoadOptions& options = LoadOptions::Defaults());
-  absl::Status LoadFromData(const std::vector<uint8_t>& data,
-                            const LoadOptions& options = LoadOptions::Defaults());
+  absl::Status LoadFromFile(
+      const std::string& filename,
+      const LoadOptions& options = LoadOptions::Defaults());
+  absl::Status LoadFromData(
+      const std::vector<uint8_t>& data,
+      const LoadOptions& options = LoadOptions::Defaults());
 
   absl::Status SaveToFile(const SaveSettings& settings);
 
@@ -66,9 +73,11 @@ class Rom {
   absl::StatusOr<uint32_t> ReadLong(int offset) const;
   absl::StatusOr<std::vector<uint8_t>> ReadByteVector(uint32_t offset,
                                                       uint32_t length) const;
-  absl::StatusOr<gfx::Tile16> ReadTile16(uint32_t tile16_id, uint32_t tile16_ptr);
+  absl::StatusOr<gfx::Tile16> ReadTile16(uint32_t tile16_id,
+                                         uint32_t tile16_ptr);
 
-  absl::Status WriteTile16(int tile16_id, uint32_t tile16_ptr, const gfx::Tile16& tile);
+  absl::Status WriteTile16(int tile16_id, uint32_t tile16_ptr,
+                           const gfx::Tile16& tile);
   absl::Status WriteByte(int addr, uint8_t value);
   absl::Status WriteWord(int addr, uint16_t value);
   absl::Status WriteShort(int addr, uint16_t value);
@@ -109,15 +118,18 @@ class Rom {
   absl::Status ReadHelper(T& var, int address) {
     if constexpr (std::is_same_v<T, uint8_t>) {
       auto result = ReadByte(address);
-      if (!result.ok()) return result.status();
+      if (!result.ok())
+        return result.status();
       var = *result;
     } else if constexpr (std::is_same_v<T, uint16_t>) {
       auto result = ReadWord(address);
-      if (!result.ok()) return result.status();
+      if (!result.ok())
+        return result.status();
       var = *result;
     } else if constexpr (std::is_same_v<T, std::vector<uint8_t>>) {
       auto result = ReadByteVector(address, var.size());
-      if (!result.ok()) return result.status();
+      if (!result.ok())
+        return result.status();
       var = *result;
     }
     return absl::OkStatus();
@@ -133,7 +145,7 @@ class Rom {
   bool dirty() const { return dirty_; }
   void set_dirty(bool dirty) { dirty_ = dirty; }
   void ClearDirty() { dirty_ = false; }
-  
+
   auto title() const { return title_; }
   auto size() const { return size_; }
   auto data() const { return rom_data_.data(); }

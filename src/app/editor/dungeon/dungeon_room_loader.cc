@@ -13,6 +13,7 @@
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/types/snes_palette.h"
 #include "util/log.h"
+#include "util/macro.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze::editor {
@@ -205,6 +206,21 @@ absl::Status DungeonRoomLoader::LoadRoomEntrances(
         zelda3::RoomEntrance(rom_, i, false);
   }
 
+  return absl::OkStatus();
+}
+
+absl::Status DungeonRoomLoader::LoadDungeonSpawnPoints(
+    std::array<zelda3::DungeonSpawnPoint, zelda3::kNumDungeonSpawnPoints>&
+        spawn_points) {
+  if (!rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  for (int spawn_id = 0; spawn_id < zelda3::kNumDungeonSpawnPoints;
+       ++spawn_id) {
+    ASSIGN_OR_RETURN(spawn_points[spawn_id],
+                     zelda3::DungeonSpawnPoint::Load(*rom_, spawn_id));
+  }
   return absl::OkStatus();
 }
 

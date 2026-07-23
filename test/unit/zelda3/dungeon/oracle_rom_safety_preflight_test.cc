@@ -130,7 +130,9 @@ TEST(OracleRomSafetyPreflightTest, SucceedsWhenRequiredRoomHasCollisionData) {
 
     yaze::cli::handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
     std::string out;
-    ASSERT_TRUE(handler.Run({"--in", tmp, "--format=json"}, &rom, &out).ok());
+    ASSERT_TRUE(
+        handler.Run({"--in", tmp, "--mock-rom", "--format=json"}, &rom, &out)
+            .ok());
     std::filesystem::remove(tmp);
   }
 
