@@ -211,7 +211,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   }
   bool IsRomHashMismatch() const { return rom_lifecycle_.IsRomHashMismatch(); }
   std::vector<editor::RomFileManager::BackupEntry> GetRomBackups() const;
+  bool IsRomBackupRestorePending() const;
   absl::Status RestoreRomBackup(const std::string& backup_path);
+  absl::Status DiscardPendingRomBackupRestore();
   absl::Status PruneRomBackups();
   void ConfirmRomWrite();
   void CancelRomWriteConfirm();

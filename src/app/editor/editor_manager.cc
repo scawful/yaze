@@ -5885,6 +5885,14 @@ std::vector<RomFileManager::BackupEntry> EditorManager::GetRomBackups() const {
   return rom_lifecycle_.GetRomBackups(GetCurrentRom());
 }
 
+bool EditorManager::IsRomBackupRestorePending() const {
+  if (!session_coordinator_) {
+    return false;
+  }
+  const auto* session = session_coordinator_->GetActiveRomSession();
+  return session != nullptr && session->backup_restore_pending;
+}
+
 absl::Status EditorManager::RestoreRomBackup(const std::string& backup_path) {
   auto* rom = GetCurrentRom();
   if (!rom) {
@@ -5911,14 +5919,15 @@ absl::Status EditorManager::RestoreRomBackup(const std::string& backup_path) {
 
   // Load the backup away from the live session. Backups may legitimately have
   // a different size when they predate a ROM expansion or shrink. Reusing the
-  // transactional ROM-replacement path keeps the prior ROM and editor assets
-  // recoverable if reloading the backup fails partway through.
+  // ROM-replacement path restores the prior ROM bytes and backing identity if
+  // rebuilding assets fails partway through.
   Rom restored_rom;
   RETURN_IF_ERROR(rom_file_manager_.LoadRom(&restored_rom, backup_path));
 
   if (!original_filename.empty()) {
     restored_rom.set_filename(original_filename);
   }
+  RETURN_IF_ERROR(rom_lifecycle_.CheckRomOpenPolicy(&restored_rom));
   // Normal ROM backups do not copy the active `.labels` sidecar. Preserve the
   // session's loaded and in-memory resource labels instead of replacing them
   // with the usually-empty `<backup>.labels` lookup from LoadFromFile().
@@ -5934,6 +5943,47 @@ absl::Status EditorManager::RestoreRomBackup(const std::string& backup_path) {
         "ROM backup restored without an active session to stage it");
   }
   restored_session->backup_restore_pending = true;
+  return absl::OkStatus();
+}
+
+absl::Status EditorManager::DiscardPendingRomBackupRestore() {
+  if (!session_coordinator_) {
+    return absl::FailedPreconditionError("No session coordinator");
+  }
+  auto* session = session_coordinator_->GetActiveRomSession();
+  if (!session || !session->rom.is_loaded()) {
+    return absl::FailedPreconditionError("No ROM loaded");
+  }
+  if (!session->backup_restore_pending) {
+    return absl::FailedPreconditionError("No restored backup is staged");
+  }
+
+  const size_t session_index = GetCurrentSessionIndex();
+  if (PendingDungeonRoomCountForSession(session_index) > 0 ||
+      gfx::PaletteManager::Get().HasUnsavedChanges(&session->game_data)) {
+    return absl::FailedPreconditionError(
+        "Resolve pending dungeon-room or palette edits before discarding the "
+        "restored backup");
+  }
+
+  const std::string backing_path = session->rom.filename();
+  if (backing_path.empty()) {
+    return absl::FailedPreconditionError("ROM has no backing file to reload");
+  }
+
+  // Load into scratch storage before touching the live session so file I/O
+  // failures preserve the staged ROM. Resource labels are session work, not
+  // part of normal ROM backups, so preserve them across the byte-level discard.
+  const project::ResourceLabelManager resource_labels =
+      *session->rom.resource_label();
+  Rom backing_rom;
+  RETURN_IF_ERROR(rom_file_manager_.LoadRom(&backing_rom, backing_path));
+  *backing_rom.resource_label() = resource_labels;
+  RETURN_IF_ERROR(
+      ReplaceActiveSessionRom(std::move(backing_rom), backing_path));
+
+  session->backup_restore_pending = false;
+  session->rom.ClearDirty();
   return absl::OkStatus();
 }
 
@@ -5972,6 +6022,13 @@ void EditorManager::DuplicateCurrentSession() {
 
 void EditorManager::CloseCurrentSession() {
   if (!session_coordinator_) {
+    return;
+  }
+
+  if (!session_coordinator_->HasMultipleSessions()) {
+    // Preserve the coordinator's existing warning without offering a
+    // "Close Without Saving" action that cannot close the final session.
+    session_coordinator_->CloseCurrentSession();
     return;
   }
 
