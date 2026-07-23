@@ -71,6 +71,7 @@ class DungeonPlaceObjectCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const override {
     return "dungeon-place-object --room <hex> --id <hex> --x <int> --y <int> "
            "[--size <int>] [--layer <0|1|2>] "
+           "[--manifest <path>] "
            "[--write] [--format <json|text>]";
   }
 
@@ -88,12 +89,9 @@ class DungeonPlaceObjectCommandHandler : public resources::CommandHandler {
  * Supports setting one or more tiles. Dry-run by default.
  * Use --write to commit + save ROM.
  */
-class DungeonSetCollisionTileCommandHandler
-    : public resources::CommandHandler {
+class DungeonSetCollisionTileCommandHandler : public resources::CommandHandler {
  public:
-  std::string GetName() const override {
-    return "dungeon-set-collision-tile";
-  }
+  std::string GetName() const override { return "dungeon-set-collision-tile"; }
   std::string GetDescription() const {
     return "Set custom collision tiles in a dungeon room";
   }

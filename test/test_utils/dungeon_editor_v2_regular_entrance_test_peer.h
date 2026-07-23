@@ -7,8 +7,8 @@
 
 namespace yaze::editor {
 
-// Narrow test-only access to the regular-entrance save path. Spawn records are
-// deliberately excluded until their distinct ROM schema is modeled correctly.
+// Narrow test-only access to the regular-entrance save path. Spawn records use
+// the separate DungeonSpawnPoint peer below.
 class DungeonEditorV2RegularEntranceTestPeer {
  public:
   static zelda3::RoomEntrance& RegularEntrance(DungeonEditorV2& editor,
@@ -21,6 +21,26 @@ class DungeonEditorV2RegularEntranceTestPeer {
                                          int entrance_id) {
     RegularEntrance(editor, entrance_id) =
         zelda3::RoomEntrance(editor.rom_, entrance_id, false);
+  }
+};
+
+// Narrow test-only access to the dedicated production spawn model. The editor
+// UI remains read-only until it is bound directly to these spawn-only fields.
+class DungeonEditorV2SpawnPointTestPeer {
+ public:
+  static absl::Status LoadSpawnPointFromRom(DungeonEditorV2& editor,
+                                            int spawn_id) {
+    auto loaded = zelda3::DungeonSpawnPoint::Load(*editor.rom_, spawn_id);
+    if (!loaded.ok()) {
+      return loaded.status();
+    }
+    SpawnPoint(editor, spawn_id) = *loaded;
+    return absl::OkStatus();
+  }
+
+  static zelda3::DungeonSpawnPoint& SpawnPoint(DungeonEditorV2& editor,
+                                               int spawn_id) {
+    return editor.spawn_points_.at(static_cast<size_t>(spawn_id));
   }
 };
 

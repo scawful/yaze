@@ -1,11 +1,19 @@
 #ifndef YAZE_SRC_CLI_HANDLERS_DUNGEON_COMMANDS_H_
 #define YAZE_SRC_CLI_HANDLERS_DUNGEON_COMMANDS_H_
 
+#include <string_view>
+
 #include "cli/service/resources/command_handler.h"
 
 namespace yaze {
 namespace cli {
 namespace handlers {
+
+// Writes the dedicated seven-record dungeon spawn schema. If object_title is
+// non-empty, the report is nested under an object with that name.
+absl::Status WriteDungeonSpawnPointReport(Rom* rom, int spawn_id,
+                                          resources::OutputFormatter& formatter,
+                                          std::string_view object_title);
 
 /**
  * @brief Command handler for listing sprites in a dungeon room
@@ -40,7 +48,7 @@ class DungeonDescribeRoomCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const {
     return "dungeon-describe-room --room <room_id> [--sprite-registry <path>] "
-           "[--format <json|text>]";
+           "[--include-objects] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
@@ -169,7 +177,7 @@ class DungeonSetRoomPropertyCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const {
     return "dungeon-set-room-property --room <room_id> --property <property> "
-           "--value <value> [--format <json|text>]";
+           "--value <value> [--manifest <path>] [--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {

@@ -135,6 +135,7 @@ absl::Status RoomLayout::Draw(int room_id, const uint8_t* gfx_data,
 
   ObjectDrawer drawer(rom_, room_id, gfx_data);
   drawer.SetAllowTrackCornerAliases(false);
+  drawer.SetBG1RevealMaskSource(gfx::BG1RevealMaskSource::kBG2Layout);
 
   std::vector<RoomObject> render_objects = objects_;
   for (auto& obj : render_objects) {
@@ -147,8 +148,7 @@ absl::Status RoomLayout::Draw(int room_id, const uint8_t* gfx_data,
   // upper-layer tilemap pointer set for the visible room shell. Keep track-corner
   // aliases disabled so vanilla wall corners survive, but preserve BG2 routing for
   // pit/mask objects that intentionally reveal the lower layer.
-  return drawer.DrawObjectList(render_objects, bg1, bg2, palette_group, state,
-                               &bg1);
+  return drawer.DrawObjectList(render_objects, bg1, bg2, palette_group, state);
 }
 
 }  // namespace yaze::zelda3

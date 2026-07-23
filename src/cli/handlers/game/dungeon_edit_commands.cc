@@ -1,12 +1,23 @@
 #include "cli/handlers/game/dungeon_edit_commands.h"
 
+#include <cstdint>
+#include <limits>
+#include <optional>
+#include <utility>
+#include <vector>
+
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "cli/util/hex_util.h"
+#include "core/dungeon_stream_layout_adapter.h"
+#include "core/hack_manifest.h"
+#include "core/project.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "rom/transaction.h"
 #include "util/macro.h"
+#include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/dungeon/track_collision_generator.h"
@@ -73,7 +84,7 @@ absl::Status ValidateSpriteCoord(int value, char axis) {
 absl::Status SaveRomWithBackup(Rom* rom,
                                resources::OutputFormatter& formatter) {
   Rom::SaveSettings save_settings;
-  save_settings.backup = true;
+  save_settings.require_backup = true;
   auto disk_status = rom->SaveToFile(save_settings);
   if (!disk_status.ok()) {
     formatter.AddField("save_error", std::string(disk_status.message()));
@@ -82,6 +93,150 @@ absl::Status SaveRomWithBackup(Rom* rom,
 
   formatter.AddField("save_status", "saved");
   return absl::OkStatus();
+}
+
+template <typename Mutation>
+absl::Status MutateAndSaveRomWithBackup(Rom* rom,
+                                        resources::OutputFormatter& formatter,
+                                        Mutation&& mutation) {
+  ScopedRomTransaction transaction(*rom);
+
+  auto write_status = std::forward<Mutation>(mutation)();
+  if (!write_status.ok()) {
+    formatter.AddField("write_error", std::string(write_status.message()));
+    return write_status;
+  }
+  formatter.AddField("write_status", "success");
+
+  RETURN_IF_ERROR(SaveRomWithBackup(rom, formatter));
+  transaction.Commit();
+  return absl::OkStatus();
+}
+
+struct ObjectSaveManifestContext {
+  core::HackManifest manifest;
+  zelda3::DungeonStreamLayout allocator_layout;
+  // A standalone --manifest is a safety capability, not permission to ignore
+  // ownership. Unlike a project, the CLI has no separate policy setting, so
+  // protected writes are always blocked.
+  project::RomWritePolicy write_policy = project::RomWritePolicy::kBlock;
+};
+
+absl::StatusOr<std::optional<ObjectSaveManifestContext>>
+LoadObjectSaveManifestContext(const resources::ArgumentParser& parser) {
+  const auto manifest_path = parser.GetString("manifest");
+  if (!manifest_path.has_value()) {
+    return std::nullopt;
+  }
+
+  ObjectSaveManifestContext context;
+  RETURN_IF_ERROR(context.manifest.LoadFromFile(*manifest_path));
+  const core::DungeonStreamLayout* manifest_layout =
+      context.manifest.GetDungeonStreamLayout(
+          core::DungeonStreamType::kObjects);
+  if (manifest_layout == nullptr) {
+    return absl::FailedPreconditionError(
+        "Manifest does not define dungeon_stream_regions.objects");
+  }
+  if (manifest_layout->strategy != core::DungeonWriteStrategy::kCopyOnWrite) {
+    return absl::FailedPreconditionError(
+        "dungeon_stream_regions.objects must use copy_on_write");
+  }
+
+  ASSIGN_OR_RETURN(context.allocator_layout,
+                   core::ToDungeonStreamAllocatorLayout(
+                       core::DungeonStreamType::kObjects, *manifest_layout));
+  return std::optional<ObjectSaveManifestContext>(std::move(context));
+}
+
+absl::Status ValidateObjectSaveManifestConflicts(
+    const Rom& source_rom, int room_id, const zelda3::Room& pending_room,
+    const ObjectSaveManifestContext& context) {
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+
+  // Match DungeonEditorV2's conservative object-save prediction: validate the
+  // selected in-place stream, the door pointer, every possible COW allocation,
+  // and the selected object-pointer slot before exercising either save path.
+  uint32_t object_pointer_table_snes = 0;
+  ASSIGN_OR_RETURN(object_pointer_table_snes,
+                   source_rom.ReadLong(zelda3::kRoomObjectPointer));
+  const uint32_t object_pointer_table_pc = SnesToPc(object_pointer_table_snes);
+  const uint64_t current_pointer_slot =
+      static_cast<uint64_t>(object_pointer_table_pc) +
+      static_cast<uint64_t>(room_id) * 3u;
+  if (current_pointer_slot + 3u > source_rom.size()) {
+    return absl::OutOfRangeError(
+        "Selected object pointer slot is outside the ROM");
+  }
+
+  uint32_t current_stream_snes = 0;
+  ASSIGN_OR_RETURN(current_stream_snes,
+                   source_rom.ReadLong(static_cast<int>(current_pointer_slot)));
+  const uint32_t current_stream_pc = SnesToPc(current_stream_snes);
+  const uint64_t current_stream_end = static_cast<uint64_t>(current_stream_pc) +
+                                      pending_room.EncodeObjects().size() + 2u;
+  if (current_stream_end > std::numeric_limits<uint32_t>::max()) {
+    return absl::OutOfRangeError("Selected object write range overflows");
+  }
+  ranges.emplace_back(current_stream_pc,
+                      static_cast<uint32_t>(current_stream_end));
+
+  const uint64_t door_pointer_slot =
+      static_cast<uint64_t>(zelda3::kDoorPointers) +
+      static_cast<uint64_t>(room_id) * 3u;
+  if (door_pointer_slot + 3u > std::numeric_limits<uint32_t>::max()) {
+    return absl::OutOfRangeError("Selected door pointer range overflows");
+  }
+  ranges.emplace_back(static_cast<uint32_t>(door_pointer_slot),
+                      static_cast<uint32_t>(door_pointer_slot + 3u));
+
+  for (const auto& range : context.allocator_layout.allocation_ranges) {
+    ranges.emplace_back(range.begin, range.end);
+  }
+  const uint32_t pointer_width = context.allocator_layout.pointer_encoding ==
+                                         zelda3::DungeonPointerEncoding::kLong24
+                                     ? 3u
+                                     : 2u;
+  const uint64_t cow_pointer_slot =
+      static_cast<uint64_t>(context.allocator_layout.pointer_table_pc) +
+      static_cast<uint64_t>(room_id) * pointer_width;
+  if (cow_pointer_slot + pointer_width > std::numeric_limits<uint32_t>::max()) {
+    return absl::OutOfRangeError("Selected COW pointer range overflows");
+  }
+  ranges.emplace_back(static_cast<uint32_t>(cow_pointer_slot),
+                      static_cast<uint32_t>(cow_pointer_slot + pointer_width));
+
+  const auto conflicts = context.manifest.AnalyzePcWriteRanges(ranges);
+  if (conflicts.empty() ||
+      context.write_policy != project::RomWritePolicy::kBlock) {
+    return absl::OkStatus();
+  }
+  return absl::PermissionDeniedError("Write conflict with Hack Manifest");
+}
+
+absl::Status PreflightObjectSave(
+    const Rom& source_rom, int room_id, const zelda3::RoomObject& object,
+    const zelda3::Room& pending_room,
+    const ObjectSaveManifestContext* manifest_context) {
+  if (manifest_context != nullptr) {
+    RETURN_IF_ERROR(ValidateObjectSaveManifestConflicts(
+        source_rom, room_id, pending_room, *manifest_context));
+  }
+
+  // Exercise the exact Room::SaveObjects path against an isolated snapshot so
+  // dry-run capacity and allocator outcomes match --write without mutating the
+  // caller's ROM.
+  Rom scratch_rom;
+  Rom::LoadOptions options;
+  options.strip_header = false;
+  options.load_resource_labels = false;
+  RETURN_IF_ERROR(scratch_rom.LoadFromData(source_rom.vector(), options));
+
+  zelda3::Room scratch_room = zelda3::LoadRoomFromRom(&scratch_rom, room_id);
+  RETURN_IF_ERROR(scratch_room.AddObject(object));
+  return scratch_room.SaveObjects(manifest_context != nullptr
+                                      ? &manifest_context->allocator_layout
+                                      : nullptr);
 }
 
 }  // namespace
@@ -179,18 +334,11 @@ absl::Status DungeonPlaceSpriteCommandHandler::Execute(
   formatter.AddField("mode", do_write ? "write" : "dry-run");
 
   if (do_write) {
-    auto save_status = room.SaveSprites();
+    auto save_status = MutateAndSaveRomWithBackup(
+        rom, formatter, [&room]() { return room.SaveSprites(); });
     if (!save_status.ok()) {
-      formatter.AddField("write_error", std::string(save_status.message()));
       formatter.EndObject();
       return save_status;
-    }
-    formatter.AddField("write_status", "success");
-
-    auto disk_status = SaveRomWithBackup(rom, formatter);
-    if (!disk_status.ok()) {
-      formatter.EndObject();
-      return disk_status;
     }
   }
 
@@ -304,18 +452,11 @@ absl::Status DungeonRemoveSpriteCommandHandler::Execute(
   formatter.AddField("mode", do_write ? "write" : "dry-run");
 
   if (do_write) {
-    auto save_status = room.SaveSprites();
+    auto save_status = MutateAndSaveRomWithBackup(
+        rom, formatter, [&room]() { return room.SaveSprites(); });
     if (!save_status.ok()) {
-      formatter.AddField("write_error", std::string(save_status.message()));
       formatter.EndObject();
       return save_status;
-    }
-    formatter.AddField("write_status", "success");
-
-    auto disk_status = SaveRomWithBackup(rom, formatter);
-    if (!disk_status.ok()) {
-      formatter.EndObject();
-      return disk_status;
     }
   }
 
@@ -393,6 +534,12 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
     return absl::InvalidArgumentError("Size must be 0-255");
   }
 
+  std::optional<ObjectSaveManifestContext> manifest_context;
+  ASSIGN_OR_RETURN(manifest_context, LoadObjectSaveManifestContext(parser));
+  const zelda3::DungeonStreamLayout* layout =
+      manifest_context.has_value() ? &manifest_context->allocator_layout
+                                   : nullptr;
+
   // Load room with full objects
   zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
 
@@ -418,6 +565,13 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
   formatter.AddField("size", size);
   formatter.AddField("layer", layer);
   formatter.AddField("objects_before", count_before);
+  if (const auto manifest_path = parser.GetString("manifest");
+      manifest_path.has_value()) {
+    formatter.AddField("manifest", *manifest_path);
+    formatter.AddField("manifest_write_policy", "block");
+  }
+  formatter.AddField("allocator_capability",
+                     layout != nullptr ? "copy_on_write" : "none");
 
   // Add the object
   auto add_status = room.AddObject(obj);
@@ -431,19 +585,24 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
                      static_cast<int>(room.GetTileObjects().size()));
   formatter.AddField("mode", do_write ? "write" : "dry-run");
 
+  const auto preflight_status = PreflightObjectSave(
+      *rom, room_id, obj, room,
+      manifest_context.has_value() ? &*manifest_context : nullptr);
+  if (!preflight_status.ok()) {
+    formatter.AddField("preflight_status", "failed");
+    formatter.AddField("preflight_error",
+                       std::string(preflight_status.message()));
+    formatter.EndObject();
+    return preflight_status;
+  }
+  formatter.AddField("preflight_status", "success");
+
   if (do_write) {
-    auto save_status = room.SaveObjects();
+    auto save_status = MutateAndSaveRomWithBackup(
+        rom, formatter, [&room, layout]() { return room.SaveObjects(layout); });
     if (!save_status.ok()) {
-      formatter.AddField("write_error", std::string(save_status.message()));
       formatter.EndObject();
       return save_status;
-    }
-    formatter.AddField("write_status", "success");
-
-    auto disk_status = SaveRomWithBackup(rom, formatter);
-    if (!disk_status.ok()) {
-      formatter.EndObject();
-      return disk_status;
     }
   }
 
@@ -551,20 +710,15 @@ absl::Status DungeonSetCollisionTileCommandHandler::Execute(
   formatter.EndArray();
 
   if (do_write) {
-    // Flush collision changes to ROM
-    std::array<zelda3::Room, 1> rooms_arr = {std::move(room)};
-    auto save_status = zelda3::SaveAllCollision(rom, absl::MakeSpan(rooms_arr));
+    auto save_status =
+        MutateAndSaveRomWithBackup(rom, formatter, [&rom, &room]() mutable {
+          // Flush collision changes to ROM.
+          std::array<zelda3::Room, 1> rooms_arr = {std::move(room)};
+          return zelda3::SaveAllCollision(rom, absl::MakeSpan(rooms_arr));
+        });
     if (!save_status.ok()) {
-      formatter.AddField("write_error", std::string(save_status.message()));
       formatter.EndObject();
       return save_status;
-    }
-    formatter.AddField("write_status", "success");
-
-    auto disk_status = SaveRomWithBackup(rom, formatter);
-    if (!disk_status.ok()) {
-      formatter.EndObject();
-      return disk_status;
     }
   }
 

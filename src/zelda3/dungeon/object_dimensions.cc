@@ -906,15 +906,17 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xF8E] = {1, 1, Dir::None, 0, false};
   dimensions_[0xF8F] = {1, 1, Dir::None, 0, false};
 
-  // Prison cell bars (10x4 tiles)
-  dimensions_[0xF8D] = {10, 4, Dir::None, 0, false};
-  dimensions_[0xF97] = {10, 4, Dir::None, 0, false};
+  // Prison cell bars ($019C44 spans x..x+15 and four rows)
+  dimensions_[0xF8D] = {16, 4, Dir::None, 0, false};
+  dimensions_[0xF97] = {16, 4, Dir::None, 0, false};
   // Rupee floor pattern
   dimensions_[0xF92] = {5, 8, Dir::None, 0, false};
   // Table/rock 4x3 repeated with 8-tile spacing
   dimensions_[0xF94] = {4, 3, Dir::Horizontal, 8, false};
   // Single hammer peg (fixed 2x2)
   dimensions_[0xF96] = {2, 2, Dir::None, 0, false};
+  // Bombable floor (fixed 4x4 in both intact and open states)
+  dimensions_[0xFC7] = {4, 4, Dir::None, 0, false};
   // Boss shells (single 4x4)
   dimensions_[0xF95] = {4, 4, Dir::None, 0, false};
   dimensions_[0xFF2] = {4, 4, Dir::None, 0, false};

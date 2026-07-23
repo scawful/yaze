@@ -901,22 +901,25 @@ void Room::CopyRoomGraphicsToBuffer() {
   //
   // For background graphics sets, the game selects Left/Right based on the
   // active main graphics group ($0AA1) and the slot index ($0F).
-  // For UW groups (< $20), slots 4-7 use Right; for OW groups (>= $20), the
-  // Right slots are {2,3,4,7}. We mirror this by shifting non-zero pixels by
-  // +8 when copying those background blocks into current_gfx16_.
+  // InitializeTilesets starts $0F at 7 for destination block 0 and decrements
+  // it through destination block 7, so the runtime slot is 7 - block. For UW
+  // groups (< $20), runtime slots 4-7 use Right; for OW groups (>= $20), the
+  // Right runtime slots are {2,3,4,7}.
   const uint8_t active_main_blockset =
       resolved_main_blockset_ != 0xFF
           ? resolved_main_blockset_
           : (render_entrance_blockset_ != 0xFF ? render_entrance_blockset_
                                                : blockset_);
-  auto is_right_palette_background_slot = [&](int slot) -> bool {
-    if (slot < 0 || slot >= 8) {
+  auto is_right_palette_background_slot = [&](int block) -> bool {
+    if (block < 0 || block >= 8) {
       return false;
     }
+    const int runtime_slot = 7 - block;
     if (active_main_blockset < 0x20) {
-      return slot >= 4;
+      return runtime_slot >= 4;
     }
-    return (slot == 2 || slot == 3 || slot == 4 || slot == 7);
+    return (runtime_slot == 2 || runtime_slot == 3 || runtime_slot == 4 ||
+            runtime_slot == 7);
   };
 
   // Process each of the 16 graphics blocks
@@ -1245,6 +1248,10 @@ void Room::LoadLayoutTilesToBuffer() {
     return;
   }
 
+  // Rebuild only layout-owned reveal requests. Room-object masks share this
+  // raw BG1 target and remain valid when just the layout is rerendered.
+  bg1_buffer_.ClearBG1RevealMask(gfx::BG1RevealMaskSource::kBG2Layout);
+
   // Load layout tiles from ROM if not already loaded
   layout_.SetRom(rom_);
   auto layout_status = layout_.LoadLayout(layout_id_);
@@ -1344,10 +1351,12 @@ void Room::RenderObjectsToBackground() {
   // correct tiles
   ObjectDrawer drawer(rom_, room_id_, current_gfx16_.data());
   drawer.SetAllowTrackCornerAliases(RoomUsesTrackCornerAliases(tile_objects_));
-  // NOTE: BothBG routines (ceiling corners, merged stairs, prison cells) are
-  // handled by DrawRoutineRegistry's draws_to_both_bgs flag. The room object
-  // stream is split here as primary -> BG2 overlay -> BG1 overlay, while the
-  // layout pass is rendered separately by RoomLayout::Draw.
+  drawer.SetBG1RevealMaskSource(gfx::BG1RevealMaskSource::kBG2Objects);
+  // NOTE: Routines that explicitly write both tilemaps (ceiling corners and
+  // merged stairs) are handled by DrawRoutineRegistry's draws_to_both_bgs
+  // flag. The room object stream is split here as primary -> BG2 overlay ->
+  // BG1 overlay, while the layout pass is rendered separately by
+  // RoomLayout::Draw.
 
   // Clear object buffers before rendering
   // IMPORTANT: Fill with 255 (transparent color key) so objects overlay correctly
@@ -1367,6 +1376,11 @@ void Room::RenderObjectsToBackground() {
   // can cause objects to incorrectly clear the layout.
   object_bg1_buffer_.ClearCoverageBuffer();
   object_bg2_buffer_.ClearCoverageBuffer();
+
+  // Room-object masks target both raw BG1 stacks. Clear only their source bit
+  // so layout-owned reveals survive an object-only rerender.
+  object_bg1_buffer_.ClearBG1RevealMask(gfx::BG1RevealMaskSource::kBG2Objects);
+  bg1_buffer_.ClearBG1RevealMask(gfx::BG1RevealMaskSource::kBG2Objects);
 
   // Log stream distribution for this room.
   // USDASM order is: main list -> BG2 overlay list -> BG1 overlay list.
@@ -1397,11 +1411,13 @@ void Room::RenderObjectsToBackground() {
   // `tile_objects_[].layer_` holds the list index (0/1/2) for save/load, not
   // the buffer name. Map with MapRoomObjectListIndexToDrawLayer before drawing.
   // BothBG routines still fan out to both buffers via DrawRoutineRegistry.
-  // Pass bg1_buffer_ for BG2 mask propagation so pits/layer masks can create
-  // holes in BG1 that reveal BG2 beneath.
+  // Pass bg1_buffer_ as the second raw BG1 target. BG2 room objects record
+  // deferred reveal bits on both layout and object targets without mutating
+  // either bitmap.
   //
-  // Three DrawObjectList passes match USDASM list order; chest indices continue
-  // across passes (reset_chest_index only on the first non-empty pass).
+  // Three DrawObjectList passes match USDASM list order; the shared chest/
+  // big-key-lock event index continues across passes (reset only on the first
+  // non-empty pass).
   std::vector<std::vector<RoomObject>> by_list(3);
   for (const auto& obj : tile_objects_) {
     // Torches and pushable blocks are NOT part of the room object stream.
@@ -1424,15 +1440,15 @@ void Room::RenderObjectsToBackground() {
   }
 
   absl::Status status = absl::OkStatus();
-  bool reset_chest_for_next_chunk = true;
+  bool reset_room_events_for_next_chunk = true;
   for (int pass = 0; pass < 3; ++pass) {
     if (by_list[pass].empty()) {
       continue;
     }
     auto chunk_status = drawer.DrawObjectList(
         by_list[pass], object_bg1_buffer_, object_bg2_buffer_, palette_group,
-        dungeon_state_.get(), &bg1_buffer_, reset_chest_for_next_chunk);
-    reset_chest_for_next_chunk = false;
+        dungeon_state_.get(), &bg1_buffer_, reset_room_events_for_next_chunk);
+    reset_room_events_for_next_chunk = false;
     if (!chunk_status.ok() && status.ok()) {
       status = chunk_status;
     }
@@ -2091,6 +2107,104 @@ absl::Status Room::SaveObjects(const DungeonStreamLayout* layout) {
   return absl::OkStatus();
 }
 
+absl::Status Room::SaveObjectStreamHeader(const DungeonStreamLayout* layout) {
+  if (rom_ == nullptr) {
+    return absl::InvalidArgumentError("ROM pointer is null");
+  }
+  if (!object_stream_header_dirty()) {
+    return absl::OkStatus();
+  }
+  if (floor1_graphics_ > 0x0F || floor2_graphics_ > 0x0F) {
+    return absl::InvalidArgumentError(
+        "Dungeon floor graphics values must be in range 0..15");
+  }
+  if (layout_id_ > 0x07) {
+    return absl::InvalidArgumentError(
+        "Dungeon layout ID must be in range 0..7");
+  }
+
+  const auto& rom_data = rom_->vector();
+  ASSIGN_OR_RETURN(const PhysicalStreamInfo stream_info,
+                   GetObjectStreamInfo(rom_data, room_id_));
+  if (stream_info.address < 0 ||
+      stream_info.address + 1 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Object stream header is out of range");
+  }
+
+  const uint8_t dirty_mask = save_dirty_state_.object_stream_header;
+  auto patch_header = [&](std::vector<uint8_t>* stream) -> absl::Status {
+    if (stream == nullptr || stream->size() < 2) {
+      return absl::DataLossError(
+          "Object stream is missing its two-byte header");
+    }
+    if ((dirty_mask & kObjectHeaderFloor1Dirty) != 0) {
+      (*stream)[0] = static_cast<uint8_t>(((*stream)[0] & 0xF0) |
+                                          (floor1_graphics_ & 0x0F));
+    }
+    if ((dirty_mask & kObjectHeaderFloor2Dirty) != 0) {
+      (*stream)[0] =
+          static_cast<uint8_t>(((*stream)[0] & 0x0F) | (floor2_graphics_ << 4));
+    }
+    if ((dirty_mask & kObjectHeaderLayoutDirty) != 0) {
+      (*stream)[1] = static_cast<uint8_t>(((*stream)[1] & 0xE3) |
+                                          ((layout_id_ & 0x07) << 2));
+    }
+    return absl::OkStatus();
+  };
+
+  bool requires_copy_on_write = stream_info.shared;
+  std::vector<uint8_t> replacement;
+  if (layout != nullptr) {
+    if (layout->kind != DungeonStreamKind::kObject) {
+      return absl::InvalidArgumentError(
+          "Object-stream header save requires an object stream layout");
+    }
+    ASSIGN_OR_RETURN(const DungeonStreamInventory inventory,
+                     InventoryDungeonStreams(*rom_, *layout));
+    if (!inventory.ok()) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Dungeon stream inventory has %zu issue(s); refusing object "
+          "header save",
+          inventory.issues.size()));
+    }
+    if (room_id_ < 0 ||
+        static_cast<size_t>(room_id_) >= inventory.streams.size()) {
+      return absl::OutOfRangeError(
+          "Room ID is outside the dungeon stream layout");
+    }
+    replacement = inventory.streams[room_id_].encoded_stream;
+    bool layout_requires_copy_on_write = false;
+    ASSIGN_OR_RETURN(layout_requires_copy_on_write,
+                     DungeonStreamRequiresCopyOnWrite(
+                         *rom_, room_id_, DungeonStreamKind::kObject, *layout,
+                         replacement.size()));
+    requires_copy_on_write =
+        requires_copy_on_write || layout_requires_copy_on_write;
+  }
+
+  if (requires_copy_on_write) {
+    if (layout == nullptr) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Room %d object stream at PC 0x%06X is shared; a copy-on-write "
+          "manifest is required to save its header",
+          room_id_, stream_info.address));
+    }
+    RETURN_IF_ERROR(patch_header(&replacement));
+    RETURN_IF_ERROR(RelocateDungeonStream(rom_, room_id_,
+                                          DungeonStreamKind::kObject, *layout,
+                                          std::move(replacement)));
+    ClearObjectStreamHeaderDirty();
+    return absl::OkStatus();
+  }
+
+  std::vector<uint8_t> header = {rom_data[stream_info.address],
+                                 rom_data[stream_info.address + 1]};
+  RETURN_IF_ERROR(patch_header(&header));
+  RETURN_IF_ERROR(rom_->WriteVector(stream_info.address, std::move(header)));
+  ClearObjectStreamHeaderDirty();
+  return absl::OkStatus();
+}
+
 absl::Status Room::SaveSprites(const DungeonStreamLayout* layout) {
   if (rom_ == nullptr) {
     return absl::InvalidArgumentError("ROM pointer is null");
@@ -2210,7 +2324,8 @@ absl::Status Room::SaveRoomHeader() {
       IsLight() || is_dark_ || bg2() == background2::DarkRoom;
   uint8_t byte0 = static_cast<uint8_t>(
       (layer2_mode_for_save << 5) |
-      ((static_cast<uint8_t>(collision()) & 0x07) << 2) | (dark_room ? 1 : 0));
+      ((static_cast<uint8_t>(collision()) & 0x07) << 2) |
+      (rom_data[header_location] & 0x02) | (dark_room ? 1 : 0));
   // Preserve the full palette set ID byte (USDASM LoadRoomHeader uses 8-bit).
   uint8_t byte1 = palette_;
   // Byte 7 stores the pit target layer in bits 0-1 followed by the first
@@ -2218,6 +2333,8 @@ absl::Status Room::SaveRoomHeader() {
   uint8_t byte7 =
       (pits_.target_layer & 0x03) | ((staircase_plane(0) & 0x03) << 2) |
       ((staircase_plane(1) & 0x03) << 4) | ((staircase_plane(2) & 0x03) << 6);
+  const uint8_t byte8 = static_cast<uint8_t>(
+      (rom_data[header_location + 8] & 0xFC) | (staircase_plane(3) & 0x03));
 
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 0, byte0));
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 1, byte1));
@@ -2230,7 +2347,7 @@ absl::Status Room::SaveRoomHeader() {
   RETURN_IF_ERROR(
       rom_->WriteByte(header_location + 6, static_cast<uint8_t>(tag2())));
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 7, byte7));
-  RETURN_IF_ERROR(rom_->WriteByte(header_location + 8, staircase_plane(3)));
+  RETURN_IF_ERROR(rom_->WriteByte(header_location + 8, byte8));
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 9, holewarp_));
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 10, staircase_room(0)));
   RETURN_IF_ERROR(rom_->WriteByte(header_location + 11, staircase_room(1)));

@@ -347,9 +347,12 @@ TEST_F(PaletteManagerTest, DungeonRenderEditsMapToManagedHudAndDungeonColors) {
   widget.SetCurrentPaletteId(1);
   int callback_count = 0;
   int callback_palette = -1;
-  widget.SetOnPaletteChanged([&](int palette_id) {
+  gui::DungeonRenderPaletteSource callback_source =
+      gui::DungeonRenderPaletteSource::kDungeonMain;
+  widget.SetOnDungeonPaletteChanged([&](gui::DungeonPaletteChange change) {
     ++callback_count;
-    callback_palette = palette_id;
+    callback_palette = change.palette_id;
+    callback_source = change.source;
   });
 
   constexpr int kHudDisplayIndex = 17;
@@ -362,10 +365,12 @@ TEST_F(PaletteManagerTest, DungeonRenderEditsMapToManagedHudAndDungeonColors) {
 
   ASSERT_TRUE(
       widget.ApplyDungeonRenderColorEdit(kHudDisplayIndex, new_hud_color).ok());
+  EXPECT_EQ(callback_source, gui::DungeonRenderPaletteSource::kHud);
   ASSERT_TRUE(
       widget
           .ApplyDungeonRenderColorEdit(kDungeonDisplayIndex, new_dungeon_color)
           .ok());
+  EXPECT_EQ(callback_source, gui::DungeonRenderPaletteSource::kDungeonMain);
 
   EXPECT_TRUE(manager.IsColorModified("hud", 0, kHudDisplayIndex));
   EXPECT_TRUE(manager.IsColorModified("dungeon_main", 1, kDungeonColorIndex));
@@ -586,7 +591,8 @@ TEST_F(PaletteManagerTest,
   stale_widget.SetDungeonRenderPaletteMode(true);
   stale_widget.SetCurrentPaletteId(1);
   int callback_count = 0;
-  stale_widget.SetOnPaletteChanged([&](int) { ++callback_count; });
+  stale_widget.SetOnDungeonPaletteChanged(
+      [&](gui::DungeonPaletteChange) { ++callback_count; });
 
   constexpr int kDungeonDisplayIndex = 99;
   constexpr int kDungeonColorIndex = 62;
