@@ -5843,6 +5843,14 @@ std::vector<RomFileManager::BackupEntry> EditorManager::GetRomBackups() const {
   return rom_lifecycle_.GetRomBackups(GetCurrentRom());
 }
 
+bool EditorManager::IsRomBackupRestorePending() const {
+  if (!session_coordinator_) {
+    return false;
+  }
+  const auto* session = session_coordinator_->GetActiveRomSession();
+  return session != nullptr && session->backup_restore_pending;
+}
+
 absl::Status EditorManager::RestoreRomBackup(const std::string& backup_path) {
   auto* rom = GetCurrentRom();
   if (!rom) {
@@ -5892,6 +5900,39 @@ absl::Status EditorManager::RestoreRomBackup(const std::string& backup_path) {
   return absl::OkStatus();
 }
 
+absl::Status EditorManager::DiscardPendingRomBackupRestore() {
+  if (!session_coordinator_) {
+    return absl::FailedPreconditionError("No session coordinator");
+  }
+  auto* session = session_coordinator_->GetActiveRomSession();
+  if (!session || !session->rom.is_loaded()) {
+    return absl::FailedPreconditionError("No ROM loaded");
+  }
+  if (!session->backup_restore_pending) {
+    return absl::FailedPreconditionError("No restored backup is staged");
+  }
+
+  const std::string backing_path = session->rom.filename();
+  if (backing_path.empty()) {
+    return absl::FailedPreconditionError("ROM has no backing file to reload");
+  }
+
+  // Reload into scratch storage so any file or asset-loading failure leaves the
+  // staged restore intact. Resource labels are session work, not part of normal
+  // ROM backups, so preserve them across the byte-level discard.
+  const project::ResourceLabelManager resource_labels =
+      *session->rom.resource_label();
+  Rom backing_rom;
+  RETURN_IF_ERROR(rom_file_manager_.LoadRom(&backing_rom, backing_path));
+  *backing_rom.resource_label() = resource_labels;
+  RETURN_IF_ERROR(
+      ReplaceActiveSessionRom(std::move(backing_rom), backing_path));
+
+  session->backup_restore_pending = false;
+  session->rom.ClearDirty();
+  return absl::OkStatus();
+}
+
 absl::Status EditorManager::PruneRomBackups() {
   return rom_lifecycle_.PruneRomBackups(GetCurrentRom());
 }
@@ -5927,6 +5968,13 @@ void EditorManager::DuplicateCurrentSession() {
 
 void EditorManager::CloseCurrentSession() {
   if (!session_coordinator_) {
+    return;
+  }
+
+  if (!session_coordinator_->HasMultipleSessions()) {
+    // Preserve the coordinator's existing warning without offering a
+    // "Close Without Saving" action that cannot close the final session.
+    session_coordinator_->CloseCurrentSession();
     return;
   }
 
