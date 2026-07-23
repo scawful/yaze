@@ -3105,8 +3105,14 @@ void EditorManager::UpdateEditorState() {
   // failed buffer while clearing its dirty bit.
   const bool current_session_has_unsaved_work =
       current_rom && SessionHasPendingUnsavedWork(GetCurrentSessionIndex());
+  const auto* current_session =
+      session_coordinator_ ? session_coordinator_->GetActiveRomSession()
+                           : nullptr;
+  const bool backup_restore_requires_explicit_save =
+      current_session != nullptr && current_session->backup_restore_pending;
   if (user_settings_.prefs().autosave_enabled &&
-      current_session_has_unsaved_work) {
+      current_session_has_unsaved_work &&
+      !backup_restore_requires_explicit_save) {
     autosave_timer_ += ImGui::GetIO().DeltaTime;
     if (autosave_timer_ >= user_settings_.prefs().autosave_interval) {
       autosave_timer_ = 0.0f;
@@ -4243,6 +4249,11 @@ absl::Status EditorManager::SaveRomInternal(
     editor_transactions.Commit();
     rom_transaction.Commit();
     UpdateCurrentRomHash();
+    if (session_coordinator_) {
+      if (auto* session = session_coordinator_->GetActiveRomSession()) {
+        session->backup_restore_pending = false;
+      }
+    }
     // Write-confirm bypass is single-use. Clear it after a successful save.
     rom_lifecycle_.CancelRomWriteConfirm();
 
@@ -5106,6 +5117,24 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
 
   Rom previous_rom = session->rom;
   const std::string previous_filepath = session->filepath;
+  const bool game_data_was_loaded = session->game_data_loaded;
+  auto* dungeon_editor = static_cast<DungeonEditorV2*>(
+      session->editors.GetExistingEditor(EditorType::kDungeon));
+  const size_t dungeon_index = EditorTypeIndex(EditorType::kDungeon);
+  const bool dungeon_was_initialized =
+      session->editor_initialized[dungeon_index];
+  const bool dungeon_assets_were_loaded =
+      session->editor_assets_loaded[dungeon_index];
+  auto restore_dungeon_asset_state = [&]() {
+    if (dungeon_editor) {
+      session->editor_initialized[dungeon_index] =
+          session->editor_initialized[dungeon_index] || dungeon_was_initialized;
+      session->editor_assets_loaded[dungeon_index] =
+          session->editor_assets_loaded[dungeon_index] ||
+          dungeon_assets_were_loaded;
+    }
+  };
+
   gfx::PaletteManager::Get().ReleaseSession(&session->game_data);
   session->rom = std::move(rom);
   session->filepath = filepath;
@@ -5118,6 +5147,15 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
   HandleSessionRomLoaded(GetCurrentSessionIndex(), &session->rom);
   UpdateCurrentRomHash();
   auto load_status = LoadAssetsForMode();
+  if (load_status.ok() && game_data_was_loaded && !session->game_data_loaded) {
+    load_status = EnsureGameDataLoaded();
+  }
+  if (load_status.ok() && dungeon_editor) {
+    load_status = dungeon_editor->RefreshRomBackedState();
+    if (load_status.ok()) {
+      restore_dungeon_asset_state();
+    }
+  }
   if (!load_status.ok()) {
     // Loading editors is fallible. Restore the prior ROM and rebuild its
     // assets so a failed reload never leaves a half-initialized live session.
@@ -5133,6 +5171,21 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
     HandleSessionRomLoaded(GetCurrentSessionIndex(), &session->rom);
     UpdateCurrentRomHash();
     auto rollback_status = LoadAssetsForMode();
+    if (game_data_was_loaded && !session->game_data_loaded) {
+      auto game_data_status = EnsureGameDataLoaded();
+      if (rollback_status.ok()) {
+        rollback_status = game_data_status;
+      }
+    }
+    if (dungeon_editor) {
+      auto dungeon_status = dungeon_editor->RefreshRomBackedState();
+      if (dungeon_status.ok()) {
+        restore_dungeon_asset_state();
+      }
+      if (rollback_status.ok()) {
+        rollback_status = dungeon_status;
+      }
+    }
     ApplyCurrentProjectRuntimeContext();
     if (!rollback_status.ok()) {
       return absl::InternalError(absl::StrFormat(
@@ -5361,6 +5414,11 @@ absl::Status EditorManager::AutosaveActiveSession() {
   }
   const size_t session_index = GetCurrentSessionIndex();
   RETURN_IF_ERROR(SaveActiveProjectEditingWork());
+  const auto* session = session_coordinator_->GetActiveRomSession();
+  if (session != nullptr && session->backup_restore_pending) {
+    return absl::CancelledError(
+        "Staged backup restore requires an explicit Save ROM");
+  }
   if (SessionHasPendingRomWork(session_index)) {
     RETURN_IF_ERROR(SaveRom());
   }
@@ -5832,20 +5890,51 @@ absl::Status EditorManager::RestoreRomBackup(const std::string& backup_path) {
   if (!rom) {
     return absl::FailedPreconditionError("No ROM loaded");
   }
-  const std::string original_filename = rom->filename();
-  RETURN_IF_ERROR(rom_file_manager_.LoadRom(rom, backup_path));
-  if (!original_filename.empty()) {
-    rom->set_filename(original_filename);
+  if (SessionHasPendingRomWork(GetCurrentSessionIndex())) {
+    return absl::FailedPreconditionError(
+        "Save or discard ROM edits before restoring a backup");
   }
 
-  if (session_coordinator_) {
-    if (auto* session = session_coordinator_->GetActiveRomSession()) {
-      gfx::PaletteManager::Get().ReleaseSession(&session->game_data);
-      ResetAssetState(session);
-    }
+  const std::string original_filename = rom->filename();
+  const project::ResourceLabelManager original_resource_labels =
+      *rom->resource_label();
+  const auto backups = rom_file_manager_.ListBackups(original_filename);
+  const bool is_managed_backup =
+      std::any_of(backups.begin(), backups.end(), [&](const auto& backup) {
+        return SessionCoordinator::PathsReferToSameBackingFile(backup.path,
+                                                               backup_path);
+      });
+  if (!is_managed_backup) {
+    return absl::InvalidArgumentError(
+        "Selected file is not a managed backup for the active ROM");
   }
-  UpdateCurrentRomHash();
-  return LoadAssetsForMode();
+
+  // Load the backup away from the live session. Backups may legitimately have
+  // a different size when they predate a ROM expansion or shrink. Reusing the
+  // transactional ROM-replacement path keeps the prior ROM and editor assets
+  // recoverable if reloading the backup fails partway through.
+  Rom restored_rom;
+  RETURN_IF_ERROR(rom_file_manager_.LoadRom(&restored_rom, backup_path));
+
+  if (!original_filename.empty()) {
+    restored_rom.set_filename(original_filename);
+  }
+  // Normal ROM backups do not copy the active `.labels` sidecar. Preserve the
+  // session's loaded and in-memory resource labels instead of replacing them
+  // with the usually-empty `<backup>.labels` lookup from LoadFromFile().
+  *restored_rom.resource_label() = original_resource_labels;
+  // Restore is intentionally staged in memory. Mark it dirty so closing or
+  // autosave cannot silently treat the on-disk source as already restored.
+  restored_rom.set_dirty(true);
+  RETURN_IF_ERROR(
+      ReplaceActiveSessionRom(std::move(restored_rom), original_filename));
+  auto* restored_session = session_coordinator_->GetActiveRomSession();
+  if (!restored_session) {
+    return absl::InternalError(
+        "ROM backup restored without an active session to stage it");
+  }
+  restored_session->backup_restore_pending = true;
+  return absl::OkStatus();
 }
 
 absl::Status EditorManager::PruneRomBackups() {

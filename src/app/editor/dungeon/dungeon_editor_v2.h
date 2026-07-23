@@ -44,6 +44,7 @@ namespace editor {
 
 class CustomCollisionPanel;
 class DungeonEditorV2RegularEntranceTestPeer;
+class DungeonEditorV2ReloadTestPeer;
 class DungeonEditorV2SpawnPointTestPeer;
 class DungeonEditorV2SpawnRejectionTestPeer;
 class MinecartTrackEditorPanel;
@@ -170,6 +171,9 @@ class DungeonEditorV2 : public Editor {
       workbench_compare_viewer_.reset();
     }
   }
+  // Reloads same-address ROM state in place so rooms, viewers, and workspace
+  // panel bindings retain stable addresses.
+  absl::Status RefreshRomBackedState();
   Rom* rom() const { return rom_; }
 
   // Room management
@@ -243,6 +247,7 @@ class DungeonEditorV2 : public Editor {
 
  private:
   friend class DungeonEditorV2RegularEntranceTestPeer;
+  friend class DungeonEditorV2ReloadTestPeer;
   friend class DungeonEditorV2SpawnPointTestPeer;
   friend class DungeonEditorV2SpawnRejectionTestPeer;
   friend class DungeonEditorV2RomSafetyTest_UndoSnapshotLeakDetection_Test;
@@ -274,6 +279,7 @@ class DungeonEditorV2 : public Editor {
 
   // Texture processing (critical for rendering)
   void ProcessDeferredTextures();
+  void ReloadWaterFillZones();
 
   // Room selection callback
   void OnRoomSelected(int room_id, bool request_focus = true);

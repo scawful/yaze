@@ -128,6 +128,262 @@ DungeonEditorV2::~DungeonEditorV2() {
   }
 }
 
+absl::Status DungeonEditorV2::RefreshRomBackedState() {
+  if (!rom_ || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  room_loader_.SetRom(rom_);
+  room_loader_.SetGameData(game_data_);
+
+  std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots>
+      refreshed_entrances;
+  std::array<zelda3::DungeonSpawnPoint, zelda3::kNumDungeonSpawnPoints>
+      refreshed_spawn_points;
+  RETURN_IF_ERROR(room_loader_.LoadRoomEntrances(refreshed_entrances));
+  RETURN_IF_ERROR(room_loader_.LoadDungeonSpawnPoints(refreshed_spawn_points));
+
+  struct RefreshedRoom {
+    int room_id;
+    zelda3::Room room;
+  };
+  std::vector<std::pair<int, bool>> materialized_rooms;
+  rooms_.ForEachMaterialized(
+      [&materialized_rooms](int room_id, const zelda3::Room& room) {
+        materialized_rooms.emplace_back(room_id, room.IsLoaded());
+      });
+
+  std::vector<RefreshedRoom> refreshed_rooms;
+  refreshed_rooms.reserve(materialized_rooms.size());
+  for (const auto& [room_id, was_loaded] : materialized_rooms) {
+    zelda3::Room refreshed_room;
+    if (was_loaded) {
+      RETURN_IF_ERROR(room_loader_.LoadRoom(room_id, refreshed_room));
+    } else {
+      refreshed_room = zelda3::LoadRoomHeaderFromRom(rom_, room_id);
+      refreshed_room.SetGameData(game_data_);
+    }
+    refreshed_rooms.push_back({room_id, std::move(refreshed_room)});
+  }
+
+  // All ROM reads succeeded. Clear every interaction that can retain indices
+  // into Room vectors before replacing any Room contents.
+  if (object_selector_panel_) {
+    object_selector_panel_->CancelPlacement();
+    object_selector_panel_->object_selector().InvalidatePreviewCache();
+  }
+  if (object_tile_editor_panel_) {
+    object_tile_editor_panel_->Close();
+  }
+  auto prepare_viewer = [this](DungeonCanvasViewer* viewer, int room_id) {
+    if (viewer) {
+      viewer->RefreshRomBackedState(rom_, game_data_, &rooms_, room_id);
+    }
+  };
+  room_viewers_.ForEach(
+      [&prepare_viewer](int room_id,
+                        std::unique_ptr<DungeonCanvasViewer>& viewer) {
+        prepare_viewer(viewer.get(), room_id);
+      });
+  prepare_viewer(workbench_viewer_.get(), current_room_id_);
+  const int compare_room_id =
+      workbench_compare_viewer_ &&
+              IsValidRoomId(workbench_compare_viewer_->current_room_id())
+          ? workbench_compare_viewer_->current_room_id()
+          : current_room_id_;
+  prepare_viewer(workbench_compare_viewer_.get(), compare_room_id);
+
+  if (dungeon_editor_system_) {
+    dungeon_editor_system_->ClearHistory();
+    if (auto object_editor = dungeon_editor_system_->GetObjectEditor()) {
+      (void)object_editor->ClearSelection();
+      object_editor->ClearHistory();
+    }
+  }
+  undo_manager_.Clear();
+  save_transaction_snapshot_.reset();
+  pending_undo_ = {};
+  has_pending_undo_ = false;
+  pending_collision_undo_ = {};
+  pending_water_fill_undo_ = {};
+  pending_swap_ = {};
+  pending_workflow_mode_ = {};
+  undo_restore_triggered_ping_ = false;
+
+  room_selector_.SetRom(rom_);
+  rooms_.SetRom(rom_);
+  rooms_.SetGameData(game_data_);
+  for (auto& refreshed : refreshed_rooms) {
+    auto* room = rooms_.GetIfMaterialized(refreshed.room_id);
+    if (room) {
+      *room = std::move(refreshed.room);
+    }
+  }
+  entrances_ = std::move(refreshed_entrances);
+  spawn_points_ = std::move(refreshed_spawn_points);
+  ReloadWaterFillZones();
+
+  room_selector_.set_rooms(&rooms_);
+  room_selector_.set_entrances(&entrances_);
+
+  if (dungeon_editor_system_) {
+    dungeon_editor_system_->SetGameData(game_data_);
+    auto* current_room = IsValidRoomId(current_room_id_)
+                             ? rooms_.GetIfMaterialized(current_room_id_)
+                             : nullptr;
+    RETURN_IF_ERROR(dungeon_editor_system_->RefreshRomBackedState(
+        current_room, current_room_id_));
+  }
+
+  current_palette_.clear();
+  current_palette_group_ = gfx::PaletteGroup{};
+  current_palette_id_ = 0;
+  current_palette_group_id_ = 0;
+  if (auto* current_room = rooms_.GetIfMaterialized(current_room_id_);
+      current_room && game_data_ &&
+      !game_data_->palette_groups.dungeon_main.empty()) {
+    const int resolved_palette_id = current_room->ResolveDungeonPaletteId();
+    current_palette_id_ =
+        resolved_palette_id >= 0 &&
+                resolved_palette_id <
+                    static_cast<int>(
+                        game_data_->palette_groups.dungeon_main.size())
+            ? static_cast<uint64_t>(resolved_palette_id)
+            : 0;
+    current_palette_group_id_ = current_palette_id_;
+    current_palette_ =
+        game_data_->palette_groups.dungeon_main[current_palette_id_];
+    ASSIGN_OR_RETURN(current_palette_group_,
+                     gfx::CreatePaletteGroupFromLargePalette(current_palette_));
+  }
+
+  if (is_loaded_) {
+    palette_editor_.Initialize(game_data_);
+    palette_editor_.SetDungeonRenderPaletteMode(true);
+    palette_editor_.SetCurrentPaletteId(current_palette_id_);
+  }
+
+  auto bind_viewer = [this](DungeonCanvasViewer* viewer, int room_id) {
+    if (!viewer) {
+      return;
+    }
+    viewer->SetRenderer(renderer_);
+    viewer->SetCurrentPaletteId(current_palette_id_);
+    viewer->SetCurrentPaletteGroup(current_palette_group_);
+    viewer->SetEditorSystem(dungeon_editor_system_.get());
+    viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
+    viewer->SetProject(dependencies_.project);
+    ConfigureViewerRenderContext(viewer, room_id);
+    ApplyEntranceRenderContext(room_id);
+  };
+  room_viewers_.ForEach(
+      [&bind_viewer](int room_id,
+                     std::unique_ptr<DungeonCanvasViewer>& viewer) {
+        bind_viewer(viewer.get(), room_id);
+      });
+  bind_viewer(workbench_viewer_.get(), current_room_id_);
+  bind_viewer(workbench_compare_viewer_.get(), compare_room_id);
+
+  if (object_selector_panel_) {
+    object_selector_panel_->SetContext({rom_, game_data_});
+    object_selector_panel_->SetRooms(&rooms_);
+    object_selector_panel_->SetCurrentRoom(current_room_id_);
+    object_selector_panel_->SetCurrentPaletteGroup(current_palette_group_);
+  }
+  if (room_graphics_panel_) {
+    room_graphics_panel_->SetCurrentPaletteGroup(current_palette_group_);
+  }
+  if (object_tile_editor_panel_) {
+    object_tile_editor_panel_->SetCurrentPaletteGroup(current_palette_group_);
+  }
+  if (room_tag_editor_panel_) {
+    room_tag_editor_panel_->SetRooms(&rooms_);
+  }
+  if (minecart_track_editor_panel_) {
+    minecart_track_editor_panel_->SetRooms(&rooms_);
+    minecart_track_editor_panel_->SetRom(rom_);
+  }
+  if (workbench_panel_) {
+    workbench_panel_->SetRom(rom_);
+  }
+
+  DungeonCanvasViewer* current_viewer = nullptr;
+  if (IsWorkbenchWorkflowEnabled()) {
+    current_viewer = workbench_viewer_.get();
+  } else if (auto* viewer = room_viewers_.Get(current_room_id_)) {
+    current_viewer = viewer->get();
+  }
+  if (current_viewer) {
+    SyncPanelsToRoom(current_room_id_);
+  }
+
+  return absl::OkStatus();
+}
+
+void DungeonEditorV2::ReloadWaterFillZones() {
+  rooms_.ForEachMaterialized([](int, zelda3::Room& room) {
+    room.ClearWaterFillZone();
+    room.ClearWaterFillDirty();
+  });
+
+  bool legacy_imported = false;
+  std::vector<zelda3::WaterFillZoneEntry> zones;
+
+  auto zones_or = zelda3::LoadWaterFillTable(rom_);
+  if (zones_or.ok()) {
+    zones = std::move(zones_or.value());
+  } else {
+    LOG_WARN("DungeonEditorV2", "WaterFillTable parse failed: %s",
+             zones_or.status().message().data());
+    if (dependencies_.toast_manager) {
+      dependencies_.toast_manager->Show(
+          absl::StrFormat("WaterFill table parse failed: %s",
+                          zones_or.status().message()),
+          ToastType::kWarning);
+    }
+  }
+
+  if (zones.empty()) {
+    std::string sym_path;
+    if (dependencies_.project &&
+        !dependencies_.project->symbols_filename.empty()) {
+      sym_path = dependencies_.project->GetAbsolutePath(
+          dependencies_.project->symbols_filename);
+    }
+    auto legacy_or = zelda3::LoadLegacyWaterGateZones(rom_, sym_path);
+    if (legacy_or.ok()) {
+      zones = std::move(legacy_or.value());
+      legacy_imported = !zones.empty();
+    } else {
+      LOG_WARN("DungeonEditorV2", "Legacy water gate import failed: %s",
+               legacy_or.status().message().data());
+    }
+  }
+
+  for (const auto& z : zones) {
+    if (z.room_id < 0 || z.room_id >= static_cast<int>(rooms_.size())) {
+      continue;
+    }
+    auto& room = rooms_[z.room_id];
+    room.set_water_fill_sram_bit_mask(z.sram_bit_mask);
+    for (uint16_t off : z.fill_offsets) {
+      const int x = static_cast<int>(off % 64);
+      const int y = static_cast<int>(off / 64);
+      room.SetWaterFillTile(x, y, true);
+    }
+
+    if (!legacy_imported) {
+      room.ClearWaterFillDirty();
+    }
+  }
+
+  if (legacy_imported && dependencies_.toast_manager) {
+    dependencies_.toast_manager->Show(
+        "Imported legacy water gate zones (save to write new table)",
+        ToastType::kInfo);
+  }
+}
+
 void DungeonEditorV2::Initialize() {
   if (dependencies_.renderer) {
     renderer_ = dependencies_.renderer;
@@ -697,69 +953,7 @@ absl::Status DungeonEditorV2::Load() {
       });
 
   // Oracle of Secrets: load editor-authored water fill zones (best-effort).
-  {
-    rooms_.ForEachMaterialized([](int, zelda3::Room& room) {
-      room.ClearWaterFillZone();
-      room.ClearWaterFillDirty();
-    });
-
-    bool legacy_imported = false;
-    std::vector<zelda3::WaterFillZoneEntry> zones;
-
-    auto zones_or = zelda3::LoadWaterFillTable(rom_);
-    if (zones_or.ok()) {
-      zones = std::move(zones_or.value());
-    } else {
-      LOG_WARN("DungeonEditorV2", "WaterFillTable parse failed: %s",
-               zones_or.status().message().data());
-      if (dependencies_.toast_manager) {
-        dependencies_.toast_manager->Show(
-            absl::StrFormat("WaterFill table parse failed: %s",
-                            zones_or.status().message()),
-            ToastType::kWarning);
-      }
-    }
-
-    if (zones.empty()) {
-      std::string sym_path;
-      if (dependencies_.project &&
-          !dependencies_.project->symbols_filename.empty()) {
-        sym_path = dependencies_.project->GetAbsolutePath(
-            dependencies_.project->symbols_filename);
-      }
-      auto legacy_or = zelda3::LoadLegacyWaterGateZones(rom_, sym_path);
-      if (legacy_or.ok()) {
-        zones = std::move(legacy_or.value());
-        legacy_imported = !zones.empty();
-      } else {
-        LOG_WARN("DungeonEditorV2", "Legacy water gate import failed: %s",
-                 legacy_or.status().message().data());
-      }
-    }
-
-    for (const auto& z : zones) {
-      if (z.room_id < 0 || z.room_id >= static_cast<int>(rooms_.size())) {
-        continue;
-      }
-      auto& room = rooms_[z.room_id];
-      room.set_water_fill_sram_bit_mask(z.sram_bit_mask);
-      for (uint16_t off : z.fill_offsets) {
-        const int x = static_cast<int>(off % 64);
-        const int y = static_cast<int>(off / 64);
-        room.SetWaterFillTile(x, y, true);
-      }
-
-      if (!legacy_imported) {
-        room.ClearWaterFillDirty();
-      }
-    }
-
-    if (legacy_imported && dependencies_.toast_manager) {
-      dependencies_.toast_manager->Show(
-          "Imported legacy water gate zones (save to write new table)",
-          ToastType::kInfo);
-    }
-  }
+  ReloadWaterFillZones();
 
   if (workbench_panel_) {
     workbench_panel_->SetEmbeddedToolPanels(
