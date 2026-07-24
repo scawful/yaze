@@ -109,8 +109,9 @@ class TileObjectHandler : public BaseEntityHandler {
 
   /**
    * @brief Resize objects by a delta.
+   * @return true if at least one editable object changed size.
    */
-  void ResizeObjects(int room_id, const std::vector<size_t>& indices,
+  bool ResizeObjects(int room_id, const std::vector<size_t>& indices,
                      int delta);
 
   /**

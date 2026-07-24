@@ -6,6 +6,15 @@
 
 namespace yaze::editor::workbench {
 
+bool HasEditableRoomObjectSize(std::span<const zelda3::RoomObject> objects,
+                               std::span<const size_t> selected_indices) {
+  return std::any_of(
+      selected_indices.begin(), selected_indices.end(), [&](size_t index) {
+        return index < objects.size() &&
+               zelda3::IsRoomObjectSizeEditable(objects[index].id_);
+      });
+}
+
 void DrawInspectorSectionHeader(const char* label) {
   ImGui::SeparatorText(label);
 }

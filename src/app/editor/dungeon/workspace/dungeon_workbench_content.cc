@@ -2398,6 +2398,8 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
           has_special_layer_object = true;
         }
       }
+      const bool has_editable_size =
+          workbench::HasEditableRoomObjectSize(objects, selection_copy);
 
       workbench::DrawInspectorSectionHeader(ICON_MD_OPEN_WITH " Bulk Edit");
 
@@ -2476,11 +2478,17 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
 
       ImGui::Spacing();
       ImGui::TextDisabled(tr("Size"));
+      if (!has_editable_size) {
+        ImGui::BeginDisabled();
+      }
       if (ImGui::SmallButton(ICON_MD_REMOVE "##BulkSizeDec"))
         tile_handler.ResizeObjects(room_id, selection_copy, -1);
       ImGui::SameLine();
       if (ImGui::SmallButton(ICON_MD_ADD "##BulkSizeInc"))
         tile_handler.ResizeObjects(room_id, selection_copy, 1);
+      if (!has_editable_size) {
+        ImGui::EndDisabled();
+      }
 
       ImGui::Spacing();
       if (ImGui::SmallButton(ICON_MD_CONTENT_COPY " Duplicate##BulkDup"))
@@ -2582,10 +2590,18 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
           // Size
           gui::LayoutHelpers::PropertyRow("Size", [&]() {
             uint8_t size = obj.size_ & 0x0F;
+            const bool size_editable =
+                zelda3::IsRoomObjectSizeEditable(obj.id_);
+            if (!size_editable) {
+              ImGui::BeginDisabled();
+            }
             if (auto res = gui::InputHexByteEx("##SelObjSize", &size, 0x0F,
                                                60.0f, true);
-                res.ShouldApply()) {
+                size_editable && res.ShouldApply()) {
               interaction.SetObjectSize(idx, size);
+            }
+            if (!size_editable) {
+              ImGui::EndDisabled();
             }
           });
 
