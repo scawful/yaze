@@ -426,6 +426,75 @@ TEST(DungeonEditCommandsTest, PlaceObjectRejectsInvalidSize) {
   ExpectInvalidArgument(status, "Invalid integer for '--size'");
 }
 
+TEST(DungeonEditCommandsTest, PlaceObjectPreservesOmittedType1Size) {
+  Rom rom;
+  InitializeDescribeRoomObjectsRom(&rom);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonPlaceObjectCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run(
+      {"--room=0x00", "--id=0x031", "--x=1", "--y=2", "--format=json"}, &rom,
+      &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  const auto result = nlohmann::json::parse(output);
+  const auto& placement = result.at("Place Object");
+  EXPECT_EQ(placement.at("size"), 0);
+  EXPECT_EQ(placement.at("preflight_status"), "success");
+  EXPECT_EQ(rom.vector(), before);
+}
+
+TEST(DungeonEditCommandsTest, PlaceObjectDefaultsOmittedType2Size) {
+  Rom rom;
+  InitializeDescribeRoomObjectsRom(&rom);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonPlaceObjectCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run(
+      {"--room=0x00", "--id=0x100", "--x=1", "--y=2", "--format=json"}, &rom,
+      &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  const auto result = nlohmann::json::parse(output);
+  const auto& placement = result.at("Place Object");
+  EXPECT_EQ(placement.at("size"), 0);
+  EXPECT_EQ(placement.at("preflight_status"), "success");
+  EXPECT_EQ(rom.vector(), before);
+}
+
+TEST(DungeonEditCommandsTest, PlaceObjectDefaultsOmittedType3Size) {
+  Rom rom;
+  InitializeDescribeRoomObjectsRom(&rom);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonPlaceObjectCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run(
+      {"--room=0x00", "--id=0xF99", "--x=1", "--y=2", "--format=json"}, &rom,
+      &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  const auto result = nlohmann::json::parse(output);
+  const auto& placement = result.at("Place Object");
+  EXPECT_EQ(placement.at("size"), 6);
+  EXPECT_EQ(placement.at("preflight_status"), "success");
+  EXPECT_EQ(rom.vector(), before);
+}
+
+TEST(DungeonEditCommandsTest, PlaceObjectRejectsNoncanonicalFixedSize) {
+  handlers::DungeonPlaceObjectCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--mock-rom", "--room=0x98", "--id=0xF99", "--x=1", "--y=2",
+                   "--size=0", "--format=json"},
+                  nullptr, &output);
+
+  ExpectInvalidArgument(status,
+                        "Size 0 is not encodable for object 0xF99; expected 6");
+}
+
 TEST(DungeonEditCommandsTest, PlaceObjectRejectsRoomIdOutOfRange) {
   handlers::DungeonPlaceObjectCommandHandler handler;
   std::string output;
