@@ -59,8 +59,10 @@ TEST(RoomObjectEncodingTest, MapRoomObjectListIndexToDrawLayer) {
 TEST(RoomObjectEncodingTest, SaveGuardAcceptsRepresentableIdBoundaries) {
   for (const int16_t id : {int16_t{0x000}, int16_t{0x0F7}, int16_t{0x100},
                            int16_t{0x13F}, int16_t{0xF80}, int16_t{0xFFF}}) {
-    const RoomObject object(id, /*x=*/62, /*y=*/63, /*size=*/15,
-                            /*layer=*/2);
+    const RoomObject object(
+        id, /*x=*/62, /*y=*/63,
+        /*size=*/CanonicalRoomObjectSize(id, /*requested_size=*/15),
+        /*layer=*/2);
 
     const auto status = ValidateRoomObjectStreamEntryForSave(object);
 
@@ -84,8 +86,10 @@ TEST(RoomObjectEncodingTest, SaveGuardRejectsAliasedIdRanges) {
 
 TEST(RoomObjectEncodingTest, SaveGuardRejectsNonType2X63Discriminator) {
   for (const int16_t id : {int16_t{0x010}, int16_t{0xF99}}) {
-    const RoomObject object(id, /*x=*/63, /*y=*/20, /*size=*/0,
-                            /*layer=*/0);
+    const RoomObject object(
+        id, /*x=*/63, /*y=*/20,
+        /*size=*/CanonicalRoomObjectSize(id, /*requested_size=*/0),
+        /*layer=*/0);
 
     const auto status = ValidateRoomObjectStreamEntryForSave(object);
 
@@ -105,7 +109,7 @@ TEST(RoomObjectEncodingTest, SaveGuardRejectsStreamControlPrefixes) {
   const RoomObject type1_door_marker(/*id=*/0x010, /*x=*/60, /*y=*/63,
                                      /*size=*/3, /*layer=*/0);
   const RoomObject type3_door_marker(/*id=*/0xF8C, /*x=*/60, /*y=*/63,
-                                     /*size=*/0, /*layer=*/0);
+                                     /*size=*/3, /*layer=*/0);
 
   for (const RoomObject* object :
        {&list_terminator, &type1_door_marker, &type3_door_marker}) {
@@ -136,11 +140,45 @@ TEST(RoomObjectEncodingTest, SaveGuardRejectsInvalidLayerAndCoordinates) {
             absl::StatusCode::kInvalidArgument);
 }
 
-TEST(RoomObjectEncodingTest, SaveGuardDoesNotRejectLossySizeField) {
-  const RoomObject object(/*id=*/0x010, /*x=*/10, /*y=*/20, /*size=*/0xFF,
-                          /*layer=*/0);
+TEST(RoomObjectEncodingTest, SaveGuardAcceptsCanonicalSizeBoundaries) {
+  for (const RoomObject object :
+       {RoomObject(/*id=*/0x010, /*x=*/10, /*y=*/20, /*size=*/0,
+                   /*layer=*/0),
+        RoomObject(/*id=*/0x0F7, /*x=*/10, /*y=*/20, /*size=*/15,
+                   /*layer=*/0),
+        RoomObject(/*id=*/0x100, /*x=*/10, /*y=*/20, /*size=*/0,
+                   /*layer=*/0),
+        RoomObject(/*id=*/0xF80, /*x=*/10, /*y=*/20, /*size=*/0,
+                   /*layer=*/0),
+        RoomObject(/*id=*/0xFFF, /*x=*/10, /*y=*/20, /*size=*/15,
+                   /*layer=*/0)}) {
+    EXPECT_TRUE(ValidateRoomObjectStreamEntryForSave(object).ok())
+        << "id=" << object.id_ << " size=" << static_cast<int>(object.size_);
+  }
+}
 
-  EXPECT_TRUE(ValidateRoomObjectStreamEntryForSave(object).ok());
+TEST(RoomObjectEncodingTest, SaveGuardRejectsNoncanonicalSizes) {
+  const struct {
+    int16_t id;
+    uint8_t size;
+  } test_cases[] = {
+      {/*id=*/0x010, /*size=*/16}, {/*id=*/0x010, /*size=*/0xFF},
+      {/*id=*/0x100, /*size=*/1},  {/*id=*/0x13F, /*size=*/15},
+      {/*id=*/0xF99, /*size=*/0},  {/*id=*/0xFFF, /*size=*/14},
+  };
+
+  for (const auto& test_case : test_cases) {
+    const RoomObject object(test_case.id, /*x=*/10, /*y=*/20, test_case.size,
+                            /*layer=*/0);
+
+    const auto status = ValidateRoomObjectStreamEntryForSave(object);
+
+    EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument)
+        << "id=" << test_case.id
+        << " size=" << static_cast<int>(test_case.size);
+    EXPECT_NE(status.message().find("noncanonical size"), std::string::npos)
+        << status.message();
+  }
 }
 
 // Type 1 Object Encoding/Decoding Tests

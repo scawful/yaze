@@ -19,6 +19,16 @@
 namespace yaze {
 namespace zelda3 {
 
+namespace {
+
+bool IsRepresentableRoomObjectId(int object_id) {
+  return (object_id >= 0x000 && object_id <= 0x0F7) ||
+         (object_id >= 0x100 && object_id <= 0x13F) ||
+         (object_id >= 0xF80 && object_id <= 0xFFF);
+}
+
+}  // namespace
+
 DungeonObjectEditor::DungeonObjectEditor(Rom* rom) : rom_(rom) {}
 
 absl::Status DungeonObjectEditor::InitializeEditor() {
@@ -40,7 +50,8 @@ absl::Status DungeonObjectEditor::InitializeEditor() {
   editing_state_.current_mode = Mode::kSelect;
   editing_state_.current_layer = 0;
   editing_state_.current_object_type = 0x10;  // Default to wall
-  editing_state_.preview_size = kDefaultObjectSize;
+  editing_state_.preview_size =
+      DefaultRoomObjectSizeForPlacement(editing_state_.current_object_type);
 
   // Initialize empty room
   owned_room_ = std::make_unique<Room>(0, rom_);
@@ -141,9 +152,11 @@ absl::Status DungeonObjectEditor::InsertObject(int x, int y, int object_type,
   }
 
   // Validate parameters
-  // Object IDs can be up to 12-bit (0xFFF) to support Type 3 objects
-  if (object_type < 0 || object_type > 0xFFF) {
-    return absl::InvalidArgumentError("Invalid object type");
+  if (!IsRepresentableRoomObjectId(object_type)) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Object ID 0x%03X is not representable; expected 0x000..0x0F7, "
+        "0x100..0x13F, or 0xF80..0xFFF",
+        object_type));
   }
 
   if (size < kMinObjectSize || size > kMaxObjectSize) {
@@ -166,8 +179,12 @@ absl::Status DungeonObjectEditor::InsertObject(int x, int y, int object_type,
     return status;
   }
 
-  // Create new object
-  RoomObject new_object(object_type, x, y, size, layer);
+  // Create new object with the family-specific canonical size. Type 1 owns a
+  // four-bit size field, Type 2 has no size field, and Type 3 derives those
+  // bits from its ID.
+  const uint8_t canonical_size =
+      CanonicalRoomObjectSize(object_type, static_cast<uint8_t>(size));
+  RoomObject new_object(object_type, x, y, canonical_size, layer);
   new_object.SetRom(rom_);
   new_object.EnsureTilesLoaded();
 
@@ -370,6 +387,17 @@ absl::Status DungeonObjectEditor::ResizeObject(size_t object_index,
     return absl::InvalidArgumentError("Invalid object size");
   }
 
+  auto& object = current_room_->GetTileObject(object_index);
+  if (!IsRoomObjectSizeEditable(object.id_)) {
+    return absl::OkStatus();
+  }
+
+  const uint8_t canonical_size =
+      CanonicalRoomObjectSize(object.id_, static_cast<uint8_t>(new_size));
+  if (object.size() == canonical_size) {
+    return absl::OkStatus();
+  }
+
   // Create undo point
   auto status = CreateUndoPoint();
   if (!status.ok()) {
@@ -377,15 +405,9 @@ absl::Status DungeonObjectEditor::ResizeObject(size_t object_index,
   }
 
   // Resize the object
-  auto& object = current_room_->GetTileObject(object_index);
-  const bool changed = object.size() != new_size;
-  if (changed) {
-    current_room_->MarkSaveDirtyForTileObject(object);
-  }
-  object.set_size(new_size);
-  if (changed) {
-    current_room_->MarkSaveDirtyForTileObject(object);
-  }
+  current_room_->MarkSaveDirtyForTileObject(object);
+  object.set_size(canonical_size);
+  current_room_->MarkSaveDirtyForTileObject(object);
 
   // Notify callbacks
   if (object_changed_callback_) {
@@ -538,6 +560,23 @@ absl::Status DungeonObjectEditor::BatchResizeObjects(
     return absl::InvalidArgumentError("Invalid object size");
   }
 
+  const uint8_t requested_size = static_cast<uint8_t>(new_size);
+  bool change_needed = false;
+  for (size_t index : indices) {
+    if (index >= current_room_->GetTileObjectCount()) {
+      continue;
+    }
+    const auto& object = current_room_->GetTileObject(index);
+    if (IsRoomObjectSizeEditable(object.id_) &&
+        object.size() != CanonicalRoomObjectSize(object.id_, requested_size)) {
+      change_needed = true;
+      break;
+    }
+  }
+  if (!change_needed) {
+    return absl::OkStatus();
+  }
+
   // Create undo point
   auto status = CreateUndoPoint();
   if (!status.ok()) {
@@ -549,16 +588,18 @@ absl::Status DungeonObjectEditor::BatchResizeObjects(
       continue;
 
     auto& object = current_room_->GetTileObject(index);
-    // Only Type 1 objects typically support arbitrary sizing, but we allow it
-    // for all here as the validation logic might vary.
-    const bool changed = object.size() != new_size;
-    if (changed) {
-      current_room_->MarkSaveDirtyForTileObject(object);
+    if (!IsRoomObjectSizeEditable(object.id_)) {
+      continue;
     }
-    object.set_size(new_size);
-    if (changed) {
-      current_room_->MarkSaveDirtyForTileObject(object);
+
+    const uint8_t canonical_size =
+        CanonicalRoomObjectSize(object.id_, requested_size);
+    if (object.size() == canonical_size) {
+      continue;
     }
+    current_room_->MarkSaveDirtyForTileObject(object);
+    object.set_size(canonical_size);
+    current_room_->MarkSaveDirtyForTileObject(object);
 
     if (object_changed_callback_) {
       object_changed_callback_(index, object);
@@ -675,10 +716,20 @@ absl::Status DungeonObjectEditor::ChangeObjectType(size_t object_index,
     return absl::OutOfRangeError("Object index out of range");
   }
 
-  // Object IDs can be up to 12-bit (0xFFF) to support Type 3 objects
-  if (new_type < 0 || new_type > 0xFFF) {
-    return absl::InvalidArgumentError("Invalid object type");
+  if (!IsRepresentableRoomObjectId(new_type)) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Object ID 0x%03X is not representable; expected 0x000..0x0F7, "
+        "0x100..0x13F, or 0xF80..0xFFF",
+        new_type));
   }
+
+  auto& object = current_room_->GetTileObject(object_index);
+  if (object.id_ == new_type) {
+    return absl::OkStatus();
+  }
+
+  const uint8_t canonical_size =
+      CanonicalRoomObjectSize(new_type, object.size());
 
   // Create undo point
   auto status = CreateUndoPoint();
@@ -686,15 +737,10 @@ absl::Status DungeonObjectEditor::ChangeObjectType(size_t object_index,
     return status;
   }
 
-  auto& object = current_room_->GetTileObject(object_index);
-  const bool changed = object.id_ != new_type;
-  if (changed) {
-    current_room_->MarkSaveDirtyForTileObject(object);
-  }
+  current_room_->MarkSaveDirtyForTileObject(object);
   object.set_id(static_cast<int16_t>(new_type));
-  if (changed) {
-    current_room_->MarkSaveDirtyForTileObject(object);
-  }
+  object.set_size(canonical_size);
+  current_room_->MarkSaveDirtyForTileObject(object);
 
   if (object_changed_callback_) {
     object_changed_callback_(object_index, object);
@@ -1215,9 +1261,10 @@ void DungeonObjectEditor::SetCurrentLayer(int layer) {
 }
 
 void DungeonObjectEditor::SetCurrentObjectType(int object_type) {
-  // Object IDs can be up to 12-bit (0xFFF) to support Type 3 objects
-  if (object_type >= 0 && object_type <= 0xFFF) {
+  if (IsRepresentableRoomObjectId(object_type)) {
     editing_state_.current_object_type = object_type;
+    editing_state_.preview_size =
+        CanonicalRoomObjectSize(object_type, editing_state_.preview_size);
     UpdatePreviewObject();
   }
 }
@@ -1324,7 +1371,10 @@ int DungeonObjectEditor::SnapToGrid(int coordinate) {
 }
 
 void DungeonObjectEditor::UpdatePreviewObject() {
-  if (editing_state_.current_mode == Mode::kInsert) {
+  if (editing_state_.current_mode == Mode::kInsert &&
+      IsRepresentableRoomObjectId(editing_state_.current_object_type)) {
+    editing_state_.preview_size = CanonicalRoomObjectSize(
+        editing_state_.current_object_type, editing_state_.preview_size);
     preview_object_ =
         RoomObject(editing_state_.current_object_type, editing_state_.preview_x,
                    editing_state_.preview_y, editing_state_.preview_size,
@@ -1333,6 +1383,7 @@ void DungeonObjectEditor::UpdatePreviewObject() {
     preview_object_->EnsureTilesLoaded();
     preview_visible_ = true;
   } else {
+    preview_object_.reset();
     preview_visible_ = false;
   }
 }
@@ -1637,7 +1688,7 @@ void DungeonObjectEditor::DrawPropertyUI() {
       gui::SectionHeader(ICON_MD_PALETTE, "Appearance", theme.text_info);
       if (gui::BeginPropertyTable("##AppearanceProps")) {
         // Size (for Type 1 objects only)
-        if (obj.id_ < 0x100) {
+        if (IsRoomObjectSizeEditable(obj.id_)) {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::Text("Size");
@@ -1645,12 +1696,7 @@ void DungeonObjectEditor::DrawPropertyUI() {
           int size = obj.size();
           ImGui::SetNextItemWidth(-1);
           if (ImGui::SliderInt("##Size", &size, 0, 15, "0x%02X")) {
-            current_room_->MarkSaveDirtyForTileObject(obj);
-            obj.set_size(size);
-            current_room_->MarkSaveDirtyForTileObject(obj);
-            if (object_changed_callback_) {
-              object_changed_callback_(obj_idx, obj);
-            }
+            (void)ResizeObject(obj_idx, size);
           }
         }
 
@@ -1664,12 +1710,7 @@ void DungeonObjectEditor::DrawPropertyUI() {
         if (ImGui::InputInt("##ID", &id, 1, 16,
                             ImGuiInputTextFlags_CharsHexadecimal)) {
           if (id >= 0 && id <= 0xFFF && obj.id_ != id) {
-            current_room_->MarkSaveDirtyForTileObject(obj);
-            obj.set_id(static_cast<int16_t>(id));
-            current_room_->MarkSaveDirtyForTileObject(obj);
-            if (object_changed_callback_) {
-              object_changed_callback_(obj_idx, obj);
-            }
+            (void)ChangeObjectType(obj_idx, id);
           }
         }
 
@@ -1761,15 +1802,18 @@ void DungeonObjectEditor::DrawPropertyUI() {
 
     bool has_room_stream_object = false;
     bool has_special_table_object = false;
+    bool has_editable_size_object = false;
     for (size_t index : selection_state_.selected_objects) {
       if (index >= current_room_->GetTileObjectCount()) {
         continue;
       }
-      if (UsesRoomObjectStream(current_room_->GetTileObject(index))) {
+      const auto& object = current_room_->GetTileObject(index);
+      if (UsesRoomObjectStream(object)) {
         has_room_stream_object = true;
       } else {
         has_special_table_object = true;
       }
+      has_editable_size_object |= IsRoomObjectSizeEditable(object.id_);
     }
 
     if (has_special_table_object) {
@@ -1808,12 +1852,15 @@ void DungeonObjectEditor::DrawPropertyUI() {
 
     // ========== Batch Size ==========
     gui::SectionHeader(ICON_MD_ASPECT_RATIO, "Batch Size", theme.text_info);
-    static int batch_size = 0x12;
+    static int batch_size = 0x02;
     ImGui::SetNextItemWidth(-1);
+    ImGui::BeginDisabled(!has_editable_size_object);
     if (ImGui::InputInt("##BatchSize", &batch_size, 1, 16,
                         ImGuiInputTextFlags_CharsHexadecimal)) {
+      batch_size = std::clamp(batch_size, 0, 15);
       BatchResizeObjects(selection_state_.selected_objects, batch_size);
     }
+    ImGui::EndDisabled();
 
     ImGui::Spacing();
 

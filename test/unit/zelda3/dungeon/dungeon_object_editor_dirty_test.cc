@@ -65,6 +65,117 @@ TEST_F(DungeonObjectEditorDirtyTest, BatchMutatorsMarkObjectStreamDirty) {
   EXPECT_TRUE(room_->object_stream_dirty());
 }
 
+TEST_F(DungeonObjectEditorDirtyTest,
+       ResizeMutatorsSkipFixedSizesAndClampType1Batch) {
+  ASSERT_TRUE(room_->AddObject(RoomObject(0x100, 10, 10, /*size=*/0, 0)).ok());
+  ASSERT_TRUE(
+      room_
+          ->AddObject(RoomObject(0xF99, 15, 15,
+                                 /*size=*/CanonicalRoomObjectSize(0xF99, 0), 0))
+          .ok());
+  room_->ClearSaveDirtyState();
+
+  ASSERT_TRUE(editor_->ResizeObject(2, 9).ok());
+  ASSERT_TRUE(editor_->ResizeObject(3, 9).ok());
+  EXPECT_EQ(room_->GetTileObject(2).size(), 0);
+  EXPECT_EQ(room_->GetTileObject(3).size(), CanonicalRoomObjectSize(0xF99, 0));
+  EXPECT_FALSE(room_->object_stream_dirty());
+
+  ASSERT_TRUE(editor_->ResizeObject(0, 0xFF).ok());
+  EXPECT_EQ(room_->GetTileObject(0).size(), 0x0F);
+  EXPECT_TRUE(room_->object_stream_dirty());
+
+  room_->ClearSaveDirtyState();
+  ASSERT_TRUE(editor_->BatchResizeObjects({1, 2, 3}, 0xFF).ok());
+  EXPECT_EQ(room_->GetTileObject(1).size(), 0x0F);
+  EXPECT_EQ(room_->GetTileObject(2).size(), 0);
+  EXPECT_EQ(room_->GetTileObject(3).size(), CanonicalRoomObjectSize(0xF99, 0));
+  EXPECT_TRUE(room_->object_stream_dirty());
+}
+
+TEST_F(DungeonObjectEditorDirtyTest,
+       ChangeObjectTypeCanonicalizesFixedSizeFamilies) {
+  ASSERT_TRUE(editor_->ResizeObject(0, 7).ok());
+  room_->ClearSaveDirtyState();
+
+  ASSERT_TRUE(editor_->ChangeObjectType(0, 0x100).ok());
+  EXPECT_EQ(room_->GetTileObject(0).id_, 0x100);
+  EXPECT_EQ(room_->GetTileObject(0).size(), 0);
+  EXPECT_TRUE(
+      ValidateRoomObjectStreamEntryForSave(room_->GetTileObject(0)).ok());
+
+  room_->ClearSaveDirtyState();
+  ASSERT_TRUE(editor_->ChangeObjectType(0, 0xF99).ok());
+  EXPECT_EQ(room_->GetTileObject(0).id_, 0xF99);
+  EXPECT_EQ(room_->GetTileObject(0).size(), CanonicalRoomObjectSize(0xF99, 0));
+  EXPECT_TRUE(
+      ValidateRoomObjectStreamEntryForSave(room_->GetTileObject(0)).ok());
+  EXPECT_TRUE(room_->object_stream_dirty());
+}
+
+TEST_F(DungeonObjectEditorDirtyTest, InsertObjectUsesCanonicalFamilyDefaults) {
+  const size_t initial_count = room_->GetTileObjectCount();
+
+  ASSERT_TRUE(editor_->InsertObject(10, 10, 0x23).ok());
+  ASSERT_TRUE(editor_->InsertObject(15, 15, 0x100).ok());
+  ASSERT_TRUE(editor_->InsertObject(20, 20, 0xF99).ok());
+
+  const auto& type1 = room_->GetTileObject(initial_count);
+  EXPECT_EQ(type1.size(), DefaultRoomObjectSizeForPlacement(type1.id_));
+  EXPECT_TRUE(ValidateRoomObjectStreamEntryForSave(type1).ok());
+
+  const auto& type2 = room_->GetTileObject(initial_count + 1);
+  EXPECT_EQ(type2.size(), 0);
+  EXPECT_TRUE(ValidateRoomObjectStreamEntryForSave(type2).ok());
+
+  const auto& type3 = room_->GetTileObject(initial_count + 2);
+  EXPECT_EQ(type3.size(), CanonicalRoomObjectSize(0xF99, 0));
+  EXPECT_TRUE(ValidateRoomObjectStreamEntryForSave(type3).ok());
+}
+
+TEST_F(DungeonObjectEditorDirtyTest,
+       PreviewUsesCanonicalSizeAndRejectsCodecGapId) {
+  EXPECT_EQ(editor_->GetEditingState().current_object_type, 0x10);
+  EXPECT_EQ(editor_->GetEditingState().preview_size,
+            DefaultRoomObjectSizeForPlacement(0x10));
+
+  editor_->SetMode(DungeonObjectEditor::Mode::kInsert);
+  editor_->SetCurrentObjectType(0x100);
+  EXPECT_EQ(editor_->GetEditingState().preview_size, 0);
+
+  editor_->SetCurrentObjectType(0xF99);
+  EXPECT_EQ(editor_->GetEditingState().preview_size,
+            CanonicalRoomObjectSize(0xF99, 0));
+
+  editor_->SetCurrentObjectType(0x140);
+  EXPECT_EQ(editor_->GetEditingState().current_object_type, 0xF99);
+  EXPECT_EQ(editor_->GetEditingState().preview_size,
+            CanonicalRoomObjectSize(0xF99, 0));
+}
+
+TEST_F(DungeonObjectEditorDirtyTest,
+       InsertAndTypeChangeRejectCodecGapIdsWithoutMutation) {
+  const size_t initial_count = room_->GetTileObjectCount();
+  const int16_t initial_id = room_->GetTileObject(0).id_;
+  const uint8_t initial_size = room_->GetTileObject(0).size();
+  room_->ClearSaveDirtyState();
+
+  for (const int invalid_id : {0x0F8, 0x0FF, 0x140, 0xF7F}) {
+    const auto insert_status =
+        editor_->InsertObject(10, 10, invalid_id, /*size=*/2, /*layer=*/0);
+    EXPECT_EQ(insert_status.code(), absl::StatusCode::kInvalidArgument)
+        << "id=" << invalid_id;
+    EXPECT_EQ(room_->GetTileObjectCount(), initial_count);
+
+    const auto change_status = editor_->ChangeObjectType(0, invalid_id);
+    EXPECT_EQ(change_status.code(), absl::StatusCode::kInvalidArgument)
+        << "id=" << invalid_id;
+    EXPECT_EQ(room_->GetTileObject(0).id_, initial_id);
+    EXPECT_EQ(room_->GetTileObject(0).size(), initial_size);
+    EXPECT_FALSE(room_->object_stream_dirty());
+  }
+}
+
 TEST_F(DungeonObjectEditorDirtyTest, AlignAndDragMarkObjectStreamDirty) {
   ASSERT_TRUE(editor_->AddToSelection(0).ok());
   ASSERT_TRUE(editor_->AddToSelection(1).ok());

@@ -505,10 +505,6 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
   if (!y_or.ok()) {
     return y_or.status();
   }
-  auto size_or = GetOptionalInt(parser, "size", 0);
-  if (!size_or.ok()) {
-    return size_or.status();
-  }
   auto layer_or = GetOptionalInt(parser, "layer", 0);
   if (!layer_or.ok()) {
     return layer_or.status();
@@ -516,7 +512,16 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
 
   int x = x_or.value();
   int y = y_or.value();
-  int size = size_or.value();
+  // Preserve the command's legacy omitted Type 1 size of zero while deriving
+  // the fixed, ID-backed size required by Type 2/3 stream entries.
+  int size = zelda3::CanonicalRoomObjectSize(object_id, 0);
+  if (parser.GetString("size").has_value()) {
+    auto size_or = parser.GetInt("size");
+    if (!size_or.ok()) {
+      return size_or.status();
+    }
+    size = size_or.value();
+  }
   int layer = layer_or.value();
   bool do_write = parser.HasFlag("write");
 
@@ -532,6 +537,13 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
   }
   if (size < 0 || size > 0xFF) {
     return absl::InvalidArgumentError("Size must be 0-255");
+  }
+  const uint8_t canonical_size =
+      zelda3::CanonicalRoomObjectSize(object_id, static_cast<uint8_t>(size));
+  if (size != canonical_size) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Size %d is not encodable for object 0x%03X; expected %d", size,
+        object_id, canonical_size));
   }
 
   std::optional<ObjectSaveManifestContext> manifest_context;
