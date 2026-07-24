@@ -389,6 +389,20 @@ absl::Status ValidateRoomObjectStreamEntryForSave(const RoomObject& object) {
         object.id_));
   }
 
+  const uint8_t canonical_size =
+      CanonicalRoomObjectSize(object.id_, object.size_);
+  if (object.size_ != canonical_size) {
+    if (expected_type == 1) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("Room object 0x%03X has noncanonical size 0x%02X; "
+                          "Type 1 size must be 0x00..0x0F",
+                          object.id_, object.size_));
+    }
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Room object 0x%03X has noncanonical size 0x%02X; expected 0x%02X",
+        object.id_, object.size_, canonical_size));
+  }
+
   // Type 1/3 encode X in the upper six bits of byte 1. X=63 therefore
   // produces the Type 2 discriminator (0xFC..0xFF) and decodes as another
   // object family.
