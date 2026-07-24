@@ -36,6 +36,8 @@ namespace yaze::editor {
 
 namespace {
 
+constexpr int kPersistedCustomSubtypeSlots = 16;
+
 float GetObjectGridItemSize(int density) {
   switch (density) {
     case 0:
@@ -106,12 +108,19 @@ void DrawFallbackPreviewTile(ImDrawList* draw_list, ImVec2 top_left,
 
 }  // namespace
 
+bool DungeonObjectSelector::IsRepresentableChestObjectId(int object_id) {
+  return object_id == 0xF99 || object_id == 0xF9A || object_id == 0xFB1 ||
+         object_id == 0xFB2 || object_id == 0xFF5;
+}
+
 ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
   const auto& theme = AgentUI::GetTheme();
 
   // Type 3 objects (0xF80-0xFFF) - Special room features
   if (object_id >= 0xF80) {
-    if (object_id >= 0xF80 && object_id <= 0xF8F) {
+    if (IsRepresentableChestObjectId(object_id)) {
+      return ImGui::GetColorU32(theme.item_color);  // Gold for chests
+    } else if (object_id >= 0xF80 && object_id <= 0xF8F) {
       return ImGui::ColorConvertFloat4ToU32(
           theme.selection_secondary);  // Light blue for layer indicators
     } else if (object_id >= 0xF90 && object_id <= 0xF9F) {
@@ -123,7 +132,7 @@ ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
     }
   }
 
-  // Type 2 objects (0x100-0x141) - Torches, blocks, switches
+  // Type 2 objects (0x100-0x13F) - Torches, blocks, switches
   if (object_id >= 0x100 && object_id < 0x200) {
     if (object_id >= 0x100 && object_id <= 0x10F) {
       return ImGui::GetColorU32(theme.status_warning);  // Torches
@@ -139,13 +148,11 @@ ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
     }
   }
 
-  // Type 1 objects (0x00-0xFF) - Base room objects
+  // Type 1 objects (0x00-0xF7) - Base room objects
   if (object_id >= 0x10 && object_id <= 0x1F) {
     return ImGui::GetColorU32(theme.dungeon_object_wall);  // Gray for walls
   } else if (object_id >= 0x20 && object_id <= 0x2F) {
     return ImGui::GetColorU32(theme.dungeon_object_floor);  // Brown for floors
-  } else if (object_id == 0xF9 || object_id == 0xFA) {
-    return ImGui::GetColorU32(theme.item_color);  // Gold for chests
   } else if (object_id >= 0x17 && object_id <= 0x1E) {
     return ImGui::GetColorU32(theme.dungeon_object_floor);  // Brown for doors
   } else if (object_id == 0x2F || object_id == 0x2B) {
@@ -164,7 +171,9 @@ ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
 std::string DungeonObjectSelector::GetObjectTypeSymbol(int object_id) {
   // Type 3 objects (0xF80-0xFFF) - Special room features
   if (object_id >= 0xF80) {
-    if (object_id >= 0xF80 && object_id <= 0xF8F) {
+    if (IsRepresentableChestObjectId(object_id)) {
+      return "C";
+    } else if (object_id >= 0xF80 && object_id <= 0xF8F) {
       return "L";  // Layer
     } else if (object_id >= 0xF90 && object_id <= 0xF9F) {
       return "D";  // Door indicator
@@ -173,7 +182,7 @@ std::string DungeonObjectSelector::GetObjectTypeSymbol(int object_id) {
     }
   }
 
-  // Type 2 objects (0x100-0x141) - Torches, blocks, switches
+  // Type 2 objects (0x100-0x13F) - Torches, blocks, switches
   if (object_id >= 0x100 && object_id < 0x200) {
     if (object_id >= 0x100 && object_id <= 0x10F) {
       return "*";  // Torch (flame)
@@ -188,13 +197,11 @@ std::string DungeonObjectSelector::GetObjectTypeSymbol(int object_id) {
     }
   }
 
-  // Type 1 objects (0x00-0xFF) - Base room objects
+  // Type 1 objects (0x00-0xF7) - Base room objects
   if (object_id >= 0x10 && object_id <= 0x1F) {
     return "|";  // Wall
   } else if (object_id >= 0x20 && object_id <= 0x2F) {
     return "_";  // Floor
-  } else if (object_id == 0xF9 || object_id == 0xFA) {
-    return "C";  // Chest
   } else if (object_id >= 0x17 && object_id <= 0x1E) {
     return "+";  // Door
   } else if (object_id == 0x2F || object_id == 0x2B) {
@@ -209,12 +216,18 @@ std::string DungeonObjectSelector::GetObjectTypeSymbol(int object_id) {
 }
 
 void DungeonObjectSelector::SelectObject(int obj_id, int subtype) {
+  if (subtype >= kPersistedCustomSubtypeSlots) {
+    return;
+  }
+
   selected_object_id_ = obj_id;
 
   // Create and update preview object
-  uint8_t size = 0x12;
+  uint8_t size = zelda3::DefaultRoomObjectSizeForPlacement(obj_id);
   if (subtype >= 0) {
-    size = static_cast<uint8_t>(subtype & 0x1F);
+    // Oracle custom objects use the explicitly selected size as a subtype.
+    size =
+        zelda3::CanonicalRoomObjectSize(obj_id, static_cast<uint8_t>(subtype));
   }
   preview_object_ = zelda3::RoomObject(obj_id, 0, 0, size, 0);
   preview_object_.SetRom(rom_);
@@ -234,26 +247,28 @@ void DungeonObjectSelector::SelectObject(int obj_id, int subtype) {
 void DungeonObjectSelector::DrawObjectAssetBrowser() {
   const auto& theme = AgentUI::GetTheme();
 
-  // Object ranges: Type 1 (0x00-0xFF), Type 2 (0x100-0x141), Type 3 (0xF80-0xFFF)
+  // Object ranges supported by the room-object stream codec.
   struct ObjectRange {
     int start;
     int end;
     const char* label;
   };
   static const ObjectRange ranges[] = {
-      {0x00, 0xFF, "Type 1"},
-      {0x100, 0x141, "Type 2"},
+      {0x00, 0xF7, "Type 1"},
+      {0x100, 0x13F, "Type 2"},
       {0xF80, 0xFFF, "Type 3"},
   };
 
   // Total object count
   int total_objects =
-      (0xFF - 0x00 + 1) + (0x141 - 0x100 + 1) + (0xFFF - 0xF80 + 1);
+      (0xF7 - 0x00 + 1) + (0x13F - 0x100 + 1) + (0xFFF - 0xF80 + 1);
 
   EnsureCustomObjectsInitialized();
   auto& obj_manager = zelda3::CustomObjectManager::Get();
   const int custom_count =
-      obj_manager.GetSubtypeCount(0x31) + obj_manager.GetSubtypeCount(0x32);
+      std::min(obj_manager.GetSubtypeCount(0x31),
+               kPersistedCustomSubtypeSlots) +
+      std::min(obj_manager.GetSubtypeCount(0x32), kPersistedCustomSubtypeSlots);
 
   // Row 1: search input, full-width since this is the most-used control.
   ImGui::SetNextItemWidth(-1.0f);
@@ -398,7 +413,9 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
           selected_object_id_ = obj_id;
 
           // Create and update preview object
-          preview_object_ = zelda3::RoomObject(obj_id, 0, 0, 0x12, 0);
+          preview_object_ = zelda3::RoomObject(
+              obj_id, 0, 0, zelda3::DefaultRoomObjectSizeForPlacement(obj_id),
+              0);
           preview_object_.SetRom(rom_);
           if (game_data_ &&
               current_palette_group_id_ <
@@ -416,8 +433,9 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
         }
         const bool item_visible = ImGui::IsItemVisible();
         ImVec2 button_pos = ImGui::GetItemRectMin();
-        gui::BeginRoomObjectDragSource(static_cast<uint16_t>(obj_id),
-                                       current_room_id_, 0, 0, 0x12);
+        gui::BeginRoomObjectDragSource(
+            static_cast<uint16_t>(obj_id), current_room_id_, 0, 0,
+            zelda3::DefaultRoomObjectSizeForPlacement(obj_id));
         // Draw object preview on the button; fall back to styled placeholder
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
@@ -576,7 +594,7 @@ bool DungeonObjectSelector::MatchesObjectFilter(int obj_id, int filter_type) {
     case 2:  // Floors
       return obj_id >= 0x20 && obj_id <= 0x2F;
     case 3:  // Chests
-      return obj_id == 0xF9 || obj_id == 0xFA;
+      return IsRepresentableChestObjectId(obj_id);
     case 4:  // Doors
       return obj_id >= 0x17 && obj_id <= 0x1E;
     case 5:  // Decorations
@@ -664,7 +682,8 @@ void DungeonObjectSelector::EnsureCustomObjectsInitialized() {
 }
 
 zelda3::RoomObject DungeonObjectSelector::MakePreviewObject(int obj_id) const {
-  zelda3::RoomObject obj(obj_id, 0, 0, 0x12, 0);
+  zelda3::RoomObject obj(obj_id, 0, 0,
+                         zelda3::DefaultRoomObjectSizeForPlacement(obj_id), 0);
   obj.SetRom(rom_);
   obj.EnsureTilesLoaded();
   return obj;
@@ -825,14 +844,18 @@ void DungeonObjectSelector::DrawNewCustomObjectDialog() {
     bool valid = true;
     std::string error_msg;
 
-    if (create_filename_[0] == '\0') {
+    auto& mgr = zelda3::CustomObjectManager::Get();
+    const int subtype_count = mgr.GetSubtypeCount(create_object_id_);
+    if (subtype_count >= kPersistedCustomSubtypeSlots) {
+      valid = false;
+      error_msg = "Object group already uses all 16 persisted subtype slots";
+    } else if (create_filename_[0] == '\0') {
       valid = false;
       error_msg = "Filename cannot be empty";
     } else if (!rooms_ || current_room_id_ < 0) {
       valid = false;
       error_msg = "Load a room first (needed for tile graphics)";
     } else {
-      auto& mgr = zelda3::CustomObjectManager::Get();
       if (mgr.GetBasePath().empty()) {
         valid = false;
         error_msg = "Custom objects folder not configured in project";
@@ -975,7 +998,8 @@ void DungeonObjectSelector::DrawCustomObjectWorkshopPopup(float item_size) {
       if (!MatchesObjectFilter(obj_id, object_type_filter_)) {
         continue;
       }
-      int subtype_count = obj_manager.GetSubtypeCount(obj_id);
+      const int subtype_count = std::min(obj_manager.GetSubtypeCount(obj_id),
+                                         kPersistedCustomSubtypeSlots);
       for (int subtype = 0; subtype < subtype_count; ++subtype) {
         std::string base_name = zelda3::GetObjectName(obj_id);
         std::string subtype_name =
@@ -990,8 +1014,8 @@ void DungeonObjectSelector::DrawCustomObjectWorkshopPopup(float item_size) {
 
         ImGui::PushID(obj_id * 1000 + subtype);
 
-        bool is_selected = (selected_object_id_ == obj_id &&
-                            (preview_object_.size_ & 0x1F) == subtype);
+        bool is_selected =
+            (selected_object_id_ == obj_id && preview_object_.size_ == subtype);
         ImVec2 button_size(item_size, item_size);
 
         if (ImGui::Selectable("", is_selected, 0, button_size)) {
@@ -1000,15 +1024,17 @@ void DungeonObjectSelector::DrawCustomObjectWorkshopPopup(float item_size) {
         }
         const bool item_visible = ImGui::IsItemVisible();
         ImVec2 button_pos = ImGui::GetItemRectMin();
-        gui::BeginRoomObjectDragSource(static_cast<uint16_t>(obj_id),
-                                       current_room_id_, 0, 0,
-                                       static_cast<uint8_t>(subtype & 0x1F));
+        gui::BeginRoomObjectDragSource(
+            static_cast<uint16_t>(obj_id), current_room_id_, 0, 0,
+            zelda3::CanonicalRoomObjectSize(obj_id,
+                                            static_cast<uint8_t>(subtype)));
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
         bool rendered = false;
         if (item_visible && enable_object_previews_) {
           auto temp_obj = MakePreviewObject(obj_id);
-          temp_obj.size_ = subtype;
+          temp_obj.size_ = zelda3::CanonicalRoomObjectSize(
+              obj_id, static_cast<uint8_t>(subtype));
           rendered = DrawObjectPreview(temp_obj, button_pos, item_size);
         }
 

@@ -241,6 +241,13 @@ class RoomObject {
   void InvalidateTileCache();
 };
 
+// Room-object size is persisted only for Type 1 objects. Type 2 has no size
+// field, while Type 3 reuses those bits as part of the object ID; its canonical
+// value mirrors DecodeObjectFromBytes rather than the ID's raw low nibble.
+bool IsRoomObjectSizeEditable(int object_id);
+uint8_t CanonicalRoomObjectSize(int object_id, uint8_t requested_size);
+uint8_t DefaultRoomObjectSizeForPlacement(int object_id);
+
 // Validates that an ordinary room-object stream entry can be encoded without
 // changing its identity or colliding with the stream's list/door markers.
 // Torches and pushable blocks use separate tables; callers must exclude them

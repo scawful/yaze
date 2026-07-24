@@ -651,14 +651,25 @@ void TileObjectHandler::UpdateObjectsId(int room_id,
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return;
+
+  auto& objects = room->GetTileObjects();
+  const bool has_change =
+      std::any_of(indices.begin(), indices.end(), [&](size_t index) {
+        return index < objects.size() && objects[index].id_ != new_id;
+      });
+  if (!has_change) {
+    return;
+  }
   if (ctx_)
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
-  auto& objects = room->GetTileObjects();
   for (size_t index : indices) {
-    if (index < objects.size()) {
+    if (index < objects.size() && objects[index].id_ != new_id) {
+      const uint8_t canonical_size =
+          zelda3::CanonicalRoomObjectSize(new_id, objects[index].size_);
       // Use the setter so derived flags + tile caches stay coherent.
       objects[index].set_id(new_id);
+      objects[index].set_size(canonical_size);
     }
   }
   NotifyChange(room);
@@ -670,13 +681,32 @@ void TileObjectHandler::UpdateObjectsSize(int room_id,
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return;
+
+  auto& objects = room->GetTileObjects();
+  const bool has_change =
+      std::any_of(indices.begin(), indices.end(), [&](size_t index) {
+        if (index >= objects.size() ||
+            !zelda3::IsRoomObjectSizeEditable(objects[index].id_)) {
+          return false;
+        }
+        return objects[index].size_ !=
+               zelda3::CanonicalRoomObjectSize(objects[index].id_, new_size);
+      });
+  if (!has_change) {
+    return;
+  }
   if (ctx_)
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
-  auto& objects = room->GetTileObjects();
   for (size_t index : indices) {
-    if (index < objects.size()) {
-      objects[index].size_ = new_size;
+    if (index < objects.size() &&
+        zelda3::IsRoomObjectSizeEditable(objects[index].id_)) {
+      const uint8_t canonical_size =
+          zelda3::CanonicalRoomObjectSize(objects[index].id_, new_size);
+      if (objects[index].size_ == canonical_size) {
+        continue;
+      }
+      objects[index].size_ = canonical_size;
       objects[index].tiles_loaded_ = false;
     }
   }
@@ -919,14 +949,32 @@ void TileObjectHandler::ResizeObjects(int room_id,
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return;
+  auto& objects = room->GetTileObjects();
+  const auto resized_size = [&](const zelda3::RoomObject& object) {
+    const int requested_size = static_cast<int>(object.size_) + delta;
+    return zelda3::CanonicalRoomObjectSize(
+        object.id_, static_cast<uint8_t>(std::clamp(requested_size, 0, 255)));
+  };
+  const bool has_change =
+      std::any_of(indices.begin(), indices.end(), [&](size_t index) {
+        return index < objects.size() &&
+               zelda3::IsRoomObjectSizeEditable(objects[index].id_) &&
+               objects[index].size_ != resized_size(objects[index]);
+      });
+  if (!has_change) {
+    return;
+  }
   if (ctx_)
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
-  auto& objects = room->GetTileObjects();
+
   for (size_t index : indices) {
-    if (index < objects.size()) {
-      int new_size =
-          std::clamp(static_cast<int>(objects[index].size_) + delta, 0, 15);
-      objects[index].size_ = static_cast<uint8_t>(new_size);
+    if (index < objects.size() &&
+        zelda3::IsRoomObjectSizeEditable(objects[index].id_)) {
+      const uint8_t new_size = resized_size(objects[index]);
+      if (objects[index].size_ == new_size) {
+        continue;
+      }
+      objects[index].size_ = new_size;
       objects[index].tiles_loaded_ = false;
     }
   }
