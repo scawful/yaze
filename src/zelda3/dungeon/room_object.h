@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_tile.h"
 #include "rom/rom.h"
@@ -121,9 +122,9 @@ class RoomObject {
   };
 
   // Decode object from 3-byte ROM format
-  // Type1: xxxxxxss yyyyyyss iiiiiiii (ID 0x00-0xFF)
-  // Type2: 111111xx xxxxyyyy yyiiiiii (ID 0x100-0x1FF)
-  // Type3: xxxxxxii yyyyyyii 11111iii (ID 0xF00-0xFFF)
+  // Type1: xxxxxxss yyyyyyss iiiiiiii (ID 0x000-0x0F7)
+  // Type2: 111111xx xxxxyyyy yyiiiiii (ID 0x100-0x13F)
+  // Type3: xxxxxxii yyyyyyii 11111iii (ID 0xF80-0xFFF)
   static RoomObject DecodeObjectFromBytes(uint8_t b1, uint8_t b2, uint8_t b3,
                                           uint8_t layer);
 
@@ -239,6 +240,12 @@ class RoomObject {
   void RefreshDerivedFlagsFromId();
   void InvalidateTileCache();
 };
+
+// Validates that an ordinary room-object stream entry can be encoded without
+// changing its identity or colliding with the stream's list/door markers.
+// Torches and pushable blocks use separate tables; callers must exclude them
+// with UsesRoomObjectStream().
+absl::Status ValidateRoomObjectStreamEntryForSave(const RoomObject& object);
 
 // USDASM (LoadAndBuildRoom): three room-object lists separated by $FFFF after the
 // floor/layout header. `RoomObject::layer_` stores that list index (0, 1, 2) for
