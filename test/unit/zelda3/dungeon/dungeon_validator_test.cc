@@ -34,6 +34,11 @@ bool HasErrorContaining(const ValidationResult& result,
   return false;
 }
 
+RoomObject MakeCanonicalRoomObject(int16_t id, uint8_t x, uint8_t y,
+                                   uint8_t layer) {
+  return RoomObject(id, x, y, CanonicalRoomObjectSize(id, 0), layer);
+}
+
 TEST(DungeonValidatorTest, AcceptsBothBgObjectsInOverlayStreams) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
@@ -130,16 +135,34 @@ TEST(DungeonValidatorTest, RejectsUnrepresentableRoomStreamObject) {
   EXPECT_TRUE(HasErrorContaining(result, "not representable"));
 }
 
+TEST(DungeonValidatorTest, RejectsNoncanonicalRoomStreamObjectSizes) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  for (const auto [id, size] : {std::pair<int16_t, uint8_t>{0x010, 16},
+                                std::pair<int16_t, uint8_t>{0x100, 1},
+                                std::pair<int16_t, uint8_t>{0xF99, 0}}) {
+    Room room(/*room_id=*/0, &rom);
+    room.AddTileObject(RoomObject(id, /*x=*/4, /*y=*/4, size, /*layer=*/0));
+
+    const auto result = DungeonValidator().ValidateRoom(room);
+
+    EXPECT_FALSE(result.is_valid);
+    EXPECT_TRUE(HasErrorContaining(result, "noncanonical size"))
+        << "id=" << id << " size=" << static_cast<int>(size);
+  }
+}
+
 TEST(DungeonValidatorTest, ExemptsSpecialTableObjectsFromRoomStreamCodec) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
   Room room(/*room_id=*/0, &rom);
-  RoomObject torch(/*id=*/0x150, /*x=*/4, /*y=*/4, /*size=*/0,
+  RoomObject torch(/*id=*/0x150, /*x=*/4, /*y=*/4, /*size=*/0xFF,
                    /*layer=*/0);
   torch.set_options(ObjectOption::Torch);
   ASSERT_TRUE(room.AddObject(torch).ok());
-  RoomObject block(/*id=*/0x0E00, /*x=*/8, /*y=*/8, /*size=*/0,
+  RoomObject block(/*id=*/0x0E00, /*x=*/8, /*y=*/8, /*size=*/0xFF,
                    /*layer=*/1);
   block.set_options(ObjectOption::Block);
   ASSERT_TRUE(room.AddObject(block).ok());
@@ -211,13 +234,13 @@ TEST(DungeonValidatorTest, AcceptsStatefulChestsBeforeBigKeyLocks) {
   Room room(/*room_id=*/0, &rom);
   for (int i = 0; i < 4; ++i) {
     const int16_t chest_id = i % 2 == 0 ? 0xF99 : 0xFB1;
-    ASSERT_TRUE(room.AddObject(RoomObject(chest_id, /*x=*/i * 4, /*y=*/0,
-                                          /*size=*/0, /*layer=*/0))
+    ASSERT_TRUE(room.AddObject(MakeCanonicalRoomObject(chest_id, /*x=*/i * 4,
+                                                       /*y=*/0, /*layer=*/0))
                     .ok());
   }
   for (int i = 0; i < 2; ++i) {
-    ASSERT_TRUE(room.AddObject(RoomObject(0xF98, /*x=*/i * 4, /*y=*/8,
-                                          /*size=*/0, /*layer=*/2))
+    ASSERT_TRUE(room.AddObject(MakeCanonicalRoomObject(0xF98, /*x=*/i * 4,
+                                                       /*y=*/8, /*layer=*/2))
                     .ok());
   }
 
@@ -234,11 +257,11 @@ TEST(DungeonValidatorTest, WarnsForEachStatefulChestVariantAfterLock) {
 
   for (const int16_t chest_id : {int16_t{0xF99}, int16_t{0xFB1}}) {
     Room room(/*room_id=*/0, &rom);
-    ASSERT_TRUE(room.AddObject(RoomObject(0xF98, /*x=*/0, /*y=*/0,
-                                          /*size=*/0, /*layer=*/0))
+    ASSERT_TRUE(room.AddObject(MakeCanonicalRoomObject(0xF98, /*x=*/0, /*y=*/0,
+                                                       /*layer=*/0))
                     .ok());
-    ASSERT_TRUE(room.AddObject(RoomObject(chest_id, /*x=*/8, /*y=*/0,
-                                          /*size=*/0, /*layer=*/0))
+    ASSERT_TRUE(room.AddObject(MakeCanonicalRoomObject(chest_id, /*x=*/8,
+                                                       /*y=*/0, /*layer=*/0))
                     .ok());
 
     const auto result = DungeonValidator().ValidateRoom(room);
@@ -257,12 +280,12 @@ TEST(DungeonValidatorTest, UsesEncodedListOrderForRoomEventWarnings) {
   // The chest is first in the editor vector, but list 1 is encoded after the
   // list-0 lock. A raw vector scan would miss this ordering hazard.
   ASSERT_TRUE(invalid_room
-                  .AddObject(RoomObject(0xF99, /*x=*/8, /*y=*/0,
-                                        /*size=*/0, /*layer=*/1))
+                  .AddObject(MakeCanonicalRoomObject(0xF99, /*x=*/8, /*y=*/0,
+                                                     /*layer=*/1))
                   .ok());
   ASSERT_TRUE(invalid_room
-                  .AddObject(RoomObject(0xF98, /*x=*/0, /*y=*/0,
-                                        /*size=*/0, /*layer=*/0))
+                  .AddObject(MakeCanonicalRoomObject(0xF98, /*x=*/0, /*y=*/0,
+                                                     /*layer=*/0))
                   .ok());
 
   const auto invalid_result = DungeonValidator().ValidateRoom(invalid_room);
@@ -276,12 +299,12 @@ TEST(DungeonValidatorTest, UsesEncodedListOrderForRoomEventWarnings) {
   // Conversely, raw vector order has the lock first, but the primary-list
   // chest is encoded before the list-2 lock and must remain valid.
   ASSERT_TRUE(valid_room
-                  .AddObject(RoomObject(0xF98, /*x=*/0, /*y=*/0,
-                                        /*size=*/0, /*layer=*/2))
+                  .AddObject(MakeCanonicalRoomObject(0xF98, /*x=*/0, /*y=*/0,
+                                                     /*layer=*/2))
                   .ok());
   ASSERT_TRUE(valid_room
-                  .AddObject(RoomObject(0xF99, /*x=*/8, /*y=*/0,
-                                        /*size=*/0, /*layer=*/0))
+                  .AddObject(MakeCanonicalRoomObject(0xF99, /*x=*/8, /*y=*/0,
+                                                     /*layer=*/0))
                   .ok());
 
   const auto valid_result = DungeonValidator().ValidateRoom(valid_room);
@@ -296,13 +319,14 @@ TEST(DungeonValidatorTest, FixedOpenChestsDoNotConsumeRoomEventSlots) {
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
   Room room(/*room_id=*/0, &rom);
-  ASSERT_TRUE(room.AddObject(RoomObject(0xF98, /*x=*/0, /*y=*/0,
-                                        /*size=*/0, /*layer=*/0))
+  ASSERT_TRUE(room.AddObject(MakeCanonicalRoomObject(0xF98, /*x=*/0, /*y=*/0,
+                                                     /*layer=*/0))
                   .ok());
   for (int i = 0; i < 8; ++i) {
     const int16_t open_chest_id = i % 2 == 0 ? 0xF9A : 0xFB2;
-    ASSERT_TRUE(room.AddObject(RoomObject(open_chest_id, /*x=*/i * 4,
-                                          /*y=*/8, /*size=*/0, /*layer=*/0))
+    ASSERT_TRUE(room.AddObject(MakeCanonicalRoomObject(open_chest_id,
+                                                       /*x=*/i * 4, /*y=*/8,
+                                                       /*layer=*/0))
                     .ok());
   }
 
@@ -319,13 +343,13 @@ TEST(DungeonValidatorTest, WarnsWhenRoomEventConsumersExceedSixSlots) {
 
   Room room(/*room_id=*/0, &rom);
   for (int i = 0; i < 4; ++i) {
-    ASSERT_TRUE(room.AddObject(RoomObject(0xF99, /*x=*/i * 4, /*y=*/0,
-                                          /*size=*/0, /*layer=*/0))
+    ASSERT_TRUE(room.AddObject(MakeCanonicalRoomObject(0xF99, /*x=*/i * 4,
+                                                       /*y=*/0, /*layer=*/0))
                     .ok());
   }
   for (int i = 0; i < 3; ++i) {
-    ASSERT_TRUE(room.AddObject(RoomObject(0xF98, /*x=*/i * 4, /*y=*/8,
-                                          /*size=*/0, /*layer=*/0))
+    ASSERT_TRUE(room.AddObject(MakeCanonicalRoomObject(0xF98, /*x=*/i * 4,
+                                                       /*y=*/8, /*layer=*/0))
                     .ok());
   }
 

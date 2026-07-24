@@ -382,6 +382,36 @@ TEST_F(DungeonSaveTest,
   EXPECT_TRUE(room_->object_stream_dirty());
 }
 
+TEST_F(DungeonSaveTest,
+       SaveObjects_NoncanonicalSizesFailWithoutRomMutationAndStayDirty) {
+  const struct {
+    int16_t id;
+    uint8_t size;
+  } test_cases[] = {
+      {/*id=*/0x010, /*size=*/16},
+      {/*id=*/0x100, /*size=*/1},
+      {/*id=*/0xF99, /*size=*/0},
+  };
+
+  for (const auto& test_case : test_cases) {
+    room_->GetTileObjects().clear();
+    room_->ClearObjectStreamDirty();
+    room_->AddTileObject(RoomObject(test_case.id, /*x=*/10, /*y=*/10,
+                                    test_case.size, /*layer=*/0));
+    const auto before = rom_->vector();
+
+    const auto status = room_->SaveObjects();
+
+    EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument)
+        << "id=" << test_case.id
+        << " size=" << static_cast<int>(test_case.size);
+    EXPECT_NE(status.message().find("noncanonical size"), std::string::npos)
+        << status.message();
+    EXPECT_EQ(rom_->vector(), before);
+    EXPECT_TRUE(room_->object_stream_dirty());
+  }
+}
+
 TEST_F(DungeonSaveTest, SaveObjects_TooLarge) {
   // Add MANY objects to exceed 256 bytes
   // Each object encodes to 3 bytes.
