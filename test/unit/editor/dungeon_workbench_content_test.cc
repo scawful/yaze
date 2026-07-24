@@ -13,6 +13,7 @@
 #include "absl/status/status.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/workspace/dungeon_pit_damage_view_model.h"
+#include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/pit_damage_table.h"
@@ -147,6 +148,22 @@ TEST(DungeonWorkbenchContentLayoutTest,
       699.0f, kMinCanvasWidth, kMinSidebarWidth, kSplitterWidth, true, true);
   EXPECT_FALSE(hide_both.show_left);
   EXPECT_FALSE(hide_both.show_right);
+}
+
+TEST(DungeonWorkbenchContentObjectSizeTest,
+     SizeControlsEnableOnlyWhenSelectionContainsEditableObject) {
+  const std::vector<zelda3::RoomObject> objects = {
+      zelda3::RoomObject(0x100, 5, 5, 0, 0),
+      zelda3::RoomObject(0xF99, 10, 10, 0x06, 0),
+      zelda3::RoomObject(0x001, 15, 15, 3, 0),
+  };
+  const std::vector<size_t> fixed_only = {0, 1};
+  const std::vector<size_t> mixed = {0, 1, 2};
+  const std::vector<size_t> invalid = {objects.size()};
+
+  EXPECT_FALSE(workbench::HasEditableRoomObjectSize(objects, fixed_only));
+  EXPECT_TRUE(workbench::HasEditableRoomObjectSize(objects, mixed));
+  EXPECT_FALSE(workbench::HasEditableRoomObjectSize(objects, invalid));
 }
 
 TEST(DungeonWorkbenchContentLayoutTest,
