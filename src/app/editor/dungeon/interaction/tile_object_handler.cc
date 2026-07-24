@@ -364,8 +364,7 @@ bool TileObjectHandler::HandleMouseWheel(float delta) {
     return false;
 
   int resize_delta = (delta > 0.0f) ? 1 : -1;
-  ResizeObjects(ctx_->current_room_id, indices, resize_delta);
-  return true;
+  return ResizeObjects(ctx_->current_room_id, indices, resize_delta);
 }
 
 void TileObjectHandler::DrawGhostPreview() {
@@ -943,12 +942,12 @@ void TileObjectHandler::MoveBackward(int room_id,
   NotifyChange(room);
 }
 
-void TileObjectHandler::ResizeObjects(int room_id,
+bool TileObjectHandler::ResizeObjects(int room_id,
                                       const std::vector<size_t>& indices,
                                       int delta) {
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
-    return;
+    return false;
   auto& objects = room->GetTileObjects();
   const auto resized_size = [&](const zelda3::RoomObject& object) {
     const int requested_size = static_cast<int>(object.size_) + delta;
@@ -962,7 +961,7 @@ void TileObjectHandler::ResizeObjects(int room_id,
                objects[index].size_ != resized_size(objects[index]);
       });
   if (!has_change) {
-    return;
+    return false;
   }
   if (ctx_)
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
@@ -979,6 +978,7 @@ void TileObjectHandler::ResizeObjects(int room_id,
     }
   }
   NotifyChange(room);
+  return true;
 }
 
 bool TileObjectHandler::PlaceObjectAt(int room_id,
