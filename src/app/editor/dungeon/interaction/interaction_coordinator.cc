@@ -685,7 +685,7 @@ bool InteractionCoordinator::NudgeSelectedEntities(
   }
 
   if (doors_changed) {
-    room->MarkObjectsDirty();
+    room->MarkObjectStreamDirty();
     if (defer_drag_notifications) {
       entity_group_drag_doors_changed_ = true;
     } else {

@@ -21,6 +21,7 @@
 #include "core/rom_settings.h"
 #include "rom/rom_diff.h"
 #include "rom/snes.h"
+#include "test_utils/dungeon_editor_v2_regular_entrance_test_peer.h"
 #include "testing.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
@@ -166,6 +167,19 @@ void MarkCurrentDungeonRoomPending(EditorManager* manager) {
   ASSERT_NE(dungeon, nullptr);
   dungeon->rooms()[0].SetPalette(0x2A);
   EXPECT_EQ(dungeon->PendingRoomCount(), 1);
+}
+
+void MarkCurrentDungeonEntrancePending(EditorManager* manager) {
+  auto* editor_set = manager->GetCurrentEditorSet();
+  ASSERT_NE(editor_set, nullptr);
+  auto* dungeon =
+      editor_set->GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
+  ASSERT_NE(dungeon, nullptr);
+  auto& entrance =
+      DungeonEditorV2RegularEntranceTestPeer::RegularEntrance(*dungeon, 0);
+  entrance.MarkDirty();
+  EXPECT_EQ(dungeon->PendingRoomCount(), 0);
+  EXPECT_TRUE(dungeon->HasPendingDungeonChanges());
 }
 
 void SeedCurrentDungeonPalette(EditorManager* manager, uint16_t seed) {
@@ -1113,7 +1127,7 @@ TEST(EditorManagerWriteConflictTest,
 }
 
 TEST(EditorManagerWriteConflictTest,
-     SwitchAndCloseSessionDeferWhileCurrentSessionHasPendingDungeonChanges) {
+     SwitchAndCloseSessionDeferWhileCurrentSessionHasPendingDungeonMetadata) {
   ScopedImGuiContext imgui;
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
@@ -1132,7 +1146,8 @@ TEST(EditorManagerWriteConflictTest,
   ASSERT_OK(manager->OpenRomOrProject(rom_b.string()));
   ASSERT_EQ(manager->GetCurrentSessionIndex(), 1u);
 
-  MarkCurrentDungeonRoomPending(manager.get());
+  MarkCurrentDungeonEntrancePending(manager.get());
+  EXPECT_TRUE(manager->session_coordinator()->IsSessionModified(1));
 
   manager->SwitchToSession(0);
   EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
@@ -1143,7 +1158,7 @@ TEST(EditorManagerWriteConflictTest,
 
   manager->SwitchToSession(1);
   EXPECT_EQ(manager->GetCurrentSessionIndex(), 1u);
-  MarkCurrentDungeonRoomPending(manager.get());
+  MarkCurrentDungeonEntrancePending(manager.get());
 
   manager->session_coordinator()->RequestCloseCurrentSession();
   EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());

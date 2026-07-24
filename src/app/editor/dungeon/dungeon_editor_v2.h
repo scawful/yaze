@@ -143,8 +143,11 @@ class DungeonEditorV2 : public Editor {
   void ContributeStatus(StatusBar* status_bar) override;
   absl::Status SaveRoom(int room_id);
   int LoadedRoomCount() const;
+  // Room-specific pending state used by room counts and room-level UI.
   int PendingRoomCount() const;
   bool HasPendingRoomChanges() const;
+  // All dungeon save domains, including global entrance/spawn/pit metadata.
+  bool HasPendingDungeonChanges() const;
   bool CurrentRoomHasPendingChanges() const;
   int TotalRoomCount() const { return static_cast<int>(rooms_.size()); }
 
