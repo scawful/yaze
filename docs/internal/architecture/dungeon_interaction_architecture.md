@@ -127,7 +127,7 @@ Handles tile object (RoomObject) manipulation.
 void MoveObjects(int room_id, const std::vector<size_t>& indices, int dx, int dy);
 std::vector<size_t> DuplicateObjects(int room_id, const std::vector<size_t>& indices, int dx, int dy);
 void DeleteObjects(int room_id, std::vector<size_t> indices);
-void ResizeObjects(int room_id, const std::vector<size_t>& indices, int delta);
+bool ResizeObjects(int room_id, const std::vector<size_t>& indices, int delta);
 void PlaceObjectAt(int room_id, const RoomObject& object, int x, int y);
 
 // Property updates
