@@ -360,6 +360,8 @@ TEST_F(DoorInteractionHandlerTest,
   door.type = zelda3::DoorType::NormalDoor;
   door.direction = zelda3::DoorDirection::North;
   rooms_[0].AddDoor(door);
+  rooms_[0].ClearObjectStreamDirty();
+  ASSERT_FALSE(rooms_[0].object_stream_dirty());
 
   const int mutations_before = mutation_count_;
   const int invalidations_before = invalidate_count_;
@@ -383,6 +385,7 @@ TEST_F(DoorInteractionHandlerTest,
 
   EXPECT_EQ(mutation_count_, mutations_before + 1);
   EXPECT_EQ(invalidate_count_, invalidations_before + 1);
+  EXPECT_TRUE(rooms_[0].object_stream_dirty());
 }
 
 TEST_F(DoorInteractionHandlerTest, MutateDoorTypeNoOpWhenTypeUnchanged) {
@@ -391,11 +394,15 @@ TEST_F(DoorInteractionHandlerTest, MutateDoorTypeNoOpWhenTypeUnchanged) {
   door.type = zelda3::DoorType::SmallKeyDoor;
   door.direction = zelda3::DoorDirection::East;
   rooms_[0].AddDoor(door);
+  rooms_[0].ClearObjectStreamDirty();
 
   const int mutations_before = mutation_count_;
+  const int invalidations_before = invalidate_count_;
 
   EXPECT_FALSE(handler_.MutateDoorType(0, zelda3::DoorType::SmallKeyDoor));
   EXPECT_EQ(mutation_count_, mutations_before);
+  EXPECT_EQ(invalidate_count_, invalidations_before);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
 }
 
 TEST_F(DoorInteractionHandlerTest, MutateDoorTypeRejectsOutOfRangeIndex) {
@@ -422,6 +429,82 @@ TEST_F(DoorInteractionHandlerTest,
   const auto hit = handler_.GetEntityAtPosition(hit_x, hit_y);
   ASSERT_TRUE(hit.has_value());
   EXPECT_EQ(*hit, 0u);
+}
+
+TEST_F(DoorInteractionHandlerTest,
+       DragReleaseMovesDoorAndMarksObjectStreamDirty) {
+  zelda3::Room::Door door;
+  door.position = 0;
+  door.type = zelda3::DoorType::NormalDoor;
+  door.direction = zelda3::DoorDirection::North;
+  auto [byte1, byte2] = door.EncodeBytes();
+  door.byte1 = byte1;
+  door.byte2 = byte2;
+  rooms_[0].AddDoor(door);
+  rooms_[0].ClearObjectStreamDirty();
+
+  const auto [door_x, door_y, door_w, door_h] =
+      rooms_[0].GetDoors()[0].GetEditorBounds();
+  ASSERT_TRUE(handler_.HandleClick(door_x + door_w / 2, door_y + door_h / 2));
+
+  handler_.HandleDrag(ImVec2(30.0f * 8.0f, static_cast<float>(door_y)),
+                      ImVec2(0.0f, 0.0f));
+  handler_.HandleRelease();
+
+  const auto& moved = rooms_[0].GetDoors()[0];
+  EXPECT_EQ(moved.position, 1);
+  EXPECT_EQ(moved.direction, zelda3::DoorDirection::North);
+  const auto [expected_b1, expected_b2] = moved.EncodeBytes();
+  EXPECT_EQ(moved.byte1, expected_b1);
+  EXPECT_EQ(moved.byte2, expected_b2);
+  EXPECT_TRUE(rooms_[0].object_stream_dirty());
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_EQ(invalidate_count_, 1);
+}
+
+TEST_F(DoorInteractionHandlerTest,
+       ClickReleaseWithoutMovementDoesNotMutateOrMarkDirty) {
+  zelda3::Room::Door door;
+  // South positions 9-11 share moving-axis snap slots with 6-8. A plain click
+  // must preserve the original ROM position instead of canonicalizing it.
+  door.position = 9;
+  door.type = zelda3::DoorType::NormalDoor;
+  door.direction = zelda3::DoorDirection::South;
+  auto [byte1, byte2] = door.EncodeBytes();
+  door.byte1 = byte1;
+  door.byte2 = byte2;
+  rooms_[0].AddDoor(door);
+  rooms_[0].ClearObjectStreamDirty();
+
+  const auto [door_x, door_y, door_w, door_h] =
+      rooms_[0].GetDoors()[0].GetEditorBounds();
+  ASSERT_TRUE(handler_.HandleClick(door_x + door_w / 2, door_y + door_h / 2));
+
+  handler_.HandleRelease();
+
+  EXPECT_EQ(rooms_[0].GetDoors()[0].position, 9);
+  EXPECT_EQ(rooms_[0].GetDoors()[0].direction, zelda3::DoorDirection::South);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+}
+
+TEST_F(DoorInteractionHandlerTest, NudgeMarksObjectStreamDirty) {
+  zelda3::Room::Door door;
+  door.position = 1;
+  door.type = zelda3::DoorType::NormalDoor;
+  door.direction = zelda3::DoorDirection::North;
+  auto [byte1, byte2] = door.EncodeBytes();
+  door.byte1 = byte1;
+  door.byte2 = byte2;
+  rooms_[0].AddDoor(door);
+  rooms_[0].ClearObjectStreamDirty();
+  handler_.SelectDoor(0);
+
+  ASSERT_TRUE(handler_.NudgeSelected(1, 0));
+
+  EXPECT_EQ(rooms_[0].GetDoors()[0].position, 2);
+  EXPECT_TRUE(rooms_[0].object_stream_dirty());
 }
 
 TEST_F(DoorInteractionHandlerTest, PairBadgeClickNavigatesToNeighborDoor) {

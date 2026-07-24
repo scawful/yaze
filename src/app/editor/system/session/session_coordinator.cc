@@ -1281,7 +1281,7 @@ bool SessionCoordinator::IsSessionModified(size_t index) const {
 
   if (auto* dungeon_editor =
           session->editors.GetEditorAs<DungeonEditorV2>(EditorType::kDungeon)) {
-    return dungeon_editor->HasPendingRoomChanges();
+    return dungeon_editor->HasPendingDungeonChanges();
   }
 
   return false;
