@@ -1,5 +1,6 @@
 #include "zelda3/dungeon/object_tile_editor.h"
 
+#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <vector>
@@ -75,11 +76,11 @@ TEST(ObjectTileEditorTest, CaptureLayoutBoundsMatchObjectGeometry) {
     SCOPED_TRACE(::testing::Message()
                  << "object_id=0x" << std::hex << object_id);
 
-    // size_byte = 0x12 matches CaptureObjectLayout's hardcoded preview
-    // size. ObjectGeometry::MeasureByObjectId uses the same size_byte
-    // path internally, so the bounds it returns should equal what
-    // CaptureObjectLayout produces from the trace.
-    RoomObject geom_obj(object_id, 0, 0, 0x12, 0);
+    // The compatibility overload uses the canonical placement default for
+    // each object family. ObjectGeometry must measure the same persisted size
+    // that CaptureObjectLayout uses for its trace.
+    RoomObject geom_obj(object_id, 0, 0,
+                        DefaultRoomObjectSizeForPlacement(object_id), 0);
     auto geom_or = ObjectGeometry::Get().MeasureByObjectId(geom_obj);
     ASSERT_TRUE(geom_or.ok());
 
@@ -90,6 +91,75 @@ TEST(ObjectTileEditorTest, CaptureLayoutBoundsMatchObjectGeometry) {
     EXPECT_EQ(layout_or->bounds_height, geom_or->height_tiles)
         << "CaptureObjectLayout bounds height must match ObjectGeometry";
   }
+}
+
+TEST(ObjectTileEditorTest, CaptureLayoutUsesRequestedOracleCustomSubtype) {
+  const bool old_custom_objects_flag =
+      core::FeatureFlags::get().kEnableCustomObjects;
+  const auto old_custom_object_state =
+      CustomObjectManager::Get().SnapshotState();
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+
+  const auto unique_suffix =
+      std::chrono::steady_clock::now().time_since_epoch().count();
+  const std::filesystem::path temp_base =
+      std::filesystem::temp_directory_path() /
+      ("yaze_test_custom_preview_subtypes_" + std::to_string(unique_suffix));
+  std::filesystem::create_directories(temp_base);
+  struct Cleanup {
+    bool old_custom_objects_flag;
+    CustomObjectManager::State old_custom_object_state;
+    std::filesystem::path temp_base;
+    ~Cleanup() {
+      core::FeatureFlags::get().kEnableCustomObjects = old_custom_objects_flag;
+      CustomObjectManager::Get().RestoreState(old_custom_object_state);
+      std::filesystem::remove_all(temp_base);
+    }
+  } cleanup{old_custom_objects_flag, old_custom_object_state, temp_base};
+
+  const auto write_object = [&](const std::string& filename,
+                                const std::vector<uint16_t>& tile_words) {
+    std::ofstream file(temp_base / filename, std::ios::binary);
+    const uint16_t header = static_cast<uint16_t>(tile_words.size());
+    file.put(static_cast<char>(header & 0xFF));
+    file.put(static_cast<char>((header >> 8) & 0xFF));
+    for (uint16_t tile_word : tile_words) {
+      file.put(static_cast<char>(tile_word & 0xFF));
+      file.put(static_cast<char>((tile_word >> 8) & 0xFF));
+    }
+    file.put(0);
+    file.put(0);
+  };
+
+  write_object("subtype_zero.bin", {0x0011});
+  write_object("subtype_one.bin", {0x0022, 0x0033});
+
+  auto& manager = CustomObjectManager::Get();
+  manager.Initialize(temp_base.string());
+  manager.SetObjectFileMap({{0x31, {"subtype_zero.bin", "subtype_one.bin"}}});
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+  gfx::PaletteGroup palette;
+  ObjectTileEditor editor(&rom);
+
+  auto subtype_zero = editor.CaptureObjectLayout(
+      /*object_id=*/0x31, room, palette, /*object_size=*/0);
+  auto subtype_one = editor.CaptureObjectLayout(
+      /*object_id=*/0x31, room, palette, /*object_size=*/1);
+
+  ASSERT_TRUE(subtype_zero.ok()) << subtype_zero.status();
+  ASSERT_TRUE(subtype_one.ok()) << subtype_one.status();
+  EXPECT_TRUE(subtype_zero->is_custom);
+  EXPECT_TRUE(subtype_one->is_custom);
+  EXPECT_EQ(subtype_zero->custom_filename, "subtype_zero.bin");
+  EXPECT_EQ(subtype_one->custom_filename, "subtype_one.bin");
+  EXPECT_EQ(subtype_zero->cells.size(), 1u);
+  EXPECT_EQ(subtype_one->cells.size(), 2u);
+  EXPECT_EQ(subtype_zero->bounds_width, 1);
+  EXPECT_EQ(subtype_one->bounds_width, 2);
 }
 
 TEST(ObjectTileLayoutTest, FromTracesEmptyInput) {
