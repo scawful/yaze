@@ -84,9 +84,10 @@ Chest persistence treats the global 168-record table as an ordered physical
 stream rather than regrouping it by room. One-for-one dirty-room edits reuse
 their existing occurrences, untouched and unknown-room records keep their raw
 bytes and relative order, removals compact the live stream, and growth appends
-in room-ID order. Capacity and manifest conflicts are checked before writes;
-the runtime length and full live pointer target are declared as possible write
-ranges while the pointer operand remains read-only.
+in room-ID order. Capacity and manifest conflicts are checked before writes
+from the same validated save plan used for serialization. Only contiguous byte
+runs that actually change, plus the runtime length when needed, are declared
+and written; the live pointer operand remains read-only.
 
 ## Key Files & Components
 

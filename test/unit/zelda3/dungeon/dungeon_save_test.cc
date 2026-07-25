@@ -9,6 +9,7 @@
 
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "rom/write_fence.h"
 #include "zelda3/dungeon/dungeon_block_codec.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_stream_allocator.h"
@@ -1634,6 +1635,304 @@ TEST_F(DungeonSaveTest,
   EXPECT_EQ(rom_->data()[kChestsLengthPointer], 15);
   EXPECT_EQ(rom_->data()[kChestsLengthPointer + 1], 0);
   EXPECT_FALSE(rooms[2].chests_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllChests_OneForOneEditPlansAndWritesOnlyChangedBytes) {
+  SetupChestTable();
+  SeedChestRecords({
+      {2, 0x20, false},
+      {1, 0x10, false},
+      {0x013D, 0x7A, false},
+  });
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[2] = Room(2, rom_.get());
+  rooms[2].LoadChests();
+  ASSERT_EQ(rooms[2].GetChests().size(), 1u);
+  rooms[2].GetChests()[0].id = 0x22;
+  rooms[2].GetChests()[0].size = true;
+  rooms[2].MarkChestsDirty();
+
+  auto plan =
+      BuildChestSavePlan(rom_.get(), static_cast<int>(rooms.size()),
+                         [&rooms](int room_id) { return &rooms[room_id]; });
+  ASSERT_TRUE(plan.ok()) << plan.status().message();
+  EXPECT_EQ(plan->write_ranges(), (std::vector<std::pair<uint32_t, uint32_t>>{
+                                      {kChestDataPc + 1, kChestDataPc + 3}}));
+  ASSERT_EQ(plan->writes.size(), 1u);
+  EXPECT_EQ(plan->writes[0].expected_bytes, (std::vector<uint8_t>{0x00, 0x20}));
+  EXPECT_EQ(plan->writes[0].replacement_bytes,
+            (std::vector<uint8_t>{0x80, 0x22}));
+
+  yaze::rom::WriteFence exact_delta_fence;
+  ASSERT_TRUE(
+      exact_delta_fence
+          .Allow(kChestDataPc + 1, kChestDataPc + 3, "OneForOneChestDelta")
+          .ok());
+  yaze::rom::ScopedWriteFence exact_delta_scope(rom_.get(), &exact_delta_fence);
+
+  const auto status = ApplyChestSavePlan(
+      rom_.get(), *plan,
+      [&rooms](int room_id) -> const Room* { return &rooms[room_id]; });
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(rom_->data()[kChestDataPc + 0], 0x02);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 1], 0x80);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 2], 0x22);
+  EXPECT_FALSE(rooms[2].chests_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       ApplyChestSavePlan_GrowthWritesOnlyLengthAndNewTailBytes) {
+  SetupChestTable();
+  SeedChestRecords({
+      {1, 0x10, false},
+  });
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].GetChests().push_back(chest_data{0x42, false});
+  rooms[0].MarkChestsDirty();
+
+  auto plan =
+      BuildChestSavePlan(rom_.get(), static_cast<int>(rooms.size()),
+                         [&rooms](int room_id) { return &rooms[room_id]; });
+  ASSERT_TRUE(plan.ok()) << plan.status().message();
+  EXPECT_EQ(plan->write_ranges(),
+            (std::vector<std::pair<uint32_t, uint32_t>>{
+                {kChestsLengthPointer, kChestsLengthPointer + 1},
+                {kChestDataPc + 5, kChestDataPc + 6},
+            }));
+
+  yaze::rom::WriteFence exact_delta_fence;
+  for (const auto& [begin, end] : plan->write_ranges()) {
+    ASSERT_TRUE(exact_delta_fence.Allow(begin, end, "ChestGrowthDelta").ok());
+  }
+  yaze::rom::ScopedWriteFence exact_delta_scope(rom_.get(), &exact_delta_fence);
+
+  const auto status = ApplyChestSavePlan(
+      rom_.get(), *plan,
+      [&rooms](int room_id) -> const Room* { return &rooms[room_id]; });
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer], 0x06);
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer + 1], 0x00);
+  EXPECT_EQ(rom_->data()[kChestDataPc + 5], 0x42);
+  EXPECT_FALSE(rooms[0].chests_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       BuildChestSavePlan_LengthBoundaryWritesBothLengthBytes) {
+  SetupChestTable();
+  constexpr int kInitialRecordCount = 85;
+  constexpr uint16_t kInitialByteLength =
+      kInitialRecordCount * kChestTableRecordSize;
+  static_assert(kInitialByteLength == 0x00FF);
+  rom_->mutable_data()[kChestsLengthPointer] = 0xFF;
+  rom_->mutable_data()[kChestsLengthPointer + 1] = 0x00;
+  for (int i = 0; i < kInitialRecordCount; ++i) {
+    const int offset = kChestDataPc + (i * kChestTableRecordSize);
+    rom_->mutable_data()[offset + 0] = 0x01;
+    rom_->mutable_data()[offset + 1] = 0x00;
+    rom_->mutable_data()[offset + 2] = static_cast<uint8_t>(i);
+  }
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].GetChests().push_back(chest_data{0x42, false});
+  rooms[0].MarkChestsDirty();
+
+  auto plan =
+      BuildChestSavePlan(rom_.get(), static_cast<int>(rooms.size()),
+                         [&rooms](int room_id) { return &rooms[room_id]; });
+
+  ASSERT_TRUE(plan.ok()) << plan.status().message();
+  EXPECT_EQ(plan->write_ranges(),
+            (std::vector<std::pair<uint32_t, uint32_t>>{
+                {kChestsLengthPointer, kChestsLengthPointer + 2},
+                {kChestDataPc + 0x0101, kChestDataPc + 0x0102},
+            }));
+  ASSERT_EQ(plan->writes.size(), 2u);
+  EXPECT_EQ(plan->writes[0].expected_bytes, (std::vector<uint8_t>{0xFF, 0x00}));
+  EXPECT_EQ(plan->writes[0].replacement_bytes,
+            (std::vector<uint8_t>{0x02, 0x01}));
+}
+
+TEST_F(DungeonSaveTest,
+       ApplyChestSavePlan_ShrinkLeavesObsoleteTailUntouchedAndUnwritten) {
+  SetupChestTable();
+  SeedChestRecords({
+      {1, 0x10, false},
+      {2, 0x20, false},
+      {3, 0x30, false},
+  });
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[1] = Room(1, rom_.get());
+  rooms[1].LoadChests();
+  rooms[1].GetChests().clear();
+  rooms[1].MarkChestsDirty();
+  const std::array<uint8_t, 3> obsolete_tail = {0x03, 0x00, 0x30};
+
+  auto plan =
+      BuildChestSavePlan(rom_.get(), static_cast<int>(rooms.size()),
+                         [&rooms](int room_id) { return &rooms[room_id]; });
+  ASSERT_TRUE(plan.ok()) << plan.status().message();
+  EXPECT_EQ(plan->write_ranges(),
+            (std::vector<std::pair<uint32_t, uint32_t>>{
+                {kChestsLengthPointer, kChestsLengthPointer + 1},
+                {kChestDataPc, kChestDataPc + 1},
+                {kChestDataPc + 2, kChestDataPc + 4},
+                {kChestDataPc + 5, kChestDataPc + 6},
+            }));
+  for (const auto& [begin, end] : plan->write_ranges()) {
+    EXPECT_TRUE(end <= kChestDataPc + 6 || begin >= kChestDataPc + 9);
+  }
+
+  yaze::rom::WriteFence exact_delta_fence;
+  for (const auto& [begin, end] : plan->write_ranges()) {
+    ASSERT_TRUE(exact_delta_fence.Allow(begin, end, "ChestShrinkDelta").ok());
+  }
+  yaze::rom::ScopedWriteFence exact_delta_scope(rom_.get(), &exact_delta_fence);
+
+  const auto status = ApplyChestSavePlan(
+      rom_.get(), *plan,
+      [&rooms](int room_id) -> const Room* { return &rooms[room_id]; });
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_EQ(rom_->data()[kChestsLengthPointer], 0x06);
+  EXPECT_TRUE(std::equal(obsolete_tail.begin(), obsolete_tail.end(),
+                         rom_->vector().begin() + kChestDataPc + 6));
+  EXPECT_FALSE(rooms[1].chests_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       ApplyChestSavePlan_LaterFenceFailureRollsBackEarlierRun) {
+  SetupChestTable();
+  SeedChestRecords({
+      {2, 0x20, false},
+      {1, 0x10, false},
+      {0x013D, 0x7A, false},
+  });
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[1] = Room(1, rom_.get());
+  rooms[1].LoadChests();
+  rooms[1].GetChests()[0].id = 0x11;
+  rooms[1].MarkChestsDirty();
+  rooms[2] = Room(2, rom_.get());
+  rooms[2].LoadChests();
+  rooms[2].GetChests()[0].id = 0x21;
+  rooms[2].MarkChestsDirty();
+
+  auto plan =
+      BuildChestSavePlan(rom_.get(), static_cast<int>(rooms.size()),
+                         [&rooms](int room_id) { return &rooms[room_id]; });
+  ASSERT_TRUE(plan.ok()) << plan.status().message();
+  ASSERT_EQ(plan->write_ranges(), (std::vector<std::pair<uint32_t, uint32_t>>{
+                                      {kChestDataPc + 2, kChestDataPc + 3},
+                                      {kChestDataPc + 5, kChestDataPc + 6}}));
+
+  rom_->set_dirty(false);
+  const auto before = rom_->vector();
+  yaze::rom::WriteFence first_run_only;
+  ASSERT_TRUE(
+      first_run_only
+          .Allow(kChestDataPc + 2, kChestDataPc + 3, "OnlyFirstChestRun")
+          .ok());
+  absl::Status status;
+  {
+    yaze::rom::ScopedWriteFence scope(rom_.get(), &first_run_only);
+    status = ApplyChestSavePlan(
+        rom_.get(), *plan,
+        [&rooms](int room_id) -> const Room* { return &rooms[room_id]; });
+  }
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_FALSE(rom_->dirty());
+  EXPECT_TRUE(rooms[1].chests_dirty());
+  EXPECT_TRUE(rooms[2].chests_dirty());
+}
+
+TEST_F(DungeonSaveTest, ApplyChestSavePlan_RejectsStaleTableBeforeMutation) {
+  SetupChestTable();
+  SeedChestRecords({
+      {2, 0x20, false},
+      {1, 0x10, false},
+  });
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[2] = Room(2, rom_.get());
+  rooms[2].LoadChests();
+  rooms[2].GetChests()[0].id = 0x21;
+  rooms[2].MarkChestsDirty();
+
+  auto plan =
+      BuildChestSavePlan(rom_.get(), static_cast<int>(rooms.size()),
+                         [&rooms](int room_id) { return &rooms[room_id]; });
+  ASSERT_TRUE(plan.ok()) << plan.status().message();
+
+  rom_->mutable_vector()[kChestDataPc + 4] ^= 0x80;
+  const auto before_apply = rom_->vector();
+  const auto status = ApplyChestSavePlan(
+      rom_.get(), *plan,
+      [&rooms](int room_id) -> const Room* { return &rooms[room_id]; });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  EXPECT_EQ(rom_->vector(), before_apply);
+  EXPECT_TRUE(rooms[2].chests_dirty());
+}
+
+TEST_F(DungeonSaveTest, ApplyChestSavePlan_RejectsMutatedWriteRun) {
+  SetupChestTable();
+  SeedChestRecords({
+      {2, 0x20, false},
+      {1, 0x10, false},
+  });
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[2] = Room(2, rom_.get());
+  rooms[2].LoadChests();
+  rooms[2].GetChests()[0].id = 0x21;
+  rooms[2].MarkChestsDirty();
+
+  auto plan =
+      BuildChestSavePlan(rom_.get(), static_cast<int>(rooms.size()),
+                         [&rooms](int room_id) { return &rooms[room_id]; });
+  ASSERT_TRUE(plan.ok()) << plan.status().message();
+  ASSERT_EQ(plan->writes.size(), 1u);
+  plan->writes[0].pc = kChestDataPc + 0x20;
+  const auto before = rom_->vector();
+
+  const auto status = ApplyChestSavePlan(
+      rom_.get(), *plan,
+      [&rooms](int room_id) -> const Room* { return &rooms[room_id]; });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(rooms[2].chests_dirty());
+}
+
+TEST_F(DungeonSaveTest, ApplyChestSavePlan_RejectsCleanPlanAfterNewEdit) {
+  SetupChestTable();
+  SeedChestRecords({
+      {2, 0x20, false},
+      {1, 0x10, false},
+  });
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[2] = Room(2, rom_.get());
+  rooms[2].LoadChests();
+
+  auto plan =
+      BuildChestSavePlan(rom_.get(), static_cast<int>(rooms.size()),
+                         [&rooms](int room_id) { return &rooms[room_id]; });
+  ASSERT_TRUE(plan.ok()) << plan.status().message();
+  ASSERT_FALSE(plan->any_dirty);
+
+  rooms[2].GetChests()[0].id = 0x21;
+  rooms[2].MarkChestsDirty();
+  const auto before = rom_->vector();
+
+  const auto status = ApplyChestSavePlan(
+      rom_.get(), *plan,
+      [&rooms](int room_id) -> const Room* { return &rooms[room_id]; });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_TRUE(rooms[2].chests_dirty());
 }
 
 TEST_F(DungeonSaveTest,
