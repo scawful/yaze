@@ -66,7 +66,7 @@ class DungeonObjectEditor {
     bool is_editing_position = false;
     int preview_x = 0;
     int preview_y = 0;
-    int preview_size = 0x12;  // Default size
+    int preview_size = 0x02;  // Canonical default Type 1 size
   };
 
   // Editor configuration
@@ -107,7 +107,7 @@ class DungeonObjectEditor {
   absl::Status ClearRoom();
 
   // Object manipulation
-  absl::Status InsertObject(int x, int y, int object_type, int size = 0x12,
+  absl::Status InsertObject(int x, int y, int object_type, int size = 0x02,
                             int layer = 0);
   absl::Status DeleteObject(size_t object_index);
   absl::Status DeleteSelectedObjects();
@@ -286,7 +286,6 @@ class DungeonObjectEditor {
   // Constants
   static constexpr int kMinObjectSize = 0x00;
   static constexpr int kMaxObjectSize = 0xFF;
-  static constexpr int kDefaultObjectSize = 0x12;
   static constexpr int kMinLayer = 0;
   static constexpr int kMaxLayer = 2;
 

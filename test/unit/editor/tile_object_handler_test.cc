@@ -588,7 +588,7 @@ TEST_F(TileObjectHandlerTest,
 TEST_F(TileObjectHandlerTest, ResizeObjectsIncrements) {
   AddTestObjects({CreateTestObject(5, 5, 0x05, 0x01)});
 
-  handler_.ResizeObjects(0, {0}, 1);
+  EXPECT_TRUE(handler_.ResizeObjects(0, {0}, 1));
 
   const auto& objects = rooms_[0].GetTileObjects();
   EXPECT_EQ(objects[0].size_, 6);
@@ -641,7 +641,7 @@ TEST_F(TileObjectHandlerTest, ResizeSkipsFixedSizeObjects) {
   mutation_count_ = 0;
   invalidate_count_ = 0;
 
-  handler_.ResizeObjects(0, {0, 1}, 1);
+  EXPECT_FALSE(handler_.ResizeObjects(0, {0, 1}, 1));
 
   const auto& objects = rooms_[0].GetTileObjects();
   EXPECT_EQ(objects[0].size_, 0);
@@ -659,7 +659,7 @@ TEST_F(TileObjectHandlerTest, ResizeMixedSelectionChangesOnlyType1) {
   mutation_count_ = 0;
   invalidate_count_ = 0;
 
-  handler_.ResizeObjects(0, {0, 1, 2}, 1);
+  EXPECT_TRUE(handler_.ResizeObjects(0, {0, 1, 2}, 1));
 
   const auto& objects = rooms_[0].GetTileObjects();
   EXPECT_EQ(objects[0].size_, 0x04);
@@ -676,12 +676,69 @@ TEST_F(TileObjectHandlerTest, ResizeAtType1LimitIsNoOp) {
   mutation_count_ = 0;
   invalidate_count_ = 0;
 
-  handler_.ResizeObjects(0, {0}, 1);
+  EXPECT_FALSE(handler_.ResizeObjects(0, {0}, 1));
 
   EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0x0F);
   EXPECT_EQ(mutation_count_, 0);
   EXPECT_EQ(invalidate_count_, 0);
   EXPECT_FALSE(rooms_[0].object_stream_dirty());
+}
+
+TEST_F(TileObjectHandlerTest, MouseWheelDoesNotConsumeFixedSizeOnlySelection) {
+  AddTestObjects({CreateTestObject(5, 5, 0x00, 0x100),
+                  CreateTestObject(10, 10, 0x06, 0xF99)});
+  selection_.SelectObject(0);
+  selection_.SelectObject(1, ObjectSelection::SelectionMode::Add);
+  rooms_[0].ClearSaveDirtyState();
+  mutation_count_ = 0;
+  invalidate_count_ = 0;
+
+  EXPECT_FALSE(handler_.HandleMouseWheel(1.0f));
+
+  const auto& objects = rooms_[0].GetTileObjects();
+  EXPECT_EQ(objects[0].size_, 0);
+  EXPECT_EQ(objects[1].size_, 0x06);
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+}
+
+TEST_F(TileObjectHandlerTest, MouseWheelDoesNotConsumeType1AtSizeLimit) {
+  AddTestObjects({CreateTestObject(5, 5, 0x0F, 0x01)});
+  selection_.SelectObject(0);
+  rooms_[0].ClearSaveDirtyState();
+  mutation_count_ = 0;
+  invalidate_count_ = 0;
+
+  EXPECT_FALSE(handler_.HandleMouseWheel(1.0f));
+
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0x0F);
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+}
+
+TEST_F(TileObjectHandlerTest,
+       MouseWheelConsumesMixedSelectionWhenEditableObjectChanges) {
+  AddTestObjects({CreateTestObject(5, 5, 0x03, 0x01),
+                  CreateTestObject(10, 10, 0x00, 0x100),
+                  CreateTestObject(15, 15, 0x06, 0xF99)});
+  selection_.SelectObject(0);
+  selection_.SelectObject(1, ObjectSelection::SelectionMode::Add);
+  selection_.SelectObject(2, ObjectSelection::SelectionMode::Add);
+  rooms_[0].ClearSaveDirtyState();
+  mutation_count_ = 0;
+  invalidate_count_ = 0;
+
+  EXPECT_TRUE(handler_.HandleMouseWheel(1.0f));
+
+  const auto& objects = rooms_[0].GetTileObjects();
+  EXPECT_EQ(objects[0].size_, 0x04);
+  EXPECT_EQ(objects[1].size_, 0);
+  EXPECT_EQ(objects[2].size_, 0x06);
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_EQ(invalidate_count_, 1);
+  EXPECT_TRUE(rooms_[0].object_stream_dirty());
 }
 
 // ============================================================================
