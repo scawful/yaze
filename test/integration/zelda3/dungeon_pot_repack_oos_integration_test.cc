@@ -40,6 +40,7 @@
 #include "test_utils.h"
 #include "test_utils/dungeon_editor_v2_regular_entrance_test_peer.h"
 #include "util/json.h"
+#include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/dungeon_validator.h"
 #include "zelda3/dungeon/oracle_rom_safety_preflight.h"
@@ -51,6 +52,10 @@ namespace {
 
 constexpr uint32_t kOracleRoomCount = 296;
 constexpr int kSaveReopenCycles = 50;
+constexpr uint32_t kOracleDungeonMessageIdsStartSnes = 0x07F61D;
+constexpr uint32_t kOracleDungeonMessageIdsEndSnes = 0x07F86D;
+constexpr uint32_t kOracleRoomHeadersStartSnes = 0x228280;
+constexpr uint32_t kOracleRoomHeadersEndSnes = 0x2292B0;
 constexpr std::pair<const char*, const char*> kManifestEnvVars[] = {
     {"YAZE_TEST_HACK_MANIFEST_OOS", "Oracle manifest"},
     {"YAZE_TEST_HACK_MANIFEST", "hack manifest"},
@@ -187,6 +192,64 @@ std::vector<uint8_t> ReadFile(const std::filesystem::path& path) {
   }
   return std::vector<uint8_t>(std::istreambuf_iterator<char>(file),
                               std::istreambuf_iterator<char>());
+}
+
+absl::StatusOr<bool> EnableLegacyV2DungeonMetadataFallback(
+    project::YazeProject* project,
+    const std::filesystem::path& source_manifest_path) {
+  if (project == nullptr || !project->hack_manifest.loaded()) {
+    return absl::FailedPreconditionError("Oracle manifest is not loaded");
+  }
+  if (project->hack_manifest.manifest_version() >= 3) {
+    return false;
+  }
+  if (project->hack_manifest.manifest_version() != 2) {
+    return absl::FailedPreconditionError(
+        "Oracle dungeon metadata fallback requires manifest version 2");
+  }
+
+  const std::vector<uint8_t> manifest_bytes = ReadFile(source_manifest_path);
+  if (manifest_bytes.empty()) {
+    return absl::NotFoundError(
+        absl::StrFormat("Could not read configured Oracle manifest: %s",
+                        source_manifest_path.string()));
+  }
+
+  Json synthetic_manifest =
+      Json::parse(std::string(manifest_bytes.begin(), manifest_bytes.end()));
+  synthetic_manifest["manifest_version"] = 3;
+
+  // Legacy v2 manifests may contain low-half hook addresses. Canonicalize every
+  // protected endpoint before loading the test-local v3 fallback.
+  auto& protected_json = synthetic_manifest["protected_regions"]["regions"];
+  const auto& protected_regions = project->hack_manifest.protected_regions();
+  if (!protected_json.is_array() ||
+      protected_json.size() != protected_regions.size()) {
+    return absl::FailedPreconditionError(
+        "Legacy Oracle protected-region metadata is inconsistent");
+  }
+  for (size_t index = 0; index < protected_regions.size(); ++index) {
+    protected_json[index]["start"] = absl::StrFormat(
+        "0x%06X", PcToSnes(SnesToPc(protected_regions[index].start)));
+    protected_json[index]["end"] = absl::StrFormat(
+        "0x%06X", PcToSnes(SnesToPc(protected_regions[index].end)));
+  }
+
+  synthetic_manifest["editor_managed_regions"] = {
+      {"regions",
+       Json::array(
+           {{{"start",
+              absl::StrFormat("0x%06X", kOracleDungeonMessageIdsStartSnes)},
+             {"end",
+              absl::StrFormat("0x%06X", kOracleDungeonMessageIdsEndSnes)}},
+            {{"start", absl::StrFormat("0x%06X", kOracleRoomHeadersStartSnes)},
+             {"end", absl::StrFormat("0x%06X", kOracleRoomHeadersEndSnes)}}})}};
+  const absl::Status status =
+      project->hack_manifest.LoadFromString(synthetic_manifest.dump());
+  if (!status.ok()) {
+    return status;
+  }
+  return true;
 }
 
 int CountBackupArtifacts(const std::filesystem::path& rom_path) {
@@ -1312,13 +1375,20 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   expected_sequences[selected_room][0] =
       std::pair<uint8_t, bool>{replacement_item, replacement_size};
 
+  auto planned_chest_ranges = GetDirtyChestWriteRanges(
+      &rom, dungeon_editor->TotalRoomCount(), [&dungeon_editor](int room_id) {
+        return dungeon_editor->rooms().GetIfMaterialized(room_id);
+      });
+  ASSERT_TRUE(planned_chest_ranges.ok())
+      << planned_chest_ranges.status().message();
+  ASSERT_EQ(planned_chest_ranges->size(), 1u);
+  EXPECT_EQ((*planned_chest_ranges)[0],
+            (std::pair<uint32_t, uint32_t>{selected_record_pc + 1u,
+                                           selected_record_pc + 3u}));
   const auto predicted_ranges = dungeon_editor->CollectWriteRanges();
-  EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
-                      (*chest_ranges)[0]),
-            predicted_ranges.end());
-  EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
-                      (*chest_ranges)[1]),
-            predicted_ranges.end());
+  EXPECT_EQ(predicted_ranges, *planned_chest_ranges);
+  EXPECT_TRUE(
+      project_.hack_manifest.AnalyzePcWriteRanges(predicted_ranges).empty());
   EXPECT_FALSE(std::any_of(
       predicted_ranges.begin(), predicted_ranges.end(), [](const auto& range) {
         constexpr uint32_t kPointerBegin = kChestsDataPointer1;
@@ -1388,6 +1458,235 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
 }
 
 TEST_F(DungeonPotRepackOosIntegrationTest,
+       PendantHookChestBytesAreBlockedBeforeMutation) {
+  ASSERT_GE(project_.hack_manifest.manifest_version(), 3)
+      << "Pendant-hook chest protection requires manifest version 3";
+
+  constexpr std::array<uint32_t, 2> kPendantHookPcs = {0x00E9E8, 0x00E9F7};
+  DungeonSaveFlagsGuard flags_guard;
+  ConfigureChestOnlySave();
+
+  for (uint32_t protected_pc : kPendantHookPcs) {
+    SCOPED_TRACE(
+        absl::StrFormat("protected chest byte at PC 0x%06X", protected_pc));
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromFile(temp_rom_path_.string()).ok());
+    auto chest_ranges = GetChestTableWriteRanges(&rom);
+    ASSERT_TRUE(chest_ranges.ok()) << chest_ranges.status().message();
+    const uint32_t chest_data_pc = (*chest_ranges)[1].first;
+    ASSERT_GE(protected_pc, chest_data_pc);
+    ASSERT_LT(protected_pc,
+              chest_data_pc + static_cast<uint32_t>(kChestTableCapacityBytes));
+    ASSERT_EQ((protected_pc - chest_data_pc) % kChestTableRecordSize, 2u)
+        << "Expected each protected pendant hook to overlap a chest item byte";
+
+    const uint32_t record_start =
+        protected_pc - ((protected_pc - chest_data_pc) % kChestTableRecordSize);
+    const uint16_t record_word = static_cast<uint16_t>(
+        rom.data()[record_start] |
+        (static_cast<uint16_t>(rom.data()[record_start + 1]) << 8));
+    const int room_id = record_word & 0x7FFF;
+    ASSERT_LT(room_id, static_cast<int>(kOracleRoomCount));
+
+    size_t occurrence = 0;
+    for (uint32_t pc = chest_data_pc; pc < record_start;
+         pc += kChestTableRecordSize) {
+      const uint16_t word = static_cast<uint16_t>(
+          rom.data()[pc] | (static_cast<uint16_t>(rom.data()[pc + 1]) << 8));
+      if ((word & 0x7FFF) == room_id) {
+        ++occurrence;
+      }
+    }
+
+    auto dungeon_editor = std::make_unique<editor::DungeonEditorV2>(&rom);
+    editor::EditorDependencies dependencies;
+    dependencies.rom = &rom;
+    dependencies.project = &project_;
+    dungeon_editor->SetDependencies(dependencies);
+    Room& room = dungeon_editor->rooms()[room_id];
+    room = LoadRoomFromRom(&rom, room_id);
+    ASSERT_LT(occurrence, room.GetChests().size());
+    room.GetChests()[occurrence].id ^= 0x01u;
+    room.MarkChestsDirty();
+
+    const auto predicted_ranges = dungeon_editor->CollectWriteRanges();
+    ASSERT_EQ(predicted_ranges, (std::vector<std::pair<uint32_t, uint32_t>>{
+                                    {protected_pc, protected_pc + 1u}}));
+    const auto conflicts =
+        project_.hack_manifest.AnalyzePcWriteRanges(predicted_ranges);
+    ASSERT_FALSE(conflicts.empty());
+    EXPECT_EQ(conflicts.front().ownership,
+              core::AddressOwnership::kHookPatched);
+
+    const std::vector<uint8_t> before = rom.vector();
+    const absl::Status status = dungeon_editor->SaveRoom(room_id);
+    EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_TRUE(room.chests_dirty());
+  }
+}
+
+TEST_F(DungeonPotRepackOosIntegrationTest,
+       ChestRemovalCompactionHonorsPendantProtectedSpan) {
+  ASSERT_GE(project_.hack_manifest.manifest_version(), 3)
+      << "Pendant-hook chest protection requires manifest version 3";
+
+  constexpr uint32_t kPendantProtectedBegin = 0x00E9E8;
+  constexpr uint32_t kPendantProtectedEnd = 0x00E9FF;
+  DungeonSaveFlagsGuard flags_guard;
+  ConfigureChestOnlySave();
+
+  Rom inventory_rom;
+  ASSERT_TRUE(inventory_rom.LoadFromFile(temp_rom_path_.string()).ok());
+  auto chest_ranges = GetChestTableWriteRanges(&inventory_rom);
+  ASSERT_TRUE(chest_ranges.ok()) << chest_ranges.status().message();
+  const uint32_t chest_data_pc = (*chest_ranges)[1].first;
+  const uint32_t chest_data_end =
+      chest_data_pc + ReadChestTableByteLength(inventory_rom);
+  std::array<uint32_t, kOracleRoomCount> last_record_pc{};
+  std::array<bool, kOracleRoomCount> room_seen{};
+  for (uint32_t pc = chest_data_pc; pc < chest_data_end;
+       pc += kChestTableRecordSize) {
+    const uint16_t record_word = static_cast<uint16_t>(
+        inventory_rom.data()[pc] |
+        (static_cast<uint16_t>(inventory_rom.data()[pc + 1]) << 8));
+    const uint16_t room_id = record_word & 0x7FFF;
+    if (room_id < kOracleRoomCount) {
+      room_seen[room_id] = true;
+      last_record_pc[room_id] = pc;
+    }
+  }
+
+  auto ranges_intersect = [](const auto& ranges, uint32_t begin, uint32_t end) {
+    return std::any_of(ranges.begin(), ranges.end(),
+                       [begin, end](const auto& range) {
+                         return range.first < end && begin < range.second;
+                       });
+  };
+  auto plan_last_chest_removal = [&](int room_id)
+      -> absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>> {
+    Rom trial_rom;
+    absl::Status load_status = trial_rom.LoadFromFile(temp_rom_path_.string());
+    if (!load_status.ok()) {
+      return load_status;
+    }
+    Room room = LoadRoomFromRom(&trial_rom, room_id);
+    if (room.GetChests().empty()) {
+      return absl::FailedPreconditionError("Room has no chest to remove");
+    }
+    room.GetChests().pop_back();
+    room.MarkChestsDirty();
+    return GetDirtyChestWriteRanges(
+        &trial_rom, static_cast<int>(kOracleRoomCount),
+        [&room, room_id](int requested_room) -> const Room* {
+          return requested_room == room_id ? &room : nullptr;
+        });
+  };
+
+  int blocked_room_id = -1;
+  int safe_room_id = -1;
+  for (int room_id = 0; room_id < static_cast<int>(kOracleRoomCount);
+       ++room_id) {
+    if (!room_seen[room_id]) {
+      continue;
+    }
+    auto planned_ranges = plan_last_chest_removal(room_id);
+    if (!planned_ranges.ok()) {
+      continue;
+    }
+    if (blocked_room_id < 0 &&
+        last_record_pc[room_id] < kPendantProtectedBegin &&
+        ranges_intersect(*planned_ranges, kPendantProtectedBegin,
+                         kPendantProtectedEnd) &&
+        !project_.hack_manifest.AnalyzePcWriteRanges(*planned_ranges).empty()) {
+      blocked_room_id = room_id;
+    }
+    const bool compacts_after_protected_span =
+        last_record_pc[room_id] >= kPendantProtectedEnd &&
+        last_record_pc[room_id] + kChestTableRecordSize < chest_data_end &&
+        std::any_of(
+            planned_ranges->begin(), planned_ranges->end(),
+            [chest_data_pc, chest_data_end,
+             protected_end = kPendantProtectedEnd](const auto& range) {
+              return range.first >= protected_end &&
+                     range.first < chest_data_end &&
+                     chest_data_pc < range.second;
+            });
+    if (safe_room_id < 0 && compacts_after_protected_span &&
+        !ranges_intersect(*planned_ranges, kPendantProtectedBegin,
+                          kPendantProtectedEnd) &&
+        project_.hack_manifest.AnalyzePcWriteRanges(*planned_ranges).empty()) {
+      safe_room_id = room_id;
+    }
+  }
+  ASSERT_GE(blocked_room_id, 0)
+      << "No Oracle chest removal shifted bytes across the pendant span";
+  ASSERT_GE(safe_room_id, 0)
+      << "No Oracle chest removal compacted safely after the pendant span";
+
+  Rom blocked_rom;
+  ASSERT_TRUE(blocked_rom.LoadFromFile(temp_rom_path_.string()).ok());
+  auto blocked_editor = std::make_unique<editor::DungeonEditorV2>(&blocked_rom);
+  editor::EditorDependencies blocked_dependencies;
+  blocked_dependencies.rom = &blocked_rom;
+  blocked_dependencies.project = &project_;
+  blocked_editor->SetDependencies(blocked_dependencies);
+  Room& blocked_room = blocked_editor->rooms()[blocked_room_id];
+  blocked_room = LoadRoomFromRom(&blocked_rom, blocked_room_id);
+  ASSERT_FALSE(blocked_room.GetChests().empty());
+  blocked_room.GetChests().pop_back();
+  blocked_room.MarkChestsDirty();
+  const auto blocked_ranges = blocked_editor->CollectWriteRanges();
+  ASSERT_TRUE(ranges_intersect(blocked_ranges, kPendantProtectedBegin,
+                               kPendantProtectedEnd));
+  ASSERT_FALSE(
+      project_.hack_manifest.AnalyzePcWriteRanges(blocked_ranges).empty());
+  const std::vector<uint8_t> blocked_before = blocked_rom.vector();
+
+  const absl::Status blocked_status = blocked_editor->SaveRoom(blocked_room_id);
+
+  EXPECT_EQ(blocked_status.code(), absl::StatusCode::kPermissionDenied)
+      << blocked_status;
+  EXPECT_EQ(blocked_rom.vector(), blocked_before);
+  EXPECT_TRUE(blocked_room.chests_dirty());
+
+  Rom safe_rom;
+  ASSERT_TRUE(safe_rom.LoadFromFile(temp_rom_path_.string()).ok());
+  auto safe_editor = std::make_unique<editor::DungeonEditorV2>(&safe_rom);
+  editor::EditorDependencies safe_dependencies;
+  safe_dependencies.rom = &safe_rom;
+  safe_dependencies.project = &project_;
+  safe_editor->SetDependencies(safe_dependencies);
+  Room& safe_room = safe_editor->rooms()[safe_room_id];
+  safe_room = LoadRoomFromRom(&safe_rom, safe_room_id);
+  ASSERT_FALSE(safe_room.GetChests().empty());
+  const size_t expected_chest_count = safe_room.GetChests().size() - 1;
+  const uint16_t length_before = ReadChestTableByteLength(safe_rom);
+  safe_room.GetChests().pop_back();
+  safe_room.MarkChestsDirty();
+  const auto safe_ranges = safe_editor->CollectWriteRanges();
+  EXPECT_FALSE(ranges_intersect(safe_ranges, kPendantProtectedBegin,
+                                kPendantProtectedEnd));
+  EXPECT_TRUE(project_.hack_manifest.AnalyzePcWriteRanges(safe_ranges).empty());
+
+  const absl::Status safe_status = safe_editor->SaveRoom(safe_room_id);
+
+  ASSERT_TRUE(safe_status.ok()) << safe_status.message();
+  EXPECT_FALSE(safe_room.chests_dirty());
+  EXPECT_EQ(ReadChestTableByteLength(safe_rom),
+            length_before - kChestTableRecordSize);
+  Rom::SaveSettings save_settings;
+  save_settings.filename = temp_rom_path_.string();
+  ASSERT_TRUE(safe_rom.SaveToFile(save_settings).ok());
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(temp_rom_path_.string()).ok());
+  EXPECT_EQ(LoadRoomFromRom(&reopened, safe_room_id).GetChests().size(),
+            expected_chest_count);
+  RecordProperty("blocked_compaction_room", blocked_room_id);
+  RecordProperty("safe_compaction_room", safe_room_id);
+}
+
+TEST_F(DungeonPotRepackOosIntegrationTest,
        AllRoomHeadersRoundTripByteIdentically) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromFile(temp_rom_path_.string()).ok());
@@ -1404,7 +1703,7 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
 }
 
 TEST_F(DungeonPotRepackOosIntegrationTest,
-       BlockPolicyRejectsMessageChangeThroughAsmOwnedHeaderBeforeMutation) {
+       DungeonMetadataUsesNativeV3RangesOrLegacyV2Fallback) {
   constexpr int kRoomId = 0;
   Rom rom;
   ASSERT_TRUE(rom.LoadFromFile(temp_rom_path_.string()).ok());
@@ -1424,19 +1723,212 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
 
   Room& room = dungeon_editor->rooms()[kRoomId];
   room = LoadRoomFromRom(&rom, kRoomId);
-  room.SetMessageId(static_cast<uint16_t>(room.message_id() ^ 0x0001u));
+  const uint16_t replacement_message_id =
+      static_cast<uint16_t>(room.message_id() ^ 0x0001u);
+  const uint8_t replacement_palette =
+      static_cast<uint8_t>((room.palette() + 1u) % 72u);
+  room.SetMessageId(replacement_message_id);
+  room.SetPalette(replacement_palette);
   const auto predicted_ranges = dungeon_editor->CollectWriteRanges();
   EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
                       std::pair<uint32_t, uint32_t>{kMessagesIdDungeon,
                                                     kMessagesIdDungeon + 2}),
             predicted_ranges.end());
-  const std::vector<uint8_t> before = rom.vector();
+
+  const auto header_table_snes = rom.ReadLong(kRoomHeaderPointer);
+  ASSERT_TRUE(header_table_snes.ok()) << header_table_snes.status().message();
+  const uint32_t header_table_pc = SnesToPc(*header_table_snes);
+  const auto header_pointer = rom.ReadWord(header_table_pc + kRoomId * 2u);
+  ASSERT_TRUE(header_pointer.ok()) << header_pointer.status().message();
+  const uint32_t selected_header_pc = SnesToPc(
+      (static_cast<uint32_t>(rom.data()[kRoomHeaderPointerBank]) << 16) |
+      *header_pointer);
+  EXPECT_NE(std::find(predicted_ranges.begin(), predicted_ranges.end(),
+                      std::pair<uint32_t, uint32_t>{selected_header_pc,
+                                                    selected_header_pc + 14u}),
+            predicted_ranges.end());
+
+  const std::vector<std::pair<uint32_t, uint32_t>> metadata_ranges = {
+      {selected_header_pc, selected_header_pc + 14u},
+      {kMessagesIdDungeon, kMessagesIdDungeon + 2u},
+  };
+  const bool native_v3 = project_.hack_manifest.manifest_version() >= 3;
+  const auto initial_conflicts =
+      project_.hack_manifest.AnalyzePcWriteRanges(metadata_ranges);
+  if (native_v3) {
+    EXPECT_TRUE(initial_conflicts.empty())
+        << "Production manifest v3 must directly grant dungeon metadata writes";
+    const std::array<std::pair<uint32_t, uint32_t>, 4> expected_editor_managed =
+        {{
+            {0x07F61D, 0x07F86D},
+            {0x228280, 0x2292B0},
+            {0x258090, 0x258408},
+            {0x258450, 0x25E000},
+        }};
+    const auto& actual_editor_managed =
+        project_.hack_manifest.editor_managed_regions();
+    ASSERT_EQ(actual_editor_managed.size(), expected_editor_managed.size())
+        << "Production v3 editor grants must stay exact";
+    for (size_t index = 0; index < expected_editor_managed.size(); ++index) {
+      EXPECT_EQ(actual_editor_managed[index].start,
+                expected_editor_managed[index].first);
+      EXPECT_EQ(actual_editor_managed[index].end,
+                expected_editor_managed[index].second);
+    }
+  } else {
+    ASSERT_EQ(project_.hack_manifest.manifest_version(), 2);
+    EXPECT_FALSE(initial_conflicts.empty())
+        << "Legacy manifest v2 should require the test-local fallback";
+  }
+
+  auto fallback =
+      EnableLegacyV2DungeonMetadataFallback(&project_, source_manifest_path_);
+  ASSERT_TRUE(fallback.ok()) << fallback.status().message();
+  EXPECT_EQ(*fallback, !native_v3);
+  EXPECT_TRUE(
+      project_.hack_manifest.AnalyzePcWriteRanges(metadata_ranges).empty());
+  EXPECT_EQ(
+      project_.hack_manifest.ClassifyAddress(PcToSnes(selected_header_pc)),
+      core::AddressOwnership::kVanillaSafe);
+  EXPECT_EQ(project_.hack_manifest.ClassifyAddress(
+                PcToSnes(static_cast<uint32_t>(kMessagesIdDungeon))),
+            core::AddressOwnership::kVanillaSafe);
+  EXPECT_EQ(project_.hack_manifest.ClassifyAddress(
+                PcToSnes(static_cast<uint32_t>(kWaterFillTableStart))),
+            core::AddressOwnership::kAsmOwned)
+      << "Dungeon metadata grants must not permit the ASM-owned WaterFill tail";
 
   const absl::Status status = dungeon_editor->SaveRoom(kRoomId);
+  ASSERT_TRUE(status.ok()) << status.message();
+  EXPECT_FALSE(room.header_dirty());
 
-  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
-  EXPECT_EQ(rom.vector(), before);
-  EXPECT_TRUE(room.header_dirty());
+  Rom::SaveSettings save_settings;
+  save_settings.filename = temp_rom_path_.string();
+  ASSERT_TRUE(rom.SaveToFile(save_settings).ok());
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(temp_rom_path_.string()).ok());
+  Room reopened_room = LoadRoomFromRom(&reopened, kRoomId);
+  EXPECT_EQ(reopened_room.message_id(), replacement_message_id);
+  EXPECT_EQ(reopened_room.palette(), replacement_palette);
+  RecordProperty(
+      "dungeon_metadata_manifest_path",
+      *fallback ? "legacy-v2-test-fallback" : "production-v3-native");
+}
+
+TEST_F(DungeonPotRepackOosIntegrationTest,
+       ProductionV3PersistsCustomCollisionAndRollsBackWaterFillTail) {
+  ASSERT_GE(project_.hack_manifest.manifest_version(), 3)
+      << "Production custom-collision ownership requires manifest version 3";
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(temp_rom_path_.string()).ok());
+  ASSERT_TRUE(HasCustomCollisionWriteSupport(rom.size()));
+  ASSERT_TRUE(HasWaterFillReservedRegion(rom.size()));
+  project_.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+
+  int selected_room = -1;
+  for (int room_id = 0; room_id < static_cast<int>(kOracleRoomCount);
+       ++room_id) {
+    auto map = LoadCustomCollisionMap(&rom, room_id);
+    ASSERT_TRUE(map.ok()) << "room 0x" << std::hex << room_id << ": "
+                          << map.status().message();
+    if (!map->has_data) {
+      selected_room = room_id;
+      break;
+    }
+  }
+  ASSERT_GE(selected_room, 0)
+      << "Oracle ROM has no empty custom-collision room for append coverage";
+
+  DungeonSaveFlagsGuard flags_guard;
+  ConfigurePotOnlySave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSavePotItems = false;
+  flags.kSaveCollision = true;
+
+  auto dungeon_editor = std::make_unique<editor::DungeonEditorV2>(&rom);
+  editor::EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project_;
+  dungeon_editor->SetDependencies(dependencies);
+
+  Room& room = dungeon_editor->rooms()[selected_room];
+  room = LoadRoomFromRom(&rom, selected_room);
+  ASSERT_FALSE(room.has_custom_collision());
+  constexpr int kCollisionX = 7;
+  constexpr int kCollisionY = 11;
+  constexpr uint8_t kCollisionTile = 0x08;
+  room.SetCollisionTile(kCollisionX, kCollisionY, kCollisionTile);
+  ASSERT_TRUE(room.custom_collision_dirty());
+
+  const std::vector<uint8_t> water_fill_tail_before(
+      rom.vector().begin() + kWaterFillTableStart,
+      rom.vector().begin() + kWaterFillTableEnd);
+  const auto collision_ranges = dungeon_editor->CollectWriteRanges();
+  EXPECT_NE(std::find(collision_ranges.begin(), collision_ranges.end(),
+                      std::pair<uint32_t, uint32_t>{
+                          kCustomCollisionRoomPointers,
+                          kCustomCollisionRoomPointers + kNumberOfRooms * 3}),
+            collision_ranges.end());
+  EXPECT_NE(
+      std::find(collision_ranges.begin(), collision_ranges.end(),
+                std::pair<uint32_t, uint32_t>{kCustomCollisionDataPosition,
+                                              kCustomCollisionDataSoftEnd}),
+      collision_ranges.end());
+  EXPECT_TRUE(
+      project_.hack_manifest.AnalyzePcWriteRanges(collision_ranges).empty());
+
+  const absl::Status collision_status = dungeon_editor->SaveRoom(selected_room);
+  ASSERT_TRUE(collision_status.ok()) << collision_status.message();
+  EXPECT_FALSE(room.custom_collision_dirty());
+  EXPECT_TRUE(std::equal(water_fill_tail_before.begin(),
+                         water_fill_tail_before.end(),
+                         rom.vector().begin() + kWaterFillTableStart));
+
+  Rom::SaveSettings save_settings;
+  save_settings.filename = temp_rom_path_.string();
+  ASSERT_TRUE(rom.SaveToFile(save_settings).ok());
+  const std::vector<uint8_t> collision_save_bytes = ReadFile(temp_rom_path_);
+  ASSERT_FALSE(collision_save_bytes.empty());
+
+  {
+    Rom reopened;
+    ASSERT_TRUE(reopened.LoadFromFile(temp_rom_path_.string()).ok());
+    auto reopened_map = LoadCustomCollisionMap(&reopened, selected_room);
+    ASSERT_TRUE(reopened_map.ok()) << reopened_map.status().message();
+    EXPECT_TRUE(reopened_map->has_data);
+    EXPECT_EQ(reopened_map->tiles[kCollisionY * 64 + kCollisionX],
+              kCollisionTile);
+    EXPECT_TRUE(std::equal(water_fill_tail_before.begin(),
+                           water_fill_tail_before.end(),
+                           reopened.vector().begin() + kWaterFillTableStart));
+  }
+
+  // Apply Room must reject the ASM-owned WaterFill tail during editor-local
+  // preflight, before either ROM bytes or editor dirty state are mutated.
+  flags.kSaveCollision = false;
+  flags.kSaveWaterFillZones = true;
+  room.SetWaterFillTile(/*x=*/3, /*y=*/5, /*filled=*/true);
+  ASSERT_TRUE(room.water_fill_dirty());
+  const auto water_fill_ranges = dungeon_editor->CollectWriteRanges();
+  ASSERT_EQ(water_fill_ranges,
+            (std::vector<std::pair<uint32_t, uint32_t>>{
+                {kWaterFillTableStart, kWaterFillTableEnd}}));
+  EXPECT_FALSE(
+      project_.hack_manifest.AnalyzePcWriteRanges(water_fill_ranges).empty());
+
+  const auto before_water_fill_attempt = rom.vector();
+  const absl::Status water_fill_status =
+      dungeon_editor->SaveRoom(selected_room);
+  EXPECT_EQ(water_fill_status.code(), absl::StatusCode::kPermissionDenied)
+      << water_fill_status;
+  EXPECT_EQ(rom.vector(), before_water_fill_attempt);
+  EXPECT_TRUE(room.water_fill_dirty());
+  EXPECT_EQ(ReadFile(temp_rom_path_), collision_save_bytes);
+  RecordProperty("custom_collision_room",
+                 absl::StrFormat("0x%03X", selected_room));
+  RecordProperty("water_fill_tail_policy",
+                 "production-v3-direct-apply-preflight-block");
 }
 
 TEST_F(DungeonPotRepackOosIntegrationTest,
@@ -1566,8 +2058,8 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
       edited_chest_room.GetChests()[0].id ^ 0x01u;
   const bool replacement_chest_size = !edited_chest_room.GetChests()[0].size;
   // Oracle uses all 168 records. Keep a 169th record dirty until the first
-  // SaveRoom call so the transaction has to roll back domains written before
-  // the chest serializer reaches its capacity failure.
+  // SaveRoom call to prove capacity planning rejects the whole operation
+  // before any save domain mutates the ROM.
   edited_chest_room.GetChests().push_back(chest_data{0x01, false});
   edited_chest_room.MarkChestsDirty();
 
@@ -1696,12 +2188,6 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
     expect_range(range.first, range.second,
                  "Missing regular entrance range prediction");
   }
-  auto chest_write_ranges = GetChestTableWriteRanges(&rom);
-  ASSERT_TRUE(chest_write_ranges.ok()) << chest_write_ranges.status().message();
-  for (const auto& [begin, end] : *chest_write_ranges) {
-    expect_range(begin, end, "Missing chest-table range prediction");
-  }
-
   const auto header_table_snes = rom.ReadLong(kRoomHeaderPointer);
   ASSERT_TRUE(header_table_snes.ok()) << header_table_snes.status().message();
   const uint32_t header_table_pc = SnesToPc(*header_table_snes);
@@ -1721,59 +2207,38 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   };
   const auto opted_in_conflicts =
       project_.hack_manifest.AnalyzePcWriteRanges(opted_in_ranges);
-  ASSERT_EQ(opted_in_conflicts.size(), 1u);
-  EXPECT_EQ(opted_in_conflicts[0].ownership, core::AddressOwnership::kAsmOwned);
-  EXPECT_EQ((opted_in_conflicts[0].address >> 16) & 0xFFu, 0x22u);
-  const auto predicted_conflicts =
-      project_.hack_manifest.AnalyzePcWriteRanges(predicted_ranges);
-  ASSERT_EQ(predicted_conflicts.size(), 1u);
-  EXPECT_EQ(predicted_conflicts[0].address, opted_in_conflicts[0].address);
-  EXPECT_EQ(predicted_conflicts[0].ownership, opted_in_conflicts[0].ownership);
-
-  // Keep block policy and add only the two generator-owned metadata ranges to
-  // a test-local copy of the real manifest. This proves the exact override;
-  // the source Oracle manifest and project configuration remain untouched.
-  const std::filesystem::path manifest_path =
-      project_.GetAbsolutePath(project_.hack_manifest_file);
-  const std::vector<uint8_t> manifest_bytes = ReadFile(manifest_path);
-  ASSERT_FALSE(manifest_bytes.empty())
-      << "Could not read configured Oracle manifest: " << manifest_path;
-  Json synthetic_manifest =
-      Json::parse(std::string(manifest_bytes.begin(), manifest_bytes.end()));
-  synthetic_manifest["manifest_version"] = 3;
-  // The legacy v2 Oracle generator emitted one low-half hook address
-  // ($1E7F21). A v3 manifest must canonicalize every protected endpoint before
-  // adding editor exemptions; mirror that required generator migration in this
-  // test-local copy without weakening the production parser.
-  auto& protected_json = synthetic_manifest["protected_regions"]["regions"];
-  const auto& protected_regions = project_.hack_manifest.protected_regions();
-  ASSERT_TRUE(protected_json.is_array());
-  ASSERT_EQ(protected_json.size(), protected_regions.size());
-  for (size_t index = 0; index < protected_regions.size(); ++index) {
-    protected_json[index]["start"] = absl::StrFormat(
-        "0x%06X", PcToSnes(SnesToPc(protected_regions[index].start)));
-    protected_json[index]["end"] = absl::StrFormat(
-        "0x%06X", PcToSnes(SnesToPc(protected_regions[index].end)));
+  const bool native_v3 = project_.hack_manifest.manifest_version() >= 3;
+  if (native_v3) {
+    EXPECT_TRUE(opted_in_conflicts.empty())
+        << "Production manifest v3 must directly grant dungeon metadata writes";
+  } else {
+    ASSERT_EQ(project_.hack_manifest.manifest_version(), 2);
+    ASSERT_EQ(opted_in_conflicts.size(), 1u);
+    EXPECT_EQ(opted_in_conflicts[0].ownership,
+              core::AddressOwnership::kAsmOwned);
+    EXPECT_EQ((opted_in_conflicts[0].address >> 16) & 0xFFu, 0x22u);
   }
-  synthetic_manifest["editor_managed_regions"] = {
-      {"regions", Json::array({{{"start", "0x228280"}, {"end", "0x2292B0"}},
-                               {{"start", "0x07F61D"}, {"end", "0x07F86D"}}})}};
-  const absl::Status synthetic_status =
-      project_.hack_manifest.LoadFromString(synthetic_manifest.dump());
-  ASSERT_TRUE(synthetic_status.ok()) << synthetic_status.message();
+
+  auto fallback =
+      EnableLegacyV2DungeonMetadataFallback(&project_, source_manifest_path_);
+  ASSERT_TRUE(fallback.ok()) << fallback.status().message();
+  EXPECT_EQ(*fallback, !native_v3);
   project_.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
 
   EXPECT_EQ(
       project_.hack_manifest.ClassifyAddress(PcToSnes(selected_header_pc)),
       core::AddressOwnership::kVanillaSafe);
-  EXPECT_EQ(project_.hack_manifest.ClassifyAddress(0x228080),
+  EXPECT_EQ(project_.hack_manifest.ClassifyAddress(
+                PcToSnes(static_cast<uint32_t>(kWaterFillTableStart))),
             core::AddressOwnership::kAsmOwned)
-      << "The exact header exemption must not permit unrelated bank-$22 data";
+      << "Dungeon metadata grants must not permit the ASM-owned WaterFill tail";
   EXPECT_TRUE(
       project_.hack_manifest.AnalyzePcWriteRanges(opted_in_ranges).empty());
   EXPECT_TRUE(
       project_.hack_manifest.AnalyzePcWriteRanges(predicted_ranges).empty());
-  RecordProperty("header_write_policy", "block-exact-editor-managed-regions");
+  RecordProperty("header_write_policy", *fallback
+                                            ? "block-legacy-v2-test-fallback"
+                                            : "block-production-v3-native");
 
   const std::vector<uint8_t> before_failed_save = rom.vector();
   rom::WriteFence failed_save_writes;
@@ -1790,17 +2255,10 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
       << failed_save_status;
   EXPECT_EQ(std::string(failed_save_status.message()),
             "Chest table has 169 records; capacity is 168");
-  EXPECT_NE(std::find_if(failed_save_writes.written_ranges().begin(),
-                         failed_save_writes.written_ranges().end(),
-                         [selected_header_pc](const auto& range) {
-                           return range.first <= selected_header_pc &&
-                                  range.second >= selected_header_pc + 14u;
-                         }),
-            failed_save_writes.written_ranges().end())
-      << "SaveRoomData did not write the complete room header before the late "
-         "chest-capacity failure";
+  EXPECT_TRUE(failed_save_writes.written_ranges().empty())
+      << "Chest-capacity validation must fail before any domain writes";
   EXPECT_EQ(rom.vector(), before_failed_save)
-      << "Late chest-capacity failure did not roll back prior domain writes";
+      << "Chest-capacity failure mutated the ROM";
   EXPECT_TRUE(edited_room.object_stream_dirty());
   EXPECT_TRUE(edited_room.sprites_dirty());
   EXPECT_TRUE(edited_room.header_dirty());
@@ -1818,6 +2276,24 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
   expected_chest_sequences[chest_room_id][0] =
       std::pair<uint8_t, bool>{replacement_chest_item, replacement_chest_size};
 
+  const auto successful_predicted_ranges = dungeon_editor->CollectWriteRanges();
+  auto planned_chest_ranges = GetDirtyChestWriteRanges(
+      &rom, dungeon_editor->TotalRoomCount(), [&dungeon_editor](int room_id) {
+        return dungeon_editor->rooms().GetIfMaterialized(room_id);
+      });
+  ASSERT_TRUE(planned_chest_ranges.ok())
+      << planned_chest_ranges.status().message();
+  ASSERT_FALSE(planned_chest_ranges->empty());
+  for (const auto& range : *planned_chest_ranges) {
+    EXPECT_NE(std::find(successful_predicted_ranges.begin(),
+                        successful_predicted_ranges.end(), range),
+              successful_predicted_ranges.end())
+        << "Missing exact chest delta prediction";
+  }
+  EXPECT_TRUE(
+      project_.hack_manifest.AnalyzePcWriteRanges(successful_predicted_ranges)
+          .empty());
+
   const std::vector<uint8_t> before_save_bytes = rom.vector();
   const absl::Status save_status = dungeon_editor->SaveRoom(selected_room);
   ASSERT_TRUE(save_status.ok()) << save_status.message();
@@ -1834,11 +2310,11 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
     if (before_save_bytes[offset] == rom.vector()[offset]) {
       continue;
     }
-    const bool covered =
-        std::any_of(predicted_ranges.begin(), predicted_ranges.end(),
-                    [offset](const std::pair<uint32_t, uint32_t>& range) {
-                      return range.first <= offset && offset < range.second;
-                    });
+    const bool covered = std::any_of(
+        successful_predicted_ranges.begin(), successful_predicted_ranges.end(),
+        [offset](const std::pair<uint32_t, uint32_t>& range) {
+          return range.first <= offset && offset < range.second;
+        });
     if (!covered) {
       if (uncovered_write_count == 0) {
         first_uncovered_write = offset;
@@ -2010,7 +2486,7 @@ TEST_F(DungeonPotRepackOosIntegrationTest,
         << "Multi-domain save changed ROM bytes during cycle " << cycle;
   }
   RecordProperty("daily_driver_save_reopen_cycles", kSaveReopenCycles);
-  RecordProperty("daily_driver_late_failure_rollback", true);
+  RecordProperty("daily_driver_capacity_failure_pre_mutation", true);
   RecordProperty("daily_driver_cow_retry_after_rollback", true);
   RecordProperty("source_rom_sha256", source_sha_before_);
   RecordProperty("source_manifest_sha256", source_manifest_sha_before_);

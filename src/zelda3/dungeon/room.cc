@@ -11,6 +11,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <vector>
 
 #include "absl/strings/str_cat.h"
@@ -20,6 +21,7 @@
 #include "app/platform/sdl_compat.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "rom/transaction.h"
 #include "rom/write_fence.h"
 #include "util/log.h"
 #include "zelda3/dungeon/dungeon_block_codec.h"
@@ -3513,6 +3515,200 @@ void AppendEditedChestRecord(std::vector<uint8_t>* bytes, int room_id,
   AppendChestRecord(bytes, word, chest.id);
 }
 
+void AppendChangedChestRuns(uint32_t pc, absl::Span<const uint8_t> expected,
+                            absl::Span<const uint8_t> replacement,
+                            std::vector<ChestWriteRun>* writes) {
+  size_t cursor = 0;
+  while (cursor < replacement.size()) {
+    if (replacement[cursor] == expected[cursor]) {
+      ++cursor;
+      continue;
+    }
+    const size_t begin = cursor;
+    do {
+      ++cursor;
+    } while (cursor < replacement.size() &&
+             replacement[cursor] != expected[cursor]);
+
+    ChestWriteRun run;
+    run.pc = pc + static_cast<uint32_t>(begin);
+    run.expected_bytes.assign(expected.begin() + begin,
+                              expected.begin() + cursor);
+    run.replacement_bytes.assign(replacement.begin() + begin,
+                                 replacement.begin() + cursor);
+    if (!writes->empty() && writes->back().end() == run.pc) {
+      writes->back().expected_bytes.insert(writes->back().expected_bytes.end(),
+                                           run.expected_bytes.begin(),
+                                           run.expected_bytes.end());
+      writes->back().replacement_bytes.insert(
+          writes->back().replacement_bytes.end(), run.replacement_bytes.begin(),
+          run.replacement_bytes.end());
+    } else {
+      writes->push_back(std::move(run));
+    }
+  }
+}
+
+void SortAndCoalesceChestRuns(std::vector<ChestWriteRun>* writes) {
+  std::sort(writes->begin(), writes->end(),
+            [](const ChestWriteRun& lhs, const ChestWriteRun& rhs) {
+              return lhs.pc < rhs.pc;
+            });
+  std::vector<ChestWriteRun> merged;
+  merged.reserve(writes->size());
+  for (ChestWriteRun& write : *writes) {
+    if (!merged.empty() && merged.back().end() == write.pc) {
+      merged.back().expected_bytes.insert(merged.back().expected_bytes.end(),
+                                          write.expected_bytes.begin(),
+                                          write.expected_bytes.end());
+      merged.back().replacement_bytes.insert(
+          merged.back().replacement_bytes.end(),
+          write.replacement_bytes.begin(), write.replacement_bytes.end());
+      continue;
+    }
+    merged.push_back(std::move(write));
+  }
+  *writes = std::move(merged);
+}
+
+std::vector<uint8_t> EncodeChestRoomState(int room_id, const Room& room) {
+  std::vector<uint8_t> bytes;
+  bytes.reserve(room.GetChests().size() * kChestTableRecordSize);
+  for (const chest_data& chest : room.GetChests()) {
+    AppendEditedChestRecord(&bytes, room_id, chest);
+  }
+  return bytes;
+}
+
+absl::StatusOr<ChestSavePlan> BuildChestSavePlanImpl(
+    const Rom* rom, int room_count,
+    const std::function<const Room*(int)>& room_lookup) {
+  if (rom == nullptr || !rom->is_loaded()) {
+    return absl::InvalidArgumentError("ROM not loaded");
+  }
+  const auto& rom_data = rom->vector();
+  if (kChestsLengthPointer + 1 >= static_cast<int>(rom_data.size()) ||
+      kChestsDataPointer1 + 2 >= static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError("Chest pointers out of range");
+  }
+
+  ChestSavePlan plan;
+  plan.room_limit = std::min(room_count, kNumberOfRooms);
+  std::vector<const Room*> dirty_rooms(kNumberOfRooms, nullptr);
+  for (int room_id = 0; room_id < plan.room_limit; ++room_id) {
+    const Room* room = room_lookup(room_id);
+    if (room != nullptr && room->chests_dirty()) {
+      dirty_rooms[room_id] = room;
+      plan.any_dirty = true;
+      plan.dirty_rooms.push_back(
+          ChestDirtyRoomState{room_id, EncodeChestRoomState(room_id, *room)});
+    }
+  }
+  if (!plan.any_dirty) {
+    return plan;
+  }
+
+  ASSIGN_OR_RETURN(auto potential_ranges, GetChestTableWriteRanges(rom));
+  plan.data_pc = potential_ranges[1].first;
+  std::copy_n(rom_data.begin() + kChestsDataPointer1,
+              plan.pointer_operand.size(), plan.pointer_operand.begin());
+  plan.original_byte_length =
+      static_cast<uint16_t>((rom_data[kChestsLengthPointer + 1] << 8) |
+                            rom_data[kChestsLengthPointer]);
+  plan.original_capacity_bytes.assign(
+      rom_data.begin() + plan.data_pc,
+      rom_data.begin() + plan.data_pc + kChestTableCapacityBytes);
+  if (plan.original_byte_length > kChestTableCapacityBytes ||
+      (plan.original_byte_length % kChestTableRecordSize) != 0) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Chest table byte length %d is invalid (capacity %d)",
+        static_cast<int>(plan.original_byte_length), kChestTableCapacityBytes));
+  }
+
+  const auto physical_records = ParsePhysicalRomChests(
+      rom_data, static_cast<int>(plan.data_pc), plan.original_byte_length);
+  if (physical_records.size() !=
+      static_cast<size_t>(plan.original_byte_length / kChestTableRecordSize)) {
+    return absl::OutOfRangeError("Chest data region is truncated");
+  }
+
+  std::vector<size_t> old_counts(kNumberOfRooms, 0);
+  for (const PhysicalChestRecord& record : physical_records) {
+    if (record.room_id() < kNumberOfRooms) {
+      ++old_counts[record.room_id()];
+    }
+  }
+
+  size_t final_record_count = physical_records.size();
+  for (int room_id = 0; room_id < plan.room_limit; ++room_id) {
+    if (dirty_rooms[room_id] == nullptr) {
+      continue;
+    }
+    final_record_count -= old_counts[room_id];
+    final_record_count += dirty_rooms[room_id]->GetChests().size();
+  }
+  if (final_record_count > static_cast<size_t>(kChestTableCapacityRecords)) {
+    return absl::ResourceExhaustedError(absl::StrFormat(
+        "Chest table has %d records; capacity is %d",
+        static_cast<int>(final_record_count), kChestTableCapacityRecords));
+  }
+
+  std::vector<uint8_t> replacement_bytes;
+  replacement_bytes.reserve(final_record_count * kChestTableRecordSize);
+  std::vector<size_t> seen_counts(kNumberOfRooms, 0);
+  for (const PhysicalChestRecord& record : physical_records) {
+    const uint16_t room_id = record.room_id();
+    const Room* dirty_room =
+        room_id < kNumberOfRooms ? dirty_rooms[room_id] : nullptr;
+    if (dirty_room == nullptr) {
+      AppendChestRecord(&replacement_bytes, record.word, record.item);
+      continue;
+    }
+
+    const size_t occurrence = seen_counts[room_id]++;
+    const auto& replacements = dirty_room->GetChests();
+    if (occurrence < replacements.size()) {
+      AppendEditedChestRecord(&replacement_bytes, room_id,
+                              replacements[occurrence]);
+    }
+  }
+
+  // Growth has no existing physical slot. Append extras in room-ID order so
+  // repeated saves are deterministic while every pre-existing record keeps its
+  // relative position.
+  for (int room_id = 0; room_id < plan.room_limit; ++room_id) {
+    const Room* dirty_room = dirty_rooms[room_id];
+    if (dirty_room == nullptr) {
+      continue;
+    }
+    const auto& replacements = dirty_room->GetChests();
+    for (size_t i = seen_counts[room_id]; i < replacements.size(); ++i) {
+      AppendEditedChestRecord(&replacement_bytes, room_id, replacements[i]);
+    }
+  }
+
+  if (replacement_bytes.size() != final_record_count * kChestTableRecordSize) {
+    return absl::InternalError("Chest save plan size mismatch");
+  }
+
+  const std::array<uint8_t, 2> expected_length = {
+      static_cast<uint8_t>(plan.original_byte_length & 0xFF),
+      static_cast<uint8_t>((plan.original_byte_length >> 8) & 0xFF)};
+  const uint16_t replacement_length =
+      static_cast<uint16_t>(replacement_bytes.size());
+  const std::array<uint8_t, 2> encoded_replacement_length = {
+      static_cast<uint8_t>(replacement_length & 0xFF),
+      static_cast<uint8_t>((replacement_length >> 8) & 0xFF)};
+  AppendChangedChestRuns(kChestsLengthPointer, expected_length,
+                         encoded_replacement_length, &plan.writes);
+  AppendChangedChestRuns(plan.data_pc,
+                         absl::MakeConstSpan(plan.original_capacity_bytes)
+                             .subspan(0, replacement_bytes.size()),
+                         replacement_bytes, &plan.writes);
+  SortAndCoalesceChestRuns(&plan.writes);
+  return plan;
+}
+
 int ReadRoomPotItemAddressPc(const std::vector<uint8_t>& rom_data,
                              int room_id) {
   if (room_id < 0 || room_id >= kNumberOfRooms) {
@@ -3559,130 +3755,101 @@ absl::StatusOr<PhysicalStreamInfo> GetPotItemStreamInfo(
 
 }  // namespace
 
-template <typename RoomLookup>
-absl::Status SaveAllChestsImpl(Rom* rom, int room_count,
-                               RoomLookup&& room_lookup) {
+absl::StatusOr<ChestSavePlan> BuildChestSavePlan(
+    const Rom* rom, int room_count,
+    const std::function<const Room*(int)>& room_lookup) {
+  return BuildChestSavePlanImpl(rom, room_count, room_lookup);
+}
+
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+GetDirtyChestWriteRanges(const Rom* rom, int room_count,
+                         const std::function<const Room*(int)>& room_lookup) {
+  ASSIGN_OR_RETURN(ChestSavePlan plan,
+                   BuildChestSavePlan(rom, room_count, room_lookup));
+  return plan.write_ranges();
+}
+
+absl::Status ApplyChestSavePlan(
+    Rom* rom, const ChestSavePlan& plan,
+    const std::function<const Room*(int)>& room_lookup) {
   if (rom == nullptr || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM not loaded");
   }
-  const auto& rom_data = rom->vector();
-  if (kChestsLengthPointer + 1 >= static_cast<int>(rom_data.size()) ||
-      kChestsDataPointer1 + 2 >= static_cast<int>(rom_data.size())) {
-    return absl::OutOfRangeError("Chest pointers out of range");
-  }
-  const int room_limit = std::min(room_count, kNumberOfRooms);
-  std::vector<const Room*> dirty_rooms(kNumberOfRooms, nullptr);
-  bool any_dirty = false;
-  for (int room_id = 0; room_id < room_limit; ++room_id) {
-    const Room* room = room_lookup(room_id);
-    if (room != nullptr && room->chests_dirty()) {
-      dirty_rooms[room_id] = room;
-      any_dirty = true;
+  if (!plan.any_dirty) {
+    ASSIGN_OR_RETURN(ChestSavePlan canonical_plan,
+                     BuildChestSavePlan(rom, plan.room_limit, room_lookup));
+    if (canonical_plan != plan) {
+      return absl::FailedPreconditionError(
+          "Chest save plan does not match canonical serialization");
     }
-  }
-  if (!any_dirty) {
     return absl::OkStatus();
   }
 
-  ASSIGN_OR_RETURN(auto write_ranges, GetChestTableWriteRanges(rom));
-
-  const int byte_length = (rom_data[kChestsLengthPointer + 1] << 8) |
-                          rom_data[kChestsLengthPointer];
-  if (byte_length < 0 || byte_length > kChestTableCapacityBytes ||
-      (byte_length % kChestTableRecordSize) != 0) {
+  const auto& rom_data = rom->vector();
+  if (kChestsLengthPointer + 1 >= static_cast<int>(rom_data.size()) ||
+      kChestsDataPointer1 + 2 >= static_cast<int>(rom_data.size()) ||
+      plan.data_pc > rom_data.size() ||
+      plan.original_capacity_bytes.size() > rom_data.size() - plan.data_pc) {
     return absl::FailedPreconditionError(
-        absl::StrFormat("Chest table byte length %d is invalid (capacity %d)",
-                        byte_length, kChestTableCapacityBytes));
+        "Chest save plan source is no longer addressable");
   }
-  const int cpos = static_cast<int>(write_ranges[1].first);
-  const auto physical_records =
-      ParsePhysicalRomChests(rom_data, cpos, byte_length);
-  if (physical_records.size() !=
-      static_cast<size_t>(byte_length / kChestTableRecordSize)) {
-    return absl::OutOfRangeError("Chest data region is truncated");
+  if (!std::equal(plan.pointer_operand.begin(), plan.pointer_operand.end(),
+                  rom_data.begin() + kChestsDataPointer1)) {
+    return absl::FailedPreconditionError(
+        "Chest save plan is stale: data pointer changed");
   }
-
-  std::vector<size_t> old_counts(kNumberOfRooms, 0);
-  for (const PhysicalChestRecord& record : physical_records) {
-    if (record.room_id() < kNumberOfRooms) {
-      ++old_counts[record.room_id()];
+  const uint16_t current_length =
+      static_cast<uint16_t>((rom_data[kChestsLengthPointer + 1] << 8) |
+                            rom_data[kChestsLengthPointer]);
+  if (current_length != plan.original_byte_length) {
+    return absl::FailedPreconditionError(
+        "Chest save plan is stale: runtime length changed");
+  }
+  if (!std::equal(plan.original_capacity_bytes.begin(),
+                  plan.original_capacity_bytes.end(),
+                  rom_data.begin() + plan.data_pc)) {
+    return absl::FailedPreconditionError(
+        "Chest save plan is stale: table bytes changed");
+  }
+  for (const ChestDirtyRoomState& state : plan.dirty_rooms) {
+    const Room* room = room_lookup(state.room_id);
+    if (room == nullptr || !room->chests_dirty() ||
+        EncodeChestRoomState(state.room_id, *room) != state.encoded_chests) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Chest save plan is stale for room 0x%03X", state.room_id));
     }
   }
-
-  size_t final_record_count = physical_records.size();
-  for (int room_id = 0; room_id < room_limit; ++room_id) {
-    if (dirty_rooms[room_id] == nullptr) {
-      continue;
-    }
-    final_record_count -= old_counts[room_id];
-    final_record_count += dirty_rooms[room_id]->GetChests().size();
-  }
-  if (final_record_count > static_cast<size_t>(kChestTableCapacityRecords)) {
-    return absl::ResourceExhaustedError(absl::StrFormat(
-        "Chest table has %d records; capacity is %d",
-        static_cast<int>(final_record_count), kChestTableCapacityRecords));
+  ASSIGN_OR_RETURN(ChestSavePlan canonical_plan,
+                   BuildChestSavePlan(rom, plan.room_limit, room_lookup));
+  if (canonical_plan != plan) {
+    return absl::FailedPreconditionError(
+        "Chest save plan does not match canonical serialization");
   }
 
-  std::vector<uint8_t> bytes;
-  bytes.reserve(final_record_count * kChestTableRecordSize);
-  std::vector<size_t> seen_counts(kNumberOfRooms, 0);
-  for (const PhysicalChestRecord& record : physical_records) {
-    const uint16_t room_id = record.room_id();
-    const Room* dirty_room =
-        room_id < kNumberOfRooms ? dirty_rooms[room_id] : nullptr;
-    if (dirty_room == nullptr) {
-      AppendChestRecord(&bytes, record.word, record.item);
-      continue;
-    }
-
-    const size_t occurrence = seen_counts[room_id]++;
-    const auto& replacements = dirty_room->GetChests();
-    if (occurrence < replacements.size()) {
-      AppendEditedChestRecord(&bytes, room_id, replacements[occurrence]);
-    }
-  }
-
-  // Growth has no existing physical slot. Append extras in room-ID order so
-  // repeated saves are deterministic while every pre-existing record keeps its
-  // relative position.
-  for (int room_id = 0; room_id < room_limit; ++room_id) {
-    const Room* dirty_room = dirty_rooms[room_id];
-    if (dirty_room == nullptr) {
-      continue;
-    }
-    const auto& replacements = dirty_room->GetChests();
-    for (size_t i = seen_counts[room_id]; i < replacements.size(); ++i) {
-      AppendEditedChestRecord(&bytes, room_id, replacements[i]);
-    }
-  }
-
-  if (bytes.size() != final_record_count * kChestTableRecordSize) {
-    return absl::InternalError("Chest save plan size mismatch");
-  }
-
-  const bool length_changed = byte_length != static_cast<int>(bytes.size());
-  const bool data_changed =
-      !std::equal(bytes.begin(), bytes.end(), rom_data.begin() + cpos);
+  yaze::ScopedRomTransaction transaction(*rom);
   yaze::rom::WriteFence fence;
-  RETURN_IF_ERROR(fence.Allow(write_ranges[0].first, write_ranges[0].second,
-                              "ChestTableLength"));
-  RETURN_IF_ERROR(fence.Allow(write_ranges[1].first, write_ranges[1].second,
-                              "ChestTableData"));
+  for (const ChestWriteRun& write : plan.writes) {
+    RETURN_IF_ERROR(fence.Allow(write.pc, write.end(), "ChestTableExactDelta"));
+  }
   yaze::rom::ScopedWriteFence scope(rom, &fence);
-
-  if (data_changed) {
-    RETURN_IF_ERROR(rom->WriteVector(cpos, bytes));
+  for (const ChestWriteRun& write : plan.writes) {
+    RETURN_IF_ERROR(rom->WriteVector(write.pc, write.replacement_bytes));
   }
-  if (length_changed) {
-    RETURN_IF_ERROR(rom->WriteWord(kChestsLengthPointer,
-                                   static_cast<uint16_t>(bytes.size())));
+  for (const ChestDirtyRoomState& state : plan.dirty_rooms) {
+    const_cast<Room*>(room_lookup(state.room_id))->ClearChestsDirty();
   }
-  for (int room_id = 0; room_id < room_limit; ++room_id) {
-    if (dirty_rooms[room_id] != nullptr) {
-      const_cast<Room*>(dirty_rooms[room_id])->ClearChestsDirty();
-    }
-  }
+  transaction.Commit();
   return absl::OkStatus();
+}
+
+template <typename RoomLookup>
+absl::Status SaveAllChestsImpl(Rom* rom, int room_count,
+                               RoomLookup&& room_lookup) {
+  const std::function<const Room*(int)> lookup =
+      std::forward<RoomLookup>(room_lookup);
+  ASSIGN_OR_RETURN(ChestSavePlan plan,
+                   BuildChestSavePlan(rom, room_count, lookup));
+  return ApplyChestSavePlan(rom, plan, lookup);
 }
 
 absl::Status SaveAllChests(Rom* rom, absl::Span<const Room> rooms) {

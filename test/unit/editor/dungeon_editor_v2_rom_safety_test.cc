@@ -1218,16 +1218,8 @@ TEST(DungeonEditorV2RomSafetyTest,
   flags.kSaveChests = true;
 
   const auto ranges = editor->CollectWriteRanges();
-  EXPECT_NE(std::find(ranges.begin(), ranges.end(),
-                      std::pair<uint32_t, uint32_t>{
-                          zelda3::kChestsLengthPointer,
-                          zelda3::kChestsLengthPointer + 2}),
-            ranges.end());
-  EXPECT_NE(std::find(ranges.begin(), ranges.end(),
-                      std::pair<uint32_t, uint32_t>{
-                          kChestDataPc,
-                          kChestDataPc + zelda3::kChestTableCapacityBytes}),
-            ranges.end());
+  EXPECT_EQ(ranges, (std::vector<std::pair<uint32_t, uint32_t>>{
+                        {kChestDataPc + 2, kChestDataPc + 3}}));
   EXPECT_FALSE(std::any_of(ranges.begin(), ranges.end(), [](const auto& range) {
     constexpr uint32_t kPointerBegin = zelda3::kChestsDataPointer1;
     constexpr uint32_t kPointerEnd = zelda3::kChestsDataPointer1 + 3;
@@ -1828,6 +1820,56 @@ TEST(DungeonEditorV2RomSafetyTest,
 }
 
 TEST(DungeonEditorV2RomSafetyTest,
+     SaveAndSaveRoomBlockProtectedWaterFillBeforeMutation) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  auto project = MakeProjectWithManifest(R"json(
+{
+  "manifest_version": 3,
+  "protected_regions": {
+    "total_hooks": 1,
+    "regions": [
+      {
+        "start": "0x25E000",
+        "end": "0x268000",
+        "size": 8192,
+        "hook_count": 1,
+        "module": "WaterFillGuard"
+      }
+    ]
+  }
+}
+)json");
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project;
+  editor->SetDependencies(dependencies);
+  auto& room = editor->rooms()[0];
+  room.SetWaterFillTile(/*x=*/1, /*y=*/1, /*filled=*/true);
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveWaterFillZones = true;
+  const auto before = rom.vector();
+
+  const auto save_room_status = editor->SaveRoom(0);
+  EXPECT_EQ(save_room_status.code(), absl::StatusCode::kPermissionDenied)
+      << save_room_status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(room.water_fill_dirty());
+
+  const auto save_status = editor->Save();
+  EXPECT_EQ(save_status.code(), absl::StatusCode::kPermissionDenied)
+      << save_status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(room.water_fill_dirty());
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
      CollectWriteRangesIncludesCustomCollisionRegionsWhenDirtyAndEnabled) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
@@ -1854,6 +1896,56 @@ TEST(DungeonEditorV2RomSafetyTest,
             static_cast<uint32_t>(zelda3::kCustomCollisionDataPosition));
   EXPECT_EQ(ranges[1].second,
             static_cast<uint32_t>(zelda3::kCustomCollisionDataSoftEnd));
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     SaveAndSaveRoomBlockProtectedCustomCollisionBeforeMutation) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  auto project = MakeProjectWithManifest(R"json(
+{
+  "manifest_version": 3,
+  "protected_regions": {
+    "total_hooks": 1,
+    "regions": [
+      {
+        "start": "0x258090",
+        "end": "0x258408",
+        "size": 888,
+        "hook_count": 1,
+        "module": "CollisionGuard"
+      }
+    ]
+  }
+}
+)json");
+
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.project = &project;
+  editor->SetDependencies(dependencies);
+  auto& room = editor->rooms()[0];
+  room.SetCollisionTile(/*x=*/0, /*y=*/0, /*tile=*/0x08);
+
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  auto& flags = core::FeatureFlags::get().dungeon;
+  flags.kSaveObjects = false;
+  flags.kSaveCollision = true;
+  const auto before = rom.vector();
+
+  const auto save_room_status = editor->SaveRoom(0);
+  EXPECT_EQ(save_room_status.code(), absl::StatusCode::kPermissionDenied)
+      << save_room_status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(room.custom_collision_dirty());
+
+  const auto save_status = editor->Save();
+  EXPECT_EQ(save_status.code(), absl::StatusCode::kPermissionDenied)
+      << save_status;
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(room.custom_collision_dirty());
 }
 
 TEST(DungeonEditorV2RomSafetyTest, UndoSnapshotLeakDetection) {
