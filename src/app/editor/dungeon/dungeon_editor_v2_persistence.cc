@@ -215,16 +215,59 @@ std::vector<std::pair<uint32_t, uint32_t>> CollectDirtyPotItemWriteRanges(
 
 absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
 CollectDirtyChestWriteRanges(const Rom* rom, const DungeonRoomStore& rooms) {
+  ASSIGN_OR_RETURN(
+      zelda3::ChestSavePlan plan,
+      zelda3::BuildChestSavePlan(
+          rom, static_cast<int>(rooms.size()),
+          [&rooms](int room_id) { return rooms.GetIfMaterialized(room_id); }));
+  return plan.write_ranges();
+}
+
+std::vector<std::pair<uint32_t, uint32_t>> CollectDirtyWaterFillWriteRanges(
+    const Rom* rom, const DungeonRoomStore& rooms) {
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  if (rom == nullptr || !rom->is_loaded() ||
+      zelda3::kWaterFillTableEnd > static_cast<int>(rom->size())) {
+    return ranges;
+  }
   bool any_dirty = false;
-  rooms.ForEachMaterialized([&](int, const zelda3::Room& room) {
-    if (room.chests_dirty()) {
+  rooms.ForEachMaterialized([&any_dirty](int, const zelda3::Room& room) {
+    if (room.water_fill_dirty()) {
       any_dirty = true;
     }
   });
-  if (!any_dirty) {
-    return std::vector<std::pair<uint32_t, uint32_t>>{};
+  if (any_dirty) {
+    ranges.emplace_back(zelda3::kWaterFillTableStart,
+                        zelda3::kWaterFillTableEnd);
   }
-  return zelda3::GetChestTableWriteRanges(rom);
+  return ranges;
+}
+
+std::vector<std::pair<uint32_t, uint32_t>>
+CollectDirtyCustomCollisionWriteRanges(const Rom* rom,
+                                       const DungeonRoomStore& rooms) {
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  const int pointer_table_size = zelda3::kNumberOfRooms * 3;
+  if (rom == nullptr || !rom->is_loaded() ||
+      zelda3::kCustomCollisionRoomPointers + pointer_table_size >
+          static_cast<int>(rom->size()) ||
+      zelda3::kCustomCollisionDataSoftEnd > static_cast<int>(rom->size())) {
+    return ranges;
+  }
+  bool any_dirty = false;
+  rooms.ForEachMaterialized([&any_dirty](int, const zelda3::Room& room) {
+    if (room.custom_collision_dirty()) {
+      any_dirty = true;
+    }
+  });
+  if (any_dirty) {
+    ranges.emplace_back(
+        zelda3::kCustomCollisionRoomPointers,
+        zelda3::kCustomCollisionRoomPointers + pointer_table_size);
+    ranges.emplace_back(zelda3::kCustomCollisionDataPosition,
+                        zelda3::kCustomCollisionDataSoftEnd);
+  }
+  return ranges;
 }
 
 absl::Status SaveAllPotItemsForProject(const project::YazeProject* project,
@@ -307,13 +350,44 @@ absl::Status ValidateDungeonEntranceSavePreflight(
 }
 
 absl::Status ValidateChestManifestConflicts(const project::YazeProject* project,
-                                            Rom* rom,
-                                            const DungeonRoomStore& rooms,
+                                            const zelda3::ChestSavePlan& plan,
                                             absl::string_view save_scope,
                                             ToastManager* toast_manager) {
-  ASSIGN_OR_RETURN(const auto ranges, CollectDirtyChestWriteRanges(rom, rooms));
+  const auto ranges = plan.write_ranges();
   if (ranges.empty() || project == nullptr ||
       !project->hack_manifest.loaded()) {
+    return absl::OkStatus();
+  }
+  return ValidateHackManifestSaveConflicts(
+      project->hack_manifest, project->rom_metadata.write_policy, ranges,
+      save_scope, "DungeonEditorV2", toast_manager);
+}
+
+absl::Status ValidateWaterFillManifestConflicts(
+    const project::YazeProject* project, const Rom* rom,
+    const DungeonRoomStore& rooms, absl::string_view save_scope,
+    ToastManager* toast_manager) {
+  if (project == nullptr || !project->hack_manifest.loaded()) {
+    return absl::OkStatus();
+  }
+  const auto ranges = CollectDirtyWaterFillWriteRanges(rom, rooms);
+  if (ranges.empty()) {
+    return absl::OkStatus();
+  }
+  return ValidateHackManifestSaveConflicts(
+      project->hack_manifest, project->rom_metadata.write_policy, ranges,
+      save_scope, "DungeonEditorV2", toast_manager);
+}
+
+absl::Status ValidateCustomCollisionManifestConflicts(
+    const project::YazeProject* project, const Rom* rom,
+    const DungeonRoomStore& rooms, absl::string_view save_scope,
+    ToastManager* toast_manager) {
+  if (project == nullptr || !project->hack_manifest.loaded()) {
+    return absl::OkStatus();
+  }
+  const auto ranges = CollectDirtyCustomCollisionWriteRanges(rom, rooms);
+  if (ranges.empty()) {
     return absl::OkStatus();
   }
   return ValidateHackManifestSaveConflicts(
@@ -436,7 +510,18 @@ absl::Status DungeonEditorV2::Save() {
   }
 
   const auto& flags = core::FeatureFlags::get().dungeon;
+  std::optional<zelda3::ChestSavePlan> chest_save_plan;
 
+  if (flags.kSaveCollision) {
+    RETURN_IF_ERROR(ValidateCustomCollisionManifestConflicts(
+        dependencies_.project, rom_, rooms_, "custom collision",
+        dependencies_.toast_manager));
+  }
+  if (flags.kSaveWaterFillZones) {
+    RETURN_IF_ERROR(ValidateWaterFillManifestConflicts(
+        dependencies_.project, rom_, rooms_, "water fill zones",
+        dependencies_.toast_manager));
+  }
   if (flags.kSaveEntrances) {
     RETURN_IF_ERROR(ValidateDungeonEntranceSavePreflight(
         dependencies_.project, rom_, entrances_, spawn_points_,
@@ -444,9 +529,15 @@ absl::Status DungeonEditorV2::Save() {
   }
 
   if (flags.kSaveChests) {
+    ASSIGN_OR_RETURN(auto plan, zelda3::BuildChestSavePlan(
+                                    rom_, static_cast<int>(rooms_.size()),
+                                    [this](int room_id) {
+                                      return rooms_.GetIfMaterialized(room_id);
+                                    }));
     RETURN_IF_ERROR(ValidateChestManifestConflicts(
-        dependencies_.project, rom_, rooms_, "chest table",
+        dependencies_.project, plan, "chest table",
         dependencies_.toast_manager));
+    chest_save_plan = std::move(plan);
   }
   if (flags.kSavePotItems) {
     RETURN_IF_ERROR(ValidatePotItemManifestConflicts(
@@ -541,8 +632,8 @@ absl::Status DungeonEditorV2::Save() {
   }
 
   if (flags.kSaveChests) {
-    auto status = zelda3::SaveAllChests(
-        rom_, static_cast<int>(rooms_.size()),
+    auto status = zelda3::ApplyChestSavePlan(
+        rom_, *chest_save_plan,
         [this](int room_id) { return rooms_.GetIfMaterialized(room_id); });
     if (!status.ok()) {
       LOG_ERROR("DungeonEditorV2", "Failed to save chests: %s",
@@ -644,49 +735,25 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
   // Include it in write-range reporting whenever we have dirty water fill data,
   // even if no rooms are currently loaded (SaveWaterFillZones() is room-indexed
   // and independent of room loading state).
-  if (flags.kSaveWaterFillZones &&
-      zelda3::kWaterFillTableEnd <= static_cast<int>(rom_data.size())) {
-    bool any_dirty = false;
-    rooms_.ForEachMaterialized([&](int, const zelda3::Room& room) {
-      if (room.water_fill_dirty()) {
-        any_dirty = true;
-      }
-    });
-    if (any_dirty) {
-      ranges.emplace_back(zelda3::kWaterFillTableStart,
-                          zelda3::kWaterFillTableEnd);
-    }
+  if (flags.kSaveWaterFillZones) {
+    auto water_fill_ranges = CollectDirtyWaterFillWriteRanges(rom_, rooms_);
+    ranges.insert(ranges.end(), water_fill_ranges.begin(),
+                  water_fill_ranges.end());
   }
 
   // Custom collision writes update the pointer table and append blobs into the
   // expanded collision region. SaveAllCollision() is room-indexed, so include
   // these ranges whenever any room has dirty custom collision data.
   if (flags.kSaveCollision) {
-    const int ptrs_size = zelda3::kNumberOfRooms * 3;
-    const bool has_ptr_table =
-        (zelda3::kCustomCollisionRoomPointers + ptrs_size <=
-         static_cast<int>(rom_data.size()));
-    const bool has_data_region = (zelda3::kCustomCollisionDataSoftEnd <=
-                                  static_cast<int>(rom_data.size()));
-    if (has_ptr_table && has_data_region) {
-      bool any_dirty = false;
-      rooms_.ForEachMaterialized([&](int, const zelda3::Room& room) {
-        if (room.custom_collision_dirty()) {
-          any_dirty = true;
-        }
-      });
-      if (any_dirty) {
-        ranges.emplace_back(zelda3::kCustomCollisionRoomPointers,
-                            zelda3::kCustomCollisionRoomPointers + ptrs_size);
-        ranges.emplace_back(zelda3::kCustomCollisionDataPosition,
-                            zelda3::kCustomCollisionDataSoftEnd);
-      }
-    }
+    auto collision_ranges =
+        CollectDirtyCustomCollisionWriteRanges(rom_, rooms_);
+    ranges.insert(ranges.end(), collision_ranges.begin(),
+                  collision_ranges.end());
   }
 
-  // Chests use one global fixed-capacity table. A dirty room may change the
-  // runtime byte length and any slot inside the live pointer target, so report
-  // both complete write ranges before serializers clear dirty state.
+  // Chests use one global fixed-capacity table. Report only the exact byte
+  // deltas from the same planner used by the serializer so unrelated protected
+  // bytes inside the live table do not block a safe edit.
   if (flags.kSaveChests) {
     auto chest_ranges = CollectDirtyChestWriteRanges(rom_, rooms_);
     if (chest_ranges.ok()) {
@@ -828,6 +895,19 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
     }
 
     const auto& flags = core::FeatureFlags::get().dungeon;
+    std::optional<zelda3::ChestSavePlan> chest_save_plan;
+    if (flags.kSaveCollision) {
+      RETURN_IF_ERROR(ValidateCustomCollisionManifestConflicts(
+          dependencies_.project, rom_, rooms_,
+          absl::StrFormat("custom collision for room 0x%03X", room_id),
+          dependencies_.toast_manager));
+    }
+    if (flags.kSaveWaterFillZones) {
+      RETURN_IF_ERROR(ValidateWaterFillManifestConflicts(
+          dependencies_.project, rom_, rooms_,
+          absl::StrFormat("water fill zones for room 0x%03X", room_id),
+          dependencies_.toast_manager));
+    }
     if (flags.kSaveEntrances) {
       RETURN_IF_ERROR(ValidateDungeonEntranceSavePreflight(
           dependencies_.project, rom_, entrances_, spawn_points_,
@@ -837,10 +917,16 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
           dependencies_.toast_manager));
     }
     if (flags.kSaveChests) {
+      ASSIGN_OR_RETURN(
+          auto plan, zelda3::BuildChestSavePlan(
+                         rom_, static_cast<int>(rooms_.size()), [this](int id) {
+                           return rooms_.GetIfMaterialized(id);
+                         }));
       RETURN_IF_ERROR(ValidateChestManifestConflicts(
-          dependencies_.project, rom_, rooms_,
+          dependencies_.project, plan,
           absl::StrFormat("chest table for room 0x%03X", room_id),
           dependencies_.toast_manager));
+      chest_save_plan = std::move(plan);
     }
     if (flags.kSavePotItems) {
       RETURN_IF_ERROR(ValidatePotItemManifestConflicts(
@@ -888,8 +974,8 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
       RETURN_IF_ERROR(SaveWaterFillZones(rom_, rooms_));
     }
     if (flags.kSaveChests) {
-      RETURN_IF_ERROR(zelda3::SaveAllChests(
-          rom_, static_cast<int>(rooms_.size()),
+      RETURN_IF_ERROR(zelda3::ApplyChestSavePlan(
+          rom_, *chest_save_plan,
           [this](int id) { return rooms_.GetIfMaterialized(id); }));
     }
     if (flags.kSavePotItems) {

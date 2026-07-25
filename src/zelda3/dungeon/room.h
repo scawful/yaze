@@ -3,6 +3,7 @@
 
 #include <yaze.h>
 
+#include <array>
 #include <cstdint>
 #include <functional>
 #include <memory>
@@ -1178,6 +1179,67 @@ absl::Status RelocateSpriteData(Rom* rom, int room_id,
 // only and is deliberately excluded.
 absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
 GetChestTableWriteRanges(const Rom* rom);
+
+struct ChestWriteRun {
+  uint32_t pc = 0;
+  std::vector<uint8_t> expected_bytes;
+  std::vector<uint8_t> replacement_bytes;
+
+  bool operator==(const ChestWriteRun&) const = default;
+
+  uint32_t end() const {
+    return pc + static_cast<uint32_t>(replacement_bytes.size());
+  }
+};
+
+struct ChestDirtyRoomState {
+  int room_id = 0;
+  std::vector<uint8_t> encoded_chests;
+
+  bool operator==(const ChestDirtyRoomState&) const = default;
+};
+
+// Chest serialization snapshot. It captures both the exact byte runs presented
+// to manifest preflight and the source state required to apply those runs
+// safely after other save domains have run. ApplyChestSavePlan reconstructs
+// and compares the canonical plan before permitting any write.
+struct ChestSavePlan {
+  bool any_dirty = false;
+  int room_limit = 0;
+  uint32_t data_pc = 0;
+  std::array<uint8_t, 3> pointer_operand{};
+  uint16_t original_byte_length = 0;
+  std::vector<uint8_t> original_capacity_bytes;
+  std::vector<ChestWriteRun> writes;
+  std::vector<ChestDirtyRoomState> dirty_rooms;
+
+  bool operator==(const ChestSavePlan&) const = default;
+
+  std::vector<std::pair<uint32_t, uint32_t>> write_ranges() const {
+    std::vector<std::pair<uint32_t, uint32_t>> ranges;
+    ranges.reserve(writes.size());
+    for (const ChestWriteRun& write : writes) {
+      ranges.emplace_back(write.pc, write.end());
+    }
+    return ranges;
+  }
+};
+
+absl::StatusOr<ChestSavePlan> BuildChestSavePlan(
+    const Rom* rom, int room_count,
+    const std::function<const Room*(int)>& room_lookup);
+absl::Status ApplyChestSavePlan(
+    Rom* rom, const ChestSavePlan& plan,
+    const std::function<const Room*(int)>& room_lookup);
+
+// Plan the exact PC ranges changed by the current dirty-room chest state.
+// One-for-one edits return only the affected record bytes; growth/removal may
+// return wider runs plus the two-byte runtime length operand. The same plan is
+// used by manifest preflight and SaveAllChests so protected bytes that are not
+// actually changing do not block an otherwise safe edit.
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+GetDirtyChestWriteRanges(const Rom* rom, int room_count,
+                         const std::function<const Room*(int)>& room_lookup);
 
 // Aggregate chests from all rooms and write to ROM. Dirty rooms replace their
 // existing occurrences one-for-one in physical-table order. Untouched and
