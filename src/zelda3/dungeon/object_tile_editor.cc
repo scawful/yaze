@@ -199,6 +199,13 @@ ObjectTileEditor::ObjectTileEditor(Rom* rom) : rom_(rom) {}
 
 absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureObjectLayout(
     int16_t object_id, const Room& room, const gfx::PaletteGroup& palette) {
+  return CaptureObjectLayout(object_id, room, palette,
+                             DefaultRoomObjectSizeForPlacement(object_id));
+}
+
+absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureObjectLayout(
+    int16_t object_id, const Room& room, const gfx::PaletteGroup& palette,
+    uint8_t object_size) {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -210,10 +217,10 @@ absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureObjectLayout(
   // dropped tile writes at negative tile coordinates because
   // DrawRoutineUtils::WriteTile8 short-circuits via IsValidTilePosition
   // before invoking the trace hook.
-  constexpr uint8_t kPreviewSizeByte = 0x12;
+  const uint8_t preview_size = CanonicalRoomObjectSize(object_id, object_size);
   auto [anchor_x, anchor_y] =
-      ObjectGeometry::Get().ResolveAnchor(object_id, kPreviewSizeByte);
-  RoomObject obj(object_id, anchor_x, anchor_y, kPreviewSizeByte, 0);
+      ObjectGeometry::Get().ResolveAnchor(object_id, preview_size);
+  RoomObject obj(object_id, anchor_x, anchor_y, preview_size, 0);
   obj.SetRom(rom_);
   obj.EnsureTilesLoaded();
 
