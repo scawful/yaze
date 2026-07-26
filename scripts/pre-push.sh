@@ -33,8 +33,8 @@ SKIP_BUILD=false
 SKIP_UI_REGRESSION=false
 BUILD_DIR="${YAZE_PREPUSH_BUILD_DIR:-build}"
 TEST_TIMEOUT="${YAZE_PREPUSH_TIMEOUT:-120}"
-SMOKE_TEST_FILTER="${YAZE_PREPUSH_SMOKE_FILTER:-PanelManagerPolicyTest.*}"
-UI_TEST_FILTER="${YAZE_PREPUSH_UI_FILTER:-PanelManagerPolicyTest.*:UserSettingsLayoutDefaultsTest.*:LayoutPresetsTest.*:AnimatorTest.*}"
+SMOKE_TEST_FILTER="${YAZE_PREPUSH_SMOKE_FILTER:-WorkspaceWindowManagerPolicyTest.*}"
+UI_TEST_FILTER="${YAZE_PREPUSH_UI_FILTER:-WorkspaceWindowManagerPolicyTest.*:UserSettingsLayoutDefaultsTest.*:LayoutPresetsTest.*:AnimatorTest.*}"
 
 print_header() { echo -e "\n${BLUE}=== $1 ===${NC}"; }
 print_ok() { echo -e "${GREEN}[ok] $1${NC}"; }
@@ -130,6 +130,16 @@ resolve_test_binary() {
   return 1
 }
 
+test_filter_selects_tests() {
+  local test_bin="$1"
+  local test_filter="$2"
+  local listed_tests
+
+  listed_tests="$("$test_bin" --gtest_list_tests \
+      --gtest_filter="$test_filter" 2>&1)"
+  grep -Eq '^[^[:space:]].*\.$' <<<"$listed_tests"
+}
+
 find_clang_format() {
   local names=(clang-format-18 clang-format-17 clang-format)
   local n
@@ -180,14 +190,19 @@ has_ui_workflow_changes() {
   for f in "${files[@]}"; do
     case "$f" in
       src/app/editor/menu/activity_bar.cc|src/app/editor/menu/activity_bar.h|\
-      src/app/editor/menu/right_panel_manager.cc|src/app/editor/menu/right_panel_manager.h|\
-      src/app/editor/system/panel_manager.cc|src/app/editor/system/panel_manager.h|\
+      src/app/editor/menu/right_drawer_manager.cc|src/app/editor/menu/right_drawer_manager.h|\
+      src/app/editor/system/panel_manager.h|\
+      src/app/editor/system/workspace/workspace_window_manager.cc|\
+      src/app/editor/system/workspace/workspace_window_manager.h|\
+      src/app/editor/system/workspace/workspace_window_manager_state.cc|\
+      src/app/editor/system/workspace/workspace_window_manager_support.cc|\
+      src/app/editor/system/workspace_window_manager.h|\
       src/app/editor/dungeon/dungeon_editor_v2.cc|src/app/editor/dungeon/dungeon_editor_v2.h|\
-      src/app/editor/dungeon/panels/dungeon_workbench_panel.cc|src/app/editor/dungeon/panels/dungeon_workbench_panel.h|\
+      src/app/editor/dungeon/workspace/dungeon_workbench_content.cc|src/app/editor/dungeon/workspace/dungeon_workbench_content.h|\
       src/app/gui/widgets/themed_widgets.cc|src/app/gui/widgets/themed_widgets.h|\
       src/app/gui/core/ui_config.h|\
       src/app/gui/animation/animator.cc|src/app/gui/animation/animator.h|\
-      test/unit/editor/panel_manager_policy_test.cc|\
+      test/unit/editor/workspace_window_manager_policy_test.cc|\
       test/unit/editor/user_settings_layout_defaults_test.cc|\
       test/unit/editor/layout_presets_test.cc|\
       test/unit/gui/animator_test.cc)
@@ -240,6 +255,10 @@ main() {
     fi
 
     print_info "Running smoke filter: $SMOKE_TEST_FILTER"
+    if ! test_filter_selects_tests "$smoke_bin" "$SMOKE_TEST_FILTER"; then
+      print_err "Smoke filter selected no tests: $SMOKE_TEST_FILTER"
+      exit 2
+    fi
     if ! run_with_timeout "$TEST_TIMEOUT" "$smoke_bin" \
         --gtest_filter="$SMOKE_TEST_FILTER" --gtest_brief=1; then
       print_err "Unit smoke tests failed"
@@ -306,6 +325,10 @@ main() {
 
       print_info "Detected panel/workflow-related changes"
       print_info "Running UI filter: $UI_TEST_FILTER"
+      if ! test_filter_selects_tests "$ui_bin" "$UI_TEST_FILTER"; then
+        print_err "UI filter selected no tests: $UI_TEST_FILTER"
+        exit 2
+      fi
       if ! run_with_timeout "$TEST_TIMEOUT" "$ui_bin" \
           --gtest_filter="$UI_TEST_FILTER" --gtest_brief=1; then
         print_err "UI regression tests failed"
