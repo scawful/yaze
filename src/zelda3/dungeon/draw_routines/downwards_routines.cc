@@ -81,9 +81,32 @@ void DrawDownwards4x2_1to15or26(const DrawContext& ctx) {
 }
 
 void DrawDownwards4x2_1to16_BothBG(const DrawContext& ctx) {
-  // Pattern: Same as above but draws to both BG1 and BG2 (objects 0x63-0x64)
-  DrawDownwards4x2_1to15or26(ctx);
-  // Note: BothBG would require access to both buffers - simplified for now
+  // USDASM $01:8AA4 calls RoomDraw_GetSize_1to16, so the encoded size nibble
+  // is the zero-based repeat count. ObjectDrawer dispatches this routine once
+  // per background because the registry marks it as a BothBG writer.
+  const int count = (ctx.object.size_ & 0x0F) + 1;
+  if (ctx.tiles.size() < 8) {
+    return;
+  }
+
+  for (int s = 0; s < count; ++s) {
+    const int y = ctx.object.y_ + (s * 2);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, y, ctx.tiles[0]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, y,
+                                 ctx.tiles[1]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 2, y,
+                                 ctx.tiles[2]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 3, y,
+                                 ctx.tiles[3]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, y + 1,
+                                 ctx.tiles[4]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, y + 1,
+                                 ctx.tiles[5]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 2, y + 1,
+                                 ctx.tiles[6]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 3, y + 1,
+                                 ctx.tiles[7]);
+  }
 }
 
 void DrawDownwardsDecor4x2spaced4_1to16(const DrawContext& ctx) {
