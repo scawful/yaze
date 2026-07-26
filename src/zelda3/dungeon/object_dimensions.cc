@@ -852,8 +852,9 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0x128] = {4, 5, Dir::None, 0, false};  // Bed variant
   // 0x129: 4x4
   dimensions_[0x129] = {4, 4, Dir::Horizontal, 4, false};
-  // 0x12A-0x12B: Rightwards 2x2 (repeatable)
-  dimensions_[0x12A] = {2, 2, Dir::Horizontal, 2, false};
+  // 0x12A: Mario portrait (fixed 4x2)
+  dimensions_[0x12A] = {4, 2, Dir::None, 0, false};
+  // 0x12B: Rightwards 2x2 (repeatable)
   dimensions_[0x12B] = {2, 2, Dir::Horizontal, 2, false};
   // 0x134: Rightwards 2x2 (repeatable)
   dimensions_[0x134] = {2, 2, Dir::Horizontal, 2, false};

@@ -377,7 +377,7 @@ void DrawRoutineRegistry::BuildObjectMapping() {
   object_to_routine_map_[0x127] = 4;
   object_to_routine_map_[0x128] = 98;
   object_to_routine_map_[0x129] = 16;
-  object_to_routine_map_[0x12A] = 4;
+  object_to_routine_map_[0x12A] = DrawRoutineIds::kWaterHopStairsA;
   object_to_routine_map_[0x12B] = 4;
   object_to_routine_map_[0x12C] = 99;
   object_to_routine_map_[0x12D] = 83;
