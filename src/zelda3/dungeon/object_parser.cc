@@ -500,6 +500,10 @@ int ObjectParser::GetSubtype2TileCount(int16_t object_id) const {
   if (object_id >= 0x110 && object_id <= 0x117) {
     return 12;
   }
+  // Enabled star switch and lit torch are fixed 2x2 patterns.
+  if (object_id == 0x11F || object_id == 0x120) {
+    return 4;
+  }
   // 4x4 fixed patterns (stairs/altars/walls)
   if (object_id == 0x11C || object_id == 0x124 || object_id == 0x125 ||
       object_id == 0x129 || (object_id >= 0x12D && object_id <= 0x133) ||
