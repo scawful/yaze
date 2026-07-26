@@ -133,11 +133,27 @@ resolve_test_binary() {
 test_filter_selects_tests() {
   local test_bin="$1"
   local test_filter="$2"
+  local positive_filter="${test_filter%%-*}"
+  local filter_component
   local listed_tests
+  local filter_components=()
 
-  listed_tests="$("$test_bin" --gtest_list_tests \
-      --gtest_filter="$test_filter" 2>&1)"
-  grep -Eq '^[^[:space:]].*\.$' <<<"$listed_tests"
+  IFS=':' read -r -a filter_components <<<"$positive_filter"
+  for filter_component in "${filter_components[@]}"; do
+    if [[ -z "$filter_component" ]]; then
+      continue
+    fi
+    if ! listed_tests="$(run_with_timeout "$TEST_TIMEOUT" "$test_bin" \
+        --gtest_list_tests --gtest_filter="$filter_component" 2>&1)"; then
+      print_err "Unable to list tests for filter: $filter_component"
+      return 1
+    fi
+    if ! grep -Eq '^[^[:space:]].*\.$' <<<"$listed_tests"; then
+      print_err "Test filter component selected no tests: $filter_component"
+      return 1
+    fi
+  done
+  return 0
 }
 
 find_clang_format() {
@@ -256,7 +272,7 @@ main() {
 
     print_info "Running smoke filter: $SMOKE_TEST_FILTER"
     if ! test_filter_selects_tests "$smoke_bin" "$SMOKE_TEST_FILTER"; then
-      print_err "Smoke filter selected no tests: $SMOKE_TEST_FILTER"
+      print_err "Smoke filter validation failed: $SMOKE_TEST_FILTER"
       exit 2
     fi
     if ! run_with_timeout "$TEST_TIMEOUT" "$smoke_bin" \
@@ -326,7 +342,7 @@ main() {
       print_info "Detected panel/workflow-related changes"
       print_info "Running UI filter: $UI_TEST_FILTER"
       if ! test_filter_selects_tests "$ui_bin" "$UI_TEST_FILTER"; then
-        print_err "UI filter selected no tests: $UI_TEST_FILTER"
+        print_err "UI filter validation failed: $UI_TEST_FILTER"
         exit 2
       fi
       if ! run_with_timeout "$TEST_TIMEOUT" "$ui_bin" \
