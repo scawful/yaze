@@ -325,6 +325,55 @@ TEST_F(ObjectDimensionTableTest, HammerPegUsesFixedTwoByTwoBounds) {
   }
 }
 
+TEST_F(ObjectDimensionTableTest,
+       BigWallDecorAliasesUseFixedEightByThreeBounds) {
+  auto& table = ObjectDimensionTable::Get();
+  ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());
+
+  struct DecorCase {
+    int object_id;
+    uint8_t oos_size;
+  };
+  constexpr DecorCase kCases[] = {
+      {0xFCB, 14},
+      {0xFF6, 9},
+      {0xFF7, 13},
+  };
+
+  for (const auto& test_case : kCases) {
+    for (uint8_t size : {uint8_t{0}, test_case.oos_size, uint8_t{15}}) {
+      SCOPED_TRACE(::testing::Message()
+                   << "object_id=0x" << std::hex << test_case.object_id
+                   << " size=" << std::dec << static_cast<int>(size));
+
+      const auto [width, height] =
+          table.GetDimensions(test_case.object_id, size);
+      EXPECT_EQ(width, 8);
+      EXPECT_EQ(height, 3);
+
+      const auto selection =
+          table.GetSelectionBounds(test_case.object_id, size);
+      EXPECT_EQ(selection.offset_x, 0);
+      EXPECT_EQ(selection.offset_y, 0);
+      EXPECT_EQ(selection.width, 8);
+      EXPECT_EQ(selection.height, 3);
+
+      const RoomObject object(test_case.object_id, 0, 0, size, 0);
+      const auto geometry = ObjectGeometry::Get().MeasureByObjectId(object);
+      ASSERT_TRUE(geometry.ok());
+      EXPECT_EQ(geometry->min_x_tiles, 0);
+      EXPECT_EQ(geometry->min_y_tiles, 0);
+      EXPECT_EQ(geometry->width_tiles, 8);
+      EXPECT_EQ(geometry->height_tiles, 3);
+
+      const auto [legacy_width, legacy_height] =
+          ObjectDrawer(rom_.get(), 0).CalculateObjectDimensions(object);
+      EXPECT_EQ(legacy_width, 64);
+      EXPECT_EQ(legacy_height, 24);
+    }
+  }
+}
+
 TEST_F(ObjectDimensionTableTest, BigKeyLockUsesFixedTwoByTwoBounds) {
   auto& table = ObjectDimensionTable::Get();
   ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());

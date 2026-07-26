@@ -637,10 +637,14 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
   }
   // 4x4 single-pattern objects
   if (object_id == 0xFAA || object_id == 0xFAD || object_id == 0xFAE ||
-      (object_id >= 0xFB4 && object_id <= 0xFB9) || object_id == 0xFCB ||
-      object_id == 0xFCC || object_id == 0xFD4 || object_id == 0xFE2 ||
-      object_id == 0xFF6 || object_id == 0xFF7) {
+      (object_id >= 0xFB4 && object_id <= 0xFB9) || object_id == 0xFCC ||
+      object_id == 0xFD4 || object_id == 0xFE2) {
     return 16;
+  }
+  // Big wall decor aliases: RoomDraw_BigWallDecor calls
+  // RoomDraw_1x3N_rightwards with A=8, consuming 8 columns x 3 rows.
+  if (object_id == 0xFCB || object_id == 0xFF6 || object_id == 0xFF7) {
+    return 24;
   }
   // Turtle Rock pipes: 24 tiles (proven from routine bodies, not just
   // dimensions table). DrawVerticalTurtleRockPipe (0xFBA, 0xFBB at
