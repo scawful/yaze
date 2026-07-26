@@ -43,6 +43,7 @@ namespace yaze {
 namespace editor {
 
 class CustomCollisionPanel;
+class DungeonEditorPaletteRefreshTestPeer;
 class DungeonEditorV2RegularEntranceTestPeer;
 class DungeonEditorV2ReloadTestPeer;
 class DungeonEditorV2SpawnPointTestPeer;
@@ -249,6 +250,7 @@ class DungeonEditorV2 : public Editor {
   const std::deque<int>& GetRecentRooms() const { return recent_rooms_; }
 
  private:
+  friend class DungeonEditorPaletteRefreshTestPeer;
   friend class DungeonEditorV2RegularEntranceTestPeer;
   friend class DungeonEditorV2ReloadTestPeer;
   friend class DungeonEditorV2SpawnPointTestPeer;
@@ -291,6 +293,10 @@ class DungeonEditorV2 : public Editor {
 
   // Sync all sub-panels to the current room configuration
   void SyncPanelsToRoom(int room_id);
+  void HandleDungeonPaletteChanged(gui::DungeonPaletteChange change);
+  void HandleArenaPaletteChanged(const std::string& group_name,
+                                 int palette_index);
+  void RegisterPaletteListener();
   void InvalidateDungeonPaletteUsers(gui::DungeonPaletteChange change);
   uint8_t ResolveSelectedEntranceBlocksetForRoom(int room_id) const;
   void ApplyEntranceRenderContext(int room_id);
@@ -359,6 +365,7 @@ class DungeonEditorV2 : public Editor {
   gfx::PaletteGroup current_palette_group_;
   uint64_t current_palette_id_ = 0;
   uint64_t current_palette_group_id_ = 0;
+  int palette_listener_id_ = -1;
 
   // Components - these do all the work
   DungeonRoomLoader room_loader_;

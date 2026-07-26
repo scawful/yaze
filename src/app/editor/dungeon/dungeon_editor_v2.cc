@@ -100,6 +100,11 @@ DungeonEditorV2::DungeonEditorV2(Rom* rom)
 }
 
 DungeonEditorV2::~DungeonEditorV2() {
+  if (palette_listener_id_ >= 0) {
+    gfx::Arena::Get().UnregisterPaletteListener(palette_listener_id_);
+    palette_listener_id_ = -1;
+  }
+
   // Clear viewer references in panels BEFORE room_viewers_ is destroyed.
   // Panels are owned by WorkspaceWindowManager and outlive this editor, so they need
   // to have their viewer pointers cleared to prevent dangling pointer access.
@@ -894,63 +899,9 @@ absl::Status DungeonEditorV2::Load() {
 
   palette_editor_.SetOnDungeonPaletteChanged(
       [this](gui::DungeonPaletteChange change) {
-        InvalidateDungeonPaletteUsers(change);
-
-        auto apply_palette = [this](DungeonCanvasViewer* viewer) {
-          if (!viewer) {
-            return;
-          }
-          viewer->SetCurrentPaletteId(current_palette_id_);
-          viewer->SetCurrentPaletteGroup(current_palette_group_);
-        };
-
-        if (current_room_id_ >= 0 && current_room_id_ < (int)rooms_.size() &&
-            game_data()) {
-          auto& dungeon_main_pal_group =
-              game_data()->palette_groups.dungeon_main;
-          if (current_palette_id_ >= 0 &&
-              current_palette_id_ <
-                  static_cast<int>(dungeon_main_pal_group.size())) {
-            current_palette_group_id_ = current_palette_id_;
-            current_palette_ = dungeon_main_pal_group[current_palette_id_];
-            if (auto pal_group =
-                    gfx::CreatePaletteGroupFromLargePalette(current_palette_);
-                pal_group.ok()) {
-              current_palette_group_ = pal_group.value();
-              apply_palette(workbench_viewer_.get());
-              apply_palette(workbench_compare_viewer_.get());
-              if (!IsWorkbenchWorkflowEnabled()) {
-                if (auto* existing_viewer =
-                        room_viewers_.Get(current_room_id_)) {
-                  apply_palette(existing_viewer->get());
-                }
-              }
-              if (object_selector_panel_) {
-                object_selector_panel_->SetCurrentPaletteGroup(
-                    current_palette_group_);
-              }
-              if (room_graphics_panel_) {
-                room_graphics_panel_->SetCurrentPaletteGroup(
-                    current_palette_group_);
-              }
-            }
-          }
-        }
-
-        bool rendered_current_room = false;
-        for (int i = 0; i < active_rooms_.Size; i++) {
-          int room_id = active_rooms_[i];
-          if (room_id >= 0 && room_id < (int)rooms_.size()) {
-            rooms_[room_id].RenderRoomGraphics();
-            rendered_current_room |= room_id == current_room_id_;
-          }
-        }
-
-        if (!rendered_current_room && current_room_id_ >= 0 &&
-            current_room_id_ < static_cast<int>(rooms_.size())) {
-          rooms_[current_room_id_].RenderRoomGraphics();
-        }
+        HandleDungeonPaletteChanged(change);
       });
+  RegisterPaletteListener();
 
   // Oracle of Secrets: load editor-authored water fill zones (best-effort).
   ReloadWaterFillZones();
@@ -968,15 +919,98 @@ absl::Status DungeonEditorV2::Load() {
   return absl::OkStatus();
 }
 
-void DungeonEditorV2::InvalidateDungeonPaletteUsers(
-    gui::DungeonPaletteChange change) {
-  if (change.source == gui::DungeonRenderPaletteSource::kHud) {
-    rooms_.ForEachMaterialized(
-        [](int, zelda3::Room& room) { room.MarkGraphicsDirty(); });
+void DungeonEditorV2::RegisterPaletteListener() {
+  if (palette_listener_id_ >= 0) {
     return;
   }
 
-  if (change.palette_id < 0) {
+  palette_listener_id_ = gfx::Arena::Get().RegisterPaletteListener(
+      [this](const std::string& group_name, int palette_index) {
+        HandleArenaPaletteChanged(group_name, palette_index);
+      });
+}
+
+void DungeonEditorV2::HandleArenaPaletteChanged(const std::string& group_name,
+                                                int palette_index) {
+  if (!gfx::PaletteManager::Get().IsManaging(game_data_)) {
+    return;
+  }
+
+  if (group_name == "hud") {
+    HandleDungeonPaletteChanged({static_cast<int>(current_palette_id_),
+                                 gui::DungeonRenderPaletteSource::kHud});
+  } else if (group_name == "dungeon_main") {
+    HandleDungeonPaletteChanged(
+        {palette_index, gui::DungeonRenderPaletteSource::kDungeonMain});
+  }
+}
+
+void DungeonEditorV2::HandleDungeonPaletteChanged(
+    gui::DungeonPaletteChange change) {
+  InvalidateDungeonPaletteUsers(change);
+
+  auto apply_palette = [this](DungeonCanvasViewer* viewer) {
+    if (!viewer) {
+      return;
+    }
+    viewer->SetCurrentPaletteId(current_palette_id_);
+    viewer->SetCurrentPaletteGroup(current_palette_group_);
+  };
+
+  if (current_room_id_ >= 0 &&
+      current_room_id_ < static_cast<int>(rooms_.size()) && game_data()) {
+    auto& dungeon_main_pal_group = game_data()->palette_groups.dungeon_main;
+    if (current_palette_id_ <
+        static_cast<uint64_t>(dungeon_main_pal_group.size())) {
+      current_palette_group_id_ = current_palette_id_;
+      current_palette_ = dungeon_main_pal_group[current_palette_id_];
+      if (auto pal_group =
+              gfx::CreatePaletteGroupFromLargePalette(current_palette_);
+          pal_group.ok()) {
+        current_palette_group_ = pal_group.value();
+        apply_palette(workbench_viewer_.get());
+        apply_palette(workbench_compare_viewer_.get());
+        if (!IsWorkbenchWorkflowEnabled()) {
+          if (auto* existing_viewer = room_viewers_.Get(current_room_id_)) {
+            apply_palette(existing_viewer->get());
+          }
+        }
+        if (object_selector_panel_) {
+          object_selector_panel_->SetCurrentPaletteGroup(
+              current_palette_group_);
+        }
+        if (room_graphics_panel_) {
+          room_graphics_panel_->SetCurrentPaletteGroup(current_palette_group_);
+        }
+        if (object_tile_editor_panel_) {
+          object_tile_editor_panel_->SetCurrentPaletteGroup(
+              current_palette_group_);
+        }
+      }
+    }
+  }
+
+  bool rendered_current_room = false;
+  for (int i = 0; i < active_rooms_.Size; i++) {
+    int room_id = active_rooms_[i];
+    if (room_id >= 0 && room_id < static_cast<int>(rooms_.size())) {
+      rooms_[room_id].RenderRoomGraphics();
+      rendered_current_room |= room_id == current_room_id_;
+    }
+  }
+
+  if (!rendered_current_room && current_room_id_ >= 0 &&
+      current_room_id_ < static_cast<int>(rooms_.size())) {
+    rooms_[current_room_id_].RenderRoomGraphics();
+  }
+}
+
+void DungeonEditorV2::InvalidateDungeonPaletteUsers(
+    gui::DungeonPaletteChange change) {
+  if (change.source == gui::DungeonRenderPaletteSource::kHud ||
+      change.palette_id < 0) {
+    rooms_.ForEachMaterialized(
+        [](int, zelda3::Room& room) { room.MarkGraphicsDirty(); });
     return;
   }
 
