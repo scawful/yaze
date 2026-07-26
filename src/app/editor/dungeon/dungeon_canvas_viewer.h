@@ -725,6 +725,8 @@ class DungeonCanvasViewer {
       DungeonEditorPaletteRefreshTest_CachedCompositePreparationPreservesTargetEntranceContext_Test;
   friend class
       DungeonEditorPaletteRefreshTest_CachedPanelPaletteRefreshSurvivesWorkbenchModeAndPreservesRoomPalette_Test;
+  friend class
+      DungeonEditorPaletteRefreshTest_DungeonMainNotificationSkipsUnrelatedCachedViewerWork_Test;
 
   struct ChangePingRect {
     int x = 0;

@@ -964,17 +964,22 @@ void DungeonEditorV2::HandleDungeonPaletteChanged(
   }
 
   auto apply_palette = [](DungeonCanvasViewer* viewer, uint64_t palette_id,
-                          const gfx::PaletteGroup& palette_group) {
+                          const gfx::PaletteGroup& palette_group,
+                          bool force_shared_palette_refresh) {
     if (!viewer) {
       return;
     }
     viewer->SetCurrentPaletteId(palette_id);
-    viewer->SetCurrentPaletteGroup(palette_group,
-                                   /*force_refresh=*/true);
+    viewer->SetCurrentPaletteGroup(
+        palette_group,
+        /*force_refresh=*/force_shared_palette_refresh &&
+            viewer->object_interaction().IsObjectLoaded());
   };
 
   if (current_room_id_ >= 0 &&
       current_room_id_ < static_cast<int>(rooms_.size()) && game_data()) {
+    const bool force_shared_palette_refresh =
+        change.source == gui::DungeonRenderPaletteSource::kHud;
     auto& dungeon_main_pal_group = game_data()->palette_groups.dungeon_main;
     if (current_palette_id_ <
         static_cast<uint64_t>(dungeon_main_pal_group.size())) {
@@ -985,11 +990,12 @@ void DungeonEditorV2::HandleDungeonPaletteChanged(
           pal_group.ok()) {
         current_palette_group_ = pal_group.value();
         apply_palette(workbench_viewer_.get(), current_palette_id_,
-                      current_palette_group_);
+                      current_palette_group_, force_shared_palette_refresh);
         apply_palette(workbench_compare_viewer_.get(), current_palette_id_,
-                      current_palette_group_);
+                      current_palette_group_, force_shared_palette_refresh);
         room_viewers_.ForEach(
-            [this, &apply_palette, &dungeon_main_pal_group](
+            [this, change, &apply_palette, &dungeon_main_pal_group,
+             force_shared_palette_refresh](
                 int room_id, std::unique_ptr<DungeonCanvasViewer>& viewer) {
               if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
                 return;
@@ -1000,11 +1006,17 @@ void DungeonEditorV2::HandleDungeonPaletteChanged(
                       static_cast<int>(dungeon_main_pal_group.size())) {
                 return;
               }
+              if (change.source ==
+                      gui::DungeonRenderPaletteSource::kDungeonMain &&
+                  change.palette_id >= 0 && palette_id != change.palette_id) {
+                return;
+              }
               auto room_palette_group = gfx::CreatePaletteGroupFromLargePalette(
                   dungeon_main_pal_group.palette_ref(palette_id));
               if (room_palette_group.ok()) {
                 apply_palette(viewer.get(), palette_id,
-                              room_palette_group.value());
+                              room_palette_group.value(),
+                              force_shared_palette_refresh);
               }
             });
         if (object_selector_panel_) {
