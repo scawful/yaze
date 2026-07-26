@@ -304,8 +304,21 @@ class DungeonCanvasViewer {
     current_palette_group_id_ = id;
   }
   void SetCurrentPaletteId(uint64_t id) { current_palette_id_ = id; }
-  void SetCurrentPaletteGroup(const gfx::PaletteGroup& group) {
+  void SetCurrentPaletteGroup(const gfx::PaletteGroup& group,
+                              bool force_refresh = false) {
+    bool palette_changed = current_palette_group_.name() != group.name() ||
+                           current_palette_group_.size() != group.size();
+    for (int i = 0; !palette_changed && i < static_cast<int>(group.size());
+         ++i) {
+      palette_changed =
+          current_palette_group_.palette_ref(i) != group.palette_ref(i);
+    }
+    if (!palette_changed && !force_refresh) {
+      return;
+    }
+
     current_palette_group_ = group;
+    object_interaction_.SetCurrentPaletteGroup(group, force_refresh);
   }
   void SetEntranceRenderContext(int entrance_id, uint8_t entrance_blockset) {
     current_entrance_id_ = entrance_id;

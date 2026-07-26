@@ -15,6 +15,7 @@
 #include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room_layer_manager.h"
+#include "zelda3/dungeon/room_object.h"
 #include "zelda3/game_data.h"
 
 namespace yaze::editor {
@@ -49,12 +50,21 @@ class DungeonEditorPaletteRefreshTestPeer {
   static const gfx::SnesPalette& CurrentPalette(const DungeonEditorV2& editor) {
     return editor.current_palette_;
   }
+
+  static DungeonCanvasViewer* GetWorkbenchViewer(DungeonEditorV2* editor) {
+    return editor->GetWorkbenchViewer();
+  }
+
+  static DungeonRoomStore* Rooms(DungeonEditorV2* editor) {
+    return &editor->rooms_;
+  }
 };
 
 class DungeonEditorPaletteRefreshTest : public ::testing::Test {
  protected:
   void SetUp() override {
     gfx::Arena::Get().ClearTextureQueue();
+    gfx::Arena::Get().Initialize(nullptr);
     gfx::PaletteManager::Get().ResetForTesting();
 
     ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
@@ -106,6 +116,7 @@ class DungeonEditorPaletteRefreshTest : public ::testing::Test {
 
   void TearDown() override {
     gfx::Arena::Get().ClearTextureQueue();
+    gfx::Arena::Get().Initialize(nullptr);
     gfx::PaletteManager::Get().ResetForTesting();
   }
 
@@ -308,6 +319,90 @@ TEST_F(DungeonEditorPaletteRefreshTest,
       ReadSurfacePaletteColor(current_room, kHudDisplayIndex);
   EXPECT_NE(before.g, after.g);
   ExpectSurfaceColor(after, edited_color);
+}
+
+TEST_F(DungeonEditorPaletteRefreshTest,
+       SharedHudNotificationRefreshesActivePlacementGhostAndTexture) {
+  constexpr int kCurrentRoomId = 0;
+  constexpr int kHudDisplayIndex = 17;
+  auto& room = editor_->rooms()[kCurrentRoomId];
+  room.SetLoaded(true);
+  room.SetPalette(5);  // Resolves to dungeon palette 3.
+  room.SetTileObjects({});
+
+  ::testing::NiceMock<yaze::test::MockRenderer> renderer;
+  RenderToCleanState(room);
+  while (gfx::Arena::Get().texture_command_queue_size() > 0) {
+    gfx::Arena::Get().ProcessTextureQueue(&renderer);
+  }
+  ASSERT_TRUE(::testing::Mock::VerifyAndClearExpectations(&renderer));
+
+  DungeonEditorPaletteRefreshTestPeer::SetCurrentPaletteId(editor_.get(), 3);
+  DungeonEditorPaletteRefreshTestPeer::RegisterPaletteListener(editor_.get());
+  DungeonCanvasViewer* viewer =
+      DungeonEditorPaletteRefreshTestPeer::GetWorkbenchViewer(editor_.get());
+  ASSERT_NE(viewer, nullptr);
+  viewer->object_interaction().SetCurrentRoom(
+      DungeonEditorPaletteRefreshTestPeer::Rooms(editor_.get()),
+      kCurrentRoomId);
+  auto palette_group = gfx::CreatePaletteGroupFromLargePalette(
+      game_data_.palette_groups.dungeon_main.palette_ref(3));
+  ASSERT_TRUE(palette_group.ok());
+  viewer->SetCurrentPaletteGroup(*palette_group);
+
+  zelda3::RoomObject preview(/*id=*/0x33, /*x=*/0, /*y=*/0, /*size=*/0x02,
+                             /*layer=*/0);
+  preview.mutable_tiles().assign(
+      64, gfx::TileInfo(/*id=*/0, /*palette=*/0, /*v=*/false, /*h=*/false,
+                        /*o=*/false));
+  preview.tiles_loaded_ = true;
+  gfx::Arena::Get().ClearTextureQueue();
+  viewer->SetPreviewObject(preview);
+
+  auto& tile_handler =
+      viewer->object_interaction().entity_coordinator().tile_handler();
+  const auto* ghost_buffer = tile_handler.ghost_preview_buffer_for_testing();
+  ASSERT_NE(ghost_buffer, nullptr);
+  const auto& ghost_bitmap = ghost_buffer->bitmap();
+  SDL_Palette* ghost_palette =
+      platform::GetSurfacePalette(ghost_bitmap.surface());
+  ASSERT_NE(ghost_palette, nullptr);
+  const SDL_Color before = ghost_palette->colors[kHudDisplayIndex];
+
+  EXPECT_CALL(renderer,
+              UpdateTexture(::testing::_, ::testing::Ref(ghost_bitmap)))
+      .Times(1);
+  gfx::Arena::Get().ProcessTextureQueue(&renderer);
+  ASSERT_NE(ghost_bitmap.texture(), nullptr);
+  const auto ghost_texture = ghost_bitmap.texture();
+  ASSERT_TRUE(::testing::Mock::VerifyAndClearExpectations(&renderer));
+
+  const gfx::SnesColor edited_color(0x03E0);
+  auto& palette_manager = gfx::PaletteManager::Get();
+  ASSERT_TRUE(
+      palette_manager.SetColor("hud", 0, kHudDisplayIndex, edited_color).ok());
+  ASSERT_TRUE(palette_manager.ApplyPreviewChanges().ok());
+
+  SDL_Palette* refreshed_palette =
+      platform::GetSurfacePalette(ghost_bitmap.surface());
+  ASSERT_NE(refreshed_palette, nullptr);
+  const SDL_Color after = refreshed_palette->colors[kHudDisplayIndex];
+  EXPECT_NE(before.g, after.g);
+  ExpectSurfaceColor(after, edited_color);
+
+  EXPECT_CALL(renderer, CreateTexture).Times(0);
+  EXPECT_CALL(renderer,
+              UpdateTexture(ghost_texture, ::testing::Ref(ghost_bitmap)))
+      .Times(1);
+  for (int attempts = 0;
+       attempts < 64 && gfx::Arena::Get().texture_command_queue_size() > 0;
+       ++attempts) {
+    gfx::Arena::Get().ProcessTextureQueue(&renderer);
+  }
+  EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 0);
+  EXPECT_EQ(tile_handler.ghost_preview_buffer_for_testing(), ghost_buffer);
+  EXPECT_EQ(ghost_bitmap.texture(), ghost_texture);
+  EXPECT_TRUE(::testing::Mock::VerifyAndClearExpectations(&renderer));
 }
 
 TEST_F(DungeonEditorPaletteRefreshTest,

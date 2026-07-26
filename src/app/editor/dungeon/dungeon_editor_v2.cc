@@ -949,12 +949,27 @@ void DungeonEditorV2::HandleDungeonPaletteChanged(
     gui::DungeonPaletteChange change) {
   InvalidateDungeonPaletteUsers(change);
 
+  bool rendered_current_room = false;
+  for (int i = 0; i < active_rooms_.Size; i++) {
+    int room_id = active_rooms_[i];
+    if (room_id >= 0 && room_id < static_cast<int>(rooms_.size())) {
+      rooms_[room_id].RenderRoomGraphics();
+      rendered_current_room |= room_id == current_room_id_;
+    }
+  }
+
+  if (!rendered_current_room && current_room_id_ >= 0 &&
+      current_room_id_ < static_cast<int>(rooms_.size())) {
+    rooms_[current_room_id_].RenderRoomGraphics();
+  }
+
   auto apply_palette = [this](DungeonCanvasViewer* viewer) {
     if (!viewer) {
       return;
     }
     viewer->SetCurrentPaletteId(current_palette_id_);
-    viewer->SetCurrentPaletteGroup(current_palette_group_);
+    viewer->SetCurrentPaletteGroup(current_palette_group_,
+                                   /*force_refresh=*/true);
   };
 
   if (current_room_id_ >= 0 &&
@@ -988,20 +1003,6 @@ void DungeonEditorV2::HandleDungeonPaletteChanged(
         }
       }
     }
-  }
-
-  bool rendered_current_room = false;
-  for (int i = 0; i < active_rooms_.Size; i++) {
-    int room_id = active_rooms_[i];
-    if (room_id >= 0 && room_id < static_cast<int>(rooms_.size())) {
-      rooms_[room_id].RenderRoomGraphics();
-      rendered_current_room |= room_id == current_room_id_;
-    }
-  }
-
-  if (!rendered_current_room && current_room_id_ >= 0 &&
-      current_room_id_ < static_cast<int>(rooms_.size())) {
-    rooms_[current_room_id_].RenderRoomGraphics();
   }
 }
 
