@@ -36,6 +36,21 @@ void SeedPaletteGroup(gfx::PaletteGroup* group, int palette_count,
 
 }  // namespace
 
+class DungeonEditorPaletteRefreshTestPeer {
+ public:
+  static void RegisterPaletteListener(DungeonEditorV2* editor) {
+    editor->RegisterPaletteListener();
+  }
+
+  static void SetCurrentPaletteId(DungeonEditorV2* editor, int palette_id) {
+    editor->current_palette_id_ = palette_id;
+  }
+
+  static const gfx::SnesPalette& CurrentPalette(const DungeonEditorV2& editor) {
+    return editor.current_palette_;
+  }
+};
+
 class DungeonEditorPaletteRefreshTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -220,6 +235,104 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   EXPECT_EQ(unrelated_before.r, unrelated_after.r);
   EXPECT_EQ(unrelated_before.g, unrelated_after.g);
   EXPECT_EQ(unrelated_before.b, unrelated_after.b);
+}
+
+TEST_F(DungeonEditorPaletteRefreshTest,
+       ApplyPreviewChangesRefreshesAllMaterializedDungeonRooms) {
+  auto& current_room = editor_->rooms()[0];
+  current_room.SetPalette(5);  // Resolves to dungeon palette 3.
+  auto& cached_room = editor_->rooms()[1];
+  cached_room.SetPalette(6);  // Resolves to dungeon palette 2.
+
+  RenderToCleanState(current_room);
+  RenderToCleanState(cached_room);
+
+  constexpr int kDungeonDisplayIndex = 33;
+  constexpr int kDungeonColorIndex = 0;
+  const gfx::SnesColor edited_color(0x7C00);
+  const SDL_Color before =
+      ReadSurfacePaletteColor(current_room, kDungeonDisplayIndex);
+
+  DungeonEditorPaletteRefreshTestPeer::SetCurrentPaletteId(editor_.get(), 3);
+  DungeonEditorPaletteRefreshTestPeer::RegisterPaletteListener(editor_.get());
+
+  auto& palette_manager = gfx::PaletteManager::Get();
+  ASSERT_TRUE(palette_manager
+                  .SetColor("dungeon_main", 3, kDungeonColorIndex, edited_color)
+                  .ok());
+  ASSERT_FALSE(current_room.IsCompositeDirty());
+  ASSERT_FALSE(cached_room.IsCompositeDirty());
+
+  ASSERT_TRUE(palette_manager.ApplyPreviewChanges().ok());
+
+  EXPECT_TRUE(current_room.IsCompositeDirty());
+  EXPECT_TRUE(cached_room.IsCompositeDirty());
+  const SDL_Color after =
+      ReadSurfacePaletteColor(current_room, kDungeonDisplayIndex);
+  EXPECT_NE(before.r, after.r);
+  ExpectSurfaceColor(after, edited_color);
+  EXPECT_EQ(
+      DungeonEditorPaletteRefreshTestPeer::CurrentPalette(*editor_)[0].snes(),
+      edited_color.snes());
+}
+
+TEST_F(DungeonEditorPaletteRefreshTest,
+       ApplyPreviewChangesRefreshesSharedHudPaletteUsers) {
+  auto& current_room = editor_->rooms()[0];
+  current_room.SetPalette(5);
+  auto& cached_room = editor_->rooms()[1];
+  cached_room.SetPalette(6);
+
+  RenderToCleanState(current_room);
+  RenderToCleanState(cached_room);
+
+  constexpr int kHudDisplayIndex = 17;
+  const gfx::SnesColor edited_color(0x03E0);
+  const SDL_Color before =
+      ReadSurfacePaletteColor(current_room, kHudDisplayIndex);
+
+  DungeonEditorPaletteRefreshTestPeer::SetCurrentPaletteId(editor_.get(), 3);
+  DungeonEditorPaletteRefreshTestPeer::RegisterPaletteListener(editor_.get());
+
+  auto& palette_manager = gfx::PaletteManager::Get();
+  ASSERT_TRUE(
+      palette_manager.SetColor("hud", 0, kHudDisplayIndex, edited_color).ok());
+  ASSERT_FALSE(current_room.IsCompositeDirty());
+  ASSERT_FALSE(cached_room.IsCompositeDirty());
+
+  ASSERT_TRUE(palette_manager.ApplyPreviewChanges().ok());
+
+  EXPECT_TRUE(current_room.IsCompositeDirty());
+  EXPECT_TRUE(cached_room.IsCompositeDirty());
+  const SDL_Color after =
+      ReadSurfacePaletteColor(current_room, kHudDisplayIndex);
+  EXPECT_NE(before.g, after.g);
+  ExpectSurfaceColor(after, edited_color);
+}
+
+TEST_F(DungeonEditorPaletteRefreshTest,
+       PaletteNotificationFromInactiveSessionIsIgnored) {
+  auto& room = editor_->rooms()[0];
+  room.SetPalette(5);
+  RenderToCleanState(room);
+
+  DungeonEditorPaletteRefreshTestPeer::RegisterPaletteListener(editor_.get());
+
+  Rom other_rom;
+  ASSERT_TRUE(other_rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  zelda3::GameData other_game_data(&other_rom);
+  SeedPaletteGroup(&other_game_data.palette_groups.dungeon_main,
+                   /*palette_count=*/1, /*color_count=*/90,
+                   /*seed=*/0x0300);
+
+  auto& palette_manager = gfx::PaletteManager::Get();
+  palette_manager.Initialize(&other_game_data);
+  ASSERT_TRUE(
+      palette_manager.SetColor("dungeon_main", 0, 0, gfx::SnesColor(0x001F))
+          .ok());
+  ASSERT_TRUE(palette_manager.ApplyPreviewChanges().ok());
+
+  EXPECT_FALSE(room.IsCompositeDirty());
 }
 
 TEST_F(DungeonEditorPaletteRefreshTest,
