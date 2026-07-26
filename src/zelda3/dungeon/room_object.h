@@ -248,6 +248,12 @@ bool IsRoomObjectSizeEditable(int object_id);
 uint8_t CanonicalRoomObjectSize(int object_id, uint8_t requested_size);
 uint8_t DefaultRoomObjectSizeForPlacement(int object_id);
 
+// Stateful small and big chests advance the engine's per-room chest-event
+// index. Fixed-open chest graphics (F9A/FB2) and the FF5 minigame chest do not.
+inline constexpr bool IsStatefulChestObjectId(int object_id) {
+  return object_id == 0xF99 || object_id == 0xFB1;
+}
+
 // Validates that an ordinary room-object stream entry can be encoded without
 // changing its identity or colliding with the stream's list/door markers.
 // Torches and pushable blocks use separate tables; callers must exclude them
