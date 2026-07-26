@@ -173,42 +173,48 @@ TEST_F(ObjectParserTest, RuntimeLiteralObjectsIgnoreRelocatedTablePointers) {
     }
   };
 
-  // Move all five pointer-table entries. F98/F99/FB1 must ignore their moved
-  // entries because their routines load literal data blocks; F9A/FB2 are
-  // direct-open routines and must continue following their moved pointers.
+  // Move all six pointer-table entries. F98/F99/FB1/FCC must ignore their
+  // moved entries because their routines load literal data blocks; F9A/FB2
+  // are direct-open routines and must continue following their moved pointers.
   constexpr uint16_t kMovedBigKeyLockOffset = 0x0100;
   constexpr uint16_t kMovedChestOffset = 0x0180;
   constexpr uint16_t kMovedOpenChestOffset = 0x0200;
   constexpr uint16_t kMovedBigChestOffset = 0x0280;
   constexpr uint16_t kMovedOpenBigChestOffset = 0x0300;
+  constexpr uint16_t kMovedSmithyFurnaceOffset = 0x0400;
   write_pointer(0xF98, kMovedBigKeyLockOffset);
   write_pointer(0xF99, kMovedChestOffset);
   write_pointer(0xF9A, kMovedOpenChestOffset);
   write_pointer(0xFB1, kMovedBigChestOffset);
   write_pointer(0xFB2, kMovedOpenBigChestOffset);
+  write_pointer(0xFCC, kMovedSmithyFurnaceOffset);
 
   write_words(0x1494, 4, 0x0040);   // BigKeyLock literal
   write_words(0x149C, 4, 0x0080);   // Chest closed literal
   write_words(0x14A4, 4, 0x0100);   // Chest opened literal
   write_words(0x14AC, 12, 0x0200);  // BigChest closed literal
   write_words(0x14C4, 12, 0x0300);  // BigChest opened literal
+  write_words(0x1F92, 48, 0x0280);  // SmithyFurnace literal
 
   write_words(kMovedBigKeyLockOffset, 4, 0x03C0);
   write_words(kMovedChestOffset, 4, 0x03A0);
   write_words(kMovedOpenChestOffset, 4, 0x0180);
   write_words(kMovedBigChestOffset, 12, 0x0360);
   write_words(kMovedOpenBigChestOffset, 12, 0x0140);
+  write_words(kMovedSmithyFurnaceOffset, 48, 0x0340);
 
   auto lock = parser_->ParseObject(0xF98);
   auto chest = parser_->ParseObject(0xF99);
   auto open_chest = parser_->ParseObject(0xF9A);
   auto big_chest = parser_->ParseObject(0xFB1);
   auto open_big_chest = parser_->ParseObject(0xFB2);
+  auto smithy_furnace = parser_->ParseObject(0xFCC);
   ASSERT_TRUE(lock.ok());
   ASSERT_TRUE(chest.ok());
   ASSERT_TRUE(open_chest.ok());
   ASSERT_TRUE(big_chest.ok());
   ASSERT_TRUE(open_big_chest.ok());
+  ASSERT_TRUE(smithy_furnace.ok());
 
   for (int i = 0; i < 4; ++i) {
     EXPECT_TRUE((*lock)[i] ==
@@ -227,6 +233,13 @@ TEST_F(ObjectParserTest, RuntimeLiteralObjectsIgnoreRelocatedTablePointers) {
                 gfx::WordToTileInfo(static_cast<uint16_t>(0x0300 + i)));
     EXPECT_TRUE((*open_big_chest)[i] ==
                 gfx::WordToTileInfo(static_cast<uint16_t>(0x0140 + i)));
+  }
+  ASSERT_EQ(smithy_furnace->size(), 48u);
+  for (int i = 0; i < 48; ++i) {
+    EXPECT_TRUE((*smithy_furnace)[i] ==
+                gfx::WordToTileInfo(static_cast<uint16_t>(0x0280 + i)));
+    EXPECT_FALSE((*smithy_furnace)[i] ==
+                 gfx::WordToTileInfo(static_cast<uint16_t>(0x0340 + i)));
   }
 }
 
@@ -532,6 +545,24 @@ TEST_F(ObjectParserTest, TableBowlUsesEightTilesAndDedicatedRoutine) {
   const auto info = parser_->GetObjectDrawInfo(0xFDA);
   EXPECT_EQ(info.tile_count, 8);
   EXPECT_EQ(info.draw_routine_id, zelda3::DrawRoutineIds::kTableBowl);
+}
+
+TEST_F(ObjectParserTest, SmithyFurnaceUsesFortyEightTilesAndDedicatedRoutine) {
+  auto& registry = zelda3::DrawRoutineRegistry::Get();
+  EXPECT_EQ(registry.GetRoutineIdForObject(0xFCC),
+            zelda3::DrawRoutineIds::kSmithyFurnace);
+
+  const auto subtype = parser_->GetObjectSubtype(0xFCC);
+  ASSERT_TRUE(subtype.ok());
+  EXPECT_EQ(subtype->max_tile_count, 48);
+
+  const auto parsed = parser_->ParseObject(0xFCC);
+  ASSERT_TRUE(parsed.ok());
+  EXPECT_EQ(parsed->size(), 48u);
+
+  const auto info = parser_->GetObjectDrawInfo(0xFCC);
+  EXPECT_EQ(info.tile_count, 48);
+  EXPECT_EQ(info.draw_routine_id, zelda3::DrawRoutineIds::kSmithyFurnace);
 }
 
 TEST_F(ObjectParserTest, HammerPegUsesUsdasmSingle2x2RoutineAndFourTiles) {

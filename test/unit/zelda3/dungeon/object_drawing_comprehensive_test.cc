@@ -139,9 +139,12 @@ int ExpectedSubtype3TileCount(int id) {
   if ((id >= 0xF9E && id <= 0xFA1) || (id >= 0xFA6 && id <= 0xFA9)) {
     return 16;
   }
+  // Smithy furnace is a fixed 6x8 row-major payload.
+  if (id == 0xFCC) {
+    return 48;
+  }
   if (id == 0xFAA || id == 0xFAD || id == 0xFAE ||
-      (id >= 0xFB4 && id <= 0xFB9) || id == 0xFCC || id == 0xFD4 ||
-      id == 0xFE2) {
+      (id >= 0xFB4 && id <= 0xFB9) || id == 0xFD4 || id == 0xFE2) {
     return 16;
   }
   // Big wall decor aliases consume one 8x3 column-major payload.

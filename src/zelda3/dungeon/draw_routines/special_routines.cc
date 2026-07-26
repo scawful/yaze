@@ -446,6 +446,15 @@ void DrawTableBowl(const DrawContext& ctx) {
   DrawRowMajor(ctx.target_bg, ctx.object.x_, ctx.object.y_, 4, 2, ctx.tiles);
 }
 
+void DrawSmithyFurnace(const DrawContext& ctx) {
+  // ASM: RoomDraw_SmithyFurnace ($019A66) loads A=6 before jumping to
+  // RoomDraw_SomeBigDecors, which writes six tiles per row for eight rows.
+  if (ctx.tiles.size() < 48)
+    return;
+
+  DrawRowMajor(ctx.target_bg, ctx.object.x_, ctx.object.y_, 6, 8, ctx.tiles);
+}
+
 void DrawUtility3x5(const DrawContext& ctx) {
   // ASM: RoomDraw_Utility3x5 ($01A194) uses:
   // - top row: tiles 0..2
@@ -1944,6 +1953,17 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .base_width = 4,
       .base_height = 2,
       .min_tiles = 8,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kSmithyFurnace,  // 127
+      .name = "SmithyFurnace",
+      .function = DrawSmithyFurnace,
+      .draws_to_both_bgs = false,
+      .base_width = 6,
+      .base_height = 8,
+      .min_tiles = 48,
       .category = DrawRoutineInfo::Category::Special,
   });
 
