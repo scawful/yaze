@@ -934,12 +934,13 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xFAA] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFAD] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFAE] = {4, 4, Dir::Horizontal, 4, false};
-  dimensions_[0xFCB] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFCC] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFD4] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFE2] = {4, 4, Dir::Horizontal, 4, false};
-  dimensions_[0xFF6] = {4, 4, Dir::Horizontal, 4, false};
-  dimensions_[0xFF7] = {4, 4, Dir::Horizontal, 4, false};
+  // Big wall decor aliases are fixed 8x3 objects; their size nibble is ignored.
+  dimensions_[0xFCB] = {8, 3, Dir::None, 0, false};
+  dimensions_[0xFF6] = {8, 3, Dir::None, 0, false};
+  dimensions_[0xFF7] = {8, 3, Dir::None, 0, false};
   // Utility + archery patterns
   dimensions_[0xFCD] = {6, 3, Dir::None, 0, false};
   dimensions_[0xFDD] = {6, 3, Dir::None, 0, false};
