@@ -1,5 +1,6 @@
 #include "app/editor/dungeon/interaction/tile_object_handler.h"
 #include "app/editor/dungeon/dungeon_canvas_transform.h"
+#include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/object_selection.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/canvas/canvas.h"
@@ -579,6 +580,84 @@ TEST_F(TileObjectHandlerTest,
   handler_.CancelPlacement();
   handler_.BeginPlacement();
   EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 1);
+}
+
+TEST_F(TileObjectHandlerTest,
+       ViewerPaletteChangeRefreshesActiveObjectPlacementGhost) {
+  ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  rooms_.SetRom(&rom_);
+  rooms_[0].SetLoaded(true);
+  auto& room_gfx =
+      const_cast<std::array<uint8_t, 0x10000>&>(rooms_[0].get_gfx_buffer());
+  room_gfx.fill(1);
+  rooms_[0].bg1_buffer().EnsureBitmapInitialized();
+
+  std::vector<SDL_Color> room_palette(256, {0, 0, 0, 255});
+  constexpr int kObservedColorIndex = 33;
+  room_palette[kObservedColorIndex] = {0x11, 0x22, 0x33, 255};
+  room_palette[255] = {0, 0, 0, 0};
+  rooms_[0].bg1_buffer().bitmap().SetPalette(room_palette);
+
+  DungeonCanvasViewer viewer(&rom_);
+  viewer.SetRooms(&rooms_);
+  viewer.object_interaction().SetCurrentRoom(&rooms_, 0);
+  gfx::PaletteGroup initial_group("dungeon_main");
+  gfx::SnesPalette initial_palette;
+  initial_palette.AddColor(gfx::SnesColor(0x001F));
+  initial_group.AddPalette(initial_palette);
+  viewer.SetCurrentPaletteGroup(initial_group);
+
+  auto object = CreateTestObject(/*x=*/0, /*y=*/0, /*size=*/0x02,
+                                 /*id=*/0x33);
+  object.mutable_tiles().assign(
+      64, gfx::TileInfo(/*id=*/0, /*palette=*/0, /*v=*/false, /*h=*/false,
+                        /*o=*/false));
+  object.tiles_loaded_ = true;
+  viewer.SetPreviewObject(object);
+
+  auto& tile_handler =
+      viewer.object_interaction().entity_coordinator().tile_handler();
+  const auto* ghost_buffer = tile_handler.ghost_preview_buffer_for_testing();
+  ASSERT_NE(ghost_buffer, nullptr);
+  SDL_Palette* ghost_palette =
+      platform::GetSurfacePalette(ghost_buffer->bitmap().surface());
+  ASSERT_NE(ghost_palette, nullptr);
+  EXPECT_EQ(ghost_palette->colors[kObservedColorIndex].r, 0x11);
+  EXPECT_EQ(ghost_palette->colors[kObservedColorIndex].g, 0x22);
+  EXPECT_EQ(ghost_palette->colors[kObservedColorIndex].b, 0x33);
+
+  room_palette[kObservedColorIndex] = {0xAA, 0xBB, 0xCC, 255};
+  rooms_[0].bg1_buffer().bitmap().SetPalette(room_palette);
+  gfx::PaletteGroup updated_group("dungeon_main");
+  gfx::SnesPalette updated_palette;
+  updated_palette.AddColor(gfx::SnesColor(0x03E0));
+  updated_group.AddPalette(updated_palette);
+  viewer.SetCurrentPaletteGroup(updated_group);
+
+  ghost_palette = platform::GetSurfacePalette(ghost_buffer->bitmap().surface());
+  ASSERT_NE(ghost_palette, nullptr);
+  EXPECT_EQ(ghost_palette->colors[kObservedColorIndex].r, 0xAA);
+  EXPECT_EQ(ghost_palette->colors[kObservedColorIndex].g, 0xBB);
+  EXPECT_EQ(ghost_palette->colors[kObservedColorIndex].b, 0xCC);
+
+  // HUD edits do not change dungeon_main contents, so the Arena notification
+  // explicitly forces a refresh even when the palette group compares equal.
+  room_palette[kObservedColorIndex] = {0xDD, 0xEE, 0xFF, 255};
+  rooms_[0].bg1_buffer().bitmap().SetPalette(room_palette);
+  viewer.SetCurrentPaletteGroup(updated_group);
+  ghost_palette = platform::GetSurfacePalette(ghost_buffer->bitmap().surface());
+  ASSERT_NE(ghost_palette, nullptr);
+  EXPECT_EQ(ghost_palette->colors[kObservedColorIndex].r, 0xAA);
+  EXPECT_EQ(ghost_palette->colors[kObservedColorIndex].g, 0xBB);
+  EXPECT_EQ(ghost_palette->colors[kObservedColorIndex].b, 0xCC);
+
+  viewer.SetCurrentPaletteGroup(updated_group, /*force_refresh=*/true);
+
+  ghost_palette = platform::GetSurfacePalette(ghost_buffer->bitmap().surface());
+  ASSERT_NE(ghost_palette, nullptr);
+  EXPECT_EQ(ghost_palette->colors[kObservedColorIndex].r, 0xDD);
+  EXPECT_EQ(ghost_palette->colors[kObservedColorIndex].g, 0xEE);
+  EXPECT_EQ(ghost_palette->colors[kObservedColorIndex].b, 0xFF);
 }
 
 // ============================================================================
