@@ -196,35 +196,45 @@ TEST(DungeonValidatorTest, RoomAddObjectRejectsOutOfBoundsCoordinates) {
       << "Room should have no objects after an out-of-bounds AddObject";
 }
 
-// Too many chests: 7 objects in ID range 0xF9-0xFD exceeds kMaxChests=6.
-TEST(DungeonValidatorTest, RejectsTooManyChestObjects) {
+TEST(DungeonValidatorTest, DoesNotReportSubtypeOneObjectsAsChests) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
   Room room(/*room_id=*/0, &rom);
-  // Add kMaxChests+1 = 7 chest objects (IDs 0xF9–0xFD cycle).
   for (int i = 0; i < 7; ++i) {
-    const int16_t chest_id = static_cast<int16_t>(0xF9 + (i % 5));
+    const int16_t object_id = static_cast<int16_t>(0xF9 + (i % 5));
     ASSERT_TRUE(
-        room.AddObject(RoomObject(chest_id, /*x=*/i * 4, /*y=*/0, /*size=*/0,
+        room.AddObject(RoomObject(object_id, /*x=*/i * 4, /*y=*/0, /*size=*/0,
                                   /*layer=*/0))
             .ok());
   }
 
-  DungeonValidator validator;
-  const auto result = validator.ValidateRoom(room);
+  const auto result = DungeonValidator().ValidateRoom(room);
 
+  // These IDs are independently rejected by the room-object codec, but they
+  // must not also produce the old, misleading chest-limit error.
   EXPECT_FALSE(result.is_valid);
-  bool found_chest_err = false;
-  for (const auto& err : result.errors) {
-    if (err.find("Too many chests") != std::string::npos) {
-      found_chest_err = true;
-      break;
-    }
+  EXPECT_FALSE(HasErrorContaining(result, "Too many chests"));
+  EXPECT_FALSE(HasWarningContaining(result, "room-event slot"));
+}
+
+TEST(DungeonValidatorTest, SpecialTableChestIdsDoNotConsumeEventSlots) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  Room room(/*room_id=*/0, &rom);
+  for (int i = 0; i < 7; ++i) {
+    RoomObject object(/*id=*/0xF99, /*x=*/i * 4, /*y=*/0, /*size=*/0,
+                      /*layer=*/0);
+    object.set_options(ObjectOption::Torch);
+    ASSERT_TRUE(room.AddObject(object).ok());
   }
-  EXPECT_TRUE(found_chest_err)
-      << "Expected chest overflow error, got: "
-      << (result.errors.empty() ? "(none)" : result.errors[0]);
+
+  const auto result = DungeonValidator().ValidateRoom(room);
+
+  EXPECT_TRUE(result.is_valid);
+  EXPECT_TRUE(result.errors.empty());
+  EXPECT_TRUE(result.warnings.empty());
 }
 
 TEST(DungeonValidatorTest, AcceptsStatefulChestsBeforeBigKeyLocks) {

@@ -8,13 +8,7 @@ namespace zelda3 {
 namespace {
 
 constexpr int16_t kBigKeyLockObjectId = 0xF98;
-constexpr int16_t kSmallChestObjectId = 0xF99;
-constexpr int16_t kBigChestObjectId = 0xFB1;
 constexpr size_t kMaxStatefulRoomEventSlots = 6;
-
-bool IsStatefulChest(int16_t object_id) {
-  return object_id == kSmallChestObjectId || object_id == kBigChestObjectId;
-}
 
 }  // namespace
 
@@ -35,30 +29,6 @@ ValidationResult DungeonValidator::ValidateRoom(const Room& room) {
     result.warnings.push_back(
         absl::StrFormat("Too many sprites (%zu > %d). Game limit is strict.",
                         sprite_count, kMaxTotalSprites));
-  }
-
-  // Check chest count (approximate, based on object ID)
-  int chest_count = 0;
-  for (const auto& obj : room.GetTileObjects()) {
-    // Check for Big Chest (0xE4?? No, let's trust standard ranges)
-    // ZScream logic for chests:
-    // 0xF9 = Small Key Chest
-    // 0xFA = Big Key Chest
-    // 0xFB = Map Chest
-    // 0xFC = Compass Chest
-    // 0xFD = Big Chest
-    // But simple chest objects are also common.
-    // Let's count objects in the 0xF9-0xFD range as chests for now.
-    if (obj.id_ >= 0xF9 && obj.id_ <= 0xFD) {
-      chest_count++;
-    }
-  }
-
-  if (chest_count > kMaxChests) {
-    result.errors.push_back(absl::StrFormat(
-        "Too many chests (%d > %d). Item collection flags will conflict.",
-        chest_count, kMaxChests));
-    result.is_valid = false;
   }
 
   // Stateful chests and big-key locks share a six-entry room-event table in
@@ -86,7 +56,7 @@ ValidationResult DungeonValidator::ValidateRoom(const Room& room) {
         }
         saw_big_key_lock = true;
         ++shared_event_slot_index;
-      } else if (IsStatefulChest(obj.id_)) {
+      } else if (IsStatefulChestObjectId(obj.id_)) {
         if (chest_slot_index >= kMaxStatefulRoomEventSlots &&
             first_out_of_range_object < 0) {
           first_out_of_range_object = obj.id_;
