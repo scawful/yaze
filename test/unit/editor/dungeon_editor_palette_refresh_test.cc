@@ -85,6 +85,11 @@ class DungeonEditorPaletteRefreshTestPeer {
     }
   }
 
+  static void HandlePaletteChanged(DungeonEditorV2* editor,
+                                   gui::DungeonPaletteChange change) {
+    editor->HandleDungeonPaletteChanged(change);
+  }
+
   static DungeonRoomStore* Rooms(DungeonEditorV2* editor) {
     return &editor->rooms_;
   }
@@ -501,6 +506,44 @@ TEST_F(DungeonEditorPaletteRefreshTest,
     EXPECT_EQ(cached_viewer->current_palette_group_.palette_ref(i),
               expected_palette_group->palette_ref(i));
   }
+}
+
+TEST_F(DungeonEditorPaletteRefreshTest,
+       DungeonMainNotificationSkipsUnrelatedCachedViewerWork) {
+  ScopedWorkbenchFlag standalone_workflow(/*enabled=*/false);
+  constexpr int kCachedRoomId = 0;
+  constexpr int kCurrentRoomId = 1;
+  auto& cached_room = editor_->rooms()[kCachedRoomId];
+  cached_room.SetLoaded(true);
+  cached_room.SetPalette(6);  // Resolves to dungeon palette 2.
+  cached_room.SetTileObjects({});
+  auto& current_room = editor_->rooms()[kCurrentRoomId];
+  current_room.SetLoaded(true);
+  current_room.SetPalette(5);  // Resolves to dungeon palette 3.
+  current_room.SetTileObjects({});
+
+  DungeonEditorPaletteRefreshTestPeer::SetCurrentPaletteId(editor_.get(), 3);
+  DungeonEditorPaletteRefreshTestPeer::SetCurrentRoomId(editor_.get(),
+                                                        kCurrentRoomId);
+  DungeonEditorPaletteRefreshTestPeer::SetActiveRooms(editor_.get(),
+                                                      {kCurrentRoomId});
+  DungeonCanvasViewer* cached_viewer =
+      DungeonEditorPaletteRefreshTestPeer::GetViewerForRoom(editor_.get(),
+                                                            kCachedRoomId);
+  ASSERT_NE(cached_viewer, nullptr);
+  auto cached_palette_group = gfx::CreatePaletteGroupFromLargePalette(
+      game_data_.palette_groups.dungeon_main.palette_ref(2));
+  ASSERT_TRUE(cached_palette_group.ok());
+  cached_viewer->SetCurrentPaletteGroup(*cached_palette_group);
+
+  // Use the ID as a call sentinel while keeping the viewer's palette group
+  // valid. An unrelated concrete-palette edit must skip this cached viewer.
+  constexpr uint64_t kUntouchedSentinel = 0xFFFF;
+  cached_viewer->current_palette_id_ = kUntouchedSentinel;
+  DungeonEditorPaletteRefreshTestPeer::HandlePaletteChanged(
+      editor_.get(), {3, gui::DungeonRenderPaletteSource::kDungeonMain});
+
+  EXPECT_EQ(cached_viewer->current_palette_id_, kUntouchedSentinel);
 }
 
 TEST_F(DungeonEditorPaletteRefreshTest,
