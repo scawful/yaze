@@ -531,10 +531,9 @@ void ObjectDimensionTable::InitializeDefaults() {
     dimensions_[id].zero_size_override = 26;
   }
 
-  // 0x63-0x64: Downwards 4x2 - GetSize_1to15or26 (BothBG)
+  // 0x63-0x64: Downwards 4x2 - GetSize_1to16 (BothBG)
   for (int id = 0x63; id <= 0x64; id++) {
-    dimensions_[id] = {4, 0, Dir::Vertical, 2, false};
-    dimensions_[id].zero_size_override = 26;
+    dimensions_[id] = {4, 2, Dir::Vertical, 2, false};
   }
   // 0x65-0x66: Downwards Decor 4x2 spaced 4 (6-tile spacing)
   for (int id = 0x65; id <= 0x66; id++) {

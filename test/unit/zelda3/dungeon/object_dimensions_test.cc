@@ -197,6 +197,31 @@ TEST_F(ObjectDimensionTableTest, GetDimensionsAccountsForSize) {
   EXPECT_GT(w0, w5);
 }
 
+TEST_F(ObjectDimensionTableTest,
+       Downwards4x2BothBgUsesUsdasmSizePlusOneDimensions) {
+  auto& table = ObjectDimensionTable::Get();
+  ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());
+
+  for (int object_id : {0x63, 0x64}) {
+    for (uint8_t size : {uint8_t{0}, uint8_t{3}, uint8_t{15}}) {
+      SCOPED_TRACE(::testing::Message()
+                   << "object_id=0x" << std::hex << object_id
+                   << " size=" << std::dec << static_cast<int>(size));
+
+      const int expected_height = (static_cast<int>(size) + 1) * 2;
+      auto [width, height] = table.GetDimensions(object_id, size);
+      EXPECT_EQ(width, 4);
+      EXPECT_EQ(height, expected_height);
+
+      const auto selection = table.GetSelectionBounds(object_id, size);
+      EXPECT_EQ(selection.offset_x, 0);
+      EXPECT_EQ(selection.offset_y, 0);
+      EXPECT_EQ(selection.width, 4);
+      EXPECT_EQ(selection.height, expected_height);
+    }
+  }
+}
+
 TEST_F(ObjectDimensionTableTest, GetHitTestBoundsReturnsObjectPosition) {
   auto& table = ObjectDimensionTable::Get();
   table.LoadFromRom(rom_.get());
