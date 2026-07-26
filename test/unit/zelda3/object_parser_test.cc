@@ -596,9 +596,9 @@ TEST_F(ObjectParserTest,
 // subtype-2 / subtype-3 over-fetch clusters identified by
 // `zelda3-hacking-expert`. These IDs currently take the parser's
 // 8-tile fallback even though their bound routines read fewer tiles
-// (`Rightwards2x2_1to16` reads 4, `Rightwards1x1Solid_1to16_plus3`
-// reads 1, `RightwardsStatue2x3spaced2_1to16` reads 6, `DrawSingle2x2`
-// reads 4). The over-fetch is harmless — the routines reference fixed
+// (`Rightwards2x2_1to16` reads 4, `RightwardsStatue2x3spaced2_1to16`
+// reads 6, `DrawSingle2x2` reads 4). The over-fetch is harmless — the
+// routines reference fixed
 // indices below their span and ignore the trailing slots — so this
 // test does NOT mirror the parser's tile-count table; it pins the
 // audit's id→routine mapping at the registry level so a future
@@ -624,13 +624,6 @@ TEST_F(ObjectParserTest, OverFetchClusterIdsRouteToAuditedRoutines) {
                  << "id=0x" << std::hex << id << " expects routine 28");
     EXPECT_EQ(registry.GetRoutineIdForObject(id), 28);
   }
-  // Subtype-2: routine 25 is `Rightwards1x1Solid_1to16_plus3`
-  // (reads tiles[0]).
-  for (int id : {0x11F, 0x120}) {
-    SCOPED_TRACE(::testing::Message()
-                 << "id=0x" << std::hex << id << " expects routine 25");
-    EXPECT_EQ(registry.GetRoutineIdForObject(id), 25);
-  }
   // Subtype-3: routine 110 is `DrawSingle2x2` (reads tiles[0..3]).
   // Cluster scoped to IDs explicitly mapped in the registry; the
   // initial audit listed a broader set, but registry diff showed the
@@ -646,6 +639,24 @@ TEST_F(ObjectParserTest, OverFetchClusterIdsRouteToAuditedRoutines) {
     SCOPED_TRACE(::testing::Message()
                  << "id=0x" << std::hex << id << " expects routine 39");
     EXPECT_EQ(registry.GetRoutineIdForObject(id), 39);
+  }
+}
+
+TEST_F(ObjectParserTest, EnabledStarSwitchAndLitTorchUseFixedTwoByTwoPayload) {
+  auto& registry = zelda3::DrawRoutineRegistry::Get();
+
+  for (int id : {0x11F, 0x120}) {
+    SCOPED_TRACE(::testing::Message() << "id=0x" << std::hex << id);
+    EXPECT_EQ(registry.GetRoutineIdForObject(id),
+              zelda3::DrawRoutineIds::kSingle2x2);
+
+    const auto subtype = parser_->GetObjectSubtype(id);
+    ASSERT_TRUE(subtype.ok());
+    EXPECT_EQ(subtype->max_tile_count, 4);
+
+    const auto tiles = parser_->ParseObject(id);
+    ASSERT_TRUE(tiles.ok());
+    EXPECT_EQ(tiles->size(), 4u);
   }
 }
 
