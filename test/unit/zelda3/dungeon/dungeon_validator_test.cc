@@ -357,8 +357,97 @@ TEST(DungeonValidatorTest, WarnsWhenRoomEventConsumersExceedSixSlots) {
 
   EXPECT_TRUE(result.is_valid);
   EXPECT_TRUE(result.errors.empty());
-  EXPECT_TRUE(HasWarningContaining(result, "engine supports at most 6"));
+  EXPECT_TRUE(HasWarningContaining(result, "0xF98 accesses room-event slot 6"));
+  EXPECT_TRUE(
+      HasWarningContaining(result, "RoomFlagMask only defines slots 0-5"));
   EXPECT_FALSE(HasWarningContaining(result, "appears after big-key lock"));
+}
+
+TEST(DungeonValidatorTest,
+     ResynchronizedSharedIndexDoesNotUseRawConsumerCount) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  Room room(/*room_id=*/0, &rom);
+  // Six locks consume shared slots 0..5. The following chest uses chest-only
+  // slot 0 and resets the shared index to 1; five more locks then use 1..5.
+  for (int i = 0; i < 6; ++i) {
+    ASSERT_TRUE(room.AddObject(MakeCanonicalRoomObject(0xF98, /*x=*/i * 4,
+                                                       /*y=*/0, /*layer=*/0))
+                    .ok());
+  }
+  ASSERT_TRUE(room.AddObject(MakeCanonicalRoomObject(0xF99, /*x=*/0, /*y=*/8,
+                                                     /*layer=*/0))
+                  .ok());
+  for (int i = 0; i < 5; ++i) {
+    ASSERT_TRUE(room.AddObject(MakeCanonicalRoomObject(0xF98, /*x=*/i * 4,
+                                                       /*y=*/16, /*layer=*/0))
+                    .ok());
+  }
+
+  const auto result = DungeonValidator().ValidateRoom(room);
+
+  EXPECT_TRUE(result.is_valid);
+  EXPECT_TRUE(result.errors.empty());
+  EXPECT_TRUE(HasWarningContaining(result, "appears after big-key lock"));
+  EXPECT_FALSE(
+      HasWarningContaining(result, "RoomFlagMask only defines slots 0-5"));
+}
+
+TEST(DungeonValidatorTest, AlternatingConsumersUseChestAndSharedIndices) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  Room room(/*room_id=*/0, &rom);
+  // Each chest uses its chest-only slot and resynchronizes the shared index,
+  // so these twelve consumers only access slots 0..5.
+  for (int i = 0; i < 6; ++i) {
+    ASSERT_TRUE(room.AddObject(MakeCanonicalRoomObject(0xF98, /*x=*/i * 4,
+                                                       /*y=*/0, /*layer=*/0))
+                    .ok());
+    const int16_t chest_id = i % 2 == 0 ? 0xF99 : 0xFB1;
+    ASSERT_TRUE(
+        room.AddObject(MakeCanonicalRoomObject(chest_id, /*x=*/i * 4, /*y=*/8,
+                                               /*layer=*/0))
+            .ok());
+  }
+
+  const auto result = DungeonValidator().ValidateRoom(room);
+
+  EXPECT_TRUE(result.is_valid);
+  EXPECT_TRUE(result.errors.empty());
+  EXPECT_TRUE(HasWarningContaining(result, "appears after big-key lock"));
+  EXPECT_FALSE(
+      HasWarningContaining(result, "RoomFlagMask only defines slots 0-5"));
+}
+
+TEST(DungeonValidatorTest, RoomId1AStillCountsStatefulChests) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  Room room(/*room_id=*/0x1A, &rom);
+  ASSERT_TRUE(room.AddObject(MakeCanonicalRoomObject(0xF98, /*x=*/0, /*y=*/0,
+                                                     /*layer=*/0))
+                  .ok());
+  // RoomDraw_Chest compares direct-page $10 (game MODE) with $1A, not the
+  // dungeon room ID at $A0. Room $001A receives no special treatment.
+  for (int i = 0; i < 7; ++i) {
+    const int16_t chest_id = i % 2 == 0 ? 0xF99 : 0xFB1;
+    ASSERT_TRUE(
+        room.AddObject(MakeCanonicalRoomObject(chest_id, /*x=*/i * 4, /*y=*/8,
+                                               /*layer=*/0))
+            .ok());
+  }
+
+  const auto result = DungeonValidator().ValidateRoom(room);
+
+  EXPECT_TRUE(result.is_valid);
+  EXPECT_TRUE(result.errors.empty());
+  EXPECT_TRUE(
+      HasWarningContaining(result, "0xF99 appears after big-key lock 0xF98"));
+  EXPECT_TRUE(HasWarningContaining(result, "0xF99 accesses room-event slot 6"));
+  EXPECT_TRUE(
+      HasWarningContaining(result, "RoomFlagMask only defines slots 0-5"));
 }
 
 }  // namespace

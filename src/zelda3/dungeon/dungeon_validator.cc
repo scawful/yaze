@@ -66,9 +66,12 @@ ValidationResult DungeonValidator::ValidateRoom(const Room& room) {
   // shared index, so a chest after a lock reuses an earlier event slot.
   // Validate the encoded stream order (primary, BG2 overlay, BG1 overlay), not
   // the editor vector order, which may interleave objects from those lists.
-  size_t stateful_room_event_count = 0;
+  size_t chest_slot_index = 0;
+  size_t shared_event_slot_index = 0;
   bool saw_big_key_lock = false;
   int first_chest_after_lock = -1;
+  int first_out_of_range_object = -1;
+  size_t first_out_of_range_slot = 0;
   for (uint8_t list_index = 0; list_index < 3; ++list_index) {
     for (const auto& obj : room.GetTileObjects()) {
       if (!UsesRoomObjectStream(obj) || obj.GetLayerValue() != list_index) {
@@ -76,13 +79,26 @@ ValidationResult DungeonValidator::ValidateRoom(const Room& room) {
       }
 
       if (obj.id_ == kBigKeyLockObjectId) {
+        if (shared_event_slot_index >= kMaxStatefulRoomEventSlots &&
+            first_out_of_range_object < 0) {
+          first_out_of_range_object = obj.id_;
+          first_out_of_range_slot = shared_event_slot_index;
+        }
         saw_big_key_lock = true;
-        ++stateful_room_event_count;
+        ++shared_event_slot_index;
       } else if (IsStatefulChest(obj.id_)) {
-        ++stateful_room_event_count;
+        if (chest_slot_index >= kMaxStatefulRoomEventSlots &&
+            first_out_of_range_object < 0) {
+          first_out_of_range_object = obj.id_;
+          first_out_of_range_slot = chest_slot_index;
+        }
         if (saw_big_key_lock && first_chest_after_lock < 0) {
           first_chest_after_lock = obj.id_;
         }
+        ++chest_slot_index;
+        // RoomDraw_Chest and RoomDraw_BigChest advance the chest-only $0496
+        // index, then copy its next value into shared index $0498.
+        shared_event_slot_index = chest_slot_index;
       }
     }
   }
@@ -94,11 +110,12 @@ ValidationResult DungeonValidator::ValidateRoom(const Room& room) {
         "room-state slot conflicts.",
         first_chest_after_lock));
   }
-  if (stateful_room_event_count > kMaxStatefulRoomEventSlots) {
+  if (first_out_of_range_object >= 0) {
     result.warnings.push_back(absl::StrFormat(
-        "Room uses %zu stateful chest/lock slots; the engine supports at most "
-        "%zu.",
-        stateful_room_event_count, kMaxStatefulRoomEventSlots));
+        "Stateful object 0x%03X accesses room-event slot %zu; RoomFlagMask "
+        "only defines slots 0-%zu.",
+        first_out_of_range_object, first_out_of_range_slot,
+        kMaxStatefulRoomEventSlots - 1));
   }
 
   // Check bounds
