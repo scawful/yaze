@@ -1908,6 +1908,38 @@ TEST(ObjectDrawerPillarStrideTest, RightwardsPillar2x4Spaced4Uses6TileStride) {
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
+     Downwards4x2BothBgUsesUsdasmSizePlusOneRows) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 10;
+  constexpr int kY = 20;
+  for (uint8_t size : {uint8_t{0}, uint8_t{3}, uint8_t{15}}) {
+    SCOPED_TRACE(::testing::Message() << "size=" << static_cast<int>(size));
+
+    const auto trace = ReplayObjectTrace(
+        /*object_id=*/0x0063, kX, kY, size, RoomObject::LayerType::BG1,
+        MakeSequentialTiles(/*count=*/8));
+    const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+    const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+
+    std::vector<SnapshotTileWrite> expected;
+    const int count = static_cast<int>(size) + 1;
+    expected.reserve(count * 8);
+    for (int block = 0; block < count; ++block) {
+      for (int row = 0; row < 2; ++row) {
+        for (int column = 0; column < 4; ++column) {
+          expected.push_back({kX + column, kY + block * 2 + row,
+                              static_cast<uint16_t>(row * 4 + column)});
+        }
+      }
+    }
+
+    ExpectTraceMatchesSnapshot(bg1, expected);
+    ExpectTraceMatchesSnapshot(bg2, expected);
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
      DownwardsDecor4x2Spaced4UsesRowMajorTileOrder) {
   ScopedCustomObjectsFlag disable_custom(false);
 
