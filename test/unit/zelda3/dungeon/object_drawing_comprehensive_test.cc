@@ -140,9 +140,13 @@ int ExpectedSubtype3TileCount(int id) {
     return 16;
   }
   if (id == 0xFAA || id == 0xFAD || id == 0xFAE ||
-      (id >= 0xFB4 && id <= 0xFB9) || id == 0xFCB || id == 0xFCC ||
-      id == 0xFD4 || id == 0xFE2 || id == 0xFF6 || id == 0xFF7) {
+      (id >= 0xFB4 && id <= 0xFB9) || id == 0xFCC || id == 0xFD4 ||
+      id == 0xFE2) {
     return 16;
+  }
+  // Big wall decor aliases consume one 8x3 column-major payload.
+  if (id == 0xFCB || id == 0xFF6 || id == 0xFF7) {
+    return 24;
   }
   // Turtle Rock pipes: 24 tiles (matches GetSubtype3TileCount; routine
   // bodies at special_routines.cc:430-441 read tiles[0..23]).

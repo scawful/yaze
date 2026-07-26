@@ -493,6 +493,29 @@ TEST_F(ObjectParserTest, TurtleRockPipesProvideTwentyFourTiles) {
   }
 }
 
+TEST_F(ObjectParserTest, BigWallDecorAliasesProvideTwentyFourTiles) {
+  auto& registry = zelda3::DrawRoutineRegistry::Get();
+
+  for (int id : {0xFCB, 0xFF6, 0xFF7}) {
+    SCOPED_TRACE(::testing::Message() << "object_id=0x" << std::hex << id);
+
+    EXPECT_EQ(registry.GetRoutineIdForObject(id),
+              zelda3::DrawRoutineIds::kBigWallDecor);
+
+    const auto subtype = parser_->GetObjectSubtype(id);
+    ASSERT_TRUE(subtype.ok());
+    EXPECT_EQ(subtype->max_tile_count, 24);
+
+    const auto parsed = parser_->ParseObject(id);
+    ASSERT_TRUE(parsed.ok());
+    EXPECT_EQ(parsed->size(), 24u);
+
+    const auto info = parser_->GetObjectDrawInfo(id);
+    EXPECT_EQ(info.tile_count, 24);
+    EXPECT_EQ(info.draw_routine_id, zelda3::DrawRoutineIds::kBigWallDecor);
+  }
+}
+
 TEST_F(ObjectParserTest, HammerPegUsesUsdasmSingle2x2RoutineAndFourTiles) {
   auto& registry = zelda3::DrawRoutineRegistry::Get();
   EXPECT_EQ(registry.GetRoutineIdForObject(0xF96),

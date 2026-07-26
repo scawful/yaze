@@ -431,6 +431,12 @@ void DrawUtility6x3(const DrawContext& ctx) {
   Draw1x3NRightwards(ctx, /*columns=*/6, /*start_index=*/0);
 }
 
+void DrawBigWallDecor(const DrawContext& ctx) {
+  // ASM: RoomDraw_BigWallDecor ($019A06) calls
+  // RoomDraw_1x3N_rightwards with A=8. The encoded size is not consulted.
+  Draw1x3NRightwards(ctx, /*columns=*/8, /*start_index=*/0);
+}
+
 void DrawUtility3x5(const DrawContext& ctx) {
   // ASM: RoomDraw_Utility3x5 ($01A194) uses:
   // - top row: tiles 0..2
@@ -1907,6 +1913,17 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .base_width = 4,
       .base_height = 4,
       .min_tiles = 16,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kBigWallDecor,  // 125
+      .name = "BigWallDecor",
+      .function = DrawBigWallDecor,
+      .draws_to_both_bgs = false,
+      .base_width = 8,
+      .base_height = 3,
+      .min_tiles = 24,
       .category = DrawRoutineInfo::Category::Special,
   });
 

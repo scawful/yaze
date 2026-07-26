@@ -2444,6 +2444,50 @@ TEST(ObjectDrawerRegistryReplayTest, HammerPegDrawsSingleTwoByTwoAtAnchor) {
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
+     BigWallDecorAliasesDrawFixedEightByThreeOnSelectedLayer) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 10;
+  constexpr int kY = 12;
+  constexpr uint16_t kFirstTile = 0x0240;
+  struct DecorCase {
+    int16_t object_id;
+    uint8_t oos_size;
+  };
+  constexpr DecorCase kCases[] = {
+      {0x0FCB, 14},
+      {0x0FF6, 9},
+      {0x0FF7, 13},
+  };
+
+  for (const auto& test_case : kCases) {
+    for (uint8_t size : {uint8_t{0}, test_case.oos_size}) {
+      for (const auto layer :
+           {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+        SCOPED_TRACE(::testing::Message()
+                     << "object_id=0x" << std::hex << test_case.object_id
+                     << " size=" << std::dec << static_cast<int>(size)
+                     << " layer=" << static_cast<int>(layer));
+
+        const auto trace = ReplayObjectTrace(
+            test_case.object_id, kX, kY, size, layer,
+            MakeSequentialTiles(/*count=*/24,
+                                /*start_tile_id=*/kFirstTile));
+        const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+        const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+        const auto& selected = layer == RoomObject::LayerType::BG1 ? bg1 : bg2;
+        const auto& other = layer == RoomObject::LayerType::BG1 ? bg2 : bg1;
+
+        ExpectTraceMatchesSnapshot(
+            selected, MakeColumnMajorSnapshot(kX, kY, /*width=*/8, /*height=*/3,
+                                              /*start_tile_id=*/kFirstTile));
+        EXPECT_TRUE(other.empty());
+      }
+    }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
      VerticalJumpLedgesDrawOneTileForSizePlusEightRows) {
   ScopedCustomObjectsFlag disable_custom(false);
 
