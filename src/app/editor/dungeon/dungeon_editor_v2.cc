@@ -963,12 +963,13 @@ void DungeonEditorV2::HandleDungeonPaletteChanged(
     rooms_[current_room_id_].RenderRoomGraphics();
   }
 
-  auto apply_palette = [this](DungeonCanvasViewer* viewer) {
+  auto apply_palette = [](DungeonCanvasViewer* viewer, uint64_t palette_id,
+                          const gfx::PaletteGroup& palette_group) {
     if (!viewer) {
       return;
     }
-    viewer->SetCurrentPaletteId(current_palette_id_);
-    viewer->SetCurrentPaletteGroup(current_palette_group_,
+    viewer->SetCurrentPaletteId(palette_id);
+    viewer->SetCurrentPaletteGroup(palette_group,
                                    /*force_refresh=*/true);
   };
 
@@ -983,13 +984,29 @@ void DungeonEditorV2::HandleDungeonPaletteChanged(
               gfx::CreatePaletteGroupFromLargePalette(current_palette_);
           pal_group.ok()) {
         current_palette_group_ = pal_group.value();
-        apply_palette(workbench_viewer_.get());
-        apply_palette(workbench_compare_viewer_.get());
-        if (!IsWorkbenchWorkflowEnabled()) {
-          if (auto* existing_viewer = room_viewers_.Get(current_room_id_)) {
-            apply_palette(existing_viewer->get());
-          }
-        }
+        apply_palette(workbench_viewer_.get(), current_palette_id_,
+                      current_palette_group_);
+        apply_palette(workbench_compare_viewer_.get(), current_palette_id_,
+                      current_palette_group_);
+        room_viewers_.ForEach(
+            [this, &apply_palette, &dungeon_main_pal_group](
+                int room_id, std::unique_ptr<DungeonCanvasViewer>& viewer) {
+              if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
+                return;
+              }
+              const int palette_id = rooms_[room_id].ResolveDungeonPaletteId();
+              if (palette_id < 0 ||
+                  palette_id >=
+                      static_cast<int>(dungeon_main_pal_group.size())) {
+                return;
+              }
+              auto room_palette_group = gfx::CreatePaletteGroupFromLargePalette(
+                  dungeon_main_pal_group.palette_ref(palette_id));
+              if (room_palette_group.ok()) {
+                apply_palette(viewer.get(), palette_id,
+                              room_palette_group.value());
+              }
+            });
         if (object_selector_panel_) {
           object_selector_panel_->SetCurrentPaletteGroup(
               current_palette_group_);

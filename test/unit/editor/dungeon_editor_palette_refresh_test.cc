@@ -1,6 +1,7 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 
 #include <cstdint>
+#include <initializer_list>
 #include <memory>
 #include <vector>
 
@@ -8,6 +9,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
 #include "app/platform/sdl_compat.h"
+#include "core/features.h"
 #include "framework/mock_renderer.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -35,6 +37,21 @@ void SeedPaletteGroup(gfx::PaletteGroup* group, int palette_count,
   }
 }
 
+class ScopedWorkbenchFlag {
+ public:
+  explicit ScopedWorkbenchFlag(bool enabled)
+      : previous_(core::FeatureFlags::get().dungeon.kUseWorkbench) {
+    core::FeatureFlags::get().dungeon.kUseWorkbench = enabled;
+  }
+
+  ~ScopedWorkbenchFlag() {
+    core::FeatureFlags::get().dungeon.kUseWorkbench = previous_;
+  }
+
+ private:
+  bool previous_;
+};
+
 }  // namespace
 
 class DungeonEditorPaletteRefreshTestPeer {
@@ -51,8 +68,21 @@ class DungeonEditorPaletteRefreshTestPeer {
     return editor.current_palette_;
   }
 
-  static DungeonCanvasViewer* GetWorkbenchViewer(DungeonEditorV2* editor) {
-    return editor->GetWorkbenchViewer();
+  static DungeonCanvasViewer* GetViewerForRoom(DungeonEditorV2* editor,
+                                               int room_id) {
+    return editor->GetViewerForRoom(room_id);
+  }
+
+  static void SetCurrentRoomId(DungeonEditorV2* editor, int room_id) {
+    editor->current_room_id_ = room_id;
+  }
+
+  static void SetActiveRooms(DungeonEditorV2* editor,
+                             std::initializer_list<int> room_ids) {
+    editor->active_rooms_.clear();
+    for (int room_id : room_ids) {
+      editor->active_rooms_.push_back(room_id);
+    }
   }
 
   static DungeonRoomStore* Rooms(DungeonEditorV2* editor) {
@@ -322,27 +352,45 @@ TEST_F(DungeonEditorPaletteRefreshTest,
 }
 
 TEST_F(DungeonEditorPaletteRefreshTest,
-       SharedHudNotificationRefreshesActivePlacementGhostAndTexture) {
-  constexpr int kCurrentRoomId = 0;
+       SharedHudNotificationRefreshesBackgroundPanelGhostAndTexture) {
+  ScopedWorkbenchFlag standalone_workflow(/*enabled=*/false);
+  constexpr int kGhostRoomId = 0;
+  constexpr int kCurrentRoomId = 1;
   constexpr int kHudDisplayIndex = 17;
-  auto& room = editor_->rooms()[kCurrentRoomId];
-  room.SetLoaded(true);
-  room.SetPalette(5);  // Resolves to dungeon palette 3.
-  room.SetTileObjects({});
+  auto& ghost_room = editor_->rooms()[kGhostRoomId];
+  ghost_room.SetLoaded(true);
+  ghost_room.SetPalette(5);  // Resolves to dungeon palette 3.
+  ghost_room.SetTileObjects({});
+  auto& current_room = editor_->rooms()[kCurrentRoomId];
+  current_room.SetLoaded(true);
+  current_room.SetPalette(7);  // Also resolves to dungeon palette 3.
+  current_room.SetTileObjects({});
 
   ::testing::NiceMock<yaze::test::MockRenderer> renderer;
-  RenderToCleanState(room);
+  RenderToCleanState(ghost_room);
+  RenderToCleanState(current_room);
   while (gfx::Arena::Get().texture_command_queue_size() > 0) {
     gfx::Arena::Get().ProcessTextureQueue(&renderer);
   }
   ASSERT_TRUE(::testing::Mock::VerifyAndClearExpectations(&renderer));
 
   DungeonEditorPaletteRefreshTestPeer::SetCurrentPaletteId(editor_.get(), 3);
+  DungeonEditorPaletteRefreshTestPeer::SetCurrentRoomId(editor_.get(),
+                                                        kCurrentRoomId);
+  DungeonEditorPaletteRefreshTestPeer::SetActiveRooms(
+      editor_.get(), {kGhostRoomId, kCurrentRoomId});
   DungeonEditorPaletteRefreshTestPeer::RegisterPaletteListener(editor_.get());
   DungeonCanvasViewer* viewer =
-      DungeonEditorPaletteRefreshTestPeer::GetWorkbenchViewer(editor_.get());
+      DungeonEditorPaletteRefreshTestPeer::GetViewerForRoom(editor_.get(),
+                                                            kGhostRoomId);
   ASSERT_NE(viewer, nullptr);
   viewer->object_interaction().SetCurrentRoom(
+      DungeonEditorPaletteRefreshTestPeer::Rooms(editor_.get()), kGhostRoomId);
+  DungeonCanvasViewer* current_viewer =
+      DungeonEditorPaletteRefreshTestPeer::GetViewerForRoom(editor_.get(),
+                                                            kCurrentRoomId);
+  ASSERT_NE(current_viewer, nullptr);
+  current_viewer->object_interaction().SetCurrentRoom(
       DungeonEditorPaletteRefreshTestPeer::Rooms(editor_.get()),
       kCurrentRoomId);
   auto palette_group = gfx::CreatePaletteGroupFromLargePalette(
@@ -403,6 +451,56 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   EXPECT_EQ(tile_handler.ghost_preview_buffer_for_testing(), ghost_buffer);
   EXPECT_EQ(ghost_bitmap.texture(), ghost_texture);
   EXPECT_TRUE(::testing::Mock::VerifyAndClearExpectations(&renderer));
+}
+
+TEST_F(DungeonEditorPaletteRefreshTest,
+       CachedPanelPaletteRefreshSurvivesWorkbenchModeAndPreservesRoomPalette) {
+  ScopedWorkbenchFlag workflow_mode(/*enabled=*/false);
+  constexpr int kCachedRoomId = 0;
+  constexpr int kCurrentRoomId = 1;
+  auto& cached_room = editor_->rooms()[kCachedRoomId];
+  cached_room.SetLoaded(true);
+  cached_room.SetPalette(6);  // Resolves to dungeon palette 2.
+  cached_room.SetTileObjects({});
+  auto& current_room = editor_->rooms()[kCurrentRoomId];
+  current_room.SetLoaded(true);
+  current_room.SetPalette(5);  // Resolves to dungeon palette 3.
+  current_room.SetTileObjects({});
+
+  DungeonEditorPaletteRefreshTestPeer::SetCurrentPaletteId(editor_.get(), 3);
+  DungeonEditorPaletteRefreshTestPeer::SetCurrentRoomId(editor_.get(),
+                                                        kCurrentRoomId);
+  DungeonEditorPaletteRefreshTestPeer::SetActiveRooms(
+      editor_.get(), {kCachedRoomId, kCurrentRoomId});
+  DungeonCanvasViewer* cached_viewer =
+      DungeonEditorPaletteRefreshTestPeer::GetViewerForRoom(editor_.get(),
+                                                            kCachedRoomId);
+  ASSERT_NE(cached_viewer, nullptr);
+  cached_viewer->object_interaction().SetCurrentRoom(
+      DungeonEditorPaletteRefreshTestPeer::Rooms(editor_.get()), kCachedRoomId);
+  auto stale_palette_group = gfx::CreatePaletteGroupFromLargePalette(
+      game_data_.palette_groups.dungeon_main.palette_ref(3));
+  ASSERT_TRUE(stale_palette_group.ok());
+  cached_viewer->SetCurrentPaletteId(3);
+  cached_viewer->SetCurrentPaletteGroup(*stale_palette_group);
+
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+  DungeonEditorPaletteRefreshTestPeer::RegisterPaletteListener(editor_.get());
+  auto& palette_manager = gfx::PaletteManager::Get();
+  ASSERT_TRUE(
+      palette_manager.SetColor("hud", 0, 17, gfx::SnesColor(0x03E0)).ok());
+  ASSERT_TRUE(palette_manager.ApplyPreviewChanges().ok());
+
+  auto expected_palette_group = gfx::CreatePaletteGroupFromLargePalette(
+      game_data_.palette_groups.dungeon_main.palette_ref(2));
+  ASSERT_TRUE(expected_palette_group.ok());
+  EXPECT_EQ(cached_viewer->current_palette_id_, 2);
+  ASSERT_EQ(cached_viewer->current_palette_group_.size(),
+            expected_palette_group->size());
+  for (int i = 0; i < static_cast<int>(expected_palette_group->size()); ++i) {
+    EXPECT_EQ(cached_viewer->current_palette_group_.palette_ref(i),
+              expected_palette_group->palette_ref(i));
+  }
 }
 
 TEST_F(DungeonEditorPaletteRefreshTest,
