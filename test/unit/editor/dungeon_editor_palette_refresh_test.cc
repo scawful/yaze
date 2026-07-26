@@ -357,7 +357,7 @@ TEST_F(DungeonEditorPaletteRefreshTest,
 }
 
 TEST_F(DungeonEditorPaletteRefreshTest,
-       SharedHudNotificationRefreshesBackgroundPanelGhostAndTexture) {
+       SharedHudNotificationRefreshesInactiveCachedPanelGhostAndReusesTexture) {
   ScopedWorkbenchFlag standalone_workflow(/*enabled=*/false);
   constexpr int kGhostRoomId = 0;
   constexpr int kCurrentRoomId = 1;
@@ -382,8 +382,8 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   DungeonEditorPaletteRefreshTestPeer::SetCurrentPaletteId(editor_.get(), 3);
   DungeonEditorPaletteRefreshTestPeer::SetCurrentRoomId(editor_.get(),
                                                         kCurrentRoomId);
-  DungeonEditorPaletteRefreshTestPeer::SetActiveRooms(
-      editor_.get(), {kGhostRoomId, kCurrentRoomId});
+  DungeonEditorPaletteRefreshTestPeer::SetActiveRooms(editor_.get(),
+                                                      {kCurrentRoomId});
   DungeonEditorPaletteRefreshTestPeer::RegisterPaletteListener(editor_.get());
   DungeonCanvasViewer* viewer =
       DungeonEditorPaletteRefreshTestPeer::GetViewerForRoom(editor_.get(),

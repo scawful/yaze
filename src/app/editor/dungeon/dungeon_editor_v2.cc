@@ -8,6 +8,7 @@
 
 // C++ standard library headers
 #include <algorithm>
+#include <array>
 #include <iterator>
 #include <memory>
 #include <string>
@@ -949,19 +950,22 @@ void DungeonEditorV2::HandleDungeonPaletteChanged(
     gui::DungeonPaletteChange change) {
   InvalidateDungeonPaletteUsers(change);
 
-  bool rendered_current_room = false;
-  for (int i = 0; i < active_rooms_.Size; i++) {
-    int room_id = active_rooms_[i];
-    if (room_id >= 0 && room_id < static_cast<int>(rooms_.size())) {
-      rooms_[room_id].RenderRoomGraphics();
-      rendered_current_room |= room_id == current_room_id_;
+  std::array<bool, zelda3::kNumberOfRooms> rendered_rooms{};
+  auto render_once = [this, &rendered_rooms](int room_id) {
+    if (room_id < 0 || room_id >= static_cast<int>(rooms_.size()) ||
+        room_id >= static_cast<int>(rendered_rooms.size()) ||
+        rendered_rooms[room_id]) {
+      return;
     }
+    rooms_[room_id].RenderRoomGraphics();
+    rendered_rooms[room_id] = true;
+  };
+
+  for (int i = 0; i < active_rooms_.Size; i++) {
+    render_once(active_rooms_[i]);
   }
 
-  if (!rendered_current_room && current_room_id_ >= 0 &&
-      current_room_id_ < static_cast<int>(rooms_.size())) {
-    rooms_[current_room_id_].RenderRoomGraphics();
-  }
+  render_once(current_room_id_);
 
   auto apply_palette = [](DungeonCanvasViewer* viewer, uint64_t palette_id,
                           const gfx::PaletteGroup& palette_group,
@@ -995,7 +999,7 @@ void DungeonEditorV2::HandleDungeonPaletteChanged(
                       current_palette_group_, force_shared_palette_refresh);
         room_viewers_.ForEach(
             [this, change, &apply_palette, &dungeon_main_pal_group,
-             force_shared_palette_refresh](
+             &render_once, force_shared_palette_refresh](
                 int room_id, std::unique_ptr<DungeonCanvasViewer>& viewer) {
               if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
                 return;
@@ -1014,6 +1018,9 @@ void DungeonEditorV2::HandleDungeonPaletteChanged(
               auto room_palette_group = gfx::CreatePaletteGroupFromLargePalette(
                   dungeon_main_pal_group.palette_ref(palette_id));
               if (room_palette_group.ok()) {
+                if (viewer && viewer->object_interaction().IsObjectLoaded()) {
+                  render_once(room_id);
+                }
                 apply_palette(viewer.get(), palette_id,
                               room_palette_group.value(),
                               force_shared_palette_refresh);
