@@ -1014,10 +1014,6 @@ void DungeonEditorV2::InvalidateDungeonPaletteUsers(
     return;
   }
 
-  if (change.palette_id < 0) {
-    return;
-  }
-
   // Editing palette bytes does not change a room header, so the room's normal
   // property cache cannot detect this dependency change. Mark every cached
   // room that resolves to the edited concrete palette; inactive rooms will
