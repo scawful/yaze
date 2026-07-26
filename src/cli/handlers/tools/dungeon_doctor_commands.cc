@@ -8,7 +8,9 @@
 #include "cli/handlers/tools/diagnostic_types.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_validator.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_object.h"
 
 namespace yaze::cli {
 
@@ -103,7 +105,8 @@ RoomDiagnostic DiagnoseRoom(Rom* rom, int room_id) {
 
   // Count chests
   for (const auto& obj : room.GetTileObjects()) {
-    if (obj.id_ >= 0xF9 && obj.id_ <= 0xFD) {
+    if (zelda3::UsesRoomObjectStream(obj) &&
+        zelda3::IsStatefulChestObjectId(obj.id_)) {
       diag.chest_count++;
     }
   }

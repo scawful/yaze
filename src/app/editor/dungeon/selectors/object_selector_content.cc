@@ -27,6 +27,7 @@
 #include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/dungeon_validator.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
@@ -317,7 +318,8 @@ void ObjectSelectorContent::DrawInteractionSummary() {
     size_t door_count = room.GetDoors().size();
     int chest_count = 0;
     for (const auto& obj : room.GetTileObjects()) {
-      if (obj.id_ >= 0xF9 && obj.id_ <= 0xFD) {
+      if (zelda3::UsesRoomObjectStream(obj) &&
+          zelda3::IsStatefulChestObjectId(obj.id_)) {
         chest_count++;
       }
     }

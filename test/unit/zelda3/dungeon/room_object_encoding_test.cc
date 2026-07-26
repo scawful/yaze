@@ -15,6 +15,16 @@ namespace yaze {
 namespace zelda3 {
 namespace {
 
+TEST(RoomObjectEncodingTest, ClassifiesOnlyStatefulChestObjects) {
+  for (const int object_id : {0xF99, 0xFB1}) {
+    EXPECT_TRUE(IsStatefulChestObjectId(object_id));
+  }
+  for (const int object_id :
+       {0xF98, 0xF9A, 0xFB2, 0xFF5, 0x0F9, 0x0FA, 0x0FB, 0x0FC, 0x0FD}) {
+    EXPECT_FALSE(IsStatefulChestObjectId(object_id));
+  }
+}
+
 // ============================================================================
 // Object Type Detection Tests
 // ============================================================================
