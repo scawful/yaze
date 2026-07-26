@@ -698,6 +698,7 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
   for (int object_id : {0xFD6, 0xFD7, 0xFD8, 0xFD9}) {
     EXPECT_EQ(drawer.GetDrawRoutineId(object_id), DrawRoutineIds::kSingle2x2);
   }
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFCC), DrawRoutineIds::kSmithyFurnace);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFDA), DrawRoutineIds::kTableBowl);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFDB), DrawRoutineIds::kUtility3x5);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFBA),
@@ -747,10 +748,26 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
   EXPECT_FALSE(table_bowl->draws_to_both_bgs);
   EXPECT_EQ(table_bowl->category, DrawRoutineInfo::Category::Special);
 
+  const DrawRoutineInfo* smithy_furnace =
+      DrawRoutineRegistry::Get().GetRoutineInfo(DrawRoutineIds::kSmithyFurnace);
+  ASSERT_NE(smithy_furnace, nullptr);
+  EXPECT_EQ(smithy_furnace->name, "SmithyFurnace");
+  EXPECT_TRUE(static_cast<bool>(smithy_furnace->function));
+  EXPECT_EQ(smithy_furnace->base_width, 6);
+  EXPECT_EQ(smithy_furnace->base_height, 8);
+  EXPECT_EQ(smithy_furnace->min_tiles, 48);
+  EXPECT_FALSE(smithy_furnace->draws_to_both_bgs);
+  EXPECT_EQ(smithy_furnace->category, DrawRoutineInfo::Category::Special);
+
   const auto& routines = DrawRoutineRegistry::Get().GetAllRoutines();
   EXPECT_EQ(std::count_if(routines.begin(), routines.end(),
                           [](const DrawRoutineInfo& info) {
                             return info.id == DrawRoutineIds::kTableBowl;
+                          }),
+            1);
+  EXPECT_EQ(std::count_if(routines.begin(), routines.end(),
+                          [](const DrawRoutineInfo& info) {
+                            return info.id == DrawRoutineIds::kSmithyFurnace;
                           }),
             1);
 }

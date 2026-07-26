@@ -934,13 +934,14 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xFAA] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFAD] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFAE] = {4, 4, Dir::Horizontal, 4, false};
-  dimensions_[0xFCC] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFD4] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFE2] = {4, 4, Dir::Horizontal, 4, false};
   // Big wall decor aliases are fixed 8x3 objects; their size nibble is ignored.
   dimensions_[0xFCB] = {8, 3, Dir::None, 0, false};
   dimensions_[0xFF6] = {8, 3, Dir::None, 0, false};
   dimensions_[0xFF7] = {8, 3, Dir::None, 0, false};
+  // Smithy furnace is a fixed 6x8 stamp; its encoded size is ignored.
+  dimensions_[0xFCC] = {6, 8, Dir::None, 0, false};
   // Utility patterns
   dimensions_[0xFCD] = {6, 3, Dir::None, 0, false};
   dimensions_[0xFDD] = {6, 3, Dir::None, 0, false};
