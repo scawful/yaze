@@ -437,6 +437,15 @@ void DrawBigWallDecor(const DrawContext& ctx) {
   Draw1x3NRightwards(ctx, /*columns=*/8, /*start_index=*/0);
 }
 
+void DrawTableBowl(const DrawContext& ctx) {
+  // ASM: RoomDraw_TableBowl ($019D6C) loads A=2 and falls through to
+  // RoomDraw_WaterHoldingObject, which writes four tiles per row.
+  if (ctx.tiles.size() < 8)
+    return;
+
+  DrawRowMajor(ctx.target_bg, ctx.object.x_, ctx.object.y_, 4, 2, ctx.tiles);
+}
+
 void DrawUtility3x5(const DrawContext& ctx) {
   // ASM: RoomDraw_Utility3x5 ($01A194) uses:
   // - top row: tiles 0..2
@@ -1924,6 +1933,17 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .base_width = 8,
       .base_height = 3,
       .min_tiles = 24,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kTableBowl,  // 126
+      .name = "TableBowl",
+      .function = DrawTableBowl,
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 2,
+      .min_tiles = 8,
       .category = DrawRoutineInfo::Category::Special,
   });
 

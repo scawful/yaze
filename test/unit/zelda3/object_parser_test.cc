@@ -516,6 +516,24 @@ TEST_F(ObjectParserTest, BigWallDecorAliasesProvideTwentyFourTiles) {
   }
 }
 
+TEST_F(ObjectParserTest, TableBowlUsesEightTilesAndDedicatedRoutine) {
+  auto& registry = zelda3::DrawRoutineRegistry::Get();
+  EXPECT_EQ(registry.GetRoutineIdForObject(0xFDA),
+            zelda3::DrawRoutineIds::kTableBowl);
+
+  const auto subtype = parser_->GetObjectSubtype(0xFDA);
+  ASSERT_TRUE(subtype.ok());
+  EXPECT_EQ(subtype->max_tile_count, 8);
+
+  const auto parsed = parser_->ParseObject(0xFDA);
+  ASSERT_TRUE(parsed.ok());
+  EXPECT_EQ(parsed->size(), 8u);
+
+  const auto info = parser_->GetObjectDrawInfo(0xFDA);
+  EXPECT_EQ(info.tile_count, 8);
+  EXPECT_EQ(info.draw_routine_id, zelda3::DrawRoutineIds::kTableBowl);
+}
+
 TEST_F(ObjectParserTest, HammerPegUsesUsdasmSingle2x2RoutineAndFourTiles) {
   auto& registry = zelda3::DrawRoutineRegistry::Get();
   EXPECT_EQ(registry.GetRoutineIdForObject(0xF96),

@@ -468,9 +468,10 @@ void DrawRoutineRegistry::BuildObjectMapping() {
   }
   object_to_routine_map_[0xFD4] = 16;
   object_to_routine_map_[0xFD5] = 101;
-  for (int id = 0xFD6; id <= 0xFDA; id++) {
+  for (int id = 0xFD6; id <= 0xFD9; id++) {
     object_to_routine_map_[id] = 110;
   }
+  object_to_routine_map_[0xFDA] = DrawRoutineIds::kTableBowl;
   object_to_routine_map_[0xFDB] = 101;
   object_to_routine_map_[0xFDC] = 103;
   object_to_routine_map_[0xFDD] = 100;
