@@ -64,6 +64,9 @@ int ExpectedSubtype2TileCount(int id) {
   if (id >= 0x110 && id <= 0x117) {
     return 12;
   }
+  if (id == 0x11F || id == 0x120) {
+    return 4;
+  }
   if (id == 0x11C || id == 0x124 || id == 0x125 || id == 0x129 ||
       (id >= 0x12D && id <= 0x133) || id == 0x13C || id == 0x13F) {
     return 16;
@@ -400,6 +403,8 @@ TEST_F(ObjectDrawingComprehensiveTest, TileCountLookupTable_SpecialCases) {
       {0xD4, 0, "Wall moved check variant"},
       {0xD5, 0, "Wall moved check variant"},
       {0xD6, 0, "Wall moved check variant"},
+      {0x11F, 4, "Enabled star switch (fixed 2x2 payload)"},
+      {0x120, 4, "Lit torch (fixed 2x2 payload)"},
       // Waterfall47 indexes tile slots 0..14 = 15 tiles
       // (`DrawWaterfall47` in special_routines.cc). The prior 8-tile
       // fallback caused the routine's `TileAtWrapped` lookup to wrap
