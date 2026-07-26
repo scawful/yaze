@@ -2,6 +2,7 @@
 
 #include <gtest/gtest.h>
 
+#include "app/gui/core/color.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -111,6 +112,20 @@ TEST_F(SnesColorTest, ConstructFromSnesBlack) {
   EXPECT_FLOAT_EQ(rgb.x, 0.0f);
   EXPECT_FLOAT_EQ(rgb.y, 0.0f);
   EXPECT_FLOAT_EQ(rgb.z, 0.0f);
+}
+
+TEST_F(SnesColorTest, ImGuiConversionNormalizesRawRgbComponents) {
+  const SnesColor color(0x7FFF);
+  const ImVec4 raw = color.rgb();
+  const ImVec4 normalized = yaze::gui::ConvertSnesColorToImVec4(color);
+
+  EXPECT_GT(raw.x, 1.0f);
+  EXPECT_GT(raw.y, 1.0f);
+  EXPECT_GT(raw.z, 1.0f);
+  EXPECT_FLOAT_EQ(normalized.x, raw.x / 255.0f);
+  EXPECT_FLOAT_EQ(normalized.y, raw.y / 255.0f);
+  EXPECT_FLOAT_EQ(normalized.z, raw.z / 255.0f);
+  EXPECT_FLOAT_EQ(normalized.w, 1.0f);
 }
 
 // ============================================================================

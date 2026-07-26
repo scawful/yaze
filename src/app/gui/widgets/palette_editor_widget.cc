@@ -305,9 +305,7 @@ void PaletteEditorWidget::DrawColorPicker() {
   ImGui::Text(tr("SNES BGR555: 0x%04X"), original_color.snes());
 
   if (gui::ThemedButton("Reset to Original")) {
-    editing_color_ =
-        ImVec4(original_color.rgb().x / 255.0f, original_color.rgb().y / 255.0f,
-               original_color.rgb().z / 255.0f, 1.0f);
+    editing_color_ = gui::ConvertSnesColorToImVec4(original_color);
     // Also reset the actual palette color
     palette[selected_color_index_] = original_color;
     dungeon_pal_group[current_palette_id_] = palette;
@@ -349,7 +347,7 @@ void PaletteEditorWidget::DrawDungeonRenderPalette() {
       }
     }
 
-    ImVec4 display_color = color.rgb();
+    ImVec4 display_color = gui::ConvertSnesColorToImVec4(color);
     ImGui::PushID(i);
     if (!editable) {
       ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.25f);
@@ -379,7 +377,7 @@ void PaletteEditorWidget::DrawDungeonRenderPalette() {
       if (status.ok()) {
         selected_color_index_ = i;
         editing_color_index_ = i;
-        temp_color_ = dropped_color.rgb();
+        temp_color_ = gui::ConvertSnesColorToImVec4(dropped_color);
         editing_color_ = temp_color_;
       } else {
         LOG_ERROR("PaletteEditorWidget", "Failed to apply dropped color: %s",
@@ -665,7 +663,7 @@ void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
       ImGui::SameLine();
 
     auto color = palette[i];
-    ImVec4 display_color = color.rgb();
+    ImVec4 display_color = gui::ConvertSnesColorToImVec4(color);
 
     ImGui::PushID(i);
     const bool clicked = ImGui::ColorButton("##color", display_color,
@@ -685,7 +683,7 @@ void PaletteEditorWidget::DrawPaletteGrid(gfx::SnesPalette& palette, int cols) {
     if (AcceptImGuiColorDrop(&palette[i], swatch_min, swatch_max)) {
       selected_color_index_ = i;
       editing_color_index_ = i;
-      temp_color_ = palette[i].rgb();
+      temp_color_ = gui::ConvertSnesColorToImVec4(palette[i]);
       editing_color_ = temp_color_;
       if (on_palette_changed_) {
         on_palette_changed_(
@@ -784,7 +782,7 @@ void PaletteEditorWidget::DrawROMPaletteSelector() {
       if (i > 0)
         ImGui::SameLine();
       auto color = preview_palette[i];
-      ImVec4 display_color = color.rgb();
+      ImVec4 display_color = gui::ConvertSnesColorToImVec4(color);
       ImGui::ColorButton(("##preview" + std::to_string(i)).c_str(),
                          display_color, ImGuiColorEditFlags_NoTooltip,
                          ImVec2(20, 20));
@@ -794,7 +792,7 @@ void PaletteEditorWidget::DrawROMPaletteSelector() {
 
 void PaletteEditorWidget::DrawColorEditControls(gfx::SnesColor& color,
                                                 int color_index) {
-  ImVec4 rgba = color.rgb();
+  ImVec4 rgba = gui::ConvertSnesColorToImVec4(color);
 
   ImGui::PushID(color_index);
 
@@ -843,7 +841,8 @@ void PaletteEditorWidget::DrawPaletteAnalysis(const gfx::SnesPalette& palette) {
     if (ImGui::TreeNode("Duplicate Colors")) {
       for (const auto& [snes_color, count] : color_frequency) {
         if (count > 1) {
-          ImVec4 display_color = gfx::SnesColor(snes_color).rgb();
+          ImVec4 display_color =
+              gui::ConvertSnesColorToImVec4(gfx::SnesColor(snes_color));
           ImGui::ColorButton(("##dup" + std::to_string(snes_color)).c_str(),
                              display_color, ImGuiColorEditFlags_NoTooltip,
                              ImVec2(16, 16));
@@ -885,7 +884,7 @@ void PaletteEditorWidget::DrawPaletteAnalysis(const gfx::SnesPalette& palette) {
   float max_brightness = 0.0f;
 
   for (int i = 0; i < static_cast<int>(palette.size()); i++) {
-    ImVec4 color = palette[i].rgb();
+    ImVec4 color = gui::ConvertSnesColorToImVec4(palette[i]);
     float brightness = (color.x + color.y + color.z) / 3.0f;
     total_brightness += brightness;
     min_brightness = std::min(min_brightness, brightness);
