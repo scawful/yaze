@@ -116,6 +116,13 @@ void DrawUtility6x3(const DrawContext& ctx);
 void DrawBigWallDecor(const DrawContext& ctx);
 
 /**
+ * @brief Draw a fixed 4x2 table bowl in row-major order
+ *
+ * ASM: RoomDraw_TableBowl ($019D6C -> RoomDraw_WaterHoldingObject)
+ */
+void DrawTableBowl(const DrawContext& ctx);
+
+/**
  * @brief Draw utility 3x5 pattern (special row pattern)
  *
  * ASM: RoomDraw_Utility3x5 ($01A194)
