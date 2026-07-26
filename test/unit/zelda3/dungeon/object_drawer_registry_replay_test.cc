@@ -311,6 +311,23 @@ TEST(ObjectDrawerRegistryReplayTest,
   }
 }
 
+TEST(ObjectDrawerRegistryReplayTest,
+     MarioPortraitDrawsAnchoredFourByTwoRowMajor) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 14;
+  constexpr int kY = 20;
+  constexpr uint16_t kTileId = 0x0260;
+  const auto trace = ReplayObjectTrace(
+      /*object_id=*/0x12A, kX, kY, /*size=*/0, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/8, kTileId));
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+
+  ExpectTraceMatchesSnapshot(
+      bg1, MakeRowMajorSnapshot(kX, kY, /*width=*/4, /*height=*/2, kTileId));
+  EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG2).empty());
+}
+
 std::array<uint8_t, 0x10000> MakeOpaqueDoorGfx() {
   std::array<uint8_t, 0x10000> gfx{};
   gfx.fill(1);

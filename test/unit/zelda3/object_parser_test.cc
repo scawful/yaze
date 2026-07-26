@@ -611,8 +611,7 @@ TEST_F(ObjectParserTest, OverFetchClusterIdsRouteToAuditedRoutines) {
   auto& registry = zelda3::DrawRoutineRegistry::Get();
 
   // Subtype-2: routine 4 is `Rightwards2x2_1to16` (reads tiles[0..3]).
-  for (int id :
-       {0x118, 0x119, 0x11A, 0x11B, 0x11E, 0x127, 0x12A, 0x12B, 0x134}) {
+  for (int id : {0x118, 0x119, 0x11A, 0x11B, 0x11E, 0x127, 0x12B, 0x134}) {
     SCOPED_TRACE(::testing::Message()
                  << "id=0x" << std::hex << id << " expects routine 4");
     EXPECT_EQ(registry.GetRoutineIdForObject(id), 4);
@@ -640,6 +639,20 @@ TEST_F(ObjectParserTest, OverFetchClusterIdsRouteToAuditedRoutines) {
                  << "id=0x" << std::hex << id << " expects routine 39");
     EXPECT_EQ(registry.GetRoutineIdForObject(id), 39);
   }
+}
+
+TEST_F(ObjectParserTest, MarioPortraitUsesFullFourByTwoPayload) {
+  auto& registry = zelda3::DrawRoutineRegistry::Get();
+  EXPECT_EQ(registry.GetRoutineIdForObject(0x12A),
+            zelda3::DrawRoutineIds::kWaterHopStairsA);
+
+  const auto subtype = parser_->GetObjectSubtype(0x12A);
+  ASSERT_TRUE(subtype.ok());
+  EXPECT_EQ(subtype->max_tile_count, 8);
+
+  const auto tiles = parser_->ParseObject(0x12A);
+  ASSERT_TRUE(tiles.ok());
+  EXPECT_EQ(tiles->size(), 8u);
 }
 
 TEST_F(ObjectParserTest, EnabledStarSwitchAndLitTorchUseFixedTwoByTwoPayload) {
