@@ -185,6 +185,30 @@ TEST_F(ObjectDimensionTableTest, SomariaPathBaseDimensionsAreSingleTile) {
   EXPECT_EQ(table.GetBaseDimensions(0xF94), std::make_pair(4, 3));
 }
 
+TEST_F(ObjectDimensionTableTest,
+       EnabledStarSwitchAndLitTorchUseAnchoredTwoByTwoBounds) {
+  auto& table = ObjectDimensionTable::Get();
+  ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());
+
+  for (int16_t object_id : {int16_t{0x11F}, int16_t{0x120}}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << object_id);
+
+    EXPECT_EQ(table.GetBaseDimensions(object_id), std::make_pair(2, 2));
+    EXPECT_EQ(table.GetDimensions(object_id, 0), std::make_pair(2, 2));
+
+    const auto selection = table.GetSelectionBounds(object_id, 0);
+    EXPECT_EQ(selection.offset_x, 0);
+    EXPECT_EQ(selection.offset_y, 0);
+    EXPECT_EQ(selection.width, 2);
+    EXPECT_EQ(selection.height, 2);
+
+    const RoomObject object(object_id, 0, 0, 0, 0);
+    EXPECT_EQ(ObjectDrawer(rom_.get(), 0).CalculateObjectDimensions(object),
+              std::make_pair(16, 16));
+  }
+}
+
 TEST_F(ObjectDimensionTableTest, GetDimensionsAccountsForSize) {
   auto& table = ObjectDimensionTable::Get();
   table.LoadFromRom(rom_.get());

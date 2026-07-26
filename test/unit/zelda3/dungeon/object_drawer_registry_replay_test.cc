@@ -284,6 +284,33 @@ TEST(ObjectDrawerRegistryReplayTest,
   }
 }
 
+TEST(ObjectDrawerRegistryReplayTest,
+     EnabledStarSwitchAndLitTorchDrawAnchoredTwoByTwo) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 12;
+  constexpr int kY = 18;
+  constexpr uint16_t kTileId = 0x0240;
+  const std::vector<SnapshotTileWrite> expected = {
+      {kX, kY, kTileId},
+      {kX, kY + 1, kTileId + 1},
+      {kX + 1, kY, kTileId + 2},
+      {kX + 1, kY + 1, kTileId + 3},
+  };
+
+  for (int16_t object_id : {int16_t{0x11F}, int16_t{0x120}}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << object_id);
+    const auto trace = ReplayObjectTrace(
+        object_id, kX, kY, /*size=*/0, RoomObject::LayerType::BG1,
+        MakeSequentialTiles(/*count=*/4, kTileId));
+    const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+
+    ExpectTraceMatchesSnapshot(bg1, expected);
+    EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG2).empty());
+  }
+}
+
 std::array<uint8_t, 0x10000> MakeOpaqueDoorGfx() {
   std::array<uint8_t, 0x10000> gfx{};
   gfx.fill(1);

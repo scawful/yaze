@@ -287,8 +287,6 @@ ObjectDimensionTable::SelectionBounds ObjectDimensionTable::GetSelectionBounds(
   switch (object_id) {
     // Offset +3 (1x1 solid +3)
     case 0x34:
-    case 0x11F:
-    case 0x120:
       bounds.offset_x = 3;
       break;
 
@@ -834,9 +832,9 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0x11D] = {2, 3, Dir::Horizontal, 4, false};
   // 0x11E: Single 2x2
   dimensions_[0x11E] = {2, 2, Dir::Horizontal, 2, false};
-  // 0x11F-0x120: Star switch / Torch (1x1 +3)
-  dimensions_[0x11F] = {4, 1, Dir::Horizontal, 1, false};
-  dimensions_[0x120] = {4, 1, Dir::Horizontal, 1, false};
+  // 0x11F-0x120: Enabled star switch / lit torch (fixed 2x2)
+  dimensions_[0x11F] = {2, 2, Dir::None, 0, false};
+  dimensions_[0x120] = {2, 2, Dir::None, 0, false};
   // 0x121: 2x3 pillar (repeated)
   dimensions_[0x121] = {2, 3, Dir::Horizontal, 4, false};
 
