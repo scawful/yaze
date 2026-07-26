@@ -459,7 +459,7 @@ void DrawRoutineRegistry::BuildObjectMapping() {
   object_to_routine_map_[0xFC8] = 16;
   object_to_routine_map_[0xFC9] = 110;
   object_to_routine_map_[0xFCA] = 110;
-  object_to_routine_map_[0xFCB] = 16;
+  object_to_routine_map_[0xFCB] = DrawRoutineIds::kBigWallDecor;
   object_to_routine_map_[0xFCC] = 16;
   object_to_routine_map_[0xFCD] = 100;
   object_to_routine_map_[0xFCE] = 30;
@@ -498,8 +498,8 @@ void DrawRoutineRegistry::BuildObjectMapping() {
   object_to_routine_map_[0xFF3] = 38;
   object_to_routine_map_[0xFF4] = DrawRoutineIds::kFloorLight;
   object_to_routine_map_[0xFF5] = 110;
-  object_to_routine_map_[0xFF6] = 16;
-  object_to_routine_map_[0xFF7] = 16;
+  object_to_routine_map_[0xFF6] = DrawRoutineIds::kBigWallDecor;
+  object_to_routine_map_[0xFF7] = DrawRoutineIds::kBigWallDecor;
   object_to_routine_map_[0xFF8] = 109;
   object_to_routine_map_[0xFF9] = 30;
   object_to_routine_map_[0xFFA] = 16;

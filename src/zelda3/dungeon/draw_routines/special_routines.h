@@ -109,6 +109,13 @@ void DrawRightwards3x6(const DrawContext& ctx);
 void DrawUtility6x3(const DrawContext& ctx);
 
 /**
+ * @brief Draw fixed 8x3 big wall decor in column-major order
+ *
+ * ASM: RoomDraw_BigWallDecor ($019A06)
+ */
+void DrawBigWallDecor(const DrawContext& ctx);
+
+/**
  * @brief Draw utility 3x5 pattern (special row pattern)
  *
  * ASM: RoomDraw_Utility3x5 ($01A194)

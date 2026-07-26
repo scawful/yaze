@@ -710,6 +710,10 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFF4), DrawRoutineIds::kFloorLight);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFF8),
             DrawRoutineIds::kGanonTriforceFloorDecor);
+  for (int object_id : {0xFCB, 0xFF6, 0xFF7}) {
+    EXPECT_EQ(drawer.GetDrawRoutineId(object_id),
+              DrawRoutineIds::kBigWallDecor);
+  }
 
   const DrawRoutineInfo* floor_light =
       DrawRoutineRegistry::Get().GetRoutineInfo(DrawRoutineIds::kFloorLight);
@@ -718,6 +722,14 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
   EXPECT_EQ(floor_light->base_height, 8);
   EXPECT_EQ(floor_light->min_tiles, 64);
   EXPECT_FALSE(floor_light->draws_to_both_bgs);
+
+  const DrawRoutineInfo* big_wall_decor =
+      DrawRoutineRegistry::Get().GetRoutineInfo(DrawRoutineIds::kBigWallDecor);
+  ASSERT_NE(big_wall_decor, nullptr);
+  EXPECT_EQ(big_wall_decor->base_width, 8);
+  EXPECT_EQ(big_wall_decor->base_height, 3);
+  EXPECT_EQ(big_wall_decor->min_tiles, 24);
+  EXPECT_FALSE(big_wall_decor->draws_to_both_bgs);
 }
 
 }  // namespace zelda3
