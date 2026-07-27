@@ -2524,6 +2524,37 @@ TEST(ObjectDrawerRegistryReplayTest,
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
+     SmithyFurnaceDrawsFixedSixByEightRowMajorOnSelectedLayer) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 10;
+  constexpr int kY = 12;
+  constexpr uint16_t kFirstTile = 0x0200;
+
+  for (uint8_t size : {uint8_t{0}, uint8_t{3}}) {
+    for (const auto layer :
+         {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+      SCOPED_TRACE(::testing::Message()
+                   << "size=" << static_cast<int>(size)
+                   << " layer=" << static_cast<int>(layer));
+
+      const auto trace = ReplayObjectTrace(
+          /*object_id=*/0x0FCC, kX, kY, size, layer,
+          MakeSequentialTiles(/*count=*/48, /*start_tile_id=*/kFirstTile));
+      const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+      const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+      const auto& selected = layer == RoomObject::LayerType::BG1 ? bg1 : bg2;
+      const auto& other = layer == RoomObject::LayerType::BG1 ? bg2 : bg1;
+
+      ExpectTraceMatchesSnapshot(
+          selected, MakeRowMajorSnapshot(kX, kY, /*width=*/6, /*height=*/8,
+                                         /*start_tile_id=*/kFirstTile));
+      EXPECT_TRUE(other.empty());
+    }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
      BigWallDecorAliasesDrawFixedEightByThreeOnSelectedLayer) {
   ScopedCustomObjectsFlag disable_custom(false);
 
