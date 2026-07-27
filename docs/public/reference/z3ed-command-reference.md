@@ -163,6 +163,7 @@ These commands operate directly on ROM data (no GUI required).
 - `entrance-info --entrance <hex> [--spawn]`
 - `dungeon-export-room --room <hex> --output <file>`
 - `dungeon-place-object --room <hex> --id <hex> --x <int> --y <int> [--size <int>] [--layer <0|1|2>] [--manifest <path>] [--write]`
+- `dungeon-set-door-type --room <hex> --x <int> --y <int> --type <hex> --expect-type <hex> --manifest <path> [--write]`
 - `dungeon-get-room-tiles --room <hex>` *(stubbed)*
 - `dungeon-set-room-property --room <hex> --property <name> --value <value> [--manifest <path>]`
 
@@ -174,6 +175,23 @@ an explicit manifest defines `dungeon_stream_regions.objects` with the
 ownership guard: protected current-stream, allocation, object-pointer, or
 door-pointer writes are rejected before either dry-run or write can mutate ROM
 bytes.
+
+`dungeon-set-door-type` changes only the fixed-width type byte of an existing
+door selected by exact tile coordinates. It is a dry-run unless `--write` is
+supplied. The command requires the expected current type as a compare-and-swap
+guard and an object-stream manifest using `copy_on_write`. Before either mode
+succeeds it verifies the runtime and manifest pointer tables agree, inventories
+all 296 object pointers, rejects selected-stream aliases/overlaps and any other
+room door pointer into that stream, cross-checks the room model against the raw
+door-pointer entry, and checks the exact one-byte write against manifest
+ownership. Write mode uses a one-byte write fence, required backup, pre-save
+model/raw readback, and atomic ROM replacement. The focused unit test
+independently reopens the saved ROM and validates the persisted door.
+
+Use `dungeon-describe-room` first to discover each door's exact `tile_x`,
+`tile_y`, `index`, and raw `type_id`. Pass those tile coordinates and
+`type_id` to `dungeon-set-door-type`; the command reports the matched index and
+old/new symbolic names but never selects a door by display-name text.
 
 `dungeon-set-room-property` accepts `layout`/`layout_id` values `0`-`7` and
 `floor1`/`floor2` values `0`-`15`. These properties are persisted in the

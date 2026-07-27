@@ -146,6 +146,19 @@ void CommandRegistry::RegisterHandlers(
             "z3ed dungeon-place-object --room=0x98 --id=0x0031 --x=20 --y=20 "
             "--size=4 --manifest=hack_manifest.json --write "
             "--rom=/tmp/oos-work.sfc --format=json"};
+      } else if (name == "dungeon-set-door-type") {
+        metadata.description =
+            "Change one existing door type with coordinate/CAS and manifest "
+            "guards (dry-run by default)";
+        metadata.examples = {
+            "z3ed dungeon-set-door-type --room=0xA8 --x=46 --y=58 "
+            "--type=0x00 --expect-type=0x18 "
+            "--manifest=hack_manifest.json --rom=Roms/oos168.sfc "
+            "--format=json",
+            "z3ed dungeon-set-door-type --room=0xA8 --x=46 --y=58 "
+            "--type=0x00 --expect-type=0x18 "
+            "--manifest=hack_manifest.json --write "
+            "--rom=/tmp/oos-work.sfc --format=json"};
       } else if (name == "dungeon-oracle-preflight") {
         metadata.description =
             "Oracle ROM safety preflight: water-fill region/table, collision "
