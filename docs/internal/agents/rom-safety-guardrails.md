@@ -39,6 +39,11 @@ This repo is used to edit ROM hacks (including Oracle of Secrets). Treat ROM wri
   header dirty mask. They preserve unrelated header bits and object payload,
   save after any dirty object payload, and fail closed on shared streams unless
   a `copy_on_write` object-stream manifest supplies allocator-owned space.
+- `dungeon-set-room-property` keeps `--manifest` optional for compatibility,
+  but honors it for every supported property when supplied. Fixed room-header
+  fields preflight the serializer's full 14-byte header and two-byte room
+  message-ID ranges before caller bytes, backup artifacts, or disk state can
+  change.
 - Non-dry-run `dungeon-import-custom-collision-json` and
   `dungeon-import-water-fill-json` use the same transaction and required-backup
   contract, then immediately save the active ROM. With `--sandbox`, the active
