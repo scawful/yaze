@@ -84,6 +84,33 @@ class DungeonPlaceObjectCommandHandler : public resources::CommandHandler {
 };
 
 /**
+ * @brief Change one existing dungeon door's fixed-width type byte.
+ *
+ * The target is selected by exact tile coordinates and guarded by a required
+ * expected old type. Dry-run is the default; use --write to commit + save ROM.
+ */
+class DungeonSetDoorTypeCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "dungeon-set-door-type"; }
+  std::string GetDescription() const {
+    return "Change an existing dungeon door type";
+  }
+  std::string GetUsage() const override {
+    return "dungeon-set-door-type --room <hex> --x <int> --y <int> "
+           "--type <hex> --expect-type <hex> --manifest <path> "
+           "[--write] [--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs(
+        {"room", "x", "y", "type", "expect-type", "manifest"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
  * @brief Set individual custom collision tiles in a dungeon room.
  *
  * Supports setting one or more tiles. Dry-run by default.
