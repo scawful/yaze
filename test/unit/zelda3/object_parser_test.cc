@@ -173,10 +173,10 @@ TEST_F(ObjectParserTest, RuntimeLiteralObjectsIgnoreRelocatedTablePointers) {
     }
   };
 
-  // Move all eight pointer-table entries. F98/F99/FB1/FAC/FAD/FCC must ignore
-  // their moved entries because their routines load literal data blocks;
-  // F9A/FB2 are direct-open routines and must continue following their moved
-  // pointers.
+  // Move all nine pointer-table entries. F98/F99/FB1/FAC/FAD/FCC/FD4 must
+  // ignore their moved entries because their routines load literal data
+  // blocks; F9A/FB2 are direct-open routines and must continue following
+  // their moved pointers.
   constexpr uint16_t kMovedBigKeyLockOffset = 0x0100;
   constexpr uint16_t kMovedChestOffset = 0x0180;
   constexpr uint16_t kMovedOpenChestOffset = 0x0200;
@@ -185,6 +185,7 @@ TEST_F(ObjectParserTest, RuntimeLiteralObjectsIgnoreRelocatedTablePointers) {
   constexpr uint16_t kMovedSmithyFurnaceOffset = 0x0400;
   constexpr uint16_t kMovedBigGrayRockOffset = 0x0480;
   constexpr uint16_t kMovedAgahnimsAltarOffset = 0x0580;
+  constexpr uint16_t kMovedFortuneTellerRoomOffset = 0x0680;
   write_pointer(0xF98, kMovedBigKeyLockOffset);
   write_pointer(0xF99, kMovedChestOffset);
   write_pointer(0xF9A, kMovedOpenChestOffset);
@@ -193,6 +194,7 @@ TEST_F(ObjectParserTest, RuntimeLiteralObjectsIgnoreRelocatedTablePointers) {
   write_pointer(0xFCC, kMovedSmithyFurnaceOffset);
   write_pointer(0xFAC, kMovedBigGrayRockOffset);
   write_pointer(0xFAD, kMovedAgahnimsAltarOffset);
+  write_pointer(0xFD4, kMovedFortuneTellerRoomOffset);
 
   write_words(0x1494, 4, 0x0040);   // BigKeyLock literal
   write_words(0x149C, 4, 0x0080);   // Chest closed literal
@@ -202,6 +204,7 @@ TEST_F(ObjectParserTest, RuntimeLiteralObjectsIgnoreRelocatedTablePointers) {
   write_words(0x1F92, 48, 0x0280);  // SmithyFurnace literal
   write_words(0x0E62, 16, 0x0440);  // BigGrayRock literal
   write_words(0x1B4A, 84, 0x0080);  // AgahnimsAltar literal
+  write_words(0x202E, 26, 0x0120);  // FortuneTellerRoom literal
 
   write_words(kMovedBigKeyLockOffset, 4, 0x03C0);
   write_words(kMovedChestOffset, 4, 0x03A0);
@@ -211,6 +214,7 @@ TEST_F(ObjectParserTest, RuntimeLiteralObjectsIgnoreRelocatedTablePointers) {
   write_words(kMovedSmithyFurnaceOffset, 48, 0x0340);
   write_words(kMovedBigGrayRockOffset, 16, 0x0640);
   write_words(kMovedAgahnimsAltarOffset, 84, 0x0200);
+  write_words(kMovedFortuneTellerRoomOffset, 26, 0x0320);
 
   auto lock = parser_->ParseObject(0xF98);
   auto chest = parser_->ParseObject(0xF99);
@@ -220,6 +224,7 @@ TEST_F(ObjectParserTest, RuntimeLiteralObjectsIgnoreRelocatedTablePointers) {
   auto smithy_furnace = parser_->ParseObject(0xFCC);
   auto big_gray_rock = parser_->ParseObject(0xFAC);
   auto agahnims_altar = parser_->ParseObject(0xFAD);
+  auto fortune_teller_room = parser_->ParseObject(0xFD4);
   ASSERT_TRUE(lock.ok());
   ASSERT_TRUE(chest.ok());
   ASSERT_TRUE(open_chest.ok());
@@ -228,6 +233,7 @@ TEST_F(ObjectParserTest, RuntimeLiteralObjectsIgnoreRelocatedTablePointers) {
   ASSERT_TRUE(smithy_furnace.ok());
   ASSERT_TRUE(big_gray_rock.ok());
   ASSERT_TRUE(agahnims_altar.ok());
+  ASSERT_TRUE(fortune_teller_room.ok());
 
   for (int i = 0; i < 4; ++i) {
     EXPECT_TRUE((*lock)[i] ==
@@ -267,6 +273,13 @@ TEST_F(ObjectParserTest, RuntimeLiteralObjectsIgnoreRelocatedTablePointers) {
                 gfx::WordToTileInfo(static_cast<uint16_t>(0x0080 + i)));
     EXPECT_FALSE((*agahnims_altar)[i] ==
                  gfx::WordToTileInfo(static_cast<uint16_t>(0x0200 + i)));
+  }
+  ASSERT_EQ(fortune_teller_room->size(), 26u);
+  for (int i = 0; i < 26; ++i) {
+    EXPECT_TRUE((*fortune_teller_room)[i] ==
+                gfx::WordToTileInfo(static_cast<uint16_t>(0x0120 + i)));
+    EXPECT_FALSE((*fortune_teller_room)[i] ==
+                 gfx::WordToTileInfo(static_cast<uint16_t>(0x0320 + i)));
   }
 }
 
@@ -626,6 +639,25 @@ TEST_F(ObjectParserTest, AgahnimsAltarUsesEightyFourTilesAndDedicatedRoutine) {
   const auto info = parser_->GetObjectDrawInfo(0xFAD);
   EXPECT_EQ(info.tile_count, 84);
   EXPECT_EQ(info.draw_routine_id, zelda3::DrawRoutineIds::kAgahnimsAltar);
+}
+
+TEST_F(ObjectParserTest,
+       FortuneTellerRoomUsesTwentySixTilesAndDedicatedRoutine) {
+  auto& registry = zelda3::DrawRoutineRegistry::Get();
+  EXPECT_EQ(registry.GetRoutineIdForObject(0xFD4),
+            zelda3::DrawRoutineIds::kFortuneTellerRoom);
+
+  const auto subtype = parser_->GetObjectSubtype(0xFD4);
+  ASSERT_TRUE(subtype.ok());
+  EXPECT_EQ(subtype->max_tile_count, 26);
+
+  const auto parsed = parser_->ParseObject(0xFD4);
+  ASSERT_TRUE(parsed.ok());
+  EXPECT_EQ(parsed->size(), 26u);
+
+  const auto info = parser_->GetObjectDrawInfo(0xFD4);
+  EXPECT_EQ(info.tile_count, 26);
+  EXPECT_EQ(info.draw_routine_id, zelda3::DrawRoutineIds::kFortuneTellerRoom);
 }
 
 TEST_F(ObjectParserTest, HammerPegUsesUsdasmSingle2x2RoutineAndFourTiles) {

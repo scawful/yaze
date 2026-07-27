@@ -45,7 +45,8 @@ inline ObjectLayerSemantics GetObjectLayerSemantics(const RoomObject& object) {
     return out;
   }
 
-  if (out.routine_id == DrawRoutineIds::kAgahnimsAltar) {
+  if (out.routine_id == DrawRoutineIds::kAgahnimsAltar ||
+      out.routine_id == DrawRoutineIds::kFortuneTellerRoom) {
     out.effective_bg_layer = EffectiveBgLayer::kBg1;
     return out;
   }

@@ -696,6 +696,7 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFAB), DrawRoutineIds::kSingle2x2);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFAC), DrawRoutineIds::kBigGrayRock);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFAD), DrawRoutineIds::kAgahnimsAltar);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFD4), DrawRoutineIds::kFortuneTellerRoom);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFB1), DrawRoutineIds::kSingle4x3);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFD5), DrawRoutineIds::kUtility3x5);
   for (int object_id : {0xFD6, 0xFD7, 0xFD8, 0xFD9}) {
@@ -784,6 +785,18 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
   EXPECT_FALSE(agahnims_altar->draws_to_both_bgs);
   EXPECT_EQ(agahnims_altar->category, DrawRoutineInfo::Category::Special);
 
+  const DrawRoutineInfo* fortune_teller_room =
+      DrawRoutineRegistry::Get().GetRoutineInfo(
+          DrawRoutineIds::kFortuneTellerRoom);
+  ASSERT_NE(fortune_teller_room, nullptr);
+  EXPECT_EQ(fortune_teller_room->name, "FortuneTellerRoom");
+  EXPECT_TRUE(static_cast<bool>(fortune_teller_room->function));
+  EXPECT_EQ(fortune_teller_room->base_width, 14);
+  EXPECT_EQ(fortune_teller_room->base_height, 14);
+  EXPECT_EQ(fortune_teller_room->min_tiles, 26);
+  EXPECT_FALSE(fortune_teller_room->draws_to_both_bgs);
+  EXPECT_EQ(fortune_teller_room->category, DrawRoutineInfo::Category::Special);
+
   const auto& routines = DrawRoutineRegistry::Get().GetAllRoutines();
   EXPECT_EQ(std::count_if(routines.begin(), routines.end(),
                           [](const DrawRoutineInfo& info) {
@@ -803,6 +816,12 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
   EXPECT_EQ(std::count_if(routines.begin(), routines.end(),
                           [](const DrawRoutineInfo& info) {
                             return info.id == DrawRoutineIds::kAgahnimsAltar;
+                          }),
+            1);
+  EXPECT_EQ(std::count_if(routines.begin(), routines.end(),
+                          [](const DrawRoutineInfo& info) {
+                            return info.id ==
+                                   DrawRoutineIds::kFortuneTellerRoom;
                           }),
             1);
 }

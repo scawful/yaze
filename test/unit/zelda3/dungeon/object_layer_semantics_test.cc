@@ -58,6 +58,17 @@ TEST(ObjectLayerSemanticsTest, AgahnimsAltarAlwaysReportsFixedBg1) {
   }
 }
 
+TEST(ObjectLayerSemanticsTest, FortuneTellerRoomAlwaysReportsFixedBg1) {
+  for (uint8_t layer : {uint8_t{0}, uint8_t{1}}) {
+    RoomObject obj(/*id=*/0xFD4, /*x=*/0, /*y=*/0, /*size=*/7, layer);
+
+    const auto sem = GetObjectLayerSemantics(obj);
+    EXPECT_EQ(sem.routine_id, DrawRoutineIds::kFortuneTellerRoom);
+    EXPECT_FALSE(sem.draws_to_both_bgs);
+    EXPECT_EQ(sem.effective_bg_layer, EffectiveBgLayer::kBg1);
+  }
+}
+
 TEST(DungeonObjectLayerGuardrailsTest,
      SingleAndBatchStreamChangesIncludeBothBgObjects) {
   Rom rom;
