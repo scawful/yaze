@@ -55,11 +55,12 @@ bool IsEncodedRoomStreamObject(const zelda3::RoomObject& object) {
 
 struct RoomPropertyManifestContext {
   core::HackManifest manifest;
-  zelda3::DungeonStreamLayout allocator_layout;
+  std::optional<zelda3::DungeonStreamLayout> allocator_layout;
 };
 
 absl::StatusOr<std::optional<RoomPropertyManifestContext>>
-LoadRoomPropertyManifestContext(const resources::ArgumentParser& parser) {
+LoadRoomPropertyManifestContext(const resources::ArgumentParser& parser,
+                                bool require_object_allocator) {
   const auto manifest_path = parser.GetString("manifest");
   if (!manifest_path.has_value()) {
     return std::nullopt;
@@ -67,6 +68,10 @@ LoadRoomPropertyManifestContext(const resources::ArgumentParser& parser) {
 
   RoomPropertyManifestContext context;
   RETURN_IF_ERROR(context.manifest.LoadFromFile(*manifest_path));
+  if (!require_object_allocator) {
+    return std::optional<RoomPropertyManifestContext>(std::move(context));
+  }
+
   const auto* manifest_layout = context.manifest.GetDungeonStreamLayout(
       core::DungeonStreamType::kObjects);
   if (manifest_layout == nullptr) {
@@ -77,14 +82,30 @@ LoadRoomPropertyManifestContext(const resources::ArgumentParser& parser) {
     return absl::FailedPreconditionError(
         "dungeon_stream_regions.objects must use copy_on_write");
   }
-  ASSIGN_OR_RETURN(context.allocator_layout,
+  zelda3::DungeonStreamLayout allocator_layout;
+  ASSIGN_OR_RETURN(allocator_layout,
                    core::ToDungeonStreamAllocatorLayout(
                        core::DungeonStreamType::kObjects, *manifest_layout));
+  context.allocator_layout = std::move(allocator_layout);
   return std::optional<RoomPropertyManifestContext>(std::move(context));
 }
 
-absl::Status ValidateRoomPropertyManifestConflicts(
+absl::Status ValidateManifestWriteRanges(
+    const core::HackManifest& manifest,
+    const std::vector<std::pair<uint32_t, uint32_t>>& ranges) {
+  if (!manifest.AnalyzePcWriteRanges(ranges).empty()) {
+    return absl::PermissionDeniedError("Write conflict with Hack Manifest");
+  }
+  return absl::OkStatus();
+}
+
+absl::Status ValidateObjectStreamHeaderManifestConflicts(
     const Rom& rom, int room_id, const RoomPropertyManifestContext& context) {
+  if (!context.allocator_layout.has_value()) {
+    return absl::FailedPreconditionError(
+        "Object-stream header manifest is missing allocator capability");
+  }
+
   std::vector<std::pair<uint32_t, uint32_t>> ranges;
 
   uint32_t pointer_table_snes = 0;
@@ -107,11 +128,11 @@ absl::Status ValidateRoomPropertyManifestConflicts(
   }
   ranges.emplace_back(stream_pc, stream_pc + 2u);
 
-  for (const auto& range : context.allocator_layout.allocation_ranges) {
+  for (const auto& range : context.allocator_layout->allocation_ranges) {
     ranges.emplace_back(range.begin, range.end);
   }
   const uint64_t cow_pointer_slot =
-      static_cast<uint64_t>(context.allocator_layout.pointer_table_pc) +
+      static_cast<uint64_t>(context.allocator_layout->pointer_table_pc) +
       static_cast<uint64_t>(room_id) * 3u;
   if (cow_pointer_slot + 3u > std::numeric_limits<uint32_t>::max()) {
     return absl::OutOfRangeError("Selected COW pointer range overflows");
@@ -128,10 +149,50 @@ absl::Status ValidateRoomPropertyManifestConflicts(
   ranges.emplace_back(static_cast<uint32_t>(door_pointer_slot),
                       static_cast<uint32_t>(door_pointer_slot + 3u));
 
-  if (!context.manifest.AnalyzePcWriteRanges(ranges).empty()) {
-    return absl::PermissionDeniedError("Write conflict with Hack Manifest");
+  return ValidateManifestWriteRanges(context.manifest, ranges);
+}
+
+absl::StatusOr<std::vector<std::pair<uint32_t, uint32_t>>>
+CollectRoomHeaderWriteRanges(const Rom& rom, int room_id) {
+  uint32_t header_pointer_snes = 0;
+  ASSIGN_OR_RETURN(header_pointer_snes,
+                   rom.ReadLong(zelda3::kRoomHeaderPointer));
+  const uint32_t header_pointer_pc = SnesToPc(header_pointer_snes);
+  const uint64_t table_offset = static_cast<uint64_t>(header_pointer_pc) +
+                                static_cast<uint64_t>(room_id) * 2u;
+  if (table_offset + 2u > rom.size()) {
+    return absl::OutOfRangeError(
+        "Selected room header pointer slot is outside the ROM");
   }
-  return absl::OkStatus();
+
+  uint16_t header_offset = 0;
+  ASSIGN_OR_RETURN(header_offset, rom.ReadWord(static_cast<int>(table_offset)));
+  uint8_t header_bank = 0;
+  ASSIGN_OR_RETURN(header_bank, rom.ReadByte(zelda3::kRoomHeaderPointerBank));
+  const uint32_t header_pc =
+      SnesToPc((static_cast<uint32_t>(header_bank) << 16) | header_offset);
+  if (static_cast<uint64_t>(header_pc) + 14u > rom.size()) {
+    return absl::OutOfRangeError("Selected room header is outside the ROM");
+  }
+
+  const uint64_t message_pc =
+      static_cast<uint64_t>(zelda3::kMessagesIdDungeon) +
+      static_cast<uint64_t>(room_id) * 2u;
+  if (message_pc + 2u > rom.size()) {
+    return absl::OutOfRangeError("Selected room message ID is outside the ROM");
+  }
+
+  return std::vector<std::pair<uint32_t, uint32_t>>{
+      {header_pc, header_pc + 14u},
+      {static_cast<uint32_t>(message_pc),
+       static_cast<uint32_t>(message_pc + 2u)}};
+}
+
+absl::Status ValidateRoomHeaderManifestConflicts(
+    const Rom& rom, int room_id, const core::HackManifest& manifest) {
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  ASSIGN_OR_RETURN(ranges, CollectRoomHeaderWriteRanges(rom, room_id));
+  return ValidateManifestWriteRanges(manifest, ranges);
 }
 
 // Merge stop tiles from |existing| into |generated| without overwriting
@@ -769,6 +830,10 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
   const bool is_layout = prop == "layout" || prop == "layout_id";
   const bool is_floor = prop == "floor1" || prop == "floor2";
   const bool is_object_stream_header = is_layout || is_floor;
+  const bool is_room_header = prop == "palette" || prop == "blockset" ||
+                              prop == "spriteset" || prop == "effect" ||
+                              prop == "tag1" || prop == "tag2" ||
+                              prop == "holewarp";
   const int property_max = is_layout ? 0x07 : (is_floor ? 0x0F : 0xFF);
   if (is_object_stream_header &&
       (parsed_value < 0 || parsed_value > property_max)) {
@@ -782,8 +847,9 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
   }
 
   std::optional<RoomPropertyManifestContext> manifest_context;
-  if (is_object_stream_header) {
-    auto context_or = LoadRoomPropertyManifestContext(parser);
+  if (is_object_stream_header || is_room_header) {
+    auto context_or =
+        LoadRoomPropertyManifestContext(parser, is_object_stream_header);
     if (!context_or.ok()) {
       formatter.AddField("status", "error");
       formatter.AddField("error", std::string(context_or.status().message()));
@@ -793,8 +859,11 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
     manifest_context = std::move(context_or).value();
     if (manifest_context.has_value()) {
       const absl::Status manifest_status =
-          ValidateRoomPropertyManifestConflicts(*rom, room_id,
-                                                *manifest_context);
+          is_object_stream_header
+              ? ValidateObjectStreamHeaderManifestConflicts(*rom, room_id,
+                                                            *manifest_context)
+              : ValidateRoomHeaderManifestConflicts(*rom, room_id,
+                                                    manifest_context->manifest);
       if (!manifest_status.ok()) {
         formatter.AddField("status", "error");
         formatter.AddField("error", std::string(manifest_status.message()));
@@ -802,7 +871,9 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
         return manifest_status;
       }
       formatter.AddField("manifest", *parser.GetString("manifest"));
-      formatter.AddField("allocator_capability", "copy_on_write");
+      if (is_object_stream_header) {
+        formatter.AddField("allocator_capability", "copy_on_write");
+      }
     }
   }
 
@@ -838,11 +909,13 @@ absl::Status DungeonSetRoomPropertyCommandHandler::Execute(
   }
 
   const absl::Status write_status =
-      is_object_stream_header ? room.SaveObjectStreamHeader(
-                                    manifest_context.has_value()
-                                        ? &manifest_context->allocator_layout
-                                        : nullptr)
-                              : room.SaveRoomHeader();
+      is_object_stream_header
+          ? room.SaveObjectStreamHeader(
+                manifest_context.has_value() &&
+                        manifest_context->allocator_layout.has_value()
+                    ? &*manifest_context->allocator_layout
+                    : nullptr)
+          : room.SaveRoomHeader();
   if (!write_status.ok()) {
     formatter.AddField("status", "error");
     formatter.AddField("write_error", std::string(write_status.message()));

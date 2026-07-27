@@ -350,8 +350,10 @@ absl::Status ObjectDrawer::DrawObject(
 
   // Special routines may need a second buffer for mixed-layer draws or fixed
   // BG1/BG2 routing regardless of the parsed object-layer flag.
-  if (!is_both_bg && routine_id == DrawRoutineIds::kAgahnimsAltar) {
-    // USDASM writes the altar directly to the upper tilemap at $7E2000.
+  if (!is_both_bg && (routine_id == DrawRoutineIds::kAgahnimsAltar ||
+                      routine_id == DrawRoutineIds::kFortuneTellerRoom)) {
+    // USDASM writes these fixed room facades directly to the upper tilemap at
+    // $7E2000.
     dispatch_bg = &bg1;
     registry_primary_layer_ = RoomObject::LayerType::BG1;
   } else if (!is_both_bg && routine_id == DrawRoutineIds::kAutoStairs) {
@@ -1458,6 +1460,14 @@ void ObjectDrawer::InitializeDrawRoutines() {
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
         self->DrawUsingRegistryRoutine(DrawRoutineIds::kAgahnimsAltar, obj, bg,
                                        tiles, state);
+      };
+
+  ensure_index(DrawRoutineIds::kFortuneTellerRoom);
+  draw_routines_[DrawRoutineIds::kFortuneTellerRoom] =
+      [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
+         std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        self->DrawUsingRegistryRoutine(DrawRoutineIds::kFortuneTellerRoom, obj,
+                                       bg, tiles, state);
       };
 
   // Routine 130 - Custom Object (Oracle of Secrets 0x31, 0x32)
@@ -3259,6 +3269,11 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
       break;
 
     case DrawRoutineIds::kAgahnimsAltar:
+      width = 112;
+      height = 112;
+      break;
+
+    case DrawRoutineIds::kFortuneTellerRoom:
       width = 112;
       height = 112;
       break;
