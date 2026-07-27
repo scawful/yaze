@@ -45,6 +45,11 @@ inline ObjectLayerSemantics GetObjectLayerSemantics(const RoomObject& object) {
     return out;
   }
 
+  if (out.routine_id == DrawRoutineIds::kAgahnimsAltar) {
+    out.effective_bg_layer = EffectiveBgLayer::kBg1;
+    return out;
+  }
+
   out.effective_bg_layer = (object.layer_ == RoomObject::LayerType::BG2)
                                ? EffectiveBgLayer::kBg2
                                : EffectiveBgLayer::kBg1;

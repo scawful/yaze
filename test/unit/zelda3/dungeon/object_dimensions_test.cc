@@ -73,8 +73,8 @@ TEST(DrawRoutineRegistryTest, Subtype3SpecialMappingsHaveRegisteredRoutines) {
 
   for (int16_t object_id :
        {0x0122, 0x012C, 0x013E, 0x0F90, 0x0F92, 0x0FB1, 0x0FD5,
-        0x0FBA, 0x0FBC, 0x0FAC, 0x0FE0, 0x0FE6, 0x0FE9, 0x0FEB,
-        0x0FF0, 0x0FF1, 0x0FF2, 0x0FF8, 0x0047, 0x0048}) {
+        0x0FBA, 0x0FBC, 0x0FAC, 0x0FAD, 0x0FE0, 0x0FE6, 0x0FE9,
+        0x0FEB, 0x0FF0, 0x0FF1, 0x0FF2, 0x0FF8, 0x0047, 0x0048}) {
     int routine_id = reg.GetRoutineIdForObject(object_id);
     ASSERT_GE(routine_id, 0) << "Object 0x" << std::hex << object_id;
     EXPECT_NE(reg.GetRoutineInfo(routine_id), nullptr)
@@ -423,6 +423,41 @@ TEST_F(ObjectDimensionTableTest, BigGrayRockUsesFixedFourByFourBounds) {
         ObjectDrawer(rom_.get(), 0).CalculateObjectDimensions(object);
     EXPECT_EQ(legacy_width, 32);
     EXPECT_EQ(legacy_height, 32);
+  }
+}
+
+TEST_F(ObjectDimensionTableTest,
+       AgahnimsAltarUsesFixedFourteenByFourteenBounds) {
+  auto& table = ObjectDimensionTable::Get();
+  ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());
+  EXPECT_EQ(table.GetBaseDimensions(0xFAD), std::make_pair(14, 14));
+
+  for (uint8_t size : {uint8_t{0x00}, uint8_t{0x03}, uint8_t{0x0F},
+                       uint8_t{0xF0}, uint8_t{0xFF}}) {
+    SCOPED_TRACE(::testing::Message() << "size=" << static_cast<int>(size));
+
+    const auto [width, height] = table.GetDimensions(0xFAD, size);
+    EXPECT_EQ(width, 14);
+    EXPECT_EQ(height, 14);
+
+    const auto selection = table.GetSelectionBounds(0xFAD, size);
+    EXPECT_EQ(selection.offset_x, 0);
+    EXPECT_EQ(selection.offset_y, 0);
+    EXPECT_EQ(selection.width, 14);
+    EXPECT_EQ(selection.height, 14);
+
+    const RoomObject object(0xFAD, 0, 0, size, 0);
+    const auto geometry = ObjectGeometry::Get().MeasureByObjectId(object);
+    ASSERT_TRUE(geometry.ok());
+    EXPECT_EQ(geometry->min_x_tiles, 0);
+    EXPECT_EQ(geometry->min_y_tiles, 0);
+    EXPECT_EQ(geometry->width_tiles, 14);
+    EXPECT_EQ(geometry->height_tiles, 14);
+
+    const auto [legacy_width, legacy_height] =
+        ObjectDrawer(rom_.get(), 0).CalculateObjectDimensions(object);
+    EXPECT_EQ(legacy_width, 112);
+    EXPECT_EQ(legacy_height, 112);
   }
 }
 

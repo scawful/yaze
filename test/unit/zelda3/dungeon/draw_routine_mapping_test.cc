@@ -695,7 +695,7 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
   EXPECT_EQ(drawer.GetDrawRoutineId(0xF96), DrawRoutineIds::kSingle2x2);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFAB), DrawRoutineIds::kSingle2x2);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFAC), DrawRoutineIds::kBigGrayRock);
-  EXPECT_EQ(drawer.GetDrawRoutineId(0xFAD), 16);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFAD), DrawRoutineIds::kAgahnimsAltar);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFB1), DrawRoutineIds::kSingle4x3);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFD5), DrawRoutineIds::kUtility3x5);
   for (int object_id : {0xFD6, 0xFD7, 0xFD8, 0xFD9}) {
@@ -773,6 +773,17 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
   EXPECT_FALSE(big_gray_rock->draws_to_both_bgs);
   EXPECT_EQ(big_gray_rock->category, DrawRoutineInfo::Category::Special);
 
+  const DrawRoutineInfo* agahnims_altar =
+      DrawRoutineRegistry::Get().GetRoutineInfo(DrawRoutineIds::kAgahnimsAltar);
+  ASSERT_NE(agahnims_altar, nullptr);
+  EXPECT_EQ(agahnims_altar->name, "AgahnimsAltar");
+  EXPECT_TRUE(static_cast<bool>(agahnims_altar->function));
+  EXPECT_EQ(agahnims_altar->base_width, 14);
+  EXPECT_EQ(agahnims_altar->base_height, 14);
+  EXPECT_EQ(agahnims_altar->min_tiles, 84);
+  EXPECT_FALSE(agahnims_altar->draws_to_both_bgs);
+  EXPECT_EQ(agahnims_altar->category, DrawRoutineInfo::Category::Special);
+
   const auto& routines = DrawRoutineRegistry::Get().GetAllRoutines();
   EXPECT_EQ(std::count_if(routines.begin(), routines.end(),
                           [](const DrawRoutineInfo& info) {
@@ -787,6 +798,11 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
   EXPECT_EQ(std::count_if(routines.begin(), routines.end(),
                           [](const DrawRoutineInfo& info) {
                             return info.id == DrawRoutineIds::kBigGrayRock;
+                          }),
+            1);
+  EXPECT_EQ(std::count_if(routines.begin(), routines.end(),
+                          [](const DrawRoutineInfo& info) {
+                            return info.id == DrawRoutineIds::kAgahnimsAltar;
                           }),
             1);
 }
