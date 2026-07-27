@@ -85,6 +85,7 @@ constexpr int kDownwardsEdge1x1_1to16plus7 = 122;
 // Late special routines.
 constexpr int kFloorLight = 123;
 constexpr int kBigWallDecor = 125;
+constexpr int kTableBowl = 126;
 
 // Corner routines (19, 35-37, 75-78)
 constexpr int kCorner4x4 = 19;

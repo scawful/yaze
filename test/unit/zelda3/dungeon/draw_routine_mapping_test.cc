@@ -695,6 +695,11 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
   EXPECT_EQ(drawer.GetDrawRoutineId(0xF96), DrawRoutineIds::kSingle2x2);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFB1), DrawRoutineIds::kSingle4x3);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFD5), DrawRoutineIds::kUtility3x5);
+  for (int object_id : {0xFD6, 0xFD7, 0xFD8, 0xFD9}) {
+    EXPECT_EQ(drawer.GetDrawRoutineId(object_id), DrawRoutineIds::kSingle2x2);
+  }
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFDA), DrawRoutineIds::kTableBowl);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFDB), DrawRoutineIds::kUtility3x5);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFBA),
             DrawRoutineIds::kVerticalTurtleRockPipe);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFBC),
@@ -730,6 +735,24 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
   EXPECT_EQ(big_wall_decor->base_height, 3);
   EXPECT_EQ(big_wall_decor->min_tiles, 24);
   EXPECT_FALSE(big_wall_decor->draws_to_both_bgs);
+
+  const DrawRoutineInfo* table_bowl =
+      DrawRoutineRegistry::Get().GetRoutineInfo(DrawRoutineIds::kTableBowl);
+  ASSERT_NE(table_bowl, nullptr);
+  EXPECT_EQ(table_bowl->name, "TableBowl");
+  EXPECT_TRUE(static_cast<bool>(table_bowl->function));
+  EXPECT_EQ(table_bowl->base_width, 4);
+  EXPECT_EQ(table_bowl->base_height, 2);
+  EXPECT_EQ(table_bowl->min_tiles, 8);
+  EXPECT_FALSE(table_bowl->draws_to_both_bgs);
+  EXPECT_EQ(table_bowl->category, DrawRoutineInfo::Category::Special);
+
+  const auto& routines = DrawRoutineRegistry::Get().GetAllRoutines();
+  EXPECT_EQ(std::count_if(routines.begin(), routines.end(),
+                          [](const DrawRoutineInfo& info) {
+                            return info.id == DrawRoutineIds::kTableBowl;
+                          }),
+            1);
 }
 
 }  // namespace zelda3
