@@ -455,6 +455,24 @@ void DrawSmithyFurnace(const DrawContext& ctx) {
   DrawRowMajor(ctx.target_bg, ctx.object.x_, ctx.object.y_, 6, 8, ctx.tiles);
 }
 
+void DrawBigGrayRock(const DrawContext& ctx) {
+  // ASM: RoomDraw_BigGrayRock ($01B310) draws four 2x2 quadrants through
+  // RoomDraw_Rightwards2x2. Visually that is two 4x2 column-major bands:
+  //   0  2  4  6
+  //   1  3  5  7
+  //   8 10 12 14
+  //   9 11 13 15
+  // The liftable-rock bookkeeping in DrawBigGraySegment is runtime-only and
+  // intentionally not modeled by this visual draw routine.
+  if (ctx.tiles.size() < 16)
+    return;
+
+  DrawColumnMajor(ctx.target_bg, ctx.object.x_, ctx.object.y_, 4, 2, ctx.tiles,
+                  /*start_index=*/0);
+  DrawColumnMajor(ctx.target_bg, ctx.object.x_, ctx.object.y_ + 2, 4, 2,
+                  ctx.tiles, /*start_index=*/8);
+}
+
 void DrawUtility3x5(const DrawContext& ctx) {
   // ASM: RoomDraw_Utility3x5 ($01A194) uses:
   // - top row: tiles 0..2
@@ -1964,6 +1982,17 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .base_width = 6,
       .base_height = 8,
       .min_tiles = 48,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kBigGrayRock,  // 128
+      .name = "BigGrayRock",
+      .function = DrawBigGrayRock,
+      .draws_to_both_bgs = false,
+      .base_width = 4,
+      .base_height = 4,
+      .min_tiles = 16,
       .category = DrawRoutineInfo::Category::Special,
   });
 
