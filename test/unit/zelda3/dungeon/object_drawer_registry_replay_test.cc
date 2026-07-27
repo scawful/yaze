@@ -2673,6 +2673,116 @@ TEST(ObjectDrawerRegistryReplayTest,
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
+     FortuneTellerRoomDrawsSparseFourteenByFourteenOnFixedBg1) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 10;
+  constexpr int kY = 12;
+  constexpr uint16_t kFirstTile = 0x0100;
+
+  auto tiles = MakeSequentialTiles(/*count=*/26, /*start_tile_id=*/kFirstTile);
+  for (size_t i = 0; i < tiles.size(); ++i) {
+    tiles[i].horizontal_mirror_ = (i % 3) == 0;
+  }
+
+  for (uint8_t size : {uint8_t{0}, uint8_t{3}}) {
+    for (const auto layer :
+         {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+      SCOPED_TRACE(::testing::Message()
+                   << "size=" << static_cast<int>(size)
+                   << " layer=" << static_cast<int>(layer));
+
+      const auto trace =
+          ReplayObjectTrace(/*object_id=*/0x0FD4, kX, kY, size, layer, tiles);
+      const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+      const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+      ASSERT_EQ(bg1.size(), 116u);
+      EXPECT_TRUE(bg2.empty());
+      ExpectTraceBounds(bg1, kX, kY, kX + 13, kY + 13);
+
+      size_t write_index = 0;
+      auto expect_write = [&](int dx, int dy, size_t source_index,
+                              bool force_horizontal_mirror = false,
+                              bool toggle_horizontal_mirror = false) {
+        ASSERT_LT(write_index, bg1.size());
+        const auto& actual = bg1[write_index++];
+        EXPECT_EQ(actual.x_tile, kX + dx);
+        EXPECT_EQ(actual.y_tile, kY + dy);
+        EXPECT_EQ(actual.tile_id,
+                  static_cast<uint16_t>(kFirstTile + source_index));
+
+        bool expected_h_flip = tiles[source_index].horizontal_mirror_;
+        if (force_horizontal_mirror) {
+          expected_h_flip = true;
+        } else if (toggle_horizontal_mirror) {
+          expected_h_flip = !expected_h_flip;
+        }
+        EXPECT_EQ((actual.flags & 0x1) != 0, expected_h_flip)
+            << "source_index=" << source_index << " dx=" << dx << " dy=" << dy;
+      };
+
+      for (int section = 0; section < 6; ++section) {
+        const int x = section * 2;
+        expect_write(x + 1, 0, 0);
+        expect_write(x + 2, 0, 0);
+        expect_write(x + 1, 1, 0);
+        expect_write(x + 2, 1, 0);
+        expect_write(x + 1, 2, 1);
+        expect_write(x + 2, 2, 1, /*force_horizontal_mirror=*/true);
+      }
+
+      for (int row = 0; row < 3; ++row) {
+        const size_t wall_tile = static_cast<size_t>(2 + row);
+        const size_t center_tile = static_cast<size_t>(5 + row);
+        const int y = 3 + row;
+        for (int x : {0, 2, 10, 12}) {
+          expect_write(x, y, wall_tile);
+        }
+        for (int x : {1, 3, 11, 13}) {
+          expect_write(x, y, wall_tile,
+                       /*force_horizontal_mirror=*/true);
+        }
+        for (int x : {4, 6, 8}) {
+          expect_write(x, y, center_tile);
+        }
+        for (int x : {5, 7, 9}) {
+          expect_write(x, y, center_tile,
+                       /*force_horizontal_mirror=*/true);
+        }
+      }
+
+      expect_write(0, 0, 8);
+      expect_write(0, 1, 8);
+      expect_write(13, 0, 8, /*force_horizontal_mirror=*/true);
+      expect_write(13, 1, 8, /*force_horizontal_mirror=*/true);
+      expect_write(0, 2, 9);
+      expect_write(13, 2, 9, /*force_horizontal_mirror=*/true);
+
+      for (int row = 0; row < 4; ++row) {
+        const int y = 10 + row;
+        expect_write(3, y, static_cast<size_t>(10 + row));
+        expect_write(10, y, static_cast<size_t>(10 + row),
+                     /*force_horizontal_mirror=*/false,
+                     /*toggle_horizontal_mirror=*/true);
+        expect_write(4, y, static_cast<size_t>(14 + row));
+        expect_write(9, y, static_cast<size_t>(14 + row),
+                     /*force_horizontal_mirror=*/false,
+                     /*toggle_horizontal_mirror=*/true);
+        expect_write(5, y, static_cast<size_t>(18 + row));
+        expect_write(8, y, static_cast<size_t>(18 + row),
+                     /*force_horizontal_mirror=*/false,
+                     /*toggle_horizontal_mirror=*/true);
+        expect_write(6, y, static_cast<size_t>(22 + row));
+        expect_write(7, y, static_cast<size_t>(22 + row),
+                     /*force_horizontal_mirror=*/false,
+                     /*toggle_horizontal_mirror=*/true);
+      }
+      EXPECT_EQ(write_index, bg1.size());
+    }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
      BigWallDecorAliasesDrawFixedEightByThreeOnSelectedLayer) {
   ScopedCustomObjectsFlag disable_custom(false);
 
