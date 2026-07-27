@@ -197,8 +197,12 @@ old/new symbolic names but never selects a door by display-name text.
 `floor1`/`floor2` values `0`-`15`. These properties are persisted in the
 two-byte object-stream header with per-field read/modify/write; unrelated bits
 and the object payload remain unchanged. A shared stream requires the same
-manifest-backed `copy_on_write` capability described above. Successful
-non-mock writes require a completed destination backup before replacement.
+manifest-backed `copy_on_write` capability described above. The manifest is
+optional for compatibility, but when supplied it is enforced for every
+supported property before mutation. Palette, blockset, spriteset, effect, tag,
+and hole-warp changes validate the complete serializer footprint: the selected
+room's 14-byte header and its two-byte message ID. Successful non-mock writes
+require a completed destination backup before replacement.
 
 The collision and water-fill JSON import commands validate without mutation
 when `--dry-run` is present. Without it, they immediately save the active ROM

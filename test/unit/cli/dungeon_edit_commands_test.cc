@@ -381,6 +381,38 @@ void WriteObjectCowManifest(const std::filesystem::path& path,
   ASSERT_TRUE(output.good());
 }
 
+void WriteOwnershipOnlyManifest(const std::filesystem::path& path,
+                                int protected_pc = -1, int protected_size = 1) {
+  std::string protected_section;
+  if (protected_pc >= 0) {
+    protected_section = absl::StrFormat(
+        R"json(,
+  "protected_regions": {
+    "total_hooks": 1,
+    "regions": [
+      {
+        "start": "0x%06X",
+        "end": "0x%06X",
+        "size": %d,
+        "hook_count": 1,
+        "module": "RoomPropertyGuard"
+      }
+    ]
+  })json",
+        PcToSnes(protected_pc), PcToSnes(protected_pc + protected_size),
+        protected_size);
+  }
+  const std::string json = absl::StrFormat(
+      R"json({
+  "manifest_version": 3%s
+})json",
+      protected_section);
+  std::ofstream output(path, std::ios::trunc);
+  ASSERT_TRUE(output.is_open());
+  output << json;
+  ASSERT_TRUE(output.good());
+}
+
 void SetRoomSpritePointer(Rom* rom, int table_pc, int room_id, int pc_addr) {
   const uint32_t snes = PcToSnes(pc_addr);
   const int ptr_off = table_pc + room_id * 2;
@@ -746,6 +778,77 @@ TEST(DungeonEditCommandsTest, SetRoomPropertyMockRomCommitsSerializedHeader) {
   EXPECT_EQ(rom.data()[kRoomHeaderDataPc + 1], 0x02);
   EXPECT_TRUE(rom.dirty());
   EXPECT_THAT(output, HasSubstr("\"save_status\": \"mock-rom-skipped\""));
+}
+
+TEST(DungeonEditCommandsTest,
+     SetRoomPropertyHeaderManifestConflictsCreateNoSaveArtifacts) {
+  struct Case {
+    const char* name;
+    const char* property;
+    const char* value;
+    int protected_pc;
+  };
+  const std::array<Case, 3> cases = {{
+      {"palette byte", "palette", "0x02", kRoomHeaderDataPc + 1},
+      {"tag2 byte", "tag2", "0x07", kRoomHeaderDataPc + 6},
+      {"message ID footprint", "palette", "0x02", zelda3::kMessagesIdDungeon},
+  }};
+
+  for (const auto& test_case : cases) {
+    SCOPED_TRACE(test_case.name);
+    Rom rom;
+    InitializeRoomHeaderRom(&rom);
+    ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+    WriteRomFile(rom, cleanup.rom_path);
+    rom.set_filename(cleanup.rom_path.string());
+    rom.set_dirty(false);
+    ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                       ".manifest.json");
+    WriteOwnershipOnlyManifest(manifest_cleanup.file_path,
+                               test_case.protected_pc);
+    const std::vector<uint8_t> before = rom.vector();
+    const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+
+    handlers::DungeonSetRoomPropertyCommandHandler handler;
+    std::string output;
+    const absl::Status status = handler.Run(
+        {"--room=0x00", "--property=" + std::string(test_case.property),
+         "--value=" + std::string(test_case.value),
+         "--manifest=" + manifest_cleanup.file_path.string(), "--format=json"},
+        &rom, &output);
+
+    EXPECT_TRUE(absl::IsPermissionDenied(status)) << status;
+    EXPECT_THAT(std::string(status.message()),
+                HasSubstr("Write conflict with Hack Manifest"));
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_FALSE(rom.dirty());
+    EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+    EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+    EXPECT_FALSE(std::filesystem::exists(cleanup.rom_path.string() + ".tmp"));
+  }
+}
+
+TEST(DungeonEditCommandsTest,
+     SetRoomPropertyHeaderAcceptsOwnershipOnlyManifest) {
+  Rom rom;
+  InitializeRoomHeaderRom(&rom);
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WriteOwnershipOnlyManifest(manifest_cleanup.file_path, kObjectDataPc);
+
+  handlers::DungeonSetRoomPropertyCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--mock-rom", "--room=0x00", "--property=palette", "--value=0x02",
+       "--manifest=" + manifest_cleanup.file_path.string(), "--format=json"},
+      &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(rom.data()[kRoomHeaderDataPc + 1], 0x02);
+  const auto report = nlohmann::json::parse(output);
+  const auto& result = report.at("Dungeon Room Property Set");
+  EXPECT_EQ(result.at("manifest"), manifest_cleanup.file_path.string());
+  EXPECT_FALSE(result.contains("allocator_capability"));
 }
 
 TEST(DungeonEditCommandsTest,
