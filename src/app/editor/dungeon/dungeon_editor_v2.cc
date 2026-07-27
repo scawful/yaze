@@ -8,6 +8,7 @@
 
 // C++ standard library headers
 #include <algorithm>
+#include <array>
 #include <iterator>
 #include <memory>
 #include <string>
@@ -949,16 +950,40 @@ void DungeonEditorV2::HandleDungeonPaletteChanged(
     gui::DungeonPaletteChange change) {
   InvalidateDungeonPaletteUsers(change);
 
-  auto apply_palette = [this](DungeonCanvasViewer* viewer) {
+  std::array<bool, zelda3::kNumberOfRooms> rendered_rooms{};
+  auto render_once = [this, &rendered_rooms](int room_id) {
+    if (room_id < 0 || room_id >= static_cast<int>(rooms_.size()) ||
+        room_id >= static_cast<int>(rendered_rooms.size()) ||
+        rendered_rooms[room_id]) {
+      return;
+    }
+    rooms_[room_id].RenderRoomGraphics();
+    rendered_rooms[room_id] = true;
+  };
+
+  for (int i = 0; i < active_rooms_.Size; i++) {
+    render_once(active_rooms_[i]);
+  }
+
+  render_once(current_room_id_);
+
+  auto apply_palette = [](DungeonCanvasViewer* viewer, uint64_t palette_id,
+                          const gfx::PaletteGroup& palette_group,
+                          bool force_shared_palette_refresh) {
     if (!viewer) {
       return;
     }
-    viewer->SetCurrentPaletteId(current_palette_id_);
-    viewer->SetCurrentPaletteGroup(current_palette_group_);
+    viewer->SetCurrentPaletteId(palette_id);
+    viewer->SetCurrentPaletteGroup(
+        palette_group,
+        /*force_refresh=*/force_shared_palette_refresh &&
+            viewer->object_interaction().IsObjectLoaded());
   };
 
   if (current_room_id_ >= 0 &&
       current_room_id_ < static_cast<int>(rooms_.size()) && game_data()) {
+    const bool force_shared_palette_refresh =
+        change.source == gui::DungeonRenderPaletteSource::kHud;
     auto& dungeon_main_pal_group = game_data()->palette_groups.dungeon_main;
     if (current_palette_id_ <
         static_cast<uint64_t>(dungeon_main_pal_group.size())) {
@@ -968,13 +993,39 @@ void DungeonEditorV2::HandleDungeonPaletteChanged(
               gfx::CreatePaletteGroupFromLargePalette(current_palette_);
           pal_group.ok()) {
         current_palette_group_ = pal_group.value();
-        apply_palette(workbench_viewer_.get());
-        apply_palette(workbench_compare_viewer_.get());
-        if (!IsWorkbenchWorkflowEnabled()) {
-          if (auto* existing_viewer = room_viewers_.Get(current_room_id_)) {
-            apply_palette(existing_viewer->get());
-          }
-        }
+        apply_palette(workbench_viewer_.get(), current_palette_id_,
+                      current_palette_group_, force_shared_palette_refresh);
+        apply_palette(workbench_compare_viewer_.get(), current_palette_id_,
+                      current_palette_group_, force_shared_palette_refresh);
+        room_viewers_.ForEach(
+            [this, change, &apply_palette, &dungeon_main_pal_group,
+             &render_once, force_shared_palette_refresh](
+                int room_id, std::unique_ptr<DungeonCanvasViewer>& viewer) {
+              if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
+                return;
+              }
+              const int palette_id = rooms_[room_id].ResolveDungeonPaletteId();
+              if (palette_id < 0 ||
+                  palette_id >=
+                      static_cast<int>(dungeon_main_pal_group.size())) {
+                return;
+              }
+              if (change.source ==
+                      gui::DungeonRenderPaletteSource::kDungeonMain &&
+                  change.palette_id >= 0 && palette_id != change.palette_id) {
+                return;
+              }
+              auto room_palette_group = gfx::CreatePaletteGroupFromLargePalette(
+                  dungeon_main_pal_group.palette_ref(palette_id));
+              if (room_palette_group.ok()) {
+                if (viewer && viewer->object_interaction().IsObjectLoaded()) {
+                  render_once(room_id);
+                }
+                apply_palette(viewer.get(), palette_id,
+                              room_palette_group.value(),
+                              force_shared_palette_refresh);
+              }
+            });
         if (object_selector_panel_) {
           object_selector_panel_->SetCurrentPaletteGroup(
               current_palette_group_);
@@ -988,20 +1039,6 @@ void DungeonEditorV2::HandleDungeonPaletteChanged(
         }
       }
     }
-  }
-
-  bool rendered_current_room = false;
-  for (int i = 0; i < active_rooms_.Size; i++) {
-    int room_id = active_rooms_[i];
-    if (room_id >= 0 && room_id < static_cast<int>(rooms_.size())) {
-      rooms_[room_id].RenderRoomGraphics();
-      rendered_current_room |= room_id == current_room_id_;
-    }
-  }
-
-  if (!rendered_current_room && current_room_id_ >= 0 &&
-      current_room_id_ < static_cast<int>(rooms_.size())) {
-    rooms_[current_room_id_].RenderRoomGraphics();
   }
 }
 
