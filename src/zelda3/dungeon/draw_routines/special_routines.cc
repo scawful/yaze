@@ -498,6 +498,88 @@ void DrawAgahnimsAltar(const DrawContext& ctx) {
   }
 }
 
+void DrawFortuneTellerRoom(const DrawContext& ctx) {
+  // ASM: RoomDraw_FortuneTellerRoom ($01A095) reads all 26 words from
+  // obj202E and writes 116 tiles into a sparse, fixed 14x14 BG1 footprint.
+  if (ctx.tiles.size() < 26)
+    return;
+
+  auto write = [&](int dx, int dy, size_t tile_index,
+                   bool force_horizontal_mirror = false,
+                   bool toggle_horizontal_mirror = false) {
+    gfx::TileInfo tile = ctx.tiles[tile_index];
+    if (force_horizontal_mirror) {
+      tile.horizontal_mirror_ = true;
+    } else if (toggle_horizontal_mirror) {
+      tile.horizontal_mirror_ = !tile.horizontal_mirror_;
+    }
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + dx,
+                                 ctx.object.y_ + dy, tile);
+  };
+
+  // Six repeated two-column roof sections across rows 0..2.
+  for (int section = 0; section < 6; ++section) {
+    const int x = section * 2;
+    write(x + 1, 0, 0);
+    write(x + 2, 0, 0);
+    write(x + 1, 1, 0);
+    write(x + 2, 1, 0);
+    write(x + 1, 2, 1);
+    write(x + 2, 2, 1, /*force_horizontal_mirror=*/true);
+  }
+
+  // Three complete mirrored rows. The left/right wall tile advances through
+  // words 2..4 while the center tile advances through words 5..7.
+  for (int row = 0; row < 3; ++row) {
+    const size_t wall_tile = static_cast<size_t>(2 + row);
+    const size_t center_tile = static_cast<size_t>(5 + row);
+    const int y = 3 + row;
+
+    for (int x : {0, 2, 10, 12}) {
+      write(x, y, wall_tile);
+    }
+    for (int x : {1, 3, 11, 13}) {
+      write(x, y, wall_tile, /*force_horizontal_mirror=*/true);
+    }
+    for (int x : {4, 6, 8}) {
+      write(x, y, center_tile);
+    }
+    for (int x : {5, 7, 9}) {
+      write(x, y, center_tile, /*force_horizontal_mirror=*/true);
+    }
+  }
+
+  // Outer caps around the roof.
+  write(0, 0, 8);
+  write(0, 1, 8);
+  write(13, 0, 8, /*force_horizontal_mirror=*/true);
+  write(13, 1, 8, /*force_horizontal_mirror=*/true);
+  write(0, 2, 9);
+  write(13, 2, 9, /*force_horizontal_mirror=*/true);
+
+  // Four sparse rows at the bottom. Each source word is mirrored with EOR
+  // #$4000, so an existing H-flip must be toggled rather than forced on.
+  for (int row = 0; row < 4; ++row) {
+    const int y = 10 + row;
+    write(3, y, static_cast<size_t>(10 + row));
+    write(10, y, static_cast<size_t>(10 + row),
+          /*force_horizontal_mirror=*/false,
+          /*toggle_horizontal_mirror=*/true);
+    write(4, y, static_cast<size_t>(14 + row));
+    write(9, y, static_cast<size_t>(14 + row),
+          /*force_horizontal_mirror=*/false,
+          /*toggle_horizontal_mirror=*/true);
+    write(5, y, static_cast<size_t>(18 + row));
+    write(8, y, static_cast<size_t>(18 + row),
+          /*force_horizontal_mirror=*/false,
+          /*toggle_horizontal_mirror=*/true);
+    write(6, y, static_cast<size_t>(22 + row));
+    write(7, y, static_cast<size_t>(22 + row),
+          /*force_horizontal_mirror=*/false,
+          /*toggle_horizontal_mirror=*/true);
+  }
+}
+
 void DrawUtility3x5(const DrawContext& ctx) {
   // ASM: RoomDraw_Utility3x5 ($01A194) uses:
   // - top row: tiles 0..2
@@ -2029,6 +2111,17 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .base_width = 14,
       .base_height = 14,
       .min_tiles = 84,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kFortuneTellerRoom,  // 131
+      .name = "FortuneTellerRoom",
+      .function = DrawFortuneTellerRoom,
+      .draws_to_both_bgs = false,
+      .base_width = 14,
+      .base_height = 14,
+      .min_tiles = 26,
       .category = DrawRoutineInfo::Category::Special,
   });
 
