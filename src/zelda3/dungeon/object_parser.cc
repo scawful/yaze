@@ -341,6 +341,8 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
   constexpr int kBigChestStateTileCount = 12;
   constexpr int kBigGrayRockTileOffset = 0x0E62;
   constexpr int kBigGrayRockTileCount = 16;
+  constexpr int kAgahnimsAltarTileOffset = 0x1B4A;
+  constexpr int kAgahnimsAltarTileCount = 84;
   constexpr int kSmithyFurnaceTileOffset = 0x1F92;
   constexpr int kSmithyFurnaceTileCount = 48;
 
@@ -442,6 +444,13 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
   if (object_id == 0xFAC) {
     return ReadTileData(kRoomObjectTileAddress + kBigGrayRockTileOffset,
                         kBigGrayRockTileCount);
+  }
+
+  // AgahnimsAltar replaces the table-derived pointer with literal obj1B4A,
+  // then mirrors its six source columns into a fixed 14x14 destination.
+  if (object_id == 0xFAD) {
+    return ReadTileData(kRoomObjectTileAddress + kAgahnimsAltarTileOffset,
+                        kAgahnimsAltarTileCount);
   }
 
   // SmithyFurnace replaces the table-derived data pointer with literal
@@ -660,13 +669,18 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
   if (object_id == 0xFAC) {
     return 16;
   }
+  // AgahnimsAltar (0xFAD = ASM 0x22D) consumes six 14-tile source columns
+  // from obj1B4A before mirroring them into a 14x14 destination.
+  if (object_id == 0xFAD) {
+    return 84;
+  }
   // SmithyFurnace (0xFCC = ASM 0x24C) loads obj1F92 and draws a fixed
   // 6-column x 8-row block through RoomDraw_SomeBigDecors.
   if (object_id == 0xFCC) {
     return 48;
   }
   // 4x4 single-pattern objects
-  if (object_id == 0xFAA || object_id == 0xFAD || object_id == 0xFAE ||
+  if (object_id == 0xFAA || object_id == 0xFAE ||
       (object_id >= 0xFB4 && object_id <= 0xFB9) || object_id == 0xFD4 ||
       object_id == 0xFE2) {
     return 16;

@@ -348,9 +348,13 @@ absl::Status ObjectDrawer::DrawObject(
       use_bg2 ? RoomObject::LayerType::BG1 : RoomObject::LayerType::BG2;
   gfx::BackgroundBuffer* dispatch_bg = &target_bg;
 
-  // Special stair families need either a second buffer for mixed-layer draws
-  // or fixed BG1/BG2 routing regardless of the parsed object-layer flag.
-  if (!is_both_bg && routine_id == DrawRoutineIds::kAutoStairs) {
+  // Special routines may need a second buffer for mixed-layer draws or fixed
+  // BG1/BG2 routing regardless of the parsed object-layer flag.
+  if (!is_both_bg && routine_id == DrawRoutineIds::kAgahnimsAltar) {
+    // USDASM writes the altar directly to the upper tilemap at $7E2000.
+    dispatch_bg = &bg1;
+    registry_primary_layer_ = RoomObject::LayerType::BG1;
+  } else if (!is_both_bg && routine_id == DrawRoutineIds::kAutoStairs) {
     registry_secondary_bg_ = &other_bg;
   } else if (!is_both_bg &&
              (routine_id == DrawRoutineIds::kStraightInterRoomStairs ||
@@ -1445,6 +1449,14 @@ void ObjectDrawer::InitializeDrawRoutines() {
       [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
         self->DrawUsingRegistryRoutine(DrawRoutineIds::kBigGrayRock, obj, bg,
+                                       tiles, state);
+      };
+
+  ensure_index(DrawRoutineIds::kAgahnimsAltar);
+  draw_routines_[DrawRoutineIds::kAgahnimsAltar] =
+      [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
+         std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        self->DrawUsingRegistryRoutine(DrawRoutineIds::kAgahnimsAltar, obj, bg,
                                        tiles, state);
       };
 
@@ -3244,6 +3256,11 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
     case DrawRoutineIds::kBigGrayRock:
       width = 32;
       height = 32;
+      break;
+
+    case DrawRoutineIds::kAgahnimsAltar:
+      width = 112;
+      height = 112;
       break;
 
     default:

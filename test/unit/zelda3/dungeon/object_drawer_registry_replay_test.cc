@@ -2620,6 +2620,59 @@ TEST(ObjectDrawerRegistryReplayTest,
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
+     AgahnimsAltarDrawsMirroredFourteenByFourteenOnFixedBg1) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 10;
+  constexpr int kY = 12;
+  constexpr uint16_t kFirstTile = 0x0100;
+  constexpr std::array<int, 14> kSourceColumns = {
+      0, 1, 1, 2, 3, 4, 5, 5, 4, 3, 2, 1, 1, 0,
+  };
+
+  auto tiles = MakeSequentialTiles(/*count=*/84, /*start_tile_id=*/kFirstTile);
+  for (size_t i = 0; i < tiles.size(); ++i) {
+    tiles[i].horizontal_mirror_ = (i % 3) == 0;
+  }
+
+  for (uint8_t size : {uint8_t{0}, uint8_t{3}}) {
+    for (const auto layer :
+         {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+      SCOPED_TRACE(::testing::Message()
+                   << "size=" << static_cast<int>(size)
+                   << " layer=" << static_cast<int>(layer));
+
+      const auto trace =
+          ReplayObjectTrace(/*object_id=*/0x0FAD, kX, kY, size, layer, tiles);
+      const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+      const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+      ASSERT_EQ(bg1.size(), 196u);
+      EXPECT_TRUE(bg2.empty());
+
+      size_t write_index = 0;
+      for (int y = 0; y < 14; ++y) {
+        for (int x = 0; x < 14; ++x, ++write_index) {
+          const size_t source_index = kSourceColumns[x] * 14 + y;
+          EXPECT_EQ(bg1[write_index].x_tile, kX + x);
+          EXPECT_EQ(bg1[write_index].y_tile, kY + y);
+          EXPECT_EQ(bg1[write_index].tile_id,
+                    static_cast<uint16_t>(kFirstTile + source_index));
+
+          bool expected_h_flip = tiles[source_index].horizontal_mirror_;
+          if (x >= 7 && x <= 12) {
+            expected_h_flip = !expected_h_flip;
+          } else if (x == 13) {
+            expected_h_flip = true;
+          }
+          EXPECT_EQ((bg1[write_index].flags & 0x1) != 0, expected_h_flip)
+              << "x=" << x << " y=" << y;
+        }
+      }
+    }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
      BigWallDecorAliasesDrawFixedEightByThreeOnSelectedLayer) {
   ScopedCustomObjectsFlag disable_custom(false);
 
