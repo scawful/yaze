@@ -69,6 +69,7 @@ scripts/dev/ai-provider-matrix-smoke.sh \
 | Read ROM bytes | `z3ed rom read --address=0x1000 --length=16 --rom=zelda3.sfc` |
 | List dungeon sprites | `z3ed dungeon-list-sprites --room=1 --rom=zelda3.sfc` |
 | Describe dungeon room | `z3ed dungeon-describe-room --room=1 --rom=zelda3.sfc` |
+| List dungeon pot items | `z3ed dungeon-list-pot-items --room=0xA8 --rom=zelda3.sfc` |
 | Show minecart collision (Oracle) | `z3ed dungeon-list-custom-collision --room=0x77 --tiles=0xB7,0xB8,0xB9,0xBA --rom=roms/oos168.sfc` |
 | Minecart audit (Oracle) | `z3ed dungeon-minecart-audit --rooms=0x77,0xA8,0xB8 --only-issues --rom=roms/oos168.sfc` |
 | ASCII room map (Oracle overlay) | `z3ed dungeon-map --room=0x77 --rom=roms/oos168.sfc` |
