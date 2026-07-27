@@ -460,7 +460,7 @@ void DrawRoutineRegistry::BuildObjectMapping() {
   object_to_routine_map_[0xFC9] = 110;
   object_to_routine_map_[0xFCA] = 110;
   object_to_routine_map_[0xFCB] = DrawRoutineIds::kBigWallDecor;
-  object_to_routine_map_[0xFCC] = 16;
+  object_to_routine_map_[0xFCC] = DrawRoutineIds::kSmithyFurnace;
   object_to_routine_map_[0xFCD] = 100;
   object_to_routine_map_[0xFCE] = 30;
   for (int id = 0xFCF; id <= 0xFD3; id++) {

@@ -339,6 +339,8 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
   constexpr int kClosedBigChestTileOffset = 0x14AC;
   constexpr int kOpenBigChestTileOffset = 0x14C4;
   constexpr int kBigChestStateTileCount = 12;
+  constexpr int kSmithyFurnaceTileOffset = 0x1F92;
+  constexpr int kSmithyFurnaceTileCount = 48;
 
   // Type 3 object IDs are 0xF80-0xFFF (128 objects)
   // Table index should be 0-127, calculated by subtracting base offset 0xF80
@@ -430,6 +432,14 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
     closed_tiles->insert(closed_tiles->end(), open_tiles->begin(),
                          open_tiles->end());
     return closed_tiles;
+  }
+
+  // SmithyFurnace replaces the table-derived data pointer with literal
+  // obj1F92 before drawing. Mirror the runtime source rather than allowing a
+  // relocated FCC table entry to change only the editor's rendering.
+  if (object_id == 0xFCC) {
+    return ReadTileData(kRoomObjectTileAddress + kSmithyFurnaceTileOffset,
+                        kSmithyFurnaceTileCount);
   }
 
   return ReadTileData(tile_data_ptr, tile_count);
@@ -635,10 +645,15 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
       (object_id >= 0xFA6 && object_id <= 0xFA9)) {
     return 16;
   }
+  // SmithyFurnace (0xFCC = ASM 0x24C) loads obj1F92 and draws a fixed
+  // 6-column x 8-row block through RoomDraw_SomeBigDecors.
+  if (object_id == 0xFCC) {
+    return 48;
+  }
   // 4x4 single-pattern objects
   if (object_id == 0xFAA || object_id == 0xFAD || object_id == 0xFAE ||
-      (object_id >= 0xFB4 && object_id <= 0xFB9) || object_id == 0xFCC ||
-      object_id == 0xFD4 || object_id == 0xFE2) {
+      (object_id >= 0xFB4 && object_id <= 0xFB9) || object_id == 0xFD4 ||
+      object_id == 0xFE2) {
     return 16;
   }
   // Big wall decor aliases: RoomDraw_BigWallDecor calls

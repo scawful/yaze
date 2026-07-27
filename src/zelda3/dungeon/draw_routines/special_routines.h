@@ -123,6 +123,13 @@ void DrawBigWallDecor(const DrawContext& ctx);
 void DrawTableBowl(const DrawContext& ctx);
 
 /**
+ * @brief Draw the fixed 6x8 smithy furnace in row-major order
+ *
+ * ASM: RoomDraw_SmithyFurnace ($019A66 -> RoomDraw_SomeBigDecors)
+ */
+void DrawSmithyFurnace(const DrawContext& ctx);
+
+/**
  * @brief Draw utility 3x5 pattern (special row pattern)
  *
  * ASM: RoomDraw_Utility3x5 ($01A194)
