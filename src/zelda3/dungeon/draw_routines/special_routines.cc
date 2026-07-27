@@ -473,6 +473,31 @@ void DrawBigGrayRock(const DrawContext& ctx) {
                   ctx.tiles, /*start_index=*/8);
 }
 
+void DrawAgahnimsAltar(const DrawContext& ctx) {
+  // ASM: RoomDraw_AgahnimsAltar ($019E30) reads six 14-tile columns from
+  // obj1B4A, duplicates the second column, then mirrors the source columns
+  // across a 14x14 destination. Columns 7..12 toggle the source H-flip with
+  // EOR #$4000; column 13 forces it with ORA #$4000.
+  if (ctx.tiles.size() < 84)
+    return;
+
+  constexpr std::array<int, 14> kSourceColumns = {
+      0, 1, 1, 2, 3, 4, 5, 5, 4, 3, 2, 1, 1, 0,
+  };
+  for (int y = 0; y < 14; ++y) {
+    for (int x = 0; x < 14; ++x) {
+      gfx::TileInfo tile = ctx.tiles[kSourceColumns[x] * 14 + y];
+      if (x >= 7 && x <= 12) {
+        tile.horizontal_mirror_ = !tile.horizontal_mirror_;
+      } else if (x == 13) {
+        tile.horizontal_mirror_ = true;
+      }
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                   ctx.object.y_ + y, tile);
+    }
+  }
+}
+
 void DrawUtility3x5(const DrawContext& ctx) {
   // ASM: RoomDraw_Utility3x5 ($01A194) uses:
   // - top row: tiles 0..2
@@ -1993,6 +2018,17 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .base_width = 4,
       .base_height = 4,
       .min_tiles = 16,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kAgahnimsAltar,  // 129
+      .name = "AgahnimsAltar",
+      .function = DrawAgahnimsAltar,
+      .draws_to_both_bgs = false,
+      .base_width = 14,
+      .base_height = 14,
+      .min_tiles = 84,
       .category = DrawRoutineInfo::Category::Special,
   });
 

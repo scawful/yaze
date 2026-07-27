@@ -173,7 +173,7 @@ TEST_F(ObjectParserTest, RuntimeLiteralObjectsIgnoreRelocatedTablePointers) {
     }
   };
 
-  // Move all seven pointer-table entries. F98/F99/FB1/FAC/FCC must ignore
+  // Move all eight pointer-table entries. F98/F99/FB1/FAC/FAD/FCC must ignore
   // their moved entries because their routines load literal data blocks;
   // F9A/FB2 are direct-open routines and must continue following their moved
   // pointers.
@@ -184,6 +184,7 @@ TEST_F(ObjectParserTest, RuntimeLiteralObjectsIgnoreRelocatedTablePointers) {
   constexpr uint16_t kMovedOpenBigChestOffset = 0x0300;
   constexpr uint16_t kMovedSmithyFurnaceOffset = 0x0400;
   constexpr uint16_t kMovedBigGrayRockOffset = 0x0480;
+  constexpr uint16_t kMovedAgahnimsAltarOffset = 0x0580;
   write_pointer(0xF98, kMovedBigKeyLockOffset);
   write_pointer(0xF99, kMovedChestOffset);
   write_pointer(0xF9A, kMovedOpenChestOffset);
@@ -191,6 +192,7 @@ TEST_F(ObjectParserTest, RuntimeLiteralObjectsIgnoreRelocatedTablePointers) {
   write_pointer(0xFB2, kMovedOpenBigChestOffset);
   write_pointer(0xFCC, kMovedSmithyFurnaceOffset);
   write_pointer(0xFAC, kMovedBigGrayRockOffset);
+  write_pointer(0xFAD, kMovedAgahnimsAltarOffset);
 
   write_words(0x1494, 4, 0x0040);   // BigKeyLock literal
   write_words(0x149C, 4, 0x0080);   // Chest closed literal
@@ -199,6 +201,7 @@ TEST_F(ObjectParserTest, RuntimeLiteralObjectsIgnoreRelocatedTablePointers) {
   write_words(0x14C4, 12, 0x0300);  // BigChest opened literal
   write_words(0x1F92, 48, 0x0280);  // SmithyFurnace literal
   write_words(0x0E62, 16, 0x0440);  // BigGrayRock literal
+  write_words(0x1B4A, 84, 0x0080);  // AgahnimsAltar literal
 
   write_words(kMovedBigKeyLockOffset, 4, 0x03C0);
   write_words(kMovedChestOffset, 4, 0x03A0);
@@ -207,6 +210,7 @@ TEST_F(ObjectParserTest, RuntimeLiteralObjectsIgnoreRelocatedTablePointers) {
   write_words(kMovedOpenBigChestOffset, 12, 0x0140);
   write_words(kMovedSmithyFurnaceOffset, 48, 0x0340);
   write_words(kMovedBigGrayRockOffset, 16, 0x0640);
+  write_words(kMovedAgahnimsAltarOffset, 84, 0x0200);
 
   auto lock = parser_->ParseObject(0xF98);
   auto chest = parser_->ParseObject(0xF99);
@@ -215,6 +219,7 @@ TEST_F(ObjectParserTest, RuntimeLiteralObjectsIgnoreRelocatedTablePointers) {
   auto open_big_chest = parser_->ParseObject(0xFB2);
   auto smithy_furnace = parser_->ParseObject(0xFCC);
   auto big_gray_rock = parser_->ParseObject(0xFAC);
+  auto agahnims_altar = parser_->ParseObject(0xFAD);
   ASSERT_TRUE(lock.ok());
   ASSERT_TRUE(chest.ok());
   ASSERT_TRUE(open_chest.ok());
@@ -222,6 +227,7 @@ TEST_F(ObjectParserTest, RuntimeLiteralObjectsIgnoreRelocatedTablePointers) {
   ASSERT_TRUE(open_big_chest.ok());
   ASSERT_TRUE(smithy_furnace.ok());
   ASSERT_TRUE(big_gray_rock.ok());
+  ASSERT_TRUE(agahnims_altar.ok());
 
   for (int i = 0; i < 4; ++i) {
     EXPECT_TRUE((*lock)[i] ==
@@ -254,6 +260,13 @@ TEST_F(ObjectParserTest, RuntimeLiteralObjectsIgnoreRelocatedTablePointers) {
                 gfx::WordToTileInfo(static_cast<uint16_t>(0x0440 + i)));
     EXPECT_FALSE((*big_gray_rock)[i] ==
                  gfx::WordToTileInfo(static_cast<uint16_t>(0x0640 + i)));
+  }
+  ASSERT_EQ(agahnims_altar->size(), 84u);
+  for (int i = 0; i < 84; ++i) {
+    EXPECT_TRUE((*agahnims_altar)[i] ==
+                gfx::WordToTileInfo(static_cast<uint16_t>(0x0080 + i)));
+    EXPECT_FALSE((*agahnims_altar)[i] ==
+                 gfx::WordToTileInfo(static_cast<uint16_t>(0x0200 + i)));
   }
 }
 
@@ -595,6 +608,24 @@ TEST_F(ObjectParserTest, BigGrayRockUsesSixteenTilesAndDedicatedRoutine) {
   const auto info = parser_->GetObjectDrawInfo(0xFAC);
   EXPECT_EQ(info.tile_count, 16);
   EXPECT_EQ(info.draw_routine_id, zelda3::DrawRoutineIds::kBigGrayRock);
+}
+
+TEST_F(ObjectParserTest, AgahnimsAltarUsesEightyFourTilesAndDedicatedRoutine) {
+  auto& registry = zelda3::DrawRoutineRegistry::Get();
+  EXPECT_EQ(registry.GetRoutineIdForObject(0xFAD),
+            zelda3::DrawRoutineIds::kAgahnimsAltar);
+
+  const auto subtype = parser_->GetObjectSubtype(0xFAD);
+  ASSERT_TRUE(subtype.ok());
+  EXPECT_EQ(subtype->max_tile_count, 84);
+
+  const auto parsed = parser_->ParseObject(0xFAD);
+  ASSERT_TRUE(parsed.ok());
+  EXPECT_EQ(parsed->size(), 84u);
+
+  const auto info = parser_->GetObjectDrawInfo(0xFAD);
+  EXPECT_EQ(info.tile_count, 84);
+  EXPECT_EQ(info.draw_routine_id, zelda3::DrawRoutineIds::kAgahnimsAltar);
 }
 
 TEST_F(ObjectParserTest, HammerPegUsesUsdasmSingle2x2RoutineAndFourTiles) {

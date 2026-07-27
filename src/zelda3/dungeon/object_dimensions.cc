@@ -929,12 +929,13 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xFB3] = {4, 4, Dir::None, 0, false};
   // Big gray rock is a fixed 4x4 stamp; its encoded size is ignored.
   dimensions_[0xFAC] = {4, 4, Dir::None, 0, false};
+  // Agahnim's altar is a fixed 14x14 mirrored stamp.
+  dimensions_[0xFAD] = {14, 14, Dir::None, 0, false};
   // Repeatable 4x4 patterns
   for (int id = 0xFB4; id <= 0xFB9; id++) {
     dimensions_[id] = {4, 4, Dir::Horizontal, 4, false};
   }
   dimensions_[0xFAA] = {4, 4, Dir::Horizontal, 4, false};
-  dimensions_[0xFAD] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFAE] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFD4] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFE2] = {4, 4, Dir::Horizontal, 4, false};

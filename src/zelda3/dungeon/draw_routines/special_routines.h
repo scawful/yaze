@@ -137,6 +137,13 @@ void DrawSmithyFurnace(const DrawContext& ctx);
 void DrawBigGrayRock(const DrawContext& ctx);
 
 /**
+ * @brief Draw the fixed 14x14 Agahnim altar with mirrored right half
+ *
+ * ASM: RoomDraw_AgahnimsAltar ($019E30)
+ */
+void DrawAgahnimsAltar(const DrawContext& ctx);
+
+/**
  * @brief Draw utility 3x5 pattern (special row pattern)
  *
  * ASM: RoomDraw_Utility3x5 ($01A194)
