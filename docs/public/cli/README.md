@@ -27,6 +27,7 @@ Machine-readable test discovery and execution.
 | `hex-read` | Read raw bytes from ROM |
 | `hex-search` | Search for byte patterns |
 | `palette-get-colors` | Extract palette data |
+| `dungeon-get-palette` | Resolve a room's shared dungeon palette and fanout |
 | `sprite-list` | List sprites |
 | `music-list` | List music tracks |
 | `dialogue-list` | List dialogue entries |
@@ -67,6 +68,8 @@ Prefer `z3ed debug ...` as the front door (Mesen2 is the default backend).
 | `dungeon-list-sprites` | List dungeon sprites |
 | `dungeon-describe-room` | Describe room properties |
 | `dungeon-list-objects` | List room objects |
+| `dungeon-get-palette` | Inspect full palette-set mapping and affected rooms |
+| `dungeon-set-palette-color` | Guarded dry-run/write of one shared color |
 
 ---
 

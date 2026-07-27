@@ -70,6 +70,7 @@ scripts/dev/ai-provider-matrix-smoke.sh \
 | List dungeon sprites | `z3ed dungeon-list-sprites --room=1 --rom=zelda3.sfc` |
 | Describe dungeon room | `z3ed dungeon-describe-room --room=1 --rom=zelda3.sfc` |
 | List dungeon pot items | `z3ed dungeon-list-pot-items --room=0xA8 --rom=zelda3.sfc` |
+| Resolve shared dungeon palette | `z3ed dungeon-get-palette --room=0xA8 --rom=zelda3.sfc` |
 | Show minecart collision (Oracle) | `z3ed dungeon-list-custom-collision --room=0x77 --tiles=0xB7,0xB8,0xB9,0xBA --rom=roms/oos168.sfc` |
 | Minecart audit (Oracle) | `z3ed dungeon-minecart-audit --rooms=0x77,0xA8,0xB8 --only-issues --rom=roms/oos168.sfc` |
 | ASCII room map (Oracle overlay) | `z3ed dungeon-map --room=0x77 --rom=roms/oos168.sfc` |
@@ -84,6 +85,45 @@ z3ed --help
 z3ed help dungeon
 z3ed help dungeon-list-sprites
 ```
+
+### Safe Dungeon Palette Color Edits
+
+Dungeon palettes are global, shared resources: a room header stores a full
+8-bit palette-set ID, which resolves through two tables to one of 20 global
+90-color palettes. These bounded commands currently support the US/OOS table
+layout and fail closed on other regional layouts. Always inspect the mapping
+and fanout first:
+
+```bash
+z3ed dungeon-get-palette \
+  --room=0xA8 --index=7 --rom=Roms/oos168.sfc --format=json
+```
+
+The setter is dry-run-first and requires exact compare-and-swap values plus a
+Hack Manifest. Copy the current values from the getter output each time; the
+example below matches the documented canonical OOS snapshot but is not a
+substitute for a fresh getter. Run it against a disposable ROM copy:
+
+```bash
+# Preview only. Review palette_set_id, resolved_palette_index,
+# old_color, color_pc, and every affected_rooms entry.
+z3ed dungeon-set-palette-color \
+  --room=0xA8 --index=7 \
+  --expect-palette-set=0x07 --expect-palette-index=7 \
+  --expect-color=0x7FFF --color=0x7FFE \
+  --manifest=Roms/hack_manifest.json \
+  --rom=/tmp/oos-work.sfc --format=json
+
+# Repeat the identical command with --write only after reviewing the preview.
+```
+
+Native write mode fences exactly the resolved two-byte color, blocks manifest
+conflicts, rejects a dirty caller or a mismatch with the current file, requires
+a backup, atomically replaces the ROM, compares the whole-ROM diff, and
+externally reopens the file before reporting verified success.
+`palette-set-color --write` is intentionally rejected; its legacy mode is
+preview-only. Browser-terminal palette writes are unavailable because
+Emscripten cannot guarantee durable filesystem synchronization.
 
 ---
 

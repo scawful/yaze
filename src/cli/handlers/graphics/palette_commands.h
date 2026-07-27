@@ -41,30 +41,36 @@ class PaletteGetColorsCommandHandler : public resources::CommandHandler {
 };
 
 /**
- * @brief Command handler for setting a palette color in the ROM.
+ * @brief Legacy read-only preview for changing one palette color.
  *
- * Modifies a specific color entry within a palette group and writes it back
- * to the ROM. The color can be specified as an RGB hex string (e.g., FF0000
- * for red) or as a 15-bit SNES color value.
+ * Computes the requested color replacement without mutating the ROM. The
+ * legacy --write flag is retained only so it can fail closed and direct users
+ * to a domain-specific manifest-safe writer.
  *
  * Usage:
  *   palette-set-color --group <group_name> --palette <palette_index>
  *                     --index <color_index> --color <RRGGBB|snes_hex>
- *                     [--write] [--format <json|text>]
+ *                     [--format <json|text>]
  */
 class PaletteSetColorCommandHandler : public resources::CommandHandler {
  public:
   std::string GetName() const override { return "palette-set-color"; }
   std::string GetDescription() const {
-    return "Set a color in a ROM palette entry";
+    return "Preview a color replacement; persistent writes are disabled";
   }
   std::string GetUsage() const override {
     return "palette-set-color --group <group_name> --palette <palette_index> "
-           "--index <color_index> --color <RRGGBB> [--write] "
+           "--index <color_index> --color <RRGGBB> "
            "[--format <json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    if (parser.HasFlag("write")) {
+      return absl::FailedPreconditionError(
+          "palette-set-color --write is disabled because it cannot guarantee "
+          "durable, manifest-safe persistence; use "
+          "dungeon-set-palette-color for dungeon palette writes");
+    }
     return parser.RequireArgs({"group", "palette", "index", "color"});
   }
 

@@ -23,12 +23,30 @@ This repo is used to edit ROM hacks (including Oracle of Secrets). Treat ROM wri
   has no previous bytes to back up. A completed required backup is retained if
   the later target write fails, so recovery bytes remain available.
 - `dungeon-place-sprite`, `dungeon-remove-sprite`, `dungeon-place-object`,
-  `dungeon-set-door-type`, `dungeon-set-pot-item`,
+  `dungeon-set-palette-color`, `dungeon-set-door-type`,
+  `dungeon-set-pot-item`,
   `dungeon-set-collision-tile`, and `dungeon-set-room-property` wrap their
   serializer or fixed-width write,
   required backup, and disk commit in `ScopedRomTransaction`. Any failure
   before a successful disk commit restores the caller's ROM bytes, filename,
   size, and dirty state.
+- `dungeon-get-palette` follows the room header's full 8-bit palette-set ID
+  through `0x75460` and `0xDEC4B`, rejects malformed referenced mappings, and
+  reports every room resolving to the same shared global palette. It proves
+  the US/OOS destination code first and fails closed on JP/EU or unproven
+  regional table layouts.
+  `dungeon-set-palette-color` is dry-run-first and requires full palette-set,
+  resolved palette-index, and raw 15-bit color CAS plus a Hack Manifest. It
+  checks the exact two-byte range even during dry-run, fences only that color,
+  rejects dirty callers or any mismatch between the in-memory baseline and
+  current file, verifies the whole-ROM diff, requires a backup and atomic save,
+  commits the caller transaction after disk replacement, then externally
+  reopens and verifies the persisted word. A post-save readback failure is
+  reported as data loss without rolling memory back from the already-persisted
+  state.
+  Legacy `palette-set-color --write` fails before ROM loading or mutation;
+  preview remains read-only. The browser registers only the getter because
+  Emscripten does not guarantee durable filesystem synchronization.
 - `dungeon-set-door-type` is dry-run by default and requires exact coordinates,
   an expected old type, and a `copy_on_write` object-stream manifest. It rejects
   incomplete pointer inventories, invalid/aliased/overlapping selected streams,
