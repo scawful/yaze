@@ -139,6 +139,10 @@ int ExpectedSubtype3TileCount(int id) {
   if ((id >= 0xF9E && id <= 0xFA1) || (id >= 0xFA6 && id <= 0xFA9)) {
     return 16;
   }
+  // Big gray rock is four fixed 2x2 quadrants.
+  if (id == 0xFAC) {
+    return 16;
+  }
   // Smithy furnace is a fixed 6x8 row-major payload.
   if (id == 0xFCC) {
     return 48;

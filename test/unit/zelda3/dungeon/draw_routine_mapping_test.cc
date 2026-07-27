@@ -693,6 +693,9 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
   EXPECT_EQ(drawer.GetDrawRoutineId(0xF90), DrawRoutineIds::kSingle2x2);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xF92), DrawRoutineIds::kRupeeFloor);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xF96), DrawRoutineIds::kSingle2x2);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFAB), DrawRoutineIds::kSingle2x2);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFAC), DrawRoutineIds::kBigGrayRock);
+  EXPECT_EQ(drawer.GetDrawRoutineId(0xFAD), 16);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFB1), DrawRoutineIds::kSingle4x3);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xFD5), DrawRoutineIds::kUtility3x5);
   for (int object_id : {0xFD6, 0xFD7, 0xFD8, 0xFD9}) {
@@ -759,6 +762,17 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
   EXPECT_FALSE(smithy_furnace->draws_to_both_bgs);
   EXPECT_EQ(smithy_furnace->category, DrawRoutineInfo::Category::Special);
 
+  const DrawRoutineInfo* big_gray_rock =
+      DrawRoutineRegistry::Get().GetRoutineInfo(DrawRoutineIds::kBigGrayRock);
+  ASSERT_NE(big_gray_rock, nullptr);
+  EXPECT_EQ(big_gray_rock->name, "BigGrayRock");
+  EXPECT_TRUE(static_cast<bool>(big_gray_rock->function));
+  EXPECT_EQ(big_gray_rock->base_width, 4);
+  EXPECT_EQ(big_gray_rock->base_height, 4);
+  EXPECT_EQ(big_gray_rock->min_tiles, 16);
+  EXPECT_FALSE(big_gray_rock->draws_to_both_bgs);
+  EXPECT_EQ(big_gray_rock->category, DrawRoutineInfo::Category::Special);
+
   const auto& routines = DrawRoutineRegistry::Get().GetAllRoutines();
   EXPECT_EQ(std::count_if(routines.begin(), routines.end(),
                           [](const DrawRoutineInfo& info) {
@@ -768,6 +782,11 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
   EXPECT_EQ(std::count_if(routines.begin(), routines.end(),
                           [](const DrawRoutineInfo& info) {
                             return info.id == DrawRoutineIds::kSmithyFurnace;
+                          }),
+            1);
+  EXPECT_EQ(std::count_if(routines.begin(), routines.end(),
+                          [](const DrawRoutineInfo& info) {
+                            return info.id == DrawRoutineIds::kBigGrayRock;
                           }),
             1);
 }
