@@ -164,6 +164,8 @@ These commands operate directly on ROM data (no GUI required).
 - `dungeon-export-room --room <hex> --output <file>`
 - `dungeon-place-object --room <hex> --id <hex> --x <int> --y <int> [--size <int>] [--layer <0|1|2>] [--manifest <path>] [--write]`
 - `dungeon-set-door-type --room <hex> --x <int> --y <int> --type <hex> --expect-type <hex> --manifest <path> [--write]`
+- `dungeon-list-pot-items --room <hex>`
+- `dungeon-set-pot-item --room <hex> --index <int> --expect-position <hex> --expect-item <hex> --item <hex> --manifest <path> [--write]`
 - `dungeon-get-room-tiles --room <hex>` *(stubbed)*
 - `dungeon-set-room-property --room <hex> --property <name> --value <value> [--manifest <path>]`
 
@@ -192,6 +194,19 @@ Use `dungeon-describe-room` first to discover each door's exact `tile_x`,
 `tile_y`, `index`, and raw `type_id`. Pass those tile coordinates and
 `type_id` to `dungeon-set-door-type`; the command reports the matched index and
 old/new symbolic names but never selects a door by display-name text.
+
+`dungeon-list-pot-items` reports each existing entry's zero-based stream
+`index`, raw `position`, tile coordinates, item ID, and item-byte PC/SNES
+address. `dungeon-set-pot-item` changes only that fixed-width item byte. It is
+a dry-run unless `--write` is supplied and requires an exact index plus
+expected raw position/item compare-and-swap and a pot-item stream manifest.
+The setter's dry-run and write modes inventory the complete manifest pointer
+table and fail closed if any room has an invalid or malformed stream. They also
+reject selected stream aliases, overlaps, and pointers landing inside the
+selected stream, then cross-check the raw three-byte entries, room model, and
+`0xFFFF` terminator. Write mode uses a one-byte write fence, required backup,
+pre-save readback, and atomic ROM replacement. It does not add, remove,
+reposition, or repack pot items.
 
 `dungeon-set-room-property` accepts `layout`/`layout_id` values `0`-`7` and
 `floor1`/`floor2` values `0`-`15`. These properties are persisted in the

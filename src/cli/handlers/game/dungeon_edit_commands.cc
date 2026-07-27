@@ -526,6 +526,218 @@ absl::StatusOr<DoorTypeTarget> ResolveDoorTypeTarget(
   return target;
 }
 
+struct PotItemManifestContext {
+  core::HackManifest manifest;
+  zelda3::DungeonStreamLayout layout;
+};
+
+absl::StatusOr<PotItemManifestContext> LoadPotItemManifestContext(
+    const resources::ArgumentParser& parser) {
+  std::string manifest_path;
+  ASSIGN_OR_RETURN(manifest_path, GetRequiredString(parser, "manifest"));
+
+  PotItemManifestContext context;
+  RETURN_IF_ERROR(context.manifest.LoadFromFile(manifest_path));
+  const core::DungeonStreamLayout* manifest_layout =
+      context.manifest.GetDungeonStreamLayout(
+          core::DungeonStreamType::kPotItems);
+  if (manifest_layout == nullptr) {
+    return absl::FailedPreconditionError(
+        "Manifest does not define dungeon_stream_regions.pot_items");
+  }
+  ASSIGN_OR_RETURN(context.layout,
+                   core::ToDungeonStreamAllocatorLayout(
+                       core::DungeonStreamType::kPotItems, *manifest_layout));
+  return context;
+}
+
+struct PotItemEntryView {
+  int index = -1;
+  zelda3::PotItem item;
+  uint32_t entry_pc = 0;
+  uint32_t item_pc = 0;
+};
+
+struct PotItemStreamView {
+  uint32_t pointer_slot_pc = 0;
+  uint32_t stream_pc = 0;
+  uint32_t stream_end_pc = 0;
+  std::vector<PotItemEntryView> entries;
+};
+
+absl::StatusOr<PotItemStreamView> ResolveRuntimePotItemStream(Rom* rom,
+                                                              int room_id) {
+  if (rom == nullptr || !rom->is_loaded()) {
+    return absl::InvalidArgumentError("ROM not loaded");
+  }
+
+  const uint64_t pointer_table_end =
+      static_cast<uint64_t>(zelda3::kRoomItemsPointers) +
+      static_cast<uint64_t>(zelda3::kNumberOfRooms) * 2u;
+  if (pointer_table_end > rom->size()) {
+    return absl::OutOfRangeError(
+        "Complete pot-item pointer table is outside ROM");
+  }
+  const uint32_t pointer_slot_pc =
+      zelda3::kRoomItemsPointers + static_cast<uint32_t>(room_id) * 2u;
+  uint16_t pointer_word = 0;
+  ASSIGN_OR_RETURN(pointer_word,
+                   rom->ReadWord(static_cast<int>(pointer_slot_pc)));
+  const uint32_t pointer_snes = 0x010000u | pointer_word;
+  if (!IsLoRomDataPointer(pointer_snes)) {
+    return absl::FailedPreconditionError(
+        "Selected pot-item pointer is not a valid bank-01 LoROM pointer");
+  }
+  const uint32_t stream_pc = SnesToPc(pointer_snes);
+  const uint64_t bank_end =
+      (static_cast<uint64_t>(stream_pc) / 0x8000u + 1u) * 0x8000u;
+  const uint32_t parse_end =
+      static_cast<uint32_t>(std::min<uint64_t>(rom->size(), bank_end));
+  if (stream_pc >= parse_end) {
+    return absl::OutOfRangeError("Selected pot-item stream is outside ROM");
+  }
+
+  PotItemStreamView view;
+  view.pointer_slot_pc = pointer_slot_pc;
+  view.stream_pc = stream_pc;
+
+  uint32_t cursor = stream_pc;
+  while (true) {
+    if (static_cast<uint64_t>(cursor) + 2u > parse_end) {
+      return absl::DataLossError("Pot-item stream has no 0xFFFF terminator");
+    }
+    uint16_t position = 0;
+    ASSIGN_OR_RETURN(position, rom->ReadWord(static_cast<int>(cursor)));
+    if (position == 0xFFFFu) {
+      view.stream_end_pc = cursor + 2u;
+      break;
+    }
+    if (static_cast<uint64_t>(cursor) + 3u > parse_end) {
+      return absl::DataLossError("Pot-item stream has a truncated record");
+    }
+    uint8_t item = 0;
+    ASSIGN_OR_RETURN(item, rom->ReadByte(static_cast<int>(cursor + 2u)));
+    view.entries.push_back({.index = static_cast<int>(view.entries.size()),
+                            .item = {.position = position, .item = item},
+                            .entry_pc = cursor,
+                            .item_pc = cursor + 2u});
+    cursor += 3u;
+  }
+
+  zelda3::Room room(room_id, rom);
+  room.LoadPotItems();
+  if (!room.ArePotItemsLoaded() ||
+      room.GetPotItems().size() != view.entries.size()) {
+    return absl::DataLossError(
+        "Pot-item room model count does not match the raw stream");
+  }
+  for (size_t index = 0; index < view.entries.size(); ++index) {
+    const zelda3::PotItem& model = room.GetPotItems()[index];
+    if (model.position != view.entries[index].item.position ||
+        model.item != view.entries[index].item.item) {
+      return absl::DataLossError(
+          "Pot-item room model does not match the raw stream");
+    }
+  }
+  return view;
+}
+
+struct PotItemTarget {
+  PotItemEntryView entry;
+  uint32_t pointer_slot_pc = 0;
+  uint32_t stream_pc = 0;
+  uint32_t stream_end_pc = 0;
+};
+
+absl::StatusOr<PotItemTarget> ResolvePotItemTarget(
+    Rom* rom, int room_id, int index,
+    const PotItemManifestContext& manifest_context) {
+  if (manifest_context.layout.pointer_count != zelda3::kNumberOfRooms) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Dungeon pot-item manifest pointer_count must equal %d rooms",
+        zelda3::kNumberOfRooms));
+  }
+
+  zelda3::DungeonStreamInventory inventory;
+  ASSIGN_OR_RETURN(inventory, zelda3::InventoryDungeonStreams(
+                                  *rom, manifest_context.layout));
+  if (static_cast<size_t>(room_id) >= inventory.streams.size()) {
+    return absl::FailedPreconditionError(
+        "Selected room is absent from the pot-item stream inventory");
+  }
+  if (!inventory.issues.empty()) {
+    const auto& issue = inventory.issues.front();
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Pot-item stream inventory is invalid at room 0x%03X: %s",
+        issue.room_id, issue.message));
+  }
+
+  const auto& stream = inventory.streams[room_id];
+  if (!stream.valid) {
+    return absl::FailedPreconditionError("Selected pot-item stream is invalid");
+  }
+  for (const auto& alias : inventory.aliases) {
+    if (ContainsRoomId(alias.room_ids, room_id)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Selected pot-item stream at PC 0x%06X is shared by %d rooms",
+          alias.data_pc, static_cast<int>(alias.room_ids.size())));
+    }
+  }
+  for (const auto& overlap : inventory.overlaps) {
+    if (ContainsRoomId(overlap.first_room_ids, room_id) ||
+        ContainsRoomId(overlap.second_room_ids, room_id)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Selected pot-item stream overlaps PC range [0x%06X, 0x%06X)",
+          overlap.intersection.begin, overlap.intersection.end));
+    }
+  }
+  for (const auto& other_stream : inventory.streams) {
+    if (other_stream.room_id == static_cast<uint32_t>(room_id)) {
+      continue;
+    }
+    if (other_stream.data_pc >= stream.data_pc &&
+        other_stream.data_pc < stream.logical_end_pc) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Room 0x%03X pot-item pointer PC 0x%06X starts inside selected "
+          "pot-item stream [0x%06X, 0x%06X)",
+          other_stream.room_id, other_stream.data_pc, stream.data_pc,
+          stream.logical_end_pc));
+    }
+  }
+
+  PotItemStreamView runtime;
+  ASSIGN_OR_RETURN(runtime, ResolveRuntimePotItemStream(rom, room_id));
+  if (runtime.pointer_slot_pc != stream.pointer_slot_pc ||
+      runtime.stream_pc != stream.data_pc ||
+      runtime.stream_end_pc != stream.logical_end_pc ||
+      runtime.entries.size() * 3u + 2u != stream.encoded_stream.size()) {
+    return absl::DataLossError(
+        "Runtime pot-item stream does not match the manifest inventory");
+  }
+  if (index < 0 || index >= static_cast<int>(runtime.entries.size())) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Pot-item index %d out of range (room has %d entries)",
+                        index, static_cast<int>(runtime.entries.size())));
+  }
+
+  const PotItemEntryView& entry = runtime.entries[index];
+  const auto conflicts = manifest_context.manifest.AnalyzePcWriteRanges(
+      {{entry.item_pc, entry.item_pc + 1u}});
+  if (!conflicts.empty()) {
+    return absl::PermissionDeniedError(absl::StrFormat(
+        "Pot-item byte at PC 0x%06X conflicts with Hack Manifest (%s)",
+        entry.item_pc,
+        core::AddressOwnershipToString(conflicts.front().ownership)));
+  }
+
+  return PotItemTarget{
+      .entry = entry,
+      .pointer_slot_pc = runtime.pointer_slot_pc,
+      .stream_pc = runtime.stream_pc,
+      .stream_end_pc = runtime.stream_end_pc,
+  };
+}
+
 }  // namespace
 
 // ---------------------------------------------------------------------------
@@ -1059,6 +1271,212 @@ absl::Status DungeonSetDoorTypeCommandHandler::Execute(
 
   auto memory_readback =
       ResolveDoorTypeTarget(rom, room_id, x, y, *manifest_context);
+  if (!memory_readback.ok()) {
+    return finish_error(memory_readback.status(), "readback_error");
+  }
+  const absl::Status memory_verify = verify_readback(*memory_readback);
+  if (!memory_verify.ok()) {
+    return finish_error(memory_verify, "readback_error");
+  }
+  formatter.AddField("readback_status", "pre_save_verified");
+  formatter.AddField("write_status", "success");
+
+  const absl::Status save_status = SaveRomWithBackup(rom, formatter);
+  if (!save_status.ok()) {
+    formatter.AddField("status", "error");
+    formatter.EndObject();
+    return save_status;
+  }
+
+  transaction.Commit();
+  formatter.AddField("status", "success");
+  formatter.EndObject();
+  return absl::OkStatus();
+}
+
+// ---------------------------------------------------------------------------
+// dungeon-list-pot-items
+// ---------------------------------------------------------------------------
+
+absl::Status DungeonListPotItemsCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  int room_id = 0;
+  ASSIGN_OR_RETURN(room_id, GetRequiredHex(parser, "room"));
+  RETURN_IF_ERROR(ValidateRoomId(room_id));
+
+  PotItemStreamView stream;
+  ASSIGN_OR_RETURN(stream, ResolveRuntimePotItemStream(rom, room_id));
+
+  formatter.BeginObject("Dungeon Pot Items");
+  formatter.AddHexField("room_id", room_id, 3);
+  formatter.AddHexField("pointer_slot_pc", stream.pointer_slot_pc, 6);
+  formatter.AddHexField("stream_pc", stream.stream_pc, 6);
+  formatter.AddHexField("stream_end_pc", stream.stream_end_pc, 6);
+  formatter.AddField("item_count", static_cast<int>(stream.entries.size()));
+  formatter.BeginArray("items");
+  for (const PotItemEntryView& entry : stream.entries) {
+    formatter.BeginObject();
+    formatter.AddField("index", entry.index);
+    formatter.AddHexField("position", entry.item.position, 4);
+    formatter.AddField("tile_x", entry.item.GetTileX());
+    formatter.AddField("tile_y", entry.item.GetTileY());
+    formatter.AddHexField("item_id", entry.item.item, 2);
+    formatter.AddHexField("item_pc", entry.item_pc, 6);
+    formatter.AddHexField("item_snes", PcToSnes(entry.item_pc), 6);
+    formatter.EndObject();
+  }
+  formatter.EndArray();
+  formatter.AddField("status", "success");
+  formatter.EndObject();
+  return absl::OkStatus();
+}
+
+// ---------------------------------------------------------------------------
+// dungeon-set-pot-item
+// ---------------------------------------------------------------------------
+
+absl::Status DungeonSetPotItemCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  int room_id = 0;
+  int index = 0;
+  int expected_position = 0;
+  int expected_item = 0;
+  int new_item = 0;
+  ASSIGN_OR_RETURN(room_id, GetRequiredHex(parser, "room"));
+  RETURN_IF_ERROR(ValidateRoomId(room_id));
+  ASSIGN_OR_RETURN(index, GetRequiredInt(parser, "index"));
+  ASSIGN_OR_RETURN(expected_position,
+                   GetRequiredHex(parser, "expect-position"));
+  ASSIGN_OR_RETURN(expected_item, GetRequiredHex(parser, "expect-item"));
+  ASSIGN_OR_RETURN(new_item, GetRequiredHex(parser, "item"));
+  if (expected_position < 0 || expected_position > 0xFFFF) {
+    return absl::InvalidArgumentError(
+        "--expect-position must be in range 0x0000-0xFFFF");
+  }
+  if (expected_item < 0 || expected_item > 0xFF) {
+    return absl::InvalidArgumentError(
+        "--expect-item must be in range 0x00-0xFF");
+  }
+  if (new_item < 0 || new_item > 0xFF) {
+    return absl::InvalidArgumentError("--item must be in range 0x00-0xFF");
+  }
+
+  PotItemManifestContext manifest_context;
+  ASSIGN_OR_RETURN(manifest_context, LoadPotItemManifestContext(parser));
+  PotItemTarget target;
+  ASSIGN_OR_RETURN(target,
+                   ResolvePotItemTarget(rom, room_id, index, manifest_context));
+  if (target.entry.item.position != expected_position ||
+      target.entry.item.item != expected_item) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Pot-item compare-and-swap failed at index %d: expected "
+        "position/item 0x%04X/0x%02X, found 0x%04X/0x%02X",
+        index, expected_position, expected_item, target.entry.item.position,
+        target.entry.item.item));
+  }
+  if (new_item == expected_item) {
+    return absl::InvalidArgumentError(
+        "--item must differ from the current pot item");
+  }
+
+  const bool do_write = parser.HasFlag("write");
+  if (do_write && rom->filename().empty()) {
+    return absl::FailedPreconditionError("Write mode requires a ROM filename");
+  }
+
+  formatter.BeginObject("Set Pot Item");
+  formatter.AddHexField("room_id", room_id, 3);
+  formatter.AddField("index", index);
+  formatter.AddHexField("position", target.entry.item.position, 4);
+  formatter.AddField("tile_x", target.entry.item.GetTileX());
+  formatter.AddField("tile_y", target.entry.item.GetTileY());
+  formatter.AddHexField("old_item", expected_item, 2);
+  formatter.AddHexField("new_item", new_item, 2);
+  formatter.AddHexField("pointer_slot_pc", target.pointer_slot_pc, 6);
+  formatter.AddHexField("stream_pc", target.stream_pc, 6);
+  formatter.AddHexField("stream_end_pc", target.stream_end_pc, 6);
+  formatter.AddHexField("item_pc", target.entry.item_pc, 6);
+  formatter.AddHexField("item_snes", PcToSnes(target.entry.item_pc), 6);
+  formatter.AddField("manifest", *parser.GetString("manifest"));
+  formatter.AddField("manifest_write_policy", "block");
+  formatter.AddField("stream_alias_status", "unique");
+  formatter.AddField("mode", do_write ? "write" : "dry-run");
+  formatter.AddField("preflight_status", "success");
+
+  if (!do_write) {
+    formatter.AddField("write_status", "not_requested");
+    formatter.AddField("save_status", "not_requested");
+    formatter.AddField("readback_status", "not_requested");
+    formatter.AddField("status", "success");
+    formatter.EndObject();
+    return absl::OkStatus();
+  }
+
+  const auto finish_error = [&formatter](const absl::Status& status,
+                                         const char* field) -> absl::Status {
+    formatter.AddField("status", "error");
+    formatter.AddField(field, std::string(status.message()));
+    formatter.EndObject();
+    return status;
+  };
+  const auto verify_readback =
+      [&target, new_item](const PotItemTarget& readback) -> absl::Status {
+    if (readback.entry.index != target.entry.index ||
+        readback.entry.entry_pc != target.entry.entry_pc ||
+        readback.entry.item_pc != target.entry.item_pc ||
+        readback.entry.item.position != target.entry.item.position ||
+        readback.entry.item.item != new_item ||
+        readback.stream_pc != target.stream_pc ||
+        readback.stream_end_pc != target.stream_end_pc) {
+      return absl::DataLossError(
+          "Pot-item readback does not match the requested change");
+    }
+    return absl::OkStatus();
+  };
+
+  rom::WriteFence write_fence;
+  const absl::Status allow_status = write_fence.Allow(
+      target.entry.item_pc, target.entry.item_pc + 1u, "dungeon pot item");
+  if (!allow_status.ok()) {
+    return finish_error(allow_status, "write_error");
+  }
+
+  const std::vector<uint8_t> before = rom->vector();
+  ScopedRomTransaction transaction(*rom);
+  {
+    rom::ScopedWriteFence write_scope(rom, &write_fence);
+    const absl::Status write_status = rom->WriteByte(
+        static_cast<int>(target.entry.item_pc), static_cast<uint8_t>(new_item));
+    if (!write_status.ok()) {
+      return finish_error(write_status, "write_error");
+    }
+  }
+
+  if (rom->size() != before.size()) {
+    return finish_error(
+        absl::DataLossError("Pot-item edit unexpectedly resized the ROM"),
+        "write_error");
+  }
+  int changed_bytes = 0;
+  uint32_t changed_pc = 0;
+  for (uint32_t pc = 0; pc < before.size(); ++pc) {
+    if (before[pc] != rom->data()[pc]) {
+      ++changed_bytes;
+      changed_pc = pc;
+    }
+  }
+  if (changed_bytes != 1 || changed_pc != target.entry.item_pc) {
+    return finish_error(
+        absl::DataLossError(absl::StrFormat(
+            "Pot-item edit changed %d bytes; expected only PC 0x%06X",
+            changed_bytes, target.entry.item_pc)),
+        "write_error");
+  }
+
+  auto memory_readback =
+      ResolvePotItemTarget(rom, room_id, index, manifest_context);
   if (!memory_readback.ok()) {
     return finish_error(memory_readback.status(), "readback_error");
   }

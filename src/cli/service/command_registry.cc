@@ -159,6 +159,25 @@ void CommandRegistry::RegisterHandlers(
             "--type=0x00 --expect-type=0x18 "
             "--manifest=hack_manifest.json --write "
             "--rom=/tmp/oos-work.sfc --format=json"};
+      } else if (name == "dungeon-list-pot-items") {
+        metadata.description =
+            "List existing pot items with raw positions and ROM addresses";
+        metadata.examples = {
+            "z3ed dungeon-list-pot-items --room=0xA8 "
+            "--rom=Roms/oos168.sfc --format=json"};
+      } else if (name == "dungeon-set-pot-item") {
+        metadata.description =
+            "Change one existing pot item with index/position/item CAS and "
+            "manifest guards (dry-run by default)";
+        metadata.examples = {
+            "z3ed dungeon-set-pot-item --room=0xA8 --index=0 "
+            "--expect-position=0x198C --expect-item=0x05 --item=0x06 "
+            "--manifest=Roms/hack_manifest.json --rom=Roms/oos168.sfc "
+            "--format=json",
+            "z3ed dungeon-set-pot-item --room=0xA8 --index=0 "
+            "--expect-position=0x198C --expect-item=0x05 --item=0x06 "
+            "--manifest=Roms/hack_manifest.json --write "
+            "--rom=/tmp/oos-work.sfc --format=json"};
       } else if (name == "dungeon-oracle-preflight") {
         metadata.description =
             "Oracle ROM safety preflight: water-fill region/table, collision "

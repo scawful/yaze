@@ -51,6 +51,10 @@ constexpr uint8_t kObjectHeaderByte0 = 0xA5;
 constexpr uint8_t kObjectHeaderByte1 = 0xE3;
 constexpr int kDoorEntryPc = kObjectDataPc + 8;
 constexpr int kDoorTypePc = kDoorEntryPc + 1;
+constexpr int kPotDataPc = 0x00E000;
+constexpr int kOtherPotDataPc = 0x00E040;
+constexpr int kPotDataEndPc = 0x00E100;
+constexpr int kPotItemBytePc = kPotDataPc + 2;
 
 void ExpectInvalidArgument(const absl::Status& status,
                            const std::string& message_fragment) {
@@ -233,6 +237,26 @@ void InitializeDoorTypeRom(Rom* rom, bool duplicate_coordinate = false) {
   rom->set_dirty(false);
 }
 
+void SetRoomPotItemPointer(Rom* rom, int room_id, int pc_addr) {
+  const uint16_t pointer = PcToSnes(pc_addr) & 0xFFFFu;
+  const int slot = zelda3::kRoomItemsPointers + room_id * 2;
+  rom->mutable_data()[slot] = pointer & 0xFF;
+  rom->mutable_data()[slot + 1] = (pointer >> 8) & 0xFF;
+}
+
+void InitializePotItemRom(Rom* rom) {
+  InitializeRoomHeaderRom(rom);
+  SetRoomPotItemPointer(rom, 0, kPotDataPc);
+  for (int room_id = 1; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    SetRoomPotItemPointer(rom, room_id, kOtherPotDataPc);
+  }
+  ASSERT_TRUE(rom->WriteVector(kPotDataPc,
+                               {0x34, 0x12, 0x56, 0x78, 0x56, 0x9A, 0xFF, 0xFF})
+                  .ok());
+  ASSERT_TRUE(rom->WriteVector(kOtherPotDataPc, {0xFF, 0xFF}).ok());
+  rom->set_dirty(false);
+}
+
 void SetRoomObjectPointer(Rom* rom, int room_id, int pc_addr) {
   WriteLong(rom, kObjectPointerTablePc + room_id * 3, PcToSnes(pc_addr));
 }
@@ -407,6 +431,56 @@ void WriteOwnershipOnlyManifest(const std::filesystem::path& path,
   "manifest_version": 3%s
 })json",
       protected_section);
+  std::ofstream output(path, std::ios::trunc);
+  ASSERT_TRUE(output.is_open());
+  output << json;
+  ASSERT_TRUE(output.good());
+}
+
+void WritePotItemManifest(const std::filesystem::path& path,
+                          int protected_pc = -1,
+                          int pointer_count = zelda3::kNumberOfRooms,
+                          int data_start_pc = kPotDataPc) {
+  std::string protected_section;
+  if (protected_pc >= 0) {
+    protected_section = absl::StrFormat(
+        R"json(,
+  "protected_regions": {
+    "total_hooks": 1,
+    "regions": [
+      {
+        "start": "0x%06X",
+        "end": "0x%06X",
+        "size": 1,
+        "hook_count": 1,
+        "module": "PotItemGuard"
+      }
+    ]
+  })json",
+        PcToSnes(protected_pc), PcToSnes(protected_pc + 1));
+  }
+  const std::string json = absl::StrFormat(
+      R"json({
+  "manifest_version": 3,
+  "dungeon_stream_regions": {
+    "pot_items": {
+      "pointer_table": "0x%06X",
+      "pointer_count": %d,
+      "pointer_encoding": "bank16",
+      "pointer_bank": "0x01",
+      "strategy": "repack_all",
+      "data_regions": [
+        {"start": "0x%06X", "end": "0x%06X"}
+      ],
+      "allocation_regions": [
+        {"start": "0x%06X", "end": "0x%06X"}
+      ]
+    }
+  }%s
+})json",
+      PcToSnes(zelda3::kRoomItemsPointers), pointer_count,
+      PcToSnes(data_start_pc), PcToSnes(kPotDataEndPc), PcToSnes(data_start_pc),
+      PcToSnes(kPotDataEndPc), protected_section);
   std::ofstream output(path, std::ios::trunc);
   ASSERT_TRUE(output.is_open());
   output << json;
@@ -1619,6 +1693,406 @@ TEST(DungeonEditCommandsTest,
   EXPECT_FALSE(rom.dirty());
   EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
   EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+}
+
+TEST(DungeonEditCommandsTest,
+     ListPotItemsReportsExactPositionsCoordinatesAndAddresses) {
+  Rom rom;
+  InitializePotItemRom(&rom);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonListPotItemsCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--room=0x00", "--format=json"}, &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  const auto report = nlohmann::json::parse(output);
+  const auto& result = report.at("Dungeon Pot Items");
+  EXPECT_EQ(result.at("room_id"), "0x000");
+  EXPECT_EQ(result.at("stream_pc"), "0x00E000");
+  EXPECT_EQ(result.at("stream_end_pc"), "0x00E008");
+  ASSERT_EQ(result.at("items").size(), 2u);
+  EXPECT_EQ(result.at("items")[0].at("index"), 0);
+  EXPECT_EQ(result.at("items")[0].at("position"), "0x1234");
+  EXPECT_EQ(result.at("items")[0].at("tile_x"), 26);
+  EXPECT_EQ(result.at("items")[0].at("tile_y"), 36);
+  EXPECT_EQ(result.at("items")[0].at("item_id"), "0x56");
+  EXPECT_EQ(result.at("items")[0].at("item_pc"), "0x00E002");
+  EXPECT_EQ(result.at("items")[0].at("item_snes"), "0x01E002");
+  EXPECT_EQ(result.at("items")[1].at("index"), 1);
+  EXPECT_EQ(result.at("items")[1].at("position"), "0x5678");
+  EXPECT_EQ(result.at("items")[1].at("item_id"), "0x9A");
+  EXPECT_EQ(result.at("items")[1].at("item_pc"), "0x00E005");
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest, ListPotItemsRejectsMalformedTerminator) {
+  Rom rom;
+  InitializePotItemRom(&rom);
+  rom.mutable_data()[kPotDataPc + 6] = 0xFF;
+  rom.mutable_data()[kPotDataPc + 7] = 0x00;
+  rom.set_dirty(false);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonListPotItemsCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--room=0x00", "--format=json"}, &rom, &output);
+
+  EXPECT_TRUE(absl::IsDataLoss(status)) << status;
+  EXPECT_THAT(std::string(status.message()), HasSubstr("truncated record"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest,
+     SetPotItemDryRunLeavesRomDiskAndBackupsUnchanged) {
+  Rom rom;
+  InitializePotItemRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WritePotItemManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+
+  handlers::DungeonSetPotItemCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--index=0", "--expect-position=0x1234",
+       "--expect-item=0x56", "--item=0x06",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--format=json"},
+      &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_THAT(output, HasSubstr("\"mode\": \"dry-run\""));
+  EXPECT_THAT(output, HasSubstr("\"preflight_status\": \"success\""));
+  EXPECT_THAT(output, HasSubstr("\"position\": \"0x1234\""));
+  EXPECT_THAT(output, HasSubstr("\"old_item\": \"0x56\""));
+  EXPECT_THAT(output, HasSubstr("\"new_item\": \"0x06\""));
+  EXPECT_THAT(output, HasSubstr("\"item_pc\": \"0x00E002\""));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+}
+
+TEST(DungeonEditCommandsTest,
+     SetPotItemRequiresManifestAndExactPositionItemCas) {
+  handlers::DungeonSetPotItemCommandHandler handler;
+
+  {
+    Rom rom;
+    InitializePotItemRom(&rom);
+    const std::vector<uint8_t> before = rom.vector();
+    std::string output;
+    const absl::Status status =
+        handler.Run({"--room=0x00", "--index=0", "--expect-position=0x1234",
+                     "--expect-item=0x56", "--item=0x06", "--format=json"},
+                    &rom, &output);
+    EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_FALSE(rom.dirty());
+  }
+
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WritePotItemManifest(manifest_cleanup.file_path);
+  for (const auto& [position, item] :
+       std::array<std::pair<const char*, const char*>, 2>{
+           {{"0x1235", "0x56"}, {"0x1234", "0x57"}}}) {
+    SCOPED_TRACE(absl::StrFormat("%s/%s", position, item));
+    Rom rom;
+    InitializePotItemRom(&rom);
+    const std::vector<uint8_t> before = rom.vector();
+    std::string output;
+    const absl::Status status = handler.Run(
+        {"--room=0x00", "--index=0",
+         "--expect-position=" + std::string(position),
+         "--expect-item=" + std::string(item), "--item=0x06",
+         absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+         "--format=json"},
+        &rom, &output);
+    EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+    EXPECT_THAT(std::string(status.message()),
+                HasSubstr("compare-and-swap failed"));
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_FALSE(rom.dirty());
+  }
+}
+
+TEST(DungeonEditCommandsTest,
+     SetPotItemRejectsSharedOverlappingAndInteriorPointers) {
+  struct Case {
+    int pointer_pc;
+    const char* message;
+  };
+  const std::array<Case, 3> cases = {{
+      {kPotDataPc, "shared by 2 rooms"},
+      {kPotDataPc + 3, "overlaps PC range"},
+      {kPotDataPc + 2, "Pot-item stream inventory is invalid at room 0x001"},
+  }};
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WritePotItemManifest(manifest_cleanup.file_path);
+
+  for (const auto& test_case : cases) {
+    SCOPED_TRACE(test_case.message);
+    Rom rom;
+    InitializePotItemRom(&rom);
+    SetRoomPotItemPointer(&rom, 1, test_case.pointer_pc);
+    rom.set_dirty(false);
+    const std::vector<uint8_t> before = rom.vector();
+
+    handlers::DungeonSetPotItemCommandHandler handler;
+    std::string output;
+    const absl::Status status = handler.Run(
+        {"--room=0x00", "--index=0", "--expect-position=0x1234",
+         "--expect-item=0x56", "--item=0x06",
+         absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+         "--format=json"},
+        &rom, &output);
+
+    EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+    EXPECT_THAT(std::string(status.message()), HasSubstr(test_case.message));
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_FALSE(rom.dirty());
+  }
+}
+
+TEST(DungeonEditCommandsTest,
+     SetPotItemRejectsMalformedSelectedStreamAndPartialInventory) {
+  handlers::DungeonSetPotItemCommandHandler handler;
+
+  {
+    Rom rom;
+    InitializePotItemRom(&rom);
+    rom.mutable_data()[kPotDataPc + 6] = 0xFF;
+    rom.mutable_data()[kPotDataPc + 7] = 0x00;
+    rom.set_dirty(false);
+    ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                       ".manifest.json");
+    WritePotItemManifest(manifest_cleanup.file_path);
+    const std::vector<uint8_t> before = rom.vector();
+    std::string output;
+    const absl::Status status = handler.Run(
+        {"--room=0x00", "--index=0", "--expect-position=0x1234",
+         "--expect-item=0x56", "--item=0x06",
+         absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+         "--format=json"},
+        &rom, &output);
+    EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+    EXPECT_THAT(std::string(status.message()),
+                HasSubstr("Pot-item stream inventory is invalid"));
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_FALSE(rom.dirty());
+  }
+
+  {
+    Rom rom;
+    InitializePotItemRom(&rom);
+    ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                       ".manifest.json");
+    WritePotItemManifest(manifest_cleanup.file_path, /*protected_pc=*/-1,
+                         /*pointer_count=*/zelda3::kNumberOfRooms - 1);
+    const std::vector<uint8_t> before = rom.vector();
+    std::string output;
+    const absl::Status status = handler.Run(
+        {"--room=0x00", "--index=0", "--expect-position=0x1234",
+         "--expect-item=0x56", "--item=0x06",
+         absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+         "--format=json"},
+        &rom, &output);
+    EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+    EXPECT_THAT(std::string(status.message()),
+                HasSubstr("pointer_count must equal 296 rooms"));
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_FALSE(rom.dirty());
+  }
+}
+
+TEST(DungeonEditCommandsTest,
+     SetPotItemRejectsMalformedPredecessorThatConsumesSelectedBytes) {
+  Rom rom;
+  InitializePotItemRom(&rom);
+  constexpr int kMalformedPredecessorPc = kPotDataPc - 1;
+  rom.mutable_data()[kMalformedPredecessorPc] = 0x00;
+  SetRoomPotItemPointer(&rom, 1, kMalformedPredecessorPc);
+  rom.set_dirty(false);
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WritePotItemManifest(manifest_cleanup.file_path, /*protected_pc=*/-1,
+                       /*pointer_count=*/zelda3::kNumberOfRooms,
+                       /*data_start_pc=*/kMalformedPredecessorPc);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonSetPotItemCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--index=0", "--expect-position=0x1234",
+       "--expect-item=0x56", "--item=0x06",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("Pot-item stream inventory is invalid at room 0x001"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest,
+     SetPotItemRejectsUnrelatedMalformedRoomInCompleteInventory) {
+  Rom rom;
+  InitializePotItemRom(&rom);
+  SetRoomPotItemPointer(&rom, 1, kOtherPotDataPc + 2);
+  rom.set_dirty(false);
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WritePotItemManifest(manifest_cleanup.file_path);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonSetPotItemCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--index=0", "--expect-position=0x1234",
+       "--expect-item=0x56", "--item=0x06",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("Pot-item stream inventory is invalid at room 0x001"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest,
+     SetPotItemRejectsProtectedByteWithoutMutationOrArtifacts) {
+  Rom rom;
+  InitializePotItemRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WritePotItemManifest(manifest_cleanup.file_path, kPotItemBytePc);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+
+  handlers::DungeonSetPotItemCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--index=0", "--expect-position=0x1234",
+       "--expect-item=0x56", "--item=0x06",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--write", "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsPermissionDenied(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("conflicts with Hack Manifest"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+  EXPECT_FALSE(std::filesystem::exists(cleanup.rom_path.string() + ".tmp"));
+}
+
+TEST(DungeonEditCommandsTest, SetPotItemWriteChangesOneByteBacksUpAndReopens) {
+  Rom rom;
+  InitializePotItemRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WritePotItemManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+
+  handlers::DungeonSetPotItemCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--index=0", "--expect-position=0x1234",
+       "--expect-item=0x56", "--item=0x06",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--write", "--format=json"},
+      &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_THAT(output, HasSubstr("\"mode\": \"write\""));
+  EXPECT_THAT(output, HasSubstr("\"write_status\": \"success\""));
+  EXPECT_THAT(output, HasSubstr("\"save_status\": \"saved\""));
+  EXPECT_THAT(output, HasSubstr("\"readback_status\": \"pre_save_verified\""));
+  std::vector<uint8_t> expected = before;
+  expected[kPotItemBytePc] = 0x06;
+  EXPECT_EQ(rom.vector(), expected);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), expected);
+  EXPECT_FALSE(rom.dirty());
+
+  const auto backups = FindBackupArtifacts(cleanup.rom_path);
+  ASSERT_EQ(backups.size(), 1u);
+  EXPECT_EQ(ReadFile(backups.front()), disk_before);
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(cleanup.rom_path.string()).ok());
+  zelda3::Room reopened_room(0, &reopened);
+  reopened_room.LoadPotItems();
+  ASSERT_EQ(reopened_room.GetPotItems().size(), 2u);
+  EXPECT_EQ(reopened_room.GetPotItems()[0].position, 0x1234);
+  EXPECT_EQ(reopened_room.GetPotItems()[0].item, 0x06);
+  EXPECT_EQ(reopened_room.GetPotItems()[1].position, 0x5678);
+  EXPECT_EQ(reopened_room.GetPotItems()[1].item, 0x9A);
+}
+
+TEST(DungeonEditCommandsTest, SetPotItemDiskSaveFailureRollsBackCallerRom) {
+  Rom rom;
+  InitializePotItemRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WritePotItemManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  ASSERT_TRUE(
+      std::filesystem::create_directory(cleanup.rom_path.string() + ".tmp"));
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+  const bool dirty_before = rom.dirty();
+  const std::string filename_before = rom.filename();
+
+  handlers::DungeonSetPotItemCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--index=0", "--expect-position=0x1234",
+       "--expect-item=0x56", "--item=0x06",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--write", "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsInternal(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("Could not open temp ROM file for writing"));
+  EXPECT_THAT(output, HasSubstr("\"readback_status\": \"pre_save_verified\""));
+  EXPECT_THAT(output, HasSubstr("\"write_status\": \"success\""));
+  EXPECT_THAT(output, HasSubstr("\"save_error\""));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.dirty(), dirty_before);
+  EXPECT_EQ(rom.filename(), filename_before);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 1);
 }
 
 TEST(DungeonEditCommandsTest,
