@@ -1846,6 +1846,33 @@ TEST(DungeonEditCommandsTest,
 }
 
 TEST(DungeonEditCommandsTest,
+     SetPotItemRejectsUnrelatedMalformedRoomInCompleteInventory) {
+  Rom rom;
+  InitializePotItemRom(&rom);
+  SetRoomPotItemPointer(&rom, 1, kOtherPotDataPc + 2);
+  rom.set_dirty(false);
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WritePotItemManifest(manifest_cleanup.file_path);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonSetPotItemCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--index=0", "--expect-position=0x1234",
+       "--expect-item=0x56", "--item=0x06",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("Pot-item stream inventory is invalid at room 0x001"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest,
      SetPotItemRejectsProtectedByteWithoutMutationOrArtifacts) {
   Rom rom;
   InitializePotItemRom(&rom);

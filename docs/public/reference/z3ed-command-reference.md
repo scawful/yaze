@@ -201,11 +201,12 @@ address. `dungeon-set-pot-item` changes only that fixed-width item byte. It is
 a dry-run unless `--write` is supplied and requires an exact index plus
 expected raw position/item compare-and-swap and a pot-item stream manifest.
 The setter's dry-run and write modes inventory the complete manifest pointer
-table, reject selected stream aliases, overlaps, malformed pointers/streams,
-and pointers landing inside the selected stream, then cross-check the raw
-three-byte entries, room model, and `0xFFFF` terminator. Write mode uses a
-one-byte write fence, required backup, pre-save readback, and atomic ROM
-replacement. It does not add, remove, reposition, or repack pot items.
+table and fail closed if any room has an invalid or malformed stream. They also
+reject selected stream aliases, overlaps, and pointers landing inside the
+selected stream, then cross-check the raw three-byte entries, room model, and
+`0xFFFF` terminator. Write mode uses a one-byte write fence, required backup,
+pre-save readback, and atomic ROM replacement. It does not add, remove,
+reposition, or repack pot items.
 
 `dungeon-set-room-property` accepts `layout`/`layout_id` values `0`-`7` and
 `floor1`/`floor2` values `0`-`15`. These properties are persisted in the
