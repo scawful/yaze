@@ -1012,7 +1012,9 @@ absl::Status DungeonRoomHeaderCommandHandler::Execute(
     formatter.AddField("bg2", (byte0 >> 5) & 0x07);
     formatter.AddField("collision", (byte0 >> 2) & 0x07);
     formatter.AddField("is_light", (byte0 & 0x01) == 1);
-    formatter.AddField("palette", byte1 & 0x3F);
+    // This is the full 8-bit palette-set ID. Values 0x40-0x47 are valid;
+    // masking to six bits silently aliases them to the wrong palette set.
+    formatter.AddField("palette", byte1);
     formatter.AddField("blockset", byte2);
     formatter.AddField("spriteset", byte3);
     formatter.AddField("effect", rom->data()[room_header_pc + 4]);

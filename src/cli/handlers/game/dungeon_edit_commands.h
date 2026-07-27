@@ -84,6 +84,61 @@ class DungeonPlaceObjectCommandHandler : public resources::CommandHandler {
 };
 
 /**
+ * @brief Resolve and inspect the shared dungeon palette used by one room.
+ *
+ * Room headers contain an 8-bit palette-set ID. This command follows the
+ * palette-set and pointer tables to the global dungeon palette and reports
+ * every room affected by edits to that shared palette.
+ */
+class DungeonGetPaletteCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "dungeon-get-palette"; }
+  std::string GetDescription() const {
+    return "Inspect a room's resolved shared dungeon palette in a US/OOS ROM";
+  }
+  std::string GetUsage() const override {
+    return "dungeon-get-palette --room <hex> [--index <0..89>] "
+           "[--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"room"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
+ * @brief Change one color in a room's resolved shared dungeon palette.
+ *
+ * Dry-run is the default. The full palette-set ID, resolved palette index, and
+ * old color are compare-and-swap guards. A Hack Manifest is always required.
+ */
+class DungeonSetPaletteColorCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "dungeon-set-palette-color"; }
+  std::string GetDescription() const {
+    return "Change one US/OOS shared dungeon palette color with safety guards";
+  }
+  std::string GetUsage() const override {
+    return "dungeon-set-palette-color --room <hex> --index <0..89> "
+           "--expect-palette-set <hex> --expect-palette-index <0..19> "
+           "--expect-color <hex> --color <hex> --manifest <path> "
+           "[--write] [--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"room", "index", "expect-palette-set",
+                               "expect-palette-index", "expect-color", "color",
+                               "manifest"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
  * @brief Change one existing dungeon door's fixed-width type byte.
  *
  * The target is selected by exact tile coordinates and guarded by a required

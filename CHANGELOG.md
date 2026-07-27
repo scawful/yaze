@@ -6,6 +6,11 @@ High-level release summary. For detailed notes, see
 ## 0.8.0 (in development)
 - Development line for the Dungeon Editor completion milestone. See
   `docs/internal/plans/release-ladder-0x-2026.md` for scope.
+- Added room-aware US/OOS dungeon palette inspection and guarded persistent
+  color editing with shared-room fanout, CAS, manifest, clean-file baseline,
+  exact write fence, required backup, atomic save, and external readback.
+  Legacy `palette-set-color --write` now fails closed while preview remains
+  available.
 
 ## 0.7.2 (July 17, 2026)
 - **Dungeon RC Stabilization**:

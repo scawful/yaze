@@ -11,6 +11,7 @@
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
+#include "app/gfx/types/snes_palette.h"
 #include "cli/util/hex_util.h"
 #include "core/dungeon_stream_layout_adapter.h"
 #include "core/hack_manifest.h"
@@ -24,6 +25,7 @@
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/dungeon/track_collision_generator.h"
+#include "zelda3/game_data.h"
 #include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite.h"
 
@@ -281,6 +283,367 @@ bool IsLoRomDataPointer(uint32_t snes_address) {
   }
   const uint32_t pc_address = SnesToPc(snes_address);
   return (PcToSnes(pc_address) & 0x7FFFFFu) == (snes_address & 0x7FFFFFu);
+}
+
+constexpr int kDungeonPaletteColorCount = 90;
+constexpr int kDungeonPaletteCount = gfx::DungeonsMainPalettesMax;
+constexpr uint32_t kDungeonPaletteDataStart = gfx::kDungeonMainPalettes;
+constexpr uint32_t kSnesDestinationCodePc = 0x7FD9;
+constexpr uint32_t kDungeonPaletteDataEnd =
+    kDungeonPaletteDataStart +
+    kDungeonPaletteCount * zelda3::kDungeonPaletteBytes;
+
+bool IsValidRomRange(const Rom& rom, uint64_t start, uint64_t length) {
+  return start <= rom.size() && length <= rom.size() - start;
+}
+
+absl::Status ValidateSupportedDungeonPaletteRom(const Rom& rom) {
+  if (!IsValidRomRange(rom, kSnesDestinationCodePc, 1)) {
+    return absl::FailedPreconditionError(
+        "ROM is too small to prove US/OOS dungeon palette table layout");
+  }
+  uint8_t destination_code = 0;
+  ASSIGN_OR_RETURN(destination_code,
+                   rom.ReadByte(static_cast<int>(kSnesDestinationCodePc)));
+  if (destination_code != 0x01) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Dungeon palette commands currently support only the US/OOS table "
+        "layout (SNES destination code 0x01); got unsupported code 0x%02X",
+        destination_code));
+  }
+  return absl::OkStatus();
+}
+
+struct DungeonPaletteRoomMapping {
+  int room_id = -1;
+  uint8_t palette_set_id = 0;
+  uint8_t palette_pointer_offset = 0;
+  uint16_t palette_pointer_word = 0;
+  int palette_index = -1;
+  uint32_t room_header_pc = 0;
+  uint32_t palette_set_pc = 0;
+  uint32_t palette_pointer_pc = 0;
+  uint32_t palette_pc = 0;
+};
+
+absl::StatusOr<uint32_t> ResolveRoomHeaderPcStrict(const Rom& rom,
+                                                   int room_id) {
+  RETURN_IF_ERROR(ValidateRoomId(room_id));
+  if (!IsValidRomRange(rom, zelda3::kRoomHeaderPointer, 3) ||
+      !IsValidRomRange(rom, zelda3::kRoomHeaderPointerBank, 1)) {
+    return absl::FailedPreconditionError(
+        "Dungeon room-header pointer metadata is outside the ROM");
+  }
+
+  uint32_t table_snes = 0;
+  ASSIGN_OR_RETURN(table_snes, rom.ReadLong(zelda3::kRoomHeaderPointer));
+  if (!IsLoRomDataPointer(table_snes)) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Dungeon room-header pointer table is not a valid LoROM pointer: "
+        "0x%06X",
+        table_snes));
+  }
+  const uint32_t table_pc = SnesToPc(table_snes);
+  const uint64_t slot_pc =
+      static_cast<uint64_t>(table_pc) + static_cast<uint64_t>(room_id) * 2u;
+  if (!IsValidRomRange(rom, slot_pc, 2)) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Dungeon room 0x%03X header pointer slot is outside the ROM", room_id));
+  }
+
+  uint16_t header_offset = 0;
+  uint8_t header_bank = 0;
+  ASSIGN_OR_RETURN(header_offset, rom.ReadWord(static_cast<int>(slot_pc)));
+  ASSIGN_OR_RETURN(header_bank, rom.ReadByte(zelda3::kRoomHeaderPointerBank));
+  const uint32_t header_snes =
+      (static_cast<uint32_t>(header_bank) << 16) | header_offset;
+  if (!IsLoRomDataPointer(header_snes)) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Dungeon room 0x%03X header is not a valid LoROM pointer: 0x%06X",
+        room_id, header_snes));
+  }
+
+  const uint32_t header_pc = SnesToPc(header_snes);
+  if (!IsValidRomRange(rom, header_pc, 14)) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Dungeon room 0x%03X header is outside the ROM", room_id));
+  }
+  return header_pc;
+}
+
+absl::StatusOr<DungeonPaletteRoomMapping> ResolveDungeonPaletteRoomMapping(
+    const Rom& rom, int room_id) {
+  DungeonPaletteRoomMapping mapping;
+  mapping.room_id = room_id;
+  ASSIGN_OR_RETURN(mapping.room_header_pc,
+                   ResolveRoomHeaderPcStrict(rom, room_id));
+  ASSIGN_OR_RETURN(mapping.palette_set_id,
+                   rom.ReadByte(static_cast<int>(mapping.room_header_pc + 1u)));
+  if (mapping.palette_set_id >= zelda3::kNumPalettesets) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Dungeon room 0x%03X has out-of-range 8-bit palette-set ID 0x%02X "
+        "(expected 0x00-0x%02X)",
+        room_id, mapping.palette_set_id, zelda3::kNumPalettesets - 1));
+  }
+
+  mapping.palette_set_pc = zelda3::kPalettesetIdsAddress +
+                           static_cast<uint32_t>(mapping.palette_set_id) * 4u;
+  if (!IsValidRomRange(rom, mapping.palette_set_pc, 4)) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Palette-set entry 0x%02X is outside the ROM", mapping.palette_set_id));
+  }
+  ASSIGN_OR_RETURN(mapping.palette_pointer_offset,
+                   rom.ReadByte(static_cast<int>(mapping.palette_set_pc)));
+  if ((mapping.palette_pointer_offset & 1u) != 0u ||
+      mapping.palette_pointer_offset >= kDungeonPaletteCount * 2) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Palette-set 0x%02X has malformed dungeon palette pointer offset "
+        "0x%02X (expected an even byte offset 0x00-0x%02X)",
+        mapping.palette_set_id, mapping.palette_pointer_offset,
+        kDungeonPaletteCount * 2 - 2));
+  }
+
+  mapping.palette_pointer_pc =
+      zelda3::kDungeonPalettePointerTable + mapping.palette_pointer_offset;
+  if (!IsValidRomRange(rom, mapping.palette_pointer_pc, 2)) {
+    return absl::FailedPreconditionError(
+        "Resolved dungeon palette pointer is outside the ROM");
+  }
+  ASSIGN_OR_RETURN(mapping.palette_pointer_word,
+                   rom.ReadWord(static_cast<int>(mapping.palette_pointer_pc)));
+  if (mapping.palette_pointer_word % zelda3::kDungeonPaletteBytes != 0) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Palette-set 0x%02X resolves to malformed palette word 0x%04X "
+        "(not divisible by %d)",
+        mapping.palette_set_id, mapping.palette_pointer_word,
+        zelda3::kDungeonPaletteBytes));
+  }
+
+  mapping.palette_index =
+      mapping.palette_pointer_word / zelda3::kDungeonPaletteBytes;
+  if (mapping.palette_index < 0 ||
+      mapping.palette_index >= kDungeonPaletteCount) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Palette-set 0x%02X resolves to out-of-range dungeon palette %d",
+        mapping.palette_set_id, mapping.palette_index));
+  }
+
+  mapping.palette_pc = kDungeonPaletteDataStart + mapping.palette_pointer_word;
+  if (mapping.palette_pc < kDungeonPaletteDataStart ||
+      static_cast<uint64_t>(mapping.palette_pc) + zelda3::kDungeonPaletteBytes >
+          kDungeonPaletteDataEnd ||
+      !IsValidRomRange(rom, mapping.palette_pc, zelda3::kDungeonPaletteBytes)) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Palette-set 0x%02X resolves outside the fixed dungeon palette "
+        "region [0x%06X,0x%06X)",
+        mapping.palette_set_id, kDungeonPaletteDataStart,
+        kDungeonPaletteDataEnd));
+  }
+  return mapping;
+}
+
+struct DungeonPaletteSelection {
+  DungeonPaletteRoomMapping selected;
+  std::vector<uint32_t> affected_rooms;
+};
+
+absl::StatusOr<DungeonPaletteSelection> ResolveDungeonPaletteSelection(
+    const Rom& rom, int room_id) {
+  RETURN_IF_ERROR(ValidateSupportedDungeonPaletteRom(rom));
+  DungeonPaletteSelection selection;
+  ASSIGN_OR_RETURN(selection.selected,
+                   ResolveDungeonPaletteRoomMapping(rom, room_id));
+  selection.affected_rooms.reserve(zelda3::kNumberOfRooms);
+  for (int candidate = 0; candidate < zelda3::kNumberOfRooms; ++candidate) {
+    auto mapping_or = ResolveDungeonPaletteRoomMapping(rom, candidate);
+    if (!mapping_or.ok()) {
+      return absl::Status(
+          mapping_or.status().code(),
+          absl::StrFormat(
+              "Cannot prove complete shared palette fanout because room "
+              "0x%03X mapping is invalid: %s",
+              candidate, mapping_or.status().message()));
+    }
+    if (mapping_or->palette_index == selection.selected.palette_index) {
+      selection.affected_rooms.push_back(static_cast<uint32_t>(candidate));
+    }
+  }
+  return selection;
+}
+
+absl::Status ValidateDungeonPaletteColorIndex(int color_index) {
+  if (color_index < 0 || color_index >= kDungeonPaletteColorCount) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "--index must be in range 0-%d", kDungeonPaletteColorCount - 1));
+  }
+  return absl::OkStatus();
+}
+
+absl::Status ValidateSnes15BitColor(int color, const char* argument_name) {
+  if (color < 0 || color > 0x7FFF) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "--%s must be a 15-bit SNES color in range 0x0000-0x7FFF",
+        argument_name));
+  }
+  return absl::OkStatus();
+}
+
+uint32_t DungeonPaletteColorPc(const DungeonPaletteRoomMapping& mapping,
+                               int color_index) {
+  return mapping.palette_pc + static_cast<uint32_t>(color_index) * 2u;
+}
+
+absl::StatusOr<uint16_t> ReadDungeonPaletteColor(
+    const Rom& rom, const DungeonPaletteRoomMapping& mapping, int color_index) {
+  RETURN_IF_ERROR(ValidateDungeonPaletteColorIndex(color_index));
+  const uint32_t color_pc = DungeonPaletteColorPc(mapping, color_index);
+  if (!IsValidRomRange(rom, color_pc, 2) ||
+      color_pc < kDungeonPaletteDataStart ||
+      static_cast<uint64_t>(color_pc) + 2u > kDungeonPaletteDataEnd) {
+    return absl::FailedPreconditionError(
+        "Resolved dungeon palette color is outside the fixed palette region");
+  }
+  uint16_t color = 0;
+  ASSIGN_OR_RETURN(color, rom.ReadWord(static_cast<int>(color_pc)));
+  if (color > 0x7FFF) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Resolved dungeon palette color at PC 0x%06X is not a 15-bit SNES "
+        "color: 0x%04X",
+        color_pc, color));
+  }
+  return color;
+}
+
+void AddDungeonPaletteScope(resources::OutputFormatter& formatter,
+                            const DungeonPaletteSelection& selection) {
+  const auto& mapping = selection.selected;
+  formatter.AddHexField("room_id", mapping.room_id, 3);
+  formatter.AddHexField("palette_set_id", mapping.palette_set_id, 2);
+  formatter.AddField("resolved_palette_index", mapping.palette_index);
+  formatter.AddHexField("room_header_pc", mapping.room_header_pc, 6);
+  formatter.AddHexField("palette_set_pc", mapping.palette_set_pc, 6);
+  formatter.AddHexField("palette_pointer_offset",
+                        mapping.palette_pointer_offset, 2);
+  formatter.AddHexField("palette_pointer_pc", mapping.palette_pointer_pc, 6);
+  formatter.AddHexField("palette_pointer_word", mapping.palette_pointer_word,
+                        4);
+  formatter.AddHexField("palette_pc", mapping.palette_pc, 6);
+  formatter.AddHexField("palette_snes", PcToSnes(mapping.palette_pc), 6);
+  formatter.AddField("scope", "shared_global_dungeon_palette");
+  formatter.AddField("affected_room_count",
+                     static_cast<int>(selection.affected_rooms.size()));
+  formatter.BeginArray("affected_rooms");
+  for (uint32_t affected_room : selection.affected_rooms) {
+    formatter.AddArrayItem(absl::StrFormat("0x%03X", affected_room));
+  }
+  formatter.EndArray();
+}
+
+absl::Status ValidateDungeonPaletteManifestRange(
+    const core::HackManifest& manifest, uint32_t color_pc) {
+  const auto conflicts =
+      manifest.AnalyzePcWriteRanges({{color_pc, color_pc + 2u}});
+  if (conflicts.empty()) {
+    return absl::OkStatus();
+  }
+  const core::WriteConflict& conflict = conflicts.front();
+  return absl::PermissionDeniedError(absl::StrFormat(
+      "Dungeon palette color range [0x%06X,0x%06X) conflicts with Hack "
+      "Manifest ownership at SNES 0x%06X (%s%s%s)",
+      color_pc, color_pc + 2u, conflict.address,
+      core::AddressOwnershipToString(conflict.ownership),
+      conflict.module.empty() ? "" : ", module=",
+      conflict.module.empty() ? "" : conflict.module));
+}
+
+absl::StatusOr<std::vector<uint32_t>> ValidateDungeonPaletteWholeRomDiff(
+    const std::vector<uint8_t>& before, const Rom& after, uint32_t color_pc) {
+  if (after.size() != before.size()) {
+    return absl::DataLossError(
+        "Dungeon palette write unexpectedly resized the ROM");
+  }
+
+  std::vector<uint32_t> changed;
+  for (uint32_t pc = 0; pc < before.size(); ++pc) {
+    if (before[pc] == after.data()[pc]) {
+      continue;
+    }
+    if (pc < color_pc || pc >= color_pc + 2u) {
+      return absl::DataLossError(absl::StrFormat(
+          "Dungeon palette write changed unexpected ROM byte 0x%06X", pc));
+    }
+    changed.push_back(pc);
+  }
+  if (changed.empty() || changed.size() > 2u) {
+    return absl::DataLossError(absl::StrFormat(
+        "Dungeon palette write changed %zu bytes; expected one or two bytes "
+        "inside the fenced color word",
+        changed.size()));
+  }
+  return changed;
+}
+
+absl::Status ValidateDungeonPaletteWriteBaseline(const Rom& rom) {
+  if (rom.dirty()) {
+    return absl::FailedPreconditionError(
+        "Dungeon palette write requires a clean file-backed ROM; save or "
+        "discard unrelated in-memory edits first");
+  }
+  if (rom.filename().empty()) {
+    return absl::FailedPreconditionError(
+        "Dungeon palette write requires a ROM filename");
+  }
+
+  Rom disk_rom;
+  Rom::LoadOptions options;
+  options.strip_header = false;
+  options.load_resource_labels = false;
+  RETURN_IF_ERROR(disk_rom.LoadFromFile(rom.filename(), options));
+  if (disk_rom.vector() != rom.vector()) {
+    return absl::FailedPreconditionError(
+        "Dungeon palette write requires in-memory ROM bytes to exactly match "
+        "the current file; refusing to persist unrelated or stale bytes");
+  }
+  return absl::OkStatus();
+}
+
+absl::Status VerifyDungeonPaletteExternalReadback(
+    const Rom& saved_rom, int room_id, int expected_palette_set,
+    int expected_palette_index, int color_index, uint16_t expected_color) {
+  if (saved_rom.filename().empty()) {
+    return absl::FailedPreconditionError(
+        "Write mode requires a ROM filename for external readback");
+  }
+
+  Rom reopened;
+  Rom::LoadOptions options;
+  options.strip_header = false;
+  options.load_resource_labels = false;
+  RETURN_IF_ERROR(reopened.LoadFromFile(saved_rom.filename(), options));
+  if (reopened.vector() != saved_rom.vector()) {
+    return absl::DataLossError(
+        "External reopen bytes do not match the saved in-memory ROM");
+  }
+
+  RETURN_IF_ERROR(ValidateSupportedDungeonPaletteRom(reopened));
+  DungeonPaletteRoomMapping reopened_mapping;
+  ASSIGN_OR_RETURN(reopened_mapping,
+                   ResolveDungeonPaletteRoomMapping(reopened, room_id));
+  if (reopened_mapping.palette_set_id != expected_palette_set ||
+      reopened_mapping.palette_index != expected_palette_index) {
+    return absl::DataLossError(
+        "External reopen changed the selected dungeon palette mapping");
+  }
+  uint16_t reopened_color = 0;
+  ASSIGN_OR_RETURN(
+      reopened_color,
+      ReadDungeonPaletteColor(reopened, reopened_mapping, color_index));
+  if (reopened_color != expected_color) {
+    return absl::DataLossError(absl::StrFormat(
+        "External reopen color mismatch: expected 0x%04X, got 0x%04X",
+        expected_color, reopened_color));
+  }
+  return absl::OkStatus();
 }
 
 struct DoorTypeTarget {
@@ -1117,6 +1480,237 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
     }
   }
 
+  formatter.EndObject();
+  return absl::OkStatus();
+}
+
+// ---------------------------------------------------------------------------
+// dungeon-get-palette
+// ---------------------------------------------------------------------------
+
+absl::Status DungeonGetPaletteCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  int room_id = 0;
+  ASSIGN_OR_RETURN(room_id, GetRequiredHex(parser, "room"));
+  RETURN_IF_ERROR(ValidateRoomId(room_id));
+
+  std::optional<int> requested_index;
+  if (parser.GetString("index").has_value()) {
+    int color_index = 0;
+    ASSIGN_OR_RETURN(color_index, GetRequiredInt(parser, "index"));
+    RETURN_IF_ERROR(ValidateDungeonPaletteColorIndex(color_index));
+    requested_index = color_index;
+  }
+
+  DungeonPaletteSelection selection;
+  ASSIGN_OR_RETURN(selection, ResolveDungeonPaletteSelection(*rom, room_id));
+
+  formatter.BeginObject("Dungeon Palette");
+  AddDungeonPaletteScope(formatter, selection);
+  formatter.AddField("color_count", kDungeonPaletteColorCount);
+
+  if (requested_index.has_value()) {
+    const uint32_t color_pc =
+        DungeonPaletteColorPc(selection.selected, *requested_index);
+    uint16_t color = 0;
+    ASSIGN_OR_RETURN(color, ReadDungeonPaletteColor(*rom, selection.selected,
+                                                    *requested_index));
+    formatter.AddField("color_index", *requested_index);
+    formatter.AddHexField("color_pc", color_pc, 6);
+    formatter.AddHexField("color_snes_address", PcToSnes(color_pc), 6);
+    formatter.AddHexField("color_snes", color, 4);
+  } else {
+    formatter.BeginArray("colors");
+    for (int color_index = 0; color_index < kDungeonPaletteColorCount;
+         ++color_index) {
+      const uint32_t color_pc =
+          DungeonPaletteColorPc(selection.selected, color_index);
+      uint16_t color = 0;
+      ASSIGN_OR_RETURN(color, ReadDungeonPaletteColor(*rom, selection.selected,
+                                                      color_index));
+      formatter.BeginObject();
+      formatter.AddField("index", color_index);
+      formatter.AddHexField("pc", color_pc, 6);
+      formatter.AddHexField("snes_address", PcToSnes(color_pc), 6);
+      formatter.AddHexField("snes_color", color, 4);
+      formatter.EndObject();
+    }
+    formatter.EndArray();
+  }
+
+  formatter.AddField("status", "success");
+  formatter.EndObject();
+  return absl::OkStatus();
+}
+
+// ---------------------------------------------------------------------------
+// dungeon-set-palette-color
+// ---------------------------------------------------------------------------
+
+absl::Status DungeonSetPaletteColorCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  const bool do_write = parser.HasFlag("write");
+#if defined(__EMSCRIPTEN__)
+  if (do_write) {
+    return absl::FailedPreconditionError(
+        "dungeon-set-palette-color --write is unavailable in the browser "
+        "terminal because durable filesystem sync cannot be guaranteed; use "
+        "native z3ed on a disposable ROM copy");
+  }
+#endif
+  if (do_write && rom->filename().empty()) {
+    return absl::FailedPreconditionError(
+        "dungeon-set-palette-color --write requires a ROM loaded from a "
+        "filesystem path");
+  }
+
+  int room_id = 0;
+  int color_index = 0;
+  int expected_palette_set = 0;
+  int expected_palette_index = 0;
+  int expected_color = 0;
+  int replacement_color = 0;
+  ASSIGN_OR_RETURN(room_id, GetRequiredHex(parser, "room"));
+  ASSIGN_OR_RETURN(color_index, GetRequiredInt(parser, "index"));
+  ASSIGN_OR_RETURN(expected_palette_set,
+                   GetRequiredHex(parser, "expect-palette-set"));
+  ASSIGN_OR_RETURN(expected_palette_index,
+                   GetRequiredInt(parser, "expect-palette-index"));
+  ASSIGN_OR_RETURN(expected_color, GetRequiredHex(parser, "expect-color"));
+  ASSIGN_OR_RETURN(replacement_color, GetRequiredHex(parser, "color"));
+
+  RETURN_IF_ERROR(ValidateRoomId(room_id));
+  RETURN_IF_ERROR(ValidateDungeonPaletteColorIndex(color_index));
+  if (expected_palette_set < 0 || expected_palette_set > 0xFF) {
+    return absl::InvalidArgumentError(
+        "--expect-palette-set must be an 8-bit value in range 0x00-0xFF");
+  }
+  if (expected_palette_index < 0 ||
+      expected_palette_index >= kDungeonPaletteCount) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("--expect-palette-index must be in range 0-%d",
+                        kDungeonPaletteCount - 1));
+  }
+  RETURN_IF_ERROR(ValidateSnes15BitColor(expected_color, "expect-color"));
+  RETURN_IF_ERROR(ValidateSnes15BitColor(replacement_color, "color"));
+
+  const std::string manifest_path = parser.GetString("manifest").value();
+  core::HackManifest manifest;
+  RETURN_IF_ERROR(manifest.LoadFromFile(manifest_path));
+
+  DungeonPaletteSelection selection;
+  ASSIGN_OR_RETURN(selection, ResolveDungeonPaletteSelection(*rom, room_id));
+  if (selection.selected.palette_set_id != expected_palette_set) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Palette-set CAS failed for room 0x%03X: expected full 8-bit ID "
+        "0x%02X, got 0x%02X",
+        room_id, expected_palette_set, selection.selected.palette_set_id));
+  }
+  if (selection.selected.palette_index != expected_palette_index) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Resolved palette CAS failed for room 0x%03X: expected %d, got %d",
+        room_id, expected_palette_index, selection.selected.palette_index));
+  }
+
+  uint16_t actual_color = 0;
+  ASSIGN_OR_RETURN(actual_color, ReadDungeonPaletteColor(
+                                     *rom, selection.selected, color_index));
+  if (actual_color != expected_color) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Color CAS failed at palette %d index %d: expected 0x%04X, got "
+        "0x%04X",
+        selection.selected.palette_index, color_index, expected_color,
+        actual_color));
+  }
+  if (replacement_color == actual_color) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Refusing no-op dungeon palette write: color is already 0x%04X",
+        actual_color));
+  }
+
+  const uint32_t color_pc =
+      DungeonPaletteColorPc(selection.selected, color_index);
+  RETURN_IF_ERROR(ValidateDungeonPaletteManifestRange(manifest, color_pc));
+  if (do_write) {
+    RETURN_IF_ERROR(ValidateDungeonPaletteWriteBaseline(*rom));
+  }
+
+  formatter.BeginObject("Set Dungeon Palette Color");
+  AddDungeonPaletteScope(formatter, selection);
+  formatter.AddField("manifest", manifest_path);
+  formatter.AddField("manifest_write_policy", "block");
+  formatter.AddField("mode", do_write ? "write" : "dry-run");
+  formatter.AddField("color_index", color_index);
+  formatter.AddHexField("color_pc", color_pc, 6);
+  formatter.AddHexField("color_snes_address", PcToSnes(color_pc), 6);
+  formatter.AddHexField("old_color", actual_color, 4);
+  formatter.AddHexField("new_color", replacement_color, 4);
+  formatter.AddField("preflight_status", "success");
+
+  if (!do_write) {
+    formatter.AddField("status", "dry-run");
+    formatter.EndObject();
+    return absl::OkStatus();
+  }
+
+  rom::WriteFence write_fence;
+  RETURN_IF_ERROR(
+      write_fence.Allow(color_pc, color_pc + 2u, "DungeonPaletteColor"));
+  const std::vector<uint8_t> before = rom->vector();
+  ScopedRomTransaction transaction(*rom);
+  {
+    rom::ScopedWriteFence scoped_fence(rom, &write_fence);
+    RETURN_IF_ERROR(
+        rom->WriteShort(color_pc, static_cast<uint16_t>(replacement_color)));
+  }
+
+  std::vector<uint32_t> changed_bytes;
+  ASSIGN_OR_RETURN(changed_bytes,
+                   ValidateDungeonPaletteWholeRomDiff(before, *rom, color_pc));
+  uint16_t memory_color = 0;
+  ASSIGN_OR_RETURN(memory_color, ReadDungeonPaletteColor(
+                                     *rom, selection.selected, color_index));
+  if (memory_color != replacement_color) {
+    return absl::DataLossError(
+        "In-memory dungeon palette readback did not match the replacement");
+  }
+  formatter.AddField("write_status", "success");
+  formatter.AddField("whole_rom_diff_status", "verified");
+  formatter.AddField("changed_byte_count",
+                     static_cast<int>(changed_bytes.size()));
+  formatter.BeginArray("changed_byte_pcs");
+  for (uint32_t changed_pc : changed_bytes) {
+    formatter.AddArrayItem(absl::StrFormat("0x%06X", changed_pc));
+  }
+  formatter.EndArray();
+  formatter.AddField("memory_readback_status", "verified");
+
+  const absl::Status save_status = SaveRomWithBackup(rom, formatter);
+  if (!save_status.ok()) {
+    formatter.AddField("status", "error");
+    formatter.EndObject();
+    return save_status;
+  }
+
+  // The atomic disk replacement has succeeded. Commit the caller's in-memory
+  // transaction before external verification so a later reopen/readback
+  // failure cannot roll memory back while leaving the persisted file changed.
+  transaction.Commit();
+  const absl::Status reopen_status = VerifyDungeonPaletteExternalReadback(
+      *rom, room_id, expected_palette_set, expected_palette_index, color_index,
+      static_cast<uint16_t>(replacement_color));
+  if (!reopen_status.ok()) {
+    formatter.AddField("readback_status", "external_reopen_failed");
+    formatter.AddField("readback_error", std::string(reopen_status.message()));
+    formatter.AddField("status", "error");
+    formatter.EndObject();
+    return reopen_status;
+  }
+
+  formatter.AddField("readback_status", "external_reopen_verified");
+  formatter.AddField("status", "success");
   formatter.EndObject();
   return absl::OkStatus();
 }

@@ -358,6 +358,15 @@ commands:
   rom validate: "Validate ROM integrity and structure"
 ```
 
+## Safe Dungeon Palette Tool Rule
+
+For US/OOS dungeon palettes, call the read-only `dungeon-get-palette` tool
+first and review every affected room. Use the guarded mutating
+`dungeon-set-palette-color` tool with fresh palette-set, resolved-index, and
+raw-color CAS values plus a Hack Manifest. It defaults to dry-run; request
+`write=true` only for a clean disposable file-backed ROM after reviewing the
+dry-run. Legacy `palette-set-color --write` is disabled.
+
 ## Tile16 Reference
 ```yaml
 tile16_reference:
