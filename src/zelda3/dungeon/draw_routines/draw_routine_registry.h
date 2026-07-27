@@ -89,6 +89,7 @@ constexpr int kTableBowl = 126;
 constexpr int kSmithyFurnace = 127;
 constexpr int kBigGrayRock = 128;
 constexpr int kAgahnimsAltar = 129;
+constexpr int kFortuneTellerRoom = 131;
 
 // Corner routines (19, 35-37, 75-78)
 constexpr int kCorner4x4 = 19;
@@ -177,7 +178,7 @@ constexpr int kSingle4x3 = 114;
 constexpr int kRupeeFloor = 115;
 constexpr int kActual4x4 = 116;
 
-// Custom object routines (130+)
+// Custom object routine.
 constexpr int kCustomObject = 130;
 
 }  // namespace DrawRoutineIds

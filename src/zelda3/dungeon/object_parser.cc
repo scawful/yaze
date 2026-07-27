@@ -343,6 +343,8 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
   constexpr int kBigGrayRockTileCount = 16;
   constexpr int kAgahnimsAltarTileOffset = 0x1B4A;
   constexpr int kAgahnimsAltarTileCount = 84;
+  constexpr int kFortuneTellerRoomTileOffset = 0x202E;
+  constexpr int kFortuneTellerRoomTileCount = 26;
   constexpr int kSmithyFurnaceTileOffset = 0x1F92;
   constexpr int kSmithyFurnaceTileCount = 48;
 
@@ -451,6 +453,13 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
   if (object_id == 0xFAD) {
     return ReadTileData(kRoomObjectTileAddress + kAgahnimsAltarTileOffset,
                         kAgahnimsAltarTileCount);
+  }
+
+  // FortuneTellerRoom ignores its table-derived pointer and loads literal
+  // obj202E before writing a sparse, fixed 14x14 room facade.
+  if (object_id == 0xFD4) {
+    return ReadTileData(kRoomObjectTileAddress + kFortuneTellerRoomTileOffset,
+                        kFortuneTellerRoomTileCount);
   }
 
   // SmithyFurnace replaces the table-derived data pointer with literal
@@ -674,6 +683,11 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
   if (object_id == 0xFAD) {
     return 84;
   }
+  // FortuneTellerRoom (0xFD4 = ASM 0x254) consumes all 26 words from obj202E
+  // while writing a sparse, fixed 14x14 BG1 footprint.
+  if (object_id == 0xFD4) {
+    return 26;
+  }
   // SmithyFurnace (0xFCC = ASM 0x24C) loads obj1F92 and draws a fixed
   // 6-column x 8-row block through RoomDraw_SomeBigDecors.
   if (object_id == 0xFCC) {
@@ -681,8 +695,7 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
   }
   // 4x4 single-pattern objects
   if (object_id == 0xFAA || object_id == 0xFAE ||
-      (object_id >= 0xFB4 && object_id <= 0xFB9) || object_id == 0xFD4 ||
-      object_id == 0xFE2) {
+      (object_id >= 0xFB4 && object_id <= 0xFB9) || object_id == 0xFE2) {
     return 16;
   }
   // Big wall decor aliases: RoomDraw_BigWallDecor calls

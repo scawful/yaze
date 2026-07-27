@@ -144,6 +144,13 @@ void DrawBigGrayRock(const DrawContext& ctx);
 void DrawAgahnimsAltar(const DrawContext& ctx);
 
 /**
+ * @brief Draw the fixed 14x14 fortune teller room on BG1
+ *
+ * ASM: RoomDraw_FortuneTellerRoom ($01A095)
+ */
+void DrawFortuneTellerRoom(const DrawContext& ctx);
+
+/**
  * @brief Draw utility 3x5 pattern (special row pattern)
  *
  * ASM: RoomDraw_Utility3x5 ($01A194)
