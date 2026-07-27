@@ -154,6 +154,8 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<DungeonRemoveSpriteCommandHandler>());
   handlers.push_back(std::make_unique<DungeonPlaceObjectCommandHandler>());
   handlers.push_back(std::make_unique<DungeonSetDoorTypeCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonListPotItemsCommandHandler>());
+  handlers.push_back(std::make_unique<DungeonSetPotItemCommandHandler>());
   handlers.push_back(std::make_unique<DungeonSetCollisionTileCommandHandler>());
 
   // Overworld inspection

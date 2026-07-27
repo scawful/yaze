@@ -111,6 +111,55 @@ class DungeonSetDoorTypeCommandHandler : public resources::CommandHandler {
 };
 
 /**
+ * @brief List existing pot-item entries and their exact ROM addresses.
+ */
+class DungeonListPotItemsCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "dungeon-list-pot-items"; }
+  std::string GetDescription() const {
+    return "List existing dungeon pot-item entries";
+  }
+  std::string GetUsage() const override {
+    return "dungeon-list-pot-items --room <hex> "
+           "[--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"room"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
+ * @brief Change one existing pot item's fixed-width item byte.
+ *
+ * The target is selected by exact stream index and guarded by expected raw
+ * position and item values. Dry-run is the default; use --write to commit.
+ */
+class DungeonSetPotItemCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "dungeon-set-pot-item"; }
+  std::string GetDescription() const {
+    return "Change an existing dungeon pot item";
+  }
+  std::string GetUsage() const override {
+    return "dungeon-set-pot-item --room <hex> --index <int> "
+           "--expect-position <hex> --expect-item <hex> --item <hex> "
+           "--manifest <path> [--write] [--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"room", "index", "expect-position",
+                               "expect-item", "item", "manifest"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
  * @brief Set individual custom collision tiles in a dungeon room.
  *
  * Supports setting one or more tiles. Dry-run by default.
