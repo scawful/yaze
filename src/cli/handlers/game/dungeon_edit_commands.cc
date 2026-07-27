@@ -1,8 +1,10 @@
 #include "cli/handlers/game/dungeon_edit_commands.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <limits>
 #include <optional>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -16,6 +18,7 @@
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "rom/transaction.h"
+#include "rom/write_fence.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/dungeon_stream_allocator.h"
 #include "zelda3/dungeon/room.h"
@@ -237,6 +240,290 @@ absl::Status PreflightObjectSave(
   return scratch_room.SaveObjects(manifest_context != nullptr
                                       ? &manifest_context->allocator_layout
                                       : nullptr);
+}
+
+absl::StatusOr<int> GetRequiredHex(const resources::ArgumentParser& parser,
+                                   const char* name) {
+  auto value_or = GetRequiredString(parser, name);
+  if (!value_or.ok()) {
+    return value_or.status();
+  }
+
+  int value = 0;
+  if (!ParseHexString(*value_or, &value)) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Invalid --%s value '%s' (expected integer/hex)", name, *value_or));
+  }
+  return value;
+}
+
+absl::Status ValidateDoorType(int type, const char* argument_name) {
+  if (type < 0 || type > 0x66 || (type & 1) != 0) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "--%s must be an even door type in range 0x00-0x66", argument_name));
+  }
+  return absl::OkStatus();
+}
+
+bool ContainsRoomId(const std::vector<uint32_t>& room_ids, int room_id) {
+  return std::find(room_ids.begin(), room_ids.end(),
+                   static_cast<uint32_t>(room_id)) != room_ids.end();
+}
+
+bool IsLoRomDataPointer(uint32_t snes_address) {
+  if ((snes_address & 0xFFFFu) < 0x8000u) {
+    return false;
+  }
+  const uint8_t normalized_bank =
+      static_cast<uint8_t>((snes_address >> 16) & 0x7Fu);
+  if (normalized_bank >= 0x7Eu) {
+    return false;
+  }
+  const uint32_t pc_address = SnesToPc(snes_address);
+  return (PcToSnes(pc_address) & 0x7FFFFFu) == (snes_address & 0x7FFFFFu);
+}
+
+struct DoorTypeTarget {
+  int door_index = -1;
+  zelda3::Room::Door door;
+  uint32_t object_stream_pc = 0;
+  uint32_t object_stream_end_pc = 0;
+  uint32_t door_pointer_pc = 0;
+  uint32_t door_entry_pc = 0;
+  uint32_t type_pc = 0;
+};
+
+absl::StatusOr<DoorTypeTarget> ResolveDoorTypeTarget(
+    Rom* rom, int room_id, int x, int y,
+    const ObjectSaveManifestContext& manifest_context) {
+  if (manifest_context.allocator_layout.pointer_encoding !=
+      zelda3::DungeonPointerEncoding::kLong24) {
+    return absl::FailedPreconditionError(
+        "Dungeon object manifest pointer encoding must be long24");
+  }
+  if (manifest_context.allocator_layout.pointer_count !=
+      zelda3::kNumberOfRooms) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Dungeon object manifest pointer_count must equal %d rooms",
+        zelda3::kNumberOfRooms));
+  }
+
+  uint32_t runtime_pointer_table_snes = 0;
+  ASSIGN_OR_RETURN(runtime_pointer_table_snes,
+                   rom->ReadLong(zelda3::kRoomObjectPointer));
+  if (!IsLoRomDataPointer(runtime_pointer_table_snes)) {
+    return absl::FailedPreconditionError(
+        "Runtime object pointer table is not a valid LoROM data pointer");
+  }
+  const uint32_t runtime_pointer_table_pc =
+      SnesToPc(runtime_pointer_table_snes);
+  if (runtime_pointer_table_pc !=
+      manifest_context.allocator_layout.pointer_table_pc) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Manifest object pointer table PC 0x%06X does not match runtime "
+        "table PC 0x%06X",
+        manifest_context.allocator_layout.pointer_table_pc,
+        runtime_pointer_table_pc));
+  }
+
+  zelda3::DungeonStreamInventory inventory;
+  ASSIGN_OR_RETURN(inventory, zelda3::InventoryDungeonStreams(
+                                  *rom, manifest_context.allocator_layout));
+  if (static_cast<size_t>(room_id) >= inventory.streams.size()) {
+    return absl::FailedPreconditionError(
+        "Selected room is absent from the object stream inventory");
+  }
+  for (const auto& issue : inventory.issues) {
+    if (issue.room_id == static_cast<uint32_t>(room_id)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Selected object stream is invalid: %s", issue.message));
+    }
+  }
+
+  const auto& stream = inventory.streams[room_id];
+  if (!stream.valid) {
+    return absl::FailedPreconditionError("Selected object stream is invalid");
+  }
+  for (const auto& alias : inventory.aliases) {
+    if (ContainsRoomId(alias.room_ids, room_id)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Selected object stream at PC 0x%06X is shared by %d rooms",
+          alias.data_pc, static_cast<int>(alias.room_ids.size())));
+    }
+  }
+  for (const auto& overlap : inventory.overlaps) {
+    if (ContainsRoomId(overlap.first_room_ids, room_id) ||
+        ContainsRoomId(overlap.second_room_ids, room_id)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Selected object stream overlaps PC range [0x%06X, 0x%06X)",
+          overlap.intersection.begin, overlap.intersection.end));
+    }
+  }
+  for (const auto& other_stream : inventory.streams) {
+    if (other_stream.room_id == static_cast<uint32_t>(room_id)) {
+      continue;
+    }
+    if (other_stream.data_pc >= stream.data_pc &&
+        other_stream.data_pc < stream.logical_end_pc) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Room 0x%03X object pointer PC 0x%06X starts inside selected "
+          "object stream [0x%06X, 0x%06X)",
+          other_stream.room_id, other_stream.data_pc, stream.data_pc,
+          stream.logical_end_pc));
+    }
+  }
+  for (int other_room_id = 0; other_room_id < zelda3::kNumberOfRooms;
+       ++other_room_id) {
+    if (other_room_id == room_id) {
+      continue;
+    }
+    const uint32_t other_door_pointer_slot =
+        zelda3::kDoorPointers + static_cast<uint32_t>(other_room_id) * 3u;
+    uint32_t other_door_pointer_snes = 0;
+    ASSIGN_OR_RETURN(other_door_pointer_snes,
+                     rom->ReadLong(static_cast<int>(other_door_pointer_slot)));
+    if (!IsLoRomDataPointer(other_door_pointer_snes)) {
+      continue;
+    }
+    const uint32_t other_door_pointer_pc = SnesToPc(other_door_pointer_snes);
+    if (other_door_pointer_pc >= stream.data_pc &&
+        other_door_pointer_pc < stream.logical_end_pc) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Room 0x%03X door pointer PC 0x%06X points inside selected "
+          "object stream [0x%06X, 0x%06X)",
+          other_room_id, other_door_pointer_pc, stream.data_pc,
+          stream.logical_end_pc));
+    }
+  }
+
+  const uint64_t runtime_pointer_slot =
+      static_cast<uint64_t>(runtime_pointer_table_pc) +
+      static_cast<uint64_t>(room_id) * 3u;
+  if (runtime_pointer_slot + 3u > rom->size() ||
+      runtime_pointer_slot != stream.pointer_slot_pc) {
+    return absl::FailedPreconditionError(
+        "Selected runtime object pointer slot does not match the manifest");
+  }
+  uint32_t runtime_stream_snes = 0;
+  ASSIGN_OR_RETURN(runtime_stream_snes,
+                   rom->ReadLong(static_cast<int>(runtime_pointer_slot)));
+  if (!IsLoRomDataPointer(runtime_stream_snes)) {
+    return absl::FailedPreconditionError(
+        "Selected runtime object stream is not a valid LoROM data pointer");
+  }
+  const uint32_t runtime_stream_pc = SnesToPc(runtime_stream_snes);
+  if (runtime_stream_pc != stream.data_pc) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Selected runtime object stream PC 0x%06X does not match inventory "
+        "PC 0x%06X",
+        runtime_stream_pc, stream.data_pc));
+  }
+
+  zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
+  const auto& doors = room.GetDoors();
+  int selected_index = -1;
+  for (int index = 0; index < static_cast<int>(doors.size()); ++index) {
+    const auto [door_x, door_y] = doors[index].GetTileCoords();
+    if (door_x != x || door_y != y) {
+      continue;
+    }
+    if (selected_index >= 0) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Multiple doors match tile coordinates (%d, %d)", x, y));
+    }
+    selected_index = index;
+  }
+  if (selected_index < 0) {
+    return absl::NotFoundError(absl::StrFormat(
+        "No door matches tile coordinates (%d, %d) in room 0x%03X", x, y,
+        room_id));
+  }
+
+  const uint64_t door_pointer_slot =
+      static_cast<uint64_t>(zelda3::kDoorPointers) +
+      static_cast<uint64_t>(room_id) * 3u;
+  if (door_pointer_slot + 3u > rom->size()) {
+    return absl::OutOfRangeError("Selected door pointer slot is outside ROM");
+  }
+  uint32_t door_pointer_snes = 0;
+  ASSIGN_OR_RETURN(door_pointer_snes,
+                   rom->ReadLong(static_cast<int>(door_pointer_slot)));
+  if (!IsLoRomDataPointer(door_pointer_snes)) {
+    return absl::FailedPreconditionError(
+        "Selected door pointer is not a valid LoROM data pointer");
+  }
+  const uint32_t door_pointer_pc = SnesToPc(door_pointer_snes);
+  const uint64_t door_entry_pc = static_cast<uint64_t>(door_pointer_pc) +
+                                 static_cast<uint64_t>(selected_index) * 2u;
+  const uint64_t expected_stream_end =
+      static_cast<uint64_t>(door_pointer_pc) +
+      static_cast<uint64_t>(doors.size()) * 2u + 2u;
+  if (door_pointer_pc < stream.data_pc ||
+      door_entry_pc + 2u > stream.logical_end_pc ||
+      expected_stream_end != stream.logical_end_pc) {
+    return absl::FailedPreconditionError(
+        "Door pointer/count does not match the inventoried object stream end");
+  }
+
+  uint8_t raw_byte1 = 0;
+  uint8_t raw_byte2 = 0;
+  for (int index = 0; index < static_cast<int>(doors.size()); ++index) {
+    const uint32_t entry_pc =
+        door_pointer_pc + static_cast<uint32_t>(index) * 2u;
+    uint8_t entry_byte1 = 0;
+    uint8_t entry_byte2 = 0;
+    ASSIGN_OR_RETURN(entry_byte1, rom->ReadByte(static_cast<int>(entry_pc)));
+    ASSIGN_OR_RETURN(entry_byte2,
+                     rom->ReadByte(static_cast<int>(entry_pc + 1u)));
+    const auto [model_byte1, model_byte2] = doors[index].EncodeBytes();
+    if (model_byte1 != entry_byte1 || model_byte2 != entry_byte2 ||
+        doors[index].byte1 != entry_byte1 ||
+        doors[index].byte2 != entry_byte2) {
+      return absl::DataLossError(
+          "Door model does not match the raw door-pointer entries");
+    }
+    if (index == selected_index) {
+      raw_byte1 = entry_byte1;
+      raw_byte2 = entry_byte2;
+    }
+  }
+  uint16_t door_terminator = 0;
+  ASSIGN_OR_RETURN(door_terminator,
+                   rom->ReadWord(static_cast<int>(expected_stream_end - 2u)));
+  if (door_terminator != 0xFFFFu) {
+    return absl::DataLossError(
+        "Door list does not end with the expected 0xFFFF terminator");
+  }
+
+  const zelda3::Room::Door raw_door =
+      zelda3::Room::Door::FromRomBytes(raw_byte1, raw_byte2);
+  const zelda3::Room::Door& model_door = doors[selected_index];
+  const auto [raw_x, raw_y] = raw_door.GetTileCoords();
+  if (model_door.position != raw_door.position ||
+      model_door.direction != raw_door.direction ||
+      model_door.type != raw_door.type || raw_x != x || raw_y != y) {
+    return absl::DataLossError(
+        "Door model does not match the raw door-pointer entry");
+  }
+
+  const uint32_t type_pc = static_cast<uint32_t>(door_entry_pc + 1u);
+  const auto conflicts =
+      manifest_context.manifest.AnalyzePcWriteRanges({{type_pc, type_pc + 1u}});
+  if (!conflicts.empty()) {
+    return absl::PermissionDeniedError(absl::StrFormat(
+        "Door type byte at PC 0x%06X conflicts with Hack Manifest (%s)",
+        type_pc, core::AddressOwnershipToString(conflicts.front().ownership)));
+  }
+
+  DoorTypeTarget target;
+  target.door_index = selected_index;
+  target.door = model_door;
+  target.object_stream_pc = stream.data_pc;
+  target.object_stream_end_pc = stream.logical_end_pc;
+  target.door_pointer_pc = door_pointer_pc;
+  target.door_entry_pc = static_cast<uint32_t>(door_entry_pc);
+  target.type_pc = type_pc;
+  return target;
 }
 
 }  // namespace
@@ -618,6 +905,179 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
     }
   }
 
+  formatter.EndObject();
+  return absl::OkStatus();
+}
+
+// ---------------------------------------------------------------------------
+// dungeon-set-door-type
+// ---------------------------------------------------------------------------
+
+absl::Status DungeonSetDoorTypeCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  int room_id = 0;
+  ASSIGN_OR_RETURN(room_id, GetRequiredHex(parser, "room"));
+  RETURN_IF_ERROR(ValidateRoomId(room_id));
+
+  int x = 0;
+  int y = 0;
+  ASSIGN_OR_RETURN(x, GetRequiredInt(parser, "x"));
+  ASSIGN_OR_RETURN(y, GetRequiredInt(parser, "y"));
+  if (x < 0 || x > 63 || y < 0 || y > 63) {
+    return absl::InvalidArgumentError(
+        "Door tile coordinates must be in range 0-63");
+  }
+
+  int new_type = 0;
+  int expected_type = 0;
+  ASSIGN_OR_RETURN(new_type, GetRequiredHex(parser, "type"));
+  ASSIGN_OR_RETURN(expected_type, GetRequiredHex(parser, "expect-type"));
+  RETURN_IF_ERROR(ValidateDoorType(new_type, "type"));
+  RETURN_IF_ERROR(ValidateDoorType(expected_type, "expect-type"));
+
+  std::optional<ObjectSaveManifestContext> manifest_context;
+  ASSIGN_OR_RETURN(manifest_context, LoadObjectSaveManifestContext(parser));
+  if (!manifest_context.has_value()) {
+    return absl::FailedPreconditionError(
+        "--manifest is required for dungeon-set-door-type");
+  }
+
+  DoorTypeTarget target;
+  ASSIGN_OR_RETURN(
+      target, ResolveDoorTypeTarget(rom, room_id, x, y, *manifest_context));
+  const int old_type = static_cast<int>(target.door.type);
+  if (old_type != expected_type) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Door type compare-and-swap failed at (%d, %d): expected 0x%02X, "
+        "found 0x%02X",
+        x, y, expected_type, old_type));
+  }
+  if (new_type == old_type) {
+    return absl::InvalidArgumentError(
+        "--type must differ from the current door type");
+  }
+
+  const bool do_write = parser.HasFlag("write");
+  if (do_write && rom->filename().empty()) {
+    return absl::FailedPreconditionError("Write mode requires a ROM filename");
+  }
+
+  formatter.BeginObject("Set Door Type");
+  formatter.AddHexField("room_id", room_id, 3);
+  formatter.AddField("door_index", target.door_index);
+  formatter.AddField("x", x);
+  formatter.AddField("y", y);
+  formatter.AddField("position", target.door.position);
+  formatter.AddField("direction", std::string(target.door.GetDirectionName()));
+  formatter.AddHexField("old_type", old_type, 2);
+  formatter.AddField("old_type_name", std::string(target.door.GetTypeName()));
+  formatter.AddHexField("new_type", new_type, 2);
+  formatter.AddField(
+      "new_type_name",
+      std::string(zelda3::GetDoorTypeName(
+          zelda3::DoorTypeFromRaw(static_cast<uint8_t>(new_type)))));
+  formatter.AddHexField("object_stream_pc", target.object_stream_pc, 6);
+  formatter.AddHexField("object_stream_end_pc", target.object_stream_end_pc, 6);
+  formatter.AddHexField("door_pointer_pc", target.door_pointer_pc, 6);
+  formatter.AddHexField("door_entry_pc", target.door_entry_pc, 6);
+  formatter.AddHexField("type_pc", target.type_pc, 6);
+  formatter.AddHexField("type_snes", PcToSnes(target.type_pc), 6);
+  formatter.AddField("manifest", *parser.GetString("manifest"));
+  formatter.AddField("manifest_write_policy", "block");
+  formatter.AddField("stream_alias_status", "unique");
+  formatter.AddField("mode", do_write ? "write" : "dry-run");
+  formatter.AddField("preflight_status", "success");
+
+  if (!do_write) {
+    formatter.AddField("write_status", "not_requested");
+    formatter.AddField("save_status", "not_requested");
+    formatter.AddField("readback_status", "not_requested");
+    formatter.AddField("status", "success");
+    formatter.EndObject();
+    return absl::OkStatus();
+  }
+
+  const auto finish_error = [&formatter](const absl::Status& status,
+                                         const char* field) -> absl::Status {
+    formatter.AddField("status", "error");
+    formatter.AddField(field, std::string(status.message()));
+    formatter.EndObject();
+    return status;
+  };
+  const auto verify_readback =
+      [&target, new_type](const DoorTypeTarget& readback) -> absl::Status {
+    if (readback.door_index != target.door_index ||
+        readback.type_pc != target.type_pc ||
+        readback.door.position != target.door.position ||
+        readback.door.direction != target.door.direction ||
+        static_cast<int>(readback.door.type) != new_type) {
+      return absl::DataLossError(
+          "Door type readback does not match the requested change");
+    }
+    return absl::OkStatus();
+  };
+
+  rom::WriteFence write_fence;
+  const absl::Status allow_status = write_fence.Allow(
+      target.type_pc, target.type_pc + 1u, "dungeon door type");
+  if (!allow_status.ok()) {
+    return finish_error(allow_status, "write_error");
+  }
+
+  const std::vector<uint8_t> before = rom->vector();
+  ScopedRomTransaction transaction(*rom);
+  {
+    rom::ScopedWriteFence write_scope(rom, &write_fence);
+    const absl::Status write_status = rom->WriteByte(
+        static_cast<int>(target.type_pc), static_cast<uint8_t>(new_type));
+    if (!write_status.ok()) {
+      return finish_error(write_status, "write_error");
+    }
+  }
+
+  if (rom->size() != before.size()) {
+    return finish_error(
+        absl::DataLossError("Door type edit unexpectedly resized the ROM"),
+        "write_error");
+  }
+  int changed_bytes = 0;
+  uint32_t changed_pc = 0;
+  for (uint32_t pc = 0; pc < before.size(); ++pc) {
+    if (before[pc] != rom->data()[pc]) {
+      ++changed_bytes;
+      changed_pc = pc;
+    }
+  }
+  if (changed_bytes != 1 || changed_pc != target.type_pc) {
+    return finish_error(
+        absl::DataLossError(absl::StrFormat(
+            "Door type edit changed %d bytes; expected only PC 0x%06X",
+            changed_bytes, target.type_pc)),
+        "write_error");
+  }
+
+  auto memory_readback =
+      ResolveDoorTypeTarget(rom, room_id, x, y, *manifest_context);
+  if (!memory_readback.ok()) {
+    return finish_error(memory_readback.status(), "readback_error");
+  }
+  const absl::Status memory_verify = verify_readback(*memory_readback);
+  if (!memory_verify.ok()) {
+    return finish_error(memory_verify, "readback_error");
+  }
+  formatter.AddField("readback_status", "pre_save_verified");
+  formatter.AddField("write_status", "success");
+
+  const absl::Status save_status = SaveRomWithBackup(rom, formatter);
+  if (!save_status.ok()) {
+    formatter.AddField("status", "error");
+    formatter.EndObject();
+    return save_status;
+  }
+
+  transaction.Commit();
+  formatter.AddField("status", "success");
   formatter.EndObject();
   return absl::OkStatus();
 }
