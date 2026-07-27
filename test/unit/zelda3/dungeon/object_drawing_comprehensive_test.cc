@@ -147,12 +147,16 @@ int ExpectedSubtype3TileCount(int id) {
   if (id == 0xFAD) {
     return 84;
   }
+  // Fortune teller room consumes all 26 words from obj202E.
+  if (id == 0xFD4) {
+    return 26;
+  }
   // Smithy furnace is a fixed 6x8 row-major payload.
   if (id == 0xFCC) {
     return 48;
   }
   if (id == 0xFAA || id == 0xFAE || (id >= 0xFB4 && id <= 0xFB9) ||
-      id == 0xFD4 || id == 0xFE2) {
+      id == 0xFE2) {
     return 16;
   }
   // Big wall decor aliases consume one 8x3 column-major payload.
