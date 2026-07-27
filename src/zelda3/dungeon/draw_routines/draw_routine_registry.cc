@@ -437,7 +437,7 @@ void DrawRoutineRegistry::BuildObjectMapping() {
   }
   object_to_routine_map_[0xFAA] = 16;
   object_to_routine_map_[0xFAB] = 110;
-  object_to_routine_map_[0xFAC] = 110;
+  object_to_routine_map_[0xFAC] = DrawRoutineIds::kBigGrayRock;
   object_to_routine_map_[0xFAD] = 16;
   object_to_routine_map_[0xFAE] = 16;
   object_to_routine_map_[0xFAF] = 110;

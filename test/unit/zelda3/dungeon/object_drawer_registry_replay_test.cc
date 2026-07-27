@@ -176,6 +176,41 @@ std::vector<SnapshotTileWrite> MakeRowMajorSnapshot(int x, int y, int width,
   return out;
 }
 
+std::vector<SnapshotTileWrite> MakeBigGrayRockSnapshot(int x, int y,
+                                                       uint16_t start_tile_id) {
+  // USDASM draws four 2x2 quadrants, producing this coordinate layout:
+  //   0  2  4  6
+  //   1  3  5  7
+  //   8 10 12 14
+  //   9 11 13 15
+  constexpr std::array<std::pair<int, int>, 16> kOffsets = {{
+      {0, 0},
+      {0, 1},
+      {1, 0},
+      {1, 1},
+      {2, 0},
+      {2, 1},
+      {3, 0},
+      {3, 1},
+      {0, 2},
+      {0, 3},
+      {1, 2},
+      {1, 3},
+      {2, 2},
+      {2, 3},
+      {3, 2},
+      {3, 3},
+  }};
+
+  std::vector<SnapshotTileWrite> out;
+  out.reserve(kOffsets.size());
+  for (size_t i = 0; i < kOffsets.size(); ++i) {
+    out.push_back({x + kOffsets[i].first, y + kOffsets[i].second,
+                   static_cast<uint16_t>(start_tile_id + i)});
+  }
+  return out;
+}
+
 void ExpectTraceMatchesSnapshot(
     const std::vector<ObjectDrawer::TileTrace>& trace,
     const std::vector<SnapshotTileWrite>& expected) {
@@ -2549,6 +2584,36 @@ TEST(ObjectDrawerRegistryReplayTest,
       ExpectTraceMatchesSnapshot(
           selected, MakeRowMajorSnapshot(kX, kY, /*width=*/6, /*height=*/8,
                                          /*start_tile_id=*/kFirstTile));
+      EXPECT_TRUE(other.empty());
+    }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     BigGrayRockDrawsFixedFourByFourQuadrantsOnSelectedLayer) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 10;
+  constexpr int kY = 12;
+  constexpr uint16_t kFirstTile = 0x0200;
+
+  for (uint8_t size : {uint8_t{0}, uint8_t{3}}) {
+    for (const auto layer :
+         {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+      SCOPED_TRACE(::testing::Message()
+                   << "size=" << static_cast<int>(size)
+                   << " layer=" << static_cast<int>(layer));
+
+      const auto trace = ReplayObjectTrace(
+          /*object_id=*/0x0FAC, kX, kY, size, layer,
+          MakeSequentialTiles(/*count=*/16, /*start_tile_id=*/kFirstTile));
+      const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+      const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+      const auto& selected = layer == RoomObject::LayerType::BG1 ? bg1 : bg2;
+      const auto& other = layer == RoomObject::LayerType::BG1 ? bg2 : bg1;
+
+      ExpectTraceMatchesSnapshot(selected,
+                                 MakeBigGrayRockSnapshot(kX, kY, kFirstTile));
       EXPECT_TRUE(other.empty());
     }
   }

@@ -339,6 +339,8 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
   constexpr int kClosedBigChestTileOffset = 0x14AC;
   constexpr int kOpenBigChestTileOffset = 0x14C4;
   constexpr int kBigChestStateTileCount = 12;
+  constexpr int kBigGrayRockTileOffset = 0x0E62;
+  constexpr int kBigGrayRockTileCount = 16;
   constexpr int kSmithyFurnaceTileOffset = 0x1F92;
   constexpr int kSmithyFurnaceTileCount = 48;
 
@@ -432,6 +434,14 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
     closed_tiles->insert(closed_tiles->end(), open_tiles->begin(),
                          open_tiles->end());
     return closed_tiles;
+  }
+
+  // BigGrayRock replaces the table-derived data pointer with literal obj0E62,
+  // then draws its four contiguous 2x2 quadrants. Follow the runtime literal
+  // so a relocated FAC table entry cannot change only the editor rendering.
+  if (object_id == 0xFAC) {
+    return ReadTileData(kRoomObjectTileAddress + kBigGrayRockTileOffset,
+                        kBigGrayRockTileCount);
   }
 
   // SmithyFurnace replaces the table-derived data pointer with literal
@@ -643,6 +653,11 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
   // Straight inter-room stairs (4x4)
   if ((object_id >= 0xF9E && object_id <= 0xFA1) ||
       (object_id >= 0xFA6 && object_id <= 0xFA9)) {
+    return 16;
+  }
+  // BigGrayRock (0xFAC = ASM 0x22C) loads obj0E62 and draws four fixed
+  // 2x2 quadrants, consuming 16 contiguous tile words.
+  if (object_id == 0xFAC) {
     return 16;
   }
   // SmithyFurnace (0xFCC = ASM 0x24C) loads obj1F92 and draws a fixed

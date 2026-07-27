@@ -87,6 +87,7 @@ constexpr int kFloorLight = 123;
 constexpr int kBigWallDecor = 125;
 constexpr int kTableBowl = 126;
 constexpr int kSmithyFurnace = 127;
+constexpr int kBigGrayRock = 128;
 
 // Corner routines (19, 35-37, 75-78)
 constexpr int kCorner4x4 = 19;
