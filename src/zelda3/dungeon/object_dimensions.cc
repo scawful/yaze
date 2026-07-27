@@ -931,13 +931,14 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xFAC] = {4, 4, Dir::None, 0, false};
   // Agahnim's altar is a fixed 14x14 mirrored stamp.
   dimensions_[0xFAD] = {14, 14, Dir::None, 0, false};
+  // Fortune teller facade is a sparse fixed 14x14 BG1 stamp.
+  dimensions_[0xFD4] = {14, 14, Dir::None, 0, false};
   // Repeatable 4x4 patterns
   for (int id = 0xFB4; id <= 0xFB9; id++) {
     dimensions_[id] = {4, 4, Dir::Horizontal, 4, false};
   }
   dimensions_[0xFAA] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFAE] = {4, 4, Dir::Horizontal, 4, false};
-  dimensions_[0xFD4] = {4, 4, Dir::Horizontal, 4, false};
   dimensions_[0xFE2] = {4, 4, Dir::Horizontal, 4, false};
   // Big wall decor aliases are fixed 8x3 objects; their size nibble is ignored.
   dimensions_[0xFCB] = {8, 3, Dir::None, 0, false};
