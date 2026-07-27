@@ -111,10 +111,26 @@ class DungeonObjectInteraction {
   // State management
   void SetCurrentRoom(DungeonRoomStore* rooms, int room_id);
   void SetPreviewObject(const zelda3::RoomObject& object, bool loaded);
-  void SetCurrentPaletteGroup(const gfx::PaletteGroup& group) {
+  void SetCurrentPaletteGroup(const gfx::PaletteGroup& group,
+                              bool force_refresh = false) {
+    bool palette_changed = current_palette_group_.name() != group.name() ||
+                           current_palette_group_.size() != group.size();
+    for (int i = 0; !palette_changed && i < static_cast<int>(group.size());
+         ++i) {
+      palette_changed =
+          current_palette_group_.palette_ref(i) != group.palette_ref(i);
+    }
+    if (!palette_changed && !force_refresh) {
+      return;
+    }
+
     current_palette_group_ = group;
     interaction_context_.current_palette_group = group;
     entity_coordinator_.SetContext(&interaction_context_);
+    auto& tile_handler = entity_coordinator_.tile_handler();
+    if (tile_handler.IsPlacementActive()) {
+      tile_handler.SetPreviewObject(preview_object_);
+    }
   }
 
   // Mode manager access
