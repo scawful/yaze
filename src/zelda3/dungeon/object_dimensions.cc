@@ -941,11 +941,14 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xFCB] = {8, 3, Dir::None, 0, false};
   dimensions_[0xFF6] = {8, 3, Dir::None, 0, false};
   dimensions_[0xFF7] = {8, 3, Dir::None, 0, false};
-  // Utility + archery patterns
+  // Utility patterns
   dimensions_[0xFCD] = {6, 3, Dir::None, 0, false};
   dimensions_[0xFDD] = {6, 3, Dir::None, 0, false};
   dimensions_[0xFD5] = {3, 5, Dir::None, 0, false};
   dimensions_[0xFDB] = {3, 5, Dir::None, 0, false};
+  // Table bowl is a fixed 4x2 stamp; its encoded size is ignored.
+  dimensions_[0xFDA] = {4, 2, Dir::None, 0, false};
+  // Archery patterns
   dimensions_[0xFE0] = {3, 6, Dir::None, 0, false};
   dimensions_[0xFE1] = {3, 6, Dir::None, 0, false};
   // Solid wall decor 3x4
