@@ -216,8 +216,14 @@ The WASM build includes a subset of z3ed commands that don't require native depe
 - `hex-read --address <hex> --length <bytes> [--data-format <hex|ascii|both>]` - Read ROM bytes
 - `hex-write --address <hex> --data <hex>` - Write ROM bytes
 - `hex-search --pattern <hex>` - Search for a byte pattern
-- `palette-get-colors --palette <id>` - Read palette colors
-- `palette-set-color --palette <id> --index <idx> --color <hex>` - Update a palette entry
+- `palette-get-colors --group <name> [--index <palette>]` - Preview generic palette colors
+- `dungeon-get-palette --room <hex> [--index <0..89>]` - Resolve a room's shared dungeon palette and affected rooms
+
+The browser terminal intentionally does not expose
+`dungeon-set-palette-color`: an in-session Emscripten save cannot guarantee a
+durable filesystem sync. Legacy `palette-set-color` remains preview-only and
+rejects `--write`. Use native z3ed on a disposable ROM copy for manifest-safe
+dungeon palette writes.
 
 ## Build Configuration
 

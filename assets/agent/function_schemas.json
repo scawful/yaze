@@ -415,51 +415,91 @@
     },
     {
       "name": "palette-get-colors",
-      "description": "Get all colors from a specific palette",
+      "description": "Preview colors from a named generic palette group; this command is read-only",
       "parameters": {
         "type": "object",
         "properties": {
           "group": {
-            "type": "integer",
-            "description": "Palette group index (0-based)"
+            "type": "string",
+            "description": "Palette group name such as ow_main or dungeon_main"
           },
-          "palette": {
+          "index": {
             "type": "integer",
-            "description": "Palette index within group (0-7)"
+            "description": "Optional palette index within the named group"
           },
           "format": {
             "type": "string",
-            "enum": ["snes", "rgb", "hex"],
-            "description": "Color format (default: hex)"
+            "enum": ["json", "text"],
+            "description": "Output format"
           }
         },
-        "required": ["group", "palette"]
+        "required": ["group"]
       }
     },
     {
-      "name": "palette-set-color",
-      "description": "Set a specific color in a palette (creates a proposal)",
+      "name": "dungeon-get-palette",
+      "description": "Resolve a US/OOS room's full 8-bit palette-set ID to its shared global dungeon palette and list every affected room; unsupported regional layouts fail closed",
       "parameters": {
         "type": "object",
         "properties": {
-          "group": {
-            "type": "integer",
-            "description": "Palette group index"
+          "room": {
+            "type": "string",
+            "description": "Dungeon room ID in hex"
           },
-          "palette": {
+          "index": {
             "type": "integer",
-            "description": "Palette index within group"
+            "minimum": 0,
+            "maximum": 89,
+            "description": "Optional color index; omit to return all 90 colors"
+          }
+        },
+        "required": ["room"]
+      }
+    },
+    {
+      "name": "dungeon-set-palette-color",
+      "description": "Dry-run or persist one US/OOS shared dungeon palette color with full palette-set, resolved-index, old-color, manifest, clean-file baseline, backup, atomic-save, and external-readback guards",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "room": {
+            "type": "string",
+            "description": "Dungeon room ID in hex"
           },
-          "color_index": {
+          "index": {
             "type": "integer",
-            "description": "Color index in palette (0-15)"
+            "minimum": 0,
+            "maximum": 89,
+            "description": "Color index in the 90-color dungeon palette"
+          },
+          "expect-palette-set": {
+            "type": "string",
+            "description": "Expected full 8-bit room-header palette-set ID"
+          },
+          "expect-palette-index": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 19,
+            "description": "Expected resolved global dungeon palette index"
+          },
+          "expect-color": {
+            "type": "string",
+            "description": "Expected current 15-bit SNES color, 0x0000-0x7FFF"
           },
           "color": {
             "type": "string",
-            "description": "Color value in hex format (e.g., '#FF0000' or 'FF0000')"
+            "description": "Replacement 15-bit SNES color, 0x0000-0x7FFF"
+          },
+          "manifest": {
+            "type": "string",
+            "description": "Hack Manifest path used to block protected ranges"
+          },
+          "write": {
+            "type": "boolean",
+            "description": "Persist only after reviewing the default dry-run"
           }
         },
-        "required": ["group", "palette", "color_index", "color"]
+        "required": ["room", "index", "expect-palette-set", "expect-palette-index", "expect-color", "color", "manifest"]
       }
     },
     {

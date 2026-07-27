@@ -57,7 +57,9 @@ AdvancedRouter::RoutedResponse AdvancedRouter::RouteHexAnalysis(
     response.next_steps =
         "Use overworld-find-tile to see where this tile appears";
   } else if (data_type.find("palette") != std::string::npos) {
-    response.next_steps = "Use palette-get-colors to see full palette";
+    response.next_steps =
+        "Use palette-get-colors for a generic preview, or "
+        "dungeon-get-palette with a room ID to resolve shared dungeon scope";
   } else {
     response.next_steps = "Use hex-search to find similar patterns in ROM";
   }
@@ -122,7 +124,10 @@ AdvancedRouter::RoutedResponse AdvancedRouter::RoutePaletteAnalysis(
   }
 
   response.detailed_data = detailed.str();
-  response.next_steps = "Use palette-set-color to modify colors";
+  response.next_steps =
+      "Legacy palette-set-color is preview-only. For a dungeon palette, use "
+      "dungeon-get-palette, then dry-run dungeon-set-palette-color with exact "
+      "CAS values and a Hack Manifest before requesting --write";
 
   return response;
 }

@@ -223,19 +223,27 @@ Direct ROM memory access for advanced ROM hacking:
   - Usage: `hex-search --pattern="FF 00 ?? 12" --start=0x00000`
   - Use ?? for wildcard bytes
 
-## Palette Manipulation Tools
-Color editing and analysis for graphics work:
+## Palette Inspection and Safe Dungeon Editing Tools
+Palette previews are read-only. Dungeon writes must use the room-aware command
+so shared fanout and manifest ownership are explicit:
 
-- **palette-get-colors**: Get all 16 colors from a palette
-  - Usage: `palette-get-colors --group=0 --palette=0 --format=hex`
-  - Formats: snes, rgb, hex
-  
-- **palette-set-color**: Modify a specific color (creates proposal)
-  - Usage: `palette-set-color --group=0 --palette=0 --index=5 --color=FF0000`
-  - Color in hex format (with or without #)
-  
+- **palette-get-colors**: Preview a named generic palette group
+  - Usage: `palette-get-colors --group=ow_main --index=0 --format=json`
+
+- **dungeon-get-palette**: Resolve a room's full palette-set ID, global
+  dungeon palette index, raw SNES colors, and every affected room
+  - Usage: `dungeon-get-palette --room=0xA8 --index=7`
+
+- **dungeon-set-palette-color**: Dry-run or persist one shared dungeon color
+  with exact palette-set/index/color CAS and a Hack Manifest
+  - First dry-run without `--write`; review `affected_rooms`
+  - Native write usage for a disposable current-OOS copy: `dungeon-set-palette-color --room=0xA8 --index=7 --expect-palette-set=0x07 --expect-palette-index=7 --expect-color=0x7FFF --color=0x7FFE --manifest=Roms/hack_manifest.json --write`
+  - Never use legacy `palette-set-color --write`; it is rejected
+  - Browser-terminal writes are unavailable because durable sync is not
+    guaranteed; use native z3ed on a disposable ROM copy
+
 - **palette-analyze**: Analyze palette statistics
-  - Usage: `palette-analyze --type=palette --id=0/0`
+  - Usage: `palette-analyze --group=ow_main`
   - Shows unique colors, duplicates, brightness analysis
 
 ## TODO Management

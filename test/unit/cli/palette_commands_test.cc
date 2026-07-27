@@ -62,6 +62,19 @@ TEST(PaletteCommandsTest, SetColorRequiresAllArgs) {
   EXPECT_FALSE(status.ok());
 }
 
+TEST(PaletteCommandsTest,
+     LegacySetColorWriteFailsClosedBeforeArgsOrRomLoading) {
+  handlers::PaletteSetColorCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run({"--write"}, nullptr, &output);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("palette-set-color --write is disabled"));
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("dungeon-set-palette-color"));
+}
+
 TEST(PaletteCommandsTest, AnalyzeHasNoRequiredArgs) {
   // palette-analyze ValidateArgs returns OkStatus, but it still needs a ROM
   // to actually execute. We verify that validation itself passes.
@@ -88,6 +101,7 @@ TEST(PaletteCommandsTest, SetColorHelpShowsUsage) {
   auto& registry = CommandRegistry::Instance();
   std::string help = registry.GenerateHelp("palette-set-color");
   EXPECT_THAT(help, HasSubstr("palette-set-color"));
+  EXPECT_THAT(help, ::testing::Not(HasSubstr("[--write]")));
 }
 
 TEST(PaletteCommandsTest, AnalyzeHelpShowsUsage) {
@@ -174,6 +188,29 @@ TEST(PaletteCommandsTest, GetColorsWithoutIndexStillSucceeds) {
   absl::Status status = handler.Run({"--group", "ow_main"}, &rom, &output);
   EXPECT_TRUE(status.ok()) << status.message();
   EXPECT_THAT(output, HasSubstr("ow_main"));
+}
+
+TEST(PaletteCommandsTest, LegacySetColorPreviewRemainsReadOnly) {
+  handlers::PaletteSetColorCommandHandler handler;
+  Rom rom;
+  std::vector<uint8_t> rom_data(0x200000, 0x00);
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+  rom.set_dirty(false);
+  const std::vector<uint8_t> before = rom.vector();
+
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--group=dungeon_main", "--palette=0", "--index=0",
+                   "--color=FF0000", "--format=json"},
+                  &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_THAT(output, HasSubstr("\"status\": \"dry_run\""));
+  EXPECT_THAT(output, HasSubstr("Legacy preview only"));
+  EXPECT_THAT(output, ::testing::Not(HasSubstr("Use --write")));
+  EXPECT_THAT(output, ::testing::Not(HasSubstr("\"status\": \"written\"")));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
 }
 
 }  // namespace

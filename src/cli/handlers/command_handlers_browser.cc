@@ -5,6 +5,7 @@
 
 #include "cli/handlers/game/dungeon_collision_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
+#include "cli/handlers/game/dungeon_edit_commands.h"
 #include "cli/handlers/game/minecart_commands.h"
 #include "cli/handlers/game/overworld_commands.h"
 #include "cli/handlers/game/overworld_graph_commands.h"
@@ -50,6 +51,10 @@ CreateCliCommandHandlers() {
       std::make_unique<DungeonImportWaterFillJsonCommandHandler>());
   handlers.push_back(std::make_unique<DungeonGetRoomTilesCommandHandler>());
   handlers.push_back(std::make_unique<DungeonSetRoomPropertyCommandHandler>());
+  // Read-only palette resolution is safe in the browser terminal. The
+  // mutating setter is intentionally omitted because Emscripten cannot
+  // guarantee durable IDBFS synchronization after an in-session save.
+  handlers.push_back(std::make_unique<DungeonGetPaletteCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMinecartAuditCommandHandler>());
   handlers.push_back(std::make_unique<DungeonMinecartMapCommandHandler>());
 

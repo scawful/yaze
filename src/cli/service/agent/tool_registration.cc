@@ -4,6 +4,7 @@
 #include "cli/handlers/game/dialogue_commands.h"
 #include "cli/handlers/game/dungeon_collision_commands.h"
 #include "cli/handlers/game/dungeon_commands.h"
+#include "cli/handlers/game/dungeon_edit_commands.h"
 #include "cli/handlers/game/message_commands.h"
 #include "cli/handlers/game/minecart_commands.h"
 #include "cli/handlers/game/music_commands.h"
@@ -219,6 +220,27 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
                               "Debug room header bytes",
                               "dungeon-room-header --room=<id>", {}, true,
                               false, DungeonRoomHeaderCommandHandler)
+  REGISTER_BUILTIN_AGENT_TOOL(
+      "dungeon-get-palette", "dungeon",
+      "Resolve a US/OOS room's shared dungeon palette and affected rooms",
+      "dungeon-get-palette --room=<hex> [--index=<0..89>]", {}, true, false,
+      DungeonGetPaletteCommandHandler)
+  RegisterBuiltinTool<DungeonSetPaletteColorCommandHandler>(
+      registry,
+      {"dungeon-set-palette-color",
+       "dungeon",
+       "Dry-run or persist one US/OOS shared dungeon palette color with CAS, "
+       "manifest, clean-file baseline, backup, atomic-save, and "
+       "external-readback guards",
+       "dungeon-set-palette-color --room=<hex> --index=<0..89> "
+       "--expect-palette-set=<hex> --expect-palette-index=<0..19> "
+       "--expect-color=<hex> --color=<hex> --manifest=<path> [--write]",
+       {},
+       true,
+       false,
+       ToolAccess::kMutating,
+       {},
+       {"write"}});
 
   // Overworld commands
   REGISTER_BUILTIN_AGENT_TOOL("overworld-get-tile", "overworld",

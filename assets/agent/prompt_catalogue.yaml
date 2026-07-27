@@ -9,11 +9,6 @@ commands:
       --group <group>  Palette group (overworld, dungeon, sprite)
       --id <id>        Palette ID (0-based index)
       --from <file>    Input JSON file path
-  palette set-color: |-
-    Modify a color in palette JSON file
-      --file <file>    Palette JSON file to modify
-      --index <index>  Color index (0-15 per palette)
-      --color <hex>    New color in hex (0xRRGGBB format)
   overworld set-tile: |-
     Place a tile in the overworld
       --map <id>       Map ID (0-based)
@@ -90,6 +85,54 @@ tools:
         description: "Response format (json or text). Defaults to JSON if omitted."
         required: false
         example: json
+  - name: dungeon-get-palette
+    description: "Read-only resolution of a US/OOS room's full 8-bit palette-set ID to its shared global dungeon palette."
+    usage_notes: "Use before any dungeon palette edit. Returns the resolved palette index, raw 15-bit colors, addresses, and every affected room; it never mutates the ROM and fails closed on unsupported regional layouts."
+    arguments:
+      - name: room
+        description: "Dungeon room ID in hex."
+        required: true
+        example: 0xA8
+      - name: index
+        description: "Optional color index from 0 through 89; omit to return all 90 colors."
+        required: false
+        example: 7
+  - name: dungeon-set-palette-color
+    description: "Guarded mutating tool for dry-running or persisting one US/OOS shared dungeon palette color."
+    usage_notes: "Dry-run by default. Copy every expected value from a fresh dungeon-get-palette result, review the complete affected-room fanout, and request write only for a clean disposable file-backed ROM with a Hack Manifest."
+    arguments:
+      - name: room
+        description: "Dungeon room ID in hex."
+        required: true
+        example: 0xA8
+      - name: index
+        description: "Color index from 0 through 89."
+        required: true
+        example: 7
+      - name: expect-palette-set
+        description: "Expected full 8-bit room-header palette-set ID."
+        required: true
+        example: 0x07
+      - name: expect-palette-index
+        description: "Expected resolved global dungeon palette index from 0 through 19."
+        required: true
+        example: 7
+      - name: expect-color
+        description: "Expected current raw 15-bit SNES color word."
+        required: true
+        example: 0x7FFF
+      - name: color
+        description: "Replacement raw 15-bit SNES color word."
+        required: true
+        example: 0x7FFE
+      - name: manifest
+        description: "Hack Manifest path used to block protected write ranges."
+        required: true
+        example: Roms/hack_manifest.json
+      - name: write
+        description: "Optional boolean. True requests the guarded persistent write after dry-run review; false or omitted previews only."
+        required: false
+        example: "false"
   - name: overworld-find-tile
     description: "Search all overworld maps for occurrences of a specific tile16 ID."
     usage_notes: "Ideal for tile lookup questions. Includes coordinates for each match."

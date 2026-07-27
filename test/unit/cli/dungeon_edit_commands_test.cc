@@ -18,6 +18,8 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "app/gfx/types/snes_palette.h"
+#include "cli/service/command_registry.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
@@ -25,6 +27,7 @@
 #include "zelda3/dungeon/oracle_rom_safety_preflight.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/game_data.h"
 
 #if !defined(_WIN32)
 #include <unistd.h>
@@ -55,6 +58,17 @@ constexpr int kPotDataPc = 0x00E000;
 constexpr int kOtherPotDataPc = 0x00E040;
 constexpr int kPotDataEndPc = 0x00E100;
 constexpr int kPotItemBytePc = kPotDataPc + 2;
+constexpr int kDungeonPaletteSetId = 0x40;
+constexpr int kDungeonPaletteAliasSetId = 0x20;
+constexpr int kDungeonPaletteIndex = 4;
+constexpr int kDungeonPaletteColorIndex = 7;
+constexpr uint16_t kDungeonPaletteOldColor = 0x1234;
+constexpr uint16_t kDungeonPaletteNewColor = 0x4321;
+constexpr int kUnrelatedPaletteBaselinePc = 0x000100;
+constexpr int kDungeonPaletteColorPc =
+    gfx::kDungeonMainPalettes +
+    kDungeonPaletteIndex * zelda3::kDungeonPaletteBytes +
+    kDungeonPaletteColorIndex * 2;
 
 void ExpectInvalidArgument(const absl::Status& status,
                            const std::string& message_fragment) {
@@ -193,6 +207,75 @@ void InitializeRoomHeaderRom(Rom* rom) {
   }
   rom->mutable_data()[kSyntheticPotTerminatorPc] = 0xFF;
   rom->mutable_data()[kSyntheticPotTerminatorPc + 1] = 0xFF;
+  rom->set_dirty(false);
+}
+
+void InitializeDungeonPaletteRom(Rom* rom) {
+  InitializeRoomHeaderRom(rom);
+  rom->mutable_data()[0x7FD9] = 0x01;
+
+  // Give every room a distinct header while keeping all headers in the same
+  // LoROM bank used by kRoomHeaderPointerBank.
+  const uint32_t header_bank_snes = PcToSnes(kRoomHeaderDataPc);
+  rom->mutable_data()[zelda3::kRoomHeaderPointerBank] =
+      (header_bank_snes >> 16) & 0xFF;
+  for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    const int header_pc =
+        kRoomHeaderDataPc + room_id * kRoomHeaderSentinel.size();
+    const uint32_t header_snes = PcToSnes(header_pc);
+    ASSERT_EQ((header_snes >> 16) & 0xFF, (header_bank_snes >> 16) & 0xFF);
+    const int pointer = kRoomHeaderPointerTablePc + room_id * 2;
+    rom->mutable_data()[pointer] = header_snes & 0xFF;
+    rom->mutable_data()[pointer + 1] = (header_snes >> 8) & 0xFF;
+    for (size_t index = 0; index < kRoomHeaderSentinel.size(); ++index) {
+      rom->mutable_data()[header_pc + index] = kRoomHeaderSentinel[index];
+    }
+    rom->mutable_data()[header_pc + 1] = 0x01;
+  }
+
+  // Two different palette-set IDs intentionally alias global palette 4.
+  rom->mutable_data()[kRoomHeaderDataPc + 1] = kDungeonPaletteSetId;
+  rom->mutable_data()[kRoomHeaderDataPc + kRoomHeaderSentinel.size() + 1] =
+      kDungeonPaletteAliasSetId;
+
+  for (int palette_set = 0;
+       palette_set < static_cast<int>(zelda3::kNumPalettesets); ++palette_set) {
+    const int entry = zelda3::kPalettesetIdsAddress + palette_set * 4;
+    rom->mutable_data()[entry] = (palette_set % 20) * 2;
+    rom->mutable_data()[entry + 1] = 0;
+    rom->mutable_data()[entry + 2] = 0;
+    rom->mutable_data()[entry + 3] = 0;
+  }
+  rom->mutable_data()[zelda3::kPalettesetIdsAddress +
+                      kDungeonPaletteSetId * 4] = kDungeonPaletteIndex * 2;
+  rom->mutable_data()[zelda3::kPalettesetIdsAddress +
+                      kDungeonPaletteAliasSetId * 4] = kDungeonPaletteIndex * 2;
+
+  // Match known Oracle behavior: unused table rows may be malformed. A strict
+  // resolver must validate referenced rows, not reject unreachable rows.
+  rom->mutable_data()[zelda3::kPalettesetIdsAddress + 0x30 * 4] = 0x01;
+  rom->mutable_data()[zelda3::kPalettesetIdsAddress + 0x37 * 4] = 0xFF;
+
+  for (int palette = 0; palette < gfx::DungeonsMainPalettesMax; ++palette) {
+    const uint16_t offset =
+        static_cast<uint16_t>(palette * zelda3::kDungeonPaletteBytes);
+    const int pointer = zelda3::kDungeonPalettePointerTable + palette * 2;
+    rom->mutable_data()[pointer] = offset & 0xFF;
+    rom->mutable_data()[pointer + 1] = (offset >> 8) & 0xFF;
+  }
+  for (int palette = 0; palette < gfx::DungeonsMainPalettesMax; ++palette) {
+    for (int color = 0; color < 90; ++color) {
+      const uint16_t value =
+          static_cast<uint16_t>((palette * 90 + color) & 0x7FFF);
+      const int pc = gfx::kDungeonMainPalettes +
+                     palette * zelda3::kDungeonPaletteBytes + color * 2;
+      rom->mutable_data()[pc] = value & 0xFF;
+      rom->mutable_data()[pc + 1] = (value >> 8) & 0xFF;
+    }
+  }
+  rom->mutable_data()[kDungeonPaletteColorPc] = kDungeonPaletteOldColor & 0xFF;
+  rom->mutable_data()[kDungeonPaletteColorPc + 1] =
+      (kDungeonPaletteOldColor >> 8) & 0xFF;
   rom->set_dirty(false);
 }
 
@@ -435,6 +518,21 @@ void WriteOwnershipOnlyManifest(const std::filesystem::path& path,
   ASSERT_TRUE(output.is_open());
   output << json;
   ASSERT_TRUE(output.good());
+}
+
+std::vector<std::string> DungeonPaletteSetArgs(
+    const std::filesystem::path& manifest_path,
+    std::string replacement = "0x4321") {
+  return {
+      "--room=0x00",
+      "--index=7",
+      "--expect-palette-set=0x40",
+      "--expect-palette-index=4",
+      "--expect-color=0x1234",
+      absl::StrFormat("--color=%s", replacement),
+      absl::StrFormat("--manifest=%s", manifest_path.string()),
+      "--format=json",
+  };
 }
 
 void WritePotItemManifest(const std::filesystem::path& path,
@@ -2466,6 +2564,527 @@ TEST(DungeonEditCommandsTest, SetDoorTypeDiskSaveFailureRollsBackCallerRom) {
   EXPECT_EQ(rom.filename(), filename_before);
   EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
   EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 1);
+}
+
+TEST(DungeonEditCommandsTest,
+     DungeonPaletteCommandsAreRegisteredWithSafetyHelp) {
+  auto& registry = CommandRegistry::Instance();
+  EXPECT_TRUE(registry.HasCommand("dungeon-get-palette"));
+  EXPECT_TRUE(registry.HasCommand("dungeon-set-palette-color"));
+
+  const std::string get_help = registry.GenerateHelp("dungeon-get-palette");
+  EXPECT_THAT(get_help, HasSubstr("--room"));
+  EXPECT_THAT(get_help, HasSubstr("--index"));
+
+  const std::string set_help =
+      registry.GenerateHelp("dungeon-set-palette-color");
+  EXPECT_THAT(set_help, HasSubstr("--expect-palette-set"));
+  EXPECT_THAT(set_help, HasSubstr("--expect-palette-index"));
+  EXPECT_THAT(set_help, HasSubstr("--expect-color"));
+  EXPECT_THAT(set_help, HasSubstr("--manifest"));
+  EXPECT_THAT(set_help, HasSubstr("--write"));
+}
+
+TEST(DungeonEditCommandsTest,
+     DungeonRoomHeaderReportsFullEightBitPaletteSetId) {
+  Rom rom;
+  InitializeRoomHeaderRom(&rom);
+  rom.mutable_data()[kRoomHeaderDataPc + 1] = 0xC1;
+  rom.set_dirty(false);
+
+  handlers::DungeonRoomHeaderCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--room=0x00", "--format=json"}, &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  const auto report = nlohmann::json::parse(output);
+  EXPECT_EQ(report.at("Room Header Debug").at("decoded").at("palette"), 0xC1);
+}
+
+TEST(DungeonEditCommandsTest,
+     GetDungeonPaletteResolvesFullSetAndSharedAliasFanout) {
+  Rom rom;
+  InitializeDungeonPaletteRom(&rom);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonGetPaletteCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--room=0x00", "--format=json"}, &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  const auto report = nlohmann::json::parse(output);
+  const auto& result = report.at("Dungeon Palette");
+  EXPECT_EQ(result.at("room_id"), "0x000");
+  EXPECT_EQ(result.at("palette_set_id"), "0x40");
+  EXPECT_EQ(result.at("resolved_palette_index"), kDungeonPaletteIndex);
+  EXPECT_EQ(result.at("palette_pointer_offset"), "0x08");
+  EXPECT_EQ(result.at("palette_pointer_word"), "0x02D0");
+  EXPECT_EQ(result.at("scope"), "shared_global_dungeon_palette");
+  EXPECT_EQ(result.at("affected_room_count"), 2);
+  ASSERT_EQ(result.at("affected_rooms").size(), 2u);
+  EXPECT_EQ(result.at("affected_rooms")[0], "0x000");
+  EXPECT_EQ(result.at("affected_rooms")[1], "0x001");
+  ASSERT_EQ(result.at("colors").size(), 90u);
+  EXPECT_EQ(result.at("colors")[kDungeonPaletteColorIndex].at("index"),
+            kDungeonPaletteColorIndex);
+  EXPECT_EQ(result.at("colors")[kDungeonPaletteColorIndex].at("snes_color"),
+            "0x1234");
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+
+  // The decimal-or-0x parser must accept the last legal color index.
+  std::string indexed_output;
+  const absl::Status indexed_status = handler.Run(
+      {"--room=0x00", "--index=0x59", "--format=json"}, &rom, &indexed_output);
+  ASSERT_TRUE(indexed_status.ok()) << indexed_status;
+  const auto indexed_report = nlohmann::json::parse(indexed_output);
+  EXPECT_EQ(indexed_report.at("Dungeon Palette").at("color_index"), 89);
+  EXPECT_EQ(rom.vector(), before);
+}
+
+TEST(DungeonEditCommandsTest,
+     DungeonPaletteCommandsRejectUnsupportedJapaneseAndEuropeanLayouts) {
+  handlers::DungeonGetPaletteCommandHandler handler;
+  for (const uint8_t destination_code : {uint8_t{0x00}, uint8_t{0x02}}) {
+    SCOPED_TRACE(static_cast<int>(destination_code));
+    Rom rom;
+    InitializeDungeonPaletteRom(&rom);
+    rom.mutable_data()[0x7FD9] = destination_code;
+    rom.set_dirty(false);
+    const std::vector<uint8_t> before = rom.vector();
+
+    std::string output;
+    const absl::Status status =
+        handler.Run({"--room=0x00", "--format=json"}, &rom, &output);
+
+    EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+    EXPECT_THAT(std::string(status.message()),
+                HasSubstr("support only the US/OOS table layout"));
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_FALSE(rom.dirty());
+  }
+}
+
+TEST(DungeonEditCommandsTest,
+     SetDungeonPaletteDryRunIsManifestCheckedAndImmutable) {
+  Rom rom;
+  InitializeDungeonPaletteRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteOwnershipOnlyManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+  handlers::DungeonSetPaletteColorCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      DungeonPaletteSetArgs(manifest_cleanup.file_path), &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  const auto report = nlohmann::json::parse(output);
+  const auto& result = report.at("Set Dungeon Palette Color");
+  EXPECT_EQ(result.at("mode"), "dry-run");
+  EXPECT_EQ(result.at("status"), "dry-run");
+  EXPECT_EQ(result.at("preflight_status"), "success");
+  EXPECT_EQ(result.at("palette_set_id"), "0x40");
+  EXPECT_EQ(result.at("resolved_palette_index"), kDungeonPaletteIndex);
+  EXPECT_EQ(result.at("affected_rooms"),
+            nlohmann::json::array({"0x000", "0x001"}));
+  EXPECT_EQ(result.at("color_pc"),
+            absl::StrFormat("0x%06X", kDungeonPaletteColorPc));
+  EXPECT_EQ(result.at("old_color"), "0x1234");
+  EXPECT_EQ(result.at("new_color"), "0x4321");
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+  EXPECT_FALSE(std::filesystem::exists(cleanup.rom_path.string() + ".tmp"));
+}
+
+TEST(DungeonEditCommandsTest, SetDungeonPaletteRequiresManifestAndExactCas) {
+  handlers::DungeonSetPaletteColorCommandHandler handler;
+
+  {
+    Rom rom;
+    InitializeDungeonPaletteRom(&rom);
+    std::string output;
+    const absl::Status status =
+        handler.Run({"--room=0x00", "--index=7", "--expect-palette-set=0x40",
+                     "--expect-palette-index=4", "--expect-color=0x1234",
+                     "--color=0x4321", "--format=json"},
+                    &rom, &output);
+    ExpectInvalidArgument(status, "manifest");
+  }
+
+  Rom rom;
+  InitializeDungeonPaletteRom(&rom);
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WriteOwnershipOnlyManifest(manifest_cleanup.file_path);
+  const std::vector<uint8_t> before = rom.vector();
+
+  struct CasCase {
+    size_t argument_index;
+    const char* replacement;
+    const char* message;
+  };
+  const std::array<CasCase, 3> cases = {{
+      {2, "--expect-palette-set=0x00", "Palette-set CAS failed"},
+      {3, "--expect-palette-index=5", "Resolved palette CAS failed"},
+      {4, "--expect-color=0x1235", "Color CAS failed"},
+  }};
+  for (const CasCase& test_case : cases) {
+    auto args = DungeonPaletteSetArgs(manifest_cleanup.file_path);
+    args[test_case.argument_index] = test_case.replacement;
+    std::string output;
+    const absl::Status status = handler.Run(args, &rom, &output);
+    EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+    EXPECT_THAT(std::string(status.message()), HasSubstr(test_case.message));
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_FALSE(rom.dirty());
+  }
+}
+
+TEST(DungeonEditCommandsTest,
+     DungeonPaletteRejectsMalformedReferencedMappingButIgnoresUnusedRows) {
+  Rom rom;
+  InitializeDungeonPaletteRom(&rom);
+  const std::vector<uint8_t> valid_before = rom.vector();
+
+  handlers::DungeonGetPaletteCommandHandler get_handler;
+  std::string valid_output;
+  ASSERT_TRUE(
+      get_handler.Run({"--room=0x00", "--format=json"}, &rom, &valid_output)
+          .ok());
+  EXPECT_EQ(rom.vector(), valid_before);
+
+  rom.mutable_data()[zelda3::kPalettesetIdsAddress + kDungeonPaletteSetId * 4] =
+      0x01;
+  rom.set_dirty(false);
+  const std::vector<uint8_t> malformed_before = rom.vector();
+  std::string output;
+  const absl::Status status =
+      get_handler.Run({"--room=0x00", "--format=json"}, &rom, &output);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("malformed dungeon palette pointer offset"));
+  EXPECT_EQ(rom.vector(), malformed_before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest, SetDungeonPaletteRejectsRangeBit15AndNoOp) {
+  Rom rom;
+  InitializeDungeonPaletteRom(&rom);
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WriteOwnershipOnlyManifest(manifest_cleanup.file_path);
+  handlers::DungeonSetPaletteColorCommandHandler handler;
+  const std::vector<uint8_t> before = rom.vector();
+
+  {
+    auto args = DungeonPaletteSetArgs(manifest_cleanup.file_path);
+    args[1] = "--index=90";
+    std::string output;
+    const absl::Status status = handler.Run(args, &rom, &output);
+    ExpectInvalidArgument(status, "--index");
+  }
+  {
+    auto args = DungeonPaletteSetArgs(manifest_cleanup.file_path);
+    args[5] = "--color=0x8000";
+    std::string output;
+    const absl::Status status = handler.Run(args, &rom, &output);
+    ExpectInvalidArgument(status, "15-bit");
+  }
+  {
+    auto args = DungeonPaletteSetArgs(manifest_cleanup.file_path, "0x1234");
+    std::string output;
+    const absl::Status status = handler.Run(args, &rom, &output);
+    ExpectInvalidArgument(status, "no-op");
+  }
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+
+  rom.mutable_data()[kDungeonPaletteColorPc] = 0x34;
+  rom.mutable_data()[kDungeonPaletteColorPc + 1] = 0x92;
+  rom.set_dirty(false);
+  const std::vector<uint8_t> bit15_before = rom.vector();
+  std::string output;
+  const absl::Status status = handler.Run(
+      DungeonPaletteSetArgs(manifest_cleanup.file_path), &rom, &output);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()), HasSubstr("not a 15-bit"));
+  EXPECT_EQ(rom.vector(), bit15_before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest,
+     SetDungeonPaletteRejectsManifestProtectedSecondByte) {
+  Rom rom;
+  InitializeDungeonPaletteRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteOwnershipOnlyManifest(manifest_cleanup.file_path,
+                             kDungeonPaletteColorPc + 1);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+
+  handlers::DungeonSetPaletteColorCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      DungeonPaletteSetArgs(manifest_cleanup.file_path), &rom, &output);
+
+  EXPECT_TRUE(absl::IsPermissionDenied(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("conflicts with Hack Manifest"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+  EXPECT_FALSE(std::filesystem::exists(cleanup.rom_path.string() + ".tmp"));
+}
+
+TEST(DungeonEditCommandsTest,
+     SetDungeonPaletteWriteRejectsPreexistingDirtyCallerRom) {
+  Rom rom;
+  InitializeDungeonPaletteRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteOwnershipOnlyManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+  ASSERT_TRUE(rom.WriteByte(kUnrelatedPaletteBaselinePc, 0x5A).ok());
+  ASSERT_TRUE(rom.dirty());
+  const std::vector<uint8_t> caller_before = rom.vector();
+
+  auto args = DungeonPaletteSetArgs(manifest_cleanup.file_path);
+  args.push_back("--write");
+  handlers::DungeonSetPaletteColorCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(args, &rom, &output);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("requires a clean file-backed ROM"));
+  EXPECT_EQ(rom.vector(), caller_before);
+  EXPECT_TRUE(rom.dirty());
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+  EXPECT_FALSE(std::filesystem::exists(cleanup.rom_path.string() + ".tmp"));
+}
+
+TEST(DungeonEditCommandsTest,
+     SetDungeonPaletteWriteRejectsCleanFlagWithDiskByteMismatch) {
+  Rom rom;
+  InitializeDungeonPaletteRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteOwnershipOnlyManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.mutable_data()[kUnrelatedPaletteBaselinePc] = 0x5A;
+  rom.set_dirty(false);
+  const std::vector<uint8_t> caller_before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+
+  auto args = DungeonPaletteSetArgs(manifest_cleanup.file_path);
+  args.push_back("--write");
+  handlers::DungeonSetPaletteColorCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(args, &rom, &output);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("exactly match the current file"));
+  EXPECT_EQ(rom.vector(), caller_before);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+  EXPECT_FALSE(std::filesystem::exists(cleanup.rom_path.string() + ".tmp"));
+}
+
+TEST(DungeonEditCommandsTest,
+     SetDungeonPaletteWriteBacksUpAtomicallyDiffsAndExternallyReopens) {
+  Rom rom;
+  InitializeDungeonPaletteRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteOwnershipOnlyManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+
+  auto args = DungeonPaletteSetArgs(manifest_cleanup.file_path);
+  args.push_back("--write");
+  handlers::DungeonSetPaletteColorCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(args, &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  const auto report = nlohmann::json::parse(output);
+  const auto& result = report.at("Set Dungeon Palette Color");
+  EXPECT_EQ(result.at("mode"), "write");
+  EXPECT_EQ(result.at("write_status"), "success");
+  EXPECT_EQ(result.at("whole_rom_diff_status"), "verified");
+  EXPECT_EQ(result.at("changed_byte_count"), 2);
+  EXPECT_EQ(result.at("changed_byte_pcs"),
+            nlohmann::json::array(
+                {absl::StrFormat("0x%06X", kDungeonPaletteColorPc),
+                 absl::StrFormat("0x%06X", kDungeonPaletteColorPc + 1)}));
+  EXPECT_EQ(result.at("save_status"), "saved");
+  EXPECT_EQ(result.at("readback_status"), "external_reopen_verified");
+  EXPECT_EQ(result.at("status"), "success");
+
+  std::vector<uint8_t> expected = before;
+  expected[kDungeonPaletteColorPc] = kDungeonPaletteNewColor & 0xFF;
+  expected[kDungeonPaletteColorPc + 1] = (kDungeonPaletteNewColor >> 8) & 0xFF;
+  EXPECT_EQ(rom.vector(), expected);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), expected);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_FALSE(std::filesystem::exists(cleanup.rom_path.string() + ".tmp"));
+
+  const auto backups = FindBackupArtifacts(cleanup.rom_path);
+  ASSERT_EQ(backups.size(), 1u);
+  EXPECT_EQ(ReadFile(backups.front()), disk_before);
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(cleanup.rom_path.string()).ok());
+  ASSERT_EQ(reopened.vector(), expected);
+  auto reopened_color = reopened.ReadWord(kDungeonPaletteColorPc);
+  ASSERT_TRUE(reopened_color.ok()) << reopened_color.status();
+  EXPECT_EQ(*reopened_color, kDungeonPaletteNewColor);
+}
+
+TEST(DungeonEditCommandsTest,
+     SetDungeonPaletteWholeRomDiffAllowsOneChangedByte) {
+  Rom rom;
+  InitializeDungeonPaletteRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteOwnershipOnlyManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+
+  auto args = DungeonPaletteSetArgs(manifest_cleanup.file_path, "0x5634");
+  args.push_back("--write");
+  handlers::DungeonSetPaletteColorCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(args, &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  const auto result =
+      nlohmann::json::parse(output).at("Set Dungeon Palette Color");
+  EXPECT_EQ(result.at("changed_byte_count"), 1);
+  EXPECT_EQ(result.at("changed_byte_pcs"),
+            nlohmann::json::array(
+                {absl::StrFormat("0x%06X", kDungeonPaletteColorPc + 1)}));
+  EXPECT_EQ(result.at("readback_status"), "external_reopen_verified");
+}
+
+TEST(DungeonEditCommandsTest,
+     SetDungeonPaletteDiskSaveFailureRollsBackAndRetainsBackup) {
+  Rom rom;
+  InitializeDungeonPaletteRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteOwnershipOnlyManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  ASSERT_TRUE(
+      std::filesystem::create_directory(cleanup.rom_path.string() + ".tmp"));
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+  const bool dirty_before = rom.dirty();
+  const std::string filename_before = rom.filename();
+
+  auto args = DungeonPaletteSetArgs(manifest_cleanup.file_path);
+  args.push_back("--write");
+  handlers::DungeonSetPaletteColorCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(args, &rom, &output);
+
+  EXPECT_TRUE(absl::IsInternal(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("Could not open temp ROM file for writing"));
+  EXPECT_THAT(output, HasSubstr("\"whole_rom_diff_status\": \"verified\""));
+  EXPECT_THAT(output, HasSubstr("\"save_error\""));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.dirty(), dirty_before);
+  EXPECT_EQ(rom.filename(), filename_before);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  const auto backups = FindBackupArtifacts(cleanup.rom_path);
+  ASSERT_EQ(backups.size(), 1u);
+  EXPECT_EQ(ReadFile(backups.front()), disk_before);
+}
+
+TEST(DungeonEditCommandsTest,
+     SetDungeonPaletteRequiredBackupFailureRollsBackWithoutArtifacts) {
+#if defined(_WIN32)
+  GTEST_SKIP() << "NAME_MAX backup failure fixture is POSIX-only";
+#else
+  Rom rom;
+  InitializeDungeonPaletteRom(&rom);
+
+  const auto parent = std::filesystem::temp_directory_path();
+  const long name_max = pathconf(parent.c_str(), _PC_NAME_MAX);
+  if (name_max < 128) {
+    GTEST_SKIP() << "Filesystem does not expose a usable NAME_MAX";
+  }
+  const auto nonce =
+      std::chrono::steady_clock::now().time_since_epoch().count();
+  std::string filename = "yaze_dungeon_palette_backup_" + std::to_string(nonce);
+  const size_t target_length = static_cast<size_t>(name_max) - 4;
+  ASSERT_LT(filename.size(), target_length);
+  filename.append(target_length - filename.size(), 'r');
+
+  ScopedRomArtifactsCleanup cleanup(parent / filename);
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteOwnershipOnlyManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+  const bool dirty_before = rom.dirty();
+  const std::string filename_before = rom.filename();
+
+  auto args = DungeonPaletteSetArgs(manifest_cleanup.file_path);
+  args.push_back("--write");
+  handlers::DungeonSetPaletteColorCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(args, &rom, &output);
+
+  EXPECT_FALSE(status.ok());
+  EXPECT_THAT(std::string(status.message()), HasSubstr("required ROM backup"));
+  EXPECT_THAT(output, HasSubstr("\"save_error\""));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.dirty(), dirty_before);
+  EXPECT_EQ(rom.filename(), filename_before);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+  EXPECT_FALSE(std::filesystem::exists(cleanup.rom_path.string() + ".tmp"));
+#endif
 }
 
 }  // namespace

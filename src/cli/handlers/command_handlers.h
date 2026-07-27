@@ -57,6 +57,8 @@ class DungeonMinecartMapCommandHandler;
 class DungeonPlaceSpriteCommandHandler;
 class DungeonRemoveSpriteCommandHandler;
 class DungeonPlaceObjectCommandHandler;
+class DungeonGetPaletteCommandHandler;
+class DungeonSetPaletteColorCommandHandler;
 class DungeonSetCollisionTileCommandHandler;
 class OracleMenuIndexCommandHandler;
 class OracleMenuSetOffsetCommandHandler;
