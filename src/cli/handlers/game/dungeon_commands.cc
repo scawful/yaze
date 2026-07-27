@@ -373,11 +373,15 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
 
   // Export Doors
   formatter.BeginArray("doors");
-  for (const auto& door : room.GetDoors()) {
+  const auto& doors = room.GetDoors();
+  for (size_t index = 0; index < doors.size(); ++index) {
+    const auto& door = doors[index];
     formatter.BeginObject();
+    formatter.AddField("index", static_cast<int>(index));
     formatter.AddField("position", door.position);
     formatter.AddField("direction", std::string(door.GetDirectionName()));
     formatter.AddField("type", std::string(door.GetTypeName()));
+    formatter.AddHexField("type_id", static_cast<uint8_t>(door.type), 2);
     auto [tx, ty] = door.GetTileCoords();
     formatter.AddField("tile_x", tx);
     formatter.AddField("tile_y", ty);

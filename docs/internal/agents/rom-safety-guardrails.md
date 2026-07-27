@@ -23,9 +23,18 @@ This repo is used to edit ROM hacks (including Oracle of Secrets). Treat ROM wri
   has no previous bytes to back up. A completed required backup is retained if
   the later target write fails, so recovery bytes remain available.
 - `dungeon-place-sprite`, `dungeon-remove-sprite`, `dungeon-place-object`,
-  `dungeon-set-collision-tile`, and `dungeon-set-room-property` wrap their
-  serializer, required backup, and disk commit in `ScopedRomTransaction`. Any
-  failure restores the caller's ROM bytes, filename, size, and dirty state.
+  `dungeon-set-door-type`, `dungeon-set-collision-tile`, and
+  `dungeon-set-room-property` wrap their serializer or fixed-width write,
+  required backup, and disk commit in `ScopedRomTransaction`. Any failure
+  before a successful disk commit restores the caller's ROM bytes, filename,
+  size, and dirty state.
+- `dungeon-set-door-type` is dry-run by default and requires exact coordinates,
+  an expected old type, and a `copy_on_write` object-stream manifest. It rejects
+  incomplete pointer inventories, invalid/aliased/overlapping selected streams,
+  and any other room door pointer into that stream. It fences write mode to the
+  resolved one-byte type field and cross-checks model/raw readback before the
+  required-backup save; the focused unit test independently reopens the saved
+  ROM and validates the persisted door.
 - Dungeon `layout`, `floor1`, and `floor2` edits use a separate object-stream
   header dirty mask. They preserve unrelated header bits and object payload,
   save after any dirty object payload, and fail closed on shared streams unless

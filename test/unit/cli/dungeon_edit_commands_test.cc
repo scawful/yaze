@@ -49,6 +49,8 @@ constexpr std::array<uint8_t, 14> kRoomHeaderSentinel = {
 constexpr uint16_t kRoomMessageSentinel = 0xDDCC;
 constexpr uint8_t kObjectHeaderByte0 = 0xA5;
 constexpr uint8_t kObjectHeaderByte1 = 0xE3;
+constexpr int kDoorEntryPc = kObjectDataPc + 8;
+constexpr int kDoorTypePc = kDoorEntryPc + 1;
 
 void ExpectInvalidArgument(const absl::Status& status,
                            const std::string& message_fragment) {
@@ -190,6 +192,47 @@ void InitializeRoomHeaderRom(Rom* rom) {
   rom->set_dirty(false);
 }
 
+void SetRoomObjectPointer(Rom* rom, int room_id, int pc_addr);
+
+void InitializeDoorTypeRom(Rom* rom, bool duplicate_coordinate = false) {
+  InitializeRoomHeaderRom(rom);
+
+  constexpr int kOtherObjectDataPc = kObjectDataPc + 0x20;
+  SetRoomObjectPointer(rom, 0, kObjectDataPc);
+  for (int room_id = 1; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    SetRoomObjectPointer(rom, room_id, kOtherObjectDataPc);
+  }
+
+  std::vector<uint8_t> selected_stream = {
+      kObjectHeaderByte0,
+      kObjectHeaderByte1,
+      0xFF,
+      0xFF,
+      0xFF,
+      0xFF,
+      0xF0,
+      0xFF,
+      0x81,
+      0x18,
+  };
+  if (duplicate_coordinate) {
+    selected_stream.insert(selected_stream.end(), {0x81, 0x00});
+  }
+  selected_stream.insert(selected_stream.end(), {0xFF, 0xFF});
+  ASSERT_TRUE(rom->WriteVector(kObjectDataPc, std::move(selected_stream)).ok());
+  ASSERT_TRUE(
+      rom->WriteVector(kOtherObjectDataPc, {0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF,
+                                            0xF0, 0xFF, 0xFF, 0xFF})
+          .ok());
+
+  WriteLong(rom, zelda3::kDoorPointers, PcToSnes(kDoorEntryPc));
+  for (int room_id = 1; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    WriteLong(rom, zelda3::kDoorPointers + room_id * 3,
+              PcToSnes(kOtherObjectDataPc + 8));
+  }
+  rom->set_dirty(false);
+}
+
 void SetRoomObjectPointer(Rom* rom, int room_id, int pc_addr) {
   WriteLong(rom, kObjectPointerTablePc + room_id * 3, PcToSnes(pc_addr));
 }
@@ -273,7 +316,9 @@ void InitializeDescribeRoomObjectsRom(Rom* rom) {
 }
 
 void WriteObjectCowManifest(const std::filesystem::path& path,
-                            bool protect_allocation = false) {
+                            bool protect_allocation = false,
+                            int protected_pc = -1,
+                            int pointer_count = zelda3::kNumberOfRooms) {
   std::string protected_section;
   if (protect_allocation) {
     protected_section = absl::StrFormat(
@@ -292,6 +337,22 @@ void WriteObjectCowManifest(const std::filesystem::path& path,
   })json",
         PcToSnes(kObjectAllocationPc), PcToSnes(kObjectDataEndPc),
         kObjectDataEndPc - kObjectAllocationPc);
+  } else if (protected_pc >= 0) {
+    protected_section = absl::StrFormat(
+        R"json(,
+  "protected_regions": {
+    "total_hooks": 1,
+    "regions": [
+      {
+        "start": "0x%06X",
+        "end": "0x%06X",
+        "size": 1,
+        "hook_count": 1,
+        "module": "DoorTypeGuard"
+      }
+    ]
+  })json",
+        PcToSnes(protected_pc), PcToSnes(protected_pc + 1));
   }
   const std::string json = absl::StrFormat(
       R"json({
@@ -299,7 +360,7 @@ void WriteObjectCowManifest(const std::filesystem::path& path,
   "dungeon_stream_regions": {
     "objects": {
       "pointer_table": "0x%06X",
-      "pointer_count": 296,
+      "pointer_count": %d,
       "pointer_encoding": "long24",
       "strategy": "copy_on_write",
       "data_regions": [
@@ -311,7 +372,7 @@ void WriteObjectCowManifest(const std::filesystem::path& path,
     }
   }%s
 })json",
-      PcToSnes(kObjectPointerTablePc), PcToSnes(kObjectDataPc),
+      PcToSnes(kObjectPointerTablePc), pointer_count, PcToSnes(kObjectDataPc),
       PcToSnes(kObjectDataEndPc), PcToSnes(kObjectAllocationPc),
       PcToSnes(kObjectDataEndPc), protected_section);
   std::ofstream output(path, std::ios::trunc);
@@ -522,6 +583,8 @@ TEST(DungeonEditCommandsTest,
   // The legacy count includes the synthesized lightable-torch table object.
   EXPECT_EQ(result.at("properties").at("object_count"), 4);
   ASSERT_EQ(result.at("doors").size(), 1u);
+  EXPECT_EQ(result.at("doors").at(0).at("index"), 0);
+  EXPECT_EQ(result.at("doors").at(0).at("type_id"), "0x04");
   EXPECT_EQ(rom.vector(), before);
   EXPECT_FALSE(rom.dirty());
 }
@@ -1417,6 +1480,415 @@ TEST(DungeonEditCommandsTest,
   EXPECT_EQ(*disk_hash_after_write, *disk_hash_before);
   EXPECT_EQ(ReadRoomObjectPointerPc(rom, 0), pointer_before);
   EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+}
+
+TEST(DungeonEditCommandsTest,
+     SetDoorTypeDryRunLeavesRomDiskAndBackupsUnchanged) {
+  Rom rom;
+  InitializeDoorTypeRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+  handlers::DungeonSetDoorTypeCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--x=46", "--y=58", "--type=0x00", "--expect-type=0x18",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--format=json"},
+      &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_THAT(output, HasSubstr("\"mode\": \"dry-run\""));
+  EXPECT_THAT(output, HasSubstr("\"preflight_status\": \"success\""));
+  EXPECT_THAT(output, HasSubstr("\"door_index\": 0"));
+  EXPECT_THAT(output, HasSubstr("\"direction\": \"South\""));
+  EXPECT_THAT(output, HasSubstr("\"old_type\": \"0x18\""));
+  EXPECT_THAT(output, HasSubstr("\"new_type\": \"0x00\""));
+  EXPECT_THAT(output, HasSubstr("\"type_pc\": \"0x060009\""));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+}
+
+TEST(DungeonEditCommandsTest,
+     SetDoorTypeRejectsStaleExpectedTypeWithoutMutation) {
+  Rom rom;
+  InitializeDoorTypeRom(&rom);
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonSetDoorTypeCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--x=46", "--y=58", "--type=0x00", "--expect-type=0x1A",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("compare-and-swap failed"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest, SetDoorTypeRejectsInvalidDoorTypeValues) {
+  Rom rom;
+  InitializeDoorTypeRom(&rom);
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  const std::vector<uint8_t> before = rom.vector();
+  handlers::DungeonSetDoorTypeCommandHandler handler;
+
+  for (const std::string& type : {"0x19", "0x68"}) {
+    SCOPED_TRACE(type);
+    std::string output;
+    const absl::Status status = handler.Run(
+        {"--room=0x00", "--x=46", "--y=58", "--type=" + type,
+         "--expect-type=0x18",
+         absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+         "--format=json"},
+        &rom, &output);
+    ExpectInvalidArgument(status, "even door type");
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_FALSE(rom.dirty());
+  }
+}
+
+TEST(DungeonEditCommandsTest,
+     SetDoorTypeRejectsMissingAndAmbiguousCoordinates) {
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  handlers::DungeonSetDoorTypeCommandHandler handler;
+
+  {
+    Rom rom;
+    InitializeDoorTypeRom(&rom);
+    const std::vector<uint8_t> before = rom.vector();
+    std::string output;
+    const absl::Status status = handler.Run(
+        {"--room=0x00", "--x=45", "--y=58", "--type=0x00", "--expect-type=0x18",
+         absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+         "--format=json"},
+        &rom, &output);
+    EXPECT_TRUE(absl::IsNotFound(status)) << status;
+    EXPECT_THAT(std::string(status.message()), HasSubstr("No door matches"));
+    EXPECT_EQ(rom.vector(), before);
+  }
+
+  {
+    Rom rom;
+    InitializeDoorTypeRom(&rom, /*duplicate_coordinate=*/true);
+    const std::vector<uint8_t> before = rom.vector();
+    std::string output;
+    const absl::Status status = handler.Run(
+        {"--room=0x00", "--x=46", "--y=58", "--type=0x00", "--expect-type=0x18",
+         absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+         "--format=json"},
+        &rom, &output);
+    EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+    EXPECT_THAT(std::string(status.message()),
+                HasSubstr("Multiple doors match"));
+    EXPECT_EQ(rom.vector(), before);
+  }
+}
+
+TEST(DungeonEditCommandsTest,
+     SetDoorTypeRejectsAliasedSelectedStreamWithoutMutation) {
+  Rom rom;
+  InitializeDoorTypeRom(&rom);
+  SetRoomObjectPointer(&rom, 1, kObjectDataPc);
+  rom.set_dirty(false);
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonSetDoorTypeCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--x=46", "--y=58", "--type=0x00", "--expect-type=0x18",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()), HasSubstr("shared by 2 rooms"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest,
+     SetDoorTypeRejectsOverlappingSelectedStreamWithoutMutation) {
+  Rom rom;
+  InitializeDoorTypeRom(&rom);
+  ASSERT_TRUE(
+      rom.WriteVector(kObjectDataPc, {0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+                                      0xFF, 0xF0, 0xFF, 0x81, 0x18, 0xFF, 0xFF})
+          .ok());
+  SetRoomObjectPointer(&rom, 0, kObjectDataPc + 2);
+  SetRoomObjectPointer(&rom, 1, kObjectDataPc);
+  WriteLong(&rom, zelda3::kDoorPointers, PcToSnes(kObjectDataPc + 10));
+  rom.set_dirty(false);
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonSetDoorTypeCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--x=46", "--y=58", "--type=0x00", "--expect-type=0x18",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()), HasSubstr("overlaps PC range"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest, SetDoorTypeAllowsUnrelatedMalformedObjectStream) {
+  Rom rom;
+  InitializeDoorTypeRom(&rom);
+  SetRoomObjectPointer(&rom, 1, kObjectDataPc + 0x80);
+  rom.set_dirty(false);
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonSetDoorTypeCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--x=46", "--y=58", "--type=0x00", "--expect-type=0x18",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--format=json"},
+      &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_THAT(output, HasSubstr("\"preflight_status\": \"success\""));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest,
+     SetDoorTypeRejectsMalformedPointerInsideSelectedStream) {
+  Rom rom;
+  InitializeDoorTypeRom(&rom);
+  constexpr int kSelectedStreamPc = kObjectDataEndPc - 12;
+  constexpr int kSelectedDoorPc = kSelectedStreamPc + 8;
+  constexpr int kSelectedTypePc = kSelectedDoorPc + 1;
+  ASSERT_TRUE(
+      rom.WriteVector(kSelectedStreamPc,
+                      {kObjectHeaderByte0, kObjectHeaderByte1, 0xFF, 0xFF, 0xFF,
+                       0xFF, 0xF0, 0xFF, 0x81, 0x18, 0xFF, 0xFF})
+          .ok());
+  SetRoomObjectPointer(&rom, 0, kSelectedStreamPc);
+  SetRoomObjectPointer(&rom, 1, kSelectedTypePc);
+  WriteLong(&rom, zelda3::kDoorPointers, PcToSnes(kSelectedDoorPc));
+  rom.set_dirty(false);
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonSetDoorTypeCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--x=46", "--y=58", "--type=0x00", "--expect-type=0x18",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("starts inside selected object stream"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest,
+     SetDoorTypeRejectsPartialManifestPointerInventory) {
+  Rom rom;
+  InitializeDoorTypeRom(&rom);
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WriteObjectCowManifest(manifest_cleanup.file_path,
+                         /*protect_allocation=*/false,
+                         /*protected_pc=*/-1,
+                         /*pointer_count=*/zelda3::kNumberOfRooms - 1);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonSetDoorTypeCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--x=46", "--y=58", "--type=0x00", "--expect-type=0x18",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("pointer_count must equal 296 rooms"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest,
+     SetDoorTypeRejectsOtherRoomDoorPointerInsideSelectedStream) {
+  Rom rom;
+  InitializeDoorTypeRom(&rom);
+  WriteLong(&rom, zelda3::kDoorPointers + 3, PcToSnes(kDoorTypePc));
+  rom.set_dirty(false);
+  ScopedFileCleanup manifest_cleanup(MakeUniqueTempRomPath().string() +
+                                     ".manifest.json");
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonSetDoorTypeCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--x=46", "--y=58", "--type=0x00", "--expect-type=0x18",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("door pointer PC 0x060009 points inside selected"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest,
+     SetDoorTypeRejectsProtectedByteWithoutMutationOrArtifacts) {
+  Rom rom;
+  InitializeDoorTypeRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteObjectCowManifest(manifest_cleanup.file_path,
+                         /*protect_allocation=*/false, kDoorTypePc);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+
+  handlers::DungeonSetDoorTypeCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--x=46", "--y=58", "--type=0x00", "--expect-type=0x18",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--write", "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsPermissionDenied(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("conflicts with Hack Manifest"));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+}
+
+TEST(DungeonEditCommandsTest, SetDoorTypeWriteChangesOneByteBacksUpAndReopens) {
+  Rom rom;
+  InitializeDoorTypeRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+
+  handlers::DungeonSetDoorTypeCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--x=46", "--y=58", "--type=0x00", "--expect-type=0x18",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--write", "--format=json"},
+      &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_THAT(output, HasSubstr("\"mode\": \"write\""));
+  EXPECT_THAT(output, HasSubstr("\"write_status\": \"success\""));
+  EXPECT_THAT(output, HasSubstr("\"save_status\": \"saved\""));
+  EXPECT_THAT(output, HasSubstr("\"readback_status\": \"pre_save_verified\""));
+  std::vector<uint8_t> expected = before;
+  expected[kDoorTypePc] = 0x00;
+  EXPECT_EQ(rom.vector(), expected);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), expected);
+  EXPECT_FALSE(rom.dirty());
+
+  const auto backups = FindBackupArtifacts(cleanup.rom_path);
+  ASSERT_EQ(backups.size(), 1u);
+  EXPECT_EQ(ReadFile(backups.front()), disk_before);
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(cleanup.rom_path.string()).ok());
+  const zelda3::Room room = zelda3::LoadRoomFromRom(&reopened, 0);
+  ASSERT_EQ(room.GetDoors().size(), 1u);
+  const auto& door = room.GetDoors().front();
+  EXPECT_EQ(door.GetTileCoords(), std::make_pair(46, 58));
+  EXPECT_EQ(door.direction, zelda3::DoorDirection::South);
+  EXPECT_EQ(door.position, 8);
+  EXPECT_EQ(door.type, zelda3::DoorType::NormalDoor);
+}
+
+TEST(DungeonEditCommandsTest, SetDoorTypeDiskSaveFailureRollsBackCallerRom) {
+  Rom rom;
+  InitializeDoorTypeRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteRomFile(rom, cleanup.rom_path);
+  WriteObjectCowManifest(manifest_cleanup.file_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  ASSERT_TRUE(
+      std::filesystem::create_directory(cleanup.rom_path.string() + ".tmp"));
+  const std::vector<uint8_t> before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
+  const bool dirty_before = rom.dirty();
+  const std::string filename_before = rom.filename();
+
+  handlers::DungeonSetDoorTypeCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--x=46", "--y=58", "--type=0x00", "--expect-type=0x18",
+       absl::StrFormat("--manifest=%s", manifest_cleanup.file_path.string()),
+       "--write", "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsInternal(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("Could not open temp ROM file for writing"));
+  EXPECT_THAT(output, HasSubstr("\"readback_status\": \"pre_save_verified\""));
+  EXPECT_THAT(output, HasSubstr("\"write_status\": \"success\""));
+  EXPECT_THAT(output, HasSubstr("\"save_error\""));
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_EQ(rom.dirty(), dirty_before);
+  EXPECT_EQ(rom.filename(), filename_before);
+  EXPECT_EQ(ReadFile(cleanup.rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 1);
 }
 
 }  // namespace
