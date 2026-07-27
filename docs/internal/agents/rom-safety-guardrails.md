@@ -38,12 +38,12 @@ This repo is used to edit ROM hacks (including Oracle of Secrets). Treat ROM wri
   ROM and validates the persisted door.
 - `dungeon-set-pot-item` is dry-run by default and requires an exact existing
   entry index, expected raw position/item values, and a pot-item stream
-  manifest. It inventories all room pointers, rejects selected aliases,
-  overlaps, malformed streams, and interior pointers, cross-checks raw/model
-  entries and the terminator, blocks manifest-owned item bytes before mutation,
-  and fences write mode to one byte. It never adds, removes, repositions, or
-  repacks pot entries; required-backup save and external reopen coverage match
-  the door-edit contract.
+  manifest. It inventories all room pointers and fails closed if any room has
+  an invalid or malformed stream, then rejects selected aliases, overlaps, and
+  interior pointers, cross-checks raw/model entries and the terminator, blocks
+  manifest-owned item bytes before mutation, and fences write mode to one byte.
+  It never adds, removes, repositions, or repacks pot entries; required-backup
+  save and external reopen coverage match the door-edit contract.
 - Dungeon `layout`, `floor1`, and `floor2` edits use a separate object-stream
   header dirty mask. They preserve unrelated header bits and object payload,
   save after any dirty object payload, and fail closed on shared streams unless
