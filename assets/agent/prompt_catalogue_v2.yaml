@@ -28,6 +28,54 @@ tools:
         description: "Response format (json or table)"
         required: false
         example: json
+  - name: dungeon-get-palette
+    description: "Read-only resolution of a US/OOS room's full 8-bit palette-set ID to its shared global dungeon palette."
+    usage_notes: "Returns the resolved palette index, raw 15-bit colors, addresses, and every affected room without mutating the ROM; unsupported regional layouts fail closed."
+    arguments:
+      - name: room
+        description: "Dungeon room ID in hex."
+        required: true
+        example: 0xA8
+      - name: index
+        description: "Optional color index from 0 through 89."
+        required: false
+        example: 7
+  - name: dungeon-set-palette-color
+    description: "Guarded mutating tool for dry-running or persisting one US/OOS shared dungeon palette color."
+    usage_notes: "Dry-run by default. Copy expected values from a fresh getter, review affected rooms, and request write only for a clean disposable file-backed ROM with a Hack Manifest."
+    arguments:
+      - name: room
+        description: "Dungeon room ID in hex."
+        required: true
+        example: 0xA8
+      - name: index
+        description: "Color index from 0 through 89."
+        required: true
+        example: 7
+      - name: expect-palette-set
+        description: "Expected full 8-bit room-header palette-set ID."
+        required: true
+        example: 0x07
+      - name: expect-palette-index
+        description: "Expected resolved global dungeon palette index from 0 through 19."
+        required: true
+        example: 7
+      - name: expect-color
+        description: "Expected current raw 15-bit SNES color word."
+        required: true
+        example: 0x7FFF
+      - name: color
+        description: "Replacement raw 15-bit SNES color word."
+        required: true
+        example: 0x7FFE
+      - name: manifest
+        description: "Hack Manifest path used to block protected write ranges."
+        required: true
+        example: Roms/hack_manifest.json
+      - name: write
+        description: "Optional boolean. True requests the guarded persistent write; false or omitted previews only."
+        required: false
+        example: "false"
 
 tile16_reference:
   grass: 0x020

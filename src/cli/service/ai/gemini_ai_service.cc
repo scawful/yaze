@@ -16,6 +16,7 @@
 #include "absl/time/time.h"
 #include "cli/service/agent/conversational_agent_service.h"
 #include "cli/service/ai/provider_ids.h"
+#include "cli/service/ai/tool_call_argument_codec.h"
 #include "cli/service/ai/tool_schema_builder.h"
 #include "util/platform_paths.h"
 
@@ -700,16 +701,7 @@ absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
                 tool_call.tool_name = call["tool_name"].get<std::string>();
 
                 if (call.contains("args") && call["args"].is_object()) {
-                  for (auto& [key, value] : call["args"].items()) {
-                    if (value.is_string()) {
-                      tool_call.args[key] = value.get<std::string>();
-                    } else if (value.is_number()) {
-                      tool_call.args[key] = std::to_string(value.get<double>());
-                    } else if (value.is_boolean()) {
-                      tool_call.args[key] =
-                          value.get<bool>() ? "true" : "false";
-                    }
-                  }
+                  tool_call.args = ai::DecodeToolCallArguments(call["args"]);
                 }
                 agent_response.tool_calls.push_back(tool_call);
               }
@@ -739,13 +731,7 @@ absl::StatusOr<AgentResponse> GeminiAIService::ParseGeminiResponse(
           ToolCall tool_call;
           tool_call.tool_name = call["name"].get<std::string>();
           if (call.contains("args") && call["args"].is_object()) {
-            for (auto& [key, value] : call["args"].items()) {
-              if (value.is_string()) {
-                tool_call.args[key] = value.get<std::string>();
-              } else if (value.is_number()) {
-                tool_call.args[key] = std::to_string(value.get<double>());
-              }
-            }
+            tool_call.args = ai::DecodeToolCallArguments(call["args"]);
           }
           agent_response.tool_calls.push_back(tool_call);
         }

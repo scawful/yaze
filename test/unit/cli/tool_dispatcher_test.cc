@@ -116,6 +116,26 @@ TEST(ToolDispatcherUnitTest,
   EXPECT_THAT(water->flag_args, Contains("strict-masks"));
 }
 
+TEST(ToolDispatcherUnitTest,
+     DungeonPaletteToolsExposeReadOnlyGetterAndMutatingGuardedSetter) {
+  const auto getter =
+      ToolRegistry::Get().GetToolDefinition("dungeon-get-palette");
+  ASSERT_TRUE(getter.has_value());
+  EXPECT_EQ(getter->access, ToolAccess::kReadOnly);
+  EXPECT_THAT(getter->required_args, Contains("room"));
+
+  const auto setter =
+      ToolRegistry::Get().GetToolDefinition("dungeon-set-palette-color");
+  ASSERT_TRUE(setter.has_value());
+  EXPECT_EQ(setter->access, ToolAccess::kMutating);
+  EXPECT_THAT(setter->required_args, Contains("room"));
+  EXPECT_THAT(setter->required_args, Contains("expect-palette-set"));
+  EXPECT_THAT(setter->required_args, Contains("expect-palette-index"));
+  EXPECT_THAT(setter->required_args, Contains("expect-color"));
+  EXPECT_THAT(setter->required_args, Contains("manifest"));
+  EXPECT_THAT(setter->flag_args, Contains("write"));
+}
+
 TEST(ToolDispatcherUnitTest, SharedValidationRejectsMissingRequiredArgs) {
   ToolRegistry::Get().RegisterTool(
       {"test-required-arg",

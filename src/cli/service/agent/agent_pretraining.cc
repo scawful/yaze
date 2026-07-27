@@ -150,9 +150,9 @@ Result: "Hyrule Castle (dungeon 0) has 3 guards (sprite 0x41), 2 knights..."
 ## Example 2: Palette Investigation
 User: "What colors are used for grass?"
 Tool chain:
-1. overworld-find-tile --tile_id=0x20 (grass tile)
-2. palette-get-colors --group=0 --palette=0
-3. palette-analyze --type=palette --id=0/0
+1. overworld-find-tile --tile=0x020 (grass tile)
+2. palette-get-colors --group=ow_main --index=0
+3. palette-analyze --group=ow_main
 Result: "Grass uses palette 0/0 with colors: light green #98FB98..."
 
 ## Example 3: Hex Pattern Search

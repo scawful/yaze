@@ -1,9 +1,11 @@
 #include "cli/service/ai/tool_schema_builder.h"
 
+#include <set>
 #include <string>
 
 #include <gtest/gtest.h>
 
+#include "cli/service/ai/tool_call_argument_codec.h"
 #include "nlohmann/json.hpp"
 
 namespace yaze::cli {
@@ -120,6 +122,68 @@ TEST(ToolSchemaBuilderTest,
   EXPECT_TRUE(anthropic_tools[0].contains("description"));
   EXPECT_TRUE(anthropic_tools[0].contains("input_schema"));
   EXPECT_FALSE(anthropic_tools[0].contains("parameters"));
+}
+
+TEST(ToolSchemaBuilderTest,
+     ActiveCataloguesExposeGuardedDungeonPaletteToolsToProviders) {
+  for (const std::string catalogue : {"", "agent/prompt_catalogue_v2.yaml"}) {
+    SCOPED_TRACE(catalogue.empty() ? "default" : catalogue);
+    PromptBuilder prompt_builder;
+    ASSERT_TRUE(prompt_builder.LoadResourceCatalogue(catalogue).ok());
+
+    auto declarations_or =
+        ToolSchemaBuilder::ResolveFunctionDeclarations(prompt_builder);
+    ASSERT_TRUE(declarations_or.ok()) << declarations_or.status();
+
+    const nlohmann::json* getter = nullptr;
+    const nlohmann::json* setter = nullptr;
+    for (const auto& declaration : *declarations_or) {
+      const std::string name = declaration.value("name", "");
+      if (name == "dungeon-get-palette") {
+        getter = &declaration;
+      } else if (name == "dungeon-set-palette-color") {
+        setter = &declaration;
+      }
+    }
+    ASSERT_NE(getter, nullptr);
+    ASSERT_NE(setter, nullptr);
+    EXPECT_NE(getter->at("description").get<std::string>().find("Read-only"),
+              std::string::npos);
+    EXPECT_NE(setter->at("description").get<std::string>().find("mutating"),
+              std::string::npos);
+
+    std::set<std::string> required;
+    for (const auto& name : setter->at("parameters").at("required")) {
+      required.insert(name.get<std::string>());
+    }
+    EXPECT_EQ(required,
+              (std::set<std::string>{"room", "index", "expect-palette-set",
+                                     "expect-palette-index", "expect-color",
+                                     "color", "manifest"}));
+    EXPECT_TRUE(setter->at("parameters").at("properties").contains("write"));
+    EXPECT_FALSE(required.contains("write"));
+  }
+}
+
+TEST(ToolSchemaBuilderTest,
+     ProviderToolArgumentCodecPreservesDungeonPaletteIntegersAndWriteFlag) {
+  const nlohmann::json provider_arguments = {
+      {"room", "0xA8"},
+      {"index", 7},
+      {"expect-palette-set", "0x07"},
+      {"expect-palette-index", 7},
+      {"expect-color", "0x7FFF"},
+      {"color", "0x7FFE"},
+      {"manifest", "Roms/hack_manifest.json"},
+      {"write", true},
+  };
+
+  const auto decoded = ai::DecodeToolCallArguments(provider_arguments);
+
+  EXPECT_EQ(decoded.at("room"), "0xA8");
+  EXPECT_EQ(decoded.at("index"), "7");
+  EXPECT_EQ(decoded.at("expect-palette-index"), "7");
+  EXPECT_EQ(decoded.at("write"), "true");
 }
 
 TEST(ToolSchemaBuilderTest,

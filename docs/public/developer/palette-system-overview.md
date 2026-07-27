@@ -100,6 +100,24 @@ Room palette property = 16
 | ...    | ...    | ...        |
 | 38     | 0x0D5C | 19         |
 
+#### Safe CLI Inspection and Editing
+
+Use `dungeon-get-palette --room <hex> [--index <0..89>]` rather than treating
+the room-header byte as a direct palette index. Its output preserves the full
+8-bit palette-set ID, validates the referenced table entry and pointer word,
+and lists every room resolving to the same global palette. That fanout matters:
+two different palette-set IDs can alias the same palette. This bounded command
+currently supports only the US/OOS table layout and fails closed for Japanese,
+European, or otherwise unproven regional layouts.
+
+`dungeon-set-palette-color` accepts raw 15-bit SNES words and is dry-run-first.
+It requires expected palette-set, resolved palette index, old color, and a Hack
+Manifest before it will even preview the exact shared write. Native `--write`
+uses an exact two-byte write fence, required backup, atomic save, whole-ROM
+diff, and external reopen/readback. Legacy `palette-set-color --write` is
+disabled; browser-terminal writes are not offered because durable Emscripten
+filesystem synchronization cannot be guaranteed.
+
 #### Common Pitfall: Direct Palette ID Usage
 
 **WRONG** (causes purple/wrong colors for palette sets 16+):

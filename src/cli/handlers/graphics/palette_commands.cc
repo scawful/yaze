@@ -204,6 +204,12 @@ absl::Status PaletteSetColorCommandHandler::Execute(
   auto index_str = parser.GetString("index").value();
   auto color_str = parser.GetString("color").value();
   bool write = parser.HasFlag("write");
+  if (write) {
+    return absl::FailedPreconditionError(
+        "palette-set-color --write is disabled because it cannot guarantee "
+        "durable, manifest-safe persistence; use "
+        "dungeon-set-palette-color for dungeon palette writes");
+  }
 
   int palette_idx;
   if (!absl::SimpleAtoi(palette_str, &palette_idx)) {
@@ -277,18 +283,11 @@ absl::Status PaletteSetColorCommandHandler::Execute(
   formatter.AddHexField("old_snes", old_color.snes(), 4);
   formatter.AddHexField("new_snes", new_color.snes(), 4);
 
-  if (write) {
-    // Compute the ROM address for this color entry and write 2 bytes.
-    uint32_t addr = gfx::GetPaletteAddress(group_name, palette_idx, color_idx);
-    uint16_t snes_val = new_color.snes();
-    RETURN_IF_ERROR(rom->WriteShort(addr, snes_val));
-
-    formatter.AddField("status", "written");
-    formatter.AddHexField("rom_address", addr, 6);
-  } else {
-    formatter.AddField("status", "dry_run");
-    formatter.AddField("message", "Use --write to apply the change to the ROM");
-  }
+  formatter.AddField("status", "dry_run");
+  formatter.AddField(
+      "message",
+      "Legacy preview only; use a domain-specific manifest-safe command for "
+      "persistent writes");
 
   formatter.EndObject();
   return absl::OkStatus();

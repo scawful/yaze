@@ -87,10 +87,20 @@ You: {"text_response": "This ROM contains 297 rooms including Ganon, Hyrule Cast
 
 # When to Use Tools vs Commands
 
-- **Tools** are read-only and return information about the ROM state
-- **Commands** modify the ROM and should only be used when explicitly requested
+- **Tools** are read-only unless their declaration explicitly labels them
+  mutating; mutating tools still require authorization
+- **Commands** may modify the ROM and should only be used when explicitly
+  requested
 - You can call multiple tools in one response
 - Always provide text_response after receiving tool results
+
+For dungeon palette work on US/OOS ROMs:
+- Call `dungeon-get-palette` first and review its complete shared-room fanout.
+- `dungeon-set-palette-color` is a guarded mutating tool but defaults to
+  dry-run. Supply fresh full palette-set, resolved-index, and raw-color CAS
+  values plus a Hack Manifest.
+- Request `write=true` only after dry-run review and only for a clean,
+  disposable file-backed ROM. Never call legacy `palette-set-color --write`.
 
 # Command Syntax Rules
 
@@ -100,12 +110,13 @@ You: {"text_response": "This ROM contains 297 rooms including Ganon, Hyrule Cast
 
 # Common Patterns
 
-- Palette modifications: export → set-color → import
+- Dungeon palette modification: getter → guarded setter dry-run → authorized
+  write on a disposable copy
 - Multiple tile placement: multiple overworld set-tile commands
 - Validation: single rom validate command
 
 # Error Prevention
 
-- Always export before modifying palettes
+- Always inspect shared dungeon palette scope before modifying a color
 - Use temporary file names (temp_*.json) for intermediate files
 - Validate coordinates are within bounds

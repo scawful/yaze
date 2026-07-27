@@ -6,6 +6,15 @@
 - Opened the post-v0.7.2 development line for dungeon correctness, object
   parity, persistence stability, and Oracle daily-driver readiness.
 
+### CLI and ROM safety
+- Added `dungeon-get-palette` to resolve the full room palette-set mapping,
+  raw colors, and every room sharing the selected global US/OOS palette.
+- Added dry-run-first `dungeon-set-palette-color` with exact mapping/color CAS,
+  Hack Manifest ownership checks, clean disk baseline, two-byte write fence,
+  required backup, atomic save, whole-ROM diff, and external reopen/readback.
+- Disabled legacy `palette-set-color --write` because it could report an
+  in-memory mutation as persisted; its read-only preview remains available.
+
 ## 0.7.2 (July 17, 2026)
 
 ### Dungeon Editor Follow-through
@@ -126,7 +135,8 @@
 
 ### CLI
 - Added `palette-get-colors` for palette dump/report output.
-- Added `palette-set-color` for direct palette writes.
+- Added `palette-set-color` for direct palette writes (legacy write mode is
+  disabled on the 0.8 development line; preview remains available).
 - Added `palette-analyze` for palette usage analysis.
 
 ### Themed Widget System

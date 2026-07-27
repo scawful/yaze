@@ -146,6 +146,33 @@ void CommandRegistry::RegisterHandlers(
             "z3ed dungeon-place-object --room=0x98 --id=0x0031 --x=20 --y=20 "
             "--size=4 --manifest=hack_manifest.json --write "
             "--rom=/tmp/oos-work.sfc --format=json"};
+      } else if (name == "dungeon-get-palette") {
+        metadata.description =
+            "Resolve a US/OOS room's full 8-bit palette-set ID to its shared "
+            "global dungeon palette and report every affected room; other "
+            "regional layouts fail closed";
+        metadata.examples = {
+            "z3ed dungeon-get-palette --room=0xA8 "
+            "--rom=Roms/oos168.sfc --format=json",
+            "z3ed dungeon-get-palette --room=0xA8 --index=0x07 "
+            "--rom=Roms/oos168.sfc --format=json"};
+      } else if (name == "dungeon-set-palette-color") {
+        metadata.description =
+            "Dry-run or persist one US/OOS shared dungeon palette color with "
+            "palette-set/index/color CAS, manifest ownership, exact fence, "
+            "clean-file baseline, required backup, atomic save, and external "
+            "reopen guards";
+        metadata.examples = {
+            "z3ed dungeon-set-palette-color --room=0xA8 --index=7 "
+            "--expect-palette-set=0x07 --expect-palette-index=7 "
+            "--expect-color=0x7FFF --color=0x7FFE "
+            "--manifest=Roms/hack_manifest.json "
+            "--rom=Roms/oos168.sfc --format=json",
+            "z3ed dungeon-set-palette-color --room=0xA8 --index=7 "
+            "--expect-palette-set=0x07 --expect-palette-index=7 "
+            "--expect-color=0x7FFF --color=0x7FFE "
+            "--manifest=Roms/hack_manifest.json --write "
+            "--rom=/tmp/oos-work.sfc --format=json"};
       } else if (name == "dungeon-set-door-type") {
         metadata.description =
             "Change one existing door type with coordinate/CAS and manifest "
