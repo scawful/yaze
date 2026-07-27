@@ -130,6 +130,13 @@ void DrawTableBowl(const DrawContext& ctx);
 void DrawSmithyFurnace(const DrawContext& ctx);
 
 /**
+ * @brief Draw the fixed 4x4 big gray rock as two column-major 4x2 bands
+ *
+ * ASM: RoomDraw_BigGrayRock ($01B310 -> DrawBigGraySegment)
+ */
+void DrawBigGrayRock(const DrawContext& ctx);
+
+/**
  * @brief Draw utility 3x5 pattern (special row pattern)
  *
  * ASM: RoomDraw_Utility3x5 ($01A194)
