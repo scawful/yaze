@@ -709,6 +709,56 @@ absl::Status ValidateDistinctTargets(const fs::path& bundle_path,
   return absl::OkStatus();
 }
 
+absl::Status ValidateTargetsDoNotAliasLock(const fs::path& lock_path,
+                                           const fs::path& bundle_path,
+                                           const fs::path& include_path) {
+  for (const fs::path* target : {&bundle_path, &include_path}) {
+    if (*target == lock_path ||
+        LowercasePath(*target) == LowercasePath(lock_path)) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Message source targets may not use the persistent lock path: %s",
+          lock_path.string()));
+    }
+  }
+
+  std::error_code lock_exists_ec;
+  const bool lock_exists = fs::exists(lock_path, lock_exists_ec);
+  if (lock_exists_ec) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Cannot inspect persistent message source lock %s: %s",
+                        lock_path.string(), lock_exists_ec.message()));
+  }
+  if (!lock_exists) {
+    return absl::OkStatus();
+  }
+
+  for (const fs::path* target : {&bundle_path, &include_path}) {
+    std::error_code target_exists_ec;
+    const bool target_exists = fs::exists(*target, target_exists_ec);
+    if (target_exists_ec) {
+      return absl::FailedPreconditionError(
+          absl::StrFormat("Cannot inspect message source target %s: %s",
+                          target->string(), target_exists_ec.message()));
+    }
+    if (!target_exists) {
+      continue;
+    }
+    std::error_code equivalent_ec;
+    const bool equivalent = fs::equivalent(lock_path, *target, equivalent_ec);
+    if (equivalent_ec) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Cannot compare message source target %s with persistent lock %s: %s",
+          target->string(), lock_path.string(), equivalent_ec.message()));
+    }
+    if (equivalent) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Message source target aliases the persistent lock path: %s",
+          target->string()));
+    }
+  }
+  return absl::OkStatus();
+}
+
 fs::path NextSiblingPath(const fs::path& target, absl::string_view purpose) {
   static std::atomic<uint64_t> sequence{0};
   const uint64_t tick = static_cast<uint64_t>(
@@ -955,6 +1005,12 @@ absl::StatusOr<fs::path> CreateBackup(const fs::path& target) {
     if (copy_ec != std::errc::file_exists) {
       std::error_code cleanup_ec;
       fs::remove(backup, cleanup_ec);
+      if (cleanup_ec) {
+        return absl::DataLossError(absl::StrFormat(
+            "Cannot back up %s (%s) or remove incomplete backup %s (%s)",
+            target.string(), copy_ec.message(), backup.string(),
+            cleanup_ec.message()));
+      }
       return absl::FailedPreconditionError(absl::StrFormat(
           "Cannot back up %s: %s", target.string(), copy_ec.message()));
     }
@@ -963,22 +1019,84 @@ absl::StatusOr<fs::path> CreateBackup(const fs::path& target) {
       "Could not allocate a backup path for %s", target.string()));
 }
 
-void CleanupTemps(const std::vector<PublicationArtifact>& artifacts) {
-  for (const auto& artifact : artifacts) {
-    if (!artifact.temp.empty()) {
-      std::error_code ec;
-      fs::remove(artifact.temp, ec);
+absl::Status CleanupPublicationPaths(const std::vector<fs::path>& paths,
+                                     absl::string_view artifact_kind) {
+  std::string failures;
+  for (const fs::path& path : paths) {
+    if (path.empty()) {
+      continue;
     }
+    std::error_code ec;
+    fs::remove(path, ec);
+    if (!ec) {
+      continue;
+    }
+    if (!failures.empty()) {
+      absl::StrAppend(&failures, "; ");
+    }
+    absl::StrAppend(&failures, path.string(), " (", ec.message(), ")");
   }
+  if (!failures.empty()) {
+    return absl::InternalError(absl::StrFormat(
+        "Could not remove message source %s: %s", artifact_kind, failures));
+  }
+  return absl::OkStatus();
 }
 
-void CleanupBackups(const std::vector<PublicationArtifact>& artifacts) {
+absl::Status CleanupTemps(const std::vector<PublicationArtifact>& artifacts) {
+  std::vector<fs::path> paths;
+  paths.reserve(artifacts.size());
   for (const auto& artifact : artifacts) {
-    if (artifact.backup.has_value()) {
-      std::error_code ec;
-      fs::remove(*artifact.backup, ec);
+    if (!artifact.temp.empty()) {
+      paths.push_back(artifact.temp);
     }
   }
+  return CleanupPublicationPaths(paths, "temporary files");
+}
+
+absl::Status CleanupBackups(const std::vector<PublicationArtifact>& artifacts) {
+  std::vector<fs::path> paths;
+  paths.reserve(artifacts.size());
+  for (const auto& artifact : artifacts) {
+    if (artifact.backup.has_value()) {
+      paths.push_back(*artifact.backup);
+    }
+  }
+  return CleanupPublicationPaths(paths, "backup files");
+}
+
+std::string BackupRecoveryPaths(
+    const std::vector<PublicationArtifact>& artifacts) {
+  std::string paths;
+  for (const auto& artifact : artifacts) {
+    if (!artifact.backup.has_value()) {
+      continue;
+    }
+    if (!paths.empty()) {
+      absl::StrAppend(&paths, ", ");
+    }
+    absl::StrAppend(&paths, artifact.backup->string());
+  }
+  return paths.empty() ? "<none>" : paths;
+}
+
+std::string CleanupStatusSummary(const absl::Status& status) {
+  return status.ok() ? "ok" : std::string(status.message());
+}
+
+absl::Status ReturnFailureAfterCleanup(
+    const std::vector<PublicationArtifact>& artifacts,
+    const absl::Status& publication_failure) {
+  const absl::Status temp_cleanup = CleanupTemps(artifacts);
+  const absl::Status backup_cleanup = CleanupBackups(artifacts);
+  if (temp_cleanup.ok() && backup_cleanup.ok()) {
+    return publication_failure;
+  }
+  return absl::DataLossError(absl::StrFormat(
+      "Message source publication failed (%s), then artifact cleanup failed "
+      "(temporary files: %s; backup files: %s)",
+      publication_failure.message(), CleanupStatusSummary(temp_cleanup),
+      CleanupStatusSummary(backup_cleanup)));
 }
 
 absl::Status RestoreArtifact(const PublicationArtifact& artifact) {
@@ -991,6 +1109,12 @@ absl::Status RestoreArtifact(const PublicationArtifact& artifact) {
     if (!status.ok()) {
       std::error_code cleanup_ec;
       fs::remove(restore_temp, cleanup_ec);
+      if (cleanup_ec) {
+        return absl::DataLossError(absl::StrFormat(
+            "Could not restore %s (%s) or remove restore file %s (%s)",
+            artifact.target.string(), status.message(), restore_temp.string(),
+            cleanup_ec.message()));
+      }
     }
     return status;
   }
@@ -1018,14 +1142,22 @@ absl::Status RollBackPublication(std::vector<PublicationArtifact>* artifacts,
     }
     it->published = false;
   }
-  CleanupTemps(*artifacts);
+  const absl::Status temp_cleanup = CleanupTemps(*artifacts);
   if (!rollback_failure.ok()) {
     return absl::DataLossError(absl::StrFormat(
         "Message source publication failed (%s) and rollback failed (%s). "
-        "Original backups were preserved.",
-        publication_failure.message(), rollback_failure.message()));
+        "Temporary-file cleanup: %s. Preserved recovery backups: %s",
+        publication_failure.message(), rollback_failure.message(),
+        CleanupStatusSummary(temp_cleanup), BackupRecoveryPaths(*artifacts)));
   }
-  CleanupBackups(*artifacts);
+  const absl::Status backup_cleanup = CleanupBackups(*artifacts);
+  if (!temp_cleanup.ok() || !backup_cleanup.ok()) {
+    return absl::DataLossError(absl::StrFormat(
+        "Message source publication failed (%s); rollback completed, but "
+        "artifact cleanup failed (temporary files: %s; backup files: %s)",
+        publication_failure.message(), CleanupStatusSummary(temp_cleanup),
+        CleanupStatusSummary(backup_cleanup)));
+  }
   return publication_failure;
 }
 
@@ -1073,17 +1205,13 @@ absl::Status PublishArtifactSet(std::vector<PublicationArtifact>* artifacts,
   for (auto& artifact : *artifacts) {
     auto temp_or = WriteExclusiveTemp(artifact.target, artifact.content);
     if (!temp_or.ok()) {
-      CleanupTemps(*artifacts);
-      CleanupBackups(*artifacts);
-      return temp_or.status();
+      return ReturnFailureAfterCleanup(*artifacts, temp_or.status());
     }
     artifact.temp = std::move(*temp_or);
     if (artifact.original_content.has_value()) {
       auto backup_or = CreateBackup(artifact.target);
       if (!backup_or.ok()) {
-        CleanupTemps(*artifacts);
-        CleanupBackups(*artifacts);
-        return backup_or.status();
+        return ReturnFailureAfterCleanup(*artifacts, backup_or.status());
       }
       artifact.backup = std::move(*backup_or);
     }
@@ -1092,9 +1220,7 @@ absl::Status PublishArtifactSet(std::vector<PublicationArtifact>* artifacts,
   const absl::Status unchanged_status =
       VerifyUnchangedBeforePublication(*artifacts, expected_source_sha256);
   if (!unchanged_status.ok()) {
-    CleanupTemps(*artifacts);
-    CleanupBackups(*artifacts);
-    return unchanged_status;
+    return ReturnFailureAfterCleanup(*artifacts, unchanged_status);
   }
 
   for (auto& artifact : *artifacts) {
@@ -1122,7 +1248,10 @@ absl::Status PublishArtifactSet(std::vector<PublicationArtifact>* artifacts,
                          artifact.target.string())));
     }
   }
-  CleanupTemps(*artifacts);
+  const absl::Status temp_cleanup = CleanupTemps(*artifacts);
+  if (!temp_cleanup.ok()) {
+    return RollBackPublication(artifacts, temp_cleanup);
+  }
   return absl::OkStatus();
 }
 
@@ -1180,12 +1309,8 @@ absl::StatusOr<MessageSourceSyncResult> SyncMessageSource(
   RETURN_IF_ERROR(
       ValidateDistinctTargets(canonical_bundle_path, asm_include_path));
   const fs::path source_lock_path = project_root / kSourceSyncLockFilename;
-  if (canonical_bundle_path == source_lock_path ||
-      asm_include_path == source_lock_path) {
-    return absl::InvalidArgumentError(absl::StrFormat(
-        "Message source targets may not use the persistent lock path: %s",
-        source_lock_path.string()));
-  }
+  RETURN_IF_ERROR(ValidateTargetsDoNotAliasLock(
+      source_lock_path, canonical_bundle_path, asm_include_path));
 
   std::error_code incoming_ec;
   const fs::path resolved_incoming =
@@ -1343,7 +1468,10 @@ absl::StatusOr<MessageSourceSyncResult> SyncMessageSource(
             "Published canonical message bundle SHA-256 readback failed"));
   }
 
-  CleanupBackups(artifacts);
+  const absl::Status backup_cleanup = CleanupBackups(artifacts);
+  if (!backup_cleanup.ok()) {
+    return RollBackPublication(&artifacts, backup_cleanup);
+  }
   result.wrote = true;
   return result;
 }
