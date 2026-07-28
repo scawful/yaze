@@ -96,6 +96,7 @@ CreateCliCommandHandlers() {
   handlers.push_back(std::make_unique<MessageWriteCommandHandler>());
   handlers.push_back(std::make_unique<MessageExportBinCommandHandler>());
   handlers.push_back(std::make_unique<MessageExportAsmCommandHandler>());
+  handlers.push_back(std::make_unique<MessageSourceSyncCommandHandler>());
 
   // Project bundle management
   handlers.push_back(std::make_unique<ProjectBundleVerifyCommandHandler>());

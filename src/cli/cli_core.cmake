@@ -88,6 +88,7 @@ set(YAZE_CLI_CORE_SOURCES
 if(NOT YAZE_PLATFORM_IOS)
   list(APPEND YAZE_CLI_CORE_SOURCES
     app/editor/message/message_data.cc
+    app/editor/message/message_source_sync.cc
   )
 endif()
 

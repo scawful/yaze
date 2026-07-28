@@ -92,6 +92,13 @@ struct SramVariable {
  * @brief Message range information for the expanded message system.
  */
 struct MessageLayout {
+  struct Source {
+    std::string format;
+    int version = 0;
+    std::string canonical_bundle_path;
+    std::string generated_asm_include_path;
+  };
+
   uint32_t hook_address;       // $0ED436
   uint32_t data_start;         // $2F8000
   uint32_t data_end;           // $2FFFFF
@@ -99,6 +106,7 @@ struct MessageLayout {
   uint16_t last_expanded_id;   // $1D1
   int expanded_count;
   int vanilla_count;  // 397
+  std::optional<Source> source;
 };
 
 /**

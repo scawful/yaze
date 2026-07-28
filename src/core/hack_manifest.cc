@@ -180,6 +180,31 @@ absl::StatusOr<int> ParseManifestVersion(const Json& root) {
   return static_cast<int>(version);
 }
 
+absl::StatusOr<int> ParseBoundedNonnegativeInteger(const Json& value,
+                                                   absl::string_view field,
+                                                   uint64_t maximum) {
+  uint64_t parsed = 0;
+  if (value.is_number_unsigned()) {
+    parsed = value.get<uint64_t>();
+  } else if (value.is_number_integer()) {
+    const int64_t signed_value = value.get<int64_t>();
+    if (signed_value < 0) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("%s must be a non-negative integer", field));
+    }
+    parsed = static_cast<uint64_t>(signed_value);
+  } else {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s must be a non-negative integer", field));
+  }
+  if (parsed > maximum ||
+      parsed > static_cast<uint64_t>(std::numeric_limits<int>::max())) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s is too large", field));
+  }
+  return static_cast<int>(parsed);
+}
+
 absl::StatusOr<uint32_t> ParseLoRomAddress(const Json& object,
                                            const std::string& key,
                                            const std::string& path) {
@@ -778,6 +803,9 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
   // Message layout
   if (root.contains("messages")) {
     auto& msg = root["messages"];
+    if (!msg.is_object()) {
+      return absl::InvalidArgumentError("messages must be an object");
+    }
     if (msg.contains("hook_address") && msg["hook_address"].is_string()) {
       ASSIGN_OR_RETURN(message_layout_.hook_address,
                        ParseHexAddress(msg["hook_address"].get<std::string>()));
@@ -795,9 +823,21 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
                        ParseHexAddress(msg.value("data_end", "0x000000")));
       message_layout_.data_end = NormalizeSnesAddress(message_layout_.data_end);
     }
-    message_layout_.vanilla_count = msg.value("vanilla_count", 397);
+    if (msg.contains("vanilla_count")) {
+      ASSIGN_OR_RETURN(
+          message_layout_.vanilla_count,
+          ParseBoundedNonnegativeInteger(
+              msg["vanilla_count"], "messages.vanilla_count",
+              static_cast<uint64_t>(std::numeric_limits<int>::max())));
+    } else {
+      message_layout_.vanilla_count = 397;
+    }
     if (msg.contains("expanded_range")) {
       auto& expanded = msg["expanded_range"];
+      if (!expanded.is_object()) {
+        return absl::InvalidArgumentError(
+            "messages.expanded_range must be an object");
+      }
       uint32_t first_id = 0;
       uint32_t last_id = 0;
       ASSIGN_OR_RETURN(first_id,
@@ -808,7 +848,72 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
           static_cast<uint16_t>(first_id & 0xFFFF);
       message_layout_.last_expanded_id =
           static_cast<uint16_t>(last_id & 0xFFFF);
-      message_layout_.expanded_count = expanded.value("count", 0);
+      if (expanded.contains("count")) {
+        constexpr uint64_t kMaximumExpandedMessageCount =
+            static_cast<uint64_t>(std::numeric_limits<uint16_t>::max()) + 1;
+        ASSIGN_OR_RETURN(message_layout_.expanded_count,
+                         ParseBoundedNonnegativeInteger(
+                             expanded["count"], "messages.expanded_range.count",
+                             kMaximumExpandedMessageCount));
+      } else {
+        message_layout_.expanded_count = 0;
+      }
+    }
+    if (msg.contains("source")) {
+      const auto& source = msg["source"];
+      if (!source.is_object()) {
+        return absl::InvalidArgumentError("messages.source must be an object");
+      }
+      constexpr std::array<absl::string_view, 4> kSourceKeys = {
+          "format", "version", "canonical_bundle_path",
+          "generated_asm_include_path"};
+      for (const auto& item : source.items()) {
+        if (std::find(kSourceKeys.begin(), kSourceKeys.end(), item.key()) ==
+            kSourceKeys.end()) {
+          return absl::InvalidArgumentError(absl::StrFormat(
+              "messages.source contains unknown field '%s'", item.key()));
+        }
+      }
+      for (absl::string_view key : kSourceKeys) {
+        if (!source.contains(key)) {
+          return absl::InvalidArgumentError(
+              absl::StrFormat("messages.source.%s is required", key));
+        }
+      }
+      if (!source["format"].is_string() ||
+          source["format"].get<std::string>() != "yaze-message-bundle") {
+        return absl::InvalidArgumentError(
+            "messages.source.format must be 'yaze-message-bundle'");
+      }
+      int source_version = 0;
+      auto source_version_or = ParseBoundedNonnegativeInteger(
+          source["version"], "messages.source.version",
+          static_cast<uint64_t>(std::numeric_limits<int>::max()));
+      if (!source_version_or.ok() || *source_version_or != 1) {
+        return absl::InvalidArgumentError(
+            "messages.source.version must be integer 1");
+      }
+      source_version = *source_version_or;
+      if (!source["canonical_bundle_path"].is_string() ||
+          source["canonical_bundle_path"].get<std::string>().empty()) {
+        return absl::InvalidArgumentError(
+            "messages.source.canonical_bundle_path must be a non-empty "
+            "string");
+      }
+      if (!source["generated_asm_include_path"].is_string() ||
+          source["generated_asm_include_path"].get<std::string>().empty()) {
+        return absl::InvalidArgumentError(
+            "messages.source.generated_asm_include_path must be a non-empty "
+            "string");
+      }
+      message_layout_.source = MessageLayout::Source{
+          .format = source["format"].get<std::string>(),
+          .version = source_version,
+          .canonical_bundle_path =
+              source["canonical_bundle_path"].get<std::string>(),
+          .generated_asm_include_path =
+              source["generated_asm_include_path"].get<std::string>(),
+      };
     }
   }
 

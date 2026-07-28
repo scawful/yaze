@@ -324,6 +324,17 @@ void CommandRegistry::RegisterHandlers(
       metadata.category = "game";
       metadata.description = name.find("message-") == 0 ? "Message inspection"
                                                         : "Dialogue inspection";
+      if (name == "message-source-sync") {
+        metadata.description =
+            "Dry-run or CAS-publish a complete canonical expanded-message "
+            "bundle and deterministic no-org Asar include";
+        metadata.examples = {
+            "z3ed message-source-sync --project=Oracle-of-Secrets.yaze "
+            "--file=/tmp/message-edits.json --format=json",
+            "z3ed message-source-sync --project=Oracle-of-Secrets.yaze "
+            "--file=/tmp/message-edits.json "
+            "--expected-source-sha256=<sha256> --write --format=json"};
+      }
     } else if (name.find("music-") == 0) {
       metadata.category = "game";
       metadata.description = "Music/audio inspection";
