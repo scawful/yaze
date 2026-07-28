@@ -478,6 +478,44 @@ TEST(MessageSourceSyncTest, RejectsManifestCapacityOverflow) {
               HasSubstr("manifest capacity"));
 }
 
+TEST(MessageSourceSyncTest, RejectsCaseVariantOfPersistentLockAsTarget) {
+  ScopedTempDir temp;
+  auto project =
+      MakeProject(temp.path(), Manifest(".YAZE-MESSAGE-SOURCE-SYNC.LOCK"));
+  const fs::path canonical = temp.path() / "Data/Messages/expanded.json";
+  const fs::path incoming = temp.path() / "incoming.json";
+  WriteText(canonical, Bundle({{0, "A"}, {1, "B"}, {2, "C"}}));
+  WriteText(incoming, Subset(1, "X"));
+
+  auto result_or = SyncMessageSource(project, incoming);
+
+  ASSERT_FALSE(result_or.ok());
+  EXPECT_EQ(result_or.status().code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_THAT(std::string(result_or.status().message()),
+              HasSubstr("persistent lock path"));
+  EXPECT_FALSE(fs::exists(temp.path() / ".yaze-message-source-sync.lock"));
+}
+
+TEST(MessageSourceSyncTest, RejectsExistingHardLinkAliasOfPersistentLock) {
+  ScopedTempDir temp;
+  SourceFixture fixture(temp.path());
+  const fs::path lock = temp.path() / ".yaze-message-source-sync.lock";
+  WriteText(lock, "");
+  std::error_code link_ec;
+  fs::create_hard_link(lock, fixture.include, link_ec);
+  if (link_ec) {
+    GTEST_SKIP() << "Cannot create hard link: " << link_ec.message();
+  }
+  WriteText(fixture.incoming, Subset(1, "X"));
+
+  auto result_or = SyncMessageSource(fixture.project, fixture.incoming);
+
+  ASSERT_FALSE(result_or.ok());
+  EXPECT_EQ(result_or.status().code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_THAT(std::string(result_or.status().message()),
+              HasSubstr("aliases the persistent lock"));
+}
+
 #if !defined(_WIN32)
 TEST(MessageSourceSyncTest, RejectsSymlinkParentEscape) {
   ScopedTempDir temp;
