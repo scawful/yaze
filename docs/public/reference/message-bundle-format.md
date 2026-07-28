@@ -83,3 +83,62 @@ can validate the active ROM, manifest ownership, and project write policy:
 z3ed message-import-bundle --file messages.json --apply \
   --rom path/to/rom.sfc --project path/to/project.yaze
 ```
+
+## ASM-Owned Expanded Message Source
+
+Projects that rebuild expanded messages from ASM can opt into a durable source
+handoff by adding this metadata beneath the Hack Manifest's existing
+`messages` object:
+
+```json
+"source": {
+  "format": "yaze-message-bundle",
+  "version": 1,
+  "canonical_bundle_path": "Data/Messages/expanded.json",
+  "generated_asm_include_path": "Core/generated/messages.asm"
+}
+```
+
+Both paths are project-relative and must remain inside the project root after
+symlink resolution. The sibling `messages.expanded_range`, `data_start`, and
+`data_end` fields remain authoritative for IDs and capacity.
+
+Preview a validated subset merge:
+
+```bash
+z3ed message-source-sync \
+  --project Oracle-of-Secrets.yaze \
+  --file /tmp/message-edits.json \
+  --format json
+```
+
+Publication is explicit and compare-and-swap protected:
+
+```bash
+z3ed message-source-sync \
+  --project Oracle-of-Secrets.yaze \
+  --file /tmp/message-edits.json \
+  --expected-source-sha256 <sha256-from-preview> \
+  --write --format json
+```
+
+The canonical source is always rewritten deterministically as one complete,
+expanded-only bank with contiguous bank-local IDs. Source sync treats an
+explicit `text` field as authoritative over export-time `raw`/`parsed`
+metadata, normalizes dictionary tokens to uppercase `[D:XX]`, and emits only
+`bank`, `id`, and `text` per entry. The generated Asar include has absolute
+`Message_XXX` labels, no `org`, appends one `$7F` terminator per message, and
+has one final `$FF`. Its header binds both the exact canonical bundle bytes and
+the exact generated ASM body bytes with SHA-256.
+
+Argument command tokens are case-sensitive and accept one or two uppercase
+hex digits without a `$` prefix (for example, `[W:7]`, `[W:7F]`, and
+`[W:FF]`). Source sync preserves those spellings rather than zero-padding them;
+missing or lowercase command arguments are rejected.
+
+Write mode rejects stale source hashes, a drifted generated include, `[BANK]`,
+incomplete or duplicate IDs, capacity overflow, path escapes, and symlink
+targets. The bundle and include publish as one rollback-backed artifact set
+using same-directory temporary files and exact reopen/readback. This command
+does not open or mutate a ROM. Browser builds reject `--write` because they
+cannot guarantee durable atomic filesystem publication.

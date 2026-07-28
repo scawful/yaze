@@ -258,6 +258,30 @@ class MessageExportAsmCommandHandler : public resources::CommandHandler {
                        resources::OutputFormatter& formatter) override;
 };
 
+/**
+ * @brief Merge an expanded-message subset into project-owned source artifacts.
+ *
+ * This command never mutates a ROM. It is dry-run by default; write mode
+ * requires an exact SHA-256 CAS for the canonical source bundle.
+ */
+class MessageSourceSyncCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "message-source-sync"; }
+  std::string GetUsage() const override {
+    return "message-source-sync --project <path> --file <bundle.json> "
+           "[--expected-source-sha256 <sha256>] [--write] "
+           "[--format <json|text>]";
+  }
+  bool RequiresRom() const override { return false; }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"project", "file"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
 }  // namespace handlers
 }  // namespace cli
 }  // namespace yaze

@@ -77,6 +77,7 @@ scripts/dev/ai-provider-matrix-smoke.sh \
 | Describe overworld map | `z3ed overworld-describe-map --map=80 --rom=zelda3.sfc` |
 | List messages | `z3ed message-list --rom=zelda3.sfc` |
 | Search messages | `z3ed message-search --query="sword" --rom=zelda3.sfc` |
+| Preview ASM-owned message source sync | `z3ed message-source-sync --project=project.yaze --file=message-edits.json --format=json` |
 
 Most commands follow the `<noun>-<verb>` convention (dashes, not spaces), and
 some use subcommands like `rom read` or `debug state`. Use `--help` for flag details:
@@ -124,6 +125,27 @@ externally reopens the file before reporting verified success.
 `palette-set-color --write` is intentionally rejected; its legacy mode is
 preview-only. Browser-terminal palette writes are unavailable because
 Emscripten cannot guarantee durable filesystem synchronization.
+
+### ASM-Owned Expanded Message Source
+
+`message-source-sync` provides the source-side handoff for projects whose
+expanded message bank is rebuilt by Asar. It merges an expanded-only bundle
+subset into the complete canonical project bundle and renders the configured
+no-`org` include. It is dry-run by default and never mutates a ROM:
+
+```bash
+z3ed message-source-sync \
+  --project=Oracle-of-Secrets.yaze \
+  --file=/tmp/message-edits.json \
+  --format=json
+```
+
+Use the reported `source_sha256_before` as the exact write CAS, then repeat the
+same command with `--expected-source-sha256=<hash> --write`. See
+[Message Bundle JSON Format](../reference/message-bundle-format.md) for the
+manifest schema, deterministic output contract, and fail-closed guarantees.
+Browser builds reject source-sync `--write` because they cannot guarantee
+durable atomic filesystem publication.
 
 ---
 
