@@ -1,10 +1,12 @@
 #include "app/editor/message/message_source_sync.h"
 
+#include <barrier>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include <gmock/gmock.h>
@@ -57,6 +59,15 @@ std::string ReadText(const fs::path& path) {
   EXPECT_TRUE(input.is_open()) << path;
   return {std::istreambuf_iterator<char>(input),
           std::istreambuf_iterator<char>()};
+}
+
+void ExpectNoPublicationArtifacts(const fs::path& root) {
+  for (const auto& entry : fs::recursive_directory_iterator(root)) {
+    const std::string filename = entry.path().filename().string();
+    EXPECT_EQ(filename.find(".yaze-tmp-"), std::string::npos) << entry.path();
+    EXPECT_EQ(filename.find(".yaze-backup-"), std::string::npos)
+        << entry.path();
+  }
 }
 
 std::string Bundle(const std::vector<std::pair<int, std::string>>& messages,
@@ -176,10 +187,7 @@ TEST(MessageSourceSyncTest,
 
   ASSERT_TRUE(write_or.ok()) << write_or.status();
   EXPECT_TRUE(write_or->wrote);
-  ASSERT_EQ(write_or->backup_paths.size(), 1u);
-  EXPECT_TRUE(fs::exists(write_or->backup_paths.front()));
-  EXPECT_EQ(ReadText(write_or->backup_paths.front()),
-            Bundle({{0, "A"}, {1, "B"}, {2, "C"}}));
+  ExpectNoPublicationArtifacts(temp.path());
 
   const std::string canonical = ReadText(fixture.canonical);
   EXPECT_EQ(canonical, Bundle({{0, "A"}, {1, "[D:0A]X"}, {2, "C"}}));
@@ -205,6 +213,98 @@ TEST(MessageSourceSyncTest,
   EXPECT_TRUE(absl::EndsWith(include, "db $FF\n"));
   EXPECT_EQ(include.find("\norg "), std::string::npos);
 }
+
+TEST(MessageSourceSyncTest,
+     ConcurrentSameCasWritersPublishExactlyOneCompletePair) {
+  ScopedTempDir temp;
+  SourceFixture fixture(temp.path());
+  const fs::path incoming_x = temp.path() / "incoming-x.json";
+  const fs::path incoming_y = temp.path() / "incoming-y.json";
+  WriteText(incoming_x, Subset(1, "X"));
+  WriteText(incoming_y, Subset(1, "Y"));
+  const std::string expected_sha =
+      ComputeMessageSourceSha256(ReadText(fixture.canonical));
+
+  std::barrier rendezvous(3);
+  absl::StatusOr<MessageSourceSyncResult> result_x =
+      absl::UnknownError("writer X did not run");
+  absl::StatusOr<MessageSourceSyncResult> result_y =
+      absl::UnknownError("writer Y did not run");
+  std::thread writer_x([&] {
+    rendezvous.arrive_and_wait();
+    result_x = SyncMessageSource(
+        fixture.project, incoming_x,
+        {.write = true, .expected_source_sha256 = expected_sha});
+  });
+  std::thread writer_y([&] {
+    rendezvous.arrive_and_wait();
+    result_y = SyncMessageSource(
+        fixture.project, incoming_y,
+        {.write = true, .expected_source_sha256 = expected_sha});
+  });
+  rendezvous.arrive_and_wait();
+  writer_x.join();
+  writer_y.join();
+
+  const int successes =
+      static_cast<int>(result_x.ok()) + static_cast<int>(result_y.ok());
+  ASSERT_EQ(successes, 1);
+  const auto& loser = result_x.ok() ? result_y : result_x;
+  EXPECT_EQ(loser.status().code(), absl::StatusCode::kAborted);
+
+  const std::string canonical = ReadText(fixture.canonical);
+  const std::string expected_x = Bundle({{0, "A"}, {1, "X"}, {2, "C"}});
+  const std::string expected_y = Bundle({{0, "A"}, {1, "Y"}, {2, "C"}});
+  EXPECT_TRUE(canonical == expected_x || canonical == expected_y);
+  const std::string include = ReadText(fixture.include);
+  EXPECT_TRUE(absl::StartsWith(
+      include, "; Source bundle SHA-256: " +
+                   ComputeMessageSourceSha256(canonical) + "\n"));
+  EXPECT_THAT(include,
+              HasSubstr(canonical == expected_x ? "$17, $7F" : "$18, $7F"));
+  EXPECT_TRUE(fs::exists(temp.path() / ".yaze-message-source-sync.lock"));
+  ExpectNoPublicationArtifacts(temp.path());
+}
+
+#if !defined(_WIN32)
+TEST(MessageSourceSyncTest, WritePreservesExistingPosixModes) {
+  ScopedTempDir temp;
+  SourceFixture fixture(temp.path());
+  WriteText(fixture.incoming, Subset(1, "X"));
+  auto first_preview = SyncMessageSource(fixture.project, fixture.incoming);
+  ASSERT_TRUE(first_preview.ok()) << first_preview.status();
+  auto first_write = SyncMessageSource(
+      fixture.project, fixture.incoming,
+      {.write = true,
+       .expected_source_sha256 = first_preview->source_sha256_before});
+  ASSERT_TRUE(first_write.ok()) << first_write.status();
+
+  constexpr fs::perms kCanonicalMode =
+      fs::perms::owner_read | fs::perms::owner_write | fs::perms::group_read;
+  constexpr fs::perms kIncludeMode =
+      fs::perms::owner_read | fs::perms::owner_write | fs::perms::group_read |
+      fs::perms::group_write | fs::perms::others_read;
+  fs::permissions(fixture.canonical, kCanonicalMode, fs::perm_options::replace);
+  fs::permissions(fixture.include, kIncludeMode, fs::perm_options::replace);
+
+  WriteText(fixture.incoming, Subset(2, "Y"));
+  auto next_preview = SyncMessageSource(fixture.project, fixture.incoming);
+  ASSERT_TRUE(next_preview.ok()) << next_preview.status();
+  auto next_write = SyncMessageSource(
+      fixture.project, fixture.incoming,
+      {.write = true,
+       .expected_source_sha256 = next_preview->source_sha256_before});
+  ASSERT_TRUE(next_write.ok()) << next_write.status();
+
+  constexpr fs::perms kPermissionMask =
+      fs::perms::owner_all | fs::perms::group_all | fs::perms::others_all;
+  EXPECT_EQ(fs::status(fixture.canonical).permissions() & kPermissionMask,
+            kCanonicalMode);
+  EXPECT_EQ(fs::status(fixture.include).permissions() & kPermissionMask,
+            kIncludeMode);
+  ExpectNoPublicationArtifacts(temp.path());
+}
+#endif
 
 TEST(MessageSourceSyncTest,
      WritePreservesEmptyMessageAndAcceptedCommandArgumentSpellings) {
@@ -321,14 +421,7 @@ TEST(MessageSourceSyncTest, PreparationFailureCleansTempsAndBackups) {
   EXPECT_EQ(ReadText(fixture.canonical),
             Bundle({{0, "A"}, {1, "B"}, {2, "C"}}));
   EXPECT_FALSE(fs::exists(fixture.include));
-  for (const auto& entry : fs::recursive_directory_iterator(temp.path())) {
-    EXPECT_EQ(entry.path().filename().string().find(".yaze-tmp-"),
-              std::string::npos)
-        << entry.path();
-    EXPECT_EQ(entry.path().filename().string().find(".yaze-backup-"),
-              std::string::npos)
-        << entry.path();
-  }
+  ExpectNoPublicationArtifacts(temp.path());
 }
 #endif
 
