@@ -22,6 +22,7 @@
 #include "zelda3/resource_labels.h"
 
 #if !defined(_WIN32) && !defined(__EMSCRIPTEN__)
+#include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #endif
@@ -690,6 +691,92 @@ TEST(MessageSourceSyncTest, RejectsExistingHardLinkAliasOfPersistentLock) {
   EXPECT_THAT(std::string(result_or.status().message()),
               HasSubstr("aliases a persistent lock"));
 }
+
+#if !defined(__EMSCRIPTEN__)
+TEST(MessageSourceSyncTest,
+     RejectsHardLinkedPersistentLocksWithoutChangingExternalFile) {
+  ScopedTempDir temp;
+  SourceFixture fixture(temp.path());
+  const fs::path external = temp.path() / "unrelated.txt";
+  const fs::path canonical_lock =
+      fixture.canonical.parent_path() / ".yaze-message-source-sync.lock";
+  const fs::path include_lock =
+      fixture.include.parent_path() / ".yaze-message-source-sync.lock";
+  WriteText(external, "unrelated");
+#if !defined(_WIN32)
+  ASSERT_EQ(chmod(external.c_str(), 0644), 0);
+#endif
+  std::error_code link_ec;
+  fs::create_hard_link(external, canonical_lock, link_ec);
+  if (link_ec) {
+    GTEST_SKIP() << "Cannot create canonical lock hard link: "
+                 << link_ec.message();
+  }
+  fs::create_hard_link(external, include_lock, link_ec);
+  if (link_ec) {
+    GTEST_SKIP() << "Cannot create include lock hard link: "
+                 << link_ec.message();
+  }
+  WriteText(fixture.incoming, Subset(1, "X"));
+  const std::string canonical_before = ReadText(fixture.canonical);
+  const MessageSourceSyncOptions options{
+      .write = true,
+      .expected_source_sha256 = ComputeMessageSourceSha256(canonical_before),
+  };
+#if !defined(_WIN32)
+  struct stat mode_before{};
+  ASSERT_EQ(stat(external.c_str(), &mode_before), 0);
+#endif
+
+  auto result_or =
+      SyncMessageSource(fixture.project, fixture.incoming, options);
+
+  ASSERT_FALSE(result_or.ok());
+  EXPECT_EQ(result_or.status().code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_THAT(std::string(result_or.status().message()),
+              HasSubstr("exactly one hard link"));
+#if !defined(_WIN32)
+  struct stat mode_after{};
+  ASSERT_EQ(stat(external.c_str(), &mode_after), 0);
+  EXPECT_EQ(mode_after.st_mode & 07777, mode_before.st_mode & 07777);
+#endif
+  EXPECT_EQ(ReadText(external), "unrelated");
+  EXPECT_EQ(ReadText(fixture.canonical), canonical_before);
+  EXPECT_FALSE(fs::exists(fixture.include));
+  ExpectNoPublicationArtifacts(temp.path());
+}
+
+TEST(MessageSourceSyncTest,
+     RejectsSymlinkedPersistentLockWithoutChangingExternalFile) {
+  ScopedTempDir temp;
+  SourceFixture fixture(temp.path());
+  const fs::path external = temp.path() / "unrelated.txt";
+  const fs::path canonical_lock =
+      fixture.canonical.parent_path() / ".yaze-message-source-sync.lock";
+  WriteText(external, "unrelated");
+  std::error_code symlink_ec;
+  fs::create_symlink(external, canonical_lock, symlink_ec);
+  if (symlink_ec) {
+    GTEST_SKIP() << "Cannot create lock symlink: " << symlink_ec.message();
+  }
+  WriteText(fixture.incoming, Subset(1, "X"));
+  const std::string canonical_before = ReadText(fixture.canonical);
+  const MessageSourceSyncOptions options{
+      .write = true,
+      .expected_source_sha256 = ComputeMessageSourceSha256(canonical_before),
+  };
+
+  auto result_or =
+      SyncMessageSource(fixture.project, fixture.incoming, options);
+
+  ASSERT_FALSE(result_or.ok());
+  EXPECT_THAT(std::string(result_or.status().message()), HasSubstr("lock"));
+  EXPECT_EQ(ReadText(external), "unrelated");
+  EXPECT_EQ(ReadText(fixture.canonical), canonical_before);
+  EXPECT_FALSE(fs::exists(fixture.include));
+  ExpectNoPublicationArtifacts(temp.path());
+}
+#endif
 
 #if !defined(_WIN32)
 TEST(MessageSourceSyncTest, RejectsSymlinkParentEscape) {

@@ -79,3 +79,7 @@ either artifact. It never writes the ROM.
 *   **Translation**: No specific tooling for side-by-side translation.
 *   **GUI source save**: The source-sync service is currently CLI/backend only;
     the Message Editor GUI is not yet wired to publish ASM-owned source.
+*   **Filesystem metadata**: Source publication and rollback preserve exact file
+    contents and existing POSIX mode bits, not ownership, ACLs, extended
+    attributes/flags, or target-specific Windows attributes/DACLs. Source
+    artifacts with special filesystem metadata are not supported yet.

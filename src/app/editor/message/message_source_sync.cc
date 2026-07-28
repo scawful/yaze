@@ -89,17 +89,61 @@ class MessageSourceWriteLocks {
 
 #if defined(_WIN32)
     lock->handles_.reserve(lock_paths.size());
+    struct WindowsFileIdentity {
+      DWORD volume_serial;
+      DWORD file_index_high;
+      DWORD file_index_low;
+    };
+    std::vector<WindowsFileIdentity> lock_identities;
+    lock_identities.reserve(lock_paths.size());
     for (const fs::path& path : lock_paths) {
-      HANDLE handle =
-          CreateFileW(path.wstring().c_str(), GENERIC_READ | GENERIC_WRITE,
-                      FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS,
-                      FILE_ATTRIBUTE_NORMAL, nullptr);
+      HANDLE handle = CreateFileW(
+          path.wstring().c_str(), GENERIC_READ | GENERIC_WRITE,
+          FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS,
+          FILE_ATTRIBUTE_NORMAL | FILE_FLAG_OPEN_REPARSE_POINT, nullptr);
       if (handle == INVALID_HANDLE_VALUE) {
         const DWORD error = GetLastError();
         return absl::PermissionDeniedError(absl::StrFormat(
             "Cannot open message source lock %s: %s", path.string(),
             std::error_code(static_cast<int>(error), std::system_category())
                 .message()));
+      }
+      BY_HANDLE_FILE_INFORMATION file_info = {};
+      if (!GetFileInformationByHandle(handle, &file_info)) {
+        const DWORD error = GetLastError();
+        CloseHandle(handle);
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Cannot inspect message source lock %s: %s", path.string(),
+            std::error_code(static_cast<int>(error), std::system_category())
+                .message()));
+      }
+      if ((file_info.dwFileAttributes &
+           (FILE_ATTRIBUTE_REPARSE_POINT | FILE_ATTRIBUTE_DIRECTORY)) != 0) {
+        CloseHandle(handle);
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Message source lock must be a regular file: %s", path.string()));
+      }
+      if (file_info.nNumberOfLinks != 1) {
+        CloseHandle(handle);
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Message source lock must have exactly one hard link: %s",
+            path.string()));
+      }
+      const WindowsFileIdentity identity = {file_info.dwVolumeSerialNumber,
+                                            file_info.nFileIndexHigh,
+                                            file_info.nFileIndexLow};
+      const bool duplicate_identity = std::any_of(
+          lock_identities.begin(), lock_identities.end(),
+          [&](const WindowsFileIdentity& existing) {
+            return existing.volume_serial == identity.volume_serial &&
+                   existing.file_index_high == identity.file_index_high &&
+                   existing.file_index_low == identity.file_index_low;
+          });
+      if (duplicate_identity) {
+        CloseHandle(handle);
+        return absl::InvalidArgumentError(
+            absl::StrFormat("Message source lock aliases another lock path: %s",
+                            path.string()));
       }
       OVERLAPPED overlapped = {};
       if (!LockFileEx(handle, LOCKFILE_EXCLUSIVE_LOCK, 0, MAXDWORD, MAXDWORD,
@@ -111,6 +155,7 @@ class MessageSourceWriteLocks {
             std::error_code(static_cast<int>(error), std::system_category())
                 .message()));
       }
+      lock_identities.push_back(identity);
       lock->handles_.push_back(handle);
     }
 #elif defined(__EMSCRIPTEN__)
@@ -118,6 +163,12 @@ class MessageSourceWriteLocks {
         "Durable message source locking is unavailable in browser builds");
 #else
     lock->fds_.reserve(lock_paths.size());
+    struct PosixFileIdentity {
+      dev_t device;
+      ino_t inode;
+    };
+    std::vector<PosixFileIdentity> lock_identities;
+    lock_identities.reserve(lock_paths.size());
     for (const fs::path& path : lock_paths) {
       int open_flags = O_RDWR | O_CREAT;
 #ifdef O_CLOEXEC
@@ -145,6 +196,25 @@ class MessageSourceWriteLocks {
         return absl::FailedPreconditionError(absl::StrFormat(
             "Message source lock must be a regular file: %s", path.string()));
       }
+      if (lock_stat.st_nlink != 1) {
+        close(fd);
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Message source lock must have exactly one hard link: %s",
+            path.string()));
+      }
+      const PosixFileIdentity identity = {lock_stat.st_dev, lock_stat.st_ino};
+      const bool duplicate_identity =
+          std::any_of(lock_identities.begin(), lock_identities.end(),
+                      [&](const PosixFileIdentity& existing) {
+                        return existing.device == identity.device &&
+                               existing.inode == identity.inode;
+                      });
+      if (duplicate_identity) {
+        close(fd);
+        return absl::InvalidArgumentError(
+            absl::StrFormat("Message source lock aliases another lock path: %s",
+                            path.string()));
+      }
       if (fchmod(fd, S_IRUSR | S_IWUSR) != 0) {
         const int error = errno;
         close(fd);
@@ -162,6 +232,7 @@ class MessageSourceWriteLocks {
             "Cannot acquire message source lock %s: %s", path.string(),
             std::error_code(error, std::generic_category()).message()));
       }
+      lock_identities.push_back(identity);
       lock->fds_.push_back(fd);
     }
 #endif
