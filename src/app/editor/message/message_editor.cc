@@ -95,8 +95,9 @@ void MessageEditor::Initialize() {
   }
 
   message_preview_.all_dictionaries_ = BuildDictionaryEntries(rom());
-  const int message_read_limit = static_cast<int>(std::min(
-      rom()->size(), static_cast<size_t>(std::numeric_limits<int>::max())));
+  const int message_read_limit = static_cast<int>(
+      std::min(static_cast<size_t>(rom()->size()),
+               static_cast<size_t>(std::numeric_limits<int>::max())));
   list_of_texts_ =
       ReadAllTextData(rom()->mutable_data(), kTextData, message_read_limit);
   LOG_INFO("MessageEditor", "Loaded %zu messages from ROM",
