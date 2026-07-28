@@ -500,6 +500,74 @@ TEST(MessageCommandsPolicyTest, VanillaApplyWithoutProjectFailsClosed) {
 }
 
 TEST(MessageCommandsPolicyTest,
+     VanillaApplyRejectsDirtyInMemoryRomBeforeMutation) {
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "active.sfc";
+  const auto disk_before = MakeMessageRomData();
+  WriteBinaryFile(rom_path, disk_before);
+  const fs::path project_path =
+      CreateProject(temp.path(), rom_path, "Other Hack", "allow", false);
+  const fs::path bundle_path =
+      WriteBundle(temp.path(),
+                  nlohmann::json::array(
+                      {{{"id", 0}, {"bank", "vanilla"}, {"text", "B[BANK]"}}}));
+  Rom rom = LoadRom(rom_path);
+  ASSERT_TRUE(rom.WriteByte(0x10, 0x5A).ok());
+  ASSERT_TRUE(rom.dirty());
+  const auto in_memory_before = rom.vector();
+
+  handlers::MessageImportBundleCommandHandler handler;
+  const resources::ArgumentParser parser(
+      {"--file=" + bundle_path.string(), "--apply", "--range=vanilla",
+       "--project=" + project_path.string(), "--format=json"});
+  resources::OutputFormatter formatter(
+      resources::OutputFormatter::Format::kJson);
+  const auto status = handler.Execute(&rom, parser, formatter);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_THAT(std::string(status.message()), HasSubstr("requires a clean ROM"));
+  EXPECT_EQ(rom.vector(), in_memory_before);
+  EXPECT_TRUE(rom.dirty());
+  EXPECT_EQ(ReadBinaryFile(rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(rom_path), 0);
+}
+
+TEST(MessageCommandsPolicyTest,
+     VanillaApplyRejectsDiskDivergenceBeforeMutation) {
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "active.sfc";
+  const auto loaded_bytes = MakeMessageRomData();
+  WriteBinaryFile(rom_path, loaded_bytes);
+  const fs::path project_path =
+      CreateProject(temp.path(), rom_path, "Other Hack", "allow", false);
+  const fs::path bundle_path =
+      WriteBundle(temp.path(),
+                  nlohmann::json::array(
+                      {{{"id", 0}, {"bank", "vanilla"}, {"text", "B[BANK]"}}}));
+  Rom rom = LoadRom(rom_path);
+  ASSERT_FALSE(rom.dirty());
+  auto diverged_disk_bytes = loaded_bytes;
+  diverged_disk_bytes[0x10] = 0x5A;
+  WriteBinaryFile(rom_path, diverged_disk_bytes);
+
+  handlers::MessageImportBundleCommandHandler handler;
+  const resources::ArgumentParser parser(
+      {"--file=" + bundle_path.string(), "--apply", "--range=vanilla",
+       "--project=" + project_path.string(), "--format=json"});
+  resources::OutputFormatter formatter(
+      resources::OutputFormatter::Format::kJson);
+  const auto status = handler.Execute(&rom, parser, formatter);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("no longer matches the file on disk"));
+  EXPECT_EQ(rom.vector(), loaded_bytes);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_EQ(ReadBinaryFile(rom_path), diverged_disk_bytes);
+  EXPECT_EQ(CountBackupArtifacts(rom_path), 0);
+}
+
+TEST(MessageCommandsPolicyTest,
      ProjectBackedVanillaApplyBacksUpSavesAndVerifiesReadback) {
   ScopedTempDir temp;
   const fs::path rom_path = temp.path() / "active.sfc";
