@@ -128,6 +128,7 @@ ToolAccess InferToolAccess(const std::string& tool_name) {
       "gui-click",
       "gui-place-tile",
       "gui-type",
+      "message-source-sync",
       "overworld-set-tile",
       "project-export",
       "project-import",

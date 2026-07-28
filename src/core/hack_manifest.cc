@@ -778,6 +778,9 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
   // Message layout
   if (root.contains("messages")) {
     auto& msg = root["messages"];
+    if (!msg.is_object()) {
+      return absl::InvalidArgumentError("messages must be an object");
+    }
     if (msg.contains("hook_address") && msg["hook_address"].is_string()) {
       ASSIGN_OR_RETURN(message_layout_.hook_address,
                        ParseHexAddress(msg["hook_address"].get<std::string>()));
@@ -809,6 +812,58 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
       message_layout_.last_expanded_id =
           static_cast<uint16_t>(last_id & 0xFFFF);
       message_layout_.expanded_count = expanded.value("count", 0);
+    }
+    if (msg.contains("source")) {
+      const auto& source = msg["source"];
+      if (!source.is_object()) {
+        return absl::InvalidArgumentError("messages.source must be an object");
+      }
+      constexpr std::array<absl::string_view, 4> kSourceKeys = {
+          "format", "version", "canonical_bundle_path",
+          "generated_asm_include_path"};
+      for (const auto& item : source.items()) {
+        if (std::find(kSourceKeys.begin(), kSourceKeys.end(), item.key()) ==
+            kSourceKeys.end()) {
+          return absl::InvalidArgumentError(absl::StrFormat(
+              "messages.source contains unknown field '%s'", item.key()));
+        }
+      }
+      for (absl::string_view key : kSourceKeys) {
+        if (!source.contains(key)) {
+          return absl::InvalidArgumentError(
+              absl::StrFormat("messages.source.%s is required", key));
+        }
+      }
+      if (!source["format"].is_string() ||
+          source["format"].get<std::string>() != "yaze-message-bundle") {
+        return absl::InvalidArgumentError(
+            "messages.source.format must be 'yaze-message-bundle'");
+      }
+      if (!source["version"].is_number_integer() ||
+          source["version"].get<int>() != 1) {
+        return absl::InvalidArgumentError(
+            "messages.source.version must be integer 1");
+      }
+      if (!source["canonical_bundle_path"].is_string() ||
+          source["canonical_bundle_path"].get<std::string>().empty()) {
+        return absl::InvalidArgumentError(
+            "messages.source.canonical_bundle_path must be a non-empty "
+            "string");
+      }
+      if (!source["generated_asm_include_path"].is_string() ||
+          source["generated_asm_include_path"].get<std::string>().empty()) {
+        return absl::InvalidArgumentError(
+            "messages.source.generated_asm_include_path must be a non-empty "
+            "string");
+      }
+      message_layout_.source = MessageLayout::Source{
+          .format = source["format"].get<std::string>(),
+          .version = source["version"].get<int>(),
+          .canonical_bundle_path =
+              source["canonical_bundle_path"].get<std::string>(),
+          .generated_asm_include_path =
+              source["generated_asm_include_path"].get<std::string>(),
+      };
     }
   }
 

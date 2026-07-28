@@ -1,7 +1,7 @@
 # Message System Architecture
 
 **Status**: Draft
-**Last Updated**: 2025-11-21
+**Last Updated**: 2026-07-27
 **Related Code**: `src/app/editor/message/`, `src/cli/handlers/game/message.cc`
 
 This document outlines the architecture of the Message (Text) System in YAZE.
@@ -55,6 +55,13 @@ Represents special control codes or characters.
 2.  **Optimize**: `OptimizeMessageForDictionary` scans the text for dictionary phrases and replaces them with single-byte references.
 3.  **Write**: Data is written sequentially to the ROM text blocks. If the first block overflows, it spills into the second block.
 
+ASM-owned expanded banks use a separate source pipeline. A complete canonical
+`yaze-message-bundle` is merged by bank-local ID, validated against the Hack
+Manifest's exact expanded range/capacity, and rendered to a deterministic
+no-`org` Asar include. `message-source-sync` is dry-run-first and publishes the
+bundle/include pair only with an exact source SHA-256 CAS and rollback-backed
+reopen verification. It never writes the ROM.
+
 ## Editor UI
 
 *   **Message List**: Displays all messages with ID and preview.
@@ -66,4 +73,5 @@ Represents special control codes or characters.
 
 *   **Hardcoded Limits**: The text block sizes are fixed for vanilla.
 *   **Translation**: No specific tooling for side-by-side translation.
-*   **Export**: Limited to binary "Expanded Messages" format; no JSON/YAML support.
+*   **GUI source save**: The source-sync service is currently CLI/backend only;
+    the Message Editor GUI is not yet wired to publish ASM-owned source.

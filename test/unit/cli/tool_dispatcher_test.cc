@@ -136,6 +136,13 @@ TEST(ToolDispatcherUnitTest,
   EXPECT_THAT(setter->flag_args, Contains("write"));
 }
 
+TEST(ToolDispatcherUnitTest, MessageSourceSyncIsClassifiedAsMutating) {
+  const auto definition =
+      ToolRegistry::Get().GetToolDefinition("message-source-sync");
+  ASSERT_TRUE(definition.has_value());
+  EXPECT_EQ(definition->access, ToolAccess::kMutating);
+}
+
 TEST(ToolDispatcherUnitTest, SharedValidationRejectsMissingRequiredArgs) {
   ToolRegistry::Get().RegisterTool(
       {"test-required-arg",
