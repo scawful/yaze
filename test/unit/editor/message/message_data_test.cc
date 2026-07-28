@@ -222,6 +222,21 @@ TEST(MessageParseResultTest, RejectsOutOfRangeDictionaryIndex) {
   EXPECT_FALSE(wrapped_invalid.ok());
 }
 
+TEST(MessageParseResultTest,
+     LegacyDollarPrefixedDictionaryIndexMatchesCanonical) {
+  auto canonical = ParseMessageToDataWithDiagnostics("[D:2C]");
+  auto legacy = ParseMessageToDataWithDiagnostics("[D:$2C]");
+
+  ASSERT_TRUE(canonical.ok());
+  ASSERT_TRUE(legacy.ok());
+  EXPECT_EQ(legacy.bytes, canonical.bytes);
+  EXPECT_EQ(legacy.bytes,
+            std::vector<uint8_t>({static_cast<uint8_t>(DICTOFF + 0x2C)}));
+  EXPECT_FALSE(ParseMessageToDataWithDiagnostics("[D:$61]").ok());
+  EXPECT_FALSE(ParseMessageToDataWithDiagnostics("[D:$$2C]").ok());
+  EXPECT_FALSE(ParseMessageToDataWithDiagnostics("[W:$02]").ok());
+}
+
 // ===========================================================================
 // Message Bundle Tests
 // ===========================================================================
@@ -264,6 +279,32 @@ TEST(MessageBundleTest, SerializeBundleIncludesCanonicalTextField) {
   ASSERT_EQ(bundle["messages"].size(), 2);
   EXPECT_EQ(bundle["messages"][0]["text"], "Raw [K]");
   EXPECT_EQ(bundle["messages"][1]["text"], "ExpandedParsed");
+}
+
+TEST(MessageBundleTest, DictionaryTokenExportStrictlyRoundTrips) {
+  constexpr uint8_t kDictionaryIndex = 0x2C;
+  std::vector<uint8_t> source_bytes = {
+      static_cast<uint8_t>(DICTOFF + kDictionaryIndex), kMessageTerminator,
+      0xFF};
+
+  auto messages = ReadAllTextData(source_bytes.data(), 0,
+                                  static_cast<int>(source_bytes.size()), false);
+  ASSERT_EQ(messages.size(), 1);
+  EXPECT_EQ(messages[0].RawString, "[D:2C]");
+
+  const nlohmann::json bundle = SerializeMessageBundle(messages, {});
+  ASSERT_EQ(bundle["messages"].size(), 1);
+  EXPECT_EQ(bundle["messages"][0]["raw"], "[D:2C]");
+  EXPECT_EQ(bundle["messages"][0]["text"], "[D:2C]");
+
+  auto entries_or = ParseMessageBundleJson(bundle);
+  ASSERT_TRUE(entries_or.ok()) << entries_or.status();
+  ASSERT_EQ(entries_or.value().size(), 1);
+
+  auto encoded =
+      ParseMessageToDataWithDiagnostics(entries_or.value().front().text);
+  ASSERT_TRUE(encoded.ok());
+  EXPECT_EQ(encoded.bytes, messages[0].Data);
 }
 
 TEST(MessageBundleTest, ParseStructuredBundleRespectsBankAndText) {

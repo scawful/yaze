@@ -15,7 +15,6 @@
 #include "rom/snes.h"
 #include "rom/transaction.h"
 #include "rom/write_fence.h"
-#include "util/hex.h"
 #include "util/log.h"
 #include "util/macro.h"
 
@@ -131,11 +130,15 @@ ParsedElement FindMatchingElement(const std::string& str) {
   const auto dictionary_element =
       TextElement(0x80, DICTIONARYTOKEN, true, "Dictionary");
 
-  match = dictionary_element.MatchMe(str);
+  // Keep legacy bundles with assembler-style [D:$XX] tokens importable while
+  // emitting the canonical [D:XX] form. Restrict this compatibility syntax to
+  // dictionary tokens so command argument validation remains unchanged.
+  const std::regex dictionary_pattern(
+      absl::StrFormat("^\\[%s:\\$?([0-9A-F]{1,2})\\]$", DICTIONARYTOKEN));
+  std::regex_match(str, match, dictionary_pattern);
   if (match.size() > 0) {
     try {
-      // match[1] captures ":XX" — strip the leading colon
-      std::string dict_arg = match[1].str().substr(1);
+      std::string dict_arg = match[1].str();
       const int dictionary_index = std::stoi(dict_arg, nullptr, 16);
       if (dictionary_index < 0 || dictionary_index >= kNumDictionaryEntries) {
         util::logf("Dictionary index out of range: %s", dict_arg.c_str());
@@ -671,9 +674,9 @@ std::vector<MessageData> ReadAllTextData(uint8_t* rom, int pos, int max_pos,
     // Check for dictionary.
     int8_t dictionary = FindDictionaryEntry(current_byte);
     if (dictionary >= 0) {
-      current_raw_message.append(absl::StrFormat(
-          "[%s:%s]", DICTIONARYTOKEN,
-          util::HexByte(static_cast<unsigned char>(dictionary))));
+      current_raw_message.append(
+          absl::StrFormat("[%s:%02X]", DICTIONARYTOKEN,
+                          static_cast<unsigned char>(dictionary)));
 
       // Safety: bounds-check dictionary pointer reads and dictionary expansion.
       // This parser is used by tooling (RomDoctor) that may run on dummy or
