@@ -85,6 +85,7 @@ class PaletteEditor : public Editor {
     custom_palette_.push_back(gfx::SnesColor(0x7FFF));
   }
 
+  void SetDependencies(const EditorDependencies& deps) override;
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Update() override;
@@ -116,6 +117,7 @@ class PaletteEditor : public Editor {
   void DrawControlPanel();
   void DrawQuickAccessPanel();
   void DrawCustomPalettePanel();
+  void ApplyPanelDependencies();
 
   // Category and search UI methods
   void DrawCategorizedPaletteList();

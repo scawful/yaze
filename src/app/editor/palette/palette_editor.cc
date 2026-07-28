@@ -8,6 +8,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/palette/palette_category.h"
 #include "app/editor/shell/feedback/toast_manager.h"
+#include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/types/snes_palette.h"
@@ -472,6 +473,29 @@ class CustomPalettePanel : public WindowContent {
   std::function<void()> draw_callback_;
 };
 
+void PaletteEditor::SetDependencies(const EditorDependencies& deps) {
+  Editor::SetDependencies(deps);
+  ApplyPanelDependencies();
+}
+
+void PaletteEditor::ApplyPanelDependencies() {
+  const auto apply = [this](PaletteGroupPanel* panel) {
+    if (panel == nullptr) {
+      return;
+    }
+    panel->SetToastManager(dependencies_.toast_manager);
+    panel->SetProject(dependencies_.project);
+  };
+  apply(ow_main_panel_);
+  apply(ow_anim_panel_);
+  apply(dungeon_main_panel_);
+  apply(sprite_global_panel_);
+  apply(sprite_aux1_panel_);
+  apply(sprite_aux2_panel_);
+  apply(sprite_aux3_panel_);
+  apply(equipment_panel_);
+}
+
 absl::Status PaletteEditor::Load() {
   gfx::ScopedTimer timer("PaletteEditor::Load");
 
@@ -549,18 +573,7 @@ absl::Status PaletteEditor::Load() {
     equipment_panel_ = equipment.get();
     window_manager->RegisterWindowContent(std::move(equipment));
 
-    // Wire toast manager to all palette group panels
-    auto* toast = dependencies_.toast_manager;
-    if (toast) {
-      ow_main_panel_->SetToastManager(toast);
-      ow_anim_panel_->SetToastManager(toast);
-      dungeon_main_panel_->SetToastManager(toast);
-      sprite_global_panel_->SetToastManager(toast);
-      sprite_aux1_panel_->SetToastManager(toast);
-      sprite_aux2_panel_->SetToastManager(toast);
-      sprite_aux3_panel_->SetToastManager(toast);
-      equipment_panel_->SetToastManager(toast);
-    }
+    ApplyPanelDependencies();
 
     // Register utility panels with callbacks
     window_manager->RegisterWindowContent(std::make_unique<PaletteControlPanel>(
@@ -584,8 +597,21 @@ absl::Status PaletteEditor::Save() {
         "Cannot save palettes from an inactive ROM session");
   }
 
-  // Delegate to PaletteManager for centralized save
-  RETURN_IF_ERROR(gfx::PaletteManager::Get().SaveAllToRom());
+  auto& palette_manager = gfx::PaletteManager::Get();
+  if (dependencies_.project != nullptr &&
+      dependencies_.project->hack_manifest.loaded()) {
+    const auto ranges =
+        palette_manager.GetModifiedColorWriteRanges(game_data());
+    if (!ranges.empty()) {
+      RETURN_IF_ERROR(ValidateHackManifestSaveConflicts(
+          dependencies_.project->hack_manifest,
+          dependencies_.project->rom_metadata.write_policy, ranges, "palettes",
+          "PaletteEditor", dependencies_.toast_manager));
+    }
+  }
+
+  // Delegate to PaletteManager for centralized save.
+  RETURN_IF_ERROR(palette_manager.SaveAllToRom());
 
   // Mark ROM as needing file save
   rom_->set_dirty(true);
@@ -1042,7 +1068,7 @@ void PaletteEditor::DrawControlPanel() {
           absl::StrFormat(ICON_MD_SAVE " Save All (%zu colors)", modified_count)
               .c_str(),
           ImVec2(-1, 0))) {
-    auto status = gfx::PaletteManager::Get().SaveAllToRom();
+    auto status = Save();
     if (!status.ok()) {
       if (dependencies_.toast_manager) {
         dependencies_.toast_manager->Show(

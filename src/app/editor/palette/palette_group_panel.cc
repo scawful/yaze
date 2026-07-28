@@ -11,6 +11,7 @@
 #include "absl/strings/str_split.h"
 #include "absl/strings/strip.h"
 #include "app/editor/shell/feedback/toast_manager.h"
+#include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/util/palette_manager.h"
 #include "app/gui/core/color.h"
@@ -563,11 +564,6 @@ void PaletteGroupPanel::SetColor(int palette_index, int color_index,
     }
     return;
   }
-
-  // Auto-save if enabled (PaletteManager doesn't handle this)
-  if (auto_save_enabled_) {
-    WriteColorToRom(palette_index, color_index, new_color);
-  }
 }
 
 absl::Status PaletteGroupPanel::SaveToRom() {
@@ -575,8 +571,22 @@ absl::Status PaletteGroupPanel::SaveToRom() {
     return absl::FailedPreconditionError(
         "Cannot save palettes from an inactive ROM session");
   }
-  // Delegate to PaletteManager for centralized save operation
-  return gfx::PaletteManager::Get().SaveGroup(group_name_);
+  auto& palette_manager = gfx::PaletteManager::Get();
+  if (project_ != nullptr && project_->hack_manifest.loaded()) {
+    const auto ranges =
+        palette_manager.GetModifiedGroupColorWriteRanges(group_name_);
+    if (!ranges.empty()) {
+      const absl::Status preflight = ValidateHackManifestSaveConflicts(
+          project_->hack_manifest, project_->rom_metadata.write_policy, ranges,
+          display_name_, "PaletteGroupPanel", toast_manager_);
+      if (!preflight.ok()) {
+        return preflight;
+      }
+    }
+  }
+
+  // Delegate to PaletteManager for centralized save operation.
+  return palette_manager.SaveGroup(group_name_);
 }
 
 void PaletteGroupPanel::DiscardChanges() {
@@ -693,14 +703,6 @@ gfx::SnesColor PaletteGroupPanel::GetOriginalColor(int palette_index,
   // Get original color from PaletteManager's snapshots
   return gfx::PaletteManager::Get().GetColor(group_name_, palette_index,
                                              color_index);
-}
-
-absl::Status PaletteGroupPanel::WriteColorToRom(int palette_index,
-                                                int color_index,
-                                                const gfx::SnesColor& color) {
-  uint32_t address =
-      gfx::GetPaletteAddress(group_name_, palette_index, color_index);
-  return rom_->WriteColor(address, color);
 }
 
 bool PaletteGroupPanel::IsManagedSession() const {
