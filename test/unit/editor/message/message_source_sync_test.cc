@@ -15,6 +15,7 @@
 #include <nlohmann/json.hpp>
 
 #include "absl/strings/match.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "cli/handlers/game/message_commands.h"
 #include "zelda3/dungeon/oracle_rom_safety_preflight.h"
