@@ -1084,6 +1084,7 @@ absl::Status MessageImportBundleCommandHandler::Execute(
     if (IncludeVanilla(range) && has_vanilla_entries) {
       if (active_rom->size() >
           static_cast<size_t>(std::numeric_limits<int>::max())) {
+        formatter.EndObject();
         return absl::OutOfRangeError(
             "ROM is too large for bounded vanilla-message parsing");
       }
