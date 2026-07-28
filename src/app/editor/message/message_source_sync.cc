@@ -58,7 +58,7 @@ struct ExpandedSourceMessage {
 
 using ExpandedSourceBank = std::map<int, ExpandedSourceMessage>;
 
-constexpr char kSourceSyncLockFilename[] = ".yaze-message-source-sync.lock";
+constexpr char kSourceSyncLockBasename[] = ".yaze-message-source-sync.lock";
 
 struct PublicationArtifact {
   fs::path target;
@@ -74,121 +74,126 @@ std::mutex& MessageSourceWriteMutex() {
   return mutex;
 }
 
-class MessageSourceWriteLock {
+class MessageSourceWriteLocks {
  public:
-  static absl::StatusOr<std::unique_ptr<MessageSourceWriteLock>> Acquire(
-      const fs::path& project_root) {
+  static absl::StatusOr<std::unique_ptr<MessageSourceWriteLocks>> Acquire(
+      const std::vector<fs::path>& lock_paths) {
+    if (lock_paths.empty()) {
+      return absl::InvalidArgumentError(
+          "Message source publication requires at least one lock");
+    }
     auto lock =
-        std::unique_ptr<MessageSourceWriteLock>(new MessageSourceWriteLock());
+        std::unique_ptr<MessageSourceWriteLocks>(new MessageSourceWriteLocks());
     lock->process_lock_ =
         std::unique_lock<std::mutex>(MessageSourceWriteMutex());
-    lock->path_ = project_root / kSourceSyncLockFilename;
 
 #if defined(_WIN32)
-    lock->handle_ =
-        CreateFileW(lock->path_.wstring().c_str(), GENERIC_READ | GENERIC_WRITE,
-                    FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS,
-                    FILE_ATTRIBUTE_NORMAL, nullptr);
-    if (lock->handle_ == INVALID_HANDLE_VALUE) {
-      const DWORD error = GetLastError();
-      return absl::PermissionDeniedError(absl::StrFormat(
-          "Cannot open message source lock %s: %s", lock->path_.string(),
-          std::error_code(static_cast<int>(error), std::system_category())
-              .message()));
-    }
-    if (!LockFileEx(lock->handle_, LOCKFILE_EXCLUSIVE_LOCK, 0, MAXDWORD,
-                    MAXDWORD, &lock->overlapped_)) {
-      const DWORD error = GetLastError();
-      CloseHandle(lock->handle_);
-      lock->handle_ = INVALID_HANDLE_VALUE;
-      return absl::UnavailableError(absl::StrFormat(
-          "Cannot acquire message source lock %s: %s", lock->path_.string(),
-          std::error_code(static_cast<int>(error), std::system_category())
-              .message()));
+    lock->handles_.reserve(lock_paths.size());
+    for (const fs::path& path : lock_paths) {
+      HANDLE handle =
+          CreateFileW(path.wstring().c_str(), GENERIC_READ | GENERIC_WRITE,
+                      FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS,
+                      FILE_ATTRIBUTE_NORMAL, nullptr);
+      if (handle == INVALID_HANDLE_VALUE) {
+        const DWORD error = GetLastError();
+        return absl::PermissionDeniedError(absl::StrFormat(
+            "Cannot open message source lock %s: %s", path.string(),
+            std::error_code(static_cast<int>(error), std::system_category())
+                .message()));
+      }
+      OVERLAPPED overlapped = {};
+      if (!LockFileEx(handle, LOCKFILE_EXCLUSIVE_LOCK, 0, MAXDWORD, MAXDWORD,
+                      &overlapped)) {
+        const DWORD error = GetLastError();
+        CloseHandle(handle);
+        return absl::UnavailableError(absl::StrFormat(
+            "Cannot acquire message source lock %s: %s", path.string(),
+            std::error_code(static_cast<int>(error), std::system_category())
+                .message()));
+      }
+      lock->handles_.push_back(handle);
     }
 #elif defined(__EMSCRIPTEN__)
     return absl::FailedPreconditionError(
         "Durable message source locking is unavailable in browser builds");
 #else
-    int open_flags = O_RDWR | O_CREAT;
+    lock->fds_.reserve(lock_paths.size());
+    for (const fs::path& path : lock_paths) {
+      int open_flags = O_RDWR | O_CREAT;
 #ifdef O_CLOEXEC
-    open_flags |= O_CLOEXEC;
+      open_flags |= O_CLOEXEC;
 #endif
 #ifdef O_NOFOLLOW
-    open_flags |= O_NOFOLLOW;
+      open_flags |= O_NOFOLLOW;
 #endif
-    lock->fd_ = open(lock->path_.c_str(), open_flags, S_IRUSR | S_IWUSR);
-    if (lock->fd_ < 0) {
-      return absl::PermissionDeniedError(absl::StrFormat(
-          "Cannot open message source lock %s: %s", lock->path_.string(),
-          std::error_code(errno, std::generic_category()).message()));
-    }
-    struct stat lock_stat{};
-    if (fstat(lock->fd_, &lock_stat) != 0) {
-      const int error = errno;
-      close(lock->fd_);
-      lock->fd_ = -1;
-      return absl::FailedPreconditionError(absl::StrFormat(
-          "Cannot inspect message source lock %s: %s", lock->path_.string(),
-          std::error_code(error, std::generic_category()).message()));
-    }
-    if (!S_ISREG(lock_stat.st_mode)) {
-      close(lock->fd_);
-      lock->fd_ = -1;
-      return absl::FailedPreconditionError(
-          absl::StrFormat("Message source lock must be a regular file: %s",
-                          lock->path_.string()));
-    }
-    if (fchmod(lock->fd_, S_IRUSR | S_IWUSR) != 0) {
-      const int error = errno;
-      close(lock->fd_);
-      lock->fd_ = -1;
-      return absl::PermissionDeniedError(absl::StrFormat(
-          "Cannot secure message source lock %s: %s", lock->path_.string(),
-          std::error_code(error, std::generic_category()).message()));
-    }
-    while (flock(lock->fd_, LOCK_EX) != 0) {
-      if (errno == EINTR) {
-        continue;
+      const int fd = open(path.c_str(), open_flags, S_IRUSR | S_IWUSR);
+      if (fd < 0) {
+        return absl::PermissionDeniedError(absl::StrFormat(
+            "Cannot open message source lock %s: %s", path.string(),
+            std::error_code(errno, std::generic_category()).message()));
       }
-      const int error = errno;
-      close(lock->fd_);
-      lock->fd_ = -1;
-      return absl::UnavailableError(absl::StrFormat(
-          "Cannot acquire message source lock %s: %s", lock->path_.string(),
-          std::error_code(error, std::generic_category()).message()));
+      struct stat lock_stat{};
+      if (fstat(fd, &lock_stat) != 0) {
+        const int error = errno;
+        close(fd);
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Cannot inspect message source lock %s: %s", path.string(),
+            std::error_code(error, std::generic_category()).message()));
+      }
+      if (!S_ISREG(lock_stat.st_mode)) {
+        close(fd);
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Message source lock must be a regular file: %s", path.string()));
+      }
+      if (fchmod(fd, S_IRUSR | S_IWUSR) != 0) {
+        const int error = errno;
+        close(fd);
+        return absl::PermissionDeniedError(absl::StrFormat(
+            "Cannot secure message source lock %s: %s", path.string(),
+            std::error_code(error, std::generic_category()).message()));
+      }
+      while (flock(fd, LOCK_EX) != 0) {
+        if (errno == EINTR) {
+          continue;
+        }
+        const int error = errno;
+        close(fd);
+        return absl::UnavailableError(absl::StrFormat(
+            "Cannot acquire message source lock %s: %s", path.string(),
+            std::error_code(error, std::generic_category()).message()));
+      }
+      lock->fds_.push_back(fd);
     }
 #endif
     return lock;
   }
 
-  ~MessageSourceWriteLock() {
+  ~MessageSourceWriteLocks() {
 #if defined(_WIN32)
-    if (handle_ != INVALID_HANDLE_VALUE) {
-      UnlockFileEx(handle_, 0, MAXDWORD, MAXDWORD, &overlapped_);
-      CloseHandle(handle_);
+    for (auto it = handles_.rbegin(); it != handles_.rend(); ++it) {
+      OVERLAPPED overlapped = {};
+      UnlockFileEx(*it, 0, MAXDWORD, MAXDWORD, &overlapped);
+      CloseHandle(*it);
     }
 #elif !defined(__EMSCRIPTEN__)
-    if (fd_ >= 0) {
-      while (flock(fd_, LOCK_UN) != 0 && errno == EINTR) {}
-      close(fd_);
+    for (auto it = fds_.rbegin(); it != fds_.rend(); ++it) {
+      while (flock(*it, LOCK_UN) != 0 && errno == EINTR) {}
+      close(*it);
     }
 #endif
   }
 
-  MessageSourceWriteLock(const MessageSourceWriteLock&) = delete;
-  MessageSourceWriteLock& operator=(const MessageSourceWriteLock&) = delete;
+  MessageSourceWriteLocks(const MessageSourceWriteLocks&) = delete;
+  MessageSourceWriteLocks& operator=(const MessageSourceWriteLocks&) = delete;
 
  private:
-  MessageSourceWriteLock() = default;
+  MessageSourceWriteLocks() = default;
 
-  fs::path path_;
   std::unique_lock<std::mutex> process_lock_;
 #if defined(_WIN32)
-  HANDLE handle_ = INVALID_HANDLE_VALUE;
-  OVERLAPPED overlapped_ = {};
+  std::vector<HANDLE> handles_;
 #elif !defined(__EMSCRIPTEN__)
-  int fd_ = -1;
+  std::vector<int> fds_;
 #endif
 };
 
@@ -316,6 +321,27 @@ absl::StatusOr<std::string> ReadTextFile(const fs::path& path,
   return content;
 }
 
+bool ReadBoundedNonnegativeInteger(const Json& value, uint64_t maximum,
+                                   uint64_t* parsed) {
+  if (value.is_number_unsigned()) {
+    const uint64_t candidate = value.get<uint64_t>();
+    if (candidate > maximum) {
+      return false;
+    }
+    *parsed = candidate;
+    return true;
+  }
+  if (!value.is_number_integer()) {
+    return false;
+  }
+  const int64_t candidate = value.get<int64_t>();
+  if (candidate < 0 || static_cast<uint64_t>(candidate) > maximum) {
+    return false;
+  }
+  *parsed = static_cast<uint64_t>(candidate);
+  return true;
+}
+
 absl::StatusOr<Json> ParseBundleDocument(std::string_view content,
                                          absl::string_view label) {
   Json document;
@@ -334,15 +360,36 @@ absl::StatusOr<Json> ParseBundleDocument(std::string_view content,
     return absl::InvalidArgumentError(
         absl::StrFormat("%s format must be 'yaze-message-bundle'", label));
   }
+  uint64_t version = 0;
   if (!document.contains("version") ||
-      !document["version"].is_number_integer() ||
-      document["version"].get<int>() != kMessageBundleVersion) {
+      !ReadBoundedNonnegativeInteger(
+          document["version"],
+          static_cast<uint64_t>(std::numeric_limits<int>::max()), &version) ||
+      version != static_cast<uint64_t>(kMessageBundleVersion)) {
     return absl::InvalidArgumentError(absl::StrFormat(
         "%s version must be integer %d", label, kMessageBundleVersion));
   }
   if (!document.contains("messages") || !document["messages"].is_array()) {
     return absl::InvalidArgumentError(
         absl::StrFormat("%s must contain a messages array", label));
+  }
+  if (document.contains("counts")) {
+    uint64_t expanded_count = 0;
+    uint64_t vanilla_count = 0;
+    if (!document["counts"].is_object() ||
+        !document["counts"].contains("expanded") ||
+        !ReadBoundedNonnegativeInteger(
+            document["counts"]["expanded"],
+            static_cast<uint64_t>(std::numeric_limits<int>::max()),
+            &expanded_count) ||
+        !document["counts"].contains("vanilla") ||
+        !ReadBoundedNonnegativeInteger(
+            document["counts"]["vanilla"],
+            static_cast<uint64_t>(std::numeric_limits<int>::max()),
+            &vanilla_count)) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s counts must use bounded non-negative integers", label));
+    }
   }
   return document;
 }
@@ -411,17 +458,16 @@ absl::StatusOr<ExpandedSourceBank> ParseExpandedBank(const Json& document,
       return absl::InvalidArgumentError(
           absl::StrFormat("%s message entry must be an object", label));
     }
-    if (!entry.contains("id") || !entry["id"].is_number_integer()) {
+    uint64_t id_value = 0;
+    if (!entry.contains("id") ||
+        !ReadBoundedNonnegativeInteger(
+            entry["id"], static_cast<uint64_t>(expected_count - 1),
+            &id_value)) {
       return absl::InvalidArgumentError(
-          absl::StrFormat("%s message entry has no integer id", label));
+          absl::StrFormat("%s message entry ID must be an integer in [0, %d)",
+                          label, expected_count));
     }
-    const int64_t id64 = entry["id"].get<int64_t>();
-    if (id64 < 0 || id64 >= expected_count) {
-      return absl::OutOfRangeError(absl::StrFormat(
-          "%s expanded message ID %d is outside bank-local range [0, %d)",
-          label, id64, expected_count));
-    }
-    const int id = static_cast<int>(id64);
+    const int id = static_cast<int>(id_value);
     if (!entry.contains("bank") || !entry["bank"].is_string() ||
         entry["bank"].get<std::string>() != "expanded") {
       return absl::InvalidArgumentError(absl::StrFormat(
@@ -473,7 +519,7 @@ absl::StatusOr<ExpandedSourceBank> ParseExpandedBank(const Json& document,
         absl::StrFormat("%s has no expanded messages", label));
   }
   if (require_complete) {
-    if (static_cast<int>(bank.size()) != expected_count) {
+    if (bank.size() != static_cast<size_t>(expected_count)) {
       return absl::FailedPreconditionError(absl::StrFormat(
           "%s must contain the complete expanded bank: expected %d entries, "
           "found %zu",
@@ -485,13 +531,21 @@ absl::StatusOr<ExpandedSourceBank> ParseExpandedBank(const Json& document,
             "%s is missing bank-local expanded message ID %d", label, id));
       }
     }
+    uint64_t expanded_count = 0;
+    uint64_t vanilla_count = 0;
     if (!document.contains("counts") || !document["counts"].is_object() ||
         !document["counts"].contains("expanded") ||
-        !document["counts"]["expanded"].is_number_integer() ||
-        document["counts"]["expanded"].get<int>() != expected_count ||
+        !ReadBoundedNonnegativeInteger(
+            document["counts"]["expanded"],
+            static_cast<uint64_t>(std::numeric_limits<int>::max()),
+            &expanded_count) ||
+        expanded_count != static_cast<uint64_t>(expected_count) ||
         !document["counts"].contains("vanilla") ||
-        !document["counts"]["vanilla"].is_number_integer() ||
-        document["counts"]["vanilla"].get<int>() != 0) {
+        !ReadBoundedNonnegativeInteger(
+            document["counts"]["vanilla"],
+            static_cast<uint64_t>(std::numeric_limits<int>::max()),
+            &vanilla_count) ||
+        vanilla_count != 0) {
       return absl::FailedPreconditionError(
           absl::StrFormat("%s counts must declare vanilla=0 and expanded=%d",
                           label, expected_count));
@@ -546,7 +600,7 @@ std::string RenderAsmInclude(const ExpandedSourceBank& bank,
              "; Source bundle SHA-256: %s\n"
              "; Generated ASM body SHA-256: %s\n"
              "; Generated by yaze message-source-sync. Do not edit.\n\n",
-             source_sha256, Sha256Hex(body)) +
+             std::string(source_sha256), Sha256Hex(body)) +
          body;
 }
 
@@ -709,51 +763,98 @@ absl::Status ValidateDistinctTargets(const fs::path& bundle_path,
   return absl::OkStatus();
 }
 
-absl::Status ValidateTargetsDoNotAliasLock(const fs::path& lock_path,
-                                           const fs::path& bundle_path,
-                                           const fs::path& include_path) {
+absl::StatusOr<std::vector<fs::path>> PublicationLockPaths(
+    const fs::path& bundle_path, const fs::path& include_path) {
+  std::vector<fs::path> lock_paths;
   for (const fs::path* target : {&bundle_path, &include_path}) {
-    if (*target == lock_path ||
-        LowercasePath(*target) == LowercasePath(lock_path)) {
-      return absl::InvalidArgumentError(absl::StrFormat(
-          "Message source targets may not use the persistent lock path: %s",
-          lock_path.string()));
+    std::error_code canonical_ec;
+    const fs::path parent = fs::canonical(target->parent_path(), canonical_ec);
+    if (canonical_ec) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Cannot resolve message source target directory %s: %s",
+          target->parent_path().string(), canonical_ec.message()));
+    }
+
+    bool duplicate = false;
+    for (const fs::path& existing_lock : lock_paths) {
+      std::error_code equivalent_ec;
+      const bool equivalent =
+          fs::equivalent(parent, existing_lock.parent_path(), equivalent_ec);
+      if (equivalent_ec) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Cannot compare message source target directories %s and %s: %s",
+            parent.string(), existing_lock.parent_path().string(),
+            equivalent_ec.message()));
+      }
+      if (equivalent) {
+        duplicate = true;
+        break;
+      }
+    }
+    if (!duplicate) {
+      lock_paths.push_back(parent / kSourceSyncLockBasename);
     }
   }
 
-  std::error_code lock_exists_ec;
-  const bool lock_exists = fs::exists(lock_path, lock_exists_ec);
-  if (lock_exists_ec) {
-    return absl::FailedPreconditionError(
-        absl::StrFormat("Cannot inspect persistent message source lock %s: %s",
-                        lock_path.string(), lock_exists_ec.message()));
-  }
-  if (!lock_exists) {
-    return absl::OkStatus();
-  }
+  std::sort(lock_paths.begin(), lock_paths.end(),
+            [](const fs::path& left, const fs::path& right) {
+              const std::string left_lower = LowercasePath(left);
+              const std::string right_lower = LowercasePath(right);
+              return left_lower == right_lower
+                         ? left.generic_string() < right.generic_string()
+                         : left_lower < right_lower;
+            });
+  return lock_paths;
+}
 
-  for (const fs::path* target : {&bundle_path, &include_path}) {
-    std::error_code target_exists_ec;
-    const bool target_exists = fs::exists(*target, target_exists_ec);
-    if (target_exists_ec) {
-      return absl::FailedPreconditionError(
-          absl::StrFormat("Cannot inspect message source target %s: %s",
-                          target->string(), target_exists_ec.message()));
+absl::Status ValidateTargetsDoNotAliasLocks(
+    const std::vector<fs::path>& lock_paths, const fs::path& bundle_path,
+    const fs::path& include_path) {
+  for (const fs::path& lock_path : lock_paths) {
+    for (const fs::path* target : {&bundle_path, &include_path}) {
+      if (*target == lock_path ||
+          LowercasePath(*target) == LowercasePath(lock_path)) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Message source targets may not use a persistent lock path: %s",
+            lock_path.string()));
+      }
     }
-    if (!target_exists) {
+
+    std::error_code lock_exists_ec;
+    const bool lock_exists = fs::exists(lock_path, lock_exists_ec);
+    if (lock_exists_ec) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Cannot inspect persistent message source lock %s: %s",
+          lock_path.string(), lock_exists_ec.message()));
+    }
+    if (!lock_exists) {
       continue;
     }
-    std::error_code equivalent_ec;
-    const bool equivalent = fs::equivalent(lock_path, *target, equivalent_ec);
-    if (equivalent_ec) {
-      return absl::FailedPreconditionError(absl::StrFormat(
-          "Cannot compare message source target %s with persistent lock %s: %s",
-          target->string(), lock_path.string(), equivalent_ec.message()));
-    }
-    if (equivalent) {
-      return absl::InvalidArgumentError(absl::StrFormat(
-          "Message source target aliases the persistent lock path: %s",
-          target->string()));
+
+    for (const fs::path* target : {&bundle_path, &include_path}) {
+      std::error_code target_exists_ec;
+      const bool target_exists = fs::exists(*target, target_exists_ec);
+      if (target_exists_ec) {
+        return absl::FailedPreconditionError(
+            absl::StrFormat("Cannot inspect message source target %s: %s",
+                            target->string(), target_exists_ec.message()));
+      }
+      if (!target_exists) {
+        continue;
+      }
+      std::error_code equivalent_ec;
+      const bool equivalent = fs::equivalent(lock_path, *target, equivalent_ec);
+      if (equivalent_ec) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Cannot compare message source target %s with persistent lock %s: "
+            "%s",
+            target->string(), lock_path.string(), equivalent_ec.message()));
+      }
+      if (equivalent) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Message source target aliases a persistent lock path: %s",
+            target->string()));
+      }
     }
   }
   return absl::OkStatus();
@@ -1322,9 +1423,12 @@ absl::StatusOr<MessageSourceSyncResult> SyncMessageSource(
                        /*must_exist=*/false, "Generated message ASM include"));
   RETURN_IF_ERROR(
       ValidateDistinctTargets(canonical_bundle_path, asm_include_path));
-  const fs::path source_lock_path = project_root / kSourceSyncLockFilename;
-  RETURN_IF_ERROR(ValidateTargetsDoNotAliasLock(
-      source_lock_path, canonical_bundle_path, asm_include_path));
+  std::vector<fs::path> publication_lock_paths;
+  ASSIGN_OR_RETURN(
+      publication_lock_paths,
+      PublicationLockPaths(canonical_bundle_path, asm_include_path));
+  RETURN_IF_ERROR(ValidateTargetsDoNotAliasLocks(
+      publication_lock_paths, canonical_bundle_path, asm_include_path));
 
   std::error_code incoming_ec;
   const fs::path resolved_incoming =
@@ -1337,7 +1441,7 @@ absl::StatusOr<MessageSourceSyncResult> SyncMessageSource(
   }
 
   std::string expected_sha;
-  std::unique_ptr<MessageSourceWriteLock> write_lock;
+  std::unique_ptr<MessageSourceWriteLocks> write_locks;
   if (options.write) {
     if (options.expected_source_sha256.empty()) {
       return absl::InvalidArgumentError(
@@ -1345,7 +1449,8 @@ absl::StatusOr<MessageSourceSyncResult> SyncMessageSource(
     }
     ASSIGN_OR_RETURN(expected_sha,
                      NormalizeExpectedSha256(options.expected_source_sha256));
-    ASSIGN_OR_RETURN(write_lock, MessageSourceWriteLock::Acquire(project_root));
+    ASSIGN_OR_RETURN(write_locks,
+                     MessageSourceWriteLocks::Acquire(publication_lock_paths));
   }
 
   std::string canonical_before;

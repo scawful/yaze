@@ -2,6 +2,7 @@
 
 #include <barrier>
 #include <chrono>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -18,6 +19,11 @@
 #include "cli/handlers/game/message_commands.h"
 #include "zelda3/dungeon/oracle_rom_safety_preflight.h"
 #include "zelda3/resource_labels.h"
+
+#if !defined(_WIN32) && !defined(__EMSCRIPTEN__)
+#include <sys/wait.h>
+#include <unistd.h>
+#endif
 
 namespace yaze::editor {
 namespace {
@@ -104,7 +110,8 @@ std::string Subset(int id, const std::string& text,
 std::string Manifest(
     absl::string_view include_path = "Core/generated/messages.asm",
     absl::string_view data_end = "0x2F80FF",
-    absl::string_view range_last = "0x18F", int count = 3) {
+    absl::string_view range_last = "0x18F", int count = 3,
+    absl::string_view canonical_path = "Data/Messages/expanded.json") {
   Json manifest = {
       {"manifest_version", 3},
       {"hack_name", "Message Source Test"},
@@ -116,7 +123,7 @@ std::string Manifest(
         {"source",
          {{"format", "yaze-message-bundle"},
           {"version", 1},
-          {"canonical_bundle_path", "Data/Messages/expanded.json"},
+          {"canonical_bundle_path", canonical_path},
           {"generated_asm_include_path", include_path}}}}}};
   return manifest.dump(2);
 }
@@ -168,6 +175,60 @@ TEST(MessageSourceSyncTest, Sha256MatchesPublishedKnownVectors) {
             "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855");
   EXPECT_EQ(ComputeMessageSourceSha256("abc"),
             "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad");
+}
+
+TEST(MessageSourceSyncTest, RejectsModuloNarrowingBundleVersionAndId) {
+  {
+    ScopedTempDir temp;
+    SourceFixture fixture(temp.path());
+    Json incoming = Json::parse(Subset(1, "X"));
+    incoming["version"] = uint64_t{4294967297};
+    WriteText(fixture.incoming, incoming.dump(2) + "\n");
+
+    auto result_or = SyncMessageSource(fixture.project, fixture.incoming);
+
+    ASSERT_FALSE(result_or.ok());
+    EXPECT_EQ(result_or.status().code(), absl::StatusCode::kInvalidArgument);
+    EXPECT_THAT(std::string(result_or.status().message()),
+                HasSubstr("version must be integer 1"));
+  }
+  {
+    ScopedTempDir temp;
+    SourceFixture fixture(temp.path());
+    Json incoming = Json::parse(Subset(1, "X"));
+    incoming["messages"][0]["id"] = uint64_t{4294967297};
+    WriteText(fixture.incoming, incoming.dump(2) + "\n");
+
+    auto result_or = SyncMessageSource(fixture.project, fixture.incoming);
+
+    ASSERT_FALSE(result_or.ok());
+    EXPECT_EQ(result_or.status().code(), absl::StatusCode::kInvalidArgument);
+    EXPECT_THAT(std::string(result_or.status().message()),
+                HasSubstr("ID must be an integer"));
+  }
+}
+
+TEST(MessageSourceSyncTest, RejectsModuloNarrowingBundleCounts) {
+  const std::pair<const char*, uint64_t> cases[] = {
+      {"expanded", uint64_t{4294967299}},
+      {"vanilla", uint64_t{4294967296}},
+  };
+  for (const auto& [field, value] : cases) {
+    SCOPED_TRACE(field);
+    ScopedTempDir temp;
+    SourceFixture fixture(temp.path());
+    Json canonical = Json::parse(ReadText(fixture.canonical));
+    canonical["counts"][field] = value;
+    WriteText(fixture.canonical, canonical.dump(2) + "\n");
+    WriteText(fixture.incoming, Subset(1, "X"));
+
+    auto result_or = SyncMessageSource(fixture.project, fixture.incoming);
+
+    ASSERT_FALSE(result_or.ok());
+    EXPECT_EQ(result_or.status().code(), absl::StatusCode::kInvalidArgument);
+    EXPECT_THAT(std::string(result_or.status().message()),
+                HasSubstr("bounded non-negative integers"));
+  }
 }
 
 TEST(MessageSourceSyncTest,
@@ -262,9 +323,120 @@ TEST(MessageSourceSyncTest,
                    ComputeMessageSourceSha256(canonical) + "\n"));
   EXPECT_THAT(include,
               HasSubstr(canonical == expected_x ? "$17, $7F" : "$18, $7F"));
-  EXPECT_TRUE(fs::exists(temp.path() / ".yaze-message-source-sync.lock"));
+  EXPECT_TRUE(fs::exists(fixture.canonical.parent_path() /
+                         ".yaze-message-source-sync.lock"));
+  EXPECT_TRUE(fs::exists(fixture.include.parent_path() /
+                         ".yaze-message-source-sync.lock"));
+  EXPECT_FALSE(fs::exists(temp.path() / ".yaze-message-source-sync.lock"));
   ExpectNoPublicationArtifacts(temp.path());
 }
+
+#if !defined(_WIN32) && !defined(__EMSCRIPTEN__)
+TEST(MessageSourceSyncTest,
+     NestedProjectsSharingTargetsSerializeAcrossProcesses) {
+  constexpr int kMessageCount = 4096;
+  ScopedTempDir temp;
+  const fs::path shared_root = temp.path() / "shared";
+  const std::string range_last =
+      absl::StrFormat("0x%X", 0x18D + kMessageCount - 1);
+  auto outer_project =
+      MakeProject(temp.path(), Manifest("shared/Core/generated/messages.asm",
+                                        "0x2FFFFF", range_last, kMessageCount,
+                                        "shared/Data/Messages/expanded.json"));
+  auto nested_project =
+      MakeProject(shared_root, Manifest("Core/generated/messages.asm",
+                                        "0x2FFFFF", range_last, kMessageCount));
+
+  std::vector<std::pair<int, std::string>> messages;
+  messages.reserve(kMessageCount);
+  for (int id = 0; id < kMessageCount; ++id) {
+    messages.emplace_back(id, "");
+  }
+  const fs::path canonical = shared_root / "Data/Messages/expanded.json";
+  const fs::path include = shared_root / "Core/generated/messages.asm";
+  const fs::path incoming_outer = temp.path() / "incoming-outer.json";
+  const fs::path incoming_nested = temp.path() / "incoming-nested.json";
+  WriteText(canonical, Bundle(messages));
+  WriteText(incoming_outer, Subset(0, "X"));
+  WriteText(incoming_nested, Subset(1, "Y"));
+  const std::string expected_sha =
+      ComputeMessageSourceSha256(ReadText(canonical));
+
+  int ready_pipe[2] = {-1, -1};
+  int start_pipe[2] = {-1, -1};
+  ASSERT_EQ(pipe(ready_pipe), 0);
+  ASSERT_EQ(pipe(start_pipe), 0);
+
+  auto launch_writer = [&](const project::YazeProject& project,
+                           const fs::path& incoming) {
+    const pid_t pid = fork();
+    if (pid != 0) {
+      return pid;
+    }
+    close(ready_pipe[0]);
+    close(start_pipe[1]);
+    const char ready = 'r';
+    if (write(ready_pipe[1], &ready, 1) != 1) {
+      _exit(20);
+    }
+    char start = '\0';
+    if (read(start_pipe[0], &start, 1) != 1) {
+      _exit(21);
+    }
+    auto result_or = SyncMessageSource(
+        project, incoming,
+        {.write = true, .expected_source_sha256 = expected_sha});
+    if (result_or.ok()) {
+      _exit(0);
+    }
+    _exit(result_or.status().code() == absl::StatusCode::kAborted ? 10 : 22);
+  };
+
+  const pid_t outer_pid = launch_writer(outer_project, incoming_outer);
+  ASSERT_GT(outer_pid, 0);
+  const pid_t nested_pid = launch_writer(nested_project, incoming_nested);
+  ASSERT_GT(nested_pid, 0);
+  close(ready_pipe[1]);
+  close(start_pipe[0]);
+  char ready[2] = {};
+  size_t ready_total = 0;
+  while (ready_total < sizeof(ready)) {
+    const ssize_t count =
+        read(ready_pipe[0], ready + ready_total, sizeof(ready) - ready_total);
+    ASSERT_GT(count, 0);
+    ready_total += static_cast<size_t>(count);
+  }
+  ASSERT_EQ(write(start_pipe[1], "gg", 2), 2);
+  close(ready_pipe[0]);
+  close(start_pipe[1]);
+
+  int outer_status = 0;
+  int nested_status = 0;
+  ASSERT_EQ(waitpid(outer_pid, &outer_status, 0), outer_pid);
+  ASSERT_EQ(waitpid(nested_pid, &nested_status, 0), nested_pid);
+  ASSERT_TRUE(WIFEXITED(outer_status));
+  ASSERT_TRUE(WIFEXITED(nested_status));
+  const int outer_exit = WEXITSTATUS(outer_status);
+  const int nested_exit = WEXITSTATUS(nested_status);
+  EXPECT_EQ((outer_exit == 0) + (nested_exit == 0), 1)
+      << outer_exit << ", " << nested_exit;
+  EXPECT_EQ((outer_exit == 10) + (nested_exit == 10), 1)
+      << outer_exit << ", " << nested_exit;
+
+  EXPECT_TRUE(
+      fs::exists(canonical.parent_path() / ".yaze-message-source-sync.lock"));
+  EXPECT_TRUE(
+      fs::exists(include.parent_path() / ".yaze-message-source-sync.lock"));
+  EXPECT_FALSE(fs::exists(temp.path() / ".yaze-message-source-sync.lock"));
+  EXPECT_FALSE(fs::exists(shared_root / ".yaze-message-source-sync.lock"));
+  const std::string final_canonical = ReadText(canonical);
+  const std::string final_include = ReadText(include);
+  EXPECT_TRUE(absl::StartsWith(
+      final_include, "; Source bundle SHA-256: " +
+                         ComputeMessageSourceSha256(final_canonical) + "\n"));
+  ExpectNoPublicationArtifacts(temp.path());
+}
+#endif
 
 #if !defined(_WIN32)
 TEST(MessageSourceSyncTest, WritePreservesExistingPosixModes) {
@@ -480,8 +652,8 @@ TEST(MessageSourceSyncTest, RejectsManifestCapacityOverflow) {
 
 TEST(MessageSourceSyncTest, RejectsCaseVariantOfPersistentLockAsTarget) {
   ScopedTempDir temp;
-  auto project =
-      MakeProject(temp.path(), Manifest(".YAZE-MESSAGE-SOURCE-SYNC.LOCK"));
+  auto project = MakeProject(
+      temp.path(), Manifest("Core/generated/.YAZE-MESSAGE-SOURCE-SYNC.LOCK"));
   const fs::path canonical = temp.path() / "Data/Messages/expanded.json";
   const fs::path incoming = temp.path() / "incoming.json";
   WriteText(canonical, Bundle({{0, "A"}, {1, "B"}, {2, "C"}}));
@@ -493,13 +665,15 @@ TEST(MessageSourceSyncTest, RejectsCaseVariantOfPersistentLockAsTarget) {
   EXPECT_EQ(result_or.status().code(), absl::StatusCode::kInvalidArgument);
   EXPECT_THAT(std::string(result_or.status().message()),
               HasSubstr("persistent lock path"));
-  EXPECT_FALSE(fs::exists(temp.path() / ".yaze-message-source-sync.lock"));
+  EXPECT_FALSE(fs::exists(temp.path() / "Core/generated" /
+                          ".yaze-message-source-sync.lock"));
 }
 
 TEST(MessageSourceSyncTest, RejectsExistingHardLinkAliasOfPersistentLock) {
   ScopedTempDir temp;
   SourceFixture fixture(temp.path());
-  const fs::path lock = temp.path() / ".yaze-message-source-sync.lock";
+  const fs::path lock =
+      fixture.include.parent_path() / ".yaze-message-source-sync.lock";
   WriteText(lock, "");
   std::error_code link_ec;
   fs::create_hard_link(lock, fixture.include, link_ec);
@@ -513,7 +687,7 @@ TEST(MessageSourceSyncTest, RejectsExistingHardLinkAliasOfPersistentLock) {
   ASSERT_FALSE(result_or.ok());
   EXPECT_EQ(result_or.status().code(), absl::StatusCode::kInvalidArgument);
   EXPECT_THAT(std::string(result_or.status().message()),
-              HasSubstr("aliases the persistent lock"));
+              HasSubstr("aliases a persistent lock"));
 }
 
 #if !defined(_WIN32)

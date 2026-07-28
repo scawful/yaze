@@ -519,10 +519,26 @@ TEST(HackManifestTest, RejectsMalformedMessageSourceMetadata) {
        "format must be"},
       {R"json({"manifest_version":3,"messages":{"source":{"format":"yaze-message-bundle","version":"1","canonical_bundle_path":"messages.json","generated_asm_include_path":"messages.asm"}}})json",
        "version must be integer 1"},
+      {R"json({"manifest_version":3,"messages":{"source":{"format":"yaze-message-bundle","version":4294967297,"canonical_bundle_path":"messages.json","generated_asm_include_path":"messages.asm"}}})json",
+       "version must be integer 1"},
       {R"json({"manifest_version":3,"messages":{"source":{"format":"yaze-message-bundle","version":1,"canonical_bundle_path":"","generated_asm_include_path":"messages.asm"}}})json",
        "canonical_bundle_path must be"},
       {R"json({"manifest_version":3,"messages":{"source":{"format":"yaze-message-bundle","version":1,"canonical_bundle_path":"messages.json","generated_asm_include_path":"messages.asm","extra":true}}})json",
        "unknown field"},
+  };
+
+  for (const auto& [json, expected_message] : invalid_manifests) {
+    SCOPED_TRACE(json);
+    ExpectManifestLoadFailure(json, expected_message);
+  }
+}
+
+TEST(HackManifestTest, RejectsModuloNarrowingMessageLayoutCounts) {
+  const std::pair<const char*, const char*> invalid_manifests[] = {
+      {R"json({"manifest_version":3,"messages":{"expanded_range":{"first":"0x18D","last":"0x18F","count":4294967299}}})json",
+       "messages.expanded_range.count is too large"},
+      {R"json({"manifest_version":3,"messages":{"vanilla_count":4294967693}})json",
+       "messages.vanilla_count is too large"},
   };
 
   for (const auto& [json, expected_message] : invalid_manifests) {
