@@ -314,6 +314,23 @@ absl::Status ValidatePotItemManifestConflicts(
       save_scope, "DungeonEditorV2", toast_manager);
 }
 
+absl::Status ValidatePaletteManifestConflicts(
+    const project::YazeProject* project,
+    const gfx::PaletteManager& palette_manager,
+    const zelda3::GameData* game_data, absl::string_view save_scope,
+    ToastManager* toast_manager) {
+  if (project == nullptr || !project->hack_manifest.loaded()) {
+    return absl::OkStatus();
+  }
+  const auto ranges = palette_manager.GetModifiedColorWriteRanges(game_data);
+  if (ranges.empty()) {
+    return absl::OkStatus();
+  }
+  return ValidateHackManifestSaveConflicts(
+      project->hack_manifest, project->rom_metadata.write_policy, ranges,
+      save_scope, "DungeonEditorV2", toast_manager);
+}
+
 absl::Status ValidateDungeonEntranceSavePreflight(
     const project::YazeProject* project, Rom* rom,
     const std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots>&
@@ -551,6 +568,9 @@ absl::Status DungeonEditorV2::Save() {
       return absl::FailedPreconditionError(
           "Cannot save dungeon palettes from a different ROM session");
     }
+    RETURN_IF_ERROR(ValidatePaletteManifestConflicts(
+        dependencies_.project, palette_manager, game_data_, "dungeon palettes",
+        dependencies_.toast_manager));
     const size_t modified_color_count =
         palette_manager.GetModifiedColorCount(game_data_);
     auto status = palette_manager.SaveAllToRom();
@@ -940,6 +960,10 @@ absl::Status DungeonEditorV2::SaveRoom(int room_id) {
         return absl::FailedPreconditionError(
             "Cannot save dungeon palettes from a different ROM session");
       }
+      RETURN_IF_ERROR(ValidatePaletteManifestConflicts(
+          dependencies_.project, palette_manager, game_data_,
+          absl::StrFormat("dungeon palettes for room 0x%03X", room_id),
+          dependencies_.toast_manager));
       auto status = palette_manager.SaveAllToRom();
       if (!status.ok()) {
         LOG_ERROR("DungeonEditorV2", "Failed to save palette changes: %s",
