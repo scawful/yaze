@@ -284,6 +284,12 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
   REGISTER_BUILTIN_AGENT_TOOL("message-search", "message", "Search messages",
                               "message-search --query=<text>", {}, true, false,
                               MessageSearchCommandHandler)
+  REGISTER_BUILTIN_AGENT_TOOL(
+      "message-source-sync", "message",
+      "Dry-run or publish canonical expanded-message source artifacts",
+      "message-source-sync --project=<path> --file=<bundle.json> "
+      "[--expected-source-sha256=<sha256>] [--write]",
+      {}, false, false, MessageSourceSyncCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL("dialogue-list", "dialogue", "List dialogues",
                               "dialogue-list", {}, true, false,
                               DialogueListCommandHandler)

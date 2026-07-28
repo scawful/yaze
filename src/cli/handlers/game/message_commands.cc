@@ -17,6 +17,7 @@
 #include "absl/strings/str_format.h"
 
 #include "app/editor/message/message_data.h"
+#include "app/editor/message/message_source_sync.h"
 #include "rom/snes.h"
 #include "rom/transaction.h"
 #include "zelda3/resource_labels.h"
@@ -107,6 +108,25 @@ absl::StatusOr<std::filesystem::path> CanonicalExistingPath(
   return canonical_path;
 }
 
+absl::Status EnsureConfiguredHackManifestLoaded(
+    project::YazeProject* project, absl::string_view project_path) {
+  if (project->hack_manifest.loaded() || project->hack_manifest_file.empty()) {
+    return absl::OkStatus();
+  }
+
+  const std::string manifest_path =
+      project->GetAbsolutePath(project->hack_manifest_file);
+  const absl::Status manifest_status =
+      project->hack_manifest.LoadFromFile(manifest_path);
+  if (manifest_status.ok()) {
+    return absl::OkStatus();
+  }
+  return absl::Status(
+      manifest_status.code(),
+      absl::StrFormat("Cannot load project '%s': hack manifest '%s': %s",
+                      project_path, manifest_path, manifest_status.message()));
+}
+
 std::string FormatManifestConflict(const core::WriteConflict& conflict) {
   std::string result =
       absl::StrFormat("address 0x%06X is %s", conflict.address,
@@ -161,6 +181,11 @@ absl::StatusOr<ExpandedMutationContext> PreflightExpandedMutation(
     return absl::Status(open_status.code(),
                         absl::StrFormat("Cannot load project '%s': %s",
                                         *project_path, open_status.message()));
+  }
+  if (absl::Status manifest_status =
+          EnsureConfiguredHackManifestLoaded(&context.project, *project_path);
+      !manifest_status.ok()) {
+    return manifest_status;
   }
 
   auto active_rom_path_or = CanonicalExistingPath(rom.filename(), "active ROM");
@@ -1144,6 +1169,72 @@ absl::Status MessageExportAsmCommandHandler::Execute(
   formatter.AddField("status", "success");
   formatter.EndObject();
 
+  return absl::OkStatus();
+}
+
+absl::Status MessageSourceSyncCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  const std::string project_path = parser.GetString("project").value();
+  const std::string incoming_path = parser.GetString("file").value();
+  const bool write = parser.HasFlag("write");
+
+  project::YazeProject source_project;
+  auto& resource_labels = zelda3::GetResourceLabels();
+  absl::Status open_status;
+  {
+    ScopedHackManifestBindingRestore restore_manifest(resource_labels);
+    try {
+      open_status = source_project.Open(project_path);
+    } catch (const std::exception& error) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Cannot load project '%s': %s", project_path, error.what()));
+    } catch (...) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Cannot load project '%s': unknown project parse error",
+          project_path));
+    }
+  }
+  if (!open_status.ok()) {
+    return absl::Status(open_status.code(),
+                        absl::StrFormat("Cannot load project '%s': %s",
+                                        project_path, open_status.message()));
+  }
+  if (absl::Status manifest_status =
+          EnsureConfiguredHackManifestLoaded(&source_project, project_path);
+      !manifest_status.ok()) {
+    return manifest_status;
+  }
+
+  editor::MessageSourceSyncOptions options{
+      .write = write,
+      .expected_source_sha256 =
+          parser.GetString("expected-source-sha256").value_or(""),
+  };
+  auto result_or =
+      editor::SyncMessageSource(source_project, incoming_path, options);
+  if (!result_or.ok()) {
+    return result_or.status();
+  }
+  const auto& result = *result_or;
+
+  formatter.BeginObject("Message Source Sync");
+  formatter.AddField("status", "success");
+  formatter.AddField("mode", write ? "write" : "dry-run");
+  formatter.AddField("changed", result.changed);
+  formatter.AddField("wrote", result.wrote);
+  formatter.AddField("canonical_bundle", result.canonical_bundle_path.string());
+  formatter.AddField("generated_asm_include",
+                     result.generated_asm_include_path.string());
+  formatter.AddHexField("first_expanded_id", result.first_expanded_id, 3);
+  formatter.AddHexField("last_expanded_id", result.last_expanded_id, 3);
+  formatter.AddField("expanded_count", result.expanded_count);
+  formatter.AddField("incoming_updates", result.incoming_updates);
+  formatter.AddField("encoded_size", static_cast<int>(result.encoded_size));
+  formatter.AddField("capacity", static_cast<int>(result.capacity));
+  formatter.AddField("source_sha256_before", result.source_sha256_before);
+  formatter.AddField("proposed_source_sha256", result.proposed_source_sha256);
+  formatter.EndObject();
   return absl::OkStatus();
 }
 

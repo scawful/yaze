@@ -240,6 +240,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/message/message_data_test.cc
     unit/editor/message/message_id_resolver_test.cc
     unit/editor/message/message_expanded_write_test.cc
+    unit/editor/message/message_source_sync_test.cc
     unit/editor/oracle_validation_view_model_test.cc
     unit/editor/hack_workflow_backend_factory_test.cc
     unit/editor/rom_file_manager_test.cc
@@ -563,6 +564,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_activator_test.cc
     unit/editor/story_event_graph_navigation_test.cc
     unit/editor/message/message_expanded_write_test.cc
+    unit/editor/message/message_source_sync_test.cc
     unit/editor/undo_manager_test.cc
     unit/editor/background_command_task_test.cc
     unit/editor/content_registry_workflow_history_test.cc

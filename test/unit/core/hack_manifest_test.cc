@@ -482,6 +482,71 @@ TEST(HackManifestTest, ParsesMessageLayout) {
   EXPECT_FALSE(manifest.IsExpandedMessage(0x1D2));
 }
 
+TEST(HackManifestTest, ParsesOptionalMessageSourceMetadata) {
+  constexpr const char* kJson = R"json(
+{
+  "manifest_version": 3,
+  "messages": {
+    "data_start": "0x2F8026",
+    "data_end": "0x2FFFFF",
+    "expanded_range": {"first":"0x18D","last":"0x1F9","count":109},
+    "source": {
+      "format": "yaze-message-bundle",
+      "version": 1,
+      "canonical_bundle_path": "Data/Messages/expanded.json",
+      "generated_asm_include_path": "Core/generated/messages.asm"
+    }
+  }
+}
+)json";
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadFromString(kJson).ok());
+  ASSERT_TRUE(manifest.message_layout().source.has_value());
+  EXPECT_EQ(manifest.message_layout().source->format, "yaze-message-bundle");
+  EXPECT_EQ(manifest.message_layout().source->version, 1);
+  EXPECT_EQ(manifest.message_layout().source->canonical_bundle_path,
+            "Data/Messages/expanded.json");
+  EXPECT_EQ(manifest.message_layout().source->generated_asm_include_path,
+            "Core/generated/messages.asm");
+}
+
+TEST(HackManifestTest, RejectsMalformedMessageSourceMetadata) {
+  const std::pair<const char*, const char*> invalid_manifests[] = {
+      {R"json({"manifest_version":3,"messages":{"source":[]}})json",
+       "must be an object"},
+      {R"json({"manifest_version":3,"messages":{"source":{"format":"other","version":1,"canonical_bundle_path":"messages.json","generated_asm_include_path":"messages.asm"}}})json",
+       "format must be"},
+      {R"json({"manifest_version":3,"messages":{"source":{"format":"yaze-message-bundle","version":"1","canonical_bundle_path":"messages.json","generated_asm_include_path":"messages.asm"}}})json",
+       "version must be integer 1"},
+      {R"json({"manifest_version":3,"messages":{"source":{"format":"yaze-message-bundle","version":4294967297,"canonical_bundle_path":"messages.json","generated_asm_include_path":"messages.asm"}}})json",
+       "version must be integer 1"},
+      {R"json({"manifest_version":3,"messages":{"source":{"format":"yaze-message-bundle","version":1,"canonical_bundle_path":"","generated_asm_include_path":"messages.asm"}}})json",
+       "canonical_bundle_path must be"},
+      {R"json({"manifest_version":3,"messages":{"source":{"format":"yaze-message-bundle","version":1,"canonical_bundle_path":"messages.json","generated_asm_include_path":"messages.asm","extra":true}}})json",
+       "unknown field"},
+  };
+
+  for (const auto& [json, expected_message] : invalid_manifests) {
+    SCOPED_TRACE(json);
+    ExpectManifestLoadFailure(json, expected_message);
+  }
+}
+
+TEST(HackManifestTest, RejectsModuloNarrowingMessageLayoutCounts) {
+  const std::pair<const char*, const char*> invalid_manifests[] = {
+      {R"json({"manifest_version":3,"messages":{"expanded_range":{"first":"0x18D","last":"0x18F","count":4294967299}}})json",
+       "messages.expanded_range.count is too large"},
+      {R"json({"manifest_version":3,"messages":{"vanilla_count":4294967693}})json",
+       "messages.vanilla_count is too large"},
+  };
+
+  for (const auto& [json, expected_message] : invalid_manifests) {
+    SCOPED_TRACE(json);
+    ExpectManifestLoadFailure(json, expected_message);
+  }
+}
+
 TEST(HackManifestTest, ParsesDungeonStreamLayouts) {
   constexpr const char* kJson = R"json(
 {
