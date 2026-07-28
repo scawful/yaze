@@ -69,8 +69,9 @@ std::vector<uint8_t> ReadBinaryFile(const fs::path& path) {
 std::vector<uint8_t> MakeMessageRomData(int expanded_message_count = 1) {
   std::vector<uint8_t> data(0x180000, 0xA5);
   data[editor::kTextData] = editor::FindMatchingCharacter('A');
-  data[editor::kTextData + 1] = editor::kMessageTerminator;
-  data[editor::kTextData + 2] = 0xFF;
+  data[editor::kTextData + 1] = editor::kBankSwitchCommand;
+  data[editor::kTextData2] = editor::kMessageTerminator;
+  data[editor::kTextData2 + 1] = 0xFF;
   int expanded_pos = editor::kExpandedTextDataDefault;
   for (int i = 0; i < expanded_message_count; ++i) {
     data[expanded_pos++] = editor::FindMatchingCharacter('X');
@@ -134,6 +135,25 @@ fs::path WriteBundle(const fs::path& root, const nlohmann::json& messages) {
   return path;
 }
 
+std::vector<fs::path> FindBackupArtifacts(const fs::path& rom_path) {
+  std::error_code ec;
+  const std::string prefix = rom_path.filename().string() + "_backup_";
+  std::vector<fs::path> backups;
+  for (const auto& entry : fs::directory_iterator(rom_path.parent_path(), ec)) {
+    if (ec || !entry.is_regular_file()) {
+      continue;
+    }
+    if (entry.path().filename().string().rfind(prefix, 0) == 0) {
+      backups.push_back(entry.path());
+    }
+  }
+  return backups;
+}
+
+int CountBackupArtifacts(const fs::path& rom_path) {
+  return static_cast<int>(FindBackupArtifacts(rom_path).size());
+}
+
 Rom LoadRom(const fs::path& path) {
   Rom rom;
   auto status = rom.LoadFromFile(path.string());
@@ -177,6 +197,23 @@ TEST(MessageCommandsPolicyTest, ExpandedBundleApplyWithoutProjectFailsClosed) {
   EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << output;
   EXPECT_THAT(std::string(status.message()), HasSubstr("explicit --project"));
   EXPECT_EQ(ReadBinaryFile(rom_path), before);
+}
+
+TEST(MessageCommandsPolicyTest,
+     ArgumentCommandWithoutArgumentReturnsStrictValidationError) {
+  ScopedTempDir temp;
+  const fs::path bundle_path = WriteBundle(
+      temp.path(), nlohmann::json::array(
+                       {{{"id", 0}, {"bank", "vanilla"}, {"text", "[W]"}}}));
+
+  handlers::MessageImportBundleCommandHandler handler;
+  std::string output;
+  const auto status = handler.Run(
+      {"--file=" + bundle_path.string(), "--strict", "--format=json"}, nullptr,
+      &output);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << output;
+  EXPECT_THAT(output, HasSubstr("Unknown token: [W]"));
 }
 
 TEST(MessageCommandsPolicyTest,
@@ -260,7 +297,7 @@ TEST(MessageCommandsPolicyTest, MixedApplyLateFailureLeavesRomUnchanged) {
   const fs::path bundle_path = WriteBundle(
       temp.path(),
       nlohmann::json::array(
-          {{{"id", 0}, {"bank", "vanilla"}, {"text", "B"}},
+          {{{"id", 0}, {"bank", "vanilla"}, {"text", "B[BANK]"}},
            {{"id", 0}, {"bank", "expanded"}, {"text", "A[BANK]B"}}}));
   const auto before = ReadBinaryFile(rom_path);
 
@@ -439,13 +476,15 @@ TEST(MessageCommandsPolicyTest,
   EXPECT_EQ(rom.vector(), before);
 }
 
-TEST(MessageCommandsPolicyTest, VanillaOnlyApplyStillWorksWithoutProject) {
+TEST(MessageCommandsPolicyTest, VanillaApplyWithoutProjectFailsClosed) {
   ScopedTempDir temp;
   const fs::path rom_path = temp.path() / "active.sfc";
   WriteBinaryFile(rom_path, MakeMessageRomData());
-  const fs::path bundle_path = WriteBundle(
-      temp.path(),
-      nlohmann::json::array({{{"id", 0}, {"bank", "vanilla"}, {"text", "B"}}}));
+  const auto disk_before = ReadBinaryFile(rom_path);
+  const fs::path bundle_path =
+      WriteBundle(temp.path(),
+                  nlohmann::json::array(
+                      {{{"id", 0}, {"bank", "vanilla"}, {"text", "B[BANK]"}}}));
 
   handlers::MessageImportBundleCommandHandler handler;
   std::string output;
@@ -454,9 +493,214 @@ TEST(MessageCommandsPolicyTest, VanillaOnlyApplyStillWorksWithoutProject) {
        "--rom=" + rom_path.string(), "--format=json"},
       nullptr, &output);
 
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << output;
+  EXPECT_THAT(std::string(status.message()), HasSubstr("explicit --project"));
+  EXPECT_EQ(ReadBinaryFile(rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(rom_path), 0);
+}
+
+TEST(MessageCommandsPolicyTest,
+     ProjectBackedVanillaApplyBacksUpSavesAndVerifiesReadback) {
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "active.sfc";
+  const auto disk_before = MakeMessageRomData();
+  WriteBinaryFile(rom_path, disk_before);
+  const fs::path project_path =
+      CreateProject(temp.path(), rom_path, "Other Hack", "allow", false);
+  const fs::path bundle_path =
+      WriteBundle(temp.path(),
+                  nlohmann::json::array(
+                      {{{"id", 0}, {"bank", "vanilla"}, {"text", "B[BANK]"}}}));
+
+  handlers::MessageImportBundleCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--file=" + bundle_path.string(), "--apply",
+                   "--range=vanilla", "--rom=" + rom_path.string(),
+                   "--project=" + project_path.string(), "--format=json"},
+                  nullptr, &output);
+
   ASSERT_TRUE(status.ok()) << status << "\n" << output;
-  const auto after = ReadBinaryFile(rom_path);
-  EXPECT_EQ(after[editor::kTextData], editor::FindMatchingCharacter('B'));
+  const auto result = nlohmann::json::parse(output).at("Message Bundle Import");
+  EXPECT_EQ(result.at("readback_verified"), true);
+  const auto backups = FindBackupArtifacts(rom_path);
+  ASSERT_EQ(backups.size(), 1);
+  EXPECT_EQ(ReadBinaryFile(backups.front()), disk_before);
+
+  Rom reopened = LoadRom(rom_path);
+  EXPECT_EQ(reopened.vector()[editor::kTextData],
+            editor::FindMatchingCharacter('B'));
+  EXPECT_EQ(reopened.vector()[editor::kTextData + 1],
+            editor::kBankSwitchCommand);
+  EXPECT_EQ(reopened.vector()[editor::kTextData2], editor::kMessageTerminator);
+  EXPECT_EQ(reopened.vector()[editor::kTextData2 + 1], 0xFF);
+}
+
+TEST(MessageCommandsPolicyTest,
+     ProjectBackedVanillaApplyPreservesRomSymlinkAndWritesCanonicalTarget) {
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "canonical.sfc";
+  const fs::path rom_alias = temp.path() / "active-alias.sfc";
+  WriteBinaryFile(rom_path, MakeMessageRomData());
+  std::error_code symlink_ec;
+  fs::create_symlink(rom_path.filename(), rom_alias, symlink_ec);
+  if (symlink_ec) {
+    GTEST_SKIP() << "ROM symlink unavailable: " << symlink_ec.message();
+  }
+
+  const fs::path project_path =
+      CreateProject(temp.path(), rom_path, "Other Hack", "allow", false);
+  const fs::path bundle_path =
+      WriteBundle(temp.path(),
+                  nlohmann::json::array(
+                      {{{"id", 0}, {"bank", "vanilla"}, {"text", "B[BANK]"}}}));
+
+  handlers::MessageImportBundleCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--file=" + bundle_path.string(), "--apply",
+                   "--range=vanilla", "--rom=" + rom_alias.string(),
+                   "--project=" + project_path.string(), "--format=json"},
+                  nullptr, &output);
+
+  ASSERT_TRUE(status.ok()) << status << "\n" << output;
+  EXPECT_TRUE(fs::is_symlink(rom_alias));
+  EXPECT_EQ(ReadBinaryFile(rom_path)[editor::kTextData],
+            editor::FindMatchingCharacter('B'));
+  EXPECT_EQ(FindBackupArtifacts(rom_path).size(), 1);
+  EXPECT_TRUE(FindBackupArtifacts(rom_alias).empty());
+}
+
+TEST(MessageCommandsPolicyTest, VanillaApplyRejectsCopierHeaderedRom) {
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "headered.sfc";
+  auto headered_rom = MakeMessageRomData();
+  headered_rom.insert(headered_rom.begin(), 512, 0);
+  WriteBinaryFile(rom_path, headered_rom);
+  const fs::path project_path =
+      CreateProject(temp.path(), rom_path, "Other Hack", "allow", false);
+  const fs::path bundle_path =
+      WriteBundle(temp.path(),
+                  nlohmann::json::array(
+                      {{{"id", 0}, {"bank", "vanilla"}, {"text", "B[BANK]"}}}));
+
+  handlers::MessageImportBundleCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--file=" + bundle_path.string(), "--apply",
+                   "--range=vanilla", "--rom=" + rom_path.string(),
+                   "--project=" + project_path.string(), "--format=json"},
+                  nullptr, &output);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << output;
+  EXPECT_THAT(std::string(status.message()), HasSubstr("headerless ROM"));
+  EXPECT_EQ(ReadBinaryFile(rom_path), headered_rom);
+  EXPECT_TRUE(FindBackupArtifacts(rom_path).empty());
+}
+
+TEST(MessageCommandsPolicyTest,
+     VanillaApplyRejectsManifestMessageCountMismatchBeforeMutation) {
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "active.sfc";
+  WriteBinaryFile(rom_path, MakeMessageRomData());
+  const fs::path project_path =
+      CreateProject(temp.path(), rom_path, "Other Hack", "allow", false);
+  auto manifest = nlohmann::json::parse(MakeManifest("Other Hack", false));
+  manifest["messages"]["vanilla_count"] = 2;
+  WriteTextFile(temp.path() / "hack_manifest.json", manifest.dump(2));
+  const auto disk_before = ReadBinaryFile(rom_path);
+  const fs::path bundle_path =
+      WriteBundle(temp.path(),
+                  nlohmann::json::array(
+                      {{{"id", 0}, {"bank", "vanilla"}, {"text", "B[BANK]"}}}));
+
+  handlers::MessageImportBundleCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--file=" + bundle_path.string(), "--apply",
+                   "--range=vanilla", "--rom=" + rom_path.string(),
+                   "--project=" + project_path.string(), "--format=json"},
+                  nullptr, &output);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << output;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("Vanilla message count mismatch"));
+  EXPECT_EQ(ReadBinaryFile(rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(rom_path), 0);
+}
+
+TEST(MessageCommandsPolicyTest,
+     VanillaApplyBlockPolicyRejectsExactProtectedHookOverlap) {
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "active.sfc";
+  WriteBinaryFile(rom_path, MakeMessageRomData());
+  const fs::path project_path =
+      CreateProject(temp.path(), rom_path, "Other Hack", "block", false);
+  auto manifest = nlohmann::json::parse(MakeManifest("Other Hack", false));
+  manifest["protected_regions"] = {{"regions",
+                                    {{{"start", "0x0EEE75"},
+                                      {"end", "0x0EEE7D"},
+                                      {"module", "Core/message.asm"}}}}};
+  WriteTextFile(temp.path() / "hack_manifest.json", manifest.dump(2));
+  const auto disk_before = ReadBinaryFile(rom_path);
+  constexpr size_t kProtectedHookOffset = 0x076E75 - editor::kTextData2;
+  const std::string overlapping_text =
+      "[BANK]" + std::string(kProtectedHookOffset - 1, 'A');
+  const fs::path bundle_path = WriteBundle(
+      temp.path(),
+      nlohmann::json::array(
+          {{{"id", 0}, {"bank", "vanilla"}, {"text", overlapping_text}}}));
+
+  handlers::MessageImportBundleCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--file=" + bundle_path.string(), "--apply",
+                   "--range=vanilla", "--rom=" + rom_path.string(),
+                   "--project=" + project_path.string(), "--format=json"},
+                  nullptr, &output);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << output;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("blocked by hack manifest"));
+  EXPECT_THAT(std::string(status.message()), HasSubstr("Core/message.asm"));
+  EXPECT_EQ(ReadBinaryFile(rom_path), disk_before);
+  EXPECT_EQ(CountBackupArtifacts(rom_path), 0);
+}
+
+TEST(MessageCommandsPolicyTest,
+     VanillaApplyAllowsExactHalfOpenBoundaryBeforeProtectedHook) {
+  ScopedTempDir temp;
+  const fs::path rom_path = temp.path() / "active.sfc";
+  WriteBinaryFile(rom_path, MakeMessageRomData());
+  const fs::path project_path =
+      CreateProject(temp.path(), rom_path, "Other Hack", "block", false);
+  auto manifest = nlohmann::json::parse(MakeManifest("Other Hack", false));
+  manifest["protected_regions"] = {{"regions",
+                                    {{{"start", "0x0EEE75"},
+                                      {"end", "0x0EEE7D"},
+                                      {"module", "Core/message.asm"}}}}};
+  WriteTextFile(temp.path() / "hack_manifest.json", manifest.dump(2));
+
+  constexpr size_t kProtectedHookOffset = 0x076E75 - editor::kTextData2;
+  const std::string boundary_safe_text =
+      "[BANK]" + std::string(kProtectedHookOffset - 2, 'A');
+  const fs::path bundle_path = WriteBundle(
+      temp.path(),
+      nlohmann::json::array(
+          {{{"id", 0}, {"bank", "vanilla"}, {"text", boundary_safe_text}}}));
+
+  handlers::MessageImportBundleCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--file=" + bundle_path.string(), "--apply",
+                   "--range=vanilla", "--rom=" + rom_path.string(),
+                   "--project=" + project_path.string(), "--format=json"},
+                  nullptr, &output);
+
+  ASSERT_TRUE(status.ok()) << status << "\n" << output;
+  Rom reopened = LoadRom(rom_path);
+  EXPECT_EQ(reopened.vector()[0x076E75], 0xA5);
+  EXPECT_EQ(FindBackupArtifacts(rom_path).size(), 1);
 }
 
 }  // namespace

@@ -198,13 +198,10 @@ std::vector<uint8_t> ParseMessageToData(std::string str) {
       ParsedElement parsedElement =
           FindMatchingElement(temp_string.substr(pos, next - pos + 1));
 
-      const auto dictionary_element =
-          TextElement(0x80, DICTIONARYTOKEN, true, "Dictionary");
-
       if (!parsedElement.Active) {
         util::logf("Error parsing message: %s", temp_string);
         break;
-      } else if (parsedElement.Parent == dictionary_element) {
+      } else if (parsedElement.Parent.Token == DICTIONARYTOKEN) {
         bytes.push_back(parsedElement.Value);
       } else {
         bytes.push_back(parsedElement.Parent.ID);
@@ -257,8 +254,6 @@ MessageParseResult ParseMessageToDataWithDiagnostics(std::string_view str) {
 
       std::string token = temp_string.substr(pos, close - pos + 1);
       ParsedElement parsed_element = FindMatchingElement(token);
-      const auto dictionary_element =
-          TextElement(0x80, DICTIONARYTOKEN, true, "Dictionary");
 
       if (!parsed_element.Active) {
         result.errors.push_back(absl::StrFormat("Unknown token: %s", token));
@@ -274,7 +269,7 @@ MessageParseResult ParseMessageToDataWithDiagnostics(std::string_view str) {
         }
       }
 
-      if (parsed_element.Parent == dictionary_element) {
+      if (parsed_element.Parent.Token == DICTIONARYTOKEN) {
         result.bytes.push_back(parsed_element.Value);
       } else {
         result.bytes.push_back(parsed_element.Parent.ID);
@@ -1261,58 +1256,139 @@ absl::Status WriteExpandedTextData(uint8_t* rom, int start, int end,
   return absl::OkStatus();
 }
 
-absl::Status WriteAllTextData(Rom* rom,
-                              const std::vector<MessageData>& messages) {
-  if (rom == nullptr || !rom->is_loaded()) {
-    return absl::InvalidArgumentError("ROM not loaded");
+std::vector<std::pair<uint32_t, uint32_t>>
+VanillaMessageSavePlan::write_ranges() const {
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  ranges.reserve(writes_.size());
+  for (const VanillaMessageWrite& write : writes_) {
+    ranges.emplace_back(write.start(), write.end());
+  }
+  return ranges;
+}
+
+absl::StatusOr<VanillaMessageSavePlan> BuildVanillaMessageSavePlan(
+    const std::vector<MessageData>& messages,
+    std::optional<size_t> expected_message_count) {
+  if (expected_message_count.has_value() &&
+      messages.size() != *expected_message_count) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Vanilla message count mismatch: expected %zu, got %zu",
+                        *expected_message_count, messages.size()));
   }
 
-  ScopedRomTransaction transaction(*rom);
+  constexpr size_t kPrimaryCapacity = kTextDataEnd - kTextData + 1;
+  constexpr size_t kSecondaryCapacity = kTextData2End - kTextData2 + 1;
+  std::vector<uint8_t> primary;
+  std::vector<uint8_t> secondary;
+  primary.reserve(kPrimaryCapacity);
+  secondary.reserve(kSecondaryCapacity);
 
-  int pos = kTextData;
   bool in_second_bank = false;
+  size_t bank_switch_count = 0;
+  auto append_byte = [&](uint8_t value, size_t message_index) -> absl::Status {
+    auto& destination = in_second_bank ? secondary : primary;
+    const size_t capacity =
+        in_second_bank ? kSecondaryCapacity : kPrimaryCapacity;
+    if (destination.size() >= capacity) {
+      const uint32_t address =
+          static_cast<uint32_t>(in_second_bank ? kTextData2 : kTextData) +
+          static_cast<uint32_t>(destination.size());
+      return absl::ResourceExhaustedError(absl::StrFormat(
+          "Vanilla message %zu exceeds %s bank capacity at 0x%06X",
+          message_index, in_second_bank ? "second" : "first", address));
+    }
+    destination.push_back(value);
+    return absl::OkStatus();
+  };
 
-  for (const auto& message : messages) {
+  for (size_t message_index = 0; message_index < messages.size();
+       ++message_index) {
     bool next_byte_is_command_argument = false;
-    for (uint8_t value : message.Data) {
-      RETURN_IF_ERROR(rom->WriteByte(pos, value));
-
+    for (uint8_t value : messages[message_index].Data) {
       const bool is_command_argument = next_byte_is_command_argument;
       next_byte_is_command_argument = false;
-      if (!is_command_argument && value == kBankSwitchCommand) {
-        if (!in_second_bank && pos > kTextDataEnd) {
-          return absl::ResourceExhaustedError(absl::StrFormat(
-              "Text data exceeds first bank (pos 0x%06X)", pos));
-        }
-        pos = kTextData2 - 1;
-        in_second_bank = true;
+      if (!is_command_argument &&
+          (value == kMessageTerminator || value == 0xFF)) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Vanilla message %zu contains reserved stream marker 0x%02X",
+            message_index, value));
+      }
+      const bool is_bank_switch =
+          !is_command_argument && value == kBankSwitchCommand;
+      if (is_bank_switch && bank_switch_count != 0) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "Vanilla message %zu contains a duplicate [BANK] command",
+            message_index));
       }
 
-      if (!is_command_argument) {
+      RETURN_IF_ERROR(append_byte(value, message_index));
+      if (is_bank_switch) {
+        ++bank_switch_count;
+        in_second_bank = true;
+      } else if (!is_command_argument) {
         const auto command = FindMatchingCommand(value);
         next_byte_is_command_argument =
             command.has_value() && command->HasArgument;
       }
-
-      pos++;
     }
-
-    RETURN_IF_ERROR(rom->WriteByte(pos++, kMessageTerminator));
+    if (next_byte_is_command_argument) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Vanilla message %zu ends with a command missing its argument",
+          message_index));
+    }
+    RETURN_IF_ERROR(append_byte(kMessageTerminator, message_index));
   }
 
-  if (!in_second_bank && pos > kTextDataEnd) {
-    return absl::ResourceExhaustedError(
-        absl::StrFormat("Text data exceeds first bank (pos 0x%06X)", pos));
+  if (bank_switch_count != 1) {
+    return absl::InvalidArgumentError(
+        "Vanilla message stream is missing the required [BANK] command");
+  }
+  RETURN_IF_ERROR(append_byte(0xFF, messages.size()));
+
+  std::vector<VanillaMessageWrite> writes;
+  writes.reserve(in_second_bank ? 2 : 1);
+  writes.emplace_back(static_cast<uint32_t>(kTextData), std::move(primary));
+  if (in_second_bank) {
+    writes.emplace_back(static_cast<uint32_t>(kTextData2),
+                        std::move(secondary));
+  }
+  return VanillaMessageSavePlan(std::move(writes), messages.size(),
+                                bank_switch_count);
+}
+
+absl::Status ApplyVanillaMessageSavePlan(Rom* rom,
+                                         const VanillaMessageSavePlan& plan) {
+  if (rom == nullptr || !rom->is_loaded()) {
+    return absl::InvalidArgumentError("ROM not loaded");
   }
 
-  if (in_second_bank && pos > kTextData2End) {
-    return absl::ResourceExhaustedError(
-        absl::StrFormat("Text data exceeds second bank (pos 0x%06X)", pos));
+  yaze::rom::WriteFence fence;
+  for (const VanillaMessageWrite& write : plan.writes()) {
+    if (write.end() > rom->size()) {
+      return absl::OutOfRangeError(absl::StrFormat(
+          "Vanilla message write range [0x%06X, 0x%06X) is outside the ROM",
+          write.start(), write.end()));
+    }
+    RETURN_IF_ERROR(
+        fence.Allow(write.start(), write.end(), "VanillaMessageBank"));
   }
 
-  RETURN_IF_ERROR(rom->WriteByte(pos, 0xFF));
+  ScopedRomTransaction transaction(*rom);
+  yaze::rom::ScopedWriteFence fence_scope(rom, &fence);
+  for (const VanillaMessageWrite& write : plan.writes()) {
+    RETURN_IF_ERROR(
+        rom->WriteVector(static_cast<int>(write.start()), write.bytes()));
+  }
   transaction.Commit();
   return absl::OkStatus();
+}
+
+absl::Status WriteAllTextData(Rom* rom,
+                              const std::vector<MessageData>& messages) {
+  ASSIGN_OR_RETURN(
+      const VanillaMessageSavePlan plan,
+      BuildVanillaMessageSavePlan(messages, /*expected_message_count=*/{}));
+  return ApplyVanillaMessageSavePlan(rom, plan);
 }
 
 }  // namespace editor

@@ -184,7 +184,7 @@ class MessageImportBundleCommandHandler : public resources::CommandHandler {
   std::string GetUsage() const override {
     return "message-import-bundle --file <path> [--apply] [--strict]"
            " [--range <all|vanilla|expanded>] [--project <path>]"
-           " [--format <json|text>] (expanded --apply requires --project)";
+           " [--format <json|text>] (--apply requires --project)";
   }
   bool RequiresRom() const override { return false; }
 

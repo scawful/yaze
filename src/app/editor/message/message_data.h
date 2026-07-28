@@ -78,11 +78,14 @@
 //
 // ===========================================================================
 
+#include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <regex>
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include <nlohmann/json.hpp>
@@ -349,7 +352,7 @@ struct TextElement {
     Description = description;
     if (arg) {
       Pattern = absl::StrFormat(
-          "\\[%s(:[0-9A-F]{1,2})?\\]",
+          "\\[%s(:[0-9A-F]{1,2})\\]",
           absl::StrReplaceAll(Token, {{"[", "\\["}, {"]", "\\]"}}));
     } else {
       Pattern = absl::StrFormat(
@@ -497,6 +500,58 @@ std::vector<std::string> ParseMessageData(
 constexpr int kTextData2 = 0x75F40;
 constexpr int kTextData2End = 0x773FF;
 
+// One exact, half-open ROM write in a vanilla-message save plan.
+class VanillaMessageWrite {
+ public:
+  VanillaMessageWrite(uint32_t start, std::vector<uint8_t> bytes)
+      : start_(start), bytes_(std::move(bytes)) {}
+
+  uint32_t start() const { return start_; }
+  uint32_t end() const { return start_ + static_cast<uint32_t>(bytes_.size()); }
+  const std::vector<uint8_t>& bytes() const { return bytes_; }
+
+  bool operator==(const VanillaMessageWrite&) const = default;
+
+ private:
+  uint32_t start_ = 0;
+  std::vector<uint8_t> bytes_;
+};
+
+// Immutable serialization result for the split vanilla message stream.
+//
+// Exactly one standalone [BANK] command is required. `bank_switch_count()`
+// excludes byte value 0x80 when used as an argument (for example, [W:80]).
+class VanillaMessageSavePlan {
+ public:
+  VanillaMessageSavePlan(const VanillaMessageSavePlan&) = default;
+  VanillaMessageSavePlan(VanillaMessageSavePlan&&) = default;
+  VanillaMessageSavePlan& operator=(const VanillaMessageSavePlan&) = default;
+  VanillaMessageSavePlan& operator=(VanillaMessageSavePlan&&) = default;
+
+  const std::vector<VanillaMessageWrite>& writes() const { return writes_; }
+  size_t message_count() const { return message_count_; }
+  size_t bank_switch_count() const { return bank_switch_count_; }
+
+  std::vector<std::pair<uint32_t, uint32_t>> write_ranges() const;
+
+  bool operator==(const VanillaMessageSavePlan&) const = default;
+
+ private:
+  friend absl::StatusOr<VanillaMessageSavePlan> BuildVanillaMessageSavePlan(
+      const std::vector<MessageData>& messages,
+      std::optional<size_t> expected_message_count);
+
+  VanillaMessageSavePlan(std::vector<VanillaMessageWrite> writes,
+                         size_t message_count, size_t bank_switch_count)
+      : writes_(std::move(writes)),
+        message_count_(message_count),
+        bank_switch_count_(bank_switch_count) {}
+
+  std::vector<VanillaMessageWrite> writes_;
+  size_t message_count_ = 0;
+  size_t bank_switch_count_ = 0;
+};
+
 // Reads all text data from the ROM and returns a vector of MessageData objects.
 // When max_pos > 0, the parser stops if pos exceeds max_pos (safety bound).
 // Set allow_bank_switch=false for contiguous banks such as expanded messages.
@@ -605,7 +660,20 @@ absl::Status WriteExpandedTextData(Rom* rom, int start, int end,
 absl::Status WriteExpandedTextData(uint8_t* rom, int start, int end,
                                    const std::vector<std::string>& messages);
 
+// Builds a complete vanilla-message serialization without mutating a ROM.
+// If expected_message_count is present, a mismatch fails closed.
+absl::StatusOr<VanillaMessageSavePlan> BuildVanillaMessageSavePlan(
+    const std::vector<MessageData>& messages,
+    std::optional<size_t> expected_message_count = std::nullopt);
+
+// Applies an immutable vanilla-message plan atomically through an exact write
+// fence. Callers remain responsible for project/manifest policy preflight
+// against plan.write_ranges().
+absl::Status ApplyVanillaMessageSavePlan(Rom* rom,
+                                         const VanillaMessageSavePlan& plan);
+
 // Writes all vanilla message data back to the ROM with bank switching.
+// Delegates to BuildVanillaMessageSavePlan and ApplyVanillaMessageSavePlan.
 absl::Status WriteAllTextData(Rom* rom,
                               const std::vector<MessageData>& messages);
 

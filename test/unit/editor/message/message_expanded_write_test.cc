@@ -203,19 +203,185 @@ TEST(ExpandedMessageWriteTest, LegacyWriterPreflightsBankCommand) {
   EXPECT_EQ(data, before);
 }
 
+TEST(MessageBankTokenParseTest, LegacyParserDistinguishesBankFromDictionary) {
+  EXPECT_EQ(ParseMessageToData("[BANK]"),
+            (std::vector<uint8_t>{kBankSwitchCommand}));
+  EXPECT_EQ(ParseMessageToData("[D:00]"), (std::vector<uint8_t>{DICTOFF}));
+}
+
+TEST(MessageBankTokenParseTest,
+     DiagnosticsParserDistinguishesBankFromDictionary) {
+  const auto bank = ParseMessageToDataWithDiagnostics("[BANK]");
+  const auto dictionary = ParseMessageToDataWithDiagnostics("[D:00]");
+
+  ASSERT_TRUE(bank.ok());
+  ASSERT_TRUE(dictionary.ok());
+  EXPECT_EQ(bank.bytes, (std::vector<uint8_t>{kBankSwitchCommand}));
+  EXPECT_EQ(dictionary.bytes, (std::vector<uint8_t>{DICTOFF}));
+}
+
+TEST(MessageBankTokenParseTest, ArgumentCommandWithoutArgumentFailsClosed) {
+  const auto parsed = ParseMessageToDataWithDiagnostics("[W]");
+
+  EXPECT_FALSE(parsed.ok());
+  EXPECT_TRUE(parsed.bytes.empty());
+}
+
 TEST(VanillaMessageWriteTest, CommandArgument80DoesNotSwitchBanks) {
   Rom rom = MakeRom(/*size=*/0x180100, /*fill=*/0xA5);
   MessageData message;
-  message.Data = ParseMessageToData("[W:80]");
-  ASSERT_EQ(message.Data, (std::vector<uint8_t>{0x6B, 0x80}));
+  message.Data = ParseMessageToData("[W:80][BANK]");
+  ASSERT_EQ(message.Data,
+            (std::vector<uint8_t>{0x6B, 0x80, kBankSwitchCommand}));
 
   ASSERT_TRUE(WriteAllTextData(&rom, {message}).ok());
 
   EXPECT_EQ(rom.vector()[kTextData], 0x6B);
   EXPECT_EQ(rom.vector()[kTextData + 1], 0x80);
-  EXPECT_EQ(rom.vector()[kTextData + 2], kMessageTerminator);
-  EXPECT_EQ(rom.vector()[kTextData + 3], 0xFF);
-  EXPECT_EQ(rom.vector()[kTextData2], 0xA5);
+  EXPECT_EQ(rom.vector()[kTextData + 2], kBankSwitchCommand);
+  EXPECT_EQ(rom.vector()[kTextData2], kMessageTerminator);
+  EXPECT_EQ(rom.vector()[kTextData2 + 1], 0xFF);
+}
+
+TEST(VanillaMessageSavePlanTest, ExposesExactSplitWritesAndCounts) {
+  MessageData message;
+  message.Data = {0x00, kBankSwitchCommand, 0x01};
+
+  auto plan_or =
+      BuildVanillaMessageSavePlan({message}, /*expected_message_count=*/1);
+  ASSERT_TRUE(plan_or.ok()) << plan_or.status();
+  const VanillaMessageSavePlan& plan = *plan_or;
+
+  EXPECT_EQ(plan.message_count(), 1);
+  EXPECT_EQ(plan.bank_switch_count(), 1);
+  ASSERT_EQ(plan.writes().size(), 2);
+  EXPECT_EQ(plan.writes()[0].start(), kTextData);
+  EXPECT_EQ(plan.writes()[0].bytes(),
+            (std::vector<uint8_t>{0x00, kBankSwitchCommand}));
+  EXPECT_EQ(plan.writes()[1].start(), kTextData2);
+  EXPECT_EQ(plan.writes()[1].bytes(),
+            (std::vector<uint8_t>{0x01, kMessageTerminator, 0xFF}));
+  EXPECT_EQ(plan.write_ranges(),
+            (std::vector<std::pair<uint32_t, uint32_t>>{
+                {kTextData, kTextData + 2}, {kTextData2, kTextData2 + 3}}));
+}
+
+TEST(VanillaMessageSavePlanTest, CommandArgument80DoesNotSwitchBanks) {
+  MessageData message;
+  message.Data = ParseMessageToData("[W:80][BANK]");
+  ASSERT_EQ(message.Data,
+            (std::vector<uint8_t>{0x6B, 0x80, kBankSwitchCommand}));
+
+  auto plan_or = BuildVanillaMessageSavePlan({message});
+  ASSERT_TRUE(plan_or.ok()) << plan_or.status();
+  const VanillaMessageSavePlan& plan = *plan_or;
+
+  EXPECT_EQ(plan.bank_switch_count(), 1);
+  ASSERT_EQ(plan.writes().size(), 2);
+  EXPECT_EQ(plan.writes()[0].bytes(),
+            (std::vector<uint8_t>{0x6B, 0x80, kBankSwitchCommand}));
+  EXPECT_EQ(plan.writes()[1].bytes(),
+            (std::vector<uint8_t>{kMessageTerminator, 0xFF}));
+}
+
+TEST(VanillaMessageSavePlanTest, RejectsDuplicateBankCommand) {
+  MessageData message;
+  message.Data = {kBankSwitchCommand, 0x00, kBankSwitchCommand};
+
+  auto plan_or = BuildVanillaMessageSavePlan({message});
+
+  ASSERT_FALSE(plan_or.ok());
+  EXPECT_EQ(plan_or.status().code(), absl::StatusCode::kInvalidArgument);
+}
+
+TEST(VanillaMessageSavePlanTest, RejectsMissingBankCommand) {
+  MessageData message;
+  message.Data = ParseMessageToData("[W:80]");
+
+  auto plan_or = BuildVanillaMessageSavePlan({message});
+
+  ASSERT_FALSE(plan_or.ok());
+  EXPECT_EQ(plan_or.status().code(), absl::StatusCode::kInvalidArgument);
+}
+
+TEST(VanillaMessageSavePlanTest, RejectsBareStreamMarkersInsideMessageData) {
+  for (const uint8_t marker : {kMessageTerminator, uint8_t{0xFF}}) {
+    MessageData message;
+    message.Data = {kBankSwitchCommand, marker};
+
+    auto plan_or = BuildVanillaMessageSavePlan({message});
+
+    ASSERT_FALSE(plan_or.ok()) << "marker=" << static_cast<int>(marker);
+    EXPECT_EQ(plan_or.status().code(), absl::StatusCode::kInvalidArgument)
+        << "marker=" << static_cast<int>(marker);
+  }
+}
+
+TEST(VanillaMessageSavePlanTest, RejectsCommandMissingItsArgument) {
+  MessageData message;
+  message.Data = {kBankSwitchCommand, 0x6B};
+
+  auto plan_or = BuildVanillaMessageSavePlan({message});
+
+  ASSERT_FALSE(plan_or.ok());
+  EXPECT_EQ(plan_or.status().code(), absl::StatusCode::kInvalidArgument);
+}
+
+TEST(VanillaMessageSavePlanTest,
+     RejectsVanillaMessageCountsOnBothSidesOfExpected) {
+  constexpr size_t kExpectedVanillaMessageCount = 397;
+  for (const size_t actual_count : {size_t{396}, size_t{398}}) {
+    std::vector<MessageData> messages(actual_count);
+
+    auto plan_or = BuildVanillaMessageSavePlan(
+        messages, /*expected_message_count=*/kExpectedVanillaMessageCount);
+
+    ASSERT_FALSE(plan_or.ok()) << "actual_count=" << actual_count;
+    EXPECT_EQ(plan_or.status().code(), absl::StatusCode::kFailedPrecondition)
+        << "actual_count=" << actual_count;
+  }
+}
+
+TEST(VanillaMessageSavePlanTest, RejectsPrimaryBankOverflow) {
+  constexpr size_t kPrimaryCapacity = kTextDataEnd - kTextData + 1;
+  MessageData message;
+  message.Data.assign(kPrimaryCapacity, 0x00);
+  message.Data.push_back(kBankSwitchCommand);
+
+  auto plan_or = BuildVanillaMessageSavePlan({message});
+
+  ASSERT_FALSE(plan_or.ok());
+  EXPECT_EQ(plan_or.status().code(), absl::StatusCode::kResourceExhausted);
+}
+
+TEST(VanillaMessageSavePlanTest, RejectsSecondaryBankOverflow) {
+  constexpr size_t kSecondaryCapacity = kTextData2End - kTextData2 + 1;
+  MessageData message;
+  message.Data.assign(kSecondaryCapacity, 0x00);
+  message.Data.front() = kBankSwitchCommand;
+
+  auto plan_or = BuildVanillaMessageSavePlan({message});
+
+  ASSERT_FALSE(plan_or.ok());
+  EXPECT_EQ(plan_or.status().code(), absl::StatusCode::kResourceExhausted);
+}
+
+TEST(VanillaMessageSavePlanTest, ApplyRollsBackWhenOuterFenceRejectsLaterRun) {
+  Rom rom = MakeRom(/*size=*/0x180100, /*fill=*/0xA5);
+  MessageData message;
+  message.Data = {0x00, kBankSwitchCommand, 0x01};
+  auto plan_or = BuildVanillaMessageSavePlan({message});
+  ASSERT_TRUE(plan_or.ok()) << plan_or.status();
+  const auto before = rom.vector();
+
+  yaze::rom::WriteFence outer;
+  ASSERT_TRUE(outer.Allow(kTextData, kTextData + 2, "primary only").ok());
+  yaze::rom::ScopedWriteFence scope(&rom, &outer);
+
+  const auto status = ApplyVanillaMessageSavePlan(&rom, *plan_or);
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kPermissionDenied) << status;
+  EXPECT_EQ(rom.vector(), before);
 }
 
 TEST(MessageEditorSavePlanTest,
@@ -224,8 +390,8 @@ TEST(MessageEditorSavePlanTest,
   MessageEditor editor(&rom, MakeDependencies(&rom));
   MessageEditorSaveTestPeer::SetExpandedMessages(editor, {"EXPANDED"},
                                                  /*dirty=*/false);
-  MessageEditorSaveTestPeer::SetVanillaMessages(editor, {{0x00}},
-                                                /*dirty=*/true);
+  MessageEditorSaveTestPeer::SetVanillaMessages(
+      editor, {{0x00, kBankSwitchCommand}}, /*dirty=*/true);
 
   const auto expanded_before =
       rom.ReadByteVector(kExpandedTextDataDefault, /*length=*/32).value();
@@ -269,8 +435,8 @@ TEST(MessageEditorSavePlanTest,
                   .empty());
 
   MessageEditor editor(&rom, MakeDependencies(&rom, &yaze_project));
-  MessageEditorSaveTestPeer::SetVanillaMessages(editor, {{0x00}},
-                                                /*dirty=*/true);
+  MessageEditorSaveTestPeer::SetVanillaMessages(
+      editor, {{0x00, kBankSwitchCommand}}, /*dirty=*/true);
   MessageEditorSaveTestPeer::SetExpandedMessages(editor, {"DRAFT"},
                                                  /*dirty=*/true);
   MessageEditorSaveTestPeer::SetFontWidthDirty(editor, 0x0C);
@@ -380,23 +546,23 @@ TEST(MessageEditorSavePlanTest,
      CommandArgument80StaysPrimaryWithExactHalfOpenRange) {
   Rom rom = MakeRom(/*size=*/0x180100, /*fill=*/0xA5);
   MessageEditor editor(&rom, MakeDependencies(&rom));
-  const auto encoded = ParseMessageToData("[W:80]");
-  ASSERT_EQ(encoded, (std::vector<uint8_t>{0x6B, 0x80}));
+  const auto encoded = ParseMessageToData("[W:80][BANK]");
+  ASSERT_EQ(encoded, (std::vector<uint8_t>{0x6B, 0x80, kBankSwitchCommand}));
   MessageEditorSaveTestPeer::SetVanillaMessages(editor, {encoded},
                                                 /*dirty=*/true);
 
   auto ranges_or = MessageEditorSaveTestPeer::PlannedRanges(editor);
   ASSERT_TRUE(ranges_or.ok()) << ranges_or.status();
-  EXPECT_EQ(
-      ranges_or.value(),
-      (std::vector<std::pair<uint32_t, uint32_t>>{{kTextData, kTextData + 4}}));
+  EXPECT_EQ(ranges_or.value(),
+            (std::vector<std::pair<uint32_t, uint32_t>>{
+                {kTextData, kTextData + 3}, {kTextData2, kTextData2 + 2}}));
 
   ASSERT_TRUE(editor.Save().ok());
   EXPECT_EQ(rom.vector()[kTextData], 0x6B);
   EXPECT_EQ(rom.vector()[kTextData + 1], 0x80);
-  EXPECT_EQ(rom.vector()[kTextData + 2], kMessageTerminator);
-  EXPECT_EQ(rom.vector()[kTextData + 3], 0xFF);
-  EXPECT_EQ(rom.vector()[kTextData2], 0xA5);
+  EXPECT_EQ(rom.vector()[kTextData + 2], kBankSwitchCommand);
+  EXPECT_EQ(rom.vector()[kTextData2], kMessageTerminator);
+  EXPECT_EQ(rom.vector()[kTextData2 + 1], 0xFF);
 }
 
 TEST(MessageEditorSavePlanTest, TruncatedExpandedRegionFailsBeforeMutation) {

@@ -36,21 +36,6 @@
 namespace yaze {
 namespace editor {
 
-namespace {
-std::string DisplayTextOverflowError(int pos, bool bank) {
-  int space = bank ? kTextDataEnd - kTextData : kTextData2End - kTextData2;
-  std::string bankSTR = bank ? "1st" : "2nd";
-  std::string posSTR =
-      bank ? absl::StrFormat("%X4", pos & 0xFFFF)
-           : absl::StrFormat("%X4", (pos - kTextData2) & 0xFFFF);
-  std::string message = absl::StrFormat(
-      "There is too much text data in the %s block to save.\n"
-      "Available: %X4 | Used: %s",
-      bankSTR, space, posSTR);
-  return message;
-}
-}  // namespace
-
 using ImGui::BeginChild;
 using ImGui::BeginTable;
 using ImGui::Button;
@@ -110,7 +95,10 @@ void MessageEditor::Initialize() {
   }
 
   message_preview_.all_dictionaries_ = BuildDictionaryEntries(rom());
-  list_of_texts_ = ReadAllTextData(rom()->mutable_data());
+  const int message_read_limit = static_cast<int>(std::min(
+      rom()->size(), static_cast<size_t>(std::numeric_limits<int>::max())));
+  list_of_texts_ =
+      ReadAllTextData(rom()->mutable_data(), kTextData, message_read_limit);
   LOG_INFO("MessageEditor", "Loaded %zu messages from ROM",
            list_of_texts_.size());
 
@@ -1151,57 +1139,23 @@ absl::StatusOr<MessageEditor::SavePlan> MessageEditor::BuildSavePlan(
   }
 
   if (include_vanilla_messages && dirty_state_.vanilla_messages) {
-    std::vector<uint8_t> primary;
-    std::vector<uint8_t> secondary;
-    constexpr size_t kPrimaryCapacity = kTextDataEnd - kTextData + 1;
-    constexpr size_t kSecondaryCapacity = kTextData2End - kTextData2 + 1;
-    primary.reserve(kPrimaryCapacity);
-    secondary.reserve(kSecondaryCapacity);
-
-    bool in_second_bank = false;
-    auto append_byte = [&](uint8_t value, bool is_bank_switch) -> absl::Status {
-      auto& destination = in_second_bank ? secondary : primary;
-      const size_t capacity =
-          in_second_bank ? kSecondaryCapacity : kPrimaryCapacity;
-      if (destination.size() >= capacity) {
-        const int overflow_pos = (in_second_bank ? kTextData2 : kTextData) +
-                                 static_cast<int>(destination.size());
-        return absl::ResourceExhaustedError(
-            DisplayTextOverflowError(overflow_pos, !in_second_bank));
+    std::optional<size_t> expected_message_count;
+    if (dependencies_.project &&
+        dependencies_.project->hack_manifest.loaded()) {
+      const int manifest_count =
+          dependencies_.project->hack_manifest.message_layout().vanilla_count;
+      if (manifest_count > 0) {
+        expected_message_count = static_cast<size_t>(manifest_count);
       }
-      destination.push_back(value);
-      if (!in_second_bank && is_bank_switch) {
-        in_second_bank = true;
-      }
-      return absl::OkStatus();
-    };
-
-    for (const auto& message : list_of_texts_) {
-      bool next_byte_is_command_argument = false;
-      for (uint8_t value : message.Data) {
-        const bool is_command_argument = next_byte_is_command_argument;
-        next_byte_is_command_argument = false;
-        RETURN_IF_ERROR(append_byte(
-            value, !is_command_argument && value == kBankSwitchCommand));
-        if (!is_command_argument) {
-          const auto command = FindMatchingCommand(value);
-          next_byte_is_command_argument =
-              command.has_value() && command->HasArgument;
-        }
-      }
-      RETURN_IF_ERROR(
-          append_byte(kMessageTerminator, /*is_bank_switch=*/false));
     }
-    RETURN_IF_ERROR(append_byte(0xFF, /*is_bank_switch=*/false));
+    ASSIGN_OR_RETURN(
+        const VanillaMessageSavePlan vanilla_plan,
+        BuildVanillaMessageSavePlan(list_of_texts_, expected_message_count));
 
     plan.saves_vanilla_messages = true;
-    if (!primary.empty()) {
+    for (const auto& write : vanilla_plan.writes()) {
       plan.writes.push_back(
-          {SaveDomain::kVanillaMessages, kTextData, std::move(primary)});
-    }
-    if (!secondary.empty()) {
-      plan.writes.push_back(
-          {SaveDomain::kVanillaMessages, kTextData2, std::move(secondary)});
+          {SaveDomain::kVanillaMessages, write.start(), write.bytes()});
     }
   }
 

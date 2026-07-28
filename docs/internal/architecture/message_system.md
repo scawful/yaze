@@ -1,8 +1,9 @@
 # Message System Architecture
 
 **Status**: Draft
-**Last Updated**: 2026-07-27
-**Related Code**: `src/app/editor/message/`, `src/cli/handlers/game/message.cc`
+**Last Updated**: 2026-07-28
+**Related Code**: `src/app/editor/message/`,
+`src/cli/handlers/game/message_commands.cc`
 
 This document outlines the architecture of the Message (Text) System in YAZE.
 
@@ -36,8 +37,10 @@ Represents special control codes or characters.
 
 ## ROM Layout (Vanilla)
 
-*   **Bank 0E (0xE0000)**: Primary text data block (32KB).
-*   **Bank 0E (0x75F40)**: Secondary text data block (5.3KB).
+*   **Primary block**: PC `0x0E0000-0x0E7FFF`, mapped to SNES
+    `$1C:8000-$1C:FFFF` (32KB).
+*   **Secondary block**: PC `0x075F40-0x0773FF`, mapped to SNES
+    `$0E:DF40-$0E:F3FF` (5.3KB).
 *   **Dictionary**: Pointers at `0x74703`.
 *   **Font Graphics**: 2BPP tiles at `0x70000`.
 *   **Character Widths**: Table at `0x74ADF`.
@@ -53,7 +56,15 @@ Represents special control codes or characters.
 ### Saving
 1.  **Parse**: User text is converted to bytes.
 2.  **Optimize**: `OptimizeMessageForDictionary` scans the text for dictionary phrases and replaces them with single-byte references.
-3.  **Write**: Data is written sequentially to the ROM text blocks. If the first block overflows, it spills into the second block.
+3.  **Plan**: `BuildVanillaMessageSavePlan` serializes both physical blocks,
+    requires the manifest's expected message count, and distinguishes the one
+    standalone `[BANK]` command from command arguments such as `[W:80]`.
+4.  **Preflight**: Project-backed callers analyze the plan's exact half-open PC
+    write ranges against Hack Manifest ownership and write policy before any
+    ROM mutation.
+5.  **Write**: `ApplyVanillaMessageSavePlan` applies the immutable plan through
+    an exact write fence. CLI persistence requires a backup, atomic ROM
+    replacement, and independent reopen/readback before reporting success.
 
 ASM-owned expanded banks use a separate source pipeline. A complete canonical
 `yaze-message-bundle` is merged by bank-local ID, validated against the Hack
