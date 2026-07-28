@@ -142,7 +142,14 @@ targets. The bundle and include publish as one rollback-backed artifact set
 using same-directory temporary files and exact reopen/readback. Writers are
 serialized in-process and across processes with a persistent
 `.yaze-message-source-sync.lock` in each distinct publication-target directory.
-Projects should ignore that basename wherever source artifacts live rather
-than deleting lock files between runs. This command does not open or mutate a
-ROM. Browser builds reject `--write` because they cannot guarantee durable
-atomic filesystem publication.
+Lock files must be regular, single-link files; hard-linked locks fail closed
+before permissions or source artifacts change. Projects should ignore that
+basename wherever source artifacts live rather than deleting lock files
+between runs.
+
+Publication and rollback preserve exact file contents and existing POSIX mode
+bits. Rename-based replacement does not preserve ownership, ACLs, extended
+attributes/flags, or target-specific Windows attributes/DACLs, so source
+artifacts with special filesystem metadata are not supported yet. This command
+does not open or mutate a ROM. Browser builds reject `--write` because they
+cannot guarantee durable atomic filesystem publication.
