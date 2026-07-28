@@ -744,5 +744,77 @@ TEST(MessageSourceSyncTest, CliHandlerIsRomIndependentAndReportsDryRun) {
   zelda3::GetResourceLabels().SetHackManifest(nullptr);
 }
 
+TEST(MessageSourceSyncTest,
+     CliHandlerRejectsMalformedManifestAndRestoresPriorBinding) {
+  ScopedTempDir temp;
+  const fs::path manifest_path = temp.path() / "hack_manifest.json";
+  const fs::path project_path = temp.path() / "project.yaze";
+  const fs::path incoming_path = temp.path() / "incoming.json";
+  Json malformed_manifest = Json::parse(Manifest());
+  malformed_manifest["messages"]["expanded_range"]["count"] = "three";
+  WriteText(manifest_path, malformed_manifest.dump(2));
+  WriteText(project_path,
+            "[project]\nname=MalformedMessageSourceCliTest\n\n"
+            "[files]\nhack_manifest_file=hack_manifest.json\n");
+  WriteText(incoming_path, Subset(1, "X"));
+
+  core::HackManifest prior_manifest;
+  ASSERT_TRUE(prior_manifest
+                  .LoadFromString(
+                      R"json({"manifest_version":3,"hack_name":"Prior"})json")
+                  .ok());
+  auto& resource_labels = zelda3::GetResourceLabels();
+  resource_labels.SetHackManifest(&prior_manifest);
+
+  cli::handlers::MessageSourceSyncCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--project=" + project_path.string(),
+                   "--file=" + incoming_path.string(), "--format=json"},
+                  nullptr, &output);
+
+  EXPECT_EQ(resource_labels.hack_manifest(), &prior_manifest);
+  resource_labels.SetHackManifest(nullptr);
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument) << output;
+  EXPECT_THAT(std::string(status.message()), HasSubstr("Cannot load project"));
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("messages.expanded_range.count"));
+  ExpectNoPublicationArtifacts(temp.path());
+}
+
+TEST(MessageSourceSyncTest,
+     CliHandlerRejectsMissingManifestAndRestoresPriorBinding) {
+  ScopedTempDir temp;
+  const fs::path project_path = temp.path() / "project.yaze";
+  const fs::path incoming_path = temp.path() / "incoming.json";
+  WriteText(project_path,
+            "[project]\nname=MissingMessageSourceCliTest\n\n"
+            "[files]\nhack_manifest_file=missing_manifest.json\n");
+  WriteText(incoming_path, Subset(1, "X"));
+
+  core::HackManifest prior_manifest;
+  ASSERT_TRUE(prior_manifest
+                  .LoadFromString(
+                      R"json({"manifest_version":3,"hack_name":"Prior"})json")
+                  .ok());
+  auto& resource_labels = zelda3::GetResourceLabels();
+  resource_labels.SetHackManifest(&prior_manifest);
+
+  cli::handlers::MessageSourceSyncCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--project=" + project_path.string(),
+                   "--file=" + incoming_path.string(), "--format=json"},
+                  nullptr, &output);
+
+  EXPECT_EQ(resource_labels.hack_manifest(), &prior_manifest);
+  resource_labels.SetHackManifest(nullptr);
+  EXPECT_EQ(status.code(), absl::StatusCode::kNotFound) << output;
+  EXPECT_THAT(std::string(status.message()), HasSubstr("Cannot load project"));
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("Could not open manifest"));
+  ExpectNoPublicationArtifacts(temp.path());
+}
+
 }  // namespace
 }  // namespace yaze::editor

@@ -108,6 +108,25 @@ absl::StatusOr<std::filesystem::path> CanonicalExistingPath(
   return canonical_path;
 }
 
+absl::Status EnsureConfiguredHackManifestLoaded(
+    project::YazeProject* project, absl::string_view project_path) {
+  if (project->hack_manifest.loaded() || project->hack_manifest_file.empty()) {
+    return absl::OkStatus();
+  }
+
+  const std::string manifest_path =
+      project->GetAbsolutePath(project->hack_manifest_file);
+  const absl::Status manifest_status =
+      project->hack_manifest.LoadFromFile(manifest_path);
+  if (manifest_status.ok()) {
+    return absl::OkStatus();
+  }
+  return absl::Status(
+      manifest_status.code(),
+      absl::StrFormat("Cannot load project '%s': hack manifest '%s': %s",
+                      project_path, manifest_path, manifest_status.message()));
+}
+
 std::string FormatManifestConflict(const core::WriteConflict& conflict) {
   std::string result =
       absl::StrFormat("address 0x%06X is %s", conflict.address,
@@ -162,6 +181,11 @@ absl::StatusOr<ExpandedMutationContext> PreflightExpandedMutation(
     return absl::Status(open_status.code(),
                         absl::StrFormat("Cannot load project '%s': %s",
                                         *project_path, open_status.message()));
+  }
+  if (absl::Status manifest_status =
+          EnsureConfiguredHackManifestLoaded(&context.project, *project_path);
+      !manifest_status.ok()) {
+    return manifest_status;
   }
 
   auto active_rom_path_or = CanonicalExistingPath(rom.filename(), "active ROM");
@@ -1175,6 +1199,11 @@ absl::Status MessageSourceSyncCommandHandler::Execute(
     return absl::Status(open_status.code(),
                         absl::StrFormat("Cannot load project '%s': %s",
                                         project_path, open_status.message()));
+  }
+  if (absl::Status manifest_status =
+          EnsureConfiguredHackManifestLoaded(&source_project, project_path);
+      !manifest_status.ok()) {
+    return manifest_status;
   }
 
   editor::MessageSourceSyncOptions options{
