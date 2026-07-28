@@ -5,7 +5,6 @@
 #include <filesystem>
 #include <string>
 #include <string_view>
-#include <vector>
 
 #include "absl/status/statusor.h"
 #include "core/project.h"
@@ -24,7 +23,6 @@ struct MessageSourceSyncOptions {
 struct MessageSourceSyncResult {
   std::filesystem::path canonical_bundle_path;
   std::filesystem::path generated_asm_include_path;
-  std::vector<std::filesystem::path> backup_paths;
 
   int first_expanded_id = 0;
   int last_expanded_id = 0;

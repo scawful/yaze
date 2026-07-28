@@ -289,7 +289,7 @@ void RegisterBuiltinAgentTools(ToolRegistry& registry) {
       "Dry-run or publish canonical expanded-message source artifacts",
       "message-source-sync --project=<path> --file=<bundle.json> "
       "[--expected-source-sha256=<sha256>] [--write]",
-      {}, false, true, MessageSourceSyncCommandHandler)
+      {}, false, false, MessageSourceSyncCommandHandler)
   REGISTER_BUILTIN_AGENT_TOOL("dialogue-list", "dialogue", "List dialogues",
                               "dialogue-list", {}, true, false,
                               DialogueListCommandHandler)

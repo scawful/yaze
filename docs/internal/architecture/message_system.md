@@ -60,7 +60,9 @@ ASM-owned expanded banks use a separate source pipeline. A complete canonical
 Manifest's exact expanded range/capacity, and rendered to a deterministic
 no-`org` Asar include. `message-source-sync` is dry-run-first and publishes the
 bundle/include pair only with an exact source SHA-256 CAS and rollback-backed
-reopen verification. It never writes the ROM.
+reopen verification. Write mode holds both an in-process mutex and the
+persistent project-root `.yaze-message-source-sync.lock` from canonical read
+through publication verification or rollback. It never writes the ROM.
 
 ## Editor UI
 

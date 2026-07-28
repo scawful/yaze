@@ -14,6 +14,8 @@
 #include <iterator>
 #include <limits>
 #include <map>
+#include <memory>
+#include <mutex>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -36,8 +38,10 @@
 #define NOMINMAX
 #endif
 #include <windows.h>
-#else
+#elif !defined(__EMSCRIPTEN__)
 #include <fcntl.h>
+#include <sys/file.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #endif
 
@@ -54,6 +58,8 @@ struct ExpandedSourceMessage {
 
 using ExpandedSourceBank = std::map<int, ExpandedSourceMessage>;
 
+constexpr char kSourceSyncLockFilename[] = ".yaze-message-source-sync.lock";
+
 struct PublicationArtifact {
   fs::path target;
   std::string content;
@@ -61,6 +67,129 @@ struct PublicationArtifact {
   fs::path temp;
   std::optional<fs::path> backup;
   bool published = false;
+};
+
+std::mutex& MessageSourceWriteMutex() {
+  static std::mutex mutex;
+  return mutex;
+}
+
+class MessageSourceWriteLock {
+ public:
+  static absl::StatusOr<std::unique_ptr<MessageSourceWriteLock>> Acquire(
+      const fs::path& project_root) {
+    auto lock =
+        std::unique_ptr<MessageSourceWriteLock>(new MessageSourceWriteLock());
+    lock->process_lock_ =
+        std::unique_lock<std::mutex>(MessageSourceWriteMutex());
+    lock->path_ = project_root / kSourceSyncLockFilename;
+
+#if defined(_WIN32)
+    lock->handle_ =
+        CreateFileW(lock->path_.wstring().c_str(), GENERIC_READ | GENERIC_WRITE,
+                    FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS,
+                    FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (lock->handle_ == INVALID_HANDLE_VALUE) {
+      const DWORD error = GetLastError();
+      return absl::PermissionDeniedError(absl::StrFormat(
+          "Cannot open message source lock %s: %s", lock->path_.string(),
+          std::error_code(static_cast<int>(error), std::system_category())
+              .message()));
+    }
+    if (!LockFileEx(lock->handle_, LOCKFILE_EXCLUSIVE_LOCK, 0, MAXDWORD,
+                    MAXDWORD, &lock->overlapped_)) {
+      const DWORD error = GetLastError();
+      CloseHandle(lock->handle_);
+      lock->handle_ = INVALID_HANDLE_VALUE;
+      return absl::UnavailableError(absl::StrFormat(
+          "Cannot acquire message source lock %s: %s", lock->path_.string(),
+          std::error_code(static_cast<int>(error), std::system_category())
+              .message()));
+    }
+#elif defined(__EMSCRIPTEN__)
+    return absl::FailedPreconditionError(
+        "Durable message source locking is unavailable in browser builds");
+#else
+    int open_flags = O_RDWR | O_CREAT;
+#ifdef O_CLOEXEC
+    open_flags |= O_CLOEXEC;
+#endif
+#ifdef O_NOFOLLOW
+    open_flags |= O_NOFOLLOW;
+#endif
+    lock->fd_ = open(lock->path_.c_str(), open_flags, S_IRUSR | S_IWUSR);
+    if (lock->fd_ < 0) {
+      return absl::PermissionDeniedError(absl::StrFormat(
+          "Cannot open message source lock %s: %s", lock->path_.string(),
+          std::error_code(errno, std::generic_category()).message()));
+    }
+    struct stat lock_stat{};
+    if (fstat(lock->fd_, &lock_stat) != 0) {
+      const int error = errno;
+      close(lock->fd_);
+      lock->fd_ = -1;
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Cannot inspect message source lock %s: %s", lock->path_.string(),
+          std::error_code(error, std::generic_category()).message()));
+    }
+    if (!S_ISREG(lock_stat.st_mode)) {
+      close(lock->fd_);
+      lock->fd_ = -1;
+      return absl::FailedPreconditionError(
+          absl::StrFormat("Message source lock must be a regular file: %s",
+                          lock->path_.string()));
+    }
+    if (fchmod(lock->fd_, S_IRUSR | S_IWUSR) != 0) {
+      const int error = errno;
+      close(lock->fd_);
+      lock->fd_ = -1;
+      return absl::PermissionDeniedError(absl::StrFormat(
+          "Cannot secure message source lock %s: %s", lock->path_.string(),
+          std::error_code(error, std::generic_category()).message()));
+    }
+    while (flock(lock->fd_, LOCK_EX) != 0) {
+      if (errno == EINTR) {
+        continue;
+      }
+      const int error = errno;
+      close(lock->fd_);
+      lock->fd_ = -1;
+      return absl::UnavailableError(absl::StrFormat(
+          "Cannot acquire message source lock %s: %s", lock->path_.string(),
+          std::error_code(error, std::generic_category()).message()));
+    }
+#endif
+    return lock;
+  }
+
+  ~MessageSourceWriteLock() {
+#if defined(_WIN32)
+    if (handle_ != INVALID_HANDLE_VALUE) {
+      UnlockFileEx(handle_, 0, MAXDWORD, MAXDWORD, &overlapped_);
+      CloseHandle(handle_);
+    }
+#elif !defined(__EMSCRIPTEN__)
+    if (fd_ >= 0) {
+      while (flock(fd_, LOCK_UN) != 0 && errno == EINTR) {}
+      close(fd_);
+    }
+#endif
+  }
+
+  MessageSourceWriteLock(const MessageSourceWriteLock&) = delete;
+  MessageSourceWriteLock& operator=(const MessageSourceWriteLock&) = delete;
+
+ private:
+  MessageSourceWriteLock() = default;
+
+  fs::path path_;
+  std::unique_lock<std::mutex> process_lock_;
+#if defined(_WIN32)
+  HANDLE handle_ = INVALID_HANDLE_VALUE;
+  OVERLAPPED overlapped_ = {};
+#elif !defined(__EMSCRIPTEN__)
+  int fd_ = -1;
+#endif
 };
 
 constexpr uint32_t kSha256Constants[64] = {
@@ -593,6 +722,24 @@ fs::path NextSiblingPath(const fs::path& target, absl::string_view purpose) {
 absl::StatusOr<fs::path> WriteExclusiveTemp(const fs::path& target,
                                             std::string_view content) {
   constexpr int kMaxAttempts = 100;
+#if !defined(_WIN32) && !defined(__EMSCRIPTEN__)
+  mode_t create_mode =
+      S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH;
+  bool preserve_mode = false;
+  struct stat target_stat{};
+  if (stat(target.c_str(), &target_stat) == 0) {
+    if (!S_ISREG(target_stat.st_mode)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Publication target must be a regular file: %s", target.string()));
+    }
+    create_mode = target_stat.st_mode & 07777;
+    preserve_mode = true;
+  } else if (errno != ENOENT) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Cannot inspect publication target mode %s: %s", target.string(),
+        std::error_code(errno, std::generic_category()).message()));
+  }
+#endif
   for (int attempt = 0; attempt < kMaxAttempts; ++attempt) {
     const fs::path temp = NextSiblingPath(target, "tmp");
 #if defined(_WIN32)
@@ -647,9 +794,23 @@ absl::StatusOr<fs::path> WriteExclusiveTemp(const fs::path& target,
           std::error_code(static_cast<int>(error), std::system_category())
               .message()));
     }
+#elif defined(__EMSCRIPTEN__)
+    std::ofstream output(temp, std::ios::binary | std::ios::trunc);
+    if (!output.is_open()) {
+      return absl::PermissionDeniedError(absl::StrFormat(
+          "Cannot create temporary file for %s", target.string()));
+    }
+    output.write(content.data(), static_cast<std::streamsize>(content.size()));
+    if (!output.good()) {
+      output.close();
+      std::error_code cleanup_ec;
+      fs::remove(temp, cleanup_ec);
+      return absl::InternalError(absl::StrFormat(
+          "Failed to write temporary file for %s", target.string()));
+    }
+    output.close();
 #else
-    const int fd =
-        open(temp.c_str(), O_WRONLY | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+    const int fd = open(temp.c_str(), O_WRONLY | O_CREAT | O_EXCL, create_mode);
     if (fd < 0) {
       if (errno == EEXIST) {
         continue;
@@ -657,6 +818,15 @@ absl::StatusOr<fs::path> WriteExclusiveTemp(const fs::path& target,
       return absl::PermissionDeniedError(absl::StrFormat(
           "Cannot create temporary file for %s: %s", target.string(),
           std::error_code(errno, std::generic_category()).message()));
+    }
+    if (preserve_mode && fchmod(fd, create_mode) != 0) {
+      const int error = errno;
+      close(fd);
+      std::error_code cleanup_ec;
+      fs::remove(temp, cleanup_ec);
+      return absl::InternalError(absl::StrFormat(
+          "Cannot preserve publication target mode for %s: %s", target.string(),
+          std::error_code(error, std::generic_category()).message()));
     }
     size_t written_total = 0;
     while (written_total < content.size()) {
@@ -701,21 +871,76 @@ absl::StatusOr<fs::path> WriteExclusiveTemp(const fs::path& target,
       "Could not allocate a unique temporary file for %s", target.string()));
 }
 
-absl::Status ReplaceFromTemp(const fs::path& temp, const fs::path& target) {
+absl::Status SyncParentDirectory(const fs::path& target) {
+#if defined(_WIN32) || defined(__EMSCRIPTEN__)
+  return absl::OkStatus();
+#else
+  int open_flags = O_RDONLY;
+#ifdef O_CLOEXEC
+  open_flags |= O_CLOEXEC;
+#endif
+#ifdef O_DIRECTORY
+  open_flags |= O_DIRECTORY;
+#endif
+  const fs::path parent = target.parent_path();
+  const int fd = open(parent.c_str(), open_flags);
+  if (fd < 0) {
+    return absl::InternalError(absl::StrFormat(
+        "Cannot open parent directory for durable publication %s: %s",
+        parent.string(),
+        std::error_code(errno, std::generic_category()).message()));
+  }
+  int sync_result = 0;
+  do {
+    sync_result = fsync(fd);
+  } while (sync_result != 0 && errno == EINTR);
+  const int sync_error = sync_result == 0 ? 0 : errno;
+  const int close_result = close(fd);
+  const int close_error = close_result == 0 ? 0 : errno;
+  if (sync_error != 0) {
+    return absl::InternalError(absl::StrFormat(
+        "Cannot sync parent directory after publishing %s: %s", target.string(),
+        std::error_code(sync_error, std::generic_category()).message()));
+  }
+  if (close_result != 0) {
+    return absl::InternalError(absl::StrFormat(
+        "Cannot close parent directory after publishing %s: %s",
+        target.string(),
+        std::error_code(close_error, std::generic_category()).message()));
+  }
+  return absl::OkStatus();
+#endif
+}
+
+absl::Status ReplaceFromTemp(const fs::path& temp, const fs::path& target,
+                             bool* replaced = nullptr) {
+  if (replaced != nullptr) {
+    *replaced = false;
+  }
+#if defined(_WIN32)
+  if (!MoveFileExW(temp.wstring().c_str(), target.wstring().c_str(),
+                   MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
+    const DWORD error = GetLastError();
+    return absl::InternalError(absl::StrFormat(
+        "Failed to publish %s: %s", target.string(),
+        std::error_code(static_cast<int>(error), std::system_category())
+            .message()));
+  }
+  if (replaced != nullptr) {
+    *replaced = true;
+  }
+#else
   std::error_code rename_ec;
   fs::rename(temp, target, rename_ec);
-#if defined(_WIN32)
-  if (rename_ec &&
-      MoveFileExW(temp.wstring().c_str(), target.wstring().c_str(),
-                  MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH)) {
-    rename_ec.clear();
-  }
-#endif
   if (rename_ec) {
     return absl::InternalError(absl::StrFormat(
         "Failed to publish %s: %s", target.string(), rename_ec.message()));
   }
-  return absl::OkStatus();
+  if (replaced != nullptr) {
+    *replaced = true;
+  }
+#endif
+  return SyncParentDirectory(target);
 }
 
 absl::StatusOr<fs::path> CreateBackup(const fs::path& target) {
@@ -777,7 +1002,7 @@ absl::Status RestoreArtifact(const PublicationArtifact& artifact) {
         artifact.target.string(),
         remove_ec ? remove_ec.message() : "file was missing"));
   }
-  return absl::OkStatus();
+  return SyncParentDirectory(artifact.target);
 }
 
 absl::Status RollBackPublication(std::vector<PublicationArtifact>* artifacts,
@@ -800,6 +1025,7 @@ absl::Status RollBackPublication(std::vector<PublicationArtifact>* artifacts,
         "Original backups were preserved.",
         publication_failure.message(), rollback_failure.message()));
   }
+  CleanupBackups(*artifacts);
   return publication_failure;
 }
 
@@ -872,13 +1098,14 @@ absl::Status PublishArtifactSet(std::vector<PublicationArtifact>* artifacts,
   }
 
   for (auto& artifact : *artifacts) {
+    bool replaced = false;
     const absl::Status replace_status =
-        ReplaceFromTemp(artifact.temp, artifact.target);
+        ReplaceFromTemp(artifact.temp, artifact.target, &replaced);
+    artifact.published = replaced;
     if (!replace_status.ok()) {
       return RollBackPublication(artifacts, replace_status);
     }
     artifact.temp.clear();
-    artifact.published = true;
   }
 
   for (const auto& artifact : *artifacts) {
@@ -952,6 +1179,13 @@ absl::StatusOr<MessageSourceSyncResult> SyncMessageSource(
                        /*must_exist=*/false, "Generated message ASM include"));
   RETURN_IF_ERROR(
       ValidateDistinctTargets(canonical_bundle_path, asm_include_path));
+  const fs::path source_lock_path = project_root / kSourceSyncLockFilename;
+  if (canonical_bundle_path == source_lock_path ||
+      asm_include_path == source_lock_path) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Message source targets may not use the persistent lock path: %s",
+        source_lock_path.string()));
+  }
 
   std::error_code incoming_ec;
   const fs::path resolved_incoming =
@@ -961,6 +1195,18 @@ absl::StatusOr<MessageSourceSyncResult> SyncMessageSource(
     return absl::NotFoundError(absl::StrFormat(
         "Incoming message bundle must be an existing regular file: %s",
         incoming_bundle_path.string()));
+  }
+
+  std::string expected_sha;
+  std::unique_ptr<MessageSourceWriteLock> write_lock;
+  if (options.write) {
+    if (options.expected_source_sha256.empty()) {
+      return absl::InvalidArgumentError(
+          "--write requires --expected-source-sha256");
+    }
+    ASSIGN_OR_RETURN(expected_sha,
+                     NormalizeExpectedSha256(options.expected_source_sha256));
+    ASSIGN_OR_RETURN(write_lock, MessageSourceWriteLock::Acquire(project_root));
   }
 
   std::string canonical_before;
@@ -1048,13 +1294,6 @@ absl::StatusOr<MessageSourceSyncResult> SyncMessageSource(
   if (!options.write) {
     return result;
   }
-  if (options.expected_source_sha256.empty()) {
-    return absl::InvalidArgumentError(
-        "--write requires --expected-source-sha256");
-  }
-  std::string expected_sha;
-  ASSIGN_OR_RETURN(expected_sha,
-                   NormalizeExpectedSha256(options.expected_source_sha256));
   if (expected_sha != source_sha_before) {
     return absl::AbortedError(absl::StrFormat(
         "Canonical message source SHA-256 CAS failed: expected %s, got %s",
@@ -1079,14 +1318,18 @@ absl::StatusOr<MessageSourceSyncResult> SyncMessageSource(
 
   // Reopen the canonical bundle through the strict source parser, not just as
   // bytes, before reporting a successful two-file publication.
-  std::string reopened_canonical;
-  ASSIGN_OR_RETURN(reopened_canonical,
-                   ReadTextFile(canonical_bundle_path,
-                                "published canonical message bundle"));
-  Json reopened_document;
-  ASSIGN_OR_RETURN(reopened_document,
-                   ParseBundleDocument(reopened_canonical,
-                                       "Published canonical message bundle"));
+  auto reopened_canonical_or =
+      ReadTextFile(canonical_bundle_path, "published canonical message bundle");
+  if (!reopened_canonical_or.ok()) {
+    return RollBackPublication(&artifacts, reopened_canonical_or.status());
+  }
+  std::string reopened_canonical = std::move(*reopened_canonical_or);
+  auto reopened_document_or = ParseBundleDocument(
+      reopened_canonical, "Published canonical message bundle");
+  if (!reopened_document_or.ok()) {
+    return RollBackPublication(&artifacts, reopened_document_or.status());
+  }
+  Json reopened_document = std::move(*reopened_document_or);
   auto reopened_bank_or = ParseExpandedBank(
       reopened_document, layout.expanded_count,
       /*require_complete=*/true, "Published canonical message bundle");
@@ -1100,11 +1343,7 @@ absl::StatusOr<MessageSourceSyncResult> SyncMessageSource(
             "Published canonical message bundle SHA-256 readback failed"));
   }
 
-  for (const auto& artifact : artifacts) {
-    if (artifact.backup.has_value()) {
-      result.backup_paths.push_back(*artifact.backup);
-    }
-  }
+  CleanupBackups(artifacts);
   result.wrote = true;
   return result;
 }

@@ -139,6 +139,9 @@ missing or lowercase command arguments are rejected.
 Write mode rejects stale source hashes, a drifted generated include, `[BANK]`,
 incomplete or duplicate IDs, capacity overflow, path escapes, and symlink
 targets. The bundle and include publish as one rollback-backed artifact set
-using same-directory temporary files and exact reopen/readback. This command
-does not open or mutate a ROM. Browser builds reject `--write` because they
-cannot guarantee durable atomic filesystem publication.
+using same-directory temporary files and exact reopen/readback. Writers are
+serialized in-process and across processes with a persistent project-root
+`.yaze-message-source-sync.lock`; projects should ignore that lock file rather
+than deleting it between runs. This command does not open or mutate a ROM.
+Browser builds reject `--write` because they cannot guarantee durable atomic
+filesystem publication.

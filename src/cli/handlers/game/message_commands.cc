@@ -1205,13 +1205,6 @@ absl::Status MessageSourceSyncCommandHandler::Execute(
   formatter.AddField("capacity", static_cast<int>(result.capacity));
   formatter.AddField("source_sha256_before", result.source_sha256_before);
   formatter.AddField("proposed_source_sha256", result.proposed_source_sha256);
-  if (!result.backup_paths.empty()) {
-    formatter.BeginArray("backups");
-    for (const auto& path : result.backup_paths) {
-      formatter.AddArrayItem(path.string());
-    }
-    formatter.EndArray();
-  }
   formatter.EndObject();
   return absl::OkStatus();
 }
