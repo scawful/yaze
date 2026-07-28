@@ -66,8 +66,12 @@ std::vector<editor::MessageData> ReadExpandedMessages(const Rom& rom, int start,
                                       end);
 }
 
-struct ExpandedMutationContext {
+struct ProjectMutationContext {
   project::YazeProject project;
+  std::filesystem::path canonical_rom_path;
+};
+
+struct ExpandedMutationContext {
   int start = 0;
   int end = 0;
   int message_limit = -1;
@@ -145,19 +149,21 @@ bool IsCanonicalMappedLoRomAddress(uint32_t address) {
   return PcToSnes(SnesToPc(address)) == address;
 }
 
-absl::StatusOr<ExpandedMutationContext> PreflightExpandedMutation(
-    const resources::ArgumentParser& parser, const Rom& rom) {
+absl::StatusOr<ProjectMutationContext> LoadProjectMutationContext(
+    const resources::ArgumentParser& parser, const Rom& rom,
+    absl::string_view mutation_scope) {
   auto project_path = parser.GetString("project");
   if (!project_path.has_value() || project_path->empty()) {
-    return absl::FailedPreconditionError(
-        "Expanded message mutation requires explicit --project so Yaze can "
-        "verify ROM ownership and write policy");
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "%s requires explicit --project so Yaze can verify ROM ownership and "
+        "write policy",
+        mutation_scope));
   }
   if (!rom.is_loaded()) {
     return absl::FailedPreconditionError("ROM is not loaded");
   }
 
-  ExpandedMutationContext context;
+  ProjectMutationContext context;
   auto& resource_labels = zelda3::GetResourceLabels();
   absl::Status open_status;
   {
@@ -203,15 +209,45 @@ absl::StatusOr<ExpandedMutationContext> PreflightExpandedMutation(
         "Project ROM mismatch: active ROM is '%s' but --project binds to '%s'",
         active_rom_path_or->string(), project_rom_path_or->string()));
   }
+  std::error_code file_size_ec;
+  const uintmax_t raw_file_size =
+      std::filesystem::file_size(*active_rom_path_or, file_size_ec);
+  if (file_size_ec) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Cannot inspect active ROM size '%s': %s",
+                        active_rom_path_or->string(), file_size_ec.message()));
+  }
+  constexpr uintmax_t kSnesBankSize = 0x8000;
+  constexpr uintmax_t kCopierHeaderSize = 0x200;
+  if (raw_file_size >= kCopierHeaderSize &&
+      raw_file_size % kSnesBankSize == kCopierHeaderSize) {
+    return absl::FailedPreconditionError(
+        "Message mutation requires a headerless ROM file; remove the "
+        "512-byte copier header and reopen the ROM");
+  }
+  if (raw_file_size != rom.size()) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Message mutation requires a headerless ROM file: disk size is 0x%zX "
+        "but the loaded ROM is 0x%zX bytes",
+        static_cast<size_t>(raw_file_size), rom.size()));
+  }
+  context.canonical_rom_path = *active_rom_path_or;
 
   const auto& manifest = context.project.hack_manifest;
   if (!manifest.loaded()) {
     return absl::FailedPreconditionError(absl::StrFormat(
         "Project '%s' has no loaded hack manifest; configure a valid "
-        "hack_manifest_file before mutating expanded messages",
+        "hack_manifest_file before mutating messages",
         *project_path));
   }
 
+  return context;
+}
+
+absl::StatusOr<ExpandedMutationContext> PreflightExpandedMutation(
+    const project::YazeProject& yaze_project, const Rom& rom) {
+  ExpandedMutationContext context;
+  const auto& manifest = yaze_project.hack_manifest;
   const auto& layout = manifest.message_layout();
   if (layout.data_start == 0 || layout.data_end == 0 ||
       layout.data_end < layout.data_start ||
@@ -255,7 +291,7 @@ absl::StatusOr<ExpandedMutationContext> PreflightExpandedMutation(
 
   const std::string lowered_hack_name =
       absl::AsciiStrToLower(manifest.hack_name());
-  if (context.project.rom_metadata.write_policy ==
+  if (yaze_project.rom_metadata.write_policy ==
           project::RomWritePolicy::kBlock &&
       absl::StrContains(lowered_hack_name, "oracle of secrets")) {
     return absl::PermissionDeniedError(
@@ -268,12 +304,12 @@ absl::StatusOr<ExpandedMutationContext> PreflightExpandedMutation(
       manifest.AnalyzePcWriteRanges({{start, static_cast<uint32_t>(end + 1u)}});
   if (!conflicts.empty()) {
     const std::string detail = FormatManifestConflict(conflicts.front());
-    if (context.project.rom_metadata.write_policy ==
+    if (yaze_project.rom_metadata.write_policy ==
         project::RomWritePolicy::kBlock) {
       return absl::PermissionDeniedError(absl::StrFormat(
           "Expanded message mutation blocked by hack manifest: %s", detail));
     }
-    if (context.project.rom_metadata.write_policy ==
+    if (yaze_project.rom_metadata.write_policy ==
         project::RomWritePolicy::kWarn) {
       context.policy_warning = absl::StrFormat(
           "Expanded message region conflicts with hack manifest: %s", detail);
@@ -281,6 +317,148 @@ absl::StatusOr<ExpandedMutationContext> PreflightExpandedMutation(
   }
 
   return context;
+}
+
+absl::StatusOr<ExpandedMutationContext> PreflightExpandedMutation(
+    const resources::ArgumentParser& parser, const Rom& rom) {
+  auto project_context_or =
+      LoadProjectMutationContext(parser, rom, "Expanded message mutation");
+  if (!project_context_or.ok()) {
+    return project_context_or.status();
+  }
+  ProjectMutationContext project_context =
+      std::move(project_context_or.value());
+  return PreflightExpandedMutation(project_context.project, rom);
+}
+
+absl::Status VerifyCleanDiskSnapshot(const Rom& rom,
+                                     std::vector<uint8_t>* baseline) {
+  if (rom.dirty()) {
+    return absl::FailedPreconditionError(
+        "Message bundle apply requires a clean ROM; save or discard existing "
+        "in-memory changes before retrying");
+  }
+
+  Rom disk_rom;
+  Rom::LoadOptions load_options;
+  load_options.load_resource_labels = false;
+  const absl::Status load_status =
+      disk_rom.LoadFromFile(rom.filename(), load_options);
+  if (!load_status.ok()) {
+    return load_status;
+  }
+  if (disk_rom.vector() != rom.vector()) {
+    return absl::FailedPreconditionError(
+        "Active ROM no longer matches the file on disk; reopen it before "
+        "applying a message bundle");
+  }
+  if (baseline != nullptr) {
+    *baseline = disk_rom.vector();
+  }
+  return absl::OkStatus();
+}
+
+absl::Status VerifyDiskSnapshotUnchanged(
+    const std::filesystem::path& rom_path,
+    const std::vector<uint8_t>& expected_bytes) {
+  std::error_code file_size_ec;
+  const uintmax_t raw_file_size =
+      std::filesystem::file_size(rom_path, file_size_ec);
+  if (file_size_ec ||
+      raw_file_size != static_cast<uintmax_t>(expected_bytes.size())) {
+    return absl::AbortedError(
+        "ROM size changed on disk after message preflight; no bytes were "
+        "saved. Reopen the ROM and retry");
+  }
+  Rom disk_rom;
+  Rom::LoadOptions load_options;
+  load_options.load_resource_labels = false;
+  const absl::Status load_status =
+      disk_rom.LoadFromFile(rom_path.string(), load_options);
+  if (!load_status.ok()) {
+    return load_status;
+  }
+  if (disk_rom.vector() != expected_bytes) {
+    return absl::AbortedError(
+        "ROM changed on disk after message preflight; no bytes were saved. "
+        "Reopen the ROM and retry");
+  }
+  return absl::OkStatus();
+}
+
+absl::Status ValidateVanillaMutation(const project::YazeProject& yaze_project,
+                                     const editor::VanillaMessageSavePlan& plan,
+                                     std::string* policy_warning) {
+  const auto conflicts =
+      yaze_project.hack_manifest.AnalyzePcWriteRanges(plan.write_ranges());
+  if (conflicts.empty()) {
+    return absl::OkStatus();
+  }
+
+  const std::string detail = FormatManifestConflict(conflicts.front());
+  if (yaze_project.rom_metadata.write_policy ==
+      project::RomWritePolicy::kBlock) {
+    return absl::PermissionDeniedError(absl::StrFormat(
+        "Vanilla message mutation blocked by hack manifest: %s; no message "
+        "bytes were written",
+        detail));
+  }
+  if (yaze_project.rom_metadata.write_policy ==
+          project::RomWritePolicy::kWarn &&
+      policy_warning != nullptr) {
+    *policy_warning = absl::StrFormat(
+        "Vanilla message write conflicts with hack manifest: %s", detail);
+  }
+  return absl::OkStatus();
+}
+
+absl::Status VerifySavedRom(
+    const Rom& active_rom, const std::filesystem::path& saved_rom_path,
+    const std::optional<editor::VanillaMessageSavePlan>& vanilla_plan,
+    std::optional<size_t> expected_vanilla_count) {
+  Rom reopened_rom;
+  Rom::LoadOptions load_options;
+  load_options.load_resource_labels = false;
+  const absl::Status reopen_status =
+      reopened_rom.LoadFromFile(saved_rom_path.string(), load_options);
+  if (!reopen_status.ok()) {
+    return absl::DataLossError(absl::StrFormat(
+        "ROM was saved but could not be reopened for verification: %s. "
+        "Restore the required backup before retrying",
+        reopen_status.message()));
+  }
+  if (reopened_rom.vector() != active_rom.vector()) {
+    return absl::DataLossError(
+        "ROM was saved but external readback differs from the planned bytes. "
+        "Restore the required backup before retrying");
+  }
+
+  if (vanilla_plan.has_value()) {
+    if (reopened_rom.size() >
+        static_cast<size_t>(std::numeric_limits<int>::max())) {
+      return absl::DataLossError(
+          "ROM was saved but is too large for bounded vanilla-message "
+          "readback. Restore the required backup before retrying");
+    }
+    const auto reopened_messages =
+        editor::ReadAllTextData(reopened_rom.mutable_data(), editor::kTextData,
+                                static_cast<int>(reopened_rom.size()));
+    auto readback_plan_or = editor::BuildVanillaMessageSavePlan(
+        reopened_messages, expected_vanilla_count);
+    if (!readback_plan_or.ok() ||
+        readback_plan_or.value() != vanilla_plan.value()) {
+      const std::string detail =
+          readback_plan_or.ok()
+              ? "serialized message bytes differ from the save plan"
+              : std::string(readback_plan_or.status().message());
+      return absl::DataLossError(absl::StrFormat(
+          "ROM was saved but vanilla-message readback failed: %s. Restore the "
+          "required backup before retrying",
+          detail));
+    }
+  }
+
+  return absl::OkStatus();
 }
 
 absl::Status ValidateExpandedMessageId(int id,
@@ -704,6 +882,14 @@ absl::Status MessageImportBundleCommandHandler::Execute(
   auto file_path = parser.GetString("file").value();
   const bool apply = parser.HasFlag("apply");
   const bool strict = parser.HasFlag("strict");
+#ifdef __EMSCRIPTEN__
+  if (apply) {
+    return absl::FailedPreconditionError(
+        "message-import-bundle --apply is unavailable in WebAssembly because "
+        "the browser filesystem cannot provide durable backup and readback "
+        "guarantees");
+  }
+#endif
   auto range = NormalizeRange(parser.GetString("range").value_or("all"));
   if (!IncludeVanilla(range) && !IncludeExpanded(range)) {
     return absl::InvalidArgumentError(
@@ -845,9 +1031,40 @@ absl::Status MessageImportBundleCommandHandler::Execute(
       return absl::OkStatus();
     }
 
+    std::optional<ProjectMutationContext> project_context;
+    std::vector<uint8_t> disk_baseline;
+    if (has_vanilla_entries || has_expanded_entries) {
+      const absl::Status snapshot_status =
+          VerifyCleanDiskSnapshot(*active_rom, &disk_baseline);
+      if (!snapshot_status.ok()) {
+        error_count++;
+        formatter.AddField("status", "error");
+        formatter.AddField("error", std::string(snapshot_status.message()));
+        formatter.AddField("parse_error_count", parse_error_count);
+        formatter.AddField("error_count", error_count);
+        formatter.EndObject();
+        return snapshot_status;
+      }
+
+      auto project_context_or = LoadProjectMutationContext(
+          parser, *active_rom, "Message bundle apply");
+      if (!project_context_or.ok()) {
+        error_count++;
+        formatter.AddField("status", "error");
+        formatter.AddField("error",
+                           std::string(project_context_or.status().message()));
+        formatter.AddField("parse_error_count", parse_error_count);
+        formatter.AddField("error_count", error_count);
+        formatter.EndObject();
+        return project_context_or.status();
+      }
+      project_context.emplace(std::move(project_context_or.value()));
+    }
+
     std::optional<ExpandedMutationContext> expanded_context;
     if (IncludeExpanded(range) && has_expanded_entries) {
-      auto context_or = PreflightExpandedMutation(parser, *active_rom);
+      auto context_or =
+          PreflightExpandedMutation(project_context->project, *active_rom);
       if (!context_or.ok()) {
         error_count++;
         formatter.AddField("status", "error");
@@ -858,10 +1075,6 @@ absl::Status MessageImportBundleCommandHandler::Execute(
         return context_or.status();
       }
       expanded_context.emplace(std::move(context_or.value()));
-      if (!expanded_context->policy_warning.empty()) {
-        formatter.AddField("write_policy_warning",
-                           expanded_context->policy_warning);
-      }
     }
 
     // Build both replacement banks and validate every selected ID before the
@@ -869,8 +1082,14 @@ absl::Status MessageImportBundleCommandHandler::Execute(
     // successful vanilla mutation in a mixed bundle.
     std::vector<editor::MessageData> vanilla_messages;
     if (IncludeVanilla(range) && has_vanilla_entries) {
+      if (active_rom->size() >
+          static_cast<size_t>(std::numeric_limits<int>::max())) {
+        return absl::OutOfRangeError(
+            "ROM is too large for bounded vanilla-message parsing");
+      }
       vanilla_messages = editor::ReadAllTextData(
-          const_cast<uint8_t*>(active_rom->data()), editor::kTextData);
+          const_cast<uint8_t*>(active_rom->data()), editor::kTextData,
+          static_cast<int>(active_rom->size()));
     }
 
     std::vector<std::string> expanded_texts;
@@ -923,13 +1142,60 @@ absl::Status MessageImportBundleCommandHandler::Execute(
       applied_updates++;
     }
 
+    std::optional<editor::VanillaMessageSavePlan> vanilla_plan;
+    std::optional<size_t> expected_vanilla_count;
+    std::string write_policy_warning;
+    if (!has_errors && IncludeVanilla(range) && has_vanilla_entries) {
+      const int manifest_count =
+          project_context->project.hack_manifest.message_layout().vanilla_count;
+      if (manifest_count <= 0) {
+        const absl::Status status = absl::FailedPreconditionError(
+            "Hack manifest must declare a positive messages.vanilla_count "
+            "before applying vanilla messages");
+        formatter.AddField("status", "error");
+        formatter.AddField("error", std::string(status.message()));
+        formatter.EndObject();
+        return status;
+      }
+      expected_vanilla_count = static_cast<size_t>(manifest_count);
+      auto plan_or = editor::BuildVanillaMessageSavePlan(
+          vanilla_messages, expected_vanilla_count);
+      if (!plan_or.ok()) {
+        formatter.AddField("status", "error");
+        formatter.AddField("error", std::string(plan_or.status().message()));
+        formatter.EndObject();
+        return plan_or.status();
+      }
+      vanilla_plan.emplace(std::move(plan_or.value()));
+      const absl::Status policy_status = ValidateVanillaMutation(
+          project_context->project, *vanilla_plan, &write_policy_warning);
+      if (!policy_status.ok()) {
+        formatter.AddField("status", "error");
+        formatter.AddField("error", std::string(policy_status.message()));
+        formatter.EndObject();
+        return policy_status;
+      }
+    }
+
+    if (expanded_context.has_value() &&
+        !expanded_context->policy_warning.empty()) {
+      if (!write_policy_warning.empty()) {
+        absl::StrAppend(&write_policy_warning, "; ");
+      }
+      absl::StrAppend(&write_policy_warning, expanded_context->policy_warning);
+    }
+    if (!write_policy_warning.empty()) {
+      formatter.AddField("write_policy_warning", write_policy_warning);
+    }
+
     if (has_errors) {
       formatter.AddField("status", "error");
       formatter.AddField("error", "Invalid message IDs; no changes applied");
     } else {
       ScopedRomTransaction transaction(*active_rom);
-      if (IncludeVanilla(range) && has_vanilla_entries) {
-        auto status = editor::WriteAllTextData(active_rom, vanilla_messages);
+      if (vanilla_plan.has_value()) {
+        auto status =
+            editor::ApplyVanillaMessageSavePlan(active_rom, *vanilla_plan);
         if (!status.ok()) {
           formatter.AddField("status", "error");
           formatter.AddField("error", std::string(status.message()));
@@ -950,8 +1216,20 @@ absl::Status MessageImportBundleCommandHandler::Execute(
         }
       }
 
-      if (active_rom->dirty()) {
-        auto save_status = active_rom->SaveToFile({.save_new = false});
+      if (active_rom->dirty() && project_context.has_value()) {
+        const absl::Status unchanged_status = VerifyDiskSnapshotUnchanged(
+            project_context->canonical_rom_path, disk_baseline);
+        if (!unchanged_status.ok()) {
+          formatter.AddField("status", "error");
+          formatter.AddField("error", std::string(unchanged_status.message()));
+          formatter.EndObject();
+          return unchanged_status;
+        }
+        Rom::SaveSettings save_settings;
+        save_settings.save_new = false;
+        save_settings.require_backup = true;
+        save_settings.filename = project_context->canonical_rom_path.string();
+        auto save_status = active_rom->SaveToFile(save_settings);
         if (!save_status.ok()) {
           formatter.AddField("status", "error");
           formatter.AddField("error", std::string(save_status.message()));
@@ -960,8 +1238,23 @@ absl::Status MessageImportBundleCommandHandler::Execute(
         }
       }
       transaction.Commit();
+
+      if (project_context.has_value()) {
+        const absl::Status readback_status =
+            VerifySavedRom(*active_rom, project_context->canonical_rom_path,
+                           vanilla_plan, expected_vanilla_count);
+        if (!readback_status.ok()) {
+          formatter.AddField("status", "error");
+          formatter.AddField("error", std::string(readback_status.message()));
+          formatter.EndObject();
+          return readback_status;
+        }
+      }
       formatter.AddField("status", "success");
       formatter.AddField("applied_messages", applied_updates);
+      if (project_context.has_value()) {
+        formatter.AddField("readback_verified", true);
+      }
     }
   } else {
     formatter.AddField("status", has_errors ? "error" : "success");
