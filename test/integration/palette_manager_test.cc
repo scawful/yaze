@@ -6,16 +6,20 @@
 #include <array>
 #include <memory>
 #include <optional>
+#include <string>
 #include <utility>
 #include <vector>
 
+#include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/palette/palette_editor.h"
 #include "app/gfx/types/snes_color.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/widgets/palette_editor_widget.h"
 #include "core/features.h"
+#include "core/project.h"
 #include "rom/rom.h"
+#include "rom/snes.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
 
@@ -57,6 +61,28 @@ void SeedPaletteGroup(PaletteGroup* group, int palette_count, int color_count,
     }
     group->AddPalette(palette);
   }
+}
+
+std::string ManifestProtectingPcRange(uint32_t begin, uint32_t end) {
+  return absl::StrFormat(
+      R"json(
+{
+  "manifest_version": 3,
+  "hack_name": "Synthetic palette save guard",
+  "protected_regions": {
+    "total_hooks": 1,
+    "regions": [
+      {
+        "start": "0x%06X",
+        "end": "0x%06X",
+        "hook_count": 1,
+        "module": "SyntheticPaletteGuard"
+      }
+    ]
+  }
+}
+)json",
+      PcToSnes(begin), PcToSnes(end));
 }
 
 // Test fixture for PaletteManager integration tests
@@ -662,6 +688,124 @@ TEST_F(PaletteManagerTest,
   EXPECT_EQ(*second_rom.ReadWord(second_color_address), second_rom_color);
   EXPECT_TRUE(manager.HasUnsavedChanges());
   EXPECT_TRUE(manager.IsColorModified("dungeon_main", 1, kDungeonColorIndex));
+}
+
+TEST_F(PaletteManagerTest,
+       DungeonSaveBlocksManifestProtectedPaletteAndKeepsRetryState) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData game_data(&rom);
+  SeedPaletteGroup(game_data.palette_groups.get_group("dungeon_main"), 2, 90,
+                   0x0200);
+
+  constexpr int kPaletteIndex = 1;
+  constexpr int kColorIndex = 62;
+  const SnesColor edited_color(0x1234);
+  const uint32_t color_address =
+      GetPaletteAddress("dungeon_main", kPaletteIndex, kColorIndex);
+  const std::vector<std::pair<uint32_t, uint32_t>> expected_ranges = {
+      {color_address, color_address + 2}};
+
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&game_data);
+  ASSERT_TRUE(
+      manager.SetColor("dungeon_main", kPaletteIndex, kColorIndex, edited_color)
+          .ok());
+
+  project::YazeProject project;
+  project.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  ASSERT_TRUE(project.hack_manifest
+                  .LoadFromString(ManifestProtectingPcRange(color_address,
+                                                            color_address + 2))
+                  .ok());
+  ASSERT_TRUE(project.hack_manifest.loaded());
+  ASSERT_FALSE(
+      project.hack_manifest.AnalyzePcWriteRanges(expected_ranges).empty());
+
+  DungeonSaveFlagsGuard flags_guard;
+  ConfigurePaletteOnlyDungeonSave();
+  editor::DungeonEditorV2 dungeon_editor(&rom);
+  editor::EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.game_data = &game_data;
+  dependencies.project = &project;
+  dungeon_editor.SetDependencies(dependencies);
+  dungeon_editor.SetGameData(&game_data);
+
+  const std::vector<uint8_t> rom_before = rom.vector();
+  const bool rom_dirty_before = rom.dirty();
+  const absl::Status save_status = dungeon_editor.Save();
+
+  EXPECT_EQ(save_status.code(), absl::StatusCode::kPermissionDenied)
+      << save_status;
+  EXPECT_EQ(rom.vector(), rom_before);
+  EXPECT_EQ(rom.dirty(), rom_dirty_before);
+  EXPECT_EQ(manager.GetColor("dungeon_main", kPaletteIndex, kColorIndex).snes(),
+            edited_color.snes());
+  EXPECT_TRUE(manager.HasUnsavedChanges(&game_data));
+  EXPECT_TRUE(
+      manager.IsColorModified("dungeon_main", kPaletteIndex, kColorIndex));
+  EXPECT_EQ(manager.GetModifiedColorCount(&game_data), 1u);
+  EXPECT_EQ(manager.GetModifiedColorWriteRanges(&game_data), expected_ranges);
+}
+
+TEST_F(PaletteManagerTest,
+       DungeonSaveRoomBlocksManifestProtectedPaletteAndKeepsRetryState) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData game_data(&rom);
+  SeedPaletteGroup(game_data.palette_groups.get_group("dungeon_main"), 2, 90,
+                   0x0200);
+
+  constexpr int kPaletteIndex = 1;
+  constexpr int kColorIndex = 62;
+  const SnesColor edited_color(0x2345);
+  const uint32_t color_address =
+      GetPaletteAddress("dungeon_main", kPaletteIndex, kColorIndex);
+  const std::vector<std::pair<uint32_t, uint32_t>> expected_ranges = {
+      {color_address, color_address + 2}};
+
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&game_data);
+  ASSERT_TRUE(
+      manager.SetColor("dungeon_main", kPaletteIndex, kColorIndex, edited_color)
+          .ok());
+
+  project::YazeProject project;
+  project.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  ASSERT_TRUE(project.hack_manifest
+                  .LoadFromString(ManifestProtectingPcRange(color_address,
+                                                            color_address + 2))
+                  .ok());
+  ASSERT_TRUE(project.hack_manifest.loaded());
+  ASSERT_FALSE(
+      project.hack_manifest.AnalyzePcWriteRanges(expected_ranges).empty());
+
+  DungeonSaveFlagsGuard flags_guard;
+  ConfigurePaletteOnlyDungeonSave();
+  editor::DungeonEditorV2 dungeon_editor(&rom);
+  editor::EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.game_data = &game_data;
+  dependencies.project = &project;
+  dungeon_editor.SetDependencies(dependencies);
+  dungeon_editor.SetGameData(&game_data);
+
+  const std::vector<uint8_t> rom_before = rom.vector();
+  const bool rom_dirty_before = rom.dirty();
+  const absl::Status save_status = dungeon_editor.SaveRoom(0);
+
+  EXPECT_EQ(save_status.code(), absl::StatusCode::kPermissionDenied)
+      << save_status;
+  EXPECT_EQ(rom.vector(), rom_before);
+  EXPECT_EQ(rom.dirty(), rom_dirty_before);
+  EXPECT_EQ(manager.GetColor("dungeon_main", kPaletteIndex, kColorIndex).snes(),
+            edited_color.snes());
+  EXPECT_TRUE(manager.HasUnsavedChanges(&game_data));
+  EXPECT_TRUE(
+      manager.IsColorModified("dungeon_main", kPaletteIndex, kColorIndex));
+  EXPECT_EQ(manager.GetModifiedColorCount(&game_data), 1u);
+  EXPECT_EQ(manager.GetModifiedColorWriteRanges(&game_data), expected_ranges);
 }
 
 TEST_F(PaletteManagerTest,
