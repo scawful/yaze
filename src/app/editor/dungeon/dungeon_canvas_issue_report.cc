@@ -116,17 +116,23 @@ std::string BuildSelectedObjectSemanticsSummary(const zelda3::RoomObject& obj) {
   const auto semantics = zelda3::GetObjectLayerSemantics(obj);
   if (!zelda3::UsesRoomObjectStream(obj)) {
     return absl::StrFormat(
-        "storage=special-table selector=%d (%s) routine=%d both_bgs=%s",
+        "storage=special-table selector=%d (%s) routine=%d "
+        "legacy_both_bgs=%s "
+        "routing=%s",
         obj.GetLayerValue(), GetStoredPlacementLabel(obj), semantics.routine_id,
-        semantics.draws_to_both_bgs ? "yes" : "no");
+        semantics.draws_to_both_bgs ? "yes" : "no",
+        zelda3::ObjectRenderRoutingToken(semantics.render_routing));
   }
   return absl::StrFormat(
-      "stream=%s draw_layer=%d effective_bg=%s routine=%d both_bgs=%s",
+      "stream=%s draw_layer=%d effective_bg=%s routine=%d "
+      "legacy_both_bgs=%s "
+      "routing=%s",
       GetStoredPlacementLabel(obj),
       static_cast<int>(
           zelda3::MapRoomObjectListIndexToDrawLayer(obj.GetLayerValue())),
       zelda3::EffectiveBgLayerLabel(semantics.effective_bg_layer),
-      semantics.routine_id, semantics.draws_to_both_bgs ? "yes" : "no");
+      semantics.routine_id, semantics.draws_to_both_bgs ? "yes" : "no",
+      zelda3::ObjectRenderRoutingToken(semantics.render_routing));
 }
 
 const char* TraceLayerLabel(uint8_t layer) {
