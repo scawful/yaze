@@ -9,7 +9,7 @@ importing message text (vanilla + expanded) with validation.
 {
   "format": "yaze-message-bundle",
   "version": 1,
-  "counts": { "vanilla": 396, "expanded": 0 },
+  "counts": { "vanilla": 397, "expanded": 0 },
   "messages": [ ... ]
 }
 ```
@@ -74,15 +74,38 @@ z3ed message-import-bundle --file messages.json --strict
 
 Import and apply to ROM:
 ```
-z3ed message-import-bundle --file messages.json --apply --range vanilla
+z3ed message-import-bundle --file messages.json --apply --range vanilla \
+  --rom path/to/rom.sfc --project path/to/project.yaze
 ```
 
-Applying expanded entries also requires the matching Yaze project so `z3ed`
-can validate the active ROM, manifest ownership, and project write policy:
+Every `--apply` mutation requires the matching Yaze project so `z3ed` can
+validate the active headerless ROM, manifest ownership, and project write
+policy:
 ```
 z3ed message-import-bundle --file messages.json --apply \
   --rom path/to/rom.sfc --project path/to/project.yaze
 ```
+
+Before the first in-memory write, apply mode validates all selected IDs and
+the complete vanilla replacement plan. Vanilla imports must match the
+manifest's `messages.vanilla_count`, contain one standalone `[BANK]` command,
+fit both physical text blocks, and pass ownership checks for the plan's exact
+half-open ROM write ranges. An argument byte such as the `80` in `[W:80]` is
+not treated as a bank switch. Expanded IDs and declared bank limits are checked
+in the same preflight; final expanded serialization and the vanilla apply share
+one rollback transaction, so a later expanded-capacity failure cannot leave a
+partial mixed update.
+
+A successful apply requires a backup of the existing ROM, uses atomic
+replacement, independently reopens the saved file, and compares every planned
+write byte-for-byte. JSON output reports `readback_verified=true` only after
+that external readback succeeds. Validation-only imports do not require a
+project and never mutate the ROM. Apply mode is native-only; WebAssembly builds
+fail closed because browser storage cannot provide the same durable backup and
+readback contract.
+
+For Oracle of Secrets, apply vanilla entries with `--range vanilla`; expanded
+messages remain ASM-owned and use the source-sync workflow below.
 
 ## ASM-Owned Expanded Message Source
 
