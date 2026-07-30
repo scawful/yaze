@@ -752,10 +752,9 @@ TEST(TextElementTest, MatchMeWithArg) {
   auto match = elem.MatchMe("[W:02]");
   EXPECT_GT(match.size(), 0);
 
-  // Should not match without arg format
+  // Argument commands fail closed without an explicit byte.
   match = elem.MatchMe("[W]");
-  // W has HasArgument=true, pattern allows optional arg
-  // This may or may not match depending on regex - just verify no crash
+  EXPECT_EQ(match.size(), 0);
 }
 
 TEST(TextElementTest, MatchMeNoMatch) {

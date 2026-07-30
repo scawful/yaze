@@ -299,12 +299,24 @@ Check test execution status.
 - `message-encode --text <text>`, `message-decode --hex <hex_bytes>`
 - `message-export-org --output <path>`, `message-import-org --file <path>`
 - `message-export-bundle --output <path> [--range <all|vanilla|expanded>]`
-- `message-import-bundle --file <path> [--apply] [--strict] [--range <all|vanilla|expanded>] [--project <path>]` (expanded apply requires a project)
+- `message-import-bundle --file <path> [--apply] [--strict] [--range <all|vanilla|expanded>] [--project <path>]` (`--apply` requires the matching project)
 - `message-write --id <id> --text <text> --project <path>`
 - `message-export-bin --output <path> [--range expanded]`
 - `message-export-asm --output <path> [--range expanded]`
 - `dialogue-list`, `dialogue-read`, `dialogue-search --query <text>`
 - `hex-search --pattern <hex>`
+
+`message-import-bundle --apply` fails closed unless `--project` identifies the
+active headerless ROM and provides a loaded Hack Manifest. Before changing
+either bank,
+the command validates every selected ID, the manifest's vanilla count and
+expanded bounds, the vanilla stream's single standalone `[BANK]`, and the
+exact half-open ROM write ranges against the project write policy. A command
+argument such as `[W:80]` is not a bank switch. A successful apply creates a
+required backup, atomically replaces the ROM, reopens it independently, and
+reports `readback_verified=true` only after every planned byte matches.
+WebAssembly builds reject apply mode because browser storage cannot satisfy
+that durability contract.
 
 ## CLI Discovery Flow
 
