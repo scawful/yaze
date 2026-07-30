@@ -305,6 +305,7 @@ TEST(ObjectTileEditorTest, StandardObjectWriteBackRoundtrip) {
   ObjectTileLayout::Cell cell;
   cell.tile_info = gfx::TileInfo(0x123, 3, true, false, true);
   cell.original_word = 0;
+  cell.write_index = 0;
   cell.modified = true;
   layout.cells.push_back(cell);
 
@@ -315,6 +316,31 @@ TEST(ObjectTileEditorTest, StandardObjectWriteBackRoundtrip) {
   uint16_t word = static_cast<uint16_t>(low | (high << 8));
 
   EXPECT_EQ(word, gfx::TileInfoToWord(cell.tile_info));
+}
+
+TEST(ObjectTileEditorTest,
+     StandardObjectWriteBackRejectsMissingEditableSourceIndex) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  ObjectTileEditor editor(&rom);
+  ObjectTileLayout layout;
+  layout.tile_data_address = 0x1000;
+  layout.is_custom = false;
+
+  ObjectTileLayout::Cell cell;
+  cell.tile_info = gfx::TileInfo(0x123, 3, true, false, true);
+  cell.modified = true;
+  ASSERT_EQ(cell.write_index, -1);
+  layout.cells.push_back(cell);
+
+  const auto original = rom.vector();
+  const bool original_dirty = rom.dirty();
+  const absl::Status status = editor.WriteBack(layout);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status));
+  EXPECT_EQ(rom.vector(), original);
+  EXPECT_EQ(rom.dirty(), original_dirty);
 }
 
 TEST(ObjectTileEditorTest, StandardObjectWriteBackUsesCellWriteIndex) {
