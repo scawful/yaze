@@ -442,9 +442,11 @@ absl::StatusOr<ObjectTileWritePlan> ObjectTileEditor::BuildStandardWritePlan(
     if (!cell.modified)
       continue;
 
-    const int64_t write_index = cell.write_index >= 0
-                                    ? static_cast<int64_t>(cell.write_index)
-                                    : static_cast<int64_t>(i);
+    if (cell.write_index < 0) {
+      return absl::FailedPreconditionError(
+          "Object tile cell has no editable source index");
+    }
+    const int64_t write_index = static_cast<int64_t>(cell.write_index);
     const int64_t address =
         static_cast<int64_t>(layout.tile_data_address) + write_index * 2;
     const int64_t end = address + 2;
