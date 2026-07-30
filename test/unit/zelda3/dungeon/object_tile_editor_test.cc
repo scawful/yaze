@@ -9,6 +9,7 @@
 
 #include "core/features.h"
 #include "rom/rom.h"
+#include "rom/write_fence.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/geometry/object_geometry.h"
 #include "zelda3/dungeon/object_drawer.h"
@@ -341,6 +342,114 @@ TEST(ObjectTileEditorTest, StandardObjectWriteBackUsesCellWriteIndex) {
   uint8_t high = rom.ReadByte(0x1003).value();
   uint16_t word = static_cast<uint16_t>(low | (high << 8));
   EXPECT_EQ(word, gfx::TileInfoToWord(cell.tile_info));
+}
+
+TEST(ObjectTileEditorTest,
+     BuildStandardWritePlanUsesSparseWriteIndicesAndExactRanges) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x2000, 0)).ok());
+
+  ObjectTileEditor editor(&rom);
+  ObjectTileLayout layout;
+  layout.tile_data_address = 0x1000;
+  layout.is_custom = false;
+
+  ObjectTileLayout::Cell first;
+  first.tile_info = gfx::TileInfo(0x123, 3, true, false, true);
+  first.write_index = 3;
+  first.modified = true;
+  layout.cells.push_back(first);
+
+  ObjectTileLayout::Cell unmodified;
+  unmodified.tile_info = gfx::TileInfo(0x111, 1, false, false, false);
+  unmodified.write_index = 1;
+  unmodified.modified = false;
+  layout.cells.push_back(unmodified);
+
+  ObjectTileLayout::Cell second;
+  second.tile_info = gfx::TileInfo(0x234, 4, false, true, false);
+  second.write_index = 0;
+  second.modified = true;
+  layout.cells.push_back(second);
+
+  auto plan_or = editor.BuildStandardWritePlan(layout);
+  ASSERT_TRUE(plan_or.ok()) << plan_or.status();
+  const auto& plan = *plan_or;
+  ASSERT_EQ(plan.writes.size(), 2u);
+  ASSERT_EQ(plan.write_ranges.size(), 2u);
+
+  EXPECT_EQ(plan.writes[0].address, 0x1006);
+  EXPECT_EQ(plan.writes[0].word, gfx::TileInfoToWord(first.tile_info));
+  EXPECT_EQ(plan.write_ranges[0],
+            (std::pair<uint32_t, uint32_t>{0x1006, 0x1008}));
+  EXPECT_EQ(plan.writes[1].address, 0x1000);
+  EXPECT_EQ(plan.writes[1].word, gfx::TileInfoToWord(second.tile_info));
+  EXPECT_EQ(plan.write_ranges[1],
+            (std::pair<uint32_t, uint32_t>{0x1000, 0x1002}));
+}
+
+TEST(ObjectTileEditorTest,
+     StandardObjectWriteBackRejectsAllInvalidRangesBeforeMutation) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x20, 0x5A)).ok());
+
+  ObjectTileEditor editor(&rom);
+  ObjectTileLayout layout;
+  layout.tile_data_address = 0x10;
+  layout.is_custom = false;
+
+  ObjectTileLayout::Cell valid;
+  valid.tile_info = gfx::TileInfo(0x123, 3, true, false, true);
+  valid.write_index = 0;
+  valid.modified = true;
+  layout.cells.push_back(valid);
+
+  ObjectTileLayout::Cell invalid;
+  invalid.tile_info = gfx::TileInfo(0x234, 4, false, true, false);
+  invalid.write_index = 8;
+  invalid.modified = true;
+  layout.cells.push_back(invalid);
+
+  const auto original = rom.vector();
+  const bool original_dirty = rom.dirty();
+  const absl::Status status = editor.WriteBack(layout);
+
+  EXPECT_TRUE(absl::IsOutOfRange(status));
+  EXPECT_EQ(rom.vector(), original);
+  EXPECT_EQ(rom.dirty(), original_dirty);
+}
+
+TEST(ObjectTileEditorTest, ApplyStandardWritePlanRollsBackWhenLaterWriteFails) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x40, 0x5A)).ok());
+
+  ObjectTileEditor editor(&rom);
+  ObjectTileLayout layout;
+  layout.tile_data_address = 0x10;
+  layout.is_custom = false;
+  for (int index = 0; index < 2; ++index) {
+    ObjectTileLayout::Cell cell;
+    cell.tile_info = gfx::TileInfo(static_cast<uint16_t>(0x120 + index), 3,
+                                   false, false, false);
+    cell.write_index = index;
+    cell.modified = true;
+    layout.cells.push_back(cell);
+  }
+
+  auto plan_or = editor.BuildStandardWritePlan(layout);
+  ASSERT_TRUE(plan_or.ok()) << plan_or.status();
+
+  rom::WriteFence fence;
+  ASSERT_TRUE(fence.Allow(0x10, 0x12, "first object tile word").ok());
+  rom::ScopedWriteFence fence_scope(&rom, &fence);
+
+  const auto original = rom.vector();
+  const bool original_dirty = rom.dirty();
+  const absl::Status status = editor.ApplyStandardWritePlan(*plan_or);
+
+  EXPECT_TRUE(absl::IsPermissionDenied(status));
+  EXPECT_EQ(rom.vector(), original);
+  EXPECT_EQ(rom.dirty(), original_dirty);
 }
 
 TEST(ObjectTileEditorTest, RenderLayoutToBitmapUsesThirdPaletteWhenAvailable) {

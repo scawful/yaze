@@ -521,6 +521,27 @@ void ObjectTileEditorPanel::DrawTileProperties() {
   }
 }
 
+absl::Status ObjectTileEditorPanel::WriteBackCurrentLayout() {
+  if (current_layout_.is_custom) {
+    return tile_editor_->WriteBack(current_layout_);
+  }
+
+  auto plan_or = tile_editor_->BuildStandardWritePlan(current_layout_);
+  if (!plan_or.ok()) {
+    return plan_or.status();
+  }
+
+  const auto& plan = *plan_or;
+  if (standard_write_preflight_ && !plan.write_ranges.empty()) {
+    const absl::Status preflight = standard_write_preflight_(plan.write_ranges);
+    if (!preflight.ok()) {
+      return preflight;
+    }
+  }
+
+  return tile_editor_->ApplyStandardWritePlan(plan);
+}
+
 void ObjectTileEditorPanel::ApplyChanges(bool confirm_shared) {
   // Check for shared tile data and ask for confirmation
   const int shared_count = GetSharedTileDataUsageCount();
@@ -538,7 +559,7 @@ void ObjectTileEditorPanel::ApplyChanges(bool confirm_shared) {
   show_shared_confirm_ = false;
   shared_object_count_ = 0;
 
-  auto status = tile_editor_->WriteBack(current_layout_);
+  auto status = WriteBackCurrentLayout();
   if (status.ok()) {
     // Re-render room after applying changes
     if (HasRenderableRoomContext()) {
