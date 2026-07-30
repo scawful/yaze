@@ -6,7 +6,11 @@
 #include <string>
 #include <vector>
 
+#include "absl/strings/str_format.h"
+#include "app/editor/system/session/hack_manifest_save_validation.h"
+#include "core/project.h"
 #include "gtest/gtest.h"
+#include "rom/snes.h"
 #include "zelda3/dungeon/custom_object.h"
 
 namespace yaze::editor {
@@ -61,6 +65,11 @@ struct ObjectTileEditorPanelTestAccess {
   static bool ActionStatusIsSuccess(const ObjectTileEditorPanel& panel) {
     return panel.action_status_tone_ ==
            ObjectTileEditorPanel::ActionStatusTone::kSuccess;
+  }
+
+  static bool ActionStatusIsError(const ObjectTileEditorPanel& panel) {
+    return panel.action_status_tone_ ==
+           ObjectTileEditorPanel::ActionStatusTone::kError;
   }
 
   static const std::string& ActionStatusMessage(
@@ -289,6 +298,28 @@ int ReadWordAt(const Rom& rom, int addr) {
   const uint8_t low = rom.data()[addr];
   const uint8_t high = rom.data()[addr + 1];
   return static_cast<int>(low | (high << 8));
+}
+
+std::string ManifestProtectingPcRange(uint32_t begin, uint32_t end) {
+  return absl::StrFormat(
+      R"json(
+{
+  "manifest_version": 3,
+  "hack_name": "Synthetic object tile save guard",
+  "protected_regions": {
+    "total_hooks": 1,
+    "regions": [
+      {
+        "start": "0x%06X",
+        "end": "0x%06X",
+        "hook_count": 1,
+        "module": "SyntheticObjectTileGuard"
+      }
+    ]
+  }
+}
+)json",
+      PcToSnes(begin), PcToSnes(end));
 }
 
 std::optional<int16_t> FindCapturableObjectId(Rom* rom, DungeonRoomStore* rooms,
@@ -678,6 +709,117 @@ TEST(ObjectTileEditorPanelTest,
                               original_cell.tile_info.horizontal_mirror_,
                               original_cell.tile_info.vertical_mirror_,
                               original_cell.tile_info.over_))));
+}
+
+TEST(ObjectTileEditorPanelTest,
+     ManifestBlockedApplyPreservesRomAndModifiedRetryState) {
+  constexpr uint32_t kTileDataAddress = 0x1234;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  auto layout = zelda3::ObjectTileLayout::CreateEmpty(
+      /*width=*/1, /*height=*/1, /*object_id=*/0x40, "standard.bin");
+  layout.is_custom = false;
+  layout.custom_filename.clear();
+  layout.tile_data_address = kTileDataAddress;
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
+  ObjectTileEditorPanelTestAccess::SetCurrentObjectId(panel,
+                                                      /*object_id=*/0x40);
+  ObjectTileEditorPanelTestAccess::SetSharedTileDataUsageOverride(
+      panel, /*shared_count=*/1);
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x123, /*palette=*/3);
+
+  project::YazeProject project;
+  ASSERT_TRUE(project.hack_manifest
+                  .LoadFromString(ManifestProtectingPcRange(
+                      kTileDataAddress, kTileDataAddress + 2))
+                  .ok());
+  project.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+
+  int preflight_count = 0;
+  std::vector<std::pair<uint32_t, uint32_t>> observed_ranges;
+  panel.SetStandardWritePreflightCallback(
+      [&](const std::vector<std::pair<uint32_t, uint32_t>>& ranges) {
+        ++preflight_count;
+        observed_ranges = ranges;
+        return ValidateHackManifestSaveConflicts(
+            project.hack_manifest, project.rom_metadata.write_policy, ranges,
+            "dungeon object tile data", "ObjectTileEditorPanelTest",
+            /*toast_manager=*/nullptr);
+      });
+
+  const auto original = rom.vector();
+  const bool original_dirty = rom.dirty();
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/false);
+
+  EXPECT_EQ(preflight_count, 1);
+  EXPECT_EQ(observed_ranges, (std::vector<std::pair<uint32_t, uint32_t>>{
+                                 {kTileDataAddress, kTileDataAddress + 2}}));
+  EXPECT_EQ(rom.vector(), original);
+  EXPECT_EQ(rom.dirty(), original_dirty);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsError(panel));
+  EXPECT_NE(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel).find(
+                "Write conflict with Hack Manifest"),
+            std::string::npos);
+
+  panel.SetStandardWritePreflightCallback(
+      [](const std::vector<std::pair<uint32_t, uint32_t>>&) {
+        return absl::OkStatus();
+      });
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/false);
+
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_NE(rom.vector(), original);
+}
+
+TEST(ObjectTileEditorPanelTest, UnrelatedManifestRangeAllowsStandardApply) {
+  constexpr uint32_t kTileDataAddress = 0x1234;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  auto layout = zelda3::ObjectTileLayout::CreateEmpty(
+      /*width=*/1, /*height=*/1, /*object_id=*/0x40, "standard.bin");
+  layout.is_custom = false;
+  layout.custom_filename.clear();
+  layout.tile_data_address = kTileDataAddress;
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
+  ObjectTileEditorPanelTestAccess::SetCurrentObjectId(panel,
+                                                      /*object_id=*/0x40);
+  ObjectTileEditorPanelTestAccess::SetSharedTileDataUsageOverride(
+      panel, /*shared_count=*/1);
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x234, /*palette=*/4);
+
+  project::YazeProject project;
+  ASSERT_TRUE(project.hack_manifest
+                  .LoadFromString(ManifestProtectingPcRange(0x2000, 0x2002))
+                  .ok());
+  project.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+
+  int preflight_count = 0;
+  panel.SetStandardWritePreflightCallback(
+      [&](const std::vector<std::pair<uint32_t, uint32_t>>& ranges) {
+        ++preflight_count;
+        return ValidateHackManifestSaveConflicts(
+            project.hack_manifest, project.rom_metadata.write_policy, ranges,
+            "dungeon object tile data", "ObjectTileEditorPanelTest",
+            /*toast_manager=*/nullptr);
+      });
+
+  const int original_word = ReadWordAt(rom, kTileDataAddress);
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/false);
+
+  EXPECT_EQ(preflight_count, 1);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_NE(ReadWordAt(rom, kTileDataAddress), original_word);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::ActionStatusIsError(panel));
 }
 
 TEST(ObjectTileEditorPanelTest,

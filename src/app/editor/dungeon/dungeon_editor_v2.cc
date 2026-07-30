@@ -848,6 +848,18 @@ absl::Status DungeonEditorV2::Load() {
       auto tile_editor_panel =
           std::make_unique<ObjectTileEditorPanel>(renderer_, rom_);
       tile_editor_panel->SetCurrentPaletteGroup(current_palette_group_);
+      tile_editor_panel->SetStandardWritePreflightCallback(
+          [this](const std::vector<std::pair<uint32_t, uint32_t>>& ranges) {
+            if (ranges.empty() || dependencies_.project == nullptr ||
+                !dependencies_.project->hack_manifest.loaded()) {
+              return absl::OkStatus();
+            }
+            return ValidateHackManifestSaveConflicts(
+                dependencies_.project->hack_manifest,
+                dependencies_.project->rom_metadata.write_policy, ranges,
+                "dungeon object tile data", "ObjectTileEditorPanel",
+                dependencies_.toast_manager);
+          });
 
       // Wire creation callback: when a new custom object is saved,
       // register it with the manager, persist to project, and refresh UI.

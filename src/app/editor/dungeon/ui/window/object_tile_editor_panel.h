@@ -2,10 +2,14 @@
 #define YAZE_APP_EDITOR_DUNGEON_PANELS_OBJECT_TILE_EDITOR_PANEL_H_
 
 #include <array>
+#include <cstdint>
 #include <functional>
 #include <memory>
 #include <string>
+#include <utility>
+#include <vector>
 
+#include "absl/status/status.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gfx/backend/irenderer.h"
@@ -34,6 +38,9 @@ struct ObjectTileEditorPanelTestAccess;
  */
 class ObjectTileEditorPanel : public WindowContent {
  public:
+  using StandardWritePreflightCallback = std::function<absl::Status(
+      const std::vector<std::pair<uint32_t, uint32_t>>&)>;
+
   ObjectTileEditorPanel(gfx::IRenderer* renderer, Rom* rom);
 
   std::string GetId() const override { return "dungeon.object_tile_editor"; }
@@ -58,6 +65,11 @@ class ObjectTileEditorPanel : public WindowContent {
   void SetObjectCreatedCallback(
       std::function<void(int, const std::string&)> cb) {
     on_object_created_ = std::move(cb);
+  }
+
+  void SetStandardWritePreflightCallback(
+      StandardWritePreflightCallback callback) {
+    standard_write_preflight_ = std::move(callback);
   }
 
  private:
@@ -88,6 +100,7 @@ class ObjectTileEditorPanel : public WindowContent {
   void RenderObjectPreview();
   void RenderTile8Atlas();
   void SyncSourceSelectionFromSelectedCell();
+  absl::Status WriteBackCurrentLayout();
 
   // Apply: write back, re-render room, reset modified flags.
   // If confirm_shared is true and tile data is shared, opens confirmation modal
@@ -122,6 +135,7 @@ class ObjectTileEditorPanel : public WindowContent {
   // New object creation state
   bool is_new_object_ = false;
   std::function<void(int, const std::string&)> on_object_created_;
+  StandardWritePreflightCallback standard_write_preflight_;
 
   // Context
   gfx::IRenderer* renderer_;

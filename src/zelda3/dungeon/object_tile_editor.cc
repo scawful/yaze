@@ -4,10 +4,12 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <limits>
 #include <unordered_map>
 
 #include "app/gfx/types/snes_tile.h"
 #include "core/features.h"
+#include "rom/transaction.h"
 #include "util/log.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/geometry/object_geometry.h"
@@ -408,30 +410,87 @@ absl::Status ObjectTileEditor::WriteBack(const ObjectTileLayout& layout) {
     return absl::OkStatus();
   }
 
-  // Standard object: patch ROM at tile_data_address
+  auto plan_or = BuildStandardWritePlan(layout);
+  if (!plan_or.ok()) {
+    return plan_or.status();
+  }
+  return ApplyStandardWritePlan(*plan_or);
+}
+
+absl::StatusOr<ObjectTileWritePlan> ObjectTileEditor::BuildStandardWritePlan(
+    const ObjectTileLayout& layout) const {
+  if (layout.is_custom) {
+    return absl::InvalidArgumentError(
+        "Cannot build a standard ROM write plan for a custom object");
+  }
+
+  ObjectTileWritePlan plan;
+  if (!layout.HasModifications()) {
+    return plan;
+  }
+  if (rom_ == nullptr || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
   if (layout.tile_data_address < 0) {
     return absl::FailedPreconditionError(
         "No tile data address for ROM write-back");
   }
 
+  const int64_t rom_size = static_cast<int64_t>(rom_->size());
   for (size_t i = 0; i < layout.cells.size(); ++i) {
     const auto& cell = layout.cells[i];
     if (!cell.modified)
       continue;
 
-    const int write_index =
-        cell.write_index >= 0 ? cell.write_index : static_cast<int>(i);
-    int addr = layout.tile_data_address + write_index * 2;
-    uint16_t word = gfx::TileInfoToWord(cell.tile_info);
+    const int64_t write_index = cell.write_index >= 0
+                                    ? static_cast<int64_t>(cell.write_index)
+                                    : static_cast<int64_t>(i);
+    const int64_t address =
+        static_cast<int64_t>(layout.tile_data_address) + write_index * 2;
+    const int64_t end = address + 2;
+    if (address < 0 || end > rom_size ||
+        address > std::numeric_limits<int>::max()) {
+      return absl::OutOfRangeError(
+          "Object tile write range is outside the loaded ROM");
+    }
 
-    // Write 2 bytes (little-endian SNES tilemap word)
-    auto low = static_cast<uint8_t>(word & 0xFF);
-    auto high = static_cast<uint8_t>((word >> 8) & 0xFF);
-    RETURN_IF_ERROR(rom_->WriteByte(addr, low));
-    RETURN_IF_ERROR(rom_->WriteByte(addr + 1, high));
+    plan.writes.push_back(
+        {static_cast<int>(address), gfx::TileInfoToWord(cell.tile_info)});
+    plan.write_ranges.emplace_back(static_cast<uint32_t>(address),
+                                   static_cast<uint32_t>(end));
   }
 
-  return absl::OkStatus();
+  return plan;
+}
+
+absl::Status ObjectTileEditor::ApplyStandardWritePlan(
+    const ObjectTileWritePlan& plan) {
+  if (plan.writes.empty()) {
+    return absl::OkStatus();
+  }
+  if (rom_ == nullptr || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+
+  const int64_t rom_size = static_cast<int64_t>(rom_->size());
+  for (const auto& write : plan.writes) {
+    const int64_t address = static_cast<int64_t>(write.address);
+    if (address < 0 || address + 2 > rom_size) {
+      return absl::OutOfRangeError(
+          "Object tile write range is outside the loaded ROM");
+    }
+  }
+
+  const bool was_dirty = rom_->dirty();
+  Transaction transaction(*rom_);
+  for (const auto& write : plan.writes) {
+    transaction.WriteWord(write.address, write.word);
+  }
+  const absl::Status status = transaction.Commit();
+  if (!status.ok()) {
+    rom_->set_dirty(was_dirty);
+  }
+  return status;
 }
 
 int ObjectTileEditor::CountObjectsSharingTileData(int16_t object_id) const {
