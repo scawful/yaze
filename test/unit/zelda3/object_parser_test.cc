@@ -126,6 +126,76 @@ TEST_F(ObjectParserTest, RupeeFloorLoadsExactTwoWordPayload) {
   EXPECT_EQ(draw_info.tile_count, 2);
 }
 
+TEST_F(ObjectParserTest, ResolveTileReadRangesPreservesSplitSources) {
+  auto* data = mock_rom_->mutable_data();
+  auto write_pointer = [&](int table_address, uint16_t offset) {
+    data[table_address] = static_cast<uint8_t>(offset & 0xFF);
+    data[table_address + 1] = static_cast<uint8_t>(offset >> 8);
+  };
+
+  constexpr uint16_t kFloodGateOffset = 0x0300;
+  write_pointer(zelda3::kRoomObjectSubtype2 + (0x137 - 0x100) * 2,
+                kFloodGateOffset);
+  auto flood_gate_ranges = parser_->ResolveTileReadRanges(0x137);
+  ASSERT_TRUE(flood_gate_ranges.ok()) << flood_gate_ranges.status();
+  EXPECT_THAT(
+      *flood_gate_ranges,
+      ::testing::ElementsAre(
+          zelda3::ObjectTileReadRange{
+              zelda3::kRoomObjectTileAddress + kFloodGateOffset,
+              zelda3::kRoomObjectTileAddress + kFloodGateOffset + 40 * 2},
+          zelda3::ObjectTileReadRange{
+              zelda3::kRoomObjectTileAddress + 0x13E8,
+              zelda3::kRoomObjectTileAddress + 0x13E8 + 40 * 2}));
+
+  constexpr uint16_t kBombableFloorOffset = 0x0400;
+  write_pointer(zelda3::kRoomObjectSubtype3 + (0xFC7 - 0xF80) * 2,
+                kBombableFloorOffset);
+  auto bombable_floor_ranges = parser_->ResolveTileReadRanges(0xFC7);
+  ASSERT_TRUE(bombable_floor_ranges.ok()) << bombable_floor_ranges.status();
+  EXPECT_THAT(
+      *bombable_floor_ranges,
+      ::testing::ElementsAre(
+          zelda3::ObjectTileReadRange{
+              zelda3::kRoomObjectTileAddress + kBombableFloorOffset,
+              zelda3::kRoomObjectTileAddress + kBombableFloorOffset + 16 * 2},
+          zelda3::ObjectTileReadRange{
+              zelda3::kRoomObjectTileAddress + 0x05BA,
+              zelda3::kRoomObjectTileAddress + 0x05BA + 16 * 2}));
+}
+
+TEST_F(ObjectParserTest, ResolveTileReadRangesPreservesRuntimeLiterals) {
+  auto chest_ranges = parser_->ResolveTileReadRanges(0xF99);
+  ASSERT_TRUE(chest_ranges.ok()) << chest_ranges.status();
+  EXPECT_THAT(*chest_ranges,
+              ::testing::ElementsAre(
+                  zelda3::ObjectTileReadRange{
+                      zelda3::kRoomObjectTileAddress + 0x149C,
+                      zelda3::kRoomObjectTileAddress + 0x149C + 4 * 2},
+                  zelda3::ObjectTileReadRange{
+                      zelda3::kRoomObjectTileAddress + 0x14A4,
+                      zelda3::kRoomObjectTileAddress + 0x14A4 + 4 * 2}));
+
+  auto rupee_floor_ranges = parser_->ResolveTileReadRanges(0xF92);
+  ASSERT_TRUE(rupee_floor_ranges.ok()) << rupee_floor_ranges.status();
+  EXPECT_THAT(*rupee_floor_ranges,
+              ::testing::ElementsAre(zelda3::ObjectTileReadRange{
+                  zelda3::kRoomObjectTileAddress + 0x1DD6,
+                  zelda3::kRoomObjectTileAddress + 0x1DD6 + 2 * 2}));
+}
+
+TEST_F(ObjectParserTest, ResolveTileReadRangesPropagatesMalformedSource) {
+  auto* data = mock_rom_->mutable_data();
+  data[zelda3::kRoomObjectSubtype1] = 0x00;
+  data[zelda3::kRoomObjectSubtype1 + 1] = 0x80;
+
+  auto malformed_ranges = parser_->ResolveTileReadRanges(0x000);
+  EXPECT_TRUE(absl::IsOutOfRange(malformed_ranges.status()));
+
+  // A failed trace must release the collector so later resolutions still run.
+  EXPECT_TRUE(parser_->ResolveTileReadRanges(0x001).ok());
+}
+
 TEST_F(ObjectParserTest, BigKeyLockLoadsExactClosedTwoByTwoPayload) {
   auto result = parser_->ParseObject(0xF98);
   ASSERT_TRUE(result.ok());

@@ -130,21 +130,38 @@ void ObjectTileEditorPanel::SelectFirstCellIfAvailable() {
   SyncSourceSelectionFromSelectedCell();
 }
 
-int ObjectTileEditorPanel::GetSharedTileDataUsageCount() const {
+absl::StatusOr<int> ObjectTileEditorPanel::GetSharedTileDataUsageCount() const {
   if (shared_tile_data_usage_override_ >= 0) {
     return shared_tile_data_usage_override_;
   }
 
-  if (current_layout_.is_custom || current_layout_.tile_data_address < 0 ||
-      current_object_id_ < 0 || rom_ == nullptr || !rom_->is_loaded()) {
+  if (current_layout_.is_custom) {
     return 0;
   }
+  if (current_object_id_ < 0 ||
+      current_layout_.object_id != current_object_id_) {
+    return absl::FailedPreconditionError(
+        "No matching standard object is selected for source-impact analysis");
+  }
+  if (rom_ == nullptr || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError(
+        "A loaded ROM is required for source-impact analysis");
+  }
 
-  return tile_editor_->CountObjectsSharingTileData(current_object_id_);
+  auto impact_or =
+      tile_editor_->AnalyzeStandardTileSourceImpact(current_layout_);
+  if (!impact_or.ok()) {
+    return impact_or.status();
+  }
+  return static_cast<int>(impact_or->consumer_count());
 }
 
-bool ObjectTileEditorPanel::HasSharedTileDataConflict() const {
-  return GetSharedTileDataUsageCount() > 1;
+absl::StatusOr<bool> ObjectTileEditorPanel::HasSharedTileDataConflict() const {
+  auto usage_count_or = GetSharedTileDataUsageCount();
+  if (!usage_count_or.ok()) {
+    return usage_count_or.status();
+  }
+  return *usage_count_or > 1;
 }
 
 bool ObjectTileEditorPanel::HasRenderableRoomContext() const {
@@ -215,7 +232,7 @@ void ObjectTileEditorPanel::Draw(bool* p_open) {
   }
   if (ImGui::BeginPopupModal("Shared Tile Data", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text(tr("This tile data is shared by %d objects."),
+    ImGui::Text(tr("This tile data is shared by %d consumers."),
                 shared_object_count_);
     ImGui::Text(tr("Changes will affect all of them."));
     ImGui::Spacing();
@@ -544,15 +561,31 @@ absl::Status ObjectTileEditorPanel::WriteBackCurrentLayout() {
 }
 
 void ObjectTileEditorPanel::ApplyChanges(bool confirm_shared) {
-  // Check for shared tile data and ask for confirmation
-  const int shared_count = GetSharedTileDataUsageCount();
+  // Resolve the complete source impact before every standard write, including
+  // the second call after the user accepts the shared-data confirmation. A
+  // malformed or unresolved object family must block the write rather than be
+  // interpreted as an unshared source.
+  const auto shared_count_or = GetSharedTileDataUsageCount();
+  if (!shared_count_or.ok()) {
+    show_shared_confirm_ = false;
+    shared_object_count_ = 0;
+    SetActionStatus(
+        ActionStatusTone::kError,
+        absl::StrFormat(ICON_MD_ERROR
+                        " Apply blocked: source impact could not be resolved: "
+                        "%s",
+                        shared_count_or.status().message()));
+    return;
+  }
+  const int shared_count = *shared_count_or;
   if (confirm_shared && shared_count > 1) {
     shared_object_count_ = shared_count;
     show_shared_confirm_ = true;
     SetActionStatus(
         ActionStatusTone::kWarning,
         absl::StrFormat(ICON_MD_WARNING
-                        " Confirm shared apply: %d objects use this tile data.",
+                        " Confirm shared apply: %d consumers use this tile "
+                        "data.",
                         shared_count));
     return;
   }
@@ -569,10 +602,26 @@ void ObjectTileEditorPanel::ApplyChanges(bool confirm_shared) {
       room.RenderRoomGraphics();
     }
 
-    // Update original words to match current state
+    // Update both the cells and the authoritative source snapshot only after
+    // the write succeeds. The next impact analysis reuses BuildStandardWritePlan
+    // as its CAS gate, so leaving expected_words stale here would make every
+    // later apply fail until the panel was reopened.
     for (auto& cell : current_layout_.cells) {
       if (cell.modified) {
-        cell.original_word = gfx::TileInfoToWord(cell.tile_info);
+        const uint16_t applied_word = gfx::TileInfoToWord(cell.tile_info);
+        cell.original_word = applied_word;
+        if (!current_layout_.is_custom &&
+            current_layout_.source_provenance.has_value() &&
+            cell.source_ref.has_value()) {
+          const auto& source_ref = *cell.source_ref;
+          auto& spans = current_layout_.source_provenance->spans;
+          if (source_ref.span_index < spans.size() &&
+              source_ref.word_index <
+                  spans[source_ref.span_index].expected_words.size()) {
+            spans[source_ref.span_index].expected_words[source_ref.word_index] =
+                applied_word;
+          }
+        }
         cell.modified = false;
       }
     }
@@ -593,7 +642,7 @@ void ObjectTileEditorPanel::ApplyChanges(bool confirm_shared) {
           ActionStatusTone::kSuccess,
           absl::StrFormat(
               ICON_MD_CHECK_CIRCLE
-              " Applied changes to shared tile data used by %d objects.",
+              " Applied changes to shared tile data used by %d consumers.",
               shared_count));
     } else {
       ClearActionStatus();
@@ -621,15 +670,27 @@ void ObjectTileEditorPanel::DrawActionBar() {
     ImGui::SameLine();
   }
 
-  // Shared tile data warning
-  const int shared_count = GetSharedTileDataUsageCount();
-  if (shared_count > 1) {
+  // Shared tile data warning. Keep analysis errors visible here, but enforce
+  // fail-closed behavior in ApplyChanges so the disabled-by-default standard
+  // editor cannot silently turn an unknown impact into a write.
+  const auto shared_count_or = GetSharedTileDataUsageCount();
+  if (!shared_count_or.ok()) {
+    ImGui::TextColored(gui::ConvertColorToImVec4(theme.error),
+                       ICON_MD_ERROR " Source impact unavailable");
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetItemTooltip("%s", shared_count_or.status().message().data());
+    }
+    ImGui::SameLine();
+  } else if (*shared_count_or > 1) {
+    const int shared_count = *shared_count_or;
     ImGui::TextColored(gui::ConvertColorToImVec4(theme.warning),
-                       ICON_MD_WARNING " Shared by %d objects", shared_count);
+                       ICON_MD_WARNING " Shared by %d consumers", shared_count);
     if (ImGui::IsItemHovered()) {
       ImGui::SetItemTooltip(
-          tr("This object reuses tile data with %d objects.\nApplying changes "
-             "will update every object in that shared data group."),
+          tr("This object reuses tile data with %d consumers.\nApplying "
+             "changes "
+             "will update every object or runtime consumer in that shared "
+             "data group."),
           shared_count);
     }
     ImGui::SameLine();
