@@ -224,6 +224,49 @@ void BestEffortFsyncParentDir(const std::filesystem::path& file_path) {
 
 }  // namespace
 
+Rom::Rom(const Rom& other)
+    : size_(other.size_),
+      title_(other.title_),
+      filename_(other.filename_),
+      short_name_(other.short_name_),
+      rom_data_(other.rom_data_),
+      resource_label_manager_(other.resource_label_manager_),
+      dirty_(other.dirty_),
+      object_tile_revision_(other.object_tile_revision_) {
+  // Write fences are non-owning, instance-local transaction state. A new Rom
+  // must never inherit pointers owned by active scopes on `other`.
+}
+
+Rom& Rom::operator=(const Rom& other) {
+  if (this == &other) {
+    return *this;
+  }
+
+  const uint64_t previous_revision = object_tile_revision_;
+  size_ = other.size_;
+  title_ = other.title_;
+  filename_ = other.filename_;
+  short_name_ = other.short_name_;
+  rom_data_ = other.rom_data_;
+  resource_label_manager_ = other.resource_label_manager_;
+  dirty_ = other.dirty_;
+
+  // Write fences are non-owning, instance-local transaction state. Preserve
+  // this Rom's active scopes rather than importing pointers owned by `other`.
+
+  object_tile_revision_ =
+      std::max(previous_revision, other.object_tile_revision_);
+  AdvanceObjectTileRevision();
+  return *this;
+}
+
+Rom& Rom::operator=(Rom&& other) {
+  // Rom historically has copy-on-rvalue assignment semantics. Keep the source
+  // intact while ensuring in-place session replacement uses the same strictly
+  // monotonic destination generation as lvalue assignment.
+  return operator=(static_cast<const Rom&>(other));
+}
+
 absl::Status Rom::LoadFromFile(const std::string& filename,
                                const LoadOptions& options) {
   if (filename.empty()) {
@@ -329,6 +372,7 @@ absl::Status Rom::LoadFromFile(const std::string& filename,
     }
   }
 
+  AdvanceObjectTileRevision();
   return absl::OkStatus();
 }
 
@@ -365,6 +409,7 @@ absl::Status Rom::LoadFromData(const std::vector<uint8_t>& data,
     }
   }
 
+  AdvanceObjectTileRevision();
   return absl::OkStatus();
 }
 

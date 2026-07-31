@@ -83,6 +83,9 @@ ObjectOption operator~(ObjectOption option) {
 // bitmaps.
 
 void RoomObject::EnsureTilesLoaded() {
+  if (tiles_loaded_ && !IsTrackedTileCacheCurrent()) {
+    InvalidateTileCache();
+  }
   if (tiles_loaded_) {
     return;
   }
@@ -101,6 +104,7 @@ void RoomObject::EnsureTilesLoaded() {
   auto parser_status = LoadTilesWithParser();
   if (parser_status.ok()) {
     tiles_loaded_ = true;
+    MarkTileCacheCurrent();
     // DEBUG: Log wall/corner objects
     if (id_ == 0x001 || id_ == 0x002 || id_ == 0x061 || id_ == 0x062 ||
         (id_ >= 0x100 && id_ <= 0x103)) {
@@ -134,6 +138,7 @@ void RoomObject::EnsureTilesLoaded() {
     LOG_DEBUG("RoomObject", "Tile pointer out of bounds for object %04X", id_);
     tiles_.clear();
     tiles_loaded_ = true;  // Mark as loaded (empty) to prevent retry
+    MarkTileCacheCurrent();
     return;
   }
 
@@ -148,6 +153,7 @@ void RoomObject::EnsureTilesLoaded() {
               id_);
     tiles_.clear();
     tiles_loaded_ = true;  // Mark as loaded (empty) to prevent retry
+    MarkTileCacheCurrent();
     return;
   }
 
@@ -164,6 +170,7 @@ void RoomObject::EnsureTilesLoaded() {
   tiles_.push_back(gfx::WordToTileInfo(w3));
   tile_count_ = 1;
   tiles_loaded_ = true;
+  MarkTileCacheCurrent();
 }
 
 void RoomObject::InvalidateTileCache() {
@@ -171,6 +178,25 @@ void RoomObject::InvalidateTileCache() {
   tiles_loaded_ = false;
   tile_count_ = 0;
   tile_data_ptr_ = -1;
+  MarkTileCacheUntracked();
+}
+
+bool RoomObject::IsTrackedTileCacheCurrent() const {
+  return !tile_cache_tracked_ ||
+         (rom_ != nullptr && tile_cache_rom_identity_ == rom_ &&
+          tile_cache_revision_ == rom_->object_tile_revision());
+}
+
+void RoomObject::MarkTileCacheCurrent() {
+  tile_cache_rom_identity_ = rom_;
+  tile_cache_revision_ = rom_->object_tile_revision();
+  tile_cache_tracked_ = true;
+}
+
+void RoomObject::MarkTileCacheUntracked() {
+  tile_cache_rom_identity_ = nullptr;
+  tile_cache_revision_ = 0;
+  tile_cache_tracked_ = false;
 }
 
 void RoomObject::RefreshDerivedFlagsFromId() {
@@ -203,9 +229,7 @@ absl::Status RoomObject::LoadTilesWithParser() {
 }
 
 absl::StatusOr<std::span<const gfx::TileInfo>> RoomObject::GetTiles() const {
-  if (!tiles_loaded_) {
-    const_cast<RoomObject*>(this)->EnsureTilesLoaded();
-  }
+  const_cast<RoomObject*>(this)->EnsureTilesLoaded();
 
   if (tiles_.empty()) {
     return absl::FailedPreconditionError("No tiles loaded for object");
@@ -215,9 +239,7 @@ absl::StatusOr<std::span<const gfx::TileInfo>> RoomObject::GetTiles() const {
 }
 
 absl::StatusOr<const gfx::TileInfo*> RoomObject::GetTile(int index) const {
-  if (!tiles_loaded_) {
-    const_cast<RoomObject*>(this)->EnsureTilesLoaded();
-  }
+  const_cast<RoomObject*>(this)->EnsureTilesLoaded();
 
   if (index < 0 || index >= static_cast<int>(tiles_.size())) {
     return absl::OutOfRangeError(absl::StrFormat(
@@ -228,9 +250,7 @@ absl::StatusOr<const gfx::TileInfo*> RoomObject::GetTile(int index) const {
 }
 
 int RoomObject::GetTileCount() const {
-  if (!tiles_loaded_) {
-    const_cast<RoomObject*>(this)->EnsureTilesLoaded();
-  }
+  const_cast<RoomObject*>(this)->EnsureTilesLoaded();
 
   return tile_count_;
 }
