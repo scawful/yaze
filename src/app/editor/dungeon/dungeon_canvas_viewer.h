@@ -488,6 +488,10 @@ class DungeonCanvasViewer {
       std::function<void(int, const zelda3::RoomObject&)> callback) {
     edit_graphics_callback_ = std::move(callback);
   }
+  void SetEditObjectTilesCallback(
+      std::function<void(int, const zelda3::RoomObject&)> callback) {
+    edit_object_tiles_callback_ = std::move(callback);
+  }
   void SetMinecartTrackPanel(MinecartTrackEditorPanel* panel) {
     minecart_track_panel_ = panel;
   }
@@ -1003,6 +1007,8 @@ class DungeonCanvasViewer {
   int canvas_capture_height_ = 0;
   std::vector<ChangePingRect> change_ping_rects_;
   double change_ping_start_time_ = -1.0;
+  std::function<void(int, const zelda3::RoomObject&)>
+      edit_object_tiles_callback_;
 };
 
 }  // namespace editor

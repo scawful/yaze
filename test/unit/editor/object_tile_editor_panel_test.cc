@@ -3,16 +3,22 @@
 #include <chrono>
 #include <filesystem>
 #include <iterator>
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/system/session/hack_manifest_save_validation.h"
+#include "app/editor/system/workspace/workspace_window_manager.h"
 #include "core/project.h"
 #include "gtest/gtest.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/room_layer_manager.h"
+#include "zelda3/game_data.h"
 
 namespace yaze::editor {
 
@@ -86,9 +92,18 @@ struct ObjectTileEditorPanelTestAccess {
     return panel.current_object_id_;
   }
 
+  static uint16_t CurrentPaletteColor(const ObjectTileEditorPanel& panel,
+                                      int palette, int color) {
+    return panel.current_palette_group_.GetColor(palette, color).snes();
+  }
+
   static void SetCurrentObjectId(ObjectTileEditorPanel& panel,
                                  int16_t object_id) {
     panel.current_object_id_ = object_id;
+  }
+
+  static void SetOpen(ObjectTileEditorPanel& panel, bool open) {
+    panel.is_open_ = open;
   }
 
   static void SetSharedTileDataUsageOverride(ObjectTileEditorPanel& panel,
@@ -208,6 +223,17 @@ struct ObjectTileEditorPanelTestAccess {
     panel.current_layout_.cells[0].modified = true;
   }
 
+  static void ClearModifications(ObjectTileEditorPanel& panel) {
+    for (auto& cell : panel.current_layout_.cells) {
+      cell.modified = false;
+    }
+  }
+
+  static void RequestSafeWindowClose(ObjectTileEditorPanel& panel,
+                                     bool* p_open) {
+    panel.RequestSafeWindowClose(p_open);
+  }
+
   static void SetFirstCellTileAndPalette(ObjectTileEditorPanel& panel,
                                          uint16_t tile_id, uint8_t palette) {
     ASSERT_FALSE(panel.current_layout_.cells.empty());
@@ -240,9 +266,27 @@ struct ObjectTileEditorPanelTestAccess {
     return panel.GetSharedTileDataUsageCount();
   }
 
+  static absl::StatusOr<int> DisplayedSharedTileDataUsageCount(
+      ObjectTileEditorPanel& panel) {
+    return panel.GetDisplayedSharedTileDataUsageCount();
+  }
+
   static absl::StatusOr<bool> HasSharedTileDataConflict(
       const ObjectTileEditorPanel& panel) {
     return panel.HasSharedTileDataConflict();
+  }
+};
+
+class DungeonEditorV2ObjectTileEditorTestPeer {
+ public:
+  static absl::Status OpenObjectTileEditorForObject(
+      DungeonEditorV2& editor, int room_id, const zelda3::RoomObject& object) {
+    return editor.OpenObjectTileEditorForObject(room_id, object);
+  }
+
+  static void SetObjectTileEditorPanel(DungeonEditorV2& editor,
+                                       ObjectTileEditorPanel* panel) {
+    editor.object_tile_editor_panel_ = panel;
   }
 };
 
@@ -329,6 +373,67 @@ std::vector<uint8_t> MakeEditableStandardObjectRomData() {
   return data;
 }
 
+void SeedCoordinatorPaletteGroup(gfx::PaletteGroup* group, int palette_count,
+                                 int color_count, uint16_t seed) {
+  ASSERT_NE(group, nullptr);
+  group->clear();
+  for (int palette_index = 0; palette_index < palette_count; ++palette_index) {
+    gfx::SnesPalette palette;
+    for (int color_index = 0; color_index < color_count; ++color_index) {
+      palette.AddColor(gfx::SnesColor(static_cast<uint16_t>(
+          (seed + palette_index * color_count + color_index) & 0x7FFF)));
+    }
+    group->AddPalette(palette);
+  }
+}
+
+void ConfigureCoordinatorGameData(zelda3::GameData* game_data) {
+  ASSERT_NE(game_data, nullptr);
+  game_data->graphics_buffer.assign(zelda3::kNumGfxSheets * 4096, 0);
+  for (auto& ids : game_data->main_blockset_ids) {
+    ids.fill(0);
+  }
+  for (auto& ids : game_data->room_blockset_ids) {
+    ids.fill(0);
+  }
+  for (auto& ids : game_data->spriteset_ids) {
+    ids.fill(0);
+  }
+  for (auto& ids : game_data->paletteset_ids) {
+    ids.fill(0);
+  }
+
+  SeedCoordinatorPaletteGroup(&game_data->palette_groups.hud,
+                              /*palette_count=*/1, /*color_count=*/32,
+                              /*seed=*/0x0100);
+  SeedCoordinatorPaletteGroup(&game_data->palette_groups.dungeon_main,
+                              /*palette_count=*/4, /*color_count=*/90,
+                              /*seed=*/0x0200);
+  game_data->paletteset_ids[5][0] = 2;
+}
+
+void PrepareCoordinatorRoom(Rom* rom, zelda3::GameData* game_data,
+                            DungeonEditorV2* editor, int room_id) {
+  ASSERT_NE(rom, nullptr);
+  ASSERT_NE(game_data, nullptr);
+  ASSERT_NE(editor, nullptr);
+
+  const int layout_address = SnesToPc(zelda3::kRoomLayoutPointers.front());
+  ASSERT_GE(layout_address, 0);
+  ASSERT_LT(layout_address + 1, static_cast<int>(rom->size()));
+  rom->mutable_data()[layout_address] = 0xFF;
+  rom->mutable_data()[layout_address + 1] = 0xFF;
+  ASSERT_TRUE(rom->WriteWord(zelda3::kDungeonPalettePointerTable + 2,
+                             3 * zelda3::kDungeonPaletteBytes)
+                  .ok());
+
+  auto& room = editor->rooms()[room_id];
+  room = zelda3::Room(room_id, rom, game_data);
+  room.SetLoaded(true);
+  room.SetTileObjects({});
+  room.SetPalette(5);  // Resolves through the pointer table to palette 3.
+}
+
 absl::StatusOr<zelda3::ObjectTileLayout> CaptureEditableStandardLayout(
     Rom& rom, int16_t object_id = kEditableStandardObjectId) {
   zelda3::Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
@@ -375,31 +480,118 @@ std::string ManifestProtectingPcRange(uint32_t begin, uint32_t end) {
       PcToSnes(begin), PcToSnes(end));
 }
 
-std::optional<int16_t> FindCapturableObjectId(Rom* rom, DungeonRoomStore* rooms,
-                                              int start_id = 0,
-                                              int end_id = 0x1FF) {
-  ObjectTileEditorPanel probe(nullptr, rom);
-  for (int id = start_id; id <= end_id; ++id) {
-    probe.OpenForObject(static_cast<int16_t>(id), /*room_id=*/0, rooms);
-    if (ObjectTileEditorPanelTestAccess::HasLayout(probe)) {
-      return static_cast<int16_t>(id);
-    }
-  }
-  return std::nullopt;
-}
-
 void OpenInjectedSharedStandardObjectSession(ObjectTileEditorPanel& panel,
                                              Rom& rom) {
-  panel.OpenForObject(kEditableStandardObjectId, /*room_id=*/-1, nullptr);
-
   auto layout_or = CaptureEditableStandardLayout(rom);
   ASSERT_TRUE(layout_or.ok()) << layout_or.status();
   ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(*layout_or));
+  ObjectTileEditorPanelTestAccess::SetCurrentObjectId(
+      panel, kEditableStandardObjectId);
+  ObjectTileEditorPanelTestAccess::SetOpen(panel, true);
   ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(panel, 0);
   ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(panel);
 }
 
-TEST(ObjectTileEditorPanelTest, OpenForObjectInvalidRoomClearsPreviousLayout) {
+TEST(DungeonEditorV2ObjectTileEditorTest,
+     RegisteredPanelOpensWithResolvedRoomPalette) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
+  zelda3::GameData game_data(&rom);
+  ConfigureCoordinatorGameData(&game_data);
+
+  WorkspaceWindowManager window_manager;
+  window_manager.RegisterSession(0);
+  window_manager.SetActiveSession(0);
+
+  DungeonEditorV2 editor(&rom);
+  EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.game_data = &game_data;
+  dependencies.window_manager = &window_manager;
+  editor.SetDependencies(dependencies);
+  editor.SetGameData(&game_data);
+  PrepareCoordinatorRoom(&rom, &game_data, &editor, /*room_id=*/0);
+
+  auto panel = std::make_unique<ObjectTileEditorPanel>(nullptr, &rom);
+  ObjectTileEditorPanel* panel_ptr = panel.get();
+  window_manager.RegisterWindowContent(std::move(panel));
+  DungeonEditorV2ObjectTileEditorTestPeer::SetObjectTileEditorPanel(editor,
+                                                                    panel_ptr);
+
+  ASSERT_FALSE(window_manager.IsWindowOpen(0, panel_ptr->GetId()));
+  const zelda3::RoomObject selected_object(kEditableStandardObjectId, /*x=*/0,
+                                           /*y=*/0, /*size=*/0, /*layer=*/0);
+  const absl::Status status =
+      DungeonEditorV2ObjectTileEditorTestPeer::OpenObjectTileEditorForObject(
+          editor, /*room_id=*/0, selected_object);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_TRUE(window_manager.IsWindowOpen(0, panel_ptr->GetId()));
+  EXPECT_TRUE(panel_ptr->IsOpen());
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(*panel_ptr), 0);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(*panel_ptr),
+            kEditableStandardObjectId);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Rooms(*panel_ptr),
+            &editor.rooms());
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::Layout(*panel_ptr)
+                  .source_provenance.has_value());
+
+  auto expected_palette = game_data.palette_groups.dungeon_main.palette_ref(3);
+  auto expected_group =
+      gfx::CreatePaletteGroupFromLargePalette(expected_palette);
+  ASSERT_TRUE(expected_group.ok()) << expected_group.status();
+  auto default_palette = game_data.palette_groups.dungeon_main.palette_ref(0);
+  auto default_group = gfx::CreatePaletteGroupFromLargePalette(default_palette);
+  ASSERT_TRUE(default_group.ok()) << default_group.status();
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentPaletteColor(
+                *panel_ptr, /*palette=*/0, /*color=*/0),
+            expected_group->GetColor(/*palette=*/0, /*color=*/0).snes());
+  EXPECT_NE(ObjectTileEditorPanelTestAccess::CurrentPaletteColor(
+                *panel_ptr, /*palette=*/0, /*color=*/0),
+            default_group->GetColor(/*palette=*/0, /*color=*/0).snes());
+}
+
+TEST(DungeonEditorV2ObjectTileEditorTest,
+     UnregisteredPanelFailsAndClosesCapturedSession) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
+  zelda3::GameData game_data(&rom);
+  ConfigureCoordinatorGameData(&game_data);
+
+  WorkspaceWindowManager window_manager;
+  window_manager.RegisterSession(0);
+  window_manager.SetActiveSession(0);
+  ObjectTileEditorPanel unregistered_panel(nullptr, &rom);
+
+  DungeonEditorV2 editor(&rom);
+  EditorDependencies dependencies;
+  dependencies.rom = &rom;
+  dependencies.game_data = &game_data;
+  dependencies.window_manager = &window_manager;
+  editor.SetDependencies(dependencies);
+  editor.SetGameData(&game_data);
+  PrepareCoordinatorRoom(&rom, &game_data, &editor, /*room_id=*/0);
+  DungeonEditorV2ObjectTileEditorTestPeer::SetObjectTileEditorPanel(
+      editor, &unregistered_panel);
+
+  const zelda3::RoomObject selected_object(kEditableStandardObjectId, /*x=*/0,
+                                           /*y=*/0, /*size=*/0, /*layer=*/0);
+  const absl::Status status =
+      DungeonEditorV2ObjectTileEditorTestPeer::OpenObjectTileEditorForObject(
+          editor, /*room_id=*/0, selected_object);
+
+  EXPECT_TRUE(absl::IsNotFound(status)) << status;
+  EXPECT_FALSE(window_manager.IsWindowOpen(0, unregistered_panel.GetId()));
+  EXPECT_FALSE(unregistered_panel.IsOpen());
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasLayout(unregistered_panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(unregistered_panel),
+            -1);
+  EXPECT_EQ(
+      ObjectTileEditorPanelTestAccess::CurrentObjectId(unregistered_panel), -1);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     OpenForObjectInvalidRoomPreservesPreviousLayout) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
@@ -407,28 +599,34 @@ TEST(ObjectTileEditorPanelTest, OpenForObjectInvalidRoomClearsPreviousLayout) {
   panel.OpenForNewObject(/*width=*/2, /*height=*/2, "custom.bin",
                          /*object_id=*/0x123, /*room_id=*/0, nullptr);
   ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
+  ObjectTileEditorPanelTestAccess::ClearModifications(panel);
   ObjectTileEditorPanelTestAccess::SeedRenderedBitmaps(panel);
   ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
   ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
 
   DungeonRoomStore rooms(&rom);
-  panel.OpenForObject(/*object_id=*/0x40, /*room_id=*/-1, &rooms);
+  const absl::Status status =
+      panel.OpenForObject(kEditableStandardObjectId, /*room_id=*/-1, &rooms);
 
-  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
-  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), -1);
-  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), -1);
-  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
-  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
+  EXPECT_TRUE(absl::IsOutOfRange(status));
+  EXPECT_TRUE(panel.IsOpen());
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), 0x123);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(panel), 0);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
 }
 
 TEST(ObjectTileEditorPanelTest,
-     OpenForObjectCaptureFailureClearsPreviousLayout) {
+     OpenForObjectCaptureFailurePreservesPreviousLayout) {
   Rom rom;
 
   ObjectTileEditorPanel panel(nullptr, &rom);
   panel.OpenForNewObject(/*width=*/2, /*height=*/2, "custom.bin",
                          /*object_id=*/0x123, /*room_id=*/0, nullptr);
   ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
+  ObjectTileEditorPanelTestAccess::ClearModifications(panel);
   ObjectTileEditorPanelTestAccess::SeedRenderedBitmaps(panel);
   ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
   ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
@@ -436,16 +634,95 @@ TEST(ObjectTileEditorPanelTest,
   DungeonRoomStore rooms(&rom);
   (void)rooms[0];
 
-  panel.OpenForObject(/*object_id=*/0x40, /*room_id=*/0, &rooms);
+  const absl::Status status =
+      panel.OpenForObject(kEditableStandardObjectId, /*room_id=*/0, &rooms);
 
-  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
-  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), -1);
-  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), -1);
-  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
-  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
+  EXPECT_TRUE(absl::IsFailedPrecondition(status));
+  EXPECT_TRUE(panel.IsOpen());
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), 0x123);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(panel), 0);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
 }
 
-TEST(ObjectTileEditorPanelTest, CloseClearsTransientStateAndContext) {
+TEST(ObjectTileEditorPanelTest,
+     OpenForObjectRejectsNonAllowlistedObjectWithoutChangingSession) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
+  DungeonRoomStore rooms(&rom);
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  panel.OpenForNewObject(/*width=*/1, /*height=*/1, "custom.bin",
+                         /*object_id=*/0x31, /*room_id=*/0, &rooms);
+
+  const absl::Status status =
+      panel.OpenForObject(/*object_id=*/0x40, /*room_id=*/0, &rooms);
+
+  EXPECT_TRUE(absl::IsUnimplemented(status));
+  EXPECT_TRUE(panel.IsOpen());
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::IsNewObject(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), 0x31);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::Layout(panel)
+                   .source_provenance.has_value());
+}
+
+TEST(ObjectTileEditorPanelTest,
+     OpenForObjectRejectsReplacingSessionWithUnappliedChanges) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
+  DungeonRoomStore rooms(&rom);
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(
+      panel.OpenForObject(kEditableStandardObjectId, /*room_id=*/0, &rooms)
+          .ok());
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x123, /*palette=*/3);
+  const auto original_layout = ObjectTileEditorPanelTestAccess::Layout(panel);
+
+  const absl::Status status =
+      panel.OpenForObject(kTorchAliasObjectId, /*room_id=*/1, &rooms);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status));
+  EXPECT_NE(std::string(status.message()).find("Apply, revert, or close"),
+            std::string::npos);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel),
+            kEditableStandardObjectId);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(panel), 0);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel)
+                .cells.front()
+                .tile_info.id_,
+            original_layout.cells.front().tile_info.id_);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+}
+
+TEST(ObjectTileEditorPanelTest, PaletteUpdatesStayBoundToTheOpenSessionRoom) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
+  DungeonRoomStore rooms(&rom);
+  const gfx::PaletteGroup room_zero_palette = MakeTestPaletteGroup(1);
+  const gfx::PaletteGroup room_one_palette = MakeTestPaletteGroup(10);
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(panel
+                  .OpenForObject(kEditableStandardObjectId, /*room_id=*/0,
+                                 &rooms, room_zero_palette)
+                  .ok());
+  const uint16_t original_color =
+      ObjectTileEditorPanelTestAccess::CurrentPaletteColor(panel, 0, 0);
+
+  panel.SetCurrentPaletteGroupForRoom(/*room_id=*/1, room_one_palette);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentPaletteColor(panel, 0, 0),
+            original_color);
+
+  panel.SetCurrentPaletteGroupForRoom(/*room_id=*/0, room_one_palette);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentPaletteColor(panel, 0, 0),
+            room_one_palette.GetColor(0, 0).snes());
+}
+
+TEST(ObjectTileEditorPanelTest, ExplicitCloseClearsTransientStateAndContext) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
@@ -475,6 +752,53 @@ TEST(ObjectTileEditorPanelTest, CloseClearsTransientStateAndContext) {
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
 }
 
+TEST(ObjectTileEditorPanelTest, OnClosePreservesModifiedSessionForReopen) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
+  DungeonRoomStore rooms(&rom);
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(
+      panel.OpenForObject(kEditableStandardObjectId, /*room_id=*/0, &rooms)
+          .ok());
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x123, /*palette=*/3);
+
+  panel.OnClose();
+
+  EXPECT_TRUE(panel.IsOpen());
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel),
+            kEditableStandardObjectId);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(panel), 0);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     SafeWindowCloseHidesAndPreservesModifiedSession) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
+  DungeonRoomStore rooms(&rom);
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(
+      panel.OpenForObject(kEditableStandardObjectId, /*room_id=*/0, &rooms)
+          .ok());
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x123, /*palette=*/3);
+  bool visible = true;
+
+  ObjectTileEditorPanelTestAccess::RequestSafeWindowClose(panel, &visible);
+
+  EXPECT_FALSE(visible);
+  EXPECT_TRUE(panel.IsOpen());
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsWarning(panel));
+  EXPECT_NE(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel).find(
+                "Unapplied tile changes were kept"),
+            std::string::npos);
+}
+
 TEST(ObjectTileEditorPanelTest, OpenForNewObjectClearsPendingSharedConfirm) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
@@ -482,12 +806,15 @@ TEST(ObjectTileEditorPanelTest, OpenForNewObjectClearsPendingSharedConfirm) {
   ObjectTileEditorPanel panel(nullptr, &rom);
   panel.OpenForNewObject(/*width=*/2, /*height=*/2, "first.bin",
                          /*object_id=*/0x123, /*room_id=*/0, nullptr);
+  ObjectTileEditorPanelTestAccess::ClearModifications(panel);
   ObjectTileEditorPanelTestAccess::SeedTransientState(panel);
   ObjectTileEditorPanelTestAccess::SeedRenderedBitmaps(panel);
 
-  panel.OpenForNewObject(/*width=*/1, /*height=*/1, "second.bin",
-                         /*object_id=*/0x124, /*room_id=*/1, nullptr);
+  const absl::Status status = panel.OpenForNewObject(
+      /*width=*/1, /*height=*/1, "second.bin", /*object_id=*/0x124,
+      /*room_id=*/1, nullptr);
 
+  ASSERT_TRUE(status.ok()) << status;
   EXPECT_TRUE(panel.IsOpen());
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
@@ -502,6 +829,28 @@ TEST(ObjectTileEditorPanelTest, OpenForNewObjectClearsPendingSharedConfirm) {
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), 0x124);
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
+}
+
+TEST(ObjectTileEditorPanelTest,
+     OpenForNewObjectRejectsReplacingModifiedSession) {
+  Rom rom;
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(panel
+                  .OpenForNewObject(/*width=*/2, /*height=*/2, "first.bin",
+                                    /*object_id=*/0x123, /*room_id=*/0, nullptr)
+                  .ok());
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+
+  const absl::Status status = panel.OpenForNewObject(
+      /*width=*/1, /*height=*/1, "second.bin", /*object_id=*/0x124,
+      /*room_id=*/1, nullptr);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), 0x123);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(panel), 0);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).custom_filename,
+            "first.bin");
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
 }
 
 TEST(ObjectTileEditorPanelTest,
@@ -524,18 +873,23 @@ TEST(ObjectTileEditorPanelTest,
 TEST(ObjectTileEditorPanelTest,
      OpenForObjectCapturedLayoutSelectsFirstCellAndSyncsSourceSelection) {
   Rom rom;
-  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
 
   DungeonRoomStore rooms(&rom);
   (void)rooms[0];
 
-  auto object_id = FindCapturableObjectId(&rom, &rooms);
-  ASSERT_TRUE(object_id.has_value());
-
   ObjectTileEditorPanel panel(nullptr, &rom);
-  panel.OpenForObject(*object_id, /*room_id=*/0, &rooms);
+  const absl::Status status =
+      panel.OpenForObject(kEditableStandardObjectId, /*room_id=*/0, &rooms);
 
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_TRUE(panel.IsOpen());
   ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::Layout(panel)
+                  .source_provenance.has_value());
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel)
+                .source_provenance->object_id,
+            kEditableStandardObjectId);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel),
             ObjectTileEditorPanelTestAccess::FirstCellTileId(panel));
@@ -584,6 +938,42 @@ TEST(ObjectTileEditorPanelTest,
   auto conflict_or =
       ObjectTileEditorPanelTestAccess::HasSharedTileDataConflict(panel);
   EXPECT_TRUE(absl::IsFailedPrecondition(conflict_or.status()));
+}
+
+TEST(ObjectTileEditorPanelTest,
+     DisplayImpactCacheUsesLayoutAndObjectTileRevision) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
+  DungeonRoomStore rooms(&rom);
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(
+      panel.OpenForObject(kTorchAliasObjectId, /*room_id=*/0, &rooms).ok());
+
+  auto first_display_or =
+      ObjectTileEditorPanelTestAccess::DisplayedSharedTileDataUsageCount(panel);
+  ASSERT_TRUE(first_display_or.ok()) << first_display_or.status();
+  ASSERT_EQ(*first_display_or, 3);
+
+  // A raw mutation deliberately bypasses the revision contract. Display-only
+  // state may keep its cached result even while the user edits tile values,
+  // while every apply still analyzes fresh.
+  StoreWord(rom.mutable_vector(), /*Type 1 object 1 descriptor=*/0x8002,
+            0x8000);
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x123, /*palette=*/3);
+  auto cached_display_or =
+      ObjectTileEditorPanelTestAccess::DisplayedSharedTileDataUsageCount(panel);
+  ASSERT_TRUE(cached_display_or.ok()) << cached_display_or.status();
+  EXPECT_EQ(*cached_display_or, 3);
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel)
+          .status()));
+
+  rom.AdvanceObjectTileRevision();
+  auto refreshed_display_or =
+      ObjectTileEditorPanelTestAccess::DisplayedSharedTileDataUsageCount(panel);
+  EXPECT_TRUE(absl::IsFailedPrecondition(refreshed_display_or.status()));
 }
 
 TEST(ObjectTileEditorPanelTest, RenderWithoutRoomContextClearsStaleBitmaps) {
@@ -692,7 +1082,7 @@ TEST(ObjectTileEditorPanelTest,
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasActionStatus(panel));
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsWarning(panel));
   EXPECT_NE(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel).find(
-                "Confirm shared apply"),
+                "Confirm global apply"),
             std::string::npos);
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
   EXPECT_EQ(ReadWordAt(rom, write_addr), original_word);
@@ -758,10 +1148,11 @@ TEST(ObjectTileEditorPanelTest,
   ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
 
   ObjectTileEditorPanel panel(nullptr, &rom);
-  panel.OpenForObject(kTorchAliasObjectId, /*room_id=*/-1, nullptr);
   auto layout_or = CaptureEditableStandardLayout(rom, kTorchAliasObjectId);
   ASSERT_TRUE(layout_or.ok()) << layout_or.status();
   ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(*layout_or));
+  ObjectTileEditorPanelTestAccess::SetCurrentObjectId(panel,
+                                                      kTorchAliasObjectId);
   ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
       panel, /*tile_id=*/0x123, /*palette=*/3);
 
@@ -816,6 +1207,139 @@ TEST(ObjectTileEditorPanelTest,
             std::string::npos);
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
   EXPECT_EQ(ReadWordAt(rom, write_addr), original_word);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     FirstApplyIgnoresValidDisplayCacheAndReanalyzesFresh) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
+  DungeonRoomStore rooms(&rom);
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(
+      panel.OpenForObject(kEditableStandardObjectId, /*room_id=*/0, &rooms)
+          .ok());
+  auto displayed_or =
+      ObjectTileEditorPanelTestAccess::DisplayedSharedTileDataUsageCount(panel);
+  ASSERT_TRUE(displayed_or.ok()) << displayed_or.status();
+
+  const int original_word = ReadWordAt(rom, kEditableSourcePcAddress);
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x123, /*palette=*/3);
+  StoreWord(rom.mutable_vector(), /*Type 1 object 1 descriptor=*/0x8002,
+            0x8000);
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/true);
+
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsError(panel));
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_EQ(ReadWordAt(rom, kEditableSourcePcAddress), original_word);
+}
+
+TEST(ObjectTileEditorPanelTest, ConfirmedApplyReanalyzesFreshBeforeWriting) {
+  auto data = MakeEditableStandardObjectRomData();
+  StoreWord(data, /*Type 1 object 0 descriptor=*/0x8000, 0x0E96);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  DungeonRoomStore rooms(&rom);
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(
+      panel.OpenForObject(kEditableStandardObjectId, /*room_id=*/0, &rooms)
+          .ok());
+  const int original_word = ReadWordAt(rom, kEditableSourcePcAddress);
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x123, /*palette=*/3);
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/true);
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+
+  StoreWord(rom.mutable_vector(), /*Type 1 object 1 descriptor=*/0x8002,
+            0x8000);
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/false);
+
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsError(panel));
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_EQ(ReadWordAt(rom, kEditableSourcePcAddress), original_word);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     ConfirmedApplyRepromptsWhenConsumerCountChanges) {
+  auto data = MakeEditableStandardObjectRomData();
+  StoreWord(data, /*Type 1 object 0 descriptor=*/0x8000, 0x0E96);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  DungeonRoomStore rooms(&rom);
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(
+      panel.OpenForObject(kEditableStandardObjectId, /*room_id=*/0, &rooms)
+          .ok());
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x123, /*palette=*/3);
+  const int original_word = ReadWordAt(rom, kEditableSourcePcAddress);
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/true);
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  ASSERT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 2);
+
+  StoreWord(rom.mutable_vector(), /*Type 1 object 7 descriptor=*/0x800E,
+            kEditableDescriptorWord);
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/false);
+
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 3);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsWarning(panel));
+  EXPECT_NE(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel).find(
+                "Source impact changed"),
+            std::string::npos);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_EQ(ReadWordAt(rom, kEditableSourcePcAddress), original_word);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     ConfirmedApplyRepromptsWhenConsumerIdentityChangesAtSameCount) {
+  auto data = MakeEditableStandardObjectRomData();
+  StoreWord(data, /*Type 1 object 0 descriptor=*/0x8000, 0x0E96);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  DungeonRoomStore rooms(&rom);
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(
+      panel.OpenForObject(kEditableStandardObjectId, /*room_id=*/0, &rooms)
+          .ok());
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x123, /*palette=*/3);
+  const int original_word = ReadWordAt(rom, kEditableSourcePcAddress);
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/true);
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  ASSERT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 2);
+
+  StoreWord(rom.mutable_vector(), /*Type 1 object 0 descriptor=*/0x8000,
+            0x0E00);
+  StoreWord(rom.mutable_vector(), /*Type 1 object 7 descriptor=*/0x800E,
+            0x0E96);
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/false);
+
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 2);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsWarning(panel));
+  EXPECT_NE(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel).find(
+                "Source impact changed"),
+            std::string::npos);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_EQ(ReadWordAt(rom, kEditableSourcePcAddress), original_word);
 }
 
 TEST(ObjectTileEditorPanelTest,
@@ -879,6 +1403,40 @@ TEST(ObjectTileEditorPanelTest,
 }
 
 TEST(ObjectTileEditorPanelTest,
+     SuccessfulStandardApplyInvalidatesAllRoomsAndExternalViews) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
+  DungeonRoomStore rooms(&rom);
+  auto& current_room = rooms[0];
+  auto& other_room = rooms[1];
+  zelda3::RoomLayerManager layer_manager;
+  (void)current_room.GetCompositeBitmap(layer_manager);
+  (void)other_room.GetCompositeBitmap(layer_manager);
+  ASSERT_FALSE(current_room.IsCompositeDirty());
+  ASSERT_FALSE(other_room.IsCompositeDirty());
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(
+      panel.OpenForObject(kEditableStandardObjectId, /*room_id=*/0, &rooms)
+          .ok());
+  ObjectTileEditorPanelTestAccess::SetSharedTileDataUsageOverride(
+      panel, /*shared_count=*/1);
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x123, /*palette=*/3);
+  int callback_count = 0;
+  panel.SetStandardTilesAppliedCallback(
+      [&callback_count]() { ++callback_count; });
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/true);
+
+  EXPECT_EQ(callback_count, 1);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_TRUE(current_room.IsCompositeDirty());
+  EXPECT_TRUE(other_room.IsCompositeDirty());
+}
+
+TEST(ObjectTileEditorPanelTest,
      ManifestBlockedApplyPreservesRomAndModifiedRetryState) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
@@ -902,7 +1460,10 @@ TEST(ObjectTileEditorPanelTest,
   project.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
 
   int preflight_count = 0;
+  int applied_callback_count = 0;
   std::vector<std::pair<uint32_t, uint32_t>> observed_ranges;
+  panel.SetStandardTilesAppliedCallback(
+      [&applied_callback_count]() { ++applied_callback_count; });
   panel.SetStandardWritePreflightCallback(
       [&](const std::vector<std::pair<uint32_t, uint32_t>>& ranges) {
         ++preflight_count;
@@ -919,6 +1480,7 @@ TEST(ObjectTileEditorPanelTest,
                                                 /*confirm_shared=*/false);
 
   EXPECT_EQ(preflight_count, 1);
+  EXPECT_EQ(applied_callback_count, 0);
   EXPECT_EQ(observed_ranges,
             (std::vector<std::pair<uint32_t, uint32_t>>{
                 {kEditableSourcePcAddress, kEditableSourcePcAddress + 2}}));
@@ -939,6 +1501,7 @@ TEST(ObjectTileEditorPanelTest,
 
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
   EXPECT_NE(rom.vector(), original);
+  EXPECT_EQ(applied_callback_count, 1);
 }
 
 TEST(ObjectTileEditorPanelTest, UnrelatedManifestRangeAllowsStandardApply) {
@@ -1051,7 +1614,7 @@ TEST(ObjectTileEditorPanelTest,
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasActionStatus(panel));
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsWarning(panel));
   EXPECT_NE(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel).find(
-                "Confirm shared apply"),
+                "Confirm global apply"),
             std::string::npos);
   EXPECT_EQ(ReadWordAt(rom, reopened_write_addr), reopened_original_word);
 }

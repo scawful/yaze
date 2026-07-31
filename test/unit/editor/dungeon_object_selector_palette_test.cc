@@ -1,12 +1,26 @@
 #include "app/editor/dungeon/dungeon_object_selector.h"
 
 #include <cstddef>
+#include <vector>
 
+#include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
 #include "app/gfx/types/snes_palette.h"
 #include "gtest/gtest.h"
 
 namespace yaze {
 namespace editor {
+
+struct DungeonObjectSelectorTestAccess {
+  static absl::Status OpenNewCustomObjectEditor(DungeonObjectSelector& selector,
+                                                int width, int height,
+                                                const std::string& filename,
+                                                int16_t object_id,
+                                                int room_id) {
+    return selector.OpenNewCustomObjectEditor(width, height, filename,
+                                              object_id, room_id);
+  }
+};
+
 namespace {
 
 // Pins the cache-invalidation contract for DungeonObjectSelector's preview
@@ -73,6 +87,81 @@ TEST(DungeonObjectSelectorPaletteTest, ObjectPreviewsDefaultOn) {
   // graphics are unavailable.
   DungeonObjectSelector selector;
   EXPECT_TRUE(selector.object_previews_enabled_for_testing());
+}
+
+TEST(DungeonObjectSelectorCustomEditorTest,
+     NewCustomObjectSessionOpensWorkspaceWindow) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  DungeonObjectSelector selector(&rom);
+  selector.set_rooms(&rooms);
+  selector.SetTileEditorPanel(&panel);
+  int open_window_count = 0;
+  selector.SetOpenTileEditorWindowCallback([&open_window_count]() {
+    ++open_window_count;
+    return true;
+  });
+
+  const absl::Status status =
+      DungeonObjectSelectorTestAccess::OpenNewCustomObjectEditor(
+          selector, /*width=*/2, /*height=*/2, "custom_31_00.bin",
+          /*object_id=*/0x31, /*room_id=*/0);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(open_window_count, 1);
+  EXPECT_TRUE(panel.IsOpen());
+}
+
+TEST(DungeonObjectSelectorCustomEditorTest,
+     NewCustomObjectSessionFailsClosedWhenWindowIsUnavailable) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  DungeonObjectSelector selector(&rom);
+  selector.set_rooms(&rooms);
+  selector.SetTileEditorPanel(&panel);
+  selector.SetOpenTileEditorWindowCallback([]() { return false; });
+
+  const absl::Status status =
+      DungeonObjectSelectorTestAccess::OpenNewCustomObjectEditor(
+          selector, /*width=*/2, /*height=*/2, "custom_31_00.bin",
+          /*object_id=*/0x31, /*room_id=*/0);
+
+  EXPECT_TRUE(absl::IsNotFound(status));
+  EXPECT_FALSE(panel.IsOpen());
+}
+
+TEST(DungeonObjectSelectorCustomEditorTest,
+     NewCustomObjectSessionPreservesExistingUnappliedEdits) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(panel
+                  .OpenForNewObject(/*width=*/2, /*height=*/2, "existing.bin",
+                                    /*object_id=*/0x31,
+                                    /*room_id=*/0, &rooms)
+                  .ok());
+  DungeonObjectSelector selector(&rom);
+  selector.set_rooms(&rooms);
+  selector.SetTileEditorPanel(&panel);
+  int open_window_count = 0;
+  selector.SetOpenTileEditorWindowCallback([&open_window_count]() {
+    ++open_window_count;
+    return true;
+  });
+
+  const absl::Status status =
+      DungeonObjectSelectorTestAccess::OpenNewCustomObjectEditor(
+          selector, /*width=*/1, /*height=*/1, "replacement.bin",
+          /*object_id=*/0x32, /*room_id=*/1);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status));
+  EXPECT_EQ(open_window_count, 1);
+  EXPECT_TRUE(panel.IsOpen());
 }
 
 TEST(DungeonObjectSelectorSizeTest,

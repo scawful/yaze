@@ -11,6 +11,7 @@
 #include "imgui/imgui.h"
 #include "util/log.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
+#include "zelda3/dungeon/object_tile_editor.h"
 #include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite.h"
 
@@ -162,7 +163,9 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(int room_id) {
 
   bool can_edit_selected_graphics = false;
   std::function<void()> edit_selected_graphics;
-  if (single_selection && rooms_) {
+  bool can_edit_selected_tiles = false;
+  std::function<void()> edit_selected_tiles;
+  if (single_selection && valid_room) {
     auto& room = (*rooms_)[room_id];
     const auto& objects = room.GetTileObjects();
     if (selected[0] < objects.size()) {
@@ -174,6 +177,14 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(int room_id) {
           edit_graphics_callback_(room_id, object);
         } else if (show_room_graphics_callback_) {
           show_room_graphics_callback_();
+        }
+      };
+      can_edit_selected_tiles =
+          edit_object_tiles_callback_ != nullptr &&
+          zelda3::ObjectTileEditor::IsEditableStandardObject(object.id_);
+      edit_selected_tiles = [this, room_id, object]() {
+        if (edit_object_tiles_callback_) {
+          edit_object_tiles_callback_(room_id, object);
         }
       };
     }
@@ -291,6 +302,10 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(int room_id) {
   if (can_edit_selected_graphics) {
     items.emplace_back("Edit Graphics...", ICON_MD_IMAGE,
                        std::move(edit_selected_graphics));
+  }
+  if (can_edit_selected_tiles) {
+    items.emplace_back("Edit Object Tiles...", ICON_MD_GRID_ON,
+                       std::move(edit_selected_tiles));
   }
 
   const bool has_entity_selection = interaction.HasEntitySelection();

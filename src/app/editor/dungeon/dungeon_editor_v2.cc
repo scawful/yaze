@@ -860,6 +860,11 @@ absl::Status DungeonEditorV2::Load() {
                 "dungeon object tile data", "ObjectTileEditorPanel",
                 dependencies_.toast_manager);
           });
+      tile_editor_panel->SetStandardTilesAppliedCallback([this]() {
+        if (object_selector_panel_) {
+          object_selector_panel_->object_selector().InvalidatePreviewCache();
+        }
+      });
 
       // Wire creation callback: when a new custom object is saved,
       // register it with the manager, persist to project, and refresh UI.
@@ -887,6 +892,13 @@ absl::Status DungeonEditorV2::Load() {
     if (object_selector_panel_) {
       object_selector_panel_->object_selector().SetTileEditorPanel(
           object_tile_editor_panel_);
+      object_selector_panel_->object_selector().SetOpenTileEditorWindowCallback(
+          [this]() {
+            return dependencies_.window_manager != nullptr &&
+                   object_tile_editor_panel_ != nullptr &&
+                   dependencies_.window_manager->OpenWindow(
+                       object_tile_editor_panel_->GetId());
+          });
       if (dependencies_.project) {
         object_selector_panel_->object_selector().SetProject(
             dependencies_.project);
@@ -1046,8 +1058,8 @@ void DungeonEditorV2::HandleDungeonPaletteChanged(
           room_graphics_panel_->SetCurrentPaletteGroup(current_palette_group_);
         }
         if (object_tile_editor_panel_) {
-          object_tile_editor_panel_->SetCurrentPaletteGroup(
-              current_palette_group_);
+          object_tile_editor_panel_->SetCurrentPaletteGroupForRoom(
+              current_room_id_, current_palette_group_);
         }
       }
     }
@@ -1688,6 +1700,10 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
                 room_graphics_panel_->SetCurrentPaletteGroup(
                     current_palette_group_);
               }
+              if (object_tile_editor_panel_) {
+                object_tile_editor_panel_->SetCurrentPaletteGroupForRoom(
+                    room_id, current_palette_group_);
+              }
             }
           }
         }
@@ -1932,6 +1948,71 @@ void DungeonEditorV2::OpenGraphicsEditorForObject(
   }
 }
 
+absl::Status DungeonEditorV2::OpenObjectTileEditorForObject(
+    int room_id, const zelda3::RoomObject& object) {
+  if (object_tile_editor_panel_ == nullptr) {
+    return absl::FailedPreconditionError(
+        "Object Tile Editor panel is unavailable");
+  }
+  if (dependencies_.window_manager == nullptr) {
+    return absl::FailedPreconditionError(
+        "Workspace window manager is unavailable");
+  }
+  if (rom_ == nullptr || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
+    return absl::OutOfRangeError("Dungeon room id is outside the room store");
+  }
+  if (!zelda3::ObjectTileEditor::IsEditableStandardObject(object.id_)) {
+    return absl::UnimplementedError(
+        "Object tile editing is supported only for audited objects 0x11F and "
+        "0x120");
+  }
+  if (game_data_ == nullptr ||
+      game_data_->palette_groups.dungeon_main.empty()) {
+    return absl::FailedPreconditionError("Dungeon palette data is unavailable");
+  }
+
+  auto& room = rooms_[room_id];
+  if (!room.IsLoaded()) {
+    RETURN_IF_ERROR(room_loader_.LoadRoom(room_id, room));
+  }
+  ApplyEntranceRenderContext(room_id);
+  room.PrepareForRender();
+
+  const int palette_id = room.ResolveDungeonPaletteId();
+  const auto& dungeon_palettes = game_data_->palette_groups.dungeon_main;
+  if (palette_id < 0 ||
+      palette_id >= static_cast<int>(dungeon_palettes.size())) {
+    return absl::OutOfRangeError(
+        "Room resolves to an unavailable dungeon palette");
+  }
+  auto room_palette = dungeon_palettes[palette_id];
+  ASSIGN_OR_RETURN(auto palette_group,
+                   gfx::CreatePaletteGroupFromLargePalette(room_palette));
+
+  const absl::Status open_status = object_tile_editor_panel_->OpenForObject(
+      object.id_, room_id, &rooms_, palette_group);
+  if (!open_status.ok()) {
+    // A modified hidden session rejects replacement to prevent data loss.
+    // Surface that existing session so the user can apply, revert, or use the
+    // explicit discard action described by the returned status.
+    if (object_tile_editor_panel_->IsOpen()) {
+      (void)dependencies_.window_manager->OpenWindow(
+          object_tile_editor_panel_->GetId());
+    }
+    return open_status;
+  }
+  if (!dependencies_.window_manager->OpenWindow(
+          object_tile_editor_panel_->GetId())) {
+    object_tile_editor_panel_->Close();
+    return absl::NotFoundError(
+        "Object Tile Editor window is not registered in this session");
+  }
+  return absl::OkStatus();
+}
+
 void DungeonEditorV2::SwapRoomInPanel(int old_room_id, int new_room_id) {
   // Defer the swap until after the current frame's draw phase completes
   // This prevents modifying data structures while ImGui is still using them
@@ -2127,6 +2208,21 @@ void DungeonEditorV2::WireViewerPanelCallbacks(DungeonCanvasViewer* viewer) {
   viewer->SetEditGraphicsCallback(
       [this](int target_room_id, const zelda3::RoomObject& object) {
         OpenGraphicsEditorForObject(target_room_id, object);
+      });
+  viewer->SetEditObjectTilesCallback(
+      [this](int target_room_id, const zelda3::RoomObject& object) {
+        const absl::Status status =
+            OpenObjectTileEditorForObject(target_room_id, object);
+        if (status.ok()) {
+          return;
+        }
+        LOG_ERROR("DungeonEditorV2", "Edit Object Tiles failed: %s",
+                  status.message().data());
+        if (dependencies_.toast_manager) {
+          dependencies_.toast_manager->Show(
+              absl::StrFormat("Edit Object Tiles failed: %s", status.message()),
+              ToastType::kError);
+        }
       });
   viewer->SetSaveRoomCallback([this](int target_room_id) {
     auto status = SaveRoom(target_room_id);
@@ -2489,10 +2585,6 @@ void DungeonEditorV2::SyncPanelsToRoom(int room_id) {
     if (viewer) {
       water_fill_panel_->SetInteraction(&viewer->object_interaction());
     }
-  }
-
-  if (object_tile_editor_panel_) {
-    object_tile_editor_panel_->SetCurrentPaletteGroup(current_palette_group_);
   }
 
   if (room_tag_editor_panel_) {
