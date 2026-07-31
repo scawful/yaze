@@ -18,6 +18,9 @@
 #include "zelda3/game_data.h"
 
 namespace yaze {
+namespace project {
+struct YazeProject;
+}
 namespace editor {
 
 // Forward declaration
@@ -119,6 +122,8 @@ class PaletteGroupPanel : public WindowContent {
   void SetToastManager(ToastManager* toast_manager) {
     toast_manager_ = toast_manager;
   }
+  void SetProject(const project::YazeProject* project) { project_ = project; }
+  bool IsOwnedByRom(const Rom* rom) const { return rom_ == rom; }
 
   // ========== Palette Operations ==========
 
@@ -256,12 +261,6 @@ class PaletteGroupPanel : public WindowContent {
    */
   gfx::SnesColor GetOriginalColor(int palette_index, int color_index) const;
 
-  /**
-   * @brief Write a single color to ROM
-   */
-  absl::Status WriteColorToRom(int palette_index, int color_index,
-                               const gfx::SnesColor& color);
-
   /// Return true only while PaletteManager is bound to this panel's session.
   bool IsManagedSession() const;
 
@@ -280,8 +279,9 @@ class PaletteGroupPanel : public WindowContent {
   std::string group_name_;    // Internal name (e.g., "ow_main")
   std::string display_name_;  // Display name (e.g., "Overworld Main")
   Rom* rom_;                  // ROM instance
-  zelda3::GameData* game_data_ = nullptr;  // GameData instance
-  bool show_ = false;                      // Visibility flag
+  zelda3::GameData* game_data_ = nullptr;          // GameData instance
+  const project::YazeProject* project_ = nullptr;  // Session save policy
+  bool show_ = false;                              // Visibility flag
 
   // Selection state
   int selected_palette_ = 0;      // Currently selected palette index
@@ -289,9 +289,8 @@ class PaletteGroupPanel : public WindowContent {
   gfx::SnesColor editing_color_;  // Color being edited in picker
 
   // Settings
-  bool auto_save_enabled_ = false;  // Auto-save to ROM on every change
-  bool show_snes_format_ = true;    // Show SNES $xxxx format in info
-  bool show_hex_format_ = true;     // Show #xxxxxx hex in info
+  bool show_snes_format_ = true;  // Show SNES $xxxx format in info
+  bool show_hex_format_ = true;   // Show #xxxxxx hex in info
 
   ToastManager* toast_manager_ = nullptr;
 };
