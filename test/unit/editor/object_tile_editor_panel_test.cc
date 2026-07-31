@@ -235,11 +235,13 @@ struct ObjectTileEditorPanelTestAccess {
     return panel.current_layout_.cells.front().tile_info.palette_;
   }
 
-  static int SharedTileDataUsageCount(const ObjectTileEditorPanel& panel) {
+  static absl::StatusOr<int> SharedTileDataUsageCount(
+      const ObjectTileEditorPanel& panel) {
     return panel.GetSharedTileDataUsageCount();
   }
 
-  static bool HasSharedTileDataConflict(const ObjectTileEditorPanel& panel) {
+  static absl::StatusOr<bool> HasSharedTileDataConflict(
+      const ObjectTileEditorPanel& panel) {
     return panel.HasSharedTileDataConflict();
   }
 };
@@ -301,6 +303,11 @@ constexpr uint32_t kEditableDescriptorPcAddress = 0x842E;
 constexpr uint16_t kEditableDescriptorWord = 0x0E9A;
 constexpr uint32_t kEditableSourcePcAddress = 0x29EC;
 constexpr uint16_t kEditableSourceWords[] = {0x0DEE, 0x8DEE, 0x4DEE, 0xCDEE};
+constexpr int16_t kTorchAliasObjectId = 0x120;
+constexpr uint32_t kTorchAliasDescriptorPcAddress = 0x8430;
+constexpr uint16_t kTorchAliasDescriptorWord = 0x0ECA;
+constexpr uint32_t kTorchAliasSourcePcAddress = 0x2A1C;
+constexpr uint16_t kTorchAliasSourceWords[] = {0x0DC0, 0x0DC1, 0x4DC0, 0x4DC1};
 
 void StoreWord(std::vector<uint8_t>& data, uint32_t address, uint16_t word) {
   data[address] = static_cast<uint8_t>(word & 0xFF);
@@ -314,16 +321,20 @@ std::vector<uint8_t> MakeEditableStandardObjectRomData() {
     StoreWord(data, kEditableSourcePcAddress + index * 2,
               kEditableSourceWords[index]);
   }
+  StoreWord(data, kTorchAliasDescriptorPcAddress, kTorchAliasDescriptorWord);
+  for (size_t index = 0; index < std::size(kTorchAliasSourceWords); ++index) {
+    StoreWord(data, kTorchAliasSourcePcAddress + index * 2,
+              kTorchAliasSourceWords[index]);
+  }
   return data;
 }
 
 absl::StatusOr<zelda3::ObjectTileLayout> CaptureEditableStandardLayout(
-    Rom& rom) {
+    Rom& rom, int16_t object_id = kEditableStandardObjectId) {
   zelda3::Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
   gfx::PaletteGroup palette;
   zelda3::ObjectTileEditor editor(&rom);
-  return editor.CaptureEditableObjectLayout(kEditableStandardObjectId, room,
-                                            palette);
+  return editor.CaptureEditableObjectLayout(object_id, room, palette);
 }
 
 int FirstCellSourceAddress(const zelda3::ObjectTileLayout& layout) {
@@ -543,14 +554,18 @@ TEST(ObjectTileEditorPanelTest,
   layout.tile_data_address = 0x1234;
   ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
 
-  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel),
-            0);
-  EXPECT_FALSE(
-      ObjectTileEditorPanelTestAccess::HasSharedTileDataConflict(panel));
+  auto usage_count_or =
+      ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel);
+  ASSERT_TRUE(usage_count_or.ok()) << usage_count_or.status();
+  EXPECT_EQ(*usage_count_or, 0);
+  auto conflict_or =
+      ObjectTileEditorPanelTestAccess::HasSharedTileDataConflict(panel);
+  ASSERT_TRUE(conflict_or.ok()) << conflict_or.status();
+  EXPECT_FALSE(*conflict_or);
 }
 
 TEST(ObjectTileEditorPanelTest,
-     SharedTileDataUsageCountIgnoresStandardLayoutsWithoutTileDataAddress) {
+     SharedTileDataUsageCountRejectsStandardLayoutsWithoutProvenance) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
@@ -562,10 +577,13 @@ TEST(ObjectTileEditorPanelTest,
   layout.tile_data_address = -1;
   ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
 
-  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel),
-            0);
-  EXPECT_FALSE(
-      ObjectTileEditorPanelTestAccess::HasSharedTileDataConflict(panel));
+  ObjectTileEditorPanelTestAccess::SetCurrentObjectId(panel, 0x40);
+  auto usage_count_or =
+      ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel);
+  EXPECT_TRUE(absl::IsFailedPrecondition(usage_count_or.status()));
+  auto conflict_or =
+      ObjectTileEditorPanelTestAccess::HasSharedTileDataConflict(panel);
+  EXPECT_TRUE(absl::IsFailedPrecondition(conflict_or.status()));
 }
 
 TEST(ObjectTileEditorPanelTest, RenderWithoutRoomContextClearsStaleBitmaps) {
@@ -648,8 +666,10 @@ TEST(ObjectTileEditorPanelTest,
   ObjectTileEditorPanelTestAccess::SetSharedTileDataUsageOverride(
       panel, /*shared_count=*/3);
 
-  ASSERT_GT(ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel),
-            1);
+  auto shared_count_or =
+      ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel);
+  ASSERT_TRUE(shared_count_or.ok()) << shared_count_or.status();
+  ASSERT_GT(*shared_count_or, 1);
 
   const int write_addr =
       FirstCellSourceAddress(ObjectTileEditorPanelTestAccess::Layout(panel));
@@ -679,6 +699,126 @@ TEST(ObjectTileEditorPanelTest,
 }
 
 TEST(ObjectTileEditorPanelTest,
+     ApplyChangesUsesRealPartialOverlapImpactBeforeWriteback) {
+  auto data = MakeEditableStandardObjectRomData();
+  // Type 1 object 0 consumes [0x29E8, 0x29F0), partially overlapping the
+  // editable object's [0x29EC, 0x29F4) source.
+  StoreWord(data, /*Type 1 object 0 descriptor=*/0x8000, 0x0E96);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  OpenInjectedSharedStandardObjectSession(panel, rom);
+  auto shared_count_or =
+      ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel);
+  ASSERT_TRUE(shared_count_or.ok()) << shared_count_or.status();
+  ASSERT_EQ(*shared_count_or, 2);
+
+  const int write_addr =
+      FirstCellSourceAddress(ObjectTileEditorPanelTestAccess::Layout(panel));
+  ASSERT_GE(write_addr, 0);
+  const int original_word = ReadWordAt(rom, write_addr);
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x123, /*palette=*/3);
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/true);
+
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 2);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsWarning(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_EQ(ReadWordAt(rom, write_addr), original_word);
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/false);
+  ASSERT_FALSE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  ASSERT_NE(ReadWordAt(rom, write_addr), original_word);
+
+  // The successful apply must refresh provenance.expected_words. A second
+  // edit in the same session should pass the real analyzer and warn again,
+  // not fail its write-plan CAS check against the first applied value.
+  const int first_applied_word = ReadWordAt(rom, write_addr);
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x234, /*palette=*/4);
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/true);
+
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 2);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsWarning(panel));
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::ActionStatusIsError(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_EQ(ReadWordAt(rom, write_addr), first_applied_word);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     ApplyChangesWarnsForGlobalTorchConsumersOfObject120) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  panel.OpenForObject(kTorchAliasObjectId, /*room_id=*/-1, nullptr);
+  auto layout_or = CaptureEditableStandardLayout(rom, kTorchAliasObjectId);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(*layout_or));
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x123, /*palette=*/3);
+
+  auto shared_count_or =
+      ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel);
+  ASSERT_TRUE(shared_count_or.ok()) << shared_count_or.status();
+  // Object 0x120 plus initial torch drawing and live lighting-change paths.
+  ASSERT_EQ(*shared_count_or, 3);
+
+  const int original_word = ReadWordAt(rom, kTorchAliasSourcePcAddress);
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/true);
+
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 3);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsWarning(panel));
+  EXPECT_NE(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel).find(
+                "3 consumers"),
+            std::string::npos);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_EQ(ReadWordAt(rom, kTorchAliasSourcePcAddress), original_word);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     ApplyChangesFailsClosedWhenAnySourceImpactIsMalformed) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
+
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  OpenInjectedSharedStandardObjectSession(panel, rom);
+  StoreWord(rom.mutable_vector(), /*Type 1 object 1 descriptor=*/0x8002,
+            0x8000);
+
+  const int write_addr =
+      FirstCellSourceAddress(ObjectTileEditorPanelTestAccess::Layout(panel));
+  ASSERT_GE(write_addr, 0);
+  const int original_word = ReadWordAt(rom, write_addr);
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x123, /*palette=*/3);
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/true);
+
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 0);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsError(panel));
+  EXPECT_NE(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel).find(
+                "source impact could not be resolved"),
+            std::string::npos);
+  EXPECT_NE(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel).find(
+                "object 0x001"),
+            std::string::npos);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_EQ(ReadWordAt(rom, write_addr), original_word);
+}
+
+TEST(ObjectTileEditorPanelTest,
      ApplyChangesWithoutConfirmationWritesSharedStandardObjectAndClearsModal) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
@@ -692,8 +832,10 @@ TEST(ObjectTileEditorPanelTest,
   ObjectTileEditorPanelTestAccess::SetSharedTileDataUsageOverride(
       panel, /*shared_count=*/3);
 
-  ASSERT_GT(ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel),
-            1);
+  auto shared_count_or =
+      ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel);
+  ASSERT_TRUE(shared_count_or.ok()) << shared_count_or.status();
+  ASSERT_GT(*shared_count_or, 1);
 
   const int write_addr =
       FirstCellSourceAddress(ObjectTileEditorPanelTestAccess::Layout(panel));

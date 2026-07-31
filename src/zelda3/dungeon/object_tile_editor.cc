@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_tile.h"
 #include "core/features.h"
 #include "rom/transaction.h"
@@ -853,30 +854,133 @@ absl::Status ObjectTileEditor::ApplyStandardWritePlan(
   return absl::OkStatus();
 }
 
-int ObjectTileEditor::CountObjectsSharingTileData(int16_t object_id) const {
-  if (!rom_ || !rom_->is_loaded())
-    return 0;
+absl::StatusOr<ObjectTileSourceImpact>
+ObjectTileEditor::AnalyzeStandardTileSourceImpact(
+    const ObjectTileLayout& layout) const {
+  if (rom_ == nullptr || !rom_->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
+  }
+  if (layout.is_custom) {
+    return absl::InvalidArgumentError(
+        "Custom objects do not use standard ROM tile sources");
+  }
+  if (!layout.source_provenance.has_value()) {
+    return absl::FailedPreconditionError(
+        "Standard object layout has no editable source provenance");
+  }
 
-  // Create temporary object to get its tile_data_ptr_
-  RoomObject test_obj(object_id, 0, 0, 0, 0);
-  test_obj.SetRom(rom_);
-  test_obj.EnsureTilesLoaded();
-  int target_ptr = test_obj.tile_data_ptr_;
-  if (target_ptr < 0)
-    return 0;
+  // Reuse the write-plan validator as the provenance/CAS gate. This validates
+  // the audited object ID, descriptor, complete source snapshot, and cell map
+  // without mutating the ROM, regardless of whether the layout has edits.
+  const auto plan_or = BuildStandardWritePlan(layout);
+  if (!plan_or.ok()) {
+    return plan_or.status();
+  }
 
-  // Scan type 1 objects (0x00-0xFF) for shared pointers
-  int count = 0;
-  for (int id = 0; id < 0x100; ++id) {
-    RoomObject scan_obj(static_cast<int16_t>(id), 0, 0, 0, 0);
-    scan_obj.SetRom(rom_);
-    scan_obj.EnsureTilesLoaded();
-    if (scan_obj.tile_data_ptr_ == target_ptr) {
-      ++count;
+  std::vector<ObjectTileReadRange> target_ranges;
+  for (const auto& span : layout.source_provenance->spans) {
+    if (span.expected_words.empty()) {
+      return absl::FailedPreconditionError(
+          "Editable object tile source span is empty");
+    }
+    const uint64_t end = static_cast<uint64_t>(span.pc_address) +
+                         static_cast<uint64_t>(span.expected_words.size()) * 2;
+    if (end > rom_->size() || end > std::numeric_limits<uint32_t>::max()) {
+      return absl::OutOfRangeError(
+          "Editable object tile source span is outside the loaded ROM");
+    }
+    target_ranges.push_back({span.pc_address, static_cast<uint32_t>(end)});
+  }
+
+  const auto overlaps_target =
+      [&target_ranges](const ObjectTileReadRange& candidate) {
+        return std::any_of(target_ranges.begin(), target_ranges.end(),
+                           [&candidate](const ObjectTileReadRange& target) {
+                             return candidate.begin < target.end &&
+                                    target.begin < candidate.end;
+                           });
+      };
+
+  ObjectParser parser(rom_);
+  ObjectTileSourceImpact impact;
+  const auto inspect_object = [&](int object_id) -> absl::Status {
+    auto ranges_or =
+        parser.ResolveTileReadRanges(static_cast<int16_t>(object_id));
+    if (!ranges_or.ok()) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Unable to resolve tile sources for object 0x%03X: %s", object_id,
+          ranges_or.status().message()));
+    }
+
+    ObjectTileSourceImpactEntry entry;
+    entry.object_id = static_cast<int16_t>(object_id);
+    for (const auto& range : *ranges_or) {
+      if (overlaps_target(range)) {
+        entry.overlapping_ranges.push_back(range);
+      }
+    }
+    if (!entry.overlapping_ranges.empty()) {
+      impact.affected_objects.push_back(std::move(entry));
+    }
+    return absl::OkStatus();
+  };
+
+  // Only IDs representable in the dungeon object stream are relevant. Keep the
+  // three families explicit so invalid aliases (Type 1 0xF8..0xFF and Type 2
+  // 0x140..0x1FF) cannot silently inflate or hide the impact set.
+  for (int object_id = 0x000; object_id <= 0x0F7; ++object_id) {
+    const absl::Status status = inspect_object(object_id);
+    if (!status.ok()) {
+      return status;
+    }
+  }
+  for (int object_id = 0x100; object_id <= 0x13F; ++object_id) {
+    const absl::Status status = inspect_object(object_id);
+    if (!status.ok()) {
+      return status;
+    }
+  }
+  for (int object_id = 0xF80; object_id <= 0xFFF; ++object_id) {
+    const absl::Status status = inspect_object(object_id);
+    if (!status.ok()) {
+      return status;
     }
   }
 
-  return count;
+  // Room::RenderObjectsToBackground synthesizes lightable torches as global
+  // object 0x150, outside the persisted stream-ID families above. Both room
+  // rendering and the in-game lighting-change path read these literal blocks.
+  // In particular, the lit block aliases editable object 0x120 exactly.
+  constexpr int kLightableTorchTileCount = 4;
+  constexpr ObjectTileReadRange kLightableTorchSources[] = {
+      {kRoomObjectTileAddress + 0x0EC2,
+       kRoomObjectTileAddress + 0x0EC2 + kLightableTorchTileCount * 2},
+      {kRoomObjectTileAddress + 0x0ECA,
+       kRoomObjectTileAddress + 0x0ECA + kLightableTorchTileCount * 2},
+  };
+  for (const auto consumer :
+       {ObjectTileRuntimeConsumer::kLightableTorchDraw,
+        ObjectTileRuntimeConsumer::kTorchLightingChange}) {
+    ObjectTileRuntimeConsumerImpactEntry torch_impact{consumer, {}};
+    for (const auto& range : kLightableTorchSources) {
+      if (overlaps_target(range)) {
+        torch_impact.overlapping_ranges.push_back(range);
+      }
+    }
+    if (!torch_impact.overlapping_ranges.empty()) {
+      impact.runtime_consumers.push_back(std::move(torch_impact));
+    }
+  }
+
+  const bool includes_edited_object = std::any_of(
+      impact.affected_objects.begin(), impact.affected_objects.end(),
+      [&](const auto& entry) { return entry.object_id == layout.object_id; });
+  if (!includes_edited_object) {
+    return absl::FailedPreconditionError(
+        "Edited object is missing from its tile source impact inventory");
+  }
+
+  return impact;
 }
 
 }  // namespace zelda3

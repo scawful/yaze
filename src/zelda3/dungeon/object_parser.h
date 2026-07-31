@@ -82,6 +82,20 @@ struct ObjectDrawInfo {
 };
 
 /**
+ * @brief One half-open PC range consumed while parsing an object's tile data.
+ *
+ * Keeping this trace inside ObjectParser makes split and literal sources use
+ * the exact same control flow as rendering instead of inferring one contiguous
+ * range from a descriptor and a total tile count.
+ */
+struct ObjectTileReadRange {
+  uint32_t begin = 0;
+  uint32_t end = 0;
+
+  bool operator==(const ObjectTileReadRange&) const = default;
+};
+
+/**
  * @brief Direct ROM parser for dungeon objects
  *
  * This class replaces the SNES emulation approach with direct ROM parsing,
@@ -98,6 +112,16 @@ class ObjectParser {
    * @return StatusOr containing the parsed tile data
    */
   absl::StatusOr<std::vector<gfx::TileInfo>> ParseObject(int16_t object_id);
+
+  /**
+   * @brief Resolve every tile-data range consumed by ParseObject.
+   *
+   * This deliberately executes the parser's normal read path and therefore
+   * fails if any source is malformed or outside the loaded ROM. Callers must
+   * not turn a resolution error into an empty impact set.
+   */
+  absl::StatusOr<std::vector<ObjectTileReadRange>> ResolveTileReadRanges(
+      int16_t object_id);
 
   /**
    * @brief Parse object routine data
@@ -181,6 +205,7 @@ class ObjectParser {
    *
    * Different subtype 3 objects have different tile counts:
    * - PrisonCell aliases (0xF8D/0xF97): 6 tiles from literal obj1488
+   * - RupeeFloor (0xF92): 2 tiles from literal obj1DD6
    * - BigKeyLock (0xF98): 4 tiles (one closed 2x2 block)
    * - BombableFloor (0xFC7): 32 tiles (two non-contiguous 4x4 states)
    * - Chest/OpenChest (0xF99/0xF9A): 8/4 tiles (stateful/fixed 2x2)
@@ -199,6 +224,7 @@ class ObjectParser {
   int ResolveTileCountForObject(int16_t object_id) const;
 
   Rom* rom_;
+  std::vector<ObjectTileReadRange>* tile_read_range_collector_ = nullptr;
 };
 
 }  // namespace zelda3

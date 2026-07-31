@@ -8,6 +8,7 @@
 #include <type_traits>
 #include <vector>
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "core/features.h"
@@ -492,6 +493,121 @@ TEST(ObjectTileEditorTest,
       EXPECT_EQ(gfx::TileInfoToWord(cell->tile_info), cell->original_word);
     }
   }
+}
+
+TEST(ObjectTileEditorTest,
+     StandardTileSourceImpactIncludesAliasesAcrossObjectFamilies) {
+  ScopedCustomObjectsDisabled disable_custom_objects;
+  auto data = MakeEditableObjectRomData();
+  // Type 1 object 0 and Type 3 object F96 both consume the same exact four
+  // words as editable Type 2 object 11F.
+  StoreWord(data, /*Type 1 object 0 descriptor=*/0x8000, 0x0E9A);
+  StoreWord(data, /*Type 3 object F96 descriptor=*/0x851C, 0x0E9A);
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+  gfx::PaletteGroup palette;
+  ObjectTileEditor editor(&rom);
+  auto layout_or = editor.CaptureEditableObjectLayout(0x11F, room, palette);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+
+  auto impact_or = editor.AnalyzeStandardTileSourceImpact(*layout_or);
+  ASSERT_TRUE(impact_or.ok()) << impact_or.status();
+  ASSERT_EQ(impact_or->consumer_count(), 3u);
+  EXPECT_TRUE(impact_or->runtime_consumers.empty());
+  EXPECT_EQ(impact_or->affected_objects[0].object_id, 0x000);
+  EXPECT_EQ(impact_or->affected_objects[1].object_id, 0x11F);
+  EXPECT_EQ(impact_or->affected_objects[2].object_id, 0xF96);
+  for (const auto& entry : impact_or->affected_objects) {
+    EXPECT_THAT(entry.overlapping_ranges,
+                ::testing::ElementsAre(ObjectTileReadRange{0x29EC, 0x29F4}));
+  }
+}
+
+TEST(ObjectTileEditorTest,
+     StandardTileSourceImpactIncludesGlobalLightableTorchConsumer) {
+  ScopedCustomObjectsDisabled disable_custom_objects;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableObjectRomData()).ok());
+  Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+  gfx::PaletteGroup palette;
+  ObjectTileEditor editor(&rom);
+  auto layout_or = editor.CaptureEditableObjectLayout(0x120, room, palette);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+
+  auto impact_or = editor.AnalyzeStandardTileSourceImpact(*layout_or);
+  ASSERT_TRUE(impact_or.ok()) << impact_or.status();
+  ASSERT_EQ(impact_or->affected_objects.size(), 1u);
+  EXPECT_EQ(impact_or->affected_objects[0].object_id, 0x120);
+  ASSERT_EQ(impact_or->runtime_consumers.size(), 2u);
+  EXPECT_EQ(impact_or->runtime_consumers[0].consumer,
+            ObjectTileRuntimeConsumer::kLightableTorchDraw);
+  EXPECT_THAT(impact_or->runtime_consumers[0].overlapping_ranges,
+              ::testing::ElementsAre(ObjectTileReadRange{0x2A1C, 0x2A24}));
+  EXPECT_EQ(impact_or->runtime_consumers[1].consumer,
+            ObjectTileRuntimeConsumer::kTorchLightingChange);
+  EXPECT_THAT(impact_or->runtime_consumers[1].overlapping_ranges,
+              ::testing::ElementsAre(ObjectTileReadRange{0x2A1C, 0x2A24}));
+  EXPECT_EQ(impact_or->consumer_count(), 3u);
+}
+
+TEST(ObjectTileEditorTest,
+     StandardTileSourceImpactDetectsPartialButNotAdjacentRanges) {
+  ScopedCustomObjectsDisabled disable_custom_objects;
+  auto data = MakeEditableObjectRomData();
+  // Editable source: [0x29EC, 0x29F4).
+  StoreWord(data, /*Type 1 object 0 descriptor=*/0x8000,
+            /*source 0x29E8=*/0x0E96);
+  StoreWord(data, /*Type 1 object 7 descriptor=*/0x800E,
+            /*source 0x29F0=*/0x0E9E);
+  StoreWord(data, /*Type 1 object 8 descriptor=*/0x8010,
+            /*source 0x29F4=*/0x0EA2);
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+  gfx::PaletteGroup palette;
+  ObjectTileEditor editor(&rom);
+  auto layout_or = editor.CaptureEditableObjectLayout(0x11F, room, palette);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+
+  auto impact_or = editor.AnalyzeStandardTileSourceImpact(*layout_or);
+  ASSERT_TRUE(impact_or.ok()) << impact_or.status();
+  ASSERT_EQ(impact_or->consumer_count(), 3u);
+  EXPECT_EQ(impact_or->affected_objects[0].object_id, 0x000);
+  EXPECT_THAT(impact_or->affected_objects[0].overlapping_ranges,
+              ::testing::ElementsAre(ObjectTileReadRange{0x29E8, 0x29F0}));
+  EXPECT_EQ(impact_or->affected_objects[1].object_id, 0x007);
+  EXPECT_THAT(impact_or->affected_objects[1].overlapping_ranges,
+              ::testing::ElementsAre(ObjectTileReadRange{0x29F0, 0x29F8}));
+  EXPECT_EQ(impact_or->affected_objects[2].object_id, 0x11F);
+}
+
+TEST(ObjectTileEditorTest,
+     StandardTileSourceImpactFailsClosedOnMalformedUnrelatedObject) {
+  ScopedCustomObjectsDisabled disable_custom_objects;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableObjectRomData()).ok());
+  Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+  gfx::PaletteGroup palette;
+  ObjectTileEditor editor(&rom);
+  auto layout_or = editor.CaptureEditableObjectLayout(0x11F, room, palette);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+
+  // Type 1 offsets are signed. 0x8000 resolves before the start of this ROM
+  // and must invalidate the complete impact inventory instead of being
+  // silently ignored as a non-overlap.
+  StoreWordWithoutDirtying(rom, /*Type 1 object 1 descriptor=*/0x8002, 0x8000);
+  const auto original = rom.vector();
+  const bool original_dirty = rom.dirty();
+
+  auto impact_or = editor.AnalyzeStandardTileSourceImpact(*layout_or);
+  EXPECT_TRUE(absl::IsFailedPrecondition(impact_or.status()));
+  EXPECT_NE(std::string(impact_or.status().message()).find("object 0x001"),
+            std::string::npos);
+  EXPECT_EQ(rom.vector(), original);
+  EXPECT_EQ(rom.dirty(), original_dirty);
 }
 
 TEST(ObjectTileEditorTest, BuildStandardWritePlanRejectsObjectMismatch) {
