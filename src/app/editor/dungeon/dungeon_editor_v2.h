@@ -44,6 +44,7 @@ namespace editor {
 
 class CustomCollisionPanel;
 class DungeonEditorPaletteRefreshTestPeer;
+class DungeonEditorV2ObjectTileEditorTestPeer;
 class DungeonEditorV2RegularEntranceTestPeer;
 class DungeonEditorV2ReloadTestPeer;
 class DungeonEditorV2SpawnPointTestPeer;
@@ -251,6 +252,7 @@ class DungeonEditorV2 : public Editor {
 
  private:
   friend class DungeonEditorPaletteRefreshTestPeer;
+  friend class DungeonEditorV2ObjectTileEditorTestPeer;
   friend class DungeonEditorV2RegularEntranceTestPeer;
   friend class DungeonEditorV2ReloadTestPeer;
   friend class DungeonEditorV2SpawnPointTestPeer;
@@ -313,6 +315,8 @@ class DungeonEditorV2 : public Editor {
   void HandleObjectPlaced(const zelda3::RoomObject& obj);
   void OpenGraphicsEditorForObject(int room_id,
                                    const zelda3::RoomObject& object);
+  absl::Status OpenObjectTileEditorForObject(int room_id,
+                                             const zelda3::RoomObject& object);
 
   // Helper to get or create a viewer for a specific room
   DungeonCanvasViewer* GetViewerForRoom(int room_id);

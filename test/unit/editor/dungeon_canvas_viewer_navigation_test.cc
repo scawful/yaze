@@ -108,6 +108,18 @@ class DungeonCanvasViewerTestPeer {
     return labels;
   }
 
+  static bool InvokeSelectionContextMenuItem(DungeonCanvasViewer& viewer,
+                                             int room_id,
+                                             const std::string& label) {
+    for (auto& item : viewer.BuildSelectionContextMenuItems(room_id)) {
+      if (item.label == label && item.callback) {
+        item.callback();
+        return true;
+      }
+    }
+    return false;
+  }
+
   static PendingScrollFrameSnapshot ConsumePendingScrollAndCaptureTransforms(
       DungeonCanvasViewer& viewer, int tile_x, int tile_y, float scale,
       ImVec2 initial_scroll, ImVec2 canvas_size) {
@@ -470,6 +482,58 @@ TEST(DungeonCanvasViewerContextMenuTest,
       labels.size());
   EXPECT_EQ(FindLabelIndex(labels, "Object Stream: BG1 Overlay"),
             labels.size());
+}
+
+TEST(DungeonCanvasViewerContextMenuTest,
+     SingleAllowlistedObjectOffersObjectTileEditorAction) {
+  ScopedImGuiContext imgui;
+  DungeonRoomStore rooms;
+  rooms[0].GetTileObjects().push_back(
+      zelda3::RoomObject{0x11F, 10, 10, 0x00, 0});
+
+  int opened_room = -1;
+  int opened_object = -1;
+  DungeonCanvasViewer viewer;
+  viewer.SetRooms(&rooms);
+  viewer.object_interaction().SetCurrentRoom(&rooms, 0);
+  viewer.object_interaction().SetSelectedObjects({0});
+  viewer.SetEditObjectTilesCallback(
+      [&](int room_id, const zelda3::RoomObject& object) {
+        opened_room = room_id;
+        opened_object = object.id_;
+      });
+
+  const auto labels =
+      DungeonCanvasViewerTestPeer::SelectionContextMenuLabels(viewer, 0);
+  EXPECT_LT(FindLabelIndex(labels, "Edit Object Tiles..."), labels.size());
+  EXPECT_TRUE(DungeonCanvasViewerTestPeer::InvokeSelectionContextMenuItem(
+      viewer, 0, "Edit Object Tiles..."));
+  EXPECT_EQ(opened_room, 0);
+  EXPECT_EQ(opened_object, 0x11F);
+}
+
+TEST(DungeonCanvasViewerContextMenuTest,
+     ObjectTileEditorActionRequiresOneAllowlistedSelection) {
+  ScopedImGuiContext imgui;
+  DungeonRoomStore rooms;
+  rooms[0].GetTileObjects().push_back(
+      zelda3::RoomObject{0x11F, 10, 10, 0x00, 0});
+  rooms[0].GetTileObjects().push_back(
+      zelda3::RoomObject{0x01, 12, 12, 0x00, 0});
+
+  DungeonCanvasViewer viewer;
+  viewer.SetRooms(&rooms);
+  viewer.object_interaction().SetCurrentRoom(&rooms, 0);
+  viewer.SetEditObjectTilesCallback([](int, const zelda3::RoomObject&) {});
+
+  viewer.object_interaction().SetSelectedObjects({1});
+  auto labels =
+      DungeonCanvasViewerTestPeer::SelectionContextMenuLabels(viewer, 0);
+  EXPECT_EQ(FindLabelIndex(labels, "Edit Object Tiles..."), labels.size());
+
+  viewer.object_interaction().SetSelectedObjects({0, 1});
+  labels = DungeonCanvasViewerTestPeer::SelectionContextMenuLabels(viewer, 0);
+  EXPECT_EQ(FindLabelIndex(labels, "Edit Object Tiles..."), labels.size());
 }
 
 TEST(DungeonCanvasViewerPingTest, TriggerCanvasPingRectClampsToCanvasBounds) {

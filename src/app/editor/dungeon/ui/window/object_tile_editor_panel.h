@@ -5,11 +5,13 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gfx/backend/irenderer.h"
@@ -34,12 +36,14 @@ struct ObjectTileEditorPanelTestAccess;
  * cell in the grid, then pick a replacement tile from the source sheet.
  * Tile properties (palette, flip, priority) can be edited per-cell.
  *
- * Opened from the Object Editor panel via "Edit Tiles" button.
+ * Standard-object sessions open from the dungeon canvas selection menu. New
+ * custom-object sessions are prepared by the custom object workshop.
  */
 class ObjectTileEditorPanel : public WindowContent {
  public:
   using StandardWritePreflightCallback = std::function<absl::Status(
       const std::vector<std::pair<uint32_t, uint32_t>>&)>;
+  using StandardTilesAppliedCallback = std::function<void()>;
 
   ObjectTileEditorPanel(gfx::IRenderer* renderer, Rom* rom);
 
@@ -49,17 +53,25 @@ class ObjectTileEditorPanel : public WindowContent {
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 65; }
   float GetPreferredWidth() const override { return 550.0f; }
+  float GetPreferredHeight() const override { return 500.0f; }
 
   void Draw(bool* p_open) override;
+  void OnClose() override;
 
-  void OpenForObject(int16_t object_id, int room_id, DungeonRoomStore* rooms);
-  void OpenForNewObject(int width, int height, const std::string& filename,
-                        int16_t object_id, int room_id,
-                        DungeonRoomStore* rooms);
+  absl::Status OpenForObject(int16_t object_id, int room_id,
+                             DungeonRoomStore* rooms);
+  absl::Status OpenForObject(int16_t object_id, int room_id,
+                             DungeonRoomStore* rooms,
+                             const gfx::PaletteGroup& palette_group);
+  absl::Status OpenForNewObject(int width, int height,
+                                const std::string& filename, int16_t object_id,
+                                int room_id, DungeonRoomStore* rooms);
   void Close();
   bool IsOpen() const { return is_open_; }
 
   void SetCurrentPaletteGroup(const gfx::PaletteGroup& group);
+  void SetCurrentPaletteGroupForRoom(int room_id,
+                                     const gfx::PaletteGroup& group);
 
   // Callback fired on first successful save of a new object
   void SetObjectCreatedCallback(
@@ -70,6 +82,10 @@ class ObjectTileEditorPanel : public WindowContent {
   void SetStandardWritePreflightCallback(
       StandardWritePreflightCallback callback) {
     standard_write_preflight_ = std::move(callback);
+  }
+
+  void SetStandardTilesAppliedCallback(StandardTilesAppliedCallback callback) {
+    on_standard_tiles_applied_ = std::move(callback);
   }
 
  private:
@@ -86,16 +102,26 @@ class ObjectTileEditorPanel : public WindowContent {
   void ResetTransientState();
   std::string BuildWindowTitle() const;
   void SelectFirstCellIfAvailable();
+  struct SourceImpactSnapshot {
+    int consumer_count = 0;
+    uint64_t fingerprint = 0;
+
+    bool operator==(const SourceImpactSnapshot&) const = default;
+  };
+  absl::StatusOr<SourceImpactSnapshot> AnalyzeSourceImpactSnapshot() const;
   absl::StatusOr<int> GetSharedTileDataUsageCount() const;
+  absl::StatusOr<int> GetDisplayedSharedTileDataUsageCount();
   absl::StatusOr<bool> HasSharedTileDataConflict() const;
+  uint64_t BuildSourceImpactProvenanceFingerprint() const;
   bool HasRenderableRoomContext() const;
   void RefreshRenderedViewsFromCurrentRoom();
 
   void DrawTileGrid();
   void DrawSourceSheet();
   void DrawTileProperties();
-  void DrawActionBar();
-  void HandleKeyboardShortcuts();
+  void DrawActionBar(bool* p_open);
+  void HandleKeyboardShortcuts(bool* p_open);
+  void RequestSafeWindowClose(bool* p_open);
 
   void RenderObjectPreview();
   void RenderTile8Atlas();
@@ -128,7 +154,17 @@ class ObjectTileEditorPanel : public WindowContent {
   // Shared tile data confirmation
   bool show_shared_confirm_ = false;
   int shared_object_count_ = 0;
+  std::optional<SourceImpactSnapshot> pending_shared_confirmation_;
   int shared_tile_data_usage_override_ = -1;  // Test seam; production keeps -1.
+  struct SourceImpactDisplayCacheKey {
+    int16_t object_id = -1;
+    uint64_t provenance_fingerprint = 0;
+    uint64_t rom_revision = 0;
+
+    bool operator==(const SourceImpactDisplayCacheKey&) const = default;
+  };
+  std::optional<SourceImpactDisplayCacheKey> source_impact_display_cache_key_;
+  std::optional<absl::StatusOr<int>> source_impact_display_cache_result_;
   ActionStatusTone action_status_tone_ = ActionStatusTone::kNone;
   std::string action_status_message_;
 
@@ -136,6 +172,7 @@ class ObjectTileEditorPanel : public WindowContent {
   bool is_new_object_ = false;
   std::function<void(int, const std::string&)> on_object_created_;
   StandardWritePreflightCallback standard_write_preflight_;
+  StandardTilesAppliedCallback on_standard_tiles_applied_;
 
   // Context
   gfx::IRenderer* renderer_;

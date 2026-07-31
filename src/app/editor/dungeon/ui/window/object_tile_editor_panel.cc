@@ -10,6 +10,16 @@
 namespace yaze {
 namespace editor {
 
+namespace {
+
+void MixFingerprint(uint64_t* fingerprint, uint64_t value) {
+  constexpr uint64_t kFnvPrime = 1099511628211ULL;
+  *fingerprint ^= value;
+  *fingerprint *= kFnvPrime;
+}
+
+}  // namespace
+
 ObjectTileEditorPanel::ObjectTileEditorPanel(gfx::IRenderer* renderer, Rom* rom)
     : renderer_(renderer), rom_(rom) {
   tile_editor_ = std::make_unique<zelda3::ObjectTileEditor>(rom);
@@ -38,39 +48,70 @@ void ObjectTileEditorPanel::ResetTransientState() {
   atlas_dirty_ = true;
   show_shared_confirm_ = false;
   shared_object_count_ = 0;
+  pending_shared_confirmation_.reset();
   shared_tile_data_usage_override_ = -1;
+  source_impact_display_cache_key_.reset();
+  source_impact_display_cache_result_.reset();
   ClearActionStatus();
   ClearRenderedBitmaps();
 }
 
-void ObjectTileEditorPanel::OpenForObject(int16_t object_id, int room_id,
-                                          DungeonRoomStore* rooms) {
+absl::Status ObjectTileEditorPanel::OpenForObject(int16_t object_id,
+                                                  int room_id,
+                                                  DungeonRoomStore* rooms) {
+  return OpenForObject(object_id, room_id, rooms, current_palette_group_);
+}
+
+absl::Status ObjectTileEditorPanel::OpenForObject(
+    int16_t object_id, int room_id, DungeonRoomStore* rooms,
+    const gfx::PaletteGroup& palette_group) {
+  if (!zelda3::ObjectTileEditor::IsEditableStandardObject(object_id)) {
+    return absl::UnimplementedError(
+        "Standard object tile editing is supported only for audited objects "
+        "0x11F and 0x120");
+  }
+  if (rooms == nullptr) {
+    return absl::InvalidArgumentError(
+        "A dungeon room store is required to edit object tiles");
+  }
+  if (room_id < 0 || room_id >= static_cast<int>(rooms->size())) {
+    return absl::OutOfRangeError("Dungeon room id is outside the room store");
+  }
+  if (is_open_ && current_layout_.HasModifications()) {
+    return absl::FailedPreconditionError(
+        "Apply, revert, or close the current Object Tile Editor session "
+        "before opening another object");
+  }
+
+  auto& room = (*rooms)[room_id];
+  auto layout_or =
+      tile_editor_->CaptureEditableObjectLayout(object_id, room, palette_group);
+  if (!layout_or.ok()) {
+    return layout_or.status();
+  }
+
+  // Do not disturb a live editor session until every fail-closed capture check
+  // has passed. In particular, a bad selection must not discard unsaved edits.
   current_object_id_ = object_id;
   current_room_id_ = room_id;
   rooms_ = rooms;
+  current_palette_group_ = palette_group;
   is_new_object_ = false;
-  current_layout_ = {};
+  current_layout_ = std::move(*layout_or);
   ResetTransientState();
   is_open_ = true;
-
-  if (!rooms_ || current_room_id_ < 0 ||
-      current_room_id_ >= static_cast<int>(rooms_->size())) {
-    return;
-  }
-
-  auto& room = (*rooms_)[current_room_id_];
-  auto layout_or = tile_editor_->CaptureObjectLayout(object_id, room,
-                                                     current_palette_group_);
-  if (layout_or.ok()) {
-    current_layout_ = std::move(layout_or.value());
-    SelectFirstCellIfAvailable();
-  }
+  SelectFirstCellIfAvailable();
+  return absl::OkStatus();
 }
 
-void ObjectTileEditorPanel::OpenForNewObject(int width, int height,
-                                             const std::string& filename,
-                                             int16_t object_id, int room_id,
-                                             DungeonRoomStore* rooms) {
+absl::Status ObjectTileEditorPanel::OpenForNewObject(
+    int width, int height, const std::string& filename, int16_t object_id,
+    int room_id, DungeonRoomStore* rooms) {
+  if (is_open_ && current_layout_.HasModifications()) {
+    return absl::FailedPreconditionError(
+        "Apply, revert, or explicitly discard the current Object Tile Editor "
+        "session before creating another object");
+  }
   current_object_id_ = object_id;
   current_room_id_ = room_id;
   rooms_ = rooms;
@@ -81,6 +122,7 @@ void ObjectTileEditorPanel::OpenForNewObject(int width, int height,
   current_layout_ =
       zelda3::ObjectTileLayout::CreateEmpty(width, height, object_id, filename);
   SelectFirstCellIfAvailable();
+  return absl::OkStatus();
 }
 
 void ObjectTileEditorPanel::Close() {
@@ -93,6 +135,15 @@ void ObjectTileEditorPanel::Close() {
   ResetTransientState();
 }
 
+void ObjectTileEditorPanel::OnClose() {
+  // Hiding a modified editor window must not silently throw away tile edits.
+  // The session remains available when the workspace window is reopened; the
+  // explicit action-bar close remains the user's discard action.
+  if (!current_layout_.HasModifications()) {
+    Close();
+  }
+}
+
 void ObjectTileEditorPanel::SetCurrentPaletteGroup(
     const gfx::PaletteGroup& group) {
   current_palette_group_ = group;
@@ -100,21 +151,29 @@ void ObjectTileEditorPanel::SetCurrentPaletteGroup(
   atlas_dirty_ = true;
 }
 
+void ObjectTileEditorPanel::SetCurrentPaletteGroupForRoom(
+    int room_id, const gfx::PaletteGroup& group) {
+  if (is_open_ && current_room_id_ != room_id) {
+    return;
+  }
+  SetCurrentPaletteGroup(group);
+}
+
 std::string ObjectTileEditorPanel::BuildWindowTitle() const {
   if (is_new_object_) {
-    return absl::StrFormat(
-        ICON_MD_ADD_BOX " New Object (%dx%d) - %s###ObjTileEditor",
-        current_layout_.bounds_width, current_layout_.bounds_height,
-        current_layout_.custom_filename.c_str());
+    return absl::StrFormat(ICON_MD_ADD_BOX " New Object (%dx%d) - %s",
+                           current_layout_.bounds_width,
+                           current_layout_.bounds_height,
+                           current_layout_.custom_filename.c_str());
   }
 
   if (current_layout_.is_custom && !current_layout_.custom_filename.empty()) {
-    return absl::StrFormat(
-        ICON_MD_GRID_ON " Custom Object 0x%03X - %s###ObjTileEditor",
-        current_object_id_, current_layout_.custom_filename.c_str());
+    return absl::StrFormat(ICON_MD_GRID_ON " Custom Object 0x%03X - %s",
+                           current_object_id_,
+                           current_layout_.custom_filename.c_str());
   }
 
-  return absl::StrFormat(ICON_MD_GRID_ON " Object 0x%03X - %s###ObjTileEditor",
+  return absl::StrFormat(ICON_MD_GRID_ON " Object 0x%03X - %s",
                          current_object_id_,
                          zelda3::GetObjectName(current_object_id_).c_str());
 }
@@ -130,13 +189,17 @@ void ObjectTileEditorPanel::SelectFirstCellIfAvailable() {
   SyncSourceSelectionFromSelectedCell();
 }
 
-absl::StatusOr<int> ObjectTileEditorPanel::GetSharedTileDataUsageCount() const {
+absl::StatusOr<ObjectTileEditorPanel::SourceImpactSnapshot>
+ObjectTileEditorPanel::AnalyzeSourceImpactSnapshot() const {
   if (shared_tile_data_usage_override_ >= 0) {
-    return shared_tile_data_usage_override_;
+    uint64_t fingerprint = 1469598103934665603ULL;
+    MixFingerprint(&fingerprint,
+                   static_cast<uint64_t>(shared_tile_data_usage_override_));
+    return SourceImpactSnapshot{shared_tile_data_usage_override_, fingerprint};
   }
 
   if (current_layout_.is_custom) {
-    return 0;
+    return SourceImpactSnapshot{};
   }
   if (current_object_id_ < 0 ||
       current_layout_.object_id != current_object_id_) {
@@ -153,7 +216,94 @@ absl::StatusOr<int> ObjectTileEditorPanel::GetSharedTileDataUsageCount() const {
   if (!impact_or.ok()) {
     return impact_or.status();
   }
-  return static_cast<int>(impact_or->consumer_count());
+
+  uint64_t fingerprint = 1469598103934665603ULL;
+  MixFingerprint(&fingerprint, impact_or->affected_objects.size());
+  for (const auto& entry : impact_or->affected_objects) {
+    MixFingerprint(&fingerprint, 0xA11EC7EDULL);
+    MixFingerprint(&fingerprint, static_cast<uint16_t>(entry.object_id));
+    MixFingerprint(&fingerprint, entry.overlapping_ranges.size());
+    for (const auto& range : entry.overlapping_ranges) {
+      MixFingerprint(&fingerprint, range.begin);
+      MixFingerprint(&fingerprint, range.end);
+    }
+  }
+  MixFingerprint(&fingerprint, impact_or->runtime_consumers.size());
+  for (const auto& entry : impact_or->runtime_consumers) {
+    MixFingerprint(&fingerprint, 0x52754E71ULL);
+    MixFingerprint(&fingerprint, static_cast<uint64_t>(entry.consumer));
+    MixFingerprint(&fingerprint, entry.overlapping_ranges.size());
+    for (const auto& range : entry.overlapping_ranges) {
+      MixFingerprint(&fingerprint, range.begin);
+      MixFingerprint(&fingerprint, range.end);
+    }
+  }
+  return SourceImpactSnapshot{static_cast<int>(impact_or->consumer_count()),
+                              fingerprint};
+}
+
+absl::StatusOr<int> ObjectTileEditorPanel::GetSharedTileDataUsageCount() const {
+  auto snapshot_or = AnalyzeSourceImpactSnapshot();
+  if (!snapshot_or.ok()) {
+    return snapshot_or.status();
+  }
+  return snapshot_or->consumer_count;
+}
+
+uint64_t ObjectTileEditorPanel::BuildSourceImpactProvenanceFingerprint() const {
+  uint64_t fingerprint = 1469598103934665603ULL;
+  MixFingerprint(&fingerprint,
+                 static_cast<uint16_t>(current_layout_.object_id));
+  MixFingerprint(&fingerprint,
+                 static_cast<uint32_t>(current_layout_.tile_data_address));
+  MixFingerprint(&fingerprint, current_layout_.is_custom ? 1 : 0);
+  MixFingerprint(&fingerprint,
+                 static_cast<uint32_t>(current_layout_.bounds_width));
+  MixFingerprint(&fingerprint,
+                 static_cast<uint32_t>(current_layout_.bounds_height));
+  MixFingerprint(&fingerprint, current_layout_.cells.size());
+  for (const auto& cell : current_layout_.cells) {
+    MixFingerprint(&fingerprint, static_cast<uint32_t>(cell.rel_x));
+    MixFingerprint(&fingerprint, static_cast<uint32_t>(cell.rel_y));
+    MixFingerprint(&fingerprint, cell.original_word);
+    MixFingerprint(&fingerprint, cell.source_ref.has_value() ? 1 : 0);
+    if (cell.source_ref.has_value()) {
+      MixFingerprint(&fingerprint, cell.source_ref->span_index);
+      MixFingerprint(&fingerprint, cell.source_ref->word_index);
+    }
+  }
+  MixFingerprint(&fingerprint,
+                 current_layout_.source_provenance.has_value() ? 1 : 0);
+  if (current_layout_.source_provenance.has_value()) {
+    const auto& provenance = *current_layout_.source_provenance;
+    MixFingerprint(&fingerprint, static_cast<uint16_t>(provenance.object_id));
+    MixFingerprint(&fingerprint, provenance.descriptor_pc_address);
+    MixFingerprint(&fingerprint, provenance.expected_descriptor_word);
+    MixFingerprint(&fingerprint, provenance.spans.size());
+    for (const auto& span : provenance.spans) {
+      MixFingerprint(&fingerprint, span.pc_address);
+      MixFingerprint(&fingerprint, span.expected_words.size());
+      for (const uint16_t word : span.expected_words) {
+        MixFingerprint(&fingerprint, word);
+      }
+    }
+  }
+  return fingerprint;
+}
+
+absl::StatusOr<int>
+ObjectTileEditorPanel::GetDisplayedSharedTileDataUsageCount() {
+  const SourceImpactDisplayCacheKey key{
+      current_object_id_, BuildSourceImpactProvenanceFingerprint(),
+      rom_ != nullptr ? rom_->object_tile_revision() : 0};
+  if (source_impact_display_cache_key_ == key &&
+      source_impact_display_cache_result_.has_value()) {
+    return *source_impact_display_cache_result_;
+  }
+
+  source_impact_display_cache_key_ = key;
+  source_impact_display_cache_result_ = GetSharedTileDataUsageCount();
+  return *source_impact_display_cache_result_;
 }
 
 absl::StatusOr<bool> ObjectTileEditorPanel::HasSharedTileDataConflict() const {
@@ -183,22 +333,20 @@ void ObjectTileEditorPanel::RefreshRenderedViewsFromCurrentRoom() {
 }
 
 void ObjectTileEditorPanel::Draw(bool* p_open) {
-  if (!is_open_ || current_layout_.cells.empty())
+  if (!is_open_ || current_layout_.cells.empty()) {
+    if (p_open != nullptr) {
+      *p_open = false;
+    }
     return;
-
-  const std::string title = BuildWindowTitle();
-
-  ImGui::SetNextWindowSize(ImVec2(550, 500), ImGuiCond_FirstUseEver);
-  if (!ImGui::Begin(title.c_str(), &is_open_)) {
-    ImGui::End();
+  }
+  if (p_open != nullptr && !*p_open) {
     return;
   }
 
-  if (!is_open_) {
-    Close();
-    ImGui::End();
-    return;
-  }
+  const std::string session_title = BuildWindowTitle();
+  ImGui::TextUnformatted(session_title.c_str());
+  ImGui::TextDisabled(tr("Room 0x%03X"), current_room_id_);
+  ImGui::Separator();
 
   // Two-column layout: tile grid + source sheet
   if (ImGui::BeginTable(
@@ -221,33 +369,35 @@ void ObjectTileEditorPanel::Draw(bool* p_open) {
   ImGui::Separator();
   DrawTileProperties();
   ImGui::Separator();
-  DrawActionBar();
+  DrawActionBar(p_open);
 
-  HandleKeyboardShortcuts();
+  HandleKeyboardShortcuts(p_open);
 
   // Shared tile data confirmation modal
   if (show_shared_confirm_) {
-    ImGui::OpenPopup("Shared Tile Data");
+    ImGui::OpenPopup("Shared Tile Data (Global Edit)");
     show_shared_confirm_ = false;
   }
-  if (ImGui::BeginPopupModal("Shared Tile Data", nullptr,
+  if (ImGui::BeginPopupModal("Shared Tile Data (Global Edit)", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
     ImGui::Text(tr("This tile data is shared by %d consumers."),
                 shared_object_count_);
     ImGui::Text(tr("Changes will affect all of them."));
+    ImGui::TextWrapped(tr(
+        "This global ROM tile edit is not covered by Dungeon Editor Ctrl+Z."));
     ImGui::Spacing();
-    if (ImGui::Button(tr("Apply Anyway"), ImVec2(120, 0))) {
+    if (ImGui::Button(tr("Apply Global Edit"), ImVec2(150, 0))) {
       ApplyChanges(/*confirm_shared=*/false);
       ImGui::CloseCurrentPopup();
     }
     ImGui::SameLine();
     if (ImGui::Button(tr("Cancel"), ImVec2(120, 0))) {
+      pending_shared_confirmation_.reset();
+      shared_object_count_ = 0;
       ImGui::CloseCurrentPopup();
     }
     ImGui::EndPopup();
   }
-
-  ImGui::End();
 }
 
 void ObjectTileEditorPanel::RenderObjectPreview() {
@@ -565,37 +715,71 @@ void ObjectTileEditorPanel::ApplyChanges(bool confirm_shared) {
   // the second call after the user accepts the shared-data confirmation. A
   // malformed or unresolved object family must block the write rather than be
   // interpreted as an unshared source.
-  const auto shared_count_or = GetSharedTileDataUsageCount();
-  if (!shared_count_or.ok()) {
+  const auto impact_snapshot_or = AnalyzeSourceImpactSnapshot();
+  if (!impact_snapshot_or.ok()) {
     show_shared_confirm_ = false;
     shared_object_count_ = 0;
+    pending_shared_confirmation_.reset();
     SetActionStatus(
         ActionStatusTone::kError,
         absl::StrFormat(ICON_MD_ERROR
                         " Apply blocked: source impact could not be resolved: "
                         "%s",
-                        shared_count_or.status().message()));
+                        impact_snapshot_or.status().message()));
     return;
   }
-  const int shared_count = *shared_count_or;
+  const SourceImpactSnapshot impact_snapshot = *impact_snapshot_or;
+  const int shared_count = impact_snapshot.consumer_count;
   if (confirm_shared && shared_count > 1) {
     shared_object_count_ = shared_count;
+    pending_shared_confirmation_ = impact_snapshot;
     show_shared_confirm_ = true;
     SetActionStatus(
         ActionStatusTone::kWarning,
         absl::StrFormat(ICON_MD_WARNING
-                        " Confirm shared apply: %d consumers use this tile "
-                        "data.",
+                        " Confirm global apply: %d consumers use this tile "
+                        "data. This edit is not covered by Ctrl+Z.",
                         shared_count));
+    return;
+  }
+  const bool missing_required_confirmation =
+      shared_count > 1 && !pending_shared_confirmation_.has_value();
+  const bool confirmed_impact_changed =
+      pending_shared_confirmation_.has_value() &&
+      *pending_shared_confirmation_ != impact_snapshot;
+  if (!confirm_shared &&
+      (missing_required_confirmation || confirmed_impact_changed)) {
+    shared_object_count_ = shared_count;
+    pending_shared_confirmation_ = impact_snapshot;
+    show_shared_confirm_ = true;
+    SetActionStatus(
+        ActionStatusTone::kWarning,
+        absl::StrFormat(
+            ICON_MD_WARNING
+            " Source impact changed; review and confirm the updated global "
+            "apply for %d consumers. This edit is not covered by Ctrl+Z.",
+            shared_count));
     return;
   }
 
   show_shared_confirm_ = false;
   shared_object_count_ = 0;
+  pending_shared_confirmation_.reset();
 
   auto status = WriteBackCurrentLayout();
   if (status.ok()) {
-    // Re-render room after applying changes
+    if (!current_layout_.is_custom) {
+      if (rooms_ != nullptr) {
+        rooms_->ForEachMaterialized(
+            [](int, zelda3::Room& room) { room.MarkObjectsDirty(); });
+      }
+      if (on_standard_tiles_applied_) {
+        on_standard_tiles_applied_();
+      }
+    }
+
+    // Re-render the current room immediately. Other materialized rooms were
+    // marked dirty above and refresh lazily when their canvases draw.
     if (HasRenderableRoomContext()) {
       auto& room = (*rooms_)[current_room_id_];
       room.MarkObjectsDirty();
@@ -655,7 +839,7 @@ void ObjectTileEditorPanel::ApplyChanges(bool confirm_shared) {
       absl::StrFormat(ICON_MD_ERROR " Apply failed: %s", status.message()));
 }
 
-void ObjectTileEditorPanel::DrawActionBar() {
+void ObjectTileEditorPanel::DrawActionBar(bool* p_open) {
   const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
   int modified_count = 0;
   for (const auto& cell : current_layout_.cells) {
@@ -673,7 +857,7 @@ void ObjectTileEditorPanel::DrawActionBar() {
   // Shared tile data warning. Keep analysis errors visible here, but enforce
   // fail-closed behavior in ApplyChanges so the disabled-by-default standard
   // editor cannot silently turn an unknown impact into a write.
-  const auto shared_count_or = GetSharedTileDataUsageCount();
+  const auto shared_count_or = GetDisplayedSharedTileDataUsageCount();
   if (!shared_count_or.ok()) {
     ImGui::TextColored(gui::ConvertColorToImVec4(theme.error),
                        ICON_MD_ERROR " Source impact unavailable");
@@ -690,7 +874,7 @@ void ObjectTileEditorPanel::DrawActionBar() {
           tr("This object reuses tile data with %d consumers.\nApplying "
              "changes "
              "will update every object or runtime consumer in that shared "
-             "data group."),
+             "data group.\nThis global ROM edit is not covered by Ctrl+Z."),
           shared_count);
     }
     ImGui::SameLine();
@@ -721,8 +905,24 @@ void ObjectTileEditorPanel::DrawActionBar() {
 
   ImGui::SameLine();
 
-  if (ImGui::Button(ICON_MD_CLOSE " Close")) {
+  const char* close_label =
+      has_mods ? ICON_MD_CLOSE " Discard & Close" : ICON_MD_CLOSE " Close";
+  if (ImGui::Button(close_label)) {
+    if (p_open != nullptr) {
+      *p_open = false;
+    }
     Close();
+    return;
+  }
+  if (has_mods && ImGui::IsItemHovered()) {
+    ImGui::SetItemTooltip(
+        "%s", tr("Close the panel and discard all unapplied tile changes."));
+  }
+
+  if (!current_layout_.is_custom) {
+    ImGui::Spacing();
+    ImGui::TextDisabled(ICON_MD_INFO
+                        " Global ROM tile edit; not covered by Ctrl+Z.");
   }
 
   if (action_status_tone_ != ActionStatusTone::kNone &&
@@ -751,7 +951,25 @@ void ObjectTileEditorPanel::DrawActionBar() {
   }
 }
 
-void ObjectTileEditorPanel::HandleKeyboardShortcuts() {
+void ObjectTileEditorPanel::RequestSafeWindowClose(bool* p_open) {
+  if (current_layout_.HasModifications()) {
+    if (p_open != nullptr) {
+      *p_open = false;
+    }
+    SetActionStatus(
+        ActionStatusTone::kWarning, ICON_MD_WARNING
+        " Unapplied tile changes were kept. Reopen the panel to continue, or "
+        "use Discard & Close to throw them away.");
+    return;
+  }
+
+  if (p_open != nullptr) {
+    *p_open = false;
+  }
+  Close();
+}
+
+void ObjectTileEditorPanel::HandleKeyboardShortcuts(bool* p_open) {
   // Only handle shortcuts when this window is focused
   if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows))
     return;
@@ -836,8 +1054,9 @@ void ObjectTileEditorPanel::HandleKeyboardShortcuts() {
     if (selected_cell_index_ >= 0) {
       selected_cell_index_ = -1;
     } else {
-      Close();
+      RequestSafeWindowClose(p_open);
     }
+    return;
   }
 
   // Tab: cycle to next cell

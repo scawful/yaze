@@ -7,6 +7,9 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
+
+#include "absl/status/status.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/editor.h"
 #include "app/gfx/types/snes_palette.h"
@@ -25,6 +28,7 @@ namespace yaze {
 namespace editor {
 
 class ObjectTileEditorPanel;
+struct DungeonObjectSelectorTestAccess;
 
 /**
  * @brief Handles object selection, preview, and editing UI
@@ -91,6 +95,9 @@ class DungeonObjectSelector {
   void SetTileEditorPanel(ObjectTileEditorPanel* panel) {
     tile_editor_panel_ = panel;
   }
+  void SetOpenTileEditorWindowCallback(std::function<bool()> callback) {
+    open_tile_editor_window_callback_ = std::move(callback);
+  }
   void SetProject(project::YazeProject* project) { project_ = project; }
 
   // Invalidate preview and layout caches (e.g., after new custom object added)
@@ -115,6 +122,7 @@ class DungeonObjectSelector {
   static bool IsRepresentableChestObjectId(int object_id);
 
  private:
+  friend struct DungeonObjectSelectorTestAccess;
   bool MatchesObjectFilter(int obj_id, int filter_type);
   bool MatchesObjectSearch(int obj_id, const std::string& name,
                            int subtype = -1) const;
@@ -130,6 +138,9 @@ class DungeonObjectSelector {
   void DrawCustomObjectWorkshopButton(int custom_count);
   void DrawCustomObjectWorkshopPopup(float item_size);
   void DrawNewCustomObjectDialog();
+  absl::Status OpenNewCustomObjectEditor(int width, int height,
+                                         const std::string& filename,
+                                         int16_t object_id, int room_id);
 
   // Custom object creation dialog state
   bool show_create_dialog_ = false;
@@ -141,6 +152,8 @@ class DungeonObjectSelector {
 
   // References for custom object creation
   ObjectTileEditorPanel* tile_editor_panel_ = nullptr;
+  std::function<bool()> open_tile_editor_window_callback_;
+  std::string custom_object_create_error_;
   project::YazeProject* project_ = nullptr;
 
   Rom* rom_ = nullptr;
