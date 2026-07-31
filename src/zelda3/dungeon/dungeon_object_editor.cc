@@ -1720,24 +1720,25 @@ void DungeonObjectEditor::DrawPropertyUI() {
       ImGui::Spacing();
 
       const bool uses_room_stream = UsesRoomObjectStream(obj);
-      const bool draws_to_both_bgs =
-          uses_room_stream && GetObjectLayerSemantics(obj).draws_to_both_bgs;
+      const auto semantics = GetObjectLayerSemantics(obj);
+      const bool has_routine_defined_route =
+          uses_room_stream &&
+          semantics.render_routing != ObjectRenderRouting::kStoredPlacement;
       gui::SectionHeader(ICON_MD_LAYERS,
                          uses_room_stream ? "Object Stream" : "Special Layer",
                          theme.text_info);
       bool storage_changed = false;
       if (gui::BeginPropertyTable("##LayerProps")) {
         if (uses_room_stream) {
-          const auto semantics = GetObjectLayerSemantics(obj);
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::Text("Draws To");
           ImGui::TableNextColumn();
-          if (semantics.draws_to_both_bgs) {
-            ImGui::TextColored(theme.text_warning_yellow, "Both (BG1 + BG2)");
+          if (has_routine_defined_route) {
+            ImGui::TextColored(theme.text_warning_yellow, "%s",
+                               ObjectRenderRoutingDisplayLabel(semantics));
           } else {
-            ImGui::Text("%s",
-                        EffectiveBgLayerLabel(semantics.effective_bg_layer));
+            ImGui::Text("%s", ObjectRenderRoutingDisplayLabel(semantics));
           }
         }
 
@@ -1755,11 +1756,11 @@ void DungeonObjectEditor::DrawPropertyUI() {
             storage_changed = ChangeObjectLayer(obj_idx, layer).ok();
           }
         }
-        if (draws_to_both_bgs) {
+        if (has_routine_defined_route) {
           ImGui::SameLine();
           gui::HelpMarker(
-              "This object draws to both BG1 and BG2. Its object stream still "
-              "controls draw order and ROM serialization.");
+              "This object's draw routine defines its render route. Its object "
+              "stream still controls draw order and ROM serialization.");
         }
 
         gui::EndPropertyTable();
