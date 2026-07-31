@@ -104,7 +104,8 @@ struct ObjectTileLayout {
  * The exact half-open PC ranges are derived from the same entries that are
  * applied, allowing callers to run Hack Manifest preflight before mutation.
  */
-struct ObjectTileWritePlan {
+class ObjectTileWritePlan {
+ public:
   struct Write {
     int address = -1;
     uint16_t expected_word = 0;
@@ -116,11 +117,29 @@ struct ObjectTileWritePlan {
     uint16_t expected_word = 0;
   };
 
-  std::vector<Write> writes;
+  ObjectTileWritePlan(const ObjectTileWritePlan&) = default;
+  ObjectTileWritePlan(ObjectTileWritePlan&&) noexcept = default;
+  ObjectTileWritePlan& operator=(const ObjectTileWritePlan&) = default;
+  ObjectTileWritePlan& operator=(ObjectTileWritePlan&&) noexcept = default;
+
+  const std::vector<Write>& writes() const { return writes_; }
+  const std::vector<WordPrecondition>& preconditions() const {
+    return preconditions_;
+  }
+  const std::vector<std::pair<uint32_t, uint32_t>>& write_ranges() const {
+    return write_ranges_;
+  }
+
+ private:
+  friend class ObjectTileEditor;
+
+  ObjectTileWritePlan() = default;
+
+  std::vector<Write> writes_;
   // Includes the pointer descriptor and every captured source word. Apply
   // rechecks these immediately before opening the transaction.
-  std::vector<WordPrecondition> preconditions;
-  std::vector<std::pair<uint32_t, uint32_t>> write_ranges;
+  std::vector<WordPrecondition> preconditions_;
+  std::vector<std::pair<uint32_t, uint32_t>> write_ranges_;
 };
 
 /**

@@ -60,6 +60,21 @@ int ResolvePaletteIndex(const gfx::PaletteGroup& palette, int requested) {
 
 constexpr std::array<int16_t, 2> kEditableStandardObjectIds = {0x11F, 0x120};
 constexpr size_t kFixed2x2SourceWordCount = 4;
+// The subtype tile-descriptor and routine-pointer tables are contiguous from
+// the first Type-1 descriptor through the two 128-word Type-3 tables. None of
+// this metadata is tile data, so an audited object source must never alias it.
+constexpr int64_t kObjectMetadataStart = kRoomObjectSubtype1;
+constexpr int64_t kObjectMetadataEnd = kRoomObjectSubtype3 + 0x200;
+
+bool RangesOverlap(int64_t lhs_start, int64_t lhs_end, int64_t rhs_start,
+                   int64_t rhs_end) {
+  return lhs_start < rhs_end && rhs_start < lhs_end;
+}
+
+bool WordRangesOverlap(int64_t lhs_address, int64_t rhs_address) {
+  return RangesOverlap(lhs_address, lhs_address + 2, rhs_address,
+                       rhs_address + 2);
+}
 
 absl::StatusOr<size_t> ResolveFixed2x2SourceWordIndex(
     const ObjectTileLayout::Cell& cell) {
@@ -307,22 +322,6 @@ absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureEditableObjectLayout(
     return absl::FailedPreconditionError("ROM not loaded");
   }
 
-  auto layout_or = CaptureObjectLayout(object_id, room, palette);
-  if (!layout_or.ok()) {
-    return layout_or.status();
-  }
-  ObjectTileLayout layout = std::move(*layout_or);
-  if (layout.is_custom) {
-    return absl::FailedPreconditionError(
-        "Custom objects do not use standard ROM source provenance");
-  }
-  if (layout.object_id != object_id ||
-      layout.cells.size() != kFixed2x2SourceWordCount ||
-      layout.bounds_width != 2 || layout.bounds_height != 2) {
-    return absl::FailedPreconditionError(
-        "Object draw does not match the audited fixed 2x2 layout");
-  }
-
   const uint32_t descriptor_pc_address =
       static_cast<uint32_t>(kRoomObjectSubtype2 + (object_id - 0x100) * 2);
   auto descriptor_or = rom_->ReadWord(static_cast<int>(descriptor_pc_address));
@@ -338,6 +337,30 @@ absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureEditableObjectLayout(
       source_address > std::numeric_limits<int>::max()) {
     return absl::OutOfRangeError(
         "Editable object tile source is outside the loaded ROM");
+  }
+  const int64_t source_end =
+      source_address + static_cast<int64_t>(kFixed2x2SourceWordCount * 2);
+  if (RangesOverlap(source_address, source_end, kObjectMetadataStart,
+                    kObjectMetadataEnd)) {
+    return absl::FailedPreconditionError(
+        "Editable object tile source overlaps object descriptor or routine "
+        "metadata");
+  }
+
+  auto layout_or = CaptureObjectLayout(object_id, room, palette);
+  if (!layout_or.ok()) {
+    return layout_or.status();
+  }
+  ObjectTileLayout layout = std::move(*layout_or);
+  if (layout.is_custom) {
+    return absl::FailedPreconditionError(
+        "Custom objects do not use standard ROM source provenance");
+  }
+  if (layout.object_id != object_id ||
+      layout.cells.size() != kFixed2x2SourceWordCount ||
+      layout.bounds_width != 2 || layout.bounds_height != 2) {
+    return absl::FailedPreconditionError(
+        "Object draw does not match the audited fixed 2x2 layout");
   }
 
   ObjectTileSourceSpan span;
@@ -606,19 +629,33 @@ absl::StatusOr<ObjectTileWritePlan> ObjectTileEditor::BuildStandardWritePlan(
         "Object tile source span is outside the loaded ROM");
   }
 
-  std::unordered_set<int> precondition_addresses;
+  const int64_t span_start = static_cast<int64_t>(span.pc_address);
+  const int64_t span_end =
+      span_start + static_cast<int64_t>(span.expected_words.size() * 2);
+  if (RangesOverlap(span_start, span_end, kObjectMetadataStart,
+                    kObjectMetadataEnd)) {
+    return absl::FailedPreconditionError(
+        "Object tile source span overlaps object descriptor or routine "
+        "metadata");
+  }
+
+  std::vector<int> precondition_addresses;
   const int descriptor_address =
       static_cast<int>(provenance.descriptor_pc_address);
-  precondition_addresses.insert(descriptor_address);
-  plan.preconditions.push_back(
+  precondition_addresses.push_back(descriptor_address);
+  plan.preconditions_.push_back(
       {descriptor_address, provenance.expected_descriptor_word});
   for (size_t word_index = 0; word_index < span.expected_words.size();
        ++word_index) {
     const int address = static_cast<int>(span.pc_address + word_index * 2);
-    if (!precondition_addresses.insert(address).second) {
+    if (std::any_of(precondition_addresses.begin(),
+                    precondition_addresses.end(), [&](int existing_address) {
+                      return WordRangesOverlap(existing_address, address);
+                    })) {
       return absl::FailedPreconditionError(
-          "Object tile descriptor and source preconditions alias");
+          "Object tile descriptor and source preconditions overlap");
     }
+    precondition_addresses.push_back(address);
     auto current_word_or = rom_->ReadWord(address);
     if (!current_word_or.ok()) {
       return current_word_or.status();
@@ -627,7 +664,7 @@ absl::StatusOr<ObjectTileWritePlan> ObjectTileEditor::BuildStandardWritePlan(
       return absl::FailedPreconditionError(
           "Object tile source word changed after capture");
     }
-    plan.preconditions.push_back({address, span.expected_words[word_index]});
+    plan.preconditions_.push_back({address, span.expected_words[word_index]});
   }
 
   if (layout.cells.size() != kFixed2x2SourceWordCount ||
@@ -691,9 +728,9 @@ absl::StatusOr<ObjectTileWritePlan> ObjectTileEditor::BuildStandardWritePlan(
       continue;
     }
 
-    plan.writes.push_back({address, expected_word, current_layout_word});
-    plan.write_ranges.emplace_back(static_cast<uint32_t>(address),
-                                   static_cast<uint32_t>(address + 2));
+    plan.writes_.push_back({address, expected_word, current_layout_word});
+    plan.write_ranges_.emplace_back(static_cast<uint32_t>(address),
+                                    static_cast<uint32_t>(address + 2));
   }
 
   return plan;
@@ -701,14 +738,14 @@ absl::StatusOr<ObjectTileWritePlan> ObjectTileEditor::BuildStandardWritePlan(
 
 absl::Status ObjectTileEditor::ApplyStandardWritePlan(
     const ObjectTileWritePlan& plan) {
-  if (plan.writes.empty()) {
+  if (plan.writes_.empty()) {
     return absl::OkStatus();
   }
-  if (plan.write_ranges.size() != plan.writes.size()) {
+  if (plan.write_ranges_.size() != plan.writes_.size()) {
     return absl::FailedPreconditionError(
         "Object tile write plan ranges do not match its writes");
   }
-  if (plan.preconditions.empty()) {
+  if (plan.preconditions_.empty()) {
     return absl::FailedPreconditionError(
         "Object tile write plan has no source provenance preconditions");
   }
@@ -718,12 +755,22 @@ absl::Status ObjectTileEditor::ApplyStandardWritePlan(
 
   const int64_t rom_size = static_cast<int64_t>(rom_->size());
   std::unordered_map<int, uint16_t> precondition_words;
-  for (const auto& precondition : plan.preconditions) {
+  std::vector<int> precondition_addresses;
+  for (const auto& precondition : plan.preconditions_) {
     const int64_t address = static_cast<int64_t>(precondition.address);
     if (address < 0 || address + 2 > rom_size) {
       return absl::OutOfRangeError(
           "Object tile precondition is outside the loaded ROM");
     }
+    if (std::any_of(precondition_addresses.begin(),
+                    precondition_addresses.end(), [&](int existing_address) {
+                      return WordRangesOverlap(existing_address,
+                                               precondition.address);
+                    })) {
+      return absl::FailedPreconditionError(
+          "Object tile plan has overlapping CAS preconditions");
+    }
+    precondition_addresses.push_back(precondition.address);
     if (!precondition_words
              .emplace(precondition.address, precondition.expected_word)
              .second) {
@@ -733,14 +780,23 @@ absl::Status ObjectTileEditor::ApplyStandardWritePlan(
   }
 
   std::unordered_set<int> write_addresses;
-  for (size_t write_index = 0; write_index < plan.writes.size();
+  std::vector<int> validated_write_addresses;
+  for (size_t write_index = 0; write_index < plan.writes_.size();
        ++write_index) {
-    const auto& write = plan.writes[write_index];
+    const auto& write = plan.writes_[write_index];
     const int64_t address = static_cast<int64_t>(write.address);
     if (address < 0 || address + 2 > rom_size) {
       return absl::OutOfRangeError(
           "Object tile write range is outside the loaded ROM");
     }
+    if (std::any_of(validated_write_addresses.begin(),
+                    validated_write_addresses.end(), [&](int existing_address) {
+                      return WordRangesOverlap(existing_address, write.address);
+                    })) {
+      return absl::FailedPreconditionError(
+          "Object tile plan has overlapping write ranges");
+    }
+    validated_write_addresses.push_back(write.address);
     if (!write_addresses.insert(write.address).second) {
       return absl::FailedPreconditionError(
           "Object tile plan has duplicate write addresses");
@@ -748,7 +804,7 @@ absl::Status ObjectTileEditor::ApplyStandardWritePlan(
     const std::pair<uint32_t, uint32_t> expected_range = {
         static_cast<uint32_t>(write.address),
         static_cast<uint32_t>(write.address + 2)};
-    if (plan.write_ranges[write_index] != expected_range) {
+    if (plan.write_ranges_[write_index] != expected_range) {
       return absl::FailedPreconditionError(
           "Object tile write plan range does not match its write address");
     }
@@ -762,7 +818,7 @@ absl::Status ObjectTileEditor::ApplyStandardWritePlan(
 
   // Recheck every captured descriptor/source word immediately before the
   // transaction. This is the compare-and-swap boundary for a prepared plan.
-  for (const auto& precondition : plan.preconditions) {
+  for (const auto& precondition : plan.preconditions_) {
     auto current_word_or = rom_->ReadWord(precondition.address);
     if (!current_word_or.ok()) {
       return current_word_or.status();
@@ -772,7 +828,7 @@ absl::Status ObjectTileEditor::ApplyStandardWritePlan(
           "Object tile source changed after the write plan was built");
     }
   }
-  for (const auto& write : plan.writes) {
+  for (const auto& write : plan.writes_) {
     auto current_word_or = rom_->ReadWord(write.address);
     if (!current_word_or.ok()) {
       return current_word_or.status();
@@ -785,7 +841,7 @@ absl::Status ObjectTileEditor::ApplyStandardWritePlan(
 
   const bool was_dirty = rom_->dirty();
   Transaction transaction(*rom_);
-  for (const auto& write : plan.writes) {
+  for (const auto& write : plan.writes_) {
     transaction.WriteWord(write.address, write.word);
   }
   const absl::Status status = transaction.Commit();

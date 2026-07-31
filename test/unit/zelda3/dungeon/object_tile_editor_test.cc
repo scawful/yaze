@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -401,6 +402,39 @@ TEST(ObjectTileEditorTest, EditableCaptureRejectsUnsupportedStandardObject) {
 }
 
 TEST(ObjectTileEditorTest,
+     EditableCaptureRejectsSourcesOverlappingObjectMetadata) {
+  ScopedCustomObjectsDisabled disable_custom_objects;
+
+  for (const uint32_t source_address :
+       {static_cast<uint32_t>(0x7FF9), static_cast<uint32_t>(0x8000),
+        static_cast<uint32_t>(0x842F), static_cast<uint32_t>(0x8432),
+        static_cast<uint32_t>(0x8470), static_cast<uint32_t>(0x84F0),
+        static_cast<uint32_t>(0x86EF)}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "source_address=0x" << std::hex << source_address);
+    Rom rom;
+    auto data = MakeEditableObjectRomData();
+    StoreWord(data, /*address=*/0x842E,
+              static_cast<uint16_t>(source_address - 0x1B52));
+    ASSERT_TRUE(rom.LoadFromData(data).ok());
+
+    Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+    gfx::PaletteGroup palette;
+    ObjectTileEditor editor(&rom);
+    const auto original = rom.vector();
+    const bool original_dirty = rom.dirty();
+
+    const auto layout_or =
+        editor.CaptureEditableObjectLayout(0x11F, room, palette);
+    EXPECT_TRUE(absl::IsFailedPrecondition(layout_or.status()));
+    EXPECT_NE(std::string(layout_or.status().message()).find("overlaps"),
+              std::string::npos);
+    EXPECT_EQ(rom.vector(), original);
+    EXPECT_EQ(rom.dirty(), original_dirty);
+  }
+}
+
+TEST(ObjectTileEditorTest,
      EditableCapturePinsDescriptorsSpansAndColumnMajorSourceMap) {
   ScopedCustomObjectsDisabled disable_custom_objects;
   Rom rom;
@@ -546,49 +580,54 @@ TEST(ObjectTileEditorTest,
 
   const auto plan_or = editor.BuildStandardWritePlan(*layout_or);
   ASSERT_TRUE(absl::IsFailedPrecondition(plan_or.status()));
-  EXPECT_NE(std::string(plan_or.status().message()).find("alias"),
+  EXPECT_NE(std::string(plan_or.status().message()).find("overlap"),
             std::string::npos);
 }
 
 TEST(ObjectTileEditorTest,
-     ApplyStandardWritePlanRejectsForgedRangesAndCASBeforeMutation) {
-  Rom rom;
-  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
-  ObjectTileEditor editor(&rom);
+     BuildStandardWritePlanRejectsSourcesOverlappingObjectMetadata) {
+  ScopedCustomObjectsDisabled disable_custom_objects;
 
-  ObjectTileWritePlan plan;
-  plan.writes.push_back(
-      {/*address=*/0x1000, /*expected_word=*/0, /*word=*/0x1234});
-  plan.write_ranges.push_back({0x1002, 0x1004});
-  plan.preconditions.push_back({/*address=*/0x1000, /*expected_word=*/0});
-  const auto original = rom.vector();
-  const bool original_dirty = rom.dirty();
+  for (const uint32_t source_address :
+       {static_cast<uint32_t>(0x7FF9), static_cast<uint32_t>(0x8000),
+        static_cast<uint32_t>(0x842F), static_cast<uint32_t>(0x8432),
+        static_cast<uint32_t>(0x8470), static_cast<uint32_t>(0x84F0),
+        static_cast<uint32_t>(0x86EF)}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "source_address=0x" << std::hex << source_address);
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(MakeEditableObjectRomData()).ok());
+    Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+    gfx::PaletteGroup palette;
+    ObjectTileEditor editor(&rom);
+    auto layout_or = editor.CaptureEditableObjectLayout(0x11F, room, palette);
+    ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+    ASSERT_TRUE(layout_or->source_provenance.has_value());
 
-  EXPECT_TRUE(absl::IsFailedPrecondition(editor.ApplyStandardWritePlan(plan)));
-  EXPECT_EQ(rom.vector(), original);
-  EXPECT_EQ(rom.dirty(), original_dirty);
+    const uint16_t descriptor_word =
+        static_cast<uint16_t>(source_address - 0x1B52);
+    auto& provenance = *layout_or->source_provenance;
+    provenance.expected_descriptor_word = descriptor_word;
+    ASSERT_EQ(provenance.spans.size(), 1u);
+    provenance.spans[0].pc_address = source_address;
+    StoreWordWithoutDirtying(rom, provenance.descriptor_pc_address,
+                             descriptor_word);
+    const auto original = rom.vector();
+    const bool original_dirty = rom.dirty();
 
-  plan.write_ranges[0] = {0x1000, 0x1002};
-  plan.preconditions.clear();
-  EXPECT_TRUE(absl::IsFailedPrecondition(editor.ApplyStandardWritePlan(plan)));
-  EXPECT_EQ(rom.vector(), original);
-  EXPECT_EQ(rom.dirty(), original_dirty);
+    const auto plan_or = editor.BuildStandardWritePlan(*layout_or);
+    EXPECT_TRUE(absl::IsFailedPrecondition(plan_or.status()));
+    EXPECT_NE(std::string(plan_or.status().message()).find("overlaps"),
+              std::string::npos);
+    EXPECT_EQ(rom.vector(), original);
+    EXPECT_EQ(rom.dirty(), original_dirty);
+  }
+}
 
-  plan.preconditions.push_back({/*address=*/0x1002, /*expected_word=*/0});
-  EXPECT_TRUE(absl::IsFailedPrecondition(editor.ApplyStandardWritePlan(plan)));
-  EXPECT_EQ(rom.vector(), original);
-  EXPECT_EQ(rom.dirty(), original_dirty);
-
-  plan.preconditions = {{/*address=*/0x1000, /*expected_word=*/0},
-                        {/*address=*/0x1000, /*expected_word=*/0}};
-  EXPECT_TRUE(absl::IsFailedPrecondition(editor.ApplyStandardWritePlan(plan)));
-  EXPECT_EQ(rom.vector(), original);
-  EXPECT_EQ(rom.dirty(), original_dirty);
-
-  plan.preconditions = {{/*address=*/0x1000, /*expected_word=*/1}};
-  EXPECT_TRUE(absl::IsFailedPrecondition(editor.ApplyStandardWritePlan(plan)));
-  EXPECT_EQ(rom.vector(), original);
-  EXPECT_EQ(rom.dirty(), original_dirty);
+TEST(ObjectTileEditorTest, StandardWritePlansAreOpaqueAndBuilderOwned) {
+  static_assert(!std::is_aggregate_v<ObjectTileWritePlan>);
+  static_assert(!std::is_default_constructible_v<ObjectTileWritePlan>);
+  SUCCEED();
 }
 
 TEST(ObjectTileEditorTest,
@@ -650,20 +689,20 @@ TEST(ObjectTileEditorTest, StandardWritePlanUsesExactWritesAndReadback) {
 
   auto plan_or = editor.BuildStandardWritePlan(*layout_or);
   ASSERT_TRUE(plan_or.ok()) << plan_or.status();
-  ASSERT_EQ(plan_or->preconditions.size(), 5u);
-  EXPECT_EQ(plan_or->preconditions[0].address, 0x842E);
-  EXPECT_EQ(plan_or->preconditions[0].expected_word, 0x0E9A);
-  ASSERT_EQ(plan_or->writes.size(), 2u);
-  ASSERT_EQ(plan_or->write_ranges.size(), 2u);
-  EXPECT_EQ(plan_or->writes[0].address, 0x29EC);
-  EXPECT_EQ(plan_or->writes[0].expected_word, 0x0DEE);
-  EXPECT_EQ(plan_or->writes[0].word, top_left_word);
-  EXPECT_EQ(plan_or->write_ranges[0],
+  ASSERT_EQ(plan_or->preconditions().size(), 5u);
+  EXPECT_EQ(plan_or->preconditions()[0].address, 0x842E);
+  EXPECT_EQ(plan_or->preconditions()[0].expected_word, 0x0E9A);
+  ASSERT_EQ(plan_or->writes().size(), 2u);
+  ASSERT_EQ(plan_or->write_ranges().size(), 2u);
+  EXPECT_EQ(plan_or->writes()[0].address, 0x29EC);
+  EXPECT_EQ(plan_or->writes()[0].expected_word, 0x0DEE);
+  EXPECT_EQ(plan_or->writes()[0].word, top_left_word);
+  EXPECT_EQ(plan_or->write_ranges()[0],
             (std::pair<uint32_t, uint32_t>{0x29EC, 0x29EE}));
-  EXPECT_EQ(plan_or->writes[1].address, 0x29F2);
-  EXPECT_EQ(plan_or->writes[1].expected_word, 0xCDEE);
-  EXPECT_EQ(plan_or->writes[1].word, bottom_right_word);
-  EXPECT_EQ(plan_or->write_ranges[1],
+  EXPECT_EQ(plan_or->writes()[1].address, 0x29F2);
+  EXPECT_EQ(plan_or->writes()[1].expected_word, 0xCDEE);
+  EXPECT_EQ(plan_or->writes()[1].word, bottom_right_word);
+  EXPECT_EQ(plan_or->write_ranges()[1],
             (std::pair<uint32_t, uint32_t>{0x29F2, 0x29F4}));
 
   auto expected_rom = rom.vector();
@@ -746,7 +785,7 @@ TEST(ObjectTileEditorTest, ApplyStandardWritePlanRollsBackAndPreservesDirty) {
 
   auto plan_or = editor.BuildStandardWritePlan(*layout_or);
   ASSERT_TRUE(plan_or.ok()) << plan_or.status();
-  ASSERT_EQ(plan_or->writes.size(), 2u);
+  ASSERT_EQ(plan_or->writes().size(), 2u);
 
   rom::WriteFence fence;
   ASSERT_TRUE(fence.Allow(0x29EC, 0x29EE, "first object tile word").ok());
