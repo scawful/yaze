@@ -9,6 +9,7 @@
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_state.h"
 #include "zelda3/dungeon/moving_wall_semantics.h"
+#include "zelda3/dungeon/object_render_routing.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
@@ -98,23 +99,6 @@ void DrawMany32x32Block(gfx::BackgroundBuffer& bg, int base_x, int base_y,
   // the same 4x2 stamp two tile rows lower.
   DrawRowMajor(bg, base_x, base_y, /*w=*/4, /*h=*/2, tiles);
   DrawRowMajor(bg, base_x, base_y + 2, /*w=*/4, /*h=*/2, tiles);
-}
-
-bool IsAutoStairsDualLayer(int16_t object_id) {
-  return object_id == 0x0130 || object_id == 0x0131 || object_id == 0x0F9B ||
-         object_id == 0x0F9C;
-}
-
-bool IsStraightInterroomUpper(int16_t object_id) {
-  return object_id >= 0x0F9E && object_id <= 0x0FA1;
-}
-
-bool IsStraightInterroomLower(int16_t object_id) {
-  return object_id >= 0x0FA6 && object_id <= 0x0FA9;
-}
-
-bool IsSouthLowerStraightInterroomStairs(int16_t object_id) {
-  return object_id == 0x0FA8 || object_id == 0x0FA9;
 }
 
 void DrawWaterHopStairsA(const DrawContext& ctx) {
@@ -1175,7 +1159,8 @@ void DrawAutoStairs(const DrawContext& ctx) {
 
   Draw4x4ColumnMajorTo(ctx.target_bg, ctx.object, ctx.tiles);
 
-  if (ctx.secondary_bg != nullptr && IsAutoStairsDualLayer(ctx.object.id_)) {
+  if (ctx.secondary_bg != nullptr &&
+      object_render_routing::IsFullBothAutoStairsObject(ctx.object.id_)) {
     Draw4x4ColumnMajorTo(*ctx.secondary_bg, ctx.object, ctx.tiles);
   }
 }
@@ -1187,13 +1172,17 @@ void DrawStraightInterRoomStairs(const DrawContext& ctx) {
   if (ctx.tiles.size() < 16)
     return;
 
-  if (IsStraightInterroomUpper(ctx.object.id_) || ctx.secondary_bg == nullptr ||
-      !IsStraightInterroomLower(ctx.object.id_)) {
+  if (object_render_routing::IsFixedBg1StraightInterroomObject(
+          ctx.object.id_) ||
+      ctx.secondary_bg == nullptr ||
+      !object_render_routing::IsMixedStraightInterroomObject(ctx.object.id_)) {
     Draw4x4ColumnMajorTo(ctx.target_bg, ctx.object, ctx.tiles);
     return;
   }
 
-  const bool south_lower = IsSouthLowerStraightInterroomStairs(ctx.object.id_);
+  const bool south_lower =
+      object_render_routing::IsSouthMixedStraightInterroomObject(
+          ctx.object.id_);
   size_t tile_index = 0;
   for (int col = 0; col < 4; ++col) {
     for (int row = 0; row < 4; ++row) {

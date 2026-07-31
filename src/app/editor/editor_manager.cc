@@ -6772,9 +6772,12 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
     if (session_index.has_value()) {
       auto* session = static_cast<RomSession*>(
           session_coordinator_->GetSession(*session_index));
-      if (session && session->project_context.has_value()) {
-        deps.project = &*session->project_context;
-        deps.version_manager = session->version_manager.get();
+      if (session) {
+        deps.game_data = &session->game_data;
+        if (session->project_context.has_value()) {
+          deps.project = &*session->project_context;
+          deps.version_manager = session->version_manager.get();
+        }
       }
     }
   }

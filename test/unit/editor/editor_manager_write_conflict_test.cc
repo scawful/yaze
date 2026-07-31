@@ -1781,6 +1781,40 @@ TEST(EditorManagerWriteConflictTest,
 }
 
 TEST(EditorManagerWriteConflictTest,
+     ConfigureSessionKeepsPaletteEditorSaveActive) {
+  ScopedImGuiContext imgui;
+  gfx::PaletteManager::Get().ResetForTesting();
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_path = CreateMinimalRomFile(
+      "yaze_palette_dependency_rebind.sfc", "PALETTE REBIND", 1024 * 1024);
+  ScopedFileCleanup cleanup{rom_path};
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  auto* palette_editor =
+      manager->GetCurrentEditorSet()->GetExistingEditor(EditorType::kPalette);
+  auto* game_data = manager->GetCurrentGameData();
+  auto* session = manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(palette_editor, nullptr);
+  ASSERT_NE(game_data, nullptr);
+  ASSERT_NE(session, nullptr);
+  ASSERT_EQ(palette_editor->game_data(), game_data);
+
+  manager->ConfigureSession(session);
+
+  EXPECT_EQ(palette_editor->game_data(), game_data);
+  EXPECT_OK(palette_editor->Save());
+
+  manager.reset();
+  gfx::PaletteManager::Get().ResetForTesting();
+}
+
+TEST(EditorManagerWriteConflictTest,
      PalettePanelsSurviveCloseFirstThenOpenNewSession) {
   ScopedImGuiContext imgui;
   gfx::PaletteManager::Get().ResetForTesting();
