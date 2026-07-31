@@ -1,6 +1,8 @@
 #include "object_parser.h"
 
+#include <algorithm>
 #include <cstring>
+#include <tuple>
 
 #include "absl/strings/str_format.h"
 #include "util/log.h"
@@ -118,6 +120,30 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseObject(
       return absl::InvalidArgumentError(
           absl::StrFormat("Invalid object subtype for ID: %#04x", object_id));
   }
+}
+
+absl::StatusOr<std::vector<ObjectTileReadRange>>
+ObjectParser::ResolveTileReadRanges(int16_t object_id) {
+  if (tile_read_range_collector_ != nullptr) {
+    return absl::FailedPreconditionError(
+        "Object tile source resolution is already active");
+  }
+
+  std::vector<ObjectTileReadRange> ranges;
+  tile_read_range_collector_ = &ranges;
+  const auto parsed_or = ParseObject(object_id);
+  tile_read_range_collector_ = nullptr;
+  if (!parsed_or.ok()) {
+    return parsed_or.status();
+  }
+
+  std::sort(ranges.begin(), ranges.end(),
+            [](const ObjectTileReadRange& lhs, const ObjectTileReadRange& rhs) {
+              return std::tie(lhs.begin, lhs.end) <
+                     std::tie(rhs.begin, rhs.end);
+            });
+  ranges.erase(std::unique(ranges.begin(), ranges.end()), ranges.end());
+  return ranges;
 }
 
 absl::StatusOr<ObjectRoutineInfo> ObjectParser::ParseObjectRoutine(
@@ -332,6 +358,8 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
   constexpr int kBombableFloorStateTileCount = 16;
   constexpr int kPrisonCellTileOffset = 0x1488;
   constexpr int kPrisonCellTileCount = 6;
+  constexpr int kRupeeFloorTileOffset = 0x1DD6;
+  constexpr int kRupeeFloorTileCount = 2;
   constexpr int kBigKeyLockTileOffset = 0x1494;
   constexpr int kClosedChestTileOffset = 0x149C;
   constexpr int kOpenChestTileOffset = 0x14A4;
@@ -393,6 +421,15 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ParseSubtype3(
   if (object_id == 0xF8D || object_id == 0xF97) {
     return ReadTileData(kRoomObjectTileAddress + kPrisonCellTileOffset,
                         kPrisonCellTileCount);
+  }
+
+  // RupeeFloor replaces the table-derived pointer with literal obj1DD6 and
+  // repeats those two words across its fixed footprint. Following the table
+  // here would hide a real shared-source overlap from both rendering and the
+  // source-impact resolver.
+  if (object_id == 0xF92) {
+    return ReadTileData(kRoomObjectTileAddress + kRupeeFloorTileOffset,
+                        kRupeeFloorTileCount);
   }
 
   // BigKeyLock overwrites the table-derived X register with obj1494 before
@@ -488,6 +525,12 @@ absl::StatusOr<std::vector<gfx::TileInfo>> ObjectParser::ReadTileData(
   if (address < 0 || address + (tile_count * 2) >= (int)rom_->size()) {
     return absl::OutOfRangeError(
         absl::StrFormat("Tile data address out of range: %#06x", address));
+  }
+
+  if (tile_read_range_collector_ != nullptr) {
+    tile_read_range_collector_->push_back(
+        {static_cast<uint32_t>(address),
+         static_cast<uint32_t>(address + tile_count * 2)});
   }
 
   std::vector<gfx::TileInfo> tiles;
