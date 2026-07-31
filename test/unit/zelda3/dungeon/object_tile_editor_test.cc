@@ -1,8 +1,10 @@
 #include "zelda3/dungeon/object_tile_editor.h"
 
+#include <array>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <string>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -39,6 +41,63 @@ gfx::PaletteGroup MakeTestPaletteGroup() {
 
   return group;
 }
+
+struct EditableObjectFixture {
+  int16_t object_id;
+  uint32_t descriptor_pc_address;
+  uint16_t descriptor_word;
+  uint32_t source_pc_address;
+  std::array<uint16_t, 4> source_words;
+};
+
+constexpr std::array<EditableObjectFixture, 2> kEditableObjectFixtures = {{
+    {/*object_id=*/0x11F,
+     /*descriptor_pc_address=*/0x842E,
+     /*descriptor_word=*/0x0E9A,
+     /*source_pc_address=*/0x29EC,
+     /*source_words=*/{0x0DEE, 0x8DEE, 0x4DEE, 0xCDEE}},
+    {/*object_id=*/0x120,
+     /*descriptor_pc_address=*/0x8430,
+     /*descriptor_word=*/0x0ECA,
+     /*source_pc_address=*/0x2A1C,
+     /*source_words=*/{0x0DC0, 0x0DC1, 0x4DC0, 0x4DC1}},
+}};
+
+void StoreWord(std::vector<uint8_t>& data, uint32_t address, uint16_t word) {
+  data[address] = static_cast<uint8_t>(word & 0xFF);
+  data[address + 1] = static_cast<uint8_t>(word >> 8);
+}
+
+std::vector<uint8_t> MakeEditableObjectRomData() {
+  std::vector<uint8_t> data(0x200000, 0);
+  for (const auto& fixture : kEditableObjectFixtures) {
+    StoreWord(data, fixture.descriptor_pc_address, fixture.descriptor_word);
+    for (size_t index = 0; index < fixture.source_words.size(); ++index) {
+      StoreWord(data, fixture.source_pc_address + index * 2,
+                fixture.source_words[index]);
+    }
+  }
+  return data;
+}
+
+void StoreWordWithoutDirtying(Rom& rom, uint32_t address, uint16_t word) {
+  StoreWord(rom.mutable_vector(), address, word);
+}
+
+class ScopedCustomObjectsDisabled {
+ public:
+  ScopedCustomObjectsDisabled()
+      : previous_(core::FeatureFlags::get().kEnableCustomObjects) {
+    core::FeatureFlags::get().kEnableCustomObjects = false;
+  }
+
+  ~ScopedCustomObjectsDisabled() {
+    core::FeatureFlags::get().kEnableCustomObjects = previous_;
+  }
+
+ private:
+  bool previous_;
+};
 
 // Pins ObjectTileEditor::CaptureObjectLayout against the canonical
 // ObjectGeometry bounds for routines that draw upward or leftward. The
@@ -293,180 +352,404 @@ TEST(ObjectTileLayoutTest, CreateEmptyBuildsCustomModifiedGrid) {
   EXPECT_EQ(layout.FindCell(1, 2)->rel_y, 2);
 }
 
-TEST(ObjectTileEditorTest, StandardObjectWriteBackRoundtrip) {
-  Rom rom;
-  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
-
-  ObjectTileEditor editor(&rom);
-  ObjectTileLayout layout;
-  layout.tile_data_address = 0x1000;
-  layout.is_custom = false;
-
-  ObjectTileLayout::Cell cell;
-  cell.tile_info = gfx::TileInfo(0x123, 3, true, false, true);
-  cell.original_word = 0;
-  cell.write_index = 0;
-  cell.modified = true;
-  layout.cells.push_back(cell);
-
-  ASSERT_TRUE(editor.WriteBack(layout).ok());
-
-  uint8_t low = rom.ReadByte(0x1000).value();
-  uint8_t high = rom.ReadByte(0x1001).value();
-  uint16_t word = static_cast<uint16_t>(low | (high << 8));
-
-  EXPECT_EQ(word, gfx::TileInfoToWord(cell.tile_info));
-}
-
 TEST(ObjectTileEditorTest,
-     StandardObjectWriteBackRejectsMissingEditableSourceIndex) {
+     GenericCaptureIsPreviewOnlyAndCannotAuthorizeStandardWrites) {
+  ScopedCustomObjectsDisabled disable_custom_objects;
   Rom rom;
-  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableObjectRomData()).ok());
 
+  Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+  gfx::PaletteGroup palette;
   ObjectTileEditor editor(&rom);
-  ObjectTileLayout layout;
-  layout.tile_data_address = 0x1000;
-  layout.is_custom = false;
-
-  ObjectTileLayout::Cell cell;
-  cell.tile_info = gfx::TileInfo(0x123, 3, true, false, true);
-  cell.modified = true;
-  ASSERT_EQ(cell.write_index, -1);
-  layout.cells.push_back(cell);
-
-  const auto original = rom.vector();
-  const bool original_dirty = rom.dirty();
-  const absl::Status status = editor.WriteBack(layout);
-
-  EXPECT_TRUE(absl::IsFailedPrecondition(status));
-  EXPECT_EQ(rom.vector(), original);
-  EXPECT_EQ(rom.dirty(), original_dirty);
-}
-
-TEST(ObjectTileEditorTest, StandardObjectWriteBackUsesCellWriteIndex) {
-  Rom rom;
-  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
-
-  ObjectTileEditor editor(&rom);
-  ObjectTileLayout layout;
-  layout.tile_data_address = 0x1000;
-  layout.is_custom = false;
-
-  ObjectTileLayout::Cell cell;
-  cell.tile_info = gfx::TileInfo(0x234, 4, false, true, false);
-  cell.original_word = 0;
-  cell.write_index = 1;
-  cell.modified = true;
-  layout.cells.push_back(cell);
-
-  ASSERT_TRUE(editor.WriteBack(layout).ok());
-
-  EXPECT_EQ(rom.ReadByte(0x1000).value(), 0x00);
-  EXPECT_EQ(rom.ReadByte(0x1001).value(), 0x00);
-
-  uint8_t low = rom.ReadByte(0x1002).value();
-  uint8_t high = rom.ReadByte(0x1003).value();
-  uint16_t word = static_cast<uint16_t>(low | (high << 8));
-  EXPECT_EQ(word, gfx::TileInfoToWord(cell.tile_info));
-}
-
-TEST(ObjectTileEditorTest,
-     BuildStandardWritePlanUsesSparseWriteIndicesAndExactRanges) {
-  Rom rom;
-  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x2000, 0)).ok());
-
-  ObjectTileEditor editor(&rom);
-  ObjectTileLayout layout;
-  layout.tile_data_address = 0x1000;
-  layout.is_custom = false;
-
-  ObjectTileLayout::Cell first;
-  first.tile_info = gfx::TileInfo(0x123, 3, true, false, true);
-  first.write_index = 3;
-  first.modified = true;
-  layout.cells.push_back(first);
-
-  ObjectTileLayout::Cell unmodified;
-  unmodified.tile_info = gfx::TileInfo(0x111, 1, false, false, false);
-  unmodified.write_index = 1;
-  unmodified.modified = false;
-  layout.cells.push_back(unmodified);
-
-  ObjectTileLayout::Cell second;
-  second.tile_info = gfx::TileInfo(0x234, 4, false, true, false);
-  second.write_index = 0;
-  second.modified = true;
-  layout.cells.push_back(second);
-
-  auto plan_or = editor.BuildStandardWritePlan(layout);
-  ASSERT_TRUE(plan_or.ok()) << plan_or.status();
-  const auto& plan = *plan_or;
-  ASSERT_EQ(plan.writes.size(), 2u);
-  ASSERT_EQ(plan.write_ranges.size(), 2u);
-
-  EXPECT_EQ(plan.writes[0].address, 0x1006);
-  EXPECT_EQ(plan.writes[0].word, gfx::TileInfoToWord(first.tile_info));
-  EXPECT_EQ(plan.write_ranges[0],
-            (std::pair<uint32_t, uint32_t>{0x1006, 0x1008}));
-  EXPECT_EQ(plan.writes[1].address, 0x1000);
-  EXPECT_EQ(plan.writes[1].word, gfx::TileInfoToWord(second.tile_info));
-  EXPECT_EQ(plan.write_ranges[1],
-            (std::pair<uint32_t, uint32_t>{0x1000, 0x1002}));
-}
-
-TEST(ObjectTileEditorTest,
-     StandardObjectWriteBackRejectsAllInvalidRangesBeforeMutation) {
-  Rom rom;
-  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x20, 0x5A)).ok());
-
-  ObjectTileEditor editor(&rom);
-  ObjectTileLayout layout;
-  layout.tile_data_address = 0x10;
-  layout.is_custom = false;
-
-  ObjectTileLayout::Cell valid;
-  valid.tile_info = gfx::TileInfo(0x123, 3, true, false, true);
-  valid.write_index = 0;
-  valid.modified = true;
-  layout.cells.push_back(valid);
-
-  ObjectTileLayout::Cell invalid;
-  invalid.tile_info = gfx::TileInfo(0x234, 4, false, true, false);
-  invalid.write_index = 8;
-  invalid.modified = true;
-  layout.cells.push_back(invalid);
-
-  const auto original = rom.vector();
-  const bool original_dirty = rom.dirty();
-  const absl::Status status = editor.WriteBack(layout);
-
-  EXPECT_TRUE(absl::IsOutOfRange(status));
-  EXPECT_EQ(rom.vector(), original);
-  EXPECT_EQ(rom.dirty(), original_dirty);
-}
-
-TEST(ObjectTileEditorTest, ApplyStandardWritePlanRollsBackWhenLaterWriteFails) {
-  Rom rom;
-  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x40, 0x5A)).ok());
-
-  ObjectTileEditor editor(&rom);
-  ObjectTileLayout layout;
-  layout.tile_data_address = 0x10;
-  layout.is_custom = false;
-  for (int index = 0; index < 2; ++index) {
-    ObjectTileLayout::Cell cell;
-    cell.tile_info = gfx::TileInfo(static_cast<uint16_t>(0x120 + index), 3,
-                                   false, false, false);
-    cell.write_index = index;
-    cell.modified = true;
-    layout.cells.push_back(cell);
+  auto layout_or =
+      editor.CaptureObjectLayout(/*object_id=*/0x11F, room, palette);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  EXPECT_EQ(layout_or->tile_data_address, -1);
+  EXPECT_FALSE(layout_or->source_provenance.has_value());
+  for (const auto& cell : layout_or->cells) {
+    EXPECT_FALSE(cell.source_ref.has_value());
   }
 
-  auto plan_or = editor.BuildStandardWritePlan(layout);
+  auto* cell = layout_or->FindCell(0, 0);
+  ASSERT_NE(cell, nullptr);
+  cell->tile_info.id_ ^= 1;
+  cell->modified = true;
+
+  const auto original = rom.vector();
+  const bool original_dirty = rom.dirty();
+  const auto plan_or = editor.BuildStandardWritePlan(*layout_or);
+  EXPECT_TRUE(absl::IsFailedPrecondition(plan_or.status()));
+  EXPECT_EQ(rom.vector(), original);
+  EXPECT_EQ(rom.dirty(), original_dirty);
+}
+
+TEST(ObjectTileEditorTest, EditableCaptureRejectsUnsupportedStandardObject) {
+  ScopedCustomObjectsDisabled disable_custom_objects;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableObjectRomData()).ok());
+
+  Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+  gfx::PaletteGroup palette;
+  ObjectTileEditor editor(&rom);
+
+  EXPECT_TRUE(ObjectTileEditor::IsEditableStandardObject(0x11F));
+  EXPECT_TRUE(ObjectTileEditor::IsEditableStandardObject(0x120));
+  EXPECT_FALSE(ObjectTileEditor::IsEditableStandardObject(0x11E));
+  const auto layout_or = editor.CaptureEditableObjectLayout(
+      /*object_id=*/0x11E, room, palette);
+  EXPECT_TRUE(absl::IsUnimplemented(layout_or.status()));
+}
+
+TEST(ObjectTileEditorTest,
+     EditableCapturePinsDescriptorsSpansAndColumnMajorSourceMap) {
+  ScopedCustomObjectsDisabled disable_custom_objects;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableObjectRomData()).ok());
+
+  Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+  gfx::PaletteGroup palette;
+  ObjectTileEditor editor(&rom);
+
+  struct VisualCell {
+    int rel_x;
+    int rel_y;
+    size_t source_word_index;
+  };
+  // Explicit visual/source map: [0 2; 1 3].
+  constexpr std::array<VisualCell, 4> kVisualCells = {{
+      {0, 0, 0},
+      {1, 0, 2},
+      {0, 1, 1},
+      {1, 1, 3},
+  }};
+
+  for (const auto& fixture : kEditableObjectFixtures) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << fixture.object_id);
+    auto layout_or =
+        editor.CaptureEditableObjectLayout(fixture.object_id, room, palette);
+    ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+    const auto& layout = *layout_or;
+
+    EXPECT_EQ(layout.object_id, fixture.object_id);
+    EXPECT_EQ(layout.bounds_width, 2);
+    EXPECT_EQ(layout.bounds_height, 2);
+    EXPECT_EQ(layout.tile_data_address,
+              static_cast<int>(fixture.source_pc_address));
+    ASSERT_TRUE(layout.source_provenance.has_value());
+    const auto& provenance = *layout.source_provenance;
+    EXPECT_EQ(provenance.object_id, fixture.object_id);
+    EXPECT_EQ(provenance.descriptor_pc_address, fixture.descriptor_pc_address);
+    EXPECT_EQ(provenance.expected_descriptor_word, fixture.descriptor_word);
+    ASSERT_EQ(provenance.spans.size(), 1u);
+    EXPECT_EQ(provenance.spans[0].pc_address, fixture.source_pc_address);
+    EXPECT_EQ(provenance.spans[0].expected_words,
+              std::vector<uint16_t>(fixture.source_words.begin(),
+                                    fixture.source_words.end()));
+
+    for (const auto& visual_cell : kVisualCells) {
+      const auto* cell = layout.FindCell(visual_cell.rel_x, visual_cell.rel_y);
+      ASSERT_NE(cell, nullptr);
+      ASSERT_TRUE(cell->source_ref.has_value());
+      EXPECT_EQ(cell->source_ref->span_index, 0u);
+      EXPECT_EQ(cell->source_ref->word_index, visual_cell.source_word_index);
+      EXPECT_EQ(cell->original_word,
+                fixture.source_words[visual_cell.source_word_index]);
+      EXPECT_EQ(gfx::TileInfoToWord(cell->tile_info), cell->original_word);
+    }
+  }
+}
+
+TEST(ObjectTileEditorTest, BuildStandardWritePlanRejectsObjectMismatch) {
+  ScopedCustomObjectsDisabled disable_custom_objects;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableObjectRomData()).ok());
+
+  Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+  gfx::PaletteGroup palette;
+  ObjectTileEditor editor(&rom);
+  auto layout_or = editor.CaptureEditableObjectLayout(0x11F, room, palette);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  layout_or->object_id = 0x120;
+
+  const auto plan_or = editor.BuildStandardWritePlan(*layout_or);
+  EXPECT_TRUE(absl::IsFailedPrecondition(plan_or.status()));
+}
+
+TEST(ObjectTileEditorTest,
+     BuildStandardWritePlanRejectsOutOfBoundsSourceReferences) {
+  ScopedCustomObjectsDisabled disable_custom_objects;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableObjectRomData()).ok());
+
+  Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+  gfx::PaletteGroup palette;
+  ObjectTileEditor editor(&rom);
+  auto layout_or = editor.CaptureEditableObjectLayout(0x11F, room, palette);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+
+  ObjectTileLayout bad_span = *layout_or;
+  ASSERT_TRUE(bad_span.cells[0].source_ref.has_value());
+  bad_span.cells[0].source_ref->span_index = 1;
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      editor.BuildStandardWritePlan(bad_span).status()));
+
+  ObjectTileLayout bad_word = *layout_or;
+  ASSERT_TRUE(bad_word.cells[0].source_ref.has_value());
+  bad_word.cells[0].source_ref->word_index = 4;
+  EXPECT_TRUE(absl::IsFailedPrecondition(
+      editor.BuildStandardWritePlan(bad_word).status()));
+}
+
+TEST(ObjectTileEditorTest,
+     BuildStandardWritePlanRejectsDuplicateResolvedAddresses) {
+  ScopedCustomObjectsDisabled disable_custom_objects;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableObjectRomData()).ok());
+
+  Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+  gfx::PaletteGroup palette;
+  ObjectTileEditor editor(&rom);
+  auto layout_or = editor.CaptureEditableObjectLayout(0x11F, room, palette);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+
+  auto* duplicate = layout_or->FindCell(0, 1);
+  ASSERT_NE(duplicate, nullptr);
+  duplicate->rel_y = 0;
+  duplicate->source_ref = ObjectTileSourceRef{/*span_index=*/0,
+                                              /*word_index=*/0};
+  const auto plan_or = editor.BuildStandardWritePlan(*layout_or);
+  ASSERT_TRUE(absl::IsFailedPrecondition(plan_or.status()));
+  EXPECT_NE(std::string(plan_or.status().message()).find("duplicate"),
+            std::string::npos);
+}
+
+TEST(ObjectTileEditorTest,
+     BuildStandardWritePlanRejectsDescriptorSourcePreconditionAlias) {
+  ScopedCustomObjectsDisabled disable_custom_objects;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableObjectRomData()).ok());
+
+  Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+  gfx::PaletteGroup palette;
+  ObjectTileEditor editor(&rom);
+  auto layout_or = editor.CaptureEditableObjectLayout(0x11F, room, palette);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  ASSERT_TRUE(layout_or->source_provenance.has_value());
+
+  auto& provenance = *layout_or->source_provenance;
+  provenance.expected_descriptor_word = 0x68DC;
+  ASSERT_EQ(provenance.spans.size(), 1u);
+  provenance.spans[0].pc_address = provenance.descriptor_pc_address;
+  StoreWordWithoutDirtying(rom, provenance.descriptor_pc_address,
+                           provenance.expected_descriptor_word);
+
+  const auto plan_or = editor.BuildStandardWritePlan(*layout_or);
+  ASSERT_TRUE(absl::IsFailedPrecondition(plan_or.status()));
+  EXPECT_NE(std::string(plan_or.status().message()).find("alias"),
+            std::string::npos);
+}
+
+TEST(ObjectTileEditorTest,
+     ApplyStandardWritePlanRejectsForgedRangesAndCASBeforeMutation) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ObjectTileEditor editor(&rom);
+
+  ObjectTileWritePlan plan;
+  plan.writes.push_back(
+      {/*address=*/0x1000, /*expected_word=*/0, /*word=*/0x1234});
+  plan.write_ranges.push_back({0x1002, 0x1004});
+  plan.preconditions.push_back({/*address=*/0x1000, /*expected_word=*/0});
+  const auto original = rom.vector();
+  const bool original_dirty = rom.dirty();
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(editor.ApplyStandardWritePlan(plan)));
+  EXPECT_EQ(rom.vector(), original);
+  EXPECT_EQ(rom.dirty(), original_dirty);
+
+  plan.write_ranges[0] = {0x1000, 0x1002};
+  plan.preconditions.clear();
+  EXPECT_TRUE(absl::IsFailedPrecondition(editor.ApplyStandardWritePlan(plan)));
+  EXPECT_EQ(rom.vector(), original);
+  EXPECT_EQ(rom.dirty(), original_dirty);
+
+  plan.preconditions.push_back({/*address=*/0x1002, /*expected_word=*/0});
+  EXPECT_TRUE(absl::IsFailedPrecondition(editor.ApplyStandardWritePlan(plan)));
+  EXPECT_EQ(rom.vector(), original);
+  EXPECT_EQ(rom.dirty(), original_dirty);
+
+  plan.preconditions = {{/*address=*/0x1000, /*expected_word=*/0},
+                        {/*address=*/0x1000, /*expected_word=*/0}};
+  EXPECT_TRUE(absl::IsFailedPrecondition(editor.ApplyStandardWritePlan(plan)));
+  EXPECT_EQ(rom.vector(), original);
+  EXPECT_EQ(rom.dirty(), original_dirty);
+
+  plan.preconditions = {{/*address=*/0x1000, /*expected_word=*/1}};
+  EXPECT_TRUE(absl::IsFailedPrecondition(editor.ApplyStandardWritePlan(plan)));
+  EXPECT_EQ(rom.vector(), original);
+  EXPECT_EQ(rom.dirty(), original_dirty);
+}
+
+TEST(ObjectTileEditorTest,
+     BuildStandardWritePlanRejectsStaleDescriptorAndSource) {
+  ScopedCustomObjectsDisabled disable_custom_objects;
+
+  for (bool stale_descriptor : {true, false}) {
+    SCOPED_TRACE(stale_descriptor ? "stale descriptor" : "stale source");
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(MakeEditableObjectRomData()).ok());
+    Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+    gfx::PaletteGroup palette;
+    ObjectTileEditor editor(&rom);
+    auto layout_or = editor.CaptureEditableObjectLayout(0x11F, room, palette);
+    ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+
+    if (stale_descriptor) {
+      StoreWordWithoutDirtying(rom,
+                               kEditableObjectFixtures[0].descriptor_pc_address,
+                               kEditableObjectFixtures[0].descriptor_word ^ 1);
+    } else {
+      StoreWordWithoutDirtying(rom,
+                               kEditableObjectFixtures[0].source_pc_address + 4,
+                               kEditableObjectFixtures[0].source_words[2] ^ 1);
+    }
+    rom.set_dirty(stale_descriptor);
+    const auto before = rom.vector();
+    const bool was_dirty = rom.dirty();
+
+    const auto plan_or = editor.BuildStandardWritePlan(*layout_or);
+    EXPECT_TRUE(absl::IsFailedPrecondition(plan_or.status()));
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_EQ(rom.dirty(), was_dirty);
+  }
+}
+
+TEST(ObjectTileEditorTest, StandardWritePlanUsesExactWritesAndReadback) {
+  ScopedCustomObjectsDisabled disable_custom_objects;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableObjectRomData()).ok());
+
+  Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+  gfx::PaletteGroup palette;
+  ObjectTileEditor editor(&rom);
+  auto layout_or = editor.CaptureEditableObjectLayout(0x11F, room, palette);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+
+  auto* top_left = layout_or->FindCell(0, 0);
+  auto* bottom_right = layout_or->FindCell(1, 1);
+  ASSERT_NE(top_left, nullptr);
+  ASSERT_NE(bottom_right, nullptr);
+  top_left->tile_info.id_ ^= 1;
+  top_left->modified = true;
+  bottom_right->tile_info.id_ ^= 1;
+  bottom_right->modified = true;
+  const uint16_t top_left_word = gfx::TileInfoToWord(top_left->tile_info);
+  const uint16_t bottom_right_word =
+      gfx::TileInfoToWord(bottom_right->tile_info);
+
+  auto plan_or = editor.BuildStandardWritePlan(*layout_or);
   ASSERT_TRUE(plan_or.ok()) << plan_or.status();
+  ASSERT_EQ(plan_or->preconditions.size(), 5u);
+  EXPECT_EQ(plan_or->preconditions[0].address, 0x842E);
+  EXPECT_EQ(plan_or->preconditions[0].expected_word, 0x0E9A);
+  ASSERT_EQ(plan_or->writes.size(), 2u);
+  ASSERT_EQ(plan_or->write_ranges.size(), 2u);
+  EXPECT_EQ(plan_or->writes[0].address, 0x29EC);
+  EXPECT_EQ(plan_or->writes[0].expected_word, 0x0DEE);
+  EXPECT_EQ(plan_or->writes[0].word, top_left_word);
+  EXPECT_EQ(plan_or->write_ranges[0],
+            (std::pair<uint32_t, uint32_t>{0x29EC, 0x29EE}));
+  EXPECT_EQ(plan_or->writes[1].address, 0x29F2);
+  EXPECT_EQ(plan_or->writes[1].expected_word, 0xCDEE);
+  EXPECT_EQ(plan_or->writes[1].word, bottom_right_word);
+  EXPECT_EQ(plan_or->write_ranges[1],
+            (std::pair<uint32_t, uint32_t>{0x29F2, 0x29F4}));
+
+  auto expected_rom = rom.vector();
+  StoreWord(expected_rom, 0x29EC, top_left_word);
+  StoreWord(expected_rom, 0x29F2, bottom_right_word);
+  ASSERT_TRUE(editor.ApplyStandardWritePlan(*plan_or).ok());
+  EXPECT_EQ(rom.vector(), expected_rom);
+  EXPECT_TRUE(rom.dirty());
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromData(rom.vector()).ok());
+  Room reopened_room(/*room_id=*/0, &reopened, /*game_data=*/nullptr);
+  ObjectTileEditor reopened_editor(&reopened);
+  auto readback_or = reopened_editor.CaptureEditableObjectLayout(
+      0x11F, reopened_room, palette);
+  ASSERT_TRUE(readback_or.ok()) << readback_or.status();
+  EXPECT_EQ(readback_or->FindCell(0, 0)->original_word, top_left_word);
+  EXPECT_EQ(readback_or->FindCell(1, 1)->original_word, bottom_right_word);
+}
+
+TEST(ObjectTileEditorTest,
+     ApplyStandardWritePlanRejectsDescriptorAndSourceCASStaleness) {
+  ScopedCustomObjectsDisabled disable_custom_objects;
+
+  for (bool stale_descriptor : {true, false}) {
+    SCOPED_TRACE(stale_descriptor ? "stale descriptor" : "stale source");
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(MakeEditableObjectRomData()).ok());
+    Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+    gfx::PaletteGroup palette;
+    ObjectTileEditor editor(&rom);
+    auto layout_or = editor.CaptureEditableObjectLayout(0x11F, room, palette);
+    ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+    auto* cell = layout_or->FindCell(0, 0);
+    ASSERT_NE(cell, nullptr);
+    cell->tile_info.id_ ^= 1;
+    cell->modified = true;
+    auto plan_or = editor.BuildStandardWritePlan(*layout_or);
+    ASSERT_TRUE(plan_or.ok()) << plan_or.status();
+
+    if (stale_descriptor) {
+      StoreWordWithoutDirtying(rom,
+                               kEditableObjectFixtures[0].descriptor_pc_address,
+                               kEditableObjectFixtures[0].descriptor_word ^ 1);
+    } else {
+      // Change an unmodified source word to prove Apply rechecks the complete
+      // captured source, not only the target write address.
+      StoreWordWithoutDirtying(rom,
+                               kEditableObjectFixtures[0].source_pc_address + 4,
+                               kEditableObjectFixtures[0].source_words[2] ^ 1);
+    }
+    rom.set_dirty(stale_descriptor);
+    const auto before = rom.vector();
+    const bool was_dirty = rom.dirty();
+
+    const absl::Status status = editor.ApplyStandardWritePlan(*plan_or);
+    EXPECT_TRUE(absl::IsFailedPrecondition(status));
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_EQ(rom.dirty(), was_dirty);
+  }
+}
+
+TEST(ObjectTileEditorTest, ApplyStandardWritePlanRollsBackAndPreservesDirty) {
+  ScopedCustomObjectsDisabled disable_custom_objects;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableObjectRomData()).ok());
+
+  Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+  gfx::PaletteGroup palette;
+  ObjectTileEditor editor(&rom);
+  auto layout_or = editor.CaptureEditableObjectLayout(0x11F, room, palette);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  for (const auto& coordinate :
+       std::array<std::pair<int, int>, 2>{{{0, 0}, {0, 1}}}) {
+    auto* cell = layout_or->FindCell(coordinate.first, coordinate.second);
+    ASSERT_NE(cell, nullptr);
+    cell->tile_info.id_ ^= 1;
+    cell->modified = true;
+  }
+
+  auto plan_or = editor.BuildStandardWritePlan(*layout_or);
+  ASSERT_TRUE(plan_or.ok()) << plan_or.status();
+  ASSERT_EQ(plan_or->writes.size(), 2u);
 
   rom::WriteFence fence;
-  ASSERT_TRUE(fence.Allow(0x10, 0x12, "first object tile word").ok());
+  ASSERT_TRUE(fence.Allow(0x29EC, 0x29EE, "first object tile word").ok());
   rom::ScopedWriteFence fence_scope(&rom, &fence);
 
   const auto original = rom.vector();
