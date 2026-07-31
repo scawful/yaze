@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <iterator>
 #include <optional>
 #include <string>
 #include <vector>
@@ -300,6 +301,52 @@ int ReadWordAt(const Rom& rom, int addr) {
   return static_cast<int>(low | (high << 8));
 }
 
+constexpr int16_t kEditableStandardObjectId = 0x11F;
+constexpr uint32_t kEditableDescriptorPcAddress = 0x842E;
+constexpr uint16_t kEditableDescriptorWord = 0x0E9A;
+constexpr uint32_t kEditableSourcePcAddress = 0x29EC;
+constexpr uint16_t kEditableSourceWords[] = {0x0DEE, 0x8DEE, 0x4DEE, 0xCDEE};
+
+void StoreWord(std::vector<uint8_t>& data, uint32_t address, uint16_t word) {
+  data[address] = static_cast<uint8_t>(word & 0xFF);
+  data[address + 1] = static_cast<uint8_t>(word >> 8);
+}
+
+std::vector<uint8_t> MakeEditableStandardObjectRomData() {
+  std::vector<uint8_t> data(0x200000, 0);
+  StoreWord(data, kEditableDescriptorPcAddress, kEditableDescriptorWord);
+  for (size_t index = 0; index < std::size(kEditableSourceWords); ++index) {
+    StoreWord(data, kEditableSourcePcAddress + index * 2,
+              kEditableSourceWords[index]);
+  }
+  return data;
+}
+
+absl::StatusOr<zelda3::ObjectTileLayout> CaptureEditableStandardLayout(
+    Rom& rom) {
+  zelda3::Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+  gfx::PaletteGroup palette;
+  zelda3::ObjectTileEditor editor(&rom);
+  return editor.CaptureEditableObjectLayout(kEditableStandardObjectId, room,
+                                            palette);
+}
+
+int FirstCellSourceAddress(const zelda3::ObjectTileLayout& layout) {
+  if (!layout.source_provenance.has_value() || layout.cells.empty() ||
+      !layout.cells.front().source_ref.has_value()) {
+    return -1;
+  }
+  const auto& provenance = *layout.source_provenance;
+  const auto& source_ref = *layout.cells.front().source_ref;
+  if (source_ref.span_index >= provenance.spans.size() ||
+      source_ref.word_index >=
+          provenance.spans[source_ref.span_index].expected_words.size()) {
+    return -1;
+  }
+  return static_cast<int>(provenance.spans[source_ref.span_index].pc_address +
+                          source_ref.word_index * 2);
+}
+
 std::string ManifestProtectingPcRange(uint32_t begin, uint32_t end) {
   return absl::StrFormat(
       R"json(
@@ -336,15 +383,12 @@ std::optional<int16_t> FindCapturableObjectId(Rom* rom, DungeonRoomStore* rooms,
 }
 
 void OpenInjectedSharedStandardObjectSession(ObjectTileEditorPanel& panel,
-                                             int16_t object_id) {
-  panel.OpenForObject(object_id, /*room_id=*/-1, nullptr);
+                                             Rom& rom) {
+  panel.OpenForObject(kEditableStandardObjectId, /*room_id=*/-1, nullptr);
 
-  auto layout = zelda3::ObjectTileLayout::CreateEmpty(
-      /*width=*/1, /*height=*/1, object_id, "shared.bin");
-  layout.is_custom = false;
-  layout.custom_filename.clear();
-  layout.tile_data_address = 0x1234;
-  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
+  auto layout_or = CaptureEditableStandardLayout(rom);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(*layout_or));
   ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(panel, 0);
   ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(panel);
 }
@@ -598,30 +642,23 @@ TEST(ObjectTileEditorPanelTest,
 TEST(ObjectTileEditorPanelTest,
      ApplyChangesForSharedStandardObjectShowsConfirmationBeforeWriteback) {
   Rom rom;
-  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
 
   ObjectTileEditorPanel panel(nullptr, &rom);
-  auto layout = zelda3::ObjectTileLayout::CreateEmpty(
-      /*width=*/1, /*height=*/1, /*object_id=*/0x40, "shared.bin");
-  layout.is_custom = false;
-  layout.custom_filename.clear();
-  layout.tile_data_address = 0x1234;
-  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
-  ObjectTileEditorPanelTestAccess::SetCurrentObjectId(panel,
-                                                      /*object_id=*/0x40);
+  auto layout_or = CaptureEditableStandardLayout(rom);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(*layout_or));
+  ObjectTileEditorPanelTestAccess::SetCurrentObjectId(
+      panel, kEditableStandardObjectId);
   ObjectTileEditorPanelTestAccess::SetSharedTileDataUsageOverride(
       panel, /*shared_count=*/3);
 
   ASSERT_GT(ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel),
             1);
 
-  const int tile_data_address =
-      ObjectTileEditorPanelTestAccess::Layout(panel).tile_data_address;
-  const int write_index =
-      ObjectTileEditorPanelTestAccess::FirstCellWriteIndex(panel);
-  ASSERT_GE(tile_data_address, 0);
-  ASSERT_GE(write_index, -1);
-  const int write_addr = tile_data_address + write_index * 2;
+  const int write_addr =
+      FirstCellSourceAddress(ObjectTileEditorPanelTestAccess::Layout(panel));
+  ASSERT_GE(write_addr, 0);
   const int original_word = ReadWordAt(rom, write_addr);
 
   const uint16_t original_tile_id =
@@ -649,30 +686,23 @@ TEST(ObjectTileEditorPanelTest,
 TEST(ObjectTileEditorPanelTest,
      ApplyChangesWithoutConfirmationWritesSharedStandardObjectAndClearsModal) {
   Rom rom;
-  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
 
   ObjectTileEditorPanel panel(nullptr, &rom);
-  auto layout = zelda3::ObjectTileLayout::CreateEmpty(
-      /*width=*/1, /*height=*/1, /*object_id=*/0x40, "shared.bin");
-  layout.is_custom = false;
-  layout.custom_filename.clear();
-  layout.tile_data_address = 0x1234;
-  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
-  ObjectTileEditorPanelTestAccess::SetCurrentObjectId(panel,
-                                                      /*object_id=*/0x40);
+  auto layout_or = CaptureEditableStandardLayout(rom);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(*layout_or));
+  ObjectTileEditorPanelTestAccess::SetCurrentObjectId(
+      panel, kEditableStandardObjectId);
   ObjectTileEditorPanelTestAccess::SetSharedTileDataUsageOverride(
       panel, /*shared_count=*/3);
 
   ASSERT_GT(ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel),
             1);
 
-  const int tile_data_address =
-      ObjectTileEditorPanelTestAccess::Layout(panel).tile_data_address;
-  const int write_index =
-      ObjectTileEditorPanelTestAccess::FirstCellWriteIndex(panel);
-  ASSERT_GE(tile_data_address, 0);
-  ASSERT_GE(write_index, -1);
-  const int write_addr = tile_data_address + write_index * 2;
+  const int write_addr =
+      FirstCellSourceAddress(ObjectTileEditorPanelTestAccess::Layout(panel));
+  ASSERT_GE(write_addr, 0);
   const int original_word = ReadWordAt(rom, write_addr);
 
   const uint16_t original_tile_id =
@@ -713,19 +743,15 @@ TEST(ObjectTileEditorPanelTest,
 
 TEST(ObjectTileEditorPanelTest,
      ManifestBlockedApplyPreservesRomAndModifiedRetryState) {
-  constexpr uint32_t kTileDataAddress = 0x1234;
   Rom rom;
-  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
 
   ObjectTileEditorPanel panel(nullptr, &rom);
-  auto layout = zelda3::ObjectTileLayout::CreateEmpty(
-      /*width=*/1, /*height=*/1, /*object_id=*/0x40, "standard.bin");
-  layout.is_custom = false;
-  layout.custom_filename.clear();
-  layout.tile_data_address = kTileDataAddress;
-  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
-  ObjectTileEditorPanelTestAccess::SetCurrentObjectId(panel,
-                                                      /*object_id=*/0x40);
+  auto layout_or = CaptureEditableStandardLayout(rom);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(*layout_or));
+  ObjectTileEditorPanelTestAccess::SetCurrentObjectId(
+      panel, kEditableStandardObjectId);
   ObjectTileEditorPanelTestAccess::SetSharedTileDataUsageOverride(
       panel, /*shared_count=*/1);
   ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
@@ -734,7 +760,7 @@ TEST(ObjectTileEditorPanelTest,
   project::YazeProject project;
   ASSERT_TRUE(project.hack_manifest
                   .LoadFromString(ManifestProtectingPcRange(
-                      kTileDataAddress, kTileDataAddress + 2))
+                      kEditableSourcePcAddress, kEditableSourcePcAddress + 2))
                   .ok());
   project.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
 
@@ -756,8 +782,9 @@ TEST(ObjectTileEditorPanelTest,
                                                 /*confirm_shared=*/false);
 
   EXPECT_EQ(preflight_count, 1);
-  EXPECT_EQ(observed_ranges, (std::vector<std::pair<uint32_t, uint32_t>>{
-                                 {kTileDataAddress, kTileDataAddress + 2}}));
+  EXPECT_EQ(observed_ranges,
+            (std::vector<std::pair<uint32_t, uint32_t>>{
+                {kEditableSourcePcAddress, kEditableSourcePcAddress + 2}}));
   EXPECT_EQ(rom.vector(), original);
   EXPECT_EQ(rom.dirty(), original_dirty);
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
@@ -778,19 +805,15 @@ TEST(ObjectTileEditorPanelTest,
 }
 
 TEST(ObjectTileEditorPanelTest, UnrelatedManifestRangeAllowsStandardApply) {
-  constexpr uint32_t kTileDataAddress = 0x1234;
   Rom rom;
-  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
 
   ObjectTileEditorPanel panel(nullptr, &rom);
-  auto layout = zelda3::ObjectTileLayout::CreateEmpty(
-      /*width=*/1, /*height=*/1, /*object_id=*/0x40, "standard.bin");
-  layout.is_custom = false;
-  layout.custom_filename.clear();
-  layout.tile_data_address = kTileDataAddress;
-  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
-  ObjectTileEditorPanelTestAccess::SetCurrentObjectId(panel,
-                                                      /*object_id=*/0x40);
+  auto layout_or = CaptureEditableStandardLayout(rom);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(*layout_or));
+  ObjectTileEditorPanelTestAccess::SetCurrentObjectId(
+      panel, kEditableStandardObjectId);
   ObjectTileEditorPanelTestAccess::SetSharedTileDataUsageOverride(
       panel, /*shared_count=*/1);
   ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
@@ -812,32 +835,31 @@ TEST(ObjectTileEditorPanelTest, UnrelatedManifestRangeAllowsStandardApply) {
             /*toast_manager=*/nullptr);
       });
 
-  const int original_word = ReadWordAt(rom, kTileDataAddress);
+  const int original_word = ReadWordAt(rom, kEditableSourcePcAddress);
   ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
                                                 /*confirm_shared=*/false);
 
   EXPECT_EQ(preflight_count, 1);
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
-  EXPECT_NE(ReadWordAt(rom, kTileDataAddress), original_word);
+  EXPECT_NE(ReadWordAt(rom, kEditableSourcePcAddress), original_word);
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::ActionStatusIsError(panel));
 }
 
 TEST(ObjectTileEditorPanelTest,
      SharedGuardedApplyCanWarnAgainAfterCloseAndReopen) {
   Rom rom;
-  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
 
   ObjectTileEditorPanel panel(nullptr, &rom);
-  OpenInjectedSharedStandardObjectSession(panel, /*object_id=*/0x40);
+  OpenInjectedSharedStandardObjectSession(panel, rom);
   ASSERT_TRUE(panel.IsOpen());
   ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
 
   ObjectTileEditorPanelTestAccess::SetSharedTileDataUsageOverride(
       panel, /*shared_count=*/3);
   const auto first_layout = ObjectTileEditorPanelTestAccess::Layout(panel);
-  const int first_write_addr =
-      first_layout.tile_data_address +
-      ObjectTileEditorPanelTestAccess::FirstCellWriteIndex(panel) * 2;
+  const int first_write_addr = FirstCellSourceAddress(first_layout);
+  ASSERT_GE(first_write_addr, 0);
   const int first_original_word = ReadWordAt(rom, first_write_addr);
   const uint16_t first_tile_id =
       ObjectTileEditorPanelTestAccess::FirstCellTileId(panel);
@@ -860,7 +882,7 @@ TEST(ObjectTileEditorPanelTest,
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActionStatus(panel));
 
-  OpenInjectedSharedStandardObjectSession(panel, /*object_id=*/0x40);
+  OpenInjectedSharedStandardObjectSession(panel, rom);
   ASSERT_TRUE(panel.IsOpen());
   ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
@@ -874,9 +896,8 @@ TEST(ObjectTileEditorPanelTest,
   ObjectTileEditorPanelTestAccess::SetSharedTileDataUsageOverride(
       panel, /*shared_count=*/3);
   const auto reopened_layout = ObjectTileEditorPanelTestAccess::Layout(panel);
-  const int reopened_write_addr =
-      reopened_layout.tile_data_address +
-      ObjectTileEditorPanelTestAccess::FirstCellWriteIndex(panel) * 2;
+  const int reopened_write_addr = FirstCellSourceAddress(reopened_layout);
+  ASSERT_GE(reopened_write_addr, 0);
   const int reopened_original_word = ReadWordAt(rom, reopened_write_addr);
   const uint16_t reopened_tile_id =
       ObjectTileEditorPanelTestAccess::FirstCellTileId(panel);
