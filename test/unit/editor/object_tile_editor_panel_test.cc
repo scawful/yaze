@@ -235,11 +235,6 @@ struct ObjectTileEditorPanelTestAccess {
     return panel.current_layout_.cells.front().tile_info.palette_;
   }
 
-  static int FirstCellWriteIndex(const ObjectTileEditorPanel& panel) {
-    EXPECT_FALSE(panel.current_layout_.cells.empty());
-    return panel.current_layout_.cells.front().write_index;
-  }
-
   static int SharedTileDataUsageCount(const ObjectTileEditorPanel& panel) {
     return panel.GetSharedTileDataUsageCount();
   }
