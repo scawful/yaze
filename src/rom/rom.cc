@@ -224,6 +224,19 @@ void BestEffortFsyncParentDir(const std::filesystem::path& file_path) {
 
 }  // namespace
 
+Rom::Rom(const Rom& other)
+    : size_(other.size_),
+      title_(other.title_),
+      filename_(other.filename_),
+      short_name_(other.short_name_),
+      rom_data_(other.rom_data_),
+      resource_label_manager_(other.resource_label_manager_),
+      dirty_(other.dirty_),
+      object_tile_revision_(other.object_tile_revision_) {
+  // Write fences are non-owning, instance-local transaction state. A new Rom
+  // must never inherit pointers owned by active scopes on `other`.
+}
+
 Rom& Rom::operator=(const Rom& other) {
   if (this == &other) {
     return *this;
