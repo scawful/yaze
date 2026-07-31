@@ -123,6 +123,7 @@ class PaletteGroupPanel : public WindowContent {
     toast_manager_ = toast_manager;
   }
   void SetProject(const project::YazeProject* project) { project_ = project; }
+  bool IsOwnedByRom(const Rom* rom) const { return rom_ == rom; }
 
   // ========== Palette Operations ==========
 

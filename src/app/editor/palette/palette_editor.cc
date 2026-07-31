@@ -478,7 +478,54 @@ void PaletteEditor::SetDependencies(const EditorDependencies& deps) {
   ApplyPanelDependencies();
 }
 
+namespace {
+template <typename Panel>
+Panel* ResolveSessionPalettePanel(WorkspaceWindowManager* window_manager,
+                                  size_t session_id, const char* panel_id,
+                                  Rom* rom) {
+  auto* panel = dynamic_cast<Panel*>(
+      window_manager->GetWindowContent(session_id, panel_id));
+  return panel != nullptr && panel->IsOwnedByRom(rom) ? panel : nullptr;
+}
+}  // namespace
+
+void PaletteEditor::RefreshPanelReferences() {
+  auto* window_manager = dependencies_.window_manager;
+  if (window_manager == nullptr) {
+    ow_main_panel_ = nullptr;
+    ow_anim_panel_ = nullptr;
+    dungeon_main_panel_ = nullptr;
+    sprite_global_panel_ = nullptr;
+    sprite_aux1_panel_ = nullptr;
+    sprite_aux2_panel_ = nullptr;
+    sprite_aux3_panel_ = nullptr;
+    equipment_panel_ = nullptr;
+    return;
+  }
+
+  const size_t session_id = dependencies_.session_id;
+  ow_main_panel_ = ResolveSessionPalettePanel<OverworldMainPalettePanel>(
+      window_manager, session_id, "palette.ow_main", rom_);
+  ow_anim_panel_ = ResolveSessionPalettePanel<OverworldAnimatedPalettePanel>(
+      window_manager, session_id, "palette.ow_animated", rom_);
+  dungeon_main_panel_ = ResolveSessionPalettePanel<DungeonMainPalettePanel>(
+      window_manager, session_id, "palette.dungeon_main", rom_);
+  sprite_global_panel_ = ResolveSessionPalettePanel<SpritePalettePanel>(
+      window_manager, session_id, "palette.global_sprites", rom_);
+  sprite_aux1_panel_ = ResolveSessionPalettePanel<SpritesAux1PalettePanel>(
+      window_manager, session_id, "palette.sprites_aux1", rom_);
+  sprite_aux2_panel_ = ResolveSessionPalettePanel<SpritesAux2PalettePanel>(
+      window_manager, session_id, "palette.sprites_aux2", rom_);
+  sprite_aux3_panel_ = ResolveSessionPalettePanel<SpritesAux3PalettePanel>(
+      window_manager, session_id, "palette.sprites_aux3", rom_);
+  equipment_panel_ = ResolveSessionPalettePanel<EquipmentPalettePanel>(
+      window_manager, session_id, "palette.armors", rom_);
+}
+
 void PaletteEditor::ApplyPanelDependencies() {
+  // WorkspaceWindowManager owns these panels and may have already destroyed
+  // them while the session-close event is still rebinding editor dependencies.
+  RefreshPanelReferences();
   const auto apply = [this](PaletteGroupPanel* panel) {
     if (panel == nullptr) {
       return;
@@ -1003,6 +1050,8 @@ void PaletteEditor::DrawControlPanel() {
     return;
   }
 
+  RefreshPanelReferences();
+
   // Toolbar with quick toggles
   DrawToolset();
 
@@ -1329,6 +1378,7 @@ void PaletteEditor::JumpToPalette(const std::string& group_name,
   if (!dependencies_.window_manager) {
     return;
   }
+  RefreshPanelReferences();
   auto* window_manager = dependencies_.window_manager;
   const size_t session_id = dependencies_.session_id;
 
