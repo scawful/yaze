@@ -98,13 +98,21 @@ Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optio
 - Arrows down/up: any `Downwards*` routine; same sizing rules.
 - Diagonal arrow: `DiagonalAcute/Grave` and `DiagonalCeiling*`.
 - Large square badge: `4x4Floor*`, `4x4Blocks*`, `BigHole4x4`, water overlays, chest platforms; these do **not** change size with the nibble.
-- Dual-layer badge: routines with `_BothBG` in the disasm name, plus `AutoStairs*MergedLayer*` (IDs 0x132–0x133, 0x233). These must be allowed even when a “merged BG” flag is set in the header.
+- Dual-layer badge: routines with `_BothBG` in the disasm name, plus the
+  multi/separate-layer auto-stair variants (yaze IDs 0x130–0x131 and
+  0xF9B–0xF9C). The merged/swim variants (0x132–0x133, 0xF9D, and 0xFB3)
+  stay on their stored target and must not be labeled BothBG.
 
 ## Action Items for the Editor
 - Enforce the build order above so layout objects never sit above BG overlays; respect the two post-`0xFFFF` lists for BG2/BG1 overlays.
 - Update selection bounds to honor the size helpers (including the nibble-zero fallbacks and the `+4` base for diagonal ceilings).
-- Mark BothBG/merged-layer routines so layer toggles do not hide or exclude them.
-- Align palette/symbology labels with the disasm names: arrows for `Rightwards/Downwards`, diagonal for `Diagonal*`, large-square for `4x4*/SuperSquare`, dual-layer for `_BothBG`/merged stairs.
+- Mark BothBG routines and multi/separate-layer auto stairs so layer toggles do
+  not hide or exclude them.
+- Align palette/symbology labels with the disasm names: arrows for
+  `Rightwards/Downwards`, diagonal for `Diagonal*`, large-square for
+  `4x4*/SuperSquare`, dual-layer for `_BothBG` and multi-layer auto stairs,
+  and mixed-layer for 0xFA6–0xFA9. Merged/swim auto stairs remain
+  stored-placement objects.
 
 ## Implementation Status (February 2026)
 
