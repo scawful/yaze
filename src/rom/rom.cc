@@ -237,7 +237,9 @@ Rom& Rom::operator=(const Rom& other) {
   rom_data_ = other.rom_data_;
   resource_label_manager_ = other.resource_label_manager_;
   dirty_ = other.dirty_;
-  write_fence_stack_ = other.write_fence_stack_;
+
+  // Write fences are non-owning, instance-local transaction state. Preserve
+  // this Rom's active scopes rather than importing pointers owned by `other`.
 
   object_tile_revision_ =
       std::max(previous_revision, other.object_tile_revision_);
