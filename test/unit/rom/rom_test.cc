@@ -132,6 +132,53 @@ TEST_F(RomTest, LoadFromFileEmpty) {
               StatusIs(absl::StatusCode::kInvalidArgument));
 }
 
+TEST_F(RomTest, ObjectTileRevisionTracksSuccessfulLifecycleTransitions) {
+  EXPECT_EQ(rom_.object_tile_revision(), 0u);
+
+  EXPECT_THAT(rom_.LoadFromData({}),
+              StatusIs(absl::StatusCode::kInvalidArgument));
+  EXPECT_EQ(rom_.object_tile_revision(), 0u);
+
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
+  EXPECT_EQ(rom_.object_tile_revision(), 1u);
+
+  EXPECT_THAT(rom_.LoadFromFile("missing-object-tile-revision-test.sfc"),
+              StatusIs(absl::StatusCode::kNotFound));
+  EXPECT_EQ(rom_.object_tile_revision(), 1u);
+
+  ScopedTempDirectory temp_dir;
+  const auto rom_path = temp_dir.path() / "reload.sfc";
+  WriteFileBytes(rom_path, std::vector<uint8_t>(32768, 0));
+  EXPECT_OK(rom_.LoadFromFile(rom_path.string()));
+  EXPECT_EQ(rom_.object_tile_revision(), 2u);
+
+  rom_.Close();
+  EXPECT_EQ(rom_.object_tile_revision(), 3u);
+  rom_.Close();
+  EXPECT_EQ(rom_.object_tile_revision(), 3u);
+
+  rom_.AdvanceObjectTileRevision();
+  EXPECT_EQ(rom_.object_tile_revision(), 4u);
+}
+
+TEST_F(RomTest, ObjectTileRevisionAdvancesAcrossResizeAndAssignment) {
+  EXPECT_OK(rom_.LoadFromData(kMockRomData));
+  const uint64_t loaded_revision = rom_.object_tile_revision();
+
+  rom_.Expand(static_cast<int>(rom_.size()));
+  EXPECT_EQ(rom_.object_tile_revision(), loaded_revision);
+  rom_.Expand(static_cast<int>(rom_.size() + 1));
+  EXPECT_EQ(rom_.object_tile_revision(), loaded_revision + 1);
+
+  Rom replacement;
+  EXPECT_OK(replacement.LoadFromData(std::vector<uint8_t>(64, 0xA5)));
+  const uint64_t before_assignment = rom_.object_tile_revision();
+  rom_ = replacement;
+  EXPECT_GT(rom_.object_tile_revision(), before_assignment);
+  EXPECT_GT(rom_.object_tile_revision(), replacement.object_tile_revision());
+  EXPECT_EQ(rom_.vector(), replacement.vector());
+}
+
 TEST_F(RomTest, LoadFromFileTooLarge) {
 #if defined(__linux__)
   GTEST_SKIP() << "File tests skipped on Linux CI (filesystem access)";
