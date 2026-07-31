@@ -46,7 +46,7 @@ class Rom {
   };
 
   Rom() = default;
-  Rom(const Rom&) = default;
+  Rom(const Rom& other);
   Rom& operator=(const Rom& other);
   Rom& operator=(Rom&& other);
   ~Rom() = default;
