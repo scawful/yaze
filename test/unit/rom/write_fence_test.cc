@@ -104,6 +104,23 @@ TEST(WriteFenceTest, AssignmentPreservesDestinationFenceOwnership) {
   EXPECT_EQ(destination.write_fence_depth(), 0u);
 }
 
+TEST(WriteFenceTest, CopyConstructionDoesNotImportSourceFence) {
+  Rom source = MakeRom(256);
+  WriteFence source_fence;
+  ASSERT_TRUE(source_fence.Allow(/*start=*/0, /*end=*/16, "source").ok());
+
+  {
+    ScopedWriteFence source_scope(&source, &source_fence);
+    Rom copy(source);
+
+    EXPECT_EQ(source.write_fence_depth(), 1u);
+    EXPECT_EQ(copy.write_fence_depth(), 0u);
+    EXPECT_TRUE(copy.WriteByte(/*addr=*/104, /*value=*/0xAA).ok());
+  }
+
+  EXPECT_EQ(source.write_fence_depth(), 0u);
+}
+
 TEST(WriteFenceTest, RejectsOverlappingAllowedRanges) {
   WriteFence fence;
   ASSERT_TRUE(fence.Allow(/*start=*/10, /*end=*/20, "a").ok());
