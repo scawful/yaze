@@ -8,6 +8,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/palette/palette_category.h"
 #include "app/editor/shell/feedback/toast_manager.h"
+#include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/types/snes_palette.h"
@@ -472,6 +473,76 @@ class CustomPalettePanel : public WindowContent {
   std::function<void()> draw_callback_;
 };
 
+void PaletteEditor::SetDependencies(const EditorDependencies& deps) {
+  Editor::SetDependencies(deps);
+  ApplyPanelDependencies();
+}
+
+namespace {
+template <typename Panel>
+Panel* ResolveSessionPalettePanel(WorkspaceWindowManager* window_manager,
+                                  size_t session_id, const char* panel_id,
+                                  Rom* rom) {
+  auto* panel = dynamic_cast<Panel*>(
+      window_manager->GetWindowContent(session_id, panel_id));
+  return panel != nullptr && panel->IsOwnedByRom(rom) ? panel : nullptr;
+}
+}  // namespace
+
+void PaletteEditor::RefreshPanelReferences() {
+  auto* window_manager = dependencies_.window_manager;
+  if (window_manager == nullptr) {
+    ow_main_panel_ = nullptr;
+    ow_anim_panel_ = nullptr;
+    dungeon_main_panel_ = nullptr;
+    sprite_global_panel_ = nullptr;
+    sprite_aux1_panel_ = nullptr;
+    sprite_aux2_panel_ = nullptr;
+    sprite_aux3_panel_ = nullptr;
+    equipment_panel_ = nullptr;
+    return;
+  }
+
+  const size_t session_id = dependencies_.session_id;
+  ow_main_panel_ = ResolveSessionPalettePanel<OverworldMainPalettePanel>(
+      window_manager, session_id, "palette.ow_main", rom_);
+  ow_anim_panel_ = ResolveSessionPalettePanel<OverworldAnimatedPalettePanel>(
+      window_manager, session_id, "palette.ow_animated", rom_);
+  dungeon_main_panel_ = ResolveSessionPalettePanel<DungeonMainPalettePanel>(
+      window_manager, session_id, "palette.dungeon_main", rom_);
+  sprite_global_panel_ = ResolveSessionPalettePanel<SpritePalettePanel>(
+      window_manager, session_id, "palette.global_sprites", rom_);
+  sprite_aux1_panel_ = ResolveSessionPalettePanel<SpritesAux1PalettePanel>(
+      window_manager, session_id, "palette.sprites_aux1", rom_);
+  sprite_aux2_panel_ = ResolveSessionPalettePanel<SpritesAux2PalettePanel>(
+      window_manager, session_id, "palette.sprites_aux2", rom_);
+  sprite_aux3_panel_ = ResolveSessionPalettePanel<SpritesAux3PalettePanel>(
+      window_manager, session_id, "palette.sprites_aux3", rom_);
+  equipment_panel_ = ResolveSessionPalettePanel<EquipmentPalettePanel>(
+      window_manager, session_id, "palette.armors", rom_);
+}
+
+void PaletteEditor::ApplyPanelDependencies() {
+  // WorkspaceWindowManager owns these panels and may have already destroyed
+  // them while the session-close event is still rebinding editor dependencies.
+  RefreshPanelReferences();
+  const auto apply = [this](PaletteGroupPanel* panel) {
+    if (panel == nullptr) {
+      return;
+    }
+    panel->SetToastManager(dependencies_.toast_manager);
+    panel->SetProject(dependencies_.project);
+  };
+  apply(ow_main_panel_);
+  apply(ow_anim_panel_);
+  apply(dungeon_main_panel_);
+  apply(sprite_global_panel_);
+  apply(sprite_aux1_panel_);
+  apply(sprite_aux2_panel_);
+  apply(sprite_aux3_panel_);
+  apply(equipment_panel_);
+}
+
 absl::Status PaletteEditor::Load() {
   gfx::ScopedTimer timer("PaletteEditor::Load");
 
@@ -549,18 +620,7 @@ absl::Status PaletteEditor::Load() {
     equipment_panel_ = equipment.get();
     window_manager->RegisterWindowContent(std::move(equipment));
 
-    // Wire toast manager to all palette group panels
-    auto* toast = dependencies_.toast_manager;
-    if (toast) {
-      ow_main_panel_->SetToastManager(toast);
-      ow_anim_panel_->SetToastManager(toast);
-      dungeon_main_panel_->SetToastManager(toast);
-      sprite_global_panel_->SetToastManager(toast);
-      sprite_aux1_panel_->SetToastManager(toast);
-      sprite_aux2_panel_->SetToastManager(toast);
-      sprite_aux3_panel_->SetToastManager(toast);
-      equipment_panel_->SetToastManager(toast);
-    }
+    ApplyPanelDependencies();
 
     // Register utility panels with callbacks
     window_manager->RegisterWindowContent(std::make_unique<PaletteControlPanel>(
@@ -584,8 +644,21 @@ absl::Status PaletteEditor::Save() {
         "Cannot save palettes from an inactive ROM session");
   }
 
-  // Delegate to PaletteManager for centralized save
-  RETURN_IF_ERROR(gfx::PaletteManager::Get().SaveAllToRom());
+  auto& palette_manager = gfx::PaletteManager::Get();
+  if (dependencies_.project != nullptr &&
+      dependencies_.project->hack_manifest.loaded()) {
+    const auto ranges =
+        palette_manager.GetModifiedColorWriteRanges(game_data());
+    if (!ranges.empty()) {
+      RETURN_IF_ERROR(ValidateHackManifestSaveConflicts(
+          dependencies_.project->hack_manifest,
+          dependencies_.project->rom_metadata.write_policy, ranges, "palettes",
+          "PaletteEditor", dependencies_.toast_manager));
+    }
+  }
+
+  // Delegate to PaletteManager for centralized save.
+  RETURN_IF_ERROR(palette_manager.SaveAllToRom());
 
   // Mark ROM as needing file save
   rom_->set_dirty(true);
@@ -977,6 +1050,8 @@ void PaletteEditor::DrawControlPanel() {
     return;
   }
 
+  RefreshPanelReferences();
+
   // Toolbar with quick toggles
   DrawToolset();
 
@@ -1042,7 +1117,7 @@ void PaletteEditor::DrawControlPanel() {
           absl::StrFormat(ICON_MD_SAVE " Save All (%zu colors)", modified_count)
               .c_str(),
           ImVec2(-1, 0))) {
-    auto status = gfx::PaletteManager::Get().SaveAllToRom();
+    auto status = Save();
     if (!status.ok()) {
       if (dependencies_.toast_manager) {
         dependencies_.toast_manager->Show(
@@ -1303,6 +1378,7 @@ void PaletteEditor::JumpToPalette(const std::string& group_name,
   if (!dependencies_.window_manager) {
     return;
   }
+  RefreshPanelReferences();
   auto* window_manager = dependencies_.window_manager;
   const size_t session_id = dependencies_.session_id;
 

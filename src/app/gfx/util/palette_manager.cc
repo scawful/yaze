@@ -13,6 +13,25 @@
 namespace yaze {
 namespace gfx {
 
+namespace {
+
+std::vector<std::pair<uint32_t, uint32_t>> CoalescePaletteWriteRanges(
+    std::vector<std::pair<uint32_t, uint32_t>> ranges) {
+  std::sort(ranges.begin(), ranges.end());
+  std::vector<std::pair<uint32_t, uint32_t>> coalesced;
+  coalesced.reserve(ranges.size());
+  for (const auto& range : ranges) {
+    if (coalesced.empty() || coalesced.back().second < range.first) {
+      coalesced.push_back(range);
+      continue;
+    }
+    coalesced.back().second = std::max(coalesced.back().second, range.second);
+  }
+  return coalesced;
+}
+
+}  // namespace
+
 PaletteManager::SessionState* PaletteManager::CurrentState() {
   if (!game_data_) {
     return &unbound_state_;
@@ -361,17 +380,27 @@ PaletteManager::GetModifiedColorWriteRanges(
     }
   }
 
-  std::sort(ranges.begin(), ranges.end());
-  std::vector<std::pair<uint32_t, uint32_t>> coalesced;
-  coalesced.reserve(ranges.size());
-  for (const auto& range : ranges) {
-    if (coalesced.empty() || coalesced.back().second < range.first) {
-      coalesced.push_back(range);
-      continue;
-    }
-    coalesced.back().second = std::max(coalesced.back().second, range.second);
+  return CoalescePaletteWriteRanges(std::move(ranges));
+}
+
+std::vector<std::pair<uint32_t, uint32_t>>
+PaletteManager::GetModifiedGroupColorWriteRanges(
+    const std::string& group_name) const {
+  std::vector<std::pair<uint32_t, uint32_t>> ranges;
+  const auto* state = CurrentState();
+  const auto group_it = state->modified_colors.find(group_name);
+  if (group_it == state->modified_colors.end()) {
+    return ranges;
   }
-  return coalesced;
+
+  for (const auto& [palette_index, color_indices] : group_it->second) {
+    for (int color_index : color_indices) {
+      const uint32_t begin =
+          GetPaletteAddress(group_name, palette_index, color_index);
+      ranges.emplace_back(begin, begin + 2u);
+    }
+  }
+  return CoalescePaletteWriteRanges(std::move(ranges));
 }
 
 // ========== Persistence ==========
