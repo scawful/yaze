@@ -847,8 +847,10 @@ absl::Status ObjectTileEditor::ApplyStandardWritePlan(
   const absl::Status status = transaction.Commit();
   if (!status.ok()) {
     rom_->set_dirty(was_dirty);
+    return status;
   }
-  return status;
+  rom_->AdvanceObjectTileRevision();
+  return absl::OkStatus();
 }
 
 int ObjectTileEditor::CountObjectsSharingTileData(int16_t object_id) const {

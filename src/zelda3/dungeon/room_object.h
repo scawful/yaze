@@ -98,8 +98,14 @@ class RoomObject {
   absl::Status LoadTilesWithParser();
 
   // Getter for tiles
-  const std::vector<gfx::TileInfo>& tiles() const { return tiles_; }
-  std::vector<gfx::TileInfo>& mutable_tiles() { return tiles_; }
+  const std::vector<gfx::TileInfo>& tiles() const {
+    const_cast<RoomObject*>(this)->EnsureTilesLoaded();
+    return tiles_;
+  }
+  std::vector<gfx::TileInfo>& mutable_tiles() {
+    MarkTileCacheUntracked();
+    return tiles_;
+  }
 
   // Get tile data through Arena system - returns references, not copies
   absl::StatusOr<std::span<const gfx::TileInfo>> GetTiles() const;
@@ -239,6 +245,16 @@ class RoomObject {
  private:
   void RefreshDerivedFlagsFromId();
   void InvalidateTileCache();
+  bool IsTrackedTileCacheCurrent() const;
+  void MarkTileCacheCurrent();
+  void MarkTileCacheUntracked();
+
+  // Only parser-populated caches are tracked. Tests, custom previews, and
+  // other callers that inject tiles directly retain their cache across ROM
+  // revisions because no ROM provenance was claimed for those tiles.
+  mutable const Rom* tile_cache_rom_identity_ = nullptr;
+  mutable uint64_t tile_cache_revision_ = 0;
+  mutable bool tile_cache_tracked_ = false;
 };
 
 // Room-object size is persisted only for Type 1 objects. Type 2 has no size
