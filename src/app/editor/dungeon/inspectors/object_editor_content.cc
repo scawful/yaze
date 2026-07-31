@@ -460,7 +460,7 @@ void ObjectEditorContent::DrawSelectedObjectInfo() {
            {"Size", absl::StrFormat("0x%02X", obj.size_)},
            {zelda3::UsesRoomObjectStream(obj) ? "Draws" : "Role",
             zelda3::UsesRoomObjectStream(obj)
-                ? zelda3::EffectiveBgLayerLabel(semantics.effective_bg_layer)
+                ? zelda3::ObjectRenderRoutingDisplayLabel(semantics)
                 : "Special-table layer selector"}});
       ImGui::Spacing();
     }
