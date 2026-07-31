@@ -117,6 +117,7 @@ class PaletteEditor : public Editor {
   void DrawControlPanel();
   void DrawQuickAccessPanel();
   void DrawCustomPalettePanel();
+  void RefreshPanelReferences();
   void ApplyPanelDependencies();
 
   // Category and search UI methods
@@ -167,7 +168,7 @@ class PaletteEditor : public Editor {
   bool show_custom_palette_ = false;
 
   // Palette Panels (formerly Cards)
-  // We keep raw pointers to the panels which are owned by WorkspaceWindowManager
+  // Non-owning references refreshed through WorkspaceWindowManager before use.
   OverworldMainPalettePanel* ow_main_panel_ = nullptr;
   OverworldAnimatedPalettePanel* ow_anim_panel_ = nullptr;
   DungeonMainPalettePanel* dungeon_main_panel_ = nullptr;

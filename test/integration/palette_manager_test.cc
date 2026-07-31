@@ -909,6 +909,9 @@ TEST_F(PaletteManagerTest,
       window_manager.GetWindowContent(0, "palette.dungeon_main"));
   ASSERT_NE(panel, nullptr);
 
+  // Panel rebinding remains ROM-owned even if a dependency caller omits the
+  // optional GameData pointer.
+  dependencies.game_data = nullptr;
   dependencies.project = &project;
   palette_editor.SetDependencies(dependencies);
 
