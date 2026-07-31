@@ -37,7 +37,8 @@ TEST(WriteFenceTest, BlocksWritesOutsideAllowedRanges) {
     EXPECT_FALSE(denied.ok());
     EXPECT_EQ(denied.code(), absl::StatusCode::kPermissionDenied);
 
-    auto denied_vec = rom.WriteVector(/*addr=*/145, std::vector<uint8_t>(10, 0));
+    auto denied_vec =
+        rom.WriteVector(/*addr=*/145, std::vector<uint8_t>(10, 0));
     EXPECT_FALSE(denied_vec.ok());
     EXPECT_EQ(denied_vec.code(), absl::StatusCode::kPermissionDenied);
   }
@@ -72,6 +73,37 @@ TEST(WriteFenceTest, NestedFencesRestrictByIntersection) {
   }
 }
 
+TEST(WriteFenceTest, AssignmentPreservesDestinationFenceOwnership) {
+  Rom destination = MakeRom(256);
+  Rom source = MakeRom(256);
+
+  WriteFence destination_fence;
+  ASSERT_TRUE(
+      destination_fence.Allow(/*start=*/0, /*end=*/16, "destination").ok());
+  WriteFence source_fence;
+  ASSERT_TRUE(source_fence.Allow(/*start=*/100, /*end=*/116, "source").ok());
+
+  {
+    ScopedWriteFence destination_scope(&destination, &destination_fence);
+    {
+      ScopedWriteFence source_scope(&source, &source_fence);
+      destination = std::move(source);
+
+      EXPECT_EQ(destination.write_fence_depth(), 1u);
+      EXPECT_EQ(source.write_fence_depth(), 1u);
+      EXPECT_TRUE(destination.WriteByte(/*addr=*/4, /*value=*/0xAA).ok());
+      EXPECT_TRUE(absl::IsPermissionDenied(
+          destination.WriteByte(/*addr=*/104, /*value=*/0xBB)));
+    }
+
+    EXPECT_EQ(source.write_fence_depth(), 0u);
+    EXPECT_EQ(destination.write_fence_depth(), 1u);
+    EXPECT_TRUE(destination.WriteByte(/*addr=*/5, /*value=*/0xCC).ok());
+  }
+
+  EXPECT_EQ(destination.write_fence_depth(), 0u);
+}
+
 TEST(WriteFenceTest, RejectsOverlappingAllowedRanges) {
   WriteFence fence;
   ASSERT_TRUE(fence.Allow(/*start=*/10, /*end=*/20, "a").ok());
@@ -81,4 +113,3 @@ TEST(WriteFenceTest, RejectsOverlappingAllowedRanges) {
 }
 
 }  // namespace yaze::rom
-
