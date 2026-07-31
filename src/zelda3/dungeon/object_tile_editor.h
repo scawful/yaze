@@ -3,6 +3,7 @@
 
 #include <cstdint>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -61,6 +62,22 @@ struct ObjectTileLayout {
 };
 
 /**
+ * @brief Fully resolved standard-object ROM writes.
+ *
+ * The exact half-open PC ranges are derived from the same entries that are
+ * applied, allowing callers to run Hack Manifest preflight before mutation.
+ */
+struct ObjectTileWritePlan {
+  struct Write {
+    int address = -1;
+    uint16_t word = 0;
+  };
+
+  std::vector<Write> writes;
+  std::vector<std::pair<uint32_t, uint32_t>> write_ranges;
+};
+
+/**
  * @brief Captures and edits the tile8 composition of dungeon objects
  *
  * Uses ObjectDrawer's trace_only mode to capture every WriteTile8 call,
@@ -98,6 +115,13 @@ class ObjectTileEditor {
 
   // Write-back: standard objects patch ROM, custom objects write .bin
   absl::Status WriteBack(const ObjectTileLayout& layout);
+
+  // Resolve and validate all standard-object writes before any ROM mutation.
+  absl::StatusOr<ObjectTileWritePlan> BuildStandardWritePlan(
+      const ObjectTileLayout& layout) const;
+
+  // Atomically apply a previously validated standard-object write plan.
+  absl::Status ApplyStandardWritePlan(const ObjectTileWritePlan& plan);
 
   // Check how many objects share the same tile data pointer
   int CountObjectsSharingTileData(int16_t object_id) const;
