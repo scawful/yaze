@@ -532,8 +532,9 @@ absl::Status ObjectTileEditorPanel::WriteBackCurrentLayout() {
   }
 
   const auto& plan = *plan_or;
-  if (standard_write_preflight_ && !plan.write_ranges.empty()) {
-    const absl::Status preflight = standard_write_preflight_(plan.write_ranges);
+  if (standard_write_preflight_ && !plan.write_ranges().empty()) {
+    const absl::Status preflight =
+        standard_write_preflight_(plan.write_ranges());
     if (!preflight.ok()) {
       return preflight;
     }
