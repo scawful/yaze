@@ -15,6 +15,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/object_drawer.h"
+#include "zelda3/dungeon/object_parser.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze {
@@ -47,6 +48,47 @@ struct ObjectTileSourceProvenance {
 struct ObjectTileSourceRef {
   size_t span_index = 0;
   size_t word_index = 0;
+};
+
+/**
+ * @brief One standard object whose parser-visible tile sources overlap an
+ * editable layout's authorized source spans.
+ */
+struct ObjectTileSourceImpactEntry {
+  int16_t object_id = -1;
+  std::vector<ObjectTileReadRange> overlapping_ranges;
+};
+
+enum class ObjectTileRuntimeConsumer {
+  // Synthesized room object 0x150 reads the unlit/lit torch blocks directly
+  // during initial room drawing; it is not representable in the persisted
+  // dungeon object stream.
+  kLightableTorchDraw,
+  // Underworld light/extinguish updates read the same literal blocks again
+  // when replacing the torch tiles at runtime.
+  kTorchLightingChange,
+};
+
+struct ObjectTileRuntimeConsumerImpactEntry {
+  ObjectTileRuntimeConsumer consumer;
+  std::vector<ObjectTileReadRange> overlapping_ranges;
+};
+
+/**
+ * @brief Fail-closed impact inventory within ObjectParser's source model plus
+ * explicitly modeled runtime consumers.
+ *
+ * This is not proof that every SNES runtime routine has already been audited
+ * for hidden pointer substitution. Known consumers outside the persisted
+ * object-ID space must be represented explicitly in runtime_consumers.
+ */
+struct ObjectTileSourceImpact {
+  std::vector<ObjectTileSourceImpactEntry> affected_objects;
+  std::vector<ObjectTileRuntimeConsumerImpactEntry> runtime_consumers;
+
+  size_t consumer_count() const {
+    return affected_objects.size() + runtime_consumers.size();
+  }
 };
 
 /**
@@ -196,8 +238,13 @@ class ObjectTileEditor {
   // Atomically apply a previously validated standard-object write plan.
   absl::Status ApplyStandardWritePlan(const ObjectTileWritePlan& plan);
 
-  // Check how many objects share the same tile data pointer
-  int CountObjectsSharingTileData(int16_t object_id) const;
+  // Enumerate every representable standard object whose parser-visible source
+  // ranges overlap this editable layout, plus the explicit runtime consumers
+  // modeled by this backend. Resolution errors are returned to the caller and
+  // must block writes rather than being interpreted as no sharing. Other
+  // runtime-only behavior remains a separate parity-audit concern.
+  absl::StatusOr<ObjectTileSourceImpact> AnalyzeStandardTileSourceImpact(
+      const ObjectTileLayout& layout) const;
 
  private:
   Rom* rom_;
