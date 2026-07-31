@@ -504,6 +504,7 @@ TEST(ObjectTileEditorTest, BuildStandardWritePlanRejectsObjectMismatch) {
   ObjectTileEditor editor(&rom);
   auto layout_or = editor.CaptureEditableObjectLayout(0x11F, room, palette);
   ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+
   layout_or->object_id = 0x120;
 
   const auto plan_or = editor.BuildStandardWritePlan(*layout_or);
@@ -675,6 +676,14 @@ TEST(ObjectTileEditorTest, StandardWritePlanUsesExactWritesAndReadback) {
   auto layout_or = editor.CaptureEditableObjectLayout(0x11F, room, palette);
   ASSERT_TRUE(layout_or.ok()) << layout_or.status();
 
+  RoomObject cached_object(/*id=*/0x11F, /*x=*/0, /*y=*/0, /*size=*/0,
+                           /*layer=*/0);
+  cached_object.SetRom(&rom);
+  auto cached_tile_or = cached_object.GetTile(/*index=*/0);
+  ASSERT_TRUE(cached_tile_or.ok()) << cached_tile_or.status();
+  const int original_cached_tile_id = (*cached_tile_or)->id_;
+  RoomObject copied_cached_object = cached_object;
+
   auto* top_left = layout_or->FindCell(0, 0);
   auto* bottom_right = layout_or->FindCell(1, 1);
   ASSERT_NE(top_left, nullptr);
@@ -708,9 +717,16 @@ TEST(ObjectTileEditorTest, StandardWritePlanUsesExactWritesAndReadback) {
   auto expected_rom = rom.vector();
   StoreWord(expected_rom, 0x29EC, top_left_word);
   StoreWord(expected_rom, 0x29F2, bottom_right_word);
+  const uint64_t revision_before_apply = rom.object_tile_revision();
   ASSERT_TRUE(editor.ApplyStandardWritePlan(*plan_or).ok());
   EXPECT_EQ(rom.vector(), expected_rom);
   EXPECT_TRUE(rom.dirty());
+  EXPECT_EQ(rom.object_tile_revision(), revision_before_apply + 1);
+  auto refreshed_cached_tile_or = copied_cached_object.GetTile(/*index=*/0);
+  ASSERT_TRUE(refreshed_cached_tile_or.ok())
+      << refreshed_cached_tile_or.status();
+  EXPECT_EQ((*refreshed_cached_tile_or)->id_, top_left->tile_info.id_);
+  EXPECT_NE((*refreshed_cached_tile_or)->id_, original_cached_tile_id);
 
   Rom reopened;
   ASSERT_TRUE(reopened.LoadFromData(rom.vector()).ok());
@@ -721,6 +737,26 @@ TEST(ObjectTileEditorTest, StandardWritePlanUsesExactWritesAndReadback) {
   ASSERT_TRUE(readback_or.ok()) << readback_or.status();
   EXPECT_EQ(readback_or->FindCell(0, 0)->original_word, top_left_word);
   EXPECT_EQ(readback_or->FindCell(1, 1)->original_word, bottom_right_word);
+}
+
+TEST(ObjectTileEditorTest,
+     EmptyStandardWritePlanDoesNotAdvanceObjectTileRevision) {
+  ScopedCustomObjectsDisabled disable_custom_objects;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableObjectRomData()).ok());
+
+  Room room(/*room_id=*/0, &rom, /*game_data=*/nullptr);
+  gfx::PaletteGroup palette;
+  ObjectTileEditor editor(&rom);
+  auto layout_or = editor.CaptureEditableObjectLayout(0x11F, room, palette);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  auto plan_or = editor.BuildStandardWritePlan(*layout_or);
+  ASSERT_TRUE(plan_or.ok()) << plan_or.status();
+  ASSERT_TRUE(plan_or->writes().empty());
+
+  const uint64_t revision_before_apply = rom.object_tile_revision();
+  EXPECT_TRUE(editor.ApplyStandardWritePlan(*plan_or).ok());
+  EXPECT_EQ(rom.object_tile_revision(), revision_before_apply);
 }
 
 TEST(ObjectTileEditorTest,
@@ -757,11 +793,13 @@ TEST(ObjectTileEditorTest,
     rom.set_dirty(stale_descriptor);
     const auto before = rom.vector();
     const bool was_dirty = rom.dirty();
+    const uint64_t revision_before_apply = rom.object_tile_revision();
 
     const absl::Status status = editor.ApplyStandardWritePlan(*plan_or);
     EXPECT_TRUE(absl::IsFailedPrecondition(status));
     EXPECT_EQ(rom.vector(), before);
     EXPECT_EQ(rom.dirty(), was_dirty);
+    EXPECT_EQ(rom.object_tile_revision(), revision_before_apply);
   }
 }
 
@@ -787,17 +825,31 @@ TEST(ObjectTileEditorTest, ApplyStandardWritePlanRollsBackAndPreservesDirty) {
   ASSERT_TRUE(plan_or.ok()) << plan_or.status();
   ASSERT_EQ(plan_or->writes().size(), 2u);
 
+  RoomObject cached_object(/*id=*/0x11F, /*x=*/0, /*y=*/0, /*size=*/0,
+                           /*layer=*/0);
+  cached_object.SetRom(&rom);
+  auto cached_tile_or = cached_object.GetTile(/*index=*/0);
+  ASSERT_TRUE(cached_tile_or.ok()) << cached_tile_or.status();
+  const int original_cached_tile_id = (*cached_tile_or)->id_;
+  RoomObject copied_cached_object = cached_object;
+
   rom::WriteFence fence;
   ASSERT_TRUE(fence.Allow(0x29EC, 0x29EE, "first object tile word").ok());
   rom::ScopedWriteFence fence_scope(&rom, &fence);
 
   const auto original = rom.vector();
   const bool original_dirty = rom.dirty();
+  const uint64_t revision_before_apply = rom.object_tile_revision();
   const absl::Status status = editor.ApplyStandardWritePlan(*plan_or);
 
   EXPECT_TRUE(absl::IsPermissionDenied(status));
   EXPECT_EQ(rom.vector(), original);
   EXPECT_EQ(rom.dirty(), original_dirty);
+  EXPECT_EQ(rom.object_tile_revision(), revision_before_apply);
+  auto preserved_cached_tile_or = copied_cached_object.GetTile(/*index=*/0);
+  ASSERT_TRUE(preserved_cached_tile_or.ok())
+      << preserved_cached_tile_or.status();
+  EXPECT_EQ((*preserved_cached_tile_or)->id_, original_cached_tile_id);
 }
 
 TEST(ObjectTileEditorTest, RenderLayoutToBitmapUsesThirdPaletteWhenAvailable) {

@@ -46,6 +46,9 @@ class Rom {
   };
 
   Rom() = default;
+  Rom(const Rom& other);
+  Rom& operator=(const Rom& other);
+  Rom& operator=(Rom&& other);
   ~Rom() = default;
 
   absl::Status LoadFromFile(
@@ -58,13 +61,21 @@ class Rom {
   absl::Status SaveToFile(const SaveSettings& settings);
 
   void Expand(int size) {
+    const bool size_changed = rom_data_.size() != static_cast<size_t>(size);
     rom_data_.resize(size);
     size_ = size;
+    if (size_changed) {
+      AdvanceObjectTileRevision();
+    }
   }
 
   void Close() {
+    const bool had_data = !rom_data_.empty();
     rom_data_.clear();
     size_ = 0;
+    if (had_data) {
+      AdvanceObjectTileRevision();
+    }
   }
 
   // Raw access
@@ -146,6 +157,13 @@ class Rom {
   void set_dirty(bool dirty) { dirty_ = dirty; }
   void ClearDirty() { dirty_ = false; }
 
+  // Monotonic generation for RoomObject caches derived from ROM tile tables.
+  // Successful loads, content replacement, a real Close, and real size changes
+  // advance it automatically. Writers that mutate object tile sources must
+  // advance it only after their transaction commits successfully.
+  uint64_t object_tile_revision() const { return object_tile_revision_; }
+  void AdvanceObjectTileRevision() { ++object_tile_revision_; }
+
   auto title() const { return title_; }
   auto size() const { return size_; }
   auto data() const { return rom_data_.data(); }
@@ -193,6 +211,9 @@ class Rom {
 
   // True if there are unsaved changes
   bool dirty_ = false;
+
+  // Generation of object-tile data visible to RoomObject parser caches.
+  uint64_t object_tile_revision_ = 0;
 
   // Active write fences (not owned).
   std::vector<rom::WriteFence*> write_fence_stack_;
