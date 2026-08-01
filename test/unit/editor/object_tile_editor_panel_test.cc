@@ -774,6 +774,54 @@ TEST(ObjectTileEditorPanelTest, OnClosePreservesModifiedSessionForReopen) {
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(panel), 0);
 }
 
+TEST(DungeonEditorV2ObjectTileEditorTest,
+     UnappliedLayoutMarksSessionPendingAndBlocksSaveUntilDiscarded) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(MakeEditableStandardObjectRomData()).ok());
+  DungeonRoomStore rooms(&rom);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  DungeonEditorV2 editor(&rom);
+  DungeonEditorV2ObjectTileEditorTestPeer::SetObjectTileEditorPanel(editor,
+                                                                    &panel);
+
+  ASSERT_TRUE(
+      panel.OpenForObject(kEditableStandardObjectId, /*room_id=*/0, &rooms)
+          .ok());
+  EXPECT_FALSE(panel.HasUnappliedChanges());
+  EXPECT_FALSE(editor.HasPendingDungeonChanges());
+
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x123, /*palette=*/3);
+  ASSERT_TRUE(panel.HasUnappliedChanges());
+  EXPECT_TRUE(editor.HasPendingDungeonChanges());
+  const auto rom_before_save = rom.vector();
+  const bool dirty_before_save = rom.dirty();
+
+  panel.OnClose();
+  EXPECT_TRUE(panel.HasUnappliedChanges());
+  EXPECT_TRUE(editor.HasPendingDungeonChanges());
+
+  const absl::Status save_status = editor.Save();
+  EXPECT_TRUE(absl::IsFailedPrecondition(save_status)) << save_status;
+  EXPECT_NE(std::string(save_status.message()).find("Object Tile Editor"),
+            std::string::npos);
+  EXPECT_EQ(rom.vector(), rom_before_save);
+  EXPECT_EQ(rom.dirty(), dirty_before_save);
+  EXPECT_TRUE(panel.HasUnappliedChanges());
+
+  const absl::Status save_room_status = editor.SaveRoom(/*room_id=*/0);
+  EXPECT_TRUE(absl::IsFailedPrecondition(save_room_status)) << save_room_status;
+  EXPECT_NE(std::string(save_room_status.message()).find("Object Tile Editor"),
+            std::string::npos);
+  EXPECT_EQ(rom.vector(), rom_before_save);
+  EXPECT_EQ(rom.dirty(), dirty_before_save);
+  EXPECT_TRUE(panel.HasUnappliedChanges());
+
+  panel.Close();
+  EXPECT_FALSE(panel.HasUnappliedChanges());
+  EXPECT_FALSE(editor.HasPendingDungeonChanges());
+}
+
 TEST(ObjectTileEditorPanelTest,
      SafeWindowCloseHidesAndPreservesModifiedSession) {
   Rom rom;
