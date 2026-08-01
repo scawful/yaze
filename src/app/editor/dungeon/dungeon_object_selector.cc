@@ -811,6 +811,31 @@ bool DungeonObjectSelector::DrawObjectPreview(const zelda3::RoomObject& object,
   return true;
 }
 
+absl::Status DungeonObjectSelector::OpenNewCustomObjectEditor(
+    int width, int height, const std::string& filename, int16_t object_id,
+    int room_id) {
+  if (tile_editor_panel_ == nullptr) {
+    return absl::FailedPreconditionError(
+        "Object Tile Editor panel is unavailable");
+  }
+
+  const absl::Status open_status = tile_editor_panel_->OpenForNewObject(
+      width, height, filename, object_id, room_id, rooms_);
+  if (!open_status.ok()) {
+    if (tile_editor_panel_->IsOpen() && open_tile_editor_window_callback_) {
+      (void)open_tile_editor_window_callback_();
+    }
+    return open_status;
+  }
+  if (!open_tile_editor_window_callback_ ||
+      !open_tile_editor_window_callback_()) {
+    tile_editor_panel_->Close();
+    return absl::NotFoundError(
+        "Object Tile Editor window is not registered in this session");
+  }
+  return absl::OkStatus();
+}
+
 void DungeonObjectSelector::DrawNewCustomObjectDialog() {
   const auto& theme = AgentUI::GetTheme();
   if (show_create_dialog_) {
@@ -876,16 +901,25 @@ void DungeonObjectSelector::DrawNewCustomObjectDialog() {
     if (!error_msg.empty()) {
       ImGui::TextColored(theme.status_error, "%s", error_msg.c_str());
     }
+    if (!custom_object_create_error_.empty()) {
+      ImGui::TextColored(theme.status_error, "%s",
+                         custom_object_create_error_.c_str());
+    }
 
     ImGui::Separator();
 
     if (!valid)
       ImGui::BeginDisabled();
     if (ImGui::Button(tr("Create"), ImVec2(120, 0))) {
-      tile_editor_panel_->OpenForNewObject(
+      const absl::Status status = OpenNewCustomObjectEditor(
           create_width_, create_height_, create_filename_,
-          static_cast<int16_t>(create_object_id_), current_room_id_, rooms_);
-      ImGui::CloseCurrentPopup();
+          static_cast<int16_t>(create_object_id_), current_room_id_);
+      if (status.ok()) {
+        custom_object_create_error_.clear();
+        ImGui::CloseCurrentPopup();
+      } else {
+        custom_object_create_error_ = std::string(status.message());
+      }
     }
     if (!valid)
       ImGui::EndDisabled();
@@ -963,6 +997,7 @@ void DungeonObjectSelector::DrawCustomObjectWorkshopPopup(float item_size) {
     if (tile_editor_panel_) {
       if (ImGui::Button(ICON_MD_ADD " New Custom Object", ImVec2(-1, 0))) {
         show_create_dialog_ = true;
+        custom_object_create_error_.clear();
         std::snprintf(create_filename_, sizeof(create_filename_),
                       "custom_%02x_%02d.bin", create_object_id_,
                       zelda3::CustomObjectManager::Get().GetSubtypeCount(
