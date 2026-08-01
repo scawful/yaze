@@ -1222,15 +1222,13 @@ absl::Status DungeonImportCustomCollisionJsonCommandHandler::Execute(
 
     int populated_rooms = 0;
     int cleared_rooms = 0;
+    int changed_rooms = 0;
+    int unchanged_rooms = 0;
     std::unordered_set<int> touched_rooms;
     for (const auto& imported : imported_rooms) {
       touched_rooms.insert(imported.room_id);
-      auto& room = rooms[imported.room_id];
-      room.custom_collision().tiles.fill(0);
-      room.custom_collision().has_data = false;
-      room.MarkCustomCollisionDirty();
+      zelda3::CustomCollisionMap desired;
 
-      bool has_nonzero = false;
       for (const auto& tile : imported.tiles) {
         const int offset = static_cast<int>(tile.offset);
         if (offset < 0 || offset >= kCollisionGridSize * kCollisionGridSize) {
@@ -1239,16 +1237,28 @@ absl::Status DungeonImportCustomCollisionJsonCommandHandler::Execute(
         if (tile.value == 0) {
           continue;
         }
-        room.SetCollisionTile(offset % kCollisionGridSize,
-                              offset / kCollisionGridSize, tile.value);
-        has_nonzero = true;
+        desired.tiles[static_cast<size_t>(offset)] = tile.value;
+        desired.has_data = true;
       }
 
-      if (has_nonzero) {
+      if (desired.has_data) {
         ++populated_rooms;
       } else {
         ++cleared_rooms;
       }
+
+      ASSIGN_OR_RETURN(const auto current,
+                       zelda3::LoadCustomCollisionMap(rom, imported.room_id));
+      if (current.has_data == desired.has_data &&
+          current.tiles == desired.tiles) {
+        ++unchanged_rooms;
+        continue;
+      }
+
+      auto& room = rooms[imported.room_id];
+      room.custom_collision() = desired;
+      room.MarkCustomCollisionDirty();
+      ++changed_rooms;
     }
 
     int replace_all_clears = 0;
@@ -1257,24 +1267,36 @@ absl::Status DungeonImportCustomCollisionJsonCommandHandler::Execute(
         if (touched_rooms.contains(room_id)) {
           continue;
         }
+        ASSIGN_OR_RETURN(const auto current,
+                         zelda3::LoadCustomCollisionMap(rom, room_id));
+        if (!current.has_data) {
+          continue;
+        }
         auto& room = rooms[room_id];
         room.custom_collision().tiles.fill(0);
         room.custom_collision().has_data = false;
         room.MarkCustomCollisionDirty();
         ++cleared_rooms;
+        ++changed_rooms;
         ++replace_all_clears;
       }
     }
+    report["changed_rooms"] = changed_rooms;
+    report["unchanged_rooms"] = unchanged_rooms;
     report["replace_all_clears"] = replace_all_clears;
-
-    if (!dry_run) {
-      RETURN_IF_ERROR(SerializeAndPersistImport(rom, parser, &report, [&]() {
-        return zelda3::SaveAllCollision(rom, absl::MakeSpan(rooms));
-      }));
-    }
-
     report["populated_rooms"] = populated_rooms;
     report["cleared_rooms"] = cleared_rooms;
+
+    if (!dry_run) {
+      if (changed_rooms == 0) {
+        report["write_status"] = "not-needed";
+        report["save_status"] = "not-needed";
+      } else {
+        RETURN_IF_ERROR(SerializeAndPersistImport(rom, parser, &report, [&]() {
+          return zelda3::SaveAllCollision(rom, absl::MakeSpan(rooms));
+        }));
+      }
+    }
 
     formatter.BeginObject("Custom Collision Import");
     formatter.AddField("in_path", in_path);
@@ -1285,6 +1307,9 @@ absl::Status DungeonImportCustomCollisionJsonCommandHandler::Execute(
                        static_cast<int>(imported_rooms.size()));
     formatter.AddField("populated_rooms", populated_rooms);
     formatter.AddField("cleared_rooms", cleared_rooms);
+    formatter.AddField("changed_rooms", changed_rooms);
+    formatter.AddField("unchanged_rooms", unchanged_rooms);
+    formatter.AddField("replace_all_clears", replace_all_clears);
     if (!dry_run) {
       formatter.AddField("write_status",
                          report.value("write_status", std::string("unknown")));
