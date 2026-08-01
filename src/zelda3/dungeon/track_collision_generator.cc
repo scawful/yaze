@@ -27,6 +27,60 @@ constexpr uint16_t kCollisionEndMarker = 0xFFFF;
 constexpr int kFallbackTrackFootprintWidthTiles = 2;
 constexpr int kFallbackTrackFootprintHeightTiles = 2;
 
+struct CollisionBlob {
+  int room_id = 0;
+  uint32_t start = 0;
+  uint32_t end = 0;
+};
+
+absl::StatusOr<uint32_t> FindCollisionBlobEnd(const std::vector<uint8_t>& data,
+                                              uint32_t start, size_t safe_end,
+                                              int room_id) {
+  size_t cursor = start;
+  bool single_mode = false;
+
+  while (cursor + 1 < safe_end) {
+    const uint16_t value = data[cursor] | (data[cursor + 1] << 8);
+    cursor += 2;
+    if (value == kCollisionEndMarker) {
+      return static_cast<uint32_t>(cursor);
+    }
+    if (value == kCollisionSingleTileMarker) {
+      single_mode = true;
+      continue;
+    }
+
+    if (single_mode) {
+      if (cursor >= safe_end) {
+        break;
+      }
+      ++cursor;
+      continue;
+    }
+
+    if (cursor + 1 >= safe_end) {
+      break;
+    }
+    const size_t width = data[cursor];
+    const size_t height = data[cursor + 1];
+    cursor += 2;
+    const size_t payload_size = width * height;
+    if (payload_size > safe_end - cursor) {
+      break;
+    }
+    cursor += payload_size;
+  }
+
+  return absl::FailedPreconditionError(absl::StrFormat(
+      "Custom collision data for room 0x%02X is unterminated before "
+      "WaterFill reserved region",
+      room_id));
+}
+
+bool BlobsOverlap(const CollisionBlob& lhs, const CollisionBlob& rhs) {
+  return lhs.start < rhs.end && rhs.start < lhs.end;
+}
+
 // Map corner type to its switch equivalent for promotion.
 TrackTileType PromoteCornerToSwitch(TrackTileType corner) {
   switch (corner) {
@@ -341,6 +395,8 @@ absl::Status WriteTrackCollision(Rom* rom, int room_id,
       std::min(static_cast<size_t>(data.size()),
                static_cast<size_t>(kCustomCollisionDataSoftEnd));
   uint32_t max_used_pc = static_cast<uint32_t>(kCustomCollisionDataPosition);
+  std::vector<CollisionBlob> blobs;
+  blobs.reserve(kNumberOfRooms);
   for (int r = 0; r < kNumberOfRooms; ++r) {
     int ptr_offset = kCustomCollisionRoomPointers + (r * 3);
     if (ptr_offset + 2 >= static_cast<int>(data.size()))
@@ -367,48 +423,32 @@ absl::Status WriteTrackCollision(Rom* rom, int room_id,
     if (pc >= data.size()) {
       return absl::OutOfRangeError("Custom collision pointer out of ROM range");
     }
-    // Walk past this room's data to find its end
-    size_t cursor = pc;
-    bool single_mode = false;
-    bool found_end_marker = false;
-    while (cursor + 1 < safe_end) {
-      uint16_t val = data[cursor] | (data[cursor + 1] << 8);
-      cursor += 2;
-      if (val == kCollisionEndMarker) {
-        found_end_marker = true;
-        break;
-      }
-      if (val == kCollisionSingleTileMarker) {
-        single_mode = true;
-        continue;
-      }
-      if (!single_mode) {
-        // Rectangle mode: skip width, height, then width*height bytes
-        if (cursor + 1 >= safe_end)
-          break;
-        uint8_t w = data[cursor];
-        uint8_t h = data[cursor + 1];
-        cursor += 2;
-        cursor += w * h;
-      } else {
-        // Single tile mode: skip 1 byte (tile value)
-        cursor += 1;
-      }
-    }
-    // If we hit the reserved region without an end marker, treat as corruption.
-    if (!found_end_marker && cursor + 1 >= safe_end) {
-      return absl::FailedPreconditionError(
-          absl::StrFormat("Custom collision data for room 0x%02X is "
-                          "unterminated before WaterFill reserved region",
-                          r));
-    }
-    if (cursor > max_used_pc) {
-      max_used_pc = static_cast<uint32_t>(cursor);
+    ASSIGN_OR_RETURN(const uint32_t end_pc,
+                     FindCollisionBlobEnd(data, pc, safe_end, r));
+    blobs.push_back(CollisionBlob{r, pc, end_pc});
+    if (end_pc > max_used_pc) {
+      max_used_pc = end_pc;
     }
   }
 
-  // Check if there's enough space
+  // Reuse the selected room's current blob only when its entire physical span
+  // is uniquely owned and the replacement fits. Aliased or overlapping blobs
+  // remain copy-on-write so editing one room cannot mutate another room.
   uint32_t write_pos = max_used_pc;
+  const auto target = std::find_if(
+      blobs.begin(), blobs.end(),
+      [room_id](const CollisionBlob& blob) { return blob.room_id == room_id; });
+  if (target != blobs.end() && encoded.size() <= target->end - target->start) {
+    const bool overlaps_other = std::any_of(
+        blobs.begin(), blobs.end(), [&](const CollisionBlob& other) {
+          return other.room_id != room_id && BlobsOverlap(*target, other);
+        });
+    if (!overlaps_other) {
+      write_pos = target->start;
+    }
+  }
+
+  // Append when there is no safe reusable span, then check available space.
   if (write_pos + encoded.size() > kCustomCollisionDataSoftEnd) {
     return absl::ResourceExhaustedError(absl::StrFormat(
         "Not enough collision data space. Need %d bytes at 0x%06X, "
