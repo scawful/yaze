@@ -670,8 +670,11 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   constexpr uint8_t kEntranceBlockset = 3;
   editor_->current_room_id_ = 0;
   editor_->current_entrance_id_ = 0;
-  editor_->entrances_[0].room_ = kCompareRoomId;
-  editor_->entrances_[0].blockset_ = kEntranceBlockset;
+  auto spawn_or = zelda3::DungeonSpawnPoint::Load(rom_, 0);
+  ASSERT_TRUE(spawn_or.ok()) << spawn_or.status();
+  editor_->spawn_points_[0] = *spawn_or;
+  editor_->spawn_points_[0].room_id = kCompareRoomId;
+  editor_->spawn_points_[0].main_gfx = kEntranceBlockset;
 
   DungeonCanvasViewer* compare_viewer =
       editor_->GetWorkbenchCompareViewer(kCompareRoomId);

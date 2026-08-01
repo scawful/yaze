@@ -24,8 +24,8 @@ class DungeonEditorV2RegularEntranceTestPeer {
   }
 };
 
-// Narrow test-only access to the dedicated production spawn model. The editor
-// UI remains read-only until it is bound directly to these spawn-only fields.
+// Narrow test-only access to the dedicated production spawn model and its
+// entrance-selection routing.
 class DungeonEditorV2SpawnPointTestPeer {
  public:
   static absl::Status LoadSpawnPointFromRom(DungeonEditorV2& editor,
@@ -41,6 +41,32 @@ class DungeonEditorV2SpawnPointTestPeer {
   static zelda3::DungeonSpawnPoint& SpawnPoint(DungeonEditorV2& editor,
                                                int spawn_id) {
     return editor.spawn_points_.at(static_cast<size_t>(spawn_id));
+  }
+
+  static int ResolveEntranceRoomId(const DungeonEditorV2& editor,
+                                   int slot_index) {
+    return editor.ResolveEntranceRoomId(slot_index);
+  }
+
+  static void SelectEntrance(DungeonEditorV2& editor, int slot_index) {
+    editor.OnEntranceSelected(slot_index);
+  }
+
+  static int SelectedEntranceSlot(const DungeonEditorV2& editor) {
+    return editor.current_entrance_id_;
+  }
+
+  static int SelectorEntranceSlot(const DungeonEditorV2& editor) {
+    return editor.room_selector_.current_entrance_id();
+  }
+
+  static void SetSelectedEntranceSlot(DungeonEditorV2& editor, int slot_index) {
+    editor.current_entrance_id_ = slot_index;
+  }
+
+  static uint8_t ResolveSelectedBlockset(const DungeonEditorV2& editor,
+                                         int room_id) {
+    return editor.ResolveSelectedEntranceBlocksetForRoom(room_id);
   }
 };
 

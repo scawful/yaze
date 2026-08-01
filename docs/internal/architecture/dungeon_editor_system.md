@@ -76,10 +76,10 @@ if (ImGui::BeginChild("##RoomsList", ImVec2(0, 0), true)) {
   prediction/preflight ranges and save/reopen coverage. It preserves 9-bit room
   semantics, the quadrant-only byte at PC `0x15C2B`, the full 16-bit overworld
   door tilemap at PC `0x15C32`, and seven 16-bit entrance IDs at PC `0x15C40`.
-- Spawn properties remain read-only in the UI until it binds directly to
-  `DungeonSpawnPoint`. The legacy combined `RoomEntrance` spawn views still
-  fail closed if marked dirty; spawn editing must not reuse that regular-field
-  model.
+- The standalone Entrance Properties panel edits spawn slots through
+  `DungeonSpawnPoint`, and entrance selection/listing resolves their dedicated
+  room and main-GFX fields. The legacy combined `RoomEntrance` property view
+  remains read-only and directs users to that panel.
 
 ## Recent Additions
 
@@ -149,7 +149,8 @@ Subsystem for accurate SNES-style layer compositing of dungeon room renders.
 2. **Save Pipeline Follow-up**:
    - Keep pit-damage edits within the fixed-capacity membership table; treat repointing or capacity expansion as a separate ROM-layout feature.
    - Treat pushable-block table repointing/expansion as a separate ROM-layout feature; the current encoder intentionally stays within the vanilla four-region cap. It fails closed for dirty-but-unloaded room state and when an edit would empty the global table: `LoadAndBuildRoom` scans at least one entry before comparing the byte-length immediate, so zero is not a safe runtime limit without an engine patch. Successful compaction rebases loaded block slot identities only after all ROM writes commit, and the editor transaction snapshot restores those identities if a later save stage rolls back.
-   - Bind the read-only spawn property UI to `DungeonSpawnPoint` before enabling interactive spawn edits.
+   - Consolidate or remove the remaining legacy read-only spawn inspector in
+     the room selector now that Entrance Properties owns dedicated spawn edits.
    - Add broader integration coverage for door/chest/pot/collision/entrance/write flows beyond the current unit and ROM-safety tests.
 3. **Test Coverage**: Add integration tests that:
    - Place/delete objects and verify `Room::EncodeObjects` output changes in ROM.
