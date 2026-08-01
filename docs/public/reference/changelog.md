@@ -14,6 +14,9 @@
   required backup, atomic save, whole-ROM diff, and external reopen/readback.
 - Disabled legacy `palette-set-color --write` because it could report an
   in-memory mutation as persisted; its read-only preview remains available.
+- Reused uniquely owned custom-collision blobs for same-size or smaller
+  rewrites, while keeping aliased, overlapping, and growing streams on the
+  copy-on-write append path.
 
 ## 0.7.2 (July 17, 2026)
 
