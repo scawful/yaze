@@ -70,9 +70,9 @@ struct GeneratorOptions {
 absl::StatusOr<TrackCollisionResult> GenerateTrackCollision(
     Room* room, const GeneratorOptions& options = {});
 
-// Write a generated collision map into the ROM.
-// Updates the pointer table at kCustomCollisionRoomPointers and appends
-// encoded data in single-tile format after existing collision data.
+// Write a generated collision map into the ROM. Reuses a room's uniquely owned
+// blob when the replacement fits; otherwise appends encoded single-tile data
+// and updates the pointer table at kCustomCollisionRoomPointers.
 absl::Status WriteTrackCollision(Rom* rom, int room_id,
                                  const CustomCollisionMap& map);
 
