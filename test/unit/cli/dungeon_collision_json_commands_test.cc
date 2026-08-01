@@ -450,6 +450,8 @@ TEST(DungeonCollisionJsonCommandsTest,
   ASSERT_TRUE(status.ok()) << status;
   EXPECT_THAT(output, testing::HasSubstr("\"write_status\": \"success\""));
   EXPECT_THAT(output, testing::HasSubstr("\"save_status\": \"saved\""));
+  EXPECT_THAT(output, testing::HasSubstr("\"changed_rooms\": 1"));
+  EXPECT_THAT(output, testing::HasSubstr("\"unchanged_rooms\": 0"));
   EXPECT_FALSE(rom.dirty());
   EXPECT_NE(ReadFileBytes(rom_path), disk_before);
 
@@ -469,6 +471,168 @@ TEST(DungeonCollisionJsonCommandsTest,
   ASSERT_TRUE(preserved_or.ok()) << preserved_or.status();
   ASSERT_TRUE(preserved_or->has_data);
   EXPECT_EQ(preserved_or->tiles[130], 0xBA);
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     CustomCollisionExactReplaySkipsWriteAndBackup) {
+  ScopedTempDirectory temp("custom_noop");
+  const auto rom_path = temp.path() / "target.sfc";
+  const auto in_path = temp.path() / "collision.json";
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  zelda3::CustomCollisionMap existing_map;
+  existing_map.has_data = true;
+  existing_map.tiles[65] = 0xB7;
+  existing_map.tiles[66] = 8;
+  ASSERT_TRUE(zelda3::WriteTrackCollision(&rom, 0x25, existing_map).ok());
+  WriteRomFile(rom, rom_path);
+  rom.set_filename(rom_path.string());
+  rom.set_dirty(false);
+  ASSERT_TRUE(rom.WriteByte(0x100, 0x5A).ok());
+  ASSERT_TRUE(rom.dirty());
+  const std::vector<uint8_t> memory_before = rom.vector();
+  const std::vector<uint8_t> disk_before = ReadFileBytes(rom_path);
+
+  WriteFile(
+      in_path,
+      "{\n"
+      "  \"version\": 1,\n"
+      "  \"rooms\": [\n"
+      "    { \"room_id\": \"0x25\", \"tiles\": [ [65, \"0xB7\"], [66, 8] ] }\n"
+      "  ]\n"
+      "}\n");
+
+  handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--in", in_path.string(), "--format=json"}, &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_THAT(output, testing::HasSubstr("\"write_status\": \"not-needed\""));
+  EXPECT_THAT(output, testing::HasSubstr("\"save_status\": \"not-needed\""));
+  EXPECT_THAT(output, testing::HasSubstr("\"changed_rooms\": 0"));
+  EXPECT_THAT(output, testing::HasSubstr("\"unchanged_rooms\": 1"));
+  EXPECT_TRUE(rom.dirty());
+  EXPECT_EQ(rom.vector(), memory_before);
+  EXPECT_EQ(ReadFileBytes(rom_path), disk_before);
+  EXPECT_TRUE(FindBackupArtifacts(rom_path).empty());
+
+  auto map_or = zelda3::LoadCustomCollisionMap(&rom, 0x25);
+  ASSERT_TRUE(map_or.ok()) << map_or.status();
+  EXPECT_EQ(map_or->has_data, existing_map.has_data);
+  EXPECT_EQ(map_or->tiles, existing_map.tiles);
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     CustomCollisionMixedReplayPreservesUnchangedPointer) {
+  ScopedTempDirectory temp("custom_mixed");
+  const auto rom_path = temp.path() / "target.sfc";
+  const auto in_path = temp.path() / "collision.json";
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  zelda3::CustomCollisionMap unchanged_map;
+  unchanged_map.has_data = true;
+  unchanged_map.tiles[65] = 0xB7;
+  ASSERT_TRUE(zelda3::WriteTrackCollision(&rom, 0x25, unchanged_map).ok());
+  zelda3::CustomCollisionMap changed_map;
+  changed_map.has_data = true;
+  changed_map.tiles[130] = 0xBA;
+  ASSERT_TRUE(zelda3::WriteTrackCollision(&rom, 0x26, changed_map).ok());
+  WriteRomFile(rom, rom_path);
+  rom.set_filename(rom_path.string());
+  rom.set_dirty(false);
+  const std::vector<uint8_t> disk_before = ReadFileBytes(rom_path);
+  const int unchanged_pointer_offset =
+      zelda3::kCustomCollisionRoomPointers + (0x25 * 3);
+  const std::vector<uint8_t> unchanged_pointer_before(
+      rom.vector().begin() + unchanged_pointer_offset,
+      rom.vector().begin() + unchanged_pointer_offset + 3);
+
+  WriteFile(in_path,
+            "{\n"
+            "  \"version\": 1,\n"
+            "  \"rooms\": [\n"
+            "    { \"room_id\": \"0x25\", \"tiles\": [ [65, \"0xB7\"] ] },\n"
+            "    { \"room_id\": \"0x26\", \"tiles\": [ [130, \"0xBB\"] ] }\n"
+            "  ]\n"
+            "}\n");
+
+  handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--in", in_path.string(), "--format=json"}, &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_THAT(output, testing::HasSubstr("\"changed_rooms\": 1"));
+  EXPECT_THAT(output, testing::HasSubstr("\"unchanged_rooms\": 1"));
+  EXPECT_THAT(output, testing::HasSubstr("\"write_status\": \"success\""));
+  EXPECT_THAT(output, testing::HasSubstr("\"save_status\": \"saved\""));
+  EXPECT_EQ(
+      std::vector<uint8_t>(rom.vector().begin() + unchanged_pointer_offset,
+                           rom.vector().begin() + unchanged_pointer_offset + 3),
+      unchanged_pointer_before);
+  EXPECT_EQ(FindBackupArtifacts(rom_path).size(), 1u);
+  EXPECT_NE(ReadFileBytes(rom_path), disk_before);
+
+  auto unchanged_or = zelda3::LoadCustomCollisionMap(&rom, 0x25);
+  ASSERT_TRUE(unchanged_or.ok()) << unchanged_or.status();
+  EXPECT_EQ(unchanged_or->tiles, unchanged_map.tiles);
+  auto changed_or = zelda3::LoadCustomCollisionMap(&rom, 0x26);
+  ASSERT_TRUE(changed_or.ok()) << changed_or.status();
+  ASSERT_TRUE(changed_or->has_data);
+  EXPECT_EQ(changed_or->tiles[130], 0xBB);
+}
+
+TEST(DungeonCollisionJsonCommandsTest,
+     CustomCollisionReplaceAllClearsOnlyPointerBackedMaps) {
+  ScopedTempDirectory temp("custom_replace_selective");
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
+  zelda3::CustomCollisionMap retained_map;
+  retained_map.has_data = true;
+  retained_map.tiles[65] = 0xB7;
+  ASSERT_TRUE(zelda3::WriteTrackCollision(&rom, 0x25, retained_map).ok());
+  zelda3::CustomCollisionMap populated_map;
+  populated_map.has_data = true;
+  populated_map.tiles[130] = 0xBA;
+  ASSERT_TRUE(zelda3::WriteTrackCollision(&rom, 0x26, populated_map).ok());
+  zelda3::CustomCollisionMap pointer_backed_empty_map;
+  pointer_backed_empty_map.has_data = true;
+  ASSERT_TRUE(
+      zelda3::WriteTrackCollision(&rom, 0x27, pointer_backed_empty_map).ok());
+
+  const auto in_path = temp.path() / "collision.json";
+  WriteFile(in_path,
+            "{\n"
+            "  \"version\": 1,\n"
+            "  \"rooms\": [\n"
+            "    { \"room_id\": \"0x25\", \"tiles\": [ [65, \"0xB7\"] ] }\n"
+            "  ]\n"
+            "}\n");
+
+  handlers::DungeonImportCustomCollisionJsonCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--in", in_path.string(), "--replace-all", "--force",
+                   "--mock-rom", "--format=json"},
+                  &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_THAT(output, testing::HasSubstr("\"changed_rooms\": 2"));
+  EXPECT_THAT(output, testing::HasSubstr("\"unchanged_rooms\": 1"));
+  EXPECT_THAT(output, testing::HasSubstr("\"replace_all_clears\": 2"));
+  EXPECT_THAT(output, testing::HasSubstr("\"cleared_rooms\": 2"));
+  auto retained_or = zelda3::LoadCustomCollisionMap(&rom, 0x25);
+  ASSERT_TRUE(retained_or.ok()) << retained_or.status();
+  EXPECT_EQ(retained_or->tiles, retained_map.tiles);
+  auto populated_or = zelda3::LoadCustomCollisionMap(&rom, 0x26);
+  ASSERT_TRUE(populated_or.ok()) << populated_or.status();
+  EXPECT_FALSE(populated_or->has_data);
+  auto empty_or = zelda3::LoadCustomCollisionMap(&rom, 0x27);
+  ASSERT_TRUE(empty_or.ok()) << empty_or.status();
+  EXPECT_FALSE(empty_or->has_data);
 }
 
 TEST(DungeonCollisionJsonCommandsTest,

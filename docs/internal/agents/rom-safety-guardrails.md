@@ -75,6 +75,14 @@ This repo is used to edit ROM hacks (including Oracle of Secrets). Treat ROM wri
   `dungeon-import-water-fill-json` use the same transaction and required-backup
   contract, then immediately save the active ROM. With `--sandbox`, the active
   target is the sandbox copy; the source ROM is not saved or backed up.
+- Custom-collision imports compare each requested room with the decoded ROM
+  map. An exact write-mode replay is a no-op: `changed_rooms` is `0`,
+  `write_status` and `save_status` are `not-needed`, and the handler creates no
+  ROM backup or post-comparison save. `unchanged_rooms` counts matching listed
+  entries; `replace_all_clears` counts only unlisted maps that actually need
+  clearing. `cleared_rooms` combines listed empty targets with those actual
+  replace-all clears. Sandbox setup still materializes its copy before this
+  comparison.
 - Import `--report` is accepted only with a non-sandbox `--dry-run`; every
   write-mode or sandbox invocation rejects it before ROM loading or sandbox
   creation. Report paths must not alias the active ROM. The guard is rechecked
@@ -297,7 +305,11 @@ Safety semantics:
 - `--dry-run` performs full parsing/validation and emits impact counts without writing.
 - Without `--dry-run`, imports immediately save the active ROM with a required
   backup. `--sandbox` redirects that one save and its backup to the sandbox
-  copy, leaving the source ROM and source directory unchanged.
+  copy, leaving the source ROM and source directory unchanged. An exact
+  custom-collision replay is the exception: it reports
+  `write_status=not-needed` and `save_status=not-needed` without creating a
+  backup or saving the active ROM after comparison. `--sandbox` still creates
+  its sandbox copy before the handler can determine that the import is exact.
 - `--mock-rom` is an explicit in-memory test mode and cannot be combined with
   `--sandbox`; the command rejects that combination before creating a sandbox.
 - `--report <path>` is non-sandbox dry-run-only and writes machine-readable

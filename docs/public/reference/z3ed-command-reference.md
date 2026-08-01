@@ -169,6 +169,12 @@ These commands operate directly on ROM data (no GUI required).
 - `dungeon-get-room-tiles --room <hex>` *(stubbed)*
 - `dungeon-set-room-property --room <hex> --property <name> --value <value> [--manifest <path>]`
 
+`dungeon-import-custom-collision-json` compares decoded room maps before
+writing. Replaying an exact source reports zero `changed_rooms` and
+`write_status`/`save_status` as `not-needed`; it does not create a backup or
+save the active ROM after comparison. `--sandbox` still materializes its copy
+before the comparison.
+
 `dungeon-place-object` is a dry-run unless `--write` is supplied. Both modes
 execute the same immutable capacity preflight. In-place edits can proceed
 without a manifest, but a shared or growing object stream fails closed unless
