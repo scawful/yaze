@@ -68,6 +68,9 @@ class ObjectTileEditorPanel : public WindowContent {
                                 int room_id, DungeonRoomStore* rooms);
   void Close();
   bool IsOpen() const { return is_open_; }
+  bool HasUnappliedChanges() const {
+    return current_layout_.HasModifications();
+  }
 
   void SetCurrentPaletteGroup(const gfx::PaletteGroup& group);
   void SetCurrentPaletteGroupForRoom(int room_id,

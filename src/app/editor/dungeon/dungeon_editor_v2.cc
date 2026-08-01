@@ -1285,6 +1285,10 @@ bool DungeonEditorV2::HasPendingRoomChanges() const {
 }
 
 bool DungeonEditorV2::HasPendingDungeonChanges() const {
+  if (object_tile_editor_panel_ != nullptr &&
+      object_tile_editor_panel_->HasUnappliedChanges()) {
+    return true;
+  }
   if (HasPendingRoomChanges()) {
     return true;
   }
