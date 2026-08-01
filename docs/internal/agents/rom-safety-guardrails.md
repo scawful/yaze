@@ -100,7 +100,10 @@ This repo is used to edit ROM hacks (including Oracle of Secrets). Treat ROM wri
 - `dungeon-generate-track-collision --write` applies the same contract to a
   single room or the complete `--rooms` batch. Batch serialization and the one
   required-backup disk save are all-or-nothing; a later-room failure restores
-  every earlier room mutation.
+  every earlier room mutation. The collision serializer reuses the selected
+  room's current data only when its complete encoded span is uniquely owned
+  and the replacement fits. Aliases, interior overlaps, and larger
+  replacements remain copy-on-write appends.
 - Other CLI writers that still set only `backup=true` remain best-effort and
   must be audited before opting into the strict transaction path.
 
