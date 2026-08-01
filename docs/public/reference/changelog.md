@@ -17,6 +17,8 @@
 - Reused uniquely owned custom-collision blobs for same-size or smaller
   rewrites, while keeping aliased, overlapping, and growing streams on the
   copy-on-write append path.
+- Included unapplied Object Tile Editor layouts in dungeon/session dirty
+  detection and blocked Save until those edits are applied or discarded.
 
 ## 0.7.2 (July 17, 2026)
 

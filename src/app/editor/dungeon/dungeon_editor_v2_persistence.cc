@@ -525,6 +525,12 @@ absl::Status DungeonEditorV2::Save() {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
+  if (object_tile_editor_panel_ != nullptr &&
+      object_tile_editor_panel_->HasUnappliedChanges()) {
+    return absl::FailedPreconditionError(
+        "Apply or explicitly discard Object Tile Editor changes before "
+        "saving the dungeon");
+  }
 
   const auto& flags = core::FeatureFlags::get().dungeon;
   std::optional<zelda3::ChestSavePlan> chest_save_plan;

@@ -148,7 +148,7 @@ class DungeonEditorV2 : public Editor {
   // Room-specific pending state used by room counts and room-level UI.
   int PendingRoomCount() const;
   bool HasPendingRoomChanges() const;
-  // All dungeon save domains, including global entrance/spawn/pit metadata.
+  // All dungeon save domains plus unapplied editor-local work.
   bool HasPendingDungeonChanges() const;
   bool CurrentRoomHasPendingChanges() const;
   int TotalRoomCount() const { return static_cast<int>(rooms_.size()); }
