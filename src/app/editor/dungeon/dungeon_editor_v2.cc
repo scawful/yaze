@@ -231,6 +231,7 @@ absl::Status DungeonEditorV2::RefreshRomBackedState() {
 
   room_selector_.set_rooms(&rooms_);
   room_selector_.set_entrances(&entrances_);
+  room_selector_.set_spawn_points(&spawn_points_);
 
   if (dungeon_editor_system_) {
     dungeon_editor_system_->SetGameData(game_data_);
@@ -623,7 +624,7 @@ void DungeonEditorV2::Initialize() {
   }
 
   window_manager->RegisterWindowContent(std::make_unique<DungeonEntrancesPanel>(
-      &entrances_, &current_entrance_id_,
+      &entrances_, &spawn_points_, &current_entrance_id_,
       [this](int entrance_id) { OnEntranceSelected(entrance_id); }));
 
   // Note: RoomGraphicsContent and PaletteEditorContent are registered
@@ -655,6 +656,7 @@ absl::Status DungeonEditorV2::Load() {
 
   room_selector_.set_rooms(&rooms_);
   room_selector_.set_entrances(&entrances_);
+  room_selector_.set_spawn_points(&spawn_points_);
   room_selector_.set_active_rooms(active_rooms_);
   room_selector_.SetRoomSelectedCallback(
       [this](int room_id) { OnRoomSelected(room_id); });
@@ -1769,8 +1771,23 @@ void DungeonEditorV2::OnEntranceSelected(int entrance_id) {
   }
   current_entrance_id_ = entrance_id;
   room_selector_.set_current_entrance_id(entrance_id);
-  int room_id = entrances_[entrance_id].room_;
+
+  const int room_id = ResolveEntranceRoomId(entrance_id);
+  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
+    return;
+  }
   OnRoomSelected(room_id);
+}
+
+int DungeonEditorV2::ResolveEntranceRoomId(int entrance_id) const {
+  if (entrance_id < 0 || entrance_id >= static_cast<int>(entrances_.size())) {
+    return -1;
+  }
+  if (entrance_id < zelda3::kNumDungeonSpawnPoints) {
+    const auto& spawn = spawn_points_[entrance_id];
+    return spawn.spawn_id() == entrance_id ? spawn.room_id : -1;
+  }
+  return entrances_[entrance_id].room_;
 }
 
 uint8_t DungeonEditorV2::ResolveSelectedEntranceBlocksetForRoom(
@@ -1782,6 +1799,14 @@ uint8_t DungeonEditorV2::ResolveSelectedEntranceBlocksetForRoom(
       current_entrance_id_ >= static_cast<int>(entrances_.size())) {
     return 0xFF;
   }
+  if (current_entrance_id_ < zelda3::kNumDungeonSpawnPoints) {
+    const auto& spawn = spawn_points_[current_entrance_id_];
+    if (spawn.spawn_id() != current_entrance_id_ || spawn.room_id != room_id) {
+      return 0xFF;
+    }
+    return spawn.main_gfx;
+  }
+
   const auto& entrance = entrances_[current_entrance_id_];
   if (entrance.room_ != room_id) {
     return 0xFF;
