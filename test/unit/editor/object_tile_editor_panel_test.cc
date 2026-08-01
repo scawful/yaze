@@ -809,6 +809,14 @@ TEST(DungeonEditorV2ObjectTileEditorTest,
   EXPECT_EQ(rom.dirty(), dirty_before_save);
   EXPECT_TRUE(panel.HasUnappliedChanges());
 
+  const absl::Status save_room_status = editor.SaveRoom(/*room_id=*/0);
+  EXPECT_TRUE(absl::IsFailedPrecondition(save_room_status)) << save_room_status;
+  EXPECT_NE(std::string(save_room_status.message()).find("Object Tile Editor"),
+            std::string::npos);
+  EXPECT_EQ(rom.vector(), rom_before_save);
+  EXPECT_EQ(rom.dirty(), dirty_before_save);
+  EXPECT_TRUE(panel.HasUnappliedChanges());
+
   panel.Close();
   EXPECT_FALSE(panel.HasUnappliedChanges());
   EXPECT_FALSE(editor.HasPendingDungeonChanges());

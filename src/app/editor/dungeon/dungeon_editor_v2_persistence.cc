@@ -529,7 +529,7 @@ absl::Status DungeonEditorV2::Save() {
       object_tile_editor_panel_->HasUnappliedChanges()) {
     return absl::FailedPreconditionError(
         "Apply or explicitly discard Object Tile Editor changes before "
-        "saving the dungeon");
+        "using Save or Apply Room");
   }
 
   const auto& flags = core::FeatureFlags::get().dungeon;
@@ -915,6 +915,12 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
 }
 
 absl::Status DungeonEditorV2::SaveRoom(int room_id) {
+  if (object_tile_editor_panel_ != nullptr &&
+      object_tile_editor_panel_->HasUnappliedChanges()) {
+    return absl::FailedPreconditionError(
+        "Apply or explicitly discard Object Tile Editor changes before "
+        "using Save or Apply Room");
+  }
   return RunWithSaveTransaction([this, room_id]() -> absl::Status {
     if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
       return absl::InvalidArgumentError("Invalid room ID");
