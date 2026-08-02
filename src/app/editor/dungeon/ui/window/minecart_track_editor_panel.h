@@ -83,6 +83,7 @@ class MinecartTrackEditorPanel : public WindowContent {
   absl::Status LoadTracks();
   static absl::StatusOr<ParsedSection> ParseSection(const std::string& content,
                                                     const std::string& label);
+  absl::Status RefreshProjectBinding();
   void ResetTrackSession();
   void StartCoordinatePicking(int track_index);
   void CancelCoordinatePicking();

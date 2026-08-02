@@ -255,6 +255,51 @@ TEST(MinecartTrackEditorPanelTest,
   EXPECT_EQ(panel.GetTracks()[0].room_id, 0x0300);
 }
 
+TEST(MinecartTrackEditorPanelTest,
+     DescriptorRelocationRebindsWhenCleanAndPreservesDraftWhenDirty) {
+  ScopedTestProject first_project;
+  first_project.WriteSource(MakeFlatSource(32, /*room_base=*/0x0100));
+  ScopedTestProject second_project;
+  second_project.WriteSource(MakeFlatSource(32, /*room_base=*/0x0300));
+
+  project::YazeProject* project = first_project.project();
+  const std::string first_filepath = project->filepath;
+  const std::string second_filepath = second_project.project()->filepath;
+  MinecartTrackEditorPanel panel;
+  ASSERT_TRUE(panel.SetProject(project).ok());
+  ASSERT_TRUE(panel.ReloadTracks().ok());
+  EXPECT_EQ(panel.GetTracks()[0].room_id, 0x0100);
+
+  project->filepath = second_filepath;
+  ASSERT_TRUE(panel.ReloadTracks().ok());
+  EXPECT_EQ(panel.GetTracks()[0].room_id, 0x0300);
+  ASSERT_TRUE(panel.ResolveTrackSourcePath().ok());
+  EXPECT_EQ(*panel.ResolveTrackSourcePath(),
+            std::filesystem::canonical(second_project.source_path()));
+
+  MinecartTrack draft = panel.GetTracks()[0];
+  draft.room_id = 0x0777;
+  ASSERT_TRUE(panel.UpdateTrack(0, draft).ok());
+  project->filepath = first_filepath;
+
+  const absl::Status relocation_status = panel.ReloadTracks();
+  EXPECT_TRUE(absl::IsFailedPrecondition(relocation_status))
+      << relocation_status;
+  EXPECT_NE(std::string(relocation_status.message()).find("descriptor moved"),
+            std::string::npos);
+  EXPECT_EQ(panel.GetTracks()[0].room_id, 0x0777);
+  EXPECT_TRUE(panel.HasUnpublishedChanges());
+  EXPECT_TRUE(
+      absl::IsFailedPrecondition(panel.ResolveTrackSourcePath().status()));
+
+  project->filepath = second_filepath;
+  ASSERT_TRUE(panel.ResolveTrackSourcePath().ok());
+  EXPECT_EQ(*panel.ResolveTrackSourcePath(),
+            std::filesystem::canonical(second_project.source_path()));
+  ASSERT_TRUE(panel.DiscardUnpublishedChanges().ok());
+  EXPECT_EQ(panel.GetTracks()[0].room_id, 0x0300);
+}
+
 TEST(MinecartTrackEditorPanelTest, RejectsSourceSymlinkOutsideProjectRoot) {
   ScopedTestProject fixture;
   std::filesystem::create_directories(fixture.source_path().parent_path());
@@ -264,12 +309,10 @@ TEST(MinecartTrackEditorPanelTest, RejectsSourceSymlinkOutsideProjectRoot) {
   std::error_code symlink_error;
   std::filesystem::create_symlink(outside_source, fixture.source_path(),
                                   symlink_error);
-  if (symlink_error == std::errc::operation_not_permitted ||
-      symlink_error == std::errc::permission_denied) {
+  if (symlink_error) {
     GTEST_SKIP() << "Symlink creation is not permitted: "
                  << symlink_error.message();
   }
-  ASSERT_FALSE(symlink_error) << symlink_error.message();
 
   MinecartTrackEditorPanel panel;
   ASSERT_TRUE(panel.SetProject(fixture.project()).ok());
