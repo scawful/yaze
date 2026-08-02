@@ -158,6 +158,22 @@ void MinecartTrackEditorPanel::ResetTrackSession() {
   audit_dirty_ = true;
 }
 
+absl::Status MinecartTrackEditorPanel::RefreshProjectBinding() {
+  const std::string current_filepath = project_ ? project_->filepath : "";
+  if (current_filepath == bound_project_filepath_) {
+    return absl::OkStatus();
+  }
+  if (HasUnpublishedChanges()) {
+    return absl::FailedPreconditionError(
+        "Project descriptor moved; discard minecart track drafts before "
+        "rebinding the source");
+  }
+
+  bound_project_filepath_ = current_filepath;
+  ResetTrackSession();
+  return absl::OkStatus();
+}
+
 absl::Status MinecartTrackEditorPanel::SetProject(
     project::YazeProject* project) {
   const std::string next_filepath = project ? project->filepath : "";
@@ -178,6 +194,11 @@ absl::Status MinecartTrackEditorPanel::SetProject(
 
 absl::StatusOr<std::filesystem::path>
 MinecartTrackEditorPanel::ResolveTrackSourcePath() const {
+  if (project_ != nullptr && project_->filepath != bound_project_filepath_) {
+    return absl::FailedPreconditionError(
+        "Project descriptor moved; reload minecart tracks to rebind the "
+        "source");
+  }
   if (project_ == nullptr || bound_project_filepath_.empty()) {
     return absl::FailedPreconditionError(
         "An open project descriptor is required for minecart tracks");
@@ -250,6 +271,10 @@ absl::Status MinecartTrackEditorPanel::DiscardUnpublishedChanges() {
 }
 
 absl::Status MinecartTrackEditorPanel::ReloadTracks() {
+  const absl::Status binding_status = RefreshProjectBinding();
+  if (!binding_status.ok()) {
+    return binding_status;
+  }
   if (HasUnpublishedChanges()) {
     return absl::FailedPreconditionError(
         "Discard minecart track drafts before reloading the source");
@@ -338,6 +363,12 @@ void MinecartTrackEditorPanel::DrawOverlaySettings() {
 }
 
 const std::vector<MinecartTrack>& MinecartTrackEditorPanel::GetTracks() {
+  const absl::Status binding_status = RefreshProjectBinding();
+  if (!binding_status.ok()) {
+    status_message_ = std::string(binding_status.message());
+    show_success_ = false;
+    return tracks_;
+  }
   if (!load_attempted_) {
     const absl::Status status = LoadTracks();
     if (!status.ok()) {
@@ -531,7 +562,18 @@ void MinecartTrackEditorPanel::RebuildAuditCache() {
 }
 
 void MinecartTrackEditorPanel::Draw(bool* p_open) {
-  if (project_ == nullptr || bound_project_filepath_.empty()) {
+  if (project_ == nullptr) {
+    ImGui::TextColored(ImVec4(1, 0, 0, 1),
+                       tr("Open a project to edit minecart tracks."));
+    return;
+  }
+
+  const absl::Status binding_status = RefreshProjectBinding();
+  if (!binding_status.ok()) {
+    status_message_ = std::string(binding_status.message());
+    show_success_ = false;
+  }
+  if (bound_project_filepath_.empty()) {
     ImGui::TextColored(ImVec4(1, 0, 0, 1),
                        tr("Open a project to edit minecart tracks."));
     return;
@@ -555,17 +597,9 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
       " Source publishing is disabled in this build; edits remain drafts "
       "until discarded.");
   const bool has_unpublished_changes = HasUnpublishedChanges();
-  if (!has_unpublished_changes) {
-    ImGui::BeginDisabled();
-  }
-  if (ImGui::Button(ICON_MD_SAVE " Save Tracks")) {
-    const absl::Status status = SaveTracks();
-    status_message_ = std::string(status.message());
-    show_success_ = status.ok();
-  }
-  if (!has_unpublished_changes) {
-    ImGui::EndDisabled();
-  }
+  ImGui::BeginDisabled();
+  ImGui::Button(ICON_MD_SAVE " Publish Unavailable");
+  ImGui::EndDisabled();
   ImGui::SameLine();
   if (!has_unpublished_changes) {
     ImGui::BeginDisabled();
@@ -594,7 +628,10 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
   if (ImGui::Button(ICON_MD_SAVE " Save Project")) {
     auto status = project_->Save();
     if (status.ok()) {
-      status_message_ = "Project saved.";
+      status_message_ = has_unpublished_changes
+                            ? "Project saved; minecart track drafts remain "
+                              "unsaved."
+                            : "Project saved.";
       show_success_ = true;
     } else {
       status_message_ =
