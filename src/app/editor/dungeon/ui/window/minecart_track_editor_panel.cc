@@ -550,6 +550,10 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
   }
 
   ImGui::Text(tr("Minecart Track Editor"));
+  ImGui::TextColored(
+      ImVec4(1.0f, 0.8f, 0.2f, 1.0f), ICON_MD_WARNING
+      " Source publishing is disabled in this build; edits remain drafts "
+      "until discarded.");
   const bool has_unpublished_changes = HasUnpublishedChanges();
   if (!has_unpublished_changes) {
     ImGui::BeginDisabled();
