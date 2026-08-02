@@ -522,6 +522,12 @@ absl::Status DungeonEditorV2::RunWithSaveTransaction(
 }
 
 absl::Status DungeonEditorV2::Save() {
+  if (minecart_track_editor_panel_ != nullptr &&
+      minecart_track_editor_panel_->HasUnpublishedChanges()) {
+    return absl::FailedPreconditionError(
+        "Minecart Track Editor drafts cannot yet be published safely; "
+        "explicitly discard them before using Save or Apply Room");
+  }
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -915,6 +921,12 @@ std::vector<std::pair<uint32_t, uint32_t>> DungeonEditorV2::CollectWriteRanges()
 }
 
 absl::Status DungeonEditorV2::SaveRoom(int room_id) {
+  if (minecart_track_editor_panel_ != nullptr &&
+      minecart_track_editor_panel_->HasUnpublishedChanges()) {
+    return absl::FailedPreconditionError(
+        "Minecart Track Editor drafts cannot yet be published safely; "
+        "explicitly discard them before using Save or Apply Room");
+  }
   if (object_tile_editor_panel_ != nullptr &&
       object_tile_editor_panel_->HasUnappliedChanges()) {
     return absl::FailedPreconditionError(
