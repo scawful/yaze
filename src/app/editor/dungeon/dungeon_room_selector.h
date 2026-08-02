@@ -10,6 +10,7 @@
 #include "app/editor/editor.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/dungeon_spawn_point.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/game_data.h"
@@ -85,6 +86,11 @@ class DungeonRoomSelector {
                                 zelda3::kNumDungeonEntranceSlots>* entrances) {
     entrances_ = entrances;
   }
+  void set_spawn_points(
+      std::array<zelda3::DungeonSpawnPoint, zelda3::kNumDungeonSpawnPoints>*
+          spawn_points) {
+    spawn_points_ = spawn_points;
+  }
 
   // Callback for room selection events (single-click / default)
   void SetRoomSelectedCallback(std::function<void(int)> callback) {
@@ -125,6 +131,8 @@ class DungeonRoomSelector {
   DungeonRoomStore* rooms_ = nullptr;
   std::array<zelda3::RoomEntrance, zelda3::kNumDungeonEntranceSlots>*
       entrances_ = nullptr;
+  std::array<zelda3::DungeonSpawnPoint, zelda3::kNumDungeonSpawnPoints>*
+      spawn_points_ = nullptr;
 
   // Callback for room selection events (single-click / default)
   std::function<void(int)> room_selected_callback_;
