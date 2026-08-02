@@ -301,9 +301,12 @@ void DungeonRoomSelector::RebuildEntranceFilterCache() {
       }
     }
 
-    int room_id = (entrances_ && i < static_cast<int>(entrances_->size()))
-                      ? (*entrances_)[i].room_
-                      : 0;
+    int room_id = 0;
+    if (i < kNumSpawnPoints && spawn_points_) {
+      room_id = (*spawn_points_)[i].room_id;
+    } else if (entrances_ && i < static_cast<int>(entrances_->size())) {
+      room_id = (*entrances_)[i].room_;
+    }
 
     char filter_text[256];
     snprintf(filter_text, sizeof(filter_text), "%s %03X", display_name.c_str(),
@@ -459,9 +462,12 @@ void DungeonRoomSelector::DrawEntranceSelectorInternal(bool show_properties) {
           display_name = zelda3::GetEntranceLabel(entrance_id);
         }
 
-        int room_id = (i < static_cast<int>(entrances_->size()))
-                          ? (*entrances_)[i].room_
-                          : 0;
+        int room_id = 0;
+        if (i < kNumSpawnPoints && spawn_points_) {
+          room_id = (*spawn_points_)[i].room_id;
+        } else if (i < static_cast<int>(entrances_->size())) {
+          room_id = (*entrances_)[i].room_;
+        }
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
