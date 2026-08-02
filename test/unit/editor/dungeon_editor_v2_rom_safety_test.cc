@@ -805,6 +805,71 @@ TEST(DungeonEditorV2RomSafetyTest,
 }
 
 TEST(DungeonEditorV2RomSafetyTest,
+     SpawnSelectionUsesDedicatedRoomAndMainGfxFields) {
+  constexpr int kSpawnId = 1;
+  constexpr int kRoomId = 0x0123;
+  constexpr uint8_t kMainGfx = 0x42;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  ASSERT_TRUE(DungeonEditorV2SpawnPointTestPeer::LoadSpawnPointFromRom(*editor,
+                                                                       kSpawnId)
+                  .ok());
+  auto& spawn =
+      DungeonEditorV2SpawnPointTestPeer::SpawnPoint(*editor, kSpawnId);
+  spawn.room_id = kRoomId;
+  spawn.main_gfx = kMainGfx;
+
+  EXPECT_EQ(DungeonEditorV2SpawnPointTestPeer::ResolveEntranceRoomId(*editor,
+                                                                     kSpawnId),
+            kRoomId);
+
+  DungeonEditorV2SpawnPointTestPeer::SetSelectedEntranceSlot(*editor, kSpawnId);
+  EXPECT_EQ(DungeonEditorV2SpawnPointTestPeer::ResolveSelectedBlockset(*editor,
+                                                                       kRoomId),
+            kMainGfx);
+  EXPECT_EQ(DungeonEditorV2SpawnPointTestPeer::ResolveSelectedBlockset(
+                *editor, kRoomId - 1),
+            0xFF);
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     SpawnSelectionRejectsUnloadedDedicatedRecord) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+
+  EXPECT_EQ(
+      DungeonEditorV2SpawnPointTestPeer::ResolveEntranceRoomId(*editor, 0), -1);
+  DungeonEditorV2SpawnPointTestPeer::SetSelectedEntranceSlot(*editor, 0);
+  EXPECT_EQ(
+      DungeonEditorV2SpawnPointTestPeer::ResolveSelectedBlockset(*editor, 0),
+      0xFF);
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     UnnavigableSpawnSelectionKeepsEditorAndSelectorInSync) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  *editor->mutable_current_room_id() = 5;
+
+  DungeonEditorV2SpawnPointTestPeer::SelectEntrance(*editor, 1);
+
+  EXPECT_EQ(DungeonEditorV2SpawnPointTestPeer::SelectedEntranceSlot(*editor),
+            1);
+  EXPECT_EQ(DungeonEditorV2SpawnPointTestPeer::SelectorEntranceSlot(*editor),
+            1);
+  EXPECT_EQ(*editor->mutable_current_room_id(), 5);
+
+  DungeonEditorV2SpawnPointTestPeer::SelectEntrance(*editor, -1);
+  EXPECT_EQ(DungeonEditorV2SpawnPointTestPeer::SelectedEntranceSlot(*editor),
+            1);
+  EXPECT_EQ(DungeonEditorV2SpawnPointTestPeer::SelectorEntranceSlot(*editor),
+            1);
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
      SaveRoomPersistsDedicatedSpawnPointAndClearsDirtyState) {
   constexpr int kSpawnId = 1;
   Rom rom;
