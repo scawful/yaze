@@ -292,6 +292,7 @@ class DungeonEditorV2 : public Editor {
   void OnRoomSelected(int room_id, bool request_focus = true);
   void OnRoomSelected(int room_id, RoomSelectionIntent intent);
   void OnEntranceSelected(int entrance_id);
+  int ResolveEntranceRoomId(int entrance_id) const;
 
   // Sync all sub-panels to the current room configuration
   void SyncPanelsToRoom(int room_id);
