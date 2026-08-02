@@ -85,7 +85,8 @@ absl::StatusOr<std::vector<int>> ParseDwValues(const std::string& line,
 
   std::vector<int> values;
   for (absl::string_view operand_view : absl::StrSplit(operands, ',')) {
-    const std::string operand = Trim(operand_view);
+    const std::string operand =
+        Trim(std::string_view(operand_view.data(), operand_view.size()));
     if (operand.size() < 2 || operand.size() > 5 || operand[0] != '$' ||
         !std::all_of(operand.begin() + 1, operand.end(), [](char c) {
           return std::isxdigit(static_cast<unsigned char>(c));
