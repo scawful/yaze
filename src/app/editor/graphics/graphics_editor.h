@@ -25,6 +25,8 @@
 namespace yaze {
 namespace editor {
 
+class GraphicsEditorSaveStoplossTestPeer;
+
 // Super Donkey prototype graphics offsets (from leaked dev materials)
 const std::string kSuperDonkeyTiles[] = {
     "97C05", "98219", "9871E", "98C00", "99084", "995AF", "99DE0", "9A27E",
@@ -85,6 +87,8 @@ class GraphicsEditor : public Editor {
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   void ContributeStatus(StatusBar* status_bar) override;
 
+  bool HasPendingGraphicsChanges() const { return state_.HasUnsavedChanges(); }
+
   // Set the ROM pointer (propagates to panels that cache `Rom*`.)
   void set_rom(Rom* rom) {
     rom_ = rom;
@@ -133,6 +137,8 @@ class GraphicsEditor : public Editor {
   Rom* rom() const { return rom_; }
 
  private:
+  friend class GraphicsEditorSaveStoplossTestPeer;
+
   // Editor-level shortcut handling
   void HandleEditorShortcuts();
 

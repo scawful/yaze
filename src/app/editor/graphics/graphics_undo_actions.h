@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -25,14 +26,16 @@ namespace editor {
  */
 class GraphicsPixelEditAction : public UndoAction {
  public:
-  GraphicsPixelEditAction(uint16_t sheet_id,
-                          std::vector<uint8_t> before_data,
+  using MarkDirtyFn = std::function<void(uint16_t)>;
+
+  GraphicsPixelEditAction(uint16_t sheet_id, std::vector<uint8_t> before_data,
                           std::vector<uint8_t> after_data,
-                          std::string description)
+                          std::string description, MarkDirtyFn mark_dirty)
       : sheet_id_(sheet_id),
         before_data_(std::move(before_data)),
         after_data_(std::move(after_data)),
-        description_(std::move(description)) {}
+        description_(std::move(description)),
+        mark_dirty_(std::move(mark_dirty)) {}
 
   absl::Status Undo() override {
     auto* sheets = gfx::Arena::Get().mutable_gfx_sheets();
@@ -43,6 +46,7 @@ class GraphicsPixelEditAction : public UndoAction {
     auto& sheet = sheets->at(sheet_id_);
     sheet.set_data(before_data_);
     gfx::Arena::Get().NotifySheetModified(sheet_id_);
+    MarkDirty();
     return absl::OkStatus();
   }
 
@@ -55,6 +59,7 @@ class GraphicsPixelEditAction : public UndoAction {
     auto& sheet = sheets->at(sheet_id_);
     sheet.set_data(after_data_);
     gfx::Arena::Get().NotifySheetModified(sheet_id_);
+    MarkDirty();
     return absl::OkStatus();
   }
 
@@ -71,10 +76,17 @@ class GraphicsPixelEditAction : public UndoAction {
   }
 
  private:
+  void MarkDirty() {
+    if (mark_dirty_) {
+      mark_dirty_(sheet_id_);
+    }
+  }
+
   uint16_t sheet_id_;
   std::vector<uint8_t> before_data_;
   std::vector<uint8_t> after_data_;
   std::string description_;
+  MarkDirtyFn mark_dirty_;
 };
 
 }  // namespace editor
