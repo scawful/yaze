@@ -37,7 +37,9 @@ using SourceArtifactReadbackValidator = std::function<absl::Status()>;
 // Holds both the process-local semaphore and the durable per-directory locks
 // for a set of absolute publication targets. Target paths are canonicalized
 // and pinned while acquiring the lock. Callers should acquire this before
-// reading their preflight bytes and keep it alive through publication.
+// reading their preflight bytes and keep it alive through publication. Only
+// one publication may use a lock at a time; concurrent reuse fails before
+// touching any target.
 class SourceArtifactPublicationLock {
  public:
   ~SourceArtifactPublicationLock();

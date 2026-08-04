@@ -1139,7 +1139,29 @@ struct SourceArtifactPublicationLock::Impl {
   SourceArtifactPublisherLabels labels;
   std::vector<fs::path> targets;
   std::unique_ptr<SourceArtifactWriteLocks> write_locks;
+  std::atomic_flag publication_in_progress = ATOMIC_FLAG_INIT;
 };
+
+namespace {
+
+class ScopedPublicationUse {
+ public:
+  explicit ScopedPublicationUse(
+      std::atomic_flag* publication_in_progress) noexcept
+      : publication_in_progress_(publication_in_progress) {}
+
+  ~ScopedPublicationUse() noexcept {
+    publication_in_progress_->clear(std::memory_order_release);
+  }
+
+  ScopedPublicationUse(const ScopedPublicationUse&) = delete;
+  ScopedPublicationUse& operator=(const ScopedPublicationUse&) = delete;
+
+ private:
+  std::atomic_flag* publication_in_progress_;
+};
+
+}  // namespace
 
 SourceArtifactPublicationLock::SourceArtifactPublicationLock(
     std::unique_ptr<Impl> impl)
@@ -1206,6 +1228,13 @@ absl::Status PublishSourceArtifacts(
     return absl::FailedPreconditionError(
         "Source artifact publication lock is not initialized");
   }
+  if (lock.impl_->publication_in_progress.test_and_set(
+          std::memory_order_acquire)) {
+    return absl::FailedPreconditionError(
+        "Source artifact publication lock is already in use");
+  }
+  const ScopedPublicationUse publication_use(
+      &lock.impl_->publication_in_progress);
   if (updates.empty()) {
     return absl::InvalidArgumentError(
         "Source artifact publication requires at least one update");
