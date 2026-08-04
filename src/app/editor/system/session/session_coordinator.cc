@@ -1283,8 +1283,15 @@ bool SessionCoordinator::IsSessionModified(size_t index) const {
     return true;
   }
 
-  if (auto* dungeon_editor =
-          session->editors.GetEditorAs<DungeonEditorV2>(EditorType::kDungeon)) {
+  if (session->project_dirty ||
+      session->editors.HasPendingProjectDraftChanges() ||
+      (session->project_file_editor_state.initialized &&
+       session->project_file_editor_state.modified)) {
+    return true;
+  }
+
+  if (auto* dungeon_editor = static_cast<DungeonEditorV2*>(
+          session->editors.GetExistingEditor(EditorType::kDungeon))) {
     return dungeon_editor->HasPendingDungeonChanges();
   }
 
