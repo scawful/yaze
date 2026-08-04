@@ -44,6 +44,7 @@ namespace editor {
 
 class CustomCollisionPanel;
 class DungeonEditorPaletteRefreshTestPeer;
+class DungeonEditorV2MinecartTrackTestPeer;
 class DungeonEditorV2ObjectTileEditorTestPeer;
 class DungeonEditorV2RegularEntranceTestPeer;
 class DungeonEditorV2ReloadTestPeer;
@@ -252,6 +253,7 @@ class DungeonEditorV2 : public Editor {
 
  private:
   friend class DungeonEditorPaletteRefreshTestPeer;
+  friend class DungeonEditorV2MinecartTrackTestPeer;
   friend class DungeonEditorV2ObjectTileEditorTestPeer;
   friend class DungeonEditorV2RegularEntranceTestPeer;
   friend class DungeonEditorV2ReloadTestPeer;

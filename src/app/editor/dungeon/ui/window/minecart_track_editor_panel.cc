@@ -1,7 +1,14 @@
 #include "minecart_track_editor_panel.h"
+
+#include <algorithm>
+#include <cctype>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <sstream>
+#include <string_view>
+#include <system_error>
+
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
@@ -9,9 +16,6 @@
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/i18n/tr.h"
 
-#include <filesystem>
-#include <iostream>
-#include <regex>
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/style_guard.h"
@@ -26,6 +30,84 @@ constexpr int kTrackSlotCount = 32;
 constexpr int kDefaultTrackRoom = 0x89;
 constexpr int kDefaultTrackX = 0x1300;
 constexpr int kDefaultTrackY = 0x1100;
+constexpr std::string_view kTrackSourceRelativePath =
+    "Sprites/Objects/data/minecart_tracks.asm";
+constexpr std::string_view kPlannedTrackGuard =
+    "if !ENABLE_MINECART_PLANNED_TRACK_TABLE == 1";
+
+std::string Trim(std::string_view value) {
+  size_t first = 0;
+  while (first < value.size() &&
+         std::isspace(static_cast<unsigned char>(value[first]))) {
+    ++first;
+  }
+  size_t last = value.size();
+  while (last > first &&
+         std::isspace(static_cast<unsigned char>(value[last - 1]))) {
+    --last;
+  }
+  return std::string(value.substr(first, last - first));
+}
+
+std::string StripCommentAndTrim(const std::string& line) {
+  const size_t comment = line.find(';');
+  return Trim(std::string_view(line).substr(0, comment));
+}
+
+bool IsStrictDescendant(const std::filesystem::path& path,
+                        const std::filesystem::path& root) {
+  auto path_it = path.begin();
+  auto root_it = root.begin();
+  for (; root_it != root.end(); ++root_it, ++path_it) {
+    if (path_it == path.end() || *path_it != *root_it) {
+      return false;
+    }
+  }
+  return path_it != path.end();
+}
+
+absl::StatusOr<std::vector<int>> ParseDwValues(const std::string& line,
+                                               const std::string& label) {
+  const std::string code = StripCommentAndTrim(line);
+  if (code.size() < 2 ||
+      std::tolower(static_cast<unsigned char>(code[0])) != 'd' ||
+      std::tolower(static_cast<unsigned char>(code[1])) != 'w' ||
+      (code.size() > 2 && !std::isspace(static_cast<unsigned char>(code[2])))) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Unexpected statement in %s: %s", label, code));
+  }
+
+  const std::string operands = Trim(std::string_view(code).substr(2));
+  if (operands.empty()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Empty dw statement in %s", label));
+  }
+
+  std::vector<int> values;
+  for (absl::string_view operand_view : absl::StrSplit(operands, ',')) {
+    const std::string operand =
+        Trim(std::string_view(operand_view.data(), operand_view.size()));
+    if (operand.size() < 2 || operand.size() > 5 || operand[0] != '$' ||
+        !std::all_of(operand.begin() + 1, operand.end(), [](char c) {
+          return std::isxdigit(static_cast<unsigned char>(c));
+        })) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Invalid 16-bit hex value in %s: %s", label, operand));
+    }
+    try {
+      const unsigned long value = std::stoul(operand.substr(1), nullptr, 16);
+      if (value > 0xFFFF) {
+        return absl::InvalidArgumentError(
+            absl::StrFormat("Value out of range in %s: %s", label, operand));
+      }
+      values.push_back(static_cast<int>(value));
+    } catch (...) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Invalid 16-bit hex value in %s: %s", label, operand));
+    }
+  }
+  return values;
+}
 
 std::string FormatHexList(const std::vector<uint16_t>& values) {
   std::string out;
@@ -67,12 +149,138 @@ std::vector<uint16_t> ParseHexList(const std::string& input) {
 }
 }  // namespace
 
-void MinecartTrackEditorPanel::SetProjectRoot(const std::string& root) {
-  if (project_root_ != root) {
-    project_root_ = root;
-    loaded_ = false;  // Trigger reload on next draw
-    audit_dirty_ = true;
+void MinecartTrackEditorPanel::ResetTrackSession() {
+  tracks_.clear();
+  loaded_tracks_.clear();
+  load_attempted_ = false;
+  loaded_ = false;
+  source_is_guarded_ = false;
+  CancelCoordinatePicking();
+  audit_dirty_ = true;
+}
+
+absl::Status MinecartTrackEditorPanel::RefreshProjectBinding() {
+  const std::string current_filepath = project_ ? project_->filepath : "";
+  if (current_filepath == bound_project_filepath_) {
+    return absl::OkStatus();
   }
+  if (HasUnpublishedChanges()) {
+    return absl::FailedPreconditionError(
+        "Project descriptor moved; discard minecart track drafts before "
+        "rebinding the source");
+  }
+
+  bound_project_filepath_ = current_filepath;
+  ResetTrackSession();
+  return absl::OkStatus();
+}
+
+absl::Status MinecartTrackEditorPanel::SetProject(
+    project::YazeProject* project) {
+  const std::string next_filepath = project ? project->filepath : "";
+  if (project_ == project && bound_project_filepath_ == next_filepath) {
+    return absl::OkStatus();
+  }
+  if (HasUnpublishedChanges()) {
+    return absl::FailedPreconditionError(
+        "Discard minecart track drafts before changing projects");
+  }
+
+  project_ = project;
+  bound_project_filepath_ = next_filepath;
+  overlay_inputs_initialized_ = false;
+  ResetTrackSession();
+  return absl::OkStatus();
+}
+
+absl::StatusOr<std::filesystem::path>
+MinecartTrackEditorPanel::ResolveTrackSourcePath() const {
+  if (project_ != nullptr && project_->filepath != bound_project_filepath_) {
+    return absl::FailedPreconditionError(
+        "Project descriptor moved; reload minecart tracks to rebind the "
+        "source");
+  }
+  if (project_ == nullptr || bound_project_filepath_.empty()) {
+    return absl::FailedPreconditionError(
+        "An open project descriptor is required for minecart tracks");
+  }
+
+  std::error_code ec;
+  std::filesystem::path descriptor_path(bound_project_filepath_);
+  if (descriptor_path.is_relative()) {
+    descriptor_path = std::filesystem::absolute(descriptor_path, ec);
+    if (ec) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Could not resolve project descriptor path: %s", ec.message()));
+    }
+  }
+
+  const std::filesystem::path project_root =
+      std::filesystem::weakly_canonical(descriptor_path.parent_path(), ec);
+  if (ec || project_root.empty() ||
+      !std::filesystem::is_directory(project_root, ec) || ec) {
+    return absl::InvalidArgumentError(
+        "Project descriptor parent is not an existing directory");
+  }
+
+  const std::filesystem::path candidate =
+      project_root / kTrackSourceRelativePath;
+  const std::filesystem::path resolved =
+      std::filesystem::canonical(candidate, ec);
+  if (ec) {
+    return absl::NotFoundError(
+        absl::StrFormat("Minecart source not found: %s", candidate.string()));
+  }
+  if (!IsStrictDescendant(resolved, project_root)) {
+    return absl::PermissionDeniedError(
+        "Minecart source resolves outside the project root");
+  }
+  if (!std::filesystem::is_regular_file(resolved, ec) || ec) {
+    return absl::InvalidArgumentError(
+        "Minecart source must be an existing regular file");
+  }
+  return resolved;
+}
+
+bool MinecartTrackEditorPanel::HasUnpublishedChanges() const {
+  return loaded_ && tracks_ != loaded_tracks_;
+}
+
+absl::Status MinecartTrackEditorPanel::UpdateTrack(size_t track_index,
+                                                   const MinecartTrack& track) {
+  if (!loaded_) {
+    return absl::FailedPreconditionError("Minecart tracks are not loaded");
+  }
+  if (track_index >= tracks_.size()) {
+    return absl::InvalidArgumentError("Minecart track index is out of range");
+  }
+  MinecartTrack updated = track;
+  updated.id = static_cast<int>(track_index);
+  tracks_[track_index] = updated;
+  audit_dirty_ = true;
+  return absl::OkStatus();
+}
+
+absl::Status MinecartTrackEditorPanel::DiscardUnpublishedChanges() {
+  if (!loaded_) {
+    return absl::FailedPreconditionError("Minecart tracks are not loaded");
+  }
+  tracks_ = loaded_tracks_;
+  CancelCoordinatePicking();
+  audit_dirty_ = true;
+  return absl::OkStatus();
+}
+
+absl::Status MinecartTrackEditorPanel::ReloadTracks() {
+  const absl::Status binding_status = RefreshProjectBinding();
+  if (!binding_status.ok()) {
+    return binding_status;
+  }
+  if (HasUnpublishedChanges()) {
+    return absl::FailedPreconditionError(
+        "Discard minecart track drafts before reloading the source");
+  }
+  return LoadTracks();
 }
 
 void MinecartTrackEditorPanel::InitializeOverlayInputs() {
@@ -156,8 +364,18 @@ void MinecartTrackEditorPanel::DrawOverlaySettings() {
 }
 
 const std::vector<MinecartTrack>& MinecartTrackEditorPanel::GetTracks() {
-  if (!loaded_) {
-    LoadTracks();
+  const absl::Status binding_status = RefreshProjectBinding();
+  if (!binding_status.ok()) {
+    status_message_ = std::string(binding_status.message());
+    show_success_ = false;
+    return tracks_;
+  }
+  if (!load_attempted_) {
+    const absl::Status status = LoadTracks();
+    if (!status.ok()) {
+      status_message_ = std::string(status.message());
+      show_success_ = false;
+    }
   }
   return tracks_;
 }
@@ -345,13 +563,29 @@ void MinecartTrackEditorPanel::RebuildAuditCache() {
 }
 
 void MinecartTrackEditorPanel::Draw(bool* p_open) {
-  if (project_root_.empty()) {
-    ImGui::TextColored(ImVec4(1, 0, 0, 1), tr("Project root not set."));
+  if (project_ == nullptr) {
+    ImGui::TextColored(ImVec4(1, 0, 0, 1),
+                       tr("Open a project to edit minecart tracks."));
     return;
   }
 
-  if (!loaded_) {
-    LoadTracks();
+  const absl::Status binding_status = RefreshProjectBinding();
+  if (!binding_status.ok()) {
+    status_message_ = std::string(binding_status.message());
+    show_success_ = false;
+  }
+  if (bound_project_filepath_.empty()) {
+    ImGui::TextColored(ImVec4(1, 0, 0, 1),
+                       tr("Open a project to edit minecart tracks."));
+    return;
+  }
+
+  if (!load_attempted_) {
+    const absl::Status status = LoadTracks();
+    if (!status.ok()) {
+      status_message_ = std::string(status.message());
+      show_success_ = false;
+    }
   }
 
   if (audit_dirty_) {
@@ -359,8 +593,33 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
   }
 
   ImGui::Text(tr("Minecart Track Editor"));
-  if (ImGui::Button(ICON_MD_SAVE " Save Tracks")) {
-    SaveTracks();
+  ImGui::TextColored(
+      ImVec4(1.0f, 0.8f, 0.2f, 1.0f), ICON_MD_WARNING
+      " Source publishing is disabled in this build; edits remain drafts "
+      "until discarded.");
+  const bool has_unpublished_changes = HasUnpublishedChanges();
+  ImGui::BeginDisabled();
+  ImGui::Button(ICON_MD_SAVE " Publish Unavailable");
+  ImGui::EndDisabled();
+  ImGui::SameLine();
+  if (!has_unpublished_changes) {
+    ImGui::BeginDisabled();
+  }
+  if (ImGui::Button(ICON_MD_RESTORE " Discard Drafts")) {
+    const absl::Status status = DiscardUnpublishedChanges();
+    status_message_ = status.ok() ? "Minecart track drafts discarded."
+                                  : std::string(status.message());
+    show_success_ = status.ok();
+  }
+  if (!has_unpublished_changes) {
+    ImGui::EndDisabled();
+  }
+  ImGui::SameLine();
+  if (ImGui::Button(ICON_MD_REFRESH " Reload Source")) {
+    const absl::Status status = ReloadTracks();
+    status_message_ = status.ok() ? "Minecart track source reloaded."
+                                  : std::string(status.message());
+    show_success_ = status.ok();
   }
   ImGui::SameLine();
   const bool can_save_project = project_ && project_->project_opened();
@@ -370,7 +629,10 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
   if (ImGui::Button(ICON_MD_SAVE " Save Project")) {
     auto status = project_->Save();
     if (status.ok()) {
-      status_message_ = "Project saved.";
+      status_message_ = has_unpublished_changes
+                            ? "Project saved; minecart track drafts remain "
+                              "unsaved."
+                            : "Project saved.";
       show_success_ = true;
     } else {
       status_message_ =
@@ -457,6 +719,7 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
       if (yaze::gui::InputHexWordCustom(
               absl::StrFormat("##Room%d", track.id).c_str(), &room_id, 60.0f)) {
         track.room_id = room_id;
+        audit_dirty_ = true;
       }
 
       ImGui::TableNextColumn();
@@ -465,6 +728,7 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
               absl::StrFormat("##StartX%d", track.id).c_str(), &start_x,
               60.0f)) {
         track.start_x = start_x;
+        audit_dirty_ = true;
       }
 
       ImGui::TableNextColumn();
@@ -473,6 +737,7 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
               absl::StrFormat("##StartY%d", track.id).c_str(), &start_y,
               60.0f)) {
         track.start_y = start_y;
+        audit_dirty_ = true;
       }
 
       // Pick button to select coordinates from canvas
@@ -725,143 +990,200 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
   }
 }
 
-void MinecartTrackEditorPanel::LoadTracks() {
-  std::filesystem::path path = std::filesystem::path(project_root_) /
-                               "Sprites/Objects/data/minecart_tracks.asm";
+absl::Status MinecartTrackEditorPanel::LoadTracks() {
+  load_attempted_ = true;
 
-  if (!std::filesystem::exists(path)) {
-    status_message_ = "File not found: " + path.string();
-    show_success_ = false;
-    loaded_ = true;  // Prevent retry loop
-    tracks_.clear();
-    return;
+  auto path_or = ResolveTrackSourcePath();
+  if (!path_or.ok()) {
+    return path_or.status();
   }
 
-  std::ifstream file(path);
+  std::ifstream file(*path_or, std::ios::binary);
+  if (!file.is_open()) {
+    return absl::NotFoundError(absl::StrFormat(
+        "Could not open minecart source: %s", path_or->string()));
+  }
   std::stringstream buffer;
   buffer << file.rdbuf();
-  std::string content = buffer.str();
-
-  std::vector<int> rooms;
-  std::vector<int> xs;
-  std::vector<int> ys;
-
-  if (!ParseSection(content, ".TrackStartingRooms", rooms) ||
-      !ParseSection(content, ".TrackStartingX", xs) ||
-      !ParseSection(content, ".TrackStartingY", ys)) {
-    status_message_ = "Error parsing file format.";
-    show_success_ = false;
-  } else {
-    tracks_.clear();
-    size_t count = std::min({rooms.size(), xs.size(), ys.size()});
-    for (size_t i = 0; i < count; ++i) {
-      tracks_.push_back({(int)i, rooms[i], xs[i], ys[i]});
-    }
-    while (tracks_.size() < kTrackSlotCount) {
-      tracks_.push_back({static_cast<int>(tracks_.size()), kDefaultTrackRoom,
-                         kDefaultTrackX, kDefaultTrackY});
-    }
-    status_message_ = "";
-    show_success_ = true;
+  if (file.bad()) {
+    return absl::DataLossError(absl::StrFormat(
+        "Could not read minecart source: %s", path_or->string()));
   }
-  audit_dirty_ = true;
+  const std::string content = buffer.str();
+
+  auto rooms_or = ParseSection(content, ".TrackStartingRooms");
+  if (!rooms_or.ok()) {
+    return rooms_or.status();
+  }
+  auto xs_or = ParseSection(content, ".TrackStartingX");
+  if (!xs_or.ok()) {
+    return xs_or.status();
+  }
+  auto ys_or = ParseSection(content, ".TrackStartingY");
+  if (!ys_or.ok()) {
+    return ys_or.status();
+  }
+  if (rooms_or->guarded != xs_or->guarded ||
+      rooms_or->guarded != ys_or->guarded) {
+    return absl::InvalidArgumentError(
+        "Minecart sections must use the same flat or guarded layout");
+  }
+
+  std::vector<MinecartTrack> candidate_tracks;
+  candidate_tracks.reserve(kTrackSlotCount);
+  for (size_t i = 0; i < kTrackSlotCount; ++i) {
+    candidate_tracks.push_back({static_cast<int>(i), rooms_or->values[i],
+                                xs_or->values[i], ys_or->values[i]});
+  }
+
+  tracks_ = candidate_tracks;
+  loaded_tracks_ = std::move(candidate_tracks);
+  source_is_guarded_ = rooms_or->guarded;
   loaded_ = true;
-}
-
-bool MinecartTrackEditorPanel::ParseSection(const std::string& content,
-                                            const std::string& label,
-                                            std::vector<int>& out_values) {
-  size_t pos = content.find(label);
-  if (pos == std::string::npos)
-    return false;
-
-  // Start searching after the label
-  size_t start = pos + label.length();
-
-  // Find lines starting with 'dw'
-  std::regex dw_regex(R"(dw\s+((?:\$[0-9A-Fa-f]{4}(?:,\s*)?)+))");
-
-  // Create a substring from start to end or next label (simplified: just search until next dot label or end)
-  // Actually, searching line by line is safer.
-  std::stringstream ss(content.substr(start));
-  std::string line;
-  while (std::getline(ss, line)) {
-    // Stop if we hit another label
-    size_t trimmed_start = line.find_first_not_of(" \t");
-    if (trimmed_start != std::string::npos && line[trimmed_start] == '.')
-      break;
-
-    std::smatch match;
-    if (std::regex_search(line, match, dw_regex)) {
-      std::string values_str = match[1];
-      std::stringstream val_ss(values_str);
-      std::string segment;
-      while (std::getline(val_ss, segment, ',')) {
-        // Trim
-        segment.erase(0, segment.find_first_not_of(" \t$"));
-        // Parse hex
-        try {
-          out_values.push_back(std::stoi(segment, nullptr, 16));
-        } catch (...) {}
-      }
-    }
-  }
-  return true;
-}
-
-void MinecartTrackEditorPanel::SaveTracks() {
-  std::filesystem::path path = std::filesystem::path(project_root_) /
-                               "Sprites/Objects/data/minecart_tracks.asm";
-
-  std::ofstream file(path);
-  if (!file.is_open()) {
-    status_message_ = "Failed to open file for writing.";
-    show_success_ = false;
-    return;
-  }
-
-  std::vector<int> rooms, xs, ys;
-  for (const auto& t : tracks_) {
-    rooms.push_back(t.room_id);
-    xs.push_back(t.start_x);
-    ys.push_back(t.start_y);
-  }
-
-  file << "  ; This is which room each track should start in if it hasn't "
-          "already\n";
-  file << "  ; been given a track.\n";
-  file << FormatSection(".TrackStartingRooms", rooms);
-  file << "\n";
-
-  file << "  ; This is where within the room each track should start in if it "
-          "hasn't\n";
-  file << "  ; already been given a position. This is necessary to allow for "
-          "more\n";
-  file << "  ; than one stopping point to be in one room.\n";
-  file << FormatSection(".TrackStartingX", xs);
-  file << "\n";
-
-  file << FormatSection(".TrackStartingY", ys);
-
-  status_message_ = "Tracks saved successfully!";
+  audit_dirty_ = true;
+  status_message_.clear();
   show_success_ = true;
+  return absl::OkStatus();
 }
 
-std::string MinecartTrackEditorPanel::FormatSection(
-    const std::string& label, const std::vector<int>& values) {
-  std::stringstream ss;
-  ss << "  " << label << "\n";
-
-  for (size_t i = 0; i < values.size(); i += 8) {
-    ss << "  dw ";
-    for (size_t j = 0; j < 8 && i + j < values.size(); ++j) {
-      if (j > 0)
-        ss << ", ";
-      ss << absl::StrFormat("$%04X", values[i + j]);
-    }
-    ss << "\n";
+absl::StatusOr<MinecartTrackEditorPanel::ParsedSection>
+MinecartTrackEditorPanel::ParseSection(const std::string& content,
+                                       const std::string& label) {
+  std::vector<std::string> lines;
+  std::stringstream stream(content);
+  std::string line;
+  while (std::getline(stream, line)) {
+    lines.push_back(line);
   }
-  return ss.str();
+
+  size_t section_line = 0;
+  int label_count = 0;
+  for (size_t i = 0; i < lines.size(); ++i) {
+    if (StripCommentAndTrim(lines[i]) == label) {
+      section_line = i;
+      ++label_count;
+    }
+  }
+  if (label_count != 1) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Expected exactly one %s label, found %d", label, label_count));
+  }
+
+  size_t section_end = lines.size();
+  for (size_t i = section_line + 1; i < lines.size(); ++i) {
+    const std::string code = StripCommentAndTrim(lines[i]);
+    if (!code.empty() && code[0] == '.') {
+      section_end = i;
+      break;
+    }
+  }
+
+  enum class GuardState { kPrefix, kEnabled, kDisabled, kComplete };
+  GuardState state = GuardState::kPrefix;
+  bool saw_guard = false;
+  bool saw_else = false;
+  bool saw_endif = false;
+  std::vector<int> prefix;
+  std::vector<int> enabled;
+  std::vector<int> disabled;
+
+  for (size_t i = section_line + 1; i < section_end; ++i) {
+    const std::string code = StripCommentAndTrim(lines[i]);
+    if (code.empty()) {
+      continue;
+    }
+    if (code == kPlannedTrackGuard) {
+      if (state != GuardState::kPrefix || saw_guard) {
+        return absl::InvalidArgumentError(
+            absl::StrFormat("Nested or repeated guard in %s", label));
+      }
+      saw_guard = true;
+      state = GuardState::kEnabled;
+      continue;
+    }
+    if (code == "else") {
+      if (!saw_guard || state != GuardState::kEnabled || saw_else) {
+        return absl::InvalidArgumentError(
+            absl::StrFormat("Unexpected else in %s", label));
+      }
+      saw_else = true;
+      state = GuardState::kDisabled;
+      continue;
+    }
+    if (code == "endif") {
+      if (!saw_else || state != GuardState::kDisabled || saw_endif) {
+        return absl::InvalidArgumentError(
+            absl::StrFormat("Unexpected endif in %s", label));
+      }
+      saw_endif = true;
+      state = GuardState::kComplete;
+      continue;
+    }
+    if (state == GuardState::kComplete) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Unexpected content after guarded table in %s: %s", label, code));
+    }
+
+    auto values_or = ParseDwValues(lines[i], label);
+    if (!values_or.ok()) {
+      return values_or.status();
+    }
+    std::vector<int>* destination = &prefix;
+    if (state == GuardState::kEnabled) {
+      destination = &enabled;
+    } else if (state == GuardState::kDisabled) {
+      destination = &disabled;
+    }
+    destination->insert(destination->end(), values_or->begin(),
+                        values_or->end());
+  }
+
+  ParsedSection result;
+  if (!saw_guard) {
+    if (prefix.size() != kTrackSlotCount) {
+      return absl::InvalidArgumentError(
+          absl::StrFormat("%s must contain exactly %d values; found %zu", label,
+                          kTrackSlotCount, prefix.size()));
+    }
+    result.values = std::move(prefix);
+    return result;
+  }
+
+  if (!saw_else || !saw_endif) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Incomplete planned-track guard in %s", label));
+  }
+  if (prefix.size() + enabled.size() != kTrackSlotCount ||
+      prefix.size() + disabled.size() != kTrackSlotCount) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s guarded branches must each resolve to exactly %d values; found "
+        "%zu enabled and %zu disabled",
+        label, kTrackSlotCount, prefix.size() + enabled.size(),
+        prefix.size() + disabled.size()));
+  }
+
+  result.values = prefix;
+  result.values.insert(result.values.end(), enabled.begin(), enabled.end());
+  result.guarded = true;
+  return result;
+}
+
+absl::Status MinecartTrackEditorPanel::SaveTracks() {
+  if (!loaded_) {
+    return absl::FailedPreconditionError("Minecart tracks are not loaded");
+  }
+  if (!HasUnpublishedChanges()) {
+    return absl::FailedPreconditionError(
+        "No unpublished minecart track drafts to save");
+  }
+  if (source_is_guarded_) {
+    return absl::FailedPreconditionError(
+        "Guarded minecart source publishing is disabled until a lossless "
+        "publisher is available; drafts were kept");
+  }
+  return absl::UnimplementedError(
+      "Minecart source publishing is disabled until atomic source guards are "
+      "available; drafts were kept");
 }
 
 }  // namespace yaze::editor
