@@ -97,6 +97,7 @@ class MinecartTrackEditorPanel : public WindowContent {
                          OverlayListMember member);
   absl::StatusOr<bool> CommitOverlayList(std::string& input,
                                          OverlayListMember member);
+  absl::StatusOr<bool> CommitOverlayInputsForSave();
   absl::StatusOr<bool> ResetOverlaySettings();
   absl::Status NotifyProjectChanged(
       const project::DungeonOverlaySettings& overlay);
@@ -146,6 +147,7 @@ class MinecartTrackEditorPanel : public WindowContent {
 
   // Overlay config input state
   bool overlay_inputs_initialized_ = false;
+  std::optional<project::DungeonOverlaySettings> overlay_inputs_model_;
   std::string overlay_track_tiles_input_;
   std::string overlay_track_stop_tiles_input_;
   std::string overlay_track_switch_tiles_input_;
