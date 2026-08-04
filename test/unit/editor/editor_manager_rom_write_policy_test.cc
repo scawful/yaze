@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <chrono>
 #include <cstdint>
 #include <filesystem>
@@ -18,6 +19,7 @@
 #include "app/editor/editor_manager.h"
 #include "app/editor/graphics/graphics_editor.h"
 #include "app/editor/graphics/graphics_undo_actions.h"
+#include "app/editor/graphics/screen_editor.h"
 #include "app/gfx/backend/null_renderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
@@ -36,6 +38,103 @@ class GraphicsEditorSaveStoplossTestPeer {
  public:
   static void MarkSheetModified(GraphicsEditor* editor, uint16_t sheet_id) {
     editor->state_.MarkSheetModified(sheet_id);
+  }
+};
+
+class ScreenEditorSaveStoplossTestPeer {
+ public:
+  static void MarkDungeonMapModified(ScreenEditor* editor) {
+    editor->MarkDungeonMapModified();
+  }
+
+  static void MarkDungeonMapTile16Modified(ScreenEditor* editor) {
+    editor->MarkDungeonMapTile16Modified();
+  }
+
+  static void ClearPendingChanges(ScreenEditor* editor) {
+    editor->pending_dungeon_map_changes_ = false;
+    editor->pending_dungeon_map_tile16_changes_ = false;
+  }
+
+  static void CommitDungeonMapEdit(ScreenEditor* editor) {
+    std::array<uint8_t, zelda3::kNumRooms> rooms{};
+    rooms.fill(0x0F);
+    std::array<uint8_t, zelda3::kNumRooms> graphics{};
+    graphics.fill(0xFF);
+    editor->dungeon_maps_.emplace_back(
+        0xFFFF, 1, 0,
+        std::vector<std::array<uint8_t, zelda3::kNumRooms>>{rooms},
+        std::vector<std::array<uint8_t, zelda3::kNumRooms>>{graphics});
+    editor->dungeon_map_labels_[0].emplace_back();
+    editor->selected_dungeon = 0;
+    editor->SaveDungeonMapUndoState("Edit dungeon map");
+    editor->dungeon_maps_[0].boss_room = 0x0123;
+    editor->CommitDungeonMapUndo();
+  }
+
+  static void CommitDungeonMapTile16Edit(ScreenEditor* editor) {
+    editor->selected_tile16_ = 4;
+    editor->current_tile16_info = {};
+    editor->SaveTile16CompUndoState("Edit dungeon-map Tile16");
+    editor->current_tile16_info[0] = gfx::TileInfo(1, 0, false, false, false);
+    editor->CommitTile16CompUndo();
+  }
+
+  static void PrimeRomBackedState(ScreenEditor* editor) {
+    editor->dungeon_maps_.emplace_back(
+        0xFFFF, 0, 0, std::vector<std::array<uint8_t, zelda3::kNumRooms>>{},
+        std::vector<std::array<uint8_t, zelda3::kNumRooms>>{});
+    MarkDungeonMapModified(editor);
+    MarkDungeonMapTile16Modified(editor);
+    editor->has_pending_dungeon_undo_ = true;
+    editor->has_pending_tile16_undo_ = true;
+    editor->pending_dungeon_desc_ = "pending dungeon edit";
+    editor->pending_tile16_desc_ = "pending Tile16 edit";
+    editor->dungeon_map_labels_[0].emplace_back();
+    editor->binary_gfx_loaded_ = true;
+    editor->inventory_loaded_ = true;
+    editor->title_screen_loaded_ = true;
+    editor->ow_map_loaded_ = true;
+    editor->selected_room = 7;
+    editor->selected_tile16_ = 8;
+    editor->selected_tile8_ = 9;
+    editor->selected_dungeon = 10;
+    editor->floor_number = 11;
+    editor->sheets_[0] = std::make_unique<gfx::Bitmap>();
+    editor->tile16_blockset_.tile_cache.CacheTile(1, gfx::Bitmap{});
+    editor->tile8_tilemap_.tile_cache.CacheTile(2, gfx::Bitmap{});
+
+    ScreenSnapshot before;
+    ScreenSnapshot after;
+    editor->undo_manager_.Push(std::make_unique<ScreenEditAction>(
+        before, after, [](const ScreenSnapshot&) {}, "older screen edit"));
+    editor->undo_manager_.Push(std::make_unique<ScreenEditAction>(
+        before, after, [](const ScreenSnapshot&) {}, "newer screen edit"));
+    editor->undo_manager_.Undo().IgnoreError();
+  }
+
+  static void ResetRomBackedStateForLoad(ScreenEditor* editor) {
+    editor->ResetRomBackedStateForLoad();
+  }
+
+  static bool HasReloadResidue(const ScreenEditor& editor) {
+    const bool has_labels =
+        std::ranges::any_of(editor.dungeon_map_labels_,
+                            [](const auto& labels) { return !labels.empty(); });
+    return !editor.dungeon_maps_.empty() || has_labels ||
+           editor.undo_manager_.CanUndo() || editor.undo_manager_.CanRedo() ||
+           editor.has_pending_dungeon_undo_ ||
+           editor.has_pending_tile16_undo_ ||
+           !editor.pending_dungeon_desc_.empty() ||
+           !editor.pending_tile16_desc_.empty() || editor.binary_gfx_loaded_ ||
+           editor.inventory_loaded_ || editor.title_screen_loaded_ ||
+           editor.ow_map_loaded_ || editor.selected_room != 0 ||
+           editor.selected_tile16_ != 0 || editor.selected_tile8_ != 0 ||
+           editor.selected_dungeon != 0 || editor.floor_number != 0 ||
+           !editor.sheets_.empty() ||
+           editor.tile16_blockset_.tile_cache.Size() != 0 ||
+           editor.tile8_tilemap_.tile_cache.Size() != 0 ||
+           editor.HasPendingScreenChanges();
   }
 };
 
@@ -991,7 +1090,7 @@ TEST(EditorManagerBackupRestoreTest,
   EXPECT_EQ(discard_status.code(), absl::StatusCode::kFailedPrecondition)
       << discard_status;
   EXPECT_NE(std::string(discard_status.message())
-                .find("pending graphics, dungeon, or palette edits"),
+                .find("pending graphics, screen, dungeon, or palette edits"),
             std::string::npos);
   EXPECT_EQ(manager->GetCurrentRom(), active_rom);
   ASSERT_TRUE(active_rom->ReadByte(kPcOffset).ok());
@@ -1061,7 +1160,7 @@ TEST(EditorManagerBackupRestoreTest,
   EXPECT_EQ(discard_status.code(), absl::StatusCode::kFailedPrecondition)
       << discard_status;
   EXPECT_NE(std::string(discard_status.message())
-                .find("pending graphics, dungeon, or palette edits"),
+                .find("pending graphics, screen, dungeon, or palette edits"),
             std::string::npos);
   EXPECT_EQ(manager->GetCurrentRom(), active_rom);
   ASSERT_TRUE(active_rom->ReadByte(kPcOffset).ok());
@@ -1776,6 +1875,161 @@ TEST(GraphicsSaveStoplossTest, PixelUndoAndRedoRemarkTheSheetDirty) {
   EXPECT_EQ(sheet.vector(), after_data);
   EXPECT_TRUE(state.HasUnsavedChanges());
   EXPECT_TRUE(state.modified_sheets.contains(kSheetId));
+}
+
+TEST(ScreenSaveStoplossTest,
+     PendingQueryDoesNotMaterializeTheLazyScreenEditor) {
+  EditorSet editor_set;
+
+  EXPECT_EQ(editor_set.GetExistingEditor(EditorType::kScreen), nullptr);
+  EXPECT_FALSE(editor_set.HasPendingScreenChanges());
+  EXPECT_EQ(editor_set.GetExistingEditor(EditorType::kScreen), nullptr);
+}
+
+TEST(ScreenSaveStoplossTest,
+     PendingMapAndTile16EditsBlockLifecycleForBothScopeStates) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  const auto rom_path = MakeTempFilePath("yaze_pending_screen_save.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  WriteTestRom(rom_path, "PENDING SCREEN");
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+
+  auto* editor_set = manager->GetCurrentEditorSet();
+  ASSERT_NE(editor_set, nullptr);
+  auto* screen = editor_set->GetEditorAs<ScreenEditor>(EditorType::kScreen);
+  ASSERT_NE(screen, nullptr);
+
+  Rom* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  EXPECT_FALSE(rom->dirty());
+
+  constexpr uint32_t kPcOffset = 0x1234;
+  constexpr uint8_t kPendingRomByte = 0xA5;
+
+  for (const bool tile16_domain : {false, true}) {
+    SCOPED_TRACE(tile16_domain ? "dungeon-map Tile16" : "dungeon map");
+    ScreenEditorSaveStoplossTestPeer::ClearPendingChanges(screen);
+    if (tile16_domain) {
+      ScreenEditorSaveStoplossTestPeer::MarkDungeonMapTile16Modified(screen);
+    } else {
+      ScreenEditorSaveStoplossTestPeer::MarkDungeonMapModified(screen);
+    }
+
+    ASSERT_TRUE(editor_set->HasPendingScreenChanges());
+    EXPECT_EQ(screen->HasPendingDungeonMapChanges(), !tile16_domain);
+    EXPECT_EQ(screen->HasPendingDungeonMapTile16Changes(), tile16_domain);
+    EXPECT_TRUE(manager->session_coordinator()->IsSessionModified(
+        manager->GetCurrentSessionIndex()));
+
+    manager->Quit();
+    ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
+    EXPECT_NE(manager->GetPendingUnsavedSessionActionPrompt().find(
+                  "unapplied Screen Editor dungeon-map edits"),
+              std::string::npos);
+    manager->CancelPendingUnsavedSessionAction();
+
+    const auto autosave_status = manager->AutosaveActiveSession();
+    EXPECT_EQ(autosave_status.code(), absl::StatusCode::kFailedPrecondition)
+        << autosave_status;
+    EXPECT_NE(std::string(autosave_status.message())
+                  .find("Screen Editor dungeon-map edits are pending"),
+              std::string::npos);
+
+    auto* session = manager->session_coordinator()->GetActiveRomSession();
+    ASSERT_NE(session, nullptr);
+    session->backup_restore_pending = true;
+    const auto discard_status = manager->DiscardPendingRomBackupRestore();
+    EXPECT_EQ(discard_status.code(), absl::StatusCode::kFailedPrecondition)
+        << discard_status;
+    EXPECT_NE(std::string(discard_status.message())
+                  .find("pending graphics, screen, dungeon, or palette edits"),
+              std::string::npos);
+    EXPECT_TRUE(session->backup_restore_pending);
+    session->backup_restore_pending = false;
+
+    ASSERT_OK(rom->WriteByte(kPcOffset, kPendingRomByte));
+    for (const bool screen_scope_enabled : {false, true}) {
+      core::FeatureFlags::get().kSaveDungeonMaps = screen_scope_enabled;
+      const auto save_status = manager->SaveRom();
+
+      EXPECT_EQ(save_status.code(), absl::StatusCode::kFailedPrecondition)
+          << save_status;
+      EXPECT_NE(std::string(save_status.message())
+                    .find("Screen Editor dungeon-map edits are pending"),
+                std::string::npos);
+      EXPECT_NE(std::string(save_status.message())
+                    .find(screen_scope_enabled ? "enabled" : "disabled"),
+                std::string::npos);
+      EXPECT_EQ(ReadByteAt(rom_path, kPcOffset), 0x00);
+      ASSERT_TRUE(rom->ReadByte(kPcOffset).ok());
+      EXPECT_EQ(*rom->ReadByte(kPcOffset), kPendingRomByte);
+      EXPECT_TRUE(editor_set->HasPendingScreenChanges());
+    }
+  }
+}
+
+TEST(ScreenSaveStoplossTest, DirectEditorSaveFailsClosedForEitherDomain) {
+  ScreenEditor editor;
+
+  ScreenEditorSaveStoplossTestPeer::MarkDungeonMapModified(&editor);
+  auto status = editor.Save();
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+
+  ScreenEditorSaveStoplossTestPeer::ClearPendingChanges(&editor);
+  ScreenEditorSaveStoplossTestPeer::MarkDungeonMapTile16Modified(&editor);
+  status = editor.Save();
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+}
+
+TEST(ScreenSaveStoplossTest, MutationUndoAndRedoRemarkEachDomainPending) {
+  ScreenEditor dungeon_map_editor;
+  ScreenEditorSaveStoplossTestPeer::CommitDungeonMapEdit(&dungeon_map_editor);
+  ASSERT_TRUE(dungeon_map_editor.HasPendingDungeonMapChanges());
+
+  ScreenEditorSaveStoplossTestPeer::ClearPendingChanges(&dungeon_map_editor);
+  ASSERT_OK(dungeon_map_editor.Undo());
+  EXPECT_TRUE(dungeon_map_editor.HasPendingDungeonMapChanges());
+
+  ScreenEditorSaveStoplossTestPeer::ClearPendingChanges(&dungeon_map_editor);
+  ASSERT_OK(dungeon_map_editor.Redo());
+  EXPECT_TRUE(dungeon_map_editor.HasPendingDungeonMapChanges());
+
+  ScreenEditor tile16_editor;
+  ScreenEditorSaveStoplossTestPeer::CommitDungeonMapTile16Edit(&tile16_editor);
+  ASSERT_TRUE(tile16_editor.HasPendingDungeonMapTile16Changes());
+
+  ScreenEditorSaveStoplossTestPeer::ClearPendingChanges(&tile16_editor);
+  ASSERT_OK(tile16_editor.Undo());
+  EXPECT_TRUE(tile16_editor.HasPendingDungeonMapTile16Changes());
+
+  ScreenEditorSaveStoplossTestPeer::ClearPendingChanges(&tile16_editor);
+  ASSERT_OK(tile16_editor.Redo());
+  EXPECT_TRUE(tile16_editor.HasPendingDungeonMapTile16Changes());
+}
+
+TEST(ScreenSaveStoplossTest, ReloadResetClearsRomBackedStateAndHistory) {
+  ScreenEditor editor;
+  ScreenEditorSaveStoplossTestPeer::PrimeRomBackedState(&editor);
+  ASSERT_TRUE(ScreenEditorSaveStoplossTestPeer::HasReloadResidue(editor));
+
+  ScreenEditorSaveStoplossTestPeer::ResetRomBackedStateForLoad(&editor);
+
+  EXPECT_FALSE(ScreenEditorSaveStoplossTestPeer::HasReloadResidue(editor));
 }
 
 }  // namespace

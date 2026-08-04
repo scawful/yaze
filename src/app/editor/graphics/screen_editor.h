@@ -54,9 +54,21 @@ class ScreenEditor : public Editor {
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
 
+  bool HasPendingDungeonMapChanges() const {
+    return pending_dungeon_map_changes_;
+  }
+  bool HasPendingDungeonMapTile16Changes() const {
+    return pending_dungeon_map_tile16_changes_;
+  }
+  bool HasPendingScreenChanges() const {
+    return HasPendingDungeonMapChanges() || HasPendingDungeonMapTile16Changes();
+  }
+
   std::vector<zelda3::DungeonMap> dungeon_maps_;
 
  private:
+  friend class ScreenEditorSaveStoplossTestPeer;
+
   void DrawTitleScreenEditor();
   void DrawNamingScreenEditor();
   void DrawOverworldMapEditor();
@@ -75,7 +87,6 @@ class ScreenEditor : public Editor {
 
   absl::Status LoadDungeonMapTile16(const std::vector<uint8_t>& gfx_data,
                                     bool bin_mode = false);
-  absl::Status SaveDungeonMapTile16();
 
   void DrawDungeonMapScreen(int i);
   void DrawDungeonMapsTabs();
@@ -92,6 +103,11 @@ class ScreenEditor : public Editor {
   void CommitDungeonMapUndo();
   void CommitTile16CompUndo();
   void RestoreFromSnapshot(const ScreenSnapshot& snapshot);
+  void ResetRomBackedStateForLoad();
+  void MarkDungeonMapModified() { pending_dungeon_map_changes_ = true; }
+  void MarkDungeonMapTile16Modified() {
+    pending_dungeon_map_tile16_changes_ = true;
+  }
 
   enum class EditingMode { DRAW, EDIT };
 
@@ -162,6 +178,8 @@ class ScreenEditor : public Editor {
   // Undo/redo pending state
   bool has_pending_dungeon_undo_ = false;
   bool has_pending_tile16_undo_ = false;
+  bool pending_dungeon_map_changes_ = false;
+  bool pending_dungeon_map_tile16_changes_ = false;
   ScreenSnapshot pending_dungeon_before_;
   ScreenSnapshot pending_tile16_before_;
   std::string pending_dungeon_desc_;

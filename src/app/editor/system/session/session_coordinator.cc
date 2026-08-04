@@ -1279,6 +1279,10 @@ bool SessionCoordinator::IsSessionModified(size_t index) const {
     return true;
   }
 
+  if (session->editors.HasPendingScreenChanges()) {
+    return true;
+  }
+
   if (gfx::PaletteManager::Get().HasUnsavedChanges(&session->game_data)) {
     return true;
   }

@@ -4084,6 +4084,19 @@ absl::Status EditorManager::SaveRomInternal(
         core::FeatureFlags::get().kSaveGraphicsSheet ? "enabled" : "disabled"));
   }
 
+  // ScreenEditor keeps dungeon-map and dungeon-map Tile16 edits in its model.
+  // Neither domain can safely participate in the coordinated ROM transaction
+  // yet, so fail before any serializer mutates the ROM for either feature-flag
+  // state instead of reporting a partial save as successful.
+  if (current_editor_set->HasPendingScreenChanges()) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Save blocked: Screen Editor dungeon-map edits are pending, but "
+        "dungeon-map ROM persistence is not safely available (Save Dungeon "
+        "Maps is %s). Discard the Screen Editor dungeon-map edits before "
+        "saving the ROM.",
+        core::FeatureFlags::get().kSaveDungeonMaps ? "enabled" : "disabled"));
+  }
+
   // --- State machine checks (delegated to RomLifecycleManager) ---
   if (rom_lifecycle_.IsRomWriteConfirmPending()) {
     return absl::CancelledError("Save pending confirmation");
@@ -5968,10 +5981,11 @@ absl::Status EditorManager::DiscardPendingRomBackupRestore() {
 
   const size_t session_index = GetCurrentSessionIndex();
   if (session->editors.HasPendingGraphicsChanges() ||
+      session->editors.HasPendingScreenChanges() ||
       HasPendingDungeonChangesForSession(session_index) ||
       gfx::PaletteManager::Get().HasUnsavedChanges(&session->game_data)) {
     return absl::FailedPreconditionError(
-        "Resolve pending graphics, dungeon, or palette edits before "
+        "Resolve pending graphics, screen, dungeon, or palette edits before "
         "discarding the restored backup");
   }
 
@@ -6430,6 +6444,7 @@ bool EditorManager::SessionHasPendingRomWork(size_t session_index) const {
   return session != nullptr &&
          ((session->rom.is_loaded() && session->rom.dirty()) ||
           session->editors.HasPendingGraphicsChanges() ||
+          session->editors.HasPendingScreenChanges() ||
           HasPendingDungeonChangesForSession(session_index) ||
           gfx::PaletteManager::Get().HasUnsavedChanges(&session->game_data));
 }
@@ -6521,6 +6536,8 @@ std::string EditorManager::DescribePendingUnsavedWork(
       HasPendingDungeonChangesForSession(session_index);
   const bool pending_graphics_changes =
       session != nullptr && session->editors.HasPendingGraphicsChanges();
+  const bool pending_screen_changes =
+      session != nullptr && session->editors.HasPendingScreenChanges();
   const int pending_rooms = PendingDungeonRoomCountForSession(session_index);
   const size_t pending_palette_colors =
       PendingPaletteColorCountForSession(session_index);
@@ -6543,6 +6560,9 @@ std::string EditorManager::DescribePendingUnsavedWork(
   }
   if (pending_graphics_changes) {
     work.emplace_back("unapplied graphics sheet edits");
+  }
+  if (pending_screen_changes) {
+    work.emplace_back("unapplied Screen Editor dungeon-map edits");
   }
   if (rom_dirty) {
     work.emplace_back("unsaved ROM-buffer changes");
@@ -6573,8 +6593,8 @@ std::string EditorManager::DescribeAllPendingUnsavedWork() const {
   }
 
   return absl::StrFormat(
-      "%d sessions have unsaved ROM, graphics, dungeon, palette, or project "
-      "work.",
+      "%d sessions have unsaved ROM, graphics, screen, dungeon, palette, or "
+      "project work.",
       modified_sessions);
 }
 
