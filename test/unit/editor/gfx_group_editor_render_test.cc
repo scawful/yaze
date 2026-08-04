@@ -25,6 +25,27 @@ gfx::Bitmap MakeSheetBitmap() {
   return bmp;
 }
 
+TEST(BitmapTileExtractionTest,
+     Get16x16TileWritesCurrentOffsetAndAdvancesByTileSize) {
+  std::vector<uint8_t> pixels(16 * 16);
+  for (size_t i = 0; i < pixels.size(); ++i) {
+    pixels[i] = static_cast<uint8_t>(i);
+  }
+  gfx::Bitmap bitmap(16, 16, 8, pixels);
+
+  constexpr int kInitialOffset = 3;
+  std::vector<uint8_t> tile_data(kInitialOffset + pixels.size() + 1, 0xEE);
+  int tile_data_offset = kInitialOffset;
+
+  bitmap.Get16x16Tile(0, 0, tile_data, tile_data_offset);
+
+  EXPECT_EQ(tile_data[kInitialOffset], pixels.front());
+  EXPECT_EQ(tile_data[kInitialOffset + pixels.size() - 1], pixels.back());
+  EXPECT_EQ(tile_data[kInitialOffset - 1], 0xEE);
+  EXPECT_EQ(tile_data[kInitialOffset + pixels.size()], 0xEE);
+  EXPECT_EQ(tile_data_offset, kInitialOffset + static_cast<int>(pixels.size()));
+}
+
 class GfxGroupEditorRenderTest : public ::testing::Test {
  protected:
   void SetUp() override { gfx::Arena::Get().ClearTextureQueue(); }
