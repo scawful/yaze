@@ -89,6 +89,7 @@ class MinecartTrackEditorPanel : public WindowContent {
   bool IsDefaultTrack(const MinecartTrack& track) const;
   void DrawOverlaySettings();
   void InitializeOverlayInputs();
+  void ClearOverlayInputs();
 
   using OverlayListMember =
       std::vector<uint16_t> project::DungeonOverlaySettings::*;

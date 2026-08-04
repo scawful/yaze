@@ -1,5 +1,6 @@
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 
+#include <array>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -57,6 +58,24 @@ class MinecartTrackEditorPanelTestPeer {
   static void SetTrackTilesInput(MinecartTrackEditorPanel& panel,
                                  std::string input) {
     panel.overlay_track_tiles_input_ = std::move(input);
+  }
+
+  static void SetOverlayInputs(MinecartTrackEditorPanel& panel,
+                               std::array<std::string, 5> inputs) {
+    panel.overlay_track_tiles_input_ = std::move(inputs[0]);
+    panel.overlay_track_stop_tiles_input_ = std::move(inputs[1]);
+    panel.overlay_track_switch_tiles_input_ = std::move(inputs[2]);
+    panel.overlay_track_object_ids_input_ = std::move(inputs[3]);
+    panel.overlay_minecart_sprite_ids_input_ = std::move(inputs[4]);
+  }
+
+  static std::array<std::string, 5> OverlayInputs(
+      const MinecartTrackEditorPanel& panel) {
+    return {panel.overlay_track_tiles_input_,
+            panel.overlay_track_stop_tiles_input_,
+            panel.overlay_track_switch_tiles_input_,
+            panel.overlay_track_object_ids_input_,
+            panel.overlay_minecart_sprite_ids_input_};
   }
 
   static const std::string& TrackTilesInput(
@@ -383,6 +402,45 @@ TEST(MinecartTrackEditorPanelTest,
   EXPECT_EQ(MinecartTrackEditorPanelTestPeer::TrackTilesInput(panel), "0xB0");
   EXPECT_FALSE(project_dirty);
   EXPECT_FALSE(MinecartTrackEditorPanelTestPeer::AuditDirty(panel));
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     NoOpResetClearsRejectedOverlayInputsWithoutDirtyingProject) {
+  ScopedTestProject fixture;
+
+  MinecartTrackEditorPanel panel;
+  ASSERT_TRUE(panel.SetProject(fixture.project()).ok());
+  int changed_calls = 0;
+  panel.SetProjectChangedCallback(
+      [&](const project::DungeonOverlaySettings&) -> absl::Status {
+        ++changed_calls;
+        return absl::OkStatus();
+      });
+  MinecartTrackEditorPanelTestPeer::SetAuditDirty(panel, false);
+  MinecartTrackEditorPanelTestPeer::SetOverlayInputs(
+      panel, {"0x1G", "rejected-stop", "rejected-switch", "rejected-object",
+              "rejected-sprite"});
+
+  const auto rejected =
+      MinecartTrackEditorPanelTestPeer::CommitTrackTilesInput(panel);
+  ASSERT_FALSE(rejected.ok());
+  ASSERT_FALSE(MinecartTrackEditorPanelTestPeer::StatusMessage(panel).empty());
+
+  const auto reset =
+      MinecartTrackEditorPanelTestPeer::ResetOverlaySettings(panel);
+  ASSERT_TRUE(reset.ok()) << reset.status();
+  EXPECT_FALSE(*reset);
+  EXPECT_EQ(MinecartTrackEditorPanelTestPeer::OverlayInputs(panel),
+            (std::array<std::string, 5>{"", "", "", "", ""}));
+  EXPECT_TRUE(MinecartTrackEditorPanelTestPeer::StatusMessage(panel).empty());
+  EXPECT_FALSE(MinecartTrackEditorPanelTestPeer::ShowSuccess(panel));
+  EXPECT_FALSE(MinecartTrackEditorPanelTestPeer::AuditDirty(panel));
+  EXPECT_EQ(changed_calls, 0);
+  EXPECT_TRUE(fixture.project()->dungeon_overlay.track_tiles.empty());
+  EXPECT_TRUE(fixture.project()->dungeon_overlay.track_stop_tiles.empty());
+  EXPECT_TRUE(fixture.project()->dungeon_overlay.track_switch_tiles.empty());
+  EXPECT_TRUE(fixture.project()->dungeon_overlay.track_object_ids.empty());
+  EXPECT_TRUE(fixture.project()->dungeon_overlay.minecart_sprite_ids.empty());
 }
 
 TEST(MinecartTrackEditorPanelTest,
