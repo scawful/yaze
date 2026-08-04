@@ -355,6 +355,14 @@ void MinecartTrackEditorPanel::InitializeOverlayInputs() {
   overlay_inputs_initialized_ = true;
 }
 
+void MinecartTrackEditorPanel::ClearOverlayInputs() {
+  overlay_track_tiles_input_.clear();
+  overlay_track_stop_tiles_input_.clear();
+  overlay_track_switch_tiles_input_.clear();
+  overlay_track_object_ids_input_.clear();
+  overlay_minecart_sprite_ids_input_.clear();
+}
+
 bool MinecartTrackEditorPanel::UpdateOverlayList(const char* label,
                                                  std::string& input,
                                                  OverlayListMember member) {
@@ -426,6 +434,9 @@ absl::StatusOr<bool> MinecartTrackEditorPanel::ResetOverlaySettings() {
       !overlay.track_switch_tiles.empty() ||
       !overlay.track_object_ids.empty() || !overlay.minecart_sprite_ids.empty();
   if (!changed) {
+    ClearOverlayInputs();
+    status_message_.clear();
+    show_success_ = false;
     return false;
   }
 
@@ -443,11 +454,7 @@ absl::StatusOr<bool> MinecartTrackEditorPanel::ResetOverlaySettings() {
   }
 
   project_->dungeon_overlay = std::move(overlay);
-  overlay_track_tiles_input_.clear();
-  overlay_track_stop_tiles_input_.clear();
-  overlay_track_switch_tiles_input_.clear();
-  overlay_track_object_ids_input_.clear();
-  overlay_minecart_sprite_ids_input_.clear();
+  ClearOverlayInputs();
   audit_dirty_ = true;
   status_message_ = "Overlay settings reset; save the project to persist.";
   show_success_ = true;
