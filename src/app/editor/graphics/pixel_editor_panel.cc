@@ -1029,7 +1029,10 @@ void PixelEditorPanel::FinalizeUndoAction() {
         absl::StrFormat("Edit pixels on sheet %02X", pending_undo_sheet_id_);
     undo_manager_->Push(std::make_unique<GraphicsPixelEditAction>(
         pending_undo_sheet_id_, std::move(pending_undo_before_data_),
-        std::move(after_data), std::move(description)));
+        std::move(after_data), std::move(description),
+        [state = state_](uint16_t sheet_id) {
+          state->MarkSheetModified(sheet_id);
+        }));
   }
 
   has_pending_undo_ = false;
