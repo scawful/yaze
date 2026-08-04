@@ -51,9 +51,24 @@ class ScreenEditorSaveStoplossTestPeer {
     editor->MarkDungeonMapTile16Modified();
   }
 
+  static void MarkTitleScreenModified(ScreenEditor* editor) {
+    editor->MarkTitleScreenModified();
+  }
+
+  static void MarkOverworldMapModified(ScreenEditor* editor) {
+    editor->MarkOverworldMapModified();
+  }
+
+  static void MarkOverworldMapPaletteModified(ScreenEditor* editor) {
+    editor->MarkOverworldMapPaletteModified();
+  }
+
   static void ClearPendingChanges(ScreenEditor* editor) {
     editor->pending_dungeon_map_changes_ = false;
     editor->pending_dungeon_map_tile16_changes_ = false;
+    editor->pending_title_screen_changes_ = false;
+    editor->pending_overworld_map_changes_ = false;
+    editor->pending_overworld_map_palette_changes_ = false;
   }
 
   static void CommitDungeonMapEdit(ScreenEditor* editor) {
@@ -86,6 +101,9 @@ class ScreenEditorSaveStoplossTestPeer {
         std::vector<std::array<uint8_t, zelda3::kNumRooms>>{});
     MarkDungeonMapModified(editor);
     MarkDungeonMapTile16Modified(editor);
+    MarkTitleScreenModified(editor);
+    MarkOverworldMapModified(editor);
+    MarkOverworldMapPaletteModified(editor);
     editor->has_pending_dungeon_undo_ = true;
     editor->has_pending_tile16_undo_ = true;
     editor->pending_dungeon_desc_ = "pending dungeon edit";
@@ -103,6 +121,8 @@ class ScreenEditorSaveStoplossTestPeer {
     editor->sheets_[0] = std::make_unique<gfx::Bitmap>();
     editor->tile16_blockset_.tile_cache.CacheTile(1, gfx::Bitmap{});
     editor->tile8_tilemap_.tile_cache.CacheTile(2, gfx::Bitmap{});
+    editor->screen_canvas_.mutable_points()->push_back(ImVec2(1, 2));
+    editor->tilesheet_canvas_.mutable_points()->push_back(ImVec2(3, 4));
 
     ScreenSnapshot before;
     ScreenSnapshot after;
@@ -134,7 +154,50 @@ class ScreenEditorSaveStoplossTestPeer {
            !editor.sheets_.empty() ||
            editor.tile16_blockset_.tile_cache.Size() != 0 ||
            editor.tile8_tilemap_.tile_cache.Size() != 0 ||
+           !editor.screen_canvas_.points().empty() ||
+           !editor.tilesheet_canvas_.points().empty() ||
            editor.HasPendingScreenChanges();
+  }
+
+  static absl::Status CreateTitleScreenModel(ScreenEditor* editor, Rom* rom,
+                                             zelda3::GameData* game_data) {
+    auto status = editor->title_screen_.Create(rom, game_data);
+    editor->title_screen_loaded_ = status.ok();
+    return status;
+  }
+
+  static absl::Status CreateOverworldMapModel(ScreenEditor* editor, Rom* rom) {
+    auto status = editor->ow_map_screen_.Create(rom);
+    editor->ow_map_loaded_ = status.ok();
+    return status;
+  }
+
+  static size_t TitleScreenPaletteSize(ScreenEditor& editor) {
+    return editor.title_screen_.palette().size();
+  }
+
+  static size_t LightWorldPaletteSize(ScreenEditor& editor) {
+    return editor.ow_map_screen_.lw_palette().size();
+  }
+
+  static size_t DarkWorldPaletteSize(ScreenEditor& editor) {
+    return editor.ow_map_screen_.dw_palette().size();
+  }
+
+  static absl::Status SaveTitleScreenToRom(ScreenEditor* editor) {
+    return editor->SaveTitleScreenToRom();
+  }
+
+  static absl::Status SaveOverworldMapToRom(ScreenEditor* editor) {
+    return editor->SaveOverworldMapToRom();
+  }
+
+  static bool HasPendingOverworldMapTileChanges(ScreenEditor& editor) {
+    return editor.pending_overworld_map_changes_;
+  }
+
+  static bool HasPendingOverworldMapPaletteChanges(ScreenEditor& editor) {
+    return editor.pending_overworld_map_palette_changes_;
   }
 };
 
@@ -216,6 +279,11 @@ struct ScopedGraphicsSheetRestore {
   gfx::Bitmap original;
 };
 
+struct ScopedTextureQueueClear {
+  ScopedTextureQueueClear() { gfx::Arena::Get().ClearTextureQueue(); }
+  ~ScopedTextureQueueClear() { gfx::Arena::Get().ClearTextureQueue(); }
+};
+
 struct ScopedImGuiContext {
   ImGuiContext* ctx = nullptr;
   ScopedImGuiContext() {
@@ -263,6 +331,40 @@ void WriteTestRom(const std::filesystem::path& path,
   out.write(reinterpret_cast<const char*>(rom_data.data()),
             static_cast<std::streamsize>(rom_data.size()));
   ASSERT_TRUE(out.good());
+}
+
+void WriteScreenModelTestRom(const std::filesystem::path& path) {
+  std::vector<uint8_t> rom_data(1024 * 1024, 0x00);
+  const std::string kTitle = "SCREEN MODEL TEST";
+  for (size_t i = 0; i < kTitle.size(); ++i) {
+    rom_data[0x7FC0 + i] = static_cast<uint8_t>(kTitle[i]);
+  }
+  std::ofstream out(path, std::ios::binary | std::ios::trunc);
+  ASSERT_TRUE(out.is_open());
+  out.write(reinterpret_cast<const char*>(rom_data.data()),
+            static_cast<std::streamsize>(rom_data.size()));
+  ASSERT_TRUE(out.good());
+}
+
+void PopulateTitleScreenTestGameData(zelda3::GameData* game_data) {
+  ASSERT_NE(game_data, nullptr);
+  game_data->graphics_buffer.resize(zelda3::kNumGfxSheets * 0x1000, 0x00);
+
+  gfx::SnesPalette palette;
+  for (uint16_t color = 0; color < 8; ++color) {
+    palette.AddColor(gfx::SnesColor(color));
+  }
+  auto add_palettes = [&palette](gfx::PaletteGroup* group, size_t count) {
+    ASSERT_NE(group, nullptr);
+    for (size_t i = 0; i < count; ++i) {
+      group->AddPalette(palette);
+    }
+  };
+  add_palettes(&game_data->palette_groups.overworld_main, 6);
+  add_palettes(&game_data->palette_groups.overworld_animated, 1);
+  add_palettes(&game_data->palette_groups.overworld_aux, 4);
+  add_palettes(&game_data->palette_groups.hud, 1);
+  add_palettes(&game_data->palette_groups.sprites_aux1, 2);
 }
 
 constexpr int kDungeonHeaderTablePc = 0x0F6000;
@@ -1887,7 +1989,7 @@ TEST(ScreenSaveStoplossTest,
 }
 
 TEST(ScreenSaveStoplossTest,
-     PendingMapAndTile16EditsBlockLifecycleForBothScopeStates) {
+     EveryPendingDomainBlocksLifecycleForBothScopeStates) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
 
@@ -1921,25 +2023,55 @@ TEST(ScreenSaveStoplossTest,
   constexpr uint32_t kPcOffset = 0x1234;
   constexpr uint8_t kPendingRomByte = 0xA5;
 
-  for (const bool tile16_domain : {false, true}) {
-    SCOPED_TRACE(tile16_domain ? "dungeon-map Tile16" : "dungeon map");
+  enum class PendingDomain {
+    kDungeonMap,
+    kDungeonMapTile16,
+    kTitle,
+    kOverworld,
+    kOverworldPalette
+  };
+  for (const PendingDomain domain :
+       {PendingDomain::kDungeonMap, PendingDomain::kDungeonMapTile16,
+        PendingDomain::kTitle, PendingDomain::kOverworld,
+        PendingDomain::kOverworldPalette}) {
+    SCOPED_TRACE(static_cast<int>(domain));
     ScreenEditorSaveStoplossTestPeer::ClearPendingChanges(screen);
-    if (tile16_domain) {
-      ScreenEditorSaveStoplossTestPeer::MarkDungeonMapTile16Modified(screen);
-    } else {
-      ScreenEditorSaveStoplossTestPeer::MarkDungeonMapModified(screen);
+    switch (domain) {
+      case PendingDomain::kDungeonMap:
+        ScreenEditorSaveStoplossTestPeer::MarkDungeonMapModified(screen);
+        break;
+      case PendingDomain::kDungeonMapTile16:
+        ScreenEditorSaveStoplossTestPeer::MarkDungeonMapTile16Modified(screen);
+        break;
+      case PendingDomain::kTitle:
+        ScreenEditorSaveStoplossTestPeer::MarkTitleScreenModified(screen);
+        break;
+      case PendingDomain::kOverworld:
+        ScreenEditorSaveStoplossTestPeer::MarkOverworldMapModified(screen);
+        break;
+      case PendingDomain::kOverworldPalette:
+        ScreenEditorSaveStoplossTestPeer::MarkOverworldMapPaletteModified(
+            screen);
+        break;
     }
 
     ASSERT_TRUE(editor_set->HasPendingScreenChanges());
-    EXPECT_EQ(screen->HasPendingDungeonMapChanges(), !tile16_domain);
-    EXPECT_EQ(screen->HasPendingDungeonMapTile16Changes(), tile16_domain);
+    EXPECT_EQ(screen->HasPendingDungeonMapChanges(),
+              domain == PendingDomain::kDungeonMap);
+    EXPECT_EQ(screen->HasPendingDungeonMapTile16Changes(),
+              domain == PendingDomain::kDungeonMapTile16);
+    EXPECT_EQ(screen->HasPendingTitleScreenChanges(),
+              domain == PendingDomain::kTitle);
+    EXPECT_EQ(screen->HasPendingOverworldMapChanges(),
+              domain == PendingDomain::kOverworld ||
+                  domain == PendingDomain::kOverworldPalette);
     EXPECT_TRUE(manager->session_coordinator()->IsSessionModified(
         manager->GetCurrentSessionIndex()));
 
     manager->Quit();
     ASSERT_TRUE(manager->HasPendingUnsavedSessionAction());
     EXPECT_NE(manager->GetPendingUnsavedSessionActionPrompt().find(
-                  "unapplied Screen Editor dungeon-map edits"),
+                  "unapplied Screen Editor edits"),
               std::string::npos);
     manager->CancelPendingUnsavedSessionAction();
 
@@ -1947,7 +2079,7 @@ TEST(ScreenSaveStoplossTest,
     EXPECT_EQ(autosave_status.code(), absl::StatusCode::kFailedPrecondition)
         << autosave_status;
     EXPECT_NE(std::string(autosave_status.message())
-                  .find("Screen Editor dungeon-map edits are pending"),
+                  .find("Screen Editor edits are pending"),
               std::string::npos);
 
     auto* session = manager->session_coordinator()->GetActiveRomSession();
@@ -1970,7 +2102,7 @@ TEST(ScreenSaveStoplossTest,
       EXPECT_EQ(save_status.code(), absl::StatusCode::kFailedPrecondition)
           << save_status;
       EXPECT_NE(std::string(save_status.message())
-                    .find("Screen Editor dungeon-map edits are pending"),
+                    .find("Screen Editor edits are pending"),
                 std::string::npos);
       EXPECT_NE(std::string(save_status.message())
                     .find(screen_scope_enabled ? "enabled" : "disabled"),
@@ -1983,17 +2115,22 @@ TEST(ScreenSaveStoplossTest,
   }
 }
 
-TEST(ScreenSaveStoplossTest, DirectEditorSaveFailsClosedForEitherDomain) {
+TEST(ScreenSaveStoplossTest, DirectEditorSaveFailsClosedForEveryDomain) {
   ScreenEditor editor;
 
-  ScreenEditorSaveStoplossTestPeer::MarkDungeonMapModified(&editor);
-  auto status = editor.Save();
-  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
-
-  ScreenEditorSaveStoplossTestPeer::ClearPendingChanges(&editor);
-  ScreenEditorSaveStoplossTestPeer::MarkDungeonMapTile16Modified(&editor);
-  status = editor.Save();
-  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  const std::array mark_pending = {
+      &ScreenEditorSaveStoplossTestPeer::MarkDungeonMapModified,
+      &ScreenEditorSaveStoplossTestPeer::MarkDungeonMapTile16Modified,
+      &ScreenEditorSaveStoplossTestPeer::MarkTitleScreenModified,
+      &ScreenEditorSaveStoplossTestPeer::MarkOverworldMapModified,
+      &ScreenEditorSaveStoplossTestPeer::MarkOverworldMapPaletteModified,
+  };
+  for (const auto mark : mark_pending) {
+    ScreenEditorSaveStoplossTestPeer::ClearPendingChanges(&editor);
+    mark(&editor);
+    const auto status = editor.Save();
+    EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  }
 }
 
 TEST(ScreenSaveStoplossTest, MutationUndoAndRedoRemarkEachDomainPending) {
@@ -2030,6 +2167,53 @@ TEST(ScreenSaveStoplossTest, ReloadResetClearsRomBackedStateAndHistory) {
   ScreenEditorSaveStoplossTestPeer::ResetRomBackedStateForLoad(&editor);
 
   EXPECT_FALSE(ScreenEditorSaveStoplossTestPeer::HasReloadResidue(editor));
+}
+
+TEST(ScreenSaveStoplossTest,
+     RepeatedScreenModelCreateDoesNotAccumulatePaletteState) {
+  ScopedImGuiContext imgui;
+  ScopedTextureQueueClear texture_queue;
+
+  const auto rom_path = MakeTempFilePath("yaze_screen_model_reload.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  WriteScreenModelTestRom(rom_path);
+
+  Rom rom;
+  ASSERT_OK(rom.LoadFromFile(rom_path.string()));
+  zelda3::GameData game_data(&rom);
+  PopulateTitleScreenTestGameData(&game_data);
+  ScreenEditor editor(&rom);
+
+  for (int load = 0; load < 2; ++load) {
+    if (load != 0) {
+      ScreenEditorSaveStoplossTestPeer::ResetRomBackedStateForLoad(&editor);
+    }
+    ASSERT_OK(ScreenEditorSaveStoplossTestPeer::CreateTitleScreenModel(
+        &editor, &rom, &game_data));
+    ASSERT_OK(ScreenEditorSaveStoplossTestPeer::CreateOverworldMapModel(&editor,
+                                                                        &rom));
+    EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::TitleScreenPaletteSize(editor),
+              64u);
+    EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::LightWorldPaletteSize(editor),
+              128u);
+    EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::DarkWorldPaletteSize(editor),
+              128u);
+  }
+
+  ScreenEditorSaveStoplossTestPeer::MarkTitleScreenModified(&editor);
+  ASSERT_OK(ScreenEditorSaveStoplossTestPeer::SaveTitleScreenToRom(&editor));
+  EXPECT_FALSE(editor.HasPendingTitleScreenChanges());
+
+  ScreenEditorSaveStoplossTestPeer::MarkOverworldMapModified(&editor);
+  ScreenEditorSaveStoplossTestPeer::MarkOverworldMapPaletteModified(&editor);
+  ASSERT_OK(ScreenEditorSaveStoplossTestPeer::SaveOverworldMapToRom(&editor));
+  EXPECT_FALSE(
+      ScreenEditorSaveStoplossTestPeer::HasPendingOverworldMapTileChanges(
+          editor));
+  EXPECT_TRUE(
+      ScreenEditorSaveStoplossTestPeer::HasPendingOverworldMapPaletteChanges(
+          editor));
+  EXPECT_TRUE(editor.HasPendingOverworldMapChanges());
 }
 
 }  // namespace

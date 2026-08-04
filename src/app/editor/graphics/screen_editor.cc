@@ -168,8 +168,9 @@ absl::Status ScreenEditor::Load() {
 absl::Status ScreenEditor::Save() {
   if (HasPendingScreenChanges()) {
     return absl::FailedPreconditionError(
-        "Screen Editor dungeon-map edits cannot be saved safely yet; discard "
-        "them before saving the ROM");
+        "Screen Editor edits cannot all participate safely in the coordinated "
+        "ROM save; use the title-screen or world-map Save control where "
+        "applicable, or discard the pending edits before saving the ROM");
   }
   if (core::FeatureFlags::get().kSaveDungeonMaps) {
     RETURN_IF_ERROR(zelda3::SaveDungeonMaps(*rom(), dungeon_maps_));
@@ -874,7 +875,7 @@ void ScreenEditor::DrawTitleScreenEditor() {
   }
   ImGui::SameLine();
   if (ImGui::Button(ICON_MD_SAVE)) {
-    status_ = title_screen_.Save(rom());
+    status_ = SaveTitleScreenToRom();
     if (status_.ok()) {
       ImGui::OpenPopup("SaveSuccess");
     }
@@ -968,6 +969,7 @@ void ScreenEditor::DrawTitleScreenCompositeCanvas() {
 
           // Update BG1 buffer and re-render both layers and composite
           title_screen_.mutable_bg1_buffer()[tilemap_index] = tile_word;
+          MarkTitleScreenModified();
           status_ = title_screen_.RenderBG1Layer();
           if (status_.ok()) {
             // Update BG1 texture
@@ -1023,6 +1025,7 @@ void ScreenEditor::DrawTitleScreenBG1Canvas() {
 
           // Update buffer and re-render
           title_screen_.mutable_bg1_buffer()[tilemap_index] = tile_word;
+          MarkTitleScreenModified();
           status_ = title_screen_.RenderBG1Layer();
           if (status_.ok()) {
             gfx::Arena::Get().QueueTextureCommand(
@@ -1069,6 +1072,7 @@ void ScreenEditor::DrawTitleScreenBG2Canvas() {
 
           // Update buffer and re-render
           title_screen_.mutable_bg2_buffer()[tilemap_index] = tile_word;
+          MarkTitleScreenModified();
           status_ = title_screen_.RenderBG2Layer();
           if (status_.ok()) {
             gfx::Arena::Get().QueueTextureCommand(
@@ -1158,7 +1162,7 @@ void ScreenEditor::DrawOverworldMapEditor() {
   }
   ImGui::SameLine();
   if (ImGui::Button(tr("Save World Map"))) {
-    status_ = ow_map_screen_.Save(rom());
+    status_ = SaveOverworldMapToRom();
     if (status_.ok()) {
       ImGui::OpenPopup("OWSaveSuccess");
     }
@@ -1184,6 +1188,8 @@ void ScreenEditor::DrawOverworldMapEditor() {
       status_ = ow_map_screen_.LoadCustomMap(path);
       if (!status_.ok()) {
         ImGui::OpenPopup("CustomMapLoadError");
+      } else {
+        MarkOverworldMapModified();
       }
     }
   }
@@ -1261,6 +1267,7 @@ void ScreenEditor::DrawOverworldMapEditor() {
             } else {
               ow_map_screen_.mutable_lw_tiles()[tile_index] = selected_ow_tile_;
             }
+            MarkOverworldMapModified();
 
             // Re-render map
             status_ = ow_map_screen_.RenderMapLayer(ow_show_dark_world_);
@@ -1305,7 +1312,11 @@ void ScreenEditor::DrawOverworldMapEditor() {
     auto& palette = ow_show_dark_world_ ? ow_map_screen_.dw_palette()
                                         : ow_map_screen_.lw_palette();
     // Use inline palette editor for full 128-color palette
+    const auto palette_before = palette;
     gui::InlinePaletteEditor(palette, "Overworld Map Palette");
+    if (palette != palette_before) {
+      MarkOverworldMapPaletteModified();
+    }
 
     ImGui::EndTable();
   }
@@ -1422,6 +1433,20 @@ void ScreenEditor::RestoreFromSnapshot(const ScreenSnapshot& snapshot) {
   }
 }
 
+absl::Status ScreenEditor::SaveTitleScreenToRom() {
+  RETURN_IF_ERROR(title_screen_.Save(rom()));
+  pending_title_screen_changes_ = false;
+  return absl::OkStatus();
+}
+
+absl::Status ScreenEditor::SaveOverworldMapToRom() {
+  RETURN_IF_ERROR(ow_map_screen_.Save(rom()));
+  // The pause-map writer persists tile placement only. Palette edits remain
+  // pending until that separate persistence path exists.
+  pending_overworld_map_changes_ = false;
+  return absl::OkStatus();
+}
+
 void ScreenEditor::ResetRomBackedStateForLoad() {
   dungeon_maps_.clear();
   for (auto& labels : dungeon_map_labels_) {
@@ -1437,11 +1462,17 @@ void ScreenEditor::ResetRomBackedStateForLoad() {
   pending_tile16_desc_.clear();
   pending_dungeon_map_changes_ = false;
   pending_dungeon_map_tile16_changes_ = false;
+  pending_title_screen_changes_ = false;
+  pending_overworld_map_changes_ = false;
+  pending_overworld_map_palette_changes_ = false;
 
   binary_gfx_loaded_ = false;
   inventory_loaded_ = false;
   title_screen_loaded_ = false;
   ow_map_loaded_ = false;
+  title_screen_ = zelda3::TitleScreen{};
+  ow_map_screen_ = zelda3::OverworldMapScreen{};
+  palette_ = gfx::SnesPalette{};
   sheets_.clear();
   tile16_blockset_ = gfx::Tilemap{};
   tile8_tilemap_ = gfx::Tilemap{};
@@ -1453,6 +1484,8 @@ void ScreenEditor::ResetRomBackedStateForLoad() {
   floor_number = 0;
   copy_button_pressed = false;
   paste_button_pressed = false;
+  screen_canvas_.mutable_points()->clear();
+  tilesheet_canvas_.mutable_points()->clear();
   current_tile16_info = {};
   status_ = absl::OkStatus();
 }
