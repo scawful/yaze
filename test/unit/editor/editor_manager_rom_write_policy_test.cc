@@ -2231,23 +2231,30 @@ TEST(ScreenSaveStoplossTest,
       ScreenEditorSaveStoplossTestPeer::CaptureBitmapOwners(screen).sheet0;
 
   constexpr uint8_t kReplacementFloorByte = 0x10;
-  WriteScreenModelTestRom(rom_path, "AFTER SCREEN RELOAD");
-  WriteByteAt(rom_path, zelda3::kDungeonMapFloors, kReplacementFloorByte);
-  for (int dungeon = 0; dungeon < zelda3::kNumDungeons; ++dungeon) {
-    WriteWordAt(rom_path, zelda3::kDungeonMapBossRooms + (dungeon * 2), 0xFFFF);
-  }
-  ASSERT_OK(manager->ReloadProjectRom());
-
-  EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kScreen), screen);
-  EXPECT_TRUE(screen->IsRomBackedStateValid());
-  EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::DungeonMapCount(*screen), 14u);
-  EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::DungeonFloorCount(*screen, 0), 1);
-  EXPECT_EQ(
-      ScreenEditorSaveStoplossTestPeer::CaptureBitmapOwners(screen).sheet0,
-      sheet0_before);
   const auto screen_index = static_cast<size_t>(EditorType::kScreen);
-  EXPECT_TRUE(session->editor_initialized[screen_index]);
-  EXPECT_TRUE(session->editor_assets_loaded[screen_index]);
+  for (const auto mode : {AssetLoadMode::kLazy, AssetLoadMode::kFull}) {
+    SCOPED_TRACE(mode == AssetLoadMode::kLazy ? "lazy replacement"
+                                              : "full replacement");
+    manager->SetAssetLoadMode(mode);
+    WriteScreenModelTestRom(rom_path, "AFTER SCREEN RELOAD");
+    WriteByteAt(rom_path, zelda3::kDungeonMapFloors, kReplacementFloorByte);
+    for (int dungeon = 0; dungeon < zelda3::kNumDungeons; ++dungeon) {
+      WriteWordAt(rom_path, zelda3::kDungeonMapBossRooms + (dungeon * 2),
+                  0xFFFF);
+    }
+    ASSERT_OK(manager->ReloadProjectRom());
+
+    EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kScreen), screen);
+    EXPECT_TRUE(screen->IsRomBackedStateValid());
+    EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::DungeonMapCount(*screen), 14u);
+    EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::DungeonFloorCount(*screen, 0),
+              1);
+    EXPECT_EQ(
+        ScreenEditorSaveStoplossTestPeer::CaptureBitmapOwners(screen).sheet0,
+        sheet0_before);
+    EXPECT_TRUE(session->editor_initialized[screen_index]);
+    EXPECT_TRUE(session->editor_assets_loaded[screen_index]);
+  }
 
   // Exercise the visible panel after replacement, including the populated
   // first floor and guarded empty states for the other synthetic dungeons.

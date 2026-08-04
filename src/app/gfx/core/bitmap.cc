@@ -229,12 +229,9 @@ void Bitmap::Create(int width, int height, int depth, int format,
   // surface/texture will then be discarded as stale by Arena.
   generation_ = next_generation_++;
 
-  // Keep the texture handle alive until the deferred DESTROY command runs.
-  // Callers queue the replacement CREATE after this method returns, so both
-  // commands share the new generation and execute in DESTROY -> CREATE order.
-  if (texture_) {
-    Arena::Get().QueueTextureCommand(Arena::TextureCommandType::DESTROY, this);
-  }
+  // Preserve an existing texture handle. A caller can queue UPDATE to reuse it
+  // with the new surface. If the caller instead queues CREATE, Arena owns
+  // destroying the old texture immediately before creating its replacement.
   if (surface_) {
     Arena::Get().FreeSurface(surface_);
     surface_ = nullptr;

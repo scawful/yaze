@@ -67,6 +67,10 @@ bool Arena::ProcessSingleTexture(IRenderer* renderer) {
           command.bitmap->surface()->format && command.bitmap->is_active() &&
           command.bitmap->width() > 0 && command.bitmap->height() > 0) {
         try {
+          if (auto existing_texture = command.bitmap->texture()) {
+            active_renderer->DestroyTexture(existing_texture);
+            command.bitmap->set_texture(nullptr);
+          }
           auto texture = active_renderer->CreateTexture(
               command.bitmap->width(), command.bitmap->height());
           if (texture) {
@@ -194,6 +198,10 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
                 "Arena::ProcessTextureQueue", 0, true,
                 "Calling CreateTexture...");
 
+            if (auto existing_texture = command.bitmap->texture()) {
+              active_renderer->DestroyTexture(existing_texture);
+              command.bitmap->set_texture(nullptr);
+            }
             auto texture = active_renderer->CreateTexture(
                 command.bitmap->width(), command.bitmap->height());
 
