@@ -12,6 +12,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/ascii.h"
+#include "absl/strings/match.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
 #include "core/source_artifact_publisher.h"
@@ -117,10 +118,11 @@ absl::StatusOr<std::vector<uint16_t>> ParseHexList(const std::string& input) {
              comma_group, absl::ByAnyChar(" \n\t\r"), absl::SkipEmpty())) {
       const absl::string_view original_token = token;
       int base = 10;
-      if (token.starts_with('$')) {
+      if (absl::StartsWith(token, "$")) {
         token.remove_prefix(1);
         base = 16;
-      } else if (token.starts_with("0x") || token.starts_with("0X")) {
+      } else if (absl::StartsWith(token, "0x") ||
+                 absl::StartsWith(token, "0X")) {
         token.remove_prefix(2);
         base = 16;
       }
