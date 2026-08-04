@@ -316,6 +316,27 @@ bool MinecartTrackEditorPanel::HasUnpublishedChanges() const {
   return loaded_ && tracks_ != loaded_tracks_;
 }
 
+bool MinecartTrackEditorPanel::HasPendingProjectDraftChanges() const {
+  if (!overlay_inputs_initialized_ || project_ == nullptr) {
+    return false;
+  }
+  return overlay_track_tiles_input_ !=
+             FormatHexList(project_->dungeon_overlay.track_tiles) ||
+         overlay_track_stop_tiles_input_ !=
+             FormatHexList(project_->dungeon_overlay.track_stop_tiles) ||
+         overlay_track_switch_tiles_input_ !=
+             FormatHexList(project_->dungeon_overlay.track_switch_tiles) ||
+         overlay_track_object_ids_input_ !=
+             FormatHexList(project_->dungeon_overlay.track_object_ids) ||
+         overlay_minecart_sprite_ids_input_ !=
+             FormatHexList(project_->dungeon_overlay.minecart_sprite_ids);
+}
+
+absl::Status MinecartTrackEditorPanel::PrepareProjectSave() {
+  const absl::StatusOr<bool> committed = CommitOverlayInputsForSave();
+  return committed.ok() ? absl::OkStatus() : committed.status();
+}
+
 absl::Status MinecartTrackEditorPanel::UpdateTrack(size_t track_index,
                                                    const MinecartTrack& track) {
   if (!loaded_) {
@@ -382,7 +403,16 @@ void MinecartTrackEditorPanel::ClearOverlayInputs() {
 bool MinecartTrackEditorPanel::UpdateOverlayList(const char* label,
                                                  std::string& input,
                                                  OverlayListMember member) {
-  ImGui::InputText(label, &input);
+  if (ImGui::InputText(label, &input)) {
+    const absl::Status draft_status = NotifyProjectDraftChanged();
+    if (!draft_status.ok()) {
+      input = FormatHexList(project_->dungeon_overlay.*member);
+      status_message_ =
+          absl::StrFormat("Overlay draft rejected: %s", draft_status.message());
+      show_success_ = false;
+      return false;
+    }
+  }
   if (ImGui::IsItemDeactivatedAfterEdit()) {
     const absl::StatusOr<bool> changed = CommitOverlayList(input, member);
     return changed.ok() && *changed;
@@ -571,6 +601,17 @@ absl::Status MinecartTrackEditorPanel::NotifyProjectChanged(
         "Project change tracking is unavailable for minecart overlays");
   }
   return project_changed_callback_(overlay);
+}
+
+absl::Status MinecartTrackEditorPanel::NotifyProjectDraftChanged() {
+  if (project_ == nullptr) {
+    return absl::FailedPreconditionError("No project is bound to the panel");
+  }
+  if (!project_draft_changed_callback_) {
+    return absl::FailedPreconditionError(
+        "Project draft tracking is unavailable for minecart overlays");
+  }
+  return project_draft_changed_callback_();
 }
 
 absl::Status MinecartTrackEditorPanel::SaveProjectSettings() {

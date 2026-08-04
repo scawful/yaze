@@ -241,6 +241,22 @@ bool EditorSet::HasPendingGraphicsChanges() const {
   return false;
 }
 
+bool EditorSet::HasPendingProjectDraftChanges() const {
+  if (auto* editor =
+          static_cast<DungeonEditorV2*>(FindEditor(EditorType::kDungeon))) {
+    return editor->HasPendingProjectDraftChanges();
+  }
+  return false;
+}
+
+absl::Status EditorSet::PrepareProjectSave() {
+  if (auto* editor =
+          static_cast<DungeonEditorV2*>(FindEditor(EditorType::kDungeon))) {
+    return editor->PrepareProjectSave();
+  }
+  return absl::OkStatus();
+}
+
 zelda3::Overworld* EditorSet::GetOverworldData() const {
   if (auto* editor =
           static_cast<OverworldEditor*>(FindEditor(EditorType::kOverworld))) {

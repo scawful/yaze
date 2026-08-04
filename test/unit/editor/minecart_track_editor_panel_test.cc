@@ -55,6 +55,16 @@ class MinecartTrackEditorPanelTestPeer {
     return panel.SaveProjectSettings();
   }
 
+  static absl::Status NotifyProjectDraftChanged(
+      MinecartTrackEditorPanel& panel) {
+    return panel.NotifyProjectDraftChanged();
+  }
+
+  static bool HasPendingProjectDraftChanges(
+      const MinecartTrackEditorPanel& panel) {
+    return panel.HasPendingProjectDraftChanges();
+  }
+
   static void InitializeOverlayInputs(MinecartTrackEditorPanel& panel) {
     panel.InitializeOverlayInputs();
   }
@@ -273,10 +283,18 @@ class ScopedManagerProject {
   }
 
   const std::filesystem::path& project_path() const { return project_path_; }
+  std::filesystem::path Path(const std::string& filename) const {
+    return root_ / filename;
+  }
 
   project::YazeProject ReadProject() const {
+    return ReadProject(project_path_);
+  }
+
+  project::YazeProject ReadProject(
+      const std::filesystem::path& project_path) const {
     project::YazeProject project;
-    const absl::Status status = project.Open(project_path_.string());
+    const absl::Status status = project.Open(project_path.string());
     if (!status.ok()) {
       throw std::runtime_error(std::string(status.message()));
     }
@@ -287,6 +305,31 @@ class ScopedManagerProject {
   std::filesystem::path root_;
   std::filesystem::path rom_path_;
   std::filesystem::path project_path_;
+};
+
+class ScopedBoundMinecartPanel {
+ public:
+  ScopedBoundMinecartPanel(EditorManager* manager, RomSession* session) {
+    dungeon_ =
+        session->editors.GetEditorAs<DungeonEditorV2>(EditorType::kDungeon);
+    if (dungeon_ == nullptr) {
+      throw std::runtime_error("Dungeon editor was not created");
+    }
+    DungeonEditorV2MinecartTrackTestPeer::SetMinecartTrackEditorPanel(*dungeon_,
+                                                                      &panel_);
+    manager->ConfigureSession(session);
+  }
+
+  ~ScopedBoundMinecartPanel() {
+    DungeonEditorV2MinecartTrackTestPeer::SetMinecartTrackEditorPanel(*dungeon_,
+                                                                      nullptr);
+  }
+
+  MinecartTrackEditorPanel* panel() { return &panel_; }
+
+ private:
+  DungeonEditorV2* dungeon_ = nullptr;
+  MinecartTrackEditorPanel panel_;
 };
 
 void AppendDwValues(std::stringstream& stream, int first_value, int count) {
@@ -740,8 +783,227 @@ TEST(MinecartTrackEditorPanelTest,
   EXPECT_EQ(fixture.ReadProject().dungeon_overlay.track_tiles,
             (std::vector<uint16_t>{0xC0}));
 
+  MinecartTrackEditorPanelTestPeer::SetTrackTilesInput(panel, "$00C1");
+  ASSERT_TRUE(
+      MinecartTrackEditorPanelTestPeer::NotifyProjectDraftChanged(panel).ok());
+  ASSERT_TRUE(manager->AutosaveActiveSession().ok());
+  EXPECT_FALSE(session->project_dirty);
+  EXPECT_EQ(fixture.ReadProject().dungeon_overlay.track_tiles,
+            (std::vector<uint16_t>{0xC1}));
+
   DungeonEditorV2MinecartTrackTestPeer::SetMinecartTrackEditorPanel(*dungeon,
                                                                     nullptr);
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     GlobalProjectSaveCommitsFocusedOverlayDraftAndReadsBack) {
+  FeatureFlagsGuard flags_guard;
+  ScopedImGuiContext imgui;
+  ScopedManagerProject fixture("global_save", "Global Save", 0xB0);
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_TRUE(manager->OpenRomOrProject(fixture.project_path().string()).ok());
+  auto* session =
+      static_cast<RomSession*>(manager->session_coordinator()->GetSession(0));
+  ASSERT_NE(session, nullptr);
+  ScopedBoundMinecartPanel binding(manager.get(), session);
+  auto* panel = binding.panel();
+
+  MinecartTrackEditorPanelTestPeer::SetTrackTilesInput(*panel, "$00C0");
+  EXPECT_TRUE(
+      MinecartTrackEditorPanelTestPeer::HasPendingProjectDraftChanges(*panel));
+  ASSERT_TRUE(
+      MinecartTrackEditorPanelTestPeer::NotifyProjectDraftChanged(*panel).ok());
+  EXPECT_TRUE(session->project_dirty);
+  EXPECT_TRUE(manager->IsCurrentProjectDirty());
+
+  ASSERT_TRUE(manager->SaveProject().ok());
+  EXPECT_FALSE(session->project_dirty);
+  EXPECT_FALSE(
+      MinecartTrackEditorPanelTestPeer::HasPendingProjectDraftChanges(*panel));
+  EXPECT_EQ(manager->GetCurrentProject()->dungeon_overlay.track_tiles,
+            (std::vector<uint16_t>{0xC0}));
+  ASSERT_TRUE(session->project_context.has_value());
+  EXPECT_EQ(session->project_context->dungeon_overlay.track_tiles,
+            (std::vector<uint16_t>{0xC0}));
+  EXPECT_EQ(fixture.ReadProject().dungeon_overlay.track_tiles,
+            (std::vector<uint16_t>{0xC0}));
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     InvalidGlobalSaveAndSaveAsPreserveDraftAndGuardDestructiveActions) {
+  FeatureFlagsGuard flags_guard;
+  ScopedImGuiContext imgui;
+  ScopedManagerProject fixture_a("invalid_a", "Invalid A", 0xA0);
+  ScopedManagerProject fixture_b("invalid_b", "Invalid B", 0xB0);
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_TRUE(
+      manager->OpenRomOrProject(fixture_a.project_path().string()).ok());
+  ASSERT_TRUE(
+      manager->OpenRomOrProject(fixture_b.project_path().string()).ok());
+  manager->SwitchToSession(0);
+
+  auto* session =
+      static_cast<RomSession*>(manager->session_coordinator()->GetSession(0));
+  ASSERT_NE(session, nullptr);
+  ScopedBoundMinecartPanel binding(manager.get(), session);
+  auto* panel = binding.panel();
+  const project::DungeonOverlaySettings original_model =
+      manager->GetCurrentProject()->dungeon_overlay;
+  const std::string original_filepath = manager->GetCurrentProject()->filepath;
+  auto invalid_inputs = MinecartTrackEditorPanelTestPeer::OverlayInputs(*panel);
+  invalid_inputs[0] = "$00C0";
+  invalid_inputs[1] = "not-hex";
+  MinecartTrackEditorPanelTestPeer::SetOverlayInputs(*panel, invalid_inputs);
+  ASSERT_TRUE(
+      MinecartTrackEditorPanelTestPeer::NotifyProjectDraftChanged(*panel).ok());
+  ASSERT_TRUE(session->project_dirty);
+
+  const absl::Status save_status = manager->SaveProject();
+  EXPECT_TRUE(absl::IsInvalidArgument(save_status)) << save_status;
+  EXPECT_EQ(manager->GetCurrentProject()->dungeon_overlay.track_tiles,
+            original_model.track_tiles);
+  EXPECT_EQ(manager->GetCurrentProject()->dungeon_overlay.track_stop_tiles,
+            original_model.track_stop_tiles);
+  EXPECT_EQ(manager->GetCurrentProject()->dungeon_overlay.track_switch_tiles,
+            original_model.track_switch_tiles);
+  EXPECT_EQ(manager->GetCurrentProject()->dungeon_overlay.track_object_ids,
+            original_model.track_object_ids);
+  EXPECT_EQ(manager->GetCurrentProject()->dungeon_overlay.minecart_sprite_ids,
+            original_model.minecart_sprite_ids);
+  EXPECT_EQ(MinecartTrackEditorPanelTestPeer::OverlayInputs(*panel),
+            invalid_inputs);
+  EXPECT_TRUE(session->project_dirty);
+  EXPECT_TRUE(
+      MinecartTrackEditorPanelTestPeer::HasPendingProjectDraftChanges(*panel));
+  const project::DungeonOverlaySettings disk_model =
+      fixture_a.ReadProject().dungeon_overlay;
+  EXPECT_EQ(disk_model.track_tiles, original_model.track_tiles);
+  EXPECT_EQ(disk_model.track_stop_tiles, original_model.track_stop_tiles);
+  EXPECT_EQ(disk_model.track_switch_tiles, original_model.track_switch_tiles);
+  EXPECT_EQ(disk_model.track_object_ids, original_model.track_object_ids);
+  EXPECT_EQ(disk_model.minecart_sprite_ids, original_model.minecart_sprite_ids);
+
+  const std::filesystem::path save_as_path =
+      fixture_a.Path("blocked-copy.yaze");
+  const absl::Status save_as_status =
+      manager->SaveProjectAs(save_as_path.string());
+  EXPECT_TRUE(absl::IsInvalidArgument(save_as_status)) << save_as_status;
+  EXPECT_FALSE(std::filesystem::exists(save_as_path));
+  EXPECT_EQ(manager->GetCurrentProject()->filepath, original_filepath);
+  EXPECT_EQ(MinecartTrackEditorPanelTestPeer::OverlayInputs(*panel),
+            invalid_inputs);
+  EXPECT_TRUE(session->project_dirty);
+
+  manager->SwitchToSession(1);
+  EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetCurrentSessionId(), session->session_id());
+  EXPECT_NE(manager->GetPendingUnsavedSessionActionPrompt().find(
+                "uncommitted project editor draft"),
+            std::string::npos);
+  manager->ConfirmPendingUnsavedSessionActionSaveAndContinue();
+  EXPECT_FALSE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->GetCurrentSessionId(), session->session_id());
+  EXPECT_EQ(MinecartTrackEditorPanelTestPeer::OverlayInputs(*panel),
+            invalid_inputs);
+  EXPECT_TRUE(session->project_dirty);
+
+  manager->RemoveSession(0);
+  EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_EQ(manager->session_coordinator()->GetTotalSessionCount(), 2u);
+  manager->CancelPendingUnsavedSessionAction();
+
+  manager->Quit();
+  EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+  EXPECT_FALSE(manager->quit());
+  manager->CancelPendingUnsavedSessionAction();
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     GlobalProjectSaveAsCommitsFocusedOverlayDraftAndReadsBack) {
+  FeatureFlagsGuard flags_guard;
+  ScopedImGuiContext imgui;
+  ScopedManagerProject fixture("global_save_as", "Global Save As", 0xB0);
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_TRUE(manager->OpenRomOrProject(fixture.project_path().string()).ok());
+  auto* session =
+      static_cast<RomSession*>(manager->session_coordinator()->GetSession(0));
+  ASSERT_NE(session, nullptr);
+  ScopedBoundMinecartPanel binding(manager.get(), session);
+  auto* panel = binding.panel();
+
+  MinecartTrackEditorPanelTestPeer::SetTrackTilesInput(*panel, "$00C1");
+  ASSERT_TRUE(
+      MinecartTrackEditorPanelTestPeer::NotifyProjectDraftChanged(*panel).ok());
+  const std::filesystem::path save_as_path = fixture.Path("saved-copy.yaze");
+  ASSERT_TRUE(manager->SaveProjectAs(save_as_path.string()).ok());
+
+  EXPECT_EQ(manager->GetCurrentProject()->filepath, save_as_path.string());
+  ASSERT_TRUE(session->project_context.has_value());
+  EXPECT_EQ(session->project_context->filepath, save_as_path.string());
+  EXPECT_FALSE(session->project_dirty);
+  EXPECT_FALSE(
+      MinecartTrackEditorPanelTestPeer::HasPendingProjectDraftChanges(*panel));
+  EXPECT_EQ(fixture.ReadProject(save_as_path).dungeon_overlay.track_tiles,
+            (std::vector<uint16_t>{0xC1}));
+  EXPECT_EQ(fixture.ReadProject().dungeon_overlay.track_tiles,
+            (std::vector<uint16_t>{0xB0}));
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     FailedGlobalProjectWriteKeepsCommittedOverlayDirtyForRetry) {
+  FeatureFlagsGuard flags_guard;
+  ScopedImGuiContext imgui;
+  ScopedManagerProject fixture("failed_write", "Failed Write", 0xB0);
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_TRUE(manager->OpenRomOrProject(fixture.project_path().string()).ok());
+  auto* session =
+      static_cast<RomSession*>(manager->session_coordinator()->GetSession(0));
+  ASSERT_NE(session, nullptr);
+  ScopedBoundMinecartPanel binding(manager.get(), session);
+  auto* panel = binding.panel();
+
+  const std::filesystem::path failed_path =
+      fixture.Path("missing-parent/retry.yaze");
+  manager->GetCurrentProject()->filepath = failed_path.string();
+  MinecartTrackEditorPanelTestPeer::SetTrackTilesInput(*panel, "$00C2");
+  ASSERT_TRUE(
+      MinecartTrackEditorPanelTestPeer::NotifyProjectDraftChanged(*panel).ok());
+
+  const absl::Status failed_save = manager->SaveProject();
+  EXPECT_FALSE(failed_save.ok());
+  EXPECT_FALSE(std::filesystem::exists(failed_path));
+  EXPECT_EQ(fixture.ReadProject().dungeon_overlay.track_tiles,
+            (std::vector<uint16_t>{0xB0}));
+  EXPECT_EQ(manager->GetCurrentProject()->dungeon_overlay.track_tiles,
+            (std::vector<uint16_t>{0xC2}));
+  ASSERT_TRUE(session->project_context.has_value());
+  EXPECT_EQ(session->project_context->dungeon_overlay.track_tiles,
+            (std::vector<uint16_t>{0xC2}));
+  EXPECT_TRUE(session->project_dirty);
+  EXPECT_FALSE(
+      MinecartTrackEditorPanelTestPeer::HasPendingProjectDraftChanges(*panel));
+
+  ASSERT_TRUE(std::filesystem::create_directories(failed_path.parent_path()));
+  ASSERT_TRUE(manager->SaveProject().ok());
+  EXPECT_FALSE(session->project_dirty);
+  EXPECT_EQ(fixture.ReadProject(failed_path).dungeon_overlay.track_tiles,
+            (std::vector<uint16_t>{0xC2}));
 }
 
 TEST(MinecartTrackEditorPanelTest,
@@ -782,8 +1044,11 @@ TEST(MinecartTrackEditorPanelTest,
   MinecartTrackEditorPanelTestPeer::SetTrackTilesInput(panel_b, "$00C0");
 
   absl::Status edit_status = absl::UnknownError("callback did not run");
+  absl::Status draft_status = absl::UnknownError("callback did not run");
   absl::Status save_status = absl::UnknownError("callback did not run");
   CallbackEditor transient_editor([&]() -> absl::Status {
+    draft_status =
+        MinecartTrackEditorPanelTestPeer::NotifyProjectDraftChanged(panel_b);
     edit_status =
         MinecartTrackEditorPanelTestPeer::SaveProjectSettings(panel_b);
     MinecartTrackEditorPanelTestPeer::SetTrackTilesInput(panel_b, "0xB0");
@@ -807,6 +1072,7 @@ TEST(MinecartTrackEditorPanelTest,
   DungeonEditorV2MinecartTrackTestPeer::SetMinecartTrackEditorPanel(*dungeon_b,
                                                                     nullptr);
 
+  EXPECT_TRUE(absl::IsFailedPrecondition(draft_status)) << draft_status;
   EXPECT_TRUE(absl::IsFailedPrecondition(edit_status)) << edit_status;
   EXPECT_TRUE(absl::IsFailedPrecondition(save_status)) << save_status;
   EXPECT_EQ(manager->GetCurrentSessionId(), session_a->session_id());

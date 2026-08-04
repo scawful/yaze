@@ -152,6 +152,8 @@ class DungeonEditorV2 : public Editor {
   bool HasPendingRoomChanges() const;
   // All dungeon save domains plus unapplied editor-local work.
   bool HasPendingDungeonChanges() const;
+  bool HasPendingProjectDraftChanges() const;
+  absl::Status PrepareProjectSave();
   bool CurrentRoomHasPendingChanges() const;
   int TotalRoomCount() const { return static_cast<int>(rooms_.size()); }
 
