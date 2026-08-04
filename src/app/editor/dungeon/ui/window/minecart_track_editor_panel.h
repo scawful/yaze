@@ -5,32 +5,21 @@
 #include <cstdint>
 #include <filesystem>
 #include <functional>
+#include <optional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
+#include "app/editor/dungeon/minecart_track_source.h"
+#include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "core/project.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
-
-namespace yaze::editor {
-
-struct MinecartTrack {
-  int id;
-  int room_id;
-  int start_x;
-  int start_y;
-
-  bool operator==(const MinecartTrack&) const = default;
-};
-
-}  // namespace yaze::editor
-
-#include "app/editor/system/workspace/editor_panel.h"
 
 namespace yaze::editor {
 
@@ -75,14 +64,8 @@ class MinecartTrackEditorPanel : public WindowContent {
   }
 
  private:
-  struct ParsedSection {
-    std::vector<int> values;
-    bool guarded = false;
-  };
-
   absl::Status LoadTracks();
-  static absl::StatusOr<ParsedSection> ParseSection(const std::string& content,
-                                                    const std::string& label);
+  absl::Status ValidateLoadedManifestIdentity() const;
   absl::Status RefreshProjectBinding();
   void ResetTrackSession();
   void StartCoordinatePicking(int track_index);
@@ -104,6 +87,10 @@ class MinecartTrackEditorPanel : public WindowContent {
 
   std::vector<MinecartTrack> tracks_;
   std::vector<MinecartTrack> loaded_tracks_;
+  std::optional<MinecartTrackSourceDocument> source_document_;
+  std::optional<core::MinecartTrackLayout::Source> loaded_source_identity_;
+  std::filesystem::path loaded_source_path_;
+  std::string loaded_source_sha256_;
   std::string bound_project_filepath_;
   Rom* rom_ = nullptr;
   DungeonRoomStore* rooms_ = nullptr;
@@ -114,7 +101,6 @@ class MinecartTrackEditorPanel : public WindowContent {
   bool audit_dirty_ = true;
   bool load_attempted_ = false;
   bool loaded_ = false;
-  bool source_is_guarded_ = false;
   std::string status_message_;
   bool show_success_ = false;
   float success_timer_ = 0.0f;
