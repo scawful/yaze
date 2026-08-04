@@ -834,6 +834,48 @@ TEST(MinecartTrackEditorPanelTest,
 }
 
 TEST(MinecartTrackEditorPanelTest,
+     SessionModifiedIncludesProjectWorkWithoutMaterializingCleanDungeon) {
+  FeatureFlagsGuard flags_guard;
+  ScopedImGuiContext imgui;
+  ScopedManagerProject fixture("session_status", "Session Status", 0xB0);
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  ASSERT_TRUE(manager->OpenRomOrProject(fixture.project_path().string()).ok());
+
+  auto* session =
+      static_cast<RomSession*>(manager->session_coordinator()->GetSession(0));
+  ASSERT_NE(session, nullptr);
+  EXPECT_EQ(session->editors.GetExistingEditor(EditorType::kDungeon), nullptr);
+  EXPECT_FALSE(manager->session_coordinator()->IsSessionModified(0));
+  EXPECT_EQ(session->editors.GetExistingEditor(EditorType::kDungeon), nullptr);
+
+  ScopedBoundMinecartPanel binding(manager.get(), session);
+  auto* panel = binding.panel();
+  MinecartTrackEditorPanelTestPeer::SetTrackTilesInput(*panel, "$00C0");
+  ASSERT_FALSE(session->project_dirty);
+  ASSERT_TRUE(
+      MinecartTrackEditorPanelTestPeer::HasPendingProjectDraftChanges(*panel));
+  EXPECT_TRUE(manager->session_coordinator()->IsSessionModified(0));
+
+  MinecartTrackEditorPanelTestPeer::SetTrackTilesInput(*panel, "0xB0");
+  ASSERT_FALSE(
+      MinecartTrackEditorPanelTestPeer::HasPendingProjectDraftChanges(*panel));
+  session->project_dirty = true;
+  EXPECT_TRUE(manager->session_coordinator()->IsSessionModified(0));
+
+  session->project_dirty = false;
+  session->project_file_editor_state.initialized = true;
+  session->project_file_editor_state.modified = true;
+  EXPECT_TRUE(manager->session_coordinator()->IsSessionModified(0));
+
+  session->project_file_editor_state.modified = false;
+  EXPECT_FALSE(manager->session_coordinator()->IsSessionModified(0));
+}
+
+TEST(MinecartTrackEditorPanelTest,
      InvalidGlobalSaveAndSaveAsPreserveDraftAndGuardDestructiveActions) {
   FeatureFlagsGuard flags_guard;
   ScopedImGuiContext imgui;
