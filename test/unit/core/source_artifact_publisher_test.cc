@@ -4,6 +4,7 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <future>
 #include <iterator>
 #include <stdexcept>
 #include <string>
@@ -151,6 +152,92 @@ TEST(SourceArtifactPublisherTest,
 }
 
 TEST(SourceArtifactPublisherTest,
+     ConcurrentCallsSharingOneLockFailFastWithoutMutation) {
+  ScopedTempDir temp;
+  const fs::path primary = temp.path() / "source.json";
+  const fs::path generated = temp.path() / "source.asm";
+  WriteText(primary, "canonical\n");
+  WriteText(generated, "generated\n");
+  const std::vector<fs::path> targets = {primary, generated};
+  const std::string primary_before = ReadText(primary);
+  const std::string generated_before = ReadText(generated);
+  const std::string primary_first = "primary-first\n";
+  const std::string generated_first = "generated-first\n";
+
+  auto lock_or = AcquireSourceArtifactPublicationLock(targets);
+  ASSERT_TRUE(lock_or.ok()) << lock_or.status();
+
+  std::promise<void> validator_entered_promise;
+  std::future<void> validator_entered = validator_entered_promise.get_future();
+  std::promise<void> release_validator_promise;
+  std::shared_future<void> release_validator =
+      release_validator_promise.get_future().share();
+  absl::Status first_status = absl::UnknownError("first writer did not run");
+  std::thread first_writer([&] {
+    first_status = PublishSourceArtifacts(
+        **lock_or,
+        {{.target = primary, .before = primary_before, .after = primary_first},
+         {.target = generated,
+          .before = generated_before,
+          .after = generated_first}},
+        ComputeSourceArtifactSha256(primary_before), [&] {
+          validator_entered_promise.set_value();
+          release_validator.wait();
+          return absl::OkStatus();
+        });
+  });
+
+  if (validator_entered.wait_for(std::chrono::seconds(5)) !=
+      std::future_status::ready) {
+    release_validator_promise.set_value();
+    first_writer.join();
+    ADD_FAILURE() << "First publication did not reach its validator: "
+                  << first_status;
+    return;
+  }
+
+  std::promise<absl::Status> second_status_promise;
+  std::future<absl::Status> second_status_future =
+      second_status_promise.get_future();
+  std::thread second_writer([&] {
+    second_status_promise.set_value(
+        PublishSourceArtifacts(**lock_or,
+                               {{.target = primary,
+                                 .before = primary_first,
+                                 .after = "primary-second\n"},
+                                {.target = generated,
+                                 .before = generated_first,
+                                 .after = "generated-second\n"}},
+                               ComputeSourceArtifactSha256(primary_first)));
+  });
+  if (second_status_future.wait_for(std::chrono::seconds(5)) !=
+      std::future_status::ready) {
+    release_validator_promise.set_value();
+    first_writer.join();
+    second_writer.join();
+    ADD_FAILURE() << "Concurrent same-lock publication did not fail fast";
+    return;
+  }
+  const absl::Status second_status = second_status_future.get();
+  second_writer.join();
+
+  EXPECT_EQ(second_status.code(), absl::StatusCode::kFailedPrecondition)
+      << second_status;
+  EXPECT_NE(std::string(second_status.message()).find("already in use"),
+            std::string::npos);
+  EXPECT_EQ(ReadText(primary), primary_first);
+  EXPECT_EQ(ReadText(generated), generated_first);
+
+  release_validator_promise.set_value();
+  first_writer.join();
+
+  EXPECT_TRUE(first_status.ok()) << first_status;
+  EXPECT_EQ(ReadText(primary), primary_first);
+  EXPECT_EQ(ReadText(generated), generated_first);
+  ExpectNoPublicationArtifacts(temp.path());
+}
+
+TEST(SourceArtifactPublisherTest,
      ExternalCommentByteChangeAbortsWithoutOverwritingIt) {
   ScopedTempDir temp;
   const fs::path primary = temp.path() / "source.json";
@@ -239,6 +326,20 @@ TEST(SourceArtifactPublisherTest,
             std::string::npos);
   EXPECT_EQ(ReadText(primary), primary_before);
   EXPECT_EQ(ReadText(generated), generated_before);
+  ExpectNoPublicationArtifacts(temp.path());
+
+  const std::string primary_retry = "retry\n";
+  const std::string generated_retry = "generated-retry\n";
+  const absl::Status retry_status = PublishSourceArtifacts(
+      **lock_or,
+      {{.target = primary, .before = primary_before, .after = primary_retry},
+       {.target = generated,
+        .before = generated_before,
+        .after = generated_retry}},
+      ComputeSourceArtifactSha256(primary_before));
+  EXPECT_TRUE(retry_status.ok()) << retry_status;
+  EXPECT_EQ(ReadText(primary), primary_retry);
+  EXPECT_EQ(ReadText(generated), generated_retry);
   ExpectNoPublicationArtifacts(temp.path());
 }
 
