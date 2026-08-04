@@ -462,8 +462,16 @@ TEST(MinecartTrackEditorPanelTest,
   EXPECT_TRUE(editor.HasPendingDungeonChanges());
   const absl::Status save_status = editor.Save();
   EXPECT_TRUE(absl::IsFailedPrecondition(save_status)) << save_status;
-  EXPECT_NE(std::string(save_status.message()).find("Minecart"),
-            std::string::npos);
+  EXPECT_NE(std::string(save_status.message())
+                .find("ROM Save/Apply never publishes ASM source"),
+            std::string::npos)
+      << save_status;
+  EXPECT_NE(std::string(save_status.message()).find("Publish Tracks"),
+            std::string::npos)
+      << save_status;
+  EXPECT_NE(std::string(save_status.message()).find("discard the drafts"),
+            std::string::npos)
+      << save_status;
   EXPECT_EQ(rom.vector(), rom_before);
   EXPECT_EQ(rom.dirty(), dirty_before);
   EXPECT_EQ(fixture.ReadSource(), source_before);
@@ -471,8 +479,16 @@ TEST(MinecartTrackEditorPanelTest,
 
   const absl::Status save_room_status = editor.SaveRoom(0);
   EXPECT_TRUE(absl::IsFailedPrecondition(save_room_status)) << save_room_status;
-  EXPECT_NE(std::string(save_room_status.message()).find("Minecart"),
-            std::string::npos);
+  EXPECT_NE(std::string(save_room_status.message())
+                .find("ROM Save/Apply never publishes ASM source"),
+            std::string::npos)
+      << save_room_status;
+  EXPECT_NE(std::string(save_room_status.message()).find("Publish Tracks"),
+            std::string::npos)
+      << save_room_status;
+  EXPECT_NE(std::string(save_room_status.message()).find("discard the drafts"),
+            std::string::npos)
+      << save_room_status;
   EXPECT_EQ(rom.vector(), rom_before);
   EXPECT_EQ(rom.dirty(), dirty_before);
   EXPECT_EQ(fixture.ReadSource(), source_before);
