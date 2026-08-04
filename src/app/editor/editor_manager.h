@@ -456,6 +456,14 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   const project::YazeProject* GetCurrentProject() const {
     return &current_project_;
   }
+  // True only for the session whose project is currently restored into
+  // current_project_. SessionCoordinator also performs transient switches
+  // while drawing inactive sessions, so its active session is not sufficient
+  // for routing project mutations or saves.
+  bool IsCurrentProjectContextOwnedBySession(size_t session_id) const {
+    return active_project_context_session_id_.has_value() &&
+           *active_project_context_session_id_ == session_id;
+  }
   void MarkCurrentProjectDirty();
   bool IsCurrentProjectDirty() const;
   core::VersionManager* GetVersionManager() { return version_manager_; }
@@ -639,6 +647,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void CaptureRuntimeFeatureFlags();
   void CaptureActiveProjectEditingState();
   void CaptureActiveProjectContext();
+  absl::Status PrepareActiveProjectEditorDraftsForSave();
   void DetachActiveProjectContext();
   void BindProjectContextToSession(RomSession* session,
                                    const project::YazeProject& project);

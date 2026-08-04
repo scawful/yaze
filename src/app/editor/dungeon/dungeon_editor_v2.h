@@ -130,6 +130,7 @@ class DungeonEditorV2 : public Editor {
   }
 
   // Editor interface
+  void SetDependencies(const EditorDependencies& deps) override;
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Update() override;
@@ -151,6 +152,8 @@ class DungeonEditorV2 : public Editor {
   bool HasPendingRoomChanges() const;
   // All dungeon save domains plus unapplied editor-local work.
   bool HasPendingDungeonChanges() const;
+  bool HasPendingProjectDraftChanges() const;
+  absl::Status PrepareProjectSave();
   bool CurrentRoomHasPendingChanges() const;
   int TotalRoomCount() const { return static_cast<int>(rooms_.size()); }
 
@@ -307,6 +310,7 @@ class DungeonEditorV2 : public Editor {
   void ApplyEntranceRenderContext(int room_id);
   void ConfigureViewerRenderContext(DungeonCanvasViewer* viewer, int room_id);
   void WireViewerPanelCallbacks(DungeonCanvasViewer* viewer);
+  void ConfigureMinecartProjectCallbacks();
 
   // Show or create a standalone room panel
   void ShowRoomPanel(int room_id);
