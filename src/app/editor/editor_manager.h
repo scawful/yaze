@@ -647,6 +647,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void CaptureRuntimeFeatureFlags();
   void CaptureActiveProjectEditingState();
   void CaptureActiveProjectContext();
+  absl::Status PrepareActiveProjectEditorDraftsForSave();
   void DetachActiveProjectContext();
   void BindProjectContextToSession(RomSession* session,
                                    const project::YazeProject& project);

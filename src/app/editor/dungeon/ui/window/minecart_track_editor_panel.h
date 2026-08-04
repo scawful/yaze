@@ -27,6 +27,7 @@ class MinecartTrackEditorPanel : public WindowContent {
  public:
   using ProjectChangedCallback =
       std::function<absl::Status(const project::DungeonOverlaySettings&)>;
+  using ProjectDraftChangedCallback = std::function<absl::Status()>;
   using ProjectSaveCallback = std::function<absl::Status()>;
 
   MinecartTrackEditorPanel() = default;
@@ -55,6 +56,8 @@ class MinecartTrackEditorPanel : public WindowContent {
   bool HasUnpublishedChanges() const;
   absl::StatusOr<std::filesystem::path> ResolveTrackSourcePath() const;
   absl::Status UpdateTrack(size_t track_index, const MinecartTrack& track);
+  bool HasPendingProjectDraftChanges() const;
+  absl::Status PrepareProjectSave();
 
   // Coordinate picking from dungeon canvas
   // When picking mode is active, the next canvas click will set the coordinates
@@ -71,6 +74,9 @@ class MinecartTrackEditorPanel : public WindowContent {
   }
   void SetProjectChangedCallback(ProjectChangedCallback callback) {
     project_changed_callback_ = std::move(callback);
+  }
+  void SetProjectDraftChangedCallback(ProjectDraftChangedCallback callback) {
+    project_draft_changed_callback_ = std::move(callback);
   }
   void SetProjectSaveCallback(ProjectSaveCallback callback) {
     project_save_callback_ = std::move(callback);
@@ -101,6 +107,7 @@ class MinecartTrackEditorPanel : public WindowContent {
   absl::StatusOr<bool> ResetOverlaySettings();
   absl::Status NotifyProjectChanged(
       const project::DungeonOverlaySettings& overlay);
+  absl::Status NotifyProjectDraftChanged();
   absl::Status SaveProjectSettings();
 
   struct RoomTrackAudit {
@@ -143,6 +150,7 @@ class MinecartTrackEditorPanel : public WindowContent {
 
   RoomNavigationCallback room_navigation_callback_;
   ProjectChangedCallback project_changed_callback_;
+  ProjectDraftChangedCallback project_draft_changed_callback_;
   ProjectSaveCallback project_save_callback_;
 
   // Overlay config input state
