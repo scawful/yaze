@@ -78,6 +78,18 @@
 
 namespace yaze::editor {
 
+void DungeonEditorV2::SetDependencies(const EditorDependencies& deps) {
+  Editor::SetDependencies(deps);
+  if (minecart_track_editor_panel_) {
+    const absl::Status status =
+        minecart_track_editor_panel_->RebindProjectContext(deps.project);
+    if (!status.ok()) {
+      LOG_WARN("DungeonEditorV2", "Minecart project rebind failed: %s",
+               status.message());
+    }
+  }
+}
+
 namespace {
 
 bool IsTransientDungeonRoomWindowId(const std::string& card_id) {
@@ -797,17 +809,31 @@ absl::Status DungeonEditorV2::Load() {
             static_cast<EditorManager*>(dependencies_.custom_data)) {
       const size_t session_id = dependencies_.session_id;
       minecart_track_editor_panel_->SetProjectChangedCallback(
-          [editor_manager,
-           session_id](const project::DungeonOverlaySettings& overlay) {
-            if (editor_manager->GetCurrentSessionId() != session_id) {
-              return;
+          [editor_manager, session_id](
+              const project::DungeonOverlaySettings& overlay) -> absl::Status {
+            const auto* session_coordinator =
+                editor_manager->session_coordinator();
+            const auto* active_session =
+                session_coordinator ? session_coordinator->GetActiveRomSession()
+                                    : nullptr;
+            if (active_session == nullptr ||
+                active_session->session_id() != session_id) {
+              return absl::FailedPreconditionError(
+                  "Minecart overlay edit requires its session to be active");
             }
             editor_manager->GetCurrentProject()->dungeon_overlay = overlay;
             editor_manager->MarkCurrentProjectDirty();
+            return absl::OkStatus();
           });
       minecart_track_editor_panel_->SetProjectSaveCallback(
           [editor_manager, session_id]() -> absl::Status {
-            if (editor_manager->GetCurrentSessionId() != session_id) {
+            const auto* session_coordinator =
+                editor_manager->session_coordinator();
+            const auto* active_session =
+                session_coordinator ? session_coordinator->GetActiveRomSession()
+                                    : nullptr;
+            if (active_session == nullptr ||
+                active_session->session_id() != session_id) {
               return absl::FailedPreconditionError(
                   "Minecart project save requires its session to be active");
             }

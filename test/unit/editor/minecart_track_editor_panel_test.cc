@@ -6,6 +6,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -27,18 +28,57 @@ class DungeonEditorV2MinecartTrackTestPeer {
 
 class MinecartTrackEditorPanelTestPeer {
  public:
-  static bool CommitOverlayList(MinecartTrackEditorPanel& panel,
-                                const std::string& input,
-                                std::vector<uint16_t>& target) {
-    return panel.CommitOverlayList(input, target);
+  static absl::StatusOr<bool> CommitOverlayList(
+      MinecartTrackEditorPanel& panel, std::string& input,
+      std::vector<uint16_t> project::DungeonOverlaySettings::* member) {
+    return panel.CommitOverlayList(input, member);
   }
 
-  static bool ResetOverlaySettings(MinecartTrackEditorPanel& panel) {
+  static absl::StatusOr<bool> CommitTrackTilesInput(
+      MinecartTrackEditorPanel& panel) {
+    return panel.CommitOverlayList(
+        panel.overlay_track_tiles_input_,
+        &project::DungeonOverlaySettings::track_tiles);
+  }
+
+  static absl::StatusOr<bool> ResetOverlaySettings(
+      MinecartTrackEditorPanel& panel) {
     return panel.ResetOverlaySettings();
   }
 
   static absl::Status SaveProjectSettings(MinecartTrackEditorPanel& panel) {
     return panel.SaveProjectSettings();
+  }
+
+  static void InitializeOverlayInputs(MinecartTrackEditorPanel& panel) {
+    panel.InitializeOverlayInputs();
+  }
+
+  static void SetTrackTilesInput(MinecartTrackEditorPanel& panel,
+                                 std::string input) {
+    panel.overlay_track_tiles_input_ = std::move(input);
+  }
+
+  static const std::string& TrackTilesInput(
+      const MinecartTrackEditorPanel& panel) {
+    return panel.overlay_track_tiles_input_;
+  }
+
+  static const std::string& StatusMessage(
+      const MinecartTrackEditorPanel& panel) {
+    return panel.status_message_;
+  }
+
+  static bool ShowSuccess(const MinecartTrackEditorPanel& panel) {
+    return panel.show_success_;
+  }
+
+  static void SetAuditDirty(MinecartTrackEditorPanel& panel, bool dirty) {
+    panel.audit_dirty_ = dirty;
+  }
+
+  static bool AuditDirty(const MinecartTrackEditorPanel& panel) {
+    return panel.audit_dirty_;
   }
 };
 
@@ -201,17 +241,26 @@ TEST(MinecartTrackEditorPanelTest,
   int changed_calls = 0;
   project::DungeonOverlaySettings reported_overlay;
   panel.SetProjectChangedCallback(
-      [&](const project::DungeonOverlaySettings& overlay) {
+      [&](const project::DungeonOverlaySettings& overlay) -> absl::Status {
         ++changed_calls;
         reported_overlay = overlay;
+        return absl::OkStatus();
       });
 
-  EXPECT_FALSE(MinecartTrackEditorPanelTestPeer::CommitOverlayList(
-      panel, "0xB0, $00B1", project_ptr->dungeon_overlay.track_tiles));
+  std::string unchanged_input = "0xB0, $00B1";
+  auto unchanged = MinecartTrackEditorPanelTestPeer::CommitOverlayList(
+      panel, unchanged_input, &project::DungeonOverlaySettings::track_tiles);
+  ASSERT_TRUE(unchanged.ok()) << unchanged.status();
+  EXPECT_FALSE(*unchanged);
+  EXPECT_EQ(unchanged_input, "0xB0, 0xB1");
   EXPECT_EQ(changed_calls, 0);
 
-  EXPECT_TRUE(MinecartTrackEditorPanelTestPeer::CommitOverlayList(
-      panel, "$00C0, 0xC1", project_ptr->dungeon_overlay.track_tiles));
+  std::string changed_input = "$00C0, 0xC1";
+  auto changed = MinecartTrackEditorPanelTestPeer::CommitOverlayList(
+      panel, changed_input, &project::DungeonOverlaySettings::track_tiles);
+  ASSERT_TRUE(changed.ok()) << changed.status();
+  EXPECT_TRUE(*changed);
+  EXPECT_EQ(changed_input, "0xC0, 0xC1");
   EXPECT_EQ(changed_calls, 1);
   EXPECT_EQ(project_ptr->dungeon_overlay.track_tiles,
             (std::vector<uint16_t>{0xC0, 0xC1}));
@@ -220,15 +269,152 @@ TEST(MinecartTrackEditorPanelTest,
   EXPECT_EQ(reported_overlay.track_stop_tiles,
             project_ptr->dungeon_overlay.track_stop_tiles);
 
-  EXPECT_TRUE(MinecartTrackEditorPanelTestPeer::ResetOverlaySettings(panel));
+  auto reset = MinecartTrackEditorPanelTestPeer::ResetOverlaySettings(panel);
+  ASSERT_TRUE(reset.ok()) << reset.status();
+  EXPECT_TRUE(*reset);
   EXPECT_EQ(changed_calls, 2);
   EXPECT_TRUE(project_ptr->dungeon_overlay.track_tiles.empty());
   EXPECT_TRUE(project_ptr->dungeon_overlay.track_stop_tiles.empty());
   EXPECT_TRUE(reported_overlay.track_tiles.empty());
   EXPECT_TRUE(reported_overlay.track_stop_tiles.empty());
 
-  EXPECT_FALSE(MinecartTrackEditorPanelTestPeer::ResetOverlaySettings(panel));
+  auto unchanged_reset =
+      MinecartTrackEditorPanelTestPeer::ResetOverlaySettings(panel);
+  ASSERT_TRUE(unchanged_reset.ok()) << unchanged_reset.status();
+  EXPECT_FALSE(*unchanged_reset);
   EXPECT_EQ(changed_calls, 2);
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     OverlayParserRejectsWholeInvalidInputAndNormalizesAcceptedValues) {
+  ScopedTestProject fixture;
+  fixture.project()->dungeon_overlay.track_tiles = {0xB0, 0xB1};
+
+  MinecartTrackEditorPanel panel;
+  ASSERT_TRUE(panel.SetProject(fixture.project()).ok());
+  int changed_calls = 0;
+  panel.SetProjectChangedCallback(
+      [&](const project::DungeonOverlaySettings&) -> absl::Status {
+        ++changed_calls;
+        return absl::OkStatus();
+      });
+  MinecartTrackEditorPanelTestPeer::SetAuditDirty(panel, false);
+
+  for (const std::string& invalid :
+       {"0x1G, 0x2", "65536", "0x10000", "0x1junk", "$", "0x1,", "0x1,,0x2",
+        "999999999999999999999999999999"}) {
+    std::string input = invalid;
+    const auto result = MinecartTrackEditorPanelTestPeer::CommitOverlayList(
+        panel, input, &project::DungeonOverlaySettings::track_tiles);
+    EXPECT_FALSE(result.ok()) << invalid;
+    EXPECT_EQ(input, invalid);
+    EXPECT_EQ(fixture.project()->dungeon_overlay.track_tiles,
+              (std::vector<uint16_t>{0xB0, 0xB1}));
+    EXPECT_EQ(changed_calls, 0);
+    EXPECT_FALSE(MinecartTrackEditorPanelTestPeer::AuditDirty(panel));
+    EXPECT_FALSE(MinecartTrackEditorPanelTestPeer::ShowSuccess(panel));
+    EXPECT_NE(MinecartTrackEditorPanelTestPeer::StatusMessage(panel).find(
+                  "Overlay update rejected"),
+              std::string::npos);
+  }
+
+  std::string accepted = " $00C0  0x00C1 ";
+  auto changed = MinecartTrackEditorPanelTestPeer::CommitOverlayList(
+      panel, accepted, &project::DungeonOverlaySettings::track_tiles);
+  ASSERT_TRUE(changed.ok()) << changed.status();
+  EXPECT_TRUE(*changed);
+  EXPECT_EQ(accepted, "0xC0, 0xC1");
+  EXPECT_EQ(fixture.project()->dungeon_overlay.track_tiles,
+            (std::vector<uint16_t>{0xC0, 0xC1}));
+  EXPECT_EQ(changed_calls, 1);
+  EXPECT_TRUE(MinecartTrackEditorPanelTestPeer::AuditDirty(panel));
+
+  std::string equivalent = "192, 193";
+  auto unchanged = MinecartTrackEditorPanelTestPeer::CommitOverlayList(
+      panel, equivalent, &project::DungeonOverlaySettings::track_tiles);
+  ASSERT_TRUE(unchanged.ok()) << unchanged.status();
+  EXPECT_FALSE(*unchanged);
+  EXPECT_EQ(equivalent, "0xC0, 0xC1");
+  EXPECT_EQ(changed_calls, 1);
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     RejectedOverlayCallbackRollsBackInputModelAndDirtyState) {
+  ScopedTestProject fixture;
+  fixture.project()->dungeon_overlay.track_tiles = {0xB0};
+
+  MinecartTrackEditorPanel panel;
+  ASSERT_TRUE(panel.SetProject(fixture.project()).ok());
+  MinecartTrackEditorPanelTestPeer::InitializeOverlayInputs(panel);
+  MinecartTrackEditorPanelTestPeer::SetTrackTilesInput(panel, "$00C0");
+  MinecartTrackEditorPanelTestPeer::SetAuditDirty(panel, false);
+  bool session_active = false;
+  bool project_dirty = false;
+  panel.SetProjectChangedCallback(
+      [&](const project::DungeonOverlaySettings&) -> absl::Status {
+        if (!session_active) {
+          return absl::FailedPreconditionError(
+              "minecart overlay session is not active");
+        }
+        project_dirty = true;
+        return absl::OkStatus();
+      });
+
+  const auto result =
+      MinecartTrackEditorPanelTestPeer::CommitTrackTilesInput(panel);
+  EXPECT_FALSE(result.ok());
+  EXPECT_TRUE(absl::IsFailedPrecondition(result.status())) << result.status();
+  EXPECT_EQ(fixture.project()->dungeon_overlay.track_tiles,
+            (std::vector<uint16_t>{0xB0}));
+  EXPECT_EQ(MinecartTrackEditorPanelTestPeer::TrackTilesInput(panel), "0xB0");
+  EXPECT_FALSE(project_dirty);
+  EXPECT_FALSE(MinecartTrackEditorPanelTestPeer::AuditDirty(panel));
+  EXPECT_FALSE(MinecartTrackEditorPanelTestPeer::ShowSuccess(panel));
+  EXPECT_NE(MinecartTrackEditorPanelTestPeer::StatusMessage(panel).find(
+                "session is not active"),
+            std::string::npos);
+
+  const auto reset =
+      MinecartTrackEditorPanelTestPeer::ResetOverlaySettings(panel);
+  EXPECT_FALSE(reset.ok());
+  EXPECT_TRUE(absl::IsFailedPrecondition(reset.status())) << reset.status();
+  EXPECT_EQ(fixture.project()->dungeon_overlay.track_tiles,
+            (std::vector<uint16_t>{0xB0}));
+  EXPECT_EQ(MinecartTrackEditorPanelTestPeer::TrackTilesInput(panel), "0xB0");
+  EXPECT_FALSE(project_dirty);
+  EXPECT_FALSE(MinecartTrackEditorPanelTestPeer::AuditDirty(panel));
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     DependencyReapplyRefreshesSamePointerProjectOverlayInputs) {
+  ScopedTestProject fixture;
+  fixture.WriteSource(MakeFlatSource(32));
+  fixture.project()->dungeon_overlay.track_tiles = {0xB0};
+
+  MinecartTrackEditorPanel panel;
+  ASSERT_TRUE(panel.SetProject(fixture.project()).ok());
+  ASSERT_TRUE(panel.ReloadTracks().ok());
+  MinecartTrack draft = panel.GetTracks().front();
+  draft.room_id = 0x0777;
+  ASSERT_TRUE(panel.UpdateTrack(0, draft).ok());
+  ASSERT_TRUE(panel.HasUnpublishedChanges());
+  MinecartTrackEditorPanelTestPeer::InitializeOverlayInputs(panel);
+  ASSERT_EQ(MinecartTrackEditorPanelTestPeer::TrackTilesInput(panel), "0xB0");
+
+  DungeonEditorV2 editor;
+  DungeonEditorV2MinecartTrackTestPeer::SetMinecartTrackEditorPanel(editor,
+                                                                    &panel);
+  EditorDependencies dependencies;
+  dependencies.project = fixture.project();
+
+  fixture.project()->dungeon_overlay.track_tiles = {0xD0, 0xD1};
+  ASSERT_EQ(MinecartTrackEditorPanelTestPeer::TrackTilesInput(panel), "0xB0");
+  editor.SetDependencies(dependencies);
+
+  EXPECT_EQ(MinecartTrackEditorPanelTestPeer::TrackTilesInput(panel),
+            "0xD0, 0xD1");
+  EXPECT_TRUE(panel.HasUnpublishedChanges());
+  EXPECT_EQ(panel.GetTracks().front().room_id, 0x0777);
 }
 
 TEST(MinecartTrackEditorPanelTest,
@@ -239,10 +425,17 @@ TEST(MinecartTrackEditorPanelTest,
 
   bool project_dirty = false;
   panel.SetProjectChangedCallback(
-      [&](const project::DungeonOverlaySettings&) { project_dirty = true; });
-  ASSERT_TRUE(MinecartTrackEditorPanelTestPeer::CommitOverlayList(
-      panel, "$00D0, $00D1",
-      fixture.project()->dungeon_overlay.track_switch_tiles));
+      [&](const project::DungeonOverlaySettings&) -> absl::Status {
+        project_dirty = true;
+        return absl::OkStatus();
+      });
+  std::string switch_input = "$00D0, $00D1";
+  const auto switch_changed =
+      MinecartTrackEditorPanelTestPeer::CommitOverlayList(
+          panel, switch_input,
+          &project::DungeonOverlaySettings::track_switch_tiles);
+  ASSERT_TRUE(switch_changed.ok()) << switch_changed.status();
+  ASSERT_TRUE(*switch_changed);
   ASSERT_TRUE(project_dirty);
 
   int save_calls = 0;
