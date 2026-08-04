@@ -5,24 +5,24 @@
 #include <cctype>
 #include <cstddef>
 #include <string>
-#include <string_view>
 #include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 
 namespace yaze::editor {
 namespace {
 
-constexpr std::string_view kPlannedTrackGuard =
+constexpr absl::string_view kPlannedTrackGuard =
     "if !ENABLE_MINECART_PLANNED_TRACK_TABLE == 1";
-constexpr std::array<std::string_view, 3> kSectionLabels = {
+constexpr std::array<absl::string_view, 3> kSectionLabels = {
     ".TrackStartingRooms", ".TrackStartingX", ".TrackStartingY"};
 
 struct SourceLine {
   size_t offset;
-  std::string_view text;
+  absl::string_view text;
 };
 
 struct ParsedToken {
@@ -44,7 +44,7 @@ bool IsHexDigit(char value) {
   return std::isxdigit(static_cast<unsigned char>(value)) != 0;
 }
 
-std::string_view Trim(std::string_view value) {
+absl::string_view Trim(absl::string_view value) {
   while (!value.empty() && IsSpace(value.front())) {
     value.remove_prefix(1);
   }
@@ -54,20 +54,20 @@ std::string_view Trim(std::string_view value) {
   return value;
 }
 
-std::string_view CodeForLine(std::string_view line) {
+absl::string_view CodeForLine(absl::string_view line) {
   const size_t comment = line.find(';');
   return Trim(line.substr(0, comment));
 }
 
-std::vector<SourceLine> SplitLines(std::string_view source) {
+std::vector<SourceLine> SplitLines(absl::string_view source) {
   std::vector<SourceLine> lines;
   size_t offset = 0;
   while (offset < source.size()) {
     const size_t newline = source.find('\n', offset);
     const size_t end =
-        newline == std::string_view::npos ? source.size() : newline;
+        newline == absl::string_view::npos ? source.size() : newline;
     lines.push_back({offset, source.substr(offset, end - offset)});
-    if (newline == std::string_view::npos) {
+    if (newline == absl::string_view::npos) {
       break;
     }
     offset = newline + 1;
@@ -76,10 +76,10 @@ std::vector<SourceLine> SplitLines(std::string_view source) {
 }
 
 absl::StatusOr<std::vector<ParsedToken>> ParseDwLine(const SourceLine& line,
-                                                     std::string_view label) {
+                                                     absl::string_view label) {
   const size_t comment = line.text.find(';');
   const size_t code_end =
-      comment == std::string_view::npos ? line.text.size() : comment;
+      comment == absl::string_view::npos ? line.text.size() : comment;
   size_t cursor = 0;
   while (cursor < code_end && IsSpace(line.text[cursor])) {
     ++cursor;
@@ -160,7 +160,7 @@ absl::StatusOr<std::vector<ParsedToken>> ParseDwLine(const SourceLine& line,
 
 absl::StatusOr<ParsedSection> ParseSection(const std::vector<SourceLine>& lines,
                                            size_t first_line, size_t end_line,
-                                           std::string_view label) {
+                                           absl::string_view label) {
   enum class GuardState { kPrefix, kEnabled, kDisabled, kComplete };
   GuardState state = GuardState::kPrefix;
   bool saw_guard = false;
@@ -172,7 +172,7 @@ absl::StatusOr<ParsedSection> ParseSection(const std::vector<SourceLine>& lines,
 
   for (size_t line_index = first_line + 1; line_index < end_line;
        ++line_index) {
-    const std::string_view code = CodeForLine(lines[line_index].text);
+    const absl::string_view code = CodeForLine(lines[line_index].text);
     if (code.empty()) {
       continue;
     }
@@ -261,7 +261,7 @@ absl::Status ValidateTrack(const MinecartTrack& track, size_t index) {
                         index, index, track.id));
   }
   for (const auto& [field_name, value] :
-       std::array<std::pair<std::string_view, int>, 3>{
+       std::array<std::pair<absl::string_view, int>, 3>{
            {{"room_id", track.room_id},
             {"start_x", track.start_x},
             {"start_y", track.start_y}}}) {
