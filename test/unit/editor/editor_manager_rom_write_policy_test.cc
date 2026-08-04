@@ -991,7 +991,7 @@ TEST(EditorManagerBackupRestoreTest,
   EXPECT_EQ(discard_status.code(), absl::StatusCode::kFailedPrecondition)
       << discard_status;
   EXPECT_NE(std::string(discard_status.message())
-                .find("pending dungeon or palette edits"),
+                .find("pending graphics, dungeon, or palette edits"),
             std::string::npos);
   EXPECT_EQ(manager->GetCurrentRom(), active_rom);
   ASSERT_TRUE(active_rom->ReadByte(kPcOffset).ok());
@@ -1061,7 +1061,7 @@ TEST(EditorManagerBackupRestoreTest,
   EXPECT_EQ(discard_status.code(), absl::StatusCode::kFailedPrecondition)
       << discard_status;
   EXPECT_NE(std::string(discard_status.message())
-                .find("pending dungeon or palette edits"),
+                .find("pending graphics, dungeon, or palette edits"),
             std::string::npos);
   EXPECT_EQ(manager->GetCurrentRom(), active_rom);
   ASSERT_TRUE(active_rom->ReadByte(kPcOffset).ok());
