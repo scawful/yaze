@@ -305,13 +305,70 @@ void MinecartTrackEditorPanel::InitializeOverlayInputs() {
 
 bool MinecartTrackEditorPanel::UpdateOverlayList(
     const char* label, std::string& input, std::vector<uint16_t>& target) {
-  bool changed = ImGui::InputText(label, &input);
-  if (changed && ImGui::IsItemDeactivatedAfterEdit()) {
-    target = ParseHexList(input);
-    audit_dirty_ = true;
-    return true;
+  ImGui::InputText(label, &input);
+  if (ImGui::IsItemDeactivatedAfterEdit()) {
+    return CommitOverlayList(input, target);
   }
   return false;
+}
+
+bool MinecartTrackEditorPanel::CommitOverlayList(
+    const std::string& input, std::vector<uint16_t>& target) {
+  std::vector<uint16_t> parsed = ParseHexList(input);
+  if (parsed == target) {
+    return false;
+  }
+
+  target = std::move(parsed);
+  audit_dirty_ = true;
+  NotifyProjectChanged();
+  return true;
+}
+
+bool MinecartTrackEditorPanel::ResetOverlaySettings() {
+  if (project_ == nullptr) {
+    return false;
+  }
+
+  auto& overlay = project_->dungeon_overlay;
+  const bool changed =
+      !overlay.track_tiles.empty() || !overlay.track_stop_tiles.empty() ||
+      !overlay.track_switch_tiles.empty() ||
+      !overlay.track_object_ids.empty() || !overlay.minecart_sprite_ids.empty();
+  if (!changed) {
+    return false;
+  }
+
+  overlay.track_tiles.clear();
+  overlay.track_stop_tiles.clear();
+  overlay.track_switch_tiles.clear();
+  overlay.track_object_ids.clear();
+  overlay.minecart_sprite_ids.clear();
+  overlay_track_tiles_input_.clear();
+  overlay_track_stop_tiles_input_.clear();
+  overlay_track_switch_tiles_input_.clear();
+  overlay_track_object_ids_input_.clear();
+  overlay_minecart_sprite_ids_input_.clear();
+  audit_dirty_ = true;
+  NotifyProjectChanged();
+  return true;
+}
+
+void MinecartTrackEditorPanel::NotifyProjectChanged() {
+  if (project_ != nullptr && project_changed_callback_) {
+    project_changed_callback_(project_->dungeon_overlay);
+  }
+}
+
+absl::Status MinecartTrackEditorPanel::SaveProjectSettings() {
+  if (project_ == nullptr || !project_->project_opened()) {
+    return absl::FailedPreconditionError("No open project to save");
+  }
+  if (!project_save_callback_) {
+    return absl::FailedPreconditionError(
+        "Project save is unavailable outside the editor manager");
+  }
+  return project_save_callback_();
 }
 
 void MinecartTrackEditorPanel::DrawOverlaySettings() {
@@ -347,18 +404,7 @@ void MinecartTrackEditorPanel::DrawOverlaySettings() {
                                project_->dungeon_overlay.minecart_sprite_ids);
 
   if (ImGui::Button(tr("Reset Overlay Defaults"))) {
-    project_->dungeon_overlay.track_tiles.clear();
-    project_->dungeon_overlay.track_stop_tiles.clear();
-    project_->dungeon_overlay.track_switch_tiles.clear();
-    project_->dungeon_overlay.track_object_ids.clear();
-    project_->dungeon_overlay.minecart_sprite_ids.clear();
-    overlay_track_tiles_input_.clear();
-    overlay_track_stop_tiles_input_.clear();
-    overlay_track_switch_tiles_input_.clear();
-    overlay_track_object_ids_input_.clear();
-    overlay_minecart_sprite_ids_input_.clear();
-    audit_dirty_ = true;
-    changed = true;
+    changed |= ResetOverlaySettings();
   }
 
   if (changed) {
@@ -648,12 +694,13 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
     show_success_ = status.ok();
   }
   ImGui::SameLine();
-  const bool can_save_project = project_ && project_->project_opened();
+  const bool can_save_project =
+      project_ && project_->project_opened() && project_save_callback_;
   if (!can_save_project) {
     ImGui::BeginDisabled();
   }
   if (ImGui::Button(ICON_MD_SAVE " Save Project")) {
-    auto status = project_->Save();
+    auto status = SaveProjectSettings();
     if (status.ok()) {
       status_message_ = has_unpublished_changes
                             ? "Project saved; minecart track drafts remain "
