@@ -224,24 +224,34 @@ void Bitmap::Create(int width, int height, int depth,
  */
 void Bitmap::Create(int width, int height, int depth, int format,
                     const std::vector<uint8_t>& data) {
-  if (data.empty()) {
-    SDL_Log("Bitmap data is empty\n");
-    active_ = false;
-    return;
-  }
-  active_ = true;
-  // Assign new generation for staleness detection in deferred texture commands
+  // Treat recreation as a new resource generation before touching either
+  // deferred commands or the current resources. Commands queued for the old
+  // surface/texture will then be discarded as stale by Arena.
   generation_ = next_generation_++;
+
+  // Keep the texture handle alive until the deferred DESTROY command runs.
+  // Callers queue the replacement CREATE after this method returns, so both
+  // commands share the new generation and execute in DESTROY -> CREATE order.
+  if (texture_) {
+    Arena::Get().QueueTextureCommand(Arena::TextureCommandType::DESTROY, this);
+  }
+  if (surface_) {
+    Arena::Get().FreeSurface(surface_);
+    surface_ = nullptr;
+  }
+
   width_ = width;
   height_ = height;
   depth_ = depth;
-  if (data.empty()) {
-    SDL_Log("Data provided to Bitmap is empty.\n");
-    return;
-  }
-  data_.reserve(data.size());
   data_ = data;
   pixel_data_ = data_.data();
+  active_ = false;
+
+  if (data.empty()) {
+    SDL_Log("Bitmap data is empty\n");
+    return;
+  }
+
   surface_ = Arena::Get().AllocateSurface(width_, height_, depth_,
                                           GetSnesPixelFormat(format));
   if (surface_ == nullptr) {
