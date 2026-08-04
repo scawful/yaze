@@ -3,11 +3,14 @@
 
 #include <array>
 #include <cstdint>
+#include <filesystem>
 #include <functional>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/gui/core/icons.h"
 #include "core/project.h"
@@ -21,6 +24,8 @@ struct MinecartTrack {
   int room_id;
   int start_x;
   int start_y;
+
+  bool operator==(const MinecartTrack&) const = default;
 };
 
 }  // namespace yaze::editor
@@ -31,8 +36,7 @@ namespace yaze::editor {
 
 class MinecartTrackEditorPanel : public WindowContent {
  public:
-  explicit MinecartTrackEditorPanel(const std::string& start_root = "")
-      : project_root_(start_root) {}
+  MinecartTrackEditorPanel() = default;
 
   // WindowContent overrides
   std::string GetId() const override { return "dungeon.minecart_tracks"; }
@@ -43,18 +47,18 @@ class MinecartTrackEditorPanel : public WindowContent {
   void Draw(bool* p_open) override;
 
   // Custom methods
-  void SetProjectRoot(const std::string& root);
   void SetRooms(DungeonRoomStore* rooms) {
     rooms_ = rooms;
     audit_dirty_ = true;
   }
-  void SetProject(project::YazeProject* project) {
-    project_ = project;
-    overlay_inputs_initialized_ = false;
-    audit_dirty_ = true;
-  }
+  absl::Status SetProject(project::YazeProject* project);
   void SetRom(Rom* rom) { rom_ = rom; }
-  void SaveTracks();
+  absl::Status SaveTracks();
+  absl::Status ReloadTracks();
+  absl::Status DiscardUnpublishedChanges();
+  bool HasUnpublishedChanges() const;
+  absl::StatusOr<std::filesystem::path> ResolveTrackSourcePath() const;
+  absl::Status UpdateTrack(size_t track_index, const MinecartTrack& track);
 
   // Coordinate picking from dungeon canvas
   // When picking mode is active, the next canvas click will set the coordinates
@@ -71,11 +75,16 @@ class MinecartTrackEditorPanel : public WindowContent {
   }
 
  private:
-  void LoadTracks();
-  bool ParseSection(const std::string& content, const std::string& label,
-                    std::vector<int>& out_values);
-  std::string FormatSection(const std::string& label,
-                            const std::vector<int>& values);
+  struct ParsedSection {
+    std::vector<int> values;
+    bool guarded = false;
+  };
+
+  absl::Status LoadTracks();
+  static absl::StatusOr<ParsedSection> ParseSection(const std::string& content,
+                                                    const std::string& label);
+  absl::Status RefreshProjectBinding();
+  void ResetTrackSession();
   void StartCoordinatePicking(int track_index);
   void CancelCoordinatePicking();
   void RebuildAuditCache();
@@ -94,7 +103,8 @@ class MinecartTrackEditorPanel : public WindowContent {
   };
 
   std::vector<MinecartTrack> tracks_;
-  std::string project_root_;
+  std::vector<MinecartTrack> loaded_tracks_;
+  std::string bound_project_filepath_;
   Rom* rom_ = nullptr;
   DungeonRoomStore* rooms_ = nullptr;
   project::YazeProject* project_ = nullptr;
@@ -102,7 +112,9 @@ class MinecartTrackEditorPanel : public WindowContent {
   std::unordered_map<int, std::vector<int>> track_usage_rooms_;
   std::vector<bool> track_subtype_used_;
   bool audit_dirty_ = true;
+  bool load_attempted_ = false;
   bool loaded_ = false;
+  bool source_is_guarded_ = false;
   std::string status_message_;
   bool show_success_ = false;
   float success_timer_ = 0.0f;

@@ -786,11 +786,10 @@ absl::Status DungeonEditorV2::Load() {
     minecart_track_editor_panel_ = minecart_panel.get();
 
     if (dependencies_.project) {
-      minecart_track_editor_panel_->SetProjectRoot(
-          dependencies_.project->code_folder);
+      RETURN_IF_ERROR(
+          minecart_track_editor_panel_->SetProject(dependencies_.project));
       minecart_track_editor_panel_->SetRooms(&rooms_);
       minecart_track_editor_panel_->SetRom(rom_);
-      minecart_track_editor_panel_->SetProject(dependencies_.project);
       minecart_track_editor_panel_->SetRoomNavigationCallback(
           [this](int room_id) { OnRoomSelected(room_id); });
     }
@@ -1285,6 +1284,10 @@ bool DungeonEditorV2::HasPendingRoomChanges() const {
 }
 
 bool DungeonEditorV2::HasPendingDungeonChanges() const {
+  if (minecart_track_editor_panel_ != nullptr &&
+      minecart_track_editor_panel_->HasUnpublishedChanges()) {
+    return true;
+  }
   if (object_tile_editor_panel_ != nullptr &&
       object_tile_editor_panel_->HasUnappliedChanges()) {
     return true;
