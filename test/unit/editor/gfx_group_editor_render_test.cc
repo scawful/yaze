@@ -1,6 +1,7 @@
 #include "app/editor/graphics/gfx_group_editor_internal.h"
 
 #include <cstdint>
+#include <stdexcept>
 #include <vector>
 
 #include "app/editor/graphics/screen_editor_internal.h"
@@ -134,10 +135,10 @@ TEST_F(GfxGroupEditorRenderTest,
 
   {
     ::testing::InSequence sequence;
-    EXPECT_CALL(renderer, DestroyTexture(old_texture));
     EXPECT_CALL(renderer, CreateTexture(kSheetWidth, kSheetHeight))
         .WillOnce(::testing::Return(new_texture));
     EXPECT_CALL(renderer, UpdateTexture(new_texture, ::testing::Ref(bitmap)));
+    EXPECT_CALL(renderer, DestroyTexture(old_texture));
   }
 
   EXPECT_TRUE(gfx::Arena::Get().ProcessSingleTexture(&renderer));
@@ -165,21 +166,181 @@ TEST_F(GfxGroupEditorRenderTest,
 
   {
     ::testing::InSequence sequence;
-    EXPECT_CALL(renderer, DestroyTexture(old_texture));
     EXPECT_CALL(renderer, CreateTexture(kSheetWidth, kSheetHeight))
         .WillOnce(::testing::Return(intermediate_texture));
     EXPECT_CALL(renderer,
                 UpdateTexture(intermediate_texture, ::testing::Ref(bitmap)));
-    EXPECT_CALL(renderer, DestroyTexture(intermediate_texture));
+    EXPECT_CALL(renderer, DestroyTexture(old_texture));
     EXPECT_CALL(renderer, CreateTexture(kSheetWidth, kSheetHeight))
         .WillOnce(::testing::Return(final_texture));
     EXPECT_CALL(renderer, UpdateTexture(final_texture, ::testing::Ref(bitmap)));
+    EXPECT_CALL(renderer, DestroyTexture(intermediate_texture));
   }
 
   gfx::Arena::Get().ProcessTextureQueue(&renderer);
 
   EXPECT_FALSE(gfx::Arena::Get().HasPendingTextures());
   EXPECT_EQ(bitmap.texture(), final_texture);
+}
+
+TEST_F(GfxGroupEditorRenderTest,
+       SingleCreateNullRetainsOldTextureAndRetriesThroughBudgetPath) {
+  ::testing::StrictMock<yaze::test::MockRenderer> renderer;
+  gfx::Bitmap bitmap = MakeSheetBitmap();
+  int old_texture_storage = 0;
+  int new_texture_storage = 0;
+  auto old_texture = reinterpret_cast<gfx::TextureHandle>(&old_texture_storage);
+  auto new_texture = reinterpret_cast<gfx::TextureHandle>(&new_texture_storage);
+  bitmap.set_texture(old_texture);
+  bitmap.CreateTexture();
+
+  EXPECT_CALL(renderer, CreateTexture(kSheetWidth, kSheetHeight))
+      .WillOnce(::testing::Return(nullptr));
+  EXPECT_FALSE(
+      gfx::Arena::Get().ProcessTextureQueueWithBudget(&renderer, 100.0f));
+  EXPECT_EQ(bitmap.texture(), old_texture);
+  EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 1u);
+  ASSERT_TRUE(::testing::Mock::VerifyAndClearExpectations(&renderer));
+
+  {
+    ::testing::InSequence sequence;
+    EXPECT_CALL(renderer, CreateTexture(kSheetWidth, kSheetHeight))
+        .WillOnce(::testing::Return(new_texture));
+    EXPECT_CALL(renderer, UpdateTexture(new_texture, ::testing::Ref(bitmap)));
+    EXPECT_CALL(renderer, DestroyTexture(old_texture));
+  }
+  EXPECT_TRUE(
+      gfx::Arena::Get().ProcessTextureQueueWithBudget(&renderer, 100.0f));
+  EXPECT_FALSE(gfx::Arena::Get().HasPendingTextures());
+  EXPECT_EQ(bitmap.texture(), new_texture);
+}
+
+TEST_F(GfxGroupEditorRenderTest,
+       SingleCreateExceptionsCleanReplacementAndRetryThroughBudgetPath) {
+  ::testing::StrictMock<yaze::test::MockRenderer> renderer;
+  gfx::Bitmap bitmap = MakeSheetBitmap();
+  int old_texture_storage = 0;
+  int failed_texture_storage = 0;
+  int new_texture_storage = 0;
+  auto old_texture = reinterpret_cast<gfx::TextureHandle>(&old_texture_storage);
+  auto failed_texture =
+      reinterpret_cast<gfx::TextureHandle>(&failed_texture_storage);
+  auto new_texture = reinterpret_cast<gfx::TextureHandle>(&new_texture_storage);
+  bitmap.set_texture(old_texture);
+  bitmap.CreateTexture();
+
+  EXPECT_CALL(renderer, CreateTexture(kSheetWidth, kSheetHeight))
+      .WillOnce(::testing::Throw(std::runtime_error("create failed")));
+  EXPECT_FALSE(
+      gfx::Arena::Get().ProcessTextureQueueWithBudget(&renderer, 100.0f));
+  EXPECT_EQ(bitmap.texture(), old_texture);
+  EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 1u);
+  ASSERT_TRUE(::testing::Mock::VerifyAndClearExpectations(&renderer));
+
+  {
+    ::testing::InSequence sequence;
+    EXPECT_CALL(renderer, CreateTexture(kSheetWidth, kSheetHeight))
+        .WillOnce(::testing::Return(failed_texture));
+    EXPECT_CALL(renderer, UpdateTexture(failed_texture, ::testing::Ref(bitmap)))
+        .WillOnce(::testing::Throw(std::runtime_error("update failed")));
+    EXPECT_CALL(renderer, DestroyTexture(failed_texture));
+  }
+  EXPECT_FALSE(
+      gfx::Arena::Get().ProcessTextureQueueWithBudget(&renderer, 100.0f));
+  EXPECT_EQ(bitmap.texture(), old_texture);
+  EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 1u);
+  ASSERT_TRUE(::testing::Mock::VerifyAndClearExpectations(&renderer));
+
+  {
+    ::testing::InSequence sequence;
+    EXPECT_CALL(renderer, CreateTexture(kSheetWidth, kSheetHeight))
+        .WillOnce(::testing::Return(new_texture));
+    EXPECT_CALL(renderer, UpdateTexture(new_texture, ::testing::Ref(bitmap)));
+    EXPECT_CALL(renderer, DestroyTexture(old_texture))
+        .WillOnce(::testing::Throw(std::runtime_error("destroy failed")));
+  }
+  EXPECT_TRUE(
+      gfx::Arena::Get().ProcessTextureQueueWithBudget(&renderer, 100.0f));
+  EXPECT_FALSE(gfx::Arena::Get().HasPendingTextures());
+  EXPECT_EQ(bitmap.texture(), new_texture)
+      << "Failure to destroy the old handle must not blank the replacement";
+}
+
+TEST_F(GfxGroupEditorRenderTest, BatchCreateNullRetainsOldTextureAndRetries) {
+  ::testing::StrictMock<yaze::test::MockRenderer> renderer;
+  gfx::Bitmap bitmap = MakeSheetBitmap();
+  int old_texture_storage = 0;
+  int new_texture_storage = 0;
+  auto old_texture = reinterpret_cast<gfx::TextureHandle>(&old_texture_storage);
+  auto new_texture = reinterpret_cast<gfx::TextureHandle>(&new_texture_storage);
+  bitmap.set_texture(old_texture);
+  bitmap.CreateTexture();
+
+  EXPECT_CALL(renderer, CreateTexture(kSheetWidth, kSheetHeight))
+      .WillOnce(::testing::Return(nullptr));
+  gfx::Arena::Get().ProcessTextureQueue(&renderer);
+  EXPECT_EQ(bitmap.texture(), old_texture);
+  EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 1u);
+  ASSERT_TRUE(::testing::Mock::VerifyAndClearExpectations(&renderer));
+
+  {
+    ::testing::InSequence sequence;
+    EXPECT_CALL(renderer, CreateTexture(kSheetWidth, kSheetHeight))
+        .WillOnce(::testing::Return(new_texture));
+    EXPECT_CALL(renderer, UpdateTexture(new_texture, ::testing::Ref(bitmap)));
+    EXPECT_CALL(renderer, DestroyTexture(old_texture));
+  }
+  gfx::Arena::Get().ProcessTextureQueue(&renderer);
+  EXPECT_FALSE(gfx::Arena::Get().HasPendingTextures());
+  EXPECT_EQ(bitmap.texture(), new_texture);
+}
+
+TEST_F(GfxGroupEditorRenderTest,
+       BatchCreateExceptionsCleanReplacementAndRetry) {
+  ::testing::StrictMock<yaze::test::MockRenderer> renderer;
+  gfx::Bitmap bitmap = MakeSheetBitmap();
+  int old_texture_storage = 0;
+  int failed_texture_storage = 0;
+  int new_texture_storage = 0;
+  auto old_texture = reinterpret_cast<gfx::TextureHandle>(&old_texture_storage);
+  auto failed_texture =
+      reinterpret_cast<gfx::TextureHandle>(&failed_texture_storage);
+  auto new_texture = reinterpret_cast<gfx::TextureHandle>(&new_texture_storage);
+  bitmap.set_texture(old_texture);
+  bitmap.CreateTexture();
+
+  EXPECT_CALL(renderer, CreateTexture(kSheetWidth, kSheetHeight))
+      .WillOnce(::testing::Throw(std::runtime_error("create failed")));
+  gfx::Arena::Get().ProcessTextureQueue(&renderer);
+  EXPECT_EQ(bitmap.texture(), old_texture);
+  EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 1u);
+  ASSERT_TRUE(::testing::Mock::VerifyAndClearExpectations(&renderer));
+
+  {
+    ::testing::InSequence sequence;
+    EXPECT_CALL(renderer, CreateTexture(kSheetWidth, kSheetHeight))
+        .WillOnce(::testing::Return(failed_texture));
+    EXPECT_CALL(renderer, UpdateTexture(failed_texture, ::testing::Ref(bitmap)))
+        .WillOnce(::testing::Throw(std::runtime_error("update failed")));
+    EXPECT_CALL(renderer, DestroyTexture(failed_texture));
+  }
+  gfx::Arena::Get().ProcessTextureQueue(&renderer);
+  EXPECT_EQ(bitmap.texture(), old_texture);
+  EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 1u);
+  ASSERT_TRUE(::testing::Mock::VerifyAndClearExpectations(&renderer));
+
+  {
+    ::testing::InSequence sequence;
+    EXPECT_CALL(renderer, CreateTexture(kSheetWidth, kSheetHeight))
+        .WillOnce(::testing::Return(new_texture));
+    EXPECT_CALL(renderer, UpdateTexture(new_texture, ::testing::Ref(bitmap)));
+    EXPECT_CALL(renderer, DestroyTexture(old_texture))
+        .WillOnce(::testing::Throw(std::runtime_error("destroy failed")));
+  }
+  gfx::Arena::Get().ProcessTextureQueue(&renderer);
+  EXPECT_FALSE(gfx::Arena::Get().HasPendingTextures());
+  EXPECT_EQ(bitmap.texture(), new_texture)
+      << "Failure to destroy the old handle must not blank the replacement";
 }
 
 // EnsureCompositeBitmapTextureQueued mirrors EnsureSheetTextureQueued but
