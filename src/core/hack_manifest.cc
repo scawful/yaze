@@ -72,6 +72,36 @@ absl::StatusOr<AddressOwnership> ParseOwnership(const std::string& str) {
       absl::StrFormat("Unknown ownership string '%s'", str));
 }
 
+absl::Status ValidateProjectRelativeSourcePath(
+    const std::string& configured_path, absl::string_view field_name) {
+  namespace fs = std::filesystem;
+  if (configured_path.empty() ||
+      configured_path.find('\\') != std::string::npos ||
+      configured_path.find(':') != std::string::npos ||
+      configured_path.find('\0') != std::string::npos) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s must be a non-empty portable project-relative path", field_name));
+  }
+
+  const fs::path path(configured_path);
+  if (path.is_absolute() || path.has_root_name() || path.has_root_directory() ||
+      !path.has_filename()) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s must be a project-relative file path", field_name));
+  }
+  for (const fs::path& component : path) {
+    if (component == "." || component == "..") {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s may not contain '.' or '..' components", field_name));
+    }
+  }
+  if (path.lexically_normal().generic_string() != configured_path) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s must be a normalized project-relative path", field_name));
+  }
+  return absl::OkStatus();
+}
+
 bool IsAsmOwned(AddressOwnership ownership) {
   switch (ownership) {
     case AddressOwnership::kHookPatched:
@@ -672,6 +702,7 @@ void HackManifest::Reset() {
   sram_map_.clear();
   sram_variables_.clear();
   message_layout_ = MessageLayout{};
+  minecart_track_layout_ = MinecartTrackLayout{};
   dungeon_stream_layouts_.clear();
   build_pipeline_ = BuildPipeline{};
   project_registry_ = ProjectRegistry{};
@@ -915,6 +946,72 @@ absl::Status HackManifest::LoadFromString(const std::string& json_content) {
               source["generated_asm_include_path"].get<std::string>(),
       };
     }
+  }
+
+  // Minecart track source contract
+  if (root.contains("minecart_tracks")) {
+    const auto& minecart_tracks = root["minecart_tracks"];
+    if (!minecart_tracks.is_object()) {
+      return absl::InvalidArgumentError("minecart_tracks must be an object");
+    }
+    constexpr std::array<absl::string_view, 1> kMinecartTrackKeys = {"source"};
+    for (const auto& item : minecart_tracks.items()) {
+      if (std::find(kMinecartTrackKeys.begin(), kMinecartTrackKeys.end(),
+                    item.key()) == kMinecartTrackKeys.end()) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "minecart_tracks contains unknown field '%s'", item.key()));
+      }
+    }
+    if (!minecart_tracks.contains("source")) {
+      return absl::InvalidArgumentError(
+          "minecart_tracks.source is required when minecart_tracks is present");
+    }
+
+    const auto& source = minecart_tracks["source"];
+    if (!source.is_object()) {
+      return absl::InvalidArgumentError(
+          "minecart_tracks.source must be an object");
+    }
+    constexpr std::array<absl::string_view, 3> kSourceKeys = {
+        "format", "version", "path"};
+    for (const auto& item : source.items()) {
+      if (std::find(kSourceKeys.begin(), kSourceKeys.end(), item.key()) ==
+          kSourceKeys.end()) {
+        return absl::InvalidArgumentError(absl::StrFormat(
+            "minecart_tracks.source contains unknown field '%s'", item.key()));
+      }
+    }
+    for (absl::string_view key : kSourceKeys) {
+      if (!source.contains(key)) {
+        return absl::InvalidArgumentError(
+            absl::StrFormat("minecart_tracks.source.%s is required", key));
+      }
+    }
+    if (!source["format"].is_string() ||
+        source["format"].get<std::string>() != "yaze-minecart-track-table") {
+      return absl::InvalidArgumentError(
+          "minecart_tracks.source.format must be "
+          "'yaze-minecart-track-table'");
+    }
+    const auto source_version_or = ParseBoundedNonnegativeInteger(
+        source["version"], "minecart_tracks.source.version",
+        static_cast<uint64_t>(std::numeric_limits<int>::max()));
+    if (!source_version_or.ok() || *source_version_or != 1) {
+      return absl::InvalidArgumentError(
+          "minecart_tracks.source.version must be integer 1");
+    }
+    if (!source["path"].is_string()) {
+      return absl::InvalidArgumentError(
+          "minecart_tracks.source.path must be a string");
+    }
+    const std::string source_path = source["path"].get<std::string>();
+    RETURN_IF_ERROR(ValidateProjectRelativeSourcePath(
+        source_path, "minecart_tracks.source.path"));
+    minecart_track_layout_.source = MinecartTrackLayout::Source{
+        .format = source["format"].get<std::string>(),
+        .version = *source_version_or,
+        .path = source_path,
+    };
   }
 
   total_hooks_ = protected_regions.total_hooks;

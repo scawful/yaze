@@ -29,6 +29,7 @@ set(
   app/editor/dungeon/dungeon_editor_v2_undo.cc
   app/editor/dungeon/dungeon_object_interaction.cc
   app/editor/dungeon/dungeon_object_selector.cc
+  app/editor/dungeon/minecart_track_source.cc
   app/editor/dungeon/object_selection.cc
   app/editor/dungeon/dungeon_room_loader.cc
   app/editor/dungeon/dungeon_room_selector.cc

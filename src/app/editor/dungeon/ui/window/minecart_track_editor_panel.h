@@ -5,13 +5,17 @@
 #include <cstdint>
 #include <filesystem>
 #include <functional>
+#include <optional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
+#include "app/editor/dungeon/minecart_track_source.h"
+#include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "core/project.h"
 #include "rom/rom.h"
@@ -19,23 +23,13 @@
 
 namespace yaze::editor {
 
-struct MinecartTrack {
-  int id;
-  int room_id;
-  int start_x;
-  int start_y;
-
-  bool operator==(const MinecartTrack&) const = default;
-};
-
-}  // namespace yaze::editor
-
-#include "app/editor/system/workspace/editor_panel.h"
-
-namespace yaze::editor {
-
 class MinecartTrackEditorPanel : public WindowContent {
  public:
+  using ProjectChangedCallback =
+      std::function<absl::Status(const project::DungeonOverlaySettings&)>;
+  using ProjectDraftChangedCallback = std::function<absl::Status()>;
+  using ProjectSaveCallback = std::function<absl::Status()>;
+
   MinecartTrackEditorPanel() = default;
 
   // WindowContent overrides
@@ -52,6 +46,9 @@ class MinecartTrackEditorPanel : public WindowContent {
     audit_dirty_ = true;
   }
   absl::Status SetProject(project::YazeProject* project);
+  // Reapply project-backed panel state even when the stable session project
+  // pointer and descriptor path did not change.
+  absl::Status RebindProjectContext(project::YazeProject* project);
   void SetRom(Rom* rom) { rom_ = rom; }
   absl::Status SaveTracks();
   absl::Status ReloadTracks();
@@ -59,6 +56,8 @@ class MinecartTrackEditorPanel : public WindowContent {
   bool HasUnpublishedChanges() const;
   absl::StatusOr<std::filesystem::path> ResolveTrackSourcePath() const;
   absl::Status UpdateTrack(size_t track_index, const MinecartTrack& track);
+  bool HasPendingProjectDraftChanges() const;
+  absl::Status PrepareProjectSave();
 
   // Coordinate picking from dungeon canvas
   // When picking mode is active, the next canvas click will set the coordinates
@@ -73,16 +72,21 @@ class MinecartTrackEditorPanel : public WindowContent {
   void SetRoomNavigationCallback(RoomNavigationCallback callback) {
     room_navigation_callback_ = std::move(callback);
   }
+  void SetProjectChangedCallback(ProjectChangedCallback callback) {
+    project_changed_callback_ = std::move(callback);
+  }
+  void SetProjectDraftChangedCallback(ProjectDraftChangedCallback callback) {
+    project_draft_changed_callback_ = std::move(callback);
+  }
+  void SetProjectSaveCallback(ProjectSaveCallback callback) {
+    project_save_callback_ = std::move(callback);
+  }
 
  private:
-  struct ParsedSection {
-    std::vector<int> values;
-    bool guarded = false;
-  };
+  friend class MinecartTrackEditorPanelTestPeer;
 
   absl::Status LoadTracks();
-  static absl::StatusOr<ParsedSection> ParseSection(const std::string& content,
-                                                    const std::string& label);
+  absl::Status ValidateLoadedManifestIdentity() const;
   absl::Status RefreshProjectBinding();
   void ResetTrackSession();
   void StartCoordinatePicking(int track_index);
@@ -91,8 +95,20 @@ class MinecartTrackEditorPanel : public WindowContent {
   bool IsDefaultTrack(const MinecartTrack& track) const;
   void DrawOverlaySettings();
   void InitializeOverlayInputs();
+  void ClearOverlayInputs();
+
+  using OverlayListMember =
+      std::vector<uint16_t> project::DungeonOverlaySettings::*;
   bool UpdateOverlayList(const char* label, std::string& input,
-                         std::vector<uint16_t>& target);
+                         OverlayListMember member);
+  absl::StatusOr<bool> CommitOverlayList(std::string& input,
+                                         OverlayListMember member);
+  absl::StatusOr<bool> CommitOverlayInputsForSave();
+  absl::StatusOr<bool> ResetOverlaySettings();
+  absl::Status NotifyProjectChanged(
+      const project::DungeonOverlaySettings& overlay);
+  absl::Status NotifyProjectDraftChanged();
+  absl::Status SaveProjectSettings();
 
   struct RoomTrackAudit {
     bool has_track_collision = false;
@@ -104,7 +120,12 @@ class MinecartTrackEditorPanel : public WindowContent {
 
   std::vector<MinecartTrack> tracks_;
   std::vector<MinecartTrack> loaded_tracks_;
+  std::optional<MinecartTrackSourceDocument> source_document_;
+  std::optional<core::MinecartTrackLayout::Source> loaded_source_identity_;
+  std::filesystem::path loaded_source_path_;
+  std::string loaded_source_sha256_;
   std::string bound_project_filepath_;
+  std::optional<core::MinecartTrackLayout::Source> bound_source_identity_;
   Rom* rom_ = nullptr;
   DungeonRoomStore* rooms_ = nullptr;
   project::YazeProject* project_ = nullptr;
@@ -114,7 +135,6 @@ class MinecartTrackEditorPanel : public WindowContent {
   bool audit_dirty_ = true;
   bool load_attempted_ = false;
   bool loaded_ = false;
-  bool source_is_guarded_ = false;
   std::string status_message_;
   bool show_success_ = false;
   float success_timer_ = 0.0f;
@@ -129,9 +149,13 @@ class MinecartTrackEditorPanel : public WindowContent {
   bool has_picked_coords_ = false;
 
   RoomNavigationCallback room_navigation_callback_;
+  ProjectChangedCallback project_changed_callback_;
+  ProjectDraftChangedCallback project_draft_changed_callback_;
+  ProjectSaveCallback project_save_callback_;
 
   // Overlay config input state
   bool overlay_inputs_initialized_ = false;
+  std::optional<project::DungeonOverlaySettings> overlay_inputs_model_;
   std::string overlay_track_tiles_input_;
   std::string overlay_track_stop_tiles_input_;
   std::string overlay_track_switch_tiles_input_;

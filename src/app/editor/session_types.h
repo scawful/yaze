@@ -98,6 +98,8 @@ class EditorSet {
   // Reset cached Screen Editor models only when that lazy editor already
   // exists. ROM replacement must not materialize an otherwise-unused editor.
   void InvalidateScreenRomBackedState();
+  bool HasPendingProjectDraftChanges() const;
+  absl::Status PrepareProjectSave();
   zelda3::Overworld* GetOverworldData() const;
 
   // Deprecated named accessors (legacy compatibility)
