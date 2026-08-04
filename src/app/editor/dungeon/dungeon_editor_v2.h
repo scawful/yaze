@@ -130,6 +130,7 @@ class DungeonEditorV2 : public Editor {
   }
 
   // Editor interface
+  void SetDependencies(const EditorDependencies& deps) override;
   void Initialize() override;
   absl::Status Load() override;
   absl::Status Update() override;

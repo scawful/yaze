@@ -26,7 +26,7 @@ namespace yaze::editor {
 class MinecartTrackEditorPanel : public WindowContent {
  public:
   using ProjectChangedCallback =
-      std::function<void(const project::DungeonOverlaySettings&)>;
+      std::function<absl::Status(const project::DungeonOverlaySettings&)>;
   using ProjectSaveCallback = std::function<absl::Status()>;
 
   MinecartTrackEditorPanel() = default;
@@ -45,6 +45,9 @@ class MinecartTrackEditorPanel : public WindowContent {
     audit_dirty_ = true;
   }
   absl::Status SetProject(project::YazeProject* project);
+  // Reapply project-backed panel state even when the stable session project
+  // pointer and descriptor path did not change.
+  absl::Status RebindProjectContext(project::YazeProject* project);
   void SetRom(Rom* rom) { rom_ = rom; }
   absl::Status SaveTracks();
   absl::Status ReloadTracks();
@@ -86,12 +89,16 @@ class MinecartTrackEditorPanel : public WindowContent {
   bool IsDefaultTrack(const MinecartTrack& track) const;
   void DrawOverlaySettings();
   void InitializeOverlayInputs();
+
+  using OverlayListMember =
+      std::vector<uint16_t> project::DungeonOverlaySettings::*;
   bool UpdateOverlayList(const char* label, std::string& input,
-                         std::vector<uint16_t>& target);
-  bool CommitOverlayList(const std::string& input,
-                         std::vector<uint16_t>& target);
-  bool ResetOverlaySettings();
-  void NotifyProjectChanged();
+                         OverlayListMember member);
+  absl::StatusOr<bool> CommitOverlayList(std::string& input,
+                                         OverlayListMember member);
+  absl::StatusOr<bool> ResetOverlaySettings();
+  absl::Status NotifyProjectChanged(
+      const project::DungeonOverlaySettings& overlay);
   absl::Status SaveProjectSettings();
 
   struct RoomTrackAudit {
@@ -109,6 +116,7 @@ class MinecartTrackEditorPanel : public WindowContent {
   std::filesystem::path loaded_source_path_;
   std::string loaded_source_sha256_;
   std::string bound_project_filepath_;
+  std::optional<core::MinecartTrackLayout::Source> bound_source_identity_;
   Rom* rom_ = nullptr;
   DungeonRoomStore* rooms_ = nullptr;
   project::YazeProject* project_ = nullptr;
