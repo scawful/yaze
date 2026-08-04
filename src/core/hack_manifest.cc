@@ -84,7 +84,8 @@ absl::Status ValidateProjectRelativeSourcePath(
   }
 
   const fs::path path(configured_path);
-  if (path.is_absolute() || path.has_root_name() || !path.has_filename()) {
+  if (path.is_absolute() || path.has_root_name() || path.has_root_directory() ||
+      !path.has_filename()) {
     return absl::InvalidArgumentError(
         absl::StrFormat("%s must be a project-relative file path", field_name));
   }
