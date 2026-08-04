@@ -42,6 +42,9 @@ class Inventory {
    */
   absl::Status Create(Rom* rom, GameData* game_data = nullptr);
 
+  // Clear ROM-derived logical state without moving queued Bitmap owners.
+  void ResetForReload();
+
   auto& bitmap() { return bitmap_; }
   auto& tilesheet() { return tilesheets_bmp_; }
   auto& palette() { return palette_; }

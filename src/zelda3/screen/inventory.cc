@@ -15,6 +15,7 @@ absl::Status Inventory::Create(Rom* rom, GameData* game_data) {
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM is not loaded");
   }
+  ResetForReload();
   game_data_ = game_data;
 
   // Build the tileset first (loads 2BPP graphics)
@@ -38,6 +39,17 @@ absl::Status Inventory::Create(Rom* rom, GameData* game_data) {
                                         &bitmap_);
 
   return absl::OkStatus();
+}
+
+void Inventory::ResetForReload() {
+  data_.clear();
+  tilesheets_.clear();
+  test_.clear();
+  palette_.clear();
+  tiles_.clear();
+  item_icons_.clear();
+  canvas_.ClearSelection();
+  game_data_ = nullptr;
 }
 
 absl::Status Inventory::BuildTileset(Rom* rom) {

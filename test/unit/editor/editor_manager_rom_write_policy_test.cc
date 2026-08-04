@@ -25,6 +25,8 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/util/palette_manager.h"
 #include "core/features.h"
+#include "framework/mock_renderer.h"
+#include "gmock/gmock.h"
 #include "rom/snes.h"
 #include "testing.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
@@ -43,6 +45,24 @@ class GraphicsEditorSaveStoplossTestPeer {
 
 class ScreenEditorSaveStoplossTestPeer {
  public:
+  struct BitmapOwners {
+    zelda3::Inventory* inventory = nullptr;
+    gfx::Bitmap* inventory_bitmap = nullptr;
+    gfx::Bitmap* inventory_tilesheet = nullptr;
+    gfx::Bitmap* title_bg1 = nullptr;
+    gfx::Bitmap* title_bg2 = nullptr;
+    gfx::Bitmap* title_oam = nullptr;
+    gfx::Bitmap* title_tiles8 = nullptr;
+    gfx::Bitmap* title_composite = nullptr;
+    gfx::Bitmap* overworld_tiles8 = nullptr;
+    gfx::Bitmap* overworld_map = nullptr;
+    gfx::Bitmap* sheet0 = nullptr;
+    gfx::Bitmap* tile16_atlas = nullptr;
+    gfx::Bitmap* tile8_atlas = nullptr;
+    gfx::Bitmap* tile16_cached = nullptr;
+    gfx::Bitmap* tile8_cached = nullptr;
+  };
+
   static std::array<gui::Canvas*, 9> AllCanvases(ScreenEditor* editor) {
     return {&editor->current_tile_canvas_,   &editor->screen_canvas_,
             &editor->tilesheet_canvas_,      &editor->tilemap_canvas_,
@@ -132,6 +152,7 @@ class ScreenEditorSaveStoplossTestPeer {
   }
 
   static void PrimeRomBackedState(ScreenEditor* editor) {
+    const std::vector<uint8_t> pixel{1};
     editor->dungeon_maps_.emplace_back(
         0xFFFF, 0, 0, std::vector<std::array<uint8_t, zelda3::kNumRooms>>{},
         std::vector<std::array<uint8_t, zelda3::kNumRooms>>{});
@@ -154,14 +175,27 @@ class ScreenEditorSaveStoplossTestPeer {
     editor->selected_tile8_ = 9;
     editor->selected_dungeon = 10;
     editor->floor_number = 11;
-    editor->sheets_[0] = std::make_unique<gfx::Bitmap>();
-    editor->tile16_blockset_.tile_cache.CacheTile(1, gfx::Bitmap{});
-    editor->tile8_tilemap_.tile_cache.CacheTile(2, gfx::Bitmap{});
+    editor->sheets_[0] = std::make_unique<gfx::Bitmap>(1, 1, 8, pixel);
+    gfx::Bitmap tile16_cached(1, 1, 8, pixel);
+    gfx::Bitmap tile8_cached(1, 1, 8, pixel);
+    editor->tile16_blockset_.atlas.Create(1, 1, 8, pixel);
+    editor->tile8_tilemap_.atlas.Create(1, 1, 8, pixel);
+    editor->tile16_blockset_.tile_info.push_back({});
+    editor->tile8_tilemap_.tile_info.push_back({});
+    editor->tile16_blockset_.tile_cache.CacheTile(1, tile16_cached);
+    editor->tile8_tilemap_.tile_cache.CacheTile(2, tile8_cached);
     editor->inventory_->item_icons().push_back(
         zelda3::ItemIcon{1, 2, 3, 4, "stale item"});
     editor->inventory_->palette().AddColor(gfx::SnesColor(1));
     editor->inventory_->bitmap().Create(1, 1, 8, std::vector<uint8_t>{1});
     editor->inventory_->tilesheet().Create(1, 1, 8, std::vector<uint8_t>{1});
+    editor->title_screen_.bg1_bitmap().Create(1, 1, 8, pixel);
+    editor->title_screen_.bg2_bitmap().Create(1, 1, 8, pixel);
+    editor->title_screen_.oam_bitmap().Create(1, 1, 8, pixel);
+    editor->title_screen_.tiles8_bitmap().Create(1, 1, 8, pixel);
+    editor->title_screen_.composite_bitmap().Create(1, 1, 8, pixel);
+    editor->ow_map_screen_.tiles8_bitmap().Create(1, 1, 8, pixel);
+    editor->ow_map_screen_.map_bitmap().Create(1, 1, 8, pixel);
     editor->current_mode_ = ScreenEditor::EditingMode::EDIT;
     editor->selected_title_tile16_ = 12;
     editor->title_h_flip_ = true;
@@ -171,6 +205,7 @@ class ScreenEditorSaveStoplossTestPeer {
     editor->show_title_bg2_ = false;
     editor->selected_ow_tile_ = 13;
     editor->ow_show_dark_world_ = true;
+    editor->rom_backed_state_valid_ = true;
     float canvas_seed = 1.0f;
     for (auto* canvas : AllCanvases(editor)) {
       PrimeCanvasSelection(canvas, canvas_seed++);
@@ -206,35 +241,92 @@ class ScreenEditorSaveStoplossTestPeer {
            editor.ow_map_loaded_ || editor.selected_room != 0 ||
            editor.selected_tile16_ != 0 || editor.selected_tile8_ != 0 ||
            editor.selected_dungeon != 0 || editor.floor_number != 0 ||
-           !editor.sheets_.empty() ||
-           editor.tile16_blockset_.tile_cache.Size() != 0 ||
-           editor.tile8_tilemap_.tile_cache.Size() != 0 ||
+           !editor.tile16_blockset_.tile_info.empty() ||
+           !editor.tile8_tilemap_.tile_info.empty() ||
            !editor.inventory_->item_icons().empty() ||
            editor.inventory_->palette().size() != 0 ||
-           editor.inventory_->bitmap().size() != 0 ||
-           editor.inventory_->tilesheet().size() != 0 ||
+           editor.title_screen_.palette().size() != 0 ||
+           editor.ow_map_screen_.lw_palette().size() != 0 ||
+           editor.ow_map_screen_.dw_palette().size() != 0 ||
            editor.current_mode_ != ScreenEditor::EditingMode::DRAW ||
            editor.selected_title_tile16_ != 0 || editor.title_h_flip_ ||
            editor.title_v_flip_ || editor.title_palette_ != 0 ||
            !editor.show_title_bg1_ || !editor.show_title_bg2_ ||
            editor.selected_ow_tile_ != 0 || editor.ow_show_dark_world_ ||
-           has_canvas_selection || editor.HasPendingScreenChanges();
+           has_canvas_selection || editor.HasPendingScreenChanges() ||
+           editor.rom_backed_state_valid_;
   }
 
-  static void SeedCachedDungeonMapWithoutPending(ScreenEditor* editor) {
-    std::array<uint8_t, zelda3::kNumRooms> rooms{};
-    rooms.fill(0x0F);
-    std::array<uint8_t, zelda3::kNumRooms> graphics{};
-    graphics.fill(0xFF);
-    editor->dungeon_maps_.emplace_back(
-        0x1234, 1, 0,
-        std::vector<std::array<uint8_t, zelda3::kNumRooms>>{rooms},
-        std::vector<std::array<uint8_t, zelda3::kNumRooms>>{graphics});
-    ClearPendingChanges(editor);
+  static BitmapOwners CaptureBitmapOwners(ScreenEditor* editor) {
+    return {
+        .inventory = editor->inventory_.get(),
+        .inventory_bitmap = &editor->inventory_->bitmap(),
+        .inventory_tilesheet = &editor->inventory_->tilesheet(),
+        .title_bg1 = &editor->title_screen_.bg1_bitmap(),
+        .title_bg2 = &editor->title_screen_.bg2_bitmap(),
+        .title_oam = &editor->title_screen_.oam_bitmap(),
+        .title_tiles8 = &editor->title_screen_.tiles8_bitmap(),
+        .title_composite = &editor->title_screen_.composite_bitmap(),
+        .overworld_tiles8 = &editor->ow_map_screen_.tiles8_bitmap(),
+        .overworld_map = &editor->ow_map_screen_.map_bitmap(),
+        .sheet0 = editor->sheets_.at(0).get(),
+        .tile16_atlas = &editor->tile16_blockset_.atlas,
+        .tile8_atlas = &editor->tile8_tilemap_.atlas,
+        .tile16_cached = editor->tile16_blockset_.tile_cache.GetTile(1),
+        .tile8_cached = editor->tile8_tilemap_.tile_cache.GetTile(2),
+    };
+  }
+
+  static void QueueBitmapOwners(const BitmapOwners& owners) {
+    for (auto* bitmap :
+         {owners.inventory_bitmap, owners.inventory_tilesheet, owners.title_bg1,
+          owners.title_bg2, owners.title_oam, owners.title_tiles8,
+          owners.title_composite, owners.overworld_tiles8, owners.overworld_map,
+          owners.sheet0, owners.tile16_atlas, owners.tile8_atlas,
+          owners.tile16_cached, owners.tile8_cached}) {
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::CREATE, bitmap);
+    }
+  }
+
+  static void ExpectSameBitmapOwners(const BitmapOwners& expected,
+                                     const BitmapOwners& actual) {
+    EXPECT_EQ(actual.inventory, expected.inventory);
+    EXPECT_EQ(actual.inventory_bitmap, expected.inventory_bitmap);
+    EXPECT_EQ(actual.inventory_tilesheet, expected.inventory_tilesheet);
+    EXPECT_EQ(actual.title_bg1, expected.title_bg1);
+    EXPECT_EQ(actual.title_bg2, expected.title_bg2);
+    EXPECT_EQ(actual.title_oam, expected.title_oam);
+    EXPECT_EQ(actual.title_tiles8, expected.title_tiles8);
+    EXPECT_EQ(actual.title_composite, expected.title_composite);
+    EXPECT_EQ(actual.overworld_tiles8, expected.overworld_tiles8);
+    EXPECT_EQ(actual.overworld_map, expected.overworld_map);
+    EXPECT_EQ(actual.sheet0, expected.sheet0);
+    EXPECT_EQ(actual.tile16_atlas, expected.tile16_atlas);
+    EXPECT_EQ(actual.tile8_atlas, expected.tile8_atlas);
+    EXPECT_EQ(actual.tile16_cached, expected.tile16_cached);
+    EXPECT_EQ(actual.tile8_cached, expected.tile8_cached);
   }
 
   static size_t DungeonMapCount(const ScreenEditor& editor) {
     return editor.dungeon_maps_.size();
+  }
+
+  static int DungeonFloorCount(const ScreenEditor& editor, size_t dungeon) {
+    const auto& map = editor.dungeon_maps_.at(dungeon);
+    return map.nbr_of_floor + map.nbr_of_basement;
+  }
+
+  static void DrawDungeonMapsEditor(ScreenEditor* editor) {
+    editor->DrawDungeonMapsEditor();
+  }
+
+  static void DrawEmptyDungeonMapMethods(ScreenEditor* editor) {
+    editor->rom_backed_state_valid_ = true;
+    editor->DrawDungeonMapScreen(0);
+    editor->DrawDungeonMapsTabs();
+    editor->DrawDungeonMapsRoomGfx();
+    editor->DrawDungeonMapsEditor();
   }
 
   static absl::Status CreateTitleScreenModel(ScreenEditor* editor, Rom* rom,
@@ -368,6 +460,8 @@ struct ScopedImGuiContext {
     ctx = ImGui::CreateContext();
     ImGui::SetCurrentContext(ctx);
     ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(1280, 720);
+    io.DeltaTime = 1.0f / 60.0f;
     unsigned char* pixels = nullptr;
     int width = 0;
     int height = 0;
@@ -407,6 +501,12 @@ void WriteByteAt(const std::filesystem::path& path, std::streamoff offset,
   ASSERT_TRUE(file.good());
 }
 
+void WriteWordAt(const std::filesystem::path& path, std::streamoff offset,
+                 uint16_t value) {
+  WriteByteAt(path, offset, static_cast<uint8_t>(value & 0xFF));
+  WriteByteAt(path, offset + 1, static_cast<uint8_t>(value >> 8));
+}
+
 void WriteTestRom(const std::filesystem::path& path,
                   const std::string& title = "YAZE TEST ROM") {
   std::vector<uint8_t> rom_data(512 * 1024, 0x00);
@@ -420,11 +520,24 @@ void WriteTestRom(const std::filesystem::path& path,
   ASSERT_TRUE(out.good());
 }
 
-void WriteScreenModelTestRom(const std::filesystem::path& path) {
+void WriteScreenModelTestRom(const std::filesystem::path& path,
+                             const std::string& title = "SCREEN MODEL TEST") {
   std::vector<uint8_t> rom_data(1024 * 1024, 0x00);
-  const std::string kTitle = "SCREEN MODEL TEST";
-  for (size_t i = 0; i < kTitle.size(); ++i) {
-    rom_data[0x7FC0 + i] = static_cast<uint8_t>(kTitle[i]);
+  for (size_t i = 0; i < title.size() && i < 20; ++i) {
+    rom_data[0x7FC0 + i] = static_cast<uint8_t>(title[i]);
+  }
+  std::ofstream out(path, std::ios::binary | std::ios::trunc);
+  ASSERT_TRUE(out.is_open());
+  out.write(reinterpret_cast<const char*>(rom_data.data()),
+            static_cast<std::streamsize>(rom_data.size()));
+  ASSERT_TRUE(out.good());
+}
+
+void WriteTooSmallForAssetsTestRom(const std::filesystem::path& path) {
+  std::vector<uint8_t> rom_data(512 * 1024, 0x00);
+  const std::string title = "INVALID ASSET ROM";
+  for (size_t i = 0; i < title.size() && i < 20; ++i) {
+    rom_data[0x7FC0 + i] = static_cast<uint8_t>(title[i]);
   }
   std::ofstream out(path, std::ios::binary | std::ios::trunc);
   ASSERT_TRUE(out.is_open());
@@ -2077,7 +2190,7 @@ TEST(ScreenSaveStoplossTest,
 }
 
 TEST(ScreenSaveStoplossTest,
-     RomReplacementInvalidatesCachedScreenBeforeEnabledGlobalSave) {
+     RomReplacementRefreshesLoadedScreenInPlaceBeforeEnabledGlobalSave) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
 
@@ -2091,7 +2204,7 @@ TEST(ScreenSaveStoplossTest,
   ScopedDirectoryCleanup cleanup{temp_dir};
   const auto rom_path = temp_dir / "game.sfc";
   const auto project_path = temp_dir / "game.yaze";
-  WriteTestRom(rom_path, "BEFORE SCREEN RELOAD");
+  WriteScreenModelTestRom(rom_path, "BEFORE SCREEN RELOAD");
   WriteTestProject(project_path, rom_path);
   ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
 
@@ -2108,19 +2221,42 @@ TEST(ScreenSaveStoplossTest,
 
   auto* editor_set = manager->GetCurrentEditorSet();
   ASSERT_NE(editor_set, nullptr);
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kScreen));
   auto* screen = editor_set->GetEditorAs<ScreenEditor>(EditorType::kScreen);
   ASSERT_NE(screen, nullptr);
-  ScreenEditorSaveStoplossTestPeer::SeedCachedDungeonMapWithoutPending(screen);
-  ASSERT_EQ(ScreenEditorSaveStoplossTestPeer::DungeonMapCount(*screen), 1u);
+  ASSERT_TRUE(screen->IsRomBackedStateValid());
+  ASSERT_EQ(ScreenEditorSaveStoplossTestPeer::DungeonMapCount(*screen), 14u);
   ASSERT_FALSE(screen->HasPendingScreenChanges());
+  auto* const sheet0_before =
+      ScreenEditorSaveStoplossTestPeer::CaptureBitmapOwners(screen).sheet0;
 
-  constexpr uint8_t kReplacementFloorByte = 0xA6;
-  WriteTestRom(rom_path, "AFTER SCREEN RELOAD");
+  constexpr uint8_t kReplacementFloorByte = 0x10;
+  WriteScreenModelTestRom(rom_path, "AFTER SCREEN RELOAD");
   WriteByteAt(rom_path, zelda3::kDungeonMapFloors, kReplacementFloorByte);
+  for (int dungeon = 0; dungeon < zelda3::kNumDungeons; ++dungeon) {
+    WriteWordAt(rom_path, zelda3::kDungeonMapBossRooms + (dungeon * 2), 0xFFFF);
+  }
   ASSERT_OK(manager->ReloadProjectRom());
 
   EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kScreen), screen);
-  EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::DungeonMapCount(*screen), 0u);
+  EXPECT_TRUE(screen->IsRomBackedStateValid());
+  EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::DungeonMapCount(*screen), 14u);
+  EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::DungeonFloorCount(*screen, 0), 1);
+  EXPECT_EQ(
+      ScreenEditorSaveStoplossTestPeer::CaptureBitmapOwners(screen).sheet0,
+      sheet0_before);
+  const auto screen_index = static_cast<size_t>(EditorType::kScreen);
+  EXPECT_TRUE(session->editor_initialized[screen_index]);
+  EXPECT_TRUE(session->editor_assets_loaded[screen_index]);
+
+  // Exercise the visible panel after replacement, including the populated
+  // first floor and guarded empty states for the other synthetic dungeons.
+  ImGui::NewFrame();
+  ImGui::Begin("ScreenReloadDrawSafety");
+  ScreenEditorSaveStoplossTestPeer::DrawDungeonMapsEditor(screen);
+  ImGui::End();
+  ImGui::Render();
+
   EXPECT_TRUE(core::FeatureFlags::get().kSaveDungeonMaps);
   ASSERT_NE(manager->GetCurrentRom(), nullptr);
   ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x1234, 0x5A));
@@ -2129,6 +2265,71 @@ TEST(ScreenSaveStoplossTest,
   EXPECT_EQ(ReadByteAt(rom_path, zelda3::kDungeonMapFloors),
             kReplacementFloorByte);
   EXPECT_EQ(ReadByteAt(rom_path, 0x1234), 0x5A);
+}
+
+TEST(ScreenSaveStoplossTest,
+     FailedRomReplacementRefreshesLoadedScreenAfterRollback) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto temp_dir = MakeTempFilePath("yaze_screen_replace_rollback");
+  ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
+  ScopedDirectoryCleanup cleanup{temp_dir};
+  const auto rom_path = temp_dir / "game.sfc";
+  const auto project_path = temp_dir / "game.yaze";
+  WriteScreenModelTestRom(rom_path, "SCREEN ROLLBACK OLD");
+  WriteTestProject(project_path, rom_path);
+  ASSERT_OK(manager->OpenRomOrProject(project_path.string()));
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kScreen));
+
+  auto* session = manager->session_coordinator()->GetActiveRomSession();
+  ASSERT_NE(session, nullptr);
+  ASSERT_TRUE(session->game_data_loaded);
+  auto* editor_set = manager->GetCurrentEditorSet();
+  ASSERT_NE(editor_set, nullptr);
+  auto* screen = editor_set->GetEditorAs<ScreenEditor>(EditorType::kScreen);
+  ASSERT_NE(screen, nullptr);
+  ASSERT_TRUE(screen->IsRomBackedStateValid());
+  auto* const sheet0_before =
+      ScreenEditorSaveStoplossTestPeer::CaptureBitmapOwners(screen).sheet0;
+  Rom* const rom_before = manager->GetCurrentRom();
+
+  // This ROM passes the 512 KiB file gate but cannot load palettes,
+  // forcing ReplaceActiveSessionRom through its in-place rollback path.
+  WriteTooSmallForAssetsTestRom(rom_path);
+  const auto reload_status = manager->ReloadProjectRom();
+  EXPECT_EQ(reload_status.code(), absl::StatusCode::kOutOfRange)
+      << reload_status;
+  EXPECT_NE(std::string(reload_status.message()).find("palette"),
+            std::string::npos)
+      << reload_status;
+
+  EXPECT_EQ(manager->GetCurrentRom(), rom_before);
+  ASSERT_NE(manager->GetCurrentRom(), nullptr);
+  EXPECT_NE(manager->GetCurrentRom()->title().find("SCREEN ROLLBACK OLD"),
+            std::string::npos);
+  EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kScreen), screen);
+  EXPECT_TRUE(screen->IsRomBackedStateValid());
+  EXPECT_EQ(ScreenEditorSaveStoplossTestPeer::DungeonMapCount(*screen), 14u);
+  EXPECT_EQ(
+      ScreenEditorSaveStoplossTestPeer::CaptureBitmapOwners(screen).sheet0,
+      sheet0_before);
+  const size_t screen_index = EditorTypeIndex(EditorType::kScreen);
+  EXPECT_TRUE(session->editor_initialized[screen_index]);
+  EXPECT_TRUE(session->editor_assets_loaded[screen_index]);
+  core::FeatureFlags::get().kSaveDungeonMaps = false;
+  EXPECT_TRUE(screen->Save().ok());
+
+  ImGui::NewFrame();
+  ImGui::Begin("ScreenRollbackDrawSafety");
+  ScreenEditorSaveStoplossTestPeer::DrawDungeonMapsEditor(screen);
+  ImGui::End();
+  ImGui::Render();
 }
 
 TEST(ScreenSaveStoplossTest,
@@ -2277,6 +2478,24 @@ TEST(ScreenSaveStoplossTest, DirectEditorSaveFailsClosedForEveryDomain) {
 }
 
 TEST(ScreenSaveStoplossTest,
+     InvalidStateSaveAndEmptyDungeonDrawMethodsFailClosed) {
+  ScopedImGuiContext imgui;
+  ScreenEditor editor;
+
+  const auto save_status = editor.Save();
+  EXPECT_EQ(save_status.code(), absl::StatusCode::kFailedPrecondition)
+      << save_status;
+  EXPECT_NE(std::string(save_status.message()).find("ROM-backed state"),
+            std::string::npos);
+
+  ImGui::NewFrame();
+  ImGui::Begin("EmptyDungeonMapDrawSafety");
+  ScreenEditorSaveStoplossTestPeer::DrawEmptyDungeonMapMethods(&editor);
+  ImGui::End();
+  ImGui::Render();
+}
+
+TEST(ScreenSaveStoplossTest,
      DirectTitleAndPauseMapSavesFailWithoutClearingPendingDomains) {
   ScreenEditor editor;
 
@@ -2329,13 +2548,28 @@ TEST(ScreenSaveStoplossTest, MutationUndoAndRedoRemarkEachDomainPending) {
 }
 
 TEST(ScreenSaveStoplossTest, ReloadResetClearsRomBackedStateAndHistory) {
+  ScopedTextureQueueClear texture_queue;
+  ::testing::NiceMock<yaze::test::MockRenderer> renderer;
   ScreenEditor editor;
   ScreenEditorSaveStoplossTestPeer::PrimeRomBackedState(&editor);
   ASSERT_TRUE(ScreenEditorSaveStoplossTestPeer::HasReloadResidue(editor));
+  const auto owners_before =
+      ScreenEditorSaveStoplossTestPeer::CaptureBitmapOwners(&editor);
+  ScreenEditorSaveStoplossTestPeer::QueueBitmapOwners(owners_before);
 
   ScreenEditorSaveStoplossTestPeer::ResetRomBackedStateForLoad(&editor);
 
   EXPECT_FALSE(ScreenEditorSaveStoplossTestPeer::HasReloadResidue(editor));
+  const auto owners_after =
+      ScreenEditorSaveStoplossTestPeer::CaptureBitmapOwners(&editor);
+  ScreenEditorSaveStoplossTestPeer::ExpectSameBitmapOwners(owners_before,
+                                                           owners_after);
+
+  // Process the actual queue after reset. Under ASan this catches any future
+  // reset that frees a Bitmap owner still referenced by Arena.
+  while (gfx::Arena::Get().HasPendingTextures()) {
+    gfx::Arena::Get().ProcessTextureQueue(&renderer);
+  }
 }
 
 TEST(ScreenSaveStoplossTest,
