@@ -4090,10 +4090,10 @@ absl::Status EditorManager::SaveRomInternal(
   // state instead of reporting a partial save as successful.
   if (current_editor_set->HasPendingScreenChanges()) {
     return absl::FailedPreconditionError(absl::StrFormat(
-        "Save blocked: Screen Editor dungeon-map edits are pending, but "
-        "dungeon-map ROM persistence is not safely available (Save Dungeon "
-        "Maps is %s). Discard the Screen Editor dungeon-map edits before "
-        "saving the ROM.",
+        "Save blocked: Screen Editor edits are pending, but they cannot all "
+        "participate safely in the coordinated ROM save (Save Dungeon Maps is "
+        "%s). Use the title-screen or world-map Save control where applicable, "
+        "or discard the pending Screen Editor edits before saving the ROM.",
         core::FeatureFlags::get().kSaveDungeonMaps ? "enabled" : "disabled"));
   }
 
@@ -6562,7 +6562,7 @@ std::string EditorManager::DescribePendingUnsavedWork(
     work.emplace_back("unapplied graphics sheet edits");
   }
   if (pending_screen_changes) {
-    work.emplace_back("unapplied Screen Editor dungeon-map edits");
+    work.emplace_back("unapplied Screen Editor edits");
   }
   if (rom_dirty) {
     work.emplace_back("unsaved ROM-buffer changes");

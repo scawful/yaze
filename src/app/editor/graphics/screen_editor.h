@@ -60,8 +60,17 @@ class ScreenEditor : public Editor {
   bool HasPendingDungeonMapTile16Changes() const {
     return pending_dungeon_map_tile16_changes_;
   }
+  bool HasPendingTitleScreenChanges() const {
+    return pending_title_screen_changes_;
+  }
+  bool HasPendingOverworldMapChanges() const {
+    return pending_overworld_map_changes_ ||
+           pending_overworld_map_palette_changes_;
+  }
   bool HasPendingScreenChanges() const {
-    return HasPendingDungeonMapChanges() || HasPendingDungeonMapTile16Changes();
+    return HasPendingDungeonMapChanges() ||
+           HasPendingDungeonMapTile16Changes() ||
+           HasPendingTitleScreenChanges() || HasPendingOverworldMapChanges();
   }
 
   std::vector<zelda3::DungeonMap> dungeon_maps_;
@@ -108,6 +117,13 @@ class ScreenEditor : public Editor {
   void MarkDungeonMapTile16Modified() {
     pending_dungeon_map_tile16_changes_ = true;
   }
+  void MarkTitleScreenModified() { pending_title_screen_changes_ = true; }
+  void MarkOverworldMapModified() { pending_overworld_map_changes_ = true; }
+  void MarkOverworldMapPaletteModified() {
+    pending_overworld_map_palette_changes_ = true;
+  }
+  absl::Status SaveTitleScreenToRom();
+  absl::Status SaveOverworldMapToRom();
 
   enum class EditingMode { DRAW, EDIT };
 
@@ -180,6 +196,9 @@ class ScreenEditor : public Editor {
   bool has_pending_tile16_undo_ = false;
   bool pending_dungeon_map_changes_ = false;
   bool pending_dungeon_map_tile16_changes_ = false;
+  bool pending_title_screen_changes_ = false;
+  bool pending_overworld_map_changes_ = false;
+  bool pending_overworld_map_palette_changes_ = false;
   ScreenSnapshot pending_dungeon_before_;
   ScreenSnapshot pending_tile16_before_;
   std::string pending_dungeon_desc_;
