@@ -59,11 +59,12 @@ TEST_F(GfxGroupEditorRenderTest, TexturelessSheetGetsCreateQueued) {
          "ones without consulting the caller.";
 }
 
-TEST_F(GfxGroupEditorRenderTest, RepeatedCallsKeepQueuingWhileTextureMissing) {
+TEST_F(GfxGroupEditorRenderTest,
+       RepeatedCallsQueueReplacementSafeCreatesWhileTextureMissing) {
   // The Arena drains commands in ProcessTextureQueue; until that runs the
   // sheet still has no texture, so calling the helper again still queues.
-  // This is acceptable: ProcessTextureQueue is idempotent on duplicate
-  // CREATE entries for the same bitmap.
+  // This is safe but not free: each CREATE replaces any texture installed by
+  // an earlier CREATE, destroying that texture before allocating another.
   gfx::Bitmap sheet = MakeSheetBitmap();
 
   internal::EnsureSheetTextureQueued(sheet);
@@ -84,32 +85,52 @@ TEST_F(GfxGroupEditorRenderTest, InactiveButSurfacedSheetGetsActivated) {
 }
 
 TEST_F(GfxGroupEditorRenderTest,
-       BitmapRecreationInvalidatesOldCommandsAndReplacesTextureInOrder) {
-  ::testing::NiceMock<yaze::test::MockRenderer> renderer;
+       BitmapRecreationInvalidatesOldCommandsAndPreservesTextureForUpdate) {
+  ::testing::StrictMock<yaze::test::MockRenderer> renderer;
   gfx::Bitmap bitmap = MakeSheetBitmap();
   int old_texture_storage = 0;
-  int new_texture_storage = 0;
   auto old_texture = reinterpret_cast<gfx::TextureHandle>(&old_texture_storage);
-  auto new_texture = reinterpret_cast<gfx::TextureHandle>(&new_texture_storage);
-
-  EXPECT_CALL(renderer, CreateTexture(kSheetWidth, kSheetHeight))
-      .WillOnce(::testing::Return(old_texture));
-  EXPECT_CALL(renderer, UpdateTexture(old_texture, ::testing::Ref(bitmap)));
-  bitmap.CreateTexture();
-  gfx::Arena::Get().ProcessTextureQueue(&renderer);
-  ASSERT_EQ(bitmap.texture(), old_texture);
-  ASSERT_FALSE(gfx::Arena::Get().HasPendingTextures());
-  ASSERT_TRUE(::testing::Mock::VerifyAndClearExpectations(&renderer));
+  bitmap.set_texture(old_texture);
 
   const uint32_t old_generation = bitmap.generation();
   bitmap.UpdateTexture();  // Must become stale when Create() replaces data.
   std::vector<uint8_t> replacement_pixels(kSheetWidth * kSheetHeight, 7);
   bitmap.Create(kSheetWidth, kSheetHeight, kSheetDepth, replacement_pixels);
-  bitmap.CreateTexture();
+  bitmap.UpdateTexture();
 
   EXPECT_NE(bitmap.generation(), old_generation);
   ASSERT_EQ(bitmap.texture(), old_texture)
-      << "The old handle must remain available to deferred DESTROY";
+      << "Recreation must retain the texture so UPDATE can reuse it";
+  EXPECT_CALL(renderer, DestroyTexture(::testing::_)).Times(0);
+  EXPECT_CALL(renderer, CreateTexture(::testing::_, ::testing::_)).Times(0);
+  EXPECT_CALL(renderer, UpdateTexture(old_texture, ::testing::Ref(bitmap)))
+      .Times(1);
+
+  // The pre-recreation UPDATE is stale; only the UPDATE stamped with the new
+  // generation reaches the retained texture.
+  gfx::Arena::Get().ProcessTextureQueue(&renderer);
+
+  EXPECT_FALSE(gfx::Arena::Get().HasPendingTextures());
+  EXPECT_EQ(bitmap.texture(), old_texture);
+  EXPECT_EQ(bitmap.vector().front(), 7);
+}
+
+TEST_F(GfxGroupEditorRenderTest,
+       BitmapRecreationCreateReplacesTextureInSingleQueuePath) {
+  ::testing::StrictMock<yaze::test::MockRenderer> renderer;
+  gfx::Bitmap bitmap = MakeSheetBitmap();
+  int old_texture_storage = 0;
+  int new_texture_storage = 0;
+  auto old_texture = reinterpret_cast<gfx::TextureHandle>(&old_texture_storage);
+  auto new_texture = reinterpret_cast<gfx::TextureHandle>(&new_texture_storage);
+  bitmap.set_texture(old_texture);
+
+  std::vector<uint8_t> replacement_pixels(kSheetWidth * kSheetHeight, 7);
+  bitmap.Create(kSheetWidth, kSheetHeight, kSheetDepth, replacement_pixels);
+  bitmap.CreateTexture();
+
+  ASSERT_EQ(bitmap.texture(), old_texture)
+      << "CREATE processing, not Bitmap::Create, owns texture replacement";
 
   {
     ::testing::InSequence sequence;
@@ -119,14 +140,46 @@ TEST_F(GfxGroupEditorRenderTest,
     EXPECT_CALL(renderer, UpdateTexture(new_texture, ::testing::Ref(bitmap)));
   }
 
-  // Processing the real deferred queue (rather than inspecting it) makes this
-  // an ASan-friendly lifetime regression: stale UPDATE is discarded, then the
-  // retained Bitmap owner receives DESTROY followed by replacement CREATE.
-  gfx::Arena::Get().ProcessTextureQueue(&renderer);
+  EXPECT_TRUE(gfx::Arena::Get().ProcessSingleTexture(&renderer));
 
   EXPECT_FALSE(gfx::Arena::Get().HasPendingTextures());
   EXPECT_EQ(bitmap.texture(), new_texture);
   EXPECT_EQ(bitmap.vector().front(), 7);
+}
+
+TEST_F(GfxGroupEditorRenderTest,
+       DuplicateCreateCommandsDestroyEachReplacedTextureInBatchPath) {
+  ::testing::StrictMock<yaze::test::MockRenderer> renderer;
+  gfx::Bitmap bitmap = MakeSheetBitmap();
+  int old_texture_storage = 0;
+  int intermediate_texture_storage = 0;
+  int final_texture_storage = 0;
+  auto old_texture = reinterpret_cast<gfx::TextureHandle>(&old_texture_storage);
+  auto intermediate_texture =
+      reinterpret_cast<gfx::TextureHandle>(&intermediate_texture_storage);
+  auto final_texture =
+      reinterpret_cast<gfx::TextureHandle>(&final_texture_storage);
+  bitmap.set_texture(old_texture);
+  bitmap.CreateTexture();
+  bitmap.CreateTexture();
+
+  {
+    ::testing::InSequence sequence;
+    EXPECT_CALL(renderer, DestroyTexture(old_texture));
+    EXPECT_CALL(renderer, CreateTexture(kSheetWidth, kSheetHeight))
+        .WillOnce(::testing::Return(intermediate_texture));
+    EXPECT_CALL(renderer,
+                UpdateTexture(intermediate_texture, ::testing::Ref(bitmap)));
+    EXPECT_CALL(renderer, DestroyTexture(intermediate_texture));
+    EXPECT_CALL(renderer, CreateTexture(kSheetWidth, kSheetHeight))
+        .WillOnce(::testing::Return(final_texture));
+    EXPECT_CALL(renderer, UpdateTexture(final_texture, ::testing::Ref(bitmap)));
+  }
+
+  gfx::Arena::Get().ProcessTextureQueue(&renderer);
+
+  EXPECT_FALSE(gfx::Arena::Get().HasPendingTextures());
+  EXPECT_EQ(bitmap.texture(), final_texture);
 }
 
 // EnsureCompositeBitmapTextureQueued mirrors EnsureSheetTextureQueued but
@@ -187,10 +240,10 @@ TEST_F(GfxGroupEditorRenderTest,
 }
 
 TEST_F(GfxGroupEditorRenderTest,
-       EnsureCompositeBitmapPinsPurposeWithoutQueueingTwice) {
-  // Repeated calls before the queue drains keep queueing CREATE (the Arena's
-  // CREATE branch is idempotent on duplicates), but each call still stamps
-  // purpose. This is the slice-1 contract; slice-7 inherits it.
+       EnsureCompositeBitmapPinsPurposeAcrossReplacementSafeCreates) {
+  // Repeated calls before the queue drains keep queueing CREATE. Arena safely
+  // replaces the texture for each command, though callers should avoid the
+  // duplicate allocation work when they can. Each call still stamps purpose.
   gfx::Bitmap composite = MakeCompositeBitmap();
 
   internal::EnsureCompositeBitmapTextureQueued(composite);
