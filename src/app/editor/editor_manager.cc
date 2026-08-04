@@ -4204,8 +4204,14 @@ absl::Status EditorManager::SaveRomInternal(
   };
 
   // --- Save editor-specific data ---
-  RETURN_IF_ERROR(
-      save_editor(current_editor_set->GetExistingEditor(EditorType::kScreen)));
+  auto* screen_editor = static_cast<ScreenEditor*>(
+      current_editor_set->GetExistingEditor(EditorType::kScreen));
+  // A failed lazy Screen load leaves an invalid, clean editor behind. It has
+  // nothing to serialize and must not poison unrelated ROM saves.
+  if (screen_editor != nullptr && (screen_editor->IsRomBackedStateValid() ||
+                                   screen_editor->HasPendingScreenChanges())) {
+    RETURN_IF_ERROR(save_editor(screen_editor));
+  }
   RETURN_IF_ERROR(
       save_editor(current_editor_set->GetEditor(EditorType::kDungeon)));
   RETURN_IF_ERROR(
