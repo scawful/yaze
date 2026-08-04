@@ -712,8 +712,8 @@ void Bitmap::Get16x16Tile(int tile_x, int tile_y,
       uint8_t pixel_value = data_[pixel_offset];
 
       // Store the pixel value in the tile data
-      tile_data_offset++;
       tile_data[tile_data_offset] = pixel_value;
+      tile_data_offset++;
     }
   }
 }
