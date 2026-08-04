@@ -2190,6 +2190,61 @@ TEST(ScreenSaveStoplossTest,
 }
 
 TEST(ScreenSaveStoplossTest,
+     CleanFailedScreenLoadDoesNotBlockUnrelatedRomSave) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  const auto rom_path =
+      MakeTempFilePath("yaze_clean_failed_screen_load_save.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  WriteScreenModelTestRom(rom_path, "FAILED SCREEN LOAD SAVE");
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+
+  // Load GameData through a different editor, then make ScreenEditor::Load()
+  // fail its palette precondition after it has reset its ROM-backed state.
+  ASSERT_OK(manager->EnsureEditorAssetsLoaded(EditorType::kPalette));
+  auto* game_data = manager->GetCurrentGameData();
+  ASSERT_NE(game_data, nullptr);
+  game_data->palette_groups.dungeon_main.clear();
+
+  const auto load_status =
+      manager->EnsureEditorAssetsLoaded(EditorType::kScreen);
+  EXPECT_EQ(load_status.code(), absl::StatusCode::kFailedPrecondition)
+      << load_status;
+  EXPECT_NE(std::string(load_status.message()).find("dungeon palette 3"),
+            std::string::npos)
+      << load_status;
+
+  auto* editor_set = manager->GetCurrentEditorSet();
+  ASSERT_NE(editor_set, nullptr);
+  auto* screen = static_cast<ScreenEditor*>(
+      editor_set->GetExistingEditor(EditorType::kScreen));
+  ASSERT_NE(screen, nullptr);
+  EXPECT_FALSE(screen->IsRomBackedStateValid());
+  EXPECT_FALSE(screen->HasPendingScreenChanges());
+
+  constexpr uint32_t kUnrelatedOffset = 0x1234;
+  constexpr uint8_t kUnrelatedValue = 0x5A;
+  ASSERT_OK(
+      manager->GetCurrentRom()->WriteByte(kUnrelatedOffset, kUnrelatedValue));
+  ASSERT_OK(manager->SaveRom());
+  EXPECT_EQ(ReadByteAt(rom_path, kUnrelatedOffset), kUnrelatedValue);
+}
+
+TEST(ScreenSaveStoplossTest,
      RomReplacementRefreshesLoadedScreenInPlaceBeforeEnabledGlobalSave) {
   FeatureFlagsGuard guard;
   ScopedImGuiContext imgui;
