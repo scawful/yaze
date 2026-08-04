@@ -24,6 +24,7 @@ set(YAZE_CORE_LIB_SOURCES
   oracle_progression.cc
   oracle_progression_loader.cc
   project.cc
+  source_artifact_publisher.cc
   story_event_graph.cc
   story_event_graph_query.cc
   version_manager.cc
