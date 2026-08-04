@@ -95,6 +95,9 @@ class EditorSet {
   std::vector<std::pair<uint32_t, uint32_t>> CollectDungeonWriteRanges() const;
   bool HasPendingGraphicsChanges() const;
   bool HasPendingScreenChanges() const;
+  // Reset cached Screen Editor models only when that lazy editor already
+  // exists. ROM replacement must not materialize an otherwise-unused editor.
+  void InvalidateScreenRomBackedState();
   zelda3::Overworld* GetOverworldData() const;
 
   // Deprecated named accessors (legacy compatibility)

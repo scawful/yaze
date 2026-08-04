@@ -230,6 +230,8 @@ class Canvas {
   const CanvasConfig& GetConfig() const { return config_; }
   CanvasSelection& GetSelection() { return selection_; }
   const CanvasSelection& GetSelection() const { return selection_; }
+  // Clear modern, interaction-handler, and legacy selection state together.
+  void ClearSelection();
 
   // Enhanced palette management
   void InitializePaletteEditor(Rom* rom);
