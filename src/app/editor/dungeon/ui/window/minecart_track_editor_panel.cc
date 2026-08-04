@@ -32,6 +32,11 @@ constexpr int kTrackSlotCount = static_cast<int>(kMinecartTrackSlotCount);
 constexpr int kDefaultTrackRoom = 0x89;
 constexpr int kDefaultTrackX = 0x1300;
 constexpr int kDefaultTrackY = 0x1100;
+#if defined(__EMSCRIPTEN__)
+constexpr bool kSourcePublishingAvailable = false;
+#else
+constexpr bool kSourcePublishingAvailable = true;
+#endif
 
 const core::SourceArtifactPublisherLabels kMinecartSourcePublisherLabels{
     .subject = "minecart track source",
@@ -592,19 +597,34 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
 
   ImGui::Text(tr("Minecart Track Editor"));
   ImGui::TextDisabled(
-      tr("Publish explicitly updates the manifest-owned ASM source. Project "
-         "and dungeon saves never publish these drafts."));
+      tr("Publish Tracks changes the manifest-owned ASM source only; it does "
+         "not update the open ROM."));
+  ImGui::TextDisabled(
+      tr("After publishing, save pending dungeon/ROM edits to the development "
+         "ROM, rebuild the patched ROM, then reopen/reload the patched ROM in "
+         "Yaze before testing."));
+#if defined(__EMSCRIPTEN__)
+  ImGui::TextDisabled(
+      tr("Source publishing is unavailable in browser builds; drafts are "
+         "retained."));
+#endif
   const bool has_unpublished_changes = HasUnpublishedChanges();
-  if (!has_unpublished_changes) {
+  const bool can_publish =
+      has_unpublished_changes && kSourcePublishingAvailable;
+  if (!can_publish) {
     ImGui::BeginDisabled();
   }
   if (ImGui::Button(ICON_MD_SAVE " Publish Tracks")) {
     const absl::Status status = SaveTracks();
-    status_message_ = status.ok() ? "Minecart track source published."
-                                  : std::string(status.message());
+    status_message_ =
+        status.ok()
+            ? "Minecart ASM source published only. Save pending dungeon/ROM "
+              "edits to the development ROM, rebuild the patched ROM, then "
+              "reopen/reload the patched ROM in Yaze before testing."
+            : std::string(status.message());
     show_success_ = status.ok();
   }
-  if (!has_unpublished_changes) {
+  if (!can_publish) {
     ImGui::EndDisabled();
   }
   ImGui::SameLine();
