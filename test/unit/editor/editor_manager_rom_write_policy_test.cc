@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -15,7 +16,10 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/dungeon/ui/window/overlay_manager_panel.h"
 #include "app/editor/editor_manager.h"
+#include "app/editor/graphics/graphics_editor.h"
+#include "app/editor/graphics/graphics_undo_actions.h"
 #include "app/gfx/backend/null_renderer.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gfx/util/palette_manager.h"
 #include "core/features.h"
@@ -27,6 +31,13 @@
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
+
+class GraphicsEditorSaveStoplossTestPeer {
+ public:
+  static void MarkSheetModified(GraphicsEditor* editor, uint16_t sheet_id) {
+    editor->state_.MarkSheetModified(sheet_id);
+  }
+};
 
 class DungeonEditorV2ReloadTestPeer {
  public:
@@ -95,6 +106,15 @@ struct ScopedDirectoryCleanup {
     std::error_code ec;
     std::filesystem::remove_all(path, ec);
   }
+};
+
+struct ScopedGraphicsSheetRestore {
+  explicit ScopedGraphicsSheetRestore(gfx::Bitmap* sheet)
+      : sheet(sheet), original(std::move(*sheet)) {}
+  ~ScopedGraphicsSheetRestore() { *sheet = std::move(original); }
+
+  gfx::Bitmap* sheet;
+  gfx::Bitmap original;
 };
 
 struct ScopedImGuiContext {
@@ -971,7 +991,7 @@ TEST(EditorManagerBackupRestoreTest,
   EXPECT_EQ(discard_status.code(), absl::StatusCode::kFailedPrecondition)
       << discard_status;
   EXPECT_NE(std::string(discard_status.message())
-                .find("pending dungeon or palette edits"),
+                .find("pending graphics, dungeon, or palette edits"),
             std::string::npos);
   EXPECT_EQ(manager->GetCurrentRom(), active_rom);
   ASSERT_TRUE(active_rom->ReadByte(kPcOffset).ok());
@@ -1041,7 +1061,7 @@ TEST(EditorManagerBackupRestoreTest,
   EXPECT_EQ(discard_status.code(), absl::StatusCode::kFailedPrecondition)
       << discard_status;
   EXPECT_NE(std::string(discard_status.message())
-                .find("pending dungeon or palette edits"),
+                .find("pending graphics, dungeon, or palette edits"),
             std::string::npos);
   EXPECT_EQ(manager->GetCurrentRom(), active_rom);
   ASSERT_TRUE(active_rom->ReadByte(kPcOffset).ok());
@@ -1619,6 +1639,143 @@ TEST(EditorManagerRomWritePolicyTest,
   EXPECT_FALSE(std::filesystem::exists(target_a));
   EXPECT_EQ(ReadByteAt(source_a, 0x1234), 0x00);
   EXPECT_EQ(ReadByteAt(source_b, 0x1234), 0x00);
+}
+
+TEST(GraphicsSaveStoplossTest,
+     CleanSaveDoesNotMaterializeTheLazyGraphicsEditor) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  const auto rom_path = MakeTempFilePath("yaze_clean_graphics_save.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  WriteTestRom(rom_path, "CLEAN GRAPHICS SAVE");
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+  core::FeatureFlags::get().kSaveGraphicsSheet = true;
+
+  auto* editor_set = manager->GetCurrentEditorSet();
+  ASSERT_NE(editor_set, nullptr);
+  EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kGraphics), nullptr);
+  EXPECT_FALSE(editor_set->HasPendingGraphicsChanges());
+  EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kGraphics), nullptr);
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+
+  ASSERT_OK(manager->SaveRom());
+  EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kGraphics), nullptr);
+}
+
+TEST(GraphicsSaveStoplossTest,
+     PendingSheetsBlockBothSaveScopeStatesBeforeSerialization) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+
+  const auto rom_path = MakeTempFilePath("yaze_pending_graphics_save.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  WriteTestRom(rom_path, "PENDING GRAPHICS");
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+
+  auto* editor_set = manager->GetCurrentEditorSet();
+  ASSERT_NE(editor_set, nullptr);
+  auto* graphics =
+      editor_set->GetEditorAs<GraphicsEditor>(EditorType::kGraphics);
+  ASSERT_NE(graphics, nullptr);
+  GraphicsEditorSaveStoplossTestPeer::MarkSheetModified(graphics, 0x20);
+  ASSERT_TRUE(editor_set->HasPendingGraphicsChanges());
+
+  Rom* rom = manager->GetCurrentRom();
+  ASSERT_NE(rom, nullptr);
+  EXPECT_FALSE(rom->dirty());
+  EXPECT_TRUE(manager->session_coordinator()->IsSessionModified(
+      manager->GetCurrentSessionIndex()));
+
+  manager->Quit();
+  EXPECT_TRUE(manager->HasPendingUnsavedSessionAction());
+  manager->CancelPendingUnsavedSessionAction();
+
+  const bool screen_existed =
+      editor_set->GetExistingEditor(EditorType::kScreen) != nullptr;
+  const bool dungeon_existed =
+      editor_set->GetExistingEditor(EditorType::kDungeon) != nullptr;
+  const bool overworld_existed =
+      editor_set->GetExistingEditor(EditorType::kOverworld) != nullptr;
+
+  constexpr uint32_t kPcOffset = 0x1234;
+  constexpr uint8_t kPendingRomByte = 0xA5;
+  ASSERT_OK(rom->WriteByte(kPcOffset, kPendingRomByte));
+
+  for (const bool graphics_scope_enabled : {false, true}) {
+    core::FeatureFlags::get().kSaveGraphicsSheet = graphics_scope_enabled;
+    const auto status = manager->SaveRom();
+
+    EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+    EXPECT_NE(
+        std::string(status.message()).find("graphics sheet edits are pending"),
+        std::string::npos);
+    EXPECT_NE(std::string(status.message())
+                  .find(graphics_scope_enabled ? "enabled" : "disabled"),
+              std::string::npos);
+    EXPECT_EQ(ReadByteAt(rom_path, kPcOffset), 0x00);
+    ASSERT_TRUE(rom->ReadByte(kPcOffset).ok());
+    EXPECT_EQ(*rom->ReadByte(kPcOffset), kPendingRomByte);
+    EXPECT_TRUE(editor_set->HasPendingGraphicsChanges());
+  }
+
+  EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kScreen) != nullptr,
+            screen_existed);
+  EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kDungeon) != nullptr,
+            dungeon_existed);
+  EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kOverworld) != nullptr,
+            overworld_existed);
+}
+
+TEST(GraphicsSaveStoplossTest, PixelUndoAndRedoRemarkTheSheetDirty) {
+  constexpr uint16_t kSheetId = 0x20;
+  const std::vector<uint8_t> before_data = {0x01, 0x02, 0x03, 0x04};
+  const std::vector<uint8_t> after_data = {0x05, 0x06, 0x07, 0x08};
+
+  GraphicsEditorState state;
+  auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(kSheetId);
+  ScopedGraphicsSheetRestore restore_sheet(&sheet);
+  sheet.set_data(after_data);
+
+  GraphicsPixelEditAction action(
+      kSheetId, before_data, after_data, "Edit pixels",
+      [&state](uint16_t sheet_id) { state.MarkSheetModified(sheet_id); });
+
+  ASSERT_FALSE(state.HasUnsavedChanges());
+  ASSERT_OK(action.Undo());
+  EXPECT_EQ(sheet.vector(), before_data);
+  EXPECT_TRUE(state.HasUnsavedChanges());
+  EXPECT_TRUE(state.modified_sheets.contains(kSheetId));
+
+  state.ClearModifiedSheets();
+  ASSERT_OK(action.Redo());
+  EXPECT_EQ(sheet.vector(), after_data);
+  EXPECT_TRUE(state.HasUnsavedChanges());
+  EXPECT_TRUE(state.modified_sheets.contains(kSheetId));
 }
 
 }  // namespace
