@@ -6,6 +6,8 @@
 #include "app/editor/graphics/screen_editor_internal.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/resource/arena.h"
+#include "framework/mock_renderer.h"
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 namespace yaze::editor {
@@ -79,6 +81,52 @@ TEST_F(GfxGroupEditorRenderTest, InactiveButSurfacedSheetGetsActivated) {
 
   EXPECT_TRUE(sheet.is_active());
   EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 1u);
+}
+
+TEST_F(GfxGroupEditorRenderTest,
+       BitmapRecreationInvalidatesOldCommandsAndReplacesTextureInOrder) {
+  ::testing::NiceMock<yaze::test::MockRenderer> renderer;
+  gfx::Bitmap bitmap = MakeSheetBitmap();
+  int old_texture_storage = 0;
+  int new_texture_storage = 0;
+  auto old_texture = reinterpret_cast<gfx::TextureHandle>(&old_texture_storage);
+  auto new_texture = reinterpret_cast<gfx::TextureHandle>(&new_texture_storage);
+
+  EXPECT_CALL(renderer, CreateTexture(kSheetWidth, kSheetHeight))
+      .WillOnce(::testing::Return(old_texture));
+  EXPECT_CALL(renderer, UpdateTexture(old_texture, ::testing::Ref(bitmap)));
+  bitmap.CreateTexture();
+  gfx::Arena::Get().ProcessTextureQueue(&renderer);
+  ASSERT_EQ(bitmap.texture(), old_texture);
+  ASSERT_FALSE(gfx::Arena::Get().HasPendingTextures());
+  ASSERT_TRUE(::testing::Mock::VerifyAndClearExpectations(&renderer));
+
+  const uint32_t old_generation = bitmap.generation();
+  bitmap.UpdateTexture();  // Must become stale when Create() replaces data.
+  std::vector<uint8_t> replacement_pixels(kSheetWidth * kSheetHeight, 7);
+  bitmap.Create(kSheetWidth, kSheetHeight, kSheetDepth, replacement_pixels);
+  bitmap.CreateTexture();
+
+  EXPECT_NE(bitmap.generation(), old_generation);
+  ASSERT_EQ(bitmap.texture(), old_texture)
+      << "The old handle must remain available to deferred DESTROY";
+
+  {
+    ::testing::InSequence sequence;
+    EXPECT_CALL(renderer, DestroyTexture(old_texture));
+    EXPECT_CALL(renderer, CreateTexture(kSheetWidth, kSheetHeight))
+        .WillOnce(::testing::Return(new_texture));
+    EXPECT_CALL(renderer, UpdateTexture(new_texture, ::testing::Ref(bitmap)));
+  }
+
+  // Processing the real deferred queue (rather than inspecting it) makes this
+  // an ASan-friendly lifetime regression: stale UPDATE is discarded, then the
+  // retained Bitmap owner receives DESTROY followed by replacement CREATE.
+  gfx::Arena::Get().ProcessTextureQueue(&renderer);
+
+  EXPECT_FALSE(gfx::Arena::Get().HasPendingTextures());
+  EXPECT_EQ(bitmap.texture(), new_texture);
+  EXPECT_EQ(bitmap.vector().front(), 7);
 }
 
 // EnsureCompositeBitmapTextureQueued mirrors EnsureSheetTextureQueued but
