@@ -793,6 +793,27 @@ absl::Status DungeonEditorV2::Load() {
       minecart_track_editor_panel_->SetRoomNavigationCallback(
           [this](int room_id) { OnRoomSelected(room_id); });
     }
+    if (auto* editor_manager =
+            static_cast<EditorManager*>(dependencies_.custom_data)) {
+      const size_t session_id = dependencies_.session_id;
+      minecart_track_editor_panel_->SetProjectChangedCallback(
+          [editor_manager,
+           session_id](const project::DungeonOverlaySettings& overlay) {
+            if (editor_manager->GetCurrentSessionId() != session_id) {
+              return;
+            }
+            editor_manager->GetCurrentProject()->dungeon_overlay = overlay;
+            editor_manager->MarkCurrentProjectDirty();
+          });
+      minecart_track_editor_panel_->SetProjectSaveCallback(
+          [editor_manager, session_id]() -> absl::Status {
+            if (editor_manager->GetCurrentSessionId() != session_id) {
+              return absl::FailedPreconditionError(
+                  "Minecart project save requires its session to be active");
+            }
+            return editor_manager->SaveProject();
+          });
+    }
   } else {
     minecart_track_editor_panel_ = nullptr;
   }

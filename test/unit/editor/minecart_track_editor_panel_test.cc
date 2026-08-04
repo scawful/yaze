@@ -25,6 +25,23 @@ class DungeonEditorV2MinecartTrackTestPeer {
   }
 };
 
+class MinecartTrackEditorPanelTestPeer {
+ public:
+  static bool CommitOverlayList(MinecartTrackEditorPanel& panel,
+                                const std::string& input,
+                                std::vector<uint16_t>& target) {
+    return panel.CommitOverlayList(input, target);
+  }
+
+  static bool ResetOverlaySettings(MinecartTrackEditorPanel& panel) {
+    return panel.ResetOverlaySettings();
+  }
+
+  static absl::Status SaveProjectSettings(MinecartTrackEditorPanel& panel) {
+    return panel.SaveProjectSettings();
+  }
+};
+
 namespace {
 
 constexpr char kTrackSourceRelativePath[] =
@@ -170,6 +187,89 @@ std::string MakeMalformedSource() {
 }
 
 }  // namespace
+
+TEST(MinecartTrackEditorPanelTest,
+     OverlayEditsNotifyProjectOnlyWhenSettingsChange) {
+  ScopedTestProject fixture;
+  auto* project_ptr = fixture.project();
+  project_ptr->dungeon_overlay.track_tiles = {0xB0, 0xB1};
+  project_ptr->dungeon_overlay.track_stop_tiles = {0xB7};
+
+  MinecartTrackEditorPanel panel;
+  ASSERT_TRUE(panel.SetProject(project_ptr).ok());
+
+  int changed_calls = 0;
+  project::DungeonOverlaySettings reported_overlay;
+  panel.SetProjectChangedCallback(
+      [&](const project::DungeonOverlaySettings& overlay) {
+        ++changed_calls;
+        reported_overlay = overlay;
+      });
+
+  EXPECT_FALSE(MinecartTrackEditorPanelTestPeer::CommitOverlayList(
+      panel, "0xB0, $00B1", project_ptr->dungeon_overlay.track_tiles));
+  EXPECT_EQ(changed_calls, 0);
+
+  EXPECT_TRUE(MinecartTrackEditorPanelTestPeer::CommitOverlayList(
+      panel, "$00C0, 0xC1", project_ptr->dungeon_overlay.track_tiles));
+  EXPECT_EQ(changed_calls, 1);
+  EXPECT_EQ(project_ptr->dungeon_overlay.track_tiles,
+            (std::vector<uint16_t>{0xC0, 0xC1}));
+  EXPECT_EQ(reported_overlay.track_tiles,
+            project_ptr->dungeon_overlay.track_tiles);
+  EXPECT_EQ(reported_overlay.track_stop_tiles,
+            project_ptr->dungeon_overlay.track_stop_tiles);
+
+  EXPECT_TRUE(MinecartTrackEditorPanelTestPeer::ResetOverlaySettings(panel));
+  EXPECT_EQ(changed_calls, 2);
+  EXPECT_TRUE(project_ptr->dungeon_overlay.track_tiles.empty());
+  EXPECT_TRUE(project_ptr->dungeon_overlay.track_stop_tiles.empty());
+  EXPECT_TRUE(reported_overlay.track_tiles.empty());
+  EXPECT_TRUE(reported_overlay.track_stop_tiles.empty());
+
+  EXPECT_FALSE(MinecartTrackEditorPanelTestPeer::ResetOverlaySettings(panel));
+  EXPECT_EQ(changed_calls, 2);
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     FailedManagerOwnedProjectSavePreservesDirtyOverlayForRetry) {
+  ScopedTestProject fixture;
+  MinecartTrackEditorPanel panel;
+  ASSERT_TRUE(panel.SetProject(fixture.project()).ok());
+
+  bool project_dirty = false;
+  panel.SetProjectChangedCallback(
+      [&](const project::DungeonOverlaySettings&) { project_dirty = true; });
+  ASSERT_TRUE(MinecartTrackEditorPanelTestPeer::CommitOverlayList(
+      panel, "$00D0, $00D1",
+      fixture.project()->dungeon_overlay.track_switch_tiles));
+  ASSERT_TRUE(project_dirty);
+
+  int save_calls = 0;
+  panel.SetProjectSaveCallback([&]() -> absl::Status {
+    ++save_calls;
+    return absl::UnavailableError("descriptor write failed");
+  });
+  const absl::Status failed_save =
+      MinecartTrackEditorPanelTestPeer::SaveProjectSettings(panel);
+  EXPECT_TRUE(absl::IsUnavailable(failed_save)) << failed_save;
+  EXPECT_EQ(save_calls, 1);
+  EXPECT_TRUE(project_dirty);
+  EXPECT_EQ(fixture.project()->dungeon_overlay.track_switch_tiles,
+            (std::vector<uint16_t>{0xD0, 0xD1}));
+
+  panel.SetProjectSaveCallback([&]() -> absl::Status {
+    ++save_calls;
+    project_dirty = false;
+    return absl::OkStatus();
+  });
+  EXPECT_TRUE(
+      MinecartTrackEditorPanelTestPeer::SaveProjectSettings(panel).ok());
+  EXPECT_EQ(save_calls, 2);
+  EXPECT_FALSE(project_dirty);
+  EXPECT_EQ(fixture.project()->dungeon_overlay.track_switch_tiles,
+            (std::vector<uint16_t>{0xD0, 0xD1}));
+}
 
 TEST(MinecartTrackEditorPanelTest,
      ResolvesCanonicalSourceFromProjectRootAndParsesGuardedFirstBranch) {

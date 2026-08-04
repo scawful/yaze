@@ -25,6 +25,10 @@ namespace yaze::editor {
 
 class MinecartTrackEditorPanel : public WindowContent {
  public:
+  using ProjectChangedCallback =
+      std::function<void(const project::DungeonOverlaySettings&)>;
+  using ProjectSaveCallback = std::function<absl::Status()>;
+
   MinecartTrackEditorPanel() = default;
 
   // WindowContent overrides
@@ -62,8 +66,16 @@ class MinecartTrackEditorPanel : public WindowContent {
   void SetRoomNavigationCallback(RoomNavigationCallback callback) {
     room_navigation_callback_ = std::move(callback);
   }
+  void SetProjectChangedCallback(ProjectChangedCallback callback) {
+    project_changed_callback_ = std::move(callback);
+  }
+  void SetProjectSaveCallback(ProjectSaveCallback callback) {
+    project_save_callback_ = std::move(callback);
+  }
 
  private:
+  friend class MinecartTrackEditorPanelTestPeer;
+
   absl::Status LoadTracks();
   absl::Status ValidateLoadedManifestIdentity() const;
   absl::Status RefreshProjectBinding();
@@ -76,6 +88,11 @@ class MinecartTrackEditorPanel : public WindowContent {
   void InitializeOverlayInputs();
   bool UpdateOverlayList(const char* label, std::string& input,
                          std::vector<uint16_t>& target);
+  bool CommitOverlayList(const std::string& input,
+                         std::vector<uint16_t>& target);
+  bool ResetOverlaySettings();
+  void NotifyProjectChanged();
+  absl::Status SaveProjectSettings();
 
   struct RoomTrackAudit {
     bool has_track_collision = false;
@@ -115,6 +132,8 @@ class MinecartTrackEditorPanel : public WindowContent {
   bool has_picked_coords_ = false;
 
   RoomNavigationCallback room_navigation_callback_;
+  ProjectChangedCallback project_changed_callback_;
+  ProjectSaveCallback project_save_callback_;
 
   // Overlay config input state
   bool overlay_inputs_initialized_ = false;
