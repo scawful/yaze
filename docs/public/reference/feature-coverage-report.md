@@ -17,7 +17,7 @@ AppData/Library/XDG.
 | Overworld Editor | Beta | Overworld edits persist to ROM; version-gated for vanilla/v2/v3. Tile16 palette inconsistencies, paste not tracked in undo, sprite workflow incomplete. |
 | Dungeon Editor | Beta | Room objects, sprites, headers, torches, custom collision, chests, and pot items persist to ROM; shared undo/redo. Focused regression coverage exists for save-path writers, `DungeonEditorSystem`, and editor save-flag gating, and recent workbench/nav compaction protects visible room area better in constrained layouts. Remaining gaps are 12+ unknown object types, specific visual discrepancies, selector/browser preview parity, and pits/blocks still using legacy blob-preservation saves. Optional connected-room/grouped-room overview work remains exploratory rather than part of the current baseline editor path. |
 | Palette Editor | Beta | Palette changes persist to ROM; JSON import/export not implemented. |
-| Graphics Editor | Beta | Tile/sheet edits persist to ROM; undo/redo via UndoManager. |
+| Graphics Editor | Beta | Tile/sheet editing and undo/redo are available, but pending sheet edits currently block ROM save because the graphics serializer is not yet safe; sheet persistence is unavailable. |
 | Sprite Editor | Beta | Sprite viewing/editing works with undo/redo; deeper workflow coverage is still limited. |
 | Message Editor | Stable | Text edits persist to ROM. |
 | Screen Editor | WIP | Dungeon-map undo/redo is implemented; pause-menu world-map editing is present but needs stronger UX/test coverage; cut/copy/paste/find remain incomplete. |

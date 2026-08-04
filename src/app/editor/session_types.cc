@@ -233,6 +233,14 @@ EditorSet::CollectDungeonWriteRanges() const {
   return {};
 }
 
+bool EditorSet::HasPendingGraphicsChanges() const {
+  if (auto* editor =
+          static_cast<GraphicsEditor*>(FindEditor(EditorType::kGraphics))) {
+    return editor->HasPendingGraphicsChanges();
+  }
+  return false;
+}
+
 zelda3::Overworld* EditorSet::GetOverworldData() const {
   if (auto* editor =
           static_cast<OverworldEditor*>(FindEditor(EditorType::kOverworld))) {

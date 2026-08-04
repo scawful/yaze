@@ -4071,6 +4071,19 @@ absl::Status EditorManager::SaveRomInternal(
     }
   } lifecycle_project_guard{&rom_lifecycle_, &current_project_};
 
+  // GraphicsEditor tracks pixel edits in its model, not in the ROM buffer.
+  // The previous global graphics writer was a success-returning stub, and
+  // the editor-specific writer is not yet safe to join this coordinated save.
+  // Block before any serializer can mutate the ROM rather than report a save
+  // that silently omitted the pending sheets.
+  if (current_editor_set->HasPendingGraphicsChanges()) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Save blocked: graphics sheet edits are pending, but graphics ROM "
+        "persistence is not safely available (Save Graphics Sheets is %s). "
+        "Discard the graphics sheet edits before saving the ROM.",
+        core::FeatureFlags::get().kSaveGraphicsSheet ? "enabled" : "disabled"));
+  }
+
   // --- State machine checks (delegated to RomLifecycleManager) ---
   if (rom_lifecycle_.IsRomWriteConfirmPending()) {
     return absl::CancelledError("Save pending confirmation");
@@ -4172,11 +4185,6 @@ absl::Status EditorManager::SaveRomInternal(
     RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kMessage));
     RETURN_IF_ERROR(
         save_editor(current_editor_set->GetEditor(EditorType::kMessage)));
-  }
-
-  if (core::FeatureFlags::get().kSaveGraphicsSheet) {
-    RETURN_IF_ERROR(zelda3::SaveAllGraphicsData(
-        *current_rom, gfx::Arena::Get().gfx_sheets()));
   }
 
   // Oracle guardrails: refuse to write obviously corrupted ROM layouts.
@@ -5959,11 +5967,12 @@ absl::Status EditorManager::DiscardPendingRomBackupRestore() {
   }
 
   const size_t session_index = GetCurrentSessionIndex();
-  if (HasPendingDungeonChangesForSession(session_index) ||
+  if (session->editors.HasPendingGraphicsChanges() ||
+      HasPendingDungeonChangesForSession(session_index) ||
       gfx::PaletteManager::Get().HasUnsavedChanges(&session->game_data)) {
     return absl::FailedPreconditionError(
-        "Resolve pending dungeon or palette edits before discarding the "
-        "restored backup");
+        "Resolve pending graphics, dungeon, or palette edits before "
+        "discarding the restored backup");
   }
 
   const std::string backing_path = session->rom.filename();
@@ -6420,6 +6429,7 @@ bool EditorManager::SessionHasPendingRomWork(size_t session_index) const {
       static_cast<RomSession*>(session_coordinator_->GetSession(session_index));
   return session != nullptr &&
          ((session->rom.is_loaded() && session->rom.dirty()) ||
+          session->editors.HasPendingGraphicsChanges() ||
           HasPendingDungeonChangesForSession(session_index) ||
           gfx::PaletteManager::Get().HasUnsavedChanges(&session->game_data));
 }
@@ -6509,6 +6519,8 @@ std::string EditorManager::DescribePendingUnsavedWork(
       session != nullptr && session->rom.is_loaded() && session->rom.dirty();
   const bool pending_dungeon_changes =
       HasPendingDungeonChangesForSession(session_index);
+  const bool pending_graphics_changes =
+      session != nullptr && session->editors.HasPendingGraphicsChanges();
   const int pending_rooms = PendingDungeonRoomCountForSession(session_index);
   const size_t pending_palette_colors =
       PendingPaletteColorCountForSession(session_index);
@@ -6528,6 +6540,9 @@ std::string EditorManager::DescribePendingUnsavedWork(
     work.push_back(absl::StrFormat("%zu unapplied palette color%s",
                                    pending_palette_colors,
                                    pending_palette_colors == 1 ? "" : "s"));
+  }
+  if (pending_graphics_changes) {
+    work.emplace_back("unapplied graphics sheet edits");
   }
   if (rom_dirty) {
     work.emplace_back("unsaved ROM-buffer changes");
@@ -6558,7 +6573,8 @@ std::string EditorManager::DescribeAllPendingUnsavedWork() const {
   }
 
   return absl::StrFormat(
-      "%d sessions have unsaved ROM, dungeon, palette, or project work.",
+      "%d sessions have unsaved ROM, graphics, dungeon, palette, or project "
+      "work.",
       modified_sessions);
 }
 
