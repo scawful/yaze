@@ -29,6 +29,9 @@ class OverworldMapScreen {
    */
   absl::Status Create(Rom* rom);
 
+  // Clear ROM-derived logical state without moving queued Bitmap owners.
+  void ResetForReload();
+
   /**
    * @brief Save changes back to ROM
    * @param rom ROM instance to write data to

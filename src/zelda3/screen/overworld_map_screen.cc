@@ -14,6 +14,7 @@ absl::Status OverworldMapScreen::Create(Rom* rom) {
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM is not loaded");
   }
+  ResetForReload();
 
   // Set metadata for overworld map bitmaps
   // Mode 7 graphics use full 128-color palettes
@@ -93,6 +94,13 @@ absl::Status OverworldMapScreen::Create(Rom* rom) {
                                         &map_bitmap_);
 
   return absl::OkStatus();
+}
+
+void OverworldMapScreen::ResetForReload() {
+  lw_map_tiles_.fill(0);
+  dw_map_tiles_.fill(0);
+  lw_palette_.clear();
+  dw_palette_.clear();
 }
 
 absl::Status OverworldMapScreen::LoadMapData(Rom* rom) {
