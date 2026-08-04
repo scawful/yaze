@@ -102,9 +102,9 @@ class TitleScreen {
   gfx::Bitmap tiles8_bitmap_;           // 8x8 tile graphics
   gfx::Bitmap title_composite_bitmap_;  // Composite BG1+BG2 with transparency
 
-  gfx::Tilemap tile16_blockset_;  // 16x16 tile blockset
-  gfx::SnesPalette palette_;      // Title screen palette
-  GameData* game_data_ = nullptr; // GameData for palette access
+  gfx::Tilemap tile16_blockset_;   // 16x16 tile blockset
+  gfx::SnesPalette palette_;       // Title screen palette
+  GameData* game_data_ = nullptr;  // GameData for palette access
 };
 
 }  // namespace zelda3
