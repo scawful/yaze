@@ -15,6 +15,7 @@ absl::Status TitleScreen::Create(Rom* rom, GameData* game_data) {
   if (!rom || !rom->is_loaded()) {
     return absl::InvalidArgumentError("ROM is not loaded");
   }
+  ResetForReload();
   game_data_ = game_data;
 
   // Initialize bitmaps for each layer
@@ -178,6 +179,20 @@ absl::Status TitleScreen::Create(Rom* rom, GameData* game_data) {
   RETURN_IF_ERROR(LoadTitleScreen(rom));
 
   return absl::OkStatus();
+}
+
+void TitleScreen::ResetForReload() {
+  tiles_bg1_buffer_.fill(0x492);
+  tiles_bg2_buffer_.fill(0x492);
+  for (auto& tile : oam_data_) {
+    tile = {};
+  }
+  tile16_blockset_.tile_info.clear();
+  tile16_blockset_.tile_size = {0, 0};
+  tile16_blockset_.map_size = {0, 0};
+  palette_.clear();
+  pal_selected_ = 2;
+  game_data_ = nullptr;
 }
 
 absl::Status TitleScreen::BuildTileset(Rom* rom) {

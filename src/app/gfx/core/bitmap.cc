@@ -92,7 +92,8 @@ Bitmap& Bitmap::operator=(const Bitmap& other) {
     // CRITICAL: Release old resources before replacing to prevent leaks
     // Queue texture destruction if we have one
     if (texture_) {
-      Arena::Get().QueueTextureCommand(Arena::TextureCommandType::DESTROY, this);
+      Arena::Get().QueueTextureCommand(Arena::TextureCommandType::DESTROY,
+                                       this);
     }
     // Free old surface through Arena
     if (surface_) {
@@ -224,24 +225,31 @@ void Bitmap::Create(int width, int height, int depth,
  */
 void Bitmap::Create(int width, int height, int depth, int format,
                     const std::vector<uint8_t>& data) {
-  if (data.empty()) {
-    SDL_Log("Bitmap data is empty\n");
-    active_ = false;
-    return;
-  }
-  active_ = true;
-  // Assign new generation for staleness detection in deferred texture commands
+  // Treat recreation as a new resource generation before touching either
+  // deferred commands or the current resources. Commands queued for the old
+  // surface/texture will then be discarded as stale by Arena.
   generation_ = next_generation_++;
+
+  // Preserve an existing texture handle. A caller can queue UPDATE to reuse it
+  // with the new surface. If the caller instead queues CREATE, Arena owns
+  // destroying the old texture immediately before creating its replacement.
+  if (surface_) {
+    Arena::Get().FreeSurface(surface_);
+    surface_ = nullptr;
+  }
+
   width_ = width;
   height_ = height;
   depth_ = depth;
-  if (data.empty()) {
-    SDL_Log("Data provided to Bitmap is empty.\n");
-    return;
-  }
-  data_.reserve(data.size());
   data_ = data;
   pixel_data_ = data_.data();
+  active_ = false;
+
+  if (data.empty()) {
+    SDL_Log("Bitmap data is empty\n");
+    return;
+  }
+
   surface_ = Arena::Get().AllocateSurface(width_, height_, depth_,
                                           GetSnesPixelFormat(format));
   if (surface_ == nullptr) {
@@ -262,7 +270,8 @@ void Bitmap::Create(int width, int height, int depth, int format,
   // malloc errors on shutdown
   if (surface_ && data_.size() > 0) {
     SDL_LockSurface(surface_);
-    size_t copy_size = std::min(data_.size(), static_cast<size_t>(surface_->pitch * surface_->h));
+    size_t copy_size = std::min(
+        data_.size(), static_cast<size_t>(surface_->pitch * surface_->h));
     memcpy(surface_->pixels, pixel_data_, copy_size);
     SDL_UnlockSurface(surface_);
   }
@@ -282,7 +291,8 @@ void Bitmap::Reformat(int format) {
   // assignment
   if (surface_ && data_.size() > 0) {
     SDL_LockSurface(surface_);
-    size_t copy_size = std::min(data_.size(), static_cast<size_t>(surface_->pitch * surface_->h));
+    size_t copy_size = std::min(
+        data_.size(), static_cast<size_t>(surface_->pitch * surface_->h));
     memcpy(surface_->pixels, pixel_data_, copy_size);
     SDL_UnlockSurface(surface_);
   }
@@ -485,9 +495,8 @@ void Bitmap::SetPaletteWithTransparent(const SnesPalette& palette, size_t index,
 
   // Colors 1-15: Extract from source palette
   // NOTE: palette[i].rgb() returns 0-255 values in ImVec4 (unconventional!)
-  for (size_t i = 0; i < static_cast<size_t>(length) &&
-                     (index + i) < palette.size();
-       ++i) {
+  for (size_t i = 0;
+       i < static_cast<size_t>(length) && (index + i) < palette.size(); ++i) {
     const auto& pal_color = palette[index + i];
     ImVec4 rgb_255 = pal_color.rgb();  // 0-255 range (unconventional storage)
 
@@ -548,23 +557,25 @@ void Bitmap::SetPalette(const std::vector<SDL_Color>& palette) {
     SDL_Log("Warning: SetPalette - surface has no palette!");
     return;
   }
-  
+
   int max_colors = sdl_palette->ncolors;
   int colors_to_set = static_cast<int>(palette.size());
-  
+
   // Debug: Check if palette capacity is sufficient (should be 256 after EnsureSurfacePalette256)
   if (max_colors < colors_to_set) {
-    SDL_Log("Warning: SetPalette - SDL palette has %d colors, trying to set %d. "
-            "Colors above %d may not display correctly.",
-            max_colors, colors_to_set, max_colors);
+    SDL_Log(
+        "Warning: SetPalette - SDL palette has %d colors, trying to set %d. "
+        "Colors above %d may not display correctly.",
+        max_colors, colors_to_set, max_colors);
     colors_to_set = max_colors;  // Clamp to available space
   }
 
   SDL_UnlockSurface(surface_);
-  
+
   // Use SDL_SetPaletteColors for proper palette setting
   // This is more reliable than direct array access
-  if (SDL_SetPaletteColors(sdl_palette, palette.data(), 0, colors_to_set) != 0) {
+  if (SDL_SetPaletteColors(sdl_palette, palette.data(), 0, colors_to_set) !=
+      0) {
     SDL_Log("Warning: SDL_SetPaletteColors failed: %s", SDL_GetError());
     // Fall back to manual setting
     for (int i = 0; i < colors_to_set; ++i) {
@@ -574,7 +585,7 @@ void Bitmap::SetPalette(const std::vector<SDL_Color>& palette) {
       sdl_palette->colors[i].a = palette[i].a;
     }
   }
-  
+
   SDL_LockSurface(surface_);
 }
 
@@ -701,8 +712,8 @@ void Bitmap::Get16x16Tile(int tile_x, int tile_y,
       uint8_t pixel_value = data_[pixel_offset];
 
       // Store the pixel value in the tile data
-      tile_data_offset++;
       tile_data[tile_data_offset] = pixel_value;
+      tile_data_offset++;
     }
   }
 }
