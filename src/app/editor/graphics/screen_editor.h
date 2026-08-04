@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_SCREEN_EDITOR_H
 
 #include <array>
+#include <memory>
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
@@ -72,6 +73,7 @@ class ScreenEditor : public Editor {
            HasPendingDungeonMapTile16Changes() ||
            HasPendingTitleScreenChanges() || HasPendingOverworldMapChanges();
   }
+  void InvalidateRomBackedState();
 
   std::vector<zelda3::DungeonMap> dungeon_maps_;
 
@@ -166,7 +168,8 @@ class ScreenEditor : public Editor {
   gui::Canvas title_blockset_canvas_{"##TitleBlocksetCanvas", ImVec2(128, 512),
                                      gui::CanvasGridSize::k8x8, 2.0f};
 
-  zelda3::Inventory inventory_;
+  std::unique_ptr<zelda3::Inventory> inventory_ =
+      std::make_unique<zelda3::Inventory>();
   bool inventory_loaded_ = false;
   zelda3::TitleScreen title_screen_;
   zelda3::OverworldMapScreen ow_map_screen_;

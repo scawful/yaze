@@ -249,6 +249,13 @@ bool EditorSet::HasPendingScreenChanges() const {
   return false;
 }
 
+void EditorSet::InvalidateScreenRomBackedState() {
+  if (auto* editor =
+          static_cast<ScreenEditor*>(FindEditor(EditorType::kScreen))) {
+    editor->InvalidateRomBackedState();
+  }
+}
+
 zelda3::Overworld* EditorSet::GetOverworldData() const {
   if (auto* editor =
           static_cast<OverworldEditor*>(FindEditor(EditorType::kOverworld))) {

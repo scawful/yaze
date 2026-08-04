@@ -169,15 +169,15 @@ absl::Status ScreenEditor::Save() {
   if (HasPendingScreenChanges()) {
     return absl::FailedPreconditionError(
         "Screen Editor edits cannot all participate safely in the coordinated "
-        "ROM save; use the title-screen or world-map Save control where "
-        "applicable, or discard the pending edits before saving the ROM");
+        "ROM save; title-screen and pause-map ROM writes remain disabled until "
+        "write/reopen/readback verification exists, so discard the pending "
+        "edits before saving the ROM");
   }
   if (core::FeatureFlags::get().kSaveDungeonMaps) {
     RETURN_IF_ERROR(zelda3::SaveDungeonMaps(*rom(), dungeon_maps_));
   }
-  // Title screen and overworld maps are currently saved via their respective
-  // 'Save' buttons in the UI, but we could also trigger them here for a full
-  // save.
+  // Title-screen and pause-map controls remain fail-closed until their writers
+  // have write/reopen/readback coverage.
   return absl::OkStatus();
 }
 
@@ -195,9 +195,9 @@ void ScreenEditor::DrawToolset() {
 
 void ScreenEditor::DrawInventoryMenuEditor() {
   if (!inventory_loaded_ && rom()->is_loaded() && game_data()) {
-    status_ = inventory_.Create(rom(), game_data());
+    status_ = inventory_->Create(rom(), game_data());
     if (status_.ok()) {
-      palette_ = inventory_.palette();
+      palette_ = inventory_->palette();
       inventory_loaded_ = true;
     } else {
       const auto& theme = AgentUI::GetTheme();
@@ -224,7 +224,7 @@ void ScreenEditor::DrawInventoryMenuEditor() {
       frame_opts.grid_step = 32.0f;
       frame_opts.render_popups = true;
       auto runtime = gui::BeginCanvas(screen_canvas_, frame_opts);
-      gui::DrawBitmap(runtime, inventory_.bitmap(), 2,
+      gui::DrawBitmap(runtime, inventory_->bitmap(), 2,
                       inventory_loaded_ ? 1.0f : 0.0f);
       gui::EndCanvas(screen_canvas_, runtime, frame_opts);
     }
@@ -237,7 +237,7 @@ void ScreenEditor::DrawInventoryMenuEditor() {
       frame_opts.grid_step = 16.0f;
       frame_opts.render_popups = true;
       auto runtime = gui::BeginCanvas(tilesheet_canvas_, frame_opts);
-      gui::DrawBitmap(runtime, inventory_.tilesheet(), 2,
+      gui::DrawBitmap(runtime, inventory_->tilesheet(), 2,
                       inventory_loaded_ ? 1.0f : 0.0f);
       gui::EndCanvas(tilesheet_canvas_, runtime, frame_opts);
     }
@@ -315,7 +315,7 @@ void ScreenEditor::DrawInventoryItemIcons() {
     ImGui::Text(tr("Item Icons (2x2 tiles each)"));
     ImGui::Separator();
 
-    auto& icons = inventory_.item_icons();
+    auto& icons = inventory_->item_icons();
     if (icons.empty()) {
       ImGui::TextWrapped(
           tr("No item icons loaded. Icons will be loaded when the "
@@ -874,20 +874,18 @@ void ScreenEditor::DrawTitleScreenEditor() {
     current_mode_ = EditingMode::DRAW;
   }
   ImGui::SameLine();
+  ImGui::BeginDisabled();
   if (ImGui::Button(ICON_MD_SAVE)) {
     status_ = SaveTitleScreenToRom();
-    if (status_.ok()) {
-      ImGui::OpenPopup("SaveSuccess");
-    }
+  }
+  ImGui::EndDisabled();
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip(
+        tr("Title-screen ROM saving is disabled until write/reopen/readback "
+           "verification exists."));
   }
   ImGui::SameLine();
   ImGui::Text(tr("Selected Tile: %d"), selected_title_tile16_);
-
-  // Save success popup
-  if (ImGui::BeginPopup("SaveSuccess")) {
-    ImGui::Text(tr("Title screen saved successfully!"));
-    ImGui::EndPopup();
-  }
 
   // Layer visibility controls
   bool prev_bg1 = show_title_bg1_;
@@ -1161,11 +1159,15 @@ void ScreenEditor::DrawOverworldMapEditor() {
         "click Map Canvas."));
   }
   ImGui::SameLine();
+  ImGui::BeginDisabled();
   if (ImGui::Button(tr("Save World Map"))) {
     status_ = SaveOverworldMapToRom();
-    if (status_.ok()) {
-      ImGui::OpenPopup("OWSaveSuccess");
-    }
+  }
+  ImGui::EndDisabled();
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip(tr(
+        "Pause-map ROM saving is disabled until Light World, Dark World, and "
+        "palette writes pass write/reopen/readback verification."));
   }
   ImGui::SameLine();
 
@@ -1222,12 +1224,6 @@ void ScreenEditor::DrawOverworldMapEditor() {
   }
   if (ImGui::BeginPopup("CustomMapSaveSuccess")) {
     ImGui::Text(tr("Custom map saved successfully!"));
-    ImGui::EndPopup();
-  }
-
-  // Save success popup
-  if (ImGui::BeginPopup("OWSaveSuccess")) {
-    ImGui::Text(tr("Overworld map saved successfully!"));
     ImGui::EndPopup();
   }
 
@@ -1434,17 +1430,19 @@ void ScreenEditor::RestoreFromSnapshot(const ScreenSnapshot& snapshot) {
 }
 
 absl::Status ScreenEditor::SaveTitleScreenToRom() {
-  RETURN_IF_ERROR(title_screen_.Save(rom()));
-  pending_title_screen_changes_ = false;
-  return absl::OkStatus();
+  return absl::FailedPreconditionError(
+      "Title-screen ROM saving is disabled until write/reopen/readback "
+      "verification exists");
 }
 
 absl::Status ScreenEditor::SaveOverworldMapToRom() {
-  RETURN_IF_ERROR(ow_map_screen_.Save(rom()));
-  // The pause-map writer persists tile placement only. Palette edits remain
-  // pending until that separate persistence path exists.
-  pending_overworld_map_changes_ = false;
-  return absl::OkStatus();
+  return absl::FailedPreconditionError(
+      "Pause-map ROM saving is disabled until Light World, Dark World, and "
+      "palette writes pass write/reopen/readback verification");
+}
+
+void ScreenEditor::InvalidateRomBackedState() {
+  ResetRomBackedStateForLoad();
 }
 
 void ScreenEditor::ResetRomBackedStateForLoad() {
@@ -1470,6 +1468,9 @@ void ScreenEditor::ResetRomBackedStateForLoad() {
   inventory_loaded_ = false;
   title_screen_loaded_ = false;
   ow_map_loaded_ = false;
+  // Inventory owns a non-assignable Canvas, so reconstruct the complete model
+  // rather than retaining its ROM-backed buffers across a session ROM reload.
+  inventory_ = std::make_unique<zelda3::Inventory>();
   title_screen_ = zelda3::TitleScreen{};
   ow_map_screen_ = zelda3::OverworldMapScreen{};
   palette_ = gfx::SnesPalette{};
@@ -1484,8 +1485,21 @@ void ScreenEditor::ResetRomBackedStateForLoad() {
   floor_number = 0;
   copy_button_pressed = false;
   paste_button_pressed = false;
-  screen_canvas_.mutable_points()->clear();
-  tilesheet_canvas_.mutable_points()->clear();
+  current_mode_ = EditingMode::DRAW;
+  selected_title_tile16_ = 0;
+  title_h_flip_ = false;
+  title_v_flip_ = false;
+  title_palette_ = 0;
+  show_title_bg1_ = true;
+  show_title_bg2_ = true;
+  selected_ow_tile_ = 0;
+  ow_show_dark_world_ = false;
+  for (auto* canvas :
+       {&current_tile_canvas_, &screen_canvas_, &tilesheet_canvas_,
+        &tilemap_canvas_, &title_bg1_canvas_, &title_bg2_canvas_,
+        &title_blockset_canvas_, &ow_map_canvas_, &ow_tileset_canvas_}) {
+    canvas->ClearSelection();
+  }
   current_tile16_info = {};
   status_ = absl::OkStatus();
 }

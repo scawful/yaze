@@ -4084,16 +4084,17 @@ absl::Status EditorManager::SaveRomInternal(
         core::FeatureFlags::get().kSaveGraphicsSheet ? "enabled" : "disabled"));
   }
 
-  // ScreenEditor keeps dungeon-map and dungeon-map Tile16 edits in its model.
-  // Neither domain can safely participate in the coordinated ROM transaction
-  // yet, so fail before any serializer mutates the ROM for either feature-flag
-  // state instead of reporting a partial save as successful.
+  // ScreenEditor keeps dungeon-map, Tile16, title-screen, and pause-map edits
+  // in editor-owned models. Not every domain can safely participate in the
+  // coordinated ROM transaction yet, so fail before any serializer mutates
+  // the ROM instead of reporting a partial save as successful.
   if (current_editor_set->HasPendingScreenChanges()) {
     return absl::FailedPreconditionError(absl::StrFormat(
         "Save blocked: Screen Editor edits are pending, but they cannot all "
         "participate safely in the coordinated ROM save (Save Dungeon Maps is "
-        "%s). Use the title-screen or world-map Save control where applicable, "
-        "or discard the pending Screen Editor edits before saving the ROM.",
+        "%s). Title-screen and pause-map ROM writes remain disabled until "
+        "write/reopen/readback verification exists; discard the pending Screen "
+        "Editor edits before saving the ROM.",
         core::FeatureFlags::get().kSaveDungeonMaps ? "enabled" : "disabled"));
   }
 
@@ -5156,6 +5157,7 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
     }
   };
 
+  session->editors.InvalidateScreenRomBackedState();
   gfx::PaletteManager::Get().ReleaseSession(&session->game_data);
   session->rom = std::move(rom);
   session->filepath = filepath;
@@ -5180,6 +5182,7 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
   if (!load_status.ok()) {
     // Loading editors is fallible. Restore the prior ROM and rebuild its
     // assets so a failed reload never leaves a half-initialized live session.
+    session->editors.InvalidateScreenRomBackedState();
     gfx::PaletteManager::Get().ReleaseSession(&session->game_data);
     session->rom = std::move(previous_rom);
     session->filepath = previous_filepath;
