@@ -74,6 +74,8 @@ class ScreenEditor : public Editor {
            HasPendingTitleScreenChanges() || HasPendingOverworldMapChanges();
   }
   void InvalidateRomBackedState();
+  absl::Status RefreshRomBackedState();
+  bool IsRomBackedStateValid() const { return rom_backed_state_valid_; }
 
   std::vector<zelda3::DungeonMap> dungeon_maps_;
 
@@ -105,6 +107,10 @@ class ScreenEditor : public Editor {
   void DrawDungeonMapsRoomGfx();
 
   void LoadBinaryGfx();
+  gfx::Bitmap* GetOrCreateSheet(int index);
+  void RefreshTileCacheForReload(gfx::Tilemap& tilemap);
+  bool HasValidDungeonSelection() const;
+  bool HasValidDungeonFloorSelection(int floor) const;
 
   // Undo/redo helpers
   ScreenSnapshot CaptureDungeonMapSnapshot() const;
@@ -202,6 +208,7 @@ class ScreenEditor : public Editor {
   bool pending_title_screen_changes_ = false;
   bool pending_overworld_map_changes_ = false;
   bool pending_overworld_map_palette_changes_ = false;
+  bool rom_backed_state_valid_ = false;
   ScreenSnapshot pending_dungeon_before_;
   ScreenSnapshot pending_tile16_before_;
   std::string pending_dungeon_desc_;

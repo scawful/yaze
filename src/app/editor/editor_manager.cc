@@ -45,6 +45,7 @@
 #include "app/application.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/editor.h"
+#include "app/editor/graphics/screen_editor.h"
 #include "app/editor/hack/workflow/hack_workflow_backend.h"
 #include "app/editor/hack/workflow/hack_workflow_backend_factory.h"
 #include "app/editor/hack/workflow/project_workflow_output_panel.h"
@@ -4189,7 +4190,7 @@ absl::Status EditorManager::SaveRomInternal(
 
   // --- Save editor-specific data ---
   RETURN_IF_ERROR(
-      save_editor(current_editor_set->GetEditor(EditorType::kScreen)));
+      save_editor(current_editor_set->GetExistingEditor(EditorType::kScreen)));
   RETURN_IF_ERROR(
       save_editor(current_editor_set->GetEditor(EditorType::kDungeon)));
   RETURN_IF_ERROR(
@@ -5147,6 +5148,12 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
       session->editor_initialized[dungeon_index];
   const bool dungeon_assets_were_loaded =
       session->editor_assets_loaded[dungeon_index];
+  auto* screen_editor = static_cast<ScreenEditor*>(
+      session->editors.GetExistingEditor(EditorType::kScreen));
+  const size_t screen_index = EditorTypeIndex(EditorType::kScreen);
+  const bool screen_was_initialized = session->editor_initialized[screen_index];
+  const bool screen_assets_were_loaded =
+      session->editor_assets_loaded[screen_index];
   auto restore_dungeon_asset_state = [&]() {
     if (dungeon_editor) {
       session->editor_initialized[dungeon_index] =
@@ -5154,6 +5161,15 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
       session->editor_assets_loaded[dungeon_index] =
           session->editor_assets_loaded[dungeon_index] ||
           dungeon_assets_were_loaded;
+    }
+  };
+  auto restore_screen_asset_state = [&]() {
+    if (screen_editor) {
+      session->editor_initialized[screen_index] =
+          session->editor_initialized[screen_index] || screen_was_initialized;
+      session->editor_assets_loaded[screen_index] =
+          session->editor_assets_loaded[screen_index] ||
+          screen_assets_were_loaded;
     }
   };
 
@@ -5172,6 +5188,12 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
   auto load_status = LoadAssetsForMode();
   if (load_status.ok() && game_data_was_loaded && !session->game_data_loaded) {
     load_status = EnsureGameDataLoaded();
+  }
+  if (load_status.ok() && screen_editor && screen_assets_were_loaded) {
+    load_status = screen_editor->RefreshRomBackedState();
+  }
+  if (load_status.ok()) {
+    restore_screen_asset_state();
   }
   if (load_status.ok() && dungeon_editor) {
     load_status = dungeon_editor->RefreshRomBackedState();
@@ -5200,6 +5222,17 @@ absl::Status EditorManager::ReplaceActiveSessionRom(
       if (rollback_status.ok()) {
         rollback_status = game_data_status;
       }
+    }
+    if (screen_editor && screen_assets_were_loaded) {
+      auto screen_status = screen_editor->RefreshRomBackedState();
+      if (screen_status.ok()) {
+        restore_screen_asset_state();
+      }
+      if (rollback_status.ok()) {
+        rollback_status = screen_status;
+      }
+    } else {
+      restore_screen_asset_state();
     }
     if (dungeon_editor) {
       auto dungeon_status = dungeon_editor->RefreshRomBackedState();

@@ -31,6 +31,9 @@ class TitleScreen {
    */
   absl::Status Create(Rom* rom, GameData* game_data = nullptr);
 
+  // Clear ROM-derived logical state without moving queued Bitmap owners.
+  void ResetForReload();
+
   // Accessors for layer data
   auto& bg1_buffer() { return tiles_bg1_buffer_; }
   auto& bg2_buffer() { return tiles_bg2_buffer_; }
