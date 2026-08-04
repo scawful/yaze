@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_SCREEN_EDITOR_H
 
 #include <array>
+#include <memory>
 
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
@@ -54,9 +55,33 @@ class ScreenEditor : public Editor {
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
 
+  bool HasPendingDungeonMapChanges() const {
+    return pending_dungeon_map_changes_;
+  }
+  bool HasPendingDungeonMapTile16Changes() const {
+    return pending_dungeon_map_tile16_changes_;
+  }
+  bool HasPendingTitleScreenChanges() const {
+    return pending_title_screen_changes_;
+  }
+  bool HasPendingOverworldMapChanges() const {
+    return pending_overworld_map_changes_ ||
+           pending_overworld_map_palette_changes_;
+  }
+  bool HasPendingScreenChanges() const {
+    return HasPendingDungeonMapChanges() ||
+           HasPendingDungeonMapTile16Changes() ||
+           HasPendingTitleScreenChanges() || HasPendingOverworldMapChanges();
+  }
+  void InvalidateRomBackedState();
+  absl::Status RefreshRomBackedState();
+  bool IsRomBackedStateValid() const { return rom_backed_state_valid_; }
+
   std::vector<zelda3::DungeonMap> dungeon_maps_;
 
  private:
+  friend class ScreenEditorSaveStoplossTestPeer;
+
   void DrawTitleScreenEditor();
   void DrawNamingScreenEditor();
   void DrawOverworldMapEditor();
@@ -75,7 +100,6 @@ class ScreenEditor : public Editor {
 
   absl::Status LoadDungeonMapTile16(const std::vector<uint8_t>& gfx_data,
                                     bool bin_mode = false);
-  absl::Status SaveDungeonMapTile16();
 
   void DrawDungeonMapScreen(int i);
   void DrawDungeonMapsTabs();
@@ -83,6 +107,10 @@ class ScreenEditor : public Editor {
   void DrawDungeonMapsRoomGfx();
 
   void LoadBinaryGfx();
+  gfx::Bitmap* GetOrCreateSheet(int index);
+  void RefreshTileCacheForReload(gfx::Tilemap& tilemap);
+  bool HasValidDungeonSelection() const;
+  bool HasValidDungeonFloorSelection(int floor) const;
 
   // Undo/redo helpers
   ScreenSnapshot CaptureDungeonMapSnapshot() const;
@@ -92,6 +120,18 @@ class ScreenEditor : public Editor {
   void CommitDungeonMapUndo();
   void CommitTile16CompUndo();
   void RestoreFromSnapshot(const ScreenSnapshot& snapshot);
+  void ResetRomBackedStateForLoad();
+  void MarkDungeonMapModified() { pending_dungeon_map_changes_ = true; }
+  void MarkDungeonMapTile16Modified() {
+    pending_dungeon_map_tile16_changes_ = true;
+  }
+  void MarkTitleScreenModified() { pending_title_screen_changes_ = true; }
+  void MarkOverworldMapModified() { pending_overworld_map_changes_ = true; }
+  void MarkOverworldMapPaletteModified() {
+    pending_overworld_map_palette_changes_ = true;
+  }
+  absl::Status SaveTitleScreenToRom();
+  absl::Status SaveOverworldMapToRom();
 
   enum class EditingMode { DRAW, EDIT };
 
@@ -134,7 +174,8 @@ class ScreenEditor : public Editor {
   gui::Canvas title_blockset_canvas_{"##TitleBlocksetCanvas", ImVec2(128, 512),
                                      gui::CanvasGridSize::k8x8, 2.0f};
 
-  zelda3::Inventory inventory_;
+  std::unique_ptr<zelda3::Inventory> inventory_ =
+      std::make_unique<zelda3::Inventory>();
   bool inventory_loaded_ = false;
   zelda3::TitleScreen title_screen_;
   zelda3::OverworldMapScreen ow_map_screen_;
@@ -162,6 +203,12 @@ class ScreenEditor : public Editor {
   // Undo/redo pending state
   bool has_pending_dungeon_undo_ = false;
   bool has_pending_tile16_undo_ = false;
+  bool pending_dungeon_map_changes_ = false;
+  bool pending_dungeon_map_tile16_changes_ = false;
+  bool pending_title_screen_changes_ = false;
+  bool pending_overworld_map_changes_ = false;
+  bool pending_overworld_map_palette_changes_ = false;
+  bool rom_backed_state_valid_ = false;
   ScreenSnapshot pending_dungeon_before_;
   ScreenSnapshot pending_tile16_before_;
   std::string pending_dungeon_desc_;

@@ -52,6 +52,7 @@ bool Arena::ProcessSingleTexture(IRenderer* renderer) {
   auto it = texture_command_queue_.begin();
   const auto& command = *it;
   bool processed = false;
+  bool should_remove = true;
 
   // Skip stale commands where bitmap was reallocated since queuing
   if (command.bitmap && command.bitmap->generation() != command.generation) {
@@ -66,17 +67,44 @@ bool Arena::ProcessSingleTexture(IRenderer* renderer) {
       if (command.bitmap && command.bitmap->surface() &&
           command.bitmap->surface()->format && command.bitmap->is_active() &&
           command.bitmap->width() > 0 && command.bitmap->height() > 0) {
+        const auto old_texture = command.bitmap->texture();
+        TextureHandle replacement = nullptr;
         try {
-          auto texture = active_renderer->CreateTexture(
+          replacement = active_renderer->CreateTexture(
               command.bitmap->width(), command.bitmap->height());
-          if (texture) {
-            command.bitmap->set_texture(texture);
-            active_renderer->UpdateTexture(texture, *command.bitmap);
-            processed = true;
-          }
         } catch (...) {
           LOG_ERROR("Arena", "Exception during single texture creation");
+          should_remove = false;
+          break;
         }
+        if (!replacement) {
+          should_remove = false;
+          break;
+        }
+        try {
+          active_renderer->UpdateTexture(replacement, *command.bitmap);
+        } catch (...) {
+          LOG_ERROR("Arena", "Exception updating new single texture");
+          if (replacement != old_texture) {
+            try {
+              active_renderer->DestroyTexture(replacement);
+            } catch (...) {
+              LOG_ERROR("Arena", "Exception cleaning up failed single texture");
+            }
+          }
+          should_remove = false;
+          break;
+        }
+
+        command.bitmap->set_texture(replacement);
+        if (old_texture && old_texture != replacement) {
+          try {
+            active_renderer->DestroyTexture(old_texture);
+          } catch (...) {
+            LOG_ERROR("Arena", "Exception destroying replaced single texture");
+          }
+        }
+        processed = true;
       }
       break;
     }
@@ -108,8 +136,9 @@ bool Arena::ProcessSingleTexture(IRenderer* renderer) {
     }
   }
 
-  // Always remove the command after attempting (whether successful or not)
-  texture_command_queue_.erase(it);
+  if (should_remove) {
+    texture_command_queue_.erase(it);
+  }
   return processed;
 }
 
@@ -189,35 +218,57 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
                 absl::StrFormat("Low color count: %d", color_count));
           }
 
+          zelda3::PaletteDebugger::Get().LogPaletteApplication(
+              "Arena::ProcessTextureQueue", 0, true,
+              "Calling CreateTexture...");
+          const auto old_texture = command.bitmap->texture();
+          TextureHandle replacement = nullptr;
           try {
-            zelda3::PaletteDebugger::Get().LogPaletteApplication(
-                "Arena::ProcessTextureQueue", 0, true,
-                "Calling CreateTexture...");
-
-            auto texture = active_renderer->CreateTexture(
+            replacement = active_renderer->CreateTexture(
                 command.bitmap->width(), command.bitmap->height());
-
-            if (texture) {
-              zelda3::PaletteDebugger::Get().LogPaletteApplication(
-                  "Arena::ProcessTextureQueue", 0, true,
-                  "CreateTexture SUCCESS");
-
-              command.bitmap->set_texture(texture);
-              active_renderer->UpdateTexture(texture, *command.bitmap);
-              processed++;
-            } else {
-              zelda3::PaletteDebugger::Get().LogPaletteApplication(
-                  "Arena::ProcessTextureQueue", 0, false,
-                  "CreateTexture returned NULL");
-              should_remove = false;  // Retry next frame
-            }
           } catch (...) {
             LOG_ERROR("Arena", "Exception during texture creation");
             zelda3::PaletteDebugger::Get().LogPaletteApplication(
                 "Arena::ProcessTextureQueue", 0, false,
                 "EXCEPTION during texture creation");
-            should_remove = true;  // Remove bad command
+            should_remove = false;
+            break;
           }
+
+          if (!replacement) {
+            zelda3::PaletteDebugger::Get().LogPaletteApplication(
+                "Arena::ProcessTextureQueue", 0, false,
+                "CreateTexture returned NULL");
+            should_remove = false;
+            break;
+          }
+
+          try {
+            active_renderer->UpdateTexture(replacement, *command.bitmap);
+          } catch (...) {
+            LOG_ERROR("Arena", "Exception updating new texture");
+            if (replacement != old_texture) {
+              try {
+                active_renderer->DestroyTexture(replacement);
+              } catch (...) {
+                LOG_ERROR("Arena", "Exception cleaning up failed texture");
+              }
+            }
+            should_remove = false;
+            break;
+          }
+
+          command.bitmap->set_texture(replacement);
+          if (old_texture && old_texture != replacement) {
+            try {
+              active_renderer->DestroyTexture(old_texture);
+            } catch (...) {
+              LOG_ERROR("Arena", "Exception destroying replaced texture");
+            }
+          }
+          zelda3::PaletteDebugger::Get().LogPaletteApplication(
+              "Arena::ProcessTextureQueue", 0, true, "CreateTexture SUCCESS");
+          processed++;
         }
         break;
       }
@@ -259,7 +310,7 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
 }
 
 bool Arena::ProcessTextureQueueWithBudget(IRenderer* renderer,
-                                           float budget_ms) {
+                                          float budget_ms) {
   using Clock = std::chrono::high_resolution_clock;
   using Microseconds = std::chrono::microseconds;
 
@@ -282,8 +333,8 @@ bool Arena::ProcessTextureQueueWithBudget(IRenderer* renderer,
   while (!texture_command_queue_.empty()) {
     // Check time budget before each texture (not after, to avoid overshoot)
     if (textures_this_call > 0) {  // Always process at least one
-      auto elapsed = std::chrono::duration_cast<Microseconds>(
-          Clock::now() - start_time);
+      auto elapsed =
+          std::chrono::duration_cast<Microseconds>(Clock::now() - start_time);
       if (elapsed.count() >= budget_us) {
         LOG_DEBUG("Arena",
                   "Budget exhausted: processed %zu textures in %.2fms, "
@@ -294,16 +345,21 @@ bool Arena::ProcessTextureQueueWithBudget(IRenderer* renderer,
       }
     }
 
-    // Process one texture
+    // A failed CREATE remains queued for a later frame. Stop this budget pass
+    // when no command was removed so a retry cannot spin on the same front
+    // entry indefinitely.
+    const size_t queue_size_before = texture_command_queue_.size();
     if (ProcessSingleTexture(active_renderer)) {
       textures_this_call++;
+    } else if (texture_command_queue_.size() == queue_size_before) {
+      break;
     }
   }
 
   // Update statistics
   if (textures_this_call > 0) {
-    auto total_elapsed = std::chrono::duration_cast<Microseconds>(
-        Clock::now() - start_time);
+    auto total_elapsed =
+        std::chrono::duration_cast<Microseconds>(Clock::now() - start_time);
     float elapsed_ms = total_elapsed.count() / 1000.0f;
 
     texture_queue_stats_.textures_processed += textures_this_call;
@@ -548,8 +604,8 @@ size_t Arena::EvictLRUSheets(size_t count) {
   sheet_cache_stats_.current_size = sheet_lru_map_.size();
 
   if (evicted > 0) {
-    LOG_DEBUG("Arena", "Evicted %zu LRU sheet textures, %zu remaining",
-              evicted, sheet_lru_map_.size());
+    LOG_DEBUG("Arena", "Evicted %zu LRU sheet textures, %zu remaining", evicted,
+              sheet_lru_map_.size());
   }
 
   return evicted;

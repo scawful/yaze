@@ -241,6 +241,21 @@ bool EditorSet::HasPendingGraphicsChanges() const {
   return false;
 }
 
+bool EditorSet::HasPendingScreenChanges() const {
+  if (auto* editor =
+          static_cast<ScreenEditor*>(FindEditor(EditorType::kScreen))) {
+    return editor->HasPendingScreenChanges();
+  }
+  return false;
+}
+
+void EditorSet::InvalidateScreenRomBackedState() {
+  if (auto* editor =
+          static_cast<ScreenEditor*>(FindEditor(EditorType::kScreen))) {
+    editor->InvalidateRomBackedState();
+  }
+}
+
 bool EditorSet::HasPendingProjectDraftChanges() const {
   if (auto* editor =
           static_cast<DungeonEditorV2*>(FindEditor(EditorType::kDungeon))) {

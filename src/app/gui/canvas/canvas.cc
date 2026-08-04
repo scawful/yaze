@@ -257,7 +257,7 @@ void Canvas::Cleanup() {
   }
   extensions_.reset();
 
-  selection_.Clear();
+  ClearSelection();
 
   // Stop performance monitoring before cleanup to prevent segfault
   if (performance_integration_) {
@@ -268,6 +268,17 @@ void Canvas::Cleanup() {
   context_menu_.reset();
   usage_tracker_.reset();
   performance_integration_.reset();
+}
+
+void Canvas::ClearSelection() {
+  selection_.Clear();
+  interaction_handler_.ClearState();
+  points_.clear();
+  selected_tiles_.clear();
+  selected_points_.clear();
+  selected_tile_pos_ = ImVec2(-1, -1);
+  select_rect_active_ = false;
+  drawn_tile_pos_ = ImVec2(-1, -1);
 }
 
 void Canvas::InitializeEnhancedComponents() {
