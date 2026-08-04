@@ -4080,7 +4080,7 @@ absl::Status EditorManager::SaveRomInternal(
     return absl::FailedPreconditionError(absl::StrFormat(
         "Save blocked: graphics sheet edits are pending, but graphics ROM "
         "persistence is not safely available (Save Graphics Sheets is %s). "
-        "Export or discard the edits before saving the ROM.",
+        "Discard the graphics sheet edits before saving the ROM.",
         core::FeatureFlags::get().kSaveGraphicsSheet ? "enabled" : "disabled"));
   }
 
