@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <fstream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -43,6 +44,10 @@ class ScopedTestProject {
     project_.filepath = (root_ / "Oracle-of-Secrets.yaze").string();
     project_.code_folder = (root_ / "Core").string();
     std::ofstream(project_.filepath) << "name=Minecart Test\n";
+    const absl::Status manifest_status = LoadManifest();
+    if (!manifest_status.ok()) {
+      throw std::runtime_error(std::string(manifest_status.message()));
+    }
   }
 
   ~ScopedTestProject() {
@@ -57,10 +62,35 @@ class ScopedTestProject {
   std::filesystem::path source_path() const {
     return root_ / kTrackSourceRelativePath;
   }
+  std::filesystem::path source_path(const std::string& relative_path) const {
+    return root_ / relative_path;
+  }
+
+  absl::Status LoadManifest(
+      const std::string& relative_path = kTrackSourceRelativePath) {
+    return project_.hack_manifest.LoadFromString(absl::StrFormat(
+        R"json({
+          "manifest_version": 3,
+          "minecart_tracks": {
+            "source": {
+              "format": "yaze-minecart-track-table",
+              "version": 1,
+              "path": "%s"
+            }
+          }
+        })json",
+        relative_path));
+  }
 
   void WriteSource(const std::string& contents) {
-    std::filesystem::create_directories(source_path().parent_path());
-    std::ofstream file(source_path(), std::ios::binary | std::ios::trunc);
+    WriteSourceAt(kTrackSourceRelativePath, contents);
+  }
+
+  void WriteSourceAt(const std::string& relative_path,
+                     const std::string& contents) {
+    const std::filesystem::path path = source_path(relative_path);
+    std::filesystem::create_directories(path.parent_path());
+    std::ofstream file(path, std::ios::binary | std::ios::trunc);
     file << contents;
   }
 
@@ -168,7 +198,8 @@ TEST(MinecartTrackEditorPanelTest,
   EXPECT_FALSE(panel.HasUnpublishedChanges());
 }
 
-TEST(MinecartTrackEditorPanelTest, FlatSourceRequiresExactly32Entries) {
+TEST(MinecartTrackEditorPanelTest,
+     FlatSourcePublishesExplicitlyAndRebasesTheDraft) {
   ScopedTestProject fixture;
   fixture.WriteSource(MakeFlatSource(32));
 
@@ -185,9 +216,13 @@ TEST(MinecartTrackEditorPanelTest, FlatSourceRequiresExactly32Entries) {
   MinecartTrack draft = panel.GetTracks().front();
   draft.room_id = 0x0777;
   ASSERT_TRUE(panel.UpdateTrack(0, draft).ok());
-  EXPECT_TRUE(absl::IsUnimplemented(panel.SaveTracks()));
-  EXPECT_EQ(fixture.ReadSource(), source_before);
-  EXPECT_TRUE(panel.HasUnpublishedChanges());
+  ASSERT_TRUE(panel.SaveTracks().ok());
+  std::string expected_source = source_before;
+  expected_source.replace(expected_source.find("$0100"), 5, "$0777");
+  EXPECT_EQ(fixture.ReadSource(), expected_source);
+  EXPECT_FALSE(panel.HasUnpublishedChanges());
+  EXPECT_EQ(panel.GetTracks().front().room_id, 0x0777);
+  EXPECT_TRUE(absl::IsFailedPrecondition(panel.SaveTracks()));
 }
 
 TEST(MinecartTrackEditorPanelTest,
@@ -324,7 +359,86 @@ TEST(MinecartTrackEditorPanelTest, RejectsSourceSymlinkOutsideProjectRoot) {
 }
 
 TEST(MinecartTrackEditorPanelTest,
-     GuardedPublicationAndDungeonSavesFailBeforeAnyMutation) {
+     MissingManifestSourceFailsClosedBeforeLoading) {
+  ScopedTestProject fixture;
+  fixture.WriteSource(MakeFlatSource(32));
+  const std::string source_before = fixture.ReadSource();
+  fixture.project()->hack_manifest.Clear();
+
+  MinecartTrackEditorPanel panel;
+  ASSERT_TRUE(panel.SetProject(fixture.project()).ok());
+  const absl::Status status = panel.ReloadTracks();
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_NE(std::string(status.message()).find("minecart_tracks.source"),
+            std::string::npos);
+  EXPECT_TRUE(panel.GetTracks().empty());
+  EXPECT_EQ(fixture.ReadSource(), source_before);
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     ManifestIdentityChangeRejectsPublishAndPreservesDraft) {
+  constexpr char kAlternateSource[] = "Data/alternate_minecart_tracks.asm";
+  ScopedTestProject fixture;
+  fixture.WriteSource(MakeFlatSource(32));
+  fixture.WriteSourceAt(kAlternateSource,
+                        MakeFlatSource(32, /*room_base=*/0x0300));
+  const std::string original_source = fixture.ReadSource();
+  const std::string alternate_source = [&]() {
+    std::ifstream file(fixture.source_path(kAlternateSource), std::ios::binary);
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    return buffer.str();
+  }();
+
+  MinecartTrackEditorPanel panel;
+  ASSERT_TRUE(panel.SetProject(fixture.project()).ok());
+  ASSERT_TRUE(panel.ReloadTracks().ok());
+  MinecartTrack draft = panel.GetTracks()[0];
+  draft.room_id = 0x0777;
+  ASSERT_TRUE(panel.UpdateTrack(0, draft).ok());
+  ASSERT_TRUE(fixture.LoadManifest(kAlternateSource).ok());
+
+  const absl::Status status = panel.SaveTracks();
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_NE(std::string(status.message()).find("changed"), std::string::npos);
+  EXPECT_EQ(fixture.ReadSource(), original_source);
+  std::ifstream alternate_file(fixture.source_path(kAlternateSource),
+                               std::ios::binary);
+  std::stringstream alternate_buffer;
+  alternate_buffer << alternate_file.rdbuf();
+  EXPECT_EQ(alternate_buffer.str(), alternate_source);
+  EXPECT_EQ(panel.GetTracks()[0].room_id, 0x0777);
+  EXPECT_TRUE(panel.HasUnpublishedChanges());
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     ExternalSourceChangeFailsCasAndPreservesExternalBytesAndDraft) {
+  ScopedTestProject fixture;
+  fixture.WriteSource(MakeFlatSource(32));
+
+  MinecartTrackEditorPanel panel;
+  ASSERT_TRUE(panel.SetProject(fixture.project()).ok());
+  ASSERT_TRUE(panel.ReloadTracks().ok());
+  MinecartTrack draft = panel.GetTracks()[0];
+  draft.room_id = 0x0777;
+  ASSERT_TRUE(panel.UpdateTrack(0, draft).ok());
+
+  const std::string external_source =
+      fixture.ReadSource() + "\n; external author update\n";
+  fixture.WriteSource(external_source);
+  const absl::Status status = panel.SaveTracks();
+
+  EXPECT_TRUE(absl::IsAborted(status)) << status;
+  EXPECT_NE(std::string(status.message()).find("CAS failed"),
+            std::string::npos);
+  EXPECT_EQ(fixture.ReadSource(), external_source);
+  EXPECT_EQ(panel.GetTracks()[0].room_id, 0x0777);
+  EXPECT_TRUE(panel.HasUnpublishedChanges());
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     DungeonSavesBlockDraftsThenGuardedPublicationRebases) {
   ScopedTestProject fixture;
   fixture.WriteSource(MakeGuardedSource());
   MinecartTrackEditorPanel panel;
@@ -337,13 +451,6 @@ TEST(MinecartTrackEditorPanelTest,
   ASSERT_TRUE(panel.HasUnpublishedChanges());
   const std::string source_before = fixture.ReadSource();
 
-  const absl::Status publish_status = panel.SaveTracks();
-  EXPECT_TRUE(absl::IsFailedPrecondition(publish_status)) << publish_status;
-  EXPECT_NE(std::string(publish_status.message()).find("Guarded"),
-            std::string::npos);
-  EXPECT_EQ(fixture.ReadSource(), source_before);
-  EXPECT_TRUE(panel.HasUnpublishedChanges());
-
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
   DungeonEditorV2 editor(&rom);
@@ -355,8 +462,16 @@ TEST(MinecartTrackEditorPanelTest,
   EXPECT_TRUE(editor.HasPendingDungeonChanges());
   const absl::Status save_status = editor.Save();
   EXPECT_TRUE(absl::IsFailedPrecondition(save_status)) << save_status;
-  EXPECT_NE(std::string(save_status.message()).find("Minecart"),
-            std::string::npos);
+  EXPECT_NE(std::string(save_status.message())
+                .find("ROM Save/Apply never publishes ASM source"),
+            std::string::npos)
+      << save_status;
+  EXPECT_NE(std::string(save_status.message()).find("Publish Tracks"),
+            std::string::npos)
+      << save_status;
+  EXPECT_NE(std::string(save_status.message()).find("discard the drafts"),
+            std::string::npos)
+      << save_status;
   EXPECT_EQ(rom.vector(), rom_before);
   EXPECT_EQ(rom.dirty(), dirty_before);
   EXPECT_EQ(fixture.ReadSource(), source_before);
@@ -364,14 +479,26 @@ TEST(MinecartTrackEditorPanelTest,
 
   const absl::Status save_room_status = editor.SaveRoom(0);
   EXPECT_TRUE(absl::IsFailedPrecondition(save_room_status)) << save_room_status;
-  EXPECT_NE(std::string(save_room_status.message()).find("Minecart"),
-            std::string::npos);
+  EXPECT_NE(std::string(save_room_status.message())
+                .find("ROM Save/Apply never publishes ASM source"),
+            std::string::npos)
+      << save_room_status;
+  EXPECT_NE(std::string(save_room_status.message()).find("Publish Tracks"),
+            std::string::npos)
+      << save_room_status;
+  EXPECT_NE(std::string(save_room_status.message()).find("discard the drafts"),
+            std::string::npos)
+      << save_room_status;
   EXPECT_EQ(rom.vector(), rom_before);
   EXPECT_EQ(rom.dirty(), dirty_before);
   EXPECT_EQ(fixture.ReadSource(), source_before);
   EXPECT_TRUE(panel.HasUnpublishedChanges());
 
-  ASSERT_TRUE(panel.DiscardUnpublishedChanges().ok());
+  ASSERT_TRUE(panel.SaveTracks().ok());
+  std::string expected_source = source_before;
+  expected_source.replace(expected_source.find("$0200"), 5, "$0777");
+  EXPECT_EQ(fixture.ReadSource(), expected_source);
+  EXPECT_FALSE(panel.HasUnpublishedChanges());
   EXPECT_FALSE(editor.HasPendingDungeonChanges());
 }
 

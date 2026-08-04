@@ -110,6 +110,21 @@ struct MessageLayout {
 };
 
 /**
+ * @brief Canonical source metadata for the ASM-owned minecart track table.
+ */
+struct MinecartTrackLayout {
+  struct Source {
+    std::string format;
+    int version = 0;
+    std::string path;
+
+    bool operator==(const Source&) const = default;
+  };
+
+  std::optional<Source> source;
+};
+
+/**
  * @brief Build pipeline information.
  */
 struct BuildPipeline {
@@ -393,6 +408,12 @@ class HackManifest {
 
   [[nodiscard]] bool IsExpandedMessage(uint16_t message_id) const;
 
+  // ─── Minecart Tracks ──────────────────────────────────────
+
+  [[nodiscard]] const MinecartTrackLayout& minecart_track_layout() const {
+    return minecart_track_layout_;
+  }
+
   // ─── Dungeon Stream Allocation Layouts ────────────────────────────
 
   /**
@@ -529,6 +550,9 @@ class HackManifest {
 
   // Message layout
   MessageLayout message_layout_{};
+
+  // Optional canonical source contract for the minecart track table.
+  MinecartTrackLayout minecart_track_layout_{};
 
   // Explicit dungeon stream layouts, indexed by stream kind.
   std::unordered_map<DungeonStreamType, DungeonStreamLayout>
