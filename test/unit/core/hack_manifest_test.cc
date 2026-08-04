@@ -81,6 +81,7 @@ void ExpectManifestLoadFailure(const std::string& json,
   EXPECT_FALSE(manifest.HasDungeonStreamLayouts());
   EXPECT_TRUE(manifest.protected_regions().empty());
   EXPECT_TRUE(manifest.editor_managed_regions().empty());
+  EXPECT_FALSE(manifest.minecart_track_layout().source.has_value());
   EXPECT_FALSE(manifest.IsEditorManaged(0x228880));
   EXPECT_NE(std::string(status.message()).find(message_fragment),
             std::string::npos)
@@ -525,6 +526,80 @@ TEST(HackManifestTest, RejectsMalformedMessageSourceMetadata) {
        "canonical_bundle_path must be"},
       {R"json({"manifest_version":3,"messages":{"source":{"format":"yaze-message-bundle","version":1,"canonical_bundle_path":"messages.json","generated_asm_include_path":"messages.asm","extra":true}}})json",
        "unknown field"},
+  };
+
+  for (const auto& [json, expected_message] : invalid_manifests) {
+    SCOPED_TRACE(json);
+    ExpectManifestLoadFailure(json, expected_message);
+  }
+}
+
+TEST(HackManifestTest, ParsesOptionalMinecartTrackSourceMetadata) {
+  constexpr const char* kJson = R"json(
+{
+  "manifest_version": 3,
+  "minecart_tracks": {
+    "source": {
+      "format": "yaze-minecart-track-table",
+      "version": 1,
+      "path": "Sprites/Objects/data/minecart_tracks.asm"
+    }
+  }
+}
+)json";
+
+  HackManifest manifest;
+  ASSERT_TRUE(manifest.LoadFromString(kJson).ok());
+  ASSERT_TRUE(manifest.minecart_track_layout().source.has_value());
+  EXPECT_EQ(manifest.minecart_track_layout().source->format,
+            "yaze-minecart-track-table");
+  EXPECT_EQ(manifest.minecart_track_layout().source->version, 1);
+  EXPECT_EQ(manifest.minecart_track_layout().source->path,
+            "Sprites/Objects/data/minecart_tracks.asm");
+
+  ASSERT_TRUE(
+      manifest
+          .LoadFromString(R"json({"manifest_version":3,"hack_name":"B"})json")
+          .ok());
+  EXPECT_FALSE(manifest.minecart_track_layout().source.has_value());
+}
+
+TEST(HackManifestTest, RejectsMalformedMinecartTrackSourceMetadata) {
+  const std::pair<const char*, const char*> invalid_manifests[] = {
+      {R"json({"manifest_version":3,"minecart_tracks":[]})json",
+       "minecart_tracks must be an object"},
+      {R"json({"manifest_version":3,"minecart_tracks":{}})json",
+       "minecart_tracks.source is required"},
+      {R"json({"manifest_version":3,"minecart_tracks":{"source":{},"extra":true}})json",
+       "minecart_tracks contains unknown field"},
+      {R"json({"manifest_version":3,"minecart_tracks":{"source":[]}})json",
+       "minecart_tracks.source must be an object"},
+      {R"json({"manifest_version":3,"minecart_tracks":{"source":{}}})json",
+       "minecart_tracks.source.format is required"},
+      {R"json({"manifest_version":3,"minecart_tracks":{"source":{"format":"other","version":1,"path":"minecart_tracks.asm"}}})json",
+       "format must be"},
+      {R"json({"manifest_version":3,"minecart_tracks":{"source":{"format":"yaze-minecart-track-table","version":"1","path":"minecart_tracks.asm"}}})json",
+       "version must be integer 1"},
+      {R"json({"manifest_version":3,"minecart_tracks":{"source":{"format":"yaze-minecart-track-table","version":2,"path":"minecart_tracks.asm"}}})json",
+       "version must be integer 1"},
+      {R"json({"manifest_version":3,"minecart_tracks":{"source":{"format":"yaze-minecart-track-table","version":1,"path":7}}})json",
+       "path must be a string"},
+      {R"json({"manifest_version":3,"minecart_tracks":{"source":{"format":"yaze-minecart-track-table","version":1,"path":""}}})json",
+       "non-empty portable"},
+      {R"json({"manifest_version":3,"minecart_tracks":{"source":{"format":"yaze-minecart-track-table","version":1,"path":"/tmp/minecart_tracks.asm"}}})json",
+       "project-relative file path"},
+      {R"json({"manifest_version":3,"minecart_tracks":{"source":{"format":"yaze-minecart-track-table","version":1,"path":"C:/tmp/minecart_tracks.asm"}}})json",
+       "portable project-relative"},
+      {R"json({"manifest_version":3,"minecart_tracks":{"source":{"format":"yaze-minecart-track-table","version":1,"path":"../minecart_tracks.asm"}}})json",
+       "may not contain"},
+      {R"json({"manifest_version":3,"minecart_tracks":{"source":{"format":"yaze-minecart-track-table","version":1,"path":"Sprites/./minecart_tracks.asm"}}})json",
+       "may not contain"},
+      {R"json({"manifest_version":3,"minecart_tracks":{"source":{"format":"yaze-minecart-track-table","version":1,"path":"Sprites\\minecart_tracks.asm"}}})json",
+       "portable project-relative"},
+      {R"json({"manifest_version":3,"minecart_tracks":{"source":{"format":"yaze-minecart-track-table","version":1,"path":"Sprites//minecart_tracks.asm"}}})json",
+       "normalized project-relative"},
+      {R"json({"manifest_version":3,"minecart_tracks":{"source":{"format":"yaze-minecart-track-table","version":1,"path":"minecart_tracks.asm","extra":true}}})json",
+       "source contains unknown field"},
   };
 
   for (const auto& [json, expected_message] : invalid_manifests) {

@@ -1,20 +1,22 @@
 #include "minecart_track_editor_panel.h"
 
 #include <algorithm>
-#include <cctype>
 #include <filesystem>
 #include <fstream>
-#include <iomanip>
-#include <sstream>
-#include <string_view>
+#include <iterator>
+#include <memory>
 #include <system_error>
+#include <utility>
+#include <vector>
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
+#include "core/source_artifact_publisher.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/i18n/tr.h"
+#include "util/macro.h"
 
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
@@ -26,33 +28,15 @@
 namespace yaze::editor {
 
 namespace {
-constexpr int kTrackSlotCount = 32;
+constexpr int kTrackSlotCount = static_cast<int>(kMinecartTrackSlotCount);
 constexpr int kDefaultTrackRoom = 0x89;
 constexpr int kDefaultTrackX = 0x1300;
 constexpr int kDefaultTrackY = 0x1100;
-constexpr std::string_view kTrackSourceRelativePath =
-    "Sprites/Objects/data/minecart_tracks.asm";
-constexpr std::string_view kPlannedTrackGuard =
-    "if !ENABLE_MINECART_PLANNED_TRACK_TABLE == 1";
 
-std::string Trim(std::string_view value) {
-  size_t first = 0;
-  while (first < value.size() &&
-         std::isspace(static_cast<unsigned char>(value[first]))) {
-    ++first;
-  }
-  size_t last = value.size();
-  while (last > first &&
-         std::isspace(static_cast<unsigned char>(value[last - 1]))) {
-    --last;
-  }
-  return std::string(value.substr(first, last - first));
-}
-
-std::string StripCommentAndTrim(const std::string& line) {
-  const size_t comment = line.find(';');
-  return Trim(std::string_view(line).substr(0, comment));
-}
+const core::SourceArtifactPublisherLabels kMinecartSourcePublisherLabels{
+    .subject = "minecart track source",
+    .published_file = "published minecart track source",
+};
 
 bool IsStrictDescendant(const std::filesystem::path& path,
                         const std::filesystem::path& root) {
@@ -66,47 +50,19 @@ bool IsStrictDescendant(const std::filesystem::path& path,
   return path_it != path.end();
 }
 
-absl::StatusOr<std::vector<int>> ParseDwValues(const std::string& line,
-                                               const std::string& label) {
-  const std::string code = StripCommentAndTrim(line);
-  if (code.size() < 2 ||
-      std::tolower(static_cast<unsigned char>(code[0])) != 'd' ||
-      std::tolower(static_cast<unsigned char>(code[1])) != 'w' ||
-      (code.size() > 2 && !std::isspace(static_cast<unsigned char>(code[2])))) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Unexpected statement in %s: %s", label, code));
+absl::StatusOr<std::string> ReadSourceFile(const std::filesystem::path& path) {
+  std::ifstream input(path, std::ios::binary);
+  if (!input.is_open()) {
+    return absl::NotFoundError(
+        absl::StrFormat("Could not open minecart source: %s", path.string()));
   }
-
-  const std::string operands = Trim(std::string_view(code).substr(2));
-  if (operands.empty()) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Empty dw statement in %s", label));
+  std::string content{std::istreambuf_iterator<char>(input),
+                      std::istreambuf_iterator<char>()};
+  if (!input.good() && !input.eof()) {
+    return absl::DataLossError(
+        absl::StrFormat("Could not read minecart source: %s", path.string()));
   }
-
-  std::vector<int> values;
-  for (absl::string_view operand_view : absl::StrSplit(operands, ',')) {
-    const std::string operand =
-        Trim(std::string_view(operand_view.data(), operand_view.size()));
-    if (operand.size() < 2 || operand.size() > 5 || operand[0] != '$' ||
-        !std::all_of(operand.begin() + 1, operand.end(), [](char c) {
-          return std::isxdigit(static_cast<unsigned char>(c));
-        })) {
-      return absl::InvalidArgumentError(absl::StrFormat(
-          "Invalid 16-bit hex value in %s: %s", label, operand));
-    }
-    try {
-      const unsigned long value = std::stoul(operand.substr(1), nullptr, 16);
-      if (value > 0xFFFF) {
-        return absl::InvalidArgumentError(
-            absl::StrFormat("Value out of range in %s: %s", label, operand));
-      }
-      values.push_back(static_cast<int>(value));
-    } catch (...) {
-      return absl::InvalidArgumentError(absl::StrFormat(
-          "Invalid 16-bit hex value in %s: %s", label, operand));
-    }
-  }
-  return values;
+  return content;
 }
 
 std::string FormatHexList(const std::vector<uint16_t>& values) {
@@ -152,9 +108,12 @@ std::vector<uint16_t> ParseHexList(const std::string& input) {
 void MinecartTrackEditorPanel::ResetTrackSession() {
   tracks_.clear();
   loaded_tracks_.clear();
+  source_document_.reset();
+  loaded_source_identity_.reset();
+  loaded_source_path_.clear();
+  loaded_source_sha256_.clear();
   load_attempted_ = false;
   loaded_ = false;
-  source_is_guarded_ = false;
   CancelCoordinatePicking();
   audit_dirty_ = true;
 }
@@ -193,6 +152,26 @@ absl::Status MinecartTrackEditorPanel::SetProject(
   return absl::OkStatus();
 }
 
+absl::Status MinecartTrackEditorPanel::ValidateLoadedManifestIdentity() const {
+  if (project_ == nullptr || !project_->hack_manifest.loaded()) {
+    return absl::FailedPreconditionError(
+        "A loaded hack manifest is required to publish minecart tracks");
+  }
+  const auto& current_source =
+      project_->hack_manifest.minecart_track_layout().source;
+  if (!current_source.has_value()) {
+    return absl::FailedPreconditionError(
+        "Hack manifest does not define minecart_tracks.source");
+  }
+  if (!loaded_source_identity_.has_value() ||
+      *current_source != *loaded_source_identity_) {
+    return absl::FailedPreconditionError(
+        "Hack manifest minecart_tracks.source changed after the tracks were "
+        "loaded; drafts were kept");
+  }
+  return absl::OkStatus();
+}
+
 absl::StatusOr<std::filesystem::path>
 MinecartTrackEditorPanel::ResolveTrackSourcePath() const {
   if (project_ != nullptr && project_->filepath != bound_project_filepath_) {
@@ -203,6 +182,15 @@ MinecartTrackEditorPanel::ResolveTrackSourcePath() const {
   if (project_ == nullptr || bound_project_filepath_.empty()) {
     return absl::FailedPreconditionError(
         "An open project descriptor is required for minecart tracks");
+  }
+  if (!project_->hack_manifest.loaded()) {
+    return absl::FailedPreconditionError(
+        "A loaded hack manifest is required for minecart tracks");
+  }
+  const auto& source = project_->hack_manifest.minecart_track_layout().source;
+  if (!source.has_value()) {
+    return absl::FailedPreconditionError(
+        "Hack manifest does not define minecart_tracks.source");
   }
 
   std::error_code ec;
@@ -224,7 +212,17 @@ MinecartTrackEditorPanel::ResolveTrackSourcePath() const {
   }
 
   const std::filesystem::path candidate =
-      project_root / kTrackSourceRelativePath;
+      (project_root / source->path).lexically_normal();
+  const std::filesystem::file_status candidate_status =
+      std::filesystem::symlink_status(candidate, ec);
+  if (ec) {
+    return absl::NotFoundError(
+        absl::StrFormat("Minecart source not found: %s", candidate.string()));
+  }
+  if (std::filesystem::is_symlink(candidate_status)) {
+    return absl::PermissionDeniedError(
+        "Minecart source may not be a symbolic link");
+  }
   const std::filesystem::path resolved =
       std::filesystem::canonical(candidate, ec);
   if (ec) {
@@ -593,14 +591,22 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
   }
 
   ImGui::Text(tr("Minecart Track Editor"));
-  ImGui::TextColored(
-      ImVec4(1.0f, 0.8f, 0.2f, 1.0f), ICON_MD_WARNING
-      " Source publishing is disabled in this build; edits remain drafts "
-      "until discarded.");
+  ImGui::TextDisabled(
+      tr("Publish explicitly updates the manifest-owned ASM source. Project "
+         "and dungeon saves never publish these drafts."));
   const bool has_unpublished_changes = HasUnpublishedChanges();
-  ImGui::BeginDisabled();
-  ImGui::Button(ICON_MD_SAVE " Publish Unavailable");
-  ImGui::EndDisabled();
+  if (!has_unpublished_changes) {
+    ImGui::BeginDisabled();
+  }
+  if (ImGui::Button(ICON_MD_SAVE " Publish Tracks")) {
+    const absl::Status status = SaveTracks();
+    status_message_ = status.ok() ? "Minecart track source published."
+                                  : std::string(status.message());
+    show_success_ = status.ok();
+  }
+  if (!has_unpublished_changes) {
+    ImGui::EndDisabled();
+  }
   ImGui::SameLine();
   if (!has_unpublished_changes) {
     ImGui::BeginDisabled();
@@ -993,52 +999,40 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
 absl::Status MinecartTrackEditorPanel::LoadTracks() {
   load_attempted_ = true;
 
-  auto path_or = ResolveTrackSourcePath();
-  if (!path_or.ok()) {
-    return path_or.status();
+  if (project_ == nullptr || !project_->hack_manifest.loaded() ||
+      !project_->hack_manifest.minecart_track_layout().source.has_value()) {
+    return absl::FailedPreconditionError(
+        "Hack manifest does not define minecart_tracks.source");
+  }
+  const core::MinecartTrackLayout::Source source_identity =
+      *project_->hack_manifest.minecart_track_layout().source;
+
+  std::filesystem::path source_path;
+  ASSIGN_OR_RETURN(source_path, ResolveTrackSourcePath());
+  std::string source_bytes;
+  ASSIGN_OR_RETURN(source_bytes, ReadSourceFile(source_path));
+  auto document_or =
+      MinecartTrackSourceDocument::Parse(std::move(source_bytes));
+  if (!document_or.ok()) {
+    return document_or.status();
+  }
+  if (!project_->hack_manifest.minecart_track_layout().source.has_value() ||
+      *project_->hack_manifest.minecart_track_layout().source !=
+          source_identity) {
+    return absl::AbortedError(
+        "Hack manifest minecart_tracks.source changed while loading tracks");
   }
 
-  std::ifstream file(*path_or, std::ios::binary);
-  if (!file.is_open()) {
-    return absl::NotFoundError(absl::StrFormat(
-        "Could not open minecart source: %s", path_or->string()));
-  }
-  std::stringstream buffer;
-  buffer << file.rdbuf();
-  if (file.bad()) {
-    return absl::DataLossError(absl::StrFormat(
-        "Could not read minecart source: %s", path_or->string()));
-  }
-  const std::string content = buffer.str();
-
-  auto rooms_or = ParseSection(content, ".TrackStartingRooms");
-  if (!rooms_or.ok()) {
-    return rooms_or.status();
-  }
-  auto xs_or = ParseSection(content, ".TrackStartingX");
-  if (!xs_or.ok()) {
-    return xs_or.status();
-  }
-  auto ys_or = ParseSection(content, ".TrackStartingY");
-  if (!ys_or.ok()) {
-    return ys_or.status();
-  }
-  if (rooms_or->guarded != xs_or->guarded ||
-      rooms_or->guarded != ys_or->guarded) {
-    return absl::InvalidArgumentError(
-        "Minecart sections must use the same flat or guarded layout");
-  }
-
-  std::vector<MinecartTrack> candidate_tracks;
-  candidate_tracks.reserve(kTrackSlotCount);
-  for (size_t i = 0; i < kTrackSlotCount; ++i) {
-    candidate_tracks.push_back({static_cast<int>(i), rooms_or->values[i],
-                                xs_or->values[i], ys_or->values[i]});
-  }
+  std::vector<MinecartTrack> candidate_tracks = document_or->tracks();
+  const std::string source_sha256 =
+      core::ComputeSourceArtifactSha256(document_or->source_bytes());
 
   tracks_ = candidate_tracks;
   loaded_tracks_ = std::move(candidate_tracks);
-  source_is_guarded_ = rooms_or->guarded;
+  source_document_ = std::move(*document_or);
+  loaded_source_identity_ = source_identity;
+  loaded_source_path_ = std::move(source_path);
+  loaded_source_sha256_ = source_sha256;
   loaded_ = true;
   audit_dirty_ = true;
   status_message_.clear();
@@ -1046,144 +1040,119 @@ absl::Status MinecartTrackEditorPanel::LoadTracks() {
   return absl::OkStatus();
 }
 
-absl::StatusOr<MinecartTrackEditorPanel::ParsedSection>
-MinecartTrackEditorPanel::ParseSection(const std::string& content,
-                                       const std::string& label) {
-  std::vector<std::string> lines;
-  std::stringstream stream(content);
-  std::string line;
-  while (std::getline(stream, line)) {
-    lines.push_back(line);
-  }
-
-  size_t section_line = 0;
-  int label_count = 0;
-  for (size_t i = 0; i < lines.size(); ++i) {
-    if (StripCommentAndTrim(lines[i]) == label) {
-      section_line = i;
-      ++label_count;
-    }
-  }
-  if (label_count != 1) {
-    return absl::InvalidArgumentError(absl::StrFormat(
-        "Expected exactly one %s label, found %d", label, label_count));
-  }
-
-  size_t section_end = lines.size();
-  for (size_t i = section_line + 1; i < lines.size(); ++i) {
-    const std::string code = StripCommentAndTrim(lines[i]);
-    if (!code.empty() && code[0] == '.') {
-      section_end = i;
-      break;
-    }
-  }
-
-  enum class GuardState { kPrefix, kEnabled, kDisabled, kComplete };
-  GuardState state = GuardState::kPrefix;
-  bool saw_guard = false;
-  bool saw_else = false;
-  bool saw_endif = false;
-  std::vector<int> prefix;
-  std::vector<int> enabled;
-  std::vector<int> disabled;
-
-  for (size_t i = section_line + 1; i < section_end; ++i) {
-    const std::string code = StripCommentAndTrim(lines[i]);
-    if (code.empty()) {
-      continue;
-    }
-    if (code == kPlannedTrackGuard) {
-      if (state != GuardState::kPrefix || saw_guard) {
-        return absl::InvalidArgumentError(
-            absl::StrFormat("Nested or repeated guard in %s", label));
-      }
-      saw_guard = true;
-      state = GuardState::kEnabled;
-      continue;
-    }
-    if (code == "else") {
-      if (!saw_guard || state != GuardState::kEnabled || saw_else) {
-        return absl::InvalidArgumentError(
-            absl::StrFormat("Unexpected else in %s", label));
-      }
-      saw_else = true;
-      state = GuardState::kDisabled;
-      continue;
-    }
-    if (code == "endif") {
-      if (!saw_else || state != GuardState::kDisabled || saw_endif) {
-        return absl::InvalidArgumentError(
-            absl::StrFormat("Unexpected endif in %s", label));
-      }
-      saw_endif = true;
-      state = GuardState::kComplete;
-      continue;
-    }
-    if (state == GuardState::kComplete) {
-      return absl::InvalidArgumentError(absl::StrFormat(
-          "Unexpected content after guarded table in %s: %s", label, code));
-    }
-
-    auto values_or = ParseDwValues(lines[i], label);
-    if (!values_or.ok()) {
-      return values_or.status();
-    }
-    std::vector<int>* destination = &prefix;
-    if (state == GuardState::kEnabled) {
-      destination = &enabled;
-    } else if (state == GuardState::kDisabled) {
-      destination = &disabled;
-    }
-    destination->insert(destination->end(), values_or->begin(),
-                        values_or->end());
-  }
-
-  ParsedSection result;
-  if (!saw_guard) {
-    if (prefix.size() != kTrackSlotCount) {
-      return absl::InvalidArgumentError(
-          absl::StrFormat("%s must contain exactly %d values; found %zu", label,
-                          kTrackSlotCount, prefix.size()));
-    }
-    result.values = std::move(prefix);
-    return result;
-  }
-
-  if (!saw_else || !saw_endif) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Incomplete planned-track guard in %s", label));
-  }
-  if (prefix.size() + enabled.size() != kTrackSlotCount ||
-      prefix.size() + disabled.size() != kTrackSlotCount) {
-    return absl::InvalidArgumentError(absl::StrFormat(
-        "%s guarded branches must each resolve to exactly %d values; found "
-        "%zu enabled and %zu disabled",
-        label, kTrackSlotCount, prefix.size() + enabled.size(),
-        prefix.size() + disabled.size()));
-  }
-
-  result.values = prefix;
-  result.values.insert(result.values.end(), enabled.begin(), enabled.end());
-  result.guarded = true;
-  return result;
-}
-
 absl::Status MinecartTrackEditorPanel::SaveTracks() {
-  if (!loaded_) {
+  if (!loaded_ || !source_document_.has_value() ||
+      !loaded_source_identity_.has_value() || loaded_source_path_.empty() ||
+      loaded_source_sha256_.empty()) {
     return absl::FailedPreconditionError("Minecart tracks are not loaded");
   }
   if (!HasUnpublishedChanges()) {
     return absl::FailedPreconditionError(
-        "No unpublished minecart track drafts to save");
+        "No unpublished minecart track drafts to publish");
   }
-  if (source_is_guarded_) {
+#if defined(__EMSCRIPTEN__)
+  return absl::FailedPreconditionError(
+      "Minecart source publishing is unavailable in browser builds because "
+      "durable atomic filesystem publication cannot be guaranteed; drafts "
+      "were kept");
+#else
+  RETURN_IF_ERROR(RefreshProjectBinding());
+  RETURN_IF_ERROR(ValidateLoadedManifestIdentity());
+
+  std::filesystem::path source_path;
+  ASSIGN_OR_RETURN(source_path, ResolveTrackSourcePath());
+  if (source_path != loaded_source_path_) {
     return absl::FailedPreconditionError(
-        "Guarded minecart source publishing is disabled until a lossless "
-        "publisher is available; drafts were kept");
+        "Minecart source path changed after the tracks were loaded; drafts "
+        "were kept");
   }
-  return absl::UnimplementedError(
-      "Minecart source publishing is disabled until atomic source guards are "
-      "available; drafts were kept");
+
+  std::unique_ptr<core::SourceArtifactPublicationLock> publication_lock;
+  ASSIGN_OR_RETURN(publication_lock,
+                   core::AcquireSourceArtifactPublicationLock(
+                       {source_path}, kMinecartSourcePublisherLabels));
+
+  // Recheck every source identity after acquiring the durable publication
+  // lock. A manifest reload or path replacement must fail before mutation.
+  RETURN_IF_ERROR(ValidateLoadedManifestIdentity());
+  std::filesystem::path locked_source_path;
+  ASSIGN_OR_RETURN(locked_source_path, ResolveTrackSourcePath());
+  if (locked_source_path != loaded_source_path_) {
+    return absl::FailedPreconditionError(
+        "Minecart source path changed while acquiring its publication lock; "
+        "drafts were kept");
+  }
+
+  std::string source_before;
+  ASSIGN_OR_RETURN(source_before, ReadSourceFile(locked_source_path));
+  const std::string source_sha256_before =
+      core::ComputeSourceArtifactSha256(source_before);
+  if (source_sha256_before != loaded_source_sha256_ ||
+      source_before != source_document_->source_bytes()) {
+    return absl::AbortedError(absl::StrFormat(
+        "Minecart source SHA-256 CAS failed: expected %s, got %s; drafts were "
+        "kept",
+        loaded_source_sha256_, source_sha256_before));
+  }
+
+  std::string source_after;
+  ASSIGN_OR_RETURN(source_after, source_document_->Render(tracks_));
+  auto published_document_or = MinecartTrackSourceDocument::Parse(source_after);
+  if (!published_document_or.ok()) {
+    return absl::DataLossError(
+        absl::StrFormat("Rendered minecart source failed strict validation: %s",
+                        published_document_or.status().message()));
+  }
+  if (published_document_or->tracks() != tracks_) {
+    return absl::DataLossError(
+        "Rendered minecart source did not reproduce the draft tracks");
+  }
+  const std::string source_sha256_after =
+      core::ComputeSourceArtifactSha256(source_after);
+  const std::vector<MinecartTrack> draft_tracks = tracks_;
+
+  std::vector<core::SourceArtifactUpdate> updates;
+  updates.push_back(core::SourceArtifactUpdate{
+      .target = locked_source_path,
+      .before = source_before,
+      .after = source_after,
+  });
+  RETURN_IF_ERROR(core::PublishSourceArtifacts(
+      *publication_lock, std::move(updates), loaded_source_sha256_,
+      [&]() -> absl::Status {
+        std::string reopened_source;
+        ASSIGN_OR_RETURN(reopened_source, ReadSourceFile(locked_source_path));
+        if (reopened_source != source_after ||
+            core::ComputeSourceArtifactSha256(reopened_source) !=
+                source_sha256_after) {
+          return absl::DataLossError(
+              "Published minecart source failed exact SHA-256 readback");
+        }
+        auto reopened_document_or =
+            MinecartTrackSourceDocument::Parse(std::move(reopened_source));
+        if (!reopened_document_or.ok()) {
+          return absl::DataLossError(absl::StrFormat(
+              "Published minecart source failed strict readback validation: "
+              "%s",
+              reopened_document_or.status().message()));
+        }
+        if (reopened_document_or->tracks() != draft_tracks) {
+          return absl::DataLossError(
+              "Published minecart source track readback did not match the "
+              "draft");
+        }
+        return absl::OkStatus();
+      }));
+
+  tracks_ = published_document_or->tracks();
+  loaded_tracks_ = tracks_;
+  source_document_ = std::move(*published_document_or);
+  loaded_source_path_ = std::move(locked_source_path);
+  loaded_source_sha256_ = source_sha256_after;
+  CancelCoordinatePicking();
+  audit_dirty_ = true;
+  return absl::OkStatus();
+#endif
 }
 
 }  // namespace yaze::editor
