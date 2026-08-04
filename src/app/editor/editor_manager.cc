@@ -1275,6 +1275,21 @@ void EditorManager::CaptureActiveProjectEditingState() {
   session->project_file_editor_state = project_file_editor_.CaptureState();
 }
 
+absl::Status EditorManager::PrepareActiveProjectEditorDraftsForSave() {
+  if (!session_coordinator_) {
+    return absl::OkStatus();
+  }
+  auto* session = session_coordinator_->GetActiveRomSession();
+  if (session == nullptr || !session->editors.HasPendingProjectDraftChanges()) {
+    return absl::OkStatus();
+  }
+  if (!IsCurrentProjectContextOwnedBySession(session->session_id())) {
+    return absl::FailedPreconditionError(
+        "Project editor drafts require their project context to be active");
+  }
+  return session->editors.PrepareProjectSave();
+}
+
 void EditorManager::DetachActiveProjectContext() {
   CaptureActiveProjectContext();
   active_project_context_session_id_.reset();
@@ -5306,6 +5321,7 @@ absl::Status EditorManager::SaveProject() {
           "preserve that draft before saving project settings");
     }
   }
+  RETURN_IF_ERROR(PrepareActiveProjectEditorDraftsForSave());
   CaptureActiveProjectContext();
   if (!current_project_.project_opened()) {
     return CreateNewProject();
@@ -5370,7 +5386,9 @@ bool EditorManager::IsCurrentProjectDirty() const {
            project_management_panel_->IsProjectDirty();
   }
   const auto* session = session_coordinator_->GetActiveRomSession();
-  return session != nullptr && session->project_dirty;
+  return session != nullptr &&
+         (session->project_dirty ||
+          session->editors.HasPendingProjectDraftChanges());
 }
 
 absl::Status EditorManager::SaveActiveProjectEditingWork() {
@@ -5383,7 +5401,8 @@ absl::Status EditorManager::SaveActiveProjectEditingWork() {
   }
 
   CaptureActiveProjectEditingState();
-  const bool project_dirty = session->project_dirty;
+  const bool project_dirty = session->project_dirty ||
+                             session->editors.HasPendingProjectDraftChanges();
   const bool project_file_dirty =
       session->project_file_editor_state.initialized &&
       session->project_file_editor_state.modified;
@@ -5479,7 +5498,6 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
     return absl::InvalidArgumentError("Project file path cannot be empty");
   }
   CaptureActiveProjectEditingState();
-  CaptureActiveProjectContext();
   std::string file_path = filepath;
 
   // Ensure a project extension.
@@ -5499,6 +5517,9 @@ absl::Status EditorManager::SaveProjectAs(const std::string& filepath) {
           "raw Save As before overwriting that destination");
     }
   }
+
+  RETURN_IF_ERROR(PrepareActiveProjectEditorDraftsForSave());
+  CaptureActiveProjectContext();
 
   // Update project filepath and save
   std::string old_filepath = current_project_.filepath;
@@ -6415,6 +6436,7 @@ bool EditorManager::SessionHasPendingUnsavedWork(size_t session_index) const {
       static_cast<RomSession*>(session_coordinator_->GetSession(session_index));
   return session != nullptr &&
          (SessionHasPendingRomWork(session_index) || session->project_dirty ||
+          session->editors.HasPendingProjectDraftChanges() ||
           (session->project_file_editor_state.initialized &&
            session->project_file_editor_state.modified));
 }
@@ -6525,6 +6547,8 @@ std::string EditorManager::DescribePendingUnsavedWork(
   const size_t pending_palette_colors =
       PendingPaletteColorCountForSession(session_index);
   const bool project_dirty = session != nullptr && session->project_dirty;
+  const bool project_editor_draft =
+      session != nullptr && session->editors.HasPendingProjectDraftChanges();
   const bool project_file_dirty =
       session != nullptr && session->project_file_editor_state.initialized &&
       session->project_file_editor_state.modified;
@@ -6549,6 +6573,9 @@ std::string EditorManager::DescribePendingUnsavedWork(
   }
   if (project_dirty) {
     work.emplace_back("unsaved project settings");
+  }
+  if (project_editor_draft) {
+    work.emplace_back("an uncommitted project editor draft");
   }
   if (project_file_dirty) {
     work.emplace_back("an unsaved project-file draft");

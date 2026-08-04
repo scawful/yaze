@@ -94,6 +94,8 @@ class EditorSet {
   int TotalDungeonRoomCount() const;
   std::vector<std::pair<uint32_t, uint32_t>> CollectDungeonWriteRanges() const;
   bool HasPendingGraphicsChanges() const;
+  bool HasPendingProjectDraftChanges() const;
+  absl::Status PrepareProjectSave();
   zelda3::Overworld* GetOverworldData() const;
 
   // Deprecated named accessors (legacy compatibility)
