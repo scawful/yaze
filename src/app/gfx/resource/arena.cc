@@ -267,7 +267,7 @@ void Arena::ProcessTextureQueue(IRenderer* renderer) {
 }
 
 bool Arena::ProcessTextureQueueWithBudget(IRenderer* renderer,
-                                           float budget_ms) {
+                                          float budget_ms) {
   using Clock = std::chrono::high_resolution_clock;
   using Microseconds = std::chrono::microseconds;
 
@@ -290,8 +290,8 @@ bool Arena::ProcessTextureQueueWithBudget(IRenderer* renderer,
   while (!texture_command_queue_.empty()) {
     // Check time budget before each texture (not after, to avoid overshoot)
     if (textures_this_call > 0) {  // Always process at least one
-      auto elapsed = std::chrono::duration_cast<Microseconds>(
-          Clock::now() - start_time);
+      auto elapsed =
+          std::chrono::duration_cast<Microseconds>(Clock::now() - start_time);
       if (elapsed.count() >= budget_us) {
         LOG_DEBUG("Arena",
                   "Budget exhausted: processed %zu textures in %.2fms, "
@@ -310,8 +310,8 @@ bool Arena::ProcessTextureQueueWithBudget(IRenderer* renderer,
 
   // Update statistics
   if (textures_this_call > 0) {
-    auto total_elapsed = std::chrono::duration_cast<Microseconds>(
-        Clock::now() - start_time);
+    auto total_elapsed =
+        std::chrono::duration_cast<Microseconds>(Clock::now() - start_time);
     float elapsed_ms = total_elapsed.count() / 1000.0f;
 
     texture_queue_stats_.textures_processed += textures_this_call;
@@ -556,8 +556,8 @@ size_t Arena::EvictLRUSheets(size_t count) {
   sheet_cache_stats_.current_size = sheet_lru_map_.size();
 
   if (evicted > 0) {
-    LOG_DEBUG("Arena", "Evicted %zu LRU sheet textures, %zu remaining",
-              evicted, sheet_lru_map_.size());
+    LOG_DEBUG("Arena", "Evicted %zu LRU sheet textures, %zu remaining", evicted,
+              sheet_lru_map_.size());
   }
 
   return evicted;
