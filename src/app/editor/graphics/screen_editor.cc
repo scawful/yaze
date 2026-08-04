@@ -102,7 +102,7 @@ void ScreenEditor::Initialize() {
 
 absl::Status ScreenEditor::Load() {
   gfx::ScopedTimer timer("ScreenEditor::Load");
-  inventory_loaded_ = false;
+  ResetRomBackedStateForLoad();
 
   ASSIGN_OR_RETURN(dungeon_maps_,
                    zelda3::LoadDungeonMaps(*rom(), dungeon_map_labels_));
@@ -166,6 +166,11 @@ absl::Status ScreenEditor::Load() {
 }
 
 absl::Status ScreenEditor::Save() {
+  if (HasPendingScreenChanges()) {
+    return absl::FailedPreconditionError(
+        "Screen Editor dungeon-map edits cannot be saved safely yet; discard "
+        "them before saving the ROM");
+  }
   if (core::FeatureFlags::get().kSaveDungeonMaps) {
     RETURN_IF_ERROR(zelda3::SaveDungeonMaps(*rom(), dungeon_maps_));
   }
@@ -489,6 +494,7 @@ void ScreenEditor::DrawDungeonMapsTabs() {
           room_before, after,
           [this](const ScreenSnapshot& s) { RestoreFromSnapshot(s); },
           "Edit room assignment"));
+      MarkDungeonMapModified();
     }
   }
 
@@ -500,6 +506,7 @@ void ScreenEditor::DrawDungeonMapsTabs() {
           boss_before, after,
           [this](const ScreenSnapshot& s) { RestoreFromSnapshot(s); },
           "Edit boss room"));
+      MarkDungeonMapModified();
     }
   }
 
@@ -744,8 +751,13 @@ void ScreenEditor::DrawDungeonMapsEditor() {
     current_mode_ = EditingMode::EDIT;
   }
   ImGui::SameLine();
-  if (gui::ToolbarIconButton(ICON_MD_SAVE, "Save dungeon map tiles")) {
-    PRINT_IF_ERROR(zelda3::SaveDungeonMapTile16(tile16_blockset_, *rom()));
+  ImGui::BeginDisabled();
+  gui::ToolbarIconButton(ICON_MD_SAVE, "Save dungeon map tiles");
+  ImGui::EndDisabled();
+  if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+    ImGui::SetTooltip(
+        tr("Dungeon-map Tile16 saving is disabled until it can participate in "
+           "the coordinated ROM save transaction."));
   }
 
   static std::vector<std::string> dungeon_names = {
@@ -828,6 +840,7 @@ void ScreenEditor::LoadBinaryGfx() {
               gfx::Arena::TextureCommandType::CREATE, sheets_[i].get());
         }
         binary_gfx_loaded_ = true;
+        MarkDungeonMapTile16Modified();
       } else {
         status_ = absl::InternalError("Failed to load dungeon map tile16");
       }
@@ -1364,6 +1377,7 @@ void ScreenEditor::CommitDungeonMapUndo() {
       pending_dungeon_before_, after,
       [this](const ScreenSnapshot& snap) { RestoreFromSnapshot(snap); },
       pending_dungeon_desc_));
+  MarkDungeonMapModified();
 }
 
 void ScreenEditor::CommitTile16CompUndo() {
@@ -1376,6 +1390,7 @@ void ScreenEditor::CommitTile16CompUndo() {
       pending_tile16_before_, after,
       [this](const ScreenSnapshot& snap) { RestoreFromSnapshot(snap); },
       pending_tile16_desc_));
+  MarkDungeonMapTile16Modified();
 }
 
 void ScreenEditor::RestoreFromSnapshot(const ScreenSnapshot& snapshot) {
@@ -1386,6 +1401,7 @@ void ScreenEditor::RestoreFromSnapshot(const ScreenSnapshot& snapshot) {
         dungeon_maps_[idx] = snapshot.dungeon_map.map_data;
         dungeon_map_labels_[idx] = snapshot.dungeon_map.labels;
         selected_dungeon = idx;
+        MarkDungeonMapModified();
       }
       break;
     }
@@ -1400,9 +1416,45 @@ void ScreenEditor::RestoreFromSnapshot(const ScreenSnapshot& snapshot) {
                           selected_tile16_);
         gfx::UpdateTile16(nullptr, tile16_blockset_, selected_tile16_);
       }
+      MarkDungeonMapTile16Modified();
       break;
     }
   }
+}
+
+void ScreenEditor::ResetRomBackedStateForLoad() {
+  dungeon_maps_.clear();
+  for (auto& labels : dungeon_map_labels_) {
+    labels.clear();
+  }
+
+  undo_manager_.Clear();
+  has_pending_dungeon_undo_ = false;
+  has_pending_tile16_undo_ = false;
+  pending_dungeon_before_ = ScreenSnapshot{};
+  pending_tile16_before_ = ScreenSnapshot{};
+  pending_dungeon_desc_.clear();
+  pending_tile16_desc_.clear();
+  pending_dungeon_map_changes_ = false;
+  pending_dungeon_map_tile16_changes_ = false;
+
+  binary_gfx_loaded_ = false;
+  inventory_loaded_ = false;
+  title_screen_loaded_ = false;
+  ow_map_loaded_ = false;
+  sheets_.clear();
+  tile16_blockset_ = gfx::Tilemap{};
+  tile8_tilemap_ = gfx::Tilemap{};
+
+  selected_room = 0;
+  selected_tile16_ = 0;
+  selected_tile8_ = 0;
+  selected_dungeon = 0;
+  floor_number = 0;
+  copy_button_pressed = false;
+  paste_button_pressed = false;
+  current_tile16_info = {};
+  status_ = absl::OkStatus();
 }
 
 }  // namespace editor

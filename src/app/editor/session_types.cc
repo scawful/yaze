@@ -241,6 +241,14 @@ bool EditorSet::HasPendingGraphicsChanges() const {
   return false;
 }
 
+bool EditorSet::HasPendingScreenChanges() const {
+  if (auto* editor =
+          static_cast<ScreenEditor*>(FindEditor(EditorType::kScreen))) {
+    return editor->HasPendingScreenChanges();
+  }
+  return false;
+}
+
 zelda3::Overworld* EditorSet::GetOverworldData() const {
   if (auto* editor =
           static_cast<OverworldEditor*>(FindEditor(EditorType::kOverworld))) {
