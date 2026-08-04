@@ -91,6 +91,15 @@ std::string FormatHexList(const std::vector<uint16_t>& values) {
   return out;
 }
 
+bool OverlaySettingsEqual(const project::DungeonOverlaySettings& lhs,
+                          const project::DungeonOverlaySettings& rhs) {
+  return lhs.track_tiles == rhs.track_tiles &&
+         lhs.track_stop_tiles == rhs.track_stop_tiles &&
+         lhs.track_switch_tiles == rhs.track_switch_tiles &&
+         lhs.track_object_ids == rhs.track_object_ids &&
+         lhs.minecart_sprite_ids == rhs.minecart_sprite_ids;
+}
+
 absl::StatusOr<std::vector<uint16_t>> ParseHexList(const std::string& input) {
   std::vector<uint16_t> out;
   const absl::string_view trimmed_input = absl::StripAsciiWhitespace(input);
@@ -167,6 +176,7 @@ absl::Status MinecartTrackEditorPanel::RefreshProjectBinding() {
   bound_project_filepath_ = current_filepath;
   bound_source_identity_ = current_source_identity;
   overlay_inputs_initialized_ = false;
+  overlay_inputs_model_.reset();
   ResetTrackSession();
   return absl::OkStatus();
 }
@@ -188,6 +198,7 @@ absl::Status MinecartTrackEditorPanel::SetProject(
   bound_project_filepath_ = next_filepath;
   bound_source_identity_ = next_source_identity;
   overlay_inputs_initialized_ = false;
+  overlay_inputs_model_.reset();
   ResetTrackSession();
   return absl::OkStatus();
 }
@@ -201,11 +212,15 @@ absl::Status MinecartTrackEditorPanel::RebindProjectContext(
     return status;
   }
 
-  // SetProject intentionally treats a stable pointer/path as already bound.
-  // Project descriptors are reapplied into stable session storage, so force
-  // the model-backed text cache to observe the new revision here.
-  overlay_inputs_initialized_ = false;
-  InitializeOverlayInputs();
+  // Project descriptors are reapplied into stable session storage. Refresh a
+  // same-pointer binding only when the model changed; otherwise preserve text
+  // currently being edited until it can be validated and committed.
+  if (project != nullptr && (!overlay_inputs_model_.has_value() ||
+                             !OverlaySettingsEqual(*overlay_inputs_model_,
+                                                   project->dungeon_overlay))) {
+    overlay_inputs_initialized_ = false;
+    InitializeOverlayInputs();
+  }
   return absl::OkStatus();
 }
 
@@ -352,6 +367,7 @@ void MinecartTrackEditorPanel::InitializeOverlayInputs() {
       FormatHexList(project_->dungeon_overlay.track_object_ids);
   overlay_minecart_sprite_ids_input_ =
       FormatHexList(project_->dungeon_overlay.minecart_sprite_ids);
+  overlay_inputs_model_ = project_->dungeon_overlay;
   overlay_inputs_initialized_ = true;
 }
 
@@ -396,6 +412,7 @@ absl::StatusOr<bool> MinecartTrackEditorPanel::CommitOverlayList(
   std::vector<uint16_t>& candidate_target = candidate.*member;
   if (*parsed_or == candidate_target) {
     input = FormatHexList(*parsed_or);
+    overlay_inputs_model_ = project_->dungeon_overlay;
     status_message_.clear();
     show_success_ = false;
     return false;
@@ -413,9 +430,90 @@ absl::StatusOr<bool> MinecartTrackEditorPanel::CommitOverlayList(
 
   project_->dungeon_overlay = std::move(candidate);
   input = FormatHexList(project_->dungeon_overlay.*member);
+  overlay_inputs_model_ = project_->dungeon_overlay;
   audit_dirty_ = true;
   status_message_ = "Overlay settings updated; save the project to persist.";
   show_success_ = true;
+  return true;
+}
+
+absl::StatusOr<bool> MinecartTrackEditorPanel::CommitOverlayInputsForSave() {
+  if (project_ == nullptr) {
+    return absl::FailedPreconditionError("No project is bound to the panel");
+  }
+
+  InitializeOverlayInputs();
+  project::DungeonOverlaySettings candidate;
+  auto parse_field = [](const char* field_name, const std::string& input,
+                        std::vector<uint16_t>* target) -> absl::Status {
+    const auto parsed_or = ParseHexList(input);
+    if (!parsed_or.ok()) {
+      return absl::Status(
+          parsed_or.status().code(),
+          absl::StrFormat("%s: %s", field_name, parsed_or.status().message()));
+    }
+    *target = *parsed_or;
+    return absl::OkStatus();
+  };
+
+  absl::Status parse_status = parse_field(
+      "Track Tiles", overlay_track_tiles_input_, &candidate.track_tiles);
+  if (parse_status.ok()) {
+    parse_status = parse_field("Stop Tiles", overlay_track_stop_tiles_input_,
+                               &candidate.track_stop_tiles);
+  }
+  if (parse_status.ok()) {
+    parse_status =
+        parse_field("Switch Tiles", overlay_track_switch_tiles_input_,
+                    &candidate.track_switch_tiles);
+  }
+  if (parse_status.ok()) {
+    parse_status =
+        parse_field("Track Object IDs", overlay_track_object_ids_input_,
+                    &candidate.track_object_ids);
+  }
+  if (parse_status.ok()) {
+    parse_status =
+        parse_field("Minecart Sprite IDs", overlay_minecart_sprite_ids_input_,
+                    &candidate.minecart_sprite_ids);
+  }
+  if (!parse_status.ok()) {
+    status_message_ =
+        absl::StrFormat("Project save blocked: %s", parse_status.message());
+    show_success_ = false;
+    return parse_status;
+  }
+
+  auto normalize_inputs = [this]() {
+    overlay_track_tiles_input_ =
+        FormatHexList(project_->dungeon_overlay.track_tiles);
+    overlay_track_stop_tiles_input_ =
+        FormatHexList(project_->dungeon_overlay.track_stop_tiles);
+    overlay_track_switch_tiles_input_ =
+        FormatHexList(project_->dungeon_overlay.track_switch_tiles);
+    overlay_track_object_ids_input_ =
+        FormatHexList(project_->dungeon_overlay.track_object_ids);
+    overlay_minecart_sprite_ids_input_ =
+        FormatHexList(project_->dungeon_overlay.minecart_sprite_ids);
+    overlay_inputs_model_ = project_->dungeon_overlay;
+  };
+
+  if (OverlaySettingsEqual(candidate, project_->dungeon_overlay)) {
+    normalize_inputs();
+    return false;
+  }
+
+  const absl::Status notify_status = NotifyProjectChanged(candidate);
+  if (!notify_status.ok()) {
+    status_message_ =
+        absl::StrFormat("Project save blocked: %s", notify_status.message());
+    show_success_ = false;
+    return notify_status;
+  }
+
+  project_->dungeon_overlay = std::move(candidate);
+  normalize_inputs();
+  audit_dirty_ = true;
   return true;
 }
 
@@ -435,6 +533,7 @@ absl::StatusOr<bool> MinecartTrackEditorPanel::ResetOverlaySettings() {
       !overlay.track_object_ids.empty() || !overlay.minecart_sprite_ids.empty();
   if (!changed) {
     ClearOverlayInputs();
+    overlay_inputs_model_ = project_->dungeon_overlay;
     status_message_.clear();
     show_success_ = false;
     return false;
@@ -455,6 +554,7 @@ absl::StatusOr<bool> MinecartTrackEditorPanel::ResetOverlaySettings() {
 
   project_->dungeon_overlay = std::move(overlay);
   ClearOverlayInputs();
+  overlay_inputs_model_ = project_->dungeon_overlay;
   audit_dirty_ = true;
   status_message_ = "Overlay settings reset; save the project to persist.";
   show_success_ = true;
@@ -480,6 +580,10 @@ absl::Status MinecartTrackEditorPanel::SaveProjectSettings() {
   if (!project_save_callback_) {
     return absl::FailedPreconditionError(
         "Project save is unavailable outside the editor manager");
+  }
+  const absl::StatusOr<bool> committed = CommitOverlayInputsForSave();
+  if (!committed.ok()) {
+    return committed.status();
   }
   return project_save_callback_();
 }

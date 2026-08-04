@@ -308,6 +308,7 @@ class DungeonEditorV2 : public Editor {
   void ApplyEntranceRenderContext(int room_id);
   void ConfigureViewerRenderContext(DungeonCanvasViewer* viewer, int room_id);
   void WireViewerPanelCallbacks(DungeonCanvasViewer* viewer);
+  void ConfigureMinecartProjectCallbacks();
 
   // Show or create a standalone room panel
   void ShowRoomPanel(int room_id);

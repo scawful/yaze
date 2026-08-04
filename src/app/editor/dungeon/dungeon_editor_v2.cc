@@ -87,7 +87,46 @@ void DungeonEditorV2::SetDependencies(const EditorDependencies& deps) {
       LOG_WARN("DungeonEditorV2", "Minecart project rebind failed: %s",
                status.message());
     }
+    ConfigureMinecartProjectCallbacks();
   }
+}
+
+void DungeonEditorV2::ConfigureMinecartProjectCallbacks() {
+  if (minecart_track_editor_panel_ == nullptr) {
+    return;
+  }
+
+  auto* editor_manager = static_cast<EditorManager*>(dependencies_.custom_data);
+  if (editor_manager == nullptr) {
+    minecart_track_editor_panel_->SetProjectChangedCallback({});
+    minecart_track_editor_panel_->SetProjectSaveCallback({});
+    return;
+  }
+
+  const size_t session_id = dependencies_.session_id;
+  minecart_track_editor_panel_->SetProjectChangedCallback(
+      [editor_manager, session_id](
+          const project::DungeonOverlaySettings& overlay) -> absl::Status {
+        if (!editor_manager->IsCurrentProjectContextOwnedBySession(
+                session_id)) {
+          return absl::FailedPreconditionError(
+              "Minecart overlay edit requires its project context to be "
+              "active");
+        }
+        editor_manager->GetCurrentProject()->dungeon_overlay = overlay;
+        editor_manager->MarkCurrentProjectDirty();
+        return absl::OkStatus();
+      });
+  minecart_track_editor_panel_->SetProjectSaveCallback(
+      [editor_manager, session_id]() -> absl::Status {
+        if (!editor_manager->IsCurrentProjectContextOwnedBySession(
+                session_id)) {
+          return absl::FailedPreconditionError(
+              "Minecart project save requires its project context to be "
+              "active");
+        }
+        return editor_manager->SaveProject();
+      });
 }
 
 namespace {
@@ -805,41 +844,7 @@ absl::Status DungeonEditorV2::Load() {
       minecart_track_editor_panel_->SetRoomNavigationCallback(
           [this](int room_id) { OnRoomSelected(room_id); });
     }
-    if (auto* editor_manager =
-            static_cast<EditorManager*>(dependencies_.custom_data)) {
-      const size_t session_id = dependencies_.session_id;
-      minecart_track_editor_panel_->SetProjectChangedCallback(
-          [editor_manager, session_id](
-              const project::DungeonOverlaySettings& overlay) -> absl::Status {
-            const auto* session_coordinator =
-                editor_manager->session_coordinator();
-            const auto* active_session =
-                session_coordinator ? session_coordinator->GetActiveRomSession()
-                                    : nullptr;
-            if (active_session == nullptr ||
-                active_session->session_id() != session_id) {
-              return absl::FailedPreconditionError(
-                  "Minecart overlay edit requires its session to be active");
-            }
-            editor_manager->GetCurrentProject()->dungeon_overlay = overlay;
-            editor_manager->MarkCurrentProjectDirty();
-            return absl::OkStatus();
-          });
-      minecart_track_editor_panel_->SetProjectSaveCallback(
-          [editor_manager, session_id]() -> absl::Status {
-            const auto* session_coordinator =
-                editor_manager->session_coordinator();
-            const auto* active_session =
-                session_coordinator ? session_coordinator->GetActiveRomSession()
-                                    : nullptr;
-            if (active_session == nullptr ||
-                active_session->session_id() != session_id) {
-              return absl::FailedPreconditionError(
-                  "Minecart project save requires its session to be active");
-            }
-            return editor_manager->SaveProject();
-          });
-    }
+    ConfigureMinecartProjectCallbacks();
   } else {
     minecart_track_editor_panel_ = nullptr;
   }
