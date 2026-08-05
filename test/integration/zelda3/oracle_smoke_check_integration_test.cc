@@ -115,21 +115,28 @@ TEST_F(OracleSmokeCheckIntegrationTest, StrictReadinessReportsD4D3Readiness) {
   EXPECT_TRUE(checks.value("d3_kalyxo_castle", json::object()).contains("ok"));
 }
 
-TEST_F(OracleSmokeCheckIntegrationTest, D6GoronMinesAuditAlwaysOk) {
-  // The D6 minecart audit never exits non-zero (issues are informational).
-  // Verify d6.ok=true and the command exit status is ok.
+TEST_F(OracleSmokeCheckIntegrationTest,
+       D6GoronMinesAuditReportsOkIndependently) {
+  // Aggregate smoke status can fail for an unrelated D4 structural gap or a
+  // strict-readiness gap. The formatter still returns the complete JSON
+  // report, so qualify the D6 audit from its own result instead.
   cli::handlers::OracleSmokeCheckCommandHandler handler;
   std::string out;
   const auto status = handler.Run({"--format=json"}, &rom_, &out);
-  ASSERT_TRUE(status.ok()) << out;
+  ASSERT_TRUE(status.ok() ||
+              status.code() == absl::StatusCode::kFailedPrecondition)
+      << "Unexpected smoke handler status: " << status << "\n"
+      << out;
 
   const auto doc = json::parse(out, nullptr, false);
-  ASSERT_FALSE(doc.is_discarded());
-  EXPECT_TRUE(GetSmoke(doc)
-                  .value("checks", json::object())
-                  .value("d6_goron_mines", json::object())
-                  .value("ok", false))
+  ASSERT_FALSE(doc.is_discarded()) << out;
+  const auto& d6 = GetSmoke(doc)
+                       .value("checks", json::object())
+                       .value("d6_goron_mines", json::object());
+  ASSERT_TRUE(d6.contains("ok")) << out;
+  EXPECT_TRUE(d6.value("ok", false))
       << "D6 minecart audit reported ok=false on real ROM: " << out;
+  EXPECT_EQ(d6.value("track_rooms_found", -1), 4) << out;
 }
 
 TEST_F(OracleSmokeCheckIntegrationTest, ReportFileContainsAllCheckKeys) {
