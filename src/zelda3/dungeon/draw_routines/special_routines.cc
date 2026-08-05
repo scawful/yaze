@@ -655,6 +655,22 @@ void DrawBossShell4x4(const DrawContext& ctx) {
   Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/0, /*start_index=*/0);
 }
 
+void DrawVitreousGooDamage(const DrawContext& ctx) {
+  // USDASM RoomDraw_VitreousGooDamage ($01A809) invokes
+  // RoomDraw_A_Many32x32Blocks twice with A=5, moving the second call four
+  // tile rows down. The routine reads neither object size nor room state and
+  // writes through the currently selected layer's tilemap pointers.
+  if (ctx.tiles.size() < 8)
+    return;
+
+  for (int block_y = 0; block_y < 2; ++block_y) {
+    for (int block_x = 0; block_x < 5; ++block_x) {
+      DrawMany32x32Block(ctx.target_bg, ctx.object.x_ + block_x * 4,
+                         ctx.object.y_ + block_y * 4, ctx.tiles);
+    }
+  }
+}
+
 void DrawSolidWallDecor3x4(const DrawContext& ctx) {
   // ASM: RoomDraw_SolidWallDecor3x4 ($0199EC) -> RoomDraw_Nx4 with A=3.
   DrawNx4(ctx, /*columns=*/3, /*start_index=*/0);
@@ -1970,6 +1986,17 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 4,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kVitreousGooDamage,  // 133
+      .name = "VitreousGooDamage",
+      .function = DrawVitreousGooDamage,
+      .draws_to_both_bgs = false,
+      .base_width = 20,
+      .base_height = 8,
+      .min_tiles = 8,
       .category = DrawRoutineInfo::Category::Special,
   });
 

@@ -504,7 +504,7 @@ void DrawRoutineRegistry::BuildObjectMapping() {
   object_to_routine_map_[0xFF8] = 109;
   object_to_routine_map_[0xFF9] = 30;
   object_to_routine_map_[0xFFA] = 16;
-  object_to_routine_map_[0xFFB] = 106;
+  object_to_routine_map_[0xFFB] = DrawRoutineIds::kVitreousGooDamage;
   for (int id = 0xFFC; id <= 0xFFE; id++) {
     object_to_routine_map_[id] = 110;
   }

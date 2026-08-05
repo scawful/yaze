@@ -709,8 +709,13 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
     return 16;
   }
   // Boss shells (4x4)
-  if (object_id == 0xF95 || object_id == 0xFF2 || object_id == 0xFFB) {
+  if (object_id == 0xF95 || object_id == 0xFF2) {
     return 16;
+  }
+  // Vitreous goo damage reuses one 8-word 4x2 source stamp across a fixed
+  // 5x2 grid of 4x4 destinations.
+  if (object_id == 0xFFB) {
+    return 8;
   }
   // Auto stairs (4x4)
   if ((object_id >= 0xF9B && object_id <= 0xF9D) || object_id == 0xFB3) {

@@ -531,6 +531,41 @@ TEST_F(ObjectDimensionTableTest, MagicBatAltarUsesFixedEightBySevenBounds) {
 }
 
 TEST_F(ObjectDimensionTableTest,
+       VitreousGooDamageUsesFixedTwentyByEightBounds) {
+  auto& table = ObjectDimensionTable::Get();
+  ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());
+  EXPECT_EQ(table.GetBaseDimensions(0xFFB), std::make_pair(20, 8));
+
+  for (uint8_t size : {uint8_t{0x00}, uint8_t{0x03}, uint8_t{0x0E},
+                       uint8_t{0x0F}, uint8_t{0xF0}, uint8_t{0xFF}}) {
+    SCOPED_TRACE(::testing::Message() << "size=" << static_cast<int>(size));
+
+    const auto [width, height] = table.GetDimensions(0xFFB, size);
+    EXPECT_EQ(width, 20);
+    EXPECT_EQ(height, 8);
+
+    const auto selection = table.GetSelectionBounds(0xFFB, size);
+    EXPECT_EQ(selection.offset_x, 0);
+    EXPECT_EQ(selection.offset_y, 0);
+    EXPECT_EQ(selection.width, 20);
+    EXPECT_EQ(selection.height, 8);
+
+    const RoomObject object(0xFFB, 0, 0, size, 0);
+    const auto geometry = ObjectGeometry::Get().MeasureByObjectId(object);
+    ASSERT_TRUE(geometry.ok());
+    EXPECT_EQ(geometry->min_x_tiles, 0);
+    EXPECT_EQ(geometry->min_y_tiles, 0);
+    EXPECT_EQ(geometry->width_tiles, 20);
+    EXPECT_EQ(geometry->height_tiles, 8);
+
+    const auto [legacy_width, legacy_height] =
+        ObjectDrawer(rom_.get(), 0).CalculateObjectDimensions(object);
+    EXPECT_EQ(legacy_width, 160);
+    EXPECT_EQ(legacy_height, 64);
+  }
+}
+
+TEST_F(ObjectDimensionTableTest,
        BigWallDecorAliasesUseFixedEightByThreeBounds) {
   auto& table = ObjectDimensionTable::Get();
   ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());
