@@ -16,7 +16,7 @@ Options:
 
 Examples:
   scripts/agents/ninja-heal.sh
-  scripts/agents/ninja-heal.sh --preset dev --build-dir build --parallel 8
+  scripts/agents/ninja-heal.sh --preset dev --build-dir build --parallel 4
 EOF
 }
 

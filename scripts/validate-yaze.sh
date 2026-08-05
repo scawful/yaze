@@ -14,6 +14,7 @@ YAZE_ROM=""
 GOLDEN_ROM=""
 FEATURE="dungeon"
 BUILD_YAZE=false
+BUILD_JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 EXTRA_ARGS=()
 
 while [[ $# -gt 0 ]]; do
@@ -70,10 +71,10 @@ if [[ "$BUILD_YAZE" = true ]]; then
   cd "$YAZE_ROOT"
   if [[ -f CMakePresets.json ]] && grep -q "mac-ai" CMakePresets.json 2>/dev/null; then
     cmake --preset mac-ai
-    cmake --build build_ai --preset mac-ai -j8
+    cmake --build build_ai --preset mac-ai --parallel "$BUILD_JOBS"
   else
     cmake -B build -DCMAKE_BUILD_TYPE=Release
-    cmake --build build -j8
+    cmake --build build --parallel "$BUILD_JOBS"
   fi
   echo ""
 fi

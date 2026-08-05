@@ -134,7 +134,7 @@ yaze binary not found.
 
 Common build:
   cmake --preset mac-ai
-  cmake --build build_ai --target yaze
+  cmake --build build_ai --target yaze --parallel 4
 
 Or set YAZE_BIN=/path/to/yaze.
 EOF

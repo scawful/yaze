@@ -13,7 +13,7 @@
 # Options:
 #   --preset <name>         CMake build preset (default: platform AI preset)
 #   --ctest-preset <name>   CTest preset (default auto by platform)
-#   --jobs <n>              Build parallelism (default: auto)
+#   --jobs <n>              Build parallelism (default: 4)
 #   --app-dest <path>       App destination on macOS (default: /Applications/yaze.app)
 #   --z3ed-link <path>      PATH symlink target (default: /usr/local/bin/z3ed)
 #   --skip-tests            Skip tests for all/build paths
@@ -44,7 +44,7 @@ fi
 
 PRESET="${YAZE_DEV_PRESET:-}"
 CTEST_PRESET="${YAZE_DEV_CTEST_PRESET:-}"
-JOBS="${YAZE_BUILD_JOBS:-0}"
+JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 APP_DEST="${YAZE_APP_DEST:-/Applications/yaze.app}"
 Z3ED_LINK="${YAZE_Z3ED_LINK:-/usr/local/bin/z3ed}"
 SKIP_TESTS=false

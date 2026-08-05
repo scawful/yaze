@@ -301,8 +301,8 @@ ctest --test-dir build_ai -C Debug -L integration
 # Run with verbose output
 ctest --test-dir build_ai -C Debug -L unit --output-on-failure
 
-# Run tests in parallel
-ctest --test-dir build_ai -C Debug -L unit -j8
+# Run tests in parallel (repository default)
+ctest --test-dir build_ai -C Debug -L unit -j4
 ```
 
 ### Debugging Failed Tests

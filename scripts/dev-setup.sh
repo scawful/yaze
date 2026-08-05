@@ -4,6 +4,8 @@
 
 set -e
 
+BUILD_JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -255,7 +257,7 @@ run_first_build() {
     
     # Build project
     print_success "Building project..."
-    cmake --build build
+    cmake --build build --parallel "$BUILD_JOBS"
     
     # Check if build succeeded
     if [ -f "build/bin/yaze" ] || [ -f "build/bin/yaze.exe" ]; then
@@ -319,4 +321,3 @@ main() {
 
 # Run main function
 main "$@"
-
