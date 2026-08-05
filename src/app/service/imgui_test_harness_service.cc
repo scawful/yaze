@@ -33,6 +33,12 @@
 #include "protos/imgui_test_harness.pb.h"
 #include "yaze.h"  // For YAZE_VERSION_STRING
 
+// The Windows SDK defines Yield as a function-like macro, which collides with
+// ImGuiTestContext::Yield when this translation unit is built with clang-cl.
+#ifdef Yield
+#undef Yield
+#endif
+
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
 #include "imgui_test_engine/imgui_te_context.h"
 #include "imgui_test_engine/imgui_te_engine.h"
