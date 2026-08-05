@@ -320,7 +320,8 @@ class AgentEditor : public Editor {
   std::unique_ptr<SramViewerPanel> sram_viewer_panel_;
 #ifdef YAZE_WITH_GRPC
   std::unique_ptr<NetworkCollaborationCoordinator> network_coordinator_;
-  AutomationBridge harness_telemetry_bridge_;
+  std::shared_ptr<AutomationBridge> harness_telemetry_bridge_ =
+      std::make_shared<AutomationBridge>();
 #endif
 
   ToastManager* toast_manager_ = nullptr;

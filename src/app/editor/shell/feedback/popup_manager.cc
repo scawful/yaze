@@ -13,6 +13,7 @@
 #include "app/editor/editor_manager.h"
 #include "app/editor/layout/layout_presets.h"
 #include "app/gui/app/feature_flags_menu.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/style.h"
@@ -1401,7 +1402,14 @@ void PopupManager::DrawDungeonPotItemSaveConfirmPopup() {
     return;
   }
   SameLine();
-  if (Button(tr("Save anyway"), ImVec2(0, 0))) {
+  const bool save_anyway = Button(tr("Save anyway"), ImVec2(0, 0));
+  if (ImGui::GetItemID() != 0) {
+    gui::WidgetIdRegistry::Instance().RegisterWidget(
+        "dungeon.pot_item_save_confirm/button:Save anyway", "button",
+        ImGui::GetItemID(),
+        "Continue the pending dungeon save with pot item writes enabled");
+  }
+  if (save_anyway) {
     editor_manager_->ResolvePotItemSaveConfirmation(
         EditorManager::PotItemSaveDecision::kSaveWithPotItems);
     Hide(PopupID::kDungeonPotItemSaveConfirm);

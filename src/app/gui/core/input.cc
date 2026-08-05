@@ -2,9 +2,12 @@
 #include "util/i18n/tr.h"
 
 #include <algorithm>
+#include <array>
+#include <cstring>
 #include <functional>
 #include <limits>
 #include <string>
+#include <unordered_map>
 #include <variant>
 
 #include "absl/strings/string_view.h"
@@ -295,6 +298,55 @@ namespace gui {
 
 namespace {
 
+constexpr size_t kMaxDeferredScalarBytes = sizeof(uint64_t);
+
+struct DeferredScalarEdit {
+  ImGuiDataType data_type = ImGuiDataType_COUNT;
+  InputScalarTargetIdentity target_identity;
+  alignas(uint64_t) std::array<uint8_t, kMaxDeferredScalarBytes> candidate = {};
+  alignas(
+      uint64_t) std::array<uint8_t, kMaxDeferredScalarBytes> source_model = {};
+  int last_seen_frame = -1;
+  bool editing = false;
+  bool commit_blocked = false;
+};
+
+struct DeferredScalarStorage {
+  ImGuiContext* context = nullptr;
+  int last_frame = -1;
+  std::unordered_map<ImGuiID, DeferredScalarEdit> edits;
+};
+
+thread_local DeferredScalarStorage g_deferred_scalar_storage;
+
+void ResetDeferredScalarEdit(DeferredScalarEdit& edit, ImGuiDataType data_type,
+                             const void* data, size_t data_size, int frame,
+                             InputScalarTargetIdentity target_identity) {
+  edit = {};
+  edit.data_type = data_type;
+  edit.target_identity = target_identity;
+  std::memcpy(edit.candidate.data(), data, data_size);
+  std::memcpy(edit.source_model.data(), data, data_size);
+  edit.last_seen_frame = frame;
+}
+
+void PrepareDeferredScalarStorage(ImGuiContext* context, int frame) {
+  auto& storage = g_deferred_scalar_storage;
+  if (storage.context != context || frame < storage.last_frame) {
+    storage.context = context;
+    storage.edits.clear();
+  }
+
+  for (auto it = storage.edits.begin(); it != storage.edits.end();) {
+    if (frame - it->second.last_seen_frame > 1) {
+      it = storage.edits.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  storage.last_frame = frame;
+}
+
 bool IsValueWheelAdjustmentAllowedForCurrentItem() {
   if (!ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup)) {
     return false;
@@ -332,6 +384,84 @@ bool ApplyHexMouseWheel(T* data, T min_value, T max_value) {
 
 const int kStepOneHex = 0x01;
 const int kStepFastHex = 0x0F;
+
+bool InputScalarDeferred(const char* label, ImGuiDataType data_type, void* data,
+                         const char* format, ImGuiInputTextFlags flags,
+                         InputScalarTargetIdentity target_identity) {
+  ImGuiContext* context = ImGui::GetCurrentContext();
+  ImGuiWindow* window = context ? ImGui::GetCurrentWindow() : nullptr;
+  if (!context || !window || window->SkipItems || !label || !data ||
+      data_type < 0 || data_type >= ImGuiDataType_COUNT) {
+    return false;
+  }
+
+  const ImGuiDataTypeInfo* data_type_info = ImGui::DataTypeGetInfo(data_type);
+  const size_t data_size = data_type_info->Size;
+  if (data_size == 0 || data_size > kMaxDeferredScalarBytes) {
+    return false;
+  }
+
+  const int frame = context->FrameCount;
+  PrepareDeferredScalarStorage(context, frame);
+
+  const ImGuiID item_id = ImGui::GetID(label);
+  auto [it, inserted] = g_deferred_scalar_storage.edits.try_emplace(item_id);
+  DeferredScalarEdit& edit = it->second;
+  const bool target_changed =
+      !inserted && !(edit.target_identity == target_identity);
+  const bool reset_before_draw = inserted || edit.data_type != data_type ||
+                                 (target_changed && !edit.editing);
+  if (reset_before_draw) {
+    ResetDeferredScalarEdit(edit, data_type, data, data_size, frame,
+                            target_identity);
+  } else if (target_changed) {
+    // The same ImGui item now refers to a different semantic entity. Keep the
+    // active text buffer alive for ImGui, but make this edit non-committable.
+    edit.target_identity = target_identity;
+    edit.commit_blocked = true;
+  } else if (edit.editing &&
+             std::memcmp(edit.source_model.data(), data, data_size) != 0) {
+    // Keep feeding ImGui the same candidate until the item naturally
+    // deactivates, but remember that it is no longer safe to commit.
+    edit.commit_blocked = true;
+  } else if (!edit.editing) {
+    ResetDeferredScalarEdit(edit, data_type, data, data_size, frame,
+                            target_identity);
+  }
+  edit.last_seen_frame = frame;
+
+  const ImGuiInputTextFlags scalar_flags =
+      flags & ~ImGuiInputTextFlags_EnterReturnsTrue;
+  ImGui::InputScalar(label, data_type, edit.candidate.data(), nullptr, nullptr,
+                     format, scalar_flags);
+
+  if (ImGui::IsItemDeactivatedAfterEdit()) {
+    // A newly restored widget may share an ID with ImGui's one-frame
+    // deactivation backup. Never let that stale buffer become a fresh commit.
+    if (reset_before_draw || edit.commit_blocked) {
+      ResetDeferredScalarEdit(edit, data_type, data, data_size, frame,
+                              target_identity);
+      return false;
+    }
+    const bool changed =
+        std::memcmp(data, edit.candidate.data(), data_size) != 0;
+    if (changed) {
+      std::memcpy(data, edit.candidate.data(), data_size);
+    }
+    ResetDeferredScalarEdit(edit, data_type, data, data_size, frame,
+                            target_identity);
+    return changed;
+  }
+
+  if (ImGui::IsItemActive()) {
+    edit.editing = true;
+  } else if (edit.editing) {
+    // Escape or another non-commit deactivation discards the pending value.
+    ResetDeferredScalarEdit(edit, data_type, data, data_size, frame,
+                            target_identity);
+  }
+  return false;
+}
 
 bool InputHex(const char* label, uint64_t* data) {
   return ImGui::InputScalar(label, ImGuiDataType_U64, data, &kStepOneHex,

@@ -2122,11 +2122,11 @@ std::string WasmControlApi::GetUIElementBounds(const std::string& element_id) {
 
   // Query the WidgetIdRegistry for the specific widget
   auto& registry = gui::WidgetIdRegistry::Instance();
-  const auto* widget_info = registry.GetWidgetInfo(element_id);
+  const auto widget_info = registry.GetWidgetInfo(element_id);
 
   result["id"] = element_id;
 
-  if (widget_info == nullptr) {
+  if (!widget_info.has_value()) {
     result["found"] = false;
     result["error"] = "Element not found: " + element_id;
     return result.dump();

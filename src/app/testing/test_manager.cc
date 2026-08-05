@@ -1724,6 +1724,7 @@ std::string TestManager::RegisterHarnessTest(const std::string& name,
   harness_history_[test_id] = execution;
   TrimHarnessHistoryLocked();
   HarnessAggregate& aggregate = harness_aggregates_[name];
+  aggregate.category = category;
   aggregate.latest_execution = execution;
   harness_history_order_.push_back(test_id);
   return test_id;
@@ -1757,40 +1758,40 @@ void TestManager::MarkHarnessTestCompleted(
     const std::vector<std::string>& assertion_failures,
     const std::vector<std::string>& logs,
     const std::map<std::string, int32_t>& metrics) {
-  absl::MutexLock lock(&harness_history_mutex_);
-  auto it = harness_history_.find(test_id);
-  if (it == harness_history_.end()) {
-    return;
+  HarnessTestExecution execution_snapshot;
+  {
+    absl::MutexLock lock(&harness_history_mutex_);
+    auto it = harness_history_.find(test_id);
+    if (it == harness_history_.end()) {
+      return;
+    }
+    HarnessTestExecution& execution = it->second;
+    execution.status = status;
+    execution.completed_at = absl::Now();
+    execution.duration = execution.completed_at - execution.started_at;
+    execution.error_message = message;
+    execution.metrics = metrics;
+    execution.assertion_failures = assertion_failures;
+    execution.logs.insert(execution.logs.end(), logs.begin(), logs.end());
+
+    HarnessAggregate& aggregate = harness_aggregates_[execution.name];
+    aggregate.latest_execution = execution;
+    aggregate.total_runs += 1;
+    if (status == HarnessTestStatus::kPassed) {
+      aggregate.pass_count += 1;
+    } else if (status == HarnessTestStatus::kFailed ||
+               status == HarnessTestStatus::kTimeout) {
+      aggregate.fail_count += 1;
+    }
+    aggregate.total_duration += execution.duration;
+    aggregate.last_run = execution.completed_at;
+    execution_snapshot = execution;
   }
-  HarnessTestExecution& execution = it->second;
-  execution.status = status;
-  execution.completed_at = absl::Now();
-  execution.duration = execution.completed_at - execution.started_at;
-  execution.error_message = message;
-  execution.metrics = metrics;
-  execution.assertion_failures = assertion_failures;
-  execution.logs.insert(execution.logs.end(), logs.begin(), logs.end());
 
-  bool capture_failure_context = status == HarnessTestStatus::kFailed ||
-                                 status == HarnessTestStatus::kTimeout;
-
-  harness_aggregates_[execution.name].latest_execution = execution;
-  harness_aggregates_[execution.name].total_runs += 1;
-  if (status == HarnessTestStatus::kPassed) {
-    harness_aggregates_[execution.name].pass_count += 1;
-  } else if (status == HarnessTestStatus::kFailed ||
-             status == HarnessTestStatus::kTimeout) {
-    harness_aggregates_[execution.name].fail_count += 1;
-  }
-  harness_aggregates_[execution.name].total_duration += execution.duration;
-  harness_aggregates_[execution.name].last_run = execution.completed_at;
-
-  if (capture_failure_context) {
+  NotifyHarnessListener(execution_snapshot);
+  if (status == HarnessTestStatus::kFailed ||
+      status == HarnessTestStatus::kTimeout) {
     CaptureFailureContext(test_id);
-  }
-
-  if (harness_listener_) {
-    harness_listener_->OnHarnessTestUpdated(execution);
   }
 }
 #endif
@@ -1858,36 +1859,58 @@ std::vector<HarnessTestSummary> TestManager::ListHarnessTestSummaries(
 
 #if defined(YAZE_WITH_GRPC)
 void TestManager::CaptureFailureContext(const std::string& test_id) {
-  absl::MutexLock lock(&harness_history_mutex_);
-  auto it = harness_history_.find(test_id);
-  if (it == harness_history_.end()) {
+  HarnessTestStatus expected_status = HarnessTestStatus::kUnspecified;
+  absl::Time expected_completed_at = absl::InfinitePast();
+  {
+    absl::MutexLock lock(&harness_history_mutex_);
+    auto it = harness_history_.find(test_id);
+    if (it == harness_history_.end()) {
+      return;
+    }
+    expected_status = it->second.status;
+    expected_completed_at = it->second.completed_at;
+  }
+
+  auto apply_capture =
+      [this, test_id, expected_status, expected_completed_at](
+          absl::StatusOr<ScreenshotArtifact> screenshot_artifact) {
+        absl::MutexLock lock(&harness_history_mutex_);
+        auto it = harness_history_.find(test_id);
+        if (it == harness_history_.end()) {
+          return;
+        }
+        HarnessTestExecution& execution = it->second;
+        if (execution.status != expected_status ||
+            execution.completed_at != expected_completed_at) {
+          return;
+        }
+        execution.failure_context =
+            screenshot_artifact.ok()
+                ? "Harness failure context captured successfully"
+                : "Harness failure context capture unavailable";
+        if (screenshot_artifact.ok()) {
+          execution.screenshot_path = screenshot_artifact->file_path;
+          execution.screenshot_size_bytes =
+              screenshot_artifact->file_size_bytes;
+        }
+        HarnessAggregate& aggregate = harness_aggregates_[execution.name];
+        if (aggregate.latest_execution.test_id == test_id) {
+          harness_aggregates_[execution.name].latest_execution = execution;
+        }
+      };
+
+  FailureScreenshotRequester screenshot_requester;
+  {
+    absl::MutexLock lock(&mutex_);
+    screenshot_requester = failure_screenshot_requester_;
+  }
+  if (!screenshot_requester) {
+    apply_capture(absl::FailedPreconditionError("Controller unavailable"));
     return;
   }
-  HarnessTestExecution& execution = it->second;
-  // absl::MutexLock does not support Unlock/Lock; scope the lock instead
-  {
-    absl::MutexLock unlock_guard(&harness_history_mutex_);
-    // This block is just to clarify lock scope, but the lock is already held
-    // so we do nothing here.
-  }
 
-  auto screenshot_artifact = test::CaptureHarnessScreenshot("harness_failures");
-  std::string failure_context;
-  if (screenshot_artifact.ok()) {
-    failure_context = "Harness failure context captured successfully";
-  } else {
-    failure_context = "Harness failure context capture unavailable";
-  }
-
-  execution.failure_context = failure_context;
-  if (screenshot_artifact.ok()) {
-    execution.screenshot_path = screenshot_artifact->file_path;
-    execution.screenshot_size_bytes = screenshot_artifact->file_size_bytes;
-  }
-
-  if (harness_listener_) {
-    harness_listener_->OnHarnessTestUpdated(execution);
-  }
+  screenshot_requester(GenerateFailureScreenshotPath(test_id),
+                       std::move(apply_capture));
 }
 #else
 void TestManager::CaptureFailureContext(const std::string& test_id) {
@@ -1908,9 +1931,34 @@ absl::Status TestManager::ReplayLastPlan() {
   return absl::FailedPreconditionError("Harness plan replay not available");
 }
 
-void TestManager::SetHarnessListener(HarnessListener* listener) {
+void TestManager::SetHarnessListener(
+    std::shared_ptr<HarnessListener> listener) {
   absl::MutexLock lock(&mutex_);
-  harness_listener_ = listener;
+  harness_listener_ = std::move(listener);
+}
+
+void TestManager::ClearHarnessListener(const HarnessListener* listener) {
+  absl::MutexLock lock(&mutex_);
+  if (harness_listener_.get() == listener) {
+    harness_listener_.reset();
+  }
+}
+
+void TestManager::SetFailureScreenshotRequester(
+    FailureScreenshotRequester requester) {
+  absl::MutexLock lock(&mutex_);
+  failure_screenshot_requester_ = std::move(requester);
+}
+
+void TestManager::NotifyHarnessListener(const HarnessTestExecution& execution) {
+  std::shared_ptr<HarnessListener> listener;
+  {
+    absl::MutexLock lock(&mutex_);
+    listener = harness_listener_;
+  }
+  if (listener) {
+    listener->OnHarnessTestUpdated(execution);
+  }
 }
 #else
 absl::Status TestManager::ReplayLastPlan() {

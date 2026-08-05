@@ -18,6 +18,7 @@
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
+#include "core/features.h"
 #include "util/file_util.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/water_fill_zone.h"
@@ -58,6 +59,8 @@ class WaterFillPanel : public WindowContent {
     const size_t rom_size = viewer_->rom()->vector().size();
     const bool reserved_region_present =
         zelda3::HasWaterFillReservedRegion(rom_size);
+    const bool save_enabled =
+        core::FeatureFlags::get().dungeon.kSaveWaterFillZones;
     if (!reserved_region_present) {
       ImGui::TextColored(theme.status_error, ICON_MD_ERROR
                          " WaterFill reserved region missing (use an "
@@ -66,6 +69,19 @@ class WaterFillPanel : public WindowContent {
           tr("Expected ROM >= 0x%X bytes (WaterFill end). Current ROM is %zu "
              "bytes."),
           zelda3::kWaterFillTableEnd, rom_size);
+      ImGui::Separator();
+    }
+
+    if (!save_enabled) {
+      ImGui::TextColored(theme.text_warning_yellow, ICON_MD_LOCK
+                         " Read-only: Water Fill saving is disabled");
+      ImGui::TextWrapped(
+          tr("Set save_dungeon_water_fill_zones=true in the .yaze project and "
+             "reopen it before authoring zones."));
+      if (interaction_ && interaction_->mode_manager().GetMode() ==
+                              InteractionMode::PaintWaterFill) {
+        interaction_->mode_manager().SetMode(InteractionMode::Select);
+      }
       ImGui::Separator();
     }
 
@@ -81,7 +97,7 @@ class WaterFillPanel : public WindowContent {
     json_options.filters.push_back({"Water Fill Zones", "json"});
     json_options.filters.push_back({"All Files", "*"});
 
-    ImGui::BeginDisabled(!reserved_region_present);
+    ImGui::BeginDisabled(!reserved_region_present || !save_enabled);
     if (ImGui::Button(ICON_MD_UPLOAD " Import Zones...")) {
       std::string path =
           util::FileDialogWrapper::ShowOpenFileDialog(json_options);
@@ -205,7 +221,8 @@ class WaterFillPanel : public WindowContent {
 
         bool is_painting = (interaction_->mode_manager().GetMode() ==
                             InteractionMode::PaintWaterFill);
-        const bool can_paint = reserved_region_present && room_loaded;
+        const bool can_paint =
+            reserved_region_present && room_loaded && save_enabled;
         ImGui::BeginDisabled(!can_paint);
         if (ImGui::Checkbox(tr("Paint Mode"), &is_painting)) {
           if (is_painting) {
@@ -253,7 +270,7 @@ class WaterFillPanel : public WindowContent {
       uint8_t mask = room.water_fill_sram_bit_mask();
       std::string preview =
           (mask == 0) ? "Auto (0x00)" : absl::StrFormat("0x%02X", mask);
-      ImGui::BeginDisabled(!reserved_region_present);
+      ImGui::BeginDisabled(!reserved_region_present || !save_enabled);
       if (ImGui::BeginCombo(tr("SRAM Bit Mask ($7EF411)"), preview.c_str())) {
         auto option = [&](const char* label, uint8_t val) {
           const bool selected = (mask == val);

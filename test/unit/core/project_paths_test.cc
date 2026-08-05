@@ -122,6 +122,25 @@ symbols_filename=symbols.txt
   EXPECT_NE(saved.find("rom_backup_folder=backups"), std::string::npos);
 }
 
+TEST(ProjectPathsTest, WaterFillSaveScopeRoundTripsThroughIni) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_water_fill_save_scope"));
+  const auto project_file = temp.path() / "WaterFillScope.yaze";
+
+  YazeProject project;
+  project.filepath = project_file.string();
+  project.name = "Water Fill Save Scope";
+  project.feature_flags.dungeon.kSaveWaterFillZones = false;
+  ASSERT_TRUE(project.Save().ok());
+
+  const auto saved = ReadTextFile(project_file);
+  EXPECT_NE(saved.find("save_dungeon_water_fill_zones=false"),
+            std::string::npos);
+
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.Open(project_file.string()).ok());
+  EXPECT_FALSE(reopened.feature_flags.dungeon.kSaveWaterFillZones);
+}
+
 #ifndef __EMSCRIPTEN__
 TEST(ProjectPathsTest, SaveAtomicallyReplacesExistingDescriptor) {
   ScopedTempDir temp(MakeUniqueTempDir("yaze_project_atomic_save"));

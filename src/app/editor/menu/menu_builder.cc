@@ -1,6 +1,7 @@
 #include "app/editor/menu/menu_builder.h"
 
 #include "absl/strings/str_cat.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "util/i18n/tr.h"
 
 namespace yaze {
@@ -243,7 +244,13 @@ void MenuBuilder::DrawMenuItem(const MenuItem& item) {
       const char* shortcut_str =
           item.shortcut.empty() ? nullptr : item.shortcut.c_str();
 
-      if (ImGui::MenuItem(label.c_str(), shortcut_str, checked, enabled)) {
+      const bool activated =
+          ImGui::MenuItem(label.c_str(), shortcut_str, checked, enabled);
+      if (item.label == "Save ROM" || item.label == "Quit") {
+        gui::AutoRegisterLastItem("menuitem", item.label,
+                                  "Stable file-menu harness action");
+      }
+      if (activated) {
         if (item.callback) {
           item.callback();
         }

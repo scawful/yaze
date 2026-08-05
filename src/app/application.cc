@@ -85,6 +85,17 @@ void Application::Initialize(const AppConfig& config) {
     LOG_INFO("App", "Controller initialized successfully. Active: %s",
              controller_->IsActive() ? "Yes" : "No");
 
+#ifdef YAZE_WITH_GRPC
+    test::TestManager::Get().SetFailureScreenshotRequester(
+        [controller = controller_.get()](
+            const std::string& preferred_path,
+            test::TestManager::FailureScreenshotCallback callback) {
+          controller->RequestScreenshot({.preferred_path = preferred_path,
+                                         .reveal_to_user = false,
+                                         .callback = std::move(callback)});
+        });
+#endif
+
     if (controller_->editor_manager()) {
       controller_->editor_manager()->ApplyStartupVisibility(config_);
     }
@@ -358,6 +369,7 @@ void Application::Shutdown() {
     grpc_server_.reset();
   }
   canvas_automation_service_.reset();
+  test::TestManager::Get().SetFailureScreenshotRequester({});
 #endif
 
 #ifndef __EMSCRIPTEN__

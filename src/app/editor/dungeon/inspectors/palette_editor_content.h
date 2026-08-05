@@ -4,6 +4,7 @@
 #include <string>
 
 #include "app/editor/system/editor_panel.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/widgets/palette_editor_widget.h"
 
@@ -41,7 +42,9 @@ class PaletteEditorContent : public WindowContent {
   // ==========================================================================
 
   void Draw(bool* p_open) override {
-    if (!palette_editor_) return;
+    if (!palette_editor_)
+      return;
+    gui::AutoWidgetScope automation_scope("Dungeon/PaletteEditor");
     palette_editor_->Draw();
   }
 
