@@ -24,6 +24,7 @@ esac
 # Default to the AI build dir so wrappers (scripts/yaze, scripts/z3ed) find the
 # most feature-complete binaries.
 BUILD_DIR="${YAZE_BUILD_DIR:-build_ai}"
+BUILD_JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 
 TARGET="yaze"
 FRESH=""
@@ -45,6 +46,7 @@ echo "Platform:  ${OS}"
 echo "Preset:    ${PRESET}"
 echo "Build Dir: ${BUILD_DIR}"
 echo "Target:    ${TARGET}"
+echo "Jobs:      ${BUILD_JOBS}"
 echo "=================================================="
 
 if [ ! -f "CMakePresets.json" ]; then
@@ -58,7 +60,7 @@ if [ ! -d "${BUILD_DIR}" ] || [ -n "${FRESH}" ]; then
 fi
 
 echo "🔨 Building target: ${TARGET}..."
-cmake --build "${BUILD_DIR}" --target "${TARGET}"
+cmake --build "${BUILD_DIR}" --target "${TARGET}" --parallel "${BUILD_JOBS}"
 
 echo "✅ Build complete."
 

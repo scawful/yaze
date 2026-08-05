@@ -45,6 +45,8 @@ Use tool classes intentionally:
 ### 5) Essential Repo Facts (non-discoverable defaults)
 - Build presets commonly used for agent work: `build_ai`.
 - Build command: `cmake --preset mac-ai && cmake --build --preset mac-ai`
+- Local and agent builds default to 4 workers. Override intentionally with
+  `--parallel <jobs>` or `YAZE_BUILD_JOBS=<jobs>` when the user requests it.
 - Unit tests: `ctest --preset mac-ai-unit`
 - Coordination source of truth: `~/.context/agent-universe/{events.jsonl,state.json}`.
 - Generated human snapshot: `docs/internal/agents/coordination-board.generated.md`.

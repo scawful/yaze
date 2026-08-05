@@ -66,7 +66,7 @@ cd yaze
 
 # Build (macOS, AI-enabled editor + CLI)
 cmake --preset mac-ai
-cmake --build build_ai --target yaze z3ed --parallel 8
+cmake --build build_ai --target yaze z3ed --parallel 4
 
 # Run
 ./scripts/yaze zelda3.sfc
@@ -76,6 +76,9 @@ cmake --build build_ai --target yaze z3ed --parallel 8
 
 For AI features, use `*-ai` presets (`mac-ai`, `win-ai`) which enable
 Ollama/Gemini/OpenAI/Anthropic integration.
+
+Local builds default to four workers to keep interactive agent sessions
+responsive. Pass `--parallel <jobs>` explicitly to override that limit.
 
 See [`docs/public/build/quick-reference.md`](docs/public/build/quick-reference.md) for full build instructions.
 
