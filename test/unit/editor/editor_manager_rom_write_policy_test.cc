@@ -2096,7 +2096,10 @@ TEST(EditorManagerRomWritePolicyTest,
 
   auto* editor_set = manager->GetCurrentEditorSet();
   ASSERT_NE(editor_set, nullptr);
-  EXPECT_NE(editor_set->GetExistingEditor(EditorType::kDungeon), nullptr);
+  auto* dungeon_editor = editor_set->GetEditor(EditorType::kDungeon);
+  ASSERT_NE(dungeon_editor, nullptr);
+  EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kDungeon),
+            dungeon_editor);
   EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kOverworld), nullptr);
 
   auto* project = manager->GetCurrentProject();
@@ -2105,7 +2108,8 @@ TEST(EditorManagerRomWritePolicyTest,
   project->rom_metadata.expected_hash.clear();
 
   ASSERT_OK(manager->SaveRom());
-  EXPECT_NE(editor_set->GetExistingEditor(EditorType::kDungeon), nullptr);
+  EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kDungeon),
+            dungeon_editor);
   EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kOverworld), nullptr);
 }
 
