@@ -363,6 +363,37 @@ TEST(ObjectDrawerRegistryReplayTest,
   EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG2).empty());
 }
 
+TEST(ObjectDrawerRegistryReplayTest,
+     MagicBatAltarDrawsFixedEightBySevenColumnMajorOnSelectedLayer) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 10;
+  constexpr int kY = 12;
+  constexpr uint16_t kFirstTile = 0x0200;
+
+  for (uint8_t size : {uint8_t{0}, uint8_t{0xFF}}) {
+    for (const auto layer :
+         {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+      SCOPED_TRACE(::testing::Message()
+                   << "size=" << static_cast<int>(size)
+                   << " layer=" << static_cast<int>(layer));
+
+      const auto trace = ReplayObjectTrace(
+          /*object_id=*/0x013F, kX, kY, size, layer,
+          MakeSequentialTiles(/*count=*/56, /*start_tile_id=*/kFirstTile));
+      const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+      const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+      const auto& selected = layer == RoomObject::LayerType::BG1 ? bg1 : bg2;
+      const auto& other = layer == RoomObject::LayerType::BG1 ? bg2 : bg1;
+
+      ExpectTraceMatchesSnapshot(
+          selected, MakeColumnMajorSnapshot(kX, kY, /*width=*/8, /*height=*/7,
+                                            /*start_tile_id=*/kFirstTile));
+      EXPECT_TRUE(other.empty());
+    }
+  }
+}
+
 std::array<uint8_t, 0x10000> MakeOpaqueDoorGfx() {
   std::array<uint8_t, 0x10000> gfx{};
   gfx.fill(1);

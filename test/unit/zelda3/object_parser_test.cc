@@ -892,6 +892,24 @@ TEST_F(ObjectParserTest, MarioPortraitUsesFullFourByTwoPayload) {
   EXPECT_EQ(tiles->size(), 8u);
 }
 
+TEST_F(ObjectParserTest, MagicBatAltarUsesFiftySixTilesAndDedicatedRoutine) {
+  auto& registry = zelda3::DrawRoutineRegistry::Get();
+  EXPECT_EQ(registry.GetRoutineIdForObject(0x13F),
+            zelda3::DrawRoutineIds::kMagicBatAltar);
+
+  const auto subtype = parser_->GetObjectSubtype(0x13F);
+  ASSERT_TRUE(subtype.ok());
+  EXPECT_EQ(subtype->max_tile_count, 56);
+
+  const auto parsed = parser_->ParseObject(0x13F);
+  ASSERT_TRUE(parsed.ok());
+  EXPECT_EQ(parsed->size(), 56u);
+
+  const auto info = parser_->GetObjectDrawInfo(0x13F);
+  EXPECT_EQ(info.tile_count, 56);
+  EXPECT_EQ(info.draw_routine_id, zelda3::DrawRoutineIds::kMagicBatAltar);
+}
+
 TEST_F(ObjectParserTest, EnabledStarSwitchAndLitTorchUseFixedTwoByTwoPayload) {
   auto& registry = zelda3::DrawRoutineRegistry::Get();
 

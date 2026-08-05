@@ -68,8 +68,11 @@ int ExpectedSubtype2TileCount(int id) {
     return 4;
   }
   if (id == 0x11C || id == 0x124 || id == 0x125 || id == 0x129 ||
-      (id >= 0x12D && id <= 0x133) || id == 0x13C || id == 0x13F) {
+      (id >= 0x12D && id <= 0x133) || id == 0x13C) {
     return 16;
+  }
+  if (id == 0x13F) {
+    return 56;
   }
   if (id == 0x135 || id == 0x136) {
     return 8;

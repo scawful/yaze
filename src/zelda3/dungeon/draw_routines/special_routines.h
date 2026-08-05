@@ -151,6 +151,13 @@ void DrawAgahnimsAltar(const DrawContext& ctx);
 void DrawFortuneTellerRoom(const DrawContext& ctx);
 
 /**
+ * @brief Draw the fixed 8x7 Magic Bat altar in column-major order
+ *
+ * ASM: subtype-2 object 0x13F, RoomDraw_MagicBatAltar ($019A12)
+ */
+void DrawMagicBatAltar(const DrawContext& ctx);
+
+/**
  * @brief Draw utility 3x5 pattern (special row pattern)
  *
  * ASM: RoomDraw_Utility3x5 ($01A194)
