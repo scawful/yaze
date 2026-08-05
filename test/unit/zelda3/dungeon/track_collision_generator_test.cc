@@ -1,6 +1,7 @@
 #include "zelda3/dungeon/track_collision_generator.h"
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <initializer_list>
 #include <utility>
@@ -8,13 +9,32 @@
 
 #include <gtest/gtest.h>
 
+#include "core/features.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/dimension_service.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze::zelda3 {
 namespace {
+
+class ScopedCustomObjectsFlag {
+ public:
+  explicit ScopedCustomObjectsFlag(bool enabled)
+      : previous_(core::FeatureFlags::get().kEnableCustomObjects) {
+    core::FeatureFlags::get().kEnableCustomObjects = enabled;
+    DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  }
+
+  ~ScopedCustomObjectsFlag() {
+    core::FeatureFlags::get().kEnableCustomObjects = previous_;
+    DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  }
+
+ private:
+  bool previous_;
+};
 
 int CountExpectedTilesInBounds(const RoomObject& obj) {
   const auto dims = DimensionService::Get().GetDimensions(obj);
@@ -88,24 +108,50 @@ TEST(TrackCollisionGeneratorTest, UsesDimensionServiceNotLegacyWidthHeight) {
   EXPECT_EQ(result.tiles_generated, expected);
 }
 
-TEST(TrackCollisionGeneratorTest, DegenerateTrackDimensionsFallbackToTwoByTwo) {
-  Room room;
-  RoomObject track_obj(0x31, 10, 10, 0, 0);
-  room.AddTileObject(track_obj);
-
-  auto result_or = GenerateTrackCollision(&room, GeneratorOptions{});
-  ASSERT_TRUE(result_or.ok()) << result_or.status();
-
-  const auto& result = result_or.value();
-  EXPECT_EQ(result.tiles_generated, 4);
+TEST(TrackCollisionGeneratorTest,
+     CanonicalTrackSubtypesFallbackToTwoByTwoWithoutCustomGeometry) {
+  ScopedCustomObjectsFlag custom_objects(/*enabled=*/false);
+  constexpr std::array<uint8_t, 16> kTrackSubtypes = {
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 
   const auto idx = [](int x, int y) {
     return static_cast<size_t>(y * 64 + x);
   };
+  for (const uint8_t subtype : kTrackSubtypes) {
+    SCOPED_TRACE(::testing::Message() << "subtype=" << +subtype);
+    Room room;
+    room.AddTileObject(RoomObject(0x31, 10, 10, subtype, 0));
+
+    auto result_or = GenerateTrackCollision(&room, GeneratorOptions{});
+    ASSERT_TRUE(result_or.ok()) << result_or.status();
+
+    const auto& result = result_or.value();
+    EXPECT_EQ(result.tiles_generated, 4);
+    EXPECT_NE(result.collision_map.tiles[idx(10, 10)], 0);
+    EXPECT_NE(result.collision_map.tiles[idx(11, 10)], 0);
+    EXPECT_NE(result.collision_map.tiles[idx(10, 11)], 0);
+    EXPECT_NE(result.collision_map.tiles[idx(11, 11)], 0);
+  }
+}
+
+TEST(TrackCollisionGeneratorTest,
+     ConfiguredSingleTileTrackIdPreservesOneByOneGeometry) {
+  Room room;
+  room.AddTileObject(RoomObject(0x35, 10, 10, 0, 0));
+
+  GeneratorOptions options;
+  options.track_object_id = 0x35;
+  auto result_or = GenerateTrackCollision(&room, options);
+  ASSERT_TRUE(result_or.ok()) << result_or.status();
+
+  const auto& result = result_or.value();
+  const auto idx = [](int x, int y) {
+    return static_cast<size_t>(y * 64 + x);
+  };
+  EXPECT_EQ(result.tiles_generated, 1);
   EXPECT_NE(result.collision_map.tiles[idx(10, 10)], 0);
-  EXPECT_NE(result.collision_map.tiles[idx(11, 10)], 0);
-  EXPECT_NE(result.collision_map.tiles[idx(10, 11)], 0);
-  EXPECT_NE(result.collision_map.tiles[idx(11, 11)], 0);
+  EXPECT_EQ(result.collision_map.tiles[idx(11, 10)], 0);
+  EXPECT_EQ(result.collision_map.tiles[idx(10, 11)], 0);
 }
 
 TEST(TrackCollisionGeneratorTest, LegacyWidthHeightDoesNotChangeOutput) {
