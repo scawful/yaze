@@ -27,13 +27,13 @@ If all checks pass, you're good to push!
 
 #### Code Formatting
 ```bash
-cmake --build build --target yaze-format-check
+cmake --build build --target yaze-format-check --parallel 4
 ```
 
 **If it fails**:
 ```bash
 # Auto-format your code
-cmake --build build --target yaze-format
+cmake --build build --target yaze-format --parallel 4
 
 # Verify it passes now
 cmake --build build --target yaze-format-check
@@ -77,7 +77,7 @@ cmake --preset mac-dbg  # or lin-dbg, win-dbg
 - Check for missing `#include` directives
 - Verify header paths are correct
 - Check for platform-specific compilation issues
-- Run full build to see all errors: `cmake --build build -v`
+- Run full build to see all errors: `cmake --build build --parallel 4 -v`
 
 **What it catches**: Missing headers, include path issues, preprocessor errors
 

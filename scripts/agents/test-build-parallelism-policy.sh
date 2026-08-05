@@ -84,6 +84,7 @@ helper_specs = {
     "scripts/build-wasm.sh": (2, "BUILD_JOBS"),
     "scripts/build_z3ed_wasm.sh": (1, "BUILD_JOBS"),
     "scripts/run_overworld_tests.sh": (1, "BUILD_JOBS"),
+    "scripts/pre-push-test.sh": (5, "BUILD_JOBS"),
     "scripts/install-nightly-local.sh": (1, "nightly_build_jobs"),
     "scripts/install-nightly.sh": (1, "nightly_build_jobs"),
 }
