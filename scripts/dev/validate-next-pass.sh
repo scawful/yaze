@@ -9,6 +9,7 @@
 set -euo pipefail
 
 BUILD_DIR="${1:-build_ai}"
+BUILD_JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 # Support --build-dir flag
 if [ "${1:-}" = "--build-dir" ] && [ -n "${2:-}" ]; then
   BUILD_DIR="$2"
@@ -41,7 +42,7 @@ record_result() {
 # 1. Build
 # --------------------------------------------------------------------------
 section "Build: yaze_test_unit + yaze_test_quick_unit_editor + z3ed"
-if cmake --build "$BUILD_DIR" --target yaze_test_unit yaze_test_quick_unit_editor z3ed --parallel 8; then
+if cmake --build "$BUILD_DIR" --target yaze_test_unit yaze_test_quick_unit_editor z3ed --parallel "$BUILD_JOBS"; then
   record_result "Build" 0
 else
   record_result "Build" 1

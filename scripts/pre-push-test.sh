@@ -24,6 +24,7 @@ SMOKE_ONLY="${SMOKE_ONLY:-0}"
 SKIP_SYMBOLS="${SKIP_SYMBOLS:-0}"
 SKIP_TESTS="${SKIP_TESTS:-0}"
 VERBOSE="${VERBOSE:-0}"
+BUILD_JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 
 # Statistics
 TOTAL_CHECKS=0
@@ -42,12 +43,12 @@ print_step() {
 
 print_success() {
     echo -e "${GREEN}✓${NC} $1"
-    ((PASSED_CHECKS++))
+    ((++PASSED_CHECKS))
 }
 
 print_error() {
     echo -e "${RED}✗${NC} $1"
-    ((FAILED_CHECKS++))
+    ((++FAILED_CHECKS))
 }
 
 print_info() {
@@ -179,23 +180,23 @@ echo ""
 # ============================================================================
 
 print_header "Level 0: Static Analysis"
-((TOTAL_CHECKS++))
+((++TOTAL_CHECKS))
 
 print_step "Checking code formatting..."
 if [[ $VERBOSE -eq 1 ]]; then
-    if cmake --build "$BUILD_DIR" --target yaze-format-check 2>&1; then
+    if cmake --build "$BUILD_DIR" --target yaze-format-check --parallel "$BUILD_JOBS" 2>&1; then
         print_success "Code formatting is correct"
     else
         print_error "Code formatting check failed"
-        print_info "Run: cmake --build $BUILD_DIR --target yaze-format"
+        print_info "Run: cmake --build $BUILD_DIR --target yaze-format --parallel $BUILD_JOBS"
         exit 1
     fi
 else
-    if cmake --build "$BUILD_DIR" --target yaze-format-check > /dev/null 2>&1; then
+    if cmake --build "$BUILD_DIR" --target yaze-format-check --parallel "$BUILD_JOBS" > /dev/null 2>&1; then
         print_success "Code formatting is correct"
     else
         print_error "Code formatting check failed"
-        print_info "Run: cmake --build $BUILD_DIR --target yaze-format"
+        print_info "Run: cmake --build $BUILD_DIR --target yaze-format --parallel $BUILD_JOBS"
         exit 1
     fi
 fi
@@ -215,7 +216,7 @@ fi
 # ============================================================================
 
 print_header "Level 1: Configuration Validation"
-((TOTAL_CHECKS++))
+((++TOTAL_CHECKS))
 
 print_step "Validating CMake preset: $PRESET"
 if cmake --preset "$PRESET" -DCMAKE_VERBOSE_MAKEFILE=OFF > /dev/null 2>&1; then
@@ -227,7 +228,7 @@ else
 fi
 
 # Check for include path issues
-((TOTAL_CHECKS++))
+((++TOTAL_CHECKS))
 print_step "Checking include path propagation..."
 if [[ $VERBOSE -eq 1 ]]; then
     if grep -q "INCLUDE_DIRECTORIES" "$BUILD_DIR/CMakeCache.txt"; then
@@ -251,7 +252,7 @@ fi
 
 if [[ $SMOKE_ONLY -eq 0 ]]; then
     print_header "Level 2: Smoke Compilation"
-    ((TOTAL_CHECKS++))
+    ((++TOTAL_CHECKS))
 
     print_step "Compiling representative files..."
     print_info "This validates headers, includes, and preprocessor directives"
@@ -276,14 +277,14 @@ if [[ $SMOKE_ONLY -eq 0 ]]; then
 
         if [[ $VERBOSE -eq 1 ]]; then
             print_step "  Compiling $file"
-            if cmake --build "$BUILD_DIR" --target "$(basename "$OBJ_FILE")" 2>&1; then
+            if cmake --build "$BUILD_DIR" --target "$(basename "$OBJ_FILE")" --parallel "$BUILD_JOBS" 2>&1; then
                 print_success "  ✓ $file"
             else
                 print_error "  ✗ $file"
                 SMOKE_FAILED=1
             fi
         else
-            if cmake --build "$BUILD_DIR" --target "$(basename "$OBJ_FILE")" > /dev/null 2>&1; then
+            if cmake --build "$BUILD_DIR" --target "$(basename "$OBJ_FILE")" --parallel "$BUILD_JOBS" > /dev/null 2>&1; then
                 print_success "  ✓ $file"
             else
                 print_error "  ✗ $file (run with --verbose for details)"
@@ -296,7 +297,7 @@ if [[ $SMOKE_ONLY -eq 0 ]]; then
         print_success "Smoke compilation successful"
     else
         print_error "Smoke compilation failed"
-        print_info "Run: cmake --build $BUILD_DIR -v (for verbose output)"
+        print_info "Run: cmake --build $BUILD_DIR --parallel $BUILD_JOBS -v (for verbose output)"
         exit 1
     fi
 fi
@@ -307,7 +308,7 @@ fi
 
 if [[ $SKIP_SYMBOLS -eq 0 ]]; then
     print_header "Level 3: Symbol Validation"
-    ((TOTAL_CHECKS++))
+    ((++TOTAL_CHECKS))
 
     print_step "Checking for symbol conflicts..."
     print_info "This detects ODR violations and duplicate symbols"
@@ -341,7 +342,7 @@ fi
 
 if [[ $SKIP_TESTS -eq 0 ]]; then
     print_header "Level 4: Unit Tests"
-    ((TOTAL_CHECKS++))
+    ((++TOTAL_CHECKS))
 
     print_step "Running unit tests..."
     print_info "This validates component logic"
@@ -349,7 +350,7 @@ if [[ $SKIP_TESTS -eq 0 ]]; then
     TEST_BINARY="$BUILD_DIR/bin/yaze_test"
     if [[ ! -x "$TEST_BINARY" ]]; then
         print_info "Test binary not found, building..."
-        if cmake --build "$BUILD_DIR" --target yaze_test > /dev/null 2>&1; then
+        if cmake --build "$BUILD_DIR" --target yaze_test --parallel "$BUILD_JOBS" > /dev/null 2>&1; then
             print_success "Test binary built"
         else
             print_error "Failed to build test binary"

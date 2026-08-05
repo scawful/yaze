@@ -166,7 +166,7 @@ z3ed binary not found.
 
 Common build:
   cmake --preset mac-ai
-  cmake --build build_ai --target z3ed
+  cmake --build build_ai --target z3ed --parallel 4
 
 Or set Z3ED_BIN=/path/to/z3ed.
 EOF

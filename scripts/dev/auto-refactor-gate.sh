@@ -3,6 +3,7 @@ set -euo pipefail
 
 PROJECT_ROOT="${PROJECT_ROOT:-$(pwd)}"
 BUILD_DIR="${BUILD_DIR:-build_ai}"
+BUILD_JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 TASK_ROOT=""
 LOG_DIR="${LOG_DIR:-QA/auto-refactor-gate}"
 INTERVAL_SECONDS="${INTERVAL_SECONDS:-20}"
@@ -102,7 +103,7 @@ run_gate() {
 
     if [[ "$SKIP_BUILD" -eq 0 ]]; then
       echo "[1/2] Incremental build: yaze_test_unit"
-      cmake --build "$BUILD_DIR" --target yaze_test_unit --parallel 8
+      cmake --build "$BUILD_DIR" --target yaze_test_unit --parallel "$BUILD_JOBS"
       echo
     else
       echo "[1/2] Incremental build skipped (--skip-build)"

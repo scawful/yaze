@@ -21,6 +21,7 @@ esac
 # complete binaries unless explicitly overridden.
 BUILD_DIR="${YAZE_BUILD_DIR:-build_ai}"
 TARGET="${1:-yaze}"
+BUILD_JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 
 echo "=================================================="
 echo "🤖 Agent Build System"
@@ -28,6 +29,7 @@ echo "Platform: ${OS}"
 echo "Preset:   ${PRESET}"
 echo "Build Dir: ${BUILD_DIR}"
 echo "Target:   ${TARGET}"
+echo "Jobs:     ${BUILD_JOBS}"
 echo "=================================================="
 
 # Ensure we are in the project root
@@ -44,6 +46,6 @@ fi
 
 # Build
 echo "🔨 Building target: ${TARGET}..."
-cmake --build "${BUILD_DIR}" --target "${TARGET}"
+cmake --build "${BUILD_DIR}" --target "${TARGET}" --parallel "${BUILD_JOBS}"
 
 echo "✅ Build complete."

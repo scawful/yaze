@@ -31,6 +31,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 BUILD_DIR="$PROJECT_ROOT/build"
 BIN_DIR="$BUILD_DIR/bin"
 TEST_DIR="$PROJECT_ROOT/test"
+BUILD_JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 
 # Default values
 ROM_PATH=""
@@ -190,7 +191,8 @@ build_golden_data_extractor() {
     cd "$PROJECT_ROOT"
     
     # Build the golden data extractor
-    if cmake --build "$BUILD_DIR" --target overworld_golden_data_extractor; then
+    if cmake --build "$BUILD_DIR" --target overworld_golden_data_extractor \
+        --parallel "$BUILD_JOBS"; then
         log_success "Golden data extractor built successfully"
     else
         log_error "Failed to build golden data extractor"

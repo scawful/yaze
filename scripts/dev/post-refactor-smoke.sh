@@ -3,6 +3,7 @@ set -euo pipefail
 
 PROJECT_ROOT="${PROJECT_ROOT:-$(pwd)}"
 BUILD_DIR="${BUILD_DIR:-build_ai}"
+BUILD_JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 ROM_PATH="${ROM_PATH:-roms/oos168.sfc}"
 QA_DIR="${QA_DIR:-QA/$(date +%Y-%m-%d)-post-refactor-smoke}"
 LAUNCH_APP=0
@@ -82,7 +83,7 @@ mkdir -p "$QA_DIR/logs"
 
 ok=1
 run_step A1 "Build yaze_test_unit + z3ed + yaze" \
-  cmake --build "$BUILD_DIR" --target yaze_test_unit z3ed yaze --parallel 8 || ok=0
+  cmake --build "$BUILD_DIR" --target yaze_test_unit z3ed yaze --parallel "$BUILD_JOBS" || ok=0
 
 run_step A2 "Refactor gate test suite (121 tests)" \
   "./$BUILD_DIR/bin/Debug/yaze_test_unit" --gtest_filter="$GTEST_FILTER" || ok=0
