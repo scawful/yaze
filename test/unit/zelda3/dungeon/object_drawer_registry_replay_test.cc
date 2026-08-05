@@ -2827,6 +2827,24 @@ TEST(ObjectDrawerRegistryReplayTest,
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
+     TurtleRockPipe25CDrawsAllTwentyFourTilesWithoutWrapping) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 10;
+  constexpr int kY = 12;
+  constexpr uint16_t kFirstTile = 0x0240;
+  const auto trace = ReplayObjectTrace(
+      /*object_id=*/0x0FDC, kX, kY, /*size=*/0, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/24, /*start_tile_id=*/kFirstTile));
+
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+  ExpectTraceMatchesSnapshot(
+      bg1, MakeColumnMajorSnapshot(kX, kY, /*width=*/6, /*height=*/4,
+                                   /*start_tile_id=*/kFirstTile));
+  EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG2).empty());
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
      VerticalJumpLedgesDrawOneTileForSizePlusEightRows) {
   ScopedCustomObjectsFlag disable_custom(false);
 

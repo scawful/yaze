@@ -594,15 +594,15 @@ TEST_F(ObjectParserTest, TurtleRockPipesProvideTwentyFourTiles) {
   // - 0xFBA, 0xFBB -> kVerticalTurtleRockPipe (102):
   //     special_routines.cc:430-437 stacks two 4x3 sections, reading
   //     tiles[0..11] then tiles[12..23] -> 24 tiles.
-  // - 0xFBC, 0xFBD -> kHorizontalTurtleRockPipe (103):
-  //     special_routines.cc:439-441 calls DrawNx4(columns=6, start=0)
+  // - 0xFBC, 0xFBD, 0xFDC (ASM 0x25C) -> kHorizontalTurtleRockPipe (103):
+  //     DrawHorizontalTurtleRockPipe calls DrawNx4(columns=6, start=0),
   //     which reads a 6x4 column-major block -> 24 tiles.
   // Before the GetSubtype3TileCount special case landed, the parser
   // defaulted to 8 and TileAtWrapped substituted tiles[0..7] for
   // indices 8..23, mis-tiling the pipe sections. Pin the count via
   // both the ParseObject and GetObjectDrawInfo paths so neither
   // surface can regress to the wrap-substitution failure mode.
-  for (int id : {0xFBA, 0xFBB, 0xFBC, 0xFBD}) {
+  for (int id : {0xFBA, 0xFBB, 0xFBC, 0xFBD, 0xFDC}) {
     SCOPED_TRACE(::testing::Message() << "object_id=0x" << std::hex << id);
 
     auto parsed = parser_->ParseObject(id);
