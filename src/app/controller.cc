@@ -80,6 +80,15 @@ absl::Status Controller::OnEntry(std::string filename) {
   // Initialize ImGui via backend (handles SDL2/SDL3 automatically)
   RETURN_IF_ERROR(window_backend_->InitializeImGui(renderer_.get()));
 
+  // The test manager is linked at the controller/executable layer rather than
+  // the platform window library. Initialize its engine here, after ImGui has a
+  // context, so remote harness actions use the real engine. The dedicated GUI
+  // test runner owns a separate engine and initializes it below its OnEntry().
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE && \
+    !defined(YAZE_GUI_TEST_TARGET)
+  test::TestManager::Get().InitializeUITesting();
+#endif
+
   // Initialize the graphics Arena with the renderer
   gfx::Arena::Get().Initialize(renderer_.get());
 
@@ -350,12 +359,24 @@ void Controller::DoRender() const {
 }
 
 void Controller::OnExit() {
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE && \
+    !defined(YAZE_GUI_TEST_TARGET)
+  // Stop the test engine while its bound ImGui context is still alive.
+  test::TestManager::Get().StopUITesting();
+#endif
+
   if (renderer_) {
     renderer_->Shutdown();
   }
   if (window_backend_) {
     window_backend_->Shutdown();
   }
+
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE && \
+    !defined(YAZE_GUI_TEST_TARGET)
+  // The backend owns and destroys ImGui; release the engine context afterward.
+  test::TestManager::Get().DestroyUITestingContext();
+#endif
 }
 
 absl::Status Controller::LoadRomForTesting(const std::string& rom_path) {
