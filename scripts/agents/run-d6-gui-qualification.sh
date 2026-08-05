@@ -15,7 +15,8 @@ Usage:
 
 The disposable project must resolve exactly to --rom. Its ROM must begin as a
 byte-identical, non-hard-linked copy of --canonical-rom. The canonical project
-and ROM are hash-checked throughout and are never passed to Yaze or z3ed.
+and ROM are hash-checked throughout and are never passed to Yaze or z3ed. The
+HTTP API port is isolated and reported, but HTTP is not used by this run.
 EOF
 }
 
@@ -112,7 +113,7 @@ done
 [[ -n "$CANONICAL_PROJECT" ]] || die 64 "--canonical-project is required"
 [[ -n "$CANONICAL_ROM" ]] || die 64 "--canonical-rom is required"
 
-for command_name in awk cp date find git jq lsof mktemp python3 shasum tr; do
+for command_name in awk cp date find git jq lsof mktemp mv python3 shasum tr; do
   command -v "$command_name" >/dev/null 2>&1 ||
     die 69 "required command not found: $command_name"
 done
@@ -904,9 +905,10 @@ wait_for_owned_listener() {
   local label="$1"
   local role="$2"
   local port="$3"
+  local timeout_seconds="${4:-30}"
   local output="$EVIDENCE_DIR/$label-$role-listener.lsof"
   local metadata="$EVIDENCE_DIR/$label-$role-listener.json"
-  local deadline=$((SECONDS + 30))
+  local deadline=$((SECONDS + timeout_seconds))
   while [[ "$SECONDS" -lt "$deadline" ]]; do
     if ! kill -0 "$YAZE_PID" 2>/dev/null; then
       return 1
@@ -934,12 +936,54 @@ wait_for_owned_listener() {
             ownership: "lsof -a -p PID -iTCP:PORT -sTCP:LISTEN",
             lsof_output: $lsof_output
           }
-        ' > "$metadata"
+        ' > "$metadata" || return 1
       return 0
     fi
     sleep 0.2
   done
   return 1
+}
+
+record_optional_api_listener() {
+  local label="$1"
+  local output="$EVIDENCE_DIR/$label-api-listener.lsof"
+  local metadata="$EVIDENCE_DIR/$label-api-listener.json"
+  local all_listeners="$EVIDENCE_DIR/$label-api-port-listeners.lsof"
+
+  if wait_for_owned_listener "$label" api "$API_PORT" 1; then
+    local updated="$metadata.tmp"
+    jq '.required_for_qualification = false' "$metadata" > "$updated" ||
+      return 1
+    mv "$updated" "$metadata" || return 1
+    return 0
+  fi
+
+  kill -0 "$YAZE_PID" 2>/dev/null || return 1
+  if lsof -nP -iTCP:"$API_PORT" -sTCP:LISTEN \
+       > "$all_listeners" 2> "$all_listeners.stderr"; then
+    return 1
+  fi
+  [[ ! -s "$all_listeners" && ! -s "$all_listeners.stderr" ]] || return 1
+  : > "$output" || return 1
+  : > "$output.stderr" || return 1
+  jq -n \
+    --arg captured_at_utc "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" \
+    --arg label "$label" \
+    --arg lsof_output "$output" \
+    --argjson pid "$YAZE_PID" \
+    --argjson port "$API_PORT" '
+      {
+        captured_at_utc: $captured_at_utc,
+        launch: $label,
+        role: "api",
+        pid: $pid,
+        port: $port,
+        state: "NOT_OBSERVED",
+        required_for_qualification: false,
+        reason: "HTTP API is not exercised by the D6 GUI qualification",
+        lsof_output: $lsof_output
+      }
+    ' > "$metadata" || return 1
 }
 
 wait_for_port_free "$HARNESS_PORT" ||
@@ -1850,8 +1894,8 @@ launch_yaze() {
 
   wait_for_owned_listener "$label" harness "$HARNESS_PORT" ||
     die 70 "$label harness listener is not owned by Yaze PID $YAZE_PID"
-  wait_for_owned_listener "$label" api "$API_PORT" ||
-    die 70 "$label API listener is not owned by Yaze PID $YAZE_PID"
+  record_optional_api_listener "$label" ||
+    die 70 "$label optional API listener could not be classified safely"
   wait_for_harness "$label" ||
     die 70 "$label Yaze process did not expose the gRPC harness; see $log_file"
   wait_for_room_widget "$label" ||
@@ -2048,6 +2092,7 @@ jq -n \
     {
       status: "pass",
       completed_at_utc: $completed_at_utc,
+      http_api_required: false,
       disposable: {
         project: {path: $project, sha256: $project_sha256},
         rom: $rom,
@@ -2110,13 +2155,13 @@ jq -n \
           label: "first-launch",
           pid: $first_pid,
           harness_listener: $first_harness_listener,
-          api_listener: $first_api_listener
+          api_listener_observation: $first_api_listener
         },
         {
           label: "second-launch",
           pid: $second_pid,
           harness_listener: $second_harness_listener,
-          api_listener: $second_api_listener
+          api_listener_observation: $second_api_listener
         }
       ],
       ports: {harness: $harness_port, api: $api_port},
