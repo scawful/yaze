@@ -86,6 +86,15 @@ TEST(ImGuiTestHarnessLogicTest, WidgetKeyWithoutImGuiIdFailsClosed) {
             std::string::npos);
 }
 
+TEST(ImGuiTestHarnessLogicTest, ShortcutTargetPreservesCommandName) {
+  auto resolved = internal::ResolveWidgetSelector("shortcut:Save ROM", "");
+
+  ASSERT_TRUE(resolved.ok()) << resolved.status();
+  EXPECT_EQ(resolved->target.type, "shortcut");
+  EXPECT_EQ(resolved->target.label, "Save ROM");
+  EXPECT_EQ(resolved->imgui_id, 0u);
+}
+
 TEST(ImGuiTestHarnessLogicTest, WidgetRegistryQueriesReturnStableSnapshots) {
   WidgetRegistryReset reset;
   auto& registry = gui::WidgetIdRegistry::Instance();

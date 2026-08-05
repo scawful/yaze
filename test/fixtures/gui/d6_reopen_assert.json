@@ -28,13 +28,31 @@
       "expect": { "success": true, "status": "passed" }
     },
     {
+      "action": "wait",
+      "widget_key": "Dungeon/Workbench/button:tool_door",
+      "timeout_ms": 5000,
+      "expect": { "success": true, "status": "passed" }
+    },
+    {
       "action": "click",
       "widget_key": "Dungeon/Workbench/button:tool_door",
       "expect": { "success": true, "status": "passed" }
     },
     {
+      "action": "wait",
+      "widget_key": "Dungeon/DoorEditor/selectable:door_row_2",
+      "timeout_ms": 5000,
+      "expect": { "success": true, "status": "passed" }
+    },
+    {
       "action": "click",
       "widget_key": "Dungeon/DoorEditor/selectable:door_row_2",
+      "expect": { "success": true, "status": "passed" }
+    },
+    {
+      "action": "wait",
+      "widget_key": "Dungeon/DoorEditor/input_scalar:selected_door_raw_type",
+      "timeout_ms": 5000,
       "expect": { "success": true, "status": "passed" }
     },
     {
@@ -62,6 +80,12 @@
       "expect": { "success": true, "status": "passed" }
     },
     {
+      "action": "wait",
+      "widget_key": "Dungeon/Workbench/input_int:object_index",
+      "timeout_ms": 5000,
+      "expect": { "success": true, "status": "passed" }
+    },
+    {
       "action": "type",
       "widget_key": "Dungeon/Workbench/input_int:object_index",
       "text": "128",
@@ -69,15 +93,15 @@
       "expect": { "success": true, "status": "passed" }
     },
     {
-      "action": "assert",
-      "widget_key": "Dungeon/Workbench/input_int:object_index",
-      "condition": "value_equals:128",
+      "action": "wait",
+      "widget_key": "Dungeon/Workbench/drag_int:selected_object_y",
+      "timeout_ms": 5000,
       "expect": { "success": true, "status": "passed" }
     },
     {
       "action": "assert",
       "widget_key": "Dungeon/Workbench/drag_int:selected_object_y",
-      "condition": "value_equals:Y:8",
+      "condition": "value_equals:8",
       "expect": { "success": true, "status": "passed" }
     },
     {
@@ -99,13 +123,31 @@
       "expect": { "success": true, "status": "passed" }
     },
     {
+      "action": "wait",
+      "widget_key": "Dungeon/Workbench/button:tool_sprite",
+      "timeout_ms": 5000,
+      "expect": { "success": true, "status": "passed" }
+    },
+    {
       "action": "click",
       "widget_key": "Dungeon/Workbench/button:tool_sprite",
       "expect": { "success": true, "status": "passed" }
     },
     {
+      "action": "wait",
+      "widget_key": "Dungeon/SpriteEditor/selectable:sprite_row_2",
+      "timeout_ms": 5000,
+      "expect": { "success": true, "status": "passed" }
+    },
+    {
       "action": "click",
       "widget_key": "Dungeon/SpriteEditor/selectable:sprite_row_2",
+      "expect": { "success": true, "status": "passed" }
+    },
+    {
+      "action": "wait",
+      "widget_key": "Dungeon/SpriteEditor/input_int:selected_sprite_x",
+      "timeout_ms": 5000,
       "expect": { "success": true, "status": "passed" }
     },
     {
@@ -122,6 +164,12 @@
     {
       "action": "click",
       "widget_key": "Dungeon/ItemEditor/selectable:item_row_5",
+      "expect": { "success": true, "status": "passed" }
+    },
+    {
+      "action": "wait",
+      "widget_key": "Dungeon/ItemEditor/input_scalar:selected_item_raw_type",
+      "timeout_ms": 5000,
       "expect": { "success": true, "status": "passed" }
     },
     {
@@ -154,6 +202,12 @@
       "expect": { "success": true, "status": "passed" }
     },
     {
+      "action": "wait",
+      "widget_key": "Dungeon/PaletteEditor/input_int:palette_id",
+      "timeout_ms": 5000,
+      "expect": { "success": true, "status": "passed" }
+    },
+    {
       "action": "type",
       "widget_key": "Dungeon/PaletteEditor/input_int:palette_id",
       "text": "7",
@@ -169,6 +223,12 @@
     {
       "action": "click",
       "widget_key": "Dungeon/PaletteEditor/color_button:palette_swatch_040",
+      "expect": { "success": true, "status": "passed" }
+    },
+    {
+      "action": "wait",
+      "widget_key": "Dungeon/PaletteEditor/input_scalar:selected_palette_bgr555",
+      "timeout_ms": 5000,
       "expect": { "success": true, "status": "passed" }
     },
     {

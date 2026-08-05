@@ -833,6 +833,70 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
                           mouse_button](ImGuiTestContext* ctx) {
     manager->MarkHarnessTestRunning(captured_id);
     try {
+      if (widget_type == "shortcut") {
+        ImGuiKeyChord chord = 0;
+        if (widget_label == "Save ROM") {
+          chord = ImGuiMod_Shortcut | ImGuiKey_S;
+        } else if (widget_label == "Quit") {
+          // A successful quit destroys the harness before a simulated key
+          // press can finish and report its result. Invoke the same guarded
+          // application action directly, fail if unsaved work blocks it, and
+          // let the caller prove process and listener teardown.
+          auto* controller = Application::Instance().GetController();
+          auto* editor_manager =
+              controller != nullptr ? controller->editor_manager() : nullptr;
+          if (editor_manager == nullptr) {
+            const std::string error_message =
+                "Application quit is unavailable before editor startup";
+            manager->AppendHarnessTestLog(captured_id, error_message);
+            manager->MarkHarnessTestCompleted(
+                captured_id, HarnessTestStatus::kFailed, error_message);
+            return;
+          }
+
+          editor_manager->Quit();
+          if (!editor_manager->quit()) {
+            const std::string error_message = absl::StrCat(
+                "Application quit was blocked: ",
+                editor_manager->GetPendingUnsavedSessionActionPrompt());
+            manager->AppendHarnessTestLog(captured_id, error_message);
+            manager->MarkHarnessTestCompleted(
+                captured_id, HarnessTestStatus::kFailed, error_message);
+            return;
+          }
+
+          const std::string success_message = "Requested application quit";
+          manager->AppendHarnessTestLog(captured_id, success_message);
+          manager->MarkHarnessTestCompleted(
+              captured_id, HarnessTestStatus::kPassed, success_message);
+          return;
+        } else {
+          const std::string error_message = absl::StrFormat(
+              "Unsupported harness shortcut '%s'", widget_label);
+          manager->AppendHarnessTestLog(captured_id, error_message);
+          manager->MarkHarnessTestCompleted(
+              captured_id, HarnessTestStatus::kFailed, error_message);
+          return;
+        }
+
+        ctx->KeyPress(chord);
+        ctx->Yield(2);
+        if (ctx->IsError()) {
+          const std::string error_message =
+              absl::StrFormat("Shortcut failed for '%s'", widget_label);
+          manager->AppendHarnessTestLog(captured_id, error_message);
+          manager->MarkHarnessTestCompleted(
+              captured_id, HarnessTestStatus::kFailed, error_message);
+          return;
+        }
+        const std::string success_message =
+            absl::StrFormat("Pressed shortcut '%s'", widget_label);
+        manager->AppendHarnessTestLog(captured_id, success_message);
+        manager->MarkHarnessTestCompleted(
+            captured_id, HarnessTestStatus::kPassed, success_message);
+        return;
+      }
+
       const ImGuiTestRef widget_ref = widget_id != 0
                                           ? ImGuiTestRef(widget_id)
                                           : ImGuiTestRef(widget_label.c_str());

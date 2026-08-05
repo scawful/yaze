@@ -373,28 +373,26 @@ for key in (
     "save_dungeon_pot_items",
     "save_dungeon_entrances",
     "save_dungeon_palettes",
+    "save_overworld_maps",
+    "save_overworld_entrances",
+    "save_overworld_exits",
+    "save_overworld_items",
+    "save_overworld_properties",
 ):
     report[key] = parse_bool(key, required=False, default=True)
 
-# The native INI reader in this Yaze revision does not parse a
-# save_dungeon_water_fill_zones key. Record the actual effective default rather
-# than implying a descriptor value can disable it.
-water_fill_raw = None
-if parser.has_option("feature_flags", "save_dungeon_water_fill_zones"):
-    water_fill_raw = parser.get(
-        "feature_flags", "save_dungeon_water_fill_zones"
-    ).strip()
-report["save_dungeon_water_fill_zones"] = {
-    "present": water_fill_raw is not None,
-    "descriptor_value_ignored": water_fill_raw,
-    "value": True,
-    "source": "yaze_default_unconfigurable_in_ini",
-}
+report["save_dungeon_water_fill_zones"] = parse_bool(
+    "save_dungeon_water_fill_zones", required=True, default=False
+)
 
 if report["save_dungeon_maps"]["value"]:
     raise SystemExit("feature_flags.save_dungeon_maps must be false")
 if report["save_graphics_sheet"]["value"]:
     raise SystemExit("feature_flags.save_graphics_sheet must be false")
+if report["save_dungeon_water_fill_zones"]["value"]:
+    raise SystemExit(
+        "feature_flags.save_dungeon_water_fill_zones must be false"
+    )
 for key in (
     "save_dungeon_objects",
     "save_dungeon_sprites",
@@ -415,6 +413,11 @@ unrelated_keys = (
     "save_dungeon_entrances",
     "save_dungeon_maps",
     "save_graphics_sheet",
+    "save_overworld_maps",
+    "save_overworld_entrances",
+    "save_overworld_exits",
+    "save_overworld_items",
+    "save_overworld_properties",
 )
 payload = {
     "effective_flags": report,
@@ -431,8 +434,9 @@ payload = {
         "applied": False,
         "descriptor_modified": False,
         "policy": (
-            "Record effective defaults; exact ROM byte-diff containment must "
-            "reject writes from unrelated domains."
+            "Record effective defaults; coordinated saves serialize only "
+            "already-loaded editors, and exact ROM byte-diff containment "
+            "must reject writes from unrelated domains."
         ),
     },
 }
@@ -880,12 +884,12 @@ import sys
 
 port = int(sys.argv[1])
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.settimeout(0.25)
 try:
-    sock.bind(("127.0.0.1", port))
-except OSError:
-    raise SystemExit(1)
+    listening = sock.connect_ex(("127.0.0.1", port)) == 0
 finally:
     sock.close()
+raise SystemExit(1 if listening else 0)
 PY
 }
 
@@ -1960,12 +1964,7 @@ cat > "$EVIDENCE_DIR/quit.json" <<'EOF_QUIT'
   "steps": [
     {
       "action": "click",
-      "target": "menu:File",
-      "expect": { "success": true, "status": "passed" }
-    },
-    {
-      "action": "click",
-      "widget_key": "menuitem:Quit",
+      "target": "shortcut:Quit",
       "expect": { "success": true, "status": "passed" }
     }
   ]
