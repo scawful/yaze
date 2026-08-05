@@ -564,6 +564,16 @@ void DrawFortuneTellerRoom(const DrawContext& ctx) {
   }
 }
 
+void DrawMagicBatAltar(const DrawContext& ctx) {
+  // USDASM's final subtype-2 entry is object 0x13F (table index 0x3F), not a
+  // subtype-3 0x2xx object. RoomDraw_MagicBatAltar ($019A12) advances through
+  // eight source columns, reading seven words down each column from obj2086.
+  if (ctx.tiles.size() < 56)
+    return;
+
+  DrawColumnMajor(ctx.target_bg, ctx.object.x_, ctx.object.y_, 8, 7, ctx.tiles);
+}
+
 void DrawUtility3x5(const DrawContext& ctx) {
   // ASM: RoomDraw_Utility3x5 ($01A194) uses:
   // - top row: tiles 0..2
@@ -2111,6 +2121,17 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .base_width = 14,
       .base_height = 14,
       .min_tiles = 26,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kMagicBatAltar,  // 132
+      .name = "MagicBatAltar",
+      .function = DrawMagicBatAltar,
+      .draws_to_both_bgs = false,
+      .base_width = 8,
+      .base_height = 7,
+      .min_tiles = 56,
       .category = DrawRoutineInfo::Category::Special,
   });
 

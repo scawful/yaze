@@ -585,11 +585,16 @@ int ObjectParser::GetSubtype2TileCount(int16_t object_id) const {
   if (object_id == 0x11F || object_id == 0x120) {
     return 4;
   }
-  // 4x4 fixed patterns (stairs/altars/walls)
+  // 4x4 fixed patterns (stairs/walls)
   if (object_id == 0x11C || object_id == 0x124 || object_id == 0x125 ||
       object_id == 0x129 || (object_id >= 0x12D && object_id <= 0x133) ||
-      object_id == 0x13C || object_id == 0x13F) {
+      object_id == 0x13C) {
     return 16;
+  }
+  // Magic Bat altar is subtype-2 object 0x13F (table index 0x3F).
+  // RoomDraw_MagicBatAltar consumes eight columns of seven words from obj2086.
+  if (object_id == 0x13F) {
+    return 56;
   }
   // Water hop stairs use a fixed 4x2 pattern.
   if (object_id == 0x135 || object_id == 0x136) {

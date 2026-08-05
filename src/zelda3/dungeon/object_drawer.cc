@@ -1470,6 +1470,14 @@ void ObjectDrawer::InitializeDrawRoutines() {
                                        bg, tiles, state);
       };
 
+  ensure_index(DrawRoutineIds::kMagicBatAltar);
+  draw_routines_[DrawRoutineIds::kMagicBatAltar] =
+      [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
+         std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        self->DrawUsingRegistryRoutine(DrawRoutineIds::kMagicBatAltar, obj, bg,
+                                       tiles, state);
+      };
+
   // Routine 130 - Custom Object (Oracle of Secrets 0x31, 0x32)
   // Uses external binary files instead of ROM tile data.
   // Requires CustomObjectManager initialization and enable_custom_objects flag.
@@ -3276,6 +3284,11 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
     case DrawRoutineIds::kFortuneTellerRoom:
       width = 112;
       height = 112;
+      break;
+
+    case DrawRoutineIds::kMagicBatAltar:
+      width = 64;
+      height = 56;
       break;
 
     default:
