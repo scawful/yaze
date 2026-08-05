@@ -788,6 +788,9 @@ void ObjectEditorContent::HandleKeyboardShortcuts() {
   }
 
   const ImGuiIO& io = ImGui::GetIO();
+  if (io.WantTextInput) {
+    return;
+  }
 
   if (ImGui::IsKeyPressed(ImGuiKey_A) && io.KeyCtrl && !io.KeyShift) {
     SelectAllObjects();

@@ -2102,13 +2102,19 @@ absl::Status Room::SaveObjects(const DungeonStreamLayout* layout) {
     return absl::OutOfRangeError("Door pointer slot is out of range");
   }
   const int door_pointer_pc = write_pos + door_list_offset;
+  ASSIGN_OR_RETURN(const uint32_t source_door_pointer,
+                   rom_->ReadLong(door_pointer_slot));
 
   // Write encoded bytes to ROM (includes 0xF0 0xFF + door list)
   RETURN_IF_ERROR(rom_->WriteVector(write_pos, encoded_bytes));
 
-  // Write door pointer: first byte after 0xF0 0xFF (per ZScreamDungeon Save.cs)
-  RETURN_IF_ERROR(rom_->WriteLong(
-      door_pointer_slot, static_cast<uint32_t>(PcToSnes(door_pointer_pc))));
+  // Write door pointer: first byte after 0xF0 0xFF (per ZScreamDungeon
+  // Save.cs). Preserve the source pointer's slow/fast ROM bank mirror; both
+  // encodings address the same bytes, but normalizing an unchanged pointer
+  // creates an unrelated ROM diff.
+  uint32_t encoded_door_pointer = PcToSnes(door_pointer_pc);
+  encoded_door_pointer |= source_door_pointer & 0x800000u;
+  RETURN_IF_ERROR(rom_->WriteLong(door_pointer_slot, encoded_door_pointer));
 
   ClearObjectStreamDirty();
 

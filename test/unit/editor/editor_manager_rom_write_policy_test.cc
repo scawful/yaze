@@ -2076,6 +2076,39 @@ TEST(GraphicsSaveStoplossTest,
   EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kGraphics), nullptr);
 }
 
+TEST(EditorManagerRomWritePolicyTest,
+     CleanSaveDoesNotMaterializeUnopenedOverworldEditor) {
+  FeatureFlagsGuard guard;
+  ScopedImGuiContext imgui;
+
+  auto renderer = std::make_unique<gfx::NullRenderer>();
+  auto manager = std::make_unique<EditorManager>();
+  manager->Initialize(renderer.get(), "");
+  manager->SetAssetLoadMode(AssetLoadMode::kLazy);
+  manager->user_settings().prefs().backup_before_save = false;
+
+  const auto rom_path = MakeTempFilePath("yaze_clean_lazy_editor_save.sfc");
+  ScopedFileCleanup cleanup{rom_path};
+  WriteTestRom(rom_path, "CLEAN LAZY EDITOR SAVE");
+
+  ASSERT_OK(manager->OpenRomOrProject(rom_path.string()));
+  DisableRomWritesForTest();
+
+  auto* editor_set = manager->GetCurrentEditorSet();
+  ASSERT_NE(editor_set, nullptr);
+  EXPECT_NE(editor_set->GetExistingEditor(EditorType::kDungeon), nullptr);
+  EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kOverworld), nullptr);
+
+  auto* project = manager->GetCurrentProject();
+  ASSERT_NE(project, nullptr);
+  project->workspace_settings.backup_on_save = false;
+  project->rom_metadata.expected_hash.clear();
+
+  ASSERT_OK(manager->SaveRom());
+  EXPECT_NE(editor_set->GetExistingEditor(EditorType::kDungeon), nullptr);
+  EXPECT_EQ(editor_set->GetExistingEditor(EditorType::kOverworld), nullptr);
+}
+
 TEST(GraphicsSaveStoplossTest,
      PendingSheetsBlockBothSaveScopeStatesBeforeSerialization) {
   FeatureFlagsGuard guard;

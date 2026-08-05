@@ -17,6 +17,7 @@
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/theme_manager.h"
+#include "core/features.h"
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
 
@@ -202,6 +203,11 @@ void DungeonObjectInteraction::UpdateCollisionPainting(
 
 void DungeonObjectInteraction::UpdateWaterFillPainting(
     const ImVec2& canvas_mouse_pos) {
+  if (!core::FeatureFlags::get().dungeon.kSaveWaterFillZones) {
+    mode_manager_.SetMode(InteractionMode::Select);
+    return;
+  }
+
   const ImGuiIO& io = ImGui::GetIO();
   const bool erase = io.KeyAlt;
 
