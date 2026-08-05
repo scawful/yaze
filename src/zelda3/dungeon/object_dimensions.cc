@@ -918,7 +918,8 @@ void ObjectDimensionTable::InitializeDefaults() {
   // Boss shells (single 4x4)
   dimensions_[0xF95] = {4, 4, Dir::None, 0, false};
   dimensions_[0xFF2] = {4, 4, Dir::None, 0, false};
-  dimensions_[0xFFB] = {4, 4, Dir::None, 0, false};
+  // Vitreous goo damage (fixed 5x2 grid of repeated 4x4 stamps)
+  dimensions_[0xFFB] = {20, 8, Dir::None, 0, false};
   // Auto/straight stairs (fixed 4x4)
   for (int id = 0xF9B; id <= 0xFA1; id++) {
     dimensions_[id] = {4, 4, Dir::None, 0, false};

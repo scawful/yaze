@@ -207,6 +207,13 @@ void DrawFloorLight(const DrawContext& ctx);
 void DrawBossShell4x4(const DrawContext& ctx);
 
 /**
+ * @brief Draw the fixed 5x2 grid of repeated 4x4 Vitreous goo stamps
+ *
+ * ASM: subtype-3 object 0x27B, RoomDraw_VitreousGooDamage ($01A809)
+ */
+void DrawVitreousGooDamage(const DrawContext& ctx);
+
+/**
  * @brief Draw solid wall decor 3x4
  *
  * ASM: RoomDraw_SolidWallDecor3x4 ($0199EC)
