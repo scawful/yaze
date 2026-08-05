@@ -109,7 +109,16 @@ AgentEditor::AgentEditor() {
       "Describe the persona, tone, and constraints for this agent.";
 }
 
-AgentEditor::~AgentEditor() = default;
+AgentEditor::~AgentEditor() {
+#ifdef YAZE_WITH_GRPC
+  if (harness_telemetry_bridge_) {
+    harness_telemetry_bridge_->SetAgentChat(nullptr);
+    test::TestManager::Get().ClearHarnessListener(
+        harness_telemetry_bridge_.get());
+    harness_telemetry_bridge_.reset();
+  }
+#endif
+}
 
 void AgentEditor::Initialize() {
   // Base initialization

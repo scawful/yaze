@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "absl/strings/string_view.h"
+#include "absl/synchronization/mutex.h"
 #include "absl/time/time.h"
 #include "imgui/imgui.h"
 
@@ -113,12 +114,10 @@ class WidgetIdRegistry {
   // Query widgets for test automation
   std::vector<std::string> FindWidgets(const std::string& pattern) const;
   ImGuiID GetWidgetId(const std::string& full_path) const;
-  const WidgetInfo* GetWidgetInfo(const std::string& full_path) const;
+  std::optional<WidgetInfo> GetWidgetInfo(const std::string& full_path) const;
 
-  // Get all registered widgets
-  const std::unordered_map<std::string, WidgetInfo>& GetAllWidgets() const {
-    return widgets_;
-  }
+  // Get a thread-safe snapshot of all registered widgets.
+  std::unordered_map<std::string, WidgetInfo> GetAllWidgets() const;
 
   // Clear all registered widgets (useful between frames for dynamic UIs)
   void Clear();
@@ -138,9 +137,10 @@ class WidgetIdRegistry {
   void TrimStaleEntries();
   bool ShouldPrune(const WidgetInfo& info) const;
 
-  std::unordered_map<std::string, WidgetInfo> widgets_;
-  int current_frame_ = -1;
-  absl::Time frame_time_;
+  mutable absl::Mutex mutex_;
+  std::unordered_map<std::string, WidgetInfo> widgets_ ABSL_GUARDED_BY(mutex_);
+  int current_frame_ ABSL_GUARDED_BY(mutex_) = -1;
+  absl::Time frame_time_ ABSL_GUARDED_BY(mutex_);
   int stale_frame_limit_ = 600;  // frames before pruning a widget
 };
 

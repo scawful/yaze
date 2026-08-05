@@ -1833,6 +1833,27 @@ wait_for_harness() {
   return 1
 }
 
+wait_for_rendered_frame() {
+  local label="$1"
+  local deadline=$((SECONDS + 30))
+  local output="$EVIDENCE_DIR/$label-render-ready.json"
+  while [[ "$SECONDS" -lt "$deadline" ]]; do
+    if ! kill -0 "$YAZE_PID" 2>/dev/null; then
+      return 1
+    fi
+    if NO_COLOR=1 TERM=dumb "$Z3ED_BIN" gui-screenshot \
+      --rom="$ROM" \
+      --gui_server_address="127.0.0.1:$HARNESS_PORT" \
+      --format=json > "$output" 2>/dev/null &&
+       jq -e '.["Screenshot Capture"].status == "Success"' \
+         "$output" >/dev/null 2>&1; then
+      return 0
+    fi
+    sleep 0.25
+  done
+  return 1
+}
+
 wait_for_room_widget() {
   local label="$1"
   local key="Dungeon/Workbench/input_scalar:room_id"
@@ -1842,14 +1863,16 @@ wait_for_room_widget() {
     if ! kill -0 "$YAZE_PID" 2>/dev/null; then
       return 1
     fi
-    if NO_COLOR=1 TERM=dumb "$Z3ED_BIN" gui-assert \
-      --widget-key="$key" \
+    if NO_COLOR=1 TERM=dumb "$Z3ED_BIN" gui-discover-tool \
+      --window="Dungeon Workbench" \
       --rom="$ROM" \
       --gui_server_address="127.0.0.1:$HARNESS_PORT" \
       --format=json > "$output" 2>/dev/null &&
        jq -e --arg key "$key" '
-         .["GUI Assert Action"].status == "Success" and
-         .["GUI Assert Action"].resolved_widget_key == $key
+         .["Widget Discovery"].status == "Success" and
+         ([.["Widget Discovery"].windows[].widgets[] |
+             select(. == ("room_id (input_scalar) - " + $key))] |
+          length) == 1
        ' "$output" >/dev/null 2>&1; then
       return 0
     fi
@@ -1899,6 +1922,8 @@ launch_yaze() {
     die 70 "$label optional API listener could not be classified safely"
   wait_for_harness "$label" ||
     die 70 "$label Yaze process did not expose the gRPC harness; see $log_file"
+  wait_for_rendered_frame "$label" ||
+    die 70 "$label Yaze process did not complete a rendered frame"
   wait_for_room_widget "$label" ||
     die 70 "$label Yaze process did not render the Workbench room selector"
 }

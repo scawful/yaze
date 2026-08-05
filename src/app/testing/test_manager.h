@@ -15,6 +15,7 @@
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/time.h"
+#include "app/service/screenshot_utils.h"
 #include "rom/rom.h"
 
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -278,6 +279,11 @@ class TestManager {
 
   // Harness test introspection (IT-05)
 #if defined(YAZE_WITH_GRPC)
+  using FailureScreenshotCallback =
+      std::function<void(absl::StatusOr<ScreenshotArtifact>)>;
+  using FailureScreenshotRequester =
+      std::function<void(const std::string&, FailureScreenshotCallback)>;
+
   std::string RegisterHarnessTest(const std::string& name,
                                   const std::string& category)
       ABSL_LOCKS_EXCLUDED(harness_history_mutex_);
@@ -304,7 +310,9 @@ class TestManager {
   void CaptureFailureContext(const std::string& test_id)
       ABSL_LOCKS_EXCLUDED(harness_history_mutex_);
 
-  void SetHarnessListener(HarnessListener* listener);
+  void SetHarnessListener(std::shared_ptr<HarnessListener> listener);
+  void ClearHarnessListener(const HarnessListener* listener);
+  void SetFailureScreenshotRequester(FailureScreenshotRequester requester);
 
   absl::Status ReplayLastPlan();
 #else
@@ -395,7 +403,9 @@ class TestManager {
   size_t harness_history_limit_ = 200;
   mutable absl::Mutex harness_history_mutex_;
 #if defined(YAZE_WITH_GRPC)
-  HarnessListener* harness_listener_ ABSL_GUARDED_BY(mutex_) = nullptr;
+  std::shared_ptr<HarnessListener> harness_listener_ ABSL_GUARDED_BY(mutex_);
+  FailureScreenshotRequester failure_screenshot_requester_
+      ABSL_GUARDED_BY(mutex_);
 #endif
 #endif  // defined(YAZE_WITH_GRPC)
 
@@ -404,6 +414,8 @@ class TestManager {
       ABSL_EXCLUSIVE_LOCKS_REQUIRED(harness_history_mutex_);
   void TrimHarnessHistoryLocked()
       ABSL_EXCLUSIVE_LOCKS_REQUIRED(harness_history_mutex_);
+  void NotifyHarnessListener(const HarnessTestExecution& execution)
+      ABSL_LOCKS_EXCLUDED(mutex_);
 #endif
 
   absl::Mutex mutex_;

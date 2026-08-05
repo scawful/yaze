@@ -62,6 +62,7 @@ WidgetIdRegistry& WidgetIdRegistry::Instance() {
 }
 
 void WidgetIdRegistry::BeginFrame() {
+  absl::MutexLock lock(&mutex_);
   ImGuiContext* ctx = ImGui::GetCurrentContext();
   if (ctx) {
     current_frame_ = ctx->FrameCount;
@@ -77,6 +78,7 @@ void WidgetIdRegistry::BeginFrame() {
 }
 
 void WidgetIdRegistry::EndFrame() {
+  absl::MutexLock lock(&mutex_);
   for (auto& [_, info] : widgets_) {
     if (!info.seen_in_current_frame) {
       info.visible = false;
@@ -160,6 +162,7 @@ void WidgetIdRegistry::RegisterWidget(const std::string& full_path,
                                       const std::string& type, ImGuiID imgui_id,
                                       const std::string& description,
                                       const WidgetMetadata& metadata) {
+  absl::MutexLock lock(&mutex_);
   WidgetInfo& info = widgets_[full_path];
   info.full_path = full_path;
   info.type = type;
@@ -228,6 +231,7 @@ void WidgetIdRegistry::RegisterWidget(const std::string& full_path,
 
 std::vector<std::string> WidgetIdRegistry::FindWidgets(
     const std::string& pattern) const {
+  absl::MutexLock lock(&mutex_);
   std::vector<std::string> matches;
 
   // Simple glob-style pattern matching
@@ -263,6 +267,7 @@ std::vector<std::string> WidgetIdRegistry::FindWidgets(
 }
 
 ImGuiID WidgetIdRegistry::GetWidgetId(const std::string& full_path) const {
+  absl::MutexLock lock(&mutex_);
   auto it = widgets_.find(full_path);
   if (it != widgets_.end()) {
     return it->second.imgui_id;
@@ -270,21 +275,30 @@ ImGuiID WidgetIdRegistry::GetWidgetId(const std::string& full_path) const {
   return 0;
 }
 
-const WidgetIdRegistry::WidgetInfo* WidgetIdRegistry::GetWidgetInfo(
+std::optional<WidgetIdRegistry::WidgetInfo> WidgetIdRegistry::GetWidgetInfo(
     const std::string& full_path) const {
+  absl::MutexLock lock(&mutex_);
   auto it = widgets_.find(full_path);
   if (it != widgets_.end()) {
-    return &it->second;
+    return it->second;
   }
-  return nullptr;
+  return std::nullopt;
+}
+
+std::unordered_map<std::string, WidgetIdRegistry::WidgetInfo>
+WidgetIdRegistry::GetAllWidgets() const {
+  absl::MutexLock lock(&mutex_);
+  return widgets_;
 }
 
 void WidgetIdRegistry::Clear() {
+  absl::MutexLock lock(&mutex_);
   widgets_.clear();
   current_frame_ = -1;
 }
 
 std::string WidgetIdRegistry::ExportCatalog(const std::string& format) const {
+  absl::MutexLock lock(&mutex_);
   std::ostringstream ss;
 
   if (format == "json") {

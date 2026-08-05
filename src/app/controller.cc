@@ -405,7 +405,8 @@ void Controller::ProcessScreenshotRequests() const {
     screenshot_requests_.pop();
 
     // Perform capture on main thread
-    auto result = test::CaptureHarnessScreenshot(request.preferred_path);
+    auto result = test::CaptureHarnessScreenshot(request.preferred_path,
+                                                 request.reveal_to_user);
     if (request.callback) {
       request.callback(result);
     }
