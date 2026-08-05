@@ -63,6 +63,18 @@ target_link_libraries(yaze_grpc_support PUBLIC
   ${YAZE_SDL2_TARGETS}
 )
 
+# The remote GUI harness must compile its real ImGui Test Engine path in
+# developer/test builds. Without this target-local definition the service
+# silently compiles the success-returning stub path even though the engine is
+# available elsewhere in the process.
+if(TARGET ImGuiTestEngine)
+  target_link_libraries(yaze_grpc_support PUBLIC ImGuiTestEngine)
+  target_compile_definitions(yaze_grpc_support PRIVATE
+    YAZE_ENABLE_IMGUI_TEST_ENGINE=1
+    IMGUI_DEFINE_MATH_OPERATORS=1
+  )
+endif()
+
 # Add JSON support
 if(YAZE_ENABLE_JSON)
   target_link_libraries(yaze_grpc_support PUBLIC nlohmann_json::nlohmann_json)

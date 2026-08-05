@@ -1,5 +1,6 @@
 #include "app/service/imgui_test_harness_service.h"
 #include "app/application.h"
+#include "app/service/imgui_test_harness_internal.h"
 
 #ifdef YAZE_WITH_GRPC
 
@@ -48,11 +49,11 @@ std::deque<std::shared_ptr<DynamicTestData>> g_dynamic_tests
 
 void KeepDynamicTestData(const std::shared_ptr<DynamicTestData>& data) {
   absl::MutexLock lock(&g_dynamic_tests_mutex);
-  constexpr size_t kMaxKeepAlive = 64;
+  // ImGuiTest stores UserData as a raw pointer and registered tests remain
+  // available for replay for the lifetime of the engine. Retain every backing
+  // closure for that same lifetime; evicting an older entry can otherwise
+  // leave a queued or re-runnable test with dangling UserData.
   g_dynamic_tests.push_back(data);
-  while (g_dynamic_tests.size() > kMaxKeepAlive) {
-    g_dynamic_tests.pop_front();
-  }
 }
 
 void RunDynamicTest(ImGuiTestContext* ctx) {
@@ -268,17 +269,6 @@ absl::Status WaitForHarnessTestCompletion(TestManager* manager,
       "Harness test %s did not reach a terminal state", test_id));
 }
 
-struct ParsedTarget {
-  std::string type;
-  std::string label;
-};
-
-struct ResolvedWidgetSelector {
-  ParsedTarget target;
-  std::string resolved_widget_key;
-  std::string resolved_path;
-};
-
 struct ParsedCondition {
   std::string type;
   std::string target;
@@ -307,7 +297,8 @@ std::string ExtractTypeFromPath(absl::string_view path) {
   return std::string(segment.substr(0, colon));
 }
 
-absl::StatusOr<ParsedTarget> ParseTargetString(absl::string_view target) {
+absl::StatusOr<internal::ParsedTarget> ParseTargetString(
+    absl::string_view target) {
   if (target.empty()) {
     return absl::InvalidArgumentError(
         "Missing target. Provide 'type:label' or widget_key.");
@@ -319,11 +310,15 @@ absl::StatusOr<ParsedTarget> ParseTargetString(absl::string_view target) {
         "Invalid target format. Use 'type:label' (e.g. 'button:Open ROM').");
   }
 
-  ParsedTarget parsed;
+  internal::ParsedTarget parsed;
   parsed.type = std::string(target.substr(0, colon_pos));
   parsed.label = std::string(target.substr(colon_pos + 1));
   return parsed;
 }
+
+}  // namespace
+
+namespace internal {
 
 absl::StatusOr<ResolvedWidgetSelector> ResolveWidgetSelector(
     absl::string_view target, absl::string_view widget_key) {
@@ -340,6 +335,11 @@ absl::StatusOr<ResolvedWidgetSelector> ResolveWidgetSelector(
     resolved.resolved_widget_key = key;
     resolved.resolved_path =
         info->full_path.empty() ? key : std::string(info->full_path);
+    resolved.imgui_id = info->imgui_id;
+    if (resolved.imgui_id == 0) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "widget_key '%s' resolved without a valid ImGui ID", key));
+    }
     resolved.target.type = info->type.empty()
                                ? ExtractTypeFromPath(resolved.resolved_path)
                                : std::string(info->type);
@@ -364,6 +364,21 @@ absl::StatusOr<ResolvedWidgetSelector> ResolveWidgetSelector(
   return resolved;
 }
 
+void ApplyTerminalHarnessExecution(const HarnessTestExecution& execution,
+                                   bool* step_success,
+                                   std::string* step_message) {
+  if (step_success) {
+    *step_success = execution.status == HarnessTestStatus::kPassed;
+  }
+  if (step_message && !execution.error_message.empty()) {
+    *step_message = execution.error_message;
+  }
+}
+
+}  // namespace internal
+
+namespace {
+
 absl::StatusOr<ParsedCondition> ParseConditionString(absl::string_view value) {
   if (value.empty()) {
     return absl::InvalidArgumentError(
@@ -385,11 +400,11 @@ absl::StatusOr<ParsedCondition> ParseConditionString(absl::string_view value) {
 absl::StatusOr<ParsedCondition> ResolveCondition(
     absl::string_view condition, absl::string_view widget_key,
     absl::string_view default_type_for_widget,
-    ResolvedWidgetSelector* resolved_selector) {
-  std::optional<ResolvedWidgetSelector> widget_selector;
+    internal::ResolvedWidgetSelector* resolved_selector) {
+  std::optional<internal::ResolvedWidgetSelector> widget_selector;
   if (!widget_key.empty()) {
-    absl::StatusOr<ResolvedWidgetSelector> resolved =
-        ResolveWidgetSelector("", widget_key);
+    absl::StatusOr<internal::ResolvedWidgetSelector> resolved =
+        internal::ResolveWidgetSelector("", widget_key);
     if (!resolved.ok()) {
       return resolved.status();
     }
@@ -398,7 +413,7 @@ absl::StatusOr<ParsedCondition> ResolveCondition(
       *resolved_selector = *resolved;
     }
   } else if (resolved_selector) {
-    *resolved_selector = ResolvedWidgetSelector{};
+    *resolved_selector = internal::ResolvedWidgetSelector{};
   }
 
   if (condition.empty()) {
@@ -751,8 +766,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
   test_manager_->AppendHarnessTestLog(
       test_id, absl::StrCat("Queued click request: ", request_summary));
 
-  absl::StatusOr<ResolvedWidgetSelector> resolved_selector =
-      ResolveWidgetSelector(requested_target, requested_widget_key);
+  absl::StatusOr<internal::ResolvedWidgetSelector> resolved_selector =
+      internal::ResolveWidgetSelector(requested_target, requested_widget_key);
   if (!resolved_selector.ok()) {
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now() - start);
@@ -775,6 +790,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
 
   const std::string widget_type = resolved_selector->target.type;
   const std::string widget_label = resolved_selector->target.label;
+  const ImGuiID widget_id = resolved_selector->imgui_id;
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
   ImGuiTestEngine* engine = test_manager_->GetUITestEngine();
@@ -813,16 +829,38 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
   auto test_data = std::make_shared<DynamicTestData>();
   TestManager* manager = test_manager_;
   test_data->test_func = [manager, captured_id = test_id, widget_type,
-                          widget_label, click_type,
+                          widget_label, widget_id, click_type,
                           mouse_button](ImGuiTestContext* ctx) {
     manager->MarkHarnessTestRunning(captured_id);
     try {
+      const ImGuiTestRef widget_ref = widget_id != 0
+                                          ? ImGuiTestRef(widget_id)
+                                          : ImGuiTestRef(widget_label.c_str());
+      const ImGuiTestItemInfo item =
+          ctx->ItemInfo(widget_ref, ImGuiTestOpFlags_NoError);
+      if (item.ID == 0) {
+        const std::string error_message =
+            absl::StrFormat("Click target '%s' not found", widget_label);
+        manager->AppendHarnessTestLog(captured_id, error_message);
+        manager->MarkHarnessTestCompleted(
+            captured_id, HarnessTestStatus::kFailed, error_message);
+        return;
+      }
+
       if (click_type == ClickRequest::CLICK_TYPE_DOUBLE) {
-        ctx->ItemDoubleClick(widget_label.c_str());
+        ctx->ItemDoubleClick(ImGuiTestRef(item.ID));
       } else {
-        ctx->ItemClick(widget_label.c_str(), mouse_button);
+        ctx->ItemClick(ImGuiTestRef(item.ID), mouse_button);
       }
       ctx->Yield();
+      if (ctx->IsError()) {
+        const std::string error_message =
+            absl::StrFormat("Click failed for '%s'", widget_label);
+        manager->AppendHarnessTestLog(captured_id, error_message);
+        manager->MarkHarnessTestCompleted(
+            captured_id, HarnessTestStatus::kFailed, error_message);
+        return;
+      }
       const std::string success_message =
           absl::StrFormat("Clicked %s '%s'", widget_type, widget_label);
       manager->AppendHarnessTestLog(captured_id, success_message);
@@ -859,18 +897,15 @@ absl::Status ImGuiTestHarnessServiceImpl::Click(const ClickRequest* request,
   test_manager_->AppendHarnessTestLog(test_id, message);
 
 #else
-  std::string message =
-      absl::StrFormat("[STUB] Clicked %s '%s' (ImGuiTestEngine not available)",
-                      widget_type, widget_label);
-
+  const std::string message = "ImGuiTestEngine is not available in this build";
   test_manager_->MarkHarnessTestRunning(test_id);
-  test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kPassed,
+  test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
                                           message);
   test_manager_->AppendHarnessTestLog(test_id, message);
 
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::steady_clock::now() - start);
-  response->set_success(true);
+  response->set_success(false);
   response->set_message(message);
   response->set_execution_time_ms(elapsed.count());
 #endif
@@ -925,8 +960,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
   test_manager_->AppendHarnessTestLog(
       test_id, absl::StrFormat("Queued type request: %s", request_summary));
 
-  absl::StatusOr<ResolvedWidgetSelector> resolved_selector =
-      ResolveWidgetSelector(requested_target, requested_widget_key);
+  absl::StatusOr<internal::ResolvedWidgetSelector> resolved_selector =
+      internal::ResolveWidgetSelector(requested_target, requested_widget_key);
   if (!resolved_selector.ok()) {
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::steady_clock::now() - start);
@@ -949,6 +984,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
 
   const std::string widget_type = resolved_selector->target.type;
   const std::string widget_label = resolved_selector->target.label;
+  const ImGuiID widget_id = resolved_selector->imgui_id;
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
   ImGuiTestEngine* engine = test_manager_->GetUITestEngine();
@@ -970,11 +1006,15 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
   auto test_data = std::make_shared<DynamicTestData>();
   TestManager* manager = test_manager_;
   test_data->test_func = [manager, captured_id = test_id, widget_type,
-                          widget_label, clear_first, text,
+                          widget_label, widget_id, clear_first, text,
                           rpc_state](ImGuiTestContext* ctx) {
     manager->MarkHarnessTestRunning(captured_id);
     try {
-      ImGuiTestItemInfo item = ctx->ItemInfo(widget_label.c_str());
+      const ImGuiTestRef widget_ref = widget_id != 0
+                                          ? ImGuiTestRef(widget_id)
+                                          : ImGuiTestRef(widget_label.c_str());
+      ImGuiTestItemInfo item =
+          ctx->ItemInfo(widget_ref, ImGuiTestOpFlags_NoError);
       if (item.ID == 0) {
         std::string error_message =
             absl::StrFormat("Input field '%s' not found", widget_label);
@@ -985,13 +1025,23 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
         return;
       }
 
-      ctx->ItemClick(widget_label.c_str());
+      ctx->ItemClick(ImGuiTestRef(item.ID));
       if (clear_first) {
         ctx->KeyPress(ImGuiMod_Shortcut | ImGuiKey_A);
         ctx->KeyPress(ImGuiKey_Delete);
       }
 
-      ctx->ItemInputValue(widget_label.c_str(), text.c_str());
+      ctx->ItemInputValue(ImGuiTestRef(item.ID), text.c_str());
+      ctx->Yield();
+      if (ctx->IsError()) {
+        const std::string error_message =
+            absl::StrFormat("Type failed for '%s'", widget_label);
+        manager->AppendHarnessTestLog(captured_id, error_message);
+        manager->MarkHarnessTestCompleted(
+            captured_id, HarnessTestStatus::kFailed, error_message);
+        rpc_state->SetResult(false, error_message);
+        return;
+      }
 
       std::string success_message =
           absl::StrFormat("Typed '%s' into %s '%s'%s", text, widget_type,
@@ -1051,16 +1101,14 @@ absl::Status ImGuiTestHarnessServiceImpl::Type(const TypeRequest* request,
 
 #else
   test_manager_->MarkHarnessTestRunning(test_id);
-  std::string message = absl::StrFormat(
-      "[STUB] Typed '%s' into %s '%s' (ImGuiTestEngine not available)",
-      request->text(), widget_type, widget_label);
-  test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kPassed,
+  const std::string message = "ImGuiTestEngine is not available in this build";
+  test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
                                           message);
   test_manager_->AppendHarnessTestLog(test_id, message);
 
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::steady_clock::now() - start);
-  response->set_success(true);
+  response->set_success(false);
   response->set_message(message);
   response->set_execution_time_ms(elapsed.count());
 #endif
@@ -1119,7 +1167,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
   test_manager_->AppendHarnessTestLog(
       test_id, absl::StrFormat("Queued wait condition: %s", request_summary));
 
-  ResolvedWidgetSelector resolved_selector;
+  internal::ResolvedWidgetSelector resolved_selector;
   absl::StatusOr<ParsedCondition> parsed_condition = ResolveCondition(
       requested_condition, requested_widget_key,
       /*default_type_for_widget=*/"element_visible", &resolved_selector);
@@ -1145,6 +1193,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
 
   const std::string condition_type = parsed_condition->type;
   const std::string condition_target = parsed_condition->target;
+  const ImGuiID widget_id = resolved_selector.imgui_id;
   const std::string resolved_condition =
       absl::StrFormat("%s:%s", condition_type, condition_target);
 
@@ -1168,7 +1217,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
   auto test_data = std::make_shared<DynamicTestData>();
   TestManager* manager = test_manager_;
   test_data->test_func = [manager, captured_id = test_id, condition_type,
-                          condition_target, timeout_ms,
+                          condition_target, widget_id, timeout_ms,
                           poll_interval_ms](ImGuiTestContext* ctx) {
     manager->MarkHarnessTestRunning(captured_id);
     auto poll_start = std::chrono::steady_clock::now();
@@ -1181,19 +1230,22 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
     try {
       while (std::chrono::steady_clock::now() - poll_start < timeout) {
         bool current_state = false;
+        const ImGuiTestRef widget_ref =
+            widget_id != 0 ? ImGuiTestRef(widget_id)
+                           : ImGuiTestRef(condition_target.c_str());
 
         if (condition_type == "window_visible") {
-          ImGuiTestItemInfo window_info = ctx->WindowInfo(
-              condition_target.c_str(), ImGuiTestOpFlags_NoError);
+          ImGuiTestItemInfo window_info =
+              ctx->WindowInfo(widget_ref, ImGuiTestOpFlags_NoError);
           current_state = (window_info.ID != 0);
         } else if (condition_type == "element_visible") {
           ImGuiTestItemInfo item =
-              ctx->ItemInfo(condition_target.c_str(), ImGuiTestOpFlags_NoError);
+              ctx->ItemInfo(widget_ref, ImGuiTestOpFlags_NoError);
           current_state = (item.ID != 0 && item.RectClipped.GetWidth() > 0 &&
                            item.RectClipped.GetHeight() > 0);
         } else if (condition_type == "element_enabled") {
           ImGuiTestItemInfo item =
-              ctx->ItemInfo(condition_target.c_str(), ImGuiTestOpFlags_NoError);
+              ctx->ItemInfo(widget_ref, ImGuiTestOpFlags_NoError);
           current_state =
               (item.ID != 0 && !(item.ItemFlags & ImGuiItemFlags_Disabled));
         } else {
@@ -1247,6 +1299,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
   test->UserData = test_data.get();
 
   ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
+  KeepDynamicTestData(test_data);
 
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::steady_clock::now() - start);
@@ -1259,16 +1312,14 @@ absl::Status ImGuiTestHarnessServiceImpl::Wait(const WaitRequest* request,
 
 #else
   test_manager_->MarkHarnessTestRunning(test_id);
-  std::string message = absl::StrFormat(
-      "[STUB] Condition '%s' met (ImGuiTestEngine not available)",
-      resolved_condition);
-  test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kPassed,
+  const std::string message = "ImGuiTestEngine is not available in this build";
+  test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
                                           message);
   test_manager_->AppendHarnessTestLog(test_id, message);
 
   auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
       std::chrono::steady_clock::now() - start);
-  response->set_success(true);
+  response->set_success(false);
   response->set_message(message);
   response->set_elapsed_ms(elapsed.count());
 #endif
@@ -1325,7 +1376,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
   test_manager_->AppendHarnessTestLog(
       test_id, absl::StrFormat("Queued assertion: %s", request_summary));
 
-  ResolvedWidgetSelector resolved_selector;
+  internal::ResolvedWidgetSelector resolved_selector;
   absl::StatusOr<ParsedCondition> parsed_condition = ResolveCondition(
       requested_condition, requested_widget_key,
       /*default_type_for_widget=*/"exists", &resolved_selector);
@@ -1350,6 +1401,21 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
 
   const std::string assertion_type = parsed_condition->type;
   const std::string assertion_target = parsed_condition->target;
+  const ImGuiID widget_id = resolved_selector.imgui_id;
+  const std::string widget_label = resolved_selector.target.label;
+
+  if (assertion_type == "value_equals" && widget_id == 0) {
+    const std::string message =
+        "value_equals requires widget_key so the input is unambiguous";
+    response->set_success(false);
+    response->set_message(message);
+    response->set_actual_value("N/A");
+    response->set_expected_value(assertion_target);
+    test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
+                                            message);
+    test_manager_->AppendHarnessTestLog(test_id, message);
+    return finalize(absl::OkStatus());
+  }
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
   ImGuiTestEngine* engine = test_manager_->GetUITestEngine();
@@ -1367,7 +1433,8 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
   auto test_data = std::make_shared<DynamicTestData>();
   TestManager* manager = test_manager_;
   test_data->test_func = [manager, captured_id = test_id, assertion_type,
-                          assertion_target](ImGuiTestContext* ctx) {
+                          assertion_target, widget_id,
+                          widget_label](ImGuiTestContext* ctx) {
     manager->MarkHarnessTestRunning(captured_id);
 
     auto complete_with = [manager, captured_id](bool passed,
@@ -1390,20 +1457,30 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
       std::string actual_value;
       std::string expected_value;
       std::string message;
+      const ImGuiTestRef widget_ref =
+          widget_id != 0 ? ImGuiTestRef(widget_id)
+                         : ImGuiTestRef(assertion_target.c_str());
 
       if (assertion_type == "visible") {
-        ImGuiTestItemInfo window_info =
-            ctx->WindowInfo(assertion_target.c_str(), ImGuiTestOpFlags_NoError);
-        bool is_visible = (window_info.ID != 0);
+        const ImGuiTestItemInfo item =
+            widget_id != 0
+                ? ctx->ItemInfo(widget_ref, ImGuiTestOpFlags_NoError)
+                : ctx->WindowInfo(widget_ref, ImGuiTestOpFlags_NoError);
+        const bool is_visible =
+            item.ID != 0 &&
+            (widget_id == 0 || (item.RectClipped.GetWidth() > 0 &&
+                                item.RectClipped.GetHeight() > 0));
         passed = is_visible;
         actual_value = is_visible ? "visible" : "hidden";
         expected_value = "visible";
+        const std::string target_description =
+            widget_id != 0 ? widget_label : assertion_target;
         message =
-            passed ? absl::StrFormat("'%s' is visible", assertion_target)
-                   : absl::StrFormat("'%s' is not visible", assertion_target);
+            passed ? absl::StrFormat("'%s' is visible", target_description)
+                   : absl::StrFormat("'%s' is not visible", target_description);
       } else if (assertion_type == "enabled") {
         ImGuiTestItemInfo item =
-            ctx->ItemInfo(assertion_target.c_str(), ImGuiTestOpFlags_NoError);
+            ctx->ItemInfo(widget_ref, ImGuiTestOpFlags_NoError);
         bool is_enabled =
             (item.ID != 0 && !(item.ItemFlags & ImGuiItemFlags_Disabled));
         passed = is_enabled;
@@ -1414,16 +1491,35 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
                    : absl::StrFormat("'%s' is not enabled", assertion_target);
       } else if (assertion_type == "exists") {
         ImGuiTestItemInfo item =
-            ctx->ItemInfo(assertion_target.c_str(), ImGuiTestOpFlags_NoError);
+            ctx->ItemInfo(widget_ref, ImGuiTestOpFlags_NoError);
         bool exists = (item.ID != 0);
         passed = exists;
         actual_value = exists ? "exists" : "not found";
         expected_value = "exists";
         message = passed ? absl::StrFormat("'%s' exists", assertion_target)
                          : absl::StrFormat("'%s' not found", assertion_target);
+      } else if (assertion_type == "value_equals") {
+        const ImGuiTestItemInfo item =
+            ctx->ItemInfo(widget_ref, ImGuiTestOpFlags_NoError);
+        if (item.ID == 0) {
+          passed = false;
+          actual_value = "not found";
+          expected_value = assertion_target;
+          message = absl::StrFormat("Input '%s' not found", widget_label);
+        } else {
+          const char* value = ctx->ItemReadAsString(ImGuiTestRef(item.ID));
+          actual_value = value ? value : "";
+          expected_value = assertion_target;
+          passed = !ctx->IsError() && actual_value == expected_value;
+          message = passed ? absl::StrFormat("'%s' equals '%s'", widget_label,
+                                             expected_value)
+                           : absl::StrFormat(
+                                 "'%s' does not equal '%s' (actual: '%s')",
+                                 widget_label, expected_value, actual_value);
+        }
       } else if (assertion_type == "text_contains") {
         size_t second_colon = assertion_target.find(':');
-        if (second_colon == std::string::npos) {
+        if (widget_id == 0 && second_colon == std::string::npos) {
           std::string error_message =
               "text_contains requires format "
               "'text_contains:target:expected_text'";
@@ -1432,12 +1528,21 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
           return;
         }
 
-        std::string input_target = assertion_target.substr(0, second_colon);
-        std::string expected_text = assertion_target.substr(second_colon + 1);
+        const std::string input_target =
+            widget_id != 0 ? widget_label
+                           : assertion_target.substr(0, second_colon);
+        const std::string expected_text =
+            widget_id != 0 ? assertion_target
+                           : assertion_target.substr(second_colon + 1);
+        const ImGuiTestRef input_ref = widget_id != 0
+                                           ? ImGuiTestRef(widget_id)
+                                           : ImGuiTestRef(input_target.c_str());
 
-        ImGuiTestItemInfo item = ctx->ItemInfo(input_target.c_str());
+        ImGuiTestItemInfo item =
+            ctx->ItemInfo(input_ref, ImGuiTestOpFlags_NoError);
         if (item.ID != 0) {
-          std::string actual_text = "(text_retrieval_not_fully_implemented)";
+          const char* value = ctx->ItemReadAsString(ImGuiTestRef(item.ID));
+          const std::string actual_text = value ? value : "";
           passed = actual_text.find(expected_text) != std::string::npos;
           actual_value = actual_text;
           expected_value = absl::StrFormat("contains '%s'", expected_text);
@@ -1482,6 +1587,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
   test->UserData = test_data.get();
 
   ImGuiTestEngine_QueueTest(engine, test, ImGuiTestRunFlags_RunFromGui);
+  KeepDynamicTestData(test_data);
 
   response->set_success(true);
   std::string message = absl::StrFormat("Queued assertion for '%s:%s'",
@@ -1493,14 +1599,12 @@ absl::Status ImGuiTestHarnessServiceImpl::Assert(const AssertRequest* request,
 
 #else
   test_manager_->MarkHarnessTestRunning(test_id);
-  std::string message = absl::StrFormat(
-      "[STUB] Assertion '%s:%s' passed (ImGuiTestEngine not available)",
-      assertion_type, assertion_target);
-  test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kPassed,
+  const std::string message = "ImGuiTestEngine is not available in this build";
+  test_manager_->MarkHarnessTestCompleted(test_id, HarnessTestStatus::kFailed,
                                           message);
   test_manager_->AppendHarnessTestLog(test_id, message);
 
-  response->set_success(true);
+  response->set_success(false);
   response->set_message(message);
   response->set_actual_value("(stub)");
   response->set_expected_value("(stub)");
@@ -2061,9 +2165,8 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
             test_manager_, sub_response.test_id(), &execution);
         if (wait_status.ok()) {
           have_execution = true;
-          if (!execution.error_message.empty()) {
-            step_message = execution.error_message;
-          }
+          internal::ApplyTerminalHarnessExecution(execution, &step_success,
+                                                  &step_message);
         } else {
           status = wait_status;
           step_success = false;
@@ -2085,9 +2188,8 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
             test_manager_, sub_response.test_id(), &execution);
         if (wait_status.ok()) {
           have_execution = true;
-          if (!execution.error_message.empty()) {
-            step_message = execution.error_message;
-          }
+          internal::ApplyTerminalHarnessExecution(execution, &step_success,
+                                                  &step_message);
         } else {
           status = wait_status;
           step_success = false;
@@ -2110,9 +2212,8 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
             test_manager_, sub_response.test_id(), &execution);
         if (wait_status.ok()) {
           have_execution = true;
-          if (!execution.error_message.empty()) {
-            step_message = execution.error_message;
-          }
+          internal::ApplyTerminalHarnessExecution(execution, &step_success,
+                                                  &step_message);
         } else {
           status = wait_status;
           step_success = false;
@@ -2132,9 +2233,8 @@ absl::Status ImGuiTestHarnessServiceImpl::ReplayTest(
             test_manager_, sub_response.test_id(), &execution);
         if (wait_status.ok()) {
           have_execution = true;
-          if (!execution.error_message.empty()) {
-            step_message = execution.error_message;
-          }
+          internal::ApplyTerminalHarnessExecution(execution, &step_success,
+                                                  &step_message);
         } else {
           status = wait_status;
           step_success = false;
