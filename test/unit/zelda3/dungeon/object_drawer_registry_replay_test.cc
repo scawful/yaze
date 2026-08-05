@@ -16,6 +16,7 @@
 #include "core/features.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_state.h"
 #include "zelda3/dungeon/moving_wall_semantics.h"
 #include "zelda3/dungeon/object_dimensions.h"
@@ -211,6 +212,27 @@ std::vector<SnapshotTileWrite> MakeBigGrayRockSnapshot(int x, int y,
   return out;
 }
 
+std::vector<SnapshotTileWrite> MakeMany32x32BlockGridSnapshot(
+    int x, int y, int block_columns, int block_rows, uint16_t start_tile_id) {
+  std::vector<SnapshotTileWrite> out;
+  out.reserve(block_columns * block_rows * 16);
+  for (int block_y = 0; block_y < block_rows; ++block_y) {
+    for (int block_x = 0; block_x < block_columns; ++block_x) {
+      for (int repeated_rows = 0; repeated_rows < 2; ++repeated_rows) {
+        for (int row = 0; row < 2; ++row) {
+          for (int column = 0; column < 4; ++column) {
+            out.push_back(
+                {x + block_x * 4 + column,
+                 y + block_y * 4 + repeated_rows * 2 + row,
+                 static_cast<uint16_t>(start_tile_id + row * 4 + column)});
+          }
+        }
+      }
+    }
+  }
+  return out;
+}
+
 void ExpectTraceMatchesSnapshot(
     const std::vector<ObjectDrawer::TileTrace>& trace,
     const std::vector<SnapshotTileWrite>& expected) {
@@ -361,6 +383,80 @@ TEST(ObjectDrawerRegistryReplayTest,
   ExpectTraceMatchesSnapshot(
       bg1, MakeRowMajorSnapshot(kX, kY, /*width=*/4, /*height=*/2, kTileId));
   EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG2).empty());
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     MagicBatAltarDrawsFixedEightBySevenColumnMajorOnSelectedLayer) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 10;
+  constexpr int kY = 12;
+  constexpr uint16_t kFirstTile = 0x0200;
+
+  for (uint8_t size : {uint8_t{0}, uint8_t{0xFF}}) {
+    for (const auto layer :
+         {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+      SCOPED_TRACE(::testing::Message()
+                   << "size=" << static_cast<int>(size)
+                   << " layer=" << static_cast<int>(layer));
+
+      const auto trace = ReplayObjectTrace(
+          /*object_id=*/0x013F, kX, kY, size, layer,
+          MakeSequentialTiles(/*count=*/56, /*start_tile_id=*/kFirstTile));
+      const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+      const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+      const auto& selected = layer == RoomObject::LayerType::BG1 ? bg1 : bg2;
+      const auto& other = layer == RoomObject::LayerType::BG1 ? bg2 : bg1;
+
+      ExpectTraceMatchesSnapshot(
+          selected, MakeColumnMajorSnapshot(kX, kY, /*width=*/8, /*height=*/7,
+                                            /*start_tile_id=*/kFirstTile));
+      EXPECT_TRUE(other.empty());
+    }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     VitreousGooDamageDrawsFixedFiveByTwoStampGridOnSelectedLayer) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 6;
+  constexpr int kY = 8;
+  constexpr uint16_t kFirstTile = 0x0300;
+  FakeDungeonState inactive_state;
+
+  const auto* routine = DrawRoutineRegistry::Get().GetRoutineInfo(
+      DrawRoutineIds::kVitreousGooDamage);
+  ASSERT_NE(routine, nullptr);
+  EXPECT_EQ(routine->base_width, 20);
+  EXPECT_EQ(routine->base_height, 8);
+  EXPECT_EQ(routine->min_tiles, 8);
+  EXPECT_FALSE(routine->draws_to_both_bgs);
+
+  const auto expected = MakeMany32x32BlockGridSnapshot(
+      kX, kY, /*block_columns=*/5, /*block_rows=*/2, kFirstTile);
+  for (uint8_t size : {uint8_t{0}, uint8_t{0x0E}, uint8_t{0xFF}}) {
+    for (const auto layer :
+         {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+      for (const bool use_state : {false, true}) {
+        SCOPED_TRACE(::testing::Message()
+                     << "size=" << static_cast<int>(size) << " layer="
+                     << static_cast<int>(layer) << " use_state=" << use_state);
+
+        const auto trace = ReplayObjectTrace(
+            /*object_id=*/0x0FFB, kX, kY, size, layer,
+            MakeSequentialTiles(/*count=*/8, /*start_tile_id=*/kFirstTile),
+            use_state ? &inactive_state : nullptr);
+        const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+        const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+        const auto& selected = layer == RoomObject::LayerType::BG1 ? bg1 : bg2;
+        const auto& other = layer == RoomObject::LayerType::BG1 ? bg2 : bg1;
+
+        ExpectTraceMatchesSnapshot(selected, expected);
+        EXPECT_TRUE(other.empty());
+      }
+    }
+  }
 }
 
 std::array<uint8_t, 0x10000> MakeOpaqueDoorGfx() {
