@@ -625,7 +625,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Quick iteration test preset with optimized build"
     },
@@ -643,7 +643,7 @@
         "shortProgress": true
       },
       "execution": {
-        "jobs": 8
+        "jobs": 4
       },
       "description": "Quick iteration test preset with optimized build"
     },

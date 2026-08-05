@@ -27,6 +27,23 @@ if invalid_jobs:
 for name in ("mac-ai", "lin-ai", "win-ai", "mac-test", "lin-test", "win-test"):
     if build_presets.get(name) != 4:
         raise SystemExit(f"build preset {name!r} must default to four workers")
+
+test_presets = {
+    preset["name"]: preset.get("execution", {}).get("jobs")
+    for preset in presets.get("testPresets", [])
+}
+invalid_test_jobs = {
+    name: jobs
+    for name, jobs in test_presets.items()
+    if jobs is not None
+    and (isinstance(jobs, bool) or not isinstance(jobs, int) or not 1 <= jobs <= 4)
+}
+if invalid_test_jobs:
+    raise SystemExit(f"test presets may declare at most four workers: {invalid_test_jobs}")
+
+for name in ("fast", "fast-win", "fast-lin"):
+    if test_presets.get(name) != 4:
+        raise SystemExit(f"test preset {name!r} must default to four workers")
 PY
 
 grep -F -- 'cmake --build build --parallel "$BUILD_JOBS"' \
@@ -37,6 +54,16 @@ grep -F -- 'cmake --build build_ai --target z3ed --parallel 4' \
     "$ROOT_DIR/scripts/z3ed" >/dev/null
 grep -F -- 'cmake --build build_ai --target yaze_test --parallel 4' \
     "$ROOT_DIR/scripts/yaze_test" >/dev/null
+grep -F -- 'cmake --build build --parallel "$BUILD_JOBS"' \
+    "$ROOT_DIR/scripts/dev/local_ci.sh" >/dev/null
+grep -F -- 'cmake --build "$BUILD_DIR" --parallel "$BUILD_JOBS"' \
+    "$ROOT_DIR/scripts/dev/local_release.sh" >/dev/null
+grep -F -- 'cmake --build . --parallel "$BUILD_JOBS"' \
+    "$ROOT_DIR/scripts/build-wasm.sh" >/dev/null
+grep -F -- '--target yaze z3ed --parallel "$nightly_build_jobs"' \
+    "$ROOT_DIR/scripts/install-nightly-local.sh" >/dev/null
+grep -F -- '--target yaze z3ed --parallel "$nightly_build_jobs"' \
+    "$ROOT_DIR/scripts/install-nightly.sh" >/dev/null
 
 TMP_ROOT="$(mktemp -d)"
 trap 'rm -rf "$TMP_ROOT"' EXIT
