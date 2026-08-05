@@ -133,7 +133,7 @@ To test SDL3:
 
 ```bash
 cmake --preset mac-dbg -DYAZE_USE_SDL3=ON
-cmake --build build -j8
+cmake --build build --parallel 4
 ```
 
 Known issues:

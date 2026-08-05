@@ -32,6 +32,7 @@ PROJECT_ROOT="$( cd "$SCRIPT_DIR/.." && pwd )"
 
 # Build directory
 BUILD_DIR="${PROJECT_ROOT}/build-wasm"
+BUILD_JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 
 # Parse command line arguments
 CLEAN_BUILD=false
@@ -94,7 +95,7 @@ fi
 
 # Build z3ed
 echo -e "${GREEN}Building z3ed...${NC}"
-cmake --build "${BUILD_DIR}" --target z3ed $VERBOSE
+cmake --build "${BUILD_DIR}" --target z3ed --parallel "${BUILD_JOBS}" $VERBOSE
 
 # Check if build succeeded
 if [ -f "${BUILD_DIR}/bin/z3ed.js" ]; then

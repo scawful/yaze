@@ -11,6 +11,7 @@ echo -e "${GREEN}=== YAZE Local Release Build ===${NC}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 BUILD_DIR="$ROOT_DIR/build_release"
+BUILD_JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 
 # 1. Prepare Directory
 echo -e "\n${GREEN}[1/3] Configuring Release Build...${NC}"
@@ -33,7 +34,7 @@ fi
 
 # 2. Build
 echo -e "\n${GREEN}[2/3] Building Project...${NC}"
-if cmake --build "$BUILD_DIR" --parallel; then
+if cmake --build "$BUILD_DIR" --parallel "$BUILD_JOBS"; then
      echo -e "${GREEN}Build Successful${NC}"
 else
      echo -e "${RED}Build Failed${NC}"

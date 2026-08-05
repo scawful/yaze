@@ -245,7 +245,7 @@ main() {
 
   if [[ "$SKIP_BUILD" == false ]]; then
     print_header "Step 1/4: Build Verification"
-    local jobs="${YAZE_BUILD_JOBS:-8}"
+    local jobs="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
     print_info "Building yaze_test_unit (jobs=$jobs)"
     if ! cmake --build "$BUILD_DIR" --target yaze_test_unit --parallel "$jobs"; then
       print_err "Build failed"

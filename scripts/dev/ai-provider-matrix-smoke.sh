@@ -89,7 +89,7 @@ done
 Z3ED="$BUILD_DIR/bin/Debug/z3ed"
 if [[ ! -x "$Z3ED" ]]; then
   echo "z3ed not found at $Z3ED" >&2
-  echo "Build first: cmake --build $BUILD_DIR --target z3ed --parallel 8" >&2
+  echo "Build first: cmake --build $BUILD_DIR --target z3ed --parallel ${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}" >&2
   exit 2
 fi
 

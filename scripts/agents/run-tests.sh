@@ -26,6 +26,7 @@ fi
 
 PRESET="$1"
 shift
+BUILD_JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 
 setup_ccache
 echo "Configuring preset: $PRESET"
@@ -79,7 +80,7 @@ PY
 )
 
 echo "Building tests for preset: $PRESET"
-BUILD_CMD=(cmake --build --preset "$PRESET")
+BUILD_CMD=(cmake --build --preset "$PRESET" --parallel "$BUILD_JOBS")
 if [[ "$GENERATOR" == *"Visual Studio"* && -n "$BUILD_CONFIG" ]]; then
   BUILD_CMD+=(--config "$BUILD_CONFIG")
 fi

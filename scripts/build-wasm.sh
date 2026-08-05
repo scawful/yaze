@@ -16,6 +16,7 @@ EOF
 BUILD_MODE="release"
 CLEAN_CACHE=true
 FULL_CLEAN=false
+BUILD_JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 
 for arg in "$@"; do
     case "$arg" in
@@ -94,10 +95,10 @@ echo "Building..."
 if [ -n "${YAZE_WASM_BUILD_TARGETS:-}" ]; then
     for target in $YAZE_WASM_BUILD_TARGETS; do
         echo "Building target: $target"
-        cmake --build . --target "$target" --parallel
+        cmake --build . --target "$target" --parallel "$BUILD_JOBS"
     done
 else
-    cmake --build . --parallel
+    cmake --build . --parallel "$BUILD_JOBS"
 fi
 
 # Package / Organize output

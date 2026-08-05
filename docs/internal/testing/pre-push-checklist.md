@@ -27,16 +27,16 @@ If all checks pass, you're good to push!
 
 #### Code Formatting
 ```bash
-cmake --build build --target yaze-format-check
+cmake --build build --target yaze-format-check --parallel 4
 ```
 
 **If it fails**:
 ```bash
 # Auto-format your code
-cmake --build build --target yaze-format
+cmake --build build --target yaze-format --parallel 4
 
 # Verify it passes now
-cmake --build build --target yaze-format-check
+cmake --build build --target yaze-format-check --parallel 4
 ```
 
 **What it catches**: Formatting violations, inconsistent style
@@ -77,7 +77,7 @@ cmake --preset mac-dbg  # or lin-dbg, win-dbg
 - Check for missing `#include` directives
 - Verify header paths are correct
 - Check for platform-specific compilation issues
-- Run full build to see all errors: `cmake --build build -v`
+- Run full build to see all errors: `cmake --build build --parallel 4 -v`
 
 **What it catches**: Missing headers, include path issues, preprocessor errors
 
@@ -170,7 +170,7 @@ docker run --rm -v $(pwd):/workspace yaze-linux-builder \
 ```bash
 # Run with verbose warnings
 cmake --preset lin-dbg-v
-cmake --build build -v
+cmake --build build --parallel 4 -v
 ```
 
 **Why**: Catches more warnings that might fail on other platforms
@@ -181,7 +181,7 @@ cmake --build build -v
 ```powershell
 # Test with clang-cl explicitly
 cmake --preset win-dbg -DCMAKE_CXX_COMPILER=clang-cl
-cmake --build build
+cmake --build build --parallel 4
 ```
 
 **Why**: Ensures compatibility with CI's clang-cl configuration
@@ -207,7 +207,7 @@ cmake --build build
 ### Memory Sanitizer (10-20 minutes)
 ```bash
 cmake --preset sanitizer
-cmake --build build
+cmake --build build --parallel 4
 ./build/bin/yaze_test
 ```
 
@@ -222,7 +222,7 @@ cmake --build build
 **Minimum checks** (< 1 minute):
 ```bash
 # Just format and unit tests
-cmake --build build --target yaze-format-check && \
+cmake --build build --target yaze-format-check --parallel 4 && \
 ./build/bin/yaze_test --unit
 ```
 
@@ -239,7 +239,7 @@ cmake --build build --target yaze-format-check && \
    - **Solution**: Run smoke compilation test
 
 4. **Cached build**: Your local build has stale artifacts
-   - **Solution**: Clean rebuild: `rm -rf build && cmake --preset <preset> && cmake --build build`
+   - **Solution**: Clean rebuild: `rm -rf build && cmake --preset <preset> && cmake --build build --parallel 4`
 
 ### "Pre-push script is too slow"
 
@@ -299,7 +299,7 @@ Use these presets to match CI exactly:
 **Usage**:
 ```bash
 cmake --preset ci-linux    # Exactly matches CI
-cmake --build build
+cmake --build build --parallel 4
 ./build/bin/yaze_test --unit
 ```
 
@@ -332,4 +332,4 @@ After running all checks:
 - Check test output carefully (most errors are self-explanatory)
 - Review recent commits for similar fixes: `git log --oneline --since="7 days ago"`
 - Read error messages completely (don't skim)
-- When in doubt, clean rebuild: `rm -rf build && cmake --preset <preset> && cmake --build build`
+- When in doubt, clean rebuild: `rm -rf build && cmake --preset <preset> && cmake --build build --parallel 4`

@@ -227,7 +227,7 @@ cpack --preset mac-uni
 ### Quick minimal build for testing
 ```bash
 cmake --preset mac-dbg -DYAZE_ENABLE_AI=OFF -DYAZE_ENABLE_GRPC=OFF -DYAZE_BUILD_AGENT_UI=OFF
-cmake --build --preset mac-dbg -j12
+cmake --build --preset mac-dbg --parallel 4
 ```
 
 ## Updating compile_commands.json

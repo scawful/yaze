@@ -156,7 +156,7 @@ Use the lightest checks that can invalidate the current slice:
 4. targeted build/test commands
    Pair static checks with the narrowest runtime validation that exercises the
    changed surface, for example:
-   `cmake --build --preset mac-ai-fast --target yaze --parallel 8`
+   `cmake --build --preset mac-ai-fast --target yaze --parallel 4`
    `ctest --preset mac-ai-unit --output-on-failure -R "(Overworld|DungeonWorkbenchToolbarTest)"`
 
 Prefer targeted tests plus architectural guardrails over a blind full-suite run

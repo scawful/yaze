@@ -392,6 +392,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Verify VERSION / CHANGELOG hygiene
         run: bash scripts/dev/release-version-check.sh
+      - name: Verify bounded build parallelism
+        run: bash scripts/agents/test-build-parallelism-policy.sh
       - name: Protocol audit
         run: bash scripts/agents/protocol-audit.sh
       - name: Universe coordination tests

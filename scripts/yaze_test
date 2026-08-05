@@ -60,7 +60,7 @@ yaze_test binary not found.
 
 Common build:
   cmake --preset mac-ai
-  cmake --build build_ai --target yaze_test
+  cmake --build build_ai --target yaze_test --parallel 4
 
 Or set YAZE_TEST_BIN=/path/to/yaze_test.
 EOF

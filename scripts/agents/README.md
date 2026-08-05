@@ -6,6 +6,7 @@
 | `get-gh-workflow-status.sh` | Checks the status of a GitHub Actions workflow run using `gh run view`. |
 | `smoke-build.sh` | Runs `cmake --preset` configure/build in place and reports timing. |
 | `ninja-heal.sh` | Repairs corrupted Ninja metadata (`.ninja_deps`/`.ninja_log`) and verifies incremental build stability. |
+| `test-build-parallelism-policy.sh` | Verifies that build presets and agent helpers default to four workers while preserving explicit overrides. |
 | `run-tests.sh` | Configures the preset (if needed), builds `yaze_test`, and runs `ctest` with optional args. |
 | `test-http-api.sh` | Smoke-checks HTTP API endpoints (health/models/symbols + core POSTs) via curl; defaults to localhost:8080. |
 | `test-grpc-api.sh` | Smoke-checks gRPC automation API via grpcurl; defaults to localhost:50052 and the ImGui test harness Ping. |
@@ -43,7 +44,10 @@ scripts/agents/get-gh-workflow-status.sh 19529930066
 scripts/agents/smoke-build.sh mac-ai
 
 # Heal Ninja metadata corruption and verify incremental stability
-scripts/agents/ninja-heal.sh --preset dev --build-dir build --parallel 8
+scripts/agents/ninja-heal.sh --preset dev --build-dir build --parallel 4
+
+# Verify bounded build defaults and explicit overrides
+scripts/agents/test-build-parallelism-policy.sh
 
 # Build & run tests for mac-dbg preset with verbose ctest output
 scripts/agents/run-tests.sh mac-dbg --output-on-failure
@@ -199,14 +203,14 @@ Local builds can take 10-15+ minutes from scratch. Follow these practices to min
 Defaults now use `build/` for native builds. If you need isolation, set `YAZE_BUILD_DIR` or add a `CMakeUserPresets.json` locally:
 ```bash
 cmake --preset mac-dbg
-cmake --build build -j8 --target yaze
+cmake --build build --parallel 4 --target yaze
 ```
 
 ### Incremental Builds
 Once configured, only rebuild—don't reconfigure unless CMakeLists.txt changed:
 ```bash
 # GOOD: Just rebuild (fast, only recompiles changed files)
-cmake --build build -j8 --target yaze
+cmake --build build --parallel 4 --target yaze
 
 # AVOID: Reconfiguring when unnecessary (triggers full dependency resolution)
 cmake --preset mac-dbg && cmake --build build
@@ -216,27 +220,29 @@ cmake --preset mac-dbg && cmake --build build
 Don't build everything when you only need to verify a specific component:
 ```bash
 # Build only the main editor (skips CLI, tests, etc.)
-cmake --build build -j8 --target yaze
+cmake --build build --parallel 4 --target yaze
 
 # Build only the CLI tool
-cmake --build build -j8 --target z3ed
+cmake --build build --parallel 4 --target z3ed
 
 # Build only tests
-cmake --build build -j8 --target yaze_test
+cmake --build build --parallel 4 --target yaze_test
 ```
 
 ### Parallel Compilation
-Always use `-j8` or higher based on CPU cores:
+Local and agent builds default to four workers to avoid starving interactive
+sessions. Override that limit explicitly when the machine has headroom:
 ```bash
-cmake --build build -j$(sysctl -n hw.ncpu)  # macOS
-cmake --build build -j$(nproc)              # Linux
+YAZE_BUILD_JOBS=8 ./scripts/agent_build.sh yaze
+CMAKE_BUILD_PARALLEL_LEVEL=8 scripts/agents/run-tests.sh mac-dbg
+cmake --build build --target yaze --parallel 8
 ```
 
 ### Quick Syntax Check
 For rapid iteration on compile errors, build just the affected library:
 ```bash
 # If fixing errors in src/app/editor/dungeon/, build just the editor lib
-cmake --build build -j8 --target yaze_editor
+cmake --build build --parallel 4 --target yaze_editor
 ```
 
 ### Verifying Changes Before CI
