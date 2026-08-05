@@ -493,6 +493,7 @@ if(YAZE_BUILD_TESTS)
   if(YAZE_ENABLE_GRPC)
     list(APPEND STABLE_INTEGRATION_TEST_SOURCES
       integration/grpc_server_smoke_test.cc
+      integration/imgui_test_harness_logic_test.cc
     )
   endif()
 

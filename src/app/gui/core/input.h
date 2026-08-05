@@ -36,12 +36,46 @@ IMGUI_API bool InputHexByte(const char* label, uint8_t* data,
 IMGUI_API bool InputHexByte(const char* label, uint8_t* data, uint8_t max_value,
                             float input_width = 50.f, bool no_step = false);
 
+/**
+ * @brief Draw a scalar editor that commits the model value atomically.
+ *
+ * ImGui::InputScalar writes through its data pointer for every intermediate
+ * text edit. This helper instead keeps the in-progress value per ImGuiID and
+ * writes @p data only when the item is deactivated after an edit. Pressing
+ * Enter remains compatible with ImGui Test Engine's ItemInputValue because the
+ * standard input deactivates on Enter; EnterReturnsTrue is intentionally
+ * removed from @p flags.
+ *
+ * Pending state is discarded if the widget disappears for a frame, its data
+ * type changes, the backing model changes, or @p target_identity changes while
+ * an edit is active. Supplying semantic identity keeps a stable automation ID
+ * from carrying pending text across rooms, selections, or palette targets.
+ */
+// Semantic identity is independent of the ImGuiID so automation selectors stay
+// stable while pending edits remain bound to their room/entity/component.
+struct InputScalarTargetIdentity {
+  uint64_t context = 0;
+  uint64_t container = 0;
+  uint64_t element = 0;
+  uint64_t component = 0;
+
+  bool operator==(const InputScalarTargetIdentity& other) const {
+    return context == other.context && container == other.container &&
+           element == other.element && component == other.component;
+  }
+};
+
+IMGUI_API bool InputScalarDeferred(
+    const char* label, ImGuiDataType data_type, void* data,
+    const char* format = nullptr, ImGuiInputTextFlags flags = 0,
+    InputScalarTargetIdentity target_identity = {});
+
 // Result type for InputHex functions that need to distinguish between
 // immediate changes (button/wheel) and text-edit changes (deferred)
 struct InputHexResult {
-  bool changed;           // Value was modified (any source)
-  bool immediate;         // Change was from button/wheel (apply now)
-  bool text_committed;    // Change was from text edit and committed (deactivated)
+  bool changed;         // Value was modified (any source)
+  bool immediate;       // Change was from button/wheel (apply now)
+  bool text_committed;  // Change was from text edit and committed (deactivated)
 
   // Convenience: true if change should be applied immediately
   // Use this instead of: InputHex(...) && IsItemDeactivatedAfterEdit()

@@ -255,6 +255,7 @@ class DungeonWorkbenchContent : public WindowContent {
   enum class InspectorMode : uint8_t { Room, Selection, Tools };
   InspectorMode inspector_mode_ = InspectorMode::Room;
   bool inspector_selection_was_active_ = false;
+  bool compact_inspector_detail_requested_ = false;
   WorkbenchTool active_tool_ = WorkbenchTool::ObjectSelector;
 
   char compare_search_buf_[64] = {};

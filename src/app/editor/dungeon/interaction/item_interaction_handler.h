@@ -75,6 +75,15 @@ class ItemInteractionHandler : public BaseEntityHandler {
   void DeleteAll();
   bool NudgeSelected(int delta_pixel_x, int delta_pixel_y);
 
+  /**
+   * @brief Change one pot item's raw type byte in place.
+   *
+   * Routes through the normal item mutation notifications so GUI edits retain
+   * the same dirty-state, cache invalidation, and undo behavior as canvas
+   * interactions.
+   */
+  bool MutateItemType(size_t index, uint8_t new_type);
+
  private:
   // Placement state
   bool item_placement_mode_ = false;

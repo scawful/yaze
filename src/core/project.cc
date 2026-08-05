@@ -736,6 +736,9 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
        << (feature_flags.dungeon.kSaveBlocks ? "true" : "false") << "\n";
   file << "save_dungeon_collision="
        << (feature_flags.dungeon.kSaveCollision ? "true" : "false") << "\n";
+  file << "save_dungeon_water_fill_zones="
+       << (feature_flags.dungeon.kSaveWaterFillZones ? "true" : "false")
+       << "\n";
   file << "save_dungeon_chests="
        << (feature_flags.dungeon.kSaveChests ? "true" : "false") << "\n";
   file << "save_dungeon_pot_items="
@@ -1050,6 +1053,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         feature_flags.dungeon.kSaveBlocks = ParseBool(value);
       else if (key == "save_dungeon_collision")
         feature_flags.dungeon.kSaveCollision = ParseBool(value);
+      else if (key == "save_dungeon_water_fill_zones")
+        feature_flags.dungeon.kSaveWaterFillZones = ParseBool(value);
       else if (key == "save_dungeon_chests")
         feature_flags.dungeon.kSaveChests = ParseBool(value);
       else if (key == "save_dungeon_pot_items")

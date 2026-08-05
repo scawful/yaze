@@ -519,8 +519,8 @@ void AgentEditor::InitializeWithDependencies(ToastManager* toast_manager,
 
 #ifdef YAZE_WITH_GRPC
   if (agent_chat_) {
-    harness_telemetry_bridge_.SetAgentChat(agent_chat_.get());
-    test::TestManager::Get().SetHarnessListener(&harness_telemetry_bridge_);
+    harness_telemetry_bridge_->SetAgentChat(agent_chat_.get());
+    test::TestManager::Get().SetHarnessListener(harness_telemetry_bridge_);
   }
 #endif
 

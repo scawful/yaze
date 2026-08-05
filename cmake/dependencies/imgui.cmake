@@ -72,20 +72,31 @@ if(YAZE_BUILD_TESTS)
       ${IMGUI_TEST_ENGINE_DIR}/imgui_te_utils.cpp
       ${IMGUI_TEST_ENGINE_DIR}/imgui_capture_tool.cpp
     )
-    
-    add_library(ImGuiTestEngine STATIC ${IMGUI_TEST_ENGINE_SOURCES})
-    target_include_directories(ImGuiTestEngine PUBLIC 
+
+    # Compile the hook implementation into ImGui itself. Every executable that
+    # consumes a hook-enabled ImGui archive must also own these symbols; a
+    # separate downstream static library leaves non-gRPC consumers unresolved.
+    target_sources(ImGui PRIVATE ${IMGUI_TEST_ENGINE_SOURCES})
+    target_include_directories(ImGui PRIVATE
+      ${IMGUI_TEST_ENGINE_DIR}
+      ${CMAKE_SOURCE_DIR}/ext
+    )
+    target_compile_definitions(ImGui PUBLIC
+      IMGUI_ENABLE_TEST_ENGINE=1
+      IMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL=1
+    )
+
+    # Preserve the existing target contract for tests and application
+    # libraries that explicitly link ImGuiTestEngine.
+    add_library(ImGuiTestEngine INTERFACE)
+    target_include_directories(ImGuiTestEngine INTERFACE
       ${IMGUI_DIR}
       ${IMGUI_TEST_ENGINE_DIR}
       ${CMAKE_SOURCE_DIR}/ext
     )
-    target_compile_features(ImGuiTestEngine PUBLIC cxx_std_17)
-    if(YAZE_USE_SDL3)
-      target_link_libraries(ImGuiTestEngine PUBLIC ImGui ${YAZE_SDL3_TARGETS})
-    else()
-      target_link_libraries(ImGuiTestEngine PUBLIC ImGui ${YAZE_SDL2_TARGETS})
-    endif()
-    target_compile_definitions(ImGuiTestEngine PUBLIC
+    target_compile_features(ImGuiTestEngine INTERFACE cxx_std_17)
+    target_link_libraries(ImGuiTestEngine INTERFACE ImGui)
+    target_compile_definitions(ImGuiTestEngine INTERFACE
       IMGUI_ENABLE_TEST_ENGINE=1
       IMGUI_TEST_ENGINE_ENABLE_COROUTINE_STDTHREAD_IMPL=1
     )

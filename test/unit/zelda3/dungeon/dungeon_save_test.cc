@@ -357,6 +357,47 @@ TEST_F(DungeonSaveTest, SaveObjects_FitsInSpace) {
   EXPECT_TRUE(status.ok()) << status.message();
 }
 
+TEST_F(DungeonSaveTest, SaveObjects_PreservesDoorPointerBankMirror) {
+  constexpr int kDoorListPc = 0x100000 + 2 + 6;
+  const uint32_t mirrored_pointer = PcToSnes(kDoorListPc) | 0x800000u;
+  WriteLongPointer(kDoorPointers, mirrored_pointer);
+
+  Room room(0, rom_.get());
+  room.LoadObjects();
+  Room::Door door;
+  door.position = 3;
+  door.direction = DoorDirection::North;
+  door.type = DoorType::NormalDoor;
+  room.AddDoor(door);
+
+  ASSERT_TRUE(room.SaveObjects().ok());
+  auto saved_pointer = rom_->ReadLong(kDoorPointers);
+  ASSERT_TRUE(saved_pointer.ok()) << saved_pointer.status().message();
+  EXPECT_EQ(*saved_pointer, mirrored_pointer);
+  EXPECT_EQ(SnesToPc(*saved_pointer), kDoorListPc);
+}
+
+TEST_F(DungeonSaveTest, SaveObjects_UpdatesMirroredDoorPointerOffset) {
+  constexpr int kOriginalDoorListPc = 0x100000 + 2 + 6;
+  WriteLongPointer(kDoorPointers, PcToSnes(kOriginalDoorListPc) | 0x800000u);
+
+  Room room(0, rom_.get());
+  room.LoadObjects();
+  ASSERT_TRUE(room.AddObject(RoomObject(0x10, 10, 10, 0, 0)).ok());
+  Room::Door door;
+  door.position = 3;
+  door.direction = DoorDirection::North;
+  door.type = DoorType::NormalDoor;
+  room.AddDoor(door);
+
+  ASSERT_TRUE(room.SaveObjects().ok());
+  auto saved_pointer = rom_->ReadLong(kDoorPointers);
+  ASSERT_TRUE(saved_pointer.ok()) << saved_pointer.status().message();
+  constexpr int kShiftedDoorListPc = kOriginalDoorListPc + 3;
+  EXPECT_EQ(*saved_pointer, PcToSnes(kShiftedDoorListPc) | 0x800000u);
+  EXPECT_EQ(SnesToPc(*saved_pointer), kShiftedDoorListPc);
+}
+
 TEST_F(DungeonSaveTest,
        SaveObjects_InvalidObjectFailsWithoutRomMutationAndStaysDirty) {
   room_->AddTileObject(RoomObject(/*id=*/0x140, /*x=*/10, /*y=*/10,
