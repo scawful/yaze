@@ -892,6 +892,55 @@ TEST_F(ObjectParserTest, MarioPortraitUsesFullFourByTwoPayload) {
   EXPECT_EQ(tiles->size(), 8u);
 }
 
+TEST_F(ObjectParserTest, MagicBatAltarUsesFiftySixTilesAndDedicatedRoutine) {
+  auto& registry = zelda3::DrawRoutineRegistry::Get();
+  EXPECT_EQ(registry.GetRoutineIdForObject(0x13F),
+            zelda3::DrawRoutineIds::kMagicBatAltar);
+
+  const auto subtype = parser_->GetObjectSubtype(0x13F);
+  ASSERT_TRUE(subtype.ok());
+  EXPECT_EQ(subtype->max_tile_count, 56);
+
+  const auto parsed = parser_->ParseObject(0x13F);
+  ASSERT_TRUE(parsed.ok());
+  EXPECT_EQ(parsed->size(), 56u);
+
+  const auto info = parser_->GetObjectDrawInfo(0x13F);
+  EXPECT_EQ(info.tile_count, 56);
+  EXPECT_EQ(info.draw_routine_id, zelda3::DrawRoutineIds::kMagicBatAltar);
+}
+
+TEST_F(ObjectParserTest, VitreousGooDamageUsesEightTilesAndDedicatedRoutine) {
+  constexpr uint16_t kVitreousGooOffset = 0x1060;
+  auto* data = mock_rom_->mutable_data();
+  const int table_address = zelda3::kRoomObjectSubtype3 + (0xFFB - 0xF80) * 2;
+  data[table_address] = static_cast<uint8_t>(kVitreousGooOffset & 0xFF);
+  data[table_address + 1] = static_cast<uint8_t>(kVitreousGooOffset >> 8);
+
+  auto& registry = zelda3::DrawRoutineRegistry::Get();
+  EXPECT_EQ(registry.GetRoutineIdForObject(0xFFB),
+            zelda3::DrawRoutineIds::kVitreousGooDamage);
+
+  const auto subtype = parser_->GetObjectSubtype(0xFFB);
+  ASSERT_TRUE(subtype.ok());
+  EXPECT_EQ(subtype->max_tile_count, 8);
+
+  const auto parsed = parser_->ParseObject(0xFFB);
+  ASSERT_TRUE(parsed.ok());
+  EXPECT_EQ(parsed->size(), 8u);
+
+  const auto ranges = parser_->ResolveTileReadRanges(0xFFB);
+  ASSERT_TRUE(ranges.ok()) << ranges.status();
+  EXPECT_THAT(*ranges, ::testing::ElementsAre(zelda3::ObjectTileReadRange{
+                           zelda3::kRoomObjectTileAddress + kVitreousGooOffset,
+                           zelda3::kRoomObjectTileAddress + kVitreousGooOffset +
+                               8 * 2}));
+
+  const auto info = parser_->GetObjectDrawInfo(0xFFB);
+  EXPECT_EQ(info.tile_count, 8);
+  EXPECT_EQ(info.draw_routine_id, zelda3::DrawRoutineIds::kVitreousGooDamage);
+}
+
 TEST_F(ObjectParserTest, EnabledStarSwitchAndLitTorchUseFixedTwoByTwoPayload) {
   auto& registry = zelda3::DrawRoutineRegistry::Get();
 

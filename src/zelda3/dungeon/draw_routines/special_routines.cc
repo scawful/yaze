@@ -564,6 +564,16 @@ void DrawFortuneTellerRoom(const DrawContext& ctx) {
   }
 }
 
+void DrawMagicBatAltar(const DrawContext& ctx) {
+  // USDASM's final subtype-2 entry is object 0x13F (table index 0x3F), not a
+  // subtype-3 0x2xx object. RoomDraw_MagicBatAltar ($019A12) advances through
+  // eight source columns, reading seven words down each column from obj2086.
+  if (ctx.tiles.size() < 56)
+    return;
+
+  DrawColumnMajor(ctx.target_bg, ctx.object.x_, ctx.object.y_, 8, 7, ctx.tiles);
+}
+
 void DrawUtility3x5(const DrawContext& ctx) {
   // ASM: RoomDraw_Utility3x5 ($01A194) uses:
   // - top row: tiles 0..2
@@ -643,6 +653,22 @@ void DrawFloorLight(const DrawContext& ctx) {
 void DrawBossShell4x4(const DrawContext& ctx) {
   // ASM-mapped objects route through RoomDraw_4x4.
   Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/0, /*start_index=*/0);
+}
+
+void DrawVitreousGooDamage(const DrawContext& ctx) {
+  // USDASM RoomDraw_VitreousGooDamage ($01A809) invokes
+  // RoomDraw_A_Many32x32Blocks twice with A=5, moving the second call four
+  // tile rows down. The routine reads neither object size nor room state and
+  // writes through the currently selected layer's tilemap pointers.
+  if (ctx.tiles.size() < 8)
+    return;
+
+  for (int block_y = 0; block_y < 2; ++block_y) {
+    for (int block_x = 0; block_x < 5; ++block_x) {
+      DrawMany32x32Block(ctx.target_bg, ctx.object.x_ + block_x * 4,
+                         ctx.object.y_ + block_y * 4, ctx.tiles);
+    }
+  }
 }
 
 void DrawSolidWallDecor3x4(const DrawContext& ctx) {
@@ -1964,6 +1990,17 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
   });
 
   registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kVitreousGooDamage,  // 133
+      .name = "VitreousGooDamage",
+      .function = DrawVitreousGooDamage,
+      .draws_to_both_bgs = false,
+      .base_width = 20,
+      .base_height = 8,
+      .min_tiles = 8,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
       .id = DrawRoutineIds::kSolidWallDecor3x4,  // 107
       .name = "SolidWallDecor3x4",
       .function = DrawSolidWallDecor3x4,
@@ -2111,6 +2148,17 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .base_width = 14,
       .base_height = 14,
       .min_tiles = 26,
+      .category = DrawRoutineInfo::Category::Special,
+  });
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kMagicBatAltar,  // 132
+      .name = "MagicBatAltar",
+      .function = DrawMagicBatAltar,
+      .draws_to_both_bgs = false,
+      .base_width = 8,
+      .base_height = 7,
+      .min_tiles = 56,
       .category = DrawRoutineInfo::Category::Special,
   });
 

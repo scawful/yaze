@@ -1245,7 +1245,7 @@ void ObjectDrawer::InitializeDrawRoutines() {
                                        tiles, state);
       });
 
-  // Routine 106 - Boss Shell 4x4 (Type 3 objects 0x272, 0x27B, 0xF95)
+  // Routine 106 - Boss Shell 4x4 (Yaze 0xF95/0xFF2; ASM 0x215/0x272)
   draw_routines_.push_back(
       [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
@@ -1467,6 +1467,22 @@ void ObjectDrawer::InitializeDrawRoutines() {
       [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
         self->DrawUsingRegistryRoutine(DrawRoutineIds::kFortuneTellerRoom, obj,
+                                       bg, tiles, state);
+      };
+
+  ensure_index(DrawRoutineIds::kMagicBatAltar);
+  draw_routines_[DrawRoutineIds::kMagicBatAltar] =
+      [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
+         std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        self->DrawUsingRegistryRoutine(DrawRoutineIds::kMagicBatAltar, obj, bg,
+                                       tiles, state);
+      };
+
+  ensure_index(DrawRoutineIds::kVitreousGooDamage);
+  draw_routines_[DrawRoutineIds::kVitreousGooDamage] =
+      [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
+         std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        self->DrawUsingRegistryRoutine(DrawRoutineIds::kVitreousGooDamage, obj,
                                        bg, tiles, state);
       };
 
@@ -3183,6 +3199,11 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
       height = 32;
       break;
 
+    case DrawRoutineIds::kVitreousGooDamage:
+      width = 160;
+      height = 64;
+      break;
+
     case 107:  // SolidWallDecor3x4
       width = 24;
       height = 32;
@@ -3276,6 +3297,11 @@ std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
     case DrawRoutineIds::kFortuneTellerRoom:
       width = 112;
       height = 112;
+      break;
+
+    case DrawRoutineIds::kMagicBatAltar:
+      width = 64;
+      height = 56;
       break;
 
     default:

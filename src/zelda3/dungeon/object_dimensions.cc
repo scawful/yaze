@@ -876,8 +876,8 @@ void ObjectDimensionTable::InitializeDefaults() {
   // 0x13D: Table 4x3 (repeatable with 8-tile spacing)
   dimensions_[0x13D] = {4, 3, Dir::Horizontal, 8, false};
   dimensions_[0x13E] = {6, 3, Dir::None, 0, false};  // Utility 6x3
-  // 0x13F: Magic Bat Altar (repeatable 4x4)
-  dimensions_[0x13F] = {4, 4, Dir::Horizontal, 4, false};
+  // 0x13F: Magic Bat altar (fixed 8x7; subtype 2 has no size nibble)
+  dimensions_[0x13F] = {8, 7, Dir::None, 0, false};
 
   // ============================================================================
   // Subtype 3 objects (0xF80-0xFFF)
@@ -918,7 +918,8 @@ void ObjectDimensionTable::InitializeDefaults() {
   // Boss shells (single 4x4)
   dimensions_[0xF95] = {4, 4, Dir::None, 0, false};
   dimensions_[0xFF2] = {4, 4, Dir::None, 0, false};
-  dimensions_[0xFFB] = {4, 4, Dir::None, 0, false};
+  // Vitreous goo damage (fixed 5x2 grid of repeated 4x4 stamps)
+  dimensions_[0xFFB] = {20, 8, Dir::None, 0, false};
   // Auto/straight stairs (fixed 4x4)
   for (int id = 0xF9B; id <= 0xFA1; id++) {
     dimensions_[id] = {4, 4, Dir::None, 0, false};
