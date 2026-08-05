@@ -1844,6 +1844,7 @@ wait_for_room_widget() {
     fi
     if NO_COLOR=1 TERM=dumb "$Z3ED_BIN" gui-assert \
       --widget-key="$key" \
+      --rom="$ROM" \
       --gui_server_address="127.0.0.1:$HARNESS_PORT" \
       --format=json > "$output" 2>/dev/null &&
        jq -e --arg key "$key" '
