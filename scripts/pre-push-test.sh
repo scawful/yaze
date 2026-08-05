@@ -43,12 +43,12 @@ print_step() {
 
 print_success() {
     echo -e "${GREEN}✓${NC} $1"
-    ((PASSED_CHECKS++))
+    ((++PASSED_CHECKS))
 }
 
 print_error() {
     echo -e "${RED}✗${NC} $1"
-    ((FAILED_CHECKS++))
+    ((++FAILED_CHECKS))
 }
 
 print_info() {
@@ -180,7 +180,7 @@ echo ""
 # ============================================================================
 
 print_header "Level 0: Static Analysis"
-((TOTAL_CHECKS++))
+((++TOTAL_CHECKS))
 
 print_step "Checking code formatting..."
 if [[ $VERBOSE -eq 1 ]]; then
@@ -216,7 +216,7 @@ fi
 # ============================================================================
 
 print_header "Level 1: Configuration Validation"
-((TOTAL_CHECKS++))
+((++TOTAL_CHECKS))
 
 print_step "Validating CMake preset: $PRESET"
 if cmake --preset "$PRESET" -DCMAKE_VERBOSE_MAKEFILE=OFF > /dev/null 2>&1; then
@@ -228,7 +228,7 @@ else
 fi
 
 # Check for include path issues
-((TOTAL_CHECKS++))
+((++TOTAL_CHECKS))
 print_step "Checking include path propagation..."
 if [[ $VERBOSE -eq 1 ]]; then
     if grep -q "INCLUDE_DIRECTORIES" "$BUILD_DIR/CMakeCache.txt"; then
@@ -252,7 +252,7 @@ fi
 
 if [[ $SMOKE_ONLY -eq 0 ]]; then
     print_header "Level 2: Smoke Compilation"
-    ((TOTAL_CHECKS++))
+    ((++TOTAL_CHECKS))
 
     print_step "Compiling representative files..."
     print_info "This validates headers, includes, and preprocessor directives"
@@ -308,7 +308,7 @@ fi
 
 if [[ $SKIP_SYMBOLS -eq 0 ]]; then
     print_header "Level 3: Symbol Validation"
-    ((TOTAL_CHECKS++))
+    ((++TOTAL_CHECKS))
 
     print_step "Checking for symbol conflicts..."
     print_info "This detects ODR violations and duplicate symbols"
@@ -342,7 +342,7 @@ fi
 
 if [[ $SKIP_TESTS -eq 0 ]]; then
     print_header "Level 4: Unit Tests"
-    ((TOTAL_CHECKS++))
+    ((++TOTAL_CHECKS))
 
     print_step "Running unit tests..."
     print_info "This validates component logic"

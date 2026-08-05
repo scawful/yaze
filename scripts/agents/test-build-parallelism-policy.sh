@@ -228,6 +228,28 @@ grep -F -- "--build --preset mac-dbg --parallel 4" "$TMP_ROOT/cmake.log" >/dev/n
 run_tests_helper 7
 grep -F -- "--build --preset mac-dbg --parallel 7" "$TMP_ROOT/cmake.log" >/dev/null
 
+run_pre_push_helper() {
+    local jobs="${1:-}"
+    : >"$TMP_ROOT/cmake.log"
+    (
+        unset YAZE_BUILD_JOBS CMAKE_BUILD_PARALLEL_LEVEL
+        if [[ -n "$jobs" ]]; then
+            export YAZE_BUILD_JOBS="$jobs"
+        fi
+        PATH="$TMP_ROOT/bin:$PATH" CMAKE_CALL_LOG="$TMP_ROOT/cmake.log" \
+            BUILD_DIR="$TMP_ROOT/pre-push-build" PRESET=mac-dbg \
+            "$ROOT_DIR/scripts/pre-push-test.sh" --config-only >/dev/null
+    )
+}
+
+run_pre_push_helper
+grep -F -- "--build $TMP_ROOT/pre-push-build --target yaze-format-check --parallel 4" \
+    "$TMP_ROOT/cmake.log" >/dev/null
+
+run_pre_push_helper 7
+grep -F -- "--build $TMP_ROOT/pre-push-build --target yaze-format-check --parallel 7" \
+    "$TMP_ROOT/cmake.log" >/dev/null
+
 mkdir -p "$TMP_ROOT/z3ed-wasm-repo/scripts"
 cp "$ROOT_DIR/scripts/build_z3ed_wasm.sh" "$TMP_ROOT/z3ed-wasm-repo/scripts/"
 
