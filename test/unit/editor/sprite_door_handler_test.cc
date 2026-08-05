@@ -42,7 +42,6 @@ class SpriteInteractionHandlerTest : public ::testing::Test {
     ctx_.on_invalidate_cache = [this]() {
       invalidate_count_++;
     };
-
     handler_.SetContext(&ctx_);
   }
 
@@ -238,6 +237,9 @@ class DoorInteractionHandlerTest : public ::testing::Test {
     ctx_.on_invalidate_cache = [this]() {
       invalidate_count_++;
     };
+    ctx_.on_entity_changed = [this]() {
+      entity_changed_count_++;
+    };
 
     handler_.SetContext(&ctx_);
   }
@@ -263,6 +265,7 @@ class DoorInteractionHandlerTest : public ::testing::Test {
   DoorInteractionHandler handler_;
   int mutation_count_ = 0;
   int invalidate_count_ = 0;
+  int entity_changed_count_ = 0;
 };
 
 TEST_F(DoorInteractionHandlerTest, PlacementBlocksAtDoorLimit) {
@@ -409,6 +412,32 @@ TEST_F(DoorInteractionHandlerTest, MutateDoorTypeRejectsOutOfRangeIndex) {
   AddDoors(1);
   EXPECT_FALSE(handler_.MutateDoorType(5, zelda3::DoorType::CurtainDoor));
   EXPECT_EQ(rooms_[0].GetDoors()[0].type, zelda3::DoorType::NormalDoor);
+}
+
+TEST_F(DoorInteractionHandlerTest,
+       MutateDoorTypeRejectsOddAndOutOfRangeRawValuesWithoutSideEffects) {
+  zelda3::Room::Door door;
+  door.position = 0x08;
+  door.type = zelda3::DoorType::NormalDoor;
+  door.direction = zelda3::DoorDirection::North;
+  const auto [byte1, byte2] = door.EncodeBytes();
+  door.byte1 = byte1;
+  door.byte2 = byte2;
+  rooms_[0].AddDoor(door);
+  rooms_[0].ClearObjectStreamDirty();
+
+  for (const uint8_t raw_type : {uint8_t{0x01}, uint8_t{0x68}}) {
+    EXPECT_FALSE(
+        handler_.MutateDoorType(0, static_cast<zelda3::DoorType>(raw_type)));
+    const auto& unchanged = rooms_[0].GetDoors()[0];
+    EXPECT_EQ(unchanged.type, zelda3::DoorType::NormalDoor);
+    EXPECT_EQ(unchanged.byte1, byte1);
+    EXPECT_EQ(unchanged.byte2, byte2);
+    EXPECT_FALSE(rooms_[0].object_stream_dirty());
+    EXPECT_EQ(mutation_count_, 0);
+    EXPECT_EQ(invalidate_count_, 0);
+    EXPECT_EQ(entity_changed_count_, 0);
+  }
 }
 
 TEST_F(DoorInteractionHandlerTest,
@@ -645,6 +674,22 @@ TEST_F(ItemInteractionHandlerTest, ClickReleaseWithoutMovementDoesNotMutate) {
   EXPECT_EQ(rooms_[0].GetPotItems()[0].position, 0x0408);
   EXPECT_EQ(mutation_count_, 0);
   EXPECT_EQ(invalidate_count_, 0);
+}
+
+TEST_F(ItemInteractionHandlerTest,
+       MutateItemTypeMarksDirtyAndFiresMutationCallbacks) {
+  AddItems(1);
+
+  ASSERT_TRUE(handler_.MutateItemType(0, 0x09));
+
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].item, 0x09);
+  EXPECT_TRUE(rooms_[0].pot_items_dirty());
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_EQ(invalidate_count_, 1);
+  EXPECT_FALSE(handler_.MutateItemType(0, 0x09));
+  EXPECT_FALSE(handler_.MutateItemType(1, 0x08));
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_EQ(invalidate_count_, 1);
 }
 
 TEST_F(ItemInteractionHandlerTest, DeleteAllClearsItemsAndFiresCallbacks) {

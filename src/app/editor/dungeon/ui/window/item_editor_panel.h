@@ -12,7 +12,9 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/workspace/editor_panel.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/input.h"
 #include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
@@ -54,6 +56,7 @@ class ItemEditorPanel : public WindowContent {
   // ==========================================================================
 
   void Draw(bool* p_open) override {
+    gui::AutoWidgetScope automation_scope("Dungeon/ItemEditor");
     if (!current_room_id_ || !rooms_) {
       ImGui::TextDisabled(tr("No room data available"));
       return;
@@ -261,9 +264,31 @@ class ItemEditorPanel : public WindowContent {
       return;
     }
 
-    // Responsive list height - use remaining available space
-    float list_height =
-        std::max(120.0f, ImGui::GetContentRegionAvail().y - 10.0f);
+    if (selected_item_index >= 0 &&
+        selected_item_index < static_cast<int>(items.size()) &&
+        canvas_viewer_) {
+      uint8_t raw_item_type = items[selected_item_index].item;
+      ImGui::AlignTextToFramePadding();
+      ImGui::TextUnformatted(tr("Selected raw type"));
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(72.0f);
+      const bool type_changed = gui::InputScalarDeferred(
+          "##SelectedItemRawType", ImGuiDataType_U8, &raw_item_type, "%02X",
+          ImGuiInputTextFlags_CharsHexadecimal,
+          {reinterpret_cast<uintptr_t>(rooms_),
+           static_cast<uint64_t>(*current_room_id_),
+           static_cast<uint64_t>(selected_item_index)});
+      gui::AutoRegisterLastItem("input_scalar", "selected_item_raw_type",
+                                "Selected pot item raw type byte");
+      if (type_changed) {
+        canvas_viewer_->object_interaction()
+            .entity_coordinator()
+            .item_handler()
+            .MutateItemType(selected_item_index, raw_item_type);
+      }
+    }
+
+    float list_height = std::max(100.0f, ImGui::GetContentRegionAvail().y);
     ImGui::BeginChild("##ItemList", ImVec2(0, list_height), true);
     for (size_t i = 0; i < items.size(); ++i) {
       const auto& item = items[i];
@@ -273,17 +298,19 @@ class ItemEditorPanel : public WindowContent {
       const char* item_name =
           (item.item < kPotItemCount) ? kPotItemNames[item.item] : "Unknown";
 
-      ImGui::Text(tr("[%zu] %s (0x%02X)"), i, item_name, item.item);
+      const std::string row_label =
+          absl::StrFormat("[%zu] %s (0x%02X)", i, item_name, item.item);
+      const bool row_selected = ImGui::Selectable(
+          row_label.c_str(), selected_item_index == static_cast<int>(i));
+      gui::AutoRegisterLastItem(
+          "selectable", absl::StrFormat("item_row_%zu", i),
+          "Select a pot item in the current dungeon room");
       ImGui::SameLine();
       ImGui::TextColored(theme.text_secondary_gray, "@ (%d,%d)",
                          item.GetTileX(), item.GetTileY());
 
-      if (ImGui::IsItemClicked() && canvas_viewer_) {
+      if (row_selected && canvas_viewer_) {
         canvas_viewer_->object_interaction().SelectEntity(EntityType::Item, i);
-      }
-      if (selected_item_index == static_cast<int>(i)) {
-        ImGui::SameLine();
-        ImGui::TextColored(theme.status_success, ICON_MD_CHECK_CIRCLE);
       }
 
       ImGui::PopID();

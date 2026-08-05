@@ -299,6 +299,29 @@ bool ItemInteractionHandler::NudgeSelected(int delta_pixel_x,
   return true;
 }
 
+bool ItemInteractionHandler::MutateItemType(size_t index, uint8_t new_type) {
+  if (!HasValidContext()) {
+    return false;
+  }
+
+  auto* room = GetCurrentRoom();
+  if (!room) {
+    return false;
+  }
+
+  auto& pot_items = room->GetPotItems();
+  if (index >= pot_items.size() || pot_items[index].item == new_type) {
+    return false;
+  }
+
+  ctx_->NotifyMutation(MutationDomain::kItems);
+  pot_items[index].item = new_type;
+  room->MarkPotItemsDirty();
+  ctx_->NotifyInvalidateCache(MutationDomain::kItems);
+  ctx_->NotifyEntityChanged();
+  return true;
+}
+
 void ItemInteractionHandler::PlaceItemAtPosition(int canvas_x, int canvas_y) {
   if (!HasValidContext())
     return;

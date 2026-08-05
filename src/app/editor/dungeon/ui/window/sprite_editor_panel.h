@@ -12,7 +12,9 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/workspace/editor_panel.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/input.h"
 #include "app/gui/core/style_guard.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
@@ -54,6 +56,7 @@ class SpriteEditorPanel : public WindowContent {
   // ==========================================================================
 
   void Draw(bool* p_open) override {
+    gui::AutoWidgetScope automation_scope("Dungeon/SpriteEditor");
     if (!current_room_id_ || !rooms_) {
       ImGui::TextDisabled(tr("No room data available"));
       return;
@@ -218,12 +221,14 @@ class SpriteEditorPanel : public WindowContent {
     auto& room = (*rooms_)[*current_room_id_];
     auto& sprites = room.GetSprites();
     int selected_sprite_list_index = -1;
-    if (canvas_viewer_ &&
-        canvas_viewer_->object_interaction().HasEntitySelection()) {
-      const auto selected_entity =
-          canvas_viewer_->object_interaction().GetSelectedEntity();
-      if (selected_entity.type == EntityType::Sprite) {
-        selected_sprite_list_index = static_cast<int>(selected_entity.index);
+    if (canvas_viewer_) {
+      const auto& selected_entities = canvas_viewer_->object_interaction()
+                                          .entity_coordinator()
+                                          .GetSelectedEntities();
+      if (selected_entities.size() == 1 &&
+          selected_entities.front().type == EntityType::Sprite) {
+        selected_sprite_list_index =
+            static_cast<int>(selected_entities.front().index);
       }
     }
 
@@ -256,6 +261,39 @@ class SpriteEditorPanel : public WindowContent {
       return;
     }
 
+    if (selected_sprite_list_index >= 0 &&
+        selected_sprite_list_index < static_cast<int>(sprites.size()) &&
+        canvas_viewer_) {
+      const auto& sprite = sprites[selected_sprite_list_index];
+      int sprite_x = sprite.x();
+      int sprite_y = sprite.y();
+      ImGui::TextUnformatted(tr("Selected position"));
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(64.0f);
+      const bool x_changed = gui::InputScalarDeferred(
+          "##SelectedSpriteX", ImGuiDataType_S32, &sprite_x, "%d", 0,
+          {reinterpret_cast<uintptr_t>(rooms_),
+           static_cast<uint64_t>(*current_room_id_),
+           static_cast<uint64_t>(selected_sprite_list_index)});
+      gui::AutoRegisterLastItem("input_int", "selected_sprite_x",
+                                "Selected sprite X coordinate");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(64.0f);
+      const bool y_changed = gui::InputScalarDeferred(
+          "##SelectedSpriteY", ImGuiDataType_S32, &sprite_y, "%d", 0,
+          {reinterpret_cast<uintptr_t>(rooms_),
+           static_cast<uint64_t>(*current_room_id_),
+           static_cast<uint64_t>(selected_sprite_list_index)});
+      gui::AutoRegisterLastItem("input_int", "selected_sprite_y",
+                                "Selected sprite Y coordinate");
+      if (x_changed || y_changed) {
+        auto& handler = canvas_viewer_->object_interaction()
+                            .entity_coordinator()
+                            .sprite_handler();
+        handler.NudgeSelected(sprite_x - sprite.x(), sprite_y - sprite.y());
+      }
+    }
+
     // Split view: list on top, properties below
     float available = ImGui::GetContentRegionAvail().y;
     float list_height = std::max(100.0f, available * 0.4f);
@@ -283,7 +321,11 @@ class SpriteEditorPanel : public WindowContent {
         label += " " ICON_MD_STAR;
       }
 
-      if (ImGui::Selectable(label.c_str(), is_selected)) {
+      const bool row_selected = ImGui::Selectable(label.c_str(), is_selected);
+      gui::AutoRegisterLastItem("selectable",
+                                absl::StrFormat("sprite_row_%zu", i),
+                                "Select a sprite in the current dungeon room");
+      if (row_selected) {
         if (canvas_viewer_) {
           canvas_viewer_->object_interaction().SelectEntity(EntityType::Sprite,
                                                             i);

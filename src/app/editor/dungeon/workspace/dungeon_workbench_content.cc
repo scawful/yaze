@@ -29,6 +29,7 @@
 #include "app/editor/dungeon/workspace/dungeon_pit_damage_view_model.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_layout.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
@@ -944,6 +945,43 @@ void DungeonWorkbenchContent::DrawInspectorHeader(float button_size,
 
   ImGui::Dummy(ImVec2(0.0f, 2.0f));
   DrawInspectorPrimarySelector(std::max(button_size, 26.0f));
+  if (current_room_id_ && *current_room_id_ >= 0) {
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted(tr("Room"));
+    ImGui::SameLine();
+    uint16_t requested_room_id = static_cast<uint16_t>(*current_room_id_);
+    ImGui::SetNextItemWidth(82.0f);
+    const bool can_jump_room = static_cast<bool>(on_room_selected_);
+    if (!can_jump_room) {
+      ImGui::BeginDisabled();
+    }
+    bool room_changed = false;
+    {
+      gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
+      room_changed = gui::InputScalarDeferred(
+          "##WorkbenchRoomId", ImGuiDataType_U16, &requested_room_id, "%04X",
+          ImGuiInputTextFlags_CharsHexadecimal,
+          {reinterpret_cast<uintptr_t>(current_room_id_)});
+      gui::AutoRegisterLastItem("input_scalar", "room_id",
+                                "Current dungeon room ID");
+    }
+    if (!can_jump_room) {
+      ImGui::EndDisabled();
+    }
+    if (room_changed && on_room_selected_) {
+      const int target_room_id = std::clamp(static_cast<int>(requested_room_id),
+                                            0, zelda3::kNumberOfRooms - 1);
+      if (target_room_id != *current_room_id_) {
+        *current_room_id_ = target_room_id;
+        on_room_selected_(target_room_id);
+      }
+    }
+    if (ImGui::IsItemHovered()) {
+      const int preview_room_id = std::clamp(
+          static_cast<int>(requested_room_id), 0, zelda3::kNumberOfRooms - 1);
+      ImGui::SetTooltip(tr("Open room 0x%03X"), preview_room_id);
+    }
+  }
   ImGui::Separator();
 }
 
@@ -1828,7 +1866,14 @@ void DungeonWorkbenchContent::DrawInspectorToolStrip() {
       if (!enabled) {
         ImGui::BeginDisabled();
       }
-      if (gui::ToggleButton(btn_id, active, ImVec2(-1, 0)) && enabled) {
+      const bool pressed = gui::ToggleButton(btn_id, active, ImVec2(-1, 0));
+      {
+        gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
+        gui::AutoRegisterLastItem(
+            "button", absl::StrFormat("tool_%s", GetWorkbenchToolId(tool)),
+            "Open a Dungeon Workbench tool");
+      }
+      if (pressed && enabled) {
         OpenTool(tool);
       }
       if (!enabled) {
@@ -1891,7 +1936,16 @@ void DungeonWorkbenchContent::DrawInspectorPrimarySelector(
   auto draw_mode = [&](const char* label, float width, InspectorMode mode) {
     const ImVec2 size(stack ? ImGui::GetContentRegionAvail().x : width,
                       segment_height);
-    if (gui::ToggleButton(label, inspector_mode_ == mode, size)) {
+    const bool pressed =
+        gui::ToggleButton(label, inspector_mode_ == mode, size);
+    {
+      gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
+      gui::AutoRegisterLastItem(
+          "button",
+          mode == InspectorMode::Room ? "mode_room" : "mode_selection",
+          "Switch Dungeon Workbench inspector mode");
+    }
+    if (pressed) {
       inspector_mode_ = mode;
     }
     if (!stack) {
@@ -1903,8 +1957,14 @@ void DungeonWorkbenchContent::DrawInspectorPrimarySelector(
   draw_mode("Selection", selection_width, InspectorMode::Selection);
   const ImVec2 tools_size(
       stack ? ImGui::GetContentRegionAvail().x : tools_width, segment_height);
-  if (gui::ToggleButton("Tools", inspector_mode_ == InspectorMode::Tools,
-                        tools_size)) {
+  const bool tools_pressed = gui::ToggleButton(
+      "Tools", inspector_mode_ == InspectorMode::Tools, tools_size);
+  {
+    gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
+    gui::AutoRegisterLastItem("button", "mode_tools",
+                              "Switch Dungeon Workbench inspector mode");
+  }
+  if (tools_pressed) {
     inspector_mode_ = InspectorMode::Tools;
   }
 }
@@ -2008,34 +2068,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
   workbench::DrawInspectorSectionHeader(ICON_MD_CASTLE " Room Summary");
   if (room_id >= 0) {
     ImGui::AlignTextToFramePadding();
-    ImGui::TextUnformatted(tr("Room"));
-    ImGui::SameLine();
-    uint16_t requested_room_id = static_cast<uint16_t>(room_id);
-    ImGui::SetNextItemWidth(74.0f);
-    const bool can_jump_room = static_cast<bool>(on_room_selected_);
-    if (!can_jump_room) {
-      ImGui::BeginDisabled();
-    }
-    if (auto res = gui::InputHexWordEx("##WorkbenchRoomId", &requested_room_id,
-                                       74.0f, true);
-        res.ShouldApply()) {
-      const int target_room_id = std::clamp(static_cast<int>(requested_room_id),
-                                            0, zelda3::kNumberOfRooms - 1);
-      if (target_room_id != room_id && on_room_selected_) {
-        if (current_room_id_) {
-          *current_room_id_ = target_room_id;
-        }
-        on_room_selected_(target_room_id);
-      }
-    }
-    if (!can_jump_room) {
-      ImGui::EndDisabled();
-    }
-    if (ImGui::IsItemHovered()) {
-      const int preview_room_id = std::clamp(
-          static_cast<int>(requested_room_id), 0, zelda3::kNumberOfRooms - 1);
-      ImGui::SetTooltip(tr("Open room 0x%03X"), preview_room_id);
-    }
+    ImGui::Text(tr("Room 0x%03X"), room_id);
     ImGui::SameLine();
     if (ImGui::SmallButton(ICON_MD_CONTENT_COPY "##CopyRoomId")) {
       char buf[16];
@@ -2044,6 +2077,46 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(tr("Copy room ID (0x%03X) to clipboard"), room_id);
+    }
+
+    if (auto* rooms = viewer.rooms();
+        rooms && room_id < static_cast<int>(rooms->size())) {
+      auto& objects = (*rooms)[room_id].GetTileObjects();
+      if (!objects.empty()) {
+        const auto selected_indices =
+            viewer.object_interaction().GetSelectedObjectIndices();
+        int requested_object_index =
+            selected_indices.size() == 1
+                ? static_cast<int>(selected_indices.front())
+                : 0;
+        ImGui::AlignTextToFramePadding();
+        ImGui::TextUnformatted(tr("Object"));
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(74.0f);
+        bool object_index_changed = false;
+        {
+          gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
+          object_index_changed = gui::InputScalarDeferred(
+              "##WorkbenchObjectIndex", ImGuiDataType_S32,
+              &requested_object_index, "%d", 0,
+              {reinterpret_cast<uintptr_t>(rooms),
+               static_cast<uint64_t>(room_id)});
+          gui::AutoRegisterLastItem("input_int", "object_index",
+                                    "Select and locate a room object by index");
+        }
+        if (object_index_changed) {
+          const size_t target_index = static_cast<size_t>(std::clamp(
+              requested_object_index, 0, static_cast<int>(objects.size()) - 1));
+          viewer.object_interaction().SetSelectedObjects({target_index});
+          viewer.ScrollToTile(objects[target_index].x(),
+                              objects[target_index].y());
+          inspector_mode_ = InspectorMode::Selection;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(tr("Select object index 0-%zu"),
+                            objects.size() - 1);
+        }
+      }
     }
   } else {
     ImGui::TextUnformatted(tr("Room: None"));
@@ -2575,10 +2648,20 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
             ImGui::SetNextItemWidth(60);
             bool x_changed =
                 ImGui::DragInt("##SelObjX", &pos_x, 0.1f, 0, 63, "X:%d");
+            {
+              gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
+              gui::AutoRegisterLastItem("drag_int", "selected_object_x",
+                                        "Selected room object X coordinate");
+            }
             ImGui::SameLine();
             ImGui::SetNextItemWidth(60);
             bool y_changed =
                 ImGui::DragInt("##SelObjY", &pos_y, 0.1f, 0, 63, "Y:%d");
+            {
+              gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
+              gui::AutoRegisterLastItem("drag_int", "selected_object_y",
+                                        "Selected room object Y coordinate");
+            }
             if (x_changed || y_changed) {
               int delta_x = pos_x - obj.x_;
               int delta_y = pos_y - obj.y_;
