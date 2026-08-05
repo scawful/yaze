@@ -9,6 +9,7 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "core/features.h"
 #include "rom/snes.h"
 #include "rom/write_fence.h"
 #include "util/macro.h"
@@ -214,13 +215,30 @@ DimensionService::DimensionResult ResolveTrackObjectDimensions(
     const DimensionService& dimension_service) {
   auto dims = dimension_service.GetDimensions(obj);
 
-  // In CLI-only contexts, custom object feature flags are often disabled.
-  // Object 0x31 may then map through DrawNothing and collapse to a 1x1
-  // footprint. Track assets are authored as 2x2 pieces, so recover a stable
-  // fallback here to avoid sparse/gapped collision generation.
-  if (obj.id_ == static_cast<int16_t>(options.track_object_id) &&
-      dims.offset_x_tiles == 0 && dims.offset_y_tiles == 0 &&
-      dims.width_tiles == 1 && dims.height_tiles == 1) {
+  // Object 0x31's size byte selects a custom-object subtype; it is not a
+  // vanilla width/height nibble. Without project custom-object geometry,
+  // DimensionService falls through to that vanilla interpretation and gives
+  // non-zero subtypes incorrect variable-width footprints. Oracle's track
+  // assets are all authored as 2x2 pieces, so use that canonical footprint in
+  // the project-free CLI path. Configured non-0x31 track IDs continue to use
+  // DimensionService normally.
+  const bool is_canonical_oos_track =
+      obj.id_ == 0x31 &&
+      obj.id_ == static_cast<int16_t>(options.track_object_id);
+  if (is_canonical_oos_track &&
+      !core::FeatureFlags::get().kEnableCustomObjects) {
+    dims.offset_x_tiles = 0;
+    dims.offset_y_tiles = 0;
+    dims.width_tiles = kFallbackTrackFootprintWidthTiles;
+    dims.height_tiles = kFallbackTrackFootprintHeightTiles;
+    return dims;
+  }
+
+  // Also recover when custom objects are enabled but a configured subtype has
+  // no loaded payload and therefore measures as the 1x1 fallback.
+  if (is_canonical_oos_track && dims.offset_x_tiles == 0 &&
+      dims.offset_y_tiles == 0 && dims.width_tiles == 1 &&
+      dims.height_tiles == 1) {
     dims.width_tiles = kFallbackTrackFootprintWidthTiles;
     dims.height_tiles = kFallbackTrackFootprintHeightTiles;
   }
