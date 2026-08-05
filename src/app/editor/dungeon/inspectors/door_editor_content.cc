@@ -7,6 +7,8 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/gui/automation/widget_auto_register.h"
+#include "app/gui/core/input.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
@@ -136,6 +138,7 @@ void DoorEditorContent::OnClose() {
 void DoorEditorContent::Draw(bool* p_open) {
   (void)p_open;
   ResolveCanvasViewer();
+  gui::AutoWidgetScope automation_scope("Dungeon/DoorEditor");
 
   const auto& theme = AgentUI::GetTheme();
   static constexpr std::array<zelda3::DoorType, 20> kDoorTypes = {{
@@ -277,7 +280,6 @@ void DoorEditorContent::Draw(bool* p_open) {
     return;
   }
 
-  ImGui::BeginChild("##DoorList", ImVec2(0, 0), true);
   int selected_door_index = -1;
   if (ResolveCanvasViewer() &&
       canvas_viewer_->object_interaction().HasEntitySelection()) {
@@ -287,6 +289,32 @@ void DoorEditorContent::Draw(bool* p_open) {
       selected_door_index = static_cast<int>(selected_entity.index);
     }
   }
+
+  if (selected_door_index >= 0 &&
+      selected_door_index < static_cast<int>(doors.size())) {
+    uint8_t raw_type = static_cast<uint8_t>(doors[selected_door_index].type);
+    ImGui::AlignTextToFramePadding();
+    ImGui::TextUnformatted(tr("Selected raw type"));
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth(72.0f);
+    const bool type_changed = gui::InputScalarDeferred(
+        "##SelectedDoorRawType", ImGuiDataType_U8, &raw_type, "%02X",
+        ImGuiInputTextFlags_CharsHexadecimal,
+        {reinterpret_cast<uintptr_t>(rooms_),
+         static_cast<uint64_t>(current_room_id_),
+         static_cast<uint64_t>(selected_door_index)});
+    gui::AutoRegisterLastItem("input_scalar", "selected_door_raw_type",
+                              "Selected door raw type byte");
+    if (type_changed && canvas_viewer_) {
+      canvas_viewer_->object_interaction()
+          .entity_coordinator()
+          .door_handler()
+          .MutateDoorType(selected_door_index,
+                          static_cast<zelda3::DoorType>(raw_type));
+    }
+  }
+
+  ImGui::BeginChild("##DoorList", ImVec2(0, 0), true);
   for (size_t i = 0; i < doors.size(); ++i) {
     const auto& door = doors[i];
     const auto [tile_x, tile_y] = door.GetTileCoords();
@@ -295,8 +323,11 @@ void DoorEditorContent::Draw(bool* p_open) {
 
     ImGui::PushID(static_cast<int>(i));
     const std::string row_label = absl::StrFormat("[%zu] %s", i, type_name);
-    if (ImGui::Selectable(row_label.c_str(),
-                          selected_door_index == static_cast<int>(i))) {
+    const bool row_selected = ImGui::Selectable(
+        row_label.c_str(), selected_door_index == static_cast<int>(i));
+    gui::AutoRegisterLastItem("selectable", absl::StrFormat("door_row_%zu", i),
+                              "Select a door in the current dungeon room");
+    if (row_selected) {
       if (canvas_viewer_) {
         canvas_viewer_->object_interaction().SelectEntity(EntityType::Door, i);
       }

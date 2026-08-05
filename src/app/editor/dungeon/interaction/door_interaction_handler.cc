@@ -607,6 +607,10 @@ bool DoorInteractionHandler::MutateDoorType(size_t index,
   if (!HasValidContext())
     return false;
 
+  const uint8_t raw_type = static_cast<uint8_t>(new_type);
+  if ((raw_type & 0x01) != 0 || raw_type > 0x66)
+    return false;
+
   auto* room = GetCurrentRoom();
   if (!room)
     return false;

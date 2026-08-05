@@ -1,11 +1,13 @@
 #include "app/gui/widgets/property_inspector.h"
 
 #include <cstdint>
+#include <functional>
 #include <string>
 
 #include <gtest/gtest.h>
 
 #include "app/gui/core/color.h"
+#include "app/gui/core/input.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 
@@ -182,6 +184,140 @@ TEST_F(PropertyInspectorTest, MultiplePropertiesRenderInsideTableWithoutError) {
   ImGui::EndTable();
   ImGui::End();
   SUCCEED();
+}
+
+class DeferredScalarInputTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    context_ = ImGui::CreateContext();
+    ImGui::SetCurrentContext(context_);
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(640.0f, 480.0f);
+    io.DeltaTime = 1.0f / 60.0f;
+    unsigned char* pixels = nullptr;
+    int width = 0;
+    int height = 0;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  }
+
+  void TearDown() override {
+    ImGui::DestroyContext(context_);
+    context_ = nullptr;
+  }
+
+  void RunFrame(const std::function<void(ImGuiIO&)>& inject_events = {}) {
+    ImGuiIO& io = ImGui::GetIO();
+    if (inject_events) {
+      inject_events(io);
+    }
+
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(240.0f, 120.0f), ImGuiCond_Always);
+    ImGui::SetNextWindowFocus();
+    ImGui::Begin(
+        "DeferredScalarHost", nullptr,
+        ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings);
+    ImGui::SetNextItemWidth(100.0f);
+    committed_ = InputScalarDeferred("Value", ImGuiDataType_S32, &value_, "%d",
+                                     0, target_identity_);
+    const ImVec2 input_min = ImGui::GetItemRectMin();
+    const ImVec2 input_max = ImGui::GetItemRectMax();
+    input_center_ = ImVec2((input_min.x + input_max.x) * 0.5f,
+                           (input_min.y + input_max.y) * 0.5f);
+    ImGui::End();
+    ImGui::EndFrame();
+  }
+
+  void ActivateAndType(const char* text) {
+    RunFrame();
+    RunFrame([&](ImGuiIO& io) {
+      io.AddMousePosEvent(input_center_.x, input_center_.y);
+      io.AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+    });
+    RunFrame([](ImGuiIO& io) {
+      io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+    });
+    RunFrame([&](ImGuiIO& io) { io.AddInputCharactersUTF8(text); });
+  }
+
+  void RunFrameWithoutInput() {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(240.0f, 120.0f), ImGuiCond_Always);
+    ImGui::Begin(
+        "DeferredScalarHost", nullptr,
+        ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings);
+    ImGui::TextUnformatted("Input hidden");
+    ImGui::End();
+    ImGui::EndFrame();
+  }
+
+  ImGuiContext* context_ = nullptr;
+  ImVec2 input_center_{};
+  int value_ = 42;
+  bool committed_ = false;
+  InputScalarTargetIdentity target_identity_{1, 0, 0};
+};
+
+TEST_F(DeferredScalarInputTest, CommitsOnlyAfterEnterDeactivatesItem) {
+  ActivateAndType("99");
+  EXPECT_EQ(value_, 42);
+  EXPECT_FALSE(committed_);
+
+  RunFrame([](ImGuiIO& io) { io.AddKeyEvent(ImGuiKey_Enter, true); });
+
+  EXPECT_EQ(value_, 99);
+  EXPECT_TRUE(committed_);
+}
+
+TEST_F(DeferredScalarInputTest, EscapeDiscardsPendingCandidate) {
+  ActivateAndType("99");
+  EXPECT_EQ(value_, 42);
+  EXPECT_FALSE(committed_);
+
+  RunFrame([](ImGuiIO& io) { io.AddKeyEvent(ImGuiKey_Escape, true); });
+
+  EXPECT_EQ(value_, 42);
+  EXPECT_FALSE(committed_);
+}
+
+TEST_F(DeferredScalarInputTest, DisappearingWidgetCannotCommitStaleCandidate) {
+  ActivateAndType("99");
+  EXPECT_EQ(value_, 42);
+
+  RunFrameWithoutInput();
+  RunFrame();
+
+  EXPECT_EQ(value_, 42);
+  EXPECT_FALSE(committed_);
+}
+
+TEST_F(DeferredScalarInputTest, ModelChangeCancelsPendingCandidate) {
+  ActivateAndType("99");
+  EXPECT_EQ(value_, 42);
+
+  value_ = 77;
+  RunFrame([](ImGuiIO& io) { io.AddKeyEvent(ImGuiKey_Enter, true); });
+
+  EXPECT_EQ(value_, 77);
+  EXPECT_FALSE(committed_);
+}
+
+TEST_F(DeferredScalarInputTest,
+       EqualValuedSemanticTargetChangeCancelsPendingCandidate) {
+  ActivateAndType("99");
+  EXPECT_EQ(value_, 42);
+
+  target_identity_ = {2, 0, 0};
+  RunFrame();
+  EXPECT_EQ(value_, 42);
+  EXPECT_FALSE(committed_);
+
+  RunFrame([](ImGuiIO& io) { io.AddKeyEvent(ImGuiKey_Enter, true); });
+
+  EXPECT_EQ(value_, 42);
+  EXPECT_FALSE(committed_);
 }
 
 }  // namespace

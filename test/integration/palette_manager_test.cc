@@ -432,6 +432,36 @@ TEST_F(PaletteManagerTest, DungeonRenderEditsMapToManagedHudAndDungeonColors) {
 }
 
 TEST_F(PaletteManagerTest,
+       DungeonRenderDisplaySlot40MapsToDungeonPaletteColor7) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());
+  zelda3::GameData game_data(&rom);
+  SeedPaletteGroup(game_data.palette_groups.get_group("hud"), 1, 32, 0x0100);
+  SeedPaletteGroup(game_data.palette_groups.get_group("dungeon_main"), 8, 90,
+                   0x0200);
+
+  auto& manager = PaletteManager::Get();
+  manager.Initialize(&game_data);
+
+  gui::PaletteEditorWidget widget;
+  widget.Initialize(&game_data);
+  widget.SetDungeonRenderPaletteMode(true);
+  widget.SetCurrentPaletteId(7);
+
+  constexpr int kDungeonDisplayIndex = 40;
+  constexpr int kDungeonColorIndex = 7;
+  const SnesColor edited_color(0x7FFE);
+  ASSERT_TRUE(
+      widget.ApplyDungeonRenderColorEdit(kDungeonDisplayIndex, edited_color)
+          .ok());
+
+  EXPECT_TRUE(manager.IsColorModified("dungeon_main", 7, kDungeonColorIndex));
+  EXPECT_EQ(manager.GetColor("dungeon_main", 7, kDungeonColorIndex).snes(),
+            edited_color.snes());
+  EXPECT_FALSE(manager.IsColorModified("hud", 0, kDungeonColorIndex));
+}
+
+TEST_F(PaletteManagerTest,
        DungeonWriteRangesMapHudAndDungeonColorsExactlyAndCoalesce) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0)).ok());

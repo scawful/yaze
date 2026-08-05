@@ -7,7 +7,9 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
+#include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/color.h"
+#include "app/gui/core/input.h"
 #include "app/gui/core/popup_id.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/plots/implot_support.h"
@@ -258,6 +260,20 @@ void PaletteEditorWidget::DrawPaletteSelector() {
     }
     ImGui::EndCombo();
   }
+
+  int requested_palette_id = current_palette_id_;
+  ImGui::TextUnformatted(tr("Palette ID"));
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(72.0f);
+  const bool palette_id_changed = gui::InputScalarDeferred(
+      "##DungeonPaletteId", ImGuiDataType_S32, &requested_palette_id, "%d", 0,
+      {reinterpret_cast<uintptr_t>(game_data_)});
+  gui::AutoRegisterLastItem("input_int", "palette_id",
+                            "Dungeon main palette ID");
+  if (palette_id_changed) {
+    current_palette_id_ = std::clamp(requested_palette_id, 0, num_palettes - 1);
+    selected_color_index_ = -1;
+  }
 }
 
 void PaletteEditorWidget::DrawColorPicker() {
@@ -355,6 +371,9 @@ void PaletteEditorWidget::DrawDungeonRenderPalette() {
     const bool clicked = ImGui::ColorButton("##render_color", display_color,
                                             ImGuiColorEditFlags_NoTooltip,
                                             ImVec2(swatch_size, swatch_size));
+    gui::AutoRegisterLastItem("color_button",
+                              absl::StrFormat("palette_swatch_%03d", i),
+                              "Dungeon render palette swatch");
     const ImVec2 swatch_min = ImGui::GetItemRectMin();
     const ImVec2 swatch_max = ImGui::GetItemRectMax();
     const bool double_clicked =
@@ -450,6 +469,33 @@ void PaletteEditorWidget::DrawDungeonRenderColorPicker() {
       editing_color_ = gui::ConvertSnesColorToImVec4(edited_color);
     } else {
       LOG_ERROR("PaletteEditorWidget", "Failed to apply palette color: %s",
+                status.message().data());
+    }
+  }
+
+  uint16_t raw_color = current_color.snes();
+  ImGui::AlignTextToFramePadding();
+  ImGui::TextUnformatted(tr("Raw BGR555"));
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(96.0f);
+  const bool raw_changed = gui::InputScalarDeferred(
+      "##SelectedDungeonPaletteBgr555", ImGuiDataType_U16, &raw_color, "%04X",
+      ImGuiInputTextFlags_CharsHexadecimal,
+      {reinterpret_cast<uintptr_t>(game_data_),
+       static_cast<uint64_t>(target->source),
+       static_cast<uint64_t>(target->palette_index),
+       static_cast<uint64_t>(target->color_index)});
+  gui::AutoRegisterLastItem("input_scalar", "selected_palette_bgr555",
+                            "Selected dungeon palette raw BGR555 color");
+  if (raw_changed) {
+    raw_color &= 0x7FFF;
+    const gfx::SnesColor raw_edited_color(raw_color);
+    const absl::Status status =
+        ApplyDungeonRenderColorEdit(selected_color_index_, raw_edited_color);
+    if (status.ok()) {
+      editing_color_ = gui::ConvertSnesColorToImVec4(raw_edited_color);
+    } else {
+      LOG_ERROR("PaletteEditorWidget", "Failed to apply raw palette color: %s",
                 status.message().data());
     }
   }
