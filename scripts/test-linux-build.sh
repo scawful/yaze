@@ -3,9 +3,11 @@
 set -e
 
 echo "🐧 Testing Linux build in Docker container..."
+BUILD_JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 
 # Use same Ubuntu version as CI
 docker run --rm -v "$PWD:/workspace" -w /workspace \
+  -e YAZE_BUILD_JOBS="$BUILD_JOBS" \
   ubuntu:22.04 bash -c '
     set -e
     echo "📦 Installing dependencies..."
@@ -32,9 +34,8 @@ docker run --rm -v "$PWD:/workspace" -w /workspace \
       -DNFD_PORTAL=ON
 
     echo "🔨 Building..."
-    cmake --build build --parallel $(nproc)
+    cmake --build build --parallel "$YAZE_BUILD_JOBS"
 
     echo "✅ Linux build succeeded!"
     ls -lh build/bin/
 '
-

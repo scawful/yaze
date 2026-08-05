@@ -82,7 +82,7 @@ In headless/server mode, the application loop is optimized:
 If incremental builds start printing `ninja: warning: premature end of file; recovering`, use the helper below to rotate Ninja state files and re-stabilize the build graph:
 
 ```bash
-scripts/agents/ninja-heal.sh --preset dev --build-dir build --parallel 8
+scripts/agents/ninja-heal.sh --preset dev --build-dir build --parallel 4
 ```
 
 Behavior:

@@ -251,7 +251,7 @@ Pair static analysis with the narrowest build and test validation that exercises
 the changed surface:
 
 ```bash
-cmake --build --preset mac-ai-fast --target yaze --parallel 8
+cmake --build --preset mac-ai-fast --target yaze --parallel 4
 ctest --preset mac-ai-unit --output-on-failure -R "(Overworld|DungeonWorkbenchToolbarTest)"
 ```
 

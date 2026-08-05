@@ -493,7 +493,8 @@ else
     echo -e "${CYAN}Next Steps:${NC}"
     echo -e "  ${CYAN}Command Line Workflow:${NC}"
     echo -e "    ${NC}cmake -B build -DCMAKE_BUILD_TYPE=Debug${NC}"
-    echo -e "    ${NC}cmake --build build --parallel \$(nproc)${NC}"
+    echo -e "    ${NC}cmake --build build --parallel 4${NC}"
+    echo -e "    ${NC}# Override explicitly with --parallel <jobs> when needed.${NC}"
     echo ""
     
     exit 0

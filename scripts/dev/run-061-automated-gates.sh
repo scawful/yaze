@@ -14,6 +14,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT_DIR"
 
 BUILD_DIR="build_ai"
+BUILD_JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 ROM_PATH="roms/oos168.sfc"
 QA_DIR="QA/$(date +%Y-%m-%d)-v0.6.1"
 
@@ -100,7 +101,7 @@ run_gate() {
 FOCUSED_FILTER='TileObjectHandlerTest.*:TileSelectorWidgetTest.*:SpriteInteractionHandlerTest.*:DoorInteractionHandlerTest.*:DungeonWorkbenchToolbarTest.*:DungeonCanvasViewerNavigationTest.*:DungeonOverlayControlsTest.*:ProjectBundleVerifyTest.*:ProjectBundlePackTest.*:ProjectBundleUnpackTest.*:ProjectBundleArchiveTest.*:OracleSmokeCheckTest.*:DungeonOraclePreflightTest.*'
 
 run_gate A1 "Build yaze_test_unit + z3ed" exit0 "A1-build.log" \
-  cmake --build "$BUILD_DIR" --target yaze_test_unit z3ed --parallel 8
+  cmake --build "$BUILD_DIR" --target yaze_test_unit z3ed --parallel "$BUILD_JOBS"
 
 run_gate A2 "Focused unit tests" exit0 "A2-focused.log" \
   "$BUILD_DIR/bin/Debug/yaze_test_unit" --gtest_filter="$FOCUSED_FILTER"

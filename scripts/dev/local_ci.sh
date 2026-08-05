@@ -10,11 +10,12 @@ echo -e "${GREEN}=== YAZE Local CI Runner ===${NC}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
+BUILD_JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 
 # 1. Build (Debug)
 echo -e "\n${GREEN}[1/4] Building (Debug)...${NC}"
 cmake --preset mac-dbg
-if cmake --build build --parallel; then
+if cmake --build build --parallel "$BUILD_JOBS"; then
     echo -e "${GREEN}Build Successful${NC}"
 else
     echo -e "${RED}Build Failed${NC}"

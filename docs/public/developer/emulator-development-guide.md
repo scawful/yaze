@@ -90,7 +90,7 @@ These remaining issues are **straightforward to fix** compared to the timing/ins
 
 1. **Build YAZE**:
     ```bash
-   cmake --build build --target yaze -j12
+   cmake --build build --target yaze --parallel 4
     ```
 
 2. **Run YAZE**:
@@ -894,21 +894,21 @@ uint8_t b_rgb = ((snes >> 10) & 0x1F) * 255 / 31;
 ```bash
 # Ensure MSVC toolchain is configured
 cmake --preset win-dbg
-cmake --build build --config Debug --target yaze -j12
+cmake --build build --config Debug --target yaze --parallel 4
 ```
 
 **macOS**:
 ```bash
 # Ensure Xcode command line tools installed
 cmake --preset mac-dbg
-cmake --build build --target yaze -j12
+cmake --build build --target yaze --parallel 4
 ```
 
 **Linux**:
 ```bash
 # Ensure SDL2 and dependencies installed
 cmake --preset lin-dbg
-cmake --build build --target yaze -j12
+cmake --build build --target yaze --parallel 4
 ```
 
 ---
@@ -1248,7 +1248,7 @@ class MusicEditor {
 
 ```bash
 cd $TRUNK_ROOT/scawful/retro/yaze
-cmake --build build --target yaze -j12
+cmake --build build --target yaze --parallel 4
 ./build/bin/yaze.app/Contents/MacOS/yaze
 ```
 
@@ -1257,21 +1257,21 @@ cmake --build build --target yaze -j12
 **macOS**:
 ```bash
 cmake --preset mac-dbg
-cmake --build build --target yaze -j12
+cmake --build build --target yaze --parallel 4
 ./build/bin/yaze.app/Contents/MacOS/yaze
 ```
 
 **Windows**:
 ```bash
 cmake --preset win-dbg
-cmake --build build --config Debug --target yaze -j12
+cmake --build build --config Debug --target yaze --parallel 4
 .\build\bin\Debug\yaze.exe
 ```
 
 **Linux**:
 ```bash
 cmake --preset lin-dbg
-cmake --build build --target yaze -j12
+cmake --build build --target yaze --parallel 4
 ./build/bin/yaze
 ```
 
@@ -1280,7 +1280,7 @@ cmake --build build --target yaze -j12
 - Use `-DYAZE_UNITY_BUILD=ON` for faster compilation
 - Use quiet presets (mac-dbg) to suppress warnings
 - Use verbose presets (mac-dbg-v) for detailed warnings
-- Parallel builds: `-j12` (or number of CPU cores)
+- Parallel builds default to `--parallel 4`; override the worker count explicitly when needed.
 
 ---
 

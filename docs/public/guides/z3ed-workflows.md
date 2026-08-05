@@ -531,7 +531,7 @@ print_status() {
 # Step 1: Clean and build
 print_status "INFO" "Starting CI pipeline..."
 z3ed build clean --all
-z3ed build --preset lin-dbg --parallel 8
+z3ed build --preset lin-dbg --parallel 4
 
 if [ $? -eq 0 ]; then
     print_status "SUCCESS" "Build completed"

@@ -181,6 +181,10 @@ if [[ "$SKIP_PYTHON" == false && ${#PY_FILES[@]} -gt 0 ]]; then
   print_ok "Python syntax check passed (${#PY_FILES[@]} files)"
 fi
 
+print_header "build parallelism policy"
+scripts/agents/test-build-parallelism-policy.sh
+print_ok "Build parallelism policy check passed"
+
 if [[ "$SKIP_VERSION" == false ]]; then
   print_header "release/versioning"
   scripts/dev/release-version-check.sh --staged

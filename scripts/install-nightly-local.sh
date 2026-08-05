@@ -16,6 +16,7 @@ nightly_ai_runtime="${YAZE_NIGHTLY_AI_RUNTIME:-ON}"
 nightly_ai_features="${YAZE_NIGHTLY_AI_FEATURES:-$nightly_ai_runtime}"
 nightly_prefer_system_grpc="${YAZE_NIGHTLY_PREFER_SYSTEM_GRPC:-ON}"
 nightly_skip_install_rpath="${YAZE_NIGHTLY_SKIP_INSTALL_RPATH:-AUTO}"
+nightly_build_jobs="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 
 if [[ "$nightly_prefer_system_grpc" == "AUTO" ]]; then
   if command -v grpc_cpp_plugin >/dev/null 2>&1 && command -v protoc >/dev/null 2>&1; then
@@ -147,7 +148,8 @@ cmake -S "$source_repo" -B "$nightly_build_dir" -G "$cmake_generator" \
   -DYAZE_BUILD_TESTS=OFF
 
 echo "[nightly-local] Building yaze + z3ed"
-cmake --build "$nightly_build_dir" --config "$nightly_build_type" --target yaze z3ed
+cmake --build "$nightly_build_dir" --config "$nightly_build_type" \
+  --target yaze z3ed --parallel "$nightly_build_jobs"
 
 stamp="$(date +%Y%m%d-%H%M%S)"
 release_dir="$nightly_prefix/releases/$stamp"

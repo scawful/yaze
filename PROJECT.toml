@@ -29,7 +29,8 @@ github = "https://github.com/scawful/yaze"
 
 [build]
 system = "cmake"
-command = "cmake --preset mac-dbg && cmake --build build -j8"
+# Four workers is the local default; callers may pass --parallel explicitly.
+command = "cmake --preset mac-dbg && cmake --build build --parallel 4"
 
 [test]
 command = "ctest --test-dir build -L stable -j4"
