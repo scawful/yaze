@@ -34,6 +34,7 @@ class Controller {
  public:
   struct ScreenshotRequest {
     std::string preferred_path;
+    bool reveal_to_user = false;
     std::function<void(absl::StatusOr<test::ScreenshotArtifact>)> callback;
   };
 

@@ -325,7 +325,7 @@ absl::StatusOr<ResolvedWidgetSelector> ResolveWidgetSelector(
   ResolvedWidgetSelector resolved;
   if (!widget_key.empty()) {
     const std::string key(widget_key);
-    const gui::WidgetIdRegistry::WidgetInfo* info =
+    std::optional<gui::WidgetIdRegistry::WidgetInfo> info =
         gui::WidgetIdRegistry::Instance().GetWidgetInfo(key);
     if (!info) {
       return absl::NotFoundError(absl::StrFormat(
@@ -1791,6 +1791,7 @@ absl::Status ImGuiTestHarnessServiceImpl::Screenshot(
 
   Application::Instance().GetController()->RequestScreenshot(
       {.preferred_path = requested_path,
+       .reveal_to_user = false,
        .callback = [state](absl::StatusOr<ScreenshotArtifact> result) {
          state->result = std::move(result);
          state->done.store(true);
