@@ -4212,10 +4212,13 @@ absl::Status EditorManager::SaveRomInternal(
                                    screen_editor->HasPendingScreenChanges())) {
     RETURN_IF_ERROR(save_editor(screen_editor));
   }
+  // A coordinated save must not materialize an unrelated lazy editor. Its
+  // serializer can project broad writes (and correctly trip manifest guards)
+  // even though the user never opened or edited that domain.
   RETURN_IF_ERROR(
-      save_editor(current_editor_set->GetEditor(EditorType::kDungeon)));
-  RETURN_IF_ERROR(
-      save_editor(current_editor_set->GetEditor(EditorType::kOverworld)));
+      save_editor(current_editor_set->GetExistingEditor(EditorType::kDungeon)));
+  RETURN_IF_ERROR(save_editor(
+      current_editor_set->GetExistingEditor(EditorType::kOverworld)));
 
   if (core::FeatureFlags::get().kSaveMessages) {
     RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kMessage));

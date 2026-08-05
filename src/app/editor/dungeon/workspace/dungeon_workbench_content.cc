@@ -360,11 +360,13 @@ void DungeonWorkbenchContent::SetEmbeddedEditorPanels(
 void DungeonWorkbenchContent::FocusRoomInspector() {
   layout_state_.show_right_inspector = true;
   inspector_mode_ = InspectorMode::Room;
+  compact_inspector_detail_requested_ = true;
 }
 
 void DungeonWorkbenchContent::FocusSelectionInspector() {
   layout_state_.show_right_inspector = true;
   inspector_mode_ = InspectorMode::Selection;
+  compact_inspector_detail_requested_ = true;
 }
 
 void DungeonWorkbenchContent::FocusEntranceBrowser() {
@@ -1243,7 +1245,6 @@ void DungeonWorkbenchContent::SetAllSaveFlags(bool value) {
   flags.kSavePotItems = value;
   flags.kSavePalettes = value;
   flags.kSaveCollision = value;
-  flags.kSaveWaterFillZones = value;
   flags.kSaveBlocks = value;
   flags.kSaveTorches = value;
   flags.kSavePits = value;
@@ -1284,7 +1285,16 @@ void DungeonWorkbenchContent::DrawApplyScopeControls(int room_id) {
     draw_checkbox("Palettes", &flags.kSavePalettes);
     ImGui::TableNextRow();
     draw_checkbox("Collision Maps", &flags.kSaveCollision);
-    draw_checkbox("Water Fill", &flags.kSaveWaterFillZones);
+    ImGui::TableNextColumn();
+    ImGui::BeginDisabled();
+    ImGui::Checkbox("Water Fill", &flags.kSaveWaterFillZones);
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      ImGui::SetTooltip(
+          "Water Fill save scope is fixed when the project opens. Change "
+          "save_dungeon_water_fill_zones in the .yaze file, then reopen the "
+          "project.");
+    }
     ImGui::TableNextRow();
     draw_checkbox("Blocks", &flags.kSaveBlocks);
     draw_checkbox("Torches", &flags.kSaveTorches);
@@ -1947,6 +1957,7 @@ void DungeonWorkbenchContent::DrawInspectorPrimarySelector(
     }
     if (pressed) {
       inspector_mode_ = mode;
+      compact_inspector_detail_requested_ = true;
     }
     if (!stack) {
       ImGui::SameLine(0.0f, spacing);
@@ -1966,6 +1977,7 @@ void DungeonWorkbenchContent::DrawInspectorPrimarySelector(
   }
   if (tools_pressed) {
     inspector_mode_ = InspectorMode::Tools;
+    compact_inspector_detail_requested_ = true;
   }
 }
 
@@ -2000,6 +2012,7 @@ void DungeonWorkbenchContent::DrawInspectorCompactSummary(
     if (workbench::DrawActionButton(ICON_MD_OPEN_IN_FULL " Open Selection",
                                     ImVec2(-1, 0))) {
       inspector_mode_ = InspectorMode::Selection;
+      compact_inspector_detail_requested_ = true;
     }
   } else {
     ImGui::TextDisabled(tr("Nothing selected"));
@@ -2026,7 +2039,8 @@ void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
   // Use the resolved pane layout instead of GetContentRegionAvail().x. The
   // latter changes when a vertical scrollbar appears, which can make the
   // inspector alternate between full and compact content every frame.
-  if (compact) {
+  if (compact && inspector_mode_ != InspectorMode::Tools &&
+      !compact_inspector_detail_requested_) {
     DrawInspectorCompactSummary(viewer);
     return;
   }

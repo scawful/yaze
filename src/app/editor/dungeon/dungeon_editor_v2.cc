@@ -397,6 +397,8 @@ void DungeonEditorV2::ReloadWaterFillZones() {
   });
 
   bool legacy_imported = false;
+  const bool water_fill_save_enabled =
+      core::FeatureFlags::get().dungeon.kSaveWaterFillZones;
   std::vector<zelda3::WaterFillZoneEntry> zones;
 
   auto zones_or = zelda3::LoadWaterFillTable(rom_);
@@ -442,14 +444,20 @@ void DungeonEditorV2::ReloadWaterFillZones() {
       room.SetWaterFillTile(x, y, true);
     }
 
-    if (!legacy_imported) {
+    // A passive legacy import is pending migration only when this project is
+    // allowed to write the WaterFill table. Otherwise retain the overlay as
+    // read-only reference data without creating unsavable room dirtiness.
+    if (!legacy_imported || !water_fill_save_enabled) {
       room.ClearWaterFillDirty();
     }
   }
 
   if (legacy_imported && dependencies_.toast_manager) {
     dependencies_.toast_manager->Show(
-        "Imported legacy water gate zones (save to write new table)",
+        water_fill_save_enabled
+            ? "Imported legacy water gate zones (save to write new table)"
+            : "Loaded legacy water gate zones read-only (WaterFill saving is "
+              "disabled)",
         ToastType::kInfo);
   }
 }
@@ -1183,15 +1191,15 @@ absl::Status DungeonEditorV2::Update() {
     DrawRoomPanels();
   }
 
-  if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
-    // Delegate delete to current room viewer
-    if (auto* viewer = GetViewerForRoom(current_room_id_)) {
-      viewer->DeleteSelectedObjects();
-    }
-  }
-
   // Keyboard Shortcuts (only if not typing in a text field)
   if (!ImGui::GetIO().WantTextInput) {
+    if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
+      // Delegate delete to current room viewer.
+      if (auto* viewer = GetViewerForRoom(current_room_id_)) {
+        viewer->DeleteSelectedObjects();
+      }
+    }
+
     if (ImGui::GetIO().KeyCtrl && ImGui::GetIO().KeyShift &&
         ImGui::IsKeyPressed(ImGuiKey_W, false)) {
       ToggleWorkbenchWorkflowMode();
