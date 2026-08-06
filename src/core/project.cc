@@ -952,11 +952,26 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
 }
 
 absl::Status YazeProject::ParseFromString(const std::string& content) {
+  for (size_t i = 0; i < content.size(); ++i) {
+    if (content[i] == '\r' &&
+        (i + 1 >= content.size() || content[i + 1] != '\n')) {
+      return absl::InvalidArgumentError(
+          "Project file contains unsupported lone carriage returns");
+    }
+  }
+
   std::istringstream stream(content);
   std::string line;
   std::string current_section;
 
   while (std::getline(stream, line)) {
+    // std::getline() consumes '\n' but preserves the '\r' in CRLF input.
+    // Normalize that line ending before comment, section, or value parsing so
+    // project safety flags have identical behavior across platforms.
+    if (!line.empty() && line.back() == '\r') {
+      line.pop_back();
+    }
+
     if (line.empty() || line[0] == '#')
       continue;
 
