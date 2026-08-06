@@ -4,6 +4,7 @@
 
 // C++ standard library
 #include <algorithm>
+#include <cstdint>
 
 // Third-party library headers
 #include "absl/strings/str_format.h"
@@ -309,10 +310,12 @@ bool SpriteInteractionHandler::NudgeSelected(int delta_x, int delta_y) {
   }
 
   auto& sprite = sprites[*selected_sprite_index_];
-  const int next_x = std::clamp(static_cast<int>(sprite.x()) + delta_x, 0,
-                                dungeon_coords::kSpriteGridMax);
-  const int next_y = std::clamp(static_cast<int>(sprite.y()) + delta_y, 0,
-                                dungeon_coords::kSpriteGridMax);
+  const int64_t requested_x = static_cast<int64_t>(sprite.x()) + delta_x;
+  const int64_t requested_y = static_cast<int64_t>(sprite.y()) + delta_y;
+  const int next_x = static_cast<int>(
+      std::clamp<int64_t>(requested_x, 0, dungeon_coords::kSpriteGridMax));
+  const int next_y = static_cast<int>(
+      std::clamp<int64_t>(requested_y, 0, dungeon_coords::kSpriteGridMax));
   if (next_x == sprite.x() && next_y == sprite.y()) {
     return false;
   }

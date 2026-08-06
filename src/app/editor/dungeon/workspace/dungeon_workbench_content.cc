@@ -151,6 +151,10 @@ DungeonWorkbenchTestRect CaptureLastItemRectForTesting() {
 
 }  // namespace
 
+bool ResolveCompactInspectorDetailRequest(bool compact, bool detail_requested) {
+  return compact && detail_requested;
+}
+
 DungeonWorkbenchResponsiveLayout ResolveDungeonWorkbenchResponsiveLayout(
     float total_width, float min_canvas_width, float min_sidebar_width,
     float splitter_width, bool want_left, bool want_right) {
@@ -2035,6 +2039,9 @@ void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
     inspector_mode_ = InspectorMode::Selection;
   }
   inspector_selection_was_active_ = has_selection;
+
+  compact_inspector_detail_requested_ = ResolveCompactInspectorDetailRequest(
+      compact, compact_inspector_detail_requested_);
 
   // Use the resolved pane layout instead of GetContentRegionAvail().x. The
   // latter changes when a vertical scrollbar appears, which can make the

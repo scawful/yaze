@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_PANELS_SPRITE_EDITOR_PANEL_H_
 #define YAZE_APP_EDITOR_DUNGEON_PANELS_SPRITE_EDITOR_PANEL_H_
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <functional>
@@ -10,6 +11,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/automation/widget_auto_register.h"
@@ -287,10 +289,15 @@ class SpriteEditorPanel : public WindowContent {
       gui::AutoRegisterLastItem("input_int", "selected_sprite_y",
                                 "Selected sprite Y coordinate");
       if (x_changed || y_changed) {
+        const int clamped_x =
+            std::clamp(sprite_x, 0, dungeon_coords::kSpriteGridMax);
+        const int clamped_y =
+            std::clamp(sprite_y, 0, dungeon_coords::kSpriteGridMax);
         auto& handler = canvas_viewer_->object_interaction()
                             .entity_coordinator()
                             .sprite_handler();
-        handler.NudgeSelected(sprite_x - sprite.x(), sprite_y - sprite.y());
+        handler.NudgeSelected(clamped_x - static_cast<int>(sprite.x()),
+                              clamped_y - static_cast<int>(sprite.y()));
       }
     }
 
