@@ -68,6 +68,8 @@ DungeonWorkbenchPaneLayout ResolveDungeonWorkbenchPaneLayout(
     float splitter_width, float stored_left_width, float stored_right_width,
     bool want_left, bool want_right);
 
+bool ResolveCompactInspectorDetailRequest(bool compact, bool detail_requested);
+
 // Single stable window for dungeon editing. This is step 2 in the Workbench plan.
 class DungeonWorkbenchContent : public WindowContent {
  public:

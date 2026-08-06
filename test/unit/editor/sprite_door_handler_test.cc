@@ -9,6 +9,7 @@
 
 #include <gtest/gtest.h>
 #include <array>
+#include <limits>
 #include <optional>
 
 #include "app/editor/dungeon/dungeon_room_store.h"
@@ -213,6 +214,24 @@ TEST_F(SpriteInteractionHandlerTest,
   EXPECT_FALSE(handler_.HasSelection());
   EXPECT_EQ(mutation_count_, mutations_before + 1);
   EXPECT_EQ(invalidate_count_, invalidations_before + 1);
+}
+
+TEST_F(SpriteInteractionHandlerTest,
+       ExtremeNudgeCoordinatesClampWithoutSignedOverflow) {
+  AddSprites(2);
+  handler_.SelectSprite(1);
+
+  EXPECT_TRUE(handler_.NudgeSelected(std::numeric_limits<int>::max(),
+                                     std::numeric_limits<int>::max()));
+  EXPECT_EQ(rooms_[0].GetSprites()[1].x(), dungeon_coords::kSpriteGridMax);
+  EXPECT_EQ(rooms_[0].GetSprites()[1].y(), dungeon_coords::kSpriteGridMax);
+
+  EXPECT_TRUE(handler_.NudgeSelected(std::numeric_limits<int>::min(),
+                                     std::numeric_limits<int>::min()));
+  EXPECT_EQ(rooms_[0].GetSprites()[1].x(), 0);
+  EXPECT_EQ(rooms_[0].GetSprites()[1].y(), 0);
+  EXPECT_EQ(mutation_count_, 2);
+  EXPECT_EQ(invalidate_count_, 2);
 }
 
 // ============================================================================
