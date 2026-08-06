@@ -41,6 +41,24 @@
   [[NSUserDefaults standardUserDefaults] setBool:NO forKey:@"NSQuitAlwaysKeepsWindows"];
 }
 
+- (NSApplicationTerminateReply)applicationShouldTerminate:
+    (NSApplication *)sender {
+  (void)sender;
+  auto& app = yaze::Application::Instance();
+  if (!app.IsReady() || app.GetController() == nullptr ||
+      app.GetController()->editor_manager() == nullptr) {
+    return NSTerminateNow;
+  }
+
+  // Cocoa's default terminate path calls exit() immediately. Because yaze
+  // drives its own SDL/ImGui loop instead of NSApplication::run, that bypasses
+  // Application::Shutdown and leaves the ImGui test engine bound to a live
+  // ImGui context. Route native Quit through EditorManager so unsaved-work
+  // guarding runs and the main loop can unwind resources in ownership order.
+  app.GetController()->editor_manager()->Quit();
+  return NSTerminateCancel;
+}
+
 - (void)setupMenus {
   NSMenu *mainMenu = [NSApp mainMenu];
 

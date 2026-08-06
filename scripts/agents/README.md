@@ -7,6 +7,7 @@
 | `smoke-build.sh` | Runs `cmake --preset` configure/build in place and reports timing. |
 | `ninja-heal.sh` | Repairs corrupted Ninja metadata (`.ninja_deps`/`.ninja_log`) and verifies incremental build stability. |
 | `test-build-parallelism-policy.sh` | Verifies that build presets and agent helpers default to four workers while preserving explicit overrides. |
+| `test-installed-macos-quit.sh` | Repeats installed macOS Cocoa Quit and fails on nonzero exit, crashes, stale status/process state, or project/ROM mutation. |
 | `run-tests.sh` | Configures the preset (if needed), builds `yaze_test`, and runs `ctest` with optional args. |
 | `test-http-api.sh` | Smoke-checks HTTP API endpoints (health/models/symbols + core POSTs) via curl; defaults to localhost:8080. |
 | `test-grpc-api.sh` | Smoke-checks gRPC automation API via grpcurl; defaults to localhost:50052 and the ImGui test harness Ping. |
