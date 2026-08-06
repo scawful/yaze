@@ -12,6 +12,7 @@
 #include <fstream>
 #include <ios>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -602,7 +603,7 @@ TEST(ProjectBundleVerifyTest, CheckStandaloneHashStripsSmcHeader) {
   EXPECT_TRUE(found_pass) << out;
 }
 
-TEST(ProjectBundleVerifyTest, CheckStandaloneHashRejectsInvalidMetadata) {
+TEST(ProjectBundleVerifyTest, CheckStandaloneHashRejectsEmbeddedWhitespace) {
   ScopedTempDir tmp;
   const fs::path rom_path = tmp.path / "rom.sfc";
   {
@@ -614,7 +615,8 @@ TEST(ProjectBundleVerifyTest, CheckStandaloneHashRejectsInvalidMetadata) {
   {
     std::ofstream project(project_path);
     project << MakeProjectYaze("Standalone", "rom.sfc")
-            << "\n[rom]\nexpected_hash=not-a-hash\n";
+            << "\n[rom]\nexpected_hash=" << std::string(20, '0') << " "
+            << std::string(20, '0') << "\n";
   }
 
   handlers::ProjectBundleVerifyCommandHandler handler;
@@ -754,6 +756,155 @@ TEST(ProjectBundleVerifyTest, CheckRomHashMatchPasses) {
     }
   }
   EXPECT_TRUE(found_pass) << "Expected rom_hash_check pass\n" << out;
+}
+
+TEST(ProjectBundleVerifyTest, CheckRomHashAcceptsIosRomChecksum) {
+  ScopedTempDir tmp;
+  const fs::path bundle = tmp.path / "IosHash.yazeproj";
+  CreateFullBundle(bundle);
+
+  const std::string actual_sha1 =
+      yaze::util::ComputeFileSha1Hex((bundle / "rom").string());
+  ASSERT_FALSE(actual_sha1.empty());
+  {
+    nlohmann::json manifest;
+    manifest["romChecksum"] = actual_sha1;
+    std::ofstream mf(bundle / "manifest.json",
+                     std::ios::out | std::ios::binary);
+    mf << manifest.dump(2);
+  }
+
+  handlers::ProjectBundleVerifyCommandHandler handler;
+  std::string out;
+  const auto status = handler.Run(
+      {"--project=" + bundle.string(), "--check-rom-hash", "--format=json"},
+      nullptr, &out);
+  EXPECT_TRUE(status.ok()) << status.message() << "\n" << out;
+
+  const auto doc = json::parse(out, nullptr, false);
+  ASSERT_FALSE(doc.is_discarded()) << out;
+  bool found_pass = false;
+  for (const auto& chk : GetVerify(doc).value("checks", json::array())) {
+    found_pass |=
+        chk.value("name", "") == "rom_hash_check" &&
+        chk.value("status", "") == "pass" &&
+        chk.value("detail", "").find("romChecksum") != std::string::npos;
+  }
+  EXPECT_TRUE(found_pass) << out;
+}
+
+TEST(ProjectBundleVerifyTest, CheckRomHashAcceptsMatchingSchemaFields) {
+  ScopedTempDir tmp;
+  const fs::path bundle = tmp.path / "DualHash.yazeproj";
+  CreateFullBundle(bundle);
+
+  const std::string actual_sha1 =
+      yaze::util::ComputeFileSha1Hex((bundle / "rom").string());
+  ASSERT_FALSE(actual_sha1.empty());
+  std::string uppercase_sha1 = actual_sha1;
+  for (char& ch : uppercase_sha1) {
+    ch = static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
+  }
+  {
+    nlohmann::json manifest;
+    manifest["romChecksum"] = actual_sha1;
+    manifest["rom_sha1"] = "  " + uppercase_sha1 + "\n";
+    std::ofstream mf(bundle / "manifest.json",
+                     std::ios::out | std::ios::binary);
+    mf << manifest.dump(2);
+  }
+
+  handlers::ProjectBundleVerifyCommandHandler handler;
+  std::string out;
+  const auto status = handler.Run(
+      {"--project=" + bundle.string(), "--check-rom-hash", "--format=json"},
+      nullptr, &out);
+  EXPECT_TRUE(status.ok()) << status.message() << "\n" << out;
+
+  const auto doc = json::parse(out, nullptr, false);
+  ASSERT_FALSE(doc.is_discarded()) << out;
+  bool found_dual_field_pass = false;
+  for (const auto& chk : GetVerify(doc).value("checks", json::array())) {
+    found_dual_field_pass |=
+        chk.value("name", "") == "rom_hash_check" &&
+        chk.value("status", "") == "pass" &&
+        chk.value("detail", "").find("romChecksum/rom_sha1") !=
+            std::string::npos;
+  }
+  EXPECT_TRUE(found_dual_field_pass) << out;
+}
+
+TEST(ProjectBundleVerifyTest, CheckRomHashRejectsSchemaFieldDisagreement) {
+  ScopedTempDir tmp;
+  const fs::path bundle = tmp.path / "ConflictingHash.yazeproj";
+  CreateFullBundle(bundle);
+
+  const std::string actual_sha1 =
+      yaze::util::ComputeFileSha1Hex((bundle / "rom").string());
+  ASSERT_FALSE(actual_sha1.empty());
+  {
+    nlohmann::json manifest;
+    manifest["romChecksum"] = actual_sha1;
+    manifest["rom_sha1"] = "0000000000000000000000000000000000000000";
+    std::ofstream mf(bundle / "manifest.json",
+                     std::ios::out | std::ios::binary);
+    mf << manifest.dump(2);
+  }
+
+  handlers::ProjectBundleVerifyCommandHandler handler;
+  std::string out;
+  const auto status = handler.Run(
+      {"--project=" + bundle.string(), "--check-rom-hash", "--format=json"},
+      nullptr, &out);
+  EXPECT_FALSE(status.ok());
+
+  const auto doc = json::parse(out, nullptr, false);
+  ASSERT_FALSE(doc.is_discarded()) << out;
+  bool found_disagreement = false;
+  for (const auto& chk : GetVerify(doc).value("checks", json::array())) {
+    found_disagreement |=
+        chk.value("name", "") == "rom_hash_check" &&
+        chk.value("status", "") == "fail" &&
+        chk.value("detail", "").find("disagree") != std::string::npos;
+  }
+  EXPECT_TRUE(found_disagreement) << out;
+}
+
+TEST(ProjectBundleVerifyTest, CheckRomHashRejectsMalformedSchemaFields) {
+  ScopedTempDir tmp;
+  const fs::path bundle = tmp.path / "MalformedHash.yazeproj";
+  CreateFullBundle(bundle);
+
+  const std::vector<std::pair<nlohmann::json, std::string>> cases = {
+      {nlohmann::json{{"romChecksum", "not-a-sha1"}}, "romChecksum"},
+      {nlohmann::json{{"rom_sha1", 1234}}, "rom_sha1"},
+  };
+  for (const auto& [manifest, field] : cases) {
+    SCOPED_TRACE(field);
+    {
+      std::ofstream mf(bundle / "manifest.json",
+                       std::ios::out | std::ios::binary | std::ios::trunc);
+      mf << manifest.dump(2);
+    }
+
+    handlers::ProjectBundleVerifyCommandHandler handler;
+    std::string out;
+    const auto status = handler.Run(
+        {"--project=" + bundle.string(), "--check-rom-hash", "--format=json"},
+        nullptr, &out);
+    EXPECT_FALSE(status.ok());
+
+    const auto doc = json::parse(out, nullptr, false);
+    ASSERT_FALSE(doc.is_discarded()) << out;
+    bool found_format_failure = false;
+    for (const auto& chk : GetVerify(doc).value("checks", json::array())) {
+      found_format_failure |=
+          chk.value("name", "") == "rom_hash_check" &&
+          chk.value("status", "") == "fail" &&
+          chk.value("detail", "").find(field) != std::string::npos;
+    }
+    EXPECT_TRUE(found_format_failure) << out;
+  }
 }
 
 TEST(ProjectBundleVerifyTest, CheckBundleHashIncludesSmcHeader) {

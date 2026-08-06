@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <vector>
 
 #include "gtest/gtest.h"
 
@@ -53,7 +54,7 @@ class ScopedCurrentPath {
 
 void WriteTextFile(const std::filesystem::path& path, const std::string& data) {
   std::filesystem::create_directories(path.parent_path());
-  std::ofstream file(path, std::ios::out | std::ios::trunc);
+  std::ofstream file(path, std::ios::out | std::ios::trunc | std::ios::binary);
   ASSERT_TRUE(file.is_open())
       << "Failed to open file for writing: " << path.string();
   file << data;
@@ -68,6 +69,19 @@ std::string ReadTextFile(const std::filesystem::path& path) {
                       std::istreambuf_iterator<char>());
   file.close();
   return content;
+}
+
+std::string WithCrLf(const std::string& content) {
+  std::string result;
+  result.reserve(content.size() * 2);
+  for (char ch : content) {
+    if (ch == '\n') {
+      result += "\r\n";
+    } else {
+      result += ch;
+    }
+  }
+  return result;
 }
 
 }  // namespace
@@ -139,6 +153,78 @@ TEST(ProjectPathsTest, WaterFillSaveScopeRoundTripsThroughIni) {
   YazeProject reopened;
   ASSERT_TRUE(reopened.Open(project_file.string()).ok());
   EXPECT_FALSE(reopened.feature_flags.dungeon.kSaveWaterFillZones);
+}
+
+TEST(ProjectPathsTest, CrLfStandaloneMatchesLfAndPreservesFeatureFlags) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_crlf_standalone"));
+  const std::string descriptor = R"([project]
+name=Cross Platform Project
+
+[files]
+rom_filename=rom.sfc
+
+[feature_flags]
+save_dungeon_objects=false
+save_dungeon_water_fill_zones=false
+enable_custom_objects=true
+)";
+
+  const auto lf_file = temp.path() / "Lf.yaze";
+  const auto crlf_file = temp.path() / "CrLf.yaze";
+  WriteTextFile(lf_file, descriptor);
+  WriteTextFile(crlf_file, WithCrLf(descriptor));
+
+  YazeProject lf_project;
+  YazeProject crlf_project;
+  ASSERT_TRUE(lf_project.Open(lf_file.string()).ok());
+  ASSERT_TRUE(crlf_project.Open(crlf_file.string()).ok());
+
+  EXPECT_EQ(crlf_project.name, lf_project.name);
+  EXPECT_EQ(crlf_project.rom_filename, lf_project.rom_filename);
+  EXPECT_FALSE(crlf_project.feature_flags.dungeon.kSaveObjects);
+  EXPECT_FALSE(crlf_project.feature_flags.dungeon.kSaveWaterFillZones);
+  EXPECT_TRUE(crlf_project.feature_flags.kEnableCustomObjects);
+}
+
+TEST(ProjectPathsTest, CrLfBundlePreservesWaterFillSaveScope) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_crlf_bundle"));
+  const auto bundle = temp.path() / "Portable.yazeproj";
+  std::filesystem::create_directories(bundle);
+  WriteTextFile(bundle / "rom", "not a real rom");
+  WriteTextFile(bundle / "project.yaze", WithCrLf(R"([project]
+name=Portable Project
+
+[files]
+rom_filename=rom
+
+[feature_flags]
+save_dungeon_water_fill_zones=false
+)"));
+
+  YazeProject project;
+  ASSERT_TRUE(project.Open(bundle.string()).ok());
+  EXPECT_EQ(project.name, "Portable Project");
+  EXPECT_EQ(project.rom_filename, (bundle / "rom").string());
+  EXPECT_FALSE(project.feature_flags.dungeon.kSaveWaterFillZones);
+}
+
+TEST(ProjectPathsTest, LoneCarriageReturnSeparatorsFailExplicitly) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_lone_cr"));
+  const std::vector<std::string> descriptors = {
+      "[project]\rname=Unsafe\r[feature_flags]"
+      "\rsave_dungeon_water_fill_zones=false\r",
+      "[project]\r\nname=Unsafe\r",
+  };
+  for (const auto& descriptor : descriptors) {
+    SCOPED_TRACE(descriptor);
+    YazeProject project;
+    const auto status = project.LoadFromString(
+        descriptor, (temp.path() / "Unsafe.yaze").string());
+
+    EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+    EXPECT_NE(status.message().find("lone carriage returns"),
+              std::string::npos);
+  }
 }
 
 #ifndef __EMSCRIPTEN__
