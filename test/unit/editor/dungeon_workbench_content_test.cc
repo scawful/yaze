@@ -150,6 +150,14 @@ TEST(DungeonWorkbenchContentLayoutTest,
   EXPECT_FALSE(hide_both.show_right);
 }
 
+TEST(DungeonWorkbenchContentLayoutTest,
+     CompactInspectorDetailRequestResetsOutsideCompactLayout) {
+  EXPECT_FALSE(ResolveCompactInspectorDetailRequest(false, false));
+  EXPECT_FALSE(ResolveCompactInspectorDetailRequest(true, false));
+  EXPECT_TRUE(ResolveCompactInspectorDetailRequest(true, true));
+  EXPECT_FALSE(ResolveCompactInspectorDetailRequest(false, true));
+}
+
 TEST(DungeonWorkbenchContentObjectSizeTest,
      SizeControlsEnableOnlyWhenSelectionContainsEditableObject) {
   const std::vector<zelda3::RoomObject> objects = {
