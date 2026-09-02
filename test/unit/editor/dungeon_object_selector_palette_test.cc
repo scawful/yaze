@@ -222,22 +222,40 @@ TEST(DungeonObjectSelectorSizeTest,
   EXPECT_EQ(callback_count, 1);
 }
 
-TEST(DungeonObjectSelectorSizeTest,
+TEST(DungeonObjectSelectorPaletteTest,
      ChestCategoryUsesRepresentableType3ObjectIds) {
   DungeonObjectSelector selector;
 
-  for (int object_id : {0xF99, 0xF9A, 0xFB1, 0xFB2, 0xFF5}) {
+  for (int object_id : {0xF99, 0xF9A}) {
     EXPECT_TRUE(DungeonObjectSelector::IsRepresentableChestObjectId(object_id));
     EXPECT_TRUE(selector.matches_object_filter_for_testing(object_id, 3));
     EXPECT_EQ(selector.object_type_symbol_for_testing(object_id), "C");
+    EXPECT_EQ(selector.object_routine_family_for_testing(object_id), "Chest");
   }
 
-  for (int object_id : {0xF9, 0xFA, 0xF98, 0xFB0}) {
+  for (int object_id : {0xFB1, 0xFB2, 0xFF5}) {
+    EXPECT_TRUE(DungeonObjectSelector::IsRepresentableChestObjectId(object_id));
+    EXPECT_TRUE(selector.matches_object_filter_for_testing(object_id, 3));
+    EXPECT_EQ(selector.object_type_symbol_for_testing(object_id), "S");
+    EXPECT_EQ(selector.object_routine_family_for_testing(object_id), "Special");
+  }
+
+  for (int object_id : {0xF98, 0xFB0}) {
     EXPECT_FALSE(
         DungeonObjectSelector::IsRepresentableChestObjectId(object_id));
     EXPECT_FALSE(selector.matches_object_filter_for_testing(object_id, 3));
     EXPECT_NE(selector.object_type_symbol_for_testing(object_id), "C");
   }
+}
+
+TEST(DungeonObjectSelectorSymbologyTest,
+     RegistryMappedType1ObjectsExposeRoutineFamily) {
+  DungeonObjectSelector selector;
+  EXPECT_EQ(selector.object_routine_family_for_testing(0x001), "Rightwards");
+  EXPECT_EQ(selector.object_type_symbol_for_testing(0x001), ">");
+  EXPECT_EQ(selector.object_routine_family_for_testing(0x015),
+            "Diagonal (BothBG)");
+  EXPECT_EQ(selector.object_type_symbol_for_testing(0x015), "/2");
 }
 
 }  // namespace

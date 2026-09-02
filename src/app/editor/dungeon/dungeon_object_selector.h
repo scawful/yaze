@@ -22,6 +22,7 @@
 // object_renderer.h removed - using ObjectDrawer for production rendering
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/dungeon_object_registry.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_symbology.h"
 #include "zelda3/dungeon/object_tile_editor.h"
 
 namespace yaze {
@@ -119,6 +120,9 @@ class DungeonObjectSelector {
   std::string object_type_symbol_for_testing(int object_id) {
     return GetObjectTypeSymbol(object_id);
   }
+  std::string object_routine_family_for_testing(int object_id) {
+    return GetObjectRoutineFamily(object_id);
+  }
   static bool IsRepresentableChestObjectId(int object_id);
 
  private:
@@ -134,6 +138,10 @@ class DungeonObjectSelector {
   void EnsureRegistryInitialized();
   ImU32 GetObjectTypeColor(int object_id);
   std::string GetObjectTypeSymbol(int object_id);
+  std::string GetObjectRoutineFamily(int object_id);
+  void DrawRoutineSymbologyBadge(ImDrawList* draw_list, ImVec2 cell_min,
+                                 const zelda3::DrawRoutineSymbology& symbology,
+                                 ImU32 accent_color) const;
   void EnsureCustomObjectsInitialized();
   void DrawCustomObjectWorkshopButton(int custom_count);
   void DrawCustomObjectWorkshopPopup(float item_size);
