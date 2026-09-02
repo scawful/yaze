@@ -133,6 +133,12 @@ TEST_F(DungeonObjectRomValidationTest, TileCountTable_KnownValues) {
       {0x33, 16, "4x4 block"},  // kSubtype1TileLengths[0x33] = 16
       {0x3C, 8, "Doubled 2x2 decoration"},
       {0x4C, 12, "Rightwards 4x3 bar"},
+      {0xA4, 24, "Big hole 4x4"},
+      {0xD8, 8, "Flood water overlay A"},
+      {0xDA, 8, "Flood water overlay B"},
+      {0xDD, 16, "Table rock 4x4"},
+      {0x5F, 3, "Long horizontal rail +23"},
+      {0x8A, 3, "Long vertical rail +23"},
   };
 
   for (const auto& test : tests) {
