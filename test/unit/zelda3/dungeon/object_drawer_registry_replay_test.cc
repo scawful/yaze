@@ -3875,6 +3875,191 @@ TEST(ObjectDrawerRegistryReplayTest,
   ExpectTraceMatchesSnapshot(bg1, expected);
 }
 
+std::vector<SnapshotTileWrite> MakeBigHoleSnapshot(int x, int y, uint8_t size) {
+  const int max = static_cast<int>(size & 0x0F) + 3;
+  std::vector<SnapshotTileWrite> out;
+  out.reserve(16);
+
+  out.push_back({x, y, 8});
+  out.push_back({x + max, y, 14});
+  out.push_back({x, y + max, 17});
+  out.push_back({x + max, y + max, 23});
+
+  for (int xx = 1; xx < max; ++xx) {
+    for (int yy = 1; yy < max; ++yy) {
+      out.push_back({x + xx, y + yy, 0});
+    }
+    out.push_back({x + xx, y, 10});
+    out.push_back({x + xx, y + max, 19});
+  }
+  for (int yy = 1; yy < max; ++yy) {
+    out.push_back({x, y + yy, 9});
+    out.push_back({x + max, y + yy, 15});
+  }
+  return out;
+}
+
+std::vector<SnapshotTileWrite> MakeTableRockSnapshot(int x, int y, uint8_t size) {
+  const int size_x = (size >> 2) & 0x03;
+  const int size_y = size & 0x03;
+  const int right_x = x + (3 + (size_x * 2));
+  const int bottom_y = y + (3 + (size_y * 2));
+
+  std::vector<SnapshotTileWrite> out;
+  out.reserve(16);
+
+  for (int xx = 0; xx < size_x + 1; ++xx) {
+    for (int yy = 0; yy < size_y + 1; ++yy) {
+      const int base_x = x + (xx * 2);
+      const int base_y = y + (yy * 2);
+      out.push_back({base_x + 1, base_y + 1, 5});
+      out.push_back({base_x + 2, base_y + 1, 6});
+      out.push_back({base_x + 1, base_y + 2, 9});
+      out.push_back({base_x + 2, base_y + 2, 10});
+    }
+  }
+
+  for (int yy = 0; yy < size_y + 1; ++yy) {
+    const int base_y = y + (yy * 2);
+    out.push_back({x, base_y + 1, 4});
+    out.push_back({x, base_y + 2, 8});
+    out.push_back({right_x, base_y + 1, 7});
+    out.push_back({right_x, base_y + 2, 11});
+  }
+
+  for (int xx = 0; xx < size_x + 1; ++xx) {
+    const int base_x = x + (xx * 2);
+    out.push_back({base_x + 1, y, 1});
+    out.push_back({base_x + 2, y, 2});
+    out.push_back({base_x + 1, bottom_y, 13});
+    out.push_back({base_x + 2, bottom_y, 14});
+  }
+
+  out.push_back({x, y, 0});
+  out.push_back({x, bottom_y, 12});
+  out.push_back({right_x, y, 3});
+  out.push_back({right_x, bottom_y, 15});
+  return out;
+}
+
+std::vector<SnapshotTileWrite> MakeWaterOverlaySnapshot(int x, int y,
+                                                        uint8_t size) {
+  const int size_x = (size >> 2) & 0x03;
+  const int size_y = size & 0x03;
+  const int count_x = size_x + 2;
+  const int count_y = size_y + 2;
+
+  std::vector<SnapshotTileWrite> out;
+  out.reserve(count_x * count_y * 16);
+
+  for (int yy = 0; yy < count_y; ++yy) {
+    for (int xx = 0; xx < count_x; ++xx) {
+      const int base_x = x + (xx * 4);
+      const int base_y = y + (yy * 4);
+      for (int tile_x = 0; tile_x < 4; ++tile_x) {
+        out.push_back({base_x + tile_x, base_y, static_cast<uint16_t>(tile_x)});
+        out.push_back(
+            {base_x + tile_x, base_y + 2, static_cast<uint16_t>(tile_x)});
+        out.push_back({base_x + tile_x, base_y + 1,
+                       static_cast<uint16_t>(4 + tile_x)});
+        out.push_back({base_x + tile_x, base_y + 3,
+                       static_cast<uint16_t>(4 + tile_x)});
+      }
+    }
+  }
+  return out;
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     BigHoleDrawsBorderedInteriorWithUsdasmTileIndices) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 7;
+  constexpr int kY = 9;
+  constexpr uint8_t kSize = 0;
+
+  const auto trace = ReplayObjectTrace(
+      /*object_id=*/0x00A4, kX, kY, kSize, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/24));
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+
+  ExpectTraceMatchesSnapshot(bg1, MakeBigHoleSnapshot(kX, kY, kSize));
+  EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG2).empty());
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     TableRockDrawsFourByFourStampWithUsdasmTileIndices) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 5;
+  constexpr int kY = 6;
+  constexpr uint8_t kSize = 0;
+
+  const auto trace = ReplayObjectTrace(
+      /*object_id=*/0x00DD, kX, kY, kSize, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/16));
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+
+  ExpectTraceMatchesSnapshot(bg1, MakeTableRockSnapshot(kX, kY, kSize));
+  EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG2).empty());
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     FloodWaterOverlayDrawsEightByEightStampGridOnBg2) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 3;
+  constexpr int kY = 4;
+  constexpr uint8_t kSize = 0;
+
+  for (const int object_id : {0x00D8, 0x00DA}) {
+    SCOPED_TRACE(::testing::Message() << "object_id=0x" << std::hex
+                                        << object_id);
+
+    const auto trace = ReplayObjectTrace(
+        object_id, kX, kY, kSize, RoomObject::LayerType::BG2,
+        MakeSequentialTiles(/*count=*/8));
+    const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+
+    ExpectTraceMatchesSnapshot(bg2, MakeWaterOverlaySnapshot(kX, kY, kSize));
+    EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG1).empty());
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     LongHorizontalAndVerticalRailsUseMatchingCornerMiddleEndSpans) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 4;
+  constexpr int kY = 6;
+  constexpr uint8_t kSize = 2;  // middle span = size + 21 = 23
+
+  const auto horizontal = ReplayObjectTrace(
+      /*object_id=*/0x005F, kX, kY, kSize, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/3));
+  const auto vertical = ReplayObjectTrace(
+      /*object_id=*/0x008A, kX, kY, kSize, RoomObject::LayerType::BG1,
+      MakeSequentialTiles(/*count=*/3));
+
+  const auto h_bg1 = FilterTraceByLayer(horizontal, RoomObject::LayerType::BG1);
+  const auto v_bg1 = FilterTraceByLayer(vertical, RoomObject::LayerType::BG1);
+
+  EXPECT_EQ(h_bg1.size(), v_bg1.size());
+  const int expected_span = static_cast<int>(kSize) + 23;
+  ExpectTraceBounds(h_bg1, kX, kY, kX + expected_span - 1, kY);
+  ExpectTraceBounds(v_bg1, kX, kY, kX, kY + expected_span - 1);
+
+  for (int offset = 0; offset < expected_span; ++offset) {
+    EXPECT_TRUE(TraceHasWriteAt(h_bg1, kX + offset, kY)) << "offset=" << offset;
+    EXPECT_TRUE(TraceHasWriteAt(v_bg1, kX, kY + offset)) << "offset=" << offset;
+  }
+
+  EXPECT_EQ(h_bg1.front().tile_id, 0);
+  EXPECT_EQ(v_bg1.front().tile_id, 0);
+  EXPECT_EQ(h_bg1.back().tile_id, 2);
+  EXPECT_EQ(v_bg1.back().tile_id, 2);
+}
+
 TEST(ObjectDrawerRegistryReplayTest,
      DownwardsBigRailUsesUsdasmTopMiddleBottomSegments) {
   ScopedCustomObjectsFlag disable_custom(false);

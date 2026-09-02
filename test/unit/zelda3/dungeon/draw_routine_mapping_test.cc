@@ -313,6 +313,106 @@ TEST_F(DrawRoutineMappingTest,
 // "Issue 1: Vertical rails may not be updated to match horizontal rails"
 // flagged.
 TEST_F(DrawRoutineMappingTest,
+       HorizontalAndVerticalPlus23RailsRenderEqualLengthSpans) {
+  auto& reg = DrawRoutineRegistry::Get();
+  const DrawRoutineInfo* h_info =
+      reg.GetRoutineInfo(DrawRoutineIds::kRightwardsHasEdge1x1_1to16_plus23);
+  const DrawRoutineInfo* v_info =
+      reg.GetRoutineInfo(DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23);
+  ASSERT_NE(h_info, nullptr);
+  ASSERT_NE(v_info, nullptr);
+
+  const std::vector<gfx::TileInfo> tiles = {
+      MakeTile(0x0200, 0), MakeTile(0x0201, 1), MakeTile(0x0202, 2)};
+
+  for (uint8_t size : {uint8_t{0}, uint8_t{1}, uint8_t{5}, uint8_t{15}}) {
+    SCOPED_TRACE(::testing::Message() << "size=" << static_cast<int>(size));
+
+    constexpr int kAnchorX = 4;
+    constexpr int kAnchorY = 6;
+    const int expected_count = static_cast<int>(size) + 21;
+    const int expected_total = expected_count + 2;  // corner + middles + end
+
+    auto run_routine = [&](const DrawRoutineInfo& info,
+                           const RoomObject& object) {
+      gfx::BackgroundBuffer bg;
+      DrawContext ctx{bg,
+                      object,
+                      std::span<const gfx::TileInfo>(tiles),
+                      /*state=*/nullptr,
+                      rom_.get(),
+                      /*room_id=*/0,
+                      /*room_gfx_buffer=*/nullptr,
+                      /*secondary_bg=*/nullptr};
+      info.function(ctx);
+      return CollectNonZeroTiles(bg);
+    };
+
+    const RoomObject horizontal(0x5F, kAnchorX, kAnchorY, size, 0);
+    const auto h_points = run_routine(*h_info, horizontal);
+    EXPECT_EQ(static_cast<int>(h_points.size()), expected_total)
+        << "horizontal _plus23 footprint";
+    for (int i = 0; i < expected_total; ++i) {
+      const int x = kAnchorX + i;
+      EXPECT_TRUE(ContainsPoint(h_points, x, kAnchorY))
+          << "horizontal expects tile at (" << x << "," << kAnchorY << ")";
+    }
+
+    const RoomObject vertical(0x8A, kAnchorX, kAnchorY, size, 0);
+    const auto v_points = run_routine(*v_info, vertical);
+    EXPECT_EQ(static_cast<int>(v_points.size()), expected_total)
+        << "vertical _plus23 footprint";
+    for (int i = 0; i < expected_total; ++i) {
+      const int y = kAnchorY + i;
+      EXPECT_TRUE(ContainsPoint(v_points, kAnchorX, y))
+          << "vertical expects tile at (" << kAnchorX << "," << y << ")";
+    }
+
+    EXPECT_EQ(h_points.size(), v_points.size())
+        << "horizontal/vertical _plus23 spans must match length";
+  }
+}
+
+TEST_F(DrawRoutineMappingTest,
+       DownwardsRailPlus23RepeatsMiddleTileAtEveryInteriorRow) {
+  auto& reg = DrawRoutineRegistry::Get();
+  const DrawRoutineInfo* info =
+      reg.GetRoutineInfo(DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23);
+  ASSERT_NE(info, nullptr);
+
+  const std::vector<gfx::TileInfo> tiles = {
+      MakeTile(0x0200, 0), MakeTile(0x0201, 1), MakeTile(0x0202, 2)};
+  constexpr int kAnchorX = 11;
+  constexpr int kAnchorY = 4;
+
+  for (uint8_t size : {uint8_t{0}, uint8_t{3}, uint8_t{15}}) {
+    SCOPED_TRACE(::testing::Message() << "size=" << static_cast<int>(size));
+    const int middle_count = static_cast<int>(size) + 21;
+    gfx::BackgroundBuffer bg;
+    const RoomObject vertical(0x8A, kAnchorX, kAnchorY, size, 0);
+    DrawContext ctx{bg,
+                    vertical,
+                    std::span<const gfx::TileInfo>(tiles),
+                    /*state=*/nullptr,
+                    rom_.get(),
+                    /*room_id=*/0,
+                    /*room_gfx_buffer=*/nullptr,
+                    /*secondary_bg=*/nullptr};
+    info->function(ctx);
+
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, kAnchorX, kAnchorY), tiles[0].id_);
+    for (int s = 0; s < middle_count; ++s) {
+      EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, kAnchorX, kAnchorY + 1 + s),
+                tiles[1].id_)
+          << "middle row offset=" << s;
+    }
+    EXPECT_EQ(
+        DrawRoutineUtils::TileIdAt(bg, kAnchorX, kAnchorY + 1 + middle_count),
+        tiles[2].id_);
+  }
+}
+
+TEST_F(DrawRoutineMappingTest,
        DownwardsRailPlus3RepeatsMiddleTileAtEveryInteriorRow) {
   auto& reg = DrawRoutineRegistry::Get();
   const DrawRoutineInfo* info =
