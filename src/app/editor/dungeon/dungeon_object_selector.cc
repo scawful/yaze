@@ -27,6 +27,8 @@
 #include "zelda3/dungeon/custom_object.h"  // For CustomObjectManager
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/dungeon_object_registry.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_symbology.h"
 #include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/object_tile_editor.h"
 #include "zelda3/dungeon/room.h"
@@ -108,6 +110,38 @@ void DrawFallbackPreviewTile(ImDrawList* draw_list, ImVec2 top_left,
 
 }  // namespace
 
+std::string DungeonObjectSelector::GetObjectRoutineFamily(int object_id) {
+  return zelda3::GetSymbologyForObject(static_cast<int16_t>(object_id)).family;
+}
+
+void DungeonObjectSelector::DrawRoutineSymbologyBadge(
+    ImDrawList* draw_list, ImVec2 cell_min,
+    const zelda3::DrawRoutineSymbology& symbology, ImU32 accent_color) const {
+  if (symbology.badge.empty()) {
+    return;
+  }
+
+  const auto& theme = AgentUI::GetTheme();
+  const float badge_height = 14.0f;
+  const float badge_width =
+      symbology.badge.size() > 1 ? 22.0f : 14.0f;
+  const ImVec2 badge_min(cell_min.x + 2.0f, cell_min.y + 2.0f);
+  const ImVec2 badge_max(badge_min.x + badge_width, badge_min.y + badge_height);
+
+  const ImU32 fill = symbology.dual_layer
+                         ? ThemeColor(WithAlpha(theme.selection_secondary, 0.92f))
+                         : ThemeColor(WithAlpha(theme.panel_bg_darker, 0.92f));
+  draw_list->AddRectFilled(badge_min, badge_max, fill, 3.0f);
+  draw_list->AddRect(badge_min, badge_max, accent_color, 3.0f);
+
+  const ImVec2 text_size = ImGui::CalcTextSize(symbology.badge.c_str());
+  const ImVec2 text_pos(
+      badge_min.x + (badge_width - text_size.x) * 0.5f,
+      badge_min.y + (badge_height - text_size.y) * 0.5f);
+  draw_list->AddText(text_pos, ThemeColor(theme.text_primary),
+                     symbology.badge.c_str());
+}
+
 bool DungeonObjectSelector::IsRepresentableChestObjectId(int object_id) {
   return object_id == 0xF99 || object_id == 0xF9A || object_id == 0xFB1 ||
          object_id == 0xFB2 || object_id == 0xFF5;
@@ -169,6 +203,12 @@ ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
 }
 
 std::string DungeonObjectSelector::GetObjectTypeSymbol(int object_id) {
+  const zelda3::DrawRoutineSymbology symbology =
+      zelda3::GetSymbologyForObject(static_cast<int16_t>(object_id));
+  if (symbology.family != "Unmapped" && symbology.family != "Unknown") {
+    return symbology.badge;
+  }
+
   // Type 3 objects (0xF80-0xFFF) - Special room features
   if (object_id >= 0xF80) {
     if (IsRepresentableChestObjectId(object_id)) {
@@ -439,6 +479,10 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
         // Draw object preview on the button; fall back to styled placeholder
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
+        const zelda3::DrawRoutineSymbology routine_symbology =
+            zelda3::GetSymbologyForObject(static_cast<int16_t>(obj_id));
+        const ImU32 accent_color = GetObjectTypeColor(obj_id);
+
         // Only attempt graphical preview if enabled (performance optimization)
         bool rendered = false;
         if (item_visible && enable_object_previews_) {
@@ -451,8 +495,13 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
           std::string symbol = GetObjectTypeSymbol(obj_id);
           DrawFallbackPreviewTile(
               draw_list, button_pos, item_size,
-              ImGui::ColorConvertU32ToFloat4(GetObjectTypeColor(obj_id)),
+              ImGui::ColorConvertU32ToFloat4(accent_color),
               symbol.c_str());
+        }
+
+        if (item_visible) {
+          DrawRoutineSymbologyBadge(draw_list, button_pos, routine_symbology,
+                                    accent_color);
         }
 
         // Draw selection border
@@ -514,6 +563,15 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
             int subtype = zelda3::GetObjectSubtype(obj_id);
             ImGui::TextColored(theme.text_secondary_gray, tr("Subtype %d"),
                                subtype);
+            ImGui::TextColored(theme.status_active, tr("Routine family: %s"),
+                               routine_symbology.family.c_str());
+            if (routine_symbology.dual_layer) {
+              ImGui::TextColored(theme.selection_secondary,
+                                 tr("Draws to both BG layers"));
+            } else if (routine_symbology.large_fixed) {
+              ImGui::TextColored(theme.selection_secondary,
+                                 tr("Large fixed footprint"));
+            }
             ImGui::TextColored(
                 rendered ? theme.status_success : theme.status_warning,
                 tr("Preview: %s"),
