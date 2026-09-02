@@ -1,3 +1,20 @@
+// Synthetic replay tests for ObjectDrawer draw routines.
+//
+// IMPORTANT — test tier / what this file does NOT prove:
+//   These tests inject sequential dummy tile IDs (0, 1, 2, …) and assert the
+//   drawer emits tiles at the coordinates/index slots the *current* C++
+//   implementation expects. They are regression guards against accidental drift
+//   in our own code, NOT independent proof of 1:1 visual parity with ALTTP.
+//
+// Stronger parity evidence lives elsewhere:
+//   - room_object_rom_parity_test.cc — parser bytes + drawer placement using
+//     real ROM tile words (skips without YAZE_TEST_ROM_VANILLA).
+//   - dungeon_room_regression_fixtures_test.cc — Mesen2 screenshot ROI baselines
+//     for rooms 0x012 / 0x065 (independent emulator truth).
+//   - z3ed dungeon-object-validate — bounds vs dimension table across all IDs.
+//
+// See docs/internal/plans/dungeon-object-rendering-parity-2026-04.md (Phase D/E).
+
 #include "gtest/gtest.h"
 
 #include <array>
