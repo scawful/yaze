@@ -93,6 +93,13 @@ constexpr int kRoom065YazeRoiX = 368;
 constexpr int kRoom065YazeRoiY = 336;
 constexpr int kRoom065RoiWidth = 32;
 constexpr int kRoom065RoiHeight = 32;
+// TableRock 0xDD at room-tile (41,52) under the same 0x065 Mesen camera as the
+// bombable-floor baselines. Yaze pixels = tile * 8; Mesen crop derived from the
+// established bombable mapping (yaze - (256,273)).
+constexpr int kRoom065TableRockMesenRoiX = 72;
+constexpr int kRoom065TableRockMesenRoiY = 143;
+constexpr int kRoom065TableRockYazeRoiX = 328;
+constexpr int kRoom065TableRockYazeRoiY = 416;
 constexpr uint8_t kRoom065EntranceBlockset = 0x0A;
 
 ::yaze::test::Screenshot CaptureRgbaRegion(const gfx::Bitmap& bitmap, int x,
@@ -566,6 +573,91 @@ TEST_F(DungeonRoomRegressionFixturesTest,
     EXPECT_TRUE(actual.data == expected.data)
         << "Mesen and yaze ROI RGBA bytes must match exactly.";
   }
+#endif
+}
+
+TEST_F(DungeonRoomRegressionFixturesTest,
+       Room065TableRockRoiMatchesIndependentMesenBaseline) {
+#if !defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
+  GTEST_SKIP() << "libpng-backed VisualDiffEngine is unavailable.";
+#else
+  if (rom_.size() < kCanonicalUsRomSize) {
+    GTEST_SKIP() << "Mesen baseline requires the canonical US ROM data.";
+  }
+  const std::string base_sha1 =
+      util::ComputeSha1Hex(rom_.data(), kCanonicalUsRomSize);
+  if (base_sha1 != kCanonicalUsRomSha1) {
+    GTEST_SKIP() << "Mesen baseline was captured from US ROM SHA-1 "
+                 << kCanonicalUsRomSha1 << "; loaded ROM begins with "
+                 << base_sha1 << ".";
+  }
+
+  Room room = LoadRoomFromRom(&rom_, 0x065);
+  room.SetGameData(&game_data_);
+  auto* state = dynamic_cast<EditorDungeonState*>(room.GetDungeonState());
+  ASSERT_NE(state, nullptr);
+  state->SetFloorBombable(0x065, /*bombed=*/false);
+
+  bool saw_table_rock = false;
+  for (const auto& object : room.GetTileObjects()) {
+    if (object.id_ == 0xDD && object.x_ == 41 && object.y_ == 52) {
+      saw_table_rock = true;
+      break;
+    }
+  }
+  ASSERT_TRUE(saw_table_rock)
+      << "Room 0x065 must contain TableRock 0xDD at tile (41,52).";
+
+  room.LoadSprites();
+  room.SetRenderEntranceBlockset(kRoom065EntranceBlockset);
+  room.RenderRoomGraphics();
+
+  RoomLayerManager layer_manager;
+  layer_manager.SetLayerVisible(LayerType::BG2_Layout, false);
+  layer_manager.SetLayerVisible(LayerType::BG2_Objects, false);
+  const auto& upper_composite = room.GetCompositeBitmap(layer_manager);
+  ASSERT_TRUE(upper_composite.is_active());
+  ASSERT_NE(upper_composite.surface(), nullptr);
+  ASSERT_GE(upper_composite.width(),
+            kRoom065TableRockYazeRoiX + kRoom065RoiWidth);
+  ASSERT_GE(upper_composite.height(),
+            kRoom065TableRockYazeRoiY + kRoom065RoiHeight);
+
+  const auto actual = CaptureRgbaRegion(
+      upper_composite, kRoom065TableRockYazeRoiX, kRoom065TableRockYazeRoiY,
+      kRoom065RoiWidth, kRoom065RoiHeight);
+  ASSERT_TRUE(actual.IsValid());
+
+  const std::filesystem::path baseline_path =
+      std::filesystem::path(YAZE_TEST_FIXTURE_DIR) / "visual" / "dungeon" /
+      "vanilla_room_065_mesen_tablerock_32x32.png";
+  auto expected_or =
+      ::yaze::test::VisualDiffEngine::LoadPng(baseline_path.string());
+  ASSERT_TRUE(expected_or.ok())
+      << "Unable to load Mesen TableRock baseline " << baseline_path << ": "
+      << expected_or.status();
+  const auto& expected = *expected_or;
+  ASSERT_EQ(expected.width, kRoom065RoiWidth);
+  ASSERT_EQ(expected.height, kRoom065RoiHeight);
+
+  ::yaze::test::VisualDiffConfig config;
+  config.tolerance = 1.0f;
+  config.color_threshold = 0;
+  config.generate_diff_image = false;
+  config.algorithm = ::yaze::test::VisualDiffConfig::Algorithm::kPixelExact;
+  ::yaze::test::VisualDiffEngine diff_engine(config);
+  const auto result = diff_engine.CompareScreenshots(actual, expected);
+
+  EXPECT_TRUE(result.identical)
+      << "Yaze room 0x065 TableRock ROI (" << kRoom065TableRockYazeRoiX << ","
+      << kRoom065TableRockYazeRoiY << ") differs from the Mesen screen ROI ("
+      << kRoom065TableRockMesenRoiX << "," << kRoom065TableRockMesenRoiY
+      << "): " << result.Format();
+  EXPECT_TRUE(result.passed) << result.Format();
+  EXPECT_EQ(result.differing_pixels, 0);
+  EXPECT_EQ(result.total_pixels, kRoom065RoiWidth * kRoom065RoiHeight);
+  EXPECT_TRUE(actual.data == expected.data)
+      << "Mesen and yaze TableRock ROI RGBA bytes must match exactly.";
 #endif
 }
 

@@ -74,6 +74,24 @@ fixture.
   - bombed:
     `46d548d067527a78e409008c7ef1b06d38d1082410438a7a7e38e6918451acee`
 
+## `vanilla_room_065_mesen_tablerock_32x32.png`
+
+- Captured: 2026-09-08, Mesen2 OOS, headless on macOS arm64, using the same
+  room `0x065` intact bootstrap, PAR set, entrance `0x34`, and BG1-only PPU
+  setup as the bombable-floor pair above.
+- Object: subtype-1 `0xDD` (TableRock 4x4), room-tile origin `(41,52)`, size
+  nibble `4`.
+- Mesen source screenshot: 256x224; crop `(x=72, y=143, w=32, h=32)`.
+- Corresponding yaze 512x512 room crop: `(x=328, y=416, w=32, h=32)`.
+- Coordinate derivation: same camera as bombable floor, so
+  `mesen = yaze_room_px - (256, 273)`. Verified by relocating the committed
+  bombable intact crop inside the fresh full frame before cutting TableRock.
+- Fixture SHA-256:
+  `4d09ab115a859f5afc6cf159501f9323beb1244474d60b8c2be93cfded3f4c1c`.
+
+This is the first independent Mesen ROI for a visual-parity gap object family
+(TableRock). Rails, BigHole, water overlays, and doors remain uncovered.
+
 The regression test explicitly selects the intact/bombed preview through
 `EditorDungeonState::SetFloorBombable`. It removes room-object list 1 from its
 test-local room copy before rendering: Mesen's fixture exposes only the upper
@@ -237,8 +255,8 @@ they do **not** replace Mesen ROI baselines for these families.
 | BigHole 4x4 | `0xA4` | `0x017`, `0x01C`, `0x054`, `0x097` | 24 rooms / 62 placements |
 | Water overlay A | `0xD8` | `0x076` | Only 1 vanilla room |
 | Water overlay B | `0xDA` | `0x035`, `0x037` | 2 rooms |
-| TableRock 4x4 | `0xDD` | `0x065`, `0x02F`, `0x080` | 38 rooms; `0x065` already has bombable-floor Mesen ROIs (different object) |
-| Door-heavy | (doors) | `0x024`, `0x0B2`, `0x0BC`, `0x0C1`, `0x0C2` | ≥8 door records; still needs usdasm door-draw audit |
+| TableRock 4x4 | `0xDD` | `0x065`, `0x02F`, `0x080` | 38 rooms; **`0x065` now has a committed Mesen ROI** at tile `(41,52)` |
 
-Suggested first captures: room `0x007` (both long rails), `0x076` (unique `0xD8`),
-and a BigHole crop in `0x054` or `0x017`. Doors remain unproven at Tier 4.
+Suggested next captures: room `0x007` (both long rails; needs camera PAR beyond
+room-id override), `0x076` (unique `0xD8`), and a BigHole crop in `0x054` or
+`0x017`. Doors remain unproven at Tier 4.
