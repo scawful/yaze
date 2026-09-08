@@ -8,25 +8,53 @@
 # Tier 5 — z3ed bounds audit: dungeon-object-validate mismatch report.
 #
 # Usage:
-#   YAZE_TEST_ROM_VANILLA=/path/to/alttp.sfc scripts/agents/audit-dungeon-visual-parity.sh
+#   YAZE_TEST_ROM_VANILLA=$PWD/roms/zelda3.sfc scripts/agents/audit-dungeon-visual-parity.sh
 #   scripts/agents/audit-dungeon-visual-parity.sh --with-validate-report /tmp/report.json
+#
+# Canonical US ROM SHA-1 (1 MiB): 6d4f10a8b10e10dbe624cb23cf03b88bb8252973
+# Prefer roms/zelda3.sfc, or padded alttp_vanilla.sfc whose first 1 MiB matches.
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-BUILD_DIR="${YAZE_BUILD_DIR:-$ROOT/build/presets/lin-test}"
-UNIT_BIN="$BUILD_DIR/bin/Debug/yaze_test_unit"
-INTEG_BIN="$BUILD_DIR/bin/Debug/yaze_test_integration"
-Z3ED_BIN="$BUILD_DIR/bin/Debug/z3ed"
+# Prefer mac-ai on Darwin; cloud/linux agents use lin-test (Debug layout).
+if [[ -z "${YAZE_BUILD_DIR:-}" ]]; then
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    BUILD_DIR="$ROOT/build/presets/mac-ai"
+  else
+    BUILD_DIR="$ROOT/build/presets/lin-test"
+  fi
+else
+  BUILD_DIR="$YAZE_BUILD_DIR"
+fi
 REPORT_PATH=""
+
+resolve_bins() {
+  # Prefer multi-config Debug outputs (mac-ai Xcode/Ninja multi-config), then
+  # single-config bin/test (some Linux presets).
+  if [[ -x "$BUILD_DIR/bin/Debug/yaze_test_unit" ]]; then
+    UNIT_BIN="$BUILD_DIR/bin/Debug/yaze_test_unit"
+    INTEG_BIN="$BUILD_DIR/bin/Debug/yaze_test_integration"
+  elif [[ -x "$BUILD_DIR/bin/test/yaze_test_unit" ]]; then
+    UNIT_BIN="$BUILD_DIR/bin/test/yaze_test_unit"
+    INTEG_BIN="$BUILD_DIR/bin/test/yaze_test_integration"
+  else
+    UNIT_BIN="$BUILD_DIR/bin/Debug/yaze_test_unit"
+    INTEG_BIN="$BUILD_DIR/bin/Debug/yaze_test_integration"
+  fi
+  if [[ -x "$BUILD_DIR/bin/Debug/z3ed" ]]; then
+    Z3ED_BIN="$BUILD_DIR/bin/Debug/z3ed"
+  elif [[ -x "$BUILD_DIR/bin/z3ed" ]]; then
+    Z3ED_BIN="$BUILD_DIR/bin/z3ed"
+  else
+    Z3ED_BIN="$BUILD_DIR/bin/Debug/z3ed"
+  fi
+}
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --build-dir)
       BUILD_DIR="$2"
-      UNIT_BIN="$BUILD_DIR/bin/Debug/yaze_test_unit"
-      INTEG_BIN="$BUILD_DIR/bin/Debug/yaze_test_integration"
-      Z3ED_BIN="$BUILD_DIR/bin/Debug/z3ed"
       shift 2
       ;;
     --with-validate-report)
@@ -43,6 +71,8 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+resolve_bins
 
 echo "== Tier 1: synthetic replay + mapping (no ROM) =="
 cmake --build "$BUILD_DIR" --target yaze_test_unit --parallel 4
