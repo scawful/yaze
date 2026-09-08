@@ -112,6 +112,30 @@ bombable/TableRock path: BG1-only upper composite + exact RGBA.
 Independent Mesen ROIs now cover TableRock (`0xDD`) and BigHole (`0xA4`).
 Rails, water overlays, and doors remain uncovered.
 
+## `vanilla_room_007_mesen_hrail_32x16.png` /
+## `vanilla_room_007_mesen_vrail_16x32.png`
+
+- Captured: 2026-09-08, Mesen2 OOS, headless on macOS arm64.
+- Room: `0x007` (Tower of Hera / Moldorm), entrance override `0x34`, blockset
+  `0x05` (room header / Hera).
+- Bootstrap: same room-id + camera-bounds PAR pattern as room `0x065`, then
+  **runtime pan** (do not change entrance camera-bound table bytes — that warps
+  into room `0x017`):
+  - Link Y/X `$7E0020/$7E0022 = 40 0C / 20 0A` → `(0x0A20, 0x0C40)`
+  - Camera mirrors nudged toward upper-left; settle ~30 frames
+  - BG1-only PPU setup (`$2107=03`, main-screen `01 00`, color-math clear)
+- Objects:
+  - H-rail subtype-1 `0x5F` @ tile `(20,14)` → yaze `(160,112)` / Mesen
+    `(160,79)` crop `32x16`
+  - V-rail subtype-1 `0x8A` @ tile `(14,20)` → yaze `(112,160)` / Mesen
+    `(112,127)` crop `16x32`
+- Fixture SHA-256:
+  - hrail: `7bd914ae06db7ed2ea8cdfc28459cd70d1b132288c60d9660a20c651325b2949`
+  - vrail: `5c0df7ec7aad9f5cf7f84fb5a791cd8c3a3675df49517b7fd2d9db02d44cad46`
+
+Independent Mesen ROIs now cover TableRock (`0xDD`), BigHole (`0xA4`), and long
+rails (`0x5F`/`0x8A`). Water overlays and doors remain uncovered.
+
 The regression test explicitly selects the intact/bombed preview through
 `EditorDungeonState::SetFloorBombable`. It removes room-object list 1 from its
 test-local room copy before rendering: Mesen's fixture exposes only the upper
@@ -270,14 +294,13 @@ they do **not** replace Mesen ROI baselines for these families.
 
 | Object | ID | Priority rooms (examples) | Notes |
 |--------|----|---------------------------|-------|
-| Long horizontal rail (`_plus23`) | `0x5F` | `0x007`, `0x02A`, `0x07D`, `0x0C2` | 9 rooms / 12 placements |
-| Long vertical rail (`_plus23`) | `0x8A` | `0x007`, `0x03A`, `0x081`, `0x0C2` | 14 rooms / 25 placements; `0x007` and `0x0C2` have both H+V |
+| Long horizontal rail (`_plus23`) | `0x5F` | `0x007`, `0x02A`, `0x07D`, `0x0C2` | **`0x007` tile `(20,14)` has a committed Mesen ROI** |
+| Long vertical rail (`_plus23`) | `0x8A` | `0x007`, `0x03A`, `0x081`, `0x0C2` | **`0x007` tile `(14,20)` has a committed Mesen ROI** |
 | BigHole 4x4 | `0xA4` | `0x031`, `0x017`, `0x054`, `0x09B` | 24 rooms; **`0x031` tile `(44,44)` has a committed Mesen ROI** |
 | Water overlay A | `0xD8` | `0x076` | Only 1 vanilla room (BG2 layer — needs non-BG1-only capture) |
 | Water overlay B | `0xDA` | `0x035`, `0x037` | 2 rooms |
 | TableRock 4x4 | `0xDD` | `0x065`, `0x02F`, `0x080` | 38 rooms; **`0x065` has a committed Mesen ROI** at tile `(41,52)` |
 | Door-heavy | (doors) | `0x024`, `0x0B2`, `0x0BC`, `0x0C1`, `0x0C2` | ≥8 door records; still needs usdasm door-draw audit |
 
-Suggested next captures: room `0x007` long rails (needs Hera blockset + upper-left
-camera PAR; no rail tiles fall inside the proven `0x065` viewport), water
-`0x076`/`0x035` (BG2), and door-heavy rooms.
+Suggested next captures: water `0x076`/`0x035` (BG2 — not BG1-only), and
+door-heavy rooms. Long rails in `0x007` are covered.

@@ -107,6 +107,22 @@ constexpr int kRoom031BigHoleMesenRoiX = 96;
 constexpr int kRoom031BigHoleMesenRoiY = 79;
 constexpr int kRoom031BigHoleYazeRoiX = 352;
 constexpr int kRoom031BigHoleYazeRoiY = 352;
+// Room 0x007 long rails captured after a stable entrance-0x34 / room-id
+// override load (blockset 0x05), then runtime Link/camera pan to upper-left.
+// H rail 0x5F @ tile (20,14); V rail 0x8A @ tile (14,20).
+constexpr uint8_t kRoom007EntranceBlockset = 0x05;
+constexpr int kRoom007HRailMesenRoiX = 160;
+constexpr int kRoom007HRailMesenRoiY = 79;
+constexpr int kRoom007HRailYazeRoiX = 160;
+constexpr int kRoom007HRailYazeRoiY = 112;
+constexpr int kRoom007HRailRoiWidth = 32;
+constexpr int kRoom007HRailRoiHeight = 16;
+constexpr int kRoom007VRailMesenRoiX = 112;
+constexpr int kRoom007VRailMesenRoiY = 127;
+constexpr int kRoom007VRailYazeRoiX = 112;
+constexpr int kRoom007VRailYazeRoiY = 160;
+constexpr int kRoom007VRailRoiWidth = 16;
+constexpr int kRoom007VRailRoiHeight = 32;
 
 ::yaze::test::Screenshot CaptureRgbaRegion(const gfx::Bitmap& bitmap, int x,
                                            int y, int width, int height) {
@@ -206,6 +222,65 @@ class DungeonRoomRegressionFixturesTest : public ::testing::Test {
   Rom rom_;
   GameData game_data_;
 };
+
+TEST_F(DungeonRoomRegressionFixturesTest, DumpBg1OnlyRoomRoiForCapture) {
+  // Manual capture helper: YAZE_DUMP_BG1_ROI=1 YAZE_DUMP_ROOM=0x7 \
+  // YAZE_DUMP_BLOCKSET=0x5 YAZE_DUMP_OUT=/tmp/yaze_bg1.png \
+  // YAZE_DUMP_X=112 YAZE_DUMP_Y=160 YAZE_DUMP_W=16 YAZE_DUMP_H=32
+#if !defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
+  GTEST_SKIP() << "libpng-backed VisualDiffEngine is unavailable.";
+#else
+  if (std::getenv("YAZE_DUMP_BG1_ROI") == nullptr) {
+    GTEST_SKIP() << "Set YAZE_DUMP_BG1_ROI=1 to dump a BG1-only room ROI.";
+  }
+  const char* room_env = std::getenv("YAZE_DUMP_ROOM");
+  const char* out_env = std::getenv("YAZE_DUMP_OUT");
+  ASSERT_NE(room_env, nullptr);
+  ASSERT_NE(out_env, nullptr);
+  const int room_id = static_cast<int>(std::strtol(room_env, nullptr, 0));
+  const int blockset = static_cast<int>(std::strtol(
+      std::getenv("YAZE_DUMP_BLOCKSET") ? std::getenv("YAZE_DUMP_BLOCKSET")
+                                        : "0xFF",
+      nullptr, 0));
+  const int x = static_cast<int>(
+      std::strtol(std::getenv("YAZE_DUMP_X") ? std::getenv("YAZE_DUMP_X") : "0",
+                  nullptr, 0));
+  const int y = static_cast<int>(
+      std::strtol(std::getenv("YAZE_DUMP_Y") ? std::getenv("YAZE_DUMP_Y") : "0",
+                  nullptr, 0));
+  const int w = static_cast<int>(std::strtol(
+      std::getenv("YAZE_DUMP_W") ? std::getenv("YAZE_DUMP_W") : "32", nullptr,
+      0));
+  const int h = static_cast<int>(std::strtol(
+      std::getenv("YAZE_DUMP_H") ? std::getenv("YAZE_DUMP_H") : "32", nullptr,
+      0));
+
+  Room room = LoadRoomFromRom(&rom_, room_id);
+  room.SetGameData(&game_data_);
+  room.LoadSprites();
+  if (blockset != 0xFF) {
+    room.SetRenderEntranceBlockset(static_cast<uint8_t>(blockset));
+  }
+  room.RenderRoomGraphics();
+
+  RoomLayerManager layer_manager;
+  layer_manager.SetLayerVisible(LayerType::BG2_Layout, false);
+  layer_manager.SetLayerVisible(LayerType::BG2_Objects, false);
+  const auto& upper = room.GetCompositeBitmap(layer_manager);
+  ASSERT_TRUE(upper.is_active());
+  ASSERT_NE(upper.surface(), nullptr);
+  ASSERT_GE(upper.width(), x + w);
+  ASSERT_GE(upper.height(), y + h);
+
+  const auto shot = CaptureRgbaRegion(upper, x, y, w, h);
+  ASSERT_TRUE(shot.IsValid());
+  ASSERT_TRUE(::yaze::test::VisualDiffEngine::SavePng(shot, out_env).ok())
+      << "Failed to write " << out_env;
+  std::cout << "Wrote BG1 ROI room=0x" << std::hex << room_id << std::dec
+            << " blockset=0x" << std::hex << blockset << std::dec << " (" << x
+            << "," << y << "," << w << "," << h << ") -> " << out_env << "\n";
+#endif
+}
 
 TEST_F(DungeonRoomRegressionFixturesTest, ScanAllRoomsForFixtureCandidates) {
   if (std::getenv("YAZE_SCAN_DUNGEON_ROOMS") == nullptr) {
@@ -747,6 +822,113 @@ TEST_F(DungeonRoomRegressionFixturesTest,
   EXPECT_EQ(result.total_pixels, kRoom065RoiWidth * kRoom065RoiHeight);
   EXPECT_TRUE(actual.data == expected.data)
       << "Mesen and yaze BigHole ROI RGBA bytes must match exactly.";
+#endif
+}
+
+TEST_F(DungeonRoomRegressionFixturesTest,
+       Room007LongRailRoisMatchIndependentMesenBaselines) {
+#if !defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
+  GTEST_SKIP() << "libpng-backed VisualDiffEngine is unavailable.";
+#else
+  if (rom_.size() < kCanonicalUsRomSize) {
+    GTEST_SKIP() << "Mesen baselines require the canonical US ROM data.";
+  }
+  const std::string base_sha1 =
+      util::ComputeSha1Hex(rom_.data(), kCanonicalUsRomSize);
+  if (base_sha1 != kCanonicalUsRomSha1) {
+    GTEST_SKIP() << "Mesen baselines were captured from US ROM SHA-1 "
+                 << kCanonicalUsRomSha1 << "; loaded ROM begins with "
+                 << base_sha1 << ".";
+  }
+
+  Room room = LoadRoomFromRom(&rom_, 0x007);
+  room.SetGameData(&game_data_);
+
+  bool saw_h_rail = false;
+  bool saw_v_rail = false;
+  for (const auto& object : room.GetTileObjects()) {
+    if (object.id_ == 0x5F && object.x_ == 20 && object.y_ == 14) {
+      saw_h_rail = true;
+    }
+    if (object.id_ == 0x8A && object.x_ == 14 && object.y_ == 20) {
+      saw_v_rail = true;
+    }
+  }
+  ASSERT_TRUE(saw_h_rail) << "Room 0x007 must contain H-rail 0x5F at (20,14).";
+  ASSERT_TRUE(saw_v_rail) << "Room 0x007 must contain V-rail 0x8A at (14,20).";
+
+  room.LoadSprites();
+  room.SetRenderEntranceBlockset(kRoom007EntranceBlockset);
+  room.RenderRoomGraphics();
+
+  RoomLayerManager layer_manager;
+  layer_manager.SetLayerVisible(LayerType::BG2_Layout, false);
+  layer_manager.SetLayerVisible(LayerType::BG2_Objects, false);
+  const auto& upper_composite = room.GetCompositeBitmap(layer_manager);
+  ASSERT_TRUE(upper_composite.is_active());
+  ASSERT_NE(upper_composite.surface(), nullptr);
+
+  struct RailCase {
+    const char* name;
+    int yaze_x;
+    int yaze_y;
+    int mesen_x;
+    int mesen_y;
+    int width;
+    int height;
+    const char* fixture_name;
+  };
+  constexpr RailCase kCases[] = {
+      {"HRail_0x5F", kRoom007HRailYazeRoiX, kRoom007HRailYazeRoiY,
+       kRoom007HRailMesenRoiX, kRoom007HRailMesenRoiY, kRoom007HRailRoiWidth,
+       kRoom007HRailRoiHeight, "vanilla_room_007_mesen_hrail_32x16.png"},
+      {"VRail_0x8A", kRoom007VRailYazeRoiX, kRoom007VRailYazeRoiY,
+       kRoom007VRailMesenRoiX, kRoom007VRailMesenRoiY, kRoom007VRailRoiWidth,
+       kRoom007VRailRoiHeight, "vanilla_room_007_mesen_vrail_16x32.png"},
+  };
+
+  for (const auto& test_case : kCases) {
+    SCOPED_TRACE(test_case.name);
+    ASSERT_GE(upper_composite.width(), test_case.yaze_x + test_case.width);
+    ASSERT_GE(upper_composite.height(), test_case.yaze_y + test_case.height);
+
+    const auto actual =
+        CaptureRgbaRegion(upper_composite, test_case.yaze_x, test_case.yaze_y,
+                          test_case.width, test_case.height);
+    ASSERT_TRUE(actual.IsValid());
+
+    const std::filesystem::path baseline_path =
+        std::filesystem::path(YAZE_TEST_FIXTURE_DIR) / "visual" / "dungeon" /
+        test_case.fixture_name;
+    auto expected_or =
+        ::yaze::test::VisualDiffEngine::LoadPng(baseline_path.string());
+    ASSERT_TRUE(expected_or.ok())
+        << "Unable to load Mesen rail baseline " << baseline_path << ": "
+        << expected_or.status();
+    const auto& expected = *expected_or;
+    ASSERT_EQ(expected.width, test_case.width);
+    ASSERT_EQ(expected.height, test_case.height);
+
+    ::yaze::test::VisualDiffConfig config;
+    config.tolerance = 1.0f;
+    config.color_threshold = 0;
+    config.generate_diff_image = false;
+    config.algorithm = ::yaze::test::VisualDiffConfig::Algorithm::kPixelExact;
+    ::yaze::test::VisualDiffEngine diff_engine(config);
+    const auto result = diff_engine.CompareScreenshots(actual, expected);
+
+    EXPECT_TRUE(result.identical)
+        << "Yaze room 0x007 " << test_case.name << " ROI (" << test_case.yaze_x
+        << "," << test_case.yaze_y << ") differs from the Mesen screen ROI ("
+        << test_case.mesen_x << "," << test_case.mesen_y
+        << "): " << result.Format();
+    EXPECT_TRUE(result.passed) << result.Format();
+    EXPECT_EQ(result.differing_pixels, 0);
+    EXPECT_EQ(result.total_pixels, test_case.width * test_case.height);
+    EXPECT_TRUE(actual.data == expected.data)
+        << "Mesen and yaze " << test_case.name
+        << " ROI RGBA bytes must match exactly.";
+  }
 #endif
 }
 
