@@ -101,6 +101,12 @@ constexpr int kRoom065TableRockMesenRoiY = 143;
 constexpr int kRoom065TableRockYazeRoiX = 328;
 constexpr int kRoom065TableRockYazeRoiY = 416;
 constexpr uint8_t kRoom065EntranceBlockset = 0x0A;
+// BigHole 0xA4 at room-tile (44,44) in room 0x031, captured with the same
+// entrance-0x34 / camera PAR / BG1-only setup as room 0x065 (blockset 0x0A).
+constexpr int kRoom031BigHoleMesenRoiX = 96;
+constexpr int kRoom031BigHoleMesenRoiY = 79;
+constexpr int kRoom031BigHoleYazeRoiX = 352;
+constexpr int kRoom031BigHoleYazeRoiY = 352;
 
 ::yaze::test::Screenshot CaptureRgbaRegion(const gfx::Bitmap& bitmap, int x,
                                            int y, int width, int height) {
@@ -658,6 +664,89 @@ TEST_F(DungeonRoomRegressionFixturesTest,
   EXPECT_EQ(result.total_pixels, kRoom065RoiWidth * kRoom065RoiHeight);
   EXPECT_TRUE(actual.data == expected.data)
       << "Mesen and yaze TableRock ROI RGBA bytes must match exactly.";
+#endif
+}
+
+TEST_F(DungeonRoomRegressionFixturesTest,
+       Room031BigHoleRoiMatchesIndependentMesenBaseline) {
+#if !defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
+  GTEST_SKIP() << "libpng-backed VisualDiffEngine is unavailable.";
+#else
+  if (rom_.size() < kCanonicalUsRomSize) {
+    GTEST_SKIP() << "Mesen baseline requires the canonical US ROM data.";
+  }
+  const std::string base_sha1 =
+      util::ComputeSha1Hex(rom_.data(), kCanonicalUsRomSize);
+  if (base_sha1 != kCanonicalUsRomSha1) {
+    GTEST_SKIP() << "Mesen baseline was captured from US ROM SHA-1 "
+                 << kCanonicalUsRomSha1 << "; loaded ROM begins with "
+                 << base_sha1 << ".";
+  }
+
+  Room room = LoadRoomFromRom(&rom_, 0x031);
+  room.SetGameData(&game_data_);
+
+  bool saw_big_hole = false;
+  for (const auto& object : room.GetTileObjects()) {
+    if (object.id_ == 0xA4 && object.x_ == 44 && object.y_ == 44) {
+      saw_big_hole = true;
+      break;
+    }
+  }
+  ASSERT_TRUE(saw_big_hole)
+      << "Room 0x031 must contain BigHole 0xA4 at tile (44,44).";
+
+  room.LoadSprites();
+  // Match the entrance-0x34 blockset used during the Mesen capture.
+  room.SetRenderEntranceBlockset(kRoom065EntranceBlockset);
+  room.RenderRoomGraphics();
+
+  RoomLayerManager layer_manager;
+  layer_manager.SetLayerVisible(LayerType::BG2_Layout, false);
+  layer_manager.SetLayerVisible(LayerType::BG2_Objects, false);
+  const auto& upper_composite = room.GetCompositeBitmap(layer_manager);
+  ASSERT_TRUE(upper_composite.is_active());
+  ASSERT_NE(upper_composite.surface(), nullptr);
+  ASSERT_GE(upper_composite.width(),
+            kRoom031BigHoleYazeRoiX + kRoom065RoiWidth);
+  ASSERT_GE(upper_composite.height(),
+            kRoom031BigHoleYazeRoiY + kRoom065RoiHeight);
+
+  const auto actual = CaptureRgbaRegion(
+      upper_composite, kRoom031BigHoleYazeRoiX, kRoom031BigHoleYazeRoiY,
+      kRoom065RoiWidth, kRoom065RoiHeight);
+  ASSERT_TRUE(actual.IsValid());
+
+  const std::filesystem::path baseline_path =
+      std::filesystem::path(YAZE_TEST_FIXTURE_DIR) / "visual" / "dungeon" /
+      "vanilla_room_031_mesen_bighole_32x32.png";
+  auto expected_or =
+      ::yaze::test::VisualDiffEngine::LoadPng(baseline_path.string());
+  ASSERT_TRUE(expected_or.ok())
+      << "Unable to load Mesen BigHole baseline " << baseline_path << ": "
+      << expected_or.status();
+  const auto& expected = *expected_or;
+  ASSERT_EQ(expected.width, kRoom065RoiWidth);
+  ASSERT_EQ(expected.height, kRoom065RoiHeight);
+
+  ::yaze::test::VisualDiffConfig config;
+  config.tolerance = 1.0f;
+  config.color_threshold = 0;
+  config.generate_diff_image = false;
+  config.algorithm = ::yaze::test::VisualDiffConfig::Algorithm::kPixelExact;
+  ::yaze::test::VisualDiffEngine diff_engine(config);
+  const auto result = diff_engine.CompareScreenshots(actual, expected);
+
+  EXPECT_TRUE(result.identical)
+      << "Yaze room 0x031 BigHole ROI (" << kRoom031BigHoleYazeRoiX << ","
+      << kRoom031BigHoleYazeRoiY << ") differs from the Mesen screen ROI ("
+      << kRoom031BigHoleMesenRoiX << "," << kRoom031BigHoleMesenRoiY
+      << "): " << result.Format();
+  EXPECT_TRUE(result.passed) << result.Format();
+  EXPECT_EQ(result.differing_pixels, 0);
+  EXPECT_EQ(result.total_pixels, kRoom065RoiWidth * kRoom065RoiHeight);
+  EXPECT_TRUE(actual.data == expected.data)
+      << "Mesen and yaze BigHole ROI RGBA bytes must match exactly.";
 #endif
 }
 
