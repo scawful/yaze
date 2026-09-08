@@ -222,3 +222,23 @@ the documented BG1-only PPU setup. Confirm that a fresh pair of full frames
 differs only inside the documented ROI before replacing either crop.
 
 ROM images, save states, and full-frame captures must not be committed.
+
+## Candidate rooms for next independent Mesen ROIs
+
+Scanned 2026-09-08 against canonical US ROM via `scripts/analyze_room.py --all
+--json`. These are vanilla placements of the visual-parity gap object IDs.
+Synthetic replay / Tier-2 ROM tile checks cover draw order and tile indices;
+they do **not** replace Mesen ROI baselines for these families.
+
+| Object | ID | Priority rooms (examples) | Notes |
+|--------|----|---------------------------|-------|
+| Long horizontal rail (`_plus23`) | `0x5F` | `0x007`, `0x02A`, `0x07D`, `0x0C2` | 9 rooms / 12 placements |
+| Long vertical rail (`_plus23`) | `0x8A` | `0x007`, `0x03A`, `0x081`, `0x0C2` | 14 rooms / 25 placements; `0x007` and `0x0C2` have both H+V |
+| BigHole 4x4 | `0xA4` | `0x017`, `0x01C`, `0x054`, `0x097` | 24 rooms / 62 placements |
+| Water overlay A | `0xD8` | `0x076` | Only 1 vanilla room |
+| Water overlay B | `0xDA` | `0x035`, `0x037` | 2 rooms |
+| TableRock 4x4 | `0xDD` | `0x065`, `0x02F`, `0x080` | 38 rooms; `0x065` already has bombable-floor Mesen ROIs (different object) |
+| Door-heavy | (doors) | `0x024`, `0x0B2`, `0x0BC`, `0x0C1`, `0x0C2` | ≥8 door records; still needs usdasm door-draw audit |
+
+Suggested first captures: room `0x007` (both long rails), `0x076` (unique `0xD8`),
+and a BigHole crop in `0x054` or `0x017`. Doors remain unproven at Tier 4.
