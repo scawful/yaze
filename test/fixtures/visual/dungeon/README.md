@@ -92,6 +92,26 @@ fixture.
 This is the first independent Mesen ROI for a visual-parity gap object family
 (TableRock). Rails, BigHole, water overlays, and doors remain uncovered.
 
+## `vanilla_room_031_mesen_bighole_32x32.png`
+
+- Captured: 2026-09-08, Mesen2 OOS, headless on macOS arm64, using the same
+  entrance `0x34` / camera PAR / BG1-only PPU setup as room `0x065`, with only
+  the room-id override changed to `0x031`.
+- Object: subtype-1 `0xA4` (BigHole 4x4), room-tile origin `(44,44)`, size
+  nibble `0`.
+- Mesen source screenshot: 256x224; crop `(x=96, y=79, w=32, h=32)`.
+- Corresponding yaze 512x512 room crop: `(x=352, y=352, w=32, h=32)`.
+- Entrance blockset during capture: `0x0A` (same as the `0x065` baselines).
+- Fixture SHA-256:
+  `328aedac96a86aea5ca3d08438451651e9fe0e3e443e4e04c7261ef7ac236196`.
+
+`dungeon-render` full composites are **not** sufficient to validate this ROI —
+BG2/layout compositing can hide the hole. The regression test mirrors the
+bombable/TableRock path: BG1-only upper composite + exact RGBA.
+
+Independent Mesen ROIs now cover TableRock (`0xDD`) and BigHole (`0xA4`).
+Rails, water overlays, and doors remain uncovered.
+
 The regression test explicitly selects the intact/bombed preview through
 `EditorDungeonState::SetFloorBombable`. It removes room-object list 1 from its
 test-local room copy before rendering: Mesen's fixture exposes only the upper
@@ -252,11 +272,12 @@ they do **not** replace Mesen ROI baselines for these families.
 |--------|----|---------------------------|-------|
 | Long horizontal rail (`_plus23`) | `0x5F` | `0x007`, `0x02A`, `0x07D`, `0x0C2` | 9 rooms / 12 placements |
 | Long vertical rail (`_plus23`) | `0x8A` | `0x007`, `0x03A`, `0x081`, `0x0C2` | 14 rooms / 25 placements; `0x007` and `0x0C2` have both H+V |
-| BigHole 4x4 | `0xA4` | `0x017`, `0x01C`, `0x054`, `0x097` | 24 rooms / 62 placements |
-| Water overlay A | `0xD8` | `0x076` | Only 1 vanilla room |
+| BigHole 4x4 | `0xA4` | `0x031`, `0x017`, `0x054`, `0x09B` | 24 rooms; **`0x031` tile `(44,44)` has a committed Mesen ROI** |
+| Water overlay A | `0xD8` | `0x076` | Only 1 vanilla room (BG2 layer — needs non-BG1-only capture) |
 | Water overlay B | `0xDA` | `0x035`, `0x037` | 2 rooms |
-| TableRock 4x4 | `0xDD` | `0x065`, `0x02F`, `0x080` | 38 rooms; **`0x065` now has a committed Mesen ROI** at tile `(41,52)` |
+| TableRock 4x4 | `0xDD` | `0x065`, `0x02F`, `0x080` | 38 rooms; **`0x065` has a committed Mesen ROI** at tile `(41,52)` |
+| Door-heavy | (doors) | `0x024`, `0x0B2`, `0x0BC`, `0x0C1`, `0x0C2` | ≥8 door records; still needs usdasm door-draw audit |
 
-Suggested next captures: room `0x007` (both long rails; needs camera PAR beyond
-room-id override), `0x076` (unique `0xD8`), and a BigHole crop in `0x054` or
-`0x017`. Doors remain unproven at Tier 4.
+Suggested next captures: room `0x007` long rails (needs Hera blockset + upper-left
+camera PAR; no rail tiles fall inside the proven `0x065` viewport), water
+`0x076`/`0x035` (BG2), and door-heavy rooms.
