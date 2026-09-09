@@ -3,8 +3,8 @@
 Status: ACTIVE  
 Owner: zelda3-hacking-expert  
 Created: 2025-12-06  
-Last Reviewed: 2026-02-17
-Next Review: 2026-03-03  
+Last Reviewed: 2026-09-09
+Next Review: 2026-12-09
 Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optional: `docs/internal/agents/coordination-board.generated.md`)
 
 ## Scope
@@ -16,11 +16,12 @@ Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optio
 - `LoadAndBuildRoom` (`assets/asm/usdasm/bank_01.asm:$01873A`):
   1) `LoadRoomHeader` ($01B564) pulls header bits: blockset/light bits to `$0414`, layer type bits to `$046C`, merge/effect bits to `$063C-$063F/$0640`, palette/spriteset/tag bytes immediately after.
   2) `RoomDraw_DrawFloors` ($0189DC): uses the first room word. High nibble → `$0490` (BG2 floor set), low nibble → `$046A` (BG1 floor set). Draws 4×4 quadrant “super squares” through `RoomDraw_FloorChunks`, targeting BG2 pointers first then BG1 pointers.
-  3) Layout pointer: reads the next byte at `$B7+BA` into `$040E`, converts to a 3-byte pointer via `RoomLayoutPointers`, resets `BA=0`, and runs `RoomDraw_DrawAllObjects` on that layout list (this is the template layer; it should stay underneath everything else).
-  4) Primary room objects: restores the room’s object pointer (`RoomData_ObjectDataPointers`) and runs `RoomDraw_DrawAllObjects` again (BA now points past the layout byte).
+  3) Layout pointer: reads the next byte at `$B7+BA` into `$040E`, converts to a 3-byte pointer via `RoomLayoutPointers`, resets `BA=0`, restores `RoomData_TilemapPointers_upper_layer`, and runs `RoomDraw_DrawAllObjects` on that layout list (this is the upper/BG1 template layer; it should stay underneath later upper objects).
+  4) Primary room objects: restores the room’s object pointer (`RoomData_ObjectDataPointers`) and runs `RoomDraw_DrawAllObjects` again against the upper/BG1 tilemap pointers (BA now points past the layout byte).
   5) BG2 overlay list: skips the `0xFFFF` sentinel (`INC BA` twice), reloads pointer tables with `RoomData_TilemapPointers_lower_layer`, and draws a third object list to BG2.
   6) BG1 overlay list: skips the next `0xFFFF`, reloads pointer tables with `RoomData_TilemapPointers_upper_layer`, and draws the final object list to BG1.
-  7) Pushable blocks (`$7EF940`) and torches (`$7EFB40`) are drawn after the four passes. Both use stored bit 13 to select upper/BG1 or lower/BG2: their draw routines mask the encoded word with `AND #$3FFF`, retaining bit 13 in the offset from the installed upper/BG1 tilemap base. Pushable-block bit 14 controls behavior/pit checks; torch bit 14 is reserved and bit 15 selects the initially lit art.
+  7) Door/control records are handled after the final object list. Marker records update transition metadata without painting room tiles; physical doors can write to BG1, BG2, or both and can promote priority on tiles already present.
+  8) Pushable blocks (`$7EF940`) and torches (`$7EFB40`) are drawn after the object and door passes. Both use stored bit 13 to select upper/BG1 or lower/BG2: their draw routines mask the encoded word with `AND #$3FFF`, retaining bit 13 in the offset from the installed upper/BG1 tilemap base. Pushable-block bit 14 controls behavior/pit checks; torch bit 14 is reserved and bit 15 selects the initially lit art.
 - Implication: BG merge and layer type are **not** exclusive—four object streams are processed in order, with explicit pointer swaps for BG2 then BG1 overlays. Layout objects should never overdraw later passes; if they do in the editor, the pass order is wrong.
 
 ## Object Encoding (RoomDraw_RoomObject at $01893C)
@@ -73,11 +74,12 @@ Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optio
 - `RoomDraw_DrawAllObjects` is run four times with different tilemap pointer tables; `_BothBG` routines ignore the active pointer swap and write to both buffers. The editor must allow “BG merge” and “layer type” to coexist; never force a mutually exclusive radio button.
 - Ordering for correctness:
   1) Floors (BG2 then BG1)  
-  2) Layout list (BG2)  
-  3) Main list (BG2 by default, unless the routine itself writes both)  
+  2) Layout list (upper/BG1)
+  3) Main list (upper/BG1 by default, unless the routine itself writes both)
   4) BG2 overlay list (after first `0xFFFF`)  
   5) BG1 overlay list (after second `0xFFFF`)  
-  6) Pushable blocks and torches
+  6) Doors and control records
+  7) Pushable blocks and torches
 
 ## Selection & Outline Rules
 - Use the decoding rules above; do not infer size from UI icons.

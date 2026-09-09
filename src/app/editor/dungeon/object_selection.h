@@ -146,9 +146,13 @@ class ObjectSelection {
    * @brief Complete rectangle selection operation
    * @param objects Object list to select from
    * @param mode How to modify the selection
+   * @param is_object_visible Optional view-state predicate applied in addition
+   *        to the explicit stored-layer filter
    */
-  void EndRectangleSelection(const std::vector<zelda3::RoomObject>& objects,
-                             SelectionMode mode = SelectionMode::Single);
+  void EndRectangleSelection(
+      const std::vector<zelda3::RoomObject>& objects,
+      SelectionMode mode = SelectionMode::Single,
+      std::function<bool(const zelda3::RoomObject&)> is_object_visible = {});
 
   /**
    * @brief Cancel rectangle selection without modifying selection

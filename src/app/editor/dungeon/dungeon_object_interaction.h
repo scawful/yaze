@@ -221,6 +221,11 @@ class DungeonObjectInteraction {
   void SetSelectionChangeCallback(std::function<void()> callback) {
     selection_.SetSelectionChangedCallback(std::move(callback));
   }
+  void SetObjectSelectionVisibilityPredicate(
+      std::function<bool(int, const zelda3::RoomObject&)> predicate) {
+    interaction_context_.is_object_visible_for_selection = std::move(predicate);
+    entity_coordinator_.SetContext(&interaction_context_);
+  }
 
   // Helper for click selection with proper mode handling
 

@@ -85,12 +85,17 @@ class ObjectDrawer {
   /**
    * @brief Draw a door to background buffers
    * @param door Door definition (type, direction, position)
-   * @param bg1 Background layer 1 buffer
-   * @param bg2 Background layer 2 buffer
+   * @param bg1 Background layer 1 object buffer
+   * @param bg2 Background layer 2 object buffer
+   * @param layout_bg1 Optional upper-layer layout buffer. Door priority
+   *        promotion is applied to both BG1 owners without repainting pixels.
+   * @param layout_bg2 Optional lower-layer layout buffer for door routines that
+   *        mutate existing BG2 priority.
    */
   void DrawDoor(const DoorDef& door, int door_index, gfx::BackgroundBuffer& bg1,
-                gfx::BackgroundBuffer& bg2,
-                const DungeonState* state = nullptr);
+                gfx::BackgroundBuffer& bg2, const DungeonState* state = nullptr,
+                gfx::BackgroundBuffer* layout_bg1 = nullptr,
+                gfx::BackgroundBuffer* layout_bg2 = nullptr);
 
   /**
    * @brief Draw a pot item visualization

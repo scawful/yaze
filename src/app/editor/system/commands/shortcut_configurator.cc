@@ -452,8 +452,7 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
               // Unified mode: handled by object selector click
               // No-op (mode is controlled by selecting an object)
             } else if (id == "dungeon.object.delete_tool") {
-              // Unified mode: delete selected objects
-              obj_editor->DeleteSelectedObjects();
+              dungeon_editor->QueueRoomCanvasDeleteShortcut();
             } else if (id == "dungeon.object.next_object") {
               obj_editor->CycleObjectSelection(1);
             } else if (id == "dungeon.object.prev_object") {
@@ -463,7 +462,7 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
             } else if (id == "dungeon.object.paste") {
               obj_editor->PasteObjects();
             } else if (id == "dungeon.object.delete") {
-              obj_editor->DeleteSelectedObjects();
+              dungeon_editor->QueueRoomCanvasDeleteShortcut();
             }
           },
           Shortcut::Scope::kEditor);

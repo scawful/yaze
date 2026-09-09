@@ -674,6 +674,10 @@ void DungeonEditorV2::Initialize() {
         },
         [this](bool enabled) { QueueWorkbenchWorkflowMode(enabled); }, rom_);
     workbench_panel_ = workbench.get();
+    workbench_panel_->SetPrimaryCanvasDrawnCallback(
+        [this](DungeonCanvasViewer& viewer) {
+          ConsumeRoomCanvasDeleteShortcut(viewer);
+        });
     workbench_panel_->SetUndoRedoProvider(
         [this]() { return undo_manager_.CanUndo(); },
         [this]() { return undo_manager_.CanRedo(); },
@@ -1161,6 +1165,7 @@ void DungeonEditorV2::InvalidateDungeonPaletteUsers(
 
 absl::Status DungeonEditorV2::Update() {
   ProcessPendingWorkflowMode();
+  ExpireStaleRoomCanvasDeleteShortcut();
 
   // Mirror the workbench inspector to the LEFT when user_settings says so.
   // Persisted across sessions via UserSettings::dungeon_inspector_side.
@@ -1193,13 +1198,6 @@ absl::Status DungeonEditorV2::Update() {
 
   // Keyboard Shortcuts (only if not typing in a text field)
   if (!ImGui::GetIO().WantTextInput) {
-    if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
-      // Delegate delete to current room viewer.
-      if (auto* viewer = GetViewerForRoom(current_room_id_)) {
-        viewer->DeleteSelectedObjects();
-      }
-    }
-
     if (ImGui::GetIO().KeyCtrl && ImGui::GetIO().KeyShift &&
         ImGui::IsKeyPressed(ImGuiKey_W, false)) {
       ToggleWorkbenchWorkflowMode();
@@ -1676,6 +1674,7 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
     if (ImGui::BeginChild("##StandaloneRoomBody",
                           ImVec2(0.0f, -status_bar_reserved), false)) {
       viewer->DrawDungeonCanvas(room_id);
+      ConsumeRoomCanvasDeleteShortcut(*viewer);
     }
     ImGui::EndChild();
 
@@ -1699,6 +1698,38 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
     };
     DungeonStatusBar::Draw(status);
   }
+}
+
+void DungeonEditorV2::QueueRoomCanvasDeleteShortcut() {
+  if (ImGui::GetCurrentContext() == nullptr) {
+    room_canvas_delete_shortcut_frame_.reset();
+    return;
+  }
+  room_canvas_delete_shortcut_frame_ = ImGui::GetFrameCount();
+}
+
+void DungeonEditorV2::ExpireStaleRoomCanvasDeleteShortcut() {
+  if (!room_canvas_delete_shortcut_frame_.has_value()) {
+    return;
+  }
+  if (ImGui::GetCurrentContext() == nullptr ||
+      *room_canvas_delete_shortcut_frame_ != ImGui::GetFrameCount()) {
+    room_canvas_delete_shortcut_frame_.reset();
+  }
+}
+
+bool DungeonEditorV2::ConsumeRoomCanvasDeleteShortcut(
+    DungeonCanvasViewer& viewer) {
+  ExpireStaleRoomCanvasDeleteShortcut();
+  if (!room_canvas_delete_shortcut_frame_.has_value() ||
+      ImGui::GetIO().WantTextInput || ImGui::IsAnyItemActive() ||
+      !viewer.CanHandleRoomCanvasShortcut()) {
+    return false;
+  }
+
+  room_canvas_delete_shortcut_frame_.reset();
+  viewer.DeleteSelectedObjects();
+  return true;
 }
 
 void DungeonEditorV2::OnRoomSelected(int room_id, RoomSelectionIntent intent) {

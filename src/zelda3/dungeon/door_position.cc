@@ -162,6 +162,10 @@ std::pair<int, int> DoorPositionManager::PositionToRenderTileCoords(
     // USDASM RoomDraw_OneSidedShutters_South ($01:AABB) writes through
     // $CB/$D7/$DA, i.e. rows y+1..y+3 from DoorTilemapPositions_South*.
     ++tile_y;
+  } else if (direction == DoorDirection::East) {
+    // USDASM RoomDraw_OneSidedShutters_East ($01:AC13) advances the
+    // tilemap destination by one word before writing its three columns.
+    ++tile_x;
   }
   return {tile_x, tile_y};
 }
@@ -357,10 +361,14 @@ std::tuple<int, int, int, int> DoorPositionManager::GetDoorBounds(
 
 std::tuple<int, int, int, int> DoorPositionManager::GetDoorEditorBounds(
     uint8_t position, DoorDirection direction, DoorType type) {
-  auto [pixel_x, pixel_y] = PositionToRenderPixelCoords(position, direction);
-  auto dims = GetEditorDoorDimensions(direction, type);
+  auto [tile_x, tile_y] = PositionToTileCoords(position, direction);
+  const auto footprint = GetEditorDoorFootprint(direction, type);
+  tile_x += footprint.offset_x_tiles;
+  tile_y += footprint.offset_y_tiles;
 
-  return {pixel_x, pixel_y, dims.width_pixels(), dims.height_pixels()};
+  return {tile_x * kTileSize, tile_y * kTileSize,
+          footprint.width_tiles * kTileSize,
+          footprint.height_tiles * kTileSize};
 }
 
 }  // namespace zelda3

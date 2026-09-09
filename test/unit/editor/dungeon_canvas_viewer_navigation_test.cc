@@ -37,6 +37,17 @@ struct PendingScrollFrameSnapshot {
 
 class DungeonCanvasViewerTestPeer {
  public:
+  static void UpdateRoomCanvasShortcutFocus(DungeonCanvasViewer& viewer,
+                                            bool hovered, bool pointer_pressed,
+                                            int frame_index) {
+    viewer.UpdateRoomCanvasShortcutFocus(hovered, pointer_pressed, frame_index);
+  }
+
+  static bool HasRoomCanvasShortcutFocusForFrame(
+      const DungeonCanvasViewer& viewer, int frame_index) {
+    return viewer.HasRoomCanvasShortcutFocusForFrame(frame_index);
+  }
+
   static absl::Status PrepareIssueReportPopup(
       DungeonCanvasViewer& viewer, const std::string& title,
       const std::string& summary, const std::string& kind_label,
@@ -344,6 +355,31 @@ TEST(DungeonCanvasViewerNavigationTest, ScrollToTileStoresPendingTarget) {
   ASSERT_TRUE(viewer.GetPendingScrollTarget().has_value());
   EXPECT_EQ(viewer.GetPendingScrollTarget()->first, 12);
   EXPECT_EQ(viewer.GetPendingScrollTarget()->second, 34);
+}
+
+TEST(DungeonCanvasViewerShortcutFocusTest,
+     DeleteEligibilityFollowsCanvasFocusAndCurrentDrawFrame) {
+  DungeonCanvasViewer viewer;
+
+  DungeonCanvasViewerTestPeer::UpdateRoomCanvasShortcutFocus(
+      viewer, /*hovered=*/true, /*pointer_pressed=*/false,
+      /*frame_index=*/10);
+  EXPECT_FALSE(DungeonCanvasViewerTestPeer::HasRoomCanvasShortcutFocusForFrame(
+      viewer, 10));
+
+  DungeonCanvasViewerTestPeer::UpdateRoomCanvasShortcutFocus(
+      viewer, /*hovered=*/true, /*pointer_pressed=*/true,
+      /*frame_index=*/11);
+  EXPECT_TRUE(DungeonCanvasViewerTestPeer::HasRoomCanvasShortcutFocusForFrame(
+      viewer, 11));
+  EXPECT_FALSE(DungeonCanvasViewerTestPeer::HasRoomCanvasShortcutFocusForFrame(
+      viewer, 12));
+
+  DungeonCanvasViewerTestPeer::UpdateRoomCanvasShortcutFocus(
+      viewer, /*hovered=*/false, /*pointer_pressed=*/true,
+      /*frame_index=*/12);
+  EXPECT_FALSE(DungeonCanvasViewerTestPeer::HasRoomCanvasShortcutFocusForFrame(
+      viewer, 12));
 }
 
 TEST(DungeonCanvasViewerNavigationTest,
@@ -860,8 +896,17 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
      CollectDungeonConnectedRoomLinksSkipsExitDoorsAndUnusedStairHeaders) {
   zelda3::Room room;
   ClearRoomLinks(&room);
-  room.AddDoor(MakeDoor(zelda3::DoorDirection::East,
-                        zelda3::DoorType::FancyDungeonExit));
+  for (const auto type : {
+           zelda3::DoorType::ExitLower,
+           zelda3::DoorType::FancyDungeonExit,
+           zelda3::DoorType::FancyDungeonExitLower,
+           zelda3::DoorType::CaveExit,
+           zelda3::DoorType::LitCaveExitLower,
+           zelda3::DoorType::DungeonSwapMarker,
+           zelda3::DoorType::LayerSwapMarker,
+       }) {
+    room.AddDoor(MakeDoor(zelda3::DoorDirection::East, type));
+  }
   room.AddDoor(
       MakeDoor(zelda3::DoorDirection::South, zelda3::DoorType::NormalDoor));
   room.SetStaircaseRoom(0, 0);

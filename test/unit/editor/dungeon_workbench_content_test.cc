@@ -14,6 +14,7 @@
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/workspace/dungeon_pit_damage_view_model.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
+#include "core/features.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/pit_damage_table.h"
@@ -148,6 +149,37 @@ TEST(DungeonWorkbenchContentLayoutTest,
       699.0f, kMinCanvasWidth, kMinSidebarWidth, kSplitterWidth, true, true);
   EXPECT_FALSE(hide_both.show_left);
   EXPECT_FALSE(hide_both.show_right);
+}
+
+TEST(DungeonWorkbenchApplyScopeTest, SelectAllAndNoneIncludeEntrances) {
+  auto& flags = core::FeatureFlags::get().dungeon;
+  const auto previous = flags;
+  int current_room_id = 0;
+  const std::deque<int> recent_rooms;
+  auto content = MakeWorkbenchForToolStateTests(current_room_id, recent_rooms);
+
+  flags.kSaveWaterFillZones = true;
+  content.SetAllSaveFlagsForTesting(false);
+  EXPECT_FALSE(flags.kSaveObjects);
+  EXPECT_FALSE(flags.kSaveSprites);
+  EXPECT_FALSE(flags.kSaveRoomHeaders);
+  EXPECT_FALSE(flags.kSaveChests);
+  EXPECT_FALSE(flags.kSavePotItems);
+  EXPECT_FALSE(flags.kSaveEntrances);
+  EXPECT_FALSE(flags.kSavePalettes);
+  EXPECT_FALSE(flags.kSaveCollision);
+  EXPECT_FALSE(flags.kSaveBlocks);
+  EXPECT_FALSE(flags.kSaveTorches);
+  EXPECT_FALSE(flags.kSavePits);
+  EXPECT_TRUE(flags.kSaveWaterFillZones);
+
+  flags.kSaveWaterFillZones = false;
+  content.SetAllSaveFlagsForTesting(true);
+  EXPECT_TRUE(flags.kSaveEntrances);
+  EXPECT_TRUE(flags.kSaveObjects);
+  EXPECT_FALSE(flags.kSaveWaterFillZones);
+
+  flags = previous;
 }
 
 TEST(DungeonWorkbenchContentLayoutTest,
