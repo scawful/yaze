@@ -4,7 +4,8 @@
 # Tier 1 — Synthetic replay (no ROM): locks C++ draw order against dummy tiles.
 # Tier 2 — ROM parser/drawer parity: real tile words from vanilla ROM.
 # Tier 3 — Room checksum drift guards: five vanilla room fingerprints.
-# Tier 4 — Mesen ROI baselines: rooms 0x012 / 0x065 (needs libpng + canonical US ROM).
+# Tier 4 — Mesen ROI baselines: rooms 0x007/0x012/0x031/0x065/0x076
+#          (needs libpng + canonical US ROM).
 # Tier 5 — z3ed bounds audit: dungeon-object-validate mismatch report.
 #
 # Usage:
@@ -35,12 +36,15 @@ resolve_bins() {
   if [[ -x "$BUILD_DIR/bin/Debug/yaze_test_unit" ]]; then
     UNIT_BIN="$BUILD_DIR/bin/Debug/yaze_test_unit"
     INTEG_BIN="$BUILD_DIR/bin/Debug/yaze_test_integration"
+    ROM_BIN="$BUILD_DIR/bin/Debug/yaze_test_rom_dependent"
   elif [[ -x "$BUILD_DIR/bin/test/yaze_test_unit" ]]; then
     UNIT_BIN="$BUILD_DIR/bin/test/yaze_test_unit"
     INTEG_BIN="$BUILD_DIR/bin/test/yaze_test_integration"
+    ROM_BIN="$BUILD_DIR/bin/test/yaze_test_rom_dependent"
   else
     UNIT_BIN="$BUILD_DIR/bin/Debug/yaze_test_unit"
     INTEG_BIN="$BUILD_DIR/bin/Debug/yaze_test_integration"
+    ROM_BIN="$BUILD_DIR/bin/Debug/yaze_test_rom_dependent"
   fi
   if [[ -x "$BUILD_DIR/bin/Debug/z3ed" ]]; then
     Z3ED_BIN="$BUILD_DIR/bin/Debug/z3ed"
@@ -48,6 +52,15 @@ resolve_bins() {
     Z3ED_BIN="$BUILD_DIR/bin/z3ed"
   else
     Z3ED_BIN="$BUILD_DIR/bin/Debug/z3ed"
+  fi
+}
+
+require_test_suite() {
+  local binary="$1"
+  local suite="$2"
+  if ! "$binary" --gtest_list_tests 2>/dev/null | grep -q "^${suite}\."; then
+    echo "Required test suite not found in $binary: $suite" >&2
+    exit 1
   fi
 }
 
@@ -85,9 +98,15 @@ echo "== Tier 2: ROM-backed parser/drawer parity (skips without ROM) =="
 if [[ -n "${YAZE_TEST_ROM_VANILLA:-}" ]]; then
   echo
   echo "== Tier 3/4: integration room fixtures + Mesen ROI (ROM present) =="
-  cmake --build "$BUILD_DIR" --target yaze_test_integration --parallel 4
+  cmake --build "$BUILD_DIR" --target yaze_test_integration \
+    yaze_test_rom_dependent --parallel 4
+  require_test_suite "$INTEG_BIN" DungeonRoomRegressionFixturesTest
+  require_test_suite "$ROM_BIN" DungeonObjectRomValidationTest
   YAZE_TEST_ROM_VANILLA="$YAZE_TEST_ROM_VANILLA" \
-    "$INTEG_BIN" --gtest_filter='DungeonRoomRegressionFixturesTest.*:DungeonObjectRomValidationTest.TileCountTable_KnownValues'
+    "$INTEG_BIN" --gtest_filter='DungeonRoomRegressionFixturesTest.*'
+  YAZE_TEST_ROM_VANILLA="$YAZE_TEST_ROM_VANILLA" \
+    "$ROM_BIN" \
+      --gtest_filter='DungeonObjectRomValidationTest.TileCountTable_KnownValues'
 
   if [[ -n "$REPORT_PATH" && -x "$Z3ED_BIN" ]]; then
     echo

@@ -43,7 +43,8 @@ struct DungeonRoomRegressionFixture {
 // object BG2 (rooms 0x001/0x050) and object BG1 (room 0x016) after post-July
 // fixed-payload / overlay-stream parity fixes. Layout checksums unchanged.
 // These self-fingerprints are drift guards only — not independent visual 1:1.
-// Independent truth remains the Mesen ROI fixtures for rooms 0x012 / 0x065.
+// Independent truth comes from Mesen ROI fixtures for rooms 0x007, 0x012,
+// 0x031, 0x065, and 0x076.
 inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
     {
         {
