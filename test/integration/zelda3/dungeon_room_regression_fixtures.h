@@ -37,8 +37,14 @@ struct DungeonRoomRegressionFixture {
 
 // Fixed vanilla-room fixtures (US 1.0). Room ids verified via
 // DungeonRoomRegressionFixturesTest.ScanAllRoomsForFixtureCandidates.
-// Golden checksums regenerated 2026-07-22 after the USDASM-correct Left/Right
-// dungeon palette-slot mapping fix (62f954b68).
+// Golden checksums regenerated 2026-09-08 against canonical US ROM
+// SHA-1 6d4f10a8b10e10dbe624cb23cf03b88bb8252973 (roms/zelda3.sfc; first 1 MiB
+// of padded alttp_vanilla.sfc). Drift vs 2026-07-22 goldens is limited to
+// object BG2 (rooms 0x001/0x050) and object BG1 (room 0x016) after post-July
+// fixed-payload / overlay-stream parity fixes. Layout checksums unchanged.
+// These self-fingerprints are drift guards only — not independent visual 1:1.
+// Independent truth comes from Mesen ROI fixtures for rooms 0x007, 0x012,
+// 0x031, 0x065, and 0x076.
 inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
     {
         {
@@ -51,9 +57,9 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
                 "streams with BG2 overlay platform objects 0x033/0x034/0x071.",
             .required_object_id = 0x108,
             .expected_layer_merge_id = 6,
-            .composite_checksum = 5018637587913985457ull,
+            .composite_checksum = 23780482654574992ull,
             .object_bg1_checksum = 7942374673971519889ull,
-            .object_bg2_checksum = 16314113468206397296ull,
+            .object_bg2_checksum = 10287929610757281366ull,
             .layout_bg1_checksum = 16155382640141831219ull,
             .composite_non_backdrop_pixels = 262144,
             .object_bg1_non_backdrop_pixels = 262144,
@@ -69,9 +75,9 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
                      "streams.",
             .required_object_id = 0x034,
             .expected_layer_merge_id = 6,
-            .composite_checksum = 7186032506148411670ull,
+            .composite_checksum = 11416175861626265506ull,
             .object_bg1_checksum = 12203971081140519348ull,
-            .object_bg2_checksum = 4665773132931031645ull,
+            .object_bg2_checksum = 1568926056972221297ull,
             .layout_bg1_checksum = 14374714413720404755ull,
             .composite_non_backdrop_pixels = 262144,
             .object_bg1_non_backdrop_pixels = 262144,
@@ -106,7 +112,7 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
             // FF1 now honors the inactive room-0x065 bombed-floor state, so
             // the default room render correctly omits the big light beam.
             .composite_checksum = 2251720105443116807ull,
-            .object_bg1_checksum = 38343009025063977ull,
+            .object_bg1_checksum = 15680809605901349847ull,
             .object_bg2_checksum = 9908005591592637895ull,
             .layout_bg1_checksum = 6452462266518031539ull,
             .composite_non_backdrop_pixels = 208440,
