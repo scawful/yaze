@@ -9,8 +9,9 @@
 // Stronger parity evidence lives elsewhere:
 //   - room_object_rom_parity_test.cc — parser bytes + drawer placement using
 //     real ROM tile words (skips without YAZE_TEST_ROM_VANILLA).
-//   - dungeon_room_regression_fixtures_test.cc — Mesen2 screenshot ROI baselines
-//     for rooms 0x012 / 0x065 (independent emulator truth).
+//   - dungeon_room_regression_fixtures_test.cc — Mesen2 screenshot ROI
+//     baselines for rooms 0x007, 0x012, 0x031, 0x065, and 0x076 (independent
+//     emulator truth).
 //   - z3ed dungeon-object-validate — bounds vs dimension table across all IDs.
 //
 // See docs/internal/plans/dungeon-object-rendering-parity-2026-04.md (Phase D/E).
@@ -3916,7 +3917,8 @@ std::vector<SnapshotTileWrite> MakeBigHoleSnapshot(int x, int y, uint8_t size) {
   return out;
 }
 
-std::vector<SnapshotTileWrite> MakeTableRockSnapshot(int x, int y, uint8_t size) {
+std::vector<SnapshotTileWrite> MakeTableRockSnapshot(int x, int y,
+                                                     uint8_t size) {
   const int size_x = (size >> 2) & 0x03;
   const int size_y = size & 0x03;
   const int right_x = x + (3 + (size_x * 2));
@@ -3977,10 +3979,10 @@ std::vector<SnapshotTileWrite> MakeWaterOverlaySnapshot(int x, int y,
         out.push_back({base_x + tile_x, base_y, static_cast<uint16_t>(tile_x)});
         out.push_back(
             {base_x + tile_x, base_y + 2, static_cast<uint16_t>(tile_x)});
-        out.push_back({base_x + tile_x, base_y + 1,
-                       static_cast<uint16_t>(4 + tile_x)});
-        out.push_back({base_x + tile_x, base_y + 3,
-                       static_cast<uint16_t>(4 + tile_x)});
+        out.push_back(
+            {base_x + tile_x, base_y + 1, static_cast<uint16_t>(4 + tile_x)});
+        out.push_back(
+            {base_x + tile_x, base_y + 3, static_cast<uint16_t>(4 + tile_x)});
       }
     }
   }
@@ -4030,12 +4032,12 @@ TEST(ObjectDrawerRegistryReplayTest,
   constexpr uint8_t kSize = 0;
 
   for (const int object_id : {0x00D8, 0x00DA}) {
-    SCOPED_TRACE(::testing::Message() << "object_id=0x" << std::hex
-                                        << object_id);
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << object_id);
 
-    const auto trace = ReplayObjectTrace(
-        object_id, kX, kY, kSize, RoomObject::LayerType::BG2,
-        MakeSequentialTiles(/*count=*/8));
+    const auto trace =
+        ReplayObjectTrace(object_id, kX, kY, kSize, RoomObject::LayerType::BG2,
+                          MakeSequentialTiles(/*count=*/8));
     const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
 
     ExpectTraceMatchesSnapshot(bg2, MakeWaterOverlaySnapshot(kX, kY, kSize));

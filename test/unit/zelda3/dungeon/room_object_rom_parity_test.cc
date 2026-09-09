@@ -659,7 +659,8 @@ struct VisualParityGapSample {
   const char* label;
 };
 
-TEST_P(RoomObjectRomParityTest, VisualParityGapObjectsParserMatchesRawRomWords) {
+TEST_P(RoomObjectRomParityTest,
+       VisualParityGapObjectsParserMatchesRawRomWords) {
   SCOPED_TRACE(::yaze::test::TestRomManager::GetRomRoleName(GetParam()));
   const std::vector<VisualParityGapSample> samples = {
       {0xA4, 24, "BigHole4x4"},
@@ -672,13 +673,12 @@ TEST_P(RoomObjectRomParityTest, VisualParityGapObjectsParserMatchesRawRomWords) 
 
   ObjectParser parser(rom_.get());
   for (const auto& sample : samples) {
-    SCOPED_TRACE(absl::StrFormat("%s (0x%02X)", sample.label, sample.object_id));
+    SCOPED_TRACE(
+        absl::StrFormat("%s (0x%02X)", sample.label, sample.object_id));
     const int addr = Subtype1TileDataAddr(*rom_, sample.object_id);
-    const auto expected =
-        DecodeTilesFromRom(*rom_, addr, sample.tile_count);
+    const auto expected = DecodeTilesFromRom(*rom_, addr, sample.tile_count);
 
-    auto parsed_or =
-        parser.ParseObject(static_cast<int16_t>(sample.object_id));
+    auto parsed_or = parser.ParseObject(static_cast<int16_t>(sample.object_id));
     ASSERT_TRUE(parsed_or.ok()) << parsed_or.status();
     const auto& parsed = parsed_or.value();
     ASSERT_EQ(static_cast<int>(parsed.size()), sample.tile_count);
@@ -702,8 +702,7 @@ TEST_P(RoomObjectRomParityTest, BigHoleDrawerUsesRomTileIndicesAtUsdasmSlots) {
 
   constexpr int kX = 8;
   constexpr int kY = 10;
-  const auto trace =
-      ReplayRomObjectTrace(rom_.get(), 0xA4, kX, kY, /*size=*/0);
+  const auto trace = ReplayRomObjectTrace(rom_.get(), 0xA4, kX, kY, /*size=*/0);
   const auto bg1 = FilterByLayer(trace, RoomObject::LayerType::BG1);
   ASSERT_FALSE(bg1.empty());
 
@@ -727,7 +726,8 @@ TEST_P(RoomObjectRomParityTest, BigHoleDrawerUsesRomTileIndicesAtUsdasmSlots) {
   EXPECT_EQ(find_at(kX, kY + 1), rom_tiles[9].id_);
 }
 
-TEST_P(RoomObjectRomParityTest, TableRockDrawerUsesRomTileIndicesAtUsdasmSlots) {
+TEST_P(RoomObjectRomParityTest,
+       TableRockDrawerUsesRomTileIndicesAtUsdasmSlots) {
   SCOPED_TRACE(::yaze::test::TestRomManager::GetRomRoleName(GetParam()));
   constexpr int kTileCount = 16;
   const int addr = Subtype1TileDataAddr(*rom_, 0xDD);
@@ -735,8 +735,7 @@ TEST_P(RoomObjectRomParityTest, TableRockDrawerUsesRomTileIndicesAtUsdasmSlots) 
 
   constexpr int kX = 6;
   constexpr int kY = 7;
-  const auto trace =
-      ReplayRomObjectTrace(rom_.get(), 0xDD, kX, kY, /*size=*/0);
+  const auto trace = ReplayRomObjectTrace(rom_.get(), 0xDD, kX, kY, /*size=*/0);
   const auto bg1 = FilterByLayer(trace, RoomObject::LayerType::BG1);
   ASSERT_FALSE(bg1.empty());
 

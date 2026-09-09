@@ -70,6 +70,14 @@ constexpr uint8_t kRoom001ObjectOverlapBg1Priority = 1;
 constexpr uint8_t kRoom001ObjectOverlapBg2Priority = 0;
 constexpr uint8_t kRoom001ObjectOverlapCompositePixel = 41;
 
+// Room 0x076 water-overlay coverage is structural and does not depend on the
+// libpng-backed visual diff engine. Keep these constants available on every
+// platform that builds the integration test.
+constexpr uint8_t kRoom076EntranceBlockset = 0x08;
+constexpr int kRoom076WaterOverlayTileX = 38;
+constexpr int kRoom076WaterOverlayTileY = 13;
+constexpr int kRoom076WaterOverlayObjectId = 0xD8;
+
 #if defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
 constexpr size_t kCanonicalUsRomSize = 0x100000;
 constexpr char kCanonicalUsRomSha1[] =
@@ -126,20 +134,12 @@ constexpr int kRoom007VRailRoiHeight = 32;
 // Room 0x076 west NormalDoorLower @ tile (37,15): entrance-0x34 PAR load with
 // room-id override + blockset 0x08, then runtime pan (Link 0x0AF0/0x0CD8,
 // scroll ~10,12) so the door is on-screen. West doors are 3x4 tiles (24x32).
-constexpr uint8_t kRoom076EntranceBlockset = 0x08;
 constexpr int kRoom076WestDoorMesenRoiX = 56;
 constexpr int kRoom076WestDoorMesenRoiY = 159;
 constexpr int kRoom076WestDoorYazeRoiX = 296;
 constexpr int kRoom076WestDoorYazeRoiY = 120;
 constexpr int kRoom076WestDoorRoiWidth = 24;
 constexpr int kRoom076WestDoorRoiHeight = 32;
-// Water overlay 0xD8 @ tile (38,13) size nibble 9 → 4x3 stamps of 4x4 tiles.
-// Vanilla ASM treats this as an HDMA control object (no direct tile draw);
-// yaze stamps a BG2 editor indicator. Tier-4 pixel ROI vs Mesen is not valid.
-constexpr int kRoom076WaterOverlayTileX = 38;
-constexpr int kRoom076WaterOverlayTileY = 13;
-constexpr int kRoom076WaterOverlayObjectId = 0xD8;
-
 ::yaze::test::Screenshot CaptureRgbaRegion(const gfx::Bitmap& bitmap, int x,
                                            int y, int width, int height) {
   ::yaze::test::Screenshot screenshot;
