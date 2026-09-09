@@ -16,6 +16,7 @@
 #include "zelda3/dungeon/draw_routines/special_routines.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/object_dimensions.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -245,13 +246,8 @@ absl::Status ObjectDrawer::DrawObject(
 
   // Check for custom object override first (guarded by feature flag).
   // We check this BEFORE routine lookup to allow overriding vanilla objects.
-  int subtype = object.size_ & 0x1F;
   bool is_custom_object = false;
-  const bool is_track_corner_alias = object.id_ >= 0x100 && object.id_ <= 0x103;
-  const bool allow_custom_override =
-      !is_track_corner_alias || this->allow_track_corner_aliases_;
-  if (core::FeatureFlags::get().kEnableCustomObjects && allow_custom_override &&
-      CustomObjectManager::Get().GetObjectInternal(object.id_, subtype).ok()) {
+  if (HasActiveCustomObjectOverride(object, allow_track_corner_aliases_)) {
     is_custom_object = true;
     // Custom objects default to drawing on the target layer only, unless all_bgs_ is set
     // Mask propagation is difficult without dimensions, so we rely on explicit transparency in the custom object tiles if needed
@@ -461,17 +457,18 @@ absl::Status ObjectDrawer::DrawObjectList(
   int to_bg1 = 0, to_bg2 = 0, both_bgs = 0;
 
   for (const auto& object : objects) {
-    // Track buffer routing for summary
-    bool use_bg2 = (object.layer_ == RoomObject::LayerType::BG2);
-    int routine_id = GetDrawRoutineId(object.id_);
-    bool is_both_bg = (object.all_bgs_ || RoutineDrawsToBothBGs(routine_id));
-
-    if (is_both_bg) {
-      both_bgs++;
-    } else if (use_bg2) {
-      to_bg2++;
-    } else {
-      to_bg1++;
+    const auto semantics =
+        GetEffectiveObjectLayerSemantics(object, allow_track_corner_aliases_);
+    switch (semantics.effective_bg_layer) {
+      case EffectiveBgLayer::kBg1:
+        ++to_bg1;
+        break;
+      case EffectiveBgLayer::kBg2:
+        ++to_bg2;
+        break;
+      case EffectiveBgLayer::kBothBg1Bg2:
+        ++both_bgs;
+        break;
     }
 
     auto s = DrawObject(object, bg1, bg2, palette_group, state, layout_bg1);
@@ -1512,7 +1509,9 @@ int ObjectDrawer::GetDrawRoutineId(int16_t object_id) const {
 void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
                             gfx::BackgroundBuffer& bg1,
                             gfx::BackgroundBuffer& bg2,
-                            const DungeonState* state) {
+                            const DungeonState* state,
+                            gfx::BackgroundBuffer* layout_bg1,
+                            gfx::BackgroundBuffer* layout_bg2) {
   // Door rendering based on ZELDA3_DUNGEON_SPEC.md Section 5 and disassembly
   // Uses DoorType and DoorDirection enums for type safety
   // Position calculations via DoorPositionManager
@@ -1551,57 +1550,90 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   constexpr int kExplodingWallTilemapPositionBase = 0x19DE;
   constexpr int kExplodingWallOpenReplacementType = 0x54;
   constexpr int kNorthCurtainClosedOffset = 0x078A;
+  constexpr int kFancyDungeonExitObjectOffset = 0x2656;
+  constexpr int kCaveExitLightObjectOffset = 0x26F6;
   const auto& rom_data = rom_->data();
 
-  auto draw_from_object_data = [&](gfx::BackgroundBuffer& target,
-                                   int start_tile_x, int start_tile_y,
-                                   int width, int height, int tile_data_addr) {
+  auto draw_tile_word = [&](gfx::BackgroundBuffer& target, int tile_x,
+                            int tile_y, uint16_t tile_word) {
     auto& bitmap = target.bitmap();
     auto& priority_buffer = target.mutable_priority_data();
     auto& coverage_buffer = target.mutable_coverage_data();
     const int bitmap_width = bitmap.width();
+    const auto tile_info = gfx::WordToTileInfo(tile_word);
+    const int pixel_x = tile_x * 8;
+    const int pixel_y = tile_y * 8;
+
+    target.SetTileAt(tile_x, tile_y, tile_word);
+    target.ClearBG1RevealMaskRect(bg1_reveal_mask_source_, pixel_x, pixel_y, 8,
+                                  8);
+    DrawTileToBitmap(bitmap, tile_info, pixel_x, pixel_y, room_gfx_buffer_);
+
+    const uint8_t priority = tile_info.over_ ? 1 : 0;
+    const auto& bitmap_data = bitmap.vector();
+    for (int py = 0; py < 8; py++) {
+      const int dest_y = pixel_y + py;
+      if (dest_y < 0 || dest_y >= bitmap.height()) {
+        continue;
+      }
+      for (int px = 0; px < 8; px++) {
+        const int dest_x = pixel_x + px;
+        if (dest_x < 0 || dest_x >= bitmap_width) {
+          continue;
+        }
+        const int dest_index = dest_y * bitmap_width + dest_x;
+        if (dest_index >= 0 &&
+            dest_index < static_cast<int>(coverage_buffer.size())) {
+          coverage_buffer[dest_index] = 1;
+        }
+        if (dest_index < static_cast<int>(bitmap_data.size()) &&
+            bitmap_data[dest_index] != 255) {
+          priority_buffer[dest_index] = priority;
+        }
+      }
+    }
+  };
+
+  auto draw_object_data_tile = [&](gfx::BackgroundBuffer& target, int tile_x,
+                                   int tile_y, int tile_data_addr, int tile_idx,
+                                   uint16_t word_mask = 0) -> bool {
+    const int addr = tile_data_addr + (tile_idx * 2);
+    if (addr < 0 || addr + 1 >= static_cast<int>(rom_->size())) {
+      return false;
+    }
+
+    const uint16_t tile_word = static_cast<uint16_t>(
+        (rom_data[addr] | (rom_data[addr + 1] << 8)) | word_mask);
+    draw_tile_word(target, tile_x, tile_y, tile_word);
+    return true;
+  };
+
+  auto draw_from_object_data = [&](gfx::BackgroundBuffer& target,
+                                   int start_tile_x, int start_tile_y,
+                                   int width, int height, int tile_data_addr) {
     int tile_idx = 0;
 
     for (int dx = 0; dx < width; dx++) {
       for (int dy = 0; dy < height; dy++) {
-        const int addr = tile_data_addr + (tile_idx * 2);
-        const uint16_t tile_word = rom_data[addr] | (rom_data[addr + 1] << 8);
-        const auto tile_info = gfx::WordToTileInfo(tile_word);
-        const int pixel_x = (start_tile_x + dx) * 8;
-        const int pixel_y = (start_tile_y + dy) * 8;
-
-        target.ClearBG1RevealMaskRect(bg1_reveal_mask_source_, pixel_x, pixel_y,
-                                      8, 8);
-        DrawTileToBitmap(bitmap, tile_info, pixel_x, pixel_y, room_gfx_buffer_);
-
-        const uint8_t priority = tile_info.over_ ? 1 : 0;
-        const auto& bitmap_data = bitmap.vector();
-        for (int py = 0; py < 8; py++) {
-          const int dest_y = pixel_y + py;
-          if (dest_y < 0 || dest_y >= bitmap.height()) {
-            continue;
-          }
-          for (int px = 0; px < 8; px++) {
-            const int dest_x = pixel_x + px;
-            if (dest_x < 0 || dest_x >= bitmap_width) {
-              continue;
-            }
-            const int dest_index = dest_y * bitmap_width + dest_x;
-            if (dest_index >= 0 &&
-                dest_index < static_cast<int>(coverage_buffer.size())) {
-              coverage_buffer[dest_index] = 1;
-            }
-            if (dest_index < static_cast<int>(bitmap_data.size()) &&
-                bitmap_data[dest_index] != 255) {
-              priority_buffer[dest_index] = priority;
-            }
-          }
-        }
-
-        tile_idx++;
+        (void)draw_object_data_tile(target, start_tile_x + dx,
+                                    start_tile_y + dy, tile_data_addr,
+                                    tile_idx++);
       }
     }
   };
+
+  auto draw_from_object_data_row_major =
+      [&](gfx::BackgroundBuffer& target, int start_tile_x, int start_tile_y,
+          int width, int height, int tile_data_addr) {
+        int tile_idx = 0;
+        for (int dy = 0; dy < height; ++dy) {
+          for (int dx = 0; dx < width; ++dx) {
+            (void)draw_object_data_tile(target, start_tile_x + dx,
+                                        start_tile_y + dy, tile_data_addr,
+                                        tile_idx++);
+          }
+        }
+      };
 
   auto draw_repeated_tile = [&](gfx::BackgroundBuffer& target, int start_tile_x,
                                 int start_tile_y, int width, int height,
@@ -1654,9 +1686,275 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   };
   const int position_index = std::min<int>(door.position & 0x0F, 11);
 
+  enum class DoorPrioritySpan {
+    // RoomDraw_MakeDoorPartsHighPriority_{Vertical,Horizontal}.
+    kNormalLower,
+    // RoomDraw_MakeDoorHighPriorityLowerLayer_* (type $06).
+    kLowerLayerOnly,
+    // RoomDraw_MakeDoorHighPriority_* after a type $40-$66 raster.
+    kHighRange,
+  };
+
+  auto promote_priority_rect_on_layer =
+      [&](gfx::BackgroundBuffer& object_buffer,
+          gfx::BackgroundBuffer* layout_buffer, int start_tile_x,
+          int start_tile_y, int width_tiles, int height_tiles) {
+        auto promote_target = [&](gfx::BackgroundBuffer& target) {
+          for (int y = start_tile_y * 8; y < (start_tile_y + height_tiles) * 8;
+               ++y) {
+            for (int x = start_tile_x * 8; x < (start_tile_x + width_tiles) * 8;
+                 ++x) {
+              target.SetPriorityAt(x, y, 1);
+            }
+          }
+        };
+
+        // USDASM has one tilemap per background. Yaze splits each into layout and
+        // object buffers, so promote both potential pixel owners without changing
+        // either bitmap or coverage mask.
+        promote_target(object_buffer);
+        if (layout_buffer != nullptr && layout_buffer != &object_buffer) {
+          promote_target(*layout_buffer);
+        }
+      };
+
+  auto promote_upper_priority_rect = [&](int start_tile_x, int start_tile_y,
+                                         int width_tiles, int height_tiles) {
+    promote_priority_rect_on_layer(bg1, layout_bg1, start_tile_x, start_tile_y,
+                                   width_tiles, height_tiles);
+  };
+
+  auto promote_lower_priority_rect = [&](int start_tile_x, int start_tile_y,
+                                         int width_tiles, int height_tiles) {
+    promote_priority_rect_on_layer(bg2, layout_bg2, start_tile_x, start_tile_y,
+                                   width_tiles, height_tiles);
+  };
+
+  auto promote_door_priority = [&](DoorDirection render_direction,
+                                   int render_tile_x, int render_tile_y,
+                                   DoorPrioritySpan span) {
+    constexpr int kSectionSize = 32;
+    const auto section_start = [](int coordinate) {
+      return (coordinate / kSectionSize) * kSectionSize;
+    };
+    const auto section_end = [&](int coordinate) {
+      return section_start(coordinate) + kSectionSize;
+    };
+
+    int start_x = render_tile_x;
+    int start_y = render_tile_y;
+    int width = 0;
+    int height = 0;
+
+    switch (span) {
+      case DoorPrioritySpan::kNormalLower:
+        switch (render_direction) {
+          case DoorDirection::North:
+            start_y = section_start(render_tile_y);
+            width = 4;
+            height = 7;
+            break;
+          case DoorDirection::South:
+            // South raster coordinates are one row below the USDASM table
+            // anchor; the fixed priority span starts four rows below it.
+            start_y = render_tile_y + 3;
+            width = 4;
+            height = 7;
+            break;
+          case DoorDirection::West:
+            start_x = section_start(render_tile_x);
+            width = 5;
+            height = 4;
+            break;
+          case DoorDirection::East:
+            // East raster coordinates are one column right of the table
+            // anchor; the fixed priority span starts four columns right.
+            start_x = render_tile_x + 3;
+            width = 5;
+            height = 4;
+            break;
+        }
+        break;
+
+      case DoorPrioritySpan::kLowerLayerOnly:
+        switch (render_direction) {
+          case DoorDirection::North:
+            start_y = section_start(render_tile_y);
+            width = 4;
+            height = render_tile_y - start_y + 1;
+            break;
+          case DoorDirection::South:
+            start_y = render_tile_y + 1;
+            width = 4;
+            height = section_end(render_tile_y) - start_y;
+            break;
+          case DoorDirection::West:
+            start_x = section_start(render_tile_x);
+            width = render_tile_x - start_x + 1;
+            height = 4;
+            break;
+          case DoorDirection::East:
+            start_x = render_tile_x + 1;
+            width = section_end(render_tile_x) - start_x;
+            height = 4;
+            break;
+        }
+        break;
+
+      case DoorPrioritySpan::kHighRange:
+        switch (render_direction) {
+          case DoorDirection::North:
+            start_y = section_start(render_tile_y);
+            width = 4;
+            height = render_tile_y - start_y;
+            break;
+          case DoorDirection::South:
+            start_y = render_tile_y + 3;
+            width = 4;
+            height = section_end(render_tile_y) - start_y;
+            break;
+          case DoorDirection::West:
+            start_x = section_start(render_tile_x);
+            width = render_tile_x - start_x;
+            height = 4;
+            break;
+          case DoorDirection::East:
+            // The visible raster starts one column right of the USDASM table
+            // anchor and spans three columns. Priority begins at anchor+4.
+            start_x = render_tile_x + 3;
+            width = section_end(render_tile_x) - start_x;
+            height = 4;
+            break;
+        }
+        break;
+    }
+
+    if (width > 0 && height > 0) {
+      promote_upper_priority_rect(start_x, start_y, width, height);
+    }
+  };
+
+  // Door markers update room-transition metadata in USDASM; they do not
+  // stamp tiles. In real room streams they commonly follow a physical door
+  // at the same position, so treating them as art overwrites that door with
+  // the marker table's mirrored shutter tiles.
+  const bool is_nonvisual_marker = door.type == DoorType::DungeonSwapMarker ||
+                                   door.type == DoorType::LayerSwapMarker ||
+                                   (door.type == DoorType::ExitMarker &&
+                                    (door.direction == DoorDirection::North ||
+                                     door.direction == DoorDirection::South));
+  if (is_nonvisual_marker) {
+    return;
+  }
+
+  // Type $06 only promotes existing upper-layer wall tiles in USDASM. It
+  // neither looks up nor stamps door graphics.
+  if (door.type == DoorType::UnusedCaveExit) {
+    promote_door_priority(door.direction, tile_x, tile_y,
+                          DoorPrioritySpan::kLowerLayerOnly);
+    return;
+  }
+
+  // South has several dedicated routines that bypass the ordinary 4x3 door
+  // tables. Their coordinates begin at the raw USDASM tilemap anchor rather
+  // than the generic South render anchor one row below it.
+  if (door.direction == DoorDirection::South) {
+    const auto [raw_tile_x, raw_tile_y] =
+        DoorPositionManager::PositionToTileCoords(door.position,
+                                                  door.direction);
+    const int fancy_data_addr =
+        kRoomDrawObjectDataBase + kFancyDungeonExitObjectOffset;
+    const int cave_light_data_addr =
+        kRoomDrawObjectDataBase + kCaveExitLightObjectOffset;
+    const auto has_object_words = [&](int address, int word_count) {
+      return address >= 0 &&
+             address + word_count * 2 <= static_cast<int>(rom_->size());
+    };
+
+    switch (door.type) {
+      case DoorType::FancyDungeonExit:
+        if (!has_object_words(fancy_data_addr, 80)) {
+          DrawDoorIndicator(bg1, raw_tile_x - 3, raw_tile_y - 4,
+                            /*width=*/10, /*height=*/8, door.type,
+                            door.direction);
+          return;
+        }
+        draw_from_object_data_row_major(bg1, raw_tile_x - 3, raw_tile_y - 4,
+                                        /*width=*/10, /*height=*/8,
+                                        fancy_data_addr);
+        return;
+
+      case DoorType::FancyDungeonExitLower:
+        if (!has_object_words(fancy_data_addr, 80)) {
+          DrawDoorIndicator(bg2, raw_tile_x - 3, raw_tile_y - 4,
+                            /*width=*/10, /*height=*/8, door.type,
+                            door.direction);
+          return;
+        }
+        draw_from_object_data_row_major(bg2, raw_tile_x - 3, raw_tile_y - 4,
+                                        /*width=*/10, /*height=*/8,
+                                        fancy_data_addr);
+        // RoomDraw_NormalRangedDoors_South copies the final lower-layer row
+        // back to the upper tilemap and forces high priority.
+        for (int dx = 0; dx < 10; ++dx) {
+          (void)draw_object_data_tile(
+              bg1, raw_tile_x - 3 + dx, raw_tile_y + 3, fancy_data_addr,
+              /*tile_idx=*/70 + dx, /*word_mask=*/0x2000);
+        }
+        return;
+
+      case DoorType::ExitLower:
+        if (!has_object_words(cave_light_data_addr, 16)) {
+          DrawDoorIndicator(bg2, raw_tile_x, raw_tile_y, /*width=*/4,
+                            /*height=*/4, door.type, door.direction);
+          return;
+        }
+        promote_lower_priority_rect(raw_tile_x, raw_tile_y + 4,
+                                    /*width_tiles=*/4, /*height_tiles=*/7);
+        draw_from_object_data(bg2, raw_tile_x, raw_tile_y, /*width=*/4,
+                              /*height=*/4, cave_light_data_addr);
+        for (int dx = 0; dx < 4; ++dx) {
+          (void)draw_object_data_tile(
+              bg1, raw_tile_x + dx, raw_tile_y + 3, cave_light_data_addr,
+              /*tile_idx=*/dx * 4 + 3, /*word_mask=*/0x2000);
+        }
+        return;
+
+      case DoorType::CaveExit:
+        if (!has_object_words(cave_light_data_addr, 16)) {
+          DrawDoorIndicator(bg1, raw_tile_x, raw_tile_y, /*width=*/4,
+                            /*height=*/4, door.type, door.direction);
+          return;
+        }
+        draw_from_object_data(bg1, raw_tile_x, raw_tile_y, /*width=*/4,
+                              /*height=*/4, cave_light_data_addr);
+        return;
+
+      case DoorType::LitCaveExitLower:
+        if (!has_object_words(cave_light_data_addr, 16)) {
+          DrawDoorIndicator(bg1, raw_tile_x, raw_tile_y, /*width=*/4,
+                            /*height=*/4, door.type, door.direction);
+          return;
+        }
+        promote_upper_priority_rect(raw_tile_x, raw_tile_y + 4,
+                                    /*width_tiles=*/4, /*height_tiles=*/7);
+        draw_from_object_data(bg1, raw_tile_x, raw_tile_y, /*width=*/4,
+                              /*height=*/4, cave_light_data_addr);
+        return;
+
+      default:
+        break;
+    }
+  }
+
   auto resolve_render_type = [](DoorDirection render_direction,
                                 DoorType render_type) {
     switch (render_type) {
+      case DoorType::BigKeyDoor:
+        // South's closed big-key door is coerced to the normal-door table
+        // entry by RoomDraw_OneSidedShutters_South.
+        return render_direction == DoorDirection::South ? DoorType::NormalDoor
+                                                        : render_type;
       case DoorType::BottomSidedShutter:
         return (render_direction == DoorDirection::North ||
                 render_direction == DoorDirection::West)
@@ -1682,9 +1980,9 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
     }
   };
 
-  auto draw_table_door = [&](gfx::BackgroundBuffer& target,
-                             DoorDirection render_direction, int start_tile_x,
-                             int start_tile_y, DoorType render_type) -> bool {
+  auto resolve_table_door_data = [&](DoorDirection render_direction,
+                                     DoorType render_type,
+                                     int* tile_data_addr) -> bool {
     int offset_table_addr = 0;
     switch (render_direction) {
       case DoorDirection::North:
@@ -1712,17 +2010,99 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
 
     const uint16_t tile_offset =
         rom_data[table_entry_addr] | (rom_data[table_entry_addr + 1] << 8);
-    const int tile_data_addr = kRoomDrawObjectDataBase + tile_offset;
+    *tile_data_addr = kRoomDrawObjectDataBase + tile_offset;
     const auto dims = GetDoorDimensions(render_direction);
     const int data_size = dims.width_tiles * dims.height_tiles * 2;
-    if (tile_data_addr < 0 ||
-        tile_data_addr + data_size > static_cast<int>(rom_->size())) {
+    if (*tile_data_addr < 0 ||
+        *tile_data_addr + data_size > static_cast<int>(rom_->size())) {
       return false;
     }
 
-    draw_from_object_data(target, start_tile_x, start_tile_y, dims.width_tiles,
-                          dims.height_tiles, tile_data_addr);
     return true;
+  };
+
+  auto draw_table_door = [&](gfx::BackgroundBuffer& target,
+                             DoorDirection render_direction, int start_tile_x,
+                             int start_tile_y, DoorType render_type) -> bool {
+    int tile_data_addr = 0;
+    if (!resolve_table_door_data(render_direction, render_type,
+                                 &tile_data_addr)) {
+      return false;
+    }
+
+    const auto render_dims = GetDoorDimensions(render_direction);
+    draw_from_object_data(target, start_tile_x, start_tile_y,
+                          render_dims.width_tiles, render_dims.height_tiles,
+                          tile_data_addr);
+    return true;
+  };
+
+  auto draw_high_range_table_door = [&](DoorDirection render_direction,
+                                        int start_tile_x, int start_tile_y,
+                                        DoorType render_type) -> bool {
+    int tile_data_addr = 0;
+    if (!resolve_table_door_data(render_direction, render_type,
+                                 &tile_data_addr)) {
+      return false;
+    }
+
+    const auto dims = GetDoorDimensions(render_direction);
+    int tile_idx = 0;
+    for (int dx = 0; dx < dims.width_tiles; ++dx) {
+      for (int dy = 0; dy < dims.height_tiles; ++dy) {
+        // RoomDraw_OneSidedLowerShutters_* splits one logical door across
+        // the upper ($7E2000/BG1) and lower ($7E4000/BG2) tilemaps.
+        bool writes_upper = false;
+        switch (render_direction) {
+          case DoorDirection::North:
+            writes_upper = dy == 0;
+            break;
+          case DoorDirection::South:
+            writes_upper = dy == dims.height_tiles - 1;
+            break;
+          case DoorDirection::West:
+            writes_upper = dx == 0;
+            break;
+          case DoorDirection::East:
+            writes_upper = dx == dims.width_tiles - 1;
+            break;
+        }
+        gfx::BackgroundBuffer& target = writes_upper ? bg1 : bg2;
+        if (!draw_object_data_tile(target, start_tile_x + dx, start_tile_y + dy,
+                                   tile_data_addr, tile_idx++)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
+  auto draw_ranged_door = [&](DoorDirection render_direction, int start_tile_x,
+                              int start_tile_y, DoorType render_type) -> bool {
+    if (render_type == DoorType::NormalDoorLower) {
+      // Type $02 stamps the ordinary door art after promoting the fixed wall
+      // rectangle selected by RoomDraw_MakeDoorPartsHighPriority_*.
+      promote_door_priority(render_direction, start_tile_x, start_tile_y,
+                            DoorPrioritySpan::kNormalLower);
+    }
+
+    const int render_type_value = static_cast<int>(render_type);
+    const bool is_high_range =
+        render_type_value >= 0x40 && render_type_value <= 0x66;
+    if (is_high_range) {
+      const bool drew = draw_high_range_table_door(
+          render_direction, start_tile_x, start_tile_y, render_type);
+      // North type $46 deliberately skips RoomDraw_MakeDoorHighPriority_North;
+      // every other high-range direction/type promotes the adjacent upper wall.
+      if (drew && !(render_direction == DoorDirection::North &&
+                    render_type == DoorType::ExplicitRoomDoor)) {
+        promote_door_priority(render_direction, start_tile_x, start_tile_y,
+                              DoorPrioritySpan::kHighRange);
+      }
+      return drew;
+    }
+    return draw_table_door(bg1, render_direction, start_tile_x, start_tile_y,
+                           render_type);
   };
 
   // USDASM has special north-door branches that do not follow the generic 4x3
@@ -1847,27 +2227,50 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
     return;
   }
 
+  // Closed North lower-layer key stairs ($24/$26) use the ordinary 4x3 table
+  // layout, but every tile is written to $7E4000/BG2 and no middle-door
+  // counterpart is emitted.
+  const bool is_north_lower_key_stairs =
+      door.direction == DoorDirection::North &&
+      (door.type == DoorType::SmallKeyStairsUpLower ||
+       door.type == DoorType::SmallKeyStairsDownLower);
+  if (is_north_lower_key_stairs) {
+    if (is_door_open) {
+      return;
+    }
+    if (!draw_table_door(bg2, door.direction, tile_x, tile_y, door.type)) {
+      DrawDoorIndicator(bg2, tile_x, tile_y, door_width, door_height, door.type,
+                        door.direction);
+    }
+    return;
+  }
+
   // Door graphics use an indirect addressing scheme:
   // 1. kDoorGfxUp/Down/Left/Right point to offset tables (DoorGFXDataOffset_*)
   // 2. Each table entry is a 16-bit offset into RoomDrawObjectData
   // 3. RoomDrawObjectData base is at PC 0x1B52 (SNES $00:9B52)
   // 4. Actual tile data = 0x1B52 + offset_from_table
+  const bool north_explicit_door = door.direction == DoorDirection::North &&
+                                   door.type == DoorType::ExplicitRoomDoor;
   if ((door.direction == DoorDirection::North ||
        door.direction == DoorDirection::West) &&
-      position_index >= 6 && door.type != DoorType::ExplicitRoomDoor) {
+      position_index >= 6 && !north_explicit_door) {
     const DoorDirection counterpart_direction =
         door.direction == DoorDirection::North ? DoorDirection::South
                                                : DoorDirection::East;
-    const int counterpart_tile_x =
-        tile_x + (counterpart_direction == DoorDirection::East ? 1 : 0);
-    const int counterpart_tile_y =
-        tile_y + (counterpart_direction == DoorDirection::South ? 1 : 0);
-    (void)draw_table_door(bg1, counterpart_direction, counterpart_tile_x,
-                          counterpart_tile_y, door.type);
+    // USDASM indexes the table immediately following NorthMiddle/WestMiddle
+    // with the original 6..11 position offset. That lands on counterpart
+    // positions 0..5; the two rasters are separated by the middle wall rather
+    // than overlapping at the current anchor.
+    const auto [counterpart_tile_x, counterpart_tile_y] =
+        DoorPositionManager::PositionToRenderTileCoords(
+            static_cast<uint8_t>(position_index - 6), counterpart_direction);
+    (void)draw_ranged_door(counterpart_direction, counterpart_tile_x,
+                           counterpart_tile_y, door.type);
   }
 
   const bool drew_current =
-      draw_table_door(bg1, door.direction, tile_x, tile_y, door.type);
+      draw_ranged_door(door.direction, tile_x, tile_y, door.type);
   if (!drew_current) {
     LOG_DEBUG("ObjectDrawer",
               "DrawDoor: INVALID ADDRESS - falling back to indicator");

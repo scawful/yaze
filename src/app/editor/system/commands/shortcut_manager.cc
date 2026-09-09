@@ -65,7 +65,11 @@ int ScopePriority(Shortcut::Scope scope) {
 
 bool ModsSatisfied(int pressed_mods, int required_mods) {
   if (required_mods == 0) {
-    return true;
+    // A plain-key command must not shadow a modified chord that is handled by
+    // the active panel (for example D vs Ctrl/Cmd+D in the dungeon editor).
+    constexpr int kRelevantMods =
+        ImGuiMod_Ctrl | ImGuiMod_Shift | ImGuiMod_Alt | ImGuiMod_Super;
+    return (pressed_mods & kRelevantMods) == 0;
   }
 
   auto has = [&](int mod) -> bool {

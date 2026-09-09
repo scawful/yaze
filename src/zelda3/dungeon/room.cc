@@ -42,11 +42,6 @@ namespace zelda3 {
 
 namespace {
 
-bool RoomUsesTrackCornerAliases(const std::vector<RoomObject>& objects) {
-  return std::any_of(objects.begin(), objects.end(),
-                     [](const RoomObject& obj) { return obj.id_ == 0x31; });
-}
-
 uint8_t Layer2ModeFromHeaderByte(uint8_t byte0) {
   return static_cast<uint8_t>((byte0 >> 5) & 0x07);
 }
@@ -1353,7 +1348,8 @@ void Room::RenderObjectsToBackground() {
   // Pass the room-specific graphics buffer (current_gfx16_) so objects use
   // correct tiles
   ObjectDrawer drawer(rom_, room_id_, current_gfx16_.data());
-  drawer.SetAllowTrackCornerAliases(RoomUsesTrackCornerAliases(tile_objects_));
+  drawer.SetAllowTrackCornerAliases(
+      RoomAllowsTrackCornerAliases(tile_objects_));
   drawer.SetBG1RevealMaskSource(gfx::BG1RevealMaskSource::kBG2Objects);
   // NOTE: Routines marked draws_to_both_bgs explicitly write both tilemaps.
   // Object-specific stair routing is handled inside the registered routines.
@@ -1468,11 +1464,12 @@ void Room::RenderObjectsToBackground() {
     // Draw doors to object buffers (not layout buffers) so they remain visible
     // when BG1_Layout is hidden. Doors are objects, not layout tiles.
     drawer.DrawDoor(door_def, i, object_bg1_buffer_, object_bg2_buffer_,
-                    dungeon_state_.get());
+                    dungeon_state_.get(), &bg1_buffer_, &bg2_buffer_);
   }
   // Mark object buffer as modified so texture gets updated
   if (!doors_.empty()) {
     object_bg1_buffer_.bitmap().set_modified(true);
+    object_bg2_buffer_.bitmap().set_modified(true);
   }
 
   // Render pot items

@@ -353,21 +353,14 @@ void DungeonCanvasViewer::HandleTouchLongPressContextMenu(
     }
 
     if (!ImGui::IsPopupOpen(kPopupId)) {
-      const auto& objects = room.GetTileObjects();
-      for (size_t idx = 0; idx < objects.size(); ++idx) {
-        const auto& obj = objects[idx];
-        const int obj_px = obj.x() * 8;
-        const int obj_py = obj.y() * 8;
-        auto [obj_w, obj_h] =
-            zelda3::DimensionService::Get().GetPixelDimensions(obj);
-        obj_w = std::max(obj_w, 8);
-        obj_h = std::max(obj_h, 8);
-        if (rel_x >= obj_px && rel_x < obj_px + obj_w && rel_y >= obj_py &&
-            rel_y < obj_py + obj_h) {
-          object_interaction_.SetSelectedObjects({idx});
-          ImGui::OpenPopup(kPopupId);
-          break;
-        }
+      const auto object_index =
+          object_interaction_.entity_coordinator()
+              .tile_handler()
+              .GetEntityAtPosition(static_cast<int>(rel_x),
+                                   static_cast<int>(rel_y));
+      if (object_index.has_value()) {
+        object_interaction_.SetSelectedObjects({*object_index});
+        ImGui::OpenPopup(kPopupId);
       }
     }
   }

@@ -37,11 +37,11 @@ struct DungeonRoomRegressionFixture {
 
 // Fixed vanilla-room fixtures (US 1.0). Room ids verified via
 // DungeonRoomRegressionFixturesTest.ScanAllRoomsForFixtureCandidates.
-// Golden checksums regenerated 2026-09-08 against canonical US ROM
+// Golden checksums regenerated 2026-09-09 against canonical US ROM
 // SHA-1 6d4f10a8b10e10dbe624cb23cf03b88bb8252973 (roms/zelda3.sfc; first 1 MiB
-// of padded alttp_vanilla.sfc). Drift vs 2026-07-22 goldens is limited to
-// object BG2 (rooms 0x001/0x050) and object BG1 (room 0x016) after post-July
-// fixed-payload / overlay-stream parity fixes. Layout checksums unchanged.
+// of padded alttp_vanilla.sfc). Drift vs 2026-09-08 is limited to object
+// layers and composites after USDASM-backed door split, priority, middle-seam,
+// and South fancy-exit fixes. Layout checksums remain unchanged.
 // These self-fingerprints are drift guards only — not independent visual 1:1.
 // Independent truth comes from Mesen ROI fixtures for rooms 0x007, 0x012,
 // 0x031, 0x065, and 0x076.
@@ -57,9 +57,9 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
                 "streams with BG2 overlay platform objects 0x033/0x034/0x071.",
             .required_object_id = 0x108,
             .expected_layer_merge_id = 6,
-            .composite_checksum = 23780482654574992ull,
-            .object_bg1_checksum = 7942374673971519889ull,
-            .object_bg2_checksum = 10287929610757281366ull,
+            .composite_checksum = 17587705441275982428ull,
+            .object_bg1_checksum = 16473803172668162085ull,
+            .object_bg2_checksum = 2272669664059805342ull,
             .layout_bg1_checksum = 16155382640141831219ull,
             .composite_non_backdrop_pixels = 262144,
             .object_bg1_non_backdrop_pixels = 262144,
@@ -75,9 +75,9 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
                      "streams.",
             .required_object_id = 0x034,
             .expected_layer_merge_id = 6,
-            .composite_checksum = 11416175861626265506ull,
-            .object_bg1_checksum = 12203971081140519348ull,
-            .object_bg2_checksum = 1568926056972221297ull,
+            .composite_checksum = 10391518055730100830ull,
+            .object_bg1_checksum = 12090658100540583468ull,
+            .object_bg2_checksum = 15343382323770861576ull,
             .layout_bg1_checksum = 14374714413720404755ull,
             .composite_non_backdrop_pixels = 262144,
             .object_bg1_non_backdrop_pixels = 262144,
@@ -92,8 +92,8 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
                      "wall/corner objects with no moving-water effect.",
             .required_object_id = 0x100,
             .expected_layer_merge_id = 0,
-            .composite_checksum = 7928503047124983480ull,
-            .object_bg1_checksum = 10501821798088277057ull,
+            .composite_checksum = 15546560354129968140ull,
+            .object_bg1_checksum = 17240403903712956186ull,
             .object_bg2_checksum = 14741702422515376347ull,
             .layout_bg1_checksum = 3904745168084633499ull,
             .composite_non_backdrop_pixels = 262144,
@@ -111,8 +111,8 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
             .expected_layer_merge_id = 4,
             // FF1 now honors the inactive room-0x065 bombed-floor state, so
             // the default room render correctly omits the big light beam.
-            .composite_checksum = 2251720105443116807ull,
-            .object_bg1_checksum = 15680809605901349847ull,
+            .composite_checksum = 4811588923815197718ull,
+            .object_bg1_checksum = 2627692379214606145ull,
             .object_bg2_checksum = 9908005591592637895ull,
             .layout_bg1_checksum = 6452462266518031539ull,
             .composite_non_backdrop_pixels = 208440,
@@ -130,8 +130,8 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
             .expected_layer_merge_id = 0,
             // Room 0x004 contains six F92 rupee-floor objects. Their
             // USDASM-accurate sparse five-by-eight pattern changes BG1.
-            .composite_checksum = 11931349271745880540ull,
-            .object_bg1_checksum = 3494573777721387843ull,
+            .composite_checksum = 2000104977467415466ull,
+            .object_bg1_checksum = 3172523571313953129ull,
             .object_bg2_checksum = 11028269878064776067ull,
             .layout_bg1_checksum = 8128105348724780643ull,
             .composite_non_backdrop_pixels = 262144,

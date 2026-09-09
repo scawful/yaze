@@ -22,6 +22,7 @@
 #include "imgui/imgui.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/game_data.h"
@@ -217,16 +218,58 @@ class DungeonCanvasViewer {
         [this](int target_room, std::optional<size_t> target_door_index,
                int target_tile_x, int target_tile_y) {
           NavigateToRoom(target_room);
-          if (target_tile_x >= 0 && target_tile_y >= 0) {
+          bool focused_target_door = false;
+          if (target_door_index.has_value() && rooms_ != nullptr) {
+            auto* target = rooms_->TryEnsureRoom(target_room);
+            if (target != nullptr &&
+                *target_door_index < target->GetDoors().size()) {
+              const auto [x, y, width, height] =
+                  target->GetDoors()[*target_door_index].GetEditorBounds();
+              ScrollToTile((x + width / 2) / 8, (y + height / 2) / 8);
+              TriggerCanvasPingRect(x, y, width, height);
+              object_interaction_.SelectEntity(EntityType::Door,
+                                               *target_door_index);
+              focused_target_door = true;
+            }
+          }
+          if (!focused_target_door && target_tile_x >= 0 &&
+              target_tile_y >= 0) {
             ScrollToTile(target_tile_x, target_tile_y);
             TriggerCanvasPingRect(target_tile_x * 8, target_tile_y * 8, 24, 24);
-          } else {
+          } else if (!focused_target_door) {
             TriggerChangePing();
           }
-          if (target_door_index.has_value()) {
-            object_interaction_.SelectEntity(EntityType::Door,
-                                             *target_door_index);
+        });
+    object_interaction_.SetObjectSelectionVisibilityPredicate(
+        [this](int room_id, const zelda3::RoomObject& object) {
+          bool allow_track_corner_aliases = true;
+          if (zelda3::IsTrackCornerAliasObjectId(object.id_)) {
+            allow_track_corner_aliases = false;
+            if (rooms_ != nullptr) {
+              if (const auto* room = rooms_->GetIfMaterialized(room_id)) {
+                allow_track_corner_aliases =
+                    zelda3::RoomAllowsTrackCornerAliases(
+                        room->GetTileObjects());
+              }
+            }
           }
+          const auto semantics = zelda3::GetEffectiveObjectLayerSemantics(
+              object, allow_track_corner_aliases);
+          auto is_visible = [this, room_id](zelda3::LayerType layer) {
+            return IsLayerVisible(room_id, layer) &&
+                   GetLayerBlendMode(room_id, layer) !=
+                       zelda3::LayerBlendMode::Off;
+          };
+          switch (semantics.effective_bg_layer) {
+            case zelda3::EffectiveBgLayer::kBg1:
+              return is_visible(zelda3::LayerType::BG1_Objects);
+            case zelda3::EffectiveBgLayer::kBg2:
+              return is_visible(zelda3::LayerType::BG2_Objects);
+            case zelda3::EffectiveBgLayer::kBothBg1Bg2:
+              return is_visible(zelda3::LayerType::BG1_Objects) ||
+                     is_visible(zelda3::LayerType::BG2_Objects);
+          }
+          return true;
         });
   }
 
@@ -678,6 +721,10 @@ class DungeonCanvasViewer {
 
   // Object manipulation
   void DeleteSelectedObjects() { object_interaction_.HandleDeleteSelected(); }
+  bool CanHandleRoomCanvasShortcut() const {
+    return ImGui::GetCurrentContext() != nullptr &&
+           HasRoomCanvasShortcutFocusForFrame(ImGui::GetFrameCount());
+  }
 
   // Entity visibility controls
   void SetSpritesVisible(bool visible) {
@@ -828,6 +875,9 @@ class DungeonCanvasViewer {
   void DrawChangePingOverlay(const gui::CanvasRuntime& canvas_rt,
                              const zelda3::Room& room);
   void RecordVisitedRoom(int room_id);
+  void UpdateRoomCanvasShortcutFocus(bool hovered, bool pointer_pressed,
+                                     int frame_index);
+  bool HasRoomCanvasShortcutFocusForFrame(int frame_index) const;
 
   // Room graphics management
   // Load: Read from ROM, Render: Process pixels, Draw: Display on canvas
@@ -883,6 +933,8 @@ class DungeonCanvasViewer {
 
   // Object interaction state
   bool object_interaction_enabled_ = true;
+  bool room_canvas_shortcut_focus_ = false;
+  int room_canvas_last_draw_frame_ = -1;
 
   // Per-room layer managers (4-way visibility, blend modes, per-object translucency)
   std::map<int, zelda3::RoomLayerManager> room_layer_managers_;

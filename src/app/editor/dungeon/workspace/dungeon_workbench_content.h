@@ -135,6 +135,10 @@ class DungeonWorkbenchContent : public WindowContent {
   void SetOnInspectorSideChanged(std::function<void(bool)> cb) {
     on_inspector_side_changed_ = std::move(cb);
   }
+  void SetPrimaryCanvasDrawnCallback(
+      std::function<void(DungeonCanvasViewer&)> cb) {
+    on_primary_canvas_drawn_ = std::move(cb);
+  }
 
   // Lightweight state probes for unit tests; production rendering remains
   // driven by the Workbench inspector.
@@ -148,6 +152,7 @@ class DungeonWorkbenchContent : public WindowContent {
   GetPitDamageControlRectsForTesting() const {
     return pit_damage_control_rects_;
   }
+  void SetAllSaveFlagsForTesting(bool value) { SetAllSaveFlags(value); }
 
   /// Called by the editor when the current room changes.
   void NotifyRoomChanged(int previous_room_id) {
@@ -249,6 +254,7 @@ class DungeonWorkbenchContent : public WindowContent {
   std::function<void(int)> forget_recent_room_;
   std::function<void(bool)> set_workflow_mode_;
   std::function<void(bool)> on_inspector_side_changed_;
+  std::function<void(DungeonCanvasViewer&)> on_primary_canvas_drawn_;
   std::function<zelda3::PitDamageTable*()> get_pit_damage_table_;
   Rom* rom_ = nullptr;
 

@@ -65,18 +65,7 @@ const char* GetStoredPlacementLabel(const zelda3::RoomObject& object) {
   }
 }
 
-constexpr std::array<zelda3::DoorType, 20> kInspectorDoorTypes = {{
-    zelda3::DoorType::NormalDoor,         zelda3::DoorType::NormalDoorLower,
-    zelda3::DoorType::CaveExit,           zelda3::DoorType::DoubleSidedShutter,
-    zelda3::DoorType::EyeWatchDoor,       zelda3::DoorType::SmallKeyDoor,
-    zelda3::DoorType::BigKeyDoor,         zelda3::DoorType::SmallKeyStairsUp,
-    zelda3::DoorType::SmallKeyStairsDown, zelda3::DoorType::DashWall,
-    zelda3::DoorType::BombableDoor,       zelda3::DoorType::ExplodingWall,
-    zelda3::DoorType::CurtainDoor,        zelda3::DoorType::BottomSidedShutter,
-    zelda3::DoorType::TopSidedShutter,    zelda3::DoorType::FancyDungeonExit,
-    zelda3::DoorType::WaterfallDoor,      zelda3::DoorType::ExitMarker,
-    zelda3::DoorType::LayerSwapMarker,    zelda3::DoorType::DungeonSwapMarker,
-}};
+constexpr auto kInspectorDoorTypes = zelda3::GetPlaceableDoorTypes();
 
 bool MutateSelectedSprite(DungeonCanvasViewer* viewer,
                           std::function<void(zelda3::Sprite&)> mutator) {
@@ -535,13 +524,14 @@ void ObjectEditorContent::DrawSelectedDoorInfo() {
   const int neighbor_id =
       NeighborRoomId(viewer->current_room_id(), door.direction);
   std::optional<size_t> reciprocal_index;
-  if (neighbor_id >= 0 &&
+  if (zelda3::IsRoomConnectionDoorType(door.type) && neighbor_id >= 0 &&
       neighbor_id < static_cast<int>(viewer->rooms()->size())) {
     const auto opposite = OppositeDir(door.direction);
     const auto& neighbor_doors = (*viewer->rooms())[neighbor_id].GetDoors();
     for (size_t i = 0; i < neighbor_doors.size(); ++i) {
       const auto& neighbor_door = neighbor_doors[i];
-      if (neighbor_door.direction == opposite &&
+      if (zelda3::IsRoomConnectionDoorType(neighbor_door.type) &&
+          neighbor_door.direction == opposite &&
           neighbor_door.position == door.position) {
         reciprocal_index = i;
         break;
@@ -549,7 +539,8 @@ void ObjectEditorContent::DrawSelectedDoorInfo() {
     }
     if (!reciprocal_index) {
       for (size_t i = 0; i < neighbor_doors.size(); ++i) {
-        if (neighbor_doors[i].direction == opposite) {
+        if (zelda3::IsRoomConnectionDoorType(neighbor_doors[i].type) &&
+            neighbor_doors[i].direction == opposite) {
           reciprocal_index = i;
           break;
         }
@@ -799,7 +790,9 @@ void ObjectEditorContent::HandleKeyboardShortcuts() {
     DeselectAllObjects();
   }
   if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
-    if (selection_snapshot_.HasSelection()) {
+    auto* viewer = ResolveCanvasViewer();
+    if (selection_snapshot_.HasSelection() && viewer != nullptr &&
+        !ImGui::IsAnyItemActive() && viewer->CanHandleRoomCanvasShortcut()) {
       DeleteCurrentSelection();
     }
   }
