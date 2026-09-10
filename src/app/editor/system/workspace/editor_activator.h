@@ -92,6 +92,7 @@ class EditorActivator {
   void ActivatePanelBasedEditor(EditorType type, Editor* editor);
   void DeactivatePanelBasedEditor(EditorType type, Editor* editor,
                                   EditorSet* editor_set);
+  void QueueEditorLayoutInitialization(EditorType type);
   void HandleNonEditorClassSwitch(EditorType type, bool force_visible);
 
   Dependencies deps_;

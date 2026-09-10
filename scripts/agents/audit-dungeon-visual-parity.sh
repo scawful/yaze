@@ -103,7 +103,8 @@ if [[ -n "${YAZE_TEST_ROM_VANILLA:-}" ]]; then
   require_test_suite "$INTEG_BIN" DungeonRoomRegressionFixturesTest
   require_test_suite "$ROM_BIN" DungeonObjectRomValidationTest
   YAZE_TEST_ROM_VANILLA="$YAZE_TEST_ROM_VANILLA" \
-    "$INTEG_BIN" --gtest_filter='DungeonRoomRegressionFixturesTest.*'
+    "$INTEG_BIN" \
+      --gtest_filter='DungeonRoomRegressionFixturesTest.*:DungeonRoomRenderParityTest.*'
   YAZE_TEST_ROM_VANILLA="$YAZE_TEST_ROM_VANILLA" \
     "$ROM_BIN" \
       --gtest_filter='DungeonObjectRomValidationTest.TileCountTable_KnownValues'

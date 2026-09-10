@@ -8,34 +8,6 @@
 
 namespace yaze::zelda3 {
 
-namespace {
-
-// Returns true if the object ID is a pit or layer mask that should be on BG2.
-// These objects create transparency holes in BG1 to show BG2 content through.
-// Based on ALTTP object IDs and draw routine analysis.
-bool IsPitOrMaskObject(int16_t id) {
-  // Pit and layer-2 masks that rely on BG1 transparency to reveal BG2.
-  //
-  // Source of truth for names: RoomObjectNames in room_object.h.
-  // USDASM: These are "layer 2 mask" objects that operate by clearing BG1.
-  if (id == 0xA4)
-    return true;  // Pit
-  if (id >= 0xA5 && id <= 0xAC)
-    return true;  // Diagonal layer 2 masks
-  if (id == 0xC2 || id == 0xC3)
-    return true;  // Layer 2 pit masks (large/medium)
-  if (id == 0xC6 || id == 0xD7 || id == 0xD9)
-    return true;  // Layer 2 masks (large/medium/swim)
-  if (id == 0xFE6)
-    return true;  // Type 3 pit
-  if (id == 0xFF3)
-    return true;  // Type 3 layer 2 mask (full)
-
-  return false;
-}
-
-}  // namespace
-
 absl::StatusOr<int> RoomLayout::GetLayoutAddress(int layout_id) const {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
@@ -94,14 +66,6 @@ absl::Status RoomLayout::LoadLayout(int layout_id) {
     RoomObject obj = RoomObject::DecodeObjectFromBytes(
         b1, b2, b3, static_cast<uint8_t>(layer));
 
-    // Pit/mask objects should be on BG2 layer to create transparency holes.
-    // This allows them to show through BG1 content (walls, floor).
-    if (IsPitOrMaskObject(obj.id_)) {
-      obj.layer_ = RoomObject::LayerType::BG2;
-      LOG_DEBUG("RoomLayout", "Pit/mask object 0x%03X assigned to BG2 layer",
-                obj.id_);
-    }
-
     obj.SetRom(rom_);
     obj.EnsureTilesLoaded();
     objects_.push_back(obj);
@@ -139,15 +103,13 @@ absl::Status RoomLayout::Draw(int room_id, const uint8_t* gfx_data,
 
   std::vector<RoomObject> render_objects = objects_;
   for (auto& obj : render_objects) {
-    if (!IsPitOrMaskObject(obj.id_)) {
-      obj.layer_ = RoomObject::LayerType::BG1;
-    }
+    obj.layer_ = RoomObject::LayerType::BG1;
   }
 
-  // Layout objects render through the room-layout stream, which in ALTTP uses the
-  // upper-layer tilemap pointer set for the visible room shell. Keep track-corner
-  // aliases disabled so vanilla wall corners survive, but preserve BG2 routing for
-  // pit/mask objects that intentionally reveal the lower layer.
+  // ALTTP enters the room-layout stream with the upper tilemap pointer active.
+  // Object IDs do not reroute the destination tilemap; their draw routines use
+  // the current stream pointer. Keep track-corner aliases disabled so vanilla
+  // structural wall corners survive.
   return drawer.DrawObjectList(render_objects, bg1, bg2, palette_group, state);
 }
 

@@ -88,18 +88,9 @@ inline ObjectLayerSemantics GetObjectLayerSemantics(const RoomObject& object) {
   }
 
   if (out.routine_id == DrawRoutineIds::kAgahnimsAltar ||
-      out.routine_id == DrawRoutineIds::kFortuneTellerRoom ||
-      out.routine_id == DrawRoutineIds::kSpiralStairsGoingUpUpper ||
-      out.routine_id == DrawRoutineIds::kSpiralStairsGoingDownUpper) {
+      out.routine_id == DrawRoutineIds::kFortuneTellerRoom) {
     out.effective_bg_layer = EffectiveBgLayer::kBg1;
     out.render_routing = ObjectRenderRouting::kFixedBg1;
-    return out;
-  }
-
-  if (out.routine_id == DrawRoutineIds::kSpiralStairsGoingUpLower ||
-      out.routine_id == DrawRoutineIds::kSpiralStairsGoingDownLower) {
-    out.effective_bg_layer = EffectiveBgLayer::kBg2;
-    out.render_routing = ObjectRenderRouting::kFixedBg2;
     return out;
   }
 

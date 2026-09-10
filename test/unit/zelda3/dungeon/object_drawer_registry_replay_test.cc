@@ -69,6 +69,7 @@ class FakeDungeonState : public DungeonState {
   bool dam_floodgate_open = false;
   bool big_chest_open = false;
   bool wall_moved = false;
+  bool door_switch_active = false;
 
   bool IsChestOpen(int room_id, int chest_index) const override {
     chest_queries.emplace_back(room_id, chest_index);
@@ -82,7 +83,9 @@ class FakeDungeonState : public DungeonState {
     }
     return room_id == open_lock_room_id;
   }
-  bool IsDoorSwitchActive(int /*room_id*/) const override { return false; }
+  bool IsDoorSwitchActive(int /*room_id*/) const override {
+    return door_switch_active;
+  }
   bool IsBigKeyLockOpen(int room_id, int room_event_index) const override {
     big_key_lock_queries.emplace_back(room_id, room_event_index);
     return open_big_key_lock_slots.contains({room_id, room_event_index});
@@ -761,13 +764,13 @@ TEST(ObjectDrawerRegistryReplayTest,
   constexpr int kDoorwayReplacementDoorGfxBase = 0x1A02;
   constexpr int kDoorGfxNorthTableBase = 0x4D9E;
   constexpr int kCurtainDoorType = 0x32;
-  constexpr int kOpenCurtainReplacementType = 0x54;
+  constexpr int kOpenCurtainReplacementType = 0x56;
   constexpr int kOpenCurtainObjectOffset = 0x0800;
 
   Rom rom;
   std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
-  dummy_rom[kDoorwayReplacementDoorGfxBase + kCurtainDoorType] =
-      kOpenCurtainReplacementType;
+  WriteWord(dummy_rom, kDoorwayReplacementDoorGfxBase + kCurtainDoorType,
+            kOpenCurtainReplacementType);
   WriteWord(dummy_rom, kDoorGfxNorthTableBase + kCurtainDoorType, 0xFFFF);
   WriteWord(dummy_rom, kDoorGfxNorthTableBase + kOpenCurtainReplacementType,
             kOpenCurtainObjectOffset);
@@ -806,6 +809,164 @@ TEST(ObjectDrawerRegistryReplayTest,
   EXPECT_FALSE(TileHasCoverage(bg1, 18, 4));
   EXPECT_FALSE(TileHasCoverage(bg1, 14, 8));
   EXPECT_FALSE(TileHasCoverage(bg2, 14, 0));
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     OpenGenericDoorUsesRomReplacementWithoutChangingWriterFamily) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kDoorwayReplacementDoorGfxBase = 0x1A02;
+  constexpr int kDoorGfxWestTableBase = 0x4E66;
+  constexpr int kClosedObjectOffset = 0x0C00;
+  constexpr int kOpenObjectOffset = 0x0C20;
+  constexpr uint16_t kClosedFirstWord = 0x0800;
+  constexpr uint16_t kOpenFirstWord = 0x0900;
+  constexpr DoorType kOpenReplacementType = DoorType::UnusableBombedDoor;
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  WriteWord(
+      dummy_rom,
+      kDoorwayReplacementDoorGfxBase + static_cast<int>(DoorType::BombableDoor),
+      static_cast<int>(kOpenReplacementType));
+  WriteWord(dummy_rom,
+            kDoorGfxWestTableBase + static_cast<int>(DoorType::BombableDoor),
+            kClosedObjectOffset);
+  WriteWord(dummy_rom,
+            kDoorGfxWestTableBase + static_cast<int>(kOpenReplacementType),
+            kOpenObjectOffset);
+  WriteDoorObjectDataWords(dummy_rom, kClosedObjectOffset, kClosedFirstWord,
+                           /*word_count=*/12);
+  WriteDoorObjectDataWords(dummy_rom, kOpenObjectOffset, kOpenFirstWord,
+                           /*word_count=*/12);
+  rom.LoadFromData(dummy_rom);
+
+  auto gfx = MakeOpaqueDoorGfx();
+  ObjectDrawer drawer(&rom, /*room_id=*/0x42, gfx.data());
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  InitializeEmptyDoorBuffer(bg1);
+  InitializeEmptyDoorBuffer(bg2);
+  FakeDungeonState open_state;
+  open_state.open_lock_room_id = 0x42;
+
+  ObjectDrawer::DoorDef door{
+      .type = DoorType::BombableDoor,
+      .direction = DoorDirection::West,
+      .position = 0,
+  };
+  drawer.DrawDoor(door, /*door_index=*/0, bg1, bg2, &open_state);
+
+  const auto [tile_x, tile_y] = door.GetTileCoords();
+  ExpectOnlyCoverageRect(bg1, tile_x, tile_y, /*width=*/3, /*height=*/4);
+  ExpectOnlyCoverageRect(bg2, 0, 0, 0, 0);
+  EXPECT_EQ(bg1.GetTileAt(tile_x, tile_y), kOpenFirstWord);
+  EXPECT_NE(bg1.GetTileAt(tile_x, tile_y), kClosedFirstWord);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     GenericCurtainAndWaterfallFinalTypesSuppressRaster) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kDoorGfxSouthTableBase = 0x4E06;
+  constexpr int kDoorGfxWestTableBase = 0x4E66;
+  constexpr int kWaterfallObjectOffset = 0x0D00;
+  constexpr int kCurtainObjectOffset = 0x0D20;
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  WriteWord(dummy_rom,
+            kDoorGfxSouthTableBase + static_cast<int>(DoorType::WaterfallDoor),
+            kWaterfallObjectOffset);
+  WriteWord(dummy_rom,
+            kDoorGfxWestTableBase + static_cast<int>(DoorType::CurtainDoor),
+            kCurtainObjectOffset);
+  WriteDoorObjectDataWords(dummy_rom, kWaterfallObjectOffset,
+                           /*start_word=*/0x0A00, /*word_count=*/12);
+  WriteDoorObjectDataWords(dummy_rom, kCurtainObjectOffset,
+                           /*start_word=*/0x0B00, /*word_count=*/12);
+  rom.LoadFromData(dummy_rom);
+
+  auto gfx = MakeOpaqueDoorGfx();
+  ObjectDrawer drawer(&rom, /*room_id=*/0x42, gfx.data());
+
+  for (const auto& [type, direction] :
+       std::array<std::pair<DoorType, DoorDirection>, 2>{
+           {{DoorType::WaterfallDoor, DoorDirection::South},
+            {DoorType::CurtainDoor, DoorDirection::West}}}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "type=" << static_cast<int>(type)
+                 << " direction=" << static_cast<int>(direction));
+    gfx::BackgroundBuffer bg1(512, 512);
+    gfx::BackgroundBuffer bg2(512, 512);
+    InitializeEmptyDoorBuffer(bg1);
+    InitializeEmptyDoorBuffer(bg2);
+
+    ObjectDrawer::DoorDef door{
+        .type = type,
+        .direction = direction,
+        .position = 0,
+    };
+    drawer.DrawDoor(door, /*door_index=*/0, bg1, bg2, nullptr);
+
+    ExpectOnlyCoverageRect(bg1, 0, 0, 0, 0);
+    ExpectOnlyCoverageRect(bg2, 0, 0, 0, 0);
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     ActiveShutterControllerKeepsOpenFlaggedShutterClosed) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kDoorwayReplacementDoorGfxBase = 0x1A02;
+  constexpr int kDoorGfxSouthTableBase = 0x4E06;
+  constexpr int kClosedObjectOffset = 0x0D40;
+  constexpr int kOpenObjectOffset = 0x0D60;
+  constexpr uint16_t kClosedFirstWord = 0x0C00;
+  constexpr uint16_t kOpenFirstWord = 0x0D00;
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  WriteWord(dummy_rom,
+            kDoorwayReplacementDoorGfxBase +
+                static_cast<int>(DoorType::DoubleSidedShutter),
+            static_cast<int>(DoorType::UnusableNormalDoor50));
+  WriteWord(
+      dummy_rom,
+      kDoorGfxSouthTableBase + static_cast<int>(DoorType::DoubleSidedShutter),
+      kClosedObjectOffset);
+  WriteWord(
+      dummy_rom,
+      kDoorGfxSouthTableBase + static_cast<int>(DoorType::UnusableNormalDoor50),
+      kOpenObjectOffset);
+  WriteDoorObjectDataWords(dummy_rom, kClosedObjectOffset, kClosedFirstWord,
+                           /*word_count=*/12);
+  WriteDoorObjectDataWords(dummy_rom, kOpenObjectOffset, kOpenFirstWord,
+                           /*word_count=*/12);
+  rom.LoadFromData(dummy_rom);
+
+  auto gfx = MakeOpaqueDoorGfx();
+  ObjectDrawer drawer(&rom, /*room_id=*/0x42, gfx.data());
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  InitializeEmptyDoorBuffer(bg1);
+  InitializeEmptyDoorBuffer(bg2);
+  FakeDungeonState state;
+  state.open_lock_room_id = 0x42;
+  state.door_switch_active = true;
+
+  ObjectDrawer::DoorDef door{
+      .type = DoorType::DoubleSidedShutter,
+      .direction = DoorDirection::South,
+      .position = 0,
+  };
+  drawer.DrawDoor(door, /*door_index=*/0, bg1, bg2, &state);
+
+  const auto [tile_x, tile_y] = door.GetTileCoords();
+  ExpectOnlyCoverageRect(bg1, tile_x, tile_y, /*width=*/4, /*height=*/3);
+  ExpectOnlyCoverageRect(bg2, 0, 0, 0, 0);
+  EXPECT_EQ(bg1.GetTileAt(tile_x, tile_y), kClosedFirstWord);
+  EXPECT_NE(bg1.GetTileAt(tile_x, tile_y), kOpenFirstWord);
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
@@ -1551,6 +1712,56 @@ TEST(ObjectDrawerRegistryReplayTest,
     drawer.DrawDoor(door, /*door_index=*/0, open_bg1, open_bg2, &open_state);
     ExpectOnlyCoverageRect(open_bg1, 0, 0, 0, 0);
     ExpectOnlyCoverageRect(open_bg2, 0, 0, 0, 0);
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     OpenNorthUpperKeyStairsSuppressValidReplacementArt) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kDoorwayReplacementDoorGfxBase = 0x1A02;
+  constexpr int kDoorGfxNorthTableBase = 0x4D9E;
+  constexpr int kReplacementObjectOffset = 0x0B30;
+  constexpr uint16_t kReplacementType =
+      static_cast<uint16_t>(DoorType::NormalDoor);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  for (DoorType type :
+       {DoorType::SmallKeyStairsUp, DoorType::SmallKeyStairsDown}) {
+    WriteWord(dummy_rom,
+              kDoorwayReplacementDoorGfxBase + static_cast<int>(type),
+              kReplacementType);
+  }
+  WriteWord(dummy_rom, kDoorGfxNorthTableBase + kReplacementType,
+            kReplacementObjectOffset);
+  WriteDoorObjectDataWords(dummy_rom,
+                           /*object_offset=*/kReplacementObjectOffset,
+                           /*start_word=*/0x08E0, /*word_count=*/12);
+  rom.LoadFromData(dummy_rom);
+
+  auto gfx = MakeOpaqueDoorGfx();
+  ObjectDrawer drawer(&rom, /*room_id=*/0x42, gfx.data());
+  FakeDungeonState open_state;
+  open_state.open_lock_room_id = 0x42;
+
+  for (DoorType type :
+       {DoorType::SmallKeyStairsUp, DoorType::SmallKeyStairsDown}) {
+    SCOPED_TRACE(static_cast<int>(type));
+    gfx::BackgroundBuffer bg1(512, 512);
+    gfx::BackgroundBuffer bg2(512, 512);
+    InitializeEmptyDoorBuffer(bg1);
+    InitializeEmptyDoorBuffer(bg2);
+
+    ObjectDrawer::DoorDef door{
+        .type = type,
+        .direction = DoorDirection::North,
+        .position = 0,
+    };
+    drawer.DrawDoor(door, /*door_index=*/0, bg1, bg2, &open_state);
+
+    ExpectOnlyCoverageRect(bg1, 0, 0, 0, 0);
+    ExpectOnlyCoverageRect(bg2, 0, 0, 0, 0);
   }
 }
 
@@ -4398,14 +4609,13 @@ TEST(ObjectDrawerMaskPropagationTest,
   lower.tiles_ = {gfx::TileInfo(/*id=*/0, /*pal=*/2, false, false, false)};
   gfx::PaletteGroup palette_group;
 
+  const int pixel_x = (lower.x_ + 3) * 8;
+  const int pixel_y = lower.y_ * 8;
+  const int index = pixel_y * obj_bg1.bitmap().width() + pixel_x;
   ASSERT_TRUE(drawer
                   .DrawObject(lower, obj_bg1, obj_bg2, palette_group,
                               /*state=*/nullptr, /*layout_bg1=*/&layout_bg1)
                   .ok());
-
-  const int pixel_x = (lower.x_ + 3) * 8;
-  const int pixel_y = lower.y_ * 8;
-  const int index = pixel_y * obj_bg1.bitmap().width() + pixel_x;
   ASSERT_NE(obj_bg1.bg1_reveal_mask_data()[index] & kBG2ObjectRevealMask, 0);
 
   obj_bg1.SetBG1RevealMaskRect(gfx::BG1RevealMaskSource::kBG2Layout, pixel_x,
@@ -4424,7 +4634,7 @@ TEST(ObjectDrawerMaskPropagationTest,
   EXPECT_NE(layout_bg1.bg1_reveal_mask_data()[index] & kBG2ObjectRevealMask, 0);
 }
 
-TEST(ObjectDrawerMaskPropagationTest, Layer2SpiralStairsUsePerPixelMasking) {
+TEST(ObjectDrawerMaskPropagationTest, StoredBg2SpiralStairsUsePerPixelMasking) {
   ScopedCustomObjectsFlag disable_custom(false);
 
   Rom rom;
@@ -4466,7 +4676,6 @@ TEST(ObjectDrawerMaskPropagationTest, Layer2SpiralStairsUsePerPixelMasking) {
   const int opaque_idx = base_y * obj_bg1.bitmap().width() + base_x;
   const int transparent_idx = opaque_idx + 1;
   ASSERT_LT(transparent_idx, static_cast<int>(obj_bg1.bitmap().size()));
-
   ASSERT_TRUE(drawer
                   .DrawObject(obj, obj_bg1, obj_bg2, palette_group,
                               /*state=*/nullptr, /*layout_bg1=*/&layout_bg1)
@@ -4523,39 +4732,112 @@ TEST(ObjectDrawerRegistryReplayTest,
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
-     SpiralStairsUpperAlwaysRenderOnBg1InColumnMajorOrder) {
+     SpiralStairsRastersFollowStoredLayerInColumnMajorOrder) {
   ScopedCustomObjectsFlag disable_custom(false);
 
   constexpr int kX = 3;
   constexpr int kY = 5;
-  auto trace = ReplayObjectTrace(
-      /*object_id=*/0x0139, kX, kY, /*size=*/0, RoomObject::LayerType::BG2,
-      MakeSequentialTiles(/*count=*/12));
-
-  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
-  const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
   const auto expected = MakeColumnMajorSnapshot(kX, kY, 4, 3, 0);
 
-  ExpectTraceMatchesSnapshot(bg1, expected);
-  EXPECT_TRUE(bg2.empty());
+  for (const int object_id : {0x0138, 0x0139, 0x013A, 0x013B}) {
+    for (const auto stored_layer :
+         {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+      SCOPED_TRACE(::testing::Message()
+                   << "object=0x" << std::hex << object_id
+                   << " layer=" << static_cast<int>(stored_layer));
+      const auto trace =
+          ReplayObjectTrace(object_id, kX, kY, /*size=*/0, stored_layer,
+                            MakeSequentialTiles(/*count=*/12));
+      const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+      const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+
+      if (stored_layer == RoomObject::LayerType::BG1) {
+        ExpectTraceMatchesSnapshot(bg1, expected);
+        EXPECT_TRUE(bg2.empty());
+      } else {
+        EXPECT_TRUE(bg1.empty());
+        ExpectTraceMatchesSnapshot(bg2, expected);
+      }
+    }
+  }
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
-     SpiralStairsLowerAlwaysRenderOnBg2InColumnMajorOrder) {
+     SpiralStairsPromoteFixedMapFlanksWithoutRasterOrCoverage) {
   ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  rom.LoadFromData(dummy_rom);
+
+  std::array<uint8_t, 0x10000> room_gfx{};
+  room_gfx.fill(1);
+  ObjectDrawer drawer(&rom, /*room_id=*/0x77, room_gfx.data());
+  gfx::PaletteGroup palette_group;
+
+  struct SpiralCase {
+    int object_id;
+    RoomObject::LayerType stored_layer;
+    bool priority_on_upper;
+  };
+  const std::array<SpiralCase, 4> cases = {{
+      {0x0138, RoomObject::LayerType::BG2, true},
+      {0x0139, RoomObject::LayerType::BG2, true},
+      {0x013A, RoomObject::LayerType::BG1, false},
+      {0x013B, RoomObject::LayerType::BG1, false},
+  }};
 
   constexpr int kX = 3;
   constexpr int kY = 5;
-  auto trace = ReplayObjectTrace(
-      /*object_id=*/0x013B, kX, kY, /*size=*/0, RoomObject::LayerType::BG1,
-      MakeSequentialTiles(/*count=*/12));
+  for (const auto& test_case : cases) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object=0x" << std::hex << test_case.object_id);
+    gfx::BackgroundBuffer object_upper(512, 512);
+    gfx::BackgroundBuffer object_lower(512, 512);
+    gfx::BackgroundBuffer layout_upper(512, 512);
+    gfx::BackgroundBuffer layout_lower(512, 512);
+    for (auto* buffer :
+         {&object_upper, &object_lower, &layout_upper, &layout_lower}) {
+      InitializeEmptyDoorBuffer(*buffer);
+    }
 
-  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
-  const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
-  const auto expected = MakeColumnMajorSnapshot(kX, kY, 4, 3, 0);
+    RoomObject object(test_case.object_id, kX, kY, /*size=*/0,
+                      static_cast<int>(test_case.stored_layer));
+    object.tiles_loaded_ = true;
+    object.tiles_ = MakeSequentialTiles(/*count=*/12);
 
-  EXPECT_TRUE(bg1.empty());
-  ExpectTraceMatchesSnapshot(bg2, expected);
+    ASSERT_TRUE(drawer
+                    .DrawObject(object, object_upper, object_lower,
+                                palette_group, /*state=*/nullptr, &layout_upper,
+                                &layout_lower)
+                    .ok());
+
+    const auto& raster = test_case.stored_layer == RoomObject::LayerType::BG1
+                             ? object_upper
+                             : object_lower;
+    const auto& other_object =
+        test_case.stored_layer == RoomObject::LayerType::BG1 ? object_lower
+                                                             : object_upper;
+    ExpectOnlyCoverageRect(raster, kX, kY, /*width_tiles=*/4,
+                           /*height_tiles=*/3);
+    ExpectOnlyCoverageRect(other_object, 0, 0, 0, 0);
+
+    const auto& fixed_object =
+        test_case.priority_on_upper ? object_upper : object_lower;
+    const auto& fixed_layout =
+        test_case.priority_on_upper ? layout_upper : layout_lower;
+    const auto& opposite_layout =
+        test_case.priority_on_upper ? layout_lower : layout_upper;
+    for (const int flank_x : {kX - 1, kX + 4}) {
+      ExpectPriorityRectSet(fixed_object, flank_x, kY, 1, 1);
+      ExpectPriorityRectSet(fixed_layout, flank_x, kY, 1, 1);
+    }
+    ExpectOnlyCoverageRect(fixed_layout, 0, 0, 0, 0);
+    ExpectOnlyCoverageRect(opposite_layout, 0, 0, 0, 0);
+    ExpectOnlyPriorityRect(opposite_layout, 0, 0, 0, 0);
+    ExpectBitmapFilledWith(fixed_layout, 255);
+    ExpectBitmapFilledWith(opposite_layout, 255);
+  }
 }
 
 TEST(ObjectDrawerRegistryReplayTest,

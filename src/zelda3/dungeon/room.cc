@@ -1409,9 +1409,10 @@ void Room::RenderObjectsToBackground() {
   // `tile_objects_[].layer_` holds the list index (0/1/2) for save/load, not
   // the buffer name. Map with MapRoomObjectListIndexToDrawLayer before drawing.
   // BothBG routines still fan out to both buffers via DrawRoutineRegistry.
-  // Pass bg1_buffer_ as the second raw BG1 target. BG2 room objects record
-  // deferred reveal bits on both layout and object targets without mutating
-  // either bitmap.
+  // Pass both layout buffers because USDASM priority-only writes target one
+  // physical tilemap, while Yaze temporarily splits that tilemap between its
+  // layout and object owners. BG2 room objects also record deferred upper-map
+  // reveal bits without mutating either bitmap.
   //
   // Three DrawObjectList passes match USDASM list order; the shared chest/
   // big-key-lock event index continues across passes (reset only on the first
@@ -1445,7 +1446,8 @@ void Room::RenderObjectsToBackground() {
     }
     auto chunk_status = drawer.DrawObjectList(
         by_list[pass], object_bg1_buffer_, object_bg2_buffer_, palette_group,
-        dungeon_state_.get(), &bg1_buffer_, reset_room_events_for_next_chunk);
+        dungeon_state_.get(), &bg1_buffer_, reset_room_events_for_next_chunk,
+        &bg2_buffer_);
     reset_room_events_for_next_chunk = false;
     if (!chunk_status.ok() && status.ok()) {
       status = chunk_status;

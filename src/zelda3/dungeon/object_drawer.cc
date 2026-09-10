@@ -77,6 +77,27 @@ void SyncModifiedBitmapToSurface(gfx::Bitmap& bitmap, const char* layer_name) {
   SDL_UnlockSurface(surface);
 }
 
+void PromoteTilePriorityOnly(gfx::BackgroundBuffer& target, int tile_x,
+                             int tile_y) {
+  for (int py = 0; py < 8; ++py) {
+    for (int px = 0; px < 8; ++px) {
+      target.SetPriorityAt(tile_x * 8 + px, tile_y * 8 + py, 1);
+    }
+  }
+}
+
+void PromoteTilePriorityOnOwners(gfx::BackgroundBuffer& object_owner,
+                                 gfx::BackgroundBuffer* layout_owner,
+                                 int tile_x, int tile_y) {
+  // The SNES mutates one physical tilemap. Yaze temporarily splits that map
+  // between layout and object buffers, so update both possible pixel owners
+  // without writing bitmap pixels, coverage, or a new tile word.
+  PromoteTilePriorityOnly(object_owner, tile_x, tile_y);
+  if (layout_owner != nullptr && layout_owner != &object_owner) {
+    PromoteTilePriorityOnly(*layout_owner, tile_x, tile_y);
+  }
+}
+
 }  // namespace
 
 ObjectDrawer::ObjectDrawer(Rom* rom, int room_id,
@@ -217,7 +238,7 @@ absl::Status ObjectDrawer::DrawObject(
     const RoomObject& object, gfx::BackgroundBuffer& bg1,
     gfx::BackgroundBuffer& bg2, const gfx::PaletteGroup& palette_group,
     [[maybe_unused]] const DungeonState* state,
-    gfx::BackgroundBuffer* layout_bg1) {
+    gfx::BackgroundBuffer* layout_bg1, gfx::BackgroundBuffer* layout_bg2) {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -355,11 +376,7 @@ absl::Status ObjectDrawer::DrawObject(
   } else if (!is_both_bg && routine_id == DrawRoutineIds::kAutoStairs) {
     registry_secondary_bg_ = &other_bg;
   } else if (!is_both_bg &&
-             (routine_id == DrawRoutineIds::kStraightInterRoomStairs ||
-              routine_id == DrawRoutineIds::kSpiralStairsGoingUpUpper ||
-              routine_id == DrawRoutineIds::kSpiralStairsGoingDownUpper ||
-              routine_id == DrawRoutineIds::kSpiralStairsGoingUpLower ||
-              routine_id == DrawRoutineIds::kSpiralStairsGoingDownLower)) {
+             routine_id == DrawRoutineIds::kStraightInterRoomStairs) {
     dispatch_bg = &bg1;
     registry_secondary_bg_ = &bg2;
     registry_primary_layer_ = RoomObject::LayerType::BG1;
@@ -388,6 +405,23 @@ absl::Status ObjectDrawer::DrawObject(
                                state);
   }
 
+  const bool is_upper_spiral =
+      routine_id == DrawRoutineIds::kSpiralStairsGoingUpUpper ||
+      routine_id == DrawRoutineIds::kSpiralStairsGoingDownUpper;
+  const bool is_lower_spiral =
+      routine_id == DrawRoutineIds::kSpiralStairsGoingUpLower ||
+      routine_id == DrawRoutineIds::kSpiralStairsGoingDownLower;
+  if (!trace_only_ && (is_upper_spiral || is_lower_spiral)) {
+    auto& priority_object_owner = is_upper_spiral ? bg1 : bg2;
+    auto* priority_layout_owner = is_upper_spiral ? layout_bg1 : layout_bg2;
+    // USDASM ORs $2000 into the tile immediately left of the 4x3 raster and
+    // the tile immediately right of it.
+    for (const int tile_x : {object.x_ - 1, object.x_ + 4}) {
+      PromoteTilePriorityOnOwners(priority_object_owner, priority_layout_owner,
+                                  tile_x, object.y_);
+    }
+  }
+
   if (trace_hook_active) {
     DrawRoutineUtils::ClearTraceHook();
   }
@@ -399,10 +433,12 @@ absl::Status ObjectDrawer::DrawObject(
 
   // BG2 mask propagation is deferred to compositing so raw BG1 stays intact.
   //
-  // Ordinary BG2 overlay objects now mask per-pixel as they draw, which keeps
+  // Ordinary BG2 overlay objects mask per-pixel as they draw, which keeps
   // transparent cutouts intact for platforms/statues/stairs. Full-rect masking
   // remains only for true pit/ceiling mask families that intentionally clear an
-  // area larger than their opaque tile pixels.
+  // area larger than their opaque tile pixels. Layer mode 6 ignores these legacy
+  // cross-BG masks because its upper-main/lower-sub PPU setup is resolved by
+  // transparency instead.
   if (use_rectangular_bg1_mask) {
     // Route through DimensionService so the mask rect comes from the same
     // source as selection bounds (ObjectGeometry if available, then
@@ -447,7 +483,8 @@ absl::Status ObjectDrawer::DrawObjectList(
     const std::vector<RoomObject>& objects, gfx::BackgroundBuffer& bg1,
     gfx::BackgroundBuffer& bg2, const gfx::PaletteGroup& palette_group,
     [[maybe_unused]] const DungeonState* state,
-    gfx::BackgroundBuffer* layout_bg1, bool reset_room_event_indices) {
+    gfx::BackgroundBuffer* layout_bg1, bool reset_room_event_indices,
+    gfx::BackgroundBuffer* layout_bg2) {
   if (reset_room_event_indices) {
     ResetChestIndex();
   }
@@ -471,7 +508,8 @@ absl::Status ObjectDrawer::DrawObjectList(
         break;
     }
 
-    auto s = DrawObject(object, bg1, bg2, palette_group, state, layout_bg1);
+    auto s = DrawObject(object, bg1, bg2, palette_group, state, layout_bg1,
+                        layout_bg2);
     if (!s.ok() && status.ok()) {
       status = s;
     }
@@ -1534,6 +1572,10 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
     return;
   }
 
+  // DungeonState intentionally exposes the editor's logical door index. The
+  // runtime derives a separate marker-aware physical slot from $0460 before it
+  // probes $068C; reproducing that slot aliasing belongs in the state adapter,
+  // not in this renderer's vector-index contract.
   const bool is_door_open = state && state->IsDoorOpen(room_id_, door_index);
 
   // Get door position from DoorPositionManager
@@ -1553,6 +1595,38 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   constexpr int kFancyDungeonExitObjectOffset = 0x2656;
   constexpr int kCaveExitLightObjectOffset = 0x26F6;
   const auto& rom_data = rom_->data();
+
+  auto resolve_effective_door_type = [&]() -> uint16_t {
+    const auto stored_type = static_cast<uint16_t>(door.type);
+    if (!is_door_open) {
+      return stored_type;
+    }
+
+    // RoomDraw_FlagDoorsAndGetFinalType leaves shutter graphics closed while
+    // the room's shutter controller ($0468) is active, even when the persistent
+    // door-open bit is set.
+    const bool is_controlled_shutter =
+        door.type == DoorType::DoubleSidedShutter ||
+        door.type == DoorType::DoubleSidedShutterLower;
+    if (is_controlled_shutter && state->IsDoorSwitchActive(room_id_)) {
+      return stored_type;
+    }
+
+    // USDASM performs a 16-bit read from DoorwayReplacementDoorGFX using the
+    // original even-valued door type as a byte offset. Keep the bounds check on
+    // both bytes so malformed or undersized ROMs fall back to the stored type.
+    const int replacement_addr =
+        kDoorwayReplacementDoorGfxBase + static_cast<int>(door.type);
+    if (replacement_addr < 0 ||
+        replacement_addr + 1 >= static_cast<int>(rom_->size())) {
+      return stored_type;
+    }
+
+    return static_cast<uint16_t>(rom_data[replacement_addr] |
+                                 (rom_data[replacement_addr + 1] << 8));
+  };
+
+  const uint16_t effective_door_type = resolve_effective_door_type();
 
   auto draw_tile_word = [&](gfx::BackgroundBuffer& target, int tile_x,
                             int tile_y, uint16_t tile_word) {
@@ -1948,40 +2022,41 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   }
 
   auto resolve_render_type = [](DoorDirection render_direction,
-                                DoorType render_type) {
+                                uint16_t render_type) -> uint16_t {
     switch (render_type) {
-      case DoorType::BigKeyDoor:
+      case static_cast<uint16_t>(DoorType::BigKeyDoor):
         // South's closed big-key door is coerced to the normal-door table
         // entry by RoomDraw_OneSidedShutters_South.
-        return render_direction == DoorDirection::South ? DoorType::NormalDoor
-                                                        : render_type;
-      case DoorType::BottomSidedShutter:
+        return render_direction == DoorDirection::South
+                   ? static_cast<uint16_t>(DoorType::NormalDoor)
+                   : render_type;
+      case static_cast<uint16_t>(DoorType::BottomSidedShutter):
         return (render_direction == DoorDirection::North ||
                 render_direction == DoorDirection::West)
-                   ? DoorType::DoubleSidedShutter
-                   : DoorType::NormalDoor;
-      case DoorType::TopSidedShutter:
+                   ? static_cast<uint16_t>(DoorType::DoubleSidedShutter)
+                   : static_cast<uint16_t>(DoorType::NormalDoor);
+      case static_cast<uint16_t>(DoorType::TopSidedShutter):
         return (render_direction == DoorDirection::North ||
                 render_direction == DoorDirection::West)
-                   ? DoorType::NormalDoor
-                   : DoorType::DoubleSidedShutter;
-      case DoorType::BottomShutterLower:
+                   ? static_cast<uint16_t>(DoorType::NormalDoor)
+                   : static_cast<uint16_t>(DoorType::DoubleSidedShutter);
+      case static_cast<uint16_t>(DoorType::BottomShutterLower):
         return (render_direction == DoorDirection::North ||
                 render_direction == DoorDirection::West)
-                   ? DoorType::DoubleSidedShutterLower
-                   : DoorType::NormalDoorOneSidedShutter;
-      case DoorType::TopShutterLower:
+                   ? static_cast<uint16_t>(DoorType::DoubleSidedShutterLower)
+                   : static_cast<uint16_t>(DoorType::NormalDoorOneSidedShutter);
+      case static_cast<uint16_t>(DoorType::TopShutterLower):
         return (render_direction == DoorDirection::North ||
                 render_direction == DoorDirection::West)
-                   ? DoorType::NormalDoorOneSidedShutter
-                   : DoorType::DoubleSidedShutterLower;
+                   ? static_cast<uint16_t>(DoorType::NormalDoorOneSidedShutter)
+                   : static_cast<uint16_t>(DoorType::DoubleSidedShutterLower);
       default:
         return render_type;
     }
   };
 
   auto resolve_table_door_data = [&](DoorDirection render_direction,
-                                     DoorType render_type,
+                                     uint16_t render_type,
                                      int* tile_data_addr) -> bool {
     int offset_table_addr = 0;
     switch (render_direction) {
@@ -1999,11 +2074,12 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
         break;
     }
 
-    const DoorType resolved_type =
+    const uint16_t resolved_type =
         resolve_render_type(render_direction, render_type);
-    const int render_type_value = static_cast<int>(resolved_type);
-    const int type_index = render_type_value / 2;
-    const int table_entry_addr = offset_table_addr + (type_index * 2);
+    // DoorGFXDataOffset_* is an absolute-indexed word table and Y is already
+    // the byte offset. Do not divide/re-multiply: hacked replacement tables may
+    // intentionally supply an odd or wider offset.
+    const int table_entry_addr = offset_table_addr + resolved_type;
     if (table_entry_addr + 1 >= static_cast<int>(rom_->size())) {
       return false;
     }
@@ -2023,7 +2099,7 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
 
   auto draw_table_door = [&](gfx::BackgroundBuffer& target,
                              DoorDirection render_direction, int start_tile_x,
-                             int start_tile_y, DoorType render_type) -> bool {
+                             int start_tile_y, uint16_t render_type) -> bool {
     int tile_data_addr = 0;
     if (!resolve_table_door_data(render_direction, render_type,
                                  &tile_data_addr)) {
@@ -2039,7 +2115,7 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
 
   auto draw_high_range_table_door = [&](DoorDirection render_direction,
                                         int start_tile_x, int start_tile_y,
-                                        DoorType render_type) -> bool {
+                                        uint16_t render_type) -> bool {
     int tile_data_addr = 0;
     if (!resolve_table_door_data(render_direction, render_type,
                                  &tile_data_addr)) {
@@ -2078,31 +2154,35 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   };
 
   auto draw_ranged_door = [&](DoorDirection render_direction, int start_tile_x,
-                              int start_tile_y, DoorType render_type) -> bool {
-    if (render_type == DoorType::NormalDoorLower) {
+                              int start_tile_y, DoorType original_type,
+                              uint16_t table_type) -> bool {
+    if (original_type == DoorType::NormalDoorLower) {
       // Type $02 stamps the ordinary door art after promoting the fixed wall
       // rectangle selected by RoomDraw_MakeDoorPartsHighPriority_*.
       promote_door_priority(render_direction, start_tile_x, start_tile_y,
                             DoorPrioritySpan::kNormalLower);
     }
 
-    const int render_type_value = static_cast<int>(render_type);
+    // The dispatcher selects the normal/high-range writer before
+    // RoomDraw_FlagDoorsAndGetFinalType substitutes open-door graphics. Keep
+    // that choice tied to the stored type while looking up art by final type.
+    const int render_type_value = static_cast<int>(original_type);
     const bool is_high_range =
         render_type_value >= 0x40 && render_type_value <= 0x66;
     if (is_high_range) {
       const bool drew = draw_high_range_table_door(
-          render_direction, start_tile_x, start_tile_y, render_type);
+          render_direction, start_tile_x, start_tile_y, table_type);
       // North type $46 deliberately skips RoomDraw_MakeDoorHighPriority_North;
       // every other high-range direction/type promotes the adjacent upper wall.
       if (drew && !(render_direction == DoorDirection::North &&
-                    render_type == DoorType::ExplicitRoomDoor)) {
+                    original_type == DoorType::ExplicitRoomDoor)) {
         promote_door_priority(render_direction, start_tile_x, start_tile_y,
                               DoorPrioritySpan::kHighRange);
       }
       return drew;
     }
     return draw_table_door(bg1, render_direction, start_tile_x, start_tile_y,
-                           render_type);
+                           table_type);
   };
 
   // USDASM has special north-door branches that do not follow the generic 4x3
@@ -2133,17 +2213,8 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
 
   if (door.direction == DoorDirection::North &&
       door.type == DoorType::CurtainDoor && is_door_open) {
-    const int replacement_type_addr =
-        kDoorwayReplacementDoorGfxBase + static_cast<int>(door.type);
-    if (replacement_type_addr < 0 ||
-        replacement_type_addr >= static_cast<int>(rom_->size())) {
-      DrawDoorIndicator(bg1, tile_x, tile_y, /*width=*/4, /*height=*/4,
-                        door.type, door.direction);
-      return;
-    }
-
-    const int replacement_type = rom_data[replacement_type_addr];
-    const int table_entry_addr = kDoorGfxUp + replacement_type;
+    const int table_entry_addr =
+        kDoorGfxUp + static_cast<int>(effective_door_type);
     if (table_entry_addr < 0 ||
         table_entry_addr + 1 >= static_cast<int>(rom_->size())) {
       DrawDoorIndicator(bg1, tile_x, tile_y, /*width=*/4, /*height=*/4,
@@ -2227,6 +2298,19 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
     return;
   }
 
+  // RoomDraw_North treats all four key-stair types ($20/$22/$24/$26) as
+  // stateful stair records. Once their persistent bit is open, USDASM returns
+  // without drawing replacement art.
+  const bool is_north_key_stairs =
+      door.direction == DoorDirection::North &&
+      (door.type == DoorType::SmallKeyStairsUp ||
+       door.type == DoorType::SmallKeyStairsDown ||
+       door.type == DoorType::SmallKeyStairsUpLower ||
+       door.type == DoorType::SmallKeyStairsDownLower);
+  if (is_north_key_stairs && is_door_open) {
+    return;
+  }
+
   // Closed North lower-layer key stairs ($24/$26) use the ordinary 4x3 table
   // layout, but every tile is written to $7E4000/BG2 and no middle-door
   // counterpart is emitted.
@@ -2235,13 +2319,23 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
       (door.type == DoorType::SmallKeyStairsUpLower ||
        door.type == DoorType::SmallKeyStairsDownLower);
   if (is_north_lower_key_stairs) {
-    if (is_door_open) {
-      return;
-    }
-    if (!draw_table_door(bg2, door.direction, tile_x, tile_y, door.type)) {
+    if (!draw_table_door(bg2, door.direction, tile_x, tile_y,
+                         static_cast<uint16_t>(door.type))) {
       DrawDoorIndicator(bg2, tile_x, tile_y, door_width, door_height, door.type,
                         door.direction);
     }
+    return;
+  }
+
+  // The normal ranged-door callers treat curtain and waterfall final types as
+  // metadata-only results (carry clear from FlagDoorsAndGetFinalType). North
+  // curtain and lower key stairs have already taken their dedicated branches.
+  const bool uses_normal_ranged_writer =
+      static_cast<int>(door.type) <
+      static_cast<int>(DoorType::NormalDoorOneSidedShutter);
+  if (uses_normal_ranged_writer &&
+      (effective_door_type == static_cast<uint16_t>(DoorType::CurtainDoor) ||
+       effective_door_type == static_cast<uint16_t>(DoorType::WaterfallDoor))) {
     return;
   }
 
@@ -2266,11 +2360,11 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
         DoorPositionManager::PositionToRenderTileCoords(
             static_cast<uint8_t>(position_index - 6), counterpart_direction);
     (void)draw_ranged_door(counterpart_direction, counterpart_tile_x,
-                           counterpart_tile_y, door.type);
+                           counterpart_tile_y, door.type, effective_door_type);
   }
 
-  const bool drew_current =
-      draw_ranged_door(door.direction, tile_x, tile_y, door.type);
+  const bool drew_current = draw_ranged_door(door.direction, tile_x, tile_y,
+                                             door.type, effective_door_type);
   if (!drew_current) {
     LOG_DEBUG("ObjectDrawer",
               "DrawDoor: INVALID ADDRESS - falling back to indicator");
@@ -2280,8 +2374,10 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   }
 
   LOG_DEBUG("ObjectDrawer",
-            "DrawDoor: type=%s dir=%s pos=%d at tile(%d,%d) size=%dx%d",
+            "DrawDoor: type=%s effective=0x%04X dir=%s pos=%d at tile(%d,%d) "
+            "size=%dx%d",
             std::string(GetDoorTypeName(door.type)).c_str(),
+            static_cast<unsigned int>(effective_door_type),
             std::string(GetDoorDirectionName(door.direction)).c_str(),
             door.position, tile_x, tile_y, door_width, door_height);
 }
