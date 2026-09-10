@@ -1645,12 +1645,12 @@ TEST_F(TileObjectHandlerTest,
   ScopedCustomObjectSelectionState custom_state;
   ASSERT_TRUE(custom_state.WriteOneTileObject("override.bin"));
   zelda3::CustomObjectManager::Get().SetObjectFileMap(
-      {{0x138, {"override.bin"}}});
+      {{0xFAD, {"override.bin"}}});
 
   AddTestObjects({CreateLayeredTestObject(10, 10, zelda3::RoomObject::BG2,
-                                          /*size=*/0, /*id=*/0x138)});
+                                          /*size=*/0, /*id=*/0xFAD)});
   ASSERT_TRUE(zelda3::CustomObjectManager::Get()
-                  .GetObjectInternal(/*object_id=*/0x138, /*subtype=*/0)
+                  .GetObjectInternal(/*object_id=*/0xFAD, /*subtype=*/0)
                   .ok());
 
   DungeonCanvasViewer viewer;
@@ -1664,9 +1664,9 @@ TEST_F(TileObjectHandlerTest,
   ASSERT_GT(width, 0);
   ASSERT_GT(height, 0);
 
-  // Vanilla 0x138 is fixed to BG1, but its active custom override returns
-  // early through ObjectDrawer and therefore follows this object's stored BG2
-  // placement.
+  // Vanilla 0xFAD writes its facade to the fixed upper tilemap, but an active
+  // custom override is a complete replacement and follows the object's stored
+  // lower placement.
   viewer.SetLayerVisible(0, zelda3::LayerType::BG2_Objects, false);
   EXPECT_FALSE(
       tile_handler.GetEntityAtPosition(tile_x * 8, tile_y * 8).has_value());

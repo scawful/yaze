@@ -1078,6 +1078,10 @@ void EditorManager::SubscribeToEvents() {
         if (IsTransientPanelVisibilityId(e.base_panel_id)) {
           return;
         }
+        if (e.visible && layout_manager_) {
+          layout_manager_->DockPresetPositionOnPanelOpen(e.session_id,
+                                                         e.base_panel_id);
+        }
         auto& prefs = user_settings_.prefs();
         prefs.panel_visibility_state[e.category][e.base_panel_id] = e.visible;
         settings_dirty_ = true;
@@ -1676,6 +1680,27 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
       const size_t session_id = session ? session->session_id() : new_index;
       window_manager_.RestoreVisibilityState(session_id, it->second);
     }
+  }
+
+  // A user-facing ROM-session switch does not reactivate the editor through
+  // EditorActivator::SwitchToEditor. Refresh an existing layout context so
+  // optional panels opened afterward dock against this session's live tree.
+  // First-time layout construction must remain on the normal activation path,
+  // after EnsureEditorAssetsLoaded has initialized and registered the panels.
+  // Transient switches are frame-iteration implementation details and must not
+  // replace the user-facing session context.
+  const EditorType active_editor_type =
+      active_editor ? active_editor->type() : EditorType::kUnknown;
+  const size_t active_editor_index = EditorTypeIndex(active_editor_type);
+  const bool active_session_editor_initialized =
+      session != nullptr &&
+      active_editor_index < session->editor_initialized.size() &&
+      session->editor_initialized[active_editor_index];
+  if (!transient && active_editor != nullptr &&
+      EditorRegistry::IsPanelBasedEditor(active_editor_type) &&
+      active_session_editor_initialized &&
+      layout_manager_->IsLayoutInitialized(active_editor_type)) {
+    editor_activator_.InitializeEditorLayout(active_editor_type);
   }
 
 #ifdef YAZE_ENABLE_TESTING
@@ -2630,17 +2655,27 @@ void EditorManager::SetStartupLoadHints(const AppConfig& config) {
 void EditorManager::ApplyLayoutDefaultsMigrationIfNeeded() {
   constexpr int kTargetRevision =
       UserSettings::kLatestPanelLayoutDefaultsRevision;
+  const int previous_revision =
+      user_settings_.prefs().panel_layout_defaults_revision;
   if (!user_settings_.ApplyPanelLayoutDefaultsRevision(kTargetRevision)) {
     return;
   }
 
-  pending_layout_defaults_reset_ = true;
+  const bool includes_workspace_reset_revision =
+      previous_revision <
+          UserSettings::kLastWorkspaceResetPanelLayoutDefaultsRevision &&
+      kTargetRevision >=
+          UserSettings::kLastWorkspaceResetPanelLayoutDefaultsRevision;
+  pending_layout_defaults_reset_ =
+      pending_layout_defaults_reset_ || includes_workspace_reset_revision;
   settings_dirty_ = true;
   settings_dirty_timestamp_ = TimingManager::Get().GetElapsedTime();
 
   LOG_INFO("EditorManager",
-           "Applied panel layout defaults migration revision %d",
-           kTargetRevision);
+           "Applied panel layout defaults migration %d -> %d (%s)",
+           previous_revision, kTargetRevision,
+           includes_workspace_reset_revision ? "workspace reset"
+                                             : "targeted preferences");
 }
 
 std::string EditorManager::GetPreferredStartupCategory(
@@ -2770,6 +2805,44 @@ void EditorManager::MarkEditorLoaded(RomSession* session, EditorType type) {
   if (index < session->editor_assets_loaded.size()) {
     session->editor_assets_loaded[index] = true;
   }
+}
+
+void EditorManager::RestoreEditorLayoutAfterAssets(RomSession* session,
+                                                   EditorType type) {
+  if (!session || !layout_manager_) {
+    return;
+  }
+
+  const size_t index = EditorTypeIndex(type);
+  if (!EditorRegistry::IsPanelBasedEditor(type) ||
+      index >= session->editor_initialized.size() ||
+      !session->editor_initialized[index] ||
+      window_manager_.GetActiveSessionId() != session->session_id()) {
+    return;
+  }
+
+  const std::string category = EditorRegistry::GetEditorCategory(type);
+  // Session switching can happen before a lazily loaded editor registers its
+  // panels. Repeat the persisted visibility pass once those descriptors exist.
+  const auto visibility_it =
+      user_settings_.prefs().panel_visibility_state.find(category);
+  if (visibility_it != user_settings_.prefs().panel_visibility_state.end()) {
+    window_manager_.RestoreVisibilityState(session->session_id(),
+                                           visibility_it->second);
+  }
+
+  // Only the active category owns the shared dock tree. A cross-category
+  // activation will refresh its layout immediately after the category switch.
+  if (window_manager_.GetActiveCategory() == category &&
+      layout_manager_->IsLayoutInitialized(type)) {
+    editor_activator_.InitializeEditorLayout(type);
+  }
+}
+
+void EditorManager::RestoreActiveEditorLayoutAfterAssets(RomSession* session) {
+  const EditorType type = EditorRegistry::GetEditorTypeFromCategory(
+      window_manager_.GetActiveCategory());
+  RestoreEditorLayoutAfterAssets(session, type);
 }
 
 bool EditorManager::EditorRequiresGameData(EditorType type) const {
@@ -2995,10 +3068,15 @@ absl::Status EditorManager::EnsureEditorAssetsLoaded(EditorType type) {
     if (EditorInitRequiresGameData(type)) {
       return absl::OkStatus();
     }
+    bool initialized_now = false;
     if (!session->editor_initialized[index]) {
       RETURN_IF_ERROR(
           InitializeEditorForType(type, &session->editors, &session->rom));
       MarkEditorInitialized(session, type);
+      initialized_now = true;
+    }
+    if (initialized_now) {
+      RestoreEditorLayoutAfterAssets(session, type);
     }
     return absl::OkStatus();
   }
@@ -3012,22 +3090,30 @@ absl::Status EditorManager::EnsureEditorAssetsLoaded(EditorType type) {
     RETURN_IF_ERROR(EnsureGameDataLoaded());
   }
 
+  bool initialized_now = false;
   if (!session->editor_initialized[index]) {
     RETURN_IF_ERROR(
         InitializeEditorForType(type, &session->editors, &session->rom));
     MarkEditorInitialized(session, type);
+    initialized_now = true;
   }
 
   if (EditorRequiresGameData(type)) {
     RETURN_IF_ERROR(EnsureGameDataLoaded());
   }
 
+  bool loaded_now = false;
   if (!session->editor_assets_loaded[index]) {
     auto* editor = GetEditorByType(type, &session->editors);
     if (editor) {
       RETURN_IF_ERROR(editor->Load());
     }
     MarkEditorLoaded(session, type);
+    loaded_now = true;
+  }
+
+  if (initialized_now || loaded_now) {
+    RestoreEditorLayoutAfterAssets(session, type);
   }
 
   return absl::OkStatus();
@@ -3877,6 +3963,8 @@ absl::Status EditorManager::LoadAssets(uint64_t passed_handle) {
 
   // Apply user preferences to status bar
   status_bar_.SetEnabled(user_settings_.prefs().show_status_bar);
+
+  RestoreActiveEditorLayoutAfterAssets(current_session);
 
   gfx::PerformanceProfiler::Get().PrintSummary();
 

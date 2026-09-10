@@ -189,11 +189,15 @@ class UserSettings {
   absl::Status Load();
   absl::Status Save();
 
-  // Applies a one-time layout defaults migration when target_revision is newer
-  // than persisted settings. Returns true when defaults were reset.
+  // Applies one-time layout-default migrations when target_revision is newer
+  // than persisted settings. Returns true when preferences changed; callers
+  // must not assume every revision requires rebuilding the whole workspace.
   bool ApplyPanelLayoutDefaultsRevision(int target_revision);
 
-  static constexpr int kLatestPanelLayoutDefaultsRevision = 21;
+  static constexpr int kLatestPanelLayoutDefaultsRevision = 23;
+  // Revisions through 21 changed whole-workspace arrangements. Later revisions
+  // are targeted preference migrations and must preserve the live ImGui layout.
+  static constexpr int kLastWorkspaceResetPanelLayoutDefaultsRevision = 21;
 
   Preferences& prefs() { return prefs_; }
   const Preferences& prefs() const { return prefs_; }
@@ -206,11 +210,12 @@ class UserSettings {
   // is normalized to "right". Caller must invoke Save() to persist.
   void SetDungeonInspectorSide(std::string side);
 
-  // Testing hook: redirect Load/Save to a caller-specified path. Production
-  // code should never call this; it only exists so unit tests can exercise
-  // JSON round-trip without touching the user's real settings file.
+  // Testing hook: redirect JSON plus legacy INI Load/Save to caller-owned
+  // paths. Production code should never call this; it only exists so unit
+  // tests can exercise settings migration without touching the user's files.
   void SetSettingsFilePathForTesting(std::string path) {
     settings_file_path_ = std::move(path);
+    legacy_settings_file_path_ = settings_file_path_ + ".legacy.ini";
   }
 
  private:

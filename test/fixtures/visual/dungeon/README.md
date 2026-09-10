@@ -151,18 +151,23 @@ ROI — see below).
 - Fixture SHA-256:
   `e36ac2ab54fd94cae6e7523d241b69a76ffe05f0432b56f24a016b16f0f83b1b`.
 
-## Water overlay `0xD8` / `0xDA` (no Mesen pixel ROI)
+## Water overlay `0xD8` / `0xDA` (Tier-4 incomplete)
 
-Vanilla `RoomDraw_WaterOverlayA8x8_1to16` / `…B…` (`$0195D6`) is an **HDMA
-control object** — it does not stamp tiles in-game. Yaze draws a BG2 editor
-indicator so authors can see the overlay footprint. Therefore:
+Vanilla `RoomDraw_WaterOverlayA8x8_1to16` / `…B…` is stateful. The routines set
+HDMA geometry **and stamp tilemap patterns**; the exact pattern and destination
+can change with saved water state, and the routines can also change the active
+layer mode. The earlier claim that these objects never stamp tiles in-game was
+incorrect.
 
-- Exact RGBA Mesen↔yaze ROI is **not** a valid Tier-4 proof for these IDs.
-- Coverage is the structural test
-  `Room076WaterOverlayWritesBg2ObjectBuffer`: parse `0xD8` @ `(38,13)` on the
-  BG2 stream in room `0x076`, assert non-backdrop pixels in the object BG2
-  buffer ROI, and assert the composite changes when BG2 is enabled.
-- Rooms `0x035` / `0x037` carry `0xDA` with the same draw routine.
+- `Room076WaterOverlayWritesBg2ObjectBuffer` is a structural guard for Yaze's
+  currently modeled `0xD8` state: it parses `0xD8` @ `(38,13)` from the BG2
+  stream, checks coverage/opaque pixels using `255` as the transparent fill,
+  and toggles only BG2-object visibility in the comparison.
+- That structural test is **not** independent Mesen parity and does not prove
+  the alternate saved state or the layer-mode side effects.
+- Honest Tier-4 closure requires state-labeled Mesen captures for the relevant
+  `0xD8` and `0xDA` paths. Rooms `0x035` / `0x037` are useful `0xDA`
+  candidates.
 
 The regression test explicitly selects the intact/bombed preview through
 `EditorDungeonState::SetFloorBombable`. It removes room-object list 1 from its

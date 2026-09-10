@@ -71,9 +71,9 @@ constexpr std::array<AuditedRoutingCase, 22> kAuditedRoutingCases = {{
     {0xF9D, DrawRoutineIds::kAutoStairs, ObjectRenderRouting::kStoredPlacement},
     {0xFB3, DrawRoutineIds::kAutoStairs, ObjectRenderRouting::kStoredPlacement},
     {0x138, DrawRoutineIds::kSpiralStairsGoingUpUpper,
-     ObjectRenderRouting::kFixedBg1},
+     ObjectRenderRouting::kStoredPlacement},
     {0x139, DrawRoutineIds::kSpiralStairsGoingDownUpper,
-     ObjectRenderRouting::kFixedBg1},
+     ObjectRenderRouting::kStoredPlacement},
     {0xF9E, DrawRoutineIds::kStraightInterRoomStairs,
      ObjectRenderRouting::kFixedBg1},
     {0xF9F, DrawRoutineIds::kStraightInterRoomStairs,
@@ -83,9 +83,9 @@ constexpr std::array<AuditedRoutingCase, 22> kAuditedRoutingCases = {{
     {0xFA1, DrawRoutineIds::kStraightInterRoomStairs,
      ObjectRenderRouting::kFixedBg1},
     {0x13A, DrawRoutineIds::kSpiralStairsGoingUpLower,
-     ObjectRenderRouting::kFixedBg2},
+     ObjectRenderRouting::kStoredPlacement},
     {0x13B, DrawRoutineIds::kSpiralStairsGoingDownLower,
-     ObjectRenderRouting::kFixedBg2},
+     ObjectRenderRouting::kStoredPlacement},
     {0xFA6, DrawRoutineIds::kStraightInterRoomStairs,
      ObjectRenderRouting::kMixedBg1Bg2},
     {0xFA7, DrawRoutineIds::kStraightInterRoomStairs,
@@ -162,9 +162,9 @@ TEST(ObjectLayerSemanticsTest,
      ActiveCustomOverridePreemptsBuiltInFixedLayerRouting) {
   ScopedCustomObjectRoutingState custom_state;
   custom_state.WriteOneTileObject("override.bin");
-  CustomObjectManager::Get().SetObjectFileMap({{0x138, {"override.bin"}}});
+  CustomObjectManager::Get().SetObjectFileMap({{0xFAD, {"override.bin"}}});
 
-  RoomObject object(/*id=*/0x138, /*x=*/0, /*y=*/0, /*size=*/0,
+  RoomObject object(/*id=*/0xFAD, /*x=*/0, /*y=*/0, /*size=*/0,
                     /*layer=*/1);
   const auto built_in = GetObjectLayerSemantics(object);
   ASSERT_EQ(built_in.render_routing, ObjectRenderRouting::kFixedBg1);

@@ -44,14 +44,16 @@ class ObjectDrawer {
    * @param bg1 Background layer 1 buffer (object buffer)
    * @param bg2 Background layer 2 buffer (object buffer)
    * @param palette_group Current palette group for color mapping
-   * @param layout_bg1 Optional second BG1 target for room-object reveal masks
+   * @param layout_bg1 Optional upper layout owner for fixed-tilemap mutations
+   * @param layout_bg2 Optional lower layout owner for fixed-tilemap mutations
    * @return Status of the drawing operation
    */
   absl::Status DrawObject(const RoomObject& object, gfx::BackgroundBuffer& bg1,
                           gfx::BackgroundBuffer& bg2,
                           const gfx::PaletteGroup& palette_group,
                           const DungeonState* state = nullptr,
-                          gfx::BackgroundBuffer* layout_bg1 = nullptr);
+                          gfx::BackgroundBuffer* layout_bg1 = nullptr,
+                          gfx::BackgroundBuffer* layout_bg2 = nullptr);
 
   struct DoorDef {
     DoorType type;
@@ -112,10 +114,13 @@ class ObjectDrawer {
    * @param bg1 Background layer 1 buffer (object buffer)
    * @param bg2 Background layer 2 buffer (object buffer)
    * @param palette_group Current palette group for color mapping
-   * @param layout_bg1 Optional second BG1 target for room-object reveal masks
+   * @param layout_bg1 Optional upper layout owner for fixed-tilemap mutations
    * @param reset_room_event_indices If true, reset the chest-only and shared
    *        chest/lock counters before drawing (set false on subsequent USDASM
    *        list passes; see Room::RenderObjectsToBackground)
+   * @param layout_bg2 Optional lower layout owner for fixed-tilemap mutations.
+   *        Kept after reset_room_event_indices for source compatibility with
+   *        existing positional callers.
    * @return Status of the drawing operation
    */
   absl::Status DrawObjectList(const std::vector<RoomObject>& objects,
@@ -124,7 +129,8 @@ class ObjectDrawer {
                               const gfx::PaletteGroup& palette_group,
                               const DungeonState* state = nullptr,
                               gfx::BackgroundBuffer* layout_bg1 = nullptr,
-                              bool reset_room_event_indices = true);
+                              bool reset_room_event_indices = true,
+                              gfx::BackgroundBuffer* layout_bg2 = nullptr);
 
   /**
    * @brief Get draw routine ID for an object

@@ -94,22 +94,23 @@ class LogManager {
 // The level check avoids the cost of string formatting if the message won't be
 // logged.
 
-#define LOG(level, category, format, ...)                         \
+#define YAZE_LOG_IMPL(level, category, format, ...)               \
   do {                                                            \
     yaze::util::LogManager::instance().log(                       \
         level, category, absl::StrFormat(format, ##__VA_ARGS__)); \
   } while (0)
 
-#define LOG_DEBUG(category, format, ...) \
-  LOG(yaze::util::LogLevel::YAZE_DEBUG, category, format, ##__VA_ARGS__)
+#define LOG_DEBUG(category, format, ...)                            \
+  YAZE_LOG_IMPL(yaze::util::LogLevel::YAZE_DEBUG, category, format, \
+                ##__VA_ARGS__)
 #define LOG_INFO(category, format, ...) \
-  LOG(yaze::util::LogLevel::INFO, category, format, ##__VA_ARGS__)
+  YAZE_LOG_IMPL(yaze::util::LogLevel::INFO, category, format, ##__VA_ARGS__)
 #define LOG_WARN(category, format, ...) \
-  LOG(yaze::util::LogLevel::WARNING, category, format, ##__VA_ARGS__)
+  YAZE_LOG_IMPL(yaze::util::LogLevel::WARNING, category, format, ##__VA_ARGS__)
 #define LOG_ERROR(category, format, ...) \
-  LOG(yaze::util::LogLevel::ERROR, category, format, ##__VA_ARGS__)
+  YAZE_LOG_IMPL(yaze::util::LogLevel::ERROR, category, format, ##__VA_ARGS__)
 #define LOG_FATAL(category, format, ...) \
-  LOG(yaze::util::LogLevel::FATAL, category, format, ##__VA_ARGS__)
+  YAZE_LOG_IMPL(yaze::util::LogLevel::FATAL, category, format, ##__VA_ARGS__)
 
 template <typename... Args>
 inline void logf(const absl::FormatSpec<Args...>& format, Args&&... args) {
