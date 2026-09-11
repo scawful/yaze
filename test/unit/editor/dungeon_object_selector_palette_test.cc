@@ -1,5 +1,7 @@
 #include "app/editor/dungeon/dungeon_object_selector.h"
 
+#include <algorithm>
+#include <array>
 #include <cstddef>
 #include <vector>
 
@@ -52,9 +54,20 @@ struct DungeonObjectSelectorTestAccess {
     selector.preview_cache_[cache_key] = std::move(preview);
     return bitmap;
   }
+
+  static void GetOrCreatePreview(DungeonObjectSelector& selector,
+                                 const zelda3::RoomObject& object,
+                                 gfx::BackgroundBuffer** preview) {
+    selector.GetOrCreatePreview(object, preview);
+  }
 };
 
 namespace {
+
+void StoreRomWord(std::vector<uint8_t>* data, uint32_t address, uint16_t word) {
+  (*data)[address] = static_cast<uint8_t>(word & 0xFF);
+  (*data)[address + 1] = static_cast<uint8_t>(word >> 8);
+}
 
 size_t ActiveArenaSurfaceCount() {
   const auto& arena = gfx::Arena::Get();
@@ -99,6 +112,61 @@ TEST(DungeonObjectSelectorPaletteTest,
   selector.SetCurrentPaletteGroup(gfx::PaletteGroup("ow_main"));
   selector.SetCurrentPaletteGroup(gfx::PaletteGroup("sprites_aux1"));
   EXPECT_EQ(selector.preview_cache_invalidations_for_testing(), 3u);
+}
+
+TEST(DungeonObjectSelectorPaletteTest,
+     PreviewBitmapUsesCanonicalDungeonCgramRows) {
+  std::vector<uint8_t> rom_data(0x200000, 0);
+  StoreRomWord(&rom_data, /*object 0x11F descriptor=*/0x842E, 0x0E9A);
+  for (uint32_t address = 0x29EC; address < 0x29F4; address += 2) {
+    // Tile 0x1EE, palette row 2. The preview graphics below use source color
+    // 9, so the rendered SDL index must be 2 * 16 + 9 = 41.
+    StoreRomWord(&rom_data, address, 0x09EE);
+  }
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::move(rom_data)).ok());
+  DungeonRoomStore rooms(&rom);
+  auto& room = rooms[0];
+  room.SetLoaded(true);
+  auto& room_gfx =
+      const_cast<std::array<uint8_t, 0x10000>&>(room.get_gfx_buffer());
+  room_gfx.fill(9);
+
+  gfx::SnesPalette hud_palette;
+  for (int color = 0; color < 32; ++color) {
+    hud_palette.AddColor(gfx::SnesColor(static_cast<uint16_t>(0x0100 + color)));
+  }
+  gfx::SnesPalette dungeon_palette;
+  for (int color = 0; color < 90; ++color) {
+    dungeon_palette.AddColor(
+        gfx::SnesColor(static_cast<uint16_t>(0x0200 + color)));
+  }
+
+  zelda3::GameData game_data;
+  game_data.palette_groups.hud.AddPalette(hud_palette);
+  DungeonObjectSelector selector(&rom);
+  selector.SetGameData(&game_data);
+  selector.set_rooms(&rooms);
+  selector.set_current_room_id(0);
+  selector.SetCurrentPaletteGroup(
+      zelda3::BuildDungeonRenderPaletteGroupFromGameData(dungeon_palette,
+                                                         &game_data));
+
+  zelda3::RoomObject object(/*object_id=*/0x11F, /*x=*/0, /*y=*/0,
+                            /*size=*/0, /*layer=*/0);
+  gfx::BackgroundBuffer* preview = nullptr;
+  DungeonObjectSelectorTestAccess::GetOrCreatePreview(selector, object,
+                                                      &preview);
+
+  ASSERT_NE(preview, nullptr);
+  auto& bitmap = preview->bitmap();
+  ASSERT_EQ(bitmap.palette().size(), 128u);
+  EXPECT_EQ(bitmap.palette()[1].snes(), hud_palette[1].snes());
+  EXPECT_EQ(bitmap.palette()[41].snes(), dungeon_palette[8].snes());
+  EXPECT_NE(
+      std::find(bitmap.mutable_data().begin(), bitmap.mutable_data().end(), 41),
+      bitmap.mutable_data().end());
 }
 
 TEST(DungeonObjectSelectorPaletteTest,

@@ -80,9 +80,6 @@ class DungeonObjectSelector {
   void set_current_room_id(int room_id) { current_room_id_ = room_id; }
 
   // Palette access
-  void set_current_palette_group_id(uint64_t id) {
-    current_palette_group_id_ = id;
-  }
   // Replace the active palette group used by preview rendering. The preview
   // cache is keyed on object identity plus room blockset, palette, and floor
   // graphics, none of which capture the *contents* of the palette group: switching
@@ -93,9 +90,6 @@ class DungeonObjectSelector {
   void SetCurrentPaletteGroup(const gfx::PaletteGroup& palette_group) {
     current_palette_group_ = palette_group;
     InvalidatePreviewCache();
-  }
-  void SetCurrentPaletteId(uint64_t palette_id) {
-    current_palette_id_ = palette_id;
   }
   void SetCustomObjectsFolder(const std::string& folder);
 
@@ -189,15 +183,12 @@ class DungeonObjectSelector {
   int current_room_id_ = 0;
 
   // Palette data
-  uint64_t current_palette_group_id_ = 0;
-  uint64_t current_palette_id_ = 0;
   gfx::PaletteGroup current_palette_group_;
 
   zelda3::DungeonObjectRegistry object_registry_;
 
   // Object preview system
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};
-  gfx::SnesPalette preview_palette_;
   bool object_loaded_ = false;
 
   // Callback for object selection

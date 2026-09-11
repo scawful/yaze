@@ -339,8 +339,8 @@ absl::Status DungeonEditorV2::RefreshRomBackedState() {
     current_palette_group_id_ = current_palette_id_;
     current_palette_ =
         game_data_->palette_groups.dungeon_main[current_palette_id_];
-    ASSIGN_OR_RETURN(current_palette_group_,
-                     gfx::CreatePaletteGroupFromLargePalette(current_palette_));
+    current_palette_group_ = zelda3::BuildDungeonRenderPaletteGroupFromGameData(
+        current_palette_, game_data_);
   }
 
   if (is_loaded_) {
@@ -759,8 +759,8 @@ absl::Status DungeonEditorV2::Load() {
   }
   auto dungeon_main_pal_group = game_data()->palette_groups.dungeon_main;
   current_palette_ = dungeon_main_pal_group[current_palette_group_id_];
-  ASSIGN_OR_RETURN(current_palette_group_,
-                   gfx::CreatePaletteGroupFromLargePalette(current_palette_));
+  current_palette_group_ = zelda3::BuildDungeonRenderPaletteGroupFromGameData(
+      current_palette_, game_data());
 
   room_selector_.set_rooms(&rooms_);
   room_selector_.set_entrances(&entrances_);
@@ -1123,54 +1123,48 @@ void DungeonEditorV2::HandleDungeonPaletteChanged(
         static_cast<uint64_t>(dungeon_main_pal_group.size())) {
       current_palette_group_id_ = current_palette_id_;
       current_palette_ = dungeon_main_pal_group[current_palette_id_];
-      if (auto pal_group =
-              gfx::CreatePaletteGroupFromLargePalette(current_palette_);
-          pal_group.ok()) {
-        current_palette_group_ = pal_group.value();
-        apply_palette(workbench_viewer_.get(), current_palette_id_,
-                      current_palette_group_, force_shared_palette_refresh);
-        apply_palette(workbench_compare_viewer_.get(), current_palette_id_,
-                      current_palette_group_, force_shared_palette_refresh);
-        room_viewers_.ForEach(
-            [this, change, &apply_palette, &dungeon_main_pal_group,
-             &render_once, force_shared_palette_refresh](
-                int room_id, std::unique_ptr<DungeonCanvasViewer>& viewer) {
-              if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
-                return;
-              }
-              const int palette_id = rooms_[room_id].ResolveDungeonPaletteId();
-              if (palette_id < 0 ||
-                  palette_id >=
-                      static_cast<int>(dungeon_main_pal_group.size())) {
-                return;
-              }
-              if (change.source ==
-                      gui::DungeonRenderPaletteSource::kDungeonMain &&
-                  change.palette_id >= 0 && palette_id != change.palette_id) {
-                return;
-              }
-              auto room_palette_group = gfx::CreatePaletteGroupFromLargePalette(
-                  dungeon_main_pal_group.palette_ref(palette_id));
-              if (room_palette_group.ok()) {
-                if (viewer && viewer->object_interaction().IsObjectLoaded()) {
-                  render_once(room_id);
-                }
-                apply_palette(viewer.get(), palette_id,
-                              room_palette_group.value(),
-                              force_shared_palette_refresh);
-              }
-            });
-        if (object_selector_panel_) {
-          object_selector_panel_->SetCurrentPaletteGroup(
-              current_palette_group_);
+      current_palette_group_ =
+          zelda3::BuildDungeonRenderPaletteGroupFromGameData(current_palette_,
+                                                             game_data());
+      apply_palette(workbench_viewer_.get(), current_palette_id_,
+                    current_palette_group_, force_shared_palette_refresh);
+      apply_palette(workbench_compare_viewer_.get(), current_palette_id_,
+                    current_palette_group_, force_shared_palette_refresh);
+      room_viewers_.ForEach([this, change, &apply_palette,
+                             &dungeon_main_pal_group, &render_once,
+                             force_shared_palette_refresh](
+                                int room_id,
+                                std::unique_ptr<DungeonCanvasViewer>& viewer) {
+        if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
+          return;
         }
-        if (room_graphics_panel_) {
-          room_graphics_panel_->SetCurrentPaletteGroup(current_palette_group_);
+        const int palette_id = rooms_[room_id].ResolveDungeonPaletteId();
+        if (palette_id < 0 ||
+            palette_id >= static_cast<int>(dungeon_main_pal_group.size())) {
+          return;
         }
-        if (object_tile_editor_panel_) {
-          object_tile_editor_panel_->SetCurrentPaletteGroupForRoom(
-              current_room_id_, current_palette_group_);
+        if (change.source == gui::DungeonRenderPaletteSource::kDungeonMain &&
+            change.palette_id >= 0 && palette_id != change.palette_id) {
+          return;
         }
+        const auto room_palette_group =
+            zelda3::BuildDungeonRenderPaletteGroupFromGameData(
+                dungeon_main_pal_group.palette_ref(palette_id), game_data());
+        if (viewer && viewer->object_interaction().IsObjectLoaded()) {
+          render_once(room_id);
+        }
+        apply_palette(viewer.get(), palette_id, room_palette_group,
+                      force_shared_palette_refresh);
+      });
+      if (object_selector_panel_) {
+        object_selector_panel_->SetCurrentPaletteGroup(current_palette_group_);
+      }
+      if (room_graphics_panel_) {
+        room_graphics_panel_->SetCurrentPaletteGroup(current_palette_group_);
+      }
+      if (object_tile_editor_panel_) {
+        object_tile_editor_panel_->SetCurrentPaletteGroupForRoom(
+            current_room_id_, current_palette_group_);
       }
     }
   }
@@ -1846,24 +1840,22 @@ void DungeonEditorV2::OnRoomSelected(int room_id, bool request_focus) {
               game_data()->palette_groups.dungeon_main;
           if (current_palette_id_ < (int)dungeon_main_pal_group.size()) {
             current_palette_ = dungeon_main_pal_group[current_palette_id_];
-            auto result =
-                gfx::CreatePaletteGroupFromLargePalette(current_palette_);
-            if (result.ok()) {
-              current_palette_group_ = result.value();
-              viewer->SetCurrentPaletteGroup(current_palette_group_);
-              if (object_selector_panel_) {
-                object_selector_panel_->SetCurrentPaletteGroup(
-                    current_palette_group_);
-              }
-              // Sync palette to graphics panel for proper sheet coloring
-              if (room_graphics_panel_) {
-                room_graphics_panel_->SetCurrentPaletteGroup(
-                    current_palette_group_);
-              }
-              if (object_tile_editor_panel_) {
-                object_tile_editor_panel_->SetCurrentPaletteGroupForRoom(
-                    room_id, current_palette_group_);
-              }
+            current_palette_group_ =
+                zelda3::BuildDungeonRenderPaletteGroupFromGameData(
+                    current_palette_, game_data());
+            viewer->SetCurrentPaletteGroup(current_palette_group_);
+            if (object_selector_panel_) {
+              object_selector_panel_->SetCurrentPaletteGroup(
+                  current_palette_group_);
+            }
+            // Sync palette to graphics panel for proper sheet coloring
+            if (room_graphics_panel_) {
+              room_graphics_panel_->SetCurrentPaletteGroup(
+                  current_palette_group_);
+            }
+            if (object_tile_editor_panel_) {
+              object_tile_editor_panel_->SetCurrentPaletteGroupForRoom(
+                  room_id, current_palette_group_);
             }
           }
         }
@@ -2172,8 +2164,8 @@ absl::Status DungeonEditorV2::OpenObjectTileEditorForObject(
         "Room resolves to an unavailable dungeon palette");
   }
   auto room_palette = dungeon_palettes[palette_id];
-  ASSIGN_OR_RETURN(auto palette_group,
-                   gfx::CreatePaletteGroupFromLargePalette(room_palette));
+  const auto palette_group = zelda3::BuildDungeonRenderPaletteGroupFromGameData(
+      room_palette, game_data_);
 
   const absl::Status open_status = object_tile_editor_panel_->OpenForObject(
       object.id_, room_id, &rooms_, palette_group);

@@ -42,7 +42,7 @@ constexpr int kPersistedCustomSubtypeSlots = 16;
 float GetObjectGridItemSize(int density) {
   switch (density) {
     case 0:
-      return 48.0f;
+      return 54.0f;
     case 2:
       return 76.0f;
     case 1:
@@ -253,11 +253,6 @@ void DungeonObjectSelector::SelectObject(int obj_id, int subtype) {
   }
   preview_object_ = zelda3::RoomObject(obj_id, 0, 0, size, 0);
   preview_object_.SetRom(rom_);
-  if (game_data_) {
-    auto palette =
-        game_data_->palette_groups.dungeon_main[current_palette_group_id_];
-    preview_palette_ = palette;
-  }
   object_loaded_ = true;
 
   // Notify callback
@@ -430,13 +425,6 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
               obj_id, 0, 0, zelda3::DefaultRoomObjectSizeForPlacement(obj_id),
               0);
           preview_object_.SetRom(rom_);
-          if (game_data_ &&
-              current_palette_group_id_ <
-                  game_data_->palette_groups.dungeon_main.size()) {
-            auto palette = game_data_->palette_groups
-                               .dungeon_main[current_palette_group_id_];
-            preview_palette_ = palette;
-          }
           object_loaded_ = true;
 
           // Notify callbacks
