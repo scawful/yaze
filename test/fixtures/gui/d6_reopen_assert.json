@@ -28,6 +28,11 @@
       "expect": { "success": true, "status": "passed" }
     },
     {
+      "action": "click",
+      "widget_key": "Dungeon/Workbench/button:tool_picker",
+      "expect": { "success": true, "status": "passed" }
+    },
+    {
       "action": "wait",
       "widget_key": "Dungeon/Workbench/button:tool_door",
       "timeout_ms": 5000,
@@ -62,6 +67,11 @@
       "expect": { "success": true, "status": "passed" }
     },
     {
+      "action": "click",
+      "widget_key": "Dungeon/Workbench/button:mode_room",
+      "expect": { "success": true, "status": "passed" }
+    },
+    {
       "action": "type",
       "widget_key": "Dungeon/Workbench/input_scalar:room_id",
       "text": "B8",
@@ -72,11 +82,6 @@
       "action": "assert",
       "widget_key": "Dungeon/Workbench/input_scalar:room_id",
       "condition": "value_equals:00B8",
-      "expect": { "success": true, "status": "passed" }
-    },
-    {
-      "action": "click",
-      "widget_key": "Dungeon/Workbench/button:mode_room",
       "expect": { "success": true, "status": "passed" }
     },
     {
@@ -123,6 +128,11 @@
       "expect": { "success": true, "status": "passed" }
     },
     {
+      "action": "click",
+      "widget_key": "Dungeon/Workbench/button:tool_picker",
+      "expect": { "success": true, "status": "passed" }
+    },
+    {
       "action": "wait",
       "widget_key": "Dungeon/Workbench/button:tool_sprite",
       "timeout_ms": 5000,
@@ -158,6 +168,11 @@
     },
     {
       "action": "click",
+      "widget_key": "Dungeon/Workbench/button:tool_picker",
+      "expect": { "success": true, "status": "passed" }
+    },
+    {
+      "action": "click",
       "widget_key": "Dungeon/Workbench/button:tool_item",
       "expect": { "success": true, "status": "passed" }
     },
@@ -179,6 +194,11 @@
       "expect": { "success": true, "status": "passed" }
     },
     {
+      "action": "click",
+      "widget_key": "Dungeon/Workbench/button:mode_room",
+      "expect": { "success": true, "status": "passed" }
+    },
+    {
       "action": "type",
       "widget_key": "Dungeon/Workbench/input_scalar:room_id",
       "text": "DA",
@@ -194,6 +214,11 @@
     {
       "action": "click",
       "widget_key": "Dungeon/Workbench/button:mode_tools",
+      "expect": { "success": true, "status": "passed" }
+    },
+    {
+      "action": "click",
+      "widget_key": "Dungeon/Workbench/button:tool_picker",
       "expect": { "success": true, "status": "passed" }
     },
     {

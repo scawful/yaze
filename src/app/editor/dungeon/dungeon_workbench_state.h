@@ -8,7 +8,6 @@ namespace yaze::editor {
 struct DungeonWorkbenchLayoutState {
   bool show_left_sidebar = true;
   bool show_right_inspector = true;
-  bool show_tool_drawer = false;
 
   // Remembered widths for the collapsible panes when expanded. The right
   // inspector defaults narrower than the left room browser because the
@@ -16,11 +15,6 @@ struct DungeonWorkbenchLayoutState {
   // ~280 px, whereas the room matrix on the left wants a little more room.
   float left_width = 280.0f;
   float right_width = 280.0f;
-
-  // The Workbench presents editor tools below the central canvas. Remember a
-  // proportion instead of a pixel height so the drawer follows window size
-  // changes without jumping when the active tool changes.
-  float tool_drawer_ratio = 0.4f;
 
   // Split/compare quality-of-life.
   bool sync_split_view = false;

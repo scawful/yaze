@@ -123,6 +123,22 @@ bool AcceptImGuiColorDrop(gfx::SnesColor* color, ImVec2 min, ImVec2 max) {
 
 }  // namespace
 
+int ResolveDungeonRenderPaletteColumns(float available_width,
+                                       float min_swatch_size,
+                                       float item_spacing) {
+  const float safe_width = std::max(available_width, 1.0f);
+  const float safe_swatch = std::max(min_swatch_size, 1.0f);
+  const float safe_spacing = std::max(item_spacing, 0.0f);
+  for (const int columns : {16, 8, 4, 2, 1}) {
+    const float required_width =
+        safe_swatch * columns + safe_spacing * (columns - 1);
+    if (safe_width >= required_width) {
+      return columns;
+    }
+  }
+  return 1;
+}
+
 // Merged implementation from PaletteWidget and PaletteEditorWidget
 
 void PaletteEditorWidget::Initialize(zelda3::GameData* game_data) {
@@ -333,12 +349,19 @@ void PaletteEditorWidget::DrawColorPicker() {
 }
 
 void PaletteEditorWidget::DrawDungeonRenderPalette() {
-  ImGui::TextDisabled(
-      tr("Rows 0-1: HUD / floor / ceiling  |  Rows 2-7: Dungeon main"));
-  const float swatch_size = ComputeSwatchSize(/*columns=*/16, 14.0f, 28.0f);
+  ImGui::TextDisabled(tr("Slots 00-1F: HUD / floor / ceiling"));
+  ImGui::TextDisabled(tr("Slots 20-7F: Dungeon main"));
+  constexpr float kSwatchSpacing = 2.0f;
+  const ImVec2 previous_spacing = ImGui::GetStyle().ItemSpacing;
+  ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
+                      ImVec2(kSwatchSpacing, previous_spacing.y));
+  const int columns = ResolveDungeonRenderPaletteColumns(
+      ImGui::GetContentRegionAvail().x, /*min_swatch_size=*/14.0f,
+      kSwatchSpacing);
+  const float swatch_size = ComputeSwatchSize(columns, 14.0f, 28.0f);
 
   for (int i = 0; i < 128; ++i) {
-    if (i % 16 != 0) {
+    if (i % columns != 0) {
       ImGui::SameLine();
     }
 
@@ -417,6 +440,7 @@ void PaletteEditorWidget::DrawDungeonRenderPalette() {
     }
     ImGui::PopID();
   }
+  ImGui::PopStyleVar();
 }
 
 float PaletteEditorWidget::ComputeSwatchSize(int columns, float min_size,

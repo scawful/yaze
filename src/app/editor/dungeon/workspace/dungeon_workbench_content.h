@@ -61,7 +61,7 @@ struct DungeonWorkbenchPitDamageControlRects {
 };
 
 enum class DungeonWorkbenchToolRequestTarget : uint8_t {
-  kBottomDrawer,
+  kEmbeddedInspector,
   kStandaloneWindow,
 };
 
@@ -75,11 +75,6 @@ DungeonWorkbenchPaneLayout ResolveDungeonWorkbenchPaneLayout(
     bool want_left, bool want_right);
 
 bool ResolveCompactInspectorDetailRequest(bool compact, bool detail_requested);
-
-int ResolveDungeonWorkbenchToolStripColumns(float available_width,
-                                            float button_size,
-                                            float item_spacing,
-                                            int item_count = 10);
 
 // An already-open standalone tool owns its WindowContent for that frame. Route
 // repeated Workbench requests back to that window instead of drawing the same
@@ -150,7 +145,6 @@ class DungeonWorkbenchContent : public WindowContent {
   void OpenWaterFillTool();
   void OpenMinecartTool();
   bool PopOutActiveTool();
-  void CloseToolDrawer();
 
   // Mirror toggle: when true, the inspector renders on the LEFT and the
   // sidebar renders on the RIGHT (ZScream-style). Width semantics are
@@ -170,7 +164,7 @@ class DungeonWorkbenchContent : public WindowContent {
 
   // Lightweight state probes for unit tests; production rendering remains
   // driven by the Workbench inspector.
-  bool IsToolDrawerActiveForTesting() const;
+  bool IsToolInspectorActiveForTesting() const;
   const char* GetInspectorModeIdForTesting() const;
   const char* GetActiveToolIdForTesting() const;
   void DrawPitDamageControlsForTesting(int room_id) {
@@ -241,18 +235,15 @@ class DungeonWorkbenchContent : public WindowContent {
   void DrawInspectorShelf(DungeonCanvasViewer& viewer, bool compact);
   void DrawInspectorShelfRoom(DungeonCanvasViewer& viewer);
   void DrawInspectorShelfSelection(DungeonCanvasViewer& viewer);
-  void DrawToolDrawerPane(float width, float height,
-                          DungeonCanvasViewer& viewer);
-  bool DrawToolDrawerHeader(float button_size);
-  void DrawToolDrawerBody(DungeonCanvasViewer& viewer);
+  void DrawInspectorToolPanel(DungeonCanvasViewer& viewer);
+  void DrawInspectorToolPicker();
   void DrawWorkbenchTool(DungeonCanvasViewer& viewer, WorkbenchTool tool);
-  void DrawInspectorToolStrip();
   void OpenTool(WorkbenchTool tool);
+  void CloseToolInspector();
   WindowContent* GetWorkbenchToolContent(WorkbenchTool tool) const;
   bool IsStandaloneToolOpen(WorkbenchTool tool) const;
   bool IsWorkbenchToolAvailable(WorkbenchTool tool) const;
   const char* GetWorkbenchToolId(WorkbenchTool tool) const;
-  const char* GetWorkbenchToolIcon(WorkbenchTool tool) const;
   const char* GetWorkbenchToolShortLabel(WorkbenchTool tool) const;
   const char* GetWorkbenchToolUnavailableMessage(WorkbenchTool tool) const;
   void DrawApplyScopeControls(int room_id);
@@ -294,8 +285,9 @@ class DungeonWorkbenchContent : public WindowContent {
 
   enum class SidebarMode : uint8_t { Rooms, Entrances };
   SidebarMode sidebar_mode_ = SidebarMode::Rooms;
-  enum class InspectorMode : uint8_t { Room, Selection };
+  enum class InspectorMode : uint8_t { Room, Selection, Tools };
   InspectorMode inspector_mode_ = InspectorMode::Room;
+  InspectorMode inspector_mode_before_tools_ = InspectorMode::Room;
   bool inspector_selection_was_active_ = false;
   bool compact_inspector_detail_requested_ = false;
   WorkbenchTool active_tool_ = WorkbenchTool::ObjectSelector;
