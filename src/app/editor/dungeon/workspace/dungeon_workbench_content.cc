@@ -722,12 +722,9 @@ void DungeonWorkbenchContent::DrawCanvasPane(
   const float splitter_height = gui::UIConfig::kSplitterWidth;
   const DungeonWorkbenchToolDrawerLayout drawer_layout =
       ResolveDungeonWorkbenchToolDrawerLayout(
-          height, splitter_height, layout_state_.tool_drawer_height,
+          height, splitter_height, layout_state_.tool_drawer_ratio,
           kWorkbenchMinCanvasHeight, kWorkbenchMinToolDrawerHeight,
           layout_state_.show_tool_drawer);
-  if (drawer_layout.show_drawer && !drawer_layout.compact) {
-    layout_state_.tool_drawer_height = drawer_layout.drawer_height;
-  }
 
   // The canvas, splitter, and drawer are one horizontal-layout item. Without
   // this fixed column child, each nested child resets the parent cursor and
@@ -848,12 +845,21 @@ void DungeonWorkbenchContent::DrawCanvasPane(
     const float item_spacing_y = ImGui::GetStyle().ItemSpacing.y;
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() - item_spacing_y);
     const float collapse_threshold = drawer_layout.min_drawer_height;
+    float resized_drawer_height = drawer_layout.drawer_height;
     if (DrawDungeonWorkbenchHorizontalSplitter(
             "##DungeonWorkbenchToolDrawerSplitter", column_width,
-            &layout_state_.tool_drawer_height, drawer_layout.min_drawer_height,
+            &resized_drawer_height, drawer_layout.min_drawer_height,
             drawer_layout.max_drawer_height, collapse_threshold)) {
       CloseToolDrawer();
     } else {
+      // Only a direct splitter drag updates the preference. A temporary clamp
+      // in a short window must not erase the user's preferred proportion.
+      if (!drawer_layout.compact && drawer_layout.available_height > 0.0f &&
+          std::abs(resized_drawer_height - drawer_layout.drawer_height) >
+              0.01f) {
+        layout_state_.tool_drawer_ratio = std::clamp(
+            resized_drawer_height / drawer_layout.available_height, 0.0f, 1.0f);
+      }
       ImGui::SetCursorPosY(ImGui::GetCursorPosY() - item_spacing_y);
       if (primary_viewer) {
         DrawToolDrawerPane(column_width, drawer_layout.drawer_height,

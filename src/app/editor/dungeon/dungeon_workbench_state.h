@@ -17,10 +17,10 @@ struct DungeonWorkbenchLayoutState {
   float left_width = 280.0f;
   float right_width = 280.0f;
 
-  // The Workbench presents editor tools below the central canvas. Keep the
-  // last comfortable drawer height for this Workbench session so switching
-  // tools does not make the canvas jump between sizes.
-  float tool_drawer_height = 300.0f;
+  // The Workbench presents editor tools below the central canvas. Remember a
+  // proportion instead of a pixel height so the drawer follows window size
+  // changes without jumping when the active tool changes.
+  float tool_drawer_ratio = 0.4f;
 
   // Split/compare quality-of-life.
   bool sync_split_view = false;

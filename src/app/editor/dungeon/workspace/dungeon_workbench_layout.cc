@@ -18,7 +18,7 @@ float ClampWorkbenchPaneWidth(float desired_width, float min_width,
 }  // namespace
 
 DungeonWorkbenchToolDrawerLayout ResolveDungeonWorkbenchToolDrawerLayout(
-    float total_height, float splitter_height, float stored_drawer_height,
+    float total_height, float splitter_height, float preferred_drawer_ratio,
     float min_canvas_height, float min_drawer_height, bool want_drawer) {
   DungeonWorkbenchToolDrawerLayout layout;
   const float safe_total_height = std::max(total_height, 1.0f);
@@ -30,27 +30,30 @@ DungeonWorkbenchToolDrawerLayout ResolveDungeonWorkbenchToolDrawerLayout(
   layout.show_drawer = true;
   const float safe_splitter_height = std::clamp(
       splitter_height, 0.0f, std::max(safe_total_height - 1.0f, 0.0f));
-  const float available_height =
+  layout.available_height =
       std::max(safe_total_height - safe_splitter_height, 1.0f);
   const float safe_min_canvas_height = std::max(min_canvas_height, 1.0f);
   const float safe_min_drawer_height = std::max(min_drawer_height, 1.0f);
 
   layout.compact =
-      available_height < safe_min_canvas_height + safe_min_drawer_height;
+      layout.available_height < safe_min_canvas_height + safe_min_drawer_height;
   if (layout.compact) {
     // Preserve useful space for both surfaces. The tool remains visible even
     // in a short Workbench instead of silently falling back to a side pane.
-    layout.min_drawer_height = available_height * 0.4f;
+    layout.min_drawer_height = layout.available_height * 0.4f;
     layout.max_drawer_height = layout.min_drawer_height;
   } else {
     layout.min_drawer_height = safe_min_drawer_height;
-    layout.max_drawer_height = available_height - safe_min_canvas_height;
+    layout.max_drawer_height = layout.available_height - safe_min_canvas_height;
   }
 
-  layout.drawer_height = std::clamp(
-      stored_drawer_height, layout.min_drawer_height, layout.max_drawer_height);
+  const float safe_drawer_ratio =
+      std::clamp(preferred_drawer_ratio, 0.0f, 1.0f);
+  layout.drawer_height =
+      std::clamp(layout.available_height * safe_drawer_ratio,
+                 layout.min_drawer_height, layout.max_drawer_height);
   layout.canvas_height =
-      std::max(available_height - layout.drawer_height, 1.0f);
+      std::max(layout.available_height - layout.drawer_height, 1.0f);
   return layout;
 }
 
