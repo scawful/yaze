@@ -21,7 +21,6 @@
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/drag_drop.h"
 #include "app/gui/core/icons.h"
-#include "app/gui/core/layout_helpers.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/widgets/themed_widgets.h"
@@ -43,12 +42,12 @@ constexpr int kPersistedCustomSubtypeSlots = 16;
 float GetObjectGridItemSize(int density) {
   switch (density) {
     case 0:
-      return 56.0f;
+      return 48.0f;
     case 2:
-      return 88.0f;
+      return 76.0f;
     case 1:
     default:
-      return 72.0f;
+      return 60.0f;
   }
 }
 
@@ -61,38 +60,23 @@ ImVec4 WithAlpha(ImVec4 color, float alpha) {
   return color;
 }
 
-ImVec4 Dimmed(ImVec4 color, float factor) {
-  color.x *= factor;
-  color.y *= factor;
-  color.z *= factor;
-  return color;
-}
-
-ImU32 GetObjectRangeHeaderColor(int start_id) {
-  const auto& theme = AgentUI::GetTheme();
-  if (start_id >= 0xF80) {
-    return ThemeColor(theme.music_zone_color);
-  }
-  if (start_id >= 0x100) {
-    return ThemeColor(theme.selection_secondary);
-  }
-  return ThemeColor(theme.dungeon_object_wall);
-}
-
 void DrawFallbackPreviewTile(ImDrawList* draw_list, ImVec2 top_left,
-                             float item_size, const ImVec4& accent_color,
+                             ImVec2 size, const ImVec4& accent_color,
                              const char* label) {
   const auto& theme = AgentUI::GetTheme();
-  const ImU32 accent = ThemeColor(accent_color);
-  const ImU32 dimmed = ThemeColor(Dimmed(accent_color, 0.55f));
-
-  draw_list->AddRectFilledMultiColor(
-      top_left, ImVec2(top_left.x + item_size, top_left.y + item_size), dimmed,
-      dimmed, accent, accent);
+  draw_list->AddRectFilled(
+      top_left, ImVec2(top_left.x + size.x, top_left.y + size.y),
+      ThemeColor(WithAlpha(theme.panel_bg_darker, 0.72f)), 2.0f);
+  draw_list->AddRectFilled(top_left,
+                           ImVec2(top_left.x + 2.0f, top_left.y + size.y),
+                           ThemeColor(WithAlpha(accent_color, 0.72f)), 2.0f);
 
   ImVec2 label_size = ImGui::CalcTextSize(label);
-  ImVec2 label_pos(top_left.x + (item_size - label_size.x) / 2,
-                   top_left.y + (item_size - label_size.y) / 2 - 10);
+  if (label_size.x > size.x - 4.0f || label_size.y > size.y - 4.0f) {
+    return;
+  }
+  ImVec2 label_pos(top_left.x + (size.x - label_size.x) / 2,
+                   top_left.y + (size.y - label_size.y) / 2);
   draw_list->AddText(label_pos,
                      ThemeColor(WithAlpha(theme.text_primary, 0.82f)), label);
 }
@@ -117,40 +101,28 @@ DungeonObjectSelectorGridLayout ResolveDungeonObjectSelectorGridLayout(
   return layout;
 }
 
-DungeonObjectSelectorTypeTabLayout ResolveDungeonObjectSelectorTypeTabLayout(
-    float available_width, float requested_tab_width, float item_spacing,
-    int tab_count) {
-  if (tab_count <= 0) {
-    return {};
+DungeonObjectPreviewFit ResolveDungeonObjectPreviewFit(float source_width,
+                                                       float source_height,
+                                                       float box_width,
+                                                       float box_height) {
+  DungeonObjectPreviewFit fit;
+  if (source_width <= 0.0f || source_height <= 0.0f || box_width <= 0.0f ||
+      box_height <= 0.0f) {
+    return fit;
   }
 
-  const float safe_width = std::max(available_width, 1.0f);
-  const float safe_tab_width = std::max(requested_tab_width, 1.0f);
-  const float safe_spacing = std::max(item_spacing, 0.0f);
-  const auto columns_fit = [&](int columns) {
-    return safe_width >= safe_tab_width * static_cast<float>(columns) +
-                             safe_spacing * static_cast<float>(columns - 1);
-  };
-
-  DungeonObjectSelectorTypeTabLayout layout;
-  if (columns_fit(tab_count)) {
-    layout.columns = tab_count;
-  } else if (tab_count > 2 && columns_fit(2)) {
-    layout.columns = 2;
-  } else {
-    layout.columns = 1;
-  }
-
-  const float width_per_column =
-      std::max((safe_width - safe_spacing * (layout.columns - 1)) /
-                   static_cast<float>(layout.columns),
-               1.0f);
-  layout.item_width = std::min(safe_tab_width, width_per_column);
-  return layout;
+  const float scale =
+      std::min(box_width / source_width, box_height / source_height);
+  fit.valid = true;
+  fit.width = source_width * scale;
+  fit.height = source_height * scale;
+  fit.x = (box_width - fit.width) * 0.5f;
+  fit.y = (box_height - fit.height) * 0.5f;
+  return fit;
 }
 
-bool MatchesDungeonObjectTypeTab(int object_id, int selected_tab) {
-  switch (selected_tab) {
+bool MatchesDungeonObjectStreamFilter(int object_id, int selected_filter) {
+  switch (selected_filter) {
     case 1:
       return object_id >= 0x000 && object_id <= 0x0F7;
     case 2:
@@ -318,111 +290,84 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
   const ImGuiStyle& style = ImGui::GetStyle();
   const float control_spacing = std::max(2.0f, style.ItemSpacing.x * 0.5f);
-  const float action_size = std::max(ImGui::GetFrameHeight(),
-                                     gui::LayoutHelpers::GetMinTouchTarget());
   {
     gui::StyleVarGuard toolbar_spacing_guard(
         ImGuiStyleVar_ItemSpacing,
         ImVec2(control_spacing, std::max(2.0f, style.ItemSpacing.y * 0.5f)));
 
-    // Search stays dominant, but shares a row with filters when the drawer is
-    // wide enough. Narrow presentations wrap the control groups as a unit.
     const float toolbar_width =
         std::max(ImGui::GetContentRegionAvail().x, 1.0f);
-    const float compact_actions_width =
-        action_size * 3.0f + control_spacing * 3.0f;
-    const bool inline_toolbar = toolbar_width >= 600.0f;
-    const float search_width = inline_toolbar
-                                   ? std::max(220.0f, toolbar_width - 390.0f)
-                                   : toolbar_width;
-    ImGui::SetNextItemWidth(search_width);
-    ImGui::InputTextWithHint(
-        "##ObjectSearch", ICON_MD_SEARCH " Filter objects by name or hex...",
-        object_search_buffer_, sizeof(object_search_buffer_));
-    if (inline_toolbar) {
-      ImGui::SameLine(0.0f, control_spacing);
-    }
+    ImGui::SetNextItemWidth(toolbar_width);
+    ImGui::InputTextWithHint("##ObjectSearch", "Search by name or hex ID...",
+                             object_search_buffer_,
+                             sizeof(object_search_buffer_));
 
-    // Category plus three compact utility actions. Only this control cluster
-    // wraps on genuinely narrow hosts; individual icon buttons never stretch.
-    static const char* kFilterLabels[] = {"All",   "Walls", "Floors", "Chests",
-                                          "Doors", "Decor", "Stairs"};
-    const float controls_width =
-        std::max(ImGui::GetContentRegionAvail().x, 1.0f);
-    const bool actions_fit = controls_width >= compact_actions_width + 96.0f;
-    const float filter_width =
-        actions_fit
-            ? std::min(160.0f,
-                       std::max(96.0f, controls_width - compact_actions_width))
-            : controls_width;
-    ImGui::SetNextItemWidth(filter_width);
+    static const char* kFilterLabels[] = {"All categories", "Walls", "Floors",
+                                          "Chests",         "Doors", "Decor",
+                                          "Stairs"};
+    static const char* kStreamLabels[] = {"All streams", "Type 1", "Type 2",
+                                          "Type 3"};
+    constexpr const char* kMoreLabel = "More##ObjectSelectorMore";
+    const float more_width = ImGui::CalcTextSize(kMoreLabel, nullptr, true).x +
+                             style.FramePadding.x * 2.0f;
+    const bool stack_filters = toolbar_width < 230.0f;
+    const float filter_row_width =
+        std::max(1.0f, toolbar_width - more_width - control_spacing);
+    const float category_width =
+        stack_filters ? toolbar_width : filter_row_width * 0.56f;
+    const float stream_width =
+        stack_filters ? filter_row_width
+                      : std::max(1.0f, filter_row_width - category_width -
+                                           control_spacing);
+
+    ImGui::SetNextItemWidth(category_width);
     ImGui::Combo("##ObjectFilterType", &object_type_filter_, kFilterLabels,
                  IM_ARRAYSIZE(kFilterLabels));
-    if (actions_fit) {
+    if (!stack_filters) {
       ImGui::SameLine(0.0f, control_spacing);
     }
-    if (gui::TransparentIconButton(ICON_MD_CLEAR,
-                                   ImVec2(action_size, action_size),
-                                   "Clear search and category filter")) {
-      object_search_buffer_[0] = '\0';
-      object_type_filter_ = 0;
-    }
+    ImGui::SetNextItemWidth(stream_width);
+    ImGui::Combo("##ObjectStreamFilter", &object_stream_filter_, kStreamLabels,
+                 IM_ARRAYSIZE(kStreamLabels));
     ImGui::SameLine(0.0f, control_spacing);
-    if (gui::TransparentIconButton(ICON_MD_TUNE,
-                                   ImVec2(action_size, action_size),
-                                   "Display options")) {
-      ImGui::OpenPopup("##ObjectSelectorDisplayPopup");
+    if (ImGui::Button(kMoreLabel, ImVec2(more_width, 0.0f))) {
+      ImGui::OpenPopup("##ObjectSelectorOptionsPopup");
     }
-    ImGui::SameLine(0.0f, control_spacing);
-    DrawCustomObjectWorkshopButton(custom_count,
-                                   ImVec2(action_size, action_size));
-    if (ImGui::BeginPopup("##ObjectSelectorDisplayPopup")) {
-      ImGui::TextDisabled(tr("Display"));
-      ImGui::Checkbox(ICON_MD_IMAGE " Thumbnails", &enable_object_previews_);
+    if (ImGui::BeginPopup("##ObjectSelectorOptionsPopup")) {
+      const bool has_filters = object_search_buffer_[0] != '\0' ||
+                               object_type_filter_ != 0 ||
+                               object_stream_filter_ != 0;
+      if (ImGui::MenuItem(tr("Clear filters"), nullptr, false, has_filters)) {
+        object_search_buffer_[0] = '\0';
+        object_type_filter_ = 0;
+        object_stream_filter_ = 0;
+      }
+
+      ImGui::SeparatorText(tr("Display"));
+      ImGui::Checkbox(tr("Show thumbnails"), &enable_object_previews_);
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip(
             tr("Show rendered object thumbnails in the selector.\n"
                "Requires a room to be loaded and may cost some performance."));
       }
-      ImGui::Spacing();
-      ImGui::TextDisabled(tr("Grid density"));
-      static constexpr const char* kDensityLabels[] = {"Small", "Medium",
+      ImGui::SeparatorText(tr("Card size"));
+      static constexpr const char* kDensityLabels[] = {"Compact", "Medium",
                                                        "Large"};
       for (int density = 0; density < 3; ++density) {
-        if (density > 0) {
-          ImGui::SameLine(0.0f, control_spacing);
-        }
-        if (gui::ToggleButton(kDensityLabels[density],
-                              object_grid_density_ == density)) {
+        if (ImGui::MenuItem(kDensityLabels[density], nullptr,
+                            object_grid_density_ == density)) {
           object_grid_density_ = density;
         }
       }
+
+      ImGui::Separator();
+      const std::string workshop_label =
+          absl::StrFormat("Custom Object Workshop... (%d)", custom_count);
+      if (ImGui::MenuItem(workshop_label.c_str())) {
+        open_custom_workshop_popup_ = true;
+      }
       ImGui::EndPopup();
     }
-
-    // Compact object-stream tabs replace three full-width disclosure bars.
-    static constexpr const char* kTypeLabels[] = {"All", "Type 1", "Type 2",
-                                                  "Type 3"};
-    float type_tab_width = 1.0f;
-    for (const char* label : kTypeLabels) {
-      type_tab_width =
-          std::max(type_tab_width,
-                   ImGui::CalcTextSize(label).x + style.FramePadding.x * 2.0f);
-    }
-    const auto type_tab_layout = ResolveDungeonObjectSelectorTypeTabLayout(
-        ImGui::GetContentRegionAvail().x, type_tab_width, control_spacing,
-        IM_ARRAYSIZE(kTypeLabels));
-    ImGui::PushID("ObjectTypeTabs");
-    for (int tab = 0; tab < IM_ARRAYSIZE(kTypeLabels); ++tab) {
-      if (tab > 0 && tab % type_tab_layout.columns != 0) {
-        ImGui::SameLine(0.0f, control_spacing);
-      }
-      if (gui::ToggleButton(kTypeLabels[tab], object_subtype_tab_ == tab,
-                            ImVec2(type_tab_layout.item_width, 0.0f))) {
-        object_subtype_tab_ = tab;
-      }
-    }
-    ImGui::PopID();
   }
 
   // The grid is the selector's sole scroll owner. Calculate its geometry only
@@ -442,15 +387,14 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
     // Iterate through all object ranges
     for (const auto& range : ranges) {
-      if (!MatchesDungeonObjectTypeTab(range.start, object_subtype_tab_)) {
+      if (!MatchesDungeonObjectStreamFilter(range.start,
+                                            object_stream_filter_)) {
         continue;
       }
 
-      if (object_subtype_tab_ == 0) {
-        ImGui::TextColored(ImGui::ColorConvertU32ToFloat4(
-                               GetObjectRangeHeaderColor(range.start)),
-                           "%s  0x%03X-0x%03X", range.label, range.start,
-                           range.end);
+      if (object_stream_filter_ == 0) {
+        ImGui::TextDisabled("%s  0x%03X-0x%03X", range.label, range.start,
+                            range.end);
       }
 
       int current_column = 0;
@@ -459,7 +403,7 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
         if (!MatchesObjectFilter(obj_id, object_type_filter_)) {
           continue;
         }
-        if (!MatchesDungeonObjectTypeTab(obj_id, object_subtype_tab_)) {
+        if (!MatchesDungeonObjectStreamFilter(obj_id, object_stream_filter_)) {
           continue;
         }
 
@@ -505,73 +449,62 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
         gui::BeginRoomObjectDragSource(
             static_cast<uint16_t>(obj_id), current_room_id_, 0, 0,
             zelda3::DefaultRoomObjectSizeForPlacement(obj_id));
-        // Draw object preview on the button; fall back to styled placeholder
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        const bool show_id = item_size >= 32.0f;
+        const float footer_height =
+            show_id ? std::min(item_size * 0.32f, ImGui::GetFontSize() + 3.0f)
+                    : 0.0f;
+        const float card_padding = std::min(3.0f, item_size * 0.08f);
+        const ImVec2 preview_pos(button_pos.x + card_padding,
+                                 button_pos.y + card_padding);
+        const ImVec2 preview_box(
+            std::max(1.0f, item_size - card_padding * 2.0f),
+            std::max(1.0f, item_size - footer_height - card_padding * 2.0f));
 
         // Only attempt graphical preview if enabled (performance optimization)
         bool rendered = false;
         if (item_visible && enable_object_previews_) {
-          rendered = DrawObjectPreview(MakePreviewObject(obj_id), button_pos,
-                                       item_size);
+          rendered = DrawObjectPreview(MakePreviewObject(obj_id), preview_pos,
+                                       preview_box);
         }
 
         if (item_visible && !rendered) {
-          // Draw a styled fallback with gradient background
           std::string symbol = GetObjectTypeSymbol(obj_id);
           DrawFallbackPreviewTile(
-              draw_list, button_pos, item_size,
+              draw_list, preview_pos, preview_box,
               ImGui::ColorConvertU32ToFloat4(GetObjectTypeColor(obj_id)),
               symbol.c_str());
         }
 
-        // Draw selection border
-        ImU32 border_color;
-        float border_thickness;
-
-        if (is_selected) {
-          border_color = ImGui::GetColorU32(theme.dungeon_selection_primary);
-          border_thickness = 3.0f;
-        } else {
-          border_color = ImGui::GetColorU32(theme.panel_bg_darker);
-          border_thickness = 1.0f;
-        }
-
-        if (item_visible) {
+        const bool item_hovered = ImGui::IsItemHovered();
+        if (item_visible && (is_selected || item_hovered)) {
+          const ImU32 border_color =
+              ImGui::GetColorU32(is_selected ? theme.dungeon_selection_primary
+                                             : theme.panel_border_color);
           draw_list->AddRect(
               button_pos,
               ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-              border_color, 0.0f, 0, border_thickness);
+              border_color, 2.0f, 0, is_selected ? 2.0f : 1.0f);
         }
 
-        // Get object name for display
-        // Truncate name for display
-        std::string display_name = full_name;
-        const size_t max_display_chars =
-            std::max<size_t>(7, static_cast<size_t>(item_size / 6.0f));
-        if (display_name.length() > max_display_chars) {
-          display_name = display_name.substr(0, max_display_chars - 2) + "..";
-        }
-
-        if (item_visible) {
-          // Draw object name (smaller, above ID)
-          ImVec2 name_size = ImGui::CalcTextSize(display_name.c_str());
-          ImVec2 name_pos = ImVec2(button_pos.x + (item_size - name_size.x) / 2,
-                                   button_pos.y + item_size - 26);
-          draw_list->AddText(name_pos,
-                             ImGui::GetColorU32(theme.text_secondary_gray),
-                             display_name.c_str());
-
-          // Draw object ID at bottom (hex format)
+        if (item_visible && show_id) {
+          const ImVec2 card_bottom(button_pos.x + item_size,
+                                   button_pos.y + item_size);
+          const float footer_y = card_bottom.y - footer_height;
+          draw_list->AddRectFilled(
+              ImVec2(button_pos.x, footer_y), card_bottom,
+              ImGui::GetColorU32(WithAlpha(theme.panel_bg_darker, 0.88f)),
+              2.0f);
           std::string id_text = absl::StrFormat("%03X", obj_id);
           ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
           ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
-                                 button_pos.y + item_size - id_size.y - 2);
+                                 footer_y + (footer_height - id_size.y) * 0.5f);
           draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
                              id_text.c_str());
         }
 
         // Enhanced tooltip
-        if (ImGui::IsItemHovered()) {
+        if (item_hovered) {
           gui::StyleColorGuard tooltip_guard(
               {{ImGuiCol_PopupBg, theme.panel_bg_color},
                {ImGuiCol_Border, theme.panel_border_color}});
@@ -657,6 +590,10 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
   }
 
   ImGui::EndChild();
+  if (open_custom_workshop_popup_) {
+    ImGui::OpenPopup("Custom Object Workshop");
+    open_custom_workshop_popup_ = false;
+  }
   DrawCustomObjectWorkshopPopup();
 }
 
@@ -816,7 +753,6 @@ uint32_t DungeonObjectSelector::MakeLayoutCacheKey(int object_id,
 }
 
 bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
-                                               float size,
                                                gfx::BackgroundBuffer** out) {
   if (out == nullptr) {
     return false;
@@ -922,9 +858,10 @@ bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
 }
 
 bool DungeonObjectSelector::DrawObjectPreview(const zelda3::RoomObject& object,
-                                              ImVec2 top_left, float size) {
+                                              ImVec2 top_left,
+                                              ImVec2 box_size) {
   gfx::BackgroundBuffer* preview = nullptr;
-  if (!GetOrCreatePreview(object, size, &preview)) {
+  if (!GetOrCreatePreview(object, &preview)) {
     return false;
   }
 
@@ -934,10 +871,18 @@ bool DungeonObjectSelector::DrawObjectPreview(const zelda3::RoomObject& object,
     return false;
   }
 
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 bottom_right(top_left.x + size, top_left.y + size);
-  draw_list->AddImage((ImTextureID)(intptr_t)bitmap.texture(), top_left,
-                      bottom_right);
+  const DungeonObjectPreviewFit fit = ResolveDungeonObjectPreviewFit(
+      static_cast<float>(bitmap.width()), static_cast<float>(bitmap.height()),
+      box_size.x, box_size.y);
+  if (!fit.valid) {
+    return false;
+  }
+
+  const ImVec2 image_top_left(top_left.x + fit.x, top_left.y + fit.y);
+  const ImVec2 image_bottom_right(image_top_left.x + fit.width,
+                                  image_top_left.y + fit.height);
+  ImGui::GetWindowDrawList()->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
+                                       image_top_left, image_bottom_right);
   return true;
 }
 
@@ -1063,24 +1008,6 @@ void DungeonObjectSelector::DrawNewCustomObjectDialog() {
   }
 }
 
-void DungeonObjectSelector::DrawCustomObjectWorkshopButton(int custom_count,
-                                                           const ImVec2& size) {
-  if (open_custom_workshop_popup_) {
-    ImGui::OpenPopup("Custom Object Workshop");
-    open_custom_workshop_popup_ = false;
-  }
-
-  if (gui::TransparentIconButton(
-          ICON_MD_PRECISION_MANUFACTURING "##CustomObjectWorkshop", size)) {
-    ImGui::OpenPopup("Custom Object Workshop");
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(
-        tr("Custom Object Workshop\n%d custom object%s available"),
-        custom_count, custom_count == 1 ? "" : "s");
-  }
-}
-
 void DungeonObjectSelector::DrawCustomObjectWorkshopPopup() {
   const auto& theme = AgentUI::GetTheme();
   auto& obj_manager = zelda3::CustomObjectManager::Get();
@@ -1202,40 +1129,59 @@ void DungeonObjectSelector::DrawCustomObjectWorkshopPopup() {
             zelda3::CanonicalRoomObjectSize(obj_id,
                                             static_cast<uint8_t>(subtype)));
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        const bool show_id = item_size >= 44.0f;
+        const float footer_height =
+            show_id ? std::min(item_size * 0.32f, ImGui::GetFontSize() + 3.0f)
+                    : 0.0f;
+        const float card_padding = std::min(3.0f, item_size * 0.08f);
+        const ImVec2 preview_pos(button_pos.x + card_padding,
+                                 button_pos.y + card_padding);
+        const ImVec2 preview_box(
+            std::max(1.0f, item_size - card_padding * 2.0f),
+            std::max(1.0f, item_size - footer_height - card_padding * 2.0f));
 
         bool rendered = false;
         if (item_visible && enable_object_previews_) {
           auto temp_obj = MakePreviewObject(obj_id);
           temp_obj.size_ = zelda3::CanonicalRoomObjectSize(
               obj_id, static_cast<uint8_t>(subtype));
-          rendered = DrawObjectPreview(temp_obj, button_pos, item_size);
+          rendered = DrawObjectPreview(temp_obj, preview_pos, preview_box);
         }
 
         if (item_visible && !rendered) {
           std::string sub_text = absl::StrFormat("%02X", subtype);
-          DrawFallbackPreviewTile(draw_list, button_pos, item_size,
+          DrawFallbackPreviewTile(draw_list, preview_pos, preview_box,
                                   theme.status_success, sub_text.c_str());
         }
 
-        ImU32 border_color =
-            is_selected ? ImGui::GetColorU32(theme.dungeon_selection_primary)
-                        : ImGui::GetColorU32(theme.panel_bg_darker);
-        float border_thickness = is_selected ? 3.0f : 1.0f;
-        if (item_visible) {
+        const bool item_hovered = ImGui::IsItemHovered();
+        if (item_visible && (is_selected || item_hovered)) {
+          const ImU32 border_color =
+              ImGui::GetColorU32(is_selected ? theme.dungeon_selection_primary
+                                             : theme.panel_border_color);
           draw_list->AddRect(
               button_pos,
               ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-              border_color, 0.0f, 0, border_thickness);
+              border_color, 2.0f, 0, is_selected ? 2.0f : 1.0f);
+        }
 
+        if (item_visible && show_id) {
+          const ImVec2 card_bottom(button_pos.x + item_size,
+                                   button_pos.y + item_size);
+          const float footer_y = card_bottom.y - footer_height;
+          draw_list->AddRectFilled(
+              ImVec2(button_pos.x, footer_y), card_bottom,
+              ImGui::GetColorU32(WithAlpha(theme.panel_bg_darker, 0.88f)),
+              2.0f);
           std::string id_text = absl::StrFormat("%02X:%02X", obj_id, subtype);
           ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
           ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
-                                 button_pos.y + item_size - id_size.y - 2);
+                                 footer_y + (footer_height - id_size.y) * 0.5f);
           draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
                              id_text.c_str());
         }
 
-        if (ImGui::IsItemHovered()) {
+        if (item_hovered) {
           gui::StyleColorGuard tooltip_guard(
               {{ImGuiCol_PopupBg, theme.panel_bg_color},
                {ImGuiCol_Border, theme.panel_border_color}});

@@ -285,39 +285,38 @@ Field: `filter_range_error_` (bool), error condition: `parsed_min > parsed_max`.
 
 ---
 
-## 5. Workbench Tool Drawer and Window Filtering
+## 5. Workbench Tools Inspector and Window Filtering
 
 **Source:**
-- `DungeonWorkbenchContent::DrawInspectorToolDrawer()`
+- `DungeonWorkbenchContent::DrawInspectorToolPanel()`
 - `DungeonWorkbenchContent::Open*Tool()`
 - `WindowSidebar::IsDungeonWindowModeTarget()` (room-prefixed nav windows)
 - `WindowBrowser::Draw()`
 
-### 5a — Local tool requests open the right inspector drawer
+### 5a — Local tool requests open the Tools inspector
 
 **Click-path:**
 1. Launch YAZE with a ROM and open Dungeon Workbench:
    `--editor=Dungeon --room=16 --open_panels=dungeon.workbench`.
 2. In the Workbench right inspector, click **Tools**.
-3. From the 2x5 icon strip at the top of the drawer, click each of the ten
-   tool icons in order: **Object Selector**, **Doors**, **Sprites**, **Items**,
-   **Palette**, **Room Graphics**, **Room Tags**, **Custom Collision**,
-   **Water Fill**, and **Minecart**.
+3. Open the grouped tool chooser and select each of the ten tools: **Object
+   Selector**, **Door Tools**, **Sprite Tools**, **Item Tools**, **Room
+   Graphics**, **Palette**, **Room Tags**, **Custom Collision**, **Water Fill**,
+   and **Minecart Tracks**.
 
 **Expected:**
 - The selected tool renders inside the right inspector, not in a separate modal
   or top-level Dungeon window.
-- The icon for the active tool is highlighted (accent color) in the strip; only
-  one icon is highlighted at a time.
-- Hovering each icon shows a tooltip with the tool's full name.
-- The active tool's body fills the inspector height beneath the strip and the
-  active tool's title (no developer-doc subtitle, no in-drawer back button).
+- The chooser displays the active tool name and groups choices under **Edit**,
+  **Room**, and **Review**.
+- The active tool's body fills the inspector height beneath the chooser.
+- **Pop out** moves the active tool to its standalone window and restores the
+  inspector mode that was active before Tools.
 - Returning to room metadata is one click on the inspector primary segmented
-  selector ("Room") at the top of the inspector, not a separate button inside
-  the drawer.
+  selector ("Room") at the top of the inspector.
 - The active tool remains selected after navigating to another room.
 - Selecting an object/entity on the canvas may focus Selection, but it should
-  not steal focus away from the Tools drawer while the drawer is active.
+  not steal focus away from the Tools inspector while Tools is active.
 
 ### 5b — Dungeon Map and Connected Graph keep their special homes
 
@@ -327,7 +326,8 @@ Field: `filter_range_error_` (bool), error condition: `parsed_min > parsed_max`.
 
 **Expected:**
 - Dungeon Map opens as a bounded popup.
-- Connected Graph switches the canvas mode; it is not embedded as a drawer tool.
+- Connected Graph switches the canvas mode; it is not embedded as an inspector
+  tool.
 
 ### 5c — Window Browser/sidebar list Workbench-local tools in either mode
 
@@ -348,11 +348,12 @@ Field: `filter_range_error_` (bool), error condition: `parsed_min > parsed_max`.
   Browser regardless of workflow mode.
 - Toggling **Workbench / Windows** in the Dungeon sidebar workflow strip never
   auto-closes a standalone tool window. Only the room-mode navigation windows
-  (`dungeon.room_selector`, `dungeon.room_matrix`, and per-room `dungeon.room_*`
-  windows) are collapsed when entering Workbench mode, and pinned room windows
-  are preserved.
-- Opening a tool from the sidebar while the Workbench drawer also has the same
-  tool active yields two edit surfaces for the same room state — by design.
+  (`dungeon.room_selector`, `dungeon.entrance_list`, `dungeon.room_matrix`, and
+  per-room `dungeon.room_*` windows) are collapsed when entering Workbench
+  mode, and pinned room windows are preserved.
+- If the requested tool already has a standalone window open, the Workbench
+  focuses that window and restores the previous Room/Selection inspector. One
+  `WindowContent` instance is never drawn twice in the same frame.
 - Switching to Window workflow restores the room-mode windows.
 
 **Focused automated coverage:**
@@ -362,8 +363,9 @@ Field: `filter_range_error_` (bool), error condition: `parsed_min > parsed_max`.
   --gtest_filter='DungeonWorkbenchToolbar*.*:DungeonWorkbenchContentLayoutTest.*:SidebarSortTest.*'
 ```
 
-Expected result: all tests pass, including drawer-state persistence and the
-mode-parity contract pinned by `SidebarSortTest.DungeonWindowModeTargets…`.
+Expected result: all tests pass, including Tools-inspector state persistence,
+pop-out ownership, and the mode-parity contract pinned by
+`SidebarSortTest.DungeonWindowModeTargets…`.
 
 ---
 
@@ -373,7 +375,7 @@ mode-parity contract pinned by `SidebarSortTest.DungeonWindowModeTargets…`.
 # 1. Build
 cmake --build --preset mac-ai --target yaze_test_quick_unit_editor z3ed --parallel 8
 
-# 2. Targeted unit tests (original UX suites plus Workbench drawer/window filtering)
+# 2. Targeted unit tests (original UX suites plus Tools inspector/window filtering)
 ./build/presets/mac-ai/bin/Debug/yaze_test_quick_unit_editor \
   --gtest_filter="TileSelectorWidgetTest.*:DoorInteractionHandlerTest.*:SpriteInteractionHandlerTest.*:TileObjectHandlerTest.*:DungeonWorkbenchToolbar*.*:DungeonWorkbenchContentLayoutTest.*:SidebarSortTest.*"
 

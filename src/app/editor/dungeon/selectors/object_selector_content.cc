@@ -278,9 +278,12 @@ void ObjectSelectorContent::DrawInteractionSummary() {
     drew_primary_status = true;
   }
 
-  // Selection and room-capacity context is useful in a tall presentation, but
-  // the object grid takes priority in a short bottom drawer.
-  const bool show_secondary_status = ImGui::GetContentRegionAvail().y >= 260.0f;
+  // Capacity and validation detail belongs in the wider standalone picker.
+  // A full-height inspector is still narrow, so preserve that space for the
+  // object grid while keeping placement and error feedback visible above.
+  const ImVec2 available = ImGui::GetContentRegionAvail();
+  const bool show_secondary_status =
+      available.x >= 420.0f && available.y >= 260.0f;
   if (!is_placing && show_secondary_status &&
       snapshot.kind == DungeonSelectionKind::ObjectSingle) {
     ImGui::TextColored(theme.status_success,

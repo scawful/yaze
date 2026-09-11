@@ -8,6 +8,7 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/util/palette_manager.h"
+#include "app/gui/widgets/palette_editor_widget.h"
 #include "app/platform/sdl_compat.h"
 #include "core/features.h"
 #include "framework/mock_renderer.h"
@@ -715,6 +716,33 @@ TEST_F(DungeonEditorPaletteRefreshTest,
                       /*display_index=*/34, gfx::SnesColor(0x5294))
                   .ok());
   EXPECT_EQ(callback_count, 1);
+}
+
+TEST(DungeonPaletteResponsiveLayoutTest, UsesLogicalRowWidthsWhenTheyFit) {
+  EXPECT_EQ(gui::ResolveDungeonRenderPaletteColumns(
+                /*available_width=*/254.0f, /*min_swatch_size=*/14.0f,
+                /*item_spacing=*/2.0f),
+            16);
+  EXPECT_EQ(gui::ResolveDungeonRenderPaletteColumns(
+                /*available_width=*/126.0f, /*min_swatch_size=*/14.0f,
+                /*item_spacing=*/2.0f),
+            8);
+}
+
+TEST(DungeonPaletteResponsiveLayoutTest,
+     WrapsWithoutChangingLogicalPaletteIndices) {
+  EXPECT_EQ(gui::ResolveDungeonRenderPaletteColumns(
+                /*available_width=*/253.0f, /*min_swatch_size=*/14.0f,
+                /*item_spacing=*/2.0f),
+            8);
+  EXPECT_EQ(gui::ResolveDungeonRenderPaletteColumns(
+                /*available_width=*/125.0f, /*min_swatch_size=*/14.0f,
+                /*item_spacing=*/2.0f),
+            4);
+  EXPECT_EQ(gui::ResolveDungeonRenderPaletteColumns(
+                /*available_width=*/1.0f, /*min_swatch_size=*/14.0f,
+                /*item_spacing=*/2.0f),
+            1);
 }
 
 }  // namespace yaze::editor

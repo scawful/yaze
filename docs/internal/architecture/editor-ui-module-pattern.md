@@ -98,7 +98,7 @@ inside that Workbench before adding or preserving another high-level panel.
 Preferred hierarchy:
 
 1. **Canvas/toolbar** for high-frequency spatial actions.
-2. **Inspector modes/drawers** for local tools that edit the current room,
+2. **Inspector modes** for local tools that edit the current room,
    selection, palette, tags, collision, or other nearby state.
 3. **Popups** for bounded review surfaces that should not persist as primary
    windows (for example, a dungeon map).
@@ -109,22 +109,24 @@ Dungeon Workbench examples:
 
 | Surface | Expected home in Workbench mode |
 |---|---|
-| Object Selector, Door, Sprite, Item tools | Inspector `Tools` drawer |
-| Palette, Room Graphics, Room Tags | Inspector `Tools` drawer |
-| Custom Collision, Water Fill, Minecart | Inspector `Tools` drawer |
+| Object Selector, Door, Sprite, Item tools | Inspector `Tools` mode |
+| Palette, Room Graphics, Room Tags | Inspector `Tools` mode |
+| Custom Collision, Water Fill, Minecart | Inspector `Tools` mode |
 | Dungeon Map | Popup |
 | Connected Graph | Canvas mode |
 | Object Tile Editor | Standalone asset-authoring window |
 
-If a tool is embedded in a Workbench drawer, keep the drawer as the primary
-default path, but do not force-close an already visible standalone copy when
-entering Workbench mode. Keep standalone panel entries discoverable for users
-who intentionally prefer a multi-window layout; Workbench entry should only
-collapse navigation windows and per-room windows by default.
+If a tool is embedded in the Workbench inspector, keep the inspector as the
+primary default path, but do not force-close an already visible standalone copy
+when entering Workbench mode. Keep standalone panel entries discoverable for
+users who intentionally prefer a multi-window layout. If the same content is
+already floating, focus that window instead of drawing one `WindowContent`
+instance twice. Workbench entry should only collapse navigation windows and
+per-room windows by default.
 
-Avoid dual implementations. Do not keep both a modal popup path and a drawer path
-for the same local tool unless the temporary duplicate is tracked by a handoff
-with deletion criteria.
+Avoid dual implementations. Do not keep both a modal popup path and an inspector
+path for the same local tool unless the temporary duplicate is tracked by a
+handoff with deletion criteria.
 
 ### Refactor triggers
 

@@ -3,8 +3,8 @@
 Status: ACTIVE
 Owner: imgui-frontend-engineer
 Created: 2026-02-07
-Last Reviewed: 2026-04-26
-Next Review: 2026-05-03
+Last Reviewed: 2026-09-11
+Next Review: 2026-09-18
 
 ## Summary
 - Lead agent/persona: imgui-frontend-engineer
@@ -14,23 +14,24 @@ Next Review: 2026-05-03
   - A single default “Dungeon Workbench” layout is usable without manual docking.
   - Room navigation never moves/respawns windows unintentionally.
   - Inspector-driven UI reduces vertical chrome vs. always-on properties.
-  - Workbench-local edit tools live in the Workbench inspector drawer, not as
+  - Workbench-local edit tools live in the Workbench Tools inspector, not as
     competing top-level Dungeon windows.
   - PanelManager supports explicit panel scopes so defaults and persistence are predictable.
   - A command palette makes navigation/panel actions discoverable and fast.
 
-## Status Update — 2026-04-26
+## Status Update — 2026-09-11
 
-The Workbench now has a right-inspector `Tools` mode/drawer. Object Selector,
+The Workbench now has a right-inspector `Tools` mode. Object Selector,
 Door, Sprite, Item, Palette, Room Graphics, Room Tags, Custom Collision, Water
 Fill, and Minecart tools route there when Workbench mode is active. Dungeon Map
 remains a popup and Connected Graph remains a canvas mode.
 
-Workbench-local tool windows are closed when entering Workbench mode and hidden
-from the Window Browser/sidebar while Workbench mode is active, so users are not
-invited back into the scattered multi-window workflow by default.
-Navigation/review surfaces remain discoverable there: Workbench, Room List,
-Room Matrix, Entrances, and Object Tile Editor.
+The prior bottom drawer and permanent 2x5 tool strip were removed because they
+reduced canvas height and added a dense row of ambiguous icons. Tools now use one
+grouped chooser above the full-height inspector body. Object Selector controls
+and cards were compacted for this narrower home. **Pop out** preserves the
+traditional floating-window workflow, while presentation ownership prevents the
+same `WindowContent` instance from drawing in both locations.
 
 Canonical handoff for this slice:
 `docs/internal/agents/dungeon-workbench-usability-handoff-2026-04-26.md`.
@@ -40,7 +41,7 @@ Canonical handoff for this slice:
   - (1) Room header polish (pin placement + compact controls) and immediate layout fixes.
   - (2) “Room Workbench”: one stable window that hosts the room canvas + supporting panes.
   - (3) Context-sensitive Inspector replacing tall always-on controls.
-  - (4) Workbench-local tool drawer replacing local utility popups/windows.
+  - (4) Workbench-local Tools inspector replacing local utility popups/windows.
   - (5) Panel scopes + better default rules for visibility/pinning/persistence.
   - (6) Room tabs: MRU ordering, split view, and predictable focus.
   - (7) Command palette for room navigation + panel actions.
@@ -90,7 +91,7 @@ Canonical handoff for this slice:
 - Milestone 1 (Step 1): Fix clipping/cutoff + preserve panel/viewer state when navigating.
 - Milestone 2 (Step 2): Ship “Dungeon Workbench” behind a feature flag with a default layout preset.
 - Milestone 3 (Step 3): Add Context Inspector (selection-driven UI) and migrate tall always-on controls into it. **In progress; Room/Selection/Tools modes exist.**
-- Milestone 3b (Step 4): Fold local edit tools into the Workbench right drawer. **Implemented 2026-04-26; needs manual visual polish pass.**
+- Milestone 3b (Step 4): Fold local edit tools into the Workbench right inspector. **Implemented; sidebar consolidation and compact selector pass completed 2026-09-11, pending hands-on acceptance.**
 - Milestone 4 (Step 5): Introduce Panel Scopes (opt-in) and migrate Dungeon to scoped behavior.
 - Milestone 5 (Step 6): MRU room tabs + split view inside Workbench.
 - Milestone 6 (Step 7): Command palette for room navigation + panel actions.
@@ -128,10 +129,10 @@ Canonical handoff for this slice:
   - Sprite/item selected: show entity properties.
 - Keep high-frequency actions reachable from the canvas (context menu + command palette), but move low-frequency settings out of the header.
 
-### Step 4: Workbench-Local Tool Drawer
+### Step 4: Workbench-Local Tools Inspector
 - Route local editing tools into a right-inspector `Tools` mode instead of
   opening another high-level panel.
-- Keep the drawer as the default path, but allow standalone copies to remain
+- Keep the inspector as the default path, but allow standalone copies to remain
   open and discoverable for users who intentionally prefer a multi-window
   layout.
 - Keep Object Tile Editor standalone unless Object Selector invokes it directly

@@ -267,14 +267,14 @@ TEST(DungeonObjectSelectorPaletteTest, ObjectPreviewsDefaultOn) {
 TEST(DungeonObjectSelectorLayoutTest,
      GridUsesAvailableWidthWithoutHorizontalOverflow) {
   constexpr float kAvailableWidth = 400.0f;
-  constexpr float kRequestedItemSize = 72.0f;
+  constexpr float kRequestedItemSize = 60.0f;
   constexpr float kItemSpacing = 4.0f;
   constexpr float kScrollbarWidth = 14.0f;
 
   const auto layout = ResolveDungeonObjectSelectorGridLayout(
       kAvailableWidth, kRequestedItemSize, kItemSpacing, kScrollbarWidth);
 
-  EXPECT_EQ(layout.columns, 5);
+  EXPECT_EQ(layout.columns, 6);
   EXPECT_FLOAT_EQ(layout.item_size, kRequestedItemSize);
   const float occupied_width =
       layout.columns * layout.item_size + (layout.columns - 1) * kItemSpacing;
@@ -282,7 +282,7 @@ TEST(DungeonObjectSelectorLayoutTest,
 }
 
 TEST(DungeonObjectSelectorLayoutTest,
-     GridShrinksToOneUsableItemWhenDrawerIsExtremelyNarrow) {
+     GridShrinksToOneUsableItemWhenSelectorIsExtremelyNarrow) {
   const auto layout = ResolveDungeonObjectSelectorGridLayout(
       /*available_width=*/28.0f, /*requested_item_size=*/72.0f,
       /*item_spacing=*/4.0f, /*reserved_scrollbar_width=*/14.0f);
@@ -302,88 +302,83 @@ TEST(DungeonObjectSelectorLayoutTest,
   EXPECT_FLOAT_EQ(layout.item_size, 32.0f);
 }
 
-TEST(DungeonObjectSelectorTypeTabTest, AllTabAndUnknownTabFailOpen) {
+TEST(DungeonObjectSelectorStreamFilterTest, AllAndUnknownFiltersFailOpen) {
   for (int object_id : {-1, 0x000, 0x0F8, 0x140, 0xF80, 0x1000}) {
-    EXPECT_TRUE(MatchesDungeonObjectTypeTab(object_id, 0));
-    EXPECT_TRUE(MatchesDungeonObjectTypeTab(object_id, 99));
+    EXPECT_TRUE(MatchesDungeonObjectStreamFilter(object_id, 0));
+    EXPECT_TRUE(MatchesDungeonObjectStreamFilter(object_id, 99));
   }
 }
 
-TEST(DungeonObjectSelectorTypeTabTest, TypeOneUsesCanonicalCodecRange) {
-  EXPECT_FALSE(MatchesDungeonObjectTypeTab(-1, 1));
-  EXPECT_TRUE(MatchesDungeonObjectTypeTab(0x000, 1));
-  EXPECT_TRUE(MatchesDungeonObjectTypeTab(0x0F7, 1));
-  EXPECT_FALSE(MatchesDungeonObjectTypeTab(0x0F8, 1));
-  EXPECT_FALSE(MatchesDungeonObjectTypeTab(0x100, 1));
+TEST(DungeonObjectSelectorStreamFilterTest, TypeOneUsesCanonicalCodecRange) {
+  EXPECT_FALSE(MatchesDungeonObjectStreamFilter(-1, 1));
+  EXPECT_TRUE(MatchesDungeonObjectStreamFilter(0x000, 1));
+  EXPECT_TRUE(MatchesDungeonObjectStreamFilter(0x0F7, 1));
+  EXPECT_FALSE(MatchesDungeonObjectStreamFilter(0x0F8, 1));
+  EXPECT_FALSE(MatchesDungeonObjectStreamFilter(0x100, 1));
 }
 
-TEST(DungeonObjectSelectorTypeTabTest, TypeTwoUsesCanonicalCodecRange) {
-  EXPECT_FALSE(MatchesDungeonObjectTypeTab(0x0FF, 2));
-  EXPECT_TRUE(MatchesDungeonObjectTypeTab(0x100, 2));
-  EXPECT_TRUE(MatchesDungeonObjectTypeTab(0x13F, 2));
-  EXPECT_FALSE(MatchesDungeonObjectTypeTab(0x140, 2));
+TEST(DungeonObjectSelectorStreamFilterTest, TypeTwoUsesCanonicalCodecRange) {
+  EXPECT_FALSE(MatchesDungeonObjectStreamFilter(0x0FF, 2));
+  EXPECT_TRUE(MatchesDungeonObjectStreamFilter(0x100, 2));
+  EXPECT_TRUE(MatchesDungeonObjectStreamFilter(0x13F, 2));
+  EXPECT_FALSE(MatchesDungeonObjectStreamFilter(0x140, 2));
 }
 
-TEST(DungeonObjectSelectorTypeTabTest, TypeThreeUsesCanonicalCodecRange) {
-  EXPECT_FALSE(MatchesDungeonObjectTypeTab(0xF7F, 3));
-  EXPECT_TRUE(MatchesDungeonObjectTypeTab(0xF80, 3));
-  EXPECT_TRUE(MatchesDungeonObjectTypeTab(0xFFF, 3));
-  EXPECT_FALSE(MatchesDungeonObjectTypeTab(0x1000, 3));
+TEST(DungeonObjectSelectorStreamFilterTest, TypeThreeUsesCanonicalCodecRange) {
+  EXPECT_FALSE(MatchesDungeonObjectStreamFilter(0xF7F, 3));
+  EXPECT_TRUE(MatchesDungeonObjectStreamFilter(0xF80, 3));
+  EXPECT_TRUE(MatchesDungeonObjectStreamFilter(0xFFF, 3));
+  EXPECT_FALSE(MatchesDungeonObjectStreamFilter(0x1000, 3));
 }
 
-TEST(DungeonObjectSelectorTypeTabLayoutTest,
-     UsesOneRowAtExactFitAndBalancedGridBelowIt) {
-  constexpr float kTabWidth = 56.0f;
-  constexpr float kSpacing = 4.0f;
-  constexpr int kTabCount = 4;
-  constexpr float kFourColumnWidth =
-      kTabCount * kTabWidth + (kTabCount - 1) * kSpacing;
+TEST(DungeonObjectSelectorPreviewFitTest,
+     FitsWideSourceAndCentersItVertically) {
+  const auto fit = ResolveDungeonObjectPreviewFit(
+      /*source_width=*/32.0f, /*source_height=*/8.0f,
+      /*box_width=*/40.0f, /*box_height=*/40.0f);
 
-  const auto exact_fit = ResolveDungeonObjectSelectorTypeTabLayout(
-      kFourColumnWidth, kTabWidth, kSpacing, kTabCount);
-  EXPECT_EQ(exact_fit.columns, 4);
-  EXPECT_FLOAT_EQ(exact_fit.item_width, kTabWidth);
-
-  const auto balanced_grid = ResolveDungeonObjectSelectorTypeTabLayout(
-      kFourColumnWidth - 1.0f, kTabWidth, kSpacing, kTabCount);
-  EXPECT_EQ(balanced_grid.columns, 2);
-  EXPECT_FLOAT_EQ(balanced_grid.item_width, kTabWidth);
+  EXPECT_TRUE(fit.valid);
+  EXPECT_FLOAT_EQ(fit.x, 0.0f);
+  EXPECT_FLOAT_EQ(fit.y, 15.0f);
+  EXPECT_FLOAT_EQ(fit.width, 40.0f);
+  EXPECT_FLOAT_EQ(fit.height, 10.0f);
 }
 
-TEST(DungeonObjectSelectorTypeTabLayoutTest,
-     UsesBalancedGridAtExactFitAndVerticalStackBelowIt) {
-  constexpr float kTabWidth = 56.0f;
-  constexpr float kSpacing = 4.0f;
-  constexpr float kTwoColumnWidth = 2.0f * kTabWidth + kSpacing;
+TEST(DungeonObjectSelectorPreviewFitTest,
+     FitsTallSourceAndCentersItHorizontally) {
+  const auto fit = ResolveDungeonObjectPreviewFit(
+      /*source_width=*/8.0f, /*source_height=*/32.0f,
+      /*box_width=*/40.0f, /*box_height=*/40.0f);
 
-  const auto exact_fit = ResolveDungeonObjectSelectorTypeTabLayout(
-      kTwoColumnWidth, kTabWidth, kSpacing);
-  EXPECT_EQ(exact_fit.columns, 2);
-  EXPECT_FLOAT_EQ(exact_fit.item_width, kTabWidth);
-
-  const auto vertical_stack = ResolveDungeonObjectSelectorTypeTabLayout(
-      kTwoColumnWidth - 1.0f, kTabWidth, kSpacing);
-  EXPECT_EQ(vertical_stack.columns, 1);
-  EXPECT_FLOAT_EQ(vertical_stack.item_width, kTabWidth);
+  EXPECT_TRUE(fit.valid);
+  EXPECT_FLOAT_EQ(fit.x, 15.0f);
+  EXPECT_FLOAT_EQ(fit.y, 0.0f);
+  EXPECT_FLOAT_EQ(fit.width, 10.0f);
+  EXPECT_FLOAT_EQ(fit.height, 40.0f);
 }
 
-TEST(DungeonObjectSelectorTypeTabLayoutTest,
-     NarrowAndEmptyLayoutsRemainReachable) {
-  const auto narrow = ResolveDungeonObjectSelectorTypeTabLayout(
-      /*available_width=*/20.0f, /*requested_tab_width=*/56.0f,
-      /*item_spacing=*/4.0f);
-  EXPECT_EQ(narrow.columns, 1);
-  EXPECT_FLOAT_EQ(narrow.item_width, 20.0f);
+TEST(DungeonObjectSelectorPreviewFitTest, SquareSourceFillsSquareBox) {
+  const auto fit = ResolveDungeonObjectPreviewFit(
+      /*source_width=*/16.0f, /*source_height=*/16.0f,
+      /*box_width=*/40.0f, /*box_height=*/40.0f);
 
-  const auto empty = ResolveDungeonObjectSelectorTypeTabLayout(
-      /*available_width=*/400.0f, /*requested_tab_width=*/56.0f,
-      /*item_spacing=*/4.0f, /*tab_count=*/0);
-  EXPECT_EQ(empty.columns, 0);
+  EXPECT_TRUE(fit.valid);
+  EXPECT_FLOAT_EQ(fit.x, 0.0f);
+  EXPECT_FLOAT_EQ(fit.y, 0.0f);
+  EXPECT_FLOAT_EQ(fit.width, 40.0f);
+  EXPECT_FLOAT_EQ(fit.height, 40.0f);
+}
 
-  const auto invalid = ResolveDungeonObjectSelectorTypeTabLayout(
-      /*available_width=*/400.0f, /*requested_tab_width=*/56.0f,
-      /*item_spacing=*/4.0f, /*tab_count=*/-1);
-  EXPECT_EQ(invalid.columns, 0);
+TEST(DungeonObjectSelectorPreviewFitTest,
+     NonPositiveSourceOrBoxDimensionsAreInvalid) {
+  EXPECT_FALSE(ResolveDungeonObjectPreviewFit(0.0f, 8.0f, 40.0f, 40.0f).valid);
+  EXPECT_FALSE(ResolveDungeonObjectPreviewFit(8.0f, 0.0f, 40.0f, 40.0f).valid);
+  EXPECT_FALSE(ResolveDungeonObjectPreviewFit(-8.0f, 8.0f, 40.0f, 40.0f).valid);
+  EXPECT_FALSE(ResolveDungeonObjectPreviewFit(8.0f, -8.0f, 40.0f, 40.0f).valid);
+  EXPECT_FALSE(ResolveDungeonObjectPreviewFit(8.0f, 8.0f, 0.0f, 40.0f).valid);
+  EXPECT_FALSE(ResolveDungeonObjectPreviewFit(8.0f, 8.0f, 40.0f, 0.0f).valid);
+  EXPECT_FALSE(ResolveDungeonObjectPreviewFit(8.0f, 8.0f, -40.0f, 40.0f).valid);
+  EXPECT_FALSE(ResolveDungeonObjectPreviewFit(8.0f, 8.0f, 40.0f, -40.0f).valid);
 }
 
 TEST(DungeonObjectSelectorCustomEditorTest,

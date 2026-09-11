@@ -35,19 +35,23 @@ struct DungeonObjectSelectorGridLayout {
   float item_size = 1.0f;
 };
 
-struct DungeonObjectSelectorTypeTabLayout {
-  int columns = 0;
-  float item_width = 1.0f;
+struct DungeonObjectPreviewFit {
+  bool valid = false;
+  float x = 0.0f;
+  float y = 0.0f;
+  float width = 0.0f;
+  float height = 0.0f;
 };
 
 // Pure responsive-layout helpers shared by the selector and its unit tests.
 DungeonObjectSelectorGridLayout ResolveDungeonObjectSelectorGridLayout(
     float available_width, float requested_item_size, float item_spacing,
     float reserved_scrollbar_width, float min_item_size = 32.0f);
-DungeonObjectSelectorTypeTabLayout ResolveDungeonObjectSelectorTypeTabLayout(
-    float available_width, float requested_tab_width, float item_spacing,
-    int tab_count = 4);
-bool MatchesDungeonObjectTypeTab(int object_id, int selected_tab);
+DungeonObjectPreviewFit ResolveDungeonObjectPreviewFit(float source_width,
+                                                       float source_height,
+                                                       float box_width,
+                                                       float box_height);
+bool MatchesDungeonObjectStreamFilter(int object_id, int selected_filter);
 
 /**
  * @brief Handles object selection, preview, and editing UI
@@ -149,13 +153,12 @@ class DungeonObjectSelector {
   void CalculateObjectDimensions(const zelda3::RoomObject& object, int& width,
                                  int& height);
   bool DrawObjectPreview(const zelda3::RoomObject& object, ImVec2 top_left,
-                         float size);
+                         ImVec2 box_size);
   zelda3::RoomObject MakePreviewObject(int obj_id) const;
   void EnsureRegistryInitialized();
   ImU32 GetObjectTypeColor(int object_id);
   std::string GetObjectTypeSymbol(int object_id);
   void EnsureCustomObjectsInitialized();
-  void DrawCustomObjectWorkshopButton(int custom_count, const ImVec2& size);
   void DrawCustomObjectWorkshopPopup();
   void DrawNewCustomObjectDialog();
   absl::Status OpenNewCustomObjectEditor(int width, int height,
@@ -205,8 +208,8 @@ class DungeonObjectSelector {
 
   // UI state for object browser filter
   int object_type_filter_ = 0;
-  int object_subtype_tab_ = 0;   // 0=All, 1=Type1, 2=Type2, 3=Type3
-  int object_grid_density_ = 1;  // 0=Small, 1=Medium, 2=Large
+  int object_stream_filter_ = 0;  // 0=All, 1=Type1, 2=Type2, 3=Type3
+  int object_grid_density_ = 0;   // 0=Compact, 1=Medium, 2=Large
   char object_search_buffer_[64] = {0};
 
   // Registry initialization flag
@@ -236,7 +239,7 @@ class DungeonObjectSelector {
   void SynchronizePreviewCacheRoomContext(const zelda3::Room& room);
   static uint32_t MakeLayoutCacheKey(int object_id, uint8_t preview_size,
                                      const zelda3::Room* room);
-  bool GetOrCreatePreview(const zelda3::RoomObject& object, float size,
+  bool GetOrCreatePreview(const zelda3::RoomObject& object,
                           gfx::BackgroundBuffer** out);
 };
 
