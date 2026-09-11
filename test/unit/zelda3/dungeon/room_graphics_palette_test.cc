@@ -157,6 +157,35 @@ TEST(RoomGraphicsPaletteTest, BuildDungeonRenderPaletteIncludesHudRows) {
   EXPECT_EQ(colors[255].a, 0);
 }
 
+TEST(RoomGraphicsPaletteTest, BuildDungeonRenderPaletteGroupMatchesCgramRows) {
+  gfx::SnesPalette hud_palette;
+  for (int i = 0; i < 32; ++i) {
+    hud_palette.AddColor(gfx::SnesColor(i, i + 1, i + 2));
+  }
+
+  gfx::SnesPalette dungeon_palette;
+  for (int i = 0; i < 90; ++i) {
+    dungeon_palette.AddColor(gfx::SnesColor(i + 32, i + 33, i + 34));
+  }
+
+  const auto group =
+      BuildDungeonRenderPaletteGroup(dungeon_palette, &hud_palette);
+
+  ASSERT_EQ(group.size(), 8u);
+  for (int row = 0; row < 8; ++row) {
+    EXPECT_EQ(group.palette_ref(row).size(), 16u);
+  }
+
+  EXPECT_EQ(group.palette_ref(0)[0].snes(), hud_palette[0].snes());
+  EXPECT_EQ(group.palette_ref(1)[15].snes(), hud_palette[31].snes());
+  EXPECT_EQ(group.palette_ref(2)[0].snes(), gfx::SnesColor().snes());
+  EXPECT_EQ(group.palette_ref(2)[1].snes(), dungeon_palette[0].snes());
+  EXPECT_EQ(group.palette_ref(2)[15].snes(), dungeon_palette[14].snes());
+  EXPECT_EQ(group.palette_ref(3)[1].snes(), dungeon_palette[15].snes());
+  EXPECT_EQ(group.palette_ref(7)[1].snes(), dungeon_palette[75].snes());
+  EXPECT_EQ(group.palette_ref(7)[15].snes(), dungeon_palette[89].snes());
+}
+
 TEST(RoomGraphicsPaletteTest,
      PaletteDebuggerSamplesMappedDungeonRenderPalette) {
   gfx::SnesPalette hud_palette;

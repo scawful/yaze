@@ -113,6 +113,42 @@ std::vector<SDL_Color> BuildDungeonRenderPalette(
   return colors;
 }
 
+gfx::PaletteGroup BuildDungeonRenderPaletteGroup(
+    const gfx::SnesPalette& dungeon_palette,
+    const gfx::SnesPalette* hud_palette) {
+  constexpr int kRenderPaletteRows = 8;
+  constexpr int kColorsPerRow = 16;
+
+  gfx::PaletteGroup group("dungeon_render");
+  for (int row = 0; row < kRenderPaletteRows; ++row) {
+    gfx::SnesPalette palette_row;
+    for (int color = 0; color < kColorsPerRow; ++color) {
+      palette_row.AddColor(gfx::SnesColor());
+    }
+    group.AddPalette(std::move(palette_row));
+  }
+
+  PopulateDungeonRenderPaletteRows(
+      dungeon_palette, hud_palette,
+      [&group](int dst_index, const gfx::SnesColor& color) {
+        if (dst_index < 0 || dst_index >= kRenderPaletteRows * kColorsPerRow) {
+          return;
+        }
+        group.SetColor(dst_index / kColorsPerRow, dst_index % kColorsPerRow,
+                       color);
+      });
+  return group;
+}
+
+gfx::PaletteGroup BuildDungeonRenderPaletteGroupFromGameData(
+    const gfx::SnesPalette& dungeon_palette, const GameData* game_data) {
+  const gfx::SnesPalette* hud_palette = nullptr;
+  if (game_data != nullptr && !game_data->palette_groups.hud.empty()) {
+    hud_palette = &game_data->palette_groups.hud.palette_ref(0);
+  }
+  return BuildDungeonRenderPaletteGroup(dungeon_palette, hud_palette);
+}
+
 void LoadDungeonRenderPaletteToCgram(std::span<uint16_t> cgram,
                                      const gfx::SnesPalette& dungeon_palette,
                                      const gfx::SnesPalette* hud_palette) {

@@ -497,15 +497,15 @@ TEST_F(DungeonEditorPaletteRefreshTest,
       palette_manager.SetColor("hud", 0, 17, gfx::SnesColor(0x03E0)).ok());
   ASSERT_TRUE(palette_manager.ApplyPreviewChanges().ok());
 
-  auto expected_palette_group = gfx::CreatePaletteGroupFromLargePalette(
-      game_data_.palette_groups.dungeon_main.palette_ref(2));
-  ASSERT_TRUE(expected_palette_group.ok());
+  const auto expected_palette_group = zelda3::BuildDungeonRenderPaletteGroup(
+      game_data_.palette_groups.dungeon_main.palette_ref(2),
+      &game_data_.palette_groups.hud.palette_ref(0));
   EXPECT_EQ(cached_viewer->current_palette_id_, 2);
   ASSERT_EQ(cached_viewer->current_palette_group_.size(),
-            expected_palette_group->size());
-  for (int i = 0; i < static_cast<int>(expected_palette_group->size()); ++i) {
+            expected_palette_group.size());
+  for (int i = 0; i < static_cast<int>(expected_palette_group.size()); ++i) {
     EXPECT_EQ(cached_viewer->current_palette_group_.palette_ref(i),
-              expected_palette_group->palette_ref(i));
+              expected_palette_group.palette_ref(i));
   }
 }
 
