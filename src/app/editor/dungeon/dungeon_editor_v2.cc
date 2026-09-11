@@ -153,6 +153,31 @@ bool IsTransientDungeonRoomWindowId(const std::string& card_id) {
                      [](unsigned char ch) { return std::isdigit(ch) != 0; });
 }
 
+bool IsWorkbenchDuplicateWindowId(const std::string& card_id) {
+  constexpr std::array<const char*, 13> kWorkbenchDuplicatePanelIds = {
+      DungeonEditorV2::kRoomSelectorId,
+      DungeonEditorV2::kEntranceListId,
+      DungeonEditorV2::kRoomMatrixId,
+      DungeonEditorV2::kRoomGraphicsId,
+      DungeonEditorV2::kObjectSelectorId,
+      DungeonEditorV2::kDoorEditorId,
+      DungeonEditorV2::kPaletteEditorId,
+      "dungeon.sprite_editor",
+      "dungeon.item_editor",
+      "dungeon.room_tags",
+      "dungeon.custom_collision",
+      "dungeon.water_fill",
+      "dungeon.minecart_tracks",
+  };
+
+  return IsTransientDungeonRoomWindowId(card_id) ||
+         std::any_of(kWorkbenchDuplicatePanelIds.begin(),
+                     kWorkbenchDuplicatePanelIds.end(),
+                     [&card_id](const char* duplicate_id) {
+                       return card_id == duplicate_id;
+                     });
+}
+
 }  // namespace
 
 DungeonEditorV2::DungeonEditorV2(Rom* rom)
@@ -685,6 +710,27 @@ void DungeonEditorV2::Initialize() {
         [this]() { return undo_manager_.GetUndoDescription(); },
         [this]() { return undo_manager_.GetRedoDescription(); },
         [this]() { return static_cast<int>(undo_manager_.UndoStackSize()); });
+    workbench_panel_->SetStandaloneToolCallbacks(
+        [window_manager](const std::string& window_id) {
+          const size_t session_id = window_manager->GetActiveSessionId();
+          return window_manager->IsWindowOpen(session_id, window_id);
+        },
+        [window_manager](const std::string& window_id) {
+          const size_t session_id = window_manager->GetActiveSessionId();
+          if (!window_manager->OpenWindow(session_id, window_id)) {
+            return false;
+          }
+          if (ImGui::GetCurrentContext() != nullptr) {
+            const std::string window_name =
+                window_manager->GetWorkspaceWindowName(session_id, window_id);
+            if (!window_name.empty()) {
+              ImGui::SetWindowFocus(window_name.c_str());
+            }
+          }
+          return true;
+        });
+    workbench_panel_->SetOpenKeyboardShortcutsCallback(
+        [window_manager]() { window_manager->TriggerShowShortcuts(); });
     workbench_panel_->SetOnInspectorSideChanged([this](bool on_left) {
       if (dependencies_.user_settings) {
         dependencies_.user_settings->SetDungeonInspectorSide(on_left ? "left"
@@ -1424,24 +1470,21 @@ void DungeonEditorV2::SetWorkbenchWorkflowMode(bool enabled, bool show_toast) {
   if (enabled) {
     window_manager->OpenWindow(session_id, "dungeon.workbench");
 
-    // Workbench-local tool windows (Object/Door/Sprite/Item Selector, Palette,
-    // Room Graphics/Tags, Custom Collision, Water Fill, Minecart) are NOT
-    // auto-closed on Workbench entry. The Workbench drawer embeds the same
-    // tools, but users may also keep a standalone window open if they prefer
-    // a multi-window layout. Only navigation windows (room selector/matrix
-    // and per-room windows) are collapsed when entering Workbench mode.
-    for (const auto& descriptor :
-         window_manager->GetWindowsInCategory(session_id, "Dungeon")) {
-      const std::string& card_id = descriptor.card_id;
-      if (card_id == "dungeon.workbench") {
-        continue;
-      }
-      if (window_manager->IsWindowPinned(session_id, card_id)) {
-        continue;
-      }
-      const bool is_room_window = IsTransientDungeonRoomWindowId(card_id);
-      if (card_id == kRoomSelectorId || card_id == kRoomMatrixId ||
-          is_room_window) {
+    if (!was_enabled) {
+      workbench_suspended_window_ids_.clear();
+
+      // Temporarily hide only unpinned windows whose content is duplicated by
+      // the Workbench. Auxiliary HM/ZS-style windows stay open, and the exact
+      // duplicate set is restored when the user returns to panel workflow.
+      for (const auto& descriptor :
+           window_manager->GetWindowsInCategory(session_id, "Dungeon")) {
+        const std::string& card_id = descriptor.card_id;
+        if (!IsWorkbenchDuplicateWindowId(card_id) ||
+            !window_manager->IsWindowOpen(session_id, card_id) ||
+            window_manager->IsWindowPinned(session_id, card_id)) {
+          continue;
+        }
+        workbench_suspended_window_ids_.push_back(card_id);
         window_manager->CloseWindow(session_id, card_id);
       }
     }
@@ -1452,6 +1495,10 @@ void DungeonEditorV2::SetWorkbenchWorkflowMode(bool enabled, bool show_toast) {
     if (current_room_id_ >= 0) {
       ShowRoomPanel(current_room_id_);
     }
+    for (const std::string& card_id : workbench_suspended_window_ids_) {
+      window_manager->OpenWindow(session_id, card_id);
+    }
+    workbench_suspended_window_ids_.clear();
   }
 
   if (show_toast && dependencies_.toast_manager && was_enabled != enabled) {

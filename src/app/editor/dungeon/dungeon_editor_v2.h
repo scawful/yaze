@@ -485,6 +485,11 @@ class DungeonEditorV2 : public Editor {
   };
   PendingWorkflowMode pending_workflow_mode_;
 
+  // Unpinned standalone panels hidden by the most recent transition into the
+  // integrated Workbench. Restore this exact set when returning to the
+  // traditional panel workflow.
+  std::vector<std::string> workbench_suspended_window_ids_;
+
   // Two-phase undo capture: BeginUndoSnapshot saves state before mutation,
   // FinalizeUndoAction captures state after mutation and pushes the action.
   void BeginUndoSnapshot(int room_id);

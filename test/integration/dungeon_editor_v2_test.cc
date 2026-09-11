@@ -137,7 +137,8 @@ TEST_F(DungeonEditorV2IntegrationTest,
       session_id, editor::DungeonEditorV2::kRoomMatrixId));
 }
 
-TEST_F(DungeonEditorV2IntegrationTest, WorkbenchModeKeepsLocalToolWindowsOpen) {
+TEST_F(DungeonEditorV2IntegrationTest,
+       WorkbenchModeClosesUnpinnedDuplicateWindows) {
   DungeonFeatureFlagsGuard guard;
   core::FeatureFlags::get().dungeon.kUseWorkbench = true;
 
@@ -149,7 +150,11 @@ TEST_F(DungeonEditorV2IntegrationTest, WorkbenchModeKeepsLocalToolWindowsOpen) {
   dungeon_editor_v2_->SetWorkbenchWorkflowMode(false, /*show_toast=*/false);
   ASSERT_FALSE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
 
-  const char* local_tools[] = {
+  const char* duplicate_windows[] = {
+      editor::DungeonEditorV2::kRoomSelectorId,
+      editor::DungeonEditorV2::kEntranceListId,
+      editor::DungeonEditorV2::kRoomMatrixId,
+      "dungeon.room_0",
       editor::DungeonEditorV2::kObjectSelectorId,
       editor::DungeonEditorV2::kDoorEditorId,
       "dungeon.sprite_editor",
@@ -161,17 +166,83 @@ TEST_F(DungeonEditorV2IntegrationTest, WorkbenchModeKeepsLocalToolWindowsOpen) {
       "dungeon.water_fill",
   };
 
-  for (const char* tool_id : local_tools) {
-    window_manager_->OpenWindow(session_id, tool_id);
-    ASSERT_TRUE(window_manager_->IsWindowOpen(session_id, tool_id)) << tool_id;
+  for (const char* window_id : duplicate_windows) {
+    window_manager_->OpenWindow(session_id, window_id);
+    ASSERT_TRUE(window_manager_->IsWindowOpen(session_id, window_id))
+        << window_id;
   }
 
   dungeon_editor_v2_->SetWorkbenchWorkflowMode(true, /*show_toast=*/false);
 
   EXPECT_TRUE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
-  for (const char* tool_id : local_tools) {
-    EXPECT_TRUE(window_manager_->IsWindowOpen(session_id, tool_id)) << tool_id;
+  for (const char* window_id : duplicate_windows) {
+    EXPECT_FALSE(window_manager_->IsWindowOpen(session_id, window_id))
+        << window_id;
   }
+
+  dungeon_editor_v2_->SetWorkbenchWorkflowMode(false, /*show_toast=*/false);
+
+  EXPECT_FALSE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
+  for (const char* window_id : duplicate_windows) {
+    EXPECT_TRUE(window_manager_->IsWindowOpen(session_id, window_id))
+        << window_id;
+  }
+}
+
+TEST_F(DungeonEditorV2IntegrationTest,
+       WorkbenchModePreservesUnrelatedAuxiliaryWindows) {
+  DungeonFeatureFlagsGuard guard;
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+
+  dungeon_editor_v2_->Initialize();
+  auto load_status = dungeon_editor_v2_->Load();
+  ASSERT_TRUE(load_status.ok()) << load_status.message();
+  const size_t session_id = window_manager_->GetActiveSessionId();
+
+  dungeon_editor_v2_->SetWorkbenchWorkflowMode(false, /*show_toast=*/false);
+  ASSERT_FALSE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
+
+  const char* auxiliary_windows[] = {
+      "dungeon.object_tile_editor",
+      "dungeon.overlay_manager",
+  };
+  for (const char* window_id : auxiliary_windows) {
+    window_manager_->OpenWindow(session_id, window_id);
+    ASSERT_TRUE(window_manager_->IsWindowOpen(session_id, window_id))
+        << window_id;
+  }
+
+  dungeon_editor_v2_->SetWorkbenchWorkflowMode(true, /*show_toast=*/false);
+
+  EXPECT_TRUE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
+  for (const char* window_id : auxiliary_windows) {
+    EXPECT_TRUE(window_manager_->IsWindowOpen(session_id, window_id))
+        << window_id;
+  }
+}
+
+TEST_F(DungeonEditorV2IntegrationTest,
+       WorkbenchModePreservesPinnedDuplicateWindow) {
+  DungeonFeatureFlagsGuard guard;
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+
+  dungeon_editor_v2_->Initialize();
+  auto load_status = dungeon_editor_v2_->Load();
+  ASSERT_TRUE(load_status.ok()) << load_status.message();
+  const size_t session_id = window_manager_->GetActiveSessionId();
+
+  dungeon_editor_v2_->SetWorkbenchWorkflowMode(false, /*show_toast=*/false);
+  ASSERT_FALSE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
+
+  const char* pinned_tool = editor::DungeonEditorV2::kObjectSelectorId;
+  window_manager_->OpenWindow(session_id, pinned_tool);
+  window_manager_->SetWindowPinned(session_id, pinned_tool, true);
+
+  dungeon_editor_v2_->SetWorkbenchWorkflowMode(true, /*show_toast=*/false);
+
+  EXPECT_TRUE(window_manager_->IsWindowOpen(session_id, "dungeon.workbench"));
+  EXPECT_TRUE(window_manager_->IsWindowOpen(session_id, pinned_tool));
+  EXPECT_TRUE(window_manager_->IsWindowPinned(session_id, pinned_tool));
 }
 
 TEST_F(DungeonEditorV2IntegrationTest,
