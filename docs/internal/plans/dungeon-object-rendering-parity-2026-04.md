@@ -1,6 +1,10 @@
-# Dungeon object rendering parity — implementation plan
+# Dungeon object rendering parity — historical implementation plan
 
-**Status:** In progress
+**Status:** Superseded as a live status source
+
+Current behavior, evidence tiers, and open parity boundaries are maintained in
+[`dungeon-object-rendering-spec.md`](../agents/dungeon-object-rendering-spec.md).
+Keep this plan for implementation history; do not append current status here.
 
 **Created:** 2026-04-15
 

@@ -214,6 +214,7 @@ if(YAZE_BUILD_TESTS)
     unit/gfx/usdasm_palette_loading_test.cc
     unit/gfx/bpp_conversion_test.cc
     unit/gfx/sheet_role_palette_table_test.cc
+    unit/gfx/arena_retirement_test.cc
     unit/palette_json_test.cc
     unit/snes_color_test.cc
     unit/gui/tile_selector_widget_test.cc
@@ -555,6 +556,7 @@ if(YAZE_BUILD_TESTS)
     unit/emu/emulator_test.cc
     unit/emu/mesen_socket_client_test.cc
     unit/gfx/sheet_role_palette_table_test.cc
+    unit/gfx/arena_retirement_test.cc
     unit/gui/canvas_context_menu_role_test.cc
     unit/zelda3/resource_labels_test.cc
     unit/zelda3/sprite_render_preview_test.cc

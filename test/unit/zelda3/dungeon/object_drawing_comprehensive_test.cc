@@ -744,37 +744,25 @@ TEST_F(ObjectDrawingComprehensiveTest, ObjectEncoding_Roundtrip) {
 }
 
 // ============================================================================
-// BothBG Flag Tests
+// Built-in Layer Routing Tests
 // ============================================================================
 
-TEST_F(ObjectDrawingComprehensiveTest, AllBgsFlag_SetDuringDecoding) {
-  // Objects with specific IDs should have all_bgs_ flag set during decoding
-  // Based on DecodeObjectFromBytes logic
-
-  // Routine 3 objects (0x03-0x04)
-  for (int id : {0x03, 0x04}) {
-    RoomObject obj(id, 0, 0, 0, 0);
-    // Create via decoding to trigger all_bgs logic
-    auto decoded = RoomObject::DecodeObjectFromBytes(0x00, 0x00, id, 0);
-    EXPECT_TRUE(decoded.all_bgs_)
-        << "ID 0x" << std::hex << id << " should have all_bgs set";
-  }
-
-  // Routine 9 objects (0x63-0x64)
-  for (int id : {0x63, 0x64}) {
-    auto decoded = RoomObject::DecodeObjectFromBytes(0x00, 0x00, id, 0);
-    EXPECT_TRUE(decoded.all_bgs_)
-        << "ID 0x" << std::hex << id << " should have all_bgs set";
-  }
-
-  // Diagonal BothBG objects
-  std::vector<int> bothbg_diagonals = {
-      0x0C, 0x0D, 0x10, 0x11, 0x14, 0x15, 0x18, 0x19, 0x1C, 0x1D, 0x20,
-      0x0E, 0x0F, 0x12, 0x13, 0x16, 0x17, 0x1A, 0x1B, 0x1E, 0x1F};
-  for (int id : bothbg_diagonals) {
-    auto decoded = RoomObject::DecodeObjectFromBytes(0x00, 0x00, id, 0);
-    EXPECT_TRUE(decoded.all_bgs_)
-        << "Diagonal ID 0x" << std::hex << id << " should have all_bgs set";
+TEST_F(ObjectDrawingComprehensiveTest,
+       BuiltInBothBgRoutingLivesInRoutineRegistry) {
+  auto& registry = DrawRoutineRegistry::Get();
+  for (const auto& [object_id, expected_both_bg] :
+       std::vector<std::pair<int, bool>>{{0x03, true},
+                                         {0x05, false},
+                                         {0x0C, false},
+                                         {0x14, false},
+                                         {0x15, true},
+                                         {0x20, true}}) {
+    auto decoded = RoomObject::DecodeObjectFromBytes(0x00, 0x00, object_id, 0);
+    EXPECT_FALSE(decoded.all_bgs_)
+        << "built-in routing must not mutate the manual override field";
+    const int routine_id = registry.GetRoutineIdForObject(object_id);
+    EXPECT_EQ(registry.RoutineDrawsToBothBGs(routine_id), expected_both_bg)
+        << "object 0x" << std::hex << object_id;
   }
 }
 
@@ -801,17 +789,17 @@ TEST_F(ObjectDrawingComprehensiveTest,
 TEST_F(ObjectDrawingComprehensiveTest, DimensionCalculation_DiagonalPatterns) {
   ObjectDrawer drawer(rom_.get(), 0);
 
-  // Diagonal walls use (size + 6) or (size + 7) count
+  // All diagonal walls render size + 6 columns. Routines 5/6 enter the
+  // assembly loop after its initial decrement; routines 17/18 enter before it.
   RoomObject diagonal_size0(0x10, 0, 0, 0, 0);
   auto dims = drawer.CalculateObjectDimensions(diagonal_size0);
-  // Diagonal: count = size + 7, width = count * 8, height = (count + 4) * 8
-  EXPECT_EQ(dims.first, 56);   // 7 * 8 = 56
-  EXPECT_EQ(dims.second, 88);  // (7 + 4) * 8 = 88
+  EXPECT_EQ(dims.first, 48);   // 6 * 8 = 48
+  EXPECT_EQ(dims.second, 80);  // (6 + 4) * 8 = 80
 
   RoomObject diagonal_size10(0x10, 0, 0, 10, 0);
   dims = drawer.CalculateObjectDimensions(diagonal_size10);
-  EXPECT_EQ(dims.first, 136);   // 17 * 8 = 136
-  EXPECT_EQ(dims.second, 168);  // (17 + 4) * 8 = 168
+  EXPECT_EQ(dims.first, 128);   // 16 * 8 = 128
+  EXPECT_EQ(dims.second, 160);  // (16 + 4) * 8 = 160
 }
 
 // ============================================================================
@@ -1098,9 +1086,8 @@ TEST_F(ObjectDrawingComprehensiveTest, ParityBothBGRoutinesCorrect) {
   // Routine IDs that should have draws_to_both_bgs flag.
   // Note: routine 2 (kRightwards2x4_1to16) has the flag because the ASM
   // explicitly writes to both $7E2000 and $7E4000 tilemaps.
-  // Routine 3 (kRightwards2x4_1to16_BothBG) does NOT have the flag because
-  // the BothBG dispatch is handled by the engine via object.all_bgs_, not
-  // by the routine itself.
+  // Routine 3 (kRightwards2x4_1to16_BothBG) is single-layer despite its legacy
+  // name; USDASM writes it through the active stream pointer only.
   std::vector<int> bothbg_routines = {
       2,   // kRightwards2x4_1to16 (explicitly writes both tilemaps)
       9,   // kDownwards4x2_1to16_BothBG

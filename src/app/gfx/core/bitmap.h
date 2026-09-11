@@ -20,6 +20,8 @@ namespace yaze {
  */
 namespace gfx {
 
+class Arena;
+
 // Pixel format constants
 constexpr Uint32 SNES_PIXELFORMAT_INDEXED =
     SDL_DEFINE_PIXELFORMAT(SDL_PIXELTYPE_INDEX8, 0, 0, 8, 1);
@@ -410,6 +412,27 @@ class Bitmap {
   void set_texture(TextureHandle texture) { texture_ = texture; }
 
  private:
+  friend class Arena;
+
+  // Arena alone may split a Bitmap's CPU and GPU resources during explicit
+  // owner retirement. Keeping these helpers private prevents ordinary callers
+  // from accidentally detaching a live bitmap.
+  SDL_Surface* DetachSurfaceForArena() noexcept {
+    SDL_Surface* surface = surface_;
+    surface_ = nullptr;
+    return surface;
+  }
+  TextureHandle DetachTextureForArena() noexcept {
+    TextureHandle texture = texture_;
+    texture_ = nullptr;
+    return texture;
+  }
+  void MarkRetiredByArena() noexcept {
+    active_ = false;
+    modified_ = false;
+    texture_pixels = nullptr;
+    generation_ = next_generation_++;
+  }
   int width_ = 0;
   int height_ = 0;
   int depth_ = 0;

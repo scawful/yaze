@@ -1290,7 +1290,8 @@ void Room::LoadLayoutTilesToBuffer() {
 
   // Draw layout objects using proper draw routines via RoomLayout
   auto status = layout_.Draw(room_id_, current_gfx16_.data(), bg1_buffer_,
-                             bg2_buffer_, palette_group, dungeon_state_.get());
+                             bg2_buffer_, palette_group, dungeon_state_.get(),
+                             floor1_graphics_, floor2_graphics_);
 
   if (!status.ok()) {
     LOG_DEBUG(
@@ -1348,6 +1349,7 @@ void Room::RenderObjectsToBackground() {
   // Pass the room-specific graphics buffer (current_gfx16_) so objects use
   // correct tiles
   ObjectDrawer drawer(rom_, room_id_, current_gfx16_.data());
+  drawer.SetRoomFloorGraphics(floor1_graphics_, floor2_graphics_);
   drawer.SetAllowTrackCornerAliases(
       RoomAllowsTrackCornerAliases(tile_objects_));
   drawer.SetBG1RevealMaskSource(gfx::BG1RevealMaskSource::kBG2Objects);
@@ -1364,19 +1366,18 @@ void Room::RenderObjectsToBackground() {
   object_bg1_buffer_.bitmap().Fill(255);
   object_bg2_buffer_.bitmap().Fill(255);
 
-  // IMPORTANT: Clear priority buffers when clearing object buffers
-  // Otherwise, old priority values persist and cause incorrect Z-ordering
+  // Clear object-owned tile words, priority, and coverage. Conditional edge
+  // routines use coverage to select between this object owner and the matching
+  // layout owner, so none of those buffers may remain stale.
+  object_bg1_buffer_.ClearTileBuffer();
+  object_bg2_buffer_.ClearTileBuffer();
   object_bg1_buffer_.ClearPriorityBuffer();
   object_bg2_buffer_.ClearPriorityBuffer();
-
-  // IMPORTANT: Clear coverage buffers when clearing object buffers.
-  // Coverage distinguishes "no draw" vs "drew transparent", so stale values
-  // can cause objects to incorrectly clear the layout.
   object_bg1_buffer_.ClearCoverageBuffer();
   object_bg2_buffer_.ClearCoverageBuffer();
 
-  // Room-object masks target both raw BG1 stacks. Clear only their source bit
-  // so layout-owned reveals survive an object-only rerender.
+  // Room-object masks target both raw BG1 stacks. Clear their source bit on
+  // both owners so layout-owned reveals survive an object-only rerender.
   object_bg1_buffer_.ClearBG1RevealMask(gfx::BG1RevealMaskSource::kBG2Objects);
   bg1_buffer_.ClearBG1RevealMask(gfx::BG1RevealMaskSource::kBG2Objects);
 

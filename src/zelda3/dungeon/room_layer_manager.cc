@@ -217,7 +217,8 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     }
 
     // Check if BG2 uses translucent blending (water rooms, color math effects).
-    // When translucent, overlapping BG1+BG2 pixels are averaged in RGB space.
+    // The editor approximates half-add color math by averaging overlapping
+    // BG1+BG2 RGB values and mapping the result back into the indexed palette.
     const bool bg2_translucent = (GetLayerBlendMode(LayerType::BG2_Layout) ==
                                   LayerBlendMode::Translucent) ||
                                  (GetLayerBlendMode(LayerType::BG2_Objects) ==
@@ -420,9 +421,8 @@ void RoomLayerManager::CompositeToOutput(Room& room,
             break;
 
           case LayerBlendMode::Translucent:
-            // 50% alpha blend: only overwrite if destination is transparent,
-            // otherwise blend colors using palette index averaging (simplified)
-            // For indexed color mode, we can't truly blend - use alpha threshold
+            // Fallback alpha approximation for paths without the palette-aware
+            // priority compositor above. This is not a pixel-exact SNES model.
             if (IsTransparent(dst_data[idx]) || layer_alpha > 180) {
               dst_data[idx] = src_pixel;
             }

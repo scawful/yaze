@@ -91,7 +91,8 @@ class RoomLayerManager {
     bg2_on_top_ = false;
     layers_merged_ = false;
     current_merge_type_id_ = 0;
-    use_priority_compositing_ = true;  // Default to accurate SNES behavior
+    use_priority_compositing_ =
+        true;  // Default to SNES-informed priority order
   }
 
   // Priority compositing control

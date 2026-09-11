@@ -37,7 +37,8 @@ struct DungeonRoomRegressionFixture {
 
 // Fixed vanilla-room fixtures (US 1.0). Room ids verified via
 // DungeonRoomRegressionFixturesTest.ScanAllRoomsForFixtureCandidates.
-// Golden checksums regenerated 2026-09-10 against canonical US ROM
+// Golden checksums regenerated 2026-09-10 against canonical US ROM after the
+// floor-copy, thin-strip origin, diagonal, and single-layer routing fixes.
 // SHA-1 6d4f10a8b10e10dbe624cb23cf03b88bb8252973 (roms/zelda3.sfc; first 1 MiB
 // of padded alttp_vanilla.sfc). The fixture renderer now loads each room header
 // before drawing and applies the same merge/effect configuration as the editor
@@ -59,13 +60,14 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
                 "streams with BG2 overlay platform objects 0x033/0x034/0x071.",
             .required_object_id = 0x108,
             .expected_layer_merge_id = 6,
-            .composite_checksum = 18079800016860863152ull,
+            // The BG2 0x034/0x071 strips now begin at their encoded origin.
+            .composite_checksum = 14126997594749283512ull,
             .object_bg1_checksum = 16473803172668162085ull,
-            .object_bg2_checksum = 2272669664059805342ull,
+            .object_bg2_checksum = 9560400034495958298ull,
             .layout_bg1_checksum = 16155382640141831219ull,
             .composite_non_backdrop_pixels = 262144,
             .object_bg1_non_backdrop_pixels = 57088,
-            .object_bg2_non_backdrop_pixels = 39168,
+            .object_bg2_non_backdrop_pixels = 38656,
         },
         {
             .room_id = 0x050,
@@ -77,30 +79,33 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
                      "streams.",
             .required_object_id = 0x034,
             .expected_layer_merge_id = 6,
-            .composite_checksum = 16835019496338994218ull,
+            // The BG2 0x034/0x071 strips now begin at their encoded origin.
+            .composite_checksum = 12705092217259824174ull,
             .object_bg1_checksum = 12090658100540583468ull,
-            .object_bg2_checksum = 15343382323770861576ull,
+            .object_bg2_checksum = 14942757394939352408ull,
             .layout_bg1_checksum = 14374714413720404755ull,
             .composite_non_backdrop_pixels = 262144,
             .object_bg1_non_backdrop_pixels = 52608,
-            .object_bg2_non_backdrop_pixels = 46464,
+            .object_bg2_non_backdrop_pixels = 46720,
         },
         {
             .room_id = 0x00E,
             .category = DungeonRoomRegressionCategory::kOpaqueBg2Control,
             .name = "EasternPalace_OpaqueMerge",
-            .notes = "Layer merge off (id 0) — BG2 must not apply spurious "
-                     "translucency; "
-                     "wall/corner objects with no moving-water effect.",
+            .notes = "Layer merge off (id 0); the primary stream's diagonal "
+                     "walls are single-layer, so the object BG2 buffer must "
+                     "remain empty.",
             .required_object_id = 0x100,
             .expected_layer_merge_id = 0,
-            .composite_checksum = 6950119620544630590ull,
-            .object_bg1_checksum = 2789486847902414902ull,
-            .object_bg2_checksum = 7686508337355327995ull,
+            // IDs 0x0D-0x10 use USDASM's single-layer diagonal routines;
+            // their old duplicated BG2 raster was an editor-only artifact.
+            .composite_checksum = 18354950681794196905ull,
+            .object_bg1_checksum = 11901466281411276978ull,
+            .object_bg2_checksum = 11028269878064776067ull,
             .layout_bg1_checksum = 7897614742461255965ull,
             .composite_non_backdrop_pixels = 262144,
-            .object_bg1_non_backdrop_pixels = 75456,
-            .object_bg2_non_backdrop_pixels = 11520,
+            .object_bg1_non_backdrop_pixels = 77824,
+            .object_bg2_non_backdrop_pixels = 0,
         },
         {
             .room_id = 0x016,
@@ -113,13 +118,13 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
             .expected_layer_merge_id = 4,
             // FF1 now honors the inactive room-0x065 bombed-floor state, so
             // the default room render correctly omits the big light beam.
-            .composite_checksum = 17351781091166995936ull,
-            .object_bg1_checksum = 18256671800728123299ull,
-            .object_bg2_checksum = 2709826818660264417ull,
+            .composite_checksum = 16184705480853915451ull,
+            .object_bg1_checksum = 10182215693742640491ull,
+            .object_bg2_checksum = 10480448132206945203ull,
             .layout_bg1_checksum = 10260335362238553655ull,
             .composite_non_backdrop_pixels = 231372,
-            .object_bg1_non_backdrop_pixels = 150848,
-            .object_bg2_non_backdrop_pixels = 37324,
+            .object_bg1_non_backdrop_pixels = 152256,
+            .object_bg2_non_backdrop_pixels = 26572,
         },
         {
             .room_id = 0x004,

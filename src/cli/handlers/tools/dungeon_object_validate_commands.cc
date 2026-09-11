@@ -730,6 +730,9 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
   if (room_mode) {
     zelda3::Room room = zelda3::LoadRoomHeaderFromRom(rom, room_id);
     room.LoadObjects();
+    for (auto& drawer : profile_drawers) {
+      drawer->SetRoomFloorGraphics(room.floor1(), room.floor2());
+    }
     const auto& room_objects = room.GetTileObjects();
     room_object_count = static_cast<int>(room_objects.size());
     if (write_trace_dump) {

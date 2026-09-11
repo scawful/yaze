@@ -327,6 +327,7 @@ void Controller::DoRender() const {
     // In HEADLESS mode, we MUST still end the ImGui frame to satisfy assertions
     // even if we don't render to a window.
     ImGui::Render();
+    gfx::Arena::Get().DrainRetiredBitmaps(renderer_.get());
     ProcessScreenshotRequests();
     return;
   }
@@ -338,6 +339,7 @@ void Controller::DoRender() const {
   window_backend_->RenderImGui(renderer_.get());
 
   renderer_->Present();
+  gfx::Arena::Get().DrainRetiredBitmaps(renderer_.get());
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
   test::TestManager::Get().OnPostSwap();
@@ -366,6 +368,10 @@ void Controller::OnExit() {
 #endif
 
   if (renderer_) {
+    // Retired handles contain no Bitmap pointers and are safe to destroy once
+    // the final submitted frame is no longer using them.
+    gfx::Arena::Get().DrainRetiredBitmaps(renderer_.get());
+    gfx::Arena::Get().Initialize(nullptr);
     renderer_->Shutdown();
   }
   if (window_backend_) {

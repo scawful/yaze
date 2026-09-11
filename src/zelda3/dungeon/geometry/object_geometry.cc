@@ -84,26 +84,19 @@ AnchorPos ChooseAnchor(const DrawRoutineInfo& routine,
   // Acute diagonals (ids 5, 17) move upward by (y - s) per step.
   if (routine.category == DrawRoutineInfo::Category::Diagonal &&
       (routine.id == 5 || routine.id == 17)) {
-    const int count = (routine.id == 5) ? (size_nibble + 7) : (size_nibble + 6);
+    const int count = size_nibble + 6;
     const int max_anchor =
         DrawContext::kMaxTilesY - 5;  // 4 rows headroom below
     anchor.y = std::clamp(count - 1, 0, std::max(0, max_anchor));
     return anchor;
   }
 
-  // Diagonal ceilings (Corner category, ids 75-78) anchor at the visual corner.
-  // The draw routine offsets base by -(side-1) for the mirrored axis, so
-  // bottom-anchored (76, 78) writes into negative Y and right-anchored (77, 78)
-  // writes into negative X without headroom. See corner_routines.cc.
+  // Only the bottom-right diagonal ceiling (78) walks upward from the encoded
+  // origin. Give that replay enough Y headroom so geometry is not clipped.
   if (routine.category == DrawRoutineInfo::Category::Corner &&
       routine.id >= 75 && routine.id <= 78) {
     const int side = size_nibble + 4;
-    const bool mirror_x = (routine.id == 77 || routine.id == 78);
-    const bool mirror_y = (routine.id == 76 || routine.id == 78);
-    if (mirror_x) {
-      anchor.x = std::clamp(side - 1, 0, DrawContext::kMaxTilesX - 1);
-    }
-    if (mirror_y) {
+    if (routine.id == 78) {
       anchor.y = std::clamp(side - 1, 0, DrawContext::kMaxTilesY - 1);
     }
     return anchor;
@@ -160,11 +153,7 @@ absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureByRoutineId(
     return absl::InvalidArgumentError(
         absl::StrFormat("Unknown routine id %d", routine_id));
   }
-  auto bounds = MeasureRoutine(*info, object);
-  if (!bounds.ok()) {
-    return bounds;
-  }
-  return ApplySelectionBounds(*bounds, routine_id);
+  return MeasureRoutine(*info, object);
 }
 
 std::pair<int, int> ObjectGeometry::ResolveAnchor(int16_t object_id,
@@ -301,11 +290,7 @@ absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureByObjectIdForState(
         absl::StrFormat("Unknown routine id %d", routine_id));
   }
 
-  auto bounds = MeasureRoutineForState(*routine, object, state);
-  if (!bounds.ok()) {
-    return bounds;
-  }
-  return ApplySelectionBounds(*bounds, routine_id);
+  return MeasureRoutineForState(*routine, object, state);
 }
 
 void ObjectGeometry::ClearCache() {
@@ -343,44 +328,6 @@ bool ObjectGeometry::IsLayerOneRoutine(int routine_id) {
   (void)
       routine_id;  // Currently unused - layer determined by object, not routine
   return false;
-}
-
-bool ObjectGeometry::IsDiagonalCeilingRoutine(int routine_id) {
-  // Diagonal ceiling routines from draw_routine_registry.h
-  // kDiagonalCeilingTopLeft = 75
-  // kDiagonalCeilingBottomLeft = 76
-  // kDiagonalCeilingTopRight = 77
-  // kDiagonalCeilingBottomRight = 78
-  return routine_id >= 75 && routine_id <= 78;
-}
-
-GeometryBounds ObjectGeometry::ApplySelectionBounds(
-    GeometryBounds render_bounds, int routine_id) {
-  if (!IsDiagonalCeilingRoutine(routine_id)) {
-    // Not a diagonal ceiling - return render bounds unchanged
-    return render_bounds;
-  }
-
-  // For diagonal ceilings, compute a tighter selection box.
-  // The visual triangle fills roughly 50% of the bounding box area.
-  // We use a selection rectangle that's 70% of the size, centered,
-  // to provide a reasonable hit target without excessive false positives.
-
-  int reduced_width = std::max(1, (render_bounds.width_tiles * 7) / 10);
-  int reduced_height = std::max(1, (render_bounds.height_tiles * 7) / 10);
-
-  // Center the reduced selection box within the render bounds
-  int offset_x = (render_bounds.width_tiles - reduced_width) / 2;
-  int offset_y = (render_bounds.height_tiles - reduced_height) / 2;
-
-  SelectionRect selection;
-  selection.x_tiles = render_bounds.min_x_tiles + offset_x;
-  selection.y_tiles = render_bounds.min_y_tiles + offset_y;
-  selection.width_tiles = reduced_width;
-  selection.height_tiles = reduced_height;
-
-  render_bounds.selection_bounds = selection;
-  return render_bounds;
 }
 
 }  // namespace zelda3

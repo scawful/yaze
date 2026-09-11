@@ -1017,6 +1017,7 @@ class Room {
   bool IsCompositeDirty() const { return dirty_state_.composite; }
 
   DungeonState* GetDungeonState() { return dungeon_state_.get(); }
+  const DungeonState* GetDungeonState() const { return dungeon_state_.get(); }
 
  private:
   Rom* rom_;
