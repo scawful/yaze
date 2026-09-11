@@ -76,6 +76,11 @@ DungeonWorkbenchPaneLayout ResolveDungeonWorkbenchPaneLayout(
 
 bool ResolveCompactInspectorDetailRequest(bool compact, bool detail_requested);
 
+int ResolveDungeonWorkbenchToolStripColumns(float available_width,
+                                            float button_size,
+                                            float item_spacing,
+                                            int item_count = 10);
+
 // An already-open standalone tool owns its WindowContent for that frame. Route
 // repeated Workbench requests back to that window instead of drawing the same
 // instance in both presentations.
