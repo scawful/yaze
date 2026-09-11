@@ -324,6 +324,41 @@ TEST(DungeonWorkbenchContentLayoutTest,
   EXPECT_NEAR(exact_fit.canvas_height, 240.0f, 0.001f);
 }
 
+TEST(DungeonWorkbenchContentLayoutTest, ToolStripUsesOneRowAtItsExactFitWidth) {
+  constexpr float kButtonSize = 32.0f;
+  constexpr float kSpacing = 4.0f;
+  constexpr int kItemCount = 10;
+  constexpr float kExactFitWidth =
+      kItemCount * kButtonSize + (kItemCount - 1) * kSpacing;
+
+  EXPECT_EQ(ResolveDungeonWorkbenchToolStripColumns(kExactFitWidth, kButtonSize,
+                                                    kSpacing, kItemCount),
+            kItemCount);
+  EXPECT_EQ(ResolveDungeonWorkbenchToolStripColumns(
+                kExactFitWidth - 1.0f, kButtonSize, kSpacing, kItemCount),
+            kItemCount - 1);
+}
+
+TEST(DungeonWorkbenchContentLayoutTest,
+     ToolStripWrapsSafelyAtNarrowAndEmptyWidths) {
+  EXPECT_EQ(ResolveDungeonWorkbenchToolStripColumns(
+                /*available_width=*/1.0f, /*button_size=*/32.0f,
+                /*item_spacing=*/4.0f),
+            1);
+  EXPECT_EQ(ResolveDungeonWorkbenchToolStripColumns(
+                /*available_width=*/400.0f, /*button_size=*/32.0f,
+                /*item_spacing=*/4.0f, /*item_count=*/0),
+            0);
+}
+
+TEST(DungeonWorkbenchContentLayoutTest,
+     ToolStripNeverReturnsMoreColumnsThanItems) {
+  EXPECT_EQ(ResolveDungeonWorkbenchToolStripColumns(
+                /*available_width=*/1000.0f, /*button_size=*/32.0f,
+                /*item_spacing=*/4.0f, /*item_count=*/3),
+            3);
+}
+
 TEST(DungeonWorkbenchContentLayoutTest,
      ExistingStandaloneToolOwnsThePresentation) {
   EXPECT_EQ(ResolveDungeonWorkbenchToolRequestTarget(false),

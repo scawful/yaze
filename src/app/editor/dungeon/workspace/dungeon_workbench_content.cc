@@ -156,6 +156,21 @@ bool ResolveCompactInspectorDetailRequest(bool compact, bool detail_requested) {
   return compact && detail_requested;
 }
 
+int ResolveDungeonWorkbenchToolStripColumns(float available_width,
+                                            float button_size,
+                                            float item_spacing,
+                                            int item_count) {
+  if (item_count <= 0) {
+    return 0;
+  }
+  const float safe_button_size = std::max(button_size, 1.0f);
+  const float safe_spacing = std::max(item_spacing, 0.0f);
+  const int fitting_columns =
+      static_cast<int>((std::max(available_width, 1.0f) + safe_spacing) /
+                       (safe_button_size + safe_spacing));
+  return std::clamp(fitting_columns, 1, item_count);
+}
+
 DungeonWorkbenchToolRequestTarget ResolveDungeonWorkbenchToolRequestTarget(
     bool standalone_window_open) {
   return standalone_window_open
@@ -1949,60 +1964,64 @@ void DungeonWorkbenchContent::DrawWorkbenchTool(DungeonCanvasViewer& viewer,
 }
 
 void DungeonWorkbenchContent::DrawInspectorToolStrip() {
-  // Two-row icon strip lets users swap tools in one click without scrolling
-  // past the active body. Row 1 holds entity/selection tools; row 2 holds
-  // room-data tools. Active tool is highlighted via gui::ToggleButton accent.
-  static constexpr WorkbenchTool kStrip[2][5] = {
-      {WorkbenchTool::ObjectSelector, WorkbenchTool::DoorEditor,
-       WorkbenchTool::SpriteEditor, WorkbenchTool::ItemEditor,
-       WorkbenchTool::Palette},
-      {WorkbenchTool::RoomGraphics, WorkbenchTool::RoomTags,
-       WorkbenchTool::CustomCollision, WorkbenchTool::WaterFill,
-       WorkbenchTool::MinecartTracks},
+  static constexpr std::array<WorkbenchTool, 10> kStrip = {
+      WorkbenchTool::ObjectSelector, WorkbenchTool::DoorEditor,
+      WorkbenchTool::SpriteEditor,   WorkbenchTool::ItemEditor,
+      WorkbenchTool::Palette,        WorkbenchTool::RoomGraphics,
+      WorkbenchTool::RoomTags,       WorkbenchTool::CustomCollision,
+      WorkbenchTool::WaterFill,      WorkbenchTool::MinecartTracks,
   };
 
-  constexpr ImGuiTableFlags kFlags =
-      ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX;
-  if (!ImGui::BeginTable("##WorkbenchToolStrip", 5, kFlags)) {
-    return;
-  }
-  for (int row = 0; row < 2; ++row) {
-    ImGui::TableNextRow();
-    for (int col = 0; col < 5; ++col) {
-      ImGui::TableNextColumn();
-      const WorkbenchTool tool = kStrip[row][col];
-      const bool enabled = IsWorkbenchToolAvailable(tool);
-      const bool active = active_tool_ == tool;
-      char btn_id[48];
-      std::snprintf(btn_id, sizeof(btn_id), "%s##StripTool_%s",
-                    GetWorkbenchToolIcon(tool), GetWorkbenchToolId(tool));
-      if (!enabled) {
-        ImGui::BeginDisabled();
-      }
-      const bool pressed = gui::ToggleButton(btn_id, active, ImVec2(-1, 0));
-      {
-        gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
-        gui::AutoRegisterLastItem(
-            "button", absl::StrFormat("tool_%s", GetWorkbenchToolId(tool)),
-            "Open a Dungeon Workbench tool");
-      }
-      if (pressed && enabled) {
-        OpenTool(tool);
-      }
-      if (!enabled) {
-        ImGui::EndDisabled();
-      }
-      if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-        if (enabled) {
-          ImGui::SetTooltip("%s", GetWorkbenchToolShortLabel(tool));
-        } else {
-          ImGui::SetTooltip("%s\n(%s)", GetWorkbenchToolShortLabel(tool),
-                            GetWorkbenchToolUnavailableMessage(tool));
-        }
+  const ImGuiStyle& style = ImGui::GetStyle();
+  const float button_size = std::max(ImGui::GetFrameHeight(),
+                                     gui::LayoutHelpers::GetMinTouchTarget());
+  const float spacing = std::max(2.0f, style.ItemSpacing.x * 0.5f);
+  const int columns = ResolveDungeonWorkbenchToolStripColumns(
+      ImGui::GetContentRegionAvail().x, button_size, spacing,
+      static_cast<int>(kStrip.size()));
+  gui::StyleVarGuard spacing_guard(
+      ImGuiStyleVar_ItemSpacing,
+      ImVec2(spacing, std::max(2.0f, style.ItemSpacing.y * 0.5f)));
+
+  ImGui::PushID("WorkbenchToolStrip");
+  for (size_t index = 0; index < kStrip.size(); ++index) {
+    if (index > 0 && static_cast<int>(index) % columns != 0) {
+      ImGui::SameLine(0.0f, spacing);
+    }
+    const WorkbenchTool tool = kStrip[index];
+    const bool enabled = IsWorkbenchToolAvailable(tool);
+    const bool active = active_tool_ == tool;
+    char btn_id[48];
+    std::snprintf(btn_id, sizeof(btn_id), "%s##StripTool_%s",
+                  GetWorkbenchToolIcon(tool), GetWorkbenchToolId(tool));
+    if (!enabled) {
+      ImGui::BeginDisabled();
+    }
+    const bool pressed = gui::TransparentIconButton(
+        btn_id, ImVec2(button_size, button_size), nullptr, active,
+        ImVec4(0, 0, 0, 0), "dungeon_workbench", GetWorkbenchToolId(tool));
+    {
+      gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
+      gui::AutoRegisterLastItem(
+          "button", absl::StrFormat("tool_%s", GetWorkbenchToolId(tool)),
+          "Open a Dungeon Workbench tool");
+    }
+    if (pressed && enabled) {
+      OpenTool(tool);
+    }
+    if (!enabled) {
+      ImGui::EndDisabled();
+    }
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      if (enabled) {
+        ImGui::SetTooltip("%s", GetWorkbenchToolShortLabel(tool));
+      } else {
+        ImGui::SetTooltip("%s\n(%s)", GetWorkbenchToolShortLabel(tool),
+                          GetWorkbenchToolUnavailableMessage(tool));
       }
     }
   }
-  ImGui::EndTable();
+  ImGui::PopID();
 }
 
 void DungeonWorkbenchContent::DrawToolDrawerPane(float width, float height,
@@ -2039,8 +2058,8 @@ bool DungeonWorkbenchContent::DrawToolDrawerHeader(float button_size) {
 
   workbench::DrawPaneHeader(
       "##DungeonWorkbenchToolDrawerHeader", GetWorkbenchToolIcon(active_tool_),
-      GetWorkbenchToolShortLabel(active_tool_), "Tool", "Workbench drawer",
-      compact, action_width, [&]() {
+      GetWorkbenchToolShortLabel(active_tool_), "Tool", nullptr, compact,
+      action_width, [&]() {
         const bool can_pop_out = IsWorkbenchToolAvailable(active_tool_) &&
                                  open_and_focus_standalone_tool_;
         if (!can_pop_out) {
@@ -2088,9 +2107,8 @@ void DungeonWorkbenchContent::DrawToolDrawerBody(DungeonCanvasViewer& viewer) {
   }
 
   const float available_h = std::max(1.0f, ImGui::GetContentRegionAvail().y);
-  const bool body_open =
-      ImGui::BeginChild("##WorkbenchToolDrawerBody", ImVec2(0.0f, available_h),
-                        true, ImGuiWindowFlags_HorizontalScrollbar);
+  const bool body_open = ImGui::BeginChild("##WorkbenchToolDrawerBody",
+                                           ImVec2(0.0f, available_h), false);
   if (body_open) {
     DrawWorkbenchTool(viewer, active_tool_);
   }

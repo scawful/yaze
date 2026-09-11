@@ -30,6 +30,25 @@ namespace editor {
 class ObjectTileEditorPanel;
 struct DungeonObjectSelectorTestAccess;
 
+struct DungeonObjectSelectorGridLayout {
+  int columns = 1;
+  float item_size = 1.0f;
+};
+
+struct DungeonObjectSelectorTypeTabLayout {
+  int columns = 0;
+  float item_width = 1.0f;
+};
+
+// Pure responsive-layout helpers shared by the selector and its unit tests.
+DungeonObjectSelectorGridLayout ResolveDungeonObjectSelectorGridLayout(
+    float available_width, float requested_item_size, float item_spacing,
+    float reserved_scrollbar_width, float min_item_size = 32.0f);
+DungeonObjectSelectorTypeTabLayout ResolveDungeonObjectSelectorTypeTabLayout(
+    float available_width, float requested_tab_width, float item_spacing,
+    int tab_count = 4);
+bool MatchesDungeonObjectTypeTab(int object_id, int selected_tab);
+
 /**
  * @brief Handles object selection, preview, and editing UI
  */
@@ -136,8 +155,8 @@ class DungeonObjectSelector {
   ImU32 GetObjectTypeColor(int object_id);
   std::string GetObjectTypeSymbol(int object_id);
   void EnsureCustomObjectsInitialized();
-  void DrawCustomObjectWorkshopButton(int custom_count);
-  void DrawCustomObjectWorkshopPopup(float item_size);
+  void DrawCustomObjectWorkshopButton(int custom_count, const ImVec2& size);
+  void DrawCustomObjectWorkshopPopup();
   void DrawNewCustomObjectDialog();
   absl::Status OpenNewCustomObjectEditor(int width, int height,
                                          const std::string& filename,
@@ -186,7 +205,7 @@ class DungeonObjectSelector {
 
   // UI state for object browser filter
   int object_type_filter_ = 0;
-  int object_subtype_tab_ = 0;   // 0=Type1, 1=Type2, 2=Type3
+  int object_subtype_tab_ = 0;   // 0=All, 1=Type1, 2=Type2, 3=Type3
   int object_grid_density_ = 1;  // 0=Small, 1=Medium, 2=Large
   char object_search_buffer_[64] = {0};
 
