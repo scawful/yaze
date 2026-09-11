@@ -18,6 +18,7 @@
 
 #include "gtest/gtest.h"
 
+#include <algorithm>
 #include <array>
 #include <chrono>
 #include <cstdint>
@@ -638,6 +639,61 @@ void ExpectBitmapFilledWith(const gfx::BackgroundBuffer& bg, uint8_t value) {
 void WriteWord(std::vector<uint8_t>& rom_data, int addr, uint16_t value) {
   rom_data[addr] = static_cast<uint8_t>(value & 0xFF);
   rom_data[addr + 1] = static_cast<uint8_t>(value >> 8);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     FloorCopyObjectsUseRoomHeaderPatternsInsteadOfObjectPayloads) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr uint8_t kFloor1 = 6;
+  constexpr uint8_t kFloor2 = 11;
+  constexpr uint16_t kFloor1Tile = 0x120;
+  constexpr uint16_t kFloor2Tile = 0x1A0;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  const auto write_floor_pattern = [&](uint8_t pattern,
+                                       uint16_t first_tile_id) {
+    const int offset = static_cast<int>(pattern) << 4;
+    for (int index = 0; index < 4; ++index) {
+      WriteWord(dummy_rom, kRoomObjectTileAddress + offset + index * 2,
+                gfx::TileInfoToWord(
+                    gfx::TileInfo(static_cast<uint16_t>(first_tile_id + index),
+                                  2, false, false, false)));
+      WriteWord(dummy_rom, kRoomObjectTileAddressFloor + offset + index * 2,
+                gfx::TileInfoToWord(gfx::TileInfo(
+                    static_cast<uint16_t>(first_tile_id + index + 4), 2, false,
+                    false, false)));
+    }
+  };
+  write_floor_pattern(kFloor1, kFloor1Tile);
+  write_floor_pattern(kFloor2, kFloor2Tile);
+
+  Rom rom;
+  rom.LoadFromData(dummy_rom);
+  ObjectDrawer drawer(&rom, /*room_id=*/0);
+  drawer.SetRoomFloorGraphics(kFloor1, kFloor2);
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+
+  for (const auto [object_id, first_tile_id] :
+       {std::pair<int16_t, uint16_t>{0x00C4, kFloor1Tile},
+        std::pair<int16_t, uint16_t>{0x00DB, kFloor2Tile}}) {
+    RoomObject object(object_id, /*x=*/8, /*y=*/12, /*size=*/0, /*layer=*/0);
+    object.tiles_loaded_ = true;
+    object.tiles_ = MakeSequentialTiles(8, /*start_tile_id=*/0x300);
+
+    std::vector<ObjectDrawer::TileTrace> trace;
+    drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+    ASSERT_TRUE(drawer.DrawObject(object, bg1, bg2, palette_group).ok());
+    drawer.ClearTraceCollector();
+
+    ASSERT_EQ(trace.size(), 16U);
+    for (size_t index = 0; index < trace.size(); ++index) {
+      EXPECT_EQ(trace[index].tile_id,
+                first_tile_id + static_cast<uint16_t>(index % 8));
+      EXPECT_LT(trace[index].tile_id, 0x300);
+    }
+  }
 }
 
 TEST(ObjectDrawerRegistryReplayTest, SuperSquareRendersToBitmap) {
@@ -2660,24 +2716,44 @@ TEST(ObjectDrawerRegistryReplayTest,
 
   std::vector<SnapshotTileWrite> expected_top;
   std::vector<SnapshotTileWrite> expected_bottom;
-  expected_top.reserve(kCount * 2);
-  expected_bottom.reserve(kCount * 2);
+  expected_top.reserve((kCount * 2) + 8);
+  expected_bottom.reserve((kCount * 2) + 8);
 
   // USDASM:
   // - $01:8FBD (top corners): body uses top=tile3, bottom=tile0.
   // - $01:9001 (bottom corners): mirrored body uses top=tile0, bottom=tile3.
-  // Endpoints consume cap tiles (tile1 at start, tile4 at end).
-  for (int s = 0; s < kCount; ++s) {
-    const uint16_t top_cap = (s == 0) ? 1 : ((s == kCount - 1) ? 4 : 3);
-    const uint16_t bottom_cap = (s == 0) ? 1 : ((s == kCount - 1) ? 4 : 3);
-    const int x = kX + 13 + s;
+  // Both variants draw a two-column opening cap, size+10 body columns, and a
+  // two-column closing cap. The routine-name suffix describes that size+13
+  // extent; it is not an X offset.
+  expected_top.push_back({kX, kY, 1});
+  expected_top.push_back({kX + 1, kY, 2});
+  expected_top.push_back({kX, kY + 1, 0});
+  expected_top.push_back({kX + 1, kY + 1, 0});
 
-    expected_top.push_back({x, kY, top_cap});
+  expected_bottom.push_back({kX, kY + 1, 1});
+  expected_bottom.push_back({kX + 1, kY + 1, 2});
+  expected_bottom.push_back({kX, kY, 0});
+  expected_bottom.push_back({kX + 1, kY, 0});
+
+  for (int s = 0; s < kCount; ++s) {
+    const int x = kX + 2 + s;
+
+    expected_top.push_back({x, kY, 3});
     expected_top.push_back({x, kY + 1, 0});
 
-    expected_bottom.push_back({x, kY + 1, 0});
-    expected_bottom.push_back({x, kY + 2, bottom_cap});
+    expected_bottom.push_back({x, kY + 1, 3});
+    expected_bottom.push_back({x, kY, 0});
   }
+
+  expected_top.push_back({kX + kCount + 2, kY, 4});
+  expected_top.push_back({kX + kCount + 3, kY, 5});
+  expected_top.push_back({kX + kCount + 2, kY + 1, 0});
+  expected_top.push_back({kX + kCount + 3, kY + 1, 0});
+
+  expected_bottom.push_back({kX + kCount + 2, kY + 1, 4});
+  expected_bottom.push_back({kX + kCount + 3, kY + 1, 5});
+  expected_bottom.push_back({kX + kCount + 2, kY, 0});
+  expected_bottom.push_back({kX + kCount + 3, kY, 0});
 
   ExpectTraceMatchesSnapshot(top_bg1, expected_top);
   ExpectTraceMatchesSnapshot(bottom_bg1, expected_bottom);
@@ -2716,36 +2792,37 @@ TEST(ObjectDrawerRegistryReplayTest,
   //   left=tile0/right=tile3 and matching 2x2 caps.
   //
   // On a blank destination the opening cap is emitted, so the body begins two
-  // rows below the anchor.
-  expected_left.push_back({kX + 12, kY, 1});
-  expected_left.push_back({kX + 13, kY, 0});
-  expected_left.push_back({kX + 12, kY + 1, 2});
-  expected_left.push_back({kX + 13, kY + 1, 0});
+  // rows below the anchor. The routine-name suffix describes the size+12
+  // extent; it is not an X offset.
+  expected_left.push_back({kX, kY, 1});
+  expected_left.push_back({kX, kY + 1, 2});
+  expected_left.push_back({kX + 1, kY, 0});
+  expected_left.push_back({kX + 1, kY + 1, 0});
 
-  expected_right.push_back({kX + 12, kY, 0});
-  expected_right.push_back({kX + 13, kY, 1});
-  expected_right.push_back({kX + 12, kY + 1, 0});
-  expected_right.push_back({kX + 13, kY + 1, 2});
+  expected_right.push_back({kX + 1, kY, 1});
+  expected_right.push_back({kX + 1, kY + 1, 2});
+  expected_right.push_back({kX, kY, 0});
+  expected_right.push_back({kX, kY + 1, 0});
 
   for (int s = 0; s < kCount; ++s) {
     const int y = kY + 2 + s;
 
-    expected_left.push_back({kX + 12, y, 3});
-    expected_left.push_back({kX + 13, y, 0});
+    expected_left.push_back({kX, y, 3});
+    expected_left.push_back({kX + 1, y, 0});
 
-    expected_right.push_back({kX + 12, y, 0});
-    expected_right.push_back({kX + 13, y, 3});
+    expected_right.push_back({kX + 1, y, 3});
+    expected_right.push_back({kX, y, 0});
   }
 
-  expected_left.push_back({kX + 12, kY + 2 + kCount, 4});
-  expected_left.push_back({kX + 13, kY + 2 + kCount, 0});
-  expected_left.push_back({kX + 12, kY + 3 + kCount, 5});
-  expected_left.push_back({kX + 13, kY + 3 + kCount, 0});
+  expected_left.push_back({kX, kY + 2 + kCount, 4});
+  expected_left.push_back({kX, kY + 3 + kCount, 5});
+  expected_left.push_back({kX + 1, kY + 2 + kCount, 0});
+  expected_left.push_back({kX + 1, kY + 3 + kCount, 0});
 
-  expected_right.push_back({kX + 12, kY + 2 + kCount, 0});
-  expected_right.push_back({kX + 13, kY + 2 + kCount, 4});
-  expected_right.push_back({kX + 12, kY + 3 + kCount, 0});
-  expected_right.push_back({kX + 13, kY + 3 + kCount, 5});
+  expected_right.push_back({kX + 1, kY + 2 + kCount, 4});
+  expected_right.push_back({kX + 1, kY + 3 + kCount, 5});
+  expected_right.push_back({kX, kY + 2 + kCount, 0});
+  expected_right.push_back({kX, kY + 3 + kCount, 0});
 
   ExpectTraceMatchesSnapshot(left_bg1, expected_left);
   ExpectTraceMatchesSnapshot(right_bg1, expected_right);
@@ -3341,6 +3418,192 @@ TEST(ObjectDrawerPillarStrideTest, RightwardsPillar2x4Spaced4Uses6TileStride) {
   EXPECT_NE(xs.count(17), 0u);
   EXPECT_EQ(xs.count(14), 0u);
   EXPECT_EQ(xs.count(15), 0u);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     BuiltInWallRoutingAndDiagonalCountMatchUsdasm) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  struct Case {
+    int16_t object_id;
+    size_t expected_bg1_writes;
+    size_t expected_bg2_writes;
+    bool diagonal;
+  };
+  const std::array<Case, 6> cases = {{{0x03, 8, 8, false},
+                                      {0x05, 0, 8, false},
+                                      {0x0C, 0, 30, true},
+                                      {0x14, 0, 30, true},
+                                      {0x15, 30, 30, true},
+                                      {0x20, 30, 30, true}}};
+
+  constexpr int kX = 20;
+  constexpr int kY = 20;
+  for (const auto& test_case : cases) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object=0x" << std::hex << test_case.object_id);
+    const auto trace = ReplayObjectTrace(test_case.object_id, kX, kY,
+                                         /*size=*/0, RoomObject::LayerType::BG2,
+                                         MakeSequentialTiles(/*count=*/8));
+    const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+    const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+    EXPECT_EQ(bg1.size(), test_case.expected_bg1_writes);
+    EXPECT_EQ(bg2.size(), test_case.expected_bg2_writes);
+
+    if (test_case.diagonal) {
+      for (const auto* layer_trace : {&bg1, &bg2}) {
+        if (layer_trace->empty()) {
+          continue;
+        }
+        const auto [min_it, max_it] =
+            std::minmax_element(layer_trace->begin(), layer_trace->end(),
+                                [](const auto& lhs, const auto& rhs) {
+                                  return lhs.x_tile < rhs.x_tile;
+                                });
+        EXPECT_EQ(min_it->x_tile, kX);
+        EXPECT_EQ(max_it->x_tile, kX + 5);
+      }
+    }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     ConditionalEdgeCapsReadTheMatchingLayoutOwner) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(1024 * 1024, 0)).ok());
+  std::array<uint8_t, 0x10000> gfx{};
+  gfx.fill(1);
+
+  struct Case {
+    int16_t object_id;
+    uint16_t matching_tile_id;
+    int edge_dx;
+    int edge_dy;
+    std::array<uint16_t, 2> opening_tile_ids;
+    int opening_tile_count;
+  };
+  const std::array<Case, 9> cases = {{{0x22, 0x00E2, 0, 0, {0x300, 0}, 1},
+                                      {0x23, 0x01DB, 0, 0, {0x300, 0}, 1},
+                                      {0x2F, 0x00E2, 0, 0, {0x301, 0x302}, 2},
+                                      {0x30, 0x00E2, 0, 1, {0x301, 0x302}, 2},
+                                      {0x5F, 0x00E2, 0, 0, {0x300, 0}, 1},
+                                      {0x69, 0x00E3, 0, 0, {0x300, 0}, 1},
+                                      {0x6C, 0x00E3, 0, 0, {0x301, 0x302}, 2},
+                                      {0x6D, 0x00E3, 1, 0, {0x301, 0x302}, 2},
+                                      {0x8A, 0x00E3, 0, 0, {0x300, 0}, 1}}};
+
+  constexpr int kX = 20;
+  constexpr int kY = 20;
+  for (const auto layer :
+       {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+    for (const auto& test_case : cases) {
+      SCOPED_TRACE(::testing::Message()
+                   << "object=0x" << std::hex << test_case.object_id
+                   << " layer=" << std::dec << static_cast<int>(layer));
+
+      gfx::BackgroundBuffer object_bg1(512, 512);
+      gfx::BackgroundBuffer object_bg2(512, 512);
+      gfx::BackgroundBuffer layout_bg1(512, 512);
+      gfx::BackgroundBuffer layout_bg2(512, 512);
+      for (auto* buffer :
+           {&object_bg1, &object_bg2, &layout_bg1, &layout_bg2}) {
+        buffer->EnsureBitmapInitialized();
+        buffer->bitmap().Fill(255);
+        buffer->ClearBuffer();
+      }
+
+      auto& matching_layout =
+          layer == RoomObject::LayerType::BG2 ? layout_bg2 : layout_bg1;
+      matching_layout.SetTileAt(kX + test_case.edge_dx, kY + test_case.edge_dy,
+                                test_case.matching_tile_id);
+
+      ObjectDrawer drawer(&rom, /*room_id=*/0, gfx.data());
+      std::vector<ObjectDrawer::TileTrace> trace;
+      drawer.SetTraceCollector(&trace, /*trace_only=*/false);
+
+      RoomObject object(test_case.object_id, kX, kY, /*size=*/0,
+                        static_cast<uint8_t>(layer));
+      object.tiles_loaded_ = true;
+      object.tiles_ = MakeSequentialTiles(/*count=*/6,
+                                          /*start_tile_id=*/0x300);
+      gfx::PaletteGroup palette_group;
+      ASSERT_TRUE(drawer
+                      .DrawObject(object, object_bg1, object_bg2, palette_group,
+                                  /*state=*/nullptr, &layout_bg1, &layout_bg2)
+                      .ok());
+
+      const auto layer_trace = FilterTraceByLayer(trace, layer);
+      ASSERT_FALSE(layer_trace.empty());
+      for (int index = 0; index < test_case.opening_tile_count; ++index) {
+        const uint16_t opening_tile_id = test_case.opening_tile_ids[index];
+        EXPECT_TRUE(std::none_of(layer_trace.begin(), layer_trace.end(),
+                                 [&](const auto& write) {
+                                   return write.tile_id == opening_tile_id;
+                                 }));
+      }
+    }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     ConditionalEdgeCapsPreferPriorObjectWritesOverLayout) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(1024 * 1024, 0)).ok());
+  std::array<uint8_t, 0x10000> gfx{};
+  gfx.fill(1);
+
+  constexpr int kX = 20;
+  constexpr int kY = 20;
+  for (const bool prior_object_matches : {false, true}) {
+    SCOPED_TRACE(::testing::Message()
+                 << "prior_object_matches=" << prior_object_matches);
+
+    gfx::BackgroundBuffer object_bg1(512, 512);
+    gfx::BackgroundBuffer object_bg2(512, 512);
+    gfx::BackgroundBuffer layout_bg1(512, 512);
+    gfx::BackgroundBuffer layout_bg2(512, 512);
+    for (auto* buffer : {&object_bg1, &object_bg2, &layout_bg1, &layout_bg2}) {
+      buffer->EnsureBitmapInitialized();
+      buffer->bitmap().Fill(255);
+      buffer->ClearBuffer();
+    }
+    layout_bg1.SetTileAt(kX, kY, 0x00E2);
+
+    ObjectDrawer drawer(&rom, /*room_id=*/0, gfx.data());
+    gfx::PaletteGroup palette_group;
+
+    RoomObject prior(/*id=*/0x11F, kX, kY, /*size=*/0,
+                     RoomObject::LayerType::BG1);
+    prior.tiles_loaded_ = true;
+    prior.tiles_ = MakeSequentialTiles(/*count=*/4,
+                                       /*start_tile_id=*/0x320);
+    prior.tiles_[0].id_ = prior_object_matches ? 0x00E2 : 0x0320;
+    ASSERT_TRUE(drawer
+                    .DrawObject(prior, object_bg1, object_bg2, palette_group,
+                                /*state=*/nullptr, &layout_bg1, &layout_bg2)
+                    .ok());
+
+    std::vector<ObjectDrawer::TileTrace> trace;
+    drawer.SetTraceCollector(&trace, /*trace_only=*/false);
+    RoomObject edge(/*id=*/0x22, kX, kY, /*size=*/0,
+                    RoomObject::LayerType::BG1);
+    edge.tiles_loaded_ = true;
+    edge.tiles_ = MakeSequentialTiles(/*count=*/3,
+                                      /*start_tile_id=*/0x300);
+    ASSERT_TRUE(drawer
+                    .DrawObject(edge, object_bg1, object_bg2, palette_group,
+                                /*state=*/nullptr, &layout_bg1, &layout_bg2)
+                    .ok());
+
+    const bool opening_cap_was_drawn =
+        std::any_of(trace.begin(), trace.end(),
+                    [](const auto& write) { return write.tile_id == 0x0300; });
+    EXPECT_EQ(opening_cap_was_drawn, !prior_object_matches);
+  }
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
@@ -4611,27 +4874,53 @@ TEST(ObjectDrawerMaskPropagationTest,
 
   const int pixel_x = (lower.x_ + 3) * 8;
   const int pixel_y = lower.y_ * 8;
-  const int index = pixel_y * obj_bg1.bitmap().width() + pixel_x;
+  const int bitmap_width = obj_bg1.bitmap().width();
+  const int opaque_index = pixel_y * bitmap_width + pixel_x;
+  const int transparent_index = opaque_index + 1;
+  const int outside_index = opaque_index + 8;
   ASSERT_TRUE(drawer
                   .DrawObject(lower, obj_bg1, obj_bg2, palette_group,
                               /*state=*/nullptr, /*layout_bg1=*/&layout_bg1)
                   .ok());
-  ASSERT_NE(obj_bg1.bg1_reveal_mask_data()[index] & kBG2ObjectRevealMask, 0);
+  ASSERT_NE(obj_bg1.bg1_reveal_mask_data()[opaque_index] & kBG2ObjectRevealMask,
+            0);
 
+  obj_bg1.SetBG1RevealMaskRect(gfx::BG1RevealMaskSource::kBG2Objects, pixel_x,
+                               pixel_y, 8, 8);
+  obj_bg1.SetBG1RevealMaskRect(gfx::BG1RevealMaskSource::kBG2Objects,
+                               pixel_x + 8, pixel_y, 1, 1);
   obj_bg1.SetBG1RevealMaskRect(gfx::BG1RevealMaskSource::kBG2Layout, pixel_x,
-                               pixel_y, 1, 1);
+                               pixel_y, 8, 8);
+  ASSERT_NE(
+      obj_bg1.bg1_reveal_mask_data()[transparent_index] & kBG2ObjectRevealMask,
+      0);
+  ASSERT_NE(
+      obj_bg1.bg1_reveal_mask_data()[outside_index] & kBG2ObjectRevealMask, 0);
+
   RoomObject later_upper = lower;
   later_upper.layer_ = RoomObject::LayerType::BG1;
   ASSERT_TRUE(
       drawer.DrawObject(later_upper, obj_bg1, obj_bg2, palette_group).ok());
 
-  const uint8_t remaining = obj_bg1.bg1_reveal_mask_data()[index];
-  EXPECT_EQ(remaining & kBG2ObjectRevealMask, 0);
+  const uint8_t layout_reveal_mask =
+      static_cast<uint8_t>(gfx::BG1RevealMaskSource::kBG2Layout);
+  for (int dy = 0; dy < 8; ++dy) {
+    for (int dx = 0; dx < 8; ++dx) {
+      const int inside_index = (pixel_y + dy) * bitmap_width + pixel_x + dx;
+      const uint8_t remaining = obj_bg1.bg1_reveal_mask_data()[inside_index];
+      EXPECT_EQ(remaining & kBG2ObjectRevealMask, 0)
+          << "pixel=(" << dx << "," << dy << ")";
+      EXPECT_NE(remaining & layout_reveal_mask, 0)
+          << "pixel=(" << dx << "," << dy << ")";
+    }
+  }
   EXPECT_NE(
-      remaining & static_cast<uint8_t>(gfx::BG1RevealMaskSource::kBG2Layout),
+      obj_bg1.bg1_reveal_mask_data()[outside_index] & kBG2ObjectRevealMask, 0);
+  EXPECT_NE(obj_bg1.bitmap().data()[opaque_index], 255);
+  EXPECT_EQ(obj_bg1.bitmap().data()[transparent_index], 255);
+  EXPECT_NE(
+      layout_bg1.bg1_reveal_mask_data()[opaque_index] & kBG2ObjectRevealMask,
       0);
-  EXPECT_NE(obj_bg1.bitmap().data()[index], 255);
-  EXPECT_NE(layout_bg1.bg1_reveal_mask_data()[index] & kBG2ObjectRevealMask, 0);
 }
 
 TEST(ObjectDrawerMaskPropagationTest, StoredBg2SpiralStairsUsePerPixelMasking) {
@@ -4904,6 +5193,71 @@ TEST(ObjectDrawerRegistryReplayTest,
 
   ExpectTraceMatchesSnapshot(bg2, expected_bg2);
   ExpectTraceMatchesSnapshot(bg1, expected_bg1);
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     StraightInterroomLowerPromotesFixedBg1ColumnWithoutPaintingIt) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(1024 * 1024, 0)).ok());
+  std::array<uint8_t, 0x10000> room_gfx{};
+  room_gfx.fill(1);
+  gfx::PaletteGroup palette_group;
+
+  struct Case {
+    int16_t object_id;
+    int priority_start_y;
+    int bg1_raster_y;
+  };
+  constexpr int kX = 8;
+  constexpr int kY = 8;
+  const std::array<Case, 2> cases = {
+      {{0x0FA6, kY - 4, kY}, {0x0FA8, kY + 4, kY + 3}}};
+
+  for (const auto& test_case : cases) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object=0x" << std::hex << test_case.object_id);
+    gfx::BackgroundBuffer object_bg1(512, 512);
+    gfx::BackgroundBuffer object_bg2(512, 512);
+    gfx::BackgroundBuffer layout_bg1(512, 512);
+    gfx::BackgroundBuffer layout_bg2(512, 512);
+    for (auto* buffer : {&object_bg1, &object_bg2, &layout_bg1, &layout_bg2}) {
+      InitializeEmptyDoorBuffer(*buffer);
+    }
+
+    ObjectDrawer drawer(&rom, /*room_id=*/0x51, room_gfx.data());
+    RoomObject object(test_case.object_id, kX, kY, /*size=*/0,
+                      RoomObject::LayerType::BG2);
+    object.tiles_loaded_ = true;
+    object.tiles_ = MakeSequentialTiles(/*count=*/16);
+    ASSERT_TRUE(drawer
+                    .DrawObject(object, object_bg1, object_bg2, palette_group,
+                                /*state=*/nullptr, &layout_bg1, &layout_bg2)
+                    .ok());
+
+    ExpectOnlyCoverageRect(object_bg1, kX, test_case.bg1_raster_y,
+                           /*width_tiles=*/4, /*height_tiles=*/1);
+    ExpectOnlyCoverageRect(object_bg2, kX, kY, /*width_tiles=*/4,
+                           /*height_tiles=*/4);
+    ExpectOnlyCoverageRect(layout_bg1, 0, 0, 0, 0);
+    ExpectOnlyCoverageRect(layout_bg2, 0, 0, 0, 0);
+
+    ExpectPriorityRectSet(object_bg1, kX, test_case.priority_start_y,
+                          /*width_tiles=*/1, /*height_tiles=*/4);
+    ExpectPriorityRectSet(layout_bg1, kX, test_case.priority_start_y,
+                          /*width_tiles=*/1, /*height_tiles=*/4);
+    EXPECT_EQ(object_bg2.GetPriorityAt(kX * 8, test_case.priority_start_y * 8),
+              0xFF);
+    EXPECT_EQ(layout_bg2.GetPriorityAt(kX * 8, test_case.priority_start_y * 8),
+              0xFF);
+
+    const int priority_pixel = test_case.priority_start_y * 8 * 512 + kX * 8;
+    ASSERT_LT(priority_pixel,
+              static_cast<int>(object_bg1.bitmap().vector().size()));
+    EXPECT_EQ(object_bg1.bitmap().vector()[priority_pixel], 255);
+    EXPECT_EQ(layout_bg1.bitmap().vector()[priority_pixel], 255);
+  }
 }
 
 TEST(ObjectDrawerRegistryReplayTest,

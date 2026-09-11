@@ -64,6 +64,49 @@ require_test_suite() {
   fi
 }
 
+require_clean_validation_report() {
+  local report_path="$1"
+  if ! command -v python3 >/dev/null 2>&1; then
+    echo "python3 is required to validate the Tier 5 JSON report." >&2
+    exit 1
+  fi
+
+  python3 - "$report_path" <<'PY'
+import json
+import sys
+
+report_path = sys.argv[1]
+try:
+    with open(report_path, encoding="utf-8") as report_file:
+        report = json.load(report_file)
+    summary = report["summary"]
+    test_cases = int(summary["test_cases"])
+    mismatch_count = int(summary["mismatch_count"])
+    empty_traces = int(summary["empty_traces"])
+    expected_empty_traces = int(summary["expected_empty_traces"])
+except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError) as error:
+    print(f"Invalid Tier 5 report {report_path}: {error}", file=sys.stderr)
+    raise SystemExit(1)
+
+if test_cases <= 0:
+    print(f"Tier 5 report contains no validation cases: {report_path}",
+          file=sys.stderr)
+    raise SystemExit(1)
+if mismatch_count != 0:
+    print(f"Tier 5 failed: mismatch_count={mismatch_count} across "
+          f"{test_cases} cases ({report_path})", file=sys.stderr)
+    raise SystemExit(1)
+if empty_traces != expected_empty_traces:
+    print(f"Tier 5 failed: empty_traces={empty_traces}, "
+          f"expected_empty_traces={expected_empty_traces} ({report_path})",
+          file=sys.stderr)
+    raise SystemExit(1)
+
+print(f"Tier 5 PASS: mismatch_count=0 across {test_cases} cases; "
+      f"empty_traces={empty_traces}")
+PY
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --build-dir)
@@ -87,13 +130,18 @@ done
 
 resolve_bins
 
-echo "== Tier 1: synthetic replay + mapping (no ROM) =="
+if [[ -n "$REPORT_PATH" && -z "${YAZE_TEST_ROM_VANILLA:-}" ]]; then
+  echo "--with-validate-report requires YAZE_TEST_ROM_VANILLA." >&2
+  exit 1
+fi
+
+echo "== Tier 1: synthetic replay + geometry/layer mapping (no ROM) =="
 cmake --build "$BUILD_DIR" --target yaze_test_unit --parallel 4
-"$UNIT_BIN" --gtest_filter='ObjectDrawerRegistryReplayTest.BigHole*:ObjectDrawerRegistryReplayTest.TableRock*:ObjectDrawerRegistryReplayTest.FloodWater*:ObjectDrawerRegistryReplayTest.LongHorizontal*:DrawRoutineMappingTest.*Plus23*'
+"$UNIT_BIN" --gtest_filter='DrawRoutineMappingTest.*Plus3*:DrawRoutineMappingTest.*Plus23*:DrawRoutineMappingTest.*Corner*:DrawRoutineMappingTest.*DiagonalCeiling*:DrawRoutineMappingTest.MapsMovingWall*:ObjectDrawerRegistryReplayTest.FloorCopy*:ObjectDrawerRegistryReplayTest.BuiltInWallRoutingAndDiagonalCount*:ObjectDrawerRegistryReplayTest.ConditionalEdgeCaps*:ObjectDrawerRegistryReplayTest.StraightInterroom*:ObjectDrawerRegistryReplayTest.WaterHopStairs*:ObjectDrawerRegistryReplayTest.MovingWalls*:ObjectDrawerRegistryReplayTest.BigHole*:ObjectDrawerRegistryReplayTest.TableRock*:ObjectDrawerRegistryReplayTest.FloodWater*:ObjectDrawerRegistryReplayTest.LongHorizontal*:ObjectDrawerMaskPropagationTest.LaterBG1WriteClearsOnlyItsStreamRevealBit'
 
 echo
 echo "== Tier 2: ROM-backed parser/drawer parity (skips without ROM) =="
-"$UNIT_BIN" --gtest_filter='SupportedRomRoles/RoomObjectRomParityTest.VisualParityGap*:SupportedRomRoles/RoomObjectRomParityTest.BigHole*:SupportedRomRoles/RoomObjectRomParityTest.TableRock*:SupportedRomRoles/RoomObjectRomParityTest.FloodWater*:SupportedRomRoles/RoomObjectRomParityTest.LongRail*'
+"$UNIT_BIN" --gtest_filter='SupportedRomRoles/RoomObjectRomParityTest.WallCorner*:SupportedRomRoles/RoomObjectRomParityTest.WeirdCorner*:SupportedRomRoles/RoomObjectRomParityTest.FloorCopy*:SupportedRomRoles/RoomObjectRomParityTest.VisualParityGap*:SupportedRomRoles/RoomObjectRomParityTest.BigHole*:SupportedRomRoles/RoomObjectRomParityTest.TableRock*:SupportedRomRoles/RoomObjectRomParityTest.FloodWater*:SupportedRomRoles/RoomObjectRomParityTest.LongRail*'
 
 if [[ -n "${YAZE_TEST_ROM_VANILLA:-}" ]]; then
   echo
@@ -109,13 +157,19 @@ if [[ -n "${YAZE_TEST_ROM_VANILLA:-}" ]]; then
     "$ROM_BIN" \
       --gtest_filter='DungeonObjectRomValidationTest.TileCountTable_KnownValues'
 
-  if [[ -n "$REPORT_PATH" && -x "$Z3ED_BIN" ]]; then
+  if [[ -n "$REPORT_PATH" ]]; then
     echo
     echo "== Tier 5: z3ed dungeon-object-validate bounds audit =="
+    cmake --build "$BUILD_DIR" --target z3ed --parallel 4
+    if [[ ! -x "$Z3ED_BIN" ]]; then
+      echo "Required Tier 5 binary not found after build: $Z3ED_BIN" >&2
+      exit 1
+    fi
     "$Z3ED_BIN" dungeon-object-validate \
       --rom "$YAZE_TEST_ROM_VANILLA" \
       --report "$REPORT_PATH" \
       --format json
+    require_clean_validation_report "$REPORT_PATH"
     echo "Wrote validation report to $REPORT_PATH"
   fi
 else

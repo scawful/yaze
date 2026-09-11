@@ -1050,6 +1050,7 @@ void TileObjectHandler::RenderGhostPreviewBitmap() {
 
   zelda3::ObjectDrawer drawer(ctx_->rom, ctx_->current_room_id, gfx_data);
   drawer.InitializeDrawRoutines();
+  drawer.SetRoomFloorGraphics(room->floor1(), room->floor2());
 
   // Replay at the same safe anchor ObjectGeometry uses for measurement so
   // routines that draw upward or leftward do not clip against buffer origin.

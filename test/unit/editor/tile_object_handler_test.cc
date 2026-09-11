@@ -250,7 +250,7 @@ TEST_F(TileObjectHandlerTest,
 }
 
 TEST_F(TileObjectHandlerTest,
-       MarqueeAndUpLeftPlacementGhostShareCanvasTransform) {
+       MarqueeAndUpwardPlacementGhostShareCanvasTransform) {
   constexpr std::array<float, 3> kScales = {0.5f, 1.0f, 2.0f};
   constexpr std::array<ImVec2, 2> kScrolling = {ImVec2(48.0f, 24.0f),
                                                 ImVec2(-56.0f, -32.0f)};
@@ -259,7 +259,7 @@ TEST_F(TileObjectHandlerTest,
   const auto preview = CreateTestObject(0, 0, 0x12, 0xA3);
   const auto preview_geometry =
       TileObjectHandler::CalculateGhostPreviewGeometry(preview);
-  ASSERT_LT(preview_geometry.offset_x_tiles, 0);
+  ASSERT_EQ(preview_geometry.offset_x_tiles, 0);
   ASSERT_LT(preview_geometry.offset_y_tiles, 0);
   handler_.SetPreviewObject(preview);
   handler_.BeginPlacement();
@@ -461,13 +461,15 @@ TEST_F(TileObjectHandlerTest,
     int offset_y;
   };
 
-  // The first two need negative-axis headroom; 0x33 is the ordinary baseline,
-  // and 0x34 starts three tiles to the right of its encoded origin.
-  constexpr std::array<TestCase, 4> kCases{{
-      {0x09, 0x12, 0, 8, 0, -8},
-      {0xA3, 0x12, 5, 5, -5, -5},
+  // Acute diagonals and bottom-right diagonal ceilings need upward headroom;
+  // moving wall west needs leftward headroom. Straight objects remain anchored
+  // at their encoded origin.
+  constexpr std::array<TestCase, 5> kCases{{
+      {0x09, 0x12, 0, 7, 0, -7},
+      {0xA3, 0x12, 0, 5, 0, -5},
+      {0xCD, 0x00, 8, 0, -8, 0},
       {0x33, 0x12, 0, 0, 0, 0},
-      {0x34, 0x12, 0, 0, 3, 0},
+      {0x34, 0x12, 0, 0, 0, 0},
   }};
 
   for (const auto& test_case : kCases) {
@@ -498,7 +500,7 @@ TEST_F(TileObjectHandlerTest,
 }
 
 TEST_F(TileObjectHandlerTest,
-       GhostPreviewBitmapRendersPositiveOffsetWithoutClipping) {
+       GhostPreviewBitmapRendersOriginAlignedObjectWithoutClipping) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
   rooms_.SetRom(&rom);
@@ -514,7 +516,7 @@ TEST_F(TileObjectHandlerTest,
 
   const auto geometry =
       TileObjectHandler::CalculateGhostPreviewGeometry(object);
-  ASSERT_EQ(geometry.offset_x_tiles, 3);
+  ASSERT_EQ(geometry.offset_x_tiles, 0);
   handler_.SetPreviewObject(object);
   handler_.BeginPlacement();
 
@@ -528,10 +530,6 @@ TEST_F(TileObjectHandlerTest,
   const auto& coverage = buffer->coverage_data();
   ASSERT_EQ(coverage.size(),
             static_cast<size_t>(bitmap.width() * bitmap.height()));
-  const int first_drawn_x = geometry.offset_x_tiles * 8;
-  for (int y = 0; y < bitmap.height(); ++y) {
-    EXPECT_EQ(coverage[y * bitmap.width() + first_drawn_x - 1], 0);
-  }
   const auto column_has_coverage = [&](int x) {
     for (int y = 0; y < bitmap.height(); ++y) {
       if (coverage[y * bitmap.width() + x] != 0) {
@@ -540,7 +538,7 @@ TEST_F(TileObjectHandlerTest,
     }
     return false;
   };
-  EXPECT_TRUE(column_has_coverage(first_drawn_x));
+  EXPECT_TRUE(column_has_coverage(0));
   EXPECT_TRUE(column_has_coverage(geometry.buffer_width_pixels - 1));
 }
 

@@ -88,7 +88,8 @@ absl::Status RoomLayout::Draw(int room_id, const uint8_t* gfx_data,
                               gfx::BackgroundBuffer& bg1,
                               gfx::BackgroundBuffer& bg2,
                               const gfx::PaletteGroup& palette_group,
-                              DungeonState* state) const {
+                              DungeonState* state, uint8_t floor1_graphics,
+                              uint8_t floor2_graphics) const {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -100,6 +101,7 @@ absl::Status RoomLayout::Draw(int room_id, const uint8_t* gfx_data,
   ObjectDrawer drawer(rom_, room_id, gfx_data);
   drawer.SetAllowTrackCornerAliases(false);
   drawer.SetBG1RevealMaskSource(gfx::BG1RevealMaskSource::kBG2Layout);
+  drawer.SetRoomFloorGraphics(floor1_graphics, floor2_graphics);
 
   std::vector<RoomObject> render_objects = objects_;
   for (auto& obj : render_objects) {

@@ -4,7 +4,10 @@
 #include <vector>
 
 #include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
+#include "framework/mock_renderer.h"
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 namespace yaze {
@@ -19,15 +22,52 @@ struct DungeonObjectSelectorTestAccess {
     return selector.OpenNewCustomObjectEditor(width, height, filename,
                                               object_id, room_id);
   }
+
+  static void SynchronizePreviewCacheRoomContext(
+      DungeonObjectSelector& selector, const zelda3::Room& room) {
+    selector.SynchronizePreviewCacheRoomContext(room);
+  }
+
+  static uint32_t MakeLayoutCacheKey(int object_id, uint8_t preview_size,
+                                     const zelda3::Room* room) {
+    return DungeonObjectSelector::MakeLayoutCacheKey(object_id, preview_size,
+                                                     room);
+  }
+
+  static void SeedPreviewCache(DungeonObjectSelector& selector,
+                               uint64_t cache_key) {
+    selector.preview_cache_[cache_key] =
+        std::make_unique<gfx::BackgroundBuffer>(8, 8);
+  }
+
+  static size_t PreviewCacheSize(const DungeonObjectSelector& selector) {
+    return selector.preview_cache_.size();
+  }
+
+  static gfx::Bitmap* SeedInitializedPreviewCache(
+      DungeonObjectSelector& selector, uint64_t cache_key) {
+    auto preview = std::make_unique<gfx::BackgroundBuffer>(8, 8);
+    preview->EnsureBitmapInitialized();
+    gfx::Bitmap* bitmap = &preview->bitmap();
+    selector.preview_cache_[cache_key] = std::move(preview);
+    return bitmap;
+  }
 };
 
 namespace {
 
+size_t ActiveArenaSurfaceCount() {
+  const auto& arena = gfx::Arena::Get();
+  return arena.GetSurfaceCount() - arena.GetPooledSurfaceCount();
+}
+
 // Pins the cache-invalidation contract for DungeonObjectSelector's preview
 // cache.
 //
-// The cache is keyed on (object_id, subtype, room.blockset(), room.palette()).
-// None of those keys capture the *contents* of the active palette group, so
+// The cache entry key covers object/subtype and compact room-header fields;
+// room ID, entrance graphics, and palette-group swaps invalidate the complete
+// cache before lookup. None of those fields capture the *contents* of the
+// active palette group, so
 // switching dungeon palette banks (which the editor does via
 // SetCurrentPaletteGroup, not by changing the slot value on the room) used
 // to leave the cache holding entries whose colors were silently stale.
@@ -72,12 +112,147 @@ TEST(DungeonObjectSelectorPaletteTest,
   EXPECT_EQ(selector.preview_cache_invalidations_for_testing(), 2u);
 }
 
+TEST(DungeonObjectSelectorPaletteTest,
+     InvalidationCancelsPendingCreateAndRetiresCachedTexture) {
+  gfx::Arena& arena = gfx::Arena::Get();
+  arena.ClearTextureQueue();
+  const size_t active_surfaces_before = ActiveArenaSurfaceCount();
+  DungeonObjectSelector selector;
+  gfx::Bitmap* bitmap =
+      DungeonObjectSelectorTestAccess::SeedInitializedPreviewCache(selector,
+                                                                   0x1234);
+  int texture_storage = 0;
+  const gfx::TextureHandle texture = &texture_storage;
+  bitmap->set_texture(texture);
+  ASSERT_EQ(ActiveArenaSurfaceCount(), active_surfaces_before + 1);
+  arena.QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE, bitmap);
+  ASSERT_EQ(arena.texture_command_queue_size(), 1u);
+
+  selector.InvalidatePreviewCache();
+
+  EXPECT_EQ(DungeonObjectSelectorTestAccess::PreviewCacheSize(selector), 0u);
+  EXPECT_EQ(ActiveArenaSurfaceCount(), active_surfaces_before);
+  EXPECT_EQ(arena.texture_command_queue_size(), 0u);
+  EXPECT_EQ(arena.retired_texture_handle_count(), 1u);
+
+  ::testing::NiceMock<test::MockRenderer> renderer;
+  EXPECT_CALL(renderer, DestroyTexture(texture)).Times(1);
+  EXPECT_EQ(arena.DrainRetiredBitmaps(&renderer), 1u);
+}
+
+TEST(DungeonObjectSelectorPaletteTest,
+     DestructionCancelsPendingCreateBeforePreviewOwnerDisappears) {
+  gfx::Arena& arena = gfx::Arena::Get();
+  arena.ClearTextureQueue();
+  {
+    DungeonObjectSelector selector;
+    gfx::Bitmap* bitmap =
+        DungeonObjectSelectorTestAccess::SeedInitializedPreviewCache(selector,
+                                                                     0x1234);
+    arena.QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE, bitmap);
+    ASSERT_EQ(arena.texture_command_queue_size(), 1u);
+  }
+
+  EXPECT_EQ(arena.texture_command_queue_size(), 0u);
+}
+
 TEST(DungeonObjectSelectorPaletteTest, InitialInvalidationCountIsZero) {
   // Defensive: a freshly-constructed selector must report no invalidations,
   // so a test asserting "+1" can rely on baseline 0 without an explicit
   // setup-phase reset.
   DungeonObjectSelector selector;
   EXPECT_EQ(selector.preview_cache_invalidations_for_testing(), 0u);
+}
+
+TEST(DungeonObjectSelectorPaletteTest,
+     FloorHeaderChangesInvalidateRoomDependentPreviews) {
+  DungeonObjectSelector selector;
+  selector.set_current_room_id(7);
+  zelda3::Room room;
+  room.SetBlockset(2);
+  room.SetPalette(3);
+  room.set_floor1(4);
+  room.set_floor2(5);
+
+  DungeonObjectSelectorTestAccess::SynchronizePreviewCacheRoomContext(selector,
+                                                                      room);
+  EXPECT_EQ(selector.preview_cache_invalidations_for_testing(), 1u);
+
+  DungeonObjectSelectorTestAccess::SynchronizePreviewCacheRoomContext(selector,
+                                                                      room);
+  EXPECT_EQ(selector.preview_cache_invalidations_for_testing(), 1u)
+      << "An unchanged room context must keep its cached previews";
+
+  room.set_floor1(6);
+  DungeonObjectSelectorTestAccess::SynchronizePreviewCacheRoomContext(selector,
+                                                                      room);
+  EXPECT_EQ(selector.preview_cache_invalidations_for_testing(), 2u);
+
+  room.set_floor2(7);
+  DungeonObjectSelectorTestAccess::SynchronizePreviewCacheRoomContext(selector,
+                                                                      room);
+  EXPECT_EQ(selector.preview_cache_invalidations_for_testing(), 3u);
+}
+
+TEST(DungeonObjectSelectorPaletteTest,
+     EntranceBlocksetChangeEvictsRoomGraphicsPreviews) {
+  DungeonObjectSelector selector;
+  selector.set_current_room_id(7);
+  zelda3::Room room;
+  room.SetBlockset(2);
+  room.SetPalette(3);
+  room.SetRenderEntranceBlockset(0x10);
+
+  DungeonObjectSelectorTestAccess::SynchronizePreviewCacheRoomContext(selector,
+                                                                      room);
+  EXPECT_EQ(selector.preview_cache_invalidations_for_testing(), 1u);
+
+  DungeonObjectSelectorTestAccess::SeedPreviewCache(selector, 0x1234);
+  DungeonObjectSelectorTestAccess::SynchronizePreviewCacheRoomContext(selector,
+                                                                      room);
+  EXPECT_EQ(DungeonObjectSelectorTestAccess::PreviewCacheSize(selector), 1u)
+      << "An unchanged entrance graphics context must retain its previews";
+
+  room.SetRenderEntranceBlockset(0x11);
+  DungeonObjectSelectorTestAccess::SynchronizePreviewCacheRoomContext(selector,
+                                                                      room);
+  EXPECT_EQ(selector.preview_cache_invalidations_for_testing(), 2u);
+  EXPECT_EQ(DungeonObjectSelectorTestAccess::PreviewCacheSize(selector), 0u)
+      << "A new entrance Main GFX group must evict thumbnails rendered from "
+         "the prior room graphics buffer";
+}
+
+TEST(DungeonObjectSelectorPaletteTest,
+     FloorObjectTooltipKeysIncludeTheirRoomHeaderSource) {
+  zelda3::Room room;
+  room.set_floor1(4);
+  room.set_floor2(5);
+
+  const uint32_t floor_one_key =
+      DungeonObjectSelectorTestAccess::MakeLayoutCacheKey(
+          0xC4, /*preview_size=*/2, &room);
+  const uint32_t floor_two_key =
+      DungeonObjectSelectorTestAccess::MakeLayoutCacheKey(
+          0xDB, /*preview_size=*/2, &room);
+  const uint32_t unrelated_key =
+      DungeonObjectSelectorTestAccess::MakeLayoutCacheKey(
+          0x34, /*preview_size=*/2, &room);
+
+  room.set_floor1(6);
+  EXPECT_NE(DungeonObjectSelectorTestAccess::MakeLayoutCacheKey(
+                0xC4, /*preview_size=*/2, &room),
+            floor_one_key);
+  EXPECT_EQ(DungeonObjectSelectorTestAccess::MakeLayoutCacheKey(
+                0xDB, /*preview_size=*/2, &room),
+            floor_two_key);
+  EXPECT_EQ(DungeonObjectSelectorTestAccess::MakeLayoutCacheKey(
+                0x34, /*preview_size=*/2, &room),
+            unrelated_key);
+
+  room.set_floor2(7);
+  EXPECT_NE(DungeonObjectSelectorTestAccess::MakeLayoutCacheKey(
+                0xDB, /*preview_size=*/2, &room),
+            floor_two_key);
 }
 
 TEST(DungeonObjectSelectorPaletteTest, ObjectPreviewsDefaultOn) {

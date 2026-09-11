@@ -83,6 +83,13 @@ class ObjectDrawer {
   void SetBG1RevealMaskSource(gfx::BG1RevealMaskSource source) {
     bg1_reveal_mask_source_ = source;
   }
+  // Room objects 0xC4/0xDB copy the active Floor 1/Floor 2 pattern rather than
+  // reading a normal object tile payload.
+  void SetRoomFloorGraphics(uint8_t floor1, uint8_t floor2) {
+    floor1_graphics_ = floor1 & 0x0F;
+    floor2_graphics_ = floor2 & 0x0F;
+    has_room_floor_graphics_ = true;
+  }
 
   /**
    * @brief Draw a door to background buffers
@@ -303,7 +310,11 @@ class ObjectDrawer {
   mutable int current_chest_index_ = 0;
   mutable int current_room_event_index_ = 0;
   bool allow_track_corner_aliases_ = true;
+  bool has_room_floor_graphics_ = false;
+  uint8_t floor1_graphics_ = 0;
+  uint8_t floor2_graphics_ = 0;
   gfx::BackgroundBuffer* registry_secondary_bg_ = nullptr;
+  const gfx::BackgroundBuffer* registry_primary_layout_bg_ = nullptr;
   RoomObject::LayerType registry_primary_layer_ = RoomObject::LayerType::BG1;
   RoomObject::LayerType registry_secondary_layer_ = RoomObject::LayerType::BG2;
   gfx::BackgroundBuffer* active_object_bg1_mask_ = nullptr;

@@ -1,5 +1,6 @@
 #include "object_drawer.h"
 
+#include <array>
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
@@ -218,6 +219,7 @@ void ObjectDrawer::DrawUsingRegistryRoutine(
       .room_id = room_id_,
       .room_gfx_buffer = room_gfx_buffer_,
       .secondary_bg = registry_secondary_bg_,
+      .target_layout_bg = registry_primary_layout_bg_,
   };
   info->function(ctx);
 
@@ -267,9 +269,7 @@ absl::Status ObjectDrawer::DrawObject(
 
   // Check for custom object override first (guarded by feature flag).
   // We check this BEFORE routine lookup to allow overriding vanilla objects.
-  bool is_custom_object = false;
   if (HasActiveCustomObjectOverride(object, allow_track_corner_aliases_)) {
-    is_custom_object = true;
     // Custom objects default to drawing on the target layer only, unless all_bgs_ is set
     // Mask propagation is difficult without dimensions, so we rely on explicit transparency in the custom object tiles if needed
 
@@ -287,8 +287,26 @@ absl::Status ObjectDrawer::DrawObject(
     return absl::OkStatus();
   }
 
+  std::array<gfx::TileInfo, 8> room_floor_tiles;
+  std::span<const gfx::TileInfo> render_tiles = mutable_obj.tiles();
+  if (has_room_floor_graphics_ &&
+      (object.id_ == 0x00C4 || object.id_ == 0x00DB)) {
+    const uint8_t floor_graphics =
+        object.id_ == 0x00C4 ? floor1_graphics_ : floor2_graphics_;
+    const auto decoded = gfx::DecodeDungeonFloorTilePattern(
+        rom_->vector(), kRoomObjectTileAddress, kRoomObjectTileAddressFloor,
+        floor_graphics);
+    if (!decoded.has_value()) {
+      return absl::DataLossError(
+          absl::StrFormat("Object 0x%03X cannot read room floor pattern %d",
+                          object.id_, static_cast<int>(floor_graphics)));
+    }
+    room_floor_tiles = *decoded;
+    render_tiles = room_floor_tiles;
+  }
+
   // Skip objects that don't have tiles loaded
-  if (!is_custom_object && mutable_obj.tiles().empty()) {
+  if (render_tiles.empty()) {
     LOG_DEBUG("ObjectDrawer",
               "Object 0x%03X at (%d,%d) has NO TILES - skipping", object.id_,
               object.x_, object.y_);
@@ -302,15 +320,15 @@ absl::Status ObjectDrawer::DrawObject(
   LOG_DEBUG("ObjectDrawer",
             "Object 0x%03X at (%d,%d) size=%d -> routine=%d tiles=%zu",
             object.id_, object.x_, object.y_, object.size_, routine_id,
-            mutable_obj.tiles().size());
+            render_tiles.size());
 
   if (routine_id < 0 || routine_id >= static_cast<int>(draw_routines_.size())) {
     LOG_DEBUG("ObjectDrawer",
               "Object 0x%03X: NO ROUTINE (id=%d, max=%zu) - using fallback 1x1",
               object.id_, routine_id, draw_routines_.size());
     // Fallback to simple 1x1 drawing using first 8x8 tile
-    if (!mutable_obj.tiles().empty()) {
-      const auto& tile_info = mutable_obj.tiles()[0];
+    if (!render_tiles.empty()) {
+      const auto& tile_info = render_tiles[0];
       SetTraceContext(object, use_bg2 ? RoomObject::LayerType::BG2
                                       : RoomObject::LayerType::BG1);
       WriteTile8(target_bg, object.x_, object.y_, tile_info);
@@ -324,15 +342,15 @@ absl::Status ObjectDrawer::DrawObject(
   const DrawRoutineInfo* routine_info =
       DrawRoutineRegistry::Get().GetRoutineInfo(routine_id);
   if (routine_info && routine_info->min_tiles > 0 &&
-      static_cast<int>(mutable_obj.tiles().size()) < routine_info->min_tiles) {
+      static_cast<int>(render_tiles.size()) < routine_info->min_tiles) {
     LOG_WARN("ObjectDrawer",
              "Object 0x%03X at (%d,%d): tile payload too small "
              "(%zu < %d required by routine '%s') - skipping",
-             object.id_, object.x_, object.y_, mutable_obj.tiles().size(),
+             object.id_, object.x_, object.y_, render_tiles.size(),
              routine_info->min_tiles, routine_info->name.c_str());
     // Fall through to 1x1 fallback if any tiles are present
-    if (!mutable_obj.tiles().empty()) {
-      const auto& tile_info = mutable_obj.tiles()[0];
+    if (!render_tiles.empty()) {
+      const auto& tile_info = render_tiles[0];
       SetTraceContext(object, use_bg2 ? RoomObject::LayerType::BG2
                                       : RoomObject::LayerType::BG1);
       WriteTile8(target_bg, object.x_, object.y_, tile_info);
@@ -359,6 +377,9 @@ absl::Status ObjectDrawer::DrawObject(
                                   !is_both_bg && !use_rectangular_bg1_mask;
 
   registry_secondary_bg_ = nullptr;
+  registry_primary_layout_bg_ =
+      use_bg2 ? static_cast<const gfx::BackgroundBuffer*>(layout_bg2)
+              : static_cast<const gfx::BackgroundBuffer*>(layout_bg1);
   registry_primary_layer_ =
       use_bg2 ? RoomObject::LayerType::BG2 : RoomObject::LayerType::BG1;
   registry_secondary_layer_ =
@@ -393,16 +414,21 @@ absl::Status ObjectDrawer::DrawObject(
     // Draw to both background layers
     registry_secondary_bg_ = nullptr;
     registry_primary_layer_ = RoomObject::LayerType::BG1;
+    registry_primary_layout_bg_ = layout_bg1;
     SetTraceContext(object, RoomObject::LayerType::BG1);
-    draw_routines_[routine_id](this, object, bg1, mutable_obj.tiles(), state);
+    draw_routines_[routine_id](this, object, bg1, render_tiles, state);
     registry_primary_layer_ = RoomObject::LayerType::BG2;
+    registry_primary_layout_bg_ = layout_bg2;
     SetTraceContext(object, RoomObject::LayerType::BG2);
-    draw_routines_[routine_id](this, object, bg2, mutable_obj.tiles(), state);
+    draw_routines_[routine_id](this, object, bg2, render_tiles, state);
   } else {
     // Execute the appropriate draw routine on target buffer only
+    registry_primary_layout_bg_ =
+        dispatch_bg == &bg2
+            ? static_cast<const gfx::BackgroundBuffer*>(layout_bg2)
+            : static_cast<const gfx::BackgroundBuffer*>(layout_bg1);
     SetTraceContext(object, registry_primary_layer_);
-    draw_routines_[routine_id](this, object, *dispatch_bg, mutable_obj.tiles(),
-                               state);
+    draw_routines_[routine_id](this, object, *dispatch_bg, render_tiles, state);
   }
 
   const bool is_upper_spiral =
@@ -422,6 +448,19 @@ absl::Status ObjectDrawer::DrawObject(
     }
   }
 
+  if (!trace_only_ &&
+      object_render_routing::IsMixedStraightInterroomObject(object.id_)) {
+    // USDASM promotes a fixed BG1 column outside the lower staircase raster.
+    // North variants touch y-4..y-1; south variants touch y+4..y+7.
+    const int priority_y =
+        object_render_routing::IsNorthMixedStraightInterroomObject(object.id_)
+            ? object.y_ - 4
+            : object.y_ + 4;
+    for (int row = 0; row < 4; ++row) {
+      PromoteTilePriorityOnOwners(bg1, layout_bg1, object.x_, priority_y + row);
+    }
+  }
+
   if (trace_hook_active) {
     DrawRoutineUtils::ClearTraceHook();
   }
@@ -430,6 +469,7 @@ absl::Status ObjectDrawer::DrawObject(
   active_layout_bg1_mask_ = nullptr;
   active_mask_source_bg_ = nullptr;
   registry_secondary_bg_ = nullptr;
+  registry_primary_layout_bg_ = nullptr;
 
   // BG2 mask propagation is deferred to compositing so raw BG1 stays intact.
   //
@@ -2722,6 +2762,10 @@ void ObjectDrawer::WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
   if (trace_only_) {
     return;
   }
+  // Keep the logical tilemap synchronized with the bitmap/coverage owner.
+  // Conditional edge routines query this word after coverage selects whether
+  // the object or layout half owns the effective physical BG entry.
+  bg.SetTileAt(tile_x, tile_y, gfx::TileInfoToWord(tile_info));
   // Draw directly to bitmap instead of tile buffer to avoid being overwritten
   auto& bitmap = bg.bitmap();
   if (!bitmap.is_active() || bitmap.width() == 0) {
@@ -2989,833 +3033,7 @@ void ObjectDrawer::DrawLargeCanvasObject(const RoomObject& obj,
 
 std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
     const RoomObject& object) {
-  if (!routines_initialized_) {
-    InitializeDrawRoutines();
-  }
-
-  // Default size 16x16 (2x2 tiles)
-  int width = 16;
-  int height = 16;
-
-  int routine_id = GetDrawRoutineId(object.id_);
-  int size = object.size_;
-
-  // Based on routine ID, calculate dimensions
-  // This logic must match the draw routines
-  switch (routine_id) {
-    case 0:   // DrawRightwards2x2_1to15or32
-    case 4:   // DrawRightwards2x2_1to16
-    case 7:   // DrawDownwards2x2_1to15or32
-    case 11:  // DrawDownwards2x2_1to16
-      // 2x2 tiles repeated
-      if (routine_id == 0 || routine_id == 7) {
-        if (size == 0)
-          size = 32;
-      } else {
-        size = size & 0x0F;
-        if (size == 0)
-          size = 16;  // 0 usually means 16 for 1to16 routines
-      }
-
-      if (routine_id == 0 || routine_id == 4) {
-        // Rightwards: size * 2 tiles width, 2 tiles height
-        width = size * 16;
-        height = 16;
-      } else {
-        // Downwards: 2 tiles width, size * 2 tiles height
-        width = 16;
-        height = size * 16;
-      }
-      break;
-
-    case 1:  // RoomDraw_Rightwards2x4_1to15or26 (layout walls 0x01-0x02)
-    {
-      // ASM: GetSize_1to15or26 - defaults to 26 when size is 0
-      int effective_size = (size == 0) ? 26 : (size & 0x0F);
-      // Draws 2x4 tiles repeated 'effective_size' times horizontally
-      width = effective_size * 16;  // 2 tiles wide per repetition
-      height = 32;                  // 4 tiles tall
-      break;
-    }
-    case DrawRoutineIds::kWeird2x4_1to16: {  // Archery curtains (object 0xB5)
-      const int count = (size & 0x0F) + 1;
-      width = count * 16;
-      height = 32;
-      break;
-    }
-
-    case 2:  // RoomDraw_Rightwards2x4spaced4_1to16 (objects 0x03-0x04)
-    case 3:  // RoomDraw_Rightwards2x4spaced4_1to16_BothBG (objects 0x05-0x06)
-    {
-      // ASM: GetSize_1to16, so both routines repeat size + 1 times.
-      size = size & 0x0F;
-      int count = size + 1;
-      width = count * 16;  // 2 tiles wide per repetition (adjacent)
-      height = 32;         // 4 tiles tall
-      break;
-    }
-
-    case 5:  // DrawDiagonalAcute_1to16
-    case 6:  // DrawDiagonalGrave_1to16
-    {
-      // ASM: RoomDraw_DiagonalAcute/Grave_1to16
-      // Uses LDA #$0007; JSR RoomDraw_GetSize_1to16_timesA
-      // count = size + 7
-      // Each iteration draws 5 tiles vertically (RoomDraw_2x2and1 pattern)
-      // Width = count tiles, Height = 5 tiles base + (count-1) diagonal offset
-      size = size & 0x0F;
-      int count = size + 7;
-      width = count * 8;
-      height = (count + 4) * 8;  // 5 tiles + (count-1) = count + 4
-      break;
-    }
-    case 17:  // DrawDiagonalAcute_1to16_BothBG
-    case 18:  // DrawDiagonalGrave_1to16_BothBG
-    {
-      // ASM: RoomDraw_DiagonalAcute/Grave_1to16_BothBG
-      // Uses LDA #$0006; JSR RoomDraw_GetSize_1to16_timesA
-      // count = size + 6 (one less than non-BothBG)
-      size = size & 0x0F;
-      int count = size + 6;
-      width = count * 8;
-      height = (count + 4) * 8;  // 5 tiles + (count-1) = count + 4
-      break;
-    }
-
-    case 8:  // RoomDraw_Downwards4x2_1to15or26 (layout walls 0x61-0x62)
-    {
-      // ASM: GetSize_1to15or26 - defaults to 26 when size is 0
-      int effective_size = (size == 0) ? 26 : (size & 0x0F);
-      // Draws 4x2 tiles repeated 'effective_size' times vertically
-      width = 32;                    // 4 tiles wide
-      height = effective_size * 16;  // 2 tiles tall per repetition
-      break;
-    }
-    case 9:   // RoomDraw_Downwards4x2_1to16_BothBG (objects 0x63-0x64)
-    case 10:  // RoomDraw_DownwardsDecor4x2spaced4_1to16 (objects 0x65-0x66)
-    {
-      // ASM: GetSize_1to16, draws 4x2 tiles with spacing
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 32;           // 4 tiles wide
-      height = count * 16;  // 2 tiles tall per repetition (adjacent)
-      break;
-    }
-
-    case 12:  // RoomDraw_DownwardsHasEdge1x1_1to16_plus3
-      // ASM ($01:8EC3) uses GetSize_1to16_timesA with A=2, giving
-      // count = size + 2 middle tiles. Total span (corner + middles + end) =
-      // size + 4 tiles, matching the horizontal counterpart 0x22 (case 21).
-      size = size & 0x0F;
-      width = 8;
-      height = (size + 4) * 8;
-      break;
-    case 13:  // RoomDraw_DownwardsEdge1x1_1to16
-      size = size & 0x0F;
-      width = 8;
-      height = (size + 1) * 8;
-      break;
-    case 14:  // RoomDraw_DownwardsLeftCorners2x1_1to16_plus12
-    case 15:  // RoomDraw_DownwardsRightCorners2x1_1to16_plus12
-      size = size & 0x0F;
-      width = 16;
-      height = (size + 14) * 8;
-      break;
-
-    case 16:  // DrawRightwards4x4_1to16 (Routine 16)
-    {
-      // 4x4 block repeated horizontally based on size
-      // ASM: GetSize_1to16, count = (size & 0x0F) + 1
-      int count = (size & 0x0F) + 1;
-      width = 32 * count;  // 4 tiles * 8 pixels * count
-      height = 32;         // 4 tiles * 8 pixels
-      break;
-    }
-    case DrawRoutineIds::kWaterHopStairsA:
-    case DrawRoutineIds::kWaterHopStairsB:
-      width = 32;
-      height = 16;
-      break;
-    case DrawRoutineIds::kDamFloodGate:
-      width = 80;
-      height = 32;
-      break;
-    case 19:  // DrawCorner4x4 (Type 2 corners 0x100-0x103)
-    case 34:  // Water Face (4x4)
-    case 35:  // 4x4 Corner BothBG
-    case 36:  // Weird Corner Bottom
-    case 37:  // Weird Corner Top
-      // 4x4 tiles (32x32 pixels) - fixed size, no repetition
-      width = 32;
-      height = 32;
-      break;
-    case 39: {  // Chest routine (small or big)
-      // Infer size from tile span: big chests provide >=16 tiles
-      int tile_count = object.tiles().size();
-      if (tile_count >= 16) {
-        width = height = 32;  // Big chest 4x4
-      } else {
-        width = height = 16;  // Small chest 2x2
-      }
-      break;
-    }
-
-    case 20:  // Edge 1x2 (RoomDraw_Rightwards1x2_1to16_plus2)
-    {
-      // ZScream: width = size * 2 + 4, height = 3 tiles
-      size = size & 0x0F;
-      width = (size * 2 + 4) * 8;
-      height = 24;
-      break;
-    }
-
-    case 21:  // RoomDraw_RightwardsHasEdge1x1_1to16_plus3 (small rails 0x22)
-    {
-      // ZScream: count = size + 2 (corner + middle*count + end)
-      size = size & 0x0F;
-      width = (size + 4) * 8;
-      height = 8;
-      break;
-    }
-    case 22:  // RoomDraw_RightwardsHasEdge1x1_1to16_plus2 (carpet trim 0x23-0x2E)
-    {
-      // ASM: GetSize_1to16, count = size + 1
-      // Plus corner (1) + end (1) = count + 2 total width
-      size = size & 0x0F;
-      int count = size + 1;
-      width = (count + 2) * 8;  // corner + middle*count + end
-      height = 8;
-      break;
-    }
-    case 118:  // RoomDraw_RightwardsHasEdge1x1_1to16_plus23 (long rails 0x5F)
-    {
-      size = size & 0x0F;
-      width = (size + 23) * 8;
-      height = 8;
-      break;
-    }
-    case DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23:
-      size = size & 0x0F;
-      width = 8;
-      height = (size + 23) * 8;
-      break;
-    case DrawRoutineIds::kDownwardsEdge1x1_1to16plus7:
-      size = size & 0x0F;
-      width = 8;
-      height = (size + 8) * 8;
-      break;
-    case 25:  // RoomDraw_Rightwards1x1Solid_1to16_plus3
-    {
-      // ASM: GetSize_1to16_timesA(4), so count = size + 4
-      size = size & 0x0F;
-      width = (size + 4) * 8;
-      height = 8;
-      break;
-    }
-
-    case 23:  // RightwardsTopCorners1x2_1to16_plus13
-    case 24:  // RightwardsBottomCorners1x2_1to16_plus13
-      size = size & 0x0F;
-      width = 8 + size * 8;
-      height = 16;
-      break;
-
-    case 26:  // Door Switcher
-      width = 32;
-      height = 32;
-      break;
-
-    case 27:  // RoomDraw_RightwardsDecor4x4spaced2_1to16
-    {
-      // 4x4 tiles with 6-tile X spacing per repetition
-      // ASM: s * 6 spacing, count = size + 1
-      size = size & 0x0F;
-      int count = size + 1;
-      // Total width = (count - 1) * 6 (spacing) + 4 (last block)
-      width = ((count - 1) * 6 + 4) * 8;
-      height = 32;  // 4 tiles
-      break;
-    }
-
-    case 28:  // RoomDraw_RightwardsStatue2x3spaced2_1to16
-    {
-      // 2x3 tiles with 4-tile X spacing per repetition
-      // ASM: s * 4 spacing, count = size + 1
-      size = size & 0x0F;
-      int count = size + 1;
-      // Total width = (count - 1) * 4 (spacing) + 2 (last block)
-      width = ((count - 1) * 4 + 2) * 8;
-      height = 24;  // 3 tiles
-      break;
-    }
-
-    case 29:  // RoomDraw_RightwardsPillar2x4spaced4_1to16
-    {
-      // 2x4 tiles with 4-tile X spacing per repetition
-      // ASM: ADC #$0008 = 4 tiles between starts
-      size = size & 0x0F;
-      int count = size + 1;
-      // Total width = (count - 1) * 4 (spacing) + 2 (last block)
-      width = ((count - 1) * 4 + 2) * 8;
-      height = 32;  // 4 tiles
-      break;
-    }
-
-    case 30:  // RoomDraw_RightwardsDecor4x3spaced4_1to16
-    {
-      // 4x3 tiles with 8-tile X spacing per repetition
-      // ASM: ADC #$0008 = 8-byte advance = 4 tiles gap between 4-tile objects
-      size = size & 0x0F;
-      int count = size + 1;
-      // Total width = (count - 1) * 8 (spacing) + 4 (last block)
-      width = ((count - 1) * 8 + 4) * 8;
-      height = 24;  // 3 tiles
-      break;
-    }
-
-    case 31:  // RoomDraw_RightwardsDoubled2x2spaced2_1to16
-    {
-      // 4x2 tiles (doubled 2x2) with 6-tile X spacing
-      // ASM: s * 6 spacing, count = size + 1
-      size = size & 0x0F;
-      int count = size + 1;
-      // Total width = (count - 1) * 6 (spacing) + 4 (last block)
-      width = ((count - 1) * 6 + 4) * 8;
-      height = 16;  // 2 tiles
-      break;
-    }
-    case 32:  // RoomDraw_RightwardsDecor2x2spaced12_1to16
-    {
-      // 2x2 tiles with 14-tile X spacing per repetition
-      // ASM: s * 14 spacing, count = size + 1
-      size = size & 0x0F;
-      int count = size + 1;
-      // Total width = (count - 1) * 14 (spacing) + 2 (last block)
-      width = ((count - 1) * 14 + 2) * 8;
-      height = 16;  // 2 tiles
-      break;
-    }
-
-    case 33:  // Somaria Line
-      // Each subtype-3 path piece is one 8x8 tile.
-      width = 8;
-      height = 8;
-      break;
-
-    case 38:  // Nothing (RoomDraw_Nothing)
-      width = 8;
-      height = 8;
-      break;
-
-    case 40:  // Rightwards 4x2 (FloorTile)
-    {
-      // 4 cols x 2 rows, GetSize_1to16
-      size = size & 0x0F;
-      int count = size + 1;
-      width = count * 4 * 8;  // 4 tiles per repetition
-      height = 16;            // 2 tiles
-      break;
-    }
-
-    case 41:  // Rightwards Decor 4x2 spaced 12 (wall torches 0x55-0x56)
-    {
-      // ASM: 4 columns x 2 rows with 12-tile horizontal spacing.
-      size = size & 0x0F;
-      int count = size + 1;
-      width = ((count - 1) * 12 + 4) * 8;
-      height = 16;
-      break;
-    }
-
-    case 42:  // Rightwards Cannon Hole 4x3
-    {
-      // 4x3 tiles, GetSize_1to16
-      size = size & 0x0F;
-      int count = size + 1;
-      width = count * 4 * 8;
-      height = 24;
-      break;
-    }
-
-    case 43:  // Downwards Floor 4x4
-    {
-      // 4x4 tiles, GetSize_1to16
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 32;
-      height = count * 4 * 8;
-      break;
-    }
-
-    case 44:  // Downwards 1x1 Solid +3
-    {
-      size = size & 0x0F;
-      width = 8;
-      height = (size + 4) * 8;
-      break;
-    }
-
-    case 45:  // Downwards Decor 4x4 spaced 2
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 32;
-      height = ((count - 1) * 6 + 4) * 8;
-      break;
-    }
-
-    case 46:  // Downwards Pillar 2x4 spaced 2
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 16;
-      height = ((count - 1) * 6 + 4) * 8;
-      break;
-    }
-
-    case 47:  // Downwards Decor 3x4 spaced 4
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 24;
-      height = ((count - 1) * 6 + 4) * 8;
-      break;
-    }
-
-    case 48:  // Downwards Decor 2x2 spaced 12
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 16;
-      height = ((count - 1) * 14 + 2) * 8;
-      break;
-    }
-
-    case 49:  // Downwards Line 1x1 +1
-    {
-      size = size & 0x0F;
-      width = 8;
-      height = (size + 2) * 8;
-      break;
-    }
-
-    case 50:  // Downwards Decor 2x4 spaced 8
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 16;
-      height = ((count - 1) * 12 + 4) * 8;
-      break;
-    }
-
-    case 51:  // Rightwards Line 1x1 +1
-    {
-      size = size & 0x0F;
-      width = (size + 2) * 8;
-      height = 8;
-      break;
-    }
-
-    case 52:  // Rightwards Bar 4x3
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = ((count - 1) * 6 + 4) * 8;
-      height = 24;
-      break;
-    }
-
-    case 53:  // Rightwards Shelf 4x4
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = ((count - 1) * 6 + 4) * 8;
-      height = 32;
-      break;
-    }
-
-    case 54:  // Rightwards Big Rail 1x3 +5
-    {
-      size = size & 0x0F;
-      width = (size + 6) * 8;
-      height = 24;
-      break;
-    }
-
-    case 55:  // Rightwards Block 2x2 spaced 2
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = ((count - 1) * 4 + 2) * 8;
-      height = 16;
-      break;
-    }
-
-    // Routines 56-64: SuperSquare patterns
-    // ASM: Type1/Type3 objects pack 2-bit X/Y sizes into a 4-bit size:
-    //   size = (x_size << 2) | y_size, where x_size/y_size are 0..3 (meaning 1..4).
-    // Each super square unit is 4 tiles (32 pixels) in each dimension.
-    case 56:  // 4x4BlocksIn4x4SuperSquare
-    case 57:  // 3x3FloorIn4x4SuperSquare
-    case 58:  // 4x4FloorIn4x4SuperSquare
-    case 59:  // 4x4FloorOneIn4x4SuperSquare
-    case 60:  // 4x4FloorTwoIn4x4SuperSquare
-    case 62:  // Spike2x2In4x4SuperSquare
-    {
-      int size_x = ((size >> 2) & 0x03) + 1;
-      int size_y = (size & 0x03) + 1;
-      width = size_x * 32;   // 4 tiles per super square
-      height = size_y * 32;  // 4 tiles per super square
-      break;
-    }
-    case 61:  // BigHole4x4
-    case 63:  // TableRock4x4
-    case 64:  // WaterOverlay8x8
-      width = 32;
-      height = 32;
-      break;
-
-    // Routines 65-74: Various downwards/rightwards patterns
-    case 65:  // DownwardsDecor3x4spaced2
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 24;
-      height = ((count - 1) * 5 + 4) * 8;
-      break;
-    }
-
-    case 66:  // DownwardsBigRail3x1 +5
-    {
-      // Top cap (2x2) + Middle (2x1 x count) + Bottom cap (2x3)
-      // Total: 2 tiles wide, 2 + (size+1) + 3 = size + 6 tiles tall
-      size = size & 0x0F;
-      width = 16;  // 2 tiles wide
-      height = (size + 6) * 8;
-      break;
-    }
-
-    case 67:  // DownwardsBlock2x2spaced2
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 16;
-      height = ((count - 1) * 4 + 2) * 8;
-      break;
-    }
-
-    case 68:  // DownwardsCannonHole3x4
-    {
-      size = size & 0x0F;
-      width = 24;
-      // Height = repeated 3x2 segment (size+1) + final 3x2 edge segment.
-      // => (2 * (size + 2)) tiles.
-      height = (2 * (size + 2)) * 8;
-      break;
-    }
-
-    case 69:  // DownwardsBar2x5
-    {
-      size = size & 0x0F;
-      width = 16;
-      // 1 top row + 2*(size+2) body rows.
-      height = (2 * size + 5) * 8;
-      break;
-    }
-
-    case 70:  // DownwardsPots2x2
-    case 71:  // DownwardsHammerPegs2x2
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 16;
-      height = count * 2 * 8;
-      break;
-    }
-
-    case 72:  // RightwardsEdge1x1 +7
-    {
-      size = size & 0x0F;
-      width = (size + 8) * 8;
-      height = 8;
-      break;
-    }
-
-    case 73:  // RightwardsPots2x2
-    case 74:  // RightwardsHammerPegs2x2
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = count * 2 * 8;
-      height = 16;
-      break;
-    }
-
-    // Diagonal ceilings (75-78) - TRIANGLE shapes
-    // Draw uses count = (size & 0x0F) + 4
-    // Outline uses smaller size since triangle only fills half the square area
-    case 75:  // DiagonalCeilingTopLeft - triangle at origin
-    case 76:  // DiagonalCeilingBottomLeft - triangle at origin
-    {
-      // Smaller outline for triangle - use half the drawn area
-      int count = (size & 0x0F) + 2;
-      width = count * 8;
-      height = count * 8;
-      break;
-    }
-    case 77:  // DiagonalCeilingTopRight - triangle shifts diagonally
-    case 78:  // DiagonalCeilingBottomRight - triangle shifts diagonally
-    {
-      // Smaller outline for diagonal triangles
-      int count = (size & 0x0F) + 2;
-      width = count * 8;
-      height = count * 8;
-      break;
-    }
-
-    case 79: {  // ClosedChestPlatform
-      int size_x = (size >> 2) & 0x03;
-      int size_y = size & 0x03;
-      width = (size_x * 2 + 14) * 8;
-      height = (size_y * 2 + 8) * 8;
-      break;
-    }
-
-    // Special platform routines (80-82)
-    case 80:  // MovingWallWest
-    case 81:  // MovingWallEast
-      return DimensionService::Get().GetPixelDimensions(object);
-
-    case 82: {  // OpenChestPlatform
-      int size_x = (size >> 2) & 0x03;
-      int size_y = size & 0x03;
-      width = (size_x * 2 + 10) * 8;
-      height = (size_y * 2 + 7) * 8;
-      break;
-    }
-
-    // Stair routines - different sizes for different types
-
-    // 4x4 stair patterns (32x32 pixels)
-    case 83:        // InterRoomFatStairsUp (0x12D)
-    case 84:        // InterRoomFatStairsDownA (0x12E)
-    case 85:        // InterRoomFatStairsDownB (0x12F)
-    case 86:        // AutoStairs (0x130-0x133)
-    case 87:        // StraightInterroomStairs (0xF9E-0xFA9)
-      width = 32;   // 4 tiles
-      height = 32;  // 4 tiles (4x4 pattern)
-      break;
-
-    // 4x3 stair patterns (32x24 pixels)
-    case 88:  // SpiralStairsGoingUpUpper (0x138)
-    case 89:  // SpiralStairsGoingDownUpper (0x139)
-    case 90:  // SpiralStairsGoingUpLower (0x13A)
-    case 91:  // SpiralStairsGoingDownLower (0x13B)
-      // ASM: RoomDraw_1x3N_rightwards with A=4 -> 4 columns x 3 rows
-      width = 32;   // 4 tiles
-      height = 24;  // 3 tiles
-      break;
-
-    case 92:  // BigKeyLock
-      width = 16;
-      height = 16;
-      break;
-
-    case 93:  // BombableFloor
-      width = 32;
-      height = 32;
-      break;
-
-    case 94:  // EmptyWaterFace
-      width = 32;
-      // Report the larger stateful footprint so editor bounds do not
-      // undershoot the active 4x5 branch.
-      height = 40;
-      break;
-
-    case 95:  // SpittingWaterFace
-      width = 32;
-      height = 40;
-      break;
-
-    case 96:  // DrenchingWaterFace
-      width = 32;
-      height = 56;
-      break;
-
-    case 97:        // PrisonCell
-      width = 128;  // 16 tiles
-      height = 32;  // 4 tiles
-      break;
-
-    case 98:  // Bed4x5
-      width = 32;
-      height = 40;
-      break;
-
-    case 99:        // Rightwards3x6
-      width = 48;   // 6 tiles
-      height = 24;  // 3 tiles
-      break;
-
-    case 100:  // Utility6x3
-      width = 48;
-      height = 24;
-      break;
-
-    case 101:  // Utility3x5
-      width = 24;
-      height = 40;
-      break;
-
-    case 102:  // VerticalTurtleRockPipe
-      width = 32;
-      height = 48;
-      break;
-
-    case 103:  // HorizontalTurtleRockPipe
-      width = 48;
-      height = 32;
-      break;
-
-    case 104:      // LightBeam
-      width = 32;  // 4 tiles
-      height = 80;
-      break;
-
-    case 105:  // BigLightBeam
-      width = 64;
-      height = 64;
-      break;
-
-    case DrawRoutineIds::kFloorLight:
-      width = 64;
-      height = 64;
-      break;
-
-    case 106:  // BossShell4x4
-      width = 32;
-      height = 32;
-      break;
-
-    case DrawRoutineIds::kVitreousGooDamage:
-      width = 160;
-      height = 64;
-      break;
-
-    case 107:  // SolidWallDecor3x4
-      width = 24;
-      height = 32;
-      break;
-
-    case 108:  // ArcheryGameTargetDoor
-      width = 24;
-      height = 48;
-      break;
-
-    case 109:  // GanonTriforceFloorDecor
-      width = 64;
-      height = 64;
-      break;
-
-    case 110:  // Single2x2
-      width = 16;
-      height = 16;
-      break;
-
-    case 111:  // Waterfall47 (object 0x47)
-    {
-      // ASM: count = (size+1)*2, draws 1x5 columns
-      // Width = first column + middle columns + last column = 2 + count tiles
-      size = size & 0x0F;
-      int count = (size + 1) * 2;
-      width = (2 + count) * 8;
-      height = 40;  // 5 tiles
-      break;
-    }
-    case 112:  // Waterfall48 (object 0x48)
-    {
-      // ASM: count = (size+1)*2, draws 1x3 columns
-      // Width = first column + middle columns + last column = 2 + count tiles
-      size = size & 0x0F;
-      int count = (size + 1) * 2;
-      width = (2 + count) * 8;
-      height = 24;  // 3 tiles
-      break;
-    }
-
-    case 113:  // Single4x4 (no repetition) - 4x4 TILE16 = 8x8 TILE8
-      // ASM RoomDraw_4x4 = 4x4 tile8.
-      width = 32;
-      height = 32;
-      break;
-
-    case 114:  // Single4x3 (no repetition)
-      // 4 tiles wide x 3 tiles tall = 32x24 pixels
-      width = 32;
-      height = 24;
-      break;
-
-    case 115:  // RupeeFloor (special pattern)
-      // Columns at x + 0, +2, +4 bound a 5x8-tile area = 40x64 pixels.
-      width = 40;
-      height = 64;
-      break;
-
-    case 116:  // Actual4x4 (true 4x4 tile8 pattern, no repetition)
-      // 4 tile8s x 4 tile8s = 32x32 pixels
-      width = 32;
-      height = 32;
-      break;
-
-    case DrawRoutineIds::kBigWallDecor:
-      width = 64;
-      height = 24;
-      break;
-
-    case DrawRoutineIds::kTableBowl:
-      width = 32;
-      height = 16;
-      break;
-
-    case DrawRoutineIds::kSmithyFurnace:
-      width = 48;
-      height = 64;
-      break;
-
-    case DrawRoutineIds::kBigGrayRock:
-      width = 32;
-      height = 32;
-      break;
-
-    case DrawRoutineIds::kAgahnimsAltar:
-      width = 112;
-      height = 112;
-      break;
-
-    case DrawRoutineIds::kFortuneTellerRoom:
-      width = 112;
-      height = 112;
-      break;
-
-    case DrawRoutineIds::kMagicBatAltar:
-      width = 64;
-      height = 56;
-      break;
-
-    default:
-      // Fallback to naive calculation if not handled
-      // Matches DungeonCanvasViewer::DrawRoomObjects logic
-      {
-        int size_h = (object.size_ & 0x0F);
-        int size_v = (object.size_ >> 4) & 0x0F;
-        width = (size_h + 1) * 8;
-        height = (size_v + 1) * 8;
-      }
-      break;
-  }
-
-  return {width, height};
+  return DimensionService::Get().GetPixelDimensions(object);
 }
 
 void yaze::zelda3::ObjectDrawer::DrawCustomObject(

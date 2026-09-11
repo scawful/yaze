@@ -140,7 +140,8 @@ TEST(ObjectLayerSemanticsTest, RoutineMetadataCanForceBothBgForType2Objects) {
 }
 
 TEST(ObjectLayerSemanticsTest, AllBgsOverrideForcesBothBg) {
-  RoomObject obj(/*id=*/0x0C, /*x=*/0, /*y=*/0, /*size=*/0, /*layer=*/1);
+  RoomObject obj(/*id=*/0x21, /*x=*/0, /*y=*/0, /*size=*/0, /*layer=*/1);
+  obj.all_bgs_ = true;
 
   EXPECT_TRUE(obj.all_bgs_);
   const auto sem = GetObjectLayerSemantics(obj);

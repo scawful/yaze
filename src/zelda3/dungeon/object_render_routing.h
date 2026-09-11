@@ -31,6 +31,10 @@ inline constexpr bool IsMixedStraightInterroomObject(int object_id) {
   return object_id >= 0xFA6 && object_id <= 0xFA9;
 }
 
+inline constexpr bool IsNorthMixedStraightInterroomObject(int object_id) {
+  return object_id == 0xFA6 || object_id == 0xFA7;
+}
+
 inline constexpr bool IsSouthMixedStraightInterroomObject(int object_id) {
   return object_id == 0xFA8 || object_id == 0xFA9;
 }

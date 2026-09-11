@@ -76,7 +76,9 @@ TEST_F(DungeonRoomRenderParityTest, Room00FingerprintSmoke) {
   // Self-fingerprint drift guard recorded from the canonical US ROM after the
   // test began loading the real room header and applying canvas merge/effect
   // settings. Independent visual truth remains in the Mesen ROI suite.
-  EXPECT_EQ(fingerprint.checksum, 9478994322329370003ull);
+  // Floor-copy object 0xC4 now resolves its effective tile payload from this
+  // room's Floor1 header value, matching the vanilla room-draw path.
+  EXPECT_EQ(fingerprint.checksum, 14786764279995352503ull);
   EXPECT_EQ(fingerprint.non_backdrop_pixels, 262144);
 }
 

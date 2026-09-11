@@ -1,51 +1,5 @@
-// Phase 4 Routine Mappings (0x80-0xFF range)
-//
-// Steps 1, 2, 3, 4, 5 completed - 83 routines total (0-82)
-//
-// Step 1 Quick Fixes:
-// - 0x8D-0x8E: 25 -> 13 (DownwardsEdge1x1_1to16)
-// - 0x92-0x93: 11 -> 7 (Downwards2x2_1to15or32)
-// - 0x94: 16 -> 43 (DownwardsFloor4x4_1to16)
-// - 0xB6-0xB7: 8 -> 1 (Rightwards2x4_1to15or26)
-// - 0xB8-0xB9: 11 -> 0 (Rightwards2x2_1to15or32)
-// - 0xBB: 11 -> 55 (RightwardsBlock2x2spaced2_1to16)
-//
-// Step 2 Simple Variant Routines (IDs 65-74):
-// - 0x81-0x84: routine 65 (DrawDownwardsDecor3x4spaced2_1to16)
-// - 0x88: routine 66 (DrawDownwardsBigRail3x1_1to16plus5)
-// - 0x89: routine 67 (DrawDownwardsBlock2x2spaced2_1to16)
-// - 0x85-0x86: routine 68 (DrawDownwardsCannonHole3x4_1to16)
-// - 0x8F: routine 69 (DrawDownwardsBar2x5_1to16)
-// - 0x95: routine 70 (DrawDownwardsPots2x2_1to16)
-// - 0x96: routine 71 (DrawDownwardsHammerPegs2x2_1to16)
-// - 0xB0-0xB1: routine 72 (DrawRightwardsEdge1x1_1to16plus7)
-// - 0xBC: routine 73 (DrawRightwardsPots2x2_1to16)
-// - 0xBD: routine 74 (DrawRightwardsHammerPegs2x2_1to16)
-// - 0x8B-0x8C: routine 122 (DrawDownwardsEdge1x1_1to16plus7)
-//
-// Step 3 Diagonal Ceiling Routines (IDs 75-78):
-// - 0xA0, 0xA5, 0xA9: routine 75 (DrawDiagonalCeilingTopLeft)
-// - 0xA1, 0xA6, 0xAA: routine 76 (DrawDiagonalCeilingBottomLeft)
-// - 0xA2, 0xA7, 0xAB: routine 77 (DrawDiagonalCeilingTopRight)
-// - 0xA3, 0xA8, 0xAC: routine 78 (DrawDiagonalCeilingBottomRight)
-//
-// Step 4 SuperSquare Routines (IDs 56-64):
-// - 0xC0, 0xC2: routine 56 (Draw4x4BlocksIn4x4SuperSquare)
-// - 0xC3, 0xD7: routine 57 (Draw3x3FloorIn4x4SuperSquare)
-// - 0xC5-0xCA, 0xD1-0xD2, 0xD9, 0xDF-0xE8: routine 58 (Draw4x4FloorIn4x4SuperSquare)
-// - 0xC4: routine 59 (Draw4x4FloorOneIn4x4SuperSquare)
-// - 0xDB: routine 60 (Draw4x4FloorTwoIn4x4SuperSquare)
-// - 0xA4: routine 61 (DrawBigHole4x4_1to16)
-// - 0xDE: routine 62 (DrawSpike2x2In4x4SuperSquare)
-// - 0xDD: routine 63 (DrawTableRock4x4_1to16)
-// - 0xD8, 0xDA: routine 64 (DrawWaterOverlay8x8_1to16)
-//
-// Step 5 Special Routines (IDs 79-82):
-// - 0xC1: routine 79 (DrawClosedChestPlatform)
-// - 0xCD: routine 80 (DrawMovingWallWest)
-// - 0xCE: routine 81 (DrawMovingWallEast)
-// - 0xDC: routine 82 (DrawOpenChestPlatform)
-// - 0xD3-0xD6: routine 38 (DrawNothing - logic-only objects)
+// Object-to-routine mapping and focused draw-behavior regressions. Independent
+// pixel evidence lives in dungeon_room_regression_fixtures_test.cc.
 
 #include <algorithm>
 #include <vector>
@@ -451,6 +405,165 @@ TEST_F(DrawRoutineMappingTest,
   }
 }
 
+TEST_F(DrawRoutineMappingTest, SolidPlus3RoutinesExtendFromTheObjectOrigin) {
+  auto& reg = DrawRoutineRegistry::Get();
+  const DrawRoutineInfo* horizontal =
+      reg.GetRoutineInfo(DrawRoutineIds::kRightwards1x1Solid_1to16_plus3);
+  const DrawRoutineInfo* vertical =
+      reg.GetRoutineInfo(DrawRoutineIds::kDownwards1x1Solid_1to16_plus3);
+  ASSERT_NE(horizontal, nullptr);
+  ASSERT_NE(vertical, nullptr);
+
+  const std::vector<gfx::TileInfo> tiles = {MakeTile(0x0310, 3)};
+  constexpr int kAnchorX = 9;
+  constexpr int kAnchorY = 6;
+
+  for (uint8_t size : {uint8_t{0}, uint8_t{5}, uint8_t{15}}) {
+    SCOPED_TRACE(::testing::Message() << "size=" << static_cast<int>(size));
+    const int expected_count = static_cast<int>(size) + 4;
+
+    auto draw = [&](const DrawRoutineInfo& info, const RoomObject& object) {
+      gfx::BackgroundBuffer bg;
+      DrawContext ctx{bg,
+                      object,
+                      std::span<const gfx::TileInfo>(tiles),
+                      /*state=*/nullptr,
+                      rom_.get(),
+                      /*room_id=*/0,
+                      /*room_gfx_buffer=*/nullptr,
+                      /*secondary_bg=*/nullptr};
+      info.function(ctx);
+      return bg;
+    };
+
+    const auto horizontal_bg =
+        draw(*horizontal, RoomObject(0x34, kAnchorX, kAnchorY, size, 0));
+    const auto horizontal_points = CollectNonZeroTiles(horizontal_bg);
+    ASSERT_EQ(static_cast<int>(horizontal_points.size()), expected_count);
+    for (int x = kAnchorX; x < kAnchorX + expected_count; ++x) {
+      EXPECT_TRUE(ContainsPoint(horizontal_points, x, kAnchorY));
+    }
+
+    const auto vertical_bg =
+        draw(*vertical, RoomObject(0x71, kAnchorX, kAnchorY, size, 0));
+    const auto vertical_points = CollectNonZeroTiles(vertical_bg);
+    ASSERT_EQ(static_cast<int>(vertical_points.size()), expected_count);
+    for (int y = kAnchorY; y < kAnchorY + expected_count; ++y) {
+      EXPECT_TRUE(ContainsPoint(vertical_points, kAnchorX, y));
+    }
+  }
+}
+
+TEST_F(DrawRoutineMappingTest,
+       HorizontalCornerRoutinesUseUsdasmCapsAndObjectOrigin) {
+  auto& reg = DrawRoutineRegistry::Get();
+  const std::vector<gfx::TileInfo> tiles = {
+      MakeTile(0x0300, 0), MakeTile(0x0301, 1), MakeTile(0x0302, 2),
+      MakeTile(0x0303, 3), MakeTile(0x0304, 4), MakeTile(0x0305, 5)};
+  constexpr int kAnchorX = 6;
+  constexpr int kAnchorY = 8;
+  constexpr int kBodyCount = 10;
+
+  struct Case {
+    int routine_id;
+    int object_id;
+    bool top_corner;
+  };
+  for (const auto& tc :
+       {Case{DrawRoutineIds::kRightwardsTopCorners1x2_1to16_plus13, 0x2F, true},
+        Case{DrawRoutineIds::kRightwardsBottomCorners1x2_1to16_plus13, 0x30,
+             false}}) {
+    SCOPED_TRACE(::testing::Message() << "routine=" << tc.routine_id);
+    const DrawRoutineInfo* info = reg.GetRoutineInfo(tc.routine_id);
+    ASSERT_NE(info, nullptr);
+
+    gfx::BackgroundBuffer bg;
+    const RoomObject object(tc.object_id, kAnchorX, kAnchorY, 0, 0);
+    DrawContext ctx{bg,
+                    object,
+                    std::span<const gfx::TileInfo>(tiles),
+                    /*state=*/nullptr,
+                    rom_.get(),
+                    /*room_id=*/0,
+                    /*room_gfx_buffer=*/nullptr,
+                    /*secondary_bg=*/nullptr};
+    info->function(ctx);
+
+    const int edge_y = tc.top_corner ? kAnchorY : kAnchorY + 1;
+    const int fill_y = tc.top_corner ? kAnchorY + 1 : kAnchorY;
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, kAnchorX, edge_y), tiles[1].id_);
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, kAnchorX + 1, edge_y),
+              tiles[2].id_);
+    for (int x = kAnchorX; x < kAnchorX + kBodyCount + 4; ++x) {
+      EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, x, fill_y), tiles[0].id_)
+          << "x=" << x;
+    }
+    for (int x = kAnchorX + 2; x < kAnchorX + 2 + kBodyCount; ++x) {
+      EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, x, edge_y), tiles[3].id_)
+          << "x=" << x;
+    }
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, kAnchorX + kBodyCount + 2, edge_y),
+              tiles[4].id_);
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, kAnchorX + kBodyCount + 3, edge_y),
+              tiles[5].id_);
+  }
+}
+
+TEST_F(DrawRoutineMappingTest,
+       DownwardsCornerRoutinesUseUsdasmCapsAndObjectOrigin) {
+  auto& reg = DrawRoutineRegistry::Get();
+  const std::vector<gfx::TileInfo> tiles = {
+      MakeTile(0x0300, 0), MakeTile(0x0301, 1), MakeTile(0x0302, 2),
+      MakeTile(0x0303, 3), MakeTile(0x0304, 4), MakeTile(0x0305, 5)};
+  constexpr int kAnchorX = 6;
+  constexpr int kAnchorY = 8;
+  constexpr int kBodyCount = 10;
+
+  struct Case {
+    int routine_id;
+    int object_id;
+    bool left_corner;
+  };
+  for (const auto& tc :
+       {Case{DrawRoutineIds::kDownwardsLeftCorners2x1_1to16_plus12, 0x6C, true},
+        Case{DrawRoutineIds::kDownwardsRightCorners2x1_1to16_plus12, 0x6D,
+             false}}) {
+    SCOPED_TRACE(::testing::Message() << "routine=" << tc.routine_id);
+    const DrawRoutineInfo* info = reg.GetRoutineInfo(tc.routine_id);
+    ASSERT_NE(info, nullptr);
+
+    gfx::BackgroundBuffer bg;
+    const RoomObject object(tc.object_id, kAnchorX, kAnchorY, 0, 0);
+    DrawContext ctx{bg,
+                    object,
+                    std::span<const gfx::TileInfo>(tiles),
+                    /*state=*/nullptr,
+                    rom_.get(),
+                    /*room_id=*/0,
+                    /*room_gfx_buffer=*/nullptr,
+                    /*secondary_bg=*/nullptr};
+    info->function(ctx);
+
+    const int edge_x = tc.left_corner ? kAnchorX : kAnchorX + 1;
+    const int fill_x = tc.left_corner ? kAnchorX + 1 : kAnchorX;
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, edge_x, kAnchorY), tiles[1].id_);
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, edge_x, kAnchorY + 1),
+              tiles[2].id_);
+    for (int y = kAnchorY; y < kAnchorY + kBodyCount + 4; ++y) {
+      EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, fill_x, y), tiles[0].id_)
+          << "y=" << y;
+    }
+    for (int y = kAnchorY + 2; y < kAnchorY + 2 + kBodyCount; ++y) {
+      EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, edge_x, y), tiles[3].id_)
+          << "y=" << y;
+    }
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, edge_x, kAnchorY + kBodyCount + 2),
+              tiles[4].id_);
+    EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, edge_x, kAnchorY + kBodyCount + 3),
+              tiles[5].id_);
+  }
+}
+
 TEST_F(DrawRoutineMappingTest,
        DownwardsEdgePlus7RepeatsOneTileForSizePlusEightRows) {
   auto& reg = DrawRoutineRegistry::Get();
@@ -510,9 +623,9 @@ TEST_F(DrawRoutineMappingTest,
 
   const std::vector<Case> cases = {
       {DrawRoutineIds::kDownwardsLeftCorners2x1_1to16_plus12,
-       RoomObject(0x6C, 6, 8, 0, 0), 18, 8, 18, 8, 19, 8, 18, 18},
+       RoomObject(0x6C, 6, 8, 0, 0), 6, 8, 6, 8, 7, 8, 6, 6},
       {DrawRoutineIds::kDownwardsRightCorners2x1_1to16_plus12,
-       RoomObject(0x6D, 6, 8, 0, 0), 19, 8, 19, 8, 18, 8, 19, 19},
+       RoomObject(0x6D, 6, 8, 0, 0), 7, 8, 7, 8, 6, 8, 7, 7},
   };
 
   for (const auto& tc : cases) {
@@ -570,10 +683,9 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype1Mappings) {
   EXPECT_EQ(drawer.GetDrawRoutineId(0x33), 16);
 }
 
-TEST_F(DrawRoutineMappingTest, VerifiesPhase4Step2Mappings) {
+TEST_F(DrawRoutineMappingTest, MapsDownwardAndHorizontalVariantFamilies) {
   ObjectDrawer drawer(rom_.get(), 0);
 
-  // Step 2 Simple Variant Routines
   // 0x81-0x84: routine 65 (DownwardsDecor3x4spaced2_1to16)
   EXPECT_EQ(drawer.GetDrawRoutineId(0x81), 65);
   EXPECT_EQ(drawer.GetDrawRoutineId(0x84), 65);
@@ -611,10 +723,9 @@ TEST_F(DrawRoutineMappingTest, VerifiesPhase4Step2Mappings) {
             DrawRoutineIds::kDownwardsEdge1x1_1to16plus7);
 }
 
-TEST_F(DrawRoutineMappingTest, VerifiesPhase4Step3DiagonalCeilingMappings) {
+TEST_F(DrawRoutineMappingTest, MapsDiagonalCeilingFamilies) {
   ObjectDrawer drawer(rom_.get(), 0);
 
-  // Step 3 Diagonal Ceiling Routines
   // DiagonalCeilingTopLeft: 0xA0, 0xA5, 0xA9 -> routine 75
   EXPECT_EQ(drawer.GetDrawRoutineId(0xA0), 75);
   EXPECT_EQ(drawer.GetDrawRoutineId(0xA5), 75);
@@ -671,29 +782,29 @@ TEST_F(DrawRoutineMappingTest,
        RoomObject(0xA1, 10, 10, 0, 0),
        10,
        13,
-       7,
-       10,
-       {10, 10},
-       {10, 7},
-       {13, 7}},
-      {77,
-       RoomObject(0xA2, 10, 10, 0, 0),
-       7,
-       10,
        10,
        13,
        {10, 10},
-       {7, 10},
-       {7, 13}},
+       {13, 13},
+       {13, 10}},
+      {77,
+       RoomObject(0xA2, 10, 10, 0, 0),
+       10,
+       13,
+       10,
+       13,
+       {10, 10},
+       {13, 13},
+       {10, 13}},
       {78,
        RoomObject(0xA3, 10, 10, 0, 0),
-       7,
        10,
+       13,
        7,
        10,
        {10, 10},
-       {10, 7},
-       {7, 7}},
+       {13, 7},
+       {10, 7}},
   };
 
   for (const auto& tc : cases) {
@@ -742,10 +853,9 @@ TEST_F(DrawRoutineMappingTest,
   }
 }
 
-TEST_F(DrawRoutineMappingTest, VerifiesPhase4Step5SpecialMappings) {
+TEST_F(DrawRoutineMappingTest, MapsMovingWallAndChestPlatformFamilies) {
   ObjectDrawer drawer(rom_.get(), 0);
 
-  // Step 5 Special Routines
   // ClosedChestPlatform: 0xC1 -> routine 79
   EXPECT_EQ(drawer.GetDrawRoutineId(0xC1), 79);
 
