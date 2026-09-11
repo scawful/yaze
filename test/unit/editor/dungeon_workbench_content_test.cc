@@ -261,34 +261,67 @@ TEST(DungeonWorkbenchContentLayoutTest,
 }
 
 TEST(DungeonWorkbenchContentLayoutTest,
-     ToolDrawerLayoutPreservesCanvasAndRememberedHeight) {
+     ToolDrawerLayoutScalesWithRememberedProportion) {
   const auto closed = ResolveDungeonWorkbenchToolDrawerLayout(
-      708.0f, kSplitterWidth, 300.0f, 240.0f, 180.0f, false);
+      708.0f, kSplitterWidth, 0.4f, 240.0f, 180.0f, false);
   EXPECT_FALSE(closed.show_drawer);
   EXPECT_FALSE(closed.compact);
   EXPECT_NEAR(closed.canvas_height, 708.0f, 0.001f);
   EXPECT_NEAR(closed.drawer_height, 0.0f, 0.001f);
 
   const auto open = ResolveDungeonWorkbenchToolDrawerLayout(
-      708.0f, kSplitterWidth, 300.0f, 240.0f, 180.0f, true);
+      708.0f, kSplitterWidth, 0.4f, 240.0f, 180.0f, true);
   EXPECT_TRUE(open.show_drawer);
   EXPECT_FALSE(open.compact);
-  EXPECT_NEAR(open.canvas_height, 400.0f, 0.001f);
-  EXPECT_NEAR(open.drawer_height, 300.0f, 0.001f);
+  EXPECT_NEAR(open.canvas_height, 420.0f, 0.001f);
+  EXPECT_NEAR(open.drawer_height, 280.0f, 0.001f);
   EXPECT_NEAR(open.canvas_height + open.drawer_height + kSplitterWidth, 708.0f,
               0.001f);
+
+  const auto taller = ResolveDungeonWorkbenchToolDrawerLayout(
+      908.0f, kSplitterWidth, 0.4f, 240.0f, 180.0f, true);
+  EXPECT_FALSE(taller.compact);
+  EXPECT_NEAR(taller.canvas_height, 540.0f, 0.001f);
+  EXPECT_NEAR(taller.drawer_height, 360.0f, 0.001f);
 }
 
 TEST(DungeonWorkbenchContentLayoutTest,
      ToolDrawerLayoutUsesStableCompactSplitWhenHeightIsConstrained) {
   const auto compact = ResolveDungeonWorkbenchToolDrawerLayout(
-      400.0f, kSplitterWidth, 300.0f, 240.0f, 180.0f, true);
+      400.0f, kSplitterWidth, 0.55f, 240.0f, 180.0f, true);
   EXPECT_TRUE(compact.show_drawer);
   EXPECT_TRUE(compact.compact);
   EXPECT_NEAR(compact.drawer_height, 156.8f, 0.001f);
   EXPECT_NEAR(compact.canvas_height, 235.2f, 0.001f);
   EXPECT_NEAR(compact.canvas_height + compact.drawer_height + kSplitterWidth,
               400.0f, 0.001f);
+
+  const auto recovered = ResolveDungeonWorkbenchToolDrawerLayout(
+      908.0f, kSplitterWidth, 0.55f, 240.0f, 180.0f, true);
+  EXPECT_FALSE(recovered.compact);
+  EXPECT_NEAR(recovered.drawer_height, 495.0f, 0.001f);
+  EXPECT_NEAR(recovered.canvas_height, 405.0f, 0.001f);
+}
+
+TEST(DungeonWorkbenchContentLayoutTest,
+     ToolDrawerLayoutClampsProportionToUsableMinimums) {
+  const auto drawer_min = ResolveDungeonWorkbenchToolDrawerLayout(
+      708.0f, kSplitterWidth, 0.1f, 240.0f, 180.0f, true);
+  EXPECT_FALSE(drawer_min.compact);
+  EXPECT_NEAR(drawer_min.drawer_height, 180.0f, 0.001f);
+  EXPECT_NEAR(drawer_min.canvas_height, 520.0f, 0.001f);
+
+  const auto canvas_min = ResolveDungeonWorkbenchToolDrawerLayout(
+      708.0f, kSplitterWidth, 0.9f, 240.0f, 180.0f, true);
+  EXPECT_FALSE(canvas_min.compact);
+  EXPECT_NEAR(canvas_min.drawer_height, 460.0f, 0.001f);
+  EXPECT_NEAR(canvas_min.canvas_height, 240.0f, 0.001f);
+
+  const auto exact_fit = ResolveDungeonWorkbenchToolDrawerLayout(
+      428.0f, kSplitterWidth, 0.4f, 240.0f, 180.0f, true);
+  EXPECT_FALSE(exact_fit.compact);
+  EXPECT_NEAR(exact_fit.drawer_height, 180.0f, 0.001f);
+  EXPECT_NEAR(exact_fit.canvas_height, 240.0f, 0.001f);
 }
 
 TEST(DungeonWorkbenchContentLayoutTest,

@@ -10,15 +10,17 @@ struct DungeonWorkbenchToolDrawerLayout {
   bool compact = false;
   float canvas_height = 0.0f;
   float drawer_height = 0.0f;
+  float available_height = 0.0f;
   float min_drawer_height = 0.0f;
   float max_drawer_height = 0.0f;
 };
 
 // Resolve the vertical canvas/tool split without touching ImGui state. When
-// height is constrained, both regions remain visible and use a stable 60/40
-// split instead of hiding the requested tool.
+// space permits, preferred_drawer_ratio scales the drawer with the Workbench.
+// When height is constrained, both regions remain visible and use a stable
+// 60/40 split instead of hiding the requested tool.
 DungeonWorkbenchToolDrawerLayout ResolveDungeonWorkbenchToolDrawerLayout(
-    float total_height, float splitter_height, float stored_drawer_height,
+    float total_height, float splitter_height, float preferred_drawer_ratio,
     float min_canvas_height, float min_drawer_height, bool want_drawer);
 
 // Draw a workbench-standard vertical splitter that mutates pane_width.
