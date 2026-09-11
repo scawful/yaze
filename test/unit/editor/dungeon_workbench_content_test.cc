@@ -8,12 +8,14 @@
 #include <fstream>
 #include <initializer_list>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/workspace/dungeon_pit_damage_view_model.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
+#include "app/editor/dungeon/workspace/dungeon_workbench_layout.h"
 #include "core/features.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
@@ -44,6 +46,20 @@ DungeonWorkbenchContent MakeWorkbenchForToolStateTests(
       [&recent_rooms]() -> const std::deque<int>& { return recent_rooms; },
       [](int) {}, [](bool) {});
 }
+
+class FakeWorkbenchToolContent final : public WindowContent {
+ public:
+  explicit FakeWorkbenchToolContent(std::string id) : id_(std::move(id)) {}
+
+  std::string GetId() const override { return id_; }
+  std::string GetDisplayName() const override { return "Fake Tool"; }
+  std::string GetIcon() const override { return ""; }
+  std::string GetEditorCategory() const override { return "Dungeon"; }
+  void Draw(bool*) override {}
+
+ private:
+  std::string id_;
+};
 
 zelda3::PitDamageTable MakePitDamageTable(
     std::initializer_list<uint16_t> room_ids) {
@@ -244,7 +260,47 @@ TEST(DungeonWorkbenchContentLayoutTest,
   EXPECT_GE(layout.center_width, kMinCanvasWidth);
 }
 
-TEST(DungeonWorkbenchContentLayoutTest, ToolRequestsSwitchInspectorToDrawer) {
+TEST(DungeonWorkbenchContentLayoutTest,
+     ToolDrawerLayoutPreservesCanvasAndRememberedHeight) {
+  const auto closed = ResolveDungeonWorkbenchToolDrawerLayout(
+      708.0f, kSplitterWidth, 300.0f, 240.0f, 180.0f, false);
+  EXPECT_FALSE(closed.show_drawer);
+  EXPECT_FALSE(closed.compact);
+  EXPECT_NEAR(closed.canvas_height, 708.0f, 0.001f);
+  EXPECT_NEAR(closed.drawer_height, 0.0f, 0.001f);
+
+  const auto open = ResolveDungeonWorkbenchToolDrawerLayout(
+      708.0f, kSplitterWidth, 300.0f, 240.0f, 180.0f, true);
+  EXPECT_TRUE(open.show_drawer);
+  EXPECT_FALSE(open.compact);
+  EXPECT_NEAR(open.canvas_height, 400.0f, 0.001f);
+  EXPECT_NEAR(open.drawer_height, 300.0f, 0.001f);
+  EXPECT_NEAR(open.canvas_height + open.drawer_height + kSplitterWidth, 708.0f,
+              0.001f);
+}
+
+TEST(DungeonWorkbenchContentLayoutTest,
+     ToolDrawerLayoutUsesStableCompactSplitWhenHeightIsConstrained) {
+  const auto compact = ResolveDungeonWorkbenchToolDrawerLayout(
+      400.0f, kSplitterWidth, 300.0f, 240.0f, 180.0f, true);
+  EXPECT_TRUE(compact.show_drawer);
+  EXPECT_TRUE(compact.compact);
+  EXPECT_NEAR(compact.drawer_height, 156.8f, 0.001f);
+  EXPECT_NEAR(compact.canvas_height, 235.2f, 0.001f);
+  EXPECT_NEAR(compact.canvas_height + compact.drawer_height + kSplitterWidth,
+              400.0f, 0.001f);
+}
+
+TEST(DungeonWorkbenchContentLayoutTest,
+     ExistingStandaloneToolOwnsThePresentation) {
+  EXPECT_EQ(ResolveDungeonWorkbenchToolRequestTarget(false),
+            DungeonWorkbenchToolRequestTarget::kBottomDrawer);
+  EXPECT_EQ(ResolveDungeonWorkbenchToolRequestTarget(true),
+            DungeonWorkbenchToolRequestTarget::kStandaloneWindow);
+}
+
+TEST(DungeonWorkbenchContentLayoutTest,
+     ToolRequestsOpenBottomDrawerWithoutReplacingInspector) {
   int current_room_id = 0x011;
   const std::deque<int> recent_rooms;
   auto content = MakeWorkbenchForToolStateTests(current_room_id, recent_rooms);
@@ -253,7 +309,7 @@ TEST(DungeonWorkbenchContentLayoutTest, ToolRequestsSwitchInspectorToDrawer) {
 
   content.OpenDoorTool();
   EXPECT_TRUE(content.IsToolDrawerActiveForTesting());
-  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "tools");
+  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "room");
   EXPECT_STREQ(content.GetActiveToolIdForTesting(), "door");
 
   content.OpenPaletteTool();
@@ -263,10 +319,9 @@ TEST(DungeonWorkbenchContentLayoutTest, ToolRequestsSwitchInspectorToDrawer) {
 
 TEST(DungeonWorkbenchContentLayoutTest,
      ToolStripCyclesAllToolsWithoutLeavingDrawer) {
-  // The compact tool-strip in the inspector calls Open*Tool() rapidly as users
-  // hop between tools. Switching active tools must not bounce the inspector
-  // back to Room mode, and re-opening the same tool must remain a no-op on
-  // mode (no toggle-off).
+  // The bottom drawer's compact tool-strip calls Open*Tool() rapidly as users
+  // hop between tools. Switching active tools must not replace the independent
+  // Room inspector or toggle the drawer off.
   int current_room_id = 0x011;
   const std::deque<int> recent_rooms;
   auto content = MakeWorkbenchForToolStateTests(current_room_id, recent_rooms);
@@ -291,7 +346,7 @@ TEST(DungeonWorkbenchContentLayoutTest,
   for (const auto& step : steps) {
     (content.*step.open)();
     EXPECT_TRUE(content.IsToolDrawerActiveForTesting()) << step.expected_id;
-    EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "tools")
+    EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "room")
         << step.expected_id;
     EXPECT_STREQ(content.GetActiveToolIdForTesting(), step.expected_id);
   }
@@ -305,6 +360,61 @@ TEST(DungeonWorkbenchContentLayoutTest,
 }
 
 TEST(DungeonWorkbenchContentLayoutTest,
+     PopOutUsesEmbeddedWindowIdentityAndClosesDrawer) {
+  int current_room_id = 0x011;
+  const std::deque<int> recent_rooms;
+  auto content = MakeWorkbenchForToolStateTests(current_room_id, recent_rooms);
+  FakeWorkbenchToolContent object_selector("dungeon.object_selector");
+  content.SetEmbeddedEditorPanels(&object_selector, nullptr, nullptr, nullptr,
+                                  nullptr, nullptr);
+
+  std::string opened_window_id;
+  content.SetStandaloneToolCallbacks([](const std::string&) { return false; },
+                                     [&](const std::string& window_id) {
+                                       opened_window_id = window_id;
+                                       return true;
+                                     });
+
+  content.OpenObjectSelectorTool();
+  ASSERT_TRUE(content.IsToolDrawerActiveForTesting());
+  EXPECT_TRUE(content.PopOutActiveTool());
+  EXPECT_EQ(opened_window_id, "dungeon.object_selector");
+  EXPECT_FALSE(content.IsToolDrawerActiveForTesting());
+}
+
+TEST(DungeonWorkbenchContentLayoutTest,
+     OpenToolClosesDrawerAndFocusesExistingStandalone) {
+  int current_room_id = 0x011;
+  const std::deque<int> recent_rooms;
+  auto content = MakeWorkbenchForToolStateTests(current_room_id, recent_rooms);
+  FakeWorkbenchToolContent object_selector("dungeon.object_selector");
+  content.SetEmbeddedEditorPanels(&object_selector, nullptr, nullptr, nullptr,
+                                  nullptr, nullptr);
+
+  int focus_count = 0;
+  bool standalone_open = false;
+  std::string focused_window_id;
+  content.SetStandaloneToolCallbacks(
+      [&](const std::string& window_id) {
+        return standalone_open && window_id == "dungeon.object_selector";
+      },
+      [&](const std::string& window_id) {
+        ++focus_count;
+        focused_window_id = window_id;
+        return true;
+      });
+
+  content.OpenObjectSelectorTool();
+  ASSERT_TRUE(content.IsToolDrawerActiveForTesting());
+
+  standalone_open = true;
+  content.OpenObjectSelectorTool();
+  EXPECT_FALSE(content.IsToolDrawerActiveForTesting());
+  EXPECT_EQ(focus_count, 1);
+  EXPECT_EQ(focused_window_id, "dungeon.object_selector");
+}
+
+TEST(DungeonWorkbenchContentLayoutTest,
      ToolDrawerSelectionSurvivesRoomChanges) {
   int current_room_id = 0x011;
   const std::deque<int> recent_rooms;
@@ -315,7 +425,7 @@ TEST(DungeonWorkbenchContentLayoutTest,
   content.NotifyRoomChanged(0x011);
 
   EXPECT_TRUE(content.IsToolDrawerActiveForTesting());
-  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "tools");
+  EXPECT_STREQ(content.GetInspectorModeIdForTesting(), "room");
   EXPECT_STREQ(content.GetActiveToolIdForTesting(), "custom_collision");
 }
 

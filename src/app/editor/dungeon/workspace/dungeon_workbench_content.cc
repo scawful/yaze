@@ -21,7 +21,6 @@
 #include "app/editor/dungeon/ui/window/dungeon_map_panel.h"
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
 #include "app/editor/dungeon/ui/window/room_tag_editor_panel.h"
-#include "app/editor/dungeon/ui/window/shortcut_legend_panel.h"
 #include "app/editor/dungeon/ui/window/water_fill_panel.h"
 #include "app/editor/dungeon/ui/workbench/dungeon_workbench_chrome.h"
 #include "app/editor/dungeon/widgets/dungeon_status_bar.h"
@@ -128,6 +127,8 @@ constexpr float kCompactLeftSidebarMinWidth = 224.0f;
 constexpr float kCompactRightSidebarMinWidth = 272.0f;
 constexpr float kCompactLeftSidebarScale = 0.72f;
 constexpr float kCompactRightSidebarScale = 0.84f;
+constexpr float kWorkbenchMinCanvasHeight = 240.0f;
+constexpr float kWorkbenchMinToolDrawerHeight = 180.0f;
 
 float GetCompactSidebarWidth(bool right_sidebar, float min_sidebar_width) {
   return std::max(
@@ -153,6 +154,13 @@ DungeonWorkbenchTestRect CaptureLastItemRectForTesting() {
 
 bool ResolveCompactInspectorDetailRequest(bool compact, bool detail_requested) {
   return compact && detail_requested;
+}
+
+DungeonWorkbenchToolRequestTarget ResolveDungeonWorkbenchToolRequestTarget(
+    bool standalone_window_open) {
+  return standalone_window_open
+             ? DungeonWorkbenchToolRequestTarget::kStandaloneWindow
+             : DungeonWorkbenchToolRequestTarget::kBottomDrawer;
 }
 
 DungeonWorkbenchResponsiveLayout ResolveDungeonWorkbenchResponsiveLayout(
@@ -428,7 +436,7 @@ void DungeonWorkbenchContent::OpenMinecartTool() {
 }
 
 bool DungeonWorkbenchContent::IsToolDrawerActiveForTesting() const {
-  return inspector_mode_ == InspectorMode::Tools;
+  return layout_state_.show_tool_drawer;
 }
 
 const char* DungeonWorkbenchContent::GetInspectorModeIdForTesting() const {
@@ -437,8 +445,6 @@ const char* DungeonWorkbenchContent::GetInspectorModeIdForTesting() const {
       return "room";
     case InspectorMode::Selection:
       return "selection";
-    case InspectorMode::Tools:
-      return "tools";
   }
   return "unknown";
 }
@@ -487,6 +493,14 @@ void DungeonWorkbenchContent::DrawSidebarHeader(float button_size,
             }
             if (ImGui::MenuItem(ICON_MD_MAP " Dungeon Map")) {
               RequestDungeonMapPopup();
+            }
+            ImGui::Separator();
+            const bool can_open_shortcuts =
+                static_cast<bool>(open_keyboard_shortcuts_);
+            if (ImGui::MenuItem(ICON_MD_KEYBOARD " Keyboard Shortcuts", "?",
+                                false, can_open_shortcuts) &&
+                open_keyboard_shortcuts_) {
+              open_keyboard_shortcuts_();
             }
             ImGui::EndPopup();
           }
@@ -702,8 +716,35 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
 void DungeonWorkbenchContent::DrawCanvasPane(
     float width, float height, DungeonCanvasViewer* primary_viewer,
     bool left_sidebar_visible) {
-  const bool canvas_open = ImGui::BeginChild("##DungeonWorkbenchCanvas",
-                                             ImVec2(width, height), false);
+  if (layout_state_.show_tool_drawer && IsStandaloneToolOpen(active_tool_)) {
+    CloseToolDrawer();
+  }
+  const float splitter_height = gui::UIConfig::kSplitterWidth;
+  const DungeonWorkbenchToolDrawerLayout drawer_layout =
+      ResolveDungeonWorkbenchToolDrawerLayout(
+          height, splitter_height, layout_state_.tool_drawer_height,
+          kWorkbenchMinCanvasHeight, kWorkbenchMinToolDrawerHeight,
+          layout_state_.show_tool_drawer);
+  if (drawer_layout.show_drawer && !drawer_layout.compact) {
+    layout_state_.tool_drawer_height = drawer_layout.drawer_height;
+  }
+
+  // The canvas, splitter, and drawer are one horizontal-layout item. Without
+  // this fixed column child, each nested child resets the parent cursor and
+  // the next SameLine() can attach the inspector beside the drawer's final
+  // row instead of beside the top of the canvas column.
+  const bool column_open = ImGui::BeginChild(
+      "##DungeonWorkbenchCanvasColumn", ImVec2(width, height), false,
+      ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+  if (!column_open) {
+    ImGui::EndChild();
+    return;
+  }
+  const float column_width = std::max(ImGui::GetContentRegionAvail().x, 1.0f);
+
+  const bool canvas_open = ImGui::BeginChild(
+      "##DungeonWorkbenchCanvas",
+      ImVec2(column_width, drawer_layout.canvas_height), false);
   if (canvas_open) {
     if (primary_viewer) {
       const bool show_recent_tabs =
@@ -796,6 +837,36 @@ void DungeonWorkbenchContent::DrawCanvasPane(
       DungeonStatusBar::Draw(status);
     } else {
       ImGui::TextDisabled(tr("No active viewer"));
+    }
+  }
+  ImGui::EndChild();
+
+  if (drawer_layout.show_drawer) {
+    // Child items normally add vertical ItemSpacing. Remove it around the
+    // splitter so the canvas + splitter + drawer consume exactly this
+    // column's resolved height, matching the zero-gap vertical pane splitters.
+    const float item_spacing_y = ImGui::GetStyle().ItemSpacing.y;
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() - item_spacing_y);
+    const float collapse_threshold = drawer_layout.min_drawer_height;
+    if (DrawDungeonWorkbenchHorizontalSplitter(
+            "##DungeonWorkbenchToolDrawerSplitter", column_width,
+            &layout_state_.tool_drawer_height, drawer_layout.min_drawer_height,
+            drawer_layout.max_drawer_height, collapse_threshold)) {
+      CloseToolDrawer();
+    } else {
+      ImGui::SetCursorPosY(ImGui::GetCursorPosY() - item_spacing_y);
+      if (primary_viewer) {
+        DrawToolDrawerPane(column_width, drawer_layout.drawer_height,
+                           *primary_viewer);
+      } else {
+        const bool drawer_open = ImGui::BeginChild(
+            "##DungeonWorkbenchToolDrawer",
+            ImVec2(column_width, drawer_layout.drawer_height), true);
+        if (drawer_open) {
+          ImGui::TextDisabled(tr("No active viewer"));
+        }
+        ImGui::EndChild();
+      }
     }
   }
   ImGui::EndChild();
@@ -1597,37 +1668,84 @@ void DungeonWorkbenchContent::OpenTool(WorkbenchTool tool) {
     return;
   }
   active_tool_ = tool;
-  inspector_mode_ = InspectorMode::Tools;
-  layout_state_.show_right_inspector = true;
+
+  if (ResolveDungeonWorkbenchToolRequestTarget(IsStandaloneToolOpen(tool)) ==
+      DungeonWorkbenchToolRequestTarget::kStandaloneWindow) {
+    // A pinned or explicitly popped-out tool remains the presentation owner.
+    // Re-open/focus it, and never draw the same WindowContent twice.
+    CloseToolDrawer();
+    if (open_and_focus_standalone_tool_) {
+      if (WindowContent* content = GetWorkbenchToolContent(tool)) {
+        (void)open_and_focus_standalone_tool_(content->GetId());
+      }
+    }
+    return;
+  }
+
+  layout_state_.show_tool_drawer = true;
+}
+
+WindowContent* DungeonWorkbenchContent::GetWorkbenchToolContent(
+    WorkbenchTool tool) const {
+  switch (tool) {
+    case WorkbenchTool::RoomTags:
+      return room_tag_panel_;
+    case WorkbenchTool::CustomCollision:
+      return custom_collision_panel_;
+    case WorkbenchTool::WaterFill:
+      return water_fill_panel_;
+    case WorkbenchTool::MinecartTracks:
+      return minecart_track_panel_;
+    case WorkbenchTool::ObjectSelector:
+      return object_selector_content_;
+    case WorkbenchTool::DoorEditor:
+      return door_editor_content_;
+    case WorkbenchTool::SpriteEditor:
+      return sprite_editor_content_;
+    case WorkbenchTool::ItemEditor:
+      return item_editor_content_;
+    case WorkbenchTool::RoomGraphics:
+      return room_graphics_content_;
+    case WorkbenchTool::Palette:
+      return palette_editor_content_;
+    case WorkbenchTool::None:
+      return nullptr;
+  }
+  return nullptr;
 }
 
 bool DungeonWorkbenchContent::IsWorkbenchToolAvailable(
     WorkbenchTool tool) const {
-  switch (tool) {
-    case WorkbenchTool::RoomTags:
-      return room_tag_panel_ != nullptr;
-    case WorkbenchTool::CustomCollision:
-      return custom_collision_panel_ != nullptr;
-    case WorkbenchTool::WaterFill:
-      return water_fill_panel_ != nullptr;
-    case WorkbenchTool::MinecartTracks:
-      return minecart_track_panel_ != nullptr;
-    case WorkbenchTool::ObjectSelector:
-      return object_selector_content_ != nullptr;
-    case WorkbenchTool::DoorEditor:
-      return door_editor_content_ != nullptr;
-    case WorkbenchTool::SpriteEditor:
-      return sprite_editor_content_ != nullptr;
-    case WorkbenchTool::ItemEditor:
-      return item_editor_content_ != nullptr;
-    case WorkbenchTool::RoomGraphics:
-      return room_graphics_content_ != nullptr;
-    case WorkbenchTool::Palette:
-      return palette_editor_content_ != nullptr;
-    case WorkbenchTool::None:
-      return false;
+  return GetWorkbenchToolContent(tool) != nullptr;
+}
+
+bool DungeonWorkbenchContent::IsStandaloneToolOpen(WorkbenchTool tool) const {
+  WindowContent* content = GetWorkbenchToolContent(tool);
+  if (!content || !is_standalone_tool_open_) {
+    return false;
   }
-  return false;
+  const std::string standalone_id = content->GetId();
+  return !standalone_id.empty() && is_standalone_tool_open_(standalone_id);
+}
+
+void DungeonWorkbenchContent::CloseToolDrawer() {
+  layout_state_.show_tool_drawer = false;
+}
+
+bool DungeonWorkbenchContent::PopOutActiveTool() {
+  WindowContent* content = GetWorkbenchToolContent(active_tool_);
+  if (!content || !open_and_focus_standalone_tool_) {
+    return false;
+  }
+
+  const std::string standalone_id = content->GetId();
+  if (standalone_id.empty() ||
+      !open_and_focus_standalone_tool_(standalone_id)) {
+    return false;
+  }
+
+  CloseToolDrawer();
+  return true;
 }
 
 const char* DungeonWorkbenchContent::GetWorkbenchToolId(
@@ -1657,35 +1775,6 @@ const char* DungeonWorkbenchContent::GetWorkbenchToolId(
       return "none";
   }
   return "unknown";
-}
-
-const char* DungeonWorkbenchContent::GetWorkbenchToolTitle(
-    WorkbenchTool tool) const {
-  switch (tool) {
-    case WorkbenchTool::RoomTags:
-      return ICON_MD_LABEL " Room Tags";
-    case WorkbenchTool::CustomCollision:
-      return ICON_MD_GRID_ON " Custom Collision";
-    case WorkbenchTool::WaterFill:
-      return ICON_MD_WATER_DROP " Water Fill";
-    case WorkbenchTool::MinecartTracks:
-      return ICON_MD_TRAIN " Minecart Tracks";
-    case WorkbenchTool::ObjectSelector:
-      return ICON_MD_CATEGORY " Object Selector";
-    case WorkbenchTool::DoorEditor:
-      return ICON_MD_DOOR_FRONT " Door Tools";
-    case WorkbenchTool::SpriteEditor:
-      return ICON_MD_PERSON " Sprite Tools";
-    case WorkbenchTool::ItemEditor:
-      return ICON_MD_INVENTORY " Item Tools";
-    case WorkbenchTool::RoomGraphics:
-      return ICON_MD_IMAGE " Room Graphics";
-    case WorkbenchTool::Palette:
-      return ICON_MD_PALETTE " Palette";
-    case WorkbenchTool::None:
-      return ICON_MD_BUILD " Tool";
-  }
-  return ICON_MD_BUILD " Tool";
 }
 
 const char* DungeonWorkbenchContent::GetWorkbenchToolIcon(
@@ -1910,26 +1999,89 @@ void DungeonWorkbenchContent::DrawInspectorToolStrip() {
   ImGui::EndTable();
 }
 
-void DungeonWorkbenchContent::DrawInspectorToolDrawer(
-    DungeonCanvasViewer& viewer) {
-  // Quick-switch strip first: users can hop between tools without leaving the
-  // drawer. The inspector primary segmented selector handles Room/Selection
-  // returns, so no in-drawer back button is needed.
+void DungeonWorkbenchContent::DrawToolDrawerPane(float width, float height,
+                                                 DungeonCanvasViewer& viewer) {
+  // A panel can also be opened from the global Windows menu. Re-check every
+  // frame so that path cannot make one WindowContent draw in two places.
+  if (IsStandaloneToolOpen(active_tool_)) {
+    CloseToolDrawer();
+    return;
+  }
+
+  const bool drawer_open = ImGui::BeginChild("##DungeonWorkbenchToolDrawer",
+                                             ImVec2(width, height), true);
+  if (drawer_open) {
+    const float button_size = gui::LayoutHelpers::GetTouchSafeWidgetHeight();
+    if (DrawToolDrawerHeader(button_size)) {
+      DrawToolDrawerBody(viewer);
+    }
+  }
+  ImGui::EndChild();
+}
+
+bool DungeonWorkbenchContent::DrawToolDrawerHeader(float button_size) {
+  constexpr const char* kPopOutLabel =
+      ICON_MD_OPEN_IN_NEW " Pop out##WorkbenchToolPopOut";
+  const ImGuiStyle& style = ImGui::GetStyle();
+  const float pop_out_width =
+      ImGui::CalcTextSize(kPopOutLabel, nullptr, true).x +
+      style.FramePadding.x * 2.0f;
+  const float close_width =
+      workbench::CalcIconButtonWidth(ICON_MD_CLOSE, button_size);
+  const float action_width = pop_out_width + style.ItemSpacing.x + close_width;
+  const bool compact = ImGui::GetContentRegionAvail().x < 520.0f;
+
+  workbench::DrawPaneHeader(
+      "##DungeonWorkbenchToolDrawerHeader", GetWorkbenchToolIcon(active_tool_),
+      GetWorkbenchToolShortLabel(active_tool_), "Tool", "Workbench drawer",
+      compact, action_width, [&]() {
+        const bool can_pop_out = IsWorkbenchToolAvailable(active_tool_) &&
+                                 open_and_focus_standalone_tool_;
+        if (!can_pop_out) {
+          ImGui::BeginDisabled();
+        }
+        const bool pop_out_requested = workbench::DrawActionButton(
+            kPopOutLabel, ImVec2(0.0f, button_size));
+        {
+          gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
+          gui::AutoRegisterLastItem(
+              "button", "pop_out_tool",
+              "Open the active Workbench tool in its standalone window");
+        }
+        if (!can_pop_out) {
+          ImGui::EndDisabled();
+        }
+        if (pop_out_requested && can_pop_out) {
+          (void)PopOutActiveTool();
+        }
+
+        ImGui::SameLine(0.0f, style.ItemSpacing.x);
+        if (workbench::DrawHeaderIconAction("CloseToolDrawer", ICON_MD_CLOSE,
+                                            button_size, "Close tool drawer")) {
+          CloseToolDrawer();
+        }
+      });
+
+  return layout_state_.show_tool_drawer;
+}
+
+void DungeonWorkbenchContent::DrawToolDrawerBody(DungeonCanvasViewer& viewer) {
+  // Preserve the existing tool switch IDs and embedded WindowContent model so
+  // keyboard/automation users and each editor tool keep the same behavior.
   DrawInspectorToolStrip();
+  if (!layout_state_.show_tool_drawer || IsStandaloneToolOpen(active_tool_)) {
+    CloseToolDrawer();
+    return;
+  }
 
   ImGui::Dummy(ImVec2(0.0f, 2.0f));
-  workbench::DrawInspectorSectionHeader(GetWorkbenchToolTitle(active_tool_));
-
   const bool available = IsWorkbenchToolAvailable(active_tool_);
   if (!available) {
     ImGui::TextDisabled("%s", GetWorkbenchToolUnavailableMessage(active_tool_));
     return;
   }
 
-  // The strip + section header take ~70-90px depending on font scale. Anything
-  // remaining in the inspector belongs to the tool body, with a small floor so
-  // narrow inspectors still leave room for at least a few rows of controls.
-  const float available_h = std::max(180.0f, ImGui::GetContentRegionAvail().y);
+  const float available_h = std::max(1.0f, ImGui::GetContentRegionAvail().y);
   const bool body_open =
       ImGui::BeginChild("##WorkbenchToolDrawerBody", ImVec2(0.0f, available_h),
                         true, ImGuiWindowFlags_HorizontalScrollbar);
@@ -1976,16 +2128,15 @@ void DungeonWorkbenchContent::DrawInspectorPrimarySelector(
   draw_mode("Selection", selection_width, InspectorMode::Selection);
   const ImVec2 tools_size(
       stack ? ImGui::GetContentRegionAvail().x : tools_width, segment_height);
-  const bool tools_pressed = gui::ToggleButton(
-      "Tools", inspector_mode_ == InspectorMode::Tools, tools_size);
+  const bool tools_pressed =
+      gui::ToggleButton("Tools", layout_state_.show_tool_drawer, tools_size);
   {
     gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
     gui::AutoRegisterLastItem("button", "mode_tools",
-                              "Switch Dungeon Workbench inspector mode");
+                              "Open Dungeon Workbench tool drawer");
   }
   if (tools_pressed) {
-    inspector_mode_ = InspectorMode::Tools;
-    compact_inspector_detail_requested_ = true;
+    OpenTool(active_tool_);
   }
 }
 
@@ -2026,11 +2177,10 @@ void DungeonWorkbenchContent::DrawInspectorCompactSummary(
     ImGui::TextDisabled(tr("Nothing selected"));
   }
 
-  // Apply Room, View overlays, and Tools quick-grid all live elsewhere now:
+  // Apply Room, View overlays, and tool switching all live elsewhere now:
   // Apply Room is on the canvas toolbar, the overlay checkboxes live in the
-  // toolbar's View Options popup, and Tools have their own inspector primary
-  // mode (the segmented selector at the inspector header). Compact summary
-  // stays focused on what's selected.
+  // toolbar's View Options popup, and the Tools segment opens the bottom
+  // drawer. Compact summary stays focused on what's selected.
 }
 
 void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
@@ -2038,8 +2188,7 @@ void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
   const auto& interaction = viewer.object_interaction();
   const bool has_selection =
       interaction.GetSelectionCount() > 0 || interaction.HasEntitySelection();
-  if (has_selection && !inspector_selection_was_active_ &&
-      inspector_mode_ != InspectorMode::Tools) {
+  if (has_selection && !inspector_selection_was_active_) {
     inspector_mode_ = InspectorMode::Selection;
   }
   inspector_selection_was_active_ = has_selection;
@@ -2050,8 +2199,7 @@ void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
   // Use the resolved pane layout instead of GetContentRegionAvail().x. The
   // latter changes when a vertical scrollbar appears, which can make the
   // inspector alternate between full and compact content every frame.
-  if (compact && inspector_mode_ != InspectorMode::Tools &&
-      !compact_inspector_detail_requested_) {
+  if (compact && !compact_inspector_detail_requested_) {
     DrawInspectorCompactSummary(viewer);
     return;
   }
@@ -2063,16 +2211,13 @@ void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
     case InspectorMode::Selection:
       DrawInspectorShelfSelection(viewer);
       break;
-    case InspectorMode::Tools:
-      DrawInspectorToolDrawer(viewer);
-      return;
   }
 
-  // Stitched Rooms, View Options, and Tools collapsibles intentionally
+  // Stitched Rooms, View Options, and the old Tools collapsible intentionally
   // removed: the canvas toolbar exposes the Stitched Rooms toggle directly,
   // the View Options popup off the toolbar's eye icon owns all 11 overlay
-  // checkboxes, and the inspector primary segmented selector at the header
-  // already routes between Room / Selection / Tools modes.
+  // checkboxes, and the inspector header's Tools action opens the bottom
+  // drawer without replacing the Room / Selection inspector mode.
 }
 
 void DungeonWorkbenchContent::DrawInspectorShelfRoom(
@@ -2211,9 +2356,9 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     DrawLayerCompositingControls(viewer, room_id);
   }
 
-  // ZScream-style compact room header: keep the raw ROM fields together so
-  // experienced dungeon authors can scan and edit them without panel hopping.
-  workbench::DrawInspectorSectionHeader(ICON_MD_TUNE " Room Header");
+  // Preserve the ZScream-style raw ROM controls, but keep them collapsed until
+  // an experienced author asks for them. Normal room navigation and selection
+  // work should not begin with a wall of header bytes.
   if (auto* rooms = viewer.rooms();
       rooms && room_id >= 0 && room_id < static_cast<int>(rooms->size())) {
     auto& room = (*rooms)[room_id];
@@ -2279,7 +2424,8 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
       }
     };
 
-    if (ImGui::BeginTable("##WorkbenchRoomHeader", 4, kHeaderFlags)) {
+    if (workbench::BeginInspectorSection(ICON_MD_TUNE " Room Header", false) &&
+        ImGui::BeginTable("##WorkbenchRoomHeader", 4, kHeaderFlags)) {
       ImGui::TableSetupColumn("L1", ImGuiTableColumnFlags_WidthFixed, 44.0f);
       ImGui::TableSetupColumn("V1", ImGuiTableColumnFlags_WidthFixed, 66.0f);
       ImGui::TableSetupColumn("L2", ImGuiTableColumnFlags_WidthFixed, 44.0f);
@@ -2369,9 +2515,9 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
       ImGui::EndTable();
     }
 
-    ImGui::Dummy(ImVec2(0.0f, 2.0f));
-    workbench::DrawInspectorSectionHeader(ICON_MD_ALT_ROUTE " Destinations");
-    if (ImGui::BeginTable("##WorkbenchRoomDestinations", 4, kHeaderFlags)) {
+    if (workbench::BeginInspectorSection(ICON_MD_ALT_ROUTE " Destinations",
+                                         false) &&
+        ImGui::BeginTable("##WorkbenchRoomDestinations", 4, kHeaderFlags)) {
       ImGui::TableSetupColumn("L1", ImGuiTableColumnFlags_WidthFixed, 44.0f);
       ImGui::TableSetupColumn("V1", ImGuiTableColumnFlags_WidthFixed, 66.0f);
       ImGui::TableSetupColumn("L2", ImGuiTableColumnFlags_WidthFixed, 44.0f);
@@ -2422,10 +2568,10 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     ImGui::TextDisabled(tr("Room header unavailable"));
   }
 
-  workbench::DrawInspectorSectionHeader(ICON_MD_BUILD " Editing Status");
   auto& interaction = viewer.object_interaction();
   const bool placing = interaction.mode_manager().IsPlacementActive();
   if (placing) {
+    workbench::DrawInspectorSectionHeader(ICON_MD_BUILD " Editing Status");
     ImGui::TextColored(theme.text_info, tr("Placement active"));
     ImGui::SameLine();
     if (ImGui::SmallButton(ICON_MD_CLOSE " Cancel")) {
@@ -2823,118 +2969,6 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
         break;
     }
   }
-}
-
-void DungeonWorkbenchContent::DrawInspectorShelfTools(
-    DungeonCanvasViewer& viewer) {
-  (void)viewer;
-  workbench::DrawInspectorSectionHeader(ICON_MD_EDIT_NOTE " Edit");
-  constexpr ImGuiTableFlags kFlags =
-      ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX;
-  if (!ImGui::BeginTable("##WorkbenchToolsGrid", 2, kFlags)) {
-    return;
-  }
-
-  auto draw_tool_button = [&](const char* label, WorkbenchTool tool,
-                              bool enabled = true) {
-    if (!enabled) {
-      ImGui::BeginDisabled();
-    }
-    const bool active =
-        inspector_mode_ == InspectorMode::Tools && active_tool_ == tool;
-    if (gui::ToggleButton(label, active, ImVec2(-1, 0)) && enabled) {
-      OpenTool(tool);
-    }
-    if (!enabled) {
-      ImGui::EndDisabled();
-    }
-  };
-
-  // Edit row holds entity tools only. Mode switches (Selection / Room Details)
-  // moved out — the inspector primary segmented selector at the inspector
-  // header is the canonical mode switch.
-  ImGui::TableNextRow();
-  ImGui::TableNextColumn();
-  draw_tool_button(ICON_MD_CATEGORY " Selector", WorkbenchTool::ObjectSelector,
-                   object_selector_content_ != nullptr);
-  ImGui::TableNextColumn();
-  draw_tool_button(ICON_MD_DOOR_FRONT " Doors", WorkbenchTool::DoorEditor,
-                   door_editor_content_ != nullptr);
-
-  ImGui::TableNextRow();
-  ImGui::TableNextColumn();
-  draw_tool_button(ICON_MD_PERSON " Sprites", WorkbenchTool::SpriteEditor,
-                   sprite_editor_content_ != nullptr);
-  ImGui::TableNextColumn();
-  draw_tool_button(ICON_MD_INVENTORY " Items", WorkbenchTool::ItemEditor,
-                   item_editor_content_ != nullptr);
-
-  ImGui::EndTable();
-
-  workbench::DrawInspectorSectionHeader(ICON_MD_BUILD " Room Tools");
-  if (ImGui::BeginTable("##WorkbenchRoomToolsGrid", 2, kFlags)) {
-    auto room_tool_button = [&](const char* label, WorkbenchTool tool,
-                                bool enabled) {
-      ImGui::TableNextColumn();
-      if (!enabled) {
-        ImGui::BeginDisabled();
-      }
-      const bool active =
-          inspector_mode_ == InspectorMode::Tools && active_tool_ == tool;
-      if (gui::ToggleButton(label, active, ImVec2(-1, 0)) && enabled) {
-        OpenTool(tool);
-      }
-      if (!enabled) {
-        ImGui::EndDisabled();
-      }
-    };
-
-    ImGui::TableNextRow();
-    room_tool_button(ICON_MD_LABEL " Room Tags", WorkbenchTool::RoomTags,
-                     room_tag_panel_ != nullptr);
-    room_tool_button(ICON_MD_GRID_ON " Collision",
-                     WorkbenchTool::CustomCollision,
-                     custom_collision_panel_ != nullptr);
-    ImGui::TableNextRow();
-    room_tool_button(ICON_MD_WATER_DROP " Water Fill", WorkbenchTool::WaterFill,
-                     water_fill_panel_ != nullptr);
-    room_tool_button(ICON_MD_TRAIN " Minecart", WorkbenchTool::MinecartTracks,
-                     minecart_track_panel_ != nullptr);
-    ImGui::EndTable();
-  }
-
-  workbench::DrawInspectorSectionHeader(ICON_MD_TRAVEL_EXPLORE " Review");
-  if (ImGui::BeginTable("##WorkbenchReviewGrid", 2, kFlags)) {
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    if (workbench::DrawActionButton(ICON_MD_GRID_VIEW " Matrix",
-                                    ImVec2(-1, 0))) {
-      ShowConnectedGraph();
-    }
-    ImGui::TableNextColumn();
-    if (workbench::DrawActionButton(ICON_MD_MAP " Dungeon Map",
-                                    ImVec2(-1, 0))) {
-      RequestDungeonMapPopup();
-    }
-
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    if (workbench::DrawActionButton(ICON_MD_DOOR_FRONT " Entrances",
-                                    ImVec2(-1, 0))) {
-      FocusEntranceBrowser();
-    }
-    ImGui::TableNextColumn();
-    draw_tool_button(ICON_MD_PALETTE " Palette", WorkbenchTool::Palette,
-                     palette_editor_content_ != nullptr);
-    ImGui::EndTable();
-  }
-
-  workbench::DrawInspectorSectionHeader(ICON_MD_KEYBOARD " Reference");
-  if (workbench::DrawActionButton(ICON_MD_KEYBOARD " Keyboard Shortcuts",
-                                  ImVec2(-1, 0))) {
-    show_shortcut_legend_ = true;
-  }
-  ShortcutLegendPanel::Draw(&show_shortcut_legend_);
 }
 
 }  // namespace yaze::editor
