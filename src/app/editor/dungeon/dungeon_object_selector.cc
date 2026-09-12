@@ -84,20 +84,24 @@ void DrawFallbackPreviewTile(ImDrawList* draw_list, ImVec2 top_left,
 }  // namespace
 
 DungeonObjectSelectorGridLayout ResolveDungeonObjectSelectorGridLayout(
-    float available_width, float requested_item_size, float item_spacing,
-    float reserved_scrollbar_width, float min_item_size) {
+    float available_width, float preferred_item_size, float item_spacing,
+    float min_item_size) {
   const float safe_spacing = std::max(item_spacing, 0.0f);
-  const float usable_width = std::max(
-      available_width - std::max(reserved_scrollbar_width, 0.0f), 1.0f);
+  const float usable_width = std::max(available_width, 1.0f);
   const float safe_min_item_size =
       std::min(std::max(min_item_size, 1.0f), usable_width);
+  const float clamped_preferred_item_size =
+      std::clamp(preferred_item_size, safe_min_item_size, usable_width);
 
   DungeonObjectSelectorGridLayout layout;
-  layout.item_size =
-      std::clamp(requested_item_size, safe_min_item_size, usable_width);
-  layout.columns =
-      std::max(1, static_cast<int>((usable_width + safe_spacing) /
-                                   (layout.item_size + safe_spacing)));
+  layout.columns = std::max(
+      1, static_cast<int>((usable_width + safe_spacing) /
+                          (clamped_preferred_item_size + safe_spacing)));
+  layout.item_size = clamped_preferred_item_size;
+  const float total_spacing = safe_spacing * (layout.columns - 1);
+  const float occupied_width =
+      layout.item_size * layout.columns + total_spacing;
+  layout.leading_inset = std::max((usable_width - occupied_width) * 0.5f, 0.0f);
   return layout;
 }
 
@@ -370,10 +374,12 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
   const float child_height = std::max(ImGui::GetContentRegionAvail().y, 1.0f);
   if (ImGui::BeginChild("##ObjectGrid", ImVec2(0, child_height), false)) {
     const float item_spacing = control_spacing;
+    // GetContentRegionAvail() already excludes the child window's scrollbar
+    // and padding. Centering the fixed-density grid balances any remainder so
+    // a resize cannot leave a second, artificial gutter on the right.
     const auto grid_layout = ResolveDungeonObjectSelectorGridLayout(
         ImGui::GetContentRegionAvail().x,
-        GetObjectGridItemSize(object_grid_density_), item_spacing,
-        style.ScrollbarSize + control_spacing);
+        GetObjectGridItemSize(object_grid_density_), item_spacing);
     const float item_size = grid_layout.item_size;
     const int columns = grid_layout.columns;
     gui::StyleVarGuard grid_spacing_guard(
@@ -409,6 +415,9 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
         if (current_column > 0) {
           ImGui::SameLine(0.0f, item_spacing);
+        } else {
+          ImGui::SetCursorPosX(ImGui::GetCursorPosX() +
+                               grid_layout.leading_inset);
         }
 
         ImGui::PushID(obj_id);
@@ -1074,8 +1083,7 @@ void DungeonObjectSelector::DrawCustomObjectWorkshopPopup() {
     const float item_spacing = std::max(2.0f, style.ItemSpacing.x * 0.5f);
     const auto grid_layout = ResolveDungeonObjectSelectorGridLayout(
         ImGui::GetContentRegionAvail().x,
-        GetObjectGridItemSize(object_grid_density_), item_spacing,
-        style.ScrollbarSize + item_spacing);
+        GetObjectGridItemSize(object_grid_density_), item_spacing);
     const int columns = grid_layout.columns;
     const float item_size = grid_layout.item_size;
     gui::StyleVarGuard grid_spacing_guard(
@@ -1098,6 +1106,9 @@ void DungeonObjectSelector::DrawCustomObjectWorkshopPopup() {
 
         if (custom_col > 0) {
           ImGui::SameLine(0.0f, item_spacing);
+        } else {
+          ImGui::SetCursorPosX(ImGui::GetCursorPosX() +
+                               grid_layout.leading_inset);
         }
 
         ImGui::PushID(obj_id * 1000 + subtype);

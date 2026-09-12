@@ -33,6 +33,7 @@ struct DungeonObjectSelectorTestAccess;
 struct DungeonObjectSelectorGridLayout {
   int columns = 1;
   float item_size = 1.0f;
+  float leading_inset = 0.0f;
 };
 
 struct DungeonObjectPreviewFit {
@@ -45,8 +46,8 @@ struct DungeonObjectPreviewFit {
 
 // Pure responsive-layout helpers shared by the selector and its unit tests.
 DungeonObjectSelectorGridLayout ResolveDungeonObjectSelectorGridLayout(
-    float available_width, float requested_item_size, float item_spacing,
-    float reserved_scrollbar_width, float min_item_size = 32.0f);
+    float available_width, float preferred_item_size, float item_spacing,
+    float min_item_size = 32.0f);
 DungeonObjectPreviewFit ResolveDungeonObjectPreviewFit(float source_width,
                                                        float source_height,
                                                        float box_width,
