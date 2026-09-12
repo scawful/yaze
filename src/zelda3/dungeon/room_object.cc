@@ -36,27 +36,6 @@ SubtypeTableInfo GetSubtypeTable(int object_id) {
   }
 }
 
-bool IsAllBgsObjectId(int object_id) {
-  // Objects that should be treated as drawing to both BG1 and BG2.
-  //
-  // NOTE: This is editor/runtime metadata for our renderer, not a ROM field.
-  // Keep this list in sync with DecodeObjectFromBytes behavior and any
-  // special-cased BothBG handling in ObjectDrawer.
-  const int id = object_id;
-  // USDASM: Rightwards2x4spaced4_1to16 writes to both tilemaps.
-  if ((id >= 0x03 && id <= 0x04) ||
-      (id >= 0x63 && id <= 0x64) ||  // Routine 9 objects
-      // Routine 17 (Acute Diagonals)
-      id == 0x0C || id == 0x0D || id == 0x10 || id == 0x11 || id == 0x14 ||
-      id == 0x15 || id == 0x18 || id == 0x19 || id == 0x1C || id == 0x1D ||
-      id == 0x20 ||
-      // Routine 18 (Grave Diagonals)
-      id == 0x0E || id == 0x0F || id == 0x12 || id == 0x13 || id == 0x16 ||
-      id == 0x17 || id == 0x1A || id == 0x1B || id == 0x1E || id == 0x1F) {
-    return true;
-  }
-  return false;
-}
 }  // namespace
 
 ObjectOption operator|(ObjectOption lhs, ObjectOption rhs) {
@@ -199,16 +178,14 @@ void RoomObject::MarkTileCacheUntracked() {
   tile_cache_tracked_ = false;
 }
 
-void RoomObject::RefreshDerivedFlagsFromId() {
-  all_bgs_ = IsAllBgsObjectId(id_);
-}
-
 void RoomObject::set_id(int16_t id) {
   if (id_ == id) {
     return;
   }
   id_ = id;
-  RefreshDerivedFlagsFromId();
+  // A manual/custom routing override belongs to the old object identity.
+  // Built-in routing for the new ID is resolved through DrawRoutineRegistry.
+  all_bgs_ = false;
   InvalidateTileCache();
 }
 
@@ -325,10 +302,7 @@ RoomObject RoomObject::DecodeObjectFromBytes(uint8_t b1, uint8_t b2, uint8_t b3,
               b2, b3, id, x, y, size);
   }
 
-  auto obj = RoomObject(static_cast<int16_t>(id), x, y, size, layer);
-  obj.RefreshDerivedFlagsFromId();
-
-  return obj;
+  return RoomObject(static_cast<int16_t>(id), x, y, size, layer);
 }
 
 RoomObject::ObjectBytes RoomObject::EncodeObjectToBytes() const {

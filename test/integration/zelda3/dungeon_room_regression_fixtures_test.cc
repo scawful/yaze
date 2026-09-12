@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <cstdlib>
 #if defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
@@ -20,6 +21,7 @@
 #include "util/rom_hash.h"
 #endif
 #include "zelda3/dungeon/editor_dungeon_state.h"
+#include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/game_data.h"
@@ -49,6 +51,19 @@ int CountNonBackdropPixels(const gfx::Bitmap& bitmap) {
   return count;
 }
 
+int CountOpaqueLayerPixels(const gfx::Bitmap& bitmap) {
+  if (!bitmap.is_active()) {
+    return 0;
+  }
+  int count = 0;
+  for (size_t i = 0; i < bitmap.size(); ++i) {
+    if (bitmap.data()[i] != 255) {
+      ++count;
+    }
+  }
+  return count;
+}
+
 struct RoomLayerFingerprints {
   uint64_t layout_bg1_checksum = 0;
   uint64_t layout_bg2_checksum = 0;
@@ -61,14 +76,14 @@ struct RoomLayerFingerprints {
   int composite_non_backdrop = 0;
 };
 
-constexpr int kRoom001ObjectOverlapX = 45;
-constexpr int kRoom001ObjectOverlapY = 120;
-constexpr int kRoom001ObjectOverlapIndex = 61485;
-constexpr uint8_t kRoom001ObjectOverlapBg1Pixel = 41;
-constexpr uint8_t kRoom001ObjectOverlapBg2Pixel = 42;
-constexpr uint8_t kRoom001ObjectOverlapBg1Priority = 1;
-constexpr uint8_t kRoom001ObjectOverlapBg2Priority = 0;
-constexpr uint8_t kRoom001ObjectOverlapCompositePixel = 41;
+constexpr int kRoom001DoorY = 120;
+constexpr int kRoom001DoorHeight = 32;
+constexpr int kRoom001WestDoorEdgeX = 40;
+constexpr int kRoom001WestDoorBodyX = 48;
+constexpr int kRoom001EastDoorBodyX = 448;
+constexpr int kRoom001EastDoorEdgeX = 464;
+constexpr int kRoom001DoorEdgeWidth = 8;
+constexpr int kRoom001DoorBodyWidth = 16;
 
 // Room 0x076 water-overlay coverage is structural and does not depend on the
 // libpng-backed visual diff engine. Keep these constants available on every
@@ -173,13 +188,16 @@ constexpr int kRoom076WestDoorRoiHeight = 32;
 RoomLayerFingerprints CaptureRoomLayerFingerprints(Rom* rom,
                                                    GameData* game_data,
                                                    int room_id) {
-  Room room(room_id, rom, game_data);
+  Room room = LoadRoomFromRom(rom, room_id);
+  room.SetGameData(game_data);
   room.LoadRoomGraphics();
   room.LoadObjects();
   room.CopyRoomGraphicsToBuffer();
   room.RenderRoomGraphics();
 
   RoomLayerManager layer_manager;
+  layer_manager.ApplyLayerMerging(room.layer_merging());
+  layer_manager.ApplyRoomEffect(room.effect());
   auto& composite = room.GetCompositeBitmap(layer_manager);
 
   const auto& layout_bg1 = room.bg1_buffer().bitmap();
@@ -203,9 +221,9 @@ RoomLayerFingerprints CaptureRoomLayerFingerprints(Rom* rom,
       .composite_checksum = composite.is_active()
                                 ? Fnv1a64(composite.data(), composite.size())
                                 : 0,
-      .layout_bg1_non_backdrop = CountNonBackdropPixels(layout_bg1),
-      .object_bg1_non_backdrop = CountNonBackdropPixels(object_bg1),
-      .object_bg2_non_backdrop = CountNonBackdropPixels(object_bg2),
+      .layout_bg1_non_backdrop = CountOpaqueLayerPixels(layout_bg1),
+      .object_bg1_non_backdrop = CountOpaqueLayerPixels(object_bg1),
+      .object_bg2_non_backdrop = CountOpaqueLayerPixels(object_bg2),
       .composite_non_backdrop = CountNonBackdropPixels(composite),
   };
 }
@@ -283,6 +301,8 @@ TEST_F(DungeonRoomRegressionFixturesTest, DumpBg1OnlyRoomRoiForCapture) {
   room.RenderRoomGraphics();
 
   RoomLayerManager layer_manager;
+  layer_manager.ApplyLayerMerging(room.layer_merging());
+  layer_manager.ApplyRoomEffect(room.effect());
   if (!include_bg2) {
     layer_manager.SetLayerVisible(LayerType::BG2_Layout, false);
     layer_manager.SetLayerVisible(LayerType::BG2_Objects, false);
@@ -417,21 +437,42 @@ TEST_F(DungeonRoomRegressionFixturesTest, FixtureRoomsHaveThreeStreamCoverage) {
 }
 
 TEST_F(DungeonRoomRegressionFixturesTest,
-       Room001ObjectOverlapPixelMatchesPriorityWinner) {
-  // Broad checksums catch drift but do not explain *where* compositing changed.
-  // Pin one sparse golden overlap pixel from room 0x001, which exercises
-  // primary, BG2-overlay, and BG1-overlay object streams. The sampled pixel is
-  // BG1 high-priority object pixel 0x29 over BG2 low-priority object pixel
-  // 0x2A, so SNES Mode 1 compositing must leave palette index 0x29 on top.
-  Room room(0x001, &rom_, &game_data_);
+       Room001ExplicitDoorBodiesReplaceGuidanceWallTiles) {
+  Room room = LoadRoomFromRom(&rom_, 0x001);
+  room.SetGameData(&game_data_);
   room.LoadRoomGraphics();
   room.LoadObjects();
   room.CopyRoomGraphicsToBuffer();
   room.RenderRoomGraphics();
-  ASSERT_FALSE(room.layer_merging().Layer2Translucent)
-      << "This sparse ordering assertion assumes opaque compositing.";
+  ASSERT_EQ(room.layer_merging().ID, LayerMerge06.ID);
+
+  bool saw_west_door = false;
+  bool saw_east_door = false;
+  for (const auto& door : room.GetDoors()) {
+    saw_west_door |= door.type == DoorType::ExplicitRoomDoor &&
+                     door.direction == DoorDirection::West &&
+                     door.position == 3;
+    saw_east_door |= door.type == DoorType::ExplicitRoomDoor &&
+                     door.direction == DoorDirection::East &&
+                     door.position == 9;
+  }
+  EXPECT_TRUE(saw_west_door);
+  EXPECT_TRUE(saw_east_door);
+
+  bool saw_west_guidance_wall = false;
+  bool saw_east_guidance_wall = false;
+  for (const auto& object : room.GetTileObjects()) {
+    saw_west_guidance_wall |=
+        object.id_ == 0x63 && object.x_ == 5 && object.y_ == 14;
+    saw_east_guidance_wall |=
+        object.id_ == 0x64 && object.x_ == 55 && object.y_ == 14;
+  }
+  EXPECT_TRUE(saw_west_guidance_wall);
+  EXPECT_TRUE(saw_east_guidance_wall);
 
   RoomLayerManager layer_manager;
+  layer_manager.ApplyLayerMerging(room.layer_merging());
+  layer_manager.ApplyRoomEffect(room.effect());
   const auto& composite = room.GetCompositeBitmap(layer_manager);
   const auto& bg1_objects = room.object_bg1_buffer();
   const auto& bg2_objects = room.object_bg2_buffer();
@@ -442,26 +483,99 @@ TEST_F(DungeonRoomRegressionFixturesTest,
   ASSERT_TRUE(composite.is_active());
   ASSERT_EQ(bg2_bitmap.width(), bg1_bitmap.width());
   ASSERT_EQ(composite.width(), bg1_bitmap.width());
-  ASSERT_LT(kRoom001ObjectOverlapX, bg1_bitmap.width());
-  ASSERT_LT(kRoom001ObjectOverlapY, bg1_bitmap.height());
-  const int sample_index =
-      kRoom001ObjectOverlapY * bg1_bitmap.width() + kRoom001ObjectOverlapX;
-  ASSERT_EQ(sample_index, kRoom001ObjectOverlapIndex);
-  ASSERT_LT(sample_index, static_cast<int>(bg1_bitmap.size()));
-  ASSERT_LT(sample_index, static_cast<int>(bg2_bitmap.size()));
-  ASSERT_LT(sample_index, static_cast<int>(composite.size()));
-  ASSERT_LT(sample_index, static_cast<int>(bg1_objects.priority_data().size()));
-  ASSERT_LT(sample_index, static_cast<int>(bg2_objects.priority_data().size()));
-  EXPECT_EQ(bg1_bitmap.data()[sample_index], kRoom001ObjectOverlapBg1Pixel);
-  EXPECT_EQ(bg2_bitmap.data()[sample_index], kRoom001ObjectOverlapBg2Pixel);
-  EXPECT_EQ(bg1_objects.priority_data()[sample_index],
-            kRoom001ObjectOverlapBg1Priority);
-  EXPECT_EQ(bg2_objects.priority_data()[sample_index],
-            kRoom001ObjectOverlapBg2Priority);
-  EXPECT_EQ(composite.data()[sample_index], kRoom001ObjectOverlapCompositePixel)
-      << "Room 0x001 overlap pixel (" << kRoom001ObjectOverlapX << ","
-      << kRoom001ObjectOverlapY << ") should preserve the golden BG1-over-BG2 "
-      << "priority winner";
+
+  auto expect_lower_door_body = [&](int start_x, const char* label) {
+    for (int y = kRoom001DoorY; y < kRoom001DoorY + kRoom001DoorHeight; ++y) {
+      for (int x = start_x; x < start_x + kRoom001DoorBodyWidth; ++x) {
+        const int index = y * composite.width() + x;
+        ASSERT_EQ(bg1_objects.coverage_data()[index], 1)
+            << label << " " << x << "," << y;
+        EXPECT_EQ(bg1_bitmap.data()[index], 255)
+            << label << " " << x << "," << y;
+        ASSERT_NE(bg2_bitmap.data()[index], 255)
+            << label << " " << x << "," << y;
+        EXPECT_EQ(composite.data()[index], bg2_bitmap.data()[index])
+            << label << " guidance wall covered door body at " << x << "," << y;
+      }
+    }
+  };
+
+  auto expect_upper_door_edge = [&](int start_x, const char* label) {
+    for (int y = kRoom001DoorY; y < kRoom001DoorY + kRoom001DoorHeight; ++y) {
+      for (int x = start_x; x < start_x + kRoom001DoorEdgeWidth; ++x) {
+        const int index = y * composite.width() + x;
+        ASSERT_NE(bg1_bitmap.data()[index], 255)
+            << label << " " << x << "," << y;
+        EXPECT_EQ(composite.data()[index], bg1_bitmap.data()[index])
+            << label << " upper edge lost at " << x << "," << y;
+      }
+    }
+  };
+
+  expect_lower_door_body(kRoom001WestDoorBodyX, "west door");
+  expect_lower_door_body(kRoom001EastDoorBodyX, "east door");
+  expect_upper_door_edge(kRoom001WestDoorEdgeX, "west door");
+  expect_upper_door_edge(kRoom001EastDoorEdgeX, "east door");
+}
+
+TEST_F(DungeonRoomRegressionFixturesTest,
+       Room077SpiralStairRastersFollowStoredBg2Stream) {
+  Room room = LoadRoomFromRom(&rom_, 0x077);
+  room.SetGameData(&game_data_);
+  room.LoadObjects();
+
+  struct SpiralWitness {
+    int object_id;
+    int x;
+    int y;
+  };
+  constexpr std::array<SpiralWitness, 3> kWitnesses = {{
+      {0x138, 44, 41},
+      {0x139, 16, 41},
+      {0x13B, 14, 7},
+  }};
+
+  gfx::PaletteGroup palette_group;
+  for (const auto& witness : kWitnesses) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object=0x" << std::hex << witness.object_id << " at ("
+                 << std::dec << witness.x << "," << witness.y << ")");
+    const auto& objects = room.GetTileObjects();
+    const auto object_it = std::find_if(
+        objects.begin(), objects.end(), [&](const RoomObject& object) {
+          return object.id_ == witness.object_id && object.x_ == witness.x &&
+                 object.y_ == witness.y;
+        });
+    ASSERT_NE(object_it, objects.end());
+    ASSERT_EQ(object_it->GetLayerValue(), 1)
+        << "Room 0x077 witness moved out of the lower object-list stream.";
+
+    RoomObject object = *object_it;
+    object.SetRom(&rom_);
+    object.EnsureTilesLoaded();
+    ASSERT_GE(object.tiles().size(), 12u);
+
+    gfx::BackgroundBuffer upper(512, 512);
+    gfx::BackgroundBuffer lower(512, 512);
+    ObjectDrawer drawer(&rom_, /*room_id=*/0x077,
+                        /*room_gfx_buffer=*/nullptr);
+    std::vector<ObjectDrawer::TileTrace> trace;
+    drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+    ASSERT_TRUE(drawer.DrawObject(object, upper, lower, palette_group).ok());
+    ASSERT_EQ(trace.size(), 12u);
+
+    for (int column = 0; column < 4; ++column) {
+      for (int row = 0; row < 3; ++row) {
+        const int index = column * 3 + row;
+        EXPECT_EQ(trace[index].layer,
+                  static_cast<uint8_t>(RoomObject::LayerType::BG2));
+        EXPECT_EQ(trace[index].x_tile, witness.x + column);
+        EXPECT_EQ(trace[index].y_tile, witness.y + row);
+        EXPECT_EQ(trace[index].tile_id, object.tiles()[index].id_)
+            << "The real ROM tile payload must stay column-major.";
+      }
+    }
+  }
 }
 
 TEST_F(DungeonRoomRegressionFixturesTest,
@@ -1081,50 +1195,67 @@ TEST_F(DungeonRoomRegressionFixturesTest,
   ASSERT_GE(object_bg2.width(), kOverlayPixelX + kOverlayPixelW);
   ASSERT_GE(object_bg2.height(), kOverlayPixelY + kOverlayPixelH);
 
-  int non_backdrop = 0;
+  const auto& object_bg2_coverage = room.object_bg2_buffer().coverage_data();
+  int covered_pixels = 0;
+  int opaque_pixels = 0;
   for (int py = 0; py < kOverlayPixelH; ++py) {
     for (int px = 0; px < kOverlayPixelW; ++px) {
       const int index =
           (kOverlayPixelY + py) * object_bg2.width() + (kOverlayPixelX + px);
-      if (object_bg2.data()[index] != 0) {
-        ++non_backdrop;
+      if (object_bg2_coverage[index] != 0) {
+        ++covered_pixels;
+      }
+      if (object_bg2.data()[index] != 255) {
+        ++opaque_pixels;
       }
     }
   }
-  EXPECT_GT(non_backdrop, 1000)
-      << "Editor water-overlay indicator must stamp visible BG2 object pixels "
-         "in the 0xD8 ROI (vanilla HDMA does not draw these tiles in-game)";
+  EXPECT_GT(covered_pixels, 1000)
+      << "Water overlay 0xD8 must write tilemap coverage in its BG2 stream ROI";
+  EXPECT_GT(opaque_pixels, 1000)
+      << "Yaze's currently modeled water state must stamp visible BG2 pixels";
 
-  // Hiding BG2 must remove the indicator from the composite (proves layering).
+  // Hold BG2 layout visibility constant and toggle only BG2 objects. This
+  // isolates the modeled 0xD8 stamp instead of attributing unrelated lower
+  // layout pixels to the object.
   // GetCompositeBitmap returns a reference to one mutable buffer — snapshot
-  // BG1-only before requesting the full composite.
-  RoomLayerManager bg1_only;
-  bg1_only.SetLayerVisible(LayerType::BG2_Layout, false);
-  bg1_only.SetLayerVisible(LayerType::BG2_Objects, false);
-  RoomLayerManager with_bg2;
-  const auto& bg1_composite = room.GetCompositeBitmap(bg1_only);
-  ASSERT_TRUE(bg1_composite.is_active());
-  std::vector<uint8_t> bg1_snapshot(
-      bg1_composite.data(),
-      bg1_composite.data() + static_cast<size_t>(bg1_composite.size()));
+  // object-hidden state before requesting the object-visible composite.
+  RoomLayerManager without_bg2_objects;
+  without_bg2_objects.ApplyLayerMerging(room.layer_merging());
+  without_bg2_objects.ApplyRoomEffect(room.effect());
+  without_bg2_objects.SetLayerVisible(LayerType::BG2_Layout, false);
+  without_bg2_objects.SetLayerVisible(LayerType::BG2_Objects, false);
+  RoomLayerManager with_bg2_objects;
+  with_bg2_objects.ApplyLayerMerging(room.layer_merging());
+  with_bg2_objects.ApplyRoomEffect(room.effect());
+  with_bg2_objects.SetLayerVisible(LayerType::BG2_Layout, false);
+  const auto& without_objects_composite =
+      room.GetCompositeBitmap(without_bg2_objects);
+  ASSERT_TRUE(without_objects_composite.is_active());
+  std::vector<uint8_t> without_objects_snapshot(
+      without_objects_composite.data(),
+      without_objects_composite.data() +
+          static_cast<size_t>(without_objects_composite.size()));
 
-  const auto& full_composite = room.GetCompositeBitmap(with_bg2);
+  const auto& full_composite = room.GetCompositeBitmap(with_bg2_objects);
   ASSERT_TRUE(full_composite.is_active());
-  ASSERT_EQ(bg1_snapshot.size(), static_cast<size_t>(full_composite.size()));
+  ASSERT_EQ(without_objects_snapshot.size(),
+            static_cast<size_t>(full_composite.size()));
 
   int differing = 0;
   for (int py = 0; py < kOverlayPixelH; ++py) {
     for (int px = 0; px < kOverlayPixelW; ++px) {
       const int index = (kOverlayPixelY + py) * full_composite.width() +
                         (kOverlayPixelX + px);
-      if (bg1_snapshot[static_cast<size_t>(index)] !=
+      if (without_objects_snapshot[static_cast<size_t>(index)] !=
           full_composite.data()[index]) {
         ++differing;
       }
     }
   }
-  EXPECT_GT(differing, 100)
-      << "BG2 water-overlay indicator must change the composite vs BG1-only";
+  EXPECT_GT(differing, 100) << "The modeled 0xD8 BG2 object stamp must change "
+                               "the composite when only "
+                               "BG2 object visibility is toggled";
 }
 
 TEST_F(DungeonRoomRegressionFixturesTest, PerLayerFingerprintsMatchGolden) {

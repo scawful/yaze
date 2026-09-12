@@ -105,7 +105,9 @@ New subsystem for visual editing of the 8x8 tile composition of dungeon objects.
 
 ### Room Layer Manager & Compositing (February 2026)
 
-Subsystem for accurate SNES-style layer compositing of dungeon room renders.
+Subsystem for SNES-informed layer compositing of dungeon room renders. The
+pass order and per-tile priority model follow the game, while some color-math
+and runtime-effect paths remain editor approximations.
 
 **Architecture:**
 - **RoomLayerManager** (`zelda3/dungeon/room_layer_manager.{h,cc}`) — Manages per-layer blend modes and composites BG1/BG2 layout + object buffers into the final output bitmap.
@@ -116,9 +118,9 @@ Subsystem for accurate SNES-style layer compositing of dungeon room renders.
   - `Torch_Show_Floor`: Sets BG1 layers to Dark (lantern reveals BG2 floor underneath).
   - `Red_Flashes`: No persistent blend change (Ganon fight lightning is temporal).
   - `Ganon_Room`: Sets BG2 layout to Translucent.
-- **CompositeToOutput()** — Priority-aware pixel compositing:
+- **CompositeToOutput()** — Priority-aware editor compositing:
   - Builds a palette RGB lookup table from the room's SDL surface palette.
-  - For translucent layers: computes `(bg1_rgb + bg2_rgb) / 2` per channel, then finds the nearest palette index within the same palette bank via `find_nearest_in_bank`.
+  - For translucent layers: approximates half-add color math with `(bg1_rgb + bg2_rgb) / 2`, then finds the nearest palette index within the same palette bank via `find_nearest_in_bank`. Treat committed Mesen ROIs—not this approximation alone—as pixel-parity evidence.
   - For dark layers: dims BG1 pixels to simulate unlit rooms.
   - Respects SNES priority bits: BG2 priority=1 tiles render above BG1 priority=0 tiles.
 
@@ -132,7 +134,7 @@ Subsystem for accurate SNES-style layer compositing of dungeon room renders.
 - Per-routine metadata includes `draws_to_both_bgs` for routines that explicitly write both tilemaps (for example, routine 2/kRightwards2x4 and routine 19/Corner4x4). Routine 97/PrisonCell follows the current object-stream tilemap selected by `$BF` and is not dual-layer.
 
 **Validation:**
-- 19 parity tests in `test/unit/zelda3/dungeon/object_drawing_comprehensive_test.cc` validate routine coverage, palette offsets, pit/mask identification, BothBG flags, water layer semantics, room effects, and layer merge behavior.
+- `object_drawing_comprehensive_test.cc` validates registry coverage and selected invariants. ROM-backed tests validate real room bytes; committed Mesen RGBA ROIs provide independent pixel evidence for the documented subset. See `docs/internal/agents/dungeon-object-rendering-spec.md`.
 
 ## Current Limitations / Gaps
 

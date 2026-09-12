@@ -6,6 +6,7 @@
 #include "app/editor/layout/layout_designer/dock_tree.h"
 #include "app/editor/layout/layout_designer/dock_tree_json.h"
 #include "app/editor/layout/layout_manager.h"
+#include "app/editor/layout/layout_presets.h"
 #include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "imgui/imgui.h"
@@ -79,6 +80,25 @@ class LayoutManagerDockTreeTest : public ::testing::Test {
     }
   }
 
+  void RegisterPanel(const char* id, bool* visible, size_t session_id = 0) {
+    WindowDescriptor desc{};
+    desc.card_id = id;
+    desc.display_name = id;
+    desc.icon = "ICON_MD_ACCOUNT_TREE";
+    desc.category = "Dungeon";
+    desc.priority = 1;
+    desc.visibility_flag = visible;
+    window_manager_.RegisterWindow(session_id, desc);
+  }
+
+  ImGuiID GetPanelDockId(const char* id, size_t session_id = 0) const {
+    const std::string title =
+        window_manager_.GetWorkspaceWindowName(session_id, id);
+    const ImGuiWindowSettings* settings =
+        ImGui::FindWindowSettingsByID(ImHashStr(title.c_str()));
+    return settings ? settings->DockId : 0;
+  }
+
   ImGuiContext* imgui_context_ = nullptr;
   bool always_true_ = true;
   WorkspaceWindowManager window_manager_;
@@ -108,6 +128,218 @@ TEST_F(LayoutManagerDockTreeTest, ApplyEmptyLeafSucceeds) {
   ImGuiDockNode* node = ImGui::DockBuilderGetNode(kDockspaceId);
   ASSERT_NE(node, nullptr);
   EXPECT_TRUE(node->IsLeafNode());
+}
+
+TEST_F(LayoutManagerDockTreeTest, DungeonDefaultBuildsSingleDockLeaf) {
+  layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
+
+  ImGuiDockNode* root = ImGui::DockBuilderGetNode(kDockspaceId);
+  ASSERT_NE(root, nullptr);
+  EXPECT_TRUE(root->IsLeafNode())
+      << "Workbench-only startup must not reserve empty side docks for "
+         "optional tools";
+}
+
+TEST_F(LayoutManagerDockTreeTest,
+       DungeonOptionalPanelsCreatePresetRegionsOnFirstOpen) {
+  bool workbench_visible = false;
+  bool object_selector_visible = false;
+  bool door_editor_visible = false;
+  bool palette_editor_visible = false;
+  RegisterPanel(LayoutPresets::Panels::kDungeonWorkbench, &workbench_visible);
+  RegisterPanel(LayoutPresets::Panels::kDungeonObjectSelector,
+                &object_selector_visible);
+  RegisterPanel(LayoutPresets::Panels::kDungeonDoorEditor,
+                &door_editor_visible);
+  RegisterPanel(LayoutPresets::Panels::kDungeonPaletteEditor,
+                &palette_editor_visible);
+
+  layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
+  ImGuiDockNode* root = ImGui::DockBuilderGetNode(kDockspaceId);
+  ASSERT_NE(root, nullptr);
+  ASSERT_TRUE(root->IsLeafNode());
+
+  ASSERT_TRUE(layout_manager_.DockDefaultPositionOnFirstOpen(
+      0, LayoutPresets::Panels::kDungeonObjectSelector));
+  root = ImGui::DockBuilderGetNode(kDockspaceId);
+  ASSERT_TRUE(root->IsSplitNode());
+  ASSERT_EQ(root->SplitAxis, ImGuiAxis_X);
+  ImGuiDockNode* right = root->ChildNodes[1];
+  ASSERT_NE(right, nullptr);
+  EXPECT_EQ(GetPanelDockId(LayoutPresets::Panels::kDungeonObjectSelector),
+            right->ID);
+
+  ASSERT_TRUE(layout_manager_.DockDefaultPositionOnFirstOpen(
+      0, LayoutPresets::Panels::kDungeonDoorEditor));
+  right = ImGui::DockBuilderGetNode(right->ID);
+  ASSERT_NE(right, nullptr);
+  ASSERT_TRUE(right->IsSplitNode());
+  ASSERT_EQ(right->SplitAxis, ImGuiAxis_Y);
+  ASSERT_NE(right->ChildNodes[0], nullptr);
+  ASSERT_NE(right->ChildNodes[1], nullptr);
+  EXPECT_EQ(GetPanelDockId(LayoutPresets::Panels::kDungeonObjectSelector),
+            right->ChildNodes[0]->ID);
+  EXPECT_EQ(GetPanelDockId(LayoutPresets::Panels::kDungeonDoorEditor),
+            right->ChildNodes[1]->ID);
+
+  ASSERT_TRUE(layout_manager_.DockDefaultPositionOnFirstOpen(
+      0, LayoutPresets::Panels::kDungeonPaletteEditor));
+  EXPECT_EQ(GetPanelDockId(LayoutPresets::Panels::kDungeonPaletteEditor),
+            GetPanelDockId(LayoutPresets::Panels::kDungeonDoorEditor));
+}
+
+TEST_F(LayoutManagerDockTreeTest,
+       DungeonOptionalRegionsAreStableWhenBottomOpensFirst) {
+  bool workbench_visible = false;
+  bool object_selector_visible = false;
+  bool door_editor_visible = false;
+  RegisterPanel(LayoutPresets::Panels::kDungeonWorkbench, &workbench_visible);
+  RegisterPanel(LayoutPresets::Panels::kDungeonObjectSelector,
+                &object_selector_visible);
+  RegisterPanel(LayoutPresets::Panels::kDungeonDoorEditor,
+                &door_editor_visible);
+
+  layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
+  ASSERT_TRUE(layout_manager_.DockDefaultPositionOnFirstOpen(
+      0, LayoutPresets::Panels::kDungeonDoorEditor));
+  ASSERT_TRUE(layout_manager_.DockDefaultPositionOnFirstOpen(
+      0, LayoutPresets::Panels::kDungeonObjectSelector));
+
+  ImGuiDockNode* root = ImGui::DockBuilderGetNode(kDockspaceId);
+  ASSERT_NE(root, nullptr);
+  ASSERT_TRUE(root->IsSplitNode());
+  ImGuiDockNode* right = root->ChildNodes[1];
+  ASSERT_NE(right, nullptr);
+  ASSERT_TRUE(right->IsSplitNode());
+  EXPECT_EQ(GetPanelDockId(LayoutPresets::Panels::kDungeonObjectSelector),
+            right->ChildNodes[0]->ID);
+  EXPECT_EQ(GetPanelDockId(LayoutPresets::Panels::kDungeonDoorEditor),
+            right->ChildNodes[1]->ID);
+}
+
+TEST_F(LayoutManagerDockTreeTest,
+       DungeonLazyDockingRefreshesAfterOverworldActivation) {
+  bool dungeon_workbench_visible = false;
+  bool dungeon_door_editor_visible = false;
+  bool overworld_canvas_visible = false;
+  bool overworld_tile_selector_visible = false;
+  bool overworld_properties_visible = false;
+  RegisterPanel(LayoutPresets::Panels::kDungeonWorkbench,
+                &dungeon_workbench_visible);
+  RegisterPanel(LayoutPresets::Panels::kDungeonDoorEditor,
+                &dungeon_door_editor_visible);
+  RegisterPanel(LayoutPresets::Panels::kOverworldCanvas,
+                &overworld_canvas_visible);
+  RegisterPanel(LayoutPresets::Panels::kOverworldTile16Selector,
+                &overworld_tile_selector_visible);
+  RegisterPanel(LayoutPresets::Panels::kOverworldMapProperties,
+                &overworld_properties_visible);
+
+  layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
+  ASSERT_TRUE(layout_manager_.DockDefaultPositionOnFirstOpen(
+      0, LayoutPresets::Panels::kDungeonDoorEditor));
+  ASSERT_NE(GetPanelDockId(LayoutPresets::Panels::kDungeonWorkbench), 0u);
+  ASSERT_NE(GetPanelDockId(LayoutPresets::Panels::kDungeonDoorEditor), 0u);
+
+  layout_manager_.InitializeEditorLayout(EditorType::kOverworld, kDockspaceId);
+  dungeon_door_editor_visible = true;
+  layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
+
+  EXPECT_NE(GetPanelDockId(LayoutPresets::Panels::kDungeonWorkbench), 0u);
+  EXPECT_NE(GetPanelDockId(LayoutPresets::Panels::kDungeonDoorEditor), 0u);
+  EXPECT_FALSE(layout_manager_.DockDefaultPositionOnFirstOpen(
+      0, LayoutPresets::Panels::kDungeonDoorEditor));
+}
+
+TEST_F(LayoutManagerDockTreeTest,
+       HiddenDefaultPanelRebindsWhenReopenedAfterSharedTreeReplacement) {
+  bool dungeon_workbench_visible = true;
+  bool overworld_canvas_visible = true;
+  bool overworld_tile_selector_visible = true;
+  bool overworld_properties_visible = true;
+  RegisterPanel(LayoutPresets::Panels::kDungeonWorkbench,
+                &dungeon_workbench_visible);
+  RegisterPanel(LayoutPresets::Panels::kOverworldCanvas,
+                &overworld_canvas_visible);
+  RegisterPanel(LayoutPresets::Panels::kOverworldTile16Selector,
+                &overworld_tile_selector_visible);
+  RegisterPanel(LayoutPresets::Panels::kOverworldMapProperties,
+                &overworld_properties_visible);
+
+  layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
+  dungeon_workbench_visible = false;
+  layout_manager_.InitializeEditorLayout(EditorType::kOverworld, kDockspaceId);
+  layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
+
+  const ImGuiID stale_dock_id =
+      GetPanelDockId(LayoutPresets::Panels::kDungeonWorkbench);
+  EXPECT_TRUE(stale_dock_id == 0 ||
+              ImGui::DockBuilderGetNode(stale_dock_id) == nullptr);
+
+  dungeon_workbench_visible = true;
+  ASSERT_TRUE(layout_manager_.DockPresetPositionOnPanelOpen(
+      0, LayoutPresets::Panels::kDungeonWorkbench));
+  const ImGuiID rebound_dock_id =
+      GetPanelDockId(LayoutPresets::Panels::kDungeonWorkbench);
+  EXPECT_NE(rebound_dock_id, 0u);
+  EXPECT_NE(ImGui::DockBuilderGetNode(rebound_dock_id), nullptr);
+}
+
+TEST_F(LayoutManagerDockTreeTest,
+       DungeonLazyDockingRefreshesForSecondRomSession) {
+  bool session_zero_workbench_visible = false;
+  bool session_one_workbench_visible = true;
+  bool session_one_object_selector_visible = true;
+  RegisterPanel(LayoutPresets::Panels::kDungeonWorkbench,
+                &session_zero_workbench_visible, 0);
+  layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
+
+  window_manager_.RegisterSession(1);
+  window_manager_.SetActiveSession(1);
+  RegisterPanel(LayoutPresets::Panels::kDungeonWorkbench,
+                &session_one_workbench_visible, 1);
+  RegisterPanel(LayoutPresets::Panels::kDungeonObjectSelector,
+                &session_one_object_selector_visible, 1);
+  layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
+
+  EXPECT_NE(GetPanelDockId(LayoutPresets::Panels::kDungeonWorkbench, 1), 0u);
+  EXPECT_NE(GetPanelDockId(LayoutPresets::Panels::kDungeonObjectSelector, 1),
+            0u);
+}
+
+TEST_F(LayoutManagerDockTreeTest,
+       DungeonOptionalDockingIsOneShotAndYieldsToCustomTrees) {
+  bool workbench_visible = false;
+  bool object_selector_visible = false;
+  bool door_editor_visible = false;
+  RegisterPanel(LayoutPresets::Panels::kDungeonWorkbench, &workbench_visible);
+  RegisterPanel(LayoutPresets::Panels::kDungeonObjectSelector,
+                &object_selector_visible);
+  RegisterPanel(LayoutPresets::Panels::kDungeonDoorEditor,
+                &door_editor_visible);
+
+  layout_manager_.InitializeEditorLayout(EditorType::kDungeon, kDockspaceId);
+  ASSERT_TRUE(layout_manager_.DockDefaultPositionOnFirstOpen(
+      0, LayoutPresets::Panels::kDungeonObjectSelector));
+
+  const std::string object_title = window_manager_.GetWorkspaceWindowName(
+      0, LayoutPresets::Panels::kDungeonObjectSelector);
+  ImGuiWindowSettings* object_settings =
+      ImGui::FindWindowSettingsByID(ImHashStr(object_title.c_str()));
+  ASSERT_NE(object_settings, nullptr);
+  object_settings->DockId = 0;
+  EXPECT_FALSE(layout_manager_.DockDefaultPositionOnFirstOpen(
+      0, LayoutPresets::Panels::kDungeonObjectSelector));
+  EXPECT_EQ(GetPanelDockId(LayoutPresets::Panels::kDungeonObjectSelector), 0u);
+
+  DockTree custom_tree;
+  ASSERT_TRUE(layout_manager_.ApplyDockTree(custom_tree, kDockspaceId).ok());
+  ImGuiDockNode* root = ImGui::DockBuilderGetNode(kDockspaceId);
+  ASSERT_NE(root, nullptr);
+  ASSERT_TRUE(root->IsLeafNode());
+  EXPECT_FALSE(layout_manager_.DockDefaultPositionOnFirstOpen(
+      0, LayoutPresets::Panels::kDungeonDoorEditor));
+  EXPECT_TRUE(root->IsLeafNode());
 }
 
 TEST_F(LayoutManagerDockTreeTest, ApplyLeftSplitUsesHorizontalAxis) {

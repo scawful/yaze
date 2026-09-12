@@ -80,6 +80,7 @@ struct AppConfig;
 namespace editor {
 
 std::optional<EditorType> ParseEditorTypeFromString(absl::string_view name);
+class EditorManagerLayoutTestPeer;
 
 /**
  * @class EditorManager
@@ -96,6 +97,8 @@ std::optional<EditorType> ParseEditorTypeFromString(absl::string_view name);
  * updates cross-cutting concerns accordingly.
  */
 class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
+  friend class EditorManagerLayoutTestPeer;
+
  public:
   struct UiSyncState {
     uint64_t frame_id = 0;
@@ -491,6 +494,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void ResetAssetState(RomSession* session);
   void MarkEditorInitialized(RomSession* session, EditorType type);
   void MarkEditorLoaded(RomSession* session, EditorType type);
+  void RestoreEditorLayoutAfterAssets(RomSession* session, EditorType type);
+  void RestoreActiveEditorLayoutAfterAssets(RomSession* session);
   Editor* GetEditorByType(EditorType type, EditorSet* editor_set) const;
   Editor* ResolveEditorForCategory(const std::string& category);
   void SyncEditorContextForCategory(const std::string& category);

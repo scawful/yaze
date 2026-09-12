@@ -1,8 +1,12 @@
 #ifndef YAZE_ZELDA3_DUNGEON_OBJECT_LAYER_SEMANTICS_H_
 #define YAZE_ZELDA3_DUNGEON_OBJECT_LAYER_SEMANTICS_H_
 
+#include <algorithm>
 #include <cstdint>
+#include <span>
 
+#include "core/features.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/object_render_routing.h"
 #include "zelda3/dungeon/room_object.h"
@@ -18,6 +22,7 @@ enum class EffectiveBgLayer {
 
 struct ObjectLayerSemantics {
   int routine_id = -1;
+  bool custom_override_active = false;
   // Compatibility field for the legacy all_bgs_/routine-metadata decision.
   // Object-ID-specific routing (for example auto and straight stairs) is
   // represented by render_routing instead.
@@ -34,6 +39,28 @@ inline bool UsesRoomObjectStream(const RoomObject& object) {
 
 inline bool UsesSpecialLayerSelector(const RoomObject& object) {
   return !UsesRoomObjectStream(object);
+}
+
+inline bool IsTrackCornerAliasObjectId(int object_id) {
+  return object_id >= 0x100 && object_id <= 0x103;
+}
+
+inline bool RoomAllowsTrackCornerAliases(
+    std::span<const RoomObject> room_objects) {
+  return std::any_of(
+      room_objects.begin(), room_objects.end(),
+      [](const RoomObject& object) { return object.id_ == 0x31; });
+}
+
+inline bool HasActiveCustomObjectOverride(const RoomObject& object,
+                                          bool allow_track_corner_aliases) {
+  if (!core::FeatureFlags::get().kEnableCustomObjects ||
+      (IsTrackCornerAliasObjectId(object.id_) && !allow_track_corner_aliases)) {
+    return false;
+  }
+
+  const int subtype = object.size_ & 0x1F;
+  return CustomObjectManager::Get().GetObjectInternal(object.id_, subtype).ok();
 }
 
 // Reports built-in routine routing. A project custom-object override can
@@ -61,18 +88,9 @@ inline ObjectLayerSemantics GetObjectLayerSemantics(const RoomObject& object) {
   }
 
   if (out.routine_id == DrawRoutineIds::kAgahnimsAltar ||
-      out.routine_id == DrawRoutineIds::kFortuneTellerRoom ||
-      out.routine_id == DrawRoutineIds::kSpiralStairsGoingUpUpper ||
-      out.routine_id == DrawRoutineIds::kSpiralStairsGoingDownUpper) {
+      out.routine_id == DrawRoutineIds::kFortuneTellerRoom) {
     out.effective_bg_layer = EffectiveBgLayer::kBg1;
     out.render_routing = ObjectRenderRouting::kFixedBg1;
-    return out;
-  }
-
-  if (out.routine_id == DrawRoutineIds::kSpiralStairsGoingUpLower ||
-      out.routine_id == DrawRoutineIds::kSpiralStairsGoingDownLower) {
-    out.effective_bg_layer = EffectiveBgLayer::kBg2;
-    out.render_routing = ObjectRenderRouting::kFixedBg2;
     return out;
   }
 
@@ -91,6 +109,29 @@ inline ObjectLayerSemantics GetObjectLayerSemantics(const RoomObject& object) {
   out.effective_bg_layer = (object.layer_ == RoomObject::LayerType::BG2)
                                ? EffectiveBgLayer::kBg2
                                : EffectiveBgLayer::kBg1;
+  return out;
+}
+
+// Reports the route actually used by ObjectDrawer after custom overrides have
+// had their chance to preempt the built-in routine.
+inline ObjectLayerSemantics GetEffectiveObjectLayerSemantics(
+    const RoomObject& object, bool allow_track_corner_aliases) {
+  if (!HasActiveCustomObjectOverride(object, allow_track_corner_aliases)) {
+    return GetObjectLayerSemantics(object);
+  }
+
+  ObjectLayerSemantics out;
+  out.custom_override_active = true;
+  out.draws_to_both_bgs = object.all_bgs_;
+  if (object.all_bgs_) {
+    out.effective_bg_layer = EffectiveBgLayer::kBothBg1Bg2;
+    out.render_routing = ObjectRenderRouting::kFullBothBg1Bg2;
+  } else {
+    out.effective_bg_layer = object.layer_ == RoomObject::LayerType::BG2
+                                 ? EffectiveBgLayer::kBg2
+                                 : EffectiveBgLayer::kBg1;
+    out.render_routing = ObjectRenderRouting::kStoredPlacement;
+  }
   return out;
 }
 

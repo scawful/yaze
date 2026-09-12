@@ -63,10 +63,19 @@ void EditorActivator::SwitchToEditor(EditorType editor_type, bool force_visible,
   ImGuiContext* imgui_ctx = ImGui::GetCurrentContext();
   const bool frame_active = imgui_ctx != nullptr && imgui_ctx->WithinFrameScope;
   if (!frame_active && deps_.queue_deferred_action) {
-    deps_.queue_deferred_action(
-        [this, editor_type, force_visible, from_dialog]() {
-          SwitchToEditor(editor_type, force_visible, from_dialog);
-        });
+    const bool validate_session =
+        static_cast<bool>(deps_.get_current_session_id);
+    const size_t expected_session_id =
+        validate_session ? deps_.get_current_session_id() : 0;
+    deps_.queue_deferred_action([this, editor_type, force_visible, from_dialog,
+                                 validate_session, expected_session_id]() {
+      if (validate_session &&
+          (!deps_.get_current_session_id ||
+           deps_.get_current_session_id() != expected_session_id)) {
+        return;
+      }
+      SwitchToEditor(editor_type, force_visible, from_dialog);
+    });
     return;
   }
 
@@ -151,18 +160,11 @@ void EditorActivator::ActivatePanelBasedEditor(EditorType type,
     deps_.window_manager->OnEditorSwitch(old_category, new_category);
   }
 
-  // Initialize default layout on first activation
-  if (deps_.layout_manager &&
-      !deps_.layout_manager->IsLayoutInitialized(type)) {
-    if (deps_.queue_deferred_action) {
-      deps_.queue_deferred_action([this, type]() {
-        if (deps_.layout_manager &&
-            !deps_.layout_manager->IsLayoutInitialized(type)) {
-          ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
-          deps_.layout_manager->InitializeEditorLayout(type, dockspace_id);
-        }
-      });
-    }
+  // Activate the layout context on every editor activation. LayoutManager
+  // builds the default tree only once, but repeated calls refresh the live
+  // editor/session context used by lazy first-open panel docking.
+  if (deps_.layout_manager) {
+    QueueEditorLayoutInitialization(type);
   }
 }
 
@@ -183,9 +185,40 @@ void EditorActivator::DeactivatePanelBasedEditor(EditorType type,
         gui::GetAnimator().ClearWorkspaceTransitionState();
         deps_.window_manager->OnEditorSwitch(old_category, new_category);
       }
+
+      // The fallback editor was already active, so it does not pass through
+      // ActivatePanelBasedEditor again. Refresh its live docking context here
+      // before any of its hidden-by-default panels are opened.
+      const EditorType fallback_type = other->type();
+      if (deps_.layout_manager) {
+        QueueEditorLayoutInitialization(fallback_type);
+      }
       break;
     }
   }
+}
+
+void EditorActivator::QueueEditorLayoutInitialization(EditorType type) {
+  if (!deps_.layout_manager) {
+    return;
+  }
+  if (!deps_.queue_deferred_action) {
+    InitializeEditorLayout(type);
+    return;
+  }
+
+  const bool validate_session = static_cast<bool>(deps_.get_current_session_id);
+  const size_t expected_session_id =
+      validate_session ? deps_.get_current_session_id() : 0;
+  deps_.queue_deferred_action(
+      [this, type, validate_session, expected_session_id]() {
+        if (validate_session &&
+            (!deps_.get_current_session_id ||
+             deps_.get_current_session_id() != expected_session_id)) {
+          return;
+        }
+        InitializeEditorLayout(type);
+      });
 }
 
 void EditorActivator::HandleNonEditorClassSwitch(EditorType type,
@@ -269,15 +302,15 @@ void EditorActivator::InitializeEditorLayout(EditorType type) {
   ImGuiContext* ctx = ImGui::GetCurrentContext();
   if (!ctx || !ctx->WithinFrameScope) {
     if (deps_.queue_deferred_action) {
-      deps_.queue_deferred_action(
-          [this, type]() { InitializeEditorLayout(type); });
+      QueueEditorLayoutInitialization(type);
     }
     return;
   }
 
-  if (!deps_.layout_manager->IsLayoutInitialized(type)) {
-    ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
-    deps_.layout_manager->InitializeEditorLayout(type, dockspace_id);
+  const bool was_initialized = deps_.layout_manager->IsLayoutInitialized(type);
+  ImGuiID dockspace_id = ImGui::GetID("MainDockSpace");
+  deps_.layout_manager->InitializeEditorLayout(type, dockspace_id);
+  if (!was_initialized && deps_.layout_manager->IsLayoutInitialized(type)) {
     LOG_INFO("EditorActivator", "Initialized layout for editor type %d",
              static_cast<int>(type));
   }

@@ -48,6 +48,7 @@ class DungeonEditorV2MinecartTrackTestPeer;
 class DungeonEditorV2ObjectTileEditorTestPeer;
 class DungeonEditorV2RegularEntranceTestPeer;
 class DungeonEditorV2ReloadTestPeer;
+class DungeonEditorV2ShortcutTestPeer;
 class DungeonEditorV2SpawnPointTestPeer;
 class DungeonEditorV2SpawnRejectionTestPeer;
 class MinecartTrackEditorPanel;
@@ -218,6 +219,11 @@ class DungeonEditorV2 : public Editor {
   void ToggleWorkbenchWorkflowMode(bool show_toast = true);
   bool IsWorkbenchWorkflowEnabled() const;
 
+  // ShortcutManager runs before this editor draws. Queue destructive keyboard
+  // actions so the room canvas can establish ownership for the current frame
+  // before the action is evaluated.
+  void QueueRoomCanvasDeleteShortcut();
+
   // Panel card IDs for programmatic access
   static constexpr const char* kRoomSelectorId = "dungeon.room_selector";
   static constexpr const char* kEntranceListId = "dungeon.entrance_list";
@@ -260,6 +266,7 @@ class DungeonEditorV2 : public Editor {
   friend class DungeonEditorV2ObjectTileEditorTestPeer;
   friend class DungeonEditorV2RegularEntranceTestPeer;
   friend class DungeonEditorV2ReloadTestPeer;
+  friend class DungeonEditorV2ShortcutTestPeer;
   friend class DungeonEditorV2SpawnPointTestPeer;
   friend class DungeonEditorV2SpawnRejectionTestPeer;
   friend class DungeonEditorV2RomSafetyTest_UndoSnapshotLeakDetection_Test;
@@ -331,6 +338,8 @@ class DungeonEditorV2 : public Editor {
   DungeonCanvasViewer* GetWorkbenchCompareViewer(int room_id);
   void RefreshWorkbenchViewerRuntimeContext(DungeonCanvasViewer* viewer,
                                             int room_id);
+  bool ConsumeRoomCanvasDeleteShortcut(DungeonCanvasViewer& viewer);
+  void ExpireStaleRoomCanvasDeleteShortcut();
   void TouchViewerLru(int room_id);
   void RemoveViewerFromLru(int room_id);
 
@@ -355,6 +364,8 @@ class DungeonEditorV2 : public Editor {
     bool has_palette_transaction = false;
   };
   std::optional<SaveTransactionSnapshot> save_transaction_snapshot_;
+
+  std::optional<int> room_canvas_delete_shortcut_frame_;
 
   // Current selection state
   int current_entrance_id_ = 0;

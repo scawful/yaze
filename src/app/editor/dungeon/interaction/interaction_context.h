@@ -98,6 +98,13 @@ struct InteractionContext {
   // Called when entity (door/sprite/item) changes
   std::function<void()> on_entity_changed;
 
+  // View-derived eligibility for tile-object selection. This is intentionally
+  // separate from ObjectSelection's explicit stored-layer filter: hiding BG1
+  // or BG2 must remove that content from canvas hit-testing without changing
+  // which stored object stream the user chose to target.
+  std::function<bool(int, const zelda3::RoomObject&)>
+      is_object_visible_for_selection;
+
   // Called when an interactive door-pair badge requests navigation to the
   // adjacent room. The optional door index is in the target room.
   std::function<void(int target_room_id,
@@ -135,6 +142,11 @@ struct InteractionContext {
       return nullptr;
     }
     return &(*rooms)[current_room_id];
+  }
+
+  bool IsObjectVisibleForSelection(const zelda3::RoomObject& object) const {
+    return !is_object_visible_for_selection ||
+           is_object_visible_for_selection(current_room_id, object);
   }
 
   /**

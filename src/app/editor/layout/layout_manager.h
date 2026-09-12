@@ -3,6 +3,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -104,6 +105,32 @@ class LayoutManager {
    * Useful for resetting layouts to their default state.
    */
   void RebuildLayout(EditorType type, ImGuiID dockspace_id);
+
+  /**
+   * @brief Dock a hidden-by-default panel at its preset position on first open.
+   *
+   * This is active only for default presets that intentionally build the
+   * startup dock tree from visible panels alone. Each panel is considered at
+   * most once per default-layout build, so closing and reopening a panel never
+   * overrides a position the user chose after its first open.
+   *
+   * @return true when the panel was assigned to a default dock node.
+   */
+  bool DockDefaultPositionOnFirstOpen(size_t session_id,
+                                      const std::string& panel_id);
+
+  /**
+   * @brief Rebind any preset panel when a visibility event opens it.
+   *
+   * Unlike DockDefaultPositionOnFirstOpen(), this accepts both default-visible
+   * and optional panels. This matters after another editor replaces the shared
+   * dock tree while a default panel is hidden: its next open event must attach
+   * it to the new live tree instead of leaving it floating.
+   *
+   * @return true when the panel was assigned to a preset dock node.
+   */
+  bool DockPresetPositionOnPanelOpen(size_t session_id,
+                                     const std::string& panel_id);
 
   /**
    * @brief Save the current layout with a custom name
@@ -421,6 +448,14 @@ class LayoutManager {
  private:
   // DockBuilder layout implementations for each editor type
   void BuildLayoutFromPreset(EditorType type, ImGuiID dockspace_id);
+  void DisableLazyDefaultDocking();
+  void RefreshLazyDefaultDockingContext(EditorType type, ImGuiID dockspace_id);
+  void DockOpenPresetPanels(EditorType type);
+  bool DockPresetPositionOnFirstOpen(size_t session_id,
+                                     const std::string& panel_id,
+                                     bool include_default_visible);
+  void MarkLazyDefaultDockAttempted(const std::string& panel_id);
+  void ProtectRestoredLayoutFromDefaultInitialization();
 
   void LoadLayoutsFromDiskInternal(LayoutScope scope, bool merge);
   void SaveLayoutsToDisk(LayoutScope scope) const;
@@ -475,6 +510,35 @@ class LayoutManager {
 
   // Current editor type being displayed
   EditorType current_editor_type_ = EditorType::kUnknown;
+
+  // Default presets may omit hidden panels from the initial dock tree. Keep
+  // enough state to create their preferred region lazily on first open.
+  struct LazyDefaultDockState {
+    bool enabled = false;
+    bool compact = false;
+    EditorType editor_type = EditorType::kUnknown;
+    size_t session_id = 0;
+    ImGuiID dockspace = 0;
+    ImGuiID center = 0;
+    ImGuiID left = 0;
+    ImGuiID right = 0;
+    ImGuiID bottom = 0;
+    ImGuiID top = 0;
+    ImGuiID left_top = 0;
+    ImGuiID left_bottom = 0;
+    ImGuiID right_top = 0;
+    ImGuiID right_bottom = 0;
+    float left_ratio = 0.17f;
+    float right_ratio = 0.24f;
+    float bottom_ratio = 0.22f;
+    float top_ratio = 0.12f;
+    float vertical_split = 0.52f;
+    std::unordered_set<std::string> attempted_panels;
+  };
+  LazyDefaultDockState lazy_default_dock_state_;
+  std::unordered_map<
+      size_t, std::unordered_map<EditorType, std::unordered_set<std::string>>>
+      lazy_default_dock_attempts_;
 
   // Saved layouts (panel visibility state)
   std::unordered_map<std::string, std::unordered_map<std::string, bool>>

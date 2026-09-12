@@ -132,7 +132,67 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     }
   };
 
-  if (use_priority_compositing_) {
+  if (room.layer2_mode() == 0x06) {
+    // Header layer mode 6 uses the upper dungeon tilemap on the SNES main
+    // screen and the lower tilemap on the sub screen. Ignoring OBJ/BG3, an
+    // opaque upper pixel wins regardless of either tile's priority bit; the
+    // lower pixel is visible only where the upper tilemap is transparent.
+    //
+    // Yaze's historic BG1/BG2 names describe semantic editor layers here:
+    // BG1_* is the upper tilemap ($7E2000 / hardware BG2), while BG2_* is the
+    // lower tilemap ($7E4000 / hardware BG1).
+    if (bg1_layout_on) {
+      CopyPaletteIfNeeded(bg1_layout.bitmap());
+    }
+    if (bg1_obj_on) {
+      CopyPaletteIfNeeded(bg1_objects.bitmap());
+    }
+    if (bg2_layout_on) {
+      CopyPaletteIfNeeded(bg2_layout.bitmap());
+    }
+    if (bg2_obj_on) {
+      CopyPaletteIfNeeded(bg2_objects.bitmap());
+    }
+
+    const auto& upper_layout_px = bg1_layout.bitmap().data();
+    const auto& upper_object_px = bg1_objects.bitmap().data();
+    const auto& lower_layout_px = bg2_layout.bitmap().data();
+    const auto& lower_object_px = bg2_objects.bitmap().data();
+    const auto& upper_object_coverage = bg1_objects.coverage_data();
+    const auto& lower_object_coverage = bg2_objects.coverage_data();
+
+    auto resolve_tilemap_pixel =
+        [&](bool layout_on, bool objects_on, const uint8_t* layout_pixels,
+            const uint8_t* object_pixels,
+            const std::vector<uint8_t>& object_coverage, int index) -> uint8_t {
+      if (objects_on) {
+        const bool object_wrote =
+            (index < static_cast<int>(object_coverage.size()) &&
+             object_coverage[index] != 0) ||
+            !IsTransparent(object_pixels[index]);
+        if (object_wrote) {
+          return object_pixels[index];
+        }
+      }
+      return layout_on ? layout_pixels[index] : 255;
+    };
+
+    auto& dst_data = output.mutable_data();
+    for (int idx = 0; idx < kPixelCount; ++idx) {
+      const uint8_t upper_pixel =
+          resolve_tilemap_pixel(bg1_layout_on, bg1_obj_on, upper_layout_px,
+                                upper_object_px, upper_object_coverage, idx);
+      const uint8_t lower_pixel =
+          resolve_tilemap_pixel(bg2_layout_on, bg2_obj_on, lower_layout_px,
+                                lower_object_px, lower_object_coverage, idx);
+
+      if (!IsTransparent(upper_pixel)) {
+        dst_data[idx] = upper_pixel;
+      } else if (!IsTransparent(lower_pixel)) {
+        dst_data[idx] = lower_pixel;
+      }
+    }
+  } else if (use_priority_compositing_) {
     // Priority compositing (SNES Mode 1):
     // - BG2 priority=0 is behind BG1 priority=0.
     // - BG2 priority=1 can appear above BG1 priority=0.
@@ -157,7 +217,8 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     }
 
     // Check if BG2 uses translucent blending (water rooms, color math effects).
-    // When translucent, overlapping BG1+BG2 pixels are averaged in RGB space.
+    // The editor approximates half-add color math by averaging overlapping
+    // BG1+BG2 RGB values and mapping the result back into the indexed palette.
     const bool bg2_translucent = (GetLayerBlendMode(LayerType::BG2_Layout) ==
                                   LayerBlendMode::Translucent) ||
                                  (GetLayerBlendMode(LayerType::BG2_Objects) ==
@@ -360,9 +421,8 @@ void RoomLayerManager::CompositeToOutput(Room& room,
             break;
 
           case LayerBlendMode::Translucent:
-            // 50% alpha blend: only overwrite if destination is transparent,
-            // otherwise blend colors using palette index averaging (simplified)
-            // For indexed color mode, we can't truly blend - use alpha threshold
+            // Fallback alpha approximation for paths without the palette-aware
+            // priority compositor above. This is not a pixel-exact SNES model.
             if (IsTransparent(dst_data[idx]) || layer_alpha > 180) {
               dst_data[idx] = src_pixel;
             }

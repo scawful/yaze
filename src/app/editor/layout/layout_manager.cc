@@ -167,6 +167,65 @@ std::string ResolveProfilePresetName(const std::string& profile_id,
 
 }  // namespace
 
+void LayoutManager::DisableLazyDefaultDocking() {
+  lazy_default_dock_state_ = LazyDefaultDockState{};
+}
+
+void LayoutManager::RefreshLazyDefaultDockingContext(EditorType type,
+                                                     ImGuiID dockspace_id) {
+  const PanelLayoutPreset preset = LayoutPresets::GetDefaultPreset(type);
+  auto& state = lazy_default_dock_state_;
+  if (!preset.dock_only_default_visible_panels || !window_manager_ ||
+      state.dockspace != dockspace_id ||
+      !ImGui::DockBuilderGetNode(state.dockspace) ||
+      !ImGui::DockBuilderGetNode(state.center)) {
+    state.enabled = false;
+    return;
+  }
+
+  const size_t session_id = window_manager_->GetActiveSessionId();
+  state.enabled = true;
+  state.editor_type = type;
+  state.session_id = session_id;
+  state.attempted_panels = lazy_default_dock_attempts_[session_id][type];
+}
+
+void LayoutManager::MarkLazyDefaultDockAttempted(const std::string& panel_id) {
+  auto& state = lazy_default_dock_state_;
+  state.attempted_panels.insert(panel_id);
+  lazy_default_dock_attempts_[state.session_id][state.editor_type].insert(
+      panel_id);
+}
+
+void LayoutManager::DockOpenPresetPanels(EditorType type) {
+  if (!window_manager_) {
+    return;
+  }
+
+  const size_t session_id = window_manager_->GetActiveSessionId();
+  const PanelLayoutPreset preset = LayoutPresets::GetDefaultPreset(type);
+  const auto dock_if_open = [&](const std::string& panel_id) {
+    if (window_manager_->IsWindowOpen(session_id, panel_id)) {
+      DockPresetPositionOnFirstOpen(session_id, panel_id,
+                                    /*include_default_visible=*/true);
+    }
+  };
+  for (const auto& panel_id : preset.default_visible_panels) {
+    dock_if_open(panel_id);
+  }
+  for (const auto& panel_id : preset.optional_panels) {
+    dock_if_open(panel_id);
+  }
+}
+
+void LayoutManager::ProtectRestoredLayoutFromDefaultInitialization() {
+  if (current_editor_type_ != EditorType::kUnknown) {
+    MarkLayoutInitialized(current_editor_type_);
+  } else {
+    startup_reapply_pending_protection_ = true;
+  }
+}
+
 void LayoutManager::InitializeEditorLayout(EditorType type,
                                            ImGuiID dockspace_id) {
   // Phase 8.2 review (2026-04-25): one-shot protection set by
@@ -176,6 +235,7 @@ void LayoutManager::InitializeEditorLayout(EditorType type,
   // their first editor activation. Consume the flag, mark the type
   // initialized so subsequent activations behave normally, and bail.
   if (startup_reapply_pending_protection_) {
+    DisableLazyDefaultDocking();
     startup_reapply_pending_protection_ = false;
     last_dockspace_id_ = dockspace_id;
     current_editor_type_ = type;
@@ -187,17 +247,24 @@ void LayoutManager::InitializeEditorLayout(EditorType type,
     return;
   }
 
+  // Refresh the active editor/session even when its default dock tree was
+  // initialized earlier. Lazy optional-panel placement uses the live tree but
+  // keeps its one-shot history scoped to this ROM session and editor.
+  last_dockspace_id_ = dockspace_id;
+  current_editor_type_ = type;
+
   // Don't reinitialize if already set up
   if (IsLayoutInitialized(type)) {
+    RefreshLazyDefaultDockingContext(type, dockspace_id);
+    // Session visibility restoration intentionally does not publish panel-open
+    // events. Sweep the restored state after refreshing the session context so
+    // an already-visible optional panel still receives its one-shot default.
+    DockOpenPresetPanels(type);
     LOG_INFO("LayoutManager",
              "Layout for editor type %d already initialized, skipping",
              static_cast<int>(type));
     return;
   }
-
-  // Store dockspace ID and current editor type for potential rebuilds
-  last_dockspace_id_ = dockspace_id;
-  current_editor_type_ = type;
 
   LOG_INFO("LayoutManager", "Initializing layout for editor type %d",
            static_cast<int>(type));
@@ -225,6 +292,10 @@ void LayoutManager::InitializeEditorLayout(EditorType type,
 
   // Finalize the layout
   ImGui::DockBuilderFinish(dockspace_id);
+
+  // Visibility may have been restored before this editor's first layout
+  // build. Give already-open optional panels the same first-open placement.
+  DockOpenPresetPanels(type);
 
   // Mark as initialized
   MarkLayoutInitialized(type);
@@ -267,6 +338,8 @@ void LayoutManager::RebuildLayout(EditorType type, ImGuiID dockspace_id) {
 
   // Finalize the layout
   ImGui::DockBuilderFinish(dockspace_id);
+
+  DockOpenPresetPanels(type);
 
   // Mark as initialized
   MarkLayoutInitialized(type);
@@ -574,6 +647,11 @@ DockNodeIds BuildDockTree(ImGuiID dockspace_id, const DockSplitNeeds& needs,
 
 void LayoutManager::BuildLayoutFromPreset(EditorType type,
                                           ImGuiID dockspace_id) {
+  DisableLazyDefaultDocking();
+  // Every preset build replaces the one shared DockBuilder tree. Any prior
+  // first-open record points at nodes that were just destroyed, including
+  // records belonging to another editor or ROM session.
+  lazy_default_dock_attempts_.clear();
   auto preset = LayoutPresets::GetDefaultPreset(type);
 
   if (!window_manager_) {
@@ -620,6 +698,33 @@ void LayoutManager::BuildLayoutFromPreset(EditorType type,
   }
   // When compact, needs is all-false → BuildDockTree produces center-only.
   DockNodeIds ids = BuildDockTree(dockspace_id, needs, cfg);
+
+  // Keep the live default-tree geometry even for editors that do not use lazy
+  // docking. If the user returns to Dungeon/Overworld without rebuilding the
+  // shared dockspace, their optional panels can still resolve valid nodes.
+  auto& state = lazy_default_dock_state_;
+  state.enabled = preset.dock_only_default_visible_panels;
+  state.compact = is_compact;
+  state.editor_type = type;
+  state.session_id = session_id;
+  state.dockspace = dockspace_id;
+  state.center = ids.center;
+  state.left = ids.left;
+  state.right = ids.right;
+  state.bottom = ids.bottom;
+  state.top = ids.top;
+  state.left_top = ids.left_top;
+  state.left_bottom = ids.left_bottom;
+  state.right_top = ids.right_top;
+  state.right_bottom = ids.right_bottom;
+  state.left_ratio = cfg.left;
+  state.right_ratio = cfg.right;
+  state.bottom_ratio = cfg.bottom;
+  state.top_ratio = cfg.top;
+  state.vertical_split = cfg.vertical_split;
+  if (state.enabled) {
+    state.attempted_panels = lazy_default_dock_attempts_[session_id][type];
+  }
 
   auto get_dock_id = [&](DockPosition pos) -> ImGuiID {
     switch (pos) {
@@ -692,6 +797,173 @@ void LayoutManager::BuildLayoutFromPreset(EditorType type,
       }
     }
   }
+}
+
+bool LayoutManager::DockDefaultPositionOnFirstOpen(
+    size_t session_id, const std::string& panel_id) {
+  return DockPresetPositionOnFirstOpen(session_id, panel_id,
+                                       /*include_default_visible=*/false);
+}
+
+bool LayoutManager::DockPresetPositionOnPanelOpen(size_t session_id,
+                                                  const std::string& panel_id) {
+  return DockPresetPositionOnFirstOpen(session_id, panel_id,
+                                       /*include_default_visible=*/true);
+}
+
+bool LayoutManager::DockPresetPositionOnFirstOpen(
+    size_t session_id, const std::string& panel_id,
+    bool include_default_visible) {
+  auto& state = lazy_default_dock_state_;
+  if (!state.enabled || !window_manager_ || panel_id.empty() ||
+      session_id != state.session_id ||
+      !ImGui::DockBuilderGetNode(state.dockspace)) {
+    return false;
+  }
+
+  const PanelLayoutPreset preset =
+      LayoutPresets::GetDefaultPreset(state.editor_type);
+  const bool is_default_visible =
+      std::find(preset.default_visible_panels.begin(),
+                preset.default_visible_panels.end(),
+                panel_id) != preset.default_visible_panels.end();
+  if (!preset.dock_only_default_visible_panels ||
+      (!include_default_visible && is_default_visible)) {
+    return false;
+  }
+
+  const auto position_it = preset.panel_positions.find(panel_id);
+  if (position_it == preset.panel_positions.end() ||
+      state.attempted_panels.contains(panel_id)) {
+    return false;
+  }
+
+  const WindowDescriptor* desc =
+      window_manager_->GetWindowDescriptor(session_id, panel_id);
+  if (!desc) {
+    return false;
+  }
+  const std::string window_title =
+      window_manager_->GetWorkspaceWindowName(*desc);
+  if (window_title.empty()) {
+    return false;
+  }
+
+  // A panel restored into a valid dock node already has an intentional
+  // position. Count that as its one shot without moving it.
+  if (ImGuiWindow* window = ImGui::FindWindowByName(window_title.c_str());
+      window && window->DockId != 0 &&
+      ImGui::DockBuilderGetNode(window->DockId)) {
+    MarkLazyDefaultDockAttempted(panel_id);
+    return false;
+  }
+  if (ImGuiWindowSettings* settings =
+          ImGui::FindWindowSettingsByID(ImHashStr(window_title.c_str()));
+      settings && settings->DockId != 0 &&
+      ImGui::DockBuilderGetNode(settings->DockId)) {
+    MarkLazyDefaultDockAttempted(panel_id);
+    return false;
+  }
+
+  auto split_center = [&](ImGuiDir direction, float ratio,
+                          ImGuiID* region) -> ImGuiID {
+    if (*region != 0 && ImGui::DockBuilderGetNode(*region)) {
+      return *region;
+    }
+    if (state.center == 0 || !ImGui::DockBuilderGetNode(state.center)) {
+      return 0;
+    }
+    *region = ImGui::DockBuilderSplitNode(state.center, direction, ratio,
+                                          nullptr, &state.center);
+    return *region;
+  };
+
+  auto resolve_vertical_region = [&](bool right_side,
+                                     bool want_bottom) -> ImGuiID {
+    ImGuiID& region = right_side ? state.right : state.left;
+    ImGuiID& top = right_side ? state.right_top : state.left_top;
+    ImGuiID& bottom = right_side ? state.right_bottom : state.left_bottom;
+    const ImGuiDir side_direction = right_side ? ImGuiDir_Right : ImGuiDir_Left;
+    const float side_ratio = right_side ? state.right_ratio : state.left_ratio;
+    if (!split_center(side_direction, side_ratio, &region)) {
+      return 0;
+    }
+
+    if (want_bottom) {
+      if (bottom != 0 && ImGui::DockBuilderGetNode(bottom)) {
+        return bottom;
+      }
+      if (top == 0) {
+        bottom = region;
+        return bottom;
+      }
+      ImGuiID new_top = 0;
+      bottom = ImGui::DockBuilderSplitNode(
+          region, ImGuiDir_Down, state.vertical_split, nullptr, &new_top);
+      top = new_top;
+      return bottom;
+    }
+
+    if (top != 0 && ImGui::DockBuilderGetNode(top)) {
+      return top;
+    }
+    if (bottom == 0) {
+      top = region;
+      return top;
+    }
+    ImGuiID new_bottom = 0;
+    top = ImGui::DockBuilderSplitNode(
+        region, ImGuiDir_Up, 1.0f - state.vertical_split, nullptr, &new_bottom);
+    bottom = new_bottom;
+    return top;
+  };
+
+  ImGuiID target = 0;
+  if (state.compact) {
+    target = state.center;
+  } else {
+    switch (position_it->second) {
+      case DockPosition::Left:
+      case DockPosition::LeftTop:
+        target = resolve_vertical_region(false, false);
+        break;
+      case DockPosition::LeftBottom:
+        target = resolve_vertical_region(false, true);
+        break;
+      case DockPosition::Right:
+      case DockPosition::RightTop:
+        target = resolve_vertical_region(true, false);
+        break;
+      case DockPosition::RightBottom:
+        target = resolve_vertical_region(true, true);
+        break;
+      case DockPosition::Bottom:
+        target = split_center(ImGuiDir_Down, state.bottom_ratio, &state.bottom);
+        break;
+      case DockPosition::Top:
+        target = split_center(ImGuiDir_Up, state.top_ratio, &state.top);
+        break;
+      case DockPosition::Center:
+      default:
+        target = state.center;
+        break;
+    }
+  }
+
+  if (target == 0 || !ImGui::DockBuilderGetNode(target)) {
+    return false;
+  }
+
+  MarkLazyDefaultDockAttempted(panel_id);
+  ImGui::DockBuilderDockWindow(window_title.c_str(), target);
+  if (WindowContent* panel = window_manager_->GetWindowContent(panel_id);
+      panel && panel->PreferAutoHideTabBar()) {
+    if (ImGuiDockNode* node = ImGui::DockBuilderGetNode(target)) {
+      node->LocalFlags |= ImGuiDockNodeFlags_AutoHideTabBar;
+    }
+  }
+  ImGui::DockBuilderFinish(state.dockspace);
+  return true;
 }
 
 // Deprecated individual build methods - redirected to generic or kept empty
@@ -779,6 +1051,15 @@ void LayoutManager::LoadLayout(const std::string& name) {
     return;
   }
 
+  const auto imgui_it = saved_imgui_layouts_.find(name);
+  const bool has_imgui_layout =
+      imgui_it != saved_imgui_layouts_.end() && !imgui_it->second.empty();
+  // Only a saved ImGui layout owns placement. Legacy visibility-only layouts
+  // must leave the current lazy-default context intact.
+  if (has_imgui_layout) {
+    DisableLazyDefaultDocking();
+  }
+
   // Restore window visibility
   size_t session_id = window_manager_->GetActiveSessionId();
   window_manager_->RestoreVisibilityState(session_id, layout_it->second,
@@ -790,10 +1071,10 @@ void LayoutManager::LoadLayout(const std::string& name) {
   }
 
   // Restore ImGui docking layout if available
-  auto imgui_it = saved_imgui_layouts_.find(name);
-  if (imgui_it != saved_imgui_layouts_.end() && !imgui_it->second.empty()) {
+  if (has_imgui_layout) {
     ImGui::LoadIniSettingsFromMemory(imgui_it->second.c_str(),
                                      imgui_it->second.size());
+    ProtectRestoredLayoutFromDefaultInitialization();
   }
 
   LOG_INFO("LayoutManager", "Loaded layout '%s'", name.c_str());
@@ -837,13 +1118,19 @@ bool LayoutManager::RestoreTemporarySessionLayout(size_t session_id,
     return false;
   }
 
+  const bool has_imgui_layout = !temp_session_imgui_layout_.empty();
+  if (has_imgui_layout) {
+    DisableLazyDefaultDocking();
+  }
+
   window_manager_->RestoreVisibilityState(session_id, temp_session_visibility_,
                                           /*publish_events=*/true);
   window_manager_->RestorePinnedState(temp_session_pinned_);
 
-  if (!temp_session_imgui_layout_.empty()) {
+  if (has_imgui_layout) {
     ImGui::LoadIniSettingsFromMemory(temp_session_imgui_layout_.c_str(),
                                      temp_session_imgui_layout_.size());
+    ProtectRestoredLayoutFromDefaultInitialization();
   }
 
   if (clear_after_restore) {
@@ -897,12 +1184,17 @@ bool LayoutManager::RestoreNamedSnapshot(const std::string& name,
   if (snapshot.session_id != session_id) {
     return false;
   }
+  const bool has_imgui_layout = !snapshot.imgui_layout.empty();
+  if (has_imgui_layout) {
+    DisableLazyDefaultDocking();
+  }
   window_manager_->RestoreVisibilityState(session_id, snapshot.visibility,
                                           /*publish_events=*/true);
   window_manager_->RestorePinnedState(snapshot.pinned);
-  if (!snapshot.imgui_layout.empty()) {
+  if (has_imgui_layout) {
     ImGui::LoadIniSettingsFromMemory(snapshot.imgui_layout.c_str(),
                                      snapshot.imgui_layout.size());
+    ProtectRestoredLayoutFromDefaultInitialization();
   }
   if (remove_after_restore) {
     named_snapshots_.erase(it);
@@ -1025,6 +1317,10 @@ bool LayoutManager::ApplyBuiltInProfile(const std::string& profile_id,
              matched_profile.preset_name.c_str(), profile_id.c_str());
     return false;
   }
+
+  // The requested rebuild will establish a fresh lazy-default state. Avoid
+  // mutating the current dock tree while profile visibility is changing.
+  DisableLazyDefaultDocking();
 
   window_manager_->HideAllWindowsInSession(session_id);
   for (const auto& panel_id : preset.default_visible_panels) {
@@ -1206,6 +1502,7 @@ void LayoutManager::SaveLayoutsToDisk(LayoutScope scope) const {
 }
 
 void LayoutManager::ResetToDefaultLayout(EditorType type) {
+  DisableLazyDefaultDocking();
   layouts_initialized_[type] = false;
   LOG_INFO("LayoutManager", "Reset layout for editor type %d",
            static_cast<int>(type));
@@ -1223,6 +1520,7 @@ void LayoutManager::MarkLayoutInitialized(EditorType type) {
 }
 
 void LayoutManager::ClearInitializationFlags() {
+  DisableLazyDefaultDocking();
   layouts_initialized_.clear();
   LOG_INFO("LayoutManager", "Cleared all layout initialization flags");
 }
@@ -1399,6 +1697,10 @@ absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
                                       validation_error);
   }
 
+  // A custom tree owns all panel placement. Disable default first-open
+  // docking before the visibility pass publishes open events.
+  DisableLazyDefaultDocking();
+
   // Visibility pass (Phase 8 review 2026-04-24, refined 2026-04-25):
   //   - Open every panel referenced in the tree so users see what they
   //     docked rather than empty slots.
@@ -1470,11 +1772,7 @@ absl::Status LayoutManager::ApplyDockTree(const layout_designer::DockTree& tree,
   //     the next InitializeEditorLayout call consumes. Round-3 Codex
   //     noted that without this branch, applying from a no-editor
   //     context still left the original clobber bug intact.
-  if (current_editor_type_ != EditorType::kUnknown) {
-    MarkLayoutInitialized(current_editor_type_);
-  } else {
-    startup_reapply_pending_protection_ = true;
-  }
+  ProtectRestoredLayoutFromDefaultInitialization();
 
   return absl::OkStatus();
 }

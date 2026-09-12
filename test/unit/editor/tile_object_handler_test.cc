@@ -9,14 +9,21 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
+#include <filesystem>
+#include <fstream>
 #include <vector>
 
 #include <gtest/gtest.h>
 
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
+#include "core/features.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/dimension_service.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_block_codec.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
@@ -39,6 +46,51 @@ zelda3::RoomObject CreateLayeredTestObject(uint8_t x, uint8_t y,
   object.layer_ = layer;
   return object;
 }
+
+class ScopedCustomObjectSelectionState {
+ public:
+  ScopedCustomObjectSelectionState()
+      : previous_state_(zelda3::CustomObjectManager::Get().SnapshotState()),
+        previous_enabled_(core::FeatureFlags::get().kEnableCustomObjects) {
+    const auto nonce =
+        std::chrono::steady_clock::now().time_since_epoch().count();
+    directory_ = std::filesystem::temp_directory_path() /
+                 ("yaze_tile_object_selection_" + std::to_string(nonce));
+    std::error_code error;
+    std::filesystem::create_directories(directory_, error);
+
+    zelda3::CustomObjectManager::Get().Initialize(directory_.string());
+    core::FeatureFlags::get().kEnableCustomObjects = true;
+    zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  }
+
+  ~ScopedCustomObjectSelectionState() {
+    core::FeatureFlags::get().kEnableCustomObjects = previous_enabled_;
+    zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+    zelda3::CustomObjectManager::Get().RestoreState(previous_state_);
+    std::error_code error;
+    std::filesystem::remove_all(directory_, error);
+  }
+
+  bool WriteOneTileObject(const std::string& filename) const {
+    const std::array<uint8_t, 6> bytes = {
+        0x01, 0x00,  // one tile, no row jump
+        0x40, 0x08,  // tile word 0x0840
+        0x00, 0x00,  // terminator
+    };
+    std::ofstream output(directory_ / filename, std::ios::binary);
+    if (!output.good()) {
+      return false;
+    }
+    output.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+    return output.good();
+  }
+
+ private:
+  zelda3::CustomObjectManager::State previous_state_;
+  bool previous_enabled_ = false;
+  std::filesystem::path directory_;
+};
 
 class TestableTileObjectHandler : public TileObjectHandler {
  public:
@@ -198,7 +250,7 @@ TEST_F(TileObjectHandlerTest,
 }
 
 TEST_F(TileObjectHandlerTest,
-       MarqueeAndUpLeftPlacementGhostShareCanvasTransform) {
+       MarqueeAndUpwardPlacementGhostShareCanvasTransform) {
   constexpr std::array<float, 3> kScales = {0.5f, 1.0f, 2.0f};
   constexpr std::array<ImVec2, 2> kScrolling = {ImVec2(48.0f, 24.0f),
                                                 ImVec2(-56.0f, -32.0f)};
@@ -207,7 +259,7 @@ TEST_F(TileObjectHandlerTest,
   const auto preview = CreateTestObject(0, 0, 0x12, 0xA3);
   const auto preview_geometry =
       TileObjectHandler::CalculateGhostPreviewGeometry(preview);
-  ASSERT_LT(preview_geometry.offset_x_tiles, 0);
+  ASSERT_EQ(preview_geometry.offset_x_tiles, 0);
   ASSERT_LT(preview_geometry.offset_y_tiles, 0);
   handler_.SetPreviewObject(preview);
   handler_.BeginPlacement();
@@ -409,13 +461,15 @@ TEST_F(TileObjectHandlerTest,
     int offset_y;
   };
 
-  // The first two need negative-axis headroom; 0x33 is the ordinary baseline,
-  // and 0x34 starts three tiles to the right of its encoded origin.
-  constexpr std::array<TestCase, 4> kCases{{
-      {0x09, 0x12, 0, 8, 0, -8},
-      {0xA3, 0x12, 5, 5, -5, -5},
+  // Acute diagonals and bottom-right diagonal ceilings need upward headroom;
+  // moving wall west needs leftward headroom. Straight objects remain anchored
+  // at their encoded origin.
+  constexpr std::array<TestCase, 5> kCases{{
+      {0x09, 0x12, 0, 7, 0, -7},
+      {0xA3, 0x12, 0, 5, 0, -5},
+      {0xCD, 0x00, 8, 0, -8, 0},
       {0x33, 0x12, 0, 0, 0, 0},
-      {0x34, 0x12, 0, 0, 3, 0},
+      {0x34, 0x12, 0, 0, 0, 0},
   }};
 
   for (const auto& test_case : kCases) {
@@ -446,7 +500,7 @@ TEST_F(TileObjectHandlerTest,
 }
 
 TEST_F(TileObjectHandlerTest,
-       GhostPreviewBitmapRendersPositiveOffsetWithoutClipping) {
+       GhostPreviewBitmapRendersOriginAlignedObjectWithoutClipping) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
   rooms_.SetRom(&rom);
@@ -462,7 +516,7 @@ TEST_F(TileObjectHandlerTest,
 
   const auto geometry =
       TileObjectHandler::CalculateGhostPreviewGeometry(object);
-  ASSERT_EQ(geometry.offset_x_tiles, 3);
+  ASSERT_EQ(geometry.offset_x_tiles, 0);
   handler_.SetPreviewObject(object);
   handler_.BeginPlacement();
 
@@ -476,10 +530,6 @@ TEST_F(TileObjectHandlerTest,
   const auto& coverage = buffer->coverage_data();
   ASSERT_EQ(coverage.size(),
             static_cast<size_t>(bitmap.width() * bitmap.height()));
-  const int first_drawn_x = geometry.offset_x_tiles * 8;
-  for (int y = 0; y < bitmap.height(); ++y) {
-    EXPECT_EQ(coverage[y * bitmap.width() + first_drawn_x - 1], 0);
-  }
   const auto column_has_coverage = [&](int x) {
     for (int y = 0; y < bitmap.height(); ++y) {
       if (coverage[y * bitmap.width() + x] != 0) {
@@ -488,7 +538,7 @@ TEST_F(TileObjectHandlerTest,
     }
     return false;
   };
-  EXPECT_TRUE(column_has_coverage(first_drawn_x));
+  EXPECT_TRUE(column_has_coverage(0));
   EXPECT_TRUE(column_has_coverage(geometry.buffer_width_pixels - 1));
 }
 
@@ -1514,6 +1564,117 @@ TEST_F(TileObjectHandlerTest, GetEntityAtPositionPrioritizesTopmost) {
   if (result.has_value()) {
     EXPECT_EQ(result.value(), 1);  // Should return topmost (last) object
   }
+}
+
+TEST_F(TileObjectHandlerTest,
+       HiddenObjectLayerDoesNotInterceptHitTestOrReplaceLayerFilter) {
+  AddTestObjects({
+      CreateLayeredTestObject(10, 10, zelda3::RoomObject::BG2, 0x05, 0x21),
+      CreateLayeredTestObject(10, 10, zelda3::RoomObject::BG1, 0x05, 0x22),
+  });
+  DungeonCanvasViewer viewer;
+  viewer.SetRooms(&rooms_);
+  auto& interaction = viewer.object_interaction();
+  interaction.SetCurrentRoom(&rooms_, 0);
+  viewer.SetLayerVisible(0, zelda3::LayerType::BG1_Objects, false);
+  auto& tile_handler = interaction.entity_coordinator().tile_handler();
+
+  const auto visible_hit = tile_handler.GetEntityAtPosition(80, 80);
+  ASSERT_TRUE(visible_hit.has_value());
+  EXPECT_EQ(*visible_hit, 0u);
+
+  interaction.SetLayerFilter(ObjectSelection::kLayer1);
+  EXPECT_FALSE(tile_handler.GetEntityAtPosition(80, 80).has_value());
+
+  interaction.SetLayerFilter(ObjectSelection::kLayer2);
+  const auto filtered_hit = tile_handler.GetEntityAtPosition(80, 80);
+  ASSERT_TRUE(filtered_hit.has_value());
+  EXPECT_EQ(*filtered_hit, 0u);
+}
+
+TEST_F(TileObjectHandlerTest, MarqueeSelectionSkipsObjectsOnHiddenLayers) {
+  AddTestObjects({
+      CreateLayeredTestObject(5, 5, zelda3::RoomObject::BG1, 0x05, 0x21),
+      CreateLayeredTestObject(20, 20, zelda3::RoomObject::BG2, 0x05, 0x22),
+  });
+  DungeonCanvasViewer viewer;
+  viewer.SetRooms(&rooms_);
+  auto& interaction = viewer.object_interaction();
+  interaction.SetCurrentRoom(&rooms_, 0);
+  viewer.SetLayerVisible(0, zelda3::LayerType::BG1_Objects, false);
+  auto& tile_handler = interaction.entity_coordinator().tile_handler();
+
+  tile_handler.BeginMarqueeSelection(ImVec2(0.0f, 0.0f));
+  tile_handler.HandleMarqueeSelection(
+      ImVec2(240.0f, 240.0f), /*mouse_left_down=*/false,
+      /*mouse_left_released=*/true, /*shift_down=*/false,
+      /*toggle_down=*/false, /*alt_down=*/false, /*draw_box=*/false);
+
+  EXPECT_FALSE(interaction.IsObjectSelected(0));
+  EXPECT_TRUE(interaction.IsObjectSelected(1));
+}
+
+TEST_F(TileObjectHandlerTest,
+       BothBackgroundObjectRemainsSelectableUntilBothLayersAreHidden) {
+  AddTestObjects(
+      {CreateLayeredTestObject(10, 10, zelda3::RoomObject::BG1, 0x00, 0x108)});
+  DungeonCanvasViewer viewer;
+  viewer.SetRooms(&rooms_);
+  auto& interaction = viewer.object_interaction();
+  interaction.SetCurrentRoom(&rooms_, 0);
+  auto& tile_handler = interaction.entity_coordinator().tile_handler();
+  const auto [tile_x, tile_y, width, height] =
+      zelda3::DimensionService::Get().GetHitTestBounds(
+          rooms_[0].GetTileObjects().front());
+  ASSERT_GT(width, 0);
+  ASSERT_GT(height, 0);
+
+  viewer.SetLayerVisible(0, zelda3::LayerType::BG1_Objects, false);
+  EXPECT_TRUE(
+      tile_handler.GetEntityAtPosition(tile_x * 8, tile_y * 8).has_value());
+
+  viewer.SetLayerVisible(0, zelda3::LayerType::BG2_Objects, false);
+  EXPECT_FALSE(
+      tile_handler.GetEntityAtPosition(tile_x * 8, tile_y * 8).has_value());
+}
+
+TEST_F(TileObjectHandlerTest,
+       ActiveCustomOverrideUsesStoredLayerForSelectionVisibility) {
+  ScopedCustomObjectSelectionState custom_state;
+  ASSERT_TRUE(custom_state.WriteOneTileObject("override.bin"));
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0xFAD, {"override.bin"}}});
+
+  AddTestObjects({CreateLayeredTestObject(10, 10, zelda3::RoomObject::BG2,
+                                          /*size=*/0, /*id=*/0xFAD)});
+  ASSERT_TRUE(zelda3::CustomObjectManager::Get()
+                  .GetObjectInternal(/*object_id=*/0xFAD, /*subtype=*/0)
+                  .ok());
+
+  DungeonCanvasViewer viewer;
+  viewer.SetRooms(&rooms_);
+  auto& interaction = viewer.object_interaction();
+  interaction.SetCurrentRoom(&rooms_, 0);
+  auto& tile_handler = interaction.entity_coordinator().tile_handler();
+  const auto [tile_x, tile_y, width, height] =
+      zelda3::DimensionService::Get().GetHitTestBounds(
+          rooms_[0].GetTileObjects().front());
+  ASSERT_GT(width, 0);
+  ASSERT_GT(height, 0);
+
+  // Vanilla 0xFAD writes its facade to the fixed upper tilemap, but an active
+  // custom override is a complete replacement and follows the object's stored
+  // lower placement.
+  viewer.SetLayerVisible(0, zelda3::LayerType::BG2_Objects, false);
+  EXPECT_FALSE(
+      tile_handler.GetEntityAtPosition(tile_x * 8, tile_y * 8).has_value());
+
+  viewer.SetLayerVisible(0, zelda3::LayerType::BG2_Objects, true);
+  viewer.SetLayerVisible(0, zelda3::LayerType::BG1_Objects, false);
+  const auto stored_layer_hit =
+      tile_handler.GetEntityAtPosition(tile_x * 8, tile_y * 8);
+  ASSERT_TRUE(stored_layer_hit.has_value());
+  EXPECT_EQ(*stored_layer_hit, 0u);
 }
 
 // ============================================================================

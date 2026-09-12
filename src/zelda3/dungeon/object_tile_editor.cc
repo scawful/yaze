@@ -275,6 +275,7 @@ absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureObjectLayout(
 
   // Create drawer and set up trace collection
   ObjectDrawer drawer(rom_, room.id(), room.get_gfx_buffer().data());
+  drawer.SetRoomFloorGraphics(room.floor1(), room.floor2());
 
   std::vector<ObjectDrawer::TileTrace> traces;
   traces.reserve(256);

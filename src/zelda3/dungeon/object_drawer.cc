@@ -1,5 +1,6 @@
 #include "object_drawer.h"
 
+#include <array>
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
@@ -16,6 +17,7 @@
 #include "zelda3/dungeon/draw_routines/special_routines.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/object_dimensions.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -74,6 +76,27 @@ void SyncModifiedBitmapToSurface(gfx::Bitmap& bitmap, const char* layer_name) {
                 source + static_cast<size_t>(y) * row_bytes, row_bytes);
   }
   SDL_UnlockSurface(surface);
+}
+
+void PromoteTilePriorityOnly(gfx::BackgroundBuffer& target, int tile_x,
+                             int tile_y) {
+  for (int py = 0; py < 8; ++py) {
+    for (int px = 0; px < 8; ++px) {
+      target.SetPriorityAt(tile_x * 8 + px, tile_y * 8 + py, 1);
+    }
+  }
+}
+
+void PromoteTilePriorityOnOwners(gfx::BackgroundBuffer& object_owner,
+                                 gfx::BackgroundBuffer* layout_owner,
+                                 int tile_x, int tile_y) {
+  // The SNES mutates one physical tilemap. Yaze temporarily splits that map
+  // between layout and object buffers, so update both possible pixel owners
+  // without writing bitmap pixels, coverage, or a new tile word.
+  PromoteTilePriorityOnly(object_owner, tile_x, tile_y);
+  if (layout_owner != nullptr && layout_owner != &object_owner) {
+    PromoteTilePriorityOnly(*layout_owner, tile_x, tile_y);
+  }
 }
 
 }  // namespace
@@ -196,6 +219,7 @@ void ObjectDrawer::DrawUsingRegistryRoutine(
       .room_id = room_id_,
       .room_gfx_buffer = room_gfx_buffer_,
       .secondary_bg = registry_secondary_bg_,
+      .target_layout_bg = registry_primary_layout_bg_,
   };
   info->function(ctx);
 
@@ -216,7 +240,7 @@ absl::Status ObjectDrawer::DrawObject(
     const RoomObject& object, gfx::BackgroundBuffer& bg1,
     gfx::BackgroundBuffer& bg2, const gfx::PaletteGroup& palette_group,
     [[maybe_unused]] const DungeonState* state,
-    gfx::BackgroundBuffer* layout_bg1) {
+    gfx::BackgroundBuffer* layout_bg1, gfx::BackgroundBuffer* layout_bg2) {
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -245,14 +269,7 @@ absl::Status ObjectDrawer::DrawObject(
 
   // Check for custom object override first (guarded by feature flag).
   // We check this BEFORE routine lookup to allow overriding vanilla objects.
-  int subtype = object.size_ & 0x1F;
-  bool is_custom_object = false;
-  const bool is_track_corner_alias = object.id_ >= 0x100 && object.id_ <= 0x103;
-  const bool allow_custom_override =
-      !is_track_corner_alias || this->allow_track_corner_aliases_;
-  if (core::FeatureFlags::get().kEnableCustomObjects && allow_custom_override &&
-      CustomObjectManager::Get().GetObjectInternal(object.id_, subtype).ok()) {
-    is_custom_object = true;
+  if (HasActiveCustomObjectOverride(object, allow_track_corner_aliases_)) {
     // Custom objects default to drawing on the target layer only, unless all_bgs_ is set
     // Mask propagation is difficult without dimensions, so we rely on explicit transparency in the custom object tiles if needed
 
@@ -270,8 +287,26 @@ absl::Status ObjectDrawer::DrawObject(
     return absl::OkStatus();
   }
 
+  std::array<gfx::TileInfo, 8> room_floor_tiles;
+  std::span<const gfx::TileInfo> render_tiles = mutable_obj.tiles();
+  if (has_room_floor_graphics_ &&
+      (object.id_ == 0x00C4 || object.id_ == 0x00DB)) {
+    const uint8_t floor_graphics =
+        object.id_ == 0x00C4 ? floor1_graphics_ : floor2_graphics_;
+    const auto decoded = gfx::DecodeDungeonFloorTilePattern(
+        rom_->vector(), kRoomObjectTileAddress, kRoomObjectTileAddressFloor,
+        floor_graphics);
+    if (!decoded.has_value()) {
+      return absl::DataLossError(
+          absl::StrFormat("Object 0x%03X cannot read room floor pattern %d",
+                          object.id_, static_cast<int>(floor_graphics)));
+    }
+    room_floor_tiles = *decoded;
+    render_tiles = room_floor_tiles;
+  }
+
   // Skip objects that don't have tiles loaded
-  if (!is_custom_object && mutable_obj.tiles().empty()) {
+  if (render_tiles.empty()) {
     LOG_DEBUG("ObjectDrawer",
               "Object 0x%03X at (%d,%d) has NO TILES - skipping", object.id_,
               object.x_, object.y_);
@@ -285,15 +320,15 @@ absl::Status ObjectDrawer::DrawObject(
   LOG_DEBUG("ObjectDrawer",
             "Object 0x%03X at (%d,%d) size=%d -> routine=%d tiles=%zu",
             object.id_, object.x_, object.y_, object.size_, routine_id,
-            mutable_obj.tiles().size());
+            render_tiles.size());
 
   if (routine_id < 0 || routine_id >= static_cast<int>(draw_routines_.size())) {
     LOG_DEBUG("ObjectDrawer",
               "Object 0x%03X: NO ROUTINE (id=%d, max=%zu) - using fallback 1x1",
               object.id_, routine_id, draw_routines_.size());
     // Fallback to simple 1x1 drawing using first 8x8 tile
-    if (!mutable_obj.tiles().empty()) {
-      const auto& tile_info = mutable_obj.tiles()[0];
+    if (!render_tiles.empty()) {
+      const auto& tile_info = render_tiles[0];
       SetTraceContext(object, use_bg2 ? RoomObject::LayerType::BG2
                                       : RoomObject::LayerType::BG1);
       WriteTile8(target_bg, object.x_, object.y_, tile_info);
@@ -307,15 +342,15 @@ absl::Status ObjectDrawer::DrawObject(
   const DrawRoutineInfo* routine_info =
       DrawRoutineRegistry::Get().GetRoutineInfo(routine_id);
   if (routine_info && routine_info->min_tiles > 0 &&
-      static_cast<int>(mutable_obj.tiles().size()) < routine_info->min_tiles) {
+      static_cast<int>(render_tiles.size()) < routine_info->min_tiles) {
     LOG_WARN("ObjectDrawer",
              "Object 0x%03X at (%d,%d): tile payload too small "
              "(%zu < %d required by routine '%s') - skipping",
-             object.id_, object.x_, object.y_, mutable_obj.tiles().size(),
+             object.id_, object.x_, object.y_, render_tiles.size(),
              routine_info->min_tiles, routine_info->name.c_str());
     // Fall through to 1x1 fallback if any tiles are present
-    if (!mutable_obj.tiles().empty()) {
-      const auto& tile_info = mutable_obj.tiles()[0];
+    if (!render_tiles.empty()) {
+      const auto& tile_info = render_tiles[0];
       SetTraceContext(object, use_bg2 ? RoomObject::LayerType::BG2
                                       : RoomObject::LayerType::BG1);
       WriteTile8(target_bg, object.x_, object.y_, tile_info);
@@ -342,6 +377,9 @@ absl::Status ObjectDrawer::DrawObject(
                                   !is_both_bg && !use_rectangular_bg1_mask;
 
   registry_secondary_bg_ = nullptr;
+  registry_primary_layout_bg_ =
+      use_bg2 ? static_cast<const gfx::BackgroundBuffer*>(layout_bg2)
+              : static_cast<const gfx::BackgroundBuffer*>(layout_bg1);
   registry_primary_layer_ =
       use_bg2 ? RoomObject::LayerType::BG2 : RoomObject::LayerType::BG1;
   registry_secondary_layer_ =
@@ -359,11 +397,7 @@ absl::Status ObjectDrawer::DrawObject(
   } else if (!is_both_bg && routine_id == DrawRoutineIds::kAutoStairs) {
     registry_secondary_bg_ = &other_bg;
   } else if (!is_both_bg &&
-             (routine_id == DrawRoutineIds::kStraightInterRoomStairs ||
-              routine_id == DrawRoutineIds::kSpiralStairsGoingUpUpper ||
-              routine_id == DrawRoutineIds::kSpiralStairsGoingDownUpper ||
-              routine_id == DrawRoutineIds::kSpiralStairsGoingUpLower ||
-              routine_id == DrawRoutineIds::kSpiralStairsGoingDownLower)) {
+             routine_id == DrawRoutineIds::kStraightInterRoomStairs) {
     dispatch_bg = &bg1;
     registry_secondary_bg_ = &bg2;
     registry_primary_layer_ = RoomObject::LayerType::BG1;
@@ -380,16 +414,51 @@ absl::Status ObjectDrawer::DrawObject(
     // Draw to both background layers
     registry_secondary_bg_ = nullptr;
     registry_primary_layer_ = RoomObject::LayerType::BG1;
+    registry_primary_layout_bg_ = layout_bg1;
     SetTraceContext(object, RoomObject::LayerType::BG1);
-    draw_routines_[routine_id](this, object, bg1, mutable_obj.tiles(), state);
+    draw_routines_[routine_id](this, object, bg1, render_tiles, state);
     registry_primary_layer_ = RoomObject::LayerType::BG2;
+    registry_primary_layout_bg_ = layout_bg2;
     SetTraceContext(object, RoomObject::LayerType::BG2);
-    draw_routines_[routine_id](this, object, bg2, mutable_obj.tiles(), state);
+    draw_routines_[routine_id](this, object, bg2, render_tiles, state);
   } else {
     // Execute the appropriate draw routine on target buffer only
+    registry_primary_layout_bg_ =
+        dispatch_bg == &bg2
+            ? static_cast<const gfx::BackgroundBuffer*>(layout_bg2)
+            : static_cast<const gfx::BackgroundBuffer*>(layout_bg1);
     SetTraceContext(object, registry_primary_layer_);
-    draw_routines_[routine_id](this, object, *dispatch_bg, mutable_obj.tiles(),
-                               state);
+    draw_routines_[routine_id](this, object, *dispatch_bg, render_tiles, state);
+  }
+
+  const bool is_upper_spiral =
+      routine_id == DrawRoutineIds::kSpiralStairsGoingUpUpper ||
+      routine_id == DrawRoutineIds::kSpiralStairsGoingDownUpper;
+  const bool is_lower_spiral =
+      routine_id == DrawRoutineIds::kSpiralStairsGoingUpLower ||
+      routine_id == DrawRoutineIds::kSpiralStairsGoingDownLower;
+  if (!trace_only_ && (is_upper_spiral || is_lower_spiral)) {
+    auto& priority_object_owner = is_upper_spiral ? bg1 : bg2;
+    auto* priority_layout_owner = is_upper_spiral ? layout_bg1 : layout_bg2;
+    // USDASM ORs $2000 into the tile immediately left of the 4x3 raster and
+    // the tile immediately right of it.
+    for (const int tile_x : {object.x_ - 1, object.x_ + 4}) {
+      PromoteTilePriorityOnOwners(priority_object_owner, priority_layout_owner,
+                                  tile_x, object.y_);
+    }
+  }
+
+  if (!trace_only_ &&
+      object_render_routing::IsMixedStraightInterroomObject(object.id_)) {
+    // USDASM promotes a fixed BG1 column outside the lower staircase raster.
+    // North variants touch y-4..y-1; south variants touch y+4..y+7.
+    const int priority_y =
+        object_render_routing::IsNorthMixedStraightInterroomObject(object.id_)
+            ? object.y_ - 4
+            : object.y_ + 4;
+    for (int row = 0; row < 4; ++row) {
+      PromoteTilePriorityOnOwners(bg1, layout_bg1, object.x_, priority_y + row);
+    }
   }
 
   if (trace_hook_active) {
@@ -400,13 +469,16 @@ absl::Status ObjectDrawer::DrawObject(
   active_layout_bg1_mask_ = nullptr;
   active_mask_source_bg_ = nullptr;
   registry_secondary_bg_ = nullptr;
+  registry_primary_layout_bg_ = nullptr;
 
   // BG2 mask propagation is deferred to compositing so raw BG1 stays intact.
   //
-  // Ordinary BG2 overlay objects now mask per-pixel as they draw, which keeps
+  // Ordinary BG2 overlay objects mask per-pixel as they draw, which keeps
   // transparent cutouts intact for platforms/statues/stairs. Full-rect masking
   // remains only for true pit/ceiling mask families that intentionally clear an
-  // area larger than their opaque tile pixels.
+  // area larger than their opaque tile pixels. Layer mode 6 ignores these legacy
+  // cross-BG masks because its upper-main/lower-sub PPU setup is resolved by
+  // transparency instead.
   if (use_rectangular_bg1_mask) {
     // Route through DimensionService so the mask rect comes from the same
     // source as selection bounds (ObjectGeometry if available, then
@@ -451,7 +523,8 @@ absl::Status ObjectDrawer::DrawObjectList(
     const std::vector<RoomObject>& objects, gfx::BackgroundBuffer& bg1,
     gfx::BackgroundBuffer& bg2, const gfx::PaletteGroup& palette_group,
     [[maybe_unused]] const DungeonState* state,
-    gfx::BackgroundBuffer* layout_bg1, bool reset_room_event_indices) {
+    gfx::BackgroundBuffer* layout_bg1, bool reset_room_event_indices,
+    gfx::BackgroundBuffer* layout_bg2) {
   if (reset_room_event_indices) {
     ResetChestIndex();
   }
@@ -461,20 +534,22 @@ absl::Status ObjectDrawer::DrawObjectList(
   int to_bg1 = 0, to_bg2 = 0, both_bgs = 0;
 
   for (const auto& object : objects) {
-    // Track buffer routing for summary
-    bool use_bg2 = (object.layer_ == RoomObject::LayerType::BG2);
-    int routine_id = GetDrawRoutineId(object.id_);
-    bool is_both_bg = (object.all_bgs_ || RoutineDrawsToBothBGs(routine_id));
-
-    if (is_both_bg) {
-      both_bgs++;
-    } else if (use_bg2) {
-      to_bg2++;
-    } else {
-      to_bg1++;
+    const auto semantics =
+        GetEffectiveObjectLayerSemantics(object, allow_track_corner_aliases_);
+    switch (semantics.effective_bg_layer) {
+      case EffectiveBgLayer::kBg1:
+        ++to_bg1;
+        break;
+      case EffectiveBgLayer::kBg2:
+        ++to_bg2;
+        break;
+      case EffectiveBgLayer::kBothBg1Bg2:
+        ++both_bgs;
+        break;
     }
 
-    auto s = DrawObject(object, bg1, bg2, palette_group, state, layout_bg1);
+    auto s = DrawObject(object, bg1, bg2, palette_group, state, layout_bg1,
+                        layout_bg2);
     if (!s.ok() && status.ok()) {
       status = s;
     }
@@ -1512,7 +1587,9 @@ int ObjectDrawer::GetDrawRoutineId(int16_t object_id) const {
 void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
                             gfx::BackgroundBuffer& bg1,
                             gfx::BackgroundBuffer& bg2,
-                            const DungeonState* state) {
+                            const DungeonState* state,
+                            gfx::BackgroundBuffer* layout_bg1,
+                            gfx::BackgroundBuffer* layout_bg2) {
   // Door rendering based on ZELDA3_DUNGEON_SPEC.md Section 5 and disassembly
   // Uses DoorType and DoorDirection enums for type safety
   // Position calculations via DoorPositionManager
@@ -1535,6 +1612,10 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
     return;
   }
 
+  // DungeonState intentionally exposes the editor's logical door index. The
+  // runtime derives a separate marker-aware physical slot from $0460 before it
+  // probes $068C; reproducing that slot aliasing belongs in the state adapter,
+  // not in this renderer's vector-index contract.
   const bool is_door_open = state && state->IsDoorOpen(room_id_, door_index);
 
   // Get door position from DoorPositionManager
@@ -1551,57 +1632,122 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   constexpr int kExplodingWallTilemapPositionBase = 0x19DE;
   constexpr int kExplodingWallOpenReplacementType = 0x54;
   constexpr int kNorthCurtainClosedOffset = 0x078A;
+  constexpr int kFancyDungeonExitObjectOffset = 0x2656;
+  constexpr int kCaveExitLightObjectOffset = 0x26F6;
   const auto& rom_data = rom_->data();
 
-  auto draw_from_object_data = [&](gfx::BackgroundBuffer& target,
-                                   int start_tile_x, int start_tile_y,
-                                   int width, int height, int tile_data_addr) {
+  auto resolve_effective_door_type = [&]() -> uint16_t {
+    const auto stored_type = static_cast<uint16_t>(door.type);
+    if (!is_door_open) {
+      return stored_type;
+    }
+
+    // RoomDraw_FlagDoorsAndGetFinalType leaves shutter graphics closed while
+    // the room's shutter controller ($0468) is active, even when the persistent
+    // door-open bit is set.
+    const bool is_controlled_shutter =
+        door.type == DoorType::DoubleSidedShutter ||
+        door.type == DoorType::DoubleSidedShutterLower;
+    if (is_controlled_shutter && state->IsDoorSwitchActive(room_id_)) {
+      return stored_type;
+    }
+
+    // USDASM performs a 16-bit read from DoorwayReplacementDoorGFX using the
+    // original even-valued door type as a byte offset. Keep the bounds check on
+    // both bytes so malformed or undersized ROMs fall back to the stored type.
+    const int replacement_addr =
+        kDoorwayReplacementDoorGfxBase + static_cast<int>(door.type);
+    if (replacement_addr < 0 ||
+        replacement_addr + 1 >= static_cast<int>(rom_->size())) {
+      return stored_type;
+    }
+
+    return static_cast<uint16_t>(rom_data[replacement_addr] |
+                                 (rom_data[replacement_addr + 1] << 8));
+  };
+
+  const uint16_t effective_door_type = resolve_effective_door_type();
+
+  auto draw_tile_word = [&](gfx::BackgroundBuffer& target, int tile_x,
+                            int tile_y, uint16_t tile_word) {
     auto& bitmap = target.bitmap();
     auto& priority_buffer = target.mutable_priority_data();
     auto& coverage_buffer = target.mutable_coverage_data();
     const int bitmap_width = bitmap.width();
+    const auto tile_info = gfx::WordToTileInfo(tile_word);
+    const int pixel_x = tile_x * 8;
+    const int pixel_y = tile_y * 8;
+
+    target.SetTileAt(tile_x, tile_y, tile_word);
+    target.ClearBG1RevealMaskRect(bg1_reveal_mask_source_, pixel_x, pixel_y, 8,
+                                  8);
+    DrawTileToBitmap(bitmap, tile_info, pixel_x, pixel_y, room_gfx_buffer_);
+
+    const uint8_t priority = tile_info.over_ ? 1 : 0;
+    const auto& bitmap_data = bitmap.vector();
+    for (int py = 0; py < 8; py++) {
+      const int dest_y = pixel_y + py;
+      if (dest_y < 0 || dest_y >= bitmap.height()) {
+        continue;
+      }
+      for (int px = 0; px < 8; px++) {
+        const int dest_x = pixel_x + px;
+        if (dest_x < 0 || dest_x >= bitmap_width) {
+          continue;
+        }
+        const int dest_index = dest_y * bitmap_width + dest_x;
+        if (dest_index >= 0 &&
+            dest_index < static_cast<int>(coverage_buffer.size())) {
+          coverage_buffer[dest_index] = 1;
+        }
+        if (dest_index < static_cast<int>(bitmap_data.size()) &&
+            bitmap_data[dest_index] != 255) {
+          priority_buffer[dest_index] = priority;
+        }
+      }
+    }
+  };
+
+  auto draw_object_data_tile = [&](gfx::BackgroundBuffer& target, int tile_x,
+                                   int tile_y, int tile_data_addr, int tile_idx,
+                                   uint16_t word_mask = 0) -> bool {
+    const int addr = tile_data_addr + (tile_idx * 2);
+    if (addr < 0 || addr + 1 >= static_cast<int>(rom_->size())) {
+      return false;
+    }
+
+    const uint16_t tile_word = static_cast<uint16_t>(
+        (rom_data[addr] | (rom_data[addr + 1] << 8)) | word_mask);
+    draw_tile_word(target, tile_x, tile_y, tile_word);
+    return true;
+  };
+
+  auto draw_from_object_data = [&](gfx::BackgroundBuffer& target,
+                                   int start_tile_x, int start_tile_y,
+                                   int width, int height, int tile_data_addr) {
     int tile_idx = 0;
 
     for (int dx = 0; dx < width; dx++) {
       for (int dy = 0; dy < height; dy++) {
-        const int addr = tile_data_addr + (tile_idx * 2);
-        const uint16_t tile_word = rom_data[addr] | (rom_data[addr + 1] << 8);
-        const auto tile_info = gfx::WordToTileInfo(tile_word);
-        const int pixel_x = (start_tile_x + dx) * 8;
-        const int pixel_y = (start_tile_y + dy) * 8;
-
-        target.ClearBG1RevealMaskRect(bg1_reveal_mask_source_, pixel_x, pixel_y,
-                                      8, 8);
-        DrawTileToBitmap(bitmap, tile_info, pixel_x, pixel_y, room_gfx_buffer_);
-
-        const uint8_t priority = tile_info.over_ ? 1 : 0;
-        const auto& bitmap_data = bitmap.vector();
-        for (int py = 0; py < 8; py++) {
-          const int dest_y = pixel_y + py;
-          if (dest_y < 0 || dest_y >= bitmap.height()) {
-            continue;
-          }
-          for (int px = 0; px < 8; px++) {
-            const int dest_x = pixel_x + px;
-            if (dest_x < 0 || dest_x >= bitmap_width) {
-              continue;
-            }
-            const int dest_index = dest_y * bitmap_width + dest_x;
-            if (dest_index >= 0 &&
-                dest_index < static_cast<int>(coverage_buffer.size())) {
-              coverage_buffer[dest_index] = 1;
-            }
-            if (dest_index < static_cast<int>(bitmap_data.size()) &&
-                bitmap_data[dest_index] != 255) {
-              priority_buffer[dest_index] = priority;
-            }
-          }
-        }
-
-        tile_idx++;
+        (void)draw_object_data_tile(target, start_tile_x + dx,
+                                    start_tile_y + dy, tile_data_addr,
+                                    tile_idx++);
       }
     }
   };
+
+  auto draw_from_object_data_row_major =
+      [&](gfx::BackgroundBuffer& target, int start_tile_x, int start_tile_y,
+          int width, int height, int tile_data_addr) {
+        int tile_idx = 0;
+        for (int dy = 0; dy < height; ++dy) {
+          for (int dx = 0; dx < width; ++dx) {
+            (void)draw_object_data_tile(target, start_tile_x + dx,
+                                        start_tile_y + dy, tile_data_addr,
+                                        tile_idx++);
+          }
+        }
+      };
 
   auto draw_repeated_tile = [&](gfx::BackgroundBuffer& target, int start_tile_x,
                                 int start_tile_y, int width, int height,
@@ -1654,37 +1800,304 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   };
   const int position_index = std::min<int>(door.position & 0x0F, 11);
 
+  enum class DoorPrioritySpan {
+    // RoomDraw_MakeDoorPartsHighPriority_{Vertical,Horizontal}.
+    kNormalLower,
+    // RoomDraw_MakeDoorHighPriorityLowerLayer_* (type $06).
+    kLowerLayerOnly,
+    // RoomDraw_MakeDoorHighPriority_* after a type $40-$66 raster.
+    kHighRange,
+  };
+
+  auto promote_priority_rect_on_layer =
+      [&](gfx::BackgroundBuffer& object_buffer,
+          gfx::BackgroundBuffer* layout_buffer, int start_tile_x,
+          int start_tile_y, int width_tiles, int height_tiles) {
+        auto promote_target = [&](gfx::BackgroundBuffer& target) {
+          for (int y = start_tile_y * 8; y < (start_tile_y + height_tiles) * 8;
+               ++y) {
+            for (int x = start_tile_x * 8; x < (start_tile_x + width_tiles) * 8;
+                 ++x) {
+              target.SetPriorityAt(x, y, 1);
+            }
+          }
+        };
+
+        // USDASM has one tilemap per background. Yaze splits each into layout and
+        // object buffers, so promote both potential pixel owners without changing
+        // either bitmap or coverage mask.
+        promote_target(object_buffer);
+        if (layout_buffer != nullptr && layout_buffer != &object_buffer) {
+          promote_target(*layout_buffer);
+        }
+      };
+
+  auto promote_upper_priority_rect = [&](int start_tile_x, int start_tile_y,
+                                         int width_tiles, int height_tiles) {
+    promote_priority_rect_on_layer(bg1, layout_bg1, start_tile_x, start_tile_y,
+                                   width_tiles, height_tiles);
+  };
+
+  auto promote_lower_priority_rect = [&](int start_tile_x, int start_tile_y,
+                                         int width_tiles, int height_tiles) {
+    promote_priority_rect_on_layer(bg2, layout_bg2, start_tile_x, start_tile_y,
+                                   width_tiles, height_tiles);
+  };
+
+  auto promote_door_priority = [&](DoorDirection render_direction,
+                                   int render_tile_x, int render_tile_y,
+                                   DoorPrioritySpan span) {
+    constexpr int kSectionSize = 32;
+    const auto section_start = [](int coordinate) {
+      return (coordinate / kSectionSize) * kSectionSize;
+    };
+    const auto section_end = [&](int coordinate) {
+      return section_start(coordinate) + kSectionSize;
+    };
+
+    int start_x = render_tile_x;
+    int start_y = render_tile_y;
+    int width = 0;
+    int height = 0;
+
+    switch (span) {
+      case DoorPrioritySpan::kNormalLower:
+        switch (render_direction) {
+          case DoorDirection::North:
+            start_y = section_start(render_tile_y);
+            width = 4;
+            height = 7;
+            break;
+          case DoorDirection::South:
+            // South raster coordinates are one row below the USDASM table
+            // anchor; the fixed priority span starts four rows below it.
+            start_y = render_tile_y + 3;
+            width = 4;
+            height = 7;
+            break;
+          case DoorDirection::West:
+            start_x = section_start(render_tile_x);
+            width = 5;
+            height = 4;
+            break;
+          case DoorDirection::East:
+            // East raster coordinates are one column right of the table
+            // anchor; the fixed priority span starts four columns right.
+            start_x = render_tile_x + 3;
+            width = 5;
+            height = 4;
+            break;
+        }
+        break;
+
+      case DoorPrioritySpan::kLowerLayerOnly:
+        switch (render_direction) {
+          case DoorDirection::North:
+            start_y = section_start(render_tile_y);
+            width = 4;
+            height = render_tile_y - start_y + 1;
+            break;
+          case DoorDirection::South:
+            start_y = render_tile_y + 1;
+            width = 4;
+            height = section_end(render_tile_y) - start_y;
+            break;
+          case DoorDirection::West:
+            start_x = section_start(render_tile_x);
+            width = render_tile_x - start_x + 1;
+            height = 4;
+            break;
+          case DoorDirection::East:
+            start_x = render_tile_x + 1;
+            width = section_end(render_tile_x) - start_x;
+            height = 4;
+            break;
+        }
+        break;
+
+      case DoorPrioritySpan::kHighRange:
+        switch (render_direction) {
+          case DoorDirection::North:
+            start_y = section_start(render_tile_y);
+            width = 4;
+            height = render_tile_y - start_y;
+            break;
+          case DoorDirection::South:
+            start_y = render_tile_y + 3;
+            width = 4;
+            height = section_end(render_tile_y) - start_y;
+            break;
+          case DoorDirection::West:
+            start_x = section_start(render_tile_x);
+            width = render_tile_x - start_x;
+            height = 4;
+            break;
+          case DoorDirection::East:
+            // The visible raster starts one column right of the USDASM table
+            // anchor and spans three columns. Priority begins at anchor+4.
+            start_x = render_tile_x + 3;
+            width = section_end(render_tile_x) - start_x;
+            height = 4;
+            break;
+        }
+        break;
+    }
+
+    if (width > 0 && height > 0) {
+      promote_upper_priority_rect(start_x, start_y, width, height);
+    }
+  };
+
+  // Door markers update room-transition metadata in USDASM; they do not
+  // stamp tiles. In real room streams they commonly follow a physical door
+  // at the same position, so treating them as art overwrites that door with
+  // the marker table's mirrored shutter tiles.
+  const bool is_nonvisual_marker = door.type == DoorType::DungeonSwapMarker ||
+                                   door.type == DoorType::LayerSwapMarker ||
+                                   (door.type == DoorType::ExitMarker &&
+                                    (door.direction == DoorDirection::North ||
+                                     door.direction == DoorDirection::South));
+  if (is_nonvisual_marker) {
+    return;
+  }
+
+  // Type $06 only promotes existing upper-layer wall tiles in USDASM. It
+  // neither looks up nor stamps door graphics.
+  if (door.type == DoorType::UnusedCaveExit) {
+    promote_door_priority(door.direction, tile_x, tile_y,
+                          DoorPrioritySpan::kLowerLayerOnly);
+    return;
+  }
+
+  // South has several dedicated routines that bypass the ordinary 4x3 door
+  // tables. Their coordinates begin at the raw USDASM tilemap anchor rather
+  // than the generic South render anchor one row below it.
+  if (door.direction == DoorDirection::South) {
+    const auto [raw_tile_x, raw_tile_y] =
+        DoorPositionManager::PositionToTileCoords(door.position,
+                                                  door.direction);
+    const int fancy_data_addr =
+        kRoomDrawObjectDataBase + kFancyDungeonExitObjectOffset;
+    const int cave_light_data_addr =
+        kRoomDrawObjectDataBase + kCaveExitLightObjectOffset;
+    const auto has_object_words = [&](int address, int word_count) {
+      return address >= 0 &&
+             address + word_count * 2 <= static_cast<int>(rom_->size());
+    };
+
+    switch (door.type) {
+      case DoorType::FancyDungeonExit:
+        if (!has_object_words(fancy_data_addr, 80)) {
+          DrawDoorIndicator(bg1, raw_tile_x - 3, raw_tile_y - 4,
+                            /*width=*/10, /*height=*/8, door.type,
+                            door.direction);
+          return;
+        }
+        draw_from_object_data_row_major(bg1, raw_tile_x - 3, raw_tile_y - 4,
+                                        /*width=*/10, /*height=*/8,
+                                        fancy_data_addr);
+        return;
+
+      case DoorType::FancyDungeonExitLower:
+        if (!has_object_words(fancy_data_addr, 80)) {
+          DrawDoorIndicator(bg2, raw_tile_x - 3, raw_tile_y - 4,
+                            /*width=*/10, /*height=*/8, door.type,
+                            door.direction);
+          return;
+        }
+        draw_from_object_data_row_major(bg2, raw_tile_x - 3, raw_tile_y - 4,
+                                        /*width=*/10, /*height=*/8,
+                                        fancy_data_addr);
+        // RoomDraw_NormalRangedDoors_South copies the final lower-layer row
+        // back to the upper tilemap and forces high priority.
+        for (int dx = 0; dx < 10; ++dx) {
+          (void)draw_object_data_tile(
+              bg1, raw_tile_x - 3 + dx, raw_tile_y + 3, fancy_data_addr,
+              /*tile_idx=*/70 + dx, /*word_mask=*/0x2000);
+        }
+        return;
+
+      case DoorType::ExitLower:
+        if (!has_object_words(cave_light_data_addr, 16)) {
+          DrawDoorIndicator(bg2, raw_tile_x, raw_tile_y, /*width=*/4,
+                            /*height=*/4, door.type, door.direction);
+          return;
+        }
+        promote_lower_priority_rect(raw_tile_x, raw_tile_y + 4,
+                                    /*width_tiles=*/4, /*height_tiles=*/7);
+        draw_from_object_data(bg2, raw_tile_x, raw_tile_y, /*width=*/4,
+                              /*height=*/4, cave_light_data_addr);
+        for (int dx = 0; dx < 4; ++dx) {
+          (void)draw_object_data_tile(
+              bg1, raw_tile_x + dx, raw_tile_y + 3, cave_light_data_addr,
+              /*tile_idx=*/dx * 4 + 3, /*word_mask=*/0x2000);
+        }
+        return;
+
+      case DoorType::CaveExit:
+        if (!has_object_words(cave_light_data_addr, 16)) {
+          DrawDoorIndicator(bg1, raw_tile_x, raw_tile_y, /*width=*/4,
+                            /*height=*/4, door.type, door.direction);
+          return;
+        }
+        draw_from_object_data(bg1, raw_tile_x, raw_tile_y, /*width=*/4,
+                              /*height=*/4, cave_light_data_addr);
+        return;
+
+      case DoorType::LitCaveExitLower:
+        if (!has_object_words(cave_light_data_addr, 16)) {
+          DrawDoorIndicator(bg1, raw_tile_x, raw_tile_y, /*width=*/4,
+                            /*height=*/4, door.type, door.direction);
+          return;
+        }
+        promote_upper_priority_rect(raw_tile_x, raw_tile_y + 4,
+                                    /*width_tiles=*/4, /*height_tiles=*/7);
+        draw_from_object_data(bg1, raw_tile_x, raw_tile_y, /*width=*/4,
+                              /*height=*/4, cave_light_data_addr);
+        return;
+
+      default:
+        break;
+    }
+  }
+
   auto resolve_render_type = [](DoorDirection render_direction,
-                                DoorType render_type) {
+                                uint16_t render_type) -> uint16_t {
     switch (render_type) {
-      case DoorType::BottomSidedShutter:
+      case static_cast<uint16_t>(DoorType::BigKeyDoor):
+        // South's closed big-key door is coerced to the normal-door table
+        // entry by RoomDraw_OneSidedShutters_South.
+        return render_direction == DoorDirection::South
+                   ? static_cast<uint16_t>(DoorType::NormalDoor)
+                   : render_type;
+      case static_cast<uint16_t>(DoorType::BottomSidedShutter):
         return (render_direction == DoorDirection::North ||
                 render_direction == DoorDirection::West)
-                   ? DoorType::DoubleSidedShutter
-                   : DoorType::NormalDoor;
-      case DoorType::TopSidedShutter:
+                   ? static_cast<uint16_t>(DoorType::DoubleSidedShutter)
+                   : static_cast<uint16_t>(DoorType::NormalDoor);
+      case static_cast<uint16_t>(DoorType::TopSidedShutter):
         return (render_direction == DoorDirection::North ||
                 render_direction == DoorDirection::West)
-                   ? DoorType::NormalDoor
-                   : DoorType::DoubleSidedShutter;
-      case DoorType::BottomShutterLower:
+                   ? static_cast<uint16_t>(DoorType::NormalDoor)
+                   : static_cast<uint16_t>(DoorType::DoubleSidedShutter);
+      case static_cast<uint16_t>(DoorType::BottomShutterLower):
         return (render_direction == DoorDirection::North ||
                 render_direction == DoorDirection::West)
-                   ? DoorType::DoubleSidedShutterLower
-                   : DoorType::NormalDoorOneSidedShutter;
-      case DoorType::TopShutterLower:
+                   ? static_cast<uint16_t>(DoorType::DoubleSidedShutterLower)
+                   : static_cast<uint16_t>(DoorType::NormalDoorOneSidedShutter);
+      case static_cast<uint16_t>(DoorType::TopShutterLower):
         return (render_direction == DoorDirection::North ||
                 render_direction == DoorDirection::West)
-                   ? DoorType::NormalDoorOneSidedShutter
-                   : DoorType::DoubleSidedShutterLower;
+                   ? static_cast<uint16_t>(DoorType::NormalDoorOneSidedShutter)
+                   : static_cast<uint16_t>(DoorType::DoubleSidedShutterLower);
       default:
         return render_type;
     }
   };
 
-  auto draw_table_door = [&](gfx::BackgroundBuffer& target,
-                             DoorDirection render_direction, int start_tile_x,
-                             int start_tile_y, DoorType render_type) -> bool {
+  auto resolve_table_door_data = [&](DoorDirection render_direction,
+                                     uint16_t render_type,
+                                     int* tile_data_addr) -> bool {
     int offset_table_addr = 0;
     switch (render_direction) {
       case DoorDirection::North:
@@ -1701,28 +2114,115 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
         break;
     }
 
-    const DoorType resolved_type =
+    const uint16_t resolved_type =
         resolve_render_type(render_direction, render_type);
-    const int render_type_value = static_cast<int>(resolved_type);
-    const int type_index = render_type_value / 2;
-    const int table_entry_addr = offset_table_addr + (type_index * 2);
+    // DoorGFXDataOffset_* is an absolute-indexed word table and Y is already
+    // the byte offset. Do not divide/re-multiply: hacked replacement tables may
+    // intentionally supply an odd or wider offset.
+    const int table_entry_addr = offset_table_addr + resolved_type;
     if (table_entry_addr + 1 >= static_cast<int>(rom_->size())) {
       return false;
     }
 
     const uint16_t tile_offset =
         rom_data[table_entry_addr] | (rom_data[table_entry_addr + 1] << 8);
-    const int tile_data_addr = kRoomDrawObjectDataBase + tile_offset;
+    *tile_data_addr = kRoomDrawObjectDataBase + tile_offset;
     const auto dims = GetDoorDimensions(render_direction);
     const int data_size = dims.width_tiles * dims.height_tiles * 2;
-    if (tile_data_addr < 0 ||
-        tile_data_addr + data_size > static_cast<int>(rom_->size())) {
+    if (*tile_data_addr < 0 ||
+        *tile_data_addr + data_size > static_cast<int>(rom_->size())) {
       return false;
     }
 
-    draw_from_object_data(target, start_tile_x, start_tile_y, dims.width_tiles,
-                          dims.height_tiles, tile_data_addr);
     return true;
+  };
+
+  auto draw_table_door = [&](gfx::BackgroundBuffer& target,
+                             DoorDirection render_direction, int start_tile_x,
+                             int start_tile_y, uint16_t render_type) -> bool {
+    int tile_data_addr = 0;
+    if (!resolve_table_door_data(render_direction, render_type,
+                                 &tile_data_addr)) {
+      return false;
+    }
+
+    const auto render_dims = GetDoorDimensions(render_direction);
+    draw_from_object_data(target, start_tile_x, start_tile_y,
+                          render_dims.width_tiles, render_dims.height_tiles,
+                          tile_data_addr);
+    return true;
+  };
+
+  auto draw_high_range_table_door = [&](DoorDirection render_direction,
+                                        int start_tile_x, int start_tile_y,
+                                        uint16_t render_type) -> bool {
+    int tile_data_addr = 0;
+    if (!resolve_table_door_data(render_direction, render_type,
+                                 &tile_data_addr)) {
+      return false;
+    }
+
+    const auto dims = GetDoorDimensions(render_direction);
+    int tile_idx = 0;
+    for (int dx = 0; dx < dims.width_tiles; ++dx) {
+      for (int dy = 0; dy < dims.height_tiles; ++dy) {
+        // RoomDraw_OneSidedLowerShutters_* splits one logical door across
+        // the upper ($7E2000/BG1) and lower ($7E4000/BG2) tilemaps.
+        bool writes_upper = false;
+        switch (render_direction) {
+          case DoorDirection::North:
+            writes_upper = dy == 0;
+            break;
+          case DoorDirection::South:
+            writes_upper = dy == dims.height_tiles - 1;
+            break;
+          case DoorDirection::West:
+            writes_upper = dx == 0;
+            break;
+          case DoorDirection::East:
+            writes_upper = dx == dims.width_tiles - 1;
+            break;
+        }
+        gfx::BackgroundBuffer& target = writes_upper ? bg1 : bg2;
+        if (!draw_object_data_tile(target, start_tile_x + dx, start_tile_y + dy,
+                                   tile_data_addr, tile_idx++)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
+  auto draw_ranged_door = [&](DoorDirection render_direction, int start_tile_x,
+                              int start_tile_y, DoorType original_type,
+                              uint16_t table_type) -> bool {
+    if (original_type == DoorType::NormalDoorLower) {
+      // Type $02 stamps the ordinary door art after promoting the fixed wall
+      // rectangle selected by RoomDraw_MakeDoorPartsHighPriority_*.
+      promote_door_priority(render_direction, start_tile_x, start_tile_y,
+                            DoorPrioritySpan::kNormalLower);
+    }
+
+    // The dispatcher selects the normal/high-range writer before
+    // RoomDraw_FlagDoorsAndGetFinalType substitutes open-door graphics. Keep
+    // that choice tied to the stored type while looking up art by final type.
+    const int render_type_value = static_cast<int>(original_type);
+    const bool is_high_range =
+        render_type_value >= 0x40 && render_type_value <= 0x66;
+    if (is_high_range) {
+      const bool drew = draw_high_range_table_door(
+          render_direction, start_tile_x, start_tile_y, table_type);
+      // North type $46 deliberately skips RoomDraw_MakeDoorHighPriority_North;
+      // every other high-range direction/type promotes the adjacent upper wall.
+      if (drew && !(render_direction == DoorDirection::North &&
+                    original_type == DoorType::ExplicitRoomDoor)) {
+        promote_door_priority(render_direction, start_tile_x, start_tile_y,
+                              DoorPrioritySpan::kHighRange);
+      }
+      return drew;
+    }
+    return draw_table_door(bg1, render_direction, start_tile_x, start_tile_y,
+                           table_type);
   };
 
   // USDASM has special north-door branches that do not follow the generic 4x3
@@ -1753,17 +2253,8 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
 
   if (door.direction == DoorDirection::North &&
       door.type == DoorType::CurtainDoor && is_door_open) {
-    const int replacement_type_addr =
-        kDoorwayReplacementDoorGfxBase + static_cast<int>(door.type);
-    if (replacement_type_addr < 0 ||
-        replacement_type_addr >= static_cast<int>(rom_->size())) {
-      DrawDoorIndicator(bg1, tile_x, tile_y, /*width=*/4, /*height=*/4,
-                        door.type, door.direction);
-      return;
-    }
-
-    const int replacement_type = rom_data[replacement_type_addr];
-    const int table_entry_addr = kDoorGfxUp + replacement_type;
+    const int table_entry_addr =
+        kDoorGfxUp + static_cast<int>(effective_door_type);
     if (table_entry_addr < 0 ||
         table_entry_addr + 1 >= static_cast<int>(rom_->size())) {
       DrawDoorIndicator(bg1, tile_x, tile_y, /*width=*/4, /*height=*/4,
@@ -1847,27 +2338,73 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
     return;
   }
 
+  // RoomDraw_North treats all four key-stair types ($20/$22/$24/$26) as
+  // stateful stair records. Once their persistent bit is open, USDASM returns
+  // without drawing replacement art.
+  const bool is_north_key_stairs =
+      door.direction == DoorDirection::North &&
+      (door.type == DoorType::SmallKeyStairsUp ||
+       door.type == DoorType::SmallKeyStairsDown ||
+       door.type == DoorType::SmallKeyStairsUpLower ||
+       door.type == DoorType::SmallKeyStairsDownLower);
+  if (is_north_key_stairs && is_door_open) {
+    return;
+  }
+
+  // Closed North lower-layer key stairs ($24/$26) use the ordinary 4x3 table
+  // layout, but every tile is written to $7E4000/BG2 and no middle-door
+  // counterpart is emitted.
+  const bool is_north_lower_key_stairs =
+      door.direction == DoorDirection::North &&
+      (door.type == DoorType::SmallKeyStairsUpLower ||
+       door.type == DoorType::SmallKeyStairsDownLower);
+  if (is_north_lower_key_stairs) {
+    if (!draw_table_door(bg2, door.direction, tile_x, tile_y,
+                         static_cast<uint16_t>(door.type))) {
+      DrawDoorIndicator(bg2, tile_x, tile_y, door_width, door_height, door.type,
+                        door.direction);
+    }
+    return;
+  }
+
+  // The normal ranged-door callers treat curtain and waterfall final types as
+  // metadata-only results (carry clear from FlagDoorsAndGetFinalType). North
+  // curtain and lower key stairs have already taken their dedicated branches.
+  const bool uses_normal_ranged_writer =
+      static_cast<int>(door.type) <
+      static_cast<int>(DoorType::NormalDoorOneSidedShutter);
+  if (uses_normal_ranged_writer &&
+      (effective_door_type == static_cast<uint16_t>(DoorType::CurtainDoor) ||
+       effective_door_type == static_cast<uint16_t>(DoorType::WaterfallDoor))) {
+    return;
+  }
+
   // Door graphics use an indirect addressing scheme:
   // 1. kDoorGfxUp/Down/Left/Right point to offset tables (DoorGFXDataOffset_*)
   // 2. Each table entry is a 16-bit offset into RoomDrawObjectData
   // 3. RoomDrawObjectData base is at PC 0x1B52 (SNES $00:9B52)
   // 4. Actual tile data = 0x1B52 + offset_from_table
+  const bool north_explicit_door = door.direction == DoorDirection::North &&
+                                   door.type == DoorType::ExplicitRoomDoor;
   if ((door.direction == DoorDirection::North ||
        door.direction == DoorDirection::West) &&
-      position_index >= 6 && door.type != DoorType::ExplicitRoomDoor) {
+      position_index >= 6 && !north_explicit_door) {
     const DoorDirection counterpart_direction =
         door.direction == DoorDirection::North ? DoorDirection::South
                                                : DoorDirection::East;
-    const int counterpart_tile_x =
-        tile_x + (counterpart_direction == DoorDirection::East ? 1 : 0);
-    const int counterpart_tile_y =
-        tile_y + (counterpart_direction == DoorDirection::South ? 1 : 0);
-    (void)draw_table_door(bg1, counterpart_direction, counterpart_tile_x,
-                          counterpart_tile_y, door.type);
+    // USDASM indexes the table immediately following NorthMiddle/WestMiddle
+    // with the original 6..11 position offset. That lands on counterpart
+    // positions 0..5; the two rasters are separated by the middle wall rather
+    // than overlapping at the current anchor.
+    const auto [counterpart_tile_x, counterpart_tile_y] =
+        DoorPositionManager::PositionToRenderTileCoords(
+            static_cast<uint8_t>(position_index - 6), counterpart_direction);
+    (void)draw_ranged_door(counterpart_direction, counterpart_tile_x,
+                           counterpart_tile_y, door.type, effective_door_type);
   }
 
-  const bool drew_current =
-      draw_table_door(bg1, door.direction, tile_x, tile_y, door.type);
+  const bool drew_current = draw_ranged_door(door.direction, tile_x, tile_y,
+                                             door.type, effective_door_type);
   if (!drew_current) {
     LOG_DEBUG("ObjectDrawer",
               "DrawDoor: INVALID ADDRESS - falling back to indicator");
@@ -1877,8 +2414,10 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   }
 
   LOG_DEBUG("ObjectDrawer",
-            "DrawDoor: type=%s dir=%s pos=%d at tile(%d,%d) size=%dx%d",
+            "DrawDoor: type=%s effective=0x%04X dir=%s pos=%d at tile(%d,%d) "
+            "size=%dx%d",
             std::string(GetDoorTypeName(door.type)).c_str(),
+            static_cast<unsigned int>(effective_door_type),
             std::string(GetDoorDirectionName(door.direction)).c_str(),
             door.position, tile_x, tile_y, door_width, door_height);
 }
@@ -2223,6 +2762,10 @@ void ObjectDrawer::WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
   if (trace_only_) {
     return;
   }
+  // Keep the logical tilemap synchronized with the bitmap/coverage owner.
+  // Conditional edge routines query this word after coverage selects whether
+  // the object or layout half owns the effective physical BG entry.
+  bg.SetTileAt(tile_x, tile_y, gfx::TileInfoToWord(tile_info));
   // Draw directly to bitmap instead of tile buffer to avoid being overwritten
   auto& bitmap = bg.bitmap();
   if (!bitmap.is_active() || bitmap.width() == 0) {
@@ -2490,833 +3033,7 @@ void ObjectDrawer::DrawLargeCanvasObject(const RoomObject& obj,
 
 std::pair<int, int> yaze::zelda3::ObjectDrawer::CalculateObjectDimensions(
     const RoomObject& object) {
-  if (!routines_initialized_) {
-    InitializeDrawRoutines();
-  }
-
-  // Default size 16x16 (2x2 tiles)
-  int width = 16;
-  int height = 16;
-
-  int routine_id = GetDrawRoutineId(object.id_);
-  int size = object.size_;
-
-  // Based on routine ID, calculate dimensions
-  // This logic must match the draw routines
-  switch (routine_id) {
-    case 0:   // DrawRightwards2x2_1to15or32
-    case 4:   // DrawRightwards2x2_1to16
-    case 7:   // DrawDownwards2x2_1to15or32
-    case 11:  // DrawDownwards2x2_1to16
-      // 2x2 tiles repeated
-      if (routine_id == 0 || routine_id == 7) {
-        if (size == 0)
-          size = 32;
-      } else {
-        size = size & 0x0F;
-        if (size == 0)
-          size = 16;  // 0 usually means 16 for 1to16 routines
-      }
-
-      if (routine_id == 0 || routine_id == 4) {
-        // Rightwards: size * 2 tiles width, 2 tiles height
-        width = size * 16;
-        height = 16;
-      } else {
-        // Downwards: 2 tiles width, size * 2 tiles height
-        width = 16;
-        height = size * 16;
-      }
-      break;
-
-    case 1:  // RoomDraw_Rightwards2x4_1to15or26 (layout walls 0x01-0x02)
-    {
-      // ASM: GetSize_1to15or26 - defaults to 26 when size is 0
-      int effective_size = (size == 0) ? 26 : (size & 0x0F);
-      // Draws 2x4 tiles repeated 'effective_size' times horizontally
-      width = effective_size * 16;  // 2 tiles wide per repetition
-      height = 32;                  // 4 tiles tall
-      break;
-    }
-    case DrawRoutineIds::kWeird2x4_1to16: {  // Archery curtains (object 0xB5)
-      const int count = (size & 0x0F) + 1;
-      width = count * 16;
-      height = 32;
-      break;
-    }
-
-    case 2:  // RoomDraw_Rightwards2x4spaced4_1to16 (objects 0x03-0x04)
-    case 3:  // RoomDraw_Rightwards2x4spaced4_1to16_BothBG (objects 0x05-0x06)
-    {
-      // ASM: GetSize_1to16, so both routines repeat size + 1 times.
-      size = size & 0x0F;
-      int count = size + 1;
-      width = count * 16;  // 2 tiles wide per repetition (adjacent)
-      height = 32;         // 4 tiles tall
-      break;
-    }
-
-    case 5:  // DrawDiagonalAcute_1to16
-    case 6:  // DrawDiagonalGrave_1to16
-    {
-      // ASM: RoomDraw_DiagonalAcute/Grave_1to16
-      // Uses LDA #$0007; JSR RoomDraw_GetSize_1to16_timesA
-      // count = size + 7
-      // Each iteration draws 5 tiles vertically (RoomDraw_2x2and1 pattern)
-      // Width = count tiles, Height = 5 tiles base + (count-1) diagonal offset
-      size = size & 0x0F;
-      int count = size + 7;
-      width = count * 8;
-      height = (count + 4) * 8;  // 5 tiles + (count-1) = count + 4
-      break;
-    }
-    case 17:  // DrawDiagonalAcute_1to16_BothBG
-    case 18:  // DrawDiagonalGrave_1to16_BothBG
-    {
-      // ASM: RoomDraw_DiagonalAcute/Grave_1to16_BothBG
-      // Uses LDA #$0006; JSR RoomDraw_GetSize_1to16_timesA
-      // count = size + 6 (one less than non-BothBG)
-      size = size & 0x0F;
-      int count = size + 6;
-      width = count * 8;
-      height = (count + 4) * 8;  // 5 tiles + (count-1) = count + 4
-      break;
-    }
-
-    case 8:  // RoomDraw_Downwards4x2_1to15or26 (layout walls 0x61-0x62)
-    {
-      // ASM: GetSize_1to15or26 - defaults to 26 when size is 0
-      int effective_size = (size == 0) ? 26 : (size & 0x0F);
-      // Draws 4x2 tiles repeated 'effective_size' times vertically
-      width = 32;                    // 4 tiles wide
-      height = effective_size * 16;  // 2 tiles tall per repetition
-      break;
-    }
-    case 9:   // RoomDraw_Downwards4x2_1to16_BothBG (objects 0x63-0x64)
-    case 10:  // RoomDraw_DownwardsDecor4x2spaced4_1to16 (objects 0x65-0x66)
-    {
-      // ASM: GetSize_1to16, draws 4x2 tiles with spacing
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 32;           // 4 tiles wide
-      height = count * 16;  // 2 tiles tall per repetition (adjacent)
-      break;
-    }
-
-    case 12:  // RoomDraw_DownwardsHasEdge1x1_1to16_plus3
-      // ASM ($01:8EC3) uses GetSize_1to16_timesA with A=2, giving
-      // count = size + 2 middle tiles. Total span (corner + middles + end) =
-      // size + 4 tiles, matching the horizontal counterpart 0x22 (case 21).
-      size = size & 0x0F;
-      width = 8;
-      height = (size + 4) * 8;
-      break;
-    case 13:  // RoomDraw_DownwardsEdge1x1_1to16
-      size = size & 0x0F;
-      width = 8;
-      height = (size + 1) * 8;
-      break;
-    case 14:  // RoomDraw_DownwardsLeftCorners2x1_1to16_plus12
-    case 15:  // RoomDraw_DownwardsRightCorners2x1_1to16_plus12
-      size = size & 0x0F;
-      width = 16;
-      height = (size + 14) * 8;
-      break;
-
-    case 16:  // DrawRightwards4x4_1to16 (Routine 16)
-    {
-      // 4x4 block repeated horizontally based on size
-      // ASM: GetSize_1to16, count = (size & 0x0F) + 1
-      int count = (size & 0x0F) + 1;
-      width = 32 * count;  // 4 tiles * 8 pixels * count
-      height = 32;         // 4 tiles * 8 pixels
-      break;
-    }
-    case DrawRoutineIds::kWaterHopStairsA:
-    case DrawRoutineIds::kWaterHopStairsB:
-      width = 32;
-      height = 16;
-      break;
-    case DrawRoutineIds::kDamFloodGate:
-      width = 80;
-      height = 32;
-      break;
-    case 19:  // DrawCorner4x4 (Type 2 corners 0x100-0x103)
-    case 34:  // Water Face (4x4)
-    case 35:  // 4x4 Corner BothBG
-    case 36:  // Weird Corner Bottom
-    case 37:  // Weird Corner Top
-      // 4x4 tiles (32x32 pixels) - fixed size, no repetition
-      width = 32;
-      height = 32;
-      break;
-    case 39: {  // Chest routine (small or big)
-      // Infer size from tile span: big chests provide >=16 tiles
-      int tile_count = object.tiles().size();
-      if (tile_count >= 16) {
-        width = height = 32;  // Big chest 4x4
-      } else {
-        width = height = 16;  // Small chest 2x2
-      }
-      break;
-    }
-
-    case 20:  // Edge 1x2 (RoomDraw_Rightwards1x2_1to16_plus2)
-    {
-      // ZScream: width = size * 2 + 4, height = 3 tiles
-      size = size & 0x0F;
-      width = (size * 2 + 4) * 8;
-      height = 24;
-      break;
-    }
-
-    case 21:  // RoomDraw_RightwardsHasEdge1x1_1to16_plus3 (small rails 0x22)
-    {
-      // ZScream: count = size + 2 (corner + middle*count + end)
-      size = size & 0x0F;
-      width = (size + 4) * 8;
-      height = 8;
-      break;
-    }
-    case 22:  // RoomDraw_RightwardsHasEdge1x1_1to16_plus2 (carpet trim 0x23-0x2E)
-    {
-      // ASM: GetSize_1to16, count = size + 1
-      // Plus corner (1) + end (1) = count + 2 total width
-      size = size & 0x0F;
-      int count = size + 1;
-      width = (count + 2) * 8;  // corner + middle*count + end
-      height = 8;
-      break;
-    }
-    case 118:  // RoomDraw_RightwardsHasEdge1x1_1to16_plus23 (long rails 0x5F)
-    {
-      size = size & 0x0F;
-      width = (size + 23) * 8;
-      height = 8;
-      break;
-    }
-    case DrawRoutineIds::kDownwardsHasEdge1x1_1to16_plus23:
-      size = size & 0x0F;
-      width = 8;
-      height = (size + 23) * 8;
-      break;
-    case DrawRoutineIds::kDownwardsEdge1x1_1to16plus7:
-      size = size & 0x0F;
-      width = 8;
-      height = (size + 8) * 8;
-      break;
-    case 25:  // RoomDraw_Rightwards1x1Solid_1to16_plus3
-    {
-      // ASM: GetSize_1to16_timesA(4), so count = size + 4
-      size = size & 0x0F;
-      width = (size + 4) * 8;
-      height = 8;
-      break;
-    }
-
-    case 23:  // RightwardsTopCorners1x2_1to16_plus13
-    case 24:  // RightwardsBottomCorners1x2_1to16_plus13
-      size = size & 0x0F;
-      width = 8 + size * 8;
-      height = 16;
-      break;
-
-    case 26:  // Door Switcher
-      width = 32;
-      height = 32;
-      break;
-
-    case 27:  // RoomDraw_RightwardsDecor4x4spaced2_1to16
-    {
-      // 4x4 tiles with 6-tile X spacing per repetition
-      // ASM: s * 6 spacing, count = size + 1
-      size = size & 0x0F;
-      int count = size + 1;
-      // Total width = (count - 1) * 6 (spacing) + 4 (last block)
-      width = ((count - 1) * 6 + 4) * 8;
-      height = 32;  // 4 tiles
-      break;
-    }
-
-    case 28:  // RoomDraw_RightwardsStatue2x3spaced2_1to16
-    {
-      // 2x3 tiles with 4-tile X spacing per repetition
-      // ASM: s * 4 spacing, count = size + 1
-      size = size & 0x0F;
-      int count = size + 1;
-      // Total width = (count - 1) * 4 (spacing) + 2 (last block)
-      width = ((count - 1) * 4 + 2) * 8;
-      height = 24;  // 3 tiles
-      break;
-    }
-
-    case 29:  // RoomDraw_RightwardsPillar2x4spaced4_1to16
-    {
-      // 2x4 tiles with 4-tile X spacing per repetition
-      // ASM: ADC #$0008 = 4 tiles between starts
-      size = size & 0x0F;
-      int count = size + 1;
-      // Total width = (count - 1) * 4 (spacing) + 2 (last block)
-      width = ((count - 1) * 4 + 2) * 8;
-      height = 32;  // 4 tiles
-      break;
-    }
-
-    case 30:  // RoomDraw_RightwardsDecor4x3spaced4_1to16
-    {
-      // 4x3 tiles with 8-tile X spacing per repetition
-      // ASM: ADC #$0008 = 8-byte advance = 4 tiles gap between 4-tile objects
-      size = size & 0x0F;
-      int count = size + 1;
-      // Total width = (count - 1) * 8 (spacing) + 4 (last block)
-      width = ((count - 1) * 8 + 4) * 8;
-      height = 24;  // 3 tiles
-      break;
-    }
-
-    case 31:  // RoomDraw_RightwardsDoubled2x2spaced2_1to16
-    {
-      // 4x2 tiles (doubled 2x2) with 6-tile X spacing
-      // ASM: s * 6 spacing, count = size + 1
-      size = size & 0x0F;
-      int count = size + 1;
-      // Total width = (count - 1) * 6 (spacing) + 4 (last block)
-      width = ((count - 1) * 6 + 4) * 8;
-      height = 16;  // 2 tiles
-      break;
-    }
-    case 32:  // RoomDraw_RightwardsDecor2x2spaced12_1to16
-    {
-      // 2x2 tiles with 14-tile X spacing per repetition
-      // ASM: s * 14 spacing, count = size + 1
-      size = size & 0x0F;
-      int count = size + 1;
-      // Total width = (count - 1) * 14 (spacing) + 2 (last block)
-      width = ((count - 1) * 14 + 2) * 8;
-      height = 16;  // 2 tiles
-      break;
-    }
-
-    case 33:  // Somaria Line
-      // Each subtype-3 path piece is one 8x8 tile.
-      width = 8;
-      height = 8;
-      break;
-
-    case 38:  // Nothing (RoomDraw_Nothing)
-      width = 8;
-      height = 8;
-      break;
-
-    case 40:  // Rightwards 4x2 (FloorTile)
-    {
-      // 4 cols x 2 rows, GetSize_1to16
-      size = size & 0x0F;
-      int count = size + 1;
-      width = count * 4 * 8;  // 4 tiles per repetition
-      height = 16;            // 2 tiles
-      break;
-    }
-
-    case 41:  // Rightwards Decor 4x2 spaced 12 (wall torches 0x55-0x56)
-    {
-      // ASM: 4 columns x 2 rows with 12-tile horizontal spacing.
-      size = size & 0x0F;
-      int count = size + 1;
-      width = ((count - 1) * 12 + 4) * 8;
-      height = 16;
-      break;
-    }
-
-    case 42:  // Rightwards Cannon Hole 4x3
-    {
-      // 4x3 tiles, GetSize_1to16
-      size = size & 0x0F;
-      int count = size + 1;
-      width = count * 4 * 8;
-      height = 24;
-      break;
-    }
-
-    case 43:  // Downwards Floor 4x4
-    {
-      // 4x4 tiles, GetSize_1to16
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 32;
-      height = count * 4 * 8;
-      break;
-    }
-
-    case 44:  // Downwards 1x1 Solid +3
-    {
-      size = size & 0x0F;
-      width = 8;
-      height = (size + 4) * 8;
-      break;
-    }
-
-    case 45:  // Downwards Decor 4x4 spaced 2
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 32;
-      height = ((count - 1) * 6 + 4) * 8;
-      break;
-    }
-
-    case 46:  // Downwards Pillar 2x4 spaced 2
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 16;
-      height = ((count - 1) * 6 + 4) * 8;
-      break;
-    }
-
-    case 47:  // Downwards Decor 3x4 spaced 4
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 24;
-      height = ((count - 1) * 6 + 4) * 8;
-      break;
-    }
-
-    case 48:  // Downwards Decor 2x2 spaced 12
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 16;
-      height = ((count - 1) * 14 + 2) * 8;
-      break;
-    }
-
-    case 49:  // Downwards Line 1x1 +1
-    {
-      size = size & 0x0F;
-      width = 8;
-      height = (size + 2) * 8;
-      break;
-    }
-
-    case 50:  // Downwards Decor 2x4 spaced 8
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 16;
-      height = ((count - 1) * 12 + 4) * 8;
-      break;
-    }
-
-    case 51:  // Rightwards Line 1x1 +1
-    {
-      size = size & 0x0F;
-      width = (size + 2) * 8;
-      height = 8;
-      break;
-    }
-
-    case 52:  // Rightwards Bar 4x3
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = ((count - 1) * 6 + 4) * 8;
-      height = 24;
-      break;
-    }
-
-    case 53:  // Rightwards Shelf 4x4
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = ((count - 1) * 6 + 4) * 8;
-      height = 32;
-      break;
-    }
-
-    case 54:  // Rightwards Big Rail 1x3 +5
-    {
-      size = size & 0x0F;
-      width = (size + 6) * 8;
-      height = 24;
-      break;
-    }
-
-    case 55:  // Rightwards Block 2x2 spaced 2
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = ((count - 1) * 4 + 2) * 8;
-      height = 16;
-      break;
-    }
-
-    // Routines 56-64: SuperSquare patterns
-    // ASM: Type1/Type3 objects pack 2-bit X/Y sizes into a 4-bit size:
-    //   size = (x_size << 2) | y_size, where x_size/y_size are 0..3 (meaning 1..4).
-    // Each super square unit is 4 tiles (32 pixels) in each dimension.
-    case 56:  // 4x4BlocksIn4x4SuperSquare
-    case 57:  // 3x3FloorIn4x4SuperSquare
-    case 58:  // 4x4FloorIn4x4SuperSquare
-    case 59:  // 4x4FloorOneIn4x4SuperSquare
-    case 60:  // 4x4FloorTwoIn4x4SuperSquare
-    case 62:  // Spike2x2In4x4SuperSquare
-    {
-      int size_x = ((size >> 2) & 0x03) + 1;
-      int size_y = (size & 0x03) + 1;
-      width = size_x * 32;   // 4 tiles per super square
-      height = size_y * 32;  // 4 tiles per super square
-      break;
-    }
-    case 61:  // BigHole4x4
-    case 63:  // TableRock4x4
-    case 64:  // WaterOverlay8x8
-      width = 32;
-      height = 32;
-      break;
-
-    // Routines 65-74: Various downwards/rightwards patterns
-    case 65:  // DownwardsDecor3x4spaced2
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 24;
-      height = ((count - 1) * 5 + 4) * 8;
-      break;
-    }
-
-    case 66:  // DownwardsBigRail3x1 +5
-    {
-      // Top cap (2x2) + Middle (2x1 x count) + Bottom cap (2x3)
-      // Total: 2 tiles wide, 2 + (size+1) + 3 = size + 6 tiles tall
-      size = size & 0x0F;
-      width = 16;  // 2 tiles wide
-      height = (size + 6) * 8;
-      break;
-    }
-
-    case 67:  // DownwardsBlock2x2spaced2
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 16;
-      height = ((count - 1) * 4 + 2) * 8;
-      break;
-    }
-
-    case 68:  // DownwardsCannonHole3x4
-    {
-      size = size & 0x0F;
-      width = 24;
-      // Height = repeated 3x2 segment (size+1) + final 3x2 edge segment.
-      // => (2 * (size + 2)) tiles.
-      height = (2 * (size + 2)) * 8;
-      break;
-    }
-
-    case 69:  // DownwardsBar2x5
-    {
-      size = size & 0x0F;
-      width = 16;
-      // 1 top row + 2*(size+2) body rows.
-      height = (2 * size + 5) * 8;
-      break;
-    }
-
-    case 70:  // DownwardsPots2x2
-    case 71:  // DownwardsHammerPegs2x2
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = 16;
-      height = count * 2 * 8;
-      break;
-    }
-
-    case 72:  // RightwardsEdge1x1 +7
-    {
-      size = size & 0x0F;
-      width = (size + 8) * 8;
-      height = 8;
-      break;
-    }
-
-    case 73:  // RightwardsPots2x2
-    case 74:  // RightwardsHammerPegs2x2
-    {
-      size = size & 0x0F;
-      int count = size + 1;
-      width = count * 2 * 8;
-      height = 16;
-      break;
-    }
-
-    // Diagonal ceilings (75-78) - TRIANGLE shapes
-    // Draw uses count = (size & 0x0F) + 4
-    // Outline uses smaller size since triangle only fills half the square area
-    case 75:  // DiagonalCeilingTopLeft - triangle at origin
-    case 76:  // DiagonalCeilingBottomLeft - triangle at origin
-    {
-      // Smaller outline for triangle - use half the drawn area
-      int count = (size & 0x0F) + 2;
-      width = count * 8;
-      height = count * 8;
-      break;
-    }
-    case 77:  // DiagonalCeilingTopRight - triangle shifts diagonally
-    case 78:  // DiagonalCeilingBottomRight - triangle shifts diagonally
-    {
-      // Smaller outline for diagonal triangles
-      int count = (size & 0x0F) + 2;
-      width = count * 8;
-      height = count * 8;
-      break;
-    }
-
-    case 79: {  // ClosedChestPlatform
-      int size_x = (size >> 2) & 0x03;
-      int size_y = size & 0x03;
-      width = (size_x * 2 + 14) * 8;
-      height = (size_y * 2 + 8) * 8;
-      break;
-    }
-
-    // Special platform routines (80-82)
-    case 80:  // MovingWallWest
-    case 81:  // MovingWallEast
-      return DimensionService::Get().GetPixelDimensions(object);
-
-    case 82: {  // OpenChestPlatform
-      int size_x = (size >> 2) & 0x03;
-      int size_y = size & 0x03;
-      width = (size_x * 2 + 10) * 8;
-      height = (size_y * 2 + 7) * 8;
-      break;
-    }
-
-    // Stair routines - different sizes for different types
-
-    // 4x4 stair patterns (32x32 pixels)
-    case 83:        // InterRoomFatStairsUp (0x12D)
-    case 84:        // InterRoomFatStairsDownA (0x12E)
-    case 85:        // InterRoomFatStairsDownB (0x12F)
-    case 86:        // AutoStairs (0x130-0x133)
-    case 87:        // StraightInterroomStairs (0xF9E-0xFA9)
-      width = 32;   // 4 tiles
-      height = 32;  // 4 tiles (4x4 pattern)
-      break;
-
-    // 4x3 stair patterns (32x24 pixels)
-    case 88:  // SpiralStairsGoingUpUpper (0x138)
-    case 89:  // SpiralStairsGoingDownUpper (0x139)
-    case 90:  // SpiralStairsGoingUpLower (0x13A)
-    case 91:  // SpiralStairsGoingDownLower (0x13B)
-      // ASM: RoomDraw_1x3N_rightwards with A=4 -> 4 columns x 3 rows
-      width = 32;   // 4 tiles
-      height = 24;  // 3 tiles
-      break;
-
-    case 92:  // BigKeyLock
-      width = 16;
-      height = 16;
-      break;
-
-    case 93:  // BombableFloor
-      width = 32;
-      height = 32;
-      break;
-
-    case 94:  // EmptyWaterFace
-      width = 32;
-      // Report the larger stateful footprint so editor bounds do not
-      // undershoot the active 4x5 branch.
-      height = 40;
-      break;
-
-    case 95:  // SpittingWaterFace
-      width = 32;
-      height = 40;
-      break;
-
-    case 96:  // DrenchingWaterFace
-      width = 32;
-      height = 56;
-      break;
-
-    case 97:        // PrisonCell
-      width = 128;  // 16 tiles
-      height = 32;  // 4 tiles
-      break;
-
-    case 98:  // Bed4x5
-      width = 32;
-      height = 40;
-      break;
-
-    case 99:        // Rightwards3x6
-      width = 48;   // 6 tiles
-      height = 24;  // 3 tiles
-      break;
-
-    case 100:  // Utility6x3
-      width = 48;
-      height = 24;
-      break;
-
-    case 101:  // Utility3x5
-      width = 24;
-      height = 40;
-      break;
-
-    case 102:  // VerticalTurtleRockPipe
-      width = 32;
-      height = 48;
-      break;
-
-    case 103:  // HorizontalTurtleRockPipe
-      width = 48;
-      height = 32;
-      break;
-
-    case 104:      // LightBeam
-      width = 32;  // 4 tiles
-      height = 80;
-      break;
-
-    case 105:  // BigLightBeam
-      width = 64;
-      height = 64;
-      break;
-
-    case DrawRoutineIds::kFloorLight:
-      width = 64;
-      height = 64;
-      break;
-
-    case 106:  // BossShell4x4
-      width = 32;
-      height = 32;
-      break;
-
-    case DrawRoutineIds::kVitreousGooDamage:
-      width = 160;
-      height = 64;
-      break;
-
-    case 107:  // SolidWallDecor3x4
-      width = 24;
-      height = 32;
-      break;
-
-    case 108:  // ArcheryGameTargetDoor
-      width = 24;
-      height = 48;
-      break;
-
-    case 109:  // GanonTriforceFloorDecor
-      width = 64;
-      height = 64;
-      break;
-
-    case 110:  // Single2x2
-      width = 16;
-      height = 16;
-      break;
-
-    case 111:  // Waterfall47 (object 0x47)
-    {
-      // ASM: count = (size+1)*2, draws 1x5 columns
-      // Width = first column + middle columns + last column = 2 + count tiles
-      size = size & 0x0F;
-      int count = (size + 1) * 2;
-      width = (2 + count) * 8;
-      height = 40;  // 5 tiles
-      break;
-    }
-    case 112:  // Waterfall48 (object 0x48)
-    {
-      // ASM: count = (size+1)*2, draws 1x3 columns
-      // Width = first column + middle columns + last column = 2 + count tiles
-      size = size & 0x0F;
-      int count = (size + 1) * 2;
-      width = (2 + count) * 8;
-      height = 24;  // 3 tiles
-      break;
-    }
-
-    case 113:  // Single4x4 (no repetition) - 4x4 TILE16 = 8x8 TILE8
-      // ASM RoomDraw_4x4 = 4x4 tile8.
-      width = 32;
-      height = 32;
-      break;
-
-    case 114:  // Single4x3 (no repetition)
-      // 4 tiles wide x 3 tiles tall = 32x24 pixels
-      width = 32;
-      height = 24;
-      break;
-
-    case 115:  // RupeeFloor (special pattern)
-      // Columns at x + 0, +2, +4 bound a 5x8-tile area = 40x64 pixels.
-      width = 40;
-      height = 64;
-      break;
-
-    case 116:  // Actual4x4 (true 4x4 tile8 pattern, no repetition)
-      // 4 tile8s x 4 tile8s = 32x32 pixels
-      width = 32;
-      height = 32;
-      break;
-
-    case DrawRoutineIds::kBigWallDecor:
-      width = 64;
-      height = 24;
-      break;
-
-    case DrawRoutineIds::kTableBowl:
-      width = 32;
-      height = 16;
-      break;
-
-    case DrawRoutineIds::kSmithyFurnace:
-      width = 48;
-      height = 64;
-      break;
-
-    case DrawRoutineIds::kBigGrayRock:
-      width = 32;
-      height = 32;
-      break;
-
-    case DrawRoutineIds::kAgahnimsAltar:
-      width = 112;
-      height = 112;
-      break;
-
-    case DrawRoutineIds::kFortuneTellerRoom:
-      width = 112;
-      height = 112;
-      break;
-
-    case DrawRoutineIds::kMagicBatAltar:
-      width = 64;
-      height = 56;
-      break;
-
-    default:
-      // Fallback to naive calculation if not handled
-      // Matches DungeonCanvasViewer::DrawRoomObjects logic
-      {
-        int size_h = (object.size_ & 0x0F);
-        int size_v = (object.size_ >> 4) & 0x0F;
-        width = (size_h + 1) * 8;
-        height = (size_v + 1) * 8;
-      }
-      break;
-  }
-
-  return {width, height};
+  return DimensionService::Get().GetPixelDimensions(object);
 }
 
 void yaze::zelda3::ObjectDrawer::DrawCustomObject(

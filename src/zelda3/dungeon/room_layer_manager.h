@@ -56,8 +56,8 @@ struct ObjectTranslucency {
  */
 struct ObjectPriority {
   size_t object_index = 0;
-  int layer = 0;          // Object's layer (0=BG1, 1=BG2, 2=BG1 priority)
-  int priority = 0;       // Object layer value (not visual Z-order)
+  int layer = 0;               // Object's layer (0=BG1, 1=BG2, 2=BG1 priority)
+  int priority = 0;            // Object layer value (not visual Z-order)
   bool is_bg2_object = false;  // True if object renders to BG2 buffer
 };
 
@@ -91,14 +91,19 @@ class RoomLayerManager {
     bg2_on_top_ = false;
     layers_merged_ = false;
     current_merge_type_id_ = 0;
-    use_priority_compositing_ = true;  // Default to accurate SNES behavior
+    use_priority_compositing_ =
+        true;  // Default to SNES-informed priority order
   }
 
   // Priority compositing control
   // When enabled (default): Uses SNES Mode 1 per-tile priority for Z-ordering
   // When disabled: Simple back-to-front layer order (BG2 behind, BG1 in front)
-  void SetPriorityCompositing(bool enabled) { use_priority_compositing_ = enabled; }
-  bool IsPriorityCompositingEnabled() const { return use_priority_compositing_; }
+  void SetPriorityCompositing(bool enabled) {
+    use_priority_compositing_ = enabled;
+  }
+  bool IsPriorityCompositingEnabled() const {
+    return use_priority_compositing_;
+  }
 
   // Layer visibility
   void SetLayerVisible(LayerType layer, bool visible) {
@@ -180,7 +185,7 @@ class RoomLayerManager {
   // effects like transparency and additive blending.
   void SetBG2ColorMathEnabled(bool enabled) { bg2_on_top_ = enabled; }
   bool IsBG2ColorMathEnabled() const { return bg2_on_top_; }
-  
+
   // Legacy aliases for compatibility
   void SetBG2OnTop(bool on_top) { bg2_on_top_ = on_top; }
   bool IsBG2OnTop() const { return bg2_on_top_; }
@@ -231,8 +236,7 @@ class RoomLayerManager {
         // SNES uses HDMA-driven color math to blend water layer.
         if (GetLayerBlendMode(LayerType::BG2_Layout) ==
             LayerBlendMode::Normal) {
-          SetLayerBlendMode(LayerType::BG2_Layout,
-                            LayerBlendMode::Translucent);
+          SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Translucent);
         }
         if (GetLayerBlendMode(LayerType::BG2_Objects) ==
             LayerBlendMode::Normal) {
@@ -264,8 +268,7 @@ class RoomLayerManager {
         // the Triforce floor pattern showing through.
         if (GetLayerBlendMode(LayerType::BG2_Layout) ==
             LayerBlendMode::Normal) {
-          SetLayerBlendMode(LayerType::BG2_Layout,
-                            LayerBlendMode::Translucent);
+          SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Translucent);
         }
         break;
 
@@ -359,10 +362,8 @@ class RoomLayerManager {
    * @param object_layer The object's layer value (0, 1, 2)
    * @return Layer value (same as input - used for buffer routing)
    */
-  int GetObjectLayerValue(int object_layer) const {
-    return object_layer;
-  }
-  
+  int GetObjectLayerValue(int object_layer) const { return object_layer; }
+
   // Legacy function - kept for API compatibility
   // No longer affects visual order since SNES Mode 1 is fixed (BG1 > BG2)
   int CalculateObjectPriority(int object_layer) const {
@@ -489,7 +490,8 @@ class RoomLayerManager {
    * @param surface The SDL surface to apply modulation to
    */
   void ApplySurfaceColorMod(SDL_Surface* surface) const {
-    if (!surface) return;
+    if (!surface)
+      return;
 
     if (current_merge_type_id_ == 0x08) {
       // DarkRoom: 50% brightness
@@ -507,8 +509,10 @@ class RoomLayerManager {
   /**
    * @brief Composite all visible layers into a single output bitmap
    *
-   * Implements SNES Mode 1 per-tile priority compositing. Each tile's priority
-   * bit affects its effective Z-order:
+   * Implements room-header-aware dungeon compositing. Layer mode 6 uses the
+   * upper tilemap on the main screen and reveals the lower tilemap only through
+   * transparent upper pixels. Other modes currently use the SNES Mode 1
+   * per-tile priority model below:
    *
    * | Layer | Priority | Effective Order |
    * |-------|----------|-----------------|
@@ -549,15 +553,13 @@ class RoomLayerManager {
    * - Actual colors are at indices 1-15 within each 16-color bank
    * - Buffers should be initialized to 255, not 0
    */
-  static bool IsTransparent(uint8_t pixel) {
-    return pixel == 255;
-  }
+  static bool IsTransparent(uint8_t pixel) { return pixel == 255; }
 
   std::array<bool, 4> layer_visible_;
   std::array<LayerBlendMode, 4> layer_blend_mode_;
   std::array<uint8_t, 4> layer_alpha_;
   std::vector<ObjectTranslucency> object_translucency_;
-  
+
   // Color math participation flag (from ROM's Layer2OnTop)
   // NOTE: Does NOT affect draw order - BG1 is always above BG2 per SNES Mode 1.
   // This controls whether BG2 participates in sub-screen color math effects.
@@ -566,7 +568,7 @@ class RoomLayerManager {
   // Merge state tracking
   bool layers_merged_ = false;
   uint8_t current_merge_type_id_ = 0;
-  
+
   // When enabled, CompositeToOutput uses per-pixel priority buffers to emulate
   // SNES Mode 1 ordering (BG2 pri=1 can appear above BG1 pri=0).
   bool use_priority_compositing_ = true;

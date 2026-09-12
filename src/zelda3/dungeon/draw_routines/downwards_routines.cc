@@ -7,6 +7,42 @@ namespace yaze {
 namespace zelda3 {
 namespace draw_routines {
 
+namespace {
+
+void DrawDownwardsCorners2x1(const DrawContext& ctx, bool edge_is_left) {
+  if (ctx.tiles.size() < 6) {
+    return;
+  }
+
+  // USDASM caches tile 0 as the solid column. Tiles 1-2 form the opening
+  // cap, tile 3 repeats for size+10 rows, and tiles 4-5 form the closing cap.
+  // The routine name's "+12" is the minimum extent, not an X offset.
+  const int body_count = (ctx.object.size_ & 0x0F) + 10;
+  const int edge_x = ctx.object.x_ + (edge_is_left ? 0 : 1);
+  const int fill_x = ctx.object.x_ + (edge_is_left ? 1 : 0);
+  int y = ctx.object.y_;
+
+  if (!DrawRoutineUtils::ExistingTileMatchesAny(ctx, edge_x, y, {0x00E3})) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, edge_x, y, ctx.tiles[1]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, edge_x, y + 1, ctx.tiles[2]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, fill_x, y, ctx.tiles[0]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, fill_x, y + 1, ctx.tiles[0]);
+    y += 2;
+  }
+
+  for (int i = 0; i < body_count; ++i, ++y) {
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, edge_x, y, ctx.tiles[3]);
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, fill_x, y, ctx.tiles[0]);
+  }
+
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, edge_x, y, ctx.tiles[4]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, edge_x, y + 1, ctx.tiles[5]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, fill_x, y, ctx.tiles[0]);
+  DrawRoutineUtils::WriteTile8(ctx.target_bg, fill_x, y + 1, ctx.tiles[0]);
+}
+
+}  // namespace
+
 void DrawDownwards2x2_1to15or32(const DrawContext& ctx) {
   // Pattern: Draws 2x2 tiles downward (object 0x60)
   // Size byte determines how many times to repeat (1-15 or 32)
@@ -191,7 +227,7 @@ void DrawDownwardsHasEdge1x1_1to16_plus3(const DrawContext& ctx) {
   int y = ctx.object.y_;
   // USDASM $01:8EC9-$01:8ED4 suppresses the leading corner when the existing
   // tile already contains the small vertical rail corner.
-  if (!DrawRoutineUtils::ExistingTileMatchesAny(ctx.target_bg, ctx.object.x_, y,
+  if (!DrawRoutineUtils::ExistingTileMatchesAny(ctx, ctx.object.x_, y,
                                                 {0x00E3})) {
     DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, y, ctx.tiles[0]);
   }
@@ -220,102 +256,11 @@ void DrawDownwardsEdge1x1_1to16(const DrawContext& ctx) {
 }
 
 void DrawDownwardsLeftCorners2x1_1to16_plus12(const DrawContext& ctx) {
-  // Pattern: Left corner 2x1 tiles with +12 offset downward (object 0x6C)
-  const int size = ctx.object.size_ & 0x0F;
-  // USDASM $01:9045 - Object_Size_N_to_N_plus_15 with N=0x0A.
-  const int count = size + 10;
-  if (count <= 0 || ctx.tiles.empty()) {
-    return;
-  }
-
-  const int base_x = ctx.object.x_ + 12;
-  int current_y = ctx.object.y_;
-
-  const gfx::TileInfo& fill = ctx.tiles[0];
-  const gfx::TileInfo& start_top_left =
-      ctx.tiles.size() > 1 ? ctx.tiles[1] : fill;
-  const gfx::TileInfo& start_bottom_left =
-      ctx.tiles.size() > 2 ? ctx.tiles[2] : fill;
-  const gfx::TileInfo& body_left = ctx.tiles.size() > 3 ? ctx.tiles[3] : fill;
-  const gfx::TileInfo& end_top_left =
-      ctx.tiles.size() > 4 ? ctx.tiles[4] : body_left;
-  const gfx::TileInfo& end_bottom_left =
-      ctx.tiles.size() > 5 ? ctx.tiles[5] : fill;
-
-  if (!DrawRoutineUtils::ExistingTileMatchesAny(ctx.target_bg, base_x,
-                                                current_y, {0x00E3})) {
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y,
-                                 start_top_left);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y, fill);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y + 1,
-                                 start_bottom_left);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y + 1,
-                                 fill);
-    current_y += 2;
-  }
-
-  for (int s = 0; s < count; ++s) {
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y + s,
-                                 body_left);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y + s,
-                                 fill);
-  }
-
-  current_y += count;
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y, end_top_left);
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y, fill);
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y + 1,
-                               end_bottom_left);
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y + 1, fill);
+  DrawDownwardsCorners2x1(ctx, /*edge_is_left=*/true);
 }
 
 void DrawDownwardsRightCorners2x1_1to16_plus12(const DrawContext& ctx) {
-  // Pattern: Right corner 2x1 tiles with +12 offset downward (object 0x6D)
-  const int size = ctx.object.size_ & 0x0F;
-  // USDASM $01:908F - mirrored variant of the left-corner routine.
-  const int count = size + 10;
-  if (count <= 0 || ctx.tiles.empty()) {
-    return;
-  }
-
-  const int base_x = ctx.object.x_ + 12;
-  int current_y = ctx.object.y_;
-
-  const gfx::TileInfo& fill = ctx.tiles[0];
-  const gfx::TileInfo& start_top_right =
-      ctx.tiles.size() > 1 ? ctx.tiles[1] : fill;
-  const gfx::TileInfo& start_bottom_right =
-      ctx.tiles.size() > 2 ? ctx.tiles[2] : fill;
-  const gfx::TileInfo& body_right = ctx.tiles.size() > 3 ? ctx.tiles[3] : fill;
-  const gfx::TileInfo& end_top_right =
-      ctx.tiles.size() > 4 ? ctx.tiles[4] : body_right;
-  const gfx::TileInfo& end_bottom_right =
-      ctx.tiles.size() > 5 ? ctx.tiles[5] : fill;
-
-  if (!DrawRoutineUtils::ExistingTileMatchesAny(ctx.target_bg, base_x + 1,
-                                                current_y, {0x00E3})) {
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y, fill);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y,
-                                 start_top_right);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y + 1, fill);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y + 1,
-                                 start_bottom_right);
-    current_y += 2;
-  }
-
-  for (int s = 0; s < count; ++s) {
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y + s, fill);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y + s,
-                                 body_right);
-  }
-
-  current_y += count;
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y, fill);
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y,
-                               end_top_right);
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x, current_y + 1, fill);
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, current_y + 1,
-                               end_bottom_right);
+  DrawDownwardsCorners2x1(ctx, /*edge_is_left=*/false);
 }
 
 void DrawDownwardsFloor4x4_1to16(const DrawContext& ctx) {
@@ -345,7 +290,7 @@ void DrawDownwards1x1Solid_1to16_plus3(const DrawContext& ctx) {
 
   for (int s = 0; s < count; ++s) {
     DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_,
-                                 ctx.object.y_ + s + 3, ctx.tiles[0]);
+                                 ctx.object.y_ + s, ctx.tiles[0]);
   }
 }
 
@@ -722,7 +667,7 @@ void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .function = DrawDownwardsLeftCorners2x1_1to16_plus12,
       .draws_to_both_bgs = false,
       .base_width = 2,
-      .base_height = 1,
+      .base_height = 14,
       .min_tiles = 6,  // cap + body + endpoint tile spans from subtype-1 table
       .category = Category::Downwards});
 
@@ -732,7 +677,7 @@ void RegisterDownwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .function = DrawDownwardsRightCorners2x1_1to16_plus12,
       .draws_to_both_bgs = false,
       .base_width = 2,
-      .base_height = 1,
+      .base_height = 14,
       .min_tiles = 6,  // cap + body + endpoint tile spans from subtype-1 table
       .category = Category::Downwards});
 

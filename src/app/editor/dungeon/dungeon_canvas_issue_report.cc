@@ -20,6 +20,7 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "app/editor/dungeon/ui/reporting/dungeon_issue_report_storage.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
 #ifdef YAZE_WITH_GRPC
@@ -46,16 +47,15 @@ constexpr float kIssueReportNotesHeight = 120.0f;
 constexpr float kIssueReportDiagnosticsHeight = 180.0f;
 constexpr char kIssueReportSummaryHint[] = "What looks wrong?";
 constexpr char kIssueReportPopupIdDiagnostics[] = "##DungeonIssueDiagnostics";
-constexpr char kIssueReportSectionPaths[] = "Paths";
+constexpr char kIssueReportSectionPaths[] = "Local files";
 constexpr char kIssueReportSectionDiagnostics[] = "Diagnostics";
 constexpr char kIssueReportStatusSavedScreenshot[] =
     "Captured room screenshot to %s";
 constexpr char kIssueReportStatusSavedLog[] = "Saved issue report to %s";
-constexpr char kIssueReportStatusStartedLog[] = "Started issue report in %s";
 constexpr char kIssueReportStatusCopiedReport[] =
-    "Copied report to clipboard and saved issue report to %s";
+    "Copied report to clipboard. Nothing was submitted.";
 constexpr char kIssueReportStatusCopiedDiagnostics[] =
-    "Copied diagnostics and saved issue report to %s";
+    "Copied diagnostics to clipboard. Nothing was submitted.";
 constexpr char kIssueReportCaptureButtonLabel[] =
     ICON_MD_ADD_A_PHOTO " Capture Screenshot";
 constexpr char kIssueReportRecaptureButtonLabel[] =
@@ -170,20 +170,95 @@ struct ObjectTraceReport {
   std::vector<zelda3::ObjectDrawer::TileTrace> writes;
 };
 
+struct ScopedBitmapRetirement {
+  std::array<gfx::Bitmap*, 2> bitmaps;
+
+  ~ScopedBitmapRetirement() {
+    for (gfx::Bitmap* bitmap : bitmaps) {
+      if (bitmap != nullptr) {
+        gfx::Arena::Get().RetireBitmap(*bitmap);
+      }
+    }
+  }
+};
+
 ObjectTraceReport BuildObjectTraceReport(
-    Rom* rom, int room_id, const zelda3::RoomObject& obj,
+    Rom* rom, const zelda3::Room& room, size_t selected_index,
     const gfx::PaletteGroup& palette_group) {
   if (rom == nullptr || !rom->is_loaded()) {
     return {.summary = "\nDrawer trace: unavailable (ROM not loaded)"};
   }
 
-  zelda3::ObjectDrawer drawer(rom, room_id, /*room_gfx_buffer=*/nullptr);
+  const auto& objects = room.GetTileObjects();
+  if (selected_index >= objects.size()) {
+    return {.summary = "\nDrawer trace: unavailable (stale selection)"};
+  }
+  if (!zelda3::UsesRoomObjectStream(objects[selected_index])) {
+    return {.summary =
+                "\nDrawer trace: unavailable (special-table object uses the "
+                "dedicated room pass)"};
+  }
+
+  // The report must follow the same primary -> BG2 overlay -> BG1 overlay
+  // order as Room::RenderObjectsToBackground. Earlier object writes can own a
+  // physical tilemap entry and therefore override the matching layout word
+  // used by conditional edge/cap routines.
+  zelda3::ObjectDrawer drawer(rom, room.id(), room.get_gfx_buffer().data());
+  drawer.SetRoomFloorGraphics(room.floor1(), room.floor2());
+  drawer.SetAllowTrackCornerAliases(
+      zelda3::RoomAllowsTrackCornerAliases(objects));
+  drawer.SetBG1RevealMaskSource(gfx::BG1RevealMaskSource::kBG2Objects);
   gfx::BackgroundBuffer bg1(512, 512);
   gfx::BackgroundBuffer bg2(512, 512);
+  gfx::BackgroundBuffer layout_bg1(512, 512);
+  gfx::BackgroundBuffer layout_bg2(512, 512);
+  ScopedBitmapRetirement retire_trace_bitmaps{{&bg1.bitmap(), &bg2.bitmap()}};
+  for (auto* buffer : {&bg1, &bg2}) {
+    buffer->EnsureBitmapInitialized();
+    buffer->bitmap().Fill(255);
+    buffer->ClearBuffer();
+  }
+  layout_bg1.buffer() = room.bg1_buffer().buffer();
+  layout_bg2.buffer() = room.bg2_buffer().buffer();
+
   std::vector<zelda3::ObjectDrawer::TileTrace> trace;
-  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
-  const auto status = drawer.DrawObject(obj, bg1, bg2, palette_group);
-  drawer.ClearTraceCollector();
+  absl::Status status = absl::NotFoundError("selected object not replayed");
+  bool selected_was_replayed = false;
+  for (uint8_t pass = 0; pass < 3 && !selected_was_replayed; ++pass) {
+    for (size_t index = 0; index < objects.size(); ++index) {
+      const auto& stored_obj = objects[index];
+      if (!zelda3::UsesRoomObjectStream(stored_obj)) {
+        continue;
+      }
+      const uint8_t list_index =
+          std::min<uint8_t>(stored_obj.GetLayerValue(), 2);
+      if (list_index != pass) {
+        continue;
+      }
+
+      zelda3::RoomObject render_obj = stored_obj;
+      render_obj.layer_ = zelda3::MapRoomObjectListIndexToDrawLayer(list_index);
+      if (index == selected_index) {
+        drawer.SetTraceCollector(&trace, /*trace_only=*/false);
+        status =
+            drawer.DrawObject(render_obj, bg1, bg2, palette_group,
+                              room.GetDungeonState(), &layout_bg1, &layout_bg2);
+        drawer.ClearTraceCollector();
+        selected_was_replayed = true;
+        break;
+      }
+
+      status =
+          drawer.DrawObject(render_obj, bg1, bg2, palette_group,
+                            room.GetDungeonState(), &layout_bg1, &layout_bg2);
+      if (!status.ok()) {
+        break;
+      }
+    }
+    if (!status.ok() && !selected_was_replayed) {
+      break;
+    }
+  }
   if (!status.ok()) {
     return {.summary = absl::StrFormat("\nDrawer trace: unavailable (%s)",
                                        std::string(status.message()).c_str())};
@@ -211,7 +286,8 @@ ObjectTraceReport BuildObjectTraceReport(
   }
 
   std::string out = absl::StrFormat(
-      "\nDrawer trace: status=ok writes=%zu unique_cells=%zu "
+      "\nDrawer trace: status=ok context=room-stream-prefix+layout-tilewords "
+      "writes=%zu unique_cells=%zu "
       "bounds_tiles=(%d,%d)..(%d,%d) layer_counts BG1=%d BG2=%d BG3=%d",
       trace.size(), unique_cells.size(), min_x, min_y, max_x, max_y,
       layer_counts[zelda3::RoomObject::LayerType::BG1],
@@ -444,11 +520,11 @@ std::string DungeonCanvasViewer::BuildRoomMetadataSummary(
 
   std::string summary = absl::StrFormat(
       "Room 0x%03X [%s] | B:%02X P:%02X->%02X L:%02X S:%02X | %s | Group:%s | "
-      "Floor:%d Effect:%d Tag1:%d Tag2:%d\n%s\n%s",
+      "Floor1:%d Floor2:%d Effect:%d Tag1:%d Tag2:%d\n%s\n%s",
       room_id, zelda3::GetRoomLabel(room_id).c_str(), room.blockset(),
       room.palette(), resolved_palette_id, room.layout_id(), room.spriteset(),
       entrance_context, GetBlocksetGroupName(room.blockset()), room.floor1(),
-      room.effect(), room.tag1(), room.tag2(),
+      room.floor2(), room.effect(), room.tag1(), room.tag2(),
       BuildReportSessionSummary(rom_, project_).c_str(),
       BuildEffectiveBlockListSummary(room).c_str());
 
@@ -506,7 +582,34 @@ std::string DungeonCanvasViewer::BuildDrawIssueReport(const zelda3::Room& room,
             BuildSelectedObjectSemanticsSummary(obj).c_str());
         if (auto tiles = obj.GetTiles(); tiles.ok()) {
           report += "\n";
-          report += FormatObjectTileSample(*tiles, 16, "Object tiles:");
+          report += FormatObjectTileSample(*tiles, 16, "Descriptor tiles:");
+        }
+        if (obj.id_ == 0x00C4 || obj.id_ == 0x00DB) {
+          const bool uses_floor1 = obj.id_ == 0x00C4;
+          const uint8_t floor_pattern =
+              uses_floor1 ? room.floor1() : room.floor2();
+          report += absl::StrFormat(
+              "\nFloor copy source: Floor %d (room.floor%d) pattern=%d",
+              uses_floor1 ? 1 : 2, uses_floor1 ? 1 : 2,
+              static_cast<int>(floor_pattern));
+          if (rom_ != nullptr && rom_->is_loaded()) {
+            const auto effective_tiles = gfx::DecodeDungeonFloorTilePattern(
+                rom_->vector(), zelda3::kRoomObjectTileAddress,
+                zelda3::kRoomObjectTileAddressFloor, floor_pattern);
+            if (effective_tiles.has_value()) {
+              report += "\n";
+              report += FormatObjectTileSample(*effective_tiles,
+                                               effective_tiles->size(),
+                                               "Effective floor-copy tiles:");
+            } else {
+              report +=
+                  "\nEffective floor-copy tiles: unavailable "
+                  "(ROM tables out of range)";
+            }
+          } else {
+            report +=
+                "\nEffective floor-copy tiles: unavailable (ROM not loaded)";
+          }
         }
 
         auto [bounds_x, bounds_y, bounds_w, bounds_h] =
@@ -523,7 +626,7 @@ std::string DungeonCanvasViewer::BuildDrawIssueReport(const zelda3::Room& room,
             bounds_x, bounds_y, bounds_w, bounds_h, origin_x, origin_y,
             center_x, center_y);
         const auto trace_report =
-            BuildObjectTraceReport(rom_, room_id, obj, current_palette_group_);
+            BuildObjectTraceReport(rom_, room, index, current_palette_group_);
         report += trace_report.summary;
 
         auto& palette_debugger = zelda3::PaletteDebugger::Get();
@@ -660,7 +763,7 @@ std::string DungeonCanvasViewer::BuildSelectionIssueReport(
         report += FormatObjectTileSample(*tiles, 10, "tiles:");
       }
       const auto trace_report =
-          BuildObjectTraceReport(rom_, room_id, obj, current_palette_group_);
+          BuildObjectTraceReport(rom_, room, index, current_palette_group_);
       report += "\n  ";
       report += BuildObjectTraceBoundsSummary(trace_report.writes, bounds_x,
                                               bounds_y, bounds_w, bounds_h);
@@ -759,7 +862,9 @@ void DungeonCanvasViewer::DrawIssueReportStorageSummary() const {
     return;
   }
 
-  gui::SeparatorText(kIssueReportSectionPaths);
+  if (!ImGui::CollapsingHeader(kIssueReportSectionPaths)) {
+    return;
+  }
   if (!issue_report_popup_log_target_path_.empty()) {
     ImGui::TextWrapped(tr("Log target: %s"),
                        issue_report_popup_log_target_path_.c_str());
@@ -809,17 +914,7 @@ absl::Status DungeonCanvasViewer::PrepareIssueReportPopup(
   std::snprintf(issue_report_summary_, sizeof(issue_report_summary_), "%s",
                 summary.c_str());
   issue_report_notes_[0] = '\0';
-  const auto initial_persist_status = EnsureIssueReportPersisted();
-  if (initial_persist_status.ok()) {
-    SetIssueReportPopupStatus(
-        absl::StrFormat(kIssueReportStatusStartedLog,
-                        issue_report_popup_last_log_path_.c_str()),
-        false);
-  } else {
-    SetIssueReportPopupStatus(std::string(initial_persist_status.message()),
-                              true);
-  }
-  return initial_persist_status;
+  return absl::OkStatus();
 }
 
 void DungeonCanvasViewer::OpenIssueReportPopup(const std::string& title,
@@ -840,6 +935,8 @@ void DungeonCanvasViewer::OpenIssueReportPopup(const std::string& title,
         }
         ImGui::Separator();
       }
+      ImGui::TextDisabled(
+          tr("Local capture only. Nothing is uploaded or submitted."));
 
       const char* category_preview =
           GetIssueCategoryLabel(issue_report_category_index_);
@@ -873,11 +970,8 @@ void DungeonCanvasViewer::OpenIssueReportPopup(const std::string& title,
 
       DrawIssueReportStorageSummary();
       DrawIssueReportStatusMessage();
-      ImGui::TextDisabled(
-          tr("Reports auto-save on open, screenshot capture, copy, or close."));
 
-      if (ImGui::CollapsingHeader(kIssueReportSectionDiagnostics,
-                                  ImGuiTreeNodeFlags_DefaultOpen)) {
+      if (ImGui::CollapsingHeader(kIssueReportSectionDiagnostics)) {
         ImGui::InputTextMultiline(
             kIssueReportPopupIdDiagnostics,
             issue_report_popup_diagnostics_.data(),
@@ -894,16 +988,10 @@ void DungeonCanvasViewer::OpenIssueReportPopup(const std::string& title,
         const auto status = CaptureIssueReportScreenshot();
         if (status.ok()) {
           MarkIssueReportDirty();
-          const auto persist_status = EnsureIssueReportPersisted();
-          if (persist_status.ok()) {
-            SetIssueReportPopupStatus(
-                absl::StrFormat(kIssueReportStatusSavedScreenshot,
-                                issue_report_popup_screenshot_path_.c_str()),
-                false);
-          } else {
-            SetIssueReportPopupStatus(std::string(persist_status.message()),
-                                      true);
-          }
+          SetIssueReportPopupStatus(
+              absl::StrFormat(kIssueReportStatusSavedScreenshot,
+                              issue_report_popup_screenshot_path_.c_str()),
+              false);
         } else {
           SetIssueReportPopupStatus(std::string(status.message()), true);
         }
@@ -925,46 +1013,20 @@ void DungeonCanvasViewer::OpenIssueReportPopup(const std::string& title,
       if (ImGui::Button(ICON_MD_CONTENT_COPY " Copy Report")) {
         std::string report = BuildIssueReportClipboardText();
         ImGui::SetClipboardText(report.c_str());
-        const auto status = EnsureIssueReportPersisted();
-        if (status.ok()) {
-          SetIssueReportPopupStatus(
-              absl::StrFormat(kIssueReportStatusCopiedReport,
-                              issue_report_popup_last_log_path_.c_str()),
-              false);
-        } else {
-          SetIssueReportPopupStatus(std::string(status.message()), true);
-        }
+        SetIssueReportPopupStatus(kIssueReportStatusCopiedReport, false);
       }
       ImGui::SameLine();
       if (ImGui::Button(ICON_MD_ASSIGNMENT " Copy Diagnostics")) {
         ImGui::SetClipboardText(issue_report_popup_diagnostics_.c_str());
-        const auto status = EnsureIssueReportPersisted();
-        if (status.ok()) {
-          SetIssueReportPopupStatus(
-              absl::StrFormat(kIssueReportStatusCopiedDiagnostics,
-                              issue_report_popup_last_log_path_.c_str()),
-              false);
-        } else {
-          SetIssueReportPopupStatus(std::string(status.message()), true);
-        }
+        SetIssueReportPopupStatus(kIssueReportStatusCopiedDiagnostics, false);
       }
       ImGui::SameLine();
       if (ImGui::Button(ICON_MD_CLOSE " Close")) {
-        const auto status = EnsureIssueReportPersisted();
-        if (!status.ok()) {
-          SetIssueReportPopupStatus(std::string(status.message()), true);
-          ImGui::EndPopup();
-          return;
-        }
         canvas_.ClosePersistentPopup(issue_report_popup_id_);
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();
       return;
-    }
-
-    if (!issue_report_popup_persisted_) {
-      (void)EnsureIssueReportPersisted();
     }
   });
 }

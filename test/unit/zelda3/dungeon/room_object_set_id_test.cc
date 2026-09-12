@@ -29,7 +29,7 @@ std::vector<uint8_t> MakeObjectTileRomData(uint16_t first_word) {
 
 }  // namespace
 
-TEST(RoomObjectSetIdTest, RecomputesAllBgsAndInvalidatesTileCache) {
+TEST(RoomObjectSetIdTest, ClearsManualLayerOverrideAndInvalidatesTileCache) {
   RoomObject obj(/*id=*/0x21, /*x=*/0, /*y=*/0, /*size=*/0, /*layer=*/0);
 
   // Seed state so we can validate that changing the ID invalidates caches.
@@ -37,12 +37,12 @@ TEST(RoomObjectSetIdTest, RecomputesAllBgsAndInvalidatesTileCache) {
   obj.tile_count_ = 123;
   obj.tile_data_ptr_ = 456;
   obj.tiles_.push_back(gfx::TileInfo{});
-  obj.all_bgs_ = false;
+  obj.all_bgs_ = true;
 
   obj.set_id(/*id=*/0x0C);
 
   EXPECT_EQ(obj.id_, 0x0C);
-  EXPECT_TRUE(obj.all_bgs_);
+  EXPECT_FALSE(obj.all_bgs_);
   EXPECT_FALSE(obj.tiles_loaded_);
   EXPECT_TRUE(obj.tiles_.empty());
   EXPECT_EQ(obj.tile_count_, 0);

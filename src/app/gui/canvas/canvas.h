@@ -198,6 +198,10 @@ class Canvas {
 
   void AddContextMenuItem(const gui::CanvasMenuItem& item);
   void ClearContextMenuItems();
+  std::optional<ImVec2> context_menu_open_screen_position() const {
+    return context_menu_ ? context_menu_->context_open_screen_position()
+                         : std::nullopt;
+  }
 
   // Phase 4: Access to editor-provided menu definition
   CanvasMenuDefinition& editor_menu() { return editor_menu_; }
