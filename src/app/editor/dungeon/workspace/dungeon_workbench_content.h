@@ -215,16 +215,13 @@ class DungeonWorkbenchContent : public WindowContent {
     Palette,
   };
 
-  void DrawRecentRoomTabs();
   void DrawSidebarPane(float width, float height, float button_size,
                        bool compact);
   void DrawSidebarHeader(float button_size, bool compact);
   void DrawSidebarModeTabs(bool stacked, float segment_height);
   void DrawSidebarContent();
   void DrawCanvasPane(float width, float height,
-                      DungeonCanvasViewer* primary_viewer,
-                      bool left_sidebar_visible);
-  void DrawSelectionShelf(DungeonCanvasViewer& viewer);
+                      DungeonCanvasViewer* primary_viewer);
   void DrawSplitView(DungeonCanvasViewer& primary_viewer);
   void DrawInspectorPane(float width, float height, float button_size,
                          bool compact, DungeonCanvasViewer* viewer);

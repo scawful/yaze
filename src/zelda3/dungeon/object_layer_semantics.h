@@ -45,11 +45,23 @@ inline bool IsTrackCornerAliasObjectId(int object_id) {
   return object_id >= 0x100 && object_id <= 0x103;
 }
 
+inline bool IsMinecartTrackCustomObject(const RoomObject& object) {
+  if (object.id_ != 0x31) {
+    return false;
+  }
+
+  // Oracle overloads object 0x31's size nibble as a custom subtype. Subtypes
+  // 0..12 and 14 are track pieces; 13 is the sword-house wall decoration and
+  // 15 is the small statue used by Mushroom Grotto. Decorations must not opt
+  // ordinary subtype-2 wall corners into the custom track-corner alias path.
+  const int subtype = object.size_ & 0x1F;
+  return subtype <= 12 || subtype == 14;
+}
+
 inline bool RoomAllowsTrackCornerAliases(
     std::span<const RoomObject> room_objects) {
-  return std::any_of(
-      room_objects.begin(), room_objects.end(),
-      [](const RoomObject& object) { return object.id_ == 0x31; });
+  return std::any_of(room_objects.begin(), room_objects.end(),
+                     IsMinecartTrackCustomObject);
 }
 
 inline bool HasActiveCustomObjectOverride(const RoomObject& object,
