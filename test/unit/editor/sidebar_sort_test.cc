@@ -98,12 +98,12 @@ TEST(SidebarSortTest, OrderEntriesNotInInputAreIgnored) {
 }
 
 // Mode-parity contract: Dungeon Workbench mode no longer hides per-tool
-// standalone windows from the sidebar / Window Browser. The Workbench drawer
-// still embeds the same tools, but users can keep a standalone copy open
-// alongside it. The previous `IsDungeonWorkbenchLocalToolWindow` policy was
-// removed in the 2026-04-26 polish pass; only navigation-mode handling
-// (room selector / room matrix / per-room windows) remains as a workflow
-// switch concern.
+// standalone windows from the sidebar / Window Browser. The Tools inspector
+// embeds the same WindowContent instance until the user pops it out; the two
+// presentations are mutually exclusive. The previous
+// `IsDungeonWorkbenchLocalToolWindow` policy was removed in the 2026-04-26
+// polish pass; only navigation-mode handling (room selector / room matrix /
+// per-room windows) remains as a workflow switch concern.
 //
 // `IsDungeonWindowModeTarget` matches `dungeon.room_*` by prefix because
 // per-room windows use ids like `dungeon.room_42`. That prefix-match also

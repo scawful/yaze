@@ -74,9 +74,9 @@ absl::Status DungeonCanvasViewer::LoadAndRenderRoomGraphics(int room_id) {
     current_palette_group_id_ =
         static_cast<uint64_t>(room.ResolveDungeonPaletteId());
 
-    auto full_palette = dungeon_main[current_palette_group_id_];
-    ASSIGN_OR_RETURN(current_palette_group_,
-                     gfx::CreatePaletteGroupFromLargePalette(full_palette, 16));
+    const auto& full_palette = dungeon_main[current_palette_group_id_];
+    current_palette_group_ = zelda3::BuildDungeonRenderPaletteGroupFromGameData(
+        full_palette, game_data_);
     LOG_DEBUG("[LoadAndRender]", "Palette loaded: group_id=%zu",
               current_palette_group_id_);
   }

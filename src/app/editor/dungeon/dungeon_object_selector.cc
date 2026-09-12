@@ -42,12 +42,12 @@ constexpr int kPersistedCustomSubtypeSlots = 16;
 float GetObjectGridItemSize(int density) {
   switch (density) {
     case 0:
-      return 56.0f;
+      return 54.0f;
     case 2:
-      return 88.0f;
+      return 76.0f;
     case 1:
     default:
-      return 72.0f;
+      return 60.0f;
   }
 }
 
@@ -60,54 +60,84 @@ ImVec4 WithAlpha(ImVec4 color, float alpha) {
   return color;
 }
 
-ImVec4 Dimmed(ImVec4 color, float factor) {
-  color.x *= factor;
-  color.y *= factor;
-  color.z *= factor;
-  return color;
-}
-
-ImU32 GetObjectRangeHeaderColor(int start_id) {
-  const auto& theme = AgentUI::GetTheme();
-  if (start_id >= 0xF80) {
-    return ThemeColor(theme.music_zone_color);
-  }
-  if (start_id >= 0x100) {
-    return ThemeColor(theme.selection_secondary);
-  }
-  return ThemeColor(theme.dungeon_object_wall);
-}
-
-ImU32 GetObjectRangeHeaderHoverColor(int start_id) {
-  const auto& theme = AgentUI::GetTheme();
-  if (start_id >= 0xF80) {
-    return ThemeColor(WithAlpha(theme.music_zone_color, 1.0f));
-  }
-  if (start_id >= 0x100) {
-    return ThemeColor(WithAlpha(theme.selection_secondary, 1.0f));
-  }
-  return ThemeColor(WithAlpha(theme.dungeon_object_wall, 1.0f));
-}
-
 void DrawFallbackPreviewTile(ImDrawList* draw_list, ImVec2 top_left,
-                             float item_size, const ImVec4& accent_color,
+                             ImVec2 size, const ImVec4& accent_color,
                              const char* label) {
   const auto& theme = AgentUI::GetTheme();
-  const ImU32 accent = ThemeColor(accent_color);
-  const ImU32 dimmed = ThemeColor(Dimmed(accent_color, 0.55f));
-
-  draw_list->AddRectFilledMultiColor(
-      top_left, ImVec2(top_left.x + item_size, top_left.y + item_size), dimmed,
-      dimmed, accent, accent);
+  draw_list->AddRectFilled(
+      top_left, ImVec2(top_left.x + size.x, top_left.y + size.y),
+      ThemeColor(WithAlpha(theme.panel_bg_darker, 0.72f)), 2.0f);
+  draw_list->AddRectFilled(top_left,
+                           ImVec2(top_left.x + 2.0f, top_left.y + size.y),
+                           ThemeColor(WithAlpha(accent_color, 0.72f)), 2.0f);
 
   ImVec2 label_size = ImGui::CalcTextSize(label);
-  ImVec2 label_pos(top_left.x + (item_size - label_size.x) / 2,
-                   top_left.y + (item_size - label_size.y) / 2 - 10);
+  if (label_size.x > size.x - 4.0f || label_size.y > size.y - 4.0f) {
+    return;
+  }
+  ImVec2 label_pos(top_left.x + (size.x - label_size.x) / 2,
+                   top_left.y + (size.y - label_size.y) / 2);
   draw_list->AddText(label_pos,
                      ThemeColor(WithAlpha(theme.text_primary, 0.82f)), label);
 }
 
 }  // namespace
+
+DungeonObjectSelectorGridLayout ResolveDungeonObjectSelectorGridLayout(
+    float available_width, float preferred_item_size, float item_spacing,
+    float min_item_size) {
+  const float safe_spacing = std::max(item_spacing, 0.0f);
+  const float usable_width = std::max(available_width, 1.0f);
+  const float safe_min_item_size =
+      std::min(std::max(min_item_size, 1.0f), usable_width);
+  const float clamped_preferred_item_size =
+      std::clamp(preferred_item_size, safe_min_item_size, usable_width);
+
+  DungeonObjectSelectorGridLayout layout;
+  layout.columns = std::max(
+      1, static_cast<int>((usable_width + safe_spacing) /
+                          (clamped_preferred_item_size + safe_spacing)));
+  layout.item_size = clamped_preferred_item_size;
+  const float total_spacing = safe_spacing * (layout.columns - 1);
+  const float occupied_width =
+      layout.item_size * layout.columns + total_spacing;
+  layout.leading_inset = std::max((usable_width - occupied_width) * 0.5f, 0.0f);
+  return layout;
+}
+
+DungeonObjectPreviewFit ResolveDungeonObjectPreviewFit(float source_width,
+                                                       float source_height,
+                                                       float box_width,
+                                                       float box_height) {
+  DungeonObjectPreviewFit fit;
+  if (source_width <= 0.0f || source_height <= 0.0f || box_width <= 0.0f ||
+      box_height <= 0.0f) {
+    return fit;
+  }
+
+  const float scale =
+      std::min(box_width / source_width, box_height / source_height);
+  fit.valid = true;
+  fit.width = source_width * scale;
+  fit.height = source_height * scale;
+  fit.x = (box_width - fit.width) * 0.5f;
+  fit.y = (box_height - fit.height) * 0.5f;
+  return fit;
+}
+
+bool MatchesDungeonObjectStreamFilter(int object_id, int selected_filter) {
+  switch (selected_filter) {
+    case 1:
+      return object_id >= 0x000 && object_id <= 0x0F7;
+    case 2:
+      return object_id >= 0x100 && object_id <= 0x13F;
+    case 3:
+      return object_id >= 0xF80 && object_id <= 0xFFF;
+    case 0:
+    default:
+      return true;
+  }
+}
 
 DungeonObjectSelector::~DungeonObjectSelector() {
   RetirePreviewCache();
@@ -158,11 +188,6 @@ ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
     return ImGui::GetColorU32(theme.dungeon_object_wall);  // Gray for walls
   } else if (object_id >= 0x20 && object_id <= 0x2F) {
     return ImGui::GetColorU32(theme.dungeon_object_floor);  // Brown for floors
-  } else if (object_id >= 0x17 && object_id <= 0x1E) {
-    return ImGui::GetColorU32(theme.dungeon_object_floor);  // Brown for doors
-  } else if (object_id == 0x2F || object_id == 0x2B) {
-    return ImGui::GetColorU32(
-        theme.dungeon_object_pot);  // Saddle brown for pots
   } else if (object_id >= 0x30 && object_id <= 0x3F) {
     return ImGui::GetColorU32(
         theme.dungeon_object_decoration);  // Dim gray for decorations
@@ -207,10 +232,6 @@ std::string DungeonObjectSelector::GetObjectTypeSymbol(int object_id) {
     return "|";  // Wall
   } else if (object_id >= 0x20 && object_id <= 0x2F) {
     return "_";  // Floor
-  } else if (object_id >= 0x17 && object_id <= 0x1E) {
-    return "+";  // Door
-  } else if (object_id == 0x2F || object_id == 0x2B) {
-    return "o";  // Pot
   } else if (object_id >= 0x30 && object_id <= 0x3F) {
     return "~";  // Decoration
   } else if (object_id >= 0x00 && object_id <= 0x0F) {
@@ -236,11 +257,6 @@ void DungeonObjectSelector::SelectObject(int obj_id, int subtype) {
   }
   preview_object_ = zelda3::RoomObject(obj_id, 0, 0, size, 0);
   preview_object_.SetRom(rom_);
-  if (game_data_) {
-    auto palette =
-        game_data_->palette_groups.dungeon_main[current_palette_group_id_];
-    preview_palette_ = palette;
-  }
   object_loaded_ = true;
 
   // Notify callback
@@ -264,10 +280,6 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
       {0xF80, 0xFFF, "Type 3"},
   };
 
-  // Total object count
-  int total_objects =
-      (0xF7 - 0x00 + 1) + (0x13F - 0x100 + 1) + (0xFFF - 0xF80 + 1);
-
   EnsureCustomObjectsInitialized();
   auto& obj_manager = zelda3::CustomObjectManager::Get();
   const int custom_count =
@@ -275,127 +287,124 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                kPersistedCustomSubtypeSlots) +
       std::min(obj_manager.GetSubtypeCount(0x32), kPersistedCustomSubtypeSlots);
 
-  // Row 1: search input, full-width since this is the most-used control.
-  ImGui::SetNextItemWidth(-1.0f);
-  ImGui::InputTextWithHint(
-      "##ObjectSearch", ICON_MD_SEARCH " Filter objects by name or hex...",
-      object_search_buffer_, sizeof(object_search_buffer_));
+  const ImGuiStyle& style = ImGui::GetStyle();
+  const float control_spacing = std::max(2.0f, style.ItemSpacing.x * 0.5f);
+  {
+    gui::StyleVarGuard toolbar_spacing_guard(
+        ImGuiStyleVar_ItemSpacing,
+        ImVec2(control_spacing, std::max(2.0f, style.ItemSpacing.y * 0.5f)));
 
-  // Row 2: category filter + clear + display popover. Display options
-  // (thumbnails toggle, grid density) are rare-use preferences hidden behind
-  // an ICON_MD_TUNE popover so the chrome stays one row instead of three.
-  static const char* kFilterLabels[] = {"All",   "Walls", "Floors", "Chests",
-                                        "Doors", "Decor", "Stairs"};
-  const float controls_width = ImGui::GetContentRegionAvail().x;
-  const float filter_width = std::min(170.0f, controls_width);
-  ImGui::SetNextItemWidth(filter_width);
-  ImGui::Combo("##ObjectFilterType", &object_type_filter_, kFilterLabels,
-               IM_ARRAYSIZE(kFilterLabels));
-  ImGui::SameLine();
-  if (gui::ThemedIconButton(ICON_MD_CLEAR, "Clear search and category filter",
-                            gui::IconSize::Small())) {
-    object_search_buffer_[0] = '\0';
-    object_type_filter_ = 0;
-  }
-  ImGui::SameLine();
-  if (gui::ThemedIconButton(ICON_MD_TUNE, "Display options",
-                            gui::IconSize::Small())) {
-    ImGui::OpenPopup("##ObjectSelectorDisplayPopup");
-  }
-  if (ImGui::BeginPopup("##ObjectSelectorDisplayPopup")) {
-    ImGui::TextDisabled(tr("Display"));
-    ImGui::Checkbox(ICON_MD_IMAGE " Thumbnails", &enable_object_previews_);
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          tr("Show rendered object thumbnails in the selector.\n"
-             "Requires a room to be loaded and may cost some performance."));
+    const float toolbar_width =
+        std::max(ImGui::GetContentRegionAvail().x, 1.0f);
+    ImGui::SetNextItemWidth(toolbar_width);
+    ImGui::InputTextWithHint("##ObjectSearch", "Search by name or hex ID...",
+                             object_search_buffer_,
+                             sizeof(object_search_buffer_));
+
+    static const char* kFilterLabels[] = {"All categories", "Walls", "Floors",
+                                          "Chests",         "Doors", "Decor",
+                                          "Stairs"};
+    static const char* kStreamLabels[] = {"All streams", "Type 1", "Type 2",
+                                          "Type 3"};
+    constexpr const char* kMoreLabel = "More##ObjectSelectorMore";
+    const float more_width = ImGui::CalcTextSize(kMoreLabel, nullptr, true).x +
+                             style.FramePadding.x * 2.0f;
+    const bool stack_filters = toolbar_width < 230.0f;
+    const float filter_row_width =
+        std::max(1.0f, toolbar_width - more_width - control_spacing);
+    const float category_width =
+        stack_filters ? toolbar_width : filter_row_width * 0.56f;
+    const float stream_width =
+        stack_filters ? filter_row_width
+                      : std::max(1.0f, filter_row_width - category_width -
+                                           control_spacing);
+
+    ImGui::SetNextItemWidth(category_width);
+    ImGui::Combo("##ObjectFilterType", &object_type_filter_, kFilterLabels,
+                 IM_ARRAYSIZE(kFilterLabels));
+    if (!stack_filters) {
+      ImGui::SameLine(0.0f, control_spacing);
     }
-    ImGui::Spacing();
-    ImGui::TextDisabled(tr("Grid density"));
-    static constexpr const char* kDensityLabels[] = {"Small", "Medium",
-                                                     "Large"};
-    constexpr float kDensitySegmentWidth = 84.0f;
-    const float density_spacing = ImGui::GetStyle().ItemSpacing.x;
-    for (int density = 0; density < 3; ++density) {
-      if (density > 0) {
-        ImGui::SameLine(0.0f, density_spacing);
+    ImGui::SetNextItemWidth(stream_width);
+    ImGui::Combo("##ObjectStreamFilter", &object_stream_filter_, kStreamLabels,
+                 IM_ARRAYSIZE(kStreamLabels));
+    ImGui::SameLine(0.0f, control_spacing);
+    if (ImGui::Button(kMoreLabel, ImVec2(more_width, 0.0f))) {
+      ImGui::OpenPopup("##ObjectSelectorOptionsPopup");
+    }
+    if (ImGui::BeginPopup("##ObjectSelectorOptionsPopup")) {
+      const bool has_filters = object_search_buffer_[0] != '\0' ||
+                               object_type_filter_ != 0 ||
+                               object_stream_filter_ != 0;
+      if (ImGui::MenuItem(tr("Clear filters"), nullptr, false, has_filters)) {
+        object_search_buffer_[0] = '\0';
+        object_type_filter_ = 0;
+        object_stream_filter_ = 0;
       }
-      if (gui::ToggleButton(kDensityLabels[density],
-                            object_grid_density_ == density,
-                            ImVec2(kDensitySegmentWidth, 0.0f))) {
-        object_grid_density_ = density;
+
+      ImGui::SeparatorText(tr("Display"));
+      ImGui::Checkbox(tr("Show thumbnails"), &enable_object_previews_);
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip(
+            tr("Show rendered object thumbnails in the selector.\n"
+               "Requires a room to be loaded and may cost some performance."));
       }
+      ImGui::SeparatorText(tr("Card size"));
+      static constexpr const char* kDensityLabels[] = {"Compact", "Medium",
+                                                       "Large"};
+      for (int density = 0; density < 3; ++density) {
+        if (ImGui::MenuItem(kDensityLabels[density], nullptr,
+                            object_grid_density_ == density)) {
+          object_grid_density_ = density;
+        }
+      }
+
+      ImGui::Separator();
+      const std::string workshop_label =
+          absl::StrFormat("Custom Object Workshop... (%d)", custom_count);
+      if (ImGui::MenuItem(workshop_label.c_str())) {
+        open_custom_workshop_popup_ = true;
+      }
+      ImGui::EndPopup();
     }
-    ImGui::EndPopup();
   }
 
-  // Row 3: status row, count + selection chip + Custom Workshop entry.
-  // Inlines on wider drawers, wraps on narrow.
-  ImGui::Spacing();
-  ImGui::TextColored(theme.text_secondary_gray, tr("%d vanilla objects"),
-                     total_objects);
-  if (selected_object_id_ >= 0) {
-    if (ImGui::GetContentRegionAvail().x > 220.0f) {
-      ImGui::SameLine();
-    }
-    ImGui::TextColored(theme.text_info, ICON_MD_LABEL " Queued 0x%03X %s",
-                       selected_object_id_,
-                       zelda3::GetObjectName(selected_object_id_).c_str());
-  }
-  if (ImGui::GetContentRegionAvail().x > 180.0f) {
-    ImGui::SameLine();
-  }
-  DrawCustomObjectWorkshopButton(custom_count);
-
-  // Create asset browser-style grid
-  const float item_spacing = 6.0f;
-  // Defensive clamp: when the inspector drawer narrows below the user's chosen
-  // density, scale the cell down so at least one item is fully visible per row
-  // before the horizontal scrollbar engages. The 16px margin accounts for the
-  // child window's vertical scrollbar plus a small buffer for the cell border.
-  constexpr float kRightMargin = 16.0f;
-  constexpr float kMinItemSize = 32.0f;
-  const float available_width = ImGui::GetContentRegionAvail().x;
-  const float requested_item_size = GetObjectGridItemSize(object_grid_density_);
-  const float item_size =
-      std::min(requested_item_size,
-               std::max(kMinItemSize, available_width - kRightMargin));
-  const int columns =
-      std::max(1, static_cast<int>((available_width - item_spacing) /
-                                   (item_size + item_spacing)));
-
-  // Scrollable child region for grid - use all available space.
-  // Horizontal scrollbar guards against silent right-edge clipping when a row
-  // overruns due to per-frame column recalculation; the Item/Sprite selectors
-  // use the same flag combination.
-  float child_height = ImGui::GetContentRegionAvail().y;
-  if (ImGui::BeginChild("##ObjectGrid", ImVec2(0, child_height), false,
-                        ImGuiWindowFlags_AlwaysVerticalScrollbar |
-                            ImGuiWindowFlags_HorizontalScrollbar)) {
+  // The grid is the selector's sole scroll owner. Calculate its geometry only
+  // after entering the child so themed padding and the scrollbar are included.
+  const float child_height = std::max(ImGui::GetContentRegionAvail().y, 1.0f);
+  if (ImGui::BeginChild("##ObjectGrid", ImVec2(0, child_height), false)) {
+    const float item_spacing = control_spacing;
+    // GetContentRegionAvail() already excludes the child window's scrollbar
+    // and padding. Centering the fixed-density grid balances any remainder so
+    // a resize cannot leave a second, artificial gutter on the right.
+    const auto grid_layout = ResolveDungeonObjectSelectorGridLayout(
+        ImGui::GetContentRegionAvail().x,
+        GetObjectGridItemSize(object_grid_density_), item_spacing);
+    const float item_size = grid_layout.item_size;
+    const int columns = grid_layout.columns;
+    gui::StyleVarGuard grid_spacing_guard(
+        ImGuiStyleVar_ItemSpacing,
+        ImVec2(item_spacing, std::max(item_spacing, style.ItemSpacing.y)));
 
     // Iterate through all object ranges
     for (const auto& range : ranges) {
-      // Section header for each type
-      const ImU32 header_color = GetObjectRangeHeaderColor(range.start);
-      const ImU32 header_hover_color =
-          GetObjectRangeHeaderHoverColor(range.start);
-      gui::StyleColorGuard section_guard(
-          {{ImGuiCol_Header, ImGui::ColorConvertU32ToFloat4(header_color)},
-           {ImGuiCol_HeaderHovered,
-            ImGui::ColorConvertU32ToFloat4(header_hover_color)}});
-      bool section_open = ImGui::CollapsingHeader(
-          absl::StrFormat("%s (0x%03X-0x%03X)", range.label, range.start,
-                          range.end)
-              .c_str(),
-          ImGuiTreeNodeFlags_DefaultOpen);
-
-      if (!section_open)
+      if (!MatchesDungeonObjectStreamFilter(range.start,
+                                            object_stream_filter_)) {
         continue;
+      }
+
+      if (object_stream_filter_ == 0) {
+        ImGui::TextDisabled("%s  0x%03X-0x%03X", range.label, range.start,
+                            range.end);
+      }
 
       int current_column = 0;
 
       for (int obj_id = range.start; obj_id <= range.end; ++obj_id) {
         if (!MatchesObjectFilter(obj_id, object_type_filter_)) {
+          continue;
+        }
+        if (!MatchesDungeonObjectStreamFilter(obj_id, object_stream_filter_)) {
           continue;
         }
 
@@ -405,7 +414,10 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
         }
 
         if (current_column > 0) {
-          ImGui::SameLine();
+          ImGui::SameLine(0.0f, item_spacing);
+        } else {
+          ImGui::SetCursorPosX(ImGui::GetCursorPosX() +
+                               grid_layout.leading_inset);
         }
 
         ImGui::PushID(obj_id);
@@ -422,13 +434,6 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
               obj_id, 0, 0, zelda3::DefaultRoomObjectSizeForPlacement(obj_id),
               0);
           preview_object_.SetRom(rom_);
-          if (game_data_ &&
-              current_palette_group_id_ <
-                  game_data_->palette_groups.dungeon_main.size()) {
-            auto palette = game_data_->palette_groups
-                               .dungeon_main[current_palette_group_id_];
-            preview_palette_ = palette;
-          }
           object_loaded_ = true;
 
           // Notify callbacks
@@ -441,73 +446,62 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
         gui::BeginRoomObjectDragSource(
             static_cast<uint16_t>(obj_id), current_room_id_, 0, 0,
             zelda3::DefaultRoomObjectSizeForPlacement(obj_id));
-        // Draw object preview on the button; fall back to styled placeholder
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        const bool show_id = item_size >= 32.0f;
+        const float footer_height =
+            show_id ? std::min(item_size * 0.32f, ImGui::GetFontSize() + 3.0f)
+                    : 0.0f;
+        const float card_padding = std::min(3.0f, item_size * 0.08f);
+        const ImVec2 preview_pos(button_pos.x + card_padding,
+                                 button_pos.y + card_padding);
+        const ImVec2 preview_box(
+            std::max(1.0f, item_size - card_padding * 2.0f),
+            std::max(1.0f, item_size - footer_height - card_padding * 2.0f));
 
         // Only attempt graphical preview if enabled (performance optimization)
         bool rendered = false;
         if (item_visible && enable_object_previews_) {
-          rendered = DrawObjectPreview(MakePreviewObject(obj_id), button_pos,
-                                       item_size);
+          rendered = DrawObjectPreview(MakePreviewObject(obj_id), preview_pos,
+                                       preview_box);
         }
 
         if (item_visible && !rendered) {
-          // Draw a styled fallback with gradient background
           std::string symbol = GetObjectTypeSymbol(obj_id);
           DrawFallbackPreviewTile(
-              draw_list, button_pos, item_size,
+              draw_list, preview_pos, preview_box,
               ImGui::ColorConvertU32ToFloat4(GetObjectTypeColor(obj_id)),
               symbol.c_str());
         }
 
-        // Draw selection border
-        ImU32 border_color;
-        float border_thickness;
-
-        if (is_selected) {
-          border_color = ImGui::GetColorU32(theme.dungeon_selection_primary);
-          border_thickness = 3.0f;
-        } else {
-          border_color = ImGui::GetColorU32(theme.panel_bg_darker);
-          border_thickness = 1.0f;
-        }
-
-        if (item_visible) {
+        const bool item_hovered = ImGui::IsItemHovered();
+        if (item_visible && (is_selected || item_hovered)) {
+          const ImU32 border_color =
+              ImGui::GetColorU32(is_selected ? theme.dungeon_selection_primary
+                                             : theme.panel_border_color);
           draw_list->AddRect(
               button_pos,
               ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-              border_color, 0.0f, 0, border_thickness);
+              border_color, 2.0f, 0, is_selected ? 2.0f : 1.0f);
         }
 
-        // Get object name for display
-        // Truncate name for display
-        std::string display_name = full_name;
-        const size_t max_display_chars =
-            std::max<size_t>(7, static_cast<size_t>(item_size / 6.0f));
-        if (display_name.length() > max_display_chars) {
-          display_name = display_name.substr(0, max_display_chars - 2) + "..";
-        }
-
-        if (item_visible) {
-          // Draw object name (smaller, above ID)
-          ImVec2 name_size = ImGui::CalcTextSize(display_name.c_str());
-          ImVec2 name_pos = ImVec2(button_pos.x + (item_size - name_size.x) / 2,
-                                   button_pos.y + item_size - 26);
-          draw_list->AddText(name_pos,
-                             ImGui::GetColorU32(theme.text_secondary_gray),
-                             display_name.c_str());
-
-          // Draw object ID at bottom (hex format)
+        if (item_visible && show_id) {
+          const ImVec2 card_bottom(button_pos.x + item_size,
+                                   button_pos.y + item_size);
+          const float footer_y = card_bottom.y - footer_height;
+          draw_list->AddRectFilled(
+              ImVec2(button_pos.x, footer_y), card_bottom,
+              ImGui::GetColorU32(WithAlpha(theme.panel_bg_darker, 0.88f)),
+              2.0f);
           std::string id_text = absl::StrFormat("%03X", obj_id);
           ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
           ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
-                                 button_pos.y + item_size - id_size.y - 2);
+                                 footer_y + (footer_height - id_size.y) * 0.5f);
           draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
                              id_text.c_str());
         }
 
         // Enhanced tooltip
-        if (ImGui::IsItemHovered()) {
+        if (item_hovered) {
           gui::StyleColorGuard tooltip_guard(
               {{ImGuiCol_PopupBg, theme.panel_bg_color},
                {ImGuiCol_Border, theme.panel_border_color}});
@@ -593,7 +587,11 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
   }
 
   ImGui::EndChild();
-  DrawCustomObjectWorkshopPopup(item_size);
+  if (open_custom_workshop_popup_) {
+    ImGui::OpenPopup("Custom Object Workshop");
+    open_custom_workshop_popup_ = false;
+  }
+  DrawCustomObjectWorkshopPopup();
 }
 
 bool DungeonObjectSelector::MatchesObjectFilter(int obj_id, int filter_type) {
@@ -752,7 +750,6 @@ uint32_t DungeonObjectSelector::MakeLayoutCacheKey(int object_id,
 }
 
 bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
-                                               float size,
                                                gfx::BackgroundBuffer** out) {
   if (out == nullptr) {
     return false;
@@ -858,9 +855,10 @@ bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
 }
 
 bool DungeonObjectSelector::DrawObjectPreview(const zelda3::RoomObject& object,
-                                              ImVec2 top_left, float size) {
+                                              ImVec2 top_left,
+                                              ImVec2 box_size) {
   gfx::BackgroundBuffer* preview = nullptr;
-  if (!GetOrCreatePreview(object, size, &preview)) {
+  if (!GetOrCreatePreview(object, &preview)) {
     return false;
   }
 
@@ -870,10 +868,18 @@ bool DungeonObjectSelector::DrawObjectPreview(const zelda3::RoomObject& object,
     return false;
   }
 
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec2 bottom_right(top_left.x + size, top_left.y + size);
-  draw_list->AddImage((ImTextureID)(intptr_t)bitmap.texture(), top_left,
-                      bottom_right);
+  const DungeonObjectPreviewFit fit = ResolveDungeonObjectPreviewFit(
+      static_cast<float>(bitmap.width()), static_cast<float>(bitmap.height()),
+      box_size.x, box_size.y);
+  if (!fit.valid) {
+    return false;
+  }
+
+  const ImVec2 image_top_left(top_left.x + fit.x, top_left.y + fit.y);
+  const ImVec2 image_bottom_right(image_top_left.x + fit.width,
+                                  image_top_left.y + fit.height);
+  ImGui::GetWindowDrawList()->AddImage((ImTextureID)(intptr_t)bitmap.texture(),
+                                       image_top_left, image_bottom_right);
   return true;
 }
 
@@ -999,26 +1005,7 @@ void DungeonObjectSelector::DrawNewCustomObjectDialog() {
   }
 }
 
-void DungeonObjectSelector::DrawCustomObjectWorkshopButton(int custom_count) {
-  if (open_custom_workshop_popup_) {
-    ImGui::OpenPopup("Custom Object Workshop");
-    open_custom_workshop_popup_ = false;
-  }
-
-  if (ImGui::SmallButton(absl::StrFormat(ICON_MD_PRECISION_MANUFACTURING
-                                         " Workshop (%d)",
-                                         custom_count)
-                             .c_str())) {
-    ImGui::OpenPopup("Custom Object Workshop");
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(tr(
-        "Browse and create custom dungeon objects without cluttering the main "
-        "selector."));
-  }
-}
-
-void DungeonObjectSelector::DrawCustomObjectWorkshopPopup(float item_size) {
+void DungeonObjectSelector::DrawCustomObjectWorkshopPopup() {
   const auto& theme = AgentUI::GetTheme();
   auto& obj_manager = zelda3::CustomObjectManager::Get();
   const std::string custom_base_path = obj_manager.GetBasePath();
@@ -1091,13 +1078,17 @@ void DungeonObjectSelector::DrawCustomObjectWorkshopPopup(float item_size) {
 
   if (ImGui::BeginChild("##CustomObjectGrid",
                         ImVec2(0, -ImGui::GetFrameHeightWithSpacing() - 4.0f),
-                        false,
-                        ImGuiWindowFlags_AlwaysVerticalScrollbar |
-                            ImGuiWindowFlags_HorizontalScrollbar)) {
-    const float item_spacing = 6.0f;
-    const int columns = std::max(
-        1, static_cast<int>((ImGui::GetContentRegionAvail().x - item_spacing) /
-                            (item_size + item_spacing)));
+                        false)) {
+    const ImGuiStyle& style = ImGui::GetStyle();
+    const float item_spacing = std::max(2.0f, style.ItemSpacing.x * 0.5f);
+    const auto grid_layout = ResolveDungeonObjectSelectorGridLayout(
+        ImGui::GetContentRegionAvail().x,
+        GetObjectGridItemSize(object_grid_density_), item_spacing);
+    const int columns = grid_layout.columns;
+    const float item_size = grid_layout.item_size;
+    gui::StyleVarGuard grid_spacing_guard(
+        ImGuiStyleVar_ItemSpacing,
+        ImVec2(item_spacing, std::max(item_spacing, style.ItemSpacing.y)));
     int custom_col = 0;
     for (int obj_id : {0x31, 0x32}) {
       if (!MatchesObjectFilter(obj_id, object_type_filter_)) {
@@ -1114,7 +1105,10 @@ void DungeonObjectSelector::DrawCustomObjectWorkshopPopup(float item_size) {
         }
 
         if (custom_col > 0) {
-          ImGui::SameLine();
+          ImGui::SameLine(0.0f, item_spacing);
+        } else {
+          ImGui::SetCursorPosX(ImGui::GetCursorPosX() +
+                               grid_layout.leading_inset);
         }
 
         ImGui::PushID(obj_id * 1000 + subtype);
@@ -1134,40 +1128,59 @@ void DungeonObjectSelector::DrawCustomObjectWorkshopPopup(float item_size) {
             zelda3::CanonicalRoomObjectSize(obj_id,
                                             static_cast<uint8_t>(subtype)));
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
+        const bool show_id = item_size >= 44.0f;
+        const float footer_height =
+            show_id ? std::min(item_size * 0.32f, ImGui::GetFontSize() + 3.0f)
+                    : 0.0f;
+        const float card_padding = std::min(3.0f, item_size * 0.08f);
+        const ImVec2 preview_pos(button_pos.x + card_padding,
+                                 button_pos.y + card_padding);
+        const ImVec2 preview_box(
+            std::max(1.0f, item_size - card_padding * 2.0f),
+            std::max(1.0f, item_size - footer_height - card_padding * 2.0f));
 
         bool rendered = false;
         if (item_visible && enable_object_previews_) {
           auto temp_obj = MakePreviewObject(obj_id);
           temp_obj.size_ = zelda3::CanonicalRoomObjectSize(
               obj_id, static_cast<uint8_t>(subtype));
-          rendered = DrawObjectPreview(temp_obj, button_pos, item_size);
+          rendered = DrawObjectPreview(temp_obj, preview_pos, preview_box);
         }
 
         if (item_visible && !rendered) {
           std::string sub_text = absl::StrFormat("%02X", subtype);
-          DrawFallbackPreviewTile(draw_list, button_pos, item_size,
+          DrawFallbackPreviewTile(draw_list, preview_pos, preview_box,
                                   theme.status_success, sub_text.c_str());
         }
 
-        ImU32 border_color =
-            is_selected ? ImGui::GetColorU32(theme.dungeon_selection_primary)
-                        : ImGui::GetColorU32(theme.panel_bg_darker);
-        float border_thickness = is_selected ? 3.0f : 1.0f;
-        if (item_visible) {
+        const bool item_hovered = ImGui::IsItemHovered();
+        if (item_visible && (is_selected || item_hovered)) {
+          const ImU32 border_color =
+              ImGui::GetColorU32(is_selected ? theme.dungeon_selection_primary
+                                             : theme.panel_border_color);
           draw_list->AddRect(
               button_pos,
               ImVec2(button_pos.x + item_size, button_pos.y + item_size),
-              border_color, 0.0f, 0, border_thickness);
+              border_color, 2.0f, 0, is_selected ? 2.0f : 1.0f);
+        }
 
+        if (item_visible && show_id) {
+          const ImVec2 card_bottom(button_pos.x + item_size,
+                                   button_pos.y + item_size);
+          const float footer_y = card_bottom.y - footer_height;
+          draw_list->AddRectFilled(
+              ImVec2(button_pos.x, footer_y), card_bottom,
+              ImGui::GetColorU32(WithAlpha(theme.panel_bg_darker, 0.88f)),
+              2.0f);
           std::string id_text = absl::StrFormat("%02X:%02X", obj_id, subtype);
           ImVec2 id_size = ImGui::CalcTextSize(id_text.c_str());
           ImVec2 id_pos = ImVec2(button_pos.x + (item_size - id_size.x) / 2,
-                                 button_pos.y + item_size - id_size.y - 2);
+                                 footer_y + (footer_height - id_size.y) * 0.5f);
           draw_list->AddText(id_pos, ImGui::GetColorU32(theme.text_primary),
                              id_text.c_str());
         }
 
-        if (ImGui::IsItemHovered()) {
+        if (item_hovered) {
           gui::StyleColorGuard tooltip_guard(
               {{ImGuiCol_PopupBg, theme.panel_bg_color},
                {ImGuiCol_Border, theme.panel_border_color}});

@@ -1018,9 +1018,7 @@ void Sprite::Draw() {
   } else if (id_ == 0x8E)  // Terrorpin
   {
     DrawSpriteTile((x * 16), (y * 16), 14, 24, 12);
-  }
-
-  if (id_ == 0x8F)  // Slime
+  } else if (id_ == 0x8F)  // Slime
   {
     DrawSpriteTile((x * 16), (y * 16), 0, 20, 12);
   } else if (id_ == 0x90)  // Wall master
@@ -1188,7 +1186,10 @@ void Sprite::RenderPreviewGraphics(std::span<const uint8_t> graphics) {
     return;
   }
 
-  preview_gfx_.assign(64 * 64, 0xFF);
+  // External dungeon previews emit only non-zero CGRAM indices (0x71..0xFF),
+  // so index 0 is an unambiguous transparency sentinel. 0xFF is a visible
+  // armor-palette color and must remain available to sprites such as 0xE7.
+  preview_gfx_.assign(64 * 64, 0);
 
   external_gfx_ = graphics.data();
   external_gfx_size_ = graphics.size();

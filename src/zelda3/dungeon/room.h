@@ -32,12 +32,34 @@ namespace yaze {
 namespace zelda3 {
 
 class DungeonState;
+class Room;
 class RoomLayerManager;
 struct DungeonStreamLayout;
 
 std::vector<SDL_Color> BuildDungeonRenderPalette(
     const gfx::SnesPalette& dungeon_palette,
     const gfx::SnesPalette* hud_palette = nullptr);
+
+// Builds the same eight CGRAM rows as BuildDungeonRenderPalette, but keeps
+// them grouped for tools whose tile renderer indexes colors as
+// pixel + (tile_palette * 16).
+gfx::PaletteGroup BuildDungeonRenderPaletteGroup(
+    const gfx::SnesPalette& dungeon_palette,
+    const gfx::SnesPalette* hud_palette = nullptr);
+
+// Builds the editor-facing dungeon render group and resolves its HUD rows from
+// GameData. A null GameData, or one without HUD palettes, leaves those rows
+// blank while preserving the canonical dungeon rows.
+gfx::PaletteGroup BuildDungeonRenderPaletteGroupFromGameData(
+    const gfx::SnesPalette& dungeon_palette, const GameData* game_data);
+
+// Builds the sprite half of the underworld CGRAM palette for editor previews.
+// Room palette-set slots select row 8 left and rows 13/14 left. The inherited
+// Light World environment fallback occupies row 8 right, while the standard
+// underworld environment palette occupies row 14 right. Missing or invalid
+// palette selectors fall back to palette 0 in the corresponding ROM group.
+std::array<SDL_Color, 256> BuildDungeonSpriteRenderPalette(
+    const Room& room, const GameData* game_data);
 
 void LoadDungeonRenderPaletteToCgram(
     std::span<uint16_t> cgram, const gfx::SnesPalette& dungeon_palette,

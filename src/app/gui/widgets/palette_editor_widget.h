@@ -26,6 +26,12 @@ struct DungeonPaletteChange {
   DungeonRenderPaletteSource source;
 };
 
+// Keep the 16-slot CGRAM row readable when the widget is embedded in a narrow
+// inspector. Returned values are divisors of 16 so logical rows wrap cleanly.
+int ResolveDungeonRenderPaletteColumns(float available_width,
+                                       float min_swatch_size = 14.0f,
+                                       float item_spacing = 2.0f);
+
 class PaletteEditorWidget {
  public:
   PaletteEditorWidget() = default;
