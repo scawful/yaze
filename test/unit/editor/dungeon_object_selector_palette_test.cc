@@ -333,41 +333,86 @@ TEST(DungeonObjectSelectorPaletteTest, ObjectPreviewsDefaultOn) {
 }
 
 TEST(DungeonObjectSelectorLayoutTest,
-     GridUsesAvailableWidthWithoutHorizontalOverflow) {
+     GridBalancesRemainingWidthWithoutChangingDensity) {
   constexpr float kAvailableWidth = 400.0f;
-  constexpr float kRequestedItemSize = 60.0f;
+  constexpr float kPreferredItemSize = 60.0f;
   constexpr float kItemSpacing = 4.0f;
-  constexpr float kScrollbarWidth = 14.0f;
 
   const auto layout = ResolveDungeonObjectSelectorGridLayout(
-      kAvailableWidth, kRequestedItemSize, kItemSpacing, kScrollbarWidth);
+      kAvailableWidth, kPreferredItemSize, kItemSpacing);
 
   EXPECT_EQ(layout.columns, 6);
-  EXPECT_FLOAT_EQ(layout.item_size, kRequestedItemSize);
+  EXPECT_FLOAT_EQ(layout.item_size, kPreferredItemSize);
   const float occupied_width =
       layout.columns * layout.item_size + (layout.columns - 1) * kItemSpacing;
-  EXPECT_LE(occupied_width, kAvailableWidth - kScrollbarWidth);
+  EXPECT_NEAR(layout.leading_inset * 2.0f + occupied_width, kAvailableWidth,
+              0.001f);
 }
 
 TEST(DungeonObjectSelectorLayoutTest,
      GridShrinksToOneUsableItemWhenSelectorIsExtremelyNarrow) {
   const auto layout = ResolveDungeonObjectSelectorGridLayout(
-      /*available_width=*/28.0f, /*requested_item_size=*/72.0f,
-      /*item_spacing=*/4.0f, /*reserved_scrollbar_width=*/14.0f);
+      /*available_width=*/28.0f, /*preferred_item_size=*/72.0f,
+      /*item_spacing=*/4.0f);
 
   EXPECT_EQ(layout.columns, 1);
-  EXPECT_FLOAT_EQ(layout.item_size, 14.0f);
+  EXPECT_FLOAT_EQ(layout.item_size, 28.0f);
+  EXPECT_FLOAT_EQ(layout.leading_inset, 0.0f);
 }
 
 TEST(DungeonObjectSelectorLayoutTest,
      GridHonorsMinimumItemSizeWhenThereIsRoom) {
   const auto layout = ResolveDungeonObjectSelectorGridLayout(
-      /*available_width=*/100.0f, /*requested_item_size=*/10.0f,
-      /*item_spacing=*/4.0f, /*reserved_scrollbar_width=*/0.0f,
-      /*min_item_size=*/32.0f);
+      /*available_width=*/100.0f, /*preferred_item_size=*/10.0f,
+      /*item_spacing=*/4.0f, /*min_item_size=*/32.0f);
 
   EXPECT_EQ(layout.columns, 2);
   EXPECT_FLOAT_EQ(layout.item_size, 32.0f);
+  EXPECT_FLOAT_EQ(layout.leading_inset, 16.0f);
+}
+
+TEST(DungeonObjectSelectorLayoutTest,
+     GridPreservesDensityAcrossResizeBreakpoints) {
+  constexpr float kPreferredItemSize = 54.0f;
+  constexpr float kItemSpacing = 4.0f;
+
+  for (const float available_width :
+       std::array{28.0f, 80.0f, 170.0f, 285.0f, 286.0f, 400.0f}) {
+    SCOPED_TRACE(available_width);
+    const auto layout = ResolveDungeonObjectSelectorGridLayout(
+        available_width, kPreferredItemSize, kItemSpacing);
+    const float occupied_width =
+        layout.columns * layout.item_size + (layout.columns - 1) * kItemSpacing;
+
+    EXPECT_GE(layout.columns, 1);
+    EXPECT_GT(layout.item_size, 0.0f);
+    EXPECT_NEAR(layout.leading_inset * 2.0f + occupied_width, available_width,
+                0.001f);
+    if (available_width >= kPreferredItemSize) {
+      EXPECT_FLOAT_EQ(layout.item_size, kPreferredItemSize);
+    }
+  }
+}
+
+TEST(DungeonObjectSelectorLayoutTest,
+     DensityOptionsRemainDistinctAtTheSamePanelWidth) {
+  constexpr float kAvailableWidth = 400.0f;
+  constexpr float kItemSpacing = 4.0f;
+
+  const auto compact = ResolveDungeonObjectSelectorGridLayout(
+      kAvailableWidth, /*preferred_item_size=*/54.0f, kItemSpacing);
+  const auto medium = ResolveDungeonObjectSelectorGridLayout(
+      kAvailableWidth, /*preferred_item_size=*/60.0f, kItemSpacing);
+  const auto large = ResolveDungeonObjectSelectorGridLayout(
+      kAvailableWidth, /*preferred_item_size=*/76.0f, kItemSpacing);
+
+  EXPECT_FLOAT_EQ(compact.item_size, 54.0f);
+  EXPECT_FLOAT_EQ(medium.item_size, 60.0f);
+  EXPECT_FLOAT_EQ(large.item_size, 76.0f);
+  EXPECT_NE(compact.item_size, medium.item_size);
+  EXPECT_NE(medium.item_size, large.item_size);
+  EXPECT_EQ(large.columns, 5);
+  EXPECT_FLOAT_EQ(large.leading_inset, 2.0f);
 }
 
 TEST(DungeonObjectSelectorStreamFilterTest, AllAndUnknownFiltersFailOpen) {
