@@ -64,6 +64,7 @@ targets:
       - path: iOS/YazeSecurityScope.swift
       - path: iOS/YazeProjectOpenService.swift
       - path: iOS/YazeProjectDocument.swift
+      - path: iOS/YazeRomChecksum.swift
       - path: iOS/YazeDocumentManager.swift
       - path: iOS/YazeConflictResolverView.swift
       - path: iOS/CloudKit/AnnotationStore.swift

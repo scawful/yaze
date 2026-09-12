@@ -6,6 +6,7 @@
 #include <fstream>
 #include <ios>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -21,16 +22,26 @@ namespace fs = std::filesystem;
 
 namespace {
 
-// Normalize a hex hash string: trim whitespace, lowercase.
-std::string NormalizeHash(const std::string& hash) {
-  std::string result;
-  result.reserve(hash.size());
-  for (char ch : hash) {
-    if (ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r')
-      continue;
-    result += static_cast<char>(std::tolower(static_cast<unsigned char>(ch)));
+std::string Trim(std::string value) {
+  auto is_space = [](unsigned char ch) {
+    return std::isspace(ch);
+  };
+  while (!value.empty() && is_space(value.front())) {
+    value.erase(value.begin());
   }
-  return result;
+  while (!value.empty() && is_space(value.back())) {
+    value.pop_back();
+  }
+  return value;
+}
+
+// Normalize a hex hash string: trim surrounding whitespace, lowercase.
+std::string NormalizeHash(std::string hash) {
+  hash = Trim(std::move(hash));
+  std::transform(hash.begin(), hash.end(), hash.begin(), [](unsigned char ch) {
+    return static_cast<char>(std::tolower(ch));
+  });
+  return hash;
 }
 
 bool IsHexHash(const std::string& hash) {
@@ -45,17 +56,62 @@ struct CheckResult {
   std::string detail;
 };
 
-std::string Trim(std::string value) {
-  auto is_space = [](unsigned char ch) {
-    return std::isspace(ch);
+struct BundleHashMetadata {
+  bool available = false;
+  std::string expected;
+  std::string source;
+  std::string error;
+};
+
+BundleHashMetadata ParseBundleHashMetadata(const nlohmann::json& manifest) {
+  BundleHashMetadata metadata;
+  if (!manifest.is_object()) {
+    metadata.error = "manifest.json root must be an object";
+    return metadata;
+  }
+
+  const bool has_rom_checksum = manifest.contains("romChecksum");
+  const bool has_rom_sha1 = manifest.contains("rom_sha1");
+  metadata.available = has_rom_checksum || has_rom_sha1;
+  if (!metadata.available) {
+    return metadata;
+  }
+
+  auto read_field = [&](const char* field, std::string* value) {
+    const auto& json_value = manifest.at(field);
+    if (!json_value.is_string()) {
+      metadata.error = absl::StrFormat(
+          "manifest.json %s must be a string containing a 40-character SHA1",
+          field);
+      return false;
+    }
+    *value = NormalizeHash(json_value.get<std::string>());
+    if (value->size() != 40 || !IsHexHash(*value)) {
+      metadata.error = absl::StrFormat(
+          "manifest.json %s must be 40 hexadecimal characters", field);
+      return false;
+    }
+    return true;
   };
-  while (!value.empty() && is_space(value.front())) {
-    value.erase(value.begin());
+
+  std::string rom_checksum;
+  std::string rom_sha1;
+  if (has_rom_checksum && !read_field("romChecksum", &rom_checksum)) {
+    return metadata;
   }
-  while (!value.empty() && is_space(value.back())) {
-    value.pop_back();
+  if (has_rom_sha1 && !read_field("rom_sha1", &rom_sha1)) {
+    return metadata;
   }
-  return value;
+  if (has_rom_checksum && has_rom_sha1 && rom_checksum != rom_sha1) {
+    metadata.error = "manifest.json romChecksum and rom_sha1 fields disagree";
+    return metadata;
+  }
+
+  metadata.expected = has_rom_checksum ? rom_checksum : rom_sha1;
+  metadata.source = has_rom_checksum && has_rom_sha1
+                        ? "romChecksum/rom_sha1"
+                        : (has_rom_checksum ? "romChecksum" : "rom_sha1");
+  return metadata;
 }
 
 bool IsAbsoluteConfigPath(const std::string& value) {
@@ -163,8 +219,8 @@ ProjectBundleVerifyCommandHandler::Describe() const {
        "Path to .yaze project file or .yazeproj bundle directory (required)",
        ""},
       {"--check-rom-hash",
-       "Verify bundle manifest rom_sha1 or standalone expected_hash "
-       "(CRC32/SHA1)",
+       "Verify bundle manifest romChecksum/rom_sha1 or standalone "
+       "expected_hash (CRC32/SHA1)",
        ""},
       {"--report", "Write full JSON summary to this path in addition to stdout",
        ""},
@@ -368,6 +424,7 @@ absl::Status ProjectBundleVerifyCommandHandler::Execute(
   // ------------------------------------------------------------------
   if (parser.HasFlag("check-rom-hash") && parse_ok) {
     std::string raw_expected;
+    std::string bundle_hash_source;
     bool hash_metadata_ready = true;
 
     if (is_bundle) {
@@ -386,11 +443,19 @@ absl::Status ProjectBundleVerifyCommandHandler::Execute(
           any_fail = true;
           hash_metadata_ready = false;
         } else {
-          raw_expected = manifest.value("rom_sha1", std::string{});
-          if (raw_expected.empty()) {
-            checks.push_back({"rom_hash_check", "warn",
-                              "No rom_sha1 field in manifest.json"});
+          const BundleHashMetadata metadata = ParseBundleHashMetadata(manifest);
+          if (!metadata.error.empty()) {
+            checks.push_back({"rom_hash_check", "fail", metadata.error});
+            any_fail = true;
             hash_metadata_ready = false;
+          } else if (!metadata.available) {
+            checks.push_back(
+                {"rom_hash_check", "warn",
+                 "No romChecksum or rom_sha1 field in manifest.json"});
+            hash_metadata_ready = false;
+          } else {
+            raw_expected = metadata.expected;
+            bundle_hash_source = metadata.source;
           }
         }
       }
@@ -414,15 +479,7 @@ absl::Status ProjectBundleVerifyCommandHandler::Execute(
         // contract distinct from standalone project hashes, which describe
         // the header-stripped ROM buffer loaded by the editor.
         algorithm = "SHA1";
-        if (expected.size() != 40 || !IsHexHash(expected)) {
-          checks.push_back(
-              {"rom_hash_check", "fail",
-               "manifest.json rom_sha1 must be 40 hexadecimal characters"});
-          any_fail = true;
-          hash_metadata_ready = false;
-        } else {
-          actual = util::ComputeFileSha1Hex(rom_abs);
-        }
+        actual = util::ComputeFileSha1Hex(rom_abs);
       } else if ((expected.size() == 8 || expected.size() == 40) &&
                  IsHexHash(expected)) {
         algorithm = expected.size() == 8 ? "CRC32" : "SHA1";
@@ -458,9 +515,11 @@ absl::Status ProjectBundleVerifyCommandHandler::Execute(
                absl::StrFormat("Cannot read ROM for hashing: %s", rom_abs)});
           any_fail = true;
         } else if (NormalizeHash(actual) == expected) {
-          checks.push_back(
-              {"rom_hash_check", "pass",
-               absl::StrFormat("%s match: %s", algorithm, actual)});
+          const std::string detail =
+              is_bundle ? absl::StrFormat("%s match (%s): %s", algorithm,
+                                          bundle_hash_source, actual)
+                        : absl::StrFormat("%s match: %s", algorithm, actual);
+          checks.push_back({"rom_hash_check", "pass", detail});
         } else {
           checks.push_back(
               {"rom_hash_check", "fail",
