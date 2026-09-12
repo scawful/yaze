@@ -28,12 +28,19 @@ void DungeonCanvasViewer::AddInteractionContextMenuItems(int room_id) {
     return;
   }
 
-  for (auto& item : BuildSelectionContextMenuItems(room_id)) {
-    canvas_.AddContextMenuItem(std::move(item));
-  }
+  canvas_.AddContextMenuItem(BuildSelectionContextMenu(room_id));
   auto insert_menu = BuildInsertContextMenu();
   insert_menu.separator_after = true;
   canvas_.AddContextMenuItem(insert_menu);
+}
+
+gui::CanvasMenuItem DungeonCanvasViewer::BuildSelectionContextMenu(
+    int room_id) {
+  gui::CanvasMenuItem selection_menu;
+  selection_menu.label = "Selection";
+  selection_menu.icon = ICON_MD_SELECT_ALL;
+  selection_menu.subitems = BuildSelectionContextMenuItems(room_id);
+  return selection_menu;
 }
 
 void DungeonCanvasViewer::AddLoadedRoomContextMenuItems(int room_id) {
@@ -109,10 +116,17 @@ DungeonCanvasViewer::GetObjectUnderContextCursor(int room_id) {
   }
 
   const ImGuiIO& io = ImGui::GetIO();
+  ImVec2 screen_position = io.MousePos;
+  if (!ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+    if (const auto popup_anchor = canvas_.context_menu_open_screen_position();
+        popup_anchor.has_value()) {
+      screen_position = *popup_anchor;
+    }
+  }
   const DungeonCanvasTransform transform(
       canvas_.zero_point(), canvas_.scrolling(), canvas_.global_scale());
   const auto [canvas_x, canvas_y] =
-      transform.ScreenToRoomPixelCoordinates(io.MousePos);
+      transform.ScreenToRoomPixelCoordinates(screen_position);
   if (!dungeon_coords::IsWithinBounds(canvas_x, canvas_y)) {
     return std::nullopt;
   }
@@ -132,6 +146,13 @@ DungeonCanvasViewer::GetObjectUnderContextCursor(int room_id) {
 
 std::vector<gui::CanvasMenuItem>
 DungeonCanvasViewer::BuildSelectionContextMenuItems(int room_id) {
+  return BuildSelectionContextMenuItems(room_id,
+                                        GetObjectUnderContextCursor(room_id));
+}
+
+std::vector<gui::CanvasMenuItem>
+DungeonCanvasViewer::BuildSelectionContextMenuItems(
+    int room_id, std::optional<zelda3::RoomObject> context_object) {
   auto& interaction = object_interaction_;
   const auto selected = interaction.GetSelectedObjectIndices();
   const bool has_selection = !selected.empty();
@@ -223,15 +244,15 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(int room_id) {
         shortcut);
   };
 
-  const auto context_sample_object = GetObjectUnderContextCursor(room_id);
-  std::optional<size_t> sample_item_index;
-  if (context_sample_object.has_value()) {
-    sample_item_index = items.size();
-    items.emplace_back("Sample Object", ICON_MD_COLORIZE,
-                       [this, object = *context_sample_object]() {
-                         SetPreviewObject(object);
-                       });
-  }
+  gui::CanvasMenuItem sample_item("Use Object as Brush", ICON_MD_COLORIZE,
+                                  [this, context_object]() {
+                                    if (context_object.has_value()) {
+                                      SetPreviewObject(*context_object);
+                                    }
+                                  });
+  sample_item.enabled_condition = enabled_if(context_object.has_value());
+  sample_item.separator_after = true;
+  items.push_back(std::move(sample_item));
 
   if (has_selection) {
     items.emplace_back(
@@ -335,13 +356,6 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(int room_id) {
     items.push_back(std::move(cancel_item));
   }
 
-  if (sample_item_index.has_value() && items.size() > *sample_item_index + 1) {
-    items[*sample_item_index].separator_after = true;
-  }
-
-  if (!items.empty()) {
-    items.back().separator_after = true;
-  }
   return items;
 }
 
@@ -372,15 +386,15 @@ gui::CanvasMenuItem DungeonCanvasViewer::BuildRoomContextMenu(int room_id) {
 
 gui::CanvasMenuItem DungeonCanvasViewer::BuildReportContextMenu(int room_id) {
   gui::CanvasMenuItem report_menu;
-  report_menu.label = "Report";
+  report_menu.label = "Capture Issue";
   report_menu.icon = ICON_MD_BUG_REPORT;
   report_menu.subitems.emplace_back(
-      "Render Issue...", ICON_MD_BUG_REPORT, [this, room_id]() {
+      "Room Rendering...", ICON_MD_BUG_REPORT, [this, room_id]() {
         if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
           return;
         }
         OpenIssueReportPopup(
-            absl::StrFormat("Report Room 0x%03X Render Issue", room_id),
+            absl::StrFormat("Capture Room 0x%03X Rendering Issue", room_id),
             absl::StrFormat("Room 0x%03X render mismatch", room_id),
             "Dungeon Render Issue Report",
             BuildDrawIssueReport((*rooms_)[room_id], room_id), room_id,
@@ -388,12 +402,12 @@ gui::CanvasMenuItem DungeonCanvasViewer::BuildReportContextMenu(int room_id) {
                 DungeonIssueCategory::GeneralRoomRenderMismatch));
       });
   report_menu.subitems.emplace_back(
-      "Palette Issue...", ICON_MD_PALETTE, [this, room_id]() {
+      "Room Palette...", ICON_MD_PALETTE, [this, room_id]() {
         if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
           return;
         }
         OpenIssueReportPopup(
-            absl::StrFormat("Report Room 0x%03X Palette Issue", room_id),
+            absl::StrFormat("Capture Room 0x%03X Palette Issue", room_id),
             absl::StrFormat("Room 0x%03X palette mismatch", room_id),
             "Dungeon Palette Issue Report",
             BuildDrawIssueReport((*rooms_)[room_id], room_id), room_id,
@@ -402,12 +416,12 @@ gui::CanvasMenuItem DungeonCanvasViewer::BuildReportContextMenu(int room_id) {
   if (object_interaction_.GetSelectionCount() > 0 ||
       object_interaction_.HasEntitySelection()) {
     report_menu.subitems.emplace_back(
-        "Selection Issue...", ICON_MD_FACT_CHECK, [this, room_id]() {
+        "Current Selection...", ICON_MD_FACT_CHECK, [this, room_id]() {
           if (!rooms_ || room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
             return;
           }
           OpenIssueReportPopup(
-              absl::StrFormat("Report Selection Issue for Room 0x%03X",
+              absl::StrFormat("Capture Selection Issue for Room 0x%03X",
                               room_id),
               absl::StrFormat("Room 0x%03X selection or entity mismatch",
                               room_id),

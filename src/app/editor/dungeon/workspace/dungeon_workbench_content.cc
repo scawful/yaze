@@ -754,6 +754,9 @@ void DungeonWorkbenchContent::DrawCanvasPane(
         } else {
           primary_viewer->DrawDungeonCanvas(*current_room_id_);
         }
+        if (on_primary_canvas_drawn_) {
+          on_primary_canvas_drawn_(*primary_viewer);
+        }
       }
       ImGui::EndChild();
 
@@ -1247,6 +1250,7 @@ void DungeonWorkbenchContent::SetAllSaveFlags(bool value) {
   flags.kSaveRoomHeaders = value;
   flags.kSaveChests = value;
   flags.kSavePotItems = value;
+  flags.kSaveEntrances = value;
   flags.kSavePalettes = value;
   flags.kSaveCollision = value;
   flags.kSaveBlocks = value;
@@ -1304,7 +1308,7 @@ void DungeonWorkbenchContent::DrawApplyScopeControls(int room_id) {
     draw_checkbox("Torches", &flags.kSaveTorches);
     ImGui::TableNextRow();
     draw_checkbox("Pits", &flags.kSavePits);
-    ImGui::TableNextColumn();
+    draw_checkbox("Entrances", &flags.kSaveEntrances);
     ImGui::EndTable();
   }
 

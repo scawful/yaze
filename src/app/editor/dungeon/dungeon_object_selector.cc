@@ -17,6 +17,7 @@
 
 // Project headers
 #include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/drag_drop.h"
 #include "app/gui/core/icons.h"
@@ -107,6 +108,10 @@ void DrawFallbackPreviewTile(ImDrawList* draw_list, ImVec2 top_left,
 }
 
 }  // namespace
+
+DungeonObjectSelector::~DungeonObjectSelector() {
+  RetirePreviewCache();
+}
 
 bool DungeonObjectSelector::IsRepresentableChestObjectId(int object_id) {
   return object_id == 0xF99 || object_id == 0xF9A || object_id == 0xFB1 ||
@@ -524,15 +529,17 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
             const uint8_t preview_size =
                 zelda3::DefaultRoomObjectSizeForPlacement(obj_id);
-            uint32_t layout_key = (static_cast<uint32_t>(obj_id) << 16) |
-                                  static_cast<uint32_t>(preview_size);
             const bool can_capture_layout =
                 rom_ && rooms_ && current_room_id_ >= 0 &&
                 current_room_id_ < zelda3::kNumberOfRooms;
+            const zelda3::Room* layout_room =
+                can_capture_layout ? &(*rooms_)[current_room_id_] : nullptr;
+            const uint32_t layout_key =
+                MakeLayoutCacheKey(obj_id, preview_size, layout_room);
             if (can_capture_layout &&
                 layout_cache_.find(layout_key) == layout_cache_.end()) {
               zelda3::ObjectTileEditor editor(rom_);
-              auto& room_ref = (*rooms_)[current_room_id_];
+              auto& room_ref = *layout_room;
               auto layout_or = editor.CaptureObjectLayout(
                   obj_id, room_ref, current_palette_group_, preview_size);
               if (layout_or.ok()) {
@@ -692,14 +699,65 @@ zelda3::RoomObject DungeonObjectSelector::MakePreviewObject(int obj_id) const {
 }
 
 void DungeonObjectSelector::InvalidatePreviewCache() {
-  preview_cache_.clear();
+  RetirePreviewCache();
   layout_cache_.clear();
   ++preview_cache_invalidations_;
+}
+
+void DungeonObjectSelector::RetirePreviewCache() {
+  auto& arena = gfx::Arena::Get();
+  for (auto& [key, preview] : preview_cache_) {
+    (void)key;
+    if (preview != nullptr) {
+      arena.RetireBitmap(preview->bitmap());
+    }
+  }
+  preview_cache_.clear();
+}
+
+void DungeonObjectSelector::SynchronizePreviewCacheRoomContext(
+    const zelda3::Room& room) {
+  if (current_room_id_ == cached_preview_room_id_ &&
+      room.blockset() == cached_preview_blockset_ &&
+      room.render_entrance_blockset() == cached_preview_entrance_blockset_ &&
+      room.palette() == cached_preview_palette_ &&
+      room.floor1() == cached_preview_floor1_ &&
+      room.floor2() == cached_preview_floor2_) {
+    return;
+  }
+
+  InvalidatePreviewCache();
+  cached_preview_room_id_ = current_room_id_;
+  cached_preview_blockset_ = room.blockset();
+  cached_preview_entrance_blockset_ = room.render_entrance_blockset();
+  cached_preview_palette_ = room.palette();
+  cached_preview_floor1_ = room.floor1();
+  cached_preview_floor2_ = room.floor2();
+}
+
+uint32_t DungeonObjectSelector::MakeLayoutCacheKey(int object_id,
+                                                   uint8_t preview_size,
+                                                   const zelda3::Room* room) {
+  uint8_t room_floor = 0;
+  if (room != nullptr) {
+    if (object_id == 0xC4) {
+      room_floor = room->floor1() & 0x0F;
+    } else if (object_id == 0xDB) {
+      room_floor = room->floor2() & 0x0F;
+    }
+  }
+
+  return (static_cast<uint32_t>(object_id) << 16) |
+         (static_cast<uint32_t>(preview_size) << 8) | room_floor;
 }
 
 bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
                                                float size,
                                                gfx::BackgroundBuffer** out) {
+  if (out == nullptr) {
+    return false;
+  }
+  *out = nullptr;
   if (!rom_ || !rom_->is_loaded()) {
     return false;
   }
@@ -712,28 +770,24 @@ bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
       return false;  // Can't render without loaded room
     }
 
-    // Invalidate cache if room/palette/blockset changed
-    if (current_room_id_ != cached_preview_room_id_ ||
-        room.blockset() != cached_preview_blockset_ ||
-        room.palette() != cached_preview_palette_) {
-      InvalidatePreviewCache();
-      cached_preview_room_id_ = current_room_id_;
-      cached_preview_blockset_ = room.blockset();
-      cached_preview_palette_ = room.palette();
-    }
+    SynchronizePreviewCacheRoomContext(room);
   } else {
     return false;
   }
 
   // Check if already in cache
-  // Key: (object_id << 32) | (subtype << 16) | (blockset << 8) | palette
+  // Key: object, subtype, blockset, palette, and both room floor nibbles.
+  // Room/entrance changes clear the complete cache before this lookup.
   const uint8_t preview_size =
       zelda3::CanonicalRoomObjectSize(object.id_, object.size());
   int subtype = preview_size & 0x1F;
-  uint64_t cache_key = (static_cast<uint64_t>(object.id_) << 32) |
-                       (static_cast<uint64_t>(subtype) << 16) |
-                       (static_cast<uint64_t>(cached_preview_blockset_) << 8) |
-                       static_cast<uint64_t>(cached_preview_palette_);
+  uint64_t cache_key =
+      (static_cast<uint64_t>(object.id_) << 32) |
+      (static_cast<uint64_t>(subtype) << 24) |
+      (static_cast<uint64_t>(cached_preview_blockset_) << 16) |
+      (static_cast<uint64_t>(cached_preview_palette_) << 8) |
+      (static_cast<uint64_t>(cached_preview_floor1_ & 0x0F) << 4) |
+      static_cast<uint64_t>(cached_preview_floor2_ & 0x0F);
 
   auto it = preview_cache_.find(cache_key);
   if (it != preview_cache_.end()) {
@@ -763,32 +817,44 @@ bool DungeonObjectSelector::GetOrCreatePreview(const zelda3::RoomObject& object,
   auto render_status = editor.RenderLayoutToBitmap(
       layout, preview->bitmap(), gfx_data, current_palette_group_);
   if (!render_status.ok()) {
+    gfx::Arena::Get().RetireBitmap(preview->bitmap());
     return false;
   }
 
   auto& bitmap = preview->bitmap();
   // Texture creation and SDL sync
-  if (bitmap.surface()) {
-    // Sync to surface
-    SDL_LockSurface(bitmap.surface());
-    memcpy(bitmap.surface()->pixels, bitmap.mutable_data().data(),
-           bitmap.mutable_data().size());
-    SDL_UnlockSurface(bitmap.surface());
-
-    // Create texture
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::CREATE, &bitmap);
-    gfx::Arena::Get().ProcessTextureQueue(nullptr);
-  }
-
-  if (!bitmap.texture()) {
+  if (!bitmap.surface()) {
+    gfx::Arena::Get().RetireBitmap(bitmap);
     return false;
   }
+  SDL_LockSurface(bitmap.surface());
+  memcpy(bitmap.surface()->pixels, bitmap.mutable_data().data(),
+         bitmap.mutable_data().size());
+  SDL_UnlockSurface(bitmap.surface());
 
-  // Store in cache and return
-  *out = preview.get();
-  preview_cache_[cache_key] = std::move(preview);
-  return true;
+  // Install the owner before queuing CREATE. The renderer may defer this
+  // command until DoRender, so the Bitmap address must remain valid even when
+  // this frame falls back to the symbolic preview.
+  auto [cache_it, inserted] =
+      preview_cache_.try_emplace(cache_key, std::move(preview));
+  if (!inserted) {
+    if (preview != nullptr) {
+      gfx::Arena::Get().RetireBitmap(preview->bitmap());
+    }
+    *out = cache_it->second.get();
+    return (*out)->bitmap().texture() != nullptr;
+  }
+
+  *out = cache_it->second.get();
+  auto& cached_bitmap = (*out)->bitmap();
+  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                        &cached_bitmap);
+  gfx::Arena::Get().ProcessTextureQueue(nullptr);
+
+  // A null texture is an expected deferred state when the Arena has no active
+  // renderer yet. Keep the cache entry and its queued owner alive; the next
+  // frame will draw it after DoRender processes CREATE.
+  return cached_bitmap.texture() != nullptr;
 }
 
 bool DungeonObjectSelector::DrawObjectPreview(const zelda3::RoomObject& object,

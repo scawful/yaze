@@ -227,6 +227,24 @@ struct DoorDimensions {
 };
 
 /**
+ * @brief Visible editor footprint relative to the raw ROM door anchor.
+ *
+ * Door position tables store an anchor used by the game routines. The visible
+ * art does not always begin at that anchor, so editor interaction needs both
+ * an offset and dimensions instead of dimensions alone.
+ */
+struct DoorFootprint {
+  int offset_x_tiles;
+  int offset_y_tiles;
+  int width_tiles;
+  int height_tiles;
+
+  constexpr DoorDimensions dimensions() const {
+    return {width_tiles, height_tiles};
+  }
+};
+
+/**
  * @brief Get door dimensions based on direction
  *
  * Horizontal doors (North/South walls) are 4 tiles wide x 3 tiles tall.
@@ -245,21 +263,79 @@ constexpr DoorDimensions GetDoorDimensions(DoorDirection dir) {
 }
 
 /**
- * @brief Get editor interaction dimensions for a door.
+ * @brief Get the visible editor footprint for a door.
  *
- * Some north-door types render with a taller footprint than the generic
- * 4x3 ranged-door table. The editor uses these dimensions for hit-testing and
- * placement previews so selection matches what the user sees.
+ * Defaults mirror the directional one-sided shutter routines. South and East
+ * start one tile beyond their raw position-table anchor. A small set of exit
+ * routines use bespoke raw-anchor-relative footprints.
  *
  * Exploding walls intentionally keep the generic footprint here because their
  * visible open-state placement depends on runtime door state and a ROM lookup.
  */
+constexpr DoorFootprint GetEditorDoorFootprint(DoorDirection dir,
+                                               DoorType type) {
+  if (dir == DoorDirection::South) {
+    switch (type) {
+      case DoorType::FancyDungeonExit:
+      case DoorType::FancyDungeonExitLower:
+        return {-3, -4, 10, 8};
+      case DoorType::ExitLower:
+      case DoorType::CaveExit:
+      case DoorType::LitCaveExitLower:
+        return {0, 0, 4, 4};
+      default:
+        return {0, 1, 4, 3};
+    }
+  }
+
+  if (dir == DoorDirection::North && type == DoorType::CurtainDoor) {
+    return {0, 0, 4, 4};
+  }
+
+  switch (dir) {
+    case DoorDirection::North:
+      return {0, 0, 4, 3};
+    case DoorDirection::West:
+      return {0, 0, 3, 4};
+    case DoorDirection::East:
+      return {1, 0, 3, 4};
+    case DoorDirection::South:
+      break;
+  }
+  return {0, 0, 4, 3};
+}
+
+/** @brief Get visible editor dimensions for compatibility with UI callers. */
 constexpr DoorDimensions GetEditorDoorDimensions(DoorDirection dir,
                                                  DoorType type) {
-  if (dir == DoorDirection::North && type == DoorType::CurtainDoor) {
-    return {4, 4};
+  return GetEditorDoorFootprint(dir, type).dimensions();
+}
+
+/** @brief Return true for terminal exits that do not pair with another room. */
+constexpr bool IsExitDoorType(DoorType type) {
+  switch (type) {
+    case DoorType::FancyDungeonExit:
+    case DoorType::FancyDungeonExitLower:
+    case DoorType::CaveExit:
+    case DoorType::LitCaveExitLower:
+    case DoorType::ExitLower:
+    case DoorType::UnusedCaveExit:
+    case DoorType::BombableCaveExit:
+    case DoorType::WaterfallDoor:
+    case DoorType::ExitMarker:
+      return true;
+    default:
+      return false;
   }
-  return GetDoorDimensions(dir);
+}
+
+/** @brief Return true when a door can represent an adjacent-room connection. */
+constexpr bool IsRoomConnectionDoorType(DoorType type) {
+  if (IsExitDoorType(type)) {
+    return false;
+  }
+  return type != DoorType::DungeonSwapMarker &&
+         type != DoorType::LayerSwapMarker;
 }
 
 /**
@@ -279,22 +355,52 @@ constexpr DoorDirection DoorDirectionFromRaw(uint8_t raw_dir) {
 }
 
 /**
- * @brief Get commonly used door types for UI dropdowns
- * Returns the most frequently used door types (not all 52)
+ * @brief Get supported door types suitable for editor placement controls.
+ *
+ * The ROM tables contain additional entries explicitly identified as unused
+ * or glitchy. Those values remain available through raw-type editing, but are
+ * intentionally excluded from the primary placement UI.
  */
-constexpr std::array<DoorType, 20> GetAllDoorTypes() {
+constexpr std::array<DoorType, 32> GetPlaceableDoorTypes() {
   return {{
-      DoorType::NormalDoor,         DoorType::NormalDoorLower,
-      DoorType::CaveExit,           DoorType::DoubleSidedShutter,
-      DoorType::EyeWatchDoor,       DoorType::SmallKeyDoor,
-      DoorType::BigKeyDoor,         DoorType::SmallKeyStairsUp,
-      DoorType::SmallKeyStairsDown, DoorType::DashWall,
-      DoorType::BombableDoor,       DoorType::ExplodingWall,
-      DoorType::CurtainDoor,        DoorType::BottomSidedShutter,
-      DoorType::TopSidedShutter,    DoorType::FancyDungeonExit,
-      DoorType::WaterfallDoor,      DoorType::ExitMarker,
-      DoorType::LayerSwapMarker,    DoorType::DungeonSwapMarker,
+      DoorType::NormalDoor,
+      DoorType::NormalDoorLower,
+      DoorType::ExitLower,
+      DoorType::WaterfallDoor,
+      DoorType::FancyDungeonExit,
+      DoorType::FancyDungeonExitLower,
+      DoorType::CaveExit,
+      DoorType::LitCaveExitLower,
+      DoorType::ExitMarker,
+      DoorType::DungeonSwapMarker,
+      DoorType::LayerSwapMarker,
+      DoorType::DoubleSidedShutter,
+      DoorType::EyeWatchDoor,
+      DoorType::SmallKeyDoor,
+      DoorType::BigKeyDoor,
+      DoorType::SmallKeyStairsUp,
+      DoorType::SmallKeyStairsDown,
+      DoorType::SmallKeyStairsUpLower,
+      DoorType::SmallKeyStairsDownLower,
+      DoorType::DashWall,
+      DoorType::BombableCaveExit,
+      DoorType::UnopenableBigKeyDoor,
+      DoorType::BombableDoor,
+      DoorType::ExplodingWall,
+      DoorType::CurtainDoor,
+      DoorType::BottomSidedShutter,
+      DoorType::TopSidedShutter,
+      DoorType::NormalDoorOneSidedShutter,
+      DoorType::DoubleSidedShutterLower,
+      DoorType::ExplicitRoomDoor,
+      DoorType::BottomShutterLower,
+      DoorType::TopShutterLower,
   }};
+}
+
+// Compatibility alias for callers that used the former 20-item UI subset.
+constexpr std::array<DoorType, 32> GetAllDoorTypes() {
+  return GetPlaceableDoorTypes();
 }
 
 }  // namespace zelda3

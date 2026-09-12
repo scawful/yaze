@@ -2,6 +2,7 @@
 #define YAZE_APP_GUI_CANVAS_CANVAS_CONTEXT_MENU_H
 
 #include <functional>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -63,6 +64,9 @@ class CanvasContextMenu {
   void SetEnabled(bool enabled) { enabled_ = enabled; }
   bool IsEnabled() const { return enabled_; }
   CanvasUsage GetUsageMode() const { return current_usage_; }
+  std::optional<ImVec2> context_open_screen_position() const {
+    return context_open_screen_position_;
+  }
 
   void SetCanvasState(const ImVec2& canvas_size, const ImVec2& content_size,
                       float global_scale, float grid_step, bool enable_grid,
@@ -86,6 +90,7 @@ class CanvasContextMenu {
   bool is_draggable_ = false;
   bool auto_resize_ = false;
   ImVec2 scrolling_;
+  std::optional<ImVec2> context_open_screen_position_;
 
   std::unique_ptr<PaletteEditorWidget> palette_editor_;
   uint64_t edit_palette_group_name_index_ = 0;

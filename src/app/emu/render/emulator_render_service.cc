@@ -206,6 +206,7 @@ absl::StatusOr<RenderResult> EmulatorRenderService::RenderDungeonObjectStatic(
   const auto& gfx_buffer = room.get_gfx_buffer();
   zelda3::ObjectDrawer drawer(rom_, req.room_id, gfx_buffer.data());
   drawer.InitializeDrawRoutines();
+  drawer.SetRoomFloorGraphics(room.floor1(), room.floor2());
 
   // Draw the object (ObjectDrawer needs the full palette group)
   auto status =

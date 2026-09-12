@@ -81,9 +81,9 @@ void DrawDownwardsHasEdge1x1_1to16_plus3(const DrawContext& ctx);
 void DrawDownwardsEdge1x1_1to16(const DrawContext& ctx);
 
 /**
- * @brief Draw left corner 2x1 tiles with +12 offset downward
+ * @brief Draw left corner 2x1 tiles with opening and closing caps
  *
- * Pattern: Left corner 2x1 tiles with +12 offset downward (object 0x6C)
+ * Pattern: Left corner 2x1 tiles with a size+12 extent (object 0x6C)
  * Based on bank_01.asm RoomDraw_DownwardsLeftCorners2x1_1to16_plus12
  *
  * @param ctx Draw context containing object, tiles, and target buffer
@@ -91,9 +91,9 @@ void DrawDownwardsEdge1x1_1to16(const DrawContext& ctx);
 void DrawDownwardsLeftCorners2x1_1to16_plus12(const DrawContext& ctx);
 
 /**
- * @brief Draw right corner 2x1 tiles with +12 offset downward
+ * @brief Draw right corner 2x1 tiles with opening and closing caps
  *
- * Pattern: Right corner 2x1 tiles with +12 offset downward (object 0x6D)
+ * Pattern: Right corner 2x1 tiles with a size+12 extent (object 0x6D)
  * Based on bank_01.asm RoomDraw_DownwardsRightCorners2x1_1to16_plus12
  *
  * @param ctx Draw context containing object, tiles, and target buffer

@@ -490,9 +490,9 @@ ctest --test-dir build --verbose
 
 ## Dungeon Object Parity Tests
 
-The dungeon object parity test suite validates that the editor's drawing pipeline matches SNES behavior for all vanilla dungeon objects. Located at `test/unit/zelda3/dungeon/object_drawing_comprehensive_test.cc`.
+The dungeon object comprehensive suite validates registry coverage and selected renderer invariants across the vanilla object ID space. It is an internal regression layer, not proof that every object matches SNES pixels. The suite is located at `test/unit/zelda3/dungeon/object_drawing_comprehensive_test.cc`; ROM-backed and independent Mesen evidence live in separate suites.
 
-**What it validates (19 tests):**
+**Representative checks:**
 
 | Test | Coverage |
 |------|----------|
@@ -522,8 +522,9 @@ ctest --test-dir build -R "ObjectDrawingComprehensive" --output-on-failure
 ```
 
 **Related docs:**
-- Plan: `docs/internal/agents/dungeon-object-parity-plan.md`
-- Spec: `docs/internal/agents/dungeon-object-rendering-spec.md`
+- Active spec and evidence matrix: `docs/internal/agents/dungeon-object-rendering-spec.md`
+- Historical plan: `docs/internal/plans/dungeon-object-rendering-parity-2026-04.md`
+- Independent fixtures: `test/fixtures/visual/dungeon/README.md`
 - Architecture: `docs/internal/architecture/dungeon_editor_system.md` (Room Layer Manager section)
 
 ## Adding New Tests

@@ -851,6 +851,7 @@ void DungeonObjectEmulatorPreview::TriggerStaticRender() {
   object_drawer_ =
       std::make_unique<zelda3::ObjectDrawer>(rom_, room_id_, gfx_buffer.data());
   object_drawer_->InitializeDrawRoutines();
+  object_drawer_->SetRoomFloorGraphics(room.floor1(), room.floor2());
 
   // Clear background buffers (default 512x512)
   preview_bg1_.ClearBuffer();

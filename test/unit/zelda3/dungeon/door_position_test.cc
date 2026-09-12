@@ -1,6 +1,8 @@
 #include "zelda3/dungeon/door_position.h"
 
+#include <algorithm>
 #include <array>
+#include <iomanip>
 #include <utility>
 
 #include "gtest/gtest.h"
@@ -65,6 +67,68 @@ TEST(DoorPositionManagerTest, SouthRenderBoundsStartBelowUsdasmAnchor) {
   EXPECT_EQ(y, 59 * DoorPositionManager::kTileSize);
   EXPECT_EQ(width, 4 * DoorPositionManager::kTileSize);
   EXPECT_EQ(height, 3 * DoorPositionManager::kTileSize);
+}
+
+TEST(DoorPositionManagerTest, SouthExitEditorBoundsMatchUsdasmFootprints) {
+  struct ExpectedBounds {
+    DoorType type;
+    int tile_x;
+    int tile_y;
+    int width_tiles;
+    int height_tiles;
+  };
+
+  constexpr std::array<ExpectedBounds, 5> kCases = {{
+      {DoorType::ExitLower, 46, 58, 4, 4},
+      {DoorType::FancyDungeonExit, 43, 54, 10, 8},
+      {DoorType::FancyDungeonExitLower, 43, 54, 10, 8},
+      {DoorType::CaveExit, 46, 58, 4, 4},
+      {DoorType::LitCaveExitLower, 46, 58, 4, 4},
+  }};
+
+  for (const auto& expected : kCases) {
+    const auto [x, y, width, height] = DoorPositionManager::GetDoorEditorBounds(
+        /*position=*/8, DoorDirection::South, expected.type);
+    EXPECT_EQ(x, expected.tile_x * DoorPositionManager::kTileSize)
+        << GetDoorTypeName(expected.type);
+    EXPECT_EQ(y, expected.tile_y * DoorPositionManager::kTileSize)
+        << GetDoorTypeName(expected.type);
+    EXPECT_EQ(width, expected.width_tiles * DoorPositionManager::kTileSize)
+        << GetDoorTypeName(expected.type);
+    EXPECT_EQ(height, expected.height_tiles * DoorPositionManager::kTileSize)
+        << GetDoorTypeName(expected.type);
+  }
+}
+
+TEST(DoorPositionManagerTest,
+     SouthExitOverridesAreDirectionalAndPreserveGenericDoors) {
+  EXPECT_EQ(DoorPositionManager::GetDoorEditorBounds(
+                /*position=*/8, DoorDirection::South, DoorType::NormalDoor),
+            (std::tuple<int, int, int, int>{46 * 8, 59 * 8, 4 * 8, 3 * 8}));
+  EXPECT_EQ(DoorPositionManager::GetDoorEditorBounds(
+                /*position=*/8, DoorDirection::South, DoorType::BigKeyDoor),
+            (std::tuple<int, int, int, int>{46 * 8, 59 * 8, 4 * 8, 3 * 8}));
+  EXPECT_EQ(
+      DoorPositionManager::GetDoorEditorBounds(
+          /*position=*/8, DoorDirection::North, DoorType::FancyDungeonExit),
+      (std::tuple<int, int, int, int>{46 * 8, 36 * 8, 4 * 8, 3 * 8}));
+}
+
+TEST(DoorPositionManagerTest, EastRenderBoundsStartRightOfUsdasmAnchor) {
+  // RoomDraw_OneSidedShutters_East increments the table address by one word
+  // before writing, just as the South routine skips its anchor row.
+  EXPECT_EQ(DoorPositionManager::PositionToTileCoords(9, DoorDirection::East),
+            (std::pair<int, int>{55, 15}));
+  EXPECT_EQ(
+      DoorPositionManager::PositionToRenderTileCoords(9, DoorDirection::East),
+      (std::pair<int, int>{56, 15}));
+
+  const auto [x, y, width, height] = DoorPositionManager::GetDoorEditorBounds(
+      /*position=*/9, DoorDirection::East, DoorType::NormalDoor);
+  EXPECT_EQ(x, 56 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(y, 15 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(width, 3 * DoorPositionManager::kTileSize);
+  EXPECT_EQ(height, 4 * DoorPositionManager::kTileSize);
 }
 
 TEST(DoorPositionManagerTest, VerticalSnapPositionsMatchUsdasmRows) {
@@ -149,6 +213,69 @@ TEST(DoorPositionManagerTest,
   EXPECT_EQ(y, 4 * DoorPositionManager::kTileSize);
   EXPECT_EQ(width, 4 * DoorPositionManager::kTileSize);
   EXPECT_EQ(height, 3 * DoorPositionManager::kTileSize);
+}
+
+TEST(DoorTypesTest, PlaceableCatalogCoversSupportedRomHackVariants) {
+  constexpr auto types = GetPlaceableDoorTypes();
+  EXPECT_EQ(types.size(), 32U);
+
+  for (size_t i = 0; i < types.size(); ++i) {
+    EXPECT_EQ(std::count(types.begin(), types.end(), types[i]), 1)
+        << "duplicate door type 0x" << std::hex << static_cast<int>(types[i]);
+  }
+
+  for (DoorType supported : {
+           DoorType::ExitLower,
+           DoorType::FancyDungeonExitLower,
+           DoorType::LitCaveExitLower,
+           DoorType::SmallKeyStairsUpLower,
+           DoorType::SmallKeyStairsDownLower,
+           DoorType::BombableCaveExit,
+           DoorType::UnopenableBigKeyDoor,
+           DoorType::NormalDoorOneSidedShutter,
+           DoorType::DoubleSidedShutterLower,
+           DoorType::ExplicitRoomDoor,
+           DoorType::BottomShutterLower,
+           DoorType::TopShutterLower,
+       }) {
+    EXPECT_NE(std::find(types.begin(), types.end(), supported), types.end())
+        << "missing supported door type 0x" << std::hex
+        << static_cast<int>(supported);
+  }
+
+  for (DoorType unsafe : {
+           DoorType::UnusedCaveExit,
+           DoorType::UnusableBottomShutter,
+           DoorType::UnusedDoubleSidedShutter,
+           DoorType::UnusableNormalDoor4C,
+           DoorType::UnusableGlitchyDoor54,
+           DoorType::UnusableGlitchyStairsDown66,
+       }) {
+    EXPECT_EQ(std::find(types.begin(), types.end(), unsafe), types.end())
+        << "unsafe door type exposed in placement UI: 0x" << std::hex
+        << static_cast<int>(unsafe);
+  }
+}
+
+TEST(DoorTypesTest, RoomConnectionPredicateRejectsExitsAndControlMarkers) {
+  EXPECT_TRUE(IsRoomConnectionDoorType(DoorType::NormalDoor));
+  EXPECT_TRUE(IsRoomConnectionDoorType(DoorType::BigKeyDoor));
+
+  for (const auto type : {
+           DoorType::ExitLower,
+           DoorType::FancyDungeonExit,
+           DoorType::FancyDungeonExitLower,
+           DoorType::CaveExit,
+           DoorType::LitCaveExitLower,
+           DoorType::ExitMarker,
+           DoorType::DungeonSwapMarker,
+           DoorType::LayerSwapMarker,
+       }) {
+    EXPECT_FALSE(IsRoomConnectionDoorType(type)) << GetDoorTypeName(type);
+  }
+
+  EXPECT_FALSE(IsExitDoorType(DoorType::DungeonSwapMarker));
+  EXPECT_FALSE(IsExitDoorType(DoorType::LayerSwapMarker));
 }
 
 }  // namespace

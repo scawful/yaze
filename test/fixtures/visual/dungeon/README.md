@@ -89,8 +89,8 @@ fixture.
 - Fixture SHA-256:
   `4d09ab115a859f5afc6cf159501f9323beb1244474d60b8c2be93cfded3f4c1c`.
 
-This is the first independent Mesen ROI for a visual-parity gap object family
-(TableRock). Rails, BigHole, water overlays, and doors remain uncovered.
+This was the first independent Mesen ROI for a visual-parity gap object family
+(TableRock). Later sections record BigHole, rails, and one west door ROI.
 
 ## `vanilla_room_031_mesen_bighole_32x32.png`
 
@@ -151,18 +151,23 @@ ROI — see below).
 - Fixture SHA-256:
   `e36ac2ab54fd94cae6e7523d241b69a76ffe05f0432b56f24a016b16f0f83b1b`.
 
-## Water overlay `0xD8` / `0xDA` (no Mesen pixel ROI)
+## Water overlay `0xD8` / `0xDA` (Tier-4 incomplete)
 
-Vanilla `RoomDraw_WaterOverlayA8x8_1to16` / `…B…` (`$0195D6`) is an **HDMA
-control object** — it does not stamp tiles in-game. Yaze draws a BG2 editor
-indicator so authors can see the overlay footprint. Therefore:
+Vanilla `RoomDraw_WaterOverlayA8x8_1to16` / `…B…` is stateful. The routines set
+HDMA geometry **and stamp tilemap patterns**; the exact pattern and destination
+can change with saved water state, and the routines can also change the active
+layer mode. The earlier claim that these objects never stamp tiles in-game was
+incorrect.
 
-- Exact RGBA Mesen↔yaze ROI is **not** a valid Tier-4 proof for these IDs.
-- Coverage is the structural test
-  `Room076WaterOverlayWritesBg2ObjectBuffer`: parse `0xD8` @ `(38,13)` on the
-  BG2 stream in room `0x076`, assert non-backdrop pixels in the object BG2
-  buffer ROI, and assert the composite changes when BG2 is enabled.
-- Rooms `0x035` / `0x037` carry `0xDA` with the same draw routine.
+- `Room076WaterOverlayWritesBg2ObjectBuffer` is a structural guard for Yaze's
+  currently modeled `0xD8` state: it parses `0xD8` @ `(38,13)` from the BG2
+  stream, checks coverage/opaque pixels using `255` as the transparent fill,
+  and toggles only BG2-object visibility in the comparison.
+- That structural test is **not** independent Mesen parity and does not prove
+  the alternate saved state or the layer-mode side effects.
+- Honest Tier-4 closure requires state-labeled Mesen captures for the relevant
+  `0xD8` and `0xDA` paths. Rooms `0x035` / `0x037` are useful `0xDA`
+  candidates.
 
 The regression test explicitly selects the intact/bombed preview through
 `EditorDungeonState::SetFloorBombable`. It removes room-object list 1 from its
@@ -325,11 +330,11 @@ they do **not** replace Mesen ROI baselines for these families.
 | Long horizontal rail (`_plus23`) | `0x5F` | `0x007`, `0x02A`, `0x07D`, `0x0C2` | **`0x007` tile `(20,14)` has a committed Mesen ROI** |
 | Long vertical rail (`_plus23`) | `0x8A` | `0x007`, `0x03A`, `0x081`, `0x0C2` | **`0x007` tile `(14,20)` has a committed Mesen ROI** |
 | BigHole 4x4 | `0xA4` | `0x031`, `0x017`, `0x054`, `0x09B` | 24 rooms; **`0x031` tile `(44,44)` has a committed Mesen ROI** |
-| Water overlay A | `0xD8` | `0x076` | **BG2 structural test** (HDMA in-game; no pixel ROI) |
-| Water overlay B | `0xDA` | `0x035`, `0x037` | Same draw routine as `0xD8`; covered by routine+parse |
+| Water overlay A | `0xD8` | `0x076` | **BG2 structural editor-preview test**; vanilla tilemap/HDMA behavior is stateful and has no committed Mesen ROI |
+| Water overlay B | `0xDA` | `0x035`, `0x037` | Shares the stateful family with `0xD8`; routine mapping is covered, runtime-state pixels are not |
 | TableRock 4x4 | `0xDD` | `0x065`, `0x02F`, `0x080` | 38 rooms; **`0x065` has a committed Mesen ROI** at tile `(41,52)` |
 | Door-heavy | (doors) | `0x024`, `0x0B2`, `0x0BC`, `0x0C1`, `0x0C2` | ≥8 door records; **`0x076` West door has a committed Mesen ROI** |
 
-Suggested next captures: additional door types (key/shutter/bombable) in
-door-heavy rooms; `0xDA` rooms share the water structural path with `0xD8`.
-Long rails in `0x007` are covered.
+Suggested next captures: additional door types (key/shutter/bombable/exploding)
+in door-heavy rooms, then state-labeled `0xD8`/`0xDA` captures. Long rails in
+`0x007` are covered.

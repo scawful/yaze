@@ -36,6 +36,7 @@ struct DungeonObjectSelectorTestAccess;
 class DungeonObjectSelector {
  public:
   explicit DungeonObjectSelector(Rom* rom = nullptr) : rom_(rom) {}
+  ~DungeonObjectSelector();
 
   // Unified context setter (preferred)
   void SetContext(EditorContext ctx) {
@@ -60,8 +61,8 @@ class DungeonObjectSelector {
     current_palette_group_id_ = id;
   }
   // Replace the active palette group used by preview rendering. The preview
-  // cache is keyed on (object_id, subtype, room.blockset(), room.palette()),
-  // none of which capture the *contents* of the palette group: switching
+  // cache is keyed on object identity plus room blockset, palette, and floor
+  // graphics, none of which capture the *contents* of the palette group: switching
   // dungeons between two palette banks that happen to use the same numeric
   // slot value will keep cache hits valid by key but stale by color. Since
   // the cache rebuilds in well under a frame, we conservatively invalidate
@@ -195,12 +196,15 @@ class DungeonObjectSelector {
   // Performance: enable/disable graphical preview rendering
   bool enable_object_previews_ = true;
 
-  // Preview cache for object selector grid
-  // Key: object_id (or object_id+subtype for custom objects)
+  // Preview cache for object selector grid, keyed by object/subtype and the
+  // room graphics context that can change its rendered tiles.
   // Value: BackgroundBuffer with rendered preview
   std::map<uint64_t, std::unique_ptr<gfx::BackgroundBuffer>> preview_cache_;
   uint8_t cached_preview_blockset_ = 0xFF;
+  uint8_t cached_preview_entrance_blockset_ = 0xFF;
   uint8_t cached_preview_palette_ = 0xFF;
+  uint8_t cached_preview_floor1_ = 0xFF;
+  uint8_t cached_preview_floor2_ = 0xFF;
   int cached_preview_room_id_ = -1;
 
   std::map<uint32_t, zelda3::ObjectTileLayout> layout_cache_;
@@ -209,6 +213,10 @@ class DungeonObjectSelector {
   // cache invalidation contract without poking at the cache directly.
   std::size_t preview_cache_invalidations_ = 0;
 
+  void RetirePreviewCache();
+  void SynchronizePreviewCacheRoomContext(const zelda3::Room& room);
+  static uint32_t MakeLayoutCacheKey(int object_id, uint8_t preview_size,
+                                     const zelda3::Room* room);
   bool GetOrCreatePreview(const zelda3::RoomObject& object, float size,
                           gfx::BackgroundBuffer** out);
 };

@@ -1080,9 +1080,10 @@ void DrawTableRock4x4_1to16(const DrawContext& ctx) {
 
 void DrawWaterOverlay8x8_1to16(const DrawContext& ctx) {
   // ASM: RoomDraw_WaterOverlayA8x8_1to16 ($0195D6) / RoomDraw_WaterOverlayB8x8
-  // NOTE: In the original game, this is an HDMA control object that sets up
-  // the wavy water distortion effect. It doesn't draw tiles directly.
-  // For the editor, we draw the available tile data as a visual indicator.
+  // These are stateful routines: they configure HDMA geometry and also stamp
+  // state-dependent tile patterns. The editor currently models one visible
+  // stamp from the available object payload; runtime water state and layer-mode
+  // side effects still require independent emulator coverage.
 
   int size_x = ((ctx.object.size_ >> 2) & 0x03);
   int size_y = (ctx.object.size_ & 0x03);
@@ -1162,18 +1163,16 @@ void DrawSpiralStairs(const DrawContext& ctx, bool going_up, bool is_upper) {
   // ASM: RoomDraw_SpiralStairsGoingUpUpper, etc.
   // Calls RoomDraw_1x3N_rightwards with A=4 -> 4 columns x 3 rows = 12 tiles
   // Tile order is COLUMN-MAJOR (down first, then right).
-  // Upper variants render to BG1, lower variants render to BG2.
+  // The active object-list pointer chooses the raster target. Upper/lower only
+  // selects transition metadata and the fixed tilemap that receives the two
+  // priority-bit flank mutations; ObjectDrawer applies those after this draw.
   (void)going_up;
+  (void)is_upper;
 
   if (ctx.tiles.size() < 12)
     return;
 
-  gfx::BackgroundBuffer* dest = &ctx.target_bg;
-  if (!is_upper && ctx.secondary_bg != nullptr) {
-    dest = ctx.secondary_bg;
-  }
-
-  DrawColumnMajor(*dest, ctx.object.x_, ctx.object.y_, 4, 3, ctx.tiles);
+  DrawColumnMajor(ctx.target_bg, ctx.object.x_, ctx.object.y_, 4, 3, ctx.tiles);
 }
 
 void DrawAutoStairs(const DrawContext& ctx) {
@@ -2242,8 +2241,8 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
             int tile_y = ctx.object.y_;
             // USDASM $01:8EC9-$01:8ED4 suppresses the leading corner when the
             // current slot already contains the small vertical rail corner.
-            if (!DrawRoutineUtils::ExistingTileMatchesAny(
-                    ctx.target_bg, ctx.object.x_, tile_y, {0x00E3})) {
+            if (!DrawRoutineUtils::ExistingTileMatchesAny(ctx, ctx.object.x_,
+                                                          tile_y, {0x00E3})) {
               DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, tile_y,
                                            ctx.tiles[0]);
             }

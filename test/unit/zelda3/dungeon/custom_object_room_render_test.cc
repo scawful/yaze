@@ -232,6 +232,20 @@ TEST_F(CustomObjectRoomRenderTest, EmptyLayoutClearsOnlyLayoutOwnedRevealBits) {
 }
 
 TEST_F(CustomObjectRoomRenderTest,
+       LayoutPitAndMaskObjectsRemainOnUpperStreamTilemap) {
+  WriteLayoutObjects(
+      /*layout_id=*/0,
+      {RoomObject(/*id=*/0xA4, /*x=*/4, /*y=*/5, /*size=*/0, /*layer=*/0),
+       RoomObject(/*id=*/0xC2, /*x=*/8, /*y=*/9, /*size=*/0, /*layer=*/0)});
+
+  RoomLayout layout(rom_.get());
+  ASSERT_TRUE(layout.LoadLayout(/*layout_id=*/0).ok());
+  ASSERT_EQ(layout.GetObjects().size(), 2U);
+  EXPECT_EQ(layout.GetObjects()[0].layer_, RoomObject::LayerType::BG1);
+  EXPECT_EQ(layout.GetObjects()[1].layer_, RoomObject::LayerType::BG1);
+}
+
+TEST_F(CustomObjectRoomRenderTest,
        MissingCustomObjectBinDrawsDiagnosticPlaceholderOnRoomCanvas) {
   EnableCustomObjects({"missing_track.bin"});
 
@@ -330,7 +344,7 @@ TEST_F(CustomObjectRoomRenderTest,
          "not disappear into BG2 behind the floor.";
 }
 
-TEST_F(CustomObjectRoomRenderTest, LayoutPitMasksStayOnBg2Path) {
+TEST_F(CustomObjectRoomRenderTest, LayoutPitMasksUseCurrentUpperStreamTilemap) {
   WriteLayoutObjects(
       /*layout_id=*/0,
       {RoomObject(/*id=*/0x0A4, /*x=*/6, /*y=*/7, /*size=*/0, /*layer=*/0)});
@@ -350,11 +364,12 @@ TEST_F(CustomObjectRoomRenderTest, LayoutPitMasksStayOnBg2Path) {
   const int bg2_covered_pixels =
       static_cast<int>(std::count(bg2_coverage.begin(), bg2_coverage.end(), 1));
 
-  EXPECT_GT(bg2_covered_pixels, 0)
-      << "Layout pit/mask objects should still render into BG2 to reveal the "
-         "lower layer.";
-  EXPECT_LT(bg1_covered_pixels, bg2_covered_pixels)
-      << "Pit/mask layout objects should not be forced wholesale onto BG1.";
+  EXPECT_GT(bg1_covered_pixels, 0) << "Layout objects use the upper tilemap "
+                                      "pointer active when ALTTP enters "
+                                      "the layout stream.";
+  EXPECT_EQ(bg2_covered_pixels, 0)
+      << "A pit/mask object ID does not reroute the layout stream to the lower "
+         "tilemap.";
 }
 
 TEST_F(CustomObjectRoomRenderTest,

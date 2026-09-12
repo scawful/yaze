@@ -1,6 +1,7 @@
 #include "app/editor/system/session/user_settings.h"
 
 #include <algorithm>
+#include <array>
 #include <filesystem>
 #include <fstream>
 #include <sstream>
@@ -77,6 +78,25 @@ void EraseEmbeddedDungeonUtilityPanelVisibility(
     } else {
       ++it;
     }
+  }
+}
+
+constexpr std::array<const char*, 10> kDungeonWorkbenchDuplicatePanels = {
+    "dungeon.room_selector",   "dungeon.room_matrix",
+    "dungeon.object_selector", "dungeon.sprite_editor",
+    "dungeon.item_editor",     "dungeon.room_graphics",
+    "dungeon.door_editor",     "dungeon.palette_editor",
+    "dungeon.entrance_list",   "dungeon.entrance_properties",
+};
+
+void ApplyDungeonWorkbenchVisibilityDefaults(
+    std::unordered_map<std::string, bool>* panel_state) {
+  if (!panel_state) {
+    return;
+  }
+  (*panel_state)["dungeon.workbench"] = true;
+  for (const char* panel_id : kDungeonWorkbenchDuplicatePanels) {
+    (*panel_state)[panel_id] = false;
   }
 }
 
@@ -1598,6 +1618,41 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
     }
 
     prefs_.panel_layout_defaults_revision = 21;
+    applied = true;
+  }
+
+  // Revision 22: make the Dungeon Workbench the single default surface.
+  // These standalone panels duplicate tools already embedded in the
+  // Workbench and collectively squeeze the room canvas. Close only the live
+  // Dungeon visibility entries; pinned panels and saved/named layouts are
+  // explicit user customizations and must remain untouched.
+  if (prefs_.panel_layout_defaults_revision < 22 && target_revision >= 22) {
+    if (auto dungeon_it = prefs_.panel_visibility_state.find("Dungeon");
+        dungeon_it != prefs_.panel_visibility_state.end()) {
+      ApplyDungeonWorkbenchVisibilityDefaults(&dungeon_it->second);
+    }
+
+    prefs_.panel_layout_defaults_revision = 22;
+    applied = true;
+  }
+
+  // Revision 23: keep the global activity rail available, but collapse its
+  // wide tool catalog when Dungeon is the active/default workspace. The
+  // Workbench already embeds the useful room browser, canvas, and inspector;
+  // showing both left panes steals enough width for responsive layout to hide
+  // the room browser. Re-assert the revision-22 visibility set because an older
+  // concurrently-running build can persist those duplicate windows again.
+  if (prefs_.panel_layout_defaults_revision < 23 && target_revision >= 23) {
+    if (auto dungeon_it = prefs_.panel_visibility_state.find("Dungeon");
+        dungeon_it != prefs_.panel_visibility_state.end()) {
+      ApplyDungeonWorkbenchVisibilityDefaults(&dungeon_it->second);
+    }
+    if (prefs_.sidebar_active_category.empty() ||
+        prefs_.sidebar_active_category == "Dungeon") {
+      prefs_.sidebar_panel_expanded = false;
+    }
+
+    prefs_.panel_layout_defaults_revision = 23;
     applied = true;
   }
 

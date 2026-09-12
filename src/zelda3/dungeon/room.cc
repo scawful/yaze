@@ -42,11 +42,6 @@ namespace zelda3 {
 
 namespace {
 
-bool RoomUsesTrackCornerAliases(const std::vector<RoomObject>& objects) {
-  return std::any_of(objects.begin(), objects.end(),
-                     [](const RoomObject& obj) { return obj.id_ == 0x31; });
-}
-
 uint8_t Layer2ModeFromHeaderByte(uint8_t byte0) {
   return static_cast<uint8_t>((byte0 >> 5) & 0x07);
 }
@@ -1295,7 +1290,8 @@ void Room::LoadLayoutTilesToBuffer() {
 
   // Draw layout objects using proper draw routines via RoomLayout
   auto status = layout_.Draw(room_id_, current_gfx16_.data(), bg1_buffer_,
-                             bg2_buffer_, palette_group, dungeon_state_.get());
+                             bg2_buffer_, palette_group, dungeon_state_.get(),
+                             floor1_graphics_, floor2_graphics_);
 
   if (!status.ok()) {
     LOG_DEBUG(
@@ -1353,7 +1349,9 @@ void Room::RenderObjectsToBackground() {
   // Pass the room-specific graphics buffer (current_gfx16_) so objects use
   // correct tiles
   ObjectDrawer drawer(rom_, room_id_, current_gfx16_.data());
-  drawer.SetAllowTrackCornerAliases(RoomUsesTrackCornerAliases(tile_objects_));
+  drawer.SetRoomFloorGraphics(floor1_graphics_, floor2_graphics_);
+  drawer.SetAllowTrackCornerAliases(
+      RoomAllowsTrackCornerAliases(tile_objects_));
   drawer.SetBG1RevealMaskSource(gfx::BG1RevealMaskSource::kBG2Objects);
   // NOTE: Routines marked draws_to_both_bgs explicitly write both tilemaps.
   // Object-specific stair routing is handled inside the registered routines.
@@ -1368,19 +1366,18 @@ void Room::RenderObjectsToBackground() {
   object_bg1_buffer_.bitmap().Fill(255);
   object_bg2_buffer_.bitmap().Fill(255);
 
-  // IMPORTANT: Clear priority buffers when clearing object buffers
-  // Otherwise, old priority values persist and cause incorrect Z-ordering
+  // Clear object-owned tile words, priority, and coverage. Conditional edge
+  // routines use coverage to select between this object owner and the matching
+  // layout owner, so none of those buffers may remain stale.
+  object_bg1_buffer_.ClearTileBuffer();
+  object_bg2_buffer_.ClearTileBuffer();
   object_bg1_buffer_.ClearPriorityBuffer();
   object_bg2_buffer_.ClearPriorityBuffer();
-
-  // IMPORTANT: Clear coverage buffers when clearing object buffers.
-  // Coverage distinguishes "no draw" vs "drew transparent", so stale values
-  // can cause objects to incorrectly clear the layout.
   object_bg1_buffer_.ClearCoverageBuffer();
   object_bg2_buffer_.ClearCoverageBuffer();
 
-  // Room-object masks target both raw BG1 stacks. Clear only their source bit
-  // so layout-owned reveals survive an object-only rerender.
+  // Room-object masks target both raw BG1 stacks. Clear their source bit on
+  // both owners so layout-owned reveals survive an object-only rerender.
   object_bg1_buffer_.ClearBG1RevealMask(gfx::BG1RevealMaskSource::kBG2Objects);
   bg1_buffer_.ClearBG1RevealMask(gfx::BG1RevealMaskSource::kBG2Objects);
 
@@ -1413,9 +1410,10 @@ void Room::RenderObjectsToBackground() {
   // `tile_objects_[].layer_` holds the list index (0/1/2) for save/load, not
   // the buffer name. Map with MapRoomObjectListIndexToDrawLayer before drawing.
   // BothBG routines still fan out to both buffers via DrawRoutineRegistry.
-  // Pass bg1_buffer_ as the second raw BG1 target. BG2 room objects record
-  // deferred reveal bits on both layout and object targets without mutating
-  // either bitmap.
+  // Pass both layout buffers because USDASM priority-only writes target one
+  // physical tilemap, while Yaze temporarily splits that tilemap between its
+  // layout and object owners. BG2 room objects also record deferred upper-map
+  // reveal bits without mutating either bitmap.
   //
   // Three DrawObjectList passes match USDASM list order; the shared chest/
   // big-key-lock event index continues across passes (reset only on the first
@@ -1449,7 +1447,8 @@ void Room::RenderObjectsToBackground() {
     }
     auto chunk_status = drawer.DrawObjectList(
         by_list[pass], object_bg1_buffer_, object_bg2_buffer_, palette_group,
-        dungeon_state_.get(), &bg1_buffer_, reset_room_events_for_next_chunk);
+        dungeon_state_.get(), &bg1_buffer_, reset_room_events_for_next_chunk,
+        &bg2_buffer_);
     reset_room_events_for_next_chunk = false;
     if (!chunk_status.ok() && status.ok()) {
       status = chunk_status;
@@ -1468,11 +1467,12 @@ void Room::RenderObjectsToBackground() {
     // Draw doors to object buffers (not layout buffers) so they remain visible
     // when BG1_Layout is hidden. Doors are objects, not layout tiles.
     drawer.DrawDoor(door_def, i, object_bg1_buffer_, object_bg2_buffer_,
-                    dungeon_state_.get());
+                    dungeon_state_.get(), &bg1_buffer_, &bg2_buffer_);
   }
   // Mark object buffer as modified so texture gets updated
   if (!doors_.empty()) {
     object_bg1_buffer_.bitmap().set_modified(true);
+    object_bg2_buffer_.bitmap().set_modified(true);
   }
 
   // Render pot items

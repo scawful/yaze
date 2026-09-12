@@ -73,9 +73,7 @@ class RoomObject {
         oy_(y),
         width_(16),
         height_(16),
-        rom_(nullptr) {
-    RefreshDerivedFlagsFromId();
-  }
+        rom_(nullptr) {}
 
   void SetRom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
@@ -188,6 +186,8 @@ class RoomObject {
     return copy;
   }
 
+  // Explicit editor/custom-object override. Built-in objects derive their
+  // layer routing from DrawRoutineRegistry instead of duplicating ID lists.
   bool all_bgs_ = false;
   bool lit_ = false;
 
@@ -243,7 +243,6 @@ class RoomObject {
   Rom* rom_;
 
  private:
-  void RefreshDerivedFlagsFromId();
   void InvalidateTileCache();
   bool IsTrackedTileCacheCurrent() const;
   void MarkTileCacheCurrent();

@@ -655,9 +655,27 @@ class Room {
 
   // Public setters for LoadRoomFromRom function
   void SetBg2(background2 bg2) {
-    if (bg2_ != bg2) {
-      bg2_ = bg2;
+    const uint8_t raw_value = static_cast<uint8_t>(bg2);
+    const uint8_t normalized_value = raw_value <= 8 ? raw_value : 0;
+    const bool dark_room = normalized_value == 8;
+    const uint8_t next_layer2_mode =
+        dark_room ? static_cast<uint8_t>(layer2_mode_ & 0x07)
+                  : normalized_value;
+    const LayerMergeType& next_merge =
+        kLayerMergeTypeList[dark_room ? 8 : next_layer2_mode];
+    const background2 normalized_bg2 =
+        static_cast<background2>(normalized_value);
+
+    if (bg2_ != normalized_bg2 || layer2_mode_ != next_layer2_mode ||
+        layer_merging_ != next_merge || is_dark_ != dark_room ||
+        is_light_ != dark_room) {
+      bg2_ = normalized_bg2;
+      layer2_mode_ = next_layer2_mode;
+      layer_merging_ = next_merge;
+      is_dark_ = dark_room;
+      is_light_ = dark_room;
       MarkHeaderDirty();
+      MarkGraphicsDirty();
     }
   }
   void SetCollision(CollisionKey collision) {
@@ -760,15 +778,22 @@ class Room {
     }
   }
   void SetLayer2Mode(uint8_t mode) {
-    if (layer2_mode_ != mode) {
-      layer2_mode_ = mode;
+    const uint8_t normalized_mode = mode & 0x07;
+    if (layer2_mode_ != normalized_mode) {
+      layer2_mode_ = normalized_mode;
+      if (bg2_ != background2::DarkRoom) {
+        bg2_ = static_cast<background2>(normalized_mode);
+        layer_merging_ = kLayerMergeTypeList[normalized_mode];
+      }
       MarkHeaderDirty();
+      MarkGraphicsDirty();
     }
   }
   void SetLayerMerging(LayerMergeType merging) {
     if (layer_merging_ != merging) {
       layer_merging_ = merging;
       MarkHeaderDirty();
+      MarkGraphicsDirty();
     }
   }
   void SetIsDark(bool is_dark) {
@@ -890,6 +915,7 @@ class Room {
   TagKey tag2() const { return tag2_; }
   CollisionKey collision() const { return collision_; }
   const LayerMergeType& layer_merging() const { return layer_merging_; }
+  uint8_t layer2_mode() const { return layer2_mode_; }
   uint8_t staircase_plane(int index) const {
     return (index >= 0 && index < 4) ? staircase_plane_[index] : 0;
   }
@@ -991,6 +1017,7 @@ class Room {
   bool IsCompositeDirty() const { return dirty_state_.composite; }
 
   DungeonState* GetDungeonState() { return dungeon_state_.get(); }
+  const DungeonState* GetDungeonState() const { return dungeon_state_.get(); }
 
  private:
   Rom* rom_;

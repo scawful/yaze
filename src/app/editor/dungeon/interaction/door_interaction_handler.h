@@ -147,6 +147,10 @@ class DoorInteractionHandler : public BaseEntityHandler {
   bool is_dragging_ = false;
   ImVec2 drag_start_pos_;
   ImVec2 drag_current_pos_;
+  // Pointer position relative to the selected door's raw ROM anchor. Special
+  // doors can extend several tiles above/left of that anchor, so preserving
+  // this offset keeps the encoded position stable regardless of grab point.
+  ImVec2 drag_grab_offset_from_anchor_ = ImVec2(0.0f, 0.0f);
 
   /**
    * @brief Place door at snapped position
@@ -157,6 +161,8 @@ class DoorInteractionHandler : public BaseEntityHandler {
    * @brief Update snapped position based on cursor
    */
   bool UpdateSnappedPosition(int canvas_x, int canvas_y);
+
+  std::pair<int, int> GetCurrentDragAnchorPosition() const;
 
   std::optional<PairBadgeOverlay> BuildPairBadgeOverlay(
       const zelda3::Room::Door& door, ImVec2 door_pos, ImVec2 door_size,

@@ -1,9 +1,13 @@
 #include "gtest/gtest.h"
 
 #include <array>
+#include <chrono>
+#include <filesystem>
+#include <fstream>
 #include <iomanip>
 #include <vector>
 
+#include "core/features.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
@@ -13,6 +17,43 @@ namespace yaze {
 namespace zelda3 {
 
 namespace {
+
+class ScopedCustomObjectRoutingState {
+ public:
+  ScopedCustomObjectRoutingState()
+      : previous_state_(CustomObjectManager::Get().SnapshotState()),
+        previous_enabled_(core::FeatureFlags::get().kEnableCustomObjects) {
+    const auto nonce =
+        std::chrono::steady_clock::now().time_since_epoch().count();
+    directory_ = std::filesystem::temp_directory_path() /
+                 ("yaze_object_layer_semantics_" + std::to_string(nonce));
+    std::filesystem::create_directories(directory_);
+    CustomObjectManager::Get().Initialize(directory_.string());
+    core::FeatureFlags::get().kEnableCustomObjects = true;
+  }
+
+  ~ScopedCustomObjectRoutingState() {
+    core::FeatureFlags::get().kEnableCustomObjects = previous_enabled_;
+    CustomObjectManager::Get().RestoreState(previous_state_);
+    std::error_code error;
+    std::filesystem::remove_all(directory_, error);
+  }
+
+  void WriteOneTileObject(const std::string& filename) const {
+    const std::array<uint8_t, 6> bytes = {
+        0x01, 0x00,  // one tile, no row jump
+        0x40, 0x08,  // tile word 0x0840
+        0x00, 0x00,  // terminator
+    };
+    std::ofstream output(directory_ / filename, std::ios::binary);
+    output.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+  }
+
+ private:
+  CustomObjectManager::State previous_state_;
+  bool previous_enabled_;
+  std::filesystem::path directory_;
+};
 
 struct AuditedRoutingCase {
   int object_id;
@@ -30,9 +71,9 @@ constexpr std::array<AuditedRoutingCase, 22> kAuditedRoutingCases = {{
     {0xF9D, DrawRoutineIds::kAutoStairs, ObjectRenderRouting::kStoredPlacement},
     {0xFB3, DrawRoutineIds::kAutoStairs, ObjectRenderRouting::kStoredPlacement},
     {0x138, DrawRoutineIds::kSpiralStairsGoingUpUpper,
-     ObjectRenderRouting::kFixedBg1},
+     ObjectRenderRouting::kStoredPlacement},
     {0x139, DrawRoutineIds::kSpiralStairsGoingDownUpper,
-     ObjectRenderRouting::kFixedBg1},
+     ObjectRenderRouting::kStoredPlacement},
     {0xF9E, DrawRoutineIds::kStraightInterRoomStairs,
      ObjectRenderRouting::kFixedBg1},
     {0xF9F, DrawRoutineIds::kStraightInterRoomStairs,
@@ -42,9 +83,9 @@ constexpr std::array<AuditedRoutingCase, 22> kAuditedRoutingCases = {{
     {0xFA1, DrawRoutineIds::kStraightInterRoomStairs,
      ObjectRenderRouting::kFixedBg1},
     {0x13A, DrawRoutineIds::kSpiralStairsGoingUpLower,
-     ObjectRenderRouting::kFixedBg2},
+     ObjectRenderRouting::kStoredPlacement},
     {0x13B, DrawRoutineIds::kSpiralStairsGoingDownLower,
-     ObjectRenderRouting::kFixedBg2},
+     ObjectRenderRouting::kStoredPlacement},
     {0xFA6, DrawRoutineIds::kStraightInterRoomStairs,
      ObjectRenderRouting::kMixedBg1Bg2},
     {0xFA7, DrawRoutineIds::kStraightInterRoomStairs,
@@ -99,7 +140,8 @@ TEST(ObjectLayerSemanticsTest, RoutineMetadataCanForceBothBgForType2Objects) {
 }
 
 TEST(ObjectLayerSemanticsTest, AllBgsOverrideForcesBothBg) {
-  RoomObject obj(/*id=*/0x0C, /*x=*/0, /*y=*/0, /*size=*/0, /*layer=*/1);
+  RoomObject obj(/*id=*/0x21, /*x=*/0, /*y=*/0, /*size=*/0, /*layer=*/1);
+  obj.all_bgs_ = true;
 
   EXPECT_TRUE(obj.all_bgs_);
   const auto sem = GetObjectLayerSemantics(obj);
@@ -115,6 +157,61 @@ TEST(ObjectLayerSemanticsTest, NonBothBgUsesStoredLayer) {
   EXPECT_FALSE(sem.draws_to_both_bgs);
   EXPECT_EQ(sem.effective_bg_layer, EffectiveBgLayer::kBg2);
   EXPECT_EQ(sem.render_routing, ObjectRenderRouting::kStoredPlacement);
+}
+
+TEST(ObjectLayerSemanticsTest,
+     ActiveCustomOverridePreemptsBuiltInFixedLayerRouting) {
+  ScopedCustomObjectRoutingState custom_state;
+  custom_state.WriteOneTileObject("override.bin");
+  CustomObjectManager::Get().SetObjectFileMap({{0xFAD, {"override.bin"}}});
+
+  RoomObject object(/*id=*/0xFAD, /*x=*/0, /*y=*/0, /*size=*/0,
+                    /*layer=*/1);
+  const auto built_in = GetObjectLayerSemantics(object);
+  ASSERT_EQ(built_in.render_routing, ObjectRenderRouting::kFixedBg1);
+  ASSERT_EQ(built_in.effective_bg_layer, EffectiveBgLayer::kBg1);
+
+  const auto effective = GetEffectiveObjectLayerSemantics(
+      object, /*allow_track_corner_aliases=*/true);
+  EXPECT_TRUE(effective.custom_override_active);
+  EXPECT_EQ(effective.render_routing, ObjectRenderRouting::kStoredPlacement);
+  EXPECT_EQ(effective.effective_bg_layer, EffectiveBgLayer::kBg2);
+
+  object.all_bgs_ = true;
+  const auto both = GetEffectiveObjectLayerSemantics(
+      object, /*allow_track_corner_aliases=*/true);
+  EXPECT_TRUE(both.custom_override_active);
+  EXPECT_EQ(both.render_routing, ObjectRenderRouting::kFullBothBg1Bg2);
+  EXPECT_EQ(both.effective_bg_layer, EffectiveBgLayer::kBothBg1Bg2);
+}
+
+TEST(ObjectLayerSemanticsTest,
+     TrackCornerCustomOverrideHonorsRoomAliasPermission) {
+  ScopedCustomObjectRoutingState custom_state;
+  custom_state.WriteOneTileObject("track_corner_tl.bin");
+  CustomObjectManager::Get().SetObjectFileMap(
+      {{0x31,
+        {"unused_lr.bin", "unused_ud.bin", "track_corner_tl.bin",
+         "unused_tr.bin", "unused_bl.bin", "unused_br.bin"}}});
+
+  RoomObject corner(/*id=*/0x100, /*x=*/0, /*y=*/0, /*size=*/0,
+                    /*layer=*/1);
+  EXPECT_FALSE(HasActiveCustomObjectOverride(
+      corner, /*allow_track_corner_aliases=*/false));
+  EXPECT_TRUE(HasActiveCustomObjectOverride(
+      corner, /*allow_track_corner_aliases=*/true));
+
+  const auto built_in =
+      GetEffectiveObjectLayerSemantics(corner,
+                                       /*allow_track_corner_aliases=*/false);
+  EXPECT_FALSE(built_in.custom_override_active);
+  EXPECT_EQ(built_in.effective_bg_layer, EffectiveBgLayer::kBg2);
+  const auto custom =
+      GetEffectiveObjectLayerSemantics(corner,
+                                       /*allow_track_corner_aliases=*/true);
+  EXPECT_TRUE(custom.custom_override_active);
+  EXPECT_EQ(custom.effective_bg_layer, EffectiveBgLayer::kBg2);
+  EXPECT_EQ(custom.render_routing, ObjectRenderRouting::kStoredPlacement);
 }
 
 TEST(ObjectLayerSemanticsTest,

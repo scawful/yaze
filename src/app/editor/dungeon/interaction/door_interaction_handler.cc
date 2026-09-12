@@ -58,11 +58,21 @@ bool DoorInteractionHandler::HandleClick(int canvas_x, int canvas_y) {
   // Try to select door at position
   auto door_index = GetEntityAtPosition(canvas_x, canvas_y);
   if (door_index.has_value()) {
+    const auto* room = ctx_->GetCurrentRoomConst();
+    if (!room || *door_index >= room->GetDoors().size()) {
+      return false;
+    }
+    const auto [anchor_x, anchor_y] =
+        room->GetDoors()[*door_index].GetPixelCoords();
+
     SelectDoor(*door_index);
     is_dragging_ = true;
     drag_start_pos_ =
         ImVec2(static_cast<float>(canvas_x), static_cast<float>(canvas_y));
     drag_current_pos_ = drag_start_pos_;
+    drag_grab_offset_from_anchor_ =
+        ImVec2(static_cast<float>(canvas_x - anchor_x),
+               static_cast<float>(canvas_y - anchor_y));
     return true;
   }
 
@@ -104,8 +114,7 @@ void DoorInteractionHandler::HandleRelease() {
     return;
   }
 
-  int drag_x = static_cast<int>(drag_current_pos_.x);
-  int drag_y = static_cast<int>(drag_current_pos_.y);
+  const auto [drag_x, drag_y] = GetCurrentDragAnchorPosition();
 
   // Detect wall from final position
   zelda3::DoorDirection direction;
@@ -151,14 +160,13 @@ bool DoorInteractionHandler::HandleOverlayClick(int canvas_x, int canvas_y) {
   }
 
   const auto& door = doors[*selected_door_index_];
-  const auto [tile_x, tile_y] = door.GetTileCoords();
-  const auto dims = door.GetEditorDimensions();
+  const auto [door_x, door_y, door_w, door_h] = door.GetEditorBounds();
   const DungeonCanvasTransform transform = GetCanvasTransform();
   const float scale = transform.scale();
-  const ImVec2 door_pos =
-      transform.RoomPixelsToScreen(ImVec2(tile_x * 8.0f, tile_y * 8.0f));
+  const ImVec2 door_pos = transform.RoomPixelsToScreen(
+      ImVec2(static_cast<float>(door_x), static_cast<float>(door_y)));
   const ImVec2 door_size = transform.RoomSizeToScreen(
-      ImVec2(dims.width_tiles * 8.0f, dims.height_tiles * 8.0f));
+      ImVec2(static_cast<float>(door_w), static_cast<float>(door_h)));
   const auto badge = BuildPairBadgeOverlay(door, door_pos, door_size, scale);
   if (!badge.has_value() || badge->target_room_id < 0) {
     return false;
@@ -212,18 +220,9 @@ void DoorInteractionHandler::DrawGhostPreview() {
     return;  // Not near a wall
   }
 
-  // Get door position in tile coordinates
-  auto [tile_x, tile_y] = zelda3::DoorPositionManager::PositionToTileCoords(
-      snapped_door_position_, detected_door_direction_);
-
-  // Get door dimensions
-  auto dims = zelda3::GetEditorDoorDimensions(detected_door_direction_,
-                                              preview_door_type_);
-  int door_width_px = dims.width_tiles * 8;
-  int door_height_px = dims.height_tiles * 8;
-
-  // Convert to canvas pixel coordinates
-  auto [snap_canvas_x, snap_canvas_y] = RoomToCanvas(tile_x, tile_y);
+  const auto [snap_canvas_x, snap_canvas_y, door_width_px, door_height_px] =
+      zelda3::DoorPositionManager::GetDoorEditorBounds(
+          snapped_door_position_, detected_door_direction_, preview_door_type_);
 
   // Draw ghost preview
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -316,13 +315,11 @@ void DoorInteractionHandler::DrawSelectionHighlight() {
     return;
 
   const auto& door = doors[*selected_door_index_];
-  auto [tile_x, tile_y] = door.GetTileCoords();
-  auto dims = door.GetEditorDimensions();
+  auto [door_x, door_y, door_w, door_h] = door.GetEditorBounds();
 
   // If dragging, use current drag position for door preview
   if (is_dragging_) {
-    int drag_x = static_cast<int>(drag_current_pos_.x);
-    int drag_y = static_cast<int>(drag_current_pos_.y);
+    const auto [drag_x, drag_y] = GetCurrentDragAnchorPosition();
 
     zelda3::DoorDirection dir;
     bool is_inner = false;
@@ -330,21 +327,19 @@ void DoorInteractionHandler::DrawSelectionHighlight() {
                                                        is_inner)) {
       uint8_t snap_pos = zelda3::DoorPositionManager::SnapToNearestPosition(
           drag_x, drag_y, dir);
-      auto [snap_x, snap_y] =
-          zelda3::DoorPositionManager::PositionToTileCoords(snap_pos, dir);
-      tile_x = snap_x;
-      tile_y = snap_y;
-      dims = zelda3::GetEditorDoorDimensions(dir, door.type);
+      std::tie(door_x, door_y, door_w, door_h) =
+          zelda3::DoorPositionManager::GetDoorEditorBounds(snap_pos, dir,
+                                                           door.type);
     }
   }
 
   ImDrawList* draw_list = ImGui::GetWindowDrawList();
   const DungeonCanvasTransform transform = GetCanvasTransform();
   const float scale = transform.scale();
-  const ImVec2 pos =
-      transform.RoomPixelsToScreen(ImVec2(tile_x * 8.0f, tile_y * 8.0f));
+  const ImVec2 pos = transform.RoomPixelsToScreen(
+      ImVec2(static_cast<float>(door_x), static_cast<float>(door_y)));
   const ImVec2 size = transform.RoomSizeToScreen(
-      ImVec2(dims.width_tiles * 8.0f, dims.height_tiles * 8.0f));
+      ImVec2(static_cast<float>(door_w), static_cast<float>(door_h)));
 
   // Animated selection
   static float pulse = 0.0f;
@@ -393,7 +388,8 @@ std::optional<DoorInteractionHandler::PairBadgeOverlay>
 DoorInteractionHandler::BuildPairBadgeOverlay(const zelda3::Room::Door& door,
                                               ImVec2 door_pos, ImVec2 door_size,
                                               float scale) const {
-  if (is_dragging_ || !ctx_ || !ctx_->rooms) {
+  if (is_dragging_ || !ctx_ || !ctx_->rooms ||
+      !zelda3::IsRoomConnectionDoorType(door.type)) {
     return std::nullopt;
   }
 
@@ -409,7 +405,8 @@ DoorInteractionHandler::BuildPairBadgeOverlay(const zelda3::Room::Door& door,
     bool any_on_opposite = false;
     for (size_t i = 0; i < neighbor_doors.size(); ++i) {
       const auto& nd = neighbor_doors[i];
-      if (nd.direction != opposite) {
+      if (nd.direction != opposite ||
+          !zelda3::IsRoomConnectionDoorType(nd.type)) {
         continue;
       }
 
@@ -709,12 +706,19 @@ bool DoorInteractionHandler::UpdateSnappedPosition(int canvas_x, int canvas_y) {
   return true;
 }
 
+std::pair<int, int> DoorInteractionHandler::GetCurrentDragAnchorPosition()
+    const {
+  return {
+      static_cast<int>(drag_current_pos_.x - drag_grab_offset_from_anchor_.x),
+      static_cast<int>(drag_current_pos_.y - drag_grab_offset_from_anchor_.y),
+  };
+}
+
 void DoorInteractionHandler::DrawSnapIndicators() {
   if (!is_dragging_ || !HasValidContext())
     return;
 
-  int drag_x = static_cast<int>(drag_current_pos_.x);
-  int drag_y = static_cast<int>(drag_current_pos_.y);
+  const auto [drag_x, drag_y] = GetCurrentDragAnchorPosition();
 
   zelda3::DoorDirection direction;
   bool is_inner = false;
@@ -737,20 +741,17 @@ void DoorInteractionHandler::DrawSnapIndicators() {
       *selected_door_index_ < room->GetDoors().size()) {
     indicator_type = room->GetDoors()[*selected_door_index_].type;
   }
-  auto dims = zelda3::GetEditorDoorDimensions(direction, indicator_type);
-
   // Draw indicators for 6 positions in this section
   for (uint8_t i = 0; i < 6; ++i) {
     uint8_t pos = start_pos + i;
-    auto [tile_x, tile_y] =
-        zelda3::DoorPositionManager::PositionToTileCoords(pos, direction);
-    float pixel_x = tile_x * 8.0f;
-    float pixel_y = tile_y * 8.0f;
+    const auto [pixel_x, pixel_y, width, height] =
+        zelda3::DoorPositionManager::GetDoorEditorBounds(pos, direction,
+                                                         indicator_type);
 
-    const ImVec2 snap_start =
-        transform.RoomPixelsToScreen(ImVec2(pixel_x, pixel_y));
+    const ImVec2 snap_start = transform.RoomPixelsToScreen(
+        ImVec2(static_cast<float>(pixel_x), static_cast<float>(pixel_y)));
     const ImVec2 snap_size = transform.RoomSizeToScreen(
-        ImVec2(dims.width_pixels(), dims.height_pixels()));
+        ImVec2(static_cast<float>(width), static_cast<float>(height)));
     const ImVec2 snap_end(snap_start.x + snap_size.x,
                           snap_start.y + snap_size.y);
 

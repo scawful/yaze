@@ -480,6 +480,30 @@ TEST_F(DoorInteractionHandlerTest,
 }
 
 TEST_F(DoorInteractionHandlerTest,
+       HitTestingUsesSouthFancyExitOffsetAndFullFootprint) {
+  zelda3::Room::Door door;
+  door.position = 8;
+  door.type = zelda3::DoorType::FancyDungeonExit;
+  door.direction = zelda3::DoorDirection::South;
+  rooms_[0].AddDoor(door);
+
+  EXPECT_EQ(handler_.GetEntityAtPosition(348, 436), 0u);
+  EXPECT_FALSE(handler_.GetEntityAtPosition(343, 436).has_value());
+  EXPECT_FALSE(handler_.GetEntityAtPosition(348, 431).has_value());
+}
+
+TEST_F(DoorInteractionHandlerTest, HitTestingUsesSouthFourByFourExitFootprint) {
+  zelda3::Room::Door door;
+  door.position = 8;
+  door.type = zelda3::DoorType::ExitLower;
+  door.direction = zelda3::DoorDirection::South;
+  rooms_[0].AddDoor(door);
+
+  EXPECT_EQ(handler_.GetEntityAtPosition(372, 468), 0u);
+  EXPECT_FALSE(handler_.GetEntityAtPosition(372, 463).has_value());
+}
+
+TEST_F(DoorInteractionHandlerTest,
        DragReleaseMovesDoorAndMarksObjectStreamDirty) {
   zelda3::Room::Door door;
   door.position = 0;
@@ -493,15 +517,74 @@ TEST_F(DoorInteractionHandlerTest,
 
   const auto [door_x, door_y, door_w, door_h] =
       rooms_[0].GetDoors()[0].GetEditorBounds();
-  ASSERT_TRUE(handler_.HandleClick(door_x + door_w / 2, door_y + door_h / 2));
+  const auto [source_anchor_x, source_anchor_y] =
+      rooms_[0].GetDoors()[0].GetPixelCoords();
+  const int grab_x = door_x + door_w / 2;
+  const int grab_y = door_y + door_h / 2;
+  ASSERT_TRUE(handler_.HandleClick(grab_x, grab_y));
 
-  handler_.HandleDrag(ImVec2(30.0f * 8.0f, static_cast<float>(door_y)),
-                      ImVec2(0.0f, 0.0f));
+  const auto [target_anchor_x, target_anchor_y] =
+      zelda3::DoorPositionManager::PositionToPixelCoords(
+          /*position=*/1, zelda3::DoorDirection::North);
+  handler_.HandleDrag(
+      ImVec2(static_cast<float>(target_anchor_x + grab_x - source_anchor_x),
+             static_cast<float>(target_anchor_y + grab_y - source_anchor_y)),
+      ImVec2(0.0f, 0.0f));
   handler_.HandleRelease();
 
   const auto& moved = rooms_[0].GetDoors()[0];
   EXPECT_EQ(moved.position, 1);
   EXPECT_EQ(moved.direction, zelda3::DoorDirection::North);
+  const auto [expected_b1, expected_b2] = moved.EncodeBytes();
+  EXPECT_EQ(moved.byte1, expected_b1);
+  EXPECT_EQ(moved.byte2, expected_b2);
+  EXPECT_TRUE(rooms_[0].object_stream_dirty());
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_EQ(invalidate_count_, 1);
+}
+
+TEST_F(DoorInteractionHandlerTest,
+       DraggingSouthFancyExitFromExpandedTopRowsPreservesAnchorOffset) {
+  zelda3::Room::Door door;
+  door.position = 8;
+  door.type = zelda3::DoorType::FancyDungeonExit;
+  door.direction = zelda3::DoorDirection::South;
+  auto [byte1, byte2] = door.EncodeBytes();
+  door.byte1 = byte1;
+  door.byte2 = byte2;
+  rooms_[0].AddDoor(door);
+  rooms_[0].ClearObjectStreamDirty();
+
+  const auto [door_x, door_y, door_w, door_h] =
+      rooms_[0].GetDoors()[0].GetEditorBounds();
+  const auto [source_anchor_x, source_anchor_y] =
+      rooms_[0].GetDoors()[0].GetPixelCoords();
+  ASSERT_EQ(door_w, 80);
+  ASSERT_EQ(door_h, 64);
+
+  // Grab the expanded art four pixels from its top-left corner. This point is
+  // above the South wall-classification threshold and used to produce no move.
+  const int grab_x = door_x + 4;
+  const int grab_y = door_y + 4;
+  ASSERT_LT(grab_y, (zelda3::DoorPositionManager::kRoomHeightTiles -
+                     zelda3::DoorPositionManager::kWallDetectionThreshold) *
+                        zelda3::DoorPositionManager::kTileSize);
+  ASSERT_TRUE(handler_.HandleClick(grab_x, grab_y));
+
+  const auto [target_anchor_x, target_anchor_y] =
+      zelda3::DoorPositionManager::PositionToPixelCoords(
+          /*position=*/7, zelda3::DoorDirection::South);
+  const int grab_offset_x = grab_x - source_anchor_x;
+  const int grab_offset_y = grab_y - source_anchor_y;
+  handler_.HandleDrag(
+      ImVec2(static_cast<float>(target_anchor_x + grab_offset_x),
+             static_cast<float>(target_anchor_y + grab_offset_y)),
+      ImVec2(0.0f, 0.0f));
+  handler_.HandleRelease();
+
+  const auto& moved = rooms_[0].GetDoors()[0];
+  EXPECT_EQ(moved.position, 7);
+  EXPECT_EQ(moved.direction, zelda3::DoorDirection::South);
   const auto [expected_b1, expected_b2] = moved.EncodeBytes();
   EXPECT_EQ(moved.byte1, expected_b1);
   EXPECT_EQ(moved.byte2, expected_b2);
@@ -598,6 +681,77 @@ TEST_F(DoorInteractionHandlerTest, PairBadgeClickNavigatesToNeighborDoor) {
       rooms_[1].GetDoors()[0].GetTileCoords();
   EXPECT_EQ(target_tile_x, expected_tile_x);
   EXPECT_EQ(target_tile_y, expected_tile_y);
+}
+
+TEST_F(DoorInteractionHandlerTest,
+       ExitAndControlMarkersDoNotExposeReciprocalPairBadges) {
+  ctx_.current_room_id = 0;
+
+  zelda3::Room::Door neighbor_door;
+  neighbor_door.position = 8;
+  neighbor_door.type = zelda3::DoorType::NormalDoor;
+  neighbor_door.direction = zelda3::DoorDirection::North;
+  rooms_[0x10].AddDoor(neighbor_door);
+
+  int navigation_count = 0;
+  ctx_.on_door_pair_navigation = [&](int, std::optional<size_t>, int, int) {
+    ++navigation_count;
+  };
+  handler_.SetContext(&ctx_);
+
+  for (const auto type : {
+           zelda3::DoorType::FancyDungeonExit,
+           zelda3::DoorType::DungeonSwapMarker,
+           zelda3::DoorType::LayerSwapMarker,
+       }) {
+    zelda3::Room::Door source;
+    source.position = 8;
+    source.type = type;
+    source.direction = zelda3::DoorDirection::South;
+    rooms_[0].GetDoors().clear();
+    rooms_[0].AddDoor(source);
+    handler_.SelectDoor(0);
+
+    const auto [door_x, door_y, door_w, door_h] =
+        rooms_[0].GetDoors()[0].GetEditorBounds();
+    EXPECT_FALSE(handler_.HandleOverlayClick(door_x + 4, door_y + door_h + 4))
+        << zelda3::GetDoorTypeName(type);
+  }
+  EXPECT_EQ(navigation_count, 0);
+}
+
+TEST_F(DoorInteractionHandlerTest,
+       ReciprocalPairSearchSkipsControlMarkerTargets) {
+  ctx_.current_room_id = 0;
+
+  zelda3::Room::Door source;
+  source.position = 0;
+  source.type = zelda3::DoorType::NormalDoor;
+  source.direction = zelda3::DoorDirection::East;
+  rooms_[0].AddDoor(source);
+
+  zelda3::Room::Door marker;
+  marker.position = source.position;
+  marker.type = zelda3::DoorType::DungeonSwapMarker;
+  marker.direction = zelda3::DoorDirection::West;
+  rooms_[1].AddDoor(marker);
+
+  int navigation_count = 0;
+  std::optional<size_t> navigated_door = 99;
+  ctx_.on_door_pair_navigation = [&](int, std::optional<size_t> door_index, int,
+                                     int) {
+    ++navigation_count;
+    navigated_door = door_index;
+  };
+  handler_.SetContext(&ctx_);
+  handler_.SelectDoor(0);
+
+  const auto [door_x, door_y, door_w, door_h] =
+      rooms_[0].GetDoors()[0].GetEditorBounds();
+  ASSERT_TRUE(
+      handler_.HandleOverlayClick(door_x + door_w + 8, door_y + door_h / 2));
+  EXPECT_EQ(navigation_count, 1);
+  EXPECT_FALSE(navigated_door.has_value());
 }
 
 TEST_F(DoorInteractionHandlerTest, DeleteAllClearsDoorsAndFiresCallbacks) {
