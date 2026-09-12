@@ -124,9 +124,25 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
       std::clamp(gui::LayoutHelpers::GetStandardSpacing(), 4.0f, 8.0f);
   const float compact_spacing = std::max(4.0f, standard_spacing * 0.75f);
   const float search_spacing = compact_spacing;
-  const float search_width =
-      std::max(140.0f, ImGui::GetContentRegionAvail().x - search_button_size.x -
-                           search_spacing);
+
+  auto read_dungeon_workbench_mode = [&]() -> bool {
+    if (category != "Dungeon") {
+      return false;
+    }
+    if (is_dungeon_workbench_mode_) {
+      return is_dungeon_workbench_mode_();
+    }
+    return window_manager_.IsWindowOpen(session_id, "dungeon.workbench");
+  };
+  bool dungeon_workbench_mode = read_dungeon_workbench_mode();
+  const bool rom_loaded = has_rom ? has_rom() : true;
+  const bool disable_windows = !rom_loaded && category != "Emulator";
+  const bool bulk_actions_enabled =
+      !disable_windows && !(category == "Dungeon" && dungeon_workbench_mode);
+
+  const float search_width = std::max(96.0f, ImGui::GetContentRegionAvail().x -
+                                                 (search_button_size.x * 2.0f) -
+                                                 (search_spacing * 2.0f));
   ImGui::SetNextItemWidth(search_width);
   ImGui::InputTextWithHint("##SidebarSearch", ICON_MD_SEARCH " Filter...",
                            sidebar_search_, sizeof(sidebar_search_));
@@ -144,17 +160,48 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
   if (filter_empty) {
     ImGui::EndDisabled();
   }
-
-  auto read_dungeon_workbench_mode = [&]() -> bool {
-    if (category != "Dungeon") {
-      return false;
+  ImGui::SameLine(0.0f, search_spacing);
+  if (gui::TransparentIconButton(ICON_MD_MORE_HORIZ, search_button_size,
+                                 "Window actions", false,
+                                 gui::GetTextSecondaryVec4(), "window_sidebar",
+                                 "open_sidebar_actions")) {
+    ImGui::OpenPopup("##WindowSidebarActions");
+  }
+  if (ImGui::BeginPopup("##WindowSidebarActions")) {
+    const auto category_windows =
+        window_manager_.GetWindowsInCategory(session_id, category);
+    int visible_windows = 0;
+    for (const auto& category_window : category_windows) {
+      if (category_window.visibility_flag && *category_window.visibility_flag) {
+        ++visible_windows;
+      }
     }
-    if (is_dungeon_workbench_mode_) {
-      return is_dungeon_workbench_mode_();
+    ImGui::TextDisabled(tr("%d of %zu visible"), visible_windows,
+                        category_windows.size());
+    ImGui::Separator();
+    if (ImGui::MenuItem(ICON_MD_APPS " Window Browser")) {
+      window_manager_.TriggerShowWindowBrowser();
     }
-    return window_manager_.IsWindowOpen(session_id, "dungeon.workbench");
-  };
-  bool dungeon_workbench_mode = read_dungeon_workbench_mode();
+    ImGui::Separator();
+    if (ImGui::MenuItem(ICON_MD_VISIBILITY " Show all", nullptr, false,
+                        bulk_actions_enabled)) {
+      window_manager_.ShowAllWindowsInCategory(session_id, category);
+    }
+    const bool show_all_hovered =
+        ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled);
+    if (ImGui::MenuItem(ICON_MD_VISIBILITY_OFF " Hide all", nullptr, false,
+                        bulk_actions_enabled)) {
+      window_manager_.HideAllWindowsInCategory(session_id, category);
+    }
+    const bool hide_all_hovered =
+        ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled);
+    if (!bulk_actions_enabled && (show_all_hovered || hide_all_hovered) &&
+        category == "Dungeon" && dungeon_workbench_mode) {
+      ImGui::SetTooltip(
+          tr("Switch to Window workflow to bulk-manage room windows."));
+    }
+    ImGui::EndPopup();
+  }
 
   auto switch_to_dungeon_workbench_mode = [&]() -> bool {
     if (category != "Dungeon" || dungeon_workbench_mode) {
@@ -272,96 +319,6 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
     ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
-  }
-
-  ImGui::Spacing();
-
-  const bool rom_loaded = has_rom ? has_rom() : true;
-  const bool disable_windows = !rom_loaded && category != "Emulator";
-
-  const auto category_windows =
-      window_manager_.GetWindowsInCategory(session_id, category);
-  int visible_windows_in_category = 0;
-  int total_windows_in_category = 0;
-  for (const auto& category_window : category_windows) {
-    ++total_windows_in_category;
-    if (category_window.visibility_flag && *category_window.visibility_flag) {
-      ++visible_windows_in_category;
-    }
-  }
-
-  ImGui::TextDisabled(tr("%d / %d visible"), visible_windows_in_category,
-                      total_windows_in_category);
-  ImGui::Spacing();
-
-  const float action_gap = compact_spacing;
-  const float action_min_button_width = 84.0f;
-  const float action_available_width =
-      std::max(1.0f, ImGui::GetContentRegionAvail().x);
-  const bool stack_action_buttons =
-      action_available_width <=
-      (action_min_button_width * 3.0f + (action_gap * 2.0f));
-  const float action_button_width =
-      stack_action_buttons
-          ? action_available_width
-          : std::max(action_min_button_width,
-                     (action_available_width - (action_gap * 2.0f)) / 3.0f);
-  const float action_button_height =
-      std::max(24.0f, gui::LayoutHelpers::GetStandardWidgetHeight());
-  auto draw_action_button = [&](const char* id, const char* icon,
-                                const char* label, const char* tooltip,
-                                const ImVec2& button_size) -> bool {
-    const std::string button_label =
-        absl::StrFormat("%s %s##%s", icon, label, id);
-    const bool clicked = ImGui::Button(button_label.c_str(), button_size);
-    if (ImGui::IsItemHovered() && tooltip && *tooltip) {
-      ImGui::SetTooltip("%s", tooltip);
-    }
-    return clicked;
-  };
-  const ImVec2 action_button_size(action_button_width, action_button_height);
-
-  if (draw_action_button("open_window_browser", ICON_MD_APPS, "Browser",
-                         "Open Window Browser", action_button_size)) {
-    window_manager_.TriggerShowWindowBrowser();
-  }
-  if (!stack_action_buttons) {
-    ImGui::SameLine(0.0f, action_gap);
-  }
-
-  const bool bulk_actions_enabled =
-      !disable_windows && !(category == "Dungeon" && dungeon_workbench_mode);
-  bool bulk_action_hovered = false;
-  if (!bulk_actions_enabled) {
-    ImGui::BeginDisabled();
-  }
-  if (draw_action_button("show_category_windows", ICON_MD_VISIBILITY, "Show",
-                         "Show all windows in this category",
-                         action_button_size)) {
-    window_manager_.ShowAllWindowsInCategory(session_id, category);
-  }
-  if (!stack_action_buttons) {
-    ImGui::SameLine(0.0f, action_gap);
-  }
-  if (!bulk_actions_enabled &&
-      ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-    bulk_action_hovered = true;
-  }
-  if (draw_action_button("hide_category_windows", ICON_MD_VISIBILITY_OFF,
-                         "Hide", "Hide all windows in this category",
-                         action_button_size)) {
-    window_manager_.HideAllWindowsInCategory(session_id, category);
-  }
-  if (!bulk_actions_enabled) {
-    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-      bulk_action_hovered = true;
-    }
-    if (bulk_action_hovered && category == "Dungeon" &&
-        dungeon_workbench_mode) {
-      ImGui::SetTooltip(
-          tr("Switch to Window workflow to bulk-manage room windows."));
-    }
-    ImGui::EndDisabled();
   }
 
   ImGui::Spacing();

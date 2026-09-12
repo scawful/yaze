@@ -597,7 +597,6 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
   if (current_room_id_) {
     DungeonWorkbenchToolbarParams params;
     params.layout = &layout_state_;
-    params.left_sidebar_visible = show_left;
     params.current_room_id = current_room_id_;
     params.previous_room_id = &previous_room_id_;
     params.split_view_enabled = &split_view_enabled_;
@@ -606,10 +605,14 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
     params.compare_viewer = compare_viewer;
     params.on_room_selected = on_room_selected_;
     params.get_recent_rooms = get_recent_rooms_;
+    if (on_room_selected_with_intent_) {
+      params.on_open_room_panel = [this](int room_id) {
+        on_room_selected_with_intent_(room_id,
+                                      RoomSelectionIntent::kOpenStandalone);
+      };
+    }
+    params.forget_recent_room = forget_recent_room_;
     params.set_workflow_mode = set_workflow_mode_;
-    params.open_room_matrix = [this]() {
-      ShowConnectedGraph();
-    };
     params.on_save_room = on_save_room_;
     params.on_request_dungeon_map = [this]() {
       RequestDungeonMapPopup();
@@ -655,7 +658,7 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
       }
       ImGui::SameLine(0.0f, 0.0f);
     }
-    DrawCanvasPane(center_w, total_h, primary_viewer, show_left);
+    DrawCanvasPane(center_w, total_h, primary_viewer);
     if (show_left) {
       ImGui::SameLine(0.0f, 0.0f);
       if (DrawDungeonWorkbenchVerticalSplitter(
@@ -690,7 +693,7 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
     if (show_left) {
       ImGui::SameLine(0.0f, 0.0f);
     }
-    DrawCanvasPane(center_w, total_h, primary_viewer, show_left);
+    DrawCanvasPane(center_w, total_h, primary_viewer);
 
     if (show_right) {
       ImGui::SameLine(0.0f, 0.0f);
@@ -714,21 +717,11 @@ void DungeonWorkbenchContent::Draw(bool* p_open) {
 }
 
 void DungeonWorkbenchContent::DrawCanvasPane(
-    float width, float height, DungeonCanvasViewer* primary_viewer,
-    bool left_sidebar_visible) {
+    float width, float height, DungeonCanvasViewer* primary_viewer) {
   const bool canvas_open = ImGui::BeginChild("##DungeonWorkbenchCanvas",
                                              ImVec2(width, height), false);
   if (canvas_open) {
     if (primary_viewer) {
-      const bool show_recent_tabs =
-          split_view_enabled_ || !left_sidebar_visible;
-      if (show_recent_tabs) {
-        DrawRecentRoomTabs();
-      }
-      if (!layout_state_.show_connected_canvas_view) {
-        DrawSelectionShelf(*primary_viewer);
-      }
-
       // Reserve a fixed strip at the bottom for the status bar so neither
       // single-room, split, nor connected-mode rendering can run past it and
       // clip against the outer window chrome. Inner scrolling (wheel zoom in
@@ -787,7 +780,7 @@ void DungeonWorkbenchContent::DrawCanvasPane(
           DungeonStatusBar::BuildState(*primary_viewer, tool_mode, room_dirty);
       status.workflow_mode = layout_state_.show_connected_canvas_view
                                  ? workflow_mode_names::kConnected
-                                 : workflow_mode_names::kWorkbench;
+                                 : nullptr;
       status.workflow_primary = true;
       if (can_undo_)
         status.can_undo = can_undo_();
@@ -807,112 +800,17 @@ void DungeonWorkbenchContent::DrawCanvasPane(
         status.undo_depth = undo_depth_();
       status.on_undo = on_undo_;
       status.on_redo = on_redo_;
+      if (!layout_state_.show_connected_canvas_view) {
+        status.on_selection = [this]() {
+          FocusSelectionInspector();
+        };
+      }
       DungeonStatusBar::Draw(status);
     } else {
       ImGui::TextDisabled(tr("No active viewer"));
     }
   }
   ImGui::EndChild();
-}
-
-void DungeonWorkbenchContent::DrawSelectionShelf(DungeonCanvasViewer& viewer) {
-  auto& interaction = viewer.object_interaction();
-  const DungeonSelectionSnapshot snapshot = BuildDungeonSelectionSnapshot(
-      interaction, viewer.rooms(), viewer.current_room_id());
-  const size_t object_count = interaction.GetSelectionCount();
-  const bool has_entity = interaction.HasEntitySelection();
-  if (object_count == 0 && !has_entity) {
-    return;
-  }
-
-  // Gentle compaction only; the start_action lambda's per-button SameLine
-  // already controls inter-button spacing within a row, so don't shrink
-  // ItemSpacing.x below the theme default here.
-  gui::StyleVarGuard frame_padding_guard(
-      ImGuiStyleVar_FramePadding,
-      ImVec2(std::max(4.0f, ImGui::GetStyle().FramePadding.x),
-             std::max(3.0f, ImGui::GetStyle().FramePadding.y - 1.0f)));
-  gui::StyleVarGuard item_spacing_guard(
-      ImGuiStyleVar_ItemSpacing,
-      ImVec2(std::max(ImGui::GetStyle().ItemSpacing.x, 4.0f),
-             std::max(3.0f, ImGui::GetStyle().ItemSpacing.y - 1.0f)));
-
-  const float spacing = ImGui::GetStyle().ItemSpacing.x;
-  bool first_button = true;
-  auto start_action = [&](const char* label) {
-    const float button_width = ImGui::CalcTextSize(label).x +
-                               (ImGui::GetStyle().FramePadding.x * 2.0f) + 8.0f;
-    if (!first_button) {
-      const float next_x = ImGui::GetItemRectMax().x + spacing + button_width;
-      const float max_x =
-          ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
-      if (next_x <= max_x) {
-        ImGui::SameLine(0.0f, spacing);
-      }
-    }
-    first_button = false;
-  };
-
-  auto draw_action = [&](const char* label, bool enabled,
-                         const auto& on_press) {
-    start_action(label);
-    if (!enabled) {
-      ImGui::BeginDisabled();
-    }
-    if (workbench::DrawActionButton(label, ImVec2(0.0f, 0.0f)) && enabled) {
-      on_press();
-    }
-    if (!enabled) {
-      ImGui::EndDisabled();
-    }
-  };
-
-  ImGui::TextColored(AgentUI::GetTheme().text_secondary_gray,
-                     ICON_MD_SELECT_ALL " %s",
-                     GetDungeonSelectionSummaryText(snapshot).c_str());
-
-  const SelectedEntity selection = interaction.GetSelectedEntity();
-  const char* local_tool_label = nullptr;
-  WorkbenchTool local_tool = WorkbenchTool::None;
-  if (object_count == 0 && has_entity) {
-    switch (selection.type) {
-      case EntityType::Door:
-        local_tool = WorkbenchTool::DoorEditor;
-        local_tool_label = ICON_MD_DOOR_FRONT " Door Tools";
-        break;
-      case EntityType::Sprite:
-        local_tool = WorkbenchTool::SpriteEditor;
-        local_tool_label = ICON_MD_PERSON " Sprite Tools";
-        break;
-      case EntityType::Item:
-        local_tool = WorkbenchTool::ItemEditor;
-        local_tool_label = ICON_MD_INVENTORY " Item Tools";
-        break;
-      default:
-        break;
-    }
-  }
-
-  const bool can_copy_selection = snapshot.object_count > 0 ||
-                                  snapshot.sprite_count > 0 ||
-                                  snapshot.item_count > 0;
-  draw_action(ICON_MD_CONTENT_COPY " Copy", can_copy_selection,
-              [&]() { interaction.HandleCopySelected(); });
-  draw_action(ICON_MD_CONTENT_PASTE " Paste", interaction.HasClipboardData(),
-              [&]() { interaction.HandlePasteObjects(); });
-  draw_action(ICON_MD_DELETE " Delete", true,
-              [&]() { interaction.HandleDeleteSelected(); });
-  draw_action(ICON_MD_CLEAR " Clear", true, [&]() {
-    interaction.ClearSelection();
-    interaction.ClearEntitySelection();
-  });
-  draw_action(ICON_MD_TUNE " Inspector", true,
-              [&]() { FocusSelectionInspector(); });
-  if (local_tool_label != nullptr) {
-    draw_action(local_tool_label, true, [&]() { OpenTool(local_tool); });
-  }
-
-  ImGui::Dummy(ImVec2(0.0f, 2.0f));
 }
 
 void DungeonWorkbenchContent::DrawInspectorPane(float width, float height,
@@ -1011,106 +909,6 @@ void DungeonWorkbenchContent::DrawInspectorHeader(float button_size,
     }
   }
   ImGui::Separator();
-}
-
-void DungeonWorkbenchContent::DrawRecentRoomTabs() {
-  if (!get_recent_rooms_ || !current_room_id_ || !on_room_selected_) {
-    return;
-  }
-
-  DungeonRoomStore* rooms = nullptr;
-  if (auto* viewer = get_viewer_ ? get_viewer_() : nullptr) {
-    rooms = viewer->rooms();
-  }
-
-  const auto& recent = get_recent_rooms_();
-  if (recent.empty()) {
-    return;
-  }
-  // Copy IDs up-front so we can safely mutate the underlying MRU list (close
-  // tabs) without invalidating iterators mid-loop.
-  std::vector<int> recent_ids(recent.begin(), recent.end());
-  std::vector<int> to_forget;
-
-  constexpr ImGuiTabBarFlags kFlags = ImGuiTabBarFlags_AutoSelectNewTabs |
-                                      ImGuiTabBarFlags_FittingPolicyScroll |
-                                      ImGuiTabBarFlags_TabListPopupButton;
-
-  // Adaptive frame padding: larger tabs on touch/iPad for easier tapping
-  const ImVec2 frame_pad = ImGui::GetStyle().FramePadding;
-  const bool is_touch = gui::LayoutHelpers::IsTouchDevice();
-  const float extra_y = is_touch ? 6.0f : 1.0f;
-  const float extra_x = is_touch ? 4.0f : 0.0f;
-  gui::StyleVarGuard pad_guard(
-      ImGuiStyleVar_FramePadding,
-      ImVec2(frame_pad.x + extra_x, frame_pad.y + extra_y));
-  const project::YazeProject* label_project =
-      get_viewer_ && get_viewer_() ? get_viewer_()->project() : nullptr;
-
-  if (gui::BeginThemedTabBar("##DungeonRecentRooms", kFlags)) {
-    for (int room_id : recent_ids) {
-      bool open = true;
-      const ImGuiTabItemFlags tab_flags =
-          (room_id == *current_room_id_) ? ImGuiTabItemFlags_SetSelected : 0;
-      const auto room_name =
-          dungeon_project_labels::GetRoomLabel(label_project, room_id);
-      const bool room_dirty =
-          rooms != nullptr && rooms->GetIfMaterialized(room_id) != nullptr &&
-          rooms->GetIfMaterialized(room_id)->HasUnsavedChanges();
-      char tab_label[64];
-      if (room_name.empty() || room_name == "Unknown") {
-        snprintf(tab_label, sizeof(tab_label), "%03X%s##recent_%03X", room_id,
-                 room_dirty ? "*" : "", room_id);
-      } else {
-        snprintf(tab_label, sizeof(tab_label), "%03X%s %.12s##recent_%03X",
-                 room_id, room_dirty ? "*" : "", room_name.c_str(), room_id);
-      }
-      const bool selected = ImGui::BeginTabItem(tab_label, &open, tab_flags);
-
-      if (!open && forget_recent_room_) {
-        to_forget.push_back(room_id);
-      }
-
-      if (ImGui::IsItemHovered()) {
-        const auto label =
-            dungeon_project_labels::GetRoomLabel(label_project, room_id);
-        ImGui::SetTooltip("[%03X] %s%s", room_id, label.c_str(),
-                          room_dirty ? "\nPending room changes" : "");
-      }
-
-      if (ImGui::IsItemActivated() && room_id != *current_room_id_) {
-        on_room_selected_(room_id);
-      }
-
-      if (ImGui::BeginPopupContextItem()) {
-        if (ImGui::MenuItem(ICON_MD_COMPARE_ARROWS " Compare")) {
-          split_view_enabled_ = true;
-          compare_room_id_ = room_id;
-        }
-        if (on_room_selected_with_intent_ &&
-            ImGui::MenuItem(ICON_MD_OPEN_IN_NEW " Open as Panel")) {
-          on_room_selected_with_intent_(room_id,
-                                        RoomSelectionIntent::kOpenStandalone);
-        }
-        if (forget_recent_room_ && ImGui::MenuItem(ICON_MD_CLOSE " Close")) {
-          to_forget.push_back(room_id);
-        }
-        ImGui::EndPopup();
-      }
-
-      if (selected) {
-        ImGui::EndTabItem();
-      }
-    }
-
-    gui::EndThemedTabBar();
-  }
-
-  if (!to_forget.empty() && forget_recent_room_) {
-    for (int rid : to_forget) {
-      forget_recent_room_(rid);
-    }
-  }
 }
 
 void DungeonWorkbenchContent::DrawSplitView(

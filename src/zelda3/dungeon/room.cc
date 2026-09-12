@@ -92,6 +92,34 @@ void PopulateDungeonRenderPaletteRows(const gfx::SnesPalette& dungeon_palette,
   }
 }
 
+const gfx::SnesPalette* ResolvePaletteOrFirst(const gfx::PaletteGroup& group,
+                                              size_t requested_index) {
+  if (group.empty()) {
+    return nullptr;
+  }
+  const size_t resolved_index =
+      requested_index < group.size() ? requested_index : 0;
+  return &group.palette_ref(resolved_index);
+}
+
+void CopyPaletteToCgram(const gfx::SnesPalette* source, size_t source_offset,
+                        size_t max_colors, size_t destination_offset,
+                        std::array<SDL_Color, 256>* colors) {
+  if (source == nullptr || colors == nullptr ||
+      destination_offset >= colors->size() || source_offset >= source->size()) {
+    return;
+  }
+
+  const size_t count = std::min({max_colors, source->size() - source_offset,
+                                 colors->size() - destination_offset});
+  for (size_t i = 0; i < count; ++i) {
+    const auto rgb = (*source)[source_offset + i].rom_color();
+    (*colors)[destination_offset + i] = {static_cast<Uint8>(rgb.red),
+                                         static_cast<Uint8>(rgb.green),
+                                         static_cast<Uint8>(rgb.blue), 255};
+  }
+}
+
 }  // namespace
 
 std::vector<SDL_Color> BuildDungeonRenderPalette(
@@ -147,6 +175,62 @@ gfx::PaletteGroup BuildDungeonRenderPaletteGroupFromGameData(
     hud_palette = &game_data->palette_groups.hud.palette_ref(0);
   }
   return BuildDungeonRenderPaletteGroup(dungeon_palette, hud_palette);
+}
+
+std::array<SDL_Color, 256> BuildDungeonSpriteRenderPalette(
+    const Room& room, const GameData* game_data) {
+  constexpr size_t kCgramRowSize = 16;
+  constexpr size_t kHalfPaletteColorCount = 7;
+  constexpr size_t kFullPaletteColorCount = 15;
+  constexpr size_t kDefaultOverworldEnvironmentPalette = 0x07;
+  constexpr size_t kDefaultUnderworldEnvironmentPalette = 0x0A;
+
+  std::array<SDL_Color, 256> colors{};
+  if (game_data == nullptr) {
+    return colors;
+  }
+
+  // LoadRoomHeader stores the selected UnderworldPaletteSets row in the room
+  // header. USDASM then maps slots 1..3 to $0AAC/$0AAD/$0AAE. The latter two
+  // both index PaletteData_spriteaux_00, represented by sprites_aux3 in Yaze.
+  std::array<uint8_t, 4> palette_set{};
+  if (room.palette() < game_data->paletteset_ids.size()) {
+    palette_set = game_data->paletteset_ids[room.palette()];
+  }
+
+  const auto& groups = game_data->palette_groups;
+  CopyPaletteToCgram(ResolvePaletteOrFirst(groups.sprites_aux1, palette_set[1]),
+                     0, kHalfPaletteColorCount, 8 * kCgramRowSize + 1, &colors);
+  CopyPaletteToCgram(ResolvePaletteOrFirst(groups.sprites_aux2,
+                                           kDefaultOverworldEnvironmentPalette),
+                     0, kHalfPaletteColorCount, 8 * kCgramRowSize + 9, &colors);
+
+  // The runtime chooses Light/Dark World from overworld state ($8A). Dungeon
+  // rooms do not currently retain that entrance-world context, so preserve
+  // deterministic Light World and green-mail preview fallbacks. Row 8 right is
+  // inherited from Palettes_Load_SpriteEnvironment's outdoor path when the
+  // player enters a dungeon; the underworld path replaces row 14 right.
+  const auto* global = ResolvePaletteOrFirst(groups.global_sprites, 0);
+  for (size_t row = 9; row <= 12; ++row) {
+    CopyPaletteToCgram(global, (row - 9) * kFullPaletteColorCount,
+                       kFullPaletteColorCount, row * kCgramRowSize + 1,
+                       &colors);
+  }
+
+  CopyPaletteToCgram(ResolvePaletteOrFirst(groups.sprites_aux3, palette_set[2]),
+                     0, kHalfPaletteColorCount, 13 * kCgramRowSize + 1,
+                     &colors);
+  CopyPaletteToCgram(ResolvePaletteOrFirst(groups.sprites_aux3, palette_set[3]),
+                     0, kHalfPaletteColorCount, 14 * kCgramRowSize + 1,
+                     &colors);
+  CopyPaletteToCgram(
+      ResolvePaletteOrFirst(groups.sprites_aux2,
+                            kDefaultUnderworldEnvironmentPalette),
+      0, kHalfPaletteColorCount, 14 * kCgramRowSize + 9, &colors);
+  CopyPaletteToCgram(ResolvePaletteOrFirst(groups.armors, 0), 0,
+                     kFullPaletteColorCount, 15 * kCgramRowSize + 1, &colors);
+
+  return colors;
 }
 
 void LoadDungeonRenderPaletteToCgram(std::span<uint16_t> cgram,

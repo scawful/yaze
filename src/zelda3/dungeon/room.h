@@ -32,6 +32,7 @@ namespace yaze {
 namespace zelda3 {
 
 class DungeonState;
+class Room;
 class RoomLayerManager;
 struct DungeonStreamLayout;
 
@@ -51,6 +52,14 @@ gfx::PaletteGroup BuildDungeonRenderPaletteGroup(
 // blank while preserving the canonical dungeon rows.
 gfx::PaletteGroup BuildDungeonRenderPaletteGroupFromGameData(
     const gfx::SnesPalette& dungeon_palette, const GameData* game_data);
+
+// Builds the sprite half of the underworld CGRAM palette for editor previews.
+// Room palette-set slots select row 8 left and rows 13/14 left. The inherited
+// Light World environment fallback occupies row 8 right, while the standard
+// underworld environment palette occupies row 14 right. Missing or invalid
+// palette selectors fall back to palette 0 in the corresponding ROM group.
+std::array<SDL_Color, 256> BuildDungeonSpriteRenderPalette(
+    const Room& room, const GameData* game_data);
 
 void LoadDungeonRenderPaletteToCgram(
     std::span<uint16_t> cgram, const gfx::SnesPalette& dungeon_palette,

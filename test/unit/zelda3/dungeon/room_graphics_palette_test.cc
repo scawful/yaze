@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -11,6 +12,68 @@
 #include "zelda3/game_data.h"
 
 namespace yaze::zelda3::test {
+
+namespace {
+
+gfx::SnesPalette MakeDistinctPalette(uint16_t base, size_t color_count) {
+  gfx::SnesPalette palette;
+  for (size_t i = 0; i < color_count; ++i) {
+    palette.AddColor(gfx::SnesColor(static_cast<uint16_t>(base + i)));
+  }
+  return palette;
+}
+
+void AddDistinctPaletteSeries(gfx::PaletteGroup& group, size_t palette_count,
+                              size_t color_count, uint16_t base) {
+  for (size_t i = 0; i < palette_count; ++i) {
+    group.AddPalette(MakeDistinctPalette(static_cast<uint16_t>(base + i * 0x20),
+                                         color_count));
+  }
+}
+
+void ExpectSdlColorMatches(const SDL_Color& actual,
+                           const gfx::SnesColor& expected) {
+  const auto rgb = expected.rom_color();
+  EXPECT_EQ(actual.r, rgb.red);
+  EXPECT_EQ(actual.g, rgb.green);
+  EXPECT_EQ(actual.b, rgb.blue);
+  EXPECT_EQ(actual.a, 255);
+}
+
+void PopulateDistinctSpritePaletteData(GameData& game_data) {
+  AddDistinctPaletteSeries(game_data.palette_groups.global_sprites, 2, 60,
+                           0x1000);
+  AddDistinctPaletteSeries(game_data.palette_groups.armors, 5, 15, 0x2000);
+  AddDistinctPaletteSeries(game_data.palette_groups.sprites_aux1, 12, 7,
+                           0x3000);
+  AddDistinctPaletteSeries(game_data.palette_groups.sprites_aux2, 11, 7,
+                           0x4000);
+  AddDistinctPaletteSeries(game_data.palette_groups.sprites_aux3, 24, 7,
+                           0x5000);
+}
+
+}  // namespace
+
+TEST(GameDataTest, DefaultGraphicsLookupTablesAreZeroInitialized) {
+  const GameData game_data;
+
+  for (const auto& blockset : game_data.main_blockset_ids) {
+    EXPECT_TRUE(std::all_of(blockset.begin(), blockset.end(),
+                            [](uint8_t value) { return value == 0; }));
+  }
+  for (const auto& blockset : game_data.room_blockset_ids) {
+    EXPECT_TRUE(std::all_of(blockset.begin(), blockset.end(),
+                            [](uint8_t value) { return value == 0; }));
+  }
+  for (const auto& spriteset : game_data.spriteset_ids) {
+    EXPECT_TRUE(std::all_of(spriteset.begin(), spriteset.end(),
+                            [](uint8_t value) { return value == 0; }));
+  }
+  for (const auto& paletteset : game_data.paletteset_ids) {
+    EXPECT_TRUE(std::all_of(paletteset.begin(), paletteset.end(),
+                            [](uint8_t value) { return value == 0; }));
+  }
+}
 
 // USDASM grounding:
 // - bank_00.asm LoadBackgroundGraphics chooses Expand3bppToVRAM_RightPalette for
@@ -155,6 +218,91 @@ TEST(RoomGraphicsPaletteTest, BuildDungeonRenderPaletteIncludesHudRows) {
 
   // Undrawn fill color remains transparent.
   EXPECT_EQ(colors[255].a, 0);
+}
+
+TEST(RoomGraphicsPaletteTest,
+     BuildDungeonSpriteRenderPaletteUsesMushroomGrottoSelectors) {
+  GameData game_data;
+  PopulateDistinctSpritePaletteData(game_data);
+  game_data.paletteset_ids[0x0F] = {0x10, 0x05, 0x0A, 0x07};
+  Room room;
+  room.SetPalette(0x0F);
+
+  const auto colors = BuildDungeonSpriteRenderPalette(room, &game_data);
+
+  ASSERT_EQ(colors.size(), 256u);
+  for (size_t color = 0; color < 7; ++color) {
+    ExpectSdlColorMatches(
+        colors[8 * 16 + 1 + color],
+        game_data.palette_groups.sprites_aux1.palette_ref(5)[color]);
+    ExpectSdlColorMatches(
+        colors[8 * 16 + 9 + color],
+        game_data.palette_groups.sprites_aux2.palette_ref(7)[color]);
+    ExpectSdlColorMatches(
+        colors[13 * 16 + 1 + color],
+        game_data.palette_groups.sprites_aux3.palette_ref(10)[color]);
+    ExpectSdlColorMatches(
+        colors[14 * 16 + 1 + color],
+        game_data.palette_groups.sprites_aux3.palette_ref(7)[color]);
+    ExpectSdlColorMatches(
+        colors[14 * 16 + 9 + color],
+        game_data.palette_groups.sprites_aux2.palette_ref(10)[color]);
+  }
+
+  ExpectSdlColorMatches(
+      colors[9 * 16 + 1],
+      game_data.palette_groups.global_sprites.palette_ref(0)[0]);
+  ExpectSdlColorMatches(
+      colors[12 * 16 + 15],
+      game_data.palette_groups.global_sprites.palette_ref(0)[59]);
+  ExpectSdlColorMatches(colors[15 * 16 + 1],
+                        game_data.palette_groups.armors.palette_ref(0)[0]);
+}
+
+TEST(RoomGraphicsPaletteTest,
+     BuildDungeonSpriteRenderPaletteFallsBackForInvalidIds) {
+  GameData game_data;
+  game_data.palette_groups.global_sprites.AddPalette(
+      MakeDistinctPalette(0x1000, 60));
+  game_data.palette_groups.armors.AddPalette(MakeDistinctPalette(0x2000, 15));
+  game_data.palette_groups.sprites_aux1.AddPalette(
+      MakeDistinctPalette(0x3000, 7));
+  game_data.palette_groups.sprites_aux2.AddPalette(
+      MakeDistinctPalette(0x4000, 7));
+  game_data.palette_groups.sprites_aux3.AddPalette(
+      MakeDistinctPalette(0x5000, 7));
+  game_data.paletteset_ids[0] = {0, 0xFE, 0xFD, 0xFC};
+  Room room;
+  room.SetPalette(0);
+
+  const auto colors = BuildDungeonSpriteRenderPalette(room, &game_data);
+
+  ASSERT_EQ(colors.size(), 256u);
+  ExpectSdlColorMatches(
+      colors[8 * 16 + 1],
+      game_data.palette_groups.sprites_aux1.palette_ref(0)[0]);
+  ExpectSdlColorMatches(
+      colors[8 * 16 + 9],
+      game_data.palette_groups.sprites_aux2.palette_ref(0)[0]);
+  ExpectSdlColorMatches(
+      colors[13 * 16 + 1],
+      game_data.palette_groups.sprites_aux3.palette_ref(0)[0]);
+  ExpectSdlColorMatches(
+      colors[14 * 16 + 1],
+      game_data.palette_groups.sprites_aux3.palette_ref(0)[0]);
+  ExpectSdlColorMatches(
+      colors[14 * 16 + 9],
+      game_data.palette_groups.sprites_aux2.palette_ref(0)[0]);
+
+  room.SetPalette(0xFF);
+  const auto invalid_set_colors =
+      BuildDungeonSpriteRenderPalette(room, &game_data);
+  ExpectSdlColorMatches(
+      invalid_set_colors[8 * 16 + 1],
+      game_data.palette_groups.sprites_aux1.palette_ref(0)[0]);
+  ExpectSdlColorMatches(
+      invalid_set_colors[13 * 16 + 1],
+      game_data.palette_groups.sprites_aux3.palette_ref(0)[0]);
 }
 
 TEST(RoomGraphicsPaletteTest, BuildDungeonRenderPaletteGroupMatchesCgramRows) {

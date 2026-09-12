@@ -131,6 +131,15 @@ void DungeonStatusBar::Draw(const DungeonStatusBarState& state) {
   } else {
     ImGui::TextDisabled("%s", state.selection_summary.c_str());
   }
+  if (state.selection_count > 0 && state.on_selection) {
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+      ImGui::SetTooltip(tr("Open Selection inspector"));
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+      state.on_selection();
+    }
+  }
   ImGui::SameLine(0, spacing * 2);
 
   // Separator
@@ -141,21 +150,6 @@ void DungeonStatusBar::Draw(const DungeonStatusBarState& state) {
   ImGui::TextDisabled(ICON_MD_ZOOM_IN);
   ImGui::SameLine(0, 4);
   ImGui::Text("%d%%", state.zoom_percent);
-  ImGui::SameLine(0, spacing * 2);
-
-  // Separator
-  ImGui::TextDisabled("|");
-  ImGui::SameLine(0, spacing * 2);
-
-  // Cursor tile coordinates
-  if (state.cursor_tile_x >= 0 && state.cursor_tile_y >= 0) {
-    ImGui::TextDisabled(ICON_MD_MY_LOCATION);
-    ImGui::SameLine(0, 4);
-    ImGui::Text("(%d, %d)", state.cursor_tile_x, state.cursor_tile_y);
-  } else {
-    ImGui::TextDisabled(ICON_MD_MY_LOCATION " --");
-  }
-
   // Right-aligned section: dirty indicator + room ID
   {
     char right_text[64];
@@ -211,14 +205,6 @@ DungeonStatusBarState DungeonStatusBar::BuildState(
   state.selection_count = static_cast<int>(snapshot.count);
   state.selection_layer = snapshot.selection_layer;
   state.selection_summary = GetDungeonSelectionSummaryText(snapshot);
-
-  // Cursor coordinates from ImGui hover state on canvas
-  // Note: the actual tile coordinates are derived from the canvas hover
-  // position. Since we don't have direct access to the canvas mouse pos
-  // from outside the draw call, we leave these at -1 (the canvas viewer
-  // itself could populate this if we add a public accessor later).
-  state.cursor_tile_x = -1;
-  state.cursor_tile_y = -1;
 
   return state;
 }
