@@ -426,13 +426,17 @@ absl::Status ObjectTileEditor::RenderLayoutToBitmap(
   int bmp_h = layout.bounds_height * 8;
 
   // Create or resize bitmap
-  std::vector<uint8_t> pixel_data(bmp_w * bmp_h, 0);
+  std::vector<uint8_t> pixel_data(bmp_w * bmp_h, 255);
   bitmap.Create(bmp_w, bmp_h, 8, pixel_data);
 
   // Preview rendering uses tile palette bank offsets (pal * 16), so the bitmap
   // needs a combined banked palette rather than a single sub-palette.
   if (!palette.empty()) {
     bitmap.SetPalette(BuildCombinedPaletteBanks(palette));
+  }
+  if (bitmap.surface()) {
+    SDL_SetColorKey(bitmap.surface(), SDL_TRUE, 255);
+    SDL_SetSurfaceBlendMode(bitmap.surface(), SDL_BLENDMODE_BLEND);
   }
 
   // Use a temporary ObjectDrawer just for its DrawTileToBitmap utility
@@ -462,6 +466,10 @@ absl::Status ObjectTileEditor::BuildTile8Atlas(gfx::Bitmap& atlas,
   if (!palette.empty()) {
     atlas.SetPalette(
         BuildPaddedPaletteBank(palette.palette_ref(resolved_palette)));
+  }
+  if (atlas.surface()) {
+    SDL_SetColorKey(atlas.surface(), SDL_TRUE, 255);
+    SDL_SetSurfaceBlendMode(atlas.surface(), SDL_BLENDMODE_BLEND);
   }
 
   ObjectDrawer drawer(rom_, 0, room_gfx_buffer);

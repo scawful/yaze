@@ -215,6 +215,31 @@ TEST(ObjectLayerSemanticsTest,
 }
 
 TEST(ObjectLayerSemanticsTest,
+     OnlyMinecartTrackSubtypesEnableRoomCornerAliases) {
+  for (uint8_t subtype = 0; subtype <= 12; ++subtype) {
+    SCOPED_TRACE(static_cast<int>(subtype));
+    const std::array<RoomObject, 1> objects = {
+        RoomObject(/*id=*/0x31, /*x=*/0, /*y=*/0, subtype, /*layer=*/0)};
+    EXPECT_TRUE(RoomAllowsTrackCornerAliases(objects));
+  }
+
+  const std::array<RoomObject, 1> track_any = {
+      RoomObject(/*id=*/0x31, /*x=*/0, /*y=*/0, /*size=*/14, /*layer=*/0)};
+  EXPECT_TRUE(RoomAllowsTrackCornerAliases(track_any));
+
+  for (uint8_t decorative_subtype : {uint8_t{13}, uint8_t{15}}) {
+    SCOPED_TRACE(static_cast<int>(decorative_subtype));
+    const std::array<RoomObject, 1> objects = {RoomObject(
+        /*id=*/0x31, /*x=*/0, /*y=*/0, decorative_subtype, /*layer=*/0)};
+    EXPECT_FALSE(RoomAllowsTrackCornerAliases(objects));
+  }
+
+  const std::array<RoomObject, 1> unrelated = {
+      RoomObject(/*id=*/0x32, /*x=*/0, /*y=*/0, /*size=*/0, /*layer=*/0)};
+  EXPECT_FALSE(RoomAllowsTrackCornerAliases(unrelated));
+}
+
+TEST(ObjectLayerSemanticsTest,
      AuditedObjectIdsReportRoutingAcrossAllStoredStreams) {
   for (const auto& test_case : kAuditedRoutingCases) {
     for (uint8_t stored_stream : {uint8_t{0}, uint8_t{1}, uint8_t{2}}) {

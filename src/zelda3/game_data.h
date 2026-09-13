@@ -91,15 +91,15 @@ struct GameData {
   // Game Data Structures
   gfx::PaletteGroupMap palette_groups;
 
-  std::array<std::array<uint8_t, 8>, kNumMainBlocksets> main_blockset_ids;
-  std::array<std::array<uint8_t, 4>, kNumRoomBlocksets> room_blockset_ids;
-  std::array<std::array<uint8_t, 4>, kNumSpritesets> spriteset_ids;
+  std::array<std::array<uint8_t, 8>, kNumMainBlocksets> main_blockset_ids{};
+  std::array<std::array<uint8_t, 4>, kNumRoomBlocksets> room_blockset_ids{};
+  std::array<std::array<uint8_t, 4>, kNumSpritesets> spriteset_ids{};
 
   // Palette set lookup table (72 entries × 4 bytes each)
   // Entry format: [bg_palette_offset, aux1, aux2, aux3]
   // NOTE: paletteset_ids[n][0] is a BYTE OFFSET into kDungeonPalettePointerTable,
   // NOT a direct palette index! See room.cc for correct lookup algorithm.
-  std::array<std::array<uint8_t, 4>, kNumPalettesets> paletteset_ids;
+  std::array<std::array<uint8_t, 4>, kNumPalettesets> paletteset_ids{};
 
   // Diagnostics
   GraphicsLoadDiagnostics diagnostics;
