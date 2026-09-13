@@ -274,6 +274,10 @@ TEST_F(ThemeStyleSnapshotTest, FileThemesHydrateEnhancedSemanticDefaults) {
     not_missing(theme.dungeon.object_door, "dungeon.object_door");
     not_missing(theme.agent.panel_bg, "agent.panel_bg");
     not_missing(theme.agent.code_background, "agent.code_background");
+    EXPECT_GT(theme.agent.panel_border.alpha, 0.0f)
+        << name << " panel border is invisible";
+    EXPECT_LE(theme.agent.panel_border.alpha, 0.45f)
+        << name << " panel border competes with active controls";
   };
 
   for (const auto& theme_name : ShippedFileThemeNames()) {
@@ -281,6 +285,24 @@ TEST_F(ThemeStyleSnapshotTest, FileThemesHydrateEnhancedSemanticDefaults) {
     SCOPED_TRACE(theme_name);
     expect_hydrated(mgr.GetCurrentTheme(), theme_name.c_str());
   }
+}
+
+TEST_F(ThemeStyleSnapshotTest, ForestPairUsesQuietChrome) {
+  auto& mgr = ThemeManager::Get();
+
+  const Theme* forest = mgr.GetTheme("Forest");
+  ASSERT_NE(forest, nullptr);
+  ExpectRgbNear(forest->background, 13, 18, 15);
+  ExpectRgbNear(forest->surface, 21, 27, 23);
+  ExpectRgbNear(forest->button, 37, 49, 41);
+  ExpectRgbNear(forest->border, 74, 91, 79, 115);
+  EXPECT_LT(forest->button.green, forest->primary.green);
+
+  const Theme* forest_light = mgr.GetTheme("Forest Light");
+  ASSERT_NE(forest_light, nullptr);
+  ExpectRgbNear(forest_light->button, 232, 226, 211);
+  ExpectRgbNear(forest_light->border, 72, 102, 80, 110);
+  EXPECT_LT(forest_light->border.alpha, 0.5f);
 }
 
 TEST_F(ThemeStyleSnapshotTest,

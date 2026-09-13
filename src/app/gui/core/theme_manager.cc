@@ -509,7 +509,7 @@ void ThemeManager::CreateFallbackYazeClassic() {
 
   theme.agent.panel_bg = theme.child_bg;
   theme.agent.panel_bg_darker = RGBA(0, 0, 0, 50);
-  theme.agent.panel_border = theme.border;
+  theme.agent.panel_border = RGBA(92, 115, 92, 115);
   theme.agent.accent = theme.accent;
 
   theme.agent.status_active = theme.success;
@@ -1605,7 +1605,10 @@ void ThemeManager::ApplySmartDefaults(Theme& theme) {
         0.02f);
   }
   if (needs_semantic_default(theme.agent.panel_border)) {
-    theme.agent.panel_border = theme.border;
+    // Editor panels use this compatibility palette too. Keep panel separation
+    // visible without repeating the theme accent around every nested child.
+    theme.agent.panel_border =
+        with_alpha(theme.border, std::min(theme.border.alpha, 0.45f));
   }
   if (needs_semantic_default(theme.agent.accent)) {
     theme.agent.accent = theme.accent;
