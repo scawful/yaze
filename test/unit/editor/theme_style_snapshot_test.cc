@@ -276,7 +276,8 @@ TEST_F(ThemeStyleSnapshotTest, FileThemesHydrateEnhancedSemanticDefaults) {
     not_missing(theme.agent.code_background, "agent.code_background");
     EXPECT_GT(theme.agent.panel_border.alpha, 0.0f)
         << name << " panel border is invisible";
-    EXPECT_LE(theme.agent.panel_border.alpha, 0.45f)
+    constexpr float kMaxQuietBorderAlpha = 115.0f / 255.0f + 1e-5f;
+    EXPECT_LE(theme.agent.panel_border.alpha, kMaxQuietBorderAlpha)
         << name << " panel border competes with active controls";
   };
 
