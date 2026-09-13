@@ -3652,7 +3652,14 @@ std::vector<std::string> ThemeManager::GetThemeSearchPaths() const {
     search_paths.push_back(user_themes.string() + "/");
   }
 
-  // Priority 2: Application bundle/install themes
+  // Priority 2: Application bundle/install themes. Use the shared asset
+  // resolver so launches from an arbitrary working directory still find the
+  // themes copied beside the executable on Linux and Windows.
+  if (auto bundled_themes = util::PlatformPaths::FindAsset("themes");
+      bundled_themes.ok()) {
+    search_paths.push_back(bundled_themes->string() + "/");
+  }
+
 #ifdef __APPLE__
   // macOS bundle resource path
   std::string bundle_themes = util::GetResourcePath("assets/themes/");
