@@ -27,93 +27,13 @@ namespace {
 
 constexpr int kSpritePreviewSize = 64;
 constexpr int kSpritePreviewAnchor = 16;
-constexpr int kSpritePaletteRowsStart = 8;
-constexpr int kPaletteRowSize = 16;
-
-struct DungeonSpriteColorTable {
-  std::array<ImU32, 256> colors{};
-  bool has_sprite_colors = false;
-};
-
-ImU32 ToImU32(const gfx::SnesColor& color) {
-  const auto rgb = color.rom_color();
-  return IM_COL32(static_cast<int>(rgb.red), static_cast<int>(rgb.green),
-                  static_cast<int>(rgb.blue), 255);
-}
-
-void CopyPaletteRange(std::array<ImU32, 256>& colors, bool& has_colors, int row,
-                      int start_column, const gfx::SnesPalette& palette,
-                      size_t max_colors) {
-  const size_t count = std::min(max_colors, palette.size());
-  for (size_t i = 0; i < count; ++i) {
-    const int column = start_column + static_cast<int>(i);
-    const int index = row * kPaletteRowSize + column;
-    if (index < 0 || index >= static_cast<int>(colors.size())) {
-      continue;
-    }
-    colors[static_cast<size_t>(index)] = ToImU32(palette[i]);
-    has_colors = true;
-  }
-}
-
-DungeonSpriteColorTable BuildDungeonSpriteColorTable(
-    const zelda3::GameData* game_data) {
-  DungeonSpriteColorTable table;
-  if (!game_data) {
-    return table;
-  }
-
-  const auto& groups = game_data->palette_groups;
-
-  if (groups.sprites_aux1.size() > 1) {
-    CopyPaletteRange(table.colors, table.has_sprite_colors,
-                     kSpritePaletteRowsStart, 1,
-                     groups.sprites_aux1.palette_ref(1), 7);
-  }
-  if (!groups.sprites_aux3.empty()) {
-    CopyPaletteRange(table.colors, table.has_sprite_colors,
-                     kSpritePaletteRowsStart, 9,
-                     groups.sprites_aux3.palette_ref(0), 7);
-  }
-
-  if (!groups.global_sprites.empty()) {
-    const auto& global = groups.global_sprites.palette_ref(0);
-    size_t source_index = 0;
-    for (int row = 9; row <= 12; ++row) {
-      for (int column = 1; column < kPaletteRowSize; ++column) {
-        if (source_index >= global.size()) {
-          break;
-        }
-        table.colors[static_cast<size_t>(row * kPaletteRowSize + column)] =
-            ToImU32(global[source_index++]);
-        table.has_sprite_colors = true;
-      }
-    }
-  }
-
-  if (!groups.sprites_aux1.empty()) {
-    CopyPaletteRange(table.colors, table.has_sprite_colors, 13, 1,
-                     groups.sprites_aux1.palette_ref(0), 7);
-  }
-  if (!groups.sprites_aux2.empty()) {
-    CopyPaletteRange(table.colors, table.has_sprite_colors, 14, 1,
-                     groups.sprites_aux2.palette_ref(0), 7);
-  }
-  if (!groups.armors.empty()) {
-    CopyPaletteRange(table.colors, table.has_sprite_colors, 15, 1,
-                     groups.armors.palette_ref(0), 15);
-  }
-
-  return table;
-}
 
 bool DrawSpritePreviewPixels(const gui::CanvasRuntime& rt,
                              const std::vector<uint8_t>& preview, int room_x,
                              int room_y,
-                             const DungeonSpriteColorTable& color_table) {
+                             const std::array<SDL_Color, 256>& color_table) {
   if (!rt.draw_list ||
-      preview.size() < kSpritePreviewSize * kSpritePreviewSize ||
-      !color_table.has_sprite_colors) {
+      preview.size() < kSpritePreviewSize * kSpritePreviewSize) {
     return false;
   }
 
@@ -130,11 +50,16 @@ bool DrawSpritePreviewPixels(const gui::CanvasRuntime& rt,
     while (x < kSpritePreviewSize) {
       const uint8_t palette_index =
           preview[static_cast<size_t>(y * kSpritePreviewSize + x)];
-      const ImU32 color = color_table.colors[palette_index];
-      if (palette_index == 0xFF || color == 0) {
+      const SDL_Color& palette_color = color_table[palette_index];
+      // RenderPreviewGraphics reserves index 0 for transparency. Unlike the
+      // former 0xFF sentinel, index 0 cannot collide with a visible dungeon
+      // sprite pixel: the preview encoder emits CGRAM indices 0x71..0xFF.
+      if (palette_index == 0 || palette_color.a == 0) {
         ++x;
         continue;
       }
+      const ImU32 color = IM_COL32(palette_color.r, palette_color.g,
+                                   palette_color.b, palette_color.a);
 
       const int start_x = x;
       while (x < kSpritePreviewSize &&
@@ -187,8 +112,8 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
   const auto& theme = AgentUI::GetTheme();
   const bool is_touch = gui::LayoutHelpers::IsTouchDevice();
   const int entity_size = is_touch ? 24 : 16;
-  const DungeonSpriteColorTable sprite_colors =
-      BuildDungeonSpriteColorTable(game_data_);
+  const auto sprite_colors =
+      zelda3::BuildDungeonSpriteRenderPalette(room, game_data_);
   const auto& room_gfx = room.get_gfx_buffer();
   const std::span<const uint8_t> room_gfx_span(room_gfx.data(),
                                                room_gfx.size());

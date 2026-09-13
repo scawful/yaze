@@ -311,6 +311,50 @@ TEST_F(CustomObjectRoomRenderTest,
 }
 
 TEST_F(CustomObjectRoomRenderTest,
+       MushroomStatueDoesNotEnableTrackAliasesForWallCorners) {
+  std::vector<std::string> custom_files = {
+      "track_LR.bin",
+      "track_UD.bin",
+      "track_corner_TL.bin",
+      "track_corner_TR.bin",
+      "track_corner_BL.bin",
+      "track_corner_BR.bin",
+      "track_floor_UD.bin",
+      "track_floor_LR.bin",
+      "track_floor_corner_TL.bin",
+      "track_floor_corner_TR.bin",
+      "track_floor_corner_BL.bin",
+      "track_floor_corner_BR.bin",
+      "track_floor_any.bin",
+      "wall_sword_house.bin",
+      "track_any.bin",
+      "small_statue.bin",
+  };
+  EnableCustomObjects(custom_files);
+  WriteSingleTileCustomObjectFile("track_corner_TL.bin",
+                                  /*tile_id=0 pal=2*/ 0x0800);
+  WriteSingleTileCustomObjectFile("small_statue.bin",
+                                  /*tile_id=0 pal=2*/ 0x0800);
+
+  Room room = MakeRoomWithObjects(
+      {RoomObject(/*id=*/0x31, /*x=*/1, /*y=*/1, /*size=*/15, /*layer=*/2),
+       RoomObject(/*id=*/0x100, /*x=*/6, /*y=*/7, /*size=*/0, /*layer=*/2)});
+  RenderObjectBuffers(room);
+
+  const auto& bitmap = room.object_bg1_buffer().bitmap();
+  const auto& coverage = room.object_bg1_buffer().coverage_data();
+  int wall_corner_pixels = 0;
+  for (int y = 7 * 8; y < 11 * 8; ++y) {
+    for (int x = 6 * 8; x < 10 * 8; ++x) {
+      wall_corner_pixels += coverage[PixelIndex(bitmap, x, y)] != 0 ? 1 : 0;
+    }
+  }
+  EXPECT_GT(wall_corner_pixels, 64)
+      << "A Mushroom Grotto small statue must leave the ordinary 4x4 wall "
+         "corner on its vanilla draw routine";
+}
+
+TEST_F(CustomObjectRoomRenderTest,
        LayoutCornerIgnoresTrackAliasFilesWithoutTrackBaseObject) {
   EnableCustomObjects({"track_LR.bin", "track_UD.bin", "track_corner_TL.bin",
                        "track_corner_TR.bin", "track_corner_BL.bin",

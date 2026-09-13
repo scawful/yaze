@@ -536,19 +536,17 @@ TEST(DungeonEditorV2ObjectTileEditorTest,
   ASSERT_TRUE(ObjectTileEditorPanelTestAccess::Layout(*panel_ptr)
                   .source_provenance.has_value());
 
-  auto expected_palette = game_data.palette_groups.dungeon_main.palette_ref(3);
-  auto expected_group =
-      gfx::CreatePaletteGroupFromLargePalette(expected_palette);
-  ASSERT_TRUE(expected_group.ok()) << expected_group.status();
-  auto default_palette = game_data.palette_groups.dungeon_main.palette_ref(0);
-  auto default_group = gfx::CreatePaletteGroupFromLargePalette(default_palette);
-  ASSERT_TRUE(default_group.ok()) << default_group.status();
+  const auto& hud_palette = game_data.palette_groups.hud.palette_ref(0);
+  const auto expected_group = zelda3::BuildDungeonRenderPaletteGroup(
+      game_data.palette_groups.dungeon_main.palette_ref(3), &hud_palette);
+  const auto default_group = zelda3::BuildDungeonRenderPaletteGroup(
+      game_data.palette_groups.dungeon_main.palette_ref(0), &hud_palette);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentPaletteColor(
-                *panel_ptr, /*palette=*/0, /*color=*/0),
-            expected_group->GetColor(/*palette=*/0, /*color=*/0).snes());
+                *panel_ptr, /*palette=*/2, /*color=*/1),
+            expected_group.GetColor(/*palette=*/2, /*color=*/1).snes());
   EXPECT_NE(ObjectTileEditorPanelTestAccess::CurrentPaletteColor(
-                *panel_ptr, /*palette=*/0, /*color=*/0),
-            default_group->GetColor(/*palette=*/0, /*color=*/0).snes());
+                *panel_ptr, /*palette=*/2, /*color=*/1),
+            default_group.GetColor(/*palette=*/2, /*color=*/1).snes());
 }
 
 TEST(DungeonEditorV2ObjectTileEditorTest,

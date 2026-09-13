@@ -108,11 +108,18 @@ Repeat Header + Tiles until Header == 0x0000
 | 0x31 | 3 | track_corner_TR.bin |
 | 0x31 | 4 | track_corner_BL.bin |
 | 0x31 | 5 | track_corner_BR.bin |
-| 0x31 | 6-14 | track_floor_*.bin, track_any.bin |
+| 0x31 | 6-12 | track_floor_*.bin |
+| 0x31 | 13 | wall_sword_house.bin |
+| 0x31 | 14 | track_any.bin |
 | 0x31 | 15 | small_statue.bin |
 | 0x32 | 0 | furnace.bin |
 | 0x32 | 1 | firewood.bin |
 | 0x32 | 2 | ice_chair.bin |
+
+Only the real track subtypes `0–12` and `14` enable the optional
+`0x100–0x103` track-corner aliases. Decorative subtypes `13` and `15` do not;
+otherwise rooms containing a sword wall or Mushroom Grotto statue replace
+ordinary 4×4 wall corners with 2×2 track-corner graphics.
 
 ---
 
@@ -248,4 +255,3 @@ The MinecartTrackEditorPanel loads and saves `minecart_tracks.asm` which defines
 ## Contact
 
 For questions about this system, refer to the Oracle of Secrets project structure or check the custom object handler in the ASM source.
-

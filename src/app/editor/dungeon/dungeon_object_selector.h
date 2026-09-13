@@ -30,6 +30,30 @@ namespace editor {
 class ObjectTileEditorPanel;
 struct DungeonObjectSelectorTestAccess;
 
+struct DungeonObjectSelectorGridLayout {
+  int columns = 1;
+  float item_size = 1.0f;
+  float leading_inset = 0.0f;
+};
+
+struct DungeonObjectPreviewFit {
+  bool valid = false;
+  float x = 0.0f;
+  float y = 0.0f;
+  float width = 0.0f;
+  float height = 0.0f;
+};
+
+// Pure responsive-layout helpers shared by the selector and its unit tests.
+DungeonObjectSelectorGridLayout ResolveDungeonObjectSelectorGridLayout(
+    float available_width, float preferred_item_size, float item_spacing,
+    float min_item_size = 32.0f);
+DungeonObjectPreviewFit ResolveDungeonObjectPreviewFit(float source_width,
+                                                       float source_height,
+                                                       float box_width,
+                                                       float box_height);
+bool MatchesDungeonObjectStreamFilter(int object_id, int selected_filter);
+
 /**
  * @brief Handles object selection, preview, and editing UI
  */
@@ -57,9 +81,6 @@ class DungeonObjectSelector {
   void set_current_room_id(int room_id) { current_room_id_ = room_id; }
 
   // Palette access
-  void set_current_palette_group_id(uint64_t id) {
-    current_palette_group_id_ = id;
-  }
   // Replace the active palette group used by preview rendering. The preview
   // cache is keyed on object identity plus room blockset, palette, and floor
   // graphics, none of which capture the *contents* of the palette group: switching
@@ -70,9 +91,6 @@ class DungeonObjectSelector {
   void SetCurrentPaletteGroup(const gfx::PaletteGroup& palette_group) {
     current_palette_group_ = palette_group;
     InvalidatePreviewCache();
-  }
-  void SetCurrentPaletteId(uint64_t palette_id) {
-    current_palette_id_ = palette_id;
   }
   void SetCustomObjectsFolder(const std::string& folder);
 
@@ -130,14 +148,13 @@ class DungeonObjectSelector {
   void CalculateObjectDimensions(const zelda3::RoomObject& object, int& width,
                                  int& height);
   bool DrawObjectPreview(const zelda3::RoomObject& object, ImVec2 top_left,
-                         float size);
+                         ImVec2 box_size);
   zelda3::RoomObject MakePreviewObject(int obj_id) const;
   void EnsureRegistryInitialized();
   ImU32 GetObjectTypeColor(int object_id);
   std::string GetObjectTypeSymbol(int object_id);
   void EnsureCustomObjectsInitialized();
-  void DrawCustomObjectWorkshopButton(int custom_count);
-  void DrawCustomObjectWorkshopPopup(float item_size);
+  void DrawCustomObjectWorkshopPopup();
   void DrawNewCustomObjectDialog();
   absl::Status OpenNewCustomObjectEditor(int width, int height,
                                          const std::string& filename,
@@ -167,15 +184,12 @@ class DungeonObjectSelector {
   int current_room_id_ = 0;
 
   // Palette data
-  uint64_t current_palette_group_id_ = 0;
-  uint64_t current_palette_id_ = 0;
   gfx::PaletteGroup current_palette_group_;
 
   zelda3::DungeonObjectRegistry object_registry_;
 
   // Object preview system
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};
-  gfx::SnesPalette preview_palette_;
   bool object_loaded_ = false;
 
   // Callback for object selection
@@ -186,8 +200,8 @@ class DungeonObjectSelector {
 
   // UI state for object browser filter
   int object_type_filter_ = 0;
-  int object_subtype_tab_ = 0;   // 0=Type1, 1=Type2, 2=Type3
-  int object_grid_density_ = 1;  // 0=Small, 1=Medium, 2=Large
+  int object_stream_filter_ = 0;  // 0=All, 1=Type1, 2=Type2, 3=Type3
+  int object_grid_density_ = 0;   // 0=Compact, 1=Medium, 2=Large
   char object_search_buffer_[64] = {0};
 
   // Registry initialization flag
@@ -217,7 +231,7 @@ class DungeonObjectSelector {
   void SynchronizePreviewCacheRoomContext(const zelda3::Room& room);
   static uint32_t MakeLayoutCacheKey(int object_id, uint8_t preview_size,
                                      const zelda3::Room* room);
-  bool GetOrCreatePreview(const zelda3::RoomObject& object, float size,
+  bool GetOrCreatePreview(const zelda3::RoomObject& object,
                           gfx::BackgroundBuffer** out);
 };
 

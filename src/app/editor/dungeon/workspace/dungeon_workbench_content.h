@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 #include "app/editor/dungeon/dungeon_workbench_state.h"
 #include "app/editor/system/editor_panel.h"
@@ -59,6 +60,11 @@ struct DungeonWorkbenchPitDamageControlRects {
   DungeonWorkbenchTestRect replace_current;
 };
 
+enum class DungeonWorkbenchToolRequestTarget : uint8_t {
+  kEmbeddedInspector,
+  kStandaloneWindow,
+};
+
 DungeonWorkbenchResponsiveLayout ResolveDungeonWorkbenchResponsiveLayout(
     float total_width, float min_canvas_width, float min_sidebar_width,
     float splitter_width, bool want_left, bool want_right);
@@ -69,6 +75,12 @@ DungeonWorkbenchPaneLayout ResolveDungeonWorkbenchPaneLayout(
     bool want_left, bool want_right);
 
 bool ResolveCompactInspectorDetailRequest(bool compact, bool detail_requested);
+
+// An already-open standalone tool owns its WindowContent for that frame. Route
+// repeated Workbench requests back to that window instead of drawing the same
+// instance in both presentations.
+DungeonWorkbenchToolRequestTarget ResolveDungeonWorkbenchToolRequestTarget(
+    bool standalone_window_open);
 
 // Single stable window for dungeon editing. This is step 2 in the Workbench plan.
 class DungeonWorkbenchContent : public WindowContent {
@@ -104,6 +116,15 @@ class DungeonWorkbenchContent : public WindowContent {
                                WindowContent* item_editor,
                                WindowContent* room_graphics,
                                WindowContent* palette_editor);
+  void SetStandaloneToolCallbacks(
+      std::function<bool(const std::string&)> is_window_open,
+      std::function<bool(const std::string&)> open_and_focus_window) {
+    is_standalone_tool_open_ = std::move(is_window_open);
+    open_and_focus_standalone_tool_ = std::move(open_and_focus_window);
+  }
+  void SetOpenKeyboardShortcutsCallback(std::function<void()> callback) {
+    open_keyboard_shortcuts_ = std::move(callback);
+  }
   void SetPitDamageTableProvider(
       std::function<zelda3::PitDamageTable*()> provider) {
     get_pit_damage_table_ = std::move(provider);
@@ -123,6 +144,7 @@ class DungeonWorkbenchContent : public WindowContent {
   void OpenCustomCollisionTool();
   void OpenWaterFillTool();
   void OpenMinecartTool();
+  bool PopOutActiveTool();
 
   // Mirror toggle: when true, the inspector renders on the LEFT and the
   // sidebar renders on the RIGHT (ZScream-style). Width semantics are
@@ -142,7 +164,7 @@ class DungeonWorkbenchContent : public WindowContent {
 
   // Lightweight state probes for unit tests; production rendering remains
   // driven by the Workbench inspector.
-  bool IsToolDrawerActiveForTesting() const;
+  bool IsToolInspectorActiveForTesting() const;
   const char* GetInspectorModeIdForTesting() const;
   const char* GetActiveToolIdForTesting() const;
   void DrawPitDamageControlsForTesting(int room_id) {
@@ -193,16 +215,13 @@ class DungeonWorkbenchContent : public WindowContent {
     Palette,
   };
 
-  void DrawRecentRoomTabs();
   void DrawSidebarPane(float width, float height, float button_size,
                        bool compact);
   void DrawSidebarHeader(float button_size, bool compact);
   void DrawSidebarModeTabs(bool stacked, float segment_height);
   void DrawSidebarContent();
   void DrawCanvasPane(float width, float height,
-                      DungeonCanvasViewer* primary_viewer,
-                      bool left_sidebar_visible);
-  void DrawSelectionShelf(DungeonCanvasViewer& viewer);
+                      DungeonCanvasViewer* primary_viewer);
   void DrawSplitView(DungeonCanvasViewer& primary_viewer);
   void DrawInspectorPane(float width, float height, float button_size,
                          bool compact, DungeonCanvasViewer* viewer);
@@ -213,15 +232,15 @@ class DungeonWorkbenchContent : public WindowContent {
   void DrawInspectorShelf(DungeonCanvasViewer& viewer, bool compact);
   void DrawInspectorShelfRoom(DungeonCanvasViewer& viewer);
   void DrawInspectorShelfSelection(DungeonCanvasViewer& viewer);
-  void DrawInspectorShelfTools(DungeonCanvasViewer& viewer);
-  void DrawInspectorToolDrawer(DungeonCanvasViewer& viewer);
+  void DrawInspectorToolPanel(DungeonCanvasViewer& viewer);
+  void DrawInspectorToolPicker();
   void DrawWorkbenchTool(DungeonCanvasViewer& viewer, WorkbenchTool tool);
-  void DrawInspectorToolStrip();
   void OpenTool(WorkbenchTool tool);
+  void CloseToolInspector();
+  WindowContent* GetWorkbenchToolContent(WorkbenchTool tool) const;
+  bool IsStandaloneToolOpen(WorkbenchTool tool) const;
   bool IsWorkbenchToolAvailable(WorkbenchTool tool) const;
   const char* GetWorkbenchToolId(WorkbenchTool tool) const;
-  const char* GetWorkbenchToolTitle(WorkbenchTool tool) const;
-  const char* GetWorkbenchToolIcon(WorkbenchTool tool) const;
   const char* GetWorkbenchToolShortLabel(WorkbenchTool tool) const;
   const char* GetWorkbenchToolUnavailableMessage(WorkbenchTool tool) const;
   void DrawApplyScopeControls(int room_id);
@@ -253,6 +272,9 @@ class DungeonWorkbenchContent : public WindowContent {
   std::function<const std::deque<int>&()> get_recent_rooms_;
   std::function<void(int)> forget_recent_room_;
   std::function<void(bool)> set_workflow_mode_;
+  std::function<bool(const std::string&)> is_standalone_tool_open_;
+  std::function<bool(const std::string&)> open_and_focus_standalone_tool_;
+  std::function<void()> open_keyboard_shortcuts_;
   std::function<void(bool)> on_inspector_side_changed_;
   std::function<void(DungeonCanvasViewer&)> on_primary_canvas_drawn_;
   std::function<zelda3::PitDamageTable*()> get_pit_damage_table_;
@@ -262,6 +284,7 @@ class DungeonWorkbenchContent : public WindowContent {
   SidebarMode sidebar_mode_ = SidebarMode::Rooms;
   enum class InspectorMode : uint8_t { Room, Selection, Tools };
   InspectorMode inspector_mode_ = InspectorMode::Room;
+  InspectorMode inspector_mode_before_tools_ = InspectorMode::Room;
   bool inspector_selection_was_active_ = false;
   bool compact_inspector_detail_requested_ = false;
   WorkbenchTool active_tool_ = WorkbenchTool::ObjectSelector;
@@ -281,8 +304,6 @@ class DungeonWorkbenchContent : public WindowContent {
   std::function<std::string()> redo_desc_;
   std::function<int()> undo_depth_;
 
-  // Shortcut legend toggle.
-  bool show_shortcut_legend_ = false;
   bool open_dungeon_map_popup_ = false;
   uint16_t pit_damage_replacement_room_id_ = 0;
   uint16_t pit_damage_victim_room_id_ = 0;

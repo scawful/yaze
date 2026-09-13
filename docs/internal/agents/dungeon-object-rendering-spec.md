@@ -146,6 +146,27 @@ independent pixel proof.
 - RGB averaging and indexed-palette fallback paths approximate SNES color math; only committed Mesen ROIs are pixel-parity claims.
 - More key, shutter, bombable, and exploding door ROIs are required before claiming full door-family parity.
 
+### Oracle project witnesses
+
+Custom object `0x31` is subtype-overloaded. Only subtypes `0–12` and `14` are
+minecart track pieces and may enable the `0x100–0x103` track-corner aliases.
+Subtype `13` (`wall_sword_house`) and subtype `15` (`small_statue`) are
+decorations and must leave those ordinary 4×4 wall corners on their built-in
+routine. Mushroom Grotto uses subtype `15` in rooms `0x1A`, `0x1B`, `0x2A`,
+`0x3B`, `0x4A`, `0x4B`, and `0x6A`.
+
+The next Oracle-specific pixel fixtures are intentionally small:
+
+| Family | Primary witness | What must be isolated |
+| --- | --- | --- |
+| Static water `0xC8`, edges `0x3F–0x46` | Mushroom Grotto `0x4A`, then water-dense `0x33` | Interior motif versus edge/cap overlap order |
+| Icy floor `0xD1` | `0x08C` at `(10,11)` for BG1; `0x0CE` at `(29,23)` for BG2 | Shared routine-58 pixels and stored-layer routing |
+| Bars `0x4C`, `0x8F`, `0xFD6–0xFD9` | `0x042` | A complete vertical-bar, corner, and horizontal-bar join |
+
+These are investigation targets, not parity claims. Do not alter shared draw
+routines from a visual report alone; first capture the affected layer and a
+matching emulator or known-good editor ROI.
+
 ### Render issue capture UX
 
 The room canvas context menu exposes `Capture Issue` for room rendering, room palette, or the current selection. Opening or closing the dialog does not create a log entry. `Copy Report` and `Copy Diagnostics` only copy; `Save to Issue Log` is the explicit persistence action. Raw diagnostics and local file paths are collapsed by default.

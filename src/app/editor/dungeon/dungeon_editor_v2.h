@@ -401,8 +401,9 @@ class DungeonEditorV2 : public Editor {
   gui::PaletteEditorWidget palette_editor_;
   // Panel pointers. WorkspaceWindowManager owns these when available; fallback
   // unique_ptrs keep non-workspace tests and direct embedding paths alive.
-  // Workbench mode embeds room-local utilities in the inspector drawer and
-  // closes/hides their standalone window entries.
+  // Workbench mode embeds room-local utilities in the Tools inspector. Their
+  // standalone entries remain discoverable, but one content instance has only
+  // one active presentation owner at a time.
   ObjectSelectorContent* object_selector_panel_ = nullptr;
   ObjectEditorContent* object_editor_content_ = nullptr;
   DoorEditorContent* door_editor_panel_ = nullptr;
@@ -485,6 +486,22 @@ class DungeonEditorV2 : public Editor {
   };
   PendingWorkflowMode pending_workflow_mode_;
 
+  // Opening or focusing a standalone tool mutates WorkspaceWindowManager and
+  // Dear ImGui focus state. Workbench buttons are drawn inside child windows,
+  // so defer that mutation to the next Update() safe point. Capture the
+  // originating session so a session switch cannot redirect the request.
+  struct PendingStandaloneToolWindow {
+    size_t session_id = 0;
+    std::string window_id;
+    bool pending = false;
+  };
+  PendingStandaloneToolWindow pending_standalone_tool_window_;
+
+  // Unpinned room-navigation panels hidden by the most recent transition into
+  // the integrated Workbench. Standalone editing tools remain user-owned and
+  // are never added to this restoration set.
+  std::vector<std::string> workbench_suspended_navigation_window_ids_;
+
   // Two-phase undo capture: BeginUndoSnapshot saves state before mutation,
   // FinalizeUndoAction captures state after mutation and pushes the action.
   void BeginUndoSnapshot(int room_id);
@@ -504,6 +521,7 @@ class DungeonEditorV2 : public Editor {
   void SwapRoomInPanel(int old_room_id, int new_room_id);
   void ProcessPendingSwap();  // Process deferred swap after draw
   void ProcessPendingWorkflowMode();
+  void ProcessPendingStandaloneToolWindow();
 
   // Room panel slot IDs provide stable ImGui window IDs across "swap room in
   // panel" navigation. This keeps the window position/dock state when the room
