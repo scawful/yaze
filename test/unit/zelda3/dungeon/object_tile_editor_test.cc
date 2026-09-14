@@ -207,6 +207,128 @@ TEST(ObjectTileEditorTest, CaptureLayoutBoundsMatchObjectGeometry) {
   }
 }
 
+TEST(ObjectTileEditorTest,
+     StaticWaterIcePreviewsMatchDirectObjectPixelsAndSourceMotif) {
+  ScopedCustomObjectsDisabled custom_objects_disabled;
+  constexpr std::array<int16_t, 11> kObjectIds = {
+      0xC8, 0xC9, 0xCA, 0xD1, 0xD2, 0xD9, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7};
+  constexpr std::array<uint16_t, 8> kSourceWords = {
+      0x09B0, 0x4DB1, 0x91B2, 0xD5B3, 0x39B4, 0x7DB5, 0xA9B6, 0xEDB7};
+  constexpr uint16_t kSourceOffset = 0x0500;
+
+  std::vector<uint8_t> rom_data(0x200000, 0);
+  for (const int16_t object_id : kObjectIds) {
+    StoreWord(rom_data, kRoomObjectSubtype1 + object_id * 2, kSourceOffset);
+  }
+  for (size_t i = 0; i < kSourceWords.size(); ++i) {
+    StoreWord(rom_data, kRoomObjectTileAddress + kSourceOffset + i * 2,
+              kSourceWords[i]);
+  }
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::move(rom_data)).ok());
+  Room room(/*room_id=*/0xCE, &rom, /*game_data=*/nullptr);
+  auto& room_gfx =
+      const_cast<std::array<uint8_t, 0x10000>&>(room.get_gfx_buffer());
+  room_gfx.fill(0);
+  for (int slot = 0; slot < 8; ++slot) {
+    const int tile_id = 0x1B0 + slot;
+    for (int y = 0; y < 8; ++y) {
+      for (int x = 0; x < 8; ++x) {
+        // Asymmetric pixels expose either swapped flip bit. Zero pixels must
+        // remain transparent, including in the final palette bank.
+        room_gfx[(tile_id / 16) * 1024 + (tile_id % 16) * 8 + y * 128 + x] =
+            static_cast<uint8_t>((slot * 3 + x + y * 2) % 16);
+      }
+    }
+  }
+  gfx::PaletteGroup palette("static_water_ice");
+  for (int bank = 0; bank < 8; ++bank) {
+    gfx::SnesPalette colors;
+    for (int color = 0; color < 16; ++color) {
+      colors.AddColor(
+          gfx::SnesColor(static_cast<uint16_t>(0x0100 + bank * 16 + color)));
+    }
+    palette.AddPalette(colors);
+  }
+
+  ObjectTileEditor editor(&rom);
+  // This is static preview consistency, not independent emulator parity.
+  // USDASM $018FA5 expands each two-bit dimension by one 4x4 block;
+  // $018A44 repeats its eight source words as rows [0..3; 4..7; 0..3; 4..7].
+  // Include minimum/maximum sizes and the sizes of Oracle's ice witnesses.
+  for (const int16_t object_id : kObjectIds) {
+    for (const uint8_t size : {0, 5, 10, 15}) {
+      SCOPED_TRACE(::testing::Message()
+                   << "object=0x" << std::hex << object_id
+                   << " size=" << std::dec << static_cast<int>(size));
+      const int width_tiles = (((size >> 2) & 3) + 1) * 4;
+      const int height_tiles = ((size & 3) + 1) * 4;
+      auto layout_or =
+          editor.CaptureObjectLayout(object_id, room, palette, size);
+      ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+      const auto& layout = *layout_or;
+      ASSERT_EQ(layout.bounds_width, width_tiles);
+      ASSERT_EQ(layout.bounds_height, height_tiles);
+      ASSERT_EQ(layout.cells.size(), width_tiles * height_tiles);
+      for (const auto& cell : layout.cells) {
+        EXPECT_EQ(gfx::TileInfoToWord(cell.tile_info),
+                  kSourceWords[(cell.rel_y % 2) * 4 + cell.rel_x % 4]);
+      }
+
+      gfx::Bitmap preview;
+      ASSERT_TRUE(
+          editor.RenderLayoutToBitmap(layout, preview, room_gfx.data(), palette)
+              .ok());
+      const int width = width_tiles * 8;
+      const int height = height_tiles * 8;
+      ASSERT_EQ(preview.width(), width);
+      ASSERT_EQ(preview.height(), height);
+      ASSERT_EQ(preview.palette().size(), 128u);
+      for (int bank = 0; bank < 8; ++bank) {
+        for (int color = 0; color < 16; ++color) {
+          EXPECT_EQ(preview.palette()[bank * 16 + color].snes(),
+                    palette.palette_ref(bank)[color].snes());
+        }
+      }
+      std::vector<uint8_t> expected(width * height);
+      for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < width; ++x) {
+          const int slot = ((y / 8) % 2) * 4 + (x / 8) % 4;
+          const uint16_t word = kSourceWords[slot];
+          const int source_x = (word & 0x4000) ? 7 - x % 8 : x % 8;
+          const int source_y = (word & 0x8000) ? 7 - y % 8 : y % 8;
+          const int pixel = (slot * 3 + source_x + source_y * 2) % 16;
+          expected[y * width + x] =
+              pixel == 0 ? 255 : pixel + ((word >> 10) & 7) * 16;
+        }
+      }
+      EXPECT_EQ(preview.vector(), expected);
+
+      for (const uint8_t layer : {0, 1, 2}) {
+        SCOPED_TRACE(::testing::Message()
+                     << "stream=" << static_cast<int>(layer));
+        // Off-grid placement must only translate this object-relative motif.
+        RoomObject object(object_id, /*x=*/29, /*y=*/23, size, layer);
+        gfx::BackgroundBuffer bg1(512, 512);
+        gfx::BackgroundBuffer bg2(512, 512);
+        bg1.EnsureBitmapInitialized();
+        bg2.EnsureBitmapInitialized();
+        ObjectDrawer drawer(&rom, room.id(), room_gfx.data());
+        ASSERT_TRUE(drawer.DrawObject(object, bg1, bg2, palette).ok());
+        const auto& direct = (layer == 1 ? bg2 : bg1).bitmap().vector();
+        std::vector<uint8_t> cropped(width * height);
+        for (int y = 0; y < height; ++y) {
+          for (int x = 0; x < width; ++x) {
+            cropped[y * width + x] = direct[(23 * 8 + y) * 512 + 29 * 8 + x];
+          }
+        }
+        EXPECT_EQ(cropped, expected);
+        EXPECT_EQ(cropped, preview.vector());
+      }
+    }
+  }
+}
+
 TEST(ObjectTileEditorTest, CaptureLayoutUsesRequestedOracleCustomSubtype) {
   const bool old_custom_objects_flag =
       core::FeatureFlags::get().kEnableCustomObjects;
