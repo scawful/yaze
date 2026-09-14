@@ -1,3 +1,5 @@
+#define IMGUI_DEFINE_MATH_OPERATORS
+
 #include "app/editor/shell/coordinator/welcome_screen.h"
 #include "util/i18n/tr.h"
 
@@ -11,6 +13,7 @@
 #include "absl/time/time.h"
 #include "app/editor/system/session/user_settings.h"
 #include "app/gui/core/icons.h"
+#include "app/gui/core/input.h"
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
@@ -19,7 +22,6 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "util/file_util.h"
-#include "util/log.h"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -34,31 +36,28 @@ namespace {
 const ImVec4 kTriforceGoldFallback = ImVec4(1.0f, 0.843f, 0.0f, 1.0f);
 const ImVec4 kHyruleGreenFallback = ImVec4(0.133f, 0.545f, 0.133f, 1.0f);
 const ImVec4 kMasterSwordBlueFallback = ImVec4(0.196f, 0.6f, 0.8f, 1.0f);
-const ImVec4 kGanonPurpleFallback = ImVec4(0.502f, 0.0f, 0.502f, 1.0f);
 const ImVec4 kHeartRedFallback = ImVec4(0.863f, 0.078f, 0.235f, 1.0f);
 const ImVec4 kSpiritOrangeFallback = ImVec4(1.0f, 0.647f, 0.0f, 1.0f);
-const ImVec4 kShadowPurpleFallback = ImVec4(0.416f, 0.353f, 0.804f, 1.0f);
 
 constexpr float kRecentCardBaseWidth = 240.0f;
 constexpr float kRecentCardBaseHeight = 128.0f;
 constexpr float kRecentCardWidthMaxFactor = 1.30f;
 constexpr float kRecentCardHeightMaxFactor = 1.30f;
+constexpr float kWelcomeSplitMinWidth = 900.0f;
+constexpr float kWelcomeSplitMinHeight = 560.0f;
 
 // Active colors (updated each frame from theme)
 ImVec4 kTriforceGold = kTriforceGoldFallback;
 ImVec4 kHyruleGreen = kHyruleGreenFallback;
 ImVec4 kMasterSwordBlue = kMasterSwordBlueFallback;
-ImVec4 kGanonPurple = kGanonPurpleFallback;
 ImVec4 kHeartRed = kHeartRedFallback;
 ImVec4 kSpiritOrange = kSpiritOrangeFallback;
-ImVec4 kShadowPurple = kShadowPurpleFallback;
 
 void UpdateWelcomeAccentPalette() {
   auto& theme_mgr = gui::ThemeManager::Get();
   // Skip the palette recompute when the active theme hasn't changed. The
-  // welcome screen ran this every frame previously, doing 7 ImLerps + 6
-  // Color-to-ImVec4 conversions; cheap individually but pure waste while the
-  // theme is static (almost always).
+  // The welcome screen previously recomputed its accent palette every frame;
+  // skip that work while the active theme is unchanged.
   static std::string s_cached_theme_name;
   static bool s_cached_once = false;
   const std::string& current_name = theme_mgr.GetCurrentThemeName();
@@ -70,22 +69,18 @@ void UpdateWelcomeAccentPalette() {
 
   const auto& theme = theme_mgr.GetCurrentTheme();
 
-  const ImVec4 secondary = gui::ConvertColorToImVec4(theme.secondary);
   const ImVec4 accent = gui::ConvertColorToImVec4(theme.accent);
   const ImVec4 warning = gui::ConvertColorToImVec4(theme.warning);
   const ImVec4 success = gui::ConvertColorToImVec4(theme.success);
   const ImVec4 info = gui::ConvertColorToImVec4(theme.info);
   const ImVec4 error = gui::ConvertColorToImVec4(theme.error);
-  const ImVec4 surface = gui::GetSurfaceVec4();
 
   // Welcome accent palette: themed, but with distinct flavor per role.
   kTriforceGold = ImLerp(accent, warning, 0.55f);
   kHyruleGreen = success;
   kMasterSwordBlue = info;
-  kGanonPurple = secondary;
   kHeartRed = error;
   kSpiritOrange = ImLerp(warning, accent, 0.35f);
-  kShadowPurple = ImLerp(secondary, surface, 0.45f);
 }
 
 // Truncate `text` to fit within `max_width` pixels, appending "..." if clipped.
@@ -222,40 +217,6 @@ GridLayout ComputeGridLayout(float avail_width, float min_width,
   return layout;
 }
 
-void DrawThemeQuickSwitcher(const char* popup_id, const ImVec2& button_size) {
-  auto& theme_mgr = gui::ThemeManager::Get();
-  const std::string button_label = absl::StrFormat(
-      "%s Theme: %s", ICON_MD_PALETTE, theme_mgr.GetCurrentThemeName());
-
-  if (gui::ThemedButton(button_label.c_str(), button_size, "welcome_screen",
-                        "theme_quick_switch")) {
-    ImGui::OpenPopup(popup_id);
-  }
-
-  if (ImGui::BeginPopup(popup_id)) {
-    auto themes = theme_mgr.GetAvailableThemes();
-    std::sort(themes.begin(), themes.end());
-
-    for (const auto& name : themes) {
-      if (ImGui::Selectable(name.c_str(),
-                            theme_mgr.GetCurrentThemeName() == name)) {
-        if (theme_mgr.IsPreviewActive()) {
-          theme_mgr.EndPreview();
-        }
-        theme_mgr.ApplyTheme(name);
-      }
-      if (ImGui::IsItemHovered() && (!theme_mgr.IsPreviewActive() ||
-                                     theme_mgr.GetCurrentThemeName() != name)) {
-        theme_mgr.StartPreview(name);
-      }
-    }
-
-    ImGui::EndPopup();
-  } else if (theme_mgr.IsPreviewActive()) {
-    theme_mgr.EndPreview();
-  }
-}
-
 }  // namespace
 
 WelcomeScreen::WelcomeScreen() {
@@ -263,10 +224,9 @@ WelcomeScreen::WelcomeScreen() {
 }
 
 void WelcomeScreen::SetUserSettings(UserSettings* settings) {
-  user_settings_ = settings;
-  if (!user_settings_)
+  if (!settings)
     return;
-  const auto& prefs = user_settings_->prefs();
+  const auto& prefs = settings->prefs();
   triforce_alpha_multiplier_ = prefs.welcome_triforce_alpha;
   triforce_speed_multiplier_ = prefs.welcome_triforce_speed;
   triforce_size_multiplier_ = prefs.welcome_triforce_size;
@@ -274,20 +234,15 @@ void WelcomeScreen::SetUserSettings(UserSettings* settings) {
   triforce_mouse_repel_enabled_ = prefs.welcome_mouse_repel_enabled;
 }
 
-void WelcomeScreen::PersistAnimationSettings() {
-  if (!user_settings_)
-    return;
-  auto& prefs = user_settings_->prefs();
-  prefs.welcome_triforce_alpha = triforce_alpha_multiplier_;
-  prefs.welcome_triforce_speed = triforce_speed_multiplier_;
-  prefs.welcome_triforce_size = triforce_size_multiplier_;
-  prefs.welcome_particles_enabled = particles_enabled_;
-  prefs.welcome_mouse_repel_enabled = triforce_mouse_repel_enabled_;
-  auto status = user_settings_->Save();
-  if (!status.ok()) {
-    LOG_WARN("WelcomeScreen", "Failed to persist animation settings: %s",
-             status.ToString().c_str());
-  }
+bool WelcomeScreen::ShouldUseStackedLayout(float content_width,
+                                           float content_height,
+                                           float layout_scale) {
+  // Card and pane minimums scale with the active font. Scale the breakpoint
+  // from the same source so accessibility-sized text cannot force the wide
+  // layout into a space that only fits it at the default font size.
+  const float safe_scale = std::max(layout_scale, 0.01f);
+  return content_width < kWelcomeSplitMinWidth * safe_scale ||
+         content_height < kWelcomeSplitMinHeight * safe_scale;
 }
 
 // Helper function to calculate staggered animation progress
@@ -567,41 +522,35 @@ bool WelcomeScreen::Show(bool* p_open) {
     ImGui::BeginChild("WelcomeContent", ImVec2(0, -40), false);
     const float content_width = ImGui::GetContentRegionAvail().x;
     const float content_height = ImGui::GetContentRegionAvail().y;
-    const bool narrow_layout = content_width < 900.0f;
     const float layout_scale = ImGui::GetFontSize() / 16.0f;
+    const bool stacked_layout =
+        ShouldUseStackedLayout(content_width, content_height, layout_scale);
 
-    if (narrow_layout) {
-      const float quick_actions_h = std::clamp(
-          content_height * 0.35f, 160.0f * layout_scale, 300.0f * layout_scale);
-      const float release_h = std::clamp(
-          content_height * 0.32f, 160.0f * layout_scale, 320.0f * layout_scale);
-
-      ImGui::BeginChild("QuickActionsNarrow", ImVec2(0, quick_actions_h), true,
-                        ImGuiWindowFlags_NoScrollbar);
+    if (stacked_layout) {
+      // Keep constrained windows on one scroll surface. Fixed-height nested
+      // children can hide startup actions when text wraps or the window is
+      // short, and multiple scrollbars make the hierarchy harder to follow.
       DrawFirstRunGuide();
       DrawQuickActions();
-      ImGui::EndChild();
-
       ImGui::Spacing();
-
-      ImGui::BeginChild("ReleaseHistoryNarrow", ImVec2(0, release_h), true);
-      DrawWhatsNew();
-      ImGui::EndChild();
-
+      ImGui::Separator();
       ImGui::Spacing();
-
-      ImGui::BeginChild("RecentPanelNarrow", ImVec2(0, 0), true);
       DrawRecentProjects();
-      ImGui::EndChild();
+      ImGui::Spacing();
+      ImGui::Separator();
+      ImGui::Spacing();
+      DrawWhatsNew();
     } else {
       float left_width =
-          std::clamp(ImGui::GetContentRegionAvail().x * 0.38f,
-                     320.0f * layout_scale, 520.0f * layout_scale);
+          std::clamp(ImGui::GetContentRegionAvail().x * 0.34f,
+                     300.0f * layout_scale, 440.0f * layout_scale);
       ImGui::BeginChild("LeftPanel", ImVec2(left_width, 0), true,
                         ImGuiWindowFlags_NoScrollbar);
       const float left_height = ImGui::GetContentRegionAvail().y;
-      const float quick_actions_h = std::clamp(
-          left_height * 0.35f, 180.0f * layout_scale, 300.0f * layout_scale);
+      const bool first_run =
+          recent_projects_model_.entries().empty() && !has_rom_;
+      const float quick_actions_h =
+          (first_run ? 260.0f : 210.0f) * layout_scale;
 
       ImGui::BeginChild("QuickActionsWide", ImVec2(0, quick_actions_h), false,
                         ImGuiWindowFlags_NoScrollbar);
@@ -619,7 +568,7 @@ bool WelcomeScreen::Show(bool* p_open) {
           1.0f);
       ImGui::Dummy(ImVec2(0, 5));
 
-      ImGui::BeginChild("ReleaseHistoryWide", ImVec2(0, 0), true);
+      ImGui::BeginChild("WhatsNewWide", ImVec2(0, 0), true);
       DrawWhatsNew();
       ImGui::EndChild();
       ImGui::EndChild();
@@ -656,13 +605,6 @@ bool WelcomeScreen::Show(bool* p_open) {
 
 void WelcomeScreen::UpdateAnimations() {
   animation_time_ += ImGui::GetIO().DeltaTime;
-
-  // Update hover scale for cards (smooth interpolation)
-  for (int i = 0; i < 6; ++i) {
-    float target = (hovered_card_ == i) ? 1.03f : 1.0f;
-    card_hover_scale_[i] +=
-        (target - card_hover_scale_[i]) * ImGui::GetIO().DeltaTime * 10.0f;
-  }
 
   // Note: Triforce positions and particles are updated in Show() based on mouse
   // position
@@ -760,10 +702,7 @@ void WelcomeScreen::DrawHeader() {
 }
 
 void WelcomeScreen::DrawFirstRunGuide() {
-  // Shown above Quick Actions when the user has no recents and no ROM loaded.
-  // Zelda hacking has steep terminology; the cards below otherwise drop a
-  // first-time visitor into "Vanilla ROM Hack vs ZSO3" before they know
-  // what's a ROM file. Three numbered steps lower the activation energy.
+  // Keep the empty-state guidance compact so the primary action stays visible.
   if (!recent_projects_model_.entries().empty() || has_rom_)
     return;
 
@@ -775,48 +714,13 @@ void WelcomeScreen::DrawFirstRunGuide() {
   gui::StyleVarGuard alpha_guard(ImGuiStyleVar_Alpha, progress);
 
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
-  ImGui::TextColored(kTriforceGold,
-                     ICON_MD_AUTO_AWESOME " New to Zelda hacking?");
+  ImGui::TextColored(kTriforceGold, ICON_MD_AUTO_AWESOME " First time here?");
   {
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
     ImGui::TextWrapped(
-        tr("Three quick steps get you from zero to poking at the game:"));
+        tr("Open a clean .sfc or .smc ROM to begin. Yaze works locally and "
+           "does not change the file until you choose Save."));
   }
-  ImGui::Spacing();
-
-  auto numbered_step = [&](int n, const char* icon, const char* title,
-                           const char* body) {
-    ImGui::TextColored(kTriforceGold, "%d.", n);
-    ImGui::SameLine();
-    ImGui::TextColored(kMasterSwordBlue, "%s %s", icon, title);
-    {
-      gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
-      ImGui::Indent();
-      ImGui::TextWrapped("%s", body);
-      ImGui::Unindent();
-    }
-    ImGui::Spacing();
-  };
-
-  numbered_step(
-      1, ICON_MD_MEMORY, "Load a ROM",
-      "Click \"Open ROM\" below and pick a vanilla A Link to the Past "
-      "(.sfc or .smc) file. We read it locally — it's never uploaded.");
-  numbered_step(
-      2, ICON_MD_LAYERS, "Pick a project template",
-      "Templates decide what kinds of changes your ROM will support. "
-      "Start with \"Vanilla ROM Hack\" if you just want to edit rooms, "
-      "sprites, or graphics — you can upgrade to ZSO v3 later.");
-  numbered_step(
-      3, ICON_MD_EDIT, "Open an editor",
-      "Use the left sidebar to jump into the overworld, a dungeon, or "
-      "the graphics editor. Quick Actions below can open \"Prototype "
-      "Research\" "
-      "or the assembly editor without a ROM (CGX/SCR imports or asm files). "
-      "Changes live in the editor until you save — nothing touches the ROM "
-      "until you click Save.");
-
-  ImGui::Separator();
   ImGui::Spacing();
 }
 
@@ -840,37 +744,12 @@ void WelcomeScreen::DrawQuickActions() {
     ImGui::Indent(indent);
   }
 
-  ImGui::TextColored(kSpiritOrange, ICON_MD_BOLT " Quick Actions");
+  ImGui::TextColored(kSpiritOrange, ICON_MD_BOLT " Start");
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
   {
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
     ImGui::TextWrapped(
-        tr("Open a ROM or project when you are ready to hack a cartridge — or "
-           "jump "
-           "into Prototype Research or the assembly editor first without any "
-           "ROM."));
-  }
-  const auto& entries = recent_projects_model_.entries();
-  size_t rom_count = 0;
-  size_t project_count = 0;
-  size_t unavailable_count = 0;
-  for (const auto& recent : entries) {
-    if (recent.unavailable) {
-      ++unavailable_count;
-      continue;
-    }
-    if (recent.item_type == "ROM") {
-      ++rom_count;
-    } else if (recent.item_type == "Project") {
-      ++project_count;
-    }
-  }
-  {
-    gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
-    ImGui::TextWrapped(
-        tr("%zu recent entries • %zu ROMs • %zu projects%s"), entries.size(),
-        rom_count, project_count,
-        unavailable_count > 0 ? " • some entries need re-open permission" : "");
+        tr("Open a ROM or project, or continue from Recent Files."));
   }
   ImGui::Spacing();
 
@@ -879,38 +758,12 @@ void WelcomeScreen::DrawQuickActions() {
   const float action_width = ImGui::GetContentRegionAvail().x;
   float button_width = action_width;
 
-  // Animated button colors (compact height)
-  auto draw_action_button = [&](const char* icon, const char* text,
-                                const ImVec4& color, bool enabled,
-                                std::function<void()> callback) {
-    gui::StyleColorGuard button_colors({
-        {ImGuiCol_Button,
-         ImVec4(color.x * 0.6f, color.y * 0.6f, color.z * 0.6f, 0.8f)},
-        {ImGuiCol_ButtonHovered, ImVec4(color.x, color.y, color.z, 1.0f)},
-        {ImGuiCol_ButtonActive,
-         ImVec4(color.x * 1.2f, color.y * 1.2f, color.z * 1.2f, 1.0f)},
-    });
-
-    if (!enabled)
-      ImGui::BeginDisabled();
-
-    bool clicked = ImGui::Button(absl::StrFormat("%s %s", icon, text).c_str(),
-                                 ImVec2(button_width, button_height));
-
-    if (!enabled)
-      ImGui::EndDisabled();
-
-    if (clicked && enabled && callback) {
-      callback();
-    }
-
-    return clicked;
-  };
-
   // Unified startup open path.
-  if (draw_action_button(ICON_MD_FOLDER_OPEN, "Open ROM / Project",
-                         kHyruleGreen, true, open_rom_callback_)) {
-    // Handled by callback
+  if (gui::PrimaryButton(ICON_MD_FOLDER_OPEN " Open ROM / Project",
+                         ImVec2(button_width, button_height), "welcome_screen",
+                         "open_rom_or_project") &&
+      open_rom_callback_) {
+    open_rom_callback_();
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(ICON_MD_INFO
@@ -919,70 +772,11 @@ void WelcomeScreen::DrawQuickActions() {
 
   ImGui::Spacing();
 
-  if (open_prototype_research_callback_) {
-    if (draw_action_button(ICON_MD_CONSTRUCTION, "Prototype Research (no ROM)",
-                           kMasterSwordBlue, true,
-                           open_prototype_research_callback_)) {
-      // Handled by callback
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          ICON_MD_INFO
-          " Opens the Graphics editor with the prototype import lab — CGX, "
-          "SCR, "
-          "COL, BIN, and clipboard tools work without loading a ROM.");
-    }
-    ImGui::Spacing();
-  }
-
-  if (open_assembly_editor_no_rom_callback_) {
-    if (draw_action_button(ICON_MD_CODE, "Assembly Editor (no ROM)",
-                           kTriforceGold, true,
-                           open_assembly_editor_no_rom_callback_)) {
-      // Handled by callback
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip(
-          ICON_MD_INFO
-          " Opens the Assembly editor — open a folder or files and work on asm "
-          "without loading a ROM. ROM-backed disassembly stays disabled until "
-          "you load a cart.");
-    }
-    ImGui::Spacing();
-  }
-
-  const RecentProject* last_recent = nullptr;
-  for (const auto& recent : recent_projects_model_.entries()) {
-    if (!recent.unavailable) {
-      last_recent = &recent;
-      break;
-    }
-  }
-  if (last_recent && open_project_callback_) {
-    const std::string resume_label = absl::StrFormat(
-        "Resume Last (%s)", last_recent->item_type.empty()
-                                ? "File"
-                                : last_recent->item_type.c_str());
-    const std::string resume_path = last_recent->filepath;
-    if (draw_action_button(ICON_MD_PLAY_ARROW, resume_label.c_str(),
-                           kMasterSwordBlue, true, [this, resume_path]() {
-                             if (open_project_callback_) {
-                               open_project_callback_(resume_path);
-                             }
-                           })) {
-      // Handled by callback
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("%s\n%s", last_recent->name.c_str(),
-                        last_recent->filepath.c_str());
-    }
-    ImGui::Spacing();
-  }
-
-  // New Project button - Gold like getting a treasure
-  if (draw_action_button(ICON_MD_ADD_CIRCLE, "New Project", kTriforceGold, true,
-                         new_project_callback_)) {
-    // Handled by callback
+  if (gui::ThemedButton(ICON_MD_ADD_CIRCLE " New Project",
+                        ImVec2(button_width, button_height), "welcome_screen",
+                        "new_project") &&
+      new_project_callback_) {
+    new_project_callback_();
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
@@ -990,11 +784,33 @@ void WelcomeScreen::DrawQuickActions() {
         " Create a new project for metadata, labels, and workflow settings");
   }
 
-  {
-    gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
-    ImGui::Spacing();
-    ImGui::TextWrapped(tr(
-        "Release highlights and migration notes are now in the panel below."));
+  ImGui::Spacing();
+  if (gui::ThemedButton(ICON_MD_MORE_HORIZ " More ways to start", ImVec2(-1, 0),
+                        "welcome_screen", "more_start_ways")) {
+    ImGui::OpenPopup("WelcomeMoreStartWays");
+  }
+  if (ImGui::BeginPopup("WelcomeMoreStartWays")) {
+    if (open_prototype_research_callback_ &&
+        ImGui::MenuItem(ICON_MD_CONSTRUCTION " Prototype Research")) {
+      open_prototype_research_callback_();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          ICON_MD_INFO
+          " Open the Graphics editor for CGX, SCR, COL, BIN, and clipboard "
+          "work without loading a ROM");
+    }
+
+    if (open_assembly_editor_no_rom_callback_ &&
+        ImGui::MenuItem(ICON_MD_CODE " Assembly Editor")) {
+      open_assembly_editor_no_rom_callback_();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          ICON_MD_INFO
+          " Open files or a folder for assembly work without loading a ROM");
+    }
+    ImGui::EndPopup();
   }
 
   // Clean up entry animation styles
@@ -1273,19 +1089,8 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
   const ImVec4 text_disabled = gui::GetTextDisabledVec4();
 
-  ImVec2 resolved_card_size = card_size;
+  const ImVec2 resolved_card_size = card_size;
   ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
-
-  // Subtle hover scale.
-  float hover_scale = card_hover_scale_[index];
-  if (hover_scale != 1.0f) {
-    ImVec2 center(cursor_pos.x + resolved_card_size.x / 2,
-                  cursor_pos.y + resolved_card_size.y / 2);
-    cursor_pos.x = center.x - (resolved_card_size.x * hover_scale) / 2;
-    cursor_pos.y = center.y - (resolved_card_size.y * hover_scale) / 2;
-    resolved_card_size.x *= hover_scale;
-    resolved_card_size.y *= hover_scale;
-  }
 
   ImVec4 accent = kTriforceGold;
   if (project.unavailable) {
@@ -1307,22 +1112,21 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
              cursor_pos.y + resolved_card_size.y),
       color_top_u32, color_top_u32, color_bottom_u32, color_bottom_u32);
 
-  ImU32 border_color =
-      ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.6f));
+  ImVec4 border = project.unavailable
+                      ? ImVec4(kHeartRed.x, kHeartRed.y, kHeartRed.z, 0.7f)
+                      : ImGui::GetStyleColorVec4(ImGuiCol_Border);
+  ImU32 border_color = ImGui::GetColorU32(border);
 
   draw_list->AddRect(cursor_pos,
                      ImVec2(cursor_pos.x + resolved_card_size.x,
                             cursor_pos.y + resolved_card_size.y),
-                     border_color, 6.0f, 0, 2.0f);
+                     border_color, 6.0f, 0, 1.0f);
 
   // Make the card clickable
   ImGui::SetCursorScreenPos(cursor_pos);
-  ImGui::InvisibleButton("ProjectPanel", resolved_card_size);
+  const bool is_activated = ImGui::InvisibleButton(
+      "ProjectPanel", resolved_card_size, ImGuiButtonFlags_EnableNav);
   bool is_hovered = ImGui::IsItemHovered();
-  bool is_clicked = ImGui::IsItemClicked();
-
-  hovered_card_ =
-      is_hovered ? index : (hovered_card_ == index ? -1 : hovered_card_);
 
   if (ImGui::BeginPopupContextItem("ProjectPanelMenu")) {
     if (project.is_missing) {
@@ -1381,8 +1185,9 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
   }
 
   if (is_hovered) {
-    ImU32 hover_color =
-        ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.16f));
+    ImVec4 hover = ImGui::GetStyleColorVec4(ImGuiCol_HeaderHovered);
+    hover.w *= 0.55f;
+    ImU32 hover_color = ImGui::GetColorU32(hover);
     draw_list->AddRectFilled(cursor_pos,
                              ImVec2(cursor_pos.x + resolved_card_size.x,
                                     cursor_pos.y + resolved_card_size.y),
@@ -1477,306 +1282,12 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
   }
 
   // Handle click
-  if (is_clicked && open_project_callback_) {
+  if (is_activated && open_project_callback_) {
     open_project_callback_(project.filepath);
   }
 
   ImGui::EndGroup();
   ImGui::PopID();
-}
-
-void WelcomeScreen::DrawTemplatesSection() {
-  // Entry animation for templates (section 3)
-  float templates_progress = GetStaggeredEntryProgress(
-      entry_time_, 3, kEntryAnimDuration, kEntryStaggerDelay);
-
-  if (templates_progress < 0.001f) {
-    return;  // Don't draw yet
-  }
-
-  gui::StyleVarGuard alpha_guard(ImGuiStyleVar_Alpha, templates_progress);
-
-  // Header with visual settings button
-  float content_width = ImGui::GetContentRegionAvail().x;
-  ImGui::TextColored(kGanonPurple, ICON_MD_LAYERS " Project Templates");
-  ImGui::SameLine(content_width - 25);
-  if (ImGui::SmallButton(show_triforce_settings_ ? ICON_MD_CLOSE
-                                                 : ICON_MD_TUNE)) {
-    show_triforce_settings_ = !show_triforce_settings_;
-  }
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(ICON_MD_AUTO_AWESOME " Visual Effects Settings");
-  }
-
-  ImGui::Spacing();
-
-  // Visual effects settings panel (when opened)
-  if (show_triforce_settings_) {
-    {
-      gui::StyledChild visual_settings(
-          "VisualSettingsCompact", ImVec2(0, 115),
-          {.bg = ImVec4(0.18f, 0.15f, 0.22f, 0.4f)}, true,
-          ImGuiWindowFlags_NoScrollbar);
-      ImGui::TextColored(kGanonPurple, ICON_MD_AUTO_AWESOME " Visual Effects");
-      ImGui::Spacing();
-
-      // Persist animation tweaks only when the edit is committed (release of
-      // slider / click of checkbox), so we don't write settings every frame
-      // while the user is dragging.
-      bool changed_commit = false;
-
-      ImGui::Text(ICON_MD_OPACITY " Visibility");
-      ImGui::SetNextItemWidth(-1);
-      ImGui::SliderFloat("##visibility", &triforce_alpha_multiplier_, 0.0f,
-                         3.0f, "%.1fx");
-      if (ImGui::IsItemDeactivatedAfterEdit())
-        changed_commit = true;
-
-      ImGui::Text(ICON_MD_SPEED " Speed");
-      ImGui::SetNextItemWidth(-1);
-      ImGui::SliderFloat("##speed", &triforce_speed_multiplier_, 0.05f, 1.0f,
-                         "%.2fx");
-      if (ImGui::IsItemDeactivatedAfterEdit())
-        changed_commit = true;
-
-      if (ImGui::Checkbox(ICON_MD_MOUSE " Mouse Interaction",
-                          &triforce_mouse_repel_enabled_)) {
-        changed_commit = true;
-      }
-      ImGui::SameLine();
-      if (ImGui::Checkbox(ICON_MD_AUTO_FIX_HIGH " Particles",
-                          &particles_enabled_)) {
-        changed_commit = true;
-      }
-
-      if (ImGui::SmallButton(ICON_MD_REFRESH " Reset")) {
-        triforce_alpha_multiplier_ = 1.0f;
-        triforce_speed_multiplier_ = 0.3f;
-        triforce_size_multiplier_ = 1.0f;
-        triforce_mouse_repel_enabled_ = true;
-        particles_enabled_ = true;
-        particle_spawn_rate_ = 2.0f;
-        changed_commit = true;
-      }
-
-      if (changed_commit) {
-        PersistAnimationSettings();
-      }
-    }
-    ImGui::Spacing();
-  }
-
-  ImGui::Spacing();
-
-  struct Template {
-    const char* icon;
-    const char* name;
-    const char* use_when;      // 1-line "pick this when..."
-    const char* what_changes;  // plain-English summary of ROM impact
-    int skill_level;           // 1 = beginner, 2 = comfortable, 3 = advanced
-    const char* template_id;
-    const char** details;
-    int detail_count;
-    ImVec4 color;
-  };
-
-  const char* vanilla_details[] = {
-      "Edits vanilla data tables (rooms, sprites, maps)",
-      "No custom ASM required — works with any vanilla ROM",
-      "Overworld layout stays identical to the original"};
-  const char* zso3_details[] = {
-      "Enables editor support for wider / taller overworld areas",
-      "Enables custom entrance, exit, item, and property saves",
-      "Requires a ROM that already includes the ZSO3 ASM patch"};
-  const char* zso2_details[] = {
-      "Older overworld expansion with parent-area system",
-      "Lighter footprint than v3 — good for ports of legacy hacks",
-      "Palette + BG color overrides only"};
-  const char* rando_details[] = {
-      "Skips the features that break randomizer patches",
-      "Leaves ASM hook points alone", "Keeps the save layout minimal"};
-
-  Template templates[] = {
-      {ICON_MD_COTTAGE, "Vanilla ROM Hack",
-       "You want to edit rooms, sprites, or graphics without custom code.",
-       "Adds project metadata and labels on top of your vanilla ROM. The ROM "
-       "itself is only changed when you save edits you make in the editors.",
-       /*skill_level=*/1, "Vanilla ROM Hack", vanilla_details,
-       static_cast<int>(sizeof(vanilla_details) / sizeof(vanilla_details[0])),
-       kHyruleGreen},
-      {ICON_MD_TERRAIN, "ZSCustomOverworld v3",
-       "You want to resize overworld areas and add custom map features.",
-       "Configures editor save flags for a ROM that already uses ZSO3. This "
-       "template does not install the ZSO3 ASM patch.",
-       /*skill_level=*/2, "ZSCustomOverworld v3", zso3_details,
-       static_cast<int>(sizeof(zso3_details) / sizeof(zso3_details[0])),
-       kMasterSwordBlue},
-      {ICON_MD_MAP, "ZSCustomOverworld v2",
-       "You're porting an older hack that already uses ZSO v2.",
-       "Configures editor save flags for an existing ZSO2 ROM. It does not "
-       "install the patch; use this for compatibility with a legacy hack.",
-       /*skill_level=*/2, "ZSCustomOverworld v2", zso2_details,
-       static_cast<int>(sizeof(zso2_details) / sizeof(zso2_details[0])),
-       kShadowPurple},
-      {ICON_MD_SHUFFLE, "Randomizer Compatible",
-       "You're building a ROM that has to work with ALTTPR or similar.",
-       "Uses conservative save flags that skip ASM hooks and overworld "
-       "remapping. Validate the finished ROM with your target randomizer.",
-       /*skill_level=*/3, "Randomizer Compatible", rando_details,
-       static_cast<int>(sizeof(rando_details) / sizeof(rando_details[0])),
-       kSpiritOrange},
-  };
-
-  const int template_count =
-      static_cast<int>(sizeof(templates) / sizeof(templates[0]));
-  if (selected_template_ < 0 || selected_template_ >= template_count) {
-    selected_template_ = 0;
-  }
-
-  const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
-  const float template_width = ImGui::GetContentRegionAvail().x;
-  const float scale = ImGui::GetFontSize() / 16.0f;
-  const bool stack_templates = template_width < 520.0f;
-
-  auto draw_template_list = [&]() {
-    for (int i = 0; i < template_count; ++i) {
-      bool is_selected = (selected_template_ == i);
-
-      std::optional<gui::StyleColorGuard> header_guard;
-      if (is_selected) {
-        header_guard.emplace(std::initializer_list<gui::StyleColorGuard::Entry>{
-            {ImGuiCol_Header,
-             ImVec4(templates[i].color.x * 0.6f, templates[i].color.y * 0.6f,
-                    templates[i].color.z * 0.6f, 0.6f)}});
-      }
-
-      ImGui::PushID(i);
-      {
-        gui::StyleColorGuard text_guard(ImGuiCol_Text, templates[i].color);
-        if (ImGui::Selectable(
-                absl::StrFormat("%s %s", templates[i].icon, templates[i].name)
-                    .c_str(),
-                is_selected)) {
-          selected_template_ = i;
-        }
-      }
-      ImGui::PopID();
-
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(tr("%s %s\nUse when: %s"), ICON_MD_INFO,
-                          templates[i].name, templates[i].use_when);
-      }
-    }
-  };
-
-  auto draw_template_details = [&]() {
-    const Template& active = templates[selected_template_];
-    ImGui::TextColored(active.color, "%s %s", active.icon, active.name);
-
-    // Skill dots: filled = required level, empty = headroom. Makes pick-
-    // ability visible at a glance without a numeric label.
-    ImGui::SameLine();
-    const ImVec4 dim =
-        ImVec4(text_secondary.x, text_secondary.y, text_secondary.z, 0.35f);
-    for (int i = 1; i <= 3; ++i) {
-      ImGui::SameLine();
-      ImGui::TextColored(i <= active.skill_level ? active.color : dim,
-                         ICON_MD_STAR);
-    }
-    if (ImGui::IsItemHovered()) {
-      const char* skill_labels[] = {"Beginner friendly",
-                                    "Some familiarity helps",
-                                    "Advanced — know the pipeline"};
-      ImGui::SetTooltip("%s", skill_labels[active.skill_level - 1]);
-    }
-
-    ImGui::Spacing();
-    {
-      gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
-      ImGui::TextWrapped(ICON_MD_LIGHTBULB " %s", active.use_when);
-    }
-    ImGui::Spacing();
-    {
-      gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
-      ImGui::TextWrapped(ICON_MD_EDIT " What this changes: %s",
-                         active.what_changes);
-    }
-    ImGui::Spacing();
-    ImGui::TextColored(kTriforceGold, ICON_MD_CHECK_CIRCLE " Includes");
-    for (int i = 0; i < active.detail_count; ++i) {
-      ImGui::Bullet();
-      ImGui::SameLine();
-      ImGui::TextColored(text_secondary, "%s", active.details[i]);
-    }
-  };
-
-  if (stack_templates) {
-    const float row_height = ImGui::GetTextLineHeightWithSpacing() + 4.0f;
-    const float list_height = std::clamp(row_height * (template_count + 1),
-                                         120.0f * scale, 200.0f * scale);
-    ImGui::BeginChild("TemplateList", ImVec2(0, list_height), false,
-                      ImGuiWindowFlags_NoScrollbar);
-    draw_template_list();
-    ImGui::EndChild();
-    ImGui::Spacing();
-    ImGui::BeginChild("TemplateDetails", ImVec2(0, 0), false,
-                      ImGuiWindowFlags_NoScrollbar);
-    draw_template_details();
-    ImGui::EndChild();
-  } else if (ImGui::BeginTable("TemplateGrid", 2,
-                               ImGuiTableFlags_SizingStretchProp)) {
-    ImGui::TableSetupColumn("TemplateList", ImGuiTableColumnFlags_WidthStretch,
-                            0.42f);
-    ImGui::TableSetupColumn("TemplateDetails",
-                            ImGuiTableColumnFlags_WidthStretch, 0.58f);
-
-    ImGui::TableNextColumn();
-    ImGui::BeginChild("TemplateList", ImVec2(0, 0), false,
-                      ImGuiWindowFlags_NoScrollbar);
-    draw_template_list();
-    ImGui::EndChild();
-
-    ImGui::TableNextColumn();
-    ImGui::BeginChild("TemplateDetails", ImVec2(0, 0), false,
-                      ImGuiWindowFlags_NoScrollbar);
-    draw_template_details();
-    ImGui::EndChild();
-
-    ImGui::EndTable();
-  }
-
-  ImGui::Spacing();
-
-  // Use Template button - enabled and functional
-  {
-    gui::StyleColorGuard button_colors({
-        {ImGuiCol_Button, ImVec4(kSpiritOrange.x * 0.6f, kSpiritOrange.y * 0.6f,
-                                 kSpiritOrange.z * 0.6f, 0.8f)},
-        {ImGuiCol_ButtonHovered, kSpiritOrange},
-        {ImGuiCol_ButtonActive,
-         ImVec4(kSpiritOrange.x * 1.2f, kSpiritOrange.y * 1.2f,
-                kSpiritOrange.z * 1.2f, 1.0f)},
-    });
-
-    if (ImGui::Button(
-            absl::StrFormat("%s Use Template", ICON_MD_ROCKET_LAUNCH).c_str(),
-            ImVec2(-1, 30))) {
-      // Trigger template-based project creation
-      if (new_project_with_template_callback_) {
-        new_project_with_template_callback_(
-            templates[selected_template_].template_id);
-      } else if (new_project_callback_) {
-        // Fallback to regular new project if template callback not set
-        new_project_callback_();
-      }
-    }
-  }
-
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(tr("%s Create new project with '%s' template\nThis will "
-                         "open a ROM and apply the template settings."),
-                      ICON_MD_INFO, templates[selected_template_].name);
-  }
 }
 
 void WelcomeScreen::DrawTipsSection() {
@@ -1830,194 +1341,41 @@ void WelcomeScreen::DrawWhatsNew() {
 
   gui::StyleVarGuard alpha_guard(ImGuiStyleVar_Alpha, whatsnew_progress);
 
-  ImGui::TextColored(kHeartRed, ICON_MD_NEW_RELEASES " Release History");
-  ImGui::Spacing();
-
-  // Version badge (no animation)
-  ImGui::TextColored(kMasterSwordBlue, ICON_MD_VERIFIED " Current: v%s",
-                     YAZE_VERSION_STRING);
-  ImGui::Spacing();
-  DrawThemeQuickSwitcher("WelcomeThemeQuickSwitch", ImVec2(-1, 0));
-  ImGui::Spacing();
-
-  struct ReleaseHighlight {
-    const char* icon;
-    const char* text;
-  };
-
-  struct ReleaseEntry {
-    const char* icon;
-    const char* version;
-    const char* title;
-    const char* date;
-    ImVec4 color;
-    const ReleaseHighlight* highlights;
-    int highlight_count;
-  };
-
-  const ReleaseHighlight highlights_071[] = {
-      {ICON_MD_ROCKET_LAUNCH,
-       "Welcome screen overhaul: guided New Project wizard + template picker"},
-      {ICON_MD_HISTORY,
-       "Recent projects: async ROM scan, pin/rename/notes, 8s undo toast"},
-      {ICON_MD_SEARCH,
-       "Welcome actions now surfaced through the command palette"},
-      {ICON_MD_CASTLE,
-       "Dungeon editor parity: BG1/BG2 layout routing + pit mask fix"},
-      {ICON_MD_FACT_CHECK,
-       "Dungeon ROM-backed object parity tests and render snapshots"},
-      {ICON_MD_TUNE,
-       "Simplified workbench inspector/navigation + action-oriented selection"},
-      {ICON_MD_MEMORY,
-       "Lazy session editors + deferred asset loads trim startup footprint"},
-      {ICON_MD_ACCOUNT_TREE,
-       "Editor source map: registry/, shell/, system/*/, hack/oracle/ — easier "
-       "navigation for contributors"},
-  };
-  const ReleaseHighlight highlights_070[] = {
-      {ICON_MD_TABLET, "iOS Remote Control with Bonjour LAN auto-discovery"},
-      {ICON_MD_GRID_VIEW,
-       "Remote Room Viewer: browse all 296 dungeon rooms on iPad"},
-      {ICON_MD_TERMINAL,
-       "Remote Command Runner: z3ed CLI from iPad with autocomplete"},
-      {ICON_MD_API, "Desktop HTTP API: command execute/list + annotation CRUD"},
-      {ICON_MD_UNDO,
-       "Sprite + Screen editor undo/redo and message replace-all"},
-      {ICON_MD_ARCHIVE, "Desktop BPS patch export/import with CRC validation"},
-      {ICON_MD_TUNE, "Themed tab bar and widget adoption across key editors"},
-  };
-  const ReleaseHighlight highlights_062[] = {
-      {ICON_MD_ARCHIVE, ".yazeproj bundle verify/pack/unpack reliability"},
-      {ICON_MD_SHIELD, "Oracle smoke/preflight workflow hardening"},
-      {ICON_MD_TUNE, "Dungeon placement feedback and editor UX polish"},
-  };
-  const ReleaseHighlight highlights_061[] = {
-      {ICON_MD_SHIELD, "Oracle smoke/preflight workflow hardening"},
-      {ICON_MD_ARCHIVE, "Cross-platform .yazeproj verify/pack/unpack flows"},
-      {ICON_MD_TUNE, "Dungeon placement feedback and workbench UX upgrades"},
-      {ICON_MD_GRID_VIEW, "Tile selector jump/filter and decimal ID input"},
-  };
-  const ReleaseHighlight highlights_060[] = {
-      {ICON_MD_PALETTE, "GUI modernization with unified themed widgets"},
-      {ICON_MD_COLOR_LENS, "Semantic theming and smooth editor transitions"},
-      {ICON_MD_GRID_VIEW, "Visual Object Tile Editor for dungeon rooms"},
-      {ICON_MD_UNDO, "Unified cross-editor Undo/Redo system"},
-  };
-  const ReleaseHighlight highlights_056[] = {
-      {ICON_MD_TRAM, "Minecart overlays and collision tile validation"},
-      {ICON_MD_RULE, "Track audit tooling with filler/missing-start checks"},
-      {ICON_MD_TUNE, "Object preview stability and layer-aware hover"},
-  };
-  const ReleaseHighlight highlights_055[] = {
-      {ICON_MD_ACCOUNT_TREE, "EditorManager architecture refactor"},
-      {ICON_MD_FACT_CHECK, "Expanded tests for editor and ASAR workflows"},
-      {ICON_MD_BUILD, "Build cleanup with shared yaze_core_lib target"},
-  };
-  const ReleaseHighlight highlights_054[] = {
-      {ICON_MD_BUG_REPORT, "Mesen2 debug panel + socket controls"},
-      {ICON_MD_SYNC, "Model registry + API refresh stability"},
-      {ICON_MD_TERMINAL, "ROM/debug CLI workflows"},
-  };
-  const ReleaseHighlight highlights_053[] = {
-      {ICON_MD_BUILD, "DMG validation + build polish"},
-      {ICON_MD_PUBLIC, "WASM storage + service worker fixes"},
-      {ICON_MD_TERMINAL, "Local model support (LM Studio)"},
-  };
-  const ReleaseHighlight highlights_052[] = {
-      {ICON_MD_SHIELD, "AI runtime guard fixes"},
-      {ICON_MD_BUILD, "Build presets stabilized"},
-  };
-  const ReleaseHighlight highlights_051[] = {
-      {ICON_MD_PALETTE, "ImHex-style UI modernization"},
-      {ICON_MD_TUNE, "Theme system + layout polish"},
-      {ICON_MD_DASHBOARD, "Panel registry improvements"},
-  };
-  const ReleaseHighlight highlights_050[] = {
-      {ICON_MD_TABLET, "Platform expansion + iOS scaffolding"},
-      {ICON_MD_VISIBILITY, "Editor UX + stability"},
-      {ICON_MD_PUBLIC, "WASM preview hardening"},
-  };
-
-  const ReleaseEntry releases[] = {
-      {ICON_MD_ROCKET_LAUNCH, YAZE_VERSION_STRING,
-       "Welcome screen overhaul + dungeon editor parity", "Apr 2026",
-       kHyruleGreen, highlights_071,
-       static_cast<int>(sizeof(highlights_071) / sizeof(highlights_071[0]))},
-      {ICON_MD_ROCKET_LAUNCH, "0.7.0",
-       "Feature Completion + iOS Remote Control", "Mar 2026", kMasterSwordBlue,
-       highlights_070,
-       static_cast<int>(sizeof(highlights_070) / sizeof(highlights_070[0]))},
-      {ICON_MD_ARCHIVE, "0.6.2",
-       "Bundle reliability + Oracle workflow hardening", "Feb 2026",
-       kSpiritOrange, highlights_062,
-       static_cast<int>(sizeof(highlights_062) / sizeof(highlights_062[0]))},
-      {ICON_MD_SHIELD, "0.6.1", "Oracle + bundle workflow hardening",
-       "Feb 24, 2026", kMasterSwordBlue, highlights_061,
-       static_cast<int>(sizeof(highlights_061) / sizeof(highlights_061[0]))},
-      {ICON_MD_AUTO_AWESOME, "0.6.0", "GUI Modernization + Tile Editor",
-       "Feb 13, 2026", kTriforceGold, highlights_060,
-       static_cast<int>(sizeof(highlights_060) / sizeof(highlights_060[0]))},
-      {ICON_MD_TRAM, "0.5.6", "Minecart workflow + editor stability",
-       "Feb 5, 2026", kSpiritOrange, highlights_056,
-       static_cast<int>(sizeof(highlights_056) / sizeof(highlights_056[0]))},
-      {ICON_MD_ACCOUNT_TREE, "0.5.5", "Editor architecture + testability",
-       "Jan 28, 2026", kShadowPurple, highlights_055,
-       static_cast<int>(sizeof(highlights_055) / sizeof(highlights_055[0]))},
-      {ICON_MD_BUG_REPORT, "0.5.4", "Stability + Mesen2 debugging",
-       "Jan 25, 2026", kMasterSwordBlue, highlights_054,
-       static_cast<int>(sizeof(highlights_054) / sizeof(highlights_054[0]))},
-      {ICON_MD_BUILD, "0.5.3", "Build + WASM improvements", "Jan 20, 2026",
-       kMasterSwordBlue, highlights_053,
-       static_cast<int>(sizeof(highlights_053) / sizeof(highlights_053[0]))},
-      {ICON_MD_TUNE, "0.5.2", "Runtime guards", "Jan 20, 2026", kSpiritOrange,
-       highlights_052,
-       static_cast<int>(sizeof(highlights_052) / sizeof(highlights_052[0]))},
-      {ICON_MD_AUTO_AWESOME, "0.5.1", "UI polish + templates", "Jan 20, 2026",
-       kTriforceGold, highlights_051,
-       static_cast<int>(sizeof(highlights_051) / sizeof(highlights_051[0]))},
-      {ICON_MD_ROCKET_LAUNCH, "0.5.0", "Platform expansion", "Jan 10, 2026",
-       kHyruleGreen, highlights_050,
-       static_cast<int>(sizeof(highlights_050) / sizeof(highlights_050[0]))},
-  };
-
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
-  for (int i = 0; i < static_cast<int>(sizeof(releases) / sizeof(releases[0]));
-       ++i) {
-    const auto& release = releases[i];
-    ImGui::PushID(release.version);
-    if (i > 0) {
-      ImGui::Separator();
-    }
-    ImGui::TextColored(release.color, tr("%s v%s"), release.icon,
-                       release.version);
+  ImGui::TextColored(kMasterSwordBlue, ICON_MD_NEW_RELEASES " What's new");
+  ImGui::SameLine();
+  ImGui::TextColored(text_secondary, tr("v%s highlights"), YAZE_VERSION_STRING);
+  ImGui::Spacing();
+
+  const char* highlights[] = {
+      ICON_MD_CASTLE " More accurate dungeon object layers and placement",
+      ICON_MD_VIEW_SIDEBAR " A calmer, resizable Dungeon Workbench",
+      ICON_MD_PALETTE " More consistent themes and a clearer start screen",
+  };
+  for (const char* highlight : highlights) {
+    ImGui::Bullet();
     ImGui::SameLine();
-    ImGui::TextColored(text_secondary, "%s", release.date);
-    ImGui::TextColored(text_secondary, "%s", release.title);
-    for (int j = 0; j < release.highlight_count; ++j) {
-      ImGui::Bullet();
-      ImGui::SameLine();
-      ImGui::TextColored(release.color, "%s", release.highlights[j].icon);
-      ImGui::SameLine();
-      ImGui::TextColored(text_secondary, "%s", release.highlights[j].text);
-    }
-    ImGui::Spacing();
-    ImGui::PopID();
+    ImGui::TextWrapped("%s", highlight);
   }
 
   ImGui::Spacing();
-  {
-    gui::StyleColorGuard button_colors({
-        {ImGuiCol_Button,
-         ImVec4(kMasterSwordBlue.x * 0.6f, kMasterSwordBlue.y * 0.6f,
-                kMasterSwordBlue.z * 0.6f, 0.8f)},
-        {ImGuiCol_ButtonHovered, kMasterSwordBlue},
-    });
-    if (ImGui::Button(
-            absl::StrFormat("%s View Full Changelog", ICON_MD_OPEN_IN_NEW)
-                .c_str(),
-            ImVec2(-1, 0))) {
-      // Open changelog or GitHub releases
-    }
+  if (gui::ThemedButton(ICON_MD_OPEN_IN_NEW " View release notes",
+                        ImVec2(-1, 0), "welcome_screen",
+                        "view_release_notes")) {
+    constexpr char kReleaseNotesUrl[] =
+        "https://github.com/scawful/yaze/blob/master/docs/public/"
+        "release-notes.md";
+    release_notes_open_failed_ = !gui::OpenUrl(kReleaseNotesUrl);
+  }
+
+  if (release_notes_open_failed_) {
+    const ImVec4 warning = gui::ConvertColorToImVec4(
+        gui::ThemeManager::Get().GetCurrentTheme().warning);
+    ImGui::TextColored(warning, ICON_MD_INFO);
+    ImGui::SameLine();
+    ImGui::TextWrapped(tr("Could not open the browser. Release notes: %s"),
+                       "https://github.com/scawful/yaze/blob/master/docs/"
+                       "public/release-notes.md");
   }
 }
 

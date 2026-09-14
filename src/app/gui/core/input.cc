@@ -792,25 +792,15 @@ void DrawTable(Table& params) {
 }
 
 bool OpenUrl(const std::string& url) {
-  // if iOS
-#ifdef __APPLE__
-#if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
-  // no system call on iOS
-  return false;
-#else
-  return system(("open " + url).c_str()) == 0;
-#endif
-#endif
+  ImGuiContext* context = ImGui::GetCurrentContext();
+  if (context == nullptr || url.empty())
+    return false;
 
-#ifdef __linux__
-  return system(("xdg-open " + url).c_str()) == 0;
-#endif
+  ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
+  if (platform_io.Platform_OpenInShellFn == nullptr)
+    return false;
 
-#ifdef __windows__
-  return system(("start " + url).c_str()) == 0;
-#endif
-
-  return false;
+  return platform_io.Platform_OpenInShellFn(context, url.c_str());
 }
 
 void MemoryEditorPopup(const std::string& label, std::span<uint8_t> memory) {
