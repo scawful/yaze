@@ -42,7 +42,10 @@ if (YAZE_PLATFORM_MACOS)
   list(APPEND YAZE_APP_EXECUTABLE_SRC app/platform/app_delegate.mm)
   add_executable(yaze MACOSX_BUNDLE ${YAZE_APP_EXECUTABLE_SRC} ${YAZE_RESOURCE_FILES})
 
-  set(ICON_FILE "${CMAKE_SOURCE_DIR}/assets/yaze.icns")
+  # Use a configured copy so the same source icon can also remain inside the
+  # complete Resources/assets runtime tree with a different bundle location.
+  set(ICON_FILE "${CMAKE_CURRENT_BINARY_DIR}/yaze.icns")
+  configure_file("${CMAKE_SOURCE_DIR}/assets/yaze.icns" "${ICON_FILE}" COPYONLY)
   target_sources(yaze PRIVATE ${ICON_FILE})
   set_source_files_properties(${ICON_FILE} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
@@ -194,7 +197,7 @@ if(EMSCRIPTEN)
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --pre-js ${ASYNCIFY_PRE_JS}" CACHE STRING "Linker flags" FORCE)
   
   set_target_properties(yaze PROPERTIES
-    LINK_FLAGS "--bind -s MODULARIZE=1 -s EXPORT_NAME='createYazeModule' -s INITIAL_MEMORY=268435456 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=1073741824 -s STACK_SIZE=16777216 -s USE_OFFSET_CONVERTER=1 -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\",\"stringToUTF8\",\"UTF8ToString\",\"lengthBytesUTF8\",\"FS\",\"IDBFS\",\"allocateUTF8\",\"getValue\",\"setValue\",\"Asyncify\"]' -s EXPORTED_FUNCTIONS='[\"_main\",\"_SetFileSystemReady\",\"_SyncFilesystem\",\"_LoadRomFromWeb\",\"_yazeHandleDroppedFile\",\"_yazeHandleDropError\",\"_yazeHandleDragEnter\",\"_yazeHandleDragLeave\",\"_yazeEmergencySave\",\"_yazeRecoverSession\",\"_yazeHasRecoveryData\",\"_yazeClearRecoveryData\",\"_Z3edProcessCommand\",\"_Z3edIsReady\",\"_Z3edGetCompletions\",\"_Z3edSetApiKey\",\"_Z3edLoadRomData\",\"_Z3edGetRomInfo\",\"_Z3edQueryResource\",\"_OnTouchEvent\",\"_OnGestureEvent\",\"_malloc\",\"_free\",\"_emscripten_stack_get_base\",\"_emscripten_stack_get_end\"]' --shell-file ${CMAKE_SOURCE_DIR}/src/web/shell.html"
+    LINK_FLAGS "--bind -s MODULARIZE=1 -s EXPORT_NAME='createYazeModule' -s INITIAL_MEMORY=268435456 -s ALLOW_MEMORY_GROWTH=1 -s MAXIMUM_MEMORY=1073741824 -s STACK_SIZE=16777216 -s EXPORTED_RUNTIME_METHODS='[\"ccall\",\"cwrap\",\"stringToUTF8\",\"UTF8ToString\",\"lengthBytesUTF8\",\"FS\",\"IDBFS\",\"allocateUTF8\",\"getValue\",\"setValue\",\"Asyncify\"]' -s EXPORTED_FUNCTIONS='[\"_main\",\"_SetFileSystemReady\",\"_SyncFilesystem\",\"_LoadRomFromWeb\",\"_yazeHandleDroppedFile\",\"_yazeHandleDropError\",\"_yazeHandleDragEnter\",\"_yazeHandleDragLeave\",\"_yazeEmergencySave\",\"_yazeRecoverSession\",\"_yazeHasRecoveryData\",\"_yazeClearRecoveryData\",\"_Z3edProcessCommand\",\"_Z3edIsReady\",\"_Z3edGetCompletions\",\"_Z3edSetApiKey\",\"_Z3edLoadRomData\",\"_Z3edGetRomInfo\",\"_Z3edQueryResource\",\"_OnTouchEvent\",\"_OnGestureEvent\",\"_malloc\",\"_free\",\"_emscripten_stack_get_base\",\"_emscripten_stack_get_end\"]' --shell-file ${CMAKE_SOURCE_DIR}/src/web/shell.html"
   )
   add_custom_command(TARGET yaze POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
