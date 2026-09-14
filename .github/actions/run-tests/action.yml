@@ -52,8 +52,9 @@ runs:
           --show-only=json-v1 > "$inventory_file"
 
         test_count="$("$python_cmd" - "$inventory_file" \
-          "${{ inputs.test-type }}" "${{ inputs.build-type }}" <<'PY'
+          "${{ inputs.test-type }}" <<'PY'
         import json
+        import os
         import sys
 
         with open(sys.argv[1], encoding="utf-8") as inventory:
@@ -65,27 +66,38 @@ runs:
             "integration": {"yaze_test_integration"},
             "all": {"yaze_test_unit", "yaze_test_integration"},
         }[sys.argv[2]]
-        requested_config = sys.argv[3].lower()
-        discovered_suites = set()
+        suite_paths = {suite: set() for suite in expected_suites}
         for test in tests:
             command = test.get("command", [])
             if not command:
                 continue
             normalized_command = command[0].replace("\\", "/")
-            if f"/{requested_config}/" not in normalized_command.lower():
-                continue
             executable = normalized_command.rsplit("/", 1)[-1]
             if executable.lower().endswith(".exe"):
                 executable = executable[:-4]
-            discovered_suites.add(executable)
+            if executable in suite_paths:
+                suite_paths[executable].add(normalized_command)
 
-        missing_suites = sorted(expected_suites - discovered_suites)
+        # CTest generator layouts are not uniform: multi-config generators may
+        # include the configuration in the path while single-config generators
+        # do not. Validate the actual selected executable instead of inferring
+        # configuration from path text.
+        runnable_suites = {
+            suite
+            for suite, paths in suite_paths.items()
+            if any(os.path.isfile(path) for path in paths)
+        }
+        missing_suites = sorted(expected_suites - runnable_suites)
         if missing_suites:
             print(
-                "CTest inventory is missing required suites: "
+                "CTest inventory is missing runnable required suites: "
                 + ", ".join(missing_suites),
                 file=sys.stderr,
             )
+            for suite in missing_suites:
+                candidates = sorted(suite_paths[suite])
+                detail = ", ".join(candidates) if candidates else "not listed"
+                print(f"- {suite}: {detail}", file=sys.stderr)
             raise SystemExit(1)
         print(len(tests))
         PY
