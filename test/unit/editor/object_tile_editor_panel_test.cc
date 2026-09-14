@@ -230,6 +230,15 @@ struct ObjectTileEditorPanelTestAccess {
     panel.SyncSourceSelectionFromSelectedCell();
   }
 
+  static void HandleKeyboardShortcuts(ObjectTileEditorPanel& panel) {
+    bool open = true;
+    panel.HandleKeyboardShortcuts(&open);
+  }
+
+  static void DrawTileProperties(ObjectTileEditorPanel& panel) {
+    panel.DrawTileProperties();
+  }
+
   static zelda3::ObjectTileLayout MakeCustomLayout(int width, int height,
                                                    int16_t object_id,
                                                    std::string filename,
@@ -2229,6 +2238,178 @@ TEST(ObjectTileEditorPanelTest,
   EXPECT_NE(ObjectTileEditorPanelTestAccess::BuildWindowTitle(panel).find(
                 "Custom 0x031:00 - track_LR.bin"),
             std::string::npos);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     CustomAtlasRetainsZeroTileAttributesWithoutFlippingSourceImages) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  zelda3::GameData game_data;
+  game_data.graphics_buffer.assign(2 * 4096, 0);
+  for (int y = 0; y < 8; ++y) {
+    for (int x = 0; x < 8; ++x) {
+      game_data.graphics_buffer[y * 128 + x] = 9 + (x + 2 * y) % 6;
+      game_data.graphics_buffer[4096 + y * 128 + x] = 1 + (x + 2 * y) % 6;
+    }
+  }
+  DungeonRoomStore rooms(&rom);
+  auto& room = rooms[0];
+  room.SetLoaded(true);
+  room.SetGameData(&game_data);
+  room.mutable_blocks().fill(0);
+  room.mutable_blocks()[12] = 1;
+  room.CopyRoomGraphicsToBuffer();
+  gfx::PaletteGroup palette;
+  SeedCoordinatorPaletteGroup(&palette, 8, 16, 0);
+
+  // Oracle skips only the entire zero source word. With ID/palette zero,
+  // each retained attribute alone makes a real tile: $54 forces page $300,
+  // while ordinary custom $31 still uses tile $000.
+  for (const int object_id : {0x54, 0x31}) {
+    for (const uint16_t attributes : {0x4000, 0x8000, 0x2000}) {
+      SCOPED_TRACE(object_id);
+      SCOPED_TRACE(attributes);
+      ObjectTileEditorPanel panel(nullptr, &rom);
+      ObjectTileEditorPanelTestAccess::OpenCustomLayoutForTest(
+          panel, 2, 1, object_id, 0, &rooms, false);
+      auto layout = ObjectTileEditorPanelTestAccess::Layout(panel);
+      layout.cells[0].tile_info = gfx::WordToTileInfo(0);
+      layout.cells[0].original_word = 0;
+      layout.cells[1].tile_info = gfx::WordToTileInfo(attributes);
+      layout.cells[1].original_word = 0;
+      layout.cells[1].modified = true;
+      const auto source_bytes = layout.custom_source_bytes;
+      ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
+      panel.SetCurrentPaletteGroup(palette);
+      ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(
+          panel);
+      ObjectTileEditorPanelTestAccess::RenderTile8Atlas(panel);
+      ASSERT_EQ(ObjectTileEditorPanelTestAccess::AtlasPixel(panel, 0, 0, 0),
+                255);
+      ASSERT_FALSE(ObjectTileEditorPanelTestAccess::AtlasDirty(panel));
+
+      // Same tile ID and palette, different retained attributes.
+      ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(panel, 1);
+      ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(
+          panel);
+      EXPECT_TRUE(ObjectTileEditorPanelTestAccess::AtlasDirty(panel));
+      ObjectTileEditorPanelTestAccess::RenderTile8Atlas(panel);
+      ObjectTileEditorPanelTestAccess::RenderObjectPreview(panel);
+      const int base_color = object_id == 0x54 ? 1 : 9;
+      for (int y = 0; y < 8; ++y) {
+        for (int x = 0; x < 8; ++x) {
+          EXPECT_EQ(ObjectTileEditorPanelTestAccess::AtlasPixel(panel, 0, x, y),
+                    base_color + (x + 2 * y) % 6);
+          const int preview_x = attributes == 0x4000 ? 7 - x : x;
+          const int preview_y = attributes == 0x8000 ? 7 - y : y;
+          EXPECT_EQ(
+              ObjectTileEditorPanelTestAccess::PreviewPixel(panel, 8 + x, y),
+              base_color + (preview_x + 2 * preview_y) % 6);
+          EXPECT_EQ(ObjectTileEditorPanelTestAccess::PreviewPixel(panel, x, y),
+                    255);
+        }
+      }
+
+      ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(panel, 0);
+      ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(
+          panel);
+      EXPECT_TRUE(ObjectTileEditorPanelTestAccess::AtlasDirty(panel));
+      ObjectTileEditorPanelTestAccess::RenderTile8Atlas(panel);
+      EXPECT_EQ(ObjectTileEditorPanelTestAccess::AtlasPixel(panel, 0, 0, 0),
+                255);
+      const auto& unchanged = ObjectTileEditorPanelTestAccess::Layout(panel);
+      EXPECT_EQ(gfx::TileInfoToWord(unchanged.cells[1].tile_info), attributes);
+      EXPECT_EQ(unchanged.cells[1].original_word, 0);
+      EXPECT_TRUE(unchanged.cells[1].modified);
+      EXPECT_EQ(unchanged.custom_source_bytes, source_bytes);
+    }
+  }
+}
+
+TEST(ObjectTileEditorPanelTest,
+     AttributeShortcutsInvalidateCustomAtlasAndKeepSourceSelection) {
+  Rom rom;
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ObjectTileEditorPanelTestAccess::OpenCustomLayoutForTest(panel, 1, 1, 0x54, 0,
+                                                           nullptr, false);
+  auto layout = ObjectTileEditorPanelTestAccess::Layout(panel);
+  layout.cells[0].tile_info = gfx::WordToTileInfo(0);
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
+  ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(panel);
+  ScopedImGuiContext imgui_context;
+  const auto frame = [&] {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowFocus();
+    ImGui::Begin("ObjectTileEditorAttributeShortcutHost");
+    ObjectTileEditorPanelTestAccess::HandleKeyboardShortcuts(panel);
+    ImGui::End();
+    ImGui::Render();
+  };
+  frame();
+  for (const auto [key, attributes] :
+       {std::pair{ImGuiKey_H, 0x4000}, std::pair{ImGuiKey_V, 0x8000},
+        std::pair{ImGuiKey_P, 0x2000}}) {
+    SCOPED_TRACE(key);
+    for (const int expected_word : {attributes, 0}) {
+      ObjectTileEditorPanelTestAccess::SetAtlasDirty(panel, false);
+      ImGui::GetIO().AddKeyEvent(key, true);
+      frame();
+      EXPECT_EQ(
+          gfx::TileInfoToWord(ObjectTileEditorPanelTestAccess::Layout(panel)
+                                  .cells[0]
+                                  .tile_info),
+          expected_word);
+      EXPECT_TRUE(ObjectTileEditorPanelTestAccess::AtlasDirty(panel));
+      EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0);
+      EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+      ImGui::GetIO().AddKeyEvent(key, false);
+      frame();
+    }
+  }
+}
+
+TEST(ObjectTileEditorPanelTest,
+     PriorityCheckboxInvalidatesCustomAtlasWithZeroTileAndPalette) {
+  Rom rom;
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ObjectTileEditorPanelTestAccess::OpenCustomLayoutForTest(panel, 1, 1, 0x54, 0,
+                                                           nullptr, false);
+  auto layout = ObjectTileEditorPanelTestAccess::Layout(panel);
+  layout.cells[0].tile_info = gfx::WordToTileInfo(0);
+  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
+  ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(panel);
+  ScopedImGuiContext imgui_context;
+  ImVec2 checkbox_center;
+  const auto frame = [&] {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0, 0));
+    ImGui::SetNextWindowSize(ImVec2(800, 200));
+    ImGui::Begin("ObjectTileEditorAttributeCheckboxHost");
+    ObjectTileEditorPanelTestAccess::DrawTileProperties(panel);
+    // Priority is the final property control; capture its real hit rectangle.
+    const ImVec2 minimum = ImGui::GetItemRectMin();
+    const ImVec2 maximum = ImGui::GetItemRectMax();
+    checkbox_center =
+        ImVec2((minimum.x + maximum.x) * 0.5f, (minimum.y + maximum.y) * 0.5f);
+    ImGui::End();
+    ImGui::Render();
+  };
+  frame();
+  for (const int expected_word : {0x2000, 0}) {
+    ObjectTileEditorPanelTestAccess::SetAtlasDirty(panel, false);
+    ImGui::GetIO().AddMousePosEvent(checkbox_center.x, checkbox_center.y);
+    ImGui::GetIO().AddMouseButtonEvent(0, true);
+    frame();
+    ImGui::GetIO().AddMouseButtonEvent(0, false);
+    frame();
+    EXPECT_EQ(
+        gfx::TileInfoToWord(
+            ObjectTileEditorPanelTestAccess::Layout(panel).cells[0].tile_info),
+        expected_word);
+    EXPECT_TRUE(ObjectTileEditorPanelTestAccess::AtlasDirty(panel));
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0);
+    EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  }
 }
 
 TEST(ObjectTileEditorPanelTest,
