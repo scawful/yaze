@@ -3652,36 +3652,13 @@ std::vector<std::string> ThemeManager::GetThemeSearchPaths() const {
     search_paths.push_back(user_themes.string() + "/");
   }
 
-  // Priority 2: Application bundle/install themes. Use the shared asset
-  // resolver so launches from an arbitrary working directory still find the
-  // themes copied beside the executable on Linux and Windows.
-  if (auto bundled_themes = util::PlatformPaths::FindAsset("themes");
-      bundled_themes.ok()) {
-    search_paths.push_back(bundled_themes->string() + "/");
+  // Priority 2: Application bundle/install themes. Keep this aligned with
+  // every other runtime asset instead of maintaining platform-specific paths.
+  if (auto themes = util::PlatformPaths::FindAsset("themes"); themes.ok()) {
+    search_paths.push_back(themes->string() + "/");
   }
 
-#ifdef __APPLE__
-  // macOS bundle resource path
-  std::string bundle_themes = util::GetResourcePath("assets/themes/");
-  if (!bundle_themes.empty()) {
-    search_paths.push_back(bundle_themes);
-  }
-
-  // Alternative bundle locations
-  std::string bundle_root = util::GetBundleResourcePath();
-  if (!bundle_root.empty()) {
-    search_paths.push_back(bundle_root + "Contents/Resources/themes/");
-    search_paths.push_back(bundle_root + "Contents/Resources/assets/themes/");
-  }
-#endif
-
-  // Priority 3: System-wide themes (Unix only)
-#ifndef _WIN32
-  search_paths.push_back("/usr/local/share/yaze/themes/");
-  search_paths.push_back("/usr/share/yaze/themes/");
-#endif
-
-  // Priority 4: Development paths (relative to working directory)
+  // Priority 3: Legacy development paths (relative to working directory)
   search_paths.push_back("assets/themes/");
   search_paths.push_back("../assets/themes/");
 #ifdef _WIN32
