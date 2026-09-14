@@ -150,7 +150,7 @@ bool IsDungeonCustomObjectRuntimeSlot(int object_id, int subtype) {
 
 bool IsMinecartGraphicsRuntimeSlot(int object_id, int subtype) {
   return object_id == 0x31 &&
-         ((subtype >= 0 && subtype <= 12) || subtype == 14);
+         zelda3::IsMinecartTrackGraphicsSubtype(object_id, subtype);
 }
 
 std::string GetDungeonCustomObjectSlotName(int object_id, int subtype) {

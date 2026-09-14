@@ -8,6 +8,7 @@
 #include "core/features.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/dungeon/minecart_object_semantics.h"
 #include "zelda3/dungeon/object_render_routing.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -50,12 +51,8 @@ inline bool IsMinecartTrackCustomObject(const RoomObject& object) {
     return false;
   }
 
-  // Oracle overloads object 0x31's size nibble as a custom subtype. Subtypes
-  // 0..12 and 14 are track pieces; 13 is the sword-house wall decoration and
-  // 15 is the small statue used by Mushroom Grotto. Decorations must not opt
-  // ordinary subtype-2 wall corners into the custom track-corner alias path.
   const int subtype = object.size_ & 0x1F;
-  return subtype <= 12 || subtype == 14;
+  return IsMinecartTrackGraphicsSubtype(object.id_, subtype);
 }
 
 inline bool RoomAllowsTrackCornerAliases(

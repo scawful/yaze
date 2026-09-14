@@ -97,6 +97,20 @@ void DungeonEditorV2::ConfigureMinecartProjectCallbacks() {
   }
 
   auto* editor_manager = static_cast<EditorManager*>(dependencies_.custom_data);
+  const size_t session_id = dependencies_.session_id;
+  minecart_track_editor_panel_->SetCollisionBatchApplyCallback(
+      [this, editor_manager, session_id](
+          const std::vector<zelda3::TrackCollisionResult>& preview,
+          const zelda3::GeneratorOptions& options) -> absl::Status {
+        if (editor_manager != nullptr &&
+            !editor_manager->IsCurrentProjectContextOwnedBySession(
+                session_id)) {
+          return absl::FailedPreconditionError(
+              "Minecart collision apply requires its project context to be "
+              "active");
+        }
+        return ApplyMinecartCollisionBatch(preview, options);
+      });
   if (editor_manager == nullptr) {
     minecart_track_editor_panel_->SetProjectChangedCallback({});
     minecart_track_editor_panel_->SetProjectDraftChangedCallback({});
@@ -104,7 +118,6 @@ void DungeonEditorV2::ConfigureMinecartProjectCallbacks() {
     return;
   }
 
-  const size_t session_id = dependencies_.session_id;
   minecart_track_editor_panel_->SetProjectChangedCallback(
       [editor_manager, session_id](
           const project::DungeonOverlaySettings& overlay) -> absl::Status {
@@ -427,7 +440,6 @@ absl::Status DungeonEditorV2::RefreshRomBackedState() {
   }
   if (minecart_track_editor_panel_) {
     minecart_track_editor_panel_->SetRooms(&rooms_);
-    minecart_track_editor_panel_->SetRom(rom_);
   }
   if (workbench_panel_) {
     workbench_panel_->SetRom(rom_);
@@ -932,7 +944,6 @@ absl::Status DungeonEditorV2::Load() {
       RETURN_IF_ERROR(
           minecart_track_editor_panel_->SetProject(dependencies_.project));
       minecart_track_editor_panel_->SetRooms(&rooms_);
-      minecart_track_editor_panel_->SetRom(rom_);
       minecart_track_editor_panel_->SetRoomNavigationCallback(
           [this](int room_id) { OnRoomSelected(room_id); });
     }

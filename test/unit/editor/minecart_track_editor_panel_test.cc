@@ -20,6 +20,8 @@
 #include "gtest/gtest.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
+#include "rom/snes.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 
 namespace yaze::editor {
 
@@ -28,6 +30,13 @@ class DungeonEditorV2MinecartTrackTestPeer {
   static void SetMinecartTrackEditorPanel(DungeonEditorV2& editor,
                                           MinecartTrackEditorPanel* panel) {
     editor.minecart_track_editor_panel_ = panel;
+  }
+
+  static absl::Status ApplyCollisionBatch(
+      DungeonEditorV2& editor,
+      const std::vector<zelda3::TrackCollisionResult>& preview,
+      const zelda3::GeneratorOptions& options = {}) {
+    return editor.ApplyMinecartCollisionBatch(preview, options);
   }
 };
 
@@ -113,6 +122,55 @@ class MinecartTrackEditorPanelTestPeer {
   static bool AuditDirty(const MinecartTrackEditorPanel& panel) {
     return panel.audit_dirty_;
   }
+
+  static absl::Status BuildCollisionPreview(MinecartTrackEditorPanel& panel,
+                                            std::vector<int> room_ids) {
+    return panel.BuildCollisionPreview(room_ids);
+  }
+
+  static absl::Status BuildAllEligibleCollisionPreview(
+      MinecartTrackEditorPanel& panel) {
+    return panel.BuildAllEligibleCollisionPreview();
+  }
+
+  static absl::Status ApplyCollisionPreview(MinecartTrackEditorPanel& panel) {
+    return panel.ApplyCollisionPreview();
+  }
+
+  static const std::vector<zelda3::TrackCollisionResult>& CollisionPreview(
+      const MinecartTrackEditorPanel& panel) {
+    return panel.collision_preview_;
+  }
+
+  static void SeedCollisionPreview(MinecartTrackEditorPanel& panel,
+                                   int track_object_id = 0x31) {
+    zelda3::TrackCollisionResult result;
+    result.room_id = 0x25;
+    result.collision_map.has_data = true;
+    result.tiles_generated = 1;
+    panel.collision_preview_ = {result};
+    panel.collision_preview_options_.track_object_id = track_object_id;
+  }
+
+  static void RebuildAuditCache(MinecartTrackEditorPanel& panel,
+                                bool include_unmaterialized = false) {
+    panel.RebuildAuditCache(include_unmaterialized);
+  }
+
+  static bool AuditHasTrackCollision(const MinecartTrackEditorPanel& panel,
+                                     int room_id) {
+    return panel.room_audit_.at(room_id).has_track_collision;
+  }
+
+  static const std::vector<int>& AuditTrackSubtypes(
+      const MinecartTrackEditorPanel& panel, int room_id) {
+    return panel.room_audit_.at(room_id).track_subtypes;
+  }
+
+  static bool RouteSlotUsed(const MinecartTrackEditorPanel& panel,
+                            int route_slot) {
+    return panel.route_slot_used_.at(static_cast<size_t>(route_slot));
+  }
 };
 
 namespace {
@@ -165,6 +223,54 @@ struct FeatureFlagsGuard {
 
 constexpr char kTrackSourceRelativePath[] =
     "Sprites/Objects/data/minecart_tracks.asm";
+
+void WriteLongPointer(Rom* rom, int offset, uint32_t snes_address) {
+  rom->mutable_data()[offset] = snes_address & 0xFF;
+  rom->mutable_data()[offset + 1] = (snes_address >> 8) & 0xFF;
+  rom->mutable_data()[offset + 2] = (snes_address >> 16) & 0xFF;
+}
+
+void ConfigureMinecartAuditRom(Rom* rom, int track_room_id) {
+  constexpr int kObjectPointerTablePc = 0x0F8000;
+  constexpr int kTrackObjectStreamPc = 0x100000;
+  constexpr int kEmptyObjectStreamPc = 0x100100;
+  constexpr int kSpritePointerTablePc = 0x048000;
+  constexpr int kEmptySpriteStreamPc = 0x049000;
+
+  WriteLongPointer(rom, zelda3::kRoomObjectPointer,
+                   PcToSnes(kObjectPointerTablePc));
+  for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    const int stream_pc =
+        room_id == track_room_id ? kTrackObjectStreamPc : kEmptyObjectStreamPc;
+    WriteLongPointer(rom, kObjectPointerTablePc + (room_id * 3),
+                     PcToSnes(stream_pc));
+  }
+
+  const auto encoded =
+      zelda3::RoomObject(0x31, 10, 10, 0, 0).EncodeObjectToBytes();
+  ASSERT_TRUE(rom->WriteVector(kTrackObjectStreamPc,
+                               {0x00, 0x00, encoded.b1, encoded.b2, encoded.b3,
+                                0xFF, 0xFF, 0xFF, 0xFF, 0xF0, 0xFF, 0xFF, 0xFF})
+                  .ok());
+  ASSERT_TRUE(
+      rom->WriteVector(kEmptyObjectStreamPc, {0x00, 0x00, 0xFF, 0xFF, 0xFF,
+                                              0xFF, 0xF0, 0xFF, 0xFF, 0xFF})
+          .ok());
+
+  const uint16_t sprite_table =
+      static_cast<uint16_t>(PcToSnes(kSpritePointerTablePc));
+  rom->mutable_data()[zelda3::kRoomsSpritePointer] = sprite_table & 0xFF;
+  rom->mutable_data()[zelda3::kRoomsSpritePointer + 1] =
+      (sprite_table >> 8) & 0xFF;
+  const uint16_t empty_sprite =
+      static_cast<uint16_t>(PcToSnes(kEmptySpriteStreamPc));
+  for (int room_id = 0; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    const int pointer_slot = kSpritePointerTablePc + (room_id * 2);
+    rom->mutable_data()[pointer_slot] = empty_sprite & 0xFF;
+    rom->mutable_data()[pointer_slot + 1] = (empty_sprite >> 8) & 0xFF;
+  }
+  ASSERT_TRUE(rom->WriteVector(kEmptySpriteStreamPc, {0x00, 0xFF}).ok());
+}
 
 class ScopedTestProject {
  public:
@@ -607,6 +713,8 @@ TEST(MinecartTrackEditorPanelTest,
   ASSERT_TRUE(panel.HasUnpublishedChanges());
   MinecartTrackEditorPanelTestPeer::InitializeOverlayInputs(panel);
   ASSERT_EQ(MinecartTrackEditorPanelTestPeer::TrackTilesInput(panel), "0xB0");
+  MinecartTrackEditorPanelTestPeer::SeedCollisionPreview(panel);
+  MinecartTrackEditorPanelTestPeer::SetAuditDirty(panel, false);
 
   DungeonEditorV2 editor;
   DungeonEditorV2MinecartTrackTestPeer::SetMinecartTrackEditorPanel(editor,
@@ -620,6 +728,9 @@ TEST(MinecartTrackEditorPanelTest,
 
   EXPECT_EQ(MinecartTrackEditorPanelTestPeer::TrackTilesInput(panel),
             "0xD0, 0xD1");
+  EXPECT_TRUE(
+      MinecartTrackEditorPanelTestPeer::CollisionPreview(panel).empty());
+  EXPECT_TRUE(MinecartTrackEditorPanelTestPeer::AuditDirty(panel));
   EXPECT_TRUE(panel.HasUnpublishedChanges());
   EXPECT_EQ(panel.GetTracks().front().room_id, 0x0777);
 }
@@ -1465,6 +1576,299 @@ TEST(MinecartTrackEditorPanelTest,
   EXPECT_EQ(fixture.ReadSource(), expected_source);
   EXPECT_FALSE(panel.HasUnpublishedChanges());
   EXPECT_FALSE(editor.HasPendingDungeonChanges());
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     CollisionPreviewDoesNotMutateRoomRomOrUndoHistory) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonEditorV2 editor(&rom);
+  auto& room = editor.rooms()[0x25];
+  room = zelda3::Room(0x25, &rom);
+  room.AddTileObject(zelda3::RoomObject(0x31, 10, 10, 0, 0));
+
+  MinecartTrackEditorPanel panel;
+  panel.SetRooms(&editor.rooms());
+  const auto rom_before = rom.vector();
+  const auto collision_before = room.custom_collision();
+
+  ASSERT_TRUE(
+      MinecartTrackEditorPanelTestPeer::BuildCollisionPreview(panel, {0x25})
+          .ok());
+  ASSERT_EQ(MinecartTrackEditorPanelTestPeer::CollisionPreview(panel).size(),
+            1u);
+  EXPECT_EQ(room.custom_collision().has_data, collision_before.has_data);
+  EXPECT_EQ(room.custom_collision().tiles, collision_before.tiles);
+  EXPECT_FALSE(room.custom_collision_dirty());
+  EXPECT_EQ(rom.vector(), rom_before);
+  EXPECT_EQ(editor.undo_manager().UndoStackSize(), 0u);
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     CollisionPreviewPreservesDeletedLastObjectAndPendingCollisionEdit) {
+  constexpr int kRoomId = 0x25;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ConfigureMinecartAuditRom(&rom, kRoomId);
+  DungeonRoomStore rooms(&rom);
+  auto& room = rooms[kRoomId];
+  room = zelda3::LoadRoomFromRom(&rom, kRoomId);
+  ASSERT_EQ(room.GetTileObjects().size(), 1u);
+  room.ClearTileObjects();
+  room.MarkCustomCollisionDirty();
+
+  MinecartTrackEditorPanel panel;
+  panel.SetRooms(&rooms);
+  const auto collision_before = room.custom_collision();
+  const auto rom_before = rom.vector();
+
+  const absl::Status status =
+      MinecartTrackEditorPanelTestPeer::BuildCollisionPreview(panel, {kRoomId});
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_NE(std::string(status.message()).find("no supported"),
+            std::string::npos);
+  EXPECT_TRUE(room.GetTileObjects().empty());
+  EXPECT_EQ(room.custom_collision().has_data, collision_before.has_data);
+  EXPECT_EQ(room.custom_collision().tiles, collision_before.tiles);
+  EXPECT_TRUE(room.custom_collision_dirty());
+  EXPECT_EQ(rom.vector(), rom_before);
+  EXPECT_TRUE(
+      MinecartTrackEditorPanelTestPeer::CollisionPreview(panel).empty());
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     GlobalAuditFindsAndPreviewsUnmaterializedMinecartRoom) {
+  constexpr int kRoomId = 0x78;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ConfigureMinecartAuditRom(&rom, kRoomId);
+  DungeonRoomStore rooms(&rom);
+  ASSERT_EQ(rooms.GetIfMaterialized(kRoomId), nullptr);
+
+  MinecartTrackEditorPanel panel;
+  panel.SetRooms(&rooms);
+  MinecartTrackEditorPanelTestPeer::RebuildAuditCache(
+      panel, /*include_unmaterialized=*/true);
+
+  EXPECT_EQ(rooms.GetIfMaterialized(kRoomId), nullptr);
+  EXPECT_EQ(
+      MinecartTrackEditorPanelTestPeer::AuditTrackSubtypes(panel, kRoomId),
+      (std::vector<int>{0}));
+
+  ASSERT_TRUE(
+      MinecartTrackEditorPanelTestPeer::BuildAllEligibleCollisionPreview(panel)
+          .ok());
+  const auto& preview =
+      MinecartTrackEditorPanelTestPeer::CollisionPreview(panel);
+  ASSERT_EQ(preview.size(), 1u);
+  EXPECT_EQ(preview.front().room_id, kRoomId);
+  ASSERT_NE(rooms.GetIfMaterialized(kRoomId), nullptr);
+  EXPECT_TRUE(rooms.GetIfMaterialized(kRoomId)->IsLoaded());
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     CollisionApplyIsOneUndoableModelBatchAndNeverWritesRom) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonEditorV2 editor(&rom);
+  auto& room_25 = editor.rooms()[0x25];
+  room_25 = zelda3::Room(0x25, &rom);
+  room_25.AddTileObject(zelda3::RoomObject(0x31, 10, 10, 0, 0));
+  auto& room_26 = editor.rooms()[0x26];
+  room_26 = zelda3::Room(0x26, &rom);
+  room_26.AddTileObject(zelda3::RoomObject(0x31, 20, 20, 14, 0));
+
+  MinecartTrackEditorPanel panel;
+  panel.SetRooms(&editor.rooms());
+  DungeonEditorV2MinecartTrackTestPeer::SetMinecartTrackEditorPanel(editor,
+                                                                    &panel);
+  panel.SetCollisionBatchApplyCallback(
+      [&](const std::vector<zelda3::TrackCollisionResult>& preview,
+          const zelda3::GeneratorOptions& options) {
+        return DungeonEditorV2MinecartTrackTestPeer::ApplyCollisionBatch(
+            editor, preview, options);
+      });
+  const auto rom_before = rom.vector();
+
+  ASSERT_TRUE(MinecartTrackEditorPanelTestPeer::BuildCollisionPreview(
+                  panel, {0x26, 0x25})
+                  .ok());
+  ASSERT_TRUE(
+      MinecartTrackEditorPanelTestPeer::ApplyCollisionPreview(panel).ok());
+  EXPECT_TRUE(room_25.custom_collision().has_data);
+  EXPECT_TRUE(room_26.custom_collision().has_data);
+  EXPECT_TRUE(room_25.custom_collision_dirty());
+  EXPECT_TRUE(room_26.custom_collision_dirty());
+  EXPECT_EQ(editor.undo_manager().UndoStackSize(), 1u);
+  EXPECT_EQ(editor.undo_manager().GetUndoDescription(),
+            "Generate minecart collision for 2 rooms");
+  EXPECT_TRUE(
+      MinecartTrackEditorPanelTestPeer::CollisionPreview(panel).empty());
+  EXPECT_EQ(rom.vector(), rom_before);
+
+  MinecartTrackEditorPanelTestPeer::RebuildAuditCache(panel);
+  EXPECT_FALSE(MinecartTrackEditorPanelTestPeer::AuditDirty(panel));
+  ASSERT_TRUE(editor.Undo().ok());
+  EXPECT_TRUE(MinecartTrackEditorPanelTestPeer::AuditDirty(panel));
+  EXPECT_FALSE(room_25.custom_collision().has_data);
+  EXPECT_FALSE(room_26.custom_collision().has_data);
+  EXPECT_EQ(editor.undo_manager().UndoStackSize(), 0u);
+  EXPECT_EQ(editor.undo_manager().RedoStackSize(), 1u);
+  EXPECT_EQ(rom.vector(), rom_before);
+
+  MinecartTrackEditorPanelTestPeer::RebuildAuditCache(panel);
+  EXPECT_FALSE(MinecartTrackEditorPanelTestPeer::AuditDirty(panel));
+  ASSERT_TRUE(editor.Redo().ok());
+  EXPECT_TRUE(MinecartTrackEditorPanelTestPeer::AuditDirty(panel));
+  EXPECT_TRUE(room_25.custom_collision().has_data);
+  EXPECT_TRUE(room_26.custom_collision().has_data);
+  EXPECT_EQ(editor.undo_manager().UndoStackSize(), 1u);
+  EXPECT_EQ(rom.vector(), rom_before);
+  DungeonEditorV2MinecartTrackTestPeer::SetMinecartTrackEditorPanel(editor,
+                                                                    nullptr);
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     StaleCollisionPreviewFailsWithoutMutatingAnyRoom) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonEditorV2 editor(&rom);
+  auto& room_25 = editor.rooms()[0x25];
+  room_25 = zelda3::Room(0x25, &rom);
+  room_25.AddTileObject(zelda3::RoomObject(0x31, 10, 10, 0, 0));
+  auto& room_26 = editor.rooms()[0x26];
+  room_26 = zelda3::Room(0x26, &rom);
+  room_26.AddTileObject(zelda3::RoomObject(0x31, 20, 20, 0, 0));
+
+  MinecartTrackEditorPanel panel;
+  panel.SetRooms(&editor.rooms());
+  panel.SetCollisionBatchApplyCallback(
+      [&](const std::vector<zelda3::TrackCollisionResult>& preview,
+          const zelda3::GeneratorOptions& options) {
+        return DungeonEditorV2MinecartTrackTestPeer::ApplyCollisionBatch(
+            editor, preview, options);
+      });
+  ASSERT_TRUE(MinecartTrackEditorPanelTestPeer::BuildCollisionPreview(
+                  panel, {0x25, 0x26})
+                  .ok());
+  room_26.AddTileObject(zelda3::RoomObject(0x31, 30, 30, 0, 0));
+  const auto rom_before = rom.vector();
+
+  const absl::Status status =
+      MinecartTrackEditorPanelTestPeer::ApplyCollisionPreview(panel);
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_NE(std::string(status.message()).find("stale"), std::string::npos);
+  EXPECT_FALSE(room_25.custom_collision().has_data);
+  EXPECT_FALSE(room_26.custom_collision().has_data);
+  EXPECT_EQ(editor.undo_manager().UndoStackSize(), 0u);
+  EXPECT_EQ(rom.vector(), rom_before);
+  EXPECT_EQ(MinecartTrackEditorPanelTestPeer::CollisionPreview(panel).size(),
+            2u);
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     InvalidAndDuplicateCollisionBatchesFailBeforeMutation) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonEditorV2 editor(&rom);
+  auto& room = editor.rooms()[0x25];
+  room = zelda3::Room(0x25, &rom);
+  room.AddTileObject(zelda3::RoomObject(0x31, 10, 10, 0, 0));
+  auto generated = zelda3::GenerateTrackCollision(&room);
+  ASSERT_TRUE(generated.ok()) << generated.status();
+  generated->room_id = 0x25;
+  auto invalid = *generated;
+  invalid.room_id = zelda3::kNumberOfRooms;
+  const auto rom_before = rom.vector();
+
+  absl::Status status =
+      DungeonEditorV2MinecartTrackTestPeer::ApplyCollisionBatch(
+          editor, {*generated, invalid});
+  EXPECT_TRUE(absl::IsOutOfRange(status)) << status;
+  EXPECT_FALSE(room.custom_collision().has_data);
+  EXPECT_EQ(editor.undo_manager().UndoStackSize(), 0u);
+  EXPECT_EQ(rom.vector(), rom_before);
+
+  status = DungeonEditorV2MinecartTrackTestPeer::ApplyCollisionBatch(
+      editor, {*generated, *generated});
+  EXPECT_TRUE(absl::IsInvalidArgument(status)) << status;
+  EXPECT_FALSE(room.custom_collision().has_data);
+  EXPECT_EQ(editor.undo_manager().UndoStackSize(), 0u);
+  EXPECT_EQ(rom.vector(), rom_before);
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     PreviewExcludesExistingCollisionAndCanonicalDecorativeObjects) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  auto& protected_room = rooms[0x25];
+  protected_room = zelda3::Room(0x25, &rom);
+  protected_room.AddTileObject(zelda3::RoomObject(0x31, 10, 10, 0, 0));
+  protected_room.custom_collision().tiles[0] = 0x08;
+  auto& eligible_room = rooms[0x26];
+  eligible_room = zelda3::Room(0x26, &rom);
+  eligible_room.AddTileObject(zelda3::RoomObject(0x31, 20, 20, 14, 0));
+  auto& decorative_room = rooms[0x27];
+  decorative_room = zelda3::Room(0x27, &rom);
+  decorative_room.AddTileObject(zelda3::RoomObject(0x31, 30, 30, 13, 0));
+
+  MinecartTrackEditorPanel panel;
+  panel.SetRooms(&rooms);
+  ASSERT_TRUE(
+      MinecartTrackEditorPanelTestPeer::BuildAllEligibleCollisionPreview(panel)
+          .ok());
+
+  const auto& preview =
+      MinecartTrackEditorPanelTestPeer::CollisionPreview(panel);
+  ASSERT_EQ(preview.size(), 1u);
+  EXPECT_EQ(preview.front().room_id, 0x26);
+  EXPECT_FALSE(protected_room.custom_collision().has_data);
+  EXPECT_EQ(protected_room.custom_collision().tiles[0], 0x08);
+  EXPECT_FALSE(decorative_room.custom_collision().has_data);
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     AuditUsesUnsavedCollisionAndSeparatesRoutesFromVisualSubtypes) {
+  constexpr int kSpritePointerTablePc = 0x048000;
+  constexpr int kRoomId = 0x25;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  const uint16_t table_pointer =
+      static_cast<uint16_t>(PcToSnes(kSpritePointerTablePc));
+  rom.mutable_data()[zelda3::kRoomsSpritePointer] = table_pointer & 0xFF;
+  rom.mutable_data()[zelda3::kRoomsSpritePointer + 1] =
+      (table_pointer >> 8) & 0xFF;
+  const uint16_t sprite_pointer =
+      static_cast<uint16_t>(PcToSnes(zelda3::kSpritesData));
+  const int pointer_slot = kSpritePointerTablePc + (kRoomId * 2);
+  rom.mutable_data()[pointer_slot] = sprite_pointer & 0xFF;
+  rom.mutable_data()[pointer_slot + 1] = (sprite_pointer >> 8) & 0xFF;
+  // Minecart sprite 0xA3 at (4, 5), route/start slot subtype 7.
+  ASSERT_TRUE(
+      rom.WriteVector(zelda3::kSpritesData, {0x00, 0x05, 0xE4, 0xA3, 0xFF})
+          .ok());
+
+  DungeonRoomStore rooms(&rom);
+  auto& room = rooms[kRoomId];
+  room = zelda3::Room(kRoomId, &rom);
+  room.AddTileObject(zelda3::RoomObject(0x31, 10, 10, 13, 0));
+  room.AddTileObject(zelda3::RoomObject(0x31, 12, 10, 14, 0));
+  room.custom_collision().has_data = true;
+  room.custom_collision().tiles[10 * 64 + 10] = 0xB0;
+  room.MarkCustomCollisionDirty();
+
+  MinecartTrackEditorPanel panel;
+  panel.SetRooms(&rooms);
+  MinecartTrackEditorPanelTestPeer::RebuildAuditCache(panel);
+
+  EXPECT_TRUE(
+      MinecartTrackEditorPanelTestPeer::AuditHasTrackCollision(panel, kRoomId));
+  EXPECT_EQ(
+      MinecartTrackEditorPanelTestPeer::AuditTrackSubtypes(panel, kRoomId),
+      (std::vector<int>{14}));
+  EXPECT_TRUE(MinecartTrackEditorPanelTestPeer::RouteSlotUsed(panel, 7));
+  EXPECT_FALSE(MinecartTrackEditorPanelTestPeer::RouteSlotUsed(panel, 14));
 }
 
 }  // namespace yaze::editor
