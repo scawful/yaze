@@ -31,7 +31,7 @@ hands-on runtime acceptance.
 | Tile authoring and publication | The Object Selector's persistent **Custom Assets** mode exposes **Edit Tile Layout** and **Place in Room** for existing fixed slots. The tile editor retains the exact source snapshot, supports a terminator-only empty asset through **Add First Tile**, and publishes desktop changes through strict encoding, stale-write comparison, rollback-protected atomic replacement, and decoded readback. Browser builds disable editing and fail closed in the publication API. | `dungeon_object_selector.cc`, `object_tile_editor.{h,cc}`, `object_tile_editor_panel.{h,cc}`, `custom_object.{h,cc}` |
 | Minecart source | The **Routes** tab parses and preserves a configured ASM start-room/X/Y source and publishes it with source-identity and stale-write checks. Route slots come from minecart sprite subtypes, not visual track-piece subtypes. The current Oracle manifest does not yet declare `minecart_tracks.source`, so route publication correctly fails closed until that project metadata is added. | `minecart_track_source.{h,cc}`, `minecart_track_editor_panel.{h,cc}` |
 | Minecart collision | The **Collision** tab audits loaded rooms without blocking routine edits. **Preview All Rooms** performs an explicit 296-room scan, excludes rooms that already contain custom collision, shows every proposed room, and applies the confirmed maps to the editor model as one undoable batch. Preview and Apply do not write ROM bytes; **Save ROM** remains the serialization boundary. | `minecart_track_editor_panel.cc`, `dungeon_editor_v2_undo.cc`, `track_collision_generator.{h,cc}` |
-| Oracle overlays | Project lists identify track tiles, stops, switches, object IDs, and minecart sprites. | `Project::dungeon_overlay`, Dungeon overlays |
+| Oracle overlays | Project lists identify track tiles, stops, switches, object IDs, and minecart sprites. **Project Configuration** shows their effective values read-only and links to **Minecart Tracks**; **Collision > Advanced** is the sole editor and save owner. | `settings_panel.{h,cc}`, `minecart_track_editor_panel.{h,cc}`, `Project::dungeon_overlay` |
 
 Focused unit coverage now includes strict custom-object decoding and encoding,
 sparse layouts, 32-tile segments, zero-word no-ops, terminator-only assets,
@@ -233,8 +233,10 @@ The remaining target sequence is:
 6. Apply to room models, support Undo/Redo, **Save ROM**, then build and validate
    in Mesen.
 
-Advanced overlay IDs and source paths belong in a collapsed project settings
-section, not the primary authoring flow.
+**Minecart Tracks > Collision > Advanced** is the only editor for overlay IDs
+and their project save transaction. **Project Configuration** shows a read-only
+effective-value summary and an **Open Minecart Tracks** action, so it cannot
+compete with the task-oriented editor or retain stale input across sessions.
 
 ### Ice, moving floor, and water
 
