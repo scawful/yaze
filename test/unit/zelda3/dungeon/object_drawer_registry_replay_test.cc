@@ -2410,50 +2410,116 @@ TEST(ObjectDrawerRegistryReplayTest,
      SuperSquare4x4FloorUsesUsdasmRowMajorRows) {
   ScopedCustomObjectsFlag disable_custom(false);
 
-  Rom rom;
-  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
-  rom.LoadFromData(dummy_rom);
-
-  ObjectDrawer drawer(&rom, /*room_id=*/0, /*room_gfx_buffer=*/nullptr);
-
-  // Object 0xC8 maps to routine 58 (Draw4x4FloorIn4x4SuperSquare).
-  // USDASM RoomDraw_A_Many32x32Blocks writes RoomDrawObjectData offsets
-  // +0,+2,+4,+6 through row-0 tilemap pointers, then +8,+10,+12,+14
-  // through row-1 pointers; the second pass repeats those rows at y+2/y+3.
-  RoomObject obj(0x00C8, /*x=*/10, /*y=*/20, /*size=*/0, /*layer=*/0);
-  obj.tiles_loaded_ = true;
-  obj.tiles_.clear();
+  // The nineteen entries at $01838A-$0183D0 select $018FA5, which keeps
+  // the two size fields independent. $018A44 stamps the eight words as
+  // 4x2 row-major tiles twice per block without changing their attributes.
+  constexpr std::array<int16_t, 19> kObjectIds = {
+      0xC5, 0xC6, 0xC7, 0xC8, 0xC9, 0xCA, 0xD1, 0xD2, 0xD9, 0xDF,
+      0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7, 0xE8};
+  std::vector<gfx::TileInfo> tiles;
   for (int i = 0; i < 8; ++i) {
-    obj.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2,
-                                       false, false, false));
+    tiles.emplace_back(0x200 + i, 2 + i % 6, (i & 1) != 0, (i & 2) != 0,
+                       (i & 4) != 0);
   }
 
-  gfx::BackgroundBuffer bg1(512, 512);
-  gfx::BackgroundBuffer bg2(512, 512);
-  gfx::PaletteGroup palette_group;
+  auto& registry = DrawRoutineRegistry::Get();
+  constexpr int kX = 10;
+  constexpr int kY = 20;
+  for (const int16_t object_id : kObjectIds) {
+    ASSERT_EQ(registry.GetRoutineIdForObject(object_id), 58);
+    for (uint8_t size = 0; size < 16; ++size) {
+      const int blocks_x = (size >> 2) + 1;
+      const int blocks_y = (size & 3) + 1;
+      for (const auto layer :
+           {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2,
+            RoomObject::LayerType::BG3}) {
+        SCOPED_TRACE(::testing::Message()
+                     << "object=" << object_id << " size=" << int(size)
+                     << " stream=" << int(layer));
+        const auto trace =
+            ReplayObjectTrace(object_id, kX, kY, size, layer, tiles);
+        std::vector<SnapshotTileWrite> expected;
+        for (int block_y = 0; block_y < blocks_y; ++block_y) {
+          for (int block_x = 0; block_x < blocks_x; ++block_x) {
+            for (int row = 0; row < 4; ++row) {
+              for (int column = 0; column < 4; ++column) {
+                expected.push_back(
+                    {kX + block_x * 4 + column, kY + block_y * 4 + row,
+                     static_cast<uint16_t>(0x200 + (row % 2) * 4 + column)});
+              }
+            }
+          }
+        }
+        ExpectTraceMatchesSnapshot(trace, expected);
+        const auto expected_layer = layer == RoomObject::LayerType::BG2
+                                        ? RoomObject::LayerType::BG2
+                                        : RoomObject::LayerType::BG1;
+        for (const auto& write : trace) {
+          const int slot = write.tile_id - 0x200;
+          ASSERT_GE(slot, 0);
+          ASSERT_LT(slot, 8);
+          EXPECT_EQ(write.flags, slot | ((2 + slot % 6) << 3));
+          EXPECT_EQ(write.layer, static_cast<uint8_t>(expected_layer));
+        }
+      }
+    }
+  }
+}
 
-  std::vector<ObjectDrawer::TileTrace> trace;
-  drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+TEST(ObjectDrawerRegistryReplayTest,
+     SuperSquare4x4FloorKeepsMotifPhaseAtQuadrantAndRoomBoundaries) {
+  ScopedCustomObjectsFlag disable_custom(false);
 
-  ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
-  ExpectTraceMatchesSnapshot(trace, {
-                                        {10, 20, 0},
-                                        {11, 20, 1},
-                                        {12, 20, 2},
-                                        {13, 20, 3},
-                                        {10, 21, 4},
-                                        {11, 21, 5},
-                                        {12, 21, 6},
-                                        {13, 21, 7},
-                                        {10, 22, 0},
-                                        {11, 22, 1},
-                                        {12, 22, 2},
-                                        {13, 22, 3},
-                                        {10, 23, 4},
-                                        {11, 23, 5},
-                                        {12, 23, 6},
-                                        {13, 23, 7},
-                                    });
+  const auto tiles = MakeSequentialTiles(8, 0x200);
+  // This pins the editor's clipping policy, not out-of-room SNES wraparound.
+  for (uint8_t size : {uint8_t{0}, uint8_t{1}, uint8_t{4}, uint8_t{15}}) {
+    const int width = ((size >> 2) + 1) * 4;
+    const int height = ((size & 3) + 1) * 4;
+    for (const auto [x, y] :
+         {std::pair{31, 31}, std::pair{64 - width, 64 - height},
+          std::pair{62, 61}, std::pair{63, 63}}) {
+      SCOPED_TRACE(::testing::Message() << "size=" << int(size) << " origin=("
+                                        << x << "," << y << ")");
+      const auto trace = ReplayObjectTrace(0xC8, x, y, size,
+                                           RoomObject::LayerType::BG2, tiles);
+      ASSERT_EQ(trace.size(), static_cast<size_t>(std::min(width, 64 - x) *
+                                                  std::min(height, 64 - y)));
+      for (int row = 0; row < std::min(height, 64 - y); ++row) {
+        for (int column = 0; column < std::min(width, 64 - x); ++column) {
+          EXPECT_EQ(LastTileIdAt(trace, x + column, y + row),
+                    0x200 + (row % 2) * 4 + column % 4);
+        }
+      }
+    }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     SuperSquareWaterIceAndMovingFloorsIgnoreUnrelatedGameState) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  FakeDungeonState active_state;
+  active_state.wall_moved = true;
+  active_state.dam_floodgate_open = true;
+  active_state.door_switch_active = true;
+  active_state.water_face_active_room_id = 0;
+  active_state.bombed_floor_room_id = 0;
+  active_state.cleared_rupee_floor_room_id = 0;
+  const auto tiles = MakeSequentialTiles(8);
+  for (const int16_t object_id :
+       {0xC8, 0xC9, 0xCA, 0xD1, 0xD2, 0xD9, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7}) {
+    SCOPED_TRACE(::testing::Message() << "object=" << object_id);
+    const auto trace =
+        ReplayObjectTrace(object_id, 10, 20, 0x06, RoomObject::LayerType::BG2,
+                          tiles, &active_state);
+    // $018FA5 is unconditional: two blocks wide, three blocks tall.
+    ASSERT_EQ(trace.size(), 8 * 12);
+    for (int y = 0; y < 12; ++y) {
+      for (int x = 0; x < 8; ++x) {
+        EXPECT_EQ(LastTileIdAt(trace, 10 + x, 20 + y), (y % 2) * 4 + x % 4);
+      }
+    }
+  }
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
