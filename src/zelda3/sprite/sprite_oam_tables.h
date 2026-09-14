@@ -4,6 +4,7 @@
 #include <array>
 #include <cstdint>
 #include <optional>
+#include <string_view>
 #include <vector>
 
 namespace yaze {
@@ -16,13 +17,13 @@ namespace zelda3 {
  * Used for static (hardcoded) sprite rendering.
  */
 struct SpriteOamEntry {
-  int8_t x_offset;    // X offset relative to sprite origin
-  int8_t y_offset;    // Y offset relative to sprite origin
-  uint16_t tile_id;   // Tile ID in graphics buffer
-  uint8_t palette;    // Palette index (0-7)
-  bool size_16x16;    // false = 8x8, true = 16x16
-  bool flip_x;        // Horizontal mirror
-  bool flip_y;        // Vertical mirror
+  int8_t x_offset;   // X offset relative to sprite origin
+  int8_t y_offset;   // Y offset relative to sprite origin
+  uint16_t tile_id;  // Tile ID in graphics buffer
+  uint8_t palette;   // Palette index (0-7)
+  bool size_16x16;   // false = 8x8, true = 16x16
+  bool flip_x;       // Horizontal mirror
+  bool flip_y;       // Vertical mirror
 };
 
 /**
@@ -32,8 +33,8 @@ struct SpriteOamEntry {
  * plus the graphics sheets required.
  */
 struct SpriteOamLayout {
-  uint8_t sprite_id;           // Sprite type ID (0x00-0xF2)
-  const char* name;            // Display name
+  uint8_t sprite_id;  // Sprite type ID (0x00-0xF2)
+  const char* name;   // Display name
   std::vector<SpriteOamEntry> tiles;
   std::array<uint8_t, 4> required_sheets;  // Graphics sheet IDs needed
 };
@@ -68,40 +69,40 @@ inline const SpriteOamLayout kChickenLayout = {
 inline const SpriteOamLayout kGreenSoldierLayout = {
     .sprite_id = 0x0E,
     .name = "Green Soldier",
-    .tiles = {{0, 8, 0x20, 6, true, false, false},   // Body
-              {0, -8, 0x00, 6, true, false, false}}, // Head
+    .tiles = {{0, 8, 0x20, 6, true, false, false},    // Body
+              {0, -8, 0x00, 6, true, false, false}},  // Head
     .required_sheets = {0x56, 0x57, 0x00, 0x00}};
 
 // Sprite ID: 0x0F - Blue Soldier
 inline const SpriteOamLayout kBlueSoldierLayout = {
     .sprite_id = 0x0F,
     .name = "Blue Soldier",
-    .tiles = {{0, 8, 0x20, 1, true, false, false},   // Body
-              {0, -8, 0x00, 1, true, false, false}}, // Head
+    .tiles = {{0, 8, 0x20, 1, true, false, false},    // Body
+              {0, -8, 0x00, 1, true, false, false}},  // Head
     .required_sheets = {0x56, 0x57, 0x00, 0x00}};
 
 // Sprite ID: 0x10 - Red Soldier
 inline const SpriteOamLayout kRedSoldierLayout = {
     .sprite_id = 0x10,
     .name = "Red Soldier",
-    .tiles = {{0, 8, 0x20, 0, true, false, false},   // Body
-              {0, -8, 0x00, 0, true, false, false}}, // Head
+    .tiles = {{0, 8, 0x20, 0, true, false, false},    // Body
+              {0, -8, 0x00, 0, true, false, false}},  // Head
     .required_sheets = {0x56, 0x57, 0x00, 0x00}};
 
 // Sprite ID: 0x29 - Blue Guard
 inline const SpriteOamLayout kBlueGuardLayout = {
     .sprite_id = 0x29,
     .name = "Blue Guard",
-    .tiles = {{0, 8, 0x20, 1, true, false, false},   // Body
-              {0, -8, 0x00, 1, true, false, false}}, // Head
+    .tiles = {{0, 8, 0x20, 1, true, false, false},    // Body
+              {0, -8, 0x00, 1, true, false, false}},  // Head
     .required_sheets = {0x52, 0x53, 0x00, 0x00}};
 
 // Sprite ID: 0x41 - Green Soldier (patrol)
 inline const SpriteOamLayout kGreenPatrolLayout = {
     .sprite_id = 0x41,
     .name = "Green Patrol",
-    .tiles = {{0, 8, 0x20, 6, true, false, false},   // Body
-              {0, -8, 0x00, 6, true, false, false}}, // Head
+    .tiles = {{0, 8, 0x20, 6, true, false, false},    // Body
+              {0, -8, 0x00, 6, true, false, false}},  // Head
     .required_sheets = {0x56, 0x57, 0x00, 0x00}};
 
 // Sprite ID: 0x44 - Armos Knight
@@ -230,6 +231,11 @@ class SpriteOamRegistry {
    * @return Pointer to layout, or nullptr if not defined
    */
   static const SpriteOamLayout* GetLayout(uint8_t sprite_id);
+
+  // A loaded project's hack name selects static preview overrides. Empty or
+  // unknown profiles never change vanilla rendering. Uses room-loaded sheets.
+  static const SpriteOamLayout* GetPreviewOverride(uint8_t sprite_id,
+                                                   std::string_view hack_name);
 
   /**
    * @brief Get required graphics sheets for a sprite

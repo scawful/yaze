@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include "zelda3/resource_labels.h"
+#include "zelda3/sprite/sprite_oam_tables.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -1180,7 +1181,8 @@ void Sprite::Draw() {
   bounding_box_.h = height_;
 }
 
-void Sprite::RenderPreviewGraphics(std::span<const uint8_t> graphics) {
+void Sprite::RenderPreviewGraphics(std::span<const uint8_t> graphics,
+                                   const SpriteOamLayout* layout_override) {
   if (graphics.empty()) {
     preview_gfx_.clear();
     return;
@@ -1207,7 +1209,23 @@ void Sprite::RenderPreviewGraphics(std::span<const uint8_t> graphics) {
   ny_ = 0;
   x_ = 0;
   y_ = 0;
-  Draw();
+  if (layout_override != nullptr && layout_override->sprite_id == id_) {
+    // Layout entries are in OAM order: the first entry has highest priority.
+    for (auto tile = layout_override->tiles.rbegin();
+         tile != layout_override->tiles.rend(); ++tile) {
+      if (tile->tile_id > 0x1FF || tile->palette > 7) {
+        continue;
+      }
+      const int size = tile->size_16x16 ? 2 : 1;
+      // DrawSpriteTile uses half-palette selectors with base 112. Convert a
+      // hardware OBJ palette to its full CGRAM row (128 + palette * 16).
+      DrawSpriteTile(tile->x_offset, tile->y_offset, tile->tile_id % 16,
+                     tile->tile_id / 16, 2 + tile->palette * 2, tile->flip_x,
+                     tile->flip_y, size, size);
+    }
+  } else {
+    Draw();
+  }
 
   nx_ = old_nx;
   ny_ = old_ny;

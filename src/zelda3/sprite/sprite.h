@@ -15,6 +15,8 @@
 namespace yaze {
 namespace zelda3 {
 
+struct SpriteOamLayout;
+
 // Sprite names defined in sprite.cc to avoid static initialization order issues
 extern const std::string kSpriteDefaultNames[256];
 // Expanded names (from hmagic sprname.dat, 0x11c entries). Might differ in
@@ -85,7 +87,9 @@ class Sprite : public GameEntity {
   }
 
   void Draw();
-  void RenderPreviewGraphics(std::span<const uint8_t> graphics);
+  // Optional source-backed static layout; omitted layouts keep vanilla drawing.
+  void RenderPreviewGraphics(std::span<const uint8_t> graphics,
+                             const SpriteOamLayout* layout_override = nullptr);
   void ClearPreviewGraphics();
   void DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
                       bool mirror_x = false, bool mirror_y = false,
