@@ -16,6 +16,7 @@
 #include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/resource/arena.h"
+#include "app/platform/sdl_compat.h"
 #include "core/features.h"
 #include "core/project.h"
 #include "framework/mock_renderer.h"
@@ -390,6 +391,21 @@ class DungeonEditorV2ObjectTileEditorTestPeer {
   static void SynchronizeCustomObjectAssets(DungeonEditorV2& editor) {
     editor.SynchronizeCustomObjectAssets();
   }
+
+  static void SetCurrentPaletteContext(DungeonEditorV2& editor, int room_id,
+                                       uint64_t palette_id) {
+    editor.current_room_id_ = room_id;
+    editor.current_palette_id_ = palette_id;
+    editor.active_rooms_.clear();
+    if (room_id >= 0 && room_id < static_cast<int>(editor.rooms_.size())) {
+      editor.active_rooms_.push_back(room_id);
+    }
+  }
+
+  static void HandlePaletteChanged(DungeonEditorV2& editor,
+                                   gui::DungeonPaletteChange change) {
+    editor.HandleDungeonPaletteChanged(change);
+  }
 };
 
 namespace {
@@ -698,6 +714,232 @@ TEST(DungeonEditorV2ObjectTileEditorTest,
   EXPECT_NE(ObjectTileEditorPanelTestAccess::CurrentPaletteColor(
                 *panel_ptr, /*palette=*/2, /*color=*/1),
             default_group.GetColor(/*palette=*/2, /*color=*/1).snes());
+}
+
+class ObjectTileEditorSharedPaletteRefreshTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    custom_state_ = std::make_unique<ScopedCustomObjectState>(
+        MakeTempDir("yaze_bound_tile_palette"));
+    WriteCustomObjectAsset(
+        custom_state_->dir / "track_LR.bin",
+        zelda3::CustomObject{.tiles = {{0, 0, 0x0986}, {1, 0, 0x4996}}});
+    ASSERT_TRUE(rom_.LoadFromData(MakeEditableStandardObjectRomData()).ok());
+    game_data_ = std::make_unique<zelda3::GameData>(&rom_);
+    ConfigureCoordinatorGameData(game_data_.get());
+    std::fill(game_data_->graphics_buffer.begin(),
+              game_data_->graphics_buffer.end(), 1);
+    editor_ = std::make_unique<DungeonEditorV2>(&rom_);
+    editor_->SetGameData(game_data_.get());
+    PrepareCoordinatorRoom(&rom_, game_data_.get(), editor_.get(), 0);
+    PrepareCoordinatorRoom(&rom_, game_data_.get(), editor_.get(), 1);
+    // Sets 5 and 7 alias concrete palette 3; set 6 uses unrelated palette 2.
+    game_data_->paletteset_ids[6][0] = 4;
+    game_data_->paletteset_ids[7][0] = 6;
+    ASSERT_TRUE(rom_.WriteWord(zelda3::kDungeonPalettePointerTable + 4,
+                               2 * zelda3::kDungeonPaletteBytes)
+                    .ok());
+    ASSERT_TRUE(rom_.WriteWord(zelda3::kDungeonPalettePointerTable + 6,
+                               3 * zelda3::kDungeonPaletteBytes)
+                    .ok());
+    auto& bound_room = editor_->rooms()[1];
+    bound_room.SetPalette(7);
+    bound_room.LoadRoomGraphics();
+    bound_room.CopyRoomGraphicsToBuffer();
+    ASSERT_EQ(bound_room.ResolveDungeonPaletteId(), 3);
+    ASSERT_EQ(editor_->rooms()[0].ResolveDungeonPaletteId(), 3);
+    ASSERT_NE(bound_room.palette(), editor_->rooms()[0].palette());
+    DungeonEditorV2ObjectTileEditorTestPeer::SetCurrentPaletteContext(*editor_,
+                                                                      0, 3);
+
+    panel_ = std::make_unique<ObjectTileEditorPanel>(nullptr, &rom_);
+    DungeonEditorV2ObjectTileEditorTestPeer::SetObjectTileEditorPanel(
+        *editor_, panel_.get());
+    const auto palette = zelda3::BuildDungeonRenderPaletteGroupFromGameData(
+        game_data_->palette_groups.dungeon_main.palette_ref(3),
+        game_data_.get());
+    ASSERT_TRUE(
+        panel_->OpenForCustomObject(0x31, 0, 1, &editor_->rooms(), palette)
+            .ok());
+    ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(*panel_, 0x187,
+                                                                2);
+    ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(*panel_, 1);
+    ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(
+        *panel_);
+    DrawPanel();
+    ExpectDisplayedColor(
+        2, game_data_->palette_groups.dungeon_main.GetColor(3, 0));
+  }
+
+  void TearDown() override {
+    editor_
+        .reset();  // Its external panel pointer must remain valid until here.
+    panel_.reset();
+    gfx::Arena::Get().ClearTextureQueue();
+    ::testing::NiceMock<test::MockRenderer> renderer;
+    gfx::Arena::Get().DrainRetiredBitmaps(&renderer);
+  }
+
+  void DrawPanel() {
+    bool open = true;
+    ImGui::NewFrame();
+    ImGui::SetNextWindowSize(ImVec2(900, 650));
+    ImGui::Begin("BoundObjectTilePaletteHost");
+    panel_->Draw(&open);
+    ImGui::End();
+    ImGui::Render();
+    ASSERT_TRUE(open);
+  }
+
+  void ExpectSurfaceColor(gfx::Bitmap& bitmap, int index,
+                          const gfx::SnesColor& expected) {
+    ASSERT_NE(bitmap.surface(), nullptr);
+    const auto* palette = platform::GetSurfacePalette(bitmap.surface());
+    ASSERT_NE(palette, nullptr);
+    ASSERT_LT(index, palette->ncolors);
+    const auto actual = palette->colors[index];
+    const ImVec4 rgb = expected.rgb();
+    EXPECT_EQ(actual.r, static_cast<Uint8>(rgb.x));
+    EXPECT_EQ(actual.g, static_cast<Uint8>(rgb.y));
+    EXPECT_EQ(actual.b, static_cast<Uint8>(rgb.z));
+    EXPECT_EQ(actual.a, 255);
+  }
+
+  void ExpectDisplayedColor(int row, const gfx::SnesColor& expected) {
+    const auto owners = ObjectTileEditorPanelTestAccess::PreviewOwners(*panel_);
+    ExpectSurfaceColor(*owners[0], row * 16 + 1, expected);
+    ExpectSurfaceColor(*owners[1], 1, expected);
+  }
+
+  void NotifyAndDraw(gui::DungeonPaletteChange change) {
+    const auto before = ObjectTileEditorPanelTestAccess::Layout(*panel_);
+    const int source_palette =
+        ObjectTileEditorPanelTestAccess::SourcePalette(*panel_);
+    const int current_room = *editor_->mutable_current_room_id();
+    DungeonEditorV2ObjectTileEditorTestPeer::HandlePaletteChanged(*editor_,
+                                                                  change);
+    DrawPanel();
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(*panel_), 1);
+    EXPECT_EQ(*editor_->mutable_current_room_id(), current_room);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(*panel_), 1);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(*panel_),
+              0x196);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::SourcePalette(*panel_),
+              source_palette);
+    const auto& after = ObjectTileEditorPanelTestAccess::Layout(*panel_);
+    EXPECT_EQ(after.custom_source_bytes, before.custom_source_bytes);
+    EXPECT_EQ(after.custom_resolved_path, before.custom_resolved_path);
+    ASSERT_EQ(after.cells.size(), before.cells.size());
+    for (size_t i = 0; i < before.cells.size(); ++i) {
+      EXPECT_EQ(gfx::TileInfoToWord(after.cells[i].tile_info),
+                gfx::TileInfoToWord(before.cells[i].tile_info));
+      EXPECT_EQ(after.cells[i].original_word, before.cells[i].original_word);
+      EXPECT_EQ(after.cells[i].modified, before.cells[i].modified);
+    }
+    EXPECT_TRUE(after.HasModifications());
+  }
+
+  ScopedImGuiContext imgui_context_;
+  Rom rom_;
+  std::unique_ptr<ScopedCustomObjectState> custom_state_;
+  std::unique_ptr<zelda3::GameData> game_data_;
+  std::unique_ptr<ObjectTileEditorPanel> panel_;
+  std::unique_ptr<DungeonEditorV2> editor_;
+};
+
+TEST_F(ObjectTileEditorSharedPaletteRefreshTest,
+       BoundRoomMainPaletteRefreshDoesNotDependOnActiveContext) {
+  struct Context {
+    int room_id;
+    uint8_t active_set;
+    uint64_t active_palette;
+    int changed_palette;
+  };
+  const Context contexts[] = {
+      {0, 5, 3, 3},   // Distinct set IDs alias the same concrete palette.
+      {0, 6, 2, 3},   // The active room uses an unrelated palette.
+      {-1, 6, 2, 3},  // No current room must not block the bound editor.
+      {0, 6, 99, 3},  // Nor may an invalid active palette cache.
+      {0, 6, 2, -1},  // Whole dungeon palette-group refresh.
+  };
+  for (size_t i = 0; i < std::size(contexts); ++i) {
+    SCOPED_TRACE(i);
+    const auto& context = contexts[i];
+    editor_->rooms()[0].SetPalette(context.active_set);
+    DungeonEditorV2ObjectTileEditorTestPeer::SetCurrentPaletteContext(
+        *editor_, context.room_id, context.active_palette);
+    const gfx::SnesColor edited_color(
+        static_cast<uint16_t>(0x001F + i * 0x0400));
+    ASSERT_TRUE(
+        game_data_->palette_groups.dungeon_main.SetColor(3, 0, edited_color));
+    NotifyAndDraw({context.changed_palette,
+                   gui::DungeonRenderPaletteSource::kDungeonMain});
+    ExpectDisplayedColor(2, edited_color);
+  }
+}
+
+TEST_F(ObjectTileEditorSharedPaletteRefreshTest,
+       SharedHudRefreshPreservesBoundRoomsDungeonPalette) {
+  editor_->rooms()[0].SetPalette(6);
+  DungeonEditorV2ObjectTileEditorTestPeer::SetCurrentPaletteContext(*editor_, 0,
+                                                                    2);
+  auto layout = ObjectTileEditorPanelTestAccess::Layout(*panel_);
+  layout.cells[1].tile_info.palette_ = 1;
+  layout.cells[1].modified = true;
+  ObjectTileEditorPanelTestAccess::SetLayout(*panel_, std::move(layout));
+  ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(*panel_);
+  const gfx::SnesColor edited_color(0x7C00);
+  ASSERT_TRUE(game_data_->palette_groups.hud.SetColor(0, 17, edited_color));
+  NotifyAndDraw({0, gui::DungeonRenderPaletteSource::kHud});
+  ExpectDisplayedColor(1, edited_color);
+  ExpectSurfaceColor(
+      *ObjectTileEditorPanelTestAccess::PreviewOwners(*panel_)[0], 33,
+      game_data_->palette_groups.dungeon_main.GetColor(3, 0));
+}
+
+TEST_F(ObjectTileEditorSharedPaletteRefreshTest,
+       UnrelatedMainPaletteDoesNotRecolorOrRebuildBoundPreview) {
+  editor_->rooms()[0].SetPalette(6);
+  DungeonEditorV2ObjectTileEditorTestPeer::SetCurrentPaletteContext(*editor_, 0,
+                                                                    2);
+  const auto owners = ObjectTileEditorPanelTestAccess::PreviewOwners(*panel_);
+  const std::array<uint32_t, 2> generations = {owners[0]->generation(),
+                                               owners[1]->generation()};
+  ASSERT_TRUE(game_data_->palette_groups.dungeon_main.SetColor(
+      2, 0, gfx::SnesColor(0x7C00)));
+  NotifyAndDraw({2, gui::DungeonRenderPaletteSource::kDungeonMain});
+  ExpectDisplayedColor(2,
+                       game_data_->palette_groups.dungeon_main.GetColor(3, 0));
+  EXPECT_EQ(owners[0]->generation(), generations[0]);
+  EXPECT_EQ(owners[1]->generation(), generations[1]);
+}
+
+TEST_F(ObjectTileEditorSharedPaletteRefreshTest,
+       MissingOrUnloadedBoundRoomIsNotMaterializedByPaletteRefresh) {
+  const auto original_color =
+      ObjectTileEditorPanelTestAccess::CurrentPaletteColor(*panel_, 2, 1);
+  ASSERT_TRUE(game_data_->palette_groups.dungeon_main.SetColor(
+      3, 0, gfx::SnesColor(0x7C00)));
+  for (const bool remove_room : {false, true}) {
+    SCOPED_TRACE(remove_room);
+    if (remove_room) {
+      editor_->rooms().Clear();
+      DungeonEditorV2ObjectTileEditorTestPeer::SetCurrentPaletteContext(
+          *editor_, -1, 3);
+    } else {
+      editor_->rooms()[1].SetLoaded(false);
+    }
+    auto* const previous_room = editor_->rooms().GetIfMaterialized(1);
+    DungeonEditorV2ObjectTileEditorTestPeer::HandlePaletteChanged(
+        *editor_, {3, gui::DungeonRenderPaletteSource::kDungeonMain});
+    EXPECT_EQ(editor_->rooms().GetIfMaterialized(1), previous_room);
+    EXPECT_EQ(editor_->rooms().GetIfLoaded(1), nullptr);
+    EXPECT_EQ(
+        ObjectTileEditorPanelTestAccess::CurrentPaletteColor(*panel_, 2, 1),
+        original_color);
+    EXPECT_FALSE(ObjectTileEditorPanelTestAccess::AtlasDirty(*panel_));
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(*panel_), 1);
+  }
 }
 
 TEST(DungeonEditorV2ObjectTileEditorTest,
