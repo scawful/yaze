@@ -15,7 +15,7 @@ This is the short project-local note that complements the AFS handoff at
 
 ## Current unresolved symptom buckets
 
-1. Custom/alias corner objects still look wrong in real rooms.
+1. Standard wall-corner objects still look wrong in some real rooms.
 2. Some rooms hide or lose wall structure.
 3. Some rooms show unwanted translucent BG2 behavior or an apparent extra upper layer.
 4. The editor/runtime room path still needs validation against USDASM room-build semantics, not just per-object draw routines.
@@ -24,13 +24,13 @@ This is the short project-local note that complements the AFS handoff at
 
 - `test/unit/zelda3/dungeon/object_drawing_comprehensive_test.cc` gives strong routine-level coverage for draw mappings, palette bank assumptions, pit/mask identification, and room-effect/layer-merge metadata.
 - `test/unit/zelda3/dungeon/object_drawer_registry_replay_test.cc` gives strong replay parity for many routine layouts, including 4x4 and weird-corner column-major cases.
-- `test/unit/zelda3/dungeon/custom_object_room_render_test.cc` proves synthetic room-buffer rendering for custom bins, missing-bin placeholders, and corner alias routing.
+- `test/unit/zelda3/dungeon/custom_object_room_render_test.cc` proves synthetic room-buffer rendering for custom bins, missing-bin placeholders, and stable wall-corner identity when track assets are configured.
 - `test/unit/zelda3/dungeon/room_layer_manager_test.cc` proves local compositing rules and cache invalidation behavior.
 
 ## What the current tests do not prove
 
 - They do not prove that a real room's full build order matches `bank_01.asm`.
-- They do not prove that real project-backed custom corner bins reference valid art in the active room `current_gfx16_` set.
+- They do not prove that Oracle's ASM-owned wall tile tables are represented in the base-ROM editor preview.
 - They do not prove that room effects, layer merging, and overlay routing stay correct for specific vanilla/OoS rooms with known problem layouts.
 - They do not prove that the live editor/app canvas matches the intended composite visually; current E2E coverage is mostly interaction smoke, not screenshot or golden validation.
 
@@ -52,7 +52,7 @@ The biggest gap is between object-level parity and room-level parity.
 
 We need a small fixed set of known-bad rooms, split by symptom:
 
-- corner alias room(s)
+- wall-corner room(s), including a room that also contains minecart tracks
 - missing-wall room(s)
 - unexpected-translucent-layer room(s)
 - mask/hole/overlay room(s)
@@ -91,7 +91,7 @@ We need at least one narrow screenshot ROI flow for dungeon rooms before claimin
 
 When selecting fixtures, prioritize rooms that answer one question each:
 
-- a room where `0x100-0x103` custom corner aliases are visibly wrong
+- room `0x001` for Oracle wall-table overrides and room `0x088` for wall corners alongside minecart tracks
 - a room where walls disappear or are over-cleared
 - a room where BG2 looks translucent when it should be normal
 - a room where BG2 must legitimately be translucent, so we can distinguish bug from intended effect

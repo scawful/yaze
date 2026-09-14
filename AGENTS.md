@@ -32,7 +32,7 @@ Use one primary owner from `docs/internal/agents/personas.md`:
 
 ### 3) Focused Context Loading
 Load only:
-1. `.claude/agents/<agent-id>.md`
+1. The selected persona entry in `docs/internal/agents/personas.md`
 2. `docs/internal/agents/routing-personas.md`
 3. Relevant entries in `docs/internal/agents/routing-skills-tools.md`
 
@@ -62,7 +62,7 @@ Use tool classes intentionally:
 `Task Class` -> `Primary Persona` -> `Focused Context Files` -> `Tools/Scripts` -> `Validation`.
 
 Concretely:
-- `AGENTS.md` -> `.claude/agents/<id>.md` + routing docs -> scripts/tools -> tests/build checks.
+- `AGENTS.md` -> persona catalog + routing docs -> scripts/tools -> tests/build checks.
 - Coordination state flows through universe events/state; markdown snapshot is derived output only.
 
 ## Layer 2: Focused Persona/Skill Context

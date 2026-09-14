@@ -70,6 +70,22 @@ bash scripts/release/extract-release-notes.sh vX.Y.Z docs/public/release-notes.m
   macOS, copy `yaze.app` away from the DMG before opening it. Confirm the welcome
   screen, theme/font loading, ROM picker, and a clean quit.
 
+### Tester-editor acceptance
+
+Use a disposable ROM copy and record platform, package, version, and exact Git
+SHA. Complete these paths in the packaged application, not a source-tree binary:
+
+- Dungeon: one small object or sprite edit -> Save ROM -> close -> reopen -> verify.
+- Overworld: one Tile16 or entity edit -> Save ROM -> close -> reopen -> verify.
+- Message: one valid text edit -> Save ROM -> close -> reopen -> verify.
+- Palette: one color edit -> Palette **Save to ROM** -> File **Save ROM** ->
+  close -> reopen -> verify.
+
+Do not include Graphics, dirty Screen state, Music persistence, vanilla Sprite
+editing, Hex / Memory writes, or Emulator save states in the release acceptance
+lane until the [editor readiness matrix](../public/reference/feature-coverage-report.md)
+promotes them.
+
 ## 5) Post-release verification
 
 - Verify GitHub release exists and is published.

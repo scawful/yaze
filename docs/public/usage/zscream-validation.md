@@ -7,7 +7,7 @@ Validate yaze ROM output against ZScream golden ROMs using ZScreamCLI on macOS. 
 ## Overview
 
 - **ZScreamCLI** (sibling project): CLI + validation logic for ZScream overworld/dungeon/graphics data. Runs on macOS with .NET 8.
-- **validate-yaze**: Compares a yaze-produced ROM to a ZScream golden ROM by feature (overworld, entrances, graphics, dungeon, etc.).
+- **validate-yaze**: Compares a yaze-produced ROM to a ZScream golden ROM by feature (overworld, entrances, graphics, dungeon, etc.). A comparison mode does not imply that the matching Yaze editor currently has a safe save path.
 - **Golden ROMs**: Reference ROMs from ZScreamDungeon or from ZScreamCLI’s `create-test-rom` / `create-golden-roms.sh`.
 
 yaze now wires dungeon save into **Save ROM** (objects, sprites, door marker `0xF0 0xFF`, door pointer table) so that File > Save ROM persists dungeon edits. Use ZScreamCLI to confirm output matches expectations.
@@ -109,7 +109,12 @@ Add `--json` and/or `--output=report.json` for automation.
 
 ## yaze behavior relevant to validation
 
-- **Save ROM** now calls the dungeon editor save path: dungeon maps (when `kSaveDungeonMaps` is on), then **dungeon editor Save** (objects, sprites, door pointers, room headers and message IDs, palettes, torches, pits, blocks, chests, pot items), then overworld, then graphics, then file write.
+- **Save ROM** coordinates a valid, clean Screen editor when present, then the
+  Dungeon editor (objects, sprites, door pointers, room headers and message IDs,
+  palettes, torches, pits, blocks, chests, and pot items), Overworld, and Message
+  when enabled, followed by safety/conflict checks and the file write. Pending
+  Graphics edits deliberately block this operation; Graphics is not invoked as
+  a coordinated serializer.
 - **Room headers**: 14-byte header and message IDs are written per room via `Room::SaveRoomHeader()`.
 - **Door format**: Room object stream includes the door marker `0xF0 0xFF` and the door list; the door pointer table (`kDoorPointers`) is updated per room so the pointer points to the first byte after the marker (ZScreamDungeon-compatible).
 - **Torches / pits / blocks**: `SaveAllTorches`, `SaveAllPits`, and `SaveAllBlocks` run after room saves; torches merge in-memory data with ROM for unloaded rooms; pits preserve existing ROM data unless an explicit dirty `PitDamageTable` is supplied; blocks preserve existing ROM data unless the room-aware block encoder is used.
