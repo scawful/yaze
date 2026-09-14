@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "app/gfx/render/background_buffer.h"
 #include "core/features.h"
 #include "gtest/gtest.h"
@@ -1171,6 +1172,9 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype2Mappings) {
 
 TEST_F(DrawRoutineMappingTest,
        FixedCornersUseUsdasmSourcesAndBackgroundMetadata) {
+  const absl::Cleanup reset_dimensions = [] {
+    ObjectDimensionTable::Get().Reset();
+  };
   // Subtype-2 source offsets, in ID order, from $0183F0-$01841E. Keep the
   // non-monotonic order: the single-BG and dual-BG corner sets interleave.
   const std::vector<uint16_t> offsets = {
@@ -1192,6 +1196,7 @@ TEST_F(DrawRoutineMappingTest,
       data[source + slot * 2 + 1] = 0x29;
     }
     ASSERT_TRUE(rom_->LoadFromData(data).ok());
+    ASSERT_TRUE(ObjectDimensionTable::Get().LoadFromRom(rom_.get()).ok());
     ObjectParser parser(rom_.get());
     const auto tiles = parser.ParseObject(id);
     ASSERT_TRUE(tiles.ok()) << tiles.status();
@@ -1220,6 +1225,9 @@ TEST_F(DrawRoutineMappingTest,
 }
 
 TEST_F(DrawRoutineMappingTest, SanctuaryWallUsesUsdasmPayloadAndFootprint) {
+  const absl::Cleanup reset_dimensions = [] {
+    ObjectDimensionTable::Get().Reset();
+  };
   // $018468 selects obj1458; $019B56 consumes two six-word facade columns
   // and a four-column, three-row center pattern: 24 source words total.
   std::vector<uint8_t> data(1024 * 1024, 0);
@@ -1232,6 +1240,7 @@ TEST_F(DrawRoutineMappingTest, SanctuaryWallUsesUsdasmPayloadAndFootprint) {
     data[kSource + i * 2 + 1] = 0x1D;
   }
   ASSERT_TRUE(rom_->LoadFromData(data).ok());
+  ASSERT_TRUE(ObjectDimensionTable::Get().LoadFromRom(rom_.get()).ok());
   ObjectParser parser(rom_.get());
   const auto tiles = parser.ParseObject(0x13C);
   ASSERT_TRUE(tiles.ok()) << tiles.status();

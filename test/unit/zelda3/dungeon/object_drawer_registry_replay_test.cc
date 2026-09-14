@@ -31,6 +31,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "app/gfx/render/background_buffer.h"
 #include "app/gfx/types/snes_tile.h"
 #include "core/features.h"
@@ -2654,6 +2655,13 @@ TEST(ObjectDrawerRegistryReplayTest,
 TEST(ObjectDrawerRegistryReplayTest,
      Fixed4x4AliasesDoNotResizeButSubtype1BlocksStillRepeat) {
   ScopedCustomObjectsFlag disable_custom(false);
+  const absl::Cleanup reset_dimensions = [] {
+    ObjectDimensionTable::Get().Reset();
+  };
+  Rom rom;
+  const std::vector<uint8_t> data(1024 * 1024, 0);
+  ASSERT_TRUE(rom.LoadFromData(data).ok());
+  ASSERT_TRUE(ObjectDimensionTable::Get().LoadFromRom(&rom).ok());
   const auto tiles = MakeSequentialTiles(16, 0x100);
   // Additional subtype-2 RoomDraw_4x4 aliases at $0184A8/B8/BA/C2.
   for (int id : {0x11C, 0x124, 0x125, 0x129, 0x33, 0xB2, 0xBA}) {
