@@ -483,7 +483,7 @@ absl::Status ObjectTileEditor::RenderLayoutToBitmap(
 absl::Status ObjectTileEditor::BuildTile8Atlas(
     gfx::Bitmap& atlas, const uint8_t* room_gfx_buffer,
     const gfx::PaletteGroup& palette, int display_palette,
-    std::optional<int16_t> custom_object_id) {
+    std::optional<int16_t> custom_object_id, uint16_t retained_attributes) {
   if (!room_gfx_buffer) {
     return absl::FailedPreconditionError("No room graphics buffer");
   }
@@ -515,10 +515,12 @@ absl::Status ObjectTileEditor::BuildTile8Atlas(
     gfx::TileInfo info(static_cast<uint16_t>(tile_id), /*palette=*/0, false,
                        false, false);
     if (custom_object_id.has_value()) {
-      // Include the source palette when resolving the zero/no-op word. Tile
-      // zero in a nonzero palette still draws (and uses page $300 for $54).
+      // Atlas selection retains the selected cell's H/V/priority bits. Include
+      // them and the source palette in no-op detection, but do not flip the
+      // atlas image or apply its priority as a display effect.
       const uint16_t source_word =
-          static_cast<uint16_t>(tile_id | ((display_palette & 7) << 10));
+          static_cast<uint16_t>(tile_id | ((display_palette & 7) << 10) |
+                                (retained_attributes & 0xE000));
       const uint16_t runtime_word =
           CustomObjectRuntimeTileWord(*custom_object_id, source_word);
       if (runtime_word == 0) {

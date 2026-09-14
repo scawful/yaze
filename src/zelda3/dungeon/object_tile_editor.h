@@ -229,10 +229,13 @@ class ObjectTileEditor {
 
   // Build a source-ID atlas from room graphics. Custom objects show the
   // runtime-effective tile at each raw source ID without changing saved words.
+  // Retained H/V/priority attributes affect zero-word detection only; atlas
+  // images remain unflipped so their orientation is consistent when browsing.
   absl::Status BuildTile8Atlas(
       gfx::Bitmap& atlas, const uint8_t* room_gfx_buffer,
       const gfx::PaletteGroup& palette, int display_palette = 2,
-      std::optional<int16_t> custom_object_id = std::nullopt);
+      std::optional<int16_t> custom_object_id = std::nullopt,
+      uint16_t retained_attributes = 0);
 
   // Write-back: standard objects patch ROM, custom objects write .bin
   absl::Status WriteBack(ObjectTileLayout& layout);
