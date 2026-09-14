@@ -3,14 +3,18 @@
 Status: ACTIVE  
 Owner: zelda3-hacking-expert  
 Created: 2025-12-06  
-Last Reviewed: 2026-09-10
-Next Review: 2026-12-09
+Last Reviewed: 2026-09-14
+Next Review: 2026-09-28
 Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optional: `docs/internal/agents/coordination-board.generated.md`)
 
 ## Scope
 - Source of truth: `assets/asm/usdasm/bank_01.asm` (US 1.0 disasm) plus room headers in the same bank.
 - Goal: spell out how layouts and objects are drawn, how layers are selected/merged, and how object symbology should match the real draw semantics (arrows, “large”/4x4 growth, BothBG).
 - Pain points to fix: corner ceilings and ceiling variants (4x4, vertical 2x2, horizontal 2x2), BG merge vs layer type treated as exclusive, layout objects occasionally drawing over background objects, and selection outlines that do not match the real footprint.
+
+The [dungeon completion backlog](../plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md)
+owns the v0.8.0 coverage checklist and agent assignments. This spec owns behavior;
+historical skill notes and older plans must not override current code/disassembly.
 
 ## Room Build & Layer Order (bank_01.asm)
 - `LoadAndBuildRoom` (`assets/asm/usdasm/bank_01.asm:$01873A`):
@@ -46,7 +50,7 @@ Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optio
   - `Rightwards*` → arrow right; grows horizontally by `size` blocks. Base footprints: `2x4`, `2x2`, `4x4`, etc. Spacing suffix (`spaced2/4/8/12`) means step that many tiles between columns.
   - `Downwards*` → arrow down; grows vertically by `size` blocks with the same spacing conventions.
   - `DiagonalAcute/Grave` → 45° diagonals; use diagonal arrow/corner icon. Although routines 5/6 load `nibble+7`, they enter the shared loop at its pre-draw decrement; routines 17/18 load `nibble+6` and enter after that decrement. All four therefore draw `nibble+6` columns with a five-tile column stamp. `_BothBG` variants must draw to both BG1 and BG2.
-  - `DiagonalCeiling*` (IDs 0xA0–0xAC): size = nibble + 4 (`GetSize_1to16_timesA` with `A=4`). Bounding box is square (`size × size`) because each step moves x+y by 1.
+  - `DiagonalCeiling*` (IDs 0xA0–0xA3 and 0xA5–0xAC): size = nibble + 4 (`GetSize_1to16_timesA` with `A=4`). Bounding box is square (`size × size`) because each step moves x+y by 1. `0xA4` instead maps to BigHole, routine 61.
   - `4x4Floor*/Blocks*/SuperSquare` (IDs 0xC0–0xCA, 0xD1–0xE8): use “large square” icon. For variable super-square routines, size bits 3–2 select `1..4` horizontal 4×4 blocks and bits 1–0 select `1..4` vertical blocks. `0xC4` and `0xDB` copy the room header's active Floor 1/Floor 2 eight-tile pattern instead of a normal object payload.
   - `Edge/Corner` variants: use L-corner or edge glyph; many have `_BothBG` meaning they write to BG1 and BG2 simultaneously (should not be layer-exclusive).
 - Type 2 routines (`.type2_routine`):
@@ -59,7 +63,7 @@ Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optio
   - Pipes (0x23A–0x23D) are fixed 2×? rectangles; use arrows that match their orientation.
 
 ## Ceiling and Large Object Ground Truth
-- Corner/diagonal ceilings (Type 1 IDs 0xA0–0xAC): `RoomDraw_DiagonalCeiling*` ($018BE0–$018C36). Size = nibble+4; outline should be a square whose side equals that size; growth is along the diagonal (x+1,y+1 per step).
+- Corner/diagonal ceilings (Type 1 IDs 0xA0–0xA3 and 0xA5–0xAC): `RoomDraw_DiagonalCeiling*` ($018BE0–$018C36). Size = nibble+4; outline should be a square whose side equals that size; growth is along the diagonal (x+1,y+1 per step).
 - Big hole & overlays: ID 0xA4 → `RoomDraw_BigHole4x4_1to16`. IDs 0xD8/0xDA enter stateful water routines: saved water state changes tilemap writes, destination, HDMA geometry, and potentially the active layer mode. Yaze currently renders an editor approximation on BG2; structural coverage is tested, but full runtime-state parity is open.
 - 4x4 ceilings/floors: IDs 0xC5–0xCA, 0xD1–0xD2, 0xD9, 0xDF–0xE8 → `RoomDraw_4x4FloorIn4x4SuperSquare`. Use a “large square” glyph. The size nibble is split into two two-bit repeat counts, producing a `4..16` tile width and height.
 - Floor copies: `0xC4` loads the Floor 1 selector from `$046A`; `0xDB` loads Floor 2 from `$0490`. Both stamp that decoded 4×2 pattern twice per 4×4 block. Room-aware renderers must receive the in-memory room header values so unsaved floor edits preview correctly.
@@ -99,10 +103,10 @@ Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optio
 - `_BothBG` routines should carry a dual-layer badge in the palette and never be filtered out by the current layer toggle—selection must remain visible regardless of BG toggle because the object truly occupies both buffers.
 
 ## Mapping UI Symbology to Real Objects
-- Arrows right/left: any `Rightwards*` routine; growth = size nibble (with fallback rules above). Use “large” badge only when the routine name includes `4x4` or `SuperSquare`.
+- Arrows right/left: `Rightwards*` routines grow horizontally according to their count rule. A `4x4` stamp describes the repeated block, not necessarily a fixed object; `0x33` is a resizable example. Derive fixed/scalable labels from the actual routine contract, not a substring match.
 - Arrows down/up: any `Downwards*` routine; same sizing rules.
 - Diagonal arrow: `DiagonalAcute/Grave` and `DiagonalCeiling*`.
-- Large square badge: `4x4Floor*`, `4x4Blocks*`, `BigHole4x4`, water overlays, chest platforms; these do **not** change size with the nibble.
+- Large square badge: may describe a block/super-square footprint, but must not imply a fixed size. Variable floor/super-square routines use two packed two-bit repeat counts; BigHole and water indicators have their own size rules. Keep footprint, growth direction, and fixed/scalable behavior separate.
 - Dual-layer badge: routines with `_BothBG` in the disasm name, plus the
   multi/separate-layer auto-stair variants (yaze IDs 0x130–0x131 and
   0xF9B–0xF9C). The merged/swim variants (0x132–0x133, 0xF9D, and 0xFB3)
