@@ -897,8 +897,8 @@ void Draw4x4FloorIn4x4SuperSquare(const DrawContext& ctx) {
   if (ctx.tiles.empty())
     return;
   if (ctx.tiles.size() < 8) {
-    // Some hacks provide abbreviated tile payloads for these objects.
-    // Fall back to a visible fill instead of silently skipping draw.
+    // Keep abbreviated preview payloads visible with a solid fill. This
+    // fallback is editor behavior, not the vanilla eight-word floor stamp.
     Draw4x4BlocksIn4x4SuperSquare(ctx);
     return;
   }
@@ -914,46 +914,15 @@ void Draw4x4FloorIn4x4SuperSquare(const DrawContext& ctx) {
 }
 
 void Draw4x4FloorOneIn4x4SuperSquare(const DrawContext& ctx) {
-  // ASM: RoomDraw_4x4FloorOneIn4x4SuperSquare ($018FA2)
-  // Single 4x4 floor pattern (starts at different tile offset in assembly).
-  // For our purposes, same as 4x4FloorIn4x4SuperSquare with offset tiles.
-  int size_x = ((ctx.object.size_ >> 2) & 0x03) + 1;
-  int size_y = (ctx.object.size_ & 0x03) + 1;
-
-  if (ctx.tiles.size() < 8) {
-    Draw4x4FloorIn4x4SuperSquare(ctx);
-    return;
-  }
-
-  for (int sy = 0; sy < size_y; ++sy) {
-    for (int sx = 0; sx < size_x; ++sx) {
-      int base_x = ctx.object.x_ + (sx * 4);
-      int base_y = ctx.object.y_ + (sy * 4);
-
-      DrawMany32x32Block(ctx.target_bg, base_x, base_y, ctx.tiles);
-    }
-  }
+  // $018FA2 loads $046A then falls into $018FA5. ObjectDrawer resolves the
+  // room's Floor 1 pattern into ctx.tiles before dispatching this wrapper.
+  Draw4x4FloorIn4x4SuperSquare(ctx);
 }
 
 void Draw4x4FloorTwoIn4x4SuperSquare(const DrawContext& ctx) {
-  // ASM: RoomDraw_4x4FloorTwoIn4x4SuperSquare ($018F9D)
-  // Two 4x4 floor patterns (uses $0490 offset in assembly).
-  int size_x = ((ctx.object.size_ >> 2) & 0x03) + 1;
-  int size_y = (ctx.object.size_ & 0x03) + 1;
-
-  if (ctx.tiles.size() < 8) {
-    Draw4x4FloorIn4x4SuperSquare(ctx);
-    return;
-  }
-
-  for (int sy = 0; sy < size_y; ++sy) {
-    for (int sx = 0; sx < size_x; ++sx) {
-      int base_x = ctx.object.x_ + (sx * 4);
-      int base_y = ctx.object.y_ + (sy * 4);
-
-      DrawMany32x32Block(ctx.target_bg, base_x, base_y, ctx.tiles);
-    }
-  }
+  // $018F9D loads $0490 then branches to $018FA5. ObjectDrawer resolves the
+  // room's Floor 2 pattern into ctx.tiles before dispatching this wrapper.
+  Draw4x4FloorIn4x4SuperSquare(ctx);
 }
 
 void DrawBigHole4x4_1to16(const DrawContext& ctx) {
