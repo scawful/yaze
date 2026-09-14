@@ -25,6 +25,10 @@ MyProject.yazeproj/
 | `backups/` | No | Timestamped backup copies created by the autosave system |
 | `output/` | No | Build artifacts from patching or assembly workflows |
 
+`project.yaze` accepts LF or CRLF line endings. Bare carriage-return line
+separators are rejected rather than allowing project settings to fall back to
+compiled defaults.
+
 ---
 
 ## Opening a Bundle
@@ -93,7 +97,11 @@ To verify the ROM file's SHA1 hash against `manifest.json` (if present in the bu
 z3ed project-bundle-verify --project MyProject.yazeproj --check-rom-hash --format=json
 ```
 
-If no `manifest.json` or no `rom_sha1` field exists, the hash check is reported as a warning (not a failure). Hash comparison is case-insensitive and ignores surrounding whitespace.
+Bundle manifests may use the iOS `romChecksum` field or the legacy
+`rom_sha1` field. If both are present, they must contain the same 40-character
+SHA1 digest after case and surrounding-whitespace normalization. A malformed
+field or disagreement is a failure. If no `manifest.json` exists or neither
+hash field is present, the hash check is reported as a warning (not a failure).
 
 ### Bundle Pack / Unpack
 
