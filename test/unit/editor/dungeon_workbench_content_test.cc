@@ -21,6 +21,7 @@
 #include "core/features.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/pit_damage_table.h"
 
@@ -255,6 +256,7 @@ class DungeonWorkbenchObjectSizeUiTest : public ::testing::Test {
     ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
     ImGui::SetNextWindowSize(ImVec2(width, 240), ImGuiCond_Always);
     ImGui::Begin("ObjectSizeHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    ImGui::LogToBuffer();
     if (ImGui::BeginTable("SizeProperties", 2)) {
       ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 56);
       ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
@@ -265,6 +267,8 @@ class DungeonWorkbenchObjectSizeUiTest : public ::testing::Test {
       }
       ImGui::EndTable();
     }
+    logged_text_ = ImGui::GetCurrentContext()->LogBuffer.c_str();
+    ImGui::LogFinish();
     controls_bottom_ = ImGui::GetCursorPosY();
     ImGui::End();
     ImGui::Render();
@@ -295,6 +299,7 @@ class DungeonWorkbenchObjectSizeUiTest : public ::testing::Test {
   zelda3::RoomObject object_{0xD1, 8, 9, 3, 1};
   int changes_ = 0;
   float controls_bottom_ = 0;
+  std::string logged_text_;
   bool previous_custom_ = false;
   zelda3::CustomObjectManager::State previous_manager_;
 };
@@ -319,23 +324,96 @@ TEST_F(DungeonWorkbenchObjectSizeUiTest, WidthAndHeightChangeIndependently) {
 }
 
 TEST_F(DungeonWorkbenchObjectSizeUiTest,
-       FloorControlsFitNarrowAndWideInspectors) {
-  for (float scale : {1.0f, 1.5f}) {
-    ImGui::GetIO().FontGlobalScale = scale;
-    for (float width : {200.0f, 320.0f, 500.0f}) {
-      DrawFrame(width);
-      DrawFrame(width);
-      for (const auto* name :
-           {"combo:selected_object_width", "combo:selected_object_height"}) {
-        const auto widget = Widget(name);
-        ASSERT_TRUE(widget.has_value());
-        EXPECT_GT(widget->bounds.max_x - widget->bounds.min_x, 30);
-        EXPECT_LE(widget->bounds.max_x, 20 + width);
+       PlatformControlsShowPhysicalSizesAndPreserveOtherAxis) {
+  struct SizeCase {
+    int id;
+    int base_width;
+    int base_height;
+  };
+  for (const auto& test_case :
+       {SizeCase{0xC1, 14, 8}, SizeCase{0xDC, 10, 7}, SizeCase{0xDD, 4, 4}}) {
+    SCOPED_TRACE(test_case.id);
+    object_ = zelda3::RoomObject(test_case.id, 8, 9, 0, 1);
+    changes_ = 0;
+    DrawFrame();
+    DrawFrame();
+    const auto expect_tiles = [&](int tiles) {
+      EXPECT_NE(logged_text_.find(std::to_string(tiles) + " tiles"),
+                std::string::npos)
+          << logged_text_;
+    };
+    expect_tiles(test_case.base_width);
+    expect_tiles(test_case.base_height);
+    const float before = controls_bottom_;
+
+    Click("combo:selected_object_width");
+    for (int axis = 0; axis < 4; ++axis) {
+      expect_tiles(test_case.base_width + axis * 2);
+    }
+    Click("selectable:object_width_2");
+    EXPECT_EQ(object_.size_, 0x08);
+    expect_tiles(test_case.base_width + 4);
+    expect_tiles(test_case.base_height);
+
+    Click("combo:selected_object_height");
+    for (int axis = 0; axis < 4; ++axis) {
+      expect_tiles(test_case.base_height + axis * 2);
+    }
+    Click("selectable:object_height_3");
+    EXPECT_EQ(object_.size_, 0x0B);
+    expect_tiles(test_case.base_width + 4);
+    expect_tiles(test_case.base_height + 6);
+    EXPECT_EQ(changes_, 2);
+    EXPECT_EQ(object_.x_, 8);
+    EXPECT_EQ(object_.y_, 9);
+    EXPECT_EQ(object_.GetLayerValue(), 1);
+    EXPECT_FLOAT_EQ(controls_bottom_, before);
+  }
+}
+
+TEST_F(DungeonWorkbenchObjectSizeUiTest,
+       PackedRectangleControlsFitNarrowAndWideInspectors) {
+  for (int id : {0xD1, 0xC1, 0xDC, 0xDD}) {
+    SCOPED_TRACE(id);
+    object_ = zelda3::RoomObject(id, 8, 9, 3, 1);
+    for (float scale : {1.0f, 1.5f}) {
+      ImGui::GetIO().FontGlobalScale = scale;
+      for (float width : {200.0f, 320.0f, 500.0f}) {
+        DrawFrame(width);
+        DrawFrame(width);
+        for (const auto* name :
+             {"combo:selected_object_width", "combo:selected_object_height"}) {
+          const auto widget = Widget(name);
+          ASSERT_TRUE(widget.has_value());
+          EXPECT_GT(widget->bounds.max_x - widget->bounds.min_x, 30);
+          EXPECT_LE(widget->bounds.max_x, 20 + width);
+        }
       }
     }
   }
   EXPECT_EQ(changes_, 0);
   EXPECT_EQ(object_.size_, 3);
+}
+
+TEST_F(DungeonWorkbenchObjectSizeUiTest,
+       ConfiguredPlatformsOfferVariantsInsteadOfAxes) {
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0xC1, {"closed_a.bin", "closed_b.bin"}},
+       {0xDC, {"open_a.bin", "open_b.bin"}},
+       {0xDD, {"rock_a.bin", "rock_b.bin"}}});
+  for (int id : {0xC1, 0xDC, 0xDD}) {
+    SCOPED_TRACE(id);
+    object_ = zelda3::RoomObject(id, 8, 9, 1, 1);
+    DrawFrame();
+    DrawFrame();
+    EXPECT_FALSE(Widget("combo:selected_object_width").has_value());
+    EXPECT_FALSE(Widget("combo:selected_object_height").has_value());
+    Click("combo:selected_object_variant");
+    Click("selectable:object_variant_0");
+    EXPECT_EQ(object_.size_, 0);
+  }
+  EXPECT_EQ(changes_, 3);
 }
 
 TEST_F(DungeonWorkbenchObjectSizeUiTest,

@@ -49,15 +49,48 @@ TEST(RoomObjectEncodingTest, PackedFloorSizeAxisStepsFollowRegistry) {
   EXPECT_EQ(RoomObjectSizeAxisStep(0xC3), 3);
   EXPECT_EQ(RoomObjectSizeAxisStep(0xD7), 3);
   EXPECT_EQ(RoomObjectSizeAxisStep(0xDE), 2);
-  for (const int id : {0x01, 0x34, 0xCD, 0xD8, 0x100, 0xF99}) {
+  for (const int id : {0x01, 0x34, 0xCD, 0xCE, 0xD8, 0x100, 0xF99}) {
     EXPECT_EQ(RoomObjectSizeAxisStep(id), 0) << id;
+    EXPECT_EQ(RoomObjectSizeAxisTiles(id, 3), 0) << id;
+    EXPECT_EQ(RoomObjectSizeAxisTiles(id, 3, true), 0) << id;
   }
 }
 
-TEST(RoomObjectEncodingTest, PackedFloorResizePreservesOtherAxisAtEverySize) {
+TEST(RoomObjectEncodingTest, PackedRectangleTileExtentsMatchUsdasm) {
   ScopedRoomObjectResizeState state(false);
-  for (const int id : {0xC0, 0xC3, 0xC4, 0xC8, 0xCA, 0xD1, 0xDB, 0xDE, 0xE3}) {
+  struct SizeCase {
+    int id;
+    int base_width;
+    int base_height;
+    int step;
+  };
+  const SizeCase cases[] = {
+      {0xC1, 14, 8, 2},  // $018CC7: two 3-wide caps, (x+4) 2-wide fills.
+      {0xDC, 10, 7, 2},  // $019733: 8 fixed columns, two (x+1) fills.
+      {0xDD, 4, 4, 2},   // $0193DC: fixed edges around 2-wide repeats.
+      {0xC3, 3, 3, 3},  {0xD1, 4, 4, 4}, {0xDE, 2, 2, 2},
+  };
+  for (const auto& test_case : cases) {
+    SCOPED_TRACE(test_case.id);
+    EXPECT_EQ(RoomObjectSizeAxisStep(test_case.id), test_case.step);
+    for (int size = 0; size < 16; ++size) {
+      SCOPED_TRACE(size);
+      EXPECT_EQ(RoomObjectSizeAxisTiles(test_case.id, size, true),
+                test_case.base_width + ((size >> 2) & 3) * test_case.step);
+      EXPECT_EQ(RoomObjectSizeAxisTiles(test_case.id, size),
+                test_case.base_height + (size & 3) * test_case.step);
+    }
+  }
+}
+
+TEST(RoomObjectEncodingTest,
+     PackedRectangleResizePreservesOtherAxisAtEverySize) {
+  ScopedRoomObjectResizeState state(false);
+  for (const int id : {0xC0, 0xC1, 0xC3, 0xC4, 0xC8, 0xCA, 0xD1, 0xDB, 0xDC,
+                       0xDD, 0xDE, 0xE3}) {
+    SCOPED_TRACE(id);
     for (int size = 0; size <= 15; ++size) {
+      SCOPED_TRACE(size);
       for (const int delta : {-10, -1, 0, 1, 10}) {
         const int x = (size >> 2) & 3;
         const int y = size & 3;
@@ -82,11 +115,16 @@ TEST(RoomObjectEncodingTest, ScalarResizeClampsExtremeDeltas) {
 
 TEST(RoomObjectEncodingTest, CustomVariantsAreNotGeometricallyResizable) {
   ScopedRoomObjectResizeState state(true);
-  CustomObjectManager::Get().SetObjectFileMap({{0xD1, {"custom_floor.bin"}}});
-  for (const int id : {0x31, 0x32, 0x54, 0xD1}) {
+  CustomObjectManager::Get().SetObjectFileMap({{0xD1, {"custom_floor.bin"}},
+                                               {0xC1, {"closed_platform.bin"}},
+                                               {0xDC, {"open_platform.bin"}},
+                                               {0xDD, {"table_rock.bin"}}});
+  for (const int id : {0x31, 0x32, 0x54, 0xD1, 0xC1, 0xDC, 0xDD}) {
     EXPECT_TRUE(IsRoomObjectSizeEditable(id));
     EXPECT_FALSE(IsRoomObjectResizable(id));
     EXPECT_EQ(RoomObjectSizeAxisStep(id), 0);
+    EXPECT_EQ(RoomObjectSizeAxisTiles(id, 2), 0);
+    EXPECT_EQ(RoomObjectSizeAxisTiles(id, 2, true), 0);
     EXPECT_EQ(ResizeRoomObjectByDelta(id, 2, 1), 2);
     EXPECT_EQ(ResizeRoomObjectByDelta(id, 2, -1, true), 2);
     EXPECT_EQ(CanonicalRoomObjectSize(id, 2), 2);
@@ -102,6 +140,19 @@ TEST(RoomObjectEncodingTest, DisabledCustomObjectsKeepType1ScalarSizing) {
   for (const int id : {0x31, 0x32, 0x54}) {
     EXPECT_TRUE(IsRoomObjectResizable(id));
     EXPECT_EQ(ResizeRoomObjectByDelta(id, 2, 1), 3);
+  }
+}
+
+TEST(RoomObjectEncodingTest, DisabledCustomOverridesKeepPackedPlatformSizing) {
+  ScopedRoomObjectResizeState state(false);
+  CustomObjectManager::Get().SetObjectFileMap({{0xC1, {"closed_platform.bin"}},
+                                               {0xDC, {"open_platform.bin"}},
+                                               {0xDD, {"table_rock.bin"}}});
+  for (const int id : {0xC1, 0xDC, 0xDD}) {
+    EXPECT_TRUE(IsRoomObjectResizable(id));
+    EXPECT_EQ(RoomObjectSizeAxisStep(id), 2);
+    EXPECT_EQ(ResizeRoomObjectByDelta(id, 3, 1), 3);
+    EXPECT_EQ(ResizeRoomObjectByDelta(id, 3, 1, true), 7);
   }
 }
 
