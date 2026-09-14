@@ -503,6 +503,17 @@ if(YAZE_BUILD_TESTS)
   endif()
 
   yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
+  add_test(
+    NAME TestRunnerDiscoveryContract
+    COMMAND ${CMAKE_COMMAND}
+      "-DTEST_EXECUTABLE=$<TARGET_FILE:yaze_test_unit>"
+      -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/test_runner_discovery.cmake"
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+  set_tests_properties(TestRunnerDiscoveryContract PROPERTIES
+    LABELS "stable;unit"
+    TIMEOUT 45
+  )
   yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})
   target_compile_definitions(yaze_test_integration PRIVATE
     YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
