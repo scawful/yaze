@@ -5,74 +5,198 @@ inputs:
     description: 'Type of tests to run (stable, unit, integration, all)'
     required: true
   preset:
-    description: 'CMake preset to use (for reference, tests use minimal preset)'
+    description: 'CMake configure preset whose build tree contains the tests'
     required: false
     default: 'minimal'
   platform:
     description: 'Platform discriminator for artifact naming (linux, macos, windows)'
     required: false
     default: 'unknown'
+  build-type:
+    description: 'Multi-config build type containing the test executables'
+    required: false
+    default: 'RelWithDebInfo'
 
 runs:
   using: 'composite'
   steps:
-    - name: Select test preset suffix
+    - name: Verify test inventory
       shell: bash
       run: |
-        if [ "${{ inputs.preset }}" = "ci-windows-ai" ]; then
-          echo "CTEST_SUFFIX=-ai" >> $GITHUB_ENV
-        else
-          echo "CTEST_SUFFIX=" >> $GITHUB_ENV
+        set -euo pipefail
+        build_dir="build/presets/${{ inputs.preset }}"
+        label_regex="^${{ inputs.test-type }}$"
+        if [ "${{ inputs.test-type }}" = "all" ]; then
+          label_regex="^stable$"
         fi
+
+        python_cmd="$(command -v python3 || command -v python || true)"
+        if [ -z "$python_cmd" ]; then
+          echo "Python is required to validate the CTest inventory."
+          exit 1
+        fi
+
+        inventory_file="$build_dir/test_inventory.json"
+        ctest --test-dir "$build_dir" \
+          --build-config "${{ inputs.build-type }}" \
+          --label-regex "$label_regex" \
+          --show-only=json-v1 > "$inventory_file"
+
+        test_count="$("$python_cmd" - "$inventory_file" \
+          "${{ inputs.test-type }}" "$build_dir" \
+          "${{ inputs.build-type }}" <<'PY'
+        import json
+        import os
+        import sys
+
+        with open(sys.argv[1], encoding="utf-8") as inventory:
+            tests = json.load(inventory).get("tests", [])
+
+        expected_suites = {
+            "stable": {"yaze_test_unit", "yaze_test_integration"},
+            "unit": {"yaze_test_unit"},
+            "integration": {"yaze_test_integration"},
+            "all": {"yaze_test_unit", "yaze_test_integration"},
+        }[sys.argv[2]]
+
+        build_dir = os.path.abspath(sys.argv[3])
+        build_type = sys.argv[4]
+        expected_labels = {
+            "yaze_test_unit": "unit",
+            "yaze_test_integration": "integration",
+        }
+        discovered_labels = set()
+        for test in tests:
+            for prop in test.get("properties", []):
+                if prop.get("name") != "LABELS":
+                    continue
+                value = prop.get("value", [])
+                if isinstance(value, str):
+                    value = [value]
+                discovered_labels.update(value)
+
+        # CTest may place a launcher ahead of the suite executable in its JSON
+        # command on some platforms. Validate the selected labels and the actual
+        # configured binaries independently; the following CTest step proves
+        # that the discovered tests are runnable.
+        executable_suffix = ".exe" if os.name == "nt" else ""
+        suite_paths = {
+            suite: [
+                os.path.join(build_dir, "bin", build_type, suite + executable_suffix),
+                os.path.join(build_dir, "bin", suite + executable_suffix),
+            ]
+            for suite in expected_suites
+        }
+        missing_suites = sorted(
+            suite
+            for suite, paths in suite_paths.items()
+            if expected_labels[suite] not in discovered_labels
+            or not any(os.path.isfile(path) for path in paths)
+        )
+        if missing_suites:
+            print(
+                "CTest inventory is missing labeled, built required suites: "
+                + ", ".join(missing_suites),
+                file=sys.stderr,
+            )
+            for suite in missing_suites:
+                label = expected_labels[suite]
+                candidates = ", ".join(suite_paths[suite])
+                print(
+                    f"- {suite}: label={label!r} "
+                    f"present={label in discovered_labels}; paths={candidates}",
+                    file=sys.stderr,
+                )
+            raise SystemExit(1)
+        print(len(tests))
+        PY
+        )"
+        if [ "$test_count" -eq 0 ]; then
+          echo "CTest discovered zero ${{ inputs.test-type }} tests in $build_dir for ${{ inputs.build-type }}."
+          exit 1
+        fi
+        echo "CTest discovered $test_count ${{ inputs.test-type }} tests."
 
     - name: Run stable tests
       if: inputs.test-type == 'stable' || inputs.test-type == 'all'
       shell: bash
       run: |
         ctest --test-dir "build/presets/${{ inputs.preset }}" \
-          --preset stable${CTEST_SUFFIX} \
+          --build-config "${{ inputs.build-type }}" \
+          --label-regex "^stable$" \
+          --no-tests=error \
           --output-on-failure \
           --timeout 300 \
-          --output-junit "build/presets/${{ inputs.preset }}/stable_test_results.xml"
+          --output-junit stable_test_results.xml
 
     - name: Run unit tests
       if: inputs.test-type == 'unit' || inputs.test-type == 'all'
       shell: bash
       run: |
         ctest --test-dir "build/presets/${{ inputs.preset }}" \
-          --preset unit${CTEST_SUFFIX} \
+          --build-config "${{ inputs.build-type }}" \
+          --label-regex "^unit$" \
+          --no-tests=error \
           --output-on-failure \
           --timeout 300 \
-          --output-junit "build/presets/${{ inputs.preset }}/unit_test_results.xml"
+          --output-junit unit_test_results.xml
 
     - name: Run integration tests
       if: inputs.test-type == 'integration' || inputs.test-type == 'all'
       shell: bash
       run: |
         ctest --test-dir "build/presets/${{ inputs.preset }}" \
-          --preset integration${CTEST_SUFFIX} \
+          --build-config "${{ inputs.build-type }}" \
+          --label-regex "^integration$" \
+          --no-tests=error \
           --output-on-failure \
           --timeout 300 \
-          --output-junit "build/presets/${{ inputs.preset }}/integration_test_results.xml"
+          --output-junit integration_test_results.xml
 
     - name: Summarize test results
       if: always()
       shell: bash
       run: |
-        # Emit a compact timing/pass summary to the GitHub Actions job summary.
-        # Fails gracefully if no XML results are present (e.g. skipped runs).
+        set -euo pipefail
         echo "## Test Results (${{ inputs.platform }} / ${{ inputs.test-type }})" >> "$GITHUB_STEP_SUMMARY"
-        xml_files=$(ls "build/presets/${{ inputs.preset }}"/*test_results.xml 2>/dev/null || true)
-        if [ -z "$xml_files" ]; then
-          echo "_No XML test results found._" >> "$GITHUB_STEP_SUMMARY"
+        build_dir="build/presets/${{ inputs.preset }}"
+        if [ "${{ inputs.test-type }}" = "all" ]; then
+          result_names=(stable unit integration)
         else
-          for f in $xml_files; do
-            total=$(grep -o 'tests="[0-9]*"' "$f" | head -1 | grep -o '[0-9]*' || echo 0)
-            failures=$(grep -o 'failures="[0-9]*"' "$f" | head -1 | grep -o '[0-9]*' || echo 0)
-            time=$(grep -o 'time="[0-9.]*"' "$f" | head -1 | grep -o '[0-9.]*' || echo 0)
-            echo "- \`$(basename $f)\`: ${total} tests, ${failures} failures, ${time}s" >> "$GITHUB_STEP_SUMMARY"
-          done
+          result_names=("${{ inputs.test-type }}")
         fi
+
+        python_cmd="$(command -v python3 || command -v python || true)"
+        if [ -z "$python_cmd" ]; then
+          echo "Python is required to validate JUnit results."
+          exit 1
+        fi
+
+        for result_name in "${result_names[@]}"; do
+          result_file="$build_dir/${result_name}_test_results.xml"
+          if [ ! -s "$result_file" ]; then
+            echo "Expected JUnit result is missing or empty: $result_file"
+            exit 1
+          fi
+
+          read -r total failures elapsed < <("$python_cmd" - "$result_file" <<'PY'
+        import sys
+        import xml.etree.ElementTree as ET
+
+        root = ET.parse(sys.argv[1]).getroot()
+        suites = [root] if root.tag == "testsuite" else list(root.findall("testsuite"))
+        total = int(root.attrib.get("tests", sum(int(s.attrib.get("tests", 0)) for s in suites)))
+        failures = int(root.attrib.get("failures", sum(int(s.attrib.get("failures", 0)) for s in suites)))
+        elapsed = float(root.attrib.get("time", sum(float(s.attrib.get("time", 0)) for s in suites)))
+        print(total, failures, elapsed)
+        PY
+          )
+          if [ "$total" -eq 0 ]; then
+            echo "JUnit result contains zero tests: $result_file"
+            exit 1
+          fi
+          echo "- \`$(basename "$result_file")\`: ${total} tests, ${failures} failures, ${elapsed}s" >> "$GITHUB_STEP_SUMMARY"
+        done
 
     - name: Upload test results
       uses: actions/upload-artifact@v4

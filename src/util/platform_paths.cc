@@ -473,6 +473,12 @@ absl::StatusOr<std::filesystem::path> PlatformPaths::FindAsset(
         // Also check parent (for build/bin/yaze case)
         search_paths.push_back(cached_exe_dir.parent_path() / "assets" /
                                relative_path);
+#if defined(__linux__)
+        // Installed package and extracted FHS archive:
+        //   <root>/usr/bin/yaze -> <root>/usr/share/yaze/assets
+        search_paths.push_back(cached_exe_dir.parent_path() / "share" / "yaze" /
+                               "assets" / relative_path);
+#endif
 #ifdef __APPLE__
         // macOS app bundle: exe is at yaze.app/Contents/MacOS/yaze
         // Assets may be at yaze.app/Contents/Resources/assets/ (inside bundle)
