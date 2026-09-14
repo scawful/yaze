@@ -207,8 +207,7 @@ absl::StatusOr<ObjectTileLayout> ObjectTileEditor::LoadCustomObjectLayout(
       CustomObjectManager::RuntimeSubtypeCountForObject(object_id);
   if (runtime_count == 0) {
     return absl::UnimplementedError(
-        "Custom tile editing supports only fixed runtime objects 0x31 and "
-        "0x32");
+        "Custom tile editing supports only registered fixed runtime objects");
   }
   if (subtype < 0 || subtype >= runtime_count) {
     return absl::OutOfRangeError(
@@ -464,12 +463,18 @@ absl::Status ObjectTileEditor::RenderLayoutToBitmap(
   ObjectDrawer drawer(rom_, 0, room_gfx_buffer);
 
   for (const auto& cell : layout.cells) {
-    if (layout.is_custom && gfx::TileInfoToWord(cell.tile_info) == 0) {
-      continue;
+    gfx::TileInfo preview_tile = cell.tile_info;
+    if (layout.is_custom) {
+      const uint16_t runtime_word = CustomObjectRuntimeTileWord(
+          layout.object_id, gfx::TileInfoToWord(cell.tile_info));
+      if (runtime_word == 0) {
+        continue;
+      }
+      preview_tile = gfx::WordToTileInfo(runtime_word);
     }
     int px = cell.rel_x * 8;
     int py = cell.rel_y * 8;
-    drawer.DrawTileToBitmap(bitmap, cell.tile_info, px, py, room_gfx_buffer);
+    drawer.DrawTileToBitmap(bitmap, preview_tile, px, py, room_gfx_buffer);
   }
 
   return absl::OkStatus();

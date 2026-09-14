@@ -1095,6 +1095,38 @@ TEST(ObjectTileEditorTest, RenderLayoutToBitmapUsesCanonicalDungeonCgramRows) {
   EXPECT_EQ(transparent_key, 255u);
 }
 
+TEST(ObjectTileEditorTest,
+     CustomSpriteBodyPreviewAppliesRuntimePageMaskAndPreservesZero) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  ObjectTileLayout layout;
+  layout.object_id = 0x54;
+  layout.is_custom = true;
+  layout.bounds_width = 2;
+  layout.bounds_height = 1;
+  layout.cells.push_back(
+      {.rel_x = 0, .rel_y = 0, .tile_info = gfx::WordToTileInfo(0x0132)});
+  layout.cells.push_back(
+      {.rel_x = 1, .rel_y = 0, .tile_info = gfx::WordToTileInfo(0x0000)});
+
+  std::vector<uint8_t> gfx_buffer(0x10000, 0);
+  constexpr int kRawTileOffset = 0x13 * 1024 + 2 * 8;
+  constexpr int kRuntimeTileOffset = 0x33 * 1024 + 2 * 8;
+  gfx_buffer[kRawTileOffset] = 3;
+  gfx_buffer[kRuntimeTileOffset] = 7;
+  gfx::Bitmap bitmap;
+  ObjectTileEditor editor(&rom);
+
+  const absl::Status status = editor.RenderLayoutToBitmap(
+      layout, bitmap, gfx_buffer.data(), MakeTestPaletteGroup());
+
+  ASSERT_TRUE(status.ok()) << status;
+  ASSERT_TRUE(bitmap.is_active());
+  EXPECT_EQ(bitmap.mutable_data()[0], 7);
+  EXPECT_EQ(bitmap.mutable_data()[8], 255);
+}
+
 TEST(ObjectTileEditorTest, BuildTile8AtlasUsesRequestedPaletteIndex) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
@@ -1178,6 +1210,39 @@ TEST(ObjectTileEditorTest, CustomObjectRoundtrip) {
   EXPECT_EQ(custom_obj->tiles[1].tile_data,
             gfx::TileInfoToWord(layout.cells[1].tile_info));
   EXPECT_FALSE(layout.custom_source_bytes.empty());
+}
+
+TEST(ObjectTileEditorTest, CustomSpriteBodyRoundtripKeepsRawSourceWords) {
+  ScopedCustomObjectDirectory custom_dir("yaze_test_custom_sprite_body");
+  ASSERT_TRUE(custom_dir.ready());
+  const CustomObject original_object{
+      .tiles = {{0, 0, 0x1D32}, {1, 0, 0x0000}, {2, 0, 0x1D33}},
+  };
+  WriteTestCustomObject(custom_dir.path() / "manhandla_body_1a.bin",
+                        original_object);
+
+  Rom rom;
+  ObjectTileEditor editor(&rom);
+  auto layout_or = editor.LoadCustomObjectLayout(/*object_id=*/0x54,
+                                                 /*subtype=*/1);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  ObjectTileLayout layout = std::move(*layout_or);
+  ASSERT_EQ(layout.cells.size(), 3u);
+  EXPECT_EQ(layout.cells[0].original_word, 0x1D32);
+  EXPECT_EQ(gfx::TileInfoToWord(layout.cells[0].tile_info), 0x1D32);
+  EXPECT_EQ(layout.cells[1].original_word, 0x0000);
+
+  layout.cells[2].tile_info = gfx::WordToTileInfo(0x1D34);
+  layout.cells[2].modified = true;
+  ASSERT_TRUE(editor.WriteBack(layout).ok());
+
+  auto loaded_or =
+      CustomObjectManager::Get().LoadObject("manhandla_body_1a.bin");
+  ASSERT_TRUE(loaded_or.ok()) << loaded_or.status();
+  ASSERT_EQ((*loaded_or)->tiles.size(), 3u);
+  EXPECT_EQ((*loaded_or)->tiles[0].tile_data, 0x1D32);
+  EXPECT_EQ((*loaded_or)->tiles[1].tile_data, 0x0000);
+  EXPECT_EQ((*loaded_or)->tiles[2].tile_data, 0x1D34);
 }
 
 TEST(ObjectTileEditorTest, CustomObjectWritePreservesSparseCoordinates) {

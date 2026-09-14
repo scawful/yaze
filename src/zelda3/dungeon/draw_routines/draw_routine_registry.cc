@@ -133,13 +133,15 @@ void DrawRoutineRegistry::BuildObjectMapping() {
   object_to_routine_map_[0x2F] = 23;
   object_to_routine_map_[0x30] = 24;
 
-  // Custom Objects (0x31-0x32)
+  // Oracle fixed custom-object families (0x31, 0x32, 0x54).
   if (core::FeatureFlags::get().kEnableCustomObjects) {
     object_to_routine_map_[0x31] = DrawRoutineIds::kCustomObject;
     object_to_routine_map_[0x32] = DrawRoutineIds::kCustomObject;
+    object_to_routine_map_[0x54] = DrawRoutineIds::kCustomObject;
   } else {
     object_to_routine_map_[0x31] = DrawRoutineIds::kNothing;
     object_to_routine_map_[0x32] = DrawRoutineIds::kNothing;
+    object_to_routine_map_[0x54] = DrawRoutineIds::kNothing;
   }
   object_to_routine_map_[0x33] = 16;
   object_to_routine_map_[0x34] = 25;
@@ -171,7 +173,6 @@ void DrawRoutineRegistry::BuildObjectMapping() {
   object_to_routine_map_[0x51] = 42;
   object_to_routine_map_[0x52] = 42;
   object_to_routine_map_[0x53] = 4;
-  object_to_routine_map_[0x54] = 38;
   object_to_routine_map_[0x55] = 41;
   object_to_routine_map_[0x56] = 41;
   object_to_routine_map_[0x57] = 38;

@@ -3069,10 +3069,13 @@ void yaze::zelda3::ObjectDrawer::DrawCustomObject(
     if (entry.tile_data == 0) {
       continue;
     }
-    // entry.tile_data is vhopppcc cccccccc (SNES tilemap word format)
+    // entry.tile_data is the raw vhopppcc cccccccc source word. Resolve the
+    // effective runtime word here so source editing remains lossless.
+    const uint16_t runtime_word =
+        CustomObjectRuntimeTileWord(obj.id_, entry.tile_data);
     // Convert to TileInfo and render using WriteTile8 (not SetTileAt which
     // only stores to buffer without rendering)
-    gfx::TileInfo tile_info = gfx::WordToTileInfo(entry.tile_data);
+    gfx::TileInfo tile_info = gfx::WordToTileInfo(runtime_word);
     WriteTile8(bg, tile_x + entry.rel_x, tile_y + entry.rel_y, tile_info);
   }
 }

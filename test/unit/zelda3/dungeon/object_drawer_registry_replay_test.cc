@@ -2284,7 +2284,7 @@ TEST(ObjectDrawerRegistryReplayTest,
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
-     CustomRegistryRoutinePreservesUnderlyingTileForZeroPayload) {
+     CustomRegistryRoutineAppliesSpriteBodyMaskAfterZeroPayload) {
   ScopedCustomObjectsFlag enable_custom(true);
 
   auto& manager = CustomObjectManager::Get();
@@ -2306,20 +2306,21 @@ TEST(ObjectDrawerRegistryReplayTest,
 
   ASSERT_TRUE(std::filesystem::create_directories(temp_dir));
   manager.Initialize(temp_dir.string());
-  manager.SetObjectFileMap({{0x31, {"track_LR.bin"}}});
+  manager.SetObjectFileMap({{0x54, {"kydreeok_body.bin"}}});
 
   // Draw two adjacent positions: the zero word preserves the anchor while the
-  // second word stamps tile 0x42 one tile to the right.
-  WriteBinaryFile(temp_dir / "track_LR.bin", {
-                                                 0x02,
-                                                 0x00,  // count=2, jump=0
-                                                 0x00,
-                                                 0x00,  // runtime no-op
-                                                 0x42,
-                                                 0x00,  // visible tile
-                                                 0x00,
-                                                 0x00,  // terminator
-                                             });
+  // second word receives Oracle's sprite-body tile-page mask.
+  WriteBinaryFile(temp_dir / "kydreeok_body.bin",
+                  {
+                      0x02,
+                      0x00,  // count=2, jump=0
+                      0x00,
+                      0x00,  // runtime no-op
+                      0x32,
+                      0x1D,  // raw source word 0x1D32
+                      0x00,
+                      0x00,  // terminator
+                  });
 
   constexpr int kX = 10;
   constexpr int kY = 20;
@@ -2330,7 +2331,7 @@ TEST(ObjectDrawerRegistryReplayTest,
 
   gfx::BackgroundBuffer bg(512, 512);
   bg.SetTileAt(kX, kY, underlying_word);
-  const RoomObject object(0x0031, kX, kY, /*size=*/0, /*layer=*/0);
+  const RoomObject object(0x0054, kX, kY, /*size=*/0, /*layer=*/0);
   const std::vector<gfx::TileInfo> fallback_tiles = {
       gfx::TileInfo(/*id=*/0x7F, /*palette=*/1, false, false, false)};
   DrawContext ctx{bg,
@@ -2348,7 +2349,7 @@ TEST(ObjectDrawerRegistryReplayTest,
   routine->function(ctx);
 
   EXPECT_EQ(bg.GetTileAt(kX, kY), underlying_word);
-  EXPECT_EQ(DrawRoutineUtils::TileIdAt(bg, kX + 1, kY), 0x42);
+  EXPECT_EQ(bg.GetTileAt(kX + 1, kY), 0x1F32);
 }
 
 TEST(ObjectDrawerRegistryReplayTest,

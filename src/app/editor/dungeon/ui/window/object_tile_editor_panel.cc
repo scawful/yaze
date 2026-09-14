@@ -285,7 +285,8 @@ ObjectTileEditorPanel::AnalyzeSourceImpactSnapshot() const {
     uint64_t fingerprint = 1469598103934665603ULL;
     MixFingerprint(&fingerprint, manager.asset_generation());
     int consumer_count = 0;
-    for (const int object_id : {0x31, 0x32}) {
+    for (const int object_id :
+         zelda3::CustomObjectManager::RuntimeObjectIds()) {
       const int subtype_count =
           zelda3::CustomObjectManager::RuntimeSubtypeCountForObject(object_id);
       for (int subtype = 0; subtype < subtype_count; ++subtype) {

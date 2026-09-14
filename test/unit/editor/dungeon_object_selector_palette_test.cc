@@ -646,12 +646,18 @@ TEST(DungeonObjectSelectorCustomRuntimeTest, FixedSlotsMatchOracleDispatch) {
     EXPECT_TRUE(IsDungeonCustomObjectRuntimeSlot(0x32, subtype));
   }
   EXPECT_FALSE(IsDungeonCustomObjectRuntimeSlot(0x32, 3));
+  for (int subtype = 0; subtype < 2; ++subtype) {
+    EXPECT_TRUE(IsDungeonCustomObjectRuntimeSlot(0x54, subtype));
+  }
+  EXPECT_FALSE(IsDungeonCustomObjectRuntimeSlot(0x54, 2));
   EXPECT_FALSE(IsDungeonCustomObjectRuntimeSlot(0x30, 0));
 
   EXPECT_EQ(GetDungeonCustomObjectSlotName(0x31, 0), "Track horizontal");
   EXPECT_EQ(GetDungeonCustomObjectSlotName(0x31, 13),
             "Sword House wall override");
   EXPECT_EQ(GetDungeonCustomObjectSlotName(0x32, 2), "Ice chair");
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x54, 0), "Kydreeok body");
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x54, 1), "Manhandla body");
   EXPECT_EQ(GetDungeonCustomObjectSlotName(0x32, 3),
             "Unknown custom runtime slot");
 }
