@@ -2418,8 +2418,9 @@ TEST(ObjectDrawerRegistryReplayTest,
       0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 0xE5, 0xE6, 0xE7, 0xE8};
   std::vector<gfx::TileInfo> tiles;
   for (int i = 0; i < 8; ++i) {
-    tiles.emplace_back(0x200 + i, 2 + i % 6, (i & 1) != 0, (i & 2) != 0,
-                       (i & 4) != 0);
+    // Trace flags use H/V/priority bits 0/1/2; TileInfo takes V before H.
+    tiles.emplace_back(0x200 + i, 2 + i % 6, /*v=*/(i & 2) != 0,
+                       /*h=*/(i & 1) != 0, /*o=*/(i & 4) != 0);
   }
 
   auto& registry = DrawRoutineRegistry::Get();
