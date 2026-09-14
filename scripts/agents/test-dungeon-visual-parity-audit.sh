@@ -68,11 +68,13 @@ if name == "z3ed":
 if name == "yaze_test_unit":
     suites = {
         "DrawRoutineMappingTest": ["APlus3Witness", "APlus23Witness", "ACornerWitness",
-                                   "ADiagonalCeilingWitness", "MapsMovingWallWitness", "ThinWitness"],
+                                   "ADiagonalCeilingWitness", "MapsMovingWallWitness", "ThinWitness",
+                                   "SanctuaryWallWitness"],
         "ObjectDrawerRegistryReplayTest": [s + "Witness" for s in (
             "FloorCopy", "BuiltInWallRoutingAndDiagonalCount", "ConditionalEdgeCaps",
             "StraightInterroom", "WaterHopStairs", "MovingWalls", "BigHole",
-            "TableRock", "FloodWater", "LongHorizontal")] + [
+            "TableRock", "FloodWater", "LongHorizontal", "SanctuaryWall",
+            "FixedCorner", "Fixed4x4")] + [
                 "RightwardsBarUsesUsdasmEndCapsAndRepeatedMiddleColumn",
                 "DownwardsBarUsesUsdasmTopThenBodyRows"],
         "ObjectDrawerMaskPropagationTest": ["LaterBG1WriteClearsOnlyItsStreamRevealBit"],
@@ -102,6 +104,9 @@ if behavior == "empty-discovery":
     selected = []
 elif behavior == "missing-suite":
     selected = [(s, t) for s, t in selected if s != "ObjectDrawerMaskPropagationTest"]
+elif behavior.startswith("missing-test:"):
+    missing = behavior.split(":", 1)[1]
+    selected = [(s, t) for s, t in selected if s + "." + t != missing]
 if "--gtest_list_tests" in args:
     for suite in sorted({s for s, _ in selected}):
         print(suite + ".")
@@ -196,7 +201,7 @@ with tempfile.TemporaryDirectory(prefix="yaze-parity-audit-") as temporary:
         calls = (case_root / "calls.log").read_text() if (case_root / "calls.log").exists() else ""
         if success:
             assert "STALE-BINARY" not in result.stdout
-            assert "Tier 1 PASS: discovered=19, executed=19, skipped=0" in result.stdout
+            assert "Tier 1 PASS: discovered=23, executed=23, skipped=0" in result.stdout
             if rom_present:
                 assert "Tier 2 PASS: discovered=9, executed=9, skipped=0" in result.stdout
                 assert "Tier 3 PASS: discovered=3, executed=3, skipped=0" in result.stdout
@@ -224,14 +229,20 @@ with tempfile.TemporaryDirectory(prefix="yaze-parity-audit-") as temporary:
     for alias in ("direct", "normalized", "symlink", "hardlink"):
         run("report aliases ROM: " + alias, report=True, report_alias=alias,
             rom_present=True, success=False, expected="must not overwrite YAZE_TEST_ROM_VANILLA")
+    for family in ("DrawRoutineMappingTest.SanctuaryWall",
+                   "ObjectDrawerRegistryReplayTest.SanctuaryWall",
+                   "ObjectDrawerRegistryReplayTest.FixedCorner",
+                   "ObjectDrawerRegistryReplayTest.Fixed4x4"):
+        run("missing new family: " + family, behavior="missing-test:" + family + "Witness",
+            success=False, expected="required test selection is empty: " + family + "*")
     for behavior, expected in (
             ("empty-discovery", "required test selection is empty"),
             ("missing-suite", "required test selection is empty"),
             ("zero-execution", "execution does not match discovery"),
             ("partial-execution", "execution does not match discovery"),
-            ("skip-all", "skipped=19"), ("skip-mesen", "Tier 4 NOT PASSED"),
-            ("xml-failure", "failed=19"), ("missing-xml", "Tier 1 NOT PASSED"),
-            ("nonzero-exit", "Tier 1: discovered=19"),
+            ("skip-all", "skipped=23"), ("skip-mesen", "Tier 4 NOT PASSED"),
+            ("xml-failure", "failed=23"), ("missing-xml", "Tier 1 NOT PASSED"),
+            ("nonzero-exit", "Tier 1: discovered=23"),
             ("missing-binary", "Required Tier 3 binary not found"),
             ("late-report-alias", "must not overwrite YAZE_TEST_ROM_VANILLA"),
             ("stale-report", "Invalid Tier 5 report"),
