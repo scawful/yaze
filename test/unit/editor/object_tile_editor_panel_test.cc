@@ -1,6 +1,7 @@
 #include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -14,8 +15,11 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
+#include "app/gfx/resource/arena.h"
 #include "core/features.h"
 #include "core/project.h"
+#include "framework/mock_renderer.h"
+#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui.h"
 #include "rom/snes.h"
@@ -130,6 +134,11 @@ struct ObjectTileEditorPanelTestAccess {
 
   static bool HasActiveAtlas(const ObjectTileEditorPanel& panel) {
     return panel.tile8_atlas_bmp_.is_active();
+  }
+
+  static std::array<gfx::Bitmap*, 2> PreviewOwners(
+      ObjectTileEditorPanel& panel) {
+    return {&panel.object_preview_bmp_, &panel.tile8_atlas_bmp_};
   }
 
   static int PreviewWidth(const ObjectTileEditorPanel& panel) {
@@ -885,6 +894,91 @@ TEST(ObjectTileEditorPanelTest, ExplicitCloseClearsTransientStateAndContext) {
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::Rooms(panel), nullptr);
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
+}
+
+class ObjectTileEditorPreviewLifetimeTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    arena_.ClearTextureQueue();
+    arena_.DrainRetiredBitmaps(&renderer_);
+  }
+
+  void TearDown() override {
+    // A failed RED assertion must not leave commands pointing at dead owners.
+    arena_.ClearTextureQueue();
+    arena_.DrainRetiredBitmaps(&renderer_);
+  }
+
+  size_t ActiveSurfaces() const {
+    return arena_.GetSurfaceCount() - arena_.GetPooledSurfaceCount();
+  }
+
+  void QueuePreviewWork(ObjectTileEditorPanel& panel) {
+    ObjectTileEditorPanelTestAccess::SeedRenderedBitmaps(panel);
+    const auto owners = ObjectTileEditorPanelTestAccess::PreviewOwners(panel);
+    for (size_t index = 0; index < owners.size(); ++index) {
+      owners[index]->set_texture(&texture_storage_[index]);
+      arena_.QueueTextureCommand(gfx::Arena::TextureCommandType::CREATE,
+                                 owners[index]);
+      arena_.QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
+                                 owners[index]);
+    }
+    ASSERT_EQ(arena_.texture_command_queue_size(), 4u);
+  }
+
+  void ExpectDeferredDestruction() {
+    EXPECT_EQ(arena_.retired_texture_handle_count(), 2u);
+    EXPECT_CALL(renderer_, DestroyTexture(&texture_storage_[0])).Times(1);
+    EXPECT_CALL(renderer_, DestroyTexture(&texture_storage_[1])).Times(1);
+    EXPECT_EQ(arena_.DrainRetiredBitmaps(&renderer_), 2u);
+    EXPECT_EQ(arena_.DrainRetiredBitmaps(&renderer_), 0u);
+  }
+
+  gfx::Arena& arena_ = gfx::Arena::Get();
+  ::testing::NiceMock<test::MockRenderer> renderer_;
+  std::array<int, 2> texture_storage_{};
+};
+
+TEST_F(ObjectTileEditorPreviewLifetimeTest,
+       CloseCancelsPendingCommandsAndRetiresBothPreviewOwners) {
+  Rom rom;
+  const size_t initial_surfaces = ActiveSurfaces();
+  {
+    ObjectTileEditorPanel panel(nullptr, &rom);
+    QueuePreviewWork(panel);
+    EXPECT_EQ(ActiveSurfaces(), initial_surfaces + 2);
+
+    // Close can happen after ImGui recorded either texture in this frame.
+    // Neither handle may be destroyed until the arena's explicit drain.
+    EXPECT_CALL(renderer_, DestroyTexture).Times(0);
+    panel.Close();
+    EXPECT_EQ(arena_.texture_command_queue_size(), 0u);
+    EXPECT_EQ(ActiveSurfaces(), initial_surfaces);
+    for (const auto* owner :
+         ObjectTileEditorPanelTestAccess::PreviewOwners(panel)) {
+      EXPECT_EQ(owner->surface(), nullptr);
+      EXPECT_EQ(owner->texture(), nullptr);
+    }
+    panel.Close();  // Retirement is idempotent, including the later destructor.
+  }
+  ::testing::Mock::VerifyAndClearExpectations(&renderer_);
+  ExpectDeferredDestruction();
+}
+
+TEST_F(ObjectTileEditorPreviewLifetimeTest,
+       DestructionCancelsPendingCommandsBeforePreviewOwnersDisappear) {
+  Rom rom;
+  const size_t initial_surfaces = ActiveSurfaces();
+  {
+    ObjectTileEditorPanel panel(nullptr, &rom);
+    QueuePreviewWork(panel);
+    EXPECT_EQ(ActiveSurfaces(), initial_surfaces + 2);
+    EXPECT_CALL(renderer_, DestroyTexture).Times(0);
+  }
+  EXPECT_EQ(arena_.texture_command_queue_size(), 0u);
+  EXPECT_EQ(ActiveSurfaces(), initial_surfaces);
+  ::testing::Mock::VerifyAndClearExpectations(&renderer_);
+  ExpectDeferredDestruction();
 }
 
 TEST(ObjectTileEditorPanelTest, OnClosePreservesModifiedSessionForReopen) {
