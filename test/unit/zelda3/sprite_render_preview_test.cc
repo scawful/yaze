@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "gtest/gtest.h"
+#include "zelda3/sprite/sprite_oam_tables.h"
 
 namespace yaze::zelda3 {
 namespace {
@@ -98,6 +99,80 @@ TEST(SpriteRenderPreviewTest, PreservesCgramIndex255AsVisibleDungeonPixel) {
   EXPECT_EQ((*preview)[0], 0);
   EXPECT_NE(std::find(preview->begin(), preview->end(), uint8_t{0xFF}),
             preview->end());
+}
+
+TEST(SpriteRenderPreviewTest, PuffstoolOverrideRequiresOracleProfile) {
+  EXPECT_EQ(SpriteOamRegistry::GetPreviewOverride(0xB1, ""), nullptr);
+  EXPECT_EQ(SpriteOamRegistry::GetPreviewOverride(0xB1, "Other Hack"), nullptr);
+  EXPECT_EQ(SpriteOamRegistry::GetPreviewOverride(0x88, "Oracle of Secrets"),
+            nullptr);
+  const auto* layout =
+      SpriteOamRegistry::GetPreviewOverride(0xB1, "Oracle of Secrets");
+  ASSERT_NE(layout, nullptr);
+  EXPECT_EQ(SpriteOamRegistry::GetPreviewOverride(0xB1, "oracle of secrets"),
+            layout);
+  ASSERT_EQ(layout->tiles.size(), 2u);
+  EXPECT_EQ(layout->tiles[0].tile_id, 0x1D0);
+  EXPECT_EQ(layout->tiles[0].y_offset, 0);
+  EXPECT_EQ(layout->tiles[1].tile_id, 0x1C0);
+  EXPECT_EQ(layout->tiles[1].y_offset, -8);
+  for (const auto& tile : layout->tiles) {
+    EXPECT_EQ(tile.x_offset, 0);
+    EXPECT_EQ(tile.palette, 1);
+    EXPECT_TRUE(tile.size_16x16);
+    EXPECT_FALSE(tile.flip_x);
+    EXPECT_FALSE(tile.flip_y);
+  }
+}
+
+TEST(SpriteRenderPreviewTest, PuffstoolUsesSourceTilesOffsetsAndPalette) {
+  std::vector<uint8_t> graphics(kGraphicsBufferSize, 0);
+  // Oracle frame 0 spans OBJ page-1 rows C/D/E after overlapping two 16x16
+  // entries. The source is the room's loaded graphics, not a bundled bitmap.
+  for (int tile : {0x3C0, 0x3C1, 0x3D0, 0x3D1, 0x3E0, 0x3E1}) {
+    for (int py = 0; py < 8; ++py) {
+      for (int px = 0; px < 8; ++px) {
+        graphics[GraphicsIndexForTilePixel(tile, px, py)] = 1;
+      }
+    }
+  }
+  graphics[GraphicsIndexForTilePixel(0x3C0, 0, 0)] = 2;
+  graphics[GraphicsIndexForTilePixel(0x3D0, 0, 0)] = 3;
+  graphics[GraphicsIndexForTilePixel(0x3E0, 0, 0)] = 4;
+  // Distinguish the pre-existing fallback and verify profile transitions.
+  graphics[GraphicsIndexForTilePixel(0x244, 0, 0)] = 5;
+  Sprite sprite(0xB1, 11, 18, 0, 0);  // Actual Oracle room 0x04A placement.
+  sprite.RenderPreviewGraphics(graphics);
+  const auto vanilla = *sprite.preview_graphics();
+  EXPECT_EQ(vanilla[16 + 16 * kPreviewSize], 0x9D);
+
+  sprite.RenderPreviewGraphics(graphics, SpriteOamRegistry::GetPreviewOverride(
+                                             0xB1, "Oracle of Secrets"));
+  const auto& preview = *sprite.preview_graphics();
+  EXPECT_EQ(std::count_if(preview.begin(), preview.end(),
+                          [](uint8_t pixel) { return pixel != 0; }),
+            16 * 24);
+  for (int y = 0; y < kPreviewSize; ++y) {
+    for (int x = 0; x < kPreviewSize; ++x) {
+      uint8_t expected = (x >= 16 && x < 32 && y >= 8 && y < 32) ? 0x91 : 0;
+      if (x == 16 && y == 8)
+        expected = 0x92;
+      if (x == 16 && y == 16)
+        expected = 0x93;
+      if (x == 16 && y == 24)
+        expected = 0x94;
+      EXPECT_EQ(preview[x + y * kPreviewSize], expected)
+          << "at " << x << "," << y;
+    }
+  }
+  EXPECT_EQ(sprite.x(), 11);
+  EXPECT_EQ(sprite.y(), 18);
+
+  sprite.RenderPreviewGraphics(
+      graphics, SpriteOamRegistry::GetPreviewOverride(0xB1, "Other Hack"));
+  EXPECT_EQ(*sprite.preview_graphics(), vanilla);
+  sprite.RenderPreviewGraphics(graphics);
+  EXPECT_EQ(*sprite.preview_graphics(), vanilla);
 }
 
 }  // namespace
