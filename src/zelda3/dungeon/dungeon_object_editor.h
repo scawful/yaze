@@ -257,9 +257,6 @@ class DungeonObjectEditor {
 
   // Size editing with scroll wheel
   absl::Status HandleSizeEdit(int delta, int x, int y);
-  int GetNextSize(int current_size, int delta);
-  int GetPreviousSize(int current_size, int delta);
-  bool IsValidSize(int size);
 
   // Member variables
   Rom* rom_;

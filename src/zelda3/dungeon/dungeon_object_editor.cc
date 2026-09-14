@@ -1005,8 +1005,9 @@ absl::Status DungeonObjectEditor::HandleScrollWheel(int delta, int x, int y,
 absl::Status DungeonObjectEditor::HandleSizeEdit(int delta, int x, int y) {
   // Handle size editing for preview object
   if (editing_state_.current_mode == Mode::kInsert) {
-    int new_size = GetNextSize(editing_state_.preview_size, delta);
-    if (IsValidSize(new_size)) {
+    const int new_size = ResizeRoomObjectByDelta(
+        editing_state_.current_object_type, editing_state_.preview_size, delta);
+    if (new_size != editing_state_.preview_size) {
       editing_state_.preview_size = new_size;
       UpdatePreviewObject();
     }
@@ -1019,8 +1020,9 @@ absl::Status DungeonObjectEditor::HandleSizeEdit(int delta, int x, int y) {
     for (size_t object_index : selection_state_.selected_objects) {
       if (object_index < current_room_->GetTileObjectCount()) {
         auto& object = current_room_->GetTileObject(object_index);
-        int new_size = GetNextSize(object.size_, delta);
-        if (IsValidSize(new_size)) {
+        const int new_size =
+            ResizeRoomObjectByDelta(object.id_, object.size_, delta);
+        if (new_size != object.size_) {
           auto status = ResizeObject(object_index, new_size);
           if (!status.ok()) {
             return status;
@@ -1032,36 +1034,6 @@ absl::Status DungeonObjectEditor::HandleSizeEdit(int delta, int x, int y) {
   }
 
   return absl::OkStatus();
-}
-
-int DungeonObjectEditor::GetNextSize(int current_size, int delta) {
-  // Define size increments based on object type
-  // This is a simplified implementation - in practice, you'd have
-  // different size rules for different object types
-
-  if (delta > 0) {
-    // Increase size
-    if (current_size < 0x40) {
-      return current_size + 0x10;  // Large increments for small sizes
-    } else if (current_size < 0x80) {
-      return current_size + 0x08;  // Medium increments
-    } else {
-      return current_size + 0x04;  // Small increments for large sizes
-    }
-  } else {
-    // Decrease size
-    if (current_size > 0x80) {
-      return current_size - 0x04;  // Small decrements for large sizes
-    } else if (current_size > 0x40) {
-      return current_size - 0x08;  // Medium decrements
-    } else {
-      return current_size - 0x10;  // Large decrements for small sizes
-    }
-  }
-}
-
-bool DungeonObjectEditor::IsValidSize(int size) {
-  return size >= kMinObjectSize && size <= kMaxObjectSize;
 }
 
 absl::Status DungeonObjectEditor::HandleMouseClick(int x, int y,

@@ -127,10 +127,7 @@ class DungeonObjectInteraction {
     current_palette_group_ = group;
     interaction_context_.current_palette_group = group;
     entity_coordinator_.SetContext(&interaction_context_);
-    auto& tile_handler = entity_coordinator_.tile_handler();
-    if (tile_handler.IsPlacementActive()) {
-      tile_handler.SetPreviewObject(preview_object_);
-    }
+    entity_coordinator_.tile_handler().RefreshPreviewGraphics();
   }
 
   // Mode manager access
@@ -376,9 +373,6 @@ class DungeonObjectInteraction {
   void CopySelectedEntitiesToClipboard(bool clipboard_origin_set);
   std::vector<SelectedEntity> PasteEntityClipboardAt(int target_pixel_x,
                                                      int target_pixel_y);
-
-  // Preview object state (used by ModeState but kept here for ghost bitmap)
-  zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};
 
   // Ghost preview bitmap (persists across frames for placement preview)
   gfx::PaletteGroup current_palette_group_;
