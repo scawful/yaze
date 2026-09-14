@@ -213,6 +213,7 @@ jobs:
           test-type: stable
           preset: ${{ matrix.preset }}
           platform: ${{ matrix.platform }}
+          build-type: ${{ env.BUILD_TYPE }}
 
       - name: Run smoke tests (GUI framework validation)
         if: matrix.platform == 'linux'
@@ -277,6 +278,7 @@ jobs:
           test-type: stable
           preset: ci-windows-ai
           platform: windows
+          build-type: ${{ env.BUILD_TYPE }}
 
   wasm-smoke-test:
     name: "WASM Build Smoke Test"

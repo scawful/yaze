@@ -46,7 +46,15 @@
       "displayName": "Release Build",
       "jobs": 4,
       "name": "release",
-      "configurePreset": "release"
+      "configurePreset": "release",
+      "configuration": "Release"
+    },
+    {
+      "displayName": "Release Test Build",
+      "jobs": 4,
+      "name": "release-test",
+      "configurePreset": "release-test",
+      "configuration": "Release"
     },
     {
       "displayName": "Minimal Build",
@@ -937,6 +945,16 @@
       "displayName": "Release Build",
       "name": "release",
       "description": "Optimized release build"
+    },
+    {
+      "inherits": "release",
+      "cacheVariables": {
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "OFF"
+      },
+      "displayName": "Release Test Build",
+      "name": "release-test",
+      "description": "Optimized release configuration with stable tests enabled"
     },
     {
       "inherits": "base",

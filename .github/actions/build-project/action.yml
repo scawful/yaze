@@ -11,6 +11,14 @@ inputs:
     description: 'Build type (Debug, Release, RelWithDebInfo)'
     required: false
     default: 'RelWithDebInfo'
+  targets:
+    description: 'Space-separated CMake targets; empty builds the default target'
+    required: false
+    default: ''
+  jobs:
+    description: 'Maximum parallel build jobs'
+    required: false
+    default: '4'
 
 runs:
   using: 'composite'
@@ -19,9 +27,9 @@ runs:
       uses: actions/cache@v4
       with:
         path: build/presets/${{ inputs.preset }}
-        key: build-${{ inputs.platform }}-${{ inputs.preset }}-${{ github.sha }}
+        key: build-${{ inputs.platform }}-${{ inputs.preset }}-${{ inputs.build-type }}-${{ github.sha }}
         restore-keys: |
-          build-${{ inputs.platform }}-${{ inputs.preset }}-
+          build-${{ inputs.platform }}-${{ inputs.preset }}-${{ inputs.build-type }}-
 
     - name: Configure project
       shell: bash
@@ -31,28 +39,45 @@ runs:
     - name: Build project (Linux/macOS)
       if: inputs.platform != 'windows'
       shell: bash
+      env:
+        BUILD_JOBS: ${{ inputs.jobs }}
+        BUILD_TARGETS: ${{ inputs.targets }}
       run: |
-        if command -v nproc >/dev/null 2>&1; then
-          CORES=$(nproc)
-        elif command -v sysctl >/dev/null 2>&1; then
-          CORES=$(sysctl -n hw.ncpu)
-        else
-          CORES=2
+        set -euo pipefail
+        build_args=(
+          --build --preset "${{ inputs.preset }}"
+          --config "${{ inputs.build-type }}"
+          --parallel "$BUILD_JOBS"
+        )
+        if [ -n "$BUILD_TARGETS" ]; then
+          read -r -a targets <<< "$BUILD_TARGETS"
+          build_args+=(--target "${targets[@]}")
         fi
-        echo "Using $CORES parallel jobs"
-        cmake --build --preset "${{ inputs.preset }}" --config "${{ inputs.build-type }}" --parallel "$CORES"
+        echo "Using $BUILD_JOBS parallel jobs"
+        cmake "${build_args[@]}"
 
     - name: Build project (Windows)
       if: inputs.platform == 'windows'
       shell: pwsh
+      env:
+        BUILD_JOBS: ${{ inputs.jobs }}
+        BUILD_TARGETS: ${{ inputs.targets }}
       run: |
-        $JOBS = ${env:CMAKE_BUILD_PARALLEL_LEVEL:-4}
-        echo "Using $JOBS parallel jobs"
-        cmake --build --preset "${{ inputs.preset }}" --config "${{ inputs.build-type }}" --parallel "$JOBS"
+        $buildArgs = @(
+          '--build', '--preset', '${{ inputs.preset }}',
+          '--config', '${{ inputs.build-type }}',
+          '--parallel', $env:BUILD_JOBS
+        )
+        $targets = @($env:BUILD_TARGETS -split '\s+' | Where-Object { $_ })
+        if ($targets.Count -gt 0) {
+          $buildArgs += '--target'
+          $buildArgs += $targets
+        }
+        echo "Using $env:BUILD_JOBS parallel jobs"
+        cmake @buildArgs
 
     - name: Show build artifacts
       shell: bash
       run: |
         echo "Build artifacts in build/presets/${{ inputs.preset }}:"
         find "build/presets/${{ inputs.preset }}" -name "*.exe" -o -name "yaze" -o -name "*.app" 2>/dev/null | head -10
-
