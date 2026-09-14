@@ -94,9 +94,11 @@ mutation thread-safe or replace separate palette-change handling.
 Custom tile layouts retain raw source words for editing and saving. Both the
 rendered preview and custom atlas apply `CustomObjectRuntimeTileWord` only for
 display (notably Oracle `0x54`'s `OR $0300` graphics page). Atlas cell IDs remain
-raw so choosing a tile does not bake the runtime mask into an asset. Frontend
-preview owners must use `Arena::RetireBitmap` before reset or destruction to
-cancel queued texture work and defer texture-handle deletion safely.
+raw so choosing a tile does not bake the runtime mask into an asset. No-op
+detection includes the selected cell's retained H/V/priority bits: tile ID zero
+alone is not an empty word. Atlas images remain unflipped. Frontend preview
+owners must use `Arena::RetireBitmap` before reset or destruction to cancel
+queued texture work and defer texture-handle deletion safely.
 
 Chest persistence treats the global 168-record table as an ordered physical
 stream rather than regrouping it by room. One-for-one dirty-room edits reuse

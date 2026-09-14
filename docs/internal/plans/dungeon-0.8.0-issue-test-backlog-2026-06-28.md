@@ -482,7 +482,7 @@ families are still open release gates.
 
 ## Seventh implementation slice: room and custom-object previews (2026-09-14)
 
-Verified code at `e2c5986b5`, based on preview `c32aaba94`. This slice fixes
+Verified code at `abab96cec`, based on preview `c32aaba94`. This slice fixes
 preview consistency and resource lifetime; it does not change object draw
 routines, ROM payloads, or reference images. The active canonical checkout and
 later Grokbot edits remain separate from this preview branch.
@@ -501,6 +501,11 @@ later Grokbot edits remain separate from this preview branch.
    saved words remain raw source IDs. For example, `manhandla_body_1a.bin`
    begins with raw `$1D0D`, displayed as runtime `$1F0D`; no asset is rewritten.
    Zero-word transparency and ordinary, unmasked atlas behavior remain covered.
+   No-op detection includes the selected cell's retained H/V/priority bits;
+   only an entirely zero word is empty. Source images stay unflipped. Selection,
+   attribute controls/shortcuts, and empty-asset add/revert transitions refresh
+   this context without discarding the user's source-palette choice. Four
+   review-driven regressions failed before these corrections and pass afterward.
 3. **Preview owners are retired before reset/destruction.** Room Graphics
    preserves bitmap addresses and updates existing textures on reload. Room
    Graphics and Object Tile Editor cancel queued texture work and defer handle
@@ -517,9 +522,9 @@ Mesen RGBA proof**. It does not close animation, HDMA, or room-composition gaps.
 
 Verification at the code checkpoint, with zero failures/skips:
 
-- **882/882 focused dungeon/Oracle tests**. All 38 filter patterns matched
+- **886/886 focused dungeon/Oracle tests**. All 38 filter patterns matched
   discovered tests; executed XML names exactly matched the inventory. The set
-  includes the 12 new regression/contract tests; do not add overlapping counts.
+  includes the 16 new regression/contract tests; do not add overlapping counts.
 - **57/57 PNG/composite comparisons** in two integration tests: 19 rooms at
   three scales.
 - Maintained ladder: Tier 1 **42**, Tier 2 **11 + 1 table check**, Tier 3
