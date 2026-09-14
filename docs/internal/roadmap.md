@@ -1,371 +1,169 @@
-# Roadmap
+# Yaze roadmap
 
-**Last Updated: July 17, 2026**
+Status: ACTIVE
 
-This roadmap tracks upcoming releases and major ongoing initiatives.
+Owner: [`backend-infra-engineer` with editor owners](agents/personas.md)
 
----
+Created: 2026-09-14
 
-## Current Focus (v0.8.0 development)
+Last reviewed: 2026-09-14
 
-The 0.8.0 development line follows the `v0.7.2` tag from July 17, 2026. The
-next several minors are planned around finishing the main ALTTP editors first,
-with `z3ed`, `z3dk`, Oracle AI, and Oracle of Secrets support tracked as
-bounded secondary trains.
+Next review: 2026-09-28
 
-**0.8.0 themes:**
-- Complete remaining Dungeon Editor object draw and stream-semantics parity.
-- Harden dungeon persistence and project workflows for Oracle daily-driver
-  use without relaxing fail-closed ROM safety.
-- Keep editor and CLI regression coverage aligned across vanilla and Oracle
-  formats while avoiding broad platform-test churn.
+Universe task: `task_20260913T233703Z_21853` ([coordination system](agents/universe-coordination-spec.md))
 
-**Latest tagged release:** `v0.7.2` (July 17, 2026).
-**Current feature milestone:** `0.8.0`, tracked in
-`docs/internal/plans/release-ladder-0x-2026.md`.
+Intent: make Yaze safe and understandable enough for a bounded v0.8.0 tester
+preview, then promote editors by proving complete user save workflows.
 
----
+The canonical editor status is the
+[feature coverage report](../public/reference/feature-coverage-report.md).
+Completed release history belongs in the root
+[`CHANGELOG.md`](../../CHANGELOG.md), the
+[release notes](../public/release-notes.md), and the
+[detailed changelog](../public/reference/changelog.md), not here. The
+[roadmap through v0.7.2](archive/roadmaps/roadmap-through-v0.7.2.md) is
+preserved as a frozen snapshot for details that were formerly tracked here.
 
-## Previous Focus (v0.7.0, completed)
+Related plans that are still listed as active, but are overdue for a status
+refresh, are the [0.x release ladder](plans/release-ladder-0x-2026.md) and the
+[z3dk v0.8.0 integration proposal](plans/z3dk-integration-0.8.0.md). See the
+[plan directory guide](plans/README.md) for the complete active-plan index.
 
-0.7.0 shipped iOS Remote Control, themed widgets, and desktop HTTP API.
-See `docs/internal/plans/0.7.0-feature-completion.md`
-for the detailed task breakdown and agent assignments.
+## Release rule
 
-**0.7.0 completion priorities:**
-- P0 completed: Tile16 palette/render fix, Message replace, Sprite undo/redo,
-  Screen undo/redo, Desktop BPS export
-- P1 completed: Tracker stubs, CLI palette commands
-- P1 completed: Overworld usage statistics card data wiring
-- P1 completed: Overworld item deletion now physically removes entries
-- P1 completed: Dungeon usage visualization grid
-- P1 completed: Dungeon workbench/panel workflow polish
-  (status badge + standalone return affordance)
-- P1 completed: Overworld item iteration UX
-  (list/filter panel + duplicate/nudge shortcuts)
-- Stretch completed: Overworld batch item undo coverage
-  (multi-delete + nudge sequence undo/redo tests)
-- Stretch in progress: Tile16 quadrant strip/hotkey parity tests
-  (numeric shortcut policy extracted + unit tests added)
-- P2 (deferred to 0.8.0 if needed): Persistent scratch pad, eyedropper, SPC import
-- Validation gate snapshot (March 3, 2026):
-  - `ctest --preset mac-ai-unit --output-on-failure` => 1622/1622 passed
-  - `ctest --preset mac-ai-integration --output-on-failure` => 237/237 passed
-- Remaining 0.7.0 stretch tasks are tracked in universe coordination:
-  - `task_20260303T212605Z_32450` (Tile16 quadrant parity tests)
-  - `task_20260303T212605Z_17791` (Dungeon dispatcher/docs cleanup)
+An editor is not promoted because its panel opens, its serializer has a unit
+test, or a direct ROM writer can roundtrip bytes. Promotion requires a named
+user workflow and evidence appropriate to that workflow.
 
-Four parallel workstreams continue from the 0.6.x cycle.
+## P0: tester preview
 
-### Track A: Editor Stability & ZScream Parity
+These are the only blockers for inviting a small, explicitly bounded tester
+group.
 
-Core editors must reach feature parity with ZScream (the established ALTTP editor)
-for reliable ROM hacking. ZScream is the stability benchmark.
+### 1. Release foundation
 
-**Dungeon Editor** (Beta)
-- ✅ 3-phase undo (objects, collision, water fill)
-- ✅ Entity drag-drop with selection inspector
-- ✅ Custom collision editor with JSON import/export
-- ✅ ROM write fence stack
-- ✅ usdasm replay parity tests for corner variants and rail/cannon/bar routines
-- ✅ Selection-bounds parity sweep now passes against `ObjectGeometry`
-  (negative-offset clipped cases intentionally excluded from the sweep harness).
-- ✅ Corner alias override guardrails now keep vanilla `0x100..0x103` wall
-  corners on the USDASM path unless an explicit custom `0x31` mapping is present
-- ✅ Workbench workflow toggle (`Ctrl+Shift+W`) now flips between integrated
-  workbench and standalone panel mode via deferred safe-mode switching
-- ✅ Dungeon status bar now shows workflow badge (`Workbench`) in integrated mode
-- ✅ Standalone room windows now expose one-click `Workbench` return affordance
-- ✅ Responsive dungeon workbench layout now collapses room navigation into a
-  compact grid in tighter widths, stacks toolbar sections earlier, trims helper
-  chrome, and protects the center canvas before squeezing the inspector
-- ✅ Focused persistence coverage now spans room headers, torches, pushable
-  blocks, custom collision, chests, pot items, and dungeon entrances;
-  `DungeonEditorSystem` now saves full managed-room state without later-room
-  global-save clobbering
-- ✅ Object tile editor preview/atlas state now refreshes on palette changes and
-  failed re-open attempts clear stale layout state; focused panel/backend tests
-  cover the reset path and palette-sensitive rendering
-- ✅ Object selector/browser thumbnails are default-on, cull off-screen grid
-  entries, and disclose rendered-vs-fallback preview state in tooltips
-- 🟡 **Object tile count fallback**: parser uses object-specific counts for known
-  IDs, including explicit zero-tile `DrawNothing` logic objects, but still falls
-  back to 8 for uncataloged cases; continue ROM-trace audits for rare objects.
-- 🟡 Remaining dungeon object naming now concentrates on gameplay-specific labels;
-  routine-backed room object labels and resource export are canonicalized through
-  `room_object.h`.
-- 🟡 Visual parity audits continue for rare object routines; door placement now
-  rejects invalid positions outside the USDASM 12-entry tables before they can
-  render as clamped valid doors.
-- 🟡 ROM-backed room render regression fixtures guard five vanilla rooms
-  (`test/integration/zelda3/dungeon_room_regression_fixtures_test.cc`).
-- 🟡 `PitDamageTable` loads/saves the global RoomsWithPitDamage membership
-  table when dirty; the workbench exposes fixed-capacity add/replace controls.
-- 🟡 Pushable blocks do not yet repoint/expand beyond the vanilla table cap.
-- 🟡 Optional connected-room overview / scrollable grouped-room workspace
-  remains exploratory; single-room editing remains the primary path
-- 🟡 ASM export (deferred)
+- Merge the cross-platform release-gate work after exact-head native, security,
+  WASM, and publish-disabled Release jobs are terminal green.
+- Require relocatable Linux TGZ/DEB, macOS DMG/app, and Windows ZIP/NSIS
+  artifacts with version, provenance, assets, and loader smoke checks.
+- Manually open the packaged application on each claimed platform before a
+  public tester build. Automated loader checks are not GUI acceptance.
 
-**Overworld Editor** (Beta)
-- ✅ Batched undo with paint merge semantics
-- ✅ SharedClipboard copy/paste
-- ✅ Fill Screen (32x32 tile screen)
-- 🟡 Paste undo tracking (not captured in undo stack)
-- ✅ Tile16 palette rendering (pixel transform + per-quadrant metadata)
-- ✅ Tile16 renderer extracted to `zelda3::RenderTile16BitmapFromMetadata` + unit tests
-- ✅ Tile8 usage index extracted to shared `zelda3` service + unit tests
-- ✅ Usage statistics card now uses real overworld map data (no placeholder zeros)
-- 🟡 Overworld sprite workflow incomplete
-- ✅ Item deletion now removes entries from `all_items` (with operation tests)
-- ✅ Item delete flow now auto-selects nearest surviving item (same-map first)
-  to keep inspector/edit iteration continuous
-- ✅ Tile16 UX parity polish landed (explicit `Paint/Pick/Usage` modes + sticky
-  action rail)
-- ✅ Overworld canvas context menu now exposes direct Tile16 sampling in MOUSE
-  mode, matching the right-click/eyedropper workflow without opening the Tile16
-  editor.
-- ✅ Overworld item workflow iteration UX landed (filterable item list panel +
-  duplicate/nudge shortcuts)
-- ✅ Overworld item batch undo coverage added (multi-delete and nudge
-  sequences with undo/redo integration tests)
-- 🟡 Export file dialog not implemented
-- 🟡 **Persistent scratch pad**: ZScream saves `ScratchPad.dat`; yaze scratch is session-only
-- 🟡 **Eyedropper tool**: context-menu Tile16 sampling landed; dedicated
-  shortcut/tool parity remains open.
+Exit: one exact commit has green package gates and a recorded platform
+acceptance matrix.
 
-**ZScream Parity Targets**
+### 2. Honest editor boundaries
 
-| Feature | ZScream | yaze | Priority |
-|---------|---------|------|----------|
-| Object-specific tile counts | ✅ Per-object (4-242) | 🟡 Known IDs cataloged; rare fallback audits remain | High |
-| Persistent scratch pad | ✅ `ScratchPad.dat` | ❌ Session-only | Medium |
-| Eyedropper tool | ✅ Right-click sampling | 🟡 Overworld context-menu Tile16 sampling landed; broaden editor parity next | Medium |
-| ZScream project import | ✅ Native format | ❌ Not parsed | Low |
-| Selection UX (marquee, context menus) | ✅ Mature | 🟡 Functional, needs validation | Medium |
-| Room header editing | ✅ 14-byte headers | ✅ Parity | — |
-| Entrance/exit editing | ✅ Full support | ✅ Parity | — |
-| Sprite placement | ✅ In-room editing | ✅ Parity | — |
-| Chest/door editing | ✅ Full support | ✅ Parity | — |
-| Tile16 editor | ✅ 16x16 composites | 🟡 In progress (palette fix landed; UX/parity checklist pending) | — |
-| Palette editor | ✅ All contexts | ✅ Parity | — |
+- Publish Dungeon, Overworld, and Message as the initial ROM-editing lanes.
+- Publish Palette only with its required two-step save procedure.
+- Keep Graphics and Screen mutation out of persistence testing until their
+  serializers are proven.
+- Make Hex / Memory read-only for ordinary testers until dirty state, undo, and
+  readback exist.
+- Remove or disable vanilla Sprite controls that imply unsupported editing.
+- Present Music as playback/viewing until coordinated saving and incomplete
+  writers are resolved.
 
-**Music Editor** (Beta)
-- ✅ Undo/redo with per-song snapshots
-- ✅ Tracker + piano roll + instrument/sample editors
-- ✅ ASM export/import
-- 🟡 Event clipboard (copy/paste selected notes) not implemented
-- 🟡 SaveInstruments (`music_bank.cc:925`)
-- 🟡 SaveSamples with BRR encoding (`music_bank.cc:996`)
+Exit: application labels, getting-started material, beta instructions, and the
+feature matrix tell the same story.
 
-**Screen Editor** (WIP)
-- ✅ Load/Save works for 5 screen types
-- ✅ Undo/Redo implemented for dungeon-map edits (snapshot-based)
-- 🟡 Cut/Copy/Paste/Find remain `UnimplementedError` (deferred)
+### 3. Application-path persistence proof
 
-**Sprite Editor** (Beta)
-- ✅ Vanilla sprite viewer (OAM rendering, sheet loading)
-- ✅ ZSprite animation playback and property editing
-- ✅ Undo/Redo implemented (snapshot-based)
-- ❌ Copy/Paste stubbed
+- Build one reusable harness for:
+  **edit -> File > Save ROM -> close -> reopen disk file -> verify**.
+- Apply it to Dungeon, Overworld, Message, and Palette first.
+- Make ROM-backed GUI coverage visibly skip or fail when its ROM fixture is
+  unavailable. Do not count window-only smoke as editor persistence.
 
-**Memory Editor** (WIP)
-- ✅ Hex viewing
-- ❌ Search not implemented
+Exit: each tester-ready editor has at least one automated complete-path test or
+a documented temporary manual gate with an owner and follow-up.
 
-### Track B: Oracle of Secrets Integration
+### 4. Dungeon daily-driver pass
 
-Yaze as the primary development and debugging tool for Oracle of Secrets.
+- Continue the ROM parser/drawer, fingerprint, Mesen ROI, and `z3ed` validation
+  ladder for reported object families.
+- Prioritize remaining water/ice/moving-floor strips, bar and staircase objects,
+  corners, and sprite-preview palettes reported during hands-on testing.
+- Inventory project-mapped custom-object overrides, especially exact-ID
+  wall/corner mappings, and keep decorative `0x31` subtypes separate from
+  minecart semantics.
+- Treat custom-object `.bin` publishing, room-object placement, minecart start
+  tables, and generated collision as separate transactions until one workflow
+  can validate and commit them together.
+- Separate render correctness from in-game behavior and from editor UI layout.
+- Finish the stable, non-reflowing issue-report dialog so reports are easy to
+  capture without moving the canvas or context menu.
 
-**Mesen2 Socket Client** (Production)
-- ✅ Full C++ client: connect, memory read/write, CPU state, breakpoints, trace, disassemble
-- ✅ 9 z3ed CLI commands (`mesen-gamestate`, `mesen-sprites`, `mesen-cpu`, etc.)
-- ✅ Auto-discovery via `MESEN2_SOCKET_PATH` or `/tmp/mesen2-*.sock`
-- 🟡 EventLoop background thread not processing subscriptions
-- 🟡 Bulk memory read optimization for cartographer
+Exit: known issues are reproducible by room/object, fixed issues have an
+independent proof tier, and remaining exceptions are listed rather than hidden
+behind a “1:1” claim.
 
-**Oracle Panels** (Production)
-- ✅ State Library Panel: load/verify/deprecate save states from manifest
-- ✅ Progression Dashboard: crystal tracker, game phase, dungeon grid, SRAM import
-- ✅ Story Event Graph: interactive node canvas with predicate evaluation
-- 🟡 Annotation Overlay Panel: registration only, no implementation
+### 5. Accepted UI consolidation
 
-**Core Oracle Data** (Production)
-- ✅ `OracleProgressionState`: SRAM parsing, crystal bitfield, game phase
-- ✅ `StoryEventGraph`: JSON loading, auto-layout, predicate evaluation
+- Merge the theme/visual-language pass after its release dependency is green.
+- Rebase and merge the simplified welcome flow and stable dungeon issue dialog.
+- Preserve a clear center canvas, predictable side panels, and user-controlled
+  picker placement; avoid transient text that changes canvas geometry.
 
-**AI Debugging Scripts** (Production)
-- ✅ sentinel.py: soft lock watchdog (B007/B009, INIDISP, transition stagnation)
-- ✅ crash_dump.py: trace capture + symbol resolution
-- ✅ profiler.py: CPU hotspot sampling
-- ✅ fuzzer.py: chaos monkey testing
-- ✅ state_query.py: semantic game state queries
-- 🟡 memory_cartographer.py: works but slow (byte-by-byte reads)
-- 🟡 code_graph.py: partial ASM call graph
+Exit: the consolidated macOS application is deployed for hands-on acceptance,
+and focused layout/theme tests pass.
 
-**Next Steps:**
-- Wire live SRAM reads into Progression Dashboard (currently demo data on iOS)
-- Implement AnnotationOverlay for room-level debug annotations
-- EventLoop thread for real-time breakpoint/event callbacks
-- Bulk `READ_BLOCK` in memory_cartographer for performance
+## P1: daily-driver editors
 
-### Track C: iOS/macOS App
+Work in this order after the tester preview is contained:
 
-Mobile testing and review companion for desktop development.
+1. **Palette:** either join coordinated save transactionally or formalize the
+   two-step model with full UI-to-disk readback.
+2. **Graphics:** implement a safe per-sheet serializer and promote only after
+   write/reopen/readback tests; keep current fail-closed behavior until then.
+3. **Screen:** enable one independently verified data domain at a time instead
+   of one all-or-nothing writer.
+4. **Dungeon:** close the remaining systematic object-parity backlog and remove
+   superseded render special cases as verified rules replace them.
+5. **Custom and gameplay objects:** replace scattered filename/subtype/overlay
+   conventions with a project catalog that owns identity, preview, placement,
+   collision semantics, source output, validation, and migration. Start with
+   wall-graphics overrides, icy/slippery floors, moving-floor/water objects, and
+   minecart tracks. Preserve source-patch compatibility; do not create
+   editor-only visuals that cannot reach the ROM build.
+6. **Overworld and Message:** add dedicated user guides and broader
+   application-path coverage.
+7. **UI system:** continue spacing, hierarchy, responsive panel, keyboard, and
+   accessibility passes using shared theme/layout primitives rather than
+   editor-local styling.
+8. **Release:** add platform signing/notarization and architecture coverage only
+   when the produced artifacts can be verified on the claimed targets.
 
-**Build System** (Functional)
-- ✅ CMake presets: `ios-debug`, `ios-sim-debug`, `ios-release`
-- ✅ Xcodegen from `project.yml`
-- ✅ `libyaze_ios_bundle.a` compiles (988MB)
-- ✅ Build scripts: `build-ios.sh`, `xcodebuild-ios.sh`
+## P2: advanced and experimental surfaces
 
-**Platform Backend** (Functional)
-- ✅ Metal rendering via MTKView + ImGui
-- ✅ Touch input: single-touch, stylus/Pencil, pinch-zoom, two-finger pan, long-press
-- ✅ Safe area handling (notch/dynamic island)
-- ✅ iOS window backend (`ios_window_backend.mm`)
-- ⚠️ Multi-touch is single-primary only (cursor jumps with multi-finger)
-- ❌ Audio not implemented (`GetAudioDevice()` returns 0)
+- Complete Music instrument/sample persistence and coordinated song saving.
+- Define the standalone Sprite editor's supported vanilla and `.zsm` workflows.
+- Add a real Hex / Memory transaction, undo, dirty state, search, and readback.
+- Complete Emulator save-state and conditional-breakpoint workflows.
+- Publish Agent UI capabilities by build/provider and test one conditional GUI
+  workflow.
+- Expand WASM storage/download regression coverage; keep it labeled preview
+  until it matches a clearly stated native subset.
+- Consider ZScream/Hyrule Magic migration helpers after core save paths are
+  proven; compatibility import must not outrank data safety.
 
-**SwiftUI App** (Beta scaffold)
-- ✅ Glass-morphism overlay toolbar with ROM picker
-- ✅ Oracle Tools Tab (annotations, progression, story events)
-- ✅ Document-based app with `.yazeproj` bundles + iCloud sync
-- ✅ Settings persistence, AI host management, remote build client
-- ✅ Keyboard shortcuts (Cmd+O, Cmd+Shift+P, etc.)
-- ⚠️ Progression Dashboard reads demo data, not live SRAM
-- ❌ No emulator integration on device
+## Ownership map
 
-**C++/Swift Bridge** (Functional)
-- ✅ ROM loading, project management, panel browsing
-- ✅ Oracle progression state + story events JSON
-- ✅ Touch scale and safe area inset coordination
+| Surface | Primary owner | Promotion evidence |
+| --- | --- | --- |
+| Editor UI and interaction | `imgui-frontend-engineer` | Focused UI tests plus manual packaged-app acceptance |
+| ROM behavior and dungeon parity | `zelda3-hacking-expert` | ROM readback plus independent game/disassembly evidence |
+| Save/test harness | `test-infrastructure-expert` | Complete application-path test with real discovered suites |
+| Build and packages | `backend-infra-engineer` | Exact-head hosted matrix plus artifact lifecycle checks |
+| Emulator runtime | `snes-emulator-expert` | Runtime workflow and state/readback tests |
+| Documentation | `docs-janitor` | Link/build checks and agreement with current code |
 
-**Next Steps:**
-- Connect progression dashboard to real SRAM data (`.srm` file parsing)
-- Audio pipeline (SDL2 audio → Metal audio session)
-- Multi-touch refinement (track multiple touch points)
-- Add `PROJECT.toml` iOS platform listing
-- TestFlight builds for device testing workflow
+## Review cadence
 
-### UI Polish (cross-cutting)
+Every two weeks:
 
-- Viewport-relative dialog sizing (migrate 30+ hardcoded `ImVec2`)
-- Context menu unification (legacy → declarative)
-- Panel simplification (merge Favorites into Pinned)
-- Layout serialization (save/load/reset ImGui docking layouts)
-
-### Platform & Performance (cross-cutting)
-
-- Slow shutdown fix (graphics arena ordering)
-- CRC32/ASAR checksum completion
-- Windows MSVC C++23 alignment (fixed in v0.6.0)
-- GCC `std::ranges` compatibility (fixed in v0.6.0)
-
----
-
-## Deferred
-
-- WASM proposal system completion
-
----
-
-## Release Ladder (v0.8.0+)
-
-- **Editor-first release ladder**: `0.8.0` through `0.12.0` are planned
-  primarily around Dungeon, Overworld, secondary editor parity, Music/Memory,
-  and workspace/project lifecycle completion. For Dungeon, that includes
-  correctness, workbench/save-path UX, and optional spatial-context features
-  that do not replace focused single-room editing. See
-  `docs/internal/plans/release-ladder-0x-2026.md`.
-- **z3dk toolchain integration**: embedded `z3asm` assembler, 65816 LSP
-  features (hover/diagnostics/go-to-def), unified Mesen2 socket client,
-  `.mlb` symbol export. See `docs/internal/plans/z3dk-integration-0.8.0.md`.
-- **SDL3 Migration**: GPU-based rendering (backend infrastructure exists, needs editor porting)
-- **Plugin Architecture**: Community extensions framework
-- **Enhanced Memory Editor**: Search, data interpretation, disassembly view
-- **Documentation Overhaul**: Auto-generated C++ API docs, user guide
-- **Clipboard parity**: Cut/Copy/Paste/Find for Graphics, Screen editors
-- **Music Editor**: SPC/MML import, multi-segment tracker, event clipboard
-- **Project lifecycle**: `.yaze`/`.yazeproj` file loading, session save/restore
-
----
-
-## Release History
-
-### v0.7.2 (July 2026)
-- Dungeon RC stabilization: default object/sprite previews, broader save-domain
-  persistence, door-position guardrails, canonical room-object labels, and
-  object-overlap regression coverage.
-- Fail-closed save safety: whole-ROM transactional saves, retry-state
-  preservation, bounded dungeon/message/overworld/project writes, and safer
-  Save As continuation.
-- Pit-damage membership controls and pushable-block loader/capacity guards.
-- Localization plus desktop, CLI, WASM, packaging, and CI reliability work.
-
-### v0.7.1 (April 2026)
-- Welcome screen overhaul: RecentProjectsModel extraction, sidecar metadata
-  cache (path + size + mtime), async first-scan with cancellation-safe
-  worker, pin/rename/notes, single-slot 8s undo toast, guided New Project
-  modal, command-palette surface for welcome actions
-- Dungeon editor parity: BG1/BG2 layout routing with preserved pit masks,
-  single-tile 0x34 payload acceptance, replay-geometry selection bounds,
-  ROM-backed object parity tests and snapshots, layout-corner vanilla path
-  retention, track geometry + palette parity fix
-- Dungeon editor polish: action-oriented selection inspector, simplified
-  workbench inspector/navigation, sparse hidden room state, lazy room
-  materialization, unused room buffer texture release
-- Editor memory footprint: lazy session editor construction, deferred
-  hidden full-mode asset loads, overworld eager bitmap trim,
-  render-target texture creation split
-- CLI/CI: WASM build fix for dungeon tile rows, overworld map ID
-  validation, Linux GUI smoke path robustness
-
-### v0.7.0 (February-March 2026)
-- iOS Remote Control: Bonjour discovery, Remote Room Viewer, Command Runner
-- Themed widget system (BeginThemedTabBar/EndThemedTabBar)
-- Desktop HTTP API: command execution, catalog, annotation CRUD
-- Tile16 editor palette rendering fix (ZScream-parity pixel transform)
-- Tile16 renderer/usage index service extraction with dedicated unit coverage
-- Message editor find/replace + replace-all implementation
-- Sprite editor undo/redo with snapshot-based action support
-- Screen editor dungeon-map undo/redo with snapshot-based actions
-- Overworld usage statistics card data wiring
-- Overworld item deletion now physically removes entries (plus unit coverage)
-- Overworld item delete flow now reselects nearest surviving item for faster
-  edit iteration
-- Dungeon workbench workflow toggle shortcut (`Ctrl+Shift+W`) with deferred
-  safe mode switching
-- 6-phase refactoring complete (EditorManager split, OverworldEditor decomposition)
-- Desktop BPS export/import completed (menu actions + BPS utility/tests)
-
-### v0.6.0 (February 2026)
-- Unified UndoManager in Editor base class
-- SNES priority compositing with coverage masks
-- Entity drag-drop, custom collision editor, water fill authoring
-- Semantic color system, EventBus migration, viewport-relative sizing
-- ROM write fence stack, dirty collision save
-- Dead code cleanup, doc accuracy audit
-
-### v0.5.6 (February 2026)
-- Minecart track editor and collision overlay
-- Custom object previews and layer-aware hover/selection
-- Headless ImGui initialization for tests
-
-### v0.5.3-v0.5.5 (January 2026)
-- WASM/web infrastructure hardening
-- Local AI support (LMStudio, OpenAI-compatible servers)
-- EditorManager modernization, yaze_core_lib extraction
-- Mesen2 debug panel and CLI commands
-
-### v0.4.0 (November 2025)
-- Music Editor with tracker, piano roll, instrument/sample editors
-- SDL3 backend infrastructure (17 abstraction files)
-- EditorManager refactoring (8 specialized managers)
-- AI agent tools Phases 1-4
-- WASM web port (experimental)
-
-### v0.3.x (October-November 2025)
-- Vim mode for simple-chat, autocomplete engine
-- Dungeon editor crash backlog resolution
-- z3ed learn, Gemini integration
-- Tile16 editor refactoring
+1. Recheck code and tests before changing a readiness label.
+2. Move completed work to changelog/release notes.
+3. Keep only active P0/P1/P2 outcomes here.
+4. Record exact-head evidence in the release checklist or pull request, not as
+   volatile counts in this roadmap.

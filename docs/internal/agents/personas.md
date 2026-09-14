@@ -3,7 +3,7 @@
 Use these canonical identifiers when recording ownership in universe coordination
 (`scripts/agents/coord ...`) and when referencing responsibilities in other documents.
 
-| Agent ID                   | Primary Focus (shared with Oracle-of-Secrets/.claude/agents)      | Notes |
+| Agent ID                   | Primary Focus                                                    | Notes |
 |----------------------------|-------------------------------------------------------------------|-------|
 | `ai-infra-architect`       | AI/agent infra, z3ed CLI/TUI, model providers, gRPC/network       | Replaces legacy `CLAUDE_AIINF`. |
 | `backend-infra-engineer`   | Build/packaging, CMake/toolchains, CI reliability                 | Use for build/binary/release plumbing. |
