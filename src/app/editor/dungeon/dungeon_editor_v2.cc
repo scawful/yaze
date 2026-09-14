@@ -630,7 +630,7 @@ void DungeonEditorV2::Initialize() {
        .icon = ICON_MD_WORKSPACES,
        .category = "Dungeon",
        .workflow_group = "Core",
-       .shortcut_hint = "Ctrl+Shift+W",
+       .shortcut_hint = "",
        .visibility_flag = nullptr,
        .priority = 5,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
@@ -1318,11 +1318,6 @@ absl::Status DungeonEditorV2::Update() {
 
   // Keyboard Shortcuts (only if not typing in a text field)
   if (!ImGui::GetIO().WantTextInput) {
-    if (ImGui::GetIO().KeyCtrl && ImGui::GetIO().KeyShift &&
-        ImGui::IsKeyPressed(ImGuiKey_W, false)) {
-      ToggleWorkbenchWorkflowMode();
-    }
-
     // Room Cycling (Ctrl+Tab)
     if (ImGui::IsKeyPressed(ImGuiKey_Tab) && ImGui::GetIO().KeyCtrl) {
       if (IsWorkbenchWorkflowEnabled()) {
@@ -1741,8 +1736,7 @@ void DungeonEditorV2::DrawRoomTab(int room_id) {
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
-          tr("Switch back to the integrated Dungeon Workbench workflow "
-             "(Ctrl+Shift+W)."));
+          tr("Switch back to the integrated Dungeon Workbench workflow."));
     }
   }
 

@@ -17,6 +17,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 
 namespace yaze {
@@ -1134,6 +1135,159 @@ TEST(DungeonObjectSelectorSizeTest,
         DungeonObjectSelector::IsRepresentableChestObjectId(object_id));
     EXPECT_FALSE(selector.matches_object_filter_for_testing(object_id, 3));
     EXPECT_NE(selector.object_type_symbol_for_testing(object_id), "C");
+  }
+}
+
+TEST(DungeonObjectCategoryTest, CategoriesMatchNamedObjectFamilies) {
+  struct CategoryWitness {
+    int object_id;
+    const char* name_fragment;
+    const char* category;
+  };
+  // Independent witnesses from the three canonical name arrays, not the
+  // selector's former guessed ID ranges. Categories describe browsing only,
+  // not collision, interaction, or compositing behavior.
+  for (const auto& witness : {
+           CategoryWitness{0x001, "Wall", "Walls"},
+           CategoryWitness{0x020, "Diagonal wall", "Walls"},
+           CategoryWitness{0x061, "Wall", "Walls"},
+           CategoryWitness{0x100, "Corner", "Walls"},
+           CategoryWitness{0x13C, "Sanctuary wall", "Walls"},
+           CategoryWitness{0xFA2, "Deep corner", "Walls"},
+           CategoryWitness{0x033, "Carpet", "Floors"},
+           CategoryWitness{0x049, "Floor tiles", "Floors"},
+           CategoryWitness{0x079, "Water edge", "Floors"},
+           CategoryWitness{0x0C4, "Floor 1", "Floors"},
+           CategoryWitness{0x0C8, "Water floor", "Floors"},
+           CategoryWitness{0x0D1, "Icy floor", "Floors"},
+           CategoryWitness{0x0D2, "Icy floor", "Floors"},
+           CategoryWitness{0x0E3, "Conveyor", "Floors"},
+           CategoryWitness{0x0E7, "Heavy current water", "Floors"},
+           CategoryWitness{0xFC7, "Bombable floor", "Floors"},
+           CategoryWitness{0xFE6, "Pit", "Floors"},
+           CategoryWitness{0xFF8, "Triforce floor", "Floors"},
+           CategoryWitness{0x035, "Hole in wall", "Doors"},
+           CategoryWitness{0xFF4, "Boss entrance", "Doors"},
+           CategoryWitness{0xFF6, "Ganon door", "Doors"},
+           CategoryWitness{0x03A, "Wall decors", "Decorations"},
+           CategoryWitness{0x120, "Small torch", "Decorations"},
+           CategoryWitness{0x123, "Table", "Decorations"},
+           CategoryWitness{0x129, "Fireplace", "Decorations"},
+           CategoryWitness{0xFD6, "Bar corner", "Decorations"},
+           CategoryWitness{0xF94, "Unused", "Special"},
+           CategoryWitness{0x0D3, "logic", "Special"},
+           CategoryWitness{0x0F7, "Nothing", "Special"},
+       }) {
+    SCOPED_TRACE(witness.object_id);
+    EXPECT_NE(
+        zelda3::GetObjectName(witness.object_id).find(witness.name_fragment),
+        std::string::npos);
+    const auto actual =
+        zelda3::ObjectCategories::GetObjectCategory(witness.object_id);
+    ASSERT_TRUE(actual.ok()) << actual.status();
+    EXPECT_EQ(*actual, witness.category);
+  }
+}
+
+TEST(DungeonObjectCategoryTest,
+     StairsChestsAndDoorwaysUseExactStoredObjectIds) {
+  const std::vector<int> stairs = {
+      0x021, 0x12D, 0x12E, 0x12F, 0x130, 0x131, 0x132, 0x133, 0x135, 0x136,
+      0x138, 0x139, 0x13A, 0x13B, 0xF9B, 0xF9C, 0xF9D, 0xF9E, 0xF9F, 0xFA0,
+      0xFA1, 0xFA6, 0xFA7, 0xFA8, 0xFA9, 0xFB3, 0xFB4, 0xFB5, 0xFB6};
+  for (const int id : stairs) {
+    const auto name = zelda3::GetObjectName(id);
+    EXPECT_TRUE(name.find("stairs") != std::string::npos ||
+                name.find("Ladder") != std::string::npos)
+        << id << ": " << name;
+  }
+  for (const auto& [category, expected] :
+       std::vector<std::pair<std::string, std::vector<int>>>{
+           {"Stairs", stairs},
+           {"Chests", {0xF99, 0xF9A, 0xFB1, 0xFB2, 0xFF5}},
+           // These are room tile objects. Ordinary doors are separate Door
+           // records and must not be confused with diagonal-wall IDs17..1E.
+           {"Doors", {0x035, 0xFF4, 0xFF6}}}) {
+    SCOPED_TRACE(category);
+    auto actual = zelda3::ObjectCategories::GetObjectsInCategory(category);
+    ASSERT_TRUE(actual.ok()) << actual.status();
+    std::sort(actual->begin(), actual->end());
+    EXPECT_EQ(*actual, expected);
+  }
+}
+
+TEST(DungeonObjectCategoryTest, CoversAll440RepresentableIdsExactlyOnce) {
+  std::array<int, 0x1000> counts{};
+  size_t entry_count = 0;
+  for (const auto& category : zelda3::ObjectCategories::GetObjectCategories()) {
+    SCOPED_TRACE(category.name);
+    for (const int id : category.object_ids) {
+      SCOPED_TRACE(id);
+      const bool representable = (id >= 0 && id <= 0xF7) ||
+                                 (id >= 0x100 && id <= 0x13F) ||
+                                 (id >= 0xF80 && id <= 0xFFF);
+      EXPECT_TRUE(representable);
+      if (id >= 0 && id < static_cast<int>(counts.size())) {
+        ++counts[id];
+      }
+      ++entry_count;
+    }
+  }
+  EXPECT_EQ(entry_count, 440u);
+  for (int id = 0; id < static_cast<int>(counts.size()); ++id) {
+    const bool representable =
+        id <= 0xF7 || (id >= 0x100 && id <= 0x13F) || id >= 0xF80;
+    EXPECT_EQ(counts[id], representable ? 1 : 0) << "object " << id;
+  }
+  for (const int invalid : {-1, 0xF8, 0xF9, 0xFA, 0x140, 0x200, 0x1000}) {
+    EXPECT_FALSE(zelda3::ObjectCategories::GetObjectCategory(invalid).ok())
+        << invalid;
+  }
+}
+
+TEST(DungeonObjectCategoryTest, SelectorFiltersUseSharedCategories) {
+  DungeonObjectSelector selector;
+  constexpr std::array<const char*, 7> filters = {
+      "All", "Walls", "Floors", "Chests", "Doors", "Decorations", "Stairs"};
+  for (const auto& category : zelda3::ObjectCategories::GetObjectCategories()) {
+    SCOPED_TRACE(category.name);
+    for (const int id : category.object_ids) {
+      SCOPED_TRACE(id);
+      EXPECT_TRUE(selector.matches_object_filter_for_testing(id, 0));
+      for (int filter = 1; filter < static_cast<int>(filters.size());
+           ++filter) {
+        EXPECT_EQ(selector.matches_object_filter_for_testing(id, filter),
+                  category.name == filters[filter])
+            << filters[filter];
+      }
+    }
+  }
+}
+
+TEST(DungeonObjectCategoryTest, FallbackSymbolsDescribeActualObjectFamilies) {
+  DungeonObjectSelector selector;
+  for (const auto& [id, expected] :
+       std::vector<std::pair<int, std::string>>{{0x001, "|"},
+                                                {0x020, "|"},
+                                                {0x100, "|"},
+                                                {0xFA2, "|"},
+                                                {0x0C4, "_"},
+                                                {0x0D1, "_"},
+                                                {0x033, "_"},
+                                                {0x129, "~"},
+                                                {0x03A, "~"},
+                                                {0xFD6, "~"},
+                                                {0x021, "^"},
+                                                {0x12D, "^"},
+                                                {0xF9B, "^"},
+                                                {0xFB5, "^"},
+                                                {0x035, "D"},
+                                                {0xFF4, "D"},
+                                                {0xFF6, "D"},
+                                                {0xF99, "C"},
+                                                {0xFB1, "C"}}) {
+    EXPECT_EQ(selector.object_type_symbol_for_testing(id), expected)
+        << "object " << id;
   }
 }
 

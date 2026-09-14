@@ -29,6 +29,7 @@
 #include "rom/rom.h"
 #include "zelda3/dungeon/custom_object.h"  // For CustomObjectManager
 #include "zelda3/dungeon/dimension_service.h"
+#include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/dungeon_object_registry.h"
 #include "zelda3/dungeon/minecart_object_semantics.h"
 #include "zelda3/dungeon/object_drawer.h"
@@ -217,101 +218,51 @@ DungeonObjectSelector::~DungeonObjectSelector() {
 }
 
 bool DungeonObjectSelector::IsRepresentableChestObjectId(int object_id) {
-  return object_id == 0xF99 || object_id == 0xF9A || object_id == 0xFB1 ||
-         object_id == 0xFB2 || object_id == 0xFF5;
+  const auto category = zelda3::ObjectCategories::GetObjectCategory(object_id);
+  return category.ok() && *category == "Chests";
 }
 
 ImU32 DungeonObjectSelector::GetObjectTypeColor(int object_id) {
   const auto& theme = AgentUI::GetTheme();
-
-  // Type 3 objects (0xF80-0xFFF) - Special room features
-  if (object_id >= 0xF80) {
-    if (IsRepresentableChestObjectId(object_id)) {
-      return ImGui::GetColorU32(theme.item_color);  // Gold for chests
-    } else if (object_id >= 0xF80 && object_id <= 0xF8F) {
-      return ImGui::ColorConvertFloat4ToU32(
-          theme.selection_secondary);  // Light blue for layer indicators
-    } else if (object_id >= 0xF90 && object_id <= 0xF9F) {
-      return ImGui::ColorConvertFloat4ToU32(
-          theme.transport_color);  // Orange/Purple for door indicators
-    } else {
-      return ImGui::ColorConvertFloat4ToU32(
-          theme.music_zone_color);  // Purple for misc Type 3
-    }
-  }
-
-  // Type 2 objects (0x100-0x13F) - Torches, blocks, switches
-  if (object_id >= 0x100 && object_id < 0x200) {
-    if (object_id >= 0x100 && object_id <= 0x10F) {
-      return ImGui::GetColorU32(theme.status_warning);  // Torches
-    } else if (object_id >= 0x110 && object_id <= 0x11F) {
-      return ImGui::GetColorU32(theme.dungeon_object_default);  // Blocks
-    } else if (object_id >= 0x120 && object_id <= 0x12F) {
-      return ImGui::ColorConvertFloat4ToU32(
-          theme.status_success);  // Green for switches
-    } else if (object_id >= 0x130 && object_id <= 0x13F) {
-      return ImGui::GetColorU32(theme.selection_primary);  // Yellow for stairs
-    } else {
-      return ImGui::GetColorU32(theme.text_secondary_gray);  // Other Type 2
-    }
-  }
-
-  // Type 1 objects (0x00-0xF7) - Base room objects
-  if (object_id >= 0x10 && object_id <= 0x1F) {
-    return ImGui::GetColorU32(theme.dungeon_object_wall);  // Gray for walls
-  } else if (object_id >= 0x20 && object_id <= 0x2F) {
-    return ImGui::GetColorU32(theme.dungeon_object_floor);  // Brown for floors
-  } else if (object_id >= 0x30 && object_id <= 0x3F) {
-    return ImGui::GetColorU32(
-        theme.dungeon_object_decoration);  // Dim gray for decorations
-  } else if (object_id >= 0x00 && object_id <= 0x0F) {
-    return ImGui::GetColorU32(theme.dungeon_selection_secondary);  // Corners
-  } else {
-    return ImGui::GetColorU32(theme.dungeon_object_default);  // Default gray
-  }
+  const auto category = zelda3::ObjectCategories::GetObjectCategory(object_id);
+  if (!category.ok())
+    return ImGui::GetColorU32(theme.dungeon_object_default);
+  if (*category == "Walls")
+    return ImGui::GetColorU32(theme.dungeon_object_wall);
+  if (*category == "Floors")
+    return ImGui::GetColorU32(theme.dungeon_object_floor);
+  if (*category == "Decorations")
+    return ImGui::GetColorU32(theme.dungeon_object_decoration);
+  if (*category == "Chests")
+    return ImGui::GetColorU32(theme.item_color);
+  if (*category == "Stairs")
+    return ImGui::GetColorU32(theme.selection_primary);
+  if (*category == "Doors")
+    return ImGui::GetColorU32(theme.transport_color);
+  if (*category == "Interactive")
+    return ImGui::GetColorU32(theme.status_success);
+  return ImGui::GetColorU32(theme.music_zone_color);
 }
 
 std::string DungeonObjectSelector::GetObjectTypeSymbol(int object_id) {
-  // Type 3 objects (0xF80-0xFFF) - Special room features
-  if (object_id >= 0xF80) {
-    if (IsRepresentableChestObjectId(object_id)) {
-      return "C";
-    } else if (object_id >= 0xF80 && object_id <= 0xF8F) {
-      return "L";  // Layer
-    } else if (object_id >= 0xF90 && object_id <= 0xF9F) {
-      return "D";  // Door indicator
-    } else {
-      return "S";  // Special
-    }
-  }
-
-  // Type 2 objects (0x100-0x13F) - Torches, blocks, switches
-  if (object_id >= 0x100 && object_id < 0x200) {
-    if (object_id >= 0x100 && object_id <= 0x10F) {
-      return "*";  // Torch (flame)
-    } else if (object_id >= 0x110 && object_id <= 0x11F) {
-      return "#";  // Block
-    } else if (object_id >= 0x120 && object_id <= 0x12F) {
-      return "o";  // Switch
-    } else if (object_id >= 0x130 && object_id <= 0x13F) {
-      return "^";  // Stairs
-    } else {
-      return "2";  // Type 2
-    }
-  }
-
-  // Type 1 objects (0x00-0xF7) - Base room objects
-  if (object_id >= 0x10 && object_id <= 0x1F) {
-    return "|";  // Wall
-  } else if (object_id >= 0x20 && object_id <= 0x2F) {
-    return "_";  // Floor
-  } else if (object_id >= 0x30 && object_id <= 0x3F) {
-    return "~";  // Decoration
-  } else if (object_id >= 0x00 && object_id <= 0x0F) {
-    return "/";  // Corner
-  } else {
-    return "?";  // Unknown
-  }
+  const auto category = zelda3::ObjectCategories::GetObjectCategory(object_id);
+  if (!category.ok())
+    return "?";
+  if (*category == "Walls")
+    return "|";
+  if (*category == "Floors")
+    return "_";
+  if (*category == "Decorations")
+    return "~";
+  if (*category == "Chests")
+    return "C";
+  if (*category == "Stairs")
+    return "^";
+  if (*category == "Doors")
+    return "D";
+  if (*category == "Interactive")
+    return "o";
+  return "S";
 }
 
 void DungeonObjectSelector::SelectObject(int obj_id, int subtype) {
@@ -427,9 +378,9 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
                              object_search_buffer_,
                              sizeof(object_search_buffer_));
 
-    static const char* kFilterLabels[] = {"All categories", "Walls", "Floors",
-                                          "Chests",         "Doors", "Decor",
-                                          "Stairs"};
+    static const char* kFilterLabels[] = {
+        "All categories", "Walls", "Floors", "Chests",
+        "Doorways",       "Decor", "Stairs"};
     static const char* kStreamLabels[] = {"All streams", "Type 1", "Type 2",
                                           "Type 3"};
     constexpr const char* kMoreLabel = "More##ObjectSelectorMore";
@@ -448,6 +399,11 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
     ImGui::SetNextItemWidth(category_width);
     ImGui::Combo("##ObjectFilterType", &object_type_filter_, kFilterLabels,
                  IM_ARRAYSIZE(kFilterLabels));
+    if (object_type_filter_ == 4 && ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          tr("Doorways are tile objects. Use the Door Editor "
+             "to place or change room doors."));
+    }
     if (!stack_filters) {
       ImGui::SameLine(0.0f, control_spacing);
     }
@@ -703,22 +659,13 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 }
 
 bool DungeonObjectSelector::MatchesObjectFilter(int obj_id, int filter_type) {
-  switch (filter_type) {
-    case 1:  // Walls
-      return obj_id >= 0x10 && obj_id <= 0x1F;
-    case 2:  // Floors
-      return obj_id >= 0x20 && obj_id <= 0x2F;
-    case 3:  // Chests
-      return IsRepresentableChestObjectId(obj_id);
-    case 4:  // Doors
-      return obj_id >= 0x17 && obj_id <= 0x1E;
-    case 5:  // Decorations
-      return obj_id >= 0x30 && obj_id <= 0x3F;
-    case 6:  // Stairs
-      return obj_id >= 0x138 && obj_id <= 0x13B;
-    default:  // All
-      return true;
+  constexpr std::array<const char*, 6> kCategories = {
+      "Walls", "Floors", "Chests", "Doors", "Decorations", "Stairs"};
+  if (filter_type < 1 || filter_type > static_cast<int>(kCategories.size())) {
+    return true;
   }
+  const auto category = zelda3::ObjectCategories::GetObjectCategory(obj_id);
+  return category.ok() && *category == kCategories[filter_type - 1];
 }
 
 bool DungeonObjectSelector::MatchesObjectSearch(int obj_id,
