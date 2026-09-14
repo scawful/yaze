@@ -112,9 +112,8 @@ void DrawDiagonalCeiling(const DrawContext& ctx, DiagonalCeilingAnchor anchor) {
 // water face variants (Empty, Spitting, Drenching)
 
 void DrawCorner4x4(const DrawContext& ctx) {
-  // Pattern: 4x4 grid corner (Type 2 corners 0x40-0x4F, 0x108-0x10F)
-  // Type 2 objects only have 8 tiles, so we need to handle both 16 and 8 tile
-  // cases
+  // Canonical 4x4 corners consume 16 words. Shorter payloads below are editor
+  // compatibility fallbacks, not alternate vanilla subtype-2 formats.
 
   if (ctx.tiles.size() >= 16) {
     // Full 4x4 pattern - Column-major ordering per ZScream
@@ -126,8 +125,7 @@ void DrawCorner4x4(const DrawContext& ctx) {
       }
     }
   } else if (ctx.tiles.size() >= 8) {
-    // Type 2 objects: 8 tiles arranged in 2x4 column-major pattern
-    // This is the standard Type 2 tile layout
+    // Short-payload fallback: 2x4 column-major.
     int tid = 0;
     for (int xx = 0; xx < 2; xx++) {
       for (int yy = 0; yy < 4; yy++) {
@@ -150,7 +148,7 @@ void DrawCorner4x4(const DrawContext& ctx) {
 void Draw4x4Corner_BothBG(const DrawContext& ctx) {
   // USDASM: RoomDraw_4x4Corner_BothBG ($01:9813)
   // Canonical shape is 4 columns x 4 rows (column-major). We retain smaller
-  // fallback shapes for abbreviated hack-ROM payloads.
+  // fallback shapes for abbreviated editor payloads.
   if (ctx.tiles.size() >= 16) {
     DrawCorner4x4(ctx);
   } else if (ctx.tiles.size() >= 8) {
