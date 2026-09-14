@@ -5,15 +5,105 @@
 // correctly for all three object types (Type1, Type2, Type3) based on
 // ZScream's proven implementation.
 
+#include <algorithm>
+#include <limits>
 #include <string>
 
 #include <gtest/gtest.h>
 
+#include "core/features.h"
+#include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace zelda3 {
 namespace {
+
+class ScopedRoomObjectResizeState {
+ public:
+  explicit ScopedRoomObjectResizeState(bool custom_enabled)
+      : previous_state_(CustomObjectManager::Get().SnapshotState()),
+        previous_enabled_(core::FeatureFlags::get().kEnableCustomObjects) {
+    CustomObjectManager::Get().ClearObjectFileMap();
+    core::FeatureFlags::get().kEnableCustomObjects = custom_enabled;
+    DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  }
+  ~ScopedRoomObjectResizeState() {
+    core::FeatureFlags::get().kEnableCustomObjects = previous_enabled_;
+    DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+    CustomObjectManager::Get().RestoreState(previous_state_);
+  }
+
+ private:
+  CustomObjectManager::State previous_state_;
+  bool previous_enabled_;
+};
+
+TEST(RoomObjectEncodingTest, PackedFloorSizeAxisStepsFollowRegistry) {
+  ScopedRoomObjectResizeState state(false);
+  for (const int id : {0xC0, 0xC4, 0xC5, 0xC8, 0xCA, 0xD1, 0xD2, 0xD9, 0xDB,
+                       0xE3, 0xE4, 0xE5, 0xE6}) {
+    EXPECT_EQ(RoomObjectSizeAxisStep(id), 4) << id;
+  }
+  EXPECT_EQ(RoomObjectSizeAxisStep(0xC3), 3);
+  EXPECT_EQ(RoomObjectSizeAxisStep(0xD7), 3);
+  EXPECT_EQ(RoomObjectSizeAxisStep(0xDE), 2);
+  for (const int id : {0x01, 0x34, 0xCD, 0xD8, 0x100, 0xF99}) {
+    EXPECT_EQ(RoomObjectSizeAxisStep(id), 0) << id;
+  }
+}
+
+TEST(RoomObjectEncodingTest, PackedFloorResizePreservesOtherAxisAtEverySize) {
+  ScopedRoomObjectResizeState state(false);
+  for (const int id : {0xC0, 0xC3, 0xC4, 0xC8, 0xCA, 0xD1, 0xDB, 0xDE, 0xE3}) {
+    for (int size = 0; size <= 15; ++size) {
+      for (const int delta : {-10, -1, 0, 1, 10}) {
+        const int x = (size >> 2) & 3;
+        const int y = size & 3;
+        EXPECT_EQ(ResizeRoomObjectByDelta(id, size, delta),
+                  (x << 2) | std::clamp(y + delta, 0, 3));
+        EXPECT_EQ(ResizeRoomObjectByDelta(id, size, delta, true),
+                  (std::clamp(x + delta, 0, 3) << 2) | y);
+      }
+    }
+  }
+}
+
+TEST(RoomObjectEncodingTest, ScalarResizeClampsExtremeDeltas) {
+  ScopedRoomObjectResizeState state(false);
+  EXPECT_EQ(ResizeRoomObjectByDelta(0x01, 3, 2), 5);
+  EXPECT_EQ(ResizeRoomObjectByDelta(0x01, 3, -2, true), 1);
+  EXPECT_EQ(ResizeRoomObjectByDelta(0x01, 3, std::numeric_limits<int>::max()),
+            15);
+  EXPECT_EQ(ResizeRoomObjectByDelta(0x01, 3, std::numeric_limits<int>::min()),
+            0);
+}
+
+TEST(RoomObjectEncodingTest, CustomVariantsAreNotGeometricallyResizable) {
+  ScopedRoomObjectResizeState state(true);
+  CustomObjectManager::Get().SetObjectFileMap({{0xD1, {"custom_floor.bin"}}});
+  for (const int id : {0x31, 0x32, 0x54, 0xD1}) {
+    EXPECT_TRUE(IsRoomObjectSizeEditable(id));
+    EXPECT_FALSE(IsRoomObjectResizable(id));
+    EXPECT_EQ(RoomObjectSizeAxisStep(id), 0);
+    EXPECT_EQ(ResizeRoomObjectByDelta(id, 2, 1), 2);
+    EXPECT_EQ(ResizeRoomObjectByDelta(id, 2, -1, true), 2);
+    EXPECT_EQ(CanonicalRoomObjectSize(id, 2), 2);
+  }
+  for (const int id : {0x100, 0xF99}) {
+    EXPECT_FALSE(IsRoomObjectResizable(id));
+    EXPECT_EQ(ResizeRoomObjectByDelta(id, 6, 1), 6);
+  }
+}
+
+TEST(RoomObjectEncodingTest, DisabledCustomObjectsKeepType1ScalarSizing) {
+  ScopedRoomObjectResizeState state(false);
+  for (const int id : {0x31, 0x32, 0x54}) {
+    EXPECT_TRUE(IsRoomObjectResizable(id));
+    EXPECT_EQ(ResizeRoomObjectByDelta(id, 2, 1), 3);
+  }
+}
 
 TEST(RoomObjectEncodingTest, ClassifiesOnlyStatefulChestObjects) {
   for (const int object_id : {0xF99, 0xFB1}) {
