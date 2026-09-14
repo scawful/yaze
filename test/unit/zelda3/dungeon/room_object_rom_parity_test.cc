@@ -34,6 +34,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "core/features.h"
 #include "rom/rom.h"
+#include "rom/snes.h"
 #include "test_utils.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_state.h"
@@ -523,6 +524,39 @@ TEST_P(RoomObjectRomParityTest,
 // -----------------------------------------------------------------------------
 // Palette resolution pipeline matches a direct ROM two-level lookup
 // -----------------------------------------------------------------------------
+
+TEST_P(RoomObjectRomParityTest,
+       AnimatedRoomGraphicsFollowRomPointerAndMainGroup) {
+  GameData game_data;
+  ASSERT_TRUE(LoadGameData(*rom_, game_data).ok());
+  // US/OOS LDA.l AnimatedTileSheets,X at $028274, indexed by $0AA1.
+  const auto& data = rom_->vector();
+  const uint32_t table_snes =
+      data[0x10275] | (data[0x10276] << 8) | (data[0x10277] << 16);
+  ASSERT_GE(table_snes & 0xFFFF, 0x8000);
+  const size_t table_pc = SnesToPc(table_snes);
+  for (int room_id : {0x04A, 0x033, 0x08C, 0x0CE}) {
+    Room room = LoadRoomFromRom(rom_.get(), room_id);
+    room.SetGameData(&game_data);
+    // Explicit main groups also cover the case where entrance and room
+    // blocksets differ; the room blockset must not select the animated sheet.
+    for (uint8_t main_group : {0, 7, 11, 17}) {
+      SCOPED_TRACE(absl::StrFormat("room=%03X main=%02X", room_id, main_group));
+      ASSERT_LT(table_pc + main_group, data.size());
+      const size_t sheet = data[table_pc + main_group];
+      ASSERT_LE(sheet * 4096 + 1024, game_data.graphics_buffer.size());
+      room.LoadRoomGraphics(main_group);
+      room.CopyRoomGraphicsToBuffer();
+      const auto& pixels = room.get_gfx_buffer();
+      EXPECT_TRUE(std::equal(pixels.begin() + 0x1B0 * 64,
+                             pixels.begin() + 0x1C0 * 64,
+                             game_data.graphics_buffer.begin() + sheet * 4096));
+      EXPECT_TRUE(std::equal(pixels.begin() + 0x1C0 * 64,
+                             pixels.begin() + 0x1D0 * 64,
+                             game_data.graphics_buffer.begin() + 0x5C * 4096));
+    }
+  }
+}
 
 TEST_P(RoomObjectRomParityTest,
        ResolveDungeonPaletteIdMatchesDirectRomTwoLevelLookup) {
