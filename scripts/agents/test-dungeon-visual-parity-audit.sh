@@ -79,7 +79,7 @@ if name == "yaze_test_unit":
         "SupportedRomRoles/RoomObjectRomParityTest": [s + "Witness/" + role
             for s in ("WallCorner", "WeirdCorner", "FloorCopy", "VisualParityGap",
                       "BigHole", "TableRock", "FloodWater", "LongRail")
-            for role in ("Vanilla", "Expanded")],
+            for role in ("Vanilla", "Expanded")] + ["BarPayloadsAndDrawTracesMatchUsdasm/Vanilla"],
     }
 elif name == "yaze_test_integration":
     suites = {
@@ -198,7 +198,7 @@ with tempfile.TemporaryDirectory(prefix="yaze-parity-audit-") as temporary:
             assert "STALE-BINARY" not in result.stdout
             assert "Tier 1 PASS: discovered=19, executed=19, skipped=0" in result.stdout
             if rom_present:
-                assert "Tier 2 PASS: discovered=8, executed=8, skipped=0" in result.stdout
+                assert "Tier 2 PASS: discovered=9, executed=9, skipped=0" in result.stdout
                 assert "Tier 3 PASS: discovered=3, executed=3, skipped=0" in result.stdout
                 assert "Tier 4 PASS: discovered=1, executed=1, skipped=0" in result.stdout
             else:
