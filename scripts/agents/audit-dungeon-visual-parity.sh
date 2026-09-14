@@ -279,7 +279,7 @@ run_test_tier 1 "$UNIT_BIN" 'DrawRoutineMappingTest.*Plus3*:DrawRoutineMappingTe
 if [[ -n "${YAZE_TEST_ROM_VANILLA:-}" ]]; then
   echo
   echo "== Tier 2: vanilla ROM-backed parser/drawer parity =="
-  run_test_tier 2 "$UNIT_BIN" 'SupportedRomRoles/RoomObjectRomParityTest.WallCorner*/Vanilla:SupportedRomRoles/RoomObjectRomParityTest.WeirdCorner*/Vanilla:SupportedRomRoles/RoomObjectRomParityTest.FloorCopy*/Vanilla:SupportedRomRoles/RoomObjectRomParityTest.VisualParityGap*/Vanilla:SupportedRomRoles/RoomObjectRomParityTest.BigHole*/Vanilla:SupportedRomRoles/RoomObjectRomParityTest.TableRock*/Vanilla:SupportedRomRoles/RoomObjectRomParityTest.FloodWater*/Vanilla:SupportedRomRoles/RoomObjectRomParityTest.LongRail*/Vanilla'
+  run_test_tier 2 "$UNIT_BIN" 'SupportedRomRoles/RoomObjectRomParityTest.WallCorner*/Vanilla:SupportedRomRoles/RoomObjectRomParityTest.WeirdCorner*/Vanilla:SupportedRomRoles/RoomObjectRomParityTest.FloorCopy*/Vanilla:SupportedRomRoles/RoomObjectRomParityTest.VisualParityGap*/Vanilla:SupportedRomRoles/RoomObjectRomParityTest.BigHole*/Vanilla:SupportedRomRoles/RoomObjectRomParityTest.TableRock*/Vanilla:SupportedRomRoles/RoomObjectRomParityTest.FloodWater*/Vanilla:SupportedRomRoles/RoomObjectRomParityTest.LongRail*/Vanilla:SupportedRomRoles/RoomObjectRomParityTest.BarPayloadsAndDrawTracesMatchUsdasm/Vanilla'
   build_targets yaze_test_integration yaze_test_rom_dependent
   run_test_tier 2-table "$ROM_BIN" 'DungeonObjectRomValidationTest.TileCountTable_KnownValues'
 
