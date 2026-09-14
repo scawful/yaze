@@ -112,10 +112,9 @@ release gate, not a prerequisite for the next object improvement.
   regressions. These are not new emulator captures or proof of room-level
   composition/palette correctness.
 
-Next object work: room-level water/ice/corner composition using the witnesses
-below; extend axis controls to `0xC1/0xDC/0xDD` only after representing their
-different base dimensions. Do not classify moving-wall `0xCD/0xCE` direction
-selectors as independent floor axes.
+The third slice below follows up on room-level water/ice/corner composition
+and the different base dimensions of `0xC1/0xDC/0xDD`. Moving-wall
+`0xCD/0xCE` direction selectors remain separate from independent floor axes.
 
 Fresh local evidence: the app and unit target build in Release; **420/420**
 selected tests pass, including actual ImGui combo clicks at narrow/wide and
@@ -130,6 +129,86 @@ zero skips; Tier 5 **1,190 cases, zero mismatches and empty traces**. No goldens
 were refreshed or new Mesen images captured. Both canonical ROM SHA-1 values
 above remained unchanged. Logs: `/tmp/yaze-object-wave2-broad.log` and
 `/tmp/yaze-object-wave2-parity.log`.
+
+## Third implementation slice: room graphics, fixed walls and platforms (2026-09-14)
+
+Integrated on the same preview branch; no mainline merge, installation or ROM
+write. Source review and automated checks remain the integration owner's work.
+
+- **Mushroom Grotto water:** the animated-sheet loader incorrectly treated a
+  24-bit pointer operand as the table address and indexed the room tileset
+  instead of the entrance main group. It now dereferences the ROM pointer,
+  preserves relocated tables, and loads the selected/common frame spans.
+  Oracle room `0x04A` changes from garbled pool interiors to the water motif.
+  This is a static-frame correction, not live animation support.
+- **Sanctuary wall `0x13C`:** corrected the payload from 16 to 24 words,
+  replaced the generic 4x4 renderer with the source's 24x6 facade, and kept
+  the center on the active layer while the facade targets BG1. The empty
+  bottom-center opening and horizontal-flip OR behavior are covered.
+- **Fixed corners:** twelve subtype-2 aliases now reuse fixed routine 116
+  instead of repeating when an editor object contains a stale nonzero size.
+  The canonical size-zero corner traces already matched USDASM. Tests cover
+  all 24 `0x100–0x117` IDs; this is not a new all-corners visual-parity claim.
+- **Platform controls:** `0xC1/0xDC/0xDD` expose their actual dimensions and
+  independent two-tile axis changes. The inspector and hover text use the
+  existing dimension table; moving-wall direction bits and custom variants
+  stay protected.
+- **Puffstool:** Oracle sprite `0xB1` now uses its source frame-zero tiles,
+  offsets, overlapping OAM order and palette selector. The active canvas
+  selects this override from the loaded Oracle project, without mutating a
+  global profile. Bare ROM opens and unrelated projects retain the default
+  preview. Actual runtime CGRAM remains separate proof.
+
+Implementation commits: room graphics `872e419a0`, Sanctuary `4429dc58e`,
+fixed corners `b5ec124c8`, platforms `a3632aa85`, Puffstool `c2eb94f86`.
+
+Fresh Release evidence, with four build workers:
+
+- **415/415** selected unit/ROM tests passed, zero skips. This includes the
+  corrected precondition in three new tests: the dimension table must be
+  loaded before querying it. No expected geometry was changed to pass.
+- The animated-loader regression failed before the fix; both canonical
+  vanilla and Oracle base ROMs pass the pointer/group/frame-span regression.
+  Invalid table pointers include WRAM aliases against a 4 MiB synthetic ROM.
+- Sanctuary's two pre-fix tests failed on payload length and missing facade;
+  source-backed post-fix mapping, tile trace and mixed-layer checks pass.
+- All seven existing Mesen-baseline tests pass without changing their images.
+  Only the four BG2/composite fingerprint values for vanilla room `0x016`
+  were refreshed. A counterfactual regression reproduces the old hashes and
+  counts exactly by substituting the old, incorrectly indexed sheet `0x94`
+  for water sheet `0x5D`. It proves that all 43,316 changed BG2 pixels belong
+  to tiles `0x1B0/0x1B1`, with other graphics, tile words and coverage intact.
+  Per-pixel priority changes follow corrected opacity; tile priority bits do
+  not change. The composite is unchanged outside those water pixels.
+- Final maintained ladder: Tier 1 **42/42**; Tier 2 **11/11** plus **1/1**
+  table check; Tier 3 **11/11**; Tier 4 **7/7**, all zero skips. The runner
+  now requires the new Sanctuary/corner families; its CTest contract passes
+  **33 scenarios**, including missing-family rejection.
+- Tier 5: **1,190 cases, zero mismatches, zero empty traces**.
+  Both canonical ROM SHA-1 values above remain unchanged.
+
+Reproduce the focused run from the preview checkout (`YAZE_TEST_ROM_VANILLA`
+and `YAZE_TEST_ROM_EXPANDED` must point to the canonical vanilla and Oracle
+base ROMs, respectively):
+
+```sh
+cmake --build build/presets/mac-ai --config Release --target yaze_test_unit yaze z3ed --parallel 4
+build/presets/mac-ai/bin/yaze_test_unit --gtest_filter='RoomGraphicsPaletteTest.*:SupportedRomRoles/RoomObjectRomParityTest.AnimatedRoomGraphicsFollowRomPointerAndMainGroup/*:RoomObjectEncodingTest.*:TileObjectHandlerTest.*:DungeonWorkbenchObjectSizeUiTest.*:SpriteRenderPreviewTest.*:DrawRoutineMappingTest.*:ObjectDrawerRegistryReplayTest.*:ObjectDimensionsTest.*:ObjectDrawingComprehensiveTest.*:ObjectDimensionTableTest.*:DrawRoutineRegistryTest.*:DimensionServiceTest.*:ObjectLayerSemanticsTest.*' --gtest_output=xml:/tmp/yaze-wave3-broad.xml
+scripts/agents/audit-dungeon-visual-parity.sh --build-dir build/presets/mac-ai --config Release --with-validate-report /tmp/yaze-wave3-validation.json
+ctest --test-dir build/presets/mac-ai --output-on-failure -R '^DungeonVisualParityAuditContract$'
+```
+
+Local artifacts: `/tmp/yaze-wave3-broad.log`, `/tmp/yaze-wave3-broad.xml`,
+`/tmp/yaze-wave3-drift.xml`, `/tmp/yaze-wave3-parity.log`,
+`/tmp/yaze-wave3-validation.json`, and read-only room renders
+`/tmp/yaze-wave3-room04a.png` / `/tmp/yaze-wave3-room04a-fixed.png`.
+These are temporary evidence, not committed fixtures or emulator captures.
+
+Next development targets: Oracle Manhandla `0x88` still previews vanilla
+Mothula; remaining water/ice room composition and sprite CGRAM need isolated
+runtime evidence. Also audit the headless `RenderService` layer-manager setup
+before using its exports to certify non-default room blending. Neither this
+slice nor the source-backed tests close the full R1/V1 release packets.
 
 ## Object coverage checklist
 
