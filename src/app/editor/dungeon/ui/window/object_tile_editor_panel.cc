@@ -220,6 +220,7 @@ void ObjectTileEditorPanel::SelectFirstCellIfAvailable() {
   if (current_layout_.cells.empty()) {
     selected_cell_index_ = -1;
     selected_source_tile_ = -1;
+    SyncSourceAttributesFromSelectedCell();
     return;
   }
 
@@ -247,9 +248,7 @@ absl::Status ObjectTileEditorPanel::AddFirstTileToEmptyCustomLayout() {
   current_layout_.cells.push_back(cell);
   current_layout_.bounds_width = 1;
   current_layout_.bounds_height = 1;
-  selected_cell_index_ = 0;
-  selected_source_tile_ = 0;
-  source_palette_ = 2;
+  SelectFirstCellIfAvailable();
   preview_dirty_ = true;
   atlas_dirty_ = true;
   ClearActionStatus();
@@ -266,8 +265,7 @@ void ObjectTileEditorPanel::RevertCurrentLayout() {
     current_layout_.cells.clear();
     current_layout_.bounds_width = 1;
     current_layout_.bounds_height = 1;
-    selected_cell_index_ = -1;
-    selected_source_tile_ = -1;
+    SelectFirstCellIfAvailable();
   } else {
     current_layout_.RevertAll();
     SyncSourceSelectionFromSelectedCell();
@@ -650,6 +648,7 @@ void ObjectTileEditorPanel::RenderTile8Atlas() {
 void ObjectTileEditorPanel::SyncSourceSelectionFromSelectedCell() {
   if (selected_cell_index_ < 0 ||
       selected_cell_index_ >= static_cast<int>(current_layout_.cells.size())) {
+    SyncSourceAttributesFromSelectedCell();
     return;
   }
 
