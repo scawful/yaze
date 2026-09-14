@@ -100,6 +100,22 @@ std::vector<std::string> ParseStringList(const std::string& value) {
   return result;
 }
 
+std::vector<std::string> ParsePositionalStringList(const std::string& value) {
+  std::vector<std::string> result;
+  if (value.empty())
+    return result;
+
+  std::vector<std::string> parts = absl::StrSplit(value, ',');
+  result.reserve(parts.size());
+  for (const auto& part : parts) {
+    std::string trimmed = part;
+    trimmed.erase(0, trimmed.find_first_not_of(" \t"));
+    trimmed.erase(trimmed.find_last_not_of(" \t") + 1);
+    result.push_back(std::move(trimmed));
+  }
+  return result;
+}
+
 std::vector<uint16_t> ParseHexUintList(const std::string& value) {
   std::vector<uint16_t> result;
   if (value.empty()) {
@@ -1127,7 +1143,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
       }
       auto parsed = ParseHexUint32(id_token);
       if (parsed.has_value()) {
-        custom_object_files[static_cast<int>(*parsed)] = ParseStringList(value);
+        custom_object_files[static_cast<int>(*parsed)] =
+            ParsePositionalStringList(value);
       }
     } else if (current_section == "agent_settings") {
       if (key == "ai_provider")

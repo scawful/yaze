@@ -118,6 +118,7 @@ class ObjectSelectorContent : public WindowContent {
   void SetOpenObjectEditorCallback(std::function<void()> callback) {
     open_object_editor_callback_ = std::move(callback);
   }
+  void DetachRuntimeContext();
 
  private:
   DungeonCanvasViewer* ResolveCanvasViewer();

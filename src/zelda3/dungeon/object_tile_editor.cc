@@ -3,8 +3,6 @@
 #include <algorithm>
 #include <array>
 #include <cstring>
-#include <filesystem>
-#include <fstream>
 #include <limits>
 #include <unordered_map>
 #include <unordered_set>
@@ -14,6 +12,7 @@
 #include "core/features.h"
 #include "rom/transaction.h"
 #include "util/log.h"
+#include "util/macro.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/geometry/object_geometry.h"
 #include "zelda3/dungeon/object_drawer.h"
@@ -162,36 +161,6 @@ ObjectTileLayout ObjectTileLayout::FromTraces(
   return layout;
 }
 
-ObjectTileLayout ObjectTileLayout::CreateEmpty(int width, int height,
-                                               int16_t object_id,
-                                               const std::string& filename) {
-  ObjectTileLayout layout;
-  layout.object_id = object_id;
-  layout.origin_tile_x = 0;
-  layout.origin_tile_y = 0;
-  layout.bounds_width = width;
-  layout.bounds_height = height;
-  layout.tile_data_address = -1;
-  layout.is_custom = true;
-  layout.custom_filename = filename;
-
-  layout.cells.reserve(width * height);
-  for (int y = 0; y < height; ++y) {
-    for (int x = 0; x < width; ++x) {
-      Cell cell;
-      cell.rel_x = x;
-      cell.rel_y = y;
-      cell.tile_info = gfx::TileInfo(0, 2, false, false, false);
-      cell.original_word = gfx::TileInfoToWord(cell.tile_info);
-      cell.write_index = static_cast<int>(layout.cells.size());
-      cell.modified = true;
-      layout.cells.push_back(cell);
-    }
-  }
-
-  return layout;
-}
-
 ObjectTileLayout::Cell* ObjectTileLayout::FindCell(int rel_x, int rel_y) {
   for (auto& cell : cells) {
     if (cell.rel_x == rel_x && cell.rel_y == rel_y)
@@ -231,6 +200,56 @@ void ObjectTileLayout::RevertAll() {
 // =============================================================================
 
 ObjectTileEditor::ObjectTileEditor(Rom* rom) : rom_(rom) {}
+
+absl::StatusOr<ObjectTileLayout> ObjectTileEditor::LoadCustomObjectLayout(
+    int16_t object_id, int subtype) {
+  const int runtime_count =
+      CustomObjectManager::RuntimeSubtypeCountForObject(object_id);
+  if (runtime_count == 0) {
+    return absl::UnimplementedError(
+        "Custom tile editing supports only registered fixed runtime objects");
+  }
+  if (subtype < 0 || subtype >= runtime_count) {
+    return absl::OutOfRangeError(
+        "Custom object subtype is outside the runtime dispatch table");
+  }
+
+  auto& manager = CustomObjectManager::Get();
+  const std::string filename = manager.ResolveFilename(object_id, subtype);
+  if (filename.empty()) {
+    return absl::NotFoundError(
+        "Custom object runtime slot has no mapped asset filename");
+  }
+  CustomObjectAsset asset;
+  ASSIGN_OR_RETURN(asset,
+                   LoadCustomObjectAsset(manager.GetBasePath(), filename));
+
+  ObjectTileLayout layout;
+  layout.object_id = object_id;
+  layout.origin_tile_x = 0;
+  layout.origin_tile_y = 0;
+  layout.tile_data_address = -1;
+  layout.is_custom = true;
+  layout.custom_subtype = subtype;
+  layout.custom_filename = filename;
+  layout.custom_resolved_path = std::move(asset.resolved_path);
+  layout.custom_source_bytes = std::move(asset.source_bytes);
+
+  const auto bounds = asset.object.GetBoundingBox();
+  layout.bounds_width = bounds.max_x + 1;
+  layout.bounds_height = bounds.max_y + 1;
+  layout.cells.reserve(asset.object.tiles.size());
+  for (const auto& tile : asset.object.tiles) {
+    ObjectTileLayout::Cell cell;
+    cell.rel_x = tile.rel_x;
+    cell.rel_y = tile.rel_y;
+    cell.tile_info = gfx::WordToTileInfo(tile.tile_data);
+    cell.original_word = tile.tile_data;
+    cell.write_index = static_cast<int>(layout.cells.size());
+    layout.cells.push_back(cell);
+  }
+  return layout;
+}
 
 absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureObjectLayout(
     int16_t object_id, const Room& room, const gfx::PaletteGroup& palette) {
@@ -303,6 +322,7 @@ absl::StatusOr<ObjectTileLayout> ObjectTileEditor::CaptureObjectLayout(
   layout.tile_data_address = -1;
   layout.source_provenance.reset();
   layout.is_custom = is_custom;
+  layout.custom_subtype = is_custom ? subtype : -1;
   layout.custom_filename = custom_filename;
 
   return layout;
@@ -443,9 +463,18 @@ absl::Status ObjectTileEditor::RenderLayoutToBitmap(
   ObjectDrawer drawer(rom_, 0, room_gfx_buffer);
 
   for (const auto& cell : layout.cells) {
+    gfx::TileInfo preview_tile = cell.tile_info;
+    if (layout.is_custom) {
+      const uint16_t runtime_word = CustomObjectRuntimeTileWord(
+          layout.object_id, gfx::TileInfoToWord(cell.tile_info));
+      if (runtime_word == 0) {
+        continue;
+      }
+      preview_tile = gfx::WordToTileInfo(runtime_word);
+    }
     int px = cell.rel_x * 8;
     int py = cell.rel_y * 8;
-    drawer.DrawTileToBitmap(bitmap, cell.tile_info, px, py, room_gfx_buffer);
+    drawer.DrawTileToBitmap(bitmap, preview_tile, px, py, room_gfx_buffer);
   }
 
   return absl::OkStatus();
@@ -490,72 +519,49 @@ absl::Status ObjectTileEditor::BuildTile8Atlas(gfx::Bitmap& atlas,
   return absl::OkStatus();
 }
 
-absl::Status ObjectTileEditor::WriteBack(const ObjectTileLayout& layout) {
+absl::Status ObjectTileEditor::WriteBack(ObjectTileLayout& layout) {
   if (!layout.HasModifications()) {
     return absl::OkStatus();
   }
 
   if (layout.is_custom) {
-    // Custom object: serialize to binary format and write .bin file
     if (layout.custom_filename.empty()) {
       return absl::FailedPreconditionError(
           "Custom object has no filename for write-back");
     }
+    if (layout.custom_source_bytes.empty()) {
+      return absl::FailedPreconditionError(
+          "Custom object has no source snapshot for safe write-back");
+    }
+    const int runtime_count =
+        CustomObjectManager::RuntimeSubtypeCountForObject(layout.object_id);
+    if (layout.custom_subtype < 0 || layout.custom_subtype >= runtime_count) {
+      return absl::FailedPreconditionError(
+          "Custom object layout no longer identifies a fixed runtime slot");
+    }
 
-    // Group cells by rel_y to form segments
-    std::map<int, std::vector<const ObjectTileLayout::Cell*>> rows;
+    CustomObject object;
+    object.tiles.reserve(layout.cells.size());
     for (const auto& cell : layout.cells) {
-      rows[cell.rel_y].push_back(&cell);
+      object.tiles.push_back(
+          {cell.rel_x, cell.rel_y, gfx::TileInfoToWord(cell.tile_info)});
     }
 
-    // Serialize to binary matching CustomObjectManager::ParseBinaryData format
-    std::vector<uint8_t> binary;
-    constexpr int kBufferStride = 128;
-
-    int prev_buffer_pos = 0;
-    for (auto& [row_y, row_cells] : rows) {
-      // Sort cells by rel_x
-      std::sort(
-          row_cells.begin(), row_cells.end(),
-          [](const auto* a, const auto* b) { return a->rel_x < b->rel_x; });
-
-      int count = static_cast<int>(row_cells.size());
-      int buffer_pos_for_row = row_y * kBufferStride + row_cells[0]->rel_x * 2;
-      int jump_offset = (row_y == rows.rbegin()->first)
-                            ? 0
-                            : kBufferStride;  // Jump to next row
-
-      // Header: low 5 bits = count, high byte = jump_offset
-      uint16_t header = (count & 0x1F) | ((jump_offset & 0xFF) << 8);
-      binary.push_back(header & 0xFF);
-      binary.push_back((header >> 8) & 0xFF);
-
-      for (const auto* cell : row_cells) {
-        uint16_t word = gfx::TileInfoToWord(cell->tile_info);
-        binary.push_back(word & 0xFF);
-        binary.push_back((word >> 8) & 0xFF);
-      }
-
-      prev_buffer_pos = buffer_pos_for_row + count * 2;
-    }
-
-    // Terminator
-    binary.push_back(0);
-    binary.push_back(0);
-
-    // Write to file
     auto& mgr = CustomObjectManager::Get();
-    std::filesystem::path full_path =
-        std::filesystem::path(mgr.GetBasePath()) / layout.custom_filename;
-    std::ofstream file(full_path, std::ios::binary);
-    if (!file) {
-      return absl::InternalError("Failed to open file for writing: " +
-                                 full_path.string());
+    if (mgr.ResolveFilename(layout.object_id, layout.custom_subtype) !=
+        layout.custom_filename) {
+      return absl::AbortedError(
+          "Custom object slot mapping changed after it was opened; edits were "
+          "kept");
     }
-    file.write(reinterpret_cast<const char*>(binary.data()), binary.size());
-    file.close();
+    auto published_or = PublishCustomObjectBinary(
+        mgr.GetBasePath(), layout.custom_filename, object,
+        layout.custom_source_bytes, layout.custom_resolved_path);
+    if (!published_or.ok()) {
+      return published_or.status();
+    }
 
-    // Reload cache
+    layout.custom_source_bytes = std::move(*published_or);
     mgr.ReloadAll();
     return absl::OkStatus();
   }

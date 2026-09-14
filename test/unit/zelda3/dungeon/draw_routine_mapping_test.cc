@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "app/gfx/render/background_buffer.h"
+#include "core/features.h"
 #include "gtest/gtest.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
@@ -59,6 +60,33 @@ bool ContainsPoint(const std::vector<TilePoint>& points, int x, int y) {
 }
 
 }  // namespace
+
+TEST_F(DrawRoutineMappingTest,
+       CustomFeatureRoutesAllOracleFixedFamiliesThroughCustomRoutine) {
+  const bool previous_custom_objects =
+      core::FeatureFlags::get().kEnableCustomObjects;
+  struct RestoreFeatureFlag {
+    bool previous;
+    ~RestoreFeatureFlag() {
+      core::FeatureFlags::get().kEnableCustomObjects = previous;
+      DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+    }
+  } restore{previous_custom_objects};
+
+  auto& registry = DrawRoutineRegistry::Get();
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  registry.RefreshFeatureFlagMappings();
+  for (const int object_id : {0x31, 0x32, 0x54}) {
+    EXPECT_EQ(registry.GetRoutineIdForObject(object_id),
+              DrawRoutineIds::kCustomObject);
+  }
+
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  registry.RefreshFeatureFlagMappings();
+  EXPECT_EQ(registry.GetRoutineIdForObject(0x31), DrawRoutineIds::kNothing);
+  EXPECT_EQ(registry.GetRoutineIdForObject(0x32), DrawRoutineIds::kNothing);
+  EXPECT_EQ(registry.GetRoutineIdForObject(0x54), DrawRoutineIds::kNothing);
+}
 
 TEST_F(DrawRoutineMappingTest,
        HorizontalRailRoutinesKeepExistingSmallCornerTile) {

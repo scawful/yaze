@@ -138,6 +138,57 @@ class DungeonCustomCollisionAction : public UndoAction {
   RestoreFn restore_;
 };
 
+struct DungeonCustomCollisionSnapshot {
+  int room_id = -1;
+  zelda3::CustomCollisionMap map;
+};
+
+class DungeonCustomCollisionBatchAction : public UndoAction {
+ public:
+  using RestoreFn = std::function<absl::Status(
+      const std::vector<DungeonCustomCollisionSnapshot>&)>;
+
+  DungeonCustomCollisionBatchAction(
+      std::vector<DungeonCustomCollisionSnapshot> before,
+      std::vector<DungeonCustomCollisionSnapshot> after, RestoreFn restore)
+      : before_(std::move(before)),
+        after_(std::move(after)),
+        restore_(std::move(restore)) {}
+
+  absl::Status Undo() override {
+    if (!restore_) {
+      return absl::InternalError(
+          "DungeonCustomCollisionBatchAction: no restore callback");
+    }
+    return restore_(before_);
+  }
+
+  absl::Status Redo() override {
+    if (!restore_) {
+      return absl::InternalError(
+          "DungeonCustomCollisionBatchAction: no restore callback");
+    }
+    return restore_(after_);
+  }
+
+  std::string Description() const override {
+    return absl::StrFormat("Generate minecart collision for %d rooms",
+                           static_cast<int>(after_.size()));
+  }
+
+  size_t MemoryUsage() const override {
+    return (before_.size() + after_.size()) *
+           sizeof(DungeonCustomCollisionSnapshot);
+  }
+
+  bool CanMergeWith(const UndoAction& /*prev*/) const override { return false; }
+
+ private:
+  std::vector<DungeonCustomCollisionSnapshot> before_;
+  std::vector<DungeonCustomCollisionSnapshot> after_;
+  RestoreFn restore_;
+};
+
 class DungeonWaterFillAction : public UndoAction {
  public:
   using RestoreFn = std::function<void(int room_id, const WaterFillSnapshot&)>;

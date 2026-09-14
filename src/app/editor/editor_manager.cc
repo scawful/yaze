@@ -59,6 +59,7 @@
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/shell/windows/dashboard_panel.h"
 #include "app/editor/shell/windows/project_management_panel.h"
+#include "app/editor/shell/windows/settings_panel.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/project_workflow_status.h"
 #include "app/editor/system/session/default_editor_factories.h"
@@ -250,6 +251,16 @@ void AppendWorkflowHistoryEntry(const std::string& kind,
 bool ProjectUsesCustomObjects(const project::YazeProject& project) {
   return !project.custom_objects_folder.empty() ||
          !project.custom_object_files.empty();
+}
+
+zelda3::CustomObjectManager::State BuildCustomObjectRuntimeState(
+    const project::YazeProject& project) {
+  return {
+      .base_path = project.custom_objects_folder.empty()
+                       ? ""
+                       : project.GetAbsolutePath(project.custom_objects_folder),
+      .custom_file_map = project.custom_object_files,
+  };
 }
 
 constexpr int kTrackCustomObjectId = 0x31;
@@ -1494,17 +1505,17 @@ void EditorManager::ApplyCurrentProjectRuntimeContext() {
 
   core::RomSettings::Get().SetAddressOverrides(
       current_project_.rom_address_overrides);
-  if (current_project_.custom_object_files.empty()) {
-    zelda3::CustomObjectManager::Get().ClearObjectFileMap();
+  auto& custom_object_manager = zelda3::CustomObjectManager::Get();
+  const auto custom_object_state =
+      BuildCustomObjectRuntimeState(current_project_);
+  if (session_coordinator_ != nullptr &&
+      session_coordinator_->GetActiveRomSession() != nullptr) {
+    custom_object_manager.ActivateRuntimeContext(
+        session_coordinator_->GetActiveRomSession()->session_id(),
+        custom_object_state);
   } else {
-    zelda3::CustomObjectManager::Get().SetObjectFileMap(
-        current_project_.custom_object_files);
+    custom_object_manager.RestoreState(custom_object_state);
   }
-  zelda3::CustomObjectManager::Get().Initialize(
-      current_project_.custom_objects_folder.empty()
-          ? ""
-          : current_project_.GetAbsolutePath(
-                current_project_.custom_objects_folder));
 
   if (current_project_.project_opened()) {
     rom_lifecycle_.ApplyDefaultBackupPolicy(
@@ -1629,9 +1640,17 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
     if (session) {
       core::FeatureFlags::get() = session->feature_flags;
       runtime_feature_flags_session_id_ = session->session_id();
+      const auto custom_object_state =
+          session->project_context.has_value()
+              ? BuildCustomObjectRuntimeState(*session->project_context)
+              : zelda3::CustomObjectManager::State{};
+      zelda3::CustomObjectManager::Get().ActivateRuntimeContext(
+          session->session_id(), custom_object_state);
     } else {
       runtime_feature_flags_session_id_.reset();
+      zelda3::CustomObjectManager::Get().ActivateStandaloneContext();
     }
+    zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
   }
 
   // Palette edit history and dirty tracking are session-owned. Select the
@@ -1759,6 +1778,10 @@ void EditorManager::HandleSessionClosed(size_t index) {
         session_coordinator_->IsValidSessionIndex(index)
             ? static_cast<RomSession*>(session_coordinator_->GetSession(index))
             : nullptr;
+    if (closing_session != nullptr) {
+      zelda3::CustomObjectManager::Get().RemoveRuntimeContext(
+          closing_session->session_id());
+    }
     if (closing_session != nullptr &&
         active_project_context_session_id_ == closing_session->session_id()) {
       CaptureActiveProjectContext();
@@ -6985,6 +7008,40 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
   deps.gfx_group_workspace = editor_set->gfx_group_workspace();
 
   editor_set->ApplyDependencies(deps);
+
+  if (auto* settings_panel = editor_set->GetSettingsPanel()) {
+    settings_panel->SetOpenMinecartTracksCallback(
+        [this, session_id]() -> absl::Status {
+          if (!IsCurrentProjectContextOwnedBySession(session_id)) {
+            return absl::FailedPreconditionError(
+                "Minecart Tracks requires its project session to be active.");
+          }
+          if (!core::FeatureFlags::get().kEnableCustomObjects) {
+            return absl::FailedPreconditionError(
+                "Enable Custom Dungeon Objects before opening Minecart "
+                "Tracks.");
+          }
+
+          RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kDungeon));
+          auto* dungeon = GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+              EditorType::kDungeon);
+          if (dungeon == nullptr) {
+            return absl::NotFoundError(
+                "Dungeon editor is unavailable in the active project "
+                "session.");
+          }
+          RETURN_IF_ERROR(dungeon->EnsureMinecartTrackEditorPanel());
+
+          SwitchToEditor(EditorType::kDungeon, true);
+          if (!window_manager_.OpenWindow(
+                  session_id, DungeonEditorV2::kMinecartTrackEditorId)) {
+            return absl::NotFoundError(
+                "Minecart Tracks could not be opened in the active Dungeon "
+                "editor.");
+          }
+          return absl::OkStatus();
+        });
+  }
 
   // If configuring the active session, update the properties panel
   if (session_id == GetCurrentSessionId()) {

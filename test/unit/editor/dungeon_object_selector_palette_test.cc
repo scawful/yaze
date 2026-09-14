@@ -2,27 +2,31 @@
 
 #include <algorithm>
 #include <array>
+#include <chrono>
 #include <cstddef>
+#include <filesystem>
+#include <fstream>
+#include <string>
 #include <vector>
 
 #include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_palette.h"
+#include "core/features.h"
 #include "framework/mock_renderer.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/dungeon/room_layer_manager.h"
 
 namespace yaze {
 namespace editor {
 
 struct DungeonObjectSelectorTestAccess {
-  static absl::Status OpenNewCustomObjectEditor(DungeonObjectSelector& selector,
-                                                int width, int height,
-                                                const std::string& filename,
-                                                int16_t object_id,
-                                                int room_id) {
-    return selector.OpenNewCustomObjectEditor(width, height, filename,
-                                              object_id, room_id);
+  static absl::Status OpenExistingCustomObjectEditor(
+      DungeonObjectSelector& selector, int16_t object_id, int subtype,
+      int room_id) {
+    return selector.OpenExistingCustomObjectEditor(object_id, subtype, room_id);
   }
 
   static void SynchronizePreviewCacheRoomContext(
@@ -60,6 +64,21 @@ struct DungeonObjectSelectorTestAccess {
                                  gfx::BackgroundBuffer** preview) {
     selector.GetOrCreatePreview(object, preview);
   }
+
+  static void SynchronizeCustomObjectGeneration(
+      DungeonObjectSelector& selector) {
+    selector.SynchronizeCustomObjectGeneration();
+  }
+
+  static absl::Status GetCustomObjectAssetStatus(
+      DungeonObjectSelector& selector, int object_id, int subtype) {
+    return selector.GetCustomObjectAssetStatus(object_id, subtype);
+  }
+
+  static size_t CustomAssetStatusCacheSize(
+      const DungeonObjectSelector& selector) {
+    return selector.custom_asset_status_cache_.size();
+  }
 };
 
 namespace {
@@ -73,6 +92,57 @@ size_t ActiveArenaSurfaceCount() {
   const auto& arena = gfx::Arena::Get();
   return arena.GetSurfaceCount() - arena.GetPooledSurfaceCount();
 }
+
+class ScopedSelectorCustomObjectState {
+ public:
+  ScopedSelectorCustomObjectState()
+      : previous_(zelda3::CustomObjectManager::Get().SnapshotState()),
+        previous_enabled_(core::FeatureFlags::get().kEnableCustomObjects) {
+    const auto nonce =
+        std::chrono::steady_clock::now().time_since_epoch().count();
+    path_ = std::filesystem::temp_directory_path() /
+            ("yaze_selector_custom_object_" + std::to_string(nonce));
+    std::filesystem::create_directories(path_);
+    zelda3::CustomObjectManager::Get().Initialize(path_.string());
+    zelda3::CustomObjectManager::Get().ClearObjectFileMap();
+    core::FeatureFlags::get().kEnableCustomObjects = true;
+    zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+    const std::vector<uint8_t> bytes = {
+        0x01, 0x00,  // count=1, jump=0
+        0x10, 0x28,  // tile word
+        0x00, 0x00,
+    };
+    std::ofstream output(path_ / "track_LR.bin", std::ios::binary);
+    output.write(reinterpret_cast<const char*>(bytes.data()),
+                 static_cast<std::streamsize>(bytes.size()));
+  }
+
+  ~ScopedSelectorCustomObjectState() {
+    core::FeatureFlags::get().kEnableCustomObjects = previous_enabled_;
+    zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+    zelda3::CustomObjectManager::Get().RestoreState(previous_);
+    std::error_code error;
+    std::filesystem::remove_all(path_, error);
+  }
+
+  bool WriteRawAsset(const std::string& filename,
+                     const std::vector<uint8_t>& bytes) const {
+    std::ofstream output(path_ / filename, std::ios::binary);
+    if (!output.is_open()) {
+      return false;
+    }
+    output.write(reinterpret_cast<const char*>(bytes.data()),
+                 static_cast<std::streamsize>(bytes.size()));
+    return output.good();
+  }
+
+  const std::filesystem::path& path() const { return path_; }
+
+ private:
+  zelda3::CustomObjectManager::State previous_;
+  bool previous_enabled_;
+  std::filesystem::path path_;
+};
 
 // Pins the cache-invalidation contract for DungeonObjectSelector's preview
 // cache.
@@ -495,10 +565,12 @@ TEST(DungeonObjectSelectorPreviewFitTest,
 }
 
 TEST(DungeonObjectSelectorCustomEditorTest,
-     NewCustomObjectSessionOpensWorkspaceWindow) {
+     ExistingCustomObjectSessionOpensWorkspaceWindow) {
+  ScopedSelectorCustomObjectState custom_state;
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
   DungeonRoomStore rooms(&rom);
+  rooms[0].SetLoaded(true);
   ObjectTileEditorPanel panel(nullptr, &rom);
   DungeonObjectSelector selector(&rom);
   selector.set_rooms(&rooms);
@@ -510,9 +582,8 @@ TEST(DungeonObjectSelectorCustomEditorTest,
   });
 
   const absl::Status status =
-      DungeonObjectSelectorTestAccess::OpenNewCustomObjectEditor(
-          selector, /*width=*/2, /*height=*/2, "custom_31_00.bin",
-          /*object_id=*/0x31, /*room_id=*/0);
+      DungeonObjectSelectorTestAccess::OpenExistingCustomObjectEditor(
+          selector, /*object_id=*/0x31, /*subtype=*/0, /*room_id=*/0);
 
   ASSERT_TRUE(status.ok()) << status;
   EXPECT_EQ(open_window_count, 1);
@@ -520,10 +591,12 @@ TEST(DungeonObjectSelectorCustomEditorTest,
 }
 
 TEST(DungeonObjectSelectorCustomEditorTest,
-     NewCustomObjectSessionFailsClosedWhenWindowIsUnavailable) {
+     ExistingCustomObjectSessionFailsClosedWhenWindowIsUnavailable) {
+  ScopedSelectorCustomObjectState custom_state;
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
   DungeonRoomStore rooms(&rom);
+  rooms[0].SetLoaded(true);
   ObjectTileEditorPanel panel(nullptr, &rom);
   DungeonObjectSelector selector(&rom);
   selector.set_rooms(&rooms);
@@ -531,25 +604,21 @@ TEST(DungeonObjectSelectorCustomEditorTest,
   selector.SetOpenTileEditorWindowCallback([]() { return false; });
 
   const absl::Status status =
-      DungeonObjectSelectorTestAccess::OpenNewCustomObjectEditor(
-          selector, /*width=*/2, /*height=*/2, "custom_31_00.bin",
-          /*object_id=*/0x31, /*room_id=*/0);
+      DungeonObjectSelectorTestAccess::OpenExistingCustomObjectEditor(
+          selector, /*object_id=*/0x31, /*subtype=*/0, /*room_id=*/0);
 
   EXPECT_TRUE(absl::IsNotFound(status));
   EXPECT_FALSE(panel.IsOpen());
 }
 
 TEST(DungeonObjectSelectorCustomEditorTest,
-     NewCustomObjectSessionPreservesExistingUnappliedEdits) {
+     OutOfRangeRuntimeSlotDoesNotOpenWorkspaceWindow) {
+  ScopedSelectorCustomObjectState custom_state;
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
   DungeonRoomStore rooms(&rom);
+  rooms[1].SetLoaded(true);
   ObjectTileEditorPanel panel(nullptr, &rom);
-  ASSERT_TRUE(panel
-                  .OpenForNewObject(/*width=*/2, /*height=*/2, "existing.bin",
-                                    /*object_id=*/0x31,
-                                    /*room_id=*/0, &rooms)
-                  .ok());
   DungeonObjectSelector selector(&rom);
   selector.set_rooms(&rooms);
   selector.SetTileEditorPanel(&panel);
@@ -560,13 +629,47 @@ TEST(DungeonObjectSelectorCustomEditorTest,
   });
 
   const absl::Status status =
-      DungeonObjectSelectorTestAccess::OpenNewCustomObjectEditor(
-          selector, /*width=*/1, /*height=*/1, "replacement.bin",
-          /*object_id=*/0x32, /*room_id=*/1);
+      DungeonObjectSelectorTestAccess::OpenExistingCustomObjectEditor(
+          selector, /*object_id=*/0x32, /*subtype=*/3, /*room_id=*/1);
 
-  EXPECT_TRUE(absl::IsFailedPrecondition(status));
-  EXPECT_EQ(open_window_count, 1);
-  EXPECT_TRUE(panel.IsOpen());
+  EXPECT_TRUE(absl::IsOutOfRange(status));
+  EXPECT_EQ(open_window_count, 0);
+  EXPECT_FALSE(panel.IsOpen());
+}
+
+TEST(DungeonObjectSelectorCustomRuntimeTest, FixedSlotsMatchOracleDispatch) {
+  for (int subtype = 0; subtype < 16; ++subtype) {
+    EXPECT_TRUE(IsDungeonCustomObjectRuntimeSlot(0x31, subtype));
+  }
+  EXPECT_FALSE(IsDungeonCustomObjectRuntimeSlot(0x31, 16));
+  for (int subtype = 0; subtype < 3; ++subtype) {
+    EXPECT_TRUE(IsDungeonCustomObjectRuntimeSlot(0x32, subtype));
+  }
+  EXPECT_FALSE(IsDungeonCustomObjectRuntimeSlot(0x32, 3));
+  for (int subtype = 0; subtype < 2; ++subtype) {
+    EXPECT_TRUE(IsDungeonCustomObjectRuntimeSlot(0x54, subtype));
+  }
+  EXPECT_FALSE(IsDungeonCustomObjectRuntimeSlot(0x54, 2));
+  EXPECT_FALSE(IsDungeonCustomObjectRuntimeSlot(0x30, 0));
+
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x31, 0), "Track horizontal");
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x31, 13),
+            "Sword House wall object");
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x32, 2), "Ice chair");
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x54, 0), "Kydreeok body");
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x54, 1), "Manhandla body");
+  EXPECT_EQ(GetDungeonCustomObjectSlotName(0x32, 3),
+            "Unknown custom runtime slot");
+}
+
+TEST(DungeonObjectSelectorCustomRuntimeTest,
+     MinecartManagementIsSeparateFromGraphicsOnlySlots) {
+  EXPECT_TRUE(IsMinecartGraphicsRuntimeSlot(0x31, 0));
+  EXPECT_TRUE(IsMinecartGraphicsRuntimeSlot(0x31, 12));
+  EXPECT_TRUE(IsMinecartGraphicsRuntimeSlot(0x31, 14));
+  EXPECT_FALSE(IsMinecartGraphicsRuntimeSlot(0x31, 13));
+  EXPECT_FALSE(IsMinecartGraphicsRuntimeSlot(0x31, 15));
+  EXPECT_FALSE(IsMinecartGraphicsRuntimeSlot(0x32, 0));
 }
 
 TEST(DungeonObjectSelectorSizeTest,
@@ -606,25 +709,347 @@ TEST(DungeonObjectSelectorSizeTest, CanonicalHelpersRespectCodecBoundaries) {
 }
 
 TEST(DungeonObjectSelectorSizeTest,
-     UnpersistableOracleSubtypeLeavesSelectionAndPreviewUnchanged) {
+     UnsupportedOracleRuntimeSubtypeLeavesSelectionAndPreviewUnchanged) {
   DungeonObjectSelector selector;
   int callback_count = 0;
   selector.SetObjectSelectedCallback(
       [&](const zelda3::RoomObject&) { ++callback_count; });
 
-  selector.SelectObject(0x31, 0x0C);
+  selector.SelectObject(0x01);
   ASSERT_TRUE(selector.IsObjectLoaded());
-  ASSERT_EQ(selector.selected_object_id_for_testing(), 0x31);
-  ASSERT_EQ(selector.GetPreviewObject().id_, 0x31);
-  EXPECT_EQ(selector.GetPreviewObject().size(), 0x0C);
+  ASSERT_EQ(selector.selected_object_id_for_testing(), 0x01);
+  ASSERT_EQ(selector.GetPreviewObject().id_, 0x01);
+  EXPECT_EQ(selector.GetPreviewObject().size(), 2);
   EXPECT_EQ(callback_count, 1);
 
-  selector.SelectObject(0x32, 0x12);
+  selector.SelectObject(0x32, 0x03);
 
+  EXPECT_EQ(selector.selected_object_id_for_testing(), 0x01);
+  EXPECT_EQ(selector.GetPreviewObject().id_, 0x01);
+  EXPECT_EQ(selector.GetPreviewObject().size(), 2);
+  EXPECT_EQ(callback_count, 1);
+}
+
+TEST(DungeonObjectSelectorCustomRuntimeTest,
+     EnabledCustomFamilyRequiresExplicitReadySubtype) {
+  ScopedSelectorCustomObjectState custom_state;
+  DungeonObjectSelector selector;
+  int callback_count = 0;
+  selector.SetObjectSelectedCallback(
+      [&](const zelda3::RoomObject&) { ++callback_count; });
+  selector.SelectObject(0x01);
+  ASSERT_EQ(callback_count, 1);
+
+  selector.SelectObject(0x31);
+  EXPECT_EQ(selector.selected_object_id_for_testing(), 0x01);
+  EXPECT_EQ(callback_count, 1);
+
+  selector.SelectObject(0x31, 0);
   EXPECT_EQ(selector.selected_object_id_for_testing(), 0x31);
-  EXPECT_EQ(selector.GetPreviewObject().id_, 0x31);
-  EXPECT_EQ(selector.GetPreviewObject().size(), 0x0C);
+  EXPECT_EQ(selector.GetPreviewObject().size(), 0);
+  EXPECT_EQ(callback_count, 2);
+}
+
+TEST(DungeonObjectSelectorCustomRuntimeTest,
+     DisabledFeatureRejectsExplicitCustomSubtypeWithoutChangingSelection) {
+  ScopedSelectorCustomObjectState custom_state;
+  DungeonObjectSelector selector;
+  int callback_count = 0;
+  selector.SetObjectSelectedCallback(
+      [&](const zelda3::RoomObject&) { ++callback_count; });
+  selector.SelectObject(0x01);
+  ASSERT_EQ(callback_count, 1);
+
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  selector.SelectObject(0x31, 0);
+
+  EXPECT_EQ(selector.selected_object_id_for_testing(), 0x01);
+  EXPECT_EQ(selector.GetPreviewObject().id_, 0x01);
   EXPECT_EQ(callback_count, 1);
+}
+
+TEST(DungeonObjectSelectorCustomRuntimeTest,
+     MissingAndMalformedAssetsLeaveSelectionAndCallbackUnchanged) {
+  ScopedSelectorCustomObjectState custom_state;
+  DungeonObjectSelector selector;
+  int callback_count = 0;
+  selector.SetObjectSelectedCallback(
+      [&](const zelda3::RoomObject&) { ++callback_count; });
+  selector.SelectObject(0x01);
+  ASSERT_EQ(callback_count, 1);
+
+  selector.SelectObject(0x31, 1);
+  EXPECT_EQ(selector.selected_object_id_for_testing(), 0x01);
+  EXPECT_EQ(callback_count, 1);
+
+  ASSERT_TRUE(
+      custom_state.WriteRawAsset("track_UD.bin", {0x01, 0x00, 0x34, 0x12}));
+  zelda3::CustomObjectManager::Get().ReloadAll();
+  DungeonObjectSelectorTestAccess::SynchronizeCustomObjectGeneration(selector);
+  selector.SelectObject(0x31, 1);
+
+  EXPECT_EQ(selector.selected_object_id_for_testing(), 0x01);
+  EXPECT_EQ(selector.GetPreviewObject().id_, 0x01);
+  EXPECT_EQ(callback_count, 1);
+}
+
+TEST(DungeonObjectSelectorCustomRuntimeTest,
+     MappingGenerationChangeClearsCachesAndMarksRoomsDirty) {
+  ScopedSelectorCustomObjectState custom_state;
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  auto& room = rooms[0];
+  room.SetLoaded(true);
+  DungeonObjectSelector selector(&rom);
+  selector.set_rooms(&rooms);
+
+  DungeonObjectSelectorTestAccess::SynchronizeCustomObjectGeneration(selector);
+  zelda3::RoomLayerManager layer_manager;
+  (void)room.GetCompositeBitmap(layer_manager);
+  ASSERT_FALSE(room.IsCompositeDirty());
+  DungeonObjectSelectorTestAccess::SeedPreviewCache(selector, 0x1234);
+  ASSERT_TRUE(DungeonObjectSelectorTestAccess::GetCustomObjectAssetStatus(
+                  selector, 0x31, 0)
+                  .ok());
+  ASSERT_EQ(DungeonObjectSelectorTestAccess::PreviewCacheSize(selector), 1u);
+  ASSERT_EQ(
+      DungeonObjectSelectorTestAccess::CustomAssetStatusCacheSize(selector),
+      1u);
+  const size_t invalidations_before =
+      selector.preview_cache_invalidations_for_testing();
+
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0x31, {"track_LR.bin"}}});
+  DungeonObjectSelectorTestAccess::SynchronizeCustomObjectGeneration(selector);
+
+  EXPECT_EQ(selector.preview_cache_invalidations_for_testing(),
+            invalidations_before + 1);
+  EXPECT_EQ(DungeonObjectSelectorTestAccess::PreviewCacheSize(selector), 0u);
+  EXPECT_EQ(
+      DungeonObjectSelectorTestAccess::CustomAssetStatusCacheSize(selector),
+      0u);
+  EXPECT_TRUE(room.IsCompositeDirty());
+}
+
+TEST(DungeonObjectSelectorCustomRuntimeTest,
+     QueuedCustomPlacementRefreshesAfterValidAssetReload) {
+  ScopedSelectorCustomObjectState custom_state;
+  DungeonObjectSelector selector;
+  int selected_count = 0;
+  int invalidated_count = 0;
+  selector.SetObjectSelectedCallback(
+      [&](const zelda3::RoomObject&) { ++selected_count; });
+  selector.SetPlacementInvalidatedCallback([&]() { ++invalidated_count; });
+
+  selector.SelectObject(0x31, 0);
+  ASSERT_TRUE(selector.IsObjectLoaded());
+  ASSERT_EQ(selected_count, 1);
+
+  ASSERT_TRUE(custom_state.WriteRawAsset(
+      "track_LR.bin", {0x02, 0x00, 0x10, 0x28, 0x11, 0x28, 0x00, 0x00}));
+  zelda3::CustomObjectManager::Get().ReloadAll();
+  DungeonObjectSelectorTestAccess::SynchronizeCustomObjectGeneration(selector);
+
+  EXPECT_TRUE(selector.IsObjectLoaded());
+  EXPECT_EQ(selector.selected_object_id_for_testing(), 0x31);
+  EXPECT_EQ(selected_count, 2);
+  EXPECT_EQ(invalidated_count, 0);
+}
+
+TEST(DungeonObjectSelectorCustomRuntimeTest,
+     QueuedWallCornerDoesNotRefreshAfterTrackAssetReload) {
+  ScopedSelectorCustomObjectState custom_state;
+  ASSERT_TRUE(custom_state.WriteRawAsset("track_corner_TL.bin",
+                                         {0x01, 0x00, 0x10, 0x28, 0x00, 0x00}));
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0x31, {"track_LR.bin", "track_UD.bin", "track_corner_TL.bin"}}});
+
+  DungeonObjectSelector selector;
+  int selected_count = 0;
+  int invalidated_count = 0;
+  selector.SetObjectSelectedCallback(
+      [&](const zelda3::RoomObject&) { ++selected_count; });
+  selector.SetPlacementInvalidatedCallback([&]() { ++invalidated_count; });
+
+  selector.SelectObject(0x100);
+  ASSERT_TRUE(selector.IsObjectLoaded());
+  ASSERT_EQ(selected_count, 1);
+
+  ASSERT_TRUE(custom_state.WriteRawAsset(
+      "track_corner_TL.bin", {0x02, 0x00, 0x10, 0x28, 0x11, 0x28, 0x00, 0x00}));
+  zelda3::CustomObjectManager::Get().ReloadAll();
+  DungeonObjectSelectorTestAccess::SynchronizeCustomObjectGeneration(selector);
+
+  EXPECT_TRUE(selector.IsObjectLoaded());
+  EXPECT_EQ(selector.selected_object_id_for_testing(), 0x100);
+  EXPECT_EQ(selector.GetPreviewObject().id_, 0x100);
+  EXPECT_EQ(selected_count, 1);
+  EXPECT_EQ(invalidated_count, 0);
+}
+
+TEST(DungeonObjectSelectorCustomRuntimeTest,
+     QueuedExplicitWallOverrideRefreshesAfterAssetReload) {
+  ScopedSelectorCustomObjectState custom_state;
+  ASSERT_TRUE(custom_state.WriteRawAsset("wall_corner.bin",
+                                         {0x01, 0x00, 0x10, 0x28, 0x00, 0x00}));
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0x100, {"wall_corner.bin"}}});
+
+  DungeonObjectSelector selector;
+  int selected_count = 0;
+  int invalidated_count = 0;
+  selector.SetObjectSelectedCallback(
+      [&](const zelda3::RoomObject&) { ++selected_count; });
+  selector.SetPlacementInvalidatedCallback([&]() { ++invalidated_count; });
+
+  selector.SelectObject(0x100);
+  ASSERT_TRUE(selector.IsObjectLoaded());
+  ASSERT_EQ(selected_count, 1);
+
+  ASSERT_TRUE(custom_state.WriteRawAsset(
+      "wall_corner.bin", {0x02, 0x00, 0x10, 0x28, 0x11, 0x28, 0x00, 0x00}));
+  zelda3::CustomObjectManager::Get().ReloadAll();
+  DungeonObjectSelectorTestAccess::SynchronizeCustomObjectGeneration(selector);
+
+  EXPECT_TRUE(selector.IsObjectLoaded());
+  EXPECT_EQ(selector.selected_object_id_for_testing(), 0x100);
+  EXPECT_EQ(selected_count, 2);
+  EXPECT_EQ(invalidated_count, 0);
+}
+
+TEST(DungeonObjectSelectorCustomRuntimeTest,
+     QueuedExplicitWallOverrideRefreshesToVanillaWhenFeatureIsDisabled) {
+  ScopedSelectorCustomObjectState custom_state;
+  ASSERT_TRUE(custom_state.WriteRawAsset("wall_corner.bin",
+                                         {0x01, 0x00, 0x10, 0x28, 0x00, 0x00}));
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0x100, {"wall_corner.bin"}}});
+
+  DungeonObjectSelector selector;
+  int selected_count = 0;
+  int invalidated_count = 0;
+  selector.SetObjectSelectedCallback(
+      [&](const zelda3::RoomObject&) { ++selected_count; });
+  selector.SetPlacementInvalidatedCallback([&]() { ++invalidated_count; });
+  selector.SelectObject(0x100);
+  ASSERT_TRUE(selector.IsObjectLoaded());
+
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  DungeonObjectSelectorTestAccess::SynchronizeCustomObjectGeneration(selector);
+
+  EXPECT_TRUE(selector.IsObjectLoaded());
+  EXPECT_EQ(selector.selected_object_id_for_testing(), 0x100);
+  EXPECT_EQ(selected_count, 2);
+  EXPECT_EQ(invalidated_count, 0);
+}
+
+TEST(DungeonObjectSelectorCustomRuntimeTest,
+     QueuedCustomPlacementCancelsAfterAssetRemoval) {
+  ScopedSelectorCustomObjectState custom_state;
+  DungeonObjectSelector selector;
+  int selected_count = 0;
+  int invalidated_count = 0;
+  selector.SetObjectSelectedCallback(
+      [&](const zelda3::RoomObject&) { ++selected_count; });
+  selector.SetPlacementInvalidatedCallback([&]() { ++invalidated_count; });
+  selector.SelectObject(0x31, 0);
+  ASSERT_TRUE(selector.IsObjectLoaded());
+
+  ASSERT_TRUE(std::filesystem::remove(custom_state.path() / "track_LR.bin"));
+  zelda3::CustomObjectManager::Get().ReloadAll();
+  DungeonObjectSelectorTestAccess::SynchronizeCustomObjectGeneration(selector);
+
+  EXPECT_FALSE(selector.IsObjectLoaded());
+  EXPECT_EQ(selector.selected_object_id_for_testing(), -1);
+  EXPECT_EQ(selected_count, 1);
+  EXPECT_EQ(invalidated_count, 1);
+}
+
+TEST(DungeonObjectSelectorCustomRuntimeTest,
+     QueuedCustomPlacementCancelsAfterSlotRemap) {
+  ScopedSelectorCustomObjectState custom_state;
+  DungeonObjectSelector selector;
+  int invalidated_count = 0;
+  selector.SetPlacementInvalidatedCallback([&]() { ++invalidated_count; });
+  selector.SelectObject(0x31, 0);
+  ASSERT_TRUE(selector.IsObjectLoaded());
+
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0x31, {"missing-remap.bin"}}});
+  DungeonObjectSelectorTestAccess::SynchronizeCustomObjectGeneration(selector);
+
+  EXPECT_FALSE(selector.IsObjectLoaded());
+  EXPECT_EQ(selector.selected_object_id_for_testing(), -1);
+  EXPECT_EQ(invalidated_count, 1);
+}
+
+TEST(DungeonObjectSelectorCustomRuntimeTest,
+     QueuedCustomPlacementCancelsWhenFeatureIsDisabled) {
+  ScopedSelectorCustomObjectState custom_state;
+  DungeonObjectSelector selector;
+  int invalidated_count = 0;
+  selector.SetPlacementInvalidatedCallback([&]() { ++invalidated_count; });
+  selector.SelectObject(0x31, 0);
+  ASSERT_TRUE(selector.IsObjectLoaded());
+
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  DungeonObjectSelectorTestAccess::SynchronizeCustomObjectGeneration(selector);
+
+  EXPECT_FALSE(selector.IsObjectLoaded());
+  EXPECT_EQ(selector.selected_object_id_for_testing(), -1);
+  EXPECT_EQ(invalidated_count, 1);
+}
+
+TEST(DungeonObjectSelectorCustomRuntimeTest,
+     QueuedVanillaFamilyPlacementCancelsWhenFeatureIsEnabled) {
+  ScopedSelectorCustomObjectState custom_state;
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  DungeonObjectSelector selector;
+  int selected_count = 0;
+  int invalidated_count = 0;
+  selector.SetObjectSelectedCallback(
+      [&](const zelda3::RoomObject&) { ++selected_count; });
+  selector.SetPlacementInvalidatedCallback([&]() { ++invalidated_count; });
+  selector.SelectObject(0x31);
+  ASSERT_TRUE(selector.IsObjectLoaded());
+
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  DungeonObjectSelectorTestAccess::SynchronizeCustomObjectGeneration(selector);
+
+  EXPECT_FALSE(selector.IsObjectLoaded());
+  EXPECT_EQ(selector.selected_object_id_for_testing(), -1);
+  EXPECT_EQ(selected_count, 1);
+  EXPECT_EQ(invalidated_count, 1);
+}
+
+TEST(DungeonObjectSelectorCustomRuntimeTest,
+     QueuedVanillaFamilyPlacementSurvivesAssetReloadWhileFeatureStaysDisabled) {
+  ScopedSelectorCustomObjectState custom_state;
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  DungeonObjectSelector selector;
+  DungeonObjectSelectorTestAccess::SynchronizeCustomObjectGeneration(selector);
+  int selected_count = 0;
+  int invalidated_count = 0;
+  selector.SetObjectSelectedCallback(
+      [&](const zelda3::RoomObject&) { ++selected_count; });
+  selector.SetPlacementInvalidatedCallback([&]() { ++invalidated_count; });
+  selector.SelectObject(0x31);
+  ASSERT_TRUE(selector.IsObjectLoaded());
+
+  zelda3::CustomObjectManager::Get().ReloadAll();
+  DungeonObjectSelectorTestAccess::SynchronizeCustomObjectGeneration(selector);
+
+  EXPECT_TRUE(selector.IsObjectLoaded());
+  EXPECT_EQ(selector.selected_object_id_for_testing(), 0x31);
+  EXPECT_EQ(selected_count, 1);
+  EXPECT_EQ(invalidated_count, 0);
 }
 
 TEST(DungeonObjectSelectorSizeTest,

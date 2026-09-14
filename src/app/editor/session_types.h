@@ -67,6 +67,10 @@ class EditorSet {
 
   void ApplyDependencies(const EditorDependencies& dependencies);
 
+  // Give materialized editors one terminal detach pass while their external
+  // WorkspaceWindowManager panels are still alive.
+  void PrepareForSessionTeardown();
+
   size_t session_id() const { return session_id_; }
 
   // Generic accessors
@@ -153,6 +157,7 @@ class EditorSet {
   std::optional<EditorDependencies> dependencies_;
   mutable std::unordered_map<EditorType, std::unique_ptr<Editor>> editors_;
   std::unordered_map<EditorType, EditorFactory> editor_factories_;
+  bool session_teardown_prepared_ = false;
 
   std::unique_ptr<GfxGroupWorkspaceState> gfx_group_workspace_;
 };
