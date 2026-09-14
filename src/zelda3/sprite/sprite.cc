@@ -1088,7 +1088,7 @@ void Sprite::Draw() {
     DrawSpriteTile((x * 16) + 16, (y * 16), 13, 22, 11, false, false, 1, 2);
   } else if (id_ == 0x9D)  // Babasu, visible upward frame
   {
-    // USDASM $0DBCA0: two overlapping 16x16 tiles, properties $0A OR $01
+    // USDASM $0DBCA0: two overlapping 16x16 tiles, properties $0A XOR $01
     // (OBJ page 1, palette 5). Draw the earlier OAM entry last.
     DrawSpriteTile((x * 16), (y * 16), 14, 21, 12);
     DrawSpriteTile((x * 16), (y * 16) - 8, 14, 20, 12);
