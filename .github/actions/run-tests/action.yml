@@ -5,7 +5,7 @@ inputs:
     description: 'Type of tests to run (stable, unit, integration, all)'
     required: true
   preset:
-    description: 'CMake preset to use (for reference, tests use minimal preset)'
+    description: 'CMake configure preset whose build tree contains the tests'
     required: false
     default: 'minimal'
   platform:
@@ -20,23 +20,14 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Select test preset suffix
-      shell: bash
-      run: |
-        if [ "${{ inputs.preset }}" = "ci-windows-ai" ]; then
-          echo "CTEST_SUFFIX=-ai" >> $GITHUB_ENV
-        else
-          echo "CTEST_SUFFIX=" >> $GITHUB_ENV
-        fi
-
     - name: Verify test inventory
       shell: bash
       run: |
         set -euo pipefail
         build_dir="build/presets/${{ inputs.preset }}"
-        inventory_preset="${{ inputs.test-type }}${CTEST_SUFFIX}"
+        label_regex="^${{ inputs.test-type }}$"
         if [ "${{ inputs.test-type }}" = "all" ]; then
-          inventory_preset="stable${CTEST_SUFFIX}"
+          label_regex="^stable$"
         fi
 
         python_cmd="$(command -v python3 || command -v python || true)"
@@ -48,7 +39,7 @@ runs:
         inventory_file="$build_dir/test_inventory.json"
         ctest --test-dir "$build_dir" \
           --build-config "${{ inputs.build-type }}" \
-          --preset "$inventory_preset" \
+          --label-regex "$label_regex" \
           --show-only=json-v1 > "$inventory_file"
 
         test_count="$("$python_cmd" - "$inventory_file" \
@@ -114,7 +105,7 @@ runs:
       run: |
         ctest --test-dir "build/presets/${{ inputs.preset }}" \
           --build-config "${{ inputs.build-type }}" \
-          --preset stable${CTEST_SUFFIX} \
+          --label-regex "^stable$" \
           --no-tests=error \
           --output-on-failure \
           --timeout 300 \
@@ -126,7 +117,7 @@ runs:
       run: |
         ctest --test-dir "build/presets/${{ inputs.preset }}" \
           --build-config "${{ inputs.build-type }}" \
-          --preset unit${CTEST_SUFFIX} \
+          --label-regex "^unit$" \
           --no-tests=error \
           --output-on-failure \
           --timeout 300 \
@@ -138,7 +129,7 @@ runs:
       run: |
         ctest --test-dir "build/presets/${{ inputs.preset }}" \
           --build-config "${{ inputs.build-type }}" \
-          --preset integration${CTEST_SUFFIX} \
+          --label-regex "^integration$" \
           --no-tests=error \
           --output-on-failure \
           --timeout 300 \
