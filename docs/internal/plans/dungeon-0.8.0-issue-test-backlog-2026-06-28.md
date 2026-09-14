@@ -204,11 +204,104 @@ Local artifacts: `/tmp/yaze-wave3-broad.log`, `/tmp/yaze-wave3-broad.xml`,
 `/tmp/yaze-wave3-room04a.png` / `/tmp/yaze-wave3-room04a-fixed.png`.
 These are temporary evidence, not committed fixtures or emulator captures.
 
-Next development targets: Oracle Manhandla `0x88` still previews vanilla
-Mothula; remaining water/ice room composition and sprite CGRAM need isolated
-runtime evidence. Also audit the headless `RenderService` layer-manager setup
-before using its exports to certify non-default room blending. Neither this
-slice nor the source-backed tests close the full R1/V1 release packets.
+The fourth slice below addresses Manhandla's source preview and the headless
+layer-manager setup. Remaining water/ice composition and sprite CGRAM still
+need isolated runtime evidence; these source-backed tests do not close the
+full R1/V1 release packets.
+
+## Fourth implementation slice: export composition and Oracle boss preview (2026-09-14)
+
+Integrated on the preview branch only. No mainline merge, installation or ROM
+write is part of this slice.
+
+- **Headless composition:** `RenderService` now applies room merge and effect
+  settings before compositing. The regression failed before the fix in six
+  vanilla rooms (`0x034/0x035/0x036/0x037/0x076/0x08F`) at each of three
+  scales. It compares every decoded PNG pixel against a separately loaded,
+  configured room composite. This protects agreement with the canvas, not
+  independent SNES color math.
+- **Export safety:** dungeon PNG output rejects aliases of both the active
+  ROM and the original source ROM, including sandbox workflows. Collision
+  and render exports share the existing path guard instead of duplicating
+  it. Symlinks are resolved before collapsing `..`, preserving actual
+  filesystem identity for source and output paths. CLI/API scale parsing
+  and direct service calls reject malformed,
+  non-finite and out-of-range values; the supported range is `0.25–8.0`.
+  PNG-disabled builds return `Unimplemented`, never raw RGBA labeled PNG.
+- **Manhandla `0x88`:** the Oracle project preview uses the source static
+  front head, not vanilla Mothula. Its two 16×16 entries use CHR `0x120` at
+  `(0,8)` then `0x100` at `(0,-8)`, OBJ palette 1, and no flips. Raw planar
+  graphics come from `Bosses/manhandla.bin` relative to `assets_folder`
+  (`Sprites` in Oracle), with an exact 8,192-byte size requirement. The
+  viewer caches the file per project/assets/profile context; reopening the
+  project refreshes successes and failures. Missing or malformed assets
+  leave a labeled marker. Neither the room graphics nor the ROM is changed.
+- **Ice/water source audit:** 38 Oracle `0xC8/0xD1` objects in rooms
+  `0x08C/0x0CE/0x04A/0x033` matched all 2,640 independently expanded
+  `(x,y,tile,layer,H/V/priority,palette)` writes. Actual payloads, palette
+  pointers and frame-zero animation spans agree with the source rules.
+  No new stamp/anchor defect was demonstrated, so those draw routines were
+  not changed. These traces do not close their independent visual proof.
+
+Manhandla source limit: `ApplyManhandlaGraphics` loads OBJ page 1 in room
+`0x05A`; an editor preview of the room `0x08C` placement does not establish
+that runtime hook's behavior there. `ApplyManhandlaPalette` changes BG CGRAM,
+not the head's OBJ palette 1. Spawned heads, BG body, animation, and actual
+runtime sprite CGRAM remain outside this static source contract.
+
+Verified against implementation head `742cf6247` in the Release `mac-ai`
+build, with four build workers:
+
+- **477/477** selected unit/ROM tests passed, zero skips; execution matched
+  the discovered test inventory exactly. This includes the third-slice
+  regression set, 40 collision-command tests using the extracted path
+  helpers, 15 render-safety/HTTP tests, and seven new sprite/resource tests.
+- **57/57 full-image comparisons** passed in two integration tests:
+  15 vanilla plus four Oracle rooms, each at scales `0.25`, `1`, and `2`.
+  The vanilla test failed before the fix on 18 room/scale combinations;
+  its expected images were not changed to obtain a pass.
+- The actual Manhandla source asset passed the static-head fingerprint
+  check: 331 visible indexed pixels. Asset SHA-256:
+  `dc3f3a479ee3ed5cf7b5ccf5e63eef63823c699eadf325407830ad93cc9053bb`.
+- A separate temporary executable compiled `RenderService` and its test
+  with `YAZE_CLI_HAS_PNG` undefined and passed the explicit missing-encoder
+  regression. This verifies the disabled service branch on macOS arm64
+  with existing dependencies, **not** a wholly libpng-free build or another
+  platform's build. The normal build configuration was not changed.
+- Maintained ladder: Tier 1 **42/42**; Tier 2 **11/11** plus **1/1** table
+  check; Tier 3 **12/12**; Tier 4 **7/7**, zero skips throughout. Tier 5:
+  **1,190 cases, zero mismatches, zero empty traces**. No golden or Mesen
+  image was refreshed in this slice.
+- Native `yaze`, `z3ed`, unit and integration targets build successfully.
+  Both canonical ROM SHA-256 values are unchanged. Fresh Oracle
+  `rom-doctor` reports zero critical/errors and the same two heuristic
+  `known_corruption_pattern` warnings at `0x1E878B` and `0x1EF540`; no
+  automatic repair was performed.
+
+Reproduce with `YAZE_TEST_ROM_VANILLA` and `YAZE_TEST_ROM_EXPANDED` set as in
+the third slice, and `YAZE_TEST_ORACLE_SPRITE_ASSETS` pointing to Oracle's
+`Sprites` directory:
+
+```sh
+cmake --build build/presets/mac-ai --config Release --target yaze_test_unit yaze_test_integration yaze z3ed --parallel 4
+wave4_filter='DungeonRenderScaleTest.*:DungeonRenderServiceTest.*:DungeonRenderCommandsTest.*:HttpApiHandlersTest.DungeonRender*:DungeonCollisionJsonCommandsTest.*:SpritePreviewResourceCacheTest.*:RoomGraphicsPaletteTest.*:SupportedRomRoles/RoomObjectRomParityTest.AnimatedRoomGraphicsFollowRomPointerAndMainGroup/*:RoomObjectEncodingTest.*:TileObjectHandlerTest.*:DungeonWorkbenchObjectSizeUiTest.*:SpriteRenderPreviewTest.*:DrawRoutineMappingTest.*:ObjectDrawerRegistryReplayTest.*:ObjectDimensionsTest.*:ObjectDrawingComprehensiveTest.*:ObjectDimensionTableTest.*:DrawRoutineRegistryTest.*:DimensionServiceTest.*:ObjectLayerSemanticsTest.*'
+build/presets/mac-ai/bin/yaze_test_unit --gtest_list_tests --gtest_filter="$wave4_filter"
+build/presets/mac-ai/bin/yaze_test_unit --gtest_filter="$wave4_filter" --gtest_output=xml:/tmp/yaze-wave4-focused.xml
+build/presets/mac-ai/bin/yaze_test_integration --gtest_filter='Dungeon*RoomRenderParityTest.*HeadlessPngMatchesRoomComposite' --gtest_output=xml:/tmp/yaze-wave4-export-green.xml
+scripts/agents/audit-dungeon-visual-parity.sh --build-dir build/presets/mac-ai --config Release --with-validate-report /tmp/yaze-wave4-validation.json
+ctest --test-dir build/presets/mac-ai --output-on-failure -R '^DungeonVisualParityAuditContract$'
+```
+
+Local evidence: `/tmp/yaze-wave4-focused.xml`,
+`/tmp/yaze-wave4-export-red.xml`, `/tmp/yaze-wave4-export-green.xml`,
+`/tmp/yaze-wave4-no-png.xml`, `/tmp/yaze-wave4-parity.log`,
+`/tmp/yaze-wave4-validation.json`, and `/tmp/yaze-wave4-rom-doctor.json`.
+These are temporary run artifacts, not emulator captures or committed fixtures.
+
+Next development target: independently isolate ice/water room composition
+and sprite CGRAM, starting with the unobstructed BG2 ice footprint in room
+`0x0CE`. Continue remaining door-family and custom-object proof; do not turn
+this integration result into a full dungeon-release readiness claim.
 
 ## Object coverage checklist
 
