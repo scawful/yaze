@@ -15,36 +15,60 @@ handoff was superseded after rendering, previews, and the workshop were added.
 
 ## Current implementation
 
+The safety changes below are implemented on the custom-object safety branch.
+They remain pending integration and hands-on runtime acceptance.
+
 | Concern | Current state | Main code |
 | --- | --- | --- |
-| Project configuration | `custom_objects_folder`, feature flag, and per-ID subtype filename lists persist in the project descriptor. | `src/core/project.{h,cc}` |
-| Loading | `CustomObjectManager` loads and caches external `.bin` layouts for IDs such as `0x31` and `0x32`. | `src/zelda3/dungeon/custom_object.{h,cc}` |
-| Rendering | Active project overrides route before the built-in draw routine. Ordinary corner objects keep vanilla behavior unless an explicit track-corner alias is configured. | `object_layer_semantics.h`, `object_drawer.cc` |
-| Geometry and previews | Custom layout bounds feed selection and object-browser previews. Preview keys include subtype and room graphics context. | `object_dimensions.cc`, `dungeon_object_selector.cc` |
-| Tile authoring | The Custom Object Workshop can create an object and the Object Tile Editor can update tile words in a `.bin` file. | `dungeon_object_selector.cc`, `object_tile_editor.{h,cc}` |
+| Project configuration | `custom_objects_folder`, the feature flag, and per-ID subtype filename lists persist in the project descriptor. | `src/core/project.{h,cc}` |
+| Runtime slots | Oracle currently exposes exactly 16 runtime slots for object `0x31` and three for object `0x32`. Project mappings may replace filenames within those slots; the Workshop cannot add runtime subtypes. | `custom_object.{h,cc}`, `dungeon_object_selector.cc` |
+| Loading and session identity | `CustomObjectManager` keeps one entry point but stores the project path, mappings, decoded cache, and asset generation in session-keyed runtime contexts. Session switches activate the matching context, and teardown removes it. | `custom_object.{h,cc}`, `editor_manager.cc`, `session_types.{h,cc}` |
+| Rendering | Active project overrides route before built-in draw routines. Corner aliases `0x100-0x103` use track-corner assets only when the project explicitly maps the asset and the current room contains a real minecart-track subtype. Placement ghosts use the same room gate. | `object_layer_semantics.h`, `object_drawer.cc`, `tile_object_handler.cc` |
+| Geometry and previews | Custom layout bounds include the active asset generation. Asset reloads and session switches invalidate stale geometry, thumbnails, and queued custom placements. | `object_geometry.{h,cc}`, `dungeon_object_selector.cc` |
+| Tile authoring and publication | The Workshop exposes **Edit Graphics** and **Use in Room** for existing fixed slots. The tile editor retains the exact source snapshot, supports a terminator-only empty asset through **Add First Tile**, and publishes desktop changes through strict encoding, stale-write comparison, rollback-protected atomic replacement, and decoded readback. Browser builds disable editing and fail closed in the publication API. | `object_tile_editor.{h,cc}`, `object_tile_editor_panel.{h,cc}`, `custom_object.{h,cc}` |
 | Minecart source | The Minecart panel parses and preserves the configured ASM start-room/X/Y source and can publish guarded changes. | `minecart_track_source.{h,cc}`, `minecart_track_editor_panel.{h,cc}` |
-| Minecart audit | The panel finds track subtype usage, start-table gaps, collision coverage, and can generate collision for one or many rooms. | `minecart_track_editor_panel.cc`, `track_collision_generator.{h,cc}` |
+| Minecart audit | The panel finds track subtype usage, start-table gaps, and collision coverage. It can still write generated collision for one or many rooms directly. | `minecart_track_editor_panel.cc`, `track_collision_generator.{h,cc}` |
 | Oracle overlays | Project lists identify track tiles, stops, switches, object IDs, and minecart sprites. | `Project::dungeon_overlay`, Dungeon overlays |
 
-Focused unit coverage exists for custom-object parsing/bounds/rendering, corner
-alias rules, tile-editor state/writeback, minecart source identity and project
-binding, overlay configuration, and collision generation. This is component
-evidence; it is not yet one complete authoring/publish/build/runtime workflow.
+Focused unit coverage now includes strict custom-object decoding and encoding,
+sparse layouts, 32-tile segments, zero-word no-ops, terminator-only assets,
+path confinement, stale-write rejection, fixed runtime capacities, session and
+geometry isolation, feature and asset-generation transitions, corner-alias room
+gating, tile-editor publication, and minecart components. This is component
+evidence; it is not yet a complete edit, publish, rebuild, and Mesen workflow.
 
 ## Important semantics
 
-### Object `0x31`
+### Fixed runtime slots
 
-The size nibble is a project subtype, not a vanilla width/height value.
+When Custom Objects is enabled, the low size bits select an existing Oracle
+runtime slot. They do not create a new object definition.
 
-- Subtypes `0-12` and `14` are minecart track pieces.
-- Subtype `13` is `wall_sword_house`.
-- Subtype `15` is `small_statue`.
-- Optional `0x100-0x103` wall-corner aliases may use track-corner files only
-  when the current project explicitly configures those files.
+#### Object `0x31`
 
-Track detection must never classify subtypes `13` or `15` as rails. Doing so
-can replace ordinary wall corners and can generate false collision.
+Object `0x31` has 16 fixed slots:
+
+- slots `0-12` and `14` are minecart track graphics;
+- slot `13` is `wall_sword_house`;
+- slot `15` is `small_statue`;
+- mappings longer than 16 entries do not extend the runtime dispatch table.
+
+Corner aliases `0x100-0x103` resolve to the mapped `0x31` corner slots only
+when the requested asset exists and the current room contains a track object
+using subtype `0-12` or `14`. Decorative subtypes `13` and `15` never enable
+track-corner aliases. This keeps ordinary wall corners on their vanilla draw
+routines in non-minecart rooms.
+
+#### Object `0x32`
+
+Object `0x32` has three fixed slots:
+
+- slot `0` is `furnace`;
+- slot `1` is `firewood`;
+- slot `2` is `ice_chair`.
+
+A fourth filename in the project mapping does not create a fourth runtime slot.
+Adding any new subtype requires a corresponding ASM dispatch-table change.
 
 ### Visual object versus gameplay behavior
 
@@ -60,32 +84,57 @@ An object's static tile stamp does not prove its runtime behavior:
 The editor must show these as related properties, not pretend they are one
 ordinary bitmap.
 
-## Confirmed safety gaps
+## Safety status
 
-1. **Custom `.bin` writeback is not lossless for every parsed layout.** The
-   current writer groups cells by row, emits each row densely, and always jumps
-   one row. Sparse columns or skipped rows can move tiles on rewrite.
-2. **The creation width allows 32 tiles, but the binary row count is five
-   bits.** A count of 32 masks to zero and can become a terminator. Creation
-   must stop at 31 or the format must split a row into valid segments.
-3. **Custom file publishing is a direct overwrite.** The writer joins a
-   user-controlled filename to the base path and uses `std::ofstream` directly.
-   It needs canonical project-root containment, a temporary file, verification,
-   and atomic replacement.
-4. **Project persistence can fail silently after first creation.** The callback
-   updates the mapping and discards the status from `project->Save()`.
-5. **The manager is process-global.** Multiple ROM/project sessions can share a
-   singleton unless every session switch rebinds it correctly. The project
-   object catalog should be session-owned or explicitly scoped.
-6. **Minecart collision batch generation is not transactional.** Generate All
-   writes each room directly. If a later room fails, earlier writes remain in
-   the ROM buffer, and the operation has no single undo/review step.
-7. **The UI mixes destinations.** One panel contains ASM source publishing,
-   project overlay settings, track starts, room audits, and direct ROM collision
-   writes. The different Save/Publish/Generate actions are easy to confuse.
+### Resolved in the current implementation
 
-Until these are fixed, custom-object editing and collision generation are an
-advanced Oracle workflow, not part of the general tester lane.
+1. **Custom `.bin` layout preservation.** A strict decoder and encoder validate
+   segment alignment, bounds, overlap, termination, and trailing data. Sparse
+   positions, leading and long gaps, zero-word runtime no-ops, terminator-only
+   empty assets, and 32-tile segments retain their runtime meaning.
+2. **Fixed runtime capacity.** The editor exposes only the 16 valid `0x31`
+   slots and three valid `0x32` slots. The removed create-and-append path can no
+   longer invent a subtype that the runtime cannot dispatch.
+3. **Contained publication.** Filenames must be portable, project-relative
+   `.bin` paths. Canonical path and symlink checks prevent publication outside
+   the configured custom-object folder.
+4. **Conflict-safe publication.** The editor retains the exact opened path and
+   source bytes. Apply uses a publication lock, exact-source compare-and-swap,
+   rollback-protected atomic replacement, exact byte readback, and decoded
+   layout verification. A stale editor keeps its draft and does not replace the
+   newer file.
+5. **Session isolation.** Project path, mapping, decoded assets, and generation
+   state are keyed by ROM session. Switching or closing sessions cannot reuse
+   another project's custom-object cache.
+6. **Fail-closed browser behavior.** WASM may load and preview configured
+   assets, but **Edit Graphics** is disabled and the publication API returns a
+   failed precondition because durable atomic project-file replacement is not
+   guaranteed.
+7. **Room-scoped corner aliases.** Track-corner overrides require an explicit
+   mapped asset and a real track subtype in the current room. Room rendering,
+   geometry, selector refresh, and placement ghosts share this rule.
+
+### Remaining safety and product gaps
+
+1. **Minecart collision batch generation is not transactional.** **Generate
+   All** writes rooms directly. If a later room fails, earlier ROM-buffer writes
+   remain, and the operation has no single preview, review, commit, or undo step.
+2. **Minecart actions still share one dense panel.** ASM source publication,
+   project overlay settings, starts, audits, and direct collision writes remain
+   easy to confuse, although graphics editing now links to the separate
+   Object Tile Editor.
+3. **The project object catalog is not implemented.** Wall overrides, ice,
+   moving floors, moving water, and HDMA/control objects do not yet expose
+   explicit visual, collision, runtime-behavior, source, and validation fields.
+4. **End-to-end proof is incomplete.** The branch still needs an
+   application-path edit/publish/reopen test, a patched-ROM rebuild, hands-on
+   desktop acceptance, and representative wall, ice, water, and minecart
+   witnesses in Mesen.
+
+Until these remaining gaps are closed, fixed-slot custom graphics publication
+remains an advanced desktop Oracle workflow. Viewing and placement can enter
+the tester lane sooner, but the UI must label graphics-only evidence separately
+from collision and runtime behavior.
 
 ## Target model: project object catalog
 
@@ -142,35 +191,53 @@ effect, collision, and Mesen evidence without moving the canvas.
 
 ## Implementation order
 
-### P0: contain writes
+### P0: finish write containment
 
-1. Add strict custom-binary validation and parse -> encode -> parse equality
-   tests, including sparse layouts and maximum row counts.
-2. Reject unsupported layouts before touching a file.
-3. Enforce project-root containment and atomic verified file replacement.
-4. Propagate project-save failures and roll back the in-memory mapping.
-5. Make minecart batch generation preview first and commit all rooms in one ROM
-   and editor transaction.
+Completed for fixed-slot custom `.bin` assets:
+
+- strict decoding, encoding, and runtime-layout verification;
+- sparse, no-op, empty, and 32-tile format handling;
+- project-root path confinement and portable filename validation;
+- stale-source rejection and rollback-protected atomic publication;
+- fixed `0x31` and `0x32` runtime capacities;
+- session-scoped manager state and generation-aware cache invalidation;
+- fail-closed WASM publication;
+- room-gated track-corner aliases in final rendering and placement ghosts.
+
+Remaining P0 work:
+
+1. Make minecart collision generation preview-only until the user confirms one
+   complete ROM and editor transaction.
+2. Add one review surface that shows every affected room before commit.
 
 ### P1: consolidate identity and UI
 
-1. Introduce the session-owned project object catalog and adapt the existing
-   manager/mappings to it without a second source of truth.
-2. Move the workshop into the Object Library inspector/drawer.
-3. Add task-based Minecart mode with route/collision/start validation.
-4. Model wall overrides, ice, moving floors, and water behavior explicitly.
+1. Introduce a session-owned project object catalog on top of the scoped
+   manager without creating a second source of truth.
+2. Move the modal Workshop into the stable Object Library inspector or drawer.
+3. Add task-based Minecart mode with route, collision, endpoint, and start
+   validation.
+4. Model wall overrides, ice, moving floors, water, and HDMA/control behavior
+   explicitly.
+5. Let Yaze create or replace a source asset only through a valid runtime slot
+   and a build-compatible project mapping.
 
 ### P2: migrate and prove runtime
 
-1. Import existing Oracle mappings and publish compatible `.bin`/ASM outputs.
-2. Add application-path tests for create/edit/publish/reopen.
-3. Build the patched ROM and validate representative wall, ice, water, and
+1. Import existing Oracle mappings and preserve compatible `.bin`, ASM,
+   manifest, and project outputs.
+2. Add application-path tests for edit, publish, reopen, conflict rejection,
+   and session switching.
+3. Verify view-only WASM behavior separately from desktop publication.
+4. Build the patched ROM and validate representative wall, ice, water, and
    minecart witnesses in Mesen.
 
 ## Exit criteria
 
 - No custom source or collision write can partially apply or escape the project.
-- Existing custom layouts roundtrip byte-equivalently or fail before writing.
+- Existing custom layouts preserve their decoded runtime positions, zero-word
+  no-op behavior, and empty-object meaning through an edit, or fail before
+  replacement. Closing an unmodified asset leaves its source bytes unchanged.
 - A user can see whether an object changes visuals, collision, runtime behavior,
   or more than one of them.
 - Wall aliases never activate from decorative `0x31` subtypes.
