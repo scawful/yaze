@@ -108,11 +108,11 @@ class TileObjectHandler : public BaseEntityHandler {
   void MoveBackward(int room_id, const std::vector<size_t>& indices);
 
   /**
-   * @brief Resize objects by a delta.
+   * @brief Resize objects by a delta; horizontal selects packed-floor width.
    * @return true if at least one editable object changed size.
    */
-  bool ResizeObjects(int room_id, const std::vector<size_t>& indices,
-                     int delta);
+  bool ResizeObjects(int room_id, const std::vector<size_t>& indices, int delta,
+                     bool horizontal = false);
 
   /**
    * @brief Place a new object. Returns false if blocked by ROM limits.
