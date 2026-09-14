@@ -84,8 +84,9 @@ a documented temporary manual gate with an owner and follow-up.
   ladder for reported object families.
 - Prioritize remaining water/ice/moving-floor strips, bar and staircase objects,
   corners, and sprite-preview palettes reported during hands-on testing.
-- Inventory project-mapped custom-object overrides, especially wall/corner
-  aliases, and keep decorative `0x31` subtypes separate from minecart semantics.
+- Inventory project-mapped custom-object overrides, especially exact-ID
+  wall/corner mappings, and keep decorative `0x31` subtypes separate from
+  minecart semantics.
 - Treat custom-object `.bin` publishing, room-object placement, minecart start
   tables, and generated collision as separate transactions until one workflow
   can validate and commit them together.
