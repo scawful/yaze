@@ -268,6 +268,10 @@ uint8_t DefaultRoomObjectSizeForPlacement(int object_id);
 bool IsRoomObjectResizable(int object_id);
 // Tile stride for each packed two-bit axis, or zero for scalar/fixed objects.
 int RoomObjectSizeAxisStep(int object_id);
+// Physical tile extent for a packed axis, including fixed borders. Returns zero
+// for scalar/fixed objects and active custom variants.
+int RoomObjectSizeAxisTiles(int object_id, uint8_t size,
+                            bool horizontal = false);
 // Packed objects resize height by default, width when horizontal is true.
 uint8_t ResizeRoomObjectByDelta(int object_id, uint8_t size, int delta,
                                 bool horizontal = false);
