@@ -2548,8 +2548,10 @@ TEST(ObjectDrawerRegistryReplayTest,
     for (auto layer : {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2,
                        RoomObject::LayerType::BG3}) {
       for (int size : {0, 1, 15}) {
-        for (const auto [x, y] : {std::pair{6, 8}, std::pair{31, 31},
-                                  std::pair{50, 60}, std::pair{60, 62}}) {
+        for (const auto position : {std::pair{6, 8}, std::pair{31, 31},
+                                    std::pair{50, 60}, std::pair{60, 62}}) {
+          const int x = position.first;
+          const int y = position.second;
           SCOPED_TRACE(::testing::Message()
                        << "layer=" << static_cast<int>(layer)
                        << " size=" << size << " at=" << x << ',' << y

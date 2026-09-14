@@ -798,6 +798,57 @@ nightly remains the older `75f817d5` candidate. Preserve the canonical dirty
 Grokbot checkout and stage any later app replacement as a separate versioned
 candidate; do not sync through the current release symlink in place.
 
+## PR #219 portability repair (2026-09-14)
+
+The combined preview at `a2d2fc1c1` exposed test portability failures that were
+not visible on the newer local macOS compiler. The macOS build/test jobs and
+Clang 14 AddressSanitizer build failed before tests ran; Windows ran 3,558
+cases and failed three fixture assumptions. These were not runtime sanitizer
+reports or newly reproduced rendering defects.
+
+1. **Sanctuary capture compatibility.** Replaced captured structured bindings
+   with ordinary local coordinates. All 72 combinations of position, layer,
+   size, and attributes retain the same tile assertions.
+2. **Native ROM alias resolution.** Windows normalizes `..` before following
+   a directory symlink. The fixture now places the active ROM and separate
+   decoy at the corresponding native destinations. Both source/output alias
+   directions still require rejection and unchanged ROM, alias, memory, and
+   decoy bytes. POSIX's order-sensitive assertion remains intact.
+3. **Cross-drive screenshot paths.** The relative-output fixture creates an
+   owned directory on the working drive when the temporary drive differs.
+   It does not change process working directory. Ownership transfers only
+   after successful creation; a name collision cannot expose an existing
+   directory to teardown. Format, decoded pixels, absolute result, relative
+   input, and path identity remain checked.
+
+**21/21 focused cases passed locally, zero failures/skips**, after rebuilding
+both test binaries. Discovery and executed XML names matched. An independent
+review found no weakened assertions or additional captured structured bindings
+in the changed test files. No production code or test selection was changed.
+
+```sh
+cmake --build build/presets/mac-ai --config Release --target yaze_test_unit --parallel 4
+cmake --build build/presets/mac-ai --config Release --target yaze_test_integration --parallel 4
+build/presets/mac-ai/bin/yaze_test_unit --gtest_list_tests --gtest_filter='ObjectDrawerRegistryReplayTest.SanctuaryWall*:DungeonRenderCommandsTest.*'
+build/presets/mac-ai/bin/yaze_test_unit --gtest_filter='ObjectDrawerRegistryReplayTest.SanctuaryWall*:DungeonRenderCommandsTest.*' --gtest_output=xml:/tmp/yaze-pr219-portability-unit.xml
+build/presets/mac-ai/bin/yaze_test_integration --gtest_list_tests --gtest_filter='ScreenshotUtilsTest.*'
+build/presets/mac-ai/bin/yaze_test_integration --gtest_filter='ScreenshotUtilsTest.*' --gtest_output=xml:/tmp/yaze-pr219-portability-integration.xml
+```
+
+A dependency-free Clang 14 capture probe reproduced the old syntax error and
+accepted the ordinary-variable form. Full local Clang 14 compilation could
+not substitute for CI because its old libc++ and this Mac's current SDK are
+incompatible; no full Clang 14 build pass is claimed. Windows-specific path
+behavior still requires the new CI run. Evidence is in
+`/tmp/yaze-pr219-portability-*` and `/tmp/yaze-pr219-capture-*`.
+
+The earlier local qualification of `a2d2fc1c1` passed 3,499 unit cases (66
+initial skips), then 63 explicitly enabled ROM/source-asset cases with no
+skips, and three Oracle room `001` startup/quit cycles with unchanged hashes.
+Those results remain evidence for that source, not a substitute for the
+repaired revision's CI. PR #219 stays unmerged and the `75f817d5` installation
+stays active until the replacement has passed its merge/deployment gates.
+
 ## Object coverage checklist
 
 Start by enumerating the supported IDs from `DrawRoutineRegistry` and the room

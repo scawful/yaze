@@ -292,10 +292,22 @@ TEST_F(ScreenshotUtilsTest, InvalidFormatOrExtensionLeavesNoArtifact) {
 }
 
 TEST_F(ScreenshotUtilsTest, ExplicitBmpAppendsExtensionAndReturnsAbsolutePath) {
+  // Windows CI may put temporary files on C: and the working directory on D:.
+  // Keep this fixture's output on the working drive so a relative path exists,
+  // without changing the process-wide working directory.
+  const auto working_directory = std::filesystem::current_path();
+  if (directory_.root_name() != working_directory.root_name()) {
+    ASSERT_TRUE(std::filesystem::is_empty(directory_));
+    const auto candidate = working_directory / directory_.filename();
+    ASSERT_TRUE(std::filesystem::create_directory(candidate));
+    const auto previous_directory = directory_;
+    directory_ = candidate;
+    ASSERT_TRUE(std::filesystem::remove(previous_directory));
+  }
   const auto extensionless = directory_ / "explicit";
-  // Do not change the process-wide working directory shared with other tests.
   const auto relative = std::filesystem::relative(extensionless);
   ASSERT_FALSE(relative.empty());
+  ASSERT_TRUE(relative.is_relative());
   const auto captured = CaptureHarnessScreenshot(relative.string(), false,
                                                  ScreenshotFormat::kBmp);
   ASSERT_TRUE(captured.ok()) << captured.status();
