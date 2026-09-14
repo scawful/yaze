@@ -394,6 +394,8 @@ jobs:
         run: bash scripts/dev/release-version-check.sh
       - name: Verify bounded build parallelism
         run: bash scripts/agents/test-build-parallelism-policy.sh
+      - name: Verify local nightly provenance
+        run: bash scripts/agents/test-nightly-local-provenance.sh
       - name: Protocol audit
         run: bash scripts/agents/protocol-audit.sh
       - name: Universe coordination tests
