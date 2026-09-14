@@ -7,6 +7,7 @@
 #include <iterator>
 #include <limits>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -137,7 +138,15 @@ class DungeonRenderCommandsTest : public ::testing::Test {
     const auto child = directory_ / "child";
     ASSERT_TRUE(std::filesystem::create_directory(logical));
     ASSERT_TRUE(std::filesystem::create_directory(child));
-    const auto decoy = logical / "source.sfc";
+    auto decoy = logical / "source.sfc";
+#ifdef _WIN32
+    // Win32 normalizes '..' before following the directory symlink. Put the
+    // active ROM at that native destination and the decoy at the target's
+    // parent; both platforms must still reject an alias of the active ROM.
+    ASSERT_TRUE(std::filesystem::copy_file(source_, decoy));
+    std::swap(source_, decoy);
+    rom_.set_filename(source_.string());
+#endif
     const std::string sentinel = "decoy file must survive";
     {
       std::ofstream out(decoy, std::ios::binary);
@@ -151,10 +160,16 @@ class DungeonRenderCommandsTest : public ::testing::Test {
                    << error.message();
     }
     const auto alias = logical / "link" / ".." / "source.sfc";
-    // Filesystem resolution reaches the real source, while lexical cleanup
-    // alone reaches the distinct decoy. Pin both facts before the command.
+    // Pin the native filesystem identity before exercising command safety.
     ASSERT_TRUE(std::filesystem::equivalent(alias, source_));
+#ifdef _WIN32
+    ASSERT_EQ(alias.lexically_normal(), source_);
+#else
+    // POSIX follows the link first, so premature lexical cleanup reaches the
+    // distinct decoy instead of the active ROM.
     ASSERT_EQ(alias.lexically_normal(), decoy);
+#endif
+    ASSERT_FALSE(std::filesystem::equivalent(source_, decoy));
     ASSERT_EQ(ReadBytes(alias), original_bytes_);
     if (alias_is_source) {
       ASSERT_TRUE(rom_.LoadFromFile(alias.string()).ok());
