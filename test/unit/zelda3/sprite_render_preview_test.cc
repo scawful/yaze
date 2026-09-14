@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "gtest/gtest.h"
+#include "test_utils.h"
 #include "zelda3/sprite/sprite_oam_tables.h"
 
 namespace yaze::zelda3 {
@@ -103,6 +104,59 @@ TEST(SpriteRenderPreviewTest, PreservesCgramIndex255AsVisibleDungeonPixel) {
   EXPECT_EQ((*preview)[0], 0);
   EXPECT_NE(std::find(preview->begin(), preview->end(), uint8_t{0xFF}),
             preview->end());
+}
+
+TEST(SpriteRenderPreviewTest, BabasuUsesSourcePaletteAndOverlappingLargeTiles) {
+  std::vector<uint8_t> graphics(kGraphicsBufferSize, 0);
+  // USDASM SpriteDraw_Babasu frame 12 ($0DBCA0): CHR4E at (0,-8),
+  // CHR5E at (0,0), both 16x16. Properties $0A OR sprite default $01
+  // select OBJ page 1, palette 5. Their shared eight rows use identical CHR5E/F
+  // pixels, so this source pose's OAM overlap has no distinguishable winner.
+  for (int tile_y = 0; tile_y < 3; ++tile_y) {
+    for (int tile_x = 0; tile_x < 2; ++tile_x) {
+      const int tile_id = 0x34E + tile_y * 16 + tile_x;
+      for (int py = 0; py < 8; ++py) {
+        for (int px = 0; px < 8; ++px) {
+          graphics[GraphicsIndexForTilePixel(tile_id, px, py)] =
+              1 + tile_y * 2 + tile_x;
+        }
+      }
+    }
+  }
+  Sprite sprite(0x9D, 21, 3, 0, 0);
+  sprite.RenderPreviewGraphics(graphics);
+  const auto& preview = *sprite.preview_graphics();
+  ASSERT_EQ(preview.size(), kPreviewSize * kPreviewSize);
+  for (int y = 0; y < kPreviewSize; ++y) {
+    for (int x = 0; x < kPreviewSize; ++x) {
+      const bool in_body = x >= 16 && x < 32 && y >= 8 && y < 32;
+      const int expected =
+          in_body ? 0xD1 + ((y - 8) / 8) * 2 + (x - 16) / 8 : 0;
+      EXPECT_EQ(preview[y * kPreviewSize + x], expected)
+          << "pixel " << x << "," << y;
+    }
+  }
+  EXPECT_EQ(sprite.x(), 21);
+  EXPECT_EQ(sprite.y(), 3);
+}
+
+TEST(SpriteRenderPreviewTest, ExpandedRomRetainsBabasuSourceFrameAndPalette) {
+  const auto path = test::TestRomManager::GetRomPath(test::RomRole::kExpanded);
+  if (std::getenv("YAZE_SKIP_ROM_TESTS") || path.empty()) {
+    GTEST_SKIP() << "Babasu source contract requires YAZE_TEST_ROM_EXPANDED";
+  }
+  std::ifstream rom(path, std::ios::binary);
+  ASSERT_TRUE(rom) << path;
+  // Static source contract only; no runtime/emulator frame is claimed.
+  constexpr std::array<uint8_t, 16> kFrame12 = {
+      0x00, 0x00, 0xF8, 0xFF, 0x4E, 0x0A, 0x00, 0x02,
+      0x00, 0x00, 0x00, 0x00, 0x5E, 0x0A, 0x00, 0x02};
+  std::array<uint8_t, 16> frame{};
+  rom.seekg(0x6BCA0);  // LoROM PC address of $0DBCA0.
+  ASSERT_TRUE(rom.read(reinterpret_cast<char*>(frame.data()), frame.size()));
+  EXPECT_EQ(frame, kFrame12);
+  rom.seekg(0x6B359 + 0x9D);  // SpriteData_OAMProp[$9D].
+  EXPECT_EQ(rom.get(), 0x01);
 }
 
 TEST(SpriteRenderPreviewTest, PuffstoolOverrideRequiresOracleProfile) {
