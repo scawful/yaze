@@ -15,6 +15,7 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/gui/canvas/canvas_pipelines.h"
+#include "app/gui/core/icons.h"
 #include "core/project.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui_internal.h"
@@ -43,6 +44,11 @@ struct IssueReportPopupSnapshot {
   ImVec2 size;
   ImGuiWindowFlags flags = ImGuiWindowFlags_None;
   bool outer_scrollbar_y = false;
+  bool body_found = false;
+  bool body_scrollbar_y = false;
+  ImRect body_bounds;
+  ImRect inner_bounds;
+  ImVec2 content_end;
 };
 
 class DungeonCanvasViewerTestPeer {
@@ -87,6 +93,43 @@ class DungeonCanvasViewerTestPeer {
     viewer.canvas_.RenderPersistentPopups();
   }
 
+  static void SetIssueReportCaptureState(DungeonCanvasViewer& viewer,
+                                         bool captured) {
+    viewer.issue_report_popup_screenshot_path_ =
+        captured ? "/tmp/room-001.png" : "";
+  }
+
+  static void SetIssueReportStatus(DungeonCanvasViewer& viewer,
+                                   const std::string& message, bool is_error) {
+    viewer.SetIssueReportPopupStatus(message, is_error);
+  }
+
+  static ImRect DrawIssueReportStatus(DungeonCanvasViewer& viewer) {
+    viewer.DrawIssueReportStatusMessage();
+    return ImRect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+  }
+
+  static ImGuiWindow* IssueReportBody(const DungeonCanvasViewer& viewer) {
+    ImGuiWindow* window =
+        ImGui::FindWindowByName(viewer.issue_report_popup_id_.c_str());
+    if (window != nullptr) {
+      for (ImGuiWindow* child : window->DC.ChildWindows) {
+        if (std::string_view(child->Name).find("##DungeonIssueReportBody") !=
+            std::string_view::npos) {
+          return child;
+        }
+      }
+    }
+    return nullptr;
+  }
+
+  static void ExpandIssueReportSections(const DungeonCanvasViewer& viewer) {
+    if (ImGuiWindow* body = IssueReportBody(viewer)) {
+      body->StateStorage.SetInt(body->GetID("Local files"), 1);
+      body->StateStorage.SetInt(body->GetID("Diagnostics"), 1);
+    }
+  }
+
   static IssueReportPopupSnapshot CaptureIssueReportPopup(
       const DungeonCanvasViewer& viewer) {
     IssueReportPopupSnapshot snapshot;
@@ -100,6 +143,15 @@ class DungeonCanvasViewerTestPeer {
     snapshot.size = window->Size;
     snapshot.flags = window->Flags;
     snapshot.outer_scrollbar_y = window->ScrollbarY;
+    snapshot.inner_bounds = window->InnerRect;
+    snapshot.content_end = window->DC.CursorMaxPos;
+    if (ImGuiWindow* body = IssueReportBody(viewer)) {
+      snapshot.body_found = true;
+      snapshot.body_scrollbar_y = body->ScrollbarY;
+      snapshot.body_bounds = ImRect(
+          body->Pos,
+          ImVec2(body->Pos.x + body->Size.x, body->Pos.y + body->Size.y));
+    }
     return snapshot;
   }
 
@@ -772,15 +824,26 @@ TEST(DungeonCanvasViewerNavigationTest,
   int font_height = 0;
   io.Fonts->GetTexDataAsRGBA32(&font_pixels, &font_width, &font_height);
 
-  ImGui::NewFrame();
-  ImGui::Begin("IssueReportHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
   DungeonCanvasViewer viewer;
-  DungeonCanvasViewerTestPeer::OpenIssueReportPopup(viewer);
-  DungeonCanvasViewerTestPeer::RenderIssueReportPopup(viewer);
-  const IssueReportPopupSnapshot popup =
-      DungeonCanvasViewerTestPeer::CaptureIssueReportPopup(viewer);
-  ImGui::End();
-  ImGui::Render();
+  bool opened = false;
+  auto render_popup = [&]() {
+    ImGui::NewFrame();
+    ImGui::Begin("IssueReportHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    if (!opened) {
+      DungeonCanvasViewerTestPeer::OpenIssueReportPopup(viewer);
+      opened = true;
+    }
+    DungeonCanvasViewerTestPeer::RenderIssueReportPopup(viewer);
+    const auto snapshot =
+        DungeonCanvasViewerTestPeer::CaptureIssueReportPopup(viewer);
+    ImGui::End();
+    ImGui::Render();
+    return snapshot;
+  };
+  IssueReportPopupSnapshot popup;
+  for (int frame = 0; frame < 3; ++frame) {
+    popup = render_popup();
+  }
 
   ASSERT_TRUE(popup.found);
   EXPECT_LE(popup.size.x, 448.5f);
@@ -790,8 +853,131 @@ TEST(DungeonCanvasViewerNavigationTest,
   EXPECT_EQ(popup.flags & ImGuiWindowFlags_AlwaysAutoResize, 0);
   EXPECT_NE(popup.flags & ImGuiWindowFlags_NoSavedSettings, 0);
   EXPECT_FALSE(popup.outer_scrollbar_y);
+  ASSERT_TRUE(popup.body_found);
+  const auto initial = popup;
+
+  DungeonCanvasViewerTestPeer::ExpandIssueReportSections(viewer);
+  const std::string error = "Could not write issue log: /a/very/long/" +
+                            std::string(500, 'x') +
+                            "\nPermission denied. Choose a writable location.";
+  DungeonCanvasViewerTestPeer::SetIssueReportStatus(viewer, error, true);
+  for (int frame = 0; frame < 3; ++frame) {
+    popup = render_popup();
+  }
+  EXPECT_TRUE(popup.body_scrollbar_y);
+  EXPECT_FALSE(popup.outer_scrollbar_y);
+  EXPECT_FLOAT_EQ(popup.position.x, initial.position.x);
+  EXPECT_FLOAT_EQ(popup.position.y, initial.position.y);
+  EXPECT_FLOAT_EQ(popup.size.x, initial.size.x);
+  EXPECT_FLOAT_EQ(popup.size.y, initial.size.y);
+  EXPECT_FLOAT_EQ(popup.body_bounds.Max.y, initial.body_bounds.Max.y);
+  EXPECT_LE(popup.content_end.x, popup.inner_bounds.Max.x);
+  EXPECT_LE(popup.content_end.y, popup.inner_bounds.Max.y);
 
   std::filesystem::remove_all(temp_home);
+}
+
+#ifdef YAZE_WITH_GRPC
+TEST(DungeonCanvasViewerNavigationTest,
+     IssueReportCaptureKeepsFooterStableAtWrappingThreshold) {
+  ScopedImGuiContext imgui;
+  ImGuiIO& io = ImGui::GetIO();
+  io.DeltaTime = 1.0f / 60.0f;
+  io.Fonts->AddFontDefault();
+  unsigned char* pixels = nullptr;
+  int width = 0;
+  int height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  ImGui::NewFrame();
+  const auto button_width = [](const char* label) {
+    return ImGui::CalcTextSize(label).x + ImGui::GetStyle().FramePadding.x * 2;
+  };
+  const float fixed_width = button_width(ICON_MD_SAVE_AS " Save to Issue Log") +
+                            button_width(ICON_MD_CONTENT_COPY " Copy Report") +
+                            button_width(ICON_MD_CLOSE " Close") +
+                            ImGui::GetStyle().ItemSpacing.x * 3;
+  const float capture_width =
+      button_width(ICON_MD_ADD_A_PHOTO " Capture Screenshot");
+  const float recapture_width =
+      button_width(ICON_MD_PHOTO_CAMERA " Re-capture Screenshot");
+  // Choose a width where the old variable-width capture button added a row.
+  io.DisplaySize =
+      ImVec2(fixed_width + (capture_width + recapture_width) * 0.5f +
+                 ImGui::GetStyle().WindowPadding.x * 2 + 32.0f,
+             360.0f);
+  ImGui::EndFrame();
+
+  DungeonCanvasViewer viewer;
+  bool opened = false;
+  auto render_popup = [&]() {
+    ImGui::NewFrame();
+    ImGui::Begin("IssueReportHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    if (!opened) {
+      DungeonCanvasViewerTestPeer::OpenIssueReportPopup(viewer);
+      opened = true;
+    }
+    DungeonCanvasViewerTestPeer::RenderIssueReportPopup(viewer);
+    const auto snapshot =
+        DungeonCanvasViewerTestPeer::CaptureIssueReportPopup(viewer);
+    ImGui::End();
+    ImGui::Render();
+    return snapshot;
+  };
+  IssueReportPopupSnapshot before;
+  for (int frame = 0; frame < 3; ++frame) {
+    before = render_popup();
+  }
+  ASSERT_TRUE(before.body_found);
+  DungeonCanvasViewerTestPeer::SetIssueReportCaptureState(viewer, true);
+  DungeonCanvasViewerTestPeer::SetIssueReportStatus(
+      viewer, "Screenshot captured. Open Local files for its path.", false);
+  for (int frame = 0; frame < 3; ++frame) {
+    const auto after = render_popup();
+    EXPECT_FALSE(after.outer_scrollbar_y);
+    EXPECT_FLOAT_EQ(after.position.x, before.position.x);
+    EXPECT_FLOAT_EQ(after.position.y, before.position.y);
+    EXPECT_FLOAT_EQ(after.body_bounds.Max.y, before.body_bounds.Max.y);
+    EXPECT_FLOAT_EQ(after.content_end.y, before.content_end.y);
+    EXPECT_LE(after.content_end.x, after.inner_bounds.Max.x);
+    EXPECT_LE(after.content_end.y, after.inner_bounds.Max.y);
+  }
+}
+#endif
+
+TEST(DungeonCanvasViewerNavigationTest,
+     IssueReportStatusKeepsFullMultilineErrorInTooltip) {
+  ScopedImGuiContext imgui;
+  ImGuiIO& io = ImGui::GetIO();
+  io.DeltaTime = 1.0f / 60.0f;
+  io.Fonts->AddFontDefault();
+  unsigned char* pixels = nullptr;
+  int width = 0;
+  int height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  DungeonCanvasViewer viewer;
+  const std::string error =
+      "Could not save: /" + std::string(200, 'x') + ".json\nPermission denied.";
+  DungeonCanvasViewerTestPeer::SetIssueReportStatus(viewer, error, true);
+  ImRect status_bounds;
+  std::string logged_text;
+  for (int frame = 0; frame < 3; ++frame) {
+    if (frame > 0) {
+      io.AddMousePosEvent(status_bounds.Min.x + 2, status_bounds.Min.y + 2);
+    }
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(360, 150), ImGuiCond_Always);
+    ImGui::Begin("IssueStatusHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    ImGui::LogToBuffer();
+    status_bounds = DungeonCanvasViewerTestPeer::DrawIssueReportStatus(viewer);
+    logged_text = ImGui::GetCurrentContext()->LogBuffer.c_str();
+    ImGui::LogFinish();
+    EXPECT_FLOAT_EQ(status_bounds.GetHeight(), ImGui::GetTextLineHeight());
+    EXPECT_LE(status_bounds.Max.x, ImGui::GetCurrentWindow()->InnerRect.Max.x);
+    ImGui::End();
+    ImGui::Render();
+  }
+  EXPECT_NE(logged_text.find(error), std::string::npos);
 }
 
 TEST(DungeonCanvasViewerNavigationTest,

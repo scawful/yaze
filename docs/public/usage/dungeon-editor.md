@@ -116,7 +116,9 @@ selection issue report. The report stays local until you choose **Save to Issue
 Log**. Its form scrolls independently on small windows, while save, copy,
 screenshot, and close actions remain available in the footer. File paths and
 raw renderer diagnostics are collapsed by default so they do not crowd the
-normal reporting flow.
+normal reporting flow. Screenshot capture keeps the action buttons in place.
+Long status messages stay on one line; hover over the status to read the full
+message, including any error details.
 
 ### Saving
 
