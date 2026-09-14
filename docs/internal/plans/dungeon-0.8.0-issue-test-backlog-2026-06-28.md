@@ -475,8 +475,9 @@ These are local diagnostics, not committed emulator reference fixtures.
 Native verification limits: the window-key Workbench-tab click failed in the
 harness, so the screenshot only confirms the active Object Selector surface.
 The harness also wrote BMP bytes for a PNG request; an explicit BMP capture
-was losslessly decoded for inspection. Both harness issues need separate
-follow-up. No installed app was replaced, and Windows/Linux/WASM packages,
+was losslessly decoded for inspection. The ninth slice fixes window/format
+capture; the Workbench-tab click still needs separate follow-up. No installed
+app was replaced, and Windows/Linux/WASM packages,
 full UI acceptance, independent sprite RGBA captures, and remaining object
 families are still open release gates.
 
@@ -595,8 +596,78 @@ build/presets/mac-ai/bin/yaze_test_unit --gtest_filter="$wave8_filter" --gtest_o
 Temporary evidence: `/tmp/yaze-wave8-baseline.*`, `/tmp/yaze-wave8-red.*`,
 `/tmp/yaze-wave8-green.*`, and `/tmp/yaze-wave8-green-build.log`. These are local
 diagnostics, not independent emulator captures or live GPU verification.
-Next automation task: correct the native screenshot request's window/format
-handling so targeted UI checks can produce the requested artifact reliably.
+The native screenshot request's window/format follow-up is completed in the
+ninth slice below.
+
+## Ninth implementation slice: reliable native UI screenshots (2026-09-14)
+
+Verified code at `6010668e8`, based on preview `329dc151b`. This fixes the native
+test harness's screenshot contract so subsequent preview/UI work can collect
+targeted evidence. It does not change dungeon rendering, ROM data, or goldens.
+
+1. **Requests reach the correct capture path.** The RPC now forwards both the
+   exact ImGui window name and requested format through the controller queue.
+   The main thread captures after rendering and before `Present`; callbacks
+   run outside the queue lock. Headless mode explicitly rejects capture because
+   it has no rendered GUI framebuffer; use `--service` for hidden native UI.
+2. **Extensions and image bytes agree.** PNG requests use libpng with explicit
+   RGBA byte order and row pitch. BMP remains supported. Unspecified format
+   infers `.png`/`.bmp` case-insensitively; an absent extension defaults to BMP
+   unless a format was explicitly requested, and the resolved extension is
+   appended. Unknown/mismatched extensions and JPEG fail explicitly. A build
+   without libpng returns `Unimplemented` for PNG instead of writing BMP bytes.
+   Returned paths are absolute; macOS file reveal no longer interpolates a
+   caller-controlled path into a shell command.
+3. **Window crops use framebuffer coordinates.** Main-viewport origin and DPI
+   scale are applied before clipping, using floor/ceil edges and overflow-safe
+   intersection. Hidden, collapsed, inactive, missing, and detached windows do
+   not silently produce full-frame captures. Unsupported renderer backends
+   fail before interpreting private backend data. Readback temporarily resets
+   and restores the SDL viewport so its previous crop cannot truncate pixels.
+
+**27/27 focused tests passed, zero failures/skips.** Both filter patterns
+matched discovered suites and the executed XML names exactly matched the
+inventory. This includes 11 new software-renderer tests using the real ImGui
+SDL backend and four new RPC-boundary tests. PNG is decoded and every RGBA
+pixel compared; BMP, 1x/2x window coordinates, clipping, renderer state, and
+negative requests are covered. The first run exposed a test CMake capability
+mismatch (26/27): imported PNG targets in `src/` were not visible in sibling
+`test/`. Tests now follow the encoder's compiled capability and import their
+decoder locally, so a PNG-capable build cannot silently use the no-PNG branch.
+
+Native macOS/SDL2 verification used a separate temporary app-data directory,
+hidden `--service` instance, unused API/harness ports, and **no ROM loaded**
+(confirmed through `RomService/GetRomInfo`). Live RPC captures produced genuine
+PNG and BMP full frames at **864x1536**, plus an exact-name `##WelcomeScreen`
+PNG crop at **734x1050**; the settled crop was visually inspected. Inferred PNG
+also worked. Missing-window, JPEG, and format/suffix mismatch requests failed
+without artifacts. The final smoke exited through `shortcut:Quit` with status
+0; its listeners were gone afterward. The existing service binds all network
+interfaces, not just loopback; this was a short-lived local diagnostic with no
+ROM, not a deployment. This work did not modify the installed app or canonical
+Grokbot checkout.
+
+```sh
+cmake --build build/presets/mac-ai --config Release --target yaze_test_integration yaze --parallel 4
+wave9_filter='ScreenshotUtilsTest.*:ImGuiTestHarnessLogicTest.*'
+build/presets/mac-ai/bin/yaze_test_integration --gtest_list_tests --gtest_filter="$wave9_filter"
+build/presets/mac-ai/bin/yaze_test_integration --gtest_filter="$wave9_filter" --gtest_output=xml:/tmp/yaze-wave9-green.xml
+```
+
+Local evidence: `/tmp/yaze-wave9-inventory.txt`, `/tmp/yaze-wave9-green.*`,
+`/tmp/yaze-wave9-build.log`, and `/tmp/yaze-wave9-runtime.ApR3sg/` (smoke script,
+settled screenshots, results, isolated profile). These are diagnostics, not
+committed Mesen fixtures. SDL3 and Windows branches received source review but
+were not built here; a no-libpng configuration was not executed. This does not
+renew Windows/Linux/WASM packaging or ROM/emulator parity evidence.
+
+**Next:** verify targeted dungeon preview/UI surfaces with this capture path.
+The earlier Workbench-tab automation click remains open. Direct screenshot
+consumers in `EmulatorServiceImpl::GetGameState` (BMP bytes labeled PNG) and the
+dungeon issue-report UI (synchronous mid-frame capture) still need their own
+queue/format audit; this slice does not claim that every screenshot consumer
+now follows the main-thread, before-presentation contract. Full UI acceptance,
+mainline merge, remaining object families, and platform release gates stay open.
 
 ## Object coverage checklist
 
