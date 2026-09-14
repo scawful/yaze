@@ -1367,13 +1367,16 @@ TEST_F(DungeonRoomRegressionFixturesTest,
             legacy.object_bg2_buffer().buffer());
   EXPECT_EQ(corrected.object_bg2_buffer().coverage_data(),
             legacy.object_bg2_buffer().coverage_data());
-  EXPECT_EQ(corrected.object_bg2_buffer().priority_data(),
-            legacy.object_bg2_buffer().priority_data());
+  const auto& new_priority = corrected.object_bg2_buffer().priority_data();
+  const auto& old_priority = legacy.object_bg2_buffer().priority_data();
+  ASSERT_EQ(new_priority.size(), new_bg2.size());
+  ASSERT_EQ(old_priority.size(), old_bg2.size());
 
   std::array<size_t, 16> changed_by_tile{};
   size_t changed_pixels = 0;
   for (size_t i = 0; i < new_bg2.size(); ++i) {
     if (new_bg2.data()[i] == old_bg2.data()[i]) {
+      ASSERT_EQ(new_priority[i], old_priority[i]);
       continue;
     }
     const int x = i % new_bg2.width();
@@ -1391,6 +1394,9 @@ TEST_F(DungeonRoomRegressionFixturesTest,
         source_pixel == 0 ? 255 : source_pixel + ((word >> 10) & 7) * 16;
     ASSERT_EQ(new_bg2.data()[i], expected)
         << "animated source pixel at " << x << "," << y;
+    // The per-pixel priority buffer uses $FF for transparent pixels; only the
+    // tile word's priority bit is invariant when the new frame adds opacity.
+    EXPECT_EQ(new_priority[i], expected == 255 ? 255 : ((word >> 13) & 1));
     ++changed_by_tile[tile - 0x1B0];
     ++changed_pixels;
   }
