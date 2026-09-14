@@ -9,6 +9,7 @@
 #endif
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #if defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
@@ -16,6 +17,7 @@
 #include "app/testing/visual_diff_engine.h"
 #endif
 #include "integration/zelda3/dungeon_room_regression_fixtures.h"
+#include "rom/snes.h"
 #include "test_utils.h"
 #if defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
 #include "util/rom_hash.h"
@@ -1285,6 +1287,143 @@ TEST_F(DungeonRoomRegressionFixturesTest, PerLayerFingerprintsMatchGolden) {
               fixture.object_bg2_non_backdrop_pixels)
         << fixture.name << " object BG2 pixel count drift";
   }
+}
+
+TEST_F(DungeonRoomRegressionFixturesTest,
+       SwampWaterFingerprintDriftIsOnlyCorrectedAnimatedFrame) {
+  constexpr int kRoomId = 0x016;
+  constexpr int kAnimatedOperandPc = 0x10275;
+  constexpr size_t kFrameBytes = 1024;
+  constexpr size_t kAnimatedStart = 0x1B0 * 64;
+  constexpr size_t kAnimatedEnd = kAnimatedStart + kFrameBytes;
+  const auto table_snes = rom_.ReadLong(kAnimatedOperandPc);
+  ASSERT_TRUE(table_snes.ok());
+  ASSERT_EQ(*table_snes, 0x02811Eu);
+  Room corrected = LoadRoomFromRom(&rom_, kRoomId);
+  ASSERT_EQ(corrected.blockset(), 0x08);
+  const auto selected_sheet =
+      rom_.ReadByte(SnesToPc(*table_snes) + corrected.blockset());
+  const auto old_sheet = rom_.ReadByte(SnesToPc(kAnimatedOperandPc));
+  ASSERT_TRUE(selected_sheet.ok());
+  ASSERT_TRUE(old_sheet.ok());
+  ASSERT_EQ(*selected_sheet, 0x5D);
+  ASSERT_EQ(*old_sheet, 0x93);
+
+  // Counterfactual for the pre-872e419a0 loader only. It treated the LDA.l
+  // operand's PC offset as a SNES address and read sheet $93 from PC $8275.
+  // Feed that old frame through the corrected renderer without reverting any
+  // production code or modifying ROM bytes. The full graphics comparison
+  // below proves this substitution affects only the selected animated span.
+  GameData legacy_data = game_data_;
+  const size_t selected_source = *selected_sheet * 4096;
+  const size_t old_source = *old_sheet * 4096;
+  ASSERT_LE(selected_source + kFrameBytes, legacy_data.graphics_buffer.size());
+  ASSERT_LE(old_source + kFrameBytes, game_data_.graphics_buffer.size());
+  std::copy_n(game_data_.graphics_buffer.begin() + old_source, kFrameBytes,
+              legacy_data.graphics_buffer.begin() + selected_source);
+  Room legacy = LoadRoomFromRom(&rom_, kRoomId);
+  const auto render = [](Room& room, GameData& data) {
+    room.SetGameData(&data);
+    room.LoadRoomGraphics();
+    room.LoadObjects();
+    room.CopyRoomGraphicsToBuffer();
+    room.RenderRoomGraphics();
+  };
+  render(corrected, game_data_);
+  render(legacy, legacy_data);
+
+  const auto& current_gfx = corrected.get_gfx_buffer();
+  const auto& legacy_gfx = legacy.get_gfx_buffer();
+  EXPECT_TRUE(std::equal(current_gfx.begin(),
+                         current_gfx.begin() + kAnimatedStart,
+                         legacy_gfx.begin()));
+  EXPECT_TRUE(std::equal(current_gfx.begin() + kAnimatedEnd, current_gfx.end(),
+                         legacy_gfx.begin() + kAnimatedEnd));
+  EXPECT_TRUE(std::equal(current_gfx.begin() + kAnimatedStart,
+                         current_gfx.begin() + kAnimatedEnd,
+                         game_data_.graphics_buffer.begin() + selected_source));
+
+  const auto& old_bg2 = legacy.object_bg2_buffer().bitmap();
+  const auto& new_bg2 = corrected.object_bg2_buffer().bitmap();
+  ASSERT_TRUE(old_bg2.is_active());
+  ASSERT_TRUE(new_bg2.is_active());
+  ASSERT_EQ(old_bg2.size(), new_bg2.size());
+  // Historical fingerprints are intentional here: they prove reproduction of
+  // the previous golden independently of the fixture's eventual new values.
+  EXPECT_EQ(Fnv1a64(old_bg2.data(), old_bg2.size()), 10480448132206945203ull);
+  EXPECT_EQ(CountOpaqueLayerPixels(old_bg2), 26572);
+  for (const auto& buffers :
+       {std::make_pair(&corrected.bg1_buffer(), &legacy.bg1_buffer()),
+        std::make_pair(&corrected.bg2_buffer(), &legacy.bg2_buffer()),
+        std::make_pair(&corrected.object_bg1_buffer(),
+                       &legacy.object_bg1_buffer())}) {
+    ASSERT_EQ(buffers.first->bitmap().size(), buffers.second->bitmap().size());
+    EXPECT_TRUE(std::equal(
+        buffers.first->bitmap().data(),
+        buffers.first->bitmap().data() + buffers.first->bitmap().size(),
+        buffers.second->bitmap().data()));
+  }
+  EXPECT_EQ(corrected.object_bg2_buffer().buffer(),
+            legacy.object_bg2_buffer().buffer());
+  EXPECT_EQ(corrected.object_bg2_buffer().coverage_data(),
+            legacy.object_bg2_buffer().coverage_data());
+  EXPECT_EQ(corrected.object_bg2_buffer().priority_data(),
+            legacy.object_bg2_buffer().priority_data());
+
+  std::array<size_t, 16> changed_by_tile{};
+  size_t changed_pixels = 0;
+  for (size_t i = 0; i < new_bg2.size(); ++i) {
+    if (new_bg2.data()[i] == old_bg2.data()[i]) {
+      continue;
+    }
+    const int x = i % new_bg2.width();
+    const int y = i / new_bg2.width();
+    const uint16_t word = corrected.object_bg2_buffer().GetTileAt(x / 8, y / 8);
+    const int tile = word & 0x3FF;
+    ASSERT_GE(tile, 0x1B0) << "changed pixel at " << x << "," << y;
+    ASSERT_LT(tile, 0x1C0) << "changed pixel at " << x << "," << y;
+    const int px = (word & 0x4000) ? 7 - (x & 7) : (x & 7);
+    const int py = (word & 0x8000) ? 7 - (y & 7) : (y & 7);
+    const uint8_t source_pixel =
+        game_data_.graphics_buffer[selected_source + (tile - 0x1B0) * 8 +
+                                   py * 128 + px];
+    const uint8_t expected =
+        source_pixel == 0 ? 255 : source_pixel + ((word >> 10) & 7) * 16;
+    ASSERT_EQ(new_bg2.data()[i], expected)
+        << "animated source pixel at " << x << "," << y;
+    ++changed_by_tile[tile - 0x1B0];
+    ++changed_pixels;
+  }
+  EXPECT_GT(changed_pixels, 0u);
+
+  RoomLayerManager old_layers;
+  old_layers.ApplyLayerMerging(legacy.layer_merging());
+  old_layers.ApplyRoomEffect(legacy.effect());
+  const auto& old_composite = legacy.GetCompositeBitmap(old_layers);
+  ASSERT_TRUE(old_composite.is_active());
+  EXPECT_EQ(Fnv1a64(old_composite.data(), old_composite.size()),
+            16184705480853915451ull);
+  EXPECT_EQ(CountNonBackdropPixels(old_composite), 231372);
+  RoomLayerManager new_layers;
+  new_layers.ApplyLayerMerging(corrected.layer_merging());
+  new_layers.ApplyRoomEffect(corrected.effect());
+  const auto& new_composite = corrected.GetCompositeBitmap(new_layers);
+  ASSERT_EQ(new_composite.size(), old_composite.size());
+  for (size_t i = 0; i < new_composite.size(); ++i) {
+    if (new_bg2.data()[i] == old_bg2.data()[i]) {
+      ASSERT_EQ(new_composite.data()[i], old_composite.data()[i])
+          << "composite changed outside corrected BG2 pixels at " << i;
+    }
+  }
+  std::cout << "Room 016 animated-frame correction: " << changed_pixels
+            << " BG2 pixels; tile counts";
+  for (size_t tile = 0; tile < changed_by_tile.size(); ++tile) {
+    if (changed_by_tile[tile] != 0) {
+      std::cout << " " << std::hex << (tile + 0x1B0) << std::dec << ":"
+                << changed_by_tile[tile];
+    }
+  }
+  std::cout << std::endl;
 }
 
 TEST_F(DungeonRoomRegressionFixturesTest,
