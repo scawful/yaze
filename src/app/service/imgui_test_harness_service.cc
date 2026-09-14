@@ -1846,9 +1846,37 @@ absl::Status ImGuiTestHarnessServiceImpl::Screenshot(
   if (!response) {
     return absl::InvalidArgumentError("response cannot be null");
   }
+  response->Clear();
 
   const std::string requested_path =
       request ? request->output_path() : std::string();
+  ScreenshotFormat format = ScreenshotFormat::kAuto;
+  if (request) {
+    switch (request->format()) {
+      case ScreenshotRequest::IMAGE_FORMAT_UNSPECIFIED:
+        break;
+      case ScreenshotRequest::IMAGE_FORMAT_PNG:
+        format = ScreenshotFormat::kPng;
+        break;
+      case ScreenshotRequest::IMAGE_FORMAT_BMP:
+        format = ScreenshotFormat::kBmp;
+        break;
+      case ScreenshotRequest::IMAGE_FORMAT_JPEG:
+        return absl::UnimplementedError(
+            "JPEG screenshots are not supported; request PNG or BMP");
+      default:
+        return absl::InvalidArgumentError("Unknown screenshot image format");
+    }
+  }
+  auto format_or = ResolveScreenshotFormat(requested_path, format);
+  if (!format_or.ok()) {
+    return format_or.status();
+  }
+  auto* controller = Application::Instance().GetController();
+  if (!controller) {
+    return absl::FailedPreconditionError(
+        "Application controller not available");
+  }
 
   // We must execute capture on the main thread to avoid Metal/OpenGL context errors.
   // Use Controller's request queue.
@@ -1859,8 +1887,10 @@ absl::Status ImGuiTestHarnessServiceImpl::Screenshot(
   };
   auto state = std::make_shared<State>();
 
-  Application::Instance().GetController()->RequestScreenshot(
+  controller->RequestScreenshot(
       {.preferred_path = requested_path,
+       .window_title = request ? request->window_title() : std::string(),
+       .format = *format_or,
        .reveal_to_user = false,
        .callback = [state](absl::StatusOr<ScreenshotArtifact> result) {
          state->result = std::move(result);

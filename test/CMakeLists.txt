@@ -504,6 +504,7 @@ if(YAZE_BUILD_TESTS)
     list(APPEND STABLE_INTEGRATION_TEST_SOURCES
       integration/grpc_server_smoke_test.cc
       integration/imgui_test_harness_logic_test.cc
+      integration/screenshot_utils_test.cc
     )
   endif()
 
@@ -520,6 +521,24 @@ if(YAZE_BUILD_TESTS)
     TIMEOUT 45
   )
   yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})
+  if(YAZE_WITH_GRPC AND TARGET yaze_grpc_support)
+    # Match the encoder's compiled capability, not sibling-directory visibility
+    # of the imported PNG target. Find it locally only when the encoder uses it.
+    get_target_property(_YAZE_SCREENSHOT_ENCODER_DEFINITIONS
+      yaze_grpc_support COMPILE_DEFINITIONS)
+    if("YAZE_SCREENSHOT_HAS_PNG=1" IN_LIST _YAZE_SCREENSHOT_ENCODER_DEFINITIONS)
+      if(NOT TARGET PNG::PNG)
+        find_package(PNG QUIET)
+      endif()
+      if(NOT TARGET PNG::PNG)
+        message(FATAL_ERROR "PNG-enabled screenshot tests require PNG::PNG")
+      endif()
+      target_link_libraries(yaze_test_integration PRIVATE PNG::PNG)
+      target_compile_definitions(yaze_test_integration PRIVATE
+        YAZE_SCREENSHOT_TEST_HAS_PNG=1
+      )
+    endif()
+  endif()
   target_compile_definitions(yaze_test_integration PRIVATE
     YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
   )
