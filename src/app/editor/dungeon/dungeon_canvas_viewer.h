@@ -1037,7 +1037,8 @@ class DungeonCanvasViewer {
   std::string issue_report_popup_screenshot_path_;
   std::string issue_report_popup_last_log_path_;
   std::string issue_report_popup_status_message_;
-  std::string issue_report_popup_id_ = "##DungeonIssueReportPopup";
+  std::string issue_report_popup_id_ =
+      "Report Dungeon Issue##DungeonIssueReportPopup";
   int issue_report_popup_room_id_ = -1;
   int issue_report_category_index_ = 0;
   bool issue_report_popup_persisted_ = false;

@@ -106,14 +106,6 @@ UICoordinator::UICoordinator(
   welcome_screen_->SetNewProjectCallback(
       [this]() { new_project_dialog_.Open("Vanilla ROM Hack"); });
 
-  // Template-driven creation now opens the guided dialog instead of chaining
-  // straight into CreateNewProject -> LoadRom. The dialog calls back into
-  // EditorManager once the user has a ROM path and project name picked.
-  welcome_screen_->SetNewProjectWithTemplateCallback(
-      [this](const std::string& template_name) {
-        new_project_dialog_.Open(template_name);
-      });
-
   new_project_dialog_.SetCreateCallback(
       [this](const std::string& template_name, const std::string& rom_path,
              const std::string& project_name) -> absl::Status {
@@ -150,47 +142,11 @@ UICoordinator::UICoordinator(
     }
   });
 
-  welcome_screen_->SetOpenAgentCallback([this]() {
-    if (editor_manager_) {
-#ifdef YAZE_BUILD_AGENT_UI
-      editor_manager_->ShowAIAgent();
-#endif
-      // Exit welcome so the agent panels can be interacted with
-      SetStartupSurface(StartupSurface::kEditor);
-    }
-  });
-
-  welcome_screen_->SetOpenProjectDialogCallback([this]() {
-    if (editor_manager_) {
-      auto status = editor_manager_->OpenProject();
-      if (!status.ok()) {
-        toast_manager_.Show(
-            absl::StrFormat("Failed to open project: %s", status.message()),
-            ToastType::kError);
-      } else {
-        SetStartupSurface(StartupSurface::kDashboard);
-      }
-    }
-  });
-
   welcome_screen_->SetOpenProjectManagementCallback([this]() {
     if (editor_manager_) {
       editor_manager_->ShowProjectManagement();
       SetStartupSurface(StartupSurface::kDashboard);
     }
-  });
-
-  welcome_screen_->SetOpenProjectFileEditorCallback([this]() {
-    if (!editor_manager_) {
-      return;
-    }
-    const auto* project = editor_manager_->GetCurrentProject();
-    if (!project || project->filepath.empty()) {
-      toast_manager_.Show("No project file to edit", ToastType::kInfo);
-      return;
-    }
-    editor_manager_->ShowProjectFileEditor();
-    SetStartupSurface(StartupSurface::kDashboard);
   });
 
   welcome_screen_->SetOpenPrototypeResearchCallback([this]() {
@@ -882,9 +838,8 @@ void UICoordinator::DrawWelcomeScreen() {
     return;
   }
 
-  // Provide context state for gating actions
-  welcome_screen_->SetContextState(rom_is_loaded,
-                                   project_manager_.HasActiveProject());
+  // Provide context state for first-run guidance.
+  welcome_screen_->SetContextState(rom_is_loaded);
 
   // Update recent projects before showing (cheap no-op when the
   // RecentFilesManager generation counter hasn't changed).

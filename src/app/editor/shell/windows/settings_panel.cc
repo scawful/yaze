@@ -731,150 +731,84 @@ void SettingsPanel::DrawFilesystemSettings() {
 void SettingsPanel::DrawAppearanceSettings() {
   auto& theme_manager = gui::ThemeManager::Get();
 
-  ImGui::Text(tr("%s Theme Management"), ICON_MD_PALETTE);
+  ImGui::Text(tr("%s Theme"), ICON_MD_PALETTE);
   ImGui::Separator();
 
-  // Current theme with color swatches
-  const auto& current = theme_manager.GetCurrentThemeName();
+  const std::string current = theme_manager.GetCurrentThemeName();
   const auto& current_theme = theme_manager.GetCurrentTheme();
 
-  ImGui::Text(tr("Current Theme:"));
-  ImGui::SameLine();
-
-  // Draw 3 color swatches inline: primary, surface, accent
-  {
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    ImVec2 cursor = ImGui::GetCursorScreenPos();
-    const float swatch_size = 12.0f;
-    const float spacing = 2.0f;
-
-    auto draw_swatch = [&](const gui::Color& color, float offset_x) {
-      ImVec2 p_min(cursor.x + offset_x, cursor.y);
-      ImVec2 p_max(p_min.x + swatch_size, p_min.y + swatch_size);
-      ImU32 col =
-          ImGui::ColorConvertFloat4ToU32(gui::ConvertColorToImVec4(color));
-      draw_list->AddRectFilled(p_min, p_max, col);
-      draw_list->AddRect(
-          p_min, p_max,
-          ImGui::ColorConvertFloat4ToU32(ImVec4(0.5f, 0.5f, 0.5f, 0.6f)));
-    };
-
-    draw_swatch(current_theme.primary, 0.0f);
-    draw_swatch(current_theme.surface, swatch_size + spacing);
-    draw_swatch(current_theme.accent, 2.0f * (swatch_size + spacing));
-
-    // Advance cursor past the swatches
-    ImGui::Dummy(
-        ImVec2(3.0f * swatch_size + 2.0f * spacing + 4.0f, swatch_size));
-  }
-
-  ImGui::SameLine();
-  ImGui::TextColored(ImVec4(0.4f, 0.8f, 1.0f, 1.0f), "%s", current.c_str());
-
-  ImGui::Spacing();
-
-  // Available themes list with hover preview and color swatches
-  ImGui::Text(tr("Available Themes:"));
-
-  bool any_theme_hovered = false;
-  if (ImGui::BeginChild("ThemeList", ImVec2(0, 200), true)) {
+  ImGui::SetNextItemWidth(-1.0f);
+  if (ImGui::BeginCombo("##AppearanceTheme", current.c_str())) {
     for (const auto& theme_name : theme_manager.GetAvailableThemes()) {
-      ImGui::PushID(theme_name.c_str());
-      bool is_current = (theme_name == current);
-
-      // Draw color swatches before the theme name
-      const gui::Theme* theme_data = theme_manager.GetTheme(theme_name);
-      if (theme_data) {
-        ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        ImVec2 cursor = ImGui::GetCursorScreenPos();
-        const float swatch_size = 10.0f;
-        const float swatch_spacing = 2.0f;
-        const float total_swatch_width =
-            3.0f * swatch_size + 2.0f * swatch_spacing + 6.0f;
-
-        auto draw_small_swatch = [&](const gui::Color& color, float offset_x) {
-          ImVec2 p_min(cursor.x + offset_x, cursor.y + 2.0f);
-          ImVec2 p_max(p_min.x + swatch_size, p_min.y + swatch_size);
-          ImU32 col =
-              ImGui::ColorConvertFloat4ToU32(gui::ConvertColorToImVec4(color));
-          draw_list->AddRectFilled(p_min, p_max, col);
-          draw_list->AddRect(
-              p_min, p_max,
-              ImGui::ColorConvertFloat4ToU32(ImVec4(0.4f, 0.4f, 0.4f, 0.5f)));
-        };
-
-        draw_small_swatch(theme_data->primary, 0.0f);
-        draw_small_swatch(theme_data->surface, swatch_size + swatch_spacing);
-        draw_small_swatch(theme_data->accent,
-                          2.0f * (swatch_size + swatch_spacing));
-
-        // Reserve space for swatches then draw the selectable
-        ImGui::SetCursorPosX(ImGui::GetCursorPosX() + total_swatch_width);
-      }
-
-      // Checkmark prefix for the active theme
-      std::string label = is_current
-                              ? std::string(ICON_MD_CHECK " ") + theme_name
-                              : std::string("   ") + theme_name;
-
-      if (ImGui::Selectable(label.c_str(), is_current)) {
-        // If we're previewing, end preview first so the selected theme becomes
-        // the new baseline (otherwise EndPreview would restore the pre-preview
-        // theme when the cursor leaves the list).
+      const bool is_current = theme_name == current;
+      if (ImGui::Selectable(theme_name.c_str(), is_current)) {
         if (theme_manager.IsPreviewActive()) {
           theme_manager.EndPreview();
         }
         theme_manager.ApplyTheme(theme_name);
       }
-
-      // Hover triggers live preview
-      if (ImGui::IsItemHovered()) {
-        any_theme_hovered = true;
-        theme_manager.StartPreview(theme_name);
+      if (is_current) {
+        ImGui::SetItemDefaultFocus();
       }
-
-      ImGui::PopID();
     }
-  }
-  ImGui::EndChild();
-
-  // Restore original theme when nothing is hovered
-  if (!any_theme_hovered && theme_manager.IsPreviewActive()) {
-    theme_manager.EndPreview();
+    ImGui::EndCombo();
   }
 
-  // Refresh button
-  if (ImGui::Button(ICON_MD_REFRESH " Refresh Themes")) {
+  const ImGuiColorEditFlags swatch_flags = ImGuiColorEditFlags_NoTooltip |
+                                           ImGuiColorEditFlags_NoDragDrop |
+                                           ImGuiColorEditFlags_NoPicker;
+  const float swatch_size = std::max(12.0f, ImGui::GetFrameHeight() * 0.62f);
+  ImGui::TextDisabled("%s", tr("Palette"));
+  ImGui::SameLine(0.0f, 6.0f);
+  ImGui::PushID("CurrentThemeSwatches");
+  ImGui::ColorButton("Primary",
+                     gui::ConvertColorToImVec4(current_theme.primary),
+                     swatch_flags, ImVec2(swatch_size, swatch_size));
+  ImGui::SameLine(0.0f, 3.0f);
+  ImGui::ColorButton("Surface",
+                     gui::ConvertColorToImVec4(current_theme.surface),
+                     swatch_flags, ImVec2(swatch_size, swatch_size));
+  ImGui::SameLine(0.0f, 3.0f);
+  ImGui::ColorButton("Accent", gui::ConvertColorToImVec4(current_theme.accent),
+                     swatch_flags, ImVec2(swatch_size, swatch_size));
+  ImGui::PopID();
+  if (!current_theme.description.empty()) {
+    ImGui::PushTextWrapPos(0.0f);
+    ImGui::TextDisabled("%s", current_theme.description.c_str());
+    ImGui::PopTextWrapPos();
+  }
+
+  if (ImGui::SmallButton(ICON_MD_REFRESH " Reload themes")) {
     theme_manager.RefreshAvailableThemes();
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(
-        tr("Re-scan theme directories for new or changed themes"));
+    ImGui::SetTooltip(tr("Re-scan theme folders for new or changed themes"));
   }
 
   ImGui::Spacing();
-  ImGui::SeparatorText(tr("Display Density"));
+  ImGui::SeparatorText(tr("Density"));
 
   {
     auto preset = theme_manager.GetCurrentTheme().density_preset;
     int density = static_cast<int>(preset);
-    bool changed = false;
-    changed |= ImGui::RadioButton(tr("Compact (0.75x)"), &density, 0);
-    ImGui::SameLine();
-    changed |= ImGui::RadioButton(tr("Normal (1.0x)"), &density, 1);
-    ImGui::SameLine();
-    changed |= ImGui::RadioButton(tr("Comfortable (1.25x)"), &density, 2);
-
-    if (changed) {
+    const char* density_labels[] = {tr("Compact"), tr("Normal"),
+                                    tr("Comfortable")};
+    ImGui::SetNextItemWidth(-1.0f);
+    if (ImGui::Combo("##DisplayDensity", &density, density_labels,
+                     IM_ARRAYSIZE(density_labels))) {
       auto new_preset = static_cast<gui::DensityPreset>(density);
       auto theme = theme_manager.GetCurrentTheme();
       theme.ApplyDensityPreset(new_preset);
       theme_manager.ApplyTheme(theme);
     }
+    ImGui::TextDisabled(
+        "%s", density == 0   ? tr("Tighter controls and more visible content")
+              : density == 2 ? tr("Larger controls with more breathing room")
+                             : tr("Balanced spacing for everyday editing"));
   }
 
   ImGui::Spacing();
-  ImGui::SeparatorText(tr("Editor/Workspace Motion"));
+  ImGui::SeparatorText(tr("Motion"));
 
   auto& prefs = user_settings_->prefs();
   bool reduced_motion = prefs.reduced_motion;

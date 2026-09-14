@@ -289,8 +289,7 @@ class UICoordinator {
   // Welcome screen component
   std::unique_ptr<WelcomeScreen> welcome_screen_;
 
-  // "New Project" guided dialog. Opened when the welcome screen dispatches a
-  // template-creation request; owned here so it survives welcome-screen
+  // "New Project" guided dialog. Owned here so it survives welcome-screen
   // visibility transitions during startup.
   NewProjectDialog new_project_dialog_;
 
