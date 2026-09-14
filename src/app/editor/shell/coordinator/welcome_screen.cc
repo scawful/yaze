@@ -519,7 +519,11 @@ bool WelcomeScreen::Show(bool* p_open) {
 
     ImGui::Dummy(ImVec2(0, 14));
 
-    ImGui::BeginChild("WelcomeContent", ImVec2(0, -40), false);
+    // Reserve the footer from the active font and theme, not a fixed pixel
+    // height. Otherwise large text can create a second, outer scroll surface.
+    const float footer_gap = ImGui::GetStyle().ItemSpacing.y;
+    const float footer_height = ImGui::GetFrameHeight() + 3.0f * footer_gap;
+    ImGui::BeginChild("WelcomeContent", ImVec2(0, -footer_height), false);
     const float content_width = ImGui::GetContentRegionAvail().x;
     const float content_height = ImGui::GetContentRegionAvail().y;
     const float layout_scale = ImGui::GetFontSize() / 16.0f;
@@ -588,7 +592,7 @@ bool WelcomeScreen::Show(bool* p_open) {
         ImGui::GetColorU32(green_faded), ImGui::GetColorU32(green_faded),
         ImGui::GetColorU32(red_faded));
 
-    ImGui::Dummy(ImVec2(0, 5));
+    ImGui::Dummy(ImVec2(0, footer_gap));
     DrawTipsSection();
   }
   ImGui::End();
@@ -1316,20 +1320,27 @@ void WelcomeScreen::DrawTipsSection() {
       "Use the panel browser to find any tool quickly"};
   int tip_index = 0;  // Show first tip, or could be random on screen open
 
-  ImGui::Text(ICON_MD_LIGHTBULB);
-  ImGui::SameLine();
-  ImGui::TextColored(kTriforceGold, tr("Tip:"));
-  ImGui::SameLine();
-  ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.8f, 1.0f), "%s", tips[tip_index]);
-
-  ImGui::SameLine(ImGui::GetWindowWidth() - 220);
-  {
-    gui::StyleColorGuard button_guard(ImGuiCol_Button,
-                                      ImVec4(0.3f, 0.3f, 0.3f, 0.5f));
-    if (ImGui::SmallButton(
-            absl::StrFormat("%s Don't show again", ICON_MD_CLOSE).c_str())) {
-      manually_closed_ = true;
+  const ImGuiStyle& style = ImGui::GetStyle();
+  const std::string close_label =
+      absl::StrFormat("%s Don't show again", ICON_MD_CLOSE);
+  const float close_width =
+      ImGui::CalcTextSize(close_label.c_str()).x + 2.0f * style.FramePadding.x;
+  const float close_x =
+      ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - close_width;
+  const std::string tip = absl::StrFormat("%s %s %s", ICON_MD_LIGHTBULB,
+                                          tr("Tip:"), tips[tip_index]);
+  const float tip_width =
+      close_x - ImGui::GetCursorPosX() - style.ItemSpacing.x;
+  if (tip_width > 0.0f) {
+    const std::string visible_tip = EllipsizeText(tip, tip_width);
+    ImGui::TextColored(gui::GetTextSecondaryVec4(), "%s", visible_tip.c_str());
+    if (visible_tip != tip && ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("%s", tip.c_str());
     }
+    ImGui::SameLine(close_x);
+  }
+  if (ImGui::SmallButton(close_label.c_str())) {
+    manually_closed_ = true;
   }
 }
 
