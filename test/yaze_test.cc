@@ -137,27 +137,27 @@ void ConfigureLocalTestProcessEnvironment(const TestConfig& config) {
 TestConfig ParseArguments(int argc, char* argv[]) {
   TestConfig config;
 
-  std::cout << "Available options:\n"
-            << "  --ui            : Enable UI tests\n"
-            << "  --show-gui      : Show GUI during tests\n"
-            << "  --fast          : Run tests at max speed (default)\n"
-            << "  --normal        : Run tests at watchable speed\n"
-            << "  --cinematic     : Run tests in slow-motion with pauses\n"
-            << "  --rom=<path>    : Legacy ROM path (vanilla)\n"
-            << "  --rom-vanilla=<path>\n"
-            << "  --rom-us=<path>\n"
-            << "  --rom-jp=<path>\n"
-            << "  --rom-eu=<path>\n"
-            << "  --rom-expanded=<path>\n"
-            << "  --pattern=<pat> : Run tests matching pattern\n"
-            << std::endl;
-
   for (int i = 1; i < argc; i++) {
     std::string arg = argv[i];
 
     if (arg == "--help" || arg == "-h") {
       std::cout << "YAZE Test Runner - Enhanced for AI Agent Testing\n\n";
       std::cout << "Usage: yaze_test [options] [test_pattern]\n\n";
+      // Discovery stdout must contain only GoogleTest's inventory. Older
+      // CMake versions interpret indented help lines as additional test names.
+      std::cout << "Available options:\n"
+                << "  --ui            : Enable UI tests\n"
+                << "  --show-gui      : Show GUI during tests\n"
+                << "  --fast          : Run tests at max speed (default)\n"
+                << "  --normal        : Run tests at watchable speed\n"
+                << "  --cinematic     : Run tests in slow-motion with pauses\n"
+                << "  --rom=<path>    : Legacy ROM path (vanilla)\n"
+                << "  --rom-vanilla=<path>\n"
+                << "  --rom-us=<path>\n"
+                << "  --rom-jp=<path>\n"
+                << "  --rom-eu=<path>\n"
+                << "  --rom-expanded=<path>\n"
+                << std::endl;
       std::cout << "Test Modes:\n";
       std::cout << "  --unit              Run unit tests only\n";
       std::cout << "  --integration       Run integration tests only\n";
