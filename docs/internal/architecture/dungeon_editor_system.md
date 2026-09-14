@@ -139,14 +139,18 @@ and runtime-effect paths remain editor approximations.
 ## Current Limitations / Gaps
 
 - **Persistence coverage**: Tile objects, sprites, doors (marker + pointer table), room headers (14 bytes + message IDs), palettes, torches, pushable blocks, custom collision, chests, pot items, regular dungeon entrances, dedicated spawn points, and edited pit-damage membership are written back and have focused regression coverage. The legacy combined `RoomEntrance` spawn view remains read-only and fails closed if dirtied. Pit/block tables remain fixed to their existing vanilla capacities.
-- **Object tile editor**: Core editing, preview/atlas rendering, keyboard shortcuts, room re-render after apply, shared tile confirmation, palette invalidation, and reopen/reset behavior are implemented. Remaining gaps are the "new custom object" flow, deeper editor/integration coverage, and any future preview-quality polish after the selector/browser churn settles.
+- **Object tile editor**: Core editing, preview/atlas rendering, keyboard shortcuts, room re-render after apply, shared tile confirmation, palette invalidation, reopen/reset behavior, and the Custom Object Workshop creation flow are implemented. Remaining gaps are lossless/atomic custom `.bin` publishing, session-scoped custom-object state, broader editor/integration coverage, and future preview-quality polish after the selector/browser churn settles.
 - **Tests**: Focused unit coverage now exists for `ObjectTileLayout`, standard/custom object tile writeback, palette-sensitive preview generation, panel reset behavior, `DungeonEditorSystem`, `DungeonSaveTest`, and `DungeonEditorV2RomSafetyTest`. Broader integration/E2E coverage for ROM-write workflows is still lighter than the unit surface.
 
 ## Suggested Next Steps
 
 1. **Object Tile Editor Completion**:
-   - Add a guided "New Custom Object" workflow for creating `.bin` files from scratch.
+   - Make custom `.bin` encode/writeback lossless, project-contained, atomic,
+     and verified before expanding the creation workflow.
    - Add broader editor/integration coverage around apply/reload/save flows.
+   - Consolidate custom visual, collision, and runtime semantics through the
+     project object catalog described in
+     `docs/internal/hand-off/HANDOFF_CUSTOM_OBJECTS.md`.
    - Revisit selector/browser preview quality after the current object-selector refactor settles.
 2. **Save Pipeline Follow-up**:
    - Keep pit-damage edits within the fixed-capacity membership table; treat repointing or capacity expansion as a separate ROM-layout feature.
