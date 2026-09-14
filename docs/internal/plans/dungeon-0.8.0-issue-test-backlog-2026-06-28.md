@@ -1,8 +1,243 @@
-# Dungeon 0.8.0 issue/test backlog — 2026-06-28
+# Dungeon 0.8.0 completion backlog and agent assignments
 
-Source: post-agent audit of the 0.8.0 dungeon drawing/editing slice.
+Status: ACTIVE
 
-## High-priority cleanup
+Owner: backend-infra-engineer (integration), with zelda3-hacking-expert
+
+Created: 2026-06-28
+
+Last Reviewed: 2026-09-14
+
+Next Review: 2026-09-28
+
+Universe task: `task_20260913T233703Z_21853`
+
+Planning audit: `task_20260914T160613Z_19789`
+
+## Release decision
+
+Ship v0.8.0 as a dependable Dungeon Editor milestone: audited vanilla object
+rendering, safe editing and persistence, and a validated Oracle workflow.
+Continue preview builds and reviewed merges; hold the release tag until the
+requirements are complete. The [roadmap](../roadmap.md) owns product priority,
+the [rendering spec](../agents/dungeon-object-rendering-spec.md) owns behavior,
+and the [release checklist](../release-checklist.md) owns final acceptance.
+This file owns the work breakdown and coverage gaps; do not create another
+parallel object backlog.
+
+Scope excludes a universal custom ASM designer, completion of Oracle's dungeon
+content, every other editor, and untested compatibility with arbitrary hacks.
+Existing Oracle systems must work through their documented build path. Native
+release readiness and WASM preview readiness are separate claims.
+
+## Planning baseline, not new test results
+
+The September audit inspected mainline `d42785c24` and the clean combined
+preview `75f817d521c0d656a251926916a520f5b44c4b89`. The preview includes draft
+custom-object and UI work that is not yet all on mainline. Recheck each branch
+before implementation. No ROM writes, emulator captures, or runtime tests were
+performed by this planning audit. Existing tests below are evidence locations,
+not newly passed acceptance gates.
+
+## Object coverage checklist
+
+Start by enumerating the supported IDs from `DrawRoutineRegistry` and the room
+codec, not from a hand-maintained count. Expand each family below into the
+existing audit report: object ID/subtype, routine and ASM label, legal size and
+state, source payload, anchor/footprint, tile order/flips/palette, stream/BG
+target, room witness, and evidence links. Keep one generated inventory and
+extend the existing report schema if necessary; do not create another registry.
+
+Use these states: **untriaged**, **reproduced**, **fixed-awaiting-proof**,
+**verified**, or **intentional-preview-limit**. A passing sibling object does
+not close every ID. A reported symptom is not proof of a current renderer bug.
+
+| Family / starting IDs | Existing evidence to reuse | Remaining release work |
+| --- | --- | --- |
+| Thin/carpet/rug strips: `0x34`, `0x71`, `0xB3/0xB4`, `0x8D/0x8E`; wider `0x33/0x70/0xB2` | Origin/count tests, compatible-corner and conditional-cap replay; a `0x33` ROM parser sample | Real-room anchors, repeat counts and cap overlap. Cover size 0, 1, 15 and boundary placement before broadening all legal sizes. |
+| Bars: `0x4C`, `0x8F`, `0xFD6–0xFD9` | Payload and vertical-row trace tests | Complete horizontal/vertical/corner joins. Start with Oracle room `0x042`. |
+| Static water: `0x3F–0x46`, `0x79/0x7A`, `0xC8/0xC9/0xD9/0xE7`; waterfalls `0x47/0x48` | Shared floor replay, cap and waterfall traces, reveal-mask coverage | ROM payloads, palette, edge/interior ordering and layer-isolated captures. Oracle witnesses: Mushroom Grotto `0x04A`, then `0x033`. |
+| Ice and moving-floor stamps: `0xD1/0xD2`, `0xCA`, `0xE3–0xE6` | Shared routine 58, packed two-bit width/height geometry | Per-ID room payload/context and independent static or state-labeled capture. Ice witnesses: Oracle `0x08C@(10,11)` BG1 and `0x0CE@(29,23)` BG2. Moving walls `0xCD/0xCE` are a different family. |
+| Flood controls: `0xD8/0xDA` | ROM parsing and `Room076WaterOverlayWritesBg2ObjectBuffer` | Verify the editor indicator structurally; audit vanilla state branches separately. Do not require the indicator to equal an in-game HDMA water image. |
+| Stairs: `0x12D–0x133`, `0xF9B–0xFA1`, `0xFA6–0xFA9`, `0xFB3`, `0x138–0x13B`, `0x12A/0x135/0x136` | Mixed-layer/priority replay and room `0x077` spiral-stair ROM traces | Independent lower-level stair + wall + door visibility, including stored-placement versus BothBG behavior. |
+| Corners/diagonals: `0x100–0x117`, diagonal registry families 5/6/17/18/75–78 | ROM corner payloads, BothBG placement, column-major and diagonal geometry tests | Independent corner/seam scenes and boundary anchors. `0xA4` is BigHole, not a diagonal. |
+| Doors and room composition | Focused door rules, room `0x001` guidance-wall/door test, one west NormalDoorLower Mesen ROI | Key/shutter/bombable/exploding family evidence; candidates `0x024/0x0B2/0x0BC/0x0C1/0x0C2`. Protect room `0x001` upper/lower overlap and lower stair. |
+| Sprite preview palettes | Synthetic aux/CGRAM/transparency tests | Mushroom Grotto/ice witnesses using actual runtime sprite graphics and CGRAM. Separate generic palettes from custom external graphics. |
+
+Witness rooms are investigation starting points, not newly verified matches.
+Use the canonical vanilla ROM control and a recorded Oracle ROM digest. Do not
+substitute a different hack's object payload or room header without labeling it.
+
+### Evidence required to close a family
+
+1. Confirm every mapped ID and the shared rule against current disassembly.
+   Add targeted regressions for size, anchor, tile attributes, and state. An
+   audit may correctly conclude **no renderer defect found**.
+2. Exercise real room parsing and composition, including the original symptom
+   when known. Keep placement/hit bounds, tile drawing, and final composition
+   as separate checks.
+3. Independently check representative scenes/states with Mesen. Record ROM
+   hash, room, position, stream, camera, active BGs, runtime state and crop.
+   Record which IDs/states the scene does not cover.
+4. Keep fingerprint drift guards and `z3ed` bounds results separate from pixel
+   truth. Missing ROM, missing suite, zero executed cases, and skipped captures
+   are **not run**, not passes. Never update an unexplained golden to green.
+5. Close known in-scope render/save defects. A real unsupported animation or
+   HDMA preview limit needs a named contract; deferring a release requirement
+   needs an explicit scope decision, not relabeling a bug.
+
+## Agent work packets
+
+These are role-based handoffs suitable for Codex, Cursor, or another agent.
+They are assignments to schedule, not claims that implementation has started.
+Use one clean `codex/` worktree per implementation packet and record its base
+SHA. Read-only investigation may share the preview checkout.
+
+| Packet / owner | Bounded first deliverable | Owned surface | Done when |
+| --- | --- | --- | --- |
+| R1 — `zelda3-hacking-expert` | Audit thin strips and bar joins; then shared water/ice/moving-floor stamps | `draw_routines/rightwards_routines.cc`, `downwards_routines.cc`; take `special_routines.cc` only for the later floor slice; nearest focused tests | Source-backed regression or explicit no-defect finding for each ID; minimal fixes with size/boundary tests; scene request handed to V1 |
+| V1 — `snes-emulator-expert` | Independent stair/corner scene evidence, then water/ice and sprite palettes | Existing ROM scene tests, `test/fixtures/visual/dungeon/`, palette/preview tests | State-labeled scene comparisons; mismatch isolated to payload, palette, layer, geometry or runtime behavior; no renderer rewrite based solely on a screenshot |
+| C1 — `imgui-frontend-engineer` with Oracle support | Existing custom-asset workflow, then one minecart route roundtrip | `custom_object.*`, selector/Object Tile Editor; later `minecart_track_source.*`, track panel and collision generator | Existing assets preserve encoding; source publish and ROM save are explicit; copied project survives rebuild and runtime verification |
+| T1 — `test-infrastructure-expert` | Repair audit discovery, then reduce the existing guarded GUI qualification to one object edit | `audit-dungeon-visual-parity.sh`, `run-d6-gui-qualification.sh`, existing GUI fixtures and focused harness tests | Supported binary layouts resolve; suites execute; GUI Save ROM, quit/fresh process/reopen and independent disk readback agree; canonical data unchanged |
+| Q1 — `backend-infra-engineer` with UI review | Final exact-candidate native package and strict WASM persistence checks | Existing release/nightly workflows, package smoke scripts and browser smoke test | Final packages pass loader/lifecycle checks and packaged GUI acceptance; browser download/reimport proof is separate from debug smoke |
+
+The integration owner controls shared `room.cc`, `object_drawer.cc`,
+`room_layer_manager.*`, render routing, registry/dimensions, and test/CMake
+registration. Agents propose changes there or obtain an explicit ownership
+handoff. In particular, floor and stair changes share `special_routines.cc`;
+do not assign concurrent edits. Use existing tests first; add files only when
+the split reduces complexity, and remove a replaced path in the same slice.
+
+### C1: Oracle-specific boundaries
+
+- Inventory the 21 existing custom slots: `0x31` has 16, `0x32` has three ice
+  props, `0x54` has two boss bodies. Preserve sparse tile words, subtype order,
+  geometry, flips, and palettes through decode/publish/reload.
+- `0x31:13` (`wall_sword_house.bin`) is not the vanilla wall-table override
+  system. Oracle still includes `Dungeons/house_walls.asm`, which patches
+  corner/horizontal/side tile words. Yaze's exact-ID `0x100` mapping has a
+  synthetic render test, not a proven replacement for those ASM patches.
+  Keep ASM authoritative until a migration proves identical rebuilt output
+  and a subsequent editor change surviving rebuild. Do not promise an
+  editor-only override reaches the game. Replacing every wall patch is not
+  necessary to validate the existing workflow.
+- Minecart `Publish Tracks` writes manifest-owned ASM. `Save Project` does not
+  persist route drafts. Collision application changes room state and needs
+  **File > Save ROM**. Verify source readback, collision undo/redo and existing
+  collision protection, then rebuild and test a known-working route in Mesen.
+  Unfinished Oracle route content is not automatically a Yaze defect.
+- Prove stale source/hash, invalid batch and failed saves preserve data.
+  Work on copied source/project/base ROM only. `oos168x.sfc` is an emulator
+  output, never the edit target.
+- Generic sprite palette construction has Light World/green-mail fallbacks;
+  it lacks entrance-world context. `0x54` also needs external boss graphics
+  and runtime palette data. Isolate those limitations before changing a
+  generic palette offset. V1 supplies captures; the integrator owns shared
+  `room.cc` changes. Test room/project switches for stale preview caches.
+
+### T1: reuse the existing persistence path
+
+`run-d6-gui-qualification.sh` already isolates its process/settings, verifies
+canonical hashes, uses stable GUI actions and the registered Save ROM shortcut,
+checks disk bytes and backup, quits, and starts a fresh process for readback.
+Generalize its guarded lifecycle; do not clone its large implementation.
+
+Start with the object-only part of `test/fixtures/gui/d6_edit_and_save.json`:
+room `0x0B8`, object index 128, Y `7 -> 8`. Requalify the expected object and
+pinned input digest before running; that fixture is not portable to arbitrary
+Oracle versions. Add a canonical vanilla profile next. Expand to size/stream,
+undo/redo, doors, sprites, room metadata and supported block/pit changes.
+
+The current parity helper resolves test binaries only under `bin/Debug` and
+`bin/test`, while the installed preview was built under single-config `bin/`.
+Fix and test layout/configuration resolution before using it as a release gate.
+Require test discovery and nonzero executed cases in every tier.
+
+Direct calls to `Rom::SaveToFile` in serializer tests do not exercise editor
+dirty state or save coordination. Release builds disable ImGui test hooks, so
+test-enabled app automation also does not certify the unmodified release
+artifact. Preserve both application-path automation and package acceptance.
+
+### Q1: release and UX acceptance
+
+- Reuse the hosted publish-disabled Release workflow on the final combined SHA.
+  Earlier package results are a baseline, not final-candidate proof.
+- Test copied-out macOS DMG app, Windows ZIP/NSIS, and Linux TGZ/DEB in real
+  desktop sessions. Record loader/install lifecycle separately from GUI
+  edit/save/quit/reopen acceptance.
+- Reuse compact/wide and large-font layout tests. Verify picker resize,
+  Pop out/restore, context menu, issue capture, and notifications without
+  canvas movement. Keep further visual redesign out of the correctness pass.
+- Add a strict WASM import -> edit -> download -> fresh-session reimport check.
+  Test browser storage separately. Existing debug-smoke failure tolerance is
+  not acceptable for a persistence assertion; WASM remains a labeled preview.
+- Nightly GUI checks currently allow failures and assume an old binary path.
+  Only promote a qualified, nonempty persistence test to a required gate.
+
+## Scheduling and merge contract
+
+1. **Wave 1:** R1 strips/bars, C1 asset/source inventory, and T1 audit-discovery
+   plus one-object save/reopen. The root agent integrates evidence and docs.
+2. **Wave 2:** R1 shared floors, V1 independent scenes, and C1 minecart workflow.
+   Add palette fixes only after V1 isolates the cause; serialize shared files.
+3. **Wave 3:** close confirmed defects, consolidate accepted UI/custom work,
+   and run Q1 on the final combined candidate.
+
+Use at most three implementation agents plus the integrator at once. Share
+the default four-worker build budget on this Mac rather than launching three
+four-worker builds together. Independent machines may test platform artifacts.
+
+Each handoff must include exact base/head SHA, files changed, reproduction or
+no-defect finding, commands, discovered/executed/skipped counts, ROM/package
+digests, residual limits, and one next action. Keep patches narrow. The root
+reviews shared rules and verifies terminal CI before merging; changed UI still
+needs the relevant hands-on acceptance. No force pushes, broad cleanup, or
+changes to the user's live ROM/app session.
+
+## Verification entry points
+
+Use the owning worktree's configured build and actual binary layout. Build the
+named targets before discovery; the existing preview currently has only the
+unit binary. For that single-config Release layout:
+
+```bash
+cmake --build build/presets/mac-ai --config Release \
+  --target yaze_test_unit yaze_test_integration --parallel 4
+build/presets/mac-ai/bin/yaze_test_unit --gtest_list_tests
+build/presets/mac-ai/bin/yaze_test_integration --gtest_list_tests
+build/presets/mac-ai/bin/yaze_test_unit \
+  --gtest_filter='DrawRoutineMappingTest.*:ObjectDrawerRegistryReplayTest.*:ObjectDrawerMaskPropagationTest.*:ObjectGeometryTest.*:RoomLayerManagerTest.*'
+```
+
+Set `YAZE_TEST_ROM_VANILLA` to an existing canonical control ROM for
+`SupportedRomRoles/RoomObjectRomParityTest.*`,
+`DungeonRoomRegressionFixturesTest.*`, and `DungeonRoomRenderParityTest.*`.
+The ROM-dependent binary owns `DungeonObjectRomValidationTest`, not the
+integration binary. Canonical vanilla SHA-1:
+`6d4f10a8b10e10dbe624cb23cf03b88bb8252973`.
+
+After T1 repairs layout handling, the maintained ladder is:
+
+```bash
+scripts/agents/audit-dungeon-visual-parity.sh \
+  --build-dir build/presets/mac-ai \
+  --with-validate-report /tmp/yaze-dungeon-object-validation.json
+```
+
+The command requires `YAZE_TEST_ROM_VANILLA`. Evidence provenance and capture
+instructions live in `test/fixtures/visual/dungeon/README.md`; do not duplicate
+them in each assignment. This section specifies future verification, not
+passed suite results. The planning audit checked unit-test discovery only;
+it did not build or execute the runtime suites.
+
+## Earlier issue audit (historical status; revalidate before closing)
+
+The entries below preserve the earlier post-agent audit. Their historical
+completion labels do not replace the v0.8.0 criteria above. In particular,
+expanding pushable blocks beyond vanilla capacity is not required if supported
+editing is safe and overflow is rejected explicitly.
+
+### High-priority cleanup
 
 1. **Pushable block table repointing / expansion**
    - Status: scoped; loader/saver now guard the four bank-02 `LDA.l ...,X`
@@ -40,7 +275,7 @@ Source: post-agent audit of the 0.8.0 dungeon drawing/editing slice.
    - Done when: one stable room ROI has a committed PNG/baseline, update procedure, and tolerance/skip rationale.
    - Tests: E2E or headless visual diff for room `0x001` or `0x016`.
 
-## Medium-priority correctness tests
+### Medium-priority correctness tests
 
 4. **Sparse pixel overlap assertion for object stream ordering**
    - Status: room `0x001` now has a hardcoded sparse object BG1/BG2
@@ -63,7 +298,7 @@ Source: post-agent audit of the 0.8.0 dungeon drawing/editing slice.
    - Problem: fixed-capacity saves reject count mismatch, but do not validate duplicate room ids or out-of-range ids.
    - Done when: either duplicates/out-of-range ids are deliberately allowed and documented, or rejected with explicit tests.
 
-## Low-priority docs/UI polish
+### Low-priority docs/UI polish
 
 7. **Object selector symbology badges**
    - Problem: routine-family labels exist in data/docs, but UI badges are not wired.
@@ -75,7 +310,7 @@ Source: post-agent audit of the 0.8.0 dungeon drawing/editing slice.
    - Problem: `PitDamageTableTest` lives in the unit suite while requiring a vanilla ROM; this matches some existing tests but can add unit-suite skips.
    - Done when: either split pure capacity/validation tests into unit and move ROM-backed table tests to integration, or document the exception next to the test list.
 
-## Fast verification set
+### Earlier targeted verification set
 
 ```bash
 YAZE_TEST_ROM_VANILLA="$(pwd)/roms/alttp_vanilla.sfc" \
