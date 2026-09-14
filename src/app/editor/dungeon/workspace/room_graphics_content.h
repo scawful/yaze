@@ -71,6 +71,8 @@ class RoomGraphicsContent : public WindowContent {
   void Draw(bool* p_open) override;
 
  private:
+  friend struct RoomGraphicsContentTestAccess;
+
   struct SheetPreviewMetadata {
     uint8_t block_id = 0;
     size_t source_offset = 0;

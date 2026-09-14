@@ -307,6 +307,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_editor_palette_refresh_test.cc
     unit/editor/dungeon_overlay_controls_test.cc
     unit/editor/dungeon_object_selector_palette_test.cc
+    unit/editor/room_graphics_content_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/object_tile_editor_panel_test.cc
     unit/editor/minecart_track_source_test.cc
@@ -617,6 +618,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_canvas_viewer_navigation_test.cc
     unit/editor/dungeon_editor_palette_refresh_test.cc
     unit/editor/dungeon_object_selector_palette_test.cc
+    unit/editor/room_graphics_content_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/dungeon_workbench_content_test.cc
     unit/editor/object_tile_editor_panel_test.cc
