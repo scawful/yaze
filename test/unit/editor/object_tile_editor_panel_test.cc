@@ -2637,6 +2637,77 @@ TEST(ObjectTileEditorPanelTest,
 }
 
 TEST(ObjectTileEditorPanelTest,
+     EmptyCustomAssetAddFlipRevertAddClearsRetainedAtlasAttributes) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_empty_attributes"));
+  const auto asset_path = custom_state.dir / "manhandla_body_1a.bin";
+  WriteCustomObjectAsset(asset_path, zelda3::CustomObject{});
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  zelda3::GameData game_data;
+  game_data.graphics_buffer.assign(4096, 5);
+  DungeonRoomStore rooms(&rom);
+  auto& room = rooms[0];
+  room.SetLoaded(true);
+  room.SetGameData(&game_data);
+  room.mutable_blocks().fill(0);
+  room.CopyRoomGraphicsToBuffer();
+  gfx::PaletteGroup palette;
+  SeedCoordinatorPaletteGroup(&palette, 8, 16, 0);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(panel.OpenForCustomObject(0x54, 1, 0, &rooms, palette).ok());
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::AddFirstTileToEmptyCustomLayout(panel)
+          .ok());
+
+  ScopedImGuiContext imgui_context;
+  const auto frame = [&] {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowFocus();
+    ImGui::Begin("ObjectTileEditorEmptyAttributeHost");
+    ObjectTileEditorPanelTestAccess::HandleKeyboardShortcuts(panel);
+    ImGui::End();
+    ImGui::Render();
+  };
+  frame();
+  ImGui::GetIO().AddKeyEvent(ImGuiKey_H, true);
+  frame();
+  ImGui::GetIO().AddKeyEvent(ImGuiKey_H, false);
+  frame();
+  ASSERT_EQ(
+      gfx::TileInfoToWord(
+          ObjectTileEditorPanelTestAccess::Layout(panel).cells[0].tile_info),
+      0x4800);
+  ObjectTileEditorPanelTestAccess::RenderTile8Atlas(panel);
+  ASSERT_FALSE(ObjectTileEditorPanelTestAccess::AtlasDirty(panel));
+
+  ObjectTileEditorPanelTestAccess::RevertCurrentLayout(panel);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), -1);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SourcePalette(panel), 2);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::AtlasDirty(panel));
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::AddFirstTileToEmptyCustomLayout(panel)
+          .ok());
+  ASSERT_EQ(
+      gfx::TileInfoToWord(
+          ObjectTileEditorPanelTestAccess::Layout(panel).cells[0].tile_info),
+      0x0800);
+
+  // Choosing source palette zero must show a no-op at source tile zero, not
+  // the runtime $300 tile made drawable by the discarded horizontal flip.
+  ObjectTileEditorPanelTestAccess::SetSourcePalette(panel, 0);
+  ObjectTileEditorPanelTestAccess::RenderTile8Atlas(panel);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::AtlasPixel(panel, 0, 0, 0), 255);
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(panel, 0, 0);
+  ObjectTileEditorPanelTestAccess::RenderObjectPreview(panel);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::PreviewPixel(panel, 0, 0), 255);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_EQ(ReadBinaryFile(asset_path), std::vector<uint8_t>({0, 0}));
+}
+
+TEST(ObjectTileEditorPanelTest,
      TerminatorOnlyCustomAssetStaysOpenAndSupportsAddRevertApply) {
   ScopedCustomObjectState custom_state(
       MakeTempDir("yaze_obj_tile_panel_empty_slot"));
