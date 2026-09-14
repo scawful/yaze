@@ -339,19 +339,43 @@ TEST_F(CustomObjectManagerTest, PublishRequiresExactSourceSnapshot) {
 TEST_F(CustomObjectManagerTest, RuntimeSubtypeCapacityBoundsMappings) {
   std::vector<std::string> oversized_31(17, "track_LR.bin");
   std::vector<std::string> oversized_32(4, "furnace.bin");
+  std::vector<std::string> oversized_54(3, "kydreeok_body.bin");
   CustomObjectManager::Get().SetObjectFileMap(
-      {{0x31, oversized_31}, {0x32, oversized_32}});
+      {{0x31, oversized_31}, {0x32, oversized_32}, {0x54, oversized_54}});
 
   EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x31), 16);
   EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x32), 3);
+  EXPECT_EQ(CustomObjectManager::RuntimeSubtypeCountForObject(0x54), 2);
   EXPECT_EQ(CustomObjectManager::Get().GetSubtypeCount(0x31), 16);
   EXPECT_EQ(CustomObjectManager::Get().GetSubtypeCount(0x32), 3);
+  EXPECT_EQ(CustomObjectManager::Get().GetSubtypeCount(0x54), 2);
   EXPECT_TRUE(CustomObjectManager::Get().ResolveFilename(0x31, 16).empty());
   EXPECT_TRUE(CustomObjectManager::Get().ResolveFilename(0x32, 3).empty());
+  EXPECT_TRUE(CustomObjectManager::Get().ResolveFilename(0x54, 2).empty());
   EXPECT_TRUE(absl::IsOutOfRange(
       CustomObjectManager::Get().GetObjectInternal(0x31, 16).status()));
   EXPECT_TRUE(absl::IsOutOfRange(
       CustomObjectManager::Get().GetObjectInternal(0x32, 3).status()));
+  EXPECT_TRUE(absl::IsOutOfRange(
+      CustomObjectManager::Get().GetObjectInternal(0x54, 2).status()));
+}
+
+TEST_F(CustomObjectManagerTest, SpriteBodyDefaultSubtypeOrderMatchesOracleAbi) {
+  const auto& defaults =
+      CustomObjectManager::DefaultSubtypeFilenamesForObject(0x54);
+  ASSERT_EQ(defaults.size(), 2u);
+  EXPECT_EQ(defaults[0], "kydreeok_body.bin");
+  EXPECT_EQ(defaults[1], "manhandla_body_1a.bin");
+  EXPECT_EQ(CustomObjectManager::Get().ResolveFilename(0x54, 0), defaults[0]);
+  EXPECT_EQ(CustomObjectManager::Get().ResolveFilename(0x54, 1), defaults[1]);
+  EXPECT_TRUE(CustomObjectManager::Get().ResolveFilename(0x54, 2).empty());
+}
+
+TEST(CustomObjectRuntimeTileWordTest, AppliesSpriteBodyPageMaskAfterZeroCheck) {
+  EXPECT_EQ(CustomObjectRuntimeTileWord(0x31, 0x1D32), 0x1D32);
+  EXPECT_EQ(CustomObjectRuntimeTileWord(0x32, 0x1D32), 0x1D32);
+  EXPECT_EQ(CustomObjectRuntimeTileWord(0x54, 0x1D32), 0x1F32);
+  EXPECT_EQ(CustomObjectRuntimeTileWord(0x54, 0x0000), 0x0000);
 }
 
 TEST_F(CustomObjectManagerTest, ManagerRejectsMalformedObject) {

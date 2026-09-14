@@ -177,6 +177,10 @@ std::string GetDungeonCustomObjectSlotName(int object_id, int subtype) {
       "Firewood",
       "Ice chair",
   };
+  static constexpr std::array<const char*, 2> kObject54Names = {
+      "Kydreeok body",
+      "Manhandla body",
+  };
   if (object_id == 0x31 && subtype >= 0 &&
       subtype < static_cast<int>(kObject31Names.size())) {
     return kObject31Names[subtype];
@@ -184,6 +188,10 @@ std::string GetDungeonCustomObjectSlotName(int object_id, int subtype) {
   if (object_id == 0x32 && subtype >= 0 &&
       subtype < static_cast<int>(kObject32Names.size())) {
     return kObject32Names[subtype];
+  }
+  if (object_id == 0x54 && subtype >= 0 &&
+      subtype < static_cast<int>(kObject54Names.size())) {
+    return kObject54Names[subtype];
   }
   return "Unknown custom runtime slot";
 }
@@ -353,10 +361,11 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
   SynchronizeCustomObjectGeneration();
   auto& obj_manager = zelda3::CustomObjectManager::Get();
-  const int custom_count =
-      std::min(obj_manager.GetSubtypeCount(0x31),
-               kPersistedCustomSubtypeSlots) +
-      std::min(obj_manager.GetSubtypeCount(0x32), kPersistedCustomSubtypeSlots);
+  int custom_count = 0;
+  for (const int object_id : zelda3::CustomObjectManager::RuntimeObjectIds()) {
+    custom_count += std::min(obj_manager.GetSubtypeCount(object_id),
+                             kPersistedCustomSubtypeSlots);
+  }
 
   const ImGuiStyle& style = ImGui::GetStyle();
   const float control_spacing = std::max(2.0f, style.ItemSpacing.x * 0.5f);
@@ -484,8 +493,8 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
         if (core::FeatureFlags::get().kEnableCustomObjects &&
             zelda3::CustomObjectManager::RuntimeSubtypeCountForObject(obj_id) >
                 0) {
-          // Custom-enabled 0x31/0x32 are shown only in the Workshop, where an
-          // exact runtime subtype and a validated source asset are required.
+          // Custom-enabled runtime families are shown only in the Workshop,
+          // where an exact subtype and validated source asset are required.
           continue;
         }
         if (!MatchesObjectFilter(obj_id, object_type_filter_)) {
@@ -782,7 +791,8 @@ void DungeonObjectSelector::SynchronizeCustomObjectGeneration() {
     return;
   }
 
-  // A subtype-free vanilla 0x31/0x32 selection stores an ordinary size in the
+  // A subtype-free vanilla selection for a custom runtime family stores an
+  // ordinary size in the
   // same bits used by Oracle's custom dispatch. Never reinterpret that queued
   // placement across either feature-state edge; require a fresh selection.
   if (custom_feature_changed) {
@@ -794,7 +804,7 @@ void DungeonObjectSelector::SynchronizeCustomObjectGeneration() {
     return;
   }
 
-  // With the feature stably disabled, 0x31/0x32 retain their vanilla size
+  // With the feature stably disabled, these object IDs retain vanilla size
   // semantics. A custom-asset cache or mapping change is irrelevant to that
   // queued placement.
   if (!custom_objects_enabled) {
@@ -1084,7 +1094,7 @@ void DungeonObjectSelector::DrawCustomObjectWorkshopPopup() {
                      ICON_MD_PRECISION_MANUFACTURING " Custom Object Workshop");
   ImGui::TextColored(
       theme.text_secondary_gray,
-      tr("Manage the 19 fixed runtime assets used by Oracle custom objects."));
+      tr("Manage the 21 fixed runtime assets used by Oracle custom objects."));
   ImGui::TextDisabled(
       "%s", tr("New subtypes require an ASM dispatch-table change; this "
                "workshop edits or places existing slots only."));
@@ -1155,7 +1165,7 @@ void DungeonObjectSelector::DrawCustomObjectWorkshopPopup() {
         ImGuiStyleVar_ItemSpacing,
         ImVec2(item_spacing, std::max(item_spacing, style.ItemSpacing.y)));
     int custom_col = 0;
-    for (int obj_id : {0x31, 0x32}) {
+    for (const int obj_id : zelda3::CustomObjectManager::RuntimeObjectIds()) {
       if (!MatchesObjectFilter(obj_id, object_type_filter_)) {
         continue;
       }
@@ -1344,6 +1354,20 @@ void DungeonObjectSelector::DrawCustomObjectWorkshopPopup() {
                                            workshop_subtype_)) {
     ImGui::SameLine();
     ImGui::TextDisabled("%s", tr("Graphics only; behavior is separate"));
+  }
+  if (workshop_object_id_ == 0x54) {
+    ImGui::TextColored(theme.text_warning_yellow, ICON_MD_WARNING
+                       " Tilemap editing is available; external boss pixels "
+                       "are not loaded into the room preview yet.");
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "%s",
+          tr("Oracle forces nonzero body tiles into graphics page 0x300 and "
+             "DMA-loads separate Kydreeok or Manhandla graphics at runtime. "
+             "Yaze currently preserves the correct tilemap geometry and raw "
+             "source words, but the displayed pixels are not visual-parity "
+             "evidence."));
+    }
   }
   if (!custom_object_action_error_.empty()) {
     ImGui::TextColored(theme.status_error, ICON_MD_ERROR " %s",

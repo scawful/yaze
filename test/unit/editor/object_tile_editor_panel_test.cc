@@ -1148,13 +1148,13 @@ TEST(ObjectTileEditorPanelTest,
 }
 
 TEST(ObjectTileEditorPanelTest,
-     CustomSourceImpactCountsCrossFamilySlotsSharingOneAsset) {
+     CustomSourceImpactCountsAllFamiliesSharingOneAsset) {
   ScopedCustomObjectState custom_state(
       MakeTempDir("yaze_obj_tile_panel_cross_family"));
   WriteCustomObjectAsset(custom_state.dir / "shared.bin",
                          zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}});
   zelda3::CustomObjectManager::Get().SetObjectFileMap(
-      {{0x31, {"shared.bin"}}, {0x32, {"shared.bin"}}});
+      {{0x31, {"shared.bin"}}, {0x32, {"shared.bin"}}, {0x54, {"shared.bin"}}});
 
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
@@ -1162,14 +1162,14 @@ TEST(ObjectTileEditorPanelTest,
   rooms[0].SetLoaded(true);
   ObjectTileEditorPanel panel(nullptr, &rom);
   ASSERT_TRUE(panel
-                  .OpenForCustomObject(/*object_id=*/0x32, /*subtype=*/0,
+                  .OpenForCustomObject(/*object_id=*/0x54, /*subtype=*/0,
                                        /*room_id=*/0, &rooms)
                   .ok());
 
   auto usage_count_or =
       ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel);
   ASSERT_TRUE(usage_count_or.ok()) << usage_count_or.status();
-  EXPECT_EQ(*usage_count_or, 2);
+  EXPECT_EQ(*usage_count_or, 3);
 }
 
 TEST(ObjectTileEditorPanelTest,

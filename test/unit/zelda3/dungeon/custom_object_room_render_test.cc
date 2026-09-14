@@ -76,13 +76,14 @@ class CustomObjectRoomRenderTest : public ::testing::Test {
     game_data_.palette_groups.dungeon_main.AddPalette(dungeon_palette);
   }
 
-  void EnableCustomObjects(const std::vector<std::string>& file_map) {
+  void EnableCustomObjects(const std::vector<std::string>& file_map,
+                           int object_id = 0x31) {
     core::FeatureFlags::get().kEnableCustomObjects = true;
     DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
 
     auto& manager = CustomObjectManager::Get();
     manager.Initialize(temp_dir_.string());
-    manager.SetObjectFileMap({{0x31, file_map}});
+    manager.SetObjectFileMap({{object_id, file_map}});
   }
 
   void WriteLayoutObjects(int layout_id,
@@ -173,6 +174,19 @@ TEST_F(CustomObjectRoomRenderTest,
   EXPECT_EQ(bitmap.data()[pixel_index], kPaletteTwoRightSlotPixel)
       << "Custom object should draw visible pixels onto the room canvas";
   EXPECT_EQ(room.object_bg1_buffer().coverage_data()[pixel_index], 1);
+}
+
+TEST_F(CustomObjectRoomRenderTest,
+       SpriteBodyCustomObjectAppliesOracleRuntimeTilePageMask) {
+  EnableCustomObjects({"kydreeok_body.bin", "manhandla_body_1a.bin"},
+                      /*object_id=*/0x54);
+  WriteSingleTileCustomObjectFile("manhandla_body_1a.bin", 0x1D32);
+
+  Room room = MakeRoomWithObject(
+      RoomObject(/*id=*/0x54, /*x=*/3, /*y=*/4, /*size=*/1, /*layer=*/2));
+  RenderObjectBuffers(room);
+
+  EXPECT_EQ(room.object_bg1_buffer().GetTileAt(3, 4), 0x1F32);
 }
 
 TEST_F(CustomObjectRoomRenderTest,

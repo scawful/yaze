@@ -1,6 +1,7 @@
 #ifndef YAZE_ZELDA3_DUNGEON_CUSTOM_OBJECT_H_
 #define YAZE_ZELDA3_DUNGEON_CUSTOM_OBJECT_H_
 
+#include <array>
 #include <cstdint>
 #include <filesystem>
 #include <memory>
@@ -112,6 +113,11 @@ absl::StatusOr<std::vector<uint8_t>> PublishCustomObjectBinary(
     const std::vector<uint8_t>& expected_source_bytes,
     const std::filesystem::path& expected_resolved_path);
 
+// Applies the per-family tilemap transform used by Oracle at draw time while
+// preserving zero payload words as transparent/no-op entries. Source assets
+// and editor write-back deliberately retain their untransformed words.
+uint16_t CustomObjectRuntimeTileWord(int object_id, uint16_t source_word);
+
 /**
  * @brief Manages loading and caching of custom object binary files.
  */
@@ -149,7 +155,7 @@ class CustomObjectManager {
   absl::StatusOr<std::shared_ptr<CustomObject>> LoadObject(
       const std::string& filename);
 
-  // Get an object by ID/Subtype mapping (0x31 or 0x32)
+  // Get an object by fixed runtime ID/subtype mapping.
   // Subtype index maps to the .ObjOffset table
   absl::StatusOr<std::shared_ptr<CustomObject>> GetObjectInternal(int object_id,
                                                                   int subtype);
@@ -162,14 +168,17 @@ class CustomObjectManager {
   // new runtime subtypes.
   static int RuntimeSubtypeCountForObject(int object_id);
 
+  // Canonical Oracle object IDs backed by fixed external runtime assets.
+  static const std::array<int, 3>& RuntimeObjectIds();
+
   // Reload all cached objects (useful for editor)
   void ReloadAll();
 
   // Get the resolved file list for an object_id (empty if none)
   std::vector<std::string> GetEffectiveFileList(int object_id) const;
 
-  // Returns the built-in subtype filename list for supported object IDs
-  // (currently 0x31 and 0x32). Returns an empty list for other IDs.
+  // Returns the built-in subtype filename list for supported object IDs.
+  // Returns an empty list for other IDs.
   static const std::vector<std::string>& DefaultSubtypeFilenamesForObject(
       int object_id);
 
@@ -209,6 +218,8 @@ class CustomObjectManager {
   static const std::vector<std::string> kSubtype1Filenames;
   // Mapping from subtype index to filename for ID 0x32
   static const std::vector<std::string> kSubtype2Filenames;
+  // Mapping from subtype index to filename for ID 0x54
+  static const std::vector<std::string> kSubtype54Filenames;
 };
 
 }  // namespace zelda3

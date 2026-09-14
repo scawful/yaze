@@ -493,6 +493,19 @@ absl::StatusOr<std::vector<uint8_t>> PublishCustomObjectBinary(
 #endif
 }
 
+uint16_t CustomObjectRuntimeTileWord(int object_id, uint16_t source_word) {
+  if (source_word == 0) {
+    return 0;
+  }
+
+  // Oracle's SpriteObjectsDraw handler forces Kydreeok/Manhandla body tiles
+  // into character page 0x300 after checking for a zero/no-op source word.
+  if (object_id == 0x54) {
+    return source_word | 0x0300;
+  }
+  return source_word;
+}
+
 const std::vector<std::string> CustomObjectManager::kSubtype1Filenames = {
     "track_LR.bin",               // 00
     "track_UD.bin",               // 01
@@ -516,6 +529,11 @@ const std::vector<std::string> CustomObjectManager::kSubtype2Filenames = {
     "furnace.bin",    // 00
     "firewood.bin",   // 01
     "ice_chair.bin",  // 02
+};
+
+const std::vector<std::string> CustomObjectManager::kSubtype54Filenames = {
+    "kydreeok_body.bin",      // 00
+    "manhandla_body_1a.bin",  // 01
 };
 
 CustomObjectManager& CustomObjectManager::Get() {
@@ -623,6 +641,9 @@ const std::vector<std::string>* CustomObjectManager::ResolveFileList(
   if (object_id == 0x32) {
     return &kSubtype2Filenames;
   }
+  if (object_id == 0x54) {
+    return &kSubtype54Filenames;
+  }
   return nullptr;
 }
 
@@ -721,6 +742,11 @@ int CustomObjectManager::RuntimeSubtypeCountForObject(int object_id) {
   return static_cast<int>(DefaultSubtypeFilenamesForObject(object_id).size());
 }
 
+const std::array<int, 3>& CustomObjectManager::RuntimeObjectIds() {
+  static constexpr std::array<int, 3> kRuntimeObjectIds = {0x31, 0x32, 0x54};
+  return kRuntimeObjectIds;
+}
+
 std::vector<std::string> CustomObjectManager::GetEffectiveFileList(
     int object_id) const {
   const auto* list = ResolveFileList(object_id);
@@ -737,6 +763,9 @@ CustomObjectManager::DefaultSubtypeFilenamesForObject(int object_id) {
   }
   if (object_id == 0x32) {
     return kSubtype2Filenames;
+  }
+  if (object_id == 0x54) {
+    return kSubtype54Filenames;
   }
   return kEmpty;
 }
