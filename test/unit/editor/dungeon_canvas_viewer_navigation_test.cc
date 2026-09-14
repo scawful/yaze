@@ -1010,8 +1010,9 @@ TEST(DungeonCanvasViewerNavigationTest,
   int height = 0;
   io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
   DungeonCanvasViewer viewer;
-  const std::string error =
-      "Could not save: /" + std::string(200, 'x') + ".json\nPermission denied.";
+  const std::string error_path =
+      "Could not save: /" + std::string(200, 'x') + ".json";
+  const std::string error = error_path + "\nPermission denied.";
   DungeonCanvasViewerTestPeer::SetIssueReportStatus(viewer, error, true);
   ImRect status_bounds;
   std::string logged_text;
@@ -1032,7 +1033,10 @@ TEST(DungeonCanvasViewerNavigationTest,
     ImGui::End();
     ImGui::Render();
   }
-  EXPECT_NE(logged_text.find(error), std::string::npos);
+  // ImGui's log uses native line endings even when the rendered text uses LF.
+  // Keep checking both complete lines, including the untruncated path.
+  EXPECT_NE(logged_text.find(error_path + IM_NEWLINE + "Permission denied."),
+            std::string::npos);
 }
 
 TEST(DungeonCanvasViewerNavigationTest,
