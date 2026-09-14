@@ -2,7 +2,7 @@
 
 Status: ACTIVE
 
-Owner: `backend-infra-engineer` with editor owners
+Owner: [`backend-infra-engineer` with editor owners](agents/personas.md)
 
 Created: 2026-09-14
 
@@ -10,15 +10,19 @@ Last reviewed: 2026-09-14
 
 Next review: 2026-09-28
 
-Universe task: `task_20260913T233703Z_21853`
+Universe task: `task_20260913T233703Z_21853` ([coordination system](agents/universe-coordination-spec.md))
 
 Intent: make Yaze safe and understandable enough for a bounded v0.8.0 tester
 preview, then promote editors by proving complete user save workflows.
 
 The canonical editor status is the
 [feature coverage report](../public/reference/feature-coverage-report.md).
-Completed release history belongs in `CHANGELOG.md` and
-`docs/public/release-notes.md`, not here.
+Completed release history belongs in the root
+[`CHANGELOG.md`](../../CHANGELOG.md), the
+[release notes](../public/release-notes.md), and the
+[detailed changelog](../public/reference/changelog.md), not here. The
+[roadmap through v0.7.2](archive/roadmaps/roadmap-through-v0.7.2.md) is
+preserved as a frozen snapshot for details that were formerly tracked here.
 
 Related plans that are still listed as active, but are overdue for a status
 refresh, are the [0.x release ladder](plans/release-ladder-0x-2026.md) and the
