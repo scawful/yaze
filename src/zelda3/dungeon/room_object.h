@@ -263,6 +263,15 @@ bool IsRoomObjectSizeEditable(int object_id);
 uint8_t CanonicalRoomObjectSize(int object_id, uint8_t requested_size);
 uint8_t DefaultRoomObjectSizeForPlacement(int object_id);
 
+// Geometric resizing is distinct from the persisted size field: active custom
+// objects use that field as a variant selector, not as width/height.
+bool IsRoomObjectResizable(int object_id);
+// Tile stride for each packed two-bit axis, or zero for scalar/fixed objects.
+int RoomObjectSizeAxisStep(int object_id);
+// Packed objects resize height by default, width when horizontal is true.
+uint8_t ResizeRoomObjectByDelta(int object_id, uint8_t size, int delta,
+                                bool horizontal = false);
+
 // Stateful small and big chests advance the engine's per-room chest-event
 // index. Fixed-open chest graphics (F9A/FB2) and the FF5 minigame chest do not.
 inline constexpr bool IsStatefulChestObjectId(int object_id) {
