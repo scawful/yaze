@@ -1,257 +1,180 @@
-# Custom Objects & Minecart System Handoff
-
-**Status:** Partially Implemented  
-**Created:** 2025-12-07  
-**Owner:** dungeon-rendering-specialist  
-**Priority:** Medium  
-
----
-
-## Overview
-
-This document describes the custom dungeon object system for Oracle of Secrets and similar ROM hacks. Custom objects (IDs 0x31 and 0x32) are loaded from external binary files rather than vanilla ROM tile data.
-
----
-
-## Current State
-
-### What Works
-
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Project configuration | ✅ Complete | `custom_objects_folder` in .yaze file |
-| Feature flag in UI | ✅ Complete | Checkbox in Dungeon Flags menu |
-| Feature flag sync | ✅ Complete | Project flags sync to global on load |
-| MinecartTrackEditorPanel | ✅ Complete | Loads/saves `minecart_tracks.asm` |
-| CustomObjectManager | ✅ Complete | Loads .bin files from project folder |
-| Panel registration | ✅ Complete | Panel available in Dungeon category |
-
-### What Doesn't Work
-
-| Component | Status | Issue |
-|-----------|--------|-------|
-| DrawCustomObject | ❌ Not Working | Draw routine not registered; tiles not rendering |
-| Object previews | ❌ Not Working | DungeonObjectSelector previews don't load custom objects |
-| Graphics editing | ❌ Not Started | No UI to edit custom object graphics |
-
----
-
-## Architecture
-
-### File Structure (Oracle of Secrets)
-
-```
-Oracle-of-Secrets/
-├── Oracle-of-Secrets.yaze          # Project file
-├── Dungeons/Objects/Data/          # Custom object .bin files
-│   ├── track_LR.bin
-│   ├── track_UD.bin
-│   ├── track_corner_TL.bin
-│   ├── furnace.bin
-│   └── ...
-└── Sprites/Objects/data/
-    └── minecart_tracks.asm         # Track starting positions
-```
-
-### Project Configuration
-
-```ini
-[files]
-custom_objects_folder=/path/to/Dungeons/Objects/Data
-
-[feature_flags]
-enable_custom_objects=true
-```
-
-### Key Files
-
-| File | Purpose |
-|------|---------|
-| `src/core/project.h` | `custom_objects_folder` field |
-| `src/core/project.cc` | Serialization/parsing of field |
-| `src/core/features.h` | `kEnableCustomObjects` flag |
-| `src/zelda3/dungeon/custom_object.h` | `CustomObject` struct, `CustomObjectManager` |
-| `src/zelda3/dungeon/custom_object.cc` | Binary file loading and parsing |
-| `src/zelda3/dungeon/object_drawer.cc` | `DrawCustomObject` method |
-| `src/app/editor/dungeon/dungeon_editor_v2.cc` | Panel registration, manager init |
-| `src/app/editor/dungeon/panels/minecart_track_editor_panel.cc` | Track editor UI |
-| `src/app/gui/app/feature_flags_menu.h` | UI checkbox for flag |
-
----
-
-## Custom Object Binary Format
-
-Based on ZScream's object handler:
-
-```
-Header (2 bytes):
-  Low 5 bits:  Tile count for this row
-  High byte:   Row stride (usually 0x80 = 1 tilemap row)
-
-Tile Data (2 bytes per tile):
-  Bits 0-9:   Tile ID (10 bits)
-  Bits 10-12: Palette (3 bits)
-  Bit 13:     Priority
-  Bit 14:     Horizontal flip
-  Bit 15:     Vertical flip
-
-Repeat Header + Tiles until Header == 0x0000
-```
-
-### Object ID Mapping
-
-| Object ID | Subtype | Filename |
-|-----------|---------|----------|
-| 0x31 | 0 | track_LR.bin |
-| 0x31 | 1 | track_UD.bin |
-| 0x31 | 2 | track_corner_TL.bin |
-| 0x31 | 3 | track_corner_TR.bin |
-| 0x31 | 4 | track_corner_BL.bin |
-| 0x31 | 5 | track_corner_BR.bin |
-| 0x31 | 6-12 | track_floor_*.bin |
-| 0x31 | 13 | wall_sword_house.bin |
-| 0x31 | 14 | track_any.bin |
-| 0x31 | 15 | small_statue.bin |
-| 0x32 | 0 | furnace.bin |
-| 0x32 | 1 | firewood.bin |
-| 0x32 | 2 | ice_chair.bin |
-
-Only the real track subtypes `0–12` and `14` enable the optional
-`0x100–0x103` track-corner aliases. Decorative subtypes `13` and `15` do not;
-otherwise rooms containing a sword wall or Mushroom Grotto statue replace
-ordinary 4×4 wall corners with 2×2 track-corner graphics.
-
----
-
-## Issues to Fix
-
-### Issue 1: DrawCustomObject Not Registered
-
-**Location:** `src/zelda3/dungeon/object_drawer.cc`
-
-**Problem:** The draw routine for custom objects (routine ID 130+) is defined but not registered in `InitializeDrawRoutines()`. The object_to_routine_map_ doesn't have entries for 0x31 and 0x32.
-
-**Fix Required:**
-```cpp
-// In InitializeDrawRoutines():
-object_to_routine_map_[0x31] = CUSTOM_OBJECT_ROUTINE_ID;
-object_to_routine_map_[0x32] = CUSTOM_OBJECT_ROUTINE_ID;
-
-// Also need to register the routine itself:
-draw_routines_.push_back([](ObjectDrawer* self, const RoomObject& obj,
-                            gfx::BackgroundBuffer& bg,
-                            std::span<const gfx::TileInfo> tiles,
-                            const DungeonState* state) {
-  self->DrawCustomObject(obj, bg, tiles, state);
-});
-```
-
-**Also:** The tiles passed to DrawCustomObject are from `object.tiles()` which are loaded from ROM. Custom objects should NOT use ROM tiles - they should use tiles from the .bin file. The current implementation gets tiles from CustomObjectManager but ignores the `tiles` parameter.
-
-### Issue 2: CustomObjectManager Not Initialized Early Enough
-
-**Location:** `src/app/editor/dungeon/dungeon_editor_v2.cc`
-
-**Problem:** CustomObjectManager is initialized in `DungeonEditorV2::Load()` but objects may be drawn before this happens.
-
-**Current Code:**
-```cpp
-if (!dependencies_.project->custom_objects_folder.empty()) {
-  zelda3::CustomObjectManager::Get().Initialize(
-      dependencies_.project->custom_objects_folder);
-}
-```
-
-**Fix:** Ensure initialization happens before any room rendering.
-
-### Issue 3: Object Previews in Selector
-
-**Location:** `src/app/editor/dungeon/dungeon_object_selector.cc`
-
-**Problem:** The custom objects section in `DrawObjectAssetBrowser()` attempts to show previews but:
-1. Uses `MakePreviewObject()` which loads ROM tiles
-2. Doesn't use CustomObjectManager to get the actual custom object data
-3. Preview rendering fails silently
-
-**Fix Required:** Create a separate preview path for custom objects that:
-1. Loads binary data from CustomObjectManager
-2. Renders tiles using the binary tile data, not ROM tiles
-
----
-
-## Minecart Track Editor
-
-### Status: Complete
-
-The MinecartTrackEditorPanel loads and saves `minecart_tracks.asm` which defines:
-- `.TrackStartingRooms` - Which room each track starts in
-- `.TrackStartingX` - X position within the room
-- `.TrackStartingY` - Y position within the room
-
-### File Format
-
-```asm
-  .TrackStartingRooms
-  dw $0098, $0088, $0087, ...
-
-  .TrackStartingX
-  dw $1190, $1160, $1300, ...
-
-  .TrackStartingY
-  dw $1380, $10C9, $1100, ...
-```
-
----
-
-## Next Steps
-
-### Priority 1: Make Custom Objects Render
-
-1. Register routine for 0x31/0x32 in `InitializeDrawRoutines()`
-2. Verify CustomObjectManager is initialized before room load
-3. Test with Oracle of Secrets project
-
-### Priority 2: Fix Previews
-
-1. Add custom preview path in DungeonObjectSelector
-2. Use CustomObjectManager data instead of ROM tiles
-3. Handle case where project folder isn't set
-
-### Priority 3: Graphics Editing (Future)
-
-1. Create UI to view/edit custom object binary files
-2. Add export functionality for new objects
-3. Integrate with sprite editor or create dedicated panel
-
----
-
-## Testing
-
-### To Test Custom Objects:
-
-1. Open YAZE
-2. Open Oracle of Secrets project file
-3. Navigate to Dungeon editor
-4. Open a room that contains custom objects (e.g., minecart tracks)
-5. Objects should render (currently: they don't)
-
-### To Test Minecart Panel:
-
-1. Open Oracle of Secrets project
-2. Go to Dungeon editor
-3. View > Panels > Minecart Tracks (or find in panel browser)
-4. Should show table of track starting positions
-5. Edit values and click "Save Tracks"
-
----
-
-## Related Documentation
-
-- [`draw_routine_tracker.md`](../agents/draw_routine_tracker.md) - Draw routine status
-- [`dungeon-object-rendering-spec.md`](../agents/dungeon-object-rendering-spec.md) - Object rendering details
-
----
-
-## Contact
-
-For questions about this system, refer to the Oracle of Secrets project structure or check the custom object handler in the ASM source.
+# Custom dungeon objects and minecart authoring
+
+Status: ACTIVE AUDIT
+Owner: `zelda3-hacking-expert` with `imgui-frontend-engineer`
+Last reviewed: 2026-09-14
+Next review: 2026-09-28
+Universe task: `task_20260913T233703Z_21853`
+
+Intent: make project-specific dungeon visuals and gameplay objects safe to
+author in Yaze while preserving their source-patch and in-game behavior.
+
+The release priorities live in [the roadmap](../roadmap.md). This file is the
+current behavior and design contract for custom objects; the original 2025
+handoff was superseded after rendering, previews, and the workshop were added.
+
+## Current implementation
+
+| Concern | Current state | Main code |
+| --- | --- | --- |
+| Project configuration | `custom_objects_folder`, feature flag, and per-ID subtype filename lists persist in the project descriptor. | `src/core/project.{h,cc}` |
+| Loading | `CustomObjectManager` loads and caches external `.bin` layouts for IDs such as `0x31` and `0x32`. | `src/zelda3/dungeon/custom_object.{h,cc}` |
+| Rendering | Active project overrides route before the built-in draw routine. Ordinary corner objects keep vanilla behavior unless an explicit track-corner alias is configured. | `object_layer_semantics.h`, `object_drawer.cc` |
+| Geometry and previews | Custom layout bounds feed selection and object-browser previews. Preview keys include subtype and room graphics context. | `object_dimensions.cc`, `dungeon_object_selector.cc` |
+| Tile authoring | The Custom Object Workshop can create an object and the Object Tile Editor can update tile words in a `.bin` file. | `dungeon_object_selector.cc`, `object_tile_editor.{h,cc}` |
+| Minecart source | The Minecart panel parses and preserves the configured ASM start-room/X/Y source and can publish guarded changes. | `minecart_track_source.{h,cc}`, `minecart_track_editor_panel.{h,cc}` |
+| Minecart audit | The panel finds track subtype usage, start-table gaps, collision coverage, and can generate collision for one or many rooms. | `minecart_track_editor_panel.cc`, `track_collision_generator.{h,cc}` |
+| Oracle overlays | Project lists identify track tiles, stops, switches, object IDs, and minecart sprites. | `Project::dungeon_overlay`, Dungeon overlays |
+
+Focused unit coverage exists for custom-object parsing/bounds/rendering, corner
+alias rules, tile-editor state/writeback, minecart source identity and project
+binding, overlay configuration, and collision generation. This is component
+evidence; it is not yet one complete authoring/publish/build/runtime workflow.
+
+## Important semantics
+
+### Object `0x31`
+
+The size nibble is a project subtype, not a vanilla width/height value.
+
+- Subtypes `0-12` and `14` are minecart track pieces.
+- Subtype `13` is `wall_sword_house`.
+- Subtype `15` is `small_statue`.
+- Optional `0x100-0x103` wall-corner aliases may use track-corner files only
+  when the current project explicitly configures those files.
+
+Track detection must never classify subtypes `13` or `15` as rails. Doing so
+can replace ordinary wall corners and can generate false collision.
+
+### Visual object versus gameplay behavior
+
+An object's static tile stamp does not prove its runtime behavior:
+
+- icy/slippery floors require the correct visual tiles plus collision or room
+  behavior used by the game;
+- moving floors and moving water have static editor tiles but runtime BG motion;
+- water-fill objects may control HDMA or masks rather than stamp the final pixels;
+- minecart pieces require visuals, connected collision, a valid start slot, and
+  the patched runtime that consumes those tables.
+
+The editor must show these as related properties, not pretend they are one
+ordinary bitmap.
+
+## Confirmed safety gaps
+
+1. **Custom `.bin` writeback is not lossless for every parsed layout.** The
+   current writer groups cells by row, emits each row densely, and always jumps
+   one row. Sparse columns or skipped rows can move tiles on rewrite.
+2. **The creation width allows 32 tiles, but the binary row count is five
+   bits.** A count of 32 masks to zero and can become a terminator. Creation
+   must stop at 31 or the format must split a row into valid segments.
+3. **Custom file publishing is a direct overwrite.** The writer joins a
+   user-controlled filename to the base path and uses `std::ofstream` directly.
+   It needs canonical project-root containment, a temporary file, verification,
+   and atomic replacement.
+4. **Project persistence can fail silently after first creation.** The callback
+   updates the mapping and discards the status from `project->Save()`.
+5. **The manager is process-global.** Multiple ROM/project sessions can share a
+   singleton unless every session switch rebinds it correctly. The project
+   object catalog should be session-owned or explicitly scoped.
+6. **Minecart collision batch generation is not transactional.** Generate All
+   writes each room directly. If a later room fails, earlier writes remain in
+   the ROM buffer, and the operation has no single undo/review step.
+7. **The UI mixes destinations.** One panel contains ASM source publishing,
+   project overlay settings, track starts, room audits, and direct ROM collision
+   writes. The different Save/Publish/Generate actions are easy to confuse.
+
+Until these are fixed, custom-object editing and collision generation are an
+advanced Oracle workflow, not part of the general tester lane.
+
+## Target model: project object catalog
+
+Use one project-owned entry for each `(object_id, subtype)` with explicit
+fields for:
+
+- name and category;
+- visual source: vanilla ROM, external `.bin`, or Yaze-authored project asset;
+- source filename and build/export target;
+- bounds and anchor;
+- default object stream/layer behavior;
+- semantic role: decoration, wall override, track, ice, moving floor, water,
+  HDMA/control, or another project-defined role;
+- collision/runtime profile and required patch capability;
+- usage locations and validation witnesses.
+
+Yaze-authored overrides should publish the source asset and project mapping used
+by the ROM build. Do not add preview-only overrides that cannot reach the game.
+Existing Oracle `.bin`, ASM, manifest, and project data must import without
+losing information.
+
+## Target UI
+
+### Object Library
+
+- Search vanilla and project objects together.
+- Show badges for custom visual, runtime behavior, collision, source status,
+  and validation state.
+- From a selected room object, expose **Edit Visual**, **Override Visual**,
+  **Find Uses**, and **Validate** in one stable inspector.
+- Keep creation/editing in a resizable side panel or drawer; avoid nested modal
+  popups that resize the canvas or context menu.
+
+### Minecart mode
+
+Present a task sequence instead of one large table:
+
+1. Place and connect visual track pieces.
+2. Preview the inferred route and collision without writing.
+3. Resolve endpoints, switches, and disconnected pieces.
+4. Assign or pick the cart start for each used subtype/route.
+5. Review a source/ROM diff.
+6. Apply transactionally, then build and validate in Mesen.
+
+Advanced overlay IDs and source paths belong in a collapsed project settings
+section, not the primary authoring flow.
+
+### Ice, moving floor, and water
+
+Show a behavior badge and the evidence required for each family. A static
+preview may be marked correct while runtime motion, collision, or HDMA remains
+unverified. Reuse the dungeon issue reporter to capture room, object, layer,
+effect, collision, and Mesen evidence without moving the canvas.
+
+## Implementation order
+
+### P0: contain writes
+
+1. Add strict custom-binary validation and parse -> encode -> parse equality
+   tests, including sparse layouts and maximum row counts.
+2. Reject unsupported layouts before touching a file.
+3. Enforce project-root containment and atomic verified file replacement.
+4. Propagate project-save failures and roll back the in-memory mapping.
+5. Make minecart batch generation preview first and commit all rooms in one ROM
+   and editor transaction.
+
+### P1: consolidate identity and UI
+
+1. Introduce the session-owned project object catalog and adapt the existing
+   manager/mappings to it without a second source of truth.
+2. Move the workshop into the Object Library inspector/drawer.
+3. Add task-based Minecart mode with route/collision/start validation.
+4. Model wall overrides, ice, moving floors, and water behavior explicitly.
+
+### P2: migrate and prove runtime
+
+1. Import existing Oracle mappings and publish compatible `.bin`/ASM outputs.
+2. Add application-path tests for create/edit/publish/reopen.
+3. Build the patched ROM and validate representative wall, ice, water, and
+   minecart witnesses in Mesen.
+
+## Exit criteria
+
+- No custom source or collision write can partially apply or escape the project.
+- Existing custom layouts roundtrip byte-equivalently or fail before writing.
+- A user can see whether an object changes visuals, collision, runtime behavior,
+  or more than one of them.
+- Wall aliases never activate from decorative `0x31` subtypes.
+- Minecart authoring reports disconnected routes, missing starts, and collision
+  differences before commit.
+- The published project rebuild and Mesen runtime agree with the Yaze preview
+  for documented witnesses.

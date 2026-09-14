@@ -1,125 +1,118 @@
-# Feature & Test Coverage Report (v0.8.0 development)
+# Editor readiness and feature coverage
 
-This report summarizes feature status and persistence behavior across the
-desktop app (yaze), z3ed CLI, and the web/WASM preview, and maps those features
-to current automated test coverage. Status levels follow the desktop rubric:
-Stable = reliable core workflows, Beta = usable but incomplete, WIP = core operations missing.
-As of the post-`v0.7.2` development line, app data is consolidated under `~/.yaze` on
-desktop/CLI and `/.yaze` in the web build (IDBFS), with legacy migrations from
-AppData/Library/XDG.
+Last reviewed: 2026-09-14 for the v0.8.0 development line.
 
-## Desktop App (yaze)
+This is the canonical readiness matrix for Yaze's user-facing editors. A status
+describes the complete workflow, not the size of the implementation:
 
-| Feature | State | Save/Load & Persistence |
-| --- | --- | --- |
-| Project files (.yaze) | Stable | Project metadata stored in the .yaze file; recent project list and metadata cache persisted. |
-| ROM load/save | Stable | ROM loaded from disk; save writes ROM; timestamped backups when enabled. |
-| Overworld Editor | Beta | Overworld edits persist to ROM; version-gated for vanilla/v2/v3. Tile16 palette inconsistencies, paste not tracked in undo, sprite workflow incomplete. |
-| Dungeon Editor | Beta | Room objects, sprites, headers, torches, custom collision, chests, and pot items persist to ROM; shared undo/redo. Focused regression coverage exists for save-path writers, `DungeonEditorSystem`, and editor save-flag gating, and recent workbench/nav compaction protects visible room area better in constrained layouts. Remaining gaps are 12+ unknown object types, specific visual discrepancies, selector/browser preview parity, and pits/blocks still using legacy blob-preservation saves. Optional connected-room/grouped-room overview work remains exploratory rather than part of the current baseline editor path. |
-| Palette Editor | Beta | Palette changes persist to ROM; JSON import/export not implemented. |
-| Graphics Editor | Beta | Tile/sheet editing and undo/redo are available, but pending sheet edits currently block ROM save because the graphics serializer is not yet safe; sheet persistence is unavailable. |
-| Sprite Editor | Beta | Sprite viewing/editing works with undo/redo; deeper workflow coverage is still limited. |
-| Message Editor | Stable | Text edits persist to ROM. |
-| Screen Editor | WIP | Dungeon-map undo/redo is implemented; pause-menu world-map editing is present but needs stronger UX/test coverage; cut/copy/paste/find remain incomplete. |
-| Memory Editor | WIP | Hex viewing works; search unimplemented. |
-| Assembly/Asar | Beta | Patches apply to ROM; project file editor is incomplete. |
-| Emulator | Beta | Runtime-only; save-state format exists but UI is not fully wired. |
-| Music Editor | Beta | Playback and editing work; clipboard operations unimplemented. |
-| Agent UI | Experimental | Chat history, profiles, and sessions stored under `~/.yaze/agent`. |
-| Settings/Shortcuts | Beta | Settings + shortcuts UI wired; persistence stored in `~/.yaze` layouts/workspaces. |
-| Panel Layouts/Workspaces | Beta | Layout presets stored under `~/.yaze/layouts` and `~/.yaze/workspaces`. |
+- **Tester ready**: a bounded load, edit, **File > Save ROM**, and reopen test is
+  useful now.
+- **Conditional**: only the named subset or save procedure is supported.
+- **View only**: inspection is useful, but ROM persistence is not tester-ready.
+- **Experimental**: availability or behavior depends on the build, provider, or
+  unfinished subsystem.
 
-## z3ed CLI
+No editor yet has an automated test for the entire GUI path from a user edit,
+through **File > Save ROM**, to closing and reopening the disk file in the same
+editor. Existing editor, serializer, and ROM readback tests provide good partial
+coverage, but they do not replace that acceptance path.
 
-| Feature | State | Save/Load & Persistence |
-| --- | --- | --- |
-| ROM read/write/validate | Stable | Operates directly on ROM file. |
-| ROM snapshots/restore | Stable | Snapshot/restore ROM state in project-local `.yaze/snapshots`. |
-| Doctor suite | Stable | Diagnostics; optional fix output to file. |
-| Editor automation | Stable | Writes changes to ROM. |
-| Test discovery/run/status | Stable | Structured output; no ROM required. |
-| Agent workflows | Stable | Proposals/policies/sandboxes stored under `~/.yaze/*`. |
-| TUI/REPL | Stable | Interactive sessions; REPL supports session save/load. |
-| AI providers | Stable | Ollama/Gemini/OpenAI/Anthropic with keys or local server. |
+## Desktop editor matrix
 
-## Web/WASM Preview
+| Editor | Readiness | Durable workflow today | Main limitation before promotion |
+| --- | --- | --- | --- |
+| Dungeon | **Tester ready** | Edit a room, use **File > Save ROM**, close, and reopen a copied ROM. | Known object-rendering and layering exceptions remain; add full GUI-to-disk readback. |
+| Overworld | **Tester ready** | Edit a map or entity, use **File > Save ROM**, close, and reopen a copied ROM. | Add full GUI-to-disk readback and a dedicated user guide. |
+| Message | **Tester ready** | Edit valid message text, use **File > Save ROM**, close, and reopen a copied ROM. | Add full GUI-to-disk readback and a dedicated user guide. |
+| Palette | **Conditional** | First use the Palette panel's **Save to ROM**, then use **File > Save ROM**, close, and reopen. | Integrate Palette with coordinated save or prove and clearly retain the two-step contract. |
+| Assembly | **Conditional** | **Save File** writes the active ASM source. Applying an Asar patch is a separate, explicit ROM operation. | Add dirty-close, source-reopen, and separately fenced patch-application tests. |
+| Sprite | **Conditional** | Custom `.zsm` files can be edited and saved. Vanilla sprites are for viewing here; room sprite placement belongs in Dungeon. | Remove or disable incomplete vanilla edit controls and prove `.zsm` roundtrip. |
+| Settings | **Conditional** | Settings and layouts use application configuration files, not ROM save. Restart and verify each changed setting. | Add Settings-panel-to-disk-to-restart coverage. |
+| Graphics | **View only** | Viewing and preview are useful. Do not make a persistence test edit. | A pending sheet edit deliberately blocks **Save ROM** until the serializer is safe. |
+| Screen | **View only** | Inspect dungeon maps, inventory, title, and world-map screens. | Any pending Screen edit deliberately blocks coordinated save; writers need domain-by-domain readback proof. |
+| Music | **View only** | Browse and play loaded music. Do not rely on ROM persistence. | Music is not in coordinated save; instrument and sample writers are unimplemented. |
+| Hex / Memory | **View only** | Use only for expert inspection in tester builds. | Raw-buffer editing lacks an editor dirty state, undo, and a tested save contract. |
+| Emulator | **Experimental** | Runtime inspection and play testing only. | Save-state UI and conditional breakpoint behavior are incomplete. |
+| Agent | **Experimental** | Build- and provider-specific chat/tool exploration. | Availability depends on build flags and provider configuration; it is not a ROM-save participant. |
 
-| Feature | State | Save/Load & Persistence |
-| --- | --- | --- |
-| ROM load | Working | Drag/drop or picker; stored in `/.yaze/roms` (IndexedDB). |
-| Auto-save | Preview | Auto-save to browser storage when working. |
-| Download ROM | Working | Download modified ROM to disk. |
-| Overworld/Dungeon/Palette/Graphics/Sprite/Message | Preview | Editing incomplete; persists via browser storage + download. |
-| Hex Editor | Working | Direct ROM editing; persisted in browser storage. |
-| Asar patching | Preview | Basic assembly patching. |
-| Emulator | Not available | No emulator in web build. |
-| Collaboration | Experimental | Requires server; persistence depends on server storage configuration. |
-| AI features | Preview | Requires AI-enabled collaboration server. |
+## What coordinated Save ROM currently covers
 
-## Persistence Summary
+`EditorManager::SaveRom()` is the application-level persistence boundary.
+For loaded editors it coordinates:
 
-- Desktop/CLI: app data stored under `~/.yaze` with migration from legacy paths.
-- Desktop: primary persistence is ROM save to disk; backups on save when enabled.
-- Emulator: save-state format exists, but UI wiring is incomplete.
-- CLI: proposals/policies/sandboxes stored under `~/.yaze`; snapshots/restore for ROM state.
-- Web: `/.yaze` in IndexedDB; download for durable backups; browser storage can be cleared.
+1. Screen serialization only when its state is valid and has no pending edit.
+2. Dungeon serialization.
+3. Overworld serialization.
+4. Message serialization when message saving is enabled.
+5. ROM safety checks, conflict handling, backup policy, and the final disk write.
 
-## Automated Test Coverage (Current)
+Important exceptions:
 
-- Unit: core ROM and data structures, gfx conversions, emulator components, CLI/agent services.
-- Integration: editor systems (dungeon/overworld/tile16), AI runtime, emulator services, audio, Asar.
-- E2E: GUI smoke + dungeon/overworld workflows, editor smoke tests
-  (Graphics/Sprite/Message/Music/Save States), emulator stepping, multimodal AI.
-- ROM-dependent: full ROM flows (Asar patching, upgrades, end-to-end ROM edits).
-- Web/WASM: platform tests + Playwright smoke that runs the debug API suite.
+- Palette changes must first be committed to the shared ROM buffer with the
+  Palette panel's **Save to ROM** action.
+- Graphics and dirty Screen edits fail closed before the disk write.
+- Music, Assembly, Sprite, Settings, Emulator, and Agent use separate or partial
+  persistence models and are not invoked by coordinated ROM save.
+- Hex / Memory currently exposes raw ROM data without a complete editor
+  transaction contract and is outside the supported tester lane.
 
-### Test Inventory (Targets + Labels)
+## Evidence levels
 
-- Targets: `yaze_test` (unit/integration), `yaze_test_gui`, `yaze_test_experimental`,
-  `yaze_test_rom_dependent`, `yaze_test_benchmark`, `z3ed --self-test`.
-- CTest labels: `stable`, `gui`, `headless_gui`, `z3ed`, `rom_dependent`,
-  `experimental`, `benchmark`.
-- Key locations: `test/unit/`, `test/integration/`, `test/e2e/`,
-  `test/platform/wasm_*`, `src/web/tests/wasm_debug_api_tests.js`.
+Use these terms when updating this report or a pull request:
 
-## Coverage Gaps (Observed)
+| Evidence | What it proves |
+| --- | --- |
+| Component test | A model, parser, widget policy, or serializer behaves under a focused test. |
+| Direct ROM readback | A writer's bytes can be reopened and decoded, often without the application editor. |
+| App-path test | An editor object or `EditorManager` participates in the tested save path. |
+| GUI smoke | A panel opens or expected text appears; it does not prove editing or persistence. |
+| Manual acceptance | A packaged app completes a named workflow on a named platform. |
 
-- Limited GUI/E2E coverage depth for Graphics, Sprite, Message, Music,
-  Screen, and Settings flows (smoke coverage added, workflow depth pending).
-- Emulator save-state UI has smoke coverage; full save/load workflows pending.
-- Settings/project manager and layout serialization not fully exercised.
-- `.yaze` migration and path normalization lack targeted regression coverage.
-- Web build has automated debug API smoke; broader browser CI still light.
+Tests named `*_save_test.cc` or “E2E” are not automatically application-path
+tests. Several construct a ROM/data writer directly and then write bytes to a
+temporary file. Keep that evidence, but do not use it to claim GUI save parity.
 
-### Identified Gaps
+## Current strengths
 
-- **Palette serialization**: JSON import/export not implemented (`palette_group_panel.cc:529,534`)
-- **Music bank persistence**: SaveInstruments/SaveSamples return UnimplementedError (`music_bank.cc:925,996`)
-- **Screen editor operations**: Cut/Copy/Paste/Find are still incomplete (`screen_editor.h`)
-- **Workspace layout**: Save/Load/Reset are TODOs (`workspace_manager.cc:18,26,34`)
-- **Platform backend**: Minimal factory tests only (`window_backend_test.cc` - 38 lines)
-- **Room object types**: 12+ unknown object types in `room_object.h` need verification
-- **Dungeon pits/blocks persistence**: Still preserved as legacy ROM blobs after pointer validation instead of encoded from explicit room-state models
-- **Dungeon room overview workspace**: optional connected-room / grouped-room
-  scrolling mode remains exploratory; editing still centers on one room at a
-  time
-- **CRC32 calculation**: Stubbed with 0 in ASAR wrapper (`asar_wrapper.cc:330,501`)
+- ROM/project lifecycle, backup policy, conflict detection, and fail-closed
+  save behavior have substantial focused coverage.
+- Dungeon has the broadest editor-specific coverage: room objects, doors,
+  sprites, headers, collision, chests, pot items, palette interaction, and
+  workbench navigation.
+- Overworld has editor-method coverage for save/reload, undo, clipboard, maps,
+  and entities. Its persistent `ScratchPad.dat` workflow is implemented.
+- Message saving is transactional and rejects invalid parsed text.
+- Palette JSON import/export is implemented when JSON support is enabled and
+  has focused validation tests.
 
-## Coverage Plan (v0.7.x)
+## Highest-priority coverage gaps
 
-1) [DONE] Add GUI smoke tests for Graphics, Sprite, Message, and Music editors.
-2) [DONE] Add emulator save-state UI smoke coverage (workflow tests pending).
-3) [TODO] Add settings/layout serialization tests (workspace presets + shortcuts).
-4) [TODO] Add `.yaze` migration and path normalization tests (desktop + CLI).
-5) [TODO] Expand CLI command coverage for doctor and editor automation commands.
-6) [DONE] Promote WASM debug API checks into CI (automated browser run).
-7) [TODO] Add ROM-dependent tests for version-gated overworld saves and broader dungeon persistence/integration flows beyond the focused synthetic-ROM coverage now in place.
-8) [TODO] Add web storage regression checks (IDBFS sync + file manager flows).
+1. Add one reusable application-path harness for:
+   **GUI action -> File > Save ROM -> close -> reopen disk file -> verify**.
+2. Use that harness first for Dungeon, Overworld, Message, and Palette.
+3. Make ROM-backed GUI tests fail or visibly skip when their required ROM is
+   unavailable; a window-only smoke must not stand in for persistence coverage.
+4. Keep unsafe mutation surfaces disabled or clearly labeled until their writer
+   and readback path exist.
+5. Promote Graphics and Screen one independently verified data domain at a time.
 
-### Pending Test Additions
+## Other products
 
-9) [TODO] Add palette JSON round-trip tests (`test/unit/palette_json_test.cc`)
-10) [TODO] Add workspace layout serialization tests (`test/integration/workspace_test.cc`)
-11) [TODO] Add BRR codec unit tests (`test/unit/brr_codec_test.cc`)
-12) [TODO] Add music bank save tests (`test/integration/music_bank_test.cc`)
-13) [TODO] Expand platform backend tests for SDL2/SDL3 feature parity
+### z3ed CLI
+
+`z3ed` provides scriptable ROM inspection, guarded writes, validation,
+snapshots, doctor commands, and agent workflows. Its command-specific status is
+documented in the [z3ed CLI guide](../usage/z3ed-cli.md). CLI serializer tests do
+not promote the corresponding desktop editor automatically.
+
+### Web / WASM preview
+
+The web build is a preview with browser-storage and download workflows. It does
+not include the emulator and is not a substitute for native editor acceptance.
+See the [Web App guide](../usage/web-app.md).
+
+## Updating this matrix
+
+Promote an editor only when the durable workflow is explicit and the evidence
+matches the claim. Record exact commands and the tested commit in the pull
+request or release checklist; avoid embedding volatile test counts here.

@@ -1,160 +1,76 @@
-# Yaze Capability Assessment
+# Yaze capability assessment
 
-Last updated: 2026-05-01 (v0.7.2 development)
+Last reviewed: 2026-09-14 for the v0.8.0 development line.
 
-An honest assessment of yaze's current capabilities compared to Hyrule Magic and ZScream, the two established ALTTP ROM editors.
+Yaze is a cross-platform ALttP editor with modern safety checks, undo-oriented
+workflows, a built-in emulator, and the `z3ed` automation CLI. ZScream and
+Hyrule Magic remain important workflow references because many ROM hackers know
+their object placement and project conventions.
 
-## Editor Capability Matrix
+This assessment is job-based. It deliberately avoids percentage-parity claims:
+a feature can look complete while still lacking a safe save/reopen path.
+Current persistence status lives in the
+[editor readiness matrix](feature-coverage-report.md).
 
-### Dungeon Editor (~80% parity with ZScream)
+## Practical comparison
 
-| Feature | yaze | ZScream | Hyrule Magic |
-|---------|------|---------|--------------|
-| Room viewing + rendering | Yes | Yes | Yes |
-| Tile object placement/move/delete | Yes | Yes | Yes |
-| Sprite placement/move/delete | Yes | Yes | Yes |
-| Door placement/move/delete | Yes | Yes | Yes |
-| Object limit enforcement (placement-time) | Yes (400/64/16) | Save-time only | Save-time only |
-| Ghost preview with capacity indicators | Yes (color-coded) | No | No |
-| Multi-object selection (marquee + shift/ctrl) | Yes | Yes | Partial |
-| Object z-ordering (front/back) | Yes | Yes | Yes |
-| Object layer assignment (BG1/BG2/BG3) | Yes | Yes | Yes |
-| Layer visibility toggles | Yes (compact bar) | Yes | Yes |
-| Room header editing (palette, blockset, etc.) | Yes (settings panel) | Full | Full |
-| Custom collision editing | Yes (JSON import/export) | Limited | No |
-| Water-fill editing | Yes (JSON import/export) | No | No |
-| Minecart/track rail tools | Yes (audit + generation) | No | No |
-| Undo/redo | Yes | Yes | Limited |
-| Clipboard (copy/paste objects) | Yes | Yes | No |
-| Workbench single-room mode | Yes | N/A | N/A |
-| Multi-room tab view | Yes | Yes | Yes |
-| Adjacent room navigation (Ctrl+arrows) | Yes | No | No |
-| Room save to ROM | Yes | Yes | Yes |
-| Room-state persistence coverage | Focused regression coverage (headers, torches, fixed-capacity pit-damage table, pushable blocks, custom collision, chests, pot items, dungeon entrances, and dedicated spawn persistence; spawn UI remains read-only and oversized pot-item saves fail loudly) | Mature | Mature |
-| Sprite graphics rendering (actual tiles) | Partial (static vanilla tile preview + fallback boxes) | Yes | Yes |
-| Object tile preview in ghost | Yes (rendered bitmap) | No | No |
-| Object selector/browser previews | Yes (default-on rendered room-context thumbnails + fallback symbols) | Yes | Yes |
-| Object tile editor / custom-object layout editing | Partial (tile editor + preview/tests; workflow still rough) | Yes | No |
+| Job | Yaze today | Established-editor reference | Main Yaze follow-up |
+| --- | --- | --- | --- |
+| Edit dungeon rooms | Broad objects, doors, sprites, headers, collision, items, undo, responsive workbench, and fail-closed ROM checks. Bounded beta. | ZScream and Hyrule Magic provide mature single-room placement conventions. | Finish rare object/layer parity, custom/gameplay object authoring, and full application save/reopen proof. |
+| Edit the playable overworld | Maps, Tile16 painting, entities, properties, clipboard, undo, and version-aware save. Bounded beta. | ZScream provides a mature ALttP-focused overworld workflow. | Close remaining sprite/paste gaps and add full application save/reopen proof. |
+| Edit messages | Parsing, preview, search, bundle/source workflows, and transactional save. Bounded beta. | Older editors provide familiar message-table editing. | Add a focused user guide and complete GUI-to-disk readback. |
+| Edit palettes | Broad palette groups, live preview, undo, JSON exchange, and ROM-buffer commit. Conditional beta. | Palette editing is an established workflow in both older editors. | Replace or fully prove the current two-step save procedure. |
+| Edit graphics and screens | Strong inspection and partial editing UI; persistence is fail-closed when unsafe. | Mature tools may be more appropriate for production graphics/screen edits today. | Prove one serializer domain at a time before enabling general persistence. |
+| Author custom dungeon systems | Project-mapped custom objects, previews, a tile workshop, Oracle water/collision tools, and minecart source/collision utilities exist. | Custom workflows are usually patch- or project-specific. | Consolidate mappings, visuals, collision semantics, source publishing, and validation into one authoring workflow. |
+| Apply ASM patches | Integrated Asar support and project source editing. | External assembler workflows remain common and transparent. | Separate source-file save proof from fenced ROM patch-application proof. |
+| Inspect/test runtime | Built-in emulator and debug panels plus Mesen-oriented validation workflows. | External emulators remain the independent runtime truth. | Complete save-state and conditional-breakpoint workflows; retain independent Mesen checks. |
+| Automate edits | `z3ed` provides structured CLI inspection, validation, guarded edits, and agent workflows. | Older GUI editors generally have less scriptable coverage. | Keep CLI evidence separate from desktop-editor readiness and expand readback checks. |
+| Work across operating systems | Native build/package pipelines for macOS, Windows, and Linux; browser preview through WASM. | Hyrule Magic is Windows-centric; ZScream availability depends on its current distribution. | Finish exact-artifact and hands-on acceptance before each tester release. |
 
-### Overworld Editor (~60-65% parity with ZScream)
+## Where Yaze is strongest
 
-| Feature | yaze | ZScream | Hyrule Magic |
-|---------|------|---------|--------------|
-| Map viewing (all 160 maps) | Yes | Yes | Yes |
-| Tile16 painting (draw mode) | Yes | Yes | Yes |
-| Fill tool (flood fill) | Yes | Yes | Yes |
-| Tile16 selector with search/filter | Yes (hex jump + range filter) | Basic | Basic |
-| Tile16 editor (compose from tile8s) | Yes | Yes | No |
-| Tile8 selector | Yes | Yes | Yes |
-| Tile hover preview (ID + zoom) | Yes | No | No |
-| Entrance editing (visual) | Yes | Yes | Yes |
-| Exit editing (visual) | Yes | Yes | Yes |
-| Item placement editing | Yes | Yes | Yes |
-| Overworld sprite editing | Yes | Yes | Yes |
-| Transport/whirlpool editing | Yes | Yes | No |
-| Music area editing | Yes | Yes | No |
-| Map properties (palette, gfx groups) | Yes | Yes | Yes |
-| Scratch space (tile staging) | Yes | No | No |
-| ZSCustomOverworld support | Yes | Yes (native) | No |
-| Save overworld to ROM | Yes | Yes | Yes |
-| Map export/graph visualization | Yes (CLI) | No | No |
+- Fail-closed ROM writes, project manifests, write-range conflict checks, and
+  backup/restore policy.
+- Dungeon inspection and diagnostics that expose room IDs, object IDs, streams,
+  layers, geometry, and validation evidence.
+- Cross-platform source and packaging infrastructure.
+- Undo-aware editor architecture and scriptable `z3ed` workflows.
+- A validation ladder that distinguishes synthetic replay, ROM parsing, stored
+  fingerprints, independent Mesen pixels, and structural CLI validation.
 
-### Graphics Editor (~35% parity)
+## Where another editor may still be safer
 
-| Feature | yaze | ZScream | Hyrule Magic |
-|---------|------|---------|--------------|
-| GFX sheet viewing | Yes | Yes | Yes |
-| Palette editing | Yes (dedicated editor) | Yes | Yes |
-| Pixel-level 8x8 tile editing | Basic | Yes | Yes |
-| GFX group management | Viewing | Full editing | Full editing |
-| Animated tile preview | No | Yes | No |
-| GFX import/export | No | Yes | No |
+- Production Graphics and Screen persistence.
+- Familiar mature workflows not yet covered by Yaze's complete save/reopen
+  tests.
+- ROM hacks whose custom layout conventions are understood only by an existing
+  project-specific tool.
 
-### Other Editors
+Using another editor for one surface is not a failure. Keep a clean base ROM,
+patch sources, and small reproducible changes so output can be compared.
 
-| Editor | yaze | ZScream | Hyrule Magic |
-|--------|------|---------|--------------|
-| Message/text editor | Yes (import/export/encode/decode) | Yes | Limited |
-| Music editor | Yes (SPC playback, track editing) | No | No |
-| Sprite editor (data/properties) | Yes | Yes | Yes |
-| Screen editor (title/file select / pause-menu world map) | Basic | Yes | Yes |
-| Palette editor (standalone) | Yes | Yes | Yes |
-| Assembly editor (integrated) | Yes | No | No |
-| Hex editor (integrated) | Yes | No | No |
+## Dungeon visual parity rule
 
-## Unique to yaze (no competitor equivalent)
+Yaze does not claim full 1:1 dungeon output from synthetic tests alone. Use the
+smallest applicable proof tier:
 
-### CLI Automation (z3ed — 127 commands)
+1. Synthetic draw-registry replay.
+2. Real-ROM parser/drawer comparison.
+3. Room fingerprint regression.
+4. Independent Mesen RGBA region.
+5. Structural `z3ed dungeon-object-validate` output.
 
-No other ALTTP editor has a command-line interface. yaze's `z3ed` provides:
-- **27 dungeon commands** — room inspection, object/sprite manipulation, collision editing, water-fill, minecart audit
-- **10 overworld commands** — map description, entrance/exit/item/sprite listing, tile search, graph export
-- **13 graphics commands** — hex read/write/search, palette analysis, sprite properties
-- **10 ROM commands** — info, validate, diff, compare, address resolve, symbol find
-- **4 Oracle commands** — menu validation, smoke check, preflight
-- **3 project commands** — bundle verify, pack, unpack
-- **12 emulator commands** — step, breakpoint, memory read/write, register inspect
-- **7 GUI automation commands** — click, type, wait, assert, discover, screenshot
+Runtime-only effects such as HDMA water control and moving BG layers may require
+structural or emulator-state proof rather than a static pixel crop.
 
-All commands support `--format=json` for machine consumption and can be scripted.
+## Decision guide
 
-### Project Bundle System (.yazeproj)
+- Use **Dungeon, Overworld, or Message** for a small Yaze beta edit on a copied
+  ROM.
+- Use **Palette** only after reading its two-step save procedure.
+- Use **Graphics, Screen, Music, Hex / Memory, and vanilla Sprite** for the
+  supported inspection subset described in the readiness matrix.
+- Use ZScream, Hyrule Magic, source patches, and Mesen as comparison tools when
+  they provide independent evidence or a currently safer production workflow.
 
-- Directory-based portable project format
-- `project-bundle-verify` — structural integrity + ROM hash validation
-- `project-bundle-pack` — zip archive for sharing (cross-platform safe paths)
-- `project-bundle-unpack` — extract with path traversal protection + dry-run preview
-- Works across macOS, iOS, Windows, Linux
-- iCloud sync support for Mac/iPad workflow
-
-### Oracle of Secrets Tooling
-
-Purpose-built validation for the Oracle romhack:
-- `oracle-smoke-check` — D4 water system, D6 minecart, D3 prison structural validation
-- `dungeon-oracle-preflight` — water-fill structure/required-room membership and custom collision checks
-- `oracle-menu-validate` — ASM menu data integrity
-- `oracle-menu-index` — menu asset scanning
-- Custom collision JSON import/export workflow
-- Water-fill JSON import/export workflow
-
-### Integrated Development Environment
-
-- Integrated assembly editor with symbol resolution
-- Integrated hex editor with ROM address navigation
-- Emulator integration (Mesen2 socket API) with breakpoints, stepping, memory inspection
-- AI agent chat with ROM context
-- Multi-ROM sessions (up to 8 concurrent)
-
-### Testing Infrastructure
-
-- 1,000+ automated tests across unit, integration, GUI, ROM-dependent, and web/WASM slices
-- ImGui Test Engine integration for GUI testing
-- Protocol audit system for agent coordination verification
-- Oracle-specific regression test suite
-
-## Where yaze is behind (honest gaps)
-
-1. **Sprite graphics rendering depth** — Dungeon sprites now render static vanilla tile previews on the room canvas when the sprite graphics buffer and palette rows are available, but this is still not full runtime OAM animation/state rendering.
-
-2. **GFX sheet editing depth** — ZScream and Hyrule Magic allow individual 8x8 tile editing, GFX import/export, and animated tile preview. yaze's graphics editor is primarily a viewer.
-
-3. **Dungeon persistence model gaps** — The global pit-damage table now has a
-   fixed-capacity room-membership editor, but neither it nor pushable blocks
-   repoints/expands beyond the vanilla table capacity.
-
-4. **Screen editors** — Title screen, file select, and pause-menu world-map editors are basic compared to competitors and need clearer UX/test coverage.
-
-5. **GFX import/export** — No way to import/export graphics sheets or individual tiles.
-
-## Assessment Summary
-
-| Area | Parity | Notes |
-|------|--------|-------|
-| Dungeon editing | ~83% | Strong interaction model, focused persistence coverage, default-on object-browser previews, unique collision/water-fill tools. Gaps: animated sprite/runtime OAM rendering, pit-damage editing, block-table expansion. |
-| Overworld editing | ~60-65% | Functional painting + entity editing. Gap: some polish vs ZScream. |
-| Graphics editing | ~35% | Viewer + palette editor. Gap: pixel editing, import/export. |
-| CLI/Automation | No competitor | 127 commands, JSON output, full scripting capability. |
-| Project management | Ahead | .yazeproj bundles, cross-platform, hash verification. |
-| Oracle tooling | Unique | Purpose-built validation suite, no equivalent exists. |
-| Platform support | Ahead | macOS/Linux/Windows/iOS/WASM vs Windows-only competitors. |
-| Testing/reliability | Ahead | 1,399 tests, CI automation, protocol audit. |
+See the [Beta Testing guide](../usage/beta-testing.md) for a bounded first pass.
