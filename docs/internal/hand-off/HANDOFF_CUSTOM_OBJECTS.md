@@ -23,11 +23,11 @@ They remain pending integration and hands-on runtime acceptance.
 | Project configuration | `custom_objects_folder`, the feature flag, and per-ID subtype filename lists persist in the project descriptor. | `src/core/project.{h,cc}` |
 | Runtime slots | Oracle currently exposes exactly 16 runtime slots for object `0x31` and three for object `0x32`. Project mappings may replace filenames within those slots; the Workshop cannot add runtime subtypes. | `custom_object.{h,cc}`, `dungeon_object_selector.cc` |
 | Loading and session identity | `CustomObjectManager` keeps one entry point but stores the project path, mappings, decoded cache, and asset generation in session-keyed runtime contexts. Session switches activate the matching context, and teardown removes it. | `custom_object.{h,cc}`, `editor_manager.cc`, `session_types.{h,cc}` |
-| Rendering | Active project overrides route before built-in draw routines. Corner aliases `0x100-0x103` use track-corner assets only when the project explicitly maps the asset and the current room contains a real minecart-track subtype. Placement ghosts use the same room gate. | `object_layer_semantics.h`, `object_drawer.cc`, `tile_object_handler.cc` |
+| Rendering | Active project overrides route before built-in draw routines. Corner aliases `0x100-0x103` use track-corner assets only when the project explicitly maps the asset and the current room contains a real minecart-track subtype. Placement ghosts use the same room gate. | `minecart_object_semantics.h`, `object_layer_semantics.h`, `object_drawer.cc`, `tile_object_handler.cc` |
 | Geometry and previews | Custom layout bounds include the active asset generation. Asset reloads and session switches invalidate stale geometry, thumbnails, and queued custom placements. | `object_geometry.{h,cc}`, `dungeon_object_selector.cc` |
 | Tile authoring and publication | The Workshop exposes **Edit Graphics** and **Use in Room** for existing fixed slots. The tile editor retains the exact source snapshot, supports a terminator-only empty asset through **Add First Tile**, and publishes desktop changes through strict encoding, stale-write comparison, rollback-protected atomic replacement, and decoded readback. Browser builds disable editing and fail closed in the publication API. | `object_tile_editor.{h,cc}`, `object_tile_editor_panel.{h,cc}`, `custom_object.{h,cc}` |
-| Minecart source | The Minecart panel parses and preserves the configured ASM start-room/X/Y source and can publish guarded changes. | `minecart_track_source.{h,cc}`, `minecart_track_editor_panel.{h,cc}` |
-| Minecart audit | The panel finds track subtype usage, start-table gaps, and collision coverage. It can still write generated collision for one or many rooms directly. | `minecart_track_editor_panel.cc`, `track_collision_generator.{h,cc}` |
+| Minecart source | The **Routes** tab parses and preserves a configured ASM start-room/X/Y source and publishes it with source-identity and stale-write checks. Route slots come from minecart sprite subtypes, not visual track-piece subtypes. The current Oracle manifest does not yet declare `minecart_tracks.source`, so route publication correctly fails closed until that project metadata is added. | `minecart_track_source.{h,cc}`, `minecart_track_editor_panel.{h,cc}` |
+| Minecart collision | The **Collision** tab audits loaded rooms without blocking routine edits. **Preview All Rooms** performs an explicit 296-room scan, excludes rooms that already contain custom collision, shows every proposed room, and applies the confirmed maps to the editor model as one undoable batch. Preview and Apply do not write ROM bytes; **Save ROM** remains the serialization boundary. | `minecart_track_editor_panel.cc`, `dungeon_editor_v2_undo.cc`, `track_collision_generator.{h,cc}` |
 | Oracle overlays | Project lists identify track tiles, stops, switches, object IDs, and minecart sprites. | `Project::dungeon_overlay`, Dungeon overlays |
 
 Focused unit coverage now includes strict custom-object decoding and encoding,
@@ -58,6 +58,10 @@ when the requested asset exists and the current room contains a track object
 using subtype `0-12` or `14`. Decorative subtypes `13` and `15` never enable
 track-corner aliases. This keeps ordinary wall corners on their vanilla draw
 routines in non-minecart rooms.
+
+Object `0x31` subtype selects a visual graphics slot. A minecart sprite subtype
+selects a route/start-table slot. These identities are independent: a visual
+track subtype never selects or proves a route slot.
 
 #### Object `0x32`
 
@@ -113,28 +117,35 @@ ordinary bitmap.
 7. **Room-scoped corner aliases.** Track-corner overrides require an explicit
    mapped asset and a real track subtype in the current room. Room rendering,
    geometry, selector refresh, and placement ghosts share this rule.
+8. **Transactional minecart collision editing.** Collision generation remains a
+   preview until the user reviews and confirms the complete room list. Apply
+   revalidates every room, refuses to replace existing custom collision, updates
+   only room models, and records the complete batch as one undoable action.
+   Neither Preview nor Apply mutates ROM bytes; **Save ROM** is the persistence
+   boundary.
 
 ### Remaining safety and product gaps
 
-1. **Minecart collision batch generation is not transactional.** **Generate
-   All** writes rooms directly. If a later room fails, earlier ROM-buffer writes
-   remain, and the operation has no single preview, review, commit, or undo step.
-2. **Minecart actions still share one dense panel.** ASM source publication,
-   project overlay settings, starts, audits, and direct collision writes remain
-   easy to confuse, although graphics editing now links to the separate
-   Object Tile Editor.
-3. **The project object catalog is not implemented.** Wall overrides, ice,
+1. **Oracle route-source metadata is not wired.** The Minecart **Routes** tab
+   requires an explicit `minecart_tracks.source`; the current Oracle manifest
+   does not declare one. This intentionally blocks route publication rather
+   than guessing at or rewriting an undeclared ASM file.
+2. **The project object catalog is not implemented.** Wall overrides, ice,
    moving floors, moving water, and HDMA/control objects do not yet expose
    explicit visual, collision, runtime-behavior, source, and validation fields.
+3. **The project-wide scan is synchronous.** **Preview All Rooms** is explicit
+   so normal object edits stay responsive, but the full scan still needs visible
+   progress, cancellation, or an asynchronous job before it is polished UX.
 4. **End-to-end proof is incomplete.** The branch still needs an
    application-path edit/publish/reopen test, a patched-ROM rebuild, hands-on
    desktop acceptance, and representative wall, ice, water, and minecart
    witnesses in Mesen.
 
-Until these remaining gaps are closed, fixed-slot custom graphics publication
-remains an advanced desktop Oracle workflow. Viewing and placement can enter
-the tester lane sooner, but the UI must label graphics-only evidence separately
-from collision and runtime behavior.
+Fixed-slot custom graphics publication and transactional collision editing now
+need hands-on desktop acceptance. Route publication remains unavailable for
+Oracle until `minecart_tracks.source` is declared. Full tester readiness still
+requires patched-ROM and Mesen witnesses that distinguish graphics, collision,
+and runtime behavior.
 
 ## Target model: project object catalog
 
@@ -170,14 +181,24 @@ losing information.
 
 ### Minecart mode
 
-Present a task sequence instead of one large table:
+The current branch provides the first separation:
+
+- **Routes** owns sprite-subtype route/start usage and the manifest-owned ASM
+  source.
+- **Collision** owns loaded-room audits, explicit full-project preview,
+  confirmation, and one undoable room-model transaction.
+- **Object Workshop** owns visual track graphics. Canonical object `0x31`
+  subtypes `13` and `15` remain decorations.
+
+The remaining target sequence is:
 
 1. Place and connect visual track pieces.
-2. Preview the inferred route and collision without writing.
+2. Preview generated collision without writing.
 3. Resolve endpoints, switches, and disconnected pieces.
-4. Assign or pick the cart start for each used subtype/route.
-5. Review a source/ROM diff.
-6. Apply transactionally, then build and validate in Mesen.
+4. Assign or pick the route start selected by each minecart sprite subtype.
+5. Review model and source changes separately.
+6. Apply to room models, support Undo/Redo, **Save ROM**, then build and validate
+   in Mesen.
 
 Advanced overlay IDs and source paths belong in a collapsed project settings
 section, not the primary authoring flow.
@@ -202,21 +223,25 @@ Completed for fixed-slot custom `.bin` assets:
 - fixed `0x31` and `0x32` runtime capacities;
 - session-scoped manager state and generation-aware cache invalidation;
 - fail-closed WASM publication;
-- room-gated track-corner aliases in final rendering and placement ghosts.
+- room-gated track-corner aliases in final rendering and placement ghosts;
+- preview, complete-room review, confirmation, stale-preview revalidation, and
+  one model-level undo transaction for minecart collision generation.
 
 Remaining P0 work:
 
-1. Make minecart collision generation preview-only until the user confirms one
-   complete ROM and editor transaction.
-2. Add one review surface that shows every affected room before commit.
+1. Add the authoritative `minecart_tracks.source` to Oracle project metadata,
+   then validate guarded route publication against that exact ASM file.
+2. Complete hands-on desktop acceptance for preview, confirmation, Apply,
+   Undo/Redo, **Save ROM**, reopen, and patched-ROM behavior.
 
 ### P1: consolidate identity and UI
 
 1. Introduce a session-owned project object catalog on top of the scoped
    manager without creating a second source of truth.
 2. Move the modal Workshop into the stable Object Library inspector or drawer.
-3. Add task-based Minecart mode with route, collision, endpoint, and start
-   validation.
+3. Continue the task-based Minecart mode: the **Routes** and **Collision** tabs
+   now separate source-table work from generated collision; endpoint and
+   connectivity guidance plus asynchronous project scanning remain.
 4. Model wall overrides, ice, moving floors, water, and HDMA/control behavior
    explicitly.
 5. Let Yaze create or replace a source asset only through a valid runtime slot
