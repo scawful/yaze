@@ -17,6 +17,7 @@
 #include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/geometry/object_geometry.h"
 #include "zelda3/dungeon/object_drawer.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/object_stream_ordering.h"
 
 #include "app/editor/dungeon/dungeon_snapping.h"

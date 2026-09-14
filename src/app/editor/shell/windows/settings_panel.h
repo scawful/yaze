@@ -1,8 +1,12 @@
 #ifndef YAZE_APP_EDITOR_SHELL_WINDOWS_SETTINGS_PANEL_H_
 #define YAZE_APP_EDITOR_SHELL_WINDOWS_SETTINGS_PANEL_H_
 
+#include <array>
+#include <functional>
 #include <string>
+#include <utility>
 
+#include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/system/session/user_settings.h"
@@ -17,6 +21,7 @@ namespace editor {
 
 class WorkspaceWindowManager;
 class ShortcutManager;
+class SettingsPanelTestPeer;
 
 /**
  * @class SettingsPanel
@@ -33,6 +38,8 @@ class ShortcutManager;
  */
 class SettingsPanel : public Editor {
  public:
+  using OpenMinecartTracksCallback = std::function<absl::Status()>;
+
   SettingsPanel() { type_ = EditorType::kSettings; }
 
   void SetDependencies(const EditorDependencies& deps) override;
@@ -62,11 +69,18 @@ class SettingsPanel : public Editor {
   void SetStatusBar(StatusBar* bar) { status_bar_ = bar; }
   void SetRom(Rom* rom) { rom_ = rom; }
   void SetProject(project::YazeProject* project) { project_ = project; }
+  void SetOpenMinecartTracksCallback(OpenMinecartTracksCallback callback) {
+    open_minecart_tracks_callback_ = std::move(callback);
+  }
 
   // Main draw entry point
   void Draw();
 
  private:
+  friend class SettingsPanelTestPeer;
+
+  using DungeonOverlaySummary = std::array<std::pair<std::string, bool>, 5>;
+
   void DrawGeneralSettings();
   void DrawAppearanceSettings();
   void DrawWorkspaceSettings();
@@ -92,6 +106,9 @@ class SettingsPanel : public Editor {
   void DrawPatchList(const std::string& folder);
   void DrawPatchDetails();
   void DrawParameterWidget(core::PatchParameter* param);
+  static DungeonOverlaySummary BuildDungeonOverlaySummary(
+      const project::DungeonOverlaySettings& overlay);
+  absl::Status RequestOpenMinecartTracks();
 
   UserSettings* user_settings_ = nullptr;
   WorkspaceWindowManager* window_manager_ = nullptr;
@@ -117,6 +134,9 @@ class SettingsPanel : public Editor {
   // session; cleared on the next apply attempt.
   std::string workspace_status_message_;
   bool workspace_status_is_error_ = false;
+
+  OpenMinecartTracksCallback open_minecart_tracks_callback_;
+  std::string project_status_message_;
 };
 
 }  // namespace editor

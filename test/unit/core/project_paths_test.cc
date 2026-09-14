@@ -141,6 +141,30 @@ TEST(ProjectPathsTest, WaterFillSaveScopeRoundTripsThroughIni) {
   EXPECT_FALSE(reopened.feature_flags.dungeon.kSaveWaterFillZones);
 }
 
+TEST(ProjectPathsTest, CustomObjectSubtypeSlotsRoundTripThroughIni) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_custom_object_slots"));
+  const auto project_file = temp.path() / "CustomObjectSlots.yaze";
+
+  YazeProject project;
+  project.filepath = project_file.string();
+  project.name = "Custom Object Slots";
+  project.custom_object_files = {
+      {0x31, {"", "", "track_corner.bin", "", "track_floor.bin"}},
+      {0x32, {"furnace.bin", "", "chair.bin"}},
+  };
+
+  ASSERT_TRUE(project.Save().ok());
+  const std::string serialized = ReadTextFile(project_file);
+  EXPECT_NE(serialized.find("object_0x31=,,track_corner.bin,,track_floor.bin"),
+            std::string::npos);
+  EXPECT_NE(serialized.find("object_0x32=furnace.bin,,chair.bin"),
+            std::string::npos);
+
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.LoadFromString(serialized, project_file.string()).ok());
+  EXPECT_EQ(reopened.custom_object_files, project.custom_object_files);
+}
+
 #ifndef __EMSCRIPTEN__
 TEST(ProjectPathsTest, SaveAtomicallyReplacesExistingDescriptor) {
   ScopedTempDir temp(MakeUniqueTempDir("yaze_project_atomic_save"));

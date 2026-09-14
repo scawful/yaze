@@ -206,7 +206,7 @@ void DrawViewOptionsContents(DungeonCanvasViewer* viewer) {
   }
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(
-        tr("Highlight custom-draw objects (IDs 0x31/0x32)\n"
+        tr("Highlight registered custom-draw objects\n"
            "with a cyan overlay showing position and subtype."));
   }
 }

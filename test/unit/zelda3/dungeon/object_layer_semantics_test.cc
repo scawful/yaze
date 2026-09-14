@@ -171,22 +171,20 @@ TEST(ObjectLayerSemanticsTest,
   ASSERT_EQ(built_in.render_routing, ObjectRenderRouting::kFixedBg1);
   ASSERT_EQ(built_in.effective_bg_layer, EffectiveBgLayer::kBg1);
 
-  const auto effective = GetEffectiveObjectLayerSemantics(
-      object, /*allow_track_corner_aliases=*/true);
+  const auto effective = GetEffectiveObjectLayerSemantics(object);
   EXPECT_TRUE(effective.custom_override_active);
   EXPECT_EQ(effective.render_routing, ObjectRenderRouting::kStoredPlacement);
   EXPECT_EQ(effective.effective_bg_layer, EffectiveBgLayer::kBg2);
 
   object.all_bgs_ = true;
-  const auto both = GetEffectiveObjectLayerSemantics(
-      object, /*allow_track_corner_aliases=*/true);
+  const auto both = GetEffectiveObjectLayerSemantics(object);
   EXPECT_TRUE(both.custom_override_active);
   EXPECT_EQ(both.render_routing, ObjectRenderRouting::kFullBothBg1Bg2);
   EXPECT_EQ(both.effective_bg_layer, EffectiveBgLayer::kBothBg1Bg2);
 }
 
 TEST(ObjectLayerSemanticsTest,
-     TrackCornerCustomOverrideHonorsRoomAliasPermission) {
+     WallCornerNeverUsesCustomTrackAssetAsAnOverride) {
   ScopedCustomObjectRoutingState custom_state;
   custom_state.WriteOneTileObject("track_corner_tl.bin");
   CustomObjectManager::Get().SetObjectFileMap(
@@ -194,49 +192,17 @@ TEST(ObjectLayerSemanticsTest,
         {"unused_lr.bin", "unused_ud.bin", "track_corner_tl.bin",
          "unused_tr.bin", "unused_bl.bin", "unused_br.bin"}}});
 
-  RoomObject corner(/*id=*/0x100, /*x=*/0, /*y=*/0, /*size=*/0,
-                    /*layer=*/1);
-  EXPECT_FALSE(HasActiveCustomObjectOverride(
-      corner, /*allow_track_corner_aliases=*/false));
-  EXPECT_TRUE(HasActiveCustomObjectOverride(
-      corner, /*allow_track_corner_aliases=*/true));
+  for (const int object_id : {0x100, 0x101, 0x102, 0x103}) {
+    SCOPED_TRACE(object_id);
+    RoomObject corner(object_id, /*x=*/0, /*y=*/0, /*size=*/0,
+                      /*layer=*/1);
+    EXPECT_FALSE(HasActiveCustomObjectOverride(corner));
 
-  const auto built_in =
-      GetEffectiveObjectLayerSemantics(corner,
-                                       /*allow_track_corner_aliases=*/false);
-  EXPECT_FALSE(built_in.custom_override_active);
-  EXPECT_EQ(built_in.effective_bg_layer, EffectiveBgLayer::kBg2);
-  const auto custom =
-      GetEffectiveObjectLayerSemantics(corner,
-                                       /*allow_track_corner_aliases=*/true);
-  EXPECT_TRUE(custom.custom_override_active);
-  EXPECT_EQ(custom.effective_bg_layer, EffectiveBgLayer::kBg2);
-  EXPECT_EQ(custom.render_routing, ObjectRenderRouting::kStoredPlacement);
-}
-
-TEST(ObjectLayerSemanticsTest,
-     OnlyMinecartTrackSubtypesEnableRoomCornerAliases) {
-  for (uint8_t subtype = 0; subtype <= 12; ++subtype) {
-    SCOPED_TRACE(static_cast<int>(subtype));
-    const std::array<RoomObject, 1> objects = {
-        RoomObject(/*id=*/0x31, /*x=*/0, /*y=*/0, subtype, /*layer=*/0)};
-    EXPECT_TRUE(RoomAllowsTrackCornerAliases(objects));
+    const auto built_in = GetEffectiveObjectLayerSemantics(corner);
+    EXPECT_FALSE(built_in.custom_override_active);
+    EXPECT_EQ(built_in.effective_bg_layer, EffectiveBgLayer::kBg2);
+    EXPECT_EQ(built_in.render_routing, ObjectRenderRouting::kStoredPlacement);
   }
-
-  const std::array<RoomObject, 1> track_any = {
-      RoomObject(/*id=*/0x31, /*x=*/0, /*y=*/0, /*size=*/14, /*layer=*/0)};
-  EXPECT_TRUE(RoomAllowsTrackCornerAliases(track_any));
-
-  for (uint8_t decorative_subtype : {uint8_t{13}, uint8_t{15}}) {
-    SCOPED_TRACE(static_cast<int>(decorative_subtype));
-    const std::array<RoomObject, 1> objects = {RoomObject(
-        /*id=*/0x31, /*x=*/0, /*y=*/0, decorative_subtype, /*layer=*/0)};
-    EXPECT_FALSE(RoomAllowsTrackCornerAliases(objects));
-  }
-
-  const std::array<RoomObject, 1> unrelated = {
-      RoomObject(/*id=*/0x32, /*x=*/0, /*y=*/0, /*size=*/0, /*layer=*/0)};
-  EXPECT_FALSE(RoomAllowsTrackCornerAliases(unrelated));
 }
 
 TEST(ObjectLayerSemanticsTest,

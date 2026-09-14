@@ -291,7 +291,7 @@ void DrawNothing([[maybe_unused]] const DrawContext& ctx) {
 }
 
 void CustomDraw(const DrawContext& ctx) {
-  // Pattern: Custom draw routine (objects 0x31-0x32)
+  // Pattern: Custom draw routine for fixed Oracle runtime families.
   // When custom objects are enabled, load tile data from external binary files
   // managed by CustomObjectManager. Each binary encodes SNES tilemap entries
   // with relative x/y positions computed from the buffer stride layout.
@@ -306,12 +306,13 @@ void CustomDraw(const DrawContext& ctx) {
   }
 
   // Look up the custom object by ID and subtype.
-  // ctx.object.id_ is 0x31 or 0x32; ctx.object.size_ encodes the subtype.
+  // ctx.object.id_ is a registered fixed Oracle family (0x31, 0x32, or 0x54);
+  // ctx.object.size_ encodes the subtype.
   auto result = CustomObjectManager::Get().GetObjectInternal(ctx.object.id_,
                                                              ctx.object.size_);
 
-  if (!result.ok() || !result.value() || result.value()->IsEmpty()) {
-    // Custom object not found or empty: fall back to 1x1 draw
+  if (!result.ok() || !result.value()) {
+    // Missing or unreadable custom source: fall back to a visible 1x1 tile.
     if (ctx.tiles.size() >= 1) {
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
                                    ctx.tiles[0]);
@@ -320,13 +321,21 @@ void CustomDraw(const DrawContext& ctx) {
   }
 
   const auto& custom_obj = *result.value();
+  if (custom_obj.IsEmpty()) {
+    // A terminator-only asset is an intentional draw-nothing override.
+    return;
+  }
 
   for (const auto& entry : custom_obj.tiles) {
-    // Convert SNES tilemap word (vhopppcc cccccccc) to TileInfo.
-    // Low byte = entry.tile_data & 0xFF, high byte = (entry.tile_data >> 8).
-    uint8_t lo = static_cast<uint8_t>(entry.tile_data & 0xFF);
-    uint8_t hi = static_cast<uint8_t>((entry.tile_data >> 8) & 0xFF);
-    gfx::TileInfo tile_info(lo, hi);
+    // Oracle treats a zero payload word as a no-op. The entry still advances
+    // the decoded cursor, but must preserve any room tile already underneath.
+    if (entry.tile_data == 0) {
+      continue;
+    }
+
+    const uint16_t runtime_word =
+        CustomObjectRuntimeTileWord(ctx.object.id_, entry.tile_data);
+    gfx::TileInfo tile_info = gfx::WordToTileInfo(runtime_word);
 
     // rel_x/rel_y are already decoded as object-relative coordinates from the
     // binary stream's buffer position arithmetic; preserve those offsets.
@@ -2264,7 +2273,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .category = DrawRoutineInfo::Category::Special,
   });
 
-  // Custom Object routine (ID 130) - Oracle of Secrets objects 0x31, 0x32
+  // Custom Object routine (ID 130) - fixed Oracle custom-object families
   // These use external binary files instead of ROM tile data.
   // CustomDraw() handles feature-flag gating and binary file lookup.
   registry.push_back(DrawRoutineInfo{

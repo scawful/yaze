@@ -37,6 +37,7 @@
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/track_collision_generator.h"
 #include "zelda3/game_data.h"
 
 namespace yaze {
@@ -103,6 +104,7 @@ class DungeonEditorV2 : public Editor {
   explicit DungeonEditorV2(Rom* rom = nullptr);
 
   ~DungeonEditorV2() override;
+  void PrepareForSessionTeardown() override;
 
   void SetGameData(zelda3::GameData* game_data) override {
     game_data_ = game_data;
@@ -211,6 +213,10 @@ class DungeonEditorV2 : public Editor {
     }
   }
 
+  // Create and register the project-only Minecart Tracks surface on demand.
+  // This supports enabling custom objects after the Dungeon editor has loaded.
+  absl::Status EnsureMinecartTrackEditorPanel();
+
   // Explicit workflow toggle between integrated Workbench and standalone panels.
   void SetWorkbenchWorkflowMode(bool enabled, bool show_toast = true);
   // Queue a workflow mode change to run at a safe point in the next update.
@@ -233,6 +239,8 @@ class DungeonEditorV2 : public Editor {
   static constexpr const char* kObjectToolsId = kObjectSelectorId;
   static constexpr const char* kDoorEditorId = "dungeon.door_editor";
   static constexpr const char* kPaletteEditorId = "dungeon.palette_editor";
+  static constexpr const char* kMinecartTrackEditorId =
+      "dungeon.minecart_tracks";
 
   // Public accessors for WASM API and automation
   int current_room_id() const { return room_selector_.current_room_id(); }
@@ -318,6 +326,7 @@ class DungeonEditorV2 : public Editor {
   void ConfigureViewerRenderContext(DungeonCanvasViewer* viewer, int room_id);
   void WireViewerPanelCallbacks(DungeonCanvasViewer* viewer);
   void ConfigureMinecartProjectCallbacks();
+  void SynchronizeCustomObjectAssets();
 
   // Show or create a standalone room panel
   void ShowRoomPanel(int room_id);
@@ -431,6 +440,8 @@ class DungeonEditorV2 : public Editor {
   std::unique_ptr<emu::render::EmulatorRenderService> render_service_;
 
   bool is_loaded_ = false;
+  uint64_t observed_custom_object_generation_ = 0;
+  bool observed_custom_objects_enabled_ = false;
 
   // Docking class for room windows to dock together
   ImGuiWindowClass room_window_class_;
@@ -514,6 +525,11 @@ class DungeonEditorV2 : public Editor {
   void FinalizeCollisionUndoAction(int room_id);
   void RestoreRoomCustomCollision(int room_id,
                                   const zelda3::CustomCollisionMap& map);
+  absl::Status ApplyMinecartCollisionBatch(
+      const std::vector<zelda3::TrackCollisionResult>& preview,
+      const zelda3::GeneratorOptions& options);
+  absl::Status RestoreRoomCustomCollisionBatch(
+      const std::vector<DungeonCustomCollisionSnapshot>& snapshots);
 
   void BeginWaterFillUndoSnapshot(int room_id);
   void FinalizeWaterFillUndoAction(int room_id);
