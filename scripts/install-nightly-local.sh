@@ -61,11 +61,11 @@ ensure_app_link() {
   fi
   local app_source=""
   for candidate in \
-    "$nightly_prefix/current/yaze.app" \
-    "$nightly_prefix/current/Yaze.app" \
-    "$nightly_prefix/current/Yaze Nightly.app"; do
+    "$release_dir/yaze.app" \
+    "$release_dir/Yaze.app" \
+    "$release_dir/Yaze Nightly.app"; do
     if [[ -d "$candidate" ]]; then
-      app_source="$candidate"
+      app_source="$nightly_prefix/current/$(basename "$candidate")"
       break
     fi
   done
@@ -73,7 +73,69 @@ ensure_app_link() {
     return
   fi
   mkdir -p "$nightly_app_dir"
+  if [[ -e "$nightly_app_link" && ! -L "$nightly_app_link" ]]; then
+    echo "[nightly-local] Refusing to replace non-symlink app path: $nightly_app_link" >&2
+    return 1
+  fi
   ln -sfn "$app_source" "$nightly_app_link"
+}
+
+validate_release() {
+  local binary
+  for binary in yaze z3ed; do
+    if [[ ! -f "$release_dir/$binary" || ! -x "$release_dir/$binary" ]]; then
+      echo "[nightly-local] Missing executable: $release_dir/$binary" >&2
+      return 1
+    fi
+  done
+
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    local app_dir="$release_dir/yaze.app"
+    if [[ ! -f "$app_dir/Contents/MacOS/yaze" || ! -x "$app_dir/Contents/MacOS/yaze" ]]; then
+      echo "[nightly-local] Missing macOS app executable: $app_dir" >&2
+      return 1
+    fi
+    if ! command -v codesign >/dev/null 2>&1; then
+      echo "[nightly-local] codesign is required before activating a macOS nightly." >&2
+      return 1
+    fi
+    # All installation/resource copying is complete before sealing the bundle.
+    if [[ -n "${CODESIGN_IDENTITY:-}" ]]; then
+      codesign --force --deep --options runtime --sign "$CODESIGN_IDENTITY" "$app_dir"
+    else
+      codesign --force --deep --sign - "$app_dir"
+    fi
+    codesign --verify --deep --strict "$app_dir"
+  fi
+
+  for binary in yaze z3ed; do
+    if ! "$release_dir/$binary" --version; then
+      echo "[nightly-local] Executable failed to load: $release_dir/$binary" >&2
+      return 1
+    fi
+  done
+}
+
+activate_release() {
+  local current="$nightly_prefix/current"
+  if [[ -e "$current" && ! -L "$current" ]]; then
+    echo "[nightly-local] Refusing to replace non-symlink current path: $current" >&2
+    return 1
+  fi
+  local activation_dir
+  activation_dir="$(mktemp -d "$nightly_prefix/.activate.XXXXXX")"
+  ln -s "$release_dir" "$activation_dir/current"
+  # Both forms replace the symlink itself, never a directory it points into.
+  local rename_flags="-fT"
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    rename_flags="-fh"
+  fi
+  if ! mv "$rename_flags" "$activation_dir/current" "$current"; then
+    rm -f "$activation_dir/current"
+    rmdir "$activation_dir"
+    return 1
+  fi
+  rmdir "$activation_dir"
 }
 
 normalize_app_bundle() {
@@ -95,6 +157,16 @@ normalize_app_bundle() {
       ln -sfn "$app_bin" "$release_dir/yaze"
     fi
   fi
+}
+
+normalize_bin_layout() {
+  local binary
+  for binary in yaze z3ed; do
+    if [[ ! -e "$release_dir/$binary" && ! -L "$release_dir/$binary" &&
+          -f "$release_dir/bin/$binary" && -x "$release_dir/bin/$binary" ]]; then
+      ln -s "bin/$binary" "$release_dir/$binary"
+    fi
+  done
 }
 
 fallback_install() {
@@ -152,8 +224,8 @@ cmake --build "$nightly_build_dir" --config "$nightly_build_type" \
   --target yaze z3ed --parallel "$nightly_build_jobs"
 
 stamp="$(date +%Y%m%d-%H%M%S)"
-release_dir="$nightly_prefix/releases/$stamp"
 mkdir -p "$nightly_prefix/releases"
+release_dir="$(mktemp -d "$nightly_prefix/releases/$stamp.XXXXXX")"
 
 echo "[nightly-local] Installing to $release_dir"
 if ! cmake --install "$nightly_build_dir" --prefix "$release_dir" --component "$nightly_component" --config "$nightly_build_type"; then
@@ -161,14 +233,14 @@ if ! cmake --install "$nightly_build_dir" --prefix "$release_dir" --component "$
   fallback_install
 fi
 normalize_app_bundle
-ln -sfn "$release_dir" "$nightly_prefix/current"
-ensure_app_link
+normalize_bin_layout
+validate_release
 
 commit=""
 short_commit=""
 version=""
 dirty=""
-if [[ -d "$source_repo/.git" ]]; then
+if git -C "$source_repo" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   commit="$(git -C "$source_repo" rev-parse HEAD 2>/dev/null || true)"
   short_commit="$(git -C "$source_repo" rev-parse --short HEAD 2>/dev/null || true)"
   if [[ -n "$(git -C "$source_repo" status --porcelain 2>/dev/null || true)" ]]; then
@@ -294,6 +366,9 @@ exit 1
 EOF
 
 chmod +x "$nightly_bin_dir/yaze-mcp-nightly"
+
+ensure_app_link
+activate_release
 
 echo "[nightly-local] Installed $describe to $release_dir"
 if [[ -n "$nightly_app_link" && -L "$nightly_app_link" ]]; then
