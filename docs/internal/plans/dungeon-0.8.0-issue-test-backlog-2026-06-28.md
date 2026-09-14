@@ -669,6 +669,67 @@ queue/format audit; this slice does not claim that every screenshot consumer
 now follows the main-thread, before-presentation contract. Full UI acceptance,
 mainline merge, remaining object families, and platform release gates stay open.
 
+## Tenth implementation slice: selector categories and shortcut ownership (2026-09-14)
+
+Verified code at `49ad0036c`, based on preview `397e25549`. This corrects
+browsing metadata and a conflicting workflow shortcut, not dungeon draw rules.
+
+1. **One category table drives browsing.** Replaced placeholder category IDs
+   and independent selector range guesses with explicit memberships checked
+   against `Type1RoomObjectNames`, `Type2RoomObjectNames`, and
+   `Type3RoomObjectNames`. All **440 representable stored IDs** occur exactly
+   once (248 Type 1, 64 Type 2, 128 Type 3); unused/logic/unclassified IDs fall
+   into Special. Filters, fallback colors/symbols, and chest classification use
+   the same table. Oracle runtime families remain in Custom Assets; this does
+   not redefine rendering, collision, or `GetObjectInfo` metadata.
+2. **Doorways are distinct from room doors.** The selector label now says
+   Doorways and exposes tile objects `0x035`, `0xFF4`, and `0xFF6`; its tooltip
+   points ordinary room-door editing to the Door Editor. Filter indices are
+   preserved. Stairs now includes all 29 categorized stair/ladder IDs rather
+   than only `0x138–0x13B`.
+3. **Close Session has one owner.** Removed the Workbench default
+   `Ctrl+Shift+W` panel binding, raw key polling, and stale hints. The existing
+   Close Session shortcut remains; toolbar/status/sidebar workflow controls
+   remain available. No replacement default chord or settings migration.
+
+**All eight new regression cases failed before the production fixes.** After
+the fixes, **70/70 focused tests passed, zero failures/skips**, and executed XML
+names exactly matched the discovered inventory. This includes selector palette,
+layout, custom-asset and preview-lifetime regressions, toolbar behavior, and
+both starting workflow modes for the shortcut test. Native `yaze` and unit
+targets built with four workers. An independent agent reviewed the category
+mapping. The commit hook caught two test formatting differences; formatting
+was corrected and the normal hook passed without bypass.
+
+```sh
+cmake --build build/presets/mac-ai --config Release --target yaze_test_unit yaze --parallel 4
+wave10_filter='DungeonObjectCategoryTest.*:DungeonObjectSelector*.*:ShortcutConfiguratorTest.*:WorkflowModes/DungeonCloseSessionShortcutTest.*:DungeonWorkbenchToolbar*.*'
+build/presets/mac-ai/bin/yaze_test_unit --gtest_list_tests --gtest_filter="$wave10_filter"
+build/presets/mac-ai/bin/yaze_test_unit --gtest_filter="$wave10_filter" --gtest_output=xml:/tmp/yaze-wave10-green.xml
+```
+
+A fresh hidden native macOS/SDL2 instance loaded room `0x001` from a preflight
+copy of Oracle `oos168.sfc`, using isolated app data and temporary service
+ports. Exact-window PNGs of the selector and successful `water`/`stairs` text
+searches were captured and visually inspected. This checks live search and
+preview presentation, **not category-menu interaction or Mesen parity**. Both
+source and copy retained SHA-256
+`b13ef69ede313756dcf560bf0f993663d68d0365609f2c20dcdec2c17f31f7b9`.
+The instance quit with status 0 and its listeners were gone. No installed app,
+canonical Grokbot checkout, or ROM data was changed.
+
+Local evidence: `/tmp/yaze-wave10-red.*`, `/tmp/yaze-wave10-green.*`,
+`/tmp/yaze-wave10-green-inventory.txt`, `/tmp/yaze-wave10-green-build.log`, and
+`/tmp/yaze-wave10-ui.X4MeB2/`. Workbench-tab automation still fails and is not
+counted as acceptance. Mainline merge, independent rendering evidence, and
+Windows/Linux/WASM release gates remain open.
+
+**Next:** add pixel-witness regressions for sprite IDs `0x7E/0x7F/0x80/0xC7`.
+Source review found their offset tile poses exceed the fixed 64x64 buffer with
+its `(16,16)` anchor. The dungeon canvas also consumes that buffer, so this is
+not merely a picker-size issue. No sprite bounds fix or runtime proof is
+included in this slice.
+
 ## Object coverage checklist
 
 Start by enumerating the supported IDs from `DrawRoutineRegistry` and the room
