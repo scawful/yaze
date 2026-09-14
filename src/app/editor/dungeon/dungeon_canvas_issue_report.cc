@@ -86,7 +86,7 @@ IssueReportWindowLayout GetIssueReportWindowLayout() {
   const ImVec2 work_size =
       viewport != nullptr ? viewport->WorkSize : ImGui::GetIO().DisplaySize;
   const ImVec2 center = viewport != nullptr
-                            ? viewport->GetCenter()
+                            ? viewport->GetWorkCenter()
                             : ImVec2(work_size.x * 0.5f, work_size.y * 0.5f);
   const ImVec2 max_size(
       std::max(1.0f, work_size.x - kIssueReportDialogViewportMargin * 2.0f),

@@ -877,6 +877,61 @@ TEST(DungeonCanvasViewerNavigationTest,
   std::filesystem::remove_all(temp_home);
 }
 
+TEST(DungeonCanvasViewerNavigationTest,
+     IssueReportPopupFitsWorkAreaWithReservedMenuBar) {
+  ScopedImGuiContext imgui;
+  ImGuiIO& io = ImGui::GetIO();
+  io.DisplaySize = ImVec2(480.0f, 360.0f);
+  io.DeltaTime = 1.0f / 60.0f;
+  io.Fonts->AddFontDefault();
+  unsigned char* pixels = nullptr;
+  int width = 0;
+  int height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+
+  const auto draw_menu_bar = []() {
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(4.0f, 14.0f));
+    if (ImGui::BeginMainMenuBar()) {
+      ImGui::TextUnformatted("File");
+      ImGui::EndMainMenuBar();
+    }
+    ImGui::PopStyleVar();
+  };
+  // Viewport work insets are committed on the following frame. Establish the
+  // application's persistent menu before opening the dialog, as in the editor.
+  for (int frame = 0; frame < 2; ++frame) {
+    ImGui::NewFrame();
+    draw_menu_bar();
+    ImGui::Render();
+  }
+
+  DungeonCanvasViewer viewer;
+  IssueReportPopupSnapshot popup;
+  for (int frame = 0; frame < 3; ++frame) {
+    ImGui::NewFrame();
+    draw_menu_bar();
+    ImGui::Begin("IssueReportHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    if (frame == 0) {
+      DungeonCanvasViewerTestPeer::OpenIssueReportPopup(viewer);
+    }
+    DungeonCanvasViewerTestPeer::RenderIssueReportPopup(viewer);
+    popup = DungeonCanvasViewerTestPeer::CaptureIssueReportPopup(viewer);
+    ImGui::End();
+    ImGui::Render();
+  }
+
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  ASSERT_GT(viewport->WorkPos.y - viewport->Pos.y, 32.0f);
+  ASSERT_TRUE(popup.found);
+  EXPECT_GE(popup.position.x, viewport->WorkPos.x + 15.5f);
+  EXPECT_GE(popup.position.y, viewport->WorkPos.y + 15.5f);
+  EXPECT_LE(popup.position.x + popup.size.x,
+            viewport->WorkPos.x + viewport->WorkSize.x - 15.5f);
+  EXPECT_LE(popup.position.y + popup.size.y,
+            viewport->WorkPos.y + viewport->WorkSize.y - 15.5f);
+  EXPECT_FALSE(popup.outer_scrollbar_y);
+}
+
 #ifdef YAZE_WITH_GRPC
 TEST(DungeonCanvasViewerNavigationTest,
      IssueReportCaptureKeepsFooterStableAtWrappingThreshold) {
