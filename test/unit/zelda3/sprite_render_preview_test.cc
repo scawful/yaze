@@ -32,6 +32,14 @@ int GraphicsIndexForTilePixel(int tile_id, int px, int py) {
          (tile_col * kTileSize) + px;
 }
 
+void ExpectPreviewBounds(const Sprite& sprite, const SDL_Rect& expected) {
+  const auto bounds = sprite.preview_bounds();
+  EXPECT_EQ(bounds.x, expected.x);
+  EXPECT_EQ(bounds.y, expected.y);
+  EXPECT_EQ(bounds.w, expected.w);
+  EXPECT_EQ(bounds.h, expected.h);
+}
+
 TEST(SpriteRenderPreviewTest, RendersDungeonGraphicsAtPreviewOrigin) {
   std::vector<uint8_t> graphics(kGraphicsBufferSize, 0);
 
@@ -42,7 +50,9 @@ TEST(SpriteRenderPreviewTest, RendersDungeonGraphicsAtPreviewOrigin) {
   graphics[GraphicsIndexForTilePixel(tile_id + 1, 7, 0)] = 4;
 
   Sprite sprite(0x00, 14, 20, 0, 0);
+  ExpectPreviewBounds(sprite, {-16, -16, 64, 64});
   sprite.RenderPreviewGraphics(graphics);
+  ExpectPreviewBounds(sprite, {-16, -16, 64, 64});
 
   const auto* preview = sprite.preview_graphics();
   ASSERT_NE(preview, nullptr);
@@ -56,6 +66,203 @@ TEST(SpriteRenderPreviewTest, RendersDungeonGraphicsAtPreviewOrigin) {
 
   EXPECT_EQ(sprite.x(), 14);
   EXPECT_EQ(sprite.y(), 20);
+}
+
+void ExpectFullOpaqueFootprint(uint8_t sprite_id, int expected_pixel_count) {
+  const std::vector<uint8_t> graphics(kGraphicsBufferSize, 1);
+  Sprite sprite(sprite_id, 14, 20, 3, 1);
+  // Keep the two coordinate representations distinct so accidental restoration
+  // from nx/ny instead of x/y cannot pass the preservation check.
+  sprite.set_x(22);
+  sprite.set_y(9);
+
+  sprite.RenderPreviewGraphics(graphics);
+
+  const auto* preview = sprite.preview_graphics();
+  ASSERT_NE(preview, nullptr);
+  EXPECT_EQ(std::count_if(preview->begin(), preview->end(),
+                          [](uint8_t pixel) { return pixel != 0; }),
+            expected_pixel_count);
+  EXPECT_EQ(sprite.x(), 22);
+  EXPECT_EQ(sprite.y(), 9);
+  EXPECT_EQ(sprite.nx(), 14);
+  EXPECT_EQ(sprite.ny(), 20);
+  EXPECT_EQ(sprite.layer(), 1);
+  EXPECT_EQ(sprite.subtype(), 3);
+}
+
+TEST(SpriteRenderPreviewTest, ClockwiseFirebarPreservesFullOpaqueFootprint) {
+  // Four 16x16 segments spaced 14px: 16 * (16 + 3*14), including overlaps.
+  ExpectFullOpaqueFootprint(0x7E, 928);
+}
+
+TEST(SpriteRenderPreviewTest,
+     CounterclockwiseFirebarPreservesFullOpaqueFootprint) {
+  ExpectFullOpaqueFootprint(0x7F, 928);
+}
+
+TEST(SpriteRenderPreviewTest, MovingFirebarPreservesFullOpaqueFootprint) {
+  // Five 16x16 segments spaced 14px: 16 * (16 + 4*14).
+  ExpectFullOpaqueFootprint(0x80, 1152);
+}
+
+TEST(SpriteRenderPreviewTest, SpriteC7PreservesFullOpaqueFootprint) {
+  // Four 16x16 segments spaced 10px: 16 * (16 + 3*10).
+  ExpectFullOpaqueFootprint(0xC7, 736);
+}
+
+TEST(SpriteRenderPreviewTest, Sprite92PreservesFullOpaqueFootprint) {
+  // Eight disjoint 16x16 pieces extend below the legacy preview: three at
+  // y=32, three at y=48, and two at y=64, for 8 * 16 * 16 visible pixels.
+  ExpectFullOpaqueFootprint(0x92, 2048);
+}
+
+TEST(SpriteRenderPreviewTest,
+     ExpandedBoundsPreserveAsymmetricPixelsAndOverlap) {
+  std::vector<uint8_t> graphics(kGraphicsBufferSize, 0);
+  for (int tile = 0x300; tile < 0x400; ++tile) {
+    for (int y = 0; y < 8; ++y) {
+      for (int x = 0; x < 8; ++x) {
+        graphics[GraphicsIndexForTilePixel(tile, x, y)] =
+            (tile + x * 2 + y * 3) % 11 == 0 ? 0
+                                             : 1 + (tile + x * 3 + y * 5) % 15;
+      }
+    }
+  }
+  struct Piece {
+    int x;
+    int y;
+    int tile;
+    bool mirror_x = false;
+  };
+  struct PreviewCase {
+    uint8_t id;
+    SDL_Rect bounds;
+    uint8_t palette_base;
+    std::vector<Piece> pieces;
+  };
+  // Pin the existing static Draw() poses, not a runtime animation claim.
+  // These literal extents include legacy padding and every 16x16 source piece;
+  // they are independent of the production measurement pass.
+  const std::array<PreviewCase, 5> cases = {{
+      {0x7E,
+       {-16, -56, 64, 104},
+       0x90,
+       {{0, -14, 0x328}, {0, -28, 0x328}, {0, -42, 0x328}, {0, -56, 0x328}}},
+      {0x7F,
+       {-16, -56, 64, 104},
+       0x90,
+       {{0, -14, 0x328}, {0, -28, 0x328}, {0, -42, 0x328}, {0, -56, 0x328}}},
+      {0x80,
+       {-56, -16, 104, 64},
+       0x90,
+       {{0, 0, 0x328},
+        {-14, 0, 0x328},
+        {-28, 0, 0x328},
+        {-42, 0, 0x328},
+        {-56, 0, 0x328}}},
+      {0xC7,
+       {-16, -30, 64, 78},
+       0x90,
+       {{0, 0, 0x3A0}, {0, -10, 0x3A0}, {0, -20, 0x3A0}, {0, -30, 0x3A2}}},
+      {0x92,
+       {-16, -16, 64, 96},
+       0xE0,
+       {{0, 32, 0x3AE},
+        {16, 32, 0x3C0},
+        {32, 32, 0x3AE, true},
+        {0, 48, 0x3C2},
+        {16, 48, 0x3C4},
+        {32, 48, 0x3C2, true},
+        {8, 64, 0x3C6},
+        {24, 64, 0x3C6, true}}},
+  }};
+  for (const auto& test_case : cases) {
+    SCOPED_TRACE(::testing::Message()
+                 << "sprite " << std::hex << static_cast<int>(test_case.id));
+    Sprite sprite(test_case.id, 31, 29, 3, 1);
+    sprite.RenderPreviewGraphics(graphics);
+    ExpectPreviewBounds(sprite, test_case.bounds);
+    const auto& preview = *sprite.preview_graphics();
+    ASSERT_EQ(preview.size(), test_case.bounds.w * test_case.bounds.h);
+    for (int y = 0; y < test_case.bounds.h; ++y) {
+      for (int x = 0; x < test_case.bounds.w; ++x) {
+        uint8_t pixel = 0;
+        // Last opaque draw wins. Transparent holes expose earlier pieces,
+        // including the 2px firebar and 6px Hokku overlap boundaries.
+        for (auto piece = test_case.pieces.rbegin();
+             piece != test_case.pieces.rend() && pixel == 0; ++piece) {
+          int sx = x + test_case.bounds.x - piece->x;
+          const int sy = y + test_case.bounds.y - piece->y;
+          if (sx < 0 || sx >= 16 || sy < 0 || sy >= 16) {
+            continue;
+          }
+          if (piece->mirror_x) {
+            sx = 15 - sx;
+          }
+          pixel = graphics[GraphicsIndexForTilePixel(
+              piece->tile + sx / 8 + (sy / 8) * 16, sx % 8, sy % 8)];
+        }
+        ASSERT_EQ(preview[x + y * test_case.bounds.w],
+                  pixel ? test_case.palette_base + pixel : 0)
+            << "pixel " << x << "," << y;
+      }
+    }
+  }
+}
+
+TEST(SpriteRenderPreviewTest, EnlargedPreviewResetsForOrdinaryEmptyAndClear) {
+  const std::vector<uint8_t> graphics(kGraphicsBufferSize, 1);
+  Sprite sprite(0x80, 14, 20, 0, 1);
+  const auto enlarge = [&]() {
+    sprite.set_id(0x80);
+    sprite.RenderPreviewGraphics(graphics);
+    ExpectPreviewBounds(sprite, {-56, -16, 104, 64});
+    EXPECT_EQ(sprite.preview_graphics()->size(), 104u * 64u);
+  };
+
+  enlarge();
+  sprite.set_id(0x00);
+  sprite.RenderPreviewGraphics(graphics);
+  Sprite ordinary(0x00, 14, 20, 0, 1);
+  ordinary.RenderPreviewGraphics(graphics);
+  ExpectPreviewBounds(sprite, {-16, -16, 64, 64});
+  EXPECT_EQ(*sprite.preview_graphics(), *ordinary.preview_graphics());
+
+  enlarge();
+  sprite.RenderPreviewGraphics({});
+  ExpectPreviewBounds(sprite, {-16, -16, 64, 64});
+  EXPECT_TRUE(sprite.preview_graphics()->empty());
+
+  enlarge();
+  sprite.ClearPreviewGraphics();
+  ExpectPreviewBounds(sprite, {-16, -16, 64, 64});
+  EXPECT_TRUE(sprite.preview_graphics()->empty());
+  EXPECT_EQ(sprite.x(), 14);
+  EXPECT_EQ(sprite.y(), 20);
+  EXPECT_EQ(sprite.nx(), 14);
+  EXPECT_EQ(sprite.ny(), 20);
+  EXPECT_EQ(sprite.layer(), 1);
+}
+
+TEST(SpriteRenderPreviewTest, LegacyDrawResetsEnlargedExternalPreview) {
+  const std::vector<uint8_t> packed_graphics(kGraphicsBufferSize, 0x12);
+  const std::vector<uint8_t> external_graphics(kGraphicsBufferSize, 7);
+  Sprite sprite(packed_graphics, 0, 0x7E, 0, 0, 12, 18);
+  sprite.RenderPreviewGraphics(external_graphics);
+  ExpectPreviewBounds(sprite, {-16, -56, 64, 104});
+
+  sprite.set_id(0x00);
+  sprite.Draw();
+  Sprite ordinary(packed_graphics, 0, 0x00, 0, 0, 12, 18);
+  ordinary.Draw();
+  ExpectPreviewBounds(sprite, {-16, -16, 64, 64});
+  ASSERT_EQ(sprite.preview_graphics()->size(), 64u * 64u);
+  EXPECT_EQ(*sprite.preview_graphics(), *ordinary.preview_graphics());
+  EXPECT_EQ((*sprite.preview_graphics())[0], 0xFF);
+  EXPECT_EQ((*sprite.preview_graphics())[16 + 16 * 64], 0xC2);
+  EXPECT_EQ(sprite.x(), 12);
+  EXPECT_EQ(sprite.y(), 18);
 }
 
 TEST(SpriteRenderPreviewTest, EmptyGraphicsClearsPreview) {
@@ -463,7 +670,7 @@ TEST(SpriteRenderPreviewTest,
   EXPECT_EQ(*sprite.preview_graphics(), vanilla);
 }
 
-TEST(SpriteRenderPreviewTest, ExternalManhandlaTilesClipAtEachPreviewEdge) {
+TEST(SpriteRenderPreviewTest, ExternalManhandlaTilesExpandWithoutWrapping) {
   const auto* source =
       SpriteOamRegistry::GetPreviewOverride(0x88, "Oracle of Secrets");
   ASSERT_NE(source, nullptr);
@@ -477,17 +684,26 @@ TEST(SpriteRenderPreviewTest, ExternalManhandlaTilesClipAtEachPreviewEdge) {
   Sprite sprite(0x88, 31, 31, 0, 0);
   sprite.RenderPreviewGraphics(graphics, &layout, resource);
   const auto& preview = *sprite.preview_graphics();
-  ASSERT_EQ(preview.size(), kPreviewSize * kPreviewSize);
-  for (int y = 0; y < kPreviewSize; ++y) {
-    for (int x = 0; x < kPreviewSize; ++x) {
+  ExpectPreviewBounds(sprite, {-20, -20, 80, 80});
+  ASSERT_EQ(preview.size(), 80u * 80u);
+  for (int y = 0; y < 80; ++y) {
+    for (int x = 0; x < 80; ++x) {
       const uint8_t expected =
-          ((x < 12 && y < 12) || (x >= 60 && y >= 60)) ? 0x9F : 0;
-      EXPECT_EQ(preview[x + y * kPreviewSize], expected)
-          << "at " << x << "," << y;
+          ((x < 16 && y < 16) || (x >= 64 && y >= 64)) ? 0x9F : 0;
+      EXPECT_EQ(preview[x + y * 80], expected) << "at " << x << "," << y;
     }
   }
   EXPECT_EQ(sprite.x(), 31);
   EXPECT_EQ(sprite.y(), 31);
+
+  // Failed required resources must reset both the pixels and their extent.
+  for (size_t size : {size_t{0}, size_t{0x1FFF}}) {
+    sprite.RenderPreviewGraphics(graphics, &layout, resource);
+    const std::vector<uint8_t> malformed(size, 0xFF);
+    sprite.RenderPreviewGraphics(graphics, &layout, malformed);
+    ExpectPreviewBounds(sprite, {-16, -16, 64, 64});
+    EXPECT_TRUE(sprite.preview_graphics()->empty()) << "resource size " << size;
+  }
 }
 
 class SpritePreviewResourceCacheTest : public ::testing::Test {

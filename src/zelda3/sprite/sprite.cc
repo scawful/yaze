@@ -1194,8 +1194,8 @@ void Sprite::Draw() {
 void Sprite::RenderPreviewGraphics(std::span<const uint8_t> graphics,
                                    const SpriteOamLayout* layout_override,
                                    std::span<const uint8_t> graphics_resource) {
+  ClearPreviewGraphics();
   if (graphics.empty()) {
-    preview_gfx_.clear();
     return;
   }
 
@@ -1208,7 +1208,6 @@ void Sprite::RenderPreviewGraphics(std::span<const uint8_t> graphics,
     constexpr size_t kPageOneOffset = 0x300 * 64;
     if (graphics_resource.size() != kObjPageBytes ||
         graphics.size() < kPageOneOffset + kObjPageBytes * 2) {
-      preview_gfx_.clear();
       return;
     }
     resource_graphics.assign(graphics.begin(), graphics.end());
@@ -1224,11 +1223,6 @@ void Sprite::RenderPreviewGraphics(std::span<const uint8_t> graphics,
     graphics = resource_graphics;
   }
 
-  // External dungeon previews emit only non-zero CGRAM indices (0x71..0xFF),
-  // so index 0 is an unambiguous transparency sentinel. 0xFF is a visible
-  // armor-palette color and must remain available to sprites such as 0xE7.
-  preview_gfx_.assign(64 * 64, 0);
-
   external_gfx_ = graphics.data();
   external_gfx_size_ = graphics.size();
 
@@ -1239,29 +1233,40 @@ void Sprite::RenderPreviewGraphics(std::span<const uint8_t> graphics,
   const SDL_Rect old_bounding_box = bounding_box_;
 
   // Sprite::Draw() was written around room/map coordinates. Normalize to the
-  // preview origin so the caller can place the 64x64 preview at the sprite's
-  // room anchor instead of baking absolute room coordinates into the buffer.
+  // preview origin instead of baking absolute room coordinates into the buffer.
   nx_ = 0;
   ny_ = 0;
   x_ = 0;
   y_ = 0;
-  if (layout_override != nullptr && layout_override->sprite_id == id_) {
-    // Layout entries are in OAM order: the first entry has highest priority.
-    for (auto tile = layout_override->tiles.rbegin();
-         tile != layout_override->tiles.rend(); ++tile) {
-      if (tile->tile_id > 0x1FF || tile->palette > 7) {
-        continue;
+  const auto draw_preview = [&]() {
+    if (layout_override != nullptr && layout_override->sprite_id == id_) {
+      // Layout entries are in OAM order: the first entry has highest priority.
+      for (auto tile = layout_override->tiles.rbegin();
+           tile != layout_override->tiles.rend(); ++tile) {
+        if (tile->tile_id > 0x1FF || tile->palette > 7) {
+          continue;
+        }
+        const int size = tile->size_16x16 ? 2 : 1;
+        // Convert the OBJ palette to its CGRAM row using DrawSpriteTile's
+        // half-palette selectors with base 112.
+        DrawSpriteTile(tile->x_offset, tile->y_offset, tile->tile_id % 16,
+                       tile->tile_id / 16, 2 + tile->palette * 2, tile->flip_x,
+                       tile->flip_y, size, size);
       }
-      const int size = tile->size_16x16 ? 2 : 1;
-      // DrawSpriteTile uses half-palette selectors with base 112. Convert a
-      // hardware OBJ palette to its full CGRAM row (128 + palette * 16).
-      DrawSpriteTile(tile->x_offset, tile->y_offset, tile->tile_id % 16,
-                     tile->tile_id / 16, 2 + tile->palette * 2, tile->flip_x,
-                     tile->flip_y, size, size);
+    } else {
+      Draw();
     }
-  } else {
-    Draw();
-  }
+  };
+
+  // Measure the same tile stream we render, without decoding pixels or keeping
+  // a second sprite-size table. Union with the legacy extent so ordinary
+  // previews retain their 64x64 layout and (16,16) anchor.
+  measuring_preview_bounds_ = true;
+  draw_preview();
+  measuring_preview_bounds_ = false;
+  // Index 0 is transparent; 0xFF remains a visible armor-palette color.
+  preview_gfx_.assign(preview_bounds_.w * preview_bounds_.h, 0);
+  draw_preview();
 
   nx_ = old_nx;
   ny_ = old_ny;
@@ -1275,6 +1280,7 @@ void Sprite::RenderPreviewGraphics(std::span<const uint8_t> graphics,
 
 void Sprite::ClearPreviewGraphics() {
   preview_gfx_.clear();
+  preview_bounds_ = kDefaultPreviewBounds;
 }
 
 void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
@@ -1290,11 +1296,6 @@ void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
     return;
   }
 
-  // Lazy allocate preview buffer on first use (saves ~1.4MB during load)
-  if (preview_gfx_.empty()) {
-    preview_gfx_.resize(64 * 64, 0xFF);
-  }
-
   // Validate input parameters
   if (sizex <= 0 || sizey <= 0) {
     return;
@@ -1304,13 +1305,36 @@ void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
     return;
   }
 
-  x += 16;
-  y += 16;
   int drawid_ = (srcx + (srcy * 16)) + 512;
 
   // Validate drawid_ is within reasonable bounds
   if (drawid_ < 0 || drawid_ > 4096) {
     return;
+  }
+
+  if (measuring_preview_bounds_) {
+    const int left = std::min(preview_bounds_.x, x);
+    const int top = std::min(preview_bounds_.y, y);
+    const int right =
+        std::max(preview_bounds_.x + preview_bounds_.w, x + sizex * 8);
+    const int bottom =
+        std::max(preview_bounds_.y + preview_bounds_.h, y + sizey * 8);
+    preview_bounds_ = {left, top, right - left, bottom - top};
+    return;
+  }
+
+  if (use_external_8bpp) {
+    x -= preview_bounds_.x;
+    y -= preview_bounds_.y;
+  } else {
+    // Packed overworld drawing keeps its fixed buffer and sentinel. Restore
+    // that storage if an external preview previously enlarged this Sprite.
+    preview_bounds_ = kDefaultPreviewBounds;
+    if (preview_gfx_.size() != 64 * 64) {
+      preview_gfx_.assign(64 * 64, 0xFF);
+    }
+    x += 16;
+    y += 16;
   }
 
   if (use_external_8bpp) {
@@ -1351,11 +1375,11 @@ void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
 
         const int preview_x = x + dest_x;
         const int preview_y = y + dest_y;
-        if (preview_x < 0 || preview_x >= 64 || preview_y < 0 ||
-            preview_y >= 64) {
+        if (preview_x < 0 || preview_x >= preview_bounds_.w || preview_y < 0 ||
+            preview_y >= preview_bounds_.h) {
           continue;
         }
-        const int index = preview_x + (preview_y * 64);
+        const int index = preview_x + (preview_y * preview_bounds_.w);
         if (index >= 0 && index < static_cast<int>(preview_gfx_.size())) {
           preview_gfx_[index] =
               static_cast<uint8_t>((pixel & 0x0F) + 112 + (pal * 8));
