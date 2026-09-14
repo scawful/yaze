@@ -168,7 +168,7 @@ commit=""
 short_commit=""
 version=""
 dirty=""
-if [[ -d "$source_repo/.git" ]]; then
+if git -C "$source_repo" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   commit="$(git -C "$source_repo" rev-parse HEAD 2>/dev/null || true)"
   short_commit="$(git -C "$source_repo" rev-parse --short HEAD 2>/dev/null || true)"
   if [[ -n "$(git -C "$source_repo" status --porcelain 2>/dev/null || true)" ]]; then
