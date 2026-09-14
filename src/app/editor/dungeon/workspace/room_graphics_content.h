@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_DUNGEON_WORKSPACE_ROOM_GRAPHICS_CONTENT_H_
 
 #include <array>
+#include <cstdint>
 #include <string>
 
 #include "app/editor/dungeon/dungeon_room_store.h"
@@ -42,6 +43,8 @@ class RoomGraphicsContent : public WindowContent {
         rooms_(rooms),
         renderer_(renderer),
         room_gfx_canvas_("##RoomGfxCanvasPanel", ImVec2(256 + 1, 256 + 1)) {}
+
+  ~RoomGraphicsContent() override;
 
   /**
    * @brief Set the current palette group for graphics rendering
@@ -95,6 +98,7 @@ class RoomGraphicsContent : public WindowContent {
   std::array<SheetPreviewMetadata, 16> sheet_preview_metadata_{};
   std::array<uint8_t, 16> preview_block_ids_{};
   int preview_room_id_ = -1;
+  uint64_t preview_graphics_revision_ = 0;
   bool preview_cache_valid_ = false;
   bool show_source_trace_ = false;
 
