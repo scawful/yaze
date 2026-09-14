@@ -404,6 +404,12 @@ void TileObjectHandler::DrawGhostPreview() {
   if (!IsWithinBounds(canvas_x, canvas_y))
     return;
 
+  zelda3::Room* room = GetRoom(ctx_->current_room_id);
+  if (room && (ghost_preview_room_id_ != ctx_->current_room_id ||
+               ghost_preview_graphics_revision_ != room->graphics_revision())) {
+    RenderGhostPreviewBitmap();
+  }
+
   auto [snap_canvas_x, snap_canvas_y] = RoomToCanvas(room_x, room_y);
   const auto preview_geometry = CalculateGhostPreviewGeometry(preview_object_);
 
@@ -422,7 +428,6 @@ void TileObjectHandler::DrawGhostPreview() {
              static_cast<float>(snap_canvas_y -
                                 preview_geometry.render_anchor_y_tiles * 8)));
 
-  zelda3::Room* room = GetRoom(ctx_->current_room_id);
   const size_t current_obj_count = room ? room->GetTileObjects().size() : 0;
   const auto capacity_state = GetPlacementGhostCapacityState();
 
@@ -1114,6 +1119,8 @@ void TileObjectHandler::RenderGhostPreviewBitmap() {
       ghost_preview_create_queued_ = false;
     }
     ghost_preview_bitmap_ready_ = true;
+    ghost_preview_room_id_ = ctx_->current_room_id;
+    ghost_preview_graphics_revision_ = room->graphics_revision();
   }
 }
 

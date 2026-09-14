@@ -232,6 +232,7 @@ class DungeonObjectSelector {
   uint8_t cached_preview_floor1_ = 0xFF;
   uint8_t cached_preview_floor2_ = 0xFF;
   int cached_preview_room_id_ = -1;
+  uint64_t cached_preview_graphics_revision_ = 0;
 
   std::map<uint32_t, zelda3::ObjectTileLayout> layout_cache_;
 

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cstdint>
 #include <functional>
 #include <limits>
@@ -14,6 +15,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
@@ -41,6 +43,11 @@ namespace yaze {
 namespace zelda3 {
 
 namespace {
+
+uint64_t NextRoomGraphicsRevision() {
+  static std::atomic<uint64_t> revision{0};
+  return revision.fetch_add(1, std::memory_order_relaxed) + 1;
+}
 
 uint8_t Layer2ModeFromHeaderByte(uint8_t byte0) {
   return static_cast<uint8_t>((byte0 >> 5) & 0x07);
@@ -1000,6 +1007,9 @@ void Room::CopyRoomGraphicsToBuffer() {
             room_id_, gfx_buffer_data->size());
 
   // Clear destination buffer
+  const absl::Cleanup publish_revision = [this] {
+    graphics_revision_ = NextRoomGraphicsRevision();
+  };
   std::fill(current_gfx16_.begin(), current_gfx16_.end(), 0);
 
   // USDASM grounding (bank_00.asm LoadBackgroundGraphics):
@@ -1673,11 +1683,18 @@ void Room::LoadAnimatedGraphics() {
     return;
   }
   const auto& graphics = game_data_->graphics_buffer;
+  bool copied_frame = false;
+  const absl::Cleanup publish_revision = [this, &copied_frame] {
+    if (copied_frame) {
+      graphics_revision_ = NextRoomGraphicsRevision();
+    }
+  };
   const auto copy_frame = [&](uint8_t sheet, size_t destination) {
     const size_t source = sheet * kSheetBytes + animated_frame_ * kFrameBytes;
     if (source + kFrameBytes <= graphics.size()) {
       std::copy_n(graphics.data() + source, kFrameBytes,
                   current_gfx16_.data() + destination);
+      copied_frame = true;
     }
   };
 
