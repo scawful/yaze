@@ -88,6 +88,49 @@ Local run artifacts: `/tmp/yaze-wave1-bars-red.xml`,
 `/tmp/yaze-wave1-dungeon-object-validation.json`. These temporary artifacts
 are not committed fixtures; use the commands below to regenerate evidence.
 
+## Second implementation slice: object controls and floor rules (2026-09-14)
+
+Continue development without assigning routine qualification work to the user.
+The integration owner runs automated checks; manual acceptance remains a later
+release gate, not a prerequisite for the next object improvement.
+
+- The active Workbench inspector now exposes width and height in tiles for
+  repeating 4x4/3x3 floor and 2x2 spike families. Wheel changes height;
+  Shift+wheel changes width. Each two-bit axis clamps independently instead of
+  carrying into the other dimension. Custom objects expose mapped, named
+  variants and are excluded from generic wheel/bulk resizing.
+- Placement wheel events update the pending object, not a previous selection.
+  The tile handler owns the preview; palette refresh redraws it without
+  restoring stale dimensions. The legacy editor also uses the shared resize
+  helper instead of its unsupported `0x10/0x08/0x04` increments.
+- The routine-58 audit covers all 19 mapped IDs, all 16 sizes and all three
+  stored streams, plus room-edge motif phase and unrelated game-state changes.
+  Floor1/Floor2 wrappers now delegate to the same stamper. No new rendering
+  defect was established for these water/ice/moving-floor stamps.
+- Water edges `0x3F–0x46`, `0x79/0x7A` and waterfalls `0x47/0x48` have
+  source-backed payload, size, boundary, attribute and compatible-corner
+  regressions. These are not new emulator captures or proof of room-level
+  composition/palette correctness.
+
+Next object work: room-level water/ice/corner composition using the witnesses
+below; extend axis controls to `0xC1/0xDC/0xDD` only after representing their
+different base dimensions. Do not classify moving-wall `0xCD/0xCE` direction
+selectors as independent floor axes.
+
+Fresh local evidence: the app and unit target build in Release; **420/420**
+selected tests pass, including actual ImGui combo clicks at narrow/wide and
+large-font layouts, stable popup registration, width/height independence,
+custom variant protection, and preview resize -> palette refresh -> placement.
+This total includes the 150-test focused run. The shared-floor trace fixture's
+initial H/V input ordering mistake was corrected against `TileInfo`'s V/H
+constructor contract; no renderer or expected trace was weakened to pass it.
+The maintained parity ladder also passed again: Tier 1 **37/37**, Tier 2
+**11/11** plus **1/1** table check, Tier 3 **10/10**, Tier 4 **7/7**, all with
+zero skips; Tier 5 **1,190 cases, zero mismatches and empty traces**. No goldens
+were refreshed or new Mesen images captured. Both canonical ROM SHA-1 values
+above remained unchanged. Logs: `/tmp/yaze-object-wave2-broad.log` and
+`/tmp/yaze-object-wave2-parity.log`.
+
 ## Object coverage checklist
 
 Start by enumerating the supported IDs from `DrawRoutineRegistry` and the room
@@ -257,6 +300,16 @@ build/presets/mac-ai/bin/yaze_test_unit --gtest_list_tests
 build/presets/mac-ai/bin/yaze_test_integration --gtest_list_tests
 build/presets/mac-ai/bin/yaze_test_unit \
   --gtest_filter='DrawRoutineMappingTest.*:ObjectDrawerRegistryReplayTest.*:ObjectDrawerMaskPropagationTest.*:ObjectGeometryTest.*:RoomLayerManagerTest.*'
+```
+
+The second slice's combined object/editor regression command is:
+
+```bash
+object_filter='DungeonCanvasViewer*.*:DungeonEditorPaletteRefreshTest.*:DungeonObjectSelectorPaletteTest.*:DungeonSelectionSnapshotTest.*:InteractionCoordinatorTest.*:DungeonWorkbench*.*:TileObjectHandlerTest.*:RoomObjectEncodingTest.*:DungeonObjectEditorDirtyTest.*:ObjectDrawerRegistryReplayTest.*:DrawRoutineMappingTest.*'
+build/presets/mac-ai/bin/yaze_test_unit --gtest_list_tests \
+  --gtest_filter="$object_filter"
+build/presets/mac-ai/bin/yaze_test_unit --gtest_filter="$object_filter" \
+  --gtest_output=xml:/tmp/yaze-object-wave2-broad.xml
 ```
 
 Set `YAZE_TEST_ROM_VANILLA` to an existing canonical control ROM for
