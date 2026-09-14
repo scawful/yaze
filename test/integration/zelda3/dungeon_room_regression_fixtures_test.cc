@@ -1303,14 +1303,16 @@ TEST_F(DungeonRoomRegressionFixturesTest,
   ASSERT_EQ(corrected.blockset(), 0x08);
   const auto selected_sheet =
       rom_.ReadByte(SnesToPc(*table_snes) + corrected.blockset());
-  const auto old_sheet = rom_.ReadByte(SnesToPc(kAnimatedOperandPc));
+  const auto old_sheet =
+      rom_.ReadByte(SnesToPc(kAnimatedOperandPc) + corrected.blockset());
   ASSERT_TRUE(selected_sheet.ok());
   ASSERT_TRUE(old_sheet.ok());
   ASSERT_EQ(*selected_sheet, 0x5D);
-  ASSERT_EQ(*old_sheet, 0x93);
+  ASSERT_EQ(*old_sheet, 0x94);
 
   // Counterfactual for the pre-872e419a0 loader only. It treated the LDA.l
-  // operand's PC offset as a SNES address and read sheet $93 from PC $8275.
+  // operand's PC offset as a SNES address, then indexed by room tileset $08,
+  // reading sheet $94 from PC $827D instead of sheet $5D from the actual table.
   // Feed that old frame through the corrected renderer without reverting any
   // production code or modifying ROM bytes. The full graphics comparison
   // below proves this substitution affects only the selected animated span.
