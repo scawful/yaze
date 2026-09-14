@@ -55,9 +55,12 @@ cmake --build --list-presets
 ctest --list-presets
 ```
 
-For Windows and Linux, select the current preset documented in the
-[Build and Test Quick Reference](quick-reference.md). Presets and CI setup are
-the source of truth for dependencies and compiler flags.
+For current preset names, use the
+[Build and Test Quick Reference](quick-reference.md). Initial platform
+dependencies are documented in [Build from Source](build-from-source.md), and
+the exact Linux package sets plus Windows recovery recipes live in the
+[Build Troubleshooting Guide](troubleshooting.md). Those guides, the presets,
+and CI setup are the source of truth for dependencies and compiler flags.
 
 ## Release-candidate gate
 
