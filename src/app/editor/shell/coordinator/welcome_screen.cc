@@ -546,17 +546,10 @@ bool WelcomeScreen::Show(bool* p_open) {
                      300.0f * layout_scale, 440.0f * layout_scale);
       ImGui::BeginChild("LeftPanel", ImVec2(left_width, 0), true,
                         ImGuiWindowFlags_NoScrollbar);
-      const float left_height = ImGui::GetContentRegionAvail().y;
-      const bool first_run =
-          recent_projects_model_.entries().empty() && !has_rom_;
-      const float quick_actions_h =
-          (first_run ? 260.0f : 210.0f) * layout_scale;
-
-      ImGui::BeginChild("QuickActionsWide", ImVec2(0, quick_actions_h), false,
-                        ImGuiWindowFlags_NoScrollbar);
+      // Let wrapped first-run guidance and startup buttons take their natural
+      // height. Only What's new scrolls within the space left below them.
       DrawFirstRunGuide();
       DrawQuickActions();
-      ImGui::EndChild();
 
       ImGui::Spacing();
       ImVec2 sep_start = ImGui::GetCursorScreenPos();
