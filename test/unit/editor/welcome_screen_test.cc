@@ -8,6 +8,7 @@
 
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/core/theme_manager.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
@@ -118,12 +119,26 @@ struct WelcomeLayoutCase {
   float font_size;
   bool populated;
   bool stacked;
+  const char* theme = "Classic YAZE";
 };
 
 class WelcomeScreenFullLayoutTest
     : public WelcomeScreenTest,
       public ::testing::WithParamInterface<WelcomeLayoutCase> {
  protected:
+  void SetUp() override {
+    WelcomeScreenTest::SetUp();
+    auto& themes = gui::ThemeManager::Get();
+    saved_theme_ = themes.GetCurrentThemeName();
+    themes.ApplyTheme(GetParam().theme);
+    ASSERT_EQ(themes.GetCurrentThemeName(), GetParam().theme);
+  }
+
+  void TearDown() override {
+    gui::ThemeManager::Get().ApplyTheme(saved_theme_);
+    WelcomeScreenTest::TearDown();
+  }
+
   void DrawFrame(WelcomeScreen* screen, ImGuiWindow* focus = nullptr) {
     ImGui::NewFrame();
     if (focus) {
@@ -145,6 +160,8 @@ class WelcomeScreenFullLayoutTest
     }
     return nullptr;
   }
+
+  std::string saved_theme_;
 };
 
 TEST_P(WelcomeScreenFullLayoutTest,
@@ -185,6 +202,7 @@ TEST_P(WelcomeScreenFullLayoutTest,
   EXPECT_LE(root->Pos.x + root->Size.x, io.DisplaySize.x);
   EXPECT_LE(root->Pos.y + root->Size.y, io.DisplaySize.y);
   EXPECT_FALSE(root->ScrollbarY);
+  EXPECT_LE(root->ContentSize.x, root->InnerRect.GetWidth());
   const ImRect root_bounds = root->Rect();
   const ImRect content_bounds = content->Rect();
   ImGuiWindow* actions = FindChild("/LeftPanel_");
@@ -253,6 +271,7 @@ TEST_P(WelcomeScreenFullLayoutTest,
   EXPECT_LE(scroll->DC.CursorStartPos.y + scroll->ContentSize.y,
             scroll->InnerRect.Max.y + 1.0f);
   EXPECT_FALSE(root->ScrollbarY);
+  EXPECT_LE(root->ContentSize.x, root->InnerRect.GetWidth());
   EXPECT_FLOAT_EQ(root->Pos.x, root_bounds.Min.x);
   EXPECT_FLOAT_EQ(root->Pos.y, root_bounds.Min.y);
   EXPECT_FLOAT_EQ(root->Size.x, root_bounds.GetWidth());
@@ -275,7 +294,15 @@ INSTANTIATE_TEST_SUITE_P(
         WelcomeLayoutCase{"LargeFontFirstRun", ImVec2(1400, 1050), 26, false,
                           true},
         WelcomeLayoutCase{"LargeFontRecents", ImVec2(1400, 1050), 26, true,
-                          true}),
+                          true},
+        WelcomeLayoutCase{"ForestLargeFontFirstRun", ImVec2(1400, 1050), 26,
+                          false, true, "Forest"},
+        WelcomeLayoutCase{"ForestLargeFontRecents", ImVec2(1400, 1050), 26,
+                          true, true, "Forest"},
+        WelcomeLayoutCase{"ForestLightLargeFontFirstRun", ImVec2(1400, 1050),
+                          26, false, true, "Forest Light"},
+        WelcomeLayoutCase{"ForestLightLargeFontRecents", ImVec2(1400, 1050), 26,
+                          true, true, "Forest Light"}),
     [](const ::testing::TestParamInfo<WelcomeLayoutCase>& info) {
       return info.param.name;
     });
