@@ -2274,8 +2274,12 @@ void EditorManager::InitializeServices() {
 
 void EditorManager::SetupComponentCallbacks() {
   SetupDialogCallbacks();
-  SetupWelcomeScreenCallbacks();
   SetupSidebarCallbacks();
+
+  if (ui_coordinator_ && !user_settings_.prefs().show_welcome_on_startup) {
+    ui_coordinator_->SetWelcomeScreenVisible(false);
+    ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
+  }
 }
 
 void EditorManager::SetupDialogCallbacks() {
@@ -2322,80 +2326,6 @@ void EditorManager::SetupDialogCallbacks() {
         LOG_INFO("EditorManager", "ROM load options applied: preset=%s",
                  options.selected_preset.c_str());
       });
-}
-
-void EditorManager::SetupWelcomeScreenCallbacks() {
-  // Initialize welcome screen callbacks
-  welcome_screen_.SetOpenRomCallback([this]() { status_ = LoadRom(); });
-
-  welcome_screen_.SetNewProjectCallback(
-      [this]() { status_ = CreateNewProject(); });
-
-  welcome_screen_.SetNewProjectWithTemplateCallback(
-      [this](const std::string& template_name) {
-        status_ = CreateNewProject(template_name);
-      });
-
-  welcome_screen_.SetOpenProjectCallback([this](const std::string& filepath) {
-    status_ = OpenRomOrProject(filepath);
-    if (status_.ok() && ui_coordinator_) {
-      ui_coordinator_->SetWelcomeScreenVisible(false);
-      ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
-    }
-  });
-
-  welcome_screen_.SetOpenAgentCallback([this]() {
-#ifdef YAZE_BUILD_AGENT_UI
-    ShowAIAgent();
-#endif
-  });
-
-  welcome_screen_.SetOpenPrototypeResearchCallback([this]() {
-    SwitchToEditor(EditorType::kGraphics, true);
-    window_manager_.OpenWindow("graphics.prototype_viewer");
-    if (ui_coordinator_) {
-      ui_coordinator_->SetWelcomeScreenVisible(false);
-      ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
-    }
-  });
-
-  welcome_screen_.SetOpenAssemblyEditorNoRomCallback([this]() {
-    SwitchToEditor(EditorType::kAssembly, true);
-    window_manager_.OpenWindow("assembly.code_editor");
-    if (ui_coordinator_) {
-      ui_coordinator_->SetWelcomeScreenVisible(false);
-      ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
-    }
-  });
-
-  welcome_screen_.SetOpenProjectDialogCallback([this]() {
-    status_ = OpenProject();
-    if (status_.ok() && ui_coordinator_) {
-      ui_coordinator_->SetWelcomeScreenVisible(false);
-      ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
-    } else if (!status_.ok()) {
-      toast_manager_.Show(
-          absl::StrFormat("Failed to open project: %s", status_.message()),
-          ToastType::kError);
-    }
-  });
-
-  welcome_screen_.SetOpenProjectManagementCallback(
-      [this]() { ShowProjectManagement(); });
-
-  welcome_screen_.SetOpenProjectFileEditorCallback([this]() {
-    if (current_project_.filepath.empty()) {
-      toast_manager_.Show("No project file to edit", ToastType::kInfo);
-      return;
-    }
-    ShowProjectFileEditor();
-  });
-
-  // Apply welcome screen preference
-  if (ui_coordinator_ && !user_settings_.prefs().show_welcome_on_startup) {
-    ui_coordinator_->SetWelcomeScreenVisible(false);
-    ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
-  }
 }
 
 void EditorManager::SetupSidebarCallbacks() {

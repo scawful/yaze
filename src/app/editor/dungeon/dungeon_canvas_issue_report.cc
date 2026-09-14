@@ -23,10 +23,12 @@
 #include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/themed_widgets.h"
 #ifdef YAZE_WITH_GRPC
 #include "app/service/screenshot_utils.h"
 #endif
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "util/macro.h"
 #include "util/platform_paths.h"
 #include "util/rom_hash.h"
@@ -42,16 +44,22 @@ namespace yaze::editor {
 
 namespace {
 
-constexpr float kIssueReportDialogWidth = 620.0f;
-constexpr float kIssueReportNotesHeight = 120.0f;
-constexpr float kIssueReportDiagnosticsHeight = 180.0f;
+constexpr float kIssueReportDialogWidth = 640.0f;
+constexpr float kIssueReportDialogHeight = 620.0f;
+constexpr float kIssueReportDialogMinWidth = 360.0f;
+constexpr float kIssueReportDialogMinHeight = 340.0f;
+constexpr float kIssueReportDialogViewportMargin = 16.0f;
+constexpr float kIssueReportNotesHeight = 116.0f;
+constexpr float kIssueReportDiagnosticsHeight = 168.0f;
 constexpr char kIssueReportSummaryHint[] = "What looks wrong?";
 constexpr char kIssueReportPopupIdDiagnostics[] = "##DungeonIssueDiagnostics";
 constexpr char kIssueReportSectionPaths[] = "Local files";
 constexpr char kIssueReportSectionDiagnostics[] = "Diagnostics";
+constexpr char kIssueReportStatusIdle[] =
+    "Local draft. Nothing is uploaded or submitted.";
 constexpr char kIssueReportStatusSavedScreenshot[] =
-    "Captured room screenshot to %s";
-constexpr char kIssueReportStatusSavedLog[] = "Saved issue report to %s";
+    "Screenshot captured. Open Local files for its path.";
+constexpr char kIssueReportStatusSavedLog[] = "Saved to the local issue log.";
 constexpr char kIssueReportStatusCopiedReport[] =
     "Copied report to clipboard. Nothing was submitted.";
 constexpr char kIssueReportStatusCopiedDiagnostics[] =
@@ -60,6 +68,78 @@ constexpr char kIssueReportCaptureButtonLabel[] =
     ICON_MD_ADD_A_PHOTO " Capture Screenshot";
 constexpr char kIssueReportRecaptureButtonLabel[] =
     ICON_MD_PHOTO_CAMERA " Re-capture Screenshot";
+constexpr char kIssueReportSaveButtonLabel[] =
+    ICON_MD_SAVE_AS " Save to Issue Log";
+constexpr char kIssueReportCopyButtonLabel[] =
+    ICON_MD_CONTENT_COPY " Copy Report";
+constexpr char kIssueReportCloseButtonLabel[] = ICON_MD_CLOSE " Close";
+
+struct IssueReportWindowLayout {
+  ImVec2 center;
+  ImVec2 initial_size;
+  ImVec2 min_size;
+  ImVec2 max_size;
+};
+
+IssueReportWindowLayout GetIssueReportWindowLayout() {
+  const ImGuiViewport* viewport = ImGui::GetMainViewport();
+  const ImVec2 work_size =
+      viewport != nullptr ? viewport->WorkSize : ImGui::GetIO().DisplaySize;
+  const ImVec2 center = viewport != nullptr
+                            ? viewport->GetWorkCenter()
+                            : ImVec2(work_size.x * 0.5f, work_size.y * 0.5f);
+  const ImVec2 max_size(
+      std::max(1.0f, work_size.x - kIssueReportDialogViewportMargin * 2.0f),
+      std::max(1.0f, work_size.y - kIssueReportDialogViewportMargin * 2.0f));
+  const ImVec2 min_size(std::min(kIssueReportDialogMinWidth, max_size.x),
+                        std::min(kIssueReportDialogMinHeight, max_size.y));
+  const ImVec2 initial_size(
+      std::clamp(kIssueReportDialogWidth, min_size.x, max_size.x),
+      std::clamp(kIssueReportDialogHeight, min_size.y, max_size.y));
+  return {center, initial_size, min_size, max_size};
+}
+
+float GetIssueActionButtonWidth(const char* label) {
+  float text_width = ImGui::CalcTextSize(label).x;
+  if (label == kIssueReportCaptureButtonLabel ||
+      label == kIssueReportRecaptureButtonLabel) {
+    text_width =
+        std::max(ImGui::CalcTextSize(kIssueReportCaptureButtonLabel).x,
+                 ImGui::CalcTextSize(kIssueReportRecaptureButtonLabel).x);
+  }
+  return text_width + ImGui::GetStyle().FramePadding.x * 2.0f;
+}
+
+int CountWrappedIssueActionRows(std::span<const char* const> labels,
+                                float available_width) {
+  const float spacing = ImGui::GetStyle().ItemSpacing.x;
+  float used_width = 0.0f;
+  int rows = labels.empty() ? 0 : 1;
+  for (const char* label : labels) {
+    const float button_width = GetIssueActionButtonWidth(label);
+    if (used_width > 0.0f &&
+        used_width + spacing + button_width > available_width) {
+      ++rows;
+      used_width = button_width;
+    } else {
+      used_width += (used_width > 0.0f ? spacing : 0.0f) + button_width;
+    }
+  }
+  return rows;
+}
+
+void PlaceNextIssueAction(const char* label, float available_width,
+                          float* used_width) {
+  const float spacing = ImGui::GetStyle().ItemSpacing.x;
+  const float button_width = GetIssueActionButtonWidth(label);
+  if (*used_width > 0.0f &&
+      *used_width + spacing + button_width <= available_width) {
+    ImGui::SameLine();
+    *used_width += spacing + button_width;
+    return;
+  }
+  *used_width = button_width;
+}
 
 const char* GetStoredPlacementLabel(const zelda3::RoomObject& object) {
   const int layer_value = object.GetLayerValue();
@@ -883,14 +963,35 @@ void DungeonCanvasViewer::DrawIssueReportStorageSummary() const {
 }
 
 void DungeonCanvasViewer::DrawIssueReportStatusMessage() const {
-  if (issue_report_popup_status_message_.empty()) {
-    return;
+  const bool idle = issue_report_popup_status_message_.empty();
+  const std::string_view message =
+      idle ? std::string_view(tr(kIssueReportStatusIdle))
+           : std::string_view(issue_report_popup_status_message_);
+  const size_t line_end = message.find_first_of("\r\n");
+  std::string visible_line(message.substr(0, line_end));
+  if (line_end != std::string_view::npos) {
+    visible_line += "...";
   }
-
-  const ImVec4 color = issue_report_popup_status_is_error_
-                           ? gui::GetErrorColor()
-                           : gui::GetSuccessColor();
-  ImGui::TextColored(color, "%s", issue_report_popup_status_message_.c_str());
+  const ImVec4 color =
+      idle ? ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)
+           : (issue_report_popup_status_is_error_ ? gui::GetErrorColor()
+                                                  : gui::GetSuccessColor());
+  const ImVec2 start = ImGui::GetCursorScreenPos();
+  const ImVec2 size(std::max(ImGui::GetContentRegionAvail().x, 1.0f),
+                    ImGui::GetTextLineHeight());
+  const ImVec2 end(start.x + size.x, start.y + size.y);
+  ImGui::PushStyleColor(ImGuiCol_Text, color);
+  ImGui::RenderTextEllipsis(ImGui::GetWindowDrawList(), start, end, end.x,
+                            visible_line.c_str(), nullptr, nullptr);
+  ImGui::PopStyleColor();
+  ImGui::Dummy(size);
+  if (ImGui::IsItemHovered()) {
+    ImGui::BeginTooltip();
+    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+    ImGui::TextUnformatted(message.data(), message.data() + message.size());
+    ImGui::PopTextWrapPos();
+    ImGui::EndTooltip();
+  }
 }
 
 absl::Status DungeonCanvasViewer::PrepareIssueReportPopup(
@@ -924,102 +1025,146 @@ void DungeonCanvasViewer::OpenIssueReportPopup(const std::string& title,
   (void)PrepareIssueReportPopup(title, summary, kind_label, diagnostics,
                                 room_id, default_category_index);
   canvas_.OpenPersistentPopup(issue_report_popup_id_, [this]() {
+    const IssueReportWindowLayout window_layout = GetIssueReportWindowLayout();
+    ImGui::SetNextWindowPos(window_layout.center, ImGuiCond_Appearing,
+                            ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(window_layout.initial_size, ImGuiCond_Appearing);
+    ImGui::SetNextWindowSizeConstraints(window_layout.min_size,
+                                        window_layout.max_size);
+
     if (ImGui::BeginPopupModal(issue_report_popup_id_.c_str(), nullptr,
-                               ImGuiWindowFlags_AlwaysAutoResize)) {
-      if (!issue_report_popup_title_.empty()) {
-        ImGui::TextUnformatted(issue_report_popup_title_.c_str());
-        if (!issue_report_popup_kind_.empty()) {
-          ImGui::TextDisabled("%s", issue_report_popup_kind_.c_str());
-        }
-        ImGui::Separator();
-      }
-      ImGui::TextDisabled(
-          tr("Local capture only. Nothing is uploaded or submitted."));
-
-      const char* category_preview =
-          GetIssueCategoryLabel(issue_report_category_index_);
-      if (ImGui::BeginCombo(tr("Category"), category_preview)) {
-        for (size_t i = 0; i < kDungeonIssueCategoryLabels.size(); ++i) {
-          const bool selected =
-              issue_report_category_index_ == static_cast<int>(i);
-          if (ImGui::Selectable(kDungeonIssueCategoryLabels[i], selected)) {
-            issue_report_category_index_ = static_cast<int>(i);
-            MarkIssueReportDirty();
-          }
-          if (selected) {
-            ImGui::SetItemDefaultFocus();
-          }
-        }
-        ImGui::EndCombo();
-      }
-
-      ImGui::SetNextItemWidth(kIssueReportDialogWidth);
-      if (ImGui::InputTextWithHint("Summary", kIssueReportSummaryHint,
-                                   issue_report_summary_,
-                                   sizeof(issue_report_summary_))) {
-        MarkIssueReportDirty();
-      }
-      if (ImGui::InputTextMultiline(
-              tr("Observed issue"), issue_report_notes_,
-              sizeof(issue_report_notes_),
-              ImVec2(kIssueReportDialogWidth, kIssueReportNotesHeight))) {
-        MarkIssueReportDirty();
-      }
-
-      DrawIssueReportStorageSummary();
-      DrawIssueReportStatusMessage();
-
-      if (ImGui::CollapsingHeader(kIssueReportSectionDiagnostics)) {
-        ImGui::InputTextMultiline(
-            kIssueReportPopupIdDiagnostics,
-            issue_report_popup_diagnostics_.data(),
-            issue_report_popup_diagnostics_.size() + 1,
-            ImVec2(kIssueReportDialogWidth, kIssueReportDiagnosticsHeight),
-            ImGuiInputTextFlags_ReadOnly);
-      }
-
+                               ImGuiWindowFlags_NoSavedSettings)) {
 #ifdef YAZE_WITH_GRPC
       const char* capture_label = issue_report_popup_screenshot_path_.empty()
                                       ? kIssueReportCaptureButtonLabel
                                       : kIssueReportRecaptureButtonLabel;
-      if (ImGui::Button(capture_label)) {
+      const std::array<const char*, 4> action_labels = {
+          kIssueReportSaveButtonLabel, capture_label,
+          kIssueReportCopyButtonLabel, kIssueReportCloseButtonLabel};
+#else
+      const std::array<const char*, 3> action_labels = {
+          kIssueReportSaveButtonLabel, kIssueReportCopyButtonLabel,
+          kIssueReportCloseButtonLabel};
+#endif
+      const float footer_width =
+          std::max(ImGui::GetContentRegionAvail().x, 1.0f);
+      const int action_rows = CountWrappedIssueActionRows(
+          std::span<const char* const>(action_labels), footer_width);
+      const ImGuiStyle& style = ImGui::GetStyle();
+      const float action_height =
+          action_rows * ImGui::GetFrameHeight() +
+          std::max(0, action_rows - 1) * style.ItemSpacing.y;
+      const float footer_height = ImGui::GetTextLineHeightWithSpacing() +
+                                  action_height + style.ItemSpacing.y * 2.0f +
+                                  1.0f;
+
+      if (ImGui::BeginChild("##DungeonIssueReportBody",
+                            ImVec2(0.0f, -footer_height), false,
+                            ImGuiWindowFlags_None)) {
+        if (!issue_report_popup_title_.empty()) {
+          ImGui::TextUnformatted(issue_report_popup_title_.c_str());
+          if (!issue_report_popup_kind_.empty()) {
+            ImGui::TextDisabled("%s", issue_report_popup_kind_.c_str());
+          }
+          ImGui::Separator();
+        }
+
+        ImGui::TextUnformatted(tr("Category"));
+        ImGui::SetNextItemWidth(
+            std::max(ImGui::GetContentRegionAvail().x, 1.0f));
+        const char* category_preview =
+            GetIssueCategoryLabel(issue_report_category_index_);
+        if (ImGui::BeginCombo("##DungeonIssueCategory", category_preview)) {
+          for (size_t i = 0; i < kDungeonIssueCategoryLabels.size(); ++i) {
+            const bool selected =
+                issue_report_category_index_ == static_cast<int>(i);
+            if (ImGui::Selectable(kDungeonIssueCategoryLabels[i], selected)) {
+              issue_report_category_index_ = static_cast<int>(i);
+              MarkIssueReportDirty();
+            }
+            if (selected) {
+              ImGui::SetItemDefaultFocus();
+            }
+          }
+          ImGui::EndCombo();
+        }
+
+        ImGui::TextUnformatted(tr("Summary"));
+        ImGui::SetNextItemWidth(
+            std::max(ImGui::GetContentRegionAvail().x, 1.0f));
+        if (ImGui::InputTextWithHint(
+                "##DungeonIssueSummary", kIssueReportSummaryHint,
+                issue_report_summary_, sizeof(issue_report_summary_))) {
+          MarkIssueReportDirty();
+        }
+
+        ImGui::TextUnformatted(tr("Observed issue"));
+        if (ImGui::InputTextMultiline("##DungeonIssueObserved",
+                                      issue_report_notes_,
+                                      sizeof(issue_report_notes_),
+                                      ImVec2(-1.0f, kIssueReportNotesHeight))) {
+          MarkIssueReportDirty();
+        }
+
+        DrawIssueReportStorageSummary();
+
+        if (ImGui::CollapsingHeader(kIssueReportSectionDiagnostics)) {
+          ImGui::InputTextMultiline(
+              kIssueReportPopupIdDiagnostics,
+              issue_report_popup_diagnostics_.data(),
+              issue_report_popup_diagnostics_.size() + 1,
+              ImVec2(-1.0f, kIssueReportDiagnosticsHeight),
+              ImGuiInputTextFlags_ReadOnly);
+          if (ImGui::Button(ICON_MD_ASSIGNMENT " Copy Diagnostics")) {
+            ImGui::SetClipboardText(issue_report_popup_diagnostics_.c_str());
+            SetIssueReportPopupStatus(kIssueReportStatusCopiedDiagnostics,
+                                      false);
+          }
+        }
+      }
+      ImGui::EndChild();
+
+      ImGui::Separator();
+      DrawIssueReportStatusMessage();
+
+      float used_action_width = 0.0f;
+      PlaceNextIssueAction(kIssueReportSaveButtonLabel, footer_width,
+                           &used_action_width);
+      if (gui::PrimaryButton(kIssueReportSaveButtonLabel)) {
+        const auto status = EnsureIssueReportPersisted();
+        if (status.ok()) {
+          SetIssueReportPopupStatus(kIssueReportStatusSavedLog, false);
+        } else {
+          SetIssueReportPopupStatus(std::string(status.message()), true);
+        }
+      }
+
+#ifdef YAZE_WITH_GRPC
+      PlaceNextIssueAction(capture_label, footer_width, &used_action_width);
+      if (ImGui::Button(
+              capture_label,
+              ImVec2(GetIssueActionButtonWidth(capture_label), 0.0f))) {
         const auto status = CaptureIssueReportScreenshot();
         if (status.ok()) {
           MarkIssueReportDirty();
-          SetIssueReportPopupStatus(
-              absl::StrFormat(kIssueReportStatusSavedScreenshot,
-                              issue_report_popup_screenshot_path_.c_str()),
-              false);
+          SetIssueReportPopupStatus(kIssueReportStatusSavedScreenshot, false);
         } else {
           SetIssueReportPopupStatus(std::string(status.message()), true);
         }
       }
-      ImGui::SameLine();
 #endif
-      if (ImGui::Button(ICON_MD_SAVE_AS " Save to Issue Log")) {
-        const auto status = EnsureIssueReportPersisted();
-        if (status.ok()) {
-          SetIssueReportPopupStatus(
-              absl::StrFormat(kIssueReportStatusSavedLog,
-                              issue_report_popup_last_log_path_.c_str()),
-              false);
-        } else {
-          SetIssueReportPopupStatus(std::string(status.message()), true);
-        }
-      }
-      ImGui::SameLine();
-      if (ImGui::Button(ICON_MD_CONTENT_COPY " Copy Report")) {
+
+      PlaceNextIssueAction(kIssueReportCopyButtonLabel, footer_width,
+                           &used_action_width);
+      if (ImGui::Button(kIssueReportCopyButtonLabel)) {
         std::string report = BuildIssueReportClipboardText();
         ImGui::SetClipboardText(report.c_str());
         SetIssueReportPopupStatus(kIssueReportStatusCopiedReport, false);
       }
-      ImGui::SameLine();
-      if (ImGui::Button(ICON_MD_ASSIGNMENT " Copy Diagnostics")) {
-        ImGui::SetClipboardText(issue_report_popup_diagnostics_.c_str());
-        SetIssueReportPopupStatus(kIssueReportStatusCopiedDiagnostics, false);
-      }
-      ImGui::SameLine();
-      if (ImGui::Button(ICON_MD_CLOSE " Close")) {
+
+      PlaceNextIssueAction(kIssueReportCloseButtonLabel, footer_width,
+                           &used_action_width);
+      if (ImGui::Button(kIssueReportCloseButtonLabel)) {
         canvas_.ClosePersistentPopup(issue_report_popup_id_);
         ImGui::CloseCurrentPopup();
       }
