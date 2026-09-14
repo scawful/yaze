@@ -93,9 +93,9 @@ absl::StatusOr<CustomObject> DecodeCustomObjectBinary(
 absl::StatusOr<std::vector<uint8_t>> EncodeCustomObjectBinary(
     const CustomObject& object);
 
-// Resolves a project-relative .bin path through its canonical parent and
-// rejects absolute paths, parent traversal, symlink targets, and paths outside
-// the configured custom-object folder.
+// Resolves a project-relative .bin path using forward-slash separators through
+// its canonical parent. Rejects absolute paths, parent traversal, symlink
+// targets, and paths outside the configured custom-object folder.
 absl::StatusOr<std::filesystem::path> ResolveCustomObjectAssetPath(
     const std::string& custom_objects_folder, const std::string& filename);
 

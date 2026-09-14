@@ -264,6 +264,30 @@ TEST_F(CustomObjectManagerTest, AssetPathRejectsEscapesAndInvalidNames) {
   }
 }
 
+TEST_F(CustomObjectManagerTest, NestedAssetPathsRequireForwardSlashes) {
+  ASSERT_TRUE(std::filesystem::create_directory(temp_dir_ / "nested"));
+  WriteBinaryFile("nested/object.bin", {0x01, 0x00, 0x34, 0x12, 0x00, 0x00});
+
+  auto existing =
+      ResolveCustomObjectAssetPath(temp_dir_.string(), "nested/object.bin");
+  ASSERT_TRUE(existing.ok()) << existing.status();
+  EXPECT_EQ(*existing,
+            std::filesystem::canonical(temp_dir_ / "nested/object.bin"));
+  auto missing =
+      ResolveCustomObjectAssetPath(temp_dir_.string(), "nested/new.bin");
+  ASSERT_TRUE(missing.ok()) << missing.status();
+  EXPECT_EQ(*missing,
+            std::filesystem::canonical(temp_dir_ / "nested") / "new.bin");
+
+  for (const std::string& invalid_name :
+       {"nested\\object.bin", "nested\\new.bin", "nested/..\\object.bin"}) {
+    SCOPED_TRACE(invalid_name);
+    EXPECT_TRUE(absl::IsInvalidArgument(
+        ResolveCustomObjectAssetPath(temp_dir_.string(), invalid_name)
+            .status()));
+  }
+}
+
 TEST_F(CustomObjectManagerTest, StalePublishPreservesExistingFile) {
   const std::vector<uint8_t> original = {
       0x01, 0x00, 0xAA, 0x2A, 0x00, 0x00,

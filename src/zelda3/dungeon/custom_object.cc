@@ -308,6 +308,12 @@ absl::StatusOr<fs::path> ResolveCustomObjectAssetPath(
   if (filename.empty()) {
     return absl::InvalidArgumentError("Custom object filename is empty");
   }
+  // Windows treats backslashes as separators before component validation can
+  // inspect them. Validate the stored mapping syntax before host path parsing.
+  if (filename.find('\\') != std::string::npos) {
+    return absl::InvalidArgumentError(
+        "Custom object filename must use forward slashes");
+  }
 
   const fs::path relative_path(filename);
   if (relative_path.is_absolute() || relative_path.has_root_directory() ||
