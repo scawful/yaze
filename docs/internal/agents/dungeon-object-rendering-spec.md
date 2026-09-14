@@ -148,11 +148,13 @@ independent pixel proof.
 
 ### Oracle project witnesses
 
-Custom object `0x31` is subtype-overloaded. Only subtypes `0–12` and `14` are
-minecart track pieces and may enable the `0x100–0x103` track-corner aliases.
-Subtype `13` (`wall_sword_house`) and subtype `15` (`small_statue`) are
-decorations and must leave those ordinary 4×4 wall corners on their built-in
-routine. Mushroom Grotto uses subtype `15` in rooms `0x1A`, `0x1B`, `0x2A`,
+Custom object `0x31` is subtype-overloaded. Subtypes `0–12` and `14` are
+minecart track pieces; subtype `13` is `wall_sword_house`; and subtype `15` is
+`small_statue`. Its track-corner files belong only to `0x31` placements.
+Standard objects `0x100–0x103` remain ordinary 4×4 wall corners even in rooms
+that contain minecart tracks. Oracle changes their tile tables separately in
+`Dungeons/house_walls.asm`; a future Yaze source overlay must model that
+explicitly. Mushroom Grotto uses subtype `15` in rooms `0x1A`, `0x1B`, `0x2A`,
 `0x3B`, `0x4A`, `0x4B`, and `0x6A`.
 
 The next Oracle-specific pixel fixtures are intentionally small:

@@ -24,11 +24,11 @@ hands-on runtime acceptance.
 | Concern | Current state | Main code |
 | --- | --- | --- |
 | Project configuration | `custom_objects_folder`, the feature flag, and per-ID subtype filename lists persist in the project descriptor. | `src/core/project.{h,cc}` |
-| Runtime slots | Oracle currently exposes 21 fixed assets: 16 slots for object `0x31`, three for object `0x32`, and two sprite-body slots for object `0x54`. Project mappings may replace filenames within those slots; the Workshop cannot add runtime subtypes. | `custom_object.{h,cc}`, `dungeon_object_selector.cc` |
+| Runtime slots | Oracle currently exposes 21 fixed assets: 16 slots for object `0x31`, three for object `0x32`, and two sprite-body slots for object `0x54`. Project mappings may replace filenames within those slots; Custom Assets cannot add runtime subtypes. | `custom_object.{h,cc}`, `dungeon_object_selector.cc` |
 | Loading and session identity | `CustomObjectManager` keeps one entry point but stores the project path, mappings, decoded cache, and asset generation in session-keyed runtime contexts. Session switches activate the matching context, and teardown removes it. | `custom_object.{h,cc}`, `editor_manager.cc`, `session_types.{h,cc}` |
-| Rendering | Active project overrides route before built-in draw routines. Object `0x54` preserves raw source words but applies Oracle's nonzero `OR #$0300` tile-page rule while drawing. Corner aliases `0x100-0x103` use track-corner assets only when the project explicitly maps the asset and the current room contains a real minecart-track subtype. Placement ghosts use the same room gate. | `minecart_object_semantics.h` (introduced by PR #217), `object_layer_semantics.h`, `object_drawer.cc`, `tile_object_handler.cc` |
+| Rendering | Active project overrides route before built-in draw routines for the exact configured object ID. Object `0x54` preserves raw source words but applies Oracle's nonzero `OR #$0300` tile-page rule while drawing. Standard wall-corner objects `0x100-0x103` always retain their built-in 4x4 draw routines; they are not aliases for `0x31` track assets. | `custom_object.{h,cc}`, `object_layer_semantics.h`, `object_drawer.cc` |
 | Geometry and previews | Custom layout bounds include the active asset generation. Asset reloads and session switches invalidate stale geometry, thumbnails, and queued custom placements. The `0x54` tilemap preview applies the runtime page mask, but Yaze does not yet load the separate boss pixel graphics that Oracle DMA-copies into VRAM. | `object_geometry.{h,cc}`, `object_tile_editor.cc`, `dungeon_object_selector.cc` |
-| Tile authoring and publication | The Workshop exposes **Edit Graphics** and **Use in Room** for existing fixed slots. The tile editor retains the exact source snapshot, supports a terminator-only empty asset through **Add First Tile**, and publishes desktop changes through strict encoding, stale-write comparison, rollback-protected atomic replacement, and decoded readback. Browser builds disable editing and fail closed in the publication API. | `object_tile_editor.{h,cc}`, `object_tile_editor_panel.{h,cc}`, `custom_object.{h,cc}` |
+| Tile authoring and publication | The Object Selector's persistent **Custom Assets** mode exposes **Edit Tile Layout** and **Place in Room** for existing fixed slots. The tile editor retains the exact source snapshot, supports a terminator-only empty asset through **Add First Tile**, and publishes desktop changes through strict encoding, stale-write comparison, rollback-protected atomic replacement, and decoded readback. Browser builds disable editing and fail closed in the publication API. | `dungeon_object_selector.cc`, `object_tile_editor.{h,cc}`, `object_tile_editor_panel.{h,cc}`, `custom_object.{h,cc}` |
 | Minecart source | The **Routes** tab parses and preserves a configured ASM start-room/X/Y source and publishes it with source-identity and stale-write checks. Route slots come from minecart sprite subtypes, not visual track-piece subtypes. The current Oracle manifest does not yet declare `minecart_tracks.source`, so route publication correctly fails closed until that project metadata is added. | `minecart_track_source.{h,cc}`, `minecart_track_editor_panel.{h,cc}` |
 | Minecart collision | The **Collision** tab audits loaded rooms without blocking routine edits. **Preview All Rooms** performs an explicit 296-room scan, excludes rooms that already contain custom collision, shows every proposed room, and applies the confirmed maps to the editor model as one undoable batch. Preview and Apply do not write ROM bytes; **Save ROM** remains the serialization boundary. | `minecart_track_editor_panel.cc`, `dungeon_editor_v2_undo.cc`, `track_collision_generator.{h,cc}` |
 | Oracle overlays | Project lists identify track tiles, stops, switches, object IDs, and minecart sprites. | `Project::dungeon_overlay`, Dungeon overlays |
@@ -37,7 +37,7 @@ Focused unit coverage now includes strict custom-object decoding and encoding,
 sparse layouts, 32-tile segments, zero-word no-ops, terminator-only assets,
 path confinement, stale-write rejection, all 21 fixed runtime slots, raw versus
 runtime `0x54` tile words, session and geometry isolation, feature and
-asset-generation transitions, corner-alias room gating, tile-editor
+asset-generation transitions, standard wall-corner identity, tile-editor
 publication, and minecart components. This is component evidence; it is not yet
 a complete edit, publish, rebuild, and Mesen workflow.
 
@@ -57,11 +57,10 @@ Object `0x31` has 16 fixed slots:
 - slot `15` is `small_statue`;
 - mappings longer than 16 entries do not extend the runtime dispatch table.
 
-Corner aliases `0x100-0x103` resolve to the mapped `0x31` corner slots only
-when the requested asset exists and the current room contains a track object
-using subtype `0-12` or `14`. Decorative subtypes `13` and `15` never enable
-track-corner aliases. This keeps ordinary wall corners on their vanilla draw
-routines in non-minecart rooms.
+Slots `2-5` are track-corner tile layouts for object `0x31` itself. They do not
+replace standard wall-corner objects `0x100-0x103`. Oracle keeps those IDs on
+their ordinary 4x4 draw routines and separately patches their source tile
+tables in `Dungeons/house_walls.asm`.
 
 Object `0x31` subtype selects a visual graphics slot. A minecart sprite subtype
 selects a route/start-table slot. These identities are independent: a visual
@@ -135,12 +134,13 @@ ordinary bitmap.
    state are keyed by ROM session. Switching or closing sessions cannot reuse
    another project's custom-object cache.
 6. **Fail-closed browser behavior.** WASM may load and preview configured
-   assets, but **Edit Graphics** is disabled and the publication API returns a
+   assets, but **Edit Tile Layout** is disabled and the publication API returns a
    failed precondition because durable atomic project-file replacement is not
    guaranteed.
-7. **Room-scoped corner aliases.** Track-corner overrides require an explicit
-   mapped asset and a real track subtype in the current room. Room rendering,
-   geometry, selector refresh, and placement ghosts share this rule.
+7. **Stable standard-object identity.** Configuring `0x31` track assets never
+   reinterprets `0x100-0x103`. Room rendering, geometry, selector refresh,
+   placement ghosts, and tile-editor source selection keep those wall corners
+   on the built-in path.
 8. **Transactional minecart collision editing.** Collision generation remains a
    preview until the user reviews and confirms the complete room list. Apply
    revalidates every room, refuses to replace existing custom collision, updates
@@ -154,13 +154,22 @@ ordinary bitmap.
    requires an explicit `minecart_tracks.source`; the current Oracle manifest
    does not declare one. This intentionally blocks route publication rather
    than guessing at or rewriting an undeclared ASM file.
-2. **The project object catalog is not implemented.** Wall overrides, ice,
+2. **Oracle wall-source overrides are not modeled.** Eight standard objects
+   (`0x001`, `0x002`, `0x061`, `0x062`, and `0x100-0x103`) use ASM-owned tile
+   tables in `Dungeons/house_walls.asm`. The base edit ROM does not contain
+   those patched words, so Yaze needs an explicit manifest-backed preview
+   overlay before it can match the patched ROM without inventing aliases.
+3. **Portable bundles omit source metadata.** Oracle's current `.yazeproj`
+   exporter excludes `Roms/` but points the bundled project at
+   `project/hack_manifest.json` without copying or generating that file. This
+   blocks source-backed minecart editing in portable and WASM workflows.
+4. **The project object catalog is not implemented.** Wall overrides, ice,
    moving floors, moving water, and HDMA/control objects do not yet expose
    explicit visual, collision, runtime-behavior, source, and validation fields.
-3. **The project-wide scan is synchronous.** **Preview All Rooms** is explicit
+5. **The project-wide scan is synchronous.** **Preview All Rooms** is explicit
    so normal object edits stay responsive, but the full scan still needs visible
    progress, cancellation, or an asynchronous job before it is polished UX.
-4. **End-to-end proof is incomplete.** The branch still needs an
+6. **End-to-end proof is incomplete.** The branch still needs an
    application-path edit/publish/reopen test, a patched-ROM rebuild, hands-on
    desktop acceptance, and representative wall, ice, water, and minecart
    witnesses in Mesen.
@@ -211,7 +220,7 @@ The current branch provides the first separation:
   source.
 - **Collision** owns loaded-room audits, explicit full-project preview,
   confirmation, and one undoable room-model transaction.
-- **Object Workshop** owns visual track graphics. Canonical object `0x31`
+- **Custom Assets** owns visual track tile layouts. Canonical object `0x31`
   subtypes `13` and `15` remain decorations.
 
 The remaining target sequence is:
@@ -247,7 +256,7 @@ Completed for fixed-slot custom `.bin` assets:
 - fixed `0x31`, `0x32`, and `0x54` runtime capacities;
 - session-scoped manager state and generation-aware cache invalidation;
 - fail-closed WASM publication;
-- room-gated track-corner aliases in final rendering and placement ghosts;
+- stable standard wall-corner identity under configured `0x31` track assets;
 - preview, complete-room review, confirmation, stale-preview revalidation, and
   one model-level undo transaction for minecart collision generation.
 
@@ -265,7 +274,8 @@ Remaining P0 work:
 
 1. Introduce a session-owned project object catalog on top of the scoped
    manager without creating a second source of truth.
-2. Move the modal Workshop into the stable Object Library inspector or drawer.
+2. Consolidate the persistent Custom Assets browser into the project object
+   catalog without reintroducing a modal or moving the canvas.
 3. Continue the task-based Minecart mode: the **Routes** and **Collision** tabs
    now separate source-table work from generated collision; endpoint and
    connectivity guidance plus asynchronous project scanning remain.
