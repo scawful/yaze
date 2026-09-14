@@ -15,15 +15,18 @@ handoff was superseded after rendering, previews, and the workshop were added.
 
 ## Current implementation
 
-The safety changes below are implemented on the custom-object safety branch.
-They remain pending integration and hands-on runtime acceptance.
+The safety changes below are implemented in
+[PR #217](https://github.com/scawful/yaze/pull/217) on the
+`codex/custom-object-publish-safety` branch. They are not part of this
+documentation PR or `master` until PR #217 merges, and they remain pending
+hands-on runtime acceptance.
 
 | Concern | Current state | Main code |
 | --- | --- | --- |
 | Project configuration | `custom_objects_folder`, the feature flag, and per-ID subtype filename lists persist in the project descriptor. | `src/core/project.{h,cc}` |
 | Runtime slots | Oracle currently exposes exactly 16 runtime slots for object `0x31` and three for object `0x32`. Project mappings may replace filenames within those slots; the Workshop cannot add runtime subtypes. | `custom_object.{h,cc}`, `dungeon_object_selector.cc` |
 | Loading and session identity | `CustomObjectManager` keeps one entry point but stores the project path, mappings, decoded cache, and asset generation in session-keyed runtime contexts. Session switches activate the matching context, and teardown removes it. | `custom_object.{h,cc}`, `editor_manager.cc`, `session_types.{h,cc}` |
-| Rendering | Active project overrides route before built-in draw routines. Corner aliases `0x100-0x103` use track-corner assets only when the project explicitly maps the asset and the current room contains a real minecart-track subtype. Placement ghosts use the same room gate. | `minecart_object_semantics.h`, `object_layer_semantics.h`, `object_drawer.cc`, `tile_object_handler.cc` |
+| Rendering | Active project overrides route before built-in draw routines. Corner aliases `0x100-0x103` use track-corner assets only when the project explicitly maps the asset and the current room contains a real minecart-track subtype. Placement ghosts use the same room gate. | `minecart_object_semantics.h` (introduced by PR #217), `object_layer_semantics.h`, `object_drawer.cc`, `tile_object_handler.cc` |
 | Geometry and previews | Custom layout bounds include the active asset generation. Asset reloads and session switches invalidate stale geometry, thumbnails, and queued custom placements. | `object_geometry.{h,cc}`, `dungeon_object_selector.cc` |
 | Tile authoring and publication | The Workshop exposes **Edit Graphics** and **Use in Room** for existing fixed slots. The tile editor retains the exact source snapshot, supports a terminator-only empty asset through **Add First Tile**, and publishes desktop changes through strict encoding, stale-write comparison, rollback-protected atomic replacement, and decoded readback. Browser builds disable editing and fail closed in the publication API. | `object_tile_editor.{h,cc}`, `object_tile_editor_panel.{h,cc}`, `custom_object.{h,cc}` |
 | Minecart source | The **Routes** tab parses and preserves a configured ASM start-room/X/Y source and publishes it with source-identity and stale-write checks. Route slots come from minecart sprite subtypes, not visual track-piece subtypes. The current Oracle manifest does not yet declare `minecart_tracks.source`, so route publication correctly fails closed until that project metadata is added. | `minecart_track_source.{h,cc}`, `minecart_track_editor_panel.{h,cc}` |
