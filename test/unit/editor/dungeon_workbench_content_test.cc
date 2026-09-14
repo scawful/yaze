@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <fstream>
 #include <initializer_list>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -16,9 +17,11 @@
 #include "app/editor/dungeon/workspace/dungeon_pit_damage_view_model.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_layout.h"
+#include "app/gui/automation/widget_id_registry.h"
 #include "core/features.h"
 #include "core/project.h"
 #include "imgui/imgui.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/pit_damage_table.h"
 
 namespace yaze::editor {
@@ -220,6 +223,187 @@ TEST(DungeonWorkbenchContentObjectSizeTest,
   EXPECT_FALSE(workbench::HasEditableRoomObjectSize(objects, fixed_only));
   EXPECT_TRUE(workbench::HasEditableRoomObjectSize(objects, mixed));
   EXPECT_FALSE(workbench::HasEditableRoomObjectSize(objects, invalid));
+}
+
+class DungeonWorkbenchObjectSizeUiTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    previous_custom_ = core::FeatureFlags::get().kEnableCustomObjects;
+    previous_manager_ = zelda3::CustomObjectManager::Get().SnapshotState();
+    core::FeatureFlags::get().kEnableCustomObjects = false;
+    ImGui::CreateContext();
+    auto& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.DisplaySize = ImVec2(800, 600);
+    io.DeltaTime = 1.0f / 60.0f;
+    io.Fonts->AddFontDefault();
+    unsigned char* pixels;
+    int width, height;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  }
+
+  void TearDown() override {
+    ImGui::DestroyContext();
+    gui::WidgetIdRegistry::Instance().Clear();
+    core::FeatureFlags::get().kEnableCustomObjects = previous_custom_;
+    zelda3::CustomObjectManager::Get().RestoreState(previous_manager_);
+  }
+
+  void DrawFrame(float width = 240.0f) {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(width, 240), ImGuiCond_Always);
+    ImGui::Begin("ObjectSizeHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    if (ImGui::BeginTable("SizeProperties", 2)) {
+      ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed, 56);
+      ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+      uint8_t requested = object_.size_;
+      if (workbench::DrawObjectSizeControls(object_, &requested)) {
+        object_.set_size(requested);
+        ++changes_;
+      }
+      ImGui::EndTable();
+    }
+    controls_bottom_ = ImGui::GetCursorPosY();
+    ImGui::End();
+    ImGui::Render();
+  }
+
+  std::optional<gui::WidgetIdRegistry::WidgetInfo> Widget(const char* name) {
+    return gui::WidgetIdRegistry::Instance().GetWidgetInfo(
+        std::string("Dungeon/Workbench/") + name);
+  }
+
+  void Click(const char* name) {
+    const auto widget = Widget(name);
+    ASSERT_TRUE(widget.has_value()) << name;
+    ASSERT_TRUE(widget->enabled) << name;
+    const auto& rect = widget->bounds;
+    ASSERT_TRUE(rect.valid);
+    auto& io = ImGui::GetIO();
+    io.AddMousePosEvent((rect.min_x + rect.max_x) / 2,
+                        (rect.min_y + rect.max_y) / 2);
+    DrawFrame();
+    io.AddMouseButtonEvent(0, true);
+    DrawFrame();
+    io.AddMouseButtonEvent(0, false);
+    DrawFrame();
+    DrawFrame();
+  }
+
+  zelda3::RoomObject object_{0xD1, 8, 9, 3, 1};
+  int changes_ = 0;
+  float controls_bottom_ = 0;
+  bool previous_custom_ = false;
+  zelda3::CustomObjectManager::State previous_manager_;
+};
+
+TEST_F(DungeonWorkbenchObjectSizeUiTest, WidthAndHeightChangeIndependently) {
+  DrawFrame();
+  DrawFrame();
+  const float before = controls_bottom_;
+  Click("combo:selected_object_width");
+  EXPECT_FLOAT_EQ(controls_bottom_, before);
+  Click("selectable:object_width_2");
+  EXPECT_EQ(object_.size_, 0x0B);  // 12 x 16 tiles, height preserved.
+  EXPECT_EQ(changes_, 1);
+  EXPECT_FLOAT_EQ(controls_bottom_, before);
+  Click("combo:selected_object_height");
+  Click("selectable:object_height_0");
+  EXPECT_EQ(object_.size_, 0x08);  // 12 x 4 tiles, width preserved.
+  EXPECT_EQ(changes_, 2);
+  EXPECT_EQ(object_.x_, 8);
+  EXPECT_EQ(object_.y_, 9);
+  EXPECT_EQ(object_.GetLayerValue(), 1);
+}
+
+TEST_F(DungeonWorkbenchObjectSizeUiTest,
+       FloorControlsFitNarrowAndWideInspectors) {
+  for (float scale : {1.0f, 1.5f}) {
+    ImGui::GetIO().FontGlobalScale = scale;
+    for (float width : {200.0f, 320.0f, 500.0f}) {
+      DrawFrame(width);
+      DrawFrame(width);
+      for (const auto* name :
+           {"combo:selected_object_width", "combo:selected_object_height"}) {
+        const auto widget = Widget(name);
+        ASSERT_TRUE(widget.has_value());
+        EXPECT_GT(widget->bounds.max_x - widget->bounds.min_x, 30);
+        EXPECT_LE(widget->bounds.max_x, 20 + width);
+      }
+    }
+  }
+  EXPECT_EQ(changes_, 0);
+  EXPECT_EQ(object_.size_, 3);
+}
+
+TEST_F(DungeonWorkbenchObjectSizeUiTest,
+       ComboRegistrationRemainsStableWhilePopupsAreOpen) {
+  struct ComboCase {
+    int object_id;
+    bool custom;
+    const char* combo;
+    const char* selected_option;
+  };
+  const ComboCase cases[] = {
+      {0xD1, false, "combo:selected_object_width", "selectable:object_width_0"},
+      {0xD1, false, "combo:selected_object_height",
+       "selectable:object_height_0"},
+      {0x32, true, "combo:selected_object_variant",
+       "selectable:object_variant_0"},
+  };
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0x32, {"furnace.bin", "", "ice_chair.bin"}}});
+  for (const auto& test_case : cases) {
+    SCOPED_TRACE(test_case.combo);
+    core::FeatureFlags::get().kEnableCustomObjects = test_case.custom;
+    object_ = zelda3::RoomObject(test_case.object_id, 8, 9, 0, 1);
+    DrawFrame();
+    DrawFrame();
+    const auto closed = Widget(test_case.combo);
+    ASSERT_TRUE(closed.has_value());
+    ASSERT_TRUE(closed->bounds.valid);
+    ASSERT_GT(closed->bounds.max_y, closed->bounds.min_y);
+
+    Click(test_case.combo);
+    ASSERT_TRUE(Widget(test_case.selected_option).has_value());
+    const auto open = Widget(test_case.combo);
+    ASSERT_TRUE(open.has_value());
+    EXPECT_EQ(open->imgui_id, closed->imgui_id);
+    EXPECT_EQ(open->window_name, closed->window_name);
+    EXPECT_EQ(open->visible, closed->visible);
+    EXPECT_EQ(open->enabled, closed->enabled);
+    EXPECT_TRUE(open->bounds.valid);
+    EXPECT_FLOAT_EQ(open->bounds.min_x, closed->bounds.min_x);
+    EXPECT_FLOAT_EQ(open->bounds.min_y, closed->bounds.min_y);
+    EXPECT_FLOAT_EQ(open->bounds.max_x, closed->bounds.max_x);
+    EXPECT_FLOAT_EQ(open->bounds.max_y, closed->bounds.max_y);
+    Click(test_case.selected_option);
+  }
+  EXPECT_EQ(changes_, 0);
+}
+
+TEST_F(DungeonWorkbenchObjectSizeUiTest, IcePropsOfferOnlyMappedVariants) {
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0x32, {"furnace.bin", "", "ice_chair.bin"}}});
+  object_ = zelda3::RoomObject(0x32, 8, 9, 2, 1);
+  DrawFrame();
+  DrawFrame();
+  EXPECT_FALSE(Widget("combo:selected_object_width").has_value());
+  Click("combo:selected_object_variant");
+  EXPECT_TRUE(Widget("selectable:object_variant_0").has_value());
+  EXPECT_TRUE(Widget("selectable:object_variant_2").has_value());
+  EXPECT_FALSE(Widget("selectable:object_variant_3").has_value());
+  const auto unmapped = Widget("selectable:object_variant_1");
+  ASSERT_TRUE(unmapped.has_value());
+  EXPECT_FALSE(unmapped->enabled);
+  EXPECT_FALSE(workbench::HasEditableRoomObjectSize(
+      std::vector<zelda3::RoomObject>{object_}, std::vector<size_t>{0}));
+  Click("selectable:object_variant_0");
+  EXPECT_EQ(object_.size_, 0);
+  EXPECT_EQ(changes_, 1);
 }
 
 TEST(DungeonWorkbenchContentLayoutTest,
