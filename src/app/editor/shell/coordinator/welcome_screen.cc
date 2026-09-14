@@ -546,17 +546,10 @@ bool WelcomeScreen::Show(bool* p_open) {
                      300.0f * layout_scale, 440.0f * layout_scale);
       ImGui::BeginChild("LeftPanel", ImVec2(left_width, 0), true,
                         ImGuiWindowFlags_NoScrollbar);
-      const float left_height = ImGui::GetContentRegionAvail().y;
-      const bool first_run =
-          recent_projects_model_.entries().empty() && !has_rom_;
-      const float quick_actions_h =
-          (first_run ? 260.0f : 210.0f) * layout_scale;
-
-      ImGui::BeginChild("QuickActionsWide", ImVec2(0, quick_actions_h), false,
-                        ImGuiWindowFlags_NoScrollbar);
+      // Let wrapped first-run guidance and startup buttons take their natural
+      // height. Only What's new scrolls within the space left below them.
       DrawFirstRunGuide();
       DrawQuickActions();
-      ImGui::EndChild();
 
       ImGui::Spacing();
       ImVec2 sep_start = ImGui::GetCursorScreenPos();
@@ -748,8 +741,12 @@ void WelcomeScreen::DrawQuickActions() {
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
   {
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
+#ifdef __EMSCRIPTEN__
+    ImGui::TextWrapped(tr("Open a ROM, or continue from Recent Files."));
+#else
     ImGui::TextWrapped(
         tr("Open a ROM or project, or continue from Recent Files."));
+#endif
   }
   ImGui::Spacing();
 
@@ -758,16 +755,22 @@ void WelcomeScreen::DrawQuickActions() {
   const float action_width = ImGui::GetContentRegionAvail().x;
   float button_width = action_width;
 
-  // Unified startup open path.
-  if (gui::PrimaryButton(ICON_MD_FOLDER_OPEN " Open ROM / Project",
-                         ImVec2(button_width, button_height), "welcome_screen",
-                         "open_rom_or_project") &&
+  // The browser upload path accepts ROMs only; desktop uses the combined picker.
+#ifdef __EMSCRIPTEN__
+  constexpr const char* open_label = ICON_MD_FOLDER_OPEN " Open ROM";
+  constexpr const char* open_tooltip = ICON_MD_INFO " Open .sfc/.smc ROMs";
+#else
+  constexpr const char* open_label = ICON_MD_FOLDER_OPEN " Open ROM / Project";
+  constexpr const char* open_tooltip =
+      ICON_MD_INFO " Open .sfc/.smc ROMs and .yaze/.yazeproj project files";
+#endif
+  if (gui::PrimaryButton(open_label, ImVec2(button_width, button_height),
+                         "welcome_screen", "open_rom_or_project") &&
       open_rom_callback_) {
     open_rom_callback_();
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(ICON_MD_INFO
-                      " Open .sfc/.smc ROMs and .yaze/.yazeproj project files");
+    ImGui::SetTooltip("%s", open_tooltip);
   }
 
   ImGui::Spacing();
