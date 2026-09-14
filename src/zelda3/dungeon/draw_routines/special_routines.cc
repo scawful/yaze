@@ -310,8 +310,8 @@ void CustomDraw(const DrawContext& ctx) {
   auto result = CustomObjectManager::Get().GetObjectInternal(ctx.object.id_,
                                                              ctx.object.size_);
 
-  if (!result.ok() || !result.value() || result.value()->IsEmpty()) {
-    // Custom object not found or empty: fall back to 1x1 draw
+  if (!result.ok() || !result.value()) {
+    // Missing or unreadable custom source: fall back to a visible 1x1 tile.
     if (ctx.tiles.size() >= 1) {
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
                                    ctx.tiles[0]);
@@ -320,8 +320,18 @@ void CustomDraw(const DrawContext& ctx) {
   }
 
   const auto& custom_obj = *result.value();
+  if (custom_obj.IsEmpty()) {
+    // A terminator-only asset is an intentional draw-nothing override.
+    return;
+  }
 
   for (const auto& entry : custom_obj.tiles) {
+    // Oracle treats a zero payload word as a no-op. The entry still advances
+    // the decoded cursor, but must preserve any room tile already underneath.
+    if (entry.tile_data == 0) {
+      continue;
+    }
+
     // Convert SNES tilemap word (vhopppcc cccccccc) to TileInfo.
     // Low byte = entry.tile_data & 0xFF, high byte = (entry.tile_data >> 8).
     uint8_t lo = static_cast<uint8_t>(entry.tile_data & 0xFF);

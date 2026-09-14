@@ -101,6 +101,58 @@ class ScopedCustomObjectsDisabled {
   bool previous_;
 };
 
+class ScopedCustomObjectDirectory {
+ public:
+  explicit ScopedCustomObjectDirectory(const std::string& prefix)
+      : previous_state_(CustomObjectManager::Get().SnapshotState()) {
+    const auto nonce =
+        std::chrono::steady_clock::now().time_since_epoch().count();
+    path_ = std::filesystem::temp_directory_path() /
+            (prefix + "_" + std::to_string(nonce));
+    std::error_code cleanup_error;
+    std::filesystem::remove_all(path_, cleanup_error);
+    ready_ = std::filesystem::create_directories(path_);
+    CustomObjectManager::Get().Initialize(path_.string());
+    CustomObjectManager::Get().ClearObjectFileMap();
+  }
+
+  ~ScopedCustomObjectDirectory() {
+    CustomObjectManager::Get().RestoreState(previous_state_);
+    std::error_code cleanup_error;
+    std::filesystem::remove_all(path_, cleanup_error);
+  }
+
+  const std::filesystem::path& path() const { return path_; }
+  bool ready() const { return ready_; }
+
+ private:
+  CustomObjectManager::State previous_state_;
+  std::filesystem::path path_;
+  bool ready_ = false;
+};
+
+std::vector<uint8_t> ReadTestBinary(const std::filesystem::path& path) {
+  std::ifstream input(path, std::ios::binary);
+  return {std::istreambuf_iterator<char>(input),
+          std::istreambuf_iterator<char>()};
+}
+
+void WriteTestBinary(const std::filesystem::path& path,
+                     const std::vector<uint8_t>& bytes) {
+  std::ofstream output(path, std::ios::binary);
+  ASSERT_TRUE(output.is_open());
+  output.write(reinterpret_cast<const char*>(bytes.data()),
+               static_cast<std::streamsize>(bytes.size()));
+  ASSERT_TRUE(output.good());
+}
+
+void WriteTestCustomObject(const std::filesystem::path& path,
+                           const CustomObject& object) {
+  auto bytes_or = EncodeCustomObjectBinary(object);
+  ASSERT_TRUE(bytes_or.ok()) << bytes_or.status();
+  WriteTestBinary(path, *bytes_or);
+}
+
 // Pins ObjectTileEditor::CaptureObjectLayout against the canonical
 // ObjectGeometry bounds for routines that draw upward or leftward. The
 // preview pipeline previously anchored at hardcoded (2, 2); routines
@@ -330,28 +382,6 @@ TEST(ObjectTileLayoutTest, ModificationsAndRevert) {
   layout.RevertAll();
   EXPECT_FALSE(layout.HasModifications());
   EXPECT_EQ(layout.cells[0].tile_info.id_, 0x100);
-}
-
-TEST(ObjectTileLayoutTest, CreateEmptyBuildsCustomModifiedGrid) {
-  auto layout =
-      ObjectTileLayout::CreateEmpty(2, 3, /*object_id=*/0x123, "custom.bin");
-
-  EXPECT_EQ(layout.object_id, 0x123);
-  EXPECT_EQ(layout.bounds_width, 2);
-  EXPECT_EQ(layout.bounds_height, 3);
-  EXPECT_TRUE(layout.is_custom);
-  EXPECT_EQ(layout.custom_filename, "custom.bin");
-  EXPECT_EQ(layout.tile_data_address, -1);
-  ASSERT_EQ(layout.cells.size(), 6u);
-
-  for (const auto& cell : layout.cells) {
-    EXPECT_TRUE(cell.modified);
-    EXPECT_EQ(cell.tile_info.palette_, 2);
-  }
-
-  ASSERT_NE(layout.FindCell(1, 2), nullptr);
-  EXPECT_EQ(layout.FindCell(1, 2)->rel_x, 1);
-  EXPECT_EQ(layout.FindCell(1, 2)->rel_y, 2);
 }
 
 TEST(ObjectTileEditorTest,
@@ -1109,57 +1139,218 @@ TEST(ObjectTileEditorTest,
 }
 
 TEST(ObjectTileEditorTest, CustomObjectRoundtrip) {
-  // Setup temp directory for custom objects
-  std::string temp_base = "/tmp/yaze_test_custom_objects";
-  std::filesystem::create_directories(temp_base);
+  ScopedCustomObjectDirectory custom_dir("yaze_test_custom_objects");
+  ASSERT_TRUE(custom_dir.ready());
+  const CustomObject original_object{
+      .tiles = {{0, 0, 0x2810}, {0, 1, 0x2820}},
+  };
+  WriteTestCustomObject(custom_dir.path() / "track_LR.bin", original_object);
 
   auto& mgr = CustomObjectManager::Get();
-  mgr.Initialize(temp_base);
 
   Rom rom;
   ObjectTileEditor editor(&rom);
-  ObjectTileLayout layout;
-  layout.is_custom = true;
-  layout.custom_filename = "test_object.bin";
-
-  // Create a 1x2 vertical object
-  ObjectTileLayout::Cell c1, c2;
-  c1.rel_x = 0;
-  c1.rel_y = 0;
-  c1.tile_info = gfx::TileInfo(0x10, 2, false, false, false);
-  c1.modified = true;
-
-  c2.rel_x = 0;
-  c2.rel_y = 1;
-  c2.tile_info = gfx::TileInfo(0x20, 2, false, false, false);
-  c2.modified = true;
-
-  layout.cells.push_back(c1);
-  layout.cells.push_back(c2);
+  auto layout_or = editor.LoadCustomObjectLayout(/*object_id=*/0x31,
+                                                 /*subtype=*/0);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  ObjectTileLayout layout = std::move(*layout_or);
+  ASSERT_EQ(layout.cells.size(), 2u);
+  layout.cells[0].tile_info = gfx::TileInfo(0x30, 3, false, false, false);
+  layout.cells[0].modified = true;
+  layout.cells[1].tile_info = gfx::TileInfo(0x40, 4, false, false, false);
+  layout.cells[1].modified = true;
 
   ASSERT_TRUE(editor.WriteBack(layout).ok());
 
-  // Verify file existence
-  std::filesystem::path full_path =
-      std::filesystem::path(temp_base) / "test_object.bin";
-  ASSERT_TRUE(std::filesystem::exists(full_path));
-
   // Read back via CustomObjectManager
-  auto custom_obj_result = mgr.LoadObject("test_object.bin");
+  auto custom_obj_result = mgr.LoadObject("track_LR.bin");
   ASSERT_TRUE(custom_obj_result.ok());
   auto custom_obj = custom_obj_result.value();
 
   ASSERT_EQ(custom_obj->tiles.size(), 2);
   EXPECT_EQ(custom_obj->tiles[0].rel_x, 0);
   EXPECT_EQ(custom_obj->tiles[0].rel_y, 0);
-  EXPECT_EQ(custom_obj->tiles[0].tile_data, gfx::TileInfoToWord(c1.tile_info));
+  EXPECT_EQ(custom_obj->tiles[0].tile_data,
+            gfx::TileInfoToWord(layout.cells[0].tile_info));
 
   EXPECT_EQ(custom_obj->tiles[1].rel_x, 0);
   EXPECT_EQ(custom_obj->tiles[1].rel_y, 1);
-  EXPECT_EQ(custom_obj->tiles[1].tile_data, gfx::TileInfoToWord(c2.tile_info));
+  EXPECT_EQ(custom_obj->tiles[1].tile_data,
+            gfx::TileInfoToWord(layout.cells[1].tile_info));
+  EXPECT_FALSE(layout.custom_source_bytes.empty());
+}
 
-  // Cleanup
-  std::filesystem::remove_all(temp_base);
+TEST(ObjectTileEditorTest, CustomObjectWritePreservesSparseCoordinates) {
+  ScopedCustomObjectDirectory custom_dir("yaze_test_custom_sparse");
+  ASSERT_TRUE(custom_dir.ready());
+  const CustomObject original{
+      .tiles = {{0, 0, 0x2800}, {3, 0, 0x2803}, {4, 0, 0x2804}, {0, 1, 0x2840}},
+  };
+  WriteTestCustomObject(custom_dir.path() / "track_LR.bin", original);
+
+  Rom rom;
+  ObjectTileEditor editor(&rom);
+  auto layout_or = editor.LoadCustomObjectLayout(0x31, 0);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  ObjectTileLayout layout = std::move(*layout_or);
+  layout.cells[1].tile_info = gfx::WordToTileInfo(0x2A03);
+  layout.cells[1].modified = true;
+
+  const absl::Status status = editor.WriteBack(layout);
+
+  ASSERT_TRUE(status.ok()) << status;
+  auto loaded_or = CustomObjectManager::Get().LoadObject("track_LR.bin");
+  ASSERT_TRUE(loaded_or.ok()) << loaded_or.status();
+  const std::vector<CustomObject::TileMapEntry> expected = {
+      {0, 0, 0x2800}, {3, 0, 0x2A03}, {4, 0, 0x2804}, {0, 1, 0x2840}};
+  EXPECT_EQ((*loaded_or)->tiles, expected);
+}
+
+TEST(ObjectTileEditorTest, CustomObjectWriteBridgesLeadingAndLongGaps) {
+  ScopedCustomObjectDirectory custom_dir("yaze_test_custom_gaps");
+  ASSERT_TRUE(custom_dir.ready());
+  const CustomObject original{.tiles = {{0, 0, 0x2AAA}}};
+  WriteTestCustomObject(custom_dir.path() / "track_LR.bin", original);
+
+  Rom rom;
+  ObjectTileEditor editor(&rom);
+  auto layout_or = editor.LoadCustomObjectLayout(0x31, 0);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  ObjectTileLayout layout = std::move(*layout_or);
+  layout.cells.clear();
+  for (const auto& tile : std::vector<CustomObject::TileMapEntry>{
+           {5, 0, 0x2805}, {0, 2, 0x2880}, {63, 63, 0x2FFF}}) {
+    ObjectTileLayout::Cell cell;
+    cell.rel_x = tile.rel_x;
+    cell.rel_y = tile.rel_y;
+    cell.tile_info = gfx::WordToTileInfo(tile.tile_data);
+    cell.modified = true;
+    layout.cells.push_back(cell);
+  }
+
+  const absl::Status status = editor.WriteBack(layout);
+
+  ASSERT_TRUE(status.ok()) << status;
+  auto loaded_or = CustomObjectManager::Get().LoadObject("track_LR.bin");
+  ASSERT_TRUE(loaded_or.ok()) << loaded_or.status();
+  std::vector<CustomObject::TileMapEntry> visible;
+  for (const auto& tile : (*loaded_or)->tiles) {
+    if (tile.tile_data != 0) {
+      visible.push_back(tile);
+    }
+  }
+  const std::vector<CustomObject::TileMapEntry> expected = {
+      {5, 0, 0x2805}, {0, 2, 0x2880}, {63, 63, 0x2FFF}};
+  EXPECT_EQ(visible, expected);
+}
+
+TEST(ObjectTileEditorTest, ThirtyTwoWideCustomLayoutPublishesAllTiles) {
+  ScopedCustomObjectDirectory custom_dir("yaze_test_custom_width_32");
+  ASSERT_TRUE(custom_dir.ready());
+  const CustomObject original{.tiles = {{0, 0, 0x2AAA}}};
+  WriteTestCustomObject(custom_dir.path() / "track_LR.bin", original);
+
+  Rom rom;
+  ObjectTileEditor editor(&rom);
+  auto layout_or = editor.LoadCustomObjectLayout(0x31, 0);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  ObjectTileLayout layout = std::move(*layout_or);
+  layout.cells.clear();
+  for (int x = 0; x < 32; ++x) {
+    ObjectTileLayout::Cell cell;
+    cell.rel_x = x;
+    cell.rel_y = 0;
+    cell.tile_info = gfx::WordToTileInfo(static_cast<uint16_t>(0x2800 + x));
+    cell.modified = true;
+    layout.cells.push_back(cell);
+  }
+
+  const absl::Status status = editor.WriteBack(layout);
+
+  ASSERT_TRUE(status.ok()) << status;
+  auto loaded_or = CustomObjectManager::Get().LoadObject("track_LR.bin");
+  ASSERT_TRUE(loaded_or.ok()) << loaded_or.status();
+  ASSERT_EQ((*loaded_or)->tiles.size(), 32u);
+  EXPECT_EQ((*loaded_or)->tiles.front().rel_x, 0);
+  EXPECT_EQ((*loaded_or)->tiles.back().rel_x, 31);
+  EXPECT_EQ((*loaded_or)->tiles.back().rel_y, 0);
+}
+
+TEST(ObjectTileEditorTest, LoadCustomObjectPreservesNoOpsAndSourceSnapshot) {
+  ScopedCustomObjectDirectory custom_dir("yaze_test_custom_noop_load");
+  ASSERT_TRUE(custom_dir.ready());
+  const std::vector<uint8_t> bytes = {
+      0x03, 0x00,  // Three positions in the first segment.
+      0x11, 0x28, 0x00, 0x00, 0x22, 0x28, 0x00, 0x00,
+  };
+  WriteTestBinary(custom_dir.path() / "track_LR.bin", bytes);
+
+  Rom rom;
+  ObjectTileEditor editor(&rom);
+  auto layout_or = editor.LoadCustomObjectLayout(0x31, 0);
+
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  EXPECT_EQ(layout_or->custom_subtype, 0);
+  EXPECT_EQ(layout_or->custom_filename, "track_LR.bin");
+  EXPECT_FALSE(layout_or->custom_resolved_path.empty());
+  EXPECT_EQ(layout_or->custom_source_bytes, bytes);
+  ASSERT_EQ(layout_or->cells.size(), 3u);
+  EXPECT_EQ(layout_or->cells[1].rel_x, 1);
+  EXPECT_EQ(gfx::TileInfoToWord(layout_or->cells[1].tile_info), 0);
+}
+
+TEST(ObjectTileEditorTest, StaleCustomObjectWriterKeepsSecondDraftAndFile) {
+  ScopedCustomObjectDirectory custom_dir("yaze_test_custom_stale_writer");
+  ASSERT_TRUE(custom_dir.ready());
+  const CustomObject original{.tiles = {{0, 0, 0x2810}}};
+  WriteTestCustomObject(custom_dir.path() / "track_LR.bin", original);
+
+  Rom rom;
+  ObjectTileEditor editor(&rom);
+  auto first_or = editor.LoadCustomObjectLayout(0x31, 0);
+  auto second_or = editor.LoadCustomObjectLayout(0x31, 0);
+  ASSERT_TRUE(first_or.ok()) << first_or.status();
+  ASSERT_TRUE(second_or.ok()) << second_or.status();
+  first_or->cells[0].tile_info = gfx::WordToTileInfo(0x2820);
+  first_or->cells[0].modified = true;
+  second_or->cells[0].tile_info = gfx::WordToTileInfo(0x2830);
+  second_or->cells[0].modified = true;
+
+  ASSERT_TRUE(editor.WriteBack(*first_or).ok());
+  const std::vector<uint8_t> first_bytes =
+      ReadTestBinary(custom_dir.path() / "track_LR.bin");
+  const absl::Status second_status = editor.WriteBack(*second_or);
+
+  EXPECT_TRUE(absl::IsAborted(second_status));
+  EXPECT_TRUE(second_or->HasModifications());
+  EXPECT_EQ(ReadTestBinary(custom_dir.path() / "track_LR.bin"), first_bytes);
+}
+
+TEST(ObjectTileEditorTest, ProjectFolderSwitchCannotRedirectCustomApply) {
+  ScopedCustomObjectDirectory custom_dir("yaze_test_custom_project_switch");
+  ASSERT_TRUE(custom_dir.ready());
+  const CustomObject original{.tiles = {{0, 0, 0x2810}}};
+  WriteTestCustomObject(custom_dir.path() / "track_LR.bin", original);
+  const std::filesystem::path other_dir = custom_dir.path() / "other_project";
+  ASSERT_TRUE(std::filesystem::create_directories(other_dir));
+  WriteTestCustomObject(other_dir / "track_LR.bin", original);
+
+  Rom rom;
+  ObjectTileEditor editor(&rom);
+  auto layout_or = editor.LoadCustomObjectLayout(0x31, 0);
+  ASSERT_TRUE(layout_or.ok()) << layout_or.status();
+  layout_or->cells[0].tile_info = gfx::WordToTileInfo(0x2820);
+  layout_or->cells[0].modified = true;
+  CustomObjectManager::Get().Initialize(other_dir.string());
+  CustomObjectManager::Get().ClearObjectFileMap();
+  const std::vector<uint8_t> original_other =
+      ReadTestBinary(other_dir / "track_LR.bin");
+
+  const absl::Status status = editor.WriteBack(*layout_or);
+
+  EXPECT_TRUE(absl::IsAborted(status));
+  EXPECT_TRUE(layout_or->HasModifications());
+  EXPECT_EQ(ReadTestBinary(other_dir / "track_LR.bin"), original_other);
 }
 
 TEST(ObjectTileEditorTest,

@@ -14,7 +14,6 @@
 #include "app/editor/editor.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
-#include "core/project.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
@@ -53,6 +52,9 @@ DungeonObjectPreviewFit ResolveDungeonObjectPreviewFit(float source_width,
                                                        float box_width,
                                                        float box_height);
 bool MatchesDungeonObjectStreamFilter(int object_id, int selected_filter);
+bool IsDungeonCustomObjectRuntimeSlot(int object_id, int subtype);
+bool IsMinecartGraphicsRuntimeSlot(int object_id, int subtype);
+std::string GetDungeonCustomObjectSlotName(int object_id, int subtype);
 
 /**
  * @brief Handles object selection, preview, and editing UI
@@ -92,12 +94,13 @@ class DungeonObjectSelector {
     current_palette_group_ = palette_group;
     InvalidatePreviewCache();
   }
-  void SetCustomObjectsFolder(const std::string& folder);
-
   // Object selection callbacks
   void SetObjectSelectedCallback(
       std::function<void(const zelda3::RoomObject&)> callback) {
     object_selected_callback_ = callback;
+  }
+  void SetPlacementInvalidatedCallback(std::function<void()> callback) {
+    placement_invalidated_callback_ = std::move(callback);
   }
 
   // Get current preview object for placement
@@ -110,17 +113,24 @@ class DungeonObjectSelector {
   // Programmatic selection
   void SelectObject(int obj_id, int subtype = -1);
 
-  // Tile editor panel and project references for custom object creation
+  // Fixed-slot custom-object management actions.
   void SetTileEditorPanel(ObjectTileEditorPanel* panel) {
     tile_editor_panel_ = panel;
   }
   void SetOpenTileEditorWindowCallback(std::function<bool()> callback) {
     open_tile_editor_window_callback_ = std::move(callback);
   }
-  void SetProject(project::YazeProject* project) { project_ = project; }
+  void SetOpenMinecartEditorWindowCallback(std::function<bool()> callback) {
+    open_minecart_editor_window_callback_ = std::move(callback);
+  }
 
   // Invalidate preview and layout caches (e.g., after new custom object added)
   void InvalidatePreviewCache();
+  void SynchronizeCustomObjectGeneration();
+
+  // Break references to one DungeonEditorV2 session without mutating the
+  // process-wide custom-object manager used by other sessions.
+  void DetachRuntimeContext();
 
   // Test-only inspection. Increments every time InvalidatePreviewCache runs
   // so unit tests can pin behavioral contracts (e.g. SetCurrentPaletteGroup
@@ -153,31 +163,26 @@ class DungeonObjectSelector {
   void EnsureRegistryInitialized();
   ImU32 GetObjectTypeColor(int object_id);
   std::string GetObjectTypeSymbol(int object_id);
-  void EnsureCustomObjectsInitialized();
+  absl::Status GetCustomObjectAssetStatus(int object_id, int subtype);
   void DrawCustomObjectWorkshopPopup();
-  void DrawNewCustomObjectDialog();
-  absl::Status OpenNewCustomObjectEditor(int width, int height,
-                                         const std::string& filename,
-                                         int16_t object_id, int room_id);
+  absl::Status OpenExistingCustomObjectEditor(int16_t object_id, int subtype,
+                                              int room_id);
 
-  // Custom object creation dialog state
-  bool show_create_dialog_ = false;
   bool open_custom_workshop_popup_ = false;
-  int create_width_ = 4;
-  int create_height_ = 4;
-  int create_object_id_ = 0x31;
-  char create_filename_[128] = {0};
+  int workshop_object_id_ = 0x31;
+  int workshop_subtype_ = 0;
 
-  // References for custom object creation
+  // References for custom-object management.
   ObjectTileEditorPanel* tile_editor_panel_ = nullptr;
   std::function<bool()> open_tile_editor_window_callback_;
-  std::string custom_object_create_error_;
-  project::YazeProject* project_ = nullptr;
+  std::function<bool()> open_minecart_editor_window_callback_;
+  std::string custom_object_action_error_;
 
   Rom* rom_ = nullptr;
   zelda3::GameData* game_data_ = nullptr;
-  std::string custom_objects_folder_;
-  bool custom_objects_initialized_ = false;
+  uint64_t observed_custom_object_generation_ = 0;
+  bool observed_custom_objects_enabled_ = false;
+  std::map<uint32_t, absl::Status> custom_asset_status_cache_;
 
   // Room data
   DungeonRoomStore* rooms_ = nullptr;
@@ -194,6 +199,7 @@ class DungeonObjectSelector {
 
   // Callback for object selection
   std::function<void(const zelda3::RoomObject&)> object_selected_callback_;
+  std::function<void()> placement_invalidated_callback_;
 
   // Object selection state
   int selected_object_id_ = -1;

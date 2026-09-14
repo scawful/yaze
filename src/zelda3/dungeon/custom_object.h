@@ -2,7 +2,9 @@
 #define YAZE_ZELDA3_DUNGEON_CUSTOM_OBJECT_H_
 
 #include <cstdint>
+#include <filesystem>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -19,10 +21,11 @@ namespace zelda3 {
  * 
  * Binary Format (matches Oracle-of-Secrets object_handler.asm):
  * Header (2 bytes, little-endian):
- *   Low 5 bits: Tile Count (number of tiles in this segment)
+ *   Low 5 bits: Tile Count (0 encodes 32 tiles for a nonzero header)
  *   High Byte: Jump Offset (added to row start position for next segment)
  * Data (Tile Count * 2 bytes):
  *   Word: vhopppcc cccccccc (SNES tilemap entry: flip, priority, palette, tile ID)
+ *   A zero word advances the destination without writing a tile.
  * Repeats until Header is 0x0000.
  * 
  * Buffer Layout:
@@ -34,6 +37,8 @@ struct CustomObject {
     int rel_x;
     int rel_y;
     uint16_t tile_data;  // vhopppcc cccccccc
+
+    bool operator==(const TileMapEntry&) const = default;
   };
 
   struct BoundingBox {
@@ -73,6 +78,40 @@ struct CustomObject {
   }
 };
 
+struct CustomObjectAsset {
+  CustomObject object;
+  std::vector<uint8_t> source_bytes;
+  std::filesystem::path resolved_path;
+};
+
+// Strict codec for the Oracle custom-object segment format. Encoding preserves
+// sparse positions when the bytecode can represent them and rejects layouts
+// that would otherwise move or overlap tiles.
+absl::StatusOr<CustomObject> DecodeCustomObjectBinary(
+    const std::vector<uint8_t>& data);
+absl::StatusOr<std::vector<uint8_t>> EncodeCustomObjectBinary(
+    const CustomObject& object);
+
+// Resolves a project-relative .bin path through its canonical parent and
+// rejects absolute paths, parent traversal, symlink targets, and paths outside
+// the configured custom-object folder.
+absl::StatusOr<std::filesystem::path> ResolveCustomObjectAssetPath(
+    const std::string& custom_objects_folder, const std::string& filename);
+
+// Loads both the decoded object and the exact source bytes needed for a later
+// stale-write check.
+absl::StatusOr<CustomObjectAsset> LoadCustomObjectAsset(
+    const std::string& custom_objects_folder, const std::string& filename);
+
+// Publishes one existing asset using exact source-byte compare-and-swap,
+// rollback-protected atomic replacement, and strict decoded readback. Returns
+// the canonical bytes that were committed.
+absl::StatusOr<std::vector<uint8_t>> PublishCustomObjectBinary(
+    const std::string& custom_objects_folder, const std::string& filename,
+    const CustomObject& object,
+    const std::vector<uint8_t>& expected_source_bytes,
+    const std::filesystem::path& expected_resolved_path);
+
 /**
  * @brief Manages loading and caching of custom object binary files.
  */
@@ -81,6 +120,8 @@ class CustomObjectManager {
   struct State {
     std::string base_path;
     std::unordered_map<int, std::vector<std::string>> custom_file_map;
+
+    bool operator==(const State&) const = default;
   };
 
   static CustomObjectManager& Get();
@@ -93,7 +134,16 @@ class CustomObjectManager {
   void SetObjectFileMap(
       const std::unordered_map<int, std::vector<std::string>>& map);
   void ClearObjectFileMap();
-  bool HasCustomFileMap() const { return !custom_file_map_.empty(); }
+  bool HasCustomFileMap() const;
+
+  // Editor sessions share the manager entry point but retain independent
+  // project paths, mappings, decoded assets, and generation tokens.
+  void ActivateRuntimeContext(uint64_t context_id, const State& state);
+  void ActivateStandaloneContext();
+  void RemoveRuntimeContext(uint64_t context_id);
+  std::optional<uint64_t> active_runtime_context_id() const {
+    return active_runtime_context_id_;
+  }
 
   // Load a custom object from a binary file
   absl::StatusOr<std::shared_ptr<CustomObject>> LoadObject(
@@ -107,11 +157,13 @@ class CustomObjectManager {
   // Get number of subtypes for a custom object ID
   int GetSubtypeCount(int object_id) const;
 
+  // The current Oracle runtime dispatch tables have fixed capacities. Project
+  // filename mappings may replace assets within these slots but cannot add
+  // new runtime subtypes.
+  static int RuntimeSubtypeCountForObject(int object_id);
+
   // Reload all cached objects (useful for editor)
   void ReloadAll();
-
-  // Register a new custom object file for an object_id at runtime
-  void AddObjectFile(int object_id, const std::string& filename);
 
   // Get the resolved file list for an object_id (empty if none)
   std::vector<std::string> GetEffectiveFileList(int object_id) const;
@@ -122,7 +174,8 @@ class CustomObjectManager {
       int object_id);
 
   // Accessors for tile editor write-back
-  const std::string& GetBasePath() const { return base_path_; }
+  const std::string& GetBasePath() const;
+  uint64_t asset_generation() const;
   std::string ResolveFilename(int object_id, int subtype) const;
 
   // Snapshot/restore helpers for scoped CLI/runtime feature application.
@@ -130,18 +183,27 @@ class CustomObjectManager {
   void RestoreState(const State& state);
 
  private:
-  CustomObjectManager() = default;
+  struct RuntimeContext {
+    State state;
+    std::unordered_map<std::string, std::shared_ptr<CustomObject>> cache;
+    uint64_t asset_generation = 0;
+  };
 
-  absl::StatusOr<CustomObject> ParseBinaryData(
-      const std::vector<uint8_t>& data);
+  CustomObjectManager();
+
+  RuntimeContext& ActiveContext();
+  const RuntimeContext& ActiveContext() const;
+  uint64_t NextAssetGeneration();
+  void InvalidateCaches();
   const std::vector<std::string>* ResolveFileList(int object_id) const;
   // Corner alias overrides (0x100..0x103) are enabled only when object 0x31
   // has an explicit project mapping for the requested corner slot.
   bool IsCornerAliasOverrideEnabled(int resolved_index) const;
 
-  std::string base_path_;
-  std::unordered_map<std::string, std::shared_ptr<CustomObject>> cache_;
-  std::unordered_map<int, std::vector<std::string>> custom_file_map_;
+  RuntimeContext standalone_context_;
+  std::unordered_map<uint64_t, RuntimeContext> runtime_contexts_;
+  std::optional<uint64_t> active_runtime_context_id_;
+  uint64_t next_asset_generation_ = 1;
 
   // Mapping from subtype index to filename for ID 0x31
   static const std::vector<std::string> kSubtype1Filenames;

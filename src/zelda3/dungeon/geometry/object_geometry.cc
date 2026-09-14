@@ -7,6 +7,7 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/render/background_buffer.h"
 #include "app/gfx/types/snes_tile.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_state.h"
 #include "zelda3/dungeon/moving_wall_semantics.h"
@@ -261,7 +262,8 @@ absl::StatusOr<GeometryBounds> ObjectGeometry::MeasureByObjectId(
   }
 
   // Check cache
-  CacheKey key{routine_id, object.id_, object.size_};
+  CacheKey key{routine_id, object.id_, object.size_,
+               CustomObjectManager::Get().asset_generation()};
   auto cache_it = cache_.find(key);
   if (cache_it != cache_.end()) {
     return cache_it->second;

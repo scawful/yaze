@@ -81,6 +81,17 @@ class MinecartTrackEditorPanel : public WindowContent {
   void SetProjectSaveCallback(ProjectSaveCallback callback) {
     project_save_callback_ = std::move(callback);
   }
+  void DetachRuntimeContext() {
+    room_navigation_callback_ = {};
+    project_changed_callback_ = {};
+    project_draft_changed_callback_ = {};
+    project_save_callback_ = {};
+    rooms_ = nullptr;
+    rom_ = nullptr;
+    project_ = nullptr;
+    picking_mode_ = false;
+    picking_track_index_ = -1;
+  }
 
  private:
   friend class MinecartTrackEditorPanelTestPeer;

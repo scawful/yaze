@@ -36,14 +36,14 @@ struct ObjectTileEditorPanelTestAccess;
  * cell in the grid, then pick a replacement tile from the source sheet.
  * Tile properties (palette, flip, priority) can be edited per-cell.
  *
- * Standard-object sessions open from the dungeon canvas selection menu. New
- * custom-object sessions are prepared by the custom object workshop.
+ * Standard-object sessions open from the dungeon canvas selection menu.
+ * Existing fixed-slot custom assets open from the custom object workshop.
  */
 class ObjectTileEditorPanel : public WindowContent {
  public:
   using StandardWritePreflightCallback = std::function<absl::Status(
       const std::vector<std::pair<uint32_t, uint32_t>>&)>;
-  using StandardTilesAppliedCallback = std::function<void()>;
+  using TilesAppliedCallback = std::function<void()>;
 
   ObjectTileEditorPanel(gfx::IRenderer* renderer, Rom* rom);
 
@@ -63,9 +63,11 @@ class ObjectTileEditorPanel : public WindowContent {
   absl::Status OpenForObject(int16_t object_id, int room_id,
                              DungeonRoomStore* rooms,
                              const gfx::PaletteGroup& palette_group);
-  absl::Status OpenForNewObject(int width, int height,
-                                const std::string& filename, int16_t object_id,
-                                int room_id, DungeonRoomStore* rooms);
+  absl::Status OpenForCustomObject(int16_t object_id, int subtype, int room_id,
+                                   DungeonRoomStore* rooms);
+  absl::Status OpenForCustomObject(int16_t object_id, int subtype, int room_id,
+                                   DungeonRoomStore* rooms,
+                                   const gfx::PaletteGroup& palette_group);
   void Close();
   bool IsOpen() const { return is_open_; }
   bool HasUnappliedChanges() const {
@@ -76,19 +78,13 @@ class ObjectTileEditorPanel : public WindowContent {
   void SetCurrentPaletteGroupForRoom(int room_id,
                                      const gfx::PaletteGroup& group);
 
-  // Callback fired on first successful save of a new object
-  void SetObjectCreatedCallback(
-      std::function<void(int, const std::string&)> cb) {
-    on_object_created_ = std::move(cb);
-  }
-
   void SetStandardWritePreflightCallback(
       StandardWritePreflightCallback callback) {
     standard_write_preflight_ = std::move(callback);
   }
 
-  void SetStandardTilesAppliedCallback(StandardTilesAppliedCallback callback) {
-    on_standard_tiles_applied_ = std::move(callback);
+  void SetTilesAppliedCallback(TilesAppliedCallback callback) {
+    on_tiles_applied_ = std::move(callback);
   }
 
  private:
@@ -105,6 +101,8 @@ class ObjectTileEditorPanel : public WindowContent {
   void ResetTransientState();
   std::string BuildWindowTitle() const;
   void SelectFirstCellIfAvailable();
+  absl::Status AddFirstTileToEmptyCustomLayout();
+  void RevertCurrentLayout();
   struct SourceImpactSnapshot {
     int consumer_count = 0;
     uint64_t fingerprint = 0;
@@ -171,11 +169,8 @@ class ObjectTileEditorPanel : public WindowContent {
   ActionStatusTone action_status_tone_ = ActionStatusTone::kNone;
   std::string action_status_message_;
 
-  // New object creation state
-  bool is_new_object_ = false;
-  std::function<void(int, const std::string&)> on_object_created_;
   StandardWritePreflightCallback standard_write_preflight_;
-  StandardTilesAppliedCallback on_standard_tiles_applied_;
+  TilesAppliedCallback on_tiles_applied_;
 
   // Context
   gfx::IRenderer* renderer_;
