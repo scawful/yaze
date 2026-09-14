@@ -107,6 +107,13 @@ validate_release() {
     fi
     codesign --verify --deep --strict "$app_dir"
   fi
+
+  for binary in yaze z3ed; do
+    if ! "$release_dir/$binary" --version; then
+      echo "[nightly-local] Executable failed to load: $release_dir/$binary" >&2
+      return 1
+    fi
+  done
 }
 
 activate_release() {
@@ -150,6 +157,16 @@ normalize_app_bundle() {
       ln -sfn "$app_bin" "$release_dir/yaze"
     fi
   fi
+}
+
+normalize_bin_layout() {
+  local binary
+  for binary in yaze z3ed; do
+    if [[ ! -e "$release_dir/$binary" && ! -L "$release_dir/$binary" &&
+          -f "$release_dir/bin/$binary" && -x "$release_dir/bin/$binary" ]]; then
+      ln -s "bin/$binary" "$release_dir/$binary"
+    fi
+  done
 }
 
 fallback_install() {
@@ -216,6 +233,7 @@ if ! cmake --install "$nightly_build_dir" --prefix "$release_dir" --component "$
   fallback_install
 fi
 normalize_app_bundle
+normalize_bin_layout
 validate_release
 
 commit=""
