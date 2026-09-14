@@ -836,8 +836,8 @@ void ObjectDimensionTable::InitializeDefaults() {
   for (int id = 0x138; id <= 0x13B; id++) {
     dimensions_[id] = {4, 3, Dir::None, 0, false};
   }
-  // 0x13C: Sanctuary wall (repeatable 4x4)
-  dimensions_[0x13C] = {4, 4, Dir::Horizontal, 4, false};
+  // 0x13C: fixed Sanctuary facade; bottom-center 4x3 remains empty.
+  dimensions_[0x13C] = {24, 6, Dir::None, 0, false};
   // 0x13D: Table 4x3 (repeatable with 8-tile spacing)
   dimensions_[0x13D] = {4, 3, Dir::Horizontal, 8, false};
   dimensions_[0x13E] = {6, 3, Dir::None, 0, false};  // Utility 6x3
