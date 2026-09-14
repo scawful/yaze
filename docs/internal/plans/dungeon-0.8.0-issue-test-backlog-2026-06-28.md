@@ -480,6 +480,81 @@ follow-up. No installed app was replaced, and Windows/Linux/WASM packages,
 full UI acceptance, independent sprite RGBA captures, and remaining object
 families are still open release gates.
 
+## Seventh implementation slice: room and custom-object previews (2026-09-14)
+
+Verified code at `e2c5986b5`, based on preview `c32aaba94`. This slice fixes
+preview consistency and resource lifetime; it does not change object draw
+routines, ROM payloads, or reference images. The active canonical checkout and
+later Grokbot edits remain separate from this preview branch.
+
+1. **Graphics reloads refresh every affected preview.** Room header IDs are not
+   sufficient cache keys: reloading graphics can change pixels without changing
+   those IDs. `Room::graphics_revision()` now changes after buffer writes,
+   including direct animation reloads, and is unique across room replacements.
+   Object Selector, placement ghost, Room Graphics, and Object Tile Editor
+   consume it. Missing inputs and sheet selection without pixel writes leave
+   it unchanged. Object Tile Editor keeps its bound room, selection, and
+   unsaved custom tile edits during refresh.
+2. **Custom `0x54` atlas matches the runtime graphics page.** Oracle's sprite
+   body handler applies `OR $0300`; the picker now shares
+   `CustomObjectRuntimeTileWord` with the rendered preview. Atlas cells and
+   saved words remain raw source IDs. For example, `manhandla_body_1a.bin`
+   begins with raw `$1D0D`, displayed as runtime `$1F0D`; no asset is rewritten.
+   Zero-word transparency and ordinary, unmasked atlas behavior remain covered.
+3. **Preview owners are retired before reset/destruction.** Room Graphics
+   preserves bitmap addresses and updates existing textures on reload. Room
+   Graphics and Object Tile Editor cancel queued texture work and defer handle
+   destruction through the existing Arena API before discarding bitmaps.
+   Close/destruction regressions failed before the fixes and pass afterward,
+   including repeated cleanup and exactly-once texture destruction.
+
+The additional water/ice test covers `0xC8/0xC9/0xCA/0xD1/0xD2/0xD9` and
+`0xE3–0xE7`: 11 IDs × four packed sizes = 44 captures and 132 direct object
+pixel comparisons across three streams. Asymmetric source motifs exercise
+palette, flips, transparency, and an off-grid anchor. This is source-backed
+preview consistency coverage, **not a new stamp-renderer fix or independent
+Mesen RGBA proof**. It does not close animation, HDMA, or room-composition gaps.
+
+Verification at the code checkpoint, with zero failures/skips:
+
+- **882/882 focused dungeon/Oracle tests**. All 38 filter patterns matched
+  discovered tests; executed XML names exactly matched the inventory. The set
+  includes the 12 new regression/contract tests; do not add overlapping counts.
+- **57/57 PNG/composite comparisons** in two integration tests: 19 rooms at
+  three scales.
+- Maintained ladder: Tier 1 **42**, Tier 2 **11 + 1 table check**, Tier 3
+  **12**, Tier 4 **7**; Tier 5 **1,190 cases, zero mismatches/empty traces**.
+  `DungeonVisualParityAuditContract` also passes.
+- Native `yaze`, `z3ed`, unit and integration targets build with four workers.
+  Original Vanilla and Oracle base/patched SHA-256 digests are unchanged.
+  No app or emulator session was launched and no installed app was replaced.
+
+Reproduce using the fourth slice's environment and `wave4_filter`, plus
+`YAZE_TEST_ORACLE_CUSTOM_OBJECTS=/path/to/oracle/Dungeons/Objects/Data`:
+
+```sh
+wave7_filter="RoomLayerManagerTest.*:$wave4_filter:EditorManagerOracleRomSafetyTest.*:DungeonOraclePreflightTest.*:DungeonObjectSelector*.*:DungeonEditorPaletteRefreshTest.*:CustomObjectManagerTest.*:CustomObjectCodecTest.*:CustomObjectRuntimeTileWordTest.*:OracleRuntimeAssets/CustomObjectOracleAssetTest.*:DungeonSaveTest.*:LayoutManagerPersistenceTest.*:ObjectTileEditorTest.*:ObjectTileEditorPanelTest.*:ObjectTileEditorPreviewLifetimeTest.*:RoomGraphicsContentTest.*:ArenaRetirementTest.*:DungeonEditorV2ObjectTileEditorTest.*:CustomObjectRoomRenderTest.*"
+cmake --build build/presets/mac-ai --config Release --target yaze_test_unit yaze_test_integration yaze z3ed --parallel 4
+build/presets/mac-ai/bin/yaze_test_unit --gtest_list_tests --gtest_filter="$wave7_filter"
+build/presets/mac-ai/bin/yaze_test_unit --gtest_filter="$wave7_filter" --gtest_output=xml:/tmp/yaze-wave7-broad.xml
+build/presets/mac-ai/bin/yaze_test_integration --gtest_filter='Dungeon*RoomRenderParityTest.*HeadlessPngMatchesRoomComposite' --gtest_output=xml:/tmp/yaze-wave7-final-export.xml
+scripts/agents/audit-dungeon-visual-parity.sh --build-dir build/presets/mac-ai --config Release --with-validate-report /tmp/yaze-wave7-final-validation.json
+ctest --test-dir build/presets/mac-ai --output-on-failure -R '^DungeonVisualParityAuditContract$'
+```
+
+Temporary evidence uses `/tmp/yaze-wave7-*`; these local test artifacts are not
+committed emulator fixtures. The revision is a cache token, not a promise of
+thread-safe concurrent pixel mutation.
+
+**Next preview fix:** shared-palette changes currently forward only the active
+room's palette through `HandleDungeonPaletteChanged()`. An Object Tile Editor
+session bound to a different room rejects that update in
+`SetCurrentPaletteGroupForRoom()` and can remain stale. Preserve session binding
+while refreshing the bound room's palette; cover this independently from the
+graphics-revision tests. The sixth slice's native harness issues, remaining
+object/runtime captures, hands-on UI acceptance, mainline merge, and
+Windows/Linux/WASM packages remain open.
+
 ## Object coverage checklist
 
 Start by enumerating the supported IDs from `DrawRoutineRegistry` and the room

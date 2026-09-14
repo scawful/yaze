@@ -2,9 +2,13 @@
 
 This directory contains the core business logic, data structures, and rendering algorithms for the `The Legend of Zelda: A Link to the Past` dungeon system. It serves as the backend for the editor UI found in `src/app/editor/dungeon`.
 
-## Current Status (July 2026)
+## Current Status (September 2026)
 
-**Core System: Stable** with focused regression coverage around object rendering, room persistence, object tile editing, and editor/save plumbing.
+The preview branch has focused regression coverage around object rendering,
+room persistence, object tile editing, and editor/save plumbing. This is not a
+full dungeon-parity or release-readiness claim; see the
+[0.8.0 issue/test backlog](../../../docs/internal/plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md)
+for evidence checkpoints and remaining gates.
 
 The object rendering pipeline has been validated against the ALTTP disassembly:
 - Type 1/2/3 object detection and parsing ✅
@@ -13,7 +17,7 @@ The object rendering pipeline has been validated against the ALTTP disassembly:
 - BothBG flag propagation ✅
 - Tile count lookup tables ✅
 
-**Known Minor Issues**: Some specific objects (vertical rails, doors, certain
+**Remaining visual verification**: Some specific objects (vertical rails, doors, certain
 edge patterns) may have visual discrepancies that require individual
 verification against the game. The global pit-damage table now supports
 fixed-capacity membership edits while preserving its protected ROM region for
@@ -79,6 +83,20 @@ graph TD
 *   **`ObjectTileEditor`**: Captures rendered 8x8 tile layouts for standard and custom objects, builds preview/atlas bitmaps, and writes tile edits back to ROM or custom `.bin` files.
 *   **`ObjectDimensionTable`**: Provides hit-testing bounds for objects. This is distinct from the visual rendering size and is derived from ROM data tables.
 *   **`ObjectTemplateManager`**: Allows creating and instantiating groups of objects (templates).
+
+Room graphics reloads publish `Room::graphics_revision()` after buffer writes,
+including direct animation loads. The revision is unique across loaded room
+replacements; unchanged header IDs or the same `Room` address do not imply
+unchanged pixels. Object Selector, placement ghost, Room Graphics, and Object
+Tile Editor use this token to refresh cached previews. It does not make pixel
+mutation thread-safe or replace separate palette-change handling.
+
+Custom tile layouts retain raw source words for editing and saving. Both the
+rendered preview and custom atlas apply `CustomObjectRuntimeTileWord` only for
+display (notably Oracle `0x54`'s `OR $0300` graphics page). Atlas cell IDs remain
+raw so choosing a tile does not bake the runtime mask into an asset. Frontend
+preview owners must use `Arena::RetireBitmap` before reset or destruction to
+cancel queued texture work and defer texture-handle deletion safely.
 
 Chest persistence treats the global 168-record table as an ordered physical
 stream rather than regrouping it by room. One-for-one dirty-room edits reuse
