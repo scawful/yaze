@@ -137,6 +137,11 @@ The panel header uses an elevated background (`SurfaceContainerHigh`) with:
 - Keyboard shortcut: **Escape** closes the panel
 - Status bar shows a `Drawer` segment while a right drawer is open
 
+The tab strip measures the title with `GetItemRectMax()`, converted to window
+coordinates. `GetCursorPosX()` after text is not the title's right edge: ImGui
+has already advanced to the next line. Reserve the title gap and close/lock
+controls before choosing tabs versus the overflow popup.
+
 ### Status / context strip
 
 Bottom `StatusBar` orientation (left → right), managed mainly by `EditorManager`:
@@ -188,7 +193,9 @@ The left chrome is an **ActivityBar** (icon rail) plus an optional **WindowSideb
 For discoverability in Cmd/Ctrl+Shift+P:
 
 - `drawer: <Name>` — toggle a right drawer from `GetDrawerCatalog()` (`drawer: Next` / `drawer: Previous` cycle)
-- `window: <DisplayName>` — toggle a workspace window (aliases keep `Show:` / `Hide:` / `Toggle:`)
+- `window: <DisplayName>` — open and focus a workspace window, recording it in
+  recent windows; used by Window Finder. Selecting an already-open window must
+  not close it. Explicit `Show:` / `Hide:` / `Toggle:` commands remain available.
 
 ### Active side panel (`WindowSidebar`)
 
@@ -205,8 +212,23 @@ When expanded (and not on Dashboard), the side panel shows:
    - **Advanced** (collapsed)
    - Other/unknown groups render as their own collapsed sections after Advanced
 
-Non-empty filter expands matching groups. In Dungeon Workbench mode, Room List /
-Matrix / `dungeon.room_*` rows are omitted (`ShouldOmitWindowInSidebar`).
+Non-empty filters show matching rows without section headers; clearing the
+filter restores the ordinary section expansion state. `DefaultOpen` alone
+cannot override a user's stored collapsed state.
+
+In Dungeon Workbench mode, Room List / Matrix and dynamic room windows are
+omitted (`ShouldOmitWindowInSidebar`). Dynamic room IDs have a nonempty decimal
+suffix, such as `dungeon.room_51`. Do not hide every `dungeon.room_*` ID:
+`dungeon.room_graphics` and `dungeon.room_tags` are standalone editing tools.
+
+### Interaction regression checks
+
+The unit suites exercise drawer tab hit areas at the overflow threshold,
+sidebar filtering after a section is collapsed, standalone room-tool access,
+Window Finder focus/session ownership, status-chip mouse clicks, and empty-state
+button activation. Status-context tests verify callback replacement, not the
+full multi-session ROM-save workflow. Native appearance and platform packaging
+remain separate acceptance checks.
 
 ### Placeholder Sidebar
 When no ROM is loaded, `EditorManager::DrawPlaceholderSidebar` renders a placeholder.
