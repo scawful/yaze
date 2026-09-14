@@ -41,6 +41,103 @@ absl::StatusOr<std::filesystem::path> CaptureRomPathIdentity(
 
 }  // namespace
 
+absl::StatusOr<std::filesystem::path> ResolveStableArtifactPath(
+    const std::filesystem::path& path) {
+  std::error_code absolute_ec;
+  std::filesystem::path absolute = std::filesystem::absolute(path, absolute_ec);
+  if (absolute_ec) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "Cannot normalize path %s: %s", path.string(), absolute_ec.message()));
+  }
+  absolute = absolute.lexically_normal();
+
+  // Resolve every existing component once. Publication then uses this stable
+  // path instead of following a caller-supplied parent symlink a second time.
+  std::error_code canonical_ec;
+  const std::filesystem::path canonical =
+      std::filesystem::weakly_canonical(absolute, canonical_ec);
+  if (canonical_ec) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Cannot safely resolve path %s: %s", absolute.string(),
+                        canonical_ec.message()));
+  }
+  const std::filesystem::path resolved = canonical.lexically_normal();
+  const std::filesystem::path parent = resolved.parent_path();
+  std::error_code parent_ec;
+  const auto parent_status = std::filesystem::status(parent, parent_ec);
+  if (parent_ec || !std::filesystem::exists(parent_status) ||
+      !std::filesystem::is_directory(parent_status)) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Artifact parent directory must already exist: %s%s", parent.string(),
+        !parent_ec ? "" : absl::StrFormat(" (%s)", parent_ec.message())));
+  }
+  return resolved;
+}
+
+absl::StatusOr<bool> PathsAlias(const std::filesystem::path& lhs,
+                                const std::filesystem::path& rhs) {
+  ASSIGN_OR_RETURN(const auto normalized_lhs, ResolveStableArtifactPath(lhs));
+  ASSIGN_OR_RETURN(const auto normalized_rhs, ResolveStableArtifactPath(rhs));
+  if (normalized_lhs == normalized_rhs) {
+    return true;
+  }
+
+  std::error_code equivalent_ec;
+  const bool equivalent = std::filesystem::equivalent(
+      normalized_lhs, normalized_rhs, equivalent_ec);
+  if (!equivalent_ec) {
+    return equivalent;
+  }
+
+  // equivalent() reports an error when either path does not exist. Lexical
+  // normalization above is sufficient in that case. If both paths do exist,
+  // fail closed rather than risk truncating a ROM we could not compare.
+  std::error_code lhs_exists_ec;
+  std::error_code rhs_exists_ec;
+  const bool lhs_exists =
+      std::filesystem::exists(normalized_lhs, lhs_exists_ec);
+  const bool rhs_exists =
+      std::filesystem::exists(normalized_rhs, rhs_exists_ec);
+  if (lhs_exists_ec || rhs_exists_ec || (lhs_exists && rhs_exists)) {
+    return absl::FailedPreconditionError(absl::StrFormat(
+        "Could not safely compare paths %s and %s: %s", normalized_lhs.string(),
+        normalized_rhs.string(), equivalent_ec.message()));
+  }
+  return false;
+}
+
+absl::Status RejectArtifactRomAliases(
+    absl::string_view option_name, const std::filesystem::path& artifact_path,
+    const CommandInvocationContext& invocation_context) {
+  if (invocation_context.active_rom_path.has_value()) {
+    ASSIGN_OR_RETURN(
+        const bool aliases_active_rom,
+        PathsAlias(artifact_path, *invocation_context.active_rom_path));
+    if (aliases_active_rom) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s path aliases the active ROM; choose a separate artifact file: "
+          "%s",
+          option_name, artifact_path.string()));
+    }
+  }
+
+  if (invocation_context.source_rom_path.has_value()) {
+    ASSIGN_OR_RETURN(
+        const bool aliases_source_rom,
+        PathsAlias(artifact_path, *invocation_context.source_rom_path));
+    if (aliases_source_rom) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "%s path aliases the %s; choose a separate artifact file: %s",
+          option_name,
+          invocation_context.sandbox_enabled ? "sandbox source ROM"
+                                             : "source ROM",
+          artifact_path.string()));
+    }
+  }
+
+  return absl::OkStatus();
+}
+
 absl::Status CommandHandler::Run(const std::vector<std::string>& args,
                                  Rom* rom_context,
                                  std::string* captured_output) {
