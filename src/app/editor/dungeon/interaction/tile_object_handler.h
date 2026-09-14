@@ -202,6 +202,8 @@ class TileObjectHandler : public BaseEntityHandler {
   std::unique_ptr<gfx::BackgroundBuffer> ghost_preview_buffer_;
   bool ghost_preview_bitmap_ready_ = false;
   bool ghost_preview_create_queued_ = false;
+  uint64_t ghost_preview_graphics_revision_ = 0;
+  int ghost_preview_room_id_ = -1;
 
   // Clipboard
   std::vector<zelda3::RoomObject> clipboard_;

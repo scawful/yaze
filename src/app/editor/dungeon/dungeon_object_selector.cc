@@ -923,6 +923,7 @@ void DungeonObjectSelector::RetirePreviewCache() {
 void DungeonObjectSelector::SynchronizePreviewCacheRoomContext(
     const zelda3::Room& room) {
   if (current_room_id_ == cached_preview_room_id_ &&
+      room.graphics_revision() == cached_preview_graphics_revision_ &&
       room.blockset() == cached_preview_blockset_ &&
       room.render_entrance_blockset() == cached_preview_entrance_blockset_ &&
       room.palette() == cached_preview_palette_ &&
@@ -933,6 +934,7 @@ void DungeonObjectSelector::SynchronizePreviewCacheRoomContext(
 
   InvalidatePreviewCache();
   cached_preview_room_id_ = current_room_id_;
+  cached_preview_graphics_revision_ = room.graphics_revision();
   cached_preview_blockset_ = room.blockset();
   cached_preview_entrance_blockset_ = room.render_entrance_blockset();
   cached_preview_palette_ = room.palette();
