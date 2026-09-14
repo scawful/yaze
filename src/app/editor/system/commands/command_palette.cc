@@ -12,6 +12,7 @@
 #include "app/editor/registry/content_registry.h"
 #include "app/editor/shell/coordinator/recent_projects_model.h"
 #include "app/editor/system/workspace/editor_registry.h"
+#include "app/editor/system/workspace/panel_host.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "core/project.h"
 #include "util/json.h"
@@ -374,11 +375,21 @@ void CommandPalette::RegisterPanelCommands(
     AddCommand(toggle_name, CommandCategory::kPanel, toggle_desc, "",
                toggle_fn);
 
-    // Prefixed alias for discoverability when searching "window:"
+    // Window Finder selects a destination, rather than toggling its visibility.
+    // Keep the explicit Toggle command above for open/close actions.
     std::string window_name =
         absl::StrFormat("window: %s", descriptor->display_name);
-    AddCommand(window_name, CommandCategory::kPanel, toggle_desc,
-               descriptor->shortcut_hint, toggle_fn);
+    AddCommand(
+        window_name, CommandCategory::kPanel, show_desc,
+        descriptor->shortcut_hint, [window_manager, base_id, session_id]() {
+          WindowHost host(window_manager);
+          const bool opened = ImGui::GetCurrentContext() != nullptr
+                                  ? host.OpenAndFocusWindow(session_id, base_id)
+                                  : host.OpenWindow(session_id, base_id);
+          if (opened) {
+            window_manager->MarkWindowRecentlyUsed(base_id);
+          }
+        });
 
     // Pin-to-global toggle. Mirrors the sidebar right-click pin + the panel
     // tab pin UI, so users who live in the command palette never need to
