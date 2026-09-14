@@ -103,6 +103,7 @@ class DungeonEditorV2 : public Editor {
   explicit DungeonEditorV2(Rom* rom = nullptr);
 
   ~DungeonEditorV2() override;
+  void PrepareForSessionTeardown() override;
 
   void SetGameData(zelda3::GameData* game_data) override {
     game_data_ = game_data;
@@ -318,6 +319,7 @@ class DungeonEditorV2 : public Editor {
   void ConfigureViewerRenderContext(DungeonCanvasViewer* viewer, int room_id);
   void WireViewerPanelCallbacks(DungeonCanvasViewer* viewer);
   void ConfigureMinecartProjectCallbacks();
+  void SynchronizeCustomObjectAssets();
 
   // Show or create a standalone room panel
   void ShowRoomPanel(int room_id);
@@ -431,6 +433,8 @@ class DungeonEditorV2 : public Editor {
   std::unique_ptr<emu::render::EmulatorRenderService> render_service_;
 
   bool is_loaded_ = false;
+  uint64_t observed_custom_object_generation_ = 0;
+  bool observed_custom_objects_enabled_ = false;
 
   // Docking class for room windows to dock together
   ImGuiWindowClass room_window_class_;

@@ -3064,6 +3064,11 @@ void yaze::zelda3::ObjectDrawer::DrawCustomObject(
   int tile_y = obj.y_;
 
   for (const auto& entry : custom_obj->tiles) {
+    // Oracle's custom-object handlers advance past a zero payload word without
+    // storing it. Preserve the tile already underneath this object.
+    if (entry.tile_data == 0) {
+      continue;
+    }
     // entry.tile_data is vhopppcc cccccccc (SNES tilemap word format)
     // Convert to TileInfo and render using WriteTile8 (not SetTileAt which
     // only stores to buffer without rendering)

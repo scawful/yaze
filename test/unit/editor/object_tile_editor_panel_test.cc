@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <filesystem>
+#include <fstream>
 #include <iterator>
 #include <memory>
 #include <optional>
@@ -12,10 +13,13 @@
 #include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
+#include "core/features.h"
 #include "core/project.h"
 #include "gtest/gtest.h"
+#include "imgui/imgui.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/game_data.h"
@@ -202,8 +206,46 @@ struct ObjectTileEditorPanelTestAccess {
     panel.SyncSourceSelectionFromSelectedCell();
   }
 
-  static bool IsNewObject(const ObjectTileEditorPanel& panel) {
-    return panel.is_new_object_;
+  static zelda3::ObjectTileLayout MakeCustomLayout(int width, int height,
+                                                   int16_t object_id,
+                                                   std::string filename,
+                                                   bool modified = true) {
+    zelda3::ObjectTileLayout layout;
+    layout.object_id = object_id;
+    layout.bounds_width = width;
+    layout.bounds_height = height;
+    layout.tile_data_address = -1;
+    layout.is_custom = true;
+    layout.custom_subtype = 0;
+    layout.custom_filename = std::move(filename);
+    layout.custom_source_bytes = {0x01, 0x00, 0x00, 0x08, 0x00, 0x00};
+    for (int y = 0; y < height; ++y) {
+      for (int x = 0; x < width; ++x) {
+        zelda3::ObjectTileLayout::Cell cell;
+        cell.rel_x = x;
+        cell.rel_y = y;
+        cell.tile_info = gfx::TileInfo(0, 2, false, false, false);
+        cell.original_word = gfx::TileInfoToWord(cell.tile_info);
+        cell.write_index = static_cast<int>(layout.cells.size());
+        cell.modified = modified;
+        layout.cells.push_back(cell);
+      }
+    }
+    return layout;
+  }
+
+  static void OpenCustomLayoutForTest(ObjectTileEditorPanel& panel, int width,
+                                      int height, int16_t object_id,
+                                      int room_id, DungeonRoomStore* rooms,
+                                      bool modified = true) {
+    panel.current_object_id_ = object_id;
+    panel.current_room_id_ = room_id;
+    panel.rooms_ = rooms;
+    panel.current_layout_ =
+        MakeCustomLayout(width, height, object_id, "test_custom.bin", modified);
+    panel.ResetTransientState();
+    panel.is_open_ = true;
+    panel.SelectFirstCellIfAvailable();
   }
 
   static void ApplyChanges(ObjectTileEditorPanel& panel) {
@@ -212,6 +254,15 @@ struct ObjectTileEditorPanelTestAccess {
 
   static void ApplyChanges(ObjectTileEditorPanel& panel, bool confirm_shared) {
     panel.ApplyChanges(confirm_shared);
+  }
+
+  static absl::Status AddFirstTileToEmptyCustomLayout(
+      ObjectTileEditorPanel& panel) {
+    return panel.AddFirstTileToEmptyCustomLayout();
+  }
+
+  static void RevertCurrentLayout(ObjectTileEditorPanel& panel) {
+    panel.RevertCurrentLayout();
   }
 
   static std::string BuildWindowTitle(const ObjectTileEditorPanel& panel) {
@@ -275,6 +326,15 @@ struct ObjectTileEditorPanelTestAccess {
       const ObjectTileEditorPanel& panel) {
     return panel.HasSharedTileDataConflict();
   }
+
+  static bool HasStandardWritePreflightCallback(
+      const ObjectTileEditorPanel& panel) {
+    return static_cast<bool>(panel.standard_write_preflight_);
+  }
+
+  static bool HasTilesAppliedCallback(const ObjectTileEditorPanel& panel) {
+    return static_cast<bool>(panel.on_tiles_applied_);
+  }
 };
 
 class DungeonEditorV2ObjectTileEditorTestPeer {
@@ -287,6 +347,15 @@ class DungeonEditorV2ObjectTileEditorTestPeer {
   static void SetObjectTileEditorPanel(DungeonEditorV2& editor,
                                        ObjectTileEditorPanel* panel) {
     editor.object_tile_editor_panel_ = panel;
+  }
+
+  static void SetObjectSelectorPanel(DungeonEditorV2& editor,
+                                     ObjectSelectorContent* panel) {
+    editor.object_selector_panel_ = panel;
+  }
+
+  static void SynchronizeCustomObjectAssets(DungeonEditorV2& editor) {
+    editor.SynchronizeCustomObjectAssets();
   }
 };
 
@@ -322,19 +391,68 @@ std::filesystem::path MakeTempDir(const std::string& stem) {
 struct ScopedCustomObjectState {
   explicit ScopedCustomObjectState(std::filesystem::path temp_dir)
       : old_state(zelda3::CustomObjectManager::Get().SnapshotState()),
+        old_enabled(core::FeatureFlags::get().kEnableCustomObjects),
         dir(std::move(temp_dir)) {
     std::filesystem::create_directories(dir);
     zelda3::CustomObjectManager::Get().Initialize(dir.string());
+    zelda3::CustomObjectManager::Get().ClearObjectFileMap();
+    core::FeatureFlags::get().kEnableCustomObjects = true;
+    zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
   }
 
   ~ScopedCustomObjectState() {
+    core::FeatureFlags::get().kEnableCustomObjects = old_enabled;
+    zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
     zelda3::CustomObjectManager::Get().RestoreState(old_state);
     std::filesystem::remove_all(dir);
   }
 
   zelda3::CustomObjectManager::State old_state;
+  bool old_enabled;
   std::filesystem::path dir;
 };
+
+class ScopedImGuiContext {
+ public:
+  ScopedImGuiContext() : previous_(ImGui::GetCurrentContext()) {
+    context_ = ImGui::CreateContext();
+    ImGui::SetCurrentContext(context_);
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(1024.0f, 768.0f);
+    io.DeltaTime = 1.0f / 60.0f;
+    unsigned char* pixels = nullptr;
+    int width = 0;
+    int height = 0;
+    io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  }
+
+  ~ScopedImGuiContext() {
+    ImGui::DestroyContext(context_);
+    ImGui::SetCurrentContext(previous_);
+  }
+
+ private:
+  ImGuiContext* previous_ = nullptr;
+  ImGuiContext* context_ = nullptr;
+};
+
+void WriteCustomObjectAsset(const std::filesystem::path& path,
+                            const zelda3::CustomObject& object) {
+  auto bytes_or = zelda3::EncodeCustomObjectBinary(object);
+  ASSERT_TRUE(bytes_or.ok()) << bytes_or.status();
+  std::ofstream output(path, std::ios::binary);
+  ASSERT_TRUE(output.is_open());
+  output.write(reinterpret_cast<const char*>(bytes_or->data()),
+               static_cast<std::streamsize>(bytes_or->size()));
+  ASSERT_TRUE(output.good());
+}
+
+std::vector<uint8_t> ReadBinaryFile(const std::filesystem::path& path) {
+  std::ifstream input(path, std::ios::binary);
+  EXPECT_TRUE(input.is_open());
+  return std::vector<uint8_t>(std::istreambuf_iterator<char>(input),
+                              std::istreambuf_iterator<char>());
+}
 
 int ReadWordAt(const Rom& rom, int addr) {
   const uint8_t low = rom.data()[addr];
@@ -594,8 +712,9 @@ TEST(ObjectTileEditorPanelTest,
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
   ObjectTileEditorPanel panel(nullptr, &rom);
-  panel.OpenForNewObject(/*width=*/2, /*height=*/2, "custom.bin",
-                         /*object_id=*/0x123, /*room_id=*/0, nullptr);
+  ObjectTileEditorPanelTestAccess::OpenCustomLayoutForTest(
+      panel, /*width=*/2, /*height=*/2, /*object_id=*/0x31,
+      /*room_id=*/0, /*rooms=*/nullptr, /*modified=*/false);
   ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
   ObjectTileEditorPanelTestAccess::ClearModifications(panel);
   ObjectTileEditorPanelTestAccess::SeedRenderedBitmaps(panel);
@@ -609,7 +728,7 @@ TEST(ObjectTileEditorPanelTest,
   EXPECT_TRUE(absl::IsOutOfRange(status));
   EXPECT_TRUE(panel.IsOpen());
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
-  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), 0x123);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), 0x31);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(panel), 0);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
@@ -621,8 +740,9 @@ TEST(ObjectTileEditorPanelTest,
   Rom rom;
 
   ObjectTileEditorPanel panel(nullptr, &rom);
-  panel.OpenForNewObject(/*width=*/2, /*height=*/2, "custom.bin",
-                         /*object_id=*/0x123, /*room_id=*/0, nullptr);
+  ObjectTileEditorPanelTestAccess::OpenCustomLayoutForTest(
+      panel, /*width=*/2, /*height=*/2, /*object_id=*/0x31,
+      /*room_id=*/0, /*rooms=*/nullptr, /*modified=*/false);
   ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
   ObjectTileEditorPanelTestAccess::ClearModifications(panel);
   ObjectTileEditorPanelTestAccess::SeedRenderedBitmaps(panel);
@@ -638,7 +758,7 @@ TEST(ObjectTileEditorPanelTest,
   EXPECT_TRUE(absl::IsFailedPrecondition(status));
   EXPECT_TRUE(panel.IsOpen());
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
-  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), 0x123);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), 0x31);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(panel), 0);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
@@ -652,15 +772,16 @@ TEST(ObjectTileEditorPanelTest,
   DungeonRoomStore rooms(&rom);
 
   ObjectTileEditorPanel panel(nullptr, &rom);
-  panel.OpenForNewObject(/*width=*/1, /*height=*/1, "custom.bin",
-                         /*object_id=*/0x31, /*room_id=*/0, &rooms);
+  ObjectTileEditorPanelTestAccess::OpenCustomLayoutForTest(
+      panel, /*width=*/1, /*height=*/1, /*object_id=*/0x31,
+      /*room_id=*/0, &rooms, /*modified=*/false);
 
   const absl::Status status =
       panel.OpenForObject(/*object_id=*/0x40, /*room_id=*/0, &rooms);
 
   EXPECT_TRUE(absl::IsUnimplemented(status));
   EXPECT_TRUE(panel.IsOpen());
-  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::IsNewObject(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::Layout(panel).is_custom);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), 0x31);
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::Layout(panel)
                    .source_provenance.has_value());
@@ -726,8 +847,9 @@ TEST(ObjectTileEditorPanelTest, ExplicitCloseClearsTransientStateAndContext) {
 
   ObjectTileEditorPanel panel(nullptr, &rom);
   DungeonRoomStore rooms(&rom);
-  panel.OpenForNewObject(/*width=*/2, /*height=*/2, "custom.bin",
-                         /*object_id=*/0x123, /*room_id=*/5, &rooms);
+  ObjectTileEditorPanelTestAccess::OpenCustomLayoutForTest(
+      panel, /*width=*/2, /*height=*/2, /*object_id=*/0x31,
+      /*room_id=*/5, &rooms);
   ObjectTileEditorPanelTestAccess::SeedTransientState(panel);
   ObjectTileEditorPanelTestAccess::SeedRenderedBitmaps(panel);
 
@@ -845,22 +967,21 @@ TEST(ObjectTileEditorPanelTest,
             std::string::npos);
 }
 
-TEST(ObjectTileEditorPanelTest, OpenForNewObjectClearsPendingSharedConfirm) {
+TEST(ObjectTileEditorPanelTest, OpeningCustomLayoutClearsPendingSharedConfirm) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
   ObjectTileEditorPanel panel(nullptr, &rom);
-  panel.OpenForNewObject(/*width=*/2, /*height=*/2, "first.bin",
-                         /*object_id=*/0x123, /*room_id=*/0, nullptr);
-  ObjectTileEditorPanelTestAccess::ClearModifications(panel);
+  ObjectTileEditorPanelTestAccess::OpenCustomLayoutForTest(
+      panel, /*width=*/2, /*height=*/2, /*object_id=*/0x31,
+      /*room_id=*/0, /*rooms=*/nullptr, /*modified=*/false);
   ObjectTileEditorPanelTestAccess::SeedTransientState(panel);
   ObjectTileEditorPanelTestAccess::SeedRenderedBitmaps(panel);
 
-  const absl::Status status = panel.OpenForNewObject(
-      /*width=*/1, /*height=*/1, "second.bin", /*object_id=*/0x124,
-      /*room_id=*/1, nullptr);
+  ObjectTileEditorPanelTestAccess::OpenCustomLayoutForTest(
+      panel, /*width=*/1, /*height=*/1, /*object_id=*/0x32,
+      /*room_id=*/1, /*rooms=*/nullptr, /*modified=*/false);
 
-  ASSERT_TRUE(status.ok()) << status;
   EXPECT_TRUE(panel.IsOpen());
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
@@ -872,41 +993,45 @@ TEST(ObjectTileEditorPanelTest, OpenForNewObjectClearsPendingSharedConfirm) {
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActionStatus(panel));
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsNone(panel));
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(panel), 1);
-  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), 0x124);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), 0x32);
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
 }
 
 TEST(ObjectTileEditorPanelTest,
-     OpenForNewObjectRejectsReplacingModifiedSession) {
+     OpenForCustomObjectRejectsReplacingModifiedSession) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_modified_session"));
   Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  rooms[1].SetLoaded(true);
   ObjectTileEditorPanel panel(nullptr, &rom);
-  ASSERT_TRUE(panel
-                  .OpenForNewObject(/*width=*/2, /*height=*/2, "first.bin",
-                                    /*object_id=*/0x123, /*room_id=*/0, nullptr)
-                  .ok());
+  ObjectTileEditorPanelTestAccess::OpenCustomLayoutForTest(
+      panel, /*width=*/2, /*height=*/2, /*object_id=*/0x31,
+      /*room_id=*/0, &rooms);
   ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
 
-  const absl::Status status = panel.OpenForNewObject(
-      /*width=*/1, /*height=*/1, "second.bin", /*object_id=*/0x124,
-      /*room_id=*/1, nullptr);
+  const absl::Status status = panel.OpenForCustomObject(
+      /*object_id=*/0x32, /*subtype=*/0, /*room_id=*/1, &rooms);
 
   EXPECT_TRUE(absl::IsFailedPrecondition(status));
-  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), 0x123);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), 0x31);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(panel), 0);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::Layout(panel).custom_filename,
-            "first.bin");
+            "test_custom.bin");
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
 }
 
 TEST(ObjectTileEditorPanelTest,
-     OpenForNewObjectSelectsFirstCellAndKeepsDefaultPaletteInSync) {
+     CustomLayoutSelectsFirstCellAndKeepsDefaultPaletteInSync) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
   ObjectTileEditorPanel panel(nullptr, &rom);
-  panel.OpenForNewObject(/*width=*/2, /*height=*/2, "selected.bin",
-                         /*object_id=*/0x124, /*room_id=*/1, nullptr);
+  ObjectTileEditorPanelTestAccess::OpenCustomLayoutForTest(
+      panel, /*width=*/2, /*height=*/2, /*object_id=*/0x32,
+      /*room_id=*/1, /*rooms=*/nullptr, /*modified=*/false);
 
   EXPECT_TRUE(panel.IsOpen());
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
@@ -914,6 +1039,7 @@ TEST(ObjectTileEditorPanelTest,
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0);
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::SourcePalette(panel), 2);
   EXPECT_TRUE(ObjectTileEditorPanelTestAccess::AtlasDirty(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::Layout(panel).is_custom);
 }
 
 TEST(ObjectTileEditorPanelTest,
@@ -944,24 +1070,190 @@ TEST(ObjectTileEditorPanelTest,
 }
 
 TEST(ObjectTileEditorPanelTest,
-     SharedTileDataUsageCountIgnoresCustomLayoutsEvenWithTileDataAddress) {
+     CustomSourceImpactCountsSingleFixedSlotByResolvedPath) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_single_consumer"));
+  WriteCustomObjectAsset(custom_state.dir / "track_LR.bin",
+                         zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}});
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  rooms[0].SetLoaded(true);
 
   ObjectTileEditorPanel panel(nullptr, &rom);
-  auto layout = zelda3::ObjectTileLayout::CreateEmpty(
-      /*width=*/1, /*height=*/1, /*object_id=*/0x40, "custom.bin");
-  layout.tile_data_address = 0x1234;
-  ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
+  ASSERT_TRUE(panel
+                  .OpenForCustomObject(/*object_id=*/0x31, /*subtype=*/0,
+                                       /*room_id=*/0, &rooms)
+                  .ok());
 
   auto usage_count_or =
       ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel);
   ASSERT_TRUE(usage_count_or.ok()) << usage_count_or.status();
-  EXPECT_EQ(*usage_count_or, 0);
+  EXPECT_EQ(*usage_count_or, 1);
   auto conflict_or =
       ObjectTileEditorPanelTestAccess::HasSharedTileDataConflict(panel);
   ASSERT_TRUE(conflict_or.ok()) << conflict_or.status();
   EXPECT_FALSE(*conflict_or);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     SharedCustomAssetRequiresConfirmationBeforePublishingSameFamilySlots) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_shared_family"));
+  const auto asset_path = custom_state.dir / "shared.bin";
+  WriteCustomObjectAsset(asset_path,
+                         zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}});
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0x31, {"shared.bin", "shared.bin"}}});
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  rooms[0].SetLoaded(true);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(panel
+                  .OpenForCustomObject(/*object_id=*/0x31, /*subtype=*/0,
+                                       /*room_id=*/0, &rooms)
+                  .ok());
+
+  auto usage_count_or =
+      ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel);
+  ASSERT_TRUE(usage_count_or.ok()) << usage_count_or.status();
+  EXPECT_EQ(*usage_count_or, 2);
+  const std::vector<uint8_t> original_bytes = ReadBinaryFile(asset_path);
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x24, /*palette=*/2);
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/true);
+
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 2);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsWarning(panel));
+  EXPECT_NE(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel).find(
+                "Confirm shared asset publish"),
+            std::string::npos);
+  EXPECT_EQ(ReadBinaryFile(asset_path), original_bytes);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/false);
+
+  EXPECT_NE(ReadBinaryFile(asset_path), original_bytes);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsSuccess(panel));
+  EXPECT_NE(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel).find(
+                "Published shared custom asset"),
+            std::string::npos);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     CustomSourceImpactCountsCrossFamilySlotsSharingOneAsset) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_cross_family"));
+  WriteCustomObjectAsset(custom_state.dir / "shared.bin",
+                         zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}});
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0x31, {"shared.bin"}}, {0x32, {"shared.bin"}}});
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  rooms[0].SetLoaded(true);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(panel
+                  .OpenForCustomObject(/*object_id=*/0x32, /*subtype=*/0,
+                                       /*room_id=*/0, &rooms)
+                  .ok());
+
+  auto usage_count_or =
+      ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel);
+  ASSERT_TRUE(usage_count_or.ok()) << usage_count_or.status();
+  EXPECT_EQ(*usage_count_or, 2);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     CustomSourceImpactRecognizesCaseAliasOnInsensitiveFilesystem) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_case_alias"));
+  const auto mixed_case_path = custom_state.dir / "Shared.bin";
+  const auto lower_case_path = custom_state.dir / "shared.bin";
+  WriteCustomObjectAsset(mixed_case_path,
+                         zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}});
+  std::error_code equivalent_error;
+  if (!std::filesystem::equivalent(mixed_case_path, lower_case_path,
+                                   equivalent_error) ||
+      equivalent_error) {
+    GTEST_SKIP() << "Filesystem treats case variants as distinct paths";
+  }
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0x31, {"Shared.bin", "shared.bin"}}});
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  rooms[0].SetLoaded(true);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(panel
+                  .OpenForCustomObject(/*object_id=*/0x31, /*subtype=*/0,
+                                       /*room_id=*/0, &rooms)
+                  .ok());
+
+  auto usage_count_or =
+      ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel);
+  ASSERT_TRUE(usage_count_or.ok()) << usage_count_or.status();
+  EXPECT_EQ(*usage_count_or, 2);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     CustomSourceImpactCountsEnabledSubtypeTwoCornerAlias) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_corner_alias"));
+  WriteCustomObjectAsset(custom_state.dir / "corner.bin",
+                         zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}});
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0x31, {"", "", "corner.bin"}}});
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  rooms[0].SetLoaded(true);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(panel
+                  .OpenForCustomObject(/*object_id=*/0x31, /*subtype=*/2,
+                                       /*room_id=*/0, &rooms)
+                  .ok());
+
+  auto usage_count_or =
+      ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel);
+  ASSERT_TRUE(usage_count_or.ok()) << usage_count_or.status();
+  EXPECT_EQ(*usage_count_or, 2);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     OpenForCustomObjectRejectsDisabledFeatureAndUnloadedRoom) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_readiness"));
+  WriteCustomObjectAsset(custom_state.dir / "track_LR.bin",
+                         zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}});
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  (void)rooms[0];
+  ObjectTileEditorPanel panel(nullptr, &rom);
+
+  const absl::Status unloaded_status = panel.OpenForCustomObject(
+      /*object_id=*/0x31, /*subtype=*/0, /*room_id=*/0, &rooms);
+  EXPECT_TRUE(absl::IsFailedPrecondition(unloaded_status));
+  EXPECT_FALSE(panel.IsOpen());
+
+  rooms[0].SetLoaded(true);
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  const absl::Status disabled_status = panel.OpenForCustomObject(
+      /*object_id=*/0x31, /*subtype=*/0, /*room_id=*/0, &rooms);
+  EXPECT_TRUE(absl::IsFailedPrecondition(disabled_status));
+  EXPECT_FALSE(panel.IsOpen());
 }
 
 TEST(ObjectTileEditorPanelTest,
@@ -970,7 +1262,7 @@ TEST(ObjectTileEditorPanelTest,
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
   ObjectTileEditorPanel panel(nullptr, &rom);
-  auto layout = zelda3::ObjectTileLayout::CreateEmpty(
+  auto layout = ObjectTileEditorPanelTestAccess::MakeCustomLayout(
       /*width=*/1, /*height=*/1, /*object_id=*/0x40, "custom.bin");
   layout.is_custom = false;
   layout.custom_filename.clear();
@@ -1027,8 +1319,9 @@ TEST(ObjectTileEditorPanelTest, RenderWithoutRoomContextClearsStaleBitmaps) {
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
   ObjectTileEditorPanel panel(nullptr, &rom);
-  panel.OpenForNewObject(/*width=*/1, /*height=*/1, "custom.bin",
-                         /*object_id=*/0x123, /*room_id=*/0, nullptr);
+  ObjectTileEditorPanelTestAccess::OpenCustomLayoutForTest(
+      panel, /*width=*/1, /*height=*/1, /*object_id=*/0x31,
+      /*room_id=*/0, /*rooms=*/nullptr, /*modified=*/false);
   ObjectTileEditorPanelTestAccess::SeedRenderedBitmaps(panel);
   ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
   ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
@@ -1046,7 +1339,7 @@ TEST(ObjectTileEditorPanelTest,
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
   ObjectTileEditorPanel panel(nullptr, &rom);
-  auto layout = zelda3::ObjectTileLayout::CreateEmpty(
+  auto layout = ObjectTileEditorPanelTestAccess::MakeCustomLayout(
       /*width=*/2, /*height=*/1, /*object_id=*/0x123, "custom.bin");
   layout.cells[1].tile_info =
       gfx::TileInfo(/*id=*/0x56, /*palette=*/5, false, false, false);
@@ -1070,7 +1363,7 @@ TEST(ObjectTileEditorPanelTest,
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
   ObjectTileEditorPanel panel(nullptr, &rom);
-  auto layout = zelda3::ObjectTileLayout::CreateEmpty(
+  auto layout = ObjectTileEditorPanelTestAccess::MakeCustomLayout(
       /*width=*/1, /*height=*/1, /*object_id=*/0x123, "custom.bin");
   layout.cells[0].tile_info =
       gfx::TileInfo(/*id=*/0x2A, /*palette=*/2, false, false, false);
@@ -1455,6 +1748,7 @@ TEST(ObjectTileEditorPanelTest,
   DungeonRoomStore rooms(&rom);
   auto& current_room = rooms[0];
   auto& other_room = rooms[1];
+  current_room.SetLoaded(true);
   zelda3::RoomLayerManager layer_manager;
   (void)current_room.GetCompositeBitmap(layer_manager);
   (void)other_room.GetCompositeBitmap(layer_manager);
@@ -1470,8 +1764,7 @@ TEST(ObjectTileEditorPanelTest,
   ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
       panel, /*tile_id=*/0x123, /*palette=*/3);
   int callback_count = 0;
-  panel.SetStandardTilesAppliedCallback(
-      [&callback_count]() { ++callback_count; });
+  panel.SetTilesAppliedCallback([&callback_count]() { ++callback_count; });
 
   ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
                                                 /*confirm_shared=*/true);
@@ -1480,6 +1773,105 @@ TEST(ObjectTileEditorPanelTest,
   EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
   EXPECT_TRUE(current_room.IsCompositeDirty());
   EXPECT_TRUE(other_room.IsCompositeDirty());
+}
+
+TEST(ObjectTileEditorPanelTest,
+     SuccessfulCustomApplyInvalidatesAllRoomsAndSelectorPreviews) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_custom_global_refresh"));
+  WriteCustomObjectAsset(custom_state.dir / "track_LR.bin",
+                         zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}});
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  auto& current_room = rooms[0];
+  auto& other_room = rooms[1];
+  current_room.SetLoaded(true);
+  zelda3::RoomLayerManager layer_manager;
+  (void)current_room.GetCompositeBitmap(layer_manager);
+  (void)other_room.GetCompositeBitmap(layer_manager);
+  ASSERT_FALSE(current_room.IsCompositeDirty());
+  ASSERT_FALSE(other_room.IsCompositeDirty());
+
+  DungeonObjectSelector selector(&rom);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(panel
+                  .OpenForCustomObject(/*object_id=*/0x31, /*subtype=*/0,
+                                       /*room_id=*/0, &rooms)
+                  .ok());
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x24, /*palette=*/2);
+  panel.SetTilesAppliedCallback(
+      [&selector]() { selector.InvalidatePreviewCache(); });
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel);
+
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_TRUE(current_room.IsCompositeDirty());
+  EXPECT_TRUE(other_room.IsCompositeDirty());
+  EXPECT_EQ(selector.preview_cache_invalidations_for_testing(), 1u);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     EditorSynchronizesCustomAssetGenerationWithoutVisibleSelector) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_dungeon_editor_custom_generation"));
+  WriteCustomObjectAsset(custom_state.dir / "track_LR.bin",
+                         zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}});
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonEditorV2 editor(&rom);
+  auto& room = editor.rooms()[0];
+  room.SetLoaded(true);
+  DungeonEditorV2ObjectTileEditorTestPeer::SynchronizeCustomObjectAssets(
+      editor);
+  zelda3::RoomLayerManager layer_manager;
+  (void)room.GetCompositeBitmap(layer_manager);
+  ASSERT_FALSE(room.IsCompositeDirty());
+  ASSERT_EQ(editor.object_selector_panel(), nullptr);
+
+  zelda3::CustomObjectManager::Get().ReloadAll();
+  DungeonEditorV2ObjectTileEditorTestPeer::SynchronizeCustomObjectAssets(
+      editor);
+
+  EXPECT_TRUE(room.IsCompositeDirty());
+}
+
+TEST(ObjectTileEditorPanelTest,
+     EditorDestructionDetachesWorkspaceOwnedCustomObjectPanels) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  ObjectTileEditorPanel tile_editor(nullptr, &rom);
+  ObjectSelectorContent object_selector(&rom, nullptr);
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  editor->rooms()[0].SetLoaded(true);
+  object_selector.SetRooms(&editor->rooms());
+  object_selector.object_selector().SetTileEditorPanel(&tile_editor);
+  ObjectTileEditorPanelTestAccess::OpenCustomLayoutForTest(
+      tile_editor, /*width=*/1, /*height=*/1, /*object_id=*/0x31,
+      /*room_id=*/0, &editor->rooms(), /*modified=*/false);
+  tile_editor.SetStandardWritePreflightCallback(
+      [](const std::vector<std::pair<uint32_t, uint32_t>>&) {
+        return absl::OkStatus();
+      });
+  tile_editor.SetTilesAppliedCallback([]() {});
+  DungeonEditorV2ObjectTileEditorTestPeer::SetObjectTileEditorPanel(
+      *editor, &tile_editor);
+  DungeonEditorV2ObjectTileEditorTestPeer::SetObjectSelectorPanel(
+      *editor, &object_selector);
+
+  editor.reset();
+
+  EXPECT_FALSE(tile_editor.IsOpen());
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::Rooms(tile_editor), nullptr);
+  EXPECT_FALSE(
+      ObjectTileEditorPanelTestAccess::HasStandardWritePreflightCallback(
+          tile_editor));
+  EXPECT_FALSE(
+      ObjectTileEditorPanelTestAccess::HasTilesAppliedCallback(tile_editor));
+  EXPECT_EQ(object_selector.object_selector().get_rooms(), nullptr);
 }
 
 TEST(ObjectTileEditorPanelTest,
@@ -1508,7 +1900,7 @@ TEST(ObjectTileEditorPanelTest,
   int preflight_count = 0;
   int applied_callback_count = 0;
   std::vector<std::pair<uint32_t, uint32_t>> observed_ranges;
-  panel.SetStandardTilesAppliedCallback(
+  panel.SetTilesAppliedCallback(
       [&applied_callback_count]() { ++applied_callback_count; });
   panel.SetStandardWritePreflightCallback(
       [&](const std::vector<std::pair<uint32_t, uint32_t>>& ranges) {
@@ -1666,70 +2058,55 @@ TEST(ObjectTileEditorPanelTest,
 }
 
 TEST(ObjectTileEditorPanelTest,
-     ApplyChangesWithoutCallbackLeavesNewObjectModeAndShowsCustomTitle) {
+     ApplyChangesReplacesExistingSlotAndShowsExactCustomTitle) {
   ScopedCustomObjectState custom_state(
       MakeTempDir("yaze_obj_tile_panel_custom_save"));
+  WriteCustomObjectAsset(custom_state.dir / "track_LR.bin",
+                         zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}});
 
   Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  rooms[0].SetLoaded(true);
   ObjectTileEditorPanel panel(nullptr, &rom);
-  panel.OpenForNewObject(/*width=*/1, /*height=*/1, "fresh_custom.bin",
-                         /*object_id=*/0x31, /*room_id=*/0, nullptr);
+  ASSERT_TRUE(panel
+                  .OpenForCustomObject(/*object_id=*/0x31, /*subtype=*/0,
+                                       /*room_id=*/0, &rooms)
+                  .ok());
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x24, /*palette=*/2);
 
-  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::IsNewObject(panel));
   ObjectTileEditorPanelTestAccess::ApplyChanges(panel);
 
-  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::IsNewObject(panel));
-  EXPECT_TRUE(std::filesystem::exists(custom_state.dir / "fresh_custom.bin"));
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_TRUE(std::filesystem::exists(custom_state.dir / "track_LR.bin"));
   EXPECT_NE(ObjectTileEditorPanelTestAccess::BuildWindowTitle(panel).find(
-                "Custom Object 0x031 - fresh_custom.bin"),
+                "Custom 0x031:00 - track_LR.bin"),
             std::string::npos);
-}
-
-TEST(ObjectTileEditorPanelTest, ApplyChangesForNewObjectFiresCallbackOnce) {
-  ScopedCustomObjectState custom_state(
-      MakeTempDir("yaze_obj_tile_panel_custom_callback"));
-
-  Rom rom;
-  ObjectTileEditorPanel panel(nullptr, &rom);
-  panel.OpenForNewObject(/*width=*/1, /*height=*/1, "callback_custom.bin",
-                         /*object_id=*/0x31, /*room_id=*/0, nullptr);
-
-  int callback_count = 0;
-  int callback_object_id = -1;
-  std::string callback_filename;
-  panel.SetObjectCreatedCallback(
-      [&](int object_id, const std::string& filename) {
-        ++callback_count;
-        callback_object_id = object_id;
-        callback_filename = filename;
-      });
-
-  ObjectTileEditorPanelTestAccess::ApplyChanges(panel);
-  ASSERT_EQ(callback_count, 1);
-  EXPECT_EQ(callback_object_id, 0x31);
-  EXPECT_EQ(callback_filename, "callback_custom.bin");
-  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::IsNewObject(panel));
-
-  ObjectTileEditorPanelTestAccess::MarkFirstCellModified(panel);
-  ObjectTileEditorPanelTestAccess::ApplyChanges(panel);
-  EXPECT_EQ(callback_count, 1);
 }
 
 TEST(ObjectTileEditorPanelTest,
      ApplyChangesWithRoomContextRefreshesPreviewAndAtlasImmediately) {
   ScopedCustomObjectState custom_state(
       MakeTempDir("yaze_obj_tile_panel_apply_refresh"));
+  WriteCustomObjectAsset(
+      custom_state.dir / "track_LR.bin",
+      zelda3::CustomObject{
+          .tiles = {
+              {0, 0, 0x2810}, {1, 0, 0x2811}, {0, 1, 0x2820}, {1, 1, 0x2821}}});
 
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
   DungeonRoomStore rooms(&rom);
-  (void)rooms[0];
+  rooms[0].SetLoaded(true);
 
   ObjectTileEditorPanel panel(nullptr, &rom);
   panel.SetCurrentPaletteGroup(MakeTestPaletteGroup(/*base=*/0));
-  panel.OpenForNewObject(/*width=*/2, /*height=*/2, "apply_refresh.bin",
-                         /*object_id=*/0x31, /*room_id=*/0, &rooms);
+  ASSERT_TRUE(panel
+                  .OpenForCustomObject(/*object_id=*/0x31, /*subtype=*/0,
+                                       /*room_id=*/0, &rooms)
+                  .ok());
   ObjectTileEditorPanelTestAccess::SeedRenderedBitmaps(panel);
   ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
       panel, /*tile_id=*/0x24, /*palette=*/2);
@@ -1754,19 +2131,23 @@ TEST(ObjectTileEditorPanelTest,
      PaletteChangeAfterApplyRefreshesPreviewAndAtlasWithoutStalePaletteData) {
   ScopedCustomObjectState custom_state(
       MakeTempDir("yaze_obj_tile_panel_palette_refresh"));
+  WriteCustomObjectAsset(custom_state.dir / "track_LR.bin",
+                         zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}});
 
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
 
   DungeonRoomStore rooms(&rom);
-  (void)rooms[0];
+  rooms[0].SetLoaded(true);
 
   ObjectTileEditorPanel panel(nullptr, &rom);
   const auto first_palette_group = MakeTestPaletteGroup(/*base=*/0);
   const auto second_palette_group = MakeTestPaletteGroup(/*base=*/20);
   panel.SetCurrentPaletteGroup(first_palette_group);
-  panel.OpenForNewObject(/*width=*/1, /*height=*/1, "palette_refresh.bin",
-                         /*object_id=*/0x31, /*room_id=*/0, &rooms);
+  ASSERT_TRUE(panel
+                  .OpenForCustomObject(/*object_id=*/0x31, /*subtype=*/0,
+                                       /*room_id=*/0, &rooms)
+                  .ok());
   ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
       panel, /*tile_id=*/0x18, /*palette=*/2);
 
@@ -1792,6 +2173,61 @@ TEST(ObjectTileEditorPanelTest,
             second_palette_group.palette_ref(0)[0].snes());
   EXPECT_EQ(ObjectTileEditorPanelTestAccess::AtlasPaletteColor(panel, 0),
             second_palette_group.palette_ref(2)[0].snes());
+}
+
+TEST(ObjectTileEditorPanelTest,
+     TerminatorOnlyCustomAssetStaysOpenAndSupportsAddRevertApply) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_empty_slot"));
+  const auto asset_path = custom_state.dir / "track_LR.bin";
+  WriteCustomObjectAsset(asset_path, zelda3::CustomObject{});
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  rooms[0].SetLoaded(true);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(panel
+                  .OpenForCustomObject(/*object_id=*/0x31, /*subtype=*/0,
+                                       /*room_id=*/0, &rooms)
+                  .ok());
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
+
+  {
+    ScopedImGuiContext imgui_context;
+    bool open = true;
+    ImGui::NewFrame();
+    ImGui::Begin("ObjectTileEditorEmptySlotHost");
+    panel.Draw(&open);
+    ImGui::End();
+    ImGui::Render();
+    EXPECT_TRUE(open);
+    EXPECT_TRUE(panel.IsOpen());
+  }
+
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::AddFirstTileToEmptyCustomLayout(panel)
+          .ok());
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+
+  ObjectTileEditorPanelTestAccess::RevertCurrentLayout(panel);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasLayout(panel));
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+
+  ASSERT_TRUE(
+      ObjectTileEditorPanelTestAccess::AddFirstTileToEmptyCustomLayout(panel)
+          .ok());
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+
+  auto decoded_or =
+      zelda3::DecodeCustomObjectBinary(ReadBinaryFile(asset_path));
+  ASSERT_TRUE(decoded_or.ok()) << decoded_or.status();
+  ASSERT_EQ(decoded_or->tiles.size(), 1u);
+  EXPECT_EQ(decoded_or->tiles.front().rel_x, 0);
+  EXPECT_EQ(decoded_or->tiles.front().rel_y, 0);
+  EXPECT_NE(decoded_or->tiles.front().tile_data, 0);
 }
 
 }  // namespace

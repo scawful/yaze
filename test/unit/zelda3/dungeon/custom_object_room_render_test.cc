@@ -176,6 +176,70 @@ TEST_F(CustomObjectRoomRenderTest,
 }
 
 TEST_F(CustomObjectRoomRenderTest,
+       ZeroPayloadPreservesTheRoomTileAlreadyUnderneathIt) {
+  EnableCustomObjects({"track_LR.bin"});
+  const std::vector<uint8_t> binary = {
+      0x02, 0x00,  // Two adjacent positions.
+      0x00, 0x08,  // Visible tile 0, palette 2.
+      0x00, 0x00,  // Runtime no-op: preserve the underlying tile.
+      0x00, 0x00,
+  };
+  {
+    std::ofstream file(temp_dir_ / "track_LR.bin", std::ios::binary);
+    ASSERT_TRUE(file.good());
+    file.write(reinterpret_cast<const char*>(binary.data()), binary.size());
+    ASSERT_TRUE(file.good());
+  }
+
+  RoomObject underlying(/*id=*/0x34, /*x=*/4, /*y=*/4, /*size=*/0,
+                        /*layer=*/2);
+  underlying.tiles_loaded_ = true;
+  underlying.tiles_ = {gfx::TileInfo(/*id=*/0, /*pal=*/3, false, false, false)};
+  const RoomObject custom(/*id=*/0x31, /*x=*/3, /*y=*/4, /*size=*/0,
+                          /*layer=*/2);
+  Room room = MakeRoomWithObjects({underlying, custom});
+
+  RenderObjectBuffers(room);
+
+  const auto& buffer = room.object_bg1_buffer();
+  const int visible_pixel = PixelIndex(buffer.bitmap(), 3 * 8, 4 * 8);
+  const int preserved_pixel = PixelIndex(buffer.bitmap(), 4 * 8, 4 * 8);
+  EXPECT_EQ(buffer.bitmap().data()[visible_pixel], kPaletteTwoRightSlotPixel);
+  EXPECT_EQ(buffer.bitmap().data()[preserved_pixel], 57)
+      << "The zero custom word must leave the palette-3 base tile intact";
+  EXPECT_EQ(buffer.coverage_data()[visible_pixel], 1);
+  EXPECT_EQ(buffer.coverage_data()[preserved_pixel], 1);
+}
+
+TEST_F(CustomObjectRoomRenderTest,
+       TerminatorOnlyAssetDrawsNothingAndPreservesUnderlyingRoomTile) {
+  EnableCustomObjects({"track_LR.bin"});
+  {
+    std::ofstream file(temp_dir_ / "track_LR.bin", std::ios::binary);
+    ASSERT_TRUE(file.good());
+    file.put(0);
+    file.put(0);
+    ASSERT_TRUE(file.good());
+  }
+
+  RoomObject underlying(/*id=*/0x34, /*x=*/3, /*y=*/4, /*size=*/0,
+                        /*layer=*/2);
+  underlying.tiles_loaded_ = true;
+  underlying.tiles_ = {gfx::TileInfo(/*id=*/0, /*pal=*/3, false, false, false)};
+  const RoomObject custom(/*id=*/0x31, /*x=*/3, /*y=*/4, /*size=*/0,
+                          /*layer=*/2);
+  Room room = MakeRoomWithObjects({underlying, custom});
+
+  RenderObjectBuffers(room);
+
+  const auto& buffer = room.object_bg1_buffer();
+  const int pixel = PixelIndex(buffer.bitmap(), 3 * 8, 4 * 8);
+  EXPECT_EQ(buffer.bitmap().data()[pixel], 57)
+      << "A terminator-only override must not stamp the vanilla fallback tile";
+  EXPECT_EQ(buffer.coverage_data()[pixel], 1);
+}
+
+TEST_F(CustomObjectRoomRenderTest,
        ObjectRerenderClearsOnlyObjectOwnedRevealBits) {
   RoomObject lower(/*id=*/0x34, /*x=*/2, /*y=*/3, /*size=*/0, /*layer=*/1);
   lower.tiles_loaded_ = true;
