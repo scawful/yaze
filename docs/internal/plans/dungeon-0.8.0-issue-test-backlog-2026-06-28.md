@@ -298,10 +298,110 @@ Local evidence: `/tmp/yaze-wave4-focused.xml`,
 `/tmp/yaze-wave4-validation.json`, and `/tmp/yaze-wave4-rom-doctor.json`.
 These are temporary run artifacts, not emulator captures or committed fixtures.
 
-Next development target: independently isolate ice/water room composition
-and sprite CGRAM, starting with the unobstructed BG2 ice footprint in room
-`0x0CE`. Continue remaining door-family and custom-object proof; do not turn
-this integration result into a full dungeon-release readiness claim.
+The fifth slice below follows up on ice/water composition and sprite
+palettes. The `0x0CE` ice footprint is partly covered by an upper-layer pit;
+its capture must exercise the composite, not assume an unobstructed BG2 stamp.
+
+## Fifth implementation slice: color math and Babasu preview (2026-09-14)
+
+Integrated and verified at `264afe558` on the preview branch only. The
+installed app and mainline were not changed; no release qualification is
+claimed.
+
+- **Layer mode 7:** use saturating five-bit color addition, not mode 4's
+  averaging. USDASM `$02A20C` selects `CGADSUB=$32` for full addition;
+  `$02A212` selects `$62` for half addition. Equal colors must also add.
+  Both tile-priority settings are covered. Mode 4 retains its existing
+  behavior, and the door-sensitive mode 6 branch is unchanged. The output
+  still chooses the nearest color in the winning indexed palette bank;
+  this is not general exact SNES RGBA color math.
+- **Babasu `0x9D`:** the static preview now uses OBJ palette 5 and a full
+  16×16 upper tile at `(0,-8)`, replacing the wrong palette and 16×8 piece
+  at `(0,-16)`. Source frame 12 at `$0DBCA0` / PC `0x6BCA0` uses CHR
+  `4E/5E` at `y=-8/0`. Tabulated properties `$0A XOR $01` select page 1,
+  palette 5. Tests pin all preview pixels and the actual Expanded-ROM
+  frame/property bytes. Shared overlap rows contain identical pixels, so
+  this pose cannot independently prove OAM order. Runtime animation and
+  sprite CGRAM remain outside the static test.
+- **Oracle room audit:** rooms `0x0CE`, `0x033`, and `0x04A` all use mode 6,
+  not 7. The mode 7 fix therefore does not explain their reported symptoms.
+  `0x0CE` base/patched headers and all 93 ordered objects agree, as does
+  the 64×64 D1 composite ROI at `(232,184)`. Other room pixels differ
+  because the patched ROM includes wall overrides. Do not use full-room
+  base/patched equality as an acceptance requirement.
+
+Verification, with four build workers and explicit vanilla/Expanded-ROM and
+Oracle sprite-asset paths as in the fourth slice:
+
+- **RED before fixes:** mode 7 full-add failed while the mode 4 control
+  passed; Babasu's pixel regression failed while its ROM source contract
+  passed. No expected image was refreshed to obtain GREEN.
+- **509/509 unit/ROM tests**, zero failures/skips, exact agreement with
+  discovered names. This includes all fourth-slice selections plus all 30
+  `RoomLayerManagerTest` cases; 45 tests cover compositor and sprite/cache
+  behavior specifically. The maintained ladder does not select those
+  suites, so retain this separate run.
+- **57/57 PNG/composite comparisons** across 19 rooms and three scales;
+  maintained ladder: 42 synthetic, 12 ROM/payload, 12 room/composition,
+  seven unchanged Mesen tests, and 1,190 bounds cases with zero mismatches
+  or empty traces. The audit-runner CTest contract passed.
+- Native `yaze`, `z3ed`, unit and integration targets build. Canonical
+  vanilla, Oracle base and Oracle patched ROM SHA-256 values are unchanged.
+  Fresh base-ROM `rom-doctor` still reports zero critical/errors and two
+  heuristic warnings; no repair was performed.
+
+Reproduce using the fourth slice's environment and `wave4_filter`:
+
+```sh
+cmake --build build/presets/mac-ai --config Release --target yaze_test_unit yaze_test_integration yaze z3ed --parallel 4
+wave5_filter="RoomLayerManagerTest.*:$wave4_filter"
+build/presets/mac-ai/bin/yaze_test_unit --gtest_list_tests --gtest_filter="$wave5_filter"
+build/presets/mac-ai/bin/yaze_test_unit --gtest_filter="$wave5_filter" --gtest_output=xml:/tmp/yaze-wave5-broad.xml
+build/presets/mac-ai/bin/yaze_test_integration --gtest_filter='Dungeon*RoomRenderParityTest.*HeadlessPngMatchesRoomComposite' --gtest_output=xml:/tmp/yaze-wave5-export-green.xml
+scripts/agents/audit-dungeon-visual-parity.sh --build-dir build/presets/mac-ai --config Release --with-validate-report /tmp/yaze-wave5-validation.json
+ctest --test-dir build/presets/mac-ai --output-on-failure -R '^DungeonVisualParityAuditContract$'
+```
+
+### Ice capture gap and next source-backed fixes
+
+An isolated fresh-boot Mesen session reached Oracle room `0x0CE`, without a
+savestate load or original-ROM writes. Runtime tilemap words match the D1
+stamp, with `TM=$16`, `TS=$01`, `CGWSEL=$02`, `CGADSUB=$20`, mode 6.
+**No new independent RGBA fixture was accepted:** moving Link onto the pit
+started a fall/fade, and the captured animation phase was incomplete.
+Diagnostic color correspondence is not a pixel-parity pass. The temporary
+session was stopped; other emulator sessions were left alone.
+
+For the next capture, Oracle relocates entrance 34's room word to
+`$0F8068` (the legacy `$02C87B` recipe does not apply). Link Y/X words are
+`$0F8E68` / `$0F9068`; local safe-floor `(80,80)` in room `0x0CE` maps to
+world `(X=$1C50,Y=$1850)`. With camera `(X=$1C80,Y=$1870)`, the room ROI
+`(232,184,64,64)` maps to screenshot `(104,71,64,64)`. Record stable room
+and submode, current CGRAM, both bytes of animation offset `$7EC00F`, and
+DMA source `$7E0ADC`; wait for frame-zero graphics to transfer. Its offset
+cycles `0000/0400/0800`, so reading only the low byte cannot identify a frame.
+
+Next code slice: Mushroom Grotto room `0x033` has two source-confirmed
+geometry discrepancies, not a shared-palette defect:
+
+- `0xA7` Stalfos at `(8,26)`: source frame zero at PC `0x6C0F3` uses
+  16×16 CHR `00` at `(0,-10)` and CHR `06` at `(0,0)` (a duplicate body
+  entry is intentional). The current CHR `0C` body at `y=12` is wrong.
+  Keep OBJ palette 4; head-direction table is at PC `0x6C213`.
+- `0x91` StalfosKnight at `(16,18)`: source body at PC `0xF2CEC` uses
+  an 8×8 shoulder `64`, two 16×16 body tiles `61/62`, and mirrored 8×8
+  feet `74` at `(-3,16)/(11,16)`. Head table PC `0xF2E46` selects front
+  CHR `46` at `(0,-12)`. Keep OBJ palette 5. Cover head-first OAM overlap
+  and asymmetric foot mirroring; a static pose does not establish initial
+  runtime visibility because this enemy starts hidden.
+
+Local evidence: `/tmp/yaze-wave5-mode7-red.xml`,
+`/tmp/yaze-wave5-babasu-red.xml`, `/tmp/yaze-wave5-broad.xml`,
+`/tmp/yaze-wave5-export-green.xml`, `/tmp/yaze-wave5-parity.log`, and
+`/tmp/yaze-wave5-validation.json`. Capture diagnostics are under
+`/tmp/yaze-wave5-ice.l5QyYg`; these are temporary artifacts, not release
+fixtures. Remaining door/custom-object/runtime proof and platform packages
+remain open.
 
 ## Object coverage checklist
 

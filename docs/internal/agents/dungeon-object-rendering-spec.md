@@ -212,6 +212,15 @@ three scales). The maintained ladder remains green: 42 synthetic,
 [fourth-slice record](../plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md#fourth-implementation-slice-export-composition-and-oracle-boss-preview-2026-09-14)
 separates static source-asset, export-safety and runtime evidence.
 
+The fifth September 14 slice passed 509 focused unit/ROM tests, the same 57
+PNG/composite comparisons and the unchanged maintained ladder. It corrects
+mode 7 full-add color math and Babasu's static palette/tile geometry; mode 6
+is untouched. The attempted Oracle ice capture was rejected because Link's
+fall faded CGRAM and the animation phase was not fully recorded. No new
+independent fixture or golden refresh is claimed. The
+[fifth-slice record](../plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md#fifth-implementation-slice-color-math-and-babasu-preview-2026-09-14)
+records source contracts, commands and the next bounded sprite fixes.
+
 ### Known preview boundaries
 
 - Oracle-profile sprite `0xB1` uses Puffstool's source-backed static OAM
@@ -231,9 +240,14 @@ separates static source-asset, export-safety and runtime evidence.
 - Headless PNG rendering applies the same room merge/effect settings as the
   canvas. Full-image comparisons at three scales protect that contract;
   agreement between these two Yaze paths is not independent SNES evidence.
+- Babasu `0x9D` uses visible source frame 12: two overlapping 16×16 tiles,
+  CHR `4E/5E` at `y=-8/0`, OBJ page 1, palette 5. This is a static pose,
+  not emulated animation or a runtime-CGRAM assertion.
 - `0xD8`/`0xDA` water is structural/editor-preview coverage only until state-labeled Mesen captures verify each vanilla branch and layer-mode side effect.
 - Moving-floor objects have static tile stamps, but Yaze does not emulate the SNES runtime BG2 scrolling effect.
-- RGB averaging and indexed-palette fallback paths approximate SNES color math; only committed Mesen ROIs are pixel-parity claims.
+- Mode 7 uses saturated five-bit full addition; mode 4 retains its existing
+  half-add approximation. Mapping results back into the indexed palette
+  remains approximate. Only committed Mesen ROIs are pixel-parity claims.
 - More key, shutter, bombable, and exploding door ROIs are required before claiming full door-family parity.
 
 ### Oracle project witnesses
