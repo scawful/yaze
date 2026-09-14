@@ -91,6 +91,11 @@ unchanged pixels. Object Selector, placement ghost, Room Graphics, and Object
 Tile Editor use this token to refresh cached previews. It does not make pixel
 mutation thread-safe or replace separate palette-change handling.
 
+Shared palette changes refresh an open Object Tile Editor from its bound room's
+resolved palette, even when another room is active. HUD colors are shared;
+concrete dungeon-palette edits only refresh matching users. This notification
+path does not materialize missing rooms or replace unsaved tile layouts.
+
 Custom tile layouts retain raw source words for editing and saving. Both the
 rendered preview and custom atlas apply `CustomObjectRuntimeTileWord` only for
 display (notably Oracle `0x54`'s `OR $0300` graphics page). Atlas cell IDs remain
