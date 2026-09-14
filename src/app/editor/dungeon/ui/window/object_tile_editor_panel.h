@@ -152,6 +152,7 @@ class ObjectTileEditorPanel : public WindowContent {
   gfx::Bitmap tile8_atlas_bmp_;
   bool preview_dirty_ = true;
   bool atlas_dirty_ = true;
+  uint64_t room_graphics_revision_ = 0;
 
   // Shared tile data confirmation
   bool show_shared_confirm_ = false;

@@ -2200,6 +2200,14 @@ TEST(ObjectTileEditorPanelTest,
               original_layout.custom_source_bytes);
     EXPECT_FALSE(unchanged.HasModifications());
   }
+
+  // Source tile zero still uses runtime tile $300 when its palette makes the
+  // word nonzero. The all-zero source word remains a no-op, not tile $300.
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::AtlasPixel(panel, 0, 0, 0), 7);
+  ObjectTileEditorPanelTestAccess::SetSourcePalette(panel, 0);
+  ObjectTileEditorPanelTestAccess::RenderTile8Atlas(panel);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::AtlasPixel(panel, 0, 0, 0), 255);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::FirstCellTileId(panel), 0x10D);
 }
 
 TEST(ObjectTileEditorPanelTest,

@@ -59,6 +59,7 @@ void ObjectTileEditorPanel::ResetTransientState() {
   selected_source_tile_ = -1;
   preview_dirty_ = true;
   atlas_dirty_ = true;
+  room_graphics_revision_ = 0;
   show_shared_confirm_ = false;
   shared_object_count_ = 0;
   pending_shared_confirmation_.reset();
@@ -483,6 +484,16 @@ void ObjectTileEditorPanel::Draw(bool* p_open) {
     return;
   }
 
+  const auto* room =
+      rooms_ != nullptr ? rooms_->GetIfLoaded(current_room_id_) : nullptr;
+  const uint64_t graphics_revision =
+      room != nullptr ? room->graphics_revision() : 0;
+  if (graphics_revision != room_graphics_revision_) {
+    room_graphics_revision_ = graphics_revision;
+    preview_dirty_ = true;
+    atlas_dirty_ = true;
+  }
+
   const std::string session_title = BuildWindowTitle();
   ImGui::TextUnformatted(session_title.c_str());
   ImGui::TextDisabled(tr("Room 0x%03X"), current_room_id_);
@@ -611,7 +622,10 @@ void ObjectTileEditorPanel::RenderTile8Atlas() {
 
   auto status = tile_editor_->BuildTile8Atlas(
       tile8_atlas_bmp_, room->get_gfx_buffer().data(), current_palette_group_,
-      source_palette_);
+      source_palette_,
+      current_layout_.is_custom
+          ? std::optional<int16_t>(current_layout_.object_id)
+          : std::nullopt);
   if (status.ok()) {
     tile8_atlas_bmp_.UpdateTexture();
     atlas_dirty_ = false;
