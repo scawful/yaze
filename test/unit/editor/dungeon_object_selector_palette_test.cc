@@ -251,6 +251,73 @@ TEST(DungeonObjectSelectorPaletteTest,
 }
 
 TEST(DungeonObjectSelectorPaletteTest,
+     GraphicsReloadRefreshesPixelsWithoutChangingRoomHeader) {
+  for (int refresh_mode : {0, 1, 2}) {
+    SCOPED_TRACE(refresh_mode);
+    std::vector<uint8_t> rom_data(0x200000, 0);
+    StoreRomWord(&rom_data, 0x842E, 0x0E9A);
+    for (uint32_t address = 0x29EC; address < 0x29F4; address += 2) {
+      StoreRomWord(&rom_data, address, 0x09C0);
+    }
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(std::move(rom_data)).ok());
+    zelda3::GameData game_data;
+    game_data.graphics_buffer.assign(223 * 4096, 1);
+    DungeonRoomStore rooms(&rom);
+    auto& room = rooms[0];
+    room.SetLoaded(true);
+    room.SetGameData(&game_data);
+    room.LoadRoomGraphics();
+    room.CopyRoomGraphicsToBuffer();
+    const auto original_blocks = room.blocks();
+
+    DungeonObjectSelector selector(&rom);
+    selector.SetGameData(&game_data);
+    selector.set_rooms(&rooms);
+    selector.set_current_room_id(0);
+    zelda3::RoomObject object(0x11F, 0, 0, 0, 0);
+    gfx::BackgroundBuffer* preview = nullptr;
+    DungeonObjectSelectorTestAccess::GetOrCreatePreview(selector, object,
+                                                        &preview);
+    ASSERT_NE(preview, nullptr);
+    EXPECT_EQ(preview->bitmap().at(0), 33);
+    const auto invalidations =
+        selector.preview_cache_invalidations_for_testing();
+    DungeonObjectSelectorTestAccess::GetOrCreatePreview(selector, object,
+                                                        &preview);
+    EXPECT_EQ(selector.preview_cache_invalidations_for_testing(),
+              invalidations);
+
+    // Editing an existing sheet preserves every header/cache-key value. Use
+    // the real room-copy path, rather than mutating the private graphics buffer.
+    std::fill(game_data.graphics_buffer.begin(),
+              game_data.graphics_buffer.end(), 2);
+    if (refresh_mode == 1) {
+      // A moved-in room occupies the same address and has matching headers.
+      // A per-instance reload count alone would collide with the cached room.
+      room = zelda3::Room(0, &rom, &game_data);
+      room.SetLoaded(true);
+      room.LoadRoomGraphics();
+      room.CopyRoomGraphicsToBuffer();
+    } else if (refresh_mode == 2) {
+      // This copies the common animated frame, then exits on the intentionally
+      // invalid selected-sheet table. The changed frame still needs publishing.
+      room.LoadAnimatedGraphics();
+    } else {
+      room.CopyRoomGraphicsToBuffer();
+    }
+    ASSERT_EQ(room.blocks(), original_blocks);
+    DungeonObjectSelectorTestAccess::GetOrCreatePreview(selector, object,
+                                                        &preview);
+    ASSERT_NE(preview, nullptr);
+    EXPECT_EQ(preview->bitmap().at(0), 34);
+    EXPECT_EQ(selector.preview_cache_invalidations_for_testing(),
+              invalidations + 1);
+    EXPECT_FALSE(rom.dirty());
+  }
+}
+
+TEST(DungeonObjectSelectorPaletteTest,
      InvalidationCancelsPendingCreateAndRetiresCachedTexture) {
   gfx::Arena& arena = gfx::Arena::Get();
   arena.ClearTextureQueue();

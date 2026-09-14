@@ -542,6 +542,56 @@ TEST_F(TileObjectHandlerTest,
   EXPECT_TRUE(column_has_coverage(geometry.buffer_width_pixels - 1));
 }
 
+TEST_F(TileObjectHandlerTest, ActiveGhostRefreshesAfterRoomGraphicsReload) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  zelda3::GameData game_data;
+  game_data.graphics_buffer.assign(223 * 4096, 1);
+  rooms_.SetRom(&rom);
+  auto& room = rooms_[0];
+  room.SetGameData(&game_data);
+  room.SetLoaded(true);
+  room.LoadRoomGraphics();
+  room.CopyRoomGraphicsToBuffer();
+  ctx_.rom = &rom;
+
+  auto object = CreateTestObject(0, 0, 0, 0xC8);
+  object.mutable_tiles().assign(8,
+                                gfx::TileInfo(0x1C0, 2, false, false, false));
+  object.tiles_loaded_ = true;
+  handler_.SetPreviewObject(object);
+  handler_.BeginPlacement();
+  const auto* buffer = handler_.ghost_preview_buffer_for_testing();
+  ASSERT_NE(buffer, nullptr);
+  EXPECT_EQ(buffer->bitmap().at(0), 33);
+
+  std::fill(game_data.graphics_buffer.begin(), game_data.graphics_buffer.end(),
+            2);
+  room.CopyRoomGraphicsToBuffer();
+  ImGuiIO& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  for (int frame = 0; frame < 2; ++frame) {
+    io.AddMousePosEvent(100.0f, 100.0f);
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(700, 700), ImGuiCond_Always);
+    ImGui::Begin("GhostReloadHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    canvas_->DrawBackground(ImVec2(512, 512));
+    if (frame > 0) {
+      EXPECT_TRUE(canvas_->IsMouseHovering());
+    }
+    handler_.DrawGhostPreview();
+    ImGui::End();
+    ImGui::Render();
+  }
+  EXPECT_EQ(handler_.ghost_preview_buffer_for_testing(), buffer);
+  EXPECT_EQ(buffer->bitmap().at(0), 34);
+  EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 1u);
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_TRUE(room.GetTileObjects().empty());
+  EXPECT_FALSE(rom.dirty());
+}
+
 TEST_F(TileObjectHandlerTest, GhostPreviewBitmapKeepsUpwardExtentVisible) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
