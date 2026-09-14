@@ -2,10 +2,13 @@
 
 #include <functional>
 #include <string>
+#include <vector>
 
 #include <gtest/gtest.h>
 
+#include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "core/project.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 
@@ -15,6 +18,7 @@ class WelcomeScreenTestPeer {
  public:
   static void SetEntryTime(WelcomeScreen* screen, float entry_time) {
     screen->entry_time_ = entry_time;
+    screen->entry_animations_started_ = true;
   }
 
   static void DrawProjectPanel(WelcomeScreen* screen,
@@ -51,6 +55,7 @@ class WelcomeScreenTest : public ::testing::Test {
     ImGui::SetCurrentContext(context_);
 
     ImGuiIO& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     io.ConfigNavCursorVisibleAlways = true;
     io.DisplaySize = ImVec2(800.0f, 600.0f);
@@ -61,9 +66,18 @@ class WelcomeScreenTest : public ::testing::Test {
     int atlas_width = 0;
     int atlas_height = 0;
     io.Fonts->GetTexDataAsRGBA32(&pixels, &atlas_width, &atlas_height);
+
+    auto& recents = project::RecentFilesManager::GetInstance();
+    saved_recents_ = recents.GetRecentFiles();
+    recents.Clear();
   }
 
   void TearDown() override {
+    auto& recents = project::RecentFilesManager::GetInstance();
+    recents.Clear();
+    for (auto it = saved_recents_.rbegin(); it != saved_recents_.rend(); ++it) {
+      recents.AddFile(*it);
+    }
     ImGui::DestroyContext(context_);
     context_ = nullptr;
   }
@@ -95,7 +109,176 @@ class WelcomeScreenTest : public ::testing::Test {
 
   ImGuiContext* context_ = nullptr;
   ImGuiID expected_card_id_ = 0;
+  std::vector<std::string> saved_recents_;
 };
+
+struct WelcomeLayoutCase {
+  const char* name;
+  ImVec2 viewport;
+  float font_size;
+  bool populated;
+  bool stacked;
+};
+
+class WelcomeScreenFullLayoutTest
+    : public WelcomeScreenTest,
+      public ::testing::WithParamInterface<WelcomeLayoutCase> {
+ protected:
+  void DrawFrame(WelcomeScreen* screen, ImGuiWindow* focus = nullptr) {
+    ImGui::NewFrame();
+    if (focus) {
+      ImGui::FocusWindow(focus);
+      ImGui::NavInitWindow(focus, true);
+    }
+    bool open = true;
+    screen->Show(&open);
+    EXPECT_TRUE(open);
+    ImGui::EndFrame();
+  }
+
+  ImGuiWindow* FindChild(const char* name) {
+    for (ImGuiWindow* window : context_->Windows) {
+      if (window->Active &&
+          std::string(window->Name).find(name) != std::string::npos) {
+        return window;
+      }
+    }
+    return nullptr;
+  }
+};
+
+TEST_P(WelcomeScreenFullLayoutTest,
+       StartActionsAndScrolledContentStayReachable) {
+  const auto& layout = GetParam();
+  ImGuiIO& io = ImGui::GetIO();
+  io.DisplaySize = layout.viewport;
+  io.FontGlobalScale = layout.font_size / 13.0f;
+  if (layout.populated) {
+    for (int i = 0; i < 6; ++i) {
+      // Missing-file entries exercise the real model without ROM fixtures or
+      // background metadata scans. Do not save the process-local recent list.
+      project::RecentFilesManager::GetInstance().AddFile(
+          "/missing/welcome-layout-" + std::to_string(i) + ".sfc");
+    }
+  }
+
+  WelcomeScreen screen;
+  screen.RefreshRecentProjects();
+  ASSERT_EQ(screen.recent_projects().entries().size(),
+            layout.populated ? 6u : 0u);
+  WelcomeScreenTestPeer::SetEntryTime(&screen, 1.0f);
+  int open_count = 0;
+  int new_count = 0;
+  screen.SetOpenRomCallback([&]() { ++open_count; });
+  screen.SetNewProjectCallback([&]() { ++new_count; });
+
+  // ImGui computes scroll ranges from the preceding frame's content size.
+  for (int frame = 0; frame < 3; ++frame) {
+    DrawFrame(&screen);
+  }
+  ImGuiWindow* root = ImGui::FindWindowByName("##WelcomeScreen");
+  ImGuiWindow* content = FindChild("/WelcomeContent_");
+  ASSERT_NE(root, nullptr);
+  ASSERT_NE(content, nullptr);
+  EXPECT_GE(root->Pos.x, 0.0f);
+  EXPECT_GE(root->Pos.y, 0.0f);
+  EXPECT_LE(root->Pos.x + root->Size.x, io.DisplaySize.x);
+  EXPECT_LE(root->Pos.y + root->Size.y, io.DisplaySize.y);
+  EXPECT_FALSE(root->ScrollbarY);
+  const ImRect root_bounds = root->Rect();
+  const ImRect content_bounds = content->Rect();
+  ImGuiWindow* actions = FindChild("/LeftPanel_");
+  EXPECT_EQ(actions == nullptr, layout.stacked);
+  if (!layout.stacked) {
+    ASSERT_NE(actions, nullptr);
+    EXPECT_LE(actions->ContentSize.y, actions->InnerRect.GetHeight());
+    EXPECT_FLOAT_EQ(actions->ScrollMax.y, 0.0f);
+  } else {
+    actions = content;
+    EXPECT_EQ(content->ScrollbarY, content->ScrollMax.y > 0.0f);
+  }
+
+  // Walk real keyboard navigation rather than activating IDs directly. Each
+  // primary action must be visible after focus, including in scrolled layouts.
+  DrawFrame(&screen, actions);
+  DrawFrame(&screen);
+#ifdef __EMSCRIPTEN__
+  const ImGuiID open_id = actions->GetID(ICON_MD_FOLDER_OPEN " Open ROM");
+#else
+  const ImGuiID open_id =
+      actions->GetID(ICON_MD_FOLDER_OPEN " Open ROM / Project");
+#endif
+  const ImGuiID new_id = actions->GetID(ICON_MD_ADD_CIRCLE " New Project");
+  const ImGuiID more_id =
+      actions->GetID(ICON_MD_MORE_HORIZ " More ways to start");
+  bool saw_open = false;
+  bool saw_new = false;
+  bool saw_more = false;
+  for (int step = 0; step < 12 && !(saw_open && saw_new && saw_more); ++step) {
+    if (context_->NavId == open_id || context_->NavId == new_id ||
+        context_->NavId == more_id) {
+      const ImRect rect = ImGui::WindowRectRelToAbs(
+          actions, actions->NavRectRel[ImGuiNavLayer_Main]);
+      EXPECT_GE(rect.Min.y, actions->ClipRect.Min.y);
+      EXPECT_LE(rect.Max.y, actions->ClipRect.Max.y);
+      EXPECT_GE(rect.Min.x, actions->ClipRect.Min.x);
+      EXPECT_LE(rect.Max.x, actions->ClipRect.Max.x);
+      saw_open |= context_->NavId == open_id;
+      saw_new |= context_->NavId == new_id;
+      saw_more |= context_->NavId == more_id;
+      if (context_->NavId != more_id) {
+        io.AddKeyEvent(ImGuiKey_Enter, true);
+        DrawFrame(&screen);
+        io.AddKeyEvent(ImGuiKey_Enter, false);
+        DrawFrame(&screen);
+      }
+    }
+    io.AddKeyEvent(ImGuiKey_Tab, true);
+    DrawFrame(&screen);
+    io.AddKeyEvent(ImGuiKey_Tab, false);
+    DrawFrame(&screen);
+  }
+  EXPECT_TRUE(saw_open);
+  EXPECT_TRUE(saw_new);
+  EXPECT_TRUE(saw_more);
+  EXPECT_EQ(open_count, 1);
+  EXPECT_EQ(new_count, 1);
+
+  ImGuiWindow* scroll = layout.stacked ? content : FindChild("/RightPanel_");
+  ASSERT_NE(scroll, nullptr);
+  ImGui::SetScrollY(scroll, scroll->ScrollMax.y);
+  DrawFrame(&screen);
+  DrawFrame(&screen);
+  EXPECT_FLOAT_EQ(scroll->Scroll.y, scroll->ScrollMax.y);
+  EXPECT_LE(scroll->DC.CursorStartPos.y + scroll->ContentSize.y,
+            scroll->InnerRect.Max.y + 1.0f);
+  EXPECT_FALSE(root->ScrollbarY);
+  EXPECT_FLOAT_EQ(root->Pos.x, root_bounds.Min.x);
+  EXPECT_FLOAT_EQ(root->Pos.y, root_bounds.Min.y);
+  EXPECT_FLOAT_EQ(root->Size.x, root_bounds.GetWidth());
+  EXPECT_FLOAT_EQ(root->Size.y, root_bounds.GetHeight());
+  EXPECT_FLOAT_EQ(content->Pos.x, content_bounds.Min.x);
+  EXPECT_FLOAT_EQ(content->Pos.y, content_bounds.Min.y);
+  EXPECT_FLOAT_EQ(content->Size.x, content_bounds.GetWidth());
+  EXPECT_FLOAT_EQ(content->Size.y, content_bounds.GetHeight());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ViewportAndRecents, WelcomeScreenFullLayoutTest,
+    ::testing::Values(
+        WelcomeLayoutCase{"WideFirstRun", ImVec2(1400, 1050), 13, false, false},
+        WelcomeLayoutCase{"WideRecents", ImVec2(1400, 1050), 13, true, false},
+        WelcomeLayoutCase{"NarrowFirstRun", ImVec2(800, 600), 13, false, true},
+        WelcomeLayoutCase{"NarrowRecents", ImVec2(800, 600), 13, true, true},
+        WelcomeLayoutCase{"ShortFirstRun", ImVec2(1400, 500), 13, false, true},
+        WelcomeLayoutCase{"ShortRecents", ImVec2(1400, 500), 13, true, true},
+        WelcomeLayoutCase{"LargeFontFirstRun", ImVec2(1400, 1050), 26, false,
+                          true},
+        WelcomeLayoutCase{"LargeFontRecents", ImVec2(1400, 1050), 26, true,
+                          true}),
+    [](const ::testing::TestParamInfo<WelcomeLayoutCase>& info) {
+      return info.param.name;
+    });
 
 TEST(WelcomeScreenLayoutTest, ScalesSplitBreakpointWithFontSize) {
   EXPECT_FALSE(
