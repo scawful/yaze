@@ -730,6 +730,74 @@ its `(16,16)` anchor. The dungeon canvas also consumes that buffer, so this is
 not merely a picker-size issue. No sprite bounds fix or runtime proof is
 included in this slice.
 
+## Eleventh implementation slice: complete sprite preview extents (2026-09-14)
+
+Verified code at `9d96d4bc3`, based on preview `364ae7a7e`. Fixed truncation
+of the existing static sprite poses in the dungeon room canvas. This does not
+change ROM sprite positions, animation frames, tile sources, or palettes.
+
+1. **Measure before drawing.** `RenderPreviewGraphics` measures the same
+   `DrawSpriteTile` stream that it renders, including custom OAM layouts. It
+   unions those tile rectangles with the legacy `{-16,-16,64,64}` extent, then
+   allocates once and renders with the resulting stride. Ordinary previews
+   retain their previous geometry; no second per-ID size table was introduced.
+2. **Carry placement with the pixels.** `Sprite::preview_bounds()` exposes the
+   buffer rectangle relative to the sprite's room anchor. The dungeon canvas
+   uses its dimensions and origin instead of duplicated `64`/`16` constants.
+   Source addressing, flips, painter order, and transparent index 0 are retained.
+3. **Preserve separate consumers.** The dungeon sprite picker is text/icon-only
+   and its placement ghost is a rectangle; neither consumes this preview art.
+   Standalone Sprite Editor uses another renderer. Legacy packed overworld
+   drawing keeps its fixed buffer, palette behavior, and `0xFF` sentinel. A
+   previously enlarged buffer resets before packed drawing; pre-existing
+   same-size external-to-packed reuse behavior is not changed, and no current
+   production caller mixes those paths.
+
+Opaque synthetic graphics reproduced these losses before the fix:
+
+| Sprite | Before: retained pixels | After: complete static-pose pixels |
+| --- | ---: | ---: |
+| `0x7E`, `0x7F` | 288 each | 928 each |
+| `0x80` | 512 | 1,152 |
+| `0xC7` | 512 | 736 |
+| `0x92` | 768 | 2,048 |
+
+**29/29 focused tests passed, zero failures/skips**, with executed XML names
+matching the discovered inventory exactly. The corrected RED run had ten
+expected failures (five pixel-count and five actual canvas-consumer cases),
+while the ordinary `0x00` canvas control passed. The initial canvas test needed
+its rectangle accumulator initialized from the first art vertex before that
+RED run was trustworthy. Final coverage also checks every asymmetric source
+pixel, transparent overlap holes, mirrored pieces, bounds reset, custom
+Manhandla extents without row wrapping, and missing/truncated resources.
+
+Canvas tests call the real `RenderSprites` path and inspect colored ImGui
+vertices with origin `(81,67)`, pan `(-31,23)`, and scale `1.5`, while confirming
+unchanged room coordinates and ROM dirty state. Native `yaze` and unit targets
+built with four workers; an independent source review found no new blocking
+issues. This is static pixel and draw-list evidence, not a fresh GPU screenshot,
+independent Mesen capture, performance benchmark, or packaged-app acceptance.
+No app was installed or launched and no user's ROM was loaded or written.
+
+```sh
+cmake --build build/presets/mac-ai --config Release --target yaze_test_unit yaze --parallel 4
+wave11_filter='SpriteRenderPreviewTest.*:SpritePreviewResourceCacheTest.*:ExtendedArt/DungeonCanvasSpritePreviewBoundsTest.*-SpriteRenderPreviewTest.ExpandedRom*:SpriteRenderPreviewTest.OracleManhandlaRealAssetMatchesStaticHead'
+build/presets/mac-ai/bin/yaze_test_unit --gtest_list_tests --gtest_filter="$wave11_filter"
+build/presets/mac-ai/bin/yaze_test_unit --gtest_filter="$wave11_filter" --gtest_output=xml:/tmp/yaze-wave11-green.xml
+```
+
+The filter explicitly excludes two existing expanded-ROM source contracts and
+one real-asset fingerprint contract; their prior evidence was not renewed.
+Local evidence: `/tmp/yaze-wave11-baseline.*`, `/tmp/yaze-wave11-red.*`,
+`/tmp/yaze-wave11-green.*`, `*-inventory.txt`, and the corresponding build logs.
+
+**Consolidation checkpoint:** predecessor drafts #217 and #218 reached terminal
+successful CI, including Memory Sanitizer, at their own heads. The combined
+preview needs its own PR and exact-head checks before merge. The installed
+nightly remains the older `75f817d5` candidate. Preserve the canonical dirty
+Grokbot checkout and stage any later app replacement as a separate versioned
+candidate; do not sync through the current release symlink in place.
+
 ## Object coverage checklist
 
 Start by enumerating the supported IDs from `DrawRoutineRegistry` and the room
