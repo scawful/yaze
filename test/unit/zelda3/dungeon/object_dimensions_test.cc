@@ -1145,19 +1145,19 @@ TEST_F(ObjectDimensionsTest, CalculatesDimensionsForDiagonalWalls) {
 
   // Test object 0x10 (Diagonal Wall /)
   // Routine 5: DrawDiagonalAcute_1to16
-  // Logic: width = (size + 7) * 8
+  // Logic: width = (size + 6) * 8
 
   RoomObject obj10(0x10, 10, 10, 0, 0);  // Size 0
-  // width = (0 + 7) * 8 = 56
+  // width = (0 + 6) * 8 = 48
   auto dims = drawer.CalculateObjectDimensions(obj10);
-  EXPECT_EQ(dims.first, 56);
-  EXPECT_EQ(dims.second, 88);
+  EXPECT_EQ(dims.first, 48);
+  EXPECT_EQ(dims.second, 80);
 
   RoomObject obj10_size10(0x10, 10, 10, 10, 0);  // Size 10
-  // width = (10 + 7) * 8 = 136
+  // width = (10 + 6) * 8 = 128
   dims = drawer.CalculateObjectDimensions(obj10_size10);
-  EXPECT_EQ(dims.first, 136);
-  EXPECT_EQ(dims.second, 168);
+  EXPECT_EQ(dims.first, 128);
+  EXPECT_EQ(dims.second, 160);
 }
 
 TEST_F(ObjectDimensionsTest, CalculatesDimensionsForType2Corners) {
@@ -1418,31 +1418,31 @@ TEST_F(ObjectDimensionTableTest, DiagonalCeilingSelectionOffsetsCorrect) {
     EXPECT_EQ(bounds.height, 4);
   }
 
-  // BottomLeft (extends up-right): offset_y = -(width-1)
+  // BottomLeft grows down-right from the encoded origin.
   for (int id : {0xA1, 0xA6, 0xAA}) {
     SCOPED_TRACE(absl::StrFormat("BottomLeft 0x%02X", id));
     auto bounds = table.GetSelectionBounds(id, 0);
     EXPECT_EQ(bounds.offset_x, 0);
-    EXPECT_EQ(bounds.offset_y, -(bounds.width - 1));
-    EXPECT_EQ(bounds.width, 4);
-    EXPECT_EQ(bounds.height, 4);
-  }
-
-  // TopRight (extends down-left): offset_x = -(width-1)
-  for (int id : {0xA2, 0xA7, 0xAB}) {
-    SCOPED_TRACE(absl::StrFormat("TopRight 0x%02X", id));
-    auto bounds = table.GetSelectionBounds(id, 0);
-    EXPECT_EQ(bounds.offset_x, -(bounds.width - 1));
     EXPECT_EQ(bounds.offset_y, 0);
     EXPECT_EQ(bounds.width, 4);
     EXPECT_EQ(bounds.height, 4);
   }
 
-  // BottomRight (extends up-left): both offsets = -(width-1)
+  // TopRight also grows down-right; its rows contract from the left.
+  for (int id : {0xA2, 0xA7, 0xAB}) {
+    SCOPED_TRACE(absl::StrFormat("TopRight 0x%02X", id));
+    auto bounds = table.GetSelectionBounds(id, 0);
+    EXPECT_EQ(bounds.offset_x, 0);
+    EXPECT_EQ(bounds.offset_y, 0);
+    EXPECT_EQ(bounds.width, 4);
+    EXPECT_EQ(bounds.height, 4);
+  }
+
+  // BottomRight grows upward, but still begins at the encoded X coordinate.
   for (int id : {0xA3, 0xA8, 0xAC}) {
     SCOPED_TRACE(absl::StrFormat("BottomRight 0x%02X", id));
     auto bounds = table.GetSelectionBounds(id, 0);
-    EXPECT_EQ(bounds.offset_x, -(bounds.width - 1));
+    EXPECT_EQ(bounds.offset_x, 0);
     EXPECT_EQ(bounds.offset_y, -(bounds.width - 1));
     EXPECT_EQ(bounds.width, 4);
     EXPECT_EQ(bounds.height, 4);

@@ -159,6 +159,52 @@ TEST_F(RoomLayerManagerTest, ApplyLayerMergingOff) {
             LayerBlendMode::Normal);
 }
 
+TEST_F(RoomLayerManagerTest, SetBg2SynchronizesDecodedRenderingState) {
+  Room room(/*room_id=*/0, /*rom=*/nullptr);
+
+  room.SetBg2(static_cast<background2>(6));
+  EXPECT_EQ(room.bg2(), static_cast<background2>(6));
+  EXPECT_EQ(room.layer2_mode(), 6);
+  EXPECT_EQ(room.layer_merging(), LayerMerge06);
+  EXPECT_FALSE(room.IsLight());
+
+  room.SetBg2(static_cast<background2>(4));
+  EXPECT_EQ(room.bg2(), static_cast<background2>(4));
+  EXPECT_EQ(room.layer2_mode(), 4);
+  EXPECT_EQ(room.layer_merging(), LayerMerge04);
+
+  // The dark-room flag occupies a separate header bit. Entering that editor
+  // state must retain the three-bit BG2 mode that will be serialized with it.
+  room.SetBg2(background2::DarkRoom);
+  EXPECT_EQ(room.bg2(), background2::DarkRoom);
+  EXPECT_EQ(room.layer2_mode(), 4);
+  EXPECT_EQ(room.layer_merging(), LayerMerge08);
+  EXPECT_TRUE(room.IsLight());
+
+  // Leaving DarkRoom clears the flag and restores the selected BG2 mode as the
+  // active compositor state without requiring a ROM reload.
+  room.SetBg2(static_cast<background2>(6));
+  EXPECT_EQ(room.bg2(), static_cast<background2>(6));
+  EXPECT_EQ(room.layer2_mode(), 6);
+  EXPECT_EQ(room.layer_merging(), LayerMerge06);
+  EXPECT_FALSE(room.IsLight());
+}
+
+TEST_F(RoomLayerManagerTest, SetLayer2ModeSynchronizesNonDarkBg2State) {
+  Room room(/*room_id=*/0, /*rom=*/nullptr);
+
+  room.SetLayer2Mode(6);
+  EXPECT_EQ(room.bg2(), static_cast<background2>(6));
+  EXPECT_EQ(room.layer2_mode(), 6);
+  EXPECT_EQ(room.layer_merging(), LayerMerge06);
+
+  room.SetBg2(background2::DarkRoom);
+  room.SetLayer2Mode(4);
+  EXPECT_EQ(room.bg2(), background2::DarkRoom);
+  EXPECT_EQ(room.layer2_mode(), 4);
+  EXPECT_EQ(room.layer_merging(), LayerMerge08);
+}
+
 TEST_F(RoomLayerManagerTest,
        ApplyRoomEffectMovingWaterPromotesBG2Translucency) {
   manager_.SetLayerBlendMode(LayerType::BG2_Layout, LayerBlendMode::Normal);
@@ -290,6 +336,104 @@ TEST_F(RoomLayerManagerTest, PriorityCompositing_BG1Priority0OverBG2Priority0) {
   manager_.CompositeToOutput(room, output);
   ASSERT_TRUE(output.is_active());
   EXPECT_EQ(output.data()[0], 11);
+}
+
+TEST_F(RoomLayerManagerTest,
+       ModeSixUpperMainScreenWinsRegardlessOfTilePriority) {
+  manager_.ApplyLayerMerging(LayerMerge06);
+
+  Room room(/*room_id=*/0, /*rom=*/nullptr);
+  room.SetLayer2Mode(0x06);
+  for (auto* buffer : {&room.bg1_buffer(), &room.bg2_buffer(),
+                       &room.object_bg1_buffer(), &room.object_bg2_buffer()}) {
+    buffer->EnsureBitmapInitialized();
+    buffer->bitmap().Fill(255);
+    buffer->ClearPriorityBuffer();
+    buffer->ClearCoverageBuffer();
+  }
+
+  room.bg1_buffer().bitmap().mutable_data()[0] = 11;
+  room.bg1_buffer().mutable_priority_data()[0] = 0;
+  room.bg2_buffer().bitmap().mutable_data()[0] = 22;
+  room.bg2_buffer().mutable_priority_data()[0] = 1;
+
+  gfx::Bitmap output;
+  manager_.CompositeToOutput(room, output);
+
+  ASSERT_TRUE(output.is_active());
+  EXPECT_EQ(output.data()[0], 11)
+      << "Mode 6 places the upper tilemap on the main screen; lower-tilemap "
+         "priority cannot cover it";
+}
+
+TEST_F(RoomLayerManagerTest,
+       ModeSixRevealsLowerOnlyThroughTransparentUpperTilemap) {
+  manager_.ApplyLayerMerging(LayerMerge06);
+
+  Room room(/*room_id=*/0, /*rom=*/nullptr);
+  room.SetLayer2Mode(0x06);
+  for (auto* buffer : {&room.bg1_buffer(), &room.bg2_buffer(),
+                       &room.object_bg1_buffer(), &room.object_bg2_buffer()}) {
+    buffer->EnsureBitmapInitialized();
+    buffer->bitmap().Fill(255);
+    buffer->ClearPriorityBuffer();
+    buffer->ClearCoverageBuffer();
+    buffer->ClearBG1RevealMask();
+  }
+
+  // A historic reveal bit must not erase an opaque upper tile in mode 6.
+  room.bg1_buffer().bitmap().mutable_data()[0] = 11;
+  room.bg2_buffer().bitmap().mutable_data()[0] = 21;
+  room.bg1_buffer().SetBG1RevealMaskRect(gfx::BG1RevealMaskSource::kBG2Objects,
+                                         0, 0, 1, 1);
+
+  // A transparent object write still replaces its own tilemap layout entry,
+  // making the lower tilemap visible at this pixel.
+  room.bg1_buffer().bitmap().mutable_data()[1] = 12;
+  room.object_bg1_buffer().bitmap().mutable_data()[1] = 255;
+  room.object_bg1_buffer().mutable_coverage_data()[1] = 1;
+  room.bg2_buffer().bitmap().mutable_data()[1] = 22;
+
+  // Opaque objects replace layout within a tilemap before main/sub resolution.
+  room.bg1_buffer().bitmap().mutable_data()[2] = 13;
+  room.object_bg1_buffer().bitmap().mutable_data()[2] = 14;
+  room.object_bg1_buffer().mutable_coverage_data()[2] = 1;
+  room.bg2_buffer().bitmap().mutable_data()[2] = 23;
+
+  gfx::Bitmap output;
+  manager_.CompositeToOutput(room, output);
+
+  ASSERT_TRUE(output.is_active());
+  EXPECT_EQ(output.data()[0], 11);
+  EXPECT_EQ(output.data()[1], 22);
+  EXPECT_EQ(output.data()[2], 14);
+}
+
+TEST_F(RoomLayerManagerTest,
+       ModeSixUsesSerializedModeWhenDarkMergeOverridesMergeId) {
+  manager_.ApplyLayerMerging(LayerMerge08);
+
+  Room room(/*room_id=*/0, /*rom=*/nullptr);
+  room.SetLayer2Mode(0x06);
+  for (auto* buffer : {&room.bg1_buffer(), &room.bg2_buffer(),
+                       &room.object_bg1_buffer(), &room.object_bg2_buffer()}) {
+    buffer->EnsureBitmapInitialized();
+    buffer->bitmap().Fill(255);
+    buffer->ClearPriorityBuffer();
+    buffer->ClearCoverageBuffer();
+  }
+
+  room.bg1_buffer().bitmap().mutable_data()[0] = 11;
+  room.bg1_buffer().mutable_priority_data()[0] = 0;
+  room.bg2_buffer().bitmap().mutable_data()[0] = 22;
+  room.bg2_buffer().mutable_priority_data()[0] = 1;
+
+  gfx::Bitmap output;
+  manager_.CompositeToOutput(room, output);
+
+  ASSERT_TRUE(output.is_active());
+  EXPECT_EQ(output.data()[0], 11);
+  EXPECT_EQ(manager_.GetMergeTypeId(), LayerMerge08.ID);
 }
 
 TEST_F(RoomLayerManagerTest, Coverage_ObjectTransparentWriteClearsLayout) {

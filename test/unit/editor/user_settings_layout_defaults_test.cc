@@ -1,5 +1,6 @@
 #include "app/editor/system/session/user_settings.h"
 
+#include <array>
 #include <cstdio>
 #include <filesystem>
 #include <string>
@@ -44,7 +45,7 @@ TEST(UserSettingsLayoutDefaultsTest, AppliesRevisionAndResetsPanelLayoutState) {
 
   EXPECT_EQ(prefs.panel_layout_defaults_revision, kTargetRevision);
   EXPECT_TRUE(prefs.sidebar_visible);
-  EXPECT_TRUE(prefs.sidebar_panel_expanded);
+  EXPECT_FALSE(prefs.sidebar_panel_expanded);
   EXPECT_FLOAT_EQ(prefs.sidebar_panel_width, 0.0f);
   EXPECT_FLOAT_EQ(prefs.panel_browser_category_width, 260.0f);
   EXPECT_TRUE(prefs.sidebar_active_category.empty());
@@ -220,20 +221,20 @@ TEST(UserSettingsLayoutDefaultsTest,
   EXPECT_EQ(prefs.panel_layout_defaults_revision,
             UserSettings::kLatestPanelLayoutDefaultsRevision);
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"]);
-  // Rev-13 closes `dungeon.room_selector`; Rev-21 (Layout C) re-opens it as
-  // part of the ZScream-style left-stack so a first-run user lands on the
-  // browser/entrances surface without hunting through a menu.
-  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_selector"]);
-  EXPECT_TRUE(
+  // Revision 23 leaves the Workbench as the sole live Dungeon surface while
+  // preserving the user's saved custom layout.
+  EXPECT_FALSE(
+      prefs.panel_visibility_state["Dungeon"]["dungeon.room_selector"]);
+  EXPECT_FALSE(
       prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"]);
-  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_matrix"]);
+  EXPECT_FALSE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_matrix"]);
   EXPECT_EQ(
       prefs.panel_visibility_state["Dungeon"].count("dungeon.object_editor"),
       0U);
   EXPECT_FALSE(prefs.panel_visibility_state["Dungeon"]["dungeon.door_editor"]);
   EXPECT_FALSE(
       prefs.panel_visibility_state["Dungeon"]["dungeon.room_graphics"]);
-  EXPECT_TRUE(
+  EXPECT_FALSE(
       prefs.panel_visibility_state["Dungeon"]["dungeon.palette_editor"]);
   EXPECT_TRUE(prefs.saved_layouts["custom"]["dungeon.room_selector"]);
 }
@@ -262,7 +263,7 @@ TEST(UserSettingsLayoutDefaultsTest,
             0U);
   EXPECT_EQ(
       prefs.panel_visibility_state["Dungeon"].count("dungeon.dungeon_map"), 0U);
-  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_matrix"]);
+  EXPECT_FALSE(prefs.panel_visibility_state["Dungeon"]["dungeon.room_matrix"]);
   EXPECT_EQ(prefs.saved_layouts["custom"].count("dungeon.settings"), 0U);
 }
 
@@ -275,10 +276,8 @@ TEST(UserSettingsLayoutDefaultsTest,
   prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"] = false;
   prefs.panel_visibility_state["Dungeon"]["dungeon.room_graphics"] = true;
 
-  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
-      UserSettings::kLatestPanelLayoutDefaultsRevision));
-  EXPECT_EQ(prefs.panel_layout_defaults_revision,
-            UserSettings::kLatestPanelLayoutDefaultsRevision);
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(15));
+  EXPECT_EQ(prefs.panel_layout_defaults_revision, 15);
   EXPECT_TRUE(
       prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"]);
   EXPECT_FALSE(
@@ -298,10 +297,8 @@ TEST(UserSettingsLayoutDefaultsTest,
   prefs.pinned_panels["dungeon.room_98"] = true;
   prefs.pinned_panels["layout.designer"] = true;
 
-  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
-      UserSettings::kLatestPanelLayoutDefaultsRevision));
-  EXPECT_EQ(prefs.panel_layout_defaults_revision,
-            UserSettings::kLatestPanelLayoutDefaultsRevision);
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(18));
+  EXPECT_EQ(prefs.panel_layout_defaults_revision, 18);
   EXPECT_EQ(prefs.panel_visibility_state["Dungeon"].count("dungeon.room_98"),
             0U);
   EXPECT_EQ(prefs.panel_visibility_state["Dungeon"].count("dungeon.room_165"),
@@ -333,10 +330,8 @@ TEST(UserSettingsLayoutDefaultsTest,
   prefs.named_layouts["custom"] =
       R"({"schema_version":2,"name":"custom","root":{"id":1,"type":"leaf","active_tab_index":2,"panels":[{"panel_id":"dungeon.object_editor"},{"panel_id":"dungeon.room_matrix"},{"panel_id":"dungeon.dungeon_map"}]}})";
 
-  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
-      UserSettings::kLatestPanelLayoutDefaultsRevision));
-  EXPECT_EQ(prefs.panel_layout_defaults_revision,
-            UserSettings::kLatestPanelLayoutDefaultsRevision);
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(19));
+  EXPECT_EQ(prefs.panel_layout_defaults_revision, 19);
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"]);
   EXPECT_TRUE(
       prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"]);
@@ -380,10 +375,8 @@ TEST(UserSettingsLayoutDefaultsTest,
   // ctor leaves it as "right" — this is the only knob we need to set.)
   prefs.dungeon_inspector_side.clear();
 
-  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
-      UserSettings::kLatestPanelLayoutDefaultsRevision));
-  EXPECT_EQ(prefs.panel_layout_defaults_revision,
-            UserSettings::kLatestPanelLayoutDefaultsRevision);
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(21));
+  EXPECT_EQ(prefs.panel_layout_defaults_revision, 21);
 
   EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"]);
   EXPECT_TRUE(
@@ -411,10 +404,96 @@ TEST(UserSettingsLayoutDefaultsTest,
   prefs.panel_layout_defaults_revision = 20;
   prefs.dungeon_inspector_side = "left";
 
-  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
-      UserSettings::kLatestPanelLayoutDefaultsRevision));
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(21));
   EXPECT_EQ(prefs.dungeon_inspector_side, "left");
   EXPECT_EQ(settings.GetDungeonInspectorSide(), "left");
+}
+
+TEST(UserSettingsLayoutDefaultsTest,
+     RevisionTwentyTwoClosesWorkbenchDuplicatePanels) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+
+  prefs.panel_layout_defaults_revision = 21;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"] = false;
+  constexpr std::array<const char*, 10> kDuplicatePanels = {
+      "dungeon.room_selector",   "dungeon.room_matrix",
+      "dungeon.object_selector", "dungeon.sprite_editor",
+      "dungeon.item_editor",     "dungeon.room_graphics",
+      "dungeon.door_editor",     "dungeon.palette_editor",
+      "dungeon.entrance_list",   "dungeon.entrance_properties",
+  };
+  for (const char* panel_id : kDuplicatePanels) {
+    prefs.panel_visibility_state["Dungeon"][panel_id] = true;
+  }
+
+  prefs.dungeon_inspector_side = "left";
+  prefs.right_panel_widths["dungeon.workbench"] = 444.0f;
+  prefs.pinned_panels["dungeon.object_selector"] = true;
+  prefs.saved_layouts["custom"]["dungeon.object_selector"] = true;
+  prefs.named_layouts["custom"] =
+      R"({"schema_version":2,"name":"custom","root":{"id":1,"type":"leaf","active_tab_index":0,"panels":[{"panel_id":"dungeon.object_selector"}]}})";
+
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(22));
+  EXPECT_EQ(prefs.panel_layout_defaults_revision, 22);
+  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"]);
+  for (const char* panel_id : kDuplicatePanels) {
+    EXPECT_FALSE(prefs.panel_visibility_state["Dungeon"][panel_id]) << panel_id;
+  }
+
+  EXPECT_EQ(prefs.dungeon_inspector_side, "left");
+  EXPECT_FLOAT_EQ(prefs.right_panel_widths["dungeon.workbench"], 444.0f);
+  EXPECT_TRUE(prefs.pinned_panels["dungeon.object_selector"]);
+  EXPECT_TRUE(prefs.saved_layouts["custom"]["dungeon.object_selector"]);
+  EXPECT_NE(prefs.named_layouts["custom"].find("dungeon.object_selector"),
+            std::string::npos);
+}
+
+TEST(UserSettingsLayoutDefaultsTest,
+     RevisionTwentyThreeCollapsesDungeonToolCatalogAndReassertsWorkbench) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+
+  prefs.panel_layout_defaults_revision = 22;
+  prefs.sidebar_visible = true;
+  prefs.sidebar_panel_expanded = true;
+  prefs.sidebar_active_category = "Dungeon";
+  prefs.sidebar_panel_width = 412.0f;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"] = false;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"] = true;
+  prefs.panel_visibility_state["Dungeon"]["dungeon.door_editor"] = true;
+  prefs.pinned_panels["dungeon.object_selector"] = true;
+  prefs.saved_layouts["custom"]["dungeon.object_selector"] = true;
+
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
+      UserSettings::kLatestPanelLayoutDefaultsRevision));
+
+  EXPECT_EQ(prefs.panel_layout_defaults_revision, 23);
+  EXPECT_TRUE(prefs.sidebar_visible);
+  EXPECT_FALSE(prefs.sidebar_panel_expanded);
+  EXPECT_FLOAT_EQ(prefs.sidebar_panel_width, 412.0f);
+  EXPECT_TRUE(prefs.panel_visibility_state["Dungeon"]["dungeon.workbench"]);
+  EXPECT_FALSE(
+      prefs.panel_visibility_state["Dungeon"]["dungeon.object_selector"]);
+  EXPECT_FALSE(prefs.panel_visibility_state["Dungeon"]["dungeon.door_editor"]);
+  EXPECT_TRUE(prefs.pinned_panels["dungeon.object_selector"]);
+  EXPECT_TRUE(prefs.saved_layouts["custom"]["dungeon.object_selector"]);
+}
+
+TEST(UserSettingsLayoutDefaultsTest,
+     RevisionTwentyThreePreservesExpandedCatalogOutsideDungeon) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+
+  prefs.panel_layout_defaults_revision = 22;
+  prefs.sidebar_panel_expanded = true;
+  prefs.sidebar_active_category = "Graphics";
+
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
+      UserSettings::kLatestPanelLayoutDefaultsRevision));
+
+  EXPECT_EQ(prefs.panel_layout_defaults_revision, 23);
+  EXPECT_TRUE(prefs.sidebar_panel_expanded);
 }
 
 // Default ctor seeds "right". Setter normalizes unrecognized values back to

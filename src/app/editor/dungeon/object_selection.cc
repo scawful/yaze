@@ -157,7 +157,8 @@ void ObjectSelection::UpdateRectangleSelection(int canvas_x, int canvas_y) {
 }
 
 void ObjectSelection::EndRectangleSelection(
-    const std::vector<zelda3::RoomObject>& objects, SelectionMode mode) {
+    const std::vector<zelda3::RoomObject>& objects, SelectionMode mode,
+    std::function<bool(const zelda3::RoomObject&)> is_object_visible) {
   if (!rectangle_selection_active_) {
     LOG_ERROR("ObjectSelection",
               "EndRectangleSelection called when not active");
@@ -170,9 +171,32 @@ void ObjectSelection::EndRectangleSelection(
   auto [end_room_x, end_room_y] =
       CanvasToRoomCoordinates(rect_end_x_, rect_end_y_);
 
-  // Select objects in rectangle
-  SelectObjectsInRect(start_room_x, start_room_y, end_room_x, end_room_y,
-                      objects, mode);
+  // Visibility is view state, while PassesLayerFilter is the user's explicit
+  // stored-stream selection filter. Apply both without rewriting either one.
+  if (!is_object_visible) {
+    SelectObjectsInRect(start_room_x, start_room_y, end_room_x, end_room_y,
+                        objects, mode);
+  } else {
+    if (mode == SelectionMode::Single) {
+      selected_indices_.clear();
+    }
+    const int min_x = std::min(start_room_x, end_room_x);
+    const int max_x = std::max(start_room_x, end_room_x);
+    const int min_y = std::min(start_room_y, end_room_y);
+    const int max_y = std::max(start_room_y, end_room_y);
+    for (size_t index = 0; index < objects.size(); ++index) {
+      if (!is_object_visible(objects[index]) ||
+          !IsObjectInRectangle(objects[index], min_x, min_y, max_x, max_y)) {
+        continue;
+      }
+      if (mode == SelectionMode::Toggle && selected_indices_.contains(index)) {
+        selected_indices_.erase(index);
+      } else {
+        selected_indices_.insert(index);
+      }
+    }
+    NotifySelectionChanged();
+  }
 
   rectangle_selection_active_ = false;
 }

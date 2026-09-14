@@ -44,7 +44,8 @@ class ShortcutManagerTest : public ::testing::Test {
     ImGui::SetNextWindowFocus();
     ImGui::Begin("##ShortcutHost", nullptr,
                  ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
-                     ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings);
+                     ImGuiWindowFlags_NoResize |
+                     ImGuiWindowFlags_NoSavedSettings);
     if (frame_body) {
       frame_body();
     }
@@ -63,8 +64,8 @@ TEST_F(ShortcutManagerTest, PrefersMoreSpecificShortcut) {
   int save_as_called = 0;
 
   shortcuts.RegisterShortcut(
-      "Save", {ImGuiMod_Ctrl, ImGuiKey_S},
-      [&]() { ++save_called; }, Shortcut::Scope::kGlobal);
+      "Save", {ImGuiMod_Ctrl, ImGuiKey_S}, [&]() { ++save_called; },
+      Shortcut::Scope::kGlobal);
   shortcuts.RegisterShortcut(
       "Save As", {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_S},
       [&]() { ++save_as_called; }, Shortcut::Scope::kGlobal);
@@ -109,14 +110,15 @@ TEST_F(ShortcutManagerTest, DoesNotGateOnWantCaptureKeyboard) {
   EXPECT_EQ(palette_called, 1);
 }
 
-TEST_F(ShortcutManagerTest, WantTextInputBlocksPlainKeysButAllowsModifiedChords) {
+TEST_F(ShortcutManagerTest,
+       WantTextInputBlocksPlainKeysButAllowsModifiedChords) {
   ShortcutManager shortcuts;
   int space_called = 0;
   int palette_called = 0;
 
   shortcuts.RegisterShortcut(
-      "Play/Pause", {ImGuiKey_Space},
-      [&]() { ++space_called; }, Shortcut::Scope::kEditor);
+      "Play/Pause", {ImGuiKey_Space}, [&]() { ++space_called; },
+      Shortcut::Scope::kEditor);
   shortcuts.RegisterShortcut(
       "Command Palette", {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_P},
       [&]() { ++palette_called; }, Shortcut::Scope::kGlobal);
@@ -124,14 +126,11 @@ TEST_F(ShortcutManagerTest, WantTextInputBlocksPlainKeysButAllowsModifiedChords)
   RunFrame(nullptr, [&]() { ExecuteShortcuts(shortcuts); });
 
   // Plain keys are ignored while typing.
-  RunFrame(
-      [](ImGuiIO& io) {
-        io.AddKeyEvent(ImGuiKey_Space, true);
-      },
-      [&]() {
-        ImGui::GetIO().WantTextInput = true;
-        ExecuteShortcuts(shortcuts);
-      });
+  RunFrame([](ImGuiIO& io) { io.AddKeyEvent(ImGuiKey_Space, true); },
+           [&]() {
+             ImGui::GetIO().WantTextInput = true;
+             ExecuteShortcuts(shortcuts);
+           });
 
   // Modified chords still work while typing.
   RunFrame(
@@ -149,6 +148,27 @@ TEST_F(ShortcutManagerTest, WantTextInputBlocksPlainKeysButAllowsModifiedChords)
 
   EXPECT_EQ(space_called, 0);
   EXPECT_EQ(palette_called, 1);
+}
+
+TEST_F(ShortcutManagerTest, PlainShortcutDoesNotMatchModifiedChord) {
+  ShortcutManager shortcuts;
+  int plain_delete_tool_called = 0;
+
+  shortcuts.RegisterShortcut(
+      "Delete Tool", {ImGuiKey_D}, [&]() { ++plain_delete_tool_called; },
+      Shortcut::Scope::kEditor);
+
+  RunFrame(nullptr, [&]() { ExecuteShortcuts(shortcuts); });
+  RunFrame(
+      [](ImGuiIO& io) {
+        const ImGuiKey primary =
+            io.ConfigMacOSXBehaviors ? ImGuiMod_Super : ImGuiMod_Ctrl;
+        io.AddKeyEvent(primary, true);
+        io.AddKeyEvent(ImGuiKey_D, true);
+      },
+      [&]() { ExecuteShortcuts(shortcuts); });
+
+  EXPECT_EQ(plain_delete_tool_called, 0);
 }
 
 }  // namespace

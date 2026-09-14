@@ -12,6 +12,7 @@
 #include "cli/handlers/tools/diagnostic_types.h"
 #include "core/asar_wrapper.h"
 #include "rom/rom.h"
+#include "util/platform_paths.h"
 #include "zelda3/overworld/overworld_entrance.h"
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
@@ -348,25 +349,12 @@ absl::Status ApplyTailExpansion(Rom* rom, bool dry_run, bool verbose) {
     return absl::OkStatus();
   }
 
-  // Find the patch file in standard locations
-  std::vector<std::string> patch_locations = {
-      "assets/patches/Overworld/TailMapExpansion.asm",
-      "../assets/patches/Overworld/TailMapExpansion.asm",
-      "TailMapExpansion.asm"};
-
-  std::string patch_path;
-  for (const auto& loc : patch_locations) {
-    std::ifstream probe(loc);
-    if (probe.good()) {
-      patch_path = loc;
-      break;
-    }
-  }
-
-  if (patch_path.empty()) {
+  auto patch_path =
+      util::PlatformPaths::FindAsset("patches/Overworld/TailMapExpansion.asm");
+  if (!patch_path.ok()) {
     return absl::NotFoundError(
         "TailMapExpansion.asm patch file not found. "
-        "Expected locations: assets/patches/Overworld/TailMapExpansion.asm");
+        "Expected it in the Yaze runtime assets.");
   }
 
   // Apply the patch using Asar
@@ -374,7 +362,7 @@ absl::Status ApplyTailExpansion(Rom* rom, bool dry_run, bool verbose) {
   RETURN_IF_ERROR(asar.Initialize());
 
   std::vector<uint8_t> rom_data(rom->data(), rom->data() + rom->size());
-  auto result = asar.ApplyPatch(patch_path, rom_data);
+  auto result = asar.ApplyPatch(patch_path->string(), rom_data);
 
   if (!result.ok()) {
     return result.status();

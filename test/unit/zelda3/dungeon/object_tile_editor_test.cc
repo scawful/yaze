@@ -1012,6 +1012,59 @@ TEST(ObjectTileEditorTest, RenderLayoutToBitmapUsesThirdPaletteWhenAvailable) {
   EXPECT_EQ(bitmap.mutable_data()[8], 17);
 }
 
+TEST(ObjectTileEditorTest, RenderLayoutToBitmapUsesCanonicalDungeonCgramRows) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  gfx::SnesPalette hud_palette;
+  for (int i = 0; i < 32; ++i) {
+    hud_palette.AddColor(gfx::SnesColor(static_cast<uint16_t>(0x0100 + i)));
+  }
+  gfx::SnesPalette dungeon_palette;
+  for (int i = 0; i < 90; ++i) {
+    dungeon_palette.AddColor(gfx::SnesColor(static_cast<uint16_t>(0x0200 + i)));
+  }
+  const auto palette_group =
+      BuildDungeonRenderPaletteGroup(dungeon_palette, &hud_palette);
+
+  ObjectTileLayout layout;
+  layout.bounds_width = 2;
+  layout.bounds_height = 1;
+  ObjectTileLayout::Cell first_bank;
+  first_bank.rel_x = 0;
+  first_bank.rel_y = 0;
+  first_bank.tile_info =
+      gfx::TileInfo(/*id=*/0, /*palette=*/2, false, false, false);
+  layout.cells.push_back(first_bank);
+  ObjectTileLayout::Cell last_bank;
+  last_bank.rel_x = 1;
+  last_bank.rel_y = 0;
+  last_bank.tile_info =
+      gfx::TileInfo(/*id=*/1, /*palette=*/7, false, false, false);
+  layout.cells.push_back(last_bank);
+
+  std::vector<uint8_t> gfx_buffer(0x10000, 0);
+  gfx_buffer[0] = 1;
+  gfx_buffer[8] = 15;
+  gfx::Bitmap bitmap;
+  ObjectTileEditor editor(&rom);
+
+  const auto status = editor.RenderLayoutToBitmap(
+      layout, bitmap, gfx_buffer.data(), palette_group);
+
+  ASSERT_TRUE(status.ok()) << status.message();
+  ASSERT_EQ(bitmap.palette().size(), 128u);
+  EXPECT_EQ(bitmap.palette()[33].snes(), dungeon_palette[0].snes());
+  EXPECT_EQ(bitmap.palette()[127].snes(), dungeon_palette[89].snes());
+  EXPECT_EQ(bitmap.mutable_data()[0], 33);
+  EXPECT_EQ(bitmap.mutable_data()[8], 127);
+  ASSERT_NE(bitmap.surface(), nullptr);
+  EXPECT_EQ(SDL_HasColorKey(bitmap.surface()), SDL_TRUE);
+  Uint32 transparent_key = 0;
+  ASSERT_EQ(SDL_GetColorKey(bitmap.surface(), &transparent_key), 0);
+  EXPECT_EQ(transparent_key, 255u);
+}
+
 TEST(ObjectTileEditorTest, BuildTile8AtlasUsesRequestedPaletteIndex) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());

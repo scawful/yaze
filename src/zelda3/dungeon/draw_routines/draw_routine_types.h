@@ -34,6 +34,8 @@ struct DrawContext {
   const uint8_t* room_gfx_buffer;        // Room-specific graphics buffer
   gfx::BackgroundBuffer*
       secondary_bg;  // Secondary BG for dual-layer routines (nullable)
+  const gfx::BackgroundBuffer* target_layout_bg =
+      nullptr;  // Matching layout owner for logical tilemap reads
 
   // Canvas dimensions
   static constexpr int kMaxTilesX = 64;
@@ -106,6 +108,39 @@ inline bool ExistingTileMatchesAny(const gfx::BackgroundBuffer& bg, int tile_x,
     }
   }
   return false;
+}
+
+inline bool TileHasObjectCoverage(const gfx::BackgroundBuffer& bg, int tile_x,
+                                  int tile_y) {
+  const auto& coverage = bg.coverage_data();
+  const auto& bitmap = bg.bitmap();
+  if (coverage.empty() || bitmap.width() <= 0 || bitmap.height() <= 0) {
+    return false;
+  }
+
+  const int start_x = tile_x * 8;
+  const int start_y = tile_y * 8;
+  if (start_x < 0 || start_y < 0 || start_x >= bitmap.width() ||
+      start_y >= bitmap.height()) {
+    return false;
+  }
+
+  // ObjectDrawer marks the full 8x8 footprint even when a tile is visually
+  // transparent. Checking one pixel is therefore enough to establish which
+  // split buffer owns the effective SNES tilemap entry.
+  const size_t index = static_cast<size_t>(start_y * bitmap.width() + start_x);
+  return index < coverage.size() && coverage[index] != 0;
+}
+
+inline bool ExistingTileMatchesAny(const DrawContext& ctx, int tile_x,
+                                   int tile_y,
+                                   std::initializer_list<uint16_t> tile_ids) {
+  const gfx::BackgroundBuffer* effective_owner = &ctx.target_bg;
+  if (!TileHasObjectCoverage(ctx.target_bg, tile_x, tile_y) &&
+      ctx.target_layout_bg != nullptr) {
+    effective_owner = ctx.target_layout_bg;
+  }
+  return ExistingTileMatchesAny(*effective_owner, tile_x, tile_y, tile_ids);
 }
 
 /**

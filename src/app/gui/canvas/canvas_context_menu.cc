@@ -42,6 +42,7 @@ void CanvasContextMenu::Initialize(const std::string& canvas_id) {
   is_draggable_ = false;
   auto_resize_ = false;
   scrolling_ = ImVec2(0, 0);
+  context_open_screen_position_.reset();
 
   // Create default menu items
   CreateDefaultMenuItems();
@@ -76,6 +77,10 @@ void CanvasContextMenu::Render(
   // Context menu (under default mouse threshold)
   if (ImVec2 drag_delta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Right);
       enable_context_menu_ && drag_delta.x == 0.0F && drag_delta.y == 0.0F) {
+    if (ImGui::IsItemHovered() &&
+        ImGui::IsMouseReleased(ImGuiMouseButton_Right)) {
+      context_open_screen_position_ = ImGui::GetIO().MousePos;
+    }
     ImGui::OpenPopupOnItemClick(context_id.c_str(),
                                 ImGuiPopupFlags_MouseButtonRight);
   }

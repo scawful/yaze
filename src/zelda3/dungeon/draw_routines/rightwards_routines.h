@@ -96,18 +96,18 @@ void DrawRightwardsHasEdge1x1_1to16_plus2(const DrawContext& ctx);
 void DrawRightwardsHasEdge1x1_1to16_plus23(const DrawContext& ctx);
 
 /**
- * @brief Draw top corner 1x2 tiles with +13 offset
+ * @brief Draw top corner 1x2 tiles with opening and closing caps
  *
- * Pattern: Top corner 1x2 tiles with +13 offset (object 0x2F)
+ * Pattern: Top corner 1x2 tiles with a size+13 extent (object 0x2F)
  *
  * @param ctx Draw context containing object, tiles, and target buffer
  */
 void DrawRightwardsTopCorners1x2_1to16_plus13(const DrawContext& ctx);
 
 /**
- * @brief Draw bottom corner 1x2 tiles with +13 offset
+ * @brief Draw bottom corner 1x2 tiles with opening and closing caps
  *
- * Pattern: Bottom corner 1x2 tiles with +13 offset (object 0x30)
+ * Pattern: Bottom corner 1x2 tiles with a size+13 extent (object 0x30)
  *
  * @param ctx Draw context containing object, tiles, and target buffer
  */
@@ -123,9 +123,9 @@ void DrawRightwardsBottomCorners1x2_1to16_plus13(const DrawContext& ctx);
 void DrawRightwards4x4_1to16(const DrawContext& ctx);
 
 /**
- * @brief Draw 1x1 solid tiles +3 offset
+ * @brief Draw 1x1 solid tiles with a +3 extent
  *
- * Pattern: 1x1 solid tiles +3 offset (object 0x34)
+ * Pattern: 1x1 solid tiles with a size+3 minimum extent (object 0x34)
  *
  * @param ctx Draw context containing object, tiles, and target buffer
  */

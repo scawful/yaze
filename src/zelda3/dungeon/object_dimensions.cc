@@ -285,31 +285,6 @@ ObjectDimensionTable::SelectionBounds ObjectDimensionTable::GetSelectionBounds(
   SelectionBounds bounds{0, 0, w, h};
 
   switch (object_id) {
-    // Offset +3 (1x1 solid +3)
-    case 0x34:
-      bounds.offset_x = 3;
-      break;
-
-    // Rightwards corners +13
-    case 0x2F:
-      bounds.offset_x = 13;
-      break;
-    case 0x30:
-      bounds.offset_x = 13;
-      bounds.offset_y = 1;
-      break;
-
-    // Downwards corners +12
-    case 0x6C:
-    case 0x6D:
-      bounds.offset_x = 12;
-      break;
-
-    // Downwards solid +3 writes from y+3 to y+(size+6).
-    case 0x71:
-      bounds.offset_y = 3;
-      break;
-
     // Moving wall west grows its fill left from the three-column platform.
     case 0xCD:
       bounds.offset_x = -moving_wall::ObjectCountForSize(size);
@@ -329,19 +304,9 @@ ObjectDimensionTable::SelectionBounds ObjectDimensionTable::GetSelectionBounds(
     bounds.offset_y = -(bounds.width - 1);
   }
 
-  // Diagonal ceilings: offsets depend on which corner is the origin.
-  // TopLeft (0xA0, 0xA5, 0xA9): extends down-right - no offset needed.
-  // BottomLeft (0xA1, 0xA6, 0xAA): extends up-right - offset_y negative.
-  if (object_id == 0xA1 || object_id == 0xA6 || object_id == 0xAA) {
-    bounds.offset_y = -(bounds.width - 1);
-  }
-  // TopRight (0xA2, 0xA7, 0xAB): extends down-left - offset_x negative.
-  if (object_id == 0xA2 || object_id == 0xA7 || object_id == 0xAB) {
-    bounds.offset_x = -(bounds.width - 1);
-  }
-  // BottomRight (0xA3, 0xA8, 0xAC): extends up-left - both offsets negative.
+  // Diagonal ceilings start at the encoded X coordinate. Only BottomRight
+  // (0xA3, 0xA8, 0xAC) walks upward from the encoded Y coordinate.
   if (object_id == 0xA3 || object_id == 0xA8 || object_id == 0xAC) {
-    bounds.offset_x = -(bounds.width - 1);
     bounds.offset_y = -(bounds.width - 1);
   }
 
@@ -388,12 +353,12 @@ void ObjectDimensionTable::InitializeDefaults() {
     dimensions_[id] = {2, 2, Dir::Horizontal, 2, false};
   }
 
-  // 0x09-0x14: Diagonal walls - non-BothBG (count = size + 7)
+  // 0x09-0x14: Diagonal walls - non-BothBG (count = size + 6)
   // Height = count + 4 tiles (5 tiles per column + diagonal extent)
   for (int id = 0x09; id <= 0x14; id++) {
     // Diagonal pattern: width = count tiles, height = count + 4 tiles
-    dimensions_[id] = {7, 11, Dir::Diagonal, 1,
-                       false};  // base 7 + size*1, height 11 + size*1
+    dimensions_[id] = {6, 10, Dir::Diagonal, 1,
+                       false};  // base 6 + size*1, height 10 + size*1
   }
 
   // 0x15-0x20: Diagonal walls - BothBG (count = size + 6)
@@ -413,11 +378,11 @@ void ObjectDimensionTable::InitializeDefaults() {
     dimensions_[id] = {3, 1, Dir::Horizontal, 1, false};
   }
 
-  // 0x2F: Top corners 1x2 +13
-  dimensions_[0x2F] = {10, 2, Dir::Horizontal, 1, false};
+  // 0x2F: Top corners 1x2, size+10 body plus two 2-tile caps.
+  dimensions_[0x2F] = {14, 2, Dir::Horizontal, 1, false};
 
-  // 0x30: Bottom corners 1x2 +13
-  dimensions_[0x30] = {10, 2, Dir::Horizontal, 1, false};
+  // 0x30: Bottom corners 1x2, size+10 body plus two 2-tile caps.
+  dimensions_[0x30] = {14, 2, Dir::Horizontal, 1, false};
 
   // 0x31-0x32: Nothing
   dimensions_[0x31] = {1, 1, Dir::None, 0, false};
@@ -553,7 +518,7 @@ void ObjectDimensionTable::InitializeDefaults() {
     dimensions_[id] = {1, 1, Dir::Vertical, 1, false};
   }
 
-  // 0x6C-0x6D: Downwards corners (+12 offset in draw routine).
+  // 0x6C-0x6D: Downwards corners rooted at the stored object position.
   // Canonical empty-canvas render:
   // - 2 opening rows
   // - (size + 10) body rows

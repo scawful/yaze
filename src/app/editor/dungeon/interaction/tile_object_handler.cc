@@ -297,7 +297,10 @@ void TileObjectHandler::HandleMarqueeSelection(
     }
 
     ctx_->selection->EndRectangleSelection(
-        room->GetTileObjects(), ObjectSelection::SelectionMode::Single);
+        room->GetTileObjects(), ObjectSelection::SelectionMode::Single,
+        [this](const zelda3::RoomObject& object) {
+          return ctx_->IsObjectVisibleForSelection(object);
+        });
   }
 }
 
@@ -503,6 +506,10 @@ std::optional<size_t> TileObjectHandler::GetEntityAtPosition(
   for (size_t i = objects.size(); i > 0; --i) {
     size_t index = i - 1;
     const auto& object = objects[index];
+
+    if (ctx_ && !ctx_->IsObjectVisibleForSelection(object)) {
+      continue;
+    }
 
     // Respect layer filter if available in context
     if (ctx_ && ctx_->selection &&
@@ -1043,6 +1050,7 @@ void TileObjectHandler::RenderGhostPreviewBitmap() {
 
   zelda3::ObjectDrawer drawer(ctx_->rom, ctx_->current_room_id, gfx_data);
   drawer.InitializeDrawRoutines();
+  drawer.SetRoomFloorGraphics(room->floor1(), room->floor2());
 
   // Replay at the same safe anchor ObjectGeometry uses for measurement so
   // routines that draw upward or leftward do not clip against buffer origin.

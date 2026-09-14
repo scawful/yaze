@@ -55,13 +55,33 @@ class Arena {
   enum class TextureCommandType { CREATE, UPDATE, DESTROY };
   struct TextureCommand {
     TextureCommandType type;
-    Bitmap* bitmap;  // The bitmap that needs a texture operation
+    Bitmap* bitmap;       // The bitmap that needs a texture operation
     uint32_t generation;  // Generation at queue time for staleness detection
   };
 
   void QueueTextureCommand(TextureCommandType type, Bitmap* bitmap);
   void ProcessTextureQueue(IRenderer* renderer);
   void ClearTextureQueue();
+
+  /**
+   * @brief Explicitly retire resources owned by a bitmap that is being erased.
+   *
+   * Cancels every deferred command that still references the Bitmap address,
+   * returns its SDL surface to the Arena, and moves its opaque texture handle
+   * to a pointer-free queue. The handle is intentionally not destroyed here:
+   * ImGui draw data for the current frame may still reference it.
+   */
+  void RetireBitmap(Bitmap& bitmap);
+
+  /**
+   * @brief Destroy texture handles retired earlier in the frame.
+   *
+   * Call only after ImGui rendering/Present has completed, or immediately
+   * before renderer shutdown. Failed destroys remain queued for a later call.
+   *
+   * @return Number of handles successfully destroyed.
+   */
+  size_t DrainRetiredBitmaps(IRenderer* renderer);
 
   /**
    * @brief Check if there are pending textures to process
@@ -97,10 +117,10 @@ class Arena {
    * @brief Statistics for texture queue processing
    */
   struct TextureQueueStats {
-    size_t textures_processed = 0;   // Total textures processed this session
-    size_t frames_with_work = 0;     // Frames that did texture work
-    float total_time_ms = 0.0f;      // Total time spent processing
-    float max_frame_time_ms = 0.0f;  // Maximum time spent in a single call
+    size_t textures_processed = 0;     // Total textures processed this session
+    size_t frames_with_work = 0;       // Frames that did texture work
+    float total_time_ms = 0.0f;        // Total time spent processing
+    float max_frame_time_ms = 0.0f;    // Maximum time spent in a single call
     float avg_texture_time_ms = 0.0f;  // Average time per texture
 
     void Reset() {
@@ -143,6 +163,9 @@ class Arena {
   size_t texture_command_queue_size() const {
     return texture_command_queue_.size();
   }
+  size_t retired_texture_handle_count() const {
+    return retired_texture_handles_.size();
+  }
 
   // Graphics sheet access (223 total sheets in YAZE)
   /**
@@ -157,7 +180,8 @@ class Arena {
    * @return Copy of the Bitmap at index i, or empty Bitmap if out of bounds
    */
   auto gfx_sheet(int i) {
-    if (i < 0 || i >= 223) return gfx::Bitmap{};
+    if (i < 0 || i >= 223)
+      return gfx::Bitmap{};
     return gfx_sheets_[i];
   }
 
@@ -167,7 +191,8 @@ class Arena {
    * @return Pointer to mutable Bitmap at index i, or nullptr if out of bounds
    */
   auto mutable_gfx_sheet(int i) {
-    if (i < 0 || i >= 223) return static_cast<gfx::Bitmap*>(nullptr);
+    if (i < 0 || i >= 223)
+      return static_cast<gfx::Bitmap*>(nullptr);
     return &gfx_sheets_[i];
   }
 
@@ -293,10 +318,10 @@ class Arena {
    * @brief Statistics for sheet cache performance
    */
   struct SheetCacheStats {
-    size_t hits = 0;           // Sheet accessed and already had texture
-    size_t misses = 0;         // Sheet accessed but needed texture creation
-    size_t evictions = 0;      // Textures evicted due to cache pressure
-    size_t current_size = 0;   // Current number of cached textures
+    size_t hits = 0;          // Sheet accessed and already had texture
+    size_t misses = 0;        // Sheet accessed but needed texture creation
+    size_t evictions = 0;     // Textures evicted due to cache pressure
+    size_t current_size = 0;  // Current number of cached textures
 
     void Reset() {
       hits = 0;
@@ -362,7 +387,9 @@ class Arena {
   } surface_pool_;
 
   std::vector<TextureCommand> texture_command_queue_;
+  std::vector<TextureHandle> retired_texture_handles_;
   IRenderer* renderer_ = nullptr;
+  bool is_shutdown_ = false;
   TextureQueueStats texture_queue_stats_;
 
   // Palette change notification system

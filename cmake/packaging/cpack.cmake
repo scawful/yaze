@@ -84,9 +84,34 @@ configure_file(${YAZE_MANIFEST_TEMPLATE} ${YAZE_RELEASE_MANIFEST} @ONLY)
 
 # Populate runtime library list (needed on Windows)
 set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_NO_WARNINGS ON)
+# Collect the runtime paths without accepting the module's default bin/
+# destination; the Windows package below installs them beside the executables.
 set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP ON)
 set(CMAKE_INSTALL_UCRT_LIBRARIES OFF)
 include(InstallRequiredSystemLibraries)
+
+if(WIN32 AND MSVC AND CMAKE_BUILD_TYPE STREQUAL "Release")
+    set(_yaze_has_msvcp_runtime FALSE)
+    set(_yaze_has_vcruntime FALSE)
+    foreach(_yaze_runtime ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})
+        get_filename_component(_yaze_runtime_name "${_yaze_runtime}" NAME)
+        string(TOLOWER "${_yaze_runtime_name}" _yaze_runtime_name)
+        if(_yaze_runtime_name MATCHES "^msvcp.*\\.dll$")
+            set(_yaze_has_msvcp_runtime TRUE)
+        elseif(_yaze_runtime_name MATCHES "^vcruntime.*\\.dll$")
+            set(_yaze_has_vcruntime TRUE)
+        endif()
+    endforeach()
+    if(NOT _yaze_has_msvcp_runtime OR NOT _yaze_has_vcruntime)
+        message(FATAL_ERROR
+            "Release packaging requires app-local MSVC runtime DLLs, but "
+            "InstallRequiredSystemLibraries did not find both msvcp and vcruntime.")
+    endif()
+    unset(_yaze_has_msvcp_runtime)
+    unset(_yaze_has_vcruntime)
+    unset(_yaze_runtime)
+    unset(_yaze_runtime_name)
+endif()
 
 if(APPLE)
     include(cmake/packaging/macos.cmake)
@@ -148,24 +173,27 @@ else()
     include(cmake/packaging/linux.cmake)
 
     install(TARGETS yaze
-        RUNTIME DESTINATION .
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         COMPONENT yaze)
 
     if(TARGET z3ed)
         install(TARGETS z3ed
-            RUNTIME DESTINATION .
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
             COMPONENT yaze)
     endif()
 
     install(DIRECTORY ${CMAKE_SOURCE_DIR}/assets/
-        DESTINATION assets
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/yaze/assets
+        COMPONENT yaze)
+
+    install(FILES ${YAZE_RELEASE_MANIFEST}
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/yaze
         COMPONENT yaze)
 
     install(FILES
         ${YAZE_RELEASE_README}
-        ${YAZE_RELEASE_MANIFEST}
         ${CMAKE_SOURCE_DIR}/LICENSE
-        DESTINATION .
+        DESTINATION ${CMAKE_INSTALL_DOCDIR}
         COMPONENT yaze)
 endif()
 

@@ -16,6 +16,9 @@ namespace gfx {
 
 void Arena::Initialize(IRenderer* renderer) {
   renderer_ = renderer;
+  if (renderer != nullptr) {
+    is_shutdown_ = false;
+  }
 }
 
 Arena& Arena::Get() {
@@ -41,6 +44,55 @@ void Arena::QueueTextureCommand(TextureCommandType type, Bitmap* bitmap) {
 
 void Arena::ClearTextureQueue() {
   texture_command_queue_.clear();
+}
+
+void Arena::RetireBitmap(Bitmap& bitmap) {
+  // Texture commands retain Bitmap addresses. Remove them while the owner is
+  // still alive so no later generation check dereferences freed memory.
+  std::erase_if(texture_command_queue_,
+                [&bitmap](const TextureCommand& command) {
+                  return command.bitmap == &bitmap;
+                });
+
+  const TextureHandle texture = bitmap.texture();
+  if (!is_shutdown_ && texture != nullptr &&
+      std::find(retired_texture_handles_.begin(),
+                retired_texture_handles_.end(),
+                texture) == retired_texture_handles_.end()) {
+    retired_texture_handles_.push_back(texture);
+  }
+
+  // Detach before returning the surface so a second retirement is a no-op and
+  // the soon-to-be-destroyed Bitmap no longer advertises live resources.
+  SDL_Surface* surface = bitmap.DetachSurfaceForArena();
+  (void)bitmap.DetachTextureForArena();
+  bitmap.MarkRetiredByArena();
+  // Shutdown clears the tracked surfaces before editor-owned Bitmap objects
+  // are destroyed. Do not return a stale pointer to the pool in that case.
+  if (surface != nullptr && surfaces_.contains(surface)) {
+    FreeSurface(surface);
+  }
+}
+
+size_t Arena::DrainRetiredBitmaps(IRenderer* renderer) {
+  IRenderer* active_renderer = renderer ? renderer : renderer_;
+  if (active_renderer == nullptr) {
+    return 0;
+  }
+
+  size_t destroyed = 0;
+  auto it = retired_texture_handles_.begin();
+  while (it != retired_texture_handles_.end()) {
+    try {
+      active_renderer->DestroyTexture(*it);
+      it = retired_texture_handles_.erase(it);
+      ++destroyed;
+    } catch (...) {
+      LOG_ERROR("Arena", "Exception destroying retired bitmap texture");
+      ++it;
+    }
+  }
+  return destroyed;
 }
 
 bool Arena::ProcessSingleTexture(IRenderer* renderer) {
@@ -425,8 +477,17 @@ void Arena::FreeSurface(SDL_Surface* surface) {
 }
 
 void Arena::Shutdown() {
+  if (is_shutdown_) {
+    return;
+  }
+
   // Process any remaining batch updates before shutdown
   ProcessTextureQueue(renderer_);
+  DrainRetiredBitmaps(renderer_);
+
+  // Editor-owned Bitmap objects can outlive the renderer and window backend.
+  // Late retirement must only detach their stale resource fields.
+  is_shutdown_ = true;
 
   // Clear LRU cache tracking (doesn't destroy textures, just tracking)
   ClearSheetCache();
@@ -444,6 +505,8 @@ void Arena::Shutdown() {
 
   // Clear any remaining queue items
   texture_command_queue_.clear();
+  retired_texture_handles_.clear();
+  renderer_ = nullptr;
 }
 
 void Arena::NotifySheetModified(int sheet_index) {

@@ -193,14 +193,8 @@ void ObjectSelectorContent::Draw(bool* p_open) {
     }
   }
 
-  float available_height = ImGui::GetContentRegionAvail().y;
-  float browser_height = std::max(240.0f, available_height);
-
   DrawInteractionSummary();
-  ImGui::Spacing();
-  ImGui::BeginChild("ObjectBrowserRegion", ImVec2(0, browser_height), false);
   DrawObjectSelector();
-  ImGui::EndChild();
 }
 
 void ObjectSelectorContent::SelectObject(int obj_id) {
@@ -242,21 +236,17 @@ void ObjectSelectorContent::DrawInteractionSummary() {
                                   viewer->current_room_id())
                             : DungeonSelectionSnapshot{};
 
-  ImGui::AlignTextToFramePadding();
-  ImGui::TextColored(theme.text_info, ICON_MD_CATEGORY " Object Selector");
-
+  bool drew_primary_status = false;
   if (!last_placement_error_.empty()) {
     double elapsed = ImGui::GetTime() - placement_error_time_;
     if (!toast_manager_ && elapsed < kPlacementErrorDuration) {
-      ImGui::SameLine();
       ImGui::TextColored(theme.status_error, ICON_MD_WARNING " %s",
                          last_placement_error_.c_str());
+      drew_primary_status = true;
     } else if (elapsed >= kPlacementErrorDuration) {
       last_placement_error_.clear();
     }
   }
-
-  ImGui::Separator();
 
   bool is_placing = has_preview_object_ && canvas_viewer_ &&
                     canvas_viewer_->object_interaction().IsObjectLoaded();
@@ -265,6 +255,9 @@ void ObjectSelectorContent::DrawInteractionSummary() {
   }
 
   if (is_placing) {
+    if (drew_primary_status) {
+      ImGui::Spacing();
+    }
     ImGui::TextColored(theme.status_warning,
                        ICON_MD_ADD_CIRCLE " Queued 0x%03X %s",
                        preview_object_.id_,
@@ -282,31 +275,44 @@ void ObjectSelectorContent::DrawInteractionSummary() {
     if (ImGui::SmallButton(cancel_label)) {
       CancelPlacement();
     }
-  } else if (snapshot.kind == DungeonSelectionKind::ObjectSingle) {
+    drew_primary_status = true;
+  }
+
+  // Capacity and validation detail belongs in the wider standalone picker.
+  // A full-height inspector is still narrow, so preserve that space for the
+  // object grid while keeping placement and error feedback visible above.
+  const ImVec2 available = ImGui::GetContentRegionAvail();
+  const bool show_secondary_status =
+      available.x >= 420.0f && available.y >= 260.0f;
+  if (!is_placing && show_secondary_status &&
+      snapshot.kind == DungeonSelectionKind::ObjectSingle) {
     ImGui::TextColored(theme.status_success,
                        ICON_MD_CHECK_CIRCLE " 1 object selected");
     DrawInlineInspectButton(open_object_editor_callback_);
-  } else if (snapshot.kind == DungeonSelectionKind::ObjectMulti) {
+  } else if (!is_placing && show_secondary_status &&
+             snapshot.kind == DungeonSelectionKind::ObjectMulti) {
     ImGui::TextColored(theme.status_success,
                        ICON_MD_SELECT_ALL " %zu objects selected",
                        snapshot.count);
     DrawInlineInspectButton(open_object_editor_callback_);
-  } else if (snapshot.kind == DungeonSelectionKind::Door ||
-             snapshot.kind == DungeonSelectionKind::Sprite ||
-             snapshot.kind == DungeonSelectionKind::Item) {
+  } else if (!is_placing && show_secondary_status &&
+             (snapshot.kind == DungeonSelectionKind::Door ||
+              snapshot.kind == DungeonSelectionKind::Sprite ||
+              snapshot.kind == DungeonSelectionKind::Item)) {
     ImGui::TextColored(theme.status_success,
                        ICON_MD_MANAGE_SEARCH " 1 %s selected",
                        GetDungeonSelectionKindLabel(snapshot.kind));
     DrawInlineInspectButton(open_object_editor_callback_);
-  } else if (snapshot.kind == DungeonSelectionKind::EntityMulti ||
-             snapshot.kind == DungeonSelectionKind::Mixed) {
+  } else if (!is_placing && show_secondary_status &&
+             (snapshot.kind == DungeonSelectionKind::EntityMulti ||
+              snapshot.kind == DungeonSelectionKind::Mixed)) {
     ImGui::TextColored(theme.status_success, ICON_MD_SELECT_ALL " %s",
                        GetDungeonSelectionSummaryText(snapshot).c_str());
     DrawInlineInspectButton(open_object_editor_callback_);
-  } else {
-    ImGui::TextColored(
-        theme.text_secondary_gray, ICON_MD_MOUSE
-        " Browse, filter, and click an object below to queue placement.");
+  }
+
+  if (!show_secondary_status) {
+    return;
   }
 
   auto* rooms = object_selector_.get_rooms();
@@ -381,10 +387,6 @@ void ObjectSelectorContent::DrawInteractionSummary() {
         ImGui::EndTooltip();
       }
     }
-  } else {
-    ImGui::Spacing();
-    ImGui::TextColored(theme.text_secondary_gray,
-                       ICON_MD_INFO " Room data unavailable");
   }
 }
 

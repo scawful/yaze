@@ -841,6 +841,8 @@ TEST(MinecartTrackEditorPanelTest,
 
   auto renderer = std::make_unique<gfx::NullRenderer>();
   auto manager = std::make_unique<EditorManager>();
+  manager->user_settings().SetSettingsFilePathForTesting(
+      fixture.Path("settings.json").string());
   manager->Initialize(renderer.get(), "");
   manager->SetAssetLoadMode(AssetLoadMode::kLazy);
   ASSERT_TRUE(manager->OpenRomOrProject(fixture.project_path().string()).ok());

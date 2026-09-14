@@ -94,19 +94,39 @@ TEST(LayoutPresetsTest,
   EXPECT_EQ(debug_pos->second, DockPosition::RightBottom);
 }
 
-TEST(LayoutPresetsTest, DungeonWorkbenchDefaultHidesStandaloneRoomSelector) {
+TEST(LayoutPresetsTest, DungeonWorkbenchDefaultKeepsStandaloneToolsOptional) {
   auto preset = LayoutPresets::GetDefaultPreset(EditorType::kDungeon);
 
+  ASSERT_EQ(preset.default_visible_panels.size(), 1U);
+  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+                            LayoutPresets::Panels::kDungeonWorkbench));
+  EXPECT_TRUE(preset.dock_only_default_visible_panels);
   EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
                              LayoutPresets::Panels::kDungeonRoomSelector));
   EXPECT_TRUE(ContainsPanel(preset.optional_panels,
                             LayoutPresets::Panels::kDungeonRoomSelector));
-  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+  EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
+                             LayoutPresets::Panels::kDungeonRoomMatrix));
+  EXPECT_TRUE(ContainsPanel(preset.optional_panels,
                             LayoutPresets::Panels::kDungeonRoomMatrix));
   EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
+                             LayoutPresets::Panels::kDungeonObjectSelector));
+  EXPECT_TRUE(ContainsPanel(preset.optional_panels,
+                            LayoutPresets::Panels::kDungeonObjectSelector));
+  EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
                              LayoutPresets::Panels::kDungeonObjectEditor));
-  EXPECT_TRUE(ContainsPanel(preset.default_visible_panels,
+  EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
+                             LayoutPresets::Panels::kDungeonDoorEditor));
+  EXPECT_TRUE(ContainsPanel(preset.optional_panels,
                             LayoutPresets::Panels::kDungeonDoorEditor));
+  EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
+                             LayoutPresets::Panels::kDungeonRoomGraphics));
+  EXPECT_TRUE(ContainsPanel(preset.optional_panels,
+                            LayoutPresets::Panels::kDungeonRoomGraphics));
+  EXPECT_FALSE(ContainsPanel(preset.default_visible_panels,
+                             LayoutPresets::Panels::kDungeonPaletteEditor));
+  EXPECT_TRUE(ContainsPanel(preset.optional_panels,
+                            LayoutPresets::Panels::kDungeonPaletteEditor));
 }
 
 TEST(LayoutPresetsTest, WorkspaceAliasesMirrorWindowTerminology) {

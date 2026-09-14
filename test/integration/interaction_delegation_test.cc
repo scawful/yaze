@@ -19,6 +19,7 @@
 #include "app/gui/canvas/canvas.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/sprite/sprite.h"
@@ -315,7 +316,7 @@ TEST_F(InteractionDelegationTest, UpdateObjectIdInvalidatesCache) {
   EXPECT_EQ(objects[0].id_, 0x42);
   EXPECT_FALSE(objects[0].tiles_loaded_);  // Cache should be invalidated
   EXPECT_FALSE(objects[0].all_bgs_)
-      << "Derived flags should refresh on ID change";
+      << "ID changes must not create a manual BothBG override";
 }
 
 TEST_F(InteractionDelegationTest, UpdateObjectSizeInvalidatesCache) {
@@ -349,7 +350,7 @@ TEST_F(InteractionDelegationTest, UpdateObjectLayerMovesBothBgObject) {
 
   // Fixture index 2 is id=0x03, which is treated as a structural BothBG object.
   ASSERT_EQ(objects[2].layer_, zelda3::RoomObject::LayerType::BG1);
-  ASSERT_TRUE(objects[2].all_bgs_);
+  ASSERT_TRUE(zelda3::GetObjectLayerSemantics(objects[2]).draws_to_both_bgs);
 
   tile_handler.UpdateObjectsLayer(0, {2}, 1);
   EXPECT_EQ(objects[2].layer_, zelda3::RoomObject::LayerType::BG2);

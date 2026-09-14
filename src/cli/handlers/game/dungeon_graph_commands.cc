@@ -57,24 +57,6 @@ int GetRoomDungeonId(Rom* rom, int room_id) {
   return -1;  // Unknown dungeon
 }
 
-// Returns true for door types that exit the dungeon (overworld, cave exit, etc.)
-bool IsExitDoorType(zelda3::DoorType type) {
-  switch (type) {
-    case zelda3::DoorType::FancyDungeonExit:
-    case zelda3::DoorType::FancyDungeonExitLower:
-    case zelda3::DoorType::CaveExit:
-    case zelda3::DoorType::LitCaveExitLower:
-    case zelda3::DoorType::ExitLower:
-    case zelda3::DoorType::UnusedCaveExit:
-    case zelda3::DoorType::BombableCaveExit:
-    case zelda3::DoorType::WaterfallDoor:
-    case zelda3::DoorType::ExitMarker:
-      return true;
-    default:
-      return false;
-  }
-}
-
 // Compute neighbor room ID from door direction using ALTTP 16-wide grid.
 // Returns -1 if the computed ID is out of range.
 int NeighborRoomId(int room_id, zelda3::DoorDirection dir) {
@@ -121,7 +103,7 @@ zelda3::DoorDirection OppositeDir(zelda3::DoorDirection dir) {
 bool RoomHasDoorIn(Rom* rom, int room_id, zelda3::DoorDirection dir) {
   zelda3::Room neighbor_room = zelda3::LoadRoomFromRom(rom, room_id);
   for (const auto& door : neighbor_room.GetDoors()) {
-    if (door.direction == dir && !IsExitDoorType(door.type))
+    if (door.direction == dir && zelda3::IsRoomConnectionDoorType(door.type))
       return true;
   }
   return false;
@@ -597,8 +579,15 @@ absl::Status DungeonRoomGraphCommandHandler::Execute(
 
     // Door edges — infer neighbor from grid position + direction
     for (const auto& door : room.GetDoors()) {
-      bool is_exit = IsExitDoorType(door.type);
-      int neighbor = is_exit ? -1 : NeighborRoomId(room_id, door.direction);
+      const bool is_connection = zelda3::IsRoomConnectionDoorType(door.type);
+      const bool is_exit = zelda3::IsExitDoorType(door.type);
+      if (!is_connection && !is_exit) {
+        // Layer/dungeon swap markers control rendering state. They neither
+        // connect rooms nor represent an overworld exit.
+        continue;
+      }
+      int neighbor =
+          is_connection ? NeighborRoomId(room_id, door.direction) : -1;
       auto [tx, ty] = door.GetTileCoords();
 
       DoorEdge edge;
@@ -613,7 +602,7 @@ absl::Status DungeonRoomGraphCommandHandler::Execute(
 
       // Only follow non-exit doors that have a reciprocal door on the other side.
       // This prevents cascading across the entire dungeon grid.
-      if (!is_exit && neighbor >= 0 &&
+      if (is_connection && neighbor >= 0 &&
           visited.find(neighbor) == visited.end() &&
           RoomHasDoorIn(rom, neighbor, OppositeDir(door.direction))) {
         // Optional: skip neighbors with a different blockset than the start room

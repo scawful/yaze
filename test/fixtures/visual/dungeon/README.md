@@ -74,6 +74,101 @@ fixture.
   - bombed:
     `46d548d067527a78e409008c7ef1b06d38d1082410438a7a7e38e6918451acee`
 
+## `vanilla_room_065_mesen_tablerock_32x32.png`
+
+- Captured: 2026-09-08, Mesen2 OOS, headless on macOS arm64, using the same
+  room `0x065` intact bootstrap, PAR set, entrance `0x34`, and BG1-only PPU
+  setup as the bombable-floor pair above.
+- Object: subtype-1 `0xDD` (TableRock 4x4), room-tile origin `(41,52)`, size
+  nibble `4`.
+- Mesen source screenshot: 256x224; crop `(x=72, y=143, w=32, h=32)`.
+- Corresponding yaze 512x512 room crop: `(x=328, y=416, w=32, h=32)`.
+- Coordinate derivation: same camera as bombable floor, so
+  `mesen = yaze_room_px - (256, 273)`. Verified by relocating the committed
+  bombable intact crop inside the fresh full frame before cutting TableRock.
+- Fixture SHA-256:
+  `4d09ab115a859f5afc6cf159501f9323beb1244474d60b8c2be93cfded3f4c1c`.
+
+This was the first independent Mesen ROI for a visual-parity gap object family
+(TableRock). Later sections record BigHole, rails, and one west door ROI.
+
+## `vanilla_room_031_mesen_bighole_32x32.png`
+
+- Captured: 2026-09-08, Mesen2 OOS, headless on macOS arm64, using the same
+  entrance `0x34` / camera PAR / BG1-only PPU setup as room `0x065`, with only
+  the room-id override changed to `0x031`.
+- Object: subtype-1 `0xA4` (BigHole 4x4), room-tile origin `(44,44)`, size
+  nibble `0`.
+- Mesen source screenshot: 256x224; crop `(x=96, y=79, w=32, h=32)`.
+- Corresponding yaze 512x512 room crop: `(x=352, y=352, w=32, h=32)`.
+- Entrance blockset during capture: `0x0A` (same as the `0x065` baselines).
+- Fixture SHA-256:
+  `328aedac96a86aea5ca3d08438451651e9fe0e3e443e4e04c7261ef7ac236196`.
+
+`dungeon-render` full composites are **not** sufficient to validate this ROI —
+BG2/layout compositing can hide the hole. The regression test mirrors the
+bombable/TableRock path: BG1-only upper composite + exact RGBA.
+
+Independent Mesen ROIs now cover TableRock (`0xDD`) and BigHole (`0xA4`).
+Long rails, water overlays, and doors: see sections below for current coverage.
+
+## `vanilla_room_007_mesen_hrail_32x16.png` /
+## `vanilla_room_007_mesen_vrail_16x32.png`
+
+- Captured: 2026-09-08, Mesen2 OOS, headless on macOS arm64.
+- Room: `0x007` (Tower of Hera / Moldorm), entrance override `0x34`, blockset
+  `0x05` (room header / Hera).
+- Bootstrap: same room-id + camera-bounds PAR pattern as room `0x065`, then
+  **runtime pan** (do not change entrance camera-bound table bytes — that warps
+  into room `0x017`):
+  - Link Y/X `$7E0020/$7E0022 = 40 0C / 20 0A` → `(0x0A20, 0x0C40)`
+  - Camera mirrors nudged toward upper-left; settle ~30 frames
+  - BG1-only PPU setup (`$2107=03`, main-screen `01 00`, color-math clear)
+- Objects:
+  - H-rail subtype-1 `0x5F` @ tile `(20,14)` → yaze `(160,112)` / Mesen
+    `(160,79)` crop `32x16`
+  - V-rail subtype-1 `0x8A` @ tile `(14,20)` → yaze `(112,160)` / Mesen
+    `(112,127)` crop `16x32`
+- Fixture SHA-256:
+  - hrail: `7bd914ae06db7ed2ea8cdfc28459cd70d1b132288c60d9660a20c651325b2949`
+  - vrail: `5c0df7ec7aad9f5cf7f84fb5a791cd8c3a3675df49517b7fd2d9db02d44cad46`
+
+Independent Mesen ROIs now cover TableRock (`0xDD`), BigHole (`0xA4`), long
+rails (`0x5F`/`0x8A`), and a west door in room `0x076`. Water overlay `0xD8` /
+`0xDA` is covered by a BG2 object-buffer structural test (not a Mesen pixel
+ROI — see below).
+
+## `vanilla_room_076_mesen_west_door_24x32.png`
+
+- Captured: 2026-09-08, Mesen2 OOS, headless on macOS arm64.
+- Room: `0x076`, entrance override `0x34`, blockset `0x08`.
+- Bootstrap: same room-id + camera-bounds PAR pattern as room `0x065`, then
+  **runtime pan** toward the upper-right quadrant door:
+  - Link Y/X `$7E0020/$7E0022 = D8 0C / F0 0A` → `(0x0AF0, 0x0CD8)`
+  - Settled scroll ~(10,12); BG1-only PPU setup as in prior captures
+- Door: West `NormalDoorLower` (`0x02`) at tile `(37,15)` → yaze `(296,120)` /
+  Mesen `(56,159)` crop `24x32` (3x4 tiles).
+- Fixture SHA-256:
+  `e36ac2ab54fd94cae6e7523d241b69a76ffe05f0432b56f24a016b16f0f83b1b`.
+
+## Water overlay `0xD8` / `0xDA` (Tier-4 incomplete)
+
+Vanilla `RoomDraw_WaterOverlayA8x8_1to16` / `…B…` is stateful. The routines set
+HDMA geometry **and stamp tilemap patterns**; the exact pattern and destination
+can change with saved water state, and the routines can also change the active
+layer mode. The earlier claim that these objects never stamp tiles in-game was
+incorrect.
+
+- `Room076WaterOverlayWritesBg2ObjectBuffer` is a structural guard for Yaze's
+  currently modeled `0xD8` state: it parses `0xD8` @ `(38,13)` from the BG2
+  stream, checks coverage/opaque pixels using `255` as the transparent fill,
+  and toggles only BG2-object visibility in the comparison.
+- That structural test is **not** independent Mesen parity and does not prove
+  the alternate saved state or the layer-mode side effects.
+- Honest Tier-4 closure requires state-labeled Mesen captures for the relevant
+  `0xD8` and `0xDA` paths. Rooms `0x035` / `0x037` are useful `0xDA`
+  candidates.
+
 The regression test explicitly selects the intact/bombed preview through
 `EditorDungeonState::SetFloorBombable`. It removes room-object list 1 from its
 test-local room copy before rendering: Mesen's fixture exposes only the upper
@@ -222,3 +317,24 @@ the documented BG1-only PPU setup. Confirm that a fresh pair of full frames
 differs only inside the documented ROI before replacing either crop.
 
 ROM images, save states, and full-frame captures must not be committed.
+
+## Candidate rooms for next independent Mesen ROIs
+
+Scanned 2026-09-08 against canonical US ROM via `scripts/analyze_room.py --all
+--json`. These are vanilla placements of the visual-parity gap object IDs.
+Synthetic replay / Tier-2 ROM tile checks cover draw order and tile indices;
+they do **not** replace Mesen ROI baselines for these families.
+
+| Object | ID | Priority rooms (examples) | Notes |
+|--------|----|---------------------------|-------|
+| Long horizontal rail (`_plus23`) | `0x5F` | `0x007`, `0x02A`, `0x07D`, `0x0C2` | **`0x007` tile `(20,14)` has a committed Mesen ROI** |
+| Long vertical rail (`_plus23`) | `0x8A` | `0x007`, `0x03A`, `0x081`, `0x0C2` | **`0x007` tile `(14,20)` has a committed Mesen ROI** |
+| BigHole 4x4 | `0xA4` | `0x031`, `0x017`, `0x054`, `0x09B` | 24 rooms; **`0x031` tile `(44,44)` has a committed Mesen ROI** |
+| Water overlay A | `0xD8` | `0x076` | **BG2 structural editor-preview test**; vanilla tilemap/HDMA behavior is stateful and has no committed Mesen ROI |
+| Water overlay B | `0xDA` | `0x035`, `0x037` | Shares the stateful family with `0xD8`; routine mapping is covered, runtime-state pixels are not |
+| TableRock 4x4 | `0xDD` | `0x065`, `0x02F`, `0x080` | 38 rooms; **`0x065` has a committed Mesen ROI** at tile `(41,52)` |
+| Door-heavy | (doors) | `0x024`, `0x0B2`, `0x0BC`, `0x0C1`, `0x0C2` | ≥8 door records; **`0x076` West door has a committed Mesen ROI** |
+
+Suggested next captures: additional door types (key/shutter/bombable/exploding)
+in door-heavy rooms, then state-labeled `0xD8`/`0xDA` captures. Long rails in
+`0x007` are covered.

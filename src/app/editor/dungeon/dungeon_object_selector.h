@@ -30,12 +30,37 @@ namespace editor {
 class ObjectTileEditorPanel;
 struct DungeonObjectSelectorTestAccess;
 
+struct DungeonObjectSelectorGridLayout {
+  int columns = 1;
+  float item_size = 1.0f;
+  float leading_inset = 0.0f;
+};
+
+struct DungeonObjectPreviewFit {
+  bool valid = false;
+  float x = 0.0f;
+  float y = 0.0f;
+  float width = 0.0f;
+  float height = 0.0f;
+};
+
+// Pure responsive-layout helpers shared by the selector and its unit tests.
+DungeonObjectSelectorGridLayout ResolveDungeonObjectSelectorGridLayout(
+    float available_width, float preferred_item_size, float item_spacing,
+    float min_item_size = 32.0f);
+DungeonObjectPreviewFit ResolveDungeonObjectPreviewFit(float source_width,
+                                                       float source_height,
+                                                       float box_width,
+                                                       float box_height);
+bool MatchesDungeonObjectStreamFilter(int object_id, int selected_filter);
+
 /**
  * @brief Handles object selection, preview, and editing UI
  */
 class DungeonObjectSelector {
  public:
   explicit DungeonObjectSelector(Rom* rom = nullptr) : rom_(rom) {}
+  ~DungeonObjectSelector();
 
   // Unified context setter (preferred)
   void SetContext(EditorContext ctx) {
@@ -56,12 +81,9 @@ class DungeonObjectSelector {
   void set_current_room_id(int room_id) { current_room_id_ = room_id; }
 
   // Palette access
-  void set_current_palette_group_id(uint64_t id) {
-    current_palette_group_id_ = id;
-  }
   // Replace the active palette group used by preview rendering. The preview
-  // cache is keyed on (object_id, subtype, room.blockset(), room.palette()),
-  // none of which capture the *contents* of the palette group: switching
+  // cache is keyed on object identity plus room blockset, palette, and floor
+  // graphics, none of which capture the *contents* of the palette group: switching
   // dungeons between two palette banks that happen to use the same numeric
   // slot value will keep cache hits valid by key but stale by color. Since
   // the cache rebuilds in well under a frame, we conservatively invalidate
@@ -69,9 +91,6 @@ class DungeonObjectSelector {
   void SetCurrentPaletteGroup(const gfx::PaletteGroup& palette_group) {
     current_palette_group_ = palette_group;
     InvalidatePreviewCache();
-  }
-  void SetCurrentPaletteId(uint64_t palette_id) {
-    current_palette_id_ = palette_id;
   }
   void SetCustomObjectsFolder(const std::string& folder);
 
@@ -129,14 +148,13 @@ class DungeonObjectSelector {
   void CalculateObjectDimensions(const zelda3::RoomObject& object, int& width,
                                  int& height);
   bool DrawObjectPreview(const zelda3::RoomObject& object, ImVec2 top_left,
-                         float size);
+                         ImVec2 box_size);
   zelda3::RoomObject MakePreviewObject(int obj_id) const;
   void EnsureRegistryInitialized();
   ImU32 GetObjectTypeColor(int object_id);
   std::string GetObjectTypeSymbol(int object_id);
   void EnsureCustomObjectsInitialized();
-  void DrawCustomObjectWorkshopButton(int custom_count);
-  void DrawCustomObjectWorkshopPopup(float item_size);
+  void DrawCustomObjectWorkshopPopup();
   void DrawNewCustomObjectDialog();
   absl::Status OpenNewCustomObjectEditor(int width, int height,
                                          const std::string& filename,
@@ -166,15 +184,12 @@ class DungeonObjectSelector {
   int current_room_id_ = 0;
 
   // Palette data
-  uint64_t current_palette_group_id_ = 0;
-  uint64_t current_palette_id_ = 0;
   gfx::PaletteGroup current_palette_group_;
 
   zelda3::DungeonObjectRegistry object_registry_;
 
   // Object preview system
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};
-  gfx::SnesPalette preview_palette_;
   bool object_loaded_ = false;
 
   // Callback for object selection
@@ -185,8 +200,8 @@ class DungeonObjectSelector {
 
   // UI state for object browser filter
   int object_type_filter_ = 0;
-  int object_subtype_tab_ = 0;   // 0=Type1, 1=Type2, 2=Type3
-  int object_grid_density_ = 1;  // 0=Small, 1=Medium, 2=Large
+  int object_stream_filter_ = 0;  // 0=All, 1=Type1, 2=Type2, 3=Type3
+  int object_grid_density_ = 0;   // 0=Compact, 1=Medium, 2=Large
   char object_search_buffer_[64] = {0};
 
   // Registry initialization flag
@@ -195,12 +210,15 @@ class DungeonObjectSelector {
   // Performance: enable/disable graphical preview rendering
   bool enable_object_previews_ = true;
 
-  // Preview cache for object selector grid
-  // Key: object_id (or object_id+subtype for custom objects)
+  // Preview cache for object selector grid, keyed by object/subtype and the
+  // room graphics context that can change its rendered tiles.
   // Value: BackgroundBuffer with rendered preview
   std::map<uint64_t, std::unique_ptr<gfx::BackgroundBuffer>> preview_cache_;
   uint8_t cached_preview_blockset_ = 0xFF;
+  uint8_t cached_preview_entrance_blockset_ = 0xFF;
   uint8_t cached_preview_palette_ = 0xFF;
+  uint8_t cached_preview_floor1_ = 0xFF;
+  uint8_t cached_preview_floor2_ = 0xFF;
   int cached_preview_room_id_ = -1;
 
   std::map<uint32_t, zelda3::ObjectTileLayout> layout_cache_;
@@ -209,7 +227,11 @@ class DungeonObjectSelector {
   // cache invalidation contract without poking at the cache directly.
   std::size_t preview_cache_invalidations_ = 0;
 
-  bool GetOrCreatePreview(const zelda3::RoomObject& object, float size,
+  void RetirePreviewCache();
+  void SynchronizePreviewCacheRoomContext(const zelda3::Room& room);
+  static uint32_t MakeLayoutCacheKey(int object_id, uint8_t preview_size,
+                                     const zelda3::Room* room);
+  bool GetOrCreatePreview(const zelda3::RoomObject& object,
                           gfx::BackgroundBuffer** out);
 };
 

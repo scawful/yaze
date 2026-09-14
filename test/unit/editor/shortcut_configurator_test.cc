@@ -1,7 +1,12 @@
 #include <gtest/gtest.h>
 
+#include <deque>
 #include <memory>
+#include <optional>
+#include <vector>
 
+#include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/dungeon/workspace/dungeon_workbench_content.h"
 #include "app/editor/editor_manager.h"
 #include "app/editor/system/shortcut_configurator.h"
 #include "app/editor/system/shortcut_manager.h"
@@ -10,6 +15,27 @@
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
+
+class DungeonEditorV2ShortcutTestPeer {
+ public:
+  static bool HasQueuedDelete(const DungeonEditorV2& editor) {
+    return editor.room_canvas_delete_shortcut_frame_.has_value();
+  }
+
+  static std::optional<int> QueuedDeleteFrame(const DungeonEditorV2& editor) {
+    return editor.room_canvas_delete_shortcut_frame_;
+  }
+
+  static bool ConsumeQueuedDelete(DungeonEditorV2& editor,
+                                  DungeonCanvasViewer& viewer) {
+    return editor.ConsumeRoomCanvasDeleteShortcut(viewer);
+  }
+
+  static void ExpireStaleDelete(DungeonEditorV2& editor) {
+    editor.ExpireStaleRoomCanvasDeleteShortcut();
+  }
+};
+
 namespace {
 
 class ShortcutConfiguratorTest : public ::testing::Test {
@@ -18,6 +44,8 @@ class ShortcutConfiguratorTest : public ::testing::Test {
     imgui_context_ = ImGui::CreateContext();
     ImGui::SetCurrentContext(imgui_context_);
     ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(1400.0f, 1000.0f);
+    io.DeltaTime = 1.0f / 60.0f;
     unsigned char* pixels = nullptr;
     int width = 0;
     int height = 0;
@@ -159,6 +187,101 @@ TEST_F(ShortcutConfiguratorTest,
   shortcuts.ExecuteShortcut("view.toggle.test.demo");
   EXPECT_FALSE(test_window_visible_);
   EXPECT_FALSE(second_window_visible_);
+}
+
+TEST_F(ShortcutConfiguratorTest,
+       DungeonDeleteRequestExpiresWhenItsFramePassesWithoutCanvasOwnership) {
+  DungeonEditorV2 dungeon_editor;
+
+  ImGui::NewFrame();
+  dungeon_editor.QueueRoomCanvasDeleteShortcut();
+  const int queued_frame = ImGui::GetFrameCount();
+  EXPECT_TRUE(DungeonEditorV2ShortcutTestPeer::HasQueuedDelete(dungeon_editor));
+  EXPECT_EQ(DungeonEditorV2ShortcutTestPeer::QueuedDeleteFrame(dungeon_editor),
+            queued_frame);
+  EXPECT_TRUE(dungeon_editor.Update().ok());
+  EXPECT_TRUE(DungeonEditorV2ShortcutTestPeer::HasQueuedDelete(dungeon_editor));
+  ImGui::Render();
+
+  ImGui::NewFrame();
+  EXPECT_TRUE(dungeon_editor.Update().ok());
+  EXPECT_FALSE(
+      DungeonEditorV2ShortcutTestPeer::HasQueuedDelete(dungeon_editor));
+  ImGui::Render();
+}
+
+TEST_F(ShortcutConfiguratorTest,
+       DungeonDeleteWaitsForDetachedWorkbenchCanvasInTheSameFrame) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+
+  DungeonEditorV2 dungeon_editor;
+  DungeonCanvasViewer viewer(&rom);
+  DungeonRoomSelector room_selector(&rom);
+  int current_room_id = 0;
+  const std::deque<int> recent_rooms{current_room_id};
+  DungeonWorkbenchContent workbench(
+      &room_selector, &current_room_id, [](int) {},
+      [](int, RoomSelectionIntent) {}, [](int) {}, []() {},
+      [&viewer]() { return &viewer; },
+      [](int) -> DungeonCanvasViewer* { return nullptr; },
+      [&recent_rooms]() -> const std::deque<int>& { return recent_rooms; },
+      [](int) {}, [](bool) {}, &rom);
+
+  bool delete_consumed = false;
+  workbench.SetPrimaryCanvasDrawnCallback(
+      [&](DungeonCanvasViewer& drawn_viewer) {
+        delete_consumed = DungeonEditorV2ShortcutTestPeer::ConsumeQueuedDelete(
+                              dungeon_editor, drawn_viewer) ||
+                          delete_consumed;
+      });
+
+  auto draw_workbench = [&]() {
+    ImGui::SetNextWindowPos(ImVec2(20.0f, 20.0f), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(1200.0f, 850.0f), ImGuiCond_Always);
+    ImGui::Begin("##DetachedWorkbenchShortcutHost", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    workbench.Draw(nullptr);
+    ImGui::End();
+  };
+
+  ImGuiIO& io = ImGui::GetIO();
+  io.AddMousePosEvent(-1000.0f, -1000.0f);
+  io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+  ImGui::NewFrame();
+  draw_workbench();
+  const ImVec2 canvas_origin = viewer.canvas().zero_point();
+  const ImVec2 canvas_size = viewer.canvas().canvas_size();
+  ASSERT_GT(canvas_size.x, 0.0f);
+  ASSERT_GT(canvas_size.y, 0.0f);
+  ImGui::Render();
+
+  // Give the detached canvas shortcut ownership in the preceding frame.
+  io.AddMousePosEvent(canvas_origin.x + canvas_size.x * 0.5f,
+                      canvas_origin.y + canvas_size.y * 0.5f);
+  io.AddMouseButtonEvent(ImGuiMouseButton_Left, true);
+  ImGui::NewFrame();
+  draw_workbench();
+  EXPECT_TRUE(viewer.CanHandleRoomCanvasShortcut());
+  ImGui::Render();
+
+  // ShortcutManager queues before DungeonEditorV2::Update. The detached
+  // Workbench canvas draws later, so the request must survive Update and be
+  // consumed only after that canvas refreshes its ownership for this frame.
+  io.AddMouseButtonEvent(ImGuiMouseButton_Left, false);
+  ImGui::NewFrame();
+  dungeon_editor.QueueRoomCanvasDeleteShortcut();
+  const int queued_frame = ImGui::GetFrameCount();
+  DungeonEditorV2ShortcutTestPeer::ExpireStaleDelete(dungeon_editor);
+  EXPECT_EQ(DungeonEditorV2ShortcutTestPeer::QueuedDeleteFrame(dungeon_editor),
+            queued_frame);
+  EXPECT_FALSE(delete_consumed);
+
+  draw_workbench();
+  EXPECT_TRUE(delete_consumed);
+  EXPECT_FALSE(
+      DungeonEditorV2ShortcutTestPeer::HasQueuedDelete(dungeon_editor));
+  ImGui::Render();
 }
 
 }  // namespace

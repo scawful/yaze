@@ -23,23 +23,6 @@ namespace yaze::editor {
 
 namespace {
 
-bool IsExitDoorType(zelda3::DoorType type) {
-  switch (type) {
-    case zelda3::DoorType::FancyDungeonExit:
-    case zelda3::DoorType::FancyDungeonExitLower:
-    case zelda3::DoorType::CaveExit:
-    case zelda3::DoorType::LitCaveExitLower:
-    case zelda3::DoorType::ExitLower:
-    case zelda3::DoorType::UnusedCaveExit:
-    case zelda3::DoorType::BombableCaveExit:
-    case zelda3::DoorType::WaterfallDoor:
-    case zelda3::DoorType::ExitMarker:
-      return true;
-    default:
-      return false;
-  }
-}
-
 bool IsHeaderBackedInterroomStaircaseObject(int16_t object_id) {
   const int routine_id =
       zelda3::DrawRoutineRegistry::Get().GetRoutineIdForObject(object_id);
@@ -195,7 +178,7 @@ DungeonConnectedRoomLinkDiagnostics CollectDungeonConnectedRoomLinkDiagnostics(
   const auto& doors = room.GetDoors();
   for (size_t door_index = 0; door_index < doors.size(); ++door_index) {
     const auto& door = doors[door_index];
-    if (IsExitDoorType(door.type)) {
+    if (!zelda3::IsRoomConnectionDoorType(door.type)) {
       continue;
     }
 
@@ -432,7 +415,7 @@ bool DungeonCanvasViewer::RoomHasNonExitDoorInDirection(
   }
 
   for (const auto& door : room->GetDoors()) {
-    if (door.direction == dir && !IsExitDoorType(door.type)) {
+    if (door.direction == dir && zelda3::IsRoomConnectionDoorType(door.type)) {
       return true;
     }
   }

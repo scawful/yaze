@@ -45,14 +45,14 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
 
     case EditorType::kDungeon:
       preset.name = "Dungeon Default";
-      preset.description = "Room workbench with inspector and fast navigation";
+      preset.description =
+          "Room-first workbench with embedded browser, inspector, and tools";
 
       if (core::FeatureFlags::get().dungeon.kUseWorkbench) {
         preset.default_visible_panels = {
-            Panels::kDungeonWorkbench,    Panels::kDungeonObjectSelector,
-            Panels::kDungeonRoomGraphics, Panels::kDungeonRoomMatrix,
-            Panels::kDungeonDoorEditor,   Panels::kDungeonPaletteEditor,
+            Panels::kDungeonWorkbench,
         };
+        preset.dock_only_default_visible_panels = true;
 
         // Place optional panels around the workbench so they dock predictably
         // if/when the user opens them.

@@ -6,28 +6,38 @@ YAZE is a cross-platform Zelda 3 editor. This package includes the desktop app
 ROMs are not included. You must supply a legally obtained A Link to the Past ROM.
 
 ## Contents
-- yaze (desktop app)
-- z3ed (CLI)
-- assets/ (required data)
-- LICENSE
-- manifest.json (build metadata)
+- Windows: `yaze.exe`, `z3ed.exe`, and `assets/` in one portable directory,
+  available as a ZIP or installer.
+- macOS: a self-contained `yaze.app`; the DMG also includes `z3ed` and its
+  sibling `assets/` directory.
+- Linux: `yaze` and `z3ed` under `usr/bin`, with runtime data under
+  `usr/share/yaze`.
+- Every package includes `LICENSE`, this README, and a build `manifest.json`.
 
 ## Quick Start
 
-### Windows (portable zip, no installer)
-1. Unzip to a folder.
-2. Run `yaze.exe` or `z3ed.exe --help` from Command Prompt.
-3. Keep the `assets/` folder next to the executables.
+### Windows (portable ZIP or installer)
+1. Either unzip the portable package to a folder or run the installer.
+2. Run `yaze.exe`; use `z3ed.exe --help` from Command Prompt for the CLI.
+3. For the portable ZIP, keep `assets/` next to both executables.
 
 ### macOS (DMG)
 1. Open the DMG and drag `yaze.app` to Applications (optional).
-2. Run `yaze.app`. For CLI, run `./z3ed --help` from Terminal.
-3. If Gatekeeper blocks the app, right-click and choose Open.
+2. Run `yaze.app`; all editor assets are embedded in the app bundle.
+3. For CLI use, keep `z3ed` beside the DMG's `assets/` directory and run
+   `./z3ed --help` from Terminal.
+4. If Gatekeeper blocks the app, right-click and choose Open.
 
 ### Linux (tar.gz)
 1. Extract the archive.
-2. Run `./yaze` or `./z3ed --help`.
-3. If needed: `chmod +x yaze z3ed`.
+2. From the extracted package directory, run `./usr/bin/yaze` or
+   `./usr/bin/z3ed --help`.
+
+### Linux (Debian/Ubuntu package)
+1. Install with `sudo apt install ./yaze_0.8.0_amd64.deb` (use the actual
+   downloaded filename).
+2. Run `yaze` or `z3ed --help` normally through `PATH`.
+3. Remove with `sudo apt remove yaze`.
 
 ## z3ed CLI
 - Run `z3ed --help` to see command groups.

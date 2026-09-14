@@ -124,14 +124,17 @@ if(YAZE_BUILD_TESTS)
     # tokens and breaks the prop/value pairing (and ctest won't be able to
     # filter by the missing labels).
     #
-    # NOTE: GoogleTestAddTests.cmake forwards TEST_PROPERTIES through another
-    # helper function call without quoting. That forwarding step will split on
-    # literal ';' again, so we must *double escape* label separators here. This
-    # ensures the discovery script ultimately emits:
-    #   LABELS "stable;unit"
-    # rather than the broken:
-    #   LABELS stable unit
-    string(REPLACE ";" "\\\\;" _suite_labels "${label}")
+    # CMake 4.4 bracket-quotes each PROPERTIES argument before generating the
+    # discovery script, removing one of the list-expansion boundaries present
+    # in older GoogleTest.cmake versions. Older versions therefore need two
+    # escape levels while 4.4+ needs one. In both cases the generated test must
+    # receive LABELS "stable;unit", not separate property tokens or one literal
+    # "stable\;unit" label.
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL "4.4")
+      string(REPLACE ";" "\\;" _suite_labels "${label}")
+    else()
+      string(REPLACE ";" "\\\\;" _suite_labels "${label}")
+    endif()
     # Avoid duplicate CTest names across multiple suites that compile the same
     # gtest sources (e.g. quick vs stable). Only the quick suites need a prefix.
     set(_test_prefix "")
@@ -214,6 +217,7 @@ if(YAZE_BUILD_TESTS)
     unit/gfx/usdasm_palette_loading_test.cc
     unit/gfx/bpp_conversion_test.cc
     unit/gfx/sheet_role_palette_table_test.cc
+    unit/gfx/arena_retirement_test.cc
     unit/palette_json_test.cc
     unit/snes_color_test.cc
     unit/gui/tile_selector_widget_test.cc
@@ -555,6 +559,7 @@ if(YAZE_BUILD_TESTS)
     unit/emu/emulator_test.cc
     unit/emu/mesen_socket_client_test.cc
     unit/gfx/sheet_role_palette_table_test.cc
+    unit/gfx/arena_retirement_test.cc
     unit/gui/canvas_context_menu_role_test.cc
     unit/zelda3/resource_labels_test.cc
     unit/zelda3/sprite_render_preview_test.cc

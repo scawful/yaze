@@ -1,7 +1,9 @@
 #ifndef YAZE_APP_GFX_BACKGROUND_BUFFER_H
 #define YAZE_APP_GFX_BACKGROUND_BUFFER_H
 
+#include <array>
 #include <cstdint>
+#include <optional>
 #include <vector>
 
 #include "app/gfx/core/bitmap.h"
@@ -15,6 +17,13 @@ enum class BG1RevealMaskSource : uint8_t {
   kBG2Objects = 1 << 1,
 };
 
+// Decode the eight 8x8 tiles selected by a dungeon room's floor-graphics
+// nibble. The first four words live in the main table and the second four in
+// the adjacent floor table, matching RoomDraw_DrawFloors in the game.
+std::optional<std::array<TileInfo, 8>> DecodeDungeonFloorTilePattern(
+    const std::vector<uint8_t>& rom_data, int tile_address,
+    int tile_address_floor, uint8_t floor_graphics);
+
 class BackgroundBuffer {
  public:
   BackgroundBuffer(int width = 512, int height = 512);
@@ -22,6 +31,7 @@ class BackgroundBuffer {
   // Buffer manipulation methods
   void SetTileAt(int x, int y, uint16_t value);
   uint16_t GetTileAt(int x, int y) const;
+  void ClearTileBuffer();
   void ClearBuffer();
 
   // Drawing methods

@@ -12,6 +12,7 @@
 #include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/ui_constants.h"
 #include "app/gfx/core/bitmap.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/gui/canvas/canvas_pipelines.h"
 #include "core/project.h"
@@ -37,6 +38,17 @@ struct PendingScrollFrameSnapshot {
 
 class DungeonCanvasViewerTestPeer {
  public:
+  static void UpdateRoomCanvasShortcutFocus(DungeonCanvasViewer& viewer,
+                                            bool hovered, bool pointer_pressed,
+                                            int frame_index) {
+    viewer.UpdateRoomCanvasShortcutFocus(hovered, pointer_pressed, frame_index);
+  }
+
+  static bool HasRoomCanvasShortcutFocusForFrame(
+      const DungeonCanvasViewer& viewer, int frame_index) {
+    return viewer.HasRoomCanvasShortcutFocusForFrame(frame_index);
+  }
+
   static absl::Status PrepareIssueReportPopup(
       DungeonCanvasViewer& viewer, const std::string& title,
       const std::string& summary, const std::string& kind_label,
@@ -48,6 +60,10 @@ class DungeonCanvasViewerTestPeer {
 
   static const std::string& last_log_path(const DungeonCanvasViewer& viewer) {
     return viewer.issue_report_popup_last_log_path_;
+  }
+
+  static absl::Status SaveIssueReport(DungeonCanvasViewer& viewer) {
+    return viewer.EnsureIssueReportPersisted();
   }
 
   static std::string BuildDrawIssueReport(const DungeonCanvasViewer& viewer,
@@ -106,6 +122,13 @@ class DungeonCanvasViewerTestPeer {
       labels.push_back(item.label);
     }
     return labels;
+  }
+
+  static std::vector<gui::CanvasMenuItem> SelectionContextMenuItems(
+      DungeonCanvasViewer& viewer, int room_id,
+      std::optional<zelda3::RoomObject> context_object) {
+    return viewer.BuildSelectionContextMenuItems(room_id,
+                                                 std::move(context_object));
   }
 
   static bool InvokeSelectionContextMenuItem(DungeonCanvasViewer& viewer,
@@ -346,6 +369,31 @@ TEST(DungeonCanvasViewerNavigationTest, ScrollToTileStoresPendingTarget) {
   EXPECT_EQ(viewer.GetPendingScrollTarget()->second, 34);
 }
 
+TEST(DungeonCanvasViewerShortcutFocusTest,
+     DeleteEligibilityFollowsCanvasFocusAndCurrentDrawFrame) {
+  DungeonCanvasViewer viewer;
+
+  DungeonCanvasViewerTestPeer::UpdateRoomCanvasShortcutFocus(
+      viewer, /*hovered=*/true, /*pointer_pressed=*/false,
+      /*frame_index=*/10);
+  EXPECT_FALSE(DungeonCanvasViewerTestPeer::HasRoomCanvasShortcutFocusForFrame(
+      viewer, 10));
+
+  DungeonCanvasViewerTestPeer::UpdateRoomCanvasShortcutFocus(
+      viewer, /*hovered=*/true, /*pointer_pressed=*/true,
+      /*frame_index=*/11);
+  EXPECT_TRUE(DungeonCanvasViewerTestPeer::HasRoomCanvasShortcutFocusForFrame(
+      viewer, 11));
+  EXPECT_FALSE(DungeonCanvasViewerTestPeer::HasRoomCanvasShortcutFocusForFrame(
+      viewer, 12));
+
+  DungeonCanvasViewerTestPeer::UpdateRoomCanvasShortcutFocus(
+      viewer, /*hovered=*/false, /*pointer_pressed=*/true,
+      /*frame_index=*/12);
+  EXPECT_FALSE(DungeonCanvasViewerTestPeer::HasRoomCanvasShortcutFocusForFrame(
+      viewer, 12));
+}
+
 TEST(DungeonCanvasViewerNavigationTest,
      PendingScrollAlignsBackgroundOverlayAndInputInSameFrame) {
   ScopedImGuiContext imgui;
@@ -383,7 +431,7 @@ TEST(DungeonCanvasViewerNavigationTest,
   EXPECT_EQ(snapshot.background_origin_room_pixel, std::make_pair(0, 0));
 }
 
-TEST(DungeonCanvasViewerContextMenuTest, DirectActionsPrecedeInsertSubmenu) {
+TEST(DungeonCanvasViewerContextMenuTest, RootActionsUseStableSubmenus) {
   ScopedImGuiContext imgui;
   DungeonCanvasViewer viewer;
   viewer.SetShowObjectPanelCallback([]() {});
@@ -393,11 +441,42 @@ TEST(DungeonCanvasViewerContextMenuTest, DirectActionsPrecedeInsertSubmenu) {
   const auto labels =
       DungeonCanvasViewerTestPeer::InteractionContextMenuLabels(viewer, 0);
 
-  ASSERT_GE(labels.size(), 4u);
-  EXPECT_EQ(labels[0], "Paste");
-  EXPECT_EQ(labels[1], "Delete");
-  EXPECT_EQ(labels[2], "Delete All");
-  EXPECT_EQ(labels[3], "Insert");
+  ASSERT_EQ(labels.size(), 2u);
+  EXPECT_EQ(labels[0], "Selection");
+  EXPECT_EQ(labels[1], "Insert");
+}
+
+TEST(DungeonCanvasViewerContextMenuTest,
+     ObjectBrushActionKeepsItsSlotAndUsesCapturedObject) {
+  ScopedImGuiContext imgui;
+  DungeonCanvasViewer viewer;
+
+  auto items = DungeonCanvasViewerTestPeer::SelectionContextMenuItems(
+      viewer, 0, std::nullopt);
+  auto brush = std::find_if(items.begin(), items.end(), [](const auto& item) {
+    return item.label == "Use Object as Brush";
+  });
+  ASSERT_NE(brush, items.end());
+  EXPECT_FALSE(brush->enabled_condition());
+
+  const zelda3::RoomObject captured_object{0x34, 12, 9, 0x05, 1};
+  items = DungeonCanvasViewerTestPeer::SelectionContextMenuItems(
+      viewer, 0, captured_object);
+  brush = std::find_if(items.begin(), items.end(), [](const auto& item) {
+    return item.label == "Use Object as Brush";
+  });
+  ASSERT_NE(brush, items.end());
+  ASSERT_TRUE(brush->enabled_condition());
+  ASSERT_TRUE(brush->callback);
+  brush->callback();
+
+  EXPECT_TRUE(viewer.object_interaction().IsObjectLoaded());
+  const auto& preview =
+      viewer.object_interaction().mode_manager().GetModeState().preview_object;
+  ASSERT_TRUE(preview.has_value());
+  EXPECT_EQ(preview->id_, captured_object.id_);
+  EXPECT_EQ(preview->size_, captured_object.size_);
+  EXPECT_EQ(preview->layer_, captured_object.layer_);
 }
 
 TEST(DungeonCanvasViewerContextMenuTest,
@@ -609,7 +688,7 @@ TEST(DungeonCanvasViewerNavigationTest, EntranceRenderContextRoundTrips) {
 }
 
 TEST(DungeonCanvasViewerNavigationTest,
-     OpeningIssueReportPersistsInitialDraft) {
+     OpeningIssueReportKeepsDraftLocalUntilExplicitSave) {
   const std::filesystem::path temp_home = MakeTempHomeRoot();
   ASSERT_TRUE(std::filesystem::create_directories(temp_home));
   ScopedEnvVar scoped_home("HOME", temp_home.string());
@@ -620,6 +699,11 @@ TEST(DungeonCanvasViewerNavigationTest,
       "Dungeon Palette Issue Report", "Room 0x001\nBG sheets: [1,2,3,4]", 0x01,
       0);
   ASSERT_TRUE(status.ok()) << status;
+
+  EXPECT_TRUE(DungeonCanvasViewerTestPeer::last_log_path(viewer).empty());
+
+  const auto save_status = DungeonCanvasViewerTestPeer::SaveIssueReport(viewer);
+  ASSERT_TRUE(save_status.ok()) << save_status;
 
   const std::filesystem::path log_path =
       DungeonCanvasViewerTestPeer::last_log_path(viewer);
@@ -682,15 +766,159 @@ TEST(DungeonCanvasViewerNavigationTest,
   const std::string report =
       DungeonCanvasViewerTestPeer::BuildDrawIssueReport(viewer, room, 0x72);
 
-  EXPECT_NE(report.find("Object tiles: count=8"), std::string::npos);
+  EXPECT_NE(report.find("Descriptor tiles: count=8"), std::string::npos);
   EXPECT_NE(report.find("Object geometry: selection_bounds_px="),
             std::string::npos);
   EXPECT_NE(report.find("Drawer trace: status=ok"), std::string::npos);
+  EXPECT_NE(report.find("context=room-stream-prefix+layout-tilewords"),
+            std::string::npos);
   EXPECT_NE(report.find("bounds_tiles="), std::string::npos);
   EXPECT_NE(report.find("layer_counts BG1="), std::string::npos);
   EXPECT_NE(report.find("write[0] BG1 tile="), std::string::npos);
 
   zelda3::PaletteDebugger::Get().Clear();
+}
+
+TEST(DungeonCanvasViewerNavigationTest,
+     DrawIssueReportReplaysConditionalEdgeAgainstRoomLayout) {
+  std::vector<uint8_t> rom_data(1024 * 1024, 0);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+
+  DungeonCanvasViewer viewer(&rom);
+  zelda3::Room room;
+  zelda3::RoomObject edge(/*id=*/0x22, /*x=*/4, /*y=*/5, /*size=*/0,
+                          /*layer=*/0);
+  edge.tiles_loaded_ = true;
+  edge.tiles_ = MakeObjectTiles(3);
+  room.GetTileObjects().push_back(edge);
+  room.bg1_buffer().SetTileAt(4, 5, 0x00E2);
+  viewer.object_interaction().SetSelectedObjects({0});
+
+  const std::string report =
+      DungeonCanvasViewerTestPeer::BuildDrawIssueReport(viewer, room, 0x72);
+
+  EXPECT_NE(report.find("context=room-stream-prefix+layout-tilewords writes=3"),
+            std::string::npos);
+  EXPECT_NE(report.find("write[0] BG1 tile=(5,5) id=0x121"), std::string::npos);
+  EXPECT_EQ(report.find("write[0] BG1 tile=(4,5) id=0x120"), std::string::npos);
+}
+
+TEST(DungeonCanvasViewerNavigationTest,
+     DrawIssueReportPriorObjectCoverageOverridesMatchingLayout) {
+  std::vector<uint8_t> rom_data(1024 * 1024, 0);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+
+  DungeonCanvasViewer viewer(&rom);
+  zelda3::Room room;
+  zelda3::RoomObject prior(/*id=*/0x11F, /*x=*/4, /*y=*/5, /*size=*/0,
+                           /*layer=*/0);
+  prior.tiles_loaded_ = true;
+  prior.tiles_ = MakeObjectTiles(4);
+  prior.tiles_[0].id_ = 0x0320;
+  room.GetTileObjects().push_back(prior);
+
+  zelda3::RoomObject edge(/*id=*/0x22, /*x=*/4, /*y=*/5, /*size=*/0,
+                          /*layer=*/0);
+  edge.tiles_loaded_ = true;
+  edge.tiles_ = MakeObjectTiles(3);
+  room.GetTileObjects().push_back(edge);
+  room.bg1_buffer().SetTileAt(4, 5, 0x00E2);
+  viewer.object_interaction().SetSelectedObjects({1});
+
+  const std::string report =
+      DungeonCanvasViewerTestPeer::BuildDrawIssueReport(viewer, room, 0x72);
+
+  EXPECT_NE(report.find("context=room-stream-prefix+layout-tilewords writes=4"),
+            std::string::npos);
+  EXPECT_NE(report.find("write[0] BG1 tile=(4,5) id=0x120"), std::string::npos);
+}
+
+TEST(DungeonCanvasViewerNavigationTest,
+     RepeatedDrawIssueReportsReuseRetiredTraceSurfaces) {
+  std::vector<uint8_t> rom_data(1024 * 1024, 0);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+
+  DungeonCanvasViewer viewer(&rom);
+  zelda3::Room room;
+  zelda3::RoomObject object(/*id=*/0x34, /*x=*/4, /*y=*/5, /*size=*/0,
+                            /*layer=*/0);
+  object.tiles_loaded_ = true;
+  object.tiles_ = MakeObjectTiles(8);
+  room.GetTileObjects().push_back(object);
+  viewer.object_interaction().SetSelectedObjects({0});
+
+  auto& arena = gfx::Arena::Get();
+  arena.ClearTextureQueue();
+  const size_t active_surfaces_before =
+      arena.GetSurfaceCount() - arena.GetPooledSurfaceCount();
+  const std::string first_report =
+      DungeonCanvasViewerTestPeer::BuildDrawIssueReport(viewer, room, 0x72);
+  ASSERT_NE(first_report.find("Drawer trace: status=ok"), std::string::npos);
+  ASSERT_EQ(arena.GetSurfaceCount() - arena.GetPooledSurfaceCount(),
+            active_surfaces_before);
+  const size_t surfaces_after_first_report = arena.GetSurfaceCount();
+
+  for (int iteration = 0; iteration < 8; ++iteration) {
+    const std::string report =
+        DungeonCanvasViewerTestPeer::BuildDrawIssueReport(viewer, room, 0x72);
+    ASSERT_NE(report.find("Drawer trace: status=ok"), std::string::npos);
+    ASSERT_EQ(arena.GetSurfaceCount() - arena.GetPooledSurfaceCount(),
+              active_surfaces_before);
+  }
+
+  EXPECT_EQ(arena.GetSurfaceCount(), surfaces_after_first_report)
+      << "Trace-only reports should reuse the two explicitly retired object "
+         "surfaces instead of retaining two more per capture";
+  EXPECT_EQ(arena.texture_command_queue_size(), 0u);
+  EXPECT_EQ(arena.retired_texture_handle_count(), 0u);
+}
+
+TEST(DungeonCanvasViewerNavigationTest,
+     DrawIssueReportDistinguishesFloorCopyDescriptorsAndEffectiveTiles) {
+  std::vector<uint8_t> rom_data(1024 * 1024, 0);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+
+  DungeonCanvasViewer viewer(&rom);
+  viewer.object_interaction().SetSelectedObjects({0});
+
+  auto build_report = [&](int16_t object_id) {
+    zelda3::Room room;
+    room.set_floor1(6);
+    room.set_floor2(11);
+    zelda3::RoomObject object(object_id, /*x=*/4, /*y=*/5, /*size=*/0,
+                              /*layer=*/0);
+    object.tiles_loaded_ = true;
+    object.tiles_ = MakeObjectTiles(8);
+    room.GetTileObjects().push_back(object);
+    return DungeonCanvasViewerTestPeer::BuildDrawIssueReport(viewer, room,
+                                                             0x72);
+  };
+
+  const std::string floor1_report = build_report(0x00C4);
+  EXPECT_NE(floor1_report.find("Floor1:6 Floor2:11"), std::string::npos);
+  EXPECT_NE(floor1_report.find("Descriptor tiles: count=8 [0]=0x120"),
+            std::string::npos);
+  EXPECT_NE(
+      floor1_report.find("Floor copy source: Floor 1 (room.floor1) pattern=6"),
+      std::string::npos);
+  EXPECT_NE(floor1_report.find("Effective floor-copy tiles: count=8 "
+                               "[0]=0x000"),
+            std::string::npos);
+
+  const std::string floor2_report = build_report(0x00DB);
+  EXPECT_NE(floor2_report.find("Floor1:6 Floor2:11"), std::string::npos);
+  EXPECT_NE(floor2_report.find("Descriptor tiles: count=8 [0]=0x120"),
+            std::string::npos);
+  EXPECT_NE(
+      floor2_report.find("Floor copy source: Floor 2 (room.floor2) pattern=11"),
+      std::string::npos);
+  EXPECT_NE(floor2_report.find("Effective floor-copy tiles: count=8 "
+                               "[0]=0x000"),
+            std::string::npos);
 }
 
 TEST(DungeonCanvasViewerNavigationTest,
@@ -772,11 +1000,11 @@ TEST(DungeonCanvasViewerNavigationTest,
       DungeonCanvasViewerTestPeer::BuildSelectionIssueReport(viewer, room,
                                                              0x59);
 
-  EXPECT_NE(report.find("geometry: selection_bounds_px=(232,136,8,64) "
+  EXPECT_NE(report.find("geometry: selection_bounds_px=(232,112,8,64) "
                         "object_origin_px=(232,112)"),
             std::string::npos);
   EXPECT_NE(report.find("trace: writes=8 unique_cells=8 "
-                        "bounds_px=(232,136,8,64) "
+                        "bounds_px=(232,112,8,64) "
                         "delta_vs_selection_px=(+0,+0,+0,+0)"),
             std::string::npos);
 }
@@ -860,8 +1088,17 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
      CollectDungeonConnectedRoomLinksSkipsExitDoorsAndUnusedStairHeaders) {
   zelda3::Room room;
   ClearRoomLinks(&room);
-  room.AddDoor(MakeDoor(zelda3::DoorDirection::East,
-                        zelda3::DoorType::FancyDungeonExit));
+  for (const auto type : {
+           zelda3::DoorType::ExitLower,
+           zelda3::DoorType::FancyDungeonExit,
+           zelda3::DoorType::FancyDungeonExitLower,
+           zelda3::DoorType::CaveExit,
+           zelda3::DoorType::LitCaveExitLower,
+           zelda3::DoorType::DungeonSwapMarker,
+           zelda3::DoorType::LayerSwapMarker,
+       }) {
+    room.AddDoor(MakeDoor(zelda3::DoorDirection::East, type));
+  }
   room.AddDoor(
       MakeDoor(zelda3::DoorDirection::South, zelda3::DoorType::NormalDoor));
   room.SetStaircaseRoom(0, 0);

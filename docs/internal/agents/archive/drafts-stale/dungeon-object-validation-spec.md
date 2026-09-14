@@ -8,6 +8,12 @@
 **Validation/Exit Criteria:** See "Acceptance Criteria" and "UX Parity Exit Criteria".
 **Coordination:** Universe task lifecycle via `scripts/agents/coord` (snapshot optional: `docs/internal/agents/coordination-board.generated.md`)
 
+> Historical correction (2026-09-14): Oracle custom object handlers cover
+> `0x31`, `0x32`, and `0x54`. Standard objects `0x100–0x103` remain 4×4 wall
+> corners; the earlier “minecart variant” classification below was incorrect.
+> Use `docs/internal/agents/dungeon-object-rendering-spec.md` for the active
+> contract.
+
 ## Decision Summary
 - Start with vanilla ALTTP ROM only.
 - Validation oracle for now is ROM-static interpreter + yaze trace capture.
@@ -34,7 +40,7 @@
 - Custom object rendering toggles and overlays (minecart origins/tracks), without validation.
 
 **Out of scope (for now)**
-- Custom objects (0x31/0x32 and 0x100–0x103 minecart variants).
+- Custom objects (`0x31`, `0x32`, and later-audited `0x54`).
 - Full emulator-based oracle (defer until micro-emu coverage is insufficient).
 
 ## Known Pain Points (User Reports)
@@ -267,7 +273,7 @@ Minimum required fields: `object_id`, `size`, `x_tile`, `y_tile`, `tile_id`.
 - Fixed-size objects: size ignored (use 0)
 
 **Exclusions:**
-- Custom objects (0x31/0x32 + 0x100–0x103)
+- Custom objects (`0x31`, `0x32`, and later-audited `0x54`)
 - Objects marked “nothing” by ROM tables
 
 ## Large Decor Priority Rules

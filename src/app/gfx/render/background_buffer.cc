@@ -1,7 +1,9 @@
 #include "app/gfx/render/background_buffer.h"
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
+#include <optional>
 #include <vector>
 
 #include "app/gfx/core/bitmap.h"
@@ -9,6 +11,29 @@
 #include "util/log.h"
 
 namespace yaze::gfx {
+
+std::optional<std::array<TileInfo, 8>> DecodeDungeonFloorTilePattern(
+    const std::vector<uint8_t>& rom_data, int tile_address,
+    int tile_address_floor, uint8_t floor_graphics) {
+  const int floor_offset = static_cast<int>(floor_graphics & 0x0F) << 4;
+  const auto table_is_readable = [&](int address) {
+    return address >= 0 && static_cast<size_t>(address + 7) < rom_data.size();
+  };
+  if (!table_is_readable(tile_address + floor_offset) ||
+      !table_is_readable(tile_address_floor + floor_offset)) {
+    return std::nullopt;
+  }
+
+  std::array<TileInfo, 8> tiles;
+  for (int index = 0; index < 4; ++index) {
+    const int main_address = tile_address + floor_offset + index * 2;
+    const int floor_address = tile_address_floor + floor_offset + index * 2;
+    tiles[index] = TileInfo(rom_data[main_address], rom_data[main_address + 1]);
+    tiles[index + 4] =
+        TileInfo(rom_data[floor_address], rom_data[floor_address + 1]);
+  }
+  return tiles;
+}
 
 BackgroundBuffer::BackgroundBuffer(int width, int height)
     : width_(width), height_(height) {}
@@ -82,10 +107,14 @@ uint16_t BackgroundBuffer::GetTileAt(int x_pos, int y_pos) const {
   return buffer_[index];
 }
 
-void BackgroundBuffer::ClearBuffer() {
+void BackgroundBuffer::ClearTileBuffer() {
   if (!buffer_.empty()) {
     std::fill(buffer_.begin(), buffer_.end(), 0);
   }
+}
+
+void BackgroundBuffer::ClearBuffer() {
+  ClearTileBuffer();
   ClearPriorityBuffer();
   ClearCoverageBuffer();
   ClearBG1RevealMask();
@@ -351,51 +380,28 @@ void BackgroundBuffer::DrawFloor(const std::vector<uint8_t>& rom_data,
               bitmap_.is_active(), bitmap_.width(), bitmap_.height());
   }
 
-  auto floor_offset = static_cast<uint8_t>(floor_graphics << 4);
-
-  // Create floor tiles from ROM data
-  gfx::TileInfo floorTile1(rom_data[tile_address + floor_offset],
-                           rom_data[tile_address + floor_offset + 1]);
-  gfx::TileInfo floorTile2(rom_data[tile_address + floor_offset + 2],
-                           rom_data[tile_address + floor_offset + 3]);
-  gfx::TileInfo floorTile3(rom_data[tile_address + floor_offset + 4],
-                           rom_data[tile_address + floor_offset + 5]);
-  gfx::TileInfo floorTile4(rom_data[tile_address + floor_offset + 6],
-                           rom_data[tile_address + floor_offset + 7]);
-
-  gfx::TileInfo floorTile5(rom_data[tile_address_floor + floor_offset],
-                           rom_data[tile_address_floor + floor_offset + 1]);
-  gfx::TileInfo floorTile6(rom_data[tile_address_floor + floor_offset + 2],
-                           rom_data[tile_address_floor + floor_offset + 3]);
-  gfx::TileInfo floorTile7(rom_data[tile_address_floor + floor_offset + 4],
-                           rom_data[tile_address_floor + floor_offset + 5]);
-  gfx::TileInfo floorTile8(rom_data[tile_address_floor + floor_offset + 6],
-                           rom_data[tile_address_floor + floor_offset + 7]);
+  const auto floor_tiles = DecodeDungeonFloorTilePattern(
+      rom_data, tile_address, tile_address_floor, floor_graphics);
+  if (!floor_tiles.has_value()) {
+    LOG_DEBUG("[DrawFloor]", "Floor pattern %d is outside the ROM data",
+              static_cast<int>(floor_graphics));
+    return;
+  }
 
   // Floor tiles specify which 8-color sub-palette from the 90-color dungeon
   // palette e.g., palette 6 = colors 48-55 (6 * 8 = 48)
 
   // Draw the floor tiles in a pattern
   // Convert TileInfo to 16-bit words with palette information
-  uint16_t word1 = gfx::TileInfoToWord(floorTile1);
-  uint16_t word2 = gfx::TileInfoToWord(floorTile2);
-  uint16_t word3 = gfx::TileInfoToWord(floorTile3);
-  uint16_t word4 = gfx::TileInfoToWord(floorTile4);
-  uint16_t word5 = gfx::TileInfoToWord(floorTile5);
-  uint16_t word6 = gfx::TileInfoToWord(floorTile6);
-  uint16_t word7 = gfx::TileInfoToWord(floorTile7);
-  uint16_t word8 = gfx::TileInfoToWord(floorTile8);
+  std::array<uint16_t, 8> words;
+  std::transform(floor_tiles->begin(), floor_tiles->end(), words.begin(),
+                 [](const TileInfo& tile) { return TileInfoToWord(tile); });
   for (int xx = 0; xx < 16; xx++) {
     for (int yy = 0; yy < 32; yy++) {
-      SetTileAt((xx * 4), (yy * 2), word1);
-      SetTileAt((xx * 4) + 1, (yy * 2), word2);
-      SetTileAt((xx * 4) + 2, (yy * 2), word3);
-      SetTileAt((xx * 4) + 3, (yy * 2), word4);
-
-      SetTileAt((xx * 4), (yy * 2) + 1, word5);
-      SetTileAt((xx * 4) + 1, (yy * 2) + 1, word6);
-      SetTileAt((xx * 4) + 2, (yy * 2) + 1, word7);
-      SetTileAt((xx * 4) + 3, (yy * 2) + 1, word8);
+      for (int column = 0; column < 4; ++column) {
+        SetTileAt((xx * 4) + column, yy * 2, words[column]);
+        SetTileAt((xx * 4) + column, (yy * 2) + 1, words[column + 4]);
+      }
     }
   }
 }

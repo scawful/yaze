@@ -13,7 +13,6 @@ class DungeonCanvasViewer;
 
 struct DungeonWorkbenchToolbarParams {
   DungeonWorkbenchLayoutState* layout = nullptr;
-  bool left_sidebar_visible = false;
 
   int* current_room_id = nullptr;
   int* previous_room_id = nullptr;
@@ -25,8 +24,9 @@ struct DungeonWorkbenchToolbarParams {
 
   std::function<void(int)> on_room_selected;
   std::function<const std::deque<int>&()> get_recent_rooms;
+  std::function<void(int)> on_open_room_panel;
+  std::function<void(int)> forget_recent_room;
   std::function<void(bool)> set_workflow_mode;
-  std::function<void()> open_room_matrix;
   std::function<void(int)> on_save_room;
   std::function<void()> on_request_dungeon_map;
 
