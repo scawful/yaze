@@ -47,12 +47,28 @@ bash scripts/release/extract-release-notes.sh vX.Y.Z docs/public/release-notes.m
 - Validate generated release archives using:
   - `scripts/release/validate-archive.py`
   - `scripts/release/validate-dmg.sh`
+  - `scripts/release/smoke-linux-package.sh`
+  - `scripts/release/smoke-windows-package.ps1`
+  - `scripts/release/smoke-windows-installer.ps1`
+
+- Require the hosted `Release` workflow to prove:
+  - Linux TGZ relocation from a neutral working directory.
+  - A guarded DEB install, PATH execution, and purge on disposable Ubuntu.
+  - A relocated, self-contained, signed macOS app bundle.
+  - Windows ZIP execution and the NSIS install/registry/uninstall lifecycle.
+  - Exact `yaze X.Y.Z` output from every packaged desktop executable.
 
 ## 4) CI/CD and release workflow checks
 
 - Confirm `CI/CD Pipeline` and `Security Scanning` are green for the release commit.
+- Before tagging, dispatch `Release` with `publish=false` for the exact release
+  commit and require every Linux, macOS, and Windows build/test job to pass.
 - Trigger or verify `Release` workflow completion for the release tag.
 - Confirm `Create Release` job succeeds before announcing availability.
+
+- Manually open the packaged editor on each supported desktop platform. On
+  macOS, copy `yaze.app` away from the DMG before opening it. Confirm the welcome
+  screen, theme/font loading, ROM picker, and a clean quit.
 
 ## 5) Post-release verification
 

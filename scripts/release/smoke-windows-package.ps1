@@ -4,6 +4,10 @@ param(
     [ValidateNotNullOrEmpty()]
     [string]$ArchivePath,
 
+    [Parameter(Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
+    [string]$ExpectedVersion,
+
     [ValidateRange(1, 300)]
     [int]$TimeoutSeconds = 30
 )
@@ -11,10 +15,88 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+function Invoke-PackageCommand {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$FilePath,
+
+        [Parameter(Mandatory = $true)]
+        [string[]]$Arguments,
+
+        [Parameter(Mandatory = $true)]
+        [string]$WorkingDirectory,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Label,
+
+        [Parameter(Mandatory = $true)]
+        [string]$OutputDirectory,
+
+        [string]$ExpectedOutput = ""
+    )
+
+    $outputStem = $Label.ToLowerInvariant() -replace '[^a-z0-9]+', '-'
+    $stdoutPath = Join-Path $OutputDirectory "$outputStem.stdout.txt"
+    $stderrPath = Join-Path $OutputDirectory "$outputStem.stderr.txt"
+    $process = Start-Process `
+        -FilePath $FilePath `
+        -ArgumentList $Arguments `
+        -WorkingDirectory $WorkingDirectory `
+        -RedirectStandardOutput $stdoutPath `
+        -RedirectStandardError $stderrPath `
+        -PassThru
+
+    if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
+        Stop-Process -Id $process.Id -Force
+        $process.WaitForExit()
+        throw "$Label did not exit within $TimeoutSeconds seconds"
+    }
+    $process.WaitForExit()
+
+    $stdout = Get-Content -LiteralPath $stdoutPath -Raw -ErrorAction SilentlyContinue
+    $stderr = Get-Content -LiteralPath $stderrPath -Raw -ErrorAction SilentlyContinue
+    if ($stdout) {
+        Write-Host ($stdout.TrimEnd())
+    }
+    if ($stderr) {
+        Write-Host ($stderr.TrimEnd())
+    }
+    if ($process.ExitCode -ne 0) {
+        throw "$Label exited with code $($process.ExitCode)"
+    }
+    $output = (($stdout, $stderr) | Where-Object {
+        -not [string]::IsNullOrWhiteSpace($_)
+    }) -join [Environment]::NewLine
+    if ([string]::IsNullOrWhiteSpace($output)) {
+        throw "$Label produced no output"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($ExpectedOutput) -and
+        $output.Trim() -cne $ExpectedOutput) {
+        throw "$Label output mismatch: expected '$ExpectedOutput', found '$($output.Trim())'"
+    }
+}
+
+function Normalize-Version {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Version
+    )
+
+    $normalized = $Version.Trim()
+    if ($normalized.StartsWith("v", [StringComparison]::OrdinalIgnoreCase)) {
+        $normalized = $normalized.Substring(1)
+    }
+    if ([string]::IsNullOrWhiteSpace($normalized)) {
+        throw "Expected version is empty after normalization"
+    }
+    return $normalized
+}
+
 $resolvedArchive = (Resolve-Path -LiteralPath $ArchivePath).Path
 if ([IO.Path]::GetExtension($resolvedArchive) -ne ".zip") {
     throw "Windows package smoke test requires a ZIP archive: $resolvedArchive"
 }
+$normalizedExpectedVersion = Normalize-Version -Version $ExpectedVersion
 
 $extractPath = Join-Path ([IO.Path]::GetTempPath()) ("yaze-release-smoke-" + [guid]::NewGuid())
 
@@ -46,41 +128,24 @@ try {
     Write-Host "Unpacked Windows package: $resolvedArchive"
     Write-Host "Found yaze.exe, z3ed.exe, and $($assetFiles.Count) asset files"
 
-    $stdoutPath = Join-Path $extractPath "z3ed-help.stdout.txt"
-    $stderrPath = Join-Path $extractPath "z3ed-help.stderr.txt"
-    $process = Start-Process `
-        -FilePath $z3edPath `
-        -ArgumentList "--help" `
+    Invoke-PackageCommand `
+        -FilePath $yazeExecutables[0].FullName `
+        -Arguments "--version" `
         -WorkingDirectory $packageRoot `
-        -RedirectStandardOutput $stdoutPath `
-        -RedirectStandardError $stderrPath `
-        -PassThru
+        -Label "yaze.exe --version" `
+        -OutputDirectory $extractPath `
+        -ExpectedOutput "yaze $normalizedExpectedVersion"
 
-    if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
-        Stop-Process -Id $process.Id -Force
-        $process.WaitForExit()
-        throw "z3ed.exe --help did not exit within $TimeoutSeconds seconds"
-    }
-    $process.WaitForExit()
-
-    $stdout = Get-Content -LiteralPath $stdoutPath -Raw -ErrorAction SilentlyContinue
-    $stderr = Get-Content -LiteralPath $stderrPath -Raw -ErrorAction SilentlyContinue
-    if ($stdout) {
-        Write-Host ($stdout.TrimEnd())
-    }
-    if ($stderr) {
-        Write-Host ($stderr.TrimEnd())
-    }
-    if ($process.ExitCode -ne 0) {
-        throw "z3ed.exe --help exited with code $($process.ExitCode)"
-    }
-    if ([string]::IsNullOrWhiteSpace($stdout) -and [string]::IsNullOrWhiteSpace($stderr)) {
-        throw "z3ed.exe --help produced no output"
-    }
+    Invoke-PackageCommand `
+        -FilePath $z3edPath `
+        -Arguments "--self-test" `
+        -WorkingDirectory $packageRoot `
+        -Label "z3ed.exe --self-test" `
+        -OutputDirectory $extractPath
 
     # GitHub-hosted Windows runners do not provide a reliable interactive
-    # desktop. Keep yaze.exe launch as the documented manual pre-tag check.
-    Write-Host "Windows package smoke test passed (GUI launch remains a manual pre-tag check)."
+    # desktop. Keep interactive editor use as the documented manual pre-tag check.
+    Write-Host "Windows package smoke test passed (interactive GUI use remains a manual pre-tag check)."
 }
 finally {
     if (Test-Path -LiteralPath $extractPath) {

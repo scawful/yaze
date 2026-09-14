@@ -238,6 +238,10 @@ target_link_libraries(yaze_editor_system_panels PUBLIC
   ImGui
 )
 
+if(TARGET yaze_agent)
+  target_link_libraries(yaze_editor_system_panels PUBLIC yaze_agent)
+endif()
+
 target_link_libraries(yaze_editor_system_session PUBLIC
   yaze_editor_system_panels
   yaze_rom

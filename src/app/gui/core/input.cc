@@ -16,6 +16,10 @@
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 template <class... Ts>
 struct overloaded : Ts... {
   using Ts::operator()...;
@@ -796,11 +800,27 @@ bool OpenUrl(const std::string& url) {
   if (context == nullptr || url.empty())
     return false;
 
+#ifdef __EMSCRIPTEN__
+  // ImGui's default shell opener uses native process APIs, not the browser.
+  // Open synchronously from the click, and detach before navigating so the
+  // destination cannot access this editor through window.opener.
+  return EM_ASM_INT(
+             {
+               const opened = window.open('about:blank', '_blank');
+               if (!opened)
+                 return 0;
+               opened.opener = null;
+               opened.location.href = UTF8ToString($0);
+               return 1;
+             },
+             url.c_str()) != 0;
+#else
   ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
   if (platform_io.Platform_OpenInShellFn == nullptr)
     return false;
 
   return platform_io.Platform_OpenInShellFn(context, url.c_str());
+#endif
 }
 
 void MemoryEditorPopup(const std::string& label, std::span<uint8_t> memory) {
