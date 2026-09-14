@@ -192,6 +192,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/rom_doctor_water_fill_test.cc
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
+    unit/cli/dungeon_render_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
     unit/cli/dungeon_track_collision_commands_test.cc
     unit/cli/dungeon_spawn_report_commands_test.cc
@@ -646,6 +647,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/user_settings_layout_defaults_test.cc
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
+    unit/cli/dungeon_render_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
     unit/cli/dungeon_track_collision_commands_test.cc
     unit/cli/editor_completion_command_handlers_test.cc
