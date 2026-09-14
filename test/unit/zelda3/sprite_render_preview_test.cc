@@ -159,6 +159,140 @@ TEST(SpriteRenderPreviewTest, ExpandedRomRetainsBabasuSourceFrameAndPalette) {
   EXPECT_EQ(rom.get(), 0x01);
 }
 
+std::vector<uint8_t> MakeStalfosPreviewGraphics() {
+  std::vector<uint8_t> graphics(kGraphicsBufferSize, 0);
+  for (int tile = 0x300; tile < 0x400; ++tile) {
+    for (int y = 0; y < 8; ++y) {
+      for (int x = 0; x < 8; ++x) {
+        graphics[GraphicsIndexForTilePixel(tile, x, y)] =
+            1 + (tile * 3 + x * 2 + y) % 7;
+      }
+    }
+  }
+  // Transparent holes in both heads expose the lower-priority body. All other
+  // pixels are asymmetric, nonzero 3bpp values to expose wrong tiles and flips.
+  graphics[GraphicsIndexForTilePixel(0x310, 4, 4)] = 0;
+  graphics[GraphicsIndexForTilePixel(0x356, 4, 4)] = 0;
+  return graphics;
+}
+
+uint8_t StalfosSourcePixel(const std::vector<uint8_t>& graphics, int tile,
+                           int x, int y) {
+  return graphics[GraphicsIndexForTilePixel(tile + x / 8 + (y / 8) * 16, x % 8,
+                                            y % 8)];
+}
+
+TEST(SpriteRenderPreviewTest, StalfosUsesSourceBodyAndHeadFirstOverlap) {
+  const auto graphics = MakeStalfosPreviewGraphics();
+  // $0DC0F3 frame0, head direction2: 16x16 CHR00 at (0,-10), then two
+  // identical 16x16 CHR06 entries at (0,0). OBJ palette4 remains unchanged.
+  for (const auto position :
+       {std::array<uint8_t, 2>{8, 26}, {0, 0}, {31, 31}}) {
+    Sprite sprite(0xA7, position[0], position[1], 0, 1);
+    sprite.RenderPreviewGraphics(graphics);
+    const auto& preview = *sprite.preview_graphics();
+    ASSERT_EQ(preview.size(), kPreviewSize * kPreviewSize);
+    for (int y = 0; y < kPreviewSize; ++y) {
+      for (int x = 0; x < kPreviewSize; ++x) {
+        const int sx = x - 16;
+        const int sy = y - 16;
+        uint8_t pixel = 0;
+        // Resolve the first opaque OAM entry, independently of painter order.
+        if (sx >= 0 && sx < 16 && sy >= -10 && sy < 6) {
+          pixel = StalfosSourcePixel(graphics, 0x300, sx, sy + 10);
+        }
+        if (pixel == 0 && sx >= 0 && sx < 16 && sy >= 0 && sy < 16) {
+          pixel = StalfosSourcePixel(graphics, 0x306, sx, sy);
+        }
+        ASSERT_EQ(preview[y * kPreviewSize + x], pixel ? 0xC0 + pixel : 0)
+            << "pixel " << x << "," << y;
+      }
+    }
+    EXPECT_EQ(sprite.x(), position[0]);
+    EXPECT_EQ(sprite.y(), position[1]);
+    EXPECT_EQ(sprite.nx(), position[0]);
+    EXPECT_EQ(sprite.ny(), position[1]);
+    EXPECT_EQ(sprite.layer(), 1);
+  }
+}
+
+TEST(SpriteRenderPreviewTest, StalfosKnightUsesSourceBoundsAndMirroredFeet) {
+  const auto graphics = MakeStalfosPreviewGraphics();
+  // $1EACEC frame0, head direction2 and SprMiscB=0. This chosen static pose
+  // is visible; the runtime starts the knight hidden before its battle trigger.
+  for (const auto position :
+       {std::array<uint8_t, 2>{16, 18}, {0, 0}, {31, 31}}) {
+    Sprite sprite(0x91, position[0], position[1], 0, 0);
+    sprite.RenderPreviewGraphics(graphics);
+    const auto& preview = *sprite.preview_graphics();
+    ASSERT_EQ(preview.size(), kPreviewSize * kPreviewSize);
+    for (int y = 0; y < kPreviewSize; ++y) {
+      for (int x = 0; x < kPreviewSize; ++x) {
+        const int sx = x - 16;
+        const int sy = y - 16;
+        uint8_t pixel = 0;
+        // OAM priority: head, shoulder, left body, right body, then feet.
+        if (sx >= 0 && sx < 16 && sy >= -12 && sy < 4) {
+          pixel = StalfosSourcePixel(graphics, 0x346, sx, sy + 12);
+        }
+        if (pixel == 0 && sx >= -4 && sx < 4 && sy >= -8 && sy < 0) {
+          pixel = StalfosSourcePixel(graphics, 0x364, sx + 4, sy + 8);
+        }
+        if (pixel == 0 && sx >= -4 && sx < 12 && sy >= 0 && sy < 16) {
+          pixel = StalfosSourcePixel(graphics, 0x361, sx + 4, sy);
+        }
+        if (pixel == 0 && sx >= 4 && sx < 20 && sy >= 0 && sy < 16) {
+          pixel = StalfosSourcePixel(graphics, 0x362, sx - 4, sy);
+        }
+        if (pixel == 0 && sx >= -3 && sx < 5 && sy >= 16 && sy < 24) {
+          pixel = StalfosSourcePixel(graphics, 0x374, sx + 3, sy - 16);
+        }
+        if (pixel == 0 && sx >= 11 && sx < 19 && sy >= 16 && sy < 24) {
+          pixel = StalfosSourcePixel(graphics, 0x374, 18 - sx, sy - 16);
+        }
+        ASSERT_EQ(preview[y * kPreviewSize + x], pixel ? 0xD0 + pixel : 0)
+            << "pixel " << x << "," << y;
+      }
+    }
+    EXPECT_EQ(sprite.x(), position[0]);
+    EXPECT_EQ(sprite.y(), position[1]);
+    EXPECT_EQ(sprite.nx(), position[0]);
+    EXPECT_EQ(sprite.ny(), position[1]);
+    EXPECT_EQ(sprite.layer(), 0);
+  }
+}
+
+TEST(SpriteRenderPreviewTest, ExpandedRomRetainsStalfosStaticPoseSources) {
+  const auto path = test::TestRomManager::GetRomPath(test::RomRole::kExpanded);
+  if (std::getenv("YAZE_SKIP_ROM_TESTS") || path.empty()) {
+    GTEST_SKIP() << "Stalfos source contract requires YAZE_TEST_ROM_EXPANDED";
+  }
+  std::ifstream rom(path, std::ios::binary);
+  ASSERT_TRUE(rom) << path;
+  const auto expect_bytes = [&](std::streamoff pc,
+                                std::initializer_list<uint8_t> expected) {
+    std::vector<uint8_t> actual(expected.size());
+    rom.seekg(pc);
+    ASSERT_TRUE(
+        rom.read(reinterpret_cast<char*>(actual.data()), actual.size()));
+    EXPECT_EQ(actual, std::vector<uint8_t>(expected)) << "ROM PC " << pc;
+  };
+  // Static US/Oracle source contracts, not independent runtime pixel proof.
+  expect_bytes(0x6C0F3, {0x00, 0x00, 0xF6, 0xFF, 0x00, 0x00, 0x00, 0x02,
+                         0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x02,
+                         0x00, 0x00, 0x00, 0x00, 0x06, 0x00, 0x00, 0x02});
+  expect_bytes(0x6C213, {0x02, 0x02, 0x00, 0x04});
+  expect_bytes(0x6C26A, {0x70, 0x30, 0x30, 0x30});
+  expect_bytes(0x6B359 + 0xA7, {0x19});
+  expect_bytes(0xF2CEC,
+               {0xFC, 0xFF, 0xF8, 0xFF, 0x64, 0x00, 0x00, 0x00, 0xFC, 0xFF,
+                0x00, 0x00, 0x61, 0x00, 0x00, 0x02, 0x04, 0x00, 0x00, 0x00,
+                0x62, 0x00, 0x00, 0x02, 0xFD, 0xFF, 0x10, 0x00, 0x74, 0x00,
+                0x00, 0x00, 0x0B, 0x00, 0x10, 0x00, 0x74, 0x40, 0x00, 0x00});
+  expect_bytes(0xF2E46, {0x66, 0x66, 0x46, 0x46, 0x40, 0x00, 0x00, 0x00});
+  expect_bytes(0x6B359 + 0x91, {0x0B});
+}
+
 TEST(SpriteRenderPreviewTest, PuffstoolOverrideRequiresOracleProfile) {
   EXPECT_EQ(SpriteOamRegistry::GetPreviewOverride(0xB1, ""), nullptr);
   EXPECT_EQ(SpriteOamRegistry::GetPreviewOverride(0xB1, "Other Hack"), nullptr);
