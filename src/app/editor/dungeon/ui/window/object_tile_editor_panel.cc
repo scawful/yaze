@@ -4,6 +4,7 @@
 #include <algorithm>
 
 #include "absl/strings/str_format.h"
+#include "app/gfx/resource/arena.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/theme_manager.h"
 #include "core/features.h"
@@ -38,7 +39,13 @@ ObjectTileEditorPanel::ObjectTileEditorPanel(gfx::IRenderer* renderer, Rom* rom)
   tile_editor_ = std::make_unique<zelda3::ObjectTileEditor>(rom);
 }
 
+ObjectTileEditorPanel::~ObjectTileEditorPanel() {
+  ClearRenderedBitmaps();
+}
+
 void ObjectTileEditorPanel::ClearRenderedBitmaps() {
+  gfx::Arena::Get().RetireBitmap(object_preview_bmp_);
+  gfx::Arena::Get().RetireBitmap(tile8_atlas_bmp_);
   object_preview_bmp_ = gfx::Bitmap();
   tile8_atlas_bmp_ = gfx::Bitmap();
 }
@@ -597,6 +604,7 @@ void ObjectTileEditorPanel::RenderObjectPreview() {
   auto* room =
       rooms_ != nullptr ? rooms_->GetIfLoaded(current_room_id_) : nullptr;
   if (room == nullptr) {
+    gfx::Arena::Get().RetireBitmap(object_preview_bmp_);
     object_preview_bmp_ = gfx::Bitmap();
     return;
   }
@@ -608,6 +616,7 @@ void ObjectTileEditorPanel::RenderObjectPreview() {
     object_preview_bmp_.UpdateTexture();
     preview_dirty_ = false;
   } else {
+    gfx::Arena::Get().RetireBitmap(object_preview_bmp_);
     object_preview_bmp_ = gfx::Bitmap();
   }
 }
@@ -616,6 +625,7 @@ void ObjectTileEditorPanel::RenderTile8Atlas() {
   auto* room =
       rooms_ != nullptr ? rooms_->GetIfLoaded(current_room_id_) : nullptr;
   if (room == nullptr) {
+    gfx::Arena::Get().RetireBitmap(tile8_atlas_bmp_);
     tile8_atlas_bmp_ = gfx::Bitmap();
     return;
   }
@@ -630,6 +640,7 @@ void ObjectTileEditorPanel::RenderTile8Atlas() {
     tile8_atlas_bmp_.UpdateTexture();
     atlas_dirty_ = false;
   } else {
+    gfx::Arena::Get().RetireBitmap(tile8_atlas_bmp_);
     tile8_atlas_bmp_ = gfx::Bitmap();
   }
 }
