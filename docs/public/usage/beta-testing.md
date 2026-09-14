@@ -8,8 +8,8 @@ primary persistence target.
 
 1. Duplicate the ROM you intend to test. Do not use your only working copy.
 2. Record the Yaze version and platform from the packaged build.
-3. Open the copy and use **Save ROM As** before making an editor change. Close
-   and reopen that file to prove the basic file path first.
+3. Open the copy and use **File > Save As...** before making an editor change.
+   Close and reopen that file to prove the basic file path first.
 4. Test one editor at a time. Close and reopen after every small save so a bad
    workflow is easy to isolate.
 

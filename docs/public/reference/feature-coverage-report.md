@@ -95,6 +95,9 @@ temporary file. Keep that evidence, but do not use it to claim GUI save parity.
 4. Keep unsafe mutation surfaces disabled or clearly labeled until their writer
    and readback path exist.
 5. Promote Graphics and Screen one independently verified data domain at a time.
+6. Implement real CRC32 calculation in `AsarWrapper`. Its library and CLI
+   patch paths currently return `0`, so that result field is not ROM-identity
+   evidence yet.
 
 ## Other products
 

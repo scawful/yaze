@@ -20,6 +20,11 @@ The canonical editor status is the
 Completed release history belongs in `CHANGELOG.md` and
 `docs/public/release-notes.md`, not here.
 
+Related plans that are still listed as active, but are overdue for a status
+refresh, are the [0.x release ladder](plans/release-ladder-0x-2026.md) and the
+[z3dk v0.8.0 integration proposal](plans/z3dk-integration-0.8.0.md). See the
+[plan directory guide](plans/README.md) for the complete active-plan index.
+
 ## Release rule
 
 An editor is not promoted because its panel opens, its serializer has a unit
