@@ -12,6 +12,7 @@
 #include "zelda3/dungeon/draw_routines/draw_routine_types.h"
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/object_drawer.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/object_parser.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -1203,6 +1204,17 @@ TEST_F(DrawRoutineMappingTest, SanctuaryWallUsesUsdasmPayloadAndFootprint) {
   for (int size : {0, 1, 15}) {
     EXPECT_EQ(ObjectDimensionTable::Get().GetDimensions(0x13C, size),
               std::make_pair(24, 6));
+  }
+  for (int layer : {0, 1, 2}) {
+    const RoomObject object(0x13C, 10, 20, 0, layer);
+    const auto semantics = GetObjectLayerSemantics(object);
+    EXPECT_FALSE(semantics.draws_to_both_bgs);
+    EXPECT_EQ(semantics.effective_bg_layer, layer == 1
+                                                ? EffectiveBgLayer::kBothBg1Bg2
+                                                : EffectiveBgLayer::kBg1);
+    EXPECT_EQ(semantics.render_routing, layer == 1
+                                            ? ObjectRenderRouting::kMixedBg1Bg2
+                                            : ObjectRenderRouting::kFixedBg1);
   }
 }
 
