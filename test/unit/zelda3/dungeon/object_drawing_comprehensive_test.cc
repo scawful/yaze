@@ -625,10 +625,10 @@ TEST_F(ObjectDrawingComprehensiveTest, DrawRoutineMapping_Type2Objects) {
 
   // Type 2 objects (0x100+) have specific routine assignments
 
-  // 0x100-0x107: 4x4 blocks
+  // 0x100-0x107: fixed 4x4 blocks (not subtype-1 repetition)
   for (int id = 0x100; id <= 0x107; ++id) {
-    EXPECT_EQ(drawer.GetDrawRoutineId(id), 16)
-        << "ID 0x" << std::hex << id << " should use routine 16 (4x4)";
+    EXPECT_EQ(drawer.GetDrawRoutineId(id), DrawRoutineIds::kActual4x4)
+        << "ID 0x" << std::hex << id << " should use fixed RoomDraw_4x4";
   }
 
   // 0x108-0x10F: 4x4 Corner BothBG
