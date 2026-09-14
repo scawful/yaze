@@ -1154,8 +1154,8 @@ TEST_F(DrawRoutineMappingTest, MapsMovingWallAndChestPlatformFamilies) {
 TEST_F(DrawRoutineMappingTest, VerifiesSubtype2Mappings) {
   ObjectDrawer drawer(rom_.get(), 0);
 
-  // 0x100-0x107 -> Routine 16 (RoomDraw_4x4)
-  EXPECT_EQ(drawer.GetDrawRoutineId(0x100), 16);
+  // 0x100-0x107 -> fixed RoomDraw_4x4, not the repeated subtype-1 wrapper.
+  EXPECT_EQ(drawer.GetDrawRoutineId(0x100), DrawRoutineIds::kActual4x4);
 
   // 0x108 -> Routine 35 (4x4 Corner BothBG)
   EXPECT_EQ(drawer.GetDrawRoutineId(0x108), 35);
@@ -1167,6 +1167,56 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype2Mappings) {
   EXPECT_EQ(drawer.GetDrawRoutineId(0x122), DrawRoutineIds::kBed4x5);
   EXPECT_EQ(drawer.GetDrawRoutineId(0x12C), DrawRoutineIds::kRightwards3x6);
   EXPECT_EQ(drawer.GetDrawRoutineId(0x13E), DrawRoutineIds::kUtility6x3);
+}
+
+TEST_F(DrawRoutineMappingTest,
+       FixedCornersUseUsdasmSourcesAndBackgroundMetadata) {
+  // Subtype-2 source offsets, in ID order, from $0183F0-$01841E. Keep the
+  // non-monotonic order: the single-BG and dual-BG corner sets interleave.
+  const std::vector<uint16_t> offsets = {
+      0x0B66, 0x0B86, 0x0BA6, 0x0BC6, 0x0C66, 0x0C86, 0x0CA6, 0x0CC6,
+      0x0BE6, 0x0C06, 0x0C26, 0x0C46, 0x0CE6, 0x0D06, 0x0D26, 0x0D46,
+      0x0D66, 0x0D7E, 0x0D96, 0x0DAE, 0x0DC6, 0x0DDE, 0x0DF6, 0x0E0E,
+  };
+  for (int index = 0; index < static_cast<int>(offsets.size()); ++index) {
+    SCOPED_TRACE(index + 0x100);
+    const int id = index + 0x100;
+    const int width = id >= 0x110 && id <= 0x113 ? 3 : 4;
+    const int height = id >= 0x114 ? 3 : 4;
+    const int source = kRoomObjectTileAddress + offsets[index];
+    std::vector<uint8_t> data(1024 * 1024, 0);
+    data[kRoomObjectSubtype2 + index * 2] = offsets[index] & 0xFF;
+    data[kRoomObjectSubtype2 + index * 2 + 1] = offsets[index] >> 8;
+    for (int slot = 0; slot <= width * height; ++slot) {
+      data[source + slot * 2] = slot;
+      data[source + slot * 2 + 1] = 0x29;
+    }
+    ASSERT_TRUE(rom_->LoadFromData(data).ok());
+    ObjectParser parser(rom_.get());
+    const auto tiles = parser.ParseObject(id);
+    ASSERT_TRUE(tiles.ok()) << tiles.status();
+    ASSERT_EQ(tiles->size(), width * height);
+    for (int slot = 0; slot < width * height; ++slot) {
+      EXPECT_EQ(gfx::TileInfoToWord((*tiles)[slot]), 0x2900 + slot);
+    }
+    const auto ranges = parser.ResolveTileReadRanges(id);
+    ASSERT_TRUE(ranges.ok()) << ranges.status();
+    ASSERT_EQ(ranges->size(), 1u);
+    EXPECT_EQ(ranges->front().begin, source);
+    EXPECT_EQ(ranges->front().end, source + width * height * 2);
+
+    const auto& registry = DrawRoutineRegistry::Get();
+    const auto* routine =
+        registry.GetRoutineInfo(registry.GetRoutineIdForObject(id));
+    ASSERT_NE(routine, nullptr);
+    EXPECT_EQ(routine->draws_to_both_bgs, id >= 0x108);
+    EXPECT_EQ(routine->base_width, width);
+    EXPECT_EQ(routine->base_height, height);
+    for (int size : {0, 1, 15}) {
+      EXPECT_EQ(ObjectDimensionTable::Get().GetDimensions(id, size),
+                std::make_pair(width, height));
+    }
+  }
 }
 
 TEST_F(DrawRoutineMappingTest, SanctuaryWallUsesUsdasmPayloadAndFootprint) {
