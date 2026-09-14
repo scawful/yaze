@@ -21,13 +21,15 @@ absl::StatusOr<std::filesystem::path> CaptureRomPathIdentity(
     const std::filesystem::path& path) {
   std::error_code absolute_ec;
   const std::filesystem::path absolute =
-      std::filesystem::absolute(path, absolute_ec).lexically_normal();
+      std::filesystem::absolute(path, absolute_ec);
   if (absolute_ec) {
     return absl::FailedPreconditionError(
         absl::StrFormat("Cannot capture ROM path identity for %s: %s",
                         path.string(), absolute_ec.message()));
   }
 
+  // Resolve symlinks before collapsing '..': link/../rom.sfc can identify a
+  // different file than the lexically normalized spelling.
   std::error_code canonical_ec;
   const std::filesystem::path canonical =
       std::filesystem::weakly_canonical(absolute, canonical_ec);
@@ -44,15 +46,15 @@ absl::StatusOr<std::filesystem::path> CaptureRomPathIdentity(
 absl::StatusOr<std::filesystem::path> ResolveStableArtifactPath(
     const std::filesystem::path& path) {
   std::error_code absolute_ec;
-  std::filesystem::path absolute = std::filesystem::absolute(path, absolute_ec);
+  const std::filesystem::path absolute =
+      std::filesystem::absolute(path, absolute_ec);
   if (absolute_ec) {
     return absl::InvalidArgumentError(absl::StrFormat(
         "Cannot normalize path %s: %s", path.string(), absolute_ec.message()));
   }
-  absolute = absolute.lexically_normal();
-
   // Resolve every existing component once. Publication then uses this stable
   // path instead of following a caller-supplied parent symlink a second time.
+  // Do not collapse '..' before symlink resolution changes its parent.
   std::error_code canonical_ec;
   const std::filesystem::path canonical =
       std::filesystem::weakly_canonical(absolute, canonical_ec);

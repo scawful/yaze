@@ -132,6 +132,44 @@ class DungeonRenderCommandsTest : public ::testing::Test {
     EXPECT_EQ(rom_.vector(), original_bytes_);
   }
 
+  void ExpectSymlinkParentAliasRejected(bool alias_is_source) {
+    const auto logical = directory_ / "logical";
+    const auto child = directory_ / "child";
+    ASSERT_TRUE(std::filesystem::create_directory(logical));
+    ASSERT_TRUE(std::filesystem::create_directory(child));
+    const auto decoy = logical / "source.sfc";
+    const std::string sentinel = "decoy file must survive";
+    {
+      std::ofstream out(decoy, std::ios::binary);
+      out << sentinel;
+      ASSERT_TRUE(out.good());
+    }
+    std::error_code error;
+    std::filesystem::create_directory_symlink(child, logical / "link", error);
+    if (error) {
+      GTEST_SKIP() << "Filesystem cannot create directory symlink: "
+                   << error.message();
+    }
+    const auto alias = logical / "link" / ".." / "source.sfc";
+    // Filesystem resolution reaches the real source, while lexical cleanup
+    // alone reaches the distinct decoy. Pin both facts before the command.
+    ASSERT_TRUE(std::filesystem::equivalent(alias, source_));
+    ASSERT_EQ(alias.lexically_normal(), decoy);
+    ASSERT_EQ(ReadBytes(alias), original_bytes_);
+    if (alias_is_source) {
+      ASSERT_TRUE(rom_.LoadFromFile(alias.string()).ok());
+      EXPECT_EQ(rom_.vector(), original_bytes_);
+      ExpectRejectedAlias(source_);
+    } else {
+      ExpectRejectedAlias(alias);
+    }
+    EXPECT_EQ(ReadBytes(source_), original_bytes_);
+    EXPECT_EQ(ReadBytes(alias), original_bytes_);
+    EXPECT_EQ(ReadBytes(decoy),
+              (std::vector<uint8_t>(sentinel.begin(), sentinel.end())));
+    EXPECT_EQ(rom_.vector(), original_bytes_);
+  }
+
   std::filesystem::path directory_;
   std::filesystem::path source_;
   std::filesystem::path previous_sandbox_root_;
@@ -155,6 +193,14 @@ TEST_F(DungeonRenderCommandsTest, RejectsSymlinkRomOutputAlias) {
                  << error.message();
   }
   ExpectRejectedAlias(alias);
+}
+
+TEST_F(DungeonRenderCommandsTest, ResolvesSourceSymlinkBeforeParentTraversal) {
+  ExpectSymlinkParentAliasRejected(/*alias_is_source=*/true);
+}
+
+TEST_F(DungeonRenderCommandsTest, ResolvesOutputSymlinkBeforeParentTraversal) {
+  ExpectSymlinkParentAliasRejected(/*alias_is_source=*/false);
 }
 
 TEST_F(DungeonRenderCommandsTest, RejectsHardlinkRomOutputAlias) {
