@@ -800,8 +800,18 @@ if(YAZE_BUILD_TESTS)
   )
   yaze_add_test_suite(yaze_test_benchmark "benchmark" OFF ${BENCHMARK_TEST_SOURCES})
 
-  # --- z3ed CLI Smoke Test ---
+  # --- Script Contracts and z3ed CLI Smoke Tests ---
   if(UNIX)
+    add_test(
+      NAME DungeonVisualParityAuditContract
+      COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/agents/test-dungeon-visual-parity-audit.sh
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+    set_tests_properties(DungeonVisualParityAuditContract PROPERTIES
+      LABELS "stable;unit;scripts"
+      TIMEOUT 60
+    )
+
     add_test(
       NAME oracle_smoke_script_test
       COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/dev/test-oracle-smoke.sh
