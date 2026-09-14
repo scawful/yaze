@@ -1086,10 +1086,12 @@ void Sprite::Draw() {
   {
     DrawSpriteTile((x * 16), (y * 16), 12, 22, 11);
     DrawSpriteTile((x * 16) + 16, (y * 16), 13, 22, 11, false, false, 1, 2);
-  } else if (id_ == 0x9D)  // Water bubble kyameron
+  } else if (id_ == 0x9D)  // Babasu, visible upward frame
   {
-    DrawSpriteTile((x * 16), (y * 16), 14, 21, 11);
-    DrawSpriteTile((x * 16), (y * 16) - 16, 14, 20, 11, false, false, 2, 1);
+    // USDASM $0DBCA0: two overlapping 16x16 tiles, properties $0A OR $01
+    // (OBJ page 1, palette 5). Draw the earlier OAM entry last.
+    DrawSpriteTile((x * 16), (y * 16), 14, 21, 12);
+    DrawSpriteTile((x * 16), (y * 16) - 8, 14, 20, 12);
   } else if (id_ == 0xA1) {
     DrawSpriteTile((x * 16) - 8, (y * 16) + 8, 6, 26, 14);
     DrawSpriteTile((x * 16) + 8, (y * 16) + 8, 6, 26, 14, true);
