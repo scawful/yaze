@@ -52,6 +52,7 @@ class SpriteEditorPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_PERSON; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 65; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
 
   // ==========================================================================
   // WindowContent Drawing

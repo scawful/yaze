@@ -19,6 +19,7 @@ class GfxGroupsPanel : public EditorPanel {
 
   // EditorPanel interface
   std::string GetId() const override { return "overworld.gfx_groups"; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
   std::string GetDisplayName() const override { return "Graphics Groups"; }
   std::string GetIcon() const override { return ICON_MD_COLLECTIONS; }
   std::string GetEditorCategory() const override { return "Overworld"; }

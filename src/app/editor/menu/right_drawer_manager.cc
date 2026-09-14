@@ -11,6 +11,7 @@
 #include <optional>
 
 #include "absl/strings/str_format.h"
+#include "absl/types/span.h"
 #include "app/editor/agent/agent_chat.h"
 #include "app/editor/core/content_registry.h"
 #include "app/editor/hack/workflow/workflow_activity_widgets.h"
@@ -30,6 +31,7 @@
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_config.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/empty_state.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 #include "util/json.h"
@@ -368,19 +370,31 @@ void DrawWorkflowPreviewEntry(
       entry, callbacks, {.show_open_output = true, .show_copy_log = true});
 }
 
-const std::array<RightDrawerManager::PanelType, 7> kRightPanelSwitchOrder = {
-    RightDrawerManager::PanelType::kProject,
-    RightDrawerManager::PanelType::kProperties,
-    RightDrawerManager::PanelType::kAgentChat,
-    RightDrawerManager::PanelType::kProposals,
-    RightDrawerManager::PanelType::kNotifications,
-    RightDrawerManager::PanelType::kHelp,
-    RightDrawerManager::PanelType::kSettings,
-};
+}  // namespace
+
+// Shared drawer catalog (header switcher, menu-bar overflow, View > Drawers).
+const std::array<DrawerCatalogEntry, 7> kDrawerCatalog = {{
+    {RightDrawerManager::PanelType::kProject, "Project", ICON_MD_FOLDER_SPECIAL,
+     "View: Toggle Project Panel"},
+    {RightDrawerManager::PanelType::kProperties, "Properties", ICON_MD_LIST_ALT,
+     "View: Toggle Properties Panel"},
+    {RightDrawerManager::PanelType::kAgentChat, "AI Agent", ICON_MD_SMART_TOY,
+     "View: Toggle AI Agent Panel"},
+    {RightDrawerManager::PanelType::kProposals, "Proposals",
+     ICON_MD_DESCRIPTION, "View: Toggle Proposals Panel"},
+    {RightDrawerManager::PanelType::kNotifications, "Notifications",
+     ICON_MD_NOTIFICATIONS, "View: Toggle Notifications Panel"},
+    {RightDrawerManager::PanelType::kHelp, "Help", ICON_MD_HELP,
+     "View: Toggle Help Panel"},
+    {RightDrawerManager::PanelType::kSettings, "Settings", ICON_MD_SETTINGS,
+     "View: Toggle Settings Panel"},
+}};
+
+namespace {
 
 int FindRightPanelIndex(RightDrawerManager::PanelType type) {
-  for (size_t i = 0; i < kRightPanelSwitchOrder.size(); ++i) {
-    if (kRightPanelSwitchOrder[i] == type) {
+  for (size_t i = 0; i < kDrawerCatalog.size(); ++i) {
+    if (kDrawerCatalog[i].type == type) {
       return static_cast<int>(i);
     }
   }
@@ -389,16 +403,22 @@ int FindRightPanelIndex(RightDrawerManager::PanelType type) {
 
 RightDrawerManager::PanelType StepRightPanel(
     RightDrawerManager::PanelType current, int direction) {
-  if (kRightPanelSwitchOrder.empty()) {
+  if (kDrawerCatalog.empty()) {
     return RightDrawerManager::PanelType::kNone;
   }
   int index = FindRightPanelIndex(current);
   if (index < 0) {
     index = 0;
   }
-  const int size = static_cast<int>(kRightPanelSwitchOrder.size());
+  const int size = static_cast<int>(kDrawerCatalog.size());
   const int next = (index + direction + size) % size;
-  return kRightPanelSwitchOrder[static_cast<size_t>(next)];
+  return kDrawerCatalog[static_cast<size_t>(next)].type;
+}
+
+}  // namespace
+
+absl::Span<const DrawerCatalogEntry> GetDrawerCatalog() {
+  return absl::MakeSpan(kDrawerCatalog);
 }
 
 const char* GetPanelShortcutAction(RightDrawerManager::PanelType type) {
@@ -422,8 +442,6 @@ const char* GetPanelShortcutAction(RightDrawerManager::PanelType type) {
       return "";
   }
 }
-
-}  // namespace
 
 const char* GetPanelTypeName(RightDrawerManager::PanelType type) {
   switch (type) {
@@ -1071,92 +1089,95 @@ void RightDrawerManager::DrawPanelHeader(const char* title, const char* icon) {
   draw_list->AddRectFilled(
       header_min, header_max,
       ImGui::GetColorU32(gui::GetSurfaceContainerHighVec4()));
-
-  // Draw subtle bottom border
   draw_list->AddLine(ImVec2(header_min.x, header_max.y),
                      ImVec2(header_max.x, header_max.y),
                      ImGui::GetColorU32(gui::GetOutlineVec4()), 1.0f);
 
-  // Position content within header
+  const ImVec2 chrome_button_size = gui::IconSize::Toolbar();
+  const float button_size = chrome_button_size.x;
+  const bool show_lock = (active_panel_ == PanelType::kProperties);
+  const float chrome_width =
+      button_size + padding + (show_lock ? (button_size + 4.0f) : 0.0f);
+
+  // Title row
   ImGui::SetCursorPosX(padding);
   ImGui::SetCursorPosY(ImGui::GetCursorPosY() +
                        (header_height - ImGui::GetTextLineHeight()) * 0.5f);
 
-  // Panel icon with primary color
   gui::ColoredText(icon, gui::GetPrimaryVec4());
-
   ImGui::SameLine();
-
-  // Panel title (use current style text color)
   gui::ColoredText(title, ImGui::GetStyleColorVec4(ImGuiCol_Text));
 
   const PanelType current_panel =
       (active_panel_ != PanelType::kNone) ? active_panel_ : closing_panel_;
-  const std::string previous_shortcut =
-      GetShortcutLabel("View: Previous Right Panel", "");
-  const std::string next_shortcut =
-      GetShortcutLabel("View: Next Right Panel", "");
-  const std::string previous_tooltip =
-      previous_shortcut.empty() ? "Previous right panel"
-                                : absl::StrFormat("Previous right panel (%s)",
-                                                  previous_shortcut.c_str());
-  const std::string next_tooltip =
-      next_shortcut.empty()
-          ? "Next right panel"
-          : absl::StrFormat("Next right panel (%s)", next_shortcut.c_str());
 
-  ImGui::SameLine(0.0f, gui::UIConfig::kHeaderButtonSpacing);
-  if (gui::TransparentIconButton(ICON_MD_CHEVRON_LEFT, gui::IconSize::Small(),
-                                 previous_tooltip.c_str(), false,
-                                 gui::GetTextSecondaryVec4(), "right_sidebar",
-                                 "switch_panel_prev")) {
-    CycleToPreviousDrawer();
-  }
+  const ImVec2 tab_size = gui::IconSize::Small();
+  const float tab_gap = gui::UIConfig::kHeaderButtonGap;
+  const float tabs_width =
+      static_cast<float>(GetDrawerCatalog().size()) * (tab_size.x + tab_gap);
+  const float title_end = ImGui::GetCursorPosX() + 8.0f;
+  const float available_for_tabs =
+      ImGui::GetWindowWidth() - chrome_width - title_end;
 
-  ImGui::SameLine(0.0f, gui::UIConfig::kHeaderButtonGap);
-  if (gui::TransparentIconButton(
-          ICON_MD_SWAP_HORIZ, gui::IconSize::Small(), "Panel switcher", false,
-          gui::GetTextSecondaryVec4(), "right_sidebar", "switch_panel_menu")) {
-    ImGui::OpenPopup("##RightPanelSwitcher");
-  }
-
-  ImGui::SameLine(0.0f, gui::UIConfig::kHeaderButtonGap);
-  if (gui::TransparentIconButton(ICON_MD_CHEVRON_RIGHT, gui::IconSize::Small(),
-                                 next_tooltip.c_str(), false,
-                                 gui::GetTextSecondaryVec4(), "right_sidebar",
-                                 "switch_panel_next")) {
-    CycleToNextDrawer();
-  }
-
-  if (ImGui::BeginPopup("##RightPanelSwitcher")) {
-    for (PanelType panel_type : kRightPanelSwitchOrder) {
-      std::string label = absl::StrFormat("%s %s", GetPanelTypeIcon(panel_type),
-                                          GetPanelTypeName(panel_type));
-      const char* shortcut_action = GetPanelShortcutAction(panel_type);
-      std::string shortcut;
-      if (shortcut_action[0] != '\0') {
-        shortcut = GetShortcutLabel(shortcut_action, "");
-        if (shortcut == "Unassigned") {
-          shortcut.clear();
+  if (available_for_tabs >= tabs_width) {
+    ImGui::SameLine(0.0f, gui::UIConfig::kHeaderButtonSpacing);
+    for (const DrawerCatalogEntry& entry : GetDrawerCatalog()) {
+      const bool is_active = current_panel == entry.type;
+      std::string tooltip = entry.name ? entry.name : "";
+      if (entry.shortcut_action && entry.shortcut_action[0] != '\0') {
+        const std::string shortcut =
+            GetShortcutLabel(entry.shortcut_action, "");
+        if (!shortcut.empty() && shortcut != "Unassigned") {
+          tooltip = absl::StrFormat("%s (%s)", entry.name, shortcut.c_str());
         }
       }
-      if (ImGui::MenuItem(label.c_str(),
-                          shortcut.empty() ? nullptr : shortcut.c_str(),
-                          current_panel == panel_type)) {
-        OpenDrawer(panel_type);
+      const std::string widget_id =
+          absl::StrFormat("drawer_tab_%s", entry.name ? entry.name : "x");
+      if (gui::TransparentIconButton(
+              entry.icon, tab_size, tooltip.c_str(), is_active,
+              is_active ? gui::GetPrimaryVec4() : gui::GetTextSecondaryVec4(),
+              "right_sidebar", widget_id.c_str())) {
+        if (is_active) {
+          CloseDrawer();
+        } else {
+          OpenDrawer(entry.type);
+        }
       }
+      ImGui::SameLine(0.0f, tab_gap);
     }
-    ImGui::EndPopup();
+  } else {
+    ImGui::SameLine(0.0f, gui::UIConfig::kHeaderButtonSpacing);
+    if (gui::TransparentIconButton(ICON_MD_SWAP_HORIZ, gui::IconSize::Small(),
+                                   "Switch drawer", false,
+                                   gui::GetTextSecondaryVec4(), "right_sidebar",
+                                   "switch_panel_menu")) {
+      ImGui::OpenPopup("##RightPanelSwitcher");
+    }
+    if (ImGui::BeginPopup("##RightPanelSwitcher")) {
+      for (const DrawerCatalogEntry& entry : GetDrawerCatalog()) {
+        std::string label = absl::StrFormat("%s %s", entry.icon, entry.name);
+        std::string shortcut;
+        if (entry.shortcut_action && entry.shortcut_action[0] != '\0') {
+          shortcut = GetShortcutLabel(entry.shortcut_action, "");
+          if (shortcut == "Unassigned") {
+            shortcut.clear();
+          }
+        }
+        if (ImGui::MenuItem(label.c_str(),
+                            shortcut.empty() ? nullptr : shortcut.c_str(),
+                            current_panel == entry.type)) {
+          OpenDrawer(entry.type);
+        }
+      }
+      ImGui::EndPopup();
+    }
   }
 
-  // Right-aligned buttons
-  const ImVec2 chrome_button_size = gui::IconSize::Toolbar();
-  const float button_size = chrome_button_size.x;
+  // Right-aligned close / lock
   const float button_y =
       header_min.y + (header_height - chrome_button_size.y) * 0.5f;
   float current_x = ImGui::GetWindowWidth() - button_size - padding;
 
-  // Close button
   ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, button_y));
   if (gui::TransparentIconButton(
           ICON_MD_CANCEL, chrome_button_size, "Close Drawer (Esc)", false,
@@ -1164,11 +1185,9 @@ void RightDrawerManager::DrawPanelHeader(const char* title, const char* icon) {
     CloseDrawer();
   }
 
-  // Lock Toggle (Only for Properties Panel)
-  if (active_panel_ == PanelType::kProperties) {
+  if (show_lock) {
     current_x -= (button_size + 4.0f);
     ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, button_y));
-
     if (gui::TransparentIconButton(
             properties_locked_ ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN,
             chrome_button_size,
@@ -1179,7 +1198,6 @@ void RightDrawerManager::DrawPanelHeader(const char* title, const char* icon) {
     }
   }
 
-  // Move cursor past the header
   ImGui::SetCursorPosY(header_height + 8.0f);
 }
 
@@ -2063,38 +2081,7 @@ void RightDrawerManager::DrawPropertiesPanel() {
   if (properties_panel_) {
     properties_panel_->Draw();
   } else {
-    // Placeholder when no properties panel is set
-    gui::ColoredText(ICON_MD_SELECT_ALL " No Selection",
-                     gui::GetTextSecondaryVec4());
-
-    ImGui::Spacing();
-    DrawPanelDescription(
-        "Select an item in the editor to view and edit its properties here.");
-
-    DrawPanelDivider();
-
-    // Show placeholder sections for what properties would look like
-    if (BeginPanelSection("Position & Size", ICON_MD_STRAIGHTEN, true)) {
-      DrawPanelValue("X", "--");
-      DrawPanelValue("Y", "--");
-      DrawPanelValue("Width", "--");
-      DrawPanelValue("Height", "--");
-      EndPanelSection();
-    }
-
-    if (BeginPanelSection("Appearance", ICON_MD_PALETTE, false)) {
-      DrawPanelValue("Tile ID", "--");
-      DrawPanelValue("Palette", "--");
-      DrawPanelValue("Layer", "--");
-      EndPanelSection();
-    }
-
-    if (BeginPanelSection("Behavior", ICON_MD_SETTINGS, false)) {
-      DrawPanelValue("Type", "--");
-      DrawPanelValue("Subtype", "--");
-      DrawPanelValue("Properties", "--");
-      EndPanelSection();
-    }
+    gui::DrawEmptyState(gui::EmptyNoSelection(/*compact=*/true));
   }
 }
 
@@ -2102,38 +2089,7 @@ void RightDrawerManager::DrawProjectPanel() {
   if (project_panel_) {
     project_panel_->Draw();
   } else {
-    gui::ColoredText(ICON_MD_FOLDER_SPECIAL " No Project Loaded",
-                     gui::GetTextSecondaryVec4());
-
-    ImGui::Spacing();
-    DrawPanelDescription(
-        "Open a .yaze project file to access project management features "
-        "including ROM versioning, snapshots, and configuration.");
-
-    DrawPanelDivider();
-
-    // Placeholder for project features
-    if (BeginPanelSection("Quick Start", ICON_MD_ROCKET_LAUNCH, true)) {
-      ImGui::Bullet();
-      ImGui::TextWrapped(tr("Create a new project via File > New Project"));
-      ImGui::Bullet();
-      ImGui::TextWrapped(tr("Open existing .yaze project files"));
-      ImGui::Bullet();
-      ImGui::TextWrapped(tr("Projects track ROM versions and settings"));
-      EndPanelSection();
-    }
-
-    if (BeginPanelSection("Features", ICON_MD_CHECKLIST, false)) {
-      ImGui::Bullet();
-      ImGui::TextWrapped(tr("Version snapshots with Git integration"));
-      ImGui::Bullet();
-      ImGui::TextWrapped(tr("ROM backup and restore"));
-      ImGui::Bullet();
-      ImGui::TextWrapped(tr("Project-specific settings"));
-      ImGui::Bullet();
-      ImGui::TextWrapped(tr("Assembly code folder integration"));
-      EndPanelSection();
-    }
+    gui::DrawEmptyState(gui::EmptyNoProject(/*compact=*/true));
   }
 }
 
@@ -2149,11 +2105,13 @@ void RightDrawerManager::DrawToolOutputPanel() {
   }
 
   if (tool_output_content_.empty()) {
-    gui::ColoredText(ICON_MD_INFO " No tool output",
-                     gui::GetTextSecondaryVec4());
-    DrawPanelDescription(
-        "Run a project-graph query from the editor to inspect its output "
-        "here.");
+    gui::EmptyStateOptions opts;
+    opts.icon = ICON_MD_TERMINAL;
+    opts.title = "No tool output";
+    opts.detail =
+        "Run a project-graph query from the editor to inspect its output here.";
+    opts.compact = true;
+    gui::DrawEmptyState(opts);
     return;
   }
 
@@ -2209,56 +2167,54 @@ void RightDrawerManager::DrawToolOutputPanel() {
 }
 
 bool RightDrawerManager::DrawDrawerToggleButtons() {
-  bool clicked = false;
+  bool interacted = false;
 
-  // Keep menu-bar controls on SmallButton metrics so baseline/spacing stays
-  // consistent with the session + notification controls.
-  auto DrawPanelButton = [&](const char* icon, const char* base_tooltip,
-                             const char* shortcut_action, PanelType type) {
-    const bool is_active = IsDrawerActive(type);
-    gui::StyleColorGuard button_colors({
-        {ImGuiCol_Button, ImVec4(0, 0, 0, 0)},
-        {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
-        {ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4()},
-        {ImGuiCol_Text,
-         is_active ? gui::GetPrimaryVec4() : gui::GetTextSecondaryVec4()},
-    });
+  // Single overflow control — same SmallButton metrics as session/bell.
+  const bool any_drawer_open = active_panel_ != PanelType::kNone;
+  gui::StyleColorGuard button_colors({
+      {ImGuiCol_Button, ImVec4(0, 0, 0, 0)},
+      {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
+      {ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4()},
+      {ImGuiCol_Text,
+       any_drawer_open ? gui::GetPrimaryVec4() : gui::GetTextSecondaryVec4()},
+  });
 
-    if (ImGui::SmallButton(icon)) {
-      ToggleDrawer(type);
-      clicked = true;
-    }
+  if (ImGui::SmallButton(ICON_MD_VERTICAL_SPLIT "##DrawersOverflow")) {
+    ImGui::OpenPopup("##DrawersOverflowMenu");
+    interacted = true;
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s", tr("Drawers"));
+  }
 
-    if (ImGui::IsItemHovered()) {
-      const std::string shortcut = GetShortcutLabel(shortcut_action, "");
-      if (shortcut.empty() || shortcut == "Unassigned") {
-        ImGui::SetTooltip("%s", base_tooltip);
-      } else {
-        ImGui::SetTooltip("%s (%s)", base_tooltip, shortcut.c_str());
+  if (ImGui::BeginPopup("##DrawersOverflowMenu")) {
+    for (const DrawerCatalogEntry& entry : GetDrawerCatalog()) {
+      std::string label = absl::StrFormat("%s %s", entry.icon, entry.name);
+      std::string shortcut;
+      if (entry.shortcut_action && entry.shortcut_action[0] != '\0') {
+        shortcut = GetShortcutLabel(entry.shortcut_action, "");
+        if (shortcut == "Unassigned") {
+          shortcut.clear();
+        }
+      }
+      if (ImGui::MenuItem(label.c_str(),
+                          shortcut.empty() ? nullptr : shortcut.c_str(),
+                          IsDrawerActive(entry.type))) {
+        ToggleDrawer(entry.type);
+        interacted = true;
       }
     }
-  };
+    ImGui::EndPopup();
+  }
 
-  DrawPanelButton(ICON_MD_FOLDER_SPECIAL, "Project Drawer",
-                  "View: Toggle Project Panel", PanelType::kProject);
-  ImGui::SameLine();
+  return interacted;
+}
 
-  DrawPanelButton(ICON_MD_SMART_TOY, "AI Agent Drawer",
-                  "View: Toggle AI Agent Panel", PanelType::kAgentChat);
-  ImGui::SameLine();
-
-  DrawPanelButton(ICON_MD_HELP_OUTLINE, "Help Drawer",
-                  "View: Toggle Help Panel", PanelType::kHelp);
-  ImGui::SameLine();
-
-  DrawPanelButton(ICON_MD_SETTINGS, "Settings Drawer",
-                  "View: Toggle Settings Panel", PanelType::kSettings);
-  ImGui::SameLine();
-
-  DrawPanelButton(ICON_MD_LIST_ALT, "Properties Drawer",
-                  "View: Toggle Properties Panel", PanelType::kProperties);
-
-  return clicked;
+float RightDrawerManager::GetDrawerToggleClusterWidth() {
+  const float frame_padding = ImGui::GetStyle().FramePadding.x;
+  // Match SmallButton("##DrawersOverflow") footprint used above.
+  const float icon_width = ImGui::CalcTextSize(ICON_MD_VERTICAL_SPLIT).x;
+  return icon_width + frame_padding * 2.0f;
 }
 
 }  // namespace editor

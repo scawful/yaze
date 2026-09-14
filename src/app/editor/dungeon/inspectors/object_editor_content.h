@@ -29,6 +29,7 @@ class ObjectEditorContent : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_TUNE; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 61; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
   float GetPreferredWidth() const override { return 460.0f; }
 
   void Draw(bool* p_open) override;

@@ -7,7 +7,9 @@
 #include <utility>
 #include <vector>
 
+#include "absl/strings/match.h"
 #include "absl/strings/str_split.h"
+#include "absl/strings/string_view.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/platform_keys.h"
 #include "imgui/imgui.h"
@@ -117,6 +119,54 @@ std::string PrintShortcut(const std::vector<ImGuiKey>& keys) {
   // Use the platform-aware FormatShortcut from platform_keys.h
   // This handles Ctrl→Cmd and Alt→Opt conversions for macOS/WASM
   return gui::FormatShortcut(keys);
+}
+
+std::string InferShortcutGroup(absl::string_view name) {
+  using absl::StartsWith;
+  using absl::StrContains;
+
+  if (StartsWith(name, "File")) {
+    return "File";
+  }
+  if (StartsWith(name, "Edit")) {
+    return "Edit";
+  }
+  if (StartsWith(name, "Help")) {
+    return "Help";
+  }
+  if (StartsWith(name, "Tools") || name == "Command Palette" ||
+      name == "Global Search" || name == "Load Last ROM" ||
+      name == "Show About") {
+    return "Tools";
+  }
+  if (StartsWith(name, "Layout") || StartsWith(name, "Apply Layout") ||
+      StartsWith(name, "Apply Profile") || StartsWith(name, "Apply:") ||
+      StartsWith(name, "layout:")) {
+    return "Layout";
+  }
+  if (StartsWith(name, "drawer:") ||
+      (StartsWith(name, "View: Toggle") &&
+       (StrContains(name, "Drawer") || StrContains(name, "Panel") ||
+        StrContains(name, "Notifications") || StrContains(name, "Agent") ||
+        StrContains(name, "Proposals") || StrContains(name, "Settings") ||
+        StrContains(name, "Help") || StrContains(name, "Project") ||
+        StrContains(name, "Properties"))) ||
+      StartsWith(name, "View: Next Right") ||
+      StartsWith(name, "View: Previous Right")) {
+    return "Drawers";
+  }
+  if (StartsWith(name, "window:") || StartsWith(name, "Window") ||
+      StartsWith(name, "Panel Browser") || StartsWith(name, "Window Browser") ||
+      StartsWith(name, "Window Finder") || StartsWith(name, "View: Show")) {
+    return "Windows";
+  }
+  if (StartsWith(name, "View") || StartsWith(name, "Sidebar")) {
+    return "View";
+  }
+  if (StrContains(name, ".")) {
+    return "Editor";
+  }
+  return "Other";
 }
 
 std::vector<ImGuiKey> ParseShortcut(const std::string& shortcut) {

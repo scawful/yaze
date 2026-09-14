@@ -22,6 +22,7 @@ class ScratchSpacePanel : public EditorPanel {
 
   // EditorPanel interface
   std::string GetId() const override { return "overworld.scratch"; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
   std::string GetDisplayName() const override { return "Scratch Workspace"; }
   std::string GetIcon() const override { return ICON_MD_DRAW; }
   std::string GetEditorCategory() const override { return "Overworld"; }

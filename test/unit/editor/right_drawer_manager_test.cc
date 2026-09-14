@@ -90,5 +90,33 @@ TEST_F(RightDrawerManagerTest, StoresToolOutputAndCanOpenToolDrawer) {
   EXPECT_EQ(manager.tool_output_content(), "{\"address\":\"$008000\"}");
 }
 
+TEST_F(RightDrawerManagerTest, DrawerCatalogMatchesHeaderCycleOrder) {
+  const auto catalog = GetDrawerCatalog();
+  ASSERT_EQ(catalog.size(), 7u);
+  EXPECT_EQ(catalog[0].type, RightDrawerManager::DrawerType::kProject);
+  EXPECT_EQ(catalog[1].type, RightDrawerManager::DrawerType::kProperties);
+  EXPECT_EQ(catalog[2].type, RightDrawerManager::DrawerType::kAgentChat);
+  EXPECT_EQ(catalog[3].type, RightDrawerManager::DrawerType::kProposals);
+  EXPECT_EQ(catalog[4].type, RightDrawerManager::DrawerType::kNotifications);
+  EXPECT_EQ(catalog[5].type, RightDrawerManager::DrawerType::kHelp);
+  EXPECT_EQ(catalog[6].type, RightDrawerManager::DrawerType::kSettings);
+
+  for (const DrawerCatalogEntry& entry : catalog) {
+    EXPECT_STREQ(entry.name, GetDrawerTypeName(entry.type));
+    EXPECT_STREQ(entry.icon, GetDrawerTypeIcon(entry.type));
+    EXPECT_STREQ(entry.shortcut_action, GetDrawerShortcutAction(entry.type));
+  }
+}
+
+TEST_F(RightDrawerManagerTest, ToggleActiveDrawerClosesIt) {
+  RightDrawerManager manager;
+  manager.OpenDrawer(RightDrawerManager::DrawerType::kProperties);
+  EXPECT_EQ(manager.GetActiveDrawer(),
+            RightDrawerManager::DrawerType::kProperties);
+
+  manager.ToggleDrawer(RightDrawerManager::DrawerType::kProperties);
+  EXPECT_EQ(manager.GetActiveDrawer(), RightDrawerManager::DrawerType::kNone);
+}
+
 }  // namespace
 }  // namespace yaze::editor

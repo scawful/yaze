@@ -8,6 +8,7 @@
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/style_guard.h"
+#include "app/gui/widgets/empty_state.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -37,7 +38,10 @@ void AgentRomSyncPanel::Draw(AgentUIContext* context,
       }
     }
   } else {
-    ImGui::TextDisabled("No ROM loaded");
+    // Child is short (~130px); keep title-only compact empty state.
+    gui::EmptyStateOptions opts = gui::EmptyNoRom(/*compact=*/true);
+    opts.detail = nullptr;
+    gui::DrawEmptyState(opts);
   }
 
   if (state.last_sync_time != absl::InfinitePast()) {

@@ -230,6 +230,7 @@ if(YAZE_BUILD_TESTS)
     unit/gui/panel_window_test.cc
     unit/gui/animator_test.cc
     unit/gui/property_inspector_test.cc
+    unit/gui/empty_state_test.cc
     unit/gui/resize_handles_test.cc
     unit/gui/font_picker_test.cc
     unit/gui/icon_browser_test.cc
@@ -259,6 +260,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/workflow_activity_widgets_test.cc
     unit/editor/layout_manager_persistence_test.cc
     unit/editor/right_drawer_manager_test.cc
+    unit/editor/status_bar_context_test.cc
     unit/editor/undo_manager_test.cc
     unit/editor/sprite_editor_undo_test.cc
     unit/editor/sprite_editor_preview_test.cc
@@ -631,6 +633,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/palette_controls_panel_layout_test.cc
     unit/editor/sprite_editor_preview_test.cc
     unit/gui/property_inspector_test.cc
+    unit/gui/empty_state_test.cc
     unit/gui/resize_handles_test.cc
     unit/gui/font_picker_test.cc
     unit/gui/icon_browser_test.cc

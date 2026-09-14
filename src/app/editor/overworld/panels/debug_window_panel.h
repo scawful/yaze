@@ -19,6 +19,7 @@ class DebugWindowPanel : public EditorPanel {
 
   // EditorPanel interface
   std::string GetId() const override { return "overworld.debug"; }
+  std::string GetWorkflowGroup() const override { return "Advanced"; }
   std::string GetDisplayName() const override { return "Debug Window"; }
   std::string GetIcon() const override { return ICON_MD_BUG_REPORT; }
   std::string GetEditorCategory() const override { return "Overworld"; }

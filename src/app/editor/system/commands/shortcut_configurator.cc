@@ -315,6 +315,25 @@ void ConfigureEditorShortcuts(const ShortcutDependencies& deps,
       Shortcut::Scope::kGlobal);
 
   RegisterIfValid(
+      shortcut_manager, "Window Finder", {ImGuiMod_Ctrl, ImGuiKey_P},
+      [ui_coordinator]() {
+        if (ui_coordinator) {
+          ui_coordinator->ShowPanelFinder();
+        }
+      },
+      Shortcut::Scope::kGlobal);
+
+  RegisterIfValid(
+      shortcut_manager, "Keyboard Shortcuts",
+      {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_Slash},
+      [ui_coordinator]() {
+        if (ui_coordinator) {
+          ui_coordinator->ShowShortcutsBrowser();
+        }
+      },
+      Shortcut::Scope::kGlobal);
+
+  RegisterIfValid(
       shortcut_manager, "Global Search",
       {ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_K},
       [ui_coordinator]() {

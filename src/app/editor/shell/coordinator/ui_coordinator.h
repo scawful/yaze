@@ -76,6 +76,9 @@ class UICoordinator {
   void DrawBackground();
   void DrawAllUI();
   void DrawMenuBarExtras();
+  // Shared styling for menu-bar icon buttons (hamburger, bell, session, WASM).
+  bool DrawMenuBarIconButton(const char* icon, const char* tooltip,
+                             bool is_active = false);
   void DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
                             bool show_session, bool has_multiple_sessions);
   void DrawSessionButton();
@@ -83,6 +86,7 @@ class UICoordinator {
   // Core UI components (actual ImGui rendering moved from EditorManager)
   void DrawCommandPalette();
   void DrawPanelFinder();
+  void DrawShortcutsBrowser();
   void DrawGlobalSearch();
   void DrawWorkspacePresetDialogs();
 
@@ -119,9 +123,13 @@ class UICoordinator {
   // Sidebar visibility delegates to WorkspaceWindowManager (single source of truth)
   void TogglePanelSidebar();
   void ShowGlobalSearch() { show_global_search_ = true; }
-  void ShowCommandPalette();
-  void ShowPanelFinder() { show_panel_finder_ = true; }
+  void ShowCommandPalette(const char* initial_query = nullptr);
+  /// Opens the command palette prefilled with `window:` (replaces the old
+  /// standalone Window Finder modal).
+  void ShowPanelFinder();
   void ShowWindowBrowser() { show_panel_browser_ = true; }
+  /// Searchable shortcut map grouped by menu IA (File / View / Drawers / …).
+  void ShowShortcutsBrowser() { show_shortcuts_browser_ = true; }
 
   /**
    * @brief Initialize command palette with all discoverable commands
@@ -255,6 +263,7 @@ class UICoordinator {
   bool show_panel_browser_ = false;
   bool show_panel_finder_ = false;
   bool show_command_palette_ = false;
+  bool show_shortcuts_browser_ = false;
   // show_emulator_ removed - now managed by WorkspaceWindowManager
   // show_panel_sidebar_ removed - now managed by WorkspaceWindowManager
   // show_memory_editor_ / show_palette_editor_ removed - dead state, their
@@ -279,9 +288,12 @@ class UICoordinator {
   char command_palette_query_[256] = {};
   int command_palette_selected_idx_ = 0;
 
-  // Window Finder state
+  // Window Finder state (legacy modal; ShowPanelFinder now seeds the palette)
   char panel_finder_query_[256] = {};
   int panel_finder_selected_idx_ = 0;
+
+  // Shortcuts browser state
+  char shortcuts_browser_query_[256] = {};
 
   // Global Search state
   char global_search_query_[256] = {};
@@ -292,11 +304,6 @@ class UICoordinator {
   // "New Project" guided dialog. Owned here so it survives welcome-screen
   // visibility transitions during startup.
   NewProjectDialog new_project_dialog_;
-
-  // Menu bar icon button helper - provides consistent styling for all menubar buttons
-  // Returns true if button was clicked
-  bool DrawMenuBarIconButton(const char* icon, const char* tooltip,
-                             bool is_active = false);
 
   // Calculate width of a menubar icon button (icon + frame padding)
   static float GetMenuBarIconButtonWidth();

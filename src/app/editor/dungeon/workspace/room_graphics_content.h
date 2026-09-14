@@ -61,6 +61,7 @@ class RoomGraphicsContent : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_IMAGE; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 50; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
   float GetPreferredWidth() const override { return 440.0f; }
 
   // ==========================================================================

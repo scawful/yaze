@@ -37,6 +37,7 @@ class MinecartTrackEditorPanel : public WindowContent {
 
   // WindowContent overrides
   std::string GetId() const override { return "dungeon.minecart_tracks"; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
   std::string GetDisplayName() const override { return "Minecart Tracks"; }
   std::string GetIcon() const override { return ICON_MD_TRAIN; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
