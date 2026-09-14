@@ -49,6 +49,19 @@ cat >"$fake_bin/cmake" <<'SH'
 #!/usr/bin/env bash
 set -euo pipefail
 
+write_binary() {
+  cat >"$1" <<'BIN'
+#!/usr/bin/env bash
+set -euo pipefail
+binary="$(basename "$0")"
+[[ "${1:-}" == "--version" ]] || exit 8
+echo "$binary" >>"$TEST_LOAD_LOG"
+[[ "${TEST_LOAD_FAIL:-}" != "$binary" ]] || exit 7
+echo "$binary fixture version"
+BIN
+  chmod +x "$1"
+}
+
 if [[ "${1:-}" == "--build" ]]; then
   build_dir="$2"
   mkdir -p "$build_dir/bin"
@@ -70,18 +83,21 @@ if [[ "${1:-}" == "--install" ]]; then
   done
   [[ -n "$prefix" ]] || exit 2
   mkdir -p "$prefix"
+  install_bin="$prefix"
   if [[ "${TEST_PLATFORM:-Linux}" == "Darwin" ]]; then
     mkdir -p "$prefix/yaze.app/Contents/MacOS" "$prefix/yaze.app/Contents/Resources"
-    : >"$prefix/yaze.app/Contents/MacOS/yaze"
+    write_binary "$prefix/yaze.app/Contents/MacOS/yaze"
     : >"$prefix/yaze.app/Contents/Resources/installed-resource"
-    chmod +x "$prefix/yaze.app/Contents/MacOS/yaze"
   else
-    : >"$prefix/yaze"
-    chmod +x "$prefix/yaze"
+    install_bin="$prefix/bin"
+    mkdir -p "$install_bin"
+    write_binary "$install_bin/yaze"
+    if [[ "${TEST_EXISTING_ROOT_BINARY:-0}" == "1" ]]; then
+      : >"$prefix/yaze"
+    fi
   fi
   if [[ "${TEST_INSTALL_MISSING_Z3ED:-0}" != "1" ]]; then
-    : >"$prefix/z3ed"
-    chmod +x "$prefix/z3ed"
+    write_binary "$install_bin/z3ed"
   fi
   exit 0
 fi
@@ -145,9 +161,12 @@ run_installer() {
     REAL_UNAME="$real_uname" REAL_MV="$real_mv" \
     TEST_PLATFORM="${TEST_PLATFORM:-Linux}" \
     TEST_INSTALL_MISSING_Z3ED="${TEST_INSTALL_MISSING_Z3ED:-0}" \
+    TEST_EXISTING_ROOT_BINARY="${TEST_EXISTING_ROOT_BINARY:-0}" \
     TEST_CODESIGN_FAIL="${TEST_CODESIGN_FAIL:-}" \
     TEST_ACTIVATION_FAIL="${TEST_ACTIVATION_FAIL:-0}" \
+    TEST_LOAD_FAIL="${TEST_LOAD_FAIL:-}" \
     TEST_SIGN_LOG="$TMP_ROOT/sign.log" \
+    TEST_LOAD_LOG="$TMP_ROOT/load.log" \
     YAZE_NIGHTLY_SOURCE_REPO="$fixture_worktree" \
     YAZE_NIGHTLY_BUILD_DIR="$TMP_ROOT/build" \
     YAZE_NIGHTLY_PREFIX="$nightly_prefix" \
@@ -167,6 +186,12 @@ assert_build_info_line "describe=v9.8.7-g$expected_short_commit" "$build_info"
 assert_build_info_line "dirty=false" "$build_info"
 assert_build_info_line "source_repo=$fixture_worktree" "$build_info"
 first_release="$(readlink "$nightly_prefix/current")"
+for binary in yaze z3ed; do
+  [[ "$(readlink "$first_release/$binary")" == "bin/$binary" ]] ||
+    fail "Linux $binary wrapper link does not preserve bin layout"
+  [[ -f "$first_release/bin/$binary" ]] ||
+    fail "Linux $binary was moved out of bin"
+done
 
 printf 'dirty\n' >>"$fixture_worktree/README.md"
 run_installer
@@ -192,9 +217,21 @@ if TEST_INSTALL_MISSING_Z3ED=1 run_installer; then
 fi
 assert_previous_release
 
+if TEST_EXISTING_ROOT_BINARY=1 run_installer; then
+  fail "installer replaced an existing root binary while normalizing bin layout"
+fi
+assert_previous_release
+
 for failure in sign verify; do
   if TEST_PLATFORM=Darwin TEST_CODESIGN_FAIL="$failure" run_installer; then
     fail "installer accepted codesign $failure failure"
+  fi
+  assert_previous_release
+done
+
+for binary in yaze z3ed; do
+  if TEST_PLATFORM=Darwin TEST_LOAD_FAIL="$binary" run_installer; then
+    fail "installer accepted $binary loader failure"
   fi
   assert_previous_release
 done
@@ -205,6 +242,7 @@ fi
 assert_previous_release
 
 : >"$TMP_ROOT/sign.log"
+: >"$TMP_ROOT/load.log"
 TEST_PLATFORM=Darwin run_installer
 [[ "$(readlink "$nightly_prefix/current")" != "$previous_release" ]] ||
   fail "validated macOS installation was not activated"
@@ -213,5 +251,7 @@ TEST_PLATFORM=Darwin run_installer
 [[ -f "$nightly_prefix/current/yaze.app/signed-fixture" ]] ||
   fail "activated app was not signed"
 [[ -L "$TMP_ROOT/apps/yaze.app" ]] || fail "app link was not installed"
+[[ "$(tr '\n' ' ' <"$TMP_ROOT/load.log")" == "yaze z3ed " ]] ||
+  fail "validated installation did not load both executables"
 
-echo "PASS: nightly provenance, staged signing, and failure-safe activation"
+echo "PASS: nightly provenance, signing, loader checks, and failure-safe activation"
