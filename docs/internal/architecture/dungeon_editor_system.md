@@ -101,7 +101,7 @@ New subsystem for visual editing of the 8x8 tile composition of dungeon objects.
 - Standard objects: patches ROM at `tile_data_address + i*2` with `TileInfoToWord()`.
 - Custom objects: re-serializes to binary format matching `CustomObjectManager::ParseBinaryData()`, writes `.bin` file, calls `ReloadAll()`.
 
-**Status:** Core implementation plus the first polish pass are in place. The panel now has keyboard shortcuts, room re-render after apply, shared-tile confirmation, palette-change invalidation, reopen/reset protection, backend coverage in `object_tile_editor_test.cc`, and panel-state coverage in `object_tile_editor_panel_test.cc`. The main remaining feature gap is a first-class "new custom object" workflow.
+**Status:** Core implementation plus the first polish pass are in place. The panel now has keyboard shortcuts, room re-render after apply, shared-tile confirmation, palette-change invalidation, reopen/reset protection, backend coverage in `object_tile_editor_test.cc`, and panel-state coverage in `object_tile_editor_panel_test.cc`. `master` still exposes a legacy free-form **New Custom Object** path, but Oracle's runtime dispatch tables have fixed subtype capacities. [PR #217](https://github.com/scawful/yaze/pull/217) replaces that create-and-append path with editing of existing runtime slots; adding a new subtype remains an ASM/runtime change, not an editor-only action.
 
 ### Room Layer Manager & Compositing (February 2026)
 
@@ -139,14 +139,15 @@ and runtime-effect paths remain editor approximations.
 ## Current Limitations / Gaps
 
 - **Persistence coverage**: Tile objects, sprites, doors (marker + pointer table), room headers (14 bytes + message IDs), palettes, torches, pushable blocks, custom collision, chests, pot items, regular dungeon entrances, dedicated spawn points, and edited pit-damage membership are written back and have focused regression coverage. The legacy combined `RoomEntrance` spawn view remains read-only and fails closed if dirtied. Pit/block tables remain fixed to their existing vanilla capacities.
-- **Object tile editor**: Core editing, preview/atlas rendering, keyboard shortcuts, room re-render after apply, shared tile confirmation, palette invalidation, reopen/reset behavior, and the Custom Object Workshop creation flow are implemented. Remaining gaps are lossless/atomic custom `.bin` publishing, session-scoped custom-object state, broader editor/integration coverage, and future preview-quality polish after the selector/browser churn settles.
+- **Object tile editor**: Core editing, preview/atlas rendering, keyboard shortcuts, room re-render after apply, shared tile confirmation, palette invalidation, reopen/reset behavior, and the legacy Custom Object Workshop creation flow exist on `master`. PR #217 replaces free-form creation with fixed-slot selection, lossless and atomic custom `.bin` publication, and session-scoped custom-object state. Remaining gaps after that change are hands-on workflow acceptance, broader editor/integration coverage, and future preview-quality polish after the selector/browser churn settles.
 - **Tests**: Focused unit coverage now exists for `ObjectTileLayout`, standard/custom object tile writeback, palette-sensitive preview generation, panel reset behavior, `DungeonEditorSystem`, `DungeonSaveTest`, and `DungeonEditorV2RomSafetyTest`. Broader integration/E2E coverage for ROM-write workflows is still lighter than the unit surface.
 
 ## Suggested Next Steps
 
 1. **Object Tile Editor Completion**:
-   - Make custom `.bin` encode/writeback lossless, project-contained, atomic,
-     and verified before expanding the creation workflow.
+   - Land and validate the fixed-slot publication safety in PR #217. Do not
+     expand the free-form creation workflow unless an ASM change first expands
+     the runtime dispatch capacity.
    - Add broader editor/integration coverage around apply/reload/save flows.
    - Consolidate custom visual, collision, and runtime semantics through the
      project object catalog described in
