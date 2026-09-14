@@ -1,10 +1,10 @@
 # Custom dungeon objects and minecart authoring
 
-Status: ACTIVE AUDIT
-Owner: `zelda3-hacking-expert` with `imgui-frontend-engineer`
+Status: PENDING INTEGRATION — implementation is in draft PR #217
+Owner: [`zelda3-hacking-expert` with `imgui-frontend-engineer`](../agents/personas.md)
 Last reviewed: 2026-09-14
 Next review: 2026-09-28
-Universe task: `task_20260913T233703Z_21853`
+Universe task: `task_20260913T233703Z_21853` ([coordination system](../agents/universe-coordination-spec.md))
 
 Intent: make project-specific dungeon visuals and gameplay objects safe to
 author in Yaze while preserving their source-patch and in-game behavior.
@@ -13,7 +13,7 @@ The release priorities live in [the roadmap](../roadmap.md). This file is the
 current behavior and design contract for custom objects; the original 2025
 handoff was superseded after rendering, previews, and the workshop were added.
 
-## Current implementation
+## Pending implementation in PR #217
 
 The safety changes below are implemented in
 [PR #217](https://github.com/scawful/yaze/pull/217) on the
