@@ -72,6 +72,7 @@ class ObjectTileEditorPanel : public WindowContent {
                                    const gfx::PaletteGroup& palette_group);
   void Close();
   bool IsOpen() const { return is_open_; }
+  int current_room_id() const { return current_room_id_; }
   bool HasUnappliedChanges() const {
     return current_layout_.HasModifications();
   }
