@@ -12,8 +12,8 @@
 #include <gtest/gtest.h>
 
 #include <array>
-#include <chrono>
 #include <cctype>
+#include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -61,9 +61,8 @@ std::string CurrentTestName() {
 
 fs::path MakeUniqueTempDir(const std::string& prefix) {
   const auto now = std::chrono::steady_clock::now().time_since_epoch().count();
-  const auto name =
-      prefix + "_" + SanitizeForPath(CurrentTestName()) + "_" +
-      std::to_string(now);
+  const auto name = prefix + "_" + SanitizeForPath(CurrentTestName()) + "_" +
+                    std::to_string(now);
   return fs::temp_directory_path() / name;
 }
 
@@ -192,8 +191,8 @@ TEST(ProjectToolUtilsTest, ParseTimestampRoundTrip) {
   // Due to second-precision and timezone handling (gmtime vs mktime),
   // allow for timezone differences (up to 24 hours)
   auto parsed = *parsed_result;
-  auto diff = std::chrono::duration_cast<std::chrono::hours>(
-      original - parsed).count();
+  auto diff =
+      std::chrono::duration_cast<std::chrono::hours>(original - parsed).count();
   EXPECT_LE(std::abs(diff), 24) << "Timestamp difference exceeds 24 hours";
 }
 
@@ -428,7 +427,7 @@ TEST(ProjectToolsTest, AllToolNamesAreUnique) {
   ProjectDiffTool diff;
 
   std::vector<std::string> names = {
-      status.GetName(), snapshot.GetName(), restore.GetName(),
+      status.GetName(),      snapshot.GetName(),    restore.GetName(),
       export_tool.GetName(), import_tool.GetName(), diff.GetName()};
 
   std::set<std::string> unique_names(names.begin(), names.end());
@@ -501,15 +500,18 @@ TEST(ProjectToolsTest, NoToolsRequireLabels) {
 class SnapshotSerializationTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    test_file_ = fs::temp_directory_path() / "test_snapshot.edits";
+    test_dir_ = MakeUniqueTempDir("yaze_snapshot_test");
+    fs::create_directories(test_dir_);
+    test_file_ = test_dir_ / "snapshot.edits";
   }
 
   void TearDown() override {
-    if (fs::exists(test_file_)) {
-      fs::remove(test_file_);
+    if (fs::exists(test_dir_)) {
+      fs::remove_all(test_dir_);
     }
   }
 
+  fs::path test_dir_;
   fs::path test_file_;
 };
 

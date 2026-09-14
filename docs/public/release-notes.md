@@ -1,5 +1,56 @@
 # Release Notes
 
+## v0.8.0
+
+**Type:** Dungeon Rendering + Workbench UX + Release Validation
+**Status:** In development
+
+### 🏰 Dungeon Rendering
+- Corrected ROM-driven placement and layer behavior for doors, thin floor and
+  wall strips, corners, diagonal walls and ceilings, stairs, moving-floor and
+  moving-wall objects, rails, and floor-copy objects.
+- Added ROM-backed parser and renderer checks, independent Mesen fixtures for
+  TableRock, BigHole, rails, and a west door, plus structural BG2 validation
+  for vanilla HDMA water-control objects.
+
+### 🧰 Dungeon Editor Workflow
+- Kept the room canvas stable while consolidating specialist tools into the
+  right inspector, retaining **Pop out** for traditional floating panels, and
+  making the Object Selector responsive.
+- Corrected Mushroom Grotto wall-corner routing and made object and sprite
+  previews use room-aware palettes.
+
+### 🧱 Release Validation
+- Added a dedicated Release-config native test build for Linux, macOS, and
+  Windows that fails on zero tests, missing suites, wrong-configuration
+  binaries, or empty JUnit results.
+- Bounded reusable CI builds to four workers and separated build caches by
+  configuration to reduce runner pressure and cache pollution.
+- Consolidated pull-request WASM validation into one bounded build/browser
+  smoke gate, including public-header changes and exact production cache keys.
+- Added portable-package layout, manifest, dependency, executable-version, and
+  lifecycle checks: FHS TGZ/DEB payloads, real APT install/purge, relocated
+  macOS bundles, and Windows ZIP/NSIS execution.
+
+### Validation Snapshot
+- ROM parser/drawer parity and room fingerprint tests pass for the covered
+  vanilla rooms and objects.
+- `z3ed dungeon-object-validate` reports `0` mismatches across `1190` validated
+  objects for the canonical vanilla ROM used by the dungeon parity audit.
+- The Release test gate executes `3286` discovered stable tests locally on
+  macOS instead of accepting an empty test run.
+
+### Known Limits
+- Full emulator 1:1 parity is not claimed. Static water, ice, bar, remaining
+  small-corner objects, and more door families still need independent
+  witnesses. Vanilla `0xD8` and `0xDA` remain structural-only because they
+  control HDMA.
+- Headless package smoke checks do not replace hands-on GUI launch/quit on each
+  desktop platform. Windows signing and macOS universal, Developer ID,
+  notarization, and Gatekeeper acceptance remain separate release gates.
+
+---
+
 ## v0.7.2
 
 **Type:** Dungeon RC + Fail-Closed Save Safety + Build/CI Hardening

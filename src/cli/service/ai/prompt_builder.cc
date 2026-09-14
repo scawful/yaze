@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <string_view>
 
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_cat.h"
@@ -106,6 +107,10 @@ absl::StatusOr<std::string> PromptBuilder::ResolveCataloguePath(
   // Try the requested path (default is prompt_catalogue.yaml)
   std::string relative_path =
       yaml_path.empty() ? "agent/prompt_catalogue.yaml" : yaml_path;
+  constexpr std::string_view kAssetsPrefix = "assets/";
+  if (relative_path.compare(0, kAssetsPrefix.size(), kAssetsPrefix) == 0) {
+    relative_path.erase(0, kAssetsPrefix.size());
+  }
 
   auto result = util::PlatformPaths::FindAsset(relative_path);
   if (result.ok()) {

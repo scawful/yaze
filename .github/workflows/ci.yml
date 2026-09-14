@@ -213,6 +213,7 @@ jobs:
           test-type: stable
           preset: ${{ matrix.preset }}
           platform: ${{ matrix.platform }}
+          build-type: ${{ env.BUILD_TYPE }}
 
       - name: Run smoke tests (GUI framework validation)
         if: matrix.platform == 'linux'
@@ -277,34 +278,7 @@ jobs:
           test-type: stable
           preset: ci-windows-ai
           platform: windows
-
-  wasm-smoke-test:
-    name: "WASM Build Smoke Test"
-    runs-on: ubuntu-22.04
-    if: github.event_name == 'pull_request'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Setup Emscripten
-        uses: mymindstorm/setup-emsdk@v14
-        with:
-          version: 3.1.51
-          actions-cache-folder: 'emsdk-cache'
-
-      - name: Setup Ninja
-        uses: seanmiddleditch/gha-setup-ninja@v4
-
-      - name: Quick WASM build test
-        run: |
-          emcmake cmake --preset wasm-debug
-          cmake --build --preset wasm-debug --target yaze --parallel
-          # Verify output exists
-          test -f build/presets/wasm-debug/bin/yaze.wasm
-          echo "WASM build successful!"
+          build-type: ${{ env.BUILD_TYPE }}
 
   code-quality:
     name: "Code Quality"
