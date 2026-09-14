@@ -111,6 +111,13 @@ navigation-first panel layout.
 
 Enable **Object Labels** from the toolbar to display layer-colored labels.
 
+To record a rendering problem, right-click the canvas and open the room or
+selection issue report. The report stays local until you choose **Save to Issue
+Log**. Its form scrolls independently on small windows, while save, copy,
+screenshot, and close actions remain available in the footer. File paths and
+raw renderer diagnostics are collapsed by default so they do not crowd the
+normal reporting flow.
+
 ### Saving
 
 - **File > Save ROM** persists dungeon data in this order: dungeon maps (when **Save Dungeon Maps** is enabled), then per-room **objects**, **sprites**, **room headers** (14-byte header + message IDs), **door pointers** (with `0xF0 0xFF` marker), then **palettes**, **torches**, **pits**, **blocks**, **chests**, **pot items**, and dirty **entrance/spawn-point metadata**. No need to save from the Dungeon Editor separately for ROM file writes.

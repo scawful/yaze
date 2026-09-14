@@ -17,6 +17,7 @@
 #include "app/gui/canvas/canvas_pipelines.h"
 #include "core/project.h"
 #include "gtest/gtest.h"
+#include "imgui/imgui_internal.h"
 #include "zelda3/dungeon/palette_debug.h"
 
 namespace yaze::editor {
@@ -34,6 +35,14 @@ struct PendingScrollFrameSnapshot {
   ImVec2 background_origin;
   ImVec2 overlay_origin;
   std::pair<int, int> background_origin_room_pixel;
+};
+
+struct IssueReportPopupSnapshot {
+  bool found = false;
+  ImVec2 position;
+  ImVec2 size;
+  ImGuiWindowFlags flags = ImGuiWindowFlags_None;
+  bool outer_scrollbar_y = false;
 };
 
 class DungeonCanvasViewerTestPeer {
@@ -64,6 +73,34 @@ class DungeonCanvasViewerTestPeer {
 
   static absl::Status SaveIssueReport(DungeonCanvasViewer& viewer) {
     return viewer.EnsureIssueReportPersisted();
+  }
+
+  static void OpenIssueReportPopup(DungeonCanvasViewer& viewer) {
+    viewer.OpenIssueReportPopup(
+        "Room 001 rendering", "Wall overlaps north door",
+        "Dungeon Room Issue Report",
+        "Room 0x001\nObject stream diagnostics\nDoor diagnostics", 0x01,
+        ToIssueCategoryIndex(DungeonIssueCategory::ObjectDrawMismatch));
+  }
+
+  static void RenderIssueReportPopup(DungeonCanvasViewer& viewer) {
+    viewer.canvas_.RenderPersistentPopups();
+  }
+
+  static IssueReportPopupSnapshot CaptureIssueReportPopup(
+      const DungeonCanvasViewer& viewer) {
+    IssueReportPopupSnapshot snapshot;
+    ImGuiWindow* window =
+        ImGui::FindWindowByName(viewer.issue_report_popup_id_.c_str());
+    if (window == nullptr) {
+      return snapshot;
+    }
+    snapshot.found = true;
+    snapshot.position = window->Pos;
+    snapshot.size = window->Size;
+    snapshot.flags = window->Flags;
+    snapshot.outer_scrollbar_y = window->ScrollbarY;
+    return snapshot;
   }
 
   static std::string BuildDrawIssueReport(const DungeonCanvasViewer& viewer,
@@ -715,6 +752,44 @@ TEST(DungeonCanvasViewerNavigationTest,
   EXPECT_NE(content.find("Dungeon Palette Issue Report"), std::string::npos);
   EXPECT_NE(content.find("Room 0x001\nBG sheets: [1,2,3,4]"),
             std::string::npos);
+
+  std::filesystem::remove_all(temp_home);
+}
+
+TEST(DungeonCanvasViewerNavigationTest,
+     IssueReportPopupFitsNarrowViewportWithoutOuterScrolling) {
+  const std::filesystem::path temp_home = MakeTempHomeRoot();
+  ASSERT_TRUE(std::filesystem::create_directories(temp_home));
+  ScopedEnvVar scoped_home("HOME", temp_home.string());
+  ScopedImGuiContext imgui;
+
+  ImGuiIO& io = ImGui::GetIO();
+  io.DisplaySize = ImVec2(480.0f, 360.0f);
+  io.DeltaTime = 1.0f / 60.0f;
+  io.Fonts->AddFontDefault();
+  unsigned char* font_pixels = nullptr;
+  int font_width = 0;
+  int font_height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&font_pixels, &font_width, &font_height);
+
+  ImGui::NewFrame();
+  ImGui::Begin("IssueReportHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+  DungeonCanvasViewer viewer;
+  DungeonCanvasViewerTestPeer::OpenIssueReportPopup(viewer);
+  DungeonCanvasViewerTestPeer::RenderIssueReportPopup(viewer);
+  const IssueReportPopupSnapshot popup =
+      DungeonCanvasViewerTestPeer::CaptureIssueReportPopup(viewer);
+  ImGui::End();
+  ImGui::Render();
+
+  ASSERT_TRUE(popup.found);
+  EXPECT_LE(popup.size.x, 448.5f);
+  EXPECT_LE(popup.size.y, 328.5f);
+  EXPECT_GE(popup.position.x, 15.5f);
+  EXPECT_GE(popup.position.y, 15.5f);
+  EXPECT_EQ(popup.flags & ImGuiWindowFlags_AlwaysAutoResize, 0);
+  EXPECT_NE(popup.flags & ImGuiWindowFlags_NoSavedSettings, 0);
+  EXPECT_FALSE(popup.outer_scrollbar_y);
 
   std::filesystem::remove_all(temp_home);
 }
