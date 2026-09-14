@@ -64,6 +64,7 @@ void ObjectTileEditorPanel::SetActionStatus(ActionStatusTone tone,
 void ObjectTileEditorPanel::ResetTransientState() {
   selected_cell_index_ = -1;
   selected_source_tile_ = -1;
+  source_attributes_ = 0;
   preview_dirty_ = true;
   atlas_dirty_ = true;
   room_graphics_revision_ = 0;
@@ -635,7 +636,8 @@ void ObjectTileEditorPanel::RenderTile8Atlas() {
       source_palette_,
       current_layout_.is_custom
           ? std::optional<int16_t>(current_layout_.object_id)
-          : std::nullopt);
+          : std::nullopt,
+      source_attributes_);
   if (status.ok()) {
     tile8_atlas_bmp_.UpdateTexture();
     atlas_dirty_ = false;
@@ -657,6 +659,21 @@ void ObjectTileEditorPanel::SyncSourceSelectionFromSelectedCell() {
   const int cell_palette = static_cast<int>(cell.tile_info.palette_);
   if (source_palette_ != cell_palette) {
     source_palette_ = cell_palette;
+    atlas_dirty_ = true;
+  }
+  SyncSourceAttributesFromSelectedCell();
+}
+
+void ObjectTileEditorPanel::SyncSourceAttributesFromSelectedCell() {
+  uint16_t attributes = 0;
+  if (current_layout_.is_custom && selected_cell_index_ >= 0 &&
+      selected_cell_index_ < static_cast<int>(current_layout_.cells.size())) {
+    attributes = gfx::TileInfoToWord(
+                     current_layout_.cells[selected_cell_index_].tile_info) &
+                 0xE000;
+  }
+  if (source_attributes_ != attributes) {
+    source_attributes_ = attributes;
     atlas_dirty_ = true;
   }
 }
@@ -880,18 +897,21 @@ void ObjectTileEditorPanel::DrawTileProperties() {
     cell.modified = true;
     preview_dirty_ = true;
     ClearActionStatus();
+    SyncSourceAttributesFromSelectedCell();
   }
   ImGui::SameLine();
   if (ImGui::Checkbox(tr("V"), &cell.tile_info.vertical_mirror_)) {
     cell.modified = true;
     preview_dirty_ = true;
     ClearActionStatus();
+    SyncSourceAttributesFromSelectedCell();
   }
   ImGui::SameLine();
   if (ImGui::Checkbox(tr("Pri"), &cell.tile_info.over_)) {
     cell.modified = true;
     preview_dirty_ = true;
     ClearActionStatus();
+    SyncSourceAttributesFromSelectedCell();
   }
 }
 
@@ -1271,6 +1291,7 @@ void ObjectTileEditorPanel::HandleKeyboardShortcuts(bool* p_open) {
       cell.modified = true;
       preview_dirty_ = true;
       ClearActionStatus();
+      SyncSourceAttributesFromSelectedCell();
     }
 
     // V: toggle vertical flip
@@ -1279,6 +1300,7 @@ void ObjectTileEditorPanel::HandleKeyboardShortcuts(bool* p_open) {
       cell.modified = true;
       preview_dirty_ = true;
       ClearActionStatus();
+      SyncSourceAttributesFromSelectedCell();
     }
 
     // P: toggle priority
@@ -1287,6 +1309,7 @@ void ObjectTileEditorPanel::HandleKeyboardShortcuts(bool* p_open) {
       cell.modified = true;
       preview_dirty_ = true;
       ClearActionStatus();
+      SyncSourceAttributesFromSelectedCell();
     }
   }
 
@@ -1294,6 +1317,7 @@ void ObjectTileEditorPanel::HandleKeyboardShortcuts(bool* p_open) {
   if (ImGui::IsKeyPressed(ImGuiKey_Escape, false)) {
     if (selected_cell_index_ >= 0) {
       selected_cell_index_ = -1;
+      SyncSourceAttributesFromSelectedCell();
     } else {
       RequestSafeWindowClose(p_open);
     }

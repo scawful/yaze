@@ -129,6 +129,7 @@ class ObjectTileEditorPanel : public WindowContent {
   void RenderObjectPreview();
   void RenderTile8Atlas();
   void SyncSourceSelectionFromSelectedCell();
+  void SyncSourceAttributesFromSelectedCell();
   absl::Status WriteBackCurrentLayout();
 
   // Apply: write back, re-render room, reset modified flags.
@@ -143,6 +144,7 @@ class ObjectTileEditorPanel : public WindowContent {
   int selected_cell_index_ = -1;
   int selected_source_tile_ = -1;
   int source_palette_ = 2;
+  uint16_t source_attributes_ = 0;
 
   // Canvases
   gui::Canvas tile_grid_canvas_{"##ObjTileGrid", ImVec2(256, 256)};
