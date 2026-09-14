@@ -59,16 +59,22 @@ if name == "z3ed":
         Path(args[args.index("--report") + 1]).write_text(json.dumps({"summary": {
             "test_cases": cases, "mismatch_count": mismatches,
             "empty_traces": 0, "expected_empty_traces": 0}}))
+    if behavior == "late-report-alias":
+        destination = root / "report.json"
+        destination.unlink()
+        destination.symlink_to(os.environ["YAZE_TEST_ROM_VANILLA"])
     sys.exit(0)
 
 if name == "yaze_test_unit":
     suites = {
         "DrawRoutineMappingTest": ["APlus3Witness", "APlus23Witness", "ACornerWitness",
-                                   "ADiagonalCeilingWitness", "MapsMovingWallWitness"],
+                                   "ADiagonalCeilingWitness", "MapsMovingWallWitness", "ThinWitness"],
         "ObjectDrawerRegistryReplayTest": [s + "Witness" for s in (
             "FloorCopy", "BuiltInWallRoutingAndDiagonalCount", "ConditionalEdgeCaps",
             "StraightInterroom", "WaterHopStairs", "MovingWalls", "BigHole",
-            "TableRock", "FloodWater", "LongHorizontal")],
+            "TableRock", "FloodWater", "LongHorizontal")] + [
+                "RightwardsBarUsesUsdasmEndCapsAndRepeatedMiddleColumn",
+                "DownwardsBarUsesUsdasmTopThenBodyRows"],
         "ObjectDrawerMaskPropagationTest": ["LaterBG1WriteClearsOnlyItsStreamRevealBit"],
         "SupportedRomRoles/RoomObjectRomParityTest": [s + "Witness/" + role
             for s in ("WallCorner", "WeirdCorner", "FloorCopy", "VisualParityGap",
@@ -140,7 +146,7 @@ with tempfile.TemporaryDirectory(prefix="yaze-parity-audit-") as temporary:
 
     def run(label, *, layout="bin", config=None, rom_present=False,
             behavior="", success=True, expected="", stale=False,
-            report=False, ambiguous=False, rom_missing=False):
+            report=False, ambiguous=False, rom_missing=False, report_alias=""):
         global checks
         case_root = root / str(checks)
         build = case_root / "build with spaces"
@@ -169,17 +175,28 @@ with tempfile.TemporaryDirectory(prefix="yaze-parity-audit-") as temporary:
         if config:
             command += ["--config", config]
         report_path = case_root / "report.json"
+        if report_alias == "direct":
+            report_path = rom
+        elif report_alias == "normalized":
+            report_path = case_root / ".." / rom.name
+        elif report_alias == "symlink":
+            report_path.symlink_to(rom)
+        elif report_alias == "hardlink":
+            os.link(rom, report_path)
         if report:
             # A pre-existing green report must not rescue a no-output CLI run.
-            report_path.write_text('{"summary":{"test_cases":5,"mismatch_count":0,"empty_traces":0,"expected_empty_traces":0}}')
+            if not report_alias:
+                report_path.write_text('{"summary":{"test_cases":5,"mismatch_count":0,"empty_traces":0,"expected_empty_traces":0}}')
             command += ["--with-validate-report", str(report_path)]
+        rom_before = rom.read_bytes()
         result = subprocess.run(command, env=env, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        assert rom.read_bytes() == rom_before, f"{label}: audit overwrote the input ROM"
         if (result.returncode == 0) != success or expected not in result.stdout:
             raise AssertionError(f"{label}: exit={result.returncode}, expected success={success}, text={expected!r}\n{result.stdout}")
         calls = (case_root / "calls.log").read_text() if (case_root / "calls.log").exists() else ""
         if success:
             assert "STALE-BINARY" not in result.stdout
-            assert "Tier 1 PASS: discovered=16, executed=16, skipped=0" in result.stdout
+            assert "Tier 1 PASS: discovered=19, executed=19, skipped=0" in result.stdout
             if rom_present:
                 assert "Tier 2 PASS: discovered=8, executed=8, skipped=0" in result.stdout
                 assert "Tier 3 PASS: discovered=3, executed=3, skipped=0" in result.stdout
@@ -204,15 +221,19 @@ with tempfile.TemporaryDirectory(prefix="yaze-parity-audit-") as temporary:
     run("ambiguous output layout rejected", ambiguous=True, success=False, expected="Ambiguous test binaries")
     run("missing ROM rejected before execution", rom_missing=True, success=False, expected="not readable")
     run("report requires ROM", report=True, success=False, expected="requires YAZE_TEST_ROM_VANILLA")
+    for alias in ("direct", "normalized", "symlink", "hardlink"):
+        run("report aliases ROM: " + alias, report=True, report_alias=alias,
+            rom_present=True, success=False, expected="must not overwrite YAZE_TEST_ROM_VANILLA")
     for behavior, expected in (
             ("empty-discovery", "required test selection is empty"),
             ("missing-suite", "required test selection is empty"),
             ("zero-execution", "execution does not match discovery"),
             ("partial-execution", "execution does not match discovery"),
-            ("skip-all", "skipped=16"), ("skip-mesen", "Tier 4 NOT PASSED"),
-            ("xml-failure", "failed=16"), ("missing-xml", "Tier 1 NOT PASSED"),
-            ("nonzero-exit", "Tier 1: discovered=16"),
+            ("skip-all", "skipped=19"), ("skip-mesen", "Tier 4 NOT PASSED"),
+            ("xml-failure", "failed=19"), ("missing-xml", "Tier 1 NOT PASSED"),
+            ("nonzero-exit", "Tier 1: discovered=19"),
             ("missing-binary", "Required Tier 3 binary not found"),
+            ("late-report-alias", "must not overwrite YAZE_TEST_ROM_VANILLA"),
             ("stale-report", "Invalid Tier 5 report"),
             ("empty-report", "contains no validation cases"),
             ("mismatch-report", "mismatch_count=1")):

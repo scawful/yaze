@@ -204,6 +204,26 @@ print(f"Tier 5 PASS: mismatch_count=0 across {test_cases} cases; "
 PY
 }
 
+require_distinct_report_path() {
+  python3 - "$YAZE_TEST_ROM_VANILLA" "$REPORT_PATH" <<'PY'
+import os
+import sys
+
+rom_path, report_path = sys.argv[1:]
+try:
+    aliases_rom = os.path.realpath(rom_path) == os.path.realpath(report_path)
+    if os.path.exists(report_path):
+        aliases_rom = aliases_rom or os.path.samefile(rom_path, report_path)
+except OSError as error:
+    print(f"Cannot verify report destination: {error}", file=sys.stderr)
+    raise SystemExit(1)
+if aliases_rom:
+    print("--with-validate-report must not overwrite YAZE_TEST_ROM_VANILLA: "
+          + report_path, file=sys.stderr)
+    raise SystemExit(1)
+PY
+}
+
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --build-dir)
@@ -241,6 +261,9 @@ if [[ -n "${YAZE_TEST_ROM_VANILLA:-}" && ! -r "$YAZE_TEST_ROM_VANILLA" ]]; then
   fail "YAZE_TEST_ROM_VANILLA is not readable: $YAZE_TEST_ROM_VANILLA"
 fi
 command -v python3 >/dev/null 2>&1 || fail "python3 is required to verify test discovery and execution."
+if [[ -n "$REPORT_PATH" ]]; then
+  require_distinct_report_path
+fi
 configure_build
 EVIDENCE_DIR="$(mktemp -d)"
 trap 'rm -rf "$EVIDENCE_DIR"' EXIT
@@ -251,7 +274,7 @@ export GTEST_REPEAT=1
 echo "== Tier 1: synthetic replay + geometry/layer mapping (no ROM) =="
 build_targets yaze_test_unit
 resolve_test_directory
-run_test_tier 1 "$UNIT_BIN" 'DrawRoutineMappingTest.*Plus3*:DrawRoutineMappingTest.*Plus23*:DrawRoutineMappingTest.*Corner*:DrawRoutineMappingTest.*DiagonalCeiling*:DrawRoutineMappingTest.MapsMovingWall*:ObjectDrawerRegistryReplayTest.FloorCopy*:ObjectDrawerRegistryReplayTest.BuiltInWallRoutingAndDiagonalCount*:ObjectDrawerRegistryReplayTest.ConditionalEdgeCaps*:ObjectDrawerRegistryReplayTest.StraightInterroom*:ObjectDrawerRegistryReplayTest.WaterHopStairs*:ObjectDrawerRegistryReplayTest.MovingWalls*:ObjectDrawerRegistryReplayTest.BigHole*:ObjectDrawerRegistryReplayTest.TableRock*:ObjectDrawerRegistryReplayTest.FloodWater*:ObjectDrawerRegistryReplayTest.LongHorizontal*:ObjectDrawerMaskPropagationTest.LaterBG1WriteClearsOnlyItsStreamRevealBit'
+run_test_tier 1 "$UNIT_BIN" 'DrawRoutineMappingTest.*Plus3*:DrawRoutineMappingTest.*Plus23*:DrawRoutineMappingTest.*Corner*:DrawRoutineMappingTest.*DiagonalCeiling*:DrawRoutineMappingTest.MapsMovingWall*:DrawRoutineMappingTest.Thin*:ObjectDrawerRegistryReplayTest.FloorCopy*:ObjectDrawerRegistryReplayTest.BuiltInWallRoutingAndDiagonalCount*:ObjectDrawerRegistryReplayTest.ConditionalEdgeCaps*:ObjectDrawerRegistryReplayTest.StraightInterroom*:ObjectDrawerRegistryReplayTest.WaterHopStairs*:ObjectDrawerRegistryReplayTest.MovingWalls*:ObjectDrawerRegistryReplayTest.BigHole*:ObjectDrawerRegistryReplayTest.TableRock*:ObjectDrawerRegistryReplayTest.FloodWater*:ObjectDrawerRegistryReplayTest.LongHorizontal*:ObjectDrawerRegistryReplayTest.RightwardsBarUsesUsdasmEndCapsAndRepeatedMiddleColumn:ObjectDrawerRegistryReplayTest.DownwardsBarUsesUsdasmTopThenBodyRows:ObjectDrawerMaskPropagationTest.LaterBG1WriteClearsOnlyItsStreamRevealBit'
 
 if [[ -n "${YAZE_TEST_ROM_VANILLA:-}" ]]; then
   echo
@@ -281,6 +304,7 @@ if [[ -n "${YAZE_TEST_ROM_VANILLA:-}" ]]; then
       --report "$EVIDENCE_DIR/validation.json" \
       --format json
     require_clean_validation_report "$EVIDENCE_DIR/validation.json"
+    require_distinct_report_path
     cp "$EVIDENCE_DIR/validation.json" "$REPORT_PATH"
     echo "Wrote validation report to $REPORT_PATH"
   else
