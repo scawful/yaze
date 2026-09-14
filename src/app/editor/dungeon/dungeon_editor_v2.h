@@ -37,6 +37,7 @@
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/track_collision_generator.h"
 #include "zelda3/game_data.h"
 
 namespace yaze {
@@ -518,6 +519,11 @@ class DungeonEditorV2 : public Editor {
   void FinalizeCollisionUndoAction(int room_id);
   void RestoreRoomCustomCollision(int room_id,
                                   const zelda3::CustomCollisionMap& map);
+  absl::Status ApplyMinecartCollisionBatch(
+      const std::vector<zelda3::TrackCollisionResult>& preview,
+      const zelda3::GeneratorOptions& options);
+  absl::Status RestoreRoomCustomCollisionBatch(
+      const std::vector<DungeonCustomCollisionSnapshot>& snapshots);
 
   void BeginWaterFillUndoSnapshot(int room_id);
   void FinalizeWaterFillUndoAction(int room_id);
