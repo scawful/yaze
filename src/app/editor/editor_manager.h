@@ -724,6 +724,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   size_t PendingPaletteColorCountForSession(size_t session_index) const;
   int ModifiedSessionCount() const;
   std::string DescribePendingUnsavedWork(size_t session_index) const;
+  std::string CompactPendingUnsavedWorkLabel(size_t session_index) const;
   std::string DescribeAllPendingUnsavedWork() const;
 
   float autosave_timer_ = 0.0f;

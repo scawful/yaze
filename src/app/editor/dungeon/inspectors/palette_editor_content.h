@@ -35,6 +35,7 @@ class PaletteEditorContent : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_PALETTE; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 70; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
   float GetPreferredWidth() const override { return 460.0f; }
 
   // ==========================================================================

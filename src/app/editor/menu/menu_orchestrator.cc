@@ -12,6 +12,7 @@
 #include "app/editor/editor_manager.h"
 #include "app/editor/layout/layout_presets.h"
 #include "app/editor/menu/menu_builder.h"
+#include "app/editor/menu/right_drawer_manager.h"
 #include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/system/editor_registry.h"
@@ -155,35 +156,7 @@ void MenuOrchestrator::AddFileMenuItems() {
           [this]() { return HasProjectFile(); })
       .Separator();
 
-  // ROM Information and Validation
-  menu_builder_
-      .Item(
-          "ROM Information", ICON_MD_INFO, [this]() { OnShowRomInfo(); },
-          nullptr, [this]() { return HasActiveRom(); })
-      .Item(
-          "Create Backup", ICON_MD_BACKUP, [this]() { OnCreateBackup(); },
-          nullptr, [this]() { return HasActiveRom(); })
-      .Item(
-          "ROM Backups...", ICON_MD_BACKUP,
-          [this]() { popup_manager_.Show(PopupID::kRomBackups); }, nullptr,
-          [this]() { return HasActiveRom(); })
-      .Item(
-          "Validate ROM", ICON_MD_CHECK_CIRCLE, [this]() { OnValidateRom(); },
-          nullptr, [this]() { return HasActiveRom(); })
-      .Separator();
-
-  // BPS Patch Operations
-  menu_builder_
-      .Item(
-          "Export BPS Patch...", ICON_MD_DIFFERENCE,
-          [this]() { OnExportBpsPatch(); }, nullptr,
-          [this]() { return HasActiveRom(); })
-      .Item(
-          "Apply BPS Patch...", ICON_MD_BUILD, [this]() { OnApplyBpsPatch(); },
-          nullptr, [this]() { return HasActiveRom(); })
-      .Separator();
-
-  // Settings and Quit
+  // Settings and Quit (ROM analysis / backup / BPS live under Tools)
   menu_builder_
       .Item("Settings", ICON_MD_SETTINGS, [this]() { OnShowSettings(); })
       .Separator()
@@ -238,7 +211,8 @@ void MenuOrchestrator::AddViewMenuItems() {
   AddAppearanceMenuItems();
   menu_builder_.Separator();
 
-  AddLayoutMenuItems();
+  // Right drawers — shared catalog with menu-bar overflow / header switcher.
+  AddDrawersMenuItems();
   menu_builder_.Separator();
 
   // Editor selection (Switch Editor)
@@ -285,70 +259,26 @@ void MenuOrchestrator::AddAppearanceMenuItems() {
             [this]() { OnShowWelcomeScreen(); });
 }
 
-void MenuOrchestrator::AddLayoutMenuItems() {
-  const auto layout_enabled = [this]() {
-    return HasCurrentEditor();
-  };
+void MenuOrchestrator::AddDrawersMenuItems() {
+  auto* drawers =
+      editor_manager_ ? editor_manager_->right_drawer_manager() : nullptr;
+  if (!drawers) {
+    return;
+  }
 
-  menu_builder_.BeginSubMenu("Layout", ICON_MD_VIEW_QUILT)
-      .Item(
-          "Open Layout Designer", ICON_MD_DASHBOARD_CUSTOMIZE,
-          [this]() { OnShowLayoutDesigner(); }, nullptr,
-          [this]() { return window_manager_ != nullptr; })
-      .Separator()
-      .Item(
-          "Profile: Code", ICON_MD_CODE,
-          [this]() {
-            if (editor_manager_) {
-              editor_manager_->ApplyLayoutProfile("code");
-            }
-          },
-          nullptr, layout_enabled)
-      .Item(
-          "Profile: Debug", ICON_MD_BUG_REPORT,
-          [this]() {
-            if (editor_manager_) {
-              editor_manager_->ApplyLayoutProfile("debug");
-            }
-          },
-          nullptr, layout_enabled)
-      .Item(
-          "Profile: Mapping", ICON_MD_MAP,
-          [this]() {
-            if (editor_manager_) {
-              editor_manager_->ApplyLayoutProfile("mapping");
-            }
-          },
-          nullptr, layout_enabled)
-      .Item(
-          "Profile: Chat + Agent", ICON_MD_SMART_TOY,
-          [this]() {
-            if (editor_manager_) {
-              editor_manager_->ApplyLayoutProfile("chat");
-            }
-          },
-          nullptr, layout_enabled)
-      .Separator()
-      .Item(
-          "Developer", ICON_MD_DEVELOPER_MODE,
-          [this]() { OnLoadDeveloperLayout(); }, nullptr, layout_enabled)
-      .Item(
-          "Designer", ICON_MD_DESIGN_SERVICES,
-          [this]() { OnLoadDesignerLayout(); }, nullptr, layout_enabled)
-      .Item(
-          "Modder", ICON_MD_BUILD, [this]() { OnLoadModderLayout(); }, nullptr,
-          layout_enabled)
-      .Separator()
-      .Item(
-          "Reset Current Editor", ICON_MD_REFRESH,
-          [this]() {
-            if (editor_manager_) {
-              editor_manager_->ResetCurrentEditorLayout();
-            }
-          },
-          nullptr, layout_enabled)
-      .EndMenu();
+  menu_builder_.BeginSubMenu("Drawers", ICON_MD_VERTICAL_SPLIT);
+  for (const DrawerCatalogEntry& entry : GetDrawerCatalog()) {
+    const auto type = entry.type;
+    menu_builder_.Item(
+        entry.name, entry.icon,
+        [drawers, type]() { drawers->ToggleDrawer(type); }, nullptr, nullptr,
+        [drawers, type]() { return drawers->IsDrawerActive(type); });
+  }
+  menu_builder_.EndMenu();
 }
+
+// Layout presets remain under Windows > Layout (AddLayoutSubmenu).
+// The former View > Layout duplicate was removed to keep one home for layout.
 
 void MenuOrchestrator::BuildPanelsMenu() {
   // Use CustomMenu to integrate dynamic panel content with the menu builder
@@ -565,10 +495,20 @@ void MenuOrchestrator::AddHackWorkflowMenuItems() {
 }
 
 void MenuOrchestrator::AddRomAnalysisMenuItems() {
-  // ROM Analysis (moved from Debug menu)
+  // ROM Analysis (document tooling moved from File)
   menu_builder_.BeginSubMenu("ROM Analysis", ICON_MD_STORAGE)
       .Item(
           "ROM Information", ICON_MD_INFO, [this]() { OnShowRomInfo(); },
+          nullptr, [this]() { return HasActiveRom(); })
+      .Item(
+          "Create Backup", ICON_MD_BACKUP, [this]() { OnCreateBackup(); },
+          nullptr, [this]() { return HasActiveRom(); })
+      .Item(
+          "ROM Backups...", ICON_MD_BACKUP,
+          [this]() { popup_manager_.Show(PopupID::kRomBackups); }, nullptr,
+          [this]() { return HasActiveRom(); })
+      .Item(
+          "Validate ROM", ICON_MD_CHECK_CIRCLE, [this]() { OnValidateRom(); },
           nullptr, [this]() { return HasActiveRom(); })
       .Item(
           "Data Integrity Check", ICON_MD_ANALYTICS,
@@ -576,6 +516,14 @@ void MenuOrchestrator::AddRomAnalysisMenuItems() {
           [this]() { return HasActiveRom(); })
       .Item(
           "Test Save/Load", ICON_MD_SAVE_ALT, [this]() { OnTestSaveLoad(); },
+          nullptr, [this]() { return HasActiveRom(); })
+      .Separator()
+      .Item(
+          "Export BPS Patch...", ICON_MD_DIFFERENCE,
+          [this]() { OnExportBpsPatch(); }, nullptr,
+          [this]() { return HasActiveRom(); })
+      .Item(
+          "Apply BPS Patch...", ICON_MD_BUILD, [this]() { OnApplyBpsPatch(); },
           nullptr, [this]() { return HasActiveRom(); })
       .EndMenu();
 
@@ -605,7 +553,7 @@ void MenuOrchestrator::AddAsarIntegrationMenuItems() {
 }
 
 void MenuOrchestrator::AddDevelopmentMenuItems() {
-  // Development Tools (moved from Debug menu)
+  // Development Tools — Agent drawers live under View > Drawers.
   menu_builder_.BeginSubMenu("Development", ICON_MD_DEVELOPER_MODE)
       .Item(
           "Memory Editor", ICON_MD_MEMORY, [this]() { OnShowMemoryEditor(); },
@@ -616,13 +564,6 @@ void MenuOrchestrator::AddDevelopmentMenuItems() {
             [this]() { popup_manager_.Show(PopupID::kFeatureFlags); })
       .Item("Performance Dashboard", ICON_MD_SPEED,
             [this]() { OnShowPerformanceDashboard(); })
-#ifdef YAZE_BUILD_AGENT_UI
-      .Item("Agent Workspace", ICON_MD_SMART_TOY, [this]() { OnShowAIAgent(); })
-#endif
-#ifdef YAZE_WITH_GRPC
-      .Item("Agent Proposals", ICON_MD_PREVIEW,
-            [this]() { OnShowProposalDrawer(); })
-#endif
       .EndMenu();
 }
 
@@ -1014,7 +955,11 @@ void MenuOrchestrator::AddHelpMenuItems() {
       .Item("Getting Started", ICON_MD_PLAY_ARROW,
             [this]() { OnShowGettingStarted(); })
       .Item("Keyboard Shortcuts", ICON_MD_KEYBOARD,
-            [this]() { OnShowSettings(); })
+            [this]() {
+              if (window_manager_) {
+                window_manager_->TriggerShowShortcuts();
+              }
+            })
       .Item("Build Instructions", ICON_MD_BUILD,
             [this]() { OnShowBuildInstructions(); })
       .Item("CLI Usage", ICON_MD_TERMINAL, [this]() { OnShowCLIUsage(); })

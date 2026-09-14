@@ -35,13 +35,15 @@ class DungeonEmulatorPreviewPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_MONITOR; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 65; }
+  std::string GetWorkflowGroup() const override { return "Advanced"; }
 
   // ==========================================================================
   // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {
-    if (!preview_) return;
+    if (!preview_)
+      return;
 
     preview_->set_visible(true);
     preview_->Render();

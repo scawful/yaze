@@ -53,13 +53,15 @@ class DungeonEntranceListPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_DOOR_FRONT; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 25; }
+  std::string GetWorkflowGroup() const override { return "Core"; }
 
   // ==========================================================================
   // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {
-    if (!selector_) return;
+    if (!selector_)
+      return;
 
     // Draw just the entrance selector (no tabs)
     selector_->DrawEntranceSelector();
@@ -95,4 +97,3 @@ class DungeonEntranceListPanel : public WindowContent {
 }  // namespace yaze
 
 #endif  // YAZE_APP_EDITOR_DUNGEON_PANELS_DUNGEON_ENTRANCE_LIST_PANEL_H_
-

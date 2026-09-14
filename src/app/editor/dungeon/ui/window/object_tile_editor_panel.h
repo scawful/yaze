@@ -52,6 +52,7 @@ class ObjectTileEditorPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_GRID_ON; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 65; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
   float GetPreferredWidth() const override { return 550.0f; }
   float GetPreferredHeight() const override { return 500.0f; }
 

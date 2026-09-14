@@ -69,6 +69,7 @@ class DungeonMapPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_MAP; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 35; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
 
   void SetRoomIntentCallback(
       std::function<void(int, RoomSelectionIntent)> callback) {

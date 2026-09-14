@@ -22,6 +22,7 @@ class AreaGraphicsPanel : public EditorPanel {
 
   // EditorPanel interface
   std::string GetId() const override { return "overworld.area_graphics"; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
   std::string GetDisplayName() const override { return "Area Graphics"; }
   std::string GetIcon() const override { return ICON_MD_IMAGE; }
   std::string GetEditorCategory() const override { return "Overworld"; }

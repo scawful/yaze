@@ -8,6 +8,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/events/core_events.h"
+#include "app/editor/menu/right_drawer_manager.h"
 #include "app/editor/registry/content_registry.h"
 #include "app/editor/shell/coordinator/recent_projects_model.h"
 #include "app/editor/system/workspace/editor_registry.h"
@@ -360,16 +361,24 @@ void CommandPalette::RegisterPanelCommands(
                  window_manager->CloseWindow(session_id, base_id);
                });
 
-    // Create toggle command
+    // Create toggle command (legacy name kept for muscle memory / docs)
     std::string toggle_name =
         absl::StrFormat("Toggle: %s", descriptor->display_name);
     std::string toggle_desc = absl::StrFormat("Toggle the %s window visibility",
                                               descriptor->display_name);
 
+    auto toggle_fn = [window_manager, base_id, session_id]() {
+      window_manager->ToggleWindow(session_id, base_id);
+    };
+
     AddCommand(toggle_name, CommandCategory::kPanel, toggle_desc, "",
-               [window_manager, base_id, session_id]() {
-                 window_manager->ToggleWindow(session_id, base_id);
-               });
+               toggle_fn);
+
+    // Prefixed alias for discoverability when searching "window:"
+    std::string window_name =
+        absl::StrFormat("window: %s", descriptor->display_name);
+    AddCommand(window_name, CommandCategory::kPanel, toggle_desc,
+               descriptor->shortcut_hint, toggle_fn);
 
     // Pin-to-global toggle. Mirrors the sidebar right-click pin + the panel
     // tab pin UI, so users who live in the command palette never need to
@@ -386,6 +395,36 @@ void CommandPalette::RegisterPanelCommands(
                      window_manager->IsWindowPinned(session_id, base_id);
                  window_manager->SetWindowPinned(session_id, base_id, !pinned);
                });
+  }
+}
+
+void CommandPalette::RegisterDrawerCommands(
+    std::function<void(int drawer_type)> toggle_callback,
+    std::function<void()> cycle_next, std::function<void()> cycle_prev) {
+  if (!toggle_callback)
+    return;
+
+  for (const auto& entry : GetDrawerCatalog()) {
+    if (!entry.name)
+      continue;
+
+    const int type_as_int = static_cast<int>(entry.type);
+    std::string name = absl::StrFormat("drawer: %s", entry.name);
+    std::string desc =
+        absl::StrFormat("Toggle the %s right drawer", entry.name);
+
+    AddCommand(
+        name, CommandCategory::kDrawer, desc, /*shortcut=*/"",
+        [toggle_callback, type_as_int]() { toggle_callback(type_as_int); });
+  }
+
+  if (cycle_next) {
+    AddCommand("drawer: Next", CommandCategory::kDrawer,
+               "Cycle to the next right drawer", "", std::move(cycle_next));
+  }
+  if (cycle_prev) {
+    AddCommand("drawer: Previous", CommandCategory::kDrawer,
+               "Cycle to the previous right drawer", "", std::move(cycle_prev));
   }
 }
 
@@ -424,19 +463,31 @@ void CommandPalette::RegisterLayoutCommands(
 
   for (const auto& profile : profiles) {
     std::string name = absl::StrFormat("Apply Profile: %s", profile.name);
+    auto apply_fn = [apply_callback, profile_id = std::string(profile.id)]() {
+      apply_callback("profile:" + profile_id);
+    };
     AddCommand(name, CommandCategory::kLayout, profile.description, "",
-               [apply_callback, profile_id = std::string(profile.id)]() {
-                 apply_callback("profile:" + profile_id);
-               });
+               apply_fn);
+    AddCommand(absl::StrFormat("layout: profile %s", profile.name),
+               CommandCategory::kLayout, profile.description, "", apply_fn);
   }
 
   AddCommand("Capture Layout Snapshot", CommandCategory::kLayout,
              "Capture current layout as temporary session snapshot", "",
              [apply_callback]() { apply_callback("session:capture"); });
+  AddCommand("layout: capture snapshot", CommandCategory::kLayout,
+             "Capture current layout as temporary session snapshot", "",
+             [apply_callback]() { apply_callback("session:capture"); });
   AddCommand("Restore Layout Snapshot", CommandCategory::kLayout,
              "Restore temporary session snapshot", "",
              [apply_callback]() { apply_callback("session:restore"); });
+  AddCommand("layout: restore snapshot", CommandCategory::kLayout,
+             "Restore temporary session snapshot", "",
+             [apply_callback]() { apply_callback("session:restore"); });
   AddCommand("Clear Layout Snapshot", CommandCategory::kLayout,
+             "Clear temporary session snapshot", "",
+             [apply_callback]() { apply_callback("session:clear"); });
+  AddCommand("layout: clear snapshot", CommandCategory::kLayout,
              "Clear temporary session snapshot", "",
              [apply_callback]() { apply_callback("session:clear"); });
 
@@ -455,19 +506,29 @@ void CommandPalette::RegisterLayoutCommands(
       {"Dungeon Expert", "Optimized layout for dungeon editing"},
       {"Testing", "QA-focused layout with testing tools"},
       {"Audio", "Music and sound editing focused layout"},
+      {"Logic Debugger", "Debug and development focused layout"},
+      {"Overworld Artist", "Visual and overworld focused layout"},
+      {"Dungeon Master", "Comprehensive dungeon editing layout"},
+      {"Audio Engineer", "Music and sound editing layout"},
   };
 
   for (const auto& preset : presets) {
     std::string name = absl::StrFormat("Apply Layout: %s", preset.name);
+    auto apply_fn = [apply_callback, preset_name = std::string(preset.name)]() {
+      apply_callback(preset_name);
+    };
 
     AddCommand(name, CommandCategory::kLayout, preset.description, "",
-               [apply_callback, preset_name = std::string(preset.name)]() {
-                 apply_callback(preset_name);
-               });
+               apply_fn);
+    AddCommand(absl::StrFormat("layout: %s", preset.name),
+               CommandCategory::kLayout, preset.description, "", apply_fn);
   }
 
   // Reset to default layout command
   AddCommand("Reset Layout: Default", CommandCategory::kLayout,
+             "Reset to the default layout for current editor", "",
+             [apply_callback]() { apply_callback("Default"); });
+  AddCommand("layout: Default", CommandCategory::kLayout,
              "Reset to the default layout for current editor", "",
              [apply_callback]() { apply_callback("Default"); });
 }

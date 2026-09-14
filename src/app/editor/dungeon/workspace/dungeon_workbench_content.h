@@ -104,6 +104,7 @@ class DungeonWorkbenchContent : public WindowContent {
   std::string GetIcon() const override;
   std::string GetEditorCategory() const override;
   int GetPriority() const override;
+  std::string GetWorkflowGroup() const override { return "Core"; }
 
   void SetRom(Rom* rom);
   void SetEmbeddedToolPanels(RoomTagEditorPanel* room_tags,

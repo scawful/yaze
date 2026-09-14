@@ -1880,8 +1880,9 @@ void EditorManager::HandleUIActionRequest(UIActionRequestEvent::Action action) {
       break;
 
     case Action::kShowShortcuts:
-      // Shortcut configuration is part of Settings
-      SwitchToEditor(EditorType::kSettings);
+      if (ui_coordinator_) {
+        ui_coordinator_->ShowShortcutsBrowser();
+      }
       break;
 
     case Action::kShowCommandPalette:
@@ -3403,8 +3404,12 @@ void EditorManager::DrawInterface() {
   // Update and draw status bar
   status_bar_.SetRom(GetCurrentRom());
   if (session_coordinator_) {
-    status_bar_.SetSessionInfo(GetCurrentSessionIndex(),
-                               session_coordinator_->GetActiveSessionCount());
+    const size_t session_index = GetCurrentSessionIndex();
+    const size_t session_count = session_coordinator_->GetActiveSessionCount();
+    status_bar_.SetSessionInfo(
+        session_index, session_count,
+        session_count > 1 ? session_coordinator_->GetActiveSessionDisplayName()
+                          : std::string{});
   }
 
   bool has_agent_info = false;
@@ -3433,23 +3438,53 @@ void EditorManager::DrawInterface() {
   status_bar_.ClearEditorContributions();
   if (current_editor_) {
     current_editor_->ContributeStatus(&status_bar_);
+
+    StatusBarSegmentOptions editor_opts;
+    editor_opts.tooltip = "Click to switch editor (Ctrl+E)";
+    editor_opts.on_click = [this]() {
+      if (ui_coordinator_) {
+        ui_coordinator_->ShowEditorSelection();
+      }
+    };
+    status_bar_.SetActiveEditor(
+        EditorRegistry::GetEditorCategory(current_editor_->type()),
+        std::move(editor_opts));
+  } else {
+    status_bar_.ClearActiveEditor();
   }
 
-  if (auto* current_editor_set = GetCurrentEditorSet()) {
-    if (auto* dungeon_editor = current_editor_set->GetEditorAs<DungeonEditorV2>(
-            EditorType::kDungeon)) {
-      const int pending_rooms = dungeon_editor->PendingRoomCount();
-      if (pending_rooms > 0) {
-        StatusBarSegmentOptions pending_opts;
-        pending_opts.tooltip = absl::StrFormat(
-            "%d dungeon room%s still ha%s pending editor changes. Apply them "
-            "to the ROM buffer before File > Save ROM if needed.",
-            pending_rooms, pending_rooms == 1 ? "" : "s",
-            pending_rooms == 1 ? "s" : "ve");
-        status_bar_.SetCustomSegment(
-            "Dungeon", absl::StrFormat("%d pending", pending_rooms),
-            std::move(pending_opts));
+  const size_t session_index = GetCurrentSessionIndex();
+  if (SessionHasPendingUnsavedWork(session_index)) {
+    StatusBarSegmentOptions dirty_opts;
+    dirty_opts.tooltip = absl::StrFormat(
+        "%s. Click to save ROM when ROM-buffer work is pending, otherwise open "
+        "the Project drawer.",
+        DescribePendingUnsavedWork(session_index));
+    dirty_opts.on_click = [this, session_index]() {
+      if (SessionHasPendingRomWork(session_index)) {
+        auto status = SaveRom();
+        if (!status.ok()) {
+          toast_manager_.Show(std::string(status.message()), ToastType::kError);
+        }
+      } else if (right_drawer_manager_) {
+        right_drawer_manager_->OpenDrawer(
+            RightDrawerManager::DrawerType::kProject);
       }
+    };
+    status_bar_.SetDirtyScope(CompactPendingUnsavedWorkLabel(session_index),
+                              std::move(dirty_opts));
+  } else {
+    status_bar_.ClearDirtyScope();
+  }
+
+  if (right_drawer_manager_ && right_drawer_manager_->IsDrawerExpanded()) {
+    const auto active = right_drawer_manager_->GetActiveDrawer();
+    if (active != RightDrawerManager::DrawerType::kNone) {
+      StatusBarSegmentOptions drawer_opts;
+      drawer_opts.tooltip =
+          "Right drawer open — Esc closes, View > Drawers switches";
+      status_bar_.SetCustomSegment("Drawer", GetDrawerTypeName(active),
+                                   std::move(drawer_opts));
     }
   }
 
@@ -3481,27 +3516,13 @@ void EditorManager::DrawInterface() {
 
 void EditorManager::DrawMainMenuBar() {
   if (ImGui::BeginMenuBar()) {
-    // Consistent button styling for sidebar toggle
-    {
-      const bool sidebar_visible = window_manager_.IsSidebarVisible();
-      gui::StyleColorGuard sidebar_btn_guard(
-          {{ImGuiCol_Button, ImVec4(0, 0, 0, 0)},
-           {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
-           {ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4()},
-           {ImGuiCol_Text, sidebar_visible ? gui::GetPrimaryVec4()
-                                           : gui::GetTextSecondaryVec4()}});
-
-      const char* icon = sidebar_visible ? ICON_MD_MENU_OPEN : ICON_MD_MENU;
-      if (ImGui::SmallButton(icon)) {
-        window_manager_.ToggleSidebarVisibility();
-      }
-    }
-
-    if (ImGui::IsItemHovered()) {
-      const char* tooltip = window_manager_.IsSidebarVisible()
-                                ? "Hide Activity Bar (Ctrl+B)"
-                                : "Show Activity Bar (Ctrl+B)";
-      ImGui::SetTooltip("%s", tooltip);
+    const bool sidebar_visible = window_manager_.IsSidebarVisible();
+    const char* icon = sidebar_visible ? ICON_MD_MENU_OPEN : ICON_MD_MENU;
+    const char* tooltip = sidebar_visible ? "Hide Activity Bar (Ctrl+B)"
+                                          : "Show Activity Bar (Ctrl+B)";
+    if (ui_coordinator_ && ui_coordinator_->DrawMenuBarIconButton(
+                               icon, tooltip, sidebar_visible)) {
+      window_manager_.ToggleSidebarVisibility();
     }
 
     // Delegate menu building to MenuOrchestrator
@@ -6687,6 +6708,57 @@ std::string EditorManager::DescribePendingUnsavedWork(
     work.emplace_back("an unsaved project-file draft");
   }
   return work.empty() ? "unsaved work" : absl::StrJoin(work, " and ");
+}
+
+std::string EditorManager::CompactPendingUnsavedWorkLabel(
+    size_t session_index) const {
+  if (!session_coordinator_ ||
+      !session_coordinator_->IsValidSessionIndex(session_index)) {
+    return {};
+  }
+
+  auto* session =
+      static_cast<RomSession*>(session_coordinator_->GetSession(session_index));
+  const bool rom_dirty =
+      session != nullptr && session->rom.is_loaded() && session->rom.dirty();
+  const bool pending_dungeon_changes =
+      HasPendingDungeonChangesForSession(session_index);
+  const bool pending_graphics_changes =
+      session != nullptr && session->editors.HasPendingGraphicsChanges();
+  const bool pending_screen_changes =
+      session != nullptr && session->editors.HasPendingScreenChanges();
+  const int pending_rooms = PendingDungeonRoomCountForSession(session_index);
+  const size_t pending_palette_colors =
+      PendingPaletteColorCountForSession(session_index);
+  const bool project_dirty = session != nullptr && session->project_dirty;
+  const bool project_editor_draft =
+      session != nullptr && session->editors.HasPendingProjectDraftChanges();
+  const bool project_file_dirty =
+      session != nullptr && session->project_file_editor_state.initialized &&
+      session->project_file_editor_state.modified;
+
+  std::vector<std::string> tags;
+  if (pending_rooms > 0) {
+    tags.push_back("Rooms");
+  } else if (pending_dungeon_changes) {
+    tags.push_back("Dungeon");
+  }
+  if (pending_palette_colors > 0) {
+    tags.push_back("Palette");
+  }
+  if (pending_graphics_changes) {
+    tags.push_back("Gfx");
+  }
+  if (pending_screen_changes) {
+    tags.push_back("Screen");
+  }
+  if (rom_dirty) {
+    tags.push_back("ROM");
+  }
+  if (project_dirty || project_editor_draft || project_file_dirty) {
+    tags.push_back("Project");
+  }
+  return absl::StrJoin(tags, "+");
 }
 
 std::string EditorManager::DescribeAllPendingUnsavedWork() const {
