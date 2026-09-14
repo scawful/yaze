@@ -483,6 +483,116 @@ TEST_F(DrawRoutineMappingTest, SolidPlus3RoutinesExtendFromTheObjectOrigin) {
 }
 
 TEST_F(DrawRoutineMappingTest,
+       ThinStripObjectsPreserveSizeAttributesAndClipAtRoomBoundary) {
+  // USDASM $019120/$019136 use size+4 from the stored origin; $018F8A
+  // uses size+1. These are single-tile repeats, not conditional-cap routines.
+  struct Case {
+    int object_id;
+    int added_count;
+    bool horizontal;
+  };
+  const std::vector<Case> cases = {
+      {0x34, 4, true}, {0x71, 4, false}, {0x8D, 1, false}, {0x8E, 1, false}};
+  const gfx::TileInfo tile(0x02A7, 5, true, true, true);
+  const std::vector<gfx::TileInfo> tiles = {tile};
+  const uint16_t expected_word = gfx::TileInfoToWord(tile);
+  auto& registry = DrawRoutineRegistry::Get();
+
+  for (const auto& test_case : cases) {
+    const auto* info = registry.GetRoutineInfo(
+        registry.GetRoutineIdForObject(test_case.object_id));
+    ASSERT_NE(info, nullptr);
+    for (uint8_t size : {uint8_t{0}, uint8_t{1}, uint8_t{15}}) {
+      const int count = size + test_case.added_count;
+      for (const int anchor : {9, 31, 64 - count, 63}) {
+        SCOPED_TRACE(::testing::Message() << "object=" << test_case.object_id
+                                          << " size=" << static_cast<int>(size)
+                                          << " anchor=" << anchor);
+        const int start_x = test_case.horizontal ? anchor : 63;
+        const int start_y = test_case.horizontal ? 63 : anchor;
+        const RoomObject object(test_case.object_id, start_x, start_y, size, 0);
+        gfx::BackgroundBuffer bg;
+        // A solid strip must replace even a preexisting rail corner.
+        bg.SetTileAt(start_x, start_y, 0xE0E3);
+        DrawContext ctx{
+            bg,      object,     std::span<const gfx::TileInfo>(tiles),
+            nullptr, rom_.get(), 0,
+            nullptr, nullptr};
+        info->function(ctx);
+
+        for (int y = 0; y < 64; ++y) {
+          for (int x = 0; x < 64; ++x) {
+            const bool in_strip =
+                test_case.horizontal
+                    ? y == start_y && x >= start_x && x < start_x + count
+                    : x == start_x && y >= start_y && y < start_y + count;
+            EXPECT_EQ(bg.GetTileAt(x, y), in_strip ? expected_word : 0)
+                << "tile=(" << x << "," << y << ")";
+          }
+        }
+      }
+    }
+  }
+}
+
+TEST_F(DrawRoutineMappingTest,
+       ThinTrimObjectsKeepOnlyUsdasmCompatibleCapsWithoutShiftingBody) {
+  // $018F65-$018F7F compares the low ten tile bits with four compatible
+  // corners. $01B2CA advances one column even when the opening cap is kept.
+  const std::vector<gfx::TileInfo> tiles = {
+      gfx::TileInfo(0x0300, 2, false, true, false),
+      gfx::TileInfo(0x0301, 5, true, false, true),
+      gfx::TileInfo(0x0302, 6, true, true, true)};
+  auto& registry = DrawRoutineRegistry::Get();
+
+  for (const int object_id : {0xB3, 0xB4}) {
+    const auto* info =
+        registry.GetRoutineInfo(registry.GetRoutineIdForObject(object_id));
+    ASSERT_NE(info, nullptr);
+    for (uint8_t size : {uint8_t{0}, uint8_t{1}, uint8_t{15}}) {
+      for (const uint16_t existing_id :
+           {0x01DB, 0x01A6, 0x01DD, 0x01FC, 0x00E2, 0x02DB}) {
+        const bool keep_cap = existing_id == 0x01DB || existing_id == 0x01A6 ||
+                              existing_id == 0x01DD || existing_id == 0x01FC;
+        const uint16_t existing_word = existing_id | 0xFC00;
+        const int width = size + 3;
+        for (const int anchor : {9, 31, 64 - width, 63}) {
+          SCOPED_TRACE(::testing::Message()
+                       << "object=" << object_id
+                       << " size=" << static_cast<int>(size)
+                       << " existing=" << existing_id << " anchor=" << anchor);
+          constexpr int kY = 63;
+          const RoomObject object(object_id, anchor, kY, size, 0);
+          gfx::BackgroundBuffer bg;
+          bg.SetTileAt(anchor, kY, existing_word);
+          DrawContext ctx{
+              bg,      object,     std::span<const gfx::TileInfo>(tiles),
+              nullptr, rom_.get(), 0,
+              nullptr, nullptr};
+          info->function(ctx);
+
+          for (int y = 0; y < 64; ++y) {
+            for (int x = 0; x < 64; ++x) {
+              uint16_t expected = 0;
+              if (y == kY && x >= anchor && x < anchor + width) {
+                const int index = x == anchor               ? 0
+                                  : x == anchor + width - 1 ? 2
+                                                            : 1;
+                expected = x == anchor && keep_cap
+                               ? existing_word
+                               : gfx::TileInfoToWord(tiles[index]);
+              }
+              EXPECT_EQ(bg.GetTileAt(x, y), expected)
+                  << "tile=(" << x << "," << y << ")";
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+TEST_F(DrawRoutineMappingTest,
        HorizontalCornerRoutinesUseUsdasmCapsAndObjectOrigin) {
   auto& reg = DrawRoutineRegistry::Get();
   const std::vector<gfx::TileInfo> tiles = {

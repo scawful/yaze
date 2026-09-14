@@ -6097,29 +6097,82 @@ TEST(ObjectDrawerRegistryReplayTest,
   EXPECT_EQ(LastTileIdAt(east, kX + 3, kY + 15), 0x033);
 }
 
+TEST(ObjectDrawerRegistryReplayTest,
+     RightwardsBarUsesUsdasmEndCapsAndRepeatedMiddleColumn) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  // $0194BD-$0194DC: one 1x3 opening, 2*(size+1) copies of the 1x3
+  // middle, one 1x3 closing. $01B2F6 consumes three words per column.
+  // The nine-word payload is sufficient; trailing words must never be drawn.
+  for (const int payload_count : {9, 12}) {
+    const auto tiles = MakeSequentialTiles(payload_count, 0x200, 5);
+    for (const auto layer :
+         {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+      for (uint8_t size : {uint8_t{0}, uint8_t{1}, uint8_t{15}}) {
+        const int width = 2 * (size + 1) + 2;
+        for (const auto [x, y] :
+             {std::pair{3, 4}, std::pair{31, 31}, std::pair{64 - width, 61},
+              std::pair{63, 63}}) {
+          SCOPED_TRACE(::testing::Message()
+                       << "payload=" << payload_count
+                       << " layer=" << static_cast<int>(layer)
+                       << " size=" << static_cast<int>(size) << " origin=(" << x
+                       << "," << y << ")");
+          const auto trace = ReplayObjectTrace(0x4C, x, y, size, layer, tiles);
+          std::vector<SnapshotTileWrite> expected;
+          for (int column = 0; column < width && x + column < 64; ++column) {
+            const int tile_base = column == 0 ? 0 : column == width - 1 ? 6 : 3;
+            for (int row = 0; row < 3 && y + row < 64; ++row) {
+              expected.push_back(
+                  {x + column, y + row,
+                   static_cast<uint16_t>(0x200 + tile_base + row)});
+            }
+          }
+          ExpectTraceMatchesSnapshot(trace, expected);
+          for (const auto& write : trace) {
+            EXPECT_EQ(write.layer, static_cast<uint8_t>(layer));
+            EXPECT_EQ(write.flags, 5 << 3);
+          }
+        }
+      }
+    }
+  }
+}
+
 TEST(ObjectDrawerRegistryReplayTest, DownwardsBarUsesUsdasmTopThenBodyRows) {
   ScopedCustomObjectsFlag disable_custom(false);
 
-  constexpr int kX = 3;
-  constexpr int kY = 4;
-  constexpr uint8_t kSize = 1;  // body rows = 2 * (size + 2) = 6
-
-  auto trace = ReplayObjectTrace(
-      /*object_id=*/0x008F, kX, kY, kSize, RoomObject::LayerType::BG1,
-      MakeSequentialTiles(/*count=*/4));
-  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
-
-  std::vector<SnapshotTileWrite> expected;
-  expected.reserve(14);
-
-  expected.push_back({kX + 0, kY + 0, 0});
-  expected.push_back({kX + 1, kY + 0, 1});
-  for (int row = 0; row < 6; ++row) {
-    expected.push_back({kX + 0, kY + 1 + row, 2});
-    expected.push_back({kX + 1, kY + 1 + row, 3});
+  // $0197B5-$0197DB draws a two-word top row, then 2*(size+2) body
+  // rows. It does not repeat the top row or append a bottom cap.
+  const auto tiles = MakeSequentialTiles(4, 0x200, 5);
+  for (const auto layer :
+       {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+    for (uint8_t size : {uint8_t{0}, uint8_t{1}, uint8_t{15}}) {
+      const int height = 2 * (size + 2) + 1;
+      for (const auto [x, y] :
+           {std::pair{3, 4}, std::pair{31, 31}, std::pair{62, 64 - height},
+            std::pair{63, 63}}) {
+        SCOPED_TRACE(::testing::Message()
+                     << "layer=" << static_cast<int>(layer)
+                     << " size=" << static_cast<int>(size) << " origin=(" << x
+                     << "," << y << ")");
+        const auto trace = ReplayObjectTrace(0x8F, x, y, size, layer, tiles);
+        std::vector<SnapshotTileWrite> expected;
+        for (int row = 0; row < height && y + row < 64; ++row) {
+          for (int column = 0; column < 2 && x + column < 64; ++column) {
+            expected.push_back(
+                {x + column, y + row,
+                 static_cast<uint16_t>(0x200 + (row == 0 ? 0 : 2) + column)});
+          }
+        }
+        ExpectTraceMatchesSnapshot(trace, expected);
+        for (const auto& write : trace) {
+          EXPECT_EQ(write.layer, static_cast<uint8_t>(layer));
+          EXPECT_EQ(write.flags, 5 << 3);
+        }
+      }
+    }
   }
-
-  ExpectTraceMatchesSnapshot(bg1, expected);
 }
 
 }  // namespace
