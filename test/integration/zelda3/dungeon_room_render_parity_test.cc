@@ -60,6 +60,51 @@ RoomRenderFingerprint CaptureRoomFingerprint(Rom* rom, GameData* game_data,
   };
 }
 
+#if defined(YAZE_CLI_HAS_PNG) && defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
+void ExpectHeadlessPngMatchesRoomComposite(app::service::RenderService& service,
+                                           Room& room, int room_id) {
+  RoomLayerManager layers;
+  layers.ApplyLayerMerging(room.layer_merging());
+  layers.ApplyRoomEffect(room.effect());
+  const auto& composite = room.GetCompositeBitmap(layers);
+  ASSERT_TRUE(composite.is_active());
+  ASSERT_NE(composite.surface(), nullptr);
+  const auto* palette = platform::GetSurfacePalette(composite.surface());
+  ASSERT_NE(palette, nullptr);
+
+  for (float scale : {0.25f, 1.0f, 2.0f}) {
+    SCOPED_TRACE(::testing::Message() << "scale=" << scale);
+    const auto result =
+        service.RenderDungeonRoom({.room_id = room_id, .scale = scale});
+    ASSERT_TRUE(result.ok()) << result.status();
+    const auto decoded =
+        ::yaze::test::VisualDiffEngine::DecodePng(result->png_data);
+    ASSERT_TRUE(decoded.ok()) << decoded.status();
+    const int width = static_cast<int>(composite.width() * scale);
+    const int height = static_cast<int>(composite.height() * scale);
+    ASSERT_EQ(result->width, width);
+    ASSERT_EQ(result->height, height);
+    ASSERT_EQ(decoded->width, width);
+    ASSERT_EQ(decoded->height, height);
+    std::vector<uint8_t> expected(static_cast<size_t>(width) * height * 4, 255);
+    for (int y = 0; y < height; ++y) {
+      for (int x = 0; x < width; ++x) {
+        const int sx = x * composite.width() / width;
+        const int sy = y * composite.height() / height;
+        const uint8_t index = composite.data()[sy * composite.width() + sx];
+        ASSERT_LT(index, palette->ncolors);
+        const auto color = palette->colors[index];
+        const size_t out = (static_cast<size_t>(y) * width + x) * 4;
+        expected[out] = color.r;
+        expected[out + 1] = color.g;
+        expected[out + 2] = color.b;
+      }
+    }
+    EXPECT_EQ(decoded->data, expected);
+  }
+}
+#endif
+
 class DungeonRoomRenderParityTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -111,46 +156,33 @@ TEST_F(DungeonRoomRenderParityTest, HeadlessPngMatchesRoomComposite) {
       ASSERT_EQ(room.effect(), EffectKey::Torch_Show_Floor);
     }
 
-    RoomLayerManager layers;
-    layers.ApplyLayerMerging(room.layer_merging());
-    layers.ApplyRoomEffect(room.effect());
-    const auto& composite = room.GetCompositeBitmap(layers);
-    ASSERT_TRUE(composite.is_active());
-    ASSERT_NE(composite.surface(), nullptr);
-    const auto* palette = platform::GetSurfacePalette(composite.surface());
-    ASSERT_NE(palette, nullptr);
+    ExpectHeadlessPngMatchesRoomComposite(service, room, room_id);
+  }
+#endif
+}
 
-    for (float scale : {0.25f, 1.0f, 2.0f}) {
-      SCOPED_TRACE(::testing::Message() << "scale=" << scale);
-      const auto result =
-          service.RenderDungeonRoom({.room_id = room_id, .scale = scale});
-      ASSERT_TRUE(result.ok()) << result.status();
-      const auto decoded =
-          ::yaze::test::VisualDiffEngine::DecodePng(result->png_data);
-      ASSERT_TRUE(decoded.ok()) << decoded.status();
-      const int width = static_cast<int>(composite.width() * scale);
-      const int height = static_cast<int>(composite.height() * scale);
-      ASSERT_EQ(result->width, width);
-      ASSERT_EQ(result->height, height);
-      ASSERT_EQ(decoded->width, width);
-      ASSERT_EQ(decoded->height, height);
-      std::vector<uint8_t> expected(static_cast<size_t>(width) * height * 4,
-                                    255);
-      for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < width; ++x) {
-          const int sx = x * composite.width() / width;
-          const int sy = y * composite.height() / height;
-          const uint8_t index = composite.data()[sy * composite.width() + sx];
-          ASSERT_LT(index, palette->ncolors);
-          const auto color = palette->colors[index];
-          const size_t out = (static_cast<size_t>(y) * width + x) * 4;
-          expected[out] = color.r;
-          expected[out + 1] = color.g;
-          expected[out + 2] = color.b;
-        }
-      }
-      EXPECT_EQ(decoded->data, expected);
-    }
+TEST(DungeonExpandedRoomRenderParityTest, HeadlessPngMatchesRoomComposite) {
+#if !defined(YAZE_CLI_HAS_PNG) || !defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
+  GTEST_SKIP() << "Headless PNG encoding and visual PNG decoding are required.";
+#else
+  YAZE_SKIP_IF_ROM_MISSING(::yaze::test::RomRole::kExpanded,
+                           "DungeonExpandedRoomRenderParityTest");
+  const std::string rom_path = ::yaze::test::TestRomManager::GetRomPath(
+      ::yaze::test::RomRole::kExpanded);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromFile(rom_path).ok()) << "Failed to load " << rom_path;
+  GameData game_data;
+  ASSERT_TRUE(LoadGameData(rom, game_data).ok());
+  app::service::RenderService service(&rom, &game_data);
+  // Oracle ice/Mushroom Grotto witnesses. Compare the loaded header's actual
+  // composition, without imposing vanilla effect IDs or claiming SNES parity.
+  for (int room_id : {0x08C, 0x0CE, 0x04A, 0x033}) {
+    SCOPED_TRACE(::testing::Message() << "room=0x" << std::hex << room_id);
+    Room room = LoadRoomFromRom(&rom, room_id);
+    room.SetGameData(&game_data);
+    room.LoadSprites();
+    room.RenderRoomGraphics();
+    ExpectHeadlessPngMatchesRoomComposite(service, room, room_id);
   }
 #endif
 }
