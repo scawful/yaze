@@ -341,11 +341,11 @@ try {
     $remainingPayload = @()
     $remainingRegistrations = @()
     do {
-        $remainingPayload = if (Test-Path -LiteralPath $installPath) {
-            @(Get-ChildItem -LiteralPath $installPath -Force)
-        } else {
-            @()
-        }
+        $remainingPayload = @(
+            if (Test-Path -LiteralPath $installPath) {
+                Get-ChildItem -LiteralPath $installPath -Force
+            }
+        )
         $remainingRegistrations = @(Get-YazeInstallRegistrations -RegistryKeyName $registryKeyName)
         if ($remainingPayload.Count -eq 0 -and $remainingRegistrations.Count -eq 0) {
             break
