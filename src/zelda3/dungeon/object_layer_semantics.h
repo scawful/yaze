@@ -91,6 +91,16 @@ inline ObjectLayerSemantics GetObjectLayerSemantics(const RoomObject& object) {
     return out;
   }
 
+  if (out.routine_id == DrawRoutineIds::kSanctuaryWall) {
+    // The facade is fixed BG1; only its four-column center uses the stream.
+    const bool mixed = object.layer_ == RoomObject::LayerType::BG2;
+    out.effective_bg_layer =
+        mixed ? EffectiveBgLayer::kBothBg1Bg2 : EffectiveBgLayer::kBg1;
+    out.render_routing = mixed ? ObjectRenderRouting::kMixedBg1Bg2
+                               : ObjectRenderRouting::kFixedBg1;
+    return out;
+  }
+
   out.effective_bg_layer = (object.layer_ == RoomObject::LayerType::BG2)
                                ? EffectiveBgLayer::kBg2
                                : EffectiveBgLayer::kBg1;

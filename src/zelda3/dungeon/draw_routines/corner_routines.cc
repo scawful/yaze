@@ -10,6 +10,53 @@ namespace draw_routines {
 
 namespace {
 
+void DrawSanctuaryWall(const DrawContext& ctx) {
+  // RoomDraw_SanctuaryWall ($019B56): twenty facade columns write directly
+  // to $7E2000. The final 4x3 center uses the active tilemap pointers instead.
+  if (ctx.tiles.size() < 24) {
+    return;
+  }
+  auto& facade_bg = ctx.object.layer_ == RoomObject::LayerType::BG2 &&
+                            ctx.secondary_bg != nullptr
+                        ? *ctx.secondary_bg
+                        : ctx.target_bg;
+
+  for (int row = 0; row < 6; ++row) {
+    const auto& first = ctx.tiles[row];
+    auto first_mirrored = first;
+    first_mirrored.horizontal_mirror_ = true;  // OR $4000, not XOR.
+    for (int column : {0, 4, 8, 14, 18, 22}) {
+      DrawRoutineUtils::WriteTile8(facade_bg, ctx.object.x_ + column,
+                                   ctx.object.y_ + row, first);
+    }
+    for (int column : {1, 5, 9, 15, 19, 23}) {
+      DrawRoutineUtils::WriteTile8(facade_bg, ctx.object.x_ + column,
+                                   ctx.object.y_ + row, first_mirrored);
+    }
+    const auto& second = ctx.tiles[6 + row];
+    auto second_mirrored = second;
+    second_mirrored.horizontal_mirror_ = true;
+    for (int column : {2, 6, 16, 20}) {
+      DrawRoutineUtils::WriteTile8(facade_bg, ctx.object.x_ + column,
+                                   ctx.object.y_ + row, second);
+    }
+    for (int column : {3, 7, 17, 21}) {
+      DrawRoutineUtils::WriteTile8(facade_bg, ctx.object.x_ + column,
+                                   ctx.object.y_ + row, second_mirrored);
+    }
+  }
+
+  // $019BC6 advances past both facade columns, then $019BD6 tail-calls
+  // RoomDraw_1x3N_rightwards with A=4 at the original anchor plus ten tiles.
+  for (int column = 0; column < 4; ++column) {
+    for (int row = 0; row < 3; ++row) {
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 10 + column,
+                                   ctx.object.y_ + row,
+                                   ctx.tiles[12 + column * 3 + row]);
+    }
+  }
+}
+
 enum class DiagonalCeilingAnchor {
   kTopLeft,
   kBottomLeft,
@@ -192,6 +239,17 @@ void DrawDiagonalCeilingBottomRight(const DrawContext& ctx) {
 void RegisterCornerRoutines(std::vector<DrawRoutineInfo>& registry) {
   // Note: Routine IDs are assigned based on the assembly routine table
   // These corner routines are part of the core 40 draw routines
+
+  registry.push_back(DrawRoutineInfo{
+      .id = DrawRoutineIds::kSanctuaryWall,
+      .name = "SanctuaryWall",
+      .function = DrawSanctuaryWall,
+      .draws_to_both_bgs = false,  // Mixed routing, not duplicated geometry.
+      .base_width = 24,
+      .base_height = 6,
+      .min_tiles = 24,
+      .category = DrawRoutineInfo::Category::Special,
+  });
 
   registry.push_back(DrawRoutineInfo{
       .id = 19,  // DrawCorner4x4

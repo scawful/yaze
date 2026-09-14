@@ -590,9 +590,12 @@ int ObjectParser::GetSubtype2TileCount(int16_t object_id) const {
   }
   // 4x4 fixed patterns (stairs/walls)
   if (object_id == 0x11C || object_id == 0x124 || object_id == 0x125 ||
-      object_id == 0x129 || (object_id >= 0x12D && object_id <= 0x133) ||
-      object_id == 0x13C) {
+      object_id == 0x129 || (object_id >= 0x12D && object_id <= 0x133)) {
     return 16;
+  }
+  // Sanctuary wall: two 1x6 facade columns plus a 4x3 center (obj1458).
+  if (object_id == 0x13C) {
+    return 24;
   }
   // Magic Bat altar is subtype-2 object 0x13F (table index 0x3F).
   // RoomDraw_MagicBatAltar consumes eight columns of seven words from obj2086.
