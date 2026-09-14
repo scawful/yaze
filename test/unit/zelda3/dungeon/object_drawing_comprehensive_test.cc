@@ -27,7 +27,7 @@ namespace zelda3 {
 // Expected tile counts from kSubtype1TileLengths table in object_parser.cc
 // (kept in sync with the production table; 2026-04-25 audit corrected
 // 0x47/0x48 from 0 (fallback 8) to the real Waterfall47/48 routine
-// counts of 15/9; 0x3C/0x4C now load the full 8/12-word payloads consumed
+// counts of 15/9; 0x3C/0x4C load the 8/9-word payloads consumed
 // by their 4x2/4x3 registry routines; the moving-wall parity audit corrected
 // 0xCD/0xCE from ZScream's over-fetched 28 words to the 24 words their
 // routines consume).
@@ -37,11 +37,11 @@ static constexpr uint8_t kExpectedTileCounts[0xF8] = {
      5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  // 0x10-0x1F
      5,  9,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  6,  // 0x20-0x2F
      6,  1,  1, 16,  1,  1, 16, 16,  6,  8, 12, 12,  8,  8,  4,  3,  // 0x30-0x3F (0x3C=Doubled2x2:8)
-     3,  3,  3,  3,  3,  3,  3, 15,  9,  8,  8,  4, 12, 16, 16, 16,  // 0x40-0x4F (0x47=Waterfall47:15, 0x48=Waterfall48:9, 0x4C=Bar4x3:12)
+     3,  3,  3,  3,  3,  3,  3, 15,  9,  8,  8,  4,  9, 16, 16, 16,  // 0x40-0x4F (0x47=Waterfall47:15, 0x48=Waterfall48:9, 0x4C=Bar4x3:9)
      1, 18, 18,  4,  1,  8,  8,  1,  1,  1,  1, 18, 18, 15,  4,  3,  // 0x50-0x5F
      4,  8,  8,  8,  8,  8,  8,  4,  4,  3,  1,  1,  6,  6,  1,  1,  // 0x60-0x6F
     16,  1,  1, 16, 16,  8, 16, 16,  4,  1,  1,  4,  1,  4,  1,  8,  // 0x70-0x7F
-     8, 12, 12, 12, 12, 18, 18,  8, 12,  4,  3,  3,  3,  1,  1,  6,  // 0x80-0x8F
+     8, 12, 12, 12, 12, 18, 18,  8, 12,  4,  3,  3,  3,  1,  1,  4,  // 0x80-0x8F (0x8F=Bar2x5:4)
      8,  8,  4,  4, 16,  4,  4,  1,  1,  1,  1,  1,  1,  1,  1,  1,  // 0x90-0x9F
      1,  1,  1,  1, 24,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  // 0xA0-0xAF
      1,  1, 16,  3,  3,  8,  8,  8,  4,  4, 16,  4,  4,  4,  1,  1,  // 0xB0-0xBF
@@ -419,7 +419,8 @@ TEST_F(ObjectDrawingComprehensiveTest, TileCountLookupTable_SpecialCases) {
       {0x01, 8, "Wall segment 2x4"},
       {0x33, 16, "Large block 4x4"},
       {0x3C, 8, "Doubled 2x2 decoration (4x2 payload)"},
-      {0x4C, 12, "Rightwards bar (4x3 payload)"},
+      {0x4C, 9, "Rightwards bar (three 1x3 source columns)"},
+      {0x8F, 4, "Downwards bar (top/body 2x1 source rows)"},
       {0xA4, 24, "Large special object"},
       {0xC1, 68, "Very large object"},
       {0xCD, 24, "Moving wall"},
@@ -457,13 +458,16 @@ TEST_F(ObjectDrawingComprehensiveTest,
     int16_t object_id;
     int expected_tiles;
     int expected_routine;
+    int expected_writes;
     int expected_max_y;
   };
 
   for (const auto& test_case : {
            TestCase{0x3C, 8, DrawRoutineIds::kRightwardsDoubled2x2spaced2_1to16,
-                    10},
-           TestCase{0x4C, 12, DrawRoutineIds::kRightwardsBar4x3_1to16, 11},
+                    8, 10},
+           // USDASM $0194BD repeats the middle 1x3 source column twice at
+           // size zero: nine payload words produce twelve tile writes.
+           TestCase{0x4C, 9, DrawRoutineIds::kRightwardsBar4x3_1to16, 12, 11},
        }) {
     SCOPED_TRACE(::testing::Message()
                  << "object_id=0x" << std::hex << test_case.object_id);
@@ -486,7 +490,7 @@ TEST_F(ObjectDrawingComprehensiveTest,
     drawer.SetTraceCollector(&trace, /*trace_only=*/true);
 
     ASSERT_TRUE(drawer.DrawObject(object, bg1, bg2, palette_group).ok());
-    ASSERT_EQ(trace.size(), static_cast<size_t>(test_case.expected_tiles));
+    ASSERT_EQ(trace.size(), static_cast<size_t>(test_case.expected_writes));
     EXPECT_EQ(trace.front().x_tile, 8);
     EXPECT_EQ(trace.front().y_tile, 9);
     EXPECT_EQ(trace.back().x_tile, 11);

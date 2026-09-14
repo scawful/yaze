@@ -185,6 +185,29 @@ TEST_F(ObjectDimensionTableTest, SomariaPathBaseDimensionsAreSingleTile) {
   EXPECT_EQ(table.GetBaseDimensions(0xF94), std::make_pair(4, 3));
 }
 
+TEST_F(ObjectDimensionTableTest, HorizontalBarUsesTwoTileGrowthAndThreeRows) {
+  auto& table = ObjectDimensionTable::Get();
+  ASSERT_TRUE(table.LoadFromRom(rom_.get()).ok());
+
+  // RoomDraw_RightwardsBar4x3_1to16 ($0194BD): two caps around
+  // 2 * (size + 1) middle columns, not repeated four-column stamps.
+  for (int size = 0; size < 16; ++size) {
+    SCOPED_TRACE(size);
+    const int width = 2 * size + 4;
+    EXPECT_EQ(table.GetDimensions(0x4C, size), std::make_pair(width, 3));
+    const auto bounds = table.GetSelectionBounds(0x4C, size);
+    EXPECT_EQ(bounds.offset_x, 0);
+    EXPECT_EQ(bounds.offset_y, 0);
+    EXPECT_EQ(bounds.width, width);
+    EXPECT_EQ(bounds.height, 3);
+
+    const RoomObject object(0x4C, 4, 6, size, 0);
+    const auto measured = DimensionService::Get().GetDimensions(object);
+    EXPECT_EQ(measured.width_tiles, width);
+    EXPECT_EQ(measured.height_tiles, 3);
+  }
+}
+
 TEST_F(ObjectDimensionTableTest,
        EnabledStarSwitchAndLitTorchUseAnchoredTwoByTwoBounds) {
   auto& table = ObjectDimensionTable::Get();
