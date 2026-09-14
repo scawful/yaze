@@ -89,7 +89,8 @@ class Sprite : public GameEntity {
   void Draw();
   // Optional source-backed static layout; omitted layouts keep vanilla drawing.
   void RenderPreviewGraphics(std::span<const uint8_t> graphics,
-                             const SpriteOamLayout* layout_override = nullptr);
+                             const SpriteOamLayout* layout_override = nullptr,
+                             std::span<const uint8_t> graphics_resource = {});
   void ClearPreviewGraphics();
   void DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
                       bool mirror_x = false, bool mirror_y = false,

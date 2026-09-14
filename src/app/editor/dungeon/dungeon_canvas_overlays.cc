@@ -120,6 +120,11 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
       project_ != nullptr && project_->hack_manifest.loaded()
           ? std::string_view(project_->hack_manifest.hack_name())
           : std::string_view{};
+  sprite_preview_resources_.SetContext(
+      project_ ? project_->filepath : std::string{},
+      project_ ? project_->GetAbsolutePath(project_->assets_folder)
+               : std::string{},
+      hack_name);
   const auto& room_gfx = room.get_gfx_buffer();
   const std::span<const uint8_t> room_gfx_span(room_gfx.data(),
                                                room_gfx.size());
@@ -134,9 +139,11 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
                                                 : theme.dungeon_sprite_layer1;
 
       zelda3::Sprite preview_sprite = sprite;
+      const auto* preview_layout =
+          zelda3::SpriteOamRegistry::GetPreviewOverride(sprite.id(), hack_name);
       preview_sprite.RenderPreviewGraphics(
-          room_gfx_span, zelda3::SpriteOamRegistry::GetPreviewOverride(
-                             sprite.id(), hack_name));
+          room_gfx_span, preview_layout,
+          sprite_preview_resources_.GetGraphics(preview_layout));
       const auto* preview = preview_sprite.preview_graphics();
       const bool drew_preview =
           preview && DrawSpritePreviewPixels(
@@ -151,7 +158,9 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
                       sprite_color);
       }
 
-      std::string full_name = zelda3::GetSpriteLabel(sprite.id());
+      std::string full_name = preview_layout != nullptr
+                                  ? preview_layout->name
+                                  : zelda3::GetSpriteLabel(sprite.id());
       std::string sprite_text;
       if (full_name.length() > 12) {
         sprite_text = absl::StrFormat("%02X %s..", sprite.id(),
