@@ -2,7 +2,6 @@
 #define YAZE_ZELDA3_DUNGEON_GEOMETRY_OBJECT_GEOMETRY_H
 
 #include <cstdint>
-#include <optional>
 #include <tuple>
 #include <unordered_map>
 #include <vector>
@@ -39,8 +38,9 @@ struct SelectionRect {
  * BG1 mask rectangle - the area where BG1 pixels should be transparent
  * to allow BG2 content to show through during compositing.
  *
- * For triangular shapes (diagonal ceilings 0xA0-0xA3), the selection_bounds
- * provides a tighter hitbox than the full render_bounds bounding box.
+ * Selection uses this full rendered footprint. Shape-aware pixel hit testing
+ * belongs in the editor; shrinking this rectangle can make visible edge tiles
+ * impossible to select.
  */
 struct GeometryBounds {
   // Full rendered area (bounding box of all drawn tiles)
@@ -51,10 +51,6 @@ struct GeometryBounds {
 
   // Layer information for BG2 masking
   bool is_bg2_overlay = false;  // True if this object draws to BG2 (Layer 1)
-
-  // Optional tighter selection hitbox for non-rectangular shapes
-  // If not set, selection uses the full render bounds
-  std::optional<SelectionRect> selection_bounds;
 
   int max_x_tiles() const { return min_x_tiles + width_tiles; }
   int max_y_tiles() const { return min_y_tiles + height_tiles; }
@@ -75,24 +71,9 @@ struct GeometryBounds {
   bool RequiresBG1Mask() const { return is_bg2_overlay && width_tiles > 0; }
 
   /**
-   * @brief Check if this object has a tighter selection hitbox.
-   *
-   * For non-rectangular shapes like diagonal ceilings, the selection_bounds
-   * provides a more accurate hitbox for mouse interaction.
-   */
-  bool HasTighterSelectionBounds() const {
-    return selection_bounds.has_value();
-  }
-
-  /**
    * @brief Get the selection bounds for hit testing.
-   *
-   * Returns selection_bounds if set, otherwise returns the full render bounds.
    */
   SelectionRect GetSelectionBounds() const {
-    if (selection_bounds.has_value()) {
-      return *selection_bounds;
-    }
     return SelectionRect{min_x_tiles, min_y_tiles, width_tiles, height_tiles};
   }
 
@@ -192,27 +173,6 @@ class ObjectGeometry {
    * corresponding BG1 transparency for proper compositing.
    */
   static bool IsLayerOneRoutine(int routine_id);
-
-  /**
-   * @brief Check if a routine ID corresponds to a diagonal ceiling.
-   *
-   * Diagonal ceilings (routines 75-78 for objects 0xA0-0xA3) have triangular
-   * fill patterns that require tighter selection bounds than their bounding box.
-   */
-  static bool IsDiagonalCeilingRoutine(int routine_id);
-
-  /**
-   * @brief Compute tighter selection bounds for diagonal shapes.
-   *
-   * For triangular diagonal ceilings, this computes a selection rectangle
-   * that's roughly 70% of the bounding box, centered on the visual content.
-   *
-   * @param render_bounds Full render bounds from MeasureRoutine
-   * @param routine_id The routine ID to check for diagonal shapes
-   * @return GeometryBounds with selection_bounds set if applicable
-   */
-  static GeometryBounds ApplySelectionBounds(GeometryBounds render_bounds,
-                                             int routine_id);
 
  private:
   ObjectGeometry();

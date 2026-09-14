@@ -53,7 +53,7 @@ TEST(DimensionServiceTest, GetSelectionBoundsPixelsUsesPixelUnits) {
 }
 
 TEST(DimensionServiceTest,
-     DiagonalCeilingSelectionBoundsUseAnchorAwareOffsets) {
+     DiagonalCeilingSelectionBoundsMatchFullRenderedFootprint) {
   RoomObject obj(/*id=*/0xA3, /*x=*/10, /*y=*/12, /*size=*/0);
 
   auto [hit_x, hit_y, hit_w, hit_h] =
@@ -61,11 +61,13 @@ TEST(DimensionServiceTest,
   auto [sel_x_px, sel_y_px, sel_w_px, sel_h_px] =
       DimensionService::Get().GetSelectionBoundsPixels(obj);
 
-  // Bottom-right diagonal ceilings extend up-left from the origin. Hit testing
-  // and selection should honor those negative offsets rather than clamping to
-  // the object origin.
-  EXPECT_LT(hit_x, obj.x_);
-  EXPECT_LT(hit_y, obj.y_);
+  // Bottom-right diagonal ceilings extend upward from the origin. At size zero
+  // the USDASM loop draws a 4x4 footprint whose lowest-left tile is the object
+  // anchor, so there is no negative X offset or shrunken selection rectangle.
+  EXPECT_EQ(hit_x, obj.x_);
+  EXPECT_EQ(hit_y, obj.y_ - 3);
+  EXPECT_EQ(hit_w, 4);
+  EXPECT_EQ(hit_h, 4);
   EXPECT_EQ(sel_x_px, hit_x * 8);
   EXPECT_EQ(sel_y_px, hit_y * 8);
   EXPECT_EQ(sel_w_px, hit_w * 8);

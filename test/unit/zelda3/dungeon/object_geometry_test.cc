@@ -50,10 +50,10 @@ TEST(ObjectGeometryTest, DiagonalAcuteExtendsUpward) {
   RoomObject obj(/*id=*/0x09, /*x=*/0, /*y=*/0, /*size=*/0);
   auto bounds = ObjectGeometry::Get().MeasureByRoutineId(/*routine_id=*/5, obj);
   ASSERT_TRUE(bounds.ok());
-  EXPECT_EQ(bounds->width_tiles, 7);    // count = size + 7
-  EXPECT_EQ(bounds->height_tiles, 11);  // count + 4 rows
+  EXPECT_EQ(bounds->width_tiles, 6);    // count = size + 6
+  EXPECT_EQ(bounds->height_tiles, 10);  // count + 4 rows
   EXPECT_EQ(bounds->min_x_tiles, 0);
-  EXPECT_EQ(bounds->min_y_tiles, -6);  // routine walks upward from origin
+  EXPECT_EQ(bounds->min_y_tiles, -5);  // routine walks upward from origin
 }
 
 TEST(ObjectGeometryTest, DiagonalCeilingBoundsMatchRenderForAllAnchors) {
@@ -64,12 +64,13 @@ TEST(ObjectGeometryTest, DiagonalCeilingBoundsMatchRenderForAllAnchors) {
   struct Case {
     int routine_id;
     const char* name;
+    bool extends_up;
   };
   const Case anchors[] = {
-      {75, "TopLeft"},
-      {76, "BottomLeft"},
-      {77, "TopRight"},
-      {78, "BottomRight"},
+      {75, "TopLeft", false},
+      {76, "BottomLeft", false},
+      {77, "TopRight", false},
+      {78, "BottomRight", true},
   };
 
   const uint8_t sizes[] = {0x00, 0x01, 0x03, 0x07, 0x0F};
@@ -83,6 +84,14 @@ TEST(ObjectGeometryTest, DiagonalCeilingBoundsMatchRenderForAllAnchors) {
       ASSERT_TRUE(bounds.ok()) << bounds.status();
       EXPECT_EQ(bounds->width_tiles, expected_side);
       EXPECT_EQ(bounds->height_tiles, expected_side);
+      EXPECT_EQ(bounds->min_x_tiles, 0);
+      EXPECT_EQ(bounds->min_y_tiles,
+                anchor.extends_up ? -(expected_side - 1) : 0);
+      const auto selection = bounds->GetSelectionBounds();
+      EXPECT_EQ(selection.x_tiles, bounds->min_x_tiles);
+      EXPECT_EQ(selection.y_tiles, bounds->min_y_tiles);
+      EXPECT_EQ(selection.width_tiles, expected_side);
+      EXPECT_EQ(selection.height_tiles, expected_side);
     }
   }
 }

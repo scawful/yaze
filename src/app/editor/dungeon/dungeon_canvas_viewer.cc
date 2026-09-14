@@ -214,6 +214,11 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   PopulateCanvasContextMenu(room_id);
 
   auto canvas_rt = gui::BeginCanvas(canvas_, frame_opts);
+  const bool pointer_pressed = ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
+                               ImGui::IsMouseClicked(ImGuiMouseButton_Right) ||
+                               ImGui::IsMouseClicked(ImGuiMouseButton_Middle);
+  UpdateRoomCanvasShortcutFocus(canvas_rt.hovered, pointer_pressed,
+                                ImGui::GetFrameCount());
   SyncCanvasCaptureRegion(canvas_rt);
   ConsumePendingCanvasScroll(canvas_rt);
   canvas_rt.scrolling = canvas_.scrolling();
@@ -235,6 +240,21 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
   gui::EndCanvas(canvas_, canvas_rt, frame_opts);
   SyncViewerStateFromCanvasConfig();
+}
+
+void DungeonCanvasViewer::UpdateRoomCanvasShortcutFocus(bool hovered,
+                                                        bool pointer_pressed,
+                                                        int frame_index) {
+  room_canvas_last_draw_frame_ = frame_index;
+  if (pointer_pressed) {
+    room_canvas_shortcut_focus_ = hovered;
+  }
+}
+
+bool DungeonCanvasViewer::HasRoomCanvasShortcutFocusForFrame(
+    int frame_index) const {
+  return object_interaction_enabled_ && room_canvas_shortcut_focus_ &&
+         room_canvas_last_draw_frame_ == frame_index;
 }
 
 void DungeonCanvasViewer::DrawChangePingOverlay(

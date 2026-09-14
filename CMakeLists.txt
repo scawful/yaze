@@ -31,14 +31,13 @@ if(NOT DEFINED YAZE_VERSION_SUFFIX)
     set(YAZE_VERSION_SUFFIX "")
 endif()
 
-if(APPLE)
-    project(yaze VERSION ${YAZE_VERSION}
-                 DESCRIPTION "Yet Another Zelda3 Editor"
-                 LANGUAGES CXX C OBJC OBJCXX)
-else()
-    project(yaze VERSION ${YAZE_VERSION}
-                 DESCRIPTION "Yet Another Zelda3 Editor"
-                 LANGUAGES CXX C)
+project(yaze VERSION ${YAZE_VERSION}
+             DESCRIPTION "Yet Another Zelda3 Editor"
+             LANGUAGES CXX C)
+
+if(APPLE AND NOT EMSCRIPTEN)
+    enable_language(OBJC)
+    enable_language(OBJCXX)
 endif()
 
 # Set language standards early so dependencies (e.g., Abseil) build with them.
@@ -50,6 +49,13 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # Include build options first
 include(cmake/options.cmake)
+
+# Bundled gRPC links BoringSSL assembly targets into native binaries. Enable
+# ASM at the top level so CMake initializes the language rules before those
+# transitive targets are generated. Windows BoringSSL uses ASM_NASM instead.
+if(YAZE_ENABLE_GRPC AND NOT EMSCRIPTEN AND NOT WIN32)
+    enable_language(ASM)
+endif()
 
 # Enable sccache/ccache for faster rebuilds if available
 find_program(SCCACHE_FOUND sccache)

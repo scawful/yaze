@@ -8,8 +8,10 @@ YAZE is a ROM editor for "The Legend of Zelda: A Link to the Past" (US and JP ve
 
 1. **Download** the latest release for your platform from the [GitHub Releases page](https://github.com/scawful/yaze/releases)
 2. **Launch** the application and load your ROM via `File > Open ROM / Project`
-3. **Choose an Editor** from the toolbar (Overworld, Dungeon, Graphics, etc.)
-4. **Edit** your ROM and save your changes
+3. **Start with a supported editor**: Dungeon, Overworld, or Message. Palette
+   uses an extra save step.
+4. **Make one small edit**, use `File > Save ROM`, close, and reopen the copied
+   ROM before doing more work.
 
 > **Using .yazeproj bundles?** See the [.yazeproj Bundle Guide](../usage/yazeproj-bundles.md) for how to open bundles on each platform.
 
@@ -42,6 +44,9 @@ supported features and AI configuration.
 - **Overworld vs. World Map**: the Overworld Editor edits playable areas; Screen
   Editor > Overworld Map edits the pause-menu map art.
 - **Experiment Flags**: Try new features via `File > Options > Experiment Flags`.
+- **Editor limits**: Graphics and Screen are useful viewers, but pending edits
+  currently block ROM save. Read the Beta Testing Guide before testing editor
+  persistence.
 - **Extensions**: Load custom tools from the `Extensions` menu (plugin system under development).
 - **AI Providers**: Configure providers in `Settings > Agent` or set
   `GEMINI_API_KEY`, `OPENAI_API_KEY`, or `ANTHROPIC_API_KEY`.
@@ -50,18 +55,24 @@ supported features and AI configuration.
 
 ## Editor Status
 
-| Editor | Status | Notes |
-|--------|--------|-------|
-| Overworld | Stable | Full support for vanilla and ZSCustomOverworld v2/v3 |
-| Dungeon | Stable | Room editing, objects, sprites, palettes |
-| Palette | Stable | Reference implementation for palette utilities |
-| Message | Stable | Text and dialogue editing |
-| Hex | Beta | Direct ROM byte editing; search/UX incomplete |
-| Asar Patching | Beta | Integrated Asar assembler; project editor incomplete |
-| Graphics | Beta | Tile and sprite graphics editing; screen tooling WIP |
-| Sprite | Stable | Vanilla and custom sprite editing |
-| Emulator | Beta | Runtime emulator; save-state UI incomplete |
-| Music | Experimental | Tracker and instrument editing |
+| Editor | Tester status | Notes |
+|--------|---------------|-------|
+| Dungeon | Tester ready | Use a copied ROM; save, close, and reopen after a small room edit. |
+| Overworld | Tester ready | Use a copied ROM; save, close, and reopen after a small map edit. |
+| Message | Tester ready | Save valid parsed text and verify it after reopening. |
+| Palette | Conditional | Palette **Save to ROM**, then File > Save ROM. Both steps are required. |
+| Assembly / Asar | Conditional | Source save and patch application are separate advanced workflows. |
+| Sprite | Conditional | Custom `.zsm` editing; vanilla room sprites are edited in Dungeon. |
+| Settings | Conditional | Verify non-ROM settings after restarting Yaze. |
+| Graphics | View only | Pending edits deliberately block ROM save. |
+| Screen | View only | Pending edits deliberately block coordinated ROM save. |
+| Hex / Memory | View only | Advanced raw tooling; no complete dirty/undo/save contract. |
+| Music | View only | Playback and inspection; ROM persistence is incomplete. |
+| Emulator | Experimental | Runtime emulator; save-state UI incomplete. |
+| Agent | Experimental | Availability depends on build and provider configuration. |
+
+The [editor readiness matrix](../reference/feature-coverage-report.md) is the
+canonical detailed status.
 
 ---
 

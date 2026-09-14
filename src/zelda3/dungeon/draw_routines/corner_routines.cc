@@ -28,21 +28,32 @@ void DrawDiagonalCeiling(const DrawContext& ctx, DiagonalCeilingAnchor anchor) {
   const int side = (ctx.object.size_ & 0x0F) + 4;
   const gfx::TileInfo& fill_tile = ctx.tiles[0];
 
-  const bool mirror_x = anchor == DiagonalCeilingAnchor::kTopRight ||
-                        anchor == DiagonalCeilingAnchor::kBottomRight;
-  const bool mirror_y = anchor == DiagonalCeilingAnchor::kBottomLeft ||
-                        anchor == DiagonalCeilingAnchor::kBottomRight;
-
-  const int base_x = ctx.object.x_ - (mirror_x ? (side - 1) : 0);
-  const int base_y = ctx.object.y_ - (mirror_y ? (side - 1) : 0);
-
-  // Fill a right-triangle in the local square and mirror as needed.
+  // Each USDASM variant changes the repeated span and/or row direction. The
+  // names describe the triangle, not a common corner-origin mirror transform.
   for (int row = 0; row < side; ++row) {
-    const int span = side - row;
-    for (int col = 0; col < span; ++col) {
-      const int x = mirror_x ? (side - 1 - col) : col;
-      const int y = mirror_y ? (side - 1 - row) : row;
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + y,
+    int first_column = 0;
+    int last_column = side - row - 1;
+    int y = ctx.object.y_ + row;
+
+    switch (anchor) {
+      case DiagonalCeilingAnchor::kTopLeft:
+        break;
+      case DiagonalCeilingAnchor::kBottomLeft:
+        last_column = row;
+        break;
+      case DiagonalCeilingAnchor::kTopRight:
+        first_column = row;
+        last_column = side - 1;
+        break;
+      case DiagonalCeilingAnchor::kBottomRight:
+        first_column = row;
+        last_column = side - 1;
+        y = ctx.object.y_ - row;
+        break;
+    }
+
+    for (int column = first_column; column <= last_column; ++column) {
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + column, y,
                                    fill_tile);
     }
   }

@@ -2,7 +2,6 @@
 #include "util/i18n/tr.h"
 
 #include <algorithm>
-#include <array>
 #include <string>
 
 #include "absl/strings/str_format.h"
@@ -28,32 +27,44 @@ ImVec4 DoorTypeAccent(const AgentUITheme& theme, zelda3::DoorType type) {
   return theme.status_success;
 }
 
-// Semantic icon prefix used by both the 20-type placement picker and the
-// "Selected Door" swap combo. Keeps the 20 core types scannable by category.
+// Semantic icon prefix used by both the placement picker and the "Selected
+// Door" swap combo. Keeps supported types scannable by category.
 const char* DoorTypeIcon(zelda3::DoorType type) {
   switch (type) {
     case zelda3::DoorType::NormalDoor:
     case zelda3::DoorType::NormalDoorLower:
+    case zelda3::DoorType::NormalDoorOneSidedShutter:
+    case zelda3::DoorType::ExplicitRoomDoor:
       return ICON_MD_DOOR_FRONT;
+    case zelda3::DoorType::ExitLower:
     case zelda3::DoorType::CaveExit:
     case zelda3::DoorType::FancyDungeonExit:
+    case zelda3::DoorType::FancyDungeonExitLower:
+    case zelda3::DoorType::LitCaveExitLower:
       return ICON_MD_EXIT_TO_APP;
     case zelda3::DoorType::DoubleSidedShutter:
+    case zelda3::DoorType::DoubleSidedShutterLower:
     case zelda3::DoorType::BottomSidedShutter:
+    case zelda3::DoorType::BottomShutterLower:
     case zelda3::DoorType::TopSidedShutter:
+    case zelda3::DoorType::TopShutterLower:
     case zelda3::DoorType::CurtainDoor:
       return ICON_MD_VIEW_DAY;
     case zelda3::DoorType::EyeWatchDoor:
       return ICON_MD_VISIBILITY;
     case zelda3::DoorType::SmallKeyDoor:
     case zelda3::DoorType::BigKeyDoor:
+    case zelda3::DoorType::UnopenableBigKeyDoor:
       return ICON_MD_KEY;
     case zelda3::DoorType::SmallKeyStairsUp:
     case zelda3::DoorType::SmallKeyStairsDown:
+    case zelda3::DoorType::SmallKeyStairsUpLower:
+    case zelda3::DoorType::SmallKeyStairsDownLower:
       return ICON_MD_STAIRS;
     case zelda3::DoorType::DashWall:
       return ICON_MD_BOLT;
     case zelda3::DoorType::BombableDoor:
+    case zelda3::DoorType::BombableCaveExit:
     case zelda3::DoorType::ExplodingWall:
       return ICON_MD_WHATSHOT;
     case zelda3::DoorType::WaterfallDoor:
@@ -74,6 +85,8 @@ std::string ShortDoorTypeLabel(zelda3::DoorType type) {
       return "Normal";
     case zelda3::DoorType::NormalDoorLower:
       return "Lower";
+    case zelda3::DoorType::ExitLower:
+      return "Exit Low";
     case zelda3::DoorType::CaveExit:
       return "Cave";
     case zelda3::DoorType::DoubleSidedShutter:
@@ -88,10 +101,18 @@ std::string ShortDoorTypeLabel(zelda3::DoorType type) {
       return "Up";
     case zelda3::DoorType::SmallKeyStairsDown:
       return "Down";
+    case zelda3::DoorType::SmallKeyStairsUpLower:
+      return "Up Low";
+    case zelda3::DoorType::SmallKeyStairsDownLower:
+      return "Down Low";
     case zelda3::DoorType::DashWall:
       return "Dash";
     case zelda3::DoorType::BombableDoor:
       return "Bomb";
+    case zelda3::DoorType::BombableCaveExit:
+      return "Bomb Exit";
+    case zelda3::DoorType::UnopenableBigKeyDoor:
+      return "B-Key Lock";
     case zelda3::DoorType::ExplodingWall:
       return "Blast";
     case zelda3::DoorType::CurtainDoor:
@@ -102,6 +123,10 @@ std::string ShortDoorTypeLabel(zelda3::DoorType type) {
       return "Top";
     case zelda3::DoorType::FancyDungeonExit:
       return "Exit";
+    case zelda3::DoorType::FancyDungeonExitLower:
+      return "Exit Low";
+    case zelda3::DoorType::LitCaveExitLower:
+      return "Lit Low";
     case zelda3::DoorType::WaterfallDoor:
       return "Water";
     case zelda3::DoorType::ExitMarker:
@@ -110,6 +135,16 @@ std::string ShortDoorTypeLabel(zelda3::DoorType type) {
       return "Layer";
     case zelda3::DoorType::DungeonSwapMarker:
       return "Swap";
+    case zelda3::DoorType::NormalDoorOneSidedShutter:
+      return "1-Side";
+    case zelda3::DoorType::DoubleSidedShutterLower:
+      return "2-Side L";
+    case zelda3::DoorType::ExplicitRoomDoor:
+      return "Explicit";
+    case zelda3::DoorType::BottomShutterLower:
+      return "Bottom L";
+    case zelda3::DoorType::TopShutterLower:
+      return "Top L";
   }
   return "Door";
 }
@@ -141,28 +176,7 @@ void DoorEditorContent::Draw(bool* p_open) {
   gui::AutoWidgetScope automation_scope("Dungeon/DoorEditor");
 
   const auto& theme = AgentUI::GetTheme();
-  static constexpr std::array<zelda3::DoorType, 20> kDoorTypes = {{
-      zelda3::DoorType::NormalDoor,
-      zelda3::DoorType::NormalDoorLower,
-      zelda3::DoorType::CaveExit,
-      zelda3::DoorType::DoubleSidedShutter,
-      zelda3::DoorType::EyeWatchDoor,
-      zelda3::DoorType::SmallKeyDoor,
-      zelda3::DoorType::BigKeyDoor,
-      zelda3::DoorType::SmallKeyStairsUp,
-      zelda3::DoorType::SmallKeyStairsDown,
-      zelda3::DoorType::DashWall,
-      zelda3::DoorType::BombableDoor,
-      zelda3::DoorType::ExplodingWall,
-      zelda3::DoorType::CurtainDoor,
-      zelda3::DoorType::BottomSidedShutter,
-      zelda3::DoorType::TopSidedShutter,
-      zelda3::DoorType::FancyDungeonExit,
-      zelda3::DoorType::WaterfallDoor,
-      zelda3::DoorType::ExitMarker,
-      zelda3::DoorType::LayerSwapMarker,
-      zelda3::DoorType::DungeonSwapMarker,
-  }};
+  static constexpr auto kDoorTypes = zelda3::GetPlaceableDoorTypes();
 
   if (ResolveCanvasViewer() &&
       canvas_viewer_->object_interaction().HasEntitySelection() &&

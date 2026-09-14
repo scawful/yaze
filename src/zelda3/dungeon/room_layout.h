@@ -25,8 +25,8 @@ class RoomLayout {
   // Render the layout objects into the provided buffers
   absl::Status Draw(int room_id, const uint8_t* gfx_data,
                     gfx::BackgroundBuffer& bg1, gfx::BackgroundBuffer& bg2,
-                    const gfx::PaletteGroup& palette_group,
-                    DungeonState* state) const;
+                    const gfx::PaletteGroup& palette_group, DungeonState* state,
+                    uint8_t floor1_graphics, uint8_t floor2_graphics) const;
 
   const std::vector<RoomObject>& GetObjects() const { return objects_; }
 

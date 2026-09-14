@@ -11,8 +11,8 @@ Built in C++23 with ImGui, includes a built-in SNES emulator, the Asar 65816 ass
 
 - **Overworld Editor** - Edit 160 overworld maps, tiles, entrances, exits
 - **Dungeon Editor** - Edit 296 dungeon rooms, objects, sprites, palettes
-- **Graphics Editor** - View and edit 223 graphics sheets, tilesets
-- **Palette Editor** - Modify color palettes with live preview
+- **Graphics Editor** - Inspect 223 graphics sheets and preview guarded edits
+- **Palette Editor** - Modify color palettes with live preview and explicit ROM-buffer commit
 - **Message Editor** - Edit in-game text and dialogue
 - **Sprite Editor** - View sprite graphics and animations
 - **Music Editor** - (Experimental) View and edit SPC700 music data
@@ -36,23 +36,23 @@ Built in C++23 with ImGui, includes a built-in SNES emulator, the Asar 65816 ass
 v0.8.0 is the current development line; v0.7.2 is the latest tagged release.
 See [`CHANGELOG.md`](CHANGELOG.md) for details.
 
-**v0.8.0 focus:** Dungeon Editor completion, including remaining object draw
-parity, stream semantics, persistence stability, and Oracle daily-driver
-readiness.
+**v0.8.0 focus:** a bounded tester preview with honest editor save boundaries,
+cross-platform release artifacts, Dungeon visual parity, and a calmer editor UI.
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Overworld Editor | Beta | 160 maps, undo/redo, copy/paste; tile16 palette pipeline fixed, item workflow expanded, sprite workflow incomplete |
-| Dungeon Editor | Beta | 296 rooms, entity drag-drop, ROM safety; 12+ unknown object types, visual discrepancies |
-| Graphics Editor | Beta | Sheet editing, undo/redo |
-| Palette Editor | Beta | Live preview; JSON import/export not implemented |
-| Message Editor | Stable | Text editing, bundle import/export |
-| Assembly Editor | Beta | Symbol navigation, Asar integration; project file editor incomplete |
-| Sprite Editor | Beta | Viewing works, editing limited |
-| Music Editor | Beta | Playback and editing, no clipboard ops |
-| Screen Editor | WIP | Load/save + dungeon-map undo/redo; cut/copy/paste/find still unimplemented |
-| Memory Editor | WIP | Hex viewing only, search unimplemented |
-| Emulator | Beta | Functional, save-state UI incomplete |
+| Component | Tester status | Notes |
+|-----------|---------------|-------|
+| Dungeon Editor | Tester ready | Bounded room edits save through File > Save ROM; known visual exceptions remain. |
+| Overworld Editor | Tester ready | Bounded map/entity edits save through File > Save ROM. |
+| Message Editor | Tester ready | Valid text edits use the coordinated save path. |
+| Palette Editor | Conditional | Use Palette **Save to ROM**, then File > Save ROM; JSON import/export is implemented when enabled. |
+| Assembly Editor | Conditional | Source-file save and Asar ROM application are separate workflows. |
+| Sprite Editor | Conditional | Custom `.zsm` editing only; use Dungeon for room sprite placement. |
+| Settings | Conditional | Non-ROM settings persistence; verify changes after restart. |
+| Graphics Editor | View only | Pending graphics edits deliberately block Save ROM until the serializer is safe. |
+| Screen Editor | View only | Pending screen edits deliberately block coordinated Save ROM. |
+| Music Editor | View only | Playback/inspection; coordinated ROM save and instrument/sample writers are incomplete. |
+| Hex / Memory | View only | Advanced raw tooling without a complete dirty/undo/save contract. |
+| Emulator | Experimental | Runtime testing; save-state UI remains incomplete. |
 
 See [`docs/public/reference/feature-coverage-report.md`](docs/public/reference/feature-coverage-report.md)
 for cross-app status, persistence notes, and test coverage.
@@ -66,7 +66,7 @@ cd yaze
 
 # Build (macOS, AI-enabled editor + CLI)
 cmake --preset mac-ai
-cmake --build build_ai --target yaze z3ed --parallel 4
+cmake --build --preset mac-ai --target yaze z3ed --parallel 4
 
 # Run
 ./scripts/yaze zelda3.sfc
@@ -133,7 +133,8 @@ browser console and run `await window.runWasmDebugApiTests()`.
 
 ## Contributing
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md). Discussion on [Oracle of Secrets Discord](https://discord.gg/MBFkMTPEmk).
+See the [Git workflow guide](docs/public/developer/git-workflow.md). Discussion
+on [Oracle of Secrets Discord](https://discord.gg/MBFkMTPEmk).
 
 ## License
 

@@ -2,31 +2,13 @@
 
 This guide summarizes the architecture and implementation standards used across the editor codebase.
 
-## Editor Status (April 2026)
+## Editor readiness
 
-**Status rubric**:
-- **Stable**: Core workflows function reliably; remaining TODOs are UX polish.
-- **Beta**: Core workflows exist, but important features are incomplete or experimental.
-- **Experimental**: WIP, flagged experimental in UI, or has major TODOs in core paths.
-
-| Editor | State | Evidence |
-|--------|-------|----------|
-| Overworld | Beta | Core editing is reliable, but completion work remains (v3 settings UI, entity/exit workflows, and command-surface parity). |
-| Dungeon | Beta | Core room workflows are in place, but interaction consolidation, command-surface completion, and object UX work remain. |
-| Message | Stable | TODO: replace workflow in message editor. |
-| Palette | Stable | TODO: JSON export/import and notifications. |
-| Graphics | Beta | Core workflows are available; advanced workflows and regression coverage are still expanding. |
-| Sprite | Stable | Core sprite panels present; no WIP markers in editor code. |
-| Screen | Experimental | `screen_editor.h` labeled WIP; cut/copy/paste/find remain incomplete. |
-| Emulator | Beta | Debug UI + PPU TODOs; save-state UI not fully wired. |
-| Assembly | Beta | TODOs in assembly editor and project file editor. |
-| Hex | Beta | Memory editor lacks search and richer UX; see `src/app/editor/code`. |
-| Agent | Experimental | Chain mode labeled experimental; collaboration TODOs. |
-| Music | Experimental | Sample import/export and BRR tooling TODOs; serialization incomplete. |
-| Settings | Beta | Settings/project manager and layout serialization TODOs. |
-
-For a cross-app status view (desktop/CLI/web), persistence notes, and test
-coverage, see the [Feature & Test Coverage Report](../reference/feature-coverage-report.md).
+Editor readiness is a release and persistence claim, not an architectural
+label. The canonical desktop, CLI, and web status is maintained in the
+[Editor readiness and feature coverage report](../reference/feature-coverage-report.md).
+That report distinguishes a panel opening from a complete edit, save, close,
+and reopen workflow.
 
 ### Recent Improvements (v0.7.1)
 

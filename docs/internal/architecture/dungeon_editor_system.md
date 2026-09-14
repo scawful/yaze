@@ -101,11 +101,13 @@ New subsystem for visual editing of the 8x8 tile composition of dungeon objects.
 - Standard objects: patches ROM at `tile_data_address + i*2` with `TileInfoToWord()`.
 - Custom objects: re-serializes to binary format matching `CustomObjectManager::ParseBinaryData()`, writes `.bin` file, calls `ReloadAll()`.
 
-**Status:** Core implementation plus the first polish pass are in place. The panel now has keyboard shortcuts, room re-render after apply, shared-tile confirmation, palette-change invalidation, reopen/reset protection, backend coverage in `object_tile_editor_test.cc`, and panel-state coverage in `object_tile_editor_panel_test.cc`. The main remaining feature gap is a first-class "new custom object" workflow.
+**Status:** Core implementation plus the first polish pass are in place. The panel now has keyboard shortcuts, room re-render after apply, shared-tile confirmation, palette-change invalidation, reopen/reset protection, backend coverage in `object_tile_editor_test.cc`, and panel-state coverage in `object_tile_editor_panel_test.cc`. `master` still exposes a legacy free-form **New Custom Object** path, but Oracle's runtime dispatch tables have fixed subtype capacities. [PR #217](https://github.com/scawful/yaze/pull/217) replaces that create-and-append path with editing of existing runtime slots; adding a new subtype remains an ASM/runtime change, not an editor-only action.
 
 ### Room Layer Manager & Compositing (February 2026)
 
-Subsystem for accurate SNES-style layer compositing of dungeon room renders.
+Subsystem for SNES-informed layer compositing of dungeon room renders. The
+pass order and per-tile priority model follow the game, while some color-math
+and runtime-effect paths remain editor approximations.
 
 **Architecture:**
 - **RoomLayerManager** (`zelda3/dungeon/room_layer_manager.{h,cc}`) — Manages per-layer blend modes and composites BG1/BG2 layout + object buffers into the final output bitmap.
@@ -116,9 +118,9 @@ Subsystem for accurate SNES-style layer compositing of dungeon room renders.
   - `Torch_Show_Floor`: Sets BG1 layers to Dark (lantern reveals BG2 floor underneath).
   - `Red_Flashes`: No persistent blend change (Ganon fight lightning is temporal).
   - `Ganon_Room`: Sets BG2 layout to Translucent.
-- **CompositeToOutput()** — Priority-aware pixel compositing:
+- **CompositeToOutput()** — Priority-aware editor compositing:
   - Builds a palette RGB lookup table from the room's SDL surface palette.
-  - For translucent layers: computes `(bg1_rgb + bg2_rgb) / 2` per channel, then finds the nearest palette index within the same palette bank via `find_nearest_in_bank`.
+  - For translucent layers: approximates half-add color math with `(bg1_rgb + bg2_rgb) / 2`, then finds the nearest palette index within the same palette bank via `find_nearest_in_bank`. Treat committed Mesen ROIs—not this approximation alone—as pixel-parity evidence.
   - For dark layers: dims BG1 pixels to simulate unlit rooms.
   - Respects SNES priority bits: BG2 priority=1 tiles render above BG1 priority=0 tiles.
 
@@ -132,19 +134,24 @@ Subsystem for accurate SNES-style layer compositing of dungeon room renders.
 - Per-routine metadata includes `draws_to_both_bgs` for routines that explicitly write both tilemaps (for example, routine 2/kRightwards2x4 and routine 19/Corner4x4). Routine 97/PrisonCell follows the current object-stream tilemap selected by `$BF` and is not dual-layer.
 
 **Validation:**
-- 19 parity tests in `test/unit/zelda3/dungeon/object_drawing_comprehensive_test.cc` validate routine coverage, palette offsets, pit/mask identification, BothBG flags, water layer semantics, room effects, and layer merge behavior.
+- `object_drawing_comprehensive_test.cc` validates registry coverage and selected invariants. ROM-backed tests validate real room bytes; committed Mesen RGBA ROIs provide independent pixel evidence for the documented subset. See `docs/internal/agents/dungeon-object-rendering-spec.md`.
 
 ## Current Limitations / Gaps
 
 - **Persistence coverage**: Tile objects, sprites, doors (marker + pointer table), room headers (14 bytes + message IDs), palettes, torches, pushable blocks, custom collision, chests, pot items, regular dungeon entrances, dedicated spawn points, and edited pit-damage membership are written back and have focused regression coverage. The legacy combined `RoomEntrance` spawn view remains read-only and fails closed if dirtied. Pit/block tables remain fixed to their existing vanilla capacities.
-- **Object tile editor**: Core editing, preview/atlas rendering, keyboard shortcuts, room re-render after apply, shared tile confirmation, palette invalidation, and reopen/reset behavior are implemented. Remaining gaps are the "new custom object" flow, deeper editor/integration coverage, and any future preview-quality polish after the selector/browser churn settles.
+- **Object tile editor**: Core editing, preview/atlas rendering, keyboard shortcuts, room re-render after apply, shared tile confirmation, palette invalidation, reopen/reset behavior, and the legacy Custom Object Workshop creation flow exist on `master`. PR #217 replaces free-form creation with fixed-slot selection, lossless and atomic custom `.bin` publication, and session-scoped custom-object state. Remaining gaps after that change are hands-on workflow acceptance, broader editor/integration coverage, and future preview-quality polish after the selector/browser churn settles.
 - **Tests**: Focused unit coverage now exists for `ObjectTileLayout`, standard/custom object tile writeback, palette-sensitive preview generation, panel reset behavior, `DungeonEditorSystem`, `DungeonSaveTest`, and `DungeonEditorV2RomSafetyTest`. Broader integration/E2E coverage for ROM-write workflows is still lighter than the unit surface.
 
 ## Suggested Next Steps
 
 1. **Object Tile Editor Completion**:
-   - Add a guided "New Custom Object" workflow for creating `.bin` files from scratch.
+   - Land and validate the fixed-slot publication safety in PR #217. Do not
+     expand the free-form creation workflow unless an ASM change first expands
+     the runtime dispatch capacity.
    - Add broader editor/integration coverage around apply/reload/save flows.
+   - Consolidate custom visual, collision, and runtime semantics through the
+     project object catalog described in
+     `docs/internal/hand-off/HANDOFF_CUSTOM_OBJECTS.md`.
    - Revisit selector/browser preview quality after the current object-selector refactor settles.
 2. **Save Pipeline Follow-up**:
    - Keep pit-damage edits within the fixed-capacity membership table; treat repointing or capacity expansion as a separate ROM-layout feature.

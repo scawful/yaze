@@ -13,7 +13,7 @@ require chasing separate floating panels.
 
 - **512x512 canvas** per room with pan, zoom, grid, and collision overlays
 - **Layer visualization** with BG1/BG2 toggles and colored object outlines
-- **Dungeon Workbench** with room browser, canvas, inspector, and local tool drawer
+- **Dungeon Workbench** with room browser, canvas, and a three-mode inspector
 - **Window workflow fallback** for users who still want standalone panels
 - **Undo/Redo** shared across all panels
 - **Overworld integration** - double-click entrances to open linked rooms
@@ -65,24 +65,23 @@ The right inspector has three primary modes:
 |------|---------|
 | **Room** | Current room summary, room actions, header fields, apply scope, layer/compositing controls |
 | **Selection** | Focused object/entity properties, copy/delete/clear actions, and entity-specific tools |
-| **Tools** | Workbench-local edit tools embedded in the inspector drawer |
+| **Tools** | Workbench-local edit tools embedded as primary inspector content |
 
-The **Tools** drawer includes Object Selector, Door tools, Sprite tools, Item
+The **Tools** mode includes Object Selector, Door tools, Sprite tools, Item
 tools, Palette, Room Graphics, Room Tags, Custom Collision, Water Fill, and
-Minecart tools. A compact 2x5 icon strip at the top of the drawer lets you hop
-between tools in one click; the active tool is highlighted with the accent
-color and hovering each icon shows a tooltip with the full tool name. Returning
-to the room metadata view is one click on the inspector's primary segmented
-selector. The drawer body fills the remaining inspector height so embedded
-tools render as primary content rather than cramped popups. Standalone copies
-of these tools remain available in the Window Browser/sidebar while Workbench
-mode is active; entering Workbench mode only collapses navigation windows and
-per-room windows by default.
+Minecart tools. Choose the active tool from one grouped menu; the tool fills the
+remaining inspector height. Use **Room** or **Selection** to return to metadata,
+or **Pop out** to move the active tool into its traditional floating window.
+Standalone tool entries remain available in the Window Browser/sidebar while
+Workbench mode is active. If a tool is already floating, opening it from the
+Workbench focuses that window instead of drawing the same tool twice.
 
 The Object Selector renders room-context thumbnails by default when room
-graphics are available. Entries that cannot render a tile layout fall back to a
-typed symbol, and the hover tooltip shows whether the visible preview is a
-rendered layout or a fallback.
+graphics are available. The compact cards preserve each object's aspect ratio,
+show its hexadecimal ID in a stable footer, and put the full name and diagnostic
+detail in the hover tooltip. Search and the two primary filters stay visible;
+thumbnail, card-size, reset, and custom-object actions live under **More**.
+Entries that cannot render a tile layout fall back to a typed symbol.
 
 ### Available Panels
 
@@ -94,9 +93,9 @@ rendered layout or a fallback.
 | **Object Tile Editor** | Standalone 8x8 tile composition editor for object asset authoring |
 | **Window Browser** | Manage standalone windows when using Window workflow |
 
-Workbench-local edit tools are available both inside the Workbench drawer and as
-standalone windows. Switch to **Window** workflow from the sidebar when you want
-the older navigation-first panel layout.
+Workbench-local edit tools can run inside the Tools inspector or in standalone
+windows. Switch to **Window** workflow from the sidebar when you want the older
+navigation-first panel layout.
 
 ### Canvas Controls
 

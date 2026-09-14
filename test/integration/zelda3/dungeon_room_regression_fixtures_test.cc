@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <cstdlib>
 #if defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
@@ -20,6 +21,7 @@
 #include "util/rom_hash.h"
 #endif
 #include "zelda3/dungeon/editor_dungeon_state.h"
+#include "zelda3/dungeon/object_drawer.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/game_data.h"
@@ -49,6 +51,19 @@ int CountNonBackdropPixels(const gfx::Bitmap& bitmap) {
   return count;
 }
 
+int CountOpaqueLayerPixels(const gfx::Bitmap& bitmap) {
+  if (!bitmap.is_active()) {
+    return 0;
+  }
+  int count = 0;
+  for (size_t i = 0; i < bitmap.size(); ++i) {
+    if (bitmap.data()[i] != 255) {
+      ++count;
+    }
+  }
+  return count;
+}
+
 struct RoomLayerFingerprints {
   uint64_t layout_bg1_checksum = 0;
   uint64_t layout_bg2_checksum = 0;
@@ -61,14 +76,22 @@ struct RoomLayerFingerprints {
   int composite_non_backdrop = 0;
 };
 
-constexpr int kRoom001ObjectOverlapX = 45;
-constexpr int kRoom001ObjectOverlapY = 120;
-constexpr int kRoom001ObjectOverlapIndex = 61485;
-constexpr uint8_t kRoom001ObjectOverlapBg1Pixel = 41;
-constexpr uint8_t kRoom001ObjectOverlapBg2Pixel = 42;
-constexpr uint8_t kRoom001ObjectOverlapBg1Priority = 1;
-constexpr uint8_t kRoom001ObjectOverlapBg2Priority = 0;
-constexpr uint8_t kRoom001ObjectOverlapCompositePixel = 41;
+constexpr int kRoom001DoorY = 120;
+constexpr int kRoom001DoorHeight = 32;
+constexpr int kRoom001WestDoorEdgeX = 40;
+constexpr int kRoom001WestDoorBodyX = 48;
+constexpr int kRoom001EastDoorBodyX = 448;
+constexpr int kRoom001EastDoorEdgeX = 464;
+constexpr int kRoom001DoorEdgeWidth = 8;
+constexpr int kRoom001DoorBodyWidth = 16;
+
+// Room 0x076 water-overlay coverage is structural and does not depend on the
+// libpng-backed visual diff engine. Keep these constants available on every
+// platform that builds the integration test.
+constexpr uint8_t kRoom076EntranceBlockset = 0x08;
+constexpr int kRoom076WaterOverlayTileX = 38;
+constexpr int kRoom076WaterOverlayTileY = 13;
+constexpr int kRoom076WaterOverlayObjectId = 0xD8;
 
 #if defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
 constexpr size_t kCanonicalUsRomSize = 0x100000;
@@ -93,8 +116,45 @@ constexpr int kRoom065YazeRoiX = 368;
 constexpr int kRoom065YazeRoiY = 336;
 constexpr int kRoom065RoiWidth = 32;
 constexpr int kRoom065RoiHeight = 32;
+// TableRock 0xDD at room-tile (41,52) under the same 0x065 Mesen camera as the
+// bombable-floor baselines. Yaze pixels = tile * 8; Mesen crop derived from the
+// established bombable mapping (yaze - (256,273)).
+constexpr int kRoom065TableRockMesenRoiX = 72;
+constexpr int kRoom065TableRockMesenRoiY = 143;
+constexpr int kRoom065TableRockYazeRoiX = 328;
+constexpr int kRoom065TableRockYazeRoiY = 416;
 constexpr uint8_t kRoom065EntranceBlockset = 0x0A;
-
+// BigHole 0xA4 at room-tile (44,44) in room 0x031, captured with the same
+// entrance-0x34 / camera PAR / BG1-only setup as room 0x065 (blockset 0x0A).
+constexpr int kRoom031BigHoleMesenRoiX = 96;
+constexpr int kRoom031BigHoleMesenRoiY = 79;
+constexpr int kRoom031BigHoleYazeRoiX = 352;
+constexpr int kRoom031BigHoleYazeRoiY = 352;
+// Room 0x007 long rails captured after a stable entrance-0x34 / room-id
+// override load (blockset 0x05), then runtime Link/camera pan to upper-left.
+// H rail 0x5F @ tile (20,14); V rail 0x8A @ tile (14,20).
+constexpr uint8_t kRoom007EntranceBlockset = 0x05;
+constexpr int kRoom007HRailMesenRoiX = 160;
+constexpr int kRoom007HRailMesenRoiY = 79;
+constexpr int kRoom007HRailYazeRoiX = 160;
+constexpr int kRoom007HRailYazeRoiY = 112;
+constexpr int kRoom007HRailRoiWidth = 32;
+constexpr int kRoom007HRailRoiHeight = 16;
+constexpr int kRoom007VRailMesenRoiX = 112;
+constexpr int kRoom007VRailMesenRoiY = 127;
+constexpr int kRoom007VRailYazeRoiX = 112;
+constexpr int kRoom007VRailYazeRoiY = 160;
+constexpr int kRoom007VRailRoiWidth = 16;
+constexpr int kRoom007VRailRoiHeight = 32;
+// Room 0x076 west NormalDoorLower @ tile (37,15): entrance-0x34 PAR load with
+// room-id override + blockset 0x08, then runtime pan (Link 0x0AF0/0x0CD8,
+// scroll ~10,12) so the door is on-screen. West doors are 3x4 tiles (24x32).
+constexpr int kRoom076WestDoorMesenRoiX = 56;
+constexpr int kRoom076WestDoorMesenRoiY = 159;
+constexpr int kRoom076WestDoorYazeRoiX = 296;
+constexpr int kRoom076WestDoorYazeRoiY = 120;
+constexpr int kRoom076WestDoorRoiWidth = 24;
+constexpr int kRoom076WestDoorRoiHeight = 32;
 ::yaze::test::Screenshot CaptureRgbaRegion(const gfx::Bitmap& bitmap, int x,
                                            int y, int width, int height) {
   ::yaze::test::Screenshot screenshot;
@@ -128,13 +188,16 @@ constexpr uint8_t kRoom065EntranceBlockset = 0x0A;
 RoomLayerFingerprints CaptureRoomLayerFingerprints(Rom* rom,
                                                    GameData* game_data,
                                                    int room_id) {
-  Room room(room_id, rom, game_data);
+  Room room = LoadRoomFromRom(rom, room_id);
+  room.SetGameData(game_data);
   room.LoadRoomGraphics();
   room.LoadObjects();
   room.CopyRoomGraphicsToBuffer();
   room.RenderRoomGraphics();
 
   RoomLayerManager layer_manager;
+  layer_manager.ApplyLayerMerging(room.layer_merging());
+  layer_manager.ApplyRoomEffect(room.effect());
   auto& composite = room.GetCompositeBitmap(layer_manager);
 
   const auto& layout_bg1 = room.bg1_buffer().bitmap();
@@ -158,9 +221,9 @@ RoomLayerFingerprints CaptureRoomLayerFingerprints(Rom* rom,
       .composite_checksum = composite.is_active()
                                 ? Fnv1a64(composite.data(), composite.size())
                                 : 0,
-      .layout_bg1_non_backdrop = CountNonBackdropPixels(layout_bg1),
-      .object_bg1_non_backdrop = CountNonBackdropPixels(object_bg1),
-      .object_bg2_non_backdrop = CountNonBackdropPixels(object_bg2),
+      .layout_bg1_non_backdrop = CountOpaqueLayerPixels(layout_bg1),
+      .object_bg1_non_backdrop = CountOpaqueLayerPixels(object_bg1),
+      .object_bg2_non_backdrop = CountOpaqueLayerPixels(object_bg2),
       .composite_non_backdrop = CountNonBackdropPixels(composite),
   };
 }
@@ -193,6 +256,73 @@ class DungeonRoomRegressionFixturesTest : public ::testing::Test {
   Rom rom_;
   GameData game_data_;
 };
+
+TEST_F(DungeonRoomRegressionFixturesTest, DumpBg1OnlyRoomRoiForCapture) {
+  // Manual capture helper: YAZE_DUMP_BG1_ROI=1 YAZE_DUMP_ROOM=0x7 \
+  // YAZE_DUMP_BLOCKSET=0x5 YAZE_DUMP_OUT=/tmp/yaze_bg1.png \
+  // YAZE_DUMP_X=112 YAZE_DUMP_Y=160 YAZE_DUMP_W=16 YAZE_DUMP_H=32
+  // Optional: YAZE_DUMP_INCLUDE_BG2=1 keeps BG2 layout/objects visible
+  // (needed for water-overlay editor-indicator dumps).
+#if !defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
+  GTEST_SKIP() << "libpng-backed VisualDiffEngine is unavailable.";
+#else
+  if (std::getenv("YAZE_DUMP_BG1_ROI") == nullptr) {
+    GTEST_SKIP() << "Set YAZE_DUMP_BG1_ROI=1 to dump a BG1-only room ROI.";
+  }
+  const char* room_env = std::getenv("YAZE_DUMP_ROOM");
+  const char* out_env = std::getenv("YAZE_DUMP_OUT");
+  ASSERT_NE(room_env, nullptr);
+  ASSERT_NE(out_env, nullptr);
+  const int room_id = static_cast<int>(std::strtol(room_env, nullptr, 0));
+  const int blockset = static_cast<int>(std::strtol(
+      std::getenv("YAZE_DUMP_BLOCKSET") ? std::getenv("YAZE_DUMP_BLOCKSET")
+                                        : "0xFF",
+      nullptr, 0));
+  const int x = static_cast<int>(
+      std::strtol(std::getenv("YAZE_DUMP_X") ? std::getenv("YAZE_DUMP_X") : "0",
+                  nullptr, 0));
+  const int y = static_cast<int>(
+      std::strtol(std::getenv("YAZE_DUMP_Y") ? std::getenv("YAZE_DUMP_Y") : "0",
+                  nullptr, 0));
+  const int w = static_cast<int>(std::strtol(
+      std::getenv("YAZE_DUMP_W") ? std::getenv("YAZE_DUMP_W") : "32", nullptr,
+      0));
+  const int h = static_cast<int>(std::strtol(
+      std::getenv("YAZE_DUMP_H") ? std::getenv("YAZE_DUMP_H") : "32", nullptr,
+      0));
+  const bool include_bg2 = std::getenv("YAZE_DUMP_INCLUDE_BG2") != nullptr;
+
+  Room room = LoadRoomFromRom(&rom_, room_id);
+  room.SetGameData(&game_data_);
+  room.LoadSprites();
+  if (blockset != 0xFF) {
+    room.SetRenderEntranceBlockset(static_cast<uint8_t>(blockset));
+  }
+  room.RenderRoomGraphics();
+
+  RoomLayerManager layer_manager;
+  layer_manager.ApplyLayerMerging(room.layer_merging());
+  layer_manager.ApplyRoomEffect(room.effect());
+  if (!include_bg2) {
+    layer_manager.SetLayerVisible(LayerType::BG2_Layout, false);
+    layer_manager.SetLayerVisible(LayerType::BG2_Objects, false);
+  }
+  const auto& upper = room.GetCompositeBitmap(layer_manager);
+  ASSERT_TRUE(upper.is_active());
+  ASSERT_NE(upper.surface(), nullptr);
+  ASSERT_GE(upper.width(), x + w);
+  ASSERT_GE(upper.height(), y + h);
+
+  const auto shot = CaptureRgbaRegion(upper, x, y, w, h);
+  ASSERT_TRUE(shot.IsValid());
+  ASSERT_TRUE(::yaze::test::VisualDiffEngine::SavePng(shot, out_env).ok())
+      << "Failed to write " << out_env;
+  std::cout << "Wrote " << (include_bg2 ? "BG1+BG2" : "BG1") << " ROI room=0x"
+            << std::hex << room_id << std::dec << " blockset=0x" << std::hex
+            << blockset << std::dec << " (" << x << "," << y << "," << w << ","
+            << h << ") -> " << out_env << "\n";
+#endif
+}
 
 TEST_F(DungeonRoomRegressionFixturesTest, ScanAllRoomsForFixtureCandidates) {
   if (std::getenv("YAZE_SCAN_DUNGEON_ROOMS") == nullptr) {
@@ -307,21 +437,42 @@ TEST_F(DungeonRoomRegressionFixturesTest, FixtureRoomsHaveThreeStreamCoverage) {
 }
 
 TEST_F(DungeonRoomRegressionFixturesTest,
-       Room001ObjectOverlapPixelMatchesPriorityWinner) {
-  // Broad checksums catch drift but do not explain *where* compositing changed.
-  // Pin one sparse golden overlap pixel from room 0x001, which exercises
-  // primary, BG2-overlay, and BG1-overlay object streams. The sampled pixel is
-  // BG1 high-priority object pixel 0x29 over BG2 low-priority object pixel
-  // 0x2A, so SNES Mode 1 compositing must leave palette index 0x29 on top.
-  Room room(0x001, &rom_, &game_data_);
+       Room001ExplicitDoorBodiesReplaceGuidanceWallTiles) {
+  Room room = LoadRoomFromRom(&rom_, 0x001);
+  room.SetGameData(&game_data_);
   room.LoadRoomGraphics();
   room.LoadObjects();
   room.CopyRoomGraphicsToBuffer();
   room.RenderRoomGraphics();
-  ASSERT_FALSE(room.layer_merging().Layer2Translucent)
-      << "This sparse ordering assertion assumes opaque compositing.";
+  ASSERT_EQ(room.layer_merging().ID, LayerMerge06.ID);
+
+  bool saw_west_door = false;
+  bool saw_east_door = false;
+  for (const auto& door : room.GetDoors()) {
+    saw_west_door |= door.type == DoorType::ExplicitRoomDoor &&
+                     door.direction == DoorDirection::West &&
+                     door.position == 3;
+    saw_east_door |= door.type == DoorType::ExplicitRoomDoor &&
+                     door.direction == DoorDirection::East &&
+                     door.position == 9;
+  }
+  EXPECT_TRUE(saw_west_door);
+  EXPECT_TRUE(saw_east_door);
+
+  bool saw_west_guidance_wall = false;
+  bool saw_east_guidance_wall = false;
+  for (const auto& object : room.GetTileObjects()) {
+    saw_west_guidance_wall |=
+        object.id_ == 0x63 && object.x_ == 5 && object.y_ == 14;
+    saw_east_guidance_wall |=
+        object.id_ == 0x64 && object.x_ == 55 && object.y_ == 14;
+  }
+  EXPECT_TRUE(saw_west_guidance_wall);
+  EXPECT_TRUE(saw_east_guidance_wall);
 
   RoomLayerManager layer_manager;
+  layer_manager.ApplyLayerMerging(room.layer_merging());
+  layer_manager.ApplyRoomEffect(room.effect());
   const auto& composite = room.GetCompositeBitmap(layer_manager);
   const auto& bg1_objects = room.object_bg1_buffer();
   const auto& bg2_objects = room.object_bg2_buffer();
@@ -332,26 +483,99 @@ TEST_F(DungeonRoomRegressionFixturesTest,
   ASSERT_TRUE(composite.is_active());
   ASSERT_EQ(bg2_bitmap.width(), bg1_bitmap.width());
   ASSERT_EQ(composite.width(), bg1_bitmap.width());
-  ASSERT_LT(kRoom001ObjectOverlapX, bg1_bitmap.width());
-  ASSERT_LT(kRoom001ObjectOverlapY, bg1_bitmap.height());
-  const int sample_index =
-      kRoom001ObjectOverlapY * bg1_bitmap.width() + kRoom001ObjectOverlapX;
-  ASSERT_EQ(sample_index, kRoom001ObjectOverlapIndex);
-  ASSERT_LT(sample_index, static_cast<int>(bg1_bitmap.size()));
-  ASSERT_LT(sample_index, static_cast<int>(bg2_bitmap.size()));
-  ASSERT_LT(sample_index, static_cast<int>(composite.size()));
-  ASSERT_LT(sample_index, static_cast<int>(bg1_objects.priority_data().size()));
-  ASSERT_LT(sample_index, static_cast<int>(bg2_objects.priority_data().size()));
-  EXPECT_EQ(bg1_bitmap.data()[sample_index], kRoom001ObjectOverlapBg1Pixel);
-  EXPECT_EQ(bg2_bitmap.data()[sample_index], kRoom001ObjectOverlapBg2Pixel);
-  EXPECT_EQ(bg1_objects.priority_data()[sample_index],
-            kRoom001ObjectOverlapBg1Priority);
-  EXPECT_EQ(bg2_objects.priority_data()[sample_index],
-            kRoom001ObjectOverlapBg2Priority);
-  EXPECT_EQ(composite.data()[sample_index], kRoom001ObjectOverlapCompositePixel)
-      << "Room 0x001 overlap pixel (" << kRoom001ObjectOverlapX << ","
-      << kRoom001ObjectOverlapY << ") should preserve the golden BG1-over-BG2 "
-      << "priority winner";
+
+  auto expect_lower_door_body = [&](int start_x, const char* label) {
+    for (int y = kRoom001DoorY; y < kRoom001DoorY + kRoom001DoorHeight; ++y) {
+      for (int x = start_x; x < start_x + kRoom001DoorBodyWidth; ++x) {
+        const int index = y * composite.width() + x;
+        ASSERT_EQ(bg1_objects.coverage_data()[index], 1)
+            << label << " " << x << "," << y;
+        EXPECT_EQ(bg1_bitmap.data()[index], 255)
+            << label << " " << x << "," << y;
+        ASSERT_NE(bg2_bitmap.data()[index], 255)
+            << label << " " << x << "," << y;
+        EXPECT_EQ(composite.data()[index], bg2_bitmap.data()[index])
+            << label << " guidance wall covered door body at " << x << "," << y;
+      }
+    }
+  };
+
+  auto expect_upper_door_edge = [&](int start_x, const char* label) {
+    for (int y = kRoom001DoorY; y < kRoom001DoorY + kRoom001DoorHeight; ++y) {
+      for (int x = start_x; x < start_x + kRoom001DoorEdgeWidth; ++x) {
+        const int index = y * composite.width() + x;
+        ASSERT_NE(bg1_bitmap.data()[index], 255)
+            << label << " " << x << "," << y;
+        EXPECT_EQ(composite.data()[index], bg1_bitmap.data()[index])
+            << label << " upper edge lost at " << x << "," << y;
+      }
+    }
+  };
+
+  expect_lower_door_body(kRoom001WestDoorBodyX, "west door");
+  expect_lower_door_body(kRoom001EastDoorBodyX, "east door");
+  expect_upper_door_edge(kRoom001WestDoorEdgeX, "west door");
+  expect_upper_door_edge(kRoom001EastDoorEdgeX, "east door");
+}
+
+TEST_F(DungeonRoomRegressionFixturesTest,
+       Room077SpiralStairRastersFollowStoredBg2Stream) {
+  Room room = LoadRoomFromRom(&rom_, 0x077);
+  room.SetGameData(&game_data_);
+  room.LoadObjects();
+
+  struct SpiralWitness {
+    int object_id;
+    int x;
+    int y;
+  };
+  constexpr std::array<SpiralWitness, 3> kWitnesses = {{
+      {0x138, 44, 41},
+      {0x139, 16, 41},
+      {0x13B, 14, 7},
+  }};
+
+  gfx::PaletteGroup palette_group;
+  for (const auto& witness : kWitnesses) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object=0x" << std::hex << witness.object_id << " at ("
+                 << std::dec << witness.x << "," << witness.y << ")");
+    const auto& objects = room.GetTileObjects();
+    const auto object_it = std::find_if(
+        objects.begin(), objects.end(), [&](const RoomObject& object) {
+          return object.id_ == witness.object_id && object.x_ == witness.x &&
+                 object.y_ == witness.y;
+        });
+    ASSERT_NE(object_it, objects.end());
+    ASSERT_EQ(object_it->GetLayerValue(), 1)
+        << "Room 0x077 witness moved out of the lower object-list stream.";
+
+    RoomObject object = *object_it;
+    object.SetRom(&rom_);
+    object.EnsureTilesLoaded();
+    ASSERT_GE(object.tiles().size(), 12u);
+
+    gfx::BackgroundBuffer upper(512, 512);
+    gfx::BackgroundBuffer lower(512, 512);
+    ObjectDrawer drawer(&rom_, /*room_id=*/0x077,
+                        /*room_gfx_buffer=*/nullptr);
+    std::vector<ObjectDrawer::TileTrace> trace;
+    drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+    ASSERT_TRUE(drawer.DrawObject(object, upper, lower, palette_group).ok());
+    ASSERT_EQ(trace.size(), 12u);
+
+    for (int column = 0; column < 4; ++column) {
+      for (int row = 0; row < 3; ++row) {
+        const int index = column * 3 + row;
+        EXPECT_EQ(trace[index].layer,
+                  static_cast<uint8_t>(RoomObject::LayerType::BG2));
+        EXPECT_EQ(trace[index].x_tile, witness.x + column);
+        EXPECT_EQ(trace[index].y_tile, witness.y + row);
+        EXPECT_EQ(trace[index].tile_id, object.tiles()[index].id_)
+            << "The real ROM tile payload must stay column-major.";
+      }
+    }
+  }
 }
 
 TEST_F(DungeonRoomRegressionFixturesTest,
@@ -567,6 +791,471 @@ TEST_F(DungeonRoomRegressionFixturesTest,
         << "Mesen and yaze ROI RGBA bytes must match exactly.";
   }
 #endif
+}
+
+TEST_F(DungeonRoomRegressionFixturesTest,
+       Room065TableRockRoiMatchesIndependentMesenBaseline) {
+#if !defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
+  GTEST_SKIP() << "libpng-backed VisualDiffEngine is unavailable.";
+#else
+  if (rom_.size() < kCanonicalUsRomSize) {
+    GTEST_SKIP() << "Mesen baseline requires the canonical US ROM data.";
+  }
+  const std::string base_sha1 =
+      util::ComputeSha1Hex(rom_.data(), kCanonicalUsRomSize);
+  if (base_sha1 != kCanonicalUsRomSha1) {
+    GTEST_SKIP() << "Mesen baseline was captured from US ROM SHA-1 "
+                 << kCanonicalUsRomSha1 << "; loaded ROM begins with "
+                 << base_sha1 << ".";
+  }
+
+  Room room = LoadRoomFromRom(&rom_, 0x065);
+  room.SetGameData(&game_data_);
+  auto* state = dynamic_cast<EditorDungeonState*>(room.GetDungeonState());
+  ASSERT_NE(state, nullptr);
+  state->SetFloorBombable(0x065, /*bombed=*/false);
+
+  bool saw_table_rock = false;
+  for (const auto& object : room.GetTileObjects()) {
+    if (object.id_ == 0xDD && object.x_ == 41 && object.y_ == 52) {
+      saw_table_rock = true;
+      break;
+    }
+  }
+  ASSERT_TRUE(saw_table_rock)
+      << "Room 0x065 must contain TableRock 0xDD at tile (41,52).";
+
+  room.LoadSprites();
+  room.SetRenderEntranceBlockset(kRoom065EntranceBlockset);
+  room.RenderRoomGraphics();
+
+  RoomLayerManager layer_manager;
+  layer_manager.SetLayerVisible(LayerType::BG2_Layout, false);
+  layer_manager.SetLayerVisible(LayerType::BG2_Objects, false);
+  const auto& upper_composite = room.GetCompositeBitmap(layer_manager);
+  ASSERT_TRUE(upper_composite.is_active());
+  ASSERT_NE(upper_composite.surface(), nullptr);
+  ASSERT_GE(upper_composite.width(),
+            kRoom065TableRockYazeRoiX + kRoom065RoiWidth);
+  ASSERT_GE(upper_composite.height(),
+            kRoom065TableRockYazeRoiY + kRoom065RoiHeight);
+
+  const auto actual = CaptureRgbaRegion(
+      upper_composite, kRoom065TableRockYazeRoiX, kRoom065TableRockYazeRoiY,
+      kRoom065RoiWidth, kRoom065RoiHeight);
+  ASSERT_TRUE(actual.IsValid());
+
+  const std::filesystem::path baseline_path =
+      std::filesystem::path(YAZE_TEST_FIXTURE_DIR) / "visual" / "dungeon" /
+      "vanilla_room_065_mesen_tablerock_32x32.png";
+  auto expected_or =
+      ::yaze::test::VisualDiffEngine::LoadPng(baseline_path.string());
+  ASSERT_TRUE(expected_or.ok())
+      << "Unable to load Mesen TableRock baseline " << baseline_path << ": "
+      << expected_or.status();
+  const auto& expected = *expected_or;
+  ASSERT_EQ(expected.width, kRoom065RoiWidth);
+  ASSERT_EQ(expected.height, kRoom065RoiHeight);
+
+  ::yaze::test::VisualDiffConfig config;
+  config.tolerance = 1.0f;
+  config.color_threshold = 0;
+  config.generate_diff_image = false;
+  config.algorithm = ::yaze::test::VisualDiffConfig::Algorithm::kPixelExact;
+  ::yaze::test::VisualDiffEngine diff_engine(config);
+  const auto result = diff_engine.CompareScreenshots(actual, expected);
+
+  EXPECT_TRUE(result.identical)
+      << "Yaze room 0x065 TableRock ROI (" << kRoom065TableRockYazeRoiX << ","
+      << kRoom065TableRockYazeRoiY << ") differs from the Mesen screen ROI ("
+      << kRoom065TableRockMesenRoiX << "," << kRoom065TableRockMesenRoiY
+      << "): " << result.Format();
+  EXPECT_TRUE(result.passed) << result.Format();
+  EXPECT_EQ(result.differing_pixels, 0);
+  EXPECT_EQ(result.total_pixels, kRoom065RoiWidth * kRoom065RoiHeight);
+  EXPECT_TRUE(actual.data == expected.data)
+      << "Mesen and yaze TableRock ROI RGBA bytes must match exactly.";
+#endif
+}
+
+TEST_F(DungeonRoomRegressionFixturesTest,
+       Room031BigHoleRoiMatchesIndependentMesenBaseline) {
+#if !defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
+  GTEST_SKIP() << "libpng-backed VisualDiffEngine is unavailable.";
+#else
+  if (rom_.size() < kCanonicalUsRomSize) {
+    GTEST_SKIP() << "Mesen baseline requires the canonical US ROM data.";
+  }
+  const std::string base_sha1 =
+      util::ComputeSha1Hex(rom_.data(), kCanonicalUsRomSize);
+  if (base_sha1 != kCanonicalUsRomSha1) {
+    GTEST_SKIP() << "Mesen baseline was captured from US ROM SHA-1 "
+                 << kCanonicalUsRomSha1 << "; loaded ROM begins with "
+                 << base_sha1 << ".";
+  }
+
+  Room room = LoadRoomFromRom(&rom_, 0x031);
+  room.SetGameData(&game_data_);
+
+  bool saw_big_hole = false;
+  for (const auto& object : room.GetTileObjects()) {
+    if (object.id_ == 0xA4 && object.x_ == 44 && object.y_ == 44) {
+      saw_big_hole = true;
+      break;
+    }
+  }
+  ASSERT_TRUE(saw_big_hole)
+      << "Room 0x031 must contain BigHole 0xA4 at tile (44,44).";
+
+  room.LoadSprites();
+  // Match the entrance-0x34 blockset used during the Mesen capture.
+  room.SetRenderEntranceBlockset(kRoom065EntranceBlockset);
+  room.RenderRoomGraphics();
+
+  RoomLayerManager layer_manager;
+  layer_manager.SetLayerVisible(LayerType::BG2_Layout, false);
+  layer_manager.SetLayerVisible(LayerType::BG2_Objects, false);
+  const auto& upper_composite = room.GetCompositeBitmap(layer_manager);
+  ASSERT_TRUE(upper_composite.is_active());
+  ASSERT_NE(upper_composite.surface(), nullptr);
+  ASSERT_GE(upper_composite.width(),
+            kRoom031BigHoleYazeRoiX + kRoom065RoiWidth);
+  ASSERT_GE(upper_composite.height(),
+            kRoom031BigHoleYazeRoiY + kRoom065RoiHeight);
+
+  const auto actual = CaptureRgbaRegion(
+      upper_composite, kRoom031BigHoleYazeRoiX, kRoom031BigHoleYazeRoiY,
+      kRoom065RoiWidth, kRoom065RoiHeight);
+  ASSERT_TRUE(actual.IsValid());
+
+  const std::filesystem::path baseline_path =
+      std::filesystem::path(YAZE_TEST_FIXTURE_DIR) / "visual" / "dungeon" /
+      "vanilla_room_031_mesen_bighole_32x32.png";
+  auto expected_or =
+      ::yaze::test::VisualDiffEngine::LoadPng(baseline_path.string());
+  ASSERT_TRUE(expected_or.ok())
+      << "Unable to load Mesen BigHole baseline " << baseline_path << ": "
+      << expected_or.status();
+  const auto& expected = *expected_or;
+  ASSERT_EQ(expected.width, kRoom065RoiWidth);
+  ASSERT_EQ(expected.height, kRoom065RoiHeight);
+
+  ::yaze::test::VisualDiffConfig config;
+  config.tolerance = 1.0f;
+  config.color_threshold = 0;
+  config.generate_diff_image = false;
+  config.algorithm = ::yaze::test::VisualDiffConfig::Algorithm::kPixelExact;
+  ::yaze::test::VisualDiffEngine diff_engine(config);
+  const auto result = diff_engine.CompareScreenshots(actual, expected);
+
+  EXPECT_TRUE(result.identical)
+      << "Yaze room 0x031 BigHole ROI (" << kRoom031BigHoleYazeRoiX << ","
+      << kRoom031BigHoleYazeRoiY << ") differs from the Mesen screen ROI ("
+      << kRoom031BigHoleMesenRoiX << "," << kRoom031BigHoleMesenRoiY
+      << "): " << result.Format();
+  EXPECT_TRUE(result.passed) << result.Format();
+  EXPECT_EQ(result.differing_pixels, 0);
+  EXPECT_EQ(result.total_pixels, kRoom065RoiWidth * kRoom065RoiHeight);
+  EXPECT_TRUE(actual.data == expected.data)
+      << "Mesen and yaze BigHole ROI RGBA bytes must match exactly.";
+#endif
+}
+
+TEST_F(DungeonRoomRegressionFixturesTest,
+       Room007LongRailRoisMatchIndependentMesenBaselines) {
+#if !defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
+  GTEST_SKIP() << "libpng-backed VisualDiffEngine is unavailable.";
+#else
+  if (rom_.size() < kCanonicalUsRomSize) {
+    GTEST_SKIP() << "Mesen baselines require the canonical US ROM data.";
+  }
+  const std::string base_sha1 =
+      util::ComputeSha1Hex(rom_.data(), kCanonicalUsRomSize);
+  if (base_sha1 != kCanonicalUsRomSha1) {
+    GTEST_SKIP() << "Mesen baselines were captured from US ROM SHA-1 "
+                 << kCanonicalUsRomSha1 << "; loaded ROM begins with "
+                 << base_sha1 << ".";
+  }
+
+  Room room = LoadRoomFromRom(&rom_, 0x007);
+  room.SetGameData(&game_data_);
+
+  bool saw_h_rail = false;
+  bool saw_v_rail = false;
+  for (const auto& object : room.GetTileObjects()) {
+    if (object.id_ == 0x5F && object.x_ == 20 && object.y_ == 14) {
+      saw_h_rail = true;
+    }
+    if (object.id_ == 0x8A && object.x_ == 14 && object.y_ == 20) {
+      saw_v_rail = true;
+    }
+  }
+  ASSERT_TRUE(saw_h_rail) << "Room 0x007 must contain H-rail 0x5F at (20,14).";
+  ASSERT_TRUE(saw_v_rail) << "Room 0x007 must contain V-rail 0x8A at (14,20).";
+
+  room.LoadSprites();
+  room.SetRenderEntranceBlockset(kRoom007EntranceBlockset);
+  room.RenderRoomGraphics();
+
+  RoomLayerManager layer_manager;
+  layer_manager.SetLayerVisible(LayerType::BG2_Layout, false);
+  layer_manager.SetLayerVisible(LayerType::BG2_Objects, false);
+  const auto& upper_composite = room.GetCompositeBitmap(layer_manager);
+  ASSERT_TRUE(upper_composite.is_active());
+  ASSERT_NE(upper_composite.surface(), nullptr);
+
+  struct RailCase {
+    const char* name;
+    int yaze_x;
+    int yaze_y;
+    int mesen_x;
+    int mesen_y;
+    int width;
+    int height;
+    const char* fixture_name;
+  };
+  constexpr RailCase kCases[] = {
+      {"HRail_0x5F", kRoom007HRailYazeRoiX, kRoom007HRailYazeRoiY,
+       kRoom007HRailMesenRoiX, kRoom007HRailMesenRoiY, kRoom007HRailRoiWidth,
+       kRoom007HRailRoiHeight, "vanilla_room_007_mesen_hrail_32x16.png"},
+      {"VRail_0x8A", kRoom007VRailYazeRoiX, kRoom007VRailYazeRoiY,
+       kRoom007VRailMesenRoiX, kRoom007VRailMesenRoiY, kRoom007VRailRoiWidth,
+       kRoom007VRailRoiHeight, "vanilla_room_007_mesen_vrail_16x32.png"},
+  };
+
+  for (const auto& test_case : kCases) {
+    SCOPED_TRACE(test_case.name);
+    ASSERT_GE(upper_composite.width(), test_case.yaze_x + test_case.width);
+    ASSERT_GE(upper_composite.height(), test_case.yaze_y + test_case.height);
+
+    const auto actual =
+        CaptureRgbaRegion(upper_composite, test_case.yaze_x, test_case.yaze_y,
+                          test_case.width, test_case.height);
+    ASSERT_TRUE(actual.IsValid());
+
+    const std::filesystem::path baseline_path =
+        std::filesystem::path(YAZE_TEST_FIXTURE_DIR) / "visual" / "dungeon" /
+        test_case.fixture_name;
+    auto expected_or =
+        ::yaze::test::VisualDiffEngine::LoadPng(baseline_path.string());
+    ASSERT_TRUE(expected_or.ok())
+        << "Unable to load Mesen rail baseline " << baseline_path << ": "
+        << expected_or.status();
+    const auto& expected = *expected_or;
+    ASSERT_EQ(expected.width, test_case.width);
+    ASSERT_EQ(expected.height, test_case.height);
+
+    ::yaze::test::VisualDiffConfig config;
+    config.tolerance = 1.0f;
+    config.color_threshold = 0;
+    config.generate_diff_image = false;
+    config.algorithm = ::yaze::test::VisualDiffConfig::Algorithm::kPixelExact;
+    ::yaze::test::VisualDiffEngine diff_engine(config);
+    const auto result = diff_engine.CompareScreenshots(actual, expected);
+
+    EXPECT_TRUE(result.identical)
+        << "Yaze room 0x007 " << test_case.name << " ROI (" << test_case.yaze_x
+        << "," << test_case.yaze_y << ") differs from the Mesen screen ROI ("
+        << test_case.mesen_x << "," << test_case.mesen_y
+        << "): " << result.Format();
+    EXPECT_TRUE(result.passed) << result.Format();
+    EXPECT_EQ(result.differing_pixels, 0);
+    EXPECT_EQ(result.total_pixels, test_case.width * test_case.height);
+    EXPECT_TRUE(actual.data == expected.data)
+        << "Mesen and yaze " << test_case.name
+        << " ROI RGBA bytes must match exactly.";
+  }
+#endif
+}
+
+TEST_F(DungeonRoomRegressionFixturesTest,
+       Room076WestDoorRoiMatchesIndependentMesenBaseline) {
+#if !defined(YAZE_HAS_VISUAL_DIFF_ENGINE)
+  GTEST_SKIP() << "libpng-backed VisualDiffEngine is unavailable.";
+#else
+  if (rom_.size() < kCanonicalUsRomSize) {
+    GTEST_SKIP() << "Mesen baselines require the canonical US ROM data.";
+  }
+  const std::string base_sha1 =
+      util::ComputeSha1Hex(rom_.data(), kCanonicalUsRomSize);
+  if (base_sha1 != kCanonicalUsRomSha1) {
+    GTEST_SKIP() << "Mesen baselines were captured from US ROM SHA-1 "
+                 << kCanonicalUsRomSha1 << "; loaded ROM begins with "
+                 << base_sha1 << ".";
+  }
+
+  Room room = LoadRoomFromRom(&rom_, 0x076);
+  room.SetGameData(&game_data_);
+
+  bool saw_west_door = false;
+  for (const auto& door : room.GetDoors()) {
+    if (door.direction != DoorDirection::West) {
+      continue;
+    }
+    const auto [tile_x, tile_y] = door.GetTileCoords();
+    if (tile_x == 37 && tile_y == 15 &&
+        door.type == DoorType::NormalDoorLower) {
+      saw_west_door = true;
+      break;
+    }
+  }
+  ASSERT_TRUE(saw_west_door)
+      << "Room 0x076 must contain West NormalDoorLower at tile (37,15).";
+
+  room.LoadSprites();
+  room.SetRenderEntranceBlockset(kRoom076EntranceBlockset);
+  room.RenderRoomGraphics();
+
+  RoomLayerManager layer_manager;
+  layer_manager.SetLayerVisible(LayerType::BG2_Layout, false);
+  layer_manager.SetLayerVisible(LayerType::BG2_Objects, false);
+  const auto& upper_composite = room.GetCompositeBitmap(layer_manager);
+  ASSERT_TRUE(upper_composite.is_active());
+  ASSERT_NE(upper_composite.surface(), nullptr);
+  ASSERT_GE(upper_composite.width(),
+            kRoom076WestDoorYazeRoiX + kRoom076WestDoorRoiWidth);
+  ASSERT_GE(upper_composite.height(),
+            kRoom076WestDoorYazeRoiY + kRoom076WestDoorRoiHeight);
+
+  const auto actual = CaptureRgbaRegion(
+      upper_composite, kRoom076WestDoorYazeRoiX, kRoom076WestDoorYazeRoiY,
+      kRoom076WestDoorRoiWidth, kRoom076WestDoorRoiHeight);
+  ASSERT_TRUE(actual.IsValid());
+
+  const std::filesystem::path baseline_path =
+      std::filesystem::path(YAZE_TEST_FIXTURE_DIR) / "visual" / "dungeon" /
+      "vanilla_room_076_mesen_west_door_24x32.png";
+  auto expected_or =
+      ::yaze::test::VisualDiffEngine::LoadPng(baseline_path.string());
+  ASSERT_TRUE(expected_or.ok())
+      << "Unable to load Mesen west-door baseline " << baseline_path << ": "
+      << expected_or.status();
+  const auto& expected = *expected_or;
+  ASSERT_EQ(expected.width, kRoom076WestDoorRoiWidth);
+  ASSERT_EQ(expected.height, kRoom076WestDoorRoiHeight);
+
+  ::yaze::test::VisualDiffConfig config;
+  config.tolerance = 1.0f;
+  config.color_threshold = 0;
+  config.generate_diff_image = false;
+  config.algorithm = ::yaze::test::VisualDiffConfig::Algorithm::kPixelExact;
+  ::yaze::test::VisualDiffEngine diff_engine(config);
+  const auto result = diff_engine.CompareScreenshots(actual, expected);
+
+  EXPECT_TRUE(result.identical)
+      << "Yaze room 0x076 west-door ROI (" << kRoom076WestDoorYazeRoiX << ","
+      << kRoom076WestDoorYazeRoiY << ") differs from the Mesen screen ROI ("
+      << kRoom076WestDoorMesenRoiX << "," << kRoom076WestDoorMesenRoiY
+      << "): " << result.Format();
+  EXPECT_TRUE(result.passed) << result.Format();
+  EXPECT_EQ(result.differing_pixels, 0);
+  EXPECT_EQ(result.total_pixels,
+            kRoom076WestDoorRoiWidth * kRoom076WestDoorRoiHeight);
+  EXPECT_TRUE(actual.data == expected.data)
+      << "Mesen and yaze west-door ROI RGBA bytes must match exactly.";
+#endif
+}
+
+TEST_F(DungeonRoomRegressionFixturesTest,
+       Room076WaterOverlayWritesBg2ObjectBuffer) {
+  Room room = LoadRoomFromRom(&rom_, 0x076);
+  room.SetGameData(&game_data_);
+
+  bool saw_overlay = false;
+  int overlay_size = -1;
+  for (const auto& object : room.GetTileObjects()) {
+    if (object.id_ == kRoom076WaterOverlayObjectId &&
+        object.x_ == kRoom076WaterOverlayTileX &&
+        object.y_ == kRoom076WaterOverlayTileY) {
+      saw_overlay = true;
+      overlay_size = object.size_;
+      EXPECT_EQ(object.GetLayerValue(), 1)
+          << "Water overlay 0xD8 must come from the BG2 overlay stream";
+      break;
+    }
+  }
+  ASSERT_TRUE(saw_overlay)
+      << "Room 0x076 must contain water overlay 0xD8 at tile (38,13).";
+  EXPECT_EQ(overlay_size, 9) << "Vanilla room 0x076 0xD8 size nibble is 9";
+
+  room.LoadSprites();
+  room.SetRenderEntranceBlockset(kRoom076EntranceBlockset);
+  room.RenderRoomGraphics();
+
+  const auto& object_bg2 = room.object_bg2_buffer().bitmap();
+  ASSERT_TRUE(object_bg2.is_active());
+  ASSERT_NE(object_bg2.data(), nullptr);
+
+  // size nibble 9 → size_x=2, size_y=1 → count_x=4, count_y=3 stamps of 4x4
+  // tiles → 16x12 tiles = 128x96 pixels starting at (38,13)*8.
+  constexpr int kOverlayPixelX = kRoom076WaterOverlayTileX * 8;
+  constexpr int kOverlayPixelY = kRoom076WaterOverlayTileY * 8;
+  constexpr int kOverlayPixelW = 16 * 8;
+  constexpr int kOverlayPixelH = 12 * 8;
+  ASSERT_GE(object_bg2.width(), kOverlayPixelX + kOverlayPixelW);
+  ASSERT_GE(object_bg2.height(), kOverlayPixelY + kOverlayPixelH);
+
+  const auto& object_bg2_coverage = room.object_bg2_buffer().coverage_data();
+  int covered_pixels = 0;
+  int opaque_pixels = 0;
+  for (int py = 0; py < kOverlayPixelH; ++py) {
+    for (int px = 0; px < kOverlayPixelW; ++px) {
+      const int index =
+          (kOverlayPixelY + py) * object_bg2.width() + (kOverlayPixelX + px);
+      if (object_bg2_coverage[index] != 0) {
+        ++covered_pixels;
+      }
+      if (object_bg2.data()[index] != 255) {
+        ++opaque_pixels;
+      }
+    }
+  }
+  EXPECT_GT(covered_pixels, 1000)
+      << "Water overlay 0xD8 must write tilemap coverage in its BG2 stream ROI";
+  EXPECT_GT(opaque_pixels, 1000)
+      << "Yaze's currently modeled water state must stamp visible BG2 pixels";
+
+  // Hold BG2 layout visibility constant and toggle only BG2 objects. This
+  // isolates the modeled 0xD8 stamp instead of attributing unrelated lower
+  // layout pixels to the object.
+  // GetCompositeBitmap returns a reference to one mutable buffer — snapshot
+  // object-hidden state before requesting the object-visible composite.
+  RoomLayerManager without_bg2_objects;
+  without_bg2_objects.ApplyLayerMerging(room.layer_merging());
+  without_bg2_objects.ApplyRoomEffect(room.effect());
+  without_bg2_objects.SetLayerVisible(LayerType::BG2_Layout, false);
+  without_bg2_objects.SetLayerVisible(LayerType::BG2_Objects, false);
+  RoomLayerManager with_bg2_objects;
+  with_bg2_objects.ApplyLayerMerging(room.layer_merging());
+  with_bg2_objects.ApplyRoomEffect(room.effect());
+  with_bg2_objects.SetLayerVisible(LayerType::BG2_Layout, false);
+  const auto& without_objects_composite =
+      room.GetCompositeBitmap(without_bg2_objects);
+  ASSERT_TRUE(without_objects_composite.is_active());
+  std::vector<uint8_t> without_objects_snapshot(
+      without_objects_composite.data(),
+      without_objects_composite.data() +
+          static_cast<size_t>(without_objects_composite.size()));
+
+  const auto& full_composite = room.GetCompositeBitmap(with_bg2_objects);
+  ASSERT_TRUE(full_composite.is_active());
+  ASSERT_EQ(without_objects_snapshot.size(),
+            static_cast<size_t>(full_composite.size()));
+
+  int differing = 0;
+  for (int py = 0; py < kOverlayPixelH; ++py) {
+    for (int px = 0; px < kOverlayPixelW; ++px) {
+      const int index = (kOverlayPixelY + py) * full_composite.width() +
+                        (kOverlayPixelX + px);
+      if (without_objects_snapshot[static_cast<size_t>(index)] !=
+          full_composite.data()[index]) {
+        ++differing;
+      }
+    }
+  }
+  EXPECT_GT(differing, 100) << "The modeled 0xD8 BG2 object stamp must change "
+                               "the composite when only "
+                               "BG2 object visibility is toggled";
 }
 
 TEST_F(DungeonRoomRegressionFixturesTest, PerLayerFingerprintsMatchGolden) {

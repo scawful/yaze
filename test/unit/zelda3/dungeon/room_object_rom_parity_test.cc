@@ -23,6 +23,8 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
+#include <array>
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -30,6 +32,7 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/render/background_buffer.h"
 #include "app/gfx/types/snes_tile.h"
+#include "core/features.h"
 #include "rom/rom.h"
 #include "test_utils.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
@@ -67,11 +70,29 @@ constexpr int kLastWeirdCornerBottom = 0x113;
 constexpr int kFirstWeirdCornerTop = 0x114;
 constexpr int kLastWeirdCornerTop = 0x117;
 
+struct ScopedCustomObjectsFlag {
+  bool previous = false;
+
+  explicit ScopedCustomObjectsFlag(bool enabled)
+      : previous(core::FeatureFlags::get().kEnableCustomObjects) {
+    core::FeatureFlags::get().kEnableCustomObjects = enabled;
+  }
+
+  ~ScopedCustomObjectsFlag() {
+    core::FeatureFlags::get().kEnableCustomObjects = previous;
+  }
+};
+
 // Read 2 bytes at rom[addr] as a little-endian 16-bit word.
 uint16_t ReadWordLE(const ::yaze::Rom& rom, int addr) {
   const auto& data = rom.data();
   return static_cast<uint16_t>(data[addr] |
                                (static_cast<uint16_t>(data[addr + 1]) << 8));
+}
+
+int Subtype1TileDataAddr(const ::yaze::Rom& rom, int object_id) {
+  const int table_addr = kSubtype1Base + object_id * 2;
+  return kTileDataBase + ReadWordLE(rom, table_addr);
 }
 
 // Resolve the tile-data start address for a Subtype 2 object from ROM.
@@ -115,14 +136,21 @@ std::vector<ObjectDrawer::TileTrace> FilterByLayer(
   return filtered;
 }
 
+void ExpectTraceTileMatches(const ObjectDrawer::TileTrace& actual,
+                            const gfx::TileInfo& expected) {
+  EXPECT_EQ(actual.tile_id, expected.id_);
+  EXPECT_EQ((actual.flags & 0x01) != 0, expected.horizontal_mirror_);
+  EXPECT_EQ((actual.flags & 0x02) != 0, expected.vertical_mirror_);
+  EXPECT_EQ((actual.flags & 0x04) != 0, expected.over_);
+  EXPECT_EQ((actual.flags >> 3) & 0x07, expected.palette_);
+}
+
 // Drive ObjectDrawer for a ROM-loaded object, capturing writes in trace-only
 // mode so neither bg1 nor bg2 needs palette/gfx wiring.
-std::vector<ObjectDrawer::TileTrace> ReplayRomObjectTrace(::yaze::Rom* rom,
-                                                          int16_t object_id,
-                                                          int x, int y,
-                                                          uint8_t size) {
-  RoomObject obj(object_id, x, y, size,
-                 static_cast<int>(RoomObject::LayerType::BG1));
+std::vector<ObjectDrawer::TileTrace> ReplayRomObjectTraceOnLayer(
+    ::yaze::Rom* rom, int16_t object_id, int x, int y, uint8_t size,
+    RoomObject::LayerType layer) {
+  RoomObject obj(object_id, x, y, size, static_cast<int>(layer));
   obj.SetRom(rom);
   obj.EnsureTilesLoaded();
 
@@ -135,6 +163,14 @@ std::vector<ObjectDrawer::TileTrace> ReplayRomObjectTrace(::yaze::Rom* rom,
   drawer.SetTraceCollector(&trace, /*trace_only=*/true);
   EXPECT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
   return trace;
+}
+
+std::vector<ObjectDrawer::TileTrace> ReplayRomObjectTrace(::yaze::Rom* rom,
+                                                          int16_t object_id,
+                                                          int x, int y,
+                                                          uint8_t size) {
+  return ReplayRomObjectTraceOnLayer(rom, object_id, x, y, size,
+                                     RoomObject::LayerType::BG1);
 }
 
 // Minimal DungeonState stub for exercising state-branching draw routines
@@ -297,6 +333,148 @@ TEST_P(RoomObjectRomParityTest, Subtype1SmokeSample_ParserMatchesRawRomWords) {
     ASSERT_EQ(static_cast<int>(parsed.size()), s.tile_count);
     for (size_t i = 0; i < expected.size(); ++i) {
       EXPECT_TRUE(parsed[i] == expected[i]) << "tile idx=" << i;
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Floor-copy objects select room-header patterns, not subtype tile pointers
+// -----------------------------------------------------------------------------
+
+TEST_P(RoomObjectRomParityTest,
+       FloorCopyObjectsUseCanonicalVanillaRoomHeaderPatterns) {
+  if (GetParam() != ::yaze::test::RomRole::kVanilla) {
+    GTEST_SKIP() << "Fixed floor-copy witnesses belong to the canonical US ROM";
+  }
+  ScopedCustomObjectsFlag disable_custom_objects(false);
+
+  struct FloorCopyWitness {
+    int room_id;
+    int16_t object_id;
+    uint8_t x;
+    uint8_t y;
+    uint8_t size;
+    uint8_t list_index;
+    uint8_t expected_floor1;
+    uint8_t expected_floor2;
+  };
+
+  // Verified against roms/zelda3.sfc (SHA-1
+  // 6d4f10a8b10e10dbe624cb23cf03b88bb8252973). These witnesses exercise both
+  // USDASM selectors: 0xC4 copies $046A (Floor 1), while 0xDB copies $0490
+  // (Floor 2).
+  constexpr std::array<FloorCopyWitness, 2> kWitnesses = {{
+      {0x000, 0x00C4, 49, 5, 11, 0, 6, 14},
+      {0x014, 0x00DB, 4, 6, 13, 1, 1, 11},
+  }};
+
+  for (const auto& witness : kWitnesses) {
+    SCOPED_TRACE(absl::StrFormat("room=0x%03X object=0x%03X", witness.room_id,
+                                 witness.object_id));
+    Room room = LoadRoomFromRom(rom_.get(), witness.room_id);
+    ASSERT_EQ(room.floor1(), witness.expected_floor1);
+    ASSERT_EQ(room.floor2(), witness.expected_floor2);
+
+    const auto& room_objects = room.GetTileObjects();
+    const auto object_it = std::find_if(
+        room_objects.begin(), room_objects.end(),
+        [&](const RoomObject& object) {
+          return object.id_ == witness.object_id && object.x() == witness.x &&
+                 object.y() == witness.y && object.size() == witness.size;
+        });
+    ASSERT_NE(object_it, room_objects.end())
+        << "canonical room-object witness moved or disappeared";
+    ASSERT_EQ(object_it->GetLayerValue(), witness.list_index);
+
+    const uint8_t selected_floor =
+        witness.object_id == 0x00C4 ? room.floor1() : room.floor2();
+    const auto expected_pattern = gfx::DecodeDungeonFloorTilePattern(
+        rom_->vector(), kRoomObjectTileAddress, kRoomObjectTileAddressFloor,
+        selected_floor);
+    ASSERT_TRUE(expected_pattern.has_value());
+
+    // Both object IDs have a zero subtype pointer in vanilla. Their normal
+    // descriptor payload therefore decodes pattern 0 and must not be used when
+    // a real room header is available.
+    ASSERT_EQ(ReadWordLE(*rom_, kSubtype1Base + witness.object_id * 2), 0);
+    const auto& descriptor_tiles = object_it->tiles();
+    ASSERT_GE(descriptor_tiles.size(), expected_pattern->size());
+    bool selected_pattern_differs_from_descriptor = false;
+    for (size_t index = 0; index < expected_pattern->size(); ++index) {
+      selected_pattern_differs_from_descriptor |=
+          gfx::TileInfoToWord(descriptor_tiles[index]) !=
+          gfx::TileInfoToWord((*expected_pattern)[index]);
+    }
+    ASSERT_TRUE(selected_pattern_differs_from_descriptor)
+        << "witness cannot distinguish room-floor selection from descriptor "
+           "fallback";
+
+    RoomObject render_object = *object_it;
+    render_object.layer_ =
+        MapRoomObjectListIndexToDrawLayer(witness.list_index);
+    ObjectDrawer drawer(rom_.get(), witness.room_id);
+    drawer.SetRoomFloorGraphics(room.floor1(), room.floor2());
+    gfx::BackgroundBuffer bg1(512, 512);
+    gfx::BackgroundBuffer bg2(512, 512);
+    gfx::PaletteGroup palette_group;
+    std::vector<ObjectDrawer::TileTrace> trace;
+    drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+    ASSERT_TRUE(drawer.DrawObject(render_object, bg1, bg2, palette_group).ok());
+
+    const auto expected_layer =
+        MapRoomObjectListIndexToDrawLayer(witness.list_index);
+    const auto layer_trace = FilterByLayer(trace, expected_layer);
+    const int super_square_columns = ((witness.size >> 2) & 0x03) + 1;
+    const int super_square_rows = (witness.size & 0x03) + 1;
+    ASSERT_EQ(layer_trace.size(), static_cast<size_t>(super_square_columns *
+                                                      super_square_rows * 16));
+    ASSERT_EQ(layer_trace.size(), trace.size());
+
+    for (size_t index = 0; index < layer_trace.size(); ++index) {
+      SCOPED_TRACE(absl::StrFormat("trace index=%zu", index));
+      ExpectTraceTileMatches(layer_trace[index],
+                             (*expected_pattern)[index % 8]);
+      EXPECT_NE(layer_trace[index].tile_id,
+                descriptor_tiles[index % descriptor_tiles.size()].id_)
+          << "floor-copy draw fell back to the ordinary object payload";
+    }
+  }
+}
+
+TEST(ObjectDrawerFloorCopyFallbackTest,
+     ContextFreeObjectsKeepTheirSyntheticDescriptorPayload) {
+  ScopedCustomObjectsFlag disable_custom_objects(false);
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  ::yaze::Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(dummy_rom).ok());
+
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  gfx::PaletteGroup palette_group;
+  ObjectDrawer drawer(&rom, /*room_id=*/0);
+
+  for (const int16_t object_id : {int16_t{0x00C4}, int16_t{0x00DB}}) {
+    SCOPED_TRACE(absl::StrFormat("object=0x%03X", object_id));
+    RoomObject object(object_id, /*x=*/8, /*y=*/12, /*size=*/0,
+                      /*layer=*/0);
+    object.tiles_loaded_ = true;
+    for (int index = 0; index < 8; ++index) {
+      object.tiles_.emplace_back(static_cast<uint16_t>(0x300 + index),
+                                 index & 0x07,
+                                 /*vertical_mirror=*/(index & 0x01) != 0,
+                                 /*horizontal_mirror=*/(index & 0x02) != 0,
+                                 /*over=*/(index & 0x04) != 0);
+    }
+
+    std::vector<ObjectDrawer::TileTrace> trace;
+    drawer.SetTraceCollector(&trace, /*trace_only=*/true);
+    ASSERT_TRUE(drawer.DrawObject(object, bg1, bg2, palette_group).ok());
+    drawer.ClearTraceCollector();
+
+    ASSERT_EQ(trace.size(), 16U);
+    for (size_t index = 0; index < trace.size(); ++index) {
+      SCOPED_TRACE(absl::StrFormat("trace index=%zu", index));
+      ExpectTraceTileMatches(trace[index], object.tiles_[index % 8]);
     }
   }
 }
@@ -636,6 +814,195 @@ TEST_P(RoomObjectRomParityTest, BombableFloorDrawerSelectsTilesByFloorState) {
       rom_.get(), 0xFC7, base_x, base_y, /*size=*/0, &bombed,
       kBombableFloorPreviewRoomId - 1);
   expect_state(other_room_trace, /*state_offset=*/0);
+}
+
+// -----------------------------------------------------------------------------
+// Visual parity gap objects (0.8.0 backlog): ROM parser + drawer truth
+// -----------------------------------------------------------------------------
+
+struct VisualParityGapSample {
+  int object_id;
+  int tile_count;
+  const char* label;
+};
+
+TEST_P(RoomObjectRomParityTest,
+       VisualParityGapObjectsParserMatchesRawRomWords) {
+  SCOPED_TRACE(::yaze::test::TestRomManager::GetRomRoleName(GetParam()));
+  const std::vector<VisualParityGapSample> samples = {
+      {0xA4, 24, "BigHole4x4"},
+      {0xD8, 8, "WaterOverlayA"},
+      {0xDA, 8, "WaterOverlayB"},
+      {0xDD, 16, "TableRock4x4"},
+      {0x5F, 3, "LongHorizontalRail_plus23"},
+      {0x8A, 3, "LongVerticalRail_plus23"},
+  };
+
+  ObjectParser parser(rom_.get());
+  for (const auto& sample : samples) {
+    SCOPED_TRACE(
+        absl::StrFormat("%s (0x%02X)", sample.label, sample.object_id));
+    const int addr = Subtype1TileDataAddr(*rom_, sample.object_id);
+    const auto expected = DecodeTilesFromRom(*rom_, addr, sample.tile_count);
+
+    auto parsed_or = parser.ParseObject(static_cast<int16_t>(sample.object_id));
+    ASSERT_TRUE(parsed_or.ok()) << parsed_or.status();
+    const auto& parsed = parsed_or.value();
+    ASSERT_EQ(static_cast<int>(parsed.size()), sample.tile_count);
+
+    for (size_t i = 0; i < expected.size(); ++i) {
+      SCOPED_TRACE(absl::StrFormat("tile idx=%zu", i));
+      EXPECT_EQ(parsed[i].id_, expected[i].id_);
+      EXPECT_EQ(parsed[i].palette_, expected[i].palette_);
+      EXPECT_EQ(parsed[i].horizontal_mirror_, expected[i].horizontal_mirror_);
+      EXPECT_EQ(parsed[i].vertical_mirror_, expected[i].vertical_mirror_);
+      EXPECT_EQ(parsed[i].over_, expected[i].over_);
+    }
+  }
+}
+
+TEST_P(RoomObjectRomParityTest, BigHoleDrawerUsesRomTileIndicesAtUsdasmSlots) {
+  SCOPED_TRACE(::yaze::test::TestRomManager::GetRomRoleName(GetParam()));
+  constexpr int kTileCount = 24;
+  const int addr = Subtype1TileDataAddr(*rom_, 0xA4);
+  const auto rom_tiles = DecodeTilesFromRom(*rom_, addr, kTileCount);
+
+  constexpr int kX = 8;
+  constexpr int kY = 10;
+  const auto trace = ReplayRomObjectTrace(rom_.get(), 0xA4, kX, kY, /*size=*/0);
+  const auto bg1 = FilterByLayer(trace, RoomObject::LayerType::BG1);
+  ASSERT_FALSE(bg1.empty());
+
+  auto find_at = [&](int x, int y) -> uint16_t {
+    for (const auto& t : bg1) {
+      if (t.x_tile == x && t.y_tile == y) {
+        return t.tile_id;
+      }
+    }
+    ADD_FAILURE() << "missing write at (" << x << "," << y << ")";
+    return 0;
+  };
+
+  const int max = 3;  // size=0 -> max = size + 3
+  EXPECT_EQ(find_at(kX, kY), rom_tiles[8].id_);
+  EXPECT_EQ(find_at(kX + max, kY), rom_tiles[14].id_);
+  EXPECT_EQ(find_at(kX, kY + max), rom_tiles[17].id_);
+  EXPECT_EQ(find_at(kX + max, kY + max), rom_tiles[23].id_);
+  EXPECT_EQ(find_at(kX + 1, kY + 1), rom_tiles[0].id_);
+  EXPECT_EQ(find_at(kX + 1, kY), rom_tiles[10].id_);
+  EXPECT_EQ(find_at(kX, kY + 1), rom_tiles[9].id_);
+}
+
+TEST_P(RoomObjectRomParityTest,
+       TableRockDrawerUsesRomTileIndicesAtUsdasmSlots) {
+  SCOPED_TRACE(::yaze::test::TestRomManager::GetRomRoleName(GetParam()));
+  constexpr int kTileCount = 16;
+  const int addr = Subtype1TileDataAddr(*rom_, 0xDD);
+  const auto rom_tiles = DecodeTilesFromRom(*rom_, addr, kTileCount);
+
+  constexpr int kX = 6;
+  constexpr int kY = 7;
+  const auto trace = ReplayRomObjectTrace(rom_.get(), 0xDD, kX, kY, /*size=*/0);
+  const auto bg1 = FilterByLayer(trace, RoomObject::LayerType::BG1);
+  ASSERT_FALSE(bg1.empty());
+
+  auto find_at = [&](int x, int y) -> uint16_t {
+    for (const auto& t : bg1) {
+      if (t.x_tile == x && t.y_tile == y) {
+        return t.tile_id;
+      }
+    }
+    ADD_FAILURE() << "missing write at (" << x << "," << y << ")";
+    return 0;
+  };
+
+  EXPECT_EQ(find_at(kX, kY), rom_tiles[0].id_);
+  EXPECT_EQ(find_at(kX + 1, kY + 1), rom_tiles[5].id_);
+  EXPECT_EQ(find_at(kX + 2, kY + 1), rom_tiles[6].id_);
+  EXPECT_EQ(find_at(kX + 3, kY), rom_tiles[3].id_);
+}
+
+TEST_P(RoomObjectRomParityTest, FloodWaterOverlayDrawerUsesRomTilesOnBg2) {
+  SCOPED_TRACE(::yaze::test::TestRomManager::GetRomRoleName(GetParam()));
+  for (const int object_id : {0xD8, 0xDA}) {
+    SCOPED_TRACE(absl::StrFormat("object 0x%02X", object_id));
+    constexpr int kTileCount = 8;
+    const int addr = Subtype1TileDataAddr(*rom_, object_id);
+    const auto rom_tiles = DecodeTilesFromRom(*rom_, addr, kTileCount);
+
+    constexpr int kX = 4;
+    constexpr int kY = 5;
+    const auto trace = ReplayRomObjectTraceOnLayer(
+        rom_.get(), static_cast<int16_t>(object_id), kX, kY, /*size=*/0,
+        RoomObject::LayerType::BG2);
+    const auto bg2 = FilterByLayer(trace, RoomObject::LayerType::BG2);
+    ASSERT_FALSE(bg2.empty());
+    EXPECT_TRUE(FilterByLayer(trace, RoomObject::LayerType::BG1).empty());
+
+    auto find_at = [&](int x, int y) -> uint16_t {
+      for (const auto& t : bg2) {
+        if (t.x_tile == x && t.y_tile == y) {
+          return t.tile_id;
+        }
+      }
+      ADD_FAILURE() << "missing write at (" << x << "," << y << ")";
+      return 0;
+    };
+
+    for (int tile_x = 0; tile_x < 4; ++tile_x) {
+      EXPECT_EQ(find_at(kX + tile_x, kY), rom_tiles[tile_x].id_);
+      EXPECT_EQ(find_at(kX + tile_x, kY + 1), rom_tiles[4 + tile_x].id_);
+    }
+  }
+}
+
+TEST_P(RoomObjectRomParityTest, LongRailDrawerUsesRomCornerMiddleEndPattern) {
+  SCOPED_TRACE(::yaze::test::TestRomManager::GetRomRoleName(GetParam()));
+  struct RailCase {
+    int object_id;
+    bool vertical;
+  };
+  const std::vector<RailCase> cases = {
+      {0x5F, false},
+      {0x8A, true},
+  };
+
+  for (const auto& rail : cases) {
+    SCOPED_TRACE(absl::StrFormat("object 0x%02X", rail.object_id));
+    const int addr = Subtype1TileDataAddr(*rom_, rail.object_id);
+    const auto rom_tiles = DecodeTilesFromRom(*rom_, addr, 3);
+
+    constexpr int kX = 9;
+    constexpr int kY = 11;
+    const auto trace = ReplayRomObjectTrace(
+        rom_.get(), static_cast<int16_t>(rail.object_id), kX, kY, /*size=*/0);
+    const auto bg1 = FilterByLayer(trace, RoomObject::LayerType::BG1);
+    ASSERT_EQ(bg1.size(), 23u) << "size=0 long rail span = 21 middle + 2 caps";
+
+    if (rail.vertical) {
+      EXPECT_EQ(bg1.front().x_tile, kX);
+      EXPECT_EQ(bg1.front().y_tile, kY);
+      EXPECT_EQ(bg1.front().tile_id, rom_tiles[0].id_);
+      for (size_t i = 1; i + 1 < bg1.size(); ++i) {
+        EXPECT_EQ(bg1[i].x_tile, kX);
+        EXPECT_EQ(bg1[i].tile_id, rom_tiles[1].id_);
+      }
+      EXPECT_EQ(bg1.back().x_tile, kX);
+      EXPECT_EQ(bg1.back().y_tile, kY + 22);
+      EXPECT_EQ(bg1.back().tile_id, rom_tiles[2].id_);
+    } else {
+      EXPECT_EQ(bg1.front().x_tile, kX);
+      EXPECT_EQ(bg1.front().y_tile, kY);
+      EXPECT_EQ(bg1.front().tile_id, rom_tiles[0].id_);
+      for (size_t i = 1; i + 1 < bg1.size(); ++i) {
+        EXPECT_EQ(bg1[i].y_tile, kY);
+        EXPECT_EQ(bg1[i].tile_id, rom_tiles[1].id_);
+      }
+      EXPECT_EQ(bg1.back().x_tile, kX + 22);
+      EXPECT_EQ(bg1.back().y_tile, kY);
+      EXPECT_EQ(bg1.back().tile_id, rom_tiles[2].id_);
+    }
+  }
 }
 
 }  // namespace

@@ -48,6 +48,7 @@ class DungeonEditorV2MinecartTrackTestPeer;
 class DungeonEditorV2ObjectTileEditorTestPeer;
 class DungeonEditorV2RegularEntranceTestPeer;
 class DungeonEditorV2ReloadTestPeer;
+class DungeonEditorV2ShortcutTestPeer;
 class DungeonEditorV2SpawnPointTestPeer;
 class DungeonEditorV2SpawnRejectionTestPeer;
 class MinecartTrackEditorPanel;
@@ -218,6 +219,11 @@ class DungeonEditorV2 : public Editor {
   void ToggleWorkbenchWorkflowMode(bool show_toast = true);
   bool IsWorkbenchWorkflowEnabled() const;
 
+  // ShortcutManager runs before this editor draws. Queue destructive keyboard
+  // actions so the room canvas can establish ownership for the current frame
+  // before the action is evaluated.
+  void QueueRoomCanvasDeleteShortcut();
+
   // Panel card IDs for programmatic access
   static constexpr const char* kRoomSelectorId = "dungeon.room_selector";
   static constexpr const char* kEntranceListId = "dungeon.entrance_list";
@@ -260,6 +266,7 @@ class DungeonEditorV2 : public Editor {
   friend class DungeonEditorV2ObjectTileEditorTestPeer;
   friend class DungeonEditorV2RegularEntranceTestPeer;
   friend class DungeonEditorV2ReloadTestPeer;
+  friend class DungeonEditorV2ShortcutTestPeer;
   friend class DungeonEditorV2SpawnPointTestPeer;
   friend class DungeonEditorV2SpawnRejectionTestPeer;
   friend class DungeonEditorV2RomSafetyTest_UndoSnapshotLeakDetection_Test;
@@ -331,6 +338,8 @@ class DungeonEditorV2 : public Editor {
   DungeonCanvasViewer* GetWorkbenchCompareViewer(int room_id);
   void RefreshWorkbenchViewerRuntimeContext(DungeonCanvasViewer* viewer,
                                             int room_id);
+  bool ConsumeRoomCanvasDeleteShortcut(DungeonCanvasViewer& viewer);
+  void ExpireStaleRoomCanvasDeleteShortcut();
   void TouchViewerLru(int room_id);
   void RemoveViewerFromLru(int room_id);
 
@@ -355,6 +364,8 @@ class DungeonEditorV2 : public Editor {
     bool has_palette_transaction = false;
   };
   std::optional<SaveTransactionSnapshot> save_transaction_snapshot_;
+
+  std::optional<int> room_canvas_delete_shortcut_frame_;
 
   // Current selection state
   int current_entrance_id_ = 0;
@@ -390,8 +401,9 @@ class DungeonEditorV2 : public Editor {
   gui::PaletteEditorWidget palette_editor_;
   // Panel pointers. WorkspaceWindowManager owns these when available; fallback
   // unique_ptrs keep non-workspace tests and direct embedding paths alive.
-  // Workbench mode embeds room-local utilities in the inspector drawer and
-  // closes/hides their standalone window entries.
+  // Workbench mode embeds room-local utilities in the Tools inspector. Their
+  // standalone entries remain discoverable, but one content instance has only
+  // one active presentation owner at a time.
   ObjectSelectorContent* object_selector_panel_ = nullptr;
   ObjectEditorContent* object_editor_content_ = nullptr;
   DoorEditorContent* door_editor_panel_ = nullptr;
@@ -474,6 +486,22 @@ class DungeonEditorV2 : public Editor {
   };
   PendingWorkflowMode pending_workflow_mode_;
 
+  // Opening or focusing a standalone tool mutates WorkspaceWindowManager and
+  // Dear ImGui focus state. Workbench buttons are drawn inside child windows,
+  // so defer that mutation to the next Update() safe point. Capture the
+  // originating session so a session switch cannot redirect the request.
+  struct PendingStandaloneToolWindow {
+    size_t session_id = 0;
+    std::string window_id;
+    bool pending = false;
+  };
+  PendingStandaloneToolWindow pending_standalone_tool_window_;
+
+  // Unpinned room-navigation panels hidden by the most recent transition into
+  // the integrated Workbench. Standalone editing tools remain user-owned and
+  // are never added to this restoration set.
+  std::vector<std::string> workbench_suspended_navigation_window_ids_;
+
   // Two-phase undo capture: BeginUndoSnapshot saves state before mutation,
   // FinalizeUndoAction captures state after mutation and pushes the action.
   void BeginUndoSnapshot(int room_id);
@@ -493,6 +521,7 @@ class DungeonEditorV2 : public Editor {
   void SwapRoomInPanel(int old_room_id, int new_room_id);
   void ProcessPendingSwap();  // Process deferred swap after draw
   void ProcessPendingWorkflowMode();
+  void ProcessPendingStandaloneToolWindow();
 
   // Room panel slot IDs provide stable ImGui window IDs across "swap room in
   // panel" navigation. This keeps the window position/dock state when the room

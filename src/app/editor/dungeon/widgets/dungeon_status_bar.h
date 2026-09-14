@@ -28,10 +28,6 @@ struct DungeonStatusBarState {
   // Whether the current room has unsaved changes
   bool room_dirty = false;
 
-  // Cursor position in tile coordinates (-1 = not hovering)
-  int cursor_tile_x = -1;
-  int cursor_tile_y = -1;
-
   // Current room ID for display
   int room_id = -1;
 
@@ -42,14 +38,17 @@ struct DungeonStatusBarState {
   const char* redo_desc = nullptr;  // Description of redo action
   int undo_depth = 0;               // Number of undo actions available
 
-  // Callbacks for undo/redo buttons (set by the host panel)
+  // Callbacks for stable status-bar actions (set by the host panel).
+  // Selection opens the detailed inspector without adding transient canvas
+  // chrome above the drawing surface.
   std::function<void()> on_undo;
   std::function<void()> on_redo;
+  std::function<void()> on_selection;
 };
 
 // Thin persistent bar drawn at the bottom of the dungeon editor canvas area.
-// Displays tool mode, selection summary, zoom level, dirty indicator, and
-// cursor coordinates at a glance.
+// Displays tool mode, selection summary, zoom level, and dirty state at a
+// glance.
 class DungeonStatusBar {
  public:
   // Draws the status bar using the provided state. Should be called once per
