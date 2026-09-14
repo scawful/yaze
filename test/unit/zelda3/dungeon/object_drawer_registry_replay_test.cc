@@ -2597,6 +2597,82 @@ TEST(ObjectDrawerRegistryReplayTest,
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
+     FixedCornerFamiliesKeepUsdasmShapesAttributesAndLayers) {
+  ScopedCustomObjectsFlag disable_custom(false);
+  // $018470-$01849E: fixed 4x4, dual-BG 4x4, dual-BG 3x4, dual-BG 4x3.
+  // Each routine reads down one column before advancing right; none reads size.
+  for (int id = 0x100; id <= 0x117; ++id) {
+    const int width = id >= 0x110 && id <= 0x113 ? 3 : 4;
+    const int height = id >= 0x114 ? 3 : 4;
+    const bool both = id >= 0x108;
+    std::vector<gfx::TileInfo> tiles;
+    for (int i = 0; i < width * height; ++i) {
+      // TileInfo constructor uses V,H; decode packed words to pin SNES attrs.
+      const uint16_t word = 0x100 + i | ((i % 8) << 10) |
+                            ((i & 1) ? 0x4000 : 0) | ((i & 2) ? 0x8000 : 0) |
+                            ((i & 4) ? 0x2000 : 0);
+      tiles.push_back(gfx::WordToTileInfo(word));
+    }
+    for (auto layer : {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2,
+                       RoomObject::LayerType::BG3}) {
+      for (int size : {0, 1, 15}) {
+        for (const auto [x, y] :
+             {std::pair{0, 0}, std::pair{31, 31}, std::pair{62, 62}}) {
+          SCOPED_TRACE(::testing::Message()
+                       << "id=" << id << " layer=" << static_cast<int>(layer)
+                       << " size=" << size << " at=" << x << ',' << y);
+          const auto trace = ReplayObjectTrace(id, x, y, size, layer, tiles);
+          auto expected = MakeColumnMajorSnapshot(x, y, width, height, 0x100);
+          std::erase_if(expected, [](const auto& write) {
+            return write.x >= 64 || write.y >= 64;
+          });
+          size_t expected_count = 0;
+          for (auto bg :
+               {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+            const auto bg_trace = FilterTraceByLayer(trace, bg);
+            const bool selected_bg2 = layer == RoomObject::LayerType::BG2;
+            const bool draw_here =
+                both || ((bg == RoomObject::LayerType::BG2) == selected_bg2);
+            if (!draw_here) {
+              EXPECT_TRUE(bg_trace.empty());
+              continue;
+            }
+            ExpectTraceMatchesSnapshot(bg_trace, expected);
+            expected_count += expected.size();
+            for (const auto& write : bg_trace) {
+              const int source = write.tile_id - 0x100;
+              EXPECT_EQ(write.flags, (source & 7) | ((source % 8) << 3));
+            }
+          }
+          EXPECT_EQ(trace.size(), expected_count);
+        }
+      }
+    }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
+     Fixed4x4AliasesDoNotResizeButSubtype1BlocksStillRepeat) {
+  ScopedCustomObjectsFlag disable_custom(false);
+  const auto tiles = MakeSequentialTiles(16, 0x100);
+  // Additional subtype-2 RoomDraw_4x4 aliases at $0184A8/B8/BA/C2.
+  for (int id : {0x11C, 0x124, 0x125, 0x129, 0x33, 0xB2, 0xBA}) {
+    for (int size : {0, 1, 15}) {
+      SCOPED_TRACE(::testing::Message() << "id=" << id << " size=" << size);
+      const auto trace =
+          ReplayObjectTrace(id, 0, 0, size, RoomObject::LayerType::BG1, tiles);
+      const int repeats = id < 0x100 ? size + 1 : 1;
+      ASSERT_EQ(trace.size(), repeats * 16u);
+      for (const auto& write : trace) {
+        EXPECT_EQ(write.tile_id, 0x100 + (write.x_tile % 4) * 4 + write.y_tile);
+      }
+      EXPECT_EQ(ObjectDimensionTable::Get().GetDimensions(id, size),
+                std::make_pair(4 * repeats, 4));
+    }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
      WeirdCornerBottomBothBGMatchesUsdasm3x4ColumnMajor) {
   ScopedCustomObjectsFlag disable_custom(false);
 
