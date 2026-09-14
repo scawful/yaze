@@ -24,10 +24,10 @@ hands-on runtime acceptance.
 | Concern | Current state | Main code |
 | --- | --- | --- |
 | Project configuration | `custom_objects_folder`, the feature flag, and per-ID subtype filename lists persist in the project descriptor. | `src/core/project.{h,cc}` |
-| Runtime slots | Oracle currently exposes exactly 16 runtime slots for object `0x31` and three for object `0x32`. Project mappings may replace filenames within those slots; the Workshop cannot add runtime subtypes. | `custom_object.{h,cc}`, `dungeon_object_selector.cc` |
+| Runtime slots | Oracle currently exposes 21 fixed assets: 16 slots for object `0x31`, three for object `0x32`, and two sprite-body slots for object `0x54`. Project mappings may replace filenames within those slots; the Workshop cannot add runtime subtypes. | `custom_object.{h,cc}`, `dungeon_object_selector.cc` |
 | Loading and session identity | `CustomObjectManager` keeps one entry point but stores the project path, mappings, decoded cache, and asset generation in session-keyed runtime contexts. Session switches activate the matching context, and teardown removes it. | `custom_object.{h,cc}`, `editor_manager.cc`, `session_types.{h,cc}` |
-| Rendering | Active project overrides route before built-in draw routines. Corner aliases `0x100-0x103` use track-corner assets only when the project explicitly maps the asset and the current room contains a real minecart-track subtype. Placement ghosts use the same room gate. | `minecart_object_semantics.h` (introduced by PR #217), `object_layer_semantics.h`, `object_drawer.cc`, `tile_object_handler.cc` |
-| Geometry and previews | Custom layout bounds include the active asset generation. Asset reloads and session switches invalidate stale geometry, thumbnails, and queued custom placements. | `object_geometry.{h,cc}`, `dungeon_object_selector.cc` |
+| Rendering | Active project overrides route before built-in draw routines. Object `0x54` preserves raw source words but applies Oracle's nonzero `OR #$0300` tile-page rule while drawing. Corner aliases `0x100-0x103` use track-corner assets only when the project explicitly maps the asset and the current room contains a real minecart-track subtype. Placement ghosts use the same room gate. | `minecart_object_semantics.h` (introduced by PR #217), `object_layer_semantics.h`, `object_drawer.cc`, `tile_object_handler.cc` |
+| Geometry and previews | Custom layout bounds include the active asset generation. Asset reloads and session switches invalidate stale geometry, thumbnails, and queued custom placements. The `0x54` tilemap preview applies the runtime page mask, but Yaze does not yet load the separate boss pixel graphics that Oracle DMA-copies into VRAM. | `object_geometry.{h,cc}`, `object_tile_editor.cc`, `dungeon_object_selector.cc` |
 | Tile authoring and publication | The Workshop exposes **Edit Graphics** and **Use in Room** for existing fixed slots. The tile editor retains the exact source snapshot, supports a terminator-only empty asset through **Add First Tile**, and publishes desktop changes through strict encoding, stale-write comparison, rollback-protected atomic replacement, and decoded readback. Browser builds disable editing and fail closed in the publication API. | `object_tile_editor.{h,cc}`, `object_tile_editor_panel.{h,cc}`, `custom_object.{h,cc}` |
 | Minecart source | The **Routes** tab parses and preserves a configured ASM start-room/X/Y source and publishes it with source-identity and stale-write checks. Route slots come from minecart sprite subtypes, not visual track-piece subtypes. The current Oracle manifest does not yet declare `minecart_tracks.source`, so route publication correctly fails closed until that project metadata is added. | `minecart_track_source.{h,cc}`, `minecart_track_editor_panel.{h,cc}` |
 | Minecart collision | The **Collision** tab audits loaded rooms without blocking routine edits. **Preview All Rooms** performs an explicit 296-room scan, excludes rooms that already contain custom collision, shows every proposed room, and applies the confirmed maps to the editor model as one undoable batch. Preview and Apply do not write ROM bytes; **Save ROM** remains the serialization boundary. | `minecart_track_editor_panel.cc`, `dungeon_editor_v2_undo.cc`, `track_collision_generator.{h,cc}` |
@@ -35,10 +35,11 @@ hands-on runtime acceptance.
 
 Focused unit coverage now includes strict custom-object decoding and encoding,
 sparse layouts, 32-tile segments, zero-word no-ops, terminator-only assets,
-path confinement, stale-write rejection, fixed runtime capacities, session and
-geometry isolation, feature and asset-generation transitions, corner-alias room
-gating, tile-editor publication, and minecart components. This is component
-evidence; it is not yet a complete edit, publish, rebuild, and Mesen workflow.
+path confinement, stale-write rejection, all 21 fixed runtime slots, raw versus
+runtime `0x54` tile words, session and geometry isolation, feature and
+asset-generation transitions, corner-alias room gating, tile-editor
+publication, and minecart components. This is component evidence; it is not yet
+a complete edit, publish, rebuild, and Mesen workflow.
 
 ## Important semantics
 
@@ -77,6 +78,25 @@ Object `0x32` has three fixed slots:
 A fourth filename in the project mapping does not create a fourth runtime slot.
 Adding any new subtype requires a corresponding ASM dispatch-table change.
 
+#### Object `0x54`
+
+Object `0x54` has two fixed sprite-body tilemap slots:
+
+- slot `0` is `kydreeok_body`;
+- slot `1` is `manhandla_body_1a`.
+
+Oracle checks each source word for zero and then applies `OR #$0300` before
+writing a nonzero tile to the room tilemap. Yaze keeps the raw source word in
+the editor and `.bin` publication path, and applies that page mask only while
+drawing or rendering a tilemap preview. A zero source word remains a no-op.
+
+These `.bin` files contain tilemaps, not the boss pixel graphics. Oracle loads
+separate Kydreeok and Manhandla graphics into VRAM at runtime; Yaze does not yet
+load those external graphics into the room preview. The editor can therefore
+prove `0x54` geometry and source round-trip behavior, but not pixel parity. The
+Kydreeok preview will eventually also need an explicit phase-one/phase-two
+graphics choice.
+
 ### Visual object versus gameplay behavior
 
 An object's static tile stamp does not prove its runtime behavior:
@@ -100,8 +120,9 @@ ordinary bitmap.
    positions, leading and long gaps, zero-word runtime no-ops, terminator-only
    empty assets, and 32-tile segments retain their runtime meaning.
 2. **Fixed runtime capacity.** The editor exposes only the 16 valid `0x31`
-   slots and three valid `0x32` slots. The removed create-and-append path can no
-   longer invent a subtype that the runtime cannot dispatch.
+   slots, three valid `0x32` slots, and two valid `0x54` slots. The removed
+   create-and-append path can no longer invent a subtype that the runtime cannot
+   dispatch.
 3. **Contained publication.** Filenames must be portable, project-relative
    `.bin` paths. Canonical path and symlink checks prevent publication outside
    the configured custom-object folder.
@@ -223,7 +244,7 @@ Completed for fixed-slot custom `.bin` assets:
 - sparse, no-op, empty, and 32-tile format handling;
 - project-root path confinement and portable filename validation;
 - stale-source rejection and rollback-protected atomic publication;
-- fixed `0x31` and `0x32` runtime capacities;
+- fixed `0x31`, `0x32`, and `0x54` runtime capacities;
 - session-scoped manager state and generation-aware cache invalidation;
 - fail-closed WASM publication;
 - room-gated track-corner aliases in final rendering and placement ghosts;
@@ -232,9 +253,12 @@ Completed for fixed-slot custom `.bin` assets:
 
 Remaining P0 work:
 
-1. Add the authoritative `minecart_tracks.source` to Oracle project metadata,
+1. Load and select the external Kydreeok/Manhandla boss pixel graphics used by
+   object `0x54`, then capture Mesen parity evidence for both body types and
+   both Kydreeok phases.
+2. Add the authoritative `minecart_tracks.source` to Oracle project metadata,
    then validate guarded route publication against that exact ASM file.
-2. Complete hands-on desktop acceptance for preview, confirmation, Apply,
+3. Complete hands-on desktop acceptance for preview, confirmation, Apply,
    Undo/Redo, **Save ROM**, reopen, and patched-ROM behavior.
 
 ### P1: consolidate identity and UI
