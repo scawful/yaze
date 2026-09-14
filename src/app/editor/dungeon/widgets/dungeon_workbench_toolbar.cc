@@ -55,7 +55,7 @@ constexpr char kToolbarRoomSearchHint[] = "Type to filter rooms...";
 constexpr char kToolbarComparePickerTooltip[] = "Pick a room to compare";
 constexpr char kToolbarCompareRoomIdTooltip[] = "Compare room ID";
 constexpr char kToolbarPanelWorkflowTooltip[] =
-    "Switch to standalone panel workflow (Ctrl+Shift+W)";
+    "Switch to standalone panel workflow";
 constexpr char kToolbarNoCompareHistoryMessage[] =
     "Visit another room to seed compare history.";
 constexpr char kToolbarNoCompareHistoryTooltip[] =
