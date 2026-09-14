@@ -37,6 +37,18 @@ bool MatchesWindowSearch(const std::string& query,
       query, window.display_name, window.card_id, window.shortcut_hint);
 }
 
+bool IsDungeonRoomWindow(const std::string& window_id) {
+  constexpr char kPrefix[] = "dungeon.room_";
+  constexpr size_t kPrefixLength = sizeof(kPrefix) - 1;
+  if (window_id.rfind(kPrefix, 0) != 0 || window_id.size() <= kPrefixLength) {
+    return false;
+  }
+  // DungeonEditorV2 registers dynamic room windows with a decimal room number.
+  // Other room_* IDs, such as room_graphics and room_tags, are standalone tools.
+  return std::all_of(window_id.begin() + kPrefixLength, window_id.end(),
+                     [](char ch) { return ch >= '0' && ch <= '9'; });
+}
+
 bool IsDungeonPanelModeWindow(const std::string& window_id) {
   return WindowSidebar::IsDungeonWindowModeTarget(window_id);
 }
@@ -68,9 +80,8 @@ bool WindowSidebar::MatchesWindowSearch(const std::string& query,
 }
 
 bool WindowSidebar::IsDungeonWindowModeTarget(const std::string& window_id) {
-  const bool is_room_window = window_id.rfind("dungeon.room_", 0) == 0;
   return window_id == "dungeon.room_selector" ||
-         window_id == "dungeon.room_matrix" || is_room_window;
+         window_id == "dungeon.room_matrix" || IsDungeonRoomWindow(window_id);
 }
 
 std::string WindowSidebar::SidebarSectionFor(
@@ -86,11 +97,7 @@ std::string WindowSidebar::SidebarSectionFor(const WindowDescriptor& window) {
     return window.workflow_group;
   }
   // Dynamic per-room windows may omit workflow_group at registration time.
-  if (window.card_id.rfind("dungeon.room_", 0) == 0 &&
-      window.card_id != "dungeon.room_selector" &&
-      window.card_id != "dungeon.room_matrix" &&
-      window.card_id != "dungeon.room_graphics" &&
-      window.card_id != "dungeon.room_tags") {
+  if (IsDungeonRoomWindow(window.card_id)) {
     return "Rooms";
   }
   return SidebarSectionFor(window.workflow_group);
@@ -561,13 +568,17 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
         continue;
       }
 
-      bool default_open = filtering || section_name == "Core";
-      // Editors stay collapsed in Workbench unless filtering.
-      if (section_name == "Editors" && dungeon_workbench_mode && !filtering) {
-        default_open = false;
+      // Search results are flat so a previously collapsed section cannot hide
+      // a match. Do not change the ordinary section's saved expansion state.
+      if (filtering) {
+        for (const auto& window : it->second) {
+          draw_window_row(window);
+        }
+        continue;
       }
+
       ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
-      if (default_open) {
+      if (section_name == "Core") {
         flags |= ImGuiTreeNodeFlags_DefaultOpen;
       }
 

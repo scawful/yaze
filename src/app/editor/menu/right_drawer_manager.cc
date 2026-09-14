@@ -1113,11 +1113,15 @@ void RightDrawerManager::DrawPanelHeader(const char* title, const char* icon) {
 
   const ImVec2 tab_size = gui::IconSize::Small();
   const float tab_gap = gui::UIConfig::kHeaderButtonGap;
+  const float tab_count = static_cast<float>(GetDrawerCatalog().size());
   const float tabs_width =
-      static_cast<float>(GetDrawerCatalog().size()) * (tab_size.x + tab_gap);
-  const float title_end = ImGui::GetCursorPosX() + 8.0f;
-  const float available_for_tabs =
-      ImGui::GetWindowWidth() - chrome_width - title_end;
+      tab_count * tab_size.x + std::max(0.0f, tab_count - 1.0f) * tab_gap;
+  // Text advances the cursor to the next line; its item rectangle retains the
+  // rendered title's actual right edge.
+  const float title_end = ImGui::GetItemRectMax().x - ImGui::GetWindowPos().x;
+  const float available_for_tabs = ImGui::GetWindowWidth() - chrome_width -
+                                   tab_gap - title_end -
+                                   gui::UIConfig::kHeaderButtonSpacing;
 
   if (available_for_tabs >= tabs_width) {
     ImGui::SameLine(0.0f, gui::UIConfig::kHeaderButtonSpacing);
