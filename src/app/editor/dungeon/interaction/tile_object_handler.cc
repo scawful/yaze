@@ -13,6 +13,7 @@
 #include "imgui/imgui.h"
 #include "util/i18n/tr.h"
 #include "util/log.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/geometry/object_geometry.h"
@@ -360,15 +361,30 @@ ImVec2 TileObjectHandler::ApplyDragModifiers(const ImVec2& delta) const {
 }
 
 bool TileObjectHandler::HandleMouseWheel(float delta) {
-  if (!HasValidContext() || !ctx_ || !ctx_->selection || delta == 0.0f)
+  if (!HasValidContext() || !ctx_ || delta == 0.0f)
     return false;
 
+  const int resize_delta = (delta > 0.0f) ? 1 : -1;
+  const bool horizontal = ImGui::GetCurrentContext() && ImGui::GetIO().KeyShift;
+  if (object_placement_mode_) {
+    const uint8_t size = zelda3::ResizeRoomObjectByDelta(
+        preview_object_.id_, preview_object_.size_, resize_delta, horizontal);
+    if (size == preview_object_.size_) {
+      return false;
+    }
+    preview_object_.size_ = size;
+    preview_object_.tiles_loaded_ = false;
+    RenderGhostPreviewBitmap();
+    return true;
+  }
+  if (!ctx_->selection)
+    return false;
   auto indices = ctx_->selection->GetSelectedIndices();
   if (indices.empty())
     return false;
 
-  int resize_delta = (delta > 0.0f) ? 1 : -1;
-  return ResizeObjects(ctx_->current_room_id, indices, resize_delta);
+  return ResizeObjects(ctx_->current_room_id, indices, resize_delta,
+                       horizontal);
 }
 
 void TileObjectHandler::DrawGhostPreview() {
@@ -690,10 +706,21 @@ void TileObjectHandler::UpdateObjectsSize(int room_id,
     return;
 
   auto& objects = room->GetTileObjects();
+  const auto can_update_size = [&](const zelda3::RoomObject& object) {
+    if (!zelda3::IsRoomObjectSizeEditable(object.id_)) {
+      return false;
+    }
+    if (!zelda3::IsRoomObjectResizable(object.id_)) {
+      const auto& manager = zelda3::CustomObjectManager::Get();
+      return new_size <= 0x0F &&
+             new_size < manager.GetSubtypeCount(object.id_) &&
+             !manager.ResolveFilename(object.id_, new_size).empty();
+    }
+    return true;
+  };
   const bool has_change =
       std::any_of(indices.begin(), indices.end(), [&](size_t index) {
-        if (index >= objects.size() ||
-            !zelda3::IsRoomObjectSizeEditable(objects[index].id_)) {
+        if (index >= objects.size() || !can_update_size(objects[index])) {
           return false;
         }
         return objects[index].size_ !=
@@ -706,8 +733,7 @@ void TileObjectHandler::UpdateObjectsSize(int room_id,
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   for (size_t index : indices) {
-    if (index < objects.size() &&
-        zelda3::IsRoomObjectSizeEditable(objects[index].id_)) {
+    if (index < objects.size() && can_update_size(objects[index])) {
       const uint8_t canonical_size =
           zelda3::CanonicalRoomObjectSize(objects[index].id_, new_size);
       if (objects[index].size_ == canonical_size) {
@@ -952,20 +978,19 @@ void TileObjectHandler::MoveBackward(int room_id,
 
 bool TileObjectHandler::ResizeObjects(int room_id,
                                       const std::vector<size_t>& indices,
-                                      int delta) {
+                                      int delta, bool horizontal) {
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return false;
   auto& objects = room->GetTileObjects();
   const auto resized_size = [&](const zelda3::RoomObject& object) {
-    const int requested_size = static_cast<int>(object.size_) + delta;
-    return zelda3::CanonicalRoomObjectSize(
-        object.id_, static_cast<uint8_t>(std::clamp(requested_size, 0, 255)));
+    return zelda3::ResizeRoomObjectByDelta(object.id_, object.size_, delta,
+                                           horizontal);
   };
   const bool has_change =
       std::any_of(indices.begin(), indices.end(), [&](size_t index) {
         return index < objects.size() &&
-               zelda3::IsRoomObjectSizeEditable(objects[index].id_) &&
+               zelda3::IsRoomObjectResizable(objects[index].id_) &&
                objects[index].size_ != resized_size(objects[index]);
       });
   if (!has_change) {
@@ -976,7 +1001,7 @@ bool TileObjectHandler::ResizeObjects(int room_id,
 
   for (size_t index : indices) {
     if (index < objects.size() &&
-        zelda3::IsRoomObjectSizeEditable(objects[index].id_)) {
+        zelda3::IsRoomObjectResizable(objects[index].id_)) {
       const uint8_t new_size = resized_size(objects[index]);
       if (objects[index].size_ == new_size) {
         continue;
