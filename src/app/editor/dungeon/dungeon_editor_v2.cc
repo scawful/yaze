@@ -1233,12 +1233,32 @@ void DungeonEditorV2::HandleDungeonPaletteChanged(
       if (room_graphics_panel_) {
         room_graphics_panel_->SetCurrentPaletteGroup(current_palette_group_);
       }
-      if (object_tile_editor_panel_) {
-        object_tile_editor_panel_->SetCurrentPaletteGroupForRoom(
-            current_room_id_, current_palette_group_);
-      }
     }
   }
+
+  // Tile edits remain bound to their original room even when the active room
+  // changes or closes. Refresh that room's palette without reopening its session.
+  if (!object_tile_editor_panel_ || !object_tile_editor_panel_->IsOpen() ||
+      !game_data()) {
+    return;
+  }
+  const int tile_room_id = object_tile_editor_panel_->current_room_id();
+  const auto* tile_room = rooms_.GetIfLoaded(tile_room_id);
+  if (!tile_room) {
+    return;
+  }
+  const int tile_palette_id = tile_room->ResolveDungeonPaletteId();
+  const auto& dungeon_palettes = game_data()->palette_groups.dungeon_main;
+  if (tile_palette_id < 0 ||
+      tile_palette_id >= static_cast<int>(dungeon_palettes.size()) ||
+      (change.source == gui::DungeonRenderPaletteSource::kDungeonMain &&
+       change.palette_id >= 0 && tile_palette_id != change.palette_id)) {
+    return;
+  }
+  object_tile_editor_panel_->SetCurrentPaletteGroupForRoom(
+      tile_room_id,
+      zelda3::BuildDungeonRenderPaletteGroupFromGameData(
+          dungeon_palettes.palette_ref(tile_palette_id), game_data()));
 }
 
 void DungeonEditorV2::InvalidateDungeonPaletteUsers(
