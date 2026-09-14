@@ -241,6 +241,39 @@ TEST(RoomGraphicsPaletteTest,
   }
 }
 
+TEST(RoomGraphicsPaletteTest, GraphicsRevisionPublishesOnlyAfterBufferWrites) {
+  Room room(0, nullptr, nullptr);
+  EXPECT_EQ(room.graphics_revision(), 0u);
+  room.CopyRoomGraphicsToBuffer();
+  room.LoadAnimatedGraphics();
+  EXPECT_EQ(room.graphics_revision(), 0u);
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  GameData game_data;
+  room.SetRom(&rom);
+  room.SetGameData(&game_data);
+  room.LoadRoomGraphics();
+  room.CopyRoomGraphicsToBuffer();
+  room.LoadAnimatedGraphics();
+  EXPECT_EQ(room.graphics_revision(), 0u)
+      << "Missing decoded source pixels must not publish a refresh";
+
+  game_data.graphics_buffer.assign(223 * 4096, 1);
+  room.CopyRoomGraphicsToBuffer();
+  const auto revision = room.graphics_revision();
+  EXPECT_NE(revision, 0u);
+  room.LoadRoomGraphics();
+  EXPECT_EQ(room.graphics_revision(), revision)
+      << "Choosing sheets alone does not change assembled pixels";
+
+  room.SetGameData(nullptr);
+  room.CopyRoomGraphicsToBuffer();
+  room.LoadAnimatedGraphics();
+  EXPECT_EQ(room.graphics_revision(), revision);
+  EXPECT_FALSE(rom.dirty());
+}
+
 TEST(RoomGraphicsPaletteTest, BuildDungeonRenderPaletteIncludesHudRows) {
   gfx::SnesPalette hud_palette;
   for (int i = 0; i < 32; ++i) {
