@@ -59,7 +59,142 @@ bool ContainsPoint(const std::vector<TilePoint>& points, int x, int y) {
   return false;
 }
 
+struct WaterObjectCase {
+  int object_id;
+  int routine_id;
+  int column_height;
+  bool vertical;
+  std::vector<uint16_t> words;
+};
+
+const std::vector<WaterObjectCase>& WaterObjectCases() {
+  // USDASM bank_00 obj091A..obj096C ($00A46C..$00A4CE), in source order.
+  // Keep the actual mirrored words: sequential IDs cannot catch lost flips.
+  static const std::vector<WaterObjectCase> cases = {
+      {0x3F, 22, 1, false, {0x1DFE, 0x1DFC, 0x5DFE}},
+      {0x40, 22, 1, false, {0x9DFE, 0x9DFC, 0xDDFE}},
+      {0x41, 22, 1, false, {0xDDFF, 0x9DFC, 0x9DFF}},
+      {0x42, 22, 1, false, {0x5DFF, 0x1DFC, 0x1DFF}},
+      {0x43, 22, 1, false, {0xDDFF, 0x9DFC, 0xDDFE}},
+      {0x44, 22, 1, false, {0x9DFE, 0x9DFC, 0x9DFF}},
+      {0x45, 22, 1, false, {0x5DFF, 0x1DFC, 0x5DFE}},
+      {0x46, 22, 1, false, {0x1DFE, 0x1DFC, 0x1DFF}},
+      {0x47,
+       DrawRoutineIds::kWaterfall47,
+       5,
+       false,
+       {0x1DF7, 0x1C40, 0x1C41, 0x1C42, 0x1DB5, 0x1DB2, 0x1DB3, 0x1DB3, 0x1DB4,
+        0x1DB5, 0x5DF7, 0x5C40, 0x5C41, 0x5C42, 0x5DB5}},
+      {0x48,
+       DrawRoutineIds::kWaterfall48,
+       3,
+       false,
+       {0x1DF7, 0x1C40, 0x1DB5, 0x1DB2, 0x1DB3, 0x1DB5, 0x5DF7, 0x5C40,
+        0x5DB5}},
+      {0x79, 13, 1, true, {0x1DFD}},
+      {0x7A, 13, 1, true, {0x5DFD}},
+  };
+  return cases;
+}
+
 }  // namespace
+
+TEST_F(DrawRoutineMappingTest,
+       WaterEdgesAndWaterfallsPreserveSourceWordsAcrossSizesAndBounds) {
+  auto& registry = DrawRoutineRegistry::Get();
+  for (const auto& tc : WaterObjectCases()) {
+    ASSERT_EQ(registry.GetRoutineIdForObject(tc.object_id), tc.routine_id);
+    const auto* info = registry.GetRoutineInfo(tc.routine_id);
+    ASSERT_NE(info, nullptr);
+    EXPECT_FALSE(info->draws_to_both_bgs);
+    // The second pass exercises all attribute bits, including priority, without
+    // changing the source character IDs. It is synthetic, not a ROM capture.
+    for (const uint16_t attribute_xor : {uint16_t{0}, uint16_t{0xFC00}}) {
+      std::vector<gfx::TileInfo> tiles;
+      for (const uint16_t word : tc.words) {
+        tiles.push_back(gfx::WordToTileInfo(word ^ attribute_xor));
+      }
+      for (int size = 0; size < 16; ++size) {
+        // $018F62 / $018F8A: cap + size+1 body + cap, or size+1 rows.
+        // $019466 / $019488: cap + 2*(size+1) body columns + cap.
+        const int width = tc.vertical             ? 1
+                          : tc.column_height == 1 ? size + 3
+                                                  : 2 * size + 4;
+        const int height = tc.vertical ? size + 1 : tc.column_height;
+        for (const TilePoint origin :
+             {TilePoint{4, 6}, TilePoint{31, 31},
+              TilePoint{64 - width, 64 - height}, TilePoint{63, 63}}) {
+          SCOPED_TRACE(::testing::Message()
+                       << "object=" << tc.object_id << " size=" << size
+                       << " attributes=" << attribute_xor << " origin=("
+                       << origin.x << "," << origin.y << ")");
+          gfx::BackgroundBuffer target;
+          gfx::BackgroundBuffer secondary;
+          const RoomObject object(tc.object_id, origin.x, origin.y, size, 0);
+          DrawContext ctx{target,     object, tiles,   nullptr,
+                          rom_.get(), 0,      nullptr, &secondary};
+          info->function(ctx);
+
+          std::vector<uint16_t> expected(64 * 64, 0);
+          for (int x = 0; x < width && origin.x + x < 64; ++x) {
+            for (int y = 0; y < height && origin.y + y < 64; ++y) {
+              const int source_column = x == 0 ? 0 : x == width - 1 ? 2 : 1;
+              const int source_index =
+                  tc.vertical ? 0 : source_column * tc.column_height + y;
+              expected[(origin.y + y) * 64 + origin.x + x] =
+                  tc.words[source_index] ^ attribute_xor;
+            }
+          }
+          // Out-of-room positions clip to the editor canvas; this does not
+          // claim parity with SNES address wrapping for malformed placements.
+          EXPECT_EQ(target.buffer(), expected);
+          EXPECT_TRUE(secondary.buffer().empty());
+        }
+      }
+    }
+  }
+}
+
+TEST_F(DrawRoutineMappingTest, WaterEdgeCapsPreserveOnlyCompatibleCorners) {
+  for (const auto& tc : WaterObjectCases()) {
+    if (tc.object_id < 0x3F || tc.object_id > 0x46) {
+      continue;
+    }
+    const auto* info = DrawRoutineRegistry::Get().GetRoutineInfo(tc.routine_id);
+    ASSERT_NE(info, nullptr);
+    std::vector<gfx::TileInfo> tiles;
+    for (const uint16_t word : tc.words) {
+      tiles.push_back(gfx::WordToTileInfo(word));
+    }
+    // $018F65..$018F7F compares the low ten bits only. Other water caps
+    // (0x1FE/0x1FF) are not protected corners and must be replaced.
+    for (const uint16_t existing_id :
+         {0x01DB, 0x01A6, 0x01DD, 0x01FC, 0x01FE, 0x01FF, 0x0000}) {
+      SCOPED_TRACE(::testing::Message()
+                   << "object=" << tc.object_id << " existing=" << existing_id);
+      constexpr int kX = 4;
+      constexpr int kY = 6;
+      constexpr int kSize = 3;
+      const uint16_t existing_word = existing_id | 0xE800;
+      const bool keep_corner = existing_id == 0x01DB || existing_id == 0x01A6 ||
+                               existing_id == 0x01DD || existing_id == 0x01FC;
+      gfx::BackgroundBuffer target;
+      target.SetTileAt(kX, kY, existing_word);
+      const RoomObject object(tc.object_id, kX, kY, kSize, 0);
+      DrawContext ctx{target,     object, tiles,   nullptr,
+                      rom_.get(), 0,      nullptr, nullptr};
+      info->function(ctx);
+
+      std::vector<uint16_t> expected(64 * 64, 0);
+      expected[kY * 64 + kX] = keep_corner ? existing_word : tc.words[0];
+      for (int x = 1; x <= kSize + 1; ++x) {
+        expected[kY * 64 + kX + x] = tc.words[1];
+      }
+      expected[kY * 64 + kX + kSize + 2] = tc.words[2];
+      EXPECT_EQ(target.buffer(), expected);
+    }
+  }
+}
 
 TEST_F(DrawRoutineMappingTest,
        CustomFeatureRoutesAllOracleFixedFamiliesThroughCustomRoutine) {
