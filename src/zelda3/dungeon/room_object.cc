@@ -8,6 +8,7 @@
 #include "util/log.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/object_parser.h"
 
 namespace yaze {
@@ -356,10 +357,29 @@ int RoomObjectSizeAxisStep(int object_id) {
     case DrawRoutineIds::k3x3FloorIn4x4SuperSquare:
       return 3;
     case DrawRoutineIds::kSpike2x2In4x4SuperSquare:
+    case DrawRoutineIds::kTableRock4x4_1to16:
+    case DrawRoutineIds::kClosedChestPlatform:
+    case DrawRoutineIds::kOpenChestPlatform:
       return 2;
     default:
       return 0;
   }
+}
+
+int RoomObjectSizeAxisTiles(int object_id, uint8_t size, bool horizontal) {
+  const int step = RoomObjectSizeAxisStep(object_id);
+  if (step == 0) {
+    return 0;
+  }
+  // USDASM $018CC7/$019733/$0193DC include fixed borders around their packed
+  // axes. Keep those extents in the existing dimension table, not UI formulas.
+  if (object_id == 0xC1 || object_id == 0xDC || object_id == 0xDD) {
+    const auto [width, height] =
+        ObjectDimensionTable::Get().GetDimensions(object_id, size & 0x0F);
+    return horizontal ? width : height;
+  }
+  const int axis = (size >> (horizontal ? 2 : 0)) & 0x03;
+  return (axis + 1) * step;
 }
 
 uint8_t ResizeRoomObjectByDelta(int object_id, uint8_t size, int delta,
