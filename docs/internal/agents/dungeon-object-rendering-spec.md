@@ -63,6 +63,22 @@ historical skill notes and older plans must not override current code/disassembl
   - Pipes (0x23A–0x23D) are fixed 2×? rectangles; use arrows that match their orientation.
 
 ## Ceiling and Large Object Ground Truth
+- Fixed 4x4 subtype-2 objects `0x100–0x107`, `0x11C`, `0x124`, `0x125`
+  and `0x129` use `RoomDraw_4x4` (`$0197ED`), implemented by existing routine
+  116. Ignore a stale in-memory size value; these records encode no size.
+  Scalable type-1 aliases `0x33/0xB2/0xBA` still use routine 16.
+- Sanctuary wall `0x13C` (`$019B56–$019BD6`) consumes 24 source words,
+  not 16. Its fixed 24x6 footprint contains 120 facade writes to Yaze BG1
+  and a 4x3 center at `x+10` on the active stored layer; the bottom-center
+  opening remains unwritten. Mirrored columns OR horizontal flip rather than
+  toggle it. This is mixed routing for a BG2 placement, not full BothBG
+  duplication. Parser length, routine 134, dimensions and layer metadata
+  share this contract.
+- Packed-axis platforms use two-tile increments with different bases:
+  `0xC1` is `(14+2*x, 8+2*y)`, `0xDC` is `(10+2*x, 7+2*y)`, and
+  `0xDD` is `(4+2*x, 4+2*y)`, with each count `0..3`. Inspector labels and
+  resizing use the dimension table through `RoomObjectSizeAxisTiles`.
+  Moving-wall `0xCD/0xCE` bits select direction and remain excluded.
 - Bars: `0x4C` (`RoomDraw_RightwardsBar4x3_1to16`, `$0194BD`) consumes
   nine source words: three for the opening column, three for the repeated
   middle column, and three for the closing column. It writes `2*nibble+4`
@@ -94,6 +110,25 @@ historical skill notes and older plans must not override current code/disassembl
   5) BG1 overlay list (after second `0xFFFF`)  
   6) Doors and control records
   7) Pushable blocks and torches
+
+## Animated Room Graphics
+
+`kGfxAnimatedPointer` is the PC address of a three-byte ROM operand, not the
+animated-sheet table itself. At `$028271–$028279`, the game indexes the
+dereferenced table with entrance main graphics group `$0AA1`, not the room's
+background tileset. `Room::LoadAnimatedGraphics` follows that indirection and
+uses the resolved entrance group, with the room blockset as fallback.
+
+The editor copies one 1024-byte decoded frame from the selected sheet into
+tiles `0x1B0–0x1BF`, and the common sheet `0x5C` into `0x1C0–0x1CF`.
+Runtime cycles three frames; the editor currently displays frame zero.
+Missing/out-of-range sheets or non-ROM table addresses must not replace base
+graphics with unrelated bytes. In particular, reject WRAM banks `0x7E/0x7F`
+even when a LoROM address conversion happens to fit an expanded ROM.
+
+The former loader treated the operand address as the table and selected
+unrelated graphics. Correcting that path fixes the garbled pool interiors
+in Oracle room `0x04A`; it does not establish animated runtime parity.
 
 ## Selection & Outline Rules
 - Use the decoding rules above; do not infer size from UI icons.
@@ -159,8 +194,24 @@ bounds cases with zero mismatches. These results cover the selected fixtures,
 not all dungeon families. The [completion backlog](../plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md#first-implementation-results-2026-09-14-local-integration)
 records revisions, corpus identity, remaining proof, and reproducible commands.
 
+The third September 14 slice passed 415 focused tests and the expanded ladder:
+42 synthetic, 12 ROM/payload, 11 room/composition, seven unchanged Mesen
+baselines, and 1,190 clean bounds cases. Only room `0x016`'s BG2/composite
+self-fingerprints changed: a counterfactual test reproduces the old result
+with misindexed sheet `0x94` and confines all differences to corrected water
+tiles `0x1B0/0x1B1` from sheet `0x5D`. This justifies that baseline refresh,
+not an independent moving-water parity claim. The
+[third-slice record](../plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md#third-implementation-slice-room-graphics-fixed-walls-and-platforms-2026-09-14)
+contains commands and remaining limitations.
+
 ### Known preview boundaries
 
+- Oracle-profile sprite `0xB1` uses Puffstool's source-backed static OAM
+  layout, offsets and palette selection. The override is selected per call
+  from the loaded project; vanilla, unrelated and missing profiles retain
+  the default sprite preview. This does not emulate sprite animation or
+  independently validate runtime CGRAM. Oracle Manhandla `0x88` still needs
+  its custom layout instead of the vanilla Mothula preview.
 - `0xD8`/`0xDA` water is structural/editor-preview coverage only until state-labeled Mesen captures verify each vanilla branch and layer-mode side effect.
 - Moving-floor objects have static tile stamps, but Yaze does not emulate the SNES runtime BG2 scrolling effect.
 - RGB averaging and indexed-palette fallback paths approximate SNES color math; only committed Mesen ROIs are pixel-parity claims.
