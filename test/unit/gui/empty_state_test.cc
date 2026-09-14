@@ -4,6 +4,7 @@
 
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 
 namespace yaze {
 namespace gui {
@@ -16,6 +17,7 @@ class EmptyStateTest : public ::testing::Test {
     context_ = ImGui::CreateContext();
     ImGui::SetCurrentContext(context_);
     ImGuiIO& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
     io.DisplaySize = ImVec2(800.0f, 600.0f);
     io.DeltaTime = 1.0f / 60.0f;
     io.Fonts->AddFontDefault();
@@ -54,7 +56,7 @@ TEST_F(EmptyStateTest, PresetsHaveSharedCopy) {
   EXPECT_STREQ(loading.detail, "tiles");
 }
 
-TEST_F(EmptyStateTest, DrawEmptyStateInvokesActionCallback) {
+TEST_F(EmptyStateTest, DrawEmptyStateDoesNotInvokeActionWithoutActivation) {
   ImGui::NewFrame();
   ImGui::Begin("##EmptyStateHarness");
 
@@ -75,6 +77,46 @@ TEST_F(EmptyStateTest, DrawEmptyStateInvokesActionCallback) {
   ImGui::End();
   ImGui::EndFrame();
   ImGui::Render();
+}
+
+TEST_F(EmptyStateTest, ActionActivationReturnsTrueAndInvokesCallbackOnce) {
+  int calls = 0;
+  EmptyStateOptions opts;
+  opts.title = "Open a ROM";
+  opts.action_label = "Open##EmptyStateAction";
+  opts.on_action = [&]() {
+    ++calls;
+  };
+  ImGuiID action_id = 0;
+  auto draw_frame = [&]() {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(300, 240), ImGuiCond_Always);
+    ImGui::Begin("EmptyStateActionHost", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    action_id = ImGui::GetID(opts.action_label);
+    const bool activated = DrawEmptyState(opts);
+    ImGui::End();
+    ImGui::Render();
+    return activated;
+  };
+
+  EXPECT_FALSE(draw_frame());
+  EXPECT_FALSE(draw_frame());
+  EXPECT_EQ(calls, 0);
+
+  // Exercise the actual ImGui button activation path, not the callback alone.
+  ImGui::ActivateItemByID(action_id);
+  EXPECT_TRUE(draw_frame());
+  EXPECT_EQ(calls, 1);
+  EXPECT_FALSE(draw_frame());
+  EXPECT_EQ(calls, 1);
+
+  // A caller may use the returned result without supplying a callback.
+  opts.on_action = {};
+  ImGui::ActivateItemByID(action_id);
+  EXPECT_TRUE(draw_frame());
+  EXPECT_EQ(calls, 1);
 }
 
 TEST_F(EmptyStateTest, DrawEmptyStateNoopsWhenEmpty) {
