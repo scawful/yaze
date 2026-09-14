@@ -560,12 +560,13 @@ TEST(DungeonCanvasViewerContextMenuTest,
   brush->callback();
 
   EXPECT_TRUE(viewer.object_interaction().IsObjectLoaded());
-  const auto& preview =
-      viewer.object_interaction().mode_manager().GetModeState().preview_object;
-  ASSERT_TRUE(preview.has_value());
-  EXPECT_EQ(preview->id_, captured_object.id_);
-  EXPECT_EQ(preview->size_, captured_object.size_);
-  EXPECT_EQ(preview->layer_, captured_object.layer_);
+  const auto& preview = viewer.object_interaction()
+                            .entity_coordinator()
+                            .tile_handler()
+                            .GetPreviewObject();
+  EXPECT_EQ(preview.id_, captured_object.id_);
+  EXPECT_EQ(preview.size_, captured_object.size_);
+  EXPECT_EQ(preview.layer_, captured_object.layer_);
 }
 
 TEST(DungeonCanvasViewerContextMenuTest,

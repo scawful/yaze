@@ -710,6 +710,51 @@ TEST_F(TileObjectHandlerTest,
   EXPECT_EQ(ghost_palette->colors[kObservedColorIndex].b, 0xFF);
 }
 
+TEST_F(TileObjectHandlerTest,
+       PlacementResizeSurvivesPaletteRefreshForBothPlacementPaths) {
+  DungeonObjectInteraction interaction(canvas_.get());
+  interaction.SetCurrentRoom(&rooms_, 0);
+  auto& coordinator = interaction.entity_coordinator();
+  auto& tile_handler = coordinator.tile_handler();
+  interaction.SetMutationCallback([&]() { ++mutation_count_; });
+  std::optional<uint8_t> callback_size;
+  interaction.SetObjectPlacedCallback(
+      [&](const zelda3::RoomObject& object) { callback_size = object.size_; });
+
+  for (bool direct_placement : {false, true}) {
+    SCOPED_TRACE(direct_placement);
+    interaction.SetPreviewObject(CreateTestObject(0, 0, 0x05, 0xD1), true);
+    rooms_[0].ClearSaveDirtyState();
+    mutation_count_ = 0;
+    ImGui::GetIO().KeyShift = false;
+    ASSERT_TRUE(coordinator.HandleMouseWheel(1.0f));
+    ImGui::GetIO().KeyShift = true;
+    ASSERT_TRUE(coordinator.HandleMouseWheel(1.0f));
+    ASSERT_EQ(tile_handler.GetPreviewObject().size_, 0x0A);
+
+    gfx::PaletteGroup palette(direct_placement ? "second" : "first");
+    interaction.SetCurrentPaletteGroup(palette);
+    EXPECT_EQ(tile_handler.GetPreviewObject().size_, 0x0A);
+    interaction.SetCurrentPaletteGroup(palette, /*force_refresh=*/true);
+    EXPECT_EQ(tile_handler.GetPreviewObject().size_, 0x0A);
+    EXPECT_EQ(mutation_count_, 0);
+    EXPECT_FALSE(rooms_[0].object_stream_dirty());
+
+    const size_t previous_count = rooms_[0].GetTileObjects().size();
+    if (direct_placement) {
+      interaction.PlaceObjectAtPosition(10, 10);
+      ASSERT_TRUE(callback_size.has_value());
+      EXPECT_EQ(*callback_size, 0x0A);
+    } else {
+      ASSERT_TRUE(tile_handler.HandleClick(80, 80));
+    }
+    ASSERT_EQ(rooms_[0].GetTileObjects().size(), previous_count + 1);
+    EXPECT_EQ(rooms_[0].GetTileObjects().back().size_, 0x0A);
+    EXPECT_EQ(mutation_count_, 1);
+    interaction.CancelPlacement();
+  }
+}
+
 // ============================================================================
 // Resize Tests
 // ============================================================================

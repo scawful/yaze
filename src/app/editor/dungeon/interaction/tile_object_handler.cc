@@ -1043,6 +1043,10 @@ bool TileObjectHandler::PlaceObjectAt(int room_id,
 
 void TileObjectHandler::SetPreviewObject(const zelda3::RoomObject& object) {
   preview_object_ = object;
+  RefreshPreviewGraphics();
+}
+
+void TileObjectHandler::RefreshPreviewGraphics() {
   if (object_placement_mode_) {
     RenderGhostPreviewBitmap();
   }

@@ -12,6 +12,11 @@ namespace yaze::editor::workbench {
 bool HasEditableRoomObjectSize(std::span<const zelda3::RoomObject> objects,
                                std::span<const size_t> selected_indices);
 
+// Draw size/variant rows inside the caller's two-column property table.
+// Returns a requested encoded value; the caller owns mutation and undo.
+bool DrawObjectSizeControls(const zelda3::RoomObject& object,
+                            uint8_t* requested_size);
+
 void DrawInspectorSectionHeader(const char* label);
 
 bool BeginInspectorSection(const char* label, bool default_open);

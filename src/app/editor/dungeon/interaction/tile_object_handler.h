@@ -148,6 +148,10 @@ class TileObjectHandler : public BaseEntityHandler {
    * @brief Set object for placement.
    */
   void SetPreviewObject(const zelda3::RoomObject& object);
+  const zelda3::RoomObject& GetPreviewObject() const { return preview_object_; }
+
+  /// Refresh graphics without replacing the current placement geometry.
+  void RefreshPreviewGraphics();
 
   /// Resolve the render anchor and visual extent used by placement previews.
   static GhostPreviewGeometry CalculateGhostPreviewGeometry(
