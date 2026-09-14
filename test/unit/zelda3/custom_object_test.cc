@@ -1,15 +1,79 @@
 #include "zelda3/dungeon/custom_object.h"
 
+#include <array>
 #include <chrono>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <string>
+#include <utility>
 #include <vector>
 
+#include "core/source_artifact_publisher.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 namespace yaze::zelda3 {
 namespace {
+
+struct OracleRuntimeReplay {
+  CustomObject payload;
+  std::array<uint16_t, 64 * 64> tilemap;
+};
+
+// Source-backed model of object_handler.asm's .lineLoop: decrement the complete
+// 16-bit header, then XBA/AND to obtain the jump from the saved segment origin.
+// This does not use the production decoder or its count/jump calculation. It
+// is an ASM contract check, not independent emulator or pixel-parity evidence.
+absl::StatusOr<OracleRuntimeReplay> ReplayOracleCustomObject(
+    int object_id, const std::vector<uint8_t>& bytes) {
+  OracleRuntimeReplay replay;
+  replay.tilemap.fill(
+      0xA55A);  // A zero source word must preserve existing tiles.
+  size_t cursor = 0;
+  size_t destination = 0;
+  auto read_word = [&]() -> absl::StatusOr<uint16_t> {
+    if (cursor + 1 >= bytes.size()) {
+      return absl::DataLossError("Oracle replay reached a truncated word");
+    }
+    const uint16_t word = bytes[cursor] | (bytes[cursor + 1] << 8);
+    cursor += 2;
+    return word;
+  };
+  while (true) {
+    auto header = read_word();
+    if (!header.ok()) {
+      return header.status();
+    }
+    if (*header == 0) {
+      if (cursor != bytes.size()) {
+        return absl::DataLossError("Oracle replay found trailing asset bytes");
+      }
+      return replay;
+    }
+    const size_t segment_origin = destination;
+    uint16_t counter = *header;
+    do {
+      auto word = read_word();
+      if (!word.ok()) {
+        return word.status();
+      }
+      if ((destination & 1) != 0 || destination / 2 >= replay.tilemap.size()) {
+        return absl::OutOfRangeError("Oracle replay destination is invalid");
+      }
+      replay.payload.tiles.push_back({static_cast<int>((destination % 128) / 2),
+                                      static_cast<int>(destination / 128),
+                                      *word});
+      if (*word != 0) {
+        replay.tilemap[destination / 2] =
+            object_id == 0x54 ? (*word | 0x0300) : *word;
+      }
+      destination += 2;
+      --counter;
+    } while ((counter & 0x001F) != 0);
+    destination = segment_origin + (counter >> 8);
+  }
+}
 
 class CustomObjectManagerTest : public ::testing::Test {
  protected:
@@ -62,12 +126,7 @@ TEST_F(CustomObjectManagerTest, LoadSimpleObject) {
   // Tile 1: ID=0x40, Palette=2, Prio=1 -> 00101000 01000000 -> 0x2840 -> LE: 40 28
   // Tile 2: ID=0x41, Palette=2, Prio=1 -> 00101000 01000001 -> 0x2841 -> LE: 41 28
   // Terminator: 00 00
-  // Note: Stride 0x80 is largely ignored by "rel_x/rel_y" calculation in new logic
-  // unless we actually increment current_buffer_pos.
-  // In ParseBinaryData:
-  // current_buffer_pos += (count * 2) + jump_offset
-  // For this test: count=2 (4 bytes), jump_offset=0x80 (128 bytes)
-  // End pos = 4 + 128 = 132.
+  // The jump is relative to the saved segment origin, not the final tile.
 
   std::vector<uint8_t> data = {
       0x02, 0x80,  // Header: Count=2, Jump=0x80
@@ -198,6 +257,114 @@ TEST(CustomObjectCodecTest, RuntimeValidNonCanonicalCountBitsAreAccepted) {
   ASSERT_EQ(decoded_or->tiles.size(), 1u);
   EXPECT_EQ(decoded_or->tiles.front().tile_data, 0x1234);
 }
+
+TEST(CustomObjectCodecTest, SparseWordsPreserveBackgroundAndAllTileAttributes) {
+  const std::vector<uint8_t> source = {
+      0x04, 0x80, 0x00, 0x00, 0x55, 0xA9, 0xAA, 0x56, 0xFF,
+      0xFF, 0x02, 0x00, 0x00, 0x00, 0x23, 0x01, 0x00, 0x00,
+  };
+  const auto decoded = DecodeCustomObjectBinary(source);
+  ASSERT_TRUE(decoded.ok()) << decoded.status();
+  const auto encoded = EncodeCustomObjectBinary(*decoded);
+  ASSERT_TRUE(encoded.ok()) << encoded.status();
+  const auto reopened = DecodeCustomObjectBinary(*encoded);
+  ASSERT_TRUE(reopened.ok()) << reopened.status();
+  EXPECT_EQ(reopened->tiles, decoded->tiles);
+
+  for (const int object_id : CustomObjectManager::RuntimeObjectIds()) {
+    SCOPED_TRACE(object_id);
+    const auto original = ReplayOracleCustomObject(object_id, source);
+    ASSERT_TRUE(original.ok()) << original.status();
+    const auto replayed = ReplayOracleCustomObject(object_id, *encoded);
+    ASSERT_TRUE(replayed.ok()) << replayed.status();
+    EXPECT_EQ(original->payload.tiles, decoded->tiles);
+    EXPECT_EQ(replayed->tilemap, original->tilemap);
+    EXPECT_EQ(replayed->tilemap[0], 0xA55A);
+    EXPECT_EQ(replayed->tilemap[64], 0xA55A);
+    EXPECT_EQ(replayed->tilemap[1], object_id == 0x54 ? 0xAB55 : 0xA955);
+    EXPECT_EQ(replayed->tilemap[2], object_id == 0x54 ? 0x57AA : 0x56AA);
+    EXPECT_EQ(replayed->tilemap[3], 0xFFFF);
+  }
+}
+
+// Opt-in real-source audit. No Oracle payloads are vendored, no source paths
+// are guessed, and only copies inside the fixture's temporary folder are
+// published. An explicitly configured but incomplete corpus fails the tests.
+class CustomObjectOracleAssetTest
+    : public CustomObjectManagerTest,
+      public ::testing::WithParamInterface<std::pair<int, int>> {};
+
+TEST_P(CustomObjectOracleAssetTest, DecodePublishReloadPreservesRuntimeLayout) {
+  const char* asset_root = std::getenv("YAZE_TEST_ORACLE_CUSTOM_OBJECTS");
+  if (asset_root == nullptr) {
+    GTEST_SKIP() << "Set YAZE_TEST_ORACLE_CUSTOM_OBJECTS to Oracle's "
+                    "Dungeons/Objects/Data folder for the 21-asset audit";
+  }
+  const auto [object_id, subtype] = GetParam();
+  auto& manager = CustomObjectManager::Get();
+  const std::string filename = manager.ResolveFilename(object_id, subtype);
+  ASSERT_FALSE(filename.empty());
+  SCOPED_TRACE(filename);
+  const auto source = LoadCustomObjectAsset(asset_root, filename);
+  ASSERT_TRUE(source.ok()) << source.status();
+  RecordProperty("source_sha256", core::ComputeSourceArtifactSha256(
+                                      std::string(source->source_bytes.begin(),
+                                                  source->source_bytes.end())));
+  RecordProperty("source_path", source->resolved_path.string());
+  const auto original =
+      ReplayOracleCustomObject(object_id, source->source_bytes);
+  ASSERT_TRUE(original.ok()) << original.status();
+  ASSERT_EQ(source->object.tiles, original->payload.tiles);
+  ASSERT_FALSE(source->object.IsEmpty());
+
+  WriteBinaryFile(filename, source->source_bytes);
+  const auto cached = manager.GetObjectInternal(object_id, subtype);
+  ASSERT_TRUE(cached.ok()) << cached.status();
+  EXPECT_EQ((*cached)->tiles, original->payload.tiles);
+  const auto target =
+      ResolveCustomObjectAssetPath(temp_dir_.string(), filename);
+  ASSERT_TRUE(target.ok()) << target.status();
+  const auto published =
+      PublishCustomObjectBinary(temp_dir_.string(), filename, source->object,
+                                source->source_bytes, *target);
+  ASSERT_TRUE(published.ok()) << published.status();
+  EXPECT_EQ(ReadBinaryFile(filename), *published);
+  manager.ReloadAll();
+  const auto reopened = manager.GetObjectInternal(object_id, subtype);
+  ASSERT_TRUE(reopened.ok()) << reopened.status();
+  EXPECT_NE(reopened->get(), cached->get());
+  EXPECT_EQ((*reopened)->tiles, original->payload.tiles);
+  const auto replayed = ReplayOracleCustomObject(object_id, *published);
+  ASSERT_TRUE(replayed.ok()) << replayed.status();
+  EXPECT_EQ(replayed->tilemap, original->tilemap);
+
+  // The native source publisher is not allowed to mutate the input corpus.
+  const auto untouched_source = LoadCustomObjectAsset(asset_root, filename);
+  ASSERT_TRUE(untouched_source.ok()) << untouched_source.status();
+  EXPECT_EQ(untouched_source->source_bytes, source->source_bytes);
+}
+
+std::vector<std::pair<int, int>> OracleRuntimeAssetCases() {
+  std::vector<std::pair<int, int>> cases;
+  for (const int object_id : CustomObjectManager::RuntimeObjectIds()) {
+    for (int subtype = 0;
+         subtype < CustomObjectManager::RuntimeSubtypeCountForObject(object_id);
+         ++subtype) {
+      cases.emplace_back(object_id, subtype);
+    }
+  }
+  return cases;
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    OracleRuntimeAssets, CustomObjectOracleAssetTest,
+    ::testing::ValuesIn(OracleRuntimeAssetCases()),
+    [](const ::testing::TestParamInfo<std::pair<int, int>>& info) {
+      const auto& filename =
+          CustomObjectManager::DefaultSubtypeFilenamesForObject(
+              info.param.first)[info.param.second];
+      return std::filesystem::path(filename).stem().string();
+    });
 
 TEST(CustomObjectCodecTest, MalformedStreamsAreRejected) {
   struct MalformedStream {
@@ -395,6 +562,24 @@ TEST_F(CustomObjectManagerTest, SpriteBodyDefaultSubtypeOrderMatchesOracleAbi) {
   EXPECT_TRUE(CustomObjectManager::Get().ResolveFilename(0x54, 2).empty());
 }
 
+TEST_F(CustomObjectManagerTest, TrackAndIceSubtypeOrderMatchesOracleAbi) {
+  EXPECT_THAT(CustomObjectManager::RuntimeObjectIds(),
+              ::testing::ElementsAre(0x31, 0x32, 0x54));
+  EXPECT_THAT(CustomObjectManager::DefaultSubtypeFilenamesForObject(0x31),
+              ::testing::ElementsAre(
+                  "track_LR.bin", "track_UD.bin", "track_corner_TL.bin",
+                  "track_corner_TR.bin", "track_corner_BL.bin",
+                  "track_corner_BR.bin", "track_floor_UD.bin",
+                  "track_floor_LR.bin", "track_floor_corner_TL.bin",
+                  "track_floor_corner_TR.bin", "track_floor_corner_BL.bin",
+                  "track_floor_corner_BR.bin", "track_floor_any.bin",
+                  "wall_sword_house.bin", "track_any.bin", "small_statue.bin"));
+  EXPECT_THAT(
+      CustomObjectManager::DefaultSubtypeFilenamesForObject(0x32),
+      ::testing::ElementsAre("furnace.bin", "firewood.bin", "ice_chair.bin"));
+  EXPECT_EQ(OracleRuntimeAssetCases().size(), 21u);
+}
+
 TEST_F(CustomObjectManagerTest,
        SlotBindingDistinguishesDefaultsMappingsAndUnmappedSlots) {
   auto default_binding =
@@ -476,12 +661,7 @@ TEST_F(CustomObjectManagerTest, LoadComplexLayout) {
   EXPECT_EQ(obj->tiles[1].tile_data, 0xBBBB);
   EXPECT_EQ(obj->tiles[1].rel_y, 0);
 
-  // Row 2 (Should be at offset 64 = 1 line down)
-  // Logic:
-  // Initial pos = 0
-  // After row 1 tiles: pos = 4
-  // After jump: pos = 4 + 60 = 64
-  // Row 2 Tile 1: pos 64 -> y=1, x=0
+  // Row 2 starts 128 bytes (64 tiles) after the saved origin, at x=0, y=1.
 
   EXPECT_EQ(obj->tiles[2].tile_data, 0xCCCC);
   EXPECT_EQ(obj->tiles[2].rel_y, 1);
