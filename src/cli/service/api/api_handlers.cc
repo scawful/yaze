@@ -376,16 +376,19 @@ void HandleRenderDungeon(const httplib::Request& req, httplib::Response& res,
     }
   }
 
-  // Parse scale (clamped 0.25–8.0, default 1.0).
+  // Parse scale strictly; malformed requests must not silently render at 1x.
   float scale = 1.0f;
   if (req.has_param("scale")) {
-    try {
-      scale = std::stof(req.get_param_value("scale"));
-      if (scale < 0.25f)
-        scale = 0.25f;
-      if (scale > 8.0f)
-        scale = 8.0f;
-    } catch (...) {}
+    const auto scale_or =
+        yaze::app::service::ParseRenderScale(req.get_param_value("scale"));
+    if (!scale_or.ok()) {
+      json j;
+      j["error"] = std::string(scale_or.status().message());
+      res.status = 400;
+      res.set_content(j.dump(), "application/json");
+      return;
+    }
+    scale = *scale_or;
   }
 
   yaze::app::service::RenderRequest render_req;
