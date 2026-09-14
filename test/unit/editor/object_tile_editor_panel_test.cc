@@ -1,5 +1,6 @@
 #include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <fstream>
@@ -155,6 +156,20 @@ struct ObjectTileEditorPanelTestAccess {
   static uint16_t AtlasPaletteColor(const ObjectTileEditorPanel& panel,
                                     size_t index) {
     return panel.tile8_atlas_bmp_.palette()[index].snes();
+  }
+
+  static uint8_t PreviewPixel(ObjectTileEditorPanel& panel, int x, int y) {
+    return panel.object_preview_bmp_
+        .mutable_data()[y * panel.object_preview_bmp_.width() + x];
+  }
+
+  static uint8_t AtlasPixel(ObjectTileEditorPanel& panel, int tile_id, int x,
+                            int y) {
+    const int column = tile_id % zelda3::ObjectTileEditor::kAtlasTilesPerRow;
+    const int row = tile_id / zelda3::ObjectTileEditor::kAtlasTilesPerRow;
+    return panel.tile8_atlas_bmp_
+        .mutable_data()[(row * 8 + y) * panel.tile8_atlas_bmp_.width() +
+                        column * 8 + x];
   }
 
   static void SeedTransientState(ObjectTileEditorPanel& panel) {
@@ -2120,6 +2135,132 @@ TEST(ObjectTileEditorPanelTest,
   EXPECT_NE(ObjectTileEditorPanelTestAccess::BuildWindowTitle(panel).find(
                 "Custom 0x031:00 - track_LR.bin"),
             std::string::npos);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     CustomSpriteBodyAtlasMatchesRuntimePreviewWithoutChangingSourceWords) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_runtime_atlas"));
+  // First source word of Oracle's manhandla_body_1a.bin. SpriteObjectsDraw
+  // ORs nonzero words with $0300: raw tile $10D becomes runtime tile $30D.
+  constexpr uint16_t kSourceWord = 0x1D0D;
+  WriteCustomObjectAsset(custom_state.dir / "manhandla_body_1a.bin",
+                         zelda3::CustomObject{.tiles = {{0, 0, kSourceWord}}});
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  zelda3::GameData game_data;
+  game_data.graphics_buffer.assign(2 * 4096, 3);
+  std::fill(game_data.graphics_buffer.begin() + 4096,
+            game_data.graphics_buffer.end(), 7);
+  DungeonRoomStore rooms(&rom);
+  auto& room = rooms[0];
+  room.SetLoaded(true);
+  room.SetGameData(&game_data);
+  room.mutable_blocks().fill(0);
+  room.mutable_blocks()[12] = 1;
+  room.CopyRoomGraphicsToBuffer();
+
+  gfx::PaletteGroup palette;
+  SeedCoordinatorPaletteGroup(&palette, 8, 16, 0);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(panel.OpenForCustomObject(0x54, 1, 0, &rooms, palette).ok());
+  const auto original_layout = ObjectTileEditorPanelTestAccess::Layout(panel);
+
+  // Switching away from a body object must restore the ordinary atlas. Keep
+  // the same raw tile/palette to isolate runtime-page handling from color.
+  for (const int object_id : {0x54, 0x31, 0x32, 0x11F, 0x54}) {
+    SCOPED_TRACE(object_id);
+    auto layout = original_layout;
+    layout.object_id = object_id;
+    layout.is_custom = object_id != 0x11F;
+    ObjectTileEditorPanelTestAccess::SetLayout(panel, std::move(layout));
+    ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(panel);
+    ObjectTileEditorPanelTestAccess::RenderObjectPreview(panel);
+    ObjectTileEditorPanelTestAccess::RenderTile8Atlas(panel);
+    ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
+    ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
+    const int expected_color = object_id == 0x54 ? 7 : 3;
+    for (int y = 0; y < 8; ++y) {
+      for (int x = 0; x < 8; ++x) {
+        EXPECT_EQ(
+            ObjectTileEditorPanelTestAccess::AtlasPixel(panel, 0x10D, x, y),
+            expected_color);
+        EXPECT_EQ(ObjectTileEditorPanelTestAccess::PreviewPixel(panel, x, y),
+                  7 * 16 + expected_color);
+      }
+    }
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel),
+              0x10D);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::SourcePalette(panel), 7);
+    const auto& unchanged = ObjectTileEditorPanelTestAccess::Layout(panel);
+    EXPECT_EQ(gfx::TileInfoToWord(unchanged.cells[0].tile_info), kSourceWord);
+    EXPECT_EQ(unchanged.cells[0].original_word, kSourceWord);
+    EXPECT_EQ(unchanged.custom_source_bytes,
+              original_layout.custom_source_bytes);
+    EXPECT_FALSE(unchanged.HasModifications());
+  }
+}
+
+TEST(ObjectTileEditorPanelTest,
+     DrawRefreshesRoomGraphicsWithoutDiscardingUnsavedCustomTiles) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_graphics_refresh"));
+  WriteCustomObjectAsset(custom_state.dir / "ice_chair.bin",
+                         zelda3::CustomObject{.tiles = {{0, 0, 0x0986}}});
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  zelda3::GameData game_data;
+  game_data.graphics_buffer.assign(4096, 3);
+  DungeonRoomStore rooms(&rom);
+  auto& room = rooms[0];
+  room.SetLoaded(true);
+  room.SetGameData(&game_data);
+  room.mutable_blocks().fill(0);
+  room.CopyRoomGraphicsToBuffer();
+
+  gfx::PaletteGroup palette;
+  SeedCoordinatorPaletteGroup(&palette, 8, 16, 0);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(panel.OpenForCustomObject(0x32, 2, 0, &rooms, palette).ok());
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(panel, 0x196, 2);
+  ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(panel);
+  const auto original_layout = ObjectTileEditorPanelTestAccess::Layout(panel);
+
+  ScopedImGuiContext imgui_context;
+  const auto draw = [&] {
+    bool open = true;
+    ImGui::NewFrame();
+    ImGui::Begin("ObjectTileEditorGraphicsRefreshHost");
+    panel.Draw(&open);
+    ImGui::End();
+    ImGui::Render();
+    EXPECT_TRUE(open);
+  };
+  draw();
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasActivePreview(panel));
+  ASSERT_TRUE(ObjectTileEditorPanelTestAccess::HasActiveAtlas(panel));
+  ASSERT_EQ(ObjectTileEditorPanelTestAccess::PreviewPixel(panel, 0, 0), 35);
+  ASSERT_EQ(ObjectTileEditorPanelTestAccess::AtlasPixel(panel, 0x196, 0, 0), 3);
+
+  // The room ID, headers and block IDs are unchanged; only decoded sheet
+  // contents change, as when the graphics editor reloads a source sheet.
+  game_data.graphics_buffer.assign(4096, 5);
+  room.CopyRoomGraphicsToBuffer();
+  draw();
+
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::PreviewPixel(panel, 0, 0), 37);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::AtlasPixel(panel, 0x196, 0, 0), 5);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::PreviewDirty(panel));
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::AtlasDirty(panel));
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0x196);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
+  const auto& unchanged = ObjectTileEditorPanelTestAccess::Layout(panel);
+  EXPECT_EQ(gfx::TileInfoToWord(unchanged.cells[0].tile_info), 0x0996);
+  EXPECT_EQ(unchanged.cells[0].original_word, 0x0986);
+  EXPECT_EQ(unchanged.custom_source_bytes, original_layout.custom_source_bytes);
 }
 
 TEST(ObjectTileEditorPanelTest,
