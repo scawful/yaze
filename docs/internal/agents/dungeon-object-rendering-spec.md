@@ -204,14 +204,33 @@ not an independent moving-water parity claim. The
 [third-slice record](../plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md#third-implementation-slice-room-graphics-fixed-walls-and-platforms-2026-09-14)
 contains commands and remaining limitations.
 
+The fourth September 14 slice passed 477 focused unit/ROM tests and 57
+full-image PNG/composite comparisons (15 vanilla and four Oracle rooms at
+three scales). The maintained ladder remains green: 42 synthetic,
+12 ROM/payload, 12 room/composition, seven unchanged Mesen baselines, and
+1,190 clean bounds cases. No goldens were refreshed. The
+[fourth-slice record](../plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md#fourth-implementation-slice-export-composition-and-oracle-boss-preview-2026-09-14)
+separates static source-asset, export-safety and runtime evidence.
+
 ### Known preview boundaries
 
 - Oracle-profile sprite `0xB1` uses Puffstool's source-backed static OAM
   layout, offsets and palette selection. The override is selected per call
   from the loaded project; vanilla, unrelated and missing profiles retain
   the default sprite preview. This does not emulate sprite animation or
-  independently validate runtime CGRAM. Oracle Manhandla `0x88` still needs
-  its custom layout instead of the vanilla Mothula preview.
+  independently validate runtime CGRAM.
+- Oracle-profile Manhandla `0x88` previews only the source frame-zero front
+  head, using `Bosses/manhandla.bin` under the project's `assets_folder`.
+  The exact 8,192-byte planar asset replaces OBJ page 1 in a preview-local
+  copy; room graphics are not modified. Missing or malformed assets produce
+  a labeled marker, not vanilla Mothula or unrelated room art. Reopening the
+  project refreshes the resource cache. Spawned heads, BG body, animation and
+  runtime CGRAM remain unverified. The graphics hook runs in room `0x05A`;
+  a source-backed editor preview in room `0x08C` is not proof that the runtime
+  loads the same graphics there.
+- Headless PNG rendering applies the same room merge/effect settings as the
+  canvas. Full-image comparisons at three scales protect that contract;
+  agreement between these two Yaze paths is not independent SNES evidence.
 - `0xD8`/`0xDA` water is structural/editor-preview coverage only until state-labeled Mesen captures verify each vanilla branch and layer-mode side effect.
 - Moving-floor objects have static tile stamps, but Yaze does not emulate the SNES runtime BG2 scrolling effect.
 - RGB averaging and indexed-palette fallback paths approximate SNES color math; only committed Mesen ROIs are pixel-parity claims.
