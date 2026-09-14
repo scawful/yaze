@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <span>
 #include <string>
+#include <string_view>
 #include <vector>
 #include "util/i18n/tr.h"
 
@@ -20,6 +21,7 @@
 #include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite.h"
+#include "zelda3/sprite/sprite_oam_tables.h"
 
 namespace yaze::editor {
 
@@ -114,6 +116,10 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
   const int entity_size = is_touch ? 24 : 16;
   const auto sprite_colors =
       zelda3::BuildDungeonSpriteRenderPalette(room, game_data_);
+  const std::string_view hack_name =
+      project_ != nullptr && project_->hack_manifest.loaded()
+          ? std::string_view(project_->hack_manifest.hack_name())
+          : std::string_view{};
   const auto& room_gfx = room.get_gfx_buffer();
   const std::span<const uint8_t> room_gfx_span(room_gfx.data(),
                                                room_gfx.size());
@@ -128,7 +134,9 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
                                                 : theme.dungeon_sprite_layer1;
 
       zelda3::Sprite preview_sprite = sprite;
-      preview_sprite.RenderPreviewGraphics(room_gfx_span);
+      preview_sprite.RenderPreviewGraphics(
+          room_gfx_span, zelda3::SpriteOamRegistry::GetPreviewOverride(
+                             sprite.id(), hack_name));
       const auto* preview = preview_sprite.preview_graphics();
       const bool drew_preview =
           preview && DrawSpritePreviewPixels(
