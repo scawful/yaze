@@ -40,8 +40,8 @@ TEST(DrawRoutineRegistryTest, GetRoutineIdForRepresentativeObjects) {
   EXPECT_EQ(reg.GetRoutineIdForObject(0x55), 41);
   // 0x51 -> routine 42 (RightwardsCannonHole4x3_1to16)
   EXPECT_EQ(reg.GetRoutineIdForObject(0x51), 42);
-  // Type 2: 0x100 -> routine 16 (Rightwards4x4_1to16)
-  EXPECT_EQ(reg.GetRoutineIdForObject(0x100), 16);
+  // Type 2: 0x100 -> fixed RoomDraw_4x4, without subtype-1 repetition.
+  EXPECT_EQ(reg.GetRoutineIdForObject(0x100), DrawRoutineIds::kActual4x4);
   // Type 3: 0xF80 -> routine 94 (EmptyWaterFace)
   EXPECT_EQ(reg.GetRoutineIdForObject(0xF80), 94);
 }
