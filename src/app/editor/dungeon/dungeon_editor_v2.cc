@@ -68,6 +68,7 @@
 #include "util/log.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_validator.h"
@@ -154,14 +155,73 @@ void DungeonEditorV2::ConfigureMinecartProjectCallbacks() {
       });
 }
 
+absl::Status DungeonEditorV2::EnsureMinecartTrackEditorPanel() {
+  if (minecart_track_editor_panel_ != nullptr) {
+    return absl::OkStatus();
+  }
+  if (!core::FeatureFlags::get().kEnableCustomObjects) {
+    return absl::FailedPreconditionError(
+        "Enable Custom Dungeon Objects before opening Minecart Tracks");
+  }
+  if (dependencies_.window_manager != nullptr &&
+      dependencies_.window_manager->GetActiveSessionId() !=
+          dependencies_.session_id) {
+    return absl::FailedPreconditionError(
+        "Minecart Tracks can only be registered for the active project "
+        "session");
+  }
+
+  auto minecart_panel = std::make_unique<MinecartTrackEditorPanel>();
+  RETURN_IF_ERROR(minecart_panel->SetProject(dependencies_.project));
+  minecart_panel->SetRooms(&rooms_);
+  minecart_panel->SetRoomNavigationCallback(
+      [this](int room_id) { OnRoomSelected(room_id); });
+
+  minecart_track_editor_panel_ = minecart_panel.get();
+  ConfigureMinecartProjectCallbacks();
+  if (dependencies_.window_manager != nullptr) {
+    dependencies_.window_manager->RegisterWindowContent(
+        std::move(minecart_panel));
+  } else {
+    owned_minecart_track_editor_panel_ = std::move(minecart_panel);
+  }
+
+  room_viewers_.ForEach(
+      [this](int, std::unique_ptr<DungeonCanvasViewer>& viewer) {
+        if (viewer != nullptr) {
+          viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
+        }
+      });
+  if (workbench_viewer_ != nullptr) {
+    workbench_viewer_->SetMinecartTrackPanel(minecart_track_editor_panel_);
+  }
+  if (workbench_compare_viewer_ != nullptr) {
+    workbench_compare_viewer_->SetMinecartTrackPanel(
+        minecart_track_editor_panel_);
+  }
+  if (workbench_panel_ != nullptr) {
+    workbench_panel_->SetEmbeddedToolPanels(
+        room_tag_editor_panel_, custom_collision_panel_, water_fill_panel_,
+        minecart_track_editor_panel_);
+  }
+
+  return absl::OkStatus();
+}
+
 void DungeonEditorV2::SynchronizeCustomObjectAssets() {
   const bool custom_objects_enabled =
       core::FeatureFlags::get().kEnableCustomObjects;
+  const bool custom_objects_state_changed =
+      custom_objects_enabled != observed_custom_objects_enabled_;
   const uint64_t generation =
       zelda3::CustomObjectManager::Get().asset_generation();
   if (generation == observed_custom_object_generation_ &&
-      custom_objects_enabled == observed_custom_objects_enabled_) {
+      !custom_objects_state_changed) {
     return;
+  }
+
+  if (custom_objects_state_changed) {
+    zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
   }
 
   rooms_.ForEachMaterialized(
@@ -935,23 +995,6 @@ absl::Status DungeonEditorV2::Load() {
   room_tag_panel->SetCurrentRoomId(current_room_id_);
   room_tag_editor_panel_ = room_tag_panel.get();
 
-  std::unique_ptr<MinecartTrackEditorPanel> minecart_panel;
-  if (core::FeatureFlags::get().kEnableCustomObjects) {
-    minecart_panel = std::make_unique<MinecartTrackEditorPanel>();
-    minecart_track_editor_panel_ = minecart_panel.get();
-
-    if (dependencies_.project) {
-      RETURN_IF_ERROR(
-          minecart_track_editor_panel_->SetProject(dependencies_.project));
-      minecart_track_editor_panel_->SetRooms(&rooms_);
-      minecart_track_editor_panel_->SetRoomNavigationCallback(
-          [this](int room_id) { OnRoomSelected(room_id); });
-    }
-    ConfigureMinecartProjectCallbacks();
-  } else {
-    minecart_track_editor_panel_ = nullptr;
-  }
-
   // Register the ObjectSelectorContent directly (it inherits from WindowContent)
   // Panel manager takes ownership
   if (dependencies_.window_manager) {
@@ -982,11 +1025,6 @@ absl::Status DungeonEditorV2::Load() {
         std::move(water_fill_panel));
     dependencies_.window_manager->RegisterWindowContent(
         std::move(room_tag_panel));
-    if (minecart_panel) {
-      dependencies_.window_manager->RegisterWindowContent(
-          std::move(minecart_panel));
-    }
-
     // Object Tile Editor Panel
     {
       auto tile_editor_panel =
@@ -1050,7 +1088,10 @@ absl::Status DungeonEditorV2::Load() {
     owned_custom_collision_panel_ = std::move(custom_collision_panel);
     owned_water_fill_panel_ = std::move(water_fill_panel);
     owned_room_tag_editor_panel_ = std::move(room_tag_panel);
-    owned_minecart_track_editor_panel_ = std::move(minecart_panel);
+  }
+
+  if (core::FeatureFlags::get().kEnableCustomObjects) {
+    RETURN_IF_ERROR(EnsureMinecartTrackEditorPanel());
   }
 
   palette_editor_.SetOnDungeonPaletteChanged(

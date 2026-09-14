@@ -654,7 +654,7 @@ TEST(DungeonObjectSelectorCustomRuntimeTest, FixedSlotsMatchOracleDispatch) {
 
   EXPECT_EQ(GetDungeonCustomObjectSlotName(0x31, 0), "Track horizontal");
   EXPECT_EQ(GetDungeonCustomObjectSlotName(0x31, 13),
-            "Sword House wall override");
+            "Sword House wall object");
   EXPECT_EQ(GetDungeonCustomObjectSlotName(0x32, 2), "Ice chair");
   EXPECT_EQ(GetDungeonCustomObjectSlotName(0x54, 0), "Kydreeok body");
   EXPECT_EQ(GetDungeonCustomObjectSlotName(0x54, 1), "Manhandla body");
@@ -859,7 +859,7 @@ TEST(DungeonObjectSelectorCustomRuntimeTest,
 }
 
 TEST(DungeonObjectSelectorCustomRuntimeTest,
-     QueuedTrackCornerAliasRefreshesAfterAssetReload) {
+     QueuedWallCornerDoesNotRefreshAfterTrackAssetReload) {
   ScopedSelectorCustomObjectState custom_state;
   ASSERT_TRUE(custom_state.WriteRawAsset("track_corner_TL.bin",
                                          {0x01, 0x00, 0x10, 0x28, 0x00, 0x00}));
@@ -885,6 +885,63 @@ TEST(DungeonObjectSelectorCustomRuntimeTest,
   EXPECT_TRUE(selector.IsObjectLoaded());
   EXPECT_EQ(selector.selected_object_id_for_testing(), 0x100);
   EXPECT_EQ(selector.GetPreviewObject().id_, 0x100);
+  EXPECT_EQ(selected_count, 1);
+  EXPECT_EQ(invalidated_count, 0);
+}
+
+TEST(DungeonObjectSelectorCustomRuntimeTest,
+     QueuedExplicitWallOverrideRefreshesAfterAssetReload) {
+  ScopedSelectorCustomObjectState custom_state;
+  ASSERT_TRUE(custom_state.WriteRawAsset("wall_corner.bin",
+                                         {0x01, 0x00, 0x10, 0x28, 0x00, 0x00}));
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0x100, {"wall_corner.bin"}}});
+
+  DungeonObjectSelector selector;
+  int selected_count = 0;
+  int invalidated_count = 0;
+  selector.SetObjectSelectedCallback(
+      [&](const zelda3::RoomObject&) { ++selected_count; });
+  selector.SetPlacementInvalidatedCallback([&]() { ++invalidated_count; });
+
+  selector.SelectObject(0x100);
+  ASSERT_TRUE(selector.IsObjectLoaded());
+  ASSERT_EQ(selected_count, 1);
+
+  ASSERT_TRUE(custom_state.WriteRawAsset(
+      "wall_corner.bin", {0x02, 0x00, 0x10, 0x28, 0x11, 0x28, 0x00, 0x00}));
+  zelda3::CustomObjectManager::Get().ReloadAll();
+  DungeonObjectSelectorTestAccess::SynchronizeCustomObjectGeneration(selector);
+
+  EXPECT_TRUE(selector.IsObjectLoaded());
+  EXPECT_EQ(selector.selected_object_id_for_testing(), 0x100);
+  EXPECT_EQ(selected_count, 2);
+  EXPECT_EQ(invalidated_count, 0);
+}
+
+TEST(DungeonObjectSelectorCustomRuntimeTest,
+     QueuedExplicitWallOverrideRefreshesToVanillaWhenFeatureIsDisabled) {
+  ScopedSelectorCustomObjectState custom_state;
+  ASSERT_TRUE(custom_state.WriteRawAsset("wall_corner.bin",
+                                         {0x01, 0x00, 0x10, 0x28, 0x00, 0x00}));
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0x100, {"wall_corner.bin"}}});
+
+  DungeonObjectSelector selector;
+  int selected_count = 0;
+  int invalidated_count = 0;
+  selector.SetObjectSelectedCallback(
+      [&](const zelda3::RoomObject&) { ++selected_count; });
+  selector.SetPlacementInvalidatedCallback([&]() { ++invalidated_count; });
+  selector.SelectObject(0x100);
+  ASSERT_TRUE(selector.IsObjectLoaded());
+
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  DungeonObjectSelectorTestAccess::SynchronizeCustomObjectGeneration(selector);
+
+  EXPECT_TRUE(selector.IsObjectLoaded());
+  EXPECT_EQ(selector.selected_object_id_for_testing(), 0x100);
   EXPECT_EQ(selected_count, 2);
   EXPECT_EQ(invalidated_count, 0);
 }

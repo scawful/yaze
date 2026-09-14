@@ -205,8 +205,6 @@ ObjectTraceReport BuildObjectTraceReport(
   // used by conditional edge/cap routines.
   zelda3::ObjectDrawer drawer(rom, room.id(), room.get_gfx_buffer().data());
   drawer.SetRoomFloorGraphics(room.floor1(), room.floor2());
-  drawer.SetAllowTrackCornerAliases(
-      zelda3::RoomAllowsTrackCornerAliases(objects));
   drawer.SetBG1RevealMaskSource(gfx::BG1RevealMaskSource::kBG2Objects);
   gfx::BackgroundBuffer bg1(512, 512);
   gfx::BackgroundBuffer bg2(512, 512);

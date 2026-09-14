@@ -37,7 +37,7 @@ struct ObjectTileEditorPanelTestAccess;
  * Tile properties (palette, flip, priority) can be edited per-cell.
  *
  * Standard-object sessions open from the dungeon canvas selection menu.
- * Existing fixed-slot custom assets open from the custom object workshop.
+ * Existing fixed-slot custom assets open from the Custom Assets browser.
  */
 class ObjectTileEditorPanel : public WindowContent {
  public:

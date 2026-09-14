@@ -736,6 +736,74 @@ TEST(MinecartTrackEditorPanelTest,
 }
 
 TEST(MinecartTrackEditorPanelTest,
+     LateCustomObjectEnableRegistersMinecartPanelInOwningSession) {
+  FeatureFlagsGuard flags_guard;
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+
+  WorkspaceWindowManager window_manager;
+  constexpr size_t kSessionId = 7;
+  window_manager.RegisterSession(kSessionId);
+  window_manager.SetActiveSession(kSessionId);
+
+  project::YazeProject project;
+  DungeonEditorV2 editor;
+  EditorDependencies dependencies;
+  dependencies.project = &project;
+  dependencies.session_id = kSessionId;
+  dependencies.window_manager = &window_manager;
+  editor.SetDependencies(dependencies);
+
+  EXPECT_EQ(window_manager.GetWindowContent(
+                kSessionId, DungeonEditorV2::kMinecartTrackEditorId),
+            nullptr);
+  EXPECT_FALSE(editor.EnsureMinecartTrackEditorPanel().ok());
+
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  ASSERT_TRUE(editor.EnsureMinecartTrackEditorPanel().ok());
+  auto* registered = window_manager.GetWindowContent(
+      kSessionId, DungeonEditorV2::kMinecartTrackEditorId);
+  ASSERT_NE(registered, nullptr);
+  EXPECT_NE(dynamic_cast<MinecartTrackEditorPanel*>(registered), nullptr);
+  EXPECT_TRUE(window_manager.OpenWindow(
+      kSessionId, DungeonEditorV2::kMinecartTrackEditorId));
+
+  ASSERT_TRUE(editor.EnsureMinecartTrackEditorPanel().ok());
+  EXPECT_EQ(window_manager.GetWindowContent(
+                kSessionId, DungeonEditorV2::kMinecartTrackEditorId),
+            registered);
+}
+
+TEST(MinecartTrackEditorPanelTest,
+     LateMinecartRegistrationRejectsInactiveOwningSession) {
+  FeatureFlagsGuard flags_guard;
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+
+  WorkspaceWindowManager window_manager;
+  constexpr size_t kOwningSessionId = 7;
+  constexpr size_t kActiveSessionId = 8;
+  window_manager.RegisterSession(kOwningSessionId);
+  window_manager.RegisterSession(kActiveSessionId);
+  window_manager.SetActiveSession(kActiveSessionId);
+
+  DungeonEditorV2 editor;
+  EditorDependencies dependencies;
+  dependencies.session_id = kOwningSessionId;
+  dependencies.window_manager = &window_manager;
+  editor.SetDependencies(dependencies);
+
+  const absl::Status status = editor.EnsureMinecartTrackEditorPanel();
+  EXPECT_FALSE(status.ok());
+  EXPECT_NE(std::string(status.message()).find("active project session"),
+            std::string::npos);
+  EXPECT_EQ(window_manager.GetWindowContent(
+                kOwningSessionId, DungeonEditorV2::kMinecartTrackEditorId),
+            nullptr);
+  EXPECT_EQ(window_manager.GetWindowContent(
+                kActiveSessionId, DungeonEditorV2::kMinecartTrackEditorId),
+            nullptr);
+}
+
+TEST(MinecartTrackEditorPanelTest,
      FailedManagerOwnedProjectSavePreservesDirtyOverlayForRetry) {
   ScopedTestProject fixture;
   MinecartTrackEditorPanel panel;

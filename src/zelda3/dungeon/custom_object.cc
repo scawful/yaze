@@ -107,29 +107,6 @@ std::vector<CustomObject::TileMapEntry> VisibleRuntimeTiles(
   return visible;
 }
 
-bool ResolveCornerOverrideIndex(int object_id, int* out_index) {
-  if (out_index == nullptr) {
-    return false;
-  }
-
-  switch (object_id) {
-    case 0x100:
-      *out_index = 2;  // track_corner_TL.bin
-      return true;
-    case 0x101:
-      *out_index = 4;  // track_corner_BL.bin
-      return true;
-    case 0x102:
-      *out_index = 3;  // track_corner_TR.bin
-      return true;
-    case 0x103:
-      *out_index = 5;  // track_corner_BR.bin
-      return true;
-    default:
-      return false;
-  }
-}
-
 }  // namespace
 
 absl::StatusOr<CustomObject> DecodeCustomObjectBinary(
@@ -506,6 +483,8 @@ uint16_t CustomObjectRuntimeTileWord(int object_id, uint16_t source_word) {
   return source_word;
 }
 
+// These are subtypes of custom object 0x31 itself. The corner-named assets do
+// not override standard wall-corner objects 0x100-0x103.
 const std::vector<std::string> CustomObjectManager::kSubtype1Filenames = {
     "track_LR.bin",               // 00
     "track_UD.bin",               // 01
@@ -577,14 +556,9 @@ void CustomObjectManager::Initialize(const std::string& custom_objects_folder) {
 #if !defined(NDEBUG)
   LOG_INFO("CustomObjectManager", "Initialize: base_path='%s'",
            GetBasePath().c_str());
-  // Verify corner override files for object 0x31 (minecart tracks)
   if (const auto* list = ResolveFileList(0x31)) {
-    LOG_INFO("CustomObjectManager",
-             "Object 0x31 file list has %zu entries (corners need indices 2-5)",
+    LOG_INFO("CustomObjectManager", "Object 0x31 file list has %zu entries",
              list->size());
-  } else {
-    LOG_WARN("CustomObjectManager",
-             "Object 0x31 not mapped - corner overrides 0x100-0x103 will fail");
   }
 #endif
 }
@@ -647,32 +621,6 @@ const std::vector<std::string>* CustomObjectManager::ResolveFileList(
   return nullptr;
 }
 
-bool CustomObjectManager::IsCornerAliasOverrideEnabled(
-    int resolved_index) const {
-  // Guardrail: subtype-2 corner aliases (0x100..0x103) should only route
-  // through custom payloads when the project explicitly provides an object 0x31
-  // file map. Folder-only custom-object contexts must keep vanilla wall-corner
-  // behavior.
-  const auto& custom_file_map = ActiveContext().state.custom_file_map;
-  const auto custom_it = custom_file_map.find(0x31);
-  if (custom_it == custom_file_map.end()) {
-    return false;
-  }
-
-  const auto& list = custom_it->second;
-  if (resolved_index < 0 || resolved_index >= static_cast<int>(list.size())) {
-    return false;
-  }
-
-  const std::string& filename = list[resolved_index];
-  if (filename.empty()) {
-    return false;
-  }
-
-  auto candidate_or = ResolveCustomObjectAssetPath(GetBasePath(), filename);
-  return candidate_or.ok() && fs::exists(*candidate_or);
-}
-
 absl::StatusOr<std::shared_ptr<CustomObject>> CustomObjectManager::LoadObject(
     const std::string& filename) {
   auto& cache = ActiveContext().cache;
@@ -696,30 +644,17 @@ absl::StatusOr<std::shared_ptr<CustomObject>> CustomObjectManager::LoadObject(
 absl::StatusOr<std::shared_ptr<CustomObject>>
 CustomObjectManager::GetObjectInternal(int object_id, int subtype) {
   const std::vector<std::string>* list = ResolveFileList(object_id);
-  int index = subtype;
-  int runtime_object_id = object_id;
-
-  if (!list && ResolveCornerOverrideIndex(object_id, &index)) {
-    if (!IsCornerAliasOverrideEnabled(index)) {
-      return absl::NotFoundError(
-          "Corner alias override not configured for current runtime context");
-    }
-    // Minecart track corner aliases for subtype-2 wall-corner objects.
-    list = ResolveFileList(0x31);
-    runtime_object_id = 0x31;
-  }
-
   if (!list) {
     return absl::NotFoundError("Object ID not mapped to custom object");
   }
 
-  const int runtime_count = RuntimeSubtypeCountForObject(runtime_object_id);
-  if (index < 0 || (runtime_count > 0 && index >= runtime_count) ||
-      index >= static_cast<int>(list->size())) {
+  const int runtime_count = RuntimeSubtypeCountForObject(object_id);
+  if (subtype < 0 || (runtime_count > 0 && subtype >= runtime_count) ||
+      subtype >= static_cast<int>(list->size())) {
     return absl::OutOfRangeError("Subtype index out of range");
   }
 
-  return LoadObject((*list)[index]);
+  return LoadObject((*list)[subtype]);
 }
 
 int CustomObjectManager::GetSubtypeCount(int object_id) const {
@@ -729,11 +664,6 @@ int CustomObjectManager::GetSubtypeCount(int object_id) const {
   }
   if (const auto* list = ResolveFileList(object_id)) {
     return static_cast<int>(list->size());
-  }
-  if (object_id >= 0x100 && object_id <= 0x103) {
-    if (const auto* list = ResolveFileList(0x31)) {
-      return static_cast<int>(list->size());
-    }
   }
   return 0;
 }
@@ -774,19 +704,44 @@ void CustomObjectManager::ReloadAll() {
   InvalidateCaches();
 }
 
+absl::StatusOr<CustomObjectSlotBinding> CustomObjectManager::ResolveSlotBinding(
+    int object_id, int subtype) const {
+  const int runtime_count = RuntimeSubtypeCountForObject(object_id);
+  if (runtime_count <= 0) {
+    return absl::NotFoundError("Object ID has no fixed custom runtime slots");
+  }
+  if (subtype < 0 || subtype >= runtime_count) {
+    return absl::OutOfRangeError("Custom runtime subtype is out of range");
+  }
+
+  CustomObjectSlotBinding binding;
+  const auto& custom_file_map = ActiveContext().state.custom_file_map;
+  const auto mapped_it = custom_file_map.find(object_id);
+  if (mapped_it == custom_file_map.end()) {
+    const auto& defaults = DefaultSubtypeFilenamesForObject(object_id);
+    binding.filename = defaults[static_cast<size_t>(subtype)];
+    binding.origin = CustomObjectMappingOrigin::kDefaultFilename;
+  } else if (subtype >= static_cast<int>(mapped_it->second.size()) ||
+             mapped_it->second[static_cast<size_t>(subtype)].empty()) {
+    binding.origin = CustomObjectMappingOrigin::kConfiguredSlotUnmapped;
+  } else {
+    binding.filename = mapped_it->second[static_cast<size_t>(subtype)];
+    binding.origin = CustomObjectMappingOrigin::kConfiguredFilename;
+  }
+  return binding;
+}
+
 std::string CustomObjectManager::ResolveFilename(int object_id,
                                                  int subtype) const {
-  const auto* list = ResolveFileList(object_id);
-  int index = subtype;
-  int runtime_object_id = object_id;
-  if (!list && ResolveCornerOverrideIndex(object_id, &index)) {
-    list = ResolveFileList(0x31);
-    runtime_object_id = 0x31;
+  if (RuntimeSubtypeCountForObject(object_id) > 0) {
+    const auto binding = ResolveSlotBinding(object_id, subtype);
+    return binding.ok() ? binding->filename : "";
   }
-  const int runtime_count = RuntimeSubtypeCountForObject(runtime_object_id);
-  if (list && index >= 0 && (runtime_count == 0 || index < runtime_count) &&
-      index < static_cast<int>(list->size())) {
-    return (*list)[index];
+  const auto* list = ResolveFileList(object_id);
+  const int runtime_count = RuntimeSubtypeCountForObject(object_id);
+  if (list && subtype >= 0 && (runtime_count == 0 || subtype < runtime_count) &&
+      subtype < static_cast<int>(list->size())) {
+    return (*list)[subtype];
   }
   return "";
 }

@@ -59,6 +59,7 @@
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/shell/windows/dashboard_panel.h"
 #include "app/editor/shell/windows/project_management_panel.h"
+#include "app/editor/shell/windows/settings_panel.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/project_workflow_status.h"
 #include "app/editor/system/session/default_editor_factories.h"
@@ -7007,6 +7008,40 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
   deps.gfx_group_workspace = editor_set->gfx_group_workspace();
 
   editor_set->ApplyDependencies(deps);
+
+  if (auto* settings_panel = editor_set->GetSettingsPanel()) {
+    settings_panel->SetOpenMinecartTracksCallback(
+        [this, session_id]() -> absl::Status {
+          if (!IsCurrentProjectContextOwnedBySession(session_id)) {
+            return absl::FailedPreconditionError(
+                "Minecart Tracks requires its project session to be active.");
+          }
+          if (!core::FeatureFlags::get().kEnableCustomObjects) {
+            return absl::FailedPreconditionError(
+                "Enable Custom Dungeon Objects before opening Minecart "
+                "Tracks.");
+          }
+
+          RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kDungeon));
+          auto* dungeon = GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+              EditorType::kDungeon);
+          if (dungeon == nullptr) {
+            return absl::NotFoundError(
+                "Dungeon editor is unavailable in the active project "
+                "session.");
+          }
+          RETURN_IF_ERROR(dungeon->EnsureMinecartTrackEditorPanel());
+
+          SwitchToEditor(EditorType::kDungeon, true);
+          if (!window_manager_.OpenWindow(
+                  session_id, DungeonEditorV2::kMinecartTrackEditorId)) {
+            return absl::NotFoundError(
+                "Minecart Tracks could not be opened in the active Dungeon "
+                "editor.");
+          }
+          return absl::OkStatus();
+        });
+  }
 
   // If configuring the active session, update the properties panel
   if (session_id == GetCurrentSessionId()) {

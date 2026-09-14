@@ -1,14 +1,11 @@
 #ifndef YAZE_ZELDA3_DUNGEON_OBJECT_LAYER_SEMANTICS_H_
 #define YAZE_ZELDA3_DUNGEON_OBJECT_LAYER_SEMANTICS_H_
 
-#include <algorithm>
 #include <cstdint>
-#include <span>
 
 #include "core/features.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
-#include "zelda3/dungeon/minecart_object_semantics.h"
 #include "zelda3/dungeon/object_render_routing.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -42,29 +39,8 @@ inline bool UsesSpecialLayerSelector(const RoomObject& object) {
   return !UsesRoomObjectStream(object);
 }
 
-inline bool IsTrackCornerAliasObjectId(int object_id) {
-  return object_id >= 0x100 && object_id <= 0x103;
-}
-
-inline bool IsMinecartTrackCustomObject(const RoomObject& object) {
-  if (object.id_ != 0x31) {
-    return false;
-  }
-
-  const int subtype = object.size_ & 0x1F;
-  return IsMinecartTrackGraphicsSubtype(object.id_, subtype);
-}
-
-inline bool RoomAllowsTrackCornerAliases(
-    std::span<const RoomObject> room_objects) {
-  return std::any_of(room_objects.begin(), room_objects.end(),
-                     IsMinecartTrackCustomObject);
-}
-
-inline bool HasActiveCustomObjectOverride(const RoomObject& object,
-                                          bool allow_track_corner_aliases) {
-  if (!core::FeatureFlags::get().kEnableCustomObjects ||
-      (IsTrackCornerAliasObjectId(object.id_) && !allow_track_corner_aliases)) {
+inline bool HasActiveCustomObjectOverride(const RoomObject& object) {
+  if (!core::FeatureFlags::get().kEnableCustomObjects) {
     return false;
   }
 
@@ -124,8 +100,8 @@ inline ObjectLayerSemantics GetObjectLayerSemantics(const RoomObject& object) {
 // Reports the route actually used by ObjectDrawer after custom overrides have
 // had their chance to preempt the built-in routine.
 inline ObjectLayerSemantics GetEffectiveObjectLayerSemantics(
-    const RoomObject& object, bool allow_track_corner_aliases) {
-  if (!HasActiveCustomObjectOverride(object, allow_track_corner_aliases)) {
+    const RoomObject& object) {
+  if (!HasActiveCustomObjectOverride(object)) {
     return GetObjectLayerSemantics(object);
   }
 
