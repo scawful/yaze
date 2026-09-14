@@ -10,7 +10,9 @@
 #include "rom/rom.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_types.h"
+#include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/object_drawer.h"
+#include "zelda3/dungeon/object_parser.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
@@ -1164,6 +1166,44 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype2Mappings) {
   EXPECT_EQ(drawer.GetDrawRoutineId(0x122), DrawRoutineIds::kBed4x5);
   EXPECT_EQ(drawer.GetDrawRoutineId(0x12C), DrawRoutineIds::kRightwards3x6);
   EXPECT_EQ(drawer.GetDrawRoutineId(0x13E), DrawRoutineIds::kUtility6x3);
+}
+
+TEST_F(DrawRoutineMappingTest, SanctuaryWallUsesUsdasmPayloadAndFootprint) {
+  // $018468 selects obj1458; $019B56 consumes two six-word facade columns
+  // and a four-column, three-row center pattern: 24 source words total.
+  std::vector<uint8_t> data(1024 * 1024, 0);
+  constexpr int kPointer = kRoomObjectSubtype2 + 0x3C * 2;
+  constexpr int kSource = kRoomObjectTileAddress + 0x1458;
+  data[kPointer] = 0x58;
+  data[kPointer + 1] = 0x14;
+  for (int i = 0; i < 25; ++i) {
+    data[kSource + i * 2] = static_cast<uint8_t>(i);
+    data[kSource + i * 2 + 1] = 0x1D;
+  }
+  ASSERT_TRUE(rom_->LoadFromData(data).ok());
+  ObjectParser parser(rom_.get());
+  const auto tiles = parser.ParseObject(0x13C);
+  ASSERT_TRUE(tiles.ok()) << tiles.status();
+  ASSERT_EQ(tiles->size(), 24u);
+  EXPECT_EQ(gfx::TileInfoToWord(tiles->back()), 0x1D17);
+  const auto ranges = parser.ResolveTileReadRanges(0x13C);
+  ASSERT_TRUE(ranges.ok()) << ranges.status();
+  ASSERT_EQ(ranges->size(), 1u);
+  EXPECT_EQ(ranges->front().begin, kSource);
+  EXPECT_EQ(ranges->front().end, kSource + 48);
+
+  const auto& registry = DrawRoutineRegistry::Get();
+  const auto* routine =
+      registry.GetRoutineInfo(registry.GetRoutineIdForObject(0x13C));
+  ASSERT_NE(routine, nullptr);
+  EXPECT_EQ(routine->base_width, 24);
+  EXPECT_EQ(routine->base_height, 6);
+  EXPECT_EQ(routine->min_tiles, 24);
+  EXPECT_FALSE(routine->draws_to_both_bgs);  // Only the center uses active BG.
+  for (int size : {0, 1, 15}) {
+    EXPECT_EQ(ObjectDimensionTable::Get().GetDimensions(0x13C, size),
+              std::make_pair(24, 6));
+  }
 }
 
 TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {

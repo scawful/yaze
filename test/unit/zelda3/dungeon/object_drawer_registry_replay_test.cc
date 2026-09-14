@@ -2524,6 +2524,79 @@ TEST(ObjectDrawerRegistryReplayTest,
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
+     SanctuaryWallUsesUsdasmFacadeAndActiveLayerCenter) {
+  ScopedCustomObjectsFlag disable_custom(false);
+  // bank_00 obj1458 ($00AFAA): two six-word facade columns followed by
+  // four three-word center columns. This is not a repeated 4x4 stamp.
+  constexpr std::array<uint16_t, 24> kWords = {
+      0x1D48, 0x1D58, 0x1568, 0x1542, 0x1562, 0x1552, 0x1D49, 0x1D59,
+      0x1D69, 0x1D43, 0x1D63, 0x1D53, 0x1D60, 0x1D70, 0x1D78, 0x1D61,
+      0x1D71, 0x1D79, 0x5D61, 0x5D71, 0x5D79, 0x5D60, 0x5D70, 0x5D78,
+  };
+  for (bool stress_attributes : {false, true}) {
+    auto words = kWords;
+    // OR $4000 must keep an already-set H bit, V, priority, and palette.
+    if (stress_attributes) {
+      words[0] |= 0xE000;
+      words[6] |= 0xA000;
+    }
+    std::vector<gfx::TileInfo> tiles;
+    for (uint16_t word : words) {
+      tiles.push_back(gfx::WordToTileInfo(word));
+    }
+    for (auto layer : {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2,
+                       RoomObject::LayerType::BG3}) {
+      for (int size : {0, 1, 15}) {
+        for (const auto [x, y] : {std::pair{6, 8}, std::pair{31, 31},
+                                  std::pair{50, 60}, std::pair{60, 62}}) {
+          SCOPED_TRACE(::testing::Message()
+                       << "layer=" << static_cast<int>(layer)
+                       << " size=" << size << " at=" << x << ',' << y
+                       << " attributes=" << stress_attributes);
+          const auto trace = ReplayObjectTrace(0x13C, x, y, size, layer, tiles);
+          size_t expected_count = 0;
+          for (int column = 0; column < 24; ++column) {
+            const bool center = column >= 10 && column < 14;
+            for (int row = 0; row < (center ? 3 : 6); ++row) {
+              if (x + column >= 64 || y + row >= 64) {
+                continue;  // Editor clipping, not SNES out-of-room wrapping.
+              }
+              ++expected_count;
+              // The right facade restarts its four-column motif at x+14.
+              const int facade_source =
+                  row +
+                  (((column < 14 ? column : column - 14) % 4 < 2) ? 0 : 6);
+              uint16_t word =
+                  words[center ? 12 + (column - 10) * 3 + row : facade_source];
+              if (!center && column % 2 != 0) {
+                word |= 0x4000;
+              }
+              const uint8_t expected_layer = static_cast<uint8_t>(
+                  center && layer == RoomObject::LayerType::BG2
+                      ? RoomObject::LayerType::BG2
+                      : RoomObject::LayerType::BG1);
+              const auto found = std::find_if(
+                  trace.begin(), trace.end(), [&](const auto& write) {
+                    return write.x_tile == x + column &&
+                           write.y_tile == y + row &&
+                           write.layer == expected_layer;
+                  });
+              ASSERT_NE(found, trace.end());
+              EXPECT_EQ(found->tile_id, word & 0x03FF);
+              const uint8_t flags = static_cast<uint8_t>(
+                  ((word >> 14) & 1) | ((word >> 14) & 2) | ((word >> 11) & 4) |
+                  (((word >> 10) & 7) << 3));
+              EXPECT_EQ(found->flags, flags);
+            }
+          }
+          EXPECT_EQ(trace.size(), expected_count);
+        }
+      }
+    }
+  }
+}
+
+TEST(ObjectDrawerRegistryReplayTest,
      WeirdCornerBottomBothBGMatchesUsdasm3x4ColumnMajor) {
   ScopedCustomObjectsFlag disable_custom(false);
 
