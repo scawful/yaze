@@ -4,6 +4,8 @@
 #include <array>
 #include <cstdint>
 #include <optional>
+#include <span>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -37,6 +39,25 @@ struct SpriteOamLayout {
   const char* name;   // Display name
   std::vector<SpriteOamEntry> tiles;
   std::array<uint8_t, 4> required_sheets;  // Graphics sheet IDs needed
+  // Optional raw SNES 4bpp OBJ page 1, relative to the project's assets folder.
+  // A required resource must be present before rendering this static layout.
+  const char* graphics_resource = nullptr;
+};
+
+// Viewer-owned, read-only cache. Context changes discard successes and failures;
+// unchanged frames never reopen files. No process-global project state.
+class SpritePreviewResourceCache {
+ public:
+  void SetContext(std::string_view project_path, std::string_view assets_path,
+                  std::string_view hack_name);
+  std::span<const uint8_t> GetGraphics(const SpriteOamLayout* layout);
+
+ private:
+  std::string project_path_;
+  std::string assets_path_;
+  std::string hack_name_;
+  std::string resource_;
+  std::vector<uint8_t> graphics_;
 };
 
 // ============================================================
@@ -233,7 +254,8 @@ class SpriteOamRegistry {
   static const SpriteOamLayout* GetLayout(uint8_t sprite_id);
 
   // A loaded project's hack name selects static preview overrides. Empty or
-  // unknown profiles never change vanilla rendering. Uses room-loaded sheets.
+  // unknown profiles never change vanilla rendering. Some overrides require a
+  // separate graphics resource and cannot use the room-loaded sheets alone.
   static const SpriteOamLayout* GetPreviewOverride(uint8_t sprite_id,
                                                    std::string_view hack_name);
 
