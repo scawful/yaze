@@ -5,6 +5,7 @@
 
 #include <gtest/gtest.h>
 
+#include "app/gui/core/input.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 
@@ -165,6 +166,41 @@ TEST_F(WelcomeScreenTest, MoreWaysPopupKeepsImGuiStacksBalanced) {
   ImGui::End();
   ImGui::EndFrame();
 }
+
+#ifndef __EMSCRIPTEN__
+TEST_F(WelcomeScreenTest, ReleaseNotesOpenerPreservesUrlAndPropagatesFailure) {
+  struct OpenRequest {
+    std::string url;
+    int calls = 0;
+    bool result = false;
+  } request;
+  auto& platform_io = ImGui::GetPlatformIO();
+  platform_io.Platform_OpenInShellUserData = &request;
+  platform_io.Platform_OpenInShellFn = [](ImGuiContext* context,
+                                          const char* url) {
+    auto* request = static_cast<OpenRequest*>(
+        context->PlatformIO.Platform_OpenInShellUserData);
+    request->url = url;
+    ++request->calls;
+    return request->result;
+  };
+
+  EXPECT_FALSE(gui::OpenUrl(""));
+  EXPECT_EQ(request.calls, 0);
+  const std::string url = "https://example.test/notes?q=one two&v=0.8";
+  EXPECT_FALSE(gui::OpenUrl(url));
+  EXPECT_EQ(request.url, url);
+  request.result = true;
+  EXPECT_TRUE(gui::OpenUrl(url));
+  EXPECT_EQ(request.calls, 2);
+
+  platform_io.Platform_OpenInShellFn = nullptr;
+  EXPECT_FALSE(gui::OpenUrl(url));
+  ImGui::SetCurrentContext(nullptr);
+  EXPECT_FALSE(gui::OpenUrl(url));
+  ImGui::SetCurrentContext(context_);
+}
+#endif
 
 }  // namespace
 }  // namespace yaze::editor
