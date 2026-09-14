@@ -27,15 +27,15 @@ namespace yaze::editor {
 
 namespace {
 
-constexpr int kSpritePreviewSize = 64;
-constexpr int kSpritePreviewAnchor = 16;
-
 bool DrawSpritePreviewPixels(const gui::CanvasRuntime& rt,
-                             const std::vector<uint8_t>& preview, int room_x,
-                             int room_y,
+                             const std::vector<uint8_t>& preview,
+                             const SDL_Rect& bounds, int room_x, int room_y,
                              const std::array<SDL_Color, 256>& color_table) {
-  if (!rt.draw_list ||
-      preview.size() < kSpritePreviewSize * kSpritePreviewSize) {
+  if (!rt.draw_list || bounds.w <= 0 || bounds.h <= 0) {
+    return false;
+  }
+  const size_t row_stride = static_cast<size_t>(bounds.w);
+  if (static_cast<size_t>(bounds.h) > preview.size() / row_stride) {
     return false;
   }
 
@@ -47,11 +47,11 @@ bool DrawSpritePreviewPixels(const gui::CanvasRuntime& rt,
   bool drew_any_pixel = false;
 
   rt.draw_list->PushClipRect(rt.canvas_p0, canvas_max, true);
-  for (int y = 0; y < kSpritePreviewSize; ++y) {
+  for (int y = 0; y < bounds.h; ++y) {
     int x = 0;
-    while (x < kSpritePreviewSize) {
+    while (x < bounds.w) {
       const uint8_t palette_index =
-          preview[static_cast<size_t>(y * kSpritePreviewSize + x)];
+          preview[static_cast<size_t>(y) * row_stride + x];
       const SDL_Color& palette_color = color_table[palette_index];
       // RenderPreviewGraphics reserves index 0 for transparency. Unlike the
       // former 0xFF sentinel, index 0 cannot collide with a visible dungeon
@@ -64,9 +64,8 @@ bool DrawSpritePreviewPixels(const gui::CanvasRuntime& rt,
                                    palette_color.b, palette_color.a);
 
       const int start_x = x;
-      while (x < kSpritePreviewSize &&
-             preview[static_cast<size_t>(y * kSpritePreviewSize + x)] ==
-                 palette_index) {
+      while (x < bounds.w && preview[static_cast<size_t>(y) * row_stride + x] ==
+                                 palette_index) {
         ++x;
       }
 
@@ -145,10 +144,12 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
           room_gfx_span, preview_layout,
           sprite_preview_resources_.GetGraphics(preview_layout));
       const auto* preview = preview_sprite.preview_graphics();
+      const SDL_Rect preview_bounds = preview_sprite.preview_bounds();
       const bool drew_preview =
-          preview && DrawSpritePreviewPixels(
-                         rt, *preview, canvas_x - kSpritePreviewAnchor,
-                         canvas_y - kSpritePreviewAnchor, sprite_colors);
+          preview &&
+          DrawSpritePreviewPixels(rt, *preview, preview_bounds,
+                                  canvas_x + preview_bounds.x,
+                                  canvas_y + preview_bounds.y, sprite_colors);
 
       if (drew_preview) {
         gui::DrawOutline(rt, canvas_x, canvas_y, entity_size, entity_size,

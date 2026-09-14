@@ -20,6 +20,7 @@
 #include "gtest/gtest.h"
 #include "imgui/imgui_internal.h"
 #include "zelda3/dungeon/palette_debug.h"
+#include "zelda3/game_data.h"
 
 namespace yaze::editor {
 
@@ -53,6 +54,12 @@ struct IssueReportPopupSnapshot {
 
 class DungeonCanvasViewerTestPeer {
  public:
+  static void RenderSprites(DungeonCanvasViewer& viewer,
+                            const gui::CanvasRuntime& runtime,
+                            const zelda3::Room& room) {
+    viewer.RenderSprites(runtime, room);
+  }
+
   static void UpdateRoomCanvasShortcutFocus(DungeonCanvasViewer& viewer,
                                             bool hovered, bool pointer_pressed,
                                             int frame_index) {
@@ -519,6 +526,112 @@ TEST(DungeonCanvasViewerNavigationTest,
   EXPECT_NEAR(snapshot.overlay_origin.y, snapshot.background_origin.y, 0.01f);
   EXPECT_EQ(snapshot.background_origin_room_pixel, std::make_pair(0, 0));
 }
+
+namespace {
+
+struct SpritePreviewCanvasCase {
+  uint8_t id;
+  SDL_Rect expected_art_bounds;
+  const char* name;
+};
+
+class DungeonCanvasSpritePreviewBoundsTest
+    : public ::testing::TestWithParam<SpritePreviewCanvasCase> {};
+
+TEST_P(DungeonCanvasSpritePreviewBoundsTest,
+       PreservesArtBoundsAtRoomAnchorWithScaleAndPan) {
+  ScopedImGuiContext imgui;
+  ImGuiIO& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  io.DeltaTime = 1.0f / 60.0f;
+  io.Fonts->AddFontDefault();
+  unsigned char* font_pixels = nullptr;
+  int font_width = 0;
+  int font_height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&font_pixels, &font_width, &font_height);
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  zelda3::GameData game_data;
+  game_data.graphics_buffer.assign(4096, 1);
+  // All art has a distinctive color, separate from selection outlines and
+  // labels. The global rows cover firebars; auxiliary row 14 covers Helmasaur.
+  constexpr ImU32 kArtColor = IM_COL32(11, 197, 83, 255);
+  const gfx::SnesColor art_color(11, 197, 83);
+  game_data.palette_groups.global_sprites.AddPalette(
+      gfx::SnesPalette(std::vector<gfx::SnesColor>(60, art_color)));
+  game_data.palette_groups.sprites_aux3.AddPalette(
+      gfx::SnesPalette(std::vector<gfx::SnesColor>(7, art_color)));
+  zelda3::Room room(0, &rom, &game_data);
+  room.mutable_blocks().fill(0);
+  room.CopyRoomGraphicsToBuffer();
+  room.GetSprites().emplace_back(GetParam().id, 12, 10, 0, 0);
+  DungeonCanvasViewer viewer;
+  viewer.SetGameData(&game_data);
+
+  ImGui::NewFrame();
+  ImGui::SetNextWindowPos(ImVec2(10, 20), ImGuiCond_Always);
+  ImGui::SetNextWindowSize(ImVec2(950, 720), ImGuiCond_Always);
+  ImGui::Begin("SpritePreviewBoundsHost", nullptr,
+               ImGuiWindowFlags_NoSavedSettings);
+  gui::CanvasRuntime runtime;
+  runtime.draw_list = ImGui::GetWindowDrawList();
+  runtime.canvas_p0 = ImVec2(81, 67);
+  runtime.canvas_sz = ImVec2(800, 640);
+  runtime.scrolling = ImVec2(-31, 23);
+  runtime.scale = 1.5f;
+
+  const int first_vertex = runtime.draw_list->VtxBuffer.Size;
+  DungeonCanvasViewerTestPeer::RenderSprites(viewer, runtime, room);
+  ImRect art_bounds;
+  bool found_art = false;
+  for (int i = first_vertex; i < runtime.draw_list->VtxBuffer.Size; ++i) {
+    const auto& vertex = runtime.draw_list->VtxBuffer[i];
+    if (vertex.col == kArtColor) {
+      if (found_art) {
+        art_bounds.Add(vertex.pos);
+      } else {
+        art_bounds = ImRect(vertex.pos, vertex.pos);
+      }
+      found_art = true;
+    }
+  }
+  ImGui::End();
+  ImGui::Render();
+
+  ASSERT_TRUE(found_art);
+  const auto expected = GetParam().expected_art_bounds;
+  const float anchor_x =
+      runtime.canvas_p0.x + runtime.scrolling.x + 12 * 16 * runtime.scale;
+  const float anchor_y =
+      runtime.canvas_p0.y + runtime.scrolling.y + 10 * 16 * runtime.scale;
+  EXPECT_FLOAT_EQ(art_bounds.Min.x, anchor_x + expected.x * runtime.scale);
+  EXPECT_FLOAT_EQ(art_bounds.Min.y, anchor_y + expected.y * runtime.scale);
+  EXPECT_FLOAT_EQ(art_bounds.Max.x,
+                  anchor_x + (expected.x + expected.w) * runtime.scale);
+  EXPECT_FLOAT_EQ(art_bounds.Max.y,
+                  anchor_y + (expected.y + expected.h) * runtime.scale);
+  EXPECT_EQ(room.GetSprites().front().x(), 12);
+  EXPECT_EQ(room.GetSprites().front().y(), 10);
+  EXPECT_FALSE(rom.dirty());
+}
+
+INSTANTIATE_TEST_SUITE_P(
+    ExtendedArt, DungeonCanvasSpritePreviewBoundsTest,
+    ::testing::Values(
+        SpritePreviewCanvasCase{0x00, {0, 0, 16, 16}, "StandardSprite"},
+        SpritePreviewCanvasCase{0x7E, {0, -56, 16, 58}, "ClockwiseFirebar"},
+        SpritePreviewCanvasCase{0x7F,
+                                {0, -56, 16, 58},
+                                "CounterclockwiseFirebar"},
+        SpritePreviewCanvasCase{0x80, {-56, 0, 72, 16}, "HorizontalFirebar"},
+        SpritePreviewCanvasCase{0xC7, {0, -30, 16, 46}, "Pokey"},
+        SpritePreviewCanvasCase{0x92, {0, 32, 48, 48}, "HelmasaurKing"}),
+    [](const ::testing::TestParamInfo<SpritePreviewCanvasCase>& info) {
+      return info.param.name;
+    });
+
+}  // namespace
 
 TEST(DungeonCanvasViewerContextMenuTest, RootActionsUseStableSubmenus) {
   ScopedImGuiContext imgui;
