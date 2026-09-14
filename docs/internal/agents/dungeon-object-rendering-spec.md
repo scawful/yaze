@@ -63,6 +63,15 @@ historical skill notes and older plans must not override current code/disassembl
   - Pipes (0x23A–0x23D) are fixed 2×? rectangles; use arrows that match their orientation.
 
 ## Ceiling and Large Object Ground Truth
+- Bars: `0x4C` (`RoomDraw_RightwardsBar4x3_1to16`, `$0194BD`) consumes
+  nine source words: three for the opening column, three for the repeated
+  middle column, and three for the closing column. It writes `2*nibble+4`
+  columns of height 3; do not repeat a twelve-word 4x3 stamp. `0x8F`
+  (`$0197B5`) consumes four words, a two-tile top row and two-tile repeated
+  body, producing width 2 and height `2*nibble+5`. Registry minimums, parser
+  payload counts and selection geometry must follow these rules. Full tile
+  attributes are preserved; source horizontal flips on opposite caps are
+  intentional, not a reason to mirror an entire row.
 - Corner/diagonal ceilings (Type 1 IDs 0xA0–0xA3 and 0xA5–0xAC): `RoomDraw_DiagonalCeiling*` ($018BE0–$018C36). Size = nibble+4; outline should be a square whose side equals that size; growth is along the diagonal (x+1,y+1 per step).
 - Big hole & overlays: ID 0xA4 → `RoomDraw_BigHole4x4_1to16`. IDs 0xD8/0xDA enter stateful water routines: saved water state changes tilemap writes, destination, HDMA geometry, and potentially the active layer mode. Yaze currently renders an editor approximation on BG2; structural coverage is tested, but full runtime-state parity is open.
 - 4x4 ceilings/floors: IDs 0xC5–0xCA, 0xD1–0xD2, 0xD9, 0xDF–0xE8 → `RoomDraw_4x4FloorIn4x4SuperSquare`. Use a “large square” glyph. The size nibble is split into two two-bit repeat counts, producing a `4..16` tile width and height.
@@ -139,9 +148,16 @@ Passing one row does not imply the rows below it pass. In particular, synthetic 
 Run the maintained ladder with
 `YAZE_TEST_ROM_VANILLA=$PWD/roms/zelda3.sfc scripts/agents/audit-dungeon-visual-parity.sh --with-validate-report /tmp/yaze-dungeon-object-validation.json`.
 Its synthetic tier includes thin edges/corners, diagonals, conditional caps,
-floor copies, moving walls, water/stairs, and reveal-mask ordering; ROM and
+horizontal/vertical bars, floor copies, moving walls, water/stairs, and reveal-mask ordering; ROM and
 Mesen tiers remain separate so synthetic agreement is never presented as
 independent pixel proof.
+
+The September 14 first-slice integration passed all currently selected tiers
+without refreshing goldens: 36 synthetic tests, 12 ROM/payload checks,
+10 room/composition tests, seven existing Mesen-baseline tests, and 1,190
+bounds cases with zero mismatches. These results cover the selected fixtures,
+not all dungeon families. The [completion backlog](../plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md#first-implementation-results-2026-09-14-local-integration)
+records revisions, corpus identity, remaining proof, and reproducible commands.
 
 ### Known preview boundaries
 

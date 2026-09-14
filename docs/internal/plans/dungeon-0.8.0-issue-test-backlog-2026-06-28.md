@@ -39,6 +39,55 @@ before implementation. No ROM writes, emulator captures, or runtime tests were
 performed by this planning audit. Existing tests below are evidence locations,
 not newly passed acceptance gates.
 
+## First implementation results (2026-09-14, local integration)
+
+Three agents executed bounded R1, C1, and T1 slices based on preview
+`75f817d521c0d656a251926916a520f5b44c4b89`. Their reviewed changes are integrated
+on `codex/tester-preview-consolidation`; this is not a mainline merge, release
+qualification, or deployment. The installed preview and canonical ROMs were
+left unchanged.
+
+| Slice | Result | Remaining proof |
+| --- | --- | --- |
+| R1 strips/bars | **Fixed-awaiting-proof:** `0x4C` incorrectly repeated twelve-word stamps. USDASM uses nine source words for cap/body/cap columns, width `2*nibble+4`, height 3. Drawer, parser, registry minimum and selection dimensions now agree. `0x8F` payload corrected from six words to four. No draw-rule defect found for the other six assigned thin-strip IDs or vertical `0x8F` in the tested scenarios. | Independent Oracle `0x042` bar/corner joins; broader floor slice remains open. |
+| C1 custom assets | **Verified asset-format contract:** all 21 current Oracle assets decode, publish to temporary copies, reload, and match the source-backed tilemap replay. Sparse words and full tile attributes have additional synthetic coverage. No production codec change was needed. | Actual source rebuild/runtime, wall-override migration and minecart edit/publish/collision workflow are not certified by this test. |
+| T1 audit gates | **Verified runner contract:** single-config `bin/` and `bin/test`, explicit multi-config selection, nonempty discovery and exact execution, missing/skipped tests, fresh bounds reports, and report/input-ROM alias rejection are covered by 29 fixtures. Registered as `DungeonVisualParityAuditContract` in CTest. | One-object GUI Save ROM / quit / fresh-process reopen remains the next T1 slice. Cross-platform package execution remains Q1. |
+
+Implementation commits: R1 `2b30cee4b`, `912449837` and shared corrections
+`d5b406dd9`; C1 `a5693fd5a`; T1 `d637097a2`, `9c375739d`, `8c25295c6`.
+
+Fresh local evidence (single-config Release, four-worker build limit):
+
+- Targeted strip/bar/parser/dimension regression: **10/10 passed**, including
+  `BarPayloadsAndDrawTracesMatchUsdasm/Vanilla`. The pre-fix run reproduced six
+  failures out of nine checks; the ROM test was then added for GREEN.
+- Broader parser/dimension/drawing/layer/custom contracts: **354/354 passed**.
+  This includes the custom-asset run, not an additional independent total.
+- Custom contracts: **45/45 passed**, including **21 real assets**, zero skips.
+  `YAZE_TEST_ORACLE_CUSTOM_OBJECTS` explicitly selected Oracle's
+  `Dungeons/Objects/Data`. Unset skips those opt-in asset tests; a configured
+  missing/malformed asset fails. XML records each source path and SHA-256.
+- Maintained parity ladder: Tier 1 **36/36**; Tier 2 **11/11** plus **1/1**
+  payload-table check; Tier 3 **10/10**; Tier 4 **7/7** existing Mesen-baseline
+  tests, all with zero skips. No baseline was refreshed and no new Mesen
+  capture was made. These counts do not imply full-family pixel parity.
+- Tier 5: **1,190 cases, zero mismatches, zero empty traces**.
+- `ctest --test-dir build/presets/mac-ai --output-on-failure
+  -R '^DungeonVisualParityAuditContract$'`: **1/1**, covering 29 scenarios.
+  Both shell scripts passed `bash -n` and ShellCheck.
+
+Canonical vanilla SHA-1 stayed `6d4f10a8b10e10dbe624cb23cf03b88bb8252973`;
+Oracle base `oos168.sfc` stayed `58c9fadc6228d3d78d6baa7b7cc1c31cf57ed196`.
+The read-only asset inventory used Oracle HEAD
+`f55fbed8aafcac84f31127fcc98ea4382437343b`: 21 files, 456 bytes, 155 tile words.
+The source decoder is a separately written ASM replay, not emulator execution.
+
+Local run artifacts: `/tmp/yaze-wave1-bars-red.xml`,
+`/tmp/yaze-wave1-bars-green.xml`, `/tmp/yaze-wave1-focused.xml`,
+`/tmp/yaze-wave1-oracle-assets.xml`, `/tmp/yaze-wave1-parity-audit.log`, and
+`/tmp/yaze-wave1-dungeon-object-validation.json`. These temporary artifacts
+are not committed fixtures; use the commands below to regenerate evidence.
+
 ## Object coverage checklist
 
 Start by enumerating the supported IDs from `DrawRoutineRegistry` and the room
@@ -89,7 +138,8 @@ substitute a different hack's object payload or room header without labeling it.
 ## Agent work packets
 
 These are role-based handoffs suitable for Codex, Cursor, or another agent.
-They are assignments to schedule, not claims that implementation has started.
+The first implementation slices are recorded above; unlisted acceptance steps
+remain assignments to schedule, not completed work.
 Use one clean `codex/` worktree per implementation packet and record its base
 SHA. Read-only investigation may share the preview checkout.
 
@@ -148,10 +198,10 @@ pinned input digest before running; that fixture is not portable to arbitrary
 Oracle versions. Add a canonical vanilla profile next. Expand to size/stream,
 undo/redo, doors, sprites, room metadata and supported block/pit changes.
 
-The current parity helper resolves test binaries only under `bin/Debug` and
-`bin/test`, while the installed preview was built under single-config `bin/`.
-Fix and test layout/configuration resolution before using it as a release gate.
-Require test discovery and nonzero executed cases in every tier.
+The first T1 slice repaired the parity helper's old `bin/Debug`/`bin/test`
+assumption. It now resolves configured single- and multi-config layouts,
+requires nonempty discovery and matching executed cases, and rejects skipped
+acceptance tests. Keep that runner contract required while extending coverage.
 
 Direct calls to `Rom::SaveToFile` in serializer tests do not exercise editor
 dirty state or save coordination. Release builds disable ImGui test hooks, so
@@ -197,12 +247,12 @@ changes to the user's live ROM/app session.
 ## Verification entry points
 
 Use the owning worktree's configured build and actual binary layout. Build the
-named targets before discovery; the existing preview currently has only the
-unit binary. For that single-config Release layout:
+named targets before discovery. The integration checkout now has unit,
+integration, and ROM-dependent binaries. For its single-config Release layout:
 
 ```bash
 cmake --build build/presets/mac-ai --config Release \
-  --target yaze_test_unit yaze_test_integration --parallel 4
+  --target yaze_test_unit yaze_test_integration yaze_test_rom_dependent --parallel 4
 build/presets/mac-ai/bin/yaze_test_unit --gtest_list_tests
 build/presets/mac-ai/bin/yaze_test_integration --gtest_list_tests
 build/presets/mac-ai/bin/yaze_test_unit \
@@ -216,19 +266,29 @@ The ROM-dependent binary owns `DungeonObjectRomValidationTest`, not the
 integration binary. Canonical vanilla SHA-1:
 `6d4f10a8b10e10dbe624cb23cf03b88bb8252973`.
 
-After T1 repairs layout handling, the maintained ladder is:
+The maintained ladder is:
 
 ```bash
 scripts/agents/audit-dungeon-visual-parity.sh \
   --build-dir build/presets/mac-ai \
+  --config Release \
   --with-validate-report /tmp/yaze-dungeon-object-validation.json
 ```
 
 The command requires `YAZE_TEST_ROM_VANILLA`. Evidence provenance and capture
 instructions live in `test/fixtures/visual/dungeon/README.md`; do not duplicate
-them in each assignment. This section specifies future verification, not
-passed suite results. The planning audit checked unit-test discovery only;
-it did not build or execute the runtime suites.
+them in each assignment. First-slice results are recorded above; rerun on the
+final candidate rather than treating earlier results as release acceptance.
+
+For the opt-in Oracle asset contract, point the environment variable at the
+existing source asset directory (the test writes only temporary copies):
+
+```bash
+YAZE_TEST_ORACLE_CUSTOM_OBJECTS=/path/to/oracle/Dungeons/Objects/Data \
+  build/presets/mac-ai/bin/yaze_test_unit \
+  --gtest_filter='CustomObjectManagerTest.*:CustomObjectCodecTest.*:CustomObjectRuntimeTileWordTest.*:OracleRuntimeAssets/CustomObjectOracleAssetTest.*' \
+  --gtest_output=xml:/tmp/yaze-oracle-custom-assets.xml
+```
 
 ## Earlier issue audit (historical status; revalidate before closing)
 
