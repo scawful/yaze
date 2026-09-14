@@ -124,14 +124,17 @@ if(YAZE_BUILD_TESTS)
     # tokens and breaks the prop/value pairing (and ctest won't be able to
     # filter by the missing labels).
     #
-    # NOTE: GoogleTestAddTests.cmake forwards TEST_PROPERTIES through another
-    # helper function call without quoting. That forwarding step will split on
-    # literal ';' again, so we must *double escape* label separators here. This
-    # ensures the discovery script ultimately emits:
-    #   LABELS "stable;unit"
-    # rather than the broken:
-    #   LABELS stable unit
-    string(REPLACE ";" "\\\\;" _suite_labels "${label}")
+    # CMake 4.4 bracket-quotes each PROPERTIES argument before generating the
+    # discovery script, removing one of the list-expansion boundaries present
+    # in older GoogleTest.cmake versions. Older versions therefore need two
+    # escape levels while 4.4+ needs one. In both cases the generated test must
+    # receive LABELS "stable;unit", not separate property tokens or one literal
+    # "stable\;unit" label.
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL "4.4")
+      string(REPLACE ";" "\\;" _suite_labels "${label}")
+    else()
+      string(REPLACE ";" "\\\\;" _suite_labels "${label}")
+    endif()
     # Avoid duplicate CTest names across multiple suites that compile the same
     # gtest sources (e.g. quick vs stable). Only the quick suites need a prefix.
     set(_test_prefix "")
