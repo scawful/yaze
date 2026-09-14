@@ -23,14 +23,17 @@ if(APPLE)
   )
 endif()
 
-target_compile_definitions(z3ed PRIVATE YAZE_ASSETS_PATH="${CMAKE_SOURCE_DIR}/assets")
+target_compile_definitions(z3ed PRIVATE
+  $<$<NOT:$<CONFIG:Release>>:YAZE_ASSETS_PATH="${CMAKE_SOURCE_DIR}/assets">
+)
 
-# Copy agent assets for z3ed
-if(EXISTS ${CMAKE_SOURCE_DIR}/assets/agent)
-  file(COPY ${CMAKE_SOURCE_DIR}/assets/agent/ DESTINATION "${CMAKE_BINARY_DIR}/assets/agent/")
+# Stage the complete runtime asset tree for z3ed self-tests and direct use from
+# a build directory. Release packages install the same tree separately.
+if(EXISTS ${CMAKE_SOURCE_DIR}/assets)
+  file(COPY ${CMAKE_SOURCE_DIR}/assets/ DESTINATION "${CMAKE_BINARY_DIR}/assets/")
   add_custom_command(TARGET z3ed POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets/agent $<TARGET_FILE_DIR:z3ed>/assets/agent
-    COMMENT "Copying agent assets for z3ed"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/assets $<TARGET_FILE_DIR:z3ed>/assets
+    COMMENT "Copying runtime assets for z3ed"
   )
 endif()
 

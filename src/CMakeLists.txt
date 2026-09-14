@@ -54,25 +54,37 @@ if(EMSCRIPTEN)
   list(APPEND YAZE_APP_EMU_SRC app/emu/platform/wasm/wasm_audio.cc)
 endif()
 
-# Define resource files for bundling
-set(YAZE_RESOURCE_FILES
-  ${CMAKE_SOURCE_DIR}/assets/font/Karla-Regular.ttf
-  ${CMAKE_SOURCE_DIR}/assets/font/Roboto-Medium.ttf
-  ${CMAKE_SOURCE_DIR}/assets/font/Cousine-Regular.ttf
-  ${CMAKE_SOURCE_DIR}/assets/font/DroidSans.ttf
-  ${CMAKE_SOURCE_DIR}/assets/font/NotoSansJP.ttf
-  ${CMAKE_SOURCE_DIR}/assets/font/IBMPlexSansJP-Bold.ttf
-  ${CMAKE_SOURCE_DIR}/assets/font/MaterialIcons-Regular.ttf
-)
-file(GLOB YAZE_THEME_FILES "${CMAKE_SOURCE_DIR}/assets/themes/*.theme")
-list(APPEND YAZE_RESOURCE_FILES ${YAZE_THEME_FILES})
+# Define resource files for bundling. A dragged macOS app must be fully
+# self-contained; other development builds keep the smaller deploy list and
+# use their adjacent/source asset lookup paths.
+if(YAZE_PLATFORM_MACOS)
+  file(GLOB_RECURSE YAZE_RESOURCE_FILES CONFIGURE_DEPENDS
+    LIST_DIRECTORIES false
+    "${CMAKE_SOURCE_DIR}/assets/*")
+else()
+  set(YAZE_RESOURCE_FILES
+    ${CMAKE_SOURCE_DIR}/assets/font/Karla-Regular.ttf
+    ${CMAKE_SOURCE_DIR}/assets/font/Roboto-Medium.ttf
+    ${CMAKE_SOURCE_DIR}/assets/font/Cousine-Regular.ttf
+    ${CMAKE_SOURCE_DIR}/assets/font/DroidSans.ttf
+    ${CMAKE_SOURCE_DIR}/assets/font/NotoSansJP.ttf
+    ${CMAKE_SOURCE_DIR}/assets/font/IBMPlexSansJP-Bold.ttf
+    ${CMAKE_SOURCE_DIR}/assets/font/MaterialIcons-Regular.ttf
+  )
+  file(GLOB YAZE_THEME_FILES "${CMAKE_SOURCE_DIR}/assets/themes/*.theme")
+  list(APPEND YAZE_RESOURCE_FILES ${YAZE_THEME_FILES})
+endif()
 
 # Configure assets for different platforms
 foreach (FILE ${YAZE_RESOURCE_FILES})
   file(RELATIVE_PATH NEW_FILE "${CMAKE_SOURCE_DIR}/assets" ${FILE})
   get_filename_component(NEW_FILE_PATH ${NEW_FILE} DIRECTORY)
+  set_source_files_properties(${FILE} PROPERTIES HEADER_FILE_ONLY TRUE)
   
-  if (APPLE)
+  if(YAZE_PLATFORM_MACOS)
+    set_source_files_properties(${FILE} PROPERTIES
+      MACOSX_PACKAGE_LOCATION "Resources/assets/${NEW_FILE_PATH}")
+  elseif(APPLE)
     set_source_files_properties(${FILE} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/${NEW_FILE_PATH}")
   else()
     set_source_files_properties(${FILE} PROPERTIES VS_DEPLOYMENT_CONTENT 1 VS_DEPLOYMENT_LOCATION "assets/${NEW_FILE_PATH}")
