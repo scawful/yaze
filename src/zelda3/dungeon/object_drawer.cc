@@ -394,7 +394,8 @@ absl::Status ObjectDrawer::DrawObject(
     // $7E2000.
     dispatch_bg = &bg1;
     registry_primary_layer_ = RoomObject::LayerType::BG1;
-  } else if (!is_both_bg && routine_id == DrawRoutineIds::kAutoStairs) {
+  } else if (!is_both_bg && (routine_id == DrawRoutineIds::kAutoStairs ||
+                             routine_id == DrawRoutineIds::kSanctuaryWall)) {
     registry_secondary_bg_ = &other_bg;
   } else if (!is_both_bg &&
              routine_id == DrawRoutineIds::kStraightInterRoomStairs) {
@@ -1558,6 +1559,14 @@ void ObjectDrawer::InitializeDrawRoutines() {
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
         self->DrawUsingRegistryRoutine(DrawRoutineIds::kVitreousGooDamage, obj,
                                        bg, tiles, state);
+      };
+
+  ensure_index(DrawRoutineIds::kSanctuaryWall);
+  draw_routines_[DrawRoutineIds::kSanctuaryWall] =
+      [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
+         std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        self->DrawUsingRegistryRoutine(DrawRoutineIds::kSanctuaryWall, obj, bg,
+                                       tiles, state);
       };
 
   // Routine 130 - Custom Object (Oracle of Secrets 0x31, 0x32)

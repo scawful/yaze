@@ -395,7 +395,7 @@ void DrawRoutineRegistry::BuildObjectMapping() {
   object_to_routine_map_[0x139] = 89;
   object_to_routine_map_[0x13A] = 90;
   object_to_routine_map_[0x13B] = 91;
-  object_to_routine_map_[0x13C] = 16;
+  object_to_routine_map_[0x13C] = DrawRoutineIds::kSanctuaryWall;
   object_to_routine_map_[0x13D] = 30;
   object_to_routine_map_[0x13E] = 100;
   object_to_routine_map_[0x13F] = DrawRoutineIds::kMagicBatAltar;
