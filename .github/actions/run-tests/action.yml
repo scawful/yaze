@@ -43,7 +43,8 @@ runs:
           --show-only=json-v1 > "$inventory_file"
 
         test_count="$("$python_cmd" - "$inventory_file" \
-          "${{ inputs.test-type }}" <<'PY'
+          "${{ inputs.test-type }}" "$build_dir" \
+          "${{ inputs.build-type }}" <<'PY'
         import json
         import os
         import sys
@@ -57,38 +58,55 @@ runs:
             "integration": {"yaze_test_integration"},
             "all": {"yaze_test_unit", "yaze_test_integration"},
         }[sys.argv[2]]
-        suite_paths = {suite: set() for suite in expected_suites}
-        for test in tests:
-            command = test.get("command", [])
-            if not command:
-                continue
-            normalized_command = command[0].replace("\\", "/")
-            executable = normalized_command.rsplit("/", 1)[-1]
-            if executable.lower().endswith(".exe"):
-                executable = executable[:-4]
-            if executable in suite_paths:
-                suite_paths[executable].add(normalized_command)
 
-        # CTest generator layouts are not uniform: multi-config generators may
-        # include the configuration in the path while single-config generators
-        # do not. Validate the actual selected executable instead of inferring
-        # configuration from path text.
-        runnable_suites = {
+        build_dir = os.path.abspath(sys.argv[3])
+        build_type = sys.argv[4]
+        expected_labels = {
+            "yaze_test_unit": "unit",
+            "yaze_test_integration": "integration",
+        }
+        discovered_labels = set()
+        for test in tests:
+            for prop in test.get("properties", []):
+                if prop.get("name") != "LABELS":
+                    continue
+                value = prop.get("value", [])
+                if isinstance(value, str):
+                    value = [value]
+                discovered_labels.update(value)
+
+        # CTest may place a launcher ahead of the suite executable in its JSON
+        # command on some platforms. Validate the selected labels and the actual
+        # configured binaries independently; the following CTest step proves
+        # that the discovered tests are runnable.
+        executable_suffix = ".exe" if os.name == "nt" else ""
+        suite_paths = {
+            suite: [
+                os.path.join(build_dir, "bin", build_type, suite + executable_suffix),
+                os.path.join(build_dir, "bin", suite + executable_suffix),
+            ]
+            for suite in expected_suites
+        }
+        missing_suites = sorted(
             suite
             for suite, paths in suite_paths.items()
-            if any(os.path.isfile(path) for path in paths)
-        }
-        missing_suites = sorted(expected_suites - runnable_suites)
+            if expected_labels[suite] not in discovered_labels
+            or not any(os.path.isfile(path) for path in paths)
+        )
         if missing_suites:
             print(
-                "CTest inventory is missing runnable required suites: "
+                "CTest inventory is missing labeled, built required suites: "
                 + ", ".join(missing_suites),
                 file=sys.stderr,
             )
             for suite in missing_suites:
-                candidates = sorted(suite_paths[suite])
-                detail = ", ".join(candidates) if candidates else "not listed"
-                print(f"- {suite}: {detail}", file=sys.stderr)
+                label = expected_labels[suite]
+                candidates = ", ".join(suite_paths[suite])
+                print(
+                    f"- {suite}: label={label!r} "
+                    f"present={label in discovered_labels}; paths={candidates}",
+                    file=sys.stderr,
+                )
             raise SystemExit(1)
         print(len(tests))
         PY
