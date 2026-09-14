@@ -109,7 +109,7 @@ TEST(SpriteRenderPreviewTest, PreservesCgramIndex255AsVisibleDungeonPixel) {
 TEST(SpriteRenderPreviewTest, BabasuUsesSourcePaletteAndOverlappingLargeTiles) {
   std::vector<uint8_t> graphics(kGraphicsBufferSize, 0);
   // USDASM SpriteDraw_Babasu frame 12 ($0DBCA0): CHR4E at (0,-8),
-  // CHR5E at (0,0), both 16x16. Properties $0A OR sprite default $01
+  // CHR5E at (0,0), both 16x16. Properties $0A XOR sprite default $01
   // select OBJ page 1, palette 5. Their shared eight rows use identical CHR5E/F
   // pixels, so this source pose's OAM overlap has no distinguishable winner.
   for (int tile_y = 0; tile_y < 3; ++tile_y) {
