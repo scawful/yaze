@@ -9,6 +9,7 @@
 
 #include "absl/strings/str_format.h"
 #include "util/file_util.h"
+#include "util/platform_paths.h"
 
 namespace yaze {
 
@@ -69,6 +70,11 @@ std::vector<std::filesystem::path> AssetLoader::GetSearchPaths(
 
 absl::StatusOr<std::filesystem::path> AssetLoader::FindAssetFile(
     const std::string& relative_path) {
+  if (auto path = util::PlatformPaths::FindAsset(relative_path); path.ok()) {
+    return *path;
+  }
+
+  // Retain the historical relative probes for older portable layouts.
   auto search_paths = GetSearchPaths(relative_path);
 
   for (const auto& path : search_paths) {
