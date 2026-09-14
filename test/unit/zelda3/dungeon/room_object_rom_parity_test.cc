@@ -861,6 +861,61 @@ TEST_P(RoomObjectRomParityTest,
   }
 }
 
+TEST_P(RoomObjectRomParityTest, BarPayloadsAndDrawTracesMatchUsdasm) {
+  ScopedCustomObjectsFlag disable_custom(false);
+  ObjectParser parser(rom_.get());
+
+  // bank_00 obj099E/obj09B0 contain nine/four source words. bank_01
+  // $0194BD repeats the horizontal middle column; $0197B5 repeats the
+  // vertical body row. Compare complete attributes, including mirrored caps.
+  for (const int object_id : {0x4C, 0x8F}) {
+    const bool horizontal = object_id == 0x4C;
+    const int payload_count = horizontal ? 9 : 4;
+    const auto expected_tiles = DecodeTilesFromRom(
+        *rom_, Subtype1TileDataAddr(*rom_, object_id), payload_count);
+    const auto parsed = parser.ParseObject(object_id);
+    ASSERT_TRUE(parsed.ok()) << parsed.status();
+    ASSERT_EQ(parsed->size(), expected_tiles.size());
+    for (size_t i = 0; i < expected_tiles.size(); ++i) {
+      EXPECT_EQ(gfx::TileInfoToWord((*parsed)[i]),
+                gfx::TileInfoToWord(expected_tiles[i]));
+    }
+
+    for (uint8_t size : {uint8_t{0}, uint8_t{1}, uint8_t{15}}) {
+      for (const auto layer :
+           {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+        SCOPED_TRACE(::testing::Message()
+                     << "object=" << object_id << " size=" << int(size)
+                     << " layer=" << int(layer));
+        constexpr int kX = 4;
+        constexpr int kY = 6;
+        const auto trace = ReplayRomObjectTraceOnLayer(rom_.get(), object_id,
+                                                       kX, kY, size, layer);
+        const int width = horizontal ? 2 * size + 4 : 2;
+        const int height = horizontal ? 3 : 2 * size + 5;
+        ASSERT_EQ(trace.size(), static_cast<size_t>(width * height));
+        size_t index = 0;
+        for (int major = 0; major < (horizontal ? width : height); ++major) {
+          for (int minor = 0; minor < (horizontal ? height : width); ++minor) {
+            const int x = horizontal ? major : minor;
+            const int y = horizontal ? minor : major;
+            const int tile_index = horizontal ? (x == 0           ? 0
+                                                 : x == width - 1 ? 6
+                                                                  : 3) +
+                                                    y
+                                              : (y == 0 ? 0 : 2) + x;
+            const auto& write = trace[index++];
+            EXPECT_EQ(write.x_tile, kX + x);
+            EXPECT_EQ(write.y_tile, kY + y);
+            EXPECT_EQ(write.layer, static_cast<uint8_t>(layer));
+            ExpectTraceTileMatches(write, expected_tiles[tile_index]);
+          }
+        }
+      }
+    }
+  }
+}
+
 TEST_P(RoomObjectRomParityTest, BigHoleDrawerUsesRomTileIndicesAtUsdasmSlots) {
   SCOPED_TRACE(::yaze::test::TestRomManager::GetRomRoleName(GetParam()));
   constexpr int kTileCount = 24;

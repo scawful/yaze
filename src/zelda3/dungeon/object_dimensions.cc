@@ -441,8 +441,8 @@ void ObjectDimensionTable::InitializeDefaults() {
   // 0x4B: Decor 2x2 spaced 12 - spacing 14 tiles
   dimensions_[0x4B] = {2, 2, Dir::Horizontal, 14, false};
 
-  // 0x4C: Bar 4x3 - count=(size+1), step=4
-  dimensions_[0x4C] = {4, 3, Dir::Horizontal, 4, false};
+  // 0x4C: two 1x3 caps around 2*(size+1) middle columns ($0194BD).
+  dimensions_[0x4C] = {4, 3, Dir::Horizontal, 2, false};
 
   // 0x4D-0x4F: Shelf 4x4 - count=(size+1), step=4
   for (int id = 0x4D; id <= 0x4F; id++) {
