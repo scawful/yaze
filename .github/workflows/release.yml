@@ -369,15 +369,15 @@ jobs:
           - name: "Ubuntu 22.04"
             os: ubuntu-22.04
             platform: linux
-            preset: release
+            preset: release-test
           - name: "macOS 14"
             os: macos-14
             platform: macos
-            preset: release
+            preset: release-test
           - name: "Windows 2022"
             os: windows-2022
             platform: windows
-            preset: release
+            preset: release-test
 
     steps:
       - name: Checkout code
@@ -419,12 +419,15 @@ jobs:
           platform: ${{ matrix.platform }}
           preset: ${{ matrix.preset }}
           build-type: Release
+          targets: yaze_test_unit yaze_test_integration z3ed
 
       - name: Run tests
         uses: ./.github/actions/run-tests
         with:
           test-type: stable
           preset: ${{ matrix.preset }}
+          platform: ${{ matrix.platform }}
+          build-type: Release
 
   create-release:
     name: "Create Release"
