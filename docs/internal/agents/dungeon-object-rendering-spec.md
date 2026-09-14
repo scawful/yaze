@@ -154,8 +154,10 @@ minecart track pieces; subtype `13` is `wall_sword_house`; and subtype `15` is
 Standard objects `0x100–0x103` remain ordinary 4×4 wall corners even in rooms
 that contain minecart tracks. Oracle changes their tile tables separately in
 `Dungeons/house_walls.asm`; a future Yaze source overlay must model that
-explicitly. Mushroom Grotto uses subtype `15` in rooms `0x1A`, `0x1B`, `0x2A`,
-`0x3B`, `0x4A`, `0x4B`, and `0x6A`.
+explicitly. A project may replace one only with an exact same-ID mapping such
+as `object_0x100=wall_corner.bin`; no `0x31` mapping aliases into those IDs.
+Mushroom Grotto uses subtype `15` in rooms `0x1A`, `0x1B`, `0x2A`, `0x3B`,
+`0x4A`, `0x4B`, and `0x6A`.
 
 The next Oracle-specific pixel fixtures are intentionally small:
 

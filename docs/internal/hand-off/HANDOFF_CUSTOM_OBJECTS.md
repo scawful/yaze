@@ -26,7 +26,7 @@ hands-on runtime acceptance.
 | Project configuration | `custom_objects_folder`, the feature flag, and per-ID subtype filename lists persist in the project descriptor. | `src/core/project.{h,cc}` |
 | Runtime slots | Oracle currently exposes 21 fixed assets: 16 slots for object `0x31`, three for object `0x32`, and two sprite-body slots for object `0x54`. Project mappings may replace filenames within those slots; Custom Assets cannot add runtime subtypes. | `custom_object.{h,cc}`, `dungeon_object_selector.cc` |
 | Loading and session identity | `CustomObjectManager` keeps one entry point but stores the project path, mappings, decoded cache, and asset generation in session-keyed runtime contexts. Session switches activate the matching context, and teardown removes it. | `custom_object.{h,cc}`, `editor_manager.cc`, `session_types.{h,cc}` |
-| Rendering | Active project overrides route before built-in draw routines for the exact configured object ID. Object `0x54` preserves raw source words but applies Oracle's nonzero `OR #$0300` tile-page rule while drawing. Standard wall-corner objects `0x100-0x103` always retain their built-in 4x4 draw routines; they are not aliases for `0x31` track assets. | `custom_object.{h,cc}`, `object_layer_semantics.h`, `object_drawer.cc` |
+| Rendering | Active project overrides route before built-in draw routines for the exact configured object ID. Object `0x54` preserves raw source words but applies Oracle's nonzero `OR #$0300` tile-page rule while drawing. A `0x31` mapping never changes standard wall-corner objects `0x100-0x103`; only an exact same-ID project mapping may override their built-in 4x4 routines. | `custom_object.{h,cc}`, `object_layer_semantics.h`, `object_drawer.cc` |
 | Geometry and previews | Custom layout bounds include the active asset generation. Asset reloads and session switches invalidate stale geometry, thumbnails, and queued custom placements. The `0x54` tilemap preview applies the runtime page mask, but Yaze does not yet load the separate boss pixel graphics that Oracle DMA-copies into VRAM. | `object_geometry.{h,cc}`, `object_tile_editor.cc`, `dungeon_object_selector.cc` |
 | Tile authoring and publication | The Object Selector's persistent **Custom Assets** mode exposes **Edit Tile Layout** and **Place in Room** for existing fixed slots. The tile editor retains the exact source snapshot, supports a terminator-only empty asset through **Add First Tile**, and publishes desktop changes through strict encoding, stale-write comparison, rollback-protected atomic replacement, and decoded readback. Browser builds disable editing and fail closed in the publication API. | `dungeon_object_selector.cc`, `object_tile_editor.{h,cc}`, `object_tile_editor_panel.{h,cc}`, `custom_object.{h,cc}` |
 | Minecart source | The **Routes** tab parses and preserves a configured ASM start-room/X/Y source and publishes it with source-identity and stale-write checks. Route slots come from minecart sprite subtypes, not visual track-piece subtypes. The current Oracle manifest does not yet declare `minecart_tracks.source`, so route publication correctly fails closed until that project metadata is added. | `minecart_track_source.{h,cc}`, `minecart_track_editor_panel.{h,cc}` |
@@ -60,7 +60,8 @@ Object `0x31` has 16 fixed slots:
 Slots `2-5` are track-corner tile layouts for object `0x31` itself. They do not
 replace standard wall-corner objects `0x100-0x103`. Oracle keeps those IDs on
 their ordinary 4x4 draw routines and separately patches their source tile
-tables in `Dungeons/house_walls.asm`.
+tables in `Dungeons/house_walls.asm`. Only an exact project mapping for the
+wall object's own ID may override that built-in routine.
 
 Object `0x31` subtype selects a visual graphics slot. A minecart sprite subtype
 selects a route/start-table slot. These identities are independent: a visual
@@ -304,7 +305,7 @@ Remaining P0 work:
   replacement. Closing an unmodified asset leaves its source bytes unchanged.
 - A user can see whether an object changes visuals, collision, runtime behavior,
   or more than one of them.
-- Wall aliases never activate from decorative `0x31` subtypes.
+- No `0x31` asset mapping alters standard wall-corner objects `0x100-0x103`.
 - Minecart authoring reports disconnected routes, missing starts, and collision
   differences before commit.
 - The published project rebuild and Mesen runtime agree with the Yaze preview
