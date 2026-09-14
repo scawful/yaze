@@ -26,6 +26,11 @@
   binaries, or empty JUnit results.
 - Bounded reusable CI builds to four workers and separated build caches by
   configuration to reduce runner pressure and cache pollution.
+- Consolidated pull-request WASM validation into one bounded build/browser
+  smoke gate, including public-header changes and exact production cache keys.
+- Added portable-package layout, manifest, dependency, executable-version, and
+  lifecycle checks: FHS TGZ/DEB payloads, real APT install/purge, relocated
+  macOS bundles, and Windows ZIP/NSIS execution.
 
 ### Validation Snapshot
 - ROM parser/drawer parity and room fingerprint tests pass for the covered
@@ -40,10 +45,9 @@
   small-corner objects, and more door families still need independent
   witnesses. Vanilla `0xD8` and `0xDA` remain structural-only because they
   control HDMA.
-- Packaged GUI launch, Windows signing, Linux runtime dependencies, and macOS
-  universal/notarized artifacts remain separate release gates.
-- The duplicate WASM build paths still need consolidation into one
-  authoritative build and browser smoke test.
+- Headless package smoke checks do not replace hands-on GUI launch/quit on each
+  desktop platform. Windows signing and macOS universal, Developer ID,
+  notarization, and Gatekeeper acceptance remain separate release gates.
 
 ---
 

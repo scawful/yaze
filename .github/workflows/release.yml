@@ -157,25 +157,6 @@ jobs:
           preset: ${{ matrix.preset }}
           build-type: Release
 
-      - name: Patch cmake_install.cmake (Unix)
-        if: matrix.platform == 'linux' || matrix.platform == 'macos'
-        shell: bash
-        run: |
-          cd "build/presets/${{ matrix.preset }}"
-          # Create a Python script to patch cmake_install.cmake
-          python3 << 'EOF'
-          import re
-          with open('cmake_install.cmake', 'r') as f:
-              content = f.read()
-          # Wrap include() statements with if(EXISTS)
-          pattern = r'(\s*)include\("(.*)/_deps/([^"]+)/cmake_install\.cmake"\)'
-          replacement = r'\1if(EXISTS "\2/_deps/\3/cmake_install.cmake")\n\1  include("\2/_deps/\3/cmake_install.cmake")\n\1endif()'
-          content = re.sub(pattern, replacement, content)
-          with open('cmake_install.cmake', 'w') as f:
-              f.write(content)
-          print("Patched cmake_install.cmake to handle missing dependency install scripts")
-          EOF
-
       - name: Clean old packages before CPack
         shell: bash
         env:
@@ -190,8 +171,8 @@ jobs:
         if: matrix.platform == 'linux'
         run: |
           cd "build/presets/${{ matrix.preset }}"
-          cpack -G DEB
-          cpack -G TGZ
+          cpack -C Release -G DEB
+          cpack -C Release -G TGZ
           echo "=== Contents of packages directory ==="
           ls -la packages/ 2>/dev/null || echo "No packages directory"
           echo "=== Package files created ==="
@@ -221,7 +202,19 @@ jobs:
             echo "No TGZ package produced in $BUILD_DIR/packages/"
             exit 1
           fi
-          python3 scripts/release/validate-archive.py "${deb_files[@]}" "${tgz_files[@]}"
+          python3 scripts/release/validate-archive.py \
+            --expected-version "${{ needs.release-preflight.outputs.version_plain }}" \
+            --expected-git-sha "${{ github.sha }}" \
+            "${deb_files[@]}" "${tgz_files[@]}"
+          for package in "${deb_files[@]}" "${tgz_files[@]}"; do
+            scripts/release/smoke-linux-package.sh \
+              --expected-version "${{ needs.release-preflight.outputs.version_plain }}" \
+              "$package"
+          done
+          scripts/release/smoke-linux-package.sh \
+            --install-deb \
+            --expected-version "${{ needs.release-preflight.outputs.version_plain }}" \
+            "${deb_files[0]}"
           shopt -u nullglob
 
       - name: Package artifacts (macOS)
@@ -230,37 +223,29 @@ jobs:
         env:
           BUILD_DIR: build/presets/${{ matrix.preset }}
         run: |
-          app_bundle="$(find "$BUILD_DIR/bin" -maxdepth 3 -type d -name yaze.app | head -n 1)"
-          if [[ -n "${app_bundle}" ]]; then
-            echo "Signing app bundle: ${app_bundle}"
-            if [[ -n "${CODESIGN_IDENTITY:-}" ]]; then
-              codesign --force --deep --options runtime --sign "${CODESIGN_IDENTITY}" "${app_bundle}"
-            else
-              codesign --force --deep --sign - "${app_bundle}"
-            fi
-            codesign --verify --deep --strict "${app_bundle}"
-          else
-            echo "No app bundle found under $BUILD_DIR/bin; skipping pre-package signing."
+          app_bundle="build/presets/release/bin/Release/yaze.app"
+          if [[ ! -d "$app_bundle" || ! -x "$app_bundle/Contents/MacOS/yaze" ]]; then
+            echo "Release app bundle not found at $app_bundle"
+            exit 1
           fi
+          bundle_assets="$app_bundle/Contents/Resources/assets"
+          cmake -E remove_directory "$bundle_assets"
+          cmake -E make_directory "$bundle_assets"
+          cmake -E copy_directory "$GITHUB_WORKSPACE/assets" "$bundle_assets"
+          diff -qr "$GITHUB_WORKSPACE/assets" "$bundle_assets"
+          echo "Signing app bundle: ${app_bundle}"
+          if [[ -n "${CODESIGN_IDENTITY:-}" ]]; then
+            codesign --force --deep --options runtime --sign "${CODESIGN_IDENTITY}" "${app_bundle}"
+          else
+            codesign --force --deep --sign - "${app_bundle}"
+          fi
+          codesign --verify --deep --strict "${app_bundle}"
           cd "$BUILD_DIR"
-          cpack -G DragNDrop
+          cpack -C Release -G DragNDrop
           echo "=== Contents of packages directory ==="
           ls -la packages/ 2>/dev/null || echo "No packages directory"
           echo "=== Package files created ==="
           ls -la packages/*.dmg 2>/dev/null || echo "No packages found"
-
-      - name: Create bundle DMG (macOS)
-        if: matrix.platform == 'macos'
-        shell: bash
-        env:
-          BUILD_DIR: build/presets/${{ matrix.preset }}
-        run: |
-          chmod +x ./scripts/create-macos-bundle.sh
-          ./scripts/create-macos-bundle.sh ${{ needs.release-preflight.outputs.version_plain }} yaze-${{ needs.release-preflight.outputs.version_tag }}-bundle || true
-          if [ -f "yaze-${{ needs.release-preflight.outputs.version_tag }}-bundle.dmg" ]; then
-            mkdir -p "$BUILD_DIR/packages"
-            mv yaze-${{ needs.release-preflight.outputs.version_tag }}-bundle.dmg "$BUILD_DIR/packages/"
-          fi
 
       - name: Validate macOS artifacts
         if: matrix.platform == 'macos'
@@ -280,41 +265,18 @@ jobs:
           fi
 
           for dmg in "${dmg_files[@]}"; do
-            if [[ -f "$dmg" ]]; then
-              scripts/release/validate-dmg.sh "$dmg"
-            fi
+            scripts/release/validate-dmg.sh "$dmg" \
+              --expected-version "${{ needs.release-preflight.outputs.version_plain }}" \
+              --expected-git-sha "${{ github.sha }}"
           done
-
-          bundle_dmgs=("$BUILD_DIR"/packages/yaze-*-bundle.dmg)
-          if [[ -e "${bundle_dmgs[0]}" ]]; then
-            for dmg in "${bundle_dmgs[@]}"; do
-              if [[ -f "$dmg" ]]; then
-                scripts/release/validate-dmg.sh "$dmg"
-              fi
-            done
-          else
-            echo "No bundle DMG found; skipping bundle validation."
-          fi
           shopt -u nullglob
-
-      - name: Patch cmake_install.cmake (Windows)
-        if: matrix.platform == 'windows'
-        shell: pwsh
-        run: |
-          cd "build/presets/${{ matrix.preset }}"
-          # Wrap include() statements with if(EXISTS) to handle missing dependency install scripts
-          $nl = [Environment]::NewLine
-          $content = Get-Content cmake_install.cmake -Raw
-          $content = $content -replace '(\s+)include\("(.*)/_deps/([^"]+)/cmake_install\.cmake"\)', "`$1if(EXISTS `"`$2/_deps/`$3/cmake_install.cmake`")$nl`$1  include(`"`$2/_deps/`$3/cmake_install.cmake`")$nl`$1endif()"
-          Set-Content cmake_install.cmake $content
-          Write-Host "Patched cmake_install.cmake to handle missing dependency install scripts"
 
       - name: Package artifacts (Windows)
         if: matrix.platform == 'windows'
         shell: pwsh
         run: |
           cd "build/presets/${{ matrix.preset }}"
-          cpack
+          cpack -C Release
           Write-Host "=== Contents of packages directory ==="
           Get-ChildItem packages -ErrorAction SilentlyContinue
           Write-Host "=== Package files created ==="
@@ -325,8 +287,8 @@ jobs:
         shell: pwsh
         run: |
           $pkgDir = "build/presets/${{ matrix.preset }}/packages"
-          $zips = Get-ChildItem -Path $pkgDir -Filter "*.zip" -ErrorAction SilentlyContinue
-          $exes = Get-ChildItem -Path $pkgDir -Filter "*.exe" -ErrorAction SilentlyContinue
+          $zips = @(Get-ChildItem -Path $pkgDir -Filter "*.zip" -ErrorAction SilentlyContinue)
+          $exes = @(Get-ChildItem -Path $pkgDir -Filter "*.exe" -ErrorAction SilentlyContinue)
           if ($zips.Count -eq 0) {
             Write-Host "No ZIP files found in $pkgDir/"
             Write-Host "Contents of $pkgDir/:"
@@ -341,8 +303,19 @@ jobs:
           }
           foreach ($zip in $zips) {
             Write-Host "Validating: $($zip.FullName)"
-            python scripts/release/validate-archive.py $zip.FullName
-            ./scripts/release/smoke-windows-package.ps1 -ArchivePath $zip.FullName
+            python scripts/release/validate-archive.py `
+              --expected-version "${{ needs.release-preflight.outputs.version_plain }}" `
+              --expected-git-sha "${{ github.sha }}" `
+              $zip.FullName
+            ./scripts/release/smoke-windows-package.ps1 `
+              -ArchivePath $zip.FullName `
+              -ExpectedVersion "${{ needs.release-preflight.outputs.version_plain }}"
+          }
+          foreach ($installer in $exes) {
+            ./scripts/release/smoke-windows-installer.ps1 `
+              -InstallerPath $installer.FullName `
+              -ExpectedVersion "${{ needs.release-preflight.outputs.version_plain }}" `
+              -ExpectedGitSha "${{ github.sha }}"
           }
 
       - name: Upload build artifacts
@@ -462,7 +435,7 @@ jobs:
       - name: Generate release checksums
         run: |
           cd release-files
-          sha256sum * > checksums.txt
+          sha256sum -- ./* > checksums.txt
           cat checksums.txt
 
       - name: Generate release body from docs
@@ -472,12 +445,14 @@ jobs:
           bash scripts/release/extract-release-notes.sh \
             "${{ needs.release-preflight.outputs.version_tag }}" \
             docs/public/release-notes.md > release-body.md
-          echo "" >> release-body.md
-          echo "## Checksums" >> release-body.md
-          echo "" >> release-body.md
-          echo "\`\`\`" >> release-body.md
-          cat release-files/checksums.txt >> release-body.md
-          echo "\`\`\`" >> release-body.md
+          {
+            echo ""
+            echo "## Checksums"
+            echo ""
+            echo "\`\`\`"
+            cat release-files/checksums.txt
+            echo "\`\`\`"
+          } >> release-body.md
 
       - name: Create Release
         uses: softprops/action-gh-release@v2

@@ -20,6 +20,7 @@
 #include "cli/service/command_registry.h"
 #include "cli/z3ed_ascii_logo.h"
 #include "rom/rom.h"
+#include "util/platform_paths.h"
 #include "yaze_config.h"
 
 #ifdef YAZE_HTTP_API_ENABLED
@@ -121,6 +122,16 @@ int RunSelfTest() {
 #else
   run_test("HTTP API not compiled (expected)", true);
 #endif
+
+  // Representative runtime assets must resolve from portable, bundle, and
+  // FHS package layouts without depending on the source checkout.
+  run_test(
+      "Agent catalogue asset available",
+      yaze::util::PlatformPaths::FindAsset("agent/prompt_catalogue.yaml").ok());
+  run_test("Overworld patch asset available",
+           yaze::util::PlatformPaths::FindAsset(
+               "patches/Overworld/TailMapExpansion.asm")
+               .ok());
 
   // Summary
   std::cout << "\n\033[1;36m=== Results ===\033[0m\n";
