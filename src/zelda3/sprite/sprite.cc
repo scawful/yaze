@@ -1033,11 +1033,15 @@ void Sprite::Draw() {
     DrawSpriteTile((x * 16) + 8, (y * 16) + 16, 8, 27, 12, false, false, 1, 1);
   } else if (id_ == 0x91)  // Stalfos knight
   {
-    DrawSpriteTile((x * 16) - 2, (y * 16) + 12, 4, 22, 12, false, false, 1, 2);
-    DrawSpriteTile((x * 16) + 10, (y * 16) + 12, 4, 22, 12, true, false, 1, 2);
-    DrawSpriteTile((x * 16) - 4, (y * 16) + 4, 1, 22, 12);
-    DrawSpriteTile((x * 16) + 12, (y * 16) + 4, 3, 22, 12, false, false, 1, 2);
-    DrawSpriteTile((x * 16), (y * 16) - 8, 6, 20, 12);
+    // USDASM $1EACEC frame 0, head direction 2 and SprMiscB=0: a chosen
+    // visible static pose, not the initial hidden state. Paint reverse OAM
+    // order so earlier entries win overlaps. OBJ palette 5 is unchanged.
+    DrawSpriteTile((x * 16) + 11, (y * 16) + 16, 4, 23, 12, true, false, 1, 1);
+    DrawSpriteTile((x * 16) - 3, (y * 16) + 16, 4, 23, 12, false, false, 1, 1);
+    DrawSpriteTile((x * 16) + 4, (y * 16), 2, 22, 12);
+    DrawSpriteTile((x * 16) - 4, (y * 16), 1, 22, 12);
+    DrawSpriteTile((x * 16) - 4, (y * 16) - 8, 4, 22, 12, false, false, 1, 1);
+    DrawSpriteTile((x * 16), (y * 16) - 12, 6, 20, 12);
   } else if (id_ == 0x92)  // Helmaking
   {
     DrawSpriteTile((x * 16), (y * 16) + 32, 14, 26, 14);
@@ -1103,9 +1107,11 @@ void Sprite::Draw() {
   } else if (id_ == 0xA6) {
     DrawSpriteTile((x * 16), (y * 16), 0, 26, 8, false, false, 3, 2);
     DrawSpriteTile((x * 16) + 4, (y * 16) - 8, 0, 24, 8);
-  } else if (id_ == 0xA7) {
-    DrawSpriteTile((x * 16), (y * 16) + 12, 12, 16, 10);
-    DrawSpriteTile((x * 16), (y * 16), 0, 16, 10);
+  } else if (id_ == 0xA7) {  // Stalfos, grounded front-facing static pose
+    // USDASM $0DC0F3 frame 0, head direction 2. The body entry is duplicated
+    // in OAM; draw it once, then the higher-priority head. OBJ palette 4 stays.
+    DrawSpriteTile((x * 16), (y * 16), 6, 16, 10);
+    DrawSpriteTile((x * 16), (y * 16) - 10, 0, 16, 10);
   } else if (id_ == 0xAC) {
     DrawSpriteTile((x * 16), (y * 16), 5, 14, 4);
   } else if (id_ == 0xAD) {
