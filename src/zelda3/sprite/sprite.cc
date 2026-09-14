@@ -1,9 +1,11 @@
 #include "sprite.h"
 #include "sprite_names.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <iostream>
 
+#include "app/gfx/types/snes_tile.h"
 #include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite_oam_tables.h"
 
@@ -1182,10 +1184,36 @@ void Sprite::Draw() {
 }
 
 void Sprite::RenderPreviewGraphics(std::span<const uint8_t> graphics,
-                                   const SpriteOamLayout* layout_override) {
+                                   const SpriteOamLayout* layout_override,
+                                   std::span<const uint8_t> graphics_resource) {
   if (graphics.empty()) {
     preview_gfx_.clear();
     return;
+  }
+
+  std::vector<uint8_t> resource_graphics;
+  if (layout_override != nullptr && layout_override->sprite_id == id_ &&
+      layout_override->graphics_resource != nullptr) {
+    // Dynamic graphics are preview-local: never replace the room's sheets or
+    // use unrelated room art when the external OBJ page is unavailable.
+    constexpr size_t kObjPageBytes = 0x2000;
+    constexpr size_t kPageOneOffset = 0x300 * 64;
+    if (graphics_resource.size() != kObjPageBytes ||
+        graphics.size() < kPageOneOffset + kObjPageBytes * 2) {
+      preview_gfx_.clear();
+      return;
+    }
+    resource_graphics.assign(graphics.begin(), graphics.end());
+    for (size_t tile_id = 0; tile_id < 256; ++tile_id) {
+      const auto tile = gfx::UnpackBppTile(graphics_resource, tile_id * 32, 4);
+      const size_t tile_offset =
+          kPageOneOffset + (tile_id / 16) * 1024 + (tile_id % 16) * 8;
+      for (size_t row = 0; row < 8; ++row) {
+        std::copy_n(tile.data + row * 8, 8,
+                    resource_graphics.begin() + tile_offset + row * 128);
+      }
+    }
+    graphics = resource_graphics;
   }
 
   // External dungeon previews emit only non-zero CGRAM indices (0x71..0xFF),

@@ -26,6 +26,7 @@
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/game_data.h"
+#include "zelda3/sprite/sprite_oam_tables.h"
 
 namespace yaze {
 namespace editor {
@@ -954,6 +955,7 @@ class DungeonCanvasViewer {
   bool is_pinned_ = false;
   std::function<void(bool)> pin_callback_;
   const project::YazeProject* project_ = nullptr;
+  zelda3::SpritePreviewResourceCache sprite_preview_resources_;
 
   bool show_track_collision_overlay_ = false;
   bool show_track_collision_legend_ = true;
