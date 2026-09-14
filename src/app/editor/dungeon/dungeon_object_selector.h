@@ -152,6 +152,11 @@ class DungeonObjectSelector {
 
  private:
   friend struct DungeonObjectSelectorTestAccess;
+  enum class BrowserMode {
+    kObjects,
+    kCustomAssets,
+  };
+
   bool MatchesObjectFilter(int obj_id, int filter_type);
   bool MatchesObjectSearch(int obj_id, const std::string& name,
                            int subtype = -1) const;
@@ -164,13 +169,13 @@ class DungeonObjectSelector {
   ImU32 GetObjectTypeColor(int object_id);
   std::string GetObjectTypeSymbol(int object_id);
   absl::Status GetCustomObjectAssetStatus(int object_id, int subtype);
-  void DrawCustomObjectWorkshopPopup();
+  void DrawCustomObjectAssetBrowser();
   absl::Status OpenExistingCustomObjectEditor(int16_t object_id, int subtype,
                                               int room_id);
 
-  bool open_custom_workshop_popup_ = false;
-  int workshop_object_id_ = 0x31;
-  int workshop_subtype_ = 0;
+  BrowserMode browser_mode_ = BrowserMode::kObjects;
+  int custom_asset_family_id_ = 0x31;
+  int custom_asset_subtype_ = 0;
 
   // References for custom-object management.
   ObjectTileEditorPanel* tile_editor_panel_ = nullptr;
@@ -196,6 +201,7 @@ class DungeonObjectSelector {
   // Object preview system
   zelda3::RoomObject preview_object_{0, 0, 0, 0, 0};
   bool object_loaded_ = false;
+  bool preview_uses_custom_override_ = false;
 
   // Callback for object selection
   std::function<void(const zelda3::RoomObject&)> object_selected_callback_;

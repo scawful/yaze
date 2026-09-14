@@ -213,6 +213,10 @@ class DungeonEditorV2 : public Editor {
     }
   }
 
+  // Create and register the project-only Minecart Tracks surface on demand.
+  // This supports enabling custom objects after the Dungeon editor has loaded.
+  absl::Status EnsureMinecartTrackEditorPanel();
+
   // Explicit workflow toggle between integrated Workbench and standalone panels.
   void SetWorkbenchWorkflowMode(bool enabled, bool show_toast = true);
   // Queue a workflow mode change to run at a safe point in the next update.
@@ -235,6 +239,8 @@ class DungeonEditorV2 : public Editor {
   static constexpr const char* kObjectToolsId = kObjectSelectorId;
   static constexpr const char* kDoorEditorId = "dungeon.door_editor";
   static constexpr const char* kPaletteEditorId = "dungeon.palette_editor";
+  static constexpr const char* kMinecartTrackEditorId =
+      "dungeon.minecart_tracks";
 
   // Public accessors for WASM API and automation
   int current_room_id() const { return room_selector_.current_room_id(); }

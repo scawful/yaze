@@ -1206,9 +1206,9 @@ TEST(ObjectTileEditorPanelTest,
 }
 
 TEST(ObjectTileEditorPanelTest,
-     CustomSourceImpactCountsEnabledSubtypeTwoCornerAlias) {
+     CustomSourceImpactDoesNotCountVanillaWallCornerObjects) {
   ScopedCustomObjectState custom_state(
-      MakeTempDir("yaze_obj_tile_panel_corner_alias"));
+      MakeTempDir("yaze_obj_tile_panel_wall_identity"));
   WriteCustomObjectAsset(custom_state.dir / "corner.bin",
                          zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}});
   zelda3::CustomObjectManager::Get().SetObjectFileMap(
@@ -1227,7 +1227,44 @@ TEST(ObjectTileEditorPanelTest,
   auto usage_count_or =
       ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel);
   ASSERT_TRUE(usage_count_or.ok()) << usage_count_or.status();
+  EXPECT_EQ(*usage_count_or, 1);
+}
+
+TEST(ObjectTileEditorPanelTest,
+     SharedCustomAssetCountsExplicitWallOverrideAndRequiresConfirmation) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_explicit_wall_override"));
+  const auto asset_path = custom_state.dir / "corner.bin";
+  WriteCustomObjectAsset(asset_path,
+                         zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}});
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0x31, {"", "", "corner.bin"}}, {0x100, {"corner.bin"}}});
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  rooms[0].SetLoaded(true);
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  ASSERT_TRUE(panel
+                  .OpenForCustomObject(/*object_id=*/0x31, /*subtype=*/2,
+                                       /*room_id=*/0, &rooms)
+                  .ok());
+
+  auto usage_count_or =
+      ObjectTileEditorPanelTestAccess::SharedTileDataUsageCount(panel);
+  ASSERT_TRUE(usage_count_or.ok()) << usage_count_or.status();
   EXPECT_EQ(*usage_count_or, 2);
+
+  const std::vector<uint8_t> original_bytes = ReadBinaryFile(asset_path);
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(
+      panel, /*tile_id=*/0x24, /*palette=*/2);
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel,
+                                                /*confirm_shared=*/true);
+
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ShowSharedConfirm(panel));
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SharedObjectCount(panel), 2);
+  EXPECT_EQ(ReadBinaryFile(asset_path), original_bytes);
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::HasModifications(panel));
 }
 
 TEST(ObjectTileEditorPanelTest,

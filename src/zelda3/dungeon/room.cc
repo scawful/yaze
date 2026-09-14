@@ -1470,8 +1470,6 @@ void Room::RenderObjectsToBackground() {
   // correct tiles
   ObjectDrawer drawer(rom_, room_id_, current_gfx16_.data());
   drawer.SetRoomFloorGraphics(floor1_graphics_, floor2_graphics_);
-  drawer.SetAllowTrackCornerAliases(
-      RoomAllowsTrackCornerAliases(tile_objects_));
   drawer.SetBG1RevealMaskSource(gfx::BG1RevealMaskSource::kBG2Objects);
   // NOTE: Routines marked draws_to_both_bgs explicitly write both tilemaps.
   // Object-specific stair routing is handled inside the registered routines.

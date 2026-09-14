@@ -2588,7 +2588,7 @@ TEST(ObjectDrawerRegistryReplayTest,
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
-     CornerAliasOverridesRequireExplicitCustomObjectContext) {
+     WallCornerUsesBuiltInRoutineWithoutCustomObjectContext) {
   ScopedCustomObjectsFlag custom_enabled(true);
 
   auto& manager = CustomObjectManager::Get();
@@ -2609,8 +2609,7 @@ TEST(ObjectDrawerRegistryReplayTest,
       RoomObject::LayerType::BG1,
       MakeSequentialTiles(/*count=*/16, /*start_tile_id=*/400));
 
-  // USDASM parity guardrail: without explicit custom-object source
-  // configuration, subtype-2 wall corners must stay on the vanilla 4x4
+  // USDASM parity guardrail: subtype-2 wall corners stay on the vanilla 4x4
   // column-major path.
   const auto bg1_trace = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
   const auto expected =
@@ -2621,7 +2620,7 @@ TEST(ObjectDrawerRegistryReplayTest,
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
-     CornerAliasOverridesDoNotActivateFromFolderOnlyContext) {
+     WallCornerUsesBuiltInRoutineWithCustomAssetFolder) {
   ScopedCustomObjectsFlag custom_enabled(true);
 
   auto& manager = CustomObjectManager::Get();
@@ -2629,7 +2628,7 @@ TEST(ObjectDrawerRegistryReplayTest,
   const auto nonce =
       std::chrono::steady_clock::now().time_since_epoch().count();
   const auto temp_dir = std::filesystem::temp_directory_path() /
-                        ("yaze_corner_alias_folder_only_" +
+                        ("yaze_wall_corner_folder_only_" +
                          std::to_string(static_cast<long long>(nonce)));
 
   struct RestoreManagerStateAndCleanup {
@@ -2646,8 +2645,7 @@ TEST(ObjectDrawerRegistryReplayTest,
   manager.Initialize(temp_dir.string());
   manager.ClearObjectFileMap();
 
-  // Folder-only custom-object setups should not remap vanilla 0x100..0x103
-  // wall corners into track-corner custom payloads.
+  // A custom-object folder must not remap vanilla 0x100..0x103 wall corners.
   WriteBinaryFile(temp_dir / "track_corner_TL.bin",
                   MakeSingleTileCustomObjectBinary(
                       /*rel_x=*/0, /*rel_y=*/0, /*tile_word=*/0x0001));
@@ -2673,7 +2671,7 @@ TEST(ObjectDrawerRegistryReplayTest,
 }
 
 TEST(ObjectDrawerRegistryReplayTest,
-     CornerAliasOverridesUseCustomTrackCornerFiles) {
+     WallCornersIgnoreConfiguredTrackCornerFiles) {
   ScopedCustomObjectsFlag custom_enabled(true);
 
   auto& manager = CustomObjectManager::Get();
@@ -2681,7 +2679,7 @@ TEST(ObjectDrawerRegistryReplayTest,
   const auto nonce =
       std::chrono::steady_clock::now().time_since_epoch().count();
   const auto temp_dir = std::filesystem::temp_directory_path() /
-                        ("yaze_corner_alias_override_" +
+                        ("yaze_wall_corner_track_map_" +
                          std::to_string(static_cast<long long>(nonce)));
 
   struct RestoreManagerStateAndCleanup {
@@ -2715,19 +2713,15 @@ TEST(ObjectDrawerRegistryReplayTest,
                               "track_corner_TL.bin", "track_corner_TR.bin",
                               "track_corner_BL.bin", "track_corner_BR.bin"}}});
 
-  struct CornerAliasCase {
+  struct WallCornerCase {
     int16_t object_id;
-    const char* filename;
-    int rel_x;
-    int rel_y;
-    uint16_t tile_id;
   };
 
-  const std::vector<CornerAliasCase> cases = {
-      {0x0100, "track_corner_TL.bin", 0, 0, 1},
-      {0x0101, "track_corner_BL.bin", 0, 1, 3},
-      {0x0102, "track_corner_TR.bin", 1, 0, 2},
-      {0x0103, "track_corner_BR.bin", 1, 1, 4},
+  const std::vector<WallCornerCase> cases = {
+      {0x0100},
+      {0x0101},
+      {0x0102},
+      {0x0103},
   };
 
   std::unordered_map<int16_t, std::vector<ObjectDrawer::TileTrace>>
@@ -2737,8 +2731,7 @@ TEST(ObjectDrawerRegistryReplayTest,
     ScopedCustomObjectsFlag custom_disabled(false);
     for (const auto& tc : cases) {
       SCOPED_TRACE(tc.object_id);
-      EXPECT_EQ(manager.ResolveFilename(tc.object_id, /*subtype=*/0),
-                tc.filename);
+      EXPECT_TRUE(manager.ResolveFilename(tc.object_id, /*subtype=*/0).empty());
 
       auto trace = ReplayObjectTrace(
           tc.object_id, /*x=*/20, /*y=*/30, /*size=*/0,
@@ -2753,18 +2746,23 @@ TEST(ObjectDrawerRegistryReplayTest,
 
   for (const auto& tc : cases) {
     SCOPED_TRACE(tc.object_id);
+    EXPECT_TRUE(manager.ResolveFilename(tc.object_id, /*subtype=*/0).empty());
     auto trace = ReplayObjectTrace(
         tc.object_id, /*x=*/20, /*y=*/30, /*size=*/0,
         RoomObject::LayerType::BG1,
         MakeSequentialTiles(/*count=*/16, /*start_tile_id=*/400));
-    ASSERT_EQ(trace.size(), 1u);
-    EXPECT_EQ(trace[0].x_tile, 20 + tc.rel_x);
-    EXPECT_EQ(trace[0].y_tile, 30 + tc.rel_y);
-    EXPECT_EQ(trace[0].tile_id, tc.tile_id);
-
     const auto it = vanilla_traces.find(tc.object_id);
     ASSERT_NE(it, vanilla_traces.end());
-    EXPECT_NE(it->second.size(), trace.size());
+    ASSERT_EQ(trace.size(), it->second.size());
+    for (size_t index = 0; index < trace.size(); ++index) {
+      EXPECT_EQ(trace[index].object_id, it->second[index].object_id);
+      EXPECT_EQ(trace[index].size, it->second[index].size);
+      EXPECT_EQ(trace[index].layer, it->second[index].layer);
+      EXPECT_EQ(trace[index].x_tile, it->second[index].x_tile);
+      EXPECT_EQ(trace[index].y_tile, it->second[index].y_tile);
+      EXPECT_EQ(trace[index].tile_id, it->second[index].tile_id);
+      EXPECT_EQ(trace[index].flags, it->second[index].flags);
+    }
   }
 }
 

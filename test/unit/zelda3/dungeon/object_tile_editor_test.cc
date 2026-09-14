@@ -1418,15 +1418,14 @@ TEST(ObjectTileEditorTest, ProjectFolderSwitchCannotRedirectCustomApply) {
   EXPECT_EQ(ReadTestBinary(other_dir / "track_LR.bin"), original_other);
 }
 
-TEST(ObjectTileEditorTest,
-     CaptureLayoutForCornerAliasResolvesCustomFilenameWithExplicitTrackMap) {
+TEST(ObjectTileEditorTest, CaptureVanillaWallCornersIgnoresConfiguredTrackMap) {
   const bool old_custom_objects_flag =
       core::FeatureFlags::get().kEnableCustomObjects;
   const auto old_custom_object_state =
       CustomObjectManager::Get().SnapshotState();
   core::FeatureFlags::get().kEnableCustomObjects = true;
 
-  std::string temp_base = "/tmp/yaze_test_corner_alias_capture";
+  std::string temp_base = "/tmp/yaze_test_wall_corner_capture";
   std::filesystem::create_directories(temp_base);
   struct Cleanup {
     bool old_custom_objects_flag;
@@ -1466,22 +1465,25 @@ TEST(ObjectTileEditorTest,
   gfx::PaletteGroup palette;
   ObjectTileEditor editor(&rom);
 
-  auto layout_or =
-      editor.CaptureObjectLayout(/*object_id=*/0x100, room, palette);
-  ASSERT_TRUE(layout_or.ok());
-  EXPECT_TRUE(layout_or->is_custom);
-  EXPECT_EQ(layout_or->custom_filename, "track_corner_TL.bin");
+  for (const int object_id : {0x100, 0x101, 0x102, 0x103}) {
+    SCOPED_TRACE(object_id);
+    auto layout_or = editor.CaptureObjectLayout(object_id, room, palette);
+    ASSERT_TRUE(layout_or.ok());
+    EXPECT_FALSE(layout_or->is_custom);
+    EXPECT_TRUE(layout_or->custom_filename.empty());
+    EXPECT_GT(layout_or->cells.size(), 1u);
+  }
 }
 
 TEST(ObjectTileEditorTest,
-     CaptureLayoutForCornerAliasWithoutTrackMapStaysVanilla) {
+     CaptureWallCornerWithCustomAssetFolderStaysRomBacked) {
   const bool old_custom_objects_flag =
       core::FeatureFlags::get().kEnableCustomObjects;
   const auto old_custom_object_state =
       CustomObjectManager::Get().SnapshotState();
   core::FeatureFlags::get().kEnableCustomObjects = true;
 
-  std::string temp_base = "/tmp/yaze_test_corner_alias_capture_no_map";
+  std::string temp_base = "/tmp/yaze_test_wall_corner_capture_no_map";
   std::filesystem::create_directories(temp_base);
   struct Cleanup {
     bool old_custom_objects_flag;

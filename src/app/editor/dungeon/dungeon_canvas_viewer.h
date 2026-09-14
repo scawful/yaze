@@ -242,19 +242,8 @@ class DungeonCanvasViewer {
         });
     object_interaction_.SetObjectSelectionVisibilityPredicate(
         [this](int room_id, const zelda3::RoomObject& object) {
-          bool allow_track_corner_aliases = true;
-          if (zelda3::IsTrackCornerAliasObjectId(object.id_)) {
-            allow_track_corner_aliases = false;
-            if (rooms_ != nullptr) {
-              if (const auto* room = rooms_->GetIfMaterialized(room_id)) {
-                allow_track_corner_aliases =
-                    zelda3::RoomAllowsTrackCornerAliases(
-                        room->GetTileObjects());
-              }
-            }
-          }
-          const auto semantics = zelda3::GetEffectiveObjectLayerSemantics(
-              object, allow_track_corner_aliases);
+          const auto semantics =
+              zelda3::GetEffectiveObjectLayerSemantics(object);
           auto is_visible = [this, room_id](zelda3::LayerType layer) {
             return IsLayerVisible(room_id, layer) &&
                    GetLayerBlendMode(room_id, layer) !=

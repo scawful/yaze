@@ -118,6 +118,18 @@ absl::StatusOr<std::vector<uint8_t>> PublishCustomObjectBinary(
 // and editor write-back deliberately retain their untransformed words.
 uint16_t CustomObjectRuntimeTileWord(int object_id, uint16_t source_word);
 
+enum class CustomObjectMappingOrigin {
+  kDefaultFilename,
+  kConfiguredFilename,
+  kConfiguredSlotUnmapped,
+};
+
+struct CustomObjectSlotBinding {
+  std::string filename;
+  CustomObjectMappingOrigin origin =
+      CustomObjectMappingOrigin::kConfiguredSlotUnmapped;
+};
+
 /**
  * @brief Manages loading and caching of custom object binary files.
  */
@@ -185,6 +197,8 @@ class CustomObjectManager {
   // Accessors for tile editor write-back
   const std::string& GetBasePath() const;
   uint64_t asset_generation() const;
+  absl::StatusOr<CustomObjectSlotBinding> ResolveSlotBinding(int object_id,
+                                                             int subtype) const;
   std::string ResolveFilename(int object_id, int subtype) const;
 
   // Snapshot/restore helpers for scoped CLI/runtime feature application.
@@ -205,10 +219,6 @@ class CustomObjectManager {
   uint64_t NextAssetGeneration();
   void InvalidateCaches();
   const std::vector<std::string>* ResolveFileList(int object_id) const;
-  // Corner alias overrides (0x100..0x103) are enabled only when object 0x31
-  // has an explicit project mapping for the requested corner slot.
-  bool IsCornerAliasOverrideEnabled(int resolved_index) const;
-
   RuntimeContext standalone_context_;
   std::unordered_map<uint64_t, RuntimeContext> runtime_contexts_;
   std::optional<uint64_t> active_runtime_context_id_;

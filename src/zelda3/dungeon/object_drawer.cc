@@ -269,7 +269,7 @@ absl::Status ObjectDrawer::DrawObject(
 
   // Check for custom object override first (guarded by feature flag).
   // We check this BEFORE routine lookup to allow overriding vanilla objects.
-  if (HasActiveCustomObjectOverride(object, allow_track_corner_aliases_)) {
+  if (HasActiveCustomObjectOverride(object)) {
     // Custom objects default to drawing on the target layer only, unless all_bgs_ is set
     // Mask propagation is difficult without dimensions, so we rely on explicit transparency in the custom object tiles if needed
 
@@ -534,8 +534,7 @@ absl::Status ObjectDrawer::DrawObjectList(
   int to_bg1 = 0, to_bg2 = 0, both_bgs = 0;
 
   for (const auto& object : objects) {
-    const auto semantics =
-        GetEffectiveObjectLayerSemantics(object, allow_track_corner_aliases_);
+    const auto semantics = GetEffectiveObjectLayerSemantics(object);
     switch (semantics.effective_bg_layer) {
       case EffectiveBgLayer::kBg1:
         ++to_bg1;

@@ -287,6 +287,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/sidebar_sort_test.cc
     unit/editor/activity_bar_actions_registry_test.cc
     unit/editor/theme_persistence_test.cc
+    unit/editor/settings_panel_test.cc
     unit/editor/theme_style_snapshot_test.cc
     unit/editor/theme_generator_test.cc
     unit/editor/editor_registry_test.cc
@@ -584,6 +585,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/sidebar_sort_test.cc
     unit/editor/activity_bar_actions_registry_test.cc
     unit/editor/theme_persistence_test.cc
+    unit/editor/settings_panel_test.cc
     unit/editor/theme_style_snapshot_test.cc
     unit/editor/theme_generator_test.cc
     unit/editor/editor_manager_test.cc

@@ -1,6 +1,8 @@
 #include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
 #include "util/i18n/tr.h"
 
+#include <algorithm>
+
 #include "absl/strings/str_format.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/theme_manager.h"
@@ -285,10 +287,21 @@ ObjectTileEditorPanel::AnalyzeSourceImpactSnapshot() const {
     uint64_t fingerprint = 1469598103934665603ULL;
     MixFingerprint(&fingerprint, manager.asset_generation());
     int consumer_count = 0;
-    for (const int object_id :
-         zelda3::CustomObjectManager::RuntimeObjectIds()) {
-      const int subtype_count =
-          zelda3::CustomObjectManager::RuntimeSubtypeCountForObject(object_id);
+    std::vector<int> mapped_object_ids(
+        zelda3::CustomObjectManager::RuntimeObjectIds().begin(),
+        zelda3::CustomObjectManager::RuntimeObjectIds().end());
+    const auto manager_state = manager.SnapshotState();
+    for (const auto& mapping : manager_state.custom_file_map) {
+      const int object_id = mapping.first;
+      if (std::find(mapped_object_ids.begin(), mapped_object_ids.end(),
+                    object_id) == mapped_object_ids.end()) {
+        mapped_object_ids.push_back(object_id);
+      }
+    }
+    std::sort(mapped_object_ids.begin(), mapped_object_ids.end());
+
+    for (const int object_id : mapped_object_ids) {
+      const int subtype_count = manager.GetSubtypeCount(object_id);
       for (int subtype = 0; subtype < subtype_count; ++subtype) {
         const std::string filename =
             manager.ResolveFilename(object_id, subtype);
@@ -310,31 +323,6 @@ ObjectTileEditorPanel::AnalyzeSourceImpactSnapshot() const {
         MixFingerprint(&fingerprint, static_cast<uint16_t>(object_id));
         MixFingerprint(&fingerprint, static_cast<uint16_t>(subtype));
       }
-    }
-    for (const int alias_object_id : {0x100, 0x101, 0x102, 0x103}) {
-      // These subtype-2 IDs become additional runtime consumers only when an
-      // explicit 0x31 project mapping enables their minecart-corner override.
-      // GetObjectInternal applies that same runtime gate and verifies that the
-      // asset decodes before we include the alias in the publication impact.
-      if (!manager.GetObjectInternal(alias_object_id, /*subtype=*/0).ok()) {
-        continue;
-      }
-      const std::string filename =
-          manager.ResolveFilename(alias_object_id, /*subtype=*/0);
-      auto resolved_or =
-          zelda3::ResolveCustomObjectAssetPath(manager.GetBasePath(), filename);
-      if (!resolved_or.ok()) {
-        return absl::FailedPreconditionError(
-            absl::StrFormat("Could not resolve custom corner alias 0x%03X: %s",
-                            alias_object_id, resolved_or.status().message()));
-      }
-      if (!PathsReferToSameAsset(*resolved_or,
-                                 current_layout_.custom_resolved_path)) {
-        continue;
-      }
-      ++consumer_count;
-      MixFingerprint(&fingerprint, 0xC04E4A11ULL);
-      MixFingerprint(&fingerprint, static_cast<uint16_t>(alias_object_id));
     }
     if (consumer_count == 0) {
       return absl::AbortedError(
@@ -1110,7 +1098,10 @@ void ObjectTileEditorPanel::DrawActionBar(bool* p_open) {
   // Apply button
   if (!has_mods)
     ImGui::BeginDisabled();
-  if (ImGui::Button(ICON_MD_SAVE " Apply")) {
+  const char* primary_action_label = current_layout_.is_custom
+                                         ? ICON_MD_SAVE " Publish Asset"
+                                         : ICON_MD_SAVE " Apply";
+  if (ImGui::Button(primary_action_label)) {
     ApplyChanges();
   }
   if (!has_mods)

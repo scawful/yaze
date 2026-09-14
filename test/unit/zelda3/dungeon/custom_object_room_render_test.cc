@@ -342,7 +342,7 @@ TEST_F(CustomObjectRoomRenderTest,
 }
 
 TEST_F(CustomObjectRoomRenderTest,
-       CornerAliasCustomObjectRendersOnlyWhenRoomContainsTrackBaseObject) {
+       WallCornerRemainsStructuralWhenRoomContainsMappedTrackObject) {
   EnableCustomObjects({"track_LR.bin", "track_UD.bin", "track_corner_TL.bin",
                        "track_corner_TR.bin", "track_corner_BL.bin",
                        "track_corner_BR.bin"});
@@ -359,15 +359,20 @@ TEST_F(CustomObjectRoomRenderTest,
   const auto& bitmap = room.object_bg1_buffer().bitmap();
   ASSERT_TRUE(bitmap.is_active());
 
-  const int pixel_index = PixelIndex(bitmap, /*x=*/6 * 8, /*y=*/7 * 8);
-  ASSERT_LT(pixel_index, static_cast<int>(bitmap.size()));
-  EXPECT_EQ(bitmap.data()[pixel_index], kPaletteTwoRightSlotPixel)
-      << "Corner alias object should render from its mapped custom bin";
-  EXPECT_EQ(room.object_bg1_buffer().coverage_data()[pixel_index], 1);
+  const auto& coverage = room.object_bg1_buffer().coverage_data();
+  int wall_corner_pixels = 0;
+  for (int y = 7 * 8; y < 11 * 8; ++y) {
+    for (int x = 6 * 8; x < 10 * 8; ++x) {
+      wall_corner_pixels += coverage[PixelIndex(bitmap, x, y)] != 0 ? 1 : 0;
+    }
+  }
+  EXPECT_GT(wall_corner_pixels, 64)
+      << "A mapped track object must not replace the ordinary 4x4 wall "
+         "corner with a one-tile custom asset";
 }
 
 TEST_F(CustomObjectRoomRenderTest,
-       CornerAliasDoesNotHijackVanillaWallCornersWithoutTrackBaseObject) {
+       MappedTrackFilesDoNotHijackWallCornersWithoutTrackObject) {
   EnableCustomObjects({"track_LR.bin", "track_UD.bin", "track_corner_TL.bin",
                        "track_corner_TR.bin", "track_corner_BL.bin",
                        "track_corner_BR.bin"});
@@ -384,12 +389,40 @@ TEST_F(CustomObjectRoomRenderTest,
   const int pixel_index = PixelIndex(bitmap, /*x=*/6 * 8, /*y=*/7 * 8);
   ASSERT_LT(pixel_index, static_cast<int>(bitmap.size()));
   EXPECT_NE(bitmap.data()[pixel_index], kPaletteTwoRightSlotPixel)
-      << "Vanilla wall corners should not be hijacked by track alias files in "
+      << "Vanilla wall corners should not be hijacked by track asset files in "
          "rooms without 0x31";
 }
 
 TEST_F(CustomObjectRoomRenderTest,
-       MushroomStatueDoesNotEnableTrackAliasesForWallCorners) {
+       ExplicitWallCornerMappingOverridesVanillaFourByFourRoutine) {
+  EnableCustomObjects({"wall_corner.bin"}, /*object_id=*/0x100);
+  WriteSingleTileCustomObjectFile("wall_corner.bin",
+                                  /*tile_id=0 pal=2*/ 0x0800);
+
+  Room room = MakeRoomWithObject(
+      RoomObject(/*id=*/0x100, /*x=*/6, /*y=*/7, /*size=*/0, /*layer=*/2));
+  RenderObjectBuffers(room);
+
+  const auto& bitmap = room.object_bg1_buffer().bitmap();
+  ASSERT_TRUE(bitmap.is_active());
+
+  const auto& coverage = room.object_bg1_buffer().coverage_data();
+  int wall_corner_pixels = 0;
+  for (int y = 7 * 8; y < 11 * 8; ++y) {
+    for (int x = 6 * 8; x < 10 * 8; ++x) {
+      wall_corner_pixels += coverage[PixelIndex(bitmap, x, y)] != 0 ? 1 : 0;
+    }
+  }
+
+  EXPECT_EQ(wall_corner_pixels, 64)
+      << "An explicit 0x100 mapping should replace the vanilla 4x4 routine "
+         "with the configured one-tile asset";
+  EXPECT_EQ(bitmap.data()[PixelIndex(bitmap, /*x=*/6 * 8, /*y=*/7 * 8)],
+            kPaletteTwoRightSlotPixel);
+}
+
+TEST_F(CustomObjectRoomRenderTest,
+       MushroomStatueDoesNotChangeVanillaWallCornerIdentity) {
   std::vector<std::string> custom_files = {
       "track_LR.bin",
       "track_UD.bin",
@@ -433,7 +466,7 @@ TEST_F(CustomObjectRoomRenderTest,
 }
 
 TEST_F(CustomObjectRoomRenderTest,
-       LayoutCornerIgnoresTrackAliasFilesWithoutTrackBaseObject) {
+       LayoutWallCornerIgnoresConfiguredTrackFiles) {
   EnableCustomObjects({"track_LR.bin", "track_UD.bin", "track_corner_TL.bin",
                        "track_corner_TR.bin", "track_corner_BL.bin",
                        "track_corner_BR.bin"});
@@ -456,7 +489,7 @@ TEST_F(CustomObjectRoomRenderTest,
       static_cast<int>(std::count(coverage.begin(), coverage.end(), 1));
   EXPECT_GT(covered_pixels, 64)
       << "Vanilla layout corners should keep their full wall footprint instead "
-         "of being replaced by a one-tile custom track alias";
+         "of being replaced by a one-tile custom track asset";
 
   const auto& bg2_coverage = room.bg2_buffer().coverage_data();
   const int bg2_covered_pixels =
