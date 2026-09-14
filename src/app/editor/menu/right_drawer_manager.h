@@ -343,6 +343,8 @@ class RightDrawerManager {
   ProjectManagementPanel* project_panel() const { return project_panel_; }
 
  private:
+  friend class RightDrawerManagerTestPeer;
+
   void DrawPanelHeader(const char* title, const char* icon);
   void DrawAgentChatPanel();
   void DrawProposalsPanel();

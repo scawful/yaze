@@ -37,6 +37,8 @@ class WindowSidebar {
             std::function<bool()> has_rom);
 
  private:
+  friend class WindowSidebarTestPeer;
+
   WorkspaceWindowManager& window_manager_;
   std::function<bool()> is_dungeon_workbench_mode_;
   std::function<void(bool)> set_dungeon_workflow_mode_;
