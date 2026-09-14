@@ -28,6 +28,7 @@
 #include "app/service/screenshot_utils.h"
 #endif
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "util/macro.h"
 #include "util/platform_paths.h"
 #include "util/rom_hash.h"
@@ -99,7 +100,14 @@ IssueReportWindowLayout GetIssueReportWindowLayout() {
 }
 
 float GetIssueActionButtonWidth(const char* label) {
-  return ImGui::CalcTextSize(label).x + ImGui::GetStyle().FramePadding.x * 2.0f;
+  float text_width = ImGui::CalcTextSize(label).x;
+  if (label == kIssueReportCaptureButtonLabel ||
+      label == kIssueReportRecaptureButtonLabel) {
+    text_width =
+        std::max(ImGui::CalcTextSize(kIssueReportCaptureButtonLabel).x,
+                 ImGui::CalcTextSize(kIssueReportRecaptureButtonLabel).x);
+  }
+  return text_width + ImGui::GetStyle().FramePadding.x * 2.0f;
 }
 
 int CountWrappedIssueActionRows(std::span<const char* const> labels,
@@ -957,15 +965,35 @@ void DungeonCanvasViewer::DrawIssueReportStorageSummary() const {
 }
 
 void DungeonCanvasViewer::DrawIssueReportStatusMessage() const {
-  if (issue_report_popup_status_message_.empty()) {
-    ImGui::TextDisabled("%s", tr(kIssueReportStatusIdle));
-    return;
+  const bool idle = issue_report_popup_status_message_.empty();
+  const std::string_view message =
+      idle ? std::string_view(tr(kIssueReportStatusIdle))
+           : std::string_view(issue_report_popup_status_message_);
+  const size_t line_end = message.find_first_of("\r\n");
+  std::string visible_line(message.substr(0, line_end));
+  if (line_end != std::string_view::npos) {
+    visible_line += "...";
   }
-
-  const ImVec4 color = issue_report_popup_status_is_error_
-                           ? gui::GetErrorColor()
-                           : gui::GetSuccessColor();
-  ImGui::TextColored(color, "%s", issue_report_popup_status_message_.c_str());
+  const ImVec4 color =
+      idle ? ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled)
+           : (issue_report_popup_status_is_error_ ? gui::GetErrorColor()
+                                                  : gui::GetSuccessColor());
+  const ImVec2 start = ImGui::GetCursorScreenPos();
+  const ImVec2 size(std::max(ImGui::GetContentRegionAvail().x, 1.0f),
+                    ImGui::GetTextLineHeight());
+  const ImVec2 end(start.x + size.x, start.y + size.y);
+  ImGui::PushStyleColor(ImGuiCol_Text, color);
+  ImGui::RenderTextEllipsis(ImGui::GetWindowDrawList(), start, end, end.x,
+                            visible_line.c_str(), nullptr, nullptr);
+  ImGui::PopStyleColor();
+  ImGui::Dummy(size);
+  if (ImGui::IsItemHovered()) {
+    ImGui::BeginTooltip();
+    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+    ImGui::TextUnformatted(message.data(), message.data() + message.size());
+    ImGui::PopTextWrapPos();
+    ImGui::EndTooltip();
+  }
 }
 
 absl::Status DungeonCanvasViewer::PrepareIssueReportPopup(
@@ -1115,7 +1143,9 @@ void DungeonCanvasViewer::OpenIssueReportPopup(const std::string& title,
 
 #ifdef YAZE_WITH_GRPC
       PlaceNextIssueAction(capture_label, footer_width, &used_action_width);
-      if (ImGui::Button(capture_label)) {
+      if (ImGui::Button(
+              capture_label,
+              ImVec2(GetIssueActionButtonWidth(capture_label), 0.0f))) {
         const auto status = CaptureIssueReportScreenshot();
         if (status.ok()) {
           MarkIssueReportDirty();
