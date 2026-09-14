@@ -551,14 +551,52 @@ Temporary evidence uses `/tmp/yaze-wave7-*`; these local test artifacts are not
 committed emulator fixtures. The revision is a cache token, not a promise of
 thread-safe concurrent pixel mutation.
 
-**Next preview fix:** shared-palette changes currently forward only the active
-room's palette through `HandleDungeonPaletteChanged()`. An Object Tile Editor
-session bound to a different room rejects that update in
-`SetCurrentPaletteGroupForRoom()` and can remain stale. Preserve session binding
-while refreshing the bound room's palette; cover this independently from the
-graphics-revision tests. The sixth slice's native harness issues, remaining
-object/runtime captures, hands-on UI acceptance, mainline merge, and
-Windows/Linux/WASM packages remain open.
+The shared-palette follow-up identified here is completed in the eighth slice.
+The sixth slice's native harness issues, remaining object/runtime captures,
+hands-on UI acceptance, mainline merge, and Windows/Linux/WASM packages remain
+open.
+
+## Eighth implementation slice: bound-room palette refresh (2026-09-14)
+
+Verified code at `1ef94eeb2`, based on preview `0aa6eb42d`. Object Tile Editor
+now refreshes its own room's palette when shared colors change, independently
+of the active room or active palette cache. `HandleDungeonPaletteChanged()`
+resolves the open panel's loaded room through `GetIfLoaded()` and
+`ResolveDungeonPaletteId()`, retaining existing palette-set alias behavior.
+It handles shared HUD colors and wildcard dungeon-palette updates, but skips
+unrelated concrete dungeon palettes. The existing room-binding and session
+guards remain intact. The new branch does not load/render rooms, reopen the
+panel, change selection, or replace unsaved tile edits/source snapshots.
+
+Four regression tests exercise the real handler and panel `Draw()`, inspecting
+both preview and atlas SDL palette colors. The main test covers aliased sets,
+an unrelated active-room palette, missing current room, invalid active palette,
+and wildcard notification. Other cases cover HUD colors while retaining the
+bound room's dungeon colors, unrelated-event no-rebuild behavior, and absent or
+unloaded bound rooms remaining unmaterialized. The two color-refresh tests
+failed before the fix; the two boundary controls passed before and after.
+
+**100/100 focused tests passed**, with zero failures/skips. All eight filter
+patterns matched discovered tests and XML execution exactly matched that
+inventory. This set includes the four new cases and existing palette routing,
+room-binding, preview, and bitmap-lifetime coverage. Native `yaze` and
+`yaze_test_unit` build with four workers; normal commit hooks and a second-agent
+source review passed. No app/emulator was launched or installed app replaced.
+This does not renew the prior slice's ROM/Mesen or cross-platform evidence.
+
+```sh
+export YAZE_TEST_ORACLE_CUSTOM_OBJECTS=/path/to/oracle/Dungeons/Objects/Data
+wave8_filter='ObjectTileEditorSharedPaletteRefreshTest.*:DungeonEditorPaletteRefreshTest.*:ObjectTileEditorPanelTest.*:ObjectTileEditorPreviewLifetimeTest.*:DungeonEditorV2ObjectTileEditorTest.*:DungeonObjectSelectorPaletteTest.*:RoomGraphicsContentTest.*:RoomGraphicsPaletteTest.*'
+cmake --build build/presets/mac-ai --config Release --target yaze_test_unit yaze --parallel 4
+build/presets/mac-ai/bin/yaze_test_unit --gtest_list_tests --gtest_filter="$wave8_filter"
+build/presets/mac-ai/bin/yaze_test_unit --gtest_filter="$wave8_filter" --gtest_output=xml:/tmp/yaze-wave8-green.xml
+```
+
+Temporary evidence: `/tmp/yaze-wave8-baseline.*`, `/tmp/yaze-wave8-red.*`,
+`/tmp/yaze-wave8-green.*`, and `/tmp/yaze-wave8-green-build.log`. These are local
+diagnostics, not independent emulator captures or live GPU verification.
+Next automation task: correct the native screenshot request's window/format
+handling so targeted UI checks can produce the requested artifact reliably.
 
 ## Object coverage checklist
 
