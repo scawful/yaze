@@ -492,9 +492,10 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
                  std::to_string(object.y_) + ")";
       const int axis_step = zelda3::RoomObjectSizeAxisStep(object.id_);
       if (axis_step > 0) {
-        tooltip += absl::StrFormat("\nSize: %d x %d tiles",
-                                   (((object.size_ >> 2) & 3) + 1) * axis_step,
-                                   ((object.size_ & 3) + 1) * axis_step);
+        tooltip += absl::StrFormat(
+            "\nSize: %d x %d tiles",
+            zelda3::RoomObjectSizeAxisTiles(object.id_, object.size_, true),
+            zelda3::RoomObjectSizeAxisTiles(object.id_, object.size_));
       } else if (zelda3::IsRoomObjectResizable(object.id_)) {
         tooltip += absl::StrFormat("\nSize: 0x%02X", object.size_);
       }

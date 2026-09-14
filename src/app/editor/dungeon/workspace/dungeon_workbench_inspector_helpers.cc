@@ -35,18 +35,21 @@ bool DrawObjectSizeControls(const zelda3::RoomObject& object,
       gui::LayoutHelpers::PropertyRow(horizontal ? "Width" : "Height", [&]() {
         const int shift = horizontal ? 2 : 0;
         const int current = (size >> shift) & 3;
-        const auto preview =
-            absl::StrFormat("%d tiles", (current + 1) * axis_step);
+        const auto preview = absl::StrFormat(
+            "%d tiles",
+            zelda3::RoomObjectSizeAxisTiles(object.id_, size, horizontal));
         ImGui::SetNextItemWidth(-1);
         const bool open = ImGui::BeginCombo(
             horizontal ? "##SelObjWidth" : "##SelObjHeight", preview.c_str());
         if (open) {
           for (int value = 0; value < 4; ++value) {
-            const auto label =
-                absl::StrFormat("%d tiles", (value + 1) * axis_step);
+            const auto candidate =
+                static_cast<uint8_t>((size & ~(3 << shift)) | (value << shift));
+            const auto label = absl::StrFormat(
+                "%d tiles", zelda3::RoomObjectSizeAxisTiles(
+                                object.id_, candidate, horizontal));
             if (ImGui::Selectable(label.c_str(), value == current)) {
-              size = static_cast<uint8_t>((size & ~(3 << shift)) |
-                                          (value << shift));
+              size = candidate;
             }
             {
               gui::AutoWidgetScope automation_scope("Dungeon/Workbench");
@@ -67,8 +70,8 @@ bool DrawObjectSizeControls(const zelda3::RoomObject& object,
           gui::AutoRegisterLastItem(
               "combo",
               horizontal ? "selected_object_width" : "selected_object_height",
-              horizontal ? "Selected floor width in tiles"
-                         : "Selected floor height in tiles");
+              horizontal ? "Selected object width in tiles"
+                         : "Selected object height in tiles");
         }
       });
     }
