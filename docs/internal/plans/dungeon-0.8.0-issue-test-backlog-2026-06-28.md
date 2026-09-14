@@ -403,6 +403,83 @@ Local evidence: `/tmp/yaze-wave5-mode7-red.xml`,
 fixtures. Remaining door/custom-object/runtime proof and platform packages
 remain open.
 
+## Sixth implementation slice: UI review and Stalfos previews (2026-09-14)
+
+Verified code at `9ae78a739`, based on preview `55c086538`. The UI integration
+checkpoint is `5a5c29290`: a three-way application of the user-confirmed
+Grokbot batch, preserving the preview's newer Oracle/runtime/persistence work.
+The canonical checkout was not edited. Later Grokbot edits are not part of this
+snapshot. This is preview consolidation, not a mainline merge or release.
+
+Four source-confirmed UI regressions were fixed:
+
+1. Drawer tabs used the cursor's next-line position as the title width and
+   overlapped header controls. Measure the title rectangle and reserve controls.
+2. Sidebar filtering left matching tools inside persisted collapsed groups.
+   Render filtered rows directly without changing normal group state.
+3. Workbench's broad `dungeon.room_` prefix check hid Room Graphics and Room
+   Tags. Recognize only nonempty decimal room-window suffixes.
+4. Window Finder toggled an already-open window closed. Reuse the existing
+   open/focus path, retain the registered session, and update recent windows.
+
+The seven regression cases failed before those fixes and pass afterward.
+Additional tests activate the real empty-state button and press/hold/release
+status chips, covering cleared and replaced callbacks. They do not establish
+end-to-end multi-session `SaveRom()` correctness.
+
+Mushroom Grotto room `0x033` static sprite previews now follow the source poses
+documented in the fifth slice: `0xA7` uses body CHR `06` at `(0,0)` and head at
+`(0,-10)`; `0x91` uses the source shoulder/body pieces, CHR `74` mirrored feet,
+and head-first OAM overlap. Their OBJ palettes remain 4 and 5. Independent
+first-opaque OAM expectations cover overlap, asymmetric feet, transparency,
+edge placement, and unchanged sprite metadata. Both pixel regressions failed
+before the fix; the third test checks the Expanded-ROM source tables. These
+are static poses, not proof of every animation or initial hidden state.
+
+Verification, zero failures/skips after explicit asset setup:
+
+- **53/53 UI and sprite-preview tests** and **730/730 dungeon/Oracle tests**;
+  each filter pattern matched discovered tests, and XML execution matched the
+  inventories. These sets overlap and must not be added as unique coverage.
+- **57/57 PNG/composite comparisons** within two integration tests, covering
+  19 rooms at three scales.
+- Maintained ladder: Tier 1 **42**, Tier 2 **11 + 1 table check**, Tier 3
+  **12**, Tier 4 **7**; Tier 5 **1,190 cases, zero mismatches/empty traces**.
+  The audit-script contract also passes. No reference image was refreshed.
+- Native `yaze`, `z3ed`, unit and integration targets build. An isolated Mac
+  service instance opened an Oracle ROM copy, passed Ping/ListTests/idle,
+  produced an inspected screenshot, and shut down with process/listener gone.
+  Original Vanilla, Oracle base/patched, and working-copy hashes are unchanged.
+
+Reproduce using the fourth slice's environment and `wave4_filter`, plus
+`YAZE_TEST_ORACLE_CUSTOM_OBJECTS=/path/to/oracle/Dungeons/Objects/Data`:
+
+```sh
+ui_filter='EmptyStateTest.*:StatusBarContextTest.*:StatusBarContextClickTest.*:WindowSidebarTest.*:WindowSidebarFrameTest.*:RightDrawerManagerTest.*:CommandPalette*.*:ShortcutConfiguratorTest.*:SpriteRenderPreviewTest.*:SpritePreviewResourceCacheTest.*'
+wave6_filter="RoomLayerManagerTest.*:$wave4_filter:EditorManagerOracleRomSafetyTest.*:DungeonOraclePreflightTest.*:DungeonObjectSelectorPaletteTest.*:DungeonEditorPaletteRefreshTest.*:CustomObjectManagerTest.*:CustomObjectCodecTest.*:CustomObjectRuntimeTileWordTest.*:OracleRuntimeAssets/CustomObjectOracleAssetTest.*:DungeonSaveTest.*:LayoutManagerPersistenceTest.*"
+cmake --build build/presets/mac-ai --config Release --target yaze_test_unit yaze_test_integration yaze z3ed --parallel 4
+build/presets/mac-ai/bin/yaze_test_unit --gtest_list_tests --gtest_filter="$ui_filter"
+build/presets/mac-ai/bin/yaze_test_unit --gtest_filter="$ui_filter" --gtest_output=xml:/tmp/yaze-wave6-combined.xml
+build/presets/mac-ai/bin/yaze_test_unit --gtest_list_tests --gtest_filter="$wave6_filter"
+build/presets/mac-ai/bin/yaze_test_unit --gtest_filter="$wave6_filter" --gtest_output=xml:/tmp/yaze-wave6-broad.xml
+build/presets/mac-ai/bin/yaze_test_integration --gtest_filter='Dungeon*RoomRenderParityTest.*HeadlessPngMatchesRoomComposite' --gtest_output=xml:/tmp/yaze-wave6-export.xml
+scripts/agents/audit-dungeon-visual-parity.sh --build-dir build/presets/mac-ai --config Release --with-validate-report /tmp/yaze-wave6-validation.json
+ctest --test-dir build/presets/mac-ai --output-on-failure -R '^DungeonVisualParityAuditContract$'
+```
+
+Temporary evidence uses `/tmp/yaze-wave6-*`. Native artifacts and the immutable
+UI patch are under `/tmp/yaze-wave6-ui.yDE0C9`; the captured tracked patch SHA-256
+is `2ed7f2e830528d2f417978b2328eaff9478c776948f9e5b62e8dec94a046d154`.
+These are local diagnostics, not committed emulator reference fixtures.
+
+Native verification limits: the window-key Workbench-tab click failed in the
+harness, so the screenshot only confirms the active Object Selector surface.
+The harness also wrote BMP bytes for a PNG request; an explicit BMP capture
+was losslessly decoded for inspection. Both harness issues need separate
+follow-up. No installed app was replaced, and Windows/Linux/WASM packages,
+full UI acceptance, independent sprite RGBA captures, and remaining object
+families are still open release gates.
+
 ## Object coverage checklist
 
 Start by enumerating the supported IDs from `DrawRoutineRegistry` and the room
