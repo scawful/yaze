@@ -46,6 +46,7 @@ class ObjectTileEditorPanel : public WindowContent {
   using TilesAppliedCallback = std::function<void()>;
 
   ObjectTileEditorPanel(gfx::IRenderer* renderer, Rom* rom);
+  ~ObjectTileEditorPanel() override;
 
   std::string GetId() const override { return "dungeon.object_tile_editor"; }
   std::string GetDisplayName() const override { return "Object Tile Editor"; }
