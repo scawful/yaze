@@ -480,15 +480,16 @@ absl::Status ObjectTileEditor::RenderLayoutToBitmap(
   return absl::OkStatus();
 }
 
-absl::Status ObjectTileEditor::BuildTile8Atlas(gfx::Bitmap& atlas,
-                                               const uint8_t* room_gfx_buffer,
-                                               const gfx::PaletteGroup& palette,
-                                               int display_palette) {
+absl::Status ObjectTileEditor::BuildTile8Atlas(
+    gfx::Bitmap& atlas, const uint8_t* room_gfx_buffer,
+    const gfx::PaletteGroup& palette, int display_palette,
+    std::optional<int16_t> custom_object_id) {
   if (!room_gfx_buffer) {
     return absl::FailedPreconditionError("No room graphics buffer");
   }
 
-  std::vector<uint8_t> pixel_data(kAtlasWidthPx * kAtlasHeightPx, 0);
+  std::vector<uint8_t> pixel_data(kAtlasWidthPx * kAtlasHeightPx,
+                                  custom_object_id.has_value() ? 255 : 0);
   atlas.Create(kAtlasWidthPx, kAtlasHeightPx, 8, pixel_data);
 
   const int resolved_palette = ResolvePaletteIndex(palette, display_palette);
@@ -513,6 +514,18 @@ absl::Status ObjectTileEditor::BuildTile8Atlas(gfx::Bitmap& atlas,
     // should draw into palette row 0 inside that local 16-color palette.
     gfx::TileInfo info(static_cast<uint16_t>(tile_id), /*palette=*/0, false,
                        false, false);
+    if (custom_object_id.has_value()) {
+      // Include the source palette when resolving the zero/no-op word. Tile
+      // zero in a nonzero palette still draws (and uses page $300 for $54).
+      const uint16_t source_word =
+          static_cast<uint16_t>(tile_id | ((display_palette & 7) << 10));
+      const uint16_t runtime_word =
+          CustomObjectRuntimeTileWord(*custom_object_id, source_word);
+      if (runtime_word == 0) {
+        continue;
+      }
+      info.id_ = runtime_word & 0x03FF;
+    }
     drawer.DrawTileToBitmap(atlas, info, px, py, room_gfx_buffer);
   }
 

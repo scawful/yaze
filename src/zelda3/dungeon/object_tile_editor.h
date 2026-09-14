@@ -227,11 +227,12 @@ class ObjectTileEditor {
                                     const uint8_t* room_gfx_buffer,
                                     const gfx::PaletteGroup& palette);
 
-  // Build tile8 atlas from room graphics buffer.
-  absl::Status BuildTile8Atlas(gfx::Bitmap& atlas,
-                               const uint8_t* room_gfx_buffer,
-                               const gfx::PaletteGroup& palette,
-                               int display_palette = 2);
+  // Build a source-ID atlas from room graphics. Custom objects show the
+  // runtime-effective tile at each raw source ID without changing saved words.
+  absl::Status BuildTile8Atlas(
+      gfx::Bitmap& atlas, const uint8_t* room_gfx_buffer,
+      const gfx::PaletteGroup& palette, int display_palette = 2,
+      std::optional<int16_t> custom_object_id = std::nullopt);
 
   // Write-back: standard objects patch ROM, custom objects write .bin
   absl::Status WriteBack(ObjectTileLayout& layout);
