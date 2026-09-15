@@ -384,6 +384,138 @@ TEST(MesenSocketClientTest, SubscribeDispatchesFrameEvents) {
   EXPECT_TRUE(server.error().empty()) << server.error();
 }
 
+// Answers one PING, then either closes the connection or stops reading. Both
+// shapes exercise the command write path rather than the protocol.
+class UnresponsiveUnixServer {
+ public:
+  enum class Mode { kCloseAfterPing, kStallAfterPing };
+
+  explicit UnresponsiveUnixServer(Mode mode) : mode_(mode) {
+    const auto now =
+        std::chrono::steady_clock::now().time_since_epoch().count();
+    socket_path_ =
+        (std::filesystem::temp_directory_path() /
+         ("yaze-mesen-unresponsive-" + std::to_string(now) + ".sock"))
+            .string();
+    listen_fd_ = socket(AF_UNIX, SOCK_STREAM, 0);
+    if (listen_fd_ < 0) {
+      throw std::runtime_error("failed to create listen socket");
+    }
+    ::sockaddr_un addr;
+    memset(&addr, 0, sizeof(addr));
+    addr.sun_family = AF_UNIX;
+    strncpy(addr.sun_path, socket_path_.c_str(), sizeof(addr.sun_path) - 1);
+    if (bind(listen_fd_, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) !=
+        0) {
+      throw std::runtime_error("failed to bind unresponsive server socket");
+    }
+    if (listen(listen_fd_, 4) != 0) {
+      throw std::runtime_error("failed to listen on unresponsive server");
+    }
+  }
+
+  ~UnresponsiveUnixServer() { Stop(); }
+
+  void Start() { thread_ = std::thread(&UnresponsiveUnixServer::Run, this); }
+
+  void Stop() {
+    running_ = false;
+    if (client_fd_ >= 0) {
+      shutdown(client_fd_, SHUT_RDWR);
+      close(client_fd_);
+      client_fd_ = -1;
+    }
+    if (listen_fd_ >= 0) {
+      shutdown(listen_fd_, SHUT_RDWR);
+      close(listen_fd_);
+      listen_fd_ = -1;
+    }
+    if (thread_.joinable()) {
+      thread_.join();
+    }
+    std::error_code ec;
+    std::filesystem::remove(socket_path_, ec);
+  }
+
+  const std::string& socket_path() const { return socket_path_; }
+
+ private:
+  void Run() {
+    running_ = true;
+    client_fd_ = accept(listen_fd_, nullptr, nullptr);
+    if (client_fd_ < 0) {
+      return;
+    }
+    std::string line;
+    char c = '\0';
+    while (recv(client_fd_, &c, 1, 0) == 1 && c != '\n') {
+      line.push_back(c);
+    }
+    const std::string pong = "{\"success\":true,\"data\":{\"pong\":true}}\n";
+    (void)send(client_fd_, pong.c_str(), pong.size(), 0);
+    if (mode_ == Mode::kCloseAfterPing) {
+      shutdown(client_fd_, SHUT_RDWR);
+      close(client_fd_);
+      client_fd_ = -1;
+      return;
+    }
+    // kStallAfterPing: never read again, so the client's socket buffer fills.
+    while (running_) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(20));
+    }
+  }
+
+  Mode mode_;
+  std::string socket_path_;
+  int listen_fd_ = -1;
+  int client_fd_ = -1;
+  std::thread thread_;
+  std::atomic<bool> running_{false};
+};
+
+TEST(MesenSocketClientTest, CommandOnClosedPeerReturnsErrorInsteadOfSignal) {
+  UnresponsiveUnixServer server(UnresponsiveUnixServer::Mode::kCloseAfterPing);
+  server.Start();
+
+  MesenSocketClient client;
+  ASSERT_TRUE(client.Connect(server.socket_path()).ok());
+
+  // Writing to a closed peer raises SIGPIPE unless the socket or send()
+  // suppresses it; an unsuppressed signal would kill this test process.
+  absl::Status status = absl::OkStatus();
+  for (int attempt = 0; attempt < 10 && status.ok(); ++attempt) {
+    status = client.Ping();
+  }
+  EXPECT_FALSE(status.ok());
+
+  client.Disconnect();
+  server.Stop();
+}
+
+TEST(MesenSocketClientTest, LargeCommandReportsDeadlineInsteadOfTruncating) {
+  ScopedEnvVar send_timeout("YAZE_MESEN_SEND_TIMEOUT_MS", "200");
+  UnresponsiveUnixServer server(UnresponsiveUnixServer::Mode::kStallAfterPing);
+  server.Start();
+
+  MesenSocketClient client;
+  ASSERT_TRUE(client.Connect(server.socket_path()).ok());
+
+  // Larger than any socket buffer, so the write cannot complete while the
+  // peer never reads. A single send() would report partial success here.
+  const std::string payload(4 * 1024 * 1024, 'a');
+  const auto result =
+      client.SendCommand("{\"type\":\"WRITE\",\"data\":\"" + payload + "\"}\n");
+  ASSERT_FALSE(result.ok());
+  EXPECT_EQ(result.status().code(), absl::StatusCode::kDeadlineExceeded)
+      << result.status();
+  EXPECT_NE(std::string(result.status().message()).find("of 4194"),
+            std::string::npos)
+      << result.status();
+
+  client.Disconnect();
+  server.Stop();
+}
+
 class FakeMesenTcpPingServer {
  public:
   FakeMesenTcpPingServer() {
