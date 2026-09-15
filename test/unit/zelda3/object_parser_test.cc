@@ -3,6 +3,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <array>
 #include <vector>
 
 #include "core/features.h"
@@ -743,6 +744,67 @@ TEST_F(ObjectParserTest, HammerPegUsesUsdasmSingle2x2RoutineAndFourTiles) {
   const auto info = parser_->GetObjectDrawInfo(0xF96);
   EXPECT_EQ(info.tile_count, 4);
   EXPECT_EQ(info.draw_routine_id, zelda3::DrawRoutineIds::kSingle2x2);
+}
+
+TEST_F(ObjectParserTest, BarCornersLoadExactFourWordPayloadsAndRanges) {
+  auto* data = mock_rom_->mutable_data();
+  auto write_word = [&](int address, uint16_t word) {
+    data[address] = static_cast<uint8_t>(word & 0xFF);
+    data[address + 1] = static_cast<uint8_t>(word >> 8);
+  };
+
+  struct Case {
+    int object_id;
+    uint16_t offset;
+    std::array<uint16_t, 4> words;
+  };
+  // USDASM bank_01 subtype-3 table entries 0x256-0x259 and their
+  // RoomDrawObjectData payloads in bank_00. The blocks are contiguous, so any
+  // over-read aliases the next corner.
+  constexpr std::array<Case, 4> kCases = {{
+      {0xFD6, 0x09B8, {0x0D46, 0x0DAB, 0x0D47, 0x4DAD}},
+      {0xFD7, 0x09C0, {0x0DAB, 0x0D56, 0x4DAC, 0x0D57}},
+      {0xFD8, 0x09C8, {0x0D47, 0x0DAD, 0x4D46, 0x4DAB}},
+      {0xFD9, 0x09D0, {0x0DAC, 0x0D57, 0x4DAB, 0x4D56}},
+  }};
+  for (const auto& test_case : kCases) {
+    write_word(zelda3::kRoomObjectSubtype3 + (test_case.object_id - 0xF80) * 2,
+               test_case.offset);
+    for (size_t i = 0; i < test_case.words.size(); ++i) {
+      write_word(zelda3::kRoomObjectTileAddress + test_case.offset +
+                     static_cast<int>(i) * 2,
+                 test_case.words[i]);
+    }
+  }
+  // First word of obj09D8, which follows the last corner block.
+  write_word(zelda3::kRoomObjectTileAddress + 0x09D8, 0x0940);
+
+  auto& registry = zelda3::DrawRoutineRegistry::Get();
+  for (const auto& test_case : kCases) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << test_case.object_id);
+    EXPECT_EQ(registry.GetRoutineIdForObject(test_case.object_id),
+              zelda3::DrawRoutineIds::kSingle2x2);
+
+    auto parsed = parser_->ParseObject(test_case.object_id);
+    ASSERT_TRUE(parsed.ok()) << parsed.status();
+    ASSERT_EQ(parsed->size(), 4u);
+    for (size_t i = 0; i < test_case.words.size(); ++i) {
+      EXPECT_EQ(gfx::TileInfoToWord((*parsed)[i]), test_case.words[i])
+          << "word " << i;
+    }
+
+    const auto info = parser_->GetObjectDrawInfo(test_case.object_id);
+    EXPECT_EQ(info.tile_count, 4);
+    EXPECT_EQ(info.draw_routine_id, zelda3::DrawRoutineIds::kSingle2x2);
+
+    auto ranges = parser_->ResolveTileReadRanges(test_case.object_id);
+    ASSERT_TRUE(ranges.ok()) << ranges.status();
+    const int begin = zelda3::kRoomObjectTileAddress + test_case.offset;
+    EXPECT_THAT(*ranges, ::testing::ElementsAre(zelda3::ObjectTileReadRange{
+                             static_cast<uint32_t>(begin),
+                             static_cast<uint32_t>(begin + 8)}));
+  }
 }
 
 TEST_F(ObjectParserTest, DrawInfoOrientationFollowsRoutineCategory) {

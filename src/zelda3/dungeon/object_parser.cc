@@ -747,6 +747,13 @@ int ObjectParser::GetSubtype3TileCount(int16_t object_id) const {
   if (object_id == 0xFD4) {
     return 26;
   }
+  // Bar corners (0xFD6-0xFD9 = ASM 0x256-0x259) point at contiguous 4-word
+  // blocks obj09B8/obj09C0/obj09C8/obj09D0 and draw through
+  // RoomDraw_Rightwards2x2. The default 8 would read into the neighbor's
+  // block and make adjacent corners falsely alias in source-impact analysis.
+  if (object_id >= 0xFD6 && object_id <= 0xFD9) {
+    return 4;
+  }
   // SmithyFurnace (0xFCC = ASM 0x24C) loads obj1F92 and draws a fixed
   // 6-column x 8-row block through RoomDraw_SomeBigDecors.
   if (object_id == 0xFCC) {
