@@ -38,6 +38,14 @@ class WelcomeScreenTestPeer {
                                                  layout_scale);
   }
 
+  static int CalculateVisibleRecentCount(int entry_count,
+                                         float available_height,
+                                         float row_height, float row_gap,
+                                         float more_line_height) {
+    return WelcomeScreen::CalculateVisibleRecentCount(
+        entry_count, available_height, row_height, row_gap, more_line_height);
+  }
+
   static ImGuiID ProjectPanelId(int index) {
     ImGui::PushID(index);
     const ImGuiID id = ImGui::GetID("##ProjectPanel");
@@ -303,6 +311,46 @@ TEST(WelcomeScreenLayoutTest, ScalesSplitBreakpointWithFontSize) {
       WelcomeScreenTestPeer::ShouldUseStackedLayout(920.0f, 1200.0f, 2.0f));
   EXPECT_FALSE(
       WelcomeScreenTestPeer::ShouldUseStackedLayout(1820.0f, 1200.0f, 2.0f));
+}
+
+TEST(WelcomeScreenLayoutTest, ReservesMoreHintWhenOnlyOneRecentRowFits) {
+  constexpr float kRowHeight = 44.0f;
+  constexpr float kRowGap = 4.0f;
+  constexpr float kMoreLineHeight = 17.0f;
+
+  EXPECT_EQ(WelcomeScreenTestPeer::CalculateVisibleRecentCount(
+                6, kRowHeight, kRowHeight, kRowGap, kMoreLineHeight),
+            0);
+  EXPECT_EQ(WelcomeScreenTestPeer::CalculateVisibleRecentCount(
+                6, kRowHeight + kRowGap + kMoreLineHeight, kRowHeight, kRowGap,
+                kMoreLineHeight),
+            1);
+}
+
+TEST_F(WelcomeScreenTest, MissingRecentDoesNotOfferResumeAction) {
+  const std::string missing_path = "/missing/welcome-resume-test.sfc";
+  project::RecentFilesManager::GetInstance().AddFile(missing_path);
+
+  WelcomeScreen screen;
+  screen.RefreshRecentProjects();
+  ASSERT_EQ(screen.recent_projects().entries().size(), 1u);
+  ASSERT_TRUE(screen.recent_projects().entries().front().is_missing);
+  WelcomeScreenTestPeer::SetEntryTime(&screen, 1.0f);
+  screen.SetOpenProjectCallback([](const std::string&) {});
+
+  ImGui::NewFrame();
+  ImGui::SetNextWindowSize(ImVec2(520.0f, 360.0f), ImGuiCond_Always);
+  ImGui::Begin(
+      "WelcomeMissingResumeHost", nullptr,
+      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings);
+  WelcomeScreenTestPeer::DrawQuickActions(&screen);
+
+  const ImGuiID new_project_id =
+      ImGui::GetID(ICON_MD_ADD_CIRCLE " New Project");
+  EXPECT_EQ(ImGui::GetItemID(), new_project_id);
+
+  ImGui::End();
+  ImGui::EndFrame();
 }
 
 TEST_F(WelcomeScreenTest, RecentCardActivatesFromKeyboardNavigation) {

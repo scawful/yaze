@@ -139,6 +139,10 @@ class WelcomeScreen {
   void DrawUndoRemovalBanner();
   static bool ShouldUseStackedLayout(float content_width, float content_height,
                                      float layout_scale);
+  static int CalculateVisibleRecentCount(int entry_count,
+                                         float available_height,
+                                         float row_height, float row_gap,
+                                         float more_line_height);
 
   RecentProjectsModel recent_projects_model_;
   bool manually_closed_ = false;
