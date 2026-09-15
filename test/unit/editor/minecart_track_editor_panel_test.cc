@@ -1869,6 +1869,10 @@ TEST(MinecartTrackEditorPanelTest,
      PreviewExcludesExistingCollisionAndCanonicalDecorativeObjects) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  // Global preview audits unopened rooms too; give them valid empty streams
+  // instead of parsing a zero-filled ROM without object or sprite terminators.
+  ASSERT_NO_FATAL_FAILURE(
+      ConfigureMinecartAuditRom(&rom, /*track_room_id=*/0x25));
   DungeonRoomStore rooms(&rom);
   auto& protected_room = rooms[0x25];
   protected_room = zelda3::Room(0x25, &rom);
