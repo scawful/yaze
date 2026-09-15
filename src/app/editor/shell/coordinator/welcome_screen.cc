@@ -722,13 +722,8 @@ void WelcomeScreen::DrawQuickActions() {
   }
 
   // Secondary starts live in the open — no nested "More ways" menu.
-  const RecentProject* last_recent = nullptr;
-  for (const auto& recent : recent_projects_model_.entries()) {
-    if (!recent.unavailable && !recent.is_missing) {
-      last_recent = &recent;
-      break;
-    }
-  }
+  const RecentProject* last_recent =
+      FindResumeProject(recent_projects_model_.entries());
   if (last_recent && open_project_callback_) {
     ImGui::Spacing();
     const std::string resume_label = absl::StrFormat(
@@ -796,6 +791,21 @@ void WelcomeScreen::DrawQuickActions() {
   if (indent > 0.0f) {
     ImGui::Unindent(indent);
   }
+}
+
+const RecentProject* WelcomeScreen::FindResumeProject(
+    const std::vector<RecentProject>& entries) {
+  const RecentProject* most_recent = nullptr;
+  for (const auto& recent : entries) {
+    if (recent.unavailable || recent.is_missing) {
+      continue;
+    }
+    if (most_recent == nullptr ||
+        recent.recent_index < most_recent->recent_index) {
+      most_recent = &recent;
+    }
+  }
+  return most_recent;
 }
 
 void WelcomeScreen::DrawRecentProjects() {

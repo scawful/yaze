@@ -46,6 +46,11 @@ class WelcomeScreenTestPeer {
         entry_count, available_height, row_height, row_gap, more_line_height);
   }
 
+  static const RecentProject* FindResumeProject(
+      const std::vector<RecentProject>& entries) {
+    return WelcomeScreen::FindResumeProject(entries);
+  }
+
   static ImGuiID ProjectPanelId(int index) {
     ImGui::PushID(index);
     const ImGuiID id = ImGui::GetID("##ProjectPanel");
@@ -353,6 +358,26 @@ TEST_F(WelcomeScreenTest, MissingRecentDoesNotOfferResumeAction) {
 
   ImGui::End();
   ImGui::EndFrame();
+}
+
+TEST(WelcomeScreenSelectionTest, ResumeUsesRecencyInsteadOfPinnedDisplayOrder) {
+  RecentProject older_pinned;
+  older_pinned.name = "older-pinned.sfc";
+  older_pinned.filepath = "/roms/older-pinned.sfc";
+  older_pinned.pinned = true;
+  older_pinned.recent_index = 1;
+
+  RecentProject newest;
+  newest.name = "newest.sfc";
+  newest.filepath = "/roms/newest.sfc";
+  newest.recent_index = 0;
+
+  const std::vector<RecentProject> display_order = {older_pinned, newest};
+  const RecentProject* resume =
+      WelcomeScreenTestPeer::FindResumeProject(display_order);
+
+  ASSERT_NE(resume, nullptr);
+  EXPECT_EQ(resume->filepath, newest.filepath);
 }
 
 TEST_F(WelcomeScreenTest, CompactCardStaysInsideSmallBrowserViewport) {
