@@ -40,7 +40,7 @@ class WelcomeScreenTestPeer {
 
   static ImGuiID ProjectPanelId(int index) {
     ImGui::PushID(index);
-    const ImGuiID id = ImGui::GetID("ProjectPanel");
+    const ImGuiID id = ImGui::GetID("##ProjectPanel");
     ImGui::PopID();
     return id;
   }
@@ -164,8 +164,7 @@ class WelcomeScreenFullLayoutTest
   std::string saved_theme_;
 };
 
-TEST_P(WelcomeScreenFullLayoutTest,
-       StartActionsAndScrolledContentStayReachable) {
+TEST_P(WelcomeScreenFullLayoutTest, StartActionsStayReachableWithoutScrolling) {
   const auto& layout = GetParam();
   ImGuiIO& io = ImGui::GetIO();
   io.DisplaySize = layout.viewport;
@@ -202,6 +201,8 @@ TEST_P(WelcomeScreenFullLayoutTest,
   EXPECT_LE(root->Pos.x + root->Size.x, io.DisplaySize.x);
   EXPECT_LE(root->Pos.y + root->Size.y, io.DisplaySize.y);
   EXPECT_FALSE(root->ScrollbarY);
+  EXPECT_FALSE(content->ScrollbarY);
+  EXPECT_FLOAT_EQ(content->ScrollMax.y, 0.0f);
   EXPECT_LE(root->ContentSize.x, root->InnerRect.GetWidth());
   const ImRect root_bounds = root->Rect();
   const ImRect content_bounds = content->Rect();
@@ -209,15 +210,19 @@ TEST_P(WelcomeScreenFullLayoutTest,
   EXPECT_EQ(actions == nullptr, layout.stacked);
   if (!layout.stacked) {
     ASSERT_NE(actions, nullptr);
-    EXPECT_LE(actions->ContentSize.y, actions->InnerRect.GetHeight());
+    EXPECT_FALSE(actions->ScrollbarY);
+    EXPECT_LE(actions->ContentSize.y, actions->InnerRect.GetHeight() + 1.0f);
     EXPECT_FLOAT_EQ(actions->ScrollMax.y, 0.0f);
+    ImGuiWindow* right = FindChild("/RightPanel_");
+    ASSERT_NE(right, nullptr);
+    EXPECT_FALSE(right->ScrollbarY);
+    EXPECT_FLOAT_EQ(right->ScrollMax.y, 0.0f);
   } else {
     actions = content;
-    EXPECT_EQ(content->ScrollbarY, content->ScrollMax.y > 0.0f);
   }
 
   // Walk real keyboard navigation rather than activating IDs directly. Each
-  // primary action must be visible after focus, including in scrolled layouts.
+  // primary action must be visible after focus.
   DrawFrame(&screen, actions);
   DrawFrame(&screen);
 #ifdef __EMSCRIPTEN__
@@ -227,14 +232,10 @@ TEST_P(WelcomeScreenFullLayoutTest,
       actions->GetID(ICON_MD_FOLDER_OPEN " Open ROM / Project");
 #endif
   const ImGuiID new_id = actions->GetID(ICON_MD_ADD_CIRCLE " New Project");
-  const ImGuiID more_id =
-      actions->GetID(ICON_MD_MORE_HORIZ " More ways to start");
   bool saw_open = false;
   bool saw_new = false;
-  bool saw_more = false;
-  for (int step = 0; step < 12 && !(saw_open && saw_new && saw_more); ++step) {
-    if (context_->NavId == open_id || context_->NavId == new_id ||
-        context_->NavId == more_id) {
+  for (int step = 0; step < 12 && !(saw_open && saw_new); ++step) {
+    if (context_->NavId == open_id || context_->NavId == new_id) {
       const ImRect rect = ImGui::WindowRectRelToAbs(
           actions, actions->NavRectRel[ImGuiNavLayer_Main]);
       EXPECT_GE(rect.Min.y, actions->ClipRect.Min.y);
@@ -243,13 +244,10 @@ TEST_P(WelcomeScreenFullLayoutTest,
       EXPECT_LE(rect.Max.x, actions->ClipRect.Max.x);
       saw_open |= context_->NavId == open_id;
       saw_new |= context_->NavId == new_id;
-      saw_more |= context_->NavId == more_id;
-      if (context_->NavId != more_id) {
-        io.AddKeyEvent(ImGuiKey_Enter, true);
-        DrawFrame(&screen);
-        io.AddKeyEvent(ImGuiKey_Enter, false);
-        DrawFrame(&screen);
-      }
+      io.AddKeyEvent(ImGuiKey_Enter, true);
+      DrawFrame(&screen);
+      io.AddKeyEvent(ImGuiKey_Enter, false);
+      DrawFrame(&screen);
     }
     io.AddKeyEvent(ImGuiKey_Tab, true);
     DrawFrame(&screen);
@@ -258,18 +256,9 @@ TEST_P(WelcomeScreenFullLayoutTest,
   }
   EXPECT_TRUE(saw_open);
   EXPECT_TRUE(saw_new);
-  EXPECT_TRUE(saw_more);
   EXPECT_EQ(open_count, 1);
   EXPECT_EQ(new_count, 1);
 
-  ImGuiWindow* scroll = layout.stacked ? content : FindChild("/RightPanel_");
-  ASSERT_NE(scroll, nullptr);
-  ImGui::SetScrollY(scroll, scroll->ScrollMax.y);
-  DrawFrame(&screen);
-  DrawFrame(&screen);
-  EXPECT_FLOAT_EQ(scroll->Scroll.y, scroll->ScrollMax.y);
-  EXPECT_LE(scroll->DC.CursorStartPos.y + scroll->ContentSize.y,
-            scroll->InnerRect.Max.y + 1.0f);
   EXPECT_FALSE(root->ScrollbarY);
   EXPECT_LE(root->ContentSize.x, root->InnerRect.GetWidth());
   EXPECT_FLOAT_EQ(root->Pos.x, root_bounds.Min.x);
@@ -345,7 +334,7 @@ TEST_F(WelcomeScreenTest, RecentCardActivatesFromKeyboardNavigation) {
   EXPECT_EQ(opened_path, project.filepath);
 }
 
-TEST_F(WelcomeScreenTest, MoreWaysPopupKeepsImGuiStacksBalanced) {
+TEST_F(WelcomeScreenTest, SecondaryStartActionsKeepImGuiStacksBalanced) {
   WelcomeScreen screen;
   WelcomeScreenTestPeer::SetEntryTime(&screen, 1.0f);
   screen.SetOpenPrototypeResearchCallback([]() {});
@@ -356,8 +345,6 @@ TEST_F(WelcomeScreenTest, MoreWaysPopupKeepsImGuiStacksBalanced) {
   ImGui::Begin(
       "WelcomeActionsHost", nullptr,
       ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings);
-  ImGui::OpenPopup("WelcomeMoreStartWays");
-  ASSERT_TRUE(ImGui::IsPopupOpen("WelcomeMoreStartWays"));
 
   const int style_before = context_->StyleVarStack.Size;
   const int color_before = context_->ColorStack.Size;
