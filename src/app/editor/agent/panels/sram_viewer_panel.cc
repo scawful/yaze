@@ -31,12 +31,9 @@ struct CrystalBit {
   const char* label;
 };
 constexpr CrystalBit kCrystalBits[] = {
-    {0x01, "D1 Mushroom Grotto"},
-    {0x02, "D6 Goron Mines"},
-    {0x04, "D5 Glacia Estate"},
-    {0x08, "D7 Dragon Ship"},
-    {0x10, "D2 Tail Palace"},
-    {0x20, "D4 Zora Temple"},
+    {0x01, "D1 Mushroom Grotto"}, {0x02, "D6 Goron Mines"},
+    {0x04, "D5 Glacia Estate"},   {0x08, "D7 Dragon Ship"},
+    {0x10, "D2 Tail Palace"},     {0x20, "D4 Zora Temple"},
     {0x40, "D3 Kalyxo Castle"},
 };
 
@@ -136,8 +133,10 @@ void SramViewerPanel::LoadVariablesFromManifest() {
   variables_.clear();
   variables_loaded_ = false;
 
-  if (!project_) return;
-  if (!project_->hack_manifest.loaded()) return;
+  if (!project_)
+    return;
+  if (!project_->hack_manifest.loaded())
+    return;
 
   variables_ = project_->hack_manifest.sram_variables();
   variables_loaded_ = true;
@@ -150,8 +149,10 @@ void SramViewerPanel::LoadVariablesFromManifest() {
 }
 
 void SramViewerPanel::RefreshValues() {
-  if (!IsConnected()) return;
-  if (variables_.empty()) return;
+  if (!IsConnected())
+    return;
+  if (variables_.empty())
+    return;
 
   // Save previous values for change detection
   previous_values_ = current_values_;
@@ -175,15 +176,14 @@ void SramViewerPanel::RefreshValues() {
 }
 
 void SramViewerPanel::PokeValue(uint32_t address, uint8_t value) {
-  if (!IsConnected()) return;
+  if (!IsConnected())
+    return;
 
   auto status = client_->WriteByte(address, value);
   if (!status.ok()) {
-    status_message_ =
-        absl::StrFormat("Write failed: %s", status.message());
+    status_message_ = absl::StrFormat("Write failed: %s", status.message());
   } else {
-    status_message_ =
-        absl::StrFormat("Wrote $%02X to $%06X", value, address);
+    status_message_ = absl::StrFormat("Wrote $%02X to $%06X", value, address);
     // Update cache immediately
     current_values_[address] = value;
   }
@@ -249,8 +249,7 @@ void SramViewerPanel::Draw() {
 void SramViewerPanel::DrawConnectionHeader() {
   const auto& theme = AgentUI::GetTheme();
 
-  ImGui::TextColored(theme.accent_color, "%s SRAM Viewer",
-                     ICON_MD_MEMORY);
+  ImGui::TextColored(theme.accent_color, "%s SRAM Viewer", ICON_MD_MEMORY);
 
   // Connection status indicator
   ImGui::SameLine(ImGui::GetWindowWidth() - 100);
@@ -293,7 +292,8 @@ void SramViewerPanel::DrawConnectionHeader() {
 
     ImGui::TextDisabled("Path");
     ImGui::SetNextItemWidth(-1);
-    ImGui::InputTextWithHint("##sram_socket_path", "/tmp/mesen2-12345.sock",
+    ImGui::InputTextWithHint("##sram_socket_path",
+                             "tcp://127.0.0.1:27015 or /tmp/mesen2-*.sock",
                              socket_path_buffer_, sizeof(socket_path_buffer_));
 
     if (ImGui::Button(ICON_MD_LINK " Connect")) {
@@ -390,9 +390,8 @@ void SramViewerPanel::DrawVariableTable() {
 
   // Story section
   if (!story_vars.empty()) {
-    std::string story_label =
-        absl::StrFormat("%s Story (%zu)", ICON_MD_AUTO_STORIES,
-                        story_vars.size());
+    std::string story_label = absl::StrFormat(
+        "%s Story (%zu)", ICON_MD_AUTO_STORIES, story_vars.size());
     if (ImGui::CollapsingHeader(
             story_label.c_str(),
             story_expanded_ ? ImGuiTreeNodeFlags_DefaultOpen : 0)) {
@@ -407,9 +406,8 @@ void SramViewerPanel::DrawVariableTable() {
 
   // Dungeon section
   if (!dungeon_vars.empty()) {
-    std::string dungeon_label =
-        absl::StrFormat("%s Dungeon (%zu)", ICON_MD_CASTLE,
-                        dungeon_vars.size());
+    std::string dungeon_label = absl::StrFormat(
+        "%s Dungeon (%zu)", ICON_MD_CASTLE, dungeon_vars.size());
     if (ImGui::CollapsingHeader(
             dungeon_label.c_str(),
             dungeon_expanded_ ? ImGuiTreeNodeFlags_DefaultOpen : 0)) {
@@ -424,9 +422,8 @@ void SramViewerPanel::DrawVariableTable() {
 
   // Items section
   if (!item_vars.empty()) {
-    std::string items_label =
-        absl::StrFormat("%s Items (%zu)", ICON_MD_INVENTORY_2,
-                        item_vars.size());
+    std::string items_label = absl::StrFormat(
+        "%s Items (%zu)", ICON_MD_INVENTORY_2, item_vars.size());
     if (ImGui::CollapsingHeader(
             items_label.c_str(),
             items_expanded_ ? ImGuiTreeNodeFlags_DefaultOpen : 0)) {
@@ -441,9 +438,8 @@ void SramViewerPanel::DrawVariableTable() {
 
   // Other/uncategorized
   if (!other_vars.empty()) {
-    std::string other_label =
-        absl::StrFormat("%s Other (%zu)", ICON_MD_MORE_HORIZ,
-                        other_vars.size());
+    std::string other_label = absl::StrFormat(
+        "%s Other (%zu)", ICON_MD_MORE_HORIZ, other_vars.size());
     if (ImGui::CollapsingHeader(other_label.c_str())) {
       for (const auto* var : other_vars) {
         DrawVariableRow(*var);
@@ -472,8 +468,8 @@ void SramViewerPanel::DrawVariableRow(const core::SramVariable& var) {
       ImVec2 row_size = ImVec2(ImGui::GetContentRegionAvail().x,
                                ImGui::GetTextLineHeightWithSpacing());
       ImGui::GetWindowDrawList()->AddRectFilled(
-          cursor_pos, ImVec2(cursor_pos.x + row_size.x,
-                             cursor_pos.y + row_size.y),
+          cursor_pos,
+          ImVec2(cursor_pos.x + row_size.x, cursor_pos.y + row_size.y),
           ImGui::ColorConvertFloat4ToU32(highlight_color));
     }
   }
@@ -484,8 +480,7 @@ void SramViewerPanel::DrawVariableRow(const core::SramVariable& var) {
   // Name column
   ImGui::SameLine(80);
   if (recently_changed) {
-    ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.2f, 1.0f), "%s",
-                       var.name.c_str());
+    ImGui::TextColored(ImVec4(0.9f, 0.9f, 0.2f, 1.0f), "%s", var.name.c_str());
   } else {
     ImGui::Text("%s", var.name.c_str());
   }
@@ -510,8 +505,8 @@ void SramViewerPanel::DrawVariableRow(const core::SramVariable& var) {
 
     // Edit button
     ImGui::SameLine(340);
-    std::string edit_label = absl::StrFormat(
-        "%s##edit_%06X", ICON_MD_EDIT, var.address);
+    std::string edit_label =
+        absl::StrFormat("%s##edit_%06X", ICON_MD_EDIT, var.address);
     if (ImGui::SmallButton(edit_label.c_str())) {
       editing_active_ = true;
       editing_address_ = var.address;
@@ -540,8 +535,8 @@ void SramViewerPanel::DrawCrystalBitfield(uint8_t value, uint32_t address) {
 
   for (const auto& bit : kCrystalBits) {
     bool set = (value & bit.mask) != 0;
-    std::string cb_label = absl::StrFormat("%s##crystal_%02X", bit.label,
-                                          bit.mask);
+    std::string cb_label =
+        absl::StrFormat("%s##crystal_%02X", bit.label, bit.mask);
     if (ImGui::Checkbox(cb_label.c_str(), &set)) {
       if (set) {
         new_value |= bit.mask;
@@ -567,9 +562,10 @@ void SramViewerPanel::DrawGameStateDropdown(uint8_t value, uint32_t address) {
     current_index = -1;  // Unknown state
   }
 
-  const char* preview = (current_index >= 0 && current_index < kGameStateLabelCount)
-                            ? kGameStateLabels[current_index]
-                            : "Unknown";
+  const char* preview =
+      (current_index >= 0 && current_index < kGameStateLabelCount)
+          ? kGameStateLabels[current_index]
+          : "Unknown";
 
   ImGui::SetNextItemWidth(200);
   if (ImGui::BeginCombo("##gamestate_combo", preview)) {
