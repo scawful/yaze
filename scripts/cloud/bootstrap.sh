@@ -32,7 +32,10 @@ JOBS="${YAZE_BUILD_JOBS:-4}"
 
 # Mirrors .github/workflows/scripts/linux-ci-packages.txt minus the gRPC,
 # protobuf, boost, and abseil packages that lin-test does not use. Abseil is
-# fetched at configure time so every agent builds the pinned version.
+# fetched at configure time so every agent builds the pinned version. The CI
+# list's runtime libgtk-3-0 is omitted: Ubuntu 24.04 renamed it libgtk-3-0t64,
+# and libgtk-3-dev hard-depends on the matching runtime package, so
+# --no-install-recommends still installs it.
 APT_PACKAGES=(
   build-essential cmake ninja-build pkg-config ccache git ca-certificates
   python3 python3-dev

@@ -166,6 +166,16 @@ class RenderTest(Fixture):
         self.assertIn("| `Reset` | `$008000` | `$00FFEC` |", table)
         self.assertIn("| (none: `$FFFF`) | — | `$00FFEE` |", table)
 
+    def test_missing_or_unknown_vector_slots_are_errors(self) -> None:
+        db = ar.Usdasm.load(self.root)
+        with mock.patch.object(ar, "VECTOR_RANGE", (0x00FFEA, 0x00FFF0)):
+            with self.assertRaises(SystemExit):
+                ar.render_vectors(db)  # $00FFF0 has no entry
+        db.data[0x00FFEC] = "NotALabel"
+        with mock.patch.object(ar, "VECTOR_RANGE", (0x00FFEA, 0x00FFEE)):
+            with self.assertRaises(SystemExit):
+                ar.render_vectors(db)
+
     def test_unknown_routine_or_symbol_is_an_error(self) -> None:
         db = ar.Usdasm.load(self.root, self.maps)
         with mock.patch.object(ar, "ROUTINES", [("Missing", "x")]):
@@ -357,6 +367,14 @@ class CliTest(Fixture):
         code, output = self.run_main(*common, "check", str(doc))
         self.assertEqual(code, 0, output)
         self.assertIn("0 problem(s)", output)
+
+        # Without symbol maps render keeps the RAM sections and says so.
+        with mock.patch.dict("os.environ", {"HOME": self._tmp.name}, clear=True):
+            code, output = self.run_main("--usdasm", str(self.root), "render",
+                                         "--write", str(doc))
+        self.assertEqual(code, 0)
+        self.assertIn("left sram, wram section(s) unchanged", output)
+        self.assertEqual(doc.read_text(), rendered)
 
         doc.write_text(rendered.replace("`$7EF36D`", "`$7EF36B`"))
         code, output = self.run_main(*common, "check", str(doc))
