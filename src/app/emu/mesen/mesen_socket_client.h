@@ -27,7 +27,7 @@ struct CpuState {
   uint16_t X;
   uint16_t Y;
   uint16_t SP;
-  uint16_t D;   // Direct page
+  uint16_t D;  // Direct page
   uint32_t PC;
   uint8_t K;    // Program bank
   uint8_t DBR;  // Data bank
@@ -78,8 +78,8 @@ struct GameMode {
   uint8_t mode;
   uint8_t submode;
   bool indoors;
-  uint16_t room_id;       // Valid when indoors
-  uint8_t overworld_area; // Valid when !indoors
+  uint16_t room_id;        // Valid when indoors
+  uint8_t overworld_area;  // Valid when !indoors
 };
 
 /**
@@ -107,12 +107,7 @@ struct SpriteInfo {
 /**
  * @brief Breakpoint types
  */
-enum class BreakpointType {
-  kExecute,
-  kRead,
-  kWrite,
-  kReadWrite
-};
+enum class BreakpointType { kExecute, kRead, kWrite, kReadWrite };
 
 /**
  * @brief Event from Mesen2 subscription
@@ -130,8 +125,8 @@ using EventListenerId = uint64_t;
 /**
  * @brief Unix socket client for Mesen2-OoS fork
  *
- * Connects to Mesen2's socket API at /tmp/mesen2-<pid>.sock
- * and provides type-safe wrapper methods for all commands.
+ * Connects to Mesen2's socket API at `/tmp/mesen2-<pid>.sock` or a TCP
+ * endpoint (`tcp://127.0.0.1:27015`) used by the Android handheld host.
  */
 class MesenSocketClient {
  public:
@@ -148,13 +143,19 @@ class MesenSocketClient {
 
   /**
    * @brief Auto-discover and connect to first available Mesen2 socket
-   * @return Status indicating success or error
+   *
+   * If `MESEN2_SOCKET_PATH` is an explicit `tcp://` target, that value is the
+   * only candidate even when it does not parse. A malformed TCP env must fail
+   * instead of attaching to a local `/tmp/mesen2-*.sock`.
    */
   absl::Status Connect();
 
   /**
    * @brief Connect to a specific socket path
-   * @param socket_path Full path to Unix socket (e.g., /tmp/mesen2-12345.sock)
+   * @param socket_path Unix socket path or `tcp://host:port`
+   *
+   * TCP connect establishment is bounded (2s). A stale handheld must not block
+   * the caller until the OS TCP retry budget expires.
    */
   absl::Status Connect(const std::string& socket_path);
 
@@ -288,7 +289,7 @@ class MesenSocketClient {
    * @return Breakpoint ID
    */
   absl::StatusOr<int> AddBreakpoint(uint32_t addr, BreakpointType type,
-                                     const std::string& condition = "");
+                                    const std::string& condition = "");
 
   /**
    * @brief Remove a breakpoint by ID
@@ -323,7 +324,8 @@ class MesenSocketClient {
   /**
    * @brief Enable/disable collision overlay
    */
-  absl::Status SetCollisionOverlay(bool enable, const std::string& colmap = "A");
+  absl::Status SetCollisionOverlay(bool enable,
+                                   const std::string& colmap = "A");
 
   // ──────────────────────────────────────────────────────────────────────────
   // Save State Commands
