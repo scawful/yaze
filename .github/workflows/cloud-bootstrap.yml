@@ -10,6 +10,13 @@ on:
       - "scripts/cloud/**"
       - ".cursor/environment.json"
       - ".github/workflows/cloud-bootstrap.yml"
+      - ".github/workflows/scripts/linux-ci-packages.txt"
+      - ".gitmodules"
+      - "CMakeLists.txt"
+      - "CMakePresets.json"
+      - "**/CMakeLists.txt"
+      - "**/*.cmake"
+      - "ext/**"
   workflow_dispatch:
 
 permissions:
@@ -26,11 +33,15 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
+      - name: Unit-test reference checkout safety
+        run: bash scripts/cloud/tests/bootstrap_refs_test.sh
       - name: Install, init submodules, clone refs
         run: |
           start=$(date +%s)
           bash scripts/cloud/bootstrap.sh
           echo "Default setup steps took $(( $(date +%s) - start ))s (Claude Code web limit is about 300s)"
+      - name: Verify warm bootstrap is idempotent
+        run: bash scripts/cloud/bootstrap.sh refs
       - name: Configure
         run: bash scripts/cloud/bootstrap.sh configure
       - name: Build yaze_test_unit

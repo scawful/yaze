@@ -28,8 +28,9 @@ setup fails):
   Codex reads `AGENTS.md` automatically.
 - **Cursor:** `install` runs when Cursor creates a Build and may re-run on
   prepared disk state; every bootstrap step is idempotent (unpinned refs
-  refresh to their default branch unless they have local edits). Agents run as a
-  sudo-capable user; the script uses `sudo` when not root.
+  refresh to their default branch unless they have tracked or untracked local
+  changes). Agents run as a sudo-capable user; the script uses `sudo` when not
+  root.
 
 ## 2. In-session commands
 
