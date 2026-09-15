@@ -29,8 +29,10 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-# Curated names from the jpdasm symbol maps. Addresses and descriptions are
-# read from the maps; an unknown name is an error.
+# Curated names from the jpdasm symbol maps. These lists and the generated
+# tables in docs/internal/zelda3 are two ends of the same list: edit here,
+# then `render --write`. Addresses and descriptions are read from the maps;
+# an unknown name is an error.
 RAM_SYMBOLS = [
     "MODE", "SUBMODE", "INDOORS", "POSY", "POSX", "OWSCR", "ROOM",
     "LINKDO", "DUNGEON", "WORLDFLAG", "SONG", "LASTSONG",
@@ -244,13 +246,15 @@ def looks_like_ram(addr: int) -> bool:
 def addresses_match(actual: int, doc: int) -> bool:
     """Six-digit doc addresses must match exactly.
 
-    Four-digit doc addresses compare only the low 16 bits, so `$2100` matches
-    `INIDISP = $002100` and `$80B5` matches a `$0080B5` label. The trade-off:
-    shorthand cannot catch a wrong bank; write six digits when the bank matters.
+    Four-digit shorthand is accepted only for symbols in bank $00 (hardware
+    registers, low ROM such as `$80B5` for `$0080B5`) or $7E (WRAM/SRAM such
+    as `$F36D` for `$7EF36D`), where 16-bit addresses are conventional. Any
+    other bank must be written with six digits: `$8000` would otherwise match
+    both `Reset` ($008000) and `Link` ($078000).
     """
     if doc > 0xFFFF:
         return actual == doc
-    return actual & 0xFFFF == doc
+    return actual >> 16 in (0x00, 0x7E) and actual & 0xFFFF == doc
 
 
 def snes(addr: int) -> str:
@@ -346,11 +350,15 @@ def generated_sections(db: Usdasm) -> dict[str, str]:
     return sections
 
 
-def apply_sections(text: str, sections: dict[str, str]) -> str:
+def apply_sections(text: str, sections: dict[str, str], strict: bool = True) -> str:
+    """Replace generated sections. Unknown names exit when strict (render) and
+    are left untouched otherwise (check reports them per file)."""
     def replace(match: re.Match[str]) -> str:
         name = match.group(1)
         if name not in KNOWN_SECTIONS:
-            raise SystemExit(f"unknown generated section: {name}")
+            if strict:
+                raise SystemExit(f"unknown generated section: {name}")
+            return match.group(0)
         if name not in sections:
             return match.group(0)  # source files absent; leave as-is
         return (f"<!-- BEGIN GENERATED: {name} -->\n{sections[name]}\n"
@@ -363,9 +371,12 @@ def check_file(db: Usdasm, path: Path, sections: dict[str, str],
     problems = []
     text = path.read_text()
     for match in SECTION_RE.finditer(text):
-        if match.group(1) in KNOWN_SECTIONS and match.group(1) not in sections:
-            unverified.append(f"{path}: generated section {match.group(1)}")
-    if SECTION_RE.search(text) and apply_sections(text, sections) != text:
+        name = match.group(1)
+        if name not in KNOWN_SECTIONS:
+            problems.append(f"{path}: unknown generated section `{name}`")
+        elif name not in sections:
+            unverified.append(f"{path}: generated section {name}")
+    if SECTION_RE.search(text) and apply_sections(text, sections, strict=False) != text:
         problems.append(f"{path}: generated sections are stale; run render --write")
     for number, line in enumerate(text.splitlines(), 1):
         match = ROW_NAME_ADDR.match(line)
@@ -383,8 +394,10 @@ def check_file(db: Usdasm, path: Path, sections: dict[str, str],
         if actual is None:
             problems.append(f"{path}:{number}: `{name}` is not a usdasm symbol or label")
         elif not addresses_match(actual, addr):
+            hint = (" (use the six-digit address outside banks $00/$7E)"
+                    if addr <= 0xFFFF and actual & 0xFFFF == addr else "")
             problems.append(f"{path}:{number}: `{name}` is {snes(actual)} in usdasm, "
-                            f"doc says {snes(addr)}")
+                            f"doc says {snes(addr)}{hint}")
     return problems
 
 
