@@ -586,8 +586,9 @@ class DungeonCanvasViewer {
   }
   bool IsLayerVisible(int room_id, zelda3::LayerType layer) const {
     auto it = room_layer_managers_.find(room_id);
-    return it != room_layer_managers_.end() ? it->second.IsLayerVisible(layer)
-                                            : true;
+    return it != room_layer_managers_.end()
+               ? it->second.manager.IsLayerVisible(layer)
+               : true;
   }
 
   // Legacy compatibility - BG1 visibility (combines layout + objects)
@@ -605,15 +606,15 @@ class DungeonCanvasViewer {
     auto it = room_layer_managers_.find(room_id);
     if (it == room_layer_managers_.end())
       return true;
-    return it->second.IsLayerVisible(zelda3::LayerType::BG1_Layout) ||
-           it->second.IsLayerVisible(zelda3::LayerType::BG1_Objects);
+    return it->second.manager.IsLayerVisible(zelda3::LayerType::BG1_Layout) ||
+           it->second.manager.IsLayerVisible(zelda3::LayerType::BG1_Objects);
   }
   bool IsBG2Visible(int room_id) const {
     auto it = room_layer_managers_.find(room_id);
     if (it == room_layer_managers_.end())
       return true;
-    return it->second.IsLayerVisible(zelda3::LayerType::BG2_Layout) ||
-           it->second.IsLayerVisible(zelda3::LayerType::BG2_Objects);
+    return it->second.manager.IsLayerVisible(zelda3::LayerType::BG2_Layout) ||
+           it->second.manager.IsLayerVisible(zelda3::LayerType::BG2_Objects);
   }
 
   // Layer blend mode controls
@@ -625,7 +626,7 @@ class DungeonCanvasViewer {
                                            zelda3::LayerType layer) const {
     auto it = room_layer_managers_.find(room_id);
     return it != room_layer_managers_.end()
-               ? it->second.GetLayerBlendMode(layer)
+               ? it->second.manager.GetLayerBlendMode(layer)
                : zelda3::LayerBlendMode::Normal;
   }
 
@@ -637,13 +638,12 @@ class DungeonCanvasViewer {
   }
 
   // Layer manager access
-  zelda3::RoomLayerManager& GetRoomLayerManager(int room_id) {
-    return room_layer_managers_[room_id];
-  }
+  zelda3::RoomLayerManager& GetRoomLayerManager(int room_id);
   const zelda3::RoomLayerManager& GetRoomLayerManager(int room_id) const {
     static zelda3::RoomLayerManager default_manager;
     auto it = room_layer_managers_.find(room_id);
-    return it != room_layer_managers_.end() ? it->second : default_manager;
+    return it != room_layer_managers_.end() ? it->second.manager
+                                            : default_manager;
   }
 
   // Legacy BG2 layer type (mapped to blend mode)
@@ -764,6 +764,7 @@ class DungeonCanvasViewer {
 
  private:
   friend class DungeonCanvasViewerTestPeer;
+  friend class DungeonEditorPaletteRefreshTestPeer;
   friend class
       DungeonEditorPaletteRefreshTest_CachedRoomRefreshesThroughViewerCompositePreparation_Test;
   friend class
@@ -934,7 +935,12 @@ class DungeonCanvasViewer {
   int room_canvas_last_draw_frame_ = -1;
 
   // Per-room layer managers (4-way visibility, blend modes, per-object translucency)
-  std::map<int, zelda3::RoomLayerManager> room_layer_managers_;
+  struct RoomLayerState {
+    zelda3::RoomLayerManager manager;
+    std::optional<std::pair<zelda3::LayerMergeType, zelda3::EffectKey>>
+        room_settings;
+  };
+  std::map<int, RoomLayerState> room_layer_managers_;
 
   // Palette data
   uint64_t current_palette_group_id_ = 0;

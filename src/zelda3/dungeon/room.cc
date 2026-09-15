@@ -1168,9 +1168,13 @@ void Room::RenderRoomGraphics() {
             "Room %d: floor1=%d, floor2=%d, blocks_size=%zu", room_id_,
             floor1_graphics_, floor2_graphics_, blocks_.size());
 
-  // STEP 1: Draw floor tiles to bitmaps (base layer) - if graphics changed OR
-  // bitmaps not created yet
-  bool need_floor_draw = was_graphics_dirty;
+  // STEP 1: Rebuild the base tilemaps before replaying objects. Door and stair
+  // routines can promote layout-owned priority outside their own raster, so
+  // removing or moving one must restore the floor/layout baseline as well.
+  // Reuse current_gfx16_ for object-only edits; the unchanged-room fast path
+  // above still avoids all drawing work.
+  bool need_floor_draw =
+      was_graphics_dirty || was_layout_dirty || dirty_state_.objects;
   auto& bg1_bmp = bg1_buffer_.bitmap();
   auto& bg2_bmp = bg2_buffer_.bitmap();
 
@@ -1183,10 +1187,18 @@ void Room::RenderRoomGraphics() {
   }
 
   if (need_floor_draw) {
+    for (auto* buffer : {&bg1_buffer_, &bg2_buffer_}) {
+      buffer->EnsureBitmapInitialized();
+      buffer->bitmap().Fill(255);
+      buffer->ClearBuffer();
+    }
     bg1_buffer_.DrawFloor(rom()->vector(), kTileAddress, kTileAddressFloor,
                           floor1_graphics_);
     bg2_buffer_.DrawFloor(rom()->vector(), kTileAddress, kTileAddressFloor,
                           floor2_graphics_);
+    // STEP 0 already consumed the graphics dirty flag. Keep its dependent
+    // object pixels and priority/reveal writes dirty until they are replayed.
+    dirty_state_.objects = true;
   }
 
   // STEP 2: Draw background tiles (floor pattern) to bitmap
