@@ -51,7 +51,7 @@ scripts/cloud/bootstrap.sh configure build test
 | 65816 / LoROM / PPU / DMA | `docs/internal/zelda3/snes-hardware-reference.md` |
 | Dungeon object format | `docs/internal/zelda3/dungeon-spec.md` |
 | Verify a doc's address tables | `python3 scripts/agents/alttp_reference.py check <file.md>` |
-| z3dk / Oracle of Secrets sources | `~/refs/z3dk`, `~/refs/oracle-of-secrets` |
+| z3dk / Oracle of Secrets sources | `~/refs/z3dk`, `~/refs/oracle-of-secrets` (track their default branch; not pinned) |
 
 Quick usdasm lookups:
 

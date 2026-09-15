@@ -1,8 +1,11 @@
 # SNES Hardware Reference (for ALTTP work)
 
 65816 CPU, LoROM memory map, and the PPU/DMA registers agents touch most.
-Register names match usdasm `registers.asm` at the pinned commit (`835b15b`); verify table rows with
-`python3 scripts/agents/alttp_reference.py check docs/internal/zelda3/snes-hardware-reference.md`.
+Register names and addresses match usdasm `registers.asm` at the pinned
+commit (`835b15b`); `python3 scripts/agents/alttp_reference.py check docs/internal/zelda3/snes-hardware-reference.md`
+verifies those two columns only. The "Use" descriptions and bit layouts are
+hand-written hardware notes; facts that were checked against usdasm code say
+so inline.
 Game-specific addresses live in [`alttp-quick-reference.md`](alttp-quick-reference.md).
 
 ## 65816 CPU
@@ -97,10 +100,15 @@ ROM size, `$7FD8` RAM size, `$7FDC-$7FDF` checksum complement + checksum,
 | `$4210` | RDNMI | NMI flag (read acknowledges) |
 | `$4211` | TIMEUP | IRQ flag (read acknowledges) |
 | `$4212` | HVBJOY | Blanking status; bit 0 = auto-joypad read busy |
-| `$4218` | JOY1L | Joypad 1 low byte: `AXLR0000` |
-| `$4219` | JOY1H | Joypad 1 high byte: `BYsSUDLR` |
+| `$4218` | JOY1L | Joypad 1 low byte: `AXLR0000` (checked in code, below) |
+| `$4219` | JOY1H | Joypad 1 high byte: `BYsSUDLR` (checked in code, below) |
 | `$421A` | JOY2L | Joypad 2 low byte |
 | `$421B` | JOY2H | Joypad 2 high byte |
+
+Joypad layout evidence: usdasm `ReadJoypad` (`bank_00.asm:768-786`) copies
+`JOY1L` to `$F2` and `JOY1H` to `$F0`; jpdasm's `symbols_wram.asm` documents
+`$F0` as `BYsSudlr` and `$F2` as `AXLR....`, and US Link code masks `$F0`
+with `#$0F` for the D-pad (for example `bank_07.asm:487-488`).
 
 APU ports: CPU `$2140-$2143` (usdasm `APUIO0`-`APUIO3`) map to SPC700
 `$F4-$F7`. Each side reads what the other side last wrote.
@@ -146,7 +154,7 @@ APU ports: CPU `$2140-$2143` (usdasm `APUIO0`-`APUIO3`) map to SPC700
 | `$2130` | CGWSEL | Color math control A |
 | `$2131` | CGADSUB | Color math add/subtract, half, layer select |
 | `$2132` | COLDATA | Fixed color |
-| `$2137` | SLVH | Latch H/V counters |
+| `$2137` | SLVH | Latch H/V counters (usdasm spelling; commonly documented as `SLHV`) |
 | `$2138` | OAMREAD | OAM read |
 | `$2139` | VMREADL | VRAM read low |
 | `$213A` | VMREADH | VRAM read high |
