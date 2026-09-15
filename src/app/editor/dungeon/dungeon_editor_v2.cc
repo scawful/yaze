@@ -630,7 +630,7 @@ void DungeonEditorV2::Initialize() {
        .icon = ICON_MD_WORKSPACES,
        .category = "Dungeon",
        .workflow_group = "Core",
-       .shortcut_hint = "",
+       .shortcut_hint = "Ctrl+Shift+W",
        .visibility_flag = nullptr,
        .priority = 5,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },

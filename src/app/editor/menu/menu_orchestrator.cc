@@ -420,7 +420,7 @@ void MenuOrchestrator::AddSearchMenuItems() {
           "Command Palette", ICON_MD_SEARCH,
           [this]() { OnShowCommandPalette(); }, SHORTCUT_CTRL_SHIFT(P))
       .Item(
-          "Window Finder", ICON_MD_DASHBOARD, [this]() { OnShowPanelFinder(); },
+          "Find Window…", ICON_MD_DASHBOARD, [this]() { OnShowPanelFinder(); },
           SHORTCUT_CTRL(P))
       .Item("Resource Label Manager", ICON_MD_LABEL,
             [this]() { OnShowResourceLabelManager(); });
@@ -954,12 +954,14 @@ void MenuOrchestrator::AddHelpMenuItems() {
   menu_builder_
       .Item("Getting Started", ICON_MD_PLAY_ARROW,
             [this]() { OnShowGettingStarted(); })
-      .Item("Keyboard Shortcuts", ICON_MD_KEYBOARD,
-            [this]() {
-              if (window_manager_) {
-                window_manager_->TriggerShowShortcuts();
-              }
-            })
+      .Item(
+          "Keyboard Shortcuts", ICON_MD_KEYBOARD,
+          [this]() {
+            if (window_manager_) {
+              window_manager_->TriggerShowShortcuts();
+            }
+          },
+          SHORTCUT_CTRL_SHIFT(Slash))
       .Item("Build Instructions", ICON_MD_BUILD,
             [this]() { OnShowBuildInstructions(); })
       .Item("CLI Usage", ICON_MD_TERMINAL, [this]() { OnShowCLIUsage(); })
