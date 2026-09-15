@@ -10,6 +10,7 @@
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/empty_state.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
@@ -119,24 +120,7 @@ void SelectionPropertiesPanel::Draw() {
 }
 
 void SelectionPropertiesPanel::DrawNoSelection() {
-  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
-
-  gui::ColoredText(ICON_MD_TOUCH_APP " Select an Item",
-                   gui::GetTextDisabledVec4());
-
-  ImGui::Spacing();
-  ImGui::TextWrapped(
-      tr("Click on an object in the editor to view and edit its properties."));
-
-  ImGui::Spacing();
-  ImGui::Separator();
-  ImGui::Spacing();
-
-  // Show quick reference for what can be selected
-  ImGui::TextDisabled(tr("Selectable Items:"));
-  ImGui::BulletText(tr("Dungeon: Rooms, Objects, Sprites"));
-  ImGui::BulletText(tr("Overworld: Maps, Tiles, Entities"));
-  ImGui::BulletText(tr("Graphics: Sheets, Palettes"));
+  gui::DrawEmptyState(gui::EmptyNoSelection(/*compact=*/true));
 }
 
 void SelectionPropertiesPanel::DrawPropertyHeader(const char* icon,

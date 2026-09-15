@@ -460,7 +460,8 @@ TEST_F(ObjectParserTest,
   for (const auto& test_case : {
            TestCase{0x3C, 8,
                     zelda3::DrawRoutineIds::kRightwardsDoubled2x2spaced2_1to16},
-           TestCase{0x4C, 12, zelda3::DrawRoutineIds::kRightwardsBar4x3_1to16},
+           TestCase{0x4C, 9, zelda3::DrawRoutineIds::kRightwardsBar4x3_1to16},
+           TestCase{0x8F, 4, zelda3::DrawRoutineIds::kDownwardsBar2x5_1to16},
        }) {
     SCOPED_TRACE(::testing::Message()
                  << "object_id=0x" << std::hex << test_case.object_id);
@@ -540,9 +541,9 @@ TEST_F(ObjectParserTest,
        "ZScream's 0->8 fallback under-fetched and TileAtWrapped "
        "substituted wrong tiles for index>=8 (commits e9938002/c12c3178)."},
       {0x48, 9, "DrawWaterfall48 reads tiles[0..8]; same pattern as 0x47."},
-      {0x4C, 12,
-       "DrawRightwardsBar4x3_1to16 (rightwards_routines.cc) indexes "
-       "tiles[0..11]; ZScream's 9 under-fetches the fourth 3-tile column."},
+      {0x8F, 4,
+       "RoomDraw_DownwardsBar2x5_1to16 ($0197B5) reads four words from "
+       "obj09B0 ($00A502..$00A508); six crosses into obj09B8."},
       {0xCD, 24,
        "RoomDraw_MovingWallWest reads obj072A words 0..23; ZScream's 28 "
        "over-fetches four words from obj075A."},

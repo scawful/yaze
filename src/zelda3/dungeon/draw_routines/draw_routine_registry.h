@@ -92,6 +92,7 @@ constexpr int kAgahnimsAltar = 129;
 constexpr int kFortuneTellerRoom = 131;
 constexpr int kMagicBatAltar = 132;
 constexpr int kVitreousGooDamage = 133;
+constexpr int kSanctuaryWall = 134;
 
 // Corner routines (19, 35-37, 75-78)
 constexpr int kCorner4x4 = 19;

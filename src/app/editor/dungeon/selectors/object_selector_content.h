@@ -54,6 +54,7 @@ class ObjectSelectorContent : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_CONSTRUCTION; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 60; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
   float GetPreferredWidth() const override { return 560.0f; }
 
   // ==========================================================================
@@ -118,6 +119,7 @@ class ObjectSelectorContent : public WindowContent {
   void SetOpenObjectEditorCallback(std::function<void()> callback) {
     open_object_editor_callback_ = std::move(callback);
   }
+  void DetachRuntimeContext();
 
  private:
   DungeonCanvasViewer* ResolveCanvasViewer();

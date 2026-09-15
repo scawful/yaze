@@ -9,6 +9,7 @@
 #include "app/service/render_service.h"
 #include "cli/service/resources/command_context.h"
 #include "rom/rom.h"
+#include "util/macro.h"
 #include "zelda3/game_data.h"
 
 namespace yaze {
@@ -50,12 +51,32 @@ uint32_t ParseOverlays(const std::string& s) {
 
 absl::Status DungeonRenderCommandHandler::ValidateArgs(
     const resources::ArgumentParser& parser) {
-  return parser.RequireArgs({"room", "output"});
+  RETURN_IF_ERROR(parser.RequireArgs({"room", "output"}));
+  if (parser.GetString("output")->empty()) {
+    return absl::InvalidArgumentError("--output cannot be empty");
+  }
+  if (const auto scale = parser.GetString("scale"); scale.has_value()) {
+    return app::service::ParseRenderScale(*scale).status();
+  }
+  return absl::OkStatus();
 }
 
 absl::Status DungeonRenderCommandHandler::Execute(
     Rom* rom, const resources::ArgumentParser& parser,
     resources::OutputFormatter& formatter) {
+  resources::CommandInvocationContext invocation_context;
+  if (rom != nullptr && !rom->filename().empty()) {
+    invocation_context.source_rom_path = std::filesystem::path(rom->filename());
+    invocation_context.active_rom_path = std::filesystem::path(rom->filename());
+  }
+  return ExecuteWithContext(rom, parser, formatter, invocation_context);
+}
+
+absl::Status DungeonRenderCommandHandler::ExecuteWithContext(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter,
+    const resources::CommandInvocationContext& invocation_context) {
+  RETURN_IF_ERROR(ValidateArgs(parser));
   // Parse --room (decimal or 0x-hex).
   auto room_str = parser.GetString("room").value();
   int room_id = 0;
@@ -68,6 +89,10 @@ absl::Status DungeonRenderCommandHandler::Execute(
 
   // Parse --output.
   const std::string output_path = parser.GetString("output").value();
+  ASSIGN_OR_RETURN(const auto resolved_output,
+                   resources::ResolveStableArtifactPath(output_path));
+  RETURN_IF_ERROR(resources::RejectArtifactRomAliases(
+      "--output", resolved_output, invocation_context));
 
   // Parse --overlays (optional, default none).
   uint32_t overlay_flags = app::service::RenderOverlay::kNone;
@@ -75,19 +100,14 @@ absl::Status DungeonRenderCommandHandler::Execute(
     overlay_flags = ParseOverlays(ov.value());
   }
 
-  // Parse --scale (optional, default 1.0, clamped 0.25–8.0).
+  // Parse --scale (optional, default 1.0, finite 0.25–8.0).
   float scale = 1.0f;
   if (auto sc = parser.GetString("scale"); sc.has_value()) {
-    try {
-      scale = std::stof(sc.value());
-      if (scale < 0.25f)
-        scale = 0.25f;
-      if (scale > 8.0f)
-        scale = 8.0f;
-    } catch (...) {
-      return absl::InvalidArgumentError(
-          absl::StrFormat("Invalid scale value: %s", sc.value()));
-    }
+    ASSIGN_OR_RETURN(scale, app::service::ParseRenderScale(*sc));
+  }
+
+  if (!rom || !rom->is_loaded()) {
+    return absl::FailedPreconditionError("ROM not loaded");
   }
 
   // Load GameData (palette groups, tileset tables).
@@ -111,7 +131,11 @@ absl::Status DungeonRenderCommandHandler::Execute(
   const auto& result = *result_or;
 
   // Write PNG to disk.
-  std::ofstream out(output_path, std::ios::binary);
+  // Recheck identity after rendering, before opening a truncating stream. Use
+  // the resolved path, not a caller-supplied parent symlink a second time.
+  RETURN_IF_ERROR(resources::RejectArtifactRomAliases(
+      "--output", resolved_output, invocation_context));
+  std::ofstream out(resolved_output, std::ios::binary);
   if (!out) {
     return absl::InternalError(
         absl::StrFormat("Cannot open output file: %s", output_path));
@@ -123,6 +147,10 @@ absl::Status DungeonRenderCommandHandler::Execute(
         absl::StrFormat("Write failed for: %s", output_path));
   }
   out.close();
+  if (!out) {
+    return absl::InternalError(
+        absl::StrFormat("Close failed for: %s", output_path));
+  }
 
   formatter.AddField("room_id", absl::StrFormat("0x%02X", room_id));
   formatter.AddField("output", output_path);

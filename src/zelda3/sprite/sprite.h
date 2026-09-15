@@ -15,6 +15,8 @@
 namespace yaze {
 namespace zelda3 {
 
+struct SpriteOamLayout;
+
 // Sprite names defined in sprite.cc to avoid static initialization order issues
 extern const std::string kSpriteDefaultNames[256];
 // Expanded names (from hmagic sprname.dat, 0x11c entries). Might differ in
@@ -85,7 +87,10 @@ class Sprite : public GameEntity {
   }
 
   void Draw();
-  void RenderPreviewGraphics(std::span<const uint8_t> graphics);
+  // Optional source-backed static layout; omitted layouts keep vanilla drawing.
+  void RenderPreviewGraphics(std::span<const uint8_t> graphics,
+                             const SpriteOamLayout* layout_override = nullptr,
+                             std::span<const uint8_t> graphics_resource = {});
   void ClearPreviewGraphics();
   void DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
                       bool mirror_x = false, bool mirror_y = false,
@@ -96,6 +101,9 @@ class Sprite : public GameEntity {
   void UpdateCoordinates(int map_x, int map_y);
 
   auto preview_graphics() const { return &preview_gfx_; }
+  // Pixel-buffer extent relative to the sprite's room anchor. External
+  // previews may grow beyond the legacy 64x64 extent; use w as the row stride.
+  SDL_Rect preview_bounds() const { return preview_bounds_; }
   auto id() const { return id_; }
   auto set_id(uint8_t id) { id_ = id; }
   auto x() const { return x_; }
@@ -149,12 +157,15 @@ class Sprite : public GameEntity {
   bool overworld_;
 
   std::string name_;
+  static constexpr SDL_Rect kDefaultPreviewBounds = {-16, -16, 64, 64};
+  SDL_Rect preview_bounds_ = kDefaultPreviewBounds;
+  bool measuring_preview_bounds_ = false;
   std::vector<uint8_t> preview_gfx_;
   std::vector<uint8_t> current_gfx_;
   const uint8_t* external_gfx_ = nullptr;
   size_t external_gfx_size_ = 0;
 
-  SDL_Rect bounding_box_;
+  SDL_Rect bounding_box_{};
 };
 
 }  // namespace zelda3

@@ -7,6 +7,7 @@
 
 #include "app/gfx/core/bitmap.h"
 #include "rom/rom.h"
+#include "rom/snes.h"
 #include "zelda3/dungeon/palette_debug.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
@@ -175,6 +176,102 @@ TEST(RoomGraphicsPaletteTest,
   EXPECT_EQ(gfx[6 * 4096 + 1], 1);
   EXPECT_EQ(gfx[7 * 4096 + 1], 1);
   EXPECT_EQ(gfx[8 * 4096 + 1], 1);
+}
+
+TEST(RoomGraphicsPaletteTest,
+     AnimatedGraphicsDereferencesTableAndUsesEntranceMainGroup) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  constexpr int kOperandPc = 0x10275;  // LDA.l operand at USDASM $028275.
+  constexpr int kRelocatedTablePc = 0x180000;
+  const uint32_t table_snes = PcToSnes(kRelocatedTablePc);
+  for (int byte = 0; byte < 3; ++byte) {
+    rom.mutable_data()[kOperandPc + byte] = table_snes >> (byte * 8);
+  }
+  rom.mutable_data()[kRelocatedTablePc + 5] = 93;
+  rom.mutable_data()[kRelocatedTablePc + 7] = 95;
+
+  GameData game_data;
+  game_data.graphics_buffer.assign(223 * 4096, 1);
+  std::fill_n(game_data.graphics_buffer.begin() + 92 * 4096, 1024, 2);
+  std::fill_n(game_data.graphics_buffer.begin() + 93 * 4096, 1024, 3);
+  std::fill_n(game_data.graphics_buffer.begin() + 95 * 4096, 1024, 7);
+  Room room(0, &rom, &game_data);
+  room.SetBlockset(5);
+  room.SetBackgroundTileset(5);
+  room.LoadRoomGraphics(/*entrance_blockset=*/7);
+  room.CopyRoomGraphicsToBuffer();
+
+  const auto& pixels = room.get_gfx_buffer();
+  // NMI transfers both 16-tile spans to VRAM $7600-$79FF. In the editor's
+  // decoded 8BPP buffer these are 1024-byte spans beginning at tile $1B0.
+  for (int i = 0; i < 1024; ++i) {
+    ASSERT_EQ(pixels[0x1B0 * 64 + i], 7) << "selected frame pixel " << i;
+    ASSERT_EQ(pixels[0x1C0 * 64 + i], 2) << "common frame pixel " << i;
+  }
+  EXPECT_EQ(pixels[0x1B0 * 64 - 1], 1);
+  EXPECT_EQ(pixels[0x1D0 * 64], 1);
+}
+
+TEST(RoomGraphicsPaletteTest,
+     InvalidAnimatedTableKeepsBaseGraphicsWithoutReadingOpcodeBytes) {
+  for (uint32_t table_snes : {0u, 0x7E8000u, 0x7F8000u, 0x7FFFFFu}) {
+    SCOPED_TRACE(table_snes);
+    Rom rom;
+    ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x400000, 0)).ok());
+    for (int byte = 0; byte < 3; ++byte) {
+      rom.mutable_data()[0x10275 + byte] = table_snes >> (byte * 8);
+    }
+    // WRAM addresses can map inside a 4 MiB buffer through SnesToPc alone.
+    // Make the bogus lookup observable rather than relying on a bounds error.
+    const size_t bogus_entry = SnesToPc(table_snes) + 7;
+    if (bogus_entry < rom.size()) {
+      rom.mutable_data()[bogus_entry] = 95;
+    }
+    GameData game_data;
+    game_data.graphics_buffer.assign(223 * 4096, 1);
+    std::fill_n(game_data.graphics_buffer.begin() + 92 * 4096, 1024, 2);
+    std::fill_n(game_data.graphics_buffer.begin() + 95 * 4096, 1024, 7);
+    Room room(0, &rom, &game_data);
+    room.LoadRoomGraphics(/*entrance_blockset=*/7);
+    room.CopyRoomGraphicsToBuffer();
+    const auto& pixels = room.get_gfx_buffer();
+    EXPECT_EQ(pixels[0x1B0 * 64], 1);
+    EXPECT_EQ(pixels[0x1C0 * 64], 2);
+  }
+}
+
+TEST(RoomGraphicsPaletteTest, GraphicsRevisionPublishesOnlyAfterBufferWrites) {
+  Room room(0, nullptr, nullptr);
+  EXPECT_EQ(room.graphics_revision(), 0u);
+  room.CopyRoomGraphicsToBuffer();
+  room.LoadAnimatedGraphics();
+  EXPECT_EQ(room.graphics_revision(), 0u);
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  GameData game_data;
+  room.SetRom(&rom);
+  room.SetGameData(&game_data);
+  room.LoadRoomGraphics();
+  room.CopyRoomGraphicsToBuffer();
+  room.LoadAnimatedGraphics();
+  EXPECT_EQ(room.graphics_revision(), 0u)
+      << "Missing decoded source pixels must not publish a refresh";
+
+  game_data.graphics_buffer.assign(223 * 4096, 1);
+  room.CopyRoomGraphicsToBuffer();
+  const auto revision = room.graphics_revision();
+  EXPECT_NE(revision, 0u);
+  room.LoadRoomGraphics();
+  EXPECT_EQ(room.graphics_revision(), revision)
+      << "Choosing sheets alone does not change assembled pixels";
+
+  room.SetGameData(nullptr);
+  room.CopyRoomGraphicsToBuffer();
+  room.LoadAnimatedGraphics();
+  EXPECT_EQ(room.graphics_revision(), revision);
+  EXPECT_FALSE(rom.dirty());
 }
 
 TEST(RoomGraphicsPaletteTest, BuildDungeonRenderPaletteIncludesHudRows) {

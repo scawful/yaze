@@ -24,6 +24,7 @@
 #include "test_utils/dungeon_editor_v2_regular_entrance_test_peer.h"
 #include "testing.h"
 #include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 
 #include "imgui/imgui.h"
@@ -761,6 +762,7 @@ TEST(EditorManagerWriteConflictTest,
       0x111111u);
   EXPECT_EQ(zelda3::CustomObjectManager::Get().GetBasePath(),
             (rom_a.parent_path() / "objects-a").string());
+  ASSERT_EQ(zelda3::CustomObjectManager::Get().active_runtime_context_id(), 0u);
 
   ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x2345, 0x6A));
   ASSERT_OK(manager->SaveRom());
@@ -777,6 +779,20 @@ TEST(EditorManagerWriteConflictTest,
       0x222222u);
   EXPECT_EQ(zelda3::CustomObjectManager::Get().GetBasePath(),
             (rom_b.parent_path() / "objects-b").string());
+  ASSERT_EQ(zelda3::CustomObjectManager::Get().active_runtime_context_id(), 1u);
+
+  const uint64_t session_b_generation =
+      zelda3::CustomObjectManager::Get().asset_generation();
+  UpdateSessionEditorsFrame(manager.get());
+  EXPECT_EQ(manager->GetCurrentSessionId(), 1u);
+  EXPECT_EQ(zelda3::CustomObjectManager::Get().active_runtime_context_id(), 1u);
+  EXPECT_EQ(zelda3::CustomObjectManager::Get().asset_generation(),
+            session_b_generation);
+  EXPECT_EQ(zelda3::CustomObjectManager::Get().GetBasePath(),
+            (rom_b.parent_path() / "objects-b").string());
+  EXPECT_TRUE(core::FeatureFlags::get().kEnableCustomObjects);
+  EXPECT_EQ(zelda3::DrawRoutineRegistry::Get().GetRoutineIdForObject(0x31),
+            zelda3::DrawRoutineIds::kCustomObject);
 
   ASSERT_OK(manager->GetCurrentRom()->WriteByte(0x2345, 0x7B));
   const auto blocked = manager->SaveRom();

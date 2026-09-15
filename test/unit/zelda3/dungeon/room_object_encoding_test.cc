@@ -5,15 +5,156 @@
 // correctly for all three object types (Type1, Type2, Type3) based on
 // ZScream's proven implementation.
 
+#include <algorithm>
+#include <limits>
 #include <string>
 
 #include <gtest/gtest.h>
 
+#include "core/features.h"
+#include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
 namespace zelda3 {
 namespace {
+
+class ScopedRoomObjectResizeState {
+ public:
+  explicit ScopedRoomObjectResizeState(bool custom_enabled)
+      : previous_state_(CustomObjectManager::Get().SnapshotState()),
+        previous_enabled_(core::FeatureFlags::get().kEnableCustomObjects) {
+    CustomObjectManager::Get().ClearObjectFileMap();
+    core::FeatureFlags::get().kEnableCustomObjects = custom_enabled;
+    DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  }
+  ~ScopedRoomObjectResizeState() {
+    core::FeatureFlags::get().kEnableCustomObjects = previous_enabled_;
+    DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+    CustomObjectManager::Get().RestoreState(previous_state_);
+  }
+
+ private:
+  CustomObjectManager::State previous_state_;
+  bool previous_enabled_;
+};
+
+TEST(RoomObjectEncodingTest, PackedFloorSizeAxisStepsFollowRegistry) {
+  ScopedRoomObjectResizeState state(false);
+  for (const int id : {0xC0, 0xC4, 0xC5, 0xC8, 0xCA, 0xD1, 0xD2, 0xD9, 0xDB,
+                       0xE3, 0xE4, 0xE5, 0xE6}) {
+    EXPECT_EQ(RoomObjectSizeAxisStep(id), 4) << id;
+  }
+  EXPECT_EQ(RoomObjectSizeAxisStep(0xC3), 3);
+  EXPECT_EQ(RoomObjectSizeAxisStep(0xD7), 3);
+  EXPECT_EQ(RoomObjectSizeAxisStep(0xDE), 2);
+  for (const int id : {0x01, 0x34, 0xCD, 0xCE, 0xD8, 0x100, 0xF99}) {
+    EXPECT_EQ(RoomObjectSizeAxisStep(id), 0) << id;
+    EXPECT_EQ(RoomObjectSizeAxisTiles(id, 3), 0) << id;
+    EXPECT_EQ(RoomObjectSizeAxisTiles(id, 3, true), 0) << id;
+  }
+}
+
+TEST(RoomObjectEncodingTest, PackedRectangleTileExtentsMatchUsdasm) {
+  ScopedRoomObjectResizeState state(false);
+  struct SizeCase {
+    int id;
+    int base_width;
+    int base_height;
+    int step;
+  };
+  const SizeCase cases[] = {
+      {0xC1, 14, 8, 2},  // $018CC7: two 3-wide caps, (x+4) 2-wide fills.
+      {0xDC, 10, 7, 2},  // $019733: 8 fixed columns, two (x+1) fills.
+      {0xDD, 4, 4, 2},   // $0193DC: fixed edges around 2-wide repeats.
+      {0xC3, 3, 3, 3},  {0xD1, 4, 4, 4}, {0xDE, 2, 2, 2},
+  };
+  for (const auto& test_case : cases) {
+    SCOPED_TRACE(test_case.id);
+    EXPECT_EQ(RoomObjectSizeAxisStep(test_case.id), test_case.step);
+    for (int size = 0; size < 16; ++size) {
+      SCOPED_TRACE(size);
+      EXPECT_EQ(RoomObjectSizeAxisTiles(test_case.id, size, true),
+                test_case.base_width + ((size >> 2) & 3) * test_case.step);
+      EXPECT_EQ(RoomObjectSizeAxisTiles(test_case.id, size),
+                test_case.base_height + (size & 3) * test_case.step);
+    }
+  }
+}
+
+TEST(RoomObjectEncodingTest,
+     PackedRectangleResizePreservesOtherAxisAtEverySize) {
+  ScopedRoomObjectResizeState state(false);
+  for (const int id : {0xC0, 0xC1, 0xC3, 0xC4, 0xC8, 0xCA, 0xD1, 0xDB, 0xDC,
+                       0xDD, 0xDE, 0xE3}) {
+    SCOPED_TRACE(id);
+    for (int size = 0; size <= 15; ++size) {
+      SCOPED_TRACE(size);
+      for (const int delta : {-10, -1, 0, 1, 10}) {
+        const int x = (size >> 2) & 3;
+        const int y = size & 3;
+        EXPECT_EQ(ResizeRoomObjectByDelta(id, size, delta),
+                  (x << 2) | std::clamp(y + delta, 0, 3));
+        EXPECT_EQ(ResizeRoomObjectByDelta(id, size, delta, true),
+                  (std::clamp(x + delta, 0, 3) << 2) | y);
+      }
+    }
+  }
+}
+
+TEST(RoomObjectEncodingTest, ScalarResizeClampsExtremeDeltas) {
+  ScopedRoomObjectResizeState state(false);
+  EXPECT_EQ(ResizeRoomObjectByDelta(0x01, 3, 2), 5);
+  EXPECT_EQ(ResizeRoomObjectByDelta(0x01, 3, -2, true), 1);
+  EXPECT_EQ(ResizeRoomObjectByDelta(0x01, 3, std::numeric_limits<int>::max()),
+            15);
+  EXPECT_EQ(ResizeRoomObjectByDelta(0x01, 3, std::numeric_limits<int>::min()),
+            0);
+}
+
+TEST(RoomObjectEncodingTest, CustomVariantsAreNotGeometricallyResizable) {
+  ScopedRoomObjectResizeState state(true);
+  CustomObjectManager::Get().SetObjectFileMap({{0xD1, {"custom_floor.bin"}},
+                                               {0xC1, {"closed_platform.bin"}},
+                                               {0xDC, {"open_platform.bin"}},
+                                               {0xDD, {"table_rock.bin"}}});
+  for (const int id : {0x31, 0x32, 0x54, 0xD1, 0xC1, 0xDC, 0xDD}) {
+    EXPECT_TRUE(IsRoomObjectSizeEditable(id));
+    EXPECT_FALSE(IsRoomObjectResizable(id));
+    EXPECT_EQ(RoomObjectSizeAxisStep(id), 0);
+    EXPECT_EQ(RoomObjectSizeAxisTiles(id, 2), 0);
+    EXPECT_EQ(RoomObjectSizeAxisTiles(id, 2, true), 0);
+    EXPECT_EQ(ResizeRoomObjectByDelta(id, 2, 1), 2);
+    EXPECT_EQ(ResizeRoomObjectByDelta(id, 2, -1, true), 2);
+    EXPECT_EQ(CanonicalRoomObjectSize(id, 2), 2);
+  }
+  for (const int id : {0x100, 0xF99}) {
+    EXPECT_FALSE(IsRoomObjectResizable(id));
+    EXPECT_EQ(ResizeRoomObjectByDelta(id, 6, 1), 6);
+  }
+}
+
+TEST(RoomObjectEncodingTest, DisabledCustomObjectsKeepType1ScalarSizing) {
+  ScopedRoomObjectResizeState state(false);
+  for (const int id : {0x31, 0x32, 0x54}) {
+    EXPECT_TRUE(IsRoomObjectResizable(id));
+    EXPECT_EQ(ResizeRoomObjectByDelta(id, 2, 1), 3);
+  }
+}
+
+TEST(RoomObjectEncodingTest, DisabledCustomOverridesKeepPackedPlatformSizing) {
+  ScopedRoomObjectResizeState state(false);
+  CustomObjectManager::Get().SetObjectFileMap({{0xC1, {"closed_platform.bin"}},
+                                               {0xDC, {"open_platform.bin"}},
+                                               {0xDD, {"table_rock.bin"}}});
+  for (const int id : {0xC1, 0xDC, 0xDD}) {
+    EXPECT_TRUE(IsRoomObjectResizable(id));
+    EXPECT_EQ(RoomObjectSizeAxisStep(id), 2);
+    EXPECT_EQ(ResizeRoomObjectByDelta(id, 3, 1), 3);
+    EXPECT_EQ(ResizeRoomObjectByDelta(id, 3, 1, true), 7);
+  }
+}
 
 TEST(RoomObjectEncodingTest, ClassifiesOnlyStatefulChestObjects) {
   for (const int object_id : {0xF99, 0xFB1}) {

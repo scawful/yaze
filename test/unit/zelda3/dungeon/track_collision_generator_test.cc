@@ -111,8 +111,8 @@ TEST(TrackCollisionGeneratorTest, UsesDimensionServiceNotLegacyWidthHeight) {
 TEST(TrackCollisionGeneratorTest,
      CanonicalTrackSubtypesFallbackToTwoByTwoWithoutCustomGeometry) {
   ScopedCustomObjectsFlag custom_objects(/*enabled=*/false);
-  constexpr std::array<uint8_t, 16> kTrackSubtypes = {
-      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+  constexpr std::array<uint8_t, 14> kTrackSubtypes = {0, 1, 2, 3,  4,  5,  6,
+                                                      7, 8, 9, 10, 11, 12, 14};
 
   const auto idx = [](int x, int y) {
     return static_cast<size_t>(y * 64 + x);
@@ -132,6 +132,39 @@ TEST(TrackCollisionGeneratorTest,
     EXPECT_NE(result.collision_map.tiles[idx(10, 11)], 0);
     EXPECT_NE(result.collision_map.tiles[idx(11, 11)], 0);
   }
+}
+
+TEST(TrackCollisionGeneratorTest,
+     CanonicalDecorativeSubtypesDoNotGenerateTrackCollision) {
+  ScopedCustomObjectsFlag custom_objects(/*enabled=*/false);
+
+  for (const uint8_t subtype : {13, 15}) {
+    SCOPED_TRACE(::testing::Message() << "subtype=" << +subtype);
+    Room room;
+    room.AddTileObject(RoomObject(0x31, 10, 10, subtype, 0));
+
+    auto result_or = GenerateTrackCollision(&room, GeneratorOptions{});
+    ASSERT_TRUE(result_or.ok()) << result_or.status();
+    EXPECT_EQ(result_or->tiles_generated, 0);
+    EXPECT_FALSE(result_or->collision_map.has_data);
+    EXPECT_TRUE(std::all_of(result_or->collision_map.tiles.begin(),
+                            result_or->collision_map.tiles.end(),
+                            [](uint8_t tile) { return tile == 0; }));
+  }
+}
+
+TEST(TrackCollisionGeneratorTest,
+     ConfiguredNoncanonicalTrackIdPreservesAllSubtypeBehavior) {
+  Room room;
+  room.AddTileObject(RoomObject(0x35, 10, 10, 13, 0));
+
+  GeneratorOptions options;
+  options.track_object_id = 0x35;
+  auto result_or = GenerateTrackCollision(&room, options);
+  ASSERT_TRUE(result_or.ok()) << result_or.status();
+
+  EXPECT_GT(result_or->tiles_generated, 0);
+  EXPECT_TRUE(result_or->collision_map.has_data);
 }
 
 TEST(TrackCollisionGeneratorTest,

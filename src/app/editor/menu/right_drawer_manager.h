@@ -6,6 +6,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "absl/types/span.h"
 #include "app/editor/editor.h"
 #include "app/gui/core/ui_config.h"
 #include "imgui/imgui.h"
@@ -309,15 +310,25 @@ class RightDrawerManager {
   void Draw();
 
   /**
-   * @brief Draw drawer toggle buttons for the status cluster
+   * @brief Draw the single Drawers overflow control for the status cluster.
    *
-   * Returns true if any button was clicked.
+   * One icon opens a popup listing every switchable drawer (checked when
+   * active). Returns true if the overflow button was clicked or a drawer was
+   * toggled from the popup.
    */
   bool DrawDrawerToggleButtons();
   [[deprecated("Use DrawDrawerToggleButtons() instead.")]]
   bool DrawPanelToggleButtons() {
     return DrawDrawerToggleButtons();
   }
+
+  /**
+   * @brief Menu-bar width reserved for the Drawers overflow control.
+   *
+   * Keep in sync with DrawDrawerToggleButtons() SmallButton metrics so
+   * UICoordinator::DrawMenuBarExtras does not hardcode icon counts.
+   */
+  static float GetDrawerToggleClusterWidth();
 
   // ============================================================================
   // Panel-specific accessors
@@ -332,6 +343,8 @@ class RightDrawerManager {
   ProjectManagementPanel* project_panel() const { return project_panel_; }
 
  private:
+  friend class RightDrawerManagerTestPeer;
+
   void DrawPanelHeader(const char* title, const char* icon);
   void DrawAgentChatPanel();
   void DrawProposalsPanel();
@@ -421,12 +434,37 @@ const char* GetPanelTypeName(RightDrawerManager::PanelType type);
  */
 const char* GetPanelTypeIcon(RightDrawerManager::PanelType type);
 
+/**
+ * @brief Shortcut action id used by ShortcutManager for a drawer toggle.
+ */
+const char* GetPanelShortcutAction(RightDrawerManager::PanelType type);
+
+/**
+ * @brief One entry in the shared right-drawer catalog (header / overflow / View).
+ */
+struct DrawerCatalogEntry {
+  RightDrawerManager::DrawerType type;
+  const char* name = nullptr;
+  const char* icon = nullptr;
+  const char* shortcut_action = nullptr;
+};
+
+/**
+ * @brief Switchable drawers in header-cycle order (excludes Tool Output).
+ */
+absl::Span<const DrawerCatalogEntry> GetDrawerCatalog();
+
 inline const char* GetDrawerTypeName(RightDrawerManager::DrawerType type) {
   return GetPanelTypeName(type);
 }
 
 inline const char* GetDrawerTypeIcon(RightDrawerManager::DrawerType type) {
   return GetPanelTypeIcon(type);
+}
+
+inline const char* GetDrawerShortcutAction(
+    RightDrawerManager::DrawerType type) {
+  return GetPanelShortcutAction(type);
 }
 
 }  // namespace editor

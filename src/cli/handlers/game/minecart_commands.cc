@@ -148,6 +148,9 @@ RoomMinecartAudit AuditRoom(Rom* rom, int room_id, int track_object_id,
       continue;
     }
     int subtype = obj.size_ & 0x1F;
+    if (!zelda3::IsMinecartTrackGraphicsSubtype(track_object_id, subtype)) {
+      continue;
+    }
     audit.track_object_subtypes.insert(subtype);
   }
 
@@ -239,17 +242,6 @@ RoomMinecartAudit AuditRoom(Rom* rom, int room_id, int track_object_id,
   if (has_minecart_sprites && audit.stop_tiles > 0 && !any_on_stop) {
     audit.issues.push_back(
         "Minecart sprite present but none placed on a stop tile (B7-BA).");
-  }
-  for (const auto& spr : audit.minecart_sprites) {
-    if (track_objects_signal && !audit.track_object_subtypes.empty() &&
-        audit.track_object_subtypes.find(spr.subtype) ==
-            audit.track_object_subtypes.end()) {
-      audit.issues.push_back(
-          absl::StrFormat("Minecart sprite subtype %d is not referenced by any "
-                          "track objects in "
-                          "this room.",
-                          spr.subtype));
-    }
   }
   if (has_track_collision && audit.stop_tiles == 0) {
     audit.issues.push_back(

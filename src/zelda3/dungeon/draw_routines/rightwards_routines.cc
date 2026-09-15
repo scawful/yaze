@@ -661,21 +661,25 @@ void DrawRightwardsLine1x1_1to16plus1(const DrawContext& ctx) {
 }
 
 void DrawRightwardsBar4x3_1to16(const DrawContext& ctx) {
-  const int size = ctx.object.size_ & 0x0F;
-  const int count = size + 1;
-  if (ctx.tiles.size() < 12) {
+  if (ctx.tiles.size() < 9) {
     return;
   }
 
-  for (int s = 0; s < count; ++s) {
-    const int base_x = ctx.object.x_ + (s * 4);
-    for (int x = 0; x < 4; ++x) {
-      for (int y = 0; y < 3; ++y) {
-        DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x,
-                                     ctx.object.y_ + y, ctx.tiles[x * 3 + y]);
-      }
+  // USDASM $0194BD-$0194DC draws one opening column, 2*(size+1) middle
+  // columns, then one closing column. $01B2F6 reads three words per column;
+  // "4x3" names the minimum footprint, not a twelve-word repeating stamp.
+  const int middle_columns = 2 * ((ctx.object.size_ & 0x0F) + 1);
+  auto draw_column = [&](int x, int tile_base) {
+    for (int row = 0; row < 3; ++row) {
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, x, ctx.object.y_ + row,
+                                   ctx.tiles[tile_base + row]);
     }
+  };
+  draw_column(ctx.object.x_, 0);
+  for (int column = 0; column < middle_columns; ++column) {
+    draw_column(ctx.object.x_ + 1 + column, 3);
   }
+  draw_column(ctx.object.x_ + 1 + middle_columns, 6);
 }
 
 void DrawRightwardsShelf4x4_1to16(const DrawContext& ctx) {
@@ -1082,7 +1086,7 @@ void RegisterRightwardsRoutines(std::vector<DrawRoutineInfo>& registry) {
       .draws_to_both_bgs = false,
       .base_width = 4,
       .base_height = 3,
-      .min_tiles = 12,
+      .min_tiles = 9,
       .category = DrawRoutineInfo::Category::Rightwards,
   });
 

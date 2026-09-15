@@ -217,7 +217,7 @@ class MenuOrchestrator {
   void AddEditMenuItems();
   void AddViewMenuItems();
   void AddAppearanceMenuItems();
-  void AddLayoutMenuItems();
+  void AddDrawersMenuItems();
   void AddPanelsMenuItems();  // Top-level panels menu items
   void AddToolsMenuItems();   // Also contains former Debug menu items
   void AddSearchMenuItems();

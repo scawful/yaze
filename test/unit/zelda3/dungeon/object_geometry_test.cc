@@ -1,7 +1,15 @@
 #include "zelda3/dungeon/geometry/object_geometry.h"
 
+#include <chrono>
+#include <filesystem>
+#include <fstream>
+#include <vector>
+
 #include "absl/strings/str_format.h"
+#include "core/features.h"
 #include "gtest/gtest.h"
+#include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_state.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -21,6 +29,14 @@ class ActiveWaterFaceState final : public DungeonState {
   bool IsRupeeFloorCleared(int) const override { return false; }
   bool IsCrystalSwitchBlue() const override { return true; }
 };
+
+void WriteCustomObjectBinary(const std::filesystem::path& path,
+                             const std::vector<uint8_t>& bytes) {
+  std::ofstream output(path, std::ios::binary);
+  ASSERT_TRUE(output.good());
+  output.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+  ASSERT_TRUE(output.good());
+}
 
 }  // namespace
 
@@ -317,6 +333,152 @@ TEST(ObjectGeometryTest, ClearCacheWorks) {
   auto bounds2 = ObjectGeometry::Get().MeasureByObjectId(obj);
   ASSERT_TRUE(bounds2.ok());
   EXPECT_EQ(bounds->width_tiles, bounds2->width_tiles);
+}
+
+TEST(ObjectGeometryTest,
+     CustomAssetReloadAndSessionContextSwitchKeepBoundsIsolated) {
+  auto& manager = CustomObjectManager::Get();
+  const auto previous_manager_state = manager.SnapshotState();
+  const auto previous_context_id = manager.active_runtime_context_id();
+  const bool previous_feature_state =
+      core::FeatureFlags::get().kEnableCustomObjects;
+  const auto nonce =
+      std::chrono::steady_clock::now().time_since_epoch().count();
+  const auto root = std::filesystem::temp_directory_path() /
+                    ("yaze_custom_geometry_cache_" +
+                     std::to_string(static_cast<long long>(nonce)));
+  const auto first_project = root / "first";
+  const auto second_project = root / "second";
+  const uint64_t first_context_id =
+      static_cast<uint64_t>(nonce) | (uint64_t{1} << 63);
+  const uint64_t second_context_id = first_context_id ^ (uint64_t{1} << 62);
+
+  struct RestoreStateAndCleanup {
+    CustomObjectManager& manager;
+    CustomObjectManager::State manager_state;
+    std::optional<uint64_t> context_id;
+    uint64_t first_context_id;
+    uint64_t second_context_id;
+    bool feature_state;
+    std::filesystem::path root;
+    ~RestoreStateAndCleanup() {
+      manager.RemoveRuntimeContext(first_context_id);
+      manager.RemoveRuntimeContext(second_context_id);
+      if (context_id.has_value()) {
+        manager.ActivateRuntimeContext(*context_id, manager_state);
+      } else {
+        manager.ActivateStandaloneContext();
+        manager.RestoreState(manager_state);
+      }
+      core::FeatureFlags::get().kEnableCustomObjects = feature_state;
+      DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+      ObjectGeometry::Get().ClearCache();
+      std::filesystem::remove_all(root);
+    }
+  } restore{manager,
+            previous_manager_state,
+            previous_context_id,
+            first_context_id,
+            second_context_id,
+            previous_feature_state,
+            root};
+
+  ASSERT_TRUE(std::filesystem::create_directories(first_project));
+  ASSERT_TRUE(std::filesystem::create_directories(second_project));
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+
+  WriteCustomObjectBinary(first_project / "track_LR.bin",
+                          {
+                              0x01,
+                              0x00,  // count=1, jump=0
+                              0x01,
+                              0x00,  // visible tile at x=0
+                              0x00,
+                              0x00,  // terminator
+                          });
+  manager.ActivateRuntimeContext(
+      first_context_id, {.base_path = first_project.string(),
+                         .custom_file_map = {{0x31, {"track_LR.bin"}}}});
+  const uint64_t first_generation = manager.asset_generation();
+
+  const RoomObject object(0x0031, /*x=*/0, /*y=*/0, /*size=*/0);
+  const auto initial = ObjectGeometry::Get().MeasureByObjectId(object);
+  ASSERT_TRUE(initial.ok());
+  EXPECT_EQ(initial->min_x_tiles, 0);
+  EXPECT_EQ(initial->width_tiles, 1);
+
+  // Edit the same file to span x=0..5 with runtime no-op bridge words.
+  WriteCustomObjectBinary(first_project / "track_LR.bin",
+                          {
+                              0x06,
+                              0x00,  // count=6, jump=0
+                              0x01,
+                              0x00,  // visible at x=0
+                              0x00,
+                              0x00,  // no-op x=1
+                              0x00,
+                              0x00,  // no-op x=2
+                              0x00,
+                              0x00,  // no-op x=3
+                              0x00,
+                              0x00,  // no-op x=4
+                              0x02,
+                              0x00,  // visible at x=5
+                              0x00,
+                              0x00,  // terminator
+                          });
+  manager.ReloadAll();
+
+  const auto reloaded = ObjectGeometry::Get().MeasureByObjectId(object);
+  ASSERT_TRUE(reloaded.ok());
+  EXPECT_EQ(reloaded->min_x_tiles, 0);
+  EXPECT_EQ(reloaded->width_tiles, 6);
+
+  WriteCustomObjectBinary(second_project / "track_LR.bin",
+                          {
+                              0x01,
+                              0x06,  // count=1, next segment at x=3
+                              0x00,
+                              0x00,  // no-op bridge at x=0
+                              0x01,
+                              0x00,  // count=1, jump=0
+                              0x03,
+                              0x00,  // visible tile at x=3
+                              0x00,
+                              0x00,  // terminator
+                          });
+  manager.ActivateRuntimeContext(
+      second_context_id, {.base_path = second_project.string(),
+                          .custom_file_map = {{0x31, {"track_LR.bin"}}}});
+  const uint64_t second_generation = manager.asset_generation();
+  EXPECT_NE(second_generation, first_generation);
+
+  const auto switched = ObjectGeometry::Get().MeasureByObjectId(object);
+  ASSERT_TRUE(switched.ok());
+  EXPECT_EQ(switched->min_x_tiles, 3);
+  EXPECT_EQ(switched->width_tiles, 1);
+
+  manager.ActivateRuntimeContext(
+      first_context_id, {.base_path = first_project.string(),
+                         .custom_file_map = {{0x31, {"track_LR.bin"}}}});
+  const uint64_t reloaded_first_generation = manager.asset_generation();
+  EXPECT_NE(reloaded_first_generation, first_generation);
+  const auto returned_to_first =
+      ObjectGeometry::Get().MeasureByObjectId(object);
+  ASSERT_TRUE(returned_to_first.ok());
+  EXPECT_EQ(returned_to_first->min_x_tiles, 0);
+  EXPECT_EQ(returned_to_first->width_tiles, 6);
+
+  manager.ActivateRuntimeContext(
+      second_context_id, {.base_path = second_project.string(),
+                          .custom_file_map = {{0x31, {"track_LR.bin"}}}});
+  EXPECT_EQ(manager.asset_generation(), second_generation);
+  const auto returned_to_second =
+      ObjectGeometry::Get().MeasureByObjectId(object);
+  ASSERT_TRUE(returned_to_second.ok());
+  EXPECT_EQ(returned_to_second->min_x_tiles, 3);
+  EXPECT_EQ(returned_to_second->width_tiles, 1);
 }
 
 }  // namespace yaze::zelda3

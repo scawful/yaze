@@ -4,7 +4,11 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
+#include "core/features.h"
 #include "util/log.h"
+#include "zelda3/dungeon/custom_object.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/object_parser.h"
 
 namespace yaze {
@@ -332,6 +336,68 @@ RoomObject::ObjectBytes RoomObject::EncodeObjectToBytes() const {
 
 bool IsRoomObjectSizeEditable(int object_id) {
   return object_id >= 0x000 && object_id <= 0x0F7;
+}
+
+bool IsRoomObjectResizable(int object_id) {
+  return IsRoomObjectSizeEditable(object_id) &&
+         !(core::FeatureFlags::get().kEnableCustomObjects &&
+           CustomObjectManager::Get().GetSubtypeCount(object_id) > 0);
+}
+
+int RoomObjectSizeAxisStep(int object_id) {
+  if (!IsRoomObjectResizable(object_id)) {
+    return 0;
+  }
+  switch (DrawRoutineRegistry::Get().GetRoutineIdForObject(object_id)) {
+    case DrawRoutineIds::k4x4BlocksIn4x4SuperSquare:
+    case DrawRoutineIds::k4x4FloorIn4x4SuperSquare:
+    case DrawRoutineIds::k4x4FloorOneIn4x4SuperSquare:
+    case DrawRoutineIds::k4x4FloorTwoIn4x4SuperSquare:
+      return 4;
+    case DrawRoutineIds::k3x3FloorIn4x4SuperSquare:
+      return 3;
+    case DrawRoutineIds::kSpike2x2In4x4SuperSquare:
+    case DrawRoutineIds::kTableRock4x4_1to16:
+    case DrawRoutineIds::kClosedChestPlatform:
+    case DrawRoutineIds::kOpenChestPlatform:
+      return 2;
+    default:
+      return 0;
+  }
+}
+
+int RoomObjectSizeAxisTiles(int object_id, uint8_t size, bool horizontal) {
+  const int step = RoomObjectSizeAxisStep(object_id);
+  if (step == 0) {
+    return 0;
+  }
+  // USDASM $018CC7/$019733/$0193DC include fixed borders around their packed
+  // axes. Keep those extents in the existing dimension table, not UI formulas.
+  if (object_id == 0xC1 || object_id == 0xDC || object_id == 0xDD) {
+    const auto [width, height] =
+        ObjectDimensionTable::Get().GetDimensions(object_id, size & 0x0F);
+    return horizontal ? width : height;
+  }
+  const int axis = (size >> (horizontal ? 2 : 0)) & 0x03;
+  return (axis + 1) * step;
+}
+
+uint8_t ResizeRoomObjectByDelta(int object_id, uint8_t size, int delta,
+                                bool horizontal) {
+  if (!IsRoomObjectResizable(object_id) || delta == 0) {
+    return size;
+  }
+  // Bound before adding so arbitrary caller deltas cannot overflow int.
+  delta = std::clamp(delta, -15, 15);
+  if (RoomObjectSizeAxisStep(object_id) != 0) {
+    const int shift = horizontal ? 2 : 0;
+    const int mask = 0x03 << shift;
+    const int axis = (size >> shift) & 0x03;
+    return static_cast<uint8_t>(((size & 0x0F) & ~mask) |
+                                (std::clamp(axis + delta, 0, 3) << shift));
+  }
+  return static_cast<uint8_t>(
+      std::clamp(static_cast<int>(size) + delta, 0, 15));
 }
 
 uint8_t CanonicalRoomObjectSize(int object_id, uint8_t requested_size) {

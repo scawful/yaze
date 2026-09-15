@@ -77,9 +77,6 @@ class ObjectDrawer {
     current_chest_index_ = 0;
     current_room_event_index_ = 0;
   }
-  void SetAllowTrackCornerAliases(bool allow) {
-    allow_track_corner_aliases_ = allow;
-  }
   void SetBG1RevealMaskSource(gfx::BG1RevealMaskSource source) {
     bg1_reveal_mask_source_ = source;
   }
@@ -309,7 +306,6 @@ class ObjectDrawer {
   int room_id_;
   mutable int current_chest_index_ = 0;
   mutable int current_room_event_index_ = 0;
-  bool allow_track_corner_aliases_ = true;
   bool has_room_floor_graphics_ = false;
   uint8_t floor1_graphics_ = 0;
   uint8_t floor2_graphics_ = 0;

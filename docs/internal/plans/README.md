@@ -14,6 +14,9 @@ Purpose: keep plan/spec documents centralized and up to date.
 - If a plan is superseded by an initiative doc, add a pointer and move the older plan to `archive/`.
 
 ## Current priorities
+- Start with the [roadmap](../roadmap.md) and the
+  [dungeon 0.8.0 completion backlog](dungeon-0.8.0-issue-test-backlog-2026-06-28.md)
+  for current release requirements, agent assignments, and object evidence.
 - Active release/initiative specs live under `docs/internal/agents/` (e.g., `initiative-v040.md`). Start there before drafting a new plan here.
 - Active plans in this directory include:
   - `release-ladder-0x-2026.md`

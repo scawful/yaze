@@ -132,7 +132,8 @@ TEST_F(DungeonObjectRomValidationTest, TileCountTable_KnownValues) {
       {0x34, 1, "Solid 1x1 block"},
       {0x33, 16, "4x4 block"},  // kSubtype1TileLengths[0x33] = 16
       {0x3C, 8, "Doubled 2x2 decoration"},
-      {0x4C, 12, "Rightwards 4x3 bar"},
+      {0x4C, 9, "Rightwards bar (opening/body/closing 1x3 columns)"},
+      {0x8F, 4, "Downwards bar (top/body 2x1 rows)"},
       {0xA4, 24, "Big hole 4x4"},
       {0xD8, 8, "Flood water overlay A"},
       {0xDA, 8, "Flood water overlay B"},

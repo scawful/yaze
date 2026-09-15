@@ -490,11 +490,22 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
       }
       tooltip += " | Pos: (" + std::to_string(object.x_) + ", " +
                  std::to_string(object.y_) + ")";
-      tooltip += "\nSize: " + std::to_string(object.size_) + " (0x" +
-                 absl::StrFormat("%02X", object.size_) + ")";
+      const int axis_step = zelda3::RoomObjectSizeAxisStep(object.id_);
+      if (axis_step > 0) {
+        tooltip += absl::StrFormat(
+            "\nSize: %d x %d tiles",
+            zelda3::RoomObjectSizeAxisTiles(object.id_, object.size_, true),
+            zelda3::RoomObjectSizeAxisTiles(object.id_, object.size_));
+      } else if (zelda3::IsRoomObjectResizable(object.id_)) {
+        tooltip += absl::StrFormat("\nSize: 0x%02X", object.size_);
+      }
 
       if (selection_.IsObjectSelected(*hovered_index)) {
-        tooltip += "\n" ICON_MD_MOUSE " Scroll wheel to resize";
+        if (axis_step > 0) {
+          tooltip += "\n" ICON_MD_MOUSE " Wheel: height | Shift+wheel: width";
+        } else if (zelda3::IsRoomObjectResizable(object.id_)) {
+          tooltip += "\n" ICON_MD_MOUSE " Scroll wheel to resize";
+        }
         tooltip += "\n" ICON_MD_DRAG_INDICATOR " Drag to move";
       } else {
         tooltip += "\n" ICON_MD_TOUCH_APP " Click to select";
@@ -575,11 +586,12 @@ void DungeonObjectInteraction::DrawHoverHighlight(
 }
 
 void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {
-  entity_coordinator_.tile_handler().PlaceObjectAt(
-      current_room_id_, preview_object_, room_x, room_y);
+  auto& tile_handler = entity_coordinator_.tile_handler();
+  const auto object = tile_handler.GetPreviewObject();
+  tile_handler.PlaceObjectAt(current_room_id_, object, room_x, room_y);
 
   if (object_placed_callback_) {
-    object_placed_callback_(preview_object_);
+    object_placed_callback_(object);
   }
 
   interaction_context_.NotifyInvalidateCache(MutationDomain::kTileObjects);
@@ -615,8 +627,6 @@ void DungeonObjectInteraction::SetCurrentRoom(DungeonRoomStore* rooms,
 
 void DungeonObjectInteraction::SetPreviewObject(
     const zelda3::RoomObject& object, bool loaded) {
-  preview_object_ = object;
-
   if (loaded && object.id_ >= 0) {
     // Cancel other placement modes (doors/sprites/items) before entering object
     // placement. We re-enable tile placement below.
@@ -624,12 +634,11 @@ void DungeonObjectInteraction::SetPreviewObject(
 
     // Enter object placement mode
     mode_manager_.SetMode(InteractionMode::PlaceObject);
-    mode_manager_.GetModeState().preview_object = object;
 
     // Ensure tile placement mode is active so ghost preview can render and
     // clicks place the object.
     auto& tile_handler = entity_coordinator_.tile_handler();
-    tile_handler.SetPreviewObject(preview_object_);
+    tile_handler.SetPreviewObject(object);
     if (!tile_handler.IsPlacementActive()) {
       tile_handler.BeginPlacement();
     }
