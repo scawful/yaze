@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "app/gfx/core/bitmap.h"
+#include "app/gfx/resource/arena.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/palette_debug.h"
@@ -548,6 +549,146 @@ TEST(RoomGraphicsPaletteTest,
   EXPECT_EQ(blocks[5], 82);
   EXPECT_EQ(blocks[6], 83);
   EXPECT_EQ(blocks[7], 77);
+}
+
+class RoomRenderLifecycleTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    gfx::Arena::Get().ClearTextureQueue();
+    ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+    const int layout_address = SnesToPc(kRoomLayoutPointers.front());
+    ASSERT_TRUE(rom_.WriteWord(layout_address, 0xFFFF).ok());
+    for (int index = 0; index < 8; ++index) {
+      // Keep one native high-priority floor tile to ensure a refresh does not
+      // simply clear every layout priority bit. All other tiles are low.
+      ASSERT_TRUE(
+          rom_.WriteWord(kTileAddress + index * 2, index == 0 ? 0x2001 : 0x0001)
+              .ok());
+      ASSERT_TRUE(rom_.WriteWord(kTileAddress + 16 + index * 2, 0x0002).ok());
+    }
+    game_data_.graphics_buffer.assign(kNumGfxSheets * 4096, 1);
+    game_data_.palette_groups.hud.AddPalette(MakeDistinctPalette(0x100, 32));
+    game_data_.palette_groups.dungeon_main.AddPalette(
+        MakeDistinctPalette(0x200, 90));
+    room_ = std::make_unique<Room>(0, &rom_, &game_data_);
+    room_->SetLayoutId(0);
+    room_->set_floor1(0);
+    room_->set_floor2(0);
+    room_->SetTileObjects({});
+  }
+
+  void TearDown() override {
+    gfx::Arena::Get().ClearTextureQueue();
+    PaletteDebugger::Get().Clear();
+  }
+
+  RoomObject MakeObject(int id, int x, int y, int layer = 0) {
+    RoomObject object(id, x, y, 0, layer);
+    object.SetRom(&rom_);
+    object.EnsureTilesLoaded();
+    object.mutable_tiles().assign(64, gfx::WordToTileInfo(0x0001));
+    return object;
+  }
+
+  Rom rom_;
+  GameData game_data_;
+  std::unique_ptr<Room> room_;
+};
+
+TEST_F(RoomRenderLifecycleTest, GraphicsOnlyRefreshRerendersObjectPixels) {
+  room_->AddTileObject(MakeObject(0xC4, 8, 8));
+  room_->PrepareForRender();
+  auto& bitmap = room_->object_bg1_buffer().bitmap();
+  constexpr size_t kSample = 8 * 8 * 512 + 8 * 8;
+  const uint8_t before = bitmap.data()[kSample];
+  ASSERT_NE(before, 255);
+  const uint64_t old_revision = room_->graphics_revision();
+
+  std::fill(game_data_.graphics_buffer.begin(),
+            game_data_.graphics_buffer.end(), 2);
+  room_->MarkGraphicsDirty();
+  room_->PrepareForRender();
+  ASSERT_NE(room_->graphics_revision(), old_revision);
+  const uint8_t graphics_refresh_pixel = bitmap.data()[kSample];
+
+  room_->MarkObjectsDirty();
+  room_->PrepareForRender();
+  const uint8_t full_refresh_pixel = bitmap.data()[kSample];
+  ASSERT_NE(full_refresh_pixel, before);
+  EXPECT_EQ(graphics_refresh_pixel, full_refresh_pixel);
+}
+
+TEST_F(RoomRenderLifecycleTest, FloorChangeRerendersFloorDependentObjects) {
+  room_->AddTileObject(MakeObject(0xC4, 8, 8));
+  room_->PrepareForRender();
+  ASSERT_EQ(room_->object_bg1_buffer().GetTileAt(8, 8), 0x2001);
+
+  room_->set_floor1(1);
+  room_->PrepareForRender();
+
+  EXPECT_EQ(room_->bg1_buffer().GetTileAt(8, 8), 0x0002);
+  EXPECT_EQ(room_->object_bg1_buffer().GetTileAt(8, 8), 0x0002);
+}
+
+TEST_F(RoomRenderLifecycleTest, GraphicsRefreshClearsTransparentBasePixels) {
+  room_->PrepareForRender();
+  for (const auto* layout : {&room_->bg1_buffer(), &room_->bg2_buffer()}) {
+    ASSERT_NE(layout->bitmap().data()[0], 255);
+    ASSERT_EQ(layout->GetPriorityAt(0, 0), 1);
+  }
+
+  std::fill(game_data_.graphics_buffer.begin(),
+            game_data_.graphics_buffer.end(), 0);
+  room_->MarkGraphicsDirty();
+  room_->PrepareForRender();
+
+  for (const auto* layout : {&room_->bg1_buffer(), &room_->bg2_buffer()}) {
+    EXPECT_EQ(layout->bitmap().data()[0], 255);
+    EXPECT_EQ(layout->GetPriorityAt(0, 0), 0xFF);
+  }
+}
+
+TEST_F(RoomRenderLifecycleTest, RemovingSpiralStairsRestoresLayoutPriority) {
+  for (const bool lower : {false, true}) {
+    SCOPED_TRACE(lower ? "lower spiral" : "upper spiral");
+    room_->SetTileObjects(
+        {MakeObject(lower ? 0x13A : 0x138, 12, 12, lower ? 1 : 0)});
+    room_->ReloadGraphics();
+    auto& layout = lower ? room_->bg2_buffer() : room_->bg1_buffer();
+    ASSERT_EQ(layout.GetPriorityAt(11 * 8, 12 * 8), 1);
+    ASSERT_EQ(layout.GetPriorityAt(0, 0), 1);
+    const uint64_t graphics_revision = room_->graphics_revision();
+
+    room_->RemoveTileObject(0);
+    room_->PrepareForRender();
+
+    EXPECT_EQ(layout.GetPriorityAt(11 * 8, 12 * 8), 0);
+    EXPECT_EQ(layout.GetPriorityAt(0, 0), 1);
+    EXPECT_EQ(room_->graphics_revision(), graphics_revision);
+  }
+}
+
+TEST_F(RoomRenderLifecycleTest, RemovingLowerDoorRestoresLayoutPriority) {
+  Room::Door door{};
+  door.position = 0;
+  door.type = DoorType::NormalDoorLower;
+  door.direction = DoorDirection::North;
+  room_->AddDoor(door);
+  room_->PrepareForRender();
+  const auto [door_x, door_y] = door.GetTileCoords();
+  // The lower-door priority span covers the upper wall back to its quadrant
+  // boundary. Choose a native low-priority floor column inside that span.
+  const int sample_x = ((door_x % 4 == 0) ? door_x + 1 : door_x) * 8;
+  const int sample_y = (door_y / 32) * 32 * 8;
+  ASSERT_EQ(room_->bg1_buffer().GetPriorityAt(sample_x, sample_y), 1);
+  const uint64_t graphics_revision = room_->graphics_revision();
+
+  room_->RemoveDoor(0);
+  room_->PrepareForRender();
+
+  EXPECT_EQ(room_->bg1_buffer().GetPriorityAt(sample_x, sample_y), 0);
+  EXPECT_EQ(room_->bg1_buffer().GetPriorityAt(0, 0), 1);
+  EXPECT_EQ(room_->graphics_revision(), graphics_revision);
 }
 
 }  // namespace yaze::zelda3::test

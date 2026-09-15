@@ -1,8 +1,7 @@
 #ifndef YAZE_APP_EDITOR_GRAPHICS_SCREEN_EDITOR_INTERNAL_H_
 #define YAZE_APP_EDITOR_GRAPHICS_SCREEN_EDITOR_INTERNAL_H_
 
-#include "app/gfx/core/bitmap.h"
-#include "app/gfx/resource/arena.h"
+#include "app/gfx/resource/bitmap_texture_queue.h"
 
 namespace yaze {
 namespace editor {
@@ -29,25 +28,10 @@ namespace internal {
 // diagnostic log (canvas_rendering.cc) and any future role-aware tooling
 // can identify the bitmap correctly.
 //
-// Safe to call every frame; the Arena's CREATE branch checks for an
-// existing texture before allocating, so re-queuing is harmless.
+// Safe to call every frame; the shared helper suppresses duplicate commands
+// for the same bitmap generation while an upload is still pending.
 inline void EnsureCompositeBitmapTextureQueued(gfx::Bitmap& composite) {
-  if (composite.surface() == nullptr) {
-    return;
-  }
-  if (!composite.is_active()) {
-    composite.set_active(true);
-  }
-  if (composite.texture() == nullptr) {
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::CREATE, &composite);
-    composite.set_modified(false);
-  } else if (composite.modified()) {
-    gfx::Arena::Get().QueueTextureCommand(
-        gfx::Arena::TextureCommandType::UPDATE, &composite);
-    composite.set_modified(false);
-  }
-  composite.metadata().purpose = gfx::Bitmap::BitmapPurpose::kCompositeOutput;
+  gfx::EnsureCompositeBitmapTextureQueued(composite);
 }
 
 }  // namespace internal

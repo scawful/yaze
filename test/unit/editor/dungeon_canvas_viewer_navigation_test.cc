@@ -1,21 +1,29 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
+#include <memory>
+#include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
 #include "app/editor/dungeon/dungeon_canvas_transform.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/dungeon/ui/window/dungeon_map_panel.h"
 #include "app/editor/dungeon/ui_constants.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/gui/canvas/canvas_pipelines.h"
 #include "app/gui/core/icons.h"
+#include "core/features.h"
 #include "core/project.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui_internal.h"
@@ -52,12 +60,83 @@ struct IssueReportPopupSnapshot {
   ImVec2 content_end;
 };
 
+class DungeonMapPanelTestPeer {
+ public:
+  static size_t RoomCount(const DungeonMapPanel& panel) {
+    return panel.dungeon_room_ids_.size();
+  }
+
+  static bool HasRoomType(const DungeonMapPanel& panel, int room_id) {
+    return panel.room_types_.contains(room_id);
+  }
+
+  static size_t StairConnectionCount(const DungeonMapPanel& panel) {
+    return panel.stair_connections_.size();
+  }
+
+  static size_t HolewarpConnectionCount(const DungeonMapPanel& panel) {
+    return panel.holewarp_connections_.size();
+  }
+
+  static void SeedCompositeOutput(DungeonMapPanel& panel, int room_id) {
+    panel.room_composite_outputs_[room_id] =
+        std::make_unique<RoomCompositeOutput>();
+  }
+
+  static size_t CompositeOutputCount(const DungeonMapPanel& panel) {
+    return panel.room_composite_outputs_.size();
+  }
+};
+
 class DungeonCanvasViewerTestPeer {
  public:
+  static std::span<const uint8_t> ExternalSpriteGraphics(
+      DungeonCanvasViewer& viewer) {
+    const auto* project = viewer.project();
+    viewer.sprite_preview_resources_.SetContext(
+        project->filepath, project->GetAbsolutePath(project->assets_folder),
+        project->hack_manifest.hack_name());
+    return viewer.sprite_preview_resources_.GetGraphics(
+        zelda3::SpriteOamRegistry::GetPreviewOverride(0x88,
+                                                      "Oracle of Secrets"));
+  }
+
+  static std::array<DungeonCanvasViewer*, 3> SeedAssetRefreshViewers(
+      DungeonEditorV2& editor, const project::YazeProject* project) {
+    auto room_viewer = std::make_unique<DungeonCanvasViewer>();
+    auto* room_viewer_ptr = room_viewer.get();
+    editor.room_viewers_.Insert(0, std::move(room_viewer));
+    editor.workbench_viewer_ = std::make_unique<DungeonCanvasViewer>();
+    editor.workbench_compare_viewer_ = std::make_unique<DungeonCanvasViewer>();
+    std::array<DungeonCanvasViewer*, 3> viewers = {
+        room_viewer_ptr, editor.workbench_viewer_.get(),
+        editor.workbench_compare_viewer_.get()};
+    for (auto* viewer : viewers) {
+      viewer->SetProject(project);
+    }
+    return viewers;
+  }
+
+  static void SynchronizeProjectAssets(DungeonEditorV2& editor) {
+    editor.SynchronizeCustomObjectAssets();
+  }
+
   static void RenderSprites(DungeonCanvasViewer& viewer,
                             const gui::CanvasRuntime& runtime,
                             const zelda3::Room& room) {
     viewer.RenderSprites(runtime, room);
+  }
+
+  static auto* CachedSpritePreview(DungeonCanvasViewer& viewer,
+                                   const zelda3::Room& room,
+                                   const zelda3::Sprite& sprite) {
+    return viewer.sprite_preview_cache_.Peek({room.graphics_revision(),
+                                              sprite.id(), sprite.subtype(),
+                                              sprite.IsOverlord()});
+  }
+
+  static size_t SpritePreviewCacheSize(const DungeonCanvasViewer& viewer) {
+    return viewer.sprite_preview_cache_.Size();
   }
 
   static void UpdateRoomCanvasShortcutFocus(DungeonCanvasViewer& viewer,
@@ -162,7 +241,7 @@ class DungeonCanvasViewerTestPeer {
     return snapshot;
   }
 
-  static std::string BuildDrawIssueReport(const DungeonCanvasViewer& viewer,
+  static std::string BuildDrawIssueReport(DungeonCanvasViewer& viewer,
                                           const zelda3::Room& room,
                                           int room_id) {
     return viewer.BuildDrawIssueReport(room, room_id);
@@ -393,6 +472,50 @@ void ClearRoomLinks(zelda3::Room* room) {
 
 }  // namespace
 
+TEST(DungeonMapPanelTest, LoadFromDungeonEntryReplacesAllRoomDerivedState) {
+  int current_room_id = 0x10;
+  ImVector<int> active_rooms;
+  DungeonMapPanel panel(&current_room_id, &active_rooms, nullptr);
+
+  core::DungeonEntry first;
+  first.name = "First";
+  core::DungeonRoom first_room{};
+  first_room.id = 0x10;
+  first_room.type = "boss";
+  first.rooms.push_back(first_room);
+  core::DungeonConnection stair{};
+  stair.from_room = 0x10;
+  stair.to_room = 0x11;
+  first.stairs.push_back(stair);
+  core::DungeonConnection holewarp{};
+  holewarp.from_room = 0x10;
+  holewarp.to_room = 0x12;
+  first.holewarps.push_back(holewarp);
+  panel.LoadFromDungeonEntry(first);
+
+  ASSERT_EQ(DungeonMapPanelTestPeer::RoomCount(panel), 1u);
+  ASSERT_TRUE(DungeonMapPanelTestPeer::HasRoomType(panel, 0x10));
+  ASSERT_EQ(DungeonMapPanelTestPeer::StairConnectionCount(panel), 1u);
+  ASSERT_EQ(DungeonMapPanelTestPeer::HolewarpConnectionCount(panel), 1u);
+  DungeonMapPanelTestPeer::SeedCompositeOutput(panel, 0x10);
+  ASSERT_EQ(DungeonMapPanelTestPeer::CompositeOutputCount(panel), 1u);
+
+  core::DungeonEntry second;
+  second.name = "Second";
+  core::DungeonRoom second_room{};
+  second_room.id = 0x20;
+  second_room.type = "entrance";
+  second.rooms.push_back(second_room);
+  panel.LoadFromDungeonEntry(second);
+
+  EXPECT_EQ(DungeonMapPanelTestPeer::RoomCount(panel), 1u);
+  EXPECT_FALSE(DungeonMapPanelTestPeer::HasRoomType(panel, 0x10));
+  EXPECT_TRUE(DungeonMapPanelTestPeer::HasRoomType(panel, 0x20));
+  EXPECT_EQ(DungeonMapPanelTestPeer::StairConnectionCount(panel), 0u);
+  EXPECT_EQ(DungeonMapPanelTestPeer::HolewarpConnectionCount(panel), 0u);
+  EXPECT_EQ(DungeonMapPanelTestPeer::CompositeOutputCount(panel), 0u);
+}
+
 TEST(DungeonCanvasViewerNavigationTest, CanNavigateRoomsReflectsCallbacks) {
   DungeonCanvasViewer viewer;
 
@@ -534,6 +657,566 @@ struct SpritePreviewCanvasCase {
   SDL_Rect expected_art_bounds;
   const char* name;
 };
+
+class DungeonCanvasAssetRefreshTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const auto nonce =
+        std::chrono::steady_clock::now().time_since_epoch().count();
+    root_ = std::filesystem::temp_directory_path() /
+            ("yaze_canvas_asset_refresh_" + std::to_string(nonce));
+    ASSERT_TRUE(std::filesystem::create_directories(root_ / "Sprites/Bosses"));
+    project_.filepath = (root_ / "project.yaze").string();
+    project_.assets_folder = "Sprites";
+    ASSERT_TRUE(project_.hack_manifest
+                    .LoadFromString(R"json({
+      "manifest_version": 1, "hack_name": "Oracle of Secrets"
+    })json")
+                    .ok());
+    auto& manager = zelda3::CustomObjectManager::Get();
+    previous_state_ = manager.SnapshotState();
+    previous_context_ = manager.active_runtime_context_id();
+    previous_enabled_ = core::FeatureFlags::get().kEnableCustomObjects;
+    core::FeatureFlags::get().kEnableCustomObjects = false;
+    manager.ActivateRuntimeContext(kContext, {});
+  }
+
+  void TearDown() override {
+    auto& manager = zelda3::CustomObjectManager::Get();
+    manager.RemoveRuntimeContext(kContext);
+    manager.RemoveRuntimeContext(kOtherContext);
+    if (previous_context_) {
+      manager.ActivateRuntimeContext(*previous_context_, previous_state_);
+    } else {
+      manager.ActivateStandaloneContext();
+      manager.RestoreState(previous_state_);
+    }
+    core::FeatureFlags::get().kEnableCustomObjects = previous_enabled_;
+    std::error_code error;
+    std::filesystem::remove_all(root_, error);
+  }
+
+  void WriteSprite(uint8_t value, size_t size = 0x2000) {
+    const std::vector<uint8_t> bytes(size, value);
+    std::ofstream file(root_ / "Sprites/Bosses/manhandla.bin",
+                       std::ios::binary);
+    ASSERT_TRUE(file.is_open());
+    file.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+    ASSERT_TRUE(file.good());
+  }
+
+  void ExpectSprite(DungeonCanvasViewer& viewer, uint8_t value) {
+    const auto bytes =
+        DungeonCanvasViewerTestPeer::ExternalSpriteGraphics(viewer);
+    ASSERT_EQ(bytes.size(), 0x2000u);
+    EXPECT_EQ(bytes.front(), value);
+  }
+
+  static constexpr uint64_t kContext = 0xA55E7001;
+  static constexpr uint64_t kOtherContext = 0xA55E7002;
+  std::filesystem::path root_;
+  project::YazeProject project_;
+  zelda3::CustomObjectManager::State previous_state_;
+  std::optional<uint64_t> previous_context_;
+  bool previous_enabled_ = false;
+};
+
+TEST_F(DungeonCanvasAssetRefreshTest,
+       SameProjectRebindKeepsCacheUntilExplicitRefresh) {
+  DungeonCanvasViewer viewer;
+  viewer.SetProject(&project_);
+  WriteSprite(0x11);
+  ExpectSprite(viewer, 0x11);
+
+  DungeonRoomStore rooms;
+  rooms[0].GetTileObjects().emplace_back(0x01, 10, 10, 0, 0);
+  viewer.SetRooms(&rooms);
+  viewer.object_interaction().SetCurrentRoom(&rooms, 0);
+  viewer.object_interaction().SetSelectedObjects({0});
+  WriteSprite(0x22);
+  viewer.SetProject(&project_);
+  ExpectSprite(viewer, 0x11);
+
+  viewer.InvalidateExternalSpriteResources();
+  ExpectSprite(viewer, 0x22);
+  EXPECT_EQ(viewer.object_interaction().GetSelectedObjectIndices(),
+            std::vector<size_t>{0});
+  EXPECT_EQ(rooms[0].GetTileObjects().front().x_, 10);
+}
+
+TEST_F(DungeonCanvasAssetRefreshTest,
+       ExplicitRefreshRetriesMissingAndBadFiles) {
+  DungeonCanvasViewer viewer;
+  viewer.SetProject(&project_);
+  EXPECT_TRUE(
+      DungeonCanvasViewerTestPeer::ExternalSpriteGraphics(viewer).empty());
+  WriteSprite(0x33);
+  EXPECT_TRUE(
+      DungeonCanvasViewerTestPeer::ExternalSpriteGraphics(viewer).empty());
+  viewer.InvalidateExternalSpriteResources();
+  ExpectSprite(viewer, 0x33);
+  WriteSprite(0x44, 5);
+  viewer.InvalidateExternalSpriteResources();
+  EXPECT_TRUE(
+      DungeonCanvasViewerTestPeer::ExternalSpriteGraphics(viewer).empty());
+  WriteSprite(0x55);
+  EXPECT_TRUE(
+      DungeonCanvasViewerTestPeer::ExternalSpriteGraphics(viewer).empty());
+  viewer.InvalidateExternalSpriteResources();
+  ExpectSprite(viewer, 0x55);
+}
+
+TEST_F(DungeonCanvasAssetRefreshTest,
+       FullRomRefreshAlsoInvalidatesExternalArt) {
+  Rom rom;
+  DungeonRoomStore rooms(&rom);
+  DungeonCanvasViewer viewer(&rom);
+  viewer.SetProject(&project_);
+  WriteSprite(0x11);
+  ExpectSprite(viewer, 0x11);
+  WriteSprite(0x22);
+  viewer.RefreshRomBackedState(&rom, nullptr, &rooms, 0);
+  ExpectSprite(viewer, 0x22);
+}
+
+TEST_F(DungeonCanvasAssetRefreshTest,
+       GenerationRefreshesAllSessionViewersOnceWithCustomObjectsDisabled) {
+  DungeonEditorV2 editor(nullptr);
+  const auto viewers =
+      DungeonCanvasViewerTestPeer::SeedAssetRefreshViewers(editor, &project_);
+  DungeonCanvasViewerTestPeer::SynchronizeProjectAssets(editor);
+  WriteSprite(0x11);
+  for (auto* viewer : viewers) {
+    ExpectSprite(*viewer, 0x11);
+  }
+
+  auto& manager = zelda3::CustomObjectManager::Get();
+  manager.ActivateRuntimeContext(kOtherContext, {});
+  DungeonEditorV2 other_editor(nullptr);
+  const auto other_viewers =
+      DungeonCanvasViewerTestPeer::SeedAssetRefreshViewers(other_editor,
+                                                           &project_);
+  DungeonCanvasViewerTestPeer::SynchronizeProjectAssets(other_editor);
+  for (auto* viewer : other_viewers) {
+    ExpectSprite(*viewer, 0x11);
+  }
+
+  manager.ActivateRuntimeContext(kContext, {});
+  WriteSprite(0x22);
+  manager.ReloadAll();
+  DungeonCanvasViewerTestPeer::SynchronizeProjectAssets(editor);
+  for (auto* viewer : viewers) {
+    ExpectSprite(*viewer, 0x22);
+  }
+  WriteSprite(0x33);
+  DungeonCanvasViewerTestPeer::SynchronizeProjectAssets(editor);
+  for (auto* viewer : viewers) {
+    ExpectSprite(*viewer, 0x22);
+  }
+
+  manager.ActivateRuntimeContext(kOtherContext, {});
+  DungeonCanvasViewerTestPeer::SynchronizeProjectAssets(other_editor);
+  for (auto* viewer : other_viewers) {
+    ExpectSprite(*viewer, 0x11);
+  }
+}
+
+// Opt-in CPU benchmark: no frame-time threshold and no display/GPU requirement.
+TEST_F(DungeonCanvasAssetRefreshTest, DISABLED_ProfileSpritePreviewFrames) {
+  const char* assets = std::getenv("YAZE_TEST_ORACLE_SPRITE_ASSETS");
+  ASSERT_NE(assets, nullptr);
+  const auto source = std::filesystem::path(assets) / "Bosses/manhandla.bin";
+  ASSERT_TRUE(std::filesystem::copy_file(
+      source, root_ / "Sprites/Bosses/manhandla.bin"));
+  ScopedImGuiContext imgui;
+  auto& io = ImGui::GetIO();
+  io.Fonts->AddFontDefault();
+  unsigned char* font_pixels = nullptr;
+  int font_width = 0, font_height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&font_pixels, &font_width, &font_height);
+
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  zelda3::GameData game_data;
+  game_data.graphics_buffer.assign(4096, 1);
+  game_data.palette_groups.global_sprites.AddPalette(gfx::SnesPalette(
+      std::vector<gfx::SnesColor>(60, gfx::SnesColor(12, 180, 90))));
+  zelda3::Room room(0, &rom, &game_data);
+  room.mutable_blocks().fill(0);
+  room.CopyRoomGraphicsToBuffer();
+
+  struct Case {
+    const char* name;
+    uint8_t id;
+    int count;
+    bool visible;
+  };
+  for (const auto& scenario :
+       {Case{"ordinary_1", 0x00, 1, true}, Case{"manhandla_1", 0x88, 1, true},
+        Case{"manhandla_8", 0x88, 8, true}, Case{"hidden_8", 0x88, 8, false}}) {
+    DungeonCanvasViewer viewer;
+    viewer.SetProject(&project_);
+    viewer.SetGameData(&game_data);
+    viewer.SetSpritesVisible(scenario.visible);
+    room.GetSprites().clear();
+    for (int i = 0; i < scenario.count; ++i) {
+      room.GetSprites().emplace_back(scenario.id, 2 + i * 3, 8, 0, 0);
+    }
+    auto frame = [&]() {
+      ImGui::NewFrame();
+      ImGui::SetNextWindowSize(ImVec2(900, 700));
+      ImGui::Begin("SpriteProfile", nullptr, ImGuiWindowFlags_NoSavedSettings);
+      gui::CanvasRuntime runtime;
+      runtime.draw_list = ImGui::GetWindowDrawList();
+      runtime.canvas_p0 = ImVec2(10, 10);
+      runtime.canvas_sz = ImVec2(800, 640);
+      runtime.scale = 1.0f;
+      const auto start = std::chrono::steady_clock::now();
+      DungeonCanvasViewerTestPeer::RenderSprites(viewer, runtime, room);
+      const double elapsed = std::chrono::duration<double, std::micro>(
+                                 std::chrono::steady_clock::now() - start)
+                                 .count();
+      ImGui::End();
+      ImGui::Render();
+      return elapsed;
+    };
+    const double cold = frame();
+    std::array<double, 7> batches{};
+    for (auto& batch : batches) {
+      for (int i = 0; i < 200; ++i) {
+        batch += frame();
+      }
+      batch /= 200;
+    }
+    std::sort(batches.begin(), batches.end());
+    std::cout << "SPRITE_PROFILE " << scenario.name << " cold_us=" << cold
+              << " warm_median_us=" << batches[3] << '\n';
+    RecordProperty(std::string(scenario.name) + "_warm_us",
+                   std::to_string(batches[3]));
+  }
+}
+
+class DungeonCanvasSpritePreviewCacheTest
+    : public DungeonCanvasAssetRefreshTest {
+ protected:
+  void SetUp() override {
+    DungeonCanvasAssetRefreshTest::SetUp();
+    imgui_ = std::make_unique<ScopedImGuiContext>();
+    auto& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.DeltaTime = 1.0f / 60.0f;
+    io.Fonts->AddFontDefault();
+    unsigned char* font_pixels = nullptr;
+    int font_width = 0, font_height = 0;
+    io.Fonts->GetTexDataAsRGBA32(&font_pixels, &font_width, &font_height);
+    ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+    game_data_.graphics_buffer.assign(4096, 1);
+    SetSpriteColor(gfx::SnesColor(11, 197, 83));
+    viewer_.SetGameData(&game_data_);
+    viewer_.SetProject(&project_);
+  }
+
+  void SetSpriteColor(const gfx::SnesColor& color) {
+    auto& palettes = game_data_.palette_groups.global_sprites;
+    if (palettes.empty()) {
+      palettes.AddPalette(
+          gfx::SnesPalette(std::vector<gfx::SnesColor>(60, color)));
+    } else {
+      palettes.palette_ref(0) =
+          gfx::SnesPalette(std::vector<gfx::SnesColor>(60, color));
+    }
+  }
+
+  zelda3::Room MakeRoom(int room_id, uint8_t sprite_id = 0x00) {
+    zelda3::Room room(room_id, &rom_, &game_data_);
+    room.mutable_blocks().fill(0);
+    room.CopyRoomGraphicsToBuffer();
+    room.GetSprites().emplace_back(sprite_id, 8, 8, 0, 0);
+    return room;
+  }
+
+  std::vector<ImDrawVert> Frame(const zelda3::Room& room, float scale = 1.0f,
+                                ImVec2 scroll = ImVec2(0, 0)) {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(950, 720), ImGuiCond_Always);
+    ImGui::Begin("SpriteCacheHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    gui::CanvasRuntime runtime;
+    runtime.draw_list = ImGui::GetWindowDrawList();
+    runtime.canvas_p0 = ImVec2(40, 50);
+    runtime.canvas_sz = ImVec2(850, 650);
+    runtime.scrolling = scroll;
+    runtime.scale = scale;
+    const int first_vertex = runtime.draw_list->VtxBuffer.Size;
+    DungeonCanvasViewerTestPeer::RenderSprites(viewer_, runtime, room);
+    std::vector<ImDrawVert> vertices(
+        runtime.draw_list->VtxBuffer.begin() + first_vertex,
+        runtime.draw_list->VtxBuffer.end());
+    ImGui::End();
+    ImGui::Render();
+    return vertices;
+  }
+
+  void ExpectUncachedArt(const zelda3::Room& room,
+                         std::span<const uint8_t> resource = {}) {
+    const auto& sprite = room.GetSprites().front();
+    const auto* cached =
+        DungeonCanvasViewerTestPeer::CachedSpritePreview(viewer_, room, sprite);
+    ASSERT_NE(cached, nullptr);
+    auto expected = sprite;
+    const auto* layout = zelda3::SpriteOamRegistry::GetPreviewOverride(
+        sprite.id(), project_.hack_manifest.hack_name());
+    expected.RenderPreviewGraphics(room.get_gfx_buffer(), layout, resource);
+    EXPECT_EQ(cached->pixels, *expected.preview_graphics());
+    const auto bounds = expected.preview_bounds();
+    EXPECT_EQ(cached->bounds.x, bounds.x);
+    EXPECT_EQ(cached->bounds.y, bounds.y);
+    EXPECT_EQ(cached->bounds.w, bounds.w);
+    EXPECT_EQ(cached->bounds.h, bounds.h);
+  }
+
+  static std::optional<ImRect> ArtBounds(
+      const std::vector<ImDrawVert>& vertices, ImU32 color) {
+    std::optional<ImRect> bounds;
+    for (const auto& vertex : vertices) {
+      if (vertex.col != color) {
+        continue;
+      }
+      if (bounds) {
+        bounds->Add(vertex.pos);
+      } else {
+        bounds = ImRect(vertex.pos, vertex.pos);
+      }
+    }
+    return bounds;
+  }
+
+  std::unique_ptr<ScopedImGuiContext> imgui_;
+  Rom rom_;
+  zelda3::GameData game_data_;
+  DungeonCanvasViewer viewer_;
+};
+
+TEST_F(DungeonCanvasSpritePreviewCacheTest,
+       RepeatedFramesAndDuplicateSpritesReuseDecodedPixels) {
+  auto room = MakeRoom(0, 0x7E);
+  room.GetSprites().emplace_back(0x7E, 15, 12, 0, 1);
+  Frame(room);
+  EXPECT_EQ(DungeonCanvasViewerTestPeer::SpritePreviewCacheSize(viewer_), 1u);
+  ExpectUncachedArt(room);
+  auto* cached = DungeonCanvasViewerTestPeer::CachedSpritePreview(
+      viewer_, room, room.GetSprites().front());
+  ASSERT_NE(cached, nullptr);
+  ASSERT_FALSE(cached->pixels.empty());
+  const auto* storage = cached->pixels.data();
+  // A test-only marker proves the next frame consumes this cache entry, even
+  // if an allocator would reuse the same address after an accidental rebuild.
+  cached->pixels.front() = 0x37;
+  Frame(room);
+  cached = DungeonCanvasViewerTestPeer::CachedSpritePreview(
+      viewer_, room, room.GetSprites().front());
+  ASSERT_NE(cached, nullptr);
+  EXPECT_EQ(cached->pixels.data(), storage);
+  EXPECT_EQ(cached->pixels.front(), 0x37);
+  EXPECT_EQ(DungeonCanvasViewerTestPeer::SpritePreviewCacheSize(viewer_), 1u);
+  EXPECT_EQ(room.GetSprites().front().x(), 8);
+  EXPECT_EQ(room.GetSprites().back().layer(), 1);
+}
+
+TEST_F(DungeonCanvasSpritePreviewCacheTest,
+       GraphicsAssemblyAndAnimatedReloadCreateFreshPreviews) {
+  auto room = MakeRoom(0);
+  Frame(room);
+  const auto old_pixels = DungeonCanvasViewerTestPeer::CachedSpritePreview(
+                              viewer_, room, room.GetSprites().front())
+                              ->pixels;
+  const auto old_revision = room.graphics_revision();
+  game_data_.graphics_buffer.assign(223 * 4096, 2);
+  room.CopyRoomGraphicsToBuffer();
+  ASSERT_NE(room.graphics_revision(), old_revision);
+  Frame(room);
+  ExpectUncachedArt(room);
+  EXPECT_NE(DungeonCanvasViewerTestPeer::CachedSpritePreview(
+                viewer_, room, room.GetSprites().front())
+                ->pixels,
+            old_pixels);
+  const auto assembled_revision = room.graphics_revision();
+  room.LoadAnimatedGraphics();
+  ASSERT_NE(room.graphics_revision(), assembled_revision);
+  Frame(room);
+  ExpectUncachedArt(room);
+  EXPECT_EQ(DungeonCanvasViewerTestPeer::SpritePreviewCacheSize(viewer_), 3u);
+}
+
+TEST_F(DungeonCanvasSpritePreviewCacheTest,
+       MultipleRoomsKeepIndependentWarmPreviews) {
+  auto first = MakeRoom(0);
+  game_data_.graphics_buffer.assign(4096, 2);
+  auto second = MakeRoom(1);
+  ASSERT_NE(first.graphics_revision(), second.graphics_revision());
+  Frame(first);
+  Frame(second);
+  ExpectUncachedArt(first);
+  ExpectUncachedArt(second);
+  auto* first_cached = DungeonCanvasViewerTestPeer::CachedSpritePreview(
+      viewer_, first, first.GetSprites().front());
+  auto* second_cached = DungeonCanvasViewerTestPeer::CachedSpritePreview(
+      viewer_, second, second.GetSprites().front());
+  ASSERT_NE(first_cached, nullptr);
+  ASSERT_NE(second_cached, nullptr);
+  EXPECT_NE(first_cached->pixels, second_cached->pixels);
+  first_cached->pixels.front() = 0x37;
+  second_cached->pixels.front() = 0x38;
+  Frame(first);
+  Frame(second);
+  EXPECT_EQ(first_cached->pixels.front(), 0x37);
+  EXPECT_EQ(second_cached->pixels.front(), 0x38);
+  EXPECT_EQ(DungeonCanvasViewerTestPeer::SpritePreviewCacheSize(viewer_), 2u);
+}
+
+TEST_F(DungeonCanvasSpritePreviewCacheTest,
+       UnassembledRoomsDoNotShareRevisionZeroPreviews) {
+  zelda3::Room first(0, &rom_, &game_data_);
+  zelda3::Room second(1, &rom_, &game_data_);
+  // These non-const fixture rooms deliberately bypass graphics assembly.
+  // Initialize their backing arrays without publishing a graphics revision.
+  auto& first_pixels =
+      const_cast<std::array<uint8_t, 0x10000>&>(first.get_gfx_buffer());
+  auto& second_pixels =
+      const_cast<std::array<uint8_t, 0x10000>&>(second.get_gfx_buffer());
+  first_pixels.fill(1);
+  second_pixels.fill(0);
+  first.GetSprites().emplace_back(0x00, 8, 8, 0, 0);
+  second.GetSprites().emplace_back(0x00, 8, 8, 0, 0);
+  ASSERT_EQ(first.graphics_revision(), 0u);
+  ASSERT_EQ(second.graphics_revision(), 0u);
+  EXPECT_TRUE(ArtBounds(Frame(first), IM_COL32(11, 197, 83, 255)).has_value());
+  EXPECT_EQ(DungeonCanvasViewerTestPeer::SpritePreviewCacheSize(viewer_), 0u);
+  EXPECT_FALSE(
+      ArtBounds(Frame(second), IM_COL32(11, 197, 83, 255)).has_value());
+  EXPECT_EQ(DungeonCanvasViewerTestPeer::SpritePreviewCacheSize(viewer_), 0u);
+  EXPECT_TRUE(ArtBounds(Frame(first), IM_COL32(11, 197, 83, 255)).has_value());
+  EXPECT_EQ(DungeonCanvasViewerTestPeer::SpritePreviewCacheSize(viewer_), 0u);
+}
+
+TEST_F(DungeonCanvasSpritePreviewCacheTest,
+       PaletteMovementLayerAndCanvasTransformStayLive) {
+  auto room = MakeRoom(0);
+  const auto before = ArtBounds(Frame(room), IM_COL32(11, 197, 83, 255));
+  ASSERT_TRUE(before.has_value());
+  auto* cached = DungeonCanvasViewerTestPeer::CachedSpritePreview(
+      viewer_, room, room.GetSprites().front());
+  ASSERT_NE(cached, nullptr);
+  const auto* storage = cached->pixels.data();
+  SetSpriteColor(gfx::SnesColor(211, 37, 109));
+  auto& sprite = room.GetSprites().front();
+  sprite.set_x(10);
+  sprite.set_y(11);
+  sprite.set_layer(1);
+  const auto vertices = Frame(room, 1.5f, ImVec2(7, 9));
+  const auto after = ArtBounds(vertices, IM_COL32(211, 37, 109, 255));
+  ASSERT_TRUE(after.has_value());
+  EXPECT_FALSE(ArtBounds(vertices, IM_COL32(11, 197, 83, 255)).has_value());
+  EXPECT_FLOAT_EQ(after->Min.x, 40 + 7 + 10 * 16 * 1.5f);
+  EXPECT_FLOAT_EQ(after->Min.y, 50 + 9 + 11 * 16 * 1.5f);
+  EXPECT_FLOAT_EQ(after->GetWidth(), before->GetWidth() * 1.5f);
+  EXPECT_FLOAT_EQ(after->GetHeight(), before->GetHeight() * 1.5f);
+  EXPECT_EQ(
+      DungeonCanvasViewerTestPeer::CachedSpritePreview(viewer_, room, sprite)
+          ->pixels.data(),
+      storage);
+  EXPECT_EQ(DungeonCanvasViewerTestPeer::SpritePreviewCacheSize(viewer_), 1u);
+}
+
+TEST_F(DungeonCanvasSpritePreviewCacheTest,
+       ExplicitRefreshAndSamePointerContextChangesReplaceExternalArt) {
+  auto room = MakeRoom(0, 0x88);
+  WriteSprite(0x11);
+  Frame(room);
+  ExpectUncachedArt(room, std::vector<uint8_t>(0x2000, 0x11));
+  WriteSprite(0x22);
+  Frame(room);
+  ExpectUncachedArt(room, std::vector<uint8_t>(0x2000, 0x11));
+  viewer_.InvalidateExternalSpriteResources();
+  EXPECT_EQ(DungeonCanvasViewerTestPeer::SpritePreviewCacheSize(viewer_), 0u);
+  Frame(room);
+  ExpectUncachedArt(room, std::vector<uint8_t>(0x2000, 0x22));
+
+  WriteSprite(0x33);
+  Frame(room);
+  ExpectUncachedArt(room, std::vector<uint8_t>(0x2000, 0x22));
+  project_.filepath = (root_ / "renamed.yaze").string();
+  Frame(room);
+  ExpectUncachedArt(room, std::vector<uint8_t>(0x2000, 0x33));
+  EXPECT_EQ(DungeonCanvasViewerTestPeer::SpritePreviewCacheSize(viewer_), 1u);
+
+  ASSERT_TRUE(std::filesystem::create_directories(root_ / "Other/Bosses"));
+  WriteSprite(0x44);
+  ASSERT_TRUE(std::filesystem::copy_file(root_ / "Sprites/Bosses/manhandla.bin",
+                                         root_ / "Other/Bosses/manhandla.bin"));
+  project_.assets_folder = "Other";
+  Frame(room);
+  ExpectUncachedArt(room, std::vector<uint8_t>(0x2000, 0x44));
+  EXPECT_EQ(DungeonCanvasViewerTestPeer::SpritePreviewCacheSize(viewer_), 1u);
+
+  ASSERT_TRUE(project_.hack_manifest
+                  .LoadFromString(R"json({
+      "manifest_version": 1, "hack_name": "Vanilla"
+    })json")
+                  .ok());
+  Frame(room);
+  ExpectUncachedArt(room);
+  EXPECT_EQ(DungeonCanvasViewerTestPeer::SpritePreviewCacheSize(viewer_), 1u);
+}
+
+TEST_F(DungeonCanvasSpritePreviewCacheTest,
+       MissingAndMalformedExternalArtRemainEmptyUntilRefresh) {
+  auto room = MakeRoom(0, 0x88);
+  Frame(room);
+  ExpectUncachedArt(room);
+  WriteSprite(0x11);
+  Frame(room);
+  ExpectUncachedArt(room);
+  viewer_.InvalidateExternalSpriteResources();
+  Frame(room);
+  ExpectUncachedArt(room, std::vector<uint8_t>(0x2000, 0x11));
+  WriteSprite(0x22, 5);
+  viewer_.InvalidateExternalSpriteResources();
+  Frame(room);
+  ExpectUncachedArt(room);
+  WriteSprite(0x33);
+  Frame(room);
+  ExpectUncachedArt(room);
+  viewer_.InvalidateExternalSpriteResources();
+  Frame(room);
+  ExpectUncachedArt(room, std::vector<uint8_t>(0x2000, 0x33));
+}
+
+TEST_F(DungeonCanvasSpritePreviewCacheTest,
+       ChangingSpriteIdentityUsesSeparateEntriesAndCacheIsBounded) {
+  auto room = MakeRoom(0);
+  auto& sprite = room.GetSprites().front();
+  Frame(room);
+  sprite.set_id(0x7E);
+  Frame(room);
+  ExpectUncachedArt(room);
+  EXPECT_EQ(DungeonCanvasViewerTestPeer::SpritePreviewCacheSize(viewer_), 2u);
+  viewer_.InvalidateExternalSpriteResources();
+  for (int subtype = 0; subtype < 129; ++subtype) {
+    sprite.set_subtype(subtype);
+    Frame(room);
+  }
+  EXPECT_EQ(DungeonCanvasViewerTestPeer::SpritePreviewCacheSize(viewer_), 128u);
+  ExpectUncachedArt(room);
+  sprite.set_subtype(0);
+  EXPECT_EQ(
+      DungeonCanvasViewerTestPeer::CachedSpritePreview(viewer_, room, sprite),
+      nullptr);
+  sprite.set_subtype(1);
+  EXPECT_NE(
+      DungeonCanvasViewerTestPeer::CachedSpritePreview(viewer_, room, sprite),
+      nullptr);
+}
 
 class DungeonCanvasSpritePreviewBoundsTest
     : public ::testing::TestWithParam<SpritePreviewCanvasCase> {};

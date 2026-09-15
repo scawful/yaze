@@ -427,6 +427,79 @@ TEST_F(RoomLayerManagerTest, ModeFourRetainsExistingHalfAddAndFallback) {
 }
 
 TEST_F(RoomLayerManagerTest,
+       HiddenTranslucentBG2SourceDoesNotBlendVisibleNormalSource) {
+  for (const LayerType hidden_source :
+       {LayerType::BG2_Layout, LayerType::BG2_Objects}) {
+    SCOPED_TRACE(RoomLayerManager::GetLayerName(hidden_source));
+    manager_.Reset();
+    Room room(/*room_id=*/0, /*rom=*/nullptr);
+    PrepareColorMathRoom(room);
+    room.bg1_buffer().bitmap().mutable_data()[0] = 33;
+    room.bg2_buffer().bitmap().mutable_data()[0] = 34;
+    room.object_bg2_buffer().bitmap().mutable_data()[0] = 34;
+    room.object_bg2_buffer().mutable_coverage_data()[0] = 1;
+
+    manager_.SetLayerBlendMode(hidden_source, LayerBlendMode::Translucent);
+    manager_.SetLayerVisible(hidden_source, false);
+    gfx::Bitmap output;
+    manager_.CompositeToOutput(room, output);
+    EXPECT_EQ(output.data()[0], 33)
+        << "A hidden source's blend setting cannot affect the visible source";
+
+    manager_.SetLayerVisible(hidden_source, true);
+    manager_.SetLayerBlendMode(hidden_source, LayerBlendMode::Off);
+    manager_.CompositeToOutput(room, output);
+    EXPECT_EQ(output.data()[0], 33);
+  }
+}
+
+TEST_F(RoomLayerManagerTest, TranslucencyFollowsSelectedBG2SourceAtEachPixel) {
+  for (const bool full_add : {false, true}) {
+    SCOPED_TRACE(full_add ? "full add" : "half add");
+    for (const bool translucent_layout : {false, true}) {
+      SCOPED_TRACE(translucent_layout ? "translucent layout"
+                                      : "translucent objects");
+      manager_.Reset();
+      if (full_add) {
+        manager_.ApplyLayerMerging(LayerMerge07);
+      }
+      manager_.SetLayerBlendMode(LayerType::BG2_Layout,
+                                 translucent_layout
+                                     ? LayerBlendMode::Translucent
+                                     : LayerBlendMode::Normal);
+      manager_.SetLayerBlendMode(LayerType::BG2_Objects,
+                                 translucent_layout
+                                     ? LayerBlendMode::Normal
+                                     : LayerBlendMode::Translucent);
+      Room room(/*room_id=*/0, /*rom=*/nullptr);
+      room.SetLayer2Mode(full_add ? 7 : 0);
+      PrepareColorMathRoom(room);
+      auto& upper = room.bg1_buffer().bitmap().mutable_data();
+      auto& lower_layout = room.bg2_buffer().bitmap().mutable_data();
+      auto& lower_objects = room.object_bg2_buffer().bitmap().mutable_data();
+      for (int index = 0; index < 4; ++index) {
+        upper[index] = 33;
+      }
+      lower_layout[0] = 34;   // No object: use the layout's blend setting.
+      lower_objects[1] = 34;  // No layout: use the object's blend setting.
+      lower_layout[2] = 34;
+      lower_objects[2] = 34;  // Object replaces the layout and its blend mode.
+      lower_layout[3] = 34;
+      // A covered transparent object also replaces the translucent layout.
+      room.object_bg2_buffer().mutable_coverage_data()[3] = 1;
+
+      gfx::Bitmap output;
+      manager_.CompositeToOutput(room, output);
+      const uint8_t blended = full_add ? 35 : 36;
+      EXPECT_EQ(output.data()[0], translucent_layout ? blended : 33);
+      EXPECT_EQ(output.data()[1], translucent_layout ? 33 : blended);
+      EXPECT_EQ(output.data()[2], translucent_layout ? 33 : blended);
+      EXPECT_EQ(output.data()[3], 33);
+    }
+  }
+}
+
+TEST_F(RoomLayerManagerTest,
        ModeSixUpperMainScreenWinsRegardlessOfTilePriority) {
   manager_.ApplyLayerMerging(LayerMerge06);
 
