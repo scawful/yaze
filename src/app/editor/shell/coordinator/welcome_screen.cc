@@ -717,7 +717,7 @@ void WelcomeScreen::DrawQuickActions() {
   // Secondary starts live in the open — no nested "More ways" menu.
   const RecentProject* last_recent = nullptr;
   for (const auto& recent : recent_projects_model_.entries()) {
-    if (!recent.unavailable) {
+    if (!recent.unavailable && !recent.is_missing) {
       last_recent = &recent;
       break;
     }
@@ -844,18 +844,10 @@ void WelcomeScreen::DrawRecentProjects() {
   const float row_gap = ImGui::GetStyle().ItemSpacing.y;
   const float avail_h = ImGui::GetContentRegionAvail().y;
   const float more_line = ImGui::GetTextLineHeightWithSpacing();
-  // Fit fixed-height rows; leave room for a "+N more" hint when needed.
-  int max_visible = std::max(
-      1, static_cast<int>((avail_h + row_gap) / (row_height + row_gap)));
   const auto& entries = recent_projects_model_.entries();
-  if (static_cast<int>(entries.size()) > max_visible && max_visible > 1) {
-    const float with_more = std::max(row_height, avail_h - more_line);
-    max_visible = std::max(
-        1, static_cast<int>((with_more + row_gap) / (row_height + row_gap)));
-  }
-
-  const size_t visible =
-      std::min(entries.size(), static_cast<size_t>(max_visible));
+  const size_t visible = static_cast<size_t>(
+      CalculateVisibleRecentCount(static_cast<int>(entries.size()), avail_h,
+                                  row_height, row_gap, more_line));
   for (size_t i = 0; i < visible; ++i) {
     DrawProjectPanel(entries[i], static_cast<int>(i),
                      ImVec2(ImGui::GetContentRegionAvail().x, row_height));
@@ -867,6 +859,34 @@ void WelcomeScreen::DrawRecentProjects() {
   }
 
   DrawRecentAnnotationPopup();
+}
+
+int WelcomeScreen::CalculateVisibleRecentCount(int entry_count,
+                                               float available_height,
+                                               float row_height, float row_gap,
+                                               float more_line_height) {
+  if (entry_count <= 0 || available_height <= 0.0f || row_height <= 0.0f) {
+    return 0;
+  }
+
+  row_gap = std::max(0.0f, row_gap);
+  more_line_height = std::max(0.0f, more_line_height);
+  const float row_stride = row_height + row_gap;
+  auto rows_that_fit = [&](float height) {
+    return std::max(
+        0, static_cast<int>((std::max(0.0f, height) + row_gap) / row_stride));
+  };
+
+  // First determine whether every entry fits without a hint. If rows must be
+  // truncated, reserve the hint before calculating the final row count. This
+  // may intentionally leave zero rows in extremely short layouts so the
+  // management path remains visible without introducing a hidden scrollbar.
+  int max_visible = rows_that_fit(available_height);
+  if (entry_count > max_visible) {
+    max_visible = rows_that_fit(available_height - more_line_height);
+  }
+
+  return std::min(entry_count, max_visible);
 }
 
 void WelcomeScreen::DrawRecentAnnotationPopup() {
