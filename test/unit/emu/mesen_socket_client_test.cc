@@ -1,16 +1,99 @@
 #include "app/emu/mesen/mesen_socket_client.h"
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <cstdlib>
 #include <cstring>
 #include <filesystem>
+#include <fstream>
 #include <mutex>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <thread>
 
 #include <gtest/gtest.h>
+
+namespace yaze::emu::mesen {
+namespace {
+
+int SetEnvironmentVariable(const char* key, const char* value) {
+#ifdef _WIN32
+  return _putenv_s(key, value);
+#else
+  return setenv(key, value, 1);
+#endif
+}
+
+int UnsetEnvironmentVariable(const char* key) {
+#ifdef _WIN32
+  return _putenv_s(key, "");
+#else
+  return unsetenv(key);
+#endif
+}
+
+class ScopedEnvVar {
+ public:
+  ScopedEnvVar(const char* key, const char* value) : key_(key) {
+    const char* previous = std::getenv(key);
+    if (previous != nullptr) {
+      previous_ = previous;
+    }
+    valid_ = SetEnvironmentVariable(key, value) == 0;
+  }
+
+  ~ScopedEnvVar() {
+    if (previous_) {
+      (void)SetEnvironmentVariable(key_.c_str(), previous_->c_str());
+    } else {
+      (void)UnsetEnvironmentVariable(key_.c_str());
+    }
+  }
+
+  bool valid() const { return valid_; }
+
+ private:
+  std::string key_;
+  std::optional<std::string> previous_;
+  bool valid_ = false;
+};
+
+TEST(MesenSocketClientTest, ListAvailableSocketsAcceptsTcpEnv) {
+  ScopedEnvVar env("MESEN2_SOCKET_PATH", "tcp://192.168.1.227:27015");
+  ASSERT_TRUE(env.valid());
+
+  const auto paths = MesenSocketClient::ListAvailableSockets();
+
+  ASSERT_EQ(paths.size(), 1u);
+  EXPECT_EQ(paths.front(), "tcp://192.168.1.227:27015");
+}
+
+TEST(MesenSocketClientTest, InvalidExplicitTcpRemainsAuthoritative) {
+  constexpr const char* kInvalidTcp = "tcp://192.168.1.227:bad";
+  ScopedEnvVar env("MESEN2_SOCKET_PATH", kInvalidTcp);
+  ASSERT_TRUE(env.valid());
+
+  const auto paths = MesenSocketClient::ListAvailableSockets();
+
+  ASSERT_EQ(paths.size(), 1u);
+  EXPECT_EQ(paths.front(), kInvalidTcp);
+}
+
+TEST(MesenSocketClientTest, ConnectRejectsMalformedTcpEndpoint) {
+  MesenSocketClient client;
+  const auto status = client.Connect("tcp://192.168.1.227:bad");
+
+  EXPECT_FALSE(status.ok());
+  EXPECT_NE(status.message().find("Invalid TCP port"), std::string::npos)
+      << status.message();
+  EXPECT_FALSE(client.IsConnected());
+}
+
+}  // namespace
+}  // namespace yaze::emu::mesen
 
 #ifdef _WIN32
 
@@ -31,7 +114,6 @@ TEST(MesenSocketClientTest, SubscribeDispatchesFrameEvents) {
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
-#include <cstdlib>
 
 namespace yaze::emu::mesen {
 namespace {
@@ -393,18 +475,44 @@ TEST(MesenSocketClientTest, ConnectsToTcpEndpoint) {
   EXPECT_TRUE(server.error().empty()) << server.error();
 }
 
-TEST(MesenSocketClientTest, ListAvailableSocketsAcceptsTcpEnv) {
-  const char* previous = std::getenv("MESEN2_SOCKET_PATH");
-  std::string saved = previous ? previous : "";
-  ASSERT_EQ(setenv("MESEN2_SOCKET_PATH", "tcp://192.168.1.227:27015", 1), 0);
-  const auto paths = MesenSocketClient::ListAvailableSockets();
-  if (previous) {
-    setenv("MESEN2_SOCKET_PATH", saved.c_str(), 1);
-  } else {
-    unsetenv("MESEN2_SOCKET_PATH");
+struct DiscoverableUnixSocketFile {
+  explicit DiscoverableUnixSocketFile(const std::string& path) : path_(path) {
+    std::ofstream output(path_);
+    output << "decoy";
   }
-  ASSERT_FALSE(paths.empty());
-  EXPECT_EQ(paths.front(), "tcp://192.168.1.227:27015");
+
+  ~DiscoverableUnixSocketFile() {
+    std::error_code error;
+    std::filesystem::remove(path_, error);
+  }
+
+  const std::string& path() const { return path_; }
+
+ private:
+  std::string path_;
+};
+
+TEST(MesenSocketClientTest, InvalidExplicitTcpDoesNotUseDiscoveredLocalSocket) {
+  const std::string decoy_path =
+      "/tmp/mesen2-" + std::to_string(::getpid()) + ".sock";
+  DiscoverableUnixSocketFile decoy(decoy_path);
+  ASSERT_TRUE(std::filesystem::exists(decoy.path()));
+
+  constexpr const char* kInvalidTcp = "tcp://192.168.1.227:bad";
+  ScopedEnvVar env("MESEN2_SOCKET_PATH", kInvalidTcp);
+  ASSERT_TRUE(env.valid());
+
+  const auto paths = MesenSocketClient::ListAvailableSockets();
+  ASSERT_EQ(paths.size(), 1u);
+  EXPECT_EQ(paths.front(), kInvalidTcp);
+  EXPECT_EQ(std::find(paths.begin(), paths.end(), decoy.path()), paths.end());
+
+  MesenSocketClient client;
+  const auto status = client.Connect();
+  EXPECT_FALSE(status.ok());
+  EXPECT_NE(status.message().find("Invalid TCP port"), std::string::npos)
+      << status.message();
+  EXPECT_FALSE(client.IsConnected());
 }
 
 }  // namespace
