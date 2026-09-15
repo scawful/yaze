@@ -284,8 +284,9 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::Values(
         WelcomeLayoutCase{"WideFirstRun", ImVec2(1400, 1050), 13, false, false},
         WelcomeLayoutCase{"WideRecents", ImVec2(1400, 1050), 13, true, false},
-        WelcomeLayoutCase{"NarrowFirstRun", ImVec2(800, 600), 13, false, true},
-        WelcomeLayoutCase{"NarrowRecents", ImVec2(800, 600), 13, true, true},
+        // Near-full welcome window: 800×600 clears the split height breakpoint.
+        WelcomeLayoutCase{"NarrowFirstRun", ImVec2(800, 600), 13, false, false},
+        WelcomeLayoutCase{"NarrowRecents", ImVec2(800, 600), 13, true, false},
         WelcomeLayoutCase{"ShortFirstRun", ImVec2(1400, 500), 13, false, true},
         WelcomeLayoutCase{"ShortRecents", ImVec2(1400, 500), 13, true, true},
         WelcomeLayoutCase{"LargeFontFirstRun", ImVec2(1400, 1050), 26, false,

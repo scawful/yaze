@@ -39,12 +39,13 @@ const ImVec4 kMasterSwordBlueFallback = ImVec4(0.196f, 0.6f, 0.8f, 1.0f);
 const ImVec4 kHeartRedFallback = ImVec4(0.863f, 0.078f, 0.235f, 1.0f);
 const ImVec4 kSpiritOrangeFallback = ImVec4(1.0f, 0.647f, 0.0f, 1.0f);
 
-// Compact recent rows — designed so a full recent list fits without scrolling
-// on a typical dockspace (≈900×600 content).
-constexpr float kRecentRowBaseHeight = 52.0f;
-constexpr float kRecentCardBaseHeight = kRecentRowBaseHeight;  // legacy alias
+// Compact recent rows — height scales with available space so large
+// dockspaces don't leave a dead band under a short list.
+constexpr float kRecentRowMinHeight = 44.0f;
+constexpr float kRecentRowMaxHeight = 88.0f;
 constexpr float kWelcomeSplitMinWidth = 900.0f;
 constexpr float kWelcomeSplitMinHeight = 560.0f;
+constexpr float kRecentTwoColumnMinWidth = 560.0f;
 
 // Active colors (updated each frame from theme)
 ImVec4 kTriforceGold = kTriforceGoldFallback;
@@ -248,14 +249,12 @@ bool WelcomeScreen::Show(bool* p_open) {
   float dockspace_center_y = viewport->WorkPos.y + viewport_size.y / 2.0f;
   ImVec2 center(dockspace_center_x, dockspace_center_y);
 
-  // Size based on dockspace region, not full viewport. Clamps scale with the
-  // current font size so high-DPI users and font-scaled layouts get a
-  // proportionally sized window instead of a cramped 480px minimum.
+  // Fill nearly the entire dockspace so the condensed layout can breathe with
+  // the display instead of floating in a fixed inset card.
   const float font_scale = ImGui::GetFontSize() / 16.0f;
-  float width = std::clamp(dockspace_width * 0.85f, 480.0f * font_scale,
-                           1400.0f * font_scale);
-  float height = std::clamp(viewport_size.y * 0.92f, 360.0f * font_scale,
-                            1100.0f * font_scale);
+  const float margin = std::max(12.0f, 16.0f * font_scale);
+  float width = std::max(480.0f * font_scale, dockspace_width - 2.0f * margin);
+  float height = std::max(360.0f * font_scale, viewport_size.y - 2.0f * margin);
 
   ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
@@ -487,6 +486,7 @@ bool WelcomeScreen::Show(bool* p_open) {
     const float layout_scale = ImGui::GetFontSize() / 16.0f;
     const bool stacked_layout =
         ShouldUseStackedLayout(content_width, content_height, layout_scale);
+    use_stacked_welcome_layout_ = stacked_layout;
 
     if (stacked_layout) {
       DrawFirstRunGuide();
@@ -501,20 +501,36 @@ bool WelcomeScreen::Show(bool* p_open) {
       ImGui::Spacing();
       DrawRecentProjects();
     } else {
+      // Start column scales with the dockspace: ~1/3 on typical screens,
+      // up to ~42% on ultra-wide so the action rail doesn't look stranded.
       float left_width = std::clamp(
-          content_width * 0.30f, 260.0f * layout_scale, 340.0f * layout_scale);
+          content_width * 0.34f, 260.0f * layout_scale, content_width * 0.42f);
       ImGui::BeginChild(
           "LeftPanel", ImVec2(left_width, 0), false,
           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
       DrawFirstRunGuide();
       DrawQuickActions();
-      ImGui::Spacing();
-      ImGui::Separator();
-      ImGui::Spacing();
-      DrawWhatsNew();
+
+      // Pin What's new toward the bottom of the Start column so tall screens
+      // don't leave a dead band under the buttons.
+      const float left_remaining = ImGui::GetContentRegionAvail().y;
+      if (left_remaining > 96.0f) {
+        const float whats_new_reserve =
+            std::clamp(ImGui::GetTextLineHeightWithSpacing() * 7.0f +
+                           ImGui::GetFrameHeightWithSpacing(),
+                       140.0f, 240.0f * layout_scale);
+        if (left_remaining > whats_new_reserve + 24.0f) {
+          ImGui::Dummy(ImVec2(0, left_remaining - whats_new_reserve));
+        } else {
+          ImGui::Spacing();
+          ImGui::Separator();
+          ImGui::Spacing();
+        }
+        DrawWhatsNew();
+      }
       ImGui::EndChild();
 
-      ImGui::SameLine(0.0f, 16.0f);
+      ImGui::SameLine(0.0f, std::max(12.0f, 16.0f * layout_scale));
 
       ImGui::BeginChild(
           "RightPanel", ImVec2(0, 0), false,
@@ -816,24 +832,85 @@ void WelcomeScreen::DrawRecentProjects() {
 
   if (recent_projects_model_.entries().empty()) {
     const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
+    const float avail_h = ImGui::GetContentRegionAvail().y;
+    if (avail_h > 80.0f) {
+      ImGui::Dummy(ImVec2(0, avail_h * 0.35f));
+    }
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
     ImGui::TextWrapped(tr("No recent files yet. Open a ROM to begin."));
     return;
   }
 
   const float scale = ImGui::GetFontSize() / 16.0f;
-  const float row_height = std::max(44.0f, kRecentRowBaseHeight * scale);
-  const float row_gap = ImGui::GetStyle().ItemSpacing.y;
+  const float avail_w = ImGui::GetContentRegionAvail().x;
   const float avail_h = ImGui::GetContentRegionAvail().y;
-  const int max_visible = std::max(
-      1, static_cast<int>((avail_h + row_gap) / (row_height + row_gap)));
+  const float min_row = kRecentRowMinHeight * scale;
+  const float max_row = kRecentRowMaxHeight * scale;
+  const float base_gap = ImGui::GetStyle().ItemSpacing.y;
+  // Keep a little slack so floating-point layout + EndGroup extents cannot
+  // push WelcomeContent into a scrollable state.
+  constexpr float kHeightSlack = 2.0f;
 
   const auto& entries = recent_projects_model_.entries();
+  // Two columns only in the split Recents pane — stacked Start|Recents already
+  // shares vertical budget with the action rail.
+  const int cols =
+      (!use_stacked_welcome_layout_ &&
+       avail_w >= kRecentTwoColumnMinWidth * scale && entries.size() >= 3)
+          ? 2
+          : 1;
+
+  const float more_line_est = ImGui::GetTextLineHeightWithSpacing();
+  const float list_budget = std::max(min_row, avail_h - kHeightSlack);
+  const float min_stride = min_row + base_gap;
+  int max_rows = std::max(1, static_cast<int>((list_budget + base_gap) /
+                                              std::max(min_stride, 1.0f)));
+  // If every row would still leave overflow entries, reserve a "+N more" line.
+  int max_visible = max_rows * cols;
+  if (static_cast<int>(entries.size()) > max_visible) {
+    const float with_more = std::max(min_row, list_budget - more_line_est);
+    max_rows = std::max(1, static_cast<int>((with_more + base_gap) /
+                                            std::max(min_stride, 1.0f)));
+    max_visible = max_rows * cols;
+  }
+
   const size_t visible =
       std::min(entries.size(), static_cast<size_t>(max_visible));
-  for (size_t i = 0; i < visible; ++i) {
-    DrawProjectPanel(entries[i], static_cast<int>(i),
-                     ImVec2(ImGui::GetContentRegionAvail().x, row_height));
+  const int visible_i = static_cast<int>(visible);
+  const int rows = std::max(1, (visible_i + cols - 1) / cols);
+
+  const float more_line = (entries.size() > visible) ? more_line_est : 0.0f;
+  const float fill_h = std::max(min_row, list_budget - more_line);
+  float row_height = (fill_h - base_gap * static_cast<float>(rows - 1)) /
+                     static_cast<float>(rows);
+  row_height = std::clamp(row_height, min_row, max_row);
+
+  float row_gap = base_gap;
+  const float used = row_height * static_cast<float>(rows) +
+                     base_gap * static_cast<float>(std::max(0, rows - 1)) +
+                     more_line;
+  if (rows > 1 && fill_h + more_line > used + 0.5f) {
+    row_gap += (fill_h + more_line - used) / static_cast<float>(rows - 1);
+  }
+
+  const float col_gap = std::max(10.0f, 12.0f * scale);
+  const float item_width =
+      cols == 1 ? avail_w
+                : (avail_w - col_gap * static_cast<float>(cols - 1)) /
+                      static_cast<float>(cols);
+
+  {
+    gui::StyleVarGuard spacing_guard(
+        ImGuiStyleVar_ItemSpacing,
+        ImVec2(ImGui::GetStyle().ItemSpacing.x, row_gap));
+    for (size_t i = 0; i < visible; ++i) {
+      const int col = static_cast<int>(i) % cols;
+      if (col > 0) {
+        ImGui::SameLine(0.0f, col_gap);
+      }
+      DrawProjectPanel(entries[i], static_cast<int>(i),
+                       ImVec2(item_width, row_height));
+    }
   }
   if (entries.size() > visible) {
     const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
@@ -980,7 +1057,6 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
   // Disambiguate ImGui IDs without allocating a new std::string every frame
   // (the old code called absl::StrFormat("ProjectPanel_%d", ...) per card).
   ImGui::PushID(index);
-  ImGui::BeginGroup();
 
   const ImVec4 surface = gui::GetSurfaceVec4();
   const ImVec4 surface_variant = gui::GetSurfaceVariantVec4();
@@ -1020,8 +1096,8 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
                             cursor_pos.y + resolved_card_size.y),
                      border_color, 6.0f, 0, 1.0f);
 
-  // Make the card clickable
-  ImGui::SetCursorScreenPos(cursor_pos);
+  // Layout ownership is only the invisible hit target — labels are drawn so
+  // multi-column Recents rows do not wrap from Text widgets widening the item.
   const bool is_activated = ImGui::InvisibleButton(
       "ProjectPanel", resolved_card_size, ImGuiButtonFlags_EnableNav);
   bool is_hovered = ImGui::IsItemHovered();
@@ -1103,9 +1179,9 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
   const char* item_icon = project.item_icon.empty() ? ICON_MD_INSERT_DRIVE_FILE
                                                     : project.item_icon.c_str();
   const ImVec2 icon_size = ImGui::CalcTextSize(item_icon);
-  ImGui::SetCursorScreenPos(ImVec2(icon_center.x - icon_size.x * 0.5f,
-                                   icon_center.y - icon_size.y * 0.5f));
-  gui::ColoredText(item_icon, text_primary);
+  draw_list->AddText(ImVec2(icon_center.x - icon_size.x * 0.5f,
+                            icon_center.y - icon_size.y * 0.5f),
+                     ImGui::GetColorU32(text_primary), item_icon);
 
   const std::string badge_text =
       project.item_type.empty() ? "File" : project.item_type;
@@ -1134,23 +1210,22 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
       cursor_pos.y +
       std::max(padding_y, (resolved_card_size.y - text_block_h) * 0.5f);
 
-  const std::string display_name = EllipsizeText(project.name, text_max_w);
-  ImGui::SetCursorScreenPos(ImVec2(content_x, text_y));
-  if (project.pinned) {
-    gui::ColoredTextF(text_primary, "%s %s", ICON_MD_PUSH_PIN,
-                      display_name.c_str());
-  } else {
-    gui::ColoredText(display_name.c_str(), text_primary);
-  }
+  const std::string raw_name =
+      project.pinned
+          ? absl::StrFormat("%s %s", ICON_MD_PUSH_PIN, project.name.c_str())
+          : project.name;
+  const std::string visible_name = EllipsizeText(raw_name, text_max_w);
+  draw_list->AddText(ImVec2(content_x, text_y),
+                     ImGui::GetColorU32(text_primary), visible_name.c_str());
 
   text_y += line_h + 2.0f;
   const std::string secondary =
       !project.last_modified.empty()
           ? project.last_modified
           : (!project.rom_title.empty() ? project.rom_title : project.filepath);
-  ImGui::SetCursorScreenPos(ImVec2(content_x, text_y));
-  gui::ColoredTextF(text_secondary, "%s",
-                    EllipsizeText(secondary, text_max_w).c_str());
+  draw_list->AddText(ImVec2(content_x, text_y),
+                     ImGui::GetColorU32(text_secondary),
+                     EllipsizeText(secondary, text_max_w).c_str());
   draw_list->AddText(
       ImVec2(badge_min.x + badge_pad_x, badge_min.y + badge_pad_y),
       ImGui::GetColorU32(text_primary), badge_text.c_str());
@@ -1177,7 +1252,6 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
     open_project_callback_(project.filepath);
   }
 
-  ImGui::EndGroup();
   ImGui::PopID();
 }
 
