@@ -113,6 +113,9 @@ class DungeonMapPanel : public WindowContent {
     room_composite_outputs_.clear();
     dungeon_room_ids_.clear();
     room_positions_.clear();
+    room_types_.clear();
+    stair_connections_.clear();
+    holewarp_connections_.clear();
   }
 
   /**
@@ -434,6 +437,8 @@ class DungeonMapPanel : public WindowContent {
   }
 
  private:
+  friend class DungeonMapPanelTestPeer;
+
   /**
    * @brief Auto-layout rooms in a grid based on their IDs
    */
@@ -479,9 +484,6 @@ class DungeonMapPanel : public WindowContent {
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_CLEAR " Clear")) {
       ClearRooms();
-      stair_connections_.clear();
-      holewarp_connections_.clear();
-      room_types_.clear();
       current_dungeon_name_ = "Select Dungeon...";
       selected_preset_ = -1;
     }

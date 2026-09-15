@@ -1138,6 +1138,13 @@ not interactive browser acceptance or Windows/Linux native proof.
 
 No production UI caller now displays `Room::GetCompositeBitmap()`; its only
 remaining production consumer is the synchronous CPU `RenderService` path.
+The follow-up Dungeon Map reset also clears room-type badges, stair links, and
+holewarp links whenever a registry entry or vanilla preset replaces the room
+set. Its regression loads two disjoint dungeon entries and failed before the
+fix because metadata from the first entry survived the second load. The Clear
+button now relies on the same complete reset contract instead of duplicating
+three additional clear operations.
+
 The priority-off fallback's transparent-object coverage handling remains a
 separate lower-priority finding because no current production caller disables
 priority compositing. Continue the object audit below with the reported
