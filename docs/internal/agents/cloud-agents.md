@@ -45,7 +45,8 @@ scripts/cloud/bootstrap.sh configure build test
 
 | Need | Location |
 |---|---|
-| ALTTP disassembly | `~/refs/usdasm` (`bank_*.asm`, `registers.asm`) |
+| ALTTP disassembly (US) | `~/refs/usdasm` (`bank_*.asm`, `registers.asm`) |
+| WRAM/SRAM symbol maps | `~/refs/jpdasm/symbols_wram.asm`, `symbols_sram.asm` |
 | Game addresses and dispatch tables | `docs/internal/zelda3/alttp-quick-reference.md` |
 | 65816 / LoROM / PPU / DMA | `docs/internal/zelda3/snes-hardware-reference.md` |
 | Dungeon object format | `docs/internal/zelda3/dungeon-spec.md` |
@@ -59,9 +60,10 @@ grep -n '#_01859C:' ~/refs/usdasm/bank_01.asm   # what is at $01:859C
 grep -n '^LoadAndBuildRoom:' ~/refs/usdasm/bank_*.asm   # where a routine lives
 ```
 
-`~/refs/usdasm` is pinned to commit `835b15b` (classic `#_BBAAAA:` format).
-The public repo has no `wram.asm`/`sram.asm`; use the RAM tables in
-`alttp-quick-reference.md` for game-state addresses.
+`~/refs/usdasm` is pinned to commit `835b15b` (classic `#_BBAAAA:` format)
+and has no WRAM/SRAM symbol maps. `~/refs/jpdasm` (pinned `4535f69`) provides
+`symbols_wram.asm`/`symbols_sram.asm`; its layout matches the US ROM for the
+audited rows in `alttp-quick-reference.md`, but code addresses are JP.
 
 ## 4. What is not available
 
@@ -91,8 +93,11 @@ Needs a local follow-up before merge:
 
 ## 6. Maintenance
 
-- `.github/workflows/cloud-bootstrap.yml` runs the full bootstrap on Ubuntu
-  24.04 when the script, Cursor config, or reference tooling changes.
+- `.github/workflows/cloud-bootstrap.yml` runs the full bootstrap, build, and
+  unit tests on Ubuntu 24.04 when the script or Cursor config changes.
+- `.github/workflows/reference-docs.yml` unit-tests `alttp_reference.py` and
+  checks `docs/internal/zelda3/*.md` against the pinned refs when those docs,
+  the tool, or the bootstrap pins change.
 - Keep `APT_PACKAGES` aligned with
   `.github/workflows/scripts/linux-ci-packages.txt` (minus gRPC/protobuf/
   boost/abseil).

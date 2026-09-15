@@ -12,10 +12,12 @@ docs honest by resolving every address from usdasm instead:
 usdasm is located via --usdasm, $YAZE_USDASM_DIR, ~/refs/usdasm (the pinned
 checkout from scripts/cloud/bootstrap.sh refs), or ../usdasm.
 
-Published usdasm commits do not ship the wram.asm/sram.asm symbol maps. Pass
---symbols DIR (or $YAZE_USDASM_SYMBOLS_DIR) pointing at a directory that has
-them to render or verify the RAM tables; without them those rows are reported
-as unverified rather than failing.
+Published usdasm commits do not ship WRAM/SRAM symbol maps. RAM symbols come
+from --symbols DIR, $YAZE_USDASM_SYMBOLS_DIR, or ~/refs/jpdasm (spannerisms'
+JP disassembly, which ships symbols_wram.asm/symbols_sram.asm). WRAM/SRAM
+layout is shared by the JP and US ROMs for the curated rows; see
+docs/internal/zelda3/alttp-quick-reference.md for the US usage audit. Without
+symbol maps those rows are reported as unverified rather than failing.
 """
 
 from __future__ import annotations
@@ -27,19 +29,26 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-# Curated symbol names from wram.asm/sram.asm. Addresses and descriptions are
-# read from usdasm; an unknown name is an error.
+# Curated names from the jpdasm symbol maps. Addresses and descriptions are
+# read from the maps; an unknown name is an error.
 RAM_SYMBOLS = [
     "MODE", "SUBMODE", "INDOORS", "POSY", "POSX", "OWSCR", "ROOM",
     "LINKDO", "DUNGEON", "WORLDFLAG", "SONG", "LASTSONG",
-    "SPR0_YL", "SPR0_XL", "SPR0_AIMODE", "SPR0_TIMER_A", "SPR0_ID",
+    "SPR0_YL", "SPR0_XL", "SPR0_STATE", "SPR0_TIMER_A", "SPR0_ID",
     "SPR0_HP",
 ]
 SRAM_SYMBOLS = [
     "BOW", "BOOMER", "HOOKSHOT", "BOMBS", "GLOVES", "BOOTS", "FLIPPERS",
     "PEARL", "SWORD", "SHIELD", "ARMOR", "RUPEES", "MAXHP", "CURHP",
-    "MAGPOW", "KEYS", "Pendants", "CRYSTALS", "GAMESTATE",
+    "MAGPOW", "KEYS", "PENDANTS", "CRYSTALS", "GAMESTATE",
 ]
+
+# Logical symbol source -> accepted filenames (usdasm-style, jpdasm-style).
+SYMBOL_FILES = {
+    "wram": ("wram.asm", "symbols_wram.asm"),
+    "sram": ("sram.asm", "symbols_sram.asm"),
+    "registers": ("registers.asm",),
+}
 
 # (label, purpose). Purposes stay generic on purpose: they restate what the
 # label and its dispatch site establish, nothing more.
@@ -91,26 +100,27 @@ class Usdasm:
     symbol_notes: dict[str, str] = field(default_factory=dict)
     labels: dict[str, int] = field(default_factory=dict)
     data: dict[int, str] = field(default_factory=dict)
-    sources: set[str] = field(default_factory=set)
+    sources: dict[str, Path] = field(default_factory=dict)
 
     @classmethod
     def load(cls, root: Path, symbols_root: Path | None = None) -> "Usdasm":
         db = cls(root)
-        # Published usdasm commits ship registers.asm but not the wram.asm /
-        # sram.asm symbol maps; RAM tables are only verifiable where present.
-        for name in ("wram.asm", "sram.asm", "registers.asm"):
-            for base in (root, symbols_root):
-                if base is not None and (base / name).is_file():
-                    db._load_symbols(base / name)
-                    db.sources.add(name)
-                    break
+        # Published usdasm commits ship registers.asm but no WRAM/SRAM maps;
+        # those come from symbols_root when given.
+        for source, filenames in SYMBOL_FILES.items():
+            candidates = [base / name for base in (root, symbols_root)
+                          if base is not None for name in filenames]
+            path = next((c for c in candidates if c.is_file()), None)
+            if path is not None:
+                db._load_symbols(path)
+                db.sources[source] = path
         for path in sorted(root.glob("bank_*.asm")):
             db._load_bank(path)
         return db
 
     @property
     def has_ram_symbols(self) -> bool:
-        return {"wram.asm", "sram.asm"} <= self.sources
+        return "wram" in self.sources and "sram" in self.sources
 
     def _load_symbols(self, path: Path) -> None:
         # A contiguous comment block describes the symbols directly below it;
@@ -173,6 +183,20 @@ def find_usdasm(explicit: str | None) -> Path:
     sys.exit("usdasm not found: pass --usdasm or set YAZE_USDASM_DIR")
 
 
+def find_symbols(explicit: str | None) -> Path | None:
+    candidates = [explicit, os.environ.get("YAZE_USDASM_SYMBOLS_DIR"),
+                  str(Path.home() / "refs/jpdasm")]
+    for candidate in candidates:
+        if not candidate:
+            continue
+        base = Path(candidate)
+        if any((base / name).is_file()
+               for names in (SYMBOL_FILES["wram"], SYMBOL_FILES["sram"])
+               for name in names):
+            return base
+    return None
+
+
 def snes(addr: int) -> str:
     return f"${addr:06X}"
 
@@ -183,7 +207,7 @@ def short(text: str, limit: int = 110) -> str:
 
 
 def render_ram(db: Usdasm, names: list[str]) -> str:
-    rows = ["| Symbol | Address | usdasm note |", "|---|---|---|"]
+    rows = ["| Symbol | Address | Symbol map note |", "|---|---|---|"]
     for name in names:
         addr = db.symbols.get(name)
         if addr is None:
@@ -281,6 +305,9 @@ def check_file(db: Usdasm, path: Path, sections: dict[str, str],
                unverified: list[str]) -> list[str]:
     problems = []
     text = path.read_text()
+    for match in SECTION_RE.finditer(text):
+        if match.group(1) in KNOWN_SECTIONS and match.group(1) not in sections:
+            unverified.append(f"{path}: generated section {match.group(1)}")
     if SECTION_RE.search(text) and apply_sections(text, sections) != text:
         problems.append(f"{path}: generated sections are stale; run render --write")
     for number, line in enumerate(text.splitlines(), 1):
@@ -308,8 +335,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--usdasm")
-    parser.add_argument("--symbols", default=os.environ.get("YAZE_USDASM_SYMBOLS_DIR"),
-                        help="directory with wram.asm/sram.asm symbol maps")
+    parser.add_argument("--symbols",
+                        help="directory with WRAM/SRAM symbol maps (default: "
+                             "$YAZE_USDASM_SYMBOLS_DIR or ~/refs/jpdasm)")
     sub = parser.add_subparsers(dest="command", required=True)
     render = sub.add_parser("render")
     render.add_argument("--write", type=Path, required=True)
@@ -317,8 +345,7 @@ def main() -> int:
     check.add_argument("files", type=Path, nargs="+")
     args = parser.parse_args()
 
-    symbols = Path(args.symbols) if args.symbols else None
-    db = Usdasm.load(find_usdasm(args.usdasm), symbols)
+    db = Usdasm.load(find_usdasm(args.usdasm), find_symbols(args.symbols))
     sections = generated_sections(db)
     if args.command == "render":
         original = args.write.read_text()
@@ -328,9 +355,9 @@ def main() -> int:
     unverified: list[str] = []
     problems = [p for f in args.files
                 for p in check_file(db, f, sections, unverified)]
-    if not db.has_ram_symbols:
-        print(f"note: {db.root} has no wram.asm/sram.asm; {len(unverified)} RAM "
-              "row(s) and the wram/sram generated sections were not verified")
+    if unverified:
+        print(f"note: no WRAM/SRAM symbol maps found; {len(unverified)} RAM "
+              "row(s)/section(s) were not verified")
     for problem in problems:
         print(problem)
     print(f"checked {len(args.files)} file(s): {len(problems)} problem(s)")

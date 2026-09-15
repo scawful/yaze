@@ -10,10 +10,14 @@ address in the generated sections is resolved from the usdasm disassembly by
   `~/refs/usdasm`. Newer upstream commits switched to the Futaba assembler
   format (`|008034|` address columns), which this tool does not parse yet.
 - Label, dispatch, vector, and bank tables come from the pinned commit.
-- RAM tables use the `wram.asm`/`sram.asm` symbol maps, which the public
-  repo does not ship. Their addresses agree with the pinned disassembly, but
-  `check` can verify them only when run with `--symbols <dir with the maps>`.
-- Regenerate: `python3 scripts/agents/alttp_reference.py --usdasm ~/refs/usdasm --symbols <maps> render --write docs/internal/zelda3/alttp-quick-reference.md`
+- RAM tables come from the WRAM/SRAM symbol maps in
+  [jpdasm](https://github.com/spannerisms/jpdasm) (GPL-3.0) pinned to
+  `4535f69` (`symbols_wram.asm`, `symbols_sram.asm`; checked out at
+  `~/refs/jpdasm`), because usdasm does not publish symbol maps. jpdasm
+  disassembles the JP ROM; see "US usage audit" below for the rows
+  confirmed against US code.
+- Regenerate: `python3 scripts/agents/alttp_reference.py render --write docs/internal/zelda3/alttp-quick-reference.md`
+  (defaults to `~/refs/usdasm` and `~/refs/jpdasm`).
 - Verify any doc with `| NAME | $ADDR |` rows: `python3 scripts/agents/alttp_reference.py check <file.md>`
 
 ## Finding things in usdasm
@@ -151,7 +155,7 @@ three parallel byte tables (low, mid, bank) starting at `$008061`. `SUBMODE`
 ## Key WRAM symbols
 Sprite tables are 16-slot arrays indexed by slot (`SPR0_*` is slot 0).
 <!-- BEGIN GENERATED: wram -->
-| Symbol | Address | usdasm note |
+| Symbol | Address | Symbol map note |
 |---|---|---|
 | `MODE` | `$7E0010` | Game mode and submode; See $00:80B5 |
 | `SUBMODE` | `$7E0011` | Game mode and submode; See $00:80B5 |
@@ -159,7 +163,7 @@ Sprite tables are 16-slot arrays indexed by slot (`SPR0_*` is slot 0).
 | `POSY` | `$7E0020` | Link's absolute coordinates; TODO also used during attract (up through around $34) |
 | `POSX` | `$7E0022` | Link's absolute coordinates; TODO also used during attract (up through around $34) |
 | `OWSCR` | `$7E008A` | Overworld screen ID; In practice bit 6 indicates a Dark World screen, and bit 7 indicates special overworld;… |
-| `ROOM` | `$7E00A0` | Room ID for underworld; Copied to $0483; There are only 2 "maps", so $A1 is only expected to be 0 or 1 |
+| `ROOM` | `$7E00A0` | Room ID for underworld; Copied to $0483; $A1 is only expected to be 0 or 1 |
 | `LINKDO` | `$7E005D` | Link's main state handler |
 | `DUNGEON` | `$7E040C` | Dungeon IDs, multiples of 2.; High byte mostly unused but sometimes read. |
 | `WORLDFLAG` | `$7E0FFF` | Light world or dark world |
@@ -167,7 +171,7 @@ Sprite tables are 16-slot arrays indexed by slot (`SPR0_*` is slot 0).
 | `LASTSONG` | `$7E0130` | Stores the last nonzero song given to the SPC |
 | `SPR0_YL` | `$7E0D00` | Sprite coordinates; y low |
 | `SPR0_XL` | `$7E0D10` | x low |
-| `SPR0_AIMODE` | `$7E0DD0` | Main AI state of the sprite |
+| `SPR0_STATE` | `$7E0DD0` | Main AI state of the sprite |
 | `SPR0_TIMER_A` | `$7E0DF0` | Auto-decremented timers |
 | `SPR0_ID` | `$7E0E20` | Which sprite is it? |
 | `SPR0_HP` | `$7E0E50` | Sprite's hitpoints \| set from $0DB173 |
@@ -175,7 +179,7 @@ Sprite tables are 16-slot arrays indexed by slot (`SPR0_*` is slot 0).
 
 ## Key SRAM (save) symbols
 <!-- BEGIN GENERATED: sram -->
-| Symbol | Address | usdasm note |
+| Symbol | Address | Symbol map note |
 |---|---|---|
 | `BOW` | `$7EF340` | Items; 0x00 - Nothing; 0x01 - Bow; 0x02 - Bow and arrows; 0x03 - Silver bow; 0x04 - Silver bow and arrows; Pi… |
 | `BOOMER` | `$7EF341` | 0x00 - Nothing; 0x01 - Blue boomerang; 0x02 - Red boomerang |
@@ -193,10 +197,63 @@ Sprite tables are 16-slot arrays indexed by slot (`SPR0_*` is slot 0).
 | `CURHP` | `$7EF36D` | Current health; You die at 0x00; You also die at ≥0xA8 |
 | `MAGPOW` | `$7EF36E` | Magic power, capped at 128 |
 | `KEYS` | `$7EF36F` | Current number of keys for whatever dungeon is loaded |
-| `Pendants` | `$7EF374` | ... ..gbr; r - Wisdom  (red); b - Power   (blue); g - Courage (green) |
+| `PENDANTS` | `$7EF374` | ... ..gbr; r - Wisdom  (red); b - Power   (blue); g - Courage (green) |
 | `CRYSTALS` | `$7EF37A` | .wbs tipm; p - Palace of Darkness; s - Swamp Palace; w - Skull Woods; b - Thieves' Town; i - Ice Palace; m -… |
 | `GAMESTATE` | `$7EF3C5` | Game state; 0x00 - Very start; progress cannot be saved in this state; 0x01 - Uncle reached; 0x02 - Zelda res… |
 <!-- END GENERATED: sram -->
+
+## US usage audit
+
+jpdasm describes the JP ROM, so every RAM row above was audited against US
+code on 2026-09-15. For each address, one agent found US code sites whose
+routines support the meaning, and an independent agent re-opened every
+citation and tried to refute it. All 37 rows were upheld with at least 3
+valid citations from distinct routines. The audit covers each address's
+meaning, not every detail of the symbol-map notes.
+
+Known note corrections for the US ROM:
+- `ROOM`: US code copies `$A0` to `$048E` (`bank_02.asm:1944-1945`,
+  `LDA.b $A0` / `STA.w $048E`, 8 writes); nothing in US code accesses `$0483`.
+
+| Symbol | Address | Example US site (usdasm `835b15b`) | Valid citations |
+|---|---|---|---|
+| `MODE` | `$7E0010` | `bank_00.asm:203` `#_0080B5: LDY.b $10` | 4 |
+| `SUBMODE` | `$7E0011` | `bank_0C.asm:2156` `#_0CCD85: LDA.b $11` | 4 |
+| `INDOORS` | `$7E001B` | `bank_02.asm:15466` `#_02D8B8: STA.b $1B` | 5 |
+| `POSY` | `$7E0020` | `bank_02.asm:1528` `#_02886E: LDA.b $20` | 4 |
+| `POSX` | `$7E0022` | `bank_02.asm:12203` `#_02C1D2: STA.b $22` | 4 |
+| `OWSCR` | `$7E008A` | `bank_00.asm:10373` `#_00D884: LDA.b $8A` | 5 |
+| `ROOM` | `$7E00A0` | `bank_02.asm:10403` `#_02B855: LDA.b $A0` | 4 |
+| `LINKDO` | `$7E005D` | `bank_07.asm:202` `#_078102: LDA.b $5D` | 5 |
+| `DUNGEON` | `$7E040C` | `bank_02.asm:384` `#_02824D: LDA.w $040C` | 6 |
+| `WORLDFLAG` | `$7E0FFF` | `bank_06.asm:762` `#_06834B: STY.w $0FFF` | 5 |
+| `SONG` | `$7E012C` | `bank_00.asm:239` `#_0080DC: LDA.w $012C` | 6 |
+| `LASTSONG` | `$7E0130` | `bank_00.asm:260` `#_0080FD: STA.w $0130` | 5 |
+| `SPR0_YL` | `$7E0D00` | `bank_06.asm:11260` `#_06BC43: ADC.w $0D00,X` | 4 |
+| `SPR0_XL` | `$7E0D10` | `bank_05.asm:215` `#_058115: STA.w $0D10,Y` | 4 |
+| `SPR0_STATE` | `$7E0DD0` | `bank_06.asm:1103` `#_0684E2: LDA.w $0DD0,X` | 3 |
+| `SPR0_TIMER_A` | `$7E0DF0` | `bank_06.asm:948` `#_068426: DEC.w $0DF0,X` | 3 |
+| `SPR0_ID` | `$7E0E20` | `bank_06.asm:8540` `#_06AD41: LDA.w $0E20,Y` | 4 |
+| `SPR0_HP` | `$7E0E50` | `bank_0D.asm:7839` `#_0DB82C: STA.w $0E50,X` | 4 |
+| `BOW` | `$7EF340` | `bank_0D.asm:17205` `#_0DFAFF: LDA.l $7EF340` | 4 |
+| `BOOMER` | `$7EF341` | `bank_09.asm:481` `#_09822E: LDA.l $7EF341` | 3 |
+| `HOOKSHOT` | `$7EF342` | `bank_0D.asm:14433` `#_0DE4A9: LDA.l $7EF342` | 3 |
+| `BOMBS` | `$7EF343` | `bank_09.asm:256` `#_098127: LDA.l $7EF343` | 5 |
+| `GLOVES` | `$7EF354` | `bank_0D.asm:15011` `#_0DE7FB: LDA.l $7EF354` | 6 |
+| `BOOTS` | `$7EF355` | `bank_09.asm:1243` `#_09857E: dw $7EF355` | 3 |
+| `FLIPPERS` | `$7EF356` | `bank_06.asm:3247` `#_068F0F: LDA.l $7EF356` | 7 |
+| `PEARL` | `$7EF357` | `bank_09.asm:1199` `#_098526: dw $7EF357` | 4 |
+| `SWORD` | `$7EF359` | `bank_09.asm:1168` `#_0984E8: dw $7EF359` | 4 |
+| `SHIELD` | `$7EF35A` | `bank_09.asm:1172` `#_0984F0: dw $7EF35A` | 6 |
+| `ARMOR` | `$7EF35B` | `bank_04.asm:4671` `#_04EB44: LDA.l $7EF35B` | 5 |
+| `RUPEES` | `$7EF360` | `bank_0D.asm:12801` `#_0DDBD6: CMP.l $7EF360` | 4 |
+| `MAXHP` | `$7EF36C` | `bank_08.asm:13514` `#_08C474: STA.l $7EF36C` | 6 |
+| `CURHP` | `$7EF36D` | `bank_07.asm:158` `#_0780C6: LDA.l $7EF36D` | 5 |
+| `MAGPOW` | `$7EF36E` | `bank_0D.asm:12765` `#_0DDB98: LDA.l $7EF36E` | 4 |
+| `KEYS` | `$7EF36F` | `bank_01.asm:14874` `#_01CF59: LDA.l $7EF36F` | 4 |
+| `PENDANTS` | `$7EF374` | `bank_0D.asm:15211` `#_0DEA1A: LDA.l $7EF374` | 6 |
+| `CRYSTALS` | `$7EF37A` | `bank_0D.asm:15304` `#_0DEAA4: LDA.l $7EF37A` | 5 |
+| `GAMESTATE` | `$7EF3C5` | `bank_05.asm:17084` `#_05DF67: STA.l $7EF3C5` | 5 |
 
 ## Bank label families
 Label counts per bank, grouped by label prefix. Use this to guess which bank
