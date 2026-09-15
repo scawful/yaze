@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <functional>
 #include <string>
+#include <vector>
 
 #include "app/editor/shell/coordinator/recent_projects_model.h"
 #include "imgui/imgui.h"
@@ -143,6 +144,8 @@ class WelcomeScreen {
                                          float available_height,
                                          float row_height, float row_gap,
                                          float more_line_height);
+  static const RecentProject* FindResumeProject(
+      const std::vector<RecentProject>& entries);
 
   RecentProjectsModel recent_projects_model_;
   bool manually_closed_ = false;
