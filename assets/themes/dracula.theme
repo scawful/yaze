@@ -1,6 +1,7 @@
 # Dracula Theme
 # The classic high-contrast dark theme with vibrant purple and cyan
 # Palette spec: draculatheme.com
+# License notice: THIRD_PARTY_NOTICES.md
 name=Dracula
 description=Dracula — iconic dark theme with vibrant purple, pink, cyan, and green accents
 author=YAZE Team (palette: Zeno Rocha)
