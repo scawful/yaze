@@ -47,9 +47,11 @@ APT_PACKAGES=(
 # (Oracle of Secrets ignores Roms/*); never add a source that ships
 # copyrighted ROM or leaked data. usdasm is pinned: later upstream commits use
 # the Futaba format that scripts/agents/alttp_reference.py cannot parse, and
-# docs/internal/zelda3 tables are generated from this commit.
+# docs/internal/zelda3 tables are generated from this commit. jpdasm is pinned
+# for its WRAM/SRAM symbol maps, which usdasm does not publish.
 REFS=(
   "usdasm https://github.com/spannerisms/usdasm.git 835b15b91fc93a635fbe319da045c7d0a034bb12"
+  "jpdasm https://github.com/spannerisms/jpdasm.git 4535f694752d1469ede65083e986ce2101945264"
   "z3dk https://github.com/scawful/z3dk.git"
   "oracle-of-secrets https://github.com/scawful/Oracle-of-Secrets.git"
 )
@@ -92,6 +94,12 @@ step_refs() {
   for entry in "${REFS[@]}"; do
     read -r name url commit <<<"$entry"
     dest="$REFS_DIR/$name"
+    # An interrupted clone/fetch can leave a directory git cannot read; start
+    # that ref over instead of failing later with an obscure error.
+    if [[ -e "$dest" ]] && ! git -C "$dest" rev-parse HEAD >/dev/null 2>&1; then
+      log "refs: $name at $dest is incomplete; re-fetching"
+      rm -rf -- "$dest"
+    fi
     if [[ -z "$commit" ]]; then
       if [[ -d "$dest/.git" ]]; then
         log "refs: $name already present at $dest"

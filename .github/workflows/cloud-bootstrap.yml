@@ -1,16 +1,14 @@
 name: Cloud Bootstrap
 
 # Proves scripts/cloud/bootstrap.sh still prepares a fresh Ubuntu 24.04
-# container (the Claude Code web / Codex / Cursor base) for ROM-less work,
-# and that usdasm-backed reference docs stay in sync with the disassembly.
+# container (the Claude Code web / Codex / Cursor base) to build and unit-test
+# yaze without a ROM. Doc-only edits are covered by reference-docs.yml.
 
 on:
   pull_request:
     paths:
       - "scripts/cloud/**"
       - ".cursor/environment.json"
-      - "scripts/agents/alttp_reference.py"
-      - "docs/internal/zelda3/**"
       - ".github/workflows/cloud-bootstrap.yml"
   workflow_dispatch:
 
@@ -22,17 +20,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  reference-docs:
-    name: Reference docs match usdasm
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - name: Clone reference repos
-        run: bash scripts/cloud/bootstrap.sh refs
-      - name: Check docs against usdasm
-        run: python3 scripts/agents/alttp_reference.py check docs/internal/zelda3/*.md
-
   bootstrap:
     name: Bootstrap, build, and unit test (lin-test)
     runs-on: ubuntu-24.04
