@@ -1,21 +1,27 @@
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 
 #include <algorithm>
+#include <array>
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <memory>
+#include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
 #include "app/editor/dungeon/dungeon_canvas_transform.h"
+#include "app/editor/dungeon/dungeon_editor_v2.h"
 #include "app/editor/dungeon/ui_constants.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/types/snes_tile.h"
 #include "app/gui/canvas/canvas_pipelines.h"
 #include "app/gui/core/icons.h"
+#include "core/features.h"
 #include "core/project.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui_internal.h"
@@ -54,6 +60,37 @@ struct IssueReportPopupSnapshot {
 
 class DungeonCanvasViewerTestPeer {
  public:
+  static std::span<const uint8_t> ExternalSpriteGraphics(
+      DungeonCanvasViewer& viewer) {
+    const auto* project = viewer.project();
+    viewer.sprite_preview_resources_.SetContext(
+        project->filepath, project->GetAbsolutePath(project->assets_folder),
+        project->hack_manifest.hack_name());
+    return viewer.sprite_preview_resources_.GetGraphics(
+        zelda3::SpriteOamRegistry::GetPreviewOverride(0x88,
+                                                      "Oracle of Secrets"));
+  }
+
+  static std::array<DungeonCanvasViewer*, 3> SeedAssetRefreshViewers(
+      DungeonEditorV2& editor, const project::YazeProject* project) {
+    auto room_viewer = std::make_unique<DungeonCanvasViewer>();
+    auto* room_viewer_ptr = room_viewer.get();
+    editor.room_viewers_.Insert(0, std::move(room_viewer));
+    editor.workbench_viewer_ = std::make_unique<DungeonCanvasViewer>();
+    editor.workbench_compare_viewer_ = std::make_unique<DungeonCanvasViewer>();
+    std::array<DungeonCanvasViewer*, 3> viewers = {
+        room_viewer_ptr, editor.workbench_viewer_.get(),
+        editor.workbench_compare_viewer_.get()};
+    for (auto* viewer : viewers) {
+      viewer->SetProject(project);
+    }
+    return viewers;
+  }
+
+  static void SynchronizeProjectAssets(DungeonEditorV2& editor) {
+    editor.SynchronizeCustomObjectAssets();
+  }
+
   static void RenderSprites(DungeonCanvasViewer& viewer,
                             const gui::CanvasRuntime& runtime,
                             const zelda3::Room& room) {
@@ -534,6 +571,169 @@ struct SpritePreviewCanvasCase {
   SDL_Rect expected_art_bounds;
   const char* name;
 };
+
+class DungeonCanvasAssetRefreshTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const auto nonce =
+        std::chrono::steady_clock::now().time_since_epoch().count();
+    root_ = std::filesystem::temp_directory_path() /
+            ("yaze_canvas_asset_refresh_" + std::to_string(nonce));
+    ASSERT_TRUE(std::filesystem::create_directories(root_ / "Sprites/Bosses"));
+    project_.filepath = (root_ / "project.yaze").string();
+    project_.assets_folder = "Sprites";
+    ASSERT_TRUE(project_.hack_manifest
+                    .LoadFromString(R"json({
+      "manifest_version": 1, "hack_name": "Oracle of Secrets"
+    })json")
+                    .ok());
+    auto& manager = zelda3::CustomObjectManager::Get();
+    previous_state_ = manager.SnapshotState();
+    previous_context_ = manager.active_runtime_context_id();
+    previous_enabled_ = core::FeatureFlags::get().kEnableCustomObjects;
+    core::FeatureFlags::get().kEnableCustomObjects = false;
+    manager.ActivateRuntimeContext(kContext, {});
+  }
+
+  void TearDown() override {
+    auto& manager = zelda3::CustomObjectManager::Get();
+    manager.RemoveRuntimeContext(kContext);
+    manager.RemoveRuntimeContext(kOtherContext);
+    if (previous_context_) {
+      manager.ActivateRuntimeContext(*previous_context_, previous_state_);
+    } else {
+      manager.ActivateStandaloneContext();
+      manager.RestoreState(previous_state_);
+    }
+    core::FeatureFlags::get().kEnableCustomObjects = previous_enabled_;
+    std::error_code error;
+    std::filesystem::remove_all(root_, error);
+  }
+
+  void WriteSprite(uint8_t value, size_t size = 0x2000) {
+    const std::vector<uint8_t> bytes(size, value);
+    std::ofstream file(root_ / "Sprites/Bosses/manhandla.bin",
+                       std::ios::binary);
+    ASSERT_TRUE(file.is_open());
+    file.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+    ASSERT_TRUE(file.good());
+  }
+
+  void ExpectSprite(DungeonCanvasViewer& viewer, uint8_t value) {
+    const auto bytes =
+        DungeonCanvasViewerTestPeer::ExternalSpriteGraphics(viewer);
+    ASSERT_EQ(bytes.size(), 0x2000u);
+    EXPECT_EQ(bytes.front(), value);
+  }
+
+  static constexpr uint64_t kContext = 0xA55E7001;
+  static constexpr uint64_t kOtherContext = 0xA55E7002;
+  std::filesystem::path root_;
+  project::YazeProject project_;
+  zelda3::CustomObjectManager::State previous_state_;
+  std::optional<uint64_t> previous_context_;
+  bool previous_enabled_ = false;
+};
+
+TEST_F(DungeonCanvasAssetRefreshTest,
+       SameProjectRebindKeepsCacheUntilExplicitRefresh) {
+  DungeonCanvasViewer viewer;
+  viewer.SetProject(&project_);
+  WriteSprite(0x11);
+  ExpectSprite(viewer, 0x11);
+
+  DungeonRoomStore rooms;
+  rooms[0].GetTileObjects().emplace_back(0x01, 10, 10, 0, 0);
+  viewer.SetRooms(&rooms);
+  viewer.object_interaction().SetCurrentRoom(&rooms, 0);
+  viewer.object_interaction().SetSelectedObjects({0});
+  WriteSprite(0x22);
+  viewer.SetProject(&project_);
+  ExpectSprite(viewer, 0x11);
+
+  viewer.InvalidateExternalSpriteResources();
+  ExpectSprite(viewer, 0x22);
+  EXPECT_EQ(viewer.object_interaction().GetSelectedObjectIndices(),
+            std::vector<size_t>{0});
+  EXPECT_EQ(rooms[0].GetTileObjects().front().x_, 10);
+}
+
+TEST_F(DungeonCanvasAssetRefreshTest,
+       ExplicitRefreshRetriesMissingAndBadFiles) {
+  DungeonCanvasViewer viewer;
+  viewer.SetProject(&project_);
+  EXPECT_TRUE(
+      DungeonCanvasViewerTestPeer::ExternalSpriteGraphics(viewer).empty());
+  WriteSprite(0x33);
+  EXPECT_TRUE(
+      DungeonCanvasViewerTestPeer::ExternalSpriteGraphics(viewer).empty());
+  viewer.InvalidateExternalSpriteResources();
+  ExpectSprite(viewer, 0x33);
+  WriteSprite(0x44, 5);
+  viewer.InvalidateExternalSpriteResources();
+  EXPECT_TRUE(
+      DungeonCanvasViewerTestPeer::ExternalSpriteGraphics(viewer).empty());
+  WriteSprite(0x55);
+  EXPECT_TRUE(
+      DungeonCanvasViewerTestPeer::ExternalSpriteGraphics(viewer).empty());
+  viewer.InvalidateExternalSpriteResources();
+  ExpectSprite(viewer, 0x55);
+}
+
+TEST_F(DungeonCanvasAssetRefreshTest,
+       FullRomRefreshAlsoInvalidatesExternalArt) {
+  Rom rom;
+  DungeonRoomStore rooms(&rom);
+  DungeonCanvasViewer viewer(&rom);
+  viewer.SetProject(&project_);
+  WriteSprite(0x11);
+  ExpectSprite(viewer, 0x11);
+  WriteSprite(0x22);
+  viewer.RefreshRomBackedState(&rom, nullptr, &rooms, 0);
+  ExpectSprite(viewer, 0x22);
+}
+
+TEST_F(DungeonCanvasAssetRefreshTest,
+       GenerationRefreshesAllSessionViewersOnceWithCustomObjectsDisabled) {
+  DungeonEditorV2 editor(nullptr);
+  const auto viewers =
+      DungeonCanvasViewerTestPeer::SeedAssetRefreshViewers(editor, &project_);
+  DungeonCanvasViewerTestPeer::SynchronizeProjectAssets(editor);
+  WriteSprite(0x11);
+  for (auto* viewer : viewers) {
+    ExpectSprite(*viewer, 0x11);
+  }
+
+  auto& manager = zelda3::CustomObjectManager::Get();
+  manager.ActivateRuntimeContext(kOtherContext, {});
+  DungeonEditorV2 other_editor(nullptr);
+  const auto other_viewers =
+      DungeonCanvasViewerTestPeer::SeedAssetRefreshViewers(other_editor,
+                                                           &project_);
+  DungeonCanvasViewerTestPeer::SynchronizeProjectAssets(other_editor);
+  for (auto* viewer : other_viewers) {
+    ExpectSprite(*viewer, 0x11);
+  }
+
+  manager.ActivateRuntimeContext(kContext, {});
+  WriteSprite(0x22);
+  manager.ReloadAll();
+  DungeonCanvasViewerTestPeer::SynchronizeProjectAssets(editor);
+  for (auto* viewer : viewers) {
+    ExpectSprite(*viewer, 0x22);
+  }
+  WriteSprite(0x33);
+  DungeonCanvasViewerTestPeer::SynchronizeProjectAssets(editor);
+  for (auto* viewer : viewers) {
+    ExpectSprite(*viewer, 0x22);
+  }
+
+  manager.ActivateRuntimeContext(kOtherContext, {});
+  DungeonCanvasViewerTestPeer::SynchronizeProjectAssets(other_editor);
+  for (auto* viewer : other_viewers) {
+    ExpectSprite(*viewer, 0x11);
+  }
+}
 
 class DungeonCanvasSpritePreviewBoundsTest
     : public ::testing::TestWithParam<SpritePreviewCanvasCase> {};
