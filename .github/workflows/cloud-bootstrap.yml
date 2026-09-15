@@ -35,6 +35,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Unit-test reference checkout safety
         run: bash scripts/cloud/tests/bootstrap_refs_test.sh
+      - name: Unit-test bootstrap step dispatch
+        run: bash scripts/cloud/tests/bootstrap_cli_test.sh
       - name: Install, init submodules, clone refs
         run: |
           start=$(date +%s)

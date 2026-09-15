@@ -4,10 +4,13 @@
 Hand-written RAM and routine tables drift or get invented. This tool keeps
 docs honest by resolving every address from usdasm instead:
 
-  render --write FILE   Regenerate the <!-- BEGIN GENERATED: name --> sections.
-  check FILE...         Fail when a `| NAME | $ADDR |` or `| $ADDR | NAME |`
-                        table row disagrees with usdasm, or when generated
-                        sections are stale.
+  alttp_reference.py [--usdasm DIR] [--symbols DIR] render --write FILE
+      Regenerate the <!-- BEGIN GENERATED: name --> sections.
+  alttp_reference.py [--usdasm DIR] [--symbols DIR] check FILE...
+      Fail when a `| NAME | $ADDR |` or `| $ADDR | NAME |` table row disagrees
+      with usdasm, or when generated sections are stale.
+
+--usdasm/--symbols are global options and must come before the subcommand.
 
 usdasm is located via --usdasm, $YAZE_USDASM_DIR, ~/refs/usdasm (the pinned
 checkout from scripts/cloud/bootstrap.sh refs), or ../usdasm.
@@ -128,6 +131,12 @@ class Usdasm:
                 db.sources[source] = path
         for path in sorted(root.glob("bank_*.asm")):
             db._load_bank(path)
+        # resolve() prefers symbols over labels, so a shared name with a
+        # different address would silently hide the label from check.
+        for name in sorted(set(db.symbols) & set(db.labels)):
+            if db.symbols[name] != db.labels[name]:
+                raise SystemExit(f"{name} is both symbol {snes(db.symbols[name])} "
+                                 f"and label {snes(db.labels[name])}")
         return db
 
     @property

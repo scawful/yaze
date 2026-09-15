@@ -299,6 +299,13 @@ class AddressRulesTest(Fixture):
         self.assertIn("`Far` is $078000", problems[0])
         self.assertIn("six-digit", problems[0])
 
+    def test_symbol_and_label_sharing_a_name_must_agree(self) -> None:
+        (self.root / "registers.asm").write_text(REGISTERS + "Reset = $008000\n")
+        ar.Usdasm.load(self.root)  # same address in both namespaces is fine
+        (self.root / "registers.asm").write_text(REGISTERS + "Reset = $002100\n")
+        with self.assertRaises(SystemExit):
+            ar.Usdasm.load(self.root)
+
     def test_conflicting_symbol_redefinition_is_an_error(self) -> None:
         (self.maps / "symbols_sram.asm").write_text(
             "CURHP = $7EF36D\nCURHP = $7EF36D\n")
