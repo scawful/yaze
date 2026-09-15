@@ -93,6 +93,11 @@ class Fixture(unittest.TestCase):
         path.write_text(textwrap.dedent(body))
         return path
 
+    def check(self, db, body: str, sections=None):
+        unverified: list[str] = []
+        problems = ar.check_file(db, self.write_doc(body), sections or {}, unverified)
+        return problems, unverified
+
 
 class LoadTest(Fixture):
     def test_labels_skip_braces_local_labels_and_aliases(self) -> None:
@@ -159,11 +164,6 @@ class RenderTest(Fixture):
 
 
 class CheckTest(Fixture):
-    def check(self, db, body: str, sections=None):
-        unverified: list[str] = []
-        problems = ar.check_file(db, self.write_doc(body), sections or {}, unverified)
-        return problems, unverified
-
     def test_matching_rows_pass_in_both_orders(self) -> None:
         db = ar.Usdasm.load(self.root, self.maps)
         problems, _ = self.check(db, """\
@@ -224,6 +224,103 @@ class CheckTest(Fixture):
         # Fenced rows are not special-cased: the checker is line-based.
         self.assertEqual(unverified, ["%s:5" % (Path(self._tmp.name) / "doc.md")])
         self.assertEqual(problems, [])
+
+
+class AddressRulesTest(Fixture):
+    def test_four_digit_ram_shorthand_is_unverified_without_maps(self) -> None:
+        db = ar.Usdasm.load(self.root)
+        problems, unverified = self.check(db, """\
+            | `CURHP` | `$F36D` | save-area shorthand |
+            | `MODE` | `$0010` | low WRAM shorthand |
+            | `TYPO` | `$2100` | register range stays strict |
+            """)
+        self.assertEqual(len(unverified), 2)
+        self.assertEqual(len(problems), 1)
+        self.assertIn("TYPO", problems[0])
+
+    def test_four_digit_rows_match_low_bits_six_digit_rows_match_exactly(self) -> None:
+        db = ar.Usdasm.load(self.root, self.maps)
+        problems, _ = self.check(db, """\
+            | `CURHP` | `$F36D` | shorthand ignores the bank |
+            | `$2100` | INIDISP | register shorthand |
+            | `CURHP` | `$7FF36D` | six digits must match the bank |
+            """)
+        self.assertEqual(len(problems), 1)
+        self.assertIn("doc says $7FF36D", problems[0])
+
+    def test_conflicting_symbol_redefinition_is_an_error(self) -> None:
+        (self.maps / "symbols_sram.asm").write_text(
+            "CURHP = $7EF36D\nCURHP = $7EF36D\n")
+        ar.Usdasm.load(self.root, self.maps)  # identical repeat is fine
+        (self.maps / "symbols_sram.asm").write_text(
+            "CURHP = $7EF36D\nCURHP = $7EF36E\n")
+        with self.assertRaises(SystemExit):
+            ar.Usdasm.load(self.root, self.maps)
+
+
+class LocateTest(Fixture):
+    def test_explicit_or_env_locations_must_be_valid(self) -> None:
+        empty = Path(self._tmp.name) / "empty"
+        empty.mkdir()
+        with mock.patch.dict("os.environ", {}, clear=True):
+            self.assertEqual(ar.find_usdasm(str(self.root)), self.root)
+            self.assertEqual(ar.find_symbols(str(self.maps)), self.maps)
+            with self.assertRaises(SystemExit):
+                ar.find_usdasm(str(empty))
+            with self.assertRaises(SystemExit):
+                ar.find_symbols(str(empty))
+        with mock.patch.dict("os.environ", {"YAZE_USDASM_SYMBOLS_DIR": str(empty)}):
+            with self.assertRaises(SystemExit):
+                ar.find_symbols(None)
+
+    def test_default_symbols_location_is_optional(self) -> None:
+        with mock.patch.dict("os.environ", {"HOME": str(Path(self._tmp.name))},
+                             clear=True):
+            self.assertIsNone(ar.find_symbols(None))
+
+
+class CliTest(Fixture):
+    PATCHES = {
+        "MODULE_TABLE": (0x008010, 2, 1),
+        "LINK_STATE_TABLE": (0x008010, 2, 1),
+        "VECTOR_RANGE": (0x00FFEA, 0x00FFEE),
+        "ROUTINES": [("Reset", "entry"), ("NMI", "nmi")],
+        "RAM_SYMBOLS": ["MODE"],
+        "SRAM_SYMBOLS": ["CURHP"],
+    }
+
+    def run_main(self, *argv: str) -> tuple[int, str]:
+        import contextlib
+        import io
+        out = io.StringIO()
+        with contextlib.ExitStack() as stack:
+            for name, value in self.PATCHES.items():
+                stack.enter_context(mock.patch.object(ar, name, value))
+            stack.enter_context(contextlib.redirect_stdout(out))
+            code = ar.main(list(argv))
+        return code, out.getvalue()
+
+    def test_render_then_check_round_trip(self) -> None:
+        sections = "".join(
+            f"<!-- BEGIN GENERATED: {name} -->\n<!-- END GENERATED: {name} -->\n"
+            for name in ar.KNOWN_SECTIONS)
+        doc = self.write_doc(sections)
+        common = ("--usdasm", str(self.root), "--symbols", str(self.maps))
+
+        code, _ = self.run_main(*common, "render", "--write", str(doc))
+        self.assertEqual(code, 0)
+        rendered = doc.read_text()
+        self.assertIn("| `CURHP` | `$7EF36D` |", rendered)
+        self.assertIn("| `0x01` | `ModuleB` |", rendered)
+
+        code, output = self.run_main(*common, "check", str(doc))
+        self.assertEqual(code, 0, output)
+        self.assertIn("0 problem(s)", output)
+
+        doc.write_text(rendered.replace("`$7EF36D`", "`$7EF36B`"))
+        code, output = self.run_main(*common, "check", str(doc))
+        self.assertEqual(code, 1)
+        self.assertIn("stale", output)
 
 
 if __name__ == "__main__":
