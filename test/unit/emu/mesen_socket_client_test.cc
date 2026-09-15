@@ -1,3 +1,9 @@
+#ifdef _WIN32
+// winsock2.h must precede headers that may include windows.h.
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
+
 #include "app/emu/mesen/mesen_socket_client.h"
 
 #include <algorithm>
@@ -102,6 +108,39 @@ namespace {
 
 TEST(MesenSocketClientTest, SubscribeDispatchesFrameEvents) {
   GTEST_SKIP() << "Unix socket integration test is not supported on Windows";
+}
+
+TEST(MesenSocketClientTest, RefusedTcpConnectReturnsSocketErrorWithoutTimeout) {
+  // Constructing the client initializes Winsock for this process.
+  MesenSocketClient client;
+
+  SOCKET listener = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+  ASSERT_NE(listener, INVALID_SOCKET) << WSAGetLastError();
+
+  sockaddr_in address{};
+  address.sin_family = AF_INET;
+  address.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+  address.sin_port = 0;
+  ASSERT_NE(
+      bind(listener, reinterpret_cast<sockaddr*>(&address), sizeof(address)),
+      SOCKET_ERROR)
+      << WSAGetLastError();
+
+  int address_length = sizeof(address);
+  ASSERT_NE(getsockname(listener, reinterpret_cast<sockaddr*>(&address),
+                        &address_length),
+            SOCKET_ERROR)
+      << WSAGetLastError();
+  const uint16_t port = ntohs(address.sin_port);
+  closesocket(listener);
+
+  const auto status = client.Connect("tcp://127.0.0.1:" + std::to_string(port));
+
+  ASSERT_FALSE(status.ok());
+  EXPECT_EQ(status.message().find("Timed out"), std::string::npos)
+      << status.message();
+  EXPECT_NE(status.message().find("Failed to connect"), std::string::npos)
+      << status.message();
 }
 
 }  // namespace
