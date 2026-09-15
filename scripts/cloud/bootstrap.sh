@@ -48,7 +48,10 @@ APT_PACKAGES=(
 # copyrighted ROM or leaked data. usdasm is pinned: later upstream commits use
 # the Futaba format that scripts/agents/alttp_reference.py cannot parse, and
 # docs/internal/zelda3 tables are generated from this commit. jpdasm is pinned
-# for its WRAM/SRAM symbol maps, which usdasm does not publish.
+# for its WRAM/SRAM symbol maps, which usdasm does not publish. z3dk and
+# oracle-of-secrets intentionally track their default branch: they are
+# actively developed sibling projects, nothing here is generated from them,
+# and agents should read their current state.
 REFS=(
   "usdasm https://github.com/spannerisms/usdasm.git 835b15b91fc93a635fbe319da045c7d0a034bb12"
   "jpdasm https://github.com/spannerisms/jpdasm.git 4535f694752d1469ede65083e986ce2101945264"
