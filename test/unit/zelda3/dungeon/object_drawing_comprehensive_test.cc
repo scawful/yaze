@@ -160,6 +160,10 @@ int ExpectedSubtype3TileCount(int id) {
   if (id == 0xFD4) {
     return 26;
   }
+  // Bar corners each consume one contiguous 4-word 2x2 block.
+  if (id >= 0xFD6 && id <= 0xFD9) {
+    return 4;
+  }
   // Smithy furnace is a fixed 6x8 row-major payload.
   if (id == 0xFCC) {
     return 48;
