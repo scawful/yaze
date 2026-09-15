@@ -197,6 +197,9 @@ class WelcomeScreen {
   // Context state for gating actions
   bool has_rom_ = false;
   bool release_notes_open_failed_ = false;
+  // Latched each Show() frame so Recents can avoid multi-column packing when
+  // Start + Recents already share one vertical stack.
+  bool use_stacked_welcome_layout_ = false;
 
   // Inline popup state for rename / edit-notes flows triggered from the
   // recent-project context menu. Single-slot (one popup at a time).
