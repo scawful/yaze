@@ -75,6 +75,26 @@ as_root() {
   fi
 }
 
+# Normalize git remote URLs so https, ssh, and scp-style forms of the same
+# repository compare equal (github.com/owner/repo).
+normalize_remote_url() {
+  local url="${1%/}"
+  url="${url%.git}"
+  url="${url#https://}"
+  url="${url#http://}"
+  url="${url#ssh://}"
+  url="${url#git@}"
+  url="${url/://}"
+  printf '%s' "$url" | tr '[:upper:]' '[:lower:]'
+}
+
+# Records the commit bootstrap placed in a reference checkout. Pinned refs are
+# only moved while HEAD still equals this marker, so local commits made on a
+# detached HEAD are never orphaned by a re-pin.
+mark_checkout() {
+  git -C "$1" update-ref refs/bootstrap/checkout HEAD
+}
+
 clone_ref() {
   local name="$1" url="$2" commit="$3" dest="$4" temp
   temp="$(mktemp -d "${dest}.bootstrap.XXXXXX")"
@@ -91,6 +111,7 @@ clone_ref() {
     rm -rf -- "$temp"
     return 1
   fi
+  mark_checkout "$temp"
   if [[ -e "$dest" ]]; then
     echo "[bootstrap] refs: destination appeared during clone: $dest" >&2
     rm -rf -- "$temp"
@@ -120,7 +141,7 @@ step_submodules() {
 
 step_refs() {
   mkdir -p "$REFS_DIR"
-  local entry name url commit dest repo_root dest_root
+  local entry name url commit dest repo_root dest_root origin_url head owned
   for entry in "${REFS[@]}"; do
     read -r name url commit <<<"$entry"
     dest="$REFS_DIR/$name"
@@ -132,6 +153,13 @@ step_refs() {
       dest_root="$(cd "$dest" 2>/dev/null && pwd -P || true)"
       if [[ -z "$repo_root" || "$repo_root" != "$dest_root" ]]; then
         echo "[bootstrap] refs: refusing to replace unreadable path $dest; move or remove it explicitly" >&2
+        return 1
+      fi
+      # A checkout of a different repository (for example a fork) at this
+      # path would silently feed agents or generated docs the wrong content.
+      origin_url="$(git -C "$dest" remote get-url origin 2>/dev/null || true)"
+      if [[ "$(normalize_remote_url "$origin_url")" != "$(normalize_remote_url "$url")" ]]; then
+        echo "[bootstrap] refs: $dest has origin '${origin_url:-<none>}', expected $url; refusing to use it" >&2
         return 1
       fi
     fi
@@ -146,6 +174,7 @@ step_refs() {
           if ! git -C "$dest" merge-base --is-ancestor HEAD FETCH_HEAD; then
             log "refs: $name has local or divergent commits; not refreshing"
           elif git -C "$dest" checkout --quiet --detach FETCH_HEAD; then
+            mark_checkout "$dest"
             log "refs: $name refreshed to $(git -C "$dest" rev-parse --short HEAD)"
           else
             log "refs: $name checkout failed; keeping $(git -C "$dest" rev-parse --short HEAD)"
@@ -171,9 +200,16 @@ step_refs() {
       clone_ref "$name" "$url" "$commit" "$dest"
       continue
     fi
+    head="$(git -C "$dest" rev-parse HEAD)"
+    owned="$(git -C "$dest" rev-parse --quiet --verify refs/bootstrap/checkout || true)"
+    if [[ "$head" != "$owned" ]]; then
+      echo "[bootstrap] refs: pinned $name at $dest is on ${head:0:7}, which bootstrap did not check out; refusing to move it (local commits would be orphaned)" >&2
+      return 1
+    fi
     log "refs: fetching $name at pinned ${commit:0:7} -> $dest"
     git -C "$dest" fetch --quiet --depth 1 origin "$commit"
     git -C "$dest" checkout --quiet --detach "$commit"
+    mark_checkout "$dest"
   done
 }
 

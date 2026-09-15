@@ -66,4 +66,62 @@ fi
 [[ -f "$REFS_DIR/pinned/local-note" ]] ||
   fail "modified pinned input was not preserved"
 
+# Remote URL forms of one repository compare equal; other repositories do not.
+[[ "$(normalize_remote_url https://github.com/Owner/Repo.git)" == \
+  "$(normalize_remote_url git@github.com:owner/repo)" ]] ||
+  fail "https and scp-style URLs did not normalize equal"
+[[ "$(normalize_remote_url ssh://git@github.com/owner/repo/)" == \
+  "$(normalize_remote_url https://github.com/owner/repo)" ]] ||
+  fail "ssh and https URLs did not normalize equal"
+[[ "$(normalize_remote_url https://github.com/owner/fork)" != \
+  "$(normalize_remote_url https://github.com/owner/repo)" ]] ||
+  fail "different repositories normalized equal"
+
+OTHER_REPO="$TEST_ROOT/other"
+git init --quiet "$OTHER_REPO"
+git -C "$OTHER_REPO" config user.name "Yaze Bootstrap Test"
+git -C "$OTHER_REPO" config user.email "bootstrap-test@yaze.invalid"
+git -C "$OTHER_REPO" commit --quiet --allow-empty -m other
+
+# A checkout whose origin is a different repository is refused, pinned or not.
+REFS_DIR="$TEST_ROOT/origin/refs"
+REFS=("unpinned $SOURCE_REPO")
+step_refs
+ORIGIN_HEAD="$(git -C "$REFS_DIR/unpinned" rev-parse HEAD)"
+REFS=("unpinned $OTHER_REPO")
+if step_refs; then
+  fail "unpinned checkout with a different origin was accepted"
+fi
+[[ "$(git -C "$REFS_DIR/unpinned" rev-parse HEAD)" == "$ORIGIN_HEAD" ]] ||
+  fail "wrong-origin unpinned checkout was moved"
+REFS=("unpinned $OTHER_REPO $(git -C "$OTHER_REPO" rev-parse HEAD)")
+if step_refs; then
+  fail "pinned checkout with a different origin was accepted"
+fi
+
+# Re-pinning moves a checkout bootstrap placed, but never one carrying a
+# local commit on its detached HEAD.
+REFS_DIR="$TEST_ROOT/repin/refs"
+REFS=("pinned $SOURCE_REPO $THIRD_HEAD")
+step_refs
+git -C "$SOURCE_REPO" commit --quiet --allow-empty -m fourth
+FOURTH_HEAD="$(git -C "$SOURCE_REPO" rev-parse HEAD)"
+REFS=("pinned $SOURCE_REPO $FOURTH_HEAD")
+step_refs
+[[ "$(git -C "$REFS_DIR/pinned" rev-parse HEAD)" == "$FOURTH_HEAD" ]] ||
+  fail "bootstrap-owned pinned checkout did not re-pin"
+
+git -C "$REFS_DIR/pinned" -c user.name=Local -c user.email=local@yaze.invalid \
+  commit --quiet --allow-empty -m "local work"
+LOCAL_HEAD="$(git -C "$REFS_DIR/pinned" rev-parse HEAD)"
+git -C "$SOURCE_REPO" commit --quiet --allow-empty -m fifth
+# Consumed by step_refs from the sourced script.
+# shellcheck disable=SC2034
+REFS=("pinned $SOURCE_REPO $(git -C "$SOURCE_REPO" rev-parse HEAD)")
+if step_refs; then
+  fail "pinned checkout with a local commit was moved"
+fi
+[[ "$(git -C "$REFS_DIR/pinned" rev-parse HEAD)" == "$LOCAL_HEAD" ]] ||
+  fail "local commit on a pinned checkout was orphaned"
+
 echo "bootstrap refs safety tests passed"
