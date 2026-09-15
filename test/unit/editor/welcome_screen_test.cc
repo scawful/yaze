@@ -40,7 +40,7 @@ class WelcomeScreenTestPeer {
 
   static ImGuiID ProjectPanelId(int index) {
     ImGui::PushID(index);
-    const ImGuiID id = ImGui::GetID("ProjectPanel");
+    const ImGuiID id = ImGui::GetID("##ProjectPanel");
     ImGui::PopID();
     return id;
   }
@@ -232,14 +232,10 @@ TEST_P(WelcomeScreenFullLayoutTest, StartActionsStayReachableWithoutScrolling) {
       actions->GetID(ICON_MD_FOLDER_OPEN " Open ROM / Project");
 #endif
   const ImGuiID new_id = actions->GetID(ICON_MD_ADD_CIRCLE " New Project");
-  const ImGuiID more_id =
-      actions->GetID(ICON_MD_MORE_HORIZ " More ways to start");
   bool saw_open = false;
   bool saw_new = false;
-  bool saw_more = false;
-  for (int step = 0; step < 12 && !(saw_open && saw_new && saw_more); ++step) {
-    if (context_->NavId == open_id || context_->NavId == new_id ||
-        context_->NavId == more_id) {
+  for (int step = 0; step < 12 && !(saw_open && saw_new); ++step) {
+    if (context_->NavId == open_id || context_->NavId == new_id) {
       const ImRect rect = ImGui::WindowRectRelToAbs(
           actions, actions->NavRectRel[ImGuiNavLayer_Main]);
       EXPECT_GE(rect.Min.y, actions->ClipRect.Min.y);
@@ -248,13 +244,10 @@ TEST_P(WelcomeScreenFullLayoutTest, StartActionsStayReachableWithoutScrolling) {
       EXPECT_LE(rect.Max.x, actions->ClipRect.Max.x);
       saw_open |= context_->NavId == open_id;
       saw_new |= context_->NavId == new_id;
-      saw_more |= context_->NavId == more_id;
-      if (context_->NavId != more_id) {
-        io.AddKeyEvent(ImGuiKey_Enter, true);
-        DrawFrame(&screen);
-        io.AddKeyEvent(ImGuiKey_Enter, false);
-        DrawFrame(&screen);
-      }
+      io.AddKeyEvent(ImGuiKey_Enter, true);
+      DrawFrame(&screen);
+      io.AddKeyEvent(ImGuiKey_Enter, false);
+      DrawFrame(&screen);
     }
     io.AddKeyEvent(ImGuiKey_Tab, true);
     DrawFrame(&screen);
@@ -263,7 +256,6 @@ TEST_P(WelcomeScreenFullLayoutTest, StartActionsStayReachableWithoutScrolling) {
   }
   EXPECT_TRUE(saw_open);
   EXPECT_TRUE(saw_new);
-  EXPECT_TRUE(saw_more);
   EXPECT_EQ(open_count, 1);
   EXPECT_EQ(new_count, 1);
 
@@ -284,9 +276,8 @@ INSTANTIATE_TEST_SUITE_P(
     ::testing::Values(
         WelcomeLayoutCase{"WideFirstRun", ImVec2(1400, 1050), 13, false, false},
         WelcomeLayoutCase{"WideRecents", ImVec2(1400, 1050), 13, true, false},
-        // Near-full welcome window: 800×600 clears the split height breakpoint.
-        WelcomeLayoutCase{"NarrowFirstRun", ImVec2(800, 600), 13, false, false},
-        WelcomeLayoutCase{"NarrowRecents", ImVec2(800, 600), 13, true, false},
+        WelcomeLayoutCase{"NarrowFirstRun", ImVec2(800, 600), 13, false, true},
+        WelcomeLayoutCase{"NarrowRecents", ImVec2(800, 600), 13, true, true},
         WelcomeLayoutCase{"ShortFirstRun", ImVec2(1400, 500), 13, false, true},
         WelcomeLayoutCase{"ShortRecents", ImVec2(1400, 500), 13, true, true},
         WelcomeLayoutCase{"LargeFontFirstRun", ImVec2(1400, 1050), 26, false,
@@ -343,7 +334,7 @@ TEST_F(WelcomeScreenTest, RecentCardActivatesFromKeyboardNavigation) {
   EXPECT_EQ(opened_path, project.filepath);
 }
 
-TEST_F(WelcomeScreenTest, MoreWaysPopupKeepsImGuiStacksBalanced) {
+TEST_F(WelcomeScreenTest, SecondaryStartActionsKeepImGuiStacksBalanced) {
   WelcomeScreen screen;
   WelcomeScreenTestPeer::SetEntryTime(&screen, 1.0f);
   screen.SetOpenPrototypeResearchCallback([]() {});
@@ -354,8 +345,6 @@ TEST_F(WelcomeScreenTest, MoreWaysPopupKeepsImGuiStacksBalanced) {
   ImGui::Begin(
       "WelcomeActionsHost", nullptr,
       ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoSavedSettings);
-  ImGui::OpenPopup("WelcomeMoreStartWays");
-  ASSERT_TRUE(ImGui::IsPopupOpen("WelcomeMoreStartWays"));
 
   const int style_before = context_->StyleVarStack.Size;
   const int color_before = context_->ColorStack.Size;
