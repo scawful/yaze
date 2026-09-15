@@ -214,6 +214,88 @@ std::string SocketErrorMessage(int error) {
 #endif
 }
 
+// Commands must not block a UI thread forever, but the event stream is
+// long-lived and idles between emulator events.
+constexpr int kDefaultSendTimeoutMs = 5000;
+
+// Tests override this to exercise the write deadline without stalling for
+// the production timeout.
+int SendTimeoutMs() {
+  // Read on each connect rather than caching, so a test that sets the
+  // override is not affected by whichever test connected first.
+  const char* raw = std::getenv("YAZE_MESEN_SEND_TIMEOUT_MS");
+  int parsed = 0;
+  if (raw != nullptr && absl::SimpleAtoi(raw, &parsed) && parsed > 0) {
+    return parsed;
+  }
+  return kDefaultSendTimeoutMs;
+}
+
+// A closed peer must surface as a status, never as a process-level signal.
+// Linux carries this per send(); BSD/macOS carry it per socket.
+#if defined(MSG_NOSIGNAL)
+constexpr int kSendFlags = MSG_NOSIGNAL;
+#else
+constexpr int kSendFlags = 0;
+#endif
+
+void SuppressSigpipe(SocketHandle fd) {
+#if defined(SO_NOSIGPIPE)
+  const int enable = 1;
+  (void)setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE,
+                   reinterpret_cast<const char*>(&enable), sizeof(enable));
+#else
+  (void)fd;
+#endif
+}
+
+void SetSocketSendTimeout(SocketHandle fd, int timeout_ms) {
+#ifdef _WIN32
+  const DWORD timeout = static_cast<DWORD>(timeout_ms);
+  (void)setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO,
+                   reinterpret_cast<const char*>(&timeout), sizeof(timeout));
+#else
+  timeval timeout{};
+  timeout.tv_sec = timeout_ms / 1000;
+  timeout.tv_usec = (timeout_ms % 1000) * 1000;
+  (void)setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
+#endif
+}
+
+// send() may accept fewer bytes than requested; a partial write would
+// truncate the JSON command and desynchronize the protocol.
+absl::Status SendAll(SocketHandle fd, const std::string& data) {
+  size_t offset = 0;
+  while (offset < data.size()) {
+    const ssize_t sent =
+        send(fd, data.c_str() + offset, static_cast<int>(data.size() - offset),
+             kSendFlags);
+    if (sent > 0) {
+      offset += static_cast<size_t>(sent);
+      continue;
+    }
+    const int error = LastSocketError();
+#ifdef _WIN32
+    if (error == WSAEINTR) {
+      continue;
+    }
+    if (error == WSAEWOULDBLOCK || error == WSAETIMEDOUT) {
+#else
+    if (error == EINTR) {
+      continue;
+    }
+    if (error == EAGAIN || error == EWOULDBLOCK) {
+#endif
+      return absl::DeadlineExceededError(
+          absl::StrCat("Timed out sending command after ", SendTimeoutMs(),
+                       "ms (", offset, " of ", data.size(), " bytes)"));
+    }
+    return absl::InternalError(
+        absl::StrCat("Failed to send command: ", SocketErrorMessage(error)));
+  }
+  return absl::OkStatus();
+}
+
 void SetSocketReceiveTimeout(SocketHandle fd, int timeout_ms) {
 #ifdef _WIN32
   const DWORD timeout = static_cast<DWORD>(timeout_ms);
@@ -349,6 +431,8 @@ absl::Status ConnectTcpEndpoint(const std::string& socket_path,
     return absl::InternalError(absl::StrCat("Failed to create TCP socket: ",
                                             SocketErrorMessage(error)));
   }
+  SuppressSigpipe(fd);
+  SetSocketSendTimeout(fd, SendTimeoutMs());
 
   if (!SetSocketBlocking(fd, false)) {
     const int error = LastSocketError();
@@ -423,6 +507,8 @@ absl::Status ConnectUnixEndpoint(const std::string& socket_path,
     return absl::InternalError(
         absl::StrCat("Failed to create socket: ", SocketErrorMessage(error)));
   }
+  SuppressSigpipe(fd);
+  SetSocketSendTimeout(fd, SendTimeoutMs());
 
   struct sockaddr_un addr;
   memset(&addr, 0, sizeof(addr));
@@ -606,14 +692,11 @@ absl::StatusOr<std::string> MesenSocketClient::SendCommandOnSocket(
   }
 
   // Send command
-  ssize_t sent = send(fd, json.c_str(), json.length(), 0);
-  if (sent < 0) {
-    const int error = LastSocketError();
+  if (const absl::Status sent = SendAll(fd, json); !sent.ok()) {
     if (update_connection_state) {
       connected_ = false;
     }
-    return absl::InternalError(
-        absl::StrCat("Failed to send command: ", SocketErrorMessage(error)));
+    return sent;
   }
 
   // Receive response (with timeout)
@@ -1119,13 +1202,10 @@ absl::Status MesenSocketClient::Subscribe(
 
   const std::string subscribe_command =
       BuildJsonCommand("SUBSCRIBE", {{"events", ss.str()}});
-  const ssize_t sent =
-      send(event_fd, subscribe_command.c_str(), subscribe_command.length(), 0);
-  if (sent < 0) {
-    const int error = LastSocketError();
+  if (const absl::Status sent = SendAll(event_fd, subscribe_command);
+      !sent.ok()) {
     close(event_fd);
-    return absl::InternalError(
-        absl::StrCat("Failed to send command: ", SocketErrorMessage(error)));
+    return sent;
   }
 
   SetSocketReceiveTimeout(event_fd, 5000);
@@ -1173,6 +1253,11 @@ absl::Status MesenSocketClient::Subscribe(
     close(event_fd);
     return parse_status.status();
   }
+
+  // The handshake deadline must not outlive the handshake: the event stream
+  // idles between emulator events, and a receive timeout there ends the
+  // subscription (fatally so on Windows, where it reports WSAETIMEDOUT).
+  SetSocketReceiveTimeout(event_fd, 0);
 
   pending_event_payload_ = response.substr(newline_pos + 1);
   event_socket_fd_ = event_fd;
@@ -1278,13 +1363,16 @@ void MesenSocketClient::EventLoop() {
 
     const ssize_t received = recv(event_fd, buffer, sizeof(buffer), 0);
     if (received < 0) {
+      // A receive timeout means "no event yet", not "stream over"; only a
+      // real socket error or a closed peer ends the loop.
 #ifdef _WIN32
       const int err = WSAGetLastError();
-      if (err == WSAEINTR || err == WSAEWOULDBLOCK) {
+      if (err == WSAEINTR || err == WSAEWOULDBLOCK || err == WSAETIMEDOUT) {
         continue;
       }
 #else
-      if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK) {
+      if (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK ||
+          errno == ETIMEDOUT) {
         continue;
       }
 #endif
