@@ -72,6 +72,30 @@ as_root() {
   fi
 }
 
+clone_ref() {
+  local name="$1" url="$2" commit="$3" dest="$4" temp
+  temp="$(mktemp -d "${dest}.bootstrap.XXXXXX")"
+  log "refs: cloning $name -> $dest"
+  if [[ -z "$commit" ]]; then
+    if ! git clone --depth 1 --quiet "$url" "$temp"; then
+      rm -rf -- "$temp"
+      return 1
+    fi
+  elif ! (git init --quiet "$temp" &&
+    git -C "$temp" remote add origin "$url" &&
+    git -C "$temp" fetch --quiet --depth 1 origin "$commit" &&
+    git -C "$temp" checkout --quiet --detach "$commit"); then
+    rm -rf -- "$temp"
+    return 1
+  fi
+  if [[ -e "$dest" ]]; then
+    echo "[bootstrap] refs: destination appeared during clone: $dest" >&2
+    rm -rf -- "$temp"
+    return 1
+  fi
+  mv -- "$temp" "$dest"
+}
+
 step_deps() {
   if ! command -v apt-get >/dev/null 2>&1; then
     log "apt-get not found; skipping deps (install the packages listed in ${BASH_SOURCE[0]})"
@@ -93,44 +117,57 @@ step_submodules() {
 
 step_refs() {
   mkdir -p "$REFS_DIR"
-  local entry name url commit dest
+  local entry name url commit dest worktree_state
   for entry in "${REFS[@]}"; do
     read -r name url commit <<<"$entry"
     dest="$REFS_DIR/$name"
-    # An interrupted clone/fetch can leave a directory git cannot read; start
-    # that ref over instead of failing later with an obscure error.
-    if [[ -e "$dest" ]] && ! git -C "$dest" rev-parse HEAD >/dev/null 2>&1; then
-      log "refs: $name at $dest is incomplete; re-fetching"
-      rm -rf -- "$dest"
+    # A final destination may contain work that this script does not own. New
+    # clones use a temporary sibling, so an interrupted bootstrap never needs
+    # to delete or replace an unreadable final path.
+    if [[ -e "$dest" ]]; then
+      worktree_state="$(git -C "$dest" rev-parse --is-inside-work-tree 2>/dev/null || true)"
+      if [[ "$worktree_state" != "true" ]]; then
+        echo "[bootstrap] refs: refusing to replace unreadable path $dest; move or remove it explicitly" >&2
+        return 1
+      fi
     fi
     if [[ -z "$commit" ]]; then
-      if [[ -d "$dest/.git" ]]; then
+      if [[ -e "$dest" ]]; then
         # Unpinned refs track the default branch, so refresh them on warm
         # (snapshotted) containers. Local edits or a failed fetch keep the
         # existing checkout rather than failing setup.
-        if ! git -C "$dest" diff --quiet HEAD; then
+        if [[ -n "$(git -C "$dest" status --porcelain=v1 --untracked-files=all)" ]]; then
           log "refs: $name has local changes; not refreshing"
-        elif git -C "$dest" fetch --quiet --depth 1 origin HEAD; then
-          git -C "$dest" checkout --quiet --detach FETCH_HEAD
-          log "refs: $name refreshed to $(git -C "$dest" rev-parse --short HEAD)"
+        elif git -C "$dest" fetch --quiet origin HEAD; then
+          if ! git -C "$dest" merge-base --is-ancestor HEAD FETCH_HEAD; then
+            log "refs: $name has local or divergent commits; not refreshing"
+          elif git -C "$dest" checkout --quiet --detach FETCH_HEAD; then
+            log "refs: $name refreshed to $(git -C "$dest" rev-parse --short HEAD)"
+          else
+            log "refs: $name checkout failed; keeping $(git -C "$dest" rev-parse --short HEAD)"
+          fi
         else
           log "refs: $name refresh failed; keeping $(git -C "$dest" rev-parse --short HEAD)"
         fi
       else
-        log "refs: cloning $name -> $dest"
-        git clone --depth 1 --quiet "$url" "$dest"
+        clone_ref "$name" "$url" "" "$dest"
       fi
       continue
+    fi
+    if [[ -e "$dest" ]] &&
+      [[ -n "$(git -C "$dest" status --porcelain=v1 --untracked-files=all)" ]]; then
+      echo "[bootstrap] refs: pinned $name has local changes at $dest; refusing to use modified reference input" >&2
+      return 1
     fi
     if [[ "$(git -C "$dest" rev-parse HEAD 2>/dev/null)" == "$commit" ]]; then
       log "refs: $name already at pinned ${commit:0:7}"
       continue
     fi
-    log "refs: fetching $name at pinned ${commit:0:7} -> $dest"
-    if [[ ! -d "$dest/.git" ]]; then
-      git init --quiet "$dest"
-      git -C "$dest" remote add origin "$url"
+    if [[ ! -e "$dest" ]]; then
+      clone_ref "$name" "$url" "$commit" "$dest"
+      continue
     fi
+    log "refs: fetching $name at pinned ${commit:0:7} -> $dest"
     git -C "$dest" fetch --quiet --depth 1 origin "$commit"
     git -C "$dest" checkout --quiet --detach "$commit"
   done
@@ -185,4 +222,6 @@ main() {
   log "done: ${steps[*]}"
 }
 
-main "$@"
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+  main "$@"
+fi
