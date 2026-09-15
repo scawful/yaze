@@ -22,8 +22,11 @@ namespace yaze::gui {
 namespace {
 
 std::vector<std::string> ShippedFileThemeNames() {
-  return {"Breath of the Wild",
+  return {"Blood Moon",
+          "Breath of the Wild",
+          "Catppuccin Mocha",
           "Cyberpunk",
+          "Dracula",
           "Forest",
           "Forest Light",
           "Gruvbox",
@@ -33,9 +36,11 @@ std::vector<std::string> ShippedFileThemeNames() {
           "Nord",
           "Ocean",
           "Ocean Light",
+          "Rosé Pine",
           "Solarized Dark",
           "Solarized Light",
           "Sunset",
+          "Temple of Time",
           "Tokyo Night",
           "Twilight",
           "Wind Waker",
@@ -51,6 +56,32 @@ void ExpectRgbNear(const Color& c, int r, int g, int b, int a = 255) {
   EXPECT_NEAR(c.green, g / 255.0f, kEps) << "green mismatch";
   EXPECT_NEAR(c.blue, b / 255.0f, kEps) << "blue mismatch";
   EXPECT_NEAR(c.alpha, a / 255.0f, kEps) << "alpha mismatch";
+}
+
+std::filesystem::path FindRepositoryThemeFile(const char* filename) {
+  auto find_from = [filename](std::filesystem::path directory) {
+    while (!directory.empty()) {
+      const auto candidate = directory / "assets" / "themes" / filename;
+      if (std::filesystem::is_regular_file(directory / "CMakePresets.json") &&
+          std::filesystem::is_regular_file(candidate)) {
+        return candidate;
+      }
+
+      const auto parent = directory.parent_path();
+      if (parent == directory) {
+        break;
+      }
+      directory = parent;
+    }
+    return std::filesystem::path{};
+  };
+
+  if (const auto from_source =
+          find_from(std::filesystem::path(__FILE__).parent_path());
+      !from_source.empty()) {
+    return from_source;
+  }
+  return find_from(std::filesystem::current_path());
 }
 
 // ApplyClassicYazeTheme() calls into ImGui::GetStyle() via ColorsYaze(), which
@@ -304,6 +335,48 @@ TEST_F(ThemeStyleSnapshotTest, ForestPairUsesQuietChrome) {
   ExpectRgbNear(forest_light->button, 232, 226, 211);
   ExpectRgbNear(forest_light->border, 72, 102, 80, 110);
   EXPECT_LT(forest_light->border.alpha, 0.5f);
+}
+
+TEST_F(ThemeStyleSnapshotTest, AdditionalThemePackFilesParseAndApply) {
+  struct ThemeExpectation {
+    const char* filename;
+    const char* name;
+    int primary_red;
+    int primary_green;
+    int primary_blue;
+    int background_red;
+    int background_green;
+    int background_blue;
+  };
+
+  constexpr ThemeExpectation kThemes[] = {
+      {"blood_moon.theme", "Blood Moon", 230, 57, 70, 23, 19, 23},
+      {"catppuccin_mocha.theme", "Catppuccin Mocha", 203, 166, 247, 30, 30, 46},
+      {"dracula.theme", "Dracula", 189, 147, 249, 40, 42, 54},
+      {"rose_pine.theme", "Rosé Pine", 235, 188, 186, 25, 23, 36},
+      {"temple_of_time.theme", "Temple of Time", 230, 195, 67, 20, 25, 35},
+  };
+
+  auto& mgr = ThemeManager::Get();
+
+  for (const auto& expected : kThemes) {
+    SCOPED_TRACE(expected.filename);
+    const auto theme_path = FindRepositoryThemeFile(expected.filename);
+    ASSERT_FALSE(theme_path.empty())
+        << "could not locate repository source theme: " << expected.filename;
+
+    const auto load_status = mgr.LoadThemeFromFile(theme_path.string());
+    ASSERT_TRUE(load_status.ok()) << load_status.message();
+
+    mgr.ApplyTheme(expected.name);
+    ASSERT_EQ(mgr.GetCurrentThemeName(), expected.name);
+    const auto& theme = mgr.GetCurrentTheme();
+    EXPECT_EQ(theme.name, expected.name);
+    ExpectRgbNear(theme.primary, expected.primary_red, expected.primary_green,
+                  expected.primary_blue);
+    ExpectRgbNear(theme.background, expected.background_red,
+                  expected.background_green, expected.background_blue);
+  }
 }
 
 TEST_F(ThemeStyleSnapshotTest,
