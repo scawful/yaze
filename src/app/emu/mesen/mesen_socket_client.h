@@ -19,6 +19,15 @@ namespace yaze {
 namespace emu {
 namespace mesen {
 
+#ifdef _WIN32
+using SocketHandle = std::uintptr_t;
+#else
+using SocketHandle = int;
+#endif
+
+inline constexpr SocketHandle kInvalidSocketHandle =
+    static_cast<SocketHandle>(-1);
+
 /**
  * @brief CPU register state from Mesen2
  */
@@ -123,7 +132,7 @@ using EventCallback = std::function<void(const MesenEvent&)>;
 using EventListenerId = uint64_t;
 
 /**
- * @brief Unix socket client for Mesen2-OoS fork
+ * @brief Local or TCP socket client for the Mesen2-OoS fork
  *
  * Connects to Mesen2's socket API at `/tmp/mesen2-<pid>.sock` or a TCP
  * endpoint (`tcp://127.0.0.1:27015`) used by the Android handheld host.
@@ -143,13 +152,19 @@ class MesenSocketClient {
 
   /**
    * @brief Auto-discover and connect to first available Mesen2 socket
-   * @return Status indicating success or error
+   *
+   * If `MESEN2_SOCKET_PATH` names a TCP target, that target is authoritative.
+   * A malformed TCP target returns its parse error instead of falling back to
+   * a discovered local emulator.
    */
   absl::Status Connect();
 
   /**
    * @brief Connect to a specific socket path
    * @param socket_path Unix socket path or `tcp://host:port`
+   *
+   * TCP connection establishment is bounded to two seconds. DNS resolution
+   * for hostnames still uses the platform's synchronous resolver.
    */
   absl::Status Connect(const std::string& socket_path);
 
@@ -395,7 +410,7 @@ class MesenSocketClient {
   /**
    * @brief Send a command using a specific socket descriptor
    */
-  absl::StatusOr<std::string> SendCommandOnSocket(int fd,
+  absl::StatusOr<std::string> SendCommandOnSocket(SocketHandle fd,
                                                   const std::string& json,
                                                   bool update_connection_state);
 
@@ -404,8 +419,12 @@ class MesenSocketClient {
    */
   void EventLoop();
 
-  int socket_fd_ = -1;
-  int event_socket_fd_ = -1;
+  SocketHandle socket_fd_ = kInvalidSocketHandle;
+  SocketHandle event_socket_fd_ = kInvalidSocketHandle;
+#ifdef _WIN32
+  int winsock_startup_error_ = 0;
+  bool winsock_started_ = false;
+#endif
   std::string socket_path_;
   std::atomic<bool> connected_{false};
   std::mutex command_mutex_;
