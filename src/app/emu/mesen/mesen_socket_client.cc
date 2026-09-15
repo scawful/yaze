@@ -280,12 +280,17 @@ absl::Status WaitForConnectComplete(SocketHandle fd,
                                     const std::string& socket_path) {
 #ifdef _WIN32
   fd_set write_fds;
+  fd_set exception_fds;
   FD_ZERO(&write_fds);
+  FD_ZERO(&exception_fds);
   FD_SET(fd, &write_fds);
+  FD_SET(fd, &exception_fds);
   timeval timeout;
   timeout.tv_sec = kConnectTimeoutMs / 1000;
   timeout.tv_usec = (kConnectTimeoutMs % 1000) * 1000;
-  const int ready = select(0, nullptr, &write_fds, nullptr, &timeout);
+  // Winsock reports successful nonblocking connects through writefds and
+  // failed connects through exceptfds. SO_ERROR below determines the result.
+  const int ready = select(0, nullptr, &write_fds, &exception_fds, &timeout);
 #else
   pollfd descriptor{};
   descriptor.fd = fd;
