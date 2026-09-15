@@ -49,6 +49,11 @@ uint64_t NextRoomGraphicsRevision() {
   return revision.fetch_add(1, std::memory_order_relaxed) + 1;
 }
 
+uint64_t NextRoomCompositeRevision() {
+  static std::atomic<uint64_t> revision{0};
+  return revision.fetch_add(1, std::memory_order_relaxed) + 1;
+}
+
 uint8_t Layer2ModeFromHeaderByte(uint8_t byte0) {
   return static_cast<uint8_t>((byte0 >> 5) & 0x07);
 }
@@ -1093,14 +1098,25 @@ void Room::CopyRoomGraphicsToBuffer() {
 gfx::Bitmap& Room::GetCompositeBitmap(RoomLayerManager& layer_mgr) {
   const uint64_t requested_signature = layer_mgr.CompositeStateSignature();
   if (dirty_state_.composite || !has_composite_signature_ ||
-      composite_signature_ != requested_signature) {
-    layer_mgr.CompositeToOutput(*this, composite_bitmap_);
-    dirty_state_.composite = false;
+      composite_signature_ != requested_signature ||
+      composite_rendered_source_revision_ != composite_source_revision_) {
+    RenderComposite(layer_mgr, composite_bitmap_);
     composite_signature_ = requested_signature;
+    composite_rendered_source_revision_ = composite_source_revision_;
     has_composite_signature_ = true;
   }
-  PaletteDebugger::Get().SetCurrentBitmap(&composite_bitmap_);
   return composite_bitmap_;
+}
+
+void Room::MarkCompositeDirty() {
+  dirty_state_.composite = true;
+  composite_source_revision_ = NextRoomCompositeRevision();
+}
+
+void Room::RenderComposite(const RoomLayerManager& layer_mgr,
+                           gfx::Bitmap& output) {
+  layer_mgr.CompositeToOutput(*this, output);
+  dirty_state_.composite = false;
 }
 
 void Room::RenderRoomGraphics() {
@@ -1272,10 +1288,11 @@ void Room::RenderRoomGraphics() {
     const auto render_palette =
         BuildDungeonRenderPalette(bg1_palette, hud_palette);
 
-    // Store current palette state for pixel inspector / issue report debugging.
-    PaletteDebugger::Get().SetCurrentPalette(bg1_palette);
-    PaletteDebugger::Get().SetCurrentRenderPalette(render_palette);
-    PaletteDebugger::Get().SetCurrentBitmap(&bg1_bmp);
+    // Retain this room's palette context. The active presentation publishes it
+    // atomically with its bitmap; auxiliary room renders must not replace the
+    // pixel inspector's current canvas state.
+    rendered_dungeon_palette_ = bg1_palette;
+    rendered_palette_ = render_palette;
 
     auto set_dungeon_palette = [&](gfx::Bitmap& bmp) {
       bmp.SetPalette(render_palette);
@@ -1360,7 +1377,7 @@ void Room::RenderRoomGraphics() {
 
   // IMPORTANT: Mark composite as dirty after any render work
   // This ensures GetCompositeBitmap() regenerates the merged output
-  dirty_state_.composite = true;
+  MarkCompositeDirty();
 
   // REMOVED: Don't process texture queue here - let it be batched!
   // Processing happens once per frame in DrawDungeonCanvas()

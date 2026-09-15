@@ -5,12 +5,14 @@
 #include <cstdint>
 #include <functional>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 #include <tuple>
 #include <unordered_map>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_room_composite.h"
 #include "app/editor/editor.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/types/snes_palette.h"
@@ -264,6 +266,7 @@ class DungeonCanvasViewer {
           return true;
         });
   }
+  ~DungeonCanvasViewer();
 
   void DrawDungeonCanvas(int room_id);
   std::optional<int> DrawConnectedRoomMatrix(int center_room_id);
@@ -289,6 +292,9 @@ class DungeonCanvasViewer {
   }
 
   void SetContext(EditorContext ctx) {
+    if (rom_ != ctx.rom || game_data_ != ctx.game_data) {
+      ResetRoomCompositeOutputs();
+    }
     rom_ = ctx.rom;
     game_data_ = ctx.game_data;
     object_interaction_.SetRom(ctx.rom);
@@ -297,18 +303,29 @@ class DungeonCanvasViewer {
   }
   EditorContext context() const { return {rom_, game_data_}; }
   void SetRom(Rom* rom) {
+    if (rom_ != rom) {
+      ResetRoomCompositeOutputs();
+    }
     rom_ = rom;
     object_interaction_.SetRom(rom);
     connected_graph_cache_start_room_id_ = -1;
     connected_graph_cache_ = ConnectedRoomGraphData{};
   }
   Rom* rom() const { return rom_; }
-  void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
+  void SetGameData(zelda3::GameData* game_data) {
+    if (game_data_ != game_data) {
+      ResetRoomCompositeOutputs();
+    }
+    game_data_ = game_data;
+  }
   zelda3::GameData* game_data() const { return game_data_; }
   void SetRenderer(gfx::IRenderer* renderer) { renderer_ = renderer; }
 
   // Room data access
   void SetRooms(DungeonRoomStore* rooms) {
+    if (rooms_ != rooms) {
+      ResetRoomCompositeOutputs();
+    }
     rooms_ = rooms;
     connected_graph_cache_start_room_id_ = -1;
     connected_graph_cache_ = ConnectedRoomGraphData{};
@@ -808,7 +825,7 @@ class DungeonCanvasViewer {
   gui::CanvasMenuItem BuildDebugContextMenu(int room_id);
   std::string BuildRoomMetadataSummary(const zelda3::Room& room,
                                        int room_id) const;
-  std::string BuildDrawIssueReport(const zelda3::Room& room, int room_id) const;
+  std::string BuildDrawIssueReport(const zelda3::Room& room, int room_id);
   std::string BuildSelectionIssueReport(const zelda3::Room& room,
                                         int room_id) const;
   void OpenIssueReportPopup(const std::string& title,
@@ -873,6 +890,10 @@ class DungeonCanvasViewer {
   void DrawChangePingOverlay(const gui::CanvasRuntime& canvas_rt,
                              const zelda3::Room& room);
   void RecordVisitedRoom(int room_id);
+  gfx::Bitmap* PrepareRoomCompositeWithOutput(int room_id,
+                                              RoomCompositeOutput& output);
+  void PruneConnectedRoomCompositeOutputs();
+  void ResetRoomCompositeOutputs();
   void UpdateRoomCanvasShortcutFocus(bool hovered, bool pointer_pressed,
                                      int frame_index);
   bool HasRoomCanvasShortcutFocusForFrame(int frame_index) const;
@@ -881,6 +902,7 @@ class DungeonCanvasViewer {
   // Load: Read from ROM, Render: Process pixels, Draw: Display on canvas
   absl::Status LoadAndRenderRoomGraphics(int room_id);
   gfx::Bitmap* PrepareRoomCompositeBitmap(int room_id);
+  gfx::Bitmap* PrepareConnectedRoomCompositeBitmap(int room_id);
   zelda3::Room* EnsureRoomLoadedForConnectedView(int room_id);
   bool RoomHasNonExitDoorInDirection(int room_id, zelda3::DoorDirection dir);
   ConnectedRoomGraphData BuildConnectedRoomGraph(int start_room_id);
@@ -941,6 +963,16 @@ class DungeonCanvasViewer {
         room_settings;
   };
   std::map<int, RoomLayerState> room_layer_managers_;
+
+  // The primary output is pinned because Canvas retains its Bitmap pointer.
+  // Connected previews keep stable outputs for rooms visible this frame.
+  RoomCompositeOutput primary_composite_output_;
+  struct ConnectedRoomCompositeEntry {
+    std::unique_ptr<RoomCompositeOutput> output;
+    int last_used_frame = -1;
+  };
+  std::map<int, ConnectedRoomCompositeEntry> connected_composite_outputs_;
+  int connected_composite_prune_frame_ = -1;
 
   // Palette data
   uint64_t current_palette_group_id_ = 0;

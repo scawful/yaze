@@ -60,6 +60,8 @@ class Arena {
   };
 
   void QueueTextureCommand(TextureCommandType type, Bitmap* bitmap);
+  bool HasPendingTextureCommand(TextureCommandType type,
+                                const Bitmap* bitmap) const;
   void ProcessTextureQueue(IRenderer* renderer);
   void ClearTextureQueue();
 

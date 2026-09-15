@@ -212,7 +212,7 @@ class DungeonCanvasViewerTestPeer {
     return snapshot;
   }
 
-  static std::string BuildDrawIssueReport(const DungeonCanvasViewer& viewer,
+  static std::string BuildDrawIssueReport(DungeonCanvasViewer& viewer,
                                           const zelda3::Room& room,
                                           int room_id) {
     return viewer.BuildDrawIssueReport(room, room_id);

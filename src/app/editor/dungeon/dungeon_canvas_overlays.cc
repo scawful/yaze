@@ -10,8 +10,8 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
-#include "app/editor/graphics/screen_editor_internal.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gfx/resource/bitmap_texture_queue.h"
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/layout_helpers.h"
 #include "dungeon_canvas_viewer.h"
@@ -19,6 +19,7 @@
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
+#include "zelda3/dungeon/palette_debug.h"
 #include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite.h"
 #include "zelda3/sprite/sprite_oam_tables.h"
@@ -483,6 +484,29 @@ DungeonCanvasViewer::GetCollisionOverlayCache(int room_id) {
 }
 
 gfx::Bitmap* DungeonCanvasViewer::PrepareRoomCompositeBitmap(int room_id) {
+  gfx::Bitmap* composite =
+      PrepareRoomCompositeWithOutput(room_id, primary_composite_output_);
+  zelda3::Room* room = rooms_ ? rooms_->GetIfMaterialized(room_id) : nullptr;
+  if (composite != nullptr && room != nullptr) {
+    zelda3::PaletteDebugger::Get().SetCurrentPresentation(
+        composite, room->rendered_dungeon_palette(), room->rendered_palette());
+  }
+  return composite;
+}
+
+gfx::Bitmap* DungeonCanvasViewer::PrepareConnectedRoomCompositeBitmap(
+    int room_id) {
+  auto& entry = connected_composite_outputs_[room_id];
+  if (!entry.output) {
+    entry.output = std::make_unique<RoomCompositeOutput>();
+  }
+  entry.last_used_frame =
+      ImGui::GetCurrentContext() != nullptr ? ImGui::GetFrameCount() : 0;
+  return PrepareRoomCompositeWithOutput(room_id, *entry.output);
+}
+
+gfx::Bitmap* DungeonCanvasViewer::PrepareRoomCompositeWithOutput(
+    int room_id, RoomCompositeOutput& output) {
   if (room_id < 0 || room_id >= zelda3::kNumberOfRooms || !rooms_ || !rom_ ||
       !rom_->is_loaded()) {
     return nullptr;
@@ -493,14 +517,8 @@ gfx::Bitmap* DungeonCanvasViewer::PrepareRoomCompositeBitmap(int room_id) {
     return nullptr;
   }
   auto& room = *room_ptr;
-  // Connected/compare views revisit already-materialized rooms. Honor Room's
-  // render dirtiness so those cached buffers refresh lazily before compositing.
-  // Do not apply this viewer's active-room entrance override to an arbitrary
-  // connected target; the room retains its own render context.
-  room.PrepareForRender();
-
   auto& layer_mgr = GetRoomLayerManager(room_id);
-  auto& composite = room.GetCompositeBitmap(layer_mgr);
+  auto& composite = output.Prepare(room, layer_mgr);
   if (!composite.is_active() || composite.width() <= 0) {
     return nullptr;
   }
@@ -510,7 +528,7 @@ gfx::Bitmap* DungeonCanvasViewer::PrepareRoomCompositeBitmap(int room_id) {
   // queues UPDATE when RoomLayerManager::CompositeToOutput marked the bitmap
   // modified, and stamps metadata().purpose so canvas_rendering's diagnostic
   // log can identify the bitmap.
-  internal::EnsureCompositeBitmapTextureQueued(composite);
+  gfx::EnsureCompositeBitmapTextureQueued(composite);
   return &composite;
 }
 
