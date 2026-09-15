@@ -155,7 +155,7 @@ three parallel byte tables (low, mid, bank) starting at `$008061`. `SUBMODE`
 ## Key WRAM symbols
 Sprite tables are 16-slot arrays indexed by slot (`SPR0_*` is slot 0).
 <!-- BEGIN GENERATED: wram -->
-| Symbol | Address | Symbol map note |
+| Symbol | Address | Reference note |
 |---|---|---|
 | `MODE` | `$7E0010` | Game mode and submode; See $00:80B5 |
 | `SUBMODE` | `$7E0011` | Game mode and submode; See $00:80B5 |
@@ -163,7 +163,7 @@ Sprite tables are 16-slot arrays indexed by slot (`SPR0_*` is slot 0).
 | `POSY` | `$7E0020` | Link's absolute coordinates; TODO also used during attract (up through around $34) |
 | `POSX` | `$7E0022` | Link's absolute coordinates; TODO also used during attract (up through around $34) |
 | `OWSCR` | `$7E008A` | Overworld screen ID; In practice bit 6 indicates a Dark World screen, and bit 7 indicates special overworld;… |
-| `ROOM` | `$7E00A0` | Room ID for underworld; Copied to $0483; $A1 is only expected to be 0 or 1 |
+| `ROOM` | `$7E00A0` | Room ID for underworld; US code copies $A0 to $048E (not $0483); $A1 is expected to be 0 or 1 |
 | `LINKDO` | `$7E005D` | Link's main state handler |
 | `DUNGEON` | `$7E040C` | Dungeon IDs, multiples of 2.; High byte mostly unused but sometimes read. |
 | `WORLDFLAG` | `$7E0FFF` | Light world or dark world |
@@ -179,7 +179,7 @@ Sprite tables are 16-slot arrays indexed by slot (`SPR0_*` is slot 0).
 
 ## Key SRAM (save) symbols
 <!-- BEGIN GENERATED: sram -->
-| Symbol | Address | Symbol map note |
+| Symbol | Address | Reference note |
 |---|---|---|
 | `BOW` | `$7EF340` | Items; 0x00 - Nothing; 0x01 - Bow; 0x02 - Bow and arrows; 0x03 - Silver bow; 0x04 - Silver bow and arrows; Pi… |
 | `BOOMER` | `$7EF341` | 0x00 - Nothing; 0x01 - Blue boomerang; 0x02 - Red boomerang |
