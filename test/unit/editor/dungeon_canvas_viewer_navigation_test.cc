@@ -16,6 +16,7 @@
 
 #include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/dungeon_editor_v2.h"
+#include "app/editor/dungeon/ui/window/dungeon_map_panel.h"
 #include "app/editor/dungeon/ui_constants.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/resource/arena.h"
@@ -57,6 +58,25 @@ struct IssueReportPopupSnapshot {
   ImRect body_bounds;
   ImRect inner_bounds;
   ImVec2 content_end;
+};
+
+class DungeonMapPanelTestPeer {
+ public:
+  static size_t RoomCount(const DungeonMapPanel& panel) {
+    return panel.dungeon_room_ids_.size();
+  }
+
+  static bool HasRoomType(const DungeonMapPanel& panel, int room_id) {
+    return panel.room_types_.contains(room_id);
+  }
+
+  static size_t StairConnectionCount(const DungeonMapPanel& panel) {
+    return panel.stair_connections_.size();
+  }
+
+  static size_t HolewarpConnectionCount(const DungeonMapPanel& panel) {
+    return panel.holewarp_connections_.size();
+  }
 };
 
 class DungeonCanvasViewerTestPeer {
@@ -442,6 +462,47 @@ void ClearRoomLinks(zelda3::Room* room) {
 }
 
 }  // namespace
+
+TEST(DungeonMapPanelTest, LoadFromDungeonEntryReplacesAllRoomDerivedState) {
+  int current_room_id = 0x10;
+  ImVector<int> active_rooms;
+  DungeonMapPanel panel(&current_room_id, &active_rooms, nullptr);
+
+  core::DungeonEntry first;
+  first.name = "First";
+  core::DungeonRoom first_room{};
+  first_room.id = 0x10;
+  first_room.type = "boss";
+  first.rooms.push_back(first_room);
+  core::DungeonConnection stair{};
+  stair.from_room = 0x10;
+  stair.to_room = 0x11;
+  first.stairs.push_back(stair);
+  core::DungeonConnection holewarp{};
+  holewarp.from_room = 0x10;
+  holewarp.to_room = 0x12;
+  first.holewarps.push_back(holewarp);
+  panel.LoadFromDungeonEntry(first);
+
+  ASSERT_EQ(DungeonMapPanelTestPeer::RoomCount(panel), 1u);
+  ASSERT_TRUE(DungeonMapPanelTestPeer::HasRoomType(panel, 0x10));
+  ASSERT_EQ(DungeonMapPanelTestPeer::StairConnectionCount(panel), 1u);
+  ASSERT_EQ(DungeonMapPanelTestPeer::HolewarpConnectionCount(panel), 1u);
+
+  core::DungeonEntry second;
+  second.name = "Second";
+  core::DungeonRoom second_room{};
+  second_room.id = 0x20;
+  second_room.type = "entrance";
+  second.rooms.push_back(second_room);
+  panel.LoadFromDungeonEntry(second);
+
+  EXPECT_EQ(DungeonMapPanelTestPeer::RoomCount(panel), 1u);
+  EXPECT_FALSE(DungeonMapPanelTestPeer::HasRoomType(panel, 0x10));
+  EXPECT_TRUE(DungeonMapPanelTestPeer::HasRoomType(panel, 0x20));
+  EXPECT_EQ(DungeonMapPanelTestPeer::StairConnectionCount(panel), 0u);
+  EXPECT_EQ(DungeonMapPanelTestPeer::HolewarpConnectionCount(panel), 0u);
+}
 
 TEST(DungeonCanvasViewerNavigationTest, CanNavigateRoomsReflectsCallbacks) {
   DungeonCanvasViewer viewer;
