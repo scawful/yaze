@@ -39,10 +39,10 @@ const ImVec4 kMasterSwordBlueFallback = ImVec4(0.196f, 0.6f, 0.8f, 1.0f);
 const ImVec4 kHeartRedFallback = ImVec4(0.863f, 0.078f, 0.235f, 1.0f);
 const ImVec4 kSpiritOrangeFallback = ImVec4(1.0f, 0.647f, 0.0f, 1.0f);
 
-constexpr float kRecentCardBaseWidth = 240.0f;
-constexpr float kRecentCardBaseHeight = 128.0f;
-constexpr float kRecentCardWidthMaxFactor = 1.30f;
-constexpr float kRecentCardHeightMaxFactor = 1.30f;
+// Compact recent rows — designed so a full recent list fits without scrolling
+// on a typical dockspace (≈900×600 content).
+constexpr float kRecentRowBaseHeight = 52.0f;
+constexpr float kRecentCardBaseHeight = kRecentRowBaseHeight;  // legacy alias
 constexpr float kWelcomeSplitMinWidth = 900.0f;
 constexpr float kWelcomeSplitMinHeight = 560.0f;
 
@@ -173,50 +173,6 @@ void DrawTriforceBackground(ImDrawList* draw_list, ImVec2 pos, float size,
            gold);
 }
 
-struct GridLayout {
-  int columns = 1;
-  float item_width = 0.0f;
-  float item_height = 0.0f;
-  float spacing = 0.0f;
-  float row_start_x = 0.0f;
-};
-
-GridLayout ComputeGridLayout(float avail_width, float min_width,
-                             float max_width, float min_height,
-                             float max_height, float preferred_width,
-                             float aspect_ratio, float spacing) {
-  GridLayout layout;
-  layout.spacing = spacing;
-  const auto width_for_columns = [avail_width, spacing](int columns) {
-    return (avail_width - spacing * static_cast<float>(columns - 1)) /
-           static_cast<float>(columns);
-  };
-
-  layout.columns = std::max(1, static_cast<int>((avail_width + spacing) /
-                                                (preferred_width + spacing)));
-
-  layout.item_width = width_for_columns(layout.columns);
-  while (layout.columns > 1 && layout.item_width < min_width) {
-    layout.columns -= 1;
-    layout.item_width = width_for_columns(layout.columns);
-  }
-
-  layout.item_width = std::min(layout.item_width, max_width);
-  layout.item_width = std::min(layout.item_width, avail_width);
-  layout.item_height =
-      std::clamp(layout.item_width * aspect_ratio, min_height, max_height);
-
-  const float row_width =
-      layout.item_width * static_cast<float>(layout.columns) +
-      spacing * static_cast<float>(layout.columns - 1);
-  layout.row_start_x = ImGui::GetCursorPosX();
-  if (row_width < avail_width) {
-    layout.row_start_x += (avail_width - row_width) * 0.5f;
-  }
-
-  return layout;
-}
-
 }  // namespace
 
 WelcomeScreen::WelcomeScreen() {
@@ -298,8 +254,8 @@ bool WelcomeScreen::Show(bool* p_open) {
   const float font_scale = ImGui::GetFontSize() / 16.0f;
   float width = std::clamp(dockspace_width * 0.85f, 480.0f * font_scale,
                            1400.0f * font_scale);
-  float height = std::clamp(viewport_size.y * 0.85f, 360.0f * font_scale,
-                            1050.0f * font_scale);
+  float height = std::clamp(viewport_size.y * 0.92f, 360.0f * font_scale,
+                            1100.0f * font_scale);
 
   ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
@@ -311,7 +267,7 @@ bool WelcomeScreen::Show(bool* p_open) {
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings;
 
   gui::StyleVarGuard window_padding_guard(ImGuiStyleVar_WindowPadding,
-                                          ImVec2(20, 20));
+                                          ImVec2(16, 14));
 
   if (ImGui::Begin("##WelcomeScreen", p_open, window_flags)) {
     // Esc dismisses the welcome screen when it (or one of its children) has
@@ -501,29 +457,31 @@ bool WelcomeScreen::Show(bool* p_open) {
     DrawHeader();
 
     ImGui::Spacing();
-    ImGui::Spacing();
 
-    // Main content area with subtle gradient separator
+    // Thin accent rule under the brand.
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImVec2 separator_start = ImGui::GetCursorScreenPos();
     ImVec2 separator_end(separator_start.x + ImGui::GetContentRegionAvail().x,
                          separator_start.y + 1);
     ImVec4 gold_faded = kTriforceGold;
-    gold_faded.w = 0.18f;
+    gold_faded.w = 0.16f;
     ImVec4 blue_faded = kMasterSwordBlue;
-    blue_faded.w = 0.18f;
+    blue_faded.w = 0.16f;
     draw_list->AddRectFilledMultiColor(
         separator_start, separator_end, ImGui::GetColorU32(gold_faded),
         ImGui::GetColorU32(blue_faded), ImGui::GetColorU32(blue_faded),
         ImGui::GetColorU32(gold_faded));
 
-    ImGui::Dummy(ImVec2(0, 14));
+    ImGui::Dummy(ImVec2(0, 8));
 
     // Reserve the footer from the active font and theme, not a fixed pixel
-    // height. Otherwise large text can create a second, outer scroll surface.
+    // height. The content pane itself never scrolls — recents are capped to
+    // what fits so the whole welcome surface stays readable at a glance.
     const float footer_gap = ImGui::GetStyle().ItemSpacing.y;
     const float footer_height = ImGui::GetFrameHeight() + 3.0f * footer_gap;
-    ImGui::BeginChild("WelcomeContent", ImVec2(0, -footer_height), false);
+    ImGui::BeginChild(
+        "WelcomeContent", ImVec2(0, -footer_height), false,
+        ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     const float content_width = ImGui::GetContentRegionAvail().x;
     const float content_height = ImGui::GetContentRegionAvail().y;
     const float layout_scale = ImGui::GetFontSize() / 16.0f;
@@ -531,48 +489,36 @@ bool WelcomeScreen::Show(bool* p_open) {
         ShouldUseStackedLayout(content_width, content_height, layout_scale);
 
     if (stacked_layout) {
-      // Keep constrained windows on one scroll surface. Fixed-height nested
-      // children can hide startup actions when text wraps or the window is
-      // short, and multiple scrollbars make the hierarchy harder to follow.
       DrawFirstRunGuide();
       DrawQuickActions();
+      // Prefer Start + Recents when the window is short; What's new is optional.
+      if (ImGui::GetContentRegionAvail().y > 220.0f) {
+        ImGui::Spacing();
+        DrawWhatsNew();
+      }
       ImGui::Spacing();
       ImGui::Separator();
       ImGui::Spacing();
       DrawRecentProjects();
+    } else {
+      float left_width = std::clamp(
+          content_width * 0.30f, 260.0f * layout_scale, 340.0f * layout_scale);
+      ImGui::BeginChild(
+          "LeftPanel", ImVec2(left_width, 0), false,
+          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+      DrawFirstRunGuide();
+      DrawQuickActions();
       ImGui::Spacing();
       ImGui::Separator();
       ImGui::Spacing();
       DrawWhatsNew();
-    } else {
-      float left_width =
-          std::clamp(ImGui::GetContentRegionAvail().x * 0.34f,
-                     300.0f * layout_scale, 440.0f * layout_scale);
-      ImGui::BeginChild("LeftPanel", ImVec2(left_width, 0), true,
-                        ImGuiWindowFlags_NoScrollbar);
-      // Let wrapped first-run guidance and startup buttons take their natural
-      // height. Only What's new scrolls within the space left below them.
-      DrawFirstRunGuide();
-      DrawQuickActions();
-
-      ImGui::Spacing();
-      ImVec2 sep_start = ImGui::GetCursorScreenPos();
-      draw_list->AddLine(
-          sep_start,
-          ImVec2(sep_start.x + ImGui::GetContentRegionAvail().x, sep_start.y),
-          ImGui::GetColorU32(ImVec4(kMasterSwordBlue.x, kMasterSwordBlue.y,
-                                    kMasterSwordBlue.z, 0.2f)),
-          1.0f);
-      ImGui::Dummy(ImVec2(0, 5));
-
-      ImGui::BeginChild("WhatsNewWide", ImVec2(0, 0), true);
-      DrawWhatsNew();
-      ImGui::EndChild();
       ImGui::EndChild();
 
-      ImGui::SameLine();
+      ImGui::SameLine(0.0f, 16.0f);
 
-      ImGui::BeginChild("RightPanel", ImVec2(0, 0), true);
+      ImGui::BeginChild(
+          "RightPanel", ImVec2(0, 0), false,
+          ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
       DrawRecentProjects();
       ImGui::EndChild();
     }
@@ -621,7 +567,7 @@ void WelcomeScreen::DrawHeader() {
   float header_offset_y = (1.0f - header_progress) * 20.0f;
 
   if (header_progress < 0.001f) {
-    ImGui::Dummy(ImVec2(0, 80));  // Reserve space
+    ImGui::Dummy(ImVec2(0, 48));  // Reserve space
     return;
   }
 
@@ -668,7 +614,6 @@ void WelcomeScreen::DrawHeader() {
       entry_time_, 1, kEntryAnimDuration, kEntryStaggerDelay);
   float subtitle_alpha = subtitle_progress;
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
-  const ImVec4 text_disabled = gui::GetTextDisabledVec4();
 
   const char* subtitle = "Yet Another Zelda3 Editor";
   const float subtitle_width = ImGui::CalcTextSize(subtitle).x;
@@ -678,24 +623,6 @@ void WelcomeScreen::DrawHeader() {
       ImVec4(text_secondary.x, text_secondary.y, text_secondary.z,
              text_secondary.w * subtitle_alpha),
       "%s", subtitle);
-
-  const std::string version_line =
-      absl::StrFormat("Version %s", YAZE_VERSION_STRING);
-  const float version_width = ImGui::CalcTextSize(version_line.c_str()).x;
-  ImGui::SetCursorPosX((window_width - version_width) * 0.5f);
-  ImGui::TextColored(ImVec4(text_disabled.x, text_disabled.y, text_disabled.z,
-                            text_disabled.w * subtitle_alpha),
-                     "%s", version_line.c_str());
-
-  // Small decorative triforces flanking the title (static, transparent)
-  // Positioned well away from text to avoid crowding
-  float tri_alpha = 0.12f * header_alpha;
-  ImVec2 left_tri_pos(xPos - 80, text_pos.y + 20);
-  ImVec2 right_tri_pos(xPos + title_width + 50, text_pos.y + 20);
-  DrawTriforceBackground(draw_list, left_tri_pos, 20, tri_alpha, 0.0f);
-  DrawTriforceBackground(draw_list, right_tri_pos, 20, tri_alpha, 0.0f);
-
-  ImGui::Spacing();
 }
 
 void WelcomeScreen::DrawFirstRunGuide() {
@@ -742,20 +669,10 @@ void WelcomeScreen::DrawQuickActions() {
   }
 
   ImGui::TextColored(kSpiritOrange, ICON_MD_BOLT " Start");
-  const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
-  {
-    gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
-#ifdef __EMSCRIPTEN__
-    ImGui::TextWrapped(tr("Open a ROM, or continue from Recent Files."));
-#else
-    ImGui::TextWrapped(
-        tr("Open a ROM or project, or continue from Recent Files."));
-#endif
-  }
   ImGui::Spacing();
 
   const float scale = ImGui::GetFontSize() / 16.0f;
-  const float button_height = std::max(38.0f, 40.0f * scale);
+  const float button_height = std::max(34.0f, 36.0f * scale);
   const float action_width = ImGui::GetContentRegionAvail().x;
   float button_width = action_width;
 
@@ -797,6 +714,23 @@ void WelcomeScreen::DrawQuickActions() {
     ImGui::OpenPopup("WelcomeMoreStartWays");
   }
   if (ImGui::BeginPopup("WelcomeMoreStartWays")) {
+    const RecentProject* last_recent = nullptr;
+    for (const auto& recent : recent_projects_model_.entries()) {
+      if (!recent.unavailable) {
+        last_recent = &recent;
+        break;
+      }
+    }
+    if (last_recent && open_project_callback_) {
+      const std::string resume_label = absl::StrFormat(
+          "%s Resume %s", ICON_MD_PLAY_ARROW, last_recent->name.c_str());
+      const std::string resume_path = last_recent->filepath;
+      if (ImGui::MenuItem(resume_label.c_str())) {
+        open_project_callback_(resume_path);
+      }
+      ImGui::Separator();
+    }
+
     if (open_prototype_research_callback_ &&
         ImGui::MenuItem(ICON_MD_CONSTRUCTION " Prototype Research")) {
       open_prototype_research_callback_();
@@ -837,25 +771,12 @@ void WelcomeScreen::DrawRecentProjects() {
 
   gui::StyleVarGuard alpha_guard(ImGuiStyleVar_Alpha, recent_progress);
 
-  int rom_count = 0;
-  int project_count = 0;
-  for (const auto& item : recent_projects_model_.entries()) {
-    if (item.item_type == "ROM") {
-      ++rom_count;
-    } else if (item.item_type == "Project") {
-      ++project_count;
-    }
-  }
-
-  ImGui::TextColored(kMasterSwordBlue,
-                     ICON_MD_HISTORY " Recent ROMs & Projects");
+  ImGui::TextColored(kMasterSwordBlue, ICON_MD_HISTORY " Recent");
 
   const float header_spacing = ImGui::GetStyle().ItemSpacing.x;
-  const float manage_width = ImGui::CalcTextSize(" Manage").x +
-                             ImGui::CalcTextSize(ICON_MD_FOLDER_SPECIAL).x +
+  const float manage_width = ImGui::CalcTextSize(ICON_MD_FOLDER_SPECIAL).x +
                              ImGui::GetStyle().FramePadding.x * 2.0f;
-  const float clear_width = ImGui::CalcTextSize(" Clear").x +
-                            ImGui::CalcTextSize(ICON_MD_DELETE_SWEEP).x +
+  const float clear_width = ImGui::CalcTextSize(ICON_MD_DELETE_SWEEP).x +
                             ImGui::GetStyle().FramePadding.x * 2.0f;
   const float total_width = manage_width + clear_width + header_spacing;
 
@@ -869,26 +790,24 @@ void WelcomeScreen::DrawRecentProjects() {
   if (!can_manage) {
     ImGui::BeginDisabled();
   }
-  if (ImGui::SmallButton(
-          absl::StrFormat("%s Manage", ICON_MD_FOLDER_SPECIAL).c_str())) {
+  if (ImGui::SmallButton(ICON_MD_FOLDER_SPECIAL "##manage_recents")) {
     if (open_project_management_callback_) {
       open_project_management_callback_();
     }
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s", tr("Manage projects"));
   }
   if (!can_manage) {
     ImGui::EndDisabled();
   }
   ImGui::SameLine(0.0f, header_spacing);
-  if (ImGui::SmallButton(
-          absl::StrFormat("%s Clear", ICON_MD_DELETE_SWEEP).c_str())) {
+  if (ImGui::SmallButton(ICON_MD_DELETE_SWEEP "##clear_recents")) {
     recent_projects_model_.ClearAll();
     RefreshRecentProjects();
   }
-
-  {
-    const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
-    gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
-    ImGui::Text(tr("%d ROMs • %d projects"), rom_count, project_count);
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s", tr("Clear recent list"));
   }
 
   DrawUndoRemovalBanner();
@@ -896,57 +815,30 @@ void WelcomeScreen::DrawRecentProjects() {
   ImGui::Spacing();
 
   if (recent_projects_model_.entries().empty()) {
-    // Simple empty state
     const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
-
-    ImVec2 cursor = ImGui::GetCursorPos();
-    ImGui::SetCursorPosX(cursor.x + ImGui::GetContentRegionAvail().x * 0.3f);
-    ImGui::TextColored(
-        ImVec4(kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.8f),
-        ICON_MD_EXPLORE);
-    ImGui::SetCursorPosX(cursor.x);
-
-    ImGui::TextWrapped(
-        tr("No recent files yet.\nOpen a ROM or project to begin."));
+    ImGui::TextWrapped(tr("No recent files yet. Open a ROM to begin."));
     return;
   }
 
   const float scale = ImGui::GetFontSize() / 16.0f;
-  const float min_width = kRecentCardBaseWidth * scale;
-  const float max_width =
-      kRecentCardBaseWidth * kRecentCardWidthMaxFactor * scale;
-  const float min_height = kRecentCardBaseHeight * scale;
-  const float max_height =
-      kRecentCardBaseHeight * kRecentCardHeightMaxFactor * scale;
-  const float spacing = ImGui::GetStyle().ItemSpacing.x;
-  const float aspect_ratio = min_height / std::max(min_width, 1.0f);
-
-  GridLayout layout = ComputeGridLayout(
-      ImGui::GetContentRegionAvail().x, min_width, max_width, min_height,
-      max_height, min_width, aspect_ratio, spacing);
+  const float row_height = std::max(44.0f, kRecentRowBaseHeight * scale);
+  const float row_gap = ImGui::GetStyle().ItemSpacing.y;
+  const float avail_h = ImGui::GetContentRegionAvail().y;
+  const int max_visible = std::max(
+      1, static_cast<int>((avail_h + row_gap) / (row_height + row_gap)));
 
   const auto& entries = recent_projects_model_.entries();
-  int column = 0;
-  for (size_t i = 0; i < entries.size(); ++i) {
-    if (column == 0) {
-      ImGui::SetCursorPosX(layout.row_start_x);
-    }
-
+  const size_t visible =
+      std::min(entries.size(), static_cast<size_t>(max_visible));
+  for (size_t i = 0; i < visible; ++i) {
     DrawProjectPanel(entries[i], static_cast<int>(i),
-                     ImVec2(layout.item_width, layout.item_height));
-
-    column += 1;
-    if (column < layout.columns) {
-      ImGui::SameLine(0.0f, layout.spacing);
-    } else {
-      column = 0;
-      ImGui::Spacing();
-    }
+                     ImVec2(ImGui::GetContentRegionAvail().x, row_height));
   }
-
-  if (column != 0) {
-    ImGui::NewLine();
+  if (entries.size() > visible) {
+    const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
+    gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
+    ImGui::Text(tr("+%zu more in Manage"), entries.size() - visible);
   }
 
   DrawRecentAnnotationPopup();
@@ -1094,7 +986,6 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
   const ImVec4 surface_variant = gui::GetSurfaceVariantVec4();
   const ImVec4 text_primary = gui::GetOnSurfaceVec4();
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
-  const ImVec4 text_disabled = gui::GetTextDisabledVec4();
 
   const ImVec2 resolved_card_size = card_size;
   ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
@@ -1193,24 +1084,21 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
 
   if (is_hovered) {
     ImVec4 hover = ImGui::GetStyleColorVec4(ImGuiCol_HeaderHovered);
-    hover.w *= 0.55f;
-    ImU32 hover_color = ImGui::GetColorU32(hover);
+    hover.w *= 0.45f;
     draw_list->AddRectFilled(cursor_pos,
                              ImVec2(cursor_pos.x + resolved_card_size.x,
                                     cursor_pos.y + resolved_card_size.y),
-                             hover_color, 6.0f);
+                             ImGui::GetColorU32(hover), 4.0f);
   }
 
-  const float layout_scale = resolved_card_size.y / kRecentCardBaseHeight;
-  const float padding = 10.0f * layout_scale;
-  const float icon_radius = 14.0f * layout_scale;
-  const float icon_spacing = 10.0f * layout_scale;
-  const float line_spacing = 2.0f * layout_scale;
-
-  const ImVec2 icon_center(cursor_pos.x + padding + icon_radius,
-                           cursor_pos.y + padding + icon_radius);
+  // Compact two-line row: name + secondary meta. Details stay on hover.
+  const float padding_x = 10.0f;
+  const float padding_y = 6.0f;
+  const float icon_radius = 11.0f;
+  const ImVec2 icon_center(cursor_pos.x + padding_x + icon_radius,
+                           cursor_pos.y + resolved_card_size.y * 0.5f);
   draw_list->AddCircleFilled(icon_center, icon_radius,
-                             ImGui::GetColorU32(accent), 24);
+                             ImGui::GetColorU32(accent), 20);
 
   const char* item_icon = project.item_icon.empty() ? ICON_MD_INSERT_DRIVE_FILE
                                                     : project.item_icon.c_str();
@@ -1222,54 +1110,50 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
   const std::string badge_text =
       project.item_type.empty() ? "File" : project.item_type;
   const ImVec2 badge_text_size = ImGui::CalcTextSize(badge_text.c_str());
-  const float badge_pad_x = 6.0f * layout_scale;
-  const float badge_pad_y = 2.0f * layout_scale;
-  const ImVec2 badge_min(cursor_pos.x + resolved_card_size.x - padding -
-                             badge_text_size.x - (badge_pad_x * 2.0f),
-                         cursor_pos.y + padding);
+  const float badge_pad_x = 5.0f;
+  const float badge_pad_y = 1.0f;
+  const ImVec2 badge_min(
+      cursor_pos.x + resolved_card_size.x - padding_x - badge_text_size.x -
+          (badge_pad_x * 2.0f),
+      cursor_pos.y +
+          (resolved_card_size.y - badge_text_size.y - badge_pad_y * 2.0f) *
+              0.5f);
   const ImVec2 badge_max(
       badge_min.x + badge_text_size.x + (badge_pad_x * 2.0f),
       badge_min.y + badge_text_size.y + (badge_pad_y * 2.0f));
   draw_list->AddRectFilled(
       badge_min, badge_max,
-      ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.24f)), 4.0f);
-  draw_list->AddRect(
-      badge_min, badge_max,
-      ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.50f)), 4.0f);
+      ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.22f)), 3.0f);
+
+  const float content_x = icon_center.x + icon_radius + 10.0f;
+  const float content_right = badge_min.x - 8.0f;
+  const float text_max_w = std::max(60.0f, content_right - content_x);
+  const float line_h = ImGui::GetTextLineHeight();
+  const float text_block_h = line_h * 2.0f + 2.0f;
+  float text_y =
+      cursor_pos.y +
+      std::max(padding_y, (resolved_card_size.y - text_block_h) * 0.5f);
+
+  const std::string display_name = EllipsizeText(project.name, text_max_w);
+  ImGui::SetCursorScreenPos(ImVec2(content_x, text_y));
+  if (project.pinned) {
+    gui::ColoredTextF(text_primary, "%s %s", ICON_MD_PUSH_PIN,
+                      display_name.c_str());
+  } else {
+    gui::ColoredText(display_name.c_str(), text_primary);
+  }
+
+  text_y += line_h + 2.0f;
+  const std::string secondary =
+      !project.last_modified.empty()
+          ? project.last_modified
+          : (!project.rom_title.empty() ? project.rom_title : project.filepath);
+  ImGui::SetCursorScreenPos(ImVec2(content_x, text_y));
+  gui::ColoredTextF(text_secondary, "%s",
+                    EllipsizeText(secondary, text_max_w).c_str());
   draw_list->AddText(
       ImVec2(badge_min.x + badge_pad_x, badge_min.y + badge_pad_y),
       ImGui::GetColorU32(text_primary), badge_text.c_str());
-
-  const float content_x = icon_center.x + icon_radius + icon_spacing;
-  const float content_right = badge_min.x - (6.0f * layout_scale);
-  const float text_max_w = std::max(80.0f, content_right - content_x);
-
-  float text_y = cursor_pos.y + padding;
-  const std::string display_name = EllipsizeText(project.name, text_max_w);
-  ImGui::SetCursorScreenPos(ImVec2(content_x, text_y));
-  gui::ColoredText(display_name.c_str(), text_primary);
-
-  text_y += ImGui::GetTextLineHeight() + line_spacing;
-  ImGui::SetCursorScreenPos(ImVec2(content_x, text_y));
-  gui::ColoredTextF(text_secondary, "%s",
-                    EllipsizeText(project.rom_title, text_max_w).c_str());
-
-  const std::string summary = project.metadata_summary.empty()
-                                  ? project.last_modified
-                                  : project.metadata_summary;
-  text_y += ImGui::GetTextLineHeight() + line_spacing;
-  ImGui::SetCursorScreenPos(ImVec2(content_x, text_y));
-  gui::ColoredTextF(text_secondary, "%s",
-                    EllipsizeText(summary, text_max_w).c_str());
-
-  text_y += ImGui::GetTextLineHeight() + line_spacing;
-  const std::string opened_line =
-      project.last_modified.empty()
-          ? ""
-          : absl::StrFormat("Last opened: %s", project.last_modified.c_str());
-  ImGui::SetCursorScreenPos(ImVec2(content_x, text_y));
-  gui::ColoredTextF(text_disabled, "%s",
-                    EllipsizeText(opened_line, text_max_w).c_str());
 
   if (is_hovered) {
     ImGui::BeginTooltip();
@@ -1356,26 +1240,26 @@ void WelcomeScreen::DrawWhatsNew() {
   gui::StyleVarGuard alpha_guard(ImGuiStyleVar_Alpha, whatsnew_progress);
 
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
-  ImGui::TextColored(kMasterSwordBlue, ICON_MD_NEW_RELEASES " What's new");
+  ImGui::TextColored(kMasterSwordBlue, ICON_MD_NEW_RELEASES " v%s",
+                     YAZE_VERSION_STRING);
   ImGui::SameLine();
-  ImGui::TextColored(text_secondary, tr("v%s highlights"), YAZE_VERSION_STRING);
-  ImGui::Spacing();
+  ImGui::TextColored(text_secondary, "%s", tr("highlights"));
 
-  const char* highlights[] = {
-      ICON_MD_CASTLE " More accurate dungeon object layers and placement",
-      ICON_MD_VIEW_SIDEBAR " A calmer, resizable Dungeon Workbench",
-      ICON_MD_PALETTE " More consistent themes and a clearer start screen",
-  };
-  for (const char* highlight : highlights) {
-    ImGui::Bullet();
-    ImGui::SameLine();
-    ImGui::TextWrapped("%s", highlight);
+  // Drop bullets when the Start column is short so the pane never scrolls.
+  const float remaining = ImGui::GetContentRegionAvail().y;
+  if (remaining > 110.0f) {
+    const char* highlights[] = {
+        "Clearer dungeon object layers",
+        "Calmer Dungeon Workbench",
+        "Cleaner start screen",
+    };
+    for (const char* highlight : highlights) {
+      ImGui::BulletText("%s", highlight);
+    }
   }
 
-  ImGui::Spacing();
-  if (gui::ThemedButton(ICON_MD_OPEN_IN_NEW " View release notes",
-                        ImVec2(-1, 0), "welcome_screen",
-                        "view_release_notes")) {
+  if (gui::ThemedButton(ICON_MD_OPEN_IN_NEW " Release notes", ImVec2(-1, 0),
+                        "welcome_screen", "view_release_notes")) {
     constexpr char kReleaseNotesUrl[] =
         "https://github.com/scawful/yaze/blob/master/docs/public/"
         "release-notes.md";
