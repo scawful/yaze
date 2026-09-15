@@ -20,6 +20,7 @@ class OverworldItemListPanel : public EditorPanel {
   std::string GetEditorCategory() const override { return "Overworld"; }
   std::string GetShortcutHint() const override { return "Ctrl+Shift+I"; }
   int GetPriority() const override { return 26; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
   float GetPreferredWidth() const override { return 420.0f; }
 
   void Draw(bool* p_open) override;

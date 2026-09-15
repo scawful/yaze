@@ -45,6 +45,7 @@ class RoomTagEditorPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_LABEL; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 45; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
 
   // ==========================================================================
   // WindowContent Drawing

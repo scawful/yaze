@@ -70,12 +70,11 @@ inline constexpr const char* kConnected = "Connected";
 /**
  * @brief Mode-specific state data
  *
- * Centralizes all preview data and drag state that was previously
- * scattered across multiple member variables.
+ * Holds mode-specific interaction data. TileObjectHandler owns the tile-object
+ * preview so geometry changes and graphics refreshes use the same object.
  */
 struct ModeState {
   // Placement preview data
-  std::optional<zelda3::RoomObject> preview_object;
   std::optional<zelda3::DoorType> preview_door_type;
   std::optional<uint8_t> preview_sprite_id;
   std::optional<uint8_t> preview_item_id;
@@ -115,7 +114,6 @@ struct ModeState {
    * @brief Clear all mode state
    */
   void Clear() {
-    preview_object.reset();
     preview_door_type.reset();
     preview_sprite_id.reset();
     preview_item_id.reset();
@@ -146,7 +144,6 @@ struct ModeState {
    * @brief Clear only placement preview data
    */
   void ClearPlacementData() {
-    preview_object.reset();
     preview_door_type.reset();
     preview_sprite_id.reset();
     preview_item_id.reset();
@@ -191,7 +188,7 @@ struct ModeState {
  *
  *   // Enter placement mode
  *   mode_manager.SetMode(InteractionMode::PlaceObject);
- *   mode_manager.GetModeState().preview_object = some_object;
+ *   // Set the pending object through DungeonObjectInteraction::SetPreviewObject.
  *
  *   // Query mode
  *   if (mode_manager.IsPlacementActive()) { ... }

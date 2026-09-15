@@ -17,6 +17,7 @@
 #include "app/gui/core/style.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/imgui_memory_editor.h"
+#include "app/gui/widgets/empty_state.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
 #include "util/file_util.h"
@@ -316,9 +317,12 @@ void PrototypeResearchView::DrawSuperDonkeyPreview() {
 
 void PrototypeResearchView::DrawEmptyState(const char* title,
                                            const char* detail) {
-  gui::ColoredText(title, gui::GetDisabledColor());
-  ImGui::Spacing();
-  ImGui::TextWrapped("%s", detail);
+  gui::EmptyStateOptions opts;
+  opts.icon = ICON_MD_INFO;
+  opts.title = title;
+  opts.detail = detail;
+  opts.compact = true;
+  gui::DrawEmptyState(opts);
 }
 
 void PrototypeResearchView::DrawMemoryEditorWindow() {

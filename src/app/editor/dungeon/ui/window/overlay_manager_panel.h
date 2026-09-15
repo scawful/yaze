@@ -42,6 +42,7 @@ class OverlayManagerPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_LAYERS; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 25; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
 
   void Draw(bool* p_open) override {
     if (!p_open || !*p_open)

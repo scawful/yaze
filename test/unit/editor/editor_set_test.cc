@@ -19,6 +19,29 @@ class UnitTest_EditorSet : public ::testing::Test {
   }
 };
 
+class TeardownAwareEditor final : public Editor {
+ public:
+  explicit TeardownAwareEditor(int* prepare_count)
+      : prepare_count_(prepare_count) {
+    type_ = EditorType::kAssembly;
+  }
+
+  void Initialize() override {}
+  absl::Status Load() override { return absl::OkStatus(); }
+  absl::Status Save() override { return absl::OkStatus(); }
+  absl::Status Update() override { return absl::OkStatus(); }
+  absl::Status Cut() override { return absl::OkStatus(); }
+  absl::Status Copy() override { return absl::OkStatus(); }
+  absl::Status Paste() override { return absl::OkStatus(); }
+  absl::Status Undo() override { return absl::OkStatus(); }
+  absl::Status Redo() override { return absl::OkStatus(); }
+  absl::Status Find() override { return absl::OkStatus(); }
+  void PrepareForSessionTeardown() override { ++*prepare_count_; }
+
+ private:
+  int* prepare_count_;
+};
+
 TEST_F(UnitTest_EditorSet, GenericContainerOperations) {
   EditorSet editor_set;
 
@@ -106,6 +129,24 @@ TEST_F(UnitTest_EditorSet, UsesEditorRegistryFactoriesWhenProvided) {
 
   EXPECT_NE(editor_set.GetEditor(EditorType::kAssembly), nullptr);
   EXPECT_TRUE(factory_called);
+}
+
+TEST_F(UnitTest_EditorSet,
+       SessionTeardownPreparesMaterializedEditorsExactlyOnce) {
+  Rom rom;
+  EditorRegistry registry;
+  int prepare_count = 0;
+  registry.RegisterFactory(EditorType::kAssembly, [&prepare_count](Rom*) {
+    return std::make_unique<TeardownAwareEditor>(&prepare_count);
+  });
+  EditorSet editor_set(&rom, /*game_data=*/nullptr, /*user_settings=*/nullptr,
+                       /*session_id=*/0, &registry);
+  ASSERT_NE(editor_set.GetEditor(EditorType::kAssembly), nullptr);
+
+  editor_set.PrepareForSessionTeardown();
+  editor_set.PrepareForSessionTeardown();
+
+  EXPECT_EQ(prepare_count, 1);
 }
 
 }  // namespace

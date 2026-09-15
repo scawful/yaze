@@ -1,15 +1,25 @@
 # 0.x Release Ladder (Editor-First)
 
-**Status:** ACTIVE  
-**Owner (Agent ID):** docs-janitor  
-**Created:** 2026-04-20  
-**Last Reviewed:** 2026-04-20  
-**Next Review:** 2026-05-02  
-**Universe Task:** not yet assigned
+**Status:** ACTIVE
+
+**Owner (Agent ID):** docs-janitor
+
+**Created:** 2026-04-20
+
+**Last Reviewed:** 2026-09-14 (0.8.0 scope; later milestones remain proposals)
+
+**Next Review:** 2026-09-28
+
+**Universe Task:** `task_20260914T160613Z_19789`
 
 ## Summary
 
 This plan defines the intended `0.x` release ladder after `v0.7.1`.
+
+The [roadmap](../roadmap.md) owns current priorities. The
+[dungeon completion backlog](dungeon-0.8.0-issue-test-backlog-2026-06-28.md)
+owns v0.8.0 work assignments and acceptance; this ladder does not duplicate its
+live test or merge status.
 
 The primary release train is completion of the main ALTTP editors:
 - Dungeon
@@ -74,6 +84,10 @@ them should be treated as an implied ramp to `1.0`.
 
 **Primary goal:** Dungeon Editor completion milestone
 
+Complete the supported dungeon workflow before tagging. Continue bounded
+previews and verified merges while finishing it; a preview is not the release
+exit criterion.
+
 **Must-ship themes:**
 - object selector/browser preview parity
 - verification of the remaining unknown dungeon object types
@@ -83,8 +97,13 @@ them should be treated as an implied ramp to `1.0`.
   panel flows stay reliable under real editing sessions
 - responsive room navigation and toolbar layout that preserve center-canvas
   visibility in tighter windows and pane configurations
-- pits/blocks persistence moved off legacy ROM-blob preservation and into
-  first-class editable room-state encoders
+- supported pits/blocks persistence through editable room state, with verified
+  capacity guards; expansion beyond the vanilla runtime limit is separate work
+- supported Oracle wall overrides, ice objects, and minecart editing with
+  explicit source publication, ROM save, rebuild, and in-game verification
+- independent object-family evidence and complete application save/reopen tests
+- exact-candidate package acceptance on each claimed desktop platform, with
+  WASM still labeled by its verified preview subset
 
 **Secondary slices allowed:**
 - narrow `z3ed` automation or validation improvements
@@ -96,6 +115,7 @@ them should be treated as an implied ramp to `1.0`.
 **Do not let this become:**
 - primarily a z3dk integration release
 - a general platform/runtime refactor
+- a universal custom ASM/object designer or a blanket all-hacks compatibility claim
 
 ### 0.9.0
 

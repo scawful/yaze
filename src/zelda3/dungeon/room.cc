@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cstdint>
 #include <functional>
 #include <limits>
@@ -14,6 +15,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "app/gfx/resource/arena.h"
@@ -41,6 +43,11 @@ namespace yaze {
 namespace zelda3 {
 
 namespace {
+
+uint64_t NextRoomGraphicsRevision() {
+  static std::atomic<uint64_t> revision{0};
+  return revision.fetch_add(1, std::memory_order_relaxed) + 1;
+}
 
 uint8_t Layer2ModeFromHeaderByte(uint8_t byte0) {
   return static_cast<uint8_t>((byte0 >> 5) & 0x07);
@@ -980,15 +987,6 @@ void Room::PrepareForRender(std::optional<uint8_t> entrance_blockset) {
   }
 }
 
-constexpr int kGfxBufferOffset = 92 * 2048;
-constexpr int kGfxBufferStride = 1024;
-constexpr int kGfxBufferAnimatedFrameOffset = 7 * 4096;
-constexpr int kGfxBufferAnimatedFrameStride = 1024;
-constexpr int kGfxBufferRoomOffset = 4096;
-constexpr int kGfxBufferRoomSpriteOffset = 1024;
-constexpr int kGfxBufferRoomSpriteStride = 4096;
-constexpr int kGfxBufferRoomSpriteLastLineOffset = 0x110;
-
 void Room::CopyRoomGraphicsToBuffer() {
   if (!rom_ || !rom_->is_loaded()) {
     LOG_DEBUG("Room", "CopyRoomGraphicsToBuffer: ROM not loaded");
@@ -1009,6 +1007,9 @@ void Room::CopyRoomGraphicsToBuffer() {
             room_id_, gfx_buffer_data->size());
 
   // Clear destination buffer
+  const absl::Cleanup publish_revision = [this] {
+    graphics_revision_ = NextRoomGraphicsRevision();
+  };
   std::fill(current_gfx16_.begin(), current_gfx16_.end(), 0);
 
   // USDASM grounding (bank_00.asm LoadBackgroundGraphics):
@@ -1470,8 +1471,6 @@ void Room::RenderObjectsToBackground() {
   // correct tiles
   ObjectDrawer drawer(rom_, room_id_, current_gfx16_.data());
   drawer.SetRoomFloorGraphics(floor1_graphics_, floor2_graphics_);
-  drawer.SetAllowTrackCornerAliases(
-      RoomAllowsTrackCornerAliases(tile_objects_));
   drawer.SetBG1RevealMaskSource(gfx::BG1RevealMaskSource::kBG2Objects);
   // NOTE: Routines marked draws_to_both_bgs explicitly write both tilemaps.
   // Object-specific stair routing is handled inside the registered routines.
@@ -1673,72 +1672,54 @@ void Room::RenderObjectsToBackground() {
 // Room rendering no longer depends on Arena graphics sheets
 
 void Room::LoadAnimatedGraphics() {
-  if (!rom_ || !rom_->is_loaded()) {
+  if (!rom_ || !rom_->is_loaded() || !game_data_) {
     return;
   }
-
-  if (!game_data_) {
+  constexpr size_t kSheetBytes = 4096;
+  constexpr size_t kFrameBytes = 1024;
+  // The runtime cycles three frames ($008703-$00870B); the current editor
+  // preview uses frame zero.
+  if (animated_frame_ < 0 || animated_frame_ >= 3) {
     return;
   }
-  auto* gfx_buffer_data = &game_data_->graphics_buffer;
-  if (gfx_buffer_data->empty()) {
-    return;
-  }
-
-  auto rom_data = rom()->vector();
-  if (rom_data.empty()) {
-    return;
-  }
-
-  // Validate animated_frame_ bounds
-  if (animated_frame_ < 0 || animated_frame_ > 10) {
-    return;
-  }
-
-  // Validate background_tileset_ bounds
-  if (background_tileset_ < 0 || background_tileset_ > 255) {
-    return;
-  }
-
-  int gfx_ptr = SnesToPc(version_constants().kGfxAnimatedPointer);
-  if (gfx_ptr < 0 || gfx_ptr >= static_cast<int>(rom_data.size())) {
-    return;
-  }
-
-  int data = 0;
-  while (data < 1024) {
-    // Validate buffer access for first operation
-    // 92 * 4096 = 376832. 1024 * 10 = 10240. Total ~387KB.
-    int first_offset = data + (92 * 4096) + (1024 * animated_frame_);
-    if (first_offset >= 0 &&
-        first_offset < static_cast<int>(gfx_buffer_data->size())) {
-      uint8_t map_byte = (*gfx_buffer_data)[first_offset];
-
-      // Validate current_gfx16_ access
-      int gfx_offset = data + (7 * 4096);
-      if (gfx_offset >= 0 &&
-          gfx_offset < static_cast<int>(current_gfx16_.size())) {
-        current_gfx16_[gfx_offset] = map_byte;
-      }
+  const auto& graphics = game_data_->graphics_buffer;
+  bool copied_frame = false;
+  const absl::Cleanup publish_revision = [this, &copied_frame] {
+    if (copied_frame) {
+      graphics_revision_ = NextRoomGraphicsRevision();
     }
-
-    // Validate buffer access for second operation
-    int tileset_index = rom_data[gfx_ptr + background_tileset_];
-    int second_offset =
-        data + (tileset_index * 4096) + (1024 * animated_frame_);
-    if (second_offset >= 0 &&
-        second_offset < static_cast<int>(gfx_buffer_data->size())) {
-      uint8_t map_byte = (*gfx_buffer_data)[second_offset];
-
-      // Validate current_gfx16_ access
-      int gfx_offset = data + (7 * 4096) - 1024;
-      if (gfx_offset >= 0 &&
-          gfx_offset < static_cast<int>(current_gfx16_.size())) {
-        current_gfx16_[gfx_offset] = map_byte;
-      }
+  };
+  const auto copy_frame = [&](uint8_t sheet, size_t destination) {
+    const size_t source = sheet * kSheetBytes + animated_frame_ * kFrameBytes;
+    if (source + kFrameBytes <= graphics.size()) {
+      std::copy_n(graphics.data() + source, kFrameBytes,
+                  current_gfx16_.data() + destination);
+      copied_frame = true;
     }
+  };
 
-    data++;
+  // USDASM $00D34C loads the common sheet $5C. The NMI DMA at $008B50
+  // writes the two 16-tile frame spans at VRAM $7600 (tiles $1B0-$1CF).
+  // Keep decoded pixels in the left half of each tile's palette.
+  copy_frame(0x5C, 0x1C0 * 64);
+
+  // gfx_animated_pointer is the PC offset of the LDA.l operand at $028275,
+  // not the table address. Follow its 24-bit pointer so relocated hack tables
+  // work too. The runtime indexes AnimatedTileSheets with $0AA1 (main group).
+  const auto table_snes =
+      rom_->ReadLong(version_constants().gfx_animated_pointer);
+  if (!table_snes.ok() || (*table_snes & 0xFFFF) < 0x8000 ||
+      (*table_snes >> 16) == 0x7E || (*table_snes >> 16) == 0x7F) {
+    return;
+  }
+  const uint8_t main_group =
+      resolved_main_blockset_ != 0xFF
+          ? resolved_main_blockset_
+          : (render_entrance_blockset_ != 0xFF ? render_entrance_blockset_
+                                               : blockset_);
+  const auto sheet = rom_->ReadByte(SnesToPc(*table_snes) + main_group);
+  if (sheet.ok()) {
+    copy_frame(*sheet, 0x1B0 * 64);
   }
 }
 

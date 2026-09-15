@@ -26,6 +26,7 @@
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/game_data.h"
+#include "zelda3/sprite/sprite_oam_tables.h"
 
 namespace yaze {
 namespace editor {
@@ -242,19 +243,8 @@ class DungeonCanvasViewer {
         });
     object_interaction_.SetObjectSelectionVisibilityPredicate(
         [this](int room_id, const zelda3::RoomObject& object) {
-          bool allow_track_corner_aliases = true;
-          if (zelda3::IsTrackCornerAliasObjectId(object.id_)) {
-            allow_track_corner_aliases = false;
-            if (rooms_ != nullptr) {
-              if (const auto* room = rooms_->GetIfMaterialized(room_id)) {
-                allow_track_corner_aliases =
-                    zelda3::RoomAllowsTrackCornerAliases(
-                        room->GetTileObjects());
-              }
-            }
-          }
-          const auto semantics = zelda3::GetEffectiveObjectLayerSemantics(
-              object, allow_track_corner_aliases);
+          const auto semantics =
+              zelda3::GetEffectiveObjectLayerSemantics(object);
           auto is_visible = [this, room_id](zelda3::LayerType layer) {
             return IsLayerVisible(room_id, layer) &&
                    GetLayerBlendMode(room_id, layer) !=
@@ -965,6 +955,7 @@ class DungeonCanvasViewer {
   bool is_pinned_ = false;
   std::function<void(bool)> pin_callback_;
   const project::YazeProject* project_ = nullptr;
+  zelda3::SpritePreviewResourceCache sprite_preview_resources_;
 
   bool show_track_collision_overlay_ = false;
   bool show_track_collision_legend_ = true;
@@ -1048,7 +1039,8 @@ class DungeonCanvasViewer {
   std::string issue_report_popup_screenshot_path_;
   std::string issue_report_popup_last_log_path_;
   std::string issue_report_popup_status_message_;
-  std::string issue_report_popup_id_ = "##DungeonIssueReportPopup";
+  std::string issue_report_popup_id_ =
+      "Report Dungeon Issue##DungeonIssueReportPopup";
   int issue_report_popup_room_id_ = -1;
   int issue_report_category_index_ = 0;
   bool issue_report_popup_persisted_ = false;

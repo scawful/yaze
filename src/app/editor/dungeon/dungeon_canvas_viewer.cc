@@ -39,6 +39,7 @@ void DungeonCanvasViewer::RecordVisitedRoom(int room_id) {
 
 void DungeonCanvasViewer::SetProject(const project::YazeProject* project) {
   project_ = project;
+  sprite_preview_resources_.SetContext({}, {}, {});
   ApplyTrackCollisionConfig();
 }
 

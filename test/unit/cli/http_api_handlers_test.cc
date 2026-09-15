@@ -11,6 +11,7 @@
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "app/emu/debug/symbol_provider.h"
+#include "app/service/render_service.h"
 #include "cli/service/ai/ai_service.h"
 #include "cli/service/ai/model_registry.h"
 #include "httplib.h"
@@ -587,6 +588,36 @@ TEST(HttpApiHandlersTest, WindowHideReturns500WhenActionFails) {
   auto body = json::parse(res.body);
   EXPECT_EQ(body["status"], "error");
   EXPECT_EQ(body["message"], "window action failed");
+}
+
+TEST(HttpApiHandlersTest, DungeonRenderRejectsInvalidScaleBeforeRendering) {
+  app::service::RenderService service(nullptr, nullptr);
+  for (const char* scale : {"", "bogus", "1junk", "nan", "inf", "-inf", "1e100",
+                            "0", "-1", "0.249", "8.001"}) {
+    SCOPED_TRACE(scale);
+    httplib::Request req;
+    req.params.emplace("room", "0");
+    req.params.emplace("scale", scale);
+    httplib::Response res;
+    HandleRenderDungeon(req, res, &service);
+    EXPECT_EQ(res.status, 400);
+    EXPECT_EQ(res.get_header_value("Content-Type"), "application/json");
+    const auto body = json::parse(res.body);
+    EXPECT_TRUE(body.contains("error"));
+  }
+}
+
+TEST(HttpApiHandlersTest, DungeonRenderValidScalePreservesUnavailableRomError) {
+  app::service::RenderService service(nullptr, nullptr);
+  for (const char* scale : {"0.25", "1", "8"}) {
+    httplib::Request req;
+    req.params.emplace("room", "0");
+    req.params.emplace("scale", scale);
+    httplib::Response res;
+    HandleRenderDungeon(req, res, &service);
+    EXPECT_EQ(res.status, 503);
+    EXPECT_EQ(json::parse(res.body)["error"], "ROM not loaded");
+  }
 }
 
 }  // namespace

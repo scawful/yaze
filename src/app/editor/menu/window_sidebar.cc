@@ -3,7 +3,9 @@
 
 #include <algorithm>
 #include <cctype>
+#include <map>
 #include <string>
+#include <vector>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
@@ -33,6 +35,18 @@ bool MatchesWindowSearch(const std::string& query,
                          const WindowDescriptor& window) {
   return WindowSidebar::MatchesWindowSearch(
       query, window.display_name, window.card_id, window.shortcut_hint);
+}
+
+bool IsDungeonRoomWindow(const std::string& window_id) {
+  constexpr char kPrefix[] = "dungeon.room_";
+  constexpr size_t kPrefixLength = sizeof(kPrefix) - 1;
+  if (window_id.rfind(kPrefix, 0) != 0 || window_id.size() <= kPrefixLength) {
+    return false;
+  }
+  // DungeonEditorV2 registers dynamic room windows with a decimal room number.
+  // Other room_* IDs, such as room_graphics and room_tags, are standalone tools.
+  return std::all_of(window_id.begin() + kPrefixLength, window_id.end(),
+                     [](char ch) { return ch >= '0' && ch <= '9'; });
 }
 
 bool IsDungeonPanelModeWindow(const std::string& window_id) {
@@ -66,9 +80,32 @@ bool WindowSidebar::MatchesWindowSearch(const std::string& query,
 }
 
 bool WindowSidebar::IsDungeonWindowModeTarget(const std::string& window_id) {
-  const bool is_room_window = window_id.rfind("dungeon.room_", 0) == 0;
   return window_id == "dungeon.room_selector" ||
-         window_id == "dungeon.room_matrix" || is_room_window;
+         window_id == "dungeon.room_matrix" || IsDungeonRoomWindow(window_id);
+}
+
+std::string WindowSidebar::SidebarSectionFor(
+    const std::string& workflow_group) {
+  if (workflow_group.empty() || workflow_group == "Windows") {
+    return "Editors";
+  }
+  return workflow_group;
+}
+
+std::string WindowSidebar::SidebarSectionFor(const WindowDescriptor& window) {
+  if (!window.workflow_group.empty() && window.workflow_group != "Windows") {
+    return window.workflow_group;
+  }
+  // Dynamic per-room windows may omit workflow_group at registration time.
+  if (IsDungeonRoomWindow(window.card_id)) {
+    return "Rooms";
+  }
+  return SidebarSectionFor(window.workflow_group);
+}
+
+bool WindowSidebar::ShouldOmitWindowInSidebar(const std::string& window_id,
+                                              bool dungeon_workbench_mode) {
+  return dungeon_workbench_mode && IsDungeonWindowModeTarget(window_id);
 }
 
 void WindowSidebar::Draw(size_t session_id, const std::string& category,
@@ -260,10 +297,6 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
   };
 
   if (category == "Dungeon") {
-    ImGui::Spacing();
-    ImGui::TextDisabled(ICON_MD_WORKSPACES " Workflow");
-    ImGui::Spacing();
-
     const float workflow_gap = compact_spacing;
     const float workflow_min_button_width = 96.0f;
     const float workflow_available_width =
@@ -316,9 +349,7 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
             workflow_button_size)) {
       switch_to_dungeon_window_mode();
     }
-    ImGui::Spacing();
     ImGui::Separator();
-    ImGui::Spacing();
   }
 
   ImGui::Spacing();
@@ -430,62 +461,133 @@ void WindowSidebar::Draw(size_t session_id, const std::string& category,
   }
 
   auto windows = window_manager_.GetWindowsSortedByMRU(session_id, category);
-  const bool window_content_open = gui::LayoutHelpers::BeginContentChild(
-      "##WindowContent", ImVec2(0.0f, gui::UIConfig::kContentMinHeightList));
-  if (window_content_open) {
-    for (const auto& window : windows) {
-      if (!MatchesWindowSearch(sidebar_search_, window.display_name,
-                               window.card_id, window.shortcut_hint)) {
-        continue;
-      }
+  const bool filtering = sidebar_search_[0] != '\0';
 
-      const bool is_pinned = window_manager_.IsWindowPinned(window.card_id);
-      if (pinned_section_open && is_pinned) {
-        continue;
-      }
+  // Bucket windows into sidebar sections (Core / Editors / Rooms / Advanced /
+  // other). Pinned rows that already appear in the Pinned header are skipped.
+  std::map<std::string, std::vector<WindowDescriptor>> sections;
+  for (const auto& window : windows) {
+    if (ShouldOmitWindowInSidebar(window.card_id, dungeon_workbench_mode)) {
+      continue;
+    }
+    if (!MatchesWindowSearch(sidebar_search_, window.display_name,
+                             window.card_id, window.shortcut_hint)) {
+      continue;
+    }
+    const bool is_pinned = window_manager_.IsWindowPinned(window.card_id);
+    if (pinned_section_open && is_pinned) {
+      continue;
+    }
+    sections[SidebarSectionFor(window)].push_back(window);
+  }
 
-      const bool visible =
-          window.visibility_flag ? *window.visibility_flag : false;
+  // Within each section: priority ascending, then display name.
+  for (auto& [section_name, section_windows] : sections) {
+    (void)section_name;
+    std::sort(section_windows.begin(), section_windows.end(),
+              [](const WindowDescriptor& a, const WindowDescriptor& b) {
+                if (a.priority != b.priority) {
+                  return a.priority < b.priority;
+                }
+                return a.display_name < b.display_name;
+              });
+  }
 
-      if (draw_pin_toggle_button("pin_" + window.card_id, is_pinned)) {
-        window_manager_.SetWindowPinned(session_id, window.card_id, !is_pinned);
-      }
-      ImGui::SameLine(0.0f, compact_spacing);
+  constexpr const char* kPreferredSectionOrder[] = {
+      "Core",
+      "Editors",
+      "Rooms",
+      "Advanced",
+  };
+  std::vector<std::string> section_order;
+  for (const char* preferred : kPreferredSectionOrder) {
+    if (sections.count(preferred)) {
+      section_order.emplace_back(preferred);
+    }
+  }
+  for (const auto& [name, _] : sections) {
+    if (std::find(section_order.begin(), section_order.end(), name) ==
+        section_order.end()) {
+      section_order.push_back(name);
+    }
+  }
 
-      std::string label = absl::StrFormat("%s  %s", window.icon.c_str(),
-                                          window.display_name.c_str());
-      ImGui::PushID((std::string("window_select_") + window.card_id).c_str());
-      {
-        gui::StyleColorGuard text_color(ImGuiCol_Text,
-                                        window_text_color(visible));
-        ImVec2 item_size(ImGui::GetContentRegionAvail().x, pin_button_size.y);
-        if (ImGui::Selectable(label.c_str(), visible, ImGuiSelectableFlags_None,
-                              item_size)) {
-          const bool switched_mode =
-              ensure_dungeon_window_mode_for_window(window.card_id);
-          if (switched_mode) {
-            window_manager_.OpenWindow(session_id, window.card_id);
-          } else {
-            window_manager_.ToggleWindow(session_id, window.card_id);
-          }
+  auto draw_window_row = [&](const WindowDescriptor& window) {
+    const bool is_pinned = window_manager_.IsWindowPinned(window.card_id);
+    const bool visible =
+        window.visibility_flag ? *window.visibility_flag : false;
 
-          const bool new_visible =
-              window.visibility_flag ? *window.visibility_flag : false;
-          if (new_visible) {
-            window_manager_.MarkWindowRecentlyUsed(window.card_id);
-            window_manager_.TriggerWindowClicked(window.category);
-            const std::string window_name =
-                window_manager_.GetWorkspaceWindowName(window);
-            if (!window_name.empty()) {
-              ImGui::SetWindowFocus(window_name.c_str());
-            }
+    if (draw_pin_toggle_button("pin_" + window.card_id, is_pinned)) {
+      window_manager_.SetWindowPinned(session_id, window.card_id, !is_pinned);
+    }
+    ImGui::SameLine(0.0f, compact_spacing);
+
+    std::string label = absl::StrFormat("%s  %s", window.icon.c_str(),
+                                        window.display_name.c_str());
+    ImGui::PushID((std::string("window_select_") + window.card_id).c_str());
+    {
+      gui::StyleColorGuard text_color(ImGuiCol_Text,
+                                      window_text_color(visible));
+      ImVec2 item_size(ImGui::GetContentRegionAvail().x, pin_button_size.y);
+      if (ImGui::Selectable(label.c_str(), visible, ImGuiSelectableFlags_None,
+                            item_size)) {
+        const bool switched_mode =
+            ensure_dungeon_window_mode_for_window(window.card_id);
+        if (switched_mode) {
+          window_manager_.OpenWindow(session_id, window.card_id);
+        } else {
+          window_manager_.ToggleWindow(session_id, window.card_id);
+        }
+
+        const bool new_visible =
+            window.visibility_flag ? *window.visibility_flag : false;
+        if (new_visible) {
+          window_manager_.MarkWindowRecentlyUsed(window.card_id);
+          window_manager_.TriggerWindowClicked(window.category);
+          const std::string window_name =
+              window_manager_.GetWorkspaceWindowName(window);
+          if (!window_name.empty()) {
+            ImGui::SetWindowFocus(window_name.c_str());
           }
         }
       }
-      ImGui::PopID();
+    }
+    ImGui::PopID();
 
-      if (ImGui::IsItemHovered() && !window.shortcut_hint.empty()) {
-        ImGui::SetTooltip("%s", window.shortcut_hint.c_str());
+    if (ImGui::IsItemHovered() && !window.shortcut_hint.empty()) {
+      ImGui::SetTooltip("%s", window.shortcut_hint.c_str());
+    }
+  };
+
+  const bool window_content_open = gui::LayoutHelpers::BeginContentChild(
+      "##WindowContent", ImVec2(0.0f, gui::UIConfig::kContentMinHeightList));
+  if (window_content_open) {
+    for (const std::string& section_name : section_order) {
+      auto it = sections.find(section_name);
+      if (it == sections.end() || it->second.empty()) {
+        continue;
+      }
+
+      // Search results are flat so a previously collapsed section cannot hide
+      // a match. Do not change the ordinary section's saved expansion state.
+      if (filtering) {
+        for (const auto& window : it->second) {
+          draw_window_row(window);
+        }
+        continue;
+      }
+
+      ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_None;
+      if (section_name == "Core") {
+        flags |= ImGuiTreeNodeFlags_DefaultOpen;
+      }
+
+      const std::string header = absl::StrFormat(
+          "%s##sidebar_section_%s", section_name.c_str(), section_name.c_str());
+      if (ImGui::CollapsingHeader(header.c_str(), flags)) {
+        for (const auto& window : it->second) {
+          draw_window_row(window);
+        }
       }
     }
   }

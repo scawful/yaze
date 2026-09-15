@@ -6,9 +6,11 @@
 #include <algorithm>
 #include <cctype>
 #include <cstdio>
+#include <exception>
 #include <iterator>
 #include <memory>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 #include "absl/status/status.h"
@@ -207,6 +209,9 @@ void DungeonEditorV2::FinalizeUndoAction(int room_id) {
         RestoreRoomObjects(rid, objects, selected_indices);
       });
   undo_manager_.Push(std::move(action));
+  if (minecart_track_editor_panel_) {
+    minecart_track_editor_panel_->InvalidateRoomAudit();
+  }
 
   pending_undo_.room_id = -1;
   pending_undo_.before_objects.clear();
@@ -236,6 +241,9 @@ void DungeonEditorV2::RestoreRoomObjects(
     }
     viewer->TriggerObjectChangePing(previous_objects, objects);
     undo_restore_triggered_ping_ = true;
+  }
+  if (minecart_track_editor_panel_) {
+    minecart_track_editor_panel_->InvalidateRoomAudit();
   }
 }
 
@@ -273,6 +281,9 @@ void DungeonEditorV2::FinalizeCollisionUndoAction(int room_id) {
         RestoreRoomCustomCollision(rid, map);
       });
   undo_manager_.Push(std::move(action));
+  if (minecart_track_editor_panel_) {
+    minecart_track_editor_panel_->InvalidateRoomAudit();
+  }
 
   pending_collision_undo_.room_id = -1;
   pending_collision_undo_.before = {};
@@ -286,6 +297,189 @@ void DungeonEditorV2::RestoreRoomCustomCollision(
   auto& room = rooms_[room_id];
   room.custom_collision() = map;
   room.MarkCustomCollisionDirty();
+  if (minecart_track_editor_panel_) {
+    minecart_track_editor_panel_->InvalidateRoomAudit();
+  }
+}
+
+namespace {
+
+bool HasAnyCustomCollision(const zelda3::CustomCollisionMap& map) {
+  return map.has_data || std::any_of(map.tiles.begin(), map.tiles.end(),
+                                     [](uint8_t tile) { return tile != 0; });
+}
+
+bool CollisionMapsEqual(const zelda3::CustomCollisionMap& lhs,
+                        const zelda3::CustomCollisionMap& rhs) {
+  return lhs.has_data == rhs.has_data && lhs.tiles == rhs.tiles;
+}
+
+struct CollisionRollbackEntry {
+  zelda3::Room* room = nullptr;
+  zelda3::CustomCollisionMap map;
+  bool dirty = false;
+};
+
+class CollisionBatchRollback {
+ public:
+  explicit CollisionBatchRollback(std::vector<CollisionRollbackEntry> entries)
+      : entries_(std::move(entries)) {}
+
+  ~CollisionBatchRollback() {
+    if (committed_) {
+      return;
+    }
+    for (const auto& entry : entries_) {
+      entry.room->custom_collision() = entry.map;
+      if (entry.dirty) {
+        entry.room->MarkCustomCollisionDirty();
+      } else {
+        entry.room->ClearCustomCollisionDirty();
+      }
+    }
+  }
+
+  void Commit() { committed_ = true; }
+
+ private:
+  std::vector<CollisionRollbackEntry> entries_;
+  bool committed_ = false;
+};
+
+}  // namespace
+
+absl::Status DungeonEditorV2::ApplyMinecartCollisionBatch(
+    const std::vector<zelda3::TrackCollisionResult>& preview,
+    const zelda3::GeneratorOptions& options) {
+  if (preview.empty()) {
+    return absl::InvalidArgumentError("Minecart collision preview is empty");
+  }
+
+  std::unordered_set<int> seen_room_ids;
+  std::vector<DungeonCustomCollisionSnapshot> before;
+  std::vector<DungeonCustomCollisionSnapshot> after;
+  std::vector<CollisionRollbackEntry> rollback_entries;
+  before.reserve(preview.size());
+  after.reserve(preview.size());
+  rollback_entries.reserve(preview.size());
+
+  // Validate the complete batch before changing rooms or undo history.
+  for (const auto& expected : preview) {
+    const int room_id = expected.room_id;
+    if (!IsValidRoomId(room_id)) {
+      return absl::OutOfRangeError(absl::StrFormat(
+          "Minecart collision room 0x%03X is out of range", room_id));
+    }
+    if (!seen_room_ids.insert(room_id).second) {
+      return absl::InvalidArgumentError(absl::StrFormat(
+          "Minecart collision preview contains duplicate room 0x%03X",
+          room_id));
+    }
+
+    zelda3::Room* room = rooms_.GetIfMaterialized(room_id);
+    if (room == nullptr) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Minecart collision room 0x%03X is not loaded", room_id));
+    }
+    if (HasAnyCustomCollision(room->custom_collision())) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Room 0x%03X already has custom collision; generation will not "
+          "replace it",
+          room_id));
+    }
+
+    ASSIGN_OR_RETURN(auto current,
+                     zelda3::GenerateTrackCollision(room, options));
+    current.room_id = room_id;
+    if (!current.collision_map.has_data || current.tiles_generated <= 0) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Room 0x%03X no longer contains supported minecart track pieces",
+          room_id));
+    }
+    if (!CollisionMapsEqual(current.collision_map, expected.collision_map) ||
+        current.tiles_generated != expected.tiles_generated ||
+        current.stop_count != expected.stop_count ||
+        current.corner_count != expected.corner_count ||
+        current.switch_count != expected.switch_count) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Minecart collision preview for room 0x%03X is stale; preview "
+          "again before applying",
+          room_id));
+    }
+
+    before.push_back({room_id, room->custom_collision()});
+    after.push_back({room_id, current.collision_map});
+    rollback_entries.push_back(
+        {room, room->custom_collision(), room->custom_collision_dirty()});
+  }
+
+  if (pending_undo_.room_id >= 0 || pending_collision_undo_.room_id >= 0 ||
+      pending_water_fill_undo_.room_id >= 0) {
+    return absl::FailedPreconditionError(
+        "Finish the current dungeon edit before applying minecart collision");
+  }
+
+  auto action = std::make_unique<DungeonCustomCollisionBatchAction>(
+      before, after,
+      [this](const std::vector<DungeonCustomCollisionSnapshot>& snapshots) {
+        return RestoreRoomCustomCollisionBatch(snapshots);
+      });
+
+  CollisionBatchRollback rollback(std::move(rollback_entries));
+  for (const auto& snapshot : after) {
+    auto* room = rooms_.GetIfMaterialized(snapshot.room_id);
+    room->custom_collision() = snapshot.map;
+    room->MarkCustomCollisionDirty();
+  }
+  try {
+    undo_manager_.Push(std::move(action));
+  } catch (const std::exception& error) {
+    return absl::InternalError(absl::StrFormat(
+        "Could not record minecart collision undo: %s", error.what()));
+  }
+  rollback.Commit();
+  if (minecart_track_editor_panel_) {
+    minecart_track_editor_panel_->InvalidateRoomAudit();
+  }
+
+  for (const auto& snapshot : after) {
+    if (auto* viewer = GetViewerForRoom(snapshot.room_id)) {
+      viewer->TriggerChangePing();
+    }
+  }
+  return absl::OkStatus();
+}
+
+absl::Status DungeonEditorV2::RestoreRoomCustomCollisionBatch(
+    const std::vector<DungeonCustomCollisionSnapshot>& snapshots) {
+  std::unordered_set<int> seen_room_ids;
+  for (const auto& snapshot : snapshots) {
+    if (!IsValidRoomId(snapshot.room_id)) {
+      return absl::OutOfRangeError("Collision undo room ID is out of range");
+    }
+    if (!seen_room_ids.insert(snapshot.room_id).second) {
+      return absl::InvalidArgumentError(
+          "Collision undo contains a duplicate room ID");
+    }
+    if (rooms_.GetIfMaterialized(snapshot.room_id) == nullptr) {
+      return absl::FailedPreconditionError(
+          "Collision undo target room is not loaded");
+    }
+  }
+
+  for (const auto& snapshot : snapshots) {
+    auto& room = *rooms_.GetIfMaterialized(snapshot.room_id);
+    room.custom_collision() = snapshot.map;
+    room.MarkCustomCollisionDirty();
+    if (auto* viewer = GetViewerForRoom(snapshot.room_id)) {
+      viewer->TriggerChangePing();
+      undo_restore_triggered_ping_ = true;
+    }
+  }
+  if (minecart_track_editor_panel_) {
+    minecart_track_editor_panel_->InvalidateRoomAudit();
+  }
+  return absl::OkStatus();
 }
 
 namespace {

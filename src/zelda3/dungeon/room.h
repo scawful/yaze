@@ -1019,6 +1019,9 @@ class Room {
   const std::array<uint8_t, 0x10000>& get_gfx_buffer() const {
     return current_gfx16_;
   }
+  // Identifies the assembled pixels, including animated frame reloads. The
+  // token survives moves and cannot collide with another room's reload count.
+  uint64_t graphics_revision() const { return graphics_revision_; }
 
   // Per-room background buffers (not shared via arena!)
   auto& bg1_buffer() { return bg1_buffer_; }
@@ -1046,6 +1049,7 @@ class Room {
   GameData* game_data_ = nullptr;
 
   std::array<uint8_t, 0x10000> current_gfx16_;
+  uint64_t graphics_revision_ = 0;
 
   // Each room has its OWN background buffers and bitmaps
   // Each room has its OWN background buffers and bitmaps

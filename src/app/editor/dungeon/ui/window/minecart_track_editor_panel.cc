@@ -101,6 +101,11 @@ bool OverlaySettingsEqual(const project::DungeonOverlaySettings& lhs,
          lhs.minecart_sprite_ids == rhs.minecart_sprite_ids;
 }
 
+bool HasAnyCustomCollision(const zelda3::CustomCollisionMap& map) {
+  return map.has_data || std::any_of(map.tiles.begin(), map.tiles.end(),
+                                     [](uint8_t tile) { return tile != 0; });
+}
+
 absl::StatusOr<std::vector<uint16_t>> ParseHexList(const std::string& input) {
   std::vector<uint16_t> out;
   const absl::string_view trimmed_input = absl::StripAsciiWhitespace(input);
@@ -159,6 +164,7 @@ void MinecartTrackEditorPanel::ResetTrackSession() {
   load_attempted_ = false;
   loaded_ = false;
   CancelCoordinatePicking();
+  ClearCollisionPreview();
   audit_dirty_ = true;
 }
 
@@ -220,6 +226,7 @@ absl::Status MinecartTrackEditorPanel::RebindProjectContext(
   if (project != nullptr && (!overlay_inputs_model_.has_value() ||
                              !OverlaySettingsEqual(*overlay_inputs_model_,
                                                    project->dungeon_overlay))) {
+    InvalidateRoomAudit();
     overlay_inputs_initialized_ = false;
     InitializeOverlayInputs();
   }
@@ -463,6 +470,7 @@ absl::StatusOr<bool> MinecartTrackEditorPanel::CommitOverlayList(
   project_->dungeon_overlay = std::move(candidate);
   input = FormatHexList(project_->dungeon_overlay.*member);
   overlay_inputs_model_ = project_->dungeon_overlay;
+  ClearCollisionPreview();
   audit_dirty_ = true;
   status_message_ = "Overlay settings updated; save the project to persist.";
   show_success_ = true;
@@ -545,6 +553,7 @@ absl::StatusOr<bool> MinecartTrackEditorPanel::CommitOverlayInputsForSave() {
 
   project_->dungeon_overlay = std::move(candidate);
   normalize_inputs();
+  ClearCollisionPreview();
   audit_dirty_ = true;
   return true;
 }
@@ -587,6 +596,7 @@ absl::StatusOr<bool> MinecartTrackEditorPanel::ResetOverlaySettings() {
   project_->dungeon_overlay = std::move(overlay);
   ClearOverlayInputs();
   overlay_inputs_model_ = project_->dungeon_overlay;
+  ClearCollisionPreview();
   audit_dirty_ = true;
   status_message_ = "Overlay settings reset; save the project to persist.";
   show_success_ = true;
@@ -638,11 +648,11 @@ void MinecartTrackEditorPanel::DrawOverlaySettings() {
 
   InitializeOverlayInputs();
 
-  if (!ImGui::CollapsingHeader(ICON_MD_TUNE " Overlay Config",
-                               ImGuiTreeNodeFlags_DefaultOpen)) {
+  if (!ImGui::CollapsingHeader(ICON_MD_TUNE " Advanced")) {
     return;
   }
 
+  ImGui::TextDisabled(tr("Advanced collision detection IDs and tile values."));
   ImGui::TextDisabled(tr("Empty list = defaults. Use hex (0xB0) or decimal."));
   ImGui::TextDisabled(
       tr("Defaults: Track 0xB0-0xBE | Stop 0xB7-0xBA | Switch 0xD0-0xD3 | "
@@ -736,10 +746,10 @@ bool MinecartTrackEditorPanel::IsDefaultTrack(
          track.start_x == kDefaultTrackX && track.start_y == kDefaultTrackY;
 }
 
-void MinecartTrackEditorPanel::RebuildAuditCache() {
+void MinecartTrackEditorPanel::RebuildAuditCache(bool include_unmaterialized) {
   room_audit_.clear();
-  track_usage_rooms_.clear();
-  track_subtype_used_.assign(kTrackSlotCount, false);
+  route_usage_rooms_.clear();
+  route_slot_used_.assign(kTrackSlotCount, false);
 
   if (!rooms_) {
     audit_dirty_ = false;
@@ -801,16 +811,11 @@ void MinecartTrackEditorPanel::RebuildAuditCache() {
     minecart_sprite_id_map[static_cast<int>(id)] = true;
   }
 
-  for (int room_id = 0; room_id < static_cast<int>(rooms_->size()); ++room_id) {
-    auto& room = (*rooms_)[room_id];
+  auto audit_room = [&](int room_id, zelda3::Room& room) {
     RoomTrackAudit audit;
 
-    if (room.GetTileObjects().empty()) {
-      room.LoadObjects();
-    }
-    if (room.GetSprites().empty()) {
-      room.LoadSprites();
-    }
+    room.EnsureObjectsLoaded();
+    room.EnsureSpritesLoaded();
 
     std::array<bool, kTrackSlotCount> seen_subtype{};
 
@@ -819,20 +824,20 @@ void MinecartTrackEditorPanel::RebuildAuditCache() {
         continue;
       }
       int subtype = obj.size_ & 0x1F;
-      if (subtype >= 0 && subtype < kTrackSlotCount) {
+      if (zelda3::IsMinecartTrackGraphicsSubtype(obj.id_, subtype) &&
+          subtype >= 0 && subtype < kTrackSlotCount) {
         if (!seen_subtype[static_cast<size_t>(subtype)]) {
           seen_subtype[static_cast<size_t>(subtype)] = true;
-          track_subtype_used_[static_cast<size_t>(subtype)] = true;
-          track_usage_rooms_[subtype].push_back(room_id);
           audit.track_subtypes.push_back(subtype);
         }
       }
     }
 
     std::unordered_map<int, bool> stop_positions;
-    auto map_or = zelda3::LoadCustomCollisionMap(room.rom(), room_id);
-    if (map_or.ok() && map_or.value().has_data) {
-      const auto& map = map_or.value().tiles;
+    const auto& collision = room.custom_collision();
+    audit.has_any_custom_collision = HasAnyCustomCollision(collision);
+    if (audit.has_any_custom_collision) {
+      const auto& map = collision.tiles;
       for (int y = 0; y < 64; ++y) {
         for (int x = 0; x < 64; ++x) {
           uint8_t tile = map[static_cast<size_t>(y * 64 + x)];
@@ -847,19 +852,26 @@ void MinecartTrackEditorPanel::RebuildAuditCache() {
       }
     }
 
-    if (audit.has_track_collision) {
-      for (const auto& sprite : room.GetSprites()) {
-        if (!minecart_sprite_id_map[static_cast<int>(sprite.id())]) {
-          continue;
-        }
-        audit.has_minecart_sprite = true;
-        int tile_x = sprite.x() * 2;
-        int tile_y = sprite.y() * 2;
-        if (tile_x >= 0 && tile_x < 64 && tile_y >= 0 && tile_y < 64) {
-          int idx = tile_y * 64 + tile_x;
-          if (stop_positions[idx]) {
-            audit.has_minecart_on_stop = true;
-          }
+    std::array<bool, kTrackSlotCount> seen_route_slot{};
+    for (const auto& sprite : room.GetSprites()) {
+      if (!minecart_sprite_id_map[static_cast<int>(sprite.id())]) {
+        continue;
+      }
+      audit.has_minecart_sprite = true;
+      const int route_slot = sprite.subtype();
+      if (route_slot >= 0 && route_slot < kTrackSlotCount &&
+          !seen_route_slot[static_cast<size_t>(route_slot)]) {
+        seen_route_slot[static_cast<size_t>(route_slot)] = true;
+        route_slot_used_[static_cast<size_t>(route_slot)] = true;
+        route_usage_rooms_[route_slot].push_back(room_id);
+        audit.route_slots.push_back(route_slot);
+      }
+      int tile_x = sprite.x() * 2;
+      int tile_y = sprite.y() * 2;
+      if (tile_x >= 0 && tile_x < 64 && tile_y >= 0 && tile_y < 64) {
+        int idx = tile_y * 64 + tile_x;
+        if (stop_positions[idx]) {
+          audit.has_minecart_on_stop = true;
         }
       }
     }
@@ -868,9 +880,134 @@ void MinecartTrackEditorPanel::RebuildAuditCache() {
         audit.has_minecart_sprite) {
       room_audit_[room_id] = audit;
     }
+  };
+
+  // Inspect every room. Materialized rooms are the authority for unsaved
+  // editor changes; unopened rooms are parsed into temporary models so a
+  // global audit does not depend on which room tabs happen to be open.
+  for (int room_id = 0; room_id < static_cast<int>(rooms_->size()); ++room_id) {
+    if (auto* room = rooms_->GetIfMaterialized(room_id)) {
+      audit_room(room_id, *room);
+      continue;
+    }
+    if (!include_unmaterialized) {
+      continue;
+    }
+    if (rooms_->rom() == nullptr || !rooms_->rom()->is_loaded()) {
+      continue;
+    }
+    zelda3::Room room(room_id, rooms_->rom(), rooms_->game_data());
+    audit_room(room_id, room);
   }
 
   audit_dirty_ = false;
+  audit_includes_all_rooms_ = include_unmaterialized;
+}
+
+absl::StatusOr<zelda3::GeneratorOptions>
+MinecartTrackEditorPanel::ResolveGeneratorOptions() const {
+  zelda3::GeneratorOptions options;
+  if (project_ == nullptr ||
+      project_->dungeon_overlay.track_object_ids.empty()) {
+    return options;
+  }
+  if (project_->dungeon_overlay.track_object_ids.size() != 1) {
+    return absl::FailedPreconditionError(
+        "Collision preview requires exactly one configured track object ID");
+  }
+  options.track_object_id = project_->dungeon_overlay.track_object_ids.front();
+  return options;
+}
+
+absl::Status MinecartTrackEditorPanel::BuildCollisionPreview(
+    const std::vector<int>& room_ids) {
+  if (rooms_ == nullptr) {
+    return absl::FailedPreconditionError("Dungeon rooms are unavailable");
+  }
+  if (room_ids.empty()) {
+    return absl::InvalidArgumentError("No eligible rooms to preview");
+  }
+
+  ASSIGN_OR_RETURN(const auto options, ResolveGeneratorOptions());
+  std::vector<int> sorted_room_ids = room_ids;
+  std::sort(sorted_room_ids.begin(), sorted_room_ids.end());
+  if (std::adjacent_find(sorted_room_ids.begin(), sorted_room_ids.end()) !=
+      sorted_room_ids.end()) {
+    return absl::InvalidArgumentError(
+        "Collision preview contains a duplicate room ID");
+  }
+
+  std::vector<zelda3::TrackCollisionResult> preview;
+  preview.reserve(sorted_room_ids.size());
+  for (int room_id : sorted_room_ids) {
+    if (room_id < 0 || room_id >= static_cast<int>(rooms_->size())) {
+      return absl::OutOfRangeError(absl::StrFormat(
+          "Collision preview room 0x%03X is out of range", room_id));
+    }
+    auto* room = rooms_->GetIfMaterialized(room_id);
+    if (room == nullptr) {
+      if (rooms_->rom() == nullptr || !rooms_->rom()->is_loaded()) {
+        return absl::FailedPreconditionError(absl::StrFormat(
+            "Collision preview room 0x%03X cannot be loaded without a ROM",
+            room_id));
+      }
+      auto& materialized = (*rooms_)[room_id];
+      materialized = zelda3::LoadRoomFromRom(rooms_->rom(), room_id);
+      materialized.SetGameData(rooms_->game_data());
+      room = &materialized;
+    }
+    room->EnsureObjectsLoaded();
+    if (HasAnyCustomCollision(room->custom_collision())) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Room 0x%03X already has custom collision; generation will not "
+          "replace it",
+          room_id));
+    }
+
+    ASSIGN_OR_RETURN(auto generated,
+                     zelda3::GenerateTrackCollision(room, options));
+    generated.room_id = room_id;
+    if (!generated.collision_map.has_data || generated.tiles_generated <= 0) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Room 0x%03X has no supported minecart track pieces", room_id));
+    }
+    preview.push_back(std::move(generated));
+  }
+
+  collision_preview_options_ = options;
+  collision_preview_ = std::move(preview);
+  return absl::OkStatus();
+}
+
+absl::Status MinecartTrackEditorPanel::BuildAllEligibleCollisionPreview() {
+  RebuildAuditCache(/*include_unmaterialized=*/true);
+  std::vector<int> room_ids;
+  for (const auto& [room_id, audit] : room_audit_) {
+    if (!audit.track_subtypes.empty() && !audit.has_any_custom_collision) {
+      room_ids.push_back(room_id);
+    }
+  }
+  return BuildCollisionPreview(room_ids);
+}
+
+absl::Status MinecartTrackEditorPanel::ApplyCollisionPreview() {
+  if (collision_preview_.empty()) {
+    return absl::FailedPreconditionError("No collision preview to apply");
+  }
+  if (!collision_batch_apply_callback_) {
+    return absl::FailedPreconditionError(
+        "Minecart collision apply is unavailable outside the dungeon editor");
+  }
+  RETURN_IF_ERROR(collision_batch_apply_callback_(collision_preview_,
+                                                  collision_preview_options_));
+  ClearCollisionPreview();
+  audit_dirty_ = true;
+  return absl::OkStatus();
+}
+
+void MinecartTrackEditorPanel::ClearCollisionPreview() {
+  collision_preview_.clear();
+  collision_preview_options_ = {};
 }
 
 void MinecartTrackEditorPanel::Draw(bool* p_open) {
@@ -904,84 +1041,7 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
   }
 
   ImGui::Text(tr("Minecart Track Editor"));
-  ImGui::TextDisabled(
-      tr("Publish Tracks changes the manifest-owned ASM source only; it does "
-         "not update the open ROM."));
-  ImGui::TextDisabled(
-      tr("After publishing, save pending dungeon/ROM edits to the development "
-         "ROM, rebuild the patched ROM, then reopen/reload the patched ROM in "
-         "Yaze before testing."));
-#if defined(__EMSCRIPTEN__)
-  ImGui::TextDisabled(
-      tr("Source publishing is unavailable in browser builds; drafts are "
-         "retained."));
-#endif
-  const bool has_unpublished_changes = HasUnpublishedChanges();
-  const bool can_publish =
-      has_unpublished_changes && kSourcePublishingAvailable;
-  if (!can_publish) {
-    ImGui::BeginDisabled();
-  }
-  if (ImGui::Button(ICON_MD_SAVE " Publish Tracks")) {
-    const absl::Status status = SaveTracks();
-    status_message_ =
-        status.ok()
-            ? "Minecart ASM source published only. Save pending dungeon/ROM "
-              "edits to the development ROM, rebuild the patched ROM, then "
-              "reopen/reload the patched ROM in Yaze before testing."
-            : std::string(status.message());
-    show_success_ = status.ok();
-  }
-  if (!can_publish) {
-    ImGui::EndDisabled();
-  }
-  ImGui::SameLine();
-  if (!has_unpublished_changes) {
-    ImGui::BeginDisabled();
-  }
-  if (ImGui::Button(ICON_MD_RESTORE " Discard Drafts")) {
-    const absl::Status status = DiscardUnpublishedChanges();
-    status_message_ = status.ok() ? "Minecart track drafts discarded."
-                                  : std::string(status.message());
-    show_success_ = status.ok();
-  }
-  if (!has_unpublished_changes) {
-    ImGui::EndDisabled();
-  }
-  ImGui::SameLine();
-  if (ImGui::Button(ICON_MD_REFRESH " Reload Source")) {
-    const absl::Status status = ReloadTracks();
-    status_message_ = status.ok() ? "Minecart track source reloaded."
-                                  : std::string(status.message());
-    show_success_ = status.ok();
-  }
-  ImGui::SameLine();
-  const bool can_save_project =
-      project_ && project_->project_opened() && project_save_callback_;
-  if (!can_save_project) {
-    ImGui::BeginDisabled();
-  }
-  if (ImGui::Button(ICON_MD_SAVE " Save Project")) {
-    auto status = SaveProjectSettings();
-    if (status.ok()) {
-      status_message_ = has_unpublished_changes
-                            ? "Project saved; minecart track drafts remain "
-                              "unsaved."
-                            : "Project saved.";
-      show_success_ = true;
-    } else {
-      status_message_ =
-          absl::StrFormat("Project save failed: %s", status.message());
-      show_success_ = false;
-    }
-  }
-  if (!can_save_project) {
-    ImGui::EndDisabled();
-  }
-
-  // Show picking mode indicator
   if (picking_mode_) {
-    ImGui::SameLine();
     if (ImGui::Button(ICON_MD_CANCEL " Cancel Pick")) {
       CancelCoordinatePicking();
     }
@@ -990,276 +1050,387 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
                        ICON_MD_MY_LOCATION " Picking for Track %d...",
                        picking_track_index_);
   }
+  if (!ImGui::BeginTabBar("##MinecartTasks")) {
+    return;
+  }
 
-  if (!status_message_.empty() && !picking_mode_) {
+  if (ImGui::BeginTabItem(tr("Routes"))) {
+    ImGui::TextDisabled(
+        tr("Edit route start slots and publish the manifest-owned ASM "
+           "source."));
+#if defined(__EMSCRIPTEN__)
+    ImGui::TextDisabled(
+        tr("Source publishing is unavailable in browser builds; drafts are "
+           "retained."));
+#endif
+    const bool has_unpublished_changes = HasUnpublishedChanges();
+    const bool can_publish =
+        has_unpublished_changes && kSourcePublishingAvailable;
+    if (!can_publish) {
+      ImGui::BeginDisabled();
+    }
+    if (ImGui::Button(ICON_MD_SAVE " Publish Tracks")) {
+      const absl::Status status = SaveTracks();
+      status_message_ =
+          status.ok()
+              ? "Minecart ASM source published only. Save pending dungeon/ROM "
+                "edits to the development ROM, rebuild the patched ROM, then "
+                "reopen/reload the patched ROM in Yaze before testing."
+              : std::string(status.message());
+      show_success_ = status.ok();
+    }
+    if (!can_publish) {
+      ImGui::EndDisabled();
+    }
     ImGui::SameLine();
-    ImGui::TextColored(show_success_ ? ImVec4(0, 1, 0, 1) : ImVec4(1, 0, 0, 1),
-                       "%s", status_message_.c_str());
-  }
-
-  DrawOverlaySettings();
-  ImGui::Separator();
-
-  // Coordinate format help
-  ImGui::TextDisabled(tr(
-      "Camera coordinates use $1XXX format (base $1000 + room offset + local "
-      "position)"));
-  ImGui::TextDisabled(tr(
-      "Hover over dungeon canvas to see coordinates, or click 'Pick' button."));
-  ImGui::Separator();
-
-  if (ImGui::BeginTable("TracksTable", 7,
-                        ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
-                            ImGuiTableFlags_Resizable)) {
-    ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 30.0f);
-    ImGui::TableSetupColumn("Room ID", ImGuiTableColumnFlags_WidthFixed, 80.0f);
-    ImGui::TableSetupColumn("Camera X", ImGuiTableColumnFlags_WidthFixed,
-                            80.0f);
-    ImGui::TableSetupColumn("Camera Y", ImGuiTableColumnFlags_WidthFixed,
-                            80.0f);
-    ImGui::TableSetupColumn("Pick", ImGuiTableColumnFlags_WidthFixed, 50.0f);
-    ImGui::TableSetupColumn("Go", ImGuiTableColumnFlags_WidthFixed, 40.0f);
-    ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed, 60.0f);
-    ImGui::TableHeadersRow();
-
-    for (auto& track : tracks_) {
-      ImGui::TableNextRow();
-
-      const bool is_default = IsDefaultTrack(track);
-      const bool used_in_rooms =
-          track.id >= 0 &&
-          track.id < static_cast<int>(track_subtype_used_.size()) &&
-          track_subtype_used_[track.id];
-      const bool missing_start = used_in_rooms && is_default;
-
-      if (missing_start) {
-        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,
-                               IM_COL32(120, 40, 40, 120));
-      } else if (is_default) {
-        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,
-                               IM_COL32(60, 60, 60, 80));
-      }
-
-      // Highlight the row being picked
-      if (picking_mode_ && track.id == picking_track_index_) {
-        ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,
-                               IM_COL32(80, 80, 0, 100));
-      }
-
-      ImGui::TableNextColumn();
-      ImGui::Text("%d", track.id);
-
-      ImGui::TableNextColumn();
-      uint16_t room_id = static_cast<uint16_t>(track.room_id);
-      if (yaze::gui::InputHexWordCustom(
-              absl::StrFormat("##Room%d", track.id).c_str(), &room_id, 60.0f)) {
-        track.room_id = room_id;
-        audit_dirty_ = true;
-      }
-
-      ImGui::TableNextColumn();
-      uint16_t start_x = static_cast<uint16_t>(track.start_x);
-      if (yaze::gui::InputHexWordCustom(
-              absl::StrFormat("##StartX%d", track.id).c_str(), &start_x,
-              60.0f)) {
-        track.start_x = start_x;
-        audit_dirty_ = true;
-      }
-
-      ImGui::TableNextColumn();
-      uint16_t start_y = static_cast<uint16_t>(track.start_y);
-      if (yaze::gui::InputHexWordCustom(
-              absl::StrFormat("##StartY%d", track.id).c_str(), &start_y,
-              60.0f)) {
-        track.start_y = start_y;
-        audit_dirty_ = true;
-      }
-
-      // Pick button to select coordinates from canvas
-      ImGui::TableNextColumn();
-      ImGui::PushID(track.id);
-      bool is_picking_this = picking_mode_ && picking_track_index_ == track.id;
-      {
-        std::optional<gui::StyleColorGuard> pick_guard;
-        if (is_picking_this) {
-          pick_guard.emplace(ImGuiCol_Button, ImVec4(0.8f, 0.6f, 0.0f, 1.0f));
-        }
-        if (ImGui::SmallButton(ICON_MD_MY_LOCATION)) {
-          if (is_picking_this) {
-            CancelCoordinatePicking();
-          } else {
-            StartCoordinatePicking(track.id);
-          }
-        }
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(is_picking_this ? "Cancel picking"
-                                          : "Pick coordinates from canvas");
-      }
-      ImGui::PopID();
-
-      // Go to room button
-      ImGui::TableNextColumn();
-      ImGui::PushID(track.id + 1000);
-      if (ImGui::SmallButton(ICON_MD_ARROW_FORWARD)) {
-        if (room_navigation_callback_) {
-          room_navigation_callback_(track.room_id);
-        }
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(tr("Navigate to room $%04X"), track.room_id);
-      }
-      ImGui::PopID();
-
-      // Status column
-      ImGui::TableNextColumn();
-      if (missing_start) {
-        ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.1f, 1.0f),
-                           ICON_MD_WARNING_AMBER);
-      } else if (is_default) {
-        ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), ICON_MD_INFO);
-      } else if (used_in_rooms) {
-        ImGui::TextColored(ImVec4(0.4f, 0.9f, 0.4f, 1.0f),
-                           ICON_MD_CHECK_CIRCLE);
+    if (!has_unpublished_changes) {
+      ImGui::BeginDisabled();
+    }
+    if (ImGui::Button(ICON_MD_RESTORE " Discard Drafts")) {
+      const absl::Status status = DiscardUnpublishedChanges();
+      status_message_ = status.ok() ? "Minecart track drafts discarded."
+                                    : std::string(status.message());
+      show_success_ = status.ok();
+    }
+    if (!has_unpublished_changes) {
+      ImGui::EndDisabled();
+    }
+    ImGui::SameLine();
+    if (ImGui::Button(ICON_MD_REFRESH " Reload Source")) {
+      const absl::Status status = ReloadTracks();
+      status_message_ = status.ok() ? "Minecart track source reloaded."
+                                    : std::string(status.message());
+      show_success_ = status.ok();
+    }
+    ImGui::SameLine();
+    const bool can_save_project =
+        project_ && project_->project_opened() && project_save_callback_;
+    if (!can_save_project) {
+      ImGui::BeginDisabled();
+    }
+    if (ImGui::Button(ICON_MD_SAVE " Save Project")) {
+      auto status = SaveProjectSettings();
+      if (status.ok()) {
+        status_message_ = has_unpublished_changes
+                              ? "Project saved; minecart track drafts remain "
+                                "unsaved."
+                              : "Project saved.";
+        show_success_ = true;
       } else {
-        ImGui::Text("-");
-      }
-
-      if (ImGui::IsItemHovered()) {
-        ImGui::BeginTooltip();
-        if (missing_start) {
-          ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.1f, 1.0f),
-                             tr("Used in rooms but still default"));
-        } else if (is_default) {
-          ImGui::Text(tr("Default filler slot"));
-        } else if (used_in_rooms) {
-          ImGui::Text(tr("Used in rooms"));
-        } else {
-          ImGui::Text(tr("No usage detected"));
-        }
-
-        auto rooms_it = track_usage_rooms_.find(track.id);
-        if (rooms_it != track_usage_rooms_.end()) {
-          ImGui::Separator();
-          ImGui::Text(tr("Rooms:"));
-          for (int room_id : rooms_it->second) {
-            ImGui::BulletText(tr("0x%03X"), room_id);
-          }
-        }
-        ImGui::EndTooltip();
+        status_message_ =
+            absl::StrFormat("Project save failed: %s", status.message());
+        show_success_ = false;
       }
     }
-
-    ImGui::EndTable();
-  }
-
-  // Summary + room audit
-  int default_count = 0;
-  int used_count = 0;
-  int missing_start_count = 0;
-  for (const auto& track : tracks_) {
-    bool is_default = IsDefaultTrack(track);
-    bool used_in_rooms =
-        track.id >= 0 &&
-        track.id < static_cast<int>(track_subtype_used_.size()) &&
-        track_subtype_used_[track.id];
-    if (is_default) {
-      default_count++;
+    if (!can_save_project) {
+      ImGui::EndDisabled();
     }
-    if (used_in_rooms) {
-      used_count++;
-    }
-    if (used_in_rooms && is_default) {
-      missing_start_count++;
-    }
-  }
 
-  ImGui::Separator();
-  ImGui::Text(tr("Usage Summary: used %d/%d, default %d, missing starts %d"),
-              used_count, kTrackSlotCount, default_count, missing_start_count);
-
-  if (!room_audit_.empty()) {
     ImGui::Separator();
-    ImGui::Text(tr("Rooms with track objects:"));
 
-    // "Generate All" button: batch-generate collision for all rooms that have
-    // rail objects but no collision data yet.
-    if (rom_ && rooms_) {
-      // Count rooms that need generation
-      int rooms_needing_collision = 0;
-      for (const auto& [rid, audit] : room_audit_) {
-        if (!audit.track_subtypes.empty() && !audit.has_track_collision) {
-          rooms_needing_collision++;
+    // Coordinate format help
+    ImGui::TextDisabled(tr(
+        "Camera coordinates use $1XXX format (base $1000 + room offset + local "
+        "position)"));
+    ImGui::TextDisabled(
+        tr("Hover over dungeon canvas to see coordinates, or click 'Pick' "
+           "button."));
+    ImGui::Separator();
+
+    if (ImGui::BeginTable("TracksTable", 7,
+                          ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+                              ImGuiTableFlags_Resizable)) {
+      ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 30.0f);
+      ImGui::TableSetupColumn("Room ID", ImGuiTableColumnFlags_WidthFixed,
+                              80.0f);
+      ImGui::TableSetupColumn("Camera X", ImGuiTableColumnFlags_WidthFixed,
+                              80.0f);
+      ImGui::TableSetupColumn("Camera Y", ImGuiTableColumnFlags_WidthFixed,
+                              80.0f);
+      ImGui::TableSetupColumn("Pick", ImGuiTableColumnFlags_WidthFixed, 50.0f);
+      ImGui::TableSetupColumn("Go", ImGuiTableColumnFlags_WidthFixed, 40.0f);
+      ImGui::TableSetupColumn("Status", ImGuiTableColumnFlags_WidthFixed,
+                              60.0f);
+      ImGui::TableHeadersRow();
+
+      for (auto& track : tracks_) {
+        ImGui::TableNextRow();
+
+        const bool is_default = IsDefaultTrack(track);
+        const bool used_in_rooms =
+            track.id >= 0 &&
+            track.id < static_cast<int>(route_slot_used_.size()) &&
+            route_slot_used_[track.id];
+        const bool missing_start = used_in_rooms && is_default;
+
+        if (missing_start) {
+          ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,
+                                 IM_COL32(120, 40, 40, 120));
+        } else if (is_default) {
+          ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,
+                                 IM_COL32(60, 60, 60, 80));
         }
-      }
 
-      if (rooms_needing_collision > 0) {
-        if (ImGui::Button(absl::StrFormat(ICON_MD_AUTO_FIX_HIGH
-                                          " Generate All (%d rooms)",
-                                          rooms_needing_collision)
-                              .c_str())) {
-          int generated_rooms = 0;
-          int total_tiles = 0;
-          bool had_error = false;
+        // Highlight the row being picked
+        if (picking_mode_ && track.id == picking_track_index_) {
+          ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,
+                                 IM_COL32(80, 80, 0, 100));
+        }
 
-          for (auto& [rid, audit] : room_audit_) {
-            if (audit.track_subtypes.empty() || audit.has_track_collision) {
-              continue;
-            }
+        ImGui::TableNextColumn();
+        ImGui::Text("%d", track.id);
 
-            auto& target_room = (*rooms_)[rid];
-            zelda3::GeneratorOptions opts;
-            auto gen_result =
-                zelda3::GenerateTrackCollision(&target_room, opts);
-            if (!gen_result.ok()) {
-              status_message_ =
-                  absl::StrFormat("Generate failed for room 0x%03X: %s", rid,
-                                  gen_result.status().message());
-              show_success_ = false;
-              had_error = true;
-              break;
-            }
-
-            auto write_status = zelda3::WriteTrackCollision(
-                rom_, rid, gen_result->collision_map);
-            if (!write_status.ok()) {
-              status_message_ =
-                  absl::StrFormat("Write failed for room 0x%03X: %s", rid,
-                                  write_status.message());
-              show_success_ = false;
-              had_error = true;
-              break;
-            }
-
-            generated_rooms++;
-            total_tiles += gen_result->tiles_generated;
-          }
-
-          if (!had_error) {
-            status_message_ = absl::StrFormat(
-                "Generated collision for %d rooms (%d tiles total)",
-                generated_rooms, total_tiles);
-            show_success_ = true;
-          }
+        ImGui::TableNextColumn();
+        uint16_t room_id = static_cast<uint16_t>(track.room_id);
+        if (yaze::gui::InputHexWordCustom(
+                absl::StrFormat("##Room%d", track.id).c_str(), &room_id,
+                60.0f)) {
+          track.room_id = room_id;
           audit_dirty_ = true;
         }
+
+        ImGui::TableNextColumn();
+        uint16_t start_x = static_cast<uint16_t>(track.start_x);
+        if (yaze::gui::InputHexWordCustom(
+                absl::StrFormat("##StartX%d", track.id).c_str(), &start_x,
+                60.0f)) {
+          track.start_x = start_x;
+          audit_dirty_ = true;
+        }
+
+        ImGui::TableNextColumn();
+        uint16_t start_y = static_cast<uint16_t>(track.start_y);
+        if (yaze::gui::InputHexWordCustom(
+                absl::StrFormat("##StartY%d", track.id).c_str(), &start_y,
+                60.0f)) {
+          track.start_y = start_y;
+          audit_dirty_ = true;
+        }
+
+        // Pick button to select coordinates from canvas
+        ImGui::TableNextColumn();
+        ImGui::PushID(track.id);
+        bool is_picking_this =
+            picking_mode_ && picking_track_index_ == track.id;
+        {
+          std::optional<gui::StyleColorGuard> pick_guard;
+          if (is_picking_this) {
+            pick_guard.emplace(ImGuiCol_Button, ImVec4(0.8f, 0.6f, 0.0f, 1.0f));
+          }
+          if (ImGui::SmallButton(ICON_MD_MY_LOCATION)) {
+            if (is_picking_this) {
+              CancelCoordinatePicking();
+            } else {
+              StartCoordinatePicking(track.id);
+            }
+          }
+        }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(
-              tr("Generate collision for all %d rooms with rail objects "
-                 "but no collision data"),
-              rooms_needing_collision);
+          ImGui::SetTooltip(is_picking_this ? "Cancel picking"
+                                            : "Pick coordinates from canvas");
+        }
+        ImGui::PopID();
+
+        // Go to room button
+        ImGui::TableNextColumn();
+        ImGui::PushID(track.id + 1000);
+        if (ImGui::SmallButton(ICON_MD_ARROW_FORWARD)) {
+          if (room_navigation_callback_) {
+            room_navigation_callback_(track.room_id);
+          }
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(tr("Navigate to room $%04X"), track.room_id);
+        }
+        ImGui::PopID();
+
+        // Status column
+        ImGui::TableNextColumn();
+        if (missing_start) {
+          ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.1f, 1.0f),
+                             ICON_MD_WARNING_AMBER);
+        } else if (is_default) {
+          ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), ICON_MD_INFO);
+        } else if (used_in_rooms) {
+          ImGui::TextColored(ImVec4(0.4f, 0.9f, 0.4f, 1.0f),
+                             ICON_MD_CHECK_CIRCLE);
+        } else {
+          ImGui::Text("-");
+        }
+
+        if (ImGui::IsItemHovered()) {
+          ImGui::BeginTooltip();
+          if (missing_start) {
+            ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.1f, 1.0f),
+                               tr("Referenced by a cart but still default"));
+          } else if (is_default) {
+            ImGui::Text(tr("Default filler slot"));
+          } else if (used_in_rooms) {
+            ImGui::Text(tr("Referenced by a minecart sprite"));
+          } else {
+            ImGui::Text(tr("No route reference detected"));
+          }
+
+          auto rooms_it = route_usage_rooms_.find(track.id);
+          if (rooms_it != route_usage_rooms_.end()) {
+            ImGui::Separator();
+            ImGui::Text(tr("Rooms:"));
+            for (int room_id : rooms_it->second) {
+              ImGui::BulletText(tr("0x%03X"), room_id);
+            }
+          }
+          ImGui::EndTooltip();
         }
       }
+
+      ImGui::EndTable();
+    }
+
+    // Summary + room audit
+    int default_count = 0;
+    int used_count = 0;
+    int missing_start_count = 0;
+    for (const auto& track : tracks_) {
+      bool is_default = IsDefaultTrack(track);
+      bool used_in_rooms =
+          track.id >= 0 &&
+          track.id < static_cast<int>(route_slot_used_.size()) &&
+          route_slot_used_[track.id];
+      if (is_default) {
+        default_count++;
+      }
+      if (used_in_rooms) {
+        used_count++;
+      }
+      if (used_in_rooms && is_default) {
+        missing_start_count++;
+      }
+    }
+
+    ImGui::Separator();
+    ImGui::Text(tr("%s route slots: used %d/%d, default %d, missing starts %d"),
+                audit_includes_all_rooms_ ? "Project" : "Loaded-room",
+                used_count, kTrackSlotCount, default_count,
+                missing_start_count);
+    ImGui::TextDisabled(
+        tr("Route usage comes from minecart sprite subtypes, not visual track "
+           "piece subtypes."));
+    ImGui::EndTabItem();
+  }
+
+  if (ImGui::BeginTabItem(tr("Collision"))) {
+    ImGui::TextDisabled(
+        tr("Audit room collision, preview generated changes, then apply them "
+           "as one undoable dungeon edit."));
+
+    int rooms_needing_collision = 0;
+    int protected_rooms = 0;
+    for (const auto& [room_id, audit] : room_audit_) {
+      if (!audit.track_subtypes.empty() && !audit.has_any_custom_collision) {
+        ++rooms_needing_collision;
+      } else if (!audit.track_subtypes.empty() &&
+                 audit.has_any_custom_collision) {
+        ++protected_rooms;
+      }
+    }
+    ImGui::TextDisabled(tr("%s audit: %d room(s) need collision."),
+                        audit_includes_all_rooms_ ? "Project" : "Loaded-room",
+                        rooms_needing_collision);
+
+    if (collision_preview_.empty()) {
+      if (ImGui::Button(ICON_MD_PREVIEW " Preview All Rooms")) {
+        const absl::Status status = BuildAllEligibleCollisionPreview();
+        status_message_ = status.ok()
+                              ? absl::StrFormat("Preview ready for %d rooms.",
+                                                collision_preview_.size())
+                              : std::string(status.message());
+        show_success_ = status.ok();
+      }
+      ImGui::TextDisabled(
+          tr("Scans all %d rooms. The list below otherwise reflects loaded "
+             "rooms only."),
+          static_cast<int>(rooms_->size()));
+    } else {
+      int preview_tiles = 0;
+      for (const auto& result : collision_preview_) {
+        preview_tiles += result.tiles_generated;
+      }
+      ImGui::Text(ICON_MD_PREVIEW " Preview: %d rooms, %d collision tiles",
+                  collision_preview_.size(), preview_tiles);
+      if (!collision_batch_apply_callback_) {
+        ImGui::BeginDisabled();
+      }
+      if (ImGui::Button(absl::StrFormat(ICON_MD_CHECK_CIRCLE
+                                        " Apply Preview to %d Rooms",
+                                        collision_preview_.size())
+                            .c_str())) {
+        ImGui::OpenPopup("Confirm Minecart Collision Apply");
+      }
+      if (!collision_batch_apply_callback_) {
+        ImGui::EndDisabled();
+      }
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_MD_CANCEL " Discard Preview")) {
+        ClearCollisionPreview();
+        status_message_ = "Collision preview discarded.";
+        show_success_ = true;
+      }
+
+      if (ImGui::BeginPopupModal("Confirm Minecart Collision Apply", nullptr,
+                                 ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::Text(tr("Apply generated collision to %d rooms?"),
+                    collision_preview_.size());
+        ImGui::TextDisabled(tr("%d collision tiles will be added."),
+                            preview_tiles);
+        ImGui::TextDisabled(
+            tr("This changes dungeon room models as one undoable edit. ROM "
+               "bytes change only when you save."));
+        if (ImGui::Button(ICON_MD_CHECK_CIRCLE " Apply Changes")) {
+          const int applied_rooms = static_cast<int>(collision_preview_.size());
+          const absl::Status status = ApplyCollisionPreview();
+          status_message_ =
+              status.ok()
+                  ? absl::StrFormat(
+                        "Applied collision to %d rooms. Save the ROM to "
+                        "publish it.",
+                        applied_rooms)
+                  : std::string(status.message());
+          show_success_ = status.ok();
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_MD_CANCEL " Cancel")) {
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+      }
+    }
+
+    if (protected_rooms > 0) {
+      ImGui::TextDisabled(
+          tr("%d room(s) with existing custom collision are protected and "
+             "excluded."),
+          protected_rooms);
     }
 
     ImGui::BeginChild("##TrackAuditRooms", ImVec2(0, 160), true);
+    std::vector<int> audited_room_ids;
+    audited_room_ids.reserve(room_audit_.size());
     for (const auto& [room_id, audit] : room_audit_) {
-      if (audit.track_subtypes.empty() && !audit.has_track_collision) {
-        continue;
-      }
+      audited_room_ids.push_back(room_id);
+    }
+    std::sort(audited_room_ids.begin(), audited_room_ids.end());
+    for (int room_id : audited_room_ids) {
+      const auto& audit = room_audit_.at(room_id);
 
       // Status icon
-      if (!audit.has_track_collision) {
+      if (!audit.has_track_collision && audit.has_any_custom_collision) {
+        ImGui::TextColored(
+            ImVec4(1.0f, 0.6f, 0.1f, 1.0f),
+            ICON_MD_WARNING_AMBER
+            " Room 0x%03X (existing custom collision; protected)",
+            room_id);
+      } else if (!audit.has_track_collision) {
         ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.1f, 1.0f),
                            ICON_MD_ERROR " Room 0x%03X (no collision)",
                            room_id);
@@ -1283,45 +1454,39 @@ void MinecartTrackEditorPanel::Draw(bool* p_open) {
         ImGui::SetTooltip(tr("Navigate to room 0x%03X"), room_id);
       }
 
-      // Generate Collision button (only if rom available and no collision yet)
-      if (rom_ && rooms_ && !audit.has_track_collision) {
+      // Preview only; applying is a separate, explicit batch action above.
+      if (rooms_ && !audit.track_subtypes.empty() &&
+          !audit.has_any_custom_collision) {
         ImGui::SameLine();
         if (ImGui::SmallButton(
-                absl::StrFormat(ICON_MD_AUTO_FIX_HIGH " Generate##%d", room_id)
+                absl::StrFormat(ICON_MD_PREVIEW " Preview##%d", room_id)
                     .c_str())) {
-          auto& target_room = (*rooms_)[room_id];
-          zelda3::GeneratorOptions opts;
-          auto gen_result = zelda3::GenerateTrackCollision(&target_room, opts);
-          if (gen_result.ok()) {
-            auto write_status = zelda3::WriteTrackCollision(
-                rom_, room_id, gen_result->collision_map);
-            if (write_status.ok()) {
-              status_message_ = absl::StrFormat(
-                  "Room 0x%03X: Generated %d tiles (%d stops, %d corners)",
-                  room_id, gen_result->tiles_generated, gen_result->stop_count,
-                  gen_result->corner_count);
-              show_success_ = true;
-              audit_dirty_ = true;
-            } else {
-              status_message_ =
-                  absl::StrFormat("Write failed: %s", write_status.message());
-              show_success_ = false;
-            }
-          } else {
-            status_message_ = absl::StrFormat("Generate failed: %s",
-                                              gen_result.status().message());
-            show_success_ = false;
-          }
+          const absl::Status status = BuildCollisionPreview({room_id});
+          status_message_ =
+              status.ok()
+                  ? absl::StrFormat("Preview ready for room 0x%03X.", room_id)
+                  : std::string(status.message());
+          show_success_ = status.ok();
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(tr(
-              "Auto-generate collision tiles from rail objects in this room"));
+          ImGui::SetTooltip(
+              tr("Preview generated collision without changing the room"));
         }
       }
 
       ImGui::PopID();
     }
     ImGui::EndChild();
+    DrawOverlaySettings();
+    ImGui::EndTabItem();
+  }
+
+  ImGui::EndTabBar();
+
+  if (!status_message_.empty() && !picking_mode_) {
+    ImGui::Separator();
+    ImGui::TextColored(show_success_ ? ImVec4(0, 1, 0, 1) : ImVec4(1, 0, 0, 1),
+                       "%s", status_message_.c_str());
   }
 }
 

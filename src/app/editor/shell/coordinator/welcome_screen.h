@@ -43,26 +43,11 @@ class WelcomeScreen {
   }
 
   /**
-   * @brief Set callback for creating project with template
-   */
-  void SetNewProjectWithTemplateCallback(
-      std::function<void(const std::string&)> callback) {
-    new_project_with_template_callback_ = callback;
-  }
-
-  /**
    * @brief Set callback for opening project
    */
   void SetOpenProjectCallback(
       std::function<void(const std::string&)> callback) {
     open_project_callback_ = callback;
-  }
-
-  /**
-   * @brief Set callback for opening AI Agent
-   */
-  void SetOpenAgentCallback(std::function<void()> callback) {
-    open_agent_callback_ = callback;
   }
 
   /**
@@ -80,24 +65,10 @@ class WelcomeScreen {
   }
 
   /**
-   * @brief Set callback for opening the project file dialog
-   */
-  void SetOpenProjectDialogCallback(std::function<void()> callback) {
-    open_project_dialog_callback_ = callback;
-  }
-
-  /**
    * @brief Set callback for showing project management
    */
   void SetOpenProjectManagementCallback(std::function<void()> callback) {
     open_project_management_callback_ = callback;
-  }
-
-  /**
-   * @brief Set callback for showing the project file editor
-   */
-  void SetOpenProjectFileEditorCallback(std::function<void()> callback) {
-    open_project_file_editor_callback_ = callback;
   }
 
   /**
@@ -135,19 +106,12 @@ class WelcomeScreen {
   }
 
   /**
-   * @brief Set context state for gating actions
+   * @brief Set whether a ROM is currently loaded for first-run guidance
    */
-  void SetContextState(bool has_rom, bool has_project) {
-    has_rom_ = has_rom;
-    has_project_ = has_project;
-  }
+  void SetContextState(bool has_rom) { has_rom_ = has_rom; }
 
   /**
-   * @brief Wire persisted user settings so animation tweaks survive restart.
-   *
-   * Call once after construction (from UICoordinator). Animation sliders then
-   * load initial values from the preferences and write back + trigger Save()
-   * whenever the user adjusts them.
+   * @brief Load persisted Welcome-screen animation preferences.
    */
   void SetUserSettings(UserSettings* settings);
 
@@ -161,17 +125,20 @@ class WelcomeScreen {
   }
 
  private:
+  friend class WelcomeScreenTestPeer;
+
   void DrawHeader();
   void DrawQuickActions();
   void DrawRecentProjects();
   void DrawProjectPanel(const RecentProject& project, int index,
                         const ImVec2& card_size);
-  void DrawTemplatesSection();
   void DrawTipsSection();
   void DrawWhatsNew();
   void DrawFirstRunGuide();
   void DrawRecentAnnotationPopup();
   void DrawUndoRemovalBanner();
+  static bool ShouldUseStackedLayout(float content_width, float content_height,
+                                     float layout_scale);
 
   RecentProjectsModel recent_projects_model_;
   bool manually_closed_ = false;
@@ -180,22 +147,12 @@ class WelcomeScreen {
   std::function<void()> open_rom_callback_;
   std::function<void()> new_project_callback_;
   std::function<void(const std::string&)> open_project_callback_;
-  std::function<void(const std::string&)> new_project_with_template_callback_;
-  std::function<void()> open_agent_callback_;
   std::function<void()> open_prototype_research_callback_;
   std::function<void()> open_assembly_editor_no_rom_callback_;
-  std::function<void()> open_project_dialog_callback_;
   std::function<void()> open_project_management_callback_;
-  std::function<void()> open_project_file_editor_callback_;
-
-  // UI state
-  int selected_template_ = 0;
 
   // Animation state
   float animation_time_ = 0.0f;
-  float card_hover_scale_[6] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
-  int hovered_card_ = -1;
-
   // Staggered entry animations
   bool entry_animations_started_ = false;
   float entry_time_ = 0.0f;  // Time since welcome screen opened
@@ -226,7 +183,6 @@ class WelcomeScreen {
   float particle_spawn_accumulator_ = 0.0f;
 
   // Triforce animation settings
-  bool show_triforce_settings_ = false;
   float triforce_alpha_multiplier_ = 1.0f;
   float triforce_speed_multiplier_ = 0.3f;  // Default slower speed
   float triforce_size_multiplier_ = 1.0f;
@@ -240,7 +196,7 @@ class WelcomeScreen {
 
   // Context state for gating actions
   bool has_rom_ = false;
-  bool has_project_ = false;
+  bool release_notes_open_failed_ = false;
 
   // Inline popup state for rename / edit-notes flows triggered from the
   // recent-project context menu. Single-slot (one popup at a time).
@@ -249,12 +205,6 @@ class WelcomeScreen {
   std::string pending_annotation_path_;
   char rename_buffer_[256] = {};
   char notes_buffer_[1024] = {};
-
-  // Optional link to persisted user preferences. When set, animation tweaks
-  // flow back through it and survive app restarts.
-  UserSettings* user_settings_ = nullptr;
-
-  void PersistAnimationSettings();
 };
 
 }  // namespace editor

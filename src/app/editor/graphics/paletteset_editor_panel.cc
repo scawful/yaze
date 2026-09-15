@@ -7,6 +7,7 @@
 #include "app/gui/core/color.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
+#include "app/gui/widgets/empty_state.h"
 #include "imgui/imgui.h"
 
 namespace yaze {
@@ -37,7 +38,7 @@ using gfx::PaletteCategory;
 
 absl::Status PalettesetEditorPanel::Update() {
   if (!rom() || !rom()->is_loaded() || !game_data()) {
-    Text(tr("No ROM loaded. Please open a Zelda 3 ROM."));
+    gui::DrawEmptyState(gui::EmptyNoRom(/*compact=*/true));
     return absl::OkStatus();
   }
 

@@ -67,6 +67,7 @@ set(CANVAS_SRC
 set(GUI_WIDGETS_SRC
   app/gui/widgets/asset_browser.cc
   app/gui/widgets/dungeon_object_emulator_preview.cc
+  app/gui/widgets/empty_state.cc
   app/gui/widgets/font_picker.cc
   app/gui/widgets/icon_browser.cc
   app/gui/widgets/palette_editor_widget.cc

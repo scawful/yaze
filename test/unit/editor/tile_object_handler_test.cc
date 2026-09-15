@@ -49,7 +49,7 @@ zelda3::RoomObject CreateLayeredTestObject(uint8_t x, uint8_t y,
 
 class ScopedCustomObjectSelectionState {
  public:
-  ScopedCustomObjectSelectionState()
+  explicit ScopedCustomObjectSelectionState(bool enabled = true)
       : previous_state_(zelda3::CustomObjectManager::Get().SnapshotState()),
         previous_enabled_(core::FeatureFlags::get().kEnableCustomObjects) {
     const auto nonce =
@@ -60,7 +60,7 @@ class ScopedCustomObjectSelectionState {
     std::filesystem::create_directories(directory_, error);
 
     zelda3::CustomObjectManager::Get().Initialize(directory_.string());
-    core::FeatureFlags::get().kEnableCustomObjects = true;
+    core::FeatureFlags::get().kEnableCustomObjects = enabled;
     zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
   }
 
@@ -542,6 +542,56 @@ TEST_F(TileObjectHandlerTest,
   EXPECT_TRUE(column_has_coverage(geometry.buffer_width_pixels - 1));
 }
 
+TEST_F(TileObjectHandlerTest, ActiveGhostRefreshesAfterRoomGraphicsReload) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  zelda3::GameData game_data;
+  game_data.graphics_buffer.assign(223 * 4096, 1);
+  rooms_.SetRom(&rom);
+  auto& room = rooms_[0];
+  room.SetGameData(&game_data);
+  room.SetLoaded(true);
+  room.LoadRoomGraphics();
+  room.CopyRoomGraphicsToBuffer();
+  ctx_.rom = &rom;
+
+  auto object = CreateTestObject(0, 0, 0, 0xC8);
+  object.mutable_tiles().assign(8,
+                                gfx::TileInfo(0x1C0, 2, false, false, false));
+  object.tiles_loaded_ = true;
+  handler_.SetPreviewObject(object);
+  handler_.BeginPlacement();
+  const auto* buffer = handler_.ghost_preview_buffer_for_testing();
+  ASSERT_NE(buffer, nullptr);
+  EXPECT_EQ(buffer->bitmap().at(0), 33);
+
+  std::fill(game_data.graphics_buffer.begin(), game_data.graphics_buffer.end(),
+            2);
+  room.CopyRoomGraphicsToBuffer();
+  ImGuiIO& io = ImGui::GetIO();
+  io.IniFilename = nullptr;
+  for (int frame = 0; frame < 2; ++frame) {
+    io.AddMousePosEvent(100.0f, 100.0f);
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(700, 700), ImGuiCond_Always);
+    ImGui::Begin("GhostReloadHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    canvas_->DrawBackground(ImVec2(512, 512));
+    if (frame > 0) {
+      EXPECT_TRUE(canvas_->IsMouseHovering());
+    }
+    handler_.DrawGhostPreview();
+    ImGui::End();
+    ImGui::Render();
+  }
+  EXPECT_EQ(handler_.ghost_preview_buffer_for_testing(), buffer);
+  EXPECT_EQ(buffer->bitmap().at(0), 34);
+  EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 1u);
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_TRUE(room.GetTileObjects().empty());
+  EXPECT_FALSE(rom.dirty());
+}
+
 TEST_F(TileObjectHandlerTest, GhostPreviewBitmapKeepsUpwardExtentVisible) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
@@ -710,6 +760,51 @@ TEST_F(TileObjectHandlerTest,
   EXPECT_EQ(ghost_palette->colors[kObservedColorIndex].b, 0xFF);
 }
 
+TEST_F(TileObjectHandlerTest,
+       PlacementResizeSurvivesPaletteRefreshForBothPlacementPaths) {
+  DungeonObjectInteraction interaction(canvas_.get());
+  interaction.SetCurrentRoom(&rooms_, 0);
+  auto& coordinator = interaction.entity_coordinator();
+  auto& tile_handler = coordinator.tile_handler();
+  interaction.SetMutationCallback([&]() { ++mutation_count_; });
+  std::optional<uint8_t> callback_size;
+  interaction.SetObjectPlacedCallback(
+      [&](const zelda3::RoomObject& object) { callback_size = object.size_; });
+
+  for (bool direct_placement : {false, true}) {
+    SCOPED_TRACE(direct_placement);
+    interaction.SetPreviewObject(CreateTestObject(0, 0, 0x05, 0xD1), true);
+    rooms_[0].ClearSaveDirtyState();
+    mutation_count_ = 0;
+    ImGui::GetIO().KeyShift = false;
+    ASSERT_TRUE(coordinator.HandleMouseWheel(1.0f));
+    ImGui::GetIO().KeyShift = true;
+    ASSERT_TRUE(coordinator.HandleMouseWheel(1.0f));
+    ASSERT_EQ(tile_handler.GetPreviewObject().size_, 0x0A);
+
+    gfx::PaletteGroup palette(direct_placement ? "second" : "first");
+    interaction.SetCurrentPaletteGroup(palette);
+    EXPECT_EQ(tile_handler.GetPreviewObject().size_, 0x0A);
+    interaction.SetCurrentPaletteGroup(palette, /*force_refresh=*/true);
+    EXPECT_EQ(tile_handler.GetPreviewObject().size_, 0x0A);
+    EXPECT_EQ(mutation_count_, 0);
+    EXPECT_FALSE(rooms_[0].object_stream_dirty());
+
+    const size_t previous_count = rooms_[0].GetTileObjects().size();
+    if (direct_placement) {
+      interaction.PlaceObjectAtPosition(10, 10);
+      ASSERT_TRUE(callback_size.has_value());
+      EXPECT_EQ(*callback_size, 0x0A);
+    } else {
+      ASSERT_TRUE(tile_handler.HandleClick(80, 80));
+    }
+    ASSERT_EQ(rooms_[0].GetTileObjects().size(), previous_count + 1);
+    EXPECT_EQ(rooms_[0].GetTileObjects().back().size_, 0x0A);
+    EXPECT_EQ(mutation_count_, 1);
+    interaction.CancelPlacement();
+  }
+}
+
 // ============================================================================
 // Resize Tests
 // ============================================================================
@@ -813,6 +908,204 @@ TEST_F(TileObjectHandlerTest, ResizeAtType1LimitIsNoOp) {
   EXPECT_FALSE(rooms_[0].object_stream_dirty());
 }
 
+TEST_F(TileObjectHandlerTest, PackedFloorResizeAtAxisLimitDoesNotCarry) {
+  AddTestObjects({CreateTestObject(5, 5, 0x03, 0xD1)});
+  rooms_[0].ClearSaveDirtyState();
+  mutation_count_ = 0;
+  invalidate_count_ = 0;
+
+  EXPECT_FALSE(handler_.ResizeObjects(0, {0}, 1));
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0x03);
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+
+  EXPECT_TRUE(handler_.ResizeObjects(0, {0}, 1, true));
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0x07);
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_EQ(invalidate_count_, 1);
+}
+
+TEST_F(TileObjectHandlerTest, PackedFloorMouseWheelUsesShiftForWidth) {
+  AddTestObjects({CreateTestObject(5, 5, 0x05, 0xCA)});
+  selection_.SelectObject(0);
+
+  EXPECT_TRUE(handler_.HandleMouseWheel(1.0f));
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0x06);
+  ImGui::GetIO().KeyShift = true;
+  EXPECT_TRUE(handler_.HandleMouseWheel(1.0f));
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0x0A);
+}
+
+TEST_F(TileObjectHandlerTest,
+       PlatformResizeCapturesOneMutationWithoutAxisCarry) {
+  ScopedCustomObjectSelectionState custom_state(false);
+  AddTestObjects({CreateTestObject(5, 5, 3, 0xC1),
+                  CreateTestObject(10, 10, 3, 0xDC),
+                  CreateTestObject(15, 15, 3, 0xDD)});
+  rooms_[0].ClearSaveDirtyState();
+  mutation_count_ = 0;
+  invalidate_count_ = 0;
+  std::vector<uint8_t> captured_sizes;
+  ctx_.on_mutation = [&]() {
+    ++mutation_count_;
+    for (const auto& object : rooms_[0].GetTileObjects()) {
+      captured_sizes.push_back(object.size_);
+    }
+  };
+
+  EXPECT_FALSE(handler_.ResizeObjects(0, {0, 1, 2}, 1));
+  EXPECT_TRUE(captured_sizes.empty());
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+
+  EXPECT_TRUE(handler_.ResizeObjects(0, {0, 1, 2}, 1, true));
+  EXPECT_EQ(captured_sizes, (std::vector<uint8_t>{3, 3, 3}));
+  for (const auto& object : rooms_[0].GetTileObjects()) {
+    EXPECT_EQ(object.size_, 7);
+  }
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_EQ(invalidate_count_, 1);
+  EXPECT_TRUE(rooms_[0].object_stream_dirty());
+}
+
+TEST_F(TileObjectHandlerTest,
+       PlatformMouseWheelPreservesSelectionDuringPlacement) {
+  ScopedCustomObjectSelectionState custom_state(false);
+  AddTestObjects({CreateTestObject(5, 5, 5, 0xC1),
+                  CreateTestObject(10, 10, 5, 0xDC),
+                  CreateTestObject(15, 15, 5, 0xDD)});
+  selection_.SelectObject(0);
+  selection_.SelectObject(1, ObjectSelection::SelectionMode::Add);
+  selection_.SelectObject(2, ObjectSelection::SelectionMode::Add);
+  EXPECT_TRUE(handler_.HandleMouseWheel(1.0f));
+  for (const auto& object : rooms_[0].GetTileObjects()) {
+    EXPECT_EQ(object.size_, 6);
+  }
+  ImGui::GetIO().KeyShift = true;
+  EXPECT_TRUE(handler_.HandleMouseWheel(1.0f));
+  for (const auto& object : rooms_[0].GetTileObjects()) {
+    EXPECT_EQ(object.size_, 10);
+  }
+
+  rooms_[0].ClearSaveDirtyState();
+  mutation_count_ = 0;
+  invalidate_count_ = 0;
+  for (int id : {0xC1, 0xDC, 0xDD}) {
+    SCOPED_TRACE(id);
+    handler_.SetPreviewObject(CreateTestObject(0, 0, 3, id));
+    handler_.BeginPlacement();
+    ImGui::GetIO().KeyShift = false;
+    EXPECT_FALSE(handler_.HandleMouseWheel(1.0f));
+    EXPECT_EQ(handler_.GetPreviewObject().size_, 3);
+    ImGui::GetIO().KeyShift = true;
+    EXPECT_TRUE(handler_.HandleMouseWheel(1.0f));
+    EXPECT_EQ(handler_.GetPreviewObject().size_, 7);
+    handler_.CancelPlacement();
+  }
+  for (const auto& object : rooms_[0].GetTileObjects()) {
+    EXPECT_EQ(object.size_, 10);
+  }
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+}
+
+TEST_F(TileObjectHandlerTest,
+       ResizeMixedCustomSelectionCapturesOnlyOneMutation) {
+  ScopedCustomObjectSelectionState custom_state;
+  AddTestObjects({CreateTestObject(5, 5, 0x02, 0x32),
+                  CreateTestObject(10, 10, 0x02, 0xD1),
+                  CreateTestObject(15, 15, 0x02, 0x01)});
+  rooms_[0].ClearSaveDirtyState();
+  mutation_count_ = 0;
+  invalidate_count_ = 0;
+  std::vector<uint8_t> captured_sizes;
+  ctx_.on_mutation = [&]() {
+    ++mutation_count_;
+    for (const auto& object : rooms_[0].GetTileObjects()) {
+      captured_sizes.push_back(object.size_);
+    }
+  };
+
+  EXPECT_TRUE(handler_.ResizeObjects(0, {0, 1, 2}, 1, true));
+
+  EXPECT_EQ(captured_sizes, (std::vector<uint8_t>{2, 2, 2}));
+  const auto& objects = rooms_[0].GetTileObjects();
+  EXPECT_EQ(objects[0].size_, 2);
+  EXPECT_EQ(objects[1].size_, 6);
+  EXPECT_EQ(objects[2].size_, 3);
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_EQ(invalidate_count_, 1);
+  EXPECT_TRUE(rooms_[0].object_stream_dirty());
+}
+
+TEST_F(TileObjectHandlerTest, CustomVariantMouseWheelDoesNotConsumeOrMutate) {
+  ScopedCustomObjectSelectionState custom_state;
+  AddTestObjects({CreateTestObject(5, 5, 0x02, 0x32)});
+  selection_.SelectObject(0);
+  rooms_[0].ClearSaveDirtyState();
+  mutation_count_ = 0;
+  invalidate_count_ = 0;
+
+  EXPECT_FALSE(handler_.HandleMouseWheel(1.0f));
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 2);
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+}
+
+TEST_F(TileObjectHandlerTest, FeatureDisabledCustomIdStillResizesAsType1) {
+  ScopedCustomObjectSelectionState custom_state(false);
+  AddTestObjects({CreateTestObject(5, 5, 0x02, 0x31)});
+  EXPECT_TRUE(handler_.ResizeObjects(0, {0}, 1));
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 3);
+}
+
+TEST_F(TileObjectHandlerTest, PlacementWheelResizesPreviewWithoutRoomMutation) {
+  AddTestObjects({CreateTestObject(5, 5, 0x02, 0x01)});
+  selection_.SelectObject(0);
+  handler_.SetPreviewObject(CreateTestObject(0, 0, 0x05, 0xD1));
+  handler_.BeginPlacement();
+  rooms_[0].ClearSaveDirtyState();
+  mutation_count_ = 0;
+  invalidate_count_ = 0;
+
+  ImGui::GetIO().KeyShift = true;
+  EXPECT_TRUE(handler_.HandleMouseWheel(1.0f));
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 2);
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+
+  ASSERT_TRUE(handler_.HandleClick(80, 80));
+  ASSERT_EQ(rooms_[0].GetTileObjects().size(), 2);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[1].size_, 0x09);
+}
+
+TEST_F(TileObjectHandlerTest,
+       CustomPlacementWheelPreservesPreviewAndSelection) {
+  ScopedCustomObjectSelectionState custom_state;
+  AddTestObjects({CreateTestObject(5, 5, 0x02, 0x01)});
+  selection_.SelectObject(0);
+  handler_.SetPreviewObject(CreateTestObject(0, 0, 0x02, 0x32));
+  handler_.BeginPlacement();
+  rooms_[0].ClearSaveDirtyState();
+  mutation_count_ = 0;
+  invalidate_count_ = 0;
+
+  EXPECT_FALSE(handler_.HandleMouseWheel(1.0f));
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 2);
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+
+  ASSERT_TRUE(handler_.HandleClick(80, 80));
+  ASSERT_EQ(rooms_[0].GetTileObjects().size(), 2);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[1].size_, 2);
+}
+
 TEST_F(TileObjectHandlerTest, MouseWheelDoesNotConsumeFixedSizeOnlySelection) {
   AddTestObjects({CreateTestObject(5, 5, 0x00, 0x100),
                   CreateTestObject(10, 10, 0x06, 0xF99)});
@@ -914,6 +1207,31 @@ TEST_F(TileObjectHandlerTest, UpdateObjectSizeSkipsFixedSizeObject) {
   EXPECT_EQ(mutation_count_, 0);
   EXPECT_EQ(invalidate_count_, 0);
   EXPECT_FALSE(rooms_[0].object_stream_dirty());
+}
+
+TEST_F(TileObjectHandlerTest,
+       UpdateCustomVariantRejectsInvalidAndUnmappedSlots) {
+  ScopedCustomObjectSelectionState custom_state;
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0x32, {"table.bin", "", "chair.bin"}}});
+  AddTestObjects({CreateTestObject(5, 5, 0x00, 0x32)});
+  rooms_[0].ClearSaveDirtyState();
+  mutation_count_ = 0;
+  invalidate_count_ = 0;
+
+  handler_.UpdateObjectsSize(0, {0}, 1);
+  handler_.UpdateObjectsSize(0, {0}, 3);
+  handler_.UpdateObjectsSize(0, {0}, 0xFF);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 0);
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+
+  handler_.UpdateObjectsSize(0, {0}, 2);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 2);
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_EQ(invalidate_count_, 1);
+  EXPECT_TRUE(rooms_[0].object_stream_dirty());
 }
 
 TEST_F(TileObjectHandlerTest, UpdateObjectIdCanonicalizesFixedSizeFamily) {

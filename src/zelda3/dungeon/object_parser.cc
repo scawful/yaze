@@ -40,10 +40,13 @@
 // - IDs `0xCD` and `0xCE` consume 24 words: top corner (9), vertical
 //   pattern (6), and bottom corner (9). ZScream's count of 28 crosses into
 //   the next object's data block, so yaze uses the routine-proven count.
-// - IDs `0x3C` and `0x4C` consume 8 and 12 words respectively. Their
-//   registry routines index the complete 4x2 and 4x3 payloads, while
-//   ZScream's counts of 4 and 9 under-fetch the final stamp/column and make
-//   ObjectDrawer fall back to a single tile.
+// - ID `0x3C` consumes 8 words for two 2x2 stamps; ZScream's count of 4
+//   under-fetches the second stamp.
+// - Bar `0x4C` consumes 9 words: opening, repeated middle, and closing 1x3
+//   columns ($0194BD, obj099E at $00A4F0). Its smallest raster is 4x3, but
+//   the repeated middle column does not require additional source words.
+// - Bar `0x8F` consumes 4 words: a 2-tile top row and repeated 2-tile body
+//   ($0197B5, obj09B0 at $00A502). Reading 6 crosses into the next corner.
 // - 2026-04-25 ZScream parity diff: full byte-for-byte comparison
 //   against ZScream's `subtype1Lengths` (`DungeonObjectData.cs:184`)
 //   remains pinned, with routine-body-proven corrections allowlisted.
@@ -56,11 +59,11 @@ static constexpr uint8_t kSubtype1TileLengths[0xF8] = {
      5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  // 0x10-0x1F
      5,  9,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  6,  // 0x20-0x2F
      6,  1,  1, 16,  1,  1, 16, 16,  6,  8, 12, 12,  8,  8,  4,  3,  // 0x30-0x3F (0x3C=Doubled2x2:8)
-     3,  3,  3,  3,  3,  3,  3, 15,  9,  8,  8,  4, 12, 16, 16, 16,  // 0x40-0x4F (0x47=Waterfall47:15, 0x48=Waterfall48:9, 0x4C=Bar4x3:12)
+     3,  3,  3,  3,  3,  3,  3, 15,  9,  8,  8,  4,  9, 16, 16, 16,  // 0x40-0x4F (0x47=Waterfall47:15, 0x48=Waterfall48:9, 0x4C=Bar4x3:9)
      1, 18, 18,  4,  1,  8,  8,  1,  1,  1,  1, 18, 18, 15,  4,  3,  // 0x50-0x5F
      4,  8,  8,  8,  8,  8,  8,  4,  4,  3,  1,  1,  6,  6,  1,  1,  // 0x60-0x6F
     16,  1,  1, 16, 16,  8, 16, 16,  4,  1,  1,  4,  1,  4,  1,  8,  // 0x70-0x7F
-     8, 12, 12, 12, 12, 18, 18,  8, 12,  4,  3,  3,  3,  1,  1,  6,  // 0x80-0x8F
+     8, 12, 12, 12, 12, 18, 18,  8, 12,  4,  3,  3,  3,  1,  1,  4,  // 0x80-0x8F (0x8F=Bar2x5:4)
      8,  8,  4,  4, 16,  4,  4,  1,  1,  1,  1,  1,  1,  1,  1,  1,  // 0x90-0x9F
      1,  1,  1,  1, 24,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  // 0xA0-0xAF
      1,  1, 16,  3,  3,  8,  8,  8,  4,  4, 16,  4,  4,  4,  1,  1,  // 0xB0-0xBF
@@ -587,9 +590,12 @@ int ObjectParser::GetSubtype2TileCount(int16_t object_id) const {
   }
   // 4x4 fixed patterns (stairs/walls)
   if (object_id == 0x11C || object_id == 0x124 || object_id == 0x125 ||
-      object_id == 0x129 || (object_id >= 0x12D && object_id <= 0x133) ||
-      object_id == 0x13C) {
+      object_id == 0x129 || (object_id >= 0x12D && object_id <= 0x133)) {
     return 16;
+  }
+  // Sanctuary wall: two 1x6 facade columns plus a 4x3 center (obj1458).
+  if (object_id == 0x13C) {
+    return 24;
   }
   // Magic Bat altar is subtype-2 object 0x13F (table index 0x3F).
   // RoomDraw_MagicBatAltar consumes eight columns of seven words from obj2086.

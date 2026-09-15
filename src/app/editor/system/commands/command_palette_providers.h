@@ -71,6 +71,33 @@ class DungeonRoomCommandsProvider : public CommandProvider {
   size_t session_id_;
 };
 
+/// ID: "drawers". Right-drawer toggles with "drawer: " prefix for discovery.
+class DrawerCommandsProvider : public CommandProvider {
+ public:
+  DrawerCommandsProvider(std::function<void(int drawer_type)> toggle_callback,
+                         std::function<void()> cycle_next = {},
+                         std::function<void()> cycle_prev = {});
+  std::string ProviderId() const override { return "drawers"; }
+  void Provide(CommandPalette* palette) override;
+
+ private:
+  std::function<void(int)> toggle_callback_;
+  std::function<void()> cycle_next_;
+  std::function<void()> cycle_prev_;
+};
+
+/// ID: "layouts". layout: / Apply Layout / profile commands.
+class LayoutCommandsProvider : public CommandProvider {
+ public:
+  explicit LayoutCommandsProvider(
+      std::function<void(const std::string&)> apply_callback);
+  std::string ProviderId() const override { return "layouts"; }
+  void Provide(CommandPalette* palette) override;
+
+ private:
+  std::function<void(const std::string&)> apply_callback_;
+};
+
 /// ID: "workflow". Refresh when workflow actions change.
 class WorkflowCommandsProvider : public CommandProvider {
  public:
