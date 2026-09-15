@@ -242,6 +242,22 @@ class CheckTest(Fixture):
         self.assertEqual(len(problems), 1)
         self.assertIn("unknown generated section `moduels`", problems[0])
 
+    def test_unpaired_generated_markers_are_reported(self) -> None:
+        db = ar.Usdasm.load(self.root)
+        cases = [
+            "<!-- BEGIN GENERATED: modules -->\n| x |\n",
+            "<!-- BEGIN GENERATED: modules -->\n| x |\n"
+            "<!-- END GENERATED: moduels -->\n",
+            "<!-- END GENERATED: modules -->\n",
+            "<!-- BEGIN GENERATED: modules -->\n"
+            "<!-- BEGIN GENERATED: wram -->\n"
+            "<!-- END GENERATED: wram -->\n",
+        ]
+        for body in cases:
+            with self.subTest(body=body.splitlines()[0]):
+                problems, _ = self.check(db, body)
+                self.assertTrue(problems, "unpaired markers were accepted")
+
     def test_sections_without_sources_are_kept_and_reported(self) -> None:
         db = ar.Usdasm.load(self.root)
         body = ("<!-- BEGIN GENERATED: wram -->\n| kept |\n"

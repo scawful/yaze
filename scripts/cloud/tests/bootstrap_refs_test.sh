@@ -124,4 +124,47 @@ fi
 [[ "$(git -C "$REFS_DIR/pinned" rev-parse HEAD)" == "$LOCAL_HEAD" ]] ||
   fail "local commit on a pinned checkout was orphaned"
 
+# A symlink at the destination is user data, not a checkout this script owns.
+REFS_DIR="$TEST_ROOT/symlink/refs"
+mkdir -p "$REFS_DIR"
+REAL_DIR="$TEST_ROOT/symlink/elsewhere"
+git clone --quiet "$SOURCE_REPO" "$REAL_DIR"
+ln -s "$REAL_DIR" "$REFS_DIR/unpinned"
+# shellcheck disable=SC2034
+REFS=("unpinned $SOURCE_REPO")
+if step_refs; then
+  fail "symlinked destination was accepted"
+fi
+[[ -L "$REFS_DIR/unpinned" ]] || fail "symlinked destination was replaced"
+
+# An unpinned checkout this script did not create is left alone.
+REFS_DIR="$TEST_ROOT/foreign/refs"
+mkdir -p "$REFS_DIR"
+git clone --quiet "$SOURCE_REPO" "$REFS_DIR/unpinned"
+FOREIGN_HEAD="$(git -C "$REFS_DIR/unpinned" rev-parse HEAD)"
+git -C "$SOURCE_REPO" commit --quiet --allow-empty -m sixth
+# shellcheck disable=SC2034
+REFS=("unpinned $SOURCE_REPO")
+step_refs
+[[ "$(git -C "$REFS_DIR/unpinned" rev-parse HEAD)" == "$FOREIGN_HEAD" ]] ||
+  fail "a checkout bootstrap did not create was refreshed"
+
+# A failed clone of an unpinned ref leaves the rest of the environment usable.
+REFS_DIR="$TEST_ROOT/partial/refs"
+# shellcheck disable=SC2034
+REFS=("missing $TEST_ROOT/does-not-exist" "unpinned $SOURCE_REPO")
+# Run in a subshell with the status captured afterwards: calling step_refs in
+# a condition would disable errexit and hide an abort.
+set +e
+( set -e; step_refs )
+partial_status=$?
+set -e
+[[ "$partial_status" -eq 0 ]] ||
+  fail "one failed unpinned clone aborted the bootstrap (status $partial_status)"
+[[ ! -e "$REFS_DIR/missing" ]] || fail "failed clone left a destination behind"
+[[ -d "$REFS_DIR/unpinned/.git" ]] ||
+  fail "refs after a failed unpinned clone were skipped"
+[[ -z "$(find "$REFS_DIR" -maxdepth 1 -name '*.bootstrap.*' -print -quit)" ]] ||
+  fail "failed clone left a temporary directory behind"
+
 echo "bootstrap refs safety tests passed"

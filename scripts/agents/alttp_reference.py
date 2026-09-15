@@ -106,6 +106,10 @@ ROW_ADDR_NAME = re.compile(
     r"([A-Za-z_][A-Za-z0-9_]*)`?\*{0,2}\s*\|")
 SECTION_RE = re.compile(
     r"<!-- BEGIN GENERATED: (\w+) -->\n.*?<!-- END GENERATED: \1 -->", re.S)
+# SECTION_RE only matches a well-formed pair, so a typo in either marker would
+# silently drop that section from both render and check. MARKER_RE finds the
+# individual markers so an unpaired one is reported instead.
+MARKER_RE = re.compile(r"<!-- (BEGIN|END) GENERATED: (\w+) -->")
 
 
 @dataclass
@@ -380,10 +384,36 @@ def apply_sections(text: str, sections: dict[str, str], strict: bool = True) -> 
     return SECTION_RE.sub(replace, text)
 
 
+def marker_problems(text: str, path: Path) -> list[str]:
+    """Report BEGIN/END generated markers that do not pair up."""
+    problems = []
+    open_name = None
+    for match in MARKER_RE.finditer(text):
+        kind, name = match.group(1), match.group(2)
+        line = text.count("\n", 0, match.start()) + 1
+        if kind == "BEGIN":
+            if open_name is not None:
+                problems.append(f"{path}:{line}: BEGIN GENERATED `{name}` inside "
+                                f"unclosed `{open_name}`")
+            open_name = name
+        elif open_name is None:
+            problems.append(f"{path}:{line}: END GENERATED `{name}` without a BEGIN")
+        elif name != open_name:
+            problems.append(f"{path}:{line}: END GENERATED `{name}` closes "
+                            f"`{open_name}`")
+            open_name = None
+        else:
+            open_name = None
+    if open_name is not None:
+        problems.append(f"{path}: BEGIN GENERATED `{open_name}` is never closed")
+    return problems
+
+
 def check_file(db: Usdasm, path: Path, sections: dict[str, str],
                unverified: list[str]) -> list[str]:
     problems = []
     text = path.read_text()
+    problems.extend(marker_problems(text, path))
     for match in SECTION_RE.finditer(text):
         name = match.group(1)
         if name not in KNOWN_SECTIONS:
@@ -433,6 +463,10 @@ def main(argv: list[str] | None = None) -> int:
     sections = generated_sections(db)
     if args.command == "render":
         original = args.write.read_text()
+        for problem in marker_problems(original, args.write):
+            print(problem)
+        if marker_problems(original, args.write):
+            return 1
         skipped = sorted({m.group(1) for m in SECTION_RE.finditer(original)
                           if m.group(1) in KNOWN_SECTIONS
                           and m.group(1) not in sections})
