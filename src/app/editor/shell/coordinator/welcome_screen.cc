@@ -39,13 +39,13 @@ const ImVec4 kMasterSwordBlueFallback = ImVec4(0.196f, 0.6f, 0.8f, 1.0f);
 const ImVec4 kHeartRedFallback = ImVec4(0.863f, 0.078f, 0.235f, 1.0f);
 const ImVec4 kSpiritOrangeFallback = ImVec4(1.0f, 0.647f, 0.0f, 1.0f);
 
-// Compact recent rows — height scales with available space so large
-// dockspaces don't leave a dead band under a short list.
-constexpr float kRecentRowMinHeight = 44.0f;
-constexpr float kRecentRowMaxHeight = 88.0f;
-constexpr float kWelcomeSplitMinWidth = 900.0f;
-constexpr float kWelcomeSplitMinHeight = 560.0f;
-constexpr float kRecentTwoColumnMinWidth = 560.0f;
+// Compact recent rows with a fixed comfortable height. The welcome card itself
+// stays a GIMP-style start dialog — it does not stretch to fill the dockspace.
+constexpr float kRecentRowBaseHeight = 52.0f;
+constexpr float kWelcomeSplitMinWidth = 800.0f;
+constexpr float kWelcomeSplitMinHeight = 420.0f;
+constexpr float kWelcomeCardMaxWidth = 960.0f;
+constexpr float kWelcomeCardMaxHeight = 580.0f;
 
 // Active colors (updated each frame from theme)
 ImVec4 kTriforceGold = kTriforceGoldFallback;
@@ -249,12 +249,16 @@ bool WelcomeScreen::Show(bool* p_open) {
   float dockspace_center_y = viewport->WorkPos.y + viewport_size.y / 2.0f;
   ImVec2 center(dockspace_center_x, dockspace_center_y);
 
-  // Fill nearly the entire dockspace so the condensed layout can breathe with
-  // the display instead of floating in a fixed inset card.
+  // Compact start card centered in the dockspace. Leave the surrounding canvas
+  // visible so this reads like a launcher, not a stretched full-bleed pane.
   const float font_scale = ImGui::GetFontSize() / 16.0f;
-  const float margin = std::max(12.0f, 16.0f * font_scale);
-  float width = std::max(480.0f * font_scale, dockspace_width - 2.0f * margin);
-  float height = std::max(360.0f * font_scale, viewport_size.y - 2.0f * margin);
+  float width = std::clamp(dockspace_width * 0.70f, 560.0f * font_scale,
+                           kWelcomeCardMaxWidth * font_scale);
+  float height = std::clamp(viewport_size.y * 0.68f, 400.0f * font_scale,
+                            kWelcomeCardMaxHeight * font_scale);
+  // Never exceed the usable dockspace.
+  width = std::min(width, std::max(320.0f, dockspace_width - 24.0f));
+  height = std::min(height, std::max(280.0f, viewport_size.y - 24.0f));
 
   ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
@@ -486,7 +490,6 @@ bool WelcomeScreen::Show(bool* p_open) {
     const float layout_scale = ImGui::GetFontSize() / 16.0f;
     const bool stacked_layout =
         ShouldUseStackedLayout(content_width, content_height, layout_scale);
-    use_stacked_welcome_layout_ = stacked_layout;
 
     if (stacked_layout) {
       DrawFirstRunGuide();
@@ -501,36 +504,22 @@ bool WelcomeScreen::Show(bool* p_open) {
       ImGui::Spacing();
       DrawRecentProjects();
     } else {
-      // Start column scales with the dockspace: ~1/3 on typical screens,
-      // up to ~42% on ultra-wide so the action rail doesn't look stranded.
-      float left_width = std::clamp(
-          content_width * 0.34f, 260.0f * layout_scale, content_width * 0.42f);
+      // Fixed action rail — comfortable width, not a percentage of a huge pane.
+      float left_width =
+          std::clamp(280.0f * layout_scale, 260.0f * layout_scale,
+                     std::min(320.0f * layout_scale, content_width * 0.42f));
       ImGui::BeginChild(
           "LeftPanel", ImVec2(left_width, 0), false,
           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
       DrawFirstRunGuide();
       DrawQuickActions();
-
-      // Pin What's new toward the bottom of the Start column so tall screens
-      // don't leave a dead band under the buttons.
-      const float left_remaining = ImGui::GetContentRegionAvail().y;
-      if (left_remaining > 96.0f) {
-        const float whats_new_reserve =
-            std::clamp(ImGui::GetTextLineHeightWithSpacing() * 7.0f +
-                           ImGui::GetFrameHeightWithSpacing(),
-                       140.0f, 240.0f * layout_scale);
-        if (left_remaining > whats_new_reserve + 24.0f) {
-          ImGui::Dummy(ImVec2(0, left_remaining - whats_new_reserve));
-        } else {
-          ImGui::Spacing();
-          ImGui::Separator();
-          ImGui::Spacing();
-        }
-        DrawWhatsNew();
-      }
+      ImGui::Spacing();
+      ImGui::Separator();
+      ImGui::Spacing();
+      DrawWhatsNew();
       ImGui::EndChild();
 
-      ImGui::SameLine(0.0f, std::max(12.0f, 16.0f * layout_scale));
+      ImGui::SameLine(0.0f, 16.0f);
 
       ImGui::BeginChild(
           "RightPanel", ImVec2(0, 0), false,
@@ -689,6 +678,7 @@ void WelcomeScreen::DrawQuickActions() {
 
   const float scale = ImGui::GetFontSize() / 16.0f;
   const float button_height = std::max(34.0f, 36.0f * scale);
+  const float secondary_height = std::max(28.0f, 30.0f * scale);
   const float action_width = ImGui::GetContentRegionAvail().x;
   float button_width = action_width;
 
@@ -724,31 +714,40 @@ void WelcomeScreen::DrawQuickActions() {
         " Create a new project for metadata, labels, and workflow settings");
   }
 
-  ImGui::Spacing();
-  if (gui::ThemedButton(ICON_MD_MORE_HORIZ " More ways to start", ImVec2(-1, 0),
-                        "welcome_screen", "more_start_ways")) {
-    ImGui::OpenPopup("WelcomeMoreStartWays");
+  // Secondary starts live in the open — no nested "More ways" menu.
+  const RecentProject* last_recent = nullptr;
+  for (const auto& recent : recent_projects_model_.entries()) {
+    if (!recent.unavailable) {
+      last_recent = &recent;
+      break;
+    }
   }
-  if (ImGui::BeginPopup("WelcomeMoreStartWays")) {
-    const RecentProject* last_recent = nullptr;
-    for (const auto& recent : recent_projects_model_.entries()) {
-      if (!recent.unavailable) {
-        last_recent = &recent;
-        break;
-      }
+  if (last_recent && open_project_callback_) {
+    ImGui::Spacing();
+    const std::string resume_label = absl::StrFormat(
+        "%s Resume %s", ICON_MD_PLAY_ARROW, last_recent->name.c_str());
+    const std::string resume_path = last_recent->filepath;
+    if (gui::ThemedButton(resume_label.c_str(),
+                          ImVec2(button_width, secondary_height),
+                          "welcome_screen", "resume_recent")) {
+      open_project_callback_(resume_path);
     }
-    if (last_recent && open_project_callback_) {
-      const std::string resume_label = absl::StrFormat(
-          "%s Resume %s", ICON_MD_PLAY_ARROW, last_recent->name.c_str());
-      const std::string resume_path = last_recent->filepath;
-      if (ImGui::MenuItem(resume_label.c_str())) {
-        open_project_callback_(resume_path);
-      }
-      ImGui::Separator();
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("%s", resume_path.c_str());
     }
+  }
 
-    if (open_prototype_research_callback_ &&
-        ImGui::MenuItem(ICON_MD_CONSTRUCTION " Prototype Research")) {
+  if (open_prototype_research_callback_ ||
+      open_assembly_editor_no_rom_callback_) {
+    ImGui::Spacing();
+    ImGui::TextColored(gui::GetTextSecondaryVec4(), "%s", tr("Without a ROM"));
+  }
+
+  if (open_prototype_research_callback_) {
+    ImGui::Spacing();
+    if (gui::ThemedButton(ICON_MD_CONSTRUCTION " Prototype Research",
+                          ImVec2(button_width, secondary_height),
+                          "welcome_screen", "prototype_research")) {
       open_prototype_research_callback_();
     }
     if (ImGui::IsItemHovered()) {
@@ -757,9 +756,13 @@ void WelcomeScreen::DrawQuickActions() {
           " Open the Graphics editor for CGX, SCR, COL, BIN, and clipboard "
           "work without loading a ROM");
     }
+  }
 
-    if (open_assembly_editor_no_rom_callback_ &&
-        ImGui::MenuItem(ICON_MD_CODE " Assembly Editor")) {
+  if (open_assembly_editor_no_rom_callback_) {
+    ImGui::Spacing();
+    if (gui::ThemedButton(ICON_MD_CODE " Assembly Editor",
+                          ImVec2(button_width, secondary_height),
+                          "welcome_screen", "assembly_editor")) {
       open_assembly_editor_no_rom_callback_();
     }
     if (ImGui::IsItemHovered()) {
@@ -767,7 +770,6 @@ void WelcomeScreen::DrawQuickActions() {
           ICON_MD_INFO
           " Open files or a folder for assembly work without loading a ROM");
     }
-    ImGui::EndPopup();
   }
 
   // Clean up entry animation styles
@@ -832,85 +834,31 @@ void WelcomeScreen::DrawRecentProjects() {
 
   if (recent_projects_model_.entries().empty()) {
     const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
-    const float avail_h = ImGui::GetContentRegionAvail().y;
-    if (avail_h > 80.0f) {
-      ImGui::Dummy(ImVec2(0, avail_h * 0.35f));
-    }
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
     ImGui::TextWrapped(tr("No recent files yet. Open a ROM to begin."));
     return;
   }
 
   const float scale = ImGui::GetFontSize() / 16.0f;
-  const float avail_w = ImGui::GetContentRegionAvail().x;
+  const float row_height = std::max(44.0f, kRecentRowBaseHeight * scale);
+  const float row_gap = ImGui::GetStyle().ItemSpacing.y;
   const float avail_h = ImGui::GetContentRegionAvail().y;
-  const float min_row = kRecentRowMinHeight * scale;
-  const float max_row = kRecentRowMaxHeight * scale;
-  const float base_gap = ImGui::GetStyle().ItemSpacing.y;
-  // Keep a little slack so floating-point layout + EndGroup extents cannot
-  // push WelcomeContent into a scrollable state.
-  constexpr float kHeightSlack = 2.0f;
-
+  const float more_line = ImGui::GetTextLineHeightWithSpacing();
+  // Fit fixed-height rows; leave room for a "+N more" hint when needed.
+  int max_visible = std::max(
+      1, static_cast<int>((avail_h + row_gap) / (row_height + row_gap)));
   const auto& entries = recent_projects_model_.entries();
-  // Two columns only in the split Recents pane — stacked Start|Recents already
-  // shares vertical budget with the action rail.
-  const int cols =
-      (!use_stacked_welcome_layout_ &&
-       avail_w >= kRecentTwoColumnMinWidth * scale && entries.size() >= 3)
-          ? 2
-          : 1;
-
-  const float more_line_est = ImGui::GetTextLineHeightWithSpacing();
-  const float list_budget = std::max(min_row, avail_h - kHeightSlack);
-  const float min_stride = min_row + base_gap;
-  int max_rows = std::max(1, static_cast<int>((list_budget + base_gap) /
-                                              std::max(min_stride, 1.0f)));
-  // If every row would still leave overflow entries, reserve a "+N more" line.
-  int max_visible = max_rows * cols;
-  if (static_cast<int>(entries.size()) > max_visible) {
-    const float with_more = std::max(min_row, list_budget - more_line_est);
-    max_rows = std::max(1, static_cast<int>((with_more + base_gap) /
-                                            std::max(min_stride, 1.0f)));
-    max_visible = max_rows * cols;
+  if (static_cast<int>(entries.size()) > max_visible && max_visible > 1) {
+    const float with_more = std::max(row_height, avail_h - more_line);
+    max_visible = std::max(
+        1, static_cast<int>((with_more + row_gap) / (row_height + row_gap)));
   }
 
   const size_t visible =
       std::min(entries.size(), static_cast<size_t>(max_visible));
-  const int visible_i = static_cast<int>(visible);
-  const int rows = std::max(1, (visible_i + cols - 1) / cols);
-
-  const float more_line = (entries.size() > visible) ? more_line_est : 0.0f;
-  const float fill_h = std::max(min_row, list_budget - more_line);
-  float row_height = (fill_h - base_gap * static_cast<float>(rows - 1)) /
-                     static_cast<float>(rows);
-  row_height = std::clamp(row_height, min_row, max_row);
-
-  float row_gap = base_gap;
-  const float used = row_height * static_cast<float>(rows) +
-                     base_gap * static_cast<float>(std::max(0, rows - 1)) +
-                     more_line;
-  if (rows > 1 && fill_h + more_line > used + 0.5f) {
-    row_gap += (fill_h + more_line - used) / static_cast<float>(rows - 1);
-  }
-
-  const float col_gap = std::max(10.0f, 12.0f * scale);
-  const float item_width =
-      cols == 1 ? avail_w
-                : (avail_w - col_gap * static_cast<float>(cols - 1)) /
-                      static_cast<float>(cols);
-
-  {
-    gui::StyleVarGuard spacing_guard(
-        ImGuiStyleVar_ItemSpacing,
-        ImVec2(ImGui::GetStyle().ItemSpacing.x, row_gap));
-    for (size_t i = 0; i < visible; ++i) {
-      const int col = static_cast<int>(i) % cols;
-      if (col > 0) {
-        ImGui::SameLine(0.0f, col_gap);
-      }
-      DrawProjectPanel(entries[i], static_cast<int>(i),
-                       ImVec2(item_width, row_height));
-    }
+  for (size_t i = 0; i < visible; ++i) {
+    DrawProjectPanel(entries[i], static_cast<int>(i),
+                     ImVec2(ImGui::GetContentRegionAvail().x, row_height));
   }
   if (entries.size() > visible) {
     const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
@@ -1058,13 +1006,10 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
   // (the old code called absl::StrFormat("ProjectPanel_%d", ...) per card).
   ImGui::PushID(index);
 
-  const ImVec4 surface = gui::GetSurfaceVec4();
-  const ImVec4 surface_variant = gui::GetSurfaceVariantVec4();
   const ImVec4 text_primary = gui::GetOnSurfaceVec4();
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
 
   const ImVec2 resolved_card_size = card_size;
-  ImVec2 cursor_pos = ImGui::GetCursorScreenPos();
 
   ImVec4 accent = kTriforceGold;
   if (project.unavailable) {
@@ -1075,181 +1020,168 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
     accent = kMasterSwordBlue;
   }
 
-  ImDrawList* draw_list = ImGui::GetWindowDrawList();
-  ImVec4 color_top = ImLerp(surface_variant, surface, 0.7f);
-  ImVec4 color_bottom = ImLerp(surface_variant, surface, 0.3f);
-  ImU32 color_top_u32 = ImGui::GetColorU32(color_top);
-  ImU32 color_bottom_u32 = ImGui::GetColorU32(color_bottom);
-  draw_list->AddRectFilledMultiColor(
-      cursor_pos,
-      ImVec2(cursor_pos.x + resolved_card_size.x,
-             cursor_pos.y + resolved_card_size.y),
-      color_top_u32, color_top_u32, color_bottom_u32, color_bottom_u32);
+  // Selectable provides theme Header/HeaderHovered/HeaderActive so hover inherits
+  // from the active theme instead of a hand-tinted overlay.
+  {
+    ImVec4 idle = gui::GetSurfaceVariantVec4();
+    idle.w = 0.35f;
+    gui::StyleColorGuard header_guard(ImGuiCol_Header, idle);
+    const bool is_activated = ImGui::Selectable(
+        "##ProjectPanel", false, ImGuiSelectableFlags_AllowDoubleClick,
+        resolved_card_size);
+    const bool is_hovered = ImGui::IsItemHovered();
+    const ImVec2 cursor_pos = ImGui::GetItemRectMin();
+    const ImVec2 item_max = ImGui::GetItemRectMax();
 
-  ImVec4 border = project.unavailable
-                      ? ImVec4(kHeartRed.x, kHeartRed.y, kHeartRed.z, 0.7f)
-                      : ImGui::GetStyleColorVec4(ImGuiCol_Border);
-  ImU32 border_color = ImGui::GetColorU32(border);
-
-  draw_list->AddRect(cursor_pos,
-                     ImVec2(cursor_pos.x + resolved_card_size.x,
-                            cursor_pos.y + resolved_card_size.y),
-                     border_color, 6.0f, 0, 1.0f);
-
-  // Layout ownership is only the invisible hit target — labels are drawn so
-  // multi-column Recents rows do not wrap from Text widgets widening the item.
-  const bool is_activated = ImGui::InvisibleButton(
-      "ProjectPanel", resolved_card_size, ImGuiButtonFlags_EnableNav);
-  bool is_hovered = ImGui::IsItemHovered();
-
-  if (ImGui::BeginPopupContextItem("ProjectPanelMenu")) {
-    if (project.is_missing) {
-      // Missing file: offer relink + forget instead of open. Destructive "Open"
-      // is hidden because it would just fail.
-      if (ImGui::MenuItem(ICON_MD_SEARCH " Locate...")) {
-        const std::string new_path =
-            util::FileDialogWrapper::ShowOpenFileDialog();
-        if (!new_path.empty() && new_path != project.filepath) {
-          recent_projects_model_.RelinkRecent(project.filepath, new_path);
+    if (ImGui::BeginPopupContextItem("ProjectPanelMenu")) {
+      if (project.is_missing) {
+        // Missing file: offer relink + forget instead of open. Destructive "Open"
+        // is hidden because it would just fail.
+        if (ImGui::MenuItem(ICON_MD_SEARCH " Locate...")) {
+          const std::string new_path =
+              util::FileDialogWrapper::ShowOpenFileDialog();
+          if (!new_path.empty() && new_path != project.filepath) {
+            recent_projects_model_.RelinkRecent(project.filepath, new_path);
+          }
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip(tr(
+              "Point at the new location for this file. Pin/rename/notes are "
+              "preserved."));
+        }
+      } else {
+        if (ImGui::MenuItem(ICON_MD_OPEN_IN_NEW " Open")) {
+          if (open_project_callback_) {
+            open_project_callback_(project.filepath);
+          }
         }
       }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(
-            tr("Point at the new location for this file. Pin/rename/notes are "
-               "preserved."));
+      ImGui::Separator();
+      if (ImGui::MenuItem(project.pinned ? ICON_MD_PUSH_PIN " Unpin"
+                                         : ICON_MD_PUSH_PIN " Pin")) {
+        recent_projects_model_.SetPinned(project.filepath, !project.pinned);
       }
-    } else {
-      if (ImGui::MenuItem(ICON_MD_OPEN_IN_NEW " Open")) {
-        if (open_project_callback_) {
-          open_project_callback_(project.filepath);
-        }
+      if (ImGui::MenuItem(ICON_MD_EDIT " Rename...")) {
+        pending_annotation_kind_ = RecentAnnotationKind::Rename;
+        pending_annotation_path_ = project.filepath;
+        // Seed the buffer with the current display name (empty override falls
+        // back to the filename so the user can start from what they see).
+        std::snprintf(rename_buffer_, sizeof(rename_buffer_), "%s",
+                      project.display_name_override.empty()
+                          ? project.name.c_str()
+                          : project.display_name_override.c_str());
       }
+      if (ImGui::MenuItem(ICON_MD_NOTE " Edit Notes...")) {
+        pending_annotation_kind_ = RecentAnnotationKind::EditNotes;
+        pending_annotation_path_ = project.filepath;
+        std::snprintf(notes_buffer_, sizeof(notes_buffer_), "%s",
+                      project.notes.c_str());
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem(ICON_MD_CONTENT_COPY " Copy Path")) {
+        ImGui::SetClipboardText(project.filepath.c_str());
+      }
+      if (ImGui::MenuItem(project.is_missing ? ICON_MD_DELETE_SWEEP " Forget"
+                                             : ICON_MD_DELETE_SWEEP
+                              " Remove from Recents")) {
+        recent_projects_model_.RemoveRecent(project.filepath);
+      }
+      ImGui::EndPopup();
     }
-    ImGui::Separator();
-    if (ImGui::MenuItem(project.pinned ? ICON_MD_PUSH_PIN " Unpin"
-                                       : ICON_MD_PUSH_PIN " Pin")) {
-      recent_projects_model_.SetPinned(project.filepath, !project.pinned);
-    }
-    if (ImGui::MenuItem(ICON_MD_EDIT " Rename...")) {
-      pending_annotation_kind_ = RecentAnnotationKind::Rename;
-      pending_annotation_path_ = project.filepath;
-      // Seed the buffer with the current display name (empty override falls
-      // back to the filename so the user can start from what they see).
-      std::snprintf(rename_buffer_, sizeof(rename_buffer_), "%s",
-                    project.display_name_override.empty()
-                        ? project.name.c_str()
-                        : project.display_name_override.c_str());
-    }
-    if (ImGui::MenuItem(ICON_MD_NOTE " Edit Notes...")) {
-      pending_annotation_kind_ = RecentAnnotationKind::EditNotes;
-      pending_annotation_path_ = project.filepath;
-      std::snprintf(notes_buffer_, sizeof(notes_buffer_), "%s",
-                    project.notes.c_str());
-    }
-    ImGui::Separator();
-    if (ImGui::MenuItem(ICON_MD_CONTENT_COPY " Copy Path")) {
-      ImGui::SetClipboardText(project.filepath.c_str());
-    }
-    if (ImGui::MenuItem(project.is_missing ? ICON_MD_DELETE_SWEEP " Forget"
-                                           : ICON_MD_DELETE_SWEEP
-                            " Remove from Recents")) {
-      recent_projects_model_.RemoveRecent(project.filepath);
-    }
-    ImGui::EndPopup();
-  }
 
-  if (is_hovered) {
-    ImVec4 hover = ImGui::GetStyleColorVec4(ImGuiCol_HeaderHovered);
-    hover.w *= 0.45f;
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImVec4 border = project.unavailable
+                        ? ImVec4(kHeartRed.x, kHeartRed.y, kHeartRed.z, 0.7f)
+                        : ImGui::GetStyleColorVec4(ImGuiCol_Border);
+    draw_list->AddRect(cursor_pos, item_max, ImGui::GetColorU32(border), 6.0f,
+                       0, 1.0f);
+    // Accent rail on the left edge for type identity without covering hover.
     draw_list->AddRectFilled(cursor_pos,
-                             ImVec2(cursor_pos.x + resolved_card_size.x,
-                                    cursor_pos.y + resolved_card_size.y),
-                             ImGui::GetColorU32(hover), 4.0f);
-  }
+                             ImVec2(cursor_pos.x + 3.0f, item_max.y),
+                             ImGui::GetColorU32(accent), 2.0f);
 
-  // Compact two-line row: name + secondary meta. Details stay on hover.
-  const float padding_x = 10.0f;
-  const float padding_y = 6.0f;
-  const float icon_radius = 11.0f;
-  const ImVec2 icon_center(cursor_pos.x + padding_x + icon_radius,
-                           cursor_pos.y + resolved_card_size.y * 0.5f);
-  draw_list->AddCircleFilled(icon_center, icon_radius,
-                             ImGui::GetColorU32(accent), 20);
+    // Compact two-line row: name + secondary meta. Details stay on hover.
+    const float padding_x = 10.0f;
+    const float padding_y = 6.0f;
+    const float icon_radius = 11.0f;
+    const float row_h = item_max.y - cursor_pos.y;
+    const ImVec2 icon_center(cursor_pos.x + padding_x + icon_radius,
+                             cursor_pos.y + row_h * 0.5f);
+    draw_list->AddCircleFilled(icon_center, icon_radius,
+                               ImGui::GetColorU32(accent), 20);
 
-  const char* item_icon = project.item_icon.empty() ? ICON_MD_INSERT_DRIVE_FILE
-                                                    : project.item_icon.c_str();
-  const ImVec2 icon_size = ImGui::CalcTextSize(item_icon);
-  draw_list->AddText(ImVec2(icon_center.x - icon_size.x * 0.5f,
-                            icon_center.y - icon_size.y * 0.5f),
-                     ImGui::GetColorU32(text_primary), item_icon);
+    const char* item_icon = project.item_icon.empty()
+                                ? ICON_MD_INSERT_DRIVE_FILE
+                                : project.item_icon.c_str();
+    const ImVec2 icon_size = ImGui::CalcTextSize(item_icon);
+    draw_list->AddText(ImVec2(icon_center.x - icon_size.x * 0.5f,
+                              icon_center.y - icon_size.y * 0.5f),
+                       ImGui::GetColorU32(text_primary), item_icon);
 
-  const std::string badge_text =
-      project.item_type.empty() ? "File" : project.item_type;
-  const ImVec2 badge_text_size = ImGui::CalcTextSize(badge_text.c_str());
-  const float badge_pad_x = 5.0f;
-  const float badge_pad_y = 1.0f;
-  const ImVec2 badge_min(
-      cursor_pos.x + resolved_card_size.x - padding_x - badge_text_size.x -
-          (badge_pad_x * 2.0f),
-      cursor_pos.y +
-          (resolved_card_size.y - badge_text_size.y - badge_pad_y * 2.0f) *
-              0.5f);
-  const ImVec2 badge_max(
-      badge_min.x + badge_text_size.x + (badge_pad_x * 2.0f),
-      badge_min.y + badge_text_size.y + (badge_pad_y * 2.0f));
-  draw_list->AddRectFilled(
-      badge_min, badge_max,
-      ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.22f)), 3.0f);
+    const std::string badge_text =
+        project.item_type.empty() ? "File" : project.item_type;
+    const ImVec2 badge_text_size = ImGui::CalcTextSize(badge_text.c_str());
+    const float badge_pad_x = 5.0f;
+    const float badge_pad_y = 1.0f;
+    const ImVec2 badge_min(
+        item_max.x - padding_x - badge_text_size.x - (badge_pad_x * 2.0f),
+        cursor_pos.y + (row_h - badge_text_size.y - badge_pad_y * 2.0f) * 0.5f);
+    const ImVec2 badge_max(
+        badge_min.x + badge_text_size.x + (badge_pad_x * 2.0f),
+        badge_min.y + badge_text_size.y + (badge_pad_y * 2.0f));
+    draw_list->AddRectFilled(
+        badge_min, badge_max,
+        ImGui::GetColorU32(ImVec4(accent.x, accent.y, accent.z, 0.22f)), 3.0f);
 
-  const float content_x = icon_center.x + icon_radius + 10.0f;
-  const float content_right = badge_min.x - 8.0f;
-  const float text_max_w = std::max(60.0f, content_right - content_x);
-  const float line_h = ImGui::GetTextLineHeight();
-  const float text_block_h = line_h * 2.0f + 2.0f;
-  float text_y =
-      cursor_pos.y +
-      std::max(padding_y, (resolved_card_size.y - text_block_h) * 0.5f);
+    const float content_x = icon_center.x + icon_radius + 10.0f;
+    const float content_right = badge_min.x - 8.0f;
+    const float text_max_w = std::max(60.0f, content_right - content_x);
+    const float line_h = ImGui::GetTextLineHeight();
+    const float text_block_h = line_h * 2.0f + 2.0f;
+    float text_y =
+        cursor_pos.y + std::max(padding_y, (row_h - text_block_h) * 0.5f);
 
-  const std::string raw_name =
-      project.pinned
-          ? absl::StrFormat("%s %s", ICON_MD_PUSH_PIN, project.name.c_str())
-          : project.name;
-  const std::string visible_name = EllipsizeText(raw_name, text_max_w);
-  draw_list->AddText(ImVec2(content_x, text_y),
-                     ImGui::GetColorU32(text_primary), visible_name.c_str());
+    const std::string raw_name =
+        project.pinned
+            ? absl::StrFormat("%s %s", ICON_MD_PUSH_PIN, project.name.c_str())
+            : project.name;
+    const std::string visible_name = EllipsizeText(raw_name, text_max_w);
+    draw_list->AddText(ImVec2(content_x, text_y),
+                       ImGui::GetColorU32(text_primary), visible_name.c_str());
 
-  text_y += line_h + 2.0f;
-  const std::string secondary =
-      !project.last_modified.empty()
-          ? project.last_modified
-          : (!project.rom_title.empty() ? project.rom_title : project.filepath);
-  draw_list->AddText(ImVec2(content_x, text_y),
-                     ImGui::GetColorU32(text_secondary),
-                     EllipsizeText(secondary, text_max_w).c_str());
-  draw_list->AddText(
-      ImVec2(badge_min.x + badge_pad_x, badge_min.y + badge_pad_y),
-      ImGui::GetColorU32(text_primary), badge_text.c_str());
+    text_y += line_h + 2.0f;
+    const std::string secondary =
+        !project.last_modified.empty()
+            ? project.last_modified
+            : (!project.rom_title.empty() ? project.rom_title
+                                          : project.filepath);
+    draw_list->AddText(ImVec2(content_x, text_y),
+                       ImGui::GetColorU32(text_secondary),
+                       EllipsizeText(secondary, text_max_w).c_str());
+    draw_list->AddText(
+        ImVec2(badge_min.x + badge_pad_x, badge_min.y + badge_pad_y),
+        ImGui::GetColorU32(text_primary), badge_text.c_str());
 
-  if (is_hovered) {
-    ImGui::BeginTooltip();
-    ImGui::TextColored(kMasterSwordBlue, ICON_MD_INFO " Recent Item");
-    ImGui::Separator();
-    ImGui::Text(tr("Type: %s"), badge_text.c_str());
-    ImGui::Text(tr("Name: %s"), project.name.c_str());
-    ImGui::Text(tr("Details: %s"), project.rom_title.c_str());
-    if (!project.metadata_summary.empty()) {
-      ImGui::Text(tr("Metadata: %s"), project.metadata_summary.c_str());
+    if (is_hovered) {
+      ImGui::BeginTooltip();
+      ImGui::TextColored(kMasterSwordBlue, ICON_MD_INFO " Recent Item");
+      ImGui::Separator();
+      ImGui::Text(tr("Type: %s"), badge_text.c_str());
+      ImGui::Text(tr("Name: %s"), project.name.c_str());
+      ImGui::Text(tr("Details: %s"), project.rom_title.c_str());
+      if (!project.metadata_summary.empty()) {
+        ImGui::Text(tr("Metadata: %s"), project.metadata_summary.c_str());
+      }
+      ImGui::Text(tr("Last opened: %s"), project.last_modified.c_str());
+      ImGui::Text(tr("Path: %s"), project.filepath.c_str());
+      ImGui::Separator();
+      ImGui::TextColored(kTriforceGold, ICON_MD_TOUCH_APP " Click to open");
+      ImGui::EndTooltip();
     }
-    ImGui::Text(tr("Last opened: %s"), project.last_modified.c_str());
-    ImGui::Text(tr("Path: %s"), project.filepath.c_str());
-    ImGui::Separator();
-    ImGui::TextColored(kTriforceGold, ICON_MD_TOUCH_APP " Click to open");
-    ImGui::EndTooltip();
-  }
 
-  // Handle click
-  if (is_activated && open_project_callback_) {
-    open_project_callback_(project.filepath);
+    if (is_activated && open_project_callback_) {
+      open_project_callback_(project.filepath);
+    }
   }
 
   ImGui::PopID();
