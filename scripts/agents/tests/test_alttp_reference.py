@@ -65,6 +65,10 @@ SUBMODE         = $7E0011
 
 ; ---------------------------------------------------------
 POSX            = $7E0022
+
+; Room ID for underworld
+; Copied to $0483
+ROOM            = $7E00A0
 """
 
 SRAM = """\
@@ -161,6 +165,14 @@ class RenderTest(Fixture):
                 ar.render_routines(db)
         with self.assertRaises(SystemExit):
             ar.render_ram(db, ["NOPE"])
+
+    def test_us_room_note_overrides_incorrect_jp_map_comment(self) -> None:
+        db = ar.Usdasm.load(self.root, self.maps)
+
+        table = ar.render_ram(db, ["ROOM"])
+
+        self.assertIn("US code copies $A0 to $048E", table)
+        self.assertNotIn("Copied to $0483", table)
 
 
 class CheckTest(Fixture):

@@ -43,6 +43,14 @@ SRAM_SYMBOLS = [
     "MAGPOW", "KEYS", "PENDANTS", "CRYSTALS", "GAMESTATE",
 ]
 
+# The symbol-map comments describe the JP disassembly and occasionally contain
+# notes that are wrong for the US ROM documented by the quick reference. Keep
+# corrections explicit and tested so regeneration cannot restore known errors.
+RAM_NOTE_OVERRIDES = {
+    "ROOM": ("Room ID for underworld; US code copies $A0 to $048E "
+             "(not $0483); $A1 is expected to be 0 or 1"),
+}
+
 # Logical symbol source -> accepted filenames (usdasm-style, jpdasm-style).
 SYMBOL_FILES = {
     "wram": ("wram.asm", "symbols_wram.asm"),
@@ -255,13 +263,14 @@ def short(text: str, limit: int = 110) -> str:
 
 
 def render_ram(db: Usdasm, names: list[str]) -> str:
-    rows = ["| Symbol | Address | Symbol map note |", "|---|---|---|"]
+    rows = ["| Symbol | Address | Reference note |", "|---|---|---|"]
     for name in names:
         addr = db.symbols.get(name)
         if addr is None:
             raise SystemExit(f"unknown usdasm symbol: {name}")
+        note = RAM_NOTE_OVERRIDES.get(name, db.symbol_notes.get(name, ""))
         rows.append(f"| `{name}` | `{snes(addr)}` | "
-                    f"{short(db.symbol_notes.get(name, ''))} |")
+                    f"{short(note)} |")
     return "\n".join(rows)
 
 
