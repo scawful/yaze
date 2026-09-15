@@ -82,6 +82,8 @@ VECTOR_RANGE = (0x00FFE4, 0x00FFFE)
 SYM_RE = re.compile(r"^([A-Za-z0-9_]+)\s*=\s*\$([0-9A-Fa-f]{2,6})\b")
 # usdasm prefixes alias/secondary labels with `#` (e.g. `#obj09B8:`).
 LABEL_RE = re.compile(r"^#?([A-Za-z][A-Za-z0-9_]*):\s*(;.*)?$")
+# Classic usdasm/jpdasm address column (`#_008034: LDA.b $12`). Upstream's
+# Futaba format (`|008034| ...`) needs a new pattern before the pins move.
 PC_RE = re.compile(r"^#_([0-9A-F]{6}):\s*(.*)$")
 DATA_RE = re.compile(r"^(db|dw|dl)\s+([A-Za-z_][A-Za-z0-9_]*|\$[0-9A-Fa-f]+)")
 ROW_NAME_ADDR = re.compile(
@@ -138,7 +140,10 @@ class Usdasm:
                 comments = []
                 continue
             name, addr = match.group(1), int(match.group(2), 16)
-            self.symbols.setdefault(name, addr)
+            previous = self.symbols.setdefault(name, addr)
+            if previous != addr:
+                raise SystemExit(f"{path}: symbol {name} redefined as {snes(addr)} "
+                                 f"(already {snes(previous)})")
             if comments:
                 self.symbol_notes.setdefault(name, "; ".join(comments))
 
@@ -173,28 +178,71 @@ class Usdasm:
         return self.labels.get(name)
 
 
+def _configured(explicit: str | None, flag: str,
+                env_var: str) -> tuple[str, str] | None:
+    """Return (value, origin) for an explicitly configured location, if any."""
+    if explicit:
+        return explicit, flag
+    if os.environ.get(env_var):
+        return os.environ[env_var], "$" + env_var
+    return None
+
+
 def find_usdasm(explicit: str | None) -> Path:
-    candidates = [explicit, os.environ.get("YAZE_USDASM_DIR")]
+    configured = _configured(explicit, "--usdasm", "YAZE_USDASM_DIR")
+    if configured:
+        # An explicit location that is wrong is an error, not a fallback.
+        value, origin = configured
+        if not (Path(value) / "bank_00.asm").is_file():
+            sys.exit(f"usdasm not found at {value} (from {origin}): no bank_00.asm")
+        return Path(value)
     repo = Path(__file__).resolve().parents[2]
-    candidates += [str(Path.home() / "refs/usdasm"), str(repo.parent / "usdasm")]
-    for candidate in candidates:
-        if candidate and (Path(candidate) / "bank_00.asm").is_file():
-            return Path(candidate)
+    for candidate in (Path.home() / "refs/usdasm", repo.parent / "usdasm"):
+        if (candidate / "bank_00.asm").is_file():
+            return candidate
     sys.exit("usdasm not found: pass --usdasm or set YAZE_USDASM_DIR")
 
 
-def find_symbols(explicit: str | None) -> Path | None:
-    candidates = [explicit, os.environ.get("YAZE_USDASM_SYMBOLS_DIR"),
-                  str(Path.home() / "refs/jpdasm")]
-    for candidate in candidates:
-        if not candidate:
-            continue
-        base = Path(candidate)
-        if any((base / name).is_file()
+def _has_symbol_maps(base: Path) -> bool:
+    return any((base / name).is_file()
                for names in (SYMBOL_FILES["wram"], SYMBOL_FILES["sram"])
-               for name in names):
-            return base
-    return None
+               for name in names)
+
+
+def find_symbols(explicit: str | None) -> Path | None:
+    configured = _configured(explicit, "--symbols", "YAZE_USDASM_SYMBOLS_DIR")
+    if configured:
+        value, origin = configured
+        if not _has_symbol_maps(Path(value)):
+            sys.exit(f"no WRAM/SRAM symbol maps at {value} (from {origin}): expected "
+                     "symbols_wram.asm/symbols_sram.asm or wram.asm/sram.asm")
+        return Path(value)
+    default = Path.home() / "refs/jpdasm"
+    return default if _has_symbol_maps(default) else None
+
+
+def looks_like_ram(addr: int) -> bool:
+    """True for WRAM/SRAM doc addresses, including 4-digit shorthand.
+
+    Six-digit addresses must be in banks $7E/$7F. Four-digit shorthand is
+    treated as RAM in the low WRAM mirror ($0000-$1FFF) and the $F000+ save
+    area ($7EF000 written as $Fxxx); register and ROM shorthand falls outside.
+    """
+    if addr > 0xFFFF:
+        return addr >> 16 in (0x7E, 0x7F)
+    return addr < 0x2000 or addr >= 0xF000
+
+
+def addresses_match(actual: int, doc: int) -> bool:
+    """Six-digit doc addresses must match exactly.
+
+    Four-digit doc addresses compare only the low 16 bits, so `$2100` matches
+    `INIDISP = $002100` and `$80B5` matches a `$0080B5` label. The trade-off:
+    shorthand cannot catch a wrong bank; write six digits when the bank matters.
+    """
+    if doc > 0xFFFF:
+        return actual == doc
+    return actual & 0xFFFF == doc
 
 
 def snes(addr: int) -> str:
@@ -320,18 +368,18 @@ def check_file(db: Usdasm, path: Path, sections: dict[str, str],
                 continue
             addr, name = int(match.group(1), 16), match.group(2)
         actual = db.resolve(name)
-        if actual is None and not db.has_ram_symbols and addr >> 16 in (0x7E, 0x7F):
+        if actual is None and not db.has_ram_symbols and looks_like_ram(addr):
             unverified.append(f"{path}:{number}")
             continue
         if actual is None:
             problems.append(f"{path}:{number}: `{name}` is not a usdasm symbol or label")
-        elif actual & 0xFFFF != addr & 0xFFFF or (addr > 0xFFFF and actual != addr):
+        elif not addresses_match(actual, addr):
             problems.append(f"{path}:{number}: `{name}` is {snes(actual)} in usdasm, "
                             f"doc says {snes(addr)}")
     return problems
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--usdasm")
@@ -343,7 +391,7 @@ def main() -> int:
     render.add_argument("--write", type=Path, required=True)
     check = sub.add_parser("check")
     check.add_argument("files", type=Path, nargs="+")
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     db = Usdasm.load(find_usdasm(args.usdasm), find_symbols(args.symbols))
     sections = generated_sections(db)

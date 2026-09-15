@@ -12,7 +12,9 @@ work that does not need a real ROM. One script prepares every platform:
 | Codex cloud | chatgpt.com/codex/settings/environments → setup script | `bash scripts/cloud/bootstrap.sh deps submodules refs configure` |
 | Cursor cloud agents | `.cursor/environment.json` (committed) | `install` runs `deps submodules refs configure` |
 
-Platform notes (verified against vendor docs, 2026-09-15):
+Platform notes (checked against vendor docs on 2026-09-15; vendors change
+limits and network defaults without notice, so re-check their docs when
+setup fails):
 - **Claude Code web:** Ubuntu 24.04, root, 4 vCPU / 16 GB / 30 GB. The setup
   script result is snapshot-cached (rebuilt when the script changes or after
   about 7 days) and must finish in roughly 5 minutes, so it only installs
@@ -25,7 +27,8 @@ Platform notes (verified against vendor docs, 2026-09-15):
   containers: `bash scripts/cloud/bootstrap.sh submodules configure`.
   Codex reads `AGENTS.md` automatically.
 - **Cursor:** `install` runs when Cursor creates a Build and may re-run on
-  prepared disk state; every bootstrap step is idempotent. Agents run as a
+  prepared disk state; every bootstrap step is idempotent (unpinned refs
+  refresh to their default branch unless they have local edits). Agents run as a
   sudo-capable user; the script uses `sudo` when not root.
 
 ## 2. In-session commands

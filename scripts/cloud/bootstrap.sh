@@ -105,7 +105,17 @@ step_refs() {
     fi
     if [[ -z "$commit" ]]; then
       if [[ -d "$dest/.git" ]]; then
-        log "refs: $name already present at $dest"
+        # Unpinned refs track the default branch, so refresh them on warm
+        # (snapshotted) containers. Local edits or a failed fetch keep the
+        # existing checkout rather than failing setup.
+        if ! git -C "$dest" diff --quiet HEAD; then
+          log "refs: $name has local changes; not refreshing"
+        elif git -C "$dest" fetch --quiet --depth 1 origin HEAD; then
+          git -C "$dest" checkout --quiet --detach FETCH_HEAD
+          log "refs: $name refreshed to $(git -C "$dest" rev-parse --short HEAD)"
+        else
+          log "refs: $name refresh failed; keeping $(git -C "$dest" rev-parse --short HEAD)"
+        fi
       else
         log "refs: cloning $name -> $dest"
         git clone --depth 1 --quiet "$url" "$dest"
@@ -163,7 +173,12 @@ main() {
       configure) step_configure ;;
       build) step_build ;;
       test) step_test ;;
-      -h|--help) sed -n '2,24p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; return 0 ;;
+      -h|--help)
+        # Print the leading comment block (after the shebang) as usage.
+        awk 'NR == 1 { next } /^#/ { sub(/^# ?/, ""); print; next } { exit }' \
+          "${BASH_SOURCE[0]}"
+        return 0
+        ;;
       *) echo "[bootstrap] unknown step: $step" >&2; return 2 ;;
     esac
   done
