@@ -1,0 +1,118 @@
+# Rosé Pine Theme
+# All natural pine, faux fur and a bit of soho vibes for the classy minimalist
+# Palette spec: rosepinetheme.com
+name=Rosé Pine
+description=Rosé Pine — cozy minimalist dark palette with soft rose, iris, gold, and foam
+author=YAZE Team (palette: Rosé Pine)
+version=1.0
+
+[colors]
+# Primary colors
+primary=235,188,186,255          # Rose (#ebbcba)
+secondary=196,167,231,255        # Iris (#c4a7e7)
+accent=156,207,216,255           # Foam (#9ccfd8)
+background=25,23,36,255          # Base (#191724)
+surface=31,29,46,255             # Surface (#1f1d2e)
+
+# Status colors
+error=235,111,146,255            # Love (#eb6f92)
+warning=246,193,119,255          # Gold (#f6c177)
+success=49,116,143,255           # Pine (#31748f)
+info=156,207,216,255             # Foam (#9ccfd8)
+
+# Text colors
+text_primary=224,222,244,255     # Text (#e0def4)
+text_secondary=144,140,170,255   # Subtle (#908caa)
+text_disabled=110,106,134,255    # Muted (#6e6a86)
+
+# Window colors
+window_bg=25,23,36,240
+child_bg=31,29,46,200
+popup_bg=38,35,58,250            # Overlay (#26233a)
+
+# Interactive elements
+button=38,35,58,255
+button_hovered=235,188,186,200   # Rose
+button_active=196,167,231,255    # Iris
+frame_bg=38,35,58,220
+frame_bg_hovered=64,61,82,240    # Highlight Med
+frame_bg_active=82,79,103,255    # Highlight High
+
+# Navigation
+header=38,35,58,255
+header_hovered=64,61,82,255
+header_active=156,207,216,200
+tab=25,23,36,255
+tab_hovered=38,35,58,255
+tab_active=235,188,186,180
+menu_bar_bg=31,29,46,255
+title_bg=38,35,58,255
+title_bg_active=64,61,82,255
+title_bg_collapsed=25,23,36,200
+
+# Borders and separators
+border=156,207,216,255           # Foam
+border_shadow=0,0,0,0
+separator=82,79,103,180
+separator_hovered=156,207,216,220
+separator_active=235,188,186,255
+
+# Scrollbars
+scrollbar_bg=25,23,36,180
+scrollbar_grab=82,79,103,200
+scrollbar_grab_hovered=110,106,134,230
+scrollbar_grab_active=235,188,186,255
+
+# Resize grips
+resize_grip=255,255,255,26
+resize_grip_hovered=156,207,216,153
+resize_grip_active=156,207,216,230
+
+# Controls
+check_mark=49,116,143,255        # Pine
+slider_grab=235,188,186,255
+slider_grab_active=156,207,216,255
+
+# Tables
+table_header_bg=38,35,58,255
+table_border_strong=82,79,103,255
+table_border_light=38,35,58,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=255,255,255,18
+
+# Links
+text_link=156,207,216,255        # Foam
+
+# Navigation and special
+input_text_cursor=224,222,244,255
+nav_cursor=156,207,216,255
+nav_windowing_highlight=156,207,216,200
+nav_windowing_dim_bg=0,0,0,128
+modal_window_dim_bg=0,0,0,100
+text_selected_bg=235,188,186,100
+drag_drop_target=246,193,119,200 # Gold
+
+# Docking
+docking_preview=156,207,216,180
+docking_empty_bg=38,35,58,255
+
+# Tree lines
+tree_lines=82,79,103,153
+
+# Tab variations
+tab_dimmed=31,29,46,255
+tab_dimmed_selected=38,35,58,255
+tab_dimmed_selected_overline=235,188,186,255
+tab_selected_overline=235,188,186,255
+
+[style]
+window_rounding=6.0
+frame_rounding=4.0
+scrollbar_rounding=6.0
+grab_rounding=3.0
+tab_rounding=4.0
+window_border_size=0.0
+frame_border_size=0.0
+enable_animations=true
+enable_glow_effects=true
+animation_speed=1.0
