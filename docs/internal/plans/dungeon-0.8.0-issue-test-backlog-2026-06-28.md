@@ -904,11 +904,93 @@ asset files and the Manhandla graphics file retained their original SHA-256
 hashes. Full-file formatting and `git diff --check` also pass.
 
 These are cache, editor-state, and source-publication regressions, not a new
-Mesen parity claim or a measured application-startup speedup. Next measure cold
-project open, first room/selector display, warm room switching, and one versus
-several external sprite previews. `RenderSprites()` still renders copies each
-frame, and `Sprite::RenderPreviewGraphics()` decodes the external OBJ page each
-time; profile that work before extending cache ownership or adding workers.
+Mesen parity claim or a measured application-startup speedup. The subsequent
+sprite-preview and loading-stage measurements are recorded below.
+
+## Sprite-preview cache and loading profiles (2026-09-15)
+
+Status: local macOS implementation and measured CPU results. Cross-platform CI,
+packaged-app acceptance, and deployment remain separate gates.
+
+`DungeonCanvasViewer` now retains up to 128 decoded sprite previews using the
+existing `util::LruCache`. Keys include the globally unique room graphics
+revision, sprite ID, subtype, and overlord identity. Multiple room revisions
+remain cached for connected views; revision zero deliberately bypasses reuse.
+Only palette-index pixels and bounds are retained. Palette selection, movement,
+layer indicators, zoom, and pan still apply on every draw. **Reload Assets**,
+ROM refresh, or a change in project path, asset path, or hack profile discards
+stale previews, including changes made through the same project pointer.
+
+An opt-in benchmark compares the preceding implementation (`f13677c6f`) with
+this cache on the same Mac, Release build, and real Oracle Manhandla asset.
+Values below are the median of three test runs; each run reports the median
+of seven 200-frame batch means. Timing covers `RenderSprites()` only, not
+ImGui frame setup, GPU uploads, total frame time, or application startup.
+
+| Visible sprites | Before, microseconds/call | Cached, microseconds/call | Ratio |
+| --- | ---: | ---: | ---: |
+| One ordinary sprite | 2.385 | 2.070 | 1.15x |
+| One Manhandla | 16.768 | 2.841 | 5.90x |
+| Eight Manhandlas | 130.800 | 19.894 | 6.57x |
+
+The hidden-sprite control remains approximately 0.015 microseconds/call. The
+first recorded call includes possible lazy initialization and is not a valid
+application-startup comparison. The synthetic room graphics plus real external
+asset isolate this CPU work; they do not establish in-game visual parity.
+
+The separate ROM-loading profile reads `oos168.sfc` with expansion disabled,
+decodes game data, and prepares rooms `0x001`, `0x007`, `0x012`, `0x065`, and
+`0x076`. Across three runs, game-data decoding took 1.30-1.78 ms and first room
+preparation took 0.84-2.12 ms. ROM reading ranged from 0.35-6.45 ms; the OS disk
+cache was not controlled. Each run also made 500 cached room-preparation calls;
+the no-change path was effectively a no-op, not a measurement of visible room
+switching. This profile uses a mock renderer and excludes entrance/project
+overrides, custom-asset binding, sprite composition, UI drawing, and GPU uploads.
+It verifies that all in-memory ROM bytes remain unchanged.
+
+Reproduce the two optional profiles (no timing assertions or default CI cost):
+
+```bash
+cmake --build build/presets/mac-ai --config Release \
+  --target yaze_test_unit yaze_test_benchmark yaze --parallel 4
+YAZE_TEST_ORACLE_SPRITE_ASSETS=/path/to/oracle/Sprites \
+  build/presets/mac-ai/bin/yaze_test_unit \
+  --gtest_filter='DungeonCanvasAssetRefreshTest.DISABLED_ProfileSpritePreviewFrames' \
+  --gtest_also_run_disabled_tests --gtest_repeat=3
+YAZE_TEST_ROM_EXPANDED=/path/to/oracle/Roms/oos168.sfc \
+  build/presets/mac-ai/bin/yaze_test_benchmark \
+  --gtest_filter='GraphicsOptimizationBenchmarks.DISABLED_ProfileRomAssetLoadingStages' \
+  --gtest_also_run_disabled_tests --gtest_repeat=3
+```
+
+Verification: all three targets build. The 156 checks from the previous section
+plus eight `DungeonCanvasSpritePreviewCacheTest.*` cases pass: **164 tests,
+zero skips**. Exact combined run, after discovery with `--gtest_list_tests`:
+
+```bash
+YAZE_TEST_ROM_EXPANDED=/path/to/oracle/Roms/oos168.sfc \
+YAZE_TEST_ORACLE_SPRITE_ASSETS=/path/to/oracle/Sprites \
+YAZE_TEST_ORACLE_CUSTOM_OBJECTS=/path/to/oracle/Dungeons/Objects/Data \
+  build/presets/mac-ai/bin/yaze_test_unit \
+  --gtest_filter='DungeonCanvasSpritePreviewCacheTest.*:DungeonCanvasAssetRefreshTest.*:DungeonObjectSelectorPaletteTest.*:ObjectTileEditorPanelTest.*:CustomObjectManagerTest.*:SpritePreviewResourceCacheTest.*:DungeonEditorPaletteRefreshTest.*:*DungeonCanvasSpritePreviewBoundsTest*:*SpriteRenderPreviewTest*:OracleRuntimeAssets/CustomObjectOracleAssetTest.*'
+```
+
+The 101 cache/refresh-focused cases also pass five shuffled runs
+(`--gtest_shuffle --gtest_random_seed=915 --gtest_repeat=5`). New cases exercise
+pixel/bounds equivalence, actual drawn colors/positions, duplicate sprites,
+multiple rooms, graphics revisions, revision-zero rooms, missing/malformed art,
+context changes, and bounded eviction. Both opt-in profiles pass three runs.
+Logs, discovered test lists, and XML results are under
+`build/presets/mac-ai/{sprite-cache-*,sprite-profile-*,asset-loading-profile.*}`.
+The ROM, Manhandla source art, and 21 custom-object files retain their original
+SHA-256 hashes. Full-file `clang-format --dry-run --Werror` passes for all seven
+C++ files; the whitespace check preserves existing CRLF files:
+`git -c core.whitespace=trailing-space,space-before-tab,cr-at-eol diff --check`.
+
+Next measure full project open through the first usable room/selector frame,
+including texture uploads and project-specific setup. Do not infer startup or
+FPS gains from this small, isolated sprite-drawing improvement, or add loading
+workers before identifying which remaining stage causes a visible stall.
 
 ## Object coverage checklist
 

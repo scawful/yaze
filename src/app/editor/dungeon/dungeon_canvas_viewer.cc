@@ -47,6 +47,7 @@ void DungeonCanvasViewer::SetProject(const project::YazeProject* project) {
 
 void DungeonCanvasViewer::InvalidateExternalSpriteResources() {
   sprite_preview_resources_.SetContext({}, {}, {});
+  sprite_preview_cache_.Clear();
 }
 
 void DungeonCanvasViewer::TriggerChangePing() {
