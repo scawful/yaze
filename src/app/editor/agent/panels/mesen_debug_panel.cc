@@ -114,7 +114,8 @@ void MesenDebugPanel::RefreshSocketList() {
 }
 
 void MesenDebugPanel::RefreshState() {
-  if (!IsConnected()) return;
+  if (!IsConnected())
+    return;
 
   // Get emulator state
   auto emu_result = client_->GetState();
@@ -228,9 +229,8 @@ void MesenDebugPanel::DrawConnectionHeader() {
     ImGui::TextDisabled("Path");
     ImGui::SetNextItemWidth(-1);
     ImGui::InputTextWithHint("##mesen_socket_path",
-                             "/tmp/mesen2-12345.sock",
-                             socket_path_buffer_,
-                             sizeof(socket_path_buffer_));
+                             "tcp://127.0.0.1:27015 or /tmp/mesen2-*.sock",
+                             socket_path_buffer_, sizeof(socket_path_buffer_));
 
     if (ImGui::Button(ICON_MD_LINK " Connect")) {
       std::string path = socket_path_buffer_;
@@ -276,9 +276,9 @@ void MesenDebugPanel::DrawConnectionHeader() {
 void MesenDebugPanel::DrawLinkState() {
   const auto& theme = AgentUI::GetTheme();
 
-  if (ImGui::CollapsingHeader(ICON_MD_PERSON " Link State",
-                              link_expanded_ ? ImGuiTreeNodeFlags_DefaultOpen
-                                             : 0)) {
+  if (ImGui::CollapsingHeader(
+          ICON_MD_PERSON " Link State",
+          link_expanded_ ? ImGuiTreeNodeFlags_DefaultOpen : 0)) {
     link_expanded_ = true;
 
     const auto& link = game_state_.link;
@@ -301,8 +301,8 @@ void MesenDebugPanel::DrawLinkState() {
     ImGui::TextColored(theme.text_secondary_color, "0x%02X", link.state);
 
     // Health bar
-    float health_ratio =
-        items.max_health > 0 ? static_cast<float>(items.current_health) /
+    float health_ratio = items.max_health > 0
+                             ? static_cast<float>(items.current_health) /
                                    static_cast<float>(items.max_health)
                              : 0.0f;
     ImVec4 health_color = HealthColor(health_ratio);
@@ -350,10 +350,9 @@ void MesenDebugPanel::DrawSpriteList() {
   std::string header = absl::StrFormat("%s Active Sprites (%zu/16)",
                                        ICON_MD_PEST_CONTROL, sprites_.size());
 
-  if (ImGui::CollapsingHeader(header.c_str(),
-                              sprites_expanded_
-                                  ? ImGuiTreeNodeFlags_DefaultOpen
-                                  : 0)) {
+  if (ImGui::CollapsingHeader(
+          header.c_str(),
+          sprites_expanded_ ? ImGuiTreeNodeFlags_DefaultOpen : 0)) {
     sprites_expanded_ = true;
 
     ImGui::Checkbox("Show inactive", &show_all_sprites_);
@@ -371,10 +370,9 @@ void MesenDebugPanel::DrawSpriteList() {
           ImGui::SameLine();
 
           // Type with color based on state
-          ImVec4 sprite_color =
-              sprite.state > 0
-                  ? ImVec4(0.4f, 0.8f, 0.4f, 1.0f)
-                  : ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
+          ImVec4 sprite_color = sprite.state > 0
+                                    ? ImVec4(0.4f, 0.8f, 0.4f, 1.0f)
+                                    : ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
           ImGui::TextColored(sprite_color, "Type: 0x%02X", sprite.type);
 
           ImGui::SameLine();
@@ -404,10 +402,9 @@ void MesenDebugPanel::DrawGameMode() {
   const auto& theme = AgentUI::GetTheme();
   const auto& game = game_state_.game;
 
-  if (ImGui::CollapsingHeader(ICON_MD_GAMEPAD " Game Mode",
-                              game_mode_expanded_
-                                  ? ImGuiTreeNodeFlags_DefaultOpen
-                                  : 0)) {
+  if (ImGui::CollapsingHeader(
+          ICON_MD_GAMEPAD " Game Mode",
+          game_mode_expanded_ ? ImGuiTreeNodeFlags_DefaultOpen : 0)) {
     game_mode_expanded_ = true;
 
     ImGui::Text("Mode:");
@@ -418,8 +415,8 @@ void MesenDebugPanel::DrawGameMode() {
     ImGui::Text("Location:");
     ImGui::SameLine();
     if (game.indoors) {
-      ImGui::TextColored(ImVec4(0.6f, 0.4f, 0.2f, 1.0f),
-                         "Dungeon Room: 0x%04X", game.room_id);
+      ImGui::TextColored(ImVec4(0.6f, 0.4f, 0.2f, 1.0f), "Dungeon Room: 0x%04X",
+                         game.room_id);
     } else {
       ImGui::TextColored(ImVec4(0.2f, 0.6f, 0.2f, 1.0f),
                          "Overworld Area: 0x%02X", game.overworld_area);
@@ -444,9 +441,8 @@ void MesenDebugPanel::DrawGameMode() {
                          cpu_state_.K, cpu_state_.PC & 0xFFFF, cpu_state_.A,
                          cpu_state_.X, cpu_state_.Y);
       ImGui::TextColored(theme.text_secondary_color,
-                         "SP=$%04X  D=$%04X  DBR=$%02X  P=$%02X",
-                         cpu_state_.SP, cpu_state_.D, cpu_state_.DBR,
-                         cpu_state_.P);
+                         "SP=$%04X  D=$%04X  DBR=$%02X  P=$%02X", cpu_state_.SP,
+                         cpu_state_.D, cpu_state_.DBR, cpu_state_.P);
       ImGui::Unindent();
     }
   } else {
@@ -455,7 +451,8 @@ void MesenDebugPanel::DrawGameMode() {
 }
 
 void MesenDebugPanel::DrawControlButtons() {
-  if (!IsConnected()) return;
+  if (!IsConnected())
+    return;
 
   ImGui::Separator();
 
@@ -496,7 +493,8 @@ void MesenDebugPanel::DrawControlButtons() {
 }
 
 void MesenDebugPanel::DrawOverlayControls() {
-  if (!IsConnected()) return;
+  if (!IsConnected())
+    return;
 
   const char* colmaps[] = {"A", "B", "C"};
   bool overlay_changed = false;
@@ -513,8 +511,8 @@ void MesenDebugPanel::DrawOverlayControls() {
   }
 
   if (overlay_changed) {
-    auto status = client_->SetCollisionOverlay(
-        collision_overlay_enabled_, colmaps[collision_map_index_]);
+    auto status = client_->SetCollisionOverlay(collision_overlay_enabled_,
+                                               colmaps[collision_map_index_]);
     if (!status.ok()) {
       status_message_ = std::string(status.message());
     } else {
@@ -526,7 +524,8 @@ void MesenDebugPanel::DrawOverlayControls() {
 }
 
 void MesenDebugPanel::DrawStateControls() {
-  if (!IsConnected()) return;
+  if (!IsConnected())
+    return;
 
   ImGui::TextDisabled("Save States");
   ImGui::SetNextItemWidth(60);
