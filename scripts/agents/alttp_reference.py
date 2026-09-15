@@ -301,16 +301,21 @@ def render_routines(db: Usdasm) -> str:
 def render_vectors(db: Usdasm) -> str:
     # Group by handler so each row is `| handler | handler address | ... |`,
     # the same shape `check` validates.
+    # Like render_dispatch, every slot must parse: a skipped slot would make
+    # render and check agree on an incomplete table.
     vectors: dict[str, list[int]] = {}
     for addr in range(VECTOR_RANGE[0], VECTOR_RANGE[1] + 1, 2):
         target = db.data.get(addr)
-        if target is not None:
-            vectors.setdefault(target, []).append(addr)
+        if target is None:
+            raise SystemExit(f"no vector entry at {snes(addr)}")
+        vectors.setdefault(target, []).append(addr)
     rows = ["| Handler | Handler address | Vector slots |", "|---|---|---|"]
     for target, slots in vectors.items():
         where = ", ".join(f"`{snes(a)}`" for a in slots)
         if target.startswith("$"):
             rows.append(f"| (none: `{target}`) | — | {where} |")
+        elif target not in db.labels:
+            raise SystemExit(f"vector target {target} is not a usdasm label")
         else:
             rows.append(f"| `{target}` | `{snes(db.labels[target])}` | {where} |")
     return "\n".join(rows)
@@ -419,7 +424,14 @@ def main(argv: list[str] | None = None) -> int:
     sections = generated_sections(db)
     if args.command == "render":
         original = args.write.read_text()
+        skipped = sorted({m.group(1) for m in SECTION_RE.finditer(original)
+                          if m.group(1) in KNOWN_SECTIONS
+                          and m.group(1) not in sections})
         args.write.write_text(apply_sections(original, sections))
+        if skipped:
+            print(f"note: no WRAM/SRAM symbol maps found; left {', '.join(skipped)} "
+                  "section(s) unchanged (pass --symbols or run "
+                  "scripts/cloud/bootstrap.sh refs)")
         return 0
 
     unverified: list[str] = []
