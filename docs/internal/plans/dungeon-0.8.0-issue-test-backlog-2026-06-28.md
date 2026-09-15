@@ -849,6 +849,67 @@ Those results remain evidence for that source, not a substitute for the
 repaired revision's CI. PR #219 stays unmerged and the `75f817d5` installation
 stays active until the replacement has passed its merge/deployment gates.
 
+## Project asset refresh and cache reuse (2026-09-15)
+
+Status: branch implementation; CI, packaged-app acceptance, and deployment
+remain separate gates.
+
+The Object Selector's **Custom Assets > Reload Assets** action refreshes
+custom-object layouts and external sprite preview graphics for the active
+session. It remains available when Custom Objects is disabled. Existing room,
+Workbench, and comparison viewers discard stale external art on their next
+asset-generation synchronization; unchanged generations keep their caches.
+This action does not reload ROM data or replace unsaved room edits, tile drafts,
+or canvas selections.
+
+Custom-object caches retain failed loads as well as decoded objects. After
+creating a missing file or repairing a malformed one externally, use **Reload
+Assets** to retry; changing the configured asset context also invalidates the
+cache. Publication deliberately reads disk again and retains stale-write
+protection. An unchanged source can still be published after refresh; a changed
+source leaves the draft intact and reports a conflict.
+
+Selector cards no longer parse temporary object tiles before checking their
+thumbnail cache. Unchanged viewer project rebinding preserves external sprite
+resources, while explicit asset refresh and full ROM reload invalidate them.
+
+Focused verification (list the selected tests before running):
+
+```bash
+cmake --build build/presets/mac-ai --config Release \
+  --target yaze_test_unit yaze --parallel 4
+build/presets/mac-ai/bin/yaze_test_unit \
+  --gtest_filter='CustomObjectManagerTest.*:DungeonCanvasAssetRefreshTest.*:DungeonObjectSelectorPaletteTest.*:ObjectTileEditorPanelTest.*:SpritePreviewResourceCacheTest.*' \
+  --gtest_list_tests
+build/presets/mac-ai/bin/yaze_test_unit \
+  --gtest_filter='CustomObjectManagerTest.*:DungeonCanvasAssetRefreshTest.*:DungeonObjectSelectorPaletteTest.*:ObjectTileEditorPanelTest.*:SpritePreviewResourceCacheTest.*'
+```
+
+Local macOS verification: the app and unit-test targets build; all 93 focused
+tests pass, including 14 new regressions. The same 93 pass five shuffled runs
+(`--gtest_shuffle --gtest_random_seed=915 --gtest_repeat=5`). Another 63 palette,
+sprite-preview, canvas-bounds, and Oracle source-asset checks pass with no skips
+when the real fixtures are supplied:
+
+```bash
+YAZE_TEST_ROM_EXPANDED=/path/to/oracle/Roms/oos168.sfc \
+YAZE_TEST_ORACLE_SPRITE_ASSETS=/path/to/oracle/Sprites \
+YAZE_TEST_ORACLE_CUSTOM_OBJECTS=/path/to/oracle/Dungeons/Objects/Data \
+  build/presets/mac-ai/bin/yaze_test_unit \
+  --gtest_filter='DungeonEditorPaletteRefreshTest.*:*DungeonCanvasSpritePreviewBoundsTest*:*SpriteRenderPreviewTest*:OracleRuntimeAssets/CustomObjectOracleAssetTest.*'
+```
+
+The source-asset checks use temporary copies for publication. All 21 custom
+asset files and the Manhandla graphics file retained their original SHA-256
+hashes. Full-file formatting and `git diff --check` also pass.
+
+These are cache, editor-state, and source-publication regressions, not a new
+Mesen parity claim or a measured application-startup speedup. Next measure cold
+project open, first room/selector display, warm room switching, and one versus
+several external sprite previews. `RenderSprites()` still renders copies each
+frame, and `Sprite::RenderPreviewGraphics()` decodes the external OBJ page each
+time; profile that work before extending cache ownership or adding workers.
+
 ## Object coverage checklist
 
 Start by enumerating the supported IDs from `DrawRoutineRegistry` and the room

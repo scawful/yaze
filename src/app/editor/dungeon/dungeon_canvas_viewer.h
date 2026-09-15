@@ -533,6 +533,8 @@ class DungeonCanvasViewer {
     pin_callback_ = std::move(callback);
   }
   void SetProject(const project::YazeProject* project);
+  // Refresh external previews without replacing room data or editing state.
+  void InvalidateExternalSpriteResources();
   const project::YazeProject* project() const { return project_; }
 
   // Canvas access

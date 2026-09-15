@@ -630,19 +630,20 @@ const std::vector<std::string>* CustomObjectManager::ResolveFileList(
 absl::StatusOr<std::shared_ptr<CustomObject>> CustomObjectManager::LoadObject(
     const std::string& filename) {
   auto& cache = ActiveContext().cache;
-  if (cache.contains(filename)) {
-    return cache[filename];
+  if (const auto cached = cache.find(filename); cached != cache.end()) {
+    return cached->second;
   }
 
   auto asset_or = LoadCustomObjectAsset(GetBasePath(), filename);
   if (!asset_or.ok()) {
     LOG_ERROR("CustomObjectManager", "%s",
               asset_or.status().ToString().c_str());
+    cache.emplace(filename, asset_or.status());
     return asset_or.status();
   }
 
   auto object_ptr = std::make_shared<CustomObject>(std::move(asset_or->object));
-  cache[filename] = object_ptr;
+  cache.emplace(filename, object_ptr);
 
   return object_ptr;
 }

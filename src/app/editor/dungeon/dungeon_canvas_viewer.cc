@@ -38,9 +38,15 @@ void DungeonCanvasViewer::RecordVisitedRoom(int room_id) {
 }
 
 void DungeonCanvasViewer::SetProject(const project::YazeProject* project) {
+  if (project_ != project) {
+    InvalidateExternalSpriteResources();
+  }
   project_ = project;
-  sprite_preview_resources_.SetContext({}, {}, {});
   ApplyTrackCollisionConfig();
+}
+
+void DungeonCanvasViewer::InvalidateExternalSpriteResources() {
+  sprite_preview_resources_.SetContext({}, {}, {});
 }
 
 void DungeonCanvasViewer::TriggerChangePing() {
@@ -173,6 +179,7 @@ void DungeonCanvasViewer::RefreshRomBackedState(Rom* rom,
                                                 zelda3::GameData* game_data,
                                                 DungeonRoomStore* rooms,
                                                 int room_id) {
+  InvalidateExternalSpriteResources();
   ClearPreviewObject();
   object_interaction_.CancelPlacement();
   object_interaction_.mode_manager().CancelCurrentMode();
