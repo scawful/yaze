@@ -500,9 +500,6 @@ gfx::Bitmap* DungeonCanvasViewer::PrepareRoomCompositeBitmap(int room_id) {
   room.PrepareForRender();
 
   auto& layer_mgr = GetRoomLayerManager(room_id);
-  layer_mgr.ApplyLayerMerging(room.layer_merging());
-  layer_mgr.ApplyRoomEffect(room.effect());
-
   auto& composite = room.GetCompositeBitmap(layer_mgr);
   if (!composite.is_active() || composite.width() <= 0) {
     return nullptr;

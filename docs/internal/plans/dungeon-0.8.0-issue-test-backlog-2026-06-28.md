@@ -992,6 +992,80 @@ including texture uploads and project-specific setup. Do not infer startup or
 FPS gains from this small, isolated sprite-drawing improvement, or add loading
 workers before identifying which remaining stage causes a visible stall.
 
+## Layer-state and render-refresh edge fixes (2026-09-15)
+
+Status: local implementation, built and regression-tested on macOS. No new
+Mesen parity claim, cross-platform CI result, merge, or app deployment.
+
+Review of the asset-refresh branch found four confirmed defects:
+
+1. **Stale object graphics after a graphics-only refresh.**
+   `RenderRoomGraphics()` consumed the graphics dirty flag before the object
+   renderer checked it. Object pixels and floor-copy patterns could retain
+   their previous tileset/floor while the layout had already updated.
+2. **Stale base priority after removing stairs or lower doors.** These objects
+   promote priority outside their own raster. Clearing only the object buffers
+   left their old markings on the layout. The standard render path now restores
+   floor/layout buffers before object replay, retaining native high-priority
+   floor tiles. It also clears old pixels when replacement graphics become
+   transparent. Object-only changes reuse decoded graphics; unchanged-room
+   preparation retains its early return.
+3. **Manual blend controls reset every frame.** Viewer layer state now applies
+   room merge/effect defaults on first materialized access or a header change,
+   not every composition. Choices survive drawing and switching rooms. Header
+   changes refresh defaults without re-enabling hidden layers; full ROM refresh
+   clears viewer overrides.
+4. **An unrelated BG2 component changed the visible component's translucency.**
+   Color math now follows the source selected at each pixel. A hidden/empty
+   translucent object layer no longer changes an opaque layout, and an opaque
+   object does not inherit translucency from the layout it replaces.
+
+Ten regressions cover these cases. Before production changes, eight of the
+first nine tests failed at the predicted assertions; the header-transition
+control passed. A transparent-base-refresh case was added afterward. All ten
+now pass, plus the surrounding rendering/cache suite: **380 tests, no skips**,
+also passing three shuffled runs with seed 916. The separate ROM parser/drawer
+suite passes **39 cases** against vanilla and Oracle; its canonical-vanilla
+floor-pattern test intentionally skips the Oracle parameter (40 selected,
+one skip). These are deterministic CPU/ROM checks, not emulator screenshots.
+
+Build and focused reproductions:
+
+```bash
+cmake --build build/presets/mac-ai --config Release \
+  --target yaze_test_unit yaze_test_benchmark yaze --parallel 4
+build/presets/mac-ai/bin/yaze_test_unit \
+  --gtest_filter='RoomRenderLifecycleTest.*:DungeonEditorPaletteRefreshTest.LayerBlend*:RoomLayerManagerTest.HiddenTranslucentBG2SourceDoesNotBlendVisibleNormalSource:RoomLayerManagerTest.TranslucencyFollowsSelectedBG2SourceAtEachPixel' \
+  --gtest_list_tests
+build/presets/mac-ai/bin/yaze_test_unit \
+  --gtest_filter='RoomRenderLifecycleTest.*:DungeonEditorPaletteRefreshTest.LayerBlend*:RoomLayerManagerTest.HiddenTranslucentBG2SourceDoesNotBlendVisibleNormalSource:RoomLayerManagerTest.TranslucencyFollowsSelectedBG2SourceAtEachPixel'
+YAZE_TEST_ROM_VANILLA=/path/to/zelda3.sfc \
+YAZE_TEST_ROM_EXPANDED=/path/to/oracle/Roms/oos168.sfc \
+  build/presets/mac-ai/bin/yaze_test_unit \
+  --gtest_filter='SupportedRomRoles/RoomObjectRomParityTest.*'
+```
+
+The existing opt-in loading-stage benchmark passes three runs; cached-room
+preparation remains effectively a no-op. This does not measure interactive
+object-edit redraw cost or full app startup. `clang-format --dry-run --Werror`
+passes for all eight changed C++ files, and `git diff --check` passes. The Oracle
+ROM, Manhandla art, and 21 custom-object files retain their source hashes.
+Logs, discovery lists, exact broader filters, and XML results are under
+`build/presets/mac-ai/layer-edges-*`.
+
+**Next confirmed source-review finding: shared presentation texture.**
+`Room::GetCompositeBitmap()` returns one mutable bitmap/texture for every
+layer configuration. The Workbench submits its canvas image before drawing
+Dungeon Map. The map requests default layers and immediately updates that
+same texture, so deferred ImGui drawing can show the map's composition in the
+canvas. Selector/matrix thumbnails also share this bitmap, but do not upload
+their changed CPU pixels themselves. Isolate presentation-owned composite
+textures and add a fake-renderer regression covering two deferred submissions
+of the same room with different layer settings. This path is code-confirmed,
+not yet reproduced in the live app or fixed in this batch. The priority-off
+fallback's transparent-object coverage handling is a separate lower-priority
+finding; no current production caller disables priority compositing.
+
 ## Object coverage checklist
 
 Start by enumerating the supported IDs from `DrawRoutineRegistry` and the room

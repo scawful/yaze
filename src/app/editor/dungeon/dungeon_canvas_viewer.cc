@@ -50,6 +50,22 @@ void DungeonCanvasViewer::InvalidateExternalSpriteResources() {
   sprite_preview_cache_.Clear();
 }
 
+zelda3::RoomLayerManager& DungeonCanvasViewer::GetRoomLayerManager(
+    int room_id) {
+  auto& state = room_layer_managers_[room_id];
+  const auto* room = rooms_ ? rooms_->GetIfMaterialized(room_id) : nullptr;
+  // Initialize before controls can edit the manager. Reapply room defaults only
+  // when the header changes, not on every draw, so manual blend choices persist.
+  if (room && (!state.room_settings ||
+               state.room_settings->first != room->layer_merging() ||
+               state.room_settings->second != room->effect())) {
+    state.manager.ApplyLayerMerging(room->layer_merging());
+    state.manager.ApplyRoomEffect(room->effect());
+    state.room_settings = std::make_pair(room->layer_merging(), room->effect());
+  }
+  return state.manager;
+}
+
 void DungeonCanvasViewer::TriggerChangePing() {
   change_ping_rects_.clear();
   change_ping_start_time_ = ImGui::GetCurrentContext() ? ImGui::GetTime() : 0.0;

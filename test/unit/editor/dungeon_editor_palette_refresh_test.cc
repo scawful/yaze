@@ -57,6 +57,11 @@ class ScopedWorkbenchFlag {
 
 class DungeonEditorPaletteRefreshTestPeer {
  public:
+  static gfx::Bitmap* PrepareComposite(DungeonCanvasViewer& viewer,
+                                       int room_id) {
+    return viewer.PrepareRoomCompositeBitmap(room_id);
+  }
+
   static void RegisterPaletteListener(DungeonEditorV2* editor) {
     editor->RegisterPaletteListener();
   }
@@ -164,6 +169,11 @@ class DungeonEditorPaletteRefreshTest : public ::testing::Test {
     // A second render must hit Room::RenderRoomGraphics's clean-cache return.
     room.RenderRoomGraphics();
     ASSERT_FALSE(room.IsCompositeDirty());
+  }
+
+  gfx::Bitmap* PrepareComposite(DungeonCanvasViewer& viewer, int room_id) {
+    return DungeonEditorPaletteRefreshTestPeer::PrepareComposite(viewer,
+                                                                 room_id);
   }
 
   SDL_Color ReadSurfacePaletteColor(zelda3::Room& room, int color_index) {
@@ -716,6 +726,93 @@ TEST_F(DungeonEditorPaletteRefreshTest,
                       /*display_index=*/34, gfx::SnesColor(0x5294))
                   .ok());
   EXPECT_EQ(callback_count, 1);
+}
+
+TEST_F(DungeonEditorPaletteRefreshTest,
+       LayerBlendOverridesSurviveFirstAndRepeatedCanvasPreparation) {
+  DungeonRoomStore rooms(&rom_, &game_data_);
+  auto& room = rooms[0];
+  room.SetTileObjects({});
+  room.SetLayerMerging(zelda3::LayerMerge01);
+  DungeonCanvasViewer viewer(&rom_);
+  viewer.SetGameData(&game_data_);
+  viewer.SetRooms(&rooms);
+
+  // Workbench controls can run before the canvas's first draw.
+  auto& manager = viewer.GetRoomLayerManager(0);
+  manager.SetLayerBlendMode(zelda3::LayerType::BG2_Objects,
+                            zelda3::LayerBlendMode::Off);
+  manager.SetLayerBlendMode(zelda3::LayerType::BG1_Layout,
+                            zelda3::LayerBlendMode::Dark);
+  const auto signature = manager.CompositeStateSignature();
+  for (int frame = 0; frame < 3; ++frame) {
+    ASSERT_NE(PrepareComposite(viewer, 0), nullptr);
+    EXPECT_EQ(manager.GetLayerBlendMode(zelda3::LayerType::BG2_Objects),
+              zelda3::LayerBlendMode::Off);
+    EXPECT_EQ(manager.GetLayerBlendMode(zelda3::LayerType::BG1_Layout),
+              zelda3::LayerBlendMode::Dark);
+    EXPECT_EQ(manager.CompositeStateSignature(), signature);
+  }
+}
+
+TEST_F(DungeonEditorPaletteRefreshTest,
+       LayerBlendDefaultsFollowHeaderChangesWithoutRestoringHiddenLayers) {
+  DungeonRoomStore rooms(&rom_, &game_data_);
+  auto& room = rooms[0];
+  room.SetTileObjects({});
+  room.SetLayerMerging(zelda3::LayerMerge01);
+  DungeonCanvasViewer viewer(&rom_);
+  viewer.SetGameData(&game_data_);
+  viewer.SetRooms(&rooms);
+  ASSERT_NE(PrepareComposite(viewer, 0), nullptr);
+  auto& manager = viewer.GetRoomLayerManager(0);
+  manager.SetLayerVisible(zelda3::LayerType::BG2_Objects, false);
+  manager.SetLayerBlendMode(zelda3::LayerType::BG1_Objects,
+                            zelda3::LayerBlendMode::Off);
+
+  room.SetEffect(zelda3::EffectKey::Moving_Water);
+  ASSERT_NE(PrepareComposite(viewer, 0), nullptr);
+  EXPECT_EQ(manager.GetLayerBlendMode(zelda3::LayerType::BG2_Layout),
+            zelda3::LayerBlendMode::Translucent);
+  EXPECT_EQ(manager.GetLayerBlendMode(zelda3::LayerType::BG1_Objects),
+            zelda3::LayerBlendMode::Normal);
+  EXPECT_FALSE(manager.IsLayerVisible(zelda3::LayerType::BG2_Objects));
+
+  room.SetEffect(zelda3::EffectKey::Effect_Nothing);
+  ASSERT_NE(PrepareComposite(viewer, 0), nullptr);
+  EXPECT_EQ(manager.GetLayerBlendMode(zelda3::LayerType::BG2_Layout),
+            zelda3::LayerBlendMode::Normal);
+  room.SetLayerMerging(zelda3::LayerMerge08);
+  ASSERT_NE(PrepareComposite(viewer, 0), nullptr);
+  EXPECT_EQ(manager.GetLayerBlendMode(zelda3::LayerType::BG1_Layout),
+            zelda3::LayerBlendMode::Dark);
+  EXPECT_FALSE(manager.IsLayerVisible(zelda3::LayerType::BG2_Objects));
+}
+
+TEST_F(DungeonEditorPaletteRefreshTest,
+       LayerBlendOverridesStayRoomLocalAndResetOnRomRefresh) {
+  DungeonRoomStore rooms(&rom_, &game_data_);
+  for (int room_id : {0, 1}) {
+    rooms[room_id].SetTileObjects({});
+    rooms[room_id].SetLayerMerging(zelda3::LayerMerge01);
+  }
+  DungeonCanvasViewer viewer(&rom_);
+  viewer.SetGameData(&game_data_);
+  viewer.SetRooms(&rooms);
+  ASSERT_NE(PrepareComposite(viewer, 0), nullptr);
+  viewer.SetLayerBlendMode(0, zelda3::LayerType::BG2_Objects,
+                           zelda3::LayerBlendMode::Off);
+  ASSERT_NE(PrepareComposite(viewer, 1), nullptr);
+  EXPECT_EQ(viewer.GetLayerBlendMode(1, zelda3::LayerType::BG2_Objects),
+            zelda3::LayerBlendMode::Normal);
+  ASSERT_NE(PrepareComposite(viewer, 0), nullptr);
+  EXPECT_EQ(viewer.GetLayerBlendMode(0, zelda3::LayerType::BG2_Objects),
+            zelda3::LayerBlendMode::Off);
+
+  viewer.RefreshRomBackedState(&rom_, &game_data_, &rooms, 0);
+  ASSERT_NE(PrepareComposite(viewer, 0), nullptr);
+  EXPECT_EQ(viewer.GetLayerBlendMode(0, zelda3::LayerType::BG2_Objects),
+            zelda3::LayerBlendMode::Normal);
 }
 
 TEST(DungeonPaletteResponsiveLayoutTest, UsesLogicalRowWidthsWhenTheyFit) {
