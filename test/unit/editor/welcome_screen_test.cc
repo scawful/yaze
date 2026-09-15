@@ -164,8 +164,7 @@ class WelcomeScreenFullLayoutTest
   std::string saved_theme_;
 };
 
-TEST_P(WelcomeScreenFullLayoutTest,
-       StartActionsAndScrolledContentStayReachable) {
+TEST_P(WelcomeScreenFullLayoutTest, StartActionsStayReachableWithoutScrolling) {
   const auto& layout = GetParam();
   ImGuiIO& io = ImGui::GetIO();
   io.DisplaySize = layout.viewport;
@@ -202,6 +201,8 @@ TEST_P(WelcomeScreenFullLayoutTest,
   EXPECT_LE(root->Pos.x + root->Size.x, io.DisplaySize.x);
   EXPECT_LE(root->Pos.y + root->Size.y, io.DisplaySize.y);
   EXPECT_FALSE(root->ScrollbarY);
+  EXPECT_FALSE(content->ScrollbarY);
+  EXPECT_FLOAT_EQ(content->ScrollMax.y, 0.0f);
   EXPECT_LE(root->ContentSize.x, root->InnerRect.GetWidth());
   const ImRect root_bounds = root->Rect();
   const ImRect content_bounds = content->Rect();
@@ -209,15 +210,19 @@ TEST_P(WelcomeScreenFullLayoutTest,
   EXPECT_EQ(actions == nullptr, layout.stacked);
   if (!layout.stacked) {
     ASSERT_NE(actions, nullptr);
-    EXPECT_LE(actions->ContentSize.y, actions->InnerRect.GetHeight());
+    EXPECT_FALSE(actions->ScrollbarY);
+    EXPECT_LE(actions->ContentSize.y, actions->InnerRect.GetHeight() + 1.0f);
     EXPECT_FLOAT_EQ(actions->ScrollMax.y, 0.0f);
+    ImGuiWindow* right = FindChild("/RightPanel_");
+    ASSERT_NE(right, nullptr);
+    EXPECT_FALSE(right->ScrollbarY);
+    EXPECT_FLOAT_EQ(right->ScrollMax.y, 0.0f);
   } else {
     actions = content;
-    EXPECT_EQ(content->ScrollbarY, content->ScrollMax.y > 0.0f);
   }
 
   // Walk real keyboard navigation rather than activating IDs directly. Each
-  // primary action must be visible after focus, including in scrolled layouts.
+  // primary action must be visible after focus.
   DrawFrame(&screen, actions);
   DrawFrame(&screen);
 #ifdef __EMSCRIPTEN__
@@ -262,14 +267,6 @@ TEST_P(WelcomeScreenFullLayoutTest,
   EXPECT_EQ(open_count, 1);
   EXPECT_EQ(new_count, 1);
 
-  ImGuiWindow* scroll = layout.stacked ? content : FindChild("/RightPanel_");
-  ASSERT_NE(scroll, nullptr);
-  ImGui::SetScrollY(scroll, scroll->ScrollMax.y);
-  DrawFrame(&screen);
-  DrawFrame(&screen);
-  EXPECT_FLOAT_EQ(scroll->Scroll.y, scroll->ScrollMax.y);
-  EXPECT_LE(scroll->DC.CursorStartPos.y + scroll->ContentSize.y,
-            scroll->InnerRect.Max.y + 1.0f);
   EXPECT_FALSE(root->ScrollbarY);
   EXPECT_LE(root->ContentSize.x, root->InnerRect.GetWidth());
   EXPECT_FLOAT_EQ(root->Pos.x, root_bounds.Min.x);
