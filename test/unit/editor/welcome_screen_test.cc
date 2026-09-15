@@ -195,6 +195,8 @@ TEST_P(WelcomeScreenFullLayoutTest, StartActionsStayReachableWithoutScrolling) {
   int new_count = 0;
   screen.SetOpenRomCallback([&]() { ++open_count; });
   screen.SetNewProjectCallback([&]() { ++new_count; });
+  screen.SetOpenPrototypeResearchCallback([]() {});
+  screen.SetOpenAssemblyEditorNoRomCallback([]() {});
 
   // ImGui computes scroll ranges from the preceding frame's content size.
   for (int frame = 0; frame < 3; ++frame) {
@@ -353,6 +355,33 @@ TEST_F(WelcomeScreenTest, MissingRecentDoesNotOfferResumeAction) {
   ImGui::EndFrame();
 }
 
+TEST_F(WelcomeScreenTest, CompactCardStaysInsideSmallBrowserViewport) {
+  ImGuiIO& io = ImGui::GetIO();
+  io.DisplaySize = ImVec2(300.0f, 260.0f);
+
+  WelcomeScreen screen;
+  WelcomeScreenTestPeer::SetEntryTime(&screen, 1.0f);
+  screen.SetOpenRomCallback([]() {});
+  screen.SetNewProjectCallback([]() {});
+  screen.SetOpenPrototypeResearchCallback([]() {});
+  screen.SetOpenAssemblyEditorNoRomCallback([]() {});
+
+  for (int frame = 0; frame < 3; ++frame) {
+    ImGui::NewFrame();
+    bool open = true;
+    screen.Show(&open);
+    EXPECT_TRUE(open);
+    ImGui::EndFrame();
+  }
+
+  ImGuiWindow* root = ImGui::FindWindowByName("##WelcomeScreen");
+  ASSERT_NE(root, nullptr);
+  EXPECT_GE(root->Pos.x, 0.0f);
+  EXPECT_GE(root->Pos.y, 0.0f);
+  EXPECT_LE(root->Pos.x + root->Size.x, io.DisplaySize.x);
+  EXPECT_LE(root->Pos.y + root->Size.y, io.DisplaySize.y);
+}
+
 TEST_F(WelcomeScreenTest, RecentCardActivatesFromKeyboardNavigation) {
   WelcomeScreen screen;
   RecentProject project;
@@ -380,6 +409,50 @@ TEST_F(WelcomeScreenTest, RecentCardActivatesFromKeyboardNavigation) {
 
   EXPECT_EQ(open_count, 1);
   EXPECT_EQ(opened_path, project.filepath);
+}
+
+TEST_F(WelcomeScreenTest, MissingRecentCardDoesNotActivateOpenCallback) {
+  WelcomeScreen screen;
+  RecentProject project;
+  project.name = "missing-test.sfc";
+  project.filepath = "/missing/missing-test.sfc";
+  project.item_type = "Missing";
+  project.is_missing = true;
+
+  int open_count = 0;
+  screen.SetOpenProjectCallback([&](const std::string&) { ++open_count; });
+
+  DrawCardFrame(&screen, project, /*request_keyboard_focus=*/true);
+  DrawCardFrame(&screen, project, /*request_keyboard_focus=*/false);
+  ASSERT_NE(expected_card_id_, 0u);
+  ASSERT_EQ(context_->NavId, expected_card_id_);
+
+  DrawCardFrame(&screen, project, /*request_keyboard_focus=*/false,
+                [](ImGuiIO& io) { io.AddKeyEvent(ImGuiKey_Enter, true); });
+
+  EXPECT_EQ(open_count, 0);
+}
+
+TEST_F(WelcomeScreenTest, UnavailableRecentCardDoesNotActivateOpenCallback) {
+  WelcomeScreen screen;
+  RecentProject project;
+  project.name = "permission-test.sfc";
+  project.filepath = "/unavailable/permission-test.sfc";
+  project.item_type = "Unavailable";
+  project.unavailable = true;
+
+  int open_count = 0;
+  screen.SetOpenProjectCallback([&](const std::string&) { ++open_count; });
+
+  DrawCardFrame(&screen, project, /*request_keyboard_focus=*/true);
+  DrawCardFrame(&screen, project, /*request_keyboard_focus=*/false);
+  ASSERT_NE(expected_card_id_, 0u);
+  ASSERT_EQ(context_->NavId, expected_card_id_);
+
+  DrawCardFrame(&screen, project, /*request_keyboard_focus=*/false,
+                [](ImGuiIO& io) { io.AddKeyEvent(ImGuiKey_Enter, true); });
+
+  EXPECT_EQ(open_count, 0);
 }
 
 TEST_F(WelcomeScreenTest, SecondaryStartActionsKeepImGuiStacksBalanced) {

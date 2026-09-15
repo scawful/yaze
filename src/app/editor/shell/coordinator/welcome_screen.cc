@@ -256,9 +256,11 @@ bool WelcomeScreen::Show(bool* p_open) {
                            kWelcomeCardMaxWidth * font_scale);
   float height = std::clamp(viewport_size.y * 0.68f, 400.0f * font_scale,
                             kWelcomeCardMaxHeight * font_scale);
-  // Never exceed the usable dockspace.
-  width = std::min(width, std::max(320.0f, dockspace_width - 24.0f));
-  height = std::min(height, std::max(280.0f, viewport_size.y - 24.0f));
+  // Treat the viewport as a hard ceiling. The preferred card minimums above
+  // yield to a cramped browser/WASM surface instead of pushing the window
+  // off-screen.
+  width = std::min(width, std::max(1.0f, dockspace_width - 24.0f));
+  height = std::min(height, std::max(1.0f, viewport_size.y - 24.0f));
 
   ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
   ImGui::SetNextWindowSize(ImVec2(width, height), ImGuiCond_Always);
@@ -635,6 +637,11 @@ void WelcomeScreen::DrawFirstRunGuide() {
   if (!recent_projects_model_.entries().empty() || has_rom_)
     return;
 
+  const float layout_scale = ImGui::GetFontSize() / 16.0f;
+  if (ImGui::GetContentRegionAvail().y < 300.0f * layout_scale) {
+    return;
+  }
+
   // Entry animation piggybacks on the quick actions section.
   float progress = GetStaggeredEntryProgress(entry_time_, 1, kEntryAnimDuration,
                                              kEntryStaggerDelay);
@@ -643,14 +650,14 @@ void WelcomeScreen::DrawFirstRunGuide() {
   gui::StyleVarGuard alpha_guard(ImGuiStyleVar_Alpha, progress);
 
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
-  ImGui::TextColored(kTriforceGold, ICON_MD_AUTO_AWESOME " First time here?");
+  ImGui::TextColored(kTriforceGold, ICON_MD_AUTO_AWESOME " New here?");
+  ImGui::SameLine();
   {
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
     ImGui::TextWrapped(
-        tr("Open a clean .sfc or .smc ROM to begin. Yaze works locally and "
-           "does not change the file until you choose Save."));
+        tr("Open a clean .sfc or .smc ROM. Changes are not written until you "
+           "choose Save."));
   }
-  ImGui::Spacing();
 }
 
 void WelcomeScreen::DrawQuickActions() {
@@ -743,10 +750,18 @@ void WelcomeScreen::DrawQuickActions() {
     ImGui::TextColored(gui::GetTextSecondaryVec4(), "%s", tr("Without a ROM"));
   }
 
+  const bool has_both_secondary = open_prototype_research_callback_ &&
+                                  open_assembly_editor_no_rom_callback_;
+  const bool inline_secondary =
+      has_both_secondary && action_width >= 420.0f * scale;
+  const float secondary_width =
+      inline_secondary ? (button_width - ImGui::GetStyle().ItemSpacing.x) * 0.5f
+                       : button_width;
+
   if (open_prototype_research_callback_) {
     ImGui::Spacing();
     if (gui::ThemedButton(ICON_MD_CONSTRUCTION " Prototype Research",
-                          ImVec2(button_width, secondary_height),
+                          ImVec2(secondary_width, secondary_height),
                           "welcome_screen", "prototype_research")) {
       open_prototype_research_callback_();
     }
@@ -756,12 +771,17 @@ void WelcomeScreen::DrawQuickActions() {
           " Open the Graphics editor for CGX, SCR, COL, BIN, and clipboard "
           "work without loading a ROM");
     }
+    if (inline_secondary) {
+      ImGui::SameLine();
+    }
   }
 
   if (open_assembly_editor_no_rom_callback_) {
-    ImGui::Spacing();
+    if (!inline_secondary) {
+      ImGui::Spacing();
+    }
     if (gui::ThemedButton(ICON_MD_CODE " Assembly Editor",
-                          ImVec2(button_width, secondary_height),
+                          ImVec2(secondary_width, secondary_height),
                           "welcome_screen", "assembly_editor")) {
       open_assembly_editor_no_rom_callback_();
     }
@@ -1030,6 +1050,7 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
 
   const ImVec2 resolved_card_size = card_size;
+  const bool can_open = !project.is_missing && !project.unavailable;
 
   ImVec4 accent = kTriforceGold;
   if (project.unavailable) {
@@ -1069,12 +1090,16 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
               "Point at the new location for this file. Pin/rename/notes are "
               "preserved."));
         }
-      } else {
+      } else if (can_open) {
         if (ImGui::MenuItem(ICON_MD_OPEN_IN_NEW " Open")) {
           if (open_project_callback_) {
             open_project_callback_(project.filepath);
           }
         }
+      } else {
+        ImGui::BeginDisabled();
+        ImGui::MenuItem(ICON_MD_WARNING " Re-open required");
+        ImGui::EndDisabled();
       }
       ImGui::Separator();
       if (ImGui::MenuItem(project.pinned ? ICON_MD_PUSH_PIN " Unpin"
@@ -1195,11 +1220,19 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
       ImGui::Text(tr("Last opened: %s"), project.last_modified.c_str());
       ImGui::Text(tr("Path: %s"), project.filepath.c_str());
       ImGui::Separator();
-      ImGui::TextColored(kTriforceGold, ICON_MD_TOUCH_APP " Click to open");
+      if (project.is_missing) {
+        ImGui::TextColored(kTriforceGold,
+                           ICON_MD_SEARCH " Right-click to locate");
+      } else if (project.unavailable) {
+        ImGui::TextColored(kHeartRed,
+                           ICON_MD_WARNING " Re-open from the start actions");
+      } else {
+        ImGui::TextColored(kTriforceGold, ICON_MD_TOUCH_APP " Click to open");
+      }
       ImGui::EndTooltip();
     }
 
-    if (is_activated && open_project_callback_) {
+    if (is_activated && can_open && open_project_callback_) {
       open_project_callback_(project.filepath);
     }
   }
