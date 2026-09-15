@@ -112,12 +112,18 @@ clone_ref() {
     return 1
   fi
   mark_checkout "$temp"
+  # Best-effort race check: nothing else is expected to write $REFS_DIR
+  # during a bootstrap, and losing this race only aborts this ref.
   if [[ -e "$dest" ]]; then
     echo "[bootstrap] refs: destination appeared during clone: $dest" >&2
     rm -rf -- "$temp"
     return 1
   fi
-  mv -- "$temp" "$dest"
+  if ! mv -- "$temp" "$dest"; then
+    echo "[bootstrap] refs: failed to move $temp into place at $dest" >&2
+    rm -rf -- "$temp"
+    return 1
+  fi
 }
 
 step_deps() {
@@ -148,6 +154,10 @@ step_refs() {
     # A final destination may contain work that this script does not own. New
     # clones use a temporary sibling, so an interrupted bootstrap never needs
     # to delete or replace an unreadable final path.
+    if [[ -L "$dest" ]]; then
+      echo "[bootstrap] refs: $dest is a symlink; refusing to use it as a reference checkout" >&2
+      return 1
+    fi
     if [[ -e "$dest" ]]; then
       repo_root="$(git -C "$dest" rev-parse --show-toplevel 2>/dev/null || true)"
       dest_root="$(cd "$dest" 2>/dev/null && pwd -P || true)"
@@ -168,8 +178,12 @@ step_refs() {
         # Unpinned refs track the default branch, so refresh them on warm
         # (snapshotted) containers. Local edits or a failed fetch keep the
         # existing checkout rather than failing setup.
+        head="$(git -C "$dest" rev-parse HEAD 2>/dev/null || true)"
+        owned="$(git -C "$dest" rev-parse --quiet --verify refs/bootstrap/checkout || true)"
         if [[ -n "$(git -C "$dest" status --porcelain=v1 --untracked-files=all)" ]]; then
           log "refs: $name has local changes; not refreshing"
+        elif [[ "$head" != "$owned" ]]; then
+          log "refs: $name is on ${head:0:7}, which bootstrap did not check out; not refreshing"
         elif git -C "$dest" fetch --quiet origin HEAD; then
           if ! git -C "$dest" merge-base --is-ancestor HEAD FETCH_HEAD; then
             log "refs: $name has local or divergent commits; not refreshing"
@@ -182,8 +196,11 @@ step_refs() {
         else
           log "refs: $name refresh failed; keeping $(git -C "$dest" rev-parse --short HEAD)"
         fi
-      else
-        clone_ref "$name" "$url" "" "$dest"
+      elif ! clone_ref "$name" "$url" "" "$dest"; then
+        # Unpinned refs are read-only context, so a failed clone leaves the
+        # rest of the environment usable. Pinned refs still fail closed
+        # below: generated docs are verified against them.
+        log "refs: $name clone failed; continuing without it"
       fi
       continue
     fi
