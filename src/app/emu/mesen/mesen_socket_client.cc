@@ -2,6 +2,7 @@
 
 #include <fcntl.h>
 #include <sys/stat.h>
+
 #include <filesystem>
 
 #ifdef _WIN32
@@ -15,24 +16,27 @@
 #define close closesocket
 typedef int ssize_t;
 #else
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <poll.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
 #endif
 
-#include <cstdlib>
-
 #include <cerrno>
+#include <charconv>
+#include <cstdlib>
 #include <cstring>
 #include <regex>
 #include <sstream>
+#include <utility>
 
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_split.h"
-
-#include <charconv>
 
 namespace yaze {
 namespace emu {
@@ -192,13 +196,179 @@ std::string BuildJsonCommand(
 }
 
 constexpr size_t kMaxResponseSize = 4 * 1024 * 1024;
+constexpr int kConnectTimeoutMs = 2000;
 
-absl::Status ConnectSocketToPath(const std::string& socket_path,
-                                 int* socket_fd) {
-  if (socket_fd == nullptr) {
-    return absl::InvalidArgumentError("socket_fd output pointer is null");
+bool LooksLikeTcpEndpoint(const std::string& path) {
+  return path.rfind("tcp://", 0) == 0 || path.rfind("tcp:", 0) == 0;
+}
+
+absl::StatusOr<std::pair<std::string, uint16_t>> ParseTcpEndpoint(
+    const std::string& path) {
+  std::string raw = path;
+  if (raw.rfind("tcp://", 0) == 0) {
+    raw = raw.substr(6);
+  } else if (raw.rfind("tcp:", 0) == 0) {
+    raw = raw.substr(4);
+  } else {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Not a tcp:// endpoint: ", path));
   }
 
+  std::string host = "127.0.0.1";
+  std::string port_str = raw;
+  const auto colon = raw.rfind(':');
+  if (colon != std::string::npos) {
+    host = raw.substr(0, colon);
+    port_str = raw.substr(colon + 1);
+    if (host.empty()) {
+      host = "127.0.0.1";
+    }
+  }
+  int port = 0;
+  if (!absl::SimpleAtoi(port_str, &port) || port <= 0 || port > 65535) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("Invalid TCP port in ", path));
+  }
+  return std::make_pair(host, static_cast<uint16_t>(port));
+}
+
+bool SetSocketBlocking(int fd, bool blocking) {
+#ifdef _WIN32
+  u_long mode = blocking ? 0UL : 1UL;
+  return ioctlsocket(fd, FIONBIO, &mode) == 0;
+#else
+  const int flags = fcntl(fd, F_GETFL, 0);
+  if (flags < 0) {
+    return false;
+  }
+  const int next_flags =
+      blocking ? (flags & ~O_NONBLOCK) : (flags | O_NONBLOCK);
+  return fcntl(fd, F_SETFL, next_flags) == 0;
+#endif
+}
+
+absl::Status WaitForConnectComplete(int fd, const std::string& socket_path) {
+#ifdef _WIN32
+  fd_set write_fds;
+  FD_ZERO(&write_fds);
+  FD_SET(fd, &write_fds);
+  timeval tv;
+  tv.tv_sec = kConnectTimeoutMs / 1000;
+  tv.tv_usec = (kConnectTimeoutMs % 1000) * 1000;
+  const int ready = select(0, nullptr, &write_fds, nullptr, &tv);
+#else
+  pollfd pfd{};
+  pfd.fd = fd;
+  pfd.events = POLLOUT;
+  const int ready = poll(&pfd, 1, kConnectTimeoutMs);
+#endif
+  if (ready == 0) {
+    return absl::DeadlineExceededError(absl::StrCat("Timed out connecting to ",
+                                                    socket_path, " after ",
+                                                    kConnectTimeoutMs, "ms"));
+  }
+  if (ready < 0) {
+#ifdef _WIN32
+    return absl::UnavailableError(
+        absl::StrCat("select() failed while connecting to ", socket_path));
+#else
+    return absl::UnavailableError(
+        absl::StrCat("poll() failed while connecting to ", socket_path, ": ",
+                     strerror(errno)));
+#endif
+  }
+
+  int err = 0;
+#ifdef _WIN32
+  int len = sizeof(err);
+  if (getsockopt(fd, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&err),
+                 &len) != 0) {
+#else
+  socklen_t len = sizeof(err);
+  if (getsockopt(fd, SOL_SOCKET, SO_ERROR, &err, &len) != 0) {
+#endif
+    return absl::UnavailableError(
+        absl::StrCat("Failed to read connect status for ", socket_path, ": ",
+                     strerror(errno)));
+  }
+  if (err != 0) {
+    return absl::UnavailableError(absl::StrCat(
+        "Failed to connect to ", socket_path, ": ", strerror(err)));
+  }
+  return absl::OkStatus();
+}
+
+absl::Status ConnectTcpEndpoint(const std::string& socket_path,
+                                int* socket_fd) {
+  auto parsed = ParseTcpEndpoint(socket_path);
+  if (!parsed.ok()) {
+    return parsed.status();
+  }
+  const std::string& host = parsed->first;
+  const uint16_t port = parsed->second;
+
+  int fd = socket(AF_INET, SOCK_STREAM, 0);
+  if (fd < 0) {
+    return absl::InternalError(
+        absl::StrCat("Failed to create TCP socket: ", strerror(errno)));
+  }
+
+  if (!SetSocketBlocking(fd, false)) {
+    close(fd);
+    return absl::InternalError("Failed to set non-blocking mode on TCP socket");
+  }
+
+  sockaddr_in addr;
+  memset(&addr, 0, sizeof(addr));
+  addr.sin_family = AF_INET;
+  addr.sin_port = htons(port);
+  if (inet_pton(AF_INET, host.c_str(), &addr.sin_addr) != 1) {
+    addrinfo hints;
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    addrinfo* result = nullptr;
+    const int gai = getaddrinfo(host.c_str(), nullptr, &hints, &result);
+    if (gai != 0 || result == nullptr) {
+      close(fd);
+      return absl::UnavailableError(
+          absl::StrCat("Failed to resolve ", host, ": ",
+                       gai != 0 ? gai_strerror(gai) : "no address"));
+    }
+    addr.sin_addr = reinterpret_cast<sockaddr_in*>(result->ai_addr)->sin_addr;
+    freeaddrinfo(result);
+  }
+
+  const int rc = connect(fd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
+#ifdef _WIN32
+  const bool in_progress = (rc < 0) && (WSAGetLastError() == WSAEWOULDBLOCK);
+#else
+  const bool in_progress = (rc < 0) && (errno == EINPROGRESS);
+#endif
+  if (rc < 0 && !in_progress) {
+    close(fd);
+    return absl::UnavailableError(absl::StrCat(
+        "Failed to connect to ", socket_path, ": ", strerror(errno)));
+  }
+  if (in_progress) {
+    auto wait_status = WaitForConnectComplete(fd, socket_path);
+    if (!wait_status.ok()) {
+      close(fd);
+      return wait_status;
+    }
+  }
+
+  if (!SetSocketBlocking(fd, true)) {
+    close(fd);
+    return absl::InternalError("Failed to restore blocking mode on TCP socket");
+  }
+
+  *socket_fd = fd;
+  return absl::OkStatus();
+}
+
+absl::Status ConnectUnixEndpoint(const std::string& socket_path,
+                                 int* socket_fd) {
   int fd = socket(AF_UNIX, SOCK_STREAM, 0);
   if (fd < 0) {
     return absl::InternalError(
@@ -210,7 +380,8 @@ absl::Status ConnectSocketToPath(const std::string& socket_path,
   addr.sun_family = AF_UNIX;
   strncpy(addr.sun_path, socket_path.c_str(), sizeof(addr.sun_path) - 1);
 
-  if (connect(fd, reinterpret_cast<struct sockaddr*>(&addr), sizeof(addr)) < 0) {
+  if (connect(fd, reinterpret_cast<struct sockaddr*>(&addr), sizeof(addr)) <
+      0) {
     close(fd);
     return absl::UnavailableError(absl::StrCat(
         "Failed to connect to ", socket_path, ": ", strerror(errno)));
@@ -218,6 +389,17 @@ absl::Status ConnectSocketToPath(const std::string& socket_path,
 
   *socket_fd = fd;
   return absl::OkStatus();
+}
+
+absl::Status ConnectSocketToPath(const std::string& socket_path,
+                                 int* socket_fd) {
+  if (socket_fd == nullptr) {
+    return absl::InvalidArgumentError("socket_fd output pointer is null");
+  }
+  if (LooksLikeTcpEndpoint(socket_path)) {
+    return ConnectTcpEndpoint(socket_path, socket_fd);
+  }
+  return ConnectUnixEndpoint(socket_path, socket_fd);
 }
 
 void ShutdownSocketFd(int fd) {
@@ -292,15 +474,22 @@ bool MesenSocketClient::IsConnected() const {
 std::vector<std::string> MesenSocketClient::FindSocketPaths() {
   const char* env_path = std::getenv("MESEN2_SOCKET_PATH");
   if (env_path && env_path[0] != '\0') {
+    std::string env(env_path);
+    if (LooksLikeTcpEndpoint(env)) {
+      // Preserve an explicit TCP target even when parsing fails. Dropping it
+      // and searching /tmp would let Auto Connect attach to a different local
+      // emulator after a typo such as tcp://192.168.1.227:bad.
+      return {env};
+    }
 #ifdef _WIN32
     // Windows AF_UNIX sockets don't report S_IFSOCK via stat; trust the env var
     if (std::filesystem::exists(env_path)) {
-      return {std::string(env_path)};
+      return {env};
     }
 #else
     struct stat st;
     if (stat(env_path, &st) == 0 && (st.st_mode & S_IFMT) == S_IFSOCK) {
-      return {std::string(env_path)};
+      return {env};
     }
 #endif
   }
@@ -325,8 +514,8 @@ std::vector<std::string> MesenSocketClient::FindSocketPaths() {
     for (const auto& entry : fs::directory_iterator(search_path, ec)) {
       if (ec)
         break;
-      // On Windows, checking is_socket might be unreliable or not supported for AF_UNIX files,
-      // so we mainly rely on the filename pattern.
+      // On Windows, checking is_socket might be unreliable or not supported for
+      // AF_UNIX files, so we mainly rely on the filename pattern.
       std::string filename = entry.path().filename().string();
       if (std::regex_match(filename, socket_pattern)) {
         paths.push_back(entry.path().string());
@@ -415,7 +604,8 @@ absl::StatusOr<std::string> MesenSocketClient::SendCommand(
   }
 
   std::lock_guard<std::mutex> lock(command_mutex_);
-  return SendCommandOnSocket(socket_fd_, json, /*update_connection_state=*/true);
+  return SendCommandOnSocket(socket_fd_, json,
+                             /*update_connection_state=*/true);
 }
 
 absl::StatusOr<std::string> MesenSocketClient::ParseResponse(
@@ -499,28 +689,40 @@ absl::Status MesenSocketClient::SetButtons(
   current_input_ = state;
 
   std::vector<std::string> buttons;
-  if (state.IsPressed(emu::input::SnesButton::A)) buttons.push_back("a");
-  if (state.IsPressed(emu::input::SnesButton::B)) buttons.push_back("b");
-  if (state.IsPressed(emu::input::SnesButton::X)) buttons.push_back("x");
-  if (state.IsPressed(emu::input::SnesButton::Y)) buttons.push_back("y");
-  if (state.IsPressed(emu::input::SnesButton::L)) buttons.push_back("l");
-  if (state.IsPressed(emu::input::SnesButton::R)) buttons.push_back("r");
+  if (state.IsPressed(emu::input::SnesButton::A))
+    buttons.push_back("a");
+  if (state.IsPressed(emu::input::SnesButton::B))
+    buttons.push_back("b");
+  if (state.IsPressed(emu::input::SnesButton::X))
+    buttons.push_back("x");
+  if (state.IsPressed(emu::input::SnesButton::Y))
+    buttons.push_back("y");
+  if (state.IsPressed(emu::input::SnesButton::L))
+    buttons.push_back("l");
+  if (state.IsPressed(emu::input::SnesButton::R))
+    buttons.push_back("r");
   if (state.IsPressed(emu::input::SnesButton::SELECT))
     buttons.push_back("select");
   if (state.IsPressed(emu::input::SnesButton::START))
     buttons.push_back("start");
-  if (state.IsPressed(emu::input::SnesButton::UP)) buttons.push_back("up");
-  if (state.IsPressed(emu::input::SnesButton::DOWN)) buttons.push_back("down");
-  if (state.IsPressed(emu::input::SnesButton::LEFT)) buttons.push_back("left");
-  if (state.IsPressed(emu::input::SnesButton::RIGHT)) buttons.push_back("right");
+  if (state.IsPressed(emu::input::SnesButton::UP))
+    buttons.push_back("up");
+  if (state.IsPressed(emu::input::SnesButton::DOWN))
+    buttons.push_back("down");
+  if (state.IsPressed(emu::input::SnesButton::LEFT))
+    buttons.push_back("left");
+  if (state.IsPressed(emu::input::SnesButton::RIGHT))
+    buttons.push_back("right");
 
   std::string buttons_str;
   for (size_t i = 0; i < buttons.size(); ++i) {
-    if (i > 0) buttons_str += ",";
+    if (i > 0)
+      buttons_str += ",";
     buttons_str += buttons[i];
   }
 
-  auto result = SendCommand(BuildJsonCommand("INPUT", {{"buttons", buttons_str}}));
+  auto result =
+      SendCommand(BuildJsonCommand("INPUT", {{"buttons", buttons_str}}));
   return result.status();
 }
 
@@ -862,8 +1064,8 @@ absl::Status MesenSocketClient::Subscribe(
   struct timeval tv;
   tv.tv_sec = 5;
   tv.tv_usec = 0;
-  setsockopt(event_fd, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&tv),
-             sizeof(tv));
+  setsockopt(event_fd, SOL_SOCKET, SO_RCVTIMEO,
+             reinterpret_cast<const char*>(&tv), sizeof(tv));
 
   std::string response;
   char buffer[4096];

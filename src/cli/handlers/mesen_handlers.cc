@@ -14,6 +14,7 @@
 #include "absl/flags/declare.h"
 #include "absl/flags/flag.h"
 #include "absl/strings/numbers.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "absl/strings/str_join.h"
 #include "absl/time/clock.h"
@@ -401,7 +402,8 @@ void AddSavestateFreshnessFields(resources::OutputFormatter& formatter,
         socket_path.empty() ? client->Connect() : client->Connect(socket_path);
     if (!status.ok()) {
       return ::absl::UnavailableError(
-          "Not connected to Mesen2. Is Mesen2-OoS running?");
+          ::absl::StrCat("Not connected to Mesen2. Is Mesen2-OoS running? ",
+                         status.message()));
     }
     auto& session = SessionState();
     session.connected = true;
