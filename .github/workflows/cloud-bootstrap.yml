@@ -1,0 +1,39 @@
+name: Cloud Bootstrap
+
+# Proves scripts/cloud/bootstrap.sh still prepares a fresh Ubuntu 24.04
+# container (the Claude Code web / Codex / Cursor base) to build and unit-test
+# yaze without a ROM. Doc-only edits are covered by reference-docs.yml.
+
+on:
+  pull_request:
+    paths:
+      - "scripts/cloud/**"
+      - ".cursor/environment.json"
+      - ".github/workflows/cloud-bootstrap.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cloud-bootstrap-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bootstrap:
+    name: Bootstrap, build, and unit test (lin-test)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install, init submodules, clone refs
+        run: |
+          start=$(date +%s)
+          bash scripts/cloud/bootstrap.sh
+          echo "Default setup steps took $(( $(date +%s) - start ))s (Claude Code web limit is about 300s)"
+      - name: Configure
+        run: bash scripts/cloud/bootstrap.sh configure
+      - name: Build yaze_test_unit
+        run: bash scripts/cloud/bootstrap.sh build
+      - name: Unit tests
+        run: bash scripts/cloud/bootstrap.sh test
