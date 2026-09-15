@@ -663,6 +663,36 @@ TEST_P(RoomObjectRomParityTest, BigKeyLockParserMatchesRawRomWords) {
   }
 }
 
+TEST_P(RoomObjectRomParityTest, BarCornerParserMatchesRawRomWordsAndRanges) {
+  SCOPED_TRACE(::yaze::test::TestRomManager::GetRomRoleName(GetParam()));
+  ObjectParser parser(rom_.get());
+  // RoomDraw_Rightwards2x2 consumes one 4-word block per corner. In vanilla
+  // the four blocks (obj09B8..obj09D0) are contiguous, so an 8-word read
+  // would alias the next corner's payload.
+  for (int id = 0xFD6; id <= 0xFD9; ++id) {
+    SCOPED_TRACE(absl::StrFormat("object 0x%03X (BarCorner)", id));
+    const int addr = Subtype3TileDataAddr(*rom_, id);
+    const auto expected = DecodeTilesFromRom(*rom_, addr, /*count=*/4);
+
+    auto parsed_or = parser.ParseObject(static_cast<int16_t>(id));
+    ASSERT_TRUE(parsed_or.ok()) << parsed_or.status();
+    const auto& parsed = parsed_or.value();
+    ASSERT_EQ(parsed.size(), 4u);
+    for (size_t i = 0; i < expected.size(); ++i) {
+      SCOPED_TRACE(absl::StrFormat("tile idx=%zu", i));
+      EXPECT_TRUE(parsed[i] == expected[i])
+          << "parsed.id=0x" << std::hex << parsed[i].id_ << " vs expected.id=0x"
+          << expected[i].id_;
+    }
+
+    auto ranges_or = parser.ResolveTileReadRanges(static_cast<int16_t>(id));
+    ASSERT_TRUE(ranges_or.ok()) << ranges_or.status();
+    ASSERT_EQ(ranges_or->size(), 1u);
+    EXPECT_EQ((*ranges_or)[0].begin, static_cast<uint32_t>(addr));
+    EXPECT_EQ((*ranges_or)[0].end, static_cast<uint32_t>(addr + 8));
+  }
+}
+
 TEST_P(RoomObjectRomParityTest, BombableFloorParserMatchesRawRomWords) {
   SCOPED_TRACE(::yaze::test::TestRomManager::GetRomRoleName(GetParam()));
   ObjectParser parser(rom_.get());
