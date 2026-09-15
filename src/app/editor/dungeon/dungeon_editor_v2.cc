@@ -623,6 +623,8 @@ void DungeonEditorV2::Initialize() {
 
   // Register panels with WorkspaceWindowManager (no boolean flags - visibility is
   // managed entirely by WorkspaceWindowManager::ShowPanel/HidePanel/IsPanelVisible)
+  // No default chord: Ctrl+Shift+W is reserved for Close Session. Toggle via
+  // View / Window Browser / command palette instead.
   window_manager->RegisterPanel(
       {.card_id = "dungeon.workbench",
        .display_name = "Dungeon Workbench",
@@ -630,7 +632,7 @@ void DungeonEditorV2::Initialize() {
        .icon = ICON_MD_WORKSPACES,
        .category = "Dungeon",
        .workflow_group = "Core",
-       .shortcut_hint = "Ctrl+Shift+W",
+       .shortcut_hint = "",
        .visibility_flag = nullptr,
        .priority = 5,
        .enabled_condition = [this]() { return rom_ && rom_->is_loaded(); },
