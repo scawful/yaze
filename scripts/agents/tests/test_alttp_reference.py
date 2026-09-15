@@ -76,6 +76,13 @@ SRAM = """\
 CURHP           = $7EF36D
 """
 
+BANK_07 = """\
+org $078000
+
+Far:
+#_078000: RTS
+"""
+
 
 class Fixture(unittest.TestCase):
     def setUp(self) -> None:
@@ -85,6 +92,7 @@ class Fixture(unittest.TestCase):
         self.root.mkdir()
         self.maps.mkdir()
         (self.root / "bank_00.asm").write_text(BANK_00)
+        (self.root / "bank_07.asm").write_text(BANK_07)
         (self.root / "registers.asm").write_text(REGISTERS)
         (self.maps / "symbols_wram.asm").write_text(WRAM)
         (self.maps / "symbols_sram.asm").write_text(SRAM)
@@ -214,6 +222,16 @@ class CheckTest(Fixture):
         self.assertEqual(len(problems), 1)
         self.assertIn("stale", problems[0])
 
+    def test_unknown_section_is_a_per_file_problem_in_check(self) -> None:
+        db = ar.Usdasm.load(self.root)
+        body = ("<!-- BEGIN GENERATED: moduels -->\n| typo |\n"
+                "<!-- END GENERATED: moduels -->\n")
+        with self.assertRaises(SystemExit):
+            ar.apply_sections(body, {})  # render stays strict
+        problems, _ = self.check(db, body)
+        self.assertEqual(len(problems), 1)
+        self.assertIn("unknown generated section `moduels`", problems[0])
+
     def test_sections_without_sources_are_kept_and_reported(self) -> None:
         db = ar.Usdasm.load(self.root)
         body = ("<!-- BEGIN GENERATED: wram -->\n| kept |\n"
@@ -259,6 +277,17 @@ class AddressRulesTest(Fixture):
             """)
         self.assertEqual(len(problems), 1)
         self.assertIn("doc says $7FF36D", problems[0])
+
+    def test_shorthand_outside_banks_00_and_7e_must_use_six_digits(self) -> None:
+        db = ar.Usdasm.load(self.root, self.maps)
+        problems, _ = self.check(db, """\
+            | `Reset` | `$8000` | bank $00 shorthand is fine |
+            | `Far` | `$078000` | six digits in another bank |
+            | `Far` | `$8000` | shorthand would alias Reset |
+            """)
+        self.assertEqual(len(problems), 1)
+        self.assertIn("`Far` is $078000", problems[0])
+        self.assertIn("six-digit", problems[0])
 
     def test_conflicting_symbol_redefinition_is_an_error(self) -> None:
         (self.maps / "symbols_sram.asm").write_text(
