@@ -431,7 +431,7 @@ class Room {
   void MarkObjectsDirty() {
     dirty_state_.objects = true;
     dirty_state_.textures = true;
-    dirty_state_.composite = true;
+    MarkCompositeDirty();
   }
   void MarkObjectStreamDirty() {
     save_dirty_state_.object_stream = true;
@@ -472,12 +472,12 @@ class Room {
   void MarkGraphicsDirty() {
     dirty_state_.graphics = true;
     dirty_state_.textures = true;
-    dirty_state_.composite = true;
+    MarkCompositeDirty();
   }
   void MarkLayoutDirty() {
     dirty_state_.layout = true;
     dirty_state_.textures = true;
-    dirty_state_.composite = true;
+    MarkCompositeDirty();
   }
   void RemoveTileObject(size_t index) {
     if (index < tile_objects_.size()) {
@@ -1022,6 +1022,18 @@ class Room {
   // Identifies the assembled pixels, including animated frame reloads. The
   // token survives moves and cannot collide with another room's reload count.
   uint64_t graphics_revision() const { return graphics_revision_; }
+  // Identifies every source change that can alter a composed room image.
+  // Unlike graphics_revision(), this also advances for object-only, layout,
+  // palette, and direct composite invalidations.
+  uint64_t composite_source_revision() const {
+    return composite_source_revision_;
+  }
+  const gfx::SnesPalette& rendered_dungeon_palette() const {
+    return rendered_dungeon_palette_;
+  }
+  const std::vector<SDL_Color>& rendered_palette() const {
+    return rendered_palette_;
+  }
 
   // Per-room background buffers (not shared via arena!)
   auto& bg1_buffer() { return bg1_buffer_; }
@@ -1035,10 +1047,13 @@ class Room {
 
   /// Get a composite bitmap of all layers merged
   gfx::Bitmap& GetCompositeBitmap(RoomLayerManager& layer_mgr);
+  /// Compose into storage owned by the caller. Live editor views use this path
+  /// so deferred draws retain stable bitmap and texture identity.
+  void RenderComposite(const RoomLayerManager& layer_mgr, gfx::Bitmap& output);
   const gfx::Bitmap& composite_bitmap() const { return composite_bitmap_; }
 
   /// Mark composite bitmap as needing regeneration
-  void MarkCompositeDirty() { dirty_state_.composite = true; }
+  void MarkCompositeDirty();
   bool IsCompositeDirty() const { return dirty_state_.composite; }
 
   DungeonState* GetDungeonState() { return dungeon_state_.get(); }
@@ -1050,6 +1065,9 @@ class Room {
 
   std::array<uint8_t, 0x10000> current_gfx16_;
   uint64_t graphics_revision_ = 0;
+  uint64_t composite_source_revision_ = 0;
+  gfx::SnesPalette rendered_dungeon_palette_;
+  std::vector<SDL_Color> rendered_palette_;
 
   // Each room has its OWN background buffers and bitmaps
   // Each room has its OWN background buffers and bitmaps
@@ -1084,6 +1102,7 @@ class Room {
   // Composite bitmap for merged layer output
   mutable gfx::Bitmap composite_bitmap_;
   mutable uint64_t composite_signature_ = 0;
+  mutable uint64_t composite_rendered_source_revision_ = 0;
   mutable bool has_composite_signature_ = false;
   DirtyState dirty_state_;
   SaveDirtyState save_dirty_state_;

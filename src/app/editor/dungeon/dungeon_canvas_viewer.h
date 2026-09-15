@@ -5,11 +5,14 @@
 #include <cstdint>
 #include <functional>
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_room_composite.h"
 #include "app/editor/editor.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/types/snes_palette.h"
@@ -21,6 +24,7 @@
 #include "dungeon_room_store.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
+#include "util/lru_cache.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/room.h"
@@ -262,6 +266,7 @@ class DungeonCanvasViewer {
           return true;
         });
   }
+  ~DungeonCanvasViewer();
 
   void DrawDungeonCanvas(int room_id);
   std::optional<int> DrawConnectedRoomMatrix(int center_room_id);
@@ -287,6 +292,9 @@ class DungeonCanvasViewer {
   }
 
   void SetContext(EditorContext ctx) {
+    if (rom_ != ctx.rom || game_data_ != ctx.game_data) {
+      ResetRoomCompositeOutputs();
+    }
     rom_ = ctx.rom;
     game_data_ = ctx.game_data;
     object_interaction_.SetRom(ctx.rom);
@@ -295,18 +303,29 @@ class DungeonCanvasViewer {
   }
   EditorContext context() const { return {rom_, game_data_}; }
   void SetRom(Rom* rom) {
+    if (rom_ != rom) {
+      ResetRoomCompositeOutputs();
+    }
     rom_ = rom;
     object_interaction_.SetRom(rom);
     connected_graph_cache_start_room_id_ = -1;
     connected_graph_cache_ = ConnectedRoomGraphData{};
   }
   Rom* rom() const { return rom_; }
-  void SetGameData(zelda3::GameData* game_data) { game_data_ = game_data; }
+  void SetGameData(zelda3::GameData* game_data) {
+    if (game_data_ != game_data) {
+      ResetRoomCompositeOutputs();
+    }
+    game_data_ = game_data;
+  }
   zelda3::GameData* game_data() const { return game_data_; }
   void SetRenderer(gfx::IRenderer* renderer) { renderer_ = renderer; }
 
   // Room data access
   void SetRooms(DungeonRoomStore* rooms) {
+    if (rooms_ != rooms) {
+      ResetRoomCompositeOutputs();
+    }
     rooms_ = rooms;
     connected_graph_cache_start_room_id_ = -1;
     connected_graph_cache_ = ConnectedRoomGraphData{};
@@ -533,6 +552,8 @@ class DungeonCanvasViewer {
     pin_callback_ = std::move(callback);
   }
   void SetProject(const project::YazeProject* project);
+  // Refresh external previews without replacing room data or editing state.
+  void InvalidateExternalSpriteResources();
   const project::YazeProject* project() const { return project_; }
 
   // Canvas access
@@ -582,8 +603,9 @@ class DungeonCanvasViewer {
   }
   bool IsLayerVisible(int room_id, zelda3::LayerType layer) const {
     auto it = room_layer_managers_.find(room_id);
-    return it != room_layer_managers_.end() ? it->second.IsLayerVisible(layer)
-                                            : true;
+    return it != room_layer_managers_.end()
+               ? it->second.manager.IsLayerVisible(layer)
+               : true;
   }
 
   // Legacy compatibility - BG1 visibility (combines layout + objects)
@@ -601,15 +623,15 @@ class DungeonCanvasViewer {
     auto it = room_layer_managers_.find(room_id);
     if (it == room_layer_managers_.end())
       return true;
-    return it->second.IsLayerVisible(zelda3::LayerType::BG1_Layout) ||
-           it->second.IsLayerVisible(zelda3::LayerType::BG1_Objects);
+    return it->second.manager.IsLayerVisible(zelda3::LayerType::BG1_Layout) ||
+           it->second.manager.IsLayerVisible(zelda3::LayerType::BG1_Objects);
   }
   bool IsBG2Visible(int room_id) const {
     auto it = room_layer_managers_.find(room_id);
     if (it == room_layer_managers_.end())
       return true;
-    return it->second.IsLayerVisible(zelda3::LayerType::BG2_Layout) ||
-           it->second.IsLayerVisible(zelda3::LayerType::BG2_Objects);
+    return it->second.manager.IsLayerVisible(zelda3::LayerType::BG2_Layout) ||
+           it->second.manager.IsLayerVisible(zelda3::LayerType::BG2_Objects);
   }
 
   // Layer blend mode controls
@@ -621,7 +643,7 @@ class DungeonCanvasViewer {
                                            zelda3::LayerType layer) const {
     auto it = room_layer_managers_.find(room_id);
     return it != room_layer_managers_.end()
-               ? it->second.GetLayerBlendMode(layer)
+               ? it->second.manager.GetLayerBlendMode(layer)
                : zelda3::LayerBlendMode::Normal;
   }
 
@@ -633,13 +655,12 @@ class DungeonCanvasViewer {
   }
 
   // Layer manager access
-  zelda3::RoomLayerManager& GetRoomLayerManager(int room_id) {
-    return room_layer_managers_[room_id];
-  }
+  zelda3::RoomLayerManager& GetRoomLayerManager(int room_id);
   const zelda3::RoomLayerManager& GetRoomLayerManager(int room_id) const {
     static zelda3::RoomLayerManager default_manager;
     auto it = room_layer_managers_.find(room_id);
-    return it != room_layer_managers_.end() ? it->second : default_manager;
+    return it != room_layer_managers_.end() ? it->second.manager
+                                            : default_manager;
   }
 
   // Legacy BG2 layer type (mapped to blend mode)
@@ -760,6 +781,7 @@ class DungeonCanvasViewer {
 
  private:
   friend class DungeonCanvasViewerTestPeer;
+  friend class DungeonEditorPaletteRefreshTestPeer;
   friend class
       DungeonEditorPaletteRefreshTest_CachedRoomRefreshesThroughViewerCompositePreparation_Test;
   friend class
@@ -803,7 +825,7 @@ class DungeonCanvasViewer {
   gui::CanvasMenuItem BuildDebugContextMenu(int room_id);
   std::string BuildRoomMetadataSummary(const zelda3::Room& room,
                                        int room_id) const;
-  std::string BuildDrawIssueReport(const zelda3::Room& room, int room_id) const;
+  std::string BuildDrawIssueReport(const zelda3::Room& room, int room_id);
   std::string BuildSelectionIssueReport(const zelda3::Room& room,
                                         int room_id) const;
   void OpenIssueReportPopup(const std::string& title,
@@ -868,6 +890,10 @@ class DungeonCanvasViewer {
   void DrawChangePingOverlay(const gui::CanvasRuntime& canvas_rt,
                              const zelda3::Room& room);
   void RecordVisitedRoom(int room_id);
+  gfx::Bitmap* PrepareRoomCompositeWithOutput(int room_id,
+                                              RoomCompositeOutput& output);
+  void PruneConnectedRoomCompositeOutputs();
+  void ResetRoomCompositeOutputs();
   void UpdateRoomCanvasShortcutFocus(bool hovered, bool pointer_pressed,
                                      int frame_index);
   bool HasRoomCanvasShortcutFocusForFrame(int frame_index) const;
@@ -876,6 +902,7 @@ class DungeonCanvasViewer {
   // Load: Read from ROM, Render: Process pixels, Draw: Display on canvas
   absl::Status LoadAndRenderRoomGraphics(int room_id);
   gfx::Bitmap* PrepareRoomCompositeBitmap(int room_id);
+  gfx::Bitmap* PrepareConnectedRoomCompositeBitmap(int room_id);
   zelda3::Room* EnsureRoomLoadedForConnectedView(int room_id);
   bool RoomHasNonExitDoorInDirection(int room_id, zelda3::DoorDirection dir);
   ConnectedRoomGraphData BuildConnectedRoomGraph(int start_room_id);
@@ -930,7 +957,22 @@ class DungeonCanvasViewer {
   int room_canvas_last_draw_frame_ = -1;
 
   // Per-room layer managers (4-way visibility, blend modes, per-object translucency)
-  std::map<int, zelda3::RoomLayerManager> room_layer_managers_;
+  struct RoomLayerState {
+    zelda3::RoomLayerManager manager;
+    std::optional<std::pair<zelda3::LayerMergeType, zelda3::EffectKey>>
+        room_settings;
+  };
+  std::map<int, RoomLayerState> room_layer_managers_;
+
+  // The primary output is pinned because Canvas retains its Bitmap pointer.
+  // Connected previews keep stable outputs for rooms visible this frame.
+  RoomCompositeOutput primary_composite_output_;
+  struct ConnectedRoomCompositeEntry {
+    std::unique_ptr<RoomCompositeOutput> output;
+    int last_used_frame = -1;
+  };
+  std::map<int, ConnectedRoomCompositeEntry> connected_composite_outputs_;
+  int connected_composite_prune_frame_ = -1;
 
   // Palette data
   uint64_t current_palette_group_id_ = 0;
@@ -956,6 +998,15 @@ class DungeonCanvasViewer {
   std::function<void(bool)> pin_callback_;
   const project::YazeProject* project_ = nullptr;
   zelda3::SpritePreviewResourceCache sprite_preview_resources_;
+  // Room graphics revisions are globally unique. Retain indexed pixels across
+  // connected-room draws; presentation (palette, position, zoom) stays live.
+  using SpritePreviewKey = std::tuple<uint64_t, uint8_t, int, bool>;
+  struct CachedSpritePreview {
+    std::vector<uint8_t> pixels;
+    SDL_Rect bounds{};
+  };
+  util::LruCache<SpritePreviewKey, CachedSpritePreview> sprite_preview_cache_{
+      128};
 
   bool show_track_collision_overlay_ = false;
   bool show_track_collision_legend_ = true;

@@ -678,6 +678,142 @@ TEST_F(CustomObjectManagerTest, MissingFile) {
   EXPECT_EQ(result.status().code(), absl::StatusCode::kNotFound);
 }
 
+TEST_F(CustomObjectManagerTest, MissingFileStaysCachedUntilAssetReload) {
+  auto& manager = CustomObjectManager::Get();
+  const auto missing = manager.GetObjectInternal(0x31, 0);
+  ASSERT_TRUE(absl::IsNotFound(missing.status()));
+  const uint64_t generation = manager.asset_generation();
+
+  WriteBinaryFile("track_LR.bin", {0x01, 0x00, 0x40, 0x28, 0x00, 0x00});
+  for (int lookup = 0; lookup < 3; ++lookup) {
+    EXPECT_EQ(manager.GetObjectInternal(0x31, 0).status(), missing.status());
+  }
+  EXPECT_EQ(manager.asset_generation(), generation);
+
+  manager.ReloadAll();
+  EXPECT_NE(manager.asset_generation(), generation);
+  const auto reloaded = manager.GetObjectInternal(0x31, 0);
+  ASSERT_TRUE(reloaded.ok()) << reloaded.status();
+  ASSERT_EQ((*reloaded)->tiles.size(), 1u);
+  EXPECT_EQ((*reloaded)->tiles.front().tile_data, 0x2840);
+}
+
+TEST_F(CustomObjectManagerTest, MalformedFileStaysCachedUntilAssetReload) {
+  auto& manager = CustomObjectManager::Get();
+  WriteBinaryFile("track_LR.bin", {0x01, 0x00, 0x40});
+  const auto malformed = manager.GetObjectInternal(0x31, 0);
+  ASSERT_TRUE(absl::IsDataLoss(malformed.status()));
+
+  WriteBinaryFile("track_LR.bin", {0x01, 0x00, 0x41, 0x28, 0x00, 0x00});
+  for (int lookup = 0; lookup < 3; ++lookup) {
+    EXPECT_EQ(manager.GetObjectInternal(0x31, 0).status(), malformed.status());
+  }
+
+  manager.ReloadAll();
+  const auto reloaded = manager.GetObjectInternal(0x31, 0);
+  ASSERT_TRUE(reloaded.ok()) << reloaded.status();
+  ASSERT_EQ((*reloaded)->tiles.size(), 1u);
+  EXPECT_EQ((*reloaded)->tiles.front().tile_data, 0x2841);
+}
+
+TEST_F(CustomObjectManagerTest, SuccessfulFileStaysCachedUntilAssetReload) {
+  auto& manager = CustomObjectManager::Get();
+  WriteBinaryFile("track_LR.bin", {0x01, 0x00, 0x40, 0x28, 0x00, 0x00});
+  const auto original = manager.GetObjectInternal(0x31, 0);
+  ASSERT_TRUE(original.ok()) << original.status();
+
+  WriteBinaryFile("track_LR.bin", {0x01, 0x00, 0x41, 0x28, 0x00, 0x00});
+  const auto cached = manager.GetObjectInternal(0x31, 0);
+  ASSERT_TRUE(cached.ok()) << cached.status();
+  EXPECT_EQ(cached->get(), original->get());
+  ASSERT_EQ((*cached)->tiles.size(), 1u);
+  EXPECT_EQ((*cached)->tiles.front().tile_data, 0x2840);
+
+  manager.ReloadAll();
+  const auto reloaded = manager.GetObjectInternal(0x31, 0);
+  ASSERT_TRUE(reloaded.ok()) << reloaded.status();
+  EXPECT_NE(reloaded->get(), original->get());
+  ASSERT_EQ((*reloaded)->tiles.size(), 1u);
+  EXPECT_EQ((*reloaded)->tiles.front().tile_data, 0x2841);
+}
+
+TEST_F(CustomObjectManagerTest, MappingChangeRetriesCachedFailure) {
+  auto& manager = CustomObjectManager::Get();
+  const auto missing = manager.GetObjectInternal(0x31, 0);
+  ASSERT_TRUE(absl::IsNotFound(missing.status()));
+  WriteBinaryFile("track_LR.bin", {0x01, 0x00, 0x40, 0x28, 0x00, 0x00});
+
+  manager.SetObjectFileMap({{0x31, {"track_LR.bin"}}});
+
+  const auto loaded = manager.GetObjectInternal(0x31, 0);
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  ASSERT_EQ((*loaded)->tiles.size(), 1u);
+  EXPECT_EQ((*loaded)->tiles.front().tile_data, 0x2840);
+}
+
+TEST_F(CustomObjectManagerTest, RuntimeContextsKeepIndependentLoadResults) {
+  auto& manager = CustomObjectManager::Get();
+  const auto nonce =
+      std::chrono::steady_clock::now().time_since_epoch().count();
+  const uint64_t first_id = static_cast<uint64_t>(nonce) | (uint64_t{1} << 63);
+  const uint64_t second_id = first_id ^ (uint64_t{1} << 62);
+  struct RestoreRuntimeContext {
+    CustomObjectManager& manager;
+    CustomObjectManager::State state;
+    std::optional<uint64_t> active_id;
+    uint64_t first_id;
+    uint64_t second_id;
+    ~RestoreRuntimeContext() {
+      manager.RemoveRuntimeContext(first_id);
+      manager.RemoveRuntimeContext(second_id);
+      if (active_id.has_value()) {
+        manager.ActivateRuntimeContext(*active_id, state);
+      } else {
+        manager.ActivateStandaloneContext();
+      }
+    }
+  } restore{manager, manager.SnapshotState(),
+            manager.active_runtime_context_id(), first_id, second_id};
+  const auto state = manager.SnapshotState();
+
+  manager.ActivateRuntimeContext(first_id, state);
+  const auto missing = manager.GetObjectInternal(0x31, 0);
+  ASSERT_TRUE(absl::IsNotFound(missing.status()));
+  const uint64_t first_generation = manager.asset_generation();
+  WriteBinaryFile("track_LR.bin", {0x01, 0x00, 0x40, 0x28, 0x00, 0x00});
+
+  manager.ActivateRuntimeContext(second_id, state);
+  const auto second_loaded = manager.GetObjectInternal(0x31, 0);
+  ASSERT_TRUE(second_loaded.ok()) << second_loaded.status();
+  const uint64_t second_generation = manager.asset_generation();
+  EXPECT_NE(second_generation, first_generation);
+
+  manager.ActivateRuntimeContext(first_id, state);
+  EXPECT_EQ(manager.asset_generation(), first_generation);
+  EXPECT_EQ(manager.GetObjectInternal(0x31, 0).status(), missing.status());
+
+  auto changed_state = state;
+  changed_state.custom_file_map = {{0x31, {"track_LR.bin"}}};
+  manager.ActivateRuntimeContext(first_id, changed_state);
+  EXPECT_NE(manager.asset_generation(), first_generation);
+  ASSERT_TRUE(manager.GetObjectInternal(0x31, 0).ok());
+
+  WriteBinaryFile("track_LR.bin", {0x01, 0x00, 0x41, 0x28, 0x00, 0x00});
+  manager.ReloadAll();
+  const auto first_reloaded = manager.GetObjectInternal(0x31, 0);
+  ASSERT_TRUE(first_reloaded.ok()) << first_reloaded.status();
+  ASSERT_EQ((*first_reloaded)->tiles.size(), 1u);
+  EXPECT_EQ((*first_reloaded)->tiles.front().tile_data, 0x2841);
+
+  manager.ActivateRuntimeContext(second_id, state);
+  EXPECT_EQ(manager.asset_generation(), second_generation);
+  const auto second_cached = manager.GetObjectInternal(0x31, 0);
+  ASSERT_TRUE(second_cached.ok()) << second_cached.status();
+  EXPECT_EQ(second_cached->get(), second_loaded->get());
+  ASSERT_EQ((*second_cached)->tiles.size(), 1u);
+  EXPECT_EQ((*second_cached)->tiles.front().tile_data, 0x2840);
+}
+
 TEST_F(CustomObjectManagerTest,
        WallCornerObjectIdsNeverResolveAsCustomTrackAssets) {
   auto one_tile_object = [](uint16_t tile_word) {

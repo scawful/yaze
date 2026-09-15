@@ -887,6 +887,269 @@ build/presets/mac-ai/bin/yaze_test_quick_unit_editor --gtest_filter='MinecartTra
 build/presets/mac-ai/bin/yaze_test_quick_unit_editor --gtest_filter='MinecartTrackEditorPanelTest.*' --gtest_output=xml:/tmp/yaze-minecart-fixture-quick.xml
 ```
 
+## Project asset refresh and cache reuse (2026-09-15)
+
+Status: branch implementation; CI, packaged-app acceptance, and deployment
+remain separate gates.
+
+The Object Selector's **Custom Assets > Reload Assets** action refreshes
+custom-object layouts and external sprite preview graphics for the active
+session. It remains available when Custom Objects is disabled. Existing room,
+Workbench, and comparison viewers discard stale external art on their next
+asset-generation synchronization; unchanged generations keep their caches.
+This action does not reload ROM data or replace unsaved room edits, tile drafts,
+or canvas selections.
+
+Custom-object caches retain failed loads as well as decoded objects. After
+creating a missing file or repairing a malformed one externally, use **Reload
+Assets** to retry; changing the configured asset context also invalidates the
+cache. Publication deliberately reads disk again and retains stale-write
+protection. An unchanged source can still be published after refresh; a changed
+source leaves the draft intact and reports a conflict.
+
+Selector cards no longer parse temporary object tiles before checking their
+thumbnail cache. Unchanged viewer project rebinding preserves external sprite
+resources, while explicit asset refresh and full ROM reload invalidate them.
+
+Focused verification (list the selected tests before running):
+
+```bash
+cmake --build build/presets/mac-ai --config Release \
+  --target yaze_test_unit yaze --parallel 4
+build/presets/mac-ai/bin/yaze_test_unit \
+  --gtest_filter='CustomObjectManagerTest.*:DungeonCanvasAssetRefreshTest.*:DungeonObjectSelectorPaletteTest.*:ObjectTileEditorPanelTest.*:SpritePreviewResourceCacheTest.*' \
+  --gtest_list_tests
+build/presets/mac-ai/bin/yaze_test_unit \
+  --gtest_filter='CustomObjectManagerTest.*:DungeonCanvasAssetRefreshTest.*:DungeonObjectSelectorPaletteTest.*:ObjectTileEditorPanelTest.*:SpritePreviewResourceCacheTest.*'
+```
+
+Local macOS verification: the app and unit-test targets build; all 93 focused
+tests pass, including 14 new regressions. The same 93 pass five shuffled runs
+(`--gtest_shuffle --gtest_random_seed=915 --gtest_repeat=5`). Another 63 palette,
+sprite-preview, canvas-bounds, and Oracle source-asset checks pass with no skips
+when the real fixtures are supplied:
+
+```bash
+YAZE_TEST_ROM_EXPANDED=/path/to/oracle/Roms/oos168.sfc \
+YAZE_TEST_ORACLE_SPRITE_ASSETS=/path/to/oracle/Sprites \
+YAZE_TEST_ORACLE_CUSTOM_OBJECTS=/path/to/oracle/Dungeons/Objects/Data \
+  build/presets/mac-ai/bin/yaze_test_unit \
+  --gtest_filter='DungeonEditorPaletteRefreshTest.*:*DungeonCanvasSpritePreviewBoundsTest*:*SpriteRenderPreviewTest*:OracleRuntimeAssets/CustomObjectOracleAssetTest.*'
+```
+
+The source-asset checks use temporary copies for publication. All 21 custom
+asset files and the Manhandla graphics file retained their original SHA-256
+hashes. Full-file formatting and `git diff --check` also pass.
+
+These are cache, editor-state, and source-publication regressions, not a new
+Mesen parity claim or a measured application-startup speedup. The subsequent
+sprite-preview and loading-stage measurements are recorded below.
+
+## Sprite-preview cache and loading profiles (2026-09-15)
+
+Status: local macOS implementation and measured CPU results. Cross-platform CI,
+packaged-app acceptance, and deployment remain separate gates.
+
+`DungeonCanvasViewer` now retains up to 128 decoded sprite previews using the
+existing `util::LruCache`. Keys include the globally unique room graphics
+revision, sprite ID, subtype, and overlord identity. Multiple room revisions
+remain cached for connected views; revision zero deliberately bypasses reuse.
+Only palette-index pixels and bounds are retained. Palette selection, movement,
+layer indicators, zoom, and pan still apply on every draw. **Reload Assets**,
+ROM refresh, or a change in project path, asset path, or hack profile discards
+stale previews, including changes made through the same project pointer.
+
+An opt-in benchmark compares the preceding implementation (`f13677c6f`) with
+this cache on the same Mac, Release build, and real Oracle Manhandla asset.
+Values below are the median of three test runs; each run reports the median
+of seven 200-frame batch means. Timing covers `RenderSprites()` only, not
+ImGui frame setup, GPU uploads, total frame time, or application startup.
+
+| Visible sprites | Before, microseconds/call | Cached, microseconds/call | Ratio |
+| --- | ---: | ---: | ---: |
+| One ordinary sprite | 2.385 | 2.070 | 1.15x |
+| One Manhandla | 16.768 | 2.841 | 5.90x |
+| Eight Manhandlas | 130.800 | 19.894 | 6.57x |
+
+The hidden-sprite control remains approximately 0.015 microseconds/call. The
+first recorded call includes possible lazy initialization and is not a valid
+application-startup comparison. The synthetic room graphics plus real external
+asset isolate this CPU work; they do not establish in-game visual parity.
+
+The separate ROM-loading profile reads `oos168.sfc` with expansion disabled,
+decodes game data, and prepares rooms `0x001`, `0x007`, `0x012`, `0x065`, and
+`0x076`. Across three runs, game-data decoding took 1.30-1.78 ms and first room
+preparation took 0.84-2.12 ms. ROM reading ranged from 0.35-6.45 ms; the OS disk
+cache was not controlled. Each run also made 500 cached room-preparation calls;
+the no-change path was effectively a no-op, not a measurement of visible room
+switching. This profile uses a mock renderer and excludes entrance/project
+overrides, custom-asset binding, sprite composition, UI drawing, and GPU uploads.
+It verifies that all in-memory ROM bytes remain unchanged.
+
+Reproduce the two optional profiles (no timing assertions or default CI cost):
+
+```bash
+cmake --build build/presets/mac-ai --config Release \
+  --target yaze_test_unit yaze_test_benchmark yaze --parallel 4
+YAZE_TEST_ORACLE_SPRITE_ASSETS=/path/to/oracle/Sprites \
+  build/presets/mac-ai/bin/yaze_test_unit \
+  --gtest_filter='DungeonCanvasAssetRefreshTest.DISABLED_ProfileSpritePreviewFrames' \
+  --gtest_also_run_disabled_tests --gtest_repeat=3
+YAZE_TEST_ROM_EXPANDED=/path/to/oracle/Roms/oos168.sfc \
+  build/presets/mac-ai/bin/yaze_test_benchmark \
+  --gtest_filter='GraphicsOptimizationBenchmarks.DISABLED_ProfileRomAssetLoadingStages' \
+  --gtest_also_run_disabled_tests --gtest_repeat=3
+```
+
+Verification: all three targets build. The 156 checks from the previous section
+plus eight `DungeonCanvasSpritePreviewCacheTest.*` cases pass: **164 tests,
+zero skips**. Exact combined run, after discovery with `--gtest_list_tests`:
+
+```bash
+YAZE_TEST_ROM_EXPANDED=/path/to/oracle/Roms/oos168.sfc \
+YAZE_TEST_ORACLE_SPRITE_ASSETS=/path/to/oracle/Sprites \
+YAZE_TEST_ORACLE_CUSTOM_OBJECTS=/path/to/oracle/Dungeons/Objects/Data \
+  build/presets/mac-ai/bin/yaze_test_unit \
+  --gtest_filter='DungeonCanvasSpritePreviewCacheTest.*:DungeonCanvasAssetRefreshTest.*:DungeonObjectSelectorPaletteTest.*:ObjectTileEditorPanelTest.*:CustomObjectManagerTest.*:SpritePreviewResourceCacheTest.*:DungeonEditorPaletteRefreshTest.*:*DungeonCanvasSpritePreviewBoundsTest*:*SpriteRenderPreviewTest*:OracleRuntimeAssets/CustomObjectOracleAssetTest.*'
+```
+
+The 101 cache/refresh-focused cases also pass five shuffled runs
+(`--gtest_shuffle --gtest_random_seed=915 --gtest_repeat=5`). New cases exercise
+pixel/bounds equivalence, actual drawn colors/positions, duplicate sprites,
+multiple rooms, graphics revisions, revision-zero rooms, missing/malformed art,
+context changes, and bounded eviction. Both opt-in profiles pass three runs.
+Logs, discovered test lists, and XML results are under
+`build/presets/mac-ai/{sprite-cache-*,sprite-profile-*,asset-loading-profile.*}`.
+The ROM, Manhandla source art, and 21 custom-object files retain their original
+SHA-256 hashes. Full-file `clang-format --dry-run --Werror` passes for all seven
+C++ files; the whitespace check preserves existing CRLF files:
+`git -c core.whitespace=trailing-space,space-before-tab,cr-at-eol diff --check`.
+
+Next measure full project open through the first usable room/selector frame,
+including texture uploads and project-specific setup. Do not infer startup or
+FPS gains from this small, isolated sprite-drawing improvement, or add loading
+workers before identifying which remaining stage causes a visible stall.
+
+## Layer-state and render-refresh edge fixes (2026-09-15)
+
+Status: local implementation, built and regression-tested on macOS. No new
+Mesen parity claim, cross-platform CI result, merge, or app deployment.
+
+Review of the asset-refresh branch found four confirmed defects:
+
+1. **Stale object graphics after a graphics-only refresh.**
+   `RenderRoomGraphics()` consumed the graphics dirty flag before the object
+   renderer checked it. Object pixels and floor-copy patterns could retain
+   their previous tileset/floor while the layout had already updated.
+2. **Stale base priority after removing stairs or lower doors.** These objects
+   promote priority outside their own raster. Clearing only the object buffers
+   left their old markings on the layout. The standard render path now restores
+   floor/layout buffers before object replay, retaining native high-priority
+   floor tiles. It also clears old pixels when replacement graphics become
+   transparent. Object-only changes reuse decoded graphics; unchanged-room
+   preparation retains its early return.
+3. **Manual blend controls reset every frame.** Viewer layer state now applies
+   room merge/effect defaults on first materialized access or a header change,
+   not every composition. Choices survive drawing and switching rooms. Header
+   changes refresh defaults without re-enabling hidden layers; full ROM refresh
+   clears viewer overrides.
+4. **An unrelated BG2 component changed the visible component's translucency.**
+   Color math now follows the source selected at each pixel. A hidden/empty
+   translucent object layer no longer changes an opaque layout, and an opaque
+   object does not inherit translucency from the layout it replaces.
+
+Ten regressions cover these cases. Before production changes, eight of the
+first nine tests failed at the predicted assertions; the header-transition
+control passed. A transparent-base-refresh case was added afterward. All ten
+now pass, plus the surrounding rendering/cache suite: **380 tests, no skips**,
+also passing three shuffled runs with seed 916. The separate ROM parser/drawer
+suite passes **39 cases** against vanilla and Oracle; its canonical-vanilla
+floor-pattern test intentionally skips the Oracle parameter (40 selected,
+one skip). These are deterministic CPU/ROM checks, not emulator screenshots.
+
+Build and focused reproductions:
+
+```bash
+cmake --build build/presets/mac-ai --config Release \
+  --target yaze_test_unit yaze_test_benchmark yaze --parallel 4
+build/presets/mac-ai/bin/yaze_test_unit \
+  --gtest_filter='RoomRenderLifecycleTest.*:DungeonEditorPaletteRefreshTest.LayerBlend*:RoomLayerManagerTest.HiddenTranslucentBG2SourceDoesNotBlendVisibleNormalSource:RoomLayerManagerTest.TranslucencyFollowsSelectedBG2SourceAtEachPixel' \
+  --gtest_list_tests
+build/presets/mac-ai/bin/yaze_test_unit \
+  --gtest_filter='RoomRenderLifecycleTest.*:DungeonEditorPaletteRefreshTest.LayerBlend*:RoomLayerManagerTest.HiddenTranslucentBG2SourceDoesNotBlendVisibleNormalSource:RoomLayerManagerTest.TranslucencyFollowsSelectedBG2SourceAtEachPixel'
+YAZE_TEST_ROM_VANILLA=/path/to/zelda3.sfc \
+YAZE_TEST_ROM_EXPANDED=/path/to/oracle/Roms/oos168.sfc \
+  build/presets/mac-ai/bin/yaze_test_unit \
+  --gtest_filter='SupportedRomRoles/RoomObjectRomParityTest.*'
+```
+
+The existing opt-in loading-stage benchmark passes three runs; cached-room
+preparation remains effectively a no-op. This does not measure interactive
+object-edit redraw cost or full app startup. `clang-format --dry-run --Werror`
+passes for all eight changed C++ files, and `git diff --check` passes. The Oracle
+ROM, Manhandla art, and 21 custom-object files retain their source hashes.
+Logs, discovery lists, exact broader filters, and XML results are under
+`build/presets/mac-ai/layer-edges-*`.
+
+**Resolved source-review finding: shared presentation texture.**
+The canvas, Dungeon Map, room-selector tooltip, room-matrix tooltip, and
+connected-room previews now own independent composite outputs. Auxiliary
+previews can no longer replace the canvas texture or split its palette-debugger
+bitmap from the matching palette after ImGui has queued a draw. The active
+canvas publishes that presentation context together before canvas context-menu
+callbacks and again during the draw pass. This prevents split-view issue capture
+from sampling the comparison room left active by the previous frame. A global
+room source revision keeps every output current even when another consumer
+renders first or a cached `Room` value is replaced at the same address.
+Layer-manager state remains part of the output signature, so presentation-only
+blend and visibility changes also invalidate the correct output.
+
+Composite retirement now cancels queued work for the retired bitmap and
+defers live texture destruction through the arena. The primary `Bitmap` shell
+keeps its address across ROM/project refresh because `Canvas` and its modal
+helpers retain that pointer; only its SDL/GPU resources are retired. Duplicate
+create/update commands for one bitmap generation are suppressed. Regression
+coverage recreates a live texture on that same `Bitmap` shell before draining
+the retired handle, then proves only the old texture is destroyed.
+Connected-room outputs use a one-frame grace period before retirement, map
+outputs follow the configured dungeon-room set, and the 296-room matrix caches
+sampled colors by source revision instead of retaining a full composite texture
+per room.
+
+The focused ownership suite discovers and passes **27 tests**; five shuffled
+runs with seed 917 pass **135/135**. The surrounding renderer, object-drawer,
+canvas, palette, layer, custom-object, and sprite-preview filter discovers
+394 cases including one disabled profiling case, and runs **393 tests**:
+**390 pass**, with three expanded-ROM sprite fixtures skipped
+when their opt-in assets are not provided. The ROM parser/drawer suite selects
+40 vanilla/Oracle parameters: **39 pass**, and the canonical-vanilla
+floor-pattern parameter intentionally skips Oracle. These are automated
+CPU/mock-renderer and ROM checks. The change still needs live application UX
+acceptance and, where pixel parity is claimed, independent Mesen evidence.
+
+The native `yaze_test_unit` and `yaze` targets build with the `mac-ai` preset.
+`ctest --preset mac-ai-unit` completes successfully across 3,610 scheduled
+tests; ROM/custom-asset cases without their opt-in environment inputs remain
+reported as skips rather than release proof.
+`YAZE_BUILD_JOBS=4 scripts/build-wasm.sh smoke --incremental` completes all 449
+Emscripten build steps and packages the web app and `z3ed` under
+`build/presets/wasm-smoke/dist`. This is compile/package portability evidence,
+not interactive browser acceptance or Windows/Linux native proof.
+
+No production UI caller now displays `Room::GetCompositeBitmap()`; its only
+remaining production consumer is the synchronous CPU `RenderService` path.
+The follow-up Dungeon Map reset also clears room-type badges, stair links, and
+holewarp links whenever a registry entry or vanilla preset replaces the room
+set. Its regression loads two disjoint dungeon entries and failed before the
+fix because metadata from the first entry survived the second load. The Clear
+button now relies on the same complete reset contract instead of duplicating
+three additional clear operations.
+
+The priority-off fallback's transparent-object coverage handling remains a
+separate lower-priority finding because no current production caller disables
+priority compositing. Continue the object audit below with the reported
+water, ice, bar, stair, thin-strip, and corner families.
+
 ## Object coverage checklist
 
 Start by enumerating the supported IDs from `DrawRoutineRegistry` and the room

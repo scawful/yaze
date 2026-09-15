@@ -16,6 +16,7 @@
 #include "framework/mock_renderer.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
+#include "imgui/imgui_internal.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/room_layer_manager.h"
@@ -24,6 +25,15 @@ namespace yaze {
 namespace editor {
 
 struct DungeonObjectSelectorTestAccess {
+  static zelda3::RoomObject MakePreviewObject(
+      const DungeonObjectSelector& selector, int object_id) {
+    return selector.MakePreviewObject(object_id);
+  }
+
+  static void ShowCustomAssets(DungeonObjectSelector& selector) {
+    selector.browser_mode_ = DungeonObjectSelector::BrowserMode::kCustomAssets;
+  }
+
   static absl::Status OpenExistingCustomObjectEditor(
       DungeonObjectSelector& selector, int16_t object_id, int subtype,
       int room_id) {
@@ -183,6 +193,151 @@ TEST(DungeonObjectSelectorPaletteTest,
   selector.SetCurrentPaletteGroup(gfx::PaletteGroup("ow_main"));
   selector.SetCurrentPaletteGroup(gfx::PaletteGroup("sprites_aux1"));
   EXPECT_EQ(selector.preview_cache_invalidations_for_testing(), 3u);
+}
+
+TEST(DungeonObjectSelectorPaletteTest,
+     PreviewCardConstructionLeavesRomTilesLazy) {
+  std::vector<uint8_t> rom_data(0x200000, 0);
+  StoreRomWord(&rom_data, 0x842E, 0x0E9A);
+  for (uint32_t address = 0x29EC; address < 0x29F4; address += 2) {
+    StoreRomWord(&rom_data, address, 0x09EE);
+  }
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::move(rom_data)).ok());
+  DungeonObjectSelector selector(&rom);
+
+  auto object =
+      DungeonObjectSelectorTestAccess::MakePreviewObject(selector, 0x11F);
+  EXPECT_EQ(object.id_, 0x11F);
+  EXPECT_EQ(object.size_, zelda3::DefaultRoomObjectSizeForPlacement(0x11F));
+  EXPECT_EQ(object.rom(), &rom);
+  EXPECT_TRUE(object.mutable_tiles().empty())
+      << "Constructing a card must not parse ROM tiles before a cache lookup";
+
+  object.EnsureTilesLoaded();
+  ASSERT_EQ(object.mutable_tiles().size(), 4u)
+      << "The fixture must support a real load, not pass because ROM data is "
+         "absent";
+  for (const auto& tile : object.mutable_tiles()) {
+    EXPECT_EQ(tile.id_, 0x1EE);
+    EXPECT_EQ(tile.palette_, 2);
+  }
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonObjectSelectorPaletteTest,
+     LazyPreviewCardsReuseCorrectCachedBitmap) {
+  std::vector<uint8_t> rom_data(0x200000, 0);
+  StoreRomWord(&rom_data, 0x842E, 0x0E9A);
+  for (uint32_t address = 0x29EC; address < 0x29F4; address += 2) {
+    StoreRomWord(&rom_data, address, 0x09EE);
+  }
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::move(rom_data)).ok());
+  DungeonRoomStore rooms(&rom);
+  auto& room = rooms[0];
+  room.SetLoaded(true);
+  auto& room_gfx =
+      const_cast<std::array<uint8_t, 0x10000>&>(room.get_gfx_buffer());
+  room_gfx.fill(9);
+  DungeonObjectSelector selector(&rom);
+  selector.set_rooms(&rooms);
+  selector.set_current_room_id(0);
+
+  auto first_card =
+      DungeonObjectSelectorTestAccess::MakePreviewObject(selector, 0x11F);
+  gfx::BackgroundBuffer* first_preview = nullptr;
+  DungeonObjectSelectorTestAccess::GetOrCreatePreview(selector, first_card,
+                                                      &first_preview);
+  ASSERT_NE(first_preview, nullptr);
+  const auto expected_pixels = first_preview->bitmap().mutable_data();
+  EXPECT_NE(std::find(expected_pixels.begin(), expected_pixels.end(), 41),
+            expected_pixels.end());
+  EXPECT_TRUE(first_card.mutable_tiles().empty());
+  const auto invalidations = selector.preview_cache_invalidations_for_testing();
+
+  for (int frame = 0; frame < 3; ++frame) {
+    auto card =
+        DungeonObjectSelectorTestAccess::MakePreviewObject(selector, 0x11F);
+    EXPECT_TRUE(card.mutable_tiles().empty());
+    gfx::BackgroundBuffer* cached_preview = nullptr;
+    DungeonObjectSelectorTestAccess::GetOrCreatePreview(selector, card,
+                                                        &cached_preview);
+    ASSERT_EQ(cached_preview, first_preview);
+    EXPECT_EQ(cached_preview->bitmap().mutable_data(), expected_pixels);
+    EXPECT_TRUE(card.mutable_tiles().empty());
+    EXPECT_EQ(DungeonObjectSelectorTestAccess::PreviewCacheSize(selector), 1u);
+    EXPECT_EQ(selector.preview_cache_invalidations_for_testing(),
+              invalidations);
+  }
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonObjectSelectorPaletteTest,
+     ReloadAssetsButtonWorksWithCustomObjectsDisabled) {
+  ScopedSelectorCustomObjectState custom_state;
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  struct ScopedContext {
+    ImGuiContext* previous = ImGui::GetCurrentContext();
+    ImGuiContext* context = ImGui::CreateContext();
+    ScopedContext() { ImGui::SetCurrentContext(context); }
+    ~ScopedContext() {
+      ImGui::DestroyContext(context);
+      ImGui::SetCurrentContext(previous);
+    }
+  } imgui_context;
+  auto& io = ImGui::GetIO();
+  io.DisplaySize = ImVec2(800, 600);
+  io.DeltaTime = 1.0f / 60.0f;
+  io.IniFilename = nullptr;
+  io.LogFilename = nullptr;
+  unsigned char* pixels = nullptr;
+  int width = 0;
+  int height = 0;
+  io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
+  DungeonObjectSelector selector;
+  DungeonObjectSelectorTestAccess::ShowCustomAssets(selector);
+  bool found_reload_action = false;
+  ImVec2 reload_center;
+  auto frame = [&]() {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(30, 30));
+    ImGui::SetNextWindowSize(ImVec2(640, 400));
+    ImGui::Begin(
+        "SelectorAssetRefreshTest", nullptr,
+        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoTitleBar);
+    const ImGuiID toolbar_id = ImGui::GetID("##CustomObjectToolbar");
+    selector.DrawObjectAssetBrowser();
+    if (const ImGuiTable* toolbar = ImGui::TableFindByID(toolbar_id)) {
+      found_reload_action = toolbar->ColumnsCount == 2;
+      if (found_reload_action) {
+        const auto& action_column = toolbar->Columns[1];
+        reload_center =
+            ImVec2((action_column.WorkMinX + action_column.WorkMaxX) * 0.5f,
+                   (toolbar->RowPosY1 + toolbar->RowPosY2) * 0.5f);
+      }
+    }
+    ImGui::End();
+    ImGui::Render();
+  };
+  frame();
+  ASSERT_TRUE(found_reload_action)
+      << "Disabling custom-object rendering must not hide asset refresh";
+  auto& manager = zelda3::CustomObjectManager::Get();
+  const uint64_t generation = manager.asset_generation();
+  const auto invalidations = selector.preview_cache_invalidations_for_testing();
+
+  io.AddMousePosEvent(reload_center.x, reload_center.y);
+  io.AddMouseButtonEvent(0, true);
+  frame();
+  io.AddMouseButtonEvent(0, false);
+  frame();
+
+  EXPECT_NE(manager.asset_generation(), generation)
+      << "Clicking the visible Reload Assets button must request a refresh";
+  EXPECT_GT(selector.preview_cache_invalidations_for_testing(), invalidations);
+  EXPECT_FALSE(core::FeatureFlags::get().kEnableCustomObjects);
 }
 
 TEST(DungeonObjectSelectorPaletteTest,

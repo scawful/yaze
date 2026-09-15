@@ -1,17 +1,23 @@
 #include <gtest/gtest.h>
 
+#include <array>
 #include <chrono>
 #include <cstdint>
 #include <cstdlib>
 #include <random>
+#include <string>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
+#include "app/editor/dungeon/dungeon_room_loader.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_dashboard.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gfx/render/atlas_renderer.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gfx/resource/memory_pool.h"
+#include "rom/rom.h"
+#include "zelda3/game_data.h"
 
 namespace yaze {
 namespace gfx {
@@ -113,6 +119,106 @@ class GraphicsOptimizationBenchmarks : public ::testing::Test {
 
   BenchmarkRenderer renderer_;
 };
+
+// Opt-in stage profile, not full app startup or a disk-cold benchmark. The
+// filesystem cache is untouched, and texture uploads use BenchmarkRenderer.
+TEST_F(GraphicsOptimizationBenchmarks, DISABLED_ProfileRomAssetLoadingStages) {
+  const char* rom_path = std::getenv("YAZE_TEST_ROM_EXPANDED");
+  if (rom_path == nullptr || *rom_path == '\0') {
+    GTEST_SKIP() << "Set YAZE_TEST_ROM_EXPANDED to a real ROM fixture.";
+  }
+
+  const auto measure = [](const std::string& stage, auto&& work,
+                          int iterations = 1) {
+    const auto start = std::chrono::steady_clock::now();
+    const auto status = work();
+    const double milliseconds = std::chrono::duration<double, std::milli>(
+                                    std::chrono::steady_clock::now() - start)
+                                    .count() /
+                                iterations;
+    std::cout << stage << ": " << milliseconds << " ms/op (" << iterations
+              << " operations)" << std::endl;
+    return status;
+  };
+
+  Rom rom;
+  zelda3::GameData game_data;
+  editor::DungeonRoomStore rooms(&rom, &game_data);
+  // Drain while queued Bitmap pointers still refer to live room/game data,
+  // including when a fatal assertion exits the test early.
+  const absl::Cleanup drain = [this] {
+    DrainTextureQueue();
+  };
+  auto status =
+      measure("rom_file_read", [&] { return rom.LoadFromFile(rom_path); });
+  ASSERT_TRUE(status.ok()) << status;
+  const auto original_bytes = rom.vector();
+  zelda3::LoadOptions options;
+  options.expand_rom = false;
+  status = measure("game_data_decode_cpu", [&] {
+    return zelda3::LoadGameData(rom, game_data, options);
+  });
+  ASSERT_TRUE(status.ok()) << status;
+  ASSERT_FALSE(game_data.graphics_buffer.empty());
+  DrainTextureQueue();
+
+  // These known dungeon rooms are a bounded sample, not an all-room audit.
+  constexpr std::array<int, 5> kRoomIds = {0x001, 0x007, 0x012, 0x065, 0x076};
+  status = measure(
+      "sample_room_headers_cpu",
+      [&] {
+        for (int room_id : kRoomIds) {
+          rooms[room_id] = zelda3::LoadRoomHeaderFromRom(&rom, room_id);
+          rooms[room_id].SetGameData(&game_data);
+        }
+        return absl::OkStatus();
+      },
+      static_cast<int>(kRoomIds.size()));
+  ASSERT_TRUE(status.ok()) << status;
+
+  editor::DungeonRoomLoader loader(&rom);
+  loader.SetGameData(&game_data);
+  const auto prepare = [&](int room_id) -> absl::Status {
+    auto& room = rooms[room_id];
+    if (!room.IsLoaded()) {
+      const auto load_status = loader.LoadRoom(room_id, room);
+      if (!load_status.ok())
+        return load_status;
+    }
+    if (!room.AreSpritesLoaded())
+      room.LoadSprites();
+    if (!room.ArePotItemsLoaded())
+      room.LoadPotItems();
+    // Same dirty-state-aware cache consumer used by the canvas. This excludes
+    // entrance/project overrides, sprite compositing, ImGui, and GPU uploads.
+    room.PrepareForRender();
+    return absl::OkStatus();
+  };
+  for (int room_id : kRoomIds) {
+    status = measure("room_" + std::to_string(room_id) + "_first_prepare_cpu",
+                     [&] { return prepare(room_id); });
+    ASSERT_TRUE(status.ok()) << status;
+    ASSERT_TRUE(rooms[room_id].bg1_buffer().bitmap().is_active());
+    DrainTextureQueue();
+  }
+
+  constexpr int kRevisits = 100;
+  status = measure(
+      "cached_room_revisit_cpu",
+      [&] {
+        for (int i = 0; i < kRevisits; ++i) {
+          for (int room_id : kRoomIds) {
+            const auto prepare_status = prepare(room_id);
+            if (!prepare_status.ok())
+              return prepare_status;
+          }
+        }
+        return absl::OkStatus();
+      },
+      kRevisits * static_cast<int>(kRoomIds.size()));
+  EXPECT_TRUE(status.ok()) << status;
+  EXPECT_EQ(rom.vector(), original_bytes);
+}
 
 // Benchmark palette lookup optimization
 TEST_F(GraphicsOptimizationBenchmarks, PaletteLookupPerformance) {

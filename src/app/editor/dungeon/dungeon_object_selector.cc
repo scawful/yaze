@@ -845,7 +845,6 @@ zelda3::RoomObject DungeonObjectSelector::MakePreviewObject(int obj_id) const {
   zelda3::RoomObject obj(obj_id, 0, 0,
                          zelda3::DefaultRoomObjectSizeForPlacement(obj_id), 0);
   obj.SetRom(rom_);
-  obj.EnsureTilesLoaded();
   return obj;
 }
 
@@ -1075,14 +1074,6 @@ void DungeonObjectSelector::DrawCustomObjectAssetBrowser() {
   ImGui::PopTextWrapPos();
   ImGui::Separator();
 
-  if (!core::FeatureFlags::get().kEnableCustomObjects) {
-    ImGui::TextColored(
-        theme.text_warning_yellow, ICON_MD_WARNING
-        " Custom Objects is disabled for this project. Enable the feature "
-        "before editing or placing runtime assets.");
-    return;
-  }
-
   if (ImGui::BeginTable(
           "##CustomObjectToolbar", 2,
           ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_NoPadOuterX)) {
@@ -1111,9 +1102,18 @@ void DungeonObjectSelector::DrawCustomObjectAssetBrowser() {
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip(
-          tr("Reload custom object binaries and refresh their previews"));
+          tr("Refresh custom object and external sprite previews from disk. "
+             "Unsaved room and tile edits are kept."));
     }
     ImGui::EndTable();
+  }
+
+  if (!core::FeatureFlags::get().kEnableCustomObjects) {
+    ImGui::TextColored(
+        theme.text_warning_yellow, ICON_MD_WARNING
+        " Custom Objects is disabled for this project. Enable the feature "
+        "before editing or placing runtime assets.");
+    return;
   }
 
   ImGui::TextDisabled("%s", tr("Card size"));

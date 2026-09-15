@@ -49,6 +49,11 @@ uint64_t NextRoomGraphicsRevision() {
   return revision.fetch_add(1, std::memory_order_relaxed) + 1;
 }
 
+uint64_t NextRoomCompositeRevision() {
+  static std::atomic<uint64_t> revision{0};
+  return revision.fetch_add(1, std::memory_order_relaxed) + 1;
+}
+
 uint8_t Layer2ModeFromHeaderByte(uint8_t byte0) {
   return static_cast<uint8_t>((byte0 >> 5) & 0x07);
 }
@@ -1093,14 +1098,25 @@ void Room::CopyRoomGraphicsToBuffer() {
 gfx::Bitmap& Room::GetCompositeBitmap(RoomLayerManager& layer_mgr) {
   const uint64_t requested_signature = layer_mgr.CompositeStateSignature();
   if (dirty_state_.composite || !has_composite_signature_ ||
-      composite_signature_ != requested_signature) {
-    layer_mgr.CompositeToOutput(*this, composite_bitmap_);
-    dirty_state_.composite = false;
+      composite_signature_ != requested_signature ||
+      composite_rendered_source_revision_ != composite_source_revision_) {
+    RenderComposite(layer_mgr, composite_bitmap_);
     composite_signature_ = requested_signature;
+    composite_rendered_source_revision_ = composite_source_revision_;
     has_composite_signature_ = true;
   }
-  PaletteDebugger::Get().SetCurrentBitmap(&composite_bitmap_);
   return composite_bitmap_;
+}
+
+void Room::MarkCompositeDirty() {
+  dirty_state_.composite = true;
+  composite_source_revision_ = NextRoomCompositeRevision();
+}
+
+void Room::RenderComposite(const RoomLayerManager& layer_mgr,
+                           gfx::Bitmap& output) {
+  layer_mgr.CompositeToOutput(*this, output);
+  dirty_state_.composite = false;
 }
 
 void Room::RenderRoomGraphics() {
@@ -1168,9 +1184,13 @@ void Room::RenderRoomGraphics() {
             "Room %d: floor1=%d, floor2=%d, blocks_size=%zu", room_id_,
             floor1_graphics_, floor2_graphics_, blocks_.size());
 
-  // STEP 1: Draw floor tiles to bitmaps (base layer) - if graphics changed OR
-  // bitmaps not created yet
-  bool need_floor_draw = was_graphics_dirty;
+  // STEP 1: Rebuild the base tilemaps before replaying objects. Door and stair
+  // routines can promote layout-owned priority outside their own raster, so
+  // removing or moving one must restore the floor/layout baseline as well.
+  // Reuse current_gfx16_ for object-only edits; the unchanged-room fast path
+  // above still avoids all drawing work.
+  bool need_floor_draw =
+      was_graphics_dirty || was_layout_dirty || dirty_state_.objects;
   auto& bg1_bmp = bg1_buffer_.bitmap();
   auto& bg2_bmp = bg2_buffer_.bitmap();
 
@@ -1183,10 +1203,18 @@ void Room::RenderRoomGraphics() {
   }
 
   if (need_floor_draw) {
+    for (auto* buffer : {&bg1_buffer_, &bg2_buffer_}) {
+      buffer->EnsureBitmapInitialized();
+      buffer->bitmap().Fill(255);
+      buffer->ClearBuffer();
+    }
     bg1_buffer_.DrawFloor(rom()->vector(), kTileAddress, kTileAddressFloor,
                           floor1_graphics_);
     bg2_buffer_.DrawFloor(rom()->vector(), kTileAddress, kTileAddressFloor,
                           floor2_graphics_);
+    // STEP 0 already consumed the graphics dirty flag. Keep its dependent
+    // object pixels and priority/reveal writes dirty until they are replayed.
+    dirty_state_.objects = true;
   }
 
   // STEP 2: Draw background tiles (floor pattern) to bitmap
@@ -1260,10 +1288,11 @@ void Room::RenderRoomGraphics() {
     const auto render_palette =
         BuildDungeonRenderPalette(bg1_palette, hud_palette);
 
-    // Store current palette state for pixel inspector / issue report debugging.
-    PaletteDebugger::Get().SetCurrentPalette(bg1_palette);
-    PaletteDebugger::Get().SetCurrentRenderPalette(render_palette);
-    PaletteDebugger::Get().SetCurrentBitmap(&bg1_bmp);
+    // Retain this room's palette context. The active presentation publishes it
+    // atomically with its bitmap; auxiliary room renders must not replace the
+    // pixel inspector's current canvas state.
+    rendered_dungeon_palette_ = bg1_palette;
+    rendered_palette_ = render_palette;
 
     auto set_dungeon_palette = [&](gfx::Bitmap& bmp) {
       bmp.SetPalette(render_palette);
@@ -1348,7 +1377,7 @@ void Room::RenderRoomGraphics() {
 
   // IMPORTANT: Mark composite as dirty after any render work
   // This ensures GetCompositeBitmap() regenerates the merged output
-  dirty_state_.composite = true;
+  MarkCompositeDirty();
 
   // REMOVED: Don't process texture queue here - let it be batched!
   // Processing happens once per frame in DrawDungeonCanvas()
