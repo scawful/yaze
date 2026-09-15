@@ -7,6 +7,7 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -21,6 +22,7 @@
 #include "dungeon_room_store.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
+#include "util/lru_cache.h"
 #include "zelda3/dungeon/dungeon_editor_system.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/room.h"
@@ -958,6 +960,15 @@ class DungeonCanvasViewer {
   std::function<void(bool)> pin_callback_;
   const project::YazeProject* project_ = nullptr;
   zelda3::SpritePreviewResourceCache sprite_preview_resources_;
+  // Room graphics revisions are globally unique. Retain indexed pixels across
+  // connected-room draws; presentation (palette, position, zoom) stays live.
+  using SpritePreviewKey = std::tuple<uint64_t, uint8_t, int, bool>;
+  struct CachedSpritePreview {
+    std::vector<uint8_t> pixels;
+    SDL_Rect bounds{};
+  };
+  util::LruCache<SpritePreviewKey, CachedSpritePreview> sprite_preview_cache_{
+      128};
 
   bool show_track_collision_overlay_ = false;
   bool show_track_collision_legend_ = true;
