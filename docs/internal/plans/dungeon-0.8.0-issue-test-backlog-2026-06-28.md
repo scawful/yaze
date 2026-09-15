@@ -30,6 +30,11 @@ content, every other editor, and untested compatibility with arbitrary hacks.
 Existing Oracle systems must work through their documented build path. Native
 release readiness and WASM preview readiness are separate claims.
 
+Current checkpoint (2026-09-15): [PR #219](https://github.com/scawful/yaze/pull/219)
+is merged, and its qualified local macOS preview is installed. Earlier
+implementation sections below retain their historical branch/test status.
+This does not close the remaining object, save/reopen, or distribution gates.
+
 ## Planning baseline, not new test results
 
 The September audit inspected mainline `d42785c24` and the clean combined
@@ -846,8 +851,41 @@ The earlier local qualification of `a2d2fc1c1` passed 3,499 unit cases (66
 initial skips), then 63 explicitly enabled ROM/source-asset cases with no
 skips, and three Oracle room `001` startup/quit cycles with unchanged hashes.
 Those results remain evidence for that source, not a substitute for the
-repaired revision's CI. PR #219 stays unmerged and the `75f817d5` installation
-stays active until the replacement has passed its merge/deployment gates.
+repaired revision's CI. On 2026-09-15, all applicable checks at `9a0156ff1`
+completed successfully, including the AddressSanitizer configuration labeled
+Memory Sanitizer. PR #219 merged as `cdf58ecac` with the same tested tree.
+The versioned `9a0156ff1` local macOS preview was installed and launched;
+the prior `75f817d5` installation remains available for rollback. Conditional
+CI skips are not ROM or runtime proof, and the local Homebrew-linked app is
+not a portable/notarized release package.
+
+### Minecart audit fixture follow-up (2026-09-15)
+
+Task: `task_20260915T044410Z_31372`; branch: `codex/minecart-audit-fixture`.
+`PreviewExcludesExistingCollisionAndCanonicalDecorativeObjects` used a
+zero-filled ROM while auditing all 296 rooms. Unopened rooms lacked valid
+object/sprite pointers and terminators, causing repeated scans to ROM EOF.
+Reuse `ConfigureMinecartAuditRom` before creating the three materialized room
+models; retain the global audit and every original assertion.
+
+Local Release time fell from **54.719 seconds to 0.015 seconds**; five repeat
+runs passed at **15–18 ms**. All **34/34** panel tests passed in each of
+`yaze_test_unit` and `yaze_test_quick_unit_editor`, with zero skips. CTest also
+discovered and passed both registrations of the repaired test and its
+unopened-room neighbor (**4/4**, not four unique cases). Independent review
+found no weakened coverage. No production, CI-selection, app, or ROM changes.
+The prior ASan run spent about 54 minutes on each copy of this test;
+post-fix sanitizer timing remains unverified. This follow-up is local only.
+
+Reproduce from a configured build:
+
+```sh
+cmake --build build/presets/mac-ai --config Release --target yaze_test_unit yaze_test_quick_unit_editor --parallel 4
+build/presets/mac-ai/bin/yaze_test_unit --gtest_filter='MinecartTrackEditorPanelTest.*' --gtest_list_tests
+build/presets/mac-ai/bin/yaze_test_unit --gtest_filter='MinecartTrackEditorPanelTest.*' --gtest_output=xml:/tmp/yaze-minecart-fixture-suite.xml
+build/presets/mac-ai/bin/yaze_test_quick_unit_editor --gtest_filter='MinecartTrackEditorPanelTest.*' --gtest_list_tests
+build/presets/mac-ai/bin/yaze_test_quick_unit_editor --gtest_filter='MinecartTrackEditorPanelTest.*' --gtest_output=xml:/tmp/yaze-minecart-fixture-quick.xml
+```
 
 ## Project asset refresh and cache reuse (2026-09-15)
 
