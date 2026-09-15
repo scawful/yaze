@@ -6,7 +6,7 @@ Owner: backend-infra-engineer (integration), with zelda3-hacking-expert
 
 Created: 2026-06-28
 
-Last Reviewed: 2026-09-14
+Last Reviewed: 2026-09-15
 
 Next Review: 2026-09-28
 
@@ -1053,18 +1053,57 @@ ROM, Manhandla art, and 21 custom-object files retain their source hashes.
 Logs, discovery lists, exact broader filters, and XML results are under
 `build/presets/mac-ai/layer-edges-*`.
 
-**Next confirmed source-review finding: shared presentation texture.**
-`Room::GetCompositeBitmap()` returns one mutable bitmap/texture for every
-layer configuration. The Workbench submits its canvas image before drawing
-Dungeon Map. The map requests default layers and immediately updates that
-same texture, so deferred ImGui drawing can show the map's composition in the
-canvas. Selector/matrix thumbnails also share this bitmap, but do not upload
-their changed CPU pixels themselves. Isolate presentation-owned composite
-textures and add a fake-renderer regression covering two deferred submissions
-of the same room with different layer settings. This path is code-confirmed,
-not yet reproduced in the live app or fixed in this batch. The priority-off
-fallback's transparent-object coverage handling is a separate lower-priority
-finding; no current production caller disables priority compositing.
+**Resolved source-review finding: shared presentation texture.**
+The canvas, Dungeon Map, room-selector tooltip, room-matrix tooltip, and
+connected-room previews now own independent composite outputs. Auxiliary
+previews can no longer replace the canvas texture or split its palette-debugger
+bitmap from the matching palette after ImGui has queued a draw. The active
+canvas publishes that presentation context together before canvas context-menu
+callbacks and again during the draw pass. This prevents split-view issue capture
+from sampling the comparison room left active by the previous frame. A global
+room source revision keeps every output current even when another consumer
+renders first or a cached `Room` value is replaced at the same address.
+Layer-manager state remains part of the output signature, so presentation-only
+blend and visibility changes also invalidate the correct output.
+
+Composite retirement now cancels queued work for the retired bitmap and
+defers live texture destruction through the arena. The primary `Bitmap` shell
+keeps its address across ROM/project refresh because `Canvas` and its modal
+helpers retain that pointer; only its SDL/GPU resources are retired. Duplicate
+create/update commands for one bitmap generation are suppressed. Regression
+coverage recreates a live texture on that same `Bitmap` shell before draining
+the retired handle, then proves only the old texture is destroyed.
+Connected-room outputs use a one-frame grace period before retirement, map
+outputs follow the configured dungeon-room set, and the 296-room matrix caches
+sampled colors by source revision instead of retaining a full composite texture
+per room.
+
+The focused ownership suite discovers and passes **27 tests**; five shuffled
+runs with seed 917 pass **135/135**. The surrounding renderer, object-drawer,
+canvas, palette, layer, custom-object, and sprite-preview filter discovers
+394 cases including one disabled profiling case, and runs **393 tests**:
+**390 pass**, with three expanded-ROM sprite fixtures skipped
+when their opt-in assets are not provided. The ROM parser/drawer suite selects
+40 vanilla/Oracle parameters: **39 pass**, and the canonical-vanilla
+floor-pattern parameter intentionally skips Oracle. These are automated
+CPU/mock-renderer and ROM checks. The change still needs live application UX
+acceptance and, where pixel parity is claimed, independent Mesen evidence.
+
+The native `yaze_test_unit` and `yaze` targets build with the `mac-ai` preset.
+`ctest --preset mac-ai-unit` completes successfully across 3,610 scheduled
+tests; ROM/custom-asset cases without their opt-in environment inputs remain
+reported as skips rather than release proof.
+`YAZE_BUILD_JOBS=4 scripts/build-wasm.sh smoke --incremental` completes all 449
+Emscripten build steps and packages the web app and `z3ed` under
+`build/presets/wasm-smoke/dist`. This is compile/package portability evidence,
+not interactive browser acceptance or Windows/Linux native proof.
+
+No production UI caller now displays `Room::GetCompositeBitmap()`; its only
+remaining production consumer is the synchronous CPU `RenderService` path.
+The priority-off fallback's transparent-object coverage handling remains a
+separate lower-priority finding because no current production caller disables
+priority compositing. Continue the object audit below with the reported
+water, ice, bar, stair, thin-strip, and corner families.
 
 ## Object coverage checklist
 

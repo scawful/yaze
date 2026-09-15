@@ -23,6 +23,7 @@ set(
   app/editor/dungeon/dungeon_canvas_room_render.cc
   app/editor/dungeon/dungeon_canvas_viewer.cc
   app/editor/dungeon/dungeon_rendering_helpers.cc
+  app/editor/dungeon/dungeon_room_composite.cc
   app/editor/dungeon/dungeon_overlay_controls.cc
   app/editor/dungeon/dungeon_editor_v2.cc
   app/editor/dungeon/dungeon_editor_v2_persistence.cc
