@@ -77,6 +77,15 @@ class DungeonMapPanelTestPeer {
   static size_t HolewarpConnectionCount(const DungeonMapPanel& panel) {
     return panel.holewarp_connections_.size();
   }
+
+  static void SeedCompositeOutput(DungeonMapPanel& panel, int room_id) {
+    panel.room_composite_outputs_[room_id] =
+        std::make_unique<RoomCompositeOutput>();
+  }
+
+  static size_t CompositeOutputCount(const DungeonMapPanel& panel) {
+    return panel.room_composite_outputs_.size();
+  }
 };
 
 class DungeonCanvasViewerTestPeer {
@@ -488,6 +497,8 @@ TEST(DungeonMapPanelTest, LoadFromDungeonEntryReplacesAllRoomDerivedState) {
   ASSERT_TRUE(DungeonMapPanelTestPeer::HasRoomType(panel, 0x10));
   ASSERT_EQ(DungeonMapPanelTestPeer::StairConnectionCount(panel), 1u);
   ASSERT_EQ(DungeonMapPanelTestPeer::HolewarpConnectionCount(panel), 1u);
+  DungeonMapPanelTestPeer::SeedCompositeOutput(panel, 0x10);
+  ASSERT_EQ(DungeonMapPanelTestPeer::CompositeOutputCount(panel), 1u);
 
   core::DungeonEntry second;
   second.name = "Second";
@@ -502,6 +513,7 @@ TEST(DungeonMapPanelTest, LoadFromDungeonEntryReplacesAllRoomDerivedState) {
   EXPECT_TRUE(DungeonMapPanelTestPeer::HasRoomType(panel, 0x20));
   EXPECT_EQ(DungeonMapPanelTestPeer::StairConnectionCount(panel), 0u);
   EXPECT_EQ(DungeonMapPanelTestPeer::HolewarpConnectionCount(panel), 0u);
+  EXPECT_EQ(DungeonMapPanelTestPeer::CompositeOutputCount(panel), 0u);
 }
 
 TEST(DungeonCanvasViewerNavigationTest, CanNavigateRoomsReflectsCallbacks) {
