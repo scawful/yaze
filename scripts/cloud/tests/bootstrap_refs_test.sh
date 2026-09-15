@@ -23,6 +23,7 @@ git -C "$SOURCE_REPO" commit --quiet --allow-empty -m initial
 
 # An existing unreadable final path is user data until proven otherwise.
 REFS_DIR="$TEST_ROOT/invalid/refs"
+git init --quiet "$REFS_DIR"
 mkdir -p "$REFS_DIR/unpinned"
 touch "$REFS_DIR/unpinned/sentinel"
 REFS=("unpinned $SOURCE_REPO")

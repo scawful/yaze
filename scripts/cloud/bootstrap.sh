@@ -117,7 +117,7 @@ step_submodules() {
 
 step_refs() {
   mkdir -p "$REFS_DIR"
-  local entry name url commit dest worktree_state
+  local entry name url commit dest repo_root dest_root
   for entry in "${REFS[@]}"; do
     read -r name url commit <<<"$entry"
     dest="$REFS_DIR/$name"
@@ -125,8 +125,9 @@ step_refs() {
     # clones use a temporary sibling, so an interrupted bootstrap never needs
     # to delete or replace an unreadable final path.
     if [[ -e "$dest" ]]; then
-      worktree_state="$(git -C "$dest" rev-parse --is-inside-work-tree 2>/dev/null || true)"
-      if [[ "$worktree_state" != "true" ]]; then
+      repo_root="$(git -C "$dest" rev-parse --show-toplevel 2>/dev/null || true)"
+      dest_root="$(cd "$dest" 2>/dev/null && pwd -P || true)"
+      if [[ -z "$repo_root" || "$repo_root" != "$dest_root" ]]; then
         echo "[bootstrap] refs: refusing to replace unreadable path $dest; move or remove it explicitly" >&2
         return 1
       fi
