@@ -439,7 +439,6 @@ absl::Status SendAll(SocketHandle fd, const std::string& data) {
   return absl::OkStatus();
 }
 
-
 absl::Status WaitForConnectComplete(SocketHandle fd,
                                     const std::string& socket_path) {
 #ifdef _WIN32
