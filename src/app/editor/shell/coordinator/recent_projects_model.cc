@@ -504,7 +504,9 @@ void RecentProjectsModel::Refresh(bool force) {
   for (const auto& filepath : recent_files) {
     if (entries_.size() >= kMaxRecentEntries)
       break;
-    entries_.push_back(BuildEntry(filepath));
+    RecentProject entry = BuildEntry(filepath);
+    entry.recent_index = entries_.size();
+    entries_.push_back(std::move(entry));
   }
 
   // Pinned entries float to the top; otherwise preserve RecentFilesManager
