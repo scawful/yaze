@@ -34,6 +34,11 @@ class SettingsPanelTestPeer {
   static const std::string& ProjectStatusMessage(const SettingsPanel& panel) {
     return panel.project_status_message_;
   }
+
+  static void ApplyDisplayDensity(SettingsPanel& panel,
+                                  gui::DensityPreset preset) {
+    panel.ApplyDisplayDensity(preset);
+  }
 };
 
 namespace {
@@ -150,6 +155,36 @@ TEST(SettingsPanelTest, MinecartNavigationFailsClosedAndReportsReason) {
   EXPECT_TRUE(absl::IsNotFound(failed_open));
   EXPECT_EQ(SettingsPanelTestPeer::ProjectStatusMessage(panel),
             "Minecart panel is not registered.");
+}
+
+// The Display Density combo is one line calling ApplyDisplayDensity. What
+// matters is that it routes through ReapplyTheme: Classic YAZE's struct
+// cannot reproduce ColorsYaze(), so a plain ApplyTheme would repaint Classic
+// as a different-looking theme the moment the user touched density.
+TEST(SettingsPanelTest, DisplayDensityKeepsClassicYazePaintedByColorsYaze) {
+  ScopedImGuiContext imgui;
+  auto& themes = gui::ThemeManager::Get();
+  const std::string saved = themes.GetCurrentThemeName();
+  themes.ApplyClassicYazeTheme();
+
+  // Assert on spacing, not colour: ApplyTheme starts a lerp that leaves the
+  // colour array at its START values until frames run, so a colour check here
+  // passes under both routes and proves nothing.
+  ASSERT_FLOAT_EQ(ImGui::GetStyle().FramePadding.x, 10.0f);
+
+  SettingsPanel panel;
+  SettingsPanelTestPeer::ApplyDisplayDensity(panel,
+                                             gui::DensityPreset::kCompact);
+
+  EXPECT_EQ(themes.GetCurrentThemeName(), "Classic YAZE");
+  EXPECT_EQ(themes.GetCurrentTheme().density_preset,
+            gui::DensityPreset::kCompact);
+  // ColorsYaze's own FramePadding.x of 10 scaled by Compact's 0.75. Routing
+  // through ApplyTheme instead would rebuild from the shared 8px base and
+  // land on 3.0, discarding Classic's identity metrics.
+  EXPECT_FLOAT_EQ(ImGui::GetStyle().FramePadding.x, 7.5f);
+
+  themes.ApplyTheme(saved);
 }
 
 TEST(SettingsPanelTest, LateCustomObjectEnableOpensManagerOwnedMinecartPanel) {

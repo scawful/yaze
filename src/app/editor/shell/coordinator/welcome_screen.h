@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <functional>
 #include <string>
+#include <vector>
 
 #include "app/editor/shell/coordinator/recent_projects_model.h"
 #include "imgui/imgui.h"
@@ -132,13 +133,18 @@ class WelcomeScreen {
   void DrawRecentProjects();
   void DrawProjectPanel(const RecentProject& project, int index,
                         const ImVec2& card_size);
-  void DrawTipsSection();
-  void DrawWhatsNew();
+  void DrawFooterBar();
   void DrawFirstRunGuide();
   void DrawRecentAnnotationPopup();
   void DrawUndoRemovalBanner();
   static bool ShouldUseStackedLayout(float content_width, float content_height,
                                      float layout_scale);
+  static int CalculateVisibleRecentCount(int entry_count,
+                                         float available_height,
+                                         float row_height, float row_gap,
+                                         float more_line_height);
+  static const RecentProject* FindResumeProject(
+      const std::vector<RecentProject>& entries);
 
   RecentProjectsModel recent_projects_model_;
   bool manually_closed_ = false;
