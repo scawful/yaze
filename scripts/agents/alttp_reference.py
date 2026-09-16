@@ -262,19 +262,30 @@ def looks_like_ram(addr: int) -> bool:
     return addr < 0x2000 or addr >= 0xF000
 
 
+# Banks whose symbols may be written as four-digit shorthand in the docs.
+# check_file's rejection hint is built from this same tuple, so the rule and
+# the guidance it prints can never drift apart.
+SHORTHAND_BANKS = (0x00, 0x7E, 0x7F)
+
+
+def shorthand_bank_list() -> str:
+    return "/".join(f"${bank:02X}" for bank in SHORTHAND_BANKS)
+
+
 def addresses_match(actual: int, doc: int) -> bool:
     """Six-digit doc addresses must match exactly.
 
-    Four-digit shorthand is accepted only for symbols in bank $00 (hardware
-    registers, low ROM such as `$80B5` for `$0080B5`) or the WRAM banks $7E
-    and $7F (such as `$F36D` for `$7EF36D`), where 16-bit addresses are
-    conventional. The row names the symbol, so the bank is never ambiguous
-    here. Any other bank must be written with six digits: `$8000` would
-    otherwise match both `Reset` ($008000) and `Link` ($078000).
+    Four-digit shorthand is accepted only for symbols in the banks listed in
+    SHORTHAND_BANKS: bank $00 (hardware registers, low ROM such as `$80B5`
+    for `$0080B5`) and the WRAM banks $7E and $7F (such as `$F36D` for
+    `$7EF36D`), where 16-bit addresses are conventional. The row names the
+    symbol, so the bank is never ambiguous here. Any other bank must be
+    written with six digits: `$8000` would otherwise match both `Reset`
+    ($008000) and `Link` ($078000).
     """
     if doc > 0xFFFF:
         return actual == doc
-    return actual >> 16 in (0x00, 0x7E, 0x7F) and actual & 0xFFFF == doc
+    return actual >> 16 in SHORTHAND_BANKS and actual & 0xFFFF == doc
 
 
 def snes(addr: int) -> str:
@@ -445,7 +456,8 @@ def check_file(db: Usdasm, path: Path, sections: dict[str, str],
         if actual is None:
             problems.append(f"{path}:{number}: `{name}` is not a usdasm symbol or label")
         elif not addresses_match(actual, addr):
-            hint = (" (use the six-digit address outside banks $00/$7E)"
+            hint = (f" (use the six-digit address outside banks "
+                    f"{shorthand_bank_list()})"
                     if addr <= 0xFFFF and actual & 0xFFFF == addr else "")
             problems.append(f"{path}:{number}: `{name}` is {snes(actual)} in usdasm, "
                             f"doc says {snes(addr)}{hint}")
@@ -469,6 +481,12 @@ def main(argv: list[str] | None = None) -> int:
     db = Usdasm.load(find_usdasm(args.usdasm), find_symbols(args.symbols))
     sections = generated_sections(db)
     if args.command == "render":
+        # render rewrites the generated blocks of an existing doc; it never
+        # creates one. Say so instead of surfacing a bare FileNotFoundError.
+        if not args.write.is_file():
+            print(f"{args.write}: no such file; render updates the generated "
+                  "sections of an existing doc, it does not create one")
+            return 1
         original = args.write.read_text()
         for problem in marker_problems(original, args.write):
             print(problem)
