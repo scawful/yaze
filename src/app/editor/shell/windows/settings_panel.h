@@ -10,6 +10,7 @@
 #include "app/editor/editor.h"
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/system/session/user_settings.h"
+#include "app/gui/core/theme_manager.h"
 #include "core/patch/patch_manager.h"
 #include "core/project.h"
 
@@ -83,6 +84,12 @@ class SettingsPanel : public Editor {
 
   void DrawGeneralSettings();
   void DrawAppearanceSettings();
+  // Switches the active theme to `preset` density. Lives outside the combo
+  // callback so it can be tested: the combo is one line, but the behaviour
+  // that matters — routing through ReapplyTheme so Classic YAZE repaints via
+  // ColorsYaze() rather than its struct — is not reachable from a unit test
+  // while it is buried in an ImGui interaction.
+  void ApplyDisplayDensity(gui::DensityPreset preset);
   void DrawWorkspaceSettings();
   // Loads `name` from UserSettings::named_layouts, validates the
   // serialized DockTree, and applies it to the live main dockspace via
