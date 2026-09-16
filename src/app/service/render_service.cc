@@ -1,11 +1,13 @@
 #include "app/service/render_service.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <mutex>
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/strings/numbers.h"
 #include "absl/strings/str_format.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/platform/sdl_compat.h"
@@ -23,6 +25,14 @@ namespace app {
 namespace service {
 
 namespace {
+
+absl::Status ValidateRenderScale(float scale) {
+  if (!std::isfinite(scale) || scale < 0.25f || scale > 8.0f) {
+    return absl::InvalidArgumentError(
+        "Render scale must be finite and between 0.25 and 8.0");
+  }
+  return absl::OkStatus();
+}
 
 #ifdef YAZE_CLI_HAS_PNG
 // PNG write helpers (mirrored from visual_diff_engine.cc).
@@ -64,11 +74,26 @@ TileColor CollisionColor(uint8_t tile) {
 
 }  // namespace
 
+absl::StatusOr<float> ParseRenderScale(absl::string_view value) {
+  float scale = 0;
+  if (!absl::SimpleAtof(value, &scale)) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("Invalid scale value: %s", value));
+  }
+  if (const auto status = ValidateRenderScale(scale); !status.ok()) {
+    return status;
+  }
+  return scale;
+}
+
 RenderService::RenderService(Rom* rom, zelda3::GameData* game_data)
     : rom_(rom), game_data_(game_data) {}
 
 absl::StatusOr<RenderResult> RenderService::RenderDungeonRoom(
     const RenderRequest& req) {
+  if (const auto status = ValidateRenderScale(req.scale); !status.ok()) {
+    return status;
+  }
   if (!rom_ || !rom_->is_loaded()) {
     return absl::FailedPreconditionError("ROM not loaded");
   }
@@ -79,6 +104,10 @@ absl::StatusOr<RenderResult> RenderService::RenderDungeonRoom(
     return absl::InvalidArgumentError(
         absl::StrFormat("Invalid room_id 0x%02X", req.room_id));
   }
+
+#ifndef YAZE_CLI_HAS_PNG
+  return absl::UnimplementedError("PNG encoding unavailable (libpng missing)");
+#endif
 
   std::lock_guard<std::mutex> lock(mu_);
 
@@ -95,9 +124,12 @@ absl::StatusOr<RenderResult> RenderService::RenderDungeonRoom(
 
   // Composite all layers to a single Bitmap (CPU, SDL surface with palette).
   zelda3::RoomLayerManager layer_mgr;
+  layer_mgr.ApplyLayerMerging(room.layer_merging());
+  layer_mgr.ApplyRoomEffect(room.effect());
   auto& composite = room.GetCompositeBitmap(layer_mgr);
 
-  if (!composite.is_active() || composite.width() <= 0) {
+  if (!composite.is_active() || composite.width() <= 0 ||
+      composite.height() <= 0) {
     return absl::InternalError("Composite bitmap is empty after render");
   }
 
@@ -116,17 +148,12 @@ absl::StatusOr<RenderResult> RenderService::RenderDungeonRoom(
   }
 
   // Encode to PNG.
-#ifdef YAZE_CLI_HAS_PNG
   auto png_or = EncodePng(rgba, out_w, out_h);
   if (!png_or.ok())
     return png_or.status();
 
   RenderResult result;
   result.png_data = std::move(png_or).value();
-#else
-  RenderResult result;
-  result.png_data = std::move(rgba);
-#endif
   result.width = out_w;
   result.height = out_h;
   return result;

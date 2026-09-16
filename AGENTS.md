@@ -58,6 +58,12 @@ Use tool classes intentionally:
 - `z3ed --write` targets the base ROM (`oos168.sfc`), never `oos168x.sfc`
 - Oracle context: `../oracle-of-secrets/.context/scratchpad/agent_handoff.md`
 
+### 5b) Cloud / ROM-less Sessions
+- Linux cloud agents (Claude Code web, Codex, Cursor): follow
+  `docs/internal/agents/cloud-agents.md` instead of the macOS defaults above.
+- Setup and verification: `scripts/cloud/bootstrap.sh [configure build test]`.
+- No ROMs, local MCP servers, or universe coordination in cloud sessions.
+
 ### 6) Dependency Graph
 `Task Class` -> `Primary Persona` -> `Focused Context Files` -> `Tools/Scripts` -> `Validation`.
 

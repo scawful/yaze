@@ -273,6 +273,11 @@ class Editor {
   virtual void RollbackSaveTransaction() {}
   virtual void CommitSaveTransaction() {}
 
+  // Release callbacks and raw references to session-owned workspace panels
+  // before WorkspaceWindowManager destroys those panels. Session teardown is
+  // terminal, and implementations must tolerate repeated calls.
+  virtual void PrepareForSessionTeardown() {}
+
   // Update the editor state, ran every frame.
   virtual absl::Status Update() = 0;
 

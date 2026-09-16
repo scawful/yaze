@@ -18,8 +18,8 @@
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
 #include "core/project.h"
-#include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/track_collision_generator.h"
 
 namespace yaze::editor {
 
@@ -29,11 +29,15 @@ class MinecartTrackEditorPanel : public WindowContent {
       std::function<absl::Status(const project::DungeonOverlaySettings&)>;
   using ProjectDraftChangedCallback = std::function<absl::Status()>;
   using ProjectSaveCallback = std::function<absl::Status()>;
+  using CollisionBatchApplyCallback = std::function<absl::Status(
+      const std::vector<zelda3::TrackCollisionResult>&,
+      const zelda3::GeneratorOptions&)>;
 
   MinecartTrackEditorPanel() = default;
 
   // WindowContent overrides
   std::string GetId() const override { return "dungeon.minecart_tracks"; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
   std::string GetDisplayName() const override { return "Minecart Tracks"; }
   std::string GetIcon() const override { return ICON_MD_TRAIN; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
@@ -42,14 +46,18 @@ class MinecartTrackEditorPanel : public WindowContent {
 
   // Custom methods
   void SetRooms(DungeonRoomStore* rooms) {
+    if (rooms_ != rooms) {
+      collision_preview_.clear();
+      collision_preview_options_ = {};
+    }
     rooms_ = rooms;
     audit_dirty_ = true;
+    audit_includes_all_rooms_ = false;
   }
   absl::Status SetProject(project::YazeProject* project);
   // Reapply project-backed panel state even when the stable session project
   // pointer and descriptor path did not change.
   absl::Status RebindProjectContext(project::YazeProject* project);
-  void SetRom(Rom* rom) { rom_ = rom; }
   absl::Status SaveTracks();
   absl::Status ReloadTracks();
   absl::Status DiscardUnpublishedChanges();
@@ -81,6 +89,26 @@ class MinecartTrackEditorPanel : public WindowContent {
   void SetProjectSaveCallback(ProjectSaveCallback callback) {
     project_save_callback_ = std::move(callback);
   }
+  void SetCollisionBatchApplyCallback(CollisionBatchApplyCallback callback) {
+    collision_batch_apply_callback_ = std::move(callback);
+  }
+  void InvalidateRoomAudit() {
+    ClearCollisionPreview();
+    audit_dirty_ = true;
+    audit_includes_all_rooms_ = false;
+  }
+  void DetachRuntimeContext() {
+    room_navigation_callback_ = {};
+    project_changed_callback_ = {};
+    project_draft_changed_callback_ = {};
+    project_save_callback_ = {};
+    collision_batch_apply_callback_ = {};
+    rooms_ = nullptr;
+    project_ = nullptr;
+    picking_mode_ = false;
+    picking_track_index_ = -1;
+    collision_preview_.clear();
+  }
 
  private:
   friend class MinecartTrackEditorPanelTestPeer;
@@ -91,7 +119,12 @@ class MinecartTrackEditorPanel : public WindowContent {
   void ResetTrackSession();
   void StartCoordinatePicking(int track_index);
   void CancelCoordinatePicking();
-  void RebuildAuditCache();
+  void RebuildAuditCache(bool include_unmaterialized = false);
+  absl::Status BuildCollisionPreview(const std::vector<int>& room_ids);
+  absl::Status BuildAllEligibleCollisionPreview();
+  absl::Status ApplyCollisionPreview();
+  void ClearCollisionPreview();
+  absl::StatusOr<zelda3::GeneratorOptions> ResolveGeneratorOptions() const;
   bool IsDefaultTrack(const MinecartTrack& track) const;
   void DrawOverlaySettings();
   void InitializeOverlayInputs();
@@ -111,11 +144,13 @@ class MinecartTrackEditorPanel : public WindowContent {
   absl::Status SaveProjectSettings();
 
   struct RoomTrackAudit {
+    bool has_any_custom_collision = false;
     bool has_track_collision = false;
     bool has_stop_tiles = false;
     bool has_minecart_sprite = false;
     bool has_minecart_on_stop = false;
     std::vector<int> track_subtypes;
+    std::vector<int> route_slots;
   };
 
   std::vector<MinecartTrack> tracks_;
@@ -126,13 +161,15 @@ class MinecartTrackEditorPanel : public WindowContent {
   std::string loaded_source_sha256_;
   std::string bound_project_filepath_;
   std::optional<core::MinecartTrackLayout::Source> bound_source_identity_;
-  Rom* rom_ = nullptr;
   DungeonRoomStore* rooms_ = nullptr;
   project::YazeProject* project_ = nullptr;
   std::unordered_map<int, RoomTrackAudit> room_audit_;
-  std::unordered_map<int, std::vector<int>> track_usage_rooms_;
-  std::vector<bool> track_subtype_used_;
+  std::unordered_map<int, std::vector<int>> route_usage_rooms_;
+  std::vector<bool> route_slot_used_;
+  std::vector<zelda3::TrackCollisionResult> collision_preview_;
+  zelda3::GeneratorOptions collision_preview_options_;
   bool audit_dirty_ = true;
+  bool audit_includes_all_rooms_ = false;
   bool load_attempted_ = false;
   bool loaded_ = false;
   std::string status_message_;
@@ -152,6 +189,7 @@ class MinecartTrackEditorPanel : public WindowContent {
   ProjectChangedCallback project_changed_callback_;
   ProjectDraftChangedCallback project_draft_changed_callback_;
   ProjectSaveCallback project_save_callback_;
+  CollisionBatchApplyCallback collision_batch_apply_callback_;
 
   // Overlay config input state
   bool overlay_inputs_initialized_ = false;

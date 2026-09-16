@@ -34,6 +34,9 @@
 #include "cli/handlers/game/dungeon_collision_commands.h"
 #include "cli/service/resources/command_context.h"
 #include "rom/rom.h"
+#include "rom/snes.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/room_object.h"
 
 namespace yaze::cli {
 namespace {
@@ -41,6 +44,42 @@ namespace {
 using ::testing::HasSubstr;
 
 constexpr int kRomSize = 0x200000;
+constexpr int kObjectPointerTablePc = 0x070000;
+constexpr int kObjectDataPc = 0x060000;
+constexpr int kSpritePointerTablePc = 0x048000;
+
+void WriteWord(Rom* rom, int address, uint16_t value) {
+  rom->mutable_data()[address] = value & 0xFF;
+  rom->mutable_data()[address + 1] = (value >> 8) & 0xFF;
+}
+
+void WriteLong(Rom* rom, int address, uint32_t value) {
+  rom->mutable_data()[address] = value & 0xFF;
+  rom->mutable_data()[address + 1] = (value >> 8) & 0xFF;
+  rom->mutable_data()[address + 2] = (value >> 16) & 0xFF;
+}
+
+void WriteTrackObjectRoom(Rom* rom, int room_id, int subtype) {
+  WriteLong(rom, zelda3::kRoomObjectPointer, PcToSnes(kObjectPointerTablePc));
+  WriteLong(rom, kObjectPointerTablePc + room_id * 3, PcToSnes(kObjectDataPc));
+  const zelda3::RoomObject object(0x31, 10, 10, subtype, 0);
+  const auto encoded = object.EncodeObjectToBytes();
+  ASSERT_TRUE(rom->WriteVector(kObjectDataPc,
+                               {0x00, 0x00, encoded.b1, encoded.b2, encoded.b3,
+                                0xFF, 0xFF, 0xFF, 0xFF, 0xF0, 0xFF, 0xFF, 0xFF})
+                  .ok());
+}
+
+void WriteMinecartSpriteRoom(Rom* rom, int room_id, int route_slot) {
+  WriteWord(rom, zelda3::kRoomsSpritePointer,
+            static_cast<uint16_t>(PcToSnes(kSpritePointerTablePc)));
+  WriteWord(rom, kSpritePointerTablePc + room_id * 2,
+            static_cast<uint16_t>(PcToSnes(zelda3::kSpritesData)));
+  const uint8_t b1 = static_cast<uint8_t>(5 | ((route_slot & 0x18) << 2));
+  const uint8_t b2 = static_cast<uint8_t>(4 | ((route_slot & 0x07) << 5));
+  ASSERT_TRUE(
+      rom->WriteVector(zelda3::kSpritesData, {0x00, b1, b2, 0xA3, 0xFF}).ok());
+}
 
 std::filesystem::path MakeUniqueTempPath(const std::string& base_name) {
   static std::atomic<uint64_t> counter{0};
@@ -238,6 +277,44 @@ TEST(DungeonMinecartAuditTest, MultipleD6RoomsCollisionOnOneIsolatesIssue) {
           .ok());
 
   EXPECT_THAT(out, HasSubstr("\"rooms_with_issues\": 1"));
+}
+
+TEST(DungeonMinecartAuditTest,
+     CanonicalDecorativeObjectSubtypeIsNotReportedAsTrack) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kRomSize, 0)).ok());
+  WriteTrackObjectRoom(&rom, 0x25, 13);
+
+  handlers::DungeonMinecartAuditCommandHandler handler;
+  std::string out;
+  ASSERT_TRUE(handler
+                  .Run({"--room=0x25", "--include-track-objects",
+                        "--only-matches", "--format=json"},
+                       &rom, &out)
+                  .ok());
+
+  EXPECT_THAT(out, HasSubstr("\"rooms_emitted\": 0"));
+  EXPECT_THAT(out, HasSubstr("\"rooms_with_issues\": 0"));
+}
+
+TEST(DungeonMinecartAuditTest,
+     SpriteRouteSlotIsNotComparedWithVisualPieceSubtype) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kRomSize, 0)).ok());
+  WriteTrackObjectRoom(&rom, 0x25, 4);
+  WriteMinecartSpriteRoom(&rom, 0x25, 7);
+
+  handlers::DungeonMinecartAuditCommandHandler handler;
+  std::string out;
+  ASSERT_TRUE(
+      handler
+          .Run({"--room=0x25", "--include-track-objects", "--format=json"},
+               &rom, &out)
+          .ok());
+
+  EXPECT_THAT(out, HasSubstr("\"track_object_subtypes\": ["));
+  EXPECT_THAT(out, HasSubstr("\"subtype\": 7"));
+  EXPECT_THAT(out, ::testing::Not(HasSubstr("not referenced by any track")));
 }
 
 // ---------------------------------------------------------------------------

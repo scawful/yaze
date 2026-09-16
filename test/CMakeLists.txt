@@ -192,6 +192,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/rom_doctor_water_fill_test.cc
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
+    unit/cli/dungeon_render_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
     unit/cli/dungeon_track_collision_commands_test.cc
     unit/cli/dungeon_spawn_report_commands_test.cc
@@ -229,6 +230,7 @@ if(YAZE_BUILD_TESTS)
     unit/gui/panel_window_test.cc
     unit/gui/animator_test.cc
     unit/gui/property_inspector_test.cc
+    unit/gui/empty_state_test.cc
     unit/gui/resize_handles_test.cc
     unit/gui/font_picker_test.cc
     unit/gui/icon_browser_test.cc
@@ -258,6 +260,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/workflow_activity_widgets_test.cc
     unit/editor/layout_manager_persistence_test.cc
     unit/editor/right_drawer_manager_test.cc
+    unit/editor/status_bar_context_test.cc
     unit/editor/undo_manager_test.cc
     unit/editor/sprite_editor_undo_test.cc
     unit/editor/sprite_editor_preview_test.cc
@@ -268,6 +271,8 @@ if(YAZE_BUILD_TESTS)
     unit/editor/editor_manager_test.cc
     unit/editor/story_event_graph_navigation_test.cc
     unit/editor/ui_coordinator_workflow_test.cc
+    unit/editor/welcome_screen_test.cc
+    unit/editor/dashboard_panel_test.cc
     unit/editor/editor_manager_project_actions_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc
     unit/editor/editor_manager_oracle_rom_safety_test.cc
@@ -287,10 +292,12 @@ if(YAZE_BUILD_TESTS)
     unit/editor/sidebar_sort_test.cc
     unit/editor/activity_bar_actions_registry_test.cc
     unit/editor/theme_persistence_test.cc
+    unit/editor/settings_panel_test.cc
     unit/editor/theme_style_snapshot_test.cc
     unit/editor/theme_generator_test.cc
     unit/editor/editor_registry_test.cc
     unit/editor/shortcut_manager_test.cc
+    unit/editor/shortcut_group_test.cc
     unit/editor/shortcut_configurator_test.cc
     unit/editor/window_sidebar_test.cc
     unit/editor/dungeon_canvas_viewer_navigation_test.cc
@@ -302,6 +309,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_editor_palette_refresh_test.cc
     unit/editor/dungeon_overlay_controls_test.cc
     unit/editor/dungeon_object_selector_palette_test.cc
+    unit/editor/room_graphics_content_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/object_tile_editor_panel_test.cc
     unit/editor/minecart_track_source_test.cc
@@ -498,11 +506,41 @@ if(YAZE_BUILD_TESTS)
     list(APPEND STABLE_INTEGRATION_TEST_SOURCES
       integration/grpc_server_smoke_test.cc
       integration/imgui_test_harness_logic_test.cc
+      integration/screenshot_utils_test.cc
     )
   endif()
 
   yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
+  add_test(
+    NAME TestRunnerDiscoveryContract
+    COMMAND ${CMAKE_COMMAND}
+      "-DTEST_EXECUTABLE=$<TARGET_FILE:yaze_test_unit>"
+      -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/test_runner_discovery.cmake"
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+  set_tests_properties(TestRunnerDiscoveryContract PROPERTIES
+    LABELS "stable;unit"
+    TIMEOUT 45
+  )
   yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})
+  if(YAZE_WITH_GRPC AND TARGET yaze_grpc_support)
+    # Match the encoder's compiled capability, not sibling-directory visibility
+    # of the imported PNG target. Find it locally only when the encoder uses it.
+    get_target_property(_YAZE_SCREENSHOT_ENCODER_DEFINITIONS
+      yaze_grpc_support COMPILE_DEFINITIONS)
+    if("YAZE_SCREENSHOT_HAS_PNG=1" IN_LIST _YAZE_SCREENSHOT_ENCODER_DEFINITIONS)
+      if(NOT TARGET PNG::PNG)
+        find_package(PNG QUIET)
+      endif()
+      if(NOT TARGET PNG::PNG)
+        message(FATAL_ERROR "PNG-enabled screenshot tests require PNG::PNG")
+      endif()
+      target_link_libraries(yaze_test_integration PRIVATE PNG::PNG)
+      target_compile_definitions(yaze_test_integration PRIVATE
+        YAZE_SCREENSHOT_TEST_HAS_PNG=1
+      )
+    endif()
+  endif()
   target_compile_definitions(yaze_test_integration PRIVATE
     YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
   )
@@ -584,10 +622,12 @@ if(YAZE_BUILD_TESTS)
     unit/editor/sidebar_sort_test.cc
     unit/editor/activity_bar_actions_registry_test.cc
     unit/editor/theme_persistence_test.cc
+    unit/editor/settings_panel_test.cc
     unit/editor/theme_style_snapshot_test.cc
     unit/editor/theme_generator_test.cc
     unit/editor/editor_manager_test.cc
     unit/editor/ui_coordinator_workflow_test.cc
+    unit/editor/welcome_screen_test.cc
     unit/editor/editor_manager_project_actions_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc
     unit/editor/editor_manager_write_conflict_test.cc
@@ -599,6 +639,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_canvas_viewer_navigation_test.cc
     unit/editor/dungeon_editor_palette_refresh_test.cc
     unit/editor/dungeon_object_selector_palette_test.cc
+    unit/editor/room_graphics_content_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/dungeon_workbench_content_test.cc
     unit/editor/object_tile_editor_panel_test.cc
@@ -615,6 +656,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/palette_controls_panel_layout_test.cc
     unit/editor/sprite_editor_preview_test.cc
     unit/gui/property_inspector_test.cc
+    unit/gui/empty_state_test.cc
     unit/gui/resize_handles_test.cc
     unit/gui/font_picker_test.cc
     unit/gui/icon_browser_test.cc
@@ -631,6 +673,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/user_settings_layout_defaults_test.cc
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
+    unit/cli/dungeon_render_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
     unit/cli/dungeon_track_collision_commands_test.cc
     unit/cli/editor_completion_command_handlers_test.cc
@@ -785,8 +828,18 @@ if(YAZE_BUILD_TESTS)
   )
   yaze_add_test_suite(yaze_test_benchmark "benchmark" OFF ${BENCHMARK_TEST_SOURCES})
 
-  # --- z3ed CLI Smoke Test ---
+  # --- Script Contracts and z3ed CLI Smoke Tests ---
   if(UNIX)
+    add_test(
+      NAME DungeonVisualParityAuditContract
+      COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/agents/test-dungeon-visual-parity-audit.sh
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+    set_tests_properties(DungeonVisualParityAuditContract PROPERTIES
+      LABELS "stable;unit;scripts"
+      TIMEOUT 60
+    )
+
     add_test(
       NAME oracle_smoke_script_test
       COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/dev/test-oracle-smoke.sh

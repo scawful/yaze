@@ -100,6 +100,22 @@ std::vector<std::string> ParseStringList(const std::string& value) {
   return result;
 }
 
+std::vector<std::string> ParsePositionalStringList(const std::string& value) {
+  std::vector<std::string> result;
+  if (value.empty())
+    return result;
+
+  std::vector<std::string> parts = absl::StrSplit(value, ',');
+  result.reserve(parts.size());
+  for (const auto& part : parts) {
+    std::string trimmed = part;
+    trimmed.erase(0, trimmed.find_first_not_of(" \t"));
+    trimmed.erase(trimmed.find_last_not_of(" \t") + 1);
+    result.push_back(std::move(trimmed));
+  }
+  return result;
+}
+
 std::vector<uint16_t> ParseHexUintList(const std::string& value) {
   std::vector<uint16_t> result;
   if (value.empty()) {
@@ -651,6 +667,21 @@ std::string YazeProject::MakeStorageKey(absl::string_view suffix) const {
   return absl::StrFormat("%s_%s", base, suffix);
 }
 
+namespace {
+// A '\r' not followed by '\n' is a classic-Mac line ending. The parser can
+// normalize CRLF, but a lone CR would split a line somewhere it does not
+// expect, so both directions refuse it.
+bool ContainsLoneCarriageReturn(const std::string& content) {
+  for (size_t i = 0; i < content.size(); ++i) {
+    if (content[i] == '\r' &&
+        (i + 1 >= content.size() || content[i + 1] != '\n')) {
+      return true;
+    }
+  }
+  return false;
+}
+}  // namespace
+
 absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   std::ostringstream file;
 
@@ -948,16 +979,26 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   }
 
   file << "# End of YAZE Project File\n";
-  return file.str();
+
+  // Refuse to WRITE what ParseFromString refuses to READ. Values are streamed
+  // verbatim — metadata.description and resource labels injected from
+  // hack_manifest.json among them — so a lone CR pasted from an old-Mac
+  // source would round-trip through Save() and leave the project permanently
+  // unopenable, with the previous good file already overwritten. Failing here
+  // keeps that file intact.
+  std::string serialized = file.str();
+  if (ContainsLoneCarriageReturn(serialized)) {
+    return absl::InvalidArgumentError(
+        "Project contains a lone carriage return in a value; refusing to "
+        "write a descriptor that could not be read back");
+  }
+  return serialized;
 }
 
 absl::Status YazeProject::ParseFromString(const std::string& content) {
-  for (size_t i = 0; i < content.size(); ++i) {
-    if (content[i] == '\r' &&
-        (i + 1 >= content.size() || content[i + 1] != '\n')) {
-      return absl::InvalidArgumentError(
-          "Project file contains unsupported lone carriage returns");
-    }
+  if (ContainsLoneCarriageReturn(content)) {
+    return absl::InvalidArgumentError(
+        "Project file contains unsupported lone carriage returns");
   }
 
   std::istringstream stream(content);
@@ -1142,7 +1183,8 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
       }
       auto parsed = ParseHexUint32(id_token);
       if (parsed.has_value()) {
-        custom_object_files[static_cast<int>(*parsed)] = ParseStringList(value);
+        custom_object_files[static_cast<int>(*parsed)] =
+            ParsePositionalStringList(value);
       }
     } else if (current_section == "agent_settings") {
       if (key == "ai_provider")

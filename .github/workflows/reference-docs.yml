@@ -1,0 +1,35 @@
+name: Reference Docs
+
+# Keeps docs/internal/zelda3 address tables in sync with the pinned usdasm
+# disassembly and jpdasm symbol maps, and unit-tests the checker itself.
+
+on:
+  pull_request:
+    paths:
+      - "docs/internal/zelda3/**"
+      - "scripts/agents/alttp_reference.py"
+      - "scripts/agents/tests/**"
+      - "scripts/cloud/bootstrap.sh"
+      - ".github/workflows/reference-docs.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: reference-docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  reference-docs:
+    name: Reference docs match usdasm
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Unit-test the checker
+        run: python3 -m unittest discover -s scripts/agents/tests -v
+      - name: Clone pinned reference repos
+        run: bash scripts/cloud/bootstrap.sh refs
+      - name: Check docs against usdasm and jpdasm
+        run: python3 scripts/agents/alttp_reference.py check docs/internal/zelda3/*.md

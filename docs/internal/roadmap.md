@@ -12,8 +12,9 @@ Next review: 2026-09-28
 
 Universe task: `task_20260913T233703Z_21853` ([coordination system](agents/universe-coordination-spec.md))
 
-Intent: make Yaze safe and understandable enough for a bounded v0.8.0 tester
-preview, then promote editors by proving complete user save workflows.
+Intent: ship v0.8.0 as a dependable Dungeon Editor milestone, with audited
+vanilla object rendering and a validated Oracle editing workflow. Continue
+bounded preview builds while completing the release requirements below.
 
 The canonical editor status is the
 [feature coverage report](../public/reference/feature-coverage-report.md).
@@ -24,10 +25,12 @@ Completed release history belongs in the root
 [roadmap through v0.7.2](archive/roadmaps/roadmap-through-v0.7.2.md) is
 preserved as a frozen snapshot for details that were formerly tracked here.
 
-Related plans that are still listed as active, but are overdue for a status
-refresh, are the [0.x release ladder](plans/release-ladder-0x-2026.md) and the
-[z3dk v0.8.0 integration proposal](plans/z3dk-integration-0.8.0.md). See the
-[plan directory guide](plans/README.md) for the complete active-plan index.
+The [dungeon completion backlog](plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md)
+owns object coverage, agent assignments, and execution order. The
+[0.x release ladder](plans/release-ladder-0x-2026.md) owns later milestones.
+The [z3dk v0.8.0 integration proposal](plans/z3dk-integration-0.8.0.md) remains
+overdue for a scope refresh; it must not displace dungeon completion. See the
+[plan directory guide](plans/README.md) for navigation.
 
 ## Release rule
 
@@ -35,15 +38,21 @@ An editor is not promoted because its panel opens, its serializer has a unit
 test, or a direct ROM writer can roundtrip bytes. Promotion requires a named
 user workflow and evidence appropriate to that workflow.
 
-## P0: tester preview
+Merge reviewed, verified slices throughout development. Hold the v0.8.0 tag,
+not consolidation. A bounded preview is not evidence that the full dungeon
+milestone is complete. Unsupported custom ASM and universal hack compatibility
+are not implied by this release.
 
-These are the only blockers for inviting a small, explicitly bounded tester
-group.
+## P0: v0.8.0 dungeon completion
+
+All five outcomes are release requirements. Early previews must name their
+remaining gaps rather than weakening these exit criteria.
 
 ### 1. Release foundation
 
-- Merge the cross-platform release-gate work after exact-head native, security,
-  WASM, and publish-disabled Release jobs are terminal green.
+- Require exact-head native, security, and WASM checks before merging each
+  relevant implementation slice. Run publish-disabled Release jobs again on
+  the final combined candidate; an earlier successful package is not enough.
 - Require relocatable Linux TGZ/DEB, macOS DMG/app, and Windows ZIP/NSIS
   artifacts with version, provenance, assets, and loader smoke checks.
 - Manually open the packaged application on each claimed platform before a
@@ -54,7 +63,8 @@ acceptance matrix.
 
 ### 2. Honest editor boundaries
 
-- Publish Dungeon, Overworld, and Message as the initial ROM-editing lanes.
+- Make Dungeon the release headline. Keep bounded Overworld and Message
+  testing available without promising completion of every editor in v0.8.0.
 - Publish Palette only with its required two-step save procedure.
 - Keep Graphics and Screen mutation out of persistence testing until their
   serializers are proven.
@@ -71,46 +81,59 @@ feature matrix tell the same story.
 
 - Build one reusable harness for:
   **edit -> File > Save ROM -> close -> reopen disk file -> verify**.
-- Apply it to Dungeon, Overworld, Message, and Palette first.
+- Complete Dungeon first, including undo/redo, object size and stream, sprites,
+  doors, and changed room metadata. Cover the supported block/pit limits and
+  reject overflow without partial saves. Reuse the harness for Overworld,
+  Message, and Palette without turning this into a multi-editor rewrite.
 - Make ROM-backed GUI coverage visibly skip or fail when its ROM fixture is
   unavailable. Do not count window-only smoke as editor persistence.
 
-Exit: each tester-ready editor has at least one automated complete-path test or
+Exit: Dungeon has automated application-path save/reopen coverage and packaged
+hands-on acceptance. Other advertised tester lanes have a complete-path test or
 a documented temporary manual gate with an owner and follow-up.
 
 ### 4. Dungeon daily-driver pass
 
-- Continue the ROM parser/drawer, fingerprint, Mesen ROI, and `z3ed` validation
-  ladder for reported object families.
-- Prioritize remaining water/ice/moving-floor strips, bar and staircase objects,
-  corners, and sprite-preview palettes reported during hands-on testing.
+- Complete the systematic object inventory in the linked dungeon backlog.
+  Resolve remaining thin/carpet strips, water/ice/moving-floor stamps, bars,
+  stairs, corners, door families, and sprite-preview palettes before tagging.
+- Audit shared rules against disassembly, then validate real room composition.
+  Keep synthetic, ROM parser/drawer, fingerprint, Mesen ROI, and `z3ed` bounds
+  evidence separate. Do not refresh a golden to conceal an unexplained change.
 - Inventory project-mapped custom-object overrides, especially exact-ID
   wall/corner mappings, and keep decorative `0x31` subtypes separate from
   minecart semantics.
 - Treat custom-object `.bin` publishing, room-object placement, minecart start
   tables, and generated collision as separate transactions until one workflow
-  can validate and commit them together.
+  can validate and commit them together. For v0.8.0, make the existing staged
+  workflow explicit and prove publish/save -> rebuild -> reopen -> Mesen;
+  a universal custom-object designer is not required.
 - Separate render correctness from in-game behavior and from editor UI layout.
 - Finish the stable, non-reflowing issue-report dialog so reports are easy to
   capture without moving the canvas or context menu.
 
-Exit: known issues are reproducible by room/object, fixed issues have an
-independent proof tier, and remaining exceptions are listed rather than hidden
-behind a “1:1” claim.
+Exit: each supported object family has a recorded render contract, coverage,
+and an independently checked representative or state where applicable. Known
+render/save defects in that scope are closed. Oracle wall overrides, ice, and
+minecart workflows are usable through their documented runtime path. Explicit
+editor indicators and unimplemented animation are labeled, not pixel-parity
+claims. Deferring a release requirement requires an explicit scope decision.
 
 ### 5. Accepted UI consolidation
 
-- Merge the theme/visual-language pass after its release dependency is green.
-- Rebase and merge the simplified welcome flow and stable dungeon issue dialog.
+- Consolidate reviewed theme, welcome, custom-object, and issue-dialog work
+  after exact-head CI and the relevant acceptance checks. Preserve existing
+  branches and dirty work; do not rewrite history to simplify the merge train.
 - Preserve a clear center canvas, predictable side panels, and user-controlled
   picker placement; avoid transient text that changes canvas geometry.
 
 Exit: the consolidated macOS application is deployed for hands-on acceptance,
 and focused layout/theme tests pass.
 
-## P1: daily-driver editors
+## P1: subsequent editor milestones
 
-Work in this order after the tester preview is contained:
+Follow the release ladder after the dungeon milestone. These are not reasons
+to delay focused dungeon fixes or expand v0.8.0 into an all-editor release:
 
 1. **Palette:** either join coordinated save transactionally or formalize the
    two-step model with full UI-to-disk readback.
@@ -118,14 +141,12 @@ Work in this order after the tester preview is contained:
    write/reopen/readback tests; keep current fail-closed behavior until then.
 3. **Screen:** enable one independently verified data domain at a time instead
    of one all-or-nothing writer.
-4. **Dungeon:** close the remaining systematic object-parity backlog and remove
-   superseded render special cases as verified rules replace them.
-5. **Custom and gameplay objects:** replace scattered filename/subtype/overlay
-   conventions with a project catalog that owns identity, preview, placement,
-   collision semantics, source output, validation, and migration. Start with
-   wall-graphics overrides, icy/slippery floors, moving-floor/water objects, and
-   minecart tracks. Preserve source-patch compatibility; do not create
-   editor-only visuals that cannot reach the ROM build.
+4. **Dungeon extensions:** expand independent room/state coverage beyond the
+   release baseline and support new object/runtime contracts. Remove obsolete
+   code alongside verified fixes, not as an unbounded separate rewrite.
+5. **Custom-object authoring:** consider a broader catalog/designer beyond the
+   supported Oracle assets only after the existing override, ice, and minecart
+   workflows satisfy v0.8.0. Preserve source-patch compatibility.
 6. **Overworld and Message:** add dedicated user guides and broader
    application-path coverage.
 7. **UI system:** continue spacing, hierarchy, responsive panel, keyboard, and

@@ -19,6 +19,7 @@ class V3SettingsPanel : public EditorPanel {
 
   // EditorPanel interface
   std::string GetId() const override { return "overworld.v3_settings"; }
+  std::string GetWorkflowGroup() const override { return "Advanced"; }
   std::string GetDisplayName() const override { return "v3 Settings"; }
   std::string GetIcon() const override { return ICON_MD_SETTINGS; }
   std::string GetEditorCategory() const override { return "Overworld"; }

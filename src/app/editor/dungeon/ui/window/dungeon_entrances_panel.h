@@ -51,6 +51,7 @@ class DungeonEntrancesPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_TUNE; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 26; }
+  std::string GetWorkflowGroup() const override { return "Core"; }
 
   // ==========================================================================
   // WindowContent Drawing

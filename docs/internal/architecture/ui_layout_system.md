@@ -8,17 +8,20 @@ The main menu bar in `UICoordinator::DrawMenuBarExtras` handles the right-aligne
 
 ### Right-Aligned Status Cluster
 The status cluster in `DrawMenuBarExtras` includes (in order from left to right):
-1.  **Version**: `vX.Y.Z` (May be hidden on narrow windows)
-2.  **Dirty Indicator**: Warning-colored dot (Visible when ROM has unsaved changes)
-3.  **Session Switcher**: Layers icon (Visible when multiple sessions are open, may be hidden on narrow windows)
-4.  **Notification Bell**: Bell icon (Always visible - high priority)
+1.  **Dirty Indicator**: Warning-colored dot (Visible when ROM has unsaved changes)
+2.  **Session Switcher**: Layers icon (Visible when multiple sessions are open, may be hidden on narrow windows)
+3.  **Notification Bell**: Bell icon (Always visible - high priority; opens the Notifications drawer)
 
-### Panel Toggle Buttons
-Panel toggle buttons are drawn at the end of the menu bar using screen coordinates:
-1.  **Panel Toggles**: Icons for Agent, Proposals, Settings, Properties
+Version text is **not** shown in the menu bar (see **Help > About**).
+
+### Drawers Overflow Control
+A single **Drawers** overflow button (`ICON_MD_VERTICAL_SPLIT`) is drawn at the end of the menu bar using screen coordinates:
+1.  **Drawers overflow**: Opens a popup listing every switchable drawer from `GetDrawerCatalog()` (Project, Properties, Agent, Proposals, Notifications, Help, Settings). Active drawer is checked; selecting toggles.
 2.  **WASM Toggle**: Chevron icon (Visible only in Emscripten builds)
 
 These are positioned using `ImGui::SetCursorScreenPos()` with coordinates calculated from the true viewport (not the dockspace window). This ensures they remain in a fixed position even when panels open/close and the dockspace resizes.
+
+The open drawer’s header also exposes the same catalog via its panel switcher popup. **View > Drawers** is the text-menu home for the same toggles. Layout presets live under **Windows > Layout** only.
 
 ### Button Styling
 All menu bar icon buttons use consistent styling via `DrawMenuBarIconButton()`:
@@ -29,21 +32,13 @@ All menu bar icon buttons use consistent styling via `DrawMenuBarIconButton()`:
 - `Primary` color for active icons (e.g., when a panel is open)
 
 ### Sizing Calculation
-The `cluster_width` is calculated dynamically using `GetMenuBarIconButtonWidth()` which accounts for:
-- Icon text width (using `ImGui::CalcTextSize`)
-- Frame padding (`FramePadding.x * 2`)
-- Item spacing between elements (6px)
-
-The number of panel toggle buttons is determined at compile time:
-- With `YAZE_WITH_GRPC`: 4 buttons (Agent, Proposals, Settings, Properties)
-- Without `YAZE_WITH_GRPC`: 3 buttons (Proposals, Settings, Properties)
+Status-cluster button widths use SmallButton metrics (`CalcTextSize` + `FramePadding.x * 2`). The drawers overflow region width comes from `RightDrawerManager::GetDrawerToggleClusterWidth()` so menu-bar reservation stays in sync with the single overflow control (no hardcoded icon count).
 
 ### Responsive Behavior
 When the window is too narrow to display all elements, they are hidden progressively based on priority:
-1. **Always shown**: Notification bell, WASM toggle, dirty indicator
-2. **High priority**: Version text
+1. **Always shown**: Notification bell, drawers overflow, WASM toggle
+2. **High priority**: Dirty indicator
 3. **Medium priority**: Session switcher button
-4. **Low priority**: Panel toggle buttons
 
 The available width is calculated as:
 ```cpp
@@ -55,21 +50,21 @@ When the Right Panel (Agent, Settings, etc.) is expanded, it occupies the right 
 
 The menubar uses **screen coordinate positioning** for optimal UX:
 
-1. **Fixed Panel Toggles**: Panel toggle buttons are positioned using `ImGui::SetCursorScreenPos()` with coordinates calculated from the true viewport. This keeps them at a fixed screen position regardless of dockspace resizing.
+1. **Fixed Drawers Overflow**: The Drawers overflow button is positioned using `ImGui::SetCursorScreenPos()` with coordinates calculated from the true viewport. This keeps it at a fixed screen position regardless of dockspace resizing.
 
-2. **Status Cluster**: Version, dirty indicator, session button, and notification bell are drawn inside the dockspace menu bar using relative positioning. They shift naturally when panels open/close as the dockspace resizes.
+2. **Status Cluster**: Dirty indicator, session button, and notification bell are drawn inside the dockspace menu bar using relative positioning. They shift naturally when panels open/close as the dockspace resizes.
 
 ```cpp
-// Panel toggle screen positioning (in DrawMenuBarExtras)
+// Drawers overflow screen positioning (in DrawMenuBarExtras)
 const ImGuiViewport* viewport = ImGui::GetMainViewport();
 float panel_screen_x = viewport->WorkPos.x + viewport->WorkSize.x - panel_region_width;
-if (panel_manager->IsPanelExpanded()) {
-  panel_screen_x -= panel_manager->GetPanelWidth();
+if (drawer_manager->IsDrawerExpanded()) {
+  panel_screen_x -= drawer_manager->GetDrawerWidth();
 }
 ImGui::SetCursorScreenPos(ImVec2(panel_screen_x, menu_bar_y));
 ```
 
-This ensures users can quickly toggle panels without chasing moving buttons.
+This ensures users can quickly open drawers without chasing a moving button.
 
 ## Menu Bar Positioning Patterns
 
@@ -86,7 +81,7 @@ ImGui::SameLine(start_pos);
 ImGui::Text("Shifting Element");
 ```
 
-**Use for:** Version text, dirty indicator, session button, notification bell
+**Use for:** Dirty indicator, session button, notification bell
 
 **Behavior:** These elements shift left when a panel opens (dockspace shrinks)
 
@@ -112,7 +107,7 @@ ImGui::SetCursorScreenPos(ImVec2(screen_x, screen_y));
 ImGui::Button("Fixed Element");
 ```
 
-**Use for:** Panel toggle buttons, any UI that should stay accessible when panels open
+**Use for:** Drawers overflow button, any UI that should stay accessible when panels open
 
 **Behavior:** These elements stay at a fixed screen position regardless of dockspace size
 
@@ -136,8 +131,35 @@ Do NOT use `ImGui::GetWindowWidth()` when calculating fixed positions. The windo
 The panel header uses an elevated background (`SurfaceContainerHigh`) with:
 - Icon in primary color
 - Title in standard text color
-- Large close button (28x28) with rounded corners
+- Compact icon **tab strip** from `GetDrawerCatalog()` (click active tab to close; falls back to a switcher popup when the drawer is too narrow)
+- Optional lock control on the Properties drawer
+- Large close button with rounded corners
 - Keyboard shortcut: **Escape** closes the panel
+- Status bar shows a `Drawer` segment while a right drawer is open
+
+The tab strip measures the title with `GetItemRectMax()`, converted to window
+coordinates. `GetCursorPosX()` after text is not the title's right edge: ImGui
+has already advanced to the next line. Reserve the title gap and close/lock
+controls before choosing tabs versus the overflow popup.
+
+### Status / context strip
+
+Bottom `StatusBar` orientation (left → right), managed mainly by `EditorManager`:
+
+1. **ROM** filename (+ warning dot when ROM buffer dirty)
+2. **Dirty scope** — compact tags from pending work (`Rooms+ROM`, `Project`, …); tooltip uses `DescribePendingUnsavedWork`; click saves ROM or opens Project drawer
+3. **Session** — display name when multiple sessions are open
+4. **Editor** — active category (`Dungeon`, `Overworld`, …); click opens editor switcher (Ctrl+E)
+5. Cursor / selection (event-driven)
+6. Editor custom segments (`Room`, `Map`, `Drawer`, …)
+7. Right-aligned: build/run / agent / zoom / mode
+
+### Empty states
+
+Use `gui::DrawEmptyState` / presets in `app/gui/widgets/empty_state.h` for
+ROM-unloaded, no-selection, no-project, and loading surfaces. Call sites own
+optional CTAs (`action_label` / `on_action`); do not invent new "No ROM loaded"
+copy in panels.
 
 ### Panel Content Styling
 Content uses consistent styling helpers:
@@ -155,7 +177,60 @@ Content uses consistent styling helpers:
 
 ## Sidebar Layout
 
-The left sidebar (`EditorCardRegistry`) provides navigation for editor cards.
+The left chrome is an **ActivityBar** (icon rail) plus an optional **WindowSidebar**
+(side panel) owned by `WorkspaceWindowManager`.
+
+### Menu information architecture
+
+- **File**: Open/Save ROM & Project, Settings, Quit
+- **View**: Sidebar / Status Bar / Display / Welcome / **Drawers** / Switch Editor
+- **Windows**: Window Browser, Show/Hide, Sessions, Layout, Sidebar customize, category panels
+- **Tools**: Search/Palette/Finder, Hack Workflows, **ROM Analysis** (info, backup, validate, BPS), Asar, Development
+- **Help**: Docs; Keyboard Shortcuts opens the shortcuts UI (not Settings)
+
+### Command palette prefixes
+
+For discoverability in Cmd/Ctrl+Shift+P:
+
+- `drawer: <Name>` — toggle a right drawer from `GetDrawerCatalog()` (`drawer: Next` / `drawer: Previous` cycle)
+- `window: <DisplayName>` — open and focus a workspace window, recording it in
+  recent windows; used by **Find Window…** (Ctrl+P; shortcut id still `Window Finder`).
+  Selecting an already-open window must not close it. Explicit `Show:` / `Hide:` /
+  `Toggle:` commands remain available.
+- Help → **Keyboard Shortcuts** (Ctrl+Shift+/) opens the searchable shortcuts browser.
+
+### Active side panel (`WindowSidebar`)
+
+When expanded (and not on Dashboard), the side panel shows:
+
+1. Category title + collapse
+2. Filter + clear + window actions menu
+3. Dungeon only: compact Workbench | Windows toggle
+4. **Pinned** section (default open)
+5. Grouped sections driven by `WindowDescriptor::workflow_group` via `WindowSidebar::SidebarSectionFor`:
+   - **Core** (default open)
+   - **Editors** (collapsed; stays collapsed in Dungeon Workbench unless filtering)
+   - **Rooms** (Dungeon Window mode; collapsed by default)
+   - **Advanced** (collapsed)
+   - Other/unknown groups render as their own collapsed sections after Advanced
+
+Non-empty filters show matching rows without section headers; clearing the
+filter restores the ordinary section expansion state. `DefaultOpen` alone
+cannot override a user's stored collapsed state.
+
+In Dungeon Workbench mode, Room List / Matrix and dynamic room windows are
+omitted (`ShouldOmitWindowInSidebar`). Dynamic room IDs have a nonempty decimal
+suffix, such as `dungeon.room_51`. Do not hide every `dungeon.room_*` ID:
+`dungeon.room_graphics` and `dungeon.room_tags` are standalone editing tools.
+
+### Interaction regression checks
+
+The unit suites exercise drawer tab hit areas at the overflow threshold,
+sidebar filtering after a section is collapsed, standalone room-tool access,
+Window Finder focus/session ownership, status-chip mouse clicks, and empty-state
+button activation. Status-context tests verify callback replacement, not the
+full multi-session ROM-save workflow. Native appearance and platform packaging
+remain separate acceptance checks.
 
 ### Placeholder Sidebar
 When no ROM is loaded, `EditorManager::DrawPlaceholderSidebar` renders a placeholder.
@@ -163,11 +238,9 @@ When no ROM is loaded, `EditorManager::DrawPlaceholderSidebar` renders a placeho
 - **Content**: Displays "Open ROM" and "New Project" buttons.
 - **Behavior**: Fills the full height of the viewport work area (below the dockspace menu bar).
 
-### Active Sidebar
-When a ROM is loaded, the sidebar displays editor categories and cards.
-- **Width**: Fixed width defined in `EditorCardRegistry`.
-- **Collapse**: Can be collapsed via the hamburger menu in the menu bar or `Ctrl+B`.
-- **Theme**: Matches the placeholder sidebar for consistency.
+### Activity rail
+- Category icons with pin/hide/reorder prefs; collapse via hamburger or `Ctrl+B`.
+- Bottom More Actions: Command Palette, Shortcuts, Open ROM, Settings.
 
 ## Theme Integration
 The UI uses `ThemeManager` for consistent colors:

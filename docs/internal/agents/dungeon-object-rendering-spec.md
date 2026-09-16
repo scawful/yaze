@@ -3,14 +3,18 @@
 Status: ACTIVE  
 Owner: zelda3-hacking-expert  
 Created: 2025-12-06  
-Last Reviewed: 2026-09-10
-Next Review: 2026-12-09
+Last Reviewed: 2026-09-14
+Next Review: 2026-09-28
 Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optional: `docs/internal/agents/coordination-board.generated.md`)
 
 ## Scope
 - Source of truth: `assets/asm/usdasm/bank_01.asm` (US 1.0 disasm) plus room headers in the same bank.
 - Goal: spell out how layouts and objects are drawn, how layers are selected/merged, and how object symbology should match the real draw semantics (arrows, “large”/4x4 growth, BothBG).
 - Pain points to fix: corner ceilings and ceiling variants (4x4, vertical 2x2, horizontal 2x2), BG merge vs layer type treated as exclusive, layout objects occasionally drawing over background objects, and selection outlines that do not match the real footprint.
+
+The [dungeon completion backlog](../plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md)
+owns the v0.8.0 coverage checklist and agent assignments. This spec owns behavior;
+historical skill notes and older plans must not override current code/disassembly.
 
 ## Room Build & Layer Order (bank_01.asm)
 - `LoadAndBuildRoom` (`assets/asm/usdasm/bank_01.asm:$01873A`):
@@ -46,7 +50,7 @@ Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optio
   - `Rightwards*` → arrow right; grows horizontally by `size` blocks. Base footprints: `2x4`, `2x2`, `4x4`, etc. Spacing suffix (`spaced2/4/8/12`) means step that many tiles between columns.
   - `Downwards*` → arrow down; grows vertically by `size` blocks with the same spacing conventions.
   - `DiagonalAcute/Grave` → 45° diagonals; use diagonal arrow/corner icon. Although routines 5/6 load `nibble+7`, they enter the shared loop at its pre-draw decrement; routines 17/18 load `nibble+6` and enter after that decrement. All four therefore draw `nibble+6` columns with a five-tile column stamp. `_BothBG` variants must draw to both BG1 and BG2.
-  - `DiagonalCeiling*` (IDs 0xA0–0xAC): size = nibble + 4 (`GetSize_1to16_timesA` with `A=4`). Bounding box is square (`size × size`) because each step moves x+y by 1.
+  - `DiagonalCeiling*` (IDs 0xA0–0xA3 and 0xA5–0xAC): size = nibble + 4 (`GetSize_1to16_timesA` with `A=4`). Bounding box is square (`size × size`) because each step moves x+y by 1. `0xA4` instead maps to BigHole, routine 61.
   - `4x4Floor*/Blocks*/SuperSquare` (IDs 0xC0–0xCA, 0xD1–0xE8): use “large square” icon. For variable super-square routines, size bits 3–2 select `1..4` horizontal 4×4 blocks and bits 1–0 select `1..4` vertical blocks. `0xC4` and `0xDB` copy the room header's active Floor 1/Floor 2 eight-tile pattern instead of a normal object payload.
   - `Edge/Corner` variants: use L-corner or edge glyph; many have `_BothBG` meaning they write to BG1 and BG2 simultaneously (should not be layer-exclusive).
 - Type 2 routines (`.type2_routine`):
@@ -59,7 +63,32 @@ Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optio
   - Pipes (0x23A–0x23D) are fixed 2×? rectangles; use arrows that match their orientation.
 
 ## Ceiling and Large Object Ground Truth
-- Corner/diagonal ceilings (Type 1 IDs 0xA0–0xAC): `RoomDraw_DiagonalCeiling*` ($018BE0–$018C36). Size = nibble+4; outline should be a square whose side equals that size; growth is along the diagonal (x+1,y+1 per step).
+- Fixed 4x4 subtype-2 objects `0x100–0x107`, `0x11C`, `0x124`, `0x125`
+  and `0x129` use `RoomDraw_4x4` (`$0197ED`), implemented by existing routine
+  116. Ignore a stale in-memory size value; these records encode no size.
+  Scalable type-1 aliases `0x33/0xB2/0xBA` still use routine 16.
+- Sanctuary wall `0x13C` (`$019B56–$019BD6`) consumes 24 source words,
+  not 16. Its fixed 24x6 footprint contains 120 facade writes to Yaze BG1
+  and a 4x3 center at `x+10` on the active stored layer; the bottom-center
+  opening remains unwritten. Mirrored columns OR horizontal flip rather than
+  toggle it. This is mixed routing for a BG2 placement, not full BothBG
+  duplication. Parser length, routine 134, dimensions and layer metadata
+  share this contract.
+- Packed-axis platforms use two-tile increments with different bases:
+  `0xC1` is `(14+2*x, 8+2*y)`, `0xDC` is `(10+2*x, 7+2*y)`, and
+  `0xDD` is `(4+2*x, 4+2*y)`, with each count `0..3`. Inspector labels and
+  resizing use the dimension table through `RoomObjectSizeAxisTiles`.
+  Moving-wall `0xCD/0xCE` bits select direction and remain excluded.
+- Bars: `0x4C` (`RoomDraw_RightwardsBar4x3_1to16`, `$0194BD`) consumes
+  nine source words: three for the opening column, three for the repeated
+  middle column, and three for the closing column. It writes `2*nibble+4`
+  columns of height 3; do not repeat a twelve-word 4x3 stamp. `0x8F`
+  (`$0197B5`) consumes four words, a two-tile top row and two-tile repeated
+  body, producing width 2 and height `2*nibble+5`. Registry minimums, parser
+  payload counts and selection geometry must follow these rules. Full tile
+  attributes are preserved; source horizontal flips on opposite caps are
+  intentional, not a reason to mirror an entire row.
+- Corner/diagonal ceilings (Type 1 IDs 0xA0–0xA3 and 0xA5–0xAC): `RoomDraw_DiagonalCeiling*` ($018BE0–$018C36). Size = nibble+4; outline should be a square whose side equals that size; growth is along the diagonal (x+1,y+1 per step).
 - Big hole & overlays: ID 0xA4 → `RoomDraw_BigHole4x4_1to16`. IDs 0xD8/0xDA enter stateful water routines: saved water state changes tilemap writes, destination, HDMA geometry, and potentially the active layer mode. Yaze currently renders an editor approximation on BG2; structural coverage is tested, but full runtime-state parity is open.
 - 4x4 ceilings/floors: IDs 0xC5–0xCA, 0xD1–0xD2, 0xD9, 0xDF–0xE8 → `RoomDraw_4x4FloorIn4x4SuperSquare`. Use a “large square” glyph. The size nibble is split into two two-bit repeat counts, producing a `4..16` tile width and height.
 - Floor copies: `0xC4` loads the Floor 1 selector from `$046A`; `0xDB` loads Floor 2 from `$0490`. Both stamp that decoded 4×2 pattern twice per 4×4 block. Room-aware renderers must receive the in-memory room header values so unsaved floor edits preview correctly.
@@ -82,6 +111,25 @@ Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optio
   6) Doors and control records
   7) Pushable blocks and torches
 
+## Animated Room Graphics
+
+`kGfxAnimatedPointer` is the PC address of a three-byte ROM operand, not the
+animated-sheet table itself. At `$028271–$028279`, the game indexes the
+dereferenced table with entrance main graphics group `$0AA1`, not the room's
+background tileset. `Room::LoadAnimatedGraphics` follows that indirection and
+uses the resolved entrance group, with the room blockset as fallback.
+
+The editor copies one 1024-byte decoded frame from the selected sheet into
+tiles `0x1B0–0x1BF`, and the common sheet `0x5C` into `0x1C0–0x1CF`.
+Runtime cycles three frames; the editor currently displays frame zero.
+Missing/out-of-range sheets or non-ROM table addresses must not replace base
+graphics with unrelated bytes. In particular, reject WRAM banks `0x7E/0x7F`
+even when a LoROM address conversion happens to fit an expanded ROM.
+
+The former loader treated the operand address as the table and selected
+unrelated graphics. Correcting that path fixes the garbled pool interiors
+in Oracle room `0x04A`; it does not establish animated runtime parity.
+
 ## Selection & Outline Rules
 - Use the decoding rules above; do not infer size from UI icons.
 - Type 1 size nibble:
@@ -99,10 +147,10 @@ Coordination: Universe task lifecycle via `scripts/agents/coord` (snapshot optio
 - `_BothBG` routines should carry a dual-layer badge in the palette and never be filtered out by the current layer toggle—selection must remain visible regardless of BG toggle because the object truly occupies both buffers.
 
 ## Mapping UI Symbology to Real Objects
-- Arrows right/left: any `Rightwards*` routine; growth = size nibble (with fallback rules above). Use “large” badge only when the routine name includes `4x4` or `SuperSquare`.
+- Arrows right/left: `Rightwards*` routines grow horizontally according to their count rule. A `4x4` stamp describes the repeated block, not necessarily a fixed object; `0x33` is a resizable example. Derive fixed/scalable labels from the actual routine contract, not a substring match.
 - Arrows down/up: any `Downwards*` routine; same sizing rules.
 - Diagonal arrow: `DiagonalAcute/Grave` and `DiagonalCeiling*`.
-- Large square badge: `4x4Floor*`, `4x4Blocks*`, `BigHole4x4`, water overlays, chest platforms; these do **not** change size with the nibble.
+- Large square badge: may describe a block/super-square footprint, but must not imply a fixed size. Variable floor/super-square routines use two packed two-bit repeat counts; BigHole and water indicators have their own size rules. Keep footprint, growth direction, and fixed/scalable behavior separate.
 - Dual-layer badge: routines with `_BothBG` in the disasm name, plus the
   multi/separate-layer auto-stair variants (yaze IDs 0x130–0x131 and
   0xF9B–0xF9C). The merged/swim variants (0x132–0x133, 0xF9D, and 0xFB3)
@@ -135,15 +183,71 @@ Passing one row does not imply the rows below it pass. In particular, synthetic 
 Run the maintained ladder with
 `YAZE_TEST_ROM_VANILLA=$PWD/roms/zelda3.sfc scripts/agents/audit-dungeon-visual-parity.sh --with-validate-report /tmp/yaze-dungeon-object-validation.json`.
 Its synthetic tier includes thin edges/corners, diagonals, conditional caps,
-floor copies, moving walls, water/stairs, and reveal-mask ordering; ROM and
+horizontal/vertical bars, floor copies, moving walls, water/stairs, and reveal-mask ordering; ROM and
 Mesen tiers remain separate so synthetic agreement is never presented as
 independent pixel proof.
 
+The September 14 first-slice integration passed all currently selected tiers
+without refreshing goldens: 36 synthetic tests, 12 ROM/payload checks,
+10 room/composition tests, seven existing Mesen-baseline tests, and 1,190
+bounds cases with zero mismatches. These results cover the selected fixtures,
+not all dungeon families. The [completion backlog](../plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md#first-implementation-results-2026-09-14-local-integration)
+records revisions, corpus identity, remaining proof, and reproducible commands.
+
+The third September 14 slice passed 415 focused tests and the expanded ladder:
+42 synthetic, 12 ROM/payload, 11 room/composition, seven unchanged Mesen
+baselines, and 1,190 clean bounds cases. Only room `0x016`'s BG2/composite
+self-fingerprints changed: a counterfactual test reproduces the old result
+with misindexed sheet `0x94` and confines all differences to corrected water
+tiles `0x1B0/0x1B1` from sheet `0x5D`. This justifies that baseline refresh,
+not an independent moving-water parity claim. The
+[third-slice record](../plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md#third-implementation-slice-room-graphics-fixed-walls-and-platforms-2026-09-14)
+contains commands and remaining limitations.
+
+The fourth September 14 slice passed 477 focused unit/ROM tests and 57
+full-image PNG/composite comparisons (15 vanilla and four Oracle rooms at
+three scales). The maintained ladder remains green: 42 synthetic,
+12 ROM/payload, 12 room/composition, seven unchanged Mesen baselines, and
+1,190 clean bounds cases. No goldens were refreshed. The
+[fourth-slice record](../plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md#fourth-implementation-slice-export-composition-and-oracle-boss-preview-2026-09-14)
+separates static source-asset, export-safety and runtime evidence.
+
+The fifth September 14 slice passed 509 focused unit/ROM tests, the same 57
+PNG/composite comparisons and the unchanged maintained ladder. It corrects
+mode 7 full-add color math and Babasu's static palette/tile geometry; mode 6
+is untouched. The attempted Oracle ice capture was rejected because Link's
+fall faded CGRAM and the animation phase was not fully recorded. No new
+independent fixture or golden refresh is claimed. The
+[fifth-slice record](../plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md#fifth-implementation-slice-color-math-and-babasu-preview-2026-09-14)
+records source contracts, commands and the next bounded sprite fixes.
+
 ### Known preview boundaries
 
+- Oracle-profile sprite `0xB1` uses Puffstool's source-backed static OAM
+  layout, offsets and palette selection. The override is selected per call
+  from the loaded project; vanilla, unrelated and missing profiles retain
+  the default sprite preview. This does not emulate sprite animation or
+  independently validate runtime CGRAM.
+- Oracle-profile Manhandla `0x88` previews only the source frame-zero front
+  head, using `Bosses/manhandla.bin` under the project's `assets_folder`.
+  The exact 8,192-byte planar asset replaces OBJ page 1 in a preview-local
+  copy; room graphics are not modified. Missing or malformed assets produce
+  a labeled marker, not vanilla Mothula or unrelated room art. Reopening the
+  project refreshes the resource cache. Spawned heads, BG body, animation and
+  runtime CGRAM remain unverified. The graphics hook runs in room `0x05A`;
+  a source-backed editor preview in room `0x08C` is not proof that the runtime
+  loads the same graphics there.
+- Headless PNG rendering applies the same room merge/effect settings as the
+  canvas. Full-image comparisons at three scales protect that contract;
+  agreement between these two Yaze paths is not independent SNES evidence.
+- Babasu `0x9D` uses visible source frame 12: two overlapping 16×16 tiles,
+  CHR `4E/5E` at `y=-8/0`, OBJ page 1, palette 5. This is a static pose,
+  not emulated animation or a runtime-CGRAM assertion.
 - `0xD8`/`0xDA` water is structural/editor-preview coverage only until state-labeled Mesen captures verify each vanilla branch and layer-mode side effect.
 - Moving-floor objects have static tile stamps, but Yaze does not emulate the SNES runtime BG2 scrolling effect.
-- RGB averaging and indexed-palette fallback paths approximate SNES color math; only committed Mesen ROIs are pixel-parity claims.
+- Mode 7 uses saturated five-bit full addition; mode 4 retains its existing
+  half-add approximation. Mapping results back into the indexed palette
+  remains approximate. Only committed Mesen ROIs are pixel-parity claims.
 - More key, shutter, bombable, and exploding door ROIs are required before claiming full door-family parity.
 
 ### Oracle project witnesses

@@ -128,6 +128,25 @@ void ColorsYaze() {
   colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
   colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
   colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.20f, 0.20f, 0.20f, 0.35f);
+
+  // ImGui slots and style scalars added after this function was written. They
+  // must be set explicitly: this is the only writer for Classic YAZE, so
+  // anything left out keeps the value of whichever .theme preset was applied
+  // before, and the two greens bleed into a purple docking preview or a cyan
+  // caret. Values mirror BuildClassicYazeTheme's declarations.
+  colors[ImGuiCol_DockingPreview] = ImVec4(0.36f, 0.45f, 0.36f, 0.71f);
+  colors[ImGuiCol_DockingEmptyBg] = alttpDarkGreen;
+  colors[ImGuiCol_InputTextCursor] = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
+  colors[ImGuiCol_TextLink] = allttpLightestGreen;
+  colors[ImGuiCol_TreeLines] = colors[ImGuiCol_Separator];
+  colors[ImGuiCol_TabSelectedOverline] = allttpLightestGreen;
+  colors[ImGuiCol_TabDimmedSelectedOverline] = allttpLightestGreen;
+  // Transparent, matching every ImGui built-in style: the drop target is drawn
+  // as an outline (ImGuiCol_DragDropTarget above), not a fill.
+  colors[ImGuiCol_DragDropTargetBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+  colors[ImGuiCol_UnsavedMarker] = colors[ImGuiCol_Text];
+  style->GrabRounding = 5.f;
+  style->TabRounding = 0.f;
 }
 
 void DrawBitmapViewer(const std::vector<gfx::Bitmap>& bitmaps, float scale,

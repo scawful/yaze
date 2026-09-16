@@ -7,6 +7,7 @@
 | `smoke-build.sh` | Runs `cmake --preset` configure/build in place and reports timing. |
 | `ninja-heal.sh` | Repairs corrupted Ninja metadata (`.ninja_deps`/`.ninja_log`) and verifies incremental build stability. |
 | `test-build-parallelism-policy.sh` | Verifies that build presets and agent helpers default to four workers while preserving explicit overrides. |
+| `test-nightly-local-provenance.sh` | Verifies linked-worktree provenance, staged signing and loader checks, and preservation of the selected nightly when installation fails. |
 | `test-installed-macos-quit.sh` | Repeats installed macOS Cocoa Quit and fails on nonzero exit, crashes, stale status/process state, or project/ROM mutation. |
 | `run-tests.sh` | Configures the preset (if needed), builds `yaze_test`, and runs `ctest` with optional args. |
 | `test-http-api.sh` | Smoke-checks HTTP API endpoints (health/models/symbols + core POSTs) via curl; defaults to localhost:8080. |
@@ -32,6 +33,11 @@
 | `../dev/post-refactor-smoke.sh` | Runs post-refactor automated smoke checks and writes manual app-testing steps with QA artifacts. |
 | `../install-git-hooks.sh` | Installs both pre-commit and pre-push hooks for local guardrails. |
 
+The nightly fixture models standard Linux `bin/` and macOS app-bundle installs
+with fake CMake and signing commands. It checks staging, loader invocation, and
+failure preservation; real binary loading and signature validity still require
+native deployment checks.
+
 Usage examples:
 ```bash
 # Trigger CI workflow with artifacts and HTTP API tests enabled
@@ -49,6 +55,9 @@ scripts/agents/ninja-heal.sh --preset dev --build-dir build --parallel 4
 
 # Verify bounded build defaults and explicit overrides
 scripts/agents/test-build-parallelism-policy.sh
+
+# Verify local nightly provenance from a linked Git worktree
+scripts/agents/test-nightly-local-provenance.sh
 
 # Build & run tests for mac-dbg preset with verbose ctest output
 scripts/agents/run-tests.sh mac-dbg --output-on-failure

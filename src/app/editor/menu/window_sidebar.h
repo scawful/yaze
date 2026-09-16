@@ -8,6 +8,7 @@ namespace yaze {
 namespace editor {
 
 class WorkspaceWindowManager;
+struct WindowDescriptor;
 
 class WindowSidebar {
  public:
@@ -23,10 +24,21 @@ class WindowSidebar {
                                   const std::string& shortcut_hint);
   static bool IsDungeonWindowModeTarget(const std::string& window_id);
 
+  // Maps WindowDescriptor::workflow_group to a sidebar section label.
+  // Empty / "Windows" → "Editors". Known groups pass through unchanged.
+  static std::string SidebarSectionFor(const std::string& workflow_group);
+  static std::string SidebarSectionFor(const WindowDescriptor& window);
+
+  // Workbench mode hides Room List / Matrix / per-room windows from the list.
+  static bool ShouldOmitWindowInSidebar(const std::string& window_id,
+                                        bool dungeon_workbench_mode);
+
   void Draw(size_t session_id, const std::string& category,
             std::function<bool()> has_rom);
 
  private:
+  friend class WindowSidebarTestPeer;
+
   WorkspaceWindowManager& window_manager_;
   std::function<bool()> is_dungeon_workbench_mode_;
   std::function<void(bool)> set_dungeon_workflow_mode_;

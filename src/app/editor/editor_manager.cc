@@ -59,6 +59,7 @@
 #include "app/editor/shell/feedback/toast_manager.h"
 #include "app/editor/shell/windows/dashboard_panel.h"
 #include "app/editor/shell/windows/project_management_panel.h"
+#include "app/editor/shell/windows/settings_panel.h"
 #include "app/editor/system/editor_registry.h"
 #include "app/editor/system/project_workflow_status.h"
 #include "app/editor/system/session/default_editor_factories.h"
@@ -250,6 +251,16 @@ void AppendWorkflowHistoryEntry(const std::string& kind,
 bool ProjectUsesCustomObjects(const project::YazeProject& project) {
   return !project.custom_objects_folder.empty() ||
          !project.custom_object_files.empty();
+}
+
+zelda3::CustomObjectManager::State BuildCustomObjectRuntimeState(
+    const project::YazeProject& project) {
+  return {
+      .base_path = project.custom_objects_folder.empty()
+                       ? ""
+                       : project.GetAbsolutePath(project.custom_objects_folder),
+      .custom_file_map = project.custom_object_files,
+  };
 }
 
 constexpr int kTrackCustomObjectId = 0x31;
@@ -998,7 +1009,7 @@ void EditorManager::RegisterEditors() {
     dashboard_definition.icon = ICON_MD_DASHBOARD;
     dashboard_definition.category = "Dashboard";
     dashboard_definition.window_title = " Dashboard";
-    dashboard_definition.shortcut_hint = "F1";
+    dashboard_definition.shortcut_hint = "Ctrl+E";
     dashboard_definition.priority = 0;
     dashboard_definition.visibility_flag = dashboard_panel_->visibility_flag();
     window_host_->RegisterWindow(dashboard_definition);
@@ -1009,7 +1020,7 @@ void EditorManager::RegisterEditors() {
          .window_title = " Dashboard",
          .icon = ICON_MD_DASHBOARD,
          .category = "Dashboard",
-         .shortcut_hint = "F1",
+         .shortcut_hint = "Ctrl+E",
          .visibility_flag = dashboard_panel_->visibility_flag(),
          .priority = 0});
   }
@@ -1494,17 +1505,17 @@ void EditorManager::ApplyCurrentProjectRuntimeContext() {
 
   core::RomSettings::Get().SetAddressOverrides(
       current_project_.rom_address_overrides);
-  if (current_project_.custom_object_files.empty()) {
-    zelda3::CustomObjectManager::Get().ClearObjectFileMap();
+  auto& custom_object_manager = zelda3::CustomObjectManager::Get();
+  const auto custom_object_state =
+      BuildCustomObjectRuntimeState(current_project_);
+  if (session_coordinator_ != nullptr &&
+      session_coordinator_->GetActiveRomSession() != nullptr) {
+    custom_object_manager.ActivateRuntimeContext(
+        session_coordinator_->GetActiveRomSession()->session_id(),
+        custom_object_state);
   } else {
-    zelda3::CustomObjectManager::Get().SetObjectFileMap(
-        current_project_.custom_object_files);
+    custom_object_manager.RestoreState(custom_object_state);
   }
-  zelda3::CustomObjectManager::Get().Initialize(
-      current_project_.custom_objects_folder.empty()
-          ? ""
-          : current_project_.GetAbsolutePath(
-                current_project_.custom_objects_folder));
 
   if (current_project_.project_opened()) {
     rom_lifecycle_.ApplyDefaultBackupPolicy(
@@ -1629,9 +1640,17 @@ void EditorManager::HandleSessionSwitched(size_t new_index, RomSession* session,
     if (session) {
       core::FeatureFlags::get() = session->feature_flags;
       runtime_feature_flags_session_id_ = session->session_id();
+      const auto custom_object_state =
+          session->project_context.has_value()
+              ? BuildCustomObjectRuntimeState(*session->project_context)
+              : zelda3::CustomObjectManager::State{};
+      zelda3::CustomObjectManager::Get().ActivateRuntimeContext(
+          session->session_id(), custom_object_state);
     } else {
       runtime_feature_flags_session_id_.reset();
+      zelda3::CustomObjectManager::Get().ActivateStandaloneContext();
     }
+    zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
   }
 
   // Palette edit history and dirty tracking are session-owned. Select the
@@ -1759,6 +1778,10 @@ void EditorManager::HandleSessionClosed(size_t index) {
         session_coordinator_->IsValidSessionIndex(index)
             ? static_cast<RomSession*>(session_coordinator_->GetSession(index))
             : nullptr;
+    if (closing_session != nullptr) {
+      zelda3::CustomObjectManager::Get().RemoveRuntimeContext(
+          closing_session->session_id());
+    }
     if (closing_session != nullptr &&
         active_project_context_session_id_ == closing_session->session_id()) {
       CaptureActiveProjectContext();
@@ -1857,8 +1880,9 @@ void EditorManager::HandleUIActionRequest(UIActionRequestEvent::Action action) {
       break;
 
     case Action::kShowShortcuts:
-      // Shortcut configuration is part of Settings
-      SwitchToEditor(EditorType::kSettings);
+      if (ui_coordinator_) {
+        ui_coordinator_->ShowShortcutsBrowser();
+      }
       break;
 
     case Action::kShowCommandPalette:
@@ -2251,8 +2275,12 @@ void EditorManager::InitializeServices() {
 
 void EditorManager::SetupComponentCallbacks() {
   SetupDialogCallbacks();
-  SetupWelcomeScreenCallbacks();
   SetupSidebarCallbacks();
+
+  if (ui_coordinator_ && !user_settings_.prefs().show_welcome_on_startup) {
+    ui_coordinator_->SetWelcomeScreenVisible(false);
+    ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
+  }
 }
 
 void EditorManager::SetupDialogCallbacks() {
@@ -2299,80 +2327,6 @@ void EditorManager::SetupDialogCallbacks() {
         LOG_INFO("EditorManager", "ROM load options applied: preset=%s",
                  options.selected_preset.c_str());
       });
-}
-
-void EditorManager::SetupWelcomeScreenCallbacks() {
-  // Initialize welcome screen callbacks
-  welcome_screen_.SetOpenRomCallback([this]() { status_ = LoadRom(); });
-
-  welcome_screen_.SetNewProjectCallback(
-      [this]() { status_ = CreateNewProject(); });
-
-  welcome_screen_.SetNewProjectWithTemplateCallback(
-      [this](const std::string& template_name) {
-        status_ = CreateNewProject(template_name);
-      });
-
-  welcome_screen_.SetOpenProjectCallback([this](const std::string& filepath) {
-    status_ = OpenRomOrProject(filepath);
-    if (status_.ok() && ui_coordinator_) {
-      ui_coordinator_->SetWelcomeScreenVisible(false);
-      ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
-    }
-  });
-
-  welcome_screen_.SetOpenAgentCallback([this]() {
-#ifdef YAZE_BUILD_AGENT_UI
-    ShowAIAgent();
-#endif
-  });
-
-  welcome_screen_.SetOpenPrototypeResearchCallback([this]() {
-    SwitchToEditor(EditorType::kGraphics, true);
-    window_manager_.OpenWindow("graphics.prototype_viewer");
-    if (ui_coordinator_) {
-      ui_coordinator_->SetWelcomeScreenVisible(false);
-      ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
-    }
-  });
-
-  welcome_screen_.SetOpenAssemblyEditorNoRomCallback([this]() {
-    SwitchToEditor(EditorType::kAssembly, true);
-    window_manager_.OpenWindow("assembly.code_editor");
-    if (ui_coordinator_) {
-      ui_coordinator_->SetWelcomeScreenVisible(false);
-      ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
-    }
-  });
-
-  welcome_screen_.SetOpenProjectDialogCallback([this]() {
-    status_ = OpenProject();
-    if (status_.ok() && ui_coordinator_) {
-      ui_coordinator_->SetWelcomeScreenVisible(false);
-      ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
-    } else if (!status_.ok()) {
-      toast_manager_.Show(
-          absl::StrFormat("Failed to open project: %s", status_.message()),
-          ToastType::kError);
-    }
-  });
-
-  welcome_screen_.SetOpenProjectManagementCallback(
-      [this]() { ShowProjectManagement(); });
-
-  welcome_screen_.SetOpenProjectFileEditorCallback([this]() {
-    if (current_project_.filepath.empty()) {
-      toast_manager_.Show("No project file to edit", ToastType::kInfo);
-      return;
-    }
-    ShowProjectFileEditor();
-  });
-
-  // Apply welcome screen preference
-  if (ui_coordinator_ && !user_settings_.prefs().show_welcome_on_startup) {
-    ui_coordinator_->SetWelcomeScreenVisible(false);
-    ui_coordinator_->SetWelcomeScreenManuallyClosed(true);
-  }
 }
 
 void EditorManager::SetupSidebarCallbacks() {
@@ -3450,8 +3404,12 @@ void EditorManager::DrawInterface() {
   // Update and draw status bar
   status_bar_.SetRom(GetCurrentRom());
   if (session_coordinator_) {
-    status_bar_.SetSessionInfo(GetCurrentSessionIndex(),
-                               session_coordinator_->GetActiveSessionCount());
+    const size_t session_index = GetCurrentSessionIndex();
+    const size_t session_count = session_coordinator_->GetActiveSessionCount();
+    status_bar_.SetSessionInfo(
+        session_index, session_count,
+        session_count > 1 ? session_coordinator_->GetActiveSessionDisplayName()
+                          : std::string{});
   }
 
   bool has_agent_info = false;
@@ -3480,23 +3438,53 @@ void EditorManager::DrawInterface() {
   status_bar_.ClearEditorContributions();
   if (current_editor_) {
     current_editor_->ContributeStatus(&status_bar_);
+
+    StatusBarSegmentOptions editor_opts;
+    editor_opts.tooltip = "Click to switch editor (Ctrl+E)";
+    editor_opts.on_click = [this]() {
+      if (ui_coordinator_) {
+        ui_coordinator_->ShowEditorSelection();
+      }
+    };
+    status_bar_.SetActiveEditor(
+        EditorRegistry::GetEditorCategory(current_editor_->type()),
+        std::move(editor_opts));
+  } else {
+    status_bar_.ClearActiveEditor();
   }
 
-  if (auto* current_editor_set = GetCurrentEditorSet()) {
-    if (auto* dungeon_editor = current_editor_set->GetEditorAs<DungeonEditorV2>(
-            EditorType::kDungeon)) {
-      const int pending_rooms = dungeon_editor->PendingRoomCount();
-      if (pending_rooms > 0) {
-        StatusBarSegmentOptions pending_opts;
-        pending_opts.tooltip = absl::StrFormat(
-            "%d dungeon room%s still ha%s pending editor changes. Apply them "
-            "to the ROM buffer before File > Save ROM if needed.",
-            pending_rooms, pending_rooms == 1 ? "" : "s",
-            pending_rooms == 1 ? "s" : "ve");
-        status_bar_.SetCustomSegment(
-            "Dungeon", absl::StrFormat("%d pending", pending_rooms),
-            std::move(pending_opts));
+  const size_t session_index = GetCurrentSessionIndex();
+  if (SessionHasPendingUnsavedWork(session_index)) {
+    StatusBarSegmentOptions dirty_opts;
+    dirty_opts.tooltip = absl::StrFormat(
+        "%s. Click to save ROM when ROM-buffer work is pending, otherwise open "
+        "the Project drawer.",
+        DescribePendingUnsavedWork(session_index));
+    dirty_opts.on_click = [this, session_index]() {
+      if (SessionHasPendingRomWork(session_index)) {
+        auto status = SaveRom();
+        if (!status.ok()) {
+          toast_manager_.Show(std::string(status.message()), ToastType::kError);
+        }
+      } else if (right_drawer_manager_) {
+        right_drawer_manager_->OpenDrawer(
+            RightDrawerManager::DrawerType::kProject);
       }
+    };
+    status_bar_.SetDirtyScope(CompactPendingUnsavedWorkLabel(session_index),
+                              std::move(dirty_opts));
+  } else {
+    status_bar_.ClearDirtyScope();
+  }
+
+  if (right_drawer_manager_ && right_drawer_manager_->IsDrawerExpanded()) {
+    const auto active = right_drawer_manager_->GetActiveDrawer();
+    if (active != RightDrawerManager::DrawerType::kNone) {
+      StatusBarSegmentOptions drawer_opts;
+      drawer_opts.tooltip =
+          "Right drawer open — Esc closes, View > Drawers switches";
+      status_bar_.SetCustomSegment("Drawer", GetDrawerTypeName(active),
+                                   std::move(drawer_opts));
     }
   }
 
@@ -3514,9 +3502,10 @@ void EditorManager::DrawInterface() {
   // Central workspace window drawing
   window_manager_.DrawVisibleWindows();
 
-  if (ui_coordinator_ && ui_coordinator_->IsPerformanceDashboardVisible()) {
-    gfx::PerformanceDashboard::Get().Render();
-  }
+  // The Performance Dashboard is rendered by DrawSecondaryWindows below, which
+  // also drives Update() and syncs the visibility flag back. Rendering here as
+  // well gave a second Begin/End on the same window name every frame, stacking
+  // duplicate metrics, memory blocks and frame plots with colliding plot IDs.
 
   // Draw SessionCoordinator UI components
   if (session_coordinator_) {
@@ -3528,27 +3517,13 @@ void EditorManager::DrawInterface() {
 
 void EditorManager::DrawMainMenuBar() {
   if (ImGui::BeginMenuBar()) {
-    // Consistent button styling for sidebar toggle
-    {
-      const bool sidebar_visible = window_manager_.IsSidebarVisible();
-      gui::StyleColorGuard sidebar_btn_guard(
-          {{ImGuiCol_Button, ImVec4(0, 0, 0, 0)},
-           {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
-           {ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4()},
-           {ImGuiCol_Text, sidebar_visible ? gui::GetPrimaryVec4()
-                                           : gui::GetTextSecondaryVec4()}});
-
-      const char* icon = sidebar_visible ? ICON_MD_MENU_OPEN : ICON_MD_MENU;
-      if (ImGui::SmallButton(icon)) {
-        window_manager_.ToggleSidebarVisibility();
-      }
-    }
-
-    if (ImGui::IsItemHovered()) {
-      const char* tooltip = window_manager_.IsSidebarVisible()
-                                ? "Hide Activity Bar (Ctrl+B)"
-                                : "Show Activity Bar (Ctrl+B)";
-      ImGui::SetTooltip("%s", tooltip);
+    const bool sidebar_visible = window_manager_.IsSidebarVisible();
+    const char* icon = sidebar_visible ? ICON_MD_MENU_OPEN : ICON_MD_MENU;
+    const char* tooltip = sidebar_visible ? "Hide Activity Bar (Ctrl+B)"
+                                          : "Show Activity Bar (Ctrl+B)";
+    if (ui_coordinator_ && ui_coordinator_->DrawMenuBarIconButton(
+                               icon, tooltip, sidebar_visible)) {
+      window_manager_.ToggleSidebarVisibility();
     }
 
     // Delegate menu building to MenuOrchestrator
@@ -6736,6 +6711,57 @@ std::string EditorManager::DescribePendingUnsavedWork(
   return work.empty() ? "unsaved work" : absl::StrJoin(work, " and ");
 }
 
+std::string EditorManager::CompactPendingUnsavedWorkLabel(
+    size_t session_index) const {
+  if (!session_coordinator_ ||
+      !session_coordinator_->IsValidSessionIndex(session_index)) {
+    return {};
+  }
+
+  auto* session =
+      static_cast<RomSession*>(session_coordinator_->GetSession(session_index));
+  const bool rom_dirty =
+      session != nullptr && session->rom.is_loaded() && session->rom.dirty();
+  const bool pending_dungeon_changes =
+      HasPendingDungeonChangesForSession(session_index);
+  const bool pending_graphics_changes =
+      session != nullptr && session->editors.HasPendingGraphicsChanges();
+  const bool pending_screen_changes =
+      session != nullptr && session->editors.HasPendingScreenChanges();
+  const int pending_rooms = PendingDungeonRoomCountForSession(session_index);
+  const size_t pending_palette_colors =
+      PendingPaletteColorCountForSession(session_index);
+  const bool project_dirty = session != nullptr && session->project_dirty;
+  const bool project_editor_draft =
+      session != nullptr && session->editors.HasPendingProjectDraftChanges();
+  const bool project_file_dirty =
+      session != nullptr && session->project_file_editor_state.initialized &&
+      session->project_file_editor_state.modified;
+
+  std::vector<std::string> tags;
+  if (pending_rooms > 0) {
+    tags.push_back("Rooms");
+  } else if (pending_dungeon_changes) {
+    tags.push_back("Dungeon");
+  }
+  if (pending_palette_colors > 0) {
+    tags.push_back("Palette");
+  }
+  if (pending_graphics_changes) {
+    tags.push_back("Gfx");
+  }
+  if (pending_screen_changes) {
+    tags.push_back("Screen");
+  }
+  if (rom_dirty) {
+    tags.push_back("ROM");
+  }
+  if (project_dirty || project_editor_draft || project_file_dirty) {
+    tags.push_back("Project");
+  }
+  return absl::StrJoin(tags, "+");
+}
+
 std::string EditorManager::DescribeAllPendingUnsavedWork() const {
   const int modified_sessions = ModifiedSessionCount();
   if (modified_sessions <= 0) {
@@ -6985,6 +7011,40 @@ void EditorManager::ConfigureEditorDependencies(EditorSet* editor_set, Rom* rom,
   deps.gfx_group_workspace = editor_set->gfx_group_workspace();
 
   editor_set->ApplyDependencies(deps);
+
+  if (auto* settings_panel = editor_set->GetSettingsPanel()) {
+    settings_panel->SetOpenMinecartTracksCallback(
+        [this, session_id]() -> absl::Status {
+          if (!IsCurrentProjectContextOwnedBySession(session_id)) {
+            return absl::FailedPreconditionError(
+                "Minecart Tracks requires its project session to be active.");
+          }
+          if (!core::FeatureFlags::get().kEnableCustomObjects) {
+            return absl::FailedPreconditionError(
+                "Enable Custom Dungeon Objects before opening Minecart "
+                "Tracks.");
+          }
+
+          RETURN_IF_ERROR(EnsureEditorAssetsLoaded(EditorType::kDungeon));
+          auto* dungeon = GetCurrentEditorSet()->GetEditorAs<DungeonEditorV2>(
+              EditorType::kDungeon);
+          if (dungeon == nullptr) {
+            return absl::NotFoundError(
+                "Dungeon editor is unavailable in the active project "
+                "session.");
+          }
+          RETURN_IF_ERROR(dungeon->EnsureMinecartTrackEditorPanel());
+
+          SwitchToEditor(EditorType::kDungeon, true);
+          if (!window_manager_.OpenWindow(
+                  session_id, DungeonEditorV2::kMinecartTrackEditorId)) {
+            return absl::NotFoundError(
+                "Minecart Tracks could not be opened in the active Dungeon "
+                "editor.");
+          }
+          return absl::OkStatus();
+        });
+  }
 
   // If configuring the active session, update the properties panel
   if (session_id == GetCurrentSessionId()) {

@@ -149,32 +149,6 @@ class AgentChatHistoryPanel : public WindowContent {
 };
 
 /**
- * @brief WindowContent for Metrics Dashboard panel
- */
-class AgentMetricsDashboardPanel : public WindowContent {
- public:
-  using DrawCallback = std::function<void()>;
-
-  explicit AgentMetricsDashboardPanel(DrawCallback draw_callback)
-      : draw_callback_(std::move(draw_callback)) {}
-
-  std::string GetId() const override { return "agent.metrics"; }
-  std::string GetDisplayName() const override { return "Metrics Dashboard"; }
-  std::string GetIcon() const override { return ICON_MD_ANALYTICS; }
-  std::string GetEditorCategory() const override { return "Agent"; }
-  int GetPriority() const override { return 60; }
-
-  void Draw(bool* p_open) override {
-    if (draw_callback_) {
-      draw_callback_();
-    }
-  }
-
- private:
-  DrawCallback draw_callback_;
-};
-
-/**
  * @brief WindowContent for Agent Builder panel
  */
 class AgentBuilderPanel : public WindowContent {

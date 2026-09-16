@@ -40,6 +40,25 @@ void DungeonRoomCommandsProvider::Provide(CommandPalette* palette) {
   palette->RegisterDungeonRoomCommands(session_id_);
 }
 
+DrawerCommandsProvider::DrawerCommandsProvider(
+    std::function<void(int drawer_type)> toggle_callback,
+    std::function<void()> cycle_next, std::function<void()> cycle_prev)
+    : toggle_callback_(std::move(toggle_callback)),
+      cycle_next_(std::move(cycle_next)),
+      cycle_prev_(std::move(cycle_prev)) {}
+
+void DrawerCommandsProvider::Provide(CommandPalette* palette) {
+  palette->RegisterDrawerCommands(toggle_callback_, cycle_next_, cycle_prev_);
+}
+
+LayoutCommandsProvider::LayoutCommandsProvider(
+    std::function<void(const std::string&)> apply_callback)
+    : apply_callback_(std::move(apply_callback)) {}
+
+void LayoutCommandsProvider::Provide(CommandPalette* palette) {
+  palette->RegisterLayoutCommands(apply_callback_);
+}
+
 WorkflowCommandsProvider::WorkflowCommandsProvider(
     WorkspaceWindowManager* window_manager, size_t session_id)
     : window_manager_(window_manager), session_id_(session_id) {}

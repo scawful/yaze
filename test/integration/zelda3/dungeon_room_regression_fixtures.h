@@ -116,15 +116,17 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
                      "case for intentional half-color compositing.",
             .required_object_id = 0x108,
             .expected_layer_merge_id = 4,
-            // FF1 now honors the inactive room-0x065 bombed-floor state, so
-            // the default room render correctly omits the big light beam.
-            .composite_checksum = 16184705480853915451ull,
+            // Refreshed 2026-09-14: follow the animated-table operand to
+            // sheet $5D, not the old misindexed $94. The counterfactual test
+            // reproduces the old hashes and confines pixel changes to the
+            // BG2 water tiles $1B0/$1B1. This remains a self-fingerprint.
+            .composite_checksum = 15016426039182598051ull,
             .object_bg1_checksum = 10182215693742640491ull,
-            .object_bg2_checksum = 10480448132206945203ull,
+            .object_bg2_checksum = 18329464225895248363ull,
             .layout_bg1_checksum = 10260335362238553655ull,
-            .composite_non_backdrop_pixels = 231372,
+            .composite_non_backdrop_pixels = 251392,
             .object_bg1_non_backdrop_pixels = 152256,
-            .object_bg2_non_backdrop_pixels = 26572,
+            .object_bg2_non_backdrop_pixels = 46592,
         },
         {
             .room_id = 0x004,

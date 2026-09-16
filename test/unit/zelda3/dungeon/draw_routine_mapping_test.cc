@@ -4,12 +4,17 @@
 #include <algorithm>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "app/gfx/render/background_buffer.h"
+#include "core/features.h"
 #include "gtest/gtest.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_types.h"
+#include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/object_drawer.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
+#include "zelda3/dungeon/object_parser.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze {
@@ -58,7 +63,169 @@ bool ContainsPoint(const std::vector<TilePoint>& points, int x, int y) {
   return false;
 }
 
+struct WaterObjectCase {
+  int object_id;
+  int routine_id;
+  int column_height;
+  bool vertical;
+  std::vector<uint16_t> words;
+};
+
+const std::vector<WaterObjectCase>& WaterObjectCases() {
+  // USDASM bank_00 obj091A..obj096C ($00A46C..$00A4CE), in source order.
+  // Keep the actual mirrored words: sequential IDs cannot catch lost flips.
+  static const std::vector<WaterObjectCase> cases = {
+      {0x3F, 22, 1, false, {0x1DFE, 0x1DFC, 0x5DFE}},
+      {0x40, 22, 1, false, {0x9DFE, 0x9DFC, 0xDDFE}},
+      {0x41, 22, 1, false, {0xDDFF, 0x9DFC, 0x9DFF}},
+      {0x42, 22, 1, false, {0x5DFF, 0x1DFC, 0x1DFF}},
+      {0x43, 22, 1, false, {0xDDFF, 0x9DFC, 0xDDFE}},
+      {0x44, 22, 1, false, {0x9DFE, 0x9DFC, 0x9DFF}},
+      {0x45, 22, 1, false, {0x5DFF, 0x1DFC, 0x5DFE}},
+      {0x46, 22, 1, false, {0x1DFE, 0x1DFC, 0x1DFF}},
+      {0x47,
+       DrawRoutineIds::kWaterfall47,
+       5,
+       false,
+       {0x1DF7, 0x1C40, 0x1C41, 0x1C42, 0x1DB5, 0x1DB2, 0x1DB3, 0x1DB3, 0x1DB4,
+        0x1DB5, 0x5DF7, 0x5C40, 0x5C41, 0x5C42, 0x5DB5}},
+      {0x48,
+       DrawRoutineIds::kWaterfall48,
+       3,
+       false,
+       {0x1DF7, 0x1C40, 0x1DB5, 0x1DB2, 0x1DB3, 0x1DB5, 0x5DF7, 0x5C40,
+        0x5DB5}},
+      {0x79, 13, 1, true, {0x1DFD}},
+      {0x7A, 13, 1, true, {0x5DFD}},
+  };
+  return cases;
+}
+
 }  // namespace
+
+TEST_F(DrawRoutineMappingTest,
+       WaterEdgesAndWaterfallsPreserveSourceWordsAcrossSizesAndBounds) {
+  auto& registry = DrawRoutineRegistry::Get();
+  for (const auto& tc : WaterObjectCases()) {
+    ASSERT_EQ(registry.GetRoutineIdForObject(tc.object_id), tc.routine_id);
+    const auto* info = registry.GetRoutineInfo(tc.routine_id);
+    ASSERT_NE(info, nullptr);
+    EXPECT_FALSE(info->draws_to_both_bgs);
+    // The second pass exercises all attribute bits, including priority, without
+    // changing the source character IDs. It is synthetic, not a ROM capture.
+    for (const uint16_t attribute_xor : {uint16_t{0}, uint16_t{0xFC00}}) {
+      std::vector<gfx::TileInfo> tiles;
+      for (const uint16_t word : tc.words) {
+        tiles.push_back(gfx::WordToTileInfo(word ^ attribute_xor));
+      }
+      for (int size = 0; size < 16; ++size) {
+        // $018F62 / $018F8A: cap + size+1 body + cap, or size+1 rows.
+        // $019466 / $019488: cap + 2*(size+1) body columns + cap.
+        const int width = tc.vertical             ? 1
+                          : tc.column_height == 1 ? size + 3
+                                                  : 2 * size + 4;
+        const int height = tc.vertical ? size + 1 : tc.column_height;
+        for (const TilePoint origin :
+             {TilePoint{4, 6}, TilePoint{31, 31},
+              TilePoint{64 - width, 64 - height}, TilePoint{63, 63}}) {
+          SCOPED_TRACE(::testing::Message()
+                       << "object=" << tc.object_id << " size=" << size
+                       << " attributes=" << attribute_xor << " origin=("
+                       << origin.x << "," << origin.y << ")");
+          gfx::BackgroundBuffer target;
+          gfx::BackgroundBuffer secondary;
+          const RoomObject object(tc.object_id, origin.x, origin.y, size, 0);
+          DrawContext ctx{target,     object, tiles,   nullptr,
+                          rom_.get(), 0,      nullptr, &secondary};
+          info->function(ctx);
+
+          std::vector<uint16_t> expected(64 * 64, 0);
+          for (int x = 0; x < width && origin.x + x < 64; ++x) {
+            for (int y = 0; y < height && origin.y + y < 64; ++y) {
+              const int source_column = x == 0 ? 0 : x == width - 1 ? 2 : 1;
+              const int source_index =
+                  tc.vertical ? 0 : source_column * tc.column_height + y;
+              expected[(origin.y + y) * 64 + origin.x + x] =
+                  tc.words[source_index] ^ attribute_xor;
+            }
+          }
+          // Out-of-room positions clip to the editor canvas; this does not
+          // claim parity with SNES address wrapping for malformed placements.
+          EXPECT_EQ(target.buffer(), expected);
+          EXPECT_TRUE(secondary.buffer().empty());
+        }
+      }
+    }
+  }
+}
+
+TEST_F(DrawRoutineMappingTest, WaterEdgeCapsPreserveOnlyCompatibleCorners) {
+  for (const auto& tc : WaterObjectCases()) {
+    if (tc.object_id < 0x3F || tc.object_id > 0x46) {
+      continue;
+    }
+    const auto* info = DrawRoutineRegistry::Get().GetRoutineInfo(tc.routine_id);
+    ASSERT_NE(info, nullptr);
+    std::vector<gfx::TileInfo> tiles;
+    for (const uint16_t word : tc.words) {
+      tiles.push_back(gfx::WordToTileInfo(word));
+    }
+    // $018F65..$018F7F compares the low ten bits only. Other water caps
+    // (0x1FE/0x1FF) are not protected corners and must be replaced.
+    for (const uint16_t existing_id :
+         {0x01DB, 0x01A6, 0x01DD, 0x01FC, 0x01FE, 0x01FF, 0x0000}) {
+      SCOPED_TRACE(::testing::Message()
+                   << "object=" << tc.object_id << " existing=" << existing_id);
+      constexpr int kX = 4;
+      constexpr int kY = 6;
+      constexpr int kSize = 3;
+      const uint16_t existing_word = existing_id | 0xE800;
+      const bool keep_corner = existing_id == 0x01DB || existing_id == 0x01A6 ||
+                               existing_id == 0x01DD || existing_id == 0x01FC;
+      gfx::BackgroundBuffer target;
+      target.SetTileAt(kX, kY, existing_word);
+      const RoomObject object(tc.object_id, kX, kY, kSize, 0);
+      DrawContext ctx{target,     object, tiles,   nullptr,
+                      rom_.get(), 0,      nullptr, nullptr};
+      info->function(ctx);
+
+      std::vector<uint16_t> expected(64 * 64, 0);
+      expected[kY * 64 + kX] = keep_corner ? existing_word : tc.words[0];
+      for (int x = 1; x <= kSize + 1; ++x) {
+        expected[kY * 64 + kX + x] = tc.words[1];
+      }
+      expected[kY * 64 + kX + kSize + 2] = tc.words[2];
+      EXPECT_EQ(target.buffer(), expected);
+    }
+  }
+}
+
+TEST_F(DrawRoutineMappingTest,
+       CustomFeatureRoutesAllOracleFixedFamiliesThroughCustomRoutine) {
+  const bool previous_custom_objects =
+      core::FeatureFlags::get().kEnableCustomObjects;
+  struct RestoreFeatureFlag {
+    bool previous;
+    ~RestoreFeatureFlag() {
+      core::FeatureFlags::get().kEnableCustomObjects = previous;
+      DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+    }
+  } restore{previous_custom_objects};
+
+  auto& registry = DrawRoutineRegistry::Get();
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  registry.RefreshFeatureFlagMappings();
+  for (const int object_id : {0x31, 0x32, 0x54}) {
+    EXPECT_EQ(registry.GetRoutineIdForObject(object_id),
+              DrawRoutineIds::kCustomObject);
+  }
+
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  registry.RefreshFeatureFlagMappings();
+  EXPECT_EQ(registry.GetRoutineIdForObject(0x31), DrawRoutineIds::kNothing);
+  EXPECT_EQ(registry.GetRoutineIdForObject(0x32), DrawRoutineIds::kNothing);
+  EXPECT_EQ(registry.GetRoutineIdForObject(0x54), DrawRoutineIds::kNothing);
+}
 
 TEST_F(DrawRoutineMappingTest,
        HorizontalRailRoutinesKeepExistingSmallCornerTile) {
@@ -450,6 +617,116 @@ TEST_F(DrawRoutineMappingTest, SolidPlus3RoutinesExtendFromTheObjectOrigin) {
     ASSERT_EQ(static_cast<int>(vertical_points.size()), expected_count);
     for (int y = kAnchorY; y < kAnchorY + expected_count; ++y) {
       EXPECT_TRUE(ContainsPoint(vertical_points, kAnchorX, y));
+    }
+  }
+}
+
+TEST_F(DrawRoutineMappingTest,
+       ThinStripObjectsPreserveSizeAttributesAndClipAtRoomBoundary) {
+  // USDASM $019120/$019136 use size+4 from the stored origin; $018F8A
+  // uses size+1. These are single-tile repeats, not conditional-cap routines.
+  struct Case {
+    int object_id;
+    int added_count;
+    bool horizontal;
+  };
+  const std::vector<Case> cases = {
+      {0x34, 4, true}, {0x71, 4, false}, {0x8D, 1, false}, {0x8E, 1, false}};
+  const gfx::TileInfo tile(0x02A7, 5, true, true, true);
+  const std::vector<gfx::TileInfo> tiles = {tile};
+  const uint16_t expected_word = gfx::TileInfoToWord(tile);
+  auto& registry = DrawRoutineRegistry::Get();
+
+  for (const auto& test_case : cases) {
+    const auto* info = registry.GetRoutineInfo(
+        registry.GetRoutineIdForObject(test_case.object_id));
+    ASSERT_NE(info, nullptr);
+    for (uint8_t size : {uint8_t{0}, uint8_t{1}, uint8_t{15}}) {
+      const int count = size + test_case.added_count;
+      for (const int anchor : {9, 31, 64 - count, 63}) {
+        SCOPED_TRACE(::testing::Message() << "object=" << test_case.object_id
+                                          << " size=" << static_cast<int>(size)
+                                          << " anchor=" << anchor);
+        const int start_x = test_case.horizontal ? anchor : 63;
+        const int start_y = test_case.horizontal ? 63 : anchor;
+        const RoomObject object(test_case.object_id, start_x, start_y, size, 0);
+        gfx::BackgroundBuffer bg;
+        // A solid strip must replace even a preexisting rail corner.
+        bg.SetTileAt(start_x, start_y, 0xE0E3);
+        DrawContext ctx{
+            bg,      object,     std::span<const gfx::TileInfo>(tiles),
+            nullptr, rom_.get(), 0,
+            nullptr, nullptr};
+        info->function(ctx);
+
+        for (int y = 0; y < 64; ++y) {
+          for (int x = 0; x < 64; ++x) {
+            const bool in_strip =
+                test_case.horizontal
+                    ? y == start_y && x >= start_x && x < start_x + count
+                    : x == start_x && y >= start_y && y < start_y + count;
+            EXPECT_EQ(bg.GetTileAt(x, y), in_strip ? expected_word : 0)
+                << "tile=(" << x << "," << y << ")";
+          }
+        }
+      }
+    }
+  }
+}
+
+TEST_F(DrawRoutineMappingTest,
+       ThinTrimObjectsKeepOnlyUsdasmCompatibleCapsWithoutShiftingBody) {
+  // $018F65-$018F7F compares the low ten tile bits with four compatible
+  // corners. $01B2CA advances one column even when the opening cap is kept.
+  const std::vector<gfx::TileInfo> tiles = {
+      gfx::TileInfo(0x0300, 2, false, true, false),
+      gfx::TileInfo(0x0301, 5, true, false, true),
+      gfx::TileInfo(0x0302, 6, true, true, true)};
+  auto& registry = DrawRoutineRegistry::Get();
+
+  for (const int object_id : {0xB3, 0xB4}) {
+    const auto* info =
+        registry.GetRoutineInfo(registry.GetRoutineIdForObject(object_id));
+    ASSERT_NE(info, nullptr);
+    for (uint8_t size : {uint8_t{0}, uint8_t{1}, uint8_t{15}}) {
+      for (const uint16_t existing_id :
+           {0x01DB, 0x01A6, 0x01DD, 0x01FC, 0x00E2, 0x02DB}) {
+        const bool keep_cap = existing_id == 0x01DB || existing_id == 0x01A6 ||
+                              existing_id == 0x01DD || existing_id == 0x01FC;
+        const uint16_t existing_word = existing_id | 0xFC00;
+        const int width = size + 3;
+        for (const int anchor : {9, 31, 64 - width, 63}) {
+          SCOPED_TRACE(::testing::Message()
+                       << "object=" << object_id
+                       << " size=" << static_cast<int>(size)
+                       << " existing=" << existing_id << " anchor=" << anchor);
+          constexpr int kY = 63;
+          const RoomObject object(object_id, anchor, kY, size, 0);
+          gfx::BackgroundBuffer bg;
+          bg.SetTileAt(anchor, kY, existing_word);
+          DrawContext ctx{
+              bg,      object,     std::span<const gfx::TileInfo>(tiles),
+              nullptr, rom_.get(), 0,
+              nullptr, nullptr};
+          info->function(ctx);
+
+          for (int y = 0; y < 64; ++y) {
+            for (int x = 0; x < 64; ++x) {
+              uint16_t expected = 0;
+              if (y == kY && x >= anchor && x < anchor + width) {
+                const int index = x == anchor               ? 0
+                                  : x == anchor + width - 1 ? 2
+                                                            : 1;
+                expected = x == anchor && keep_cap
+                               ? existing_word
+                               : gfx::TileInfoToWord(tiles[index]);
+              }
+              EXPECT_EQ(bg.GetTileAt(x, y), expected)
+                  << "tile=(" << x << "," << y << ")";
+            }
+          }
+        }
+      }
     }
   }
 }
@@ -878,8 +1155,8 @@ TEST_F(DrawRoutineMappingTest, MapsMovingWallAndChestPlatformFamilies) {
 TEST_F(DrawRoutineMappingTest, VerifiesSubtype2Mappings) {
   ObjectDrawer drawer(rom_.get(), 0);
 
-  // 0x100-0x107 -> Routine 16 (RoomDraw_4x4)
-  EXPECT_EQ(drawer.GetDrawRoutineId(0x100), 16);
+  // 0x100-0x107 -> fixed RoomDraw_4x4, not the repeated subtype-1 wrapper.
+  EXPECT_EQ(drawer.GetDrawRoutineId(0x100), DrawRoutineIds::kActual4x4);
 
   // 0x108 -> Routine 35 (4x4 Corner BothBG)
   EXPECT_EQ(drawer.GetDrawRoutineId(0x108), 35);
@@ -891,6 +1168,113 @@ TEST_F(DrawRoutineMappingTest, VerifiesSubtype2Mappings) {
   EXPECT_EQ(drawer.GetDrawRoutineId(0x122), DrawRoutineIds::kBed4x5);
   EXPECT_EQ(drawer.GetDrawRoutineId(0x12C), DrawRoutineIds::kRightwards3x6);
   EXPECT_EQ(drawer.GetDrawRoutineId(0x13E), DrawRoutineIds::kUtility6x3);
+}
+
+TEST_F(DrawRoutineMappingTest,
+       FixedCornersUseUsdasmSourcesAndBackgroundMetadata) {
+  const absl::Cleanup reset_dimensions = [] {
+    ObjectDimensionTable::Get().Reset();
+  };
+  // Subtype-2 source offsets, in ID order, from $0183F0-$01841E. Keep the
+  // non-monotonic order: the single-BG and dual-BG corner sets interleave.
+  const std::vector<uint16_t> offsets = {
+      0x0B66, 0x0B86, 0x0BA6, 0x0BC6, 0x0C66, 0x0C86, 0x0CA6, 0x0CC6,
+      0x0BE6, 0x0C06, 0x0C26, 0x0C46, 0x0CE6, 0x0D06, 0x0D26, 0x0D46,
+      0x0D66, 0x0D7E, 0x0D96, 0x0DAE, 0x0DC6, 0x0DDE, 0x0DF6, 0x0E0E,
+  };
+  for (int index = 0; index < static_cast<int>(offsets.size()); ++index) {
+    SCOPED_TRACE(index + 0x100);
+    const int id = index + 0x100;
+    const int width = id >= 0x110 && id <= 0x113 ? 3 : 4;
+    const int height = id >= 0x114 ? 3 : 4;
+    const int source = kRoomObjectTileAddress + offsets[index];
+    std::vector<uint8_t> data(1024 * 1024, 0);
+    data[kRoomObjectSubtype2 + index * 2] = offsets[index] & 0xFF;
+    data[kRoomObjectSubtype2 + index * 2 + 1] = offsets[index] >> 8;
+    for (int slot = 0; slot <= width * height; ++slot) {
+      data[source + slot * 2] = slot;
+      data[source + slot * 2 + 1] = 0x29;
+    }
+    ASSERT_TRUE(rom_->LoadFromData(data).ok());
+    ASSERT_TRUE(ObjectDimensionTable::Get().LoadFromRom(rom_.get()).ok());
+    ObjectParser parser(rom_.get());
+    const auto tiles = parser.ParseObject(id);
+    ASSERT_TRUE(tiles.ok()) << tiles.status();
+    ASSERT_EQ(tiles->size(), width * height);
+    for (int slot = 0; slot < width * height; ++slot) {
+      EXPECT_EQ(gfx::TileInfoToWord((*tiles)[slot]), 0x2900 + slot);
+    }
+    const auto ranges = parser.ResolveTileReadRanges(id);
+    ASSERT_TRUE(ranges.ok()) << ranges.status();
+    ASSERT_EQ(ranges->size(), 1u);
+    EXPECT_EQ(ranges->front().begin, source);
+    EXPECT_EQ(ranges->front().end, source + width * height * 2);
+
+    const auto& registry = DrawRoutineRegistry::Get();
+    const auto* routine =
+        registry.GetRoutineInfo(registry.GetRoutineIdForObject(id));
+    ASSERT_NE(routine, nullptr);
+    EXPECT_EQ(routine->draws_to_both_bgs, id >= 0x108);
+    EXPECT_EQ(routine->base_width, width);
+    EXPECT_EQ(routine->base_height, height);
+    for (int size : {0, 1, 15}) {
+      EXPECT_EQ(ObjectDimensionTable::Get().GetDimensions(id, size),
+                std::make_pair(width, height));
+    }
+  }
+}
+
+TEST_F(DrawRoutineMappingTest, SanctuaryWallUsesUsdasmPayloadAndFootprint) {
+  const absl::Cleanup reset_dimensions = [] {
+    ObjectDimensionTable::Get().Reset();
+  };
+  // $018468 selects obj1458; $019B56 consumes two six-word facade columns
+  // and a four-column, three-row center pattern: 24 source words total.
+  std::vector<uint8_t> data(1024 * 1024, 0);
+  constexpr int kPointer = kRoomObjectSubtype2 + 0x3C * 2;
+  constexpr int kSource = kRoomObjectTileAddress + 0x1458;
+  data[kPointer] = 0x58;
+  data[kPointer + 1] = 0x14;
+  for (int i = 0; i < 25; ++i) {
+    data[kSource + i * 2] = static_cast<uint8_t>(i);
+    data[kSource + i * 2 + 1] = 0x1D;
+  }
+  ASSERT_TRUE(rom_->LoadFromData(data).ok());
+  ASSERT_TRUE(ObjectDimensionTable::Get().LoadFromRom(rom_.get()).ok());
+  ObjectParser parser(rom_.get());
+  const auto tiles = parser.ParseObject(0x13C);
+  ASSERT_TRUE(tiles.ok()) << tiles.status();
+  ASSERT_EQ(tiles->size(), 24u);
+  EXPECT_EQ(gfx::TileInfoToWord(tiles->back()), 0x1D17);
+  const auto ranges = parser.ResolveTileReadRanges(0x13C);
+  ASSERT_TRUE(ranges.ok()) << ranges.status();
+  ASSERT_EQ(ranges->size(), 1u);
+  EXPECT_EQ(ranges->front().begin, kSource);
+  EXPECT_EQ(ranges->front().end, kSource + 48);
+
+  const auto& registry = DrawRoutineRegistry::Get();
+  const auto* routine =
+      registry.GetRoutineInfo(registry.GetRoutineIdForObject(0x13C));
+  ASSERT_NE(routine, nullptr);
+  EXPECT_EQ(routine->base_width, 24);
+  EXPECT_EQ(routine->base_height, 6);
+  EXPECT_EQ(routine->min_tiles, 24);
+  EXPECT_FALSE(routine->draws_to_both_bgs);  // Only the center uses active BG.
+  for (int size : {0, 1, 15}) {
+    EXPECT_EQ(ObjectDimensionTable::Get().GetDimensions(0x13C, size),
+              std::make_pair(24, 6));
+  }
+  for (int layer : {0, 1, 2}) {
+    const RoomObject object(0x13C, 10, 20, 0, layer);
+    const auto semantics = GetObjectLayerSemantics(object);
+    EXPECT_FALSE(semantics.draws_to_both_bgs);
+    EXPECT_EQ(semantics.effective_bg_layer, layer == 1
+                                                ? EffectiveBgLayer::kBothBg1Bg2
+                                                : EffectiveBgLayer::kBg1);
+    EXPECT_EQ(semantics.render_routing, layer == 1
+                                            ? ObjectRenderRouting::kMixedBg1Bg2
+                                            : ObjectRenderRouting::kFixedBg1);
+  }
 }
 
 TEST_F(DrawRoutineMappingTest, VerifiesSubtype3Mappings) {
