@@ -340,6 +340,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/music_parser_test.cc
     unit/zelda3/dungeon_component_unit_test.cc
     unit/zelda3/dungeon/dungeon_limits_test.cc
+    unit/zelda3/dungeon/draw_routine_symbology_test.cc
     unit/zelda3/dungeon/room_limit_regression_test.cc
     unit/zelda3/dungeon/dungeon_validator_test.cc
     unit/zelda3/dungeon/door_position_test.cc
