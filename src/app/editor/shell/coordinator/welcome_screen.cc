@@ -60,15 +60,30 @@ void UpdateWelcomeAccentPalette() {
   // The welcome screen previously recomputed its accent palette every frame;
   // skip that work while the active theme is unchanged.
   static std::string s_cached_theme_name;
+  static uint64_t s_cached_signature = 0;
   static bool s_cached_once = false;
   const std::string& current_name = theme_mgr.GetCurrentThemeName();
-  if (s_cached_once && current_name == s_cached_theme_name) {
+  const auto& theme = theme_mgr.GetCurrentTheme();
+  // Key on the colors themselves, not just the name: applying a custom
+  // accent, saving over the current theme, or ending a preview all change
+  // the palette while the name stays put, which used to leave these brand
+  // colors stale until the next rename or restart.
+  const auto pack = [](const auto& color) -> uint64_t {
+    const ImVec4 v = gui::ConvertColorToImVec4(color);
+    return (static_cast<uint64_t>(v.x * 255.0f) << 16) |
+           (static_cast<uint64_t>(v.y * 255.0f) << 8) |
+           static_cast<uint64_t>(v.z * 255.0f);
+  };
+  const uint64_t signature = pack(theme.accent) ^ (pack(theme.warning) << 1) ^
+                             (pack(theme.success) << 2) ^
+                             (pack(theme.info) << 3) ^ (pack(theme.error) << 4);
+  if (s_cached_once && current_name == s_cached_theme_name &&
+      signature == s_cached_signature) {
     return;
   }
   s_cached_theme_name = current_name;
+  s_cached_signature = signature;
   s_cached_once = true;
-
-  const auto& theme = theme_mgr.GetCurrentTheme();
 
   const ImVec4 accent = gui::ConvertColorToImVec4(theme.accent);
   const ImVec4 warning = gui::ConvertColorToImVec4(theme.warning);
@@ -82,6 +97,38 @@ void UpdateWelcomeAccentPalette() {
   kMasterSwordBlue = info;
   kHeartRed = error;
   kSpiritOrange = ImLerp(warning, accent, 0.35f);
+}
+
+// Section headings share one colour so Start, Recent, and the first-run hint
+// read as peers rather than three competing accents.
+ImVec4 SectionHeadingColor() {
+  return kTriforceGold;
+}
+
+// A single low-contrast rule, themed from the same accent as the headings.
+void DrawAccentRule(ImDrawList* draw_list) {
+  const ImVec2 start = ImGui::GetCursorScreenPos();
+  const ImVec2 end(start.x + ImGui::GetContentRegionAvail().x, start.y + 1.0f);
+  ImVec4 rule = SectionHeadingColor();
+  rule.w = 0.22f;
+  draw_list->AddRectFilled(start, end, ImGui::GetColorU32(rule));
+}
+
+// One tip per session, rotated by launch count so the same line is not
+// always first, without changing while the user is looking at it.
+const char* SessionTip() {
+  static const char* kTips[] = {
+      "Open a ROM first, then save a copy before editing",
+      "Projects track ROM versions and editor settings",
+      "Use Project Management to swap ROMs and manage snapshots",
+      "Press Ctrl+Shift+P for the command palette and F1 for help",
+      "Shortcuts are configurable in Settings > Keyboard Shortcuts",
+      "Project + settings data live under ~/.yaze (user profile on Windows)",
+      "Use the panel browser to find any tool quickly"};
+  constexpr int kTipCount = IM_ARRAYSIZE(kTips);
+  static const int index =
+      static_cast<int>((absl::GetCurrentTimeNanos() / 1000000) % kTipCount);
+  return kTips[index];
 }
 
 // Truncate `text` to fit within `max_width` pixels, appending "..." if clipped.
@@ -463,21 +510,12 @@ bool WelcomeScreen::Show(bool* p_open) {
 
     ImGui::Spacing();
 
-    // Thin accent rule under the brand.
+    // One quiet accent rule under the brand. A multi-hue gradient competed
+    // with every theme's own palette and read as decoration, not structure.
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    ImVec2 separator_start = ImGui::GetCursorScreenPos();
-    ImVec2 separator_end(separator_start.x + ImGui::GetContentRegionAvail().x,
-                         separator_start.y + 1);
-    ImVec4 gold_faded = kTriforceGold;
-    gold_faded.w = 0.16f;
-    ImVec4 blue_faded = kMasterSwordBlue;
-    blue_faded.w = 0.16f;
-    draw_list->AddRectFilledMultiColor(
-        separator_start, separator_end, ImGui::GetColorU32(gold_faded),
-        ImGui::GetColorU32(blue_faded), ImGui::GetColorU32(blue_faded),
-        ImGui::GetColorU32(gold_faded));
+    DrawAccentRule(draw_list);
 
-    ImGui::Dummy(ImVec2(0, 8));
+    ImGui::Dummy(ImVec2(0, ImGui::GetStyle().ItemSpacing.y));
 
     // Reserve the footer from the active font and theme, not a fixed pixel
     // height. The content pane itself never scrolls — recents are capped to
@@ -496,11 +534,6 @@ bool WelcomeScreen::Show(bool* p_open) {
     if (stacked_layout) {
       DrawFirstRunGuide();
       DrawQuickActions();
-      // Prefer Start + Recents when the window is short; What's new is optional.
-      if (ImGui::GetContentRegionAvail().y > 220.0f) {
-        ImGui::Spacing();
-        DrawWhatsNew();
-      }
       ImGui::Spacing();
       ImGui::Separator();
       ImGui::Spacing();
@@ -515,10 +548,6 @@ bool WelcomeScreen::Show(bool* p_open) {
           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
       DrawFirstRunGuide();
       DrawQuickActions();
-      ImGui::Spacing();
-      ImGui::Separator();
-      ImGui::Spacing();
-      DrawWhatsNew();
       ImGui::EndChild();
 
       ImGui::SameLine(0.0f, 16.0f);
@@ -532,21 +561,9 @@ bool WelcomeScreen::Show(bool* p_open) {
 
     ImGui::EndChild();
 
-    // Footer with subtle gradient
-    ImVec2 footer_start = ImGui::GetCursorScreenPos();
-    ImVec2 footer_end(footer_start.x + ImGui::GetContentRegionAvail().x,
-                      footer_start.y + 1);
-    ImVec4 red_faded = kHeartRed;
-    red_faded.w = 0.3f;
-    ImVec4 green_faded = kHyruleGreen;
-    green_faded.w = 0.3f;
-    draw_list->AddRectFilledMultiColor(
-        footer_start, footer_end, ImGui::GetColorU32(red_faded),
-        ImGui::GetColorU32(green_faded), ImGui::GetColorU32(green_faded),
-        ImGui::GetColorU32(red_faded));
-
+    DrawAccentRule(draw_list);
     ImGui::Dummy(ImVec2(0, footer_gap));
-    DrawTipsSection();
+    DrawFooterBar();
   }
   ImGui::End();
 
@@ -650,7 +667,7 @@ void WelcomeScreen::DrawFirstRunGuide() {
   gui::StyleVarGuard alpha_guard(ImGuiStyleVar_Alpha, progress);
 
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
-  ImGui::TextColored(kTriforceGold, ICON_MD_AUTO_AWESOME " New here?");
+  ImGui::TextColored(SectionHeadingColor(), ICON_MD_AUTO_AWESOME " New here?");
   ImGui::SameLine();
   {
     gui::StyleColorGuard text_guard(ImGuiCol_Text, text_secondary);
@@ -680,7 +697,7 @@ void WelcomeScreen::DrawQuickActions() {
     ImGui::Indent(indent);
   }
 
-  ImGui::TextColored(kSpiritOrange, ICON_MD_BOLT " Start");
+  ImGui::TextColored(SectionHeadingColor(), ICON_MD_BOLT " Start");
   ImGui::Spacing();
 
   const float scale = ImGui::GetFontSize() / 16.0f;
@@ -819,7 +836,7 @@ void WelcomeScreen::DrawRecentProjects() {
 
   gui::StyleVarGuard alpha_guard(ImGuiStyleVar_Alpha, recent_progress);
 
-  ImGui::TextColored(kMasterSwordBlue, ICON_MD_HISTORY " Recent");
+  ImGui::TextColored(SectionHeadingColor(), ICON_MD_HISTORY " Recent");
 
   const float header_spacing = ImGui::GetStyle().ItemSpacing.x;
   const float manage_width = ImGui::CalcTextSize(ICON_MD_FOLDER_SPECIAL).x +
@@ -1250,99 +1267,67 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
   ImGui::PopID();
 }
 
-void WelcomeScreen::DrawTipsSection() {
-  // Entry animation for tips (section 6, appears last)
-  float tips_progress = GetStaggeredEntryProgress(
-      entry_time_, 6, kEntryAnimDuration, kEntryStaggerDelay);
-
-  if (tips_progress < 0.001f) {
-    return;  // Don't draw yet
+void WelcomeScreen::DrawFooterBar() {
+  // One footer row carries the build, the release-notes link, and a single
+  // tip. These used to be two separate blocks: a "What's new" card with
+  // hand-written highlights that went stale, and a tip strip.
+  float progress = GetStaggeredEntryProgress(entry_time_, 5, kEntryAnimDuration,
+                                             kEntryStaggerDelay);
+  if (progress < 0.001f) {
+    return;
   }
-
-  gui::StyleVarGuard alpha_guard(ImGuiStyleVar_Alpha, tips_progress);
-
-  // Static tip (or could rotate based on session start time rather than
-  // animation)
-  const char* tips[] = {
-      "Open a ROM first, then save a copy before editing",
-      "Projects track ROM versions and editor settings",
-      "Use Project Management to swap ROMs and manage snapshots",
-      "Press Ctrl+Shift+P for the command palette and F1 for help",
-      "Shortcuts are configurable in Settings > Keyboard Shortcuts",
-      "Project + settings data live under ~/.yaze (user profile on Windows)",
-      "Use the panel browser to find any tool quickly"};
-  int tip_index = 0;  // Show first tip, or could be random on screen open
+  gui::StyleVarGuard alpha_guard(ImGuiStyleVar_Alpha, progress);
 
   const ImGuiStyle& style = ImGui::GetStyle();
-  const std::string close_label =
-      absl::StrFormat("%s Don't show again", ICON_MD_CLOSE);
-  const float close_width =
-      ImGui::CalcTextSize(close_label.c_str()).x + 2.0f * style.FramePadding.x;
-  const float close_x =
-      ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x - close_width;
-  const std::string tip = absl::StrFormat("%s %s %s", ICON_MD_LIGHTBULB,
-                                          tr("Tip:"), tips[tip_index]);
-  const float tip_width =
-      close_x - ImGui::GetCursorPosX() - style.ItemSpacing.x;
-  if (tip_width > 0.0f) {
-    const std::string visible_tip = EllipsizeText(tip, tip_width);
-    ImGui::TextColored(gui::GetTextSecondaryVec4(), "%s", visible_tip.c_str());
-    if (visible_tip != tip && ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("%s", tip.c_str());
-    }
-    ImGui::SameLine(close_x);
-  }
-  if (ImGui::SmallButton(close_label.c_str())) {
-    manually_closed_ = true;
-  }
-}
-
-void WelcomeScreen::DrawWhatsNew() {
-  // Entry animation for what's new (section 5)
-  float whatsnew_progress = GetStaggeredEntryProgress(
-      entry_time_, 5, kEntryAnimDuration, kEntryStaggerDelay);
-
-  if (whatsnew_progress < 0.001f) {
-    return;  // Don't draw yet
-  }
-
-  gui::StyleVarGuard alpha_guard(ImGuiStyleVar_Alpha, whatsnew_progress);
-
   const ImVec4 text_secondary = gui::GetTextSecondaryVec4();
-  ImGui::TextColored(kMasterSwordBlue, ICON_MD_NEW_RELEASES " v%s",
-                     YAZE_VERSION_STRING);
-  ImGui::SameLine();
-  ImGui::TextColored(text_secondary, "%s", tr("highlights"));
 
-  // Drop bullets when the Start column is short so the pane never scrolls.
-  const float remaining = ImGui::GetContentRegionAvail().y;
-  if (remaining > 110.0f) {
-    const char* highlights[] = {
-        "Clearer dungeon object layers",
-        "Calmer Dungeon Workbench",
-        "Cleaner start screen",
-    };
-    for (const char* highlight : highlights) {
-      ImGui::BulletText("%s", highlight);
-    }
-  }
+  const std::string version = absl::StrFormat("v%s", YAZE_VERSION_STRING);
+  ImGui::TextColored(text_secondary, "%s", version.c_str());
+  ImGui::SameLine(0.0f, style.ItemSpacing.x);
 
-  if (gui::ThemedButton(ICON_MD_OPEN_IN_NEW " Release notes", ImVec2(-1, 0),
-                        "welcome_screen", "view_release_notes")) {
+  if (ImGui::SmallButton(ICON_MD_OPEN_IN_NEW " Release notes")) {
     constexpr char kReleaseNotesUrl[] =
         "https://github.com/scawful/yaze/blob/master/docs/public/"
         "release-notes.md";
     release_notes_open_failed_ = !gui::OpenUrl(kReleaseNotesUrl);
   }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s", tr("Open the release notes in your browser"));
+  }
 
-  if (release_notes_open_failed_) {
-    const ImVec4 warning = gui::ConvertColorToImVec4(
-        gui::ThemeManager::Get().GetCurrentTheme().warning);
-    ImGui::TextColored(warning, ICON_MD_INFO);
-    ImGui::SameLine();
-    ImGui::TextWrapped(tr("Could not open the browser. Release notes: %s"),
-                       "https://github.com/scawful/yaze/blob/master/docs/"
-                       "public/release-notes.md");
+  const std::string close_label =
+      absl::StrFormat("%s Don't show again", ICON_MD_CLOSE);
+  const float close_width =
+      ImGui::CalcTextSize(close_label.c_str()).x + 2.0f * style.FramePadding.x;
+
+  const std::string tip =
+      release_notes_open_failed_
+          ? absl::StrFormat("%s %s", ICON_MD_INFO,
+                            tr("Could not open the browser; see "
+                               "docs/public/release-notes.md"))
+          : absl::StrFormat("%s %s %s", ICON_MD_LIGHTBULB, tr("Tip:"),
+                            SessionTip());
+
+  ImGui::SameLine(0.0f, style.ItemSpacing.x);
+  const float tip_start = ImGui::GetCursorPosX();
+  const float right_edge = tip_start + ImGui::GetContentRegionAvail().x;
+  const float tip_width =
+      right_edge - close_width - style.ItemSpacing.x - tip_start;
+  if (tip_width > 0.0f) {
+    const std::string visible_tip = EllipsizeText(tip, tip_width);
+    const ImVec4 tip_color =
+        release_notes_open_failed_
+            ? gui::ConvertColorToImVec4(
+                  gui::ThemeManager::Get().GetCurrentTheme().warning)
+            : text_secondary;
+    ImGui::TextColored(tip_color, "%s", visible_tip.c_str());
+    if (visible_tip != tip && ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("%s", tip.c_str());
+    }
+    ImGui::SameLine(right_edge - close_width);
+  }
+  if (ImGui::SmallButton(close_label.c_str())) {
+    manually_closed_ = true;
   }
 }
 
