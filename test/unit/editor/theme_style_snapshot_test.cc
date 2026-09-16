@@ -8,9 +8,11 @@
 // GetStyle().Colors[] snapshot would be louder but needs an ImGui context
 // and regenerates on every minor theme tweak. The semantic-token pin is
 // what callers actually depend on.
+#include <chrono>
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
+#include <string>
 
 #include "app/gui/core/color.h"
 #include "app/gui/core/theme_manager.h"
@@ -51,6 +53,19 @@ void ExpectRgbNear(const Color& c, int r, int g, int b, int a = 255) {
   EXPECT_NEAR(c.green, g / 255.0f, kEps) << "green mismatch";
   EXPECT_NEAR(c.blue, b / 255.0f, kEps) << "blue mismatch";
   EXPECT_NEAR(c.alpha, a / 255.0f, kEps) << "alpha mismatch";
+}
+
+// temp_directory_path() is shared by every process for this user, so a fixed
+// filename collides when two checkouts (or two CI shards) test at once.
+std::filesystem::path TempThemePath(const char* stem) {
+  // getpid() is not portable to the Windows job; a clock token plus a counter
+  // is, and is unique across concurrent processes either way.
+  static const std::string token = std::to_string(
+      std::chrono::high_resolution_clock::now().time_since_epoch().count());
+  static int serial = 0;
+  return std::filesystem::temp_directory_path() /
+         (std::string("yaze_") + stem + "_" + token + "_" +
+          std::to_string(++serial) + ".theme");
 }
 
 // ApplyClassicYazeTheme() calls into ImGui::GetStyle() via ColorsYaze(), which
@@ -225,29 +240,52 @@ TEST_F(ThemeStyleSnapshotTest, SaveThemeToFileRecordsPathForRenamedTheme) {
 // ImGuiCol_ slot it skips keeps whatever the previously applied preset wrote.
 // Switching preset -> Classic left docking previews, the text caret and tab
 // overlines painted in the preset's colors.
-TEST_F(ThemeStyleSnapshotTest, ClassicYazeClearsColorsAddedAfterColorsYaze) {
+TEST_F(ThemeStyleSnapshotTest, ClassicYazeWritesEveryImGuiColorSlot) {
   auto& mgr = ThemeManager::Get();
-  mgr.ApplyTheme("Cyberpunk");
-  ASSERT_EQ(mgr.GetCurrentThemeName(), "Cyberpunk");
-  const ImVec4* colors = ImGui::GetStyle().Colors;
-  const ImVec4 preset_docking = colors[ImGuiCol_DockingPreview];
-  const ImVec4 preset_caret = colors[ImGuiCol_InputTextCursor];
-  const ImVec4 preset_overline = colors[ImGuiCol_TabSelectedOverline];
+  // Poison every slot. ColorsYaze() is the ONLY writer for Classic YAZE, so
+  // any slot it skips keeps whatever was there before — in practice the
+  // previously applied preset, which is how Cyberpunk's purple docking
+  // preview survived a switch to Classic. Asserting the whole array guards
+  // the bug class, including slots a future ImGui upgrade adds.
+  constexpr ImVec4 kSentinel(1.0f, 0.0f, 1.0f, 0.123f);
+  ImVec4* colors = ImGui::GetStyle().Colors;
+  for (int i = 0; i < ImGuiCol_COUNT; ++i) {
+    colors[i] = kSentinel;
+  }
 
   mgr.ApplyClassicYazeTheme();
 
-  auto differs = [](const ImVec4& a, const ImVec4& b) {
-    return a.x != b.x || a.y != b.y || a.z != b.z || a.w != b.w;
-  };
-  EXPECT_TRUE(differs(colors[ImGuiCol_DockingPreview], preset_docking));
-  EXPECT_TRUE(differs(colors[ImGuiCol_InputTextCursor], preset_caret));
-  EXPECT_TRUE(differs(colors[ImGuiCol_TabSelectedOverline], preset_overline));
-  // Classic's caret is plain white; a leftover preset caret would not be.
-  EXPECT_FLOAT_EQ(colors[ImGuiCol_InputTextCursor].x, 1.0f);
-  EXPECT_FLOAT_EQ(colors[ImGuiCol_InputTextCursor].y, 1.0f);
-  EXPECT_FLOAT_EQ(colors[ImGuiCol_InputTextCursor].z, 1.0f);
+  for (int i = 0; i < ImGuiCol_COUNT; ++i) {
+    const bool untouched =
+        colors[i].x == kSentinel.x && colors[i].y == kSentinel.y &&
+        colors[i].z == kSentinel.z && colors[i].w == kSentinel.w;
+    EXPECT_FALSE(untouched)
+        << "ColorsYaze() left ImGuiCol_" << ImGui::GetStyleColorName(i)
+        << " (index " << i << ") unwritten; it will inherit the previous theme";
+  }
+  // Style scalars ColorsYaze must also own.
   EXPECT_FLOAT_EQ(ImGui::GetStyle().TabRounding, 0.0f);
   EXPECT_FLOAT_EQ(ImGui::GetStyle().GrabRounding, 5.0f);
+}
+
+// Classic YAZE's spacing is part of its identity: ColorsYaze() sets
+// FramePadding 10x2 and ItemSpacing 10x5, not the 8px base every other theme
+// derives from. Carrying density across a theme switch must scale those, not
+// replace them.
+TEST_F(ThemeStyleSnapshotTest, ClassicYazeKeepsItsOwnSpacingAtNormalDensity) {
+  auto& mgr = ThemeManager::Get();
+  mgr.ApplyTheme("Cyberpunk");
+  mgr.ApplyClassicYazeTheme();
+
+  const ImGuiStyle& style = ImGui::GetStyle();
+  ASSERT_EQ(mgr.GetCurrentTheme().density_preset, DensityPreset::kNormal);
+  EXPECT_FLOAT_EQ(style.FramePadding.x, 10.0f);
+  EXPECT_FLOAT_EQ(style.FramePadding.y, 2.0f);
+  EXPECT_FLOAT_EQ(style.ItemSpacing.x, 10.0f);
+  EXPECT_FLOAT_EQ(style.ItemSpacing.y, 5.0f);
+  EXPECT_FLOAT_EQ(style.WindowPadding.x, 10.0f);
+  EXPECT_FLOAT_EQ(style.WindowPadding.y, 10.0f);
+  EXPECT_FLOAT_EQ(style.GrabMinSize, 15.0f);
 }
 
 // EndPreview restores through ApplyTheme(const Theme&), which repaints from the
@@ -372,46 +410,80 @@ TEST_F(ThemeStyleSnapshotTest, GeneratedAccentThemeHydratesSemanticColors) {
   not_black(theme.selection_primary, "selection_primary");
 }
 
-// The [style] parser called std::stof unguarded: one bad value in a hand-edited
-// or third-party .theme file threw std::invalid_argument out of the loader.
+// The [style] parser called std::stof unguarded: one bad value in a
+// hand-edited or third-party .theme file threw std::invalid_argument out of
+// the loader, and themes load from the ThemeManager singleton's constructor
+// where that ends the process. Malform EVERY numeric key rather than one:
+// guarding six of seven keys looks identical to guarding all of them if the
+// test only ever feeds a bad value to the first.
 TEST_F(ThemeStyleSnapshotTest,
        MalformedStyleValueKeepsDefaultInsteadOfThrowing) {
-  const auto path =
-      std::filesystem::temp_directory_path() / "yaze_malformed_style.theme";
-  {
-    std::ofstream out(path);
-    out << "name=Yaze Malformed Style Test\n"
-        << "[colors]\n"
-        << "primary=10,20,30,255\n"
-        << "[style]\n"
-        << "window_rounding=not-a-number\n"
-        << "frame_rounding=4.0\n";
-  }
-  auto& mgr = ThemeManager::Get();
-  const auto status = mgr.LoadThemeFromFile(path.string());
-  std::error_code ec;
-  std::filesystem::remove(path, ec);
-  ASSERT_TRUE(status.ok()) << status.message();
+  const char* kNumericStyleKeys[] = {"window_rounding",    "frame_rounding",
+                                     "scrollbar_rounding", "grab_rounding",
+                                     "tab_rounding",       "window_border_size",
+                                     "frame_border_size",  "animation_speed"};
 
-  const Theme* parsed = mgr.GetTheme("Yaze Malformed Style Test");
-  ASSERT_NE(parsed, nullptr);
-  EXPECT_FLOAT_EQ(parsed->frame_rounding, 4.0f);
-  // The bad key keeps the struct default rather than aborting the whole load.
-  EXPECT_FLOAT_EQ(parsed->window_rounding, Theme{}.window_rounding);
+  for (const char* bad_key : kNumericStyleKeys) {
+    const std::string theme_name =
+        std::string("Yaze Malformed ") + bad_key + " Test";
+    const auto path = TempThemePath("malformed_style");
+    {
+      std::ofstream out(path);
+      out << "name=" << theme_name << "\n"
+          << "[colors]\n"
+          << "primary=10,20,30,255\n"
+          << "[style]\n";
+      // Every numeric key present and valid except the one under test, so a
+      // failure names exactly which key is unguarded.
+      for (const char* key : kNumericStyleKeys) {
+        out << key << "=" << (key == bad_key ? "not-a-number" : "4.0") << "\n";
+      }
+    }
+    auto& mgr = ThemeManager::Get();
+    const auto status = mgr.LoadThemeFromFile(path.string());
+    std::error_code ec;
+    std::filesystem::remove(path, ec);
+    ASSERT_TRUE(status.ok()) << bad_key << ": " << status.message();
+
+    const Theme* parsed = mgr.GetTheme(theme_name);
+    ASSERT_NE(parsed, nullptr) << bad_key;
+    // The other keys still parsed, and the bad one kept its default rather
+    // than aborting the whole load.
+    EXPECT_FLOAT_EQ(parsed->frame_rounding,
+                    std::string(bad_key) == "frame_rounding"
+                        ? Theme{}.frame_rounding
+                        : 4.0f)
+        << bad_key;
+    if (std::string(bad_key) == "animation_speed") {
+      EXPECT_FLOAT_EQ(parsed->animation_speed, Theme{}.animation_speed);
+    }
+    if (std::string(bad_key) == "window_rounding") {
+      EXPECT_FLOAT_EQ(parsed->window_rounding, Theme{}.window_rounding);
+    }
+  }
 }
 
-// The parser reads these three [style] keys but the serializer never wrote
-// them, so Save Over Current silently reset them on the next load.
 TEST_F(ThemeStyleSnapshotTest, SerializedThemeKeepsEveryParsedStyleKey) {
   auto& mgr = ThemeManager::Get();
   Theme theme = *mgr.GetTheme("YAZE Tre");
   theme.name = "Yaze Style Roundtrip Test";
+  // Every numeric key ParseThemeFile's [style] branch recognises, each with a
+  // distinct value. The test's name promises the invariant "the serializer
+  // writes everything the parser reads" — pinning only the keys one commit
+  // happened to add would let the next omission through exactly as
+  // animation_speed's did.
+  theme.window_rounding = 1.5f;
+  theme.frame_rounding = 2.5f;
+  theme.scrollbar_rounding = 3.5f;
   theme.grab_rounding = 7.0f;
+  theme.tab_rounding = 4.5f;
   theme.window_border_size = 2.0f;
   theme.frame_border_size = 3.0f;
+  theme.animation_speed = 1.75f;
+  theme.enable_animations = false;
+  theme.enable_glow_effects = true;
 
-  const auto path =
-      std::filesystem::temp_directory_path() / "yaze_style_roundtrip.theme";
+  const auto path = TempThemePath("style_roundtrip");
   ASSERT_TRUE(mgr.SaveThemeToFile(theme, path.string()).ok());
   const auto status = mgr.LoadThemeFromFile(path.string());
   std::error_code ec;
@@ -420,9 +492,16 @@ TEST_F(ThemeStyleSnapshotTest, SerializedThemeKeepsEveryParsedStyleKey) {
 
   const Theme* parsed = mgr.GetTheme(theme.name);
   ASSERT_NE(parsed, nullptr);
+  EXPECT_FLOAT_EQ(parsed->window_rounding, 1.5f);
+  EXPECT_FLOAT_EQ(parsed->frame_rounding, 2.5f);
+  EXPECT_FLOAT_EQ(parsed->scrollbar_rounding, 3.5f);
   EXPECT_FLOAT_EQ(parsed->grab_rounding, 7.0f);
+  EXPECT_FLOAT_EQ(parsed->tab_rounding, 4.5f);
   EXPECT_FLOAT_EQ(parsed->window_border_size, 2.0f);
   EXPECT_FLOAT_EQ(parsed->frame_border_size, 3.0f);
+  EXPECT_FLOAT_EQ(parsed->animation_speed, 1.75f);
+  EXPECT_FALSE(parsed->enable_animations);
+  EXPECT_TRUE(parsed->enable_glow_effects);
 }
 
 TEST_F(ThemeStyleSnapshotTest, SemanticHelpersReturnThemeTokens) {
