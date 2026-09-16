@@ -2,9 +2,10 @@
 
 #include <algorithm>
 #include <cctype>
-#include <sstream>
-
+#include <filesystem>
 #include <fstream>
+#include <sstream>
+#include <system_error>
 
 #include "absl/status/status.h"
 #include "app/emu/debug/symbol_provider.h"
@@ -593,13 +594,14 @@ bool SaveAnnotationsFile(const std::string& path, const json& data) {
   if (path.empty())
     return false;
 
-  // Ensure parent directory exists
-  auto last_slash = path.find_last_of('/');
-  if (last_slash != std::string::npos) {
-    std::string dir = path.substr(0, last_slash);
-    // Use mkdir -p equivalent (simple approach)
-    std::string cmd = "mkdir -p '" + dir + "'";
-    (void)system(cmd.c_str());
+  const std::filesystem::path parent =
+      std::filesystem::path(path).parent_path();
+  if (!parent.empty()) {
+    std::error_code error;
+    std::filesystem::create_directories(parent, error);
+    if (error) {
+      return false;
+    }
   }
 
   std::ofstream file(path);
