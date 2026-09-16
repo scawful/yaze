@@ -728,6 +728,15 @@ void SettingsPanel::DrawFilesystemSettings() {
   }
 }
 
+void SettingsPanel::ApplyDisplayDensity(gui::DensityPreset preset) {
+  auto& theme_manager = gui::ThemeManager::Get();
+  auto theme = theme_manager.GetCurrentTheme();
+  theme.ApplyDensityPreset(preset);
+  // ReapplyTheme, not ApplyTheme: this re-applies the theme the user is
+  // already on, so Classic YAZE has to route back through ColorsYaze().
+  theme_manager.ReapplyTheme(theme);
+}
+
 void SettingsPanel::DrawAppearanceSettings() {
   auto& theme_manager = gui::ThemeManager::Get();
 
@@ -796,12 +805,7 @@ void SettingsPanel::DrawAppearanceSettings() {
     ImGui::SetNextItemWidth(-1.0f);
     if (ImGui::Combo("##DisplayDensity", &density, density_labels,
                      IM_ARRAYSIZE(density_labels))) {
-      auto new_preset = static_cast<gui::DensityPreset>(density);
-      auto theme = theme_manager.GetCurrentTheme();
-      theme.ApplyDensityPreset(new_preset);
-      // ReapplyTheme, not ApplyTheme: this re-applies the theme the user is
-      // already on, so Classic YAZE has to route back through ColorsYaze().
-      theme_manager.ReapplyTheme(theme);
+      ApplyDisplayDensity(static_cast<gui::DensityPreset>(density));
     }
     ImGui::TextDisabled(
         "%s", density == 0   ? tr("Tighter controls and more visible content")
