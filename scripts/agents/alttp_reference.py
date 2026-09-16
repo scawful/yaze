@@ -181,7 +181,13 @@ class Usdasm:
             if pc:
                 addr = int(pc.group(1), 16)
                 for name in pending:
-                    self.labels.setdefault(name, addr)
+                    # Same rule as symbols: a name that means two addresses
+                    # would let a wrong one pass unnoticed.
+                    previous = self.labels.setdefault(name, addr)
+                    if previous != addr:
+                        raise SystemExit(
+                            f"{path}: label {name} defined at {snes(addr)} "
+                            f"and {snes(previous)}")
                 pending = []
                 data = DATA_RE.match(pc.group(2))
                 if data:
@@ -260,14 +266,15 @@ def addresses_match(actual: int, doc: int) -> bool:
     """Six-digit doc addresses must match exactly.
 
     Four-digit shorthand is accepted only for symbols in bank $00 (hardware
-    registers, low ROM such as `$80B5` for `$0080B5`) or $7E (WRAM/SRAM such
-    as `$F36D` for `$7EF36D`), where 16-bit addresses are conventional. Any
-    other bank must be written with six digits: `$8000` would otherwise match
-    both `Reset` ($008000) and `Link` ($078000).
+    registers, low ROM such as `$80B5` for `$0080B5`) or the WRAM banks $7E
+    and $7F (such as `$F36D` for `$7EF36D`), where 16-bit addresses are
+    conventional. The row names the symbol, so the bank is never ambiguous
+    here. Any other bank must be written with six digits: `$8000` would
+    otherwise match both `Reset` ($008000) and `Link` ($078000).
     """
     if doc > 0xFFFF:
         return actual == doc
-    return actual >> 16 in (0x00, 0x7E) and actual & 0xFFFF == doc
+    return actual >> 16 in (0x00, 0x7E, 0x7F) and actual & 0xFFFF == doc
 
 
 def snes(addr: int) -> str:
