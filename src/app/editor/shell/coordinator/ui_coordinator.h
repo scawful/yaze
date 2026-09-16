@@ -189,7 +189,14 @@ class UICoordinator {
   bool IsProposalDrawerVisible() const { return show_proposal_drawer_; }
 
   // UI state setters (for programmatic control)
+  // Automatic entry into the dashboard (ROM load, project load, ROM-options
+  // apply). `--startup_dashboard=hide` suppresses exactly this path.
+  // Ctrl+E goes through ShowEditorSelection() and is deliberately unaffected:
+  // the flag governs startup, not the shortcut.
   void SetEditorSelectionVisible(bool visible) {
+    if (visible && !ShouldShowDashboard()) {
+      return;
+    }
     show_editor_selection_ = visible;
   }
   void SetDisplaySettingsVisible(bool visible) {
