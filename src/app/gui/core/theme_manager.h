@@ -4,6 +4,7 @@
 #include <functional>
 #include <map>
 #include <optional>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -422,9 +423,16 @@ class ThemeManager {
   ThemeChangedCallback on_theme_changed_;
 
   void CreateFallbackYazeClassic();
-  absl::Status ParseThemeFile(const std::string& content, Theme& theme);
-  void ApplySmartDefaults(
-      Theme& theme);  // Fill missing properties from primary colors
+  // `declared_keys`, when non-null, receives every recognised key the file
+  // actually contained. ApplySmartDefaults needs that to tell "the author
+  // omitted this field" from "the author chose black": a default-constructed
+  // Color is opaque black, so the two are identical by value.
+  absl::Status ParseThemeFile(const std::string& content, Theme& theme,
+                              std::set<std::string>* declared_keys = nullptr);
+  // Fill missing properties from primary colors. Fields named in
+  // `declared_keys` are left exactly as the file set them.
+  void ApplySmartDefaults(Theme& theme,
+                          const std::set<std::string>& declared_keys = {});
   Color ParseColorFromString(const std::string& color_str) const;
   std::string SerializeTheme(const Theme& theme) const;
 
