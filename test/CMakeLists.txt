@@ -272,6 +272,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/story_event_graph_navigation_test.cc
     unit/editor/ui_coordinator_workflow_test.cc
     unit/editor/welcome_screen_test.cc
+    unit/editor/dashboard_panel_test.cc
     unit/editor/editor_manager_project_actions_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc
     unit/editor/editor_manager_oracle_rom_safety_test.cc
