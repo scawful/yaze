@@ -32,6 +32,29 @@ Color RGBA(int r, int g, int b, int a = 255) {
   return {r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f};
 }
 
+// Scales the spacing metrics already present in ImGui's style by `factor`.
+// Used only after ColorsYaze(), whose values are Classic YAZE's identity and
+// must be scaled in place rather than recomputed from the shared base.
+void ScaleCurrentStyleSpacing(float factor) {
+  if (factor == 1.0f) {
+    return;
+  }
+  ImGuiStyle* style = &ImGui::GetStyle();
+  style->WindowPadding.x *= factor;
+  style->WindowPadding.y *= factor;
+  style->FramePadding.x *= factor;
+  style->FramePadding.y *= factor;
+  style->CellPadding.x *= factor;
+  style->CellPadding.y *= factor;
+  style->ItemSpacing.x *= factor;
+  style->ItemSpacing.y *= factor;
+  style->ItemInnerSpacing.x *= factor;
+  style->ItemInnerSpacing.y *= factor;
+  style->IndentSpacing *= factor;
+  style->ScrollbarSize *= factor;
+  style->GrabMinSize *= factor;
+}
+
 Theme BuildClassicYazeTheme() {
   Theme classic_theme;
   classic_theme.name = "Classic YAZE";
@@ -139,6 +162,7 @@ Theme BuildClassicYazeTheme() {
   classic_theme.window_rounding = 0.0f;
   classic_theme.frame_rounding = 5.0f;
   classic_theme.scrollbar_rounding = 5.0f;
+  classic_theme.grab_rounding = 5.0f;
   classic_theme.tab_rounding = 0.0f;
   classic_theme.enable_glow_effects = false;
 
@@ -244,7 +268,11 @@ void Theme::ApplyToImGui() const {
   style->FrameBorderSize = frame_border_size;
   style->TabBorderSize = frame_border_size;
 
-  // Apply density-based sizing
+  ApplyDensitySizingToImGui();
+}
+
+void Theme::ApplyDensitySizingToImGui() const {
+  ImGuiStyle* style = &ImGui::GetStyle();
   float base_spacing = 8.0f * compact_factor;
   style->WindowPadding = ImVec2(base_spacing, base_spacing);
   style->FramePadding = ImVec2(base_spacing * 0.5f, base_spacing * 0.375f);
@@ -684,6 +712,14 @@ void ThemeManager::ApplyTheme(const std::string& theme_name) {
     // default, not the experimental file-backed theme.
     ApplyClassicYazeTheme();
   }
+}
+
+void ThemeManager::ReapplyTheme(const Theme& theme) {
+  if (theme.name == "Classic YAZE") {
+    ApplyClassicYazeTheme(theme.density_preset);
+    return;
+  }
+  ApplyTheme(theme);
 }
 
 void ThemeManager::ApplyTheme(const Theme& theme) {
@@ -1182,26 +1218,36 @@ absl::Status ThemeManager::ParseThemeFile(const std::string& content,
       else if (key == "docking_empty_bg")
         theme.docking_empty_bg = color;
     } else if (current_section == "style") {
+      // A malformed number must not throw: themes load from the ThemeManager
+      // singleton's constructor, where an exception ends the process. Keep the
+      // field's current value instead.
+      auto parse_float = [](const std::string& text, float fallback) -> float {
+        try {
+          return std::stof(text);
+        } catch (const std::exception&) {
+          return fallback;
+        }
+      };
       if (key == "window_rounding")
-        theme.window_rounding = std::stof(value);
+        theme.window_rounding = parse_float(value, theme.window_rounding);
       else if (key == "frame_rounding")
-        theme.frame_rounding = std::stof(value);
+        theme.frame_rounding = parse_float(value, theme.frame_rounding);
       else if (key == "scrollbar_rounding")
-        theme.scrollbar_rounding = std::stof(value);
+        theme.scrollbar_rounding = parse_float(value, theme.scrollbar_rounding);
       else if (key == "grab_rounding")
-        theme.grab_rounding = std::stof(value);
+        theme.grab_rounding = parse_float(value, theme.grab_rounding);
       else if (key == "tab_rounding")
-        theme.tab_rounding = std::stof(value);
+        theme.tab_rounding = parse_float(value, theme.tab_rounding);
       else if (key == "window_border_size")
-        theme.window_border_size = std::stof(value);
+        theme.window_border_size = parse_float(value, theme.window_border_size);
       else if (key == "frame_border_size")
-        theme.frame_border_size = std::stof(value);
+        theme.frame_border_size = parse_float(value, theme.frame_border_size);
       else if (key == "enable_animations")
         theme.enable_animations = (value == "true");
       else if (key == "enable_glow_effects")
         theme.enable_glow_effects = (value == "true");
       else if (key == "animation_speed")
-        theme.animation_speed = std::stof(value);
+        theme.animation_speed = parse_float(value, theme.animation_speed);
     } else if (current_section == "" || current_section == "metadata") {
       // Top-level metadata
       if (key == "name")
@@ -1219,8 +1265,11 @@ absl::Status ThemeManager::ParseThemeFile(const std::string& content,
 void ThemeManager::ApplySmartDefaults(Theme& theme) {
   // Helper to check if a color is uninitialized (all zeros)
   auto is_unset = [](const Color& color) {
+    // A key absent from a .theme file leaves the field default-constructed as
+    // opaque black (0,0,0,1), not transparent black, so both count as unset.
+    // No shipped theme asks for opaque black.
     return color.red == 0.0f && color.green == 0.0f && color.blue == 0.0f &&
-           color.alpha == 0.0f;
+           (color.alpha == 0.0f || color.alpha == 1.0f);
   };
   // Legacy theme files often omit newer semantic fields, which then remain at
   // default-constructed opaque black (0,0,0,1). Treat that as "missing" for
@@ -1335,6 +1384,21 @@ void ThemeManager::ApplySmartDefaults(Theme& theme) {
     theme.text_link = theme.info;
   }
 
+  // Plots. No .theme file ships these, so without a fallback every preset
+  // draws ImGui plots and histograms in opaque black.
+  if (is_unset(theme.plot_lines)) {
+    theme.plot_lines = theme.accent;
+  }
+  if (is_unset(theme.plot_lines_hovered)) {
+    theme.plot_lines_hovered = lighten(theme.accent, 0.15f);
+  }
+  if (is_unset(theme.plot_histogram)) {
+    theme.plot_histogram = theme.info;
+  }
+  if (is_unset(theme.plot_histogram_hovered)) {
+    theme.plot_histogram_hovered = lighten(theme.info, 0.15f);
+  }
+
   // Navigation and special elements
   if (is_unset(theme.input_text_cursor)) {
     theme.input_text_cursor = theme.text_primary;
@@ -1416,6 +1480,14 @@ void ThemeManager::ApplySmartDefaults(Theme& theme) {
     theme.info_light = lighten(theme.info, 0.12f);
   }
 
+  // Selection sources first: the UI state colors below derive from them.
+  if (needs_semantic_default(theme.selection_primary)) {
+    theme.selection_primary = theme.warning;
+  }
+  if (needs_semantic_default(theme.selection_secondary)) {
+    theme.selection_secondary = theme.info;
+  }
+
   // UI state colors
   if (needs_semantic_default(theme.active_selection)) {
     theme.active_selection = with_alpha(theme.selection_primary, 0.35f);
@@ -1445,12 +1517,6 @@ void ThemeManager::ApplySmartDefaults(Theme& theme) {
   }
 
   // Interaction defaults
-  if (needs_semantic_default(theme.selection_primary)) {
-    theme.selection_primary = theme.warning;
-  }
-  if (needs_semantic_default(theme.selection_secondary)) {
-    theme.selection_secondary = theme.info;
-  }
   if (needs_semantic_default(theme.selection_hover)) {
     theme.selection_hover = with_alpha(theme.text_primary, 0.2f);
   }
@@ -1847,6 +1913,11 @@ Theme ThemeManager::GenerateThemeFromAccent(const Color& accent,
   theme.animation_speed = 1.0f;
   theme.enable_glow_effects = false;
 
+  // Hydrate semantic/editor/dungeon/agent fields. Without this they reach
+  // ConvertColorToImVec4 as default-constructed opaque black, unlike every
+  // file-loaded theme, which gets these via LoadThemeFromFile.
+  ApplySmartDefaults(theme);
+
   return theme;
 }
 
@@ -2064,9 +2135,13 @@ std::string ThemeManager::SerializeTheme(const Theme& theme) const {
   ss << "window_rounding=" << theme.window_rounding << "\n";
   ss << "frame_rounding=" << theme.frame_rounding << "\n";
   ss << "scrollbar_rounding=" << theme.scrollbar_rounding << "\n";
+  ss << "grab_rounding=" << theme.grab_rounding << "\n";
   ss << "tab_rounding=" << theme.tab_rounding << "\n";
+  ss << "window_border_size=" << theme.window_border_size << "\n";
+  ss << "frame_border_size=" << theme.frame_border_size << "\n";
   ss << "enable_animations=" << (theme.enable_animations ? "true" : "false")
      << "\n";
+  ss << "animation_speed=" << theme.animation_speed << "\n";
   ss << "enable_glow_effects=" << (theme.enable_glow_effects ? "true" : "false")
      << "\n";
 
@@ -2163,7 +2238,7 @@ absl::Status ThemeManager::SaveThemeToFile(const Theme& theme,
   return absl::OkStatus();
 }
 
-void ThemeManager::ApplyClassicYazeTheme() {
+void ThemeManager::ApplyClassicYazeTheme(std::optional<DensityPreset> density) {
   // Apply the original ColorsYaze() function directly
   ColorsYaze();
   current_theme_name_ = "Classic YAZE";
@@ -2172,6 +2247,15 @@ void ThemeManager::ApplyClassicYazeTheme() {
   // loaded themes get via LoadThemeFromFile → ApplySmartDefaults, so Classic
   // isn't missing fields (selection_primary, dungeon.object_door, agent.*).
   ApplySmartDefaults(classic_theme);
+  // Carry the active Display Density across the switch. ColorsYaze() writes
+  // Classic's OWN metrics (FramePadding 10x2, ItemSpacing 10x5, WindowPadding
+  // 10x10), which are not the shared 8px base that Theme::ApplyToImGui uses.
+  // Scale what ColorsYaze just wrote instead of calling the generic density
+  // sizing, which would substitute that base and change Classic's look at
+  // every density — including Normal, i.e. on every startup.
+  classic_theme.ApplyDensityPreset(
+      density.value_or(current_theme_.density_preset));
+  ScaleCurrentStyleSpacing(classic_theme.compact_factor);
   current_theme_ = classic_theme;
 
   // Mirror the bookkeeping that LoadTheme and ApplyTheme(const Theme&) do:
@@ -2217,7 +2301,7 @@ void ThemeManager::EndPreview() {
   // Re-apply the original theme's colors to ImGui. preview_active_ is still
   // true here, so ApplyTheme's NotifyThemeChanged() is suppressed — we fire
   // once below, after clearing the preview flag, with the restored name.
-  ApplyTheme(current_theme_);
+  ReapplyTheme(current_theme_);
 
   preview_active_ = false;
   NotifyThemeChanged();
@@ -2399,7 +2483,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
     // If live preview was just disabled, restore original theme
     static bool prev_live_preview = live_preview;
     if (prev_live_preview && !live_preview && theme_backup_made) {
-      ApplyTheme(original_theme);
+      ReapplyTheme(original_theme);
       theme_backup_made = false;
     }
     prev_live_preview = live_preview;
@@ -3538,8 +3622,11 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       // Reset backup state since we're back to current theme
       if (theme_backup_made) {
         theme_backup_made = false;
-        current_theme_.ApplyToImGui();  // Apply current theme to clear any
-                                        // preview changes
+        // Restore-the-canonical-theme, so it must route through ReapplyTheme:
+        // ApplyToImGui cannot reproduce ColorsYaze() for Classic YAZE. Copy
+        // first — ReapplyTheme reassigns current_theme_.
+        const Theme restored = current_theme_;
+        ReapplyTheme(restored);
       }
     }
 
