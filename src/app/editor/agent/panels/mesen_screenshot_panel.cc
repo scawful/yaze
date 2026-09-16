@@ -79,7 +79,8 @@ std::vector<uint8_t> MesenScreenshotPanel::DecodeBase64(
 
   for (unsigned char c : encoded) {
     int val = kTable[c];
-    if (val < 0) continue;  // Skip whitespace, padding, invalid chars
+    if (val < 0)
+      continue;  // Skip whitespace, padding, invalid chars
     accum = (accum << 6) | static_cast<uint32_t>(val);
     bits += 6;
     if (bits >= 8) {
@@ -105,18 +106,20 @@ bool MesenScreenshotPanel::DecodePngToRgba(const std::vector<uint8_t>& png_data,
   height_out = 0;
   return false;
 #else
-  if (png_data.size() < 8) return false;
+  if (png_data.size() < 8)
+    return false;
 
   // Verify PNG signature
-  if (png_sig_cmp(reinterpret_cast<png_bytep>(
-                      const_cast<uint8_t*>(png_data.data())),
-                  0, 8) != 0) {
+  if (png_sig_cmp(
+          reinterpret_cast<png_bytep>(const_cast<uint8_t*>(png_data.data())), 0,
+          8) != 0) {
     return false;
   }
 
   png_structp png_ptr =
       png_create_read_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);
-  if (!png_ptr) return false;
+  if (!png_ptr)
+    return false;
 
   png_infop info_ptr = png_create_info_struct(png_ptr);
   if (!info_ptr) {
@@ -140,8 +143,10 @@ bool MesenScreenshotPanel::DecodePngToRgba(const std::vector<uint8_t>& png_data,
   png_byte bit_depth = png_get_bit_depth(png_ptr, info_ptr);
 
   // Normalize all formats to 8-bit RGBA
-  if (bit_depth == 16) png_set_strip_16(png_ptr);
-  if (color_type == PNG_COLOR_TYPE_PALETTE) png_set_palette_to_rgb(png_ptr);
+  if (bit_depth == 16)
+    png_set_strip_16(png_ptr);
+  if (color_type == PNG_COLOR_TYPE_PALETTE)
+    png_set_palette_to_rgb(png_ptr);
   if (color_type == PNG_COLOR_TYPE_GRAY && bit_depth < 8)
     png_set_expand_gray_1_2_4_to_8(png_ptr);
   if (png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))
@@ -185,7 +190,9 @@ MesenScreenshotPanel::MesenScreenshotPanel() {
   }
 }
 
-MesenScreenshotPanel::~MesenScreenshotPanel() { DestroyTexture(); }
+MesenScreenshotPanel::~MesenScreenshotPanel() {
+  DestroyTexture();
+}
 
 // ---------------------------------------------------------------------------
 // Connection management (mirrors MesenDebugPanel)
@@ -290,7 +297,8 @@ void MesenScreenshotPanel::EnsureTexture(int width, int height) {
 void MesenScreenshotPanel::UpdateTexture(const std::vector<uint8_t>& rgba,
                                          int width, int height) {
   EnsureTexture(width, height);
-  if (!texture_) return;
+  if (!texture_)
+    return;
 
   // Our decoder produces RGBA bytes; the texture uses SDL_PIXELFORMAT_RGBA32 so
   // the byte order matches across endianness.
@@ -311,7 +319,8 @@ void MesenScreenshotPanel::DestroyTexture() {
 // ---------------------------------------------------------------------------
 
 void MesenScreenshotPanel::CaptureScreenshot() {
-  if (!IsConnected()) return;
+  if (!IsConnected())
+    return;
 
   auto t0 = std::chrono::steady_clock::now();
 
@@ -342,7 +351,8 @@ void MesenScreenshotPanel::CaptureScreenshot() {
   UpdateTexture(rgba, w, h);
 
   auto t1 = std::chrono::steady_clock::now();
-  last_capture_latency_ms_ = std::chrono::duration<float, std::milli>(t1 - t0).count();
+  last_capture_latency_ms_ =
+      std::chrono::duration<float, std::milli>(t1 - t0).count();
 
   frame_width_ = w;
   frame_height_ = h;
@@ -443,7 +453,8 @@ void MesenScreenshotPanel::DrawConnectionHeader() {
 
     ImGui::TextDisabled("Path");
     ImGui::SetNextItemWidth(-1);
-    ImGui::InputTextWithHint("##ss_socket_path", "/tmp/mesen2-12345.sock",
+    ImGui::InputTextWithHint("##ss_socket_path",
+                             "tcp://127.0.0.1:27015 or /tmp/mesen2-*.sock",
                              socket_path_buffer_, sizeof(socket_path_buffer_));
 
     if (ImGui::Button(ICON_MD_LINK " Connect")) {
@@ -555,10 +566,9 @@ void MesenScreenshotPanel::DrawPreviewArea() {
 
   // Info line below the image
   const auto& theme = AgentUI::GetTheme();
-  ImGui::TextColored(theme.text_secondary_color,
-                     "Frame #%llu  |  %dx%d  |  Latency: %.1f ms",
-                     frame_counter_, frame_width_, frame_height_,
-                     last_capture_latency_ms_);
+  ImGui::TextColored(
+      theme.text_secondary_color, "Frame #%llu  |  %dx%d  |  Latency: %.1f ms",
+      frame_counter_, frame_width_, frame_height_, last_capture_latency_ms_);
 }
 
 // ---------------------------------------------------------------------------
