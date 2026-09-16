@@ -78,7 +78,10 @@
   if (!controller || !controller->editor_manager()) {
     return;
   }
-  controller->editor_manager()->panel_manager().TriggerShowPanelBrowser();
+  auto *ui_coordinator = controller->editor_manager()->ui_coordinator();
+  if (ui_coordinator) {
+    ui_coordinator->ShowWindowBrowser();
+  }
 }
 
 + (void)showCommandPalette {
@@ -86,7 +89,10 @@
   if (!controller || !controller->editor_manager()) {
     return;
   }
-  controller->editor_manager()->panel_manager().TriggerShowCommandPalette();
+  auto *ui_coordinator = controller->editor_manager()->ui_coordinator();
+  if (ui_coordinator) {
+    ui_coordinator->ShowCommandPalette();
+  }
 }
 
 // ─── Editor Actions ─────────────────────────────
