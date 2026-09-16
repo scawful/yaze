@@ -124,6 +124,25 @@ fi
 [[ "$(git -C "$REFS_DIR/pinned" rev-parse HEAD)" == "$LOCAL_HEAD" ]] ||
   fail "local commit on a pinned checkout was orphaned"
 
+# A pre-seeded checkout that already sits at the pin is adopted, so a later
+# re-pin is not refused for lacking a bootstrap-created checkout marker. The
+# working tree is verified clean first, so there is no local work to orphan.
+REFS_DIR="$TEST_ROOT/adopt/refs"
+mkdir -p "$REFS_DIR"
+git clone --quiet "$SOURCE_REPO" "$REFS_DIR/pinned"
+git -C "$REFS_DIR/pinned" checkout --quiet --detach "$THIRD_HEAD"
+git -C "$REFS_DIR/pinned" update-ref -d refs/bootstrap/checkout
+REFS=("pinned $SOURCE_REPO $THIRD_HEAD")
+step_refs
+[[ -n "$(git -C "$REFS_DIR/pinned" rev-parse --quiet --verify refs/bootstrap/checkout || true)" ]] ||
+  fail "a checkout already at the pin was not adopted"
+# Consumed by step_refs from the sourced script.
+# shellcheck disable=SC2034
+REFS=("pinned $SOURCE_REPO $FOURTH_HEAD")
+step_refs
+[[ "$(git -C "$REFS_DIR/pinned" rev-parse HEAD)" == "$FOURTH_HEAD" ]] ||
+  fail "adopted checkout was refused on re-pin"
+
 # A symlink at the destination is user data, not a checkout this script owns.
 REFS_DIR="$TEST_ROOT/symlink/refs"
 mkdir -p "$REFS_DIR"

@@ -210,6 +210,11 @@ step_refs() {
       return 1
     fi
     if [[ "$(git -C "$dest" rev-parse HEAD 2>/dev/null)" == "$commit" ]]; then
+      # Claim a checkout that already sits at the pin even if some other
+      # process created it. The tree is verified clean above, so there is no
+      # local work to orphan, and without this a later re-pin would fail
+      # closed on a checkout that is provably identical to what we'd make.
+      mark_checkout "$dest"
       log "refs: $name already at pinned ${commit:0:7}"
       continue
     fi
@@ -254,6 +259,12 @@ main() {
   if [[ ${#steps[@]} -eq 0 ]]; then
     steps=(deps submodules refs)
   elif [[ "${steps[0]}" == "all" ]]; then
+    # `all` is the whole sequence, so it cannot be combined with other steps.
+    # Rejecting that spells out a typo instead of silently dropping the rest.
+    if [[ ${#steps[@]} -gt 1 ]]; then
+      echo "[bootstrap] 'all' runs every step and takes no other arguments; got: $*" >&2
+      return 2
+    fi
     steps=(deps submodules refs configure build test)
   fi
 

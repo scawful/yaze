@@ -317,6 +317,11 @@ class AddressRulesTest(Fixture):
         self.assertEqual(len(problems), 1)
         self.assertIn("`Far` is $078000", problems[0])
         self.assertIn("six-digit", problems[0])
+        # The hint must name every bank addresses_match actually accepts. It
+        # previously said "$00/$7E" for weeks after $7F was allowed, because
+        # this assertion only looked for the word "six-digit".
+        for bank in ar.SHORTHAND_BANKS:
+            self.assertIn(f"${bank:02X}", problems[0])
 
     def test_symbol_and_label_sharing_a_name_must_agree(self) -> None:
         (self.root / "registers.asm").write_text(REGISTERS + "Reset = $008000\n")
@@ -391,6 +396,18 @@ class CliTest(Fixture):
             stack.enter_context(contextlib.redirect_stdout(out))
             code = ar.main(list(argv))
         return code, out.getvalue()
+
+    def test_render_on_a_missing_file_reports_it_instead_of_raising(self) -> None:
+        missing = self.root.parent / "not-created-yet.md"
+        self.assertFalse(missing.exists())
+        code, output = self.run_main("--usdasm", str(self.root), "--symbols",
+                                     str(self.maps), "render", "--write",
+                                     str(missing))
+        self.assertEqual(code, 1)
+        self.assertIn("no such file", output)
+        # render updates an existing doc's generated blocks; it never creates
+        # one, so a typo'd path must not leave a half-written file behind.
+        self.assertFalse(missing.exists())
 
     def test_render_then_check_round_trip(self) -> None:
         sections = "".join(
