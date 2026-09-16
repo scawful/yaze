@@ -16,6 +16,8 @@
 #include <fstream>
 #include <mutex>
 #include <optional>
+#include <future>
+#include <regex>
 #include <stdexcept>
 #include <string>
 #include <thread>
@@ -159,7 +161,8 @@ namespace {
 
 class FakeMesenSocketServer {
  public:
-  FakeMesenSocketServer() {
+  explicit FakeMesenSocketServer(int event_delay_ms = 0)
+      : event_delay_ms_(event_delay_ms) {
     const auto now =
         std::chrono::steady_clock::now().time_since_epoch().count();
     socket_path_ = (std::filesystem::temp_directory_path() /
@@ -310,6 +313,9 @@ class FakeMesenSocketServer {
       SetError("failed to send subscribe ack");
       return;
     }
+    if (event_delay_ms_ > 0) {
+      std::this_thread::sleep_for(std::chrono::milliseconds(event_delay_ms_));
+    }
     if (!SendLine(event_client_fd_,
                   "{\"event\":\"frame_complete\",\"frame\":42,\"address\":"
                   "\"0x008000\"}")) {
@@ -326,6 +332,7 @@ class FakeMesenSocketServer {
     }
   }
 
+  int event_delay_ms_ = 0;
   std::string socket_path_;
   int listen_fd_ = -1;
   int command_client_fd_ = -1;
@@ -388,7 +395,7 @@ TEST(MesenSocketClientTest, SubscribeDispatchesFrameEvents) {
 // shapes exercise the command write path rather than the protocol.
 class UnresponsiveUnixServer {
  public:
-  enum class Mode { kCloseAfterPing, kStallAfterPing };
+  enum class Mode { kCloseAfterPing, kStallAfterPing, kSlowReaderAfterPing };
 
   explicit UnresponsiveUnixServer(Mode mode) : mode_(mode) {
     const auto now =
@@ -459,6 +466,18 @@ class UnresponsiveUnixServer {
       client_fd_ = -1;
       return;
     }
+    if (mode_ == Mode::kSlowReaderAfterPing) {
+      // Drain a trickle: each send() can make progress, so only a
+      // per-command deadline bounds the write.
+      char byte = 0;
+      while (running_) {
+        if (recv(client_fd_, &byte, 1, 0) <= 0) {
+          break;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(20));
+      }
+      return;
+    }
     // kStallAfterPing: never read again, so the client's socket buffer fills.
     while (running_) {
       std::this_thread::sleep_for(std::chrono::milliseconds(20));
@@ -508,9 +527,148 @@ TEST(MesenSocketClientTest, LargeCommandReportsDeadlineInsteadOfTruncating) {
   ASSERT_FALSE(result.ok());
   EXPECT_EQ(result.status().code(), absl::StatusCode::kDeadlineExceeded)
       << result.status();
-  EXPECT_NE(std::string(result.status().message()).find("of 4194"),
-            std::string::npos)
+  // The message must show how far the write got; a truncating implementation
+  // that reported the whole command as sent would read "4194304 of 4194304".
+  const std::string message(result.status().message());
+  std::smatch progress;
+  ASSERT_TRUE(std::regex_search(message, progress,
+                                std::regex(R"(\((\d+) of (\d+) bytes\))")))
+      << message;
+  EXPECT_LT(std::stoul(progress[1].str()), std::stoul(progress[2].str()))
+      << message;
+
+  client.Disconnect();
+  server.Stop();
+}
+
+// Counts this process's open descriptors, so a reconnect can be checked for
+// leaks without reaching into the client's internals.
+int OpenDescriptorCount() {
+#ifdef __APPLE__
+  const char* dir = "/dev/fd";
+#else
+  const char* dir = "/proc/self/fd";
+#endif
+  std::error_code ec;
+  int count = 0;
+  for (auto it = std::filesystem::directory_iterator(dir, ec);
+       !ec && it != std::filesystem::directory_iterator(); it.increment(ec)) {
+    ++count;
+  }
+  return count;
+}
+
+TEST(MesenSocketClientTest, SlowReaderStillHitsTheCommandDeadline) {
+  ScopedEnvVar send_timeout("YAZE_MESEN_SEND_TIMEOUT_MS", "200");
+  UnresponsiveUnixServer server(
+      UnresponsiveUnixServer::Mode::kSlowReaderAfterPing);
+  server.Start();
+
+  MesenSocketClient client;
+  ASSERT_TRUE(client.Connect(server.socket_path()).ok());
+
+  // Every send() makes progress here, so a per-syscall timeout alone would
+  // never fire and the command could crawl for minutes.
+  const std::string payload(4 * 1024 * 1024, 'a');
+  // Run the command on another thread: a regression here blocks inside
+  // send(), and the test should report that rather than hang the suite.
+  auto pending = std::async(std::launch::async, [&]() {
+    return client.SendCommand("{\"type\":\"WRITE\",\"data\":\"" + payload +
+                              "\"}\n");
+  });
+  if (pending.wait_for(std::chrono::seconds(10)) !=
+      std::future_status::ready) {
+    server.Stop();  // unblocks the send so the thread can finish
+    ADD_FAILURE() << "command deadline did not bound a slow reader";
+    pending.wait();
+    return;
+  }
+  const auto result = pending.get();
+
+  ASSERT_FALSE(result.ok());
+  EXPECT_EQ(result.status().code(), absl::StatusCode::kDeadlineExceeded)
       << result.status();
+
+  client.Disconnect();
+  server.Stop();
+}
+
+TEST(MesenSocketClientTest, ReconnectAfterCommandFailureDoesNotLeakSockets) {
+  ScopedEnvVar send_timeout("YAZE_MESEN_SEND_TIMEOUT_MS", "200");
+  const std::string payload(4 * 1024 * 1024, 'a');
+  const std::string command =
+      "{\"type\":\"WRITE\",\"data\":\"" + payload + "\"}\n";
+
+  MesenSocketClient client;
+  std::optional<int> baseline;
+  for (int attempt = 0; attempt < 3; ++attempt) {
+    UnresponsiveUnixServer server(
+        UnresponsiveUnixServer::Mode::kStallAfterPing);
+    server.Start();
+    // Reconnect without an intervening Disconnect(), the way the Mesen
+    // panels' Connect button does.
+    ASSERT_TRUE(client.Connect(server.socket_path()).ok());
+    EXPECT_FALSE(client.SendCommand(command).ok());
+    server.Stop();
+    if (attempt == 0) {
+      baseline = OpenDescriptorCount();
+    } else {
+      EXPECT_LE(OpenDescriptorCount(), *baseline)
+          << "reconnect leaked a descriptor on attempt " << attempt;
+    }
+  }
+  client.Disconnect();
+}
+
+TEST(MesenSocketClientTest, EventArrivesAfterAnIdlePeriod) {
+  ScopedEnvVar poll("YAZE_MESEN_EVENT_POLL_MS", "50");
+  // The stream stays quiet for several poll intervals before the event.
+  FakeMesenSocketServer server(/*event_delay_ms=*/300);
+  server.Start();
+
+  MesenSocketClient client;
+  ASSERT_TRUE(client.Connect(server.socket_path()).ok());
+
+  std::mutex mutex;
+  std::condition_variable cv;
+  bool got_event = false;
+  const auto listener = client.AddEventListener([&](const MesenEvent&) {
+    std::lock_guard<std::mutex> lock(mutex);
+    got_event = true;
+    cv.notify_one();
+  });
+  ASSERT_TRUE(client.Subscribe({"frame_complete"}).ok());
+
+  {
+    std::unique_lock<std::mutex> lock(mutex);
+    EXPECT_TRUE(cv.wait_for(lock, std::chrono::seconds(5),
+                            [&]() { return got_event; }))
+        << "a receive timeout ended the event loop";
+  }
+
+  client.RemoveEventListener(listener);
+  EXPECT_TRUE(client.Unsubscribe().ok());
+  client.Disconnect();
+  server.Stop();
+}
+
+TEST(MesenSocketClientTest, UnsubscribeReturnsPromptlyWhileIdle) {
+  ScopedEnvVar poll("YAZE_MESEN_EVENT_POLL_MS", "50");
+  FakeMesenSocketServer server;
+  server.Start();
+
+  MesenSocketClient client;
+  ASSERT_TRUE(client.Connect(server.socket_path()).ok());
+  ASSERT_TRUE(client.Subscribe({"frame_complete"}).ok());
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+  const auto start = std::chrono::steady_clock::now();
+  EXPECT_TRUE(client.Unsubscribe().ok());
+  const auto elapsed = std::chrono::steady_clock::now() - start;
+  EXPECT_LT(
+      std::chrono::duration_cast<std::chrono::milliseconds>(elapsed).count(),
+      3000)
+      << "Unsubscribe waited on an unbounded recv";
 
   client.Disconnect();
   server.Stop();

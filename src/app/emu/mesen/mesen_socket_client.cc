@@ -27,12 +27,14 @@ typedef int ssize_t;
 
 #include <cerrno>
 #include <charconv>
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <regex>
 #include <sstream>
 #include <utility>
 
+#include "absl/cleanup/cleanup.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
@@ -231,6 +233,20 @@ int SendTimeoutMs() {
   return kDefaultSendTimeoutMs;
 }
 
+// The event socket needs a bounded wakeup so Unsubscribe()/Disconnect() can
+// join the event thread promptly; a receive timeout there means "no event
+// yet", which EventLoop treats as a retry rather than an error.
+constexpr int kDefaultEventPollMs = 1000;
+
+int EventPollMs() {
+  const char* raw = std::getenv("YAZE_MESEN_EVENT_POLL_MS");
+  int parsed = 0;
+  if (raw != nullptr && absl::SimpleAtoi(raw, &parsed) && parsed > 0) {
+    return parsed;
+  }
+  return kDefaultEventPollMs;
+}
+
 // A closed peer must surface as a status, never as a process-level signal.
 // Linux carries this per send(); BSD/macOS carry it per socket.
 #if defined(MSG_NOSIGNAL)
@@ -260,40 +276,6 @@ void SetSocketSendTimeout(SocketHandle fd, int timeout_ms) {
   timeout.tv_usec = (timeout_ms % 1000) * 1000;
   (void)setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &timeout, sizeof(timeout));
 #endif
-}
-
-// send() may accept fewer bytes than requested; a partial write would
-// truncate the JSON command and desynchronize the protocol.
-absl::Status SendAll(SocketHandle fd, const std::string& data) {
-  size_t offset = 0;
-  while (offset < data.size()) {
-    const ssize_t sent =
-        send(fd, data.c_str() + offset, static_cast<int>(data.size() - offset),
-             kSendFlags);
-    if (sent > 0) {
-      offset += static_cast<size_t>(sent);
-      continue;
-    }
-    const int error = LastSocketError();
-#ifdef _WIN32
-    if (error == WSAEINTR) {
-      continue;
-    }
-    if (error == WSAEWOULDBLOCK || error == WSAETIMEDOUT) {
-#else
-    if (error == EINTR) {
-      continue;
-    }
-    if (error == EAGAIN || error == EWOULDBLOCK) {
-#endif
-      return absl::DeadlineExceededError(
-          absl::StrCat("Timed out sending command after ", SendTimeoutMs(),
-                       "ms (", offset, " of ", data.size(), " bytes)"));
-    }
-    return absl::InternalError(
-        absl::StrCat("Failed to send command: ", SocketErrorMessage(error)));
-  }
-  return absl::OkStatus();
 }
 
 void SetSocketReceiveTimeout(SocketHandle fd, int timeout_ms) {
@@ -357,6 +339,106 @@ bool SetSocketBlocking(SocketHandle fd, bool blocking) {
   return fcntl(fd, F_SETFL, next_flags) == 0;
 #endif
 }
+
+// Waits until the socket accepts more data or the budget expires.
+// Returns Ok when writable, DeadlineExceeded on timeout.
+absl::Status WaitForWritable(SocketHandle fd, int timeout_ms) {
+#ifdef _WIN32
+  fd_set write_fds;
+  FD_ZERO(&write_fds);
+  FD_SET(fd, &write_fds);
+  timeval timeout;
+  timeout.tv_sec = timeout_ms / 1000;
+  timeout.tv_usec = (timeout_ms % 1000) * 1000;
+  const int ready = select(0, nullptr, &write_fds, nullptr, &timeout);
+#else
+  pollfd descriptor{};
+  descriptor.fd = fd;
+  descriptor.events = POLLOUT;
+  const int ready = poll(&descriptor, 1, timeout_ms);
+#endif
+  if (ready == 0) {
+    return absl::DeadlineExceededError("Socket did not become writable");
+  }
+  if (ready < 0) {
+    const int error = LastSocketError();
+#ifdef _WIN32
+    if (error == WSAEINTR) {
+      return absl::OkStatus();
+    }
+#else
+    if (error == EINTR) {
+      return absl::OkStatus();
+    }
+#endif
+    return absl::InternalError(
+        absl::StrCat("Failed waiting to send: ", SocketErrorMessage(error)));
+  }
+  return absl::OkStatus();
+}
+
+// send() may accept fewer bytes than requested, and a blocking send() can
+// park indefinitely when the peer stops reading: SO_SNDTIMEO is not honored
+// for Unix-domain sockets on macOS. Send non-blocking and bound the whole
+// command with one deadline.
+absl::Status SendAll(SocketHandle fd, const std::string& data) {
+  const auto deadline = std::chrono::steady_clock::now() +
+                        std::chrono::milliseconds(SendTimeoutMs());
+  const bool was_blocking = SetSocketBlocking(fd, false);
+  absl::Cleanup restore = [fd, was_blocking] {
+    if (was_blocking) {
+      (void)SetSocketBlocking(fd, true);
+    }
+  };
+
+  size_t offset = 0;
+  while (offset < data.size()) {
+    const auto now = std::chrono::steady_clock::now();
+    const auto remaining =
+        std::chrono::duration_cast<std::chrono::milliseconds>(deadline - now)
+            .count();
+    if (remaining <= 0) {
+      return absl::DeadlineExceededError(
+          absl::StrCat("Timed out sending command after ", SendTimeoutMs(),
+                       "ms (", offset, " of ", data.size(), " bytes)"));
+    }
+    const ssize_t sent =
+        send(fd, data.c_str() + offset, static_cast<int>(data.size() - offset),
+             kSendFlags);
+    if (sent > 0) {
+      offset += static_cast<size_t>(sent);
+      continue;
+    }
+    const int error = LastSocketError();
+#ifdef _WIN32
+    if (error == WSAEINTR) {
+      continue;
+    }
+    if (error == WSAEWOULDBLOCK || error == WSAETIMEDOUT) {
+#else
+    if (error == EINTR) {
+      continue;
+    }
+    if (error == EAGAIN || error == EWOULDBLOCK) {
+#endif
+      const absl::Status writable =
+          WaitForWritable(fd, static_cast<int>(remaining));
+      if (absl::IsDeadlineExceeded(writable)) {
+        return absl::DeadlineExceededError(
+            absl::StrCat("Timed out sending command after ", SendTimeoutMs(),
+                         "ms (", offset, " of ", data.size(), " bytes)"));
+      }
+      if (!writable.ok()) {
+        return writable;
+      }
+      continue;
+    }
+    return absl::InternalError(
+        absl::StrCat("Failed to send command: ", SocketErrorMessage(error)));
+  }
+  return absl::OkStatus();
+}
+
 
 absl::Status WaitForConnectComplete(SocketHandle fd,
                                     const std::string& socket_path) {
@@ -586,9 +668,9 @@ absl::Status MesenSocketClient::Connect(const std::string& socket_path) {
   }
 #endif
 
-  if (IsConnected()) {
-    Disconnect();
-  }
+  // A mid-command failure clears connected_ but leaves socket_fd_ open, so
+  // IsConnected() is not a reliable cleanup gate. Disconnect() is idempotent.
+  Disconnect();
 
   SocketHandle fd = kInvalidSocketHandle;
   auto connect_status = ConnectSocketToPath(socket_path, &fd);
@@ -708,9 +790,17 @@ absl::StatusOr<std::string> MesenSocketClient::SendCommandOnSocket(
     ssize_t received = recv(fd, buffer, sizeof(buffer), 0);
     if (received < 0) {
       const int error = LastSocketError();
+      // SO_RCVTIMEO makes recv() non-restartable, so a caught signal arrives
+      // here as EINTR and must be retried rather than failing the command.
 #ifdef _WIN32
+      if (error == WSAEINTR) {
+        continue;
+      }
       if (error == WSAEWOULDBLOCK || error == WSAETIMEDOUT) {
 #else
+      if (error == EINTR) {
+        continue;
+      }
       if (error == EAGAIN || error == EWOULDBLOCK) {
 #endif
         if (response.empty()) {
@@ -1217,8 +1307,14 @@ absl::Status MesenSocketClient::Subscribe(
     if (received < 0) {
       const int error = LastSocketError();
 #ifdef _WIN32
+      if (error == WSAEINTR) {
+        continue;
+      }
       if (error == WSAEWOULDBLOCK || error == WSAETIMEDOUT) {
 #else
+      if (error == EINTR) {
+        continue;
+      }
       if (error == EAGAIN || error == EWOULDBLOCK) {
 #endif
         close(event_fd);
@@ -1255,9 +1351,11 @@ absl::Status MesenSocketClient::Subscribe(
   }
 
   // The handshake deadline must not outlive the handshake: the event stream
-  // idles between emulator events, and a receive timeout there ends the
-  // subscription (fatally so on Windows, where it reports WSAETIMEDOUT).
-  SetSocketReceiveTimeout(event_fd, 0);
+  // idles between emulator events. Swap it for a short poll interval so a
+  // quiet stream never looks like a failure, while Unsubscribe() still has a
+  // bounded wakeup to join the event thread (shutdown() alone does not
+  // interrupt a blocking recv() on Windows).
+  SetSocketReceiveTimeout(event_fd, EventPollMs());
 
   pending_event_payload_ = response.substr(newline_pos + 1);
   event_socket_fd_ = event_fd;
