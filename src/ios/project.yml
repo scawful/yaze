@@ -19,23 +19,30 @@ settings:
     GCC_C_LANGUAGE_STANDARD: c17
     TARGETED_DEVICE_FAMILY: "1,2"
     ENABLE_USER_SCRIPT_SANDBOXING: NO
+    YAZE_IOS_CMAKE_DIR: "$(SRCROOT)/../../build/presets/ios-debug"
+    YAZE_IOS_CMAKE_DIR[config=Release]: "$(SRCROOT)/../../build/presets/ios-release"
+    YAZE_IOS_CMAKE_DIR[sdk=iphonesimulator*]: "$(SRCROOT)/../../build/presets/ios-sim-debug"
+    YAZE_SDL_CONFIG_DIR: "$(YAZE_IOS_CMAKE_DIR)/_deps/sdl2-build/include-config-debug/SDL2"
+    YAZE_SDL_CONFIG_DIR[config=Release]: "$(YAZE_IOS_CMAKE_DIR)/_deps/sdl2-build/include-config-release/SDL2"
     HEADER_SEARCH_PATHS:
       - "$(SRCROOT)/../../src"
       - "$(SRCROOT)/../../inc"
       - "$(SRCROOT)/../../ext"
       - "$(SRCROOT)/../../ext/imgui"
-      - "$(SRCROOT)/../../build-ios"
-      - "$(SRCROOT)/../../build-ios/_deps/absl-src"
-      - "$(SRCROOT)/../../build-ios/_deps/nlohmann_json-src/include"
+      - "$(YAZE_IOS_CMAKE_DIR)"
+      - "$(YAZE_IOS_CMAKE_DIR)/gens"
+      - "$(YAZE_IOS_CMAKE_DIR)/_deps/absl-src"
+      - "$(YAZE_IOS_CMAKE_DIR)/_deps/nlohmann_json-src/include"
     SYSTEM_HEADER_SEARCH_PATHS:
-      - "$(SRCROOT)/../../build-ios/_deps/SDL2-src/include"
-      - "$(SRCROOT)/../../build-ios/_deps/sdl2-src/include"
+      - "$(YAZE_IOS_CMAKE_DIR)/_deps/SDL2-src/include"
+      - "$(YAZE_IOS_CMAKE_DIR)/_deps/sdl2-src/include"
+      - "$(YAZE_IOS_CMAKE_DIR)/_deps/sdl2-build/include"
+      - "$(YAZE_IOS_CMAKE_DIR)/_deps/sdl2-build/include/SDL2"
+      - "$(YAZE_SDL_CONFIG_DIR)"
       - "$(SRCROOT)/../../ext/SDL/include"
       - "$(SRCROOT)/../../inc"
-    YAZE_IOS_LIBDIR: "$(SRCROOT)/../../build-ios/ios"
-    YAZE_IOS_LIBDIR[sdk=iphonesimulator*]: "$(SRCROOT)/../../build-ios-sim/ios"
-    YAZE_IOS_BUNDLE_LIB: "$(SRCROOT)/../../build-ios/ios/libyaze_ios_bundle.a"
-    YAZE_IOS_BUNDLE_LIB[sdk=iphonesimulator*]: "$(SRCROOT)/../../build-ios-sim/ios/libyaze_ios_bundle.a"
+    YAZE_IOS_LIBDIR: "$(YAZE_IOS_CMAKE_DIR)/ios"
+    YAZE_IOS_BUNDLE_LIB: "$(YAZE_IOS_LIBDIR)/libyaze_ios_bundle.a"
     LIBRARY_SEARCH_PATHS:
       - "$(YAZE_IOS_LIBDIR)"
     OTHER_LDFLAGS:
@@ -57,6 +64,13 @@ targets:
       - path: iOS/YazeOverlayView.swift
       - path: iOS/YazeSettingsStore.swift
       - path: iOS/RemoteBuildClient.swift
+      - path: iOS/DesktopAPIClient.swift
+      - path: iOS/DesktopConnectionView.swift
+      - path: iOS/DesktopDiscoveryService.swift
+      - path: iOS/RemoteAnnotationReviewView.swift
+      - path: iOS/RemoteCommandRunnerView.swift
+      - path: iOS/RemoteRoomModels.swift
+      - path: iOS/RemoteRoomViewerView.swift
       - path: iOS/DocumentPickers.swift
       - path: iOS/KeychainStore.swift
       - path: iOS/YazeFileImport.swift

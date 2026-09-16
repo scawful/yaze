@@ -204,4 +204,6 @@ static const std::map<zelda3_version, zelda3_version_pointers>
 - `dungeon-spec.md` - Dungeon data format specification
 - `overworld-tail-expansion.md` - ZSOW expansion details
 - `alttp-object-handlers.md` - Object behavior tables
-- `alttp-wram-state.md` - WRAM address reference
+- `alttp-wram-state.md` - WRAM touches found by an object-handler scan
+- `alttp-quick-reference.md` - Modules, Link states, routines, and RAM symbols generated from usdasm
+- `snes-hardware-reference.md` - 65816, LoROM mapping, PPU and DMA registers
