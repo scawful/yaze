@@ -24,8 +24,11 @@ namespace yaze::gui {
 namespace {
 
 std::vector<std::string> ShippedFileThemeNames() {
-  return {"Breath of the Wild",
+  return {"Blood Moon",
+          "Breath of the Wild",
+          "Catppuccin Mocha",
           "Cyberpunk",
+          "Dracula",
           "Forest",
           "Forest Light",
           "Gruvbox",
@@ -35,9 +38,11 @@ std::vector<std::string> ShippedFileThemeNames() {
           "Nord",
           "Ocean",
           "Ocean Light",
+          "Rosé Pine",
           "Solarized Dark",
           "Solarized Light",
           "Sunset",
+          "Temple of Time",
           "Tokyo Night",
           "Twilight",
           "Wind Waker",
@@ -639,6 +644,51 @@ TEST_F(ThemeStyleSnapshotTest, ForestPairUsesQuietChrome) {
   ExpectRgbNear(forest_light->button, 232, 226, 211);
   ExpectRgbNear(forest_light->border, 72, 102, 80, 110);
   EXPECT_LT(forest_light->border.alpha, 0.5f);
+}
+
+TEST_F(ThemeStyleSnapshotTest, AdditionalThemePackFilesParseAndApply) {
+  struct ThemeExpectation {
+    const char* filename;
+    const char* name;
+    int primary_red;
+    int primary_green;
+    int primary_blue;
+    int background_red;
+    int background_green;
+    int background_blue;
+  };
+
+  constexpr ThemeExpectation kThemes[] = {
+      {"blood_moon.theme", "Blood Moon", 230, 57, 70, 23, 19, 23},
+      {"catppuccin_mocha.theme", "Catppuccin Mocha", 203, 166, 247, 30, 30, 46},
+      {"dracula.theme", "Dracula", 189, 147, 249, 40, 42, 54},
+      {"rose_pine.theme", "Rosé Pine", 235, 188, 186, 25, 23, 36},
+      {"temple_of_time.theme", "Temple of Time", 230, 195, 67, 20, 25, 35},
+  };
+
+  auto& mgr = ThemeManager::Get();
+
+  for (const auto& expected : kThemes) {
+    SCOPED_TRACE(expected.filename);
+    // Reach the theme the way the application does, through ThemeManager's
+    // own discovery, rather than walking up from __FILE__ to find the source
+    // tree. Locating the asset by source path baked the build machine's
+    // absolute path into the test binary and made the test fail (not skip)
+    // anywhere the sources were absent. ShippedFileThemeNames below names
+    // these five, so discovery is already the contract being relied on.
+    const Theme* discovered = mgr.GetTheme(expected.name);
+    ASSERT_NE(discovered, nullptr)
+        << "theme not discovered: " << expected.filename;
+
+    mgr.ApplyTheme(expected.name);
+    ASSERT_EQ(mgr.GetCurrentThemeName(), expected.name);
+    const auto& theme = mgr.GetCurrentTheme();
+    EXPECT_EQ(theme.name, expected.name);
+    ExpectRgbNear(theme.primary, expected.primary_red, expected.primary_green,
+                  expected.primary_blue);
+    ExpectRgbNear(theme.background, expected.background_red,
+                  expected.background_green, expected.background_blue);
+  }
 }
 
 TEST_F(ThemeStyleSnapshotTest,

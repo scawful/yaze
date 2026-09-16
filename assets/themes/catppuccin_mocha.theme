@@ -1,0 +1,119 @@
+# Catppuccin Mocha Theme
+# Soothing pastel dark theme with lavender, peach, and mauve accents
+# Palette spec: catppuccin/catppuccin
+# License notice: THIRD_PARTY_NOTICES.md
+name=Catppuccin Mocha
+description=Catppuccin Mocha — soothing pastel dark palette with mauve and lavender accents
+author=YAZE Team (palette: Catppuccin)
+version=1.0
+
+[colors]
+# Primary colors
+primary=203,166,247,255          # Mauve (#cba6f7)
+secondary=180,190,254,255        # Lavender (#b4befe)
+accent=137,180,250,255           # Blue (#89b4fa)
+background=30,30,46,255          # Base (#1e1e2e)
+surface=24,24,37,255             # Mantle (#181825)
+
+# Status colors
+error=243,139,168,255            # Red (#f38ba8)
+warning=249,226,175,255          # Yellow (#f9e2af)
+success=166,227,161,255          # Green (#a6e3a1)
+info=137,220,235,255             # Sky (#89dceb)
+
+# Text colors
+text_primary=205,214,244,255     # Text (#cdd6f4)
+text_secondary=166,173,200,255   # Subtext0 (#a6adc8)
+text_disabled=108,112,134,255    # Overlay0 (#6c7086)
+
+# Window colors
+window_bg=30,30,46,240
+child_bg=24,24,37,200
+popup_bg=49,50,68,250            # Surface0 (#313244)
+
+# Interactive elements
+button=49,50,68,255              # Surface0
+button_hovered=180,190,254,200   # Lavender
+button_active=203,166,247,255    # Mauve
+frame_bg=49,50,68,220
+frame_bg_hovered=69,71,90,240    # Surface1 (#45475a)
+frame_bg_active=88,91,112,255    # Surface2 (#585b70)
+
+# Navigation
+header=49,50,68,255
+header_hovered=69,71,90,255
+header_active=137,180,250,200
+tab=30,30,46,255
+tab_hovered=49,50,68,255
+tab_active=203,166,247,180
+menu_bar_bg=24,24,37,255
+title_bg=49,50,68,255
+title_bg_active=69,71,90,255
+title_bg_collapsed=30,30,46,200
+
+# Borders and separators
+border=137,180,250,255           # Blue
+border_shadow=0,0,0,0
+separator=88,91,112,180
+separator_hovered=108,112,134,220
+separator_active=137,180,250,255
+
+# Scrollbars
+scrollbar_bg=30,30,46,180
+scrollbar_grab=88,91,112,200
+scrollbar_grab_hovered=108,112,134,230
+scrollbar_grab_active=203,166,247,255
+
+# Resize grips
+resize_grip=255,255,255,26
+resize_grip_hovered=137,180,250,153
+resize_grip_active=137,180,250,230
+
+# Controls
+check_mark=166,227,161,255       # Green
+slider_grab=203,166,247,255
+slider_grab_active=137,180,250,255
+
+# Tables
+table_header_bg=49,50,68,255
+table_border_strong=88,91,112,255
+table_border_light=49,50,68,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=255,255,255,18
+
+# Links
+text_link=245,194,231,255        # Pink (#f5c2e7)
+
+# Navigation and special
+input_text_cursor=205,214,244,255
+nav_cursor=137,180,250,255
+nav_windowing_highlight=137,180,250,200
+nav_windowing_dim_bg=0,0,0,128
+modal_window_dim_bg=0,0,0,100
+text_selected_bg=203,166,247,100
+drag_drop_target=250,179,135,200 # Peach (#fab387)
+
+# Docking
+docking_preview=137,180,250,180
+docking_empty_bg=49,50,68,255
+
+# Tree lines
+tree_lines=88,91,112,153
+
+# Tab variations
+tab_dimmed=24,24,37,255
+tab_dimmed_selected=49,50,68,255
+tab_dimmed_selected_overline=203,166,247,255
+tab_selected_overline=203,166,247,255
+
+[style]
+window_rounding=6.0
+frame_rounding=4.0
+scrollbar_rounding=6.0
+grab_rounding=3.0
+tab_rounding=4.0
+window_border_size=0.0
+frame_border_size=0.0
+enable_animations=true
+enable_glow_effects=true
+animation_speed=1.0
