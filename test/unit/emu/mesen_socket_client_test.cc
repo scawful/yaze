@@ -14,9 +14,9 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <future>
 #include <mutex>
 #include <optional>
-#include <future>
 #include <regex>
 #include <stdexcept>
 #include <string>
@@ -576,8 +576,7 @@ TEST(MesenSocketClientTest, SlowReaderStillHitsTheCommandDeadline) {
     return client.SendCommand("{\"type\":\"WRITE\",\"data\":\"" + payload +
                               "\"}\n");
   });
-  if (pending.wait_for(std::chrono::seconds(10)) !=
-      std::future_status::ready) {
+  if (pending.wait_for(std::chrono::seconds(10)) != std::future_status::ready) {
     server.Stop();  // unblocks the send so the thread can finish
     ADD_FAILURE() << "command deadline did not bound a slow reader";
     pending.wait();
@@ -641,9 +640,9 @@ TEST(MesenSocketClientTest, EventArrivesAfterAnIdlePeriod) {
 
   {
     std::unique_lock<std::mutex> lock(mutex);
-    EXPECT_TRUE(cv.wait_for(lock, std::chrono::seconds(5),
-                            [&]() { return got_event; }))
-        << "a receive timeout ended the event loop";
+    EXPECT_TRUE(cv.wait_for(lock, std::chrono::seconds(5), [&]() {
+      return got_event;
+    })) << "a receive timeout ended the event loop";
   }
 
   client.RemoveEventListener(listener);
