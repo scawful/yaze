@@ -1009,7 +1009,7 @@ void EditorManager::RegisterEditors() {
     dashboard_definition.icon = ICON_MD_DASHBOARD;
     dashboard_definition.category = "Dashboard";
     dashboard_definition.window_title = " Dashboard";
-    dashboard_definition.shortcut_hint = "F1";
+    dashboard_definition.shortcut_hint = "Ctrl+E";
     dashboard_definition.priority = 0;
     dashboard_definition.visibility_flag = dashboard_panel_->visibility_flag();
     window_host_->RegisterWindow(dashboard_definition);
@@ -1020,7 +1020,7 @@ void EditorManager::RegisterEditors() {
          .window_title = " Dashboard",
          .icon = ICON_MD_DASHBOARD,
          .category = "Dashboard",
-         .shortcut_hint = "F1",
+         .shortcut_hint = "Ctrl+E",
          .visibility_flag = dashboard_panel_->visibility_flag(),
          .priority = 0});
   }
@@ -3502,9 +3502,10 @@ void EditorManager::DrawInterface() {
   // Central workspace window drawing
   window_manager_.DrawVisibleWindows();
 
-  if (ui_coordinator_ && ui_coordinator_->IsPerformanceDashboardVisible()) {
-    gfx::PerformanceDashboard::Get().Render();
-  }
+  // The Performance Dashboard is rendered by DrawSecondaryWindows below, which
+  // also drives Update() and syncs the visibility flag back. Rendering here as
+  // well gave a second Begin/End on the same window name every frame, stacking
+  // duplicate metrics, memory blocks and frame plots with colliding plot IDs.
 
   // Draw SessionCoordinator UI components
   if (session_coordinator_) {

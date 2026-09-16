@@ -90,8 +90,49 @@ FlowLayout ComputeFlowLayout(float avail_width, float min_width,
   return layout;
 }
 
+// Size for an emphasised run of text, as a multiple of the body size.
+// FontSizeBase starts at 0 and is resolved on the first frame, and PushFont
+// reads 0 as "keep current size", so fall back to the resolved size.
+float HeadingFontSize(float multiplier) {
+  const float base = ImGui::GetStyle().FontSizeBase > 0.0f
+                         ? ImGui::GetStyle().FontSizeBase
+                         : ImGui::GetFontSize();
+  return base * multiplier;
+}
+
+// True when the active theme paints on a light ground. Five of the shipped
+// presets do (Wind Waker, Forest Light, Midnight Light, Ocean Light,
+// Solarized Light); wind_waker.theme says so in its own header comment.
+// The Display Density preset's multiplier (0.75 / 1.0 / 1.25). It reaches
+// ImGui only through FramePadding/ItemSpacing, so anything sized from a flat
+// pixel constant ignores the setting entirely.
+float DensityFactor() {
+  return std::max(0.1f,
+                  gui::ThemeManager::Get().GetCurrentTheme().compact_factor);
+}
+
+bool OnLightGround() {
+  const ImVec4 bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+  return (0.299f * bg.x + 0.587f * bg.y + 0.114f * bg.z) > 0.5f;
+}
+
+// Shifts `color` away from the text and toward the page, so a card reads as a
+// surface sitting behind its own label.
+//
+// This used to be an unconditional multiply toward black, which is only
+// "toward the page" on a dark theme. On the light presets it drove every card
+// surface — gradient 0.4/0.2, border 0.6, recent rows 0.5 — to near-black
+// while the card's own footer kept drawing in text_secondary, i.e. dark text
+// on a dark plate. On a light ground the same scale now moves toward white,
+// preserving the intent instead of the arithmetic.
 ImVec4 ScaleColor(const ImVec4& color, float scale, float alpha) {
-  return ImVec4(color.x * scale, color.y * scale, color.z * scale, alpha);
+  if (!OnLightGround()) {
+    return ImVec4(color.x * scale, color.y * scale, color.z * scale, alpha);
+  }
+  const float toward_white = 1.0f - std::clamp(scale, 0.0f, 1.0f);
+  return ImVec4(color.x + (1.0f - color.x) * toward_white,
+                color.y + (1.0f - color.y) * toward_white,
+                color.z + (1.0f - color.z) * toward_white, alpha);
 }
 
 ImVec4 ScaleColor(const ImVec4& color, float scale) {
@@ -122,7 +163,10 @@ ImVec4 GetEditorAccentColor(EditorType type, const gui::Theme& theme) {
     case EditorType::kScreen:
       return gui::ConvertColorToImVec4(theme.info);
     case EditorType::kAssembly:
-      return gui::ConvertColorToImVec4(theme.text_secondary);
+      // Every other editor maps to a background/semantic token. text_secondary
+      // is a FOREGROUND token, and this value is used as the icon disc's fill
+      // with text_primary drawn on top — two text colours stacked.
+      return gui::ConvertColorToImVec4(theme.secondary);
     case EditorType::kHex:
       return gui::ConvertColorToImVec4(theme.success);
     case EditorType::kEmulator:
@@ -229,7 +273,13 @@ void DashboardPanel::DrawWelcomeHeader() {
   const ImVec4 accent = gui::ConvertColorToImVec4(theme.accent);
   const ImVec4 text_secondary = gui::ConvertColorToImVec4(theme.text_secondary);
 
-  ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[2]);  // Large font
+  // Scale the current face rather than indexing the atlas. Every font in the
+  // registry loads at the same size and the icon/Japanese passes merge into
+  // the previous face instead of appending, so Fonts[2] was Cousine — a
+  // monospace code face at body size. The heading got a typeface swap nobody
+  // asked for, no size change, and an unchecked index into a vector whose
+  // length depends on which fonts actually loaded.
+  ImGui::PushFont(nullptr, HeadingFontSize(1.4f));
   ImGui::TextColored(accent, ICON_MD_EDIT " Select an Editor");
   ImGui::PopFont();
 
@@ -252,8 +302,10 @@ void DashboardPanel::DrawRecentEditors() {
   const float min_width = kDashboardRecentBaseWidth;
   const float max_width =
       kDashboardRecentBaseWidth * kDashboardRecentWidthMaxFactor;
-  const float height =
-      std::max(kDashboardRecentBaseHeight, ImGui::GetFrameHeight());
+  // Additive, like welcome_screen's recent rows: a flat floor of 35 sat above
+  // GetFrameHeight()'s entire 22/24/26 range, so Compact, Normal and
+  // Comfortable all produced the identical row.
+  const float height = ImGui::GetFrameHeight() + 10.0f * DensityFactor();
   const float spacing = style.ItemSpacing.x;
   const bool stack_items = avail_width < min_width * 1.6f;
   FlowLayout row_layout{};
@@ -334,7 +386,10 @@ void DashboardPanel::DrawEditorGrid() {
   const ImGuiStyle& style = ImGui::GetStyle();
   const float avail_width = ImGui::GetContentRegionAvail().x;
   const float scale = ImGui::GetFontSize() / 16.0f;
-  const float compact_scale = avail_width < 620.0f ? 0.85f : 1.0f;
+  // compact_scale responds to available WIDTH; `scale` responds to font size.
+  // Neither is the Display Density preset, so fold it in explicitly.
+  const float compact_scale =
+      (avail_width < 620.0f ? 0.85f : 1.0f) * DensityFactor();
   const float min_width = kDashboardCardBaseWidth *
                           kDashboardCardMinWidthFactor * scale * compact_scale;
   const float max_width = kDashboardCardBaseWidth *
@@ -541,7 +596,7 @@ void DashboardPanel::DrawEditorPanel(const EditorInfo& info, int index,
     const float tooltip_width = std::clamp(card_size.x * 1.4f, 240.0f, 340.0f);
     ImGui::SetNextWindowSize(ImVec2(tooltip_width, 0), ImGuiCond_Always);
     ImGui::BeginTooltip();
-    ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[1]);  // Medium font
+    ImGui::PushFont(nullptr, HeadingFontSize(1.15f));
     ImGui::TextColored(WithAlpha(base_color, disabled_alpha), "%s %s",
                        info.icon.c_str(), info.name.c_str());
     ImGui::PopFont();
@@ -595,24 +650,44 @@ void DashboardPanel::MarkRecentlyUsed(EditorType type) {
   SaveRecentEditors();
 }
 
-void DashboardPanel::LoadRecentEditors() {
-  try {
-    auto data = util::LoadFileFromConfigDir("recent_editors.txt");
-    if (!data.empty()) {
-      std::istringstream ss(data);
-      std::string line;
-      while (std::getline(ss, line) &&
-             recent_editors_.size() < kMaxRecentEditors) {
-        int type_int = std::stoi(line);
-        if (type_int >= 0 &&
-            type_int < static_cast<int>(EditorType::kSettings)) {
-          recent_editors_.push_back(static_cast<EditorType>(type_int));
-        }
-      }
+std::vector<EditorType> DashboardPanel::ParseRecentEditors(
+    const std::string& data, size_t max_entries) {
+  std::vector<EditorType> parsed;
+  std::istringstream ss(data);
+  std::string line;
+  while (std::getline(ss, line) && parsed.size() < max_entries) {
+    // Per line, so one malformed entry drops that line instead of abandoning
+    // every entry after it. The previous single try/catch around the whole
+    // loop turned one bad line into a truncated list.
+    int type_int = 0;
+    try {
+      type_int = std::stoi(line);
+    } catch (const std::exception&) {
+      continue;
     }
-  } catch (...) {
-    // Ignore errors
+    // kUnknown is the sentinel, not an editor: the old lower bound of `>= 0`
+    // admitted it, and a kUnknown recent would arm the layout-protection path
+    // that ApplyDockTree keys on. The old upper bound of `< kSettings` also
+    // excluded kSettings itself, which is a real editor.
+    if (type_int <= static_cast<int>(EditorType::kUnknown) ||
+        type_int > static_cast<int>(EditorType::kSettings)) {
+      continue;
+    }
+    const auto type = static_cast<EditorType>(type_int);
+    // Recents are a set; a duplicated line must not consume two slots.
+    if (std::find(parsed.begin(), parsed.end(), type) != parsed.end()) {
+      continue;
+    }
+    parsed.push_back(type);
   }
+  return parsed;
+}
+
+void DashboardPanel::LoadRecentEditors() {
+  // Assign, don't append: LoadRecentEditors is called on construction and
+  // again on demand, and appending duplicated the whole list.
+  recent_editors_ = ParseRecentEditors(
+      util::LoadFileFromConfigDir("recent_editors.txt"), kMaxRecentEditors);
 }
 
 void DashboardPanel::SaveRecentEditors() {
