@@ -83,18 +83,19 @@ const SpriteOamLayout* SpriteOamRegistry::GetPreviewOverride(
                            : &kOraclePuffstoolPreview;
 }
 
-void SpritePreviewResourceCache::SetContext(std::string_view project_path,
+bool SpritePreviewResourceCache::SetContext(std::string_view project_path,
                                             std::string_view assets_path,
                                             std::string_view hack_name) {
   if (project_path_ == project_path && assets_path_ == assets_path &&
       hack_name_ == hack_name) {
-    return;
+    return false;
   }
   project_path_ = project_path;
   assets_path_ = assets_path;
   hack_name_ = hack_name;
   resource_.clear();
   graphics_.clear();
+  return true;
 }
 
 std::span<const uint8_t> SpritePreviewResourceCache::GetGraphics(

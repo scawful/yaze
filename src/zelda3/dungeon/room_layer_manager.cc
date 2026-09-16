@@ -221,15 +221,18 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     // Check if BG2 uses translucent blending (water rooms, color math effects).
     // The editor maps color-math results back into the indexed palette. This
     // remains an approximation when the resulting RGB color is absent.
-    const bool bg2_translucent = (GetLayerBlendMode(LayerType::BG2_Layout) ==
-                                  LayerBlendMode::Translucent) ||
-                                 (GetLayerBlendMode(LayerType::BG2_Objects) ==
-                                  LayerBlendMode::Translucent);
+    const bool bg2_layout_translucent =
+        bg2_layout_on &&
+        GetLayerBlendMode(LayerType::BG2_Layout) == LayerBlendMode::Translucent;
+    const bool bg2_objects_translucent =
+        bg2_obj_on && GetLayerBlendMode(LayerType::BG2_Objects) ==
+                          LayerBlendMode::Translucent;
 
     // Build palette lookup table for color blending (only when needed).
     // Extract from the output bitmap's SDL palette so we can do RGB math.
     std::vector<SDL_Color> pal_lut;
-    if (bg2_translucent && output.surface() && output.surface()->format &&
+    if ((bg2_layout_translucent || bg2_objects_translucent) &&
+        output.surface() && output.surface()->format &&
         output.surface()->format->palette) {
       SDL_Palette* sdl_pal = output.surface()->format->palette;
       int n = std::min(sdl_pal->ncolors, 256);
@@ -347,6 +350,7 @@ void RoomLayerManager::CompositeToOutput(Room& room,
 
       uint8_t bg2_pixel = 255;
       uint8_t bg2_pri = 0;
+      bool bg2_pixel_translucent = false;
       const bool bg2_obj_wrote =
           bg2_obj_on && ((idx < static_cast<int>(bg2_obj_cov.size()) &&
                           bg2_obj_cov[idx] != 0) ||
@@ -354,9 +358,11 @@ void RoomLayerManager::CompositeToOutput(Room& room,
       if (bg2_obj_wrote) {
         bg2_pixel = bg2_obj_px[idx];
         bg2_pri = bg2_obj_pri[idx];
+        bg2_pixel_translucent = bg2_objects_translucent;
       } else if (bg2_layout_on && !IsTransparent(bg2_layout_px[idx])) {
         bg2_pixel = bg2_layout_px[idx];
         bg2_pri = bg2_layout_pri[idx];
+        bg2_pixel_translucent = bg2_layout_translucent;
       }
 
       if (IsTransparent(bg1_pixel)) {
@@ -376,7 +382,9 @@ void RoomLayerManager::CompositeToOutput(Room& room,
 
       // Resolve overlapping colors using mode 7 full add or the existing
       // half-add approximation. Indexed output still quantizes to a palette.
-      if (bg2_translucent && !pal_lut.empty()) {
+      // Blend only the selected BG2 source. Hidden or overwritten sources do
+      // not participate in this pixel's color math.
+      if (bg2_pixel_translucent && !pal_lut.empty()) {
         const bool bg1_wins = (r1 >= r2);
         const uint8_t winner = bg1_wins ? bg1_pixel : bg2_pixel;
         const uint8_t other = bg1_wins ? bg2_pixel : bg1_pixel;

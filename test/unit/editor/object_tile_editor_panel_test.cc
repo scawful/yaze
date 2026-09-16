@@ -2237,6 +2237,192 @@ TEST(ObjectTileEditorPanelTest,
 }
 
 TEST(ObjectTileEditorPanelTest,
+     AssetReloadPreservesModifiedDraftAndRejectsChangedSourceApply) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_reload_stale_draft"));
+  const auto asset_path = custom_state.dir / "track_LR.bin";
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      asset_path,
+      zelda3::CustomObject{.tiles = {{0, 0, 0x2810}, {1, 0, 0x6820}}}));
+
+  auto rom_data = std::vector<uint8_t>(0x200000, 0);
+  StoreWord(rom_data, SnesToPc(zelda3::kRoomLayoutPointers.front()), 0xFFFF);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  DungeonEditorV2 editor(&rom);
+  DungeonEditorV2ObjectTileEditorTestPeer::SetObjectTileEditorPanel(editor,
+                                                                    &panel);
+  auto& room = editor.rooms()[0];
+  room.SetLoaded(true);
+  room.AddTileObject(zelda3::RoomObject(0x31, 7, 9, 0, 1));
+  ASSERT_TRUE(room.object_stream_dirty());
+  ASSERT_TRUE(panel.OpenForCustomObject(0x31, 0, 0, &editor.rooms()).ok());
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(panel, 0x24, 3);
+  ObjectTileEditorPanelTestAccess::SetSelectedCellIndex(panel, 1);
+  ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(panel);
+  panel.OnClose();  // Hidden, unsaved tile-editor sessions must survive too.
+
+  const auto draft_before = ObjectTileEditorPanelTestAccess::Layout(panel);
+  const auto rom_before = rom.vector();
+  const bool rom_dirty_before = rom.dirty();
+  DungeonEditorV2ObjectTileEditorTestPeer::SynchronizeCustomObjectAssets(
+      editor);
+  zelda3::RoomLayerManager layer_manager;
+  (void)room.GetCompositeBitmap(layer_manager);
+  ASSERT_FALSE(room.IsCompositeDirty());
+
+  auto& manager = zelda3::CustomObjectManager::Get();
+  ASSERT_TRUE(manager.GetObjectInternal(0x31, 0).ok());
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      asset_path, zelda3::CustomObject{.tiles = {{0, 0, 0x2850}}}));
+  const auto external_bytes = ReadBinaryFile(asset_path);
+  ASSERT_NE(external_bytes, draft_before.custom_source_bytes);
+  manager.ReloadAll();
+  DungeonEditorV2ObjectTileEditorTestPeer::SynchronizeCustomObjectAssets(
+      editor);
+
+  const auto expect_preserved_state = [&]() {
+    EXPECT_TRUE(panel.IsOpen());
+    EXPECT_TRUE(panel.HasUnappliedChanges());
+    EXPECT_TRUE(editor.HasPendingDungeonChanges());
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentObjectId(panel), 0x31);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::CurrentRoomId(panel), 0);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 1);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0x20);
+    EXPECT_EQ(ObjectTileEditorPanelTestAccess::SourcePalette(panel), 2);
+    const auto& draft = ObjectTileEditorPanelTestAccess::Layout(panel);
+    EXPECT_EQ(draft.custom_filename, draft_before.custom_filename);
+    EXPECT_EQ(draft.custom_subtype, draft_before.custom_subtype);
+    EXPECT_EQ(draft.custom_resolved_path, draft_before.custom_resolved_path);
+    EXPECT_EQ(draft.custom_source_bytes, draft_before.custom_source_bytes);
+    EXPECT_EQ(draft.bounds_width, draft_before.bounds_width);
+    EXPECT_EQ(draft.bounds_height, draft_before.bounds_height);
+    ASSERT_EQ(draft.cells.size(), draft_before.cells.size());
+    for (size_t index = 0; index < draft.cells.size(); ++index) {
+      EXPECT_EQ(gfx::TileInfoToWord(draft.cells[index].tile_info),
+                gfx::TileInfoToWord(draft_before.cells[index].tile_info));
+      EXPECT_EQ(draft.cells[index].original_word,
+                draft_before.cells[index].original_word);
+      EXPECT_EQ(draft.cells[index].modified,
+                draft_before.cells[index].modified);
+    }
+    ASSERT_EQ(room.GetTileObjects().size(), 1u);
+    const auto& object = room.GetTileObjects().front();
+    EXPECT_EQ(object.id_, 0x31);
+    EXPECT_EQ(object.x_, 7);
+    EXPECT_EQ(object.y_, 9);
+    EXPECT_EQ(object.size_, 0);
+    EXPECT_EQ(object.layer_, zelda3::RoomObject::BG2);
+    EXPECT_TRUE(room.object_stream_dirty());
+    EXPECT_EQ(rom.vector(), rom_before);
+    EXPECT_EQ(rom.dirty(), rom_dirty_before);
+    EXPECT_EQ(ReadBinaryFile(asset_path), external_bytes);
+  };
+  EXPECT_TRUE(room.IsCompositeDirty());
+  ASSERT_NO_FATAL_FAILURE(expect_preserved_state());
+
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel);
+
+  EXPECT_TRUE(ObjectTileEditorPanelTestAccess::ActionStatusIsError(panel));
+  EXPECT_NE(ObjectTileEditorPanelTestAccess::ActionStatusMessage(panel).find(
+                "source changed after it was opened"),
+            std::string::npos);
+  ASSERT_NO_FATAL_FAILURE(expect_preserved_state());
+}
+
+TEST(ObjectTileEditorPanelTest,
+     AssetReloadPreservesModifiedDraftAndAllowsUnchangedSourceApply) {
+  ScopedCustomObjectState custom_state(
+      MakeTempDir("yaze_obj_tile_panel_reload_current_draft"));
+  const auto asset_path = custom_state.dir / "track_LR.bin";
+  ASSERT_NO_FATAL_FAILURE(WriteCustomObjectAsset(
+      asset_path, zelda3::CustomObject{.tiles = {{0, 0, 0x2810}}}));
+
+  auto rom_data = std::vector<uint8_t>(0x200000, 0);
+  StoreWord(rom_data, SnesToPc(zelda3::kRoomLayoutPointers.front()), 0xFFFF);
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
+  ObjectTileEditorPanel panel(nullptr, &rom);
+  DungeonEditorV2 editor(&rom);
+  DungeonEditorV2ObjectTileEditorTestPeer::SetObjectTileEditorPanel(editor,
+                                                                    &panel);
+  auto& room = editor.rooms()[0];
+  room.SetLoaded(true);
+  room.AddTileObject(zelda3::RoomObject(0x31, 7, 9, 0, 1));
+  ASSERT_TRUE(room.object_stream_dirty());
+  ASSERT_TRUE(panel.OpenForCustomObject(0x31, 0, 0, &editor.rooms()).ok());
+  ObjectTileEditorPanelTestAccess::SetFirstCellTileAndPalette(panel, 0x24, 3);
+  ObjectTileEditorPanelTestAccess::SyncSourceSelectionFromSelectedCell(panel);
+  const auto draft_before = ObjectTileEditorPanelTestAccess::Layout(panel);
+  const auto rom_before = rom.vector();
+  const bool rom_dirty_before = rom.dirty();
+  DungeonEditorV2ObjectTileEditorTestPeer::SynchronizeCustomObjectAssets(
+      editor);
+  zelda3::RoomLayerManager layer_manager;
+  (void)room.GetCompositeBitmap(layer_manager);
+  ASSERT_FALSE(room.IsCompositeDirty());
+
+  auto& manager = zelda3::CustomObjectManager::Get();
+  const uint64_t generation_before = manager.asset_generation();
+  manager.ReloadAll();
+  ASSERT_NE(manager.asset_generation(), generation_before);
+  DungeonEditorV2ObjectTileEditorTestPeer::SynchronizeCustomObjectAssets(
+      editor);
+
+  ASSERT_TRUE(panel.IsOpen());
+  ASSERT_TRUE(panel.HasUnappliedChanges());
+  EXPECT_TRUE(room.IsCompositeDirty());
+  const auto& retained_draft = ObjectTileEditorPanelTestAccess::Layout(panel);
+  ASSERT_EQ(retained_draft.cells.size(), 1u);
+  EXPECT_EQ(gfx::TileInfoToWord(retained_draft.cells.front().tile_info),
+            0x2C24);
+  EXPECT_EQ(retained_draft.cells.front().original_word, 0x2810);
+  EXPECT_EQ(retained_draft.custom_resolved_path,
+            draft_before.custom_resolved_path);
+  EXPECT_EQ(retained_draft.custom_source_bytes,
+            draft_before.custom_source_bytes);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedCellIndex(panel), 0);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SelectedSourceTile(panel), 0x24);
+  EXPECT_EQ(ObjectTileEditorPanelTestAccess::SourcePalette(panel), 3);
+  EXPECT_EQ(ReadBinaryFile(asset_path), draft_before.custom_source_bytes);
+
+  int applied_callbacks = 0;
+  panel.SetTilesAppliedCallback(
+      [&applied_callbacks]() { ++applied_callbacks; });
+  ObjectTileEditorPanelTestAccess::ApplyChanges(panel);
+
+  EXPECT_EQ(applied_callbacks, 1);
+  EXPECT_FALSE(ObjectTileEditorPanelTestAccess::ActionStatusIsError(panel));
+  EXPECT_FALSE(panel.HasUnappliedChanges());
+  EXPECT_TRUE(panel.IsOpen());
+  const auto& applied_draft = ObjectTileEditorPanelTestAccess::Layout(panel);
+  ASSERT_EQ(applied_draft.cells.size(), 1u);
+  EXPECT_EQ(applied_draft.cells.front().original_word, 0x2C24);
+  EXPECT_EQ(applied_draft.custom_resolved_path,
+            draft_before.custom_resolved_path);
+  EXPECT_EQ(applied_draft.custom_source_bytes, ReadBinaryFile(asset_path));
+  EXPECT_NE(applied_draft.custom_source_bytes,
+            draft_before.custom_source_bytes);
+  auto published_or =
+      zelda3::LoadCustomObjectAsset(custom_state.dir.string(), "track_LR.bin");
+  ASSERT_TRUE(published_or.ok()) << published_or.status();
+  ASSERT_EQ(published_or->object.tiles.size(), 1u);
+  EXPECT_EQ(published_or->object.tiles.front().tile_data, 0x2C24);
+  ASSERT_EQ(room.GetTileObjects().size(), 1u);
+  const auto& object = room.GetTileObjects().front();
+  EXPECT_EQ(object.id_, 0x31);
+  EXPECT_EQ(object.x_, 7);
+  EXPECT_EQ(object.y_, 9);
+  EXPECT_EQ(object.size_, 0);
+  EXPECT_EQ(object.layer_, zelda3::RoomObject::BG2);
+  EXPECT_TRUE(room.object_stream_dirty());
+  EXPECT_TRUE(editor.HasPendingDungeonChanges());
+  EXPECT_EQ(rom.vector(), rom_before);
+  EXPECT_EQ(rom.dirty(), rom_dirty_before);
+}
+
+TEST(ObjectTileEditorPanelTest,
      EditorDestructionDetachesWorkspaceOwnedCustomObjectPanels) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());

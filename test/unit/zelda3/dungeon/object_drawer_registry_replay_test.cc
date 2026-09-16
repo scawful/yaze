@@ -4446,6 +4446,26 @@ TEST(ObjectDrawerRegistryReplayTest, HammerPegDrawsSingleTwoByTwoAtAnchor) {
   EXPECT_TRUE(bg2.empty());
 }
 
+TEST(ObjectDrawerRegistryReplayTest, BarCornersDrawSingleTwoByTwoAtAnchor) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 10;
+  constexpr int kY = 12;
+  for (int object_id = 0x0FD6; object_id <= 0x0FD9; ++object_id) {
+    SCOPED_TRACE(::testing::Message()
+                 << "object_id=0x" << std::hex << object_id);
+    // Size must not stretch the fixed RoomDraw_Rightwards2x2 stamp.
+    auto trace = ReplayObjectTrace(object_id, kX, kY,
+                                   /*size=*/9, RoomObject::LayerType::BG1,
+                                   MakeSequentialTiles(/*count=*/4));
+
+    const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+    const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+    ExpectTraceMatchesSnapshot(bg1, MakeColumnMajorSnapshot(kX, kY, 2, 2, 0));
+    EXPECT_TRUE(bg2.empty());
+  }
+}
+
 TEST(ObjectDrawerRegistryReplayTest,
      TableBowlDrawsFixedFourByTwoRowMajorOnSelectedLayer) {
   ScopedCustomObjectsFlag disable_custom(false);

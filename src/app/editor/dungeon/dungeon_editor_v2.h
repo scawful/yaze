@@ -269,6 +269,7 @@ class DungeonEditorV2 : public Editor {
   const std::deque<int>& GetRecentRooms() const { return recent_rooms_; }
 
  private:
+  friend class DungeonCanvasViewerTestPeer;
   friend class DungeonEditorPaletteRefreshTestPeer;
   friend class DungeonEditorV2MinecartTrackTestPeer;
   friend class DungeonEditorV2ObjectTileEditorTestPeer;

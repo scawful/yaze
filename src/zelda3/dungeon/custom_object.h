@@ -163,7 +163,8 @@ class CustomObjectManager {
     return active_runtime_context_id_;
   }
 
-  // Load a custom object from a binary file
+  // Load a custom object from a binary file. Successes and failures are cached
+  // in the active context until its assets or configuration are refreshed.
   absl::StatusOr<std::shared_ptr<CustomObject>> LoadObject(
       const std::string& filename);
 
@@ -208,7 +209,9 @@ class CustomObjectManager {
  private:
   struct RuntimeContext {
     State state;
-    std::unordered_map<std::string, std::shared_ptr<CustomObject>> cache;
+    std::unordered_map<std::string,
+                       absl::StatusOr<std::shared_ptr<CustomObject>>>
+        cache;
     uint64_t asset_generation = 0;
   };
 
