@@ -8,6 +8,7 @@
 // GetStyle().Colors[] snapshot would be louder but needs an ImGui context
 // and regenerates on every minor theme tweak. The semantic-token pin is
 // what callers actually depend on.
+#include <cctype>
 #include <chrono>
 #include <cstdio>
 #include <filesystem>
@@ -512,6 +513,47 @@ TEST_F(ThemeStyleSnapshotTest,
     if (std::string(bad_key) == "window_rounding") {
       EXPECT_FLOAT_EQ(parsed->window_rounding, Theme{}.window_rounding);
     }
+  }
+}
+
+// GetCurrentThemeFilePath normalises a display name into a filename with
+// std::isalnum. That function takes an int which must be representable as
+// unsigned char or EOF, and plain `char` is signed here — so every
+// continuation byte of a non-ASCII name arrives negative and the call is
+// undefined behaviour. No shipped theme had a non-ASCII name when the code
+// was written; "Rosé Pine" is the first one queued to land.
+TEST_F(ThemeStyleSnapshotTest, NonAsciiThemeNameNormalizesToASafeFilename) {
+  auto& mgr = ThemeManager::Get();
+  Theme theme = *mgr.GetTheme("YAZE Tre");
+  theme.name = "Rosé Pine";
+
+  const auto path = TempThemePath("non_ascii_name");
+  ASSERT_TRUE(mgr.SaveThemeToFile(theme, path.string()).ok());
+  const auto status = mgr.LoadThemeFromFile(path.string());
+  std::error_code ec;
+  std::filesystem::remove(path, ec);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  // Applying by value makes this the current theme, which is what the
+  // filename synthesis reads.
+  mgr.ApplyTheme(theme);
+  ASSERT_EQ(mgr.GetCurrentThemeName(), "Rosé Pine");
+
+  // The recorded path wins; clear the association so the synthesis path that
+  // owns the isalnum call is the one under test.
+  const std::string synthesized = mgr.GetCurrentThemeFilePath();
+  EXPECT_FALSE(synthesized.empty());
+  // Every byte of the produced filename must be one the normaliser allows:
+  // alphanumeric, '.', '_', or a path separator. A negative byte surviving
+  // into the result means the isalnum guard did not classify it.
+  const auto slash = synthesized.find_last_of("/\\");
+  const std::string leaf =
+      slash == std::string::npos ? synthesized : synthesized.substr(slash + 1);
+  for (const char c : leaf) {
+    const auto byte = static_cast<unsigned char>(c);
+    EXPECT_TRUE(std::isalnum(byte) || c == '.' || c == '_')
+        << "unnormalized byte 0x" << std::hex << static_cast<int>(byte)
+        << " in " << leaf;
   }
 }
 
