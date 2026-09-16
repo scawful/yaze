@@ -395,6 +395,58 @@ TEST_F(ThemeStyleSnapshotTest, FileThemesHydratePlotAndSelectionColors) {
 
 // GenerateThemeFromAccent built colors field by field and never ran the
 // semantic-default pass, so accent themes shipped the same black holes.
+// Color declares `alpha = 1.0f`, so a field a .theme file never mentions is
+// default-constructed to OPAQUE black — byte-identical to one the author set
+// to black on purpose. Detecting "unset" by value alone therefore cannot tell
+// them apart, and the parser accepts black for text, backgrounds and borders,
+// where it is a perfectly ordinary choice on a light or OLED theme.
+// ApplySmartDefaults now honours the keys the file actually declared.
+TEST_F(ThemeStyleSnapshotTest, DeclaredBlackSurvivesSmartDefaults) {
+  const auto path = TempThemePath("declared_black");
+  {
+    std::ofstream out(path);
+    out << "name=Yaze Declared Black Test\n"
+        << "[colors]\n"
+        << "primary=120,90,200,255\n"
+        << "accent=200,160,60,255\n"
+        << "background=255,255,255,255\n"
+        // Every one of these is a field ApplySmartDefaults would otherwise
+        // overwrite, and every one is a defensible choice on a light theme.
+        << "text_primary=0,0,0,255\n"
+        << "text_secondary=0,0,0,255\n"
+        << "border=0,0,0,255\n"
+        << "plot_lines=0,0,0,255\n"
+        << "active_selection=0,0,0,255\n"
+        << "text_link=0,0,0,255\n";
+  }
+  auto& mgr = ThemeManager::Get();
+  const auto status = mgr.LoadThemeFromFile(path.string());
+  std::error_code ec;
+  std::filesystem::remove(path, ec);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  const Theme* parsed = mgr.GetTheme("Yaze Declared Black Test");
+  ASSERT_NE(parsed, nullptr);
+  auto expect_black = [](const Color& c, const char* field) {
+    EXPECT_FLOAT_EQ(c.red, 0.0f) << field << " was overwritten";
+    EXPECT_FLOAT_EQ(c.green, 0.0f) << field << " was overwritten";
+    EXPECT_FLOAT_EQ(c.blue, 0.0f) << field << " was overwritten";
+  };
+  expect_black(parsed->text_primary, "text_primary");
+  expect_black(parsed->text_secondary, "text_secondary");
+  expect_black(parsed->border, "border");
+  expect_black(parsed->plot_lines, "plot_lines");
+  expect_black(parsed->active_selection, "active_selection");
+  expect_black(parsed->text_link, "text_link");
+
+  // ...while a field the file never mentioned is still hydrated, so the
+  // guard narrows the rule rather than disabling it.
+  EXPECT_FALSE(parsed->plot_histogram.red == 0.0f &&
+               parsed->plot_histogram.green == 0.0f &&
+               parsed->plot_histogram.blue == 0.0f)
+      << "an undeclared field should still get a default";
+}
+
 TEST_F(ThemeStyleSnapshotTest, GeneratedAccentThemeHydratesSemanticColors) {
   auto& mgr = ThemeManager::Get();
   const Color accent{120.0f / 255.0f, 90.0f / 255.0f, 200.0f / 255.0f, 1.0f};
