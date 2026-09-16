@@ -81,6 +81,9 @@ org $078000
 
 Far:
 #_078000: RTS
+
+Wram7F:
+#_078010: RTS
 """
 
 
@@ -321,6 +324,21 @@ class AddressRulesTest(Fixture):
         (self.root / "registers.asm").write_text(REGISTERS + "Reset = $002100\n")
         with self.assertRaises(SystemExit):
             ar.Usdasm.load(self.root)
+
+    def test_conflicting_label_definition_is_an_error(self) -> None:
+        ar.Usdasm.load(self.root)  # the fixture has no duplicate labels
+        (self.root / "bank_02.asm").write_text(
+            "org $028000\n\nReset:\n#_028000: RTS\n")
+        with self.assertRaises(SystemExit):
+            ar.Usdasm.load(self.root)
+
+    def test_wram_shorthand_covers_bank_7f(self) -> None:
+        (self.maps / "symbols_wram.asm").write_text(WRAM + "FAR7F = $7F1234\n")
+        db = ar.Usdasm.load(self.root, self.maps)
+        problems, _ = self.check(db, """\
+            | `FAR7F` | `$1234` | $7F is WRAM too |
+            """)
+        self.assertEqual(problems, [])
 
     def test_conflicting_symbol_redefinition_is_an_error(self) -> None:
         (self.maps / "symbols_sram.asm").write_text(
