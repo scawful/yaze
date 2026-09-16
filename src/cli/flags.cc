@@ -25,7 +25,8 @@ ABSL_FLAG(
 ABSL_FLAG(std::string, ollama_host, "http://localhost:11434",
           "Ollama server host URL");
 ABSL_FLAG(std::string, mesen_socket, "",
-          "Override Mesen2 socket path (e.g. /tmp/mesen2-1234.sock)");
+          "Override Mesen2 socket path (Unix /tmp/mesen2-1234.sock or "
+          "tcp://host:port)");
 ABSL_FLAG(std::string, openai_base_url, "https://api.openai.com",
           "OpenAI-compatible API base URL (LMStudio: http://localhost:1234)");
 ABSL_FLAG(std::string, prompt_version, "default",

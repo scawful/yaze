@@ -47,6 +47,12 @@ target_link_libraries(yaze_emulator PUBLIC
   ${SDL_TARGETS}
 )
 
+if(WIN32)
+  # MesenSocketClient uses Winsock directly. Keep the platform dependency on
+  # the target that owns those calls so standalone consumers and tests link.
+  target_link_libraries(yaze_emulator PUBLIC ws2_32)
+endif()
+
 if(YAZE_ENABLE_JSON AND TARGET nlohmann_json::nlohmann_json)
   target_link_libraries(yaze_emulator PUBLIC nlohmann_json::nlohmann_json)
 endif()
