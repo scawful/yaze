@@ -799,7 +799,9 @@ void SettingsPanel::DrawAppearanceSettings() {
       auto new_preset = static_cast<gui::DensityPreset>(density);
       auto theme = theme_manager.GetCurrentTheme();
       theme.ApplyDensityPreset(new_preset);
-      theme_manager.ApplyTheme(theme);
+      // ReapplyTheme, not ApplyTheme: this re-applies the theme the user is
+      // already on, so Classic YAZE has to route back through ColorsYaze().
+      theme_manager.ReapplyTheme(theme);
     }
     ImGui::TextDisabled(
         "%s", density == 0   ? tr("Tighter controls and more visible content")

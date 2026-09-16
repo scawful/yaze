@@ -221,6 +221,210 @@ TEST_F(ThemeStyleSnapshotTest, SaveThemeToFileRecordsPathForRenamedTheme) {
   fs::remove(tmp_path, ec);
 }
 
+// ColorsYaze() is the only writer for Classic YAZE's ImGui palette, so any
+// ImGuiCol_ slot it skips keeps whatever the previously applied preset wrote.
+// Switching preset -> Classic left docking previews, the text caret and tab
+// overlines painted in the preset's colors.
+TEST_F(ThemeStyleSnapshotTest, ClassicYazeClearsColorsAddedAfterColorsYaze) {
+  auto& mgr = ThemeManager::Get();
+  mgr.ApplyTheme("Cyberpunk");
+  ASSERT_EQ(mgr.GetCurrentThemeName(), "Cyberpunk");
+  const ImVec4* colors = ImGui::GetStyle().Colors;
+  const ImVec4 preset_docking = colors[ImGuiCol_DockingPreview];
+  const ImVec4 preset_caret = colors[ImGuiCol_InputTextCursor];
+  const ImVec4 preset_overline = colors[ImGuiCol_TabSelectedOverline];
+
+  mgr.ApplyClassicYazeTheme();
+
+  auto differs = [](const ImVec4& a, const ImVec4& b) {
+    return a.x != b.x || a.y != b.y || a.z != b.z || a.w != b.w;
+  };
+  EXPECT_TRUE(differs(colors[ImGuiCol_DockingPreview], preset_docking));
+  EXPECT_TRUE(differs(colors[ImGuiCol_InputTextCursor], preset_caret));
+  EXPECT_TRUE(differs(colors[ImGuiCol_TabSelectedOverline], preset_overline));
+  // Classic's caret is plain white; a leftover preset caret would not be.
+  EXPECT_FLOAT_EQ(colors[ImGuiCol_InputTextCursor].x, 1.0f);
+  EXPECT_FLOAT_EQ(colors[ImGuiCol_InputTextCursor].y, 1.0f);
+  EXPECT_FLOAT_EQ(colors[ImGuiCol_InputTextCursor].z, 1.0f);
+  EXPECT_FLOAT_EQ(ImGui::GetStyle().TabRounding, 0.0f);
+  EXPECT_FLOAT_EQ(ImGui::GetStyle().GrabRounding, 5.0f);
+}
+
+// EndPreview restores through ApplyTheme(const Theme&), which repaints from the
+// Theme struct. For Classic YAZE that struct cannot reproduce ColorsYaze(), so
+// the restore has to route back to ApplyClassicYazeTheme().
+TEST_F(ThemeStyleSnapshotTest, EndPreviewRestoresClassicYazeAppearance) {
+  auto& mgr = ThemeManager::Get();
+  mgr.ApplyClassicYazeTheme();
+  ASSERT_EQ(mgr.GetCurrentThemeName(), "Classic YAZE");
+  const ImVec4* colors = ImGui::GetStyle().Colors;
+  const ImVec4 classic_check = colors[ImGuiCol_CheckMark];
+  const ImVec4 classic_title = colors[ImGuiCol_TitleBgActive];
+  const float classic_grab_rounding = ImGui::GetStyle().GrabRounding;
+
+  mgr.StartPreview("Nord");
+  ASSERT_EQ(mgr.GetCurrentThemeName(), "Nord");
+  mgr.EndPreview();
+
+  EXPECT_EQ(mgr.GetCurrentThemeName(), "Classic YAZE");
+  EXPECT_FLOAT_EQ(colors[ImGuiCol_CheckMark].x, classic_check.x);
+  EXPECT_FLOAT_EQ(colors[ImGuiCol_CheckMark].y, classic_check.y);
+  EXPECT_FLOAT_EQ(colors[ImGuiCol_CheckMark].z, classic_check.z);
+  EXPECT_FLOAT_EQ(colors[ImGuiCol_TitleBgActive].x, classic_title.x);
+  EXPECT_FLOAT_EQ(colors[ImGuiCol_TitleBgActive].y, classic_title.y);
+  EXPECT_FLOAT_EQ(colors[ImGuiCol_TitleBgActive].z, classic_title.z);
+  EXPECT_FLOAT_EQ(ImGui::GetStyle().GrabRounding, classic_grab_rounding);
+}
+
+// The Display Density combo builds a copy of the current theme, flips its
+// preset and re-applies it. Classic YAZE routes through ApplyClassicYazeTheme,
+// which rebuilds from BuildClassicYazeTheme — so the incoming preset has to be
+// threaded through, and the sizing has to be re-applied over ColorsYaze()'s
+// hardcoded padding.
+TEST_F(ThemeStyleSnapshotTest, DensityChangeTakesEffectUnderClassicYaze) {
+  auto& mgr = ThemeManager::Get();
+  mgr.ApplyClassicYazeTheme();
+  Theme normal = mgr.GetCurrentTheme();
+  normal.ApplyDensityPreset(DensityPreset::kNormal);
+  mgr.ReapplyTheme(normal);
+  const ImVec2 normal_padding = ImGui::GetStyle().FramePadding;
+  const float normal_scrollbar = ImGui::GetStyle().ScrollbarSize;
+
+  Theme compact = mgr.GetCurrentTheme();
+  compact.ApplyDensityPreset(DensityPreset::kCompact);
+  mgr.ReapplyTheme(compact);
+
+  EXPECT_EQ(mgr.GetCurrentTheme().density_preset, DensityPreset::kCompact);
+  EXPECT_LT(ImGui::GetStyle().FramePadding.x, normal_padding.x);
+  EXPECT_LT(ImGui::GetStyle().FramePadding.y, normal_padding.y);
+  EXPECT_LT(ImGui::GetStyle().ScrollbarSize, normal_scrollbar);
+}
+
+// The Classic YAZE restore path must not swallow deliberate edits: the theme
+// editor seeds `edit_theme` from the current theme, so while Classic is active
+// every live edit still carries the name "Classic YAZE". ApplyTheme paints
+// what it is handed; only ReapplyTheme re-routes to ColorsYaze().
+TEST_F(ThemeStyleSnapshotTest, ApplyThemeHonorsEditsToClassicYazeStruct) {
+  auto& mgr = ThemeManager::Get();
+  mgr.ApplyClassicYazeTheme();
+  Theme edited = mgr.GetCurrentTheme();
+  ASSERT_EQ(edited.name, "Classic YAZE");
+  edited.button = {0.9f, 0.1f, 0.6f, 1.0f};
+  // ApplyTheme lerps from the old colors when the OUTGOING theme has
+  // animations on, so pin Classic with animations off first — otherwise the
+  // frame after the switch still shows the start color, not the target.
+  Theme unanimated_classic = edited;
+  unanimated_classic.button = mgr.GetCurrentTheme().button;
+  unanimated_classic.enable_animations = false;
+  mgr.ApplyTheme(unanimated_classic);
+  edited.enable_animations = false;
+
+  mgr.ApplyTheme(edited);
+
+  const ImVec4* colors = ImGui::GetStyle().Colors;
+  EXPECT_NEAR(colors[ImGuiCol_Button].x, 0.9f, 0.02f);
+  EXPECT_NEAR(colors[ImGuiCol_Button].y, 0.1f, 0.02f);
+  EXPECT_NEAR(colors[ImGuiCol_Button].z, 0.6f, 0.02f);
+
+  // ReapplyTheme on the same struct discards the edit and restores Classic's
+  // ColorsYaze() green.
+  mgr.ReapplyTheme(edited);
+  EXPECT_LT(colors[ImGuiCol_Button].x, 0.6f);
+  EXPECT_GT(colors[ImGuiCol_Button].y, colors[ImGuiCol_Button].x);
+}
+
+// No shipped .theme file declares plot colors, and active_selection/
+// hover_highlight derive from selection colors that the file parser also does
+// not set. Without ApplySmartDefaults they reach ImGui as opaque black.
+TEST_F(ThemeStyleSnapshotTest, FileThemesHydratePlotAndSelectionColors) {
+  auto& mgr = ThemeManager::Get();
+  auto is_black = [](const Color& c) {
+    return c.red == 0.0f && c.green == 0.0f && c.blue == 0.0f;
+  };
+  for (const auto& name : ShippedFileThemeNames()) {
+    const Theme* theme = mgr.GetTheme(name);
+    ASSERT_NE(theme, nullptr) << name;
+    EXPECT_FALSE(is_black(theme->plot_lines)) << name << " plot_lines";
+    EXPECT_FALSE(is_black(theme->plot_histogram)) << name << " plot_histogram";
+    EXPECT_FALSE(is_black(theme->active_selection))
+        << name << " active_selection";
+    EXPECT_FALSE(is_black(theme->hover_highlight))
+        << name << " hover_highlight";
+    EXPECT_FALSE(is_black(theme->selection_primary))
+        << name << " selection_primary";
+  }
+}
+
+// GenerateThemeFromAccent built colors field by field and never ran the
+// semantic-default pass, so accent themes shipped the same black holes.
+TEST_F(ThemeStyleSnapshotTest, GeneratedAccentThemeHydratesSemanticColors) {
+  auto& mgr = ThemeManager::Get();
+  const Color accent{120.0f / 255.0f, 90.0f / 255.0f, 200.0f / 255.0f, 1.0f};
+  const Theme theme = mgr.GenerateThemeFromAccent(accent, true);
+  auto not_black = [](const Color& c, const char* field) {
+    EXPECT_FALSE(c.red == 0.0f && c.green == 0.0f && c.blue == 0.0f)
+        << field << " is black";
+  };
+  not_black(theme.plot_lines, "plot_lines");
+  not_black(theme.plot_histogram, "plot_histogram");
+  not_black(theme.active_selection, "active_selection");
+  not_black(theme.hover_highlight, "hover_highlight");
+  not_black(theme.selection_primary, "selection_primary");
+}
+
+// The [style] parser called std::stof unguarded: one bad value in a hand-edited
+// or third-party .theme file threw std::invalid_argument out of the loader.
+TEST_F(ThemeStyleSnapshotTest,
+       MalformedStyleValueKeepsDefaultInsteadOfThrowing) {
+  const auto path =
+      std::filesystem::temp_directory_path() / "yaze_malformed_style.theme";
+  {
+    std::ofstream out(path);
+    out << "name=Yaze Malformed Style Test\n"
+        << "[colors]\n"
+        << "primary=10,20,30,255\n"
+        << "[style]\n"
+        << "window_rounding=not-a-number\n"
+        << "frame_rounding=4.0\n";
+  }
+  auto& mgr = ThemeManager::Get();
+  const auto status = mgr.LoadThemeFromFile(path.string());
+  std::error_code ec;
+  std::filesystem::remove(path, ec);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  const Theme* parsed = mgr.GetTheme("Yaze Malformed Style Test");
+  ASSERT_NE(parsed, nullptr);
+  EXPECT_FLOAT_EQ(parsed->frame_rounding, 4.0f);
+  // The bad key keeps the struct default rather than aborting the whole load.
+  EXPECT_FLOAT_EQ(parsed->window_rounding, Theme{}.window_rounding);
+}
+
+// The parser reads these three [style] keys but the serializer never wrote
+// them, so Save Over Current silently reset them on the next load.
+TEST_F(ThemeStyleSnapshotTest, SerializedThemeKeepsEveryParsedStyleKey) {
+  auto& mgr = ThemeManager::Get();
+  Theme theme = *mgr.GetTheme("YAZE Tre");
+  theme.name = "Yaze Style Roundtrip Test";
+  theme.grab_rounding = 7.0f;
+  theme.window_border_size = 2.0f;
+  theme.frame_border_size = 3.0f;
+
+  const auto path =
+      std::filesystem::temp_directory_path() / "yaze_style_roundtrip.theme";
+  ASSERT_TRUE(mgr.SaveThemeToFile(theme, path.string()).ok());
+  const auto status = mgr.LoadThemeFromFile(path.string());
+  std::error_code ec;
+  std::filesystem::remove(path, ec);
+  ASSERT_TRUE(status.ok()) << status.message();
+
+  const Theme* parsed = mgr.GetTheme(theme.name);
+  ASSERT_NE(parsed, nullptr);
+  EXPECT_FLOAT_EQ(parsed->grab_rounding, 7.0f);
+  EXPECT_FLOAT_EQ(parsed->window_border_size, 2.0f);
+  EXPECT_FLOAT_EQ(parsed->frame_border_size, 3.0f);
+}
+
 TEST_F(ThemeStyleSnapshotTest, SemanticHelpersReturnThemeTokens) {
   // The ui_helpers::GetSuccessColor/GetErrorColor/etc. functions are what
   // Phase 5.2 migrated callers use. Assert they return exactly what the
