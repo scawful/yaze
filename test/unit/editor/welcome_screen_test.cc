@@ -126,6 +126,79 @@ class WelcomeScreenTest : public ::testing::Test {
   std::vector<std::string> saved_recents_;
 };
 
+// Measures the real start-button geometry at each Display Density preset.
+// Reads the nav rect rather than a recomputed formula, so it fails if the
+// production sizing stops responding to density for any reason.
+class WelcomeScreenDensityTest : public WelcomeScreenTest {
+ protected:
+  void SetUp() override {
+    WelcomeScreenTest::SetUp();
+    auto& themes = gui::ThemeManager::Get();
+    saved_theme_ = themes.GetCurrentThemeName();
+    ImGui::GetIO().DisplaySize = ImVec2(1400.0f, 1050.0f);
+  }
+
+  void TearDown() override {
+    gui::ThemeManager::Get().ApplyTheme(saved_theme_);
+    WelcomeScreenTest::TearDown();
+  }
+
+  void DrawFrame(WelcomeScreen* screen, ImGuiWindow* focus = nullptr) {
+    ImGui::NewFrame();
+    if (focus) {
+      ImGui::FocusWindow(focus);
+      ImGui::NavInitWindow(focus, true);
+    }
+    bool open = true;
+    screen->Show(&open);
+    ImGui::EndFrame();
+  }
+
+  ImGuiWindow* FindChild(const char* name) {
+    for (ImGuiWindow* window : context_->Windows) {
+      if (window->Active &&
+          std::string(window->Name).find(name) != std::string::npos) {
+        return window;
+      }
+    }
+    return nullptr;
+  }
+
+  // Height of the "Open ROM / Project" button under `preset`.
+  float MeasurePrimaryButtonHeight(gui::DensityPreset preset) {
+    auto& themes = gui::ThemeManager::Get();
+    themes.ApplyClassicYazeTheme();
+    gui::Theme theme = themes.GetCurrentTheme();
+    theme.ApplyDensityPreset(preset);
+    // ApplyTheme, not ReapplyTheme: that helper lands with the Classic YAZE
+    // theme-compat work on a separate branch. Either routes density sizing
+    // into ImGui, which is what this measurement needs.
+    themes.ApplyTheme(theme);
+    EXPECT_EQ(themes.GetCurrentTheme().density_preset, preset);
+
+    WelcomeScreen screen;
+    screen.RefreshRecentProjects();
+    WelcomeScreenTestPeer::SetEntryTime(&screen, 1.0f);
+    screen.SetOpenRomCallback([]() {});
+    screen.SetNewProjectCallback([]() {});
+    for (int frame = 0; frame < 3; ++frame) {
+      DrawFrame(&screen);
+    }
+    ImGuiWindow* rail = FindChild("/LeftPanel_");
+    EXPECT_NE(rail, nullptr) << "expected the split layout at 1400x1050";
+    if (rail == nullptr) {
+      return 0.0f;
+    }
+    DrawFrame(&screen, rail);
+    DrawFrame(&screen);
+    const ImRect rect =
+        ImGui::WindowRectRelToAbs(rail, rail->NavRectRel[ImGuiNavLayer_Main]);
+    return rect.GetHeight();
+  }
+
+  std::string saved_theme_;
+};
+
 struct WelcomeLayoutCase {
   const char* name;
   ImVec2 viewport;
@@ -299,6 +372,12 @@ INSTANTIATE_TEST_SUITE_P(
         // asked for more of the axis that just ran out.
         WelcomeLayoutCase{"ShortFirstRun", ImVec2(1400, 500), 13, false, false},
         WelcomeLayoutCase{"ShortRecents", ImVec2(1400, 500), 13, true, false},
+        // Severely short: the action rail cannot fit Resume and the two
+        // no-ROM buttons. DrawQuickActions must shed them rather than
+        // overflow a pane that has no scrollbar, which would silently clip
+        // the entire Recent section drawn beside it.
+        WelcomeLayoutCase{"TinyFirstRun", ImVec2(1400, 340), 13, false, false},
+        WelcomeLayoutCase{"TinyRecents", ImVec2(1400, 340), 13, true, false},
         WelcomeLayoutCase{"LargeFontFirstRun", ImVec2(1400, 1050), 26, false,
                           true},
         WelcomeLayoutCase{"LargeFontRecents", ImVec2(1400, 1050), 26, true,
@@ -315,6 +394,19 @@ INSTANTIATE_TEST_SUITE_P(
       return info.param.name;
     });
 
+// The other breakpoint tests only bound kWelcomeSplitMinWidth loosely — the
+// constant could drift anywhere in (500, 900] undetected. Pin both edges.
+TEST(WelcomeScreenLayoutTest, SplitBreakpointSitsAt800TimesScale) {
+  EXPECT_TRUE(
+      WelcomeScreenTestPeer::ShouldUseStackedLayout(799.0f, 600.0f, 1.0f));
+  EXPECT_FALSE(
+      WelcomeScreenTestPeer::ShouldUseStackedLayout(801.0f, 600.0f, 1.0f));
+  EXPECT_TRUE(
+      WelcomeScreenTestPeer::ShouldUseStackedLayout(1599.0f, 1200.0f, 2.0f));
+  EXPECT_FALSE(
+      WelcomeScreenTestPeer::ShouldUseStackedLayout(1601.0f, 1200.0f, 2.0f));
+}
+
 TEST(WelcomeScreenLayoutTest, ScalesSplitBreakpointWithFontSize) {
   EXPECT_FALSE(
       WelcomeScreenTestPeer::ShouldUseStackedLayout(920.0f, 600.0f, 1.0f));
@@ -329,6 +421,22 @@ TEST(WelcomeScreenLayoutTest, ScalesSplitBreakpointWithFontSize) {
 // their sum. Falling back to stacked on a short card therefore picked the
 // layout that needs MORE of the axis that just ran out. Height is not a
 // reason to stack — only width is.
+// The Display Density preset scales FramePadding, not font size, so a start
+// button sized off the font alone ignores it. A previous fix derived the
+// heights from GetFrameHeight but kept flat 34/28px floors, which clamped
+// Compact and Normal to the same value at the shipped 16px font — the density
+// setting still did nothing, and no test noticed. Measure the real buttons.
+TEST_F(WelcomeScreenDensityTest, StartButtonHeightsGrowWithDisplayDensity) {
+  const float compact =
+      MeasurePrimaryButtonHeight(gui::DensityPreset::kCompact);
+  const float normal = MeasurePrimaryButtonHeight(gui::DensityPreset::kNormal);
+  const float comfortable =
+      MeasurePrimaryButtonHeight(gui::DensityPreset::kComfortable);
+
+  EXPECT_LT(compact, normal) << "Compact is not smaller than Normal";
+  EXPECT_LT(normal, comfortable) << "Comfortable is not larger than Normal";
+}
+
 TEST(WelcomeScreenLayoutTest, ShortCardsKeepTheSplitLayout) {
   // Wide enough for two columns, far too short for the old 420 threshold.
   EXPECT_FALSE(
