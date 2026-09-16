@@ -37,7 +37,6 @@ const ImVec4 kTriforceGoldFallback = ImVec4(1.0f, 0.843f, 0.0f, 1.0f);
 const ImVec4 kHyruleGreenFallback = ImVec4(0.133f, 0.545f, 0.133f, 1.0f);
 const ImVec4 kMasterSwordBlueFallback = ImVec4(0.196f, 0.6f, 0.8f, 1.0f);
 const ImVec4 kHeartRedFallback = ImVec4(0.863f, 0.078f, 0.235f, 1.0f);
-const ImVec4 kSpiritOrangeFallback = ImVec4(1.0f, 0.647f, 0.0f, 1.0f);
 
 // Compact recent rows with a fixed comfortable height. The welcome card itself
 // stays a GIMP-style start dialog — it does not stretch to fill the dockspace.
@@ -51,7 +50,6 @@ ImVec4 kTriforceGold = kTriforceGoldFallback;
 ImVec4 kHyruleGreen = kHyruleGreenFallback;
 ImVec4 kMasterSwordBlue = kMasterSwordBlueFallback;
 ImVec4 kHeartRed = kHeartRedFallback;
-ImVec4 kSpiritOrange = kSpiritOrangeFallback;
 
 void UpdateWelcomeAccentPalette() {
   auto& theme_mgr = gui::ThemeManager::Get();
@@ -102,7 +100,6 @@ void UpdateWelcomeAccentPalette() {
   kHyruleGreen = success;
   kMasterSwordBlue = info;
   kHeartRed = error;
-  kSpiritOrange = ImLerp(warning, accent, 0.35f);
 }
 
 // Section headings share one colour so Start, Recent, and the first-run hint
@@ -311,10 +308,24 @@ bool WelcomeScreen::Show(bool* p_open) {
       ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus |
       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoSavedSettings;
 
-  gui::StyleVarGuard window_padding_guard(ImGuiStyleVar_WindowPadding,
-                                          ImVec2(16, 14));
+  // Roomier than the ambient padding, because this is a centred card rather
+  // than a docked panel — but derived from it, so Compact and Comfortable
+  // still move it. At Normal (8,8) this reproduces the previous literal
+  // (16,14) exactly.
+  const ImVec2 ambient_padding = ImGui::GetStyle().WindowPadding;
+  bool window_visible = false;
+  {
+    gui::StyleVarGuard window_padding_guard(
+        ImGuiStyleVar_WindowPadding,
+        ImVec2(ambient_padding.x + 8.0f, ambient_padding.y + 6.0f));
+    // Scoped to Begin alone. ImGui caches the value into window->WindowPadding
+    // there, so the card keeps it for the frame — while every tooltip and
+    // context menu opened below (ImGui does NOT zero padding for popups) goes
+    // back to the theme's own padding instead of inheriting the card's.
+    window_visible = ImGui::Begin("##WelcomeScreen", p_open, window_flags);
+  }
 
-  if (ImGui::Begin("##WelcomeScreen", p_open, window_flags)) {
+  if (window_visible) {
     // Esc dismisses the welcome screen when it (or one of its children) has
     // focus. Avoids stealing Esc globally, which would conflict with other
     // editors that use it for their own "cancel current interaction" flow.
@@ -699,14 +710,44 @@ void WelcomeScreen::DrawQuickActions() {
   const float scale = ImGui::GetFontSize() / 16.0f;
   // Derive from GetFrameHeight (font size + 2*FramePadding.y) so these track
   // the Display Density preset, which scales FramePadding/ItemSpacing but
-  // leaves GetFontSize alone. Sizing off the font alone made every button in
-  // here ignore Compact and Comfortable. The 1.2:1 primary:secondary ratio is
-  // the deliberate hierarchy and is preserved.
+  // leaves GetFontSize alone. The minimum-hit-target floors have to scale with
+  // density too: at the shipped 16px font GetFrameHeight is 20.5/22/23.5 for
+  // Compact/Normal/Comfortable, so a flat 34px floor clamped Compact and
+  // Normal to the identical height and the density setting did nothing — the
+  // very bug this is meant to fix. The 1.2:1 primary:secondary ratio is the
+  // deliberate hierarchy and is preserved.
+  const float density =
+      std::max(0.1f, gui::ThemeManager::Get().GetCurrentTheme().compact_factor);
   const float frame_height = ImGui::GetFrameHeight();
-  const float button_height = std::max(34.0f, frame_height * 1.5f);
-  const float secondary_height = std::max(28.0f, frame_height * 1.25f);
+  const float button_height = std::max(34.0f * density, frame_height * 1.5f);
+  const float secondary_height =
+      std::max(28.0f * density, frame_height * 1.25f);
   const float action_width = ImGui::GetContentRegionAvail().x;
   float button_width = action_width;
+
+  // Budget the optional rows. This pane has NoScrollbar|NoScrollWithMouse, so
+  // anything that does not fit is clipped with no scrollbar and no hint — and
+  // because Recent is drawn after this, overflowing here silently swallows
+  // the entire recents list. Shed the lowest-priority rows first so Open and
+  // New Project, the two reasons this screen exists, always survive.
+  const float gap = ImGui::GetStyle().ItemSpacing.y;
+  const float heading_h = ImGui::GetTextLineHeightWithSpacing();
+  const float required_primary =
+      heading_h + gap + button_height + gap + button_height;
+  float budget = ImGui::GetContentRegionAvail().y - required_primary;
+  const float resume_cost = gap + secondary_height;
+  const float no_rom_label_cost = gap + heading_h;
+  const float no_rom_button_cost = gap + secondary_height;
+
+  bool show_resume = budget >= resume_cost;
+  if (show_resume) {
+    budget -= resume_cost;
+  }
+  const int no_rom_count = (open_prototype_research_callback_ ? 1 : 0) +
+                           (open_assembly_editor_no_rom_callback_ ? 1 : 0);
+  bool show_no_rom =
+      no_rom_count > 0 &&
+      budget >= no_rom_label_cost + no_rom_count * no_rom_button_cost;
 
   // The browser upload path accepts ROMs only; desktop uses the combined picker.
 #ifdef __EMSCRIPTEN__
@@ -742,7 +783,8 @@ void WelcomeScreen::DrawQuickActions() {
 
   // Secondary starts live in the open — no nested "More ways" menu.
   const RecentProject* last_recent =
-      FindResumeProject(recent_projects_model_.entries());
+      show_resume ? FindResumeProject(recent_projects_model_.entries())
+                  : nullptr;
   if (last_recent && open_project_callback_) {
     ImGui::Spacing();
     const std::string resume_label = absl::StrFormat(
@@ -758,13 +800,13 @@ void WelcomeScreen::DrawQuickActions() {
     }
   }
 
-  if (open_prototype_research_callback_ ||
-      open_assembly_editor_no_rom_callback_) {
+  if (show_no_rom) {
     ImGui::Spacing();
     ImGui::TextColored(gui::GetTextSecondaryVec4(), "%s", tr("Without a ROM"));
   }
 
-  const bool has_both_secondary = open_prototype_research_callback_ &&
+  const bool has_both_secondary = show_no_rom &&
+                                  open_prototype_research_callback_ &&
                                   open_assembly_editor_no_rom_callback_;
   const bool inline_secondary =
       has_both_secondary && action_width >= 420.0f * scale;
@@ -772,7 +814,7 @@ void WelcomeScreen::DrawQuickActions() {
       inline_secondary ? (button_width - ImGui::GetStyle().ItemSpacing.x) * 0.5f
                        : button_width;
 
-  if (open_prototype_research_callback_) {
+  if (show_no_rom && open_prototype_research_callback_) {
     ImGui::Spacing();
     if (gui::ThemedButton(ICON_MD_CONSTRUCTION " Prototype Research",
                           ImVec2(secondary_width, secondary_height),
@@ -790,7 +832,7 @@ void WelcomeScreen::DrawQuickActions() {
     }
   }
 
-  if (open_assembly_editor_no_rom_callback_) {
+  if (show_no_rom && open_assembly_editor_no_rom_callback_) {
     if (!inline_secondary) {
       ImGui::Spacing();
     }
@@ -1039,8 +1081,13 @@ void WelcomeScreen::DrawUndoRemovalBanner() {
                            ImVec2(cursor.x + avail.x, cursor.y + row_height),
                            ImGui::GetColorU32(bg), 4.0f);
 
-  ImGui::Dummy(ImVec2(0, 3.0f));
-  ImGui::SameLine(8.0f);
+  // Centre the text row in the banner. The previous Dummy(0,3)+SameLine(8)
+  // pair discarded its own inset: SameLine snaps CursorPos.y back to where
+  // the Dummy started, so the 16px text sat flush against the top of the
+  // 28px plate with all the slack below it.
+  ImGui::SetCursorScreenPos(
+      ImVec2(cursor.x + 8.0f,
+             cursor.y + (row_height - ImGui::GetTextLineHeight()) * 0.5f));
   ImGui::TextColored(warning_bg, ICON_MD_INFO);
   ImGui::SameLine();
   ImGui::Text(tr("Removed \"%s\""), pending.display_name.c_str());
@@ -1090,16 +1137,28 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
     accent = kMasterSwordBlue;
   }
 
-  // Selectable provides theme Header/HeaderHovered/HeaderActive so hover inherits
-  // from the active theme instead of a hand-tinted overlay.
+  // Selectable supplies hit-testing and keyboard nav, but not the painting:
+  // it renders its fill with rounding hardcoded to 0, and the card's own
+  // outline below uses 6.0f over the identical rect, so a hovered row grew
+  // four square nubs of HeaderHovered outside the rounded border. Its idle
+  // ImGuiCol_Header never rendered either — Selectable only paints Header
+  // when `selected` is true, and this one is always false. Push all three
+  // states transparent and draw every state below at the border's rounding.
   {
-    ImVec4 idle = gui::GetSurfaceVariantVec4();
-    idle.w = 0.35f;
-    gui::StyleColorGuard header_guard(ImGuiCol_Header, idle);
+    // Read the theme's hover/active colours BEFORE the guards below push them
+    // to transparent, otherwise the fill reads back its own suppression.
+    const ImVec4 theme_hovered =
+        ImGui::GetStyleColorVec4(ImGuiCol_HeaderHovered);
+    const ImVec4 theme_active = ImGui::GetStyleColorVec4(ImGuiCol_HeaderActive);
+    const ImVec4 kNoFill(0.0f, 0.0f, 0.0f, 0.0f);
+    gui::StyleColorGuard header_guard({{ImGuiCol_Header, kNoFill},
+                                       {ImGuiCol_HeaderHovered, kNoFill},
+                                       {ImGuiCol_HeaderActive, kNoFill}});
     const bool is_activated = ImGui::Selectable(
         "##ProjectPanel", false, ImGuiSelectableFlags_AllowDoubleClick,
         resolved_card_size);
     const bool is_hovered = ImGui::IsItemHovered();
+    const bool is_held = ImGui::IsItemActive();
     const ImVec2 cursor_pos = ImGui::GetItemRectMin();
     const ImVec2 item_max = ImGui::GetItemRectMax();
 
@@ -1164,20 +1223,38 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
     }
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    // Card surface, at the same rounding as the border that follows it.
+    constexpr float kCardRounding = 6.0f;
+    ImVec4 surface = gui::GetSurfaceVariantVec4();
+    surface.w = 0.35f;
+    if (is_held) {
+      surface = theme_active;
+    } else if (is_hovered) {
+      surface = theme_hovered;
+    }
+    draw_list->AddRectFilled(cursor_pos, item_max, ImGui::GetColorU32(surface),
+                             kCardRounding);
+
     ImVec4 border = project.unavailable
                         ? ImVec4(kHeartRed.x, kHeartRed.y, kHeartRed.z, 0.7f)
                         : ImGui::GetStyleColorVec4(ImGuiCol_Border);
-    draw_list->AddRect(cursor_pos, item_max, ImGui::GetColorU32(border), 6.0f,
-                       0, 1.0f);
+    draw_list->AddRect(cursor_pos, item_max, ImGui::GetColorU32(border),
+                       kCardRounding, 0, 1.0f);
     // Accent rail on the left edge for type identity without covering hover.
     draw_list->AddRectFilled(cursor_pos,
                              ImVec2(cursor_pos.x + 3.0f, item_max.y),
                              ImGui::GetColorU32(accent), 2.0f);
 
     // Compact two-line row: name + secondary meta. Details stay on hover.
-    const float padding_x = 10.0f;
-    const float padding_y = 6.0f;
-    const float icon_radius = 11.0f;
+    // The row height scales with the font, so its interior must too: fixed
+    // pixels left the icon and badge marooned in dead space at accessibility
+    // sizes, and cramped against the border at the 44px floor.
+    const float row_scale = ImGui::GetFontSize() / 16.0f;
+    const float padding_x = 10.0f * row_scale;
+    const float padding_y = 6.0f * row_scale;
+    // Size the disc from the glyph it has to contain rather than a literal.
+    const float icon_radius =
+        std::max(8.0f * row_scale, ImGui::GetTextLineHeight() * 0.7f);
     const float row_h = item_max.y - cursor_pos.y;
     const ImVec2 icon_center(cursor_pos.x + padding_x + icon_radius,
                              cursor_pos.y + row_h * 0.5f);
