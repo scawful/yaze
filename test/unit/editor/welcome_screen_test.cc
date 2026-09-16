@@ -293,8 +293,12 @@ INSTANTIATE_TEST_SUITE_P(
         WelcomeLayoutCase{"WideRecents", ImVec2(1400, 1050), 13, true, false},
         WelcomeLayoutCase{"NarrowFirstRun", ImVec2(800, 600), 13, false, true},
         WelcomeLayoutCase{"NarrowRecents", ImVec2(800, 600), 13, true, true},
-        WelcomeLayoutCase{"ShortFirstRun", ImVec2(1400, 500), 13, false, true},
-        WelcomeLayoutCase{"ShortRecents", ImVec2(1400, 500), 13, true, true},
+        // Short but wide: split, not stacked. Split lays the action rail and
+        // recents side by side and needs max(left, right) of height; stacked
+        // runs them in sequence and needs their sum. Stacking a short card
+        // asked for more of the axis that just ran out.
+        WelcomeLayoutCase{"ShortFirstRun", ImVec2(1400, 500), 13, false, false},
+        WelcomeLayoutCase{"ShortRecents", ImVec2(1400, 500), 13, true, false},
         WelcomeLayoutCase{"LargeFontFirstRun", ImVec2(1400, 1050), 26, false,
                           true},
         WelcomeLayoutCase{"LargeFontRecents", ImVec2(1400, 1050), 26, true,
