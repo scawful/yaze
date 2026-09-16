@@ -43,7 +43,6 @@ const ImVec4 kSpiritOrangeFallback = ImVec4(1.0f, 0.647f, 0.0f, 1.0f);
 // stays a GIMP-style start dialog — it does not stretch to fill the dockspace.
 constexpr float kRecentRowBaseHeight = 52.0f;
 constexpr float kWelcomeSplitMinWidth = 800.0f;
-constexpr float kWelcomeSplitMinHeight = 420.0f;
 constexpr float kWelcomeCardMaxWidth = 960.0f;
 constexpr float kWelcomeCardMaxHeight = 580.0f;
 
@@ -92,7 +91,14 @@ void UpdateWelcomeAccentPalette() {
   const ImVec4 error = gui::ConvertColorToImVec4(theme.error);
 
   // Welcome accent palette: themed, but with distinct flavor per role.
-  kTriforceGold = ImLerp(accent, warning, 0.55f);
+  // Anchor the brand gold on `warning`, which every shipped theme sets to an
+  // amber. Averaging it halfway with `accent` used to hue-blend into olive
+  // whenever the accent was cool: Wind Waker's teal accent produced a sage
+  // green at 2.4:1 against its cream background, below the 3:1 floor even for
+  // large text. A light touch of accent keeps the theme's identity without
+  // letting it drag the hue off gold. This colour also drives every section
+  // heading and the accent rule, so the drift was never just the wordmark.
+  kTriforceGold = ImLerp(warning, accent, 0.15f);
   kHyruleGreen = success;
   kMasterSwordBlue = info;
   kHeartRed = error;
@@ -112,23 +118,6 @@ void DrawAccentRule(ImDrawList* draw_list) {
   ImVec4 rule = SectionHeadingColor();
   rule.w = 0.22f;
   draw_list->AddRectFilled(start, end, ImGui::GetColorU32(rule));
-}
-
-// One tip per session, rotated by launch count so the same line is not
-// always first, without changing while the user is looking at it.
-const char* SessionTip() {
-  static const char* kTips[] = {
-      "Open a ROM first, then save a copy before editing",
-      "Projects track ROM versions and editor settings",
-      "Use Project Management to swap ROMs and manage snapshots",
-      "Press Ctrl+Shift+P for the command palette and F1 for help",
-      "Shortcuts are configurable in Settings > Keyboard Shortcuts",
-      "Project + settings data live under ~/.yaze (user profile on Windows)",
-      "Use the panel browser to find any tool quickly"};
-  constexpr int kTipCount = IM_ARRAYSIZE(kTips);
-  static const int index =
-      static_cast<int>((absl::GetCurrentTimeNanos() / 1000000) % kTipCount);
-  return kTips[index];
 }
 
 // Truncate `text` to fit within `max_width` pixels, appending "..." if clipped.
@@ -245,8 +234,12 @@ bool WelcomeScreen::ShouldUseStackedLayout(float content_width,
   // from the same source so accessibility-sized text cannot force the wide
   // layout into a space that only fits it at the default font size.
   const float safe_scale = std::max(layout_scale, 0.01f);
-  return content_width < kWelcomeSplitMinWidth * safe_scale ||
-         content_height < kWelcomeSplitMinHeight * safe_scale;
+  // Width only. Split needs max(left, right) of vertical space; stacked needs
+  // their sum, so falling back to stacked when height is short chose the
+  // layout that needs more of the scarce axis. Width is the real constraint:
+  // two columns genuinely cannot fit in a narrow card.
+  (void)content_height;
+  return content_width < kWelcomeSplitMinWidth * safe_scale;
 }
 
 // Helper function to calculate staggered animation progress
@@ -591,20 +584,25 @@ void WelcomeScreen::DrawHeader() {
   float header_offset_y = (1.0f - header_progress) * 20.0f;
 
   if (header_progress < 0.001f) {
-    ImGui::Dummy(ImVec2(0, 48));  // Reserve space
+    // Reserve what the real header will occupy: scaled title line, subtitle
+    // line, and the gap between them. A flat 48 popped at large font sizes.
+    const float title_line = ImGui::GetTextLineHeight() * 2.0f;
+    ImGui::Dummy(ImVec2(0, title_line + ImGui::GetTextLineHeightWithSpacing()));
     return;
   }
 
-  ImFont* header_font = nullptr;
-  const auto& font_list = ImGui::GetIO().Fonts->Fonts;
-  if (font_list.Size > 2) {
-    header_font = font_list[2];
-  } else if (font_list.Size > 0) {
-    header_font = font_list[0];
-  }
-  if (header_font) {
-    ImGui::PushFont(header_font);  // Large font (fallback to default)
-  }
+  // Scale the current face instead of indexing the atlas. Every font in the
+  // registry is loaded at the same size and the icon/Japanese merges do not
+  // add entries, so the old Fonts[2] was Cousine — a monospace code face at
+  // body size. The wordmark had no size treatment at all, only a typeface
+  // change nobody asked for.
+  constexpr float kTitleFontScale = 2.0f;
+  // FontSizeBase starts at 0 and is resolved on the first frame; PushFont
+  // reads 0 as "keep current size", which would silently drop the scale.
+  const float base_font_size = ImGui::GetStyle().FontSizeBase > 0.0f
+                                   ? ImGui::GetStyle().FontSizeBase
+                                   : ImGui::GetFontSize();
+  ImGui::PushFont(nullptr, base_font_size * kTitleFontScale);
 
   // Simple centered title
   const char* title = ICON_MD_CASTLE " yaze";
@@ -629,9 +627,7 @@ void WelcomeScreen::DrawHeader() {
   ImVec4 title_color = kTriforceGold;
   title_color.w *= header_alpha;
   ImGui::TextColored(title_color, "%s", title);
-  if (header_font) {
-    ImGui::PopFont();
-  }
+  ImGui::PopFont();
 
   // Static subtitle (entry animation section 1)
   float subtitle_progress = GetStaggeredEntryProgress(
@@ -701,8 +697,14 @@ void WelcomeScreen::DrawQuickActions() {
   ImGui::Spacing();
 
   const float scale = ImGui::GetFontSize() / 16.0f;
-  const float button_height = std::max(34.0f, 36.0f * scale);
-  const float secondary_height = std::max(28.0f, 30.0f * scale);
+  // Derive from GetFrameHeight (font size + 2*FramePadding.y) so these track
+  // the Display Density preset, which scales FramePadding/ItemSpacing but
+  // leaves GetFontSize alone. Sizing off the font alone made every button in
+  // here ignore Compact and Comfortable. The 1.2:1 primary:secondary ratio is
+  // the deliberate hierarchy and is preserved.
+  const float frame_height = ImGui::GetFrameHeight();
+  const float button_height = std::max(34.0f, frame_height * 1.5f);
+  const float secondary_height = std::max(28.0f, frame_height * 1.25f);
   const float action_width = ImGui::GetContentRegionAvail().x;
   float button_width = action_width;
 
@@ -1235,26 +1237,19 @@ void WelcomeScreen::DrawProjectPanel(const RecentProject& project, int index,
         ImGui::GetColorU32(text_primary), badge_text.c_str());
 
     if (is_hovered) {
+      // Only what the card itself cannot show. Type, name, details, metadata
+      // and last-opened were all already on the row or its badge; repeating
+      // them in a seven-line panel made hovering a recent feel like opening a
+      // properties dialog. The path is genuinely hidden (the row ellipsizes
+      // it), and an unavailable entry needs to say what to do about it.
       ImGui::BeginTooltip();
-      ImGui::TextColored(kMasterSwordBlue, ICON_MD_INFO " Recent Item");
-      ImGui::Separator();
-      ImGui::Text(tr("Type: %s"), badge_text.c_str());
-      ImGui::Text(tr("Name: %s"), project.name.c_str());
-      ImGui::Text(tr("Details: %s"), project.rom_title.c_str());
-      if (!project.metadata_summary.empty()) {
-        ImGui::Text(tr("Metadata: %s"), project.metadata_summary.c_str());
-      }
-      ImGui::Text(tr("Last opened: %s"), project.last_modified.c_str());
-      ImGui::Text(tr("Path: %s"), project.filepath.c_str());
-      ImGui::Separator();
+      ImGui::TextUnformatted(project.filepath.c_str());
       if (project.is_missing) {
         ImGui::TextColored(kTriforceGold,
                            ICON_MD_SEARCH " Right-click to locate");
       } else if (project.unavailable) {
         ImGui::TextColored(kHeartRed,
                            ICON_MD_WARNING " Re-open from the start actions");
-      } else {
-        ImGui::TextColored(kTriforceGold, ICON_MD_TOUCH_APP " Click to open");
       }
       ImGui::EndTooltip();
     }
@@ -1300,30 +1295,31 @@ void WelcomeScreen::DrawFooterBar() {
   const float close_width =
       ImGui::CalcTextSize(close_label.c_str()).x + 2.0f * style.FramePadding.x;
 
-  const std::string tip =
+  // This slot now carries only the release-notes failure. The rotating
+  // "Tip:" line that used to live here was ambient advice nobody came to the
+  // launcher to read, and it competed with the two real actions above it.
+  const std::string notice =
       release_notes_open_failed_
           ? absl::StrFormat("%s %s", ICON_MD_INFO,
                             tr("Could not open the browser; see "
                                "docs/public/release-notes.md"))
-          : absl::StrFormat("%s %s %s", ICON_MD_LIGHTBULB, tr("Tip:"),
-                            SessionTip());
+          : std::string();
 
   ImGui::SameLine(0.0f, style.ItemSpacing.x);
-  const float tip_start = ImGui::GetCursorPosX();
-  const float right_edge = tip_start + ImGui::GetContentRegionAvail().x;
-  const float tip_width =
-      right_edge - close_width - style.ItemSpacing.x - tip_start;
-  if (tip_width > 0.0f) {
-    const std::string visible_tip = EllipsizeText(tip, tip_width);
-    const ImVec4 tip_color =
-        release_notes_open_failed_
-            ? gui::ConvertColorToImVec4(
-                  gui::ThemeManager::Get().GetCurrentTheme().warning)
-            : text_secondary;
-    ImGui::TextColored(tip_color, "%s", visible_tip.c_str());
-    if (visible_tip != tip && ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("%s", tip.c_str());
+  const float notice_start = ImGui::GetCursorPosX();
+  const float right_edge = notice_start + ImGui::GetContentRegionAvail().x;
+  const float notice_width =
+      right_edge - close_width - style.ItemSpacing.x - notice_start;
+  if (!notice.empty() && notice_width > 0.0f) {
+    const std::string visible = EllipsizeText(notice, notice_width);
+    ImGui::TextColored(gui::ConvertColorToImVec4(
+                           gui::ThemeManager::Get().GetCurrentTheme().warning),
+                       "%s", visible.c_str());
+    if (visible != notice && ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("%s", notice.c_str());
     }
+  }
+  if (notice_width > 0.0f) {
     ImGui::SameLine(right_edge - close_width);
   }
   if (ImGui::SmallButton(close_label.c_str())) {

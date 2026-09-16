@@ -320,6 +320,22 @@ TEST(WelcomeScreenLayoutTest, ScalesSplitBreakpointWithFontSize) {
       WelcomeScreenTestPeer::ShouldUseStackedLayout(1820.0f, 1200.0f, 2.0f));
 }
 
+// Split puts the action rail and the recents side by side, so it needs
+// max(left, right) of vertical space; stacked runs them in sequence and needs
+// their sum. Falling back to stacked on a short card therefore picked the
+// layout that needs MORE of the axis that just ran out. Height is not a
+// reason to stack — only width is.
+TEST(WelcomeScreenLayoutTest, ShortCardsKeepTheSplitLayout) {
+  // Wide enough for two columns, far too short for the old 420 threshold.
+  EXPECT_FALSE(
+      WelcomeScreenTestPeer::ShouldUseStackedLayout(1200.0f, 200.0f, 1.0f));
+  EXPECT_FALSE(
+      WelcomeScreenTestPeer::ShouldUseStackedLayout(900.0f, 50.0f, 1.0f));
+  // Narrow still stacks, at any height.
+  EXPECT_TRUE(
+      WelcomeScreenTestPeer::ShouldUseStackedLayout(500.0f, 2000.0f, 1.0f));
+}
+
 TEST(WelcomeScreenLayoutTest, ReservesMoreHintWhenOnlyOneRecentRowFits) {
   constexpr float kRowHeight = 44.0f;
   constexpr float kRowGap = 4.0f;
