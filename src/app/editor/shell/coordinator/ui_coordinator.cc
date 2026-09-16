@@ -1982,16 +1982,16 @@ bool UICoordinator::ShouldShowWelcome() const {
 }
 
 bool UICoordinator::ShouldShowDashboard() const {
-  // Respect CLI overrides
-  if (dashboard_behavior_override_ == StartupVisibility::kHide) {
-    return false;
-  }
-  if (dashboard_behavior_override_ == StartupVisibility::kShow) {
-    return true;
-  }
-
-  // Default: show dashboard only when in dashboard state
-  return current_startup_surface_ == StartupSurface::kDashboard;
+  // Consulted by SetEditorSelectionVisible, the choke point every automatic
+  // entry into the dashboard passes through.
+  //
+  // This used to also require current_startup_surface_ == kDashboard, and
+  // nothing called it at all — so --startup_dashboard=hide did nothing while
+  // its sibling --startup_welcome worked, because ShouldShowWelcome() IS
+  // consulted. The surface test is dropped on purpose: by the time a ROM
+  // finishes loading the surface has already advanced past kDashboard, so
+  // keying on it would suppress the very chooser the flag exists to govern.
+  return dashboard_behavior_override_ != StartupVisibility::kHide;
 }
 
 bool UICoordinator::ShouldShowActivityBar() const {
