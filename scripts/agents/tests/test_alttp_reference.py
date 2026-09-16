@@ -409,6 +409,17 @@ class CliTest(Fixture):
         # one, so a typo'd path must not leave a half-written file behind.
         self.assertFalse(missing.exists())
 
+    def test_check_on_a_missing_file_reports_it_instead_of_raising(self) -> None:
+        missing = self.root.parent / "also-not-created.md"
+        present = self.write_doc("")
+        code, output = self.run_main("--usdasm", str(self.root), "--symbols",
+                                     str(self.maps), "check", str(missing),
+                                     str(present))
+        self.assertEqual(code, 1)
+        self.assertIn("no such file", output)
+        # Every path is reported; a bad one must not abort the whole run.
+        self.assertIn("checked 2 file(s)", output)
+
     def test_render_then_check_round_trip(self) -> None:
         sections = "".join(
             f"<!-- BEGIN GENERATED: {name} -->\n<!-- END GENERATED: {name} -->\n"

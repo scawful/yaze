@@ -427,9 +427,24 @@ def marker_problems(text: str, path: Path) -> list[str]:
     return problems
 
 
+def missing_file_problem(path: Path, verb: str) -> str | None:
+    """Neither subcommand creates files, so a bad path is a usage error.
+
+    Returned as a normal problem string rather than raised: `check` takes many
+    files and must report every bad one, not abort on the first.
+    """
+    if path.is_file():
+        return None
+    return (f"{path}: no such file; {verb} operates on an existing doc, "
+            "it does not create one")
+
+
 def check_file(db: Usdasm, path: Path, sections: dict[str, str],
                unverified: list[str]) -> list[str]:
     problems = []
+    missing = missing_file_problem(path, "check")
+    if missing is not None:
+        return [missing]
     text = path.read_text()
     problems.extend(marker_problems(text, path))
     for match in SECTION_RE.finditer(text):
@@ -481,11 +496,9 @@ def main(argv: list[str] | None = None) -> int:
     db = Usdasm.load(find_usdasm(args.usdasm), find_symbols(args.symbols))
     sections = generated_sections(db)
     if args.command == "render":
-        # render rewrites the generated blocks of an existing doc; it never
-        # creates one. Say so instead of surfacing a bare FileNotFoundError.
-        if not args.write.is_file():
-            print(f"{args.write}: no such file; render updates the generated "
-                  "sections of an existing doc, it does not create one")
+        missing = missing_file_problem(args.write, "render")
+        if missing is not None:
+            print(missing)
             return 1
         original = args.write.read_text()
         for problem in marker_problems(original, args.write):
