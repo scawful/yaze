@@ -141,6 +141,10 @@ void ColorsYaze() {
   colors[ImGuiCol_TreeLines] = colors[ImGuiCol_Separator];
   colors[ImGuiCol_TabSelectedOverline] = allttpLightestGreen;
   colors[ImGuiCol_TabDimmedSelectedOverline] = allttpLightestGreen;
+  // Transparent, matching every ImGui built-in style: the drop target is drawn
+  // as an outline (ImGuiCol_DragDropTarget above), not a fill.
+  colors[ImGuiCol_DragDropTargetBg] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+  colors[ImGuiCol_UnsavedMarker] = colors[ImGuiCol_Text];
   style->GrabRounding = 5.f;
   style->TabRounding = 0.f;
 }

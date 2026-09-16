@@ -32,6 +32,29 @@ Color RGBA(int r, int g, int b, int a = 255) {
   return {r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f};
 }
 
+// Scales the spacing metrics already present in ImGui's style by `factor`.
+// Used only after ColorsYaze(), whose values are Classic YAZE's identity and
+// must be scaled in place rather than recomputed from the shared base.
+void ScaleCurrentStyleSpacing(float factor) {
+  if (factor == 1.0f) {
+    return;
+  }
+  ImGuiStyle* style = &ImGui::GetStyle();
+  style->WindowPadding.x *= factor;
+  style->WindowPadding.y *= factor;
+  style->FramePadding.x *= factor;
+  style->FramePadding.y *= factor;
+  style->CellPadding.x *= factor;
+  style->CellPadding.y *= factor;
+  style->ItemSpacing.x *= factor;
+  style->ItemSpacing.y *= factor;
+  style->ItemInnerSpacing.x *= factor;
+  style->ItemInnerSpacing.y *= factor;
+  style->IndentSpacing *= factor;
+  style->ScrollbarSize *= factor;
+  style->GrabMinSize *= factor;
+}
+
 Theme BuildClassicYazeTheme() {
   Theme classic_theme;
   classic_theme.name = "Classic YAZE";
@@ -1224,7 +1247,7 @@ absl::Status ThemeManager::ParseThemeFile(const std::string& content,
       else if (key == "enable_glow_effects")
         theme.enable_glow_effects = (value == "true");
       else if (key == "animation_speed")
-        theme.animation_speed = std::stof(value);
+        theme.animation_speed = parse_float(value, theme.animation_speed);
     } else if (current_section == "" || current_section == "metadata") {
       // Top-level metadata
       if (key == "name")
@@ -2118,6 +2141,7 @@ std::string ThemeManager::SerializeTheme(const Theme& theme) const {
   ss << "frame_border_size=" << theme.frame_border_size << "\n";
   ss << "enable_animations=" << (theme.enable_animations ? "true" : "false")
      << "\n";
+  ss << "animation_speed=" << theme.animation_speed << "\n";
   ss << "enable_glow_effects=" << (theme.enable_glow_effects ? "true" : "false")
      << "\n";
 
@@ -2223,12 +2247,15 @@ void ThemeManager::ApplyClassicYazeTheme(std::optional<DensityPreset> density) {
   // loaded themes get via LoadThemeFromFile → ApplySmartDefaults, so Classic
   // isn't missing fields (selection_primary, dungeon.object_door, agent.*).
   ApplySmartDefaults(classic_theme);
-  // Carry the active Display Density across the switch. ColorsYaze() hardcodes
-  // padding and spacing at the Normal scale, so re-apply the density sizing on
-  // top of it.
+  // Carry the active Display Density across the switch. ColorsYaze() writes
+  // Classic's OWN metrics (FramePadding 10x2, ItemSpacing 10x5, WindowPadding
+  // 10x10), which are not the shared 8px base that Theme::ApplyToImGui uses.
+  // Scale what ColorsYaze just wrote instead of calling the generic density
+  // sizing, which would substitute that base and change Classic's look at
+  // every density — including Normal, i.e. on every startup.
   classic_theme.ApplyDensityPreset(
       density.value_or(current_theme_.density_preset));
-  classic_theme.ApplyDensitySizingToImGui();
+  ScaleCurrentStyleSpacing(classic_theme.compact_factor);
   current_theme_ = classic_theme;
 
   // Mirror the bookkeeping that LoadTheme and ApplyTheme(const Theme&) do:
@@ -3595,8 +3622,11 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       // Reset backup state since we're back to current theme
       if (theme_backup_made) {
         theme_backup_made = false;
-        current_theme_.ApplyToImGui();  // Apply current theme to clear any
-                                        // preview changes
+        // Restore-the-canonical-theme, so it must route through ReapplyTheme:
+        // ApplyToImGui cannot reproduce ColorsYaze() for Classic YAZE. Copy
+        // first — ReapplyTheme reassigns current_theme_.
+        const Theme restored = current_theme_;
+        ReapplyTheme(restored);
       }
     }
 
