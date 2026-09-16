@@ -626,13 +626,37 @@ void WelcomeScreen::DrawHeader() {
   ImGui::SetCursorPos(ImVec2(xPos, cursor_pos.y - header_offset_y));
   ImVec2 text_pos = ImGui::GetCursorScreenPos();
 
-  // Subtle static glow behind text (faded by entry alpha)
-  float glow_size = 30.0f;
-  ImU32 glow_color = ImGui::GetColorU32(ImVec4(
-      kTriforceGold.x, kTriforceGold.y, kTriforceGold.z, 0.15f * header_alpha));
+  // Halo behind the wordmark. Two things it has to get right:
+  //
+  // Size — it used a flat 30px radius at a flat +15px offset, which was tuned
+  // for a body-sized title. The title is now scaled, so both track the real
+  // text metrics instead.
+  //
+  // Direction — a low-alpha warm disc is a *lightening* effect. On the five
+  // light presets (Wind Waker's background is 250,245,232) it blends into an
+  // already-pale ground and simply is not there. A single "add light"
+  // strategy cannot work in both directions, so on a light ground deepen the
+  // gold toward amber and carry more alpha, giving a soft warm shadow rather
+  // than an invisible highlight.
+  const float title_height = ImGui::GetTextLineHeight();
+  const ImVec4 window_bg = ImGui::GetStyleColorVec4(ImGuiCol_WindowBg);
+  const float bg_luma =
+      0.299f * window_bg.x + 0.587f * window_bg.y + 0.114f * window_bg.z;
+  const bool light_ground = bg_luma > 0.5f;
+
+  ImVec4 glow = kTriforceGold;
+  float glow_alpha = 0.15f;
+  if (light_ground) {
+    glow.x *= 0.65f;
+    glow.y *= 0.50f;
+    glow.z *= 0.30f;
+    glow_alpha = 0.22f;
+  }
+  glow.w = glow_alpha * header_alpha;
+  const float glow_radius = title_height * 0.9f;
   draw_list->AddCircleFilled(
-      ImVec2(text_pos.x + title_width / 2, text_pos.y + 15), glow_size,
-      glow_color, 32);
+      ImVec2(text_pos.x + title_width * 0.5f, text_pos.y + title_height * 0.5f),
+      glow_radius, ImGui::GetColorU32(glow), 32);
 
   // Simple gold color for title with entry alpha
   ImVec4 title_color = kTriforceGold;
