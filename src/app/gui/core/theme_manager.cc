@@ -3971,9 +3971,15 @@ std::string ThemeManager::GetCurrentThemeFilePath() const {
   auto search_paths = GetThemeSearchPaths();
   std::string theme_filename = current_theme_name_ + ".theme";
 
-  // Convert theme name to safe filename (replace spaces and special chars)
+  // Convert theme name to safe filename (replace spaces and special chars).
+  // The cast is load-bearing, not decoration: std::isalnum takes an int whose
+  // value must be representable as unsigned char or EOF, and plain `char` is
+  // signed on the platforms this builds for. Any byte above 0x7F — every
+  // continuation byte of a UTF-8 theme name such as "Rosé Pine" — arrives
+  // negative and the call is undefined behaviour.
   for (char& c : theme_filename) {
-    if (!std::isalnum(c) && c != '.' && c != '_') {
+    const auto byte = static_cast<unsigned char>(c);
+    if (!std::isalnum(byte) && c != '.' && c != '_') {
       c = '_';
     }
   }
