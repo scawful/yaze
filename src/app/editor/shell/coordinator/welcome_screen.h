@@ -133,8 +133,7 @@ class WelcomeScreen {
   void DrawRecentProjects();
   void DrawProjectPanel(const RecentProject& project, int index,
                         const ImVec2& card_size);
-  void DrawTipsSection();
-  void DrawWhatsNew();
+  void DrawFooterBar();
   void DrawFirstRunGuide();
   void DrawRecentAnnotationPopup();
   void DrawUndoRemovalBanner();
