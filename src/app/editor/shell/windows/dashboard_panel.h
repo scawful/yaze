@@ -27,6 +27,11 @@ class DashboardPanel {
   bool* visibility_flag() { return &show_; }
 
   void MarkRecentlyUsed(EditorType type);
+  // Parses the recent-editors file body. Pure and static so the validation
+  // rules are testable without touching the user's real config directory,
+  // which LoadFileFromConfigDir/SaveFile resolve through PlatformPaths.
+  static std::vector<EditorType> ParseRecentEditors(const std::string& data,
+                                                    size_t max_entries);
   void LoadRecentEditors();
   void SaveRecentEditors();
   void ClearRecentEditors();

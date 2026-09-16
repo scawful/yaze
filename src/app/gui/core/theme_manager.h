@@ -3,6 +3,8 @@
 
 #include <functional>
 #include <map>
+#include <optional>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -267,6 +269,10 @@ struct Theme {
 
   // Helper methods
   void ApplyToImGui() const;
+  // Writes only the density-derived padding/spacing scalars. ApplyToImGui
+  // calls it; ApplyClassicYazeTheme calls it separately because ColorsYaze()
+  // hardcodes those scalars at the Normal scale.
+  void ApplyDensitySizingToImGui() const;
   void ApplyDensityPreset(DensityPreset preset);
 };
 
@@ -310,7 +316,19 @@ class ThemeManager {
   // Theme application
   void ApplyTheme(const std::string& theme_name);
   void ApplyTheme(const Theme& theme);
-  void ApplyClassicYazeTheme();  // Apply original ColorsYaze() function
+  // Re-apply `theme` as the canonical version of the theme it names. Unlike
+  // ApplyTheme(const Theme&), which paints whatever struct it is handed (the
+  // theme editor's in-progress edits go through that), this routes Classic
+  // YAZE back to ApplyClassicYazeTheme() because BuildClassicYazeTheme's
+  // struct cannot reproduce ColorsYaze(). Use it on restore/re-apply paths:
+  // EndPreview, live-preview cancel, and the Display Density combo.
+  void ReapplyTheme(const Theme& theme);
+  // Apply the original ColorsYaze() function. `density` overrides the density
+  // carried over from the outgoing theme — ApplyTheme(const Theme&) passes the
+  // incoming struct's preset so the Display Density combo still works while
+  // Classic YAZE is active.
+  void ApplyClassicYazeTheme(
+      std::optional<DensityPreset> density = std::nullopt);
 
   // Theme-changed callback. Fired after any successful theme application with
   // the current theme name. Keeps persistence decoupled from ThemeManager —
@@ -405,9 +423,16 @@ class ThemeManager {
   ThemeChangedCallback on_theme_changed_;
 
   void CreateFallbackYazeClassic();
-  absl::Status ParseThemeFile(const std::string& content, Theme& theme);
-  void ApplySmartDefaults(
-      Theme& theme);  // Fill missing properties from primary colors
+  // `declared_keys`, when non-null, receives every recognised key the file
+  // actually contained. ApplySmartDefaults needs that to tell "the author
+  // omitted this field" from "the author chose black": a default-constructed
+  // Color is opaque black, so the two are identical by value.
+  absl::Status ParseThemeFile(const std::string& content, Theme& theme,
+                              std::set<std::string>* declared_keys = nullptr);
+  // Fill missing properties from primary colors. Fields named in
+  // `declared_keys` are left exactly as the file set them.
+  void ApplySmartDefaults(Theme& theme,
+                          const std::set<std::string>& declared_keys = {});
   Color ParseColorFromString(const std::string& color_str) const;
   std::string SerializeTheme(const Theme& theme) const;
 

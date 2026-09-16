@@ -201,7 +201,7 @@ struct RemoteAnnotationReviewView: View {
   // MARK: - Editor Sheet
 
   private func annotationEditorSheet(annotation: RemoteAnnotation?) -> some View {
-    AnnotationEditorView(
+    RemoteAnnotationEditorView(
       apiClient: apiClient,
       roomId: selectedRoomId ?? 0,
       existingAnnotation: annotation
@@ -260,7 +260,7 @@ struct RemoteAnnotationReviewView: View {
 
 // MARK: - Annotation Editor
 
-private struct AnnotationEditorView: View {
+private struct RemoteAnnotationEditorView: View {
   @Environment(\.dismiss) private var dismiss
   @ObservedObject var apiClient: DesktopAPIClient
 
