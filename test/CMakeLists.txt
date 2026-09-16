@@ -296,6 +296,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/theme_generator_test.cc
     unit/editor/editor_registry_test.cc
     unit/editor/shortcut_manager_test.cc
+    unit/editor/shortcut_group_test.cc
     unit/editor/shortcut_configurator_test.cc
     unit/editor/window_sidebar_test.cc
     unit/editor/dungeon_canvas_viewer_navigation_test.cc

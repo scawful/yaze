@@ -48,7 +48,8 @@ struct SpriteOamLayout {
 // unchanged frames never reopen files. No process-global project state.
 class SpritePreviewResourceCache {
  public:
-  void SetContext(std::string_view project_path, std::string_view assets_path,
+  // Returns true when context changes discard cached resources.
+  bool SetContext(std::string_view project_path, std::string_view assets_path,
                   std::string_view hack_name);
   std::span<const uint8_t> GetGraphics(const SpriteOamLayout* layout);
 

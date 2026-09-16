@@ -630,7 +630,15 @@ std::string DungeonCanvasViewer::BuildRoomMetadataSummary(
 }
 
 std::string DungeonCanvasViewer::BuildDrawIssueReport(const zelda3::Room& room,
-                                                      int room_id) const {
+                                                      int room_id) {
+  // Context-menu actions run inside BeginCanvas, before the normal room draw
+  // pass. Rebind at the diagnostic boundary too, so palette sampling remains
+  // correct even if the surrounding canvas order changes in the future.
+  if (rooms_ != nullptr && room_id >= 0 && room_id < zelda3::kNumberOfRooms &&
+      rooms_->GetIfMaterialized(room_id) == &room) {
+    PrepareRoomCompositeBitmap(room_id);
+  }
+
   std::string report = "Dungeon Draw Issue Report\n";
   report += BuildRoomMetadataSummary(room, room_id);
   report += absl::StrFormat(

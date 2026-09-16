@@ -226,6 +226,17 @@ void DungeonEditorV2::SynchronizeCustomObjectAssets() {
 
   rooms_.ForEachMaterialized(
       [](int, zelda3::Room& room) { room.MarkObjectsDirty(); });
+  // Reload Assets also refreshes external sprite art in every session-owned
+  // viewer, including hidden room windows and the comparison canvas.
+  const auto invalidate_sprite_resources = [](DungeonCanvasViewer* viewer) {
+    if (viewer != nullptr) {
+      viewer->InvalidateExternalSpriteResources();
+    }
+  };
+  room_viewers_.ForEach(
+      [&](int, auto& viewer) { invalidate_sprite_resources(viewer.get()); });
+  invalidate_sprite_resources(workbench_viewer_.get());
+  invalidate_sprite_resources(workbench_compare_viewer_.get());
   if (object_selector_panel_ != nullptr) {
     object_selector_panel_->object_selector()
         .SynchronizeCustomObjectGeneration();
@@ -623,6 +634,8 @@ void DungeonEditorV2::Initialize() {
 
   // Register panels with WorkspaceWindowManager (no boolean flags - visibility is
   // managed entirely by WorkspaceWindowManager::ShowPanel/HidePanel/IsPanelVisible)
+  // No default chord: Ctrl+Shift+W is reserved for Close Session. Toggle via
+  // View / Window Browser / command palette instead.
   window_manager->RegisterPanel(
       {.card_id = "dungeon.workbench",
        .display_name = "Dungeon Workbench",

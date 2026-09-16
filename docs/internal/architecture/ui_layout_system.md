@@ -194,8 +194,10 @@ For discoverability in Cmd/Ctrl+Shift+P:
 
 - `drawer: <Name>` — toggle a right drawer from `GetDrawerCatalog()` (`drawer: Next` / `drawer: Previous` cycle)
 - `window: <DisplayName>` — open and focus a workspace window, recording it in
-  recent windows; used by Window Finder. Selecting an already-open window must
-  not close it. Explicit `Show:` / `Hide:` / `Toggle:` commands remain available.
+  recent windows; used by **Find Window…** (Ctrl+P; shortcut id still `Window Finder`).
+  Selecting an already-open window must not close it. Explicit `Show:` / `Hide:` /
+  `Toggle:` commands remain available.
+- Help → **Keyboard Shortcuts** (Ctrl+Shift+/) opens the searchable shortcuts browser.
 
 ### Active side panel (`WindowSidebar`)
 

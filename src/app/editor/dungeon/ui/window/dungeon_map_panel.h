@@ -6,15 +6,18 @@
 #include <cmath>
 #include <functional>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 #include "util/i18n/tr.h"
 
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/editor/dungeon/dungeon_room_composite.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gfx/resource/bitmap_texture_queue.h"
 #include "app/gui/core/icons.h"
 #include "core/hack_manifest.h"
 #include "imgui/imgui.h"
@@ -85,6 +88,7 @@ class DungeonMapPanel : public WindowContent {
    * @param room_ids Vector of room IDs to include
    */
   void SetDungeonRooms(const std::vector<int>& room_ids) {
+    room_composite_outputs_.clear();
     dungeon_room_ids_ = room_ids;
     AutoLayoutRooms();
   }
@@ -106,8 +110,12 @@ class DungeonMapPanel : public WindowContent {
    * @brief Clear all rooms from the dungeon map
    */
   void ClearRooms() {
+    room_composite_outputs_.clear();
     dungeon_room_ids_.clear();
     room_positions_.clear();
+    room_types_.clear();
+    stair_connections_.clear();
+    holewarp_connections_.clear();
   }
 
   /**
@@ -118,7 +126,12 @@ class DungeonMapPanel : public WindowContent {
         ImVec2(static_cast<float>(grid_x), static_cast<float>(grid_y));
   }
 
-  void SetRooms(DungeonRoomStore* rooms) { rooms_ = rooms; }
+  void SetRooms(DungeonRoomStore* rooms) {
+    if (rooms_ != rooms) {
+      room_composite_outputs_.clear();
+      rooms_ = rooms;
+    }
+  }
 
   /**
    * @brief Set the hack manifest for project registry access
@@ -289,21 +302,14 @@ class DungeonMapPanel : public WindowContent {
       if (rooms_) {
         auto* loaded_room = rooms_->GetIfLoaded(room_id);
         if (loaded_room != nullptr) {
-          zelda3::RoomLayerManager layer_mgr;
-          layer_mgr.ApplyLayerMerging(loaded_room->layer_merging());
-          auto& preview_bitmap = loaded_room->GetCompositeBitmap(layer_mgr);
-          if (preview_bitmap.is_active() && preview_bitmap.width() > 0) {
-            if (!preview_bitmap.texture()) {
-              gfx::Arena::Get().QueueTextureCommand(
-                  gfx::Arena::TextureCommandType::CREATE, &preview_bitmap);
-              gfx::Arena::Get().ProcessTextureQueue(nullptr);
-            } else if (preview_bitmap.modified()) {
-              gfx::Arena::Get().QueueTextureCommand(
-                  gfx::Arena::TextureCommandType::UPDATE, &preview_bitmap);
-              gfx::Arena::Get().ProcessTextureQueue(nullptr);
-              preview_bitmap.set_modified(false);
-            }
+          auto& output = room_composite_outputs_[room_id];
+          if (!output) {
+            output = std::make_unique<RoomCompositeOutput>();
           }
+          auto& preview_bitmap =
+              PrepareCanonicalRoomComposite(*loaded_room, *output);
+          gfx::EnsureCompositeBitmapTextureQueued(preview_bitmap);
+          gfx::Arena::Get().ProcessTextureQueue(nullptr);
           if (preview_bitmap.is_active() && preview_bitmap.texture() != 0) {
             // Draw room thumbnail
             draw_list->AddImage((ImTextureID)(intptr_t)preview_bitmap.texture(),
@@ -431,6 +437,8 @@ class DungeonMapPanel : public WindowContent {
   }
 
  private:
+  friend class DungeonMapPanelTestPeer;
+
   /**
    * @brief Auto-layout rooms in a grid based on their IDs
    */
@@ -476,9 +484,6 @@ class DungeonMapPanel : public WindowContent {
     ImGui::SameLine();
     if (ImGui::Button(ICON_MD_CLEAR " Clear")) {
       ClearRooms();
-      stair_connections_.clear();
-      holewarp_connections_.clear();
-      room_types_.clear();
       current_dungeon_name_ = "Select Dungeon...";
       selected_preset_ = -1;
     }
@@ -537,7 +542,7 @@ class DungeonMapPanel : public WindowContent {
       for (int i = 0; i < IM_ARRAYSIZE(kPresets); i++) {
         if (ImGui::Selectable(kPresets[i].name, selected_preset_ == i)) {
           selected_preset_ = i;
-          dungeon_room_ids_.clear();
+          ClearRooms();
           for (int j = 0; j < kPresets[i].count; j++) {
             int room_id = kPresets[i].start_room + j;
             if (room_id < 0x128) {
@@ -612,6 +617,9 @@ class DungeonMapPanel : public WindowContent {
   std::vector<int> dungeon_room_ids_;
   std::map<int, ImVec2> room_positions_;
   std::map<int, std::string> room_types_;
+  // Each configured room needs stable texture identity through ImGui's
+  // deferred frame render. Clear the set when switching dungeon contexts.
+  std::map<int, std::unique_ptr<RoomCompositeOutput>> room_composite_outputs_;
   int selected_preset_ = -1;
 
   // Project registry integration
