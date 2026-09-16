@@ -680,6 +680,88 @@ TEST(DungeonEditCommandsTest, RemoveSpriteRejectsOutOfRangeCoordinates) {
   ExpectInvalidArgument(status, "X must be 0-31");
 }
 
+TEST(DungeonEditCommandsTest, RemoveObjectRejectsInvalidIndex) {
+  handlers::DungeonRemoveObjectCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--mock-rom", "--room=0x00", "--index=nope",
+                   "--expect-id=0x031", "--expect-x=1", "--expect-y=2",
+                   "--expect-size=6", "--expect-layer=0", "--format=json"},
+                  nullptr, &output);
+
+  ExpectInvalidArgument(status, "Invalid integer for '--index'");
+}
+
+TEST(DungeonEditCommandsTest, RemoveObjectRejectsGuardMismatch) {
+  Rom rom;
+  InitializeDescribeRoomObjectsRom(&rom);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonRemoveObjectCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--index=0", "--expect-id=0x032", "--expect-x=1",
+       "--expect-y=2", "--expect-size=6", "--expect-layer=0", "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("Object guard mismatch at index 0"));
+  EXPECT_EQ(rom.vector(), before);
+}
+
+TEST(DungeonEditCommandsTest, RemoveObjectDryRunPreflightsAndPreservesRom) {
+  Rom rom;
+  InitializeDescribeRoomObjectsRom(&rom);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonRemoveObjectCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--index=0", "--expect-id=0x031", "--expect-x=1",
+       "--expect-y=2", "--expect-size=6", "--expect-layer=0", "--format=json"},
+      &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  const auto result = nlohmann::json::parse(output);
+  const auto& removal = result.at("Remove Object");
+  EXPECT_EQ(removal.at("object_id"), "0x031");
+  EXPECT_EQ(removal.at("objects_before"), 3);
+  EXPECT_EQ(removal.at("objects_after"), 2);
+  EXPECT_EQ(removal.at("mode"), "dry-run");
+  EXPECT_EQ(removal.at("preflight_status"), "success");
+  EXPECT_EQ(rom.vector(), before);
+}
+
+TEST(DungeonEditCommandsTest, RemoveObjectWriteSavesAndReopens) {
+  Rom rom;
+  InitializeDescribeRoomObjectsRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  WriteRomFile(rom, cleanup.rom_path);
+  rom.set_filename(cleanup.rom_path.string());
+
+  handlers::DungeonRemoveObjectCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--room=0x00", "--index=0", "--expect-id=0x031",
+                   "--expect-x=1", "--expect-y=2", "--expect-size=6",
+                   "--expect-layer=0", "--write", "--format=json"},
+                  &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_THAT(output, HasSubstr("\"preflight_status\": \"success\""));
+  EXPECT_THAT(output, HasSubstr("\"write_status\": \"success\""));
+  EXPECT_THAT(output, HasSubstr("\"save_status\": \"saved\""));
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 1);
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(cleanup.rom_path.string()).ok());
+  const zelda3::Room room = zelda3::LoadRoomFromRom(&reopened, 0);
+  ASSERT_EQ(room.GetTileObjects().size(), 3u);
+  EXPECT_EQ(room.GetTileObjects()[0].id_, 0x112);
+  EXPECT_EQ(room.GetTileObjects()[1].id_, 0xF92);
+}
+
 TEST(DungeonEditCommandsTest, PlaceObjectRejectsInvalidSize) {
   handlers::DungeonPlaceObjectCommandHandler handler;
   std::string output;
