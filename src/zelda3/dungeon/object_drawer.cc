@@ -269,7 +269,7 @@ absl::Status ObjectDrawer::DrawObject(
 
   // Check for custom object override first (guarded by feature flag).
   // We check this BEFORE routine lookup to allow overriding vanilla objects.
-  if (HasActiveCustomObjectOverride(object, allow_track_corner_aliases_)) {
+  if (HasActiveCustomObjectOverride(object)) {
     // Custom objects default to drawing on the target layer only, unless all_bgs_ is set
     // Mask propagation is difficult without dimensions, so we rely on explicit transparency in the custom object tiles if needed
 
@@ -394,7 +394,8 @@ absl::Status ObjectDrawer::DrawObject(
     // $7E2000.
     dispatch_bg = &bg1;
     registry_primary_layer_ = RoomObject::LayerType::BG1;
-  } else if (!is_both_bg && routine_id == DrawRoutineIds::kAutoStairs) {
+  } else if (!is_both_bg && (routine_id == DrawRoutineIds::kAutoStairs ||
+                             routine_id == DrawRoutineIds::kSanctuaryWall)) {
     registry_secondary_bg_ = &other_bg;
   } else if (!is_both_bg &&
              routine_id == DrawRoutineIds::kStraightInterRoomStairs) {
@@ -534,8 +535,7 @@ absl::Status ObjectDrawer::DrawObjectList(
   int to_bg1 = 0, to_bg2 = 0, both_bgs = 0;
 
   for (const auto& object : objects) {
-    const auto semantics =
-        GetEffectiveObjectLayerSemantics(object, allow_track_corner_aliases_);
+    const auto semantics = GetEffectiveObjectLayerSemantics(object);
     switch (semantics.effective_bg_layer) {
       case EffectiveBgLayer::kBg1:
         ++to_bg1;
@@ -1559,6 +1559,14 @@ void ObjectDrawer::InitializeDrawRoutines() {
          std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
         self->DrawUsingRegistryRoutine(DrawRoutineIds::kVitreousGooDamage, obj,
                                        bg, tiles, state);
+      };
+
+  ensure_index(DrawRoutineIds::kSanctuaryWall);
+  draw_routines_[DrawRoutineIds::kSanctuaryWall] =
+      [](ObjectDrawer* self, const RoomObject& obj, gfx::BackgroundBuffer& bg,
+         std::span<const gfx::TileInfo> tiles, const DungeonState* state) {
+        self->DrawUsingRegistryRoutine(DrawRoutineIds::kSanctuaryWall, obj, bg,
+                                       tiles, state);
       };
 
   // Routine 130 - Custom Object (Oracle of Secrets 0x31, 0x32)
@@ -3064,10 +3072,18 @@ void yaze::zelda3::ObjectDrawer::DrawCustomObject(
   int tile_y = obj.y_;
 
   for (const auto& entry : custom_obj->tiles) {
-    // entry.tile_data is vhopppcc cccccccc (SNES tilemap word format)
+    // Oracle's custom-object handlers advance past a zero payload word without
+    // storing it. Preserve the tile already underneath this object.
+    if (entry.tile_data == 0) {
+      continue;
+    }
+    // entry.tile_data is the raw vhopppcc cccccccc source word. Resolve the
+    // effective runtime word here so source editing remains lossless.
+    const uint16_t runtime_word =
+        CustomObjectRuntimeTileWord(obj.id_, entry.tile_data);
     // Convert to TileInfo and render using WriteTile8 (not SetTileAt which
     // only stores to buffer without rendering)
-    gfx::TileInfo tile_info = gfx::WordToTileInfo(entry.tile_data);
+    gfx::TileInfo tile_info = gfx::WordToTileInfo(runtime_word);
     WriteTile8(bg, tile_x + entry.rel_x, tile_y + entry.rel_y, tile_info);
   }
 }

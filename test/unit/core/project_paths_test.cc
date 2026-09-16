@@ -227,6 +227,72 @@ TEST(ProjectPathsTest, LoneCarriageReturnSeparatorsFailExplicitly) {
   }
 }
 
+// The reader refuses a lone CR, so the writer must refuse to emit one.
+// Values are streamed verbatim — metadata.description and resource labels
+// injected from hack_manifest.json among them — so a lone CR pasted from an
+// old-Mac source would otherwise round-trip through Save() and leave the
+// project permanently unopenable, with the previous good file already
+// overwritten. Driven through Save() rather than SerializeToString(), which
+// is private, and because the property that matters is that the existing
+// descriptor survives the refusal.
+TEST(ProjectPathsTest, SaveRefusesToWriteALoneCarriageReturn) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_cr_writer"));
+  const auto project_file = temp.path() / "CrWriter.yaze";
+
+  YazeProject good;
+  good.filepath = project_file.string();
+  good.name = "Good Project";
+  good.rom_filename = (temp.path() / "rom.sfc").string();
+  ASSERT_TRUE(good.Save().ok());
+  const std::string original = ReadTextFile(project_file);
+  ASSERT_NE(original.find("Good Project"), std::string::npos);
+
+  YazeProject poisoned = good;
+  poisoned.name = "Carriage Return\rInjected";
+  const auto status = poisoned.Save();
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_NE(status.message().find("carriage return"), std::string::npos)
+      << status.message();
+  // The refusal must not have consumed the good descriptor.
+  EXPECT_EQ(ReadTextFile(project_file), original);
+}
+
+// CRLF inside a value is fine in both directions: the reader normalizes it.
+TEST(ProjectPathsTest, SaveAcceptsCrLfInsideAValue) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_project_crlf_writer"));
+  YazeProject project;
+  project.filepath = (temp.path() / "CrLfWriter.yaze").string();
+  project.name = "Windows\r\nStyle";
+  project.rom_filename = (temp.path() / "rom.sfc").string();
+
+  EXPECT_TRUE(project.Save().ok());
+}
+
+TEST(ProjectPathsTest, CustomObjectSubtypeSlotsRoundTripThroughIni) {
+  ScopedTempDir temp(MakeUniqueTempDir("yaze_custom_object_slots"));
+  const auto project_file = temp.path() / "CustomObjectSlots.yaze";
+
+  YazeProject project;
+  project.filepath = project_file.string();
+  project.name = "Custom Object Slots";
+  project.custom_object_files = {
+      {0x31, {"", "", "track_corner.bin", "", "track_floor.bin"}},
+      {0x32, {"furnace.bin", "", "chair.bin"}},
+  };
+
+  ASSERT_TRUE(project.Save().ok());
+  const std::string serialized = ReadTextFile(project_file);
+  EXPECT_NE(serialized.find("object_0x31=,,track_corner.bin,,track_floor.bin"),
+            std::string::npos);
+  EXPECT_NE(serialized.find("object_0x32=furnace.bin,,chair.bin"),
+            std::string::npos);
+
+  YazeProject reopened;
+  ASSERT_TRUE(reopened.LoadFromString(serialized, project_file.string()).ok());
+  EXPECT_EQ(reopened.custom_object_files, project.custom_object_files);
+}
+
 #ifndef __EMSCRIPTEN__
 TEST(ProjectPathsTest, SaveAtomicallyReplacesExistingDescriptor) {
   ScopedTempDir temp(MakeUniqueTempDir("yaze_project_atomic_save"));

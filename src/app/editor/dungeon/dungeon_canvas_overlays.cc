@@ -3,14 +3,15 @@
 #include <cstdint>
 #include <span>
 #include <string>
+#include <string_view>
 #include <vector>
 #include "util/i18n/tr.h"
 
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
-#include "app/editor/graphics/screen_editor_internal.h"
 #include "app/gfx/resource/arena.h"
+#include "app/gfx/resource/bitmap_texture_queue.h"
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/layout_helpers.h"
 #include "dungeon_canvas_viewer.h"
@@ -18,22 +19,24 @@
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
+#include "zelda3/dungeon/palette_debug.h"
 #include "zelda3/resource_labels.h"
 #include "zelda3/sprite/sprite.h"
+#include "zelda3/sprite/sprite_oam_tables.h"
 
 namespace yaze::editor {
 
 namespace {
 
-constexpr int kSpritePreviewSize = 64;
-constexpr int kSpritePreviewAnchor = 16;
-
 bool DrawSpritePreviewPixels(const gui::CanvasRuntime& rt,
-                             const std::vector<uint8_t>& preview, int room_x,
-                             int room_y,
+                             const std::vector<uint8_t>& preview,
+                             const SDL_Rect& bounds, int room_x, int room_y,
                              const std::array<SDL_Color, 256>& color_table) {
-  if (!rt.draw_list ||
-      preview.size() < kSpritePreviewSize * kSpritePreviewSize) {
+  if (!rt.draw_list || bounds.w <= 0 || bounds.h <= 0) {
+    return false;
+  }
+  const size_t row_stride = static_cast<size_t>(bounds.w);
+  if (static_cast<size_t>(bounds.h) > preview.size() / row_stride) {
     return false;
   }
 
@@ -45,11 +48,11 @@ bool DrawSpritePreviewPixels(const gui::CanvasRuntime& rt,
   bool drew_any_pixel = false;
 
   rt.draw_list->PushClipRect(rt.canvas_p0, canvas_max, true);
-  for (int y = 0; y < kSpritePreviewSize; ++y) {
+  for (int y = 0; y < bounds.h; ++y) {
     int x = 0;
-    while (x < kSpritePreviewSize) {
+    while (x < bounds.w) {
       const uint8_t palette_index =
-          preview[static_cast<size_t>(y * kSpritePreviewSize + x)];
+          preview[static_cast<size_t>(y) * row_stride + x];
       const SDL_Color& palette_color = color_table[palette_index];
       // RenderPreviewGraphics reserves index 0 for transparency. Unlike the
       // former 0xFF sentinel, index 0 cannot collide with a visible dungeon
@@ -62,9 +65,8 @@ bool DrawSpritePreviewPixels(const gui::CanvasRuntime& rt,
                                    palette_color.b, palette_color.a);
 
       const int start_x = x;
-      while (x < kSpritePreviewSize &&
-             preview[static_cast<size_t>(y * kSpritePreviewSize + x)] ==
-                 palette_index) {
+      while (x < bounds.w && preview[static_cast<size_t>(y) * row_stride + x] ==
+                                 palette_index) {
         ++x;
       }
 
@@ -114,6 +116,17 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
   const int entity_size = is_touch ? 24 : 16;
   const auto sprite_colors =
       zelda3::BuildDungeonSpriteRenderPalette(room, game_data_);
+  const std::string_view hack_name =
+      project_ != nullptr && project_->hack_manifest.loaded()
+          ? std::string_view(project_->hack_manifest.hack_name())
+          : std::string_view{};
+  if (sprite_preview_resources_.SetContext(
+          project_ ? project_->filepath : std::string{},
+          project_ ? project_->GetAbsolutePath(project_->assets_folder)
+                   : std::string{},
+          hack_name)) {
+    sprite_preview_cache_.Clear();
+  }
   const auto& room_gfx = room.get_gfx_buffer();
   const std::span<const uint8_t> room_gfx_span(room_gfx.data(),
                                                room_gfx.size());
@@ -127,13 +140,35 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
       ImVec4 sprite_color = sprite.layer() == 0 ? theme.dungeon_sprite_layer0
                                                 : theme.dungeon_sprite_layer1;
 
-      zelda3::Sprite preview_sprite = sprite;
-      preview_sprite.RenderPreviewGraphics(room_gfx_span);
-      const auto* preview = preview_sprite.preview_graphics();
-      const bool drew_preview =
-          preview && DrawSpritePreviewPixels(
-                         rt, *preview, canvas_x - kSpritePreviewAnchor,
-                         canvas_y - kSpritePreviewAnchor, sprite_colors);
+      const auto* preview_layout =
+          zelda3::SpriteOamRegistry::GetPreviewOverride(sprite.id(), hack_name);
+      const SpritePreviewKey preview_key{room.graphics_revision(), sprite.id(),
+                                         sprite.subtype(), sprite.IsOverlord()};
+      // Revision zero means the room has not assembled its graphics yet and
+      // is not a reusable graphics identity.
+      auto* preview = room.graphics_revision() != 0
+                          ? sprite_preview_cache_.Get(preview_key)
+                          : nullptr;
+      CachedSpritePreview uncached_preview;
+      if (preview == nullptr) {
+        zelda3::Sprite preview_sprite = sprite;
+        preview_sprite.RenderPreviewGraphics(
+            room_gfx_span, preview_layout,
+            sprite_preview_resources_.GetGraphics(preview_layout));
+        CachedSpritePreview rendered{*preview_sprite.preview_graphics(),
+                                     preview_sprite.preview_bounds()};
+        if (room.graphics_revision() != 0) {
+          preview =
+              sprite_preview_cache_.Insert(preview_key, std::move(rendered));
+        } else {
+          uncached_preview = std::move(rendered);
+          preview = &uncached_preview;
+        }
+      }
+      const SDL_Rect preview_bounds = preview->bounds;
+      const bool drew_preview = DrawSpritePreviewPixels(
+          rt, preview->pixels, preview_bounds, canvas_x + preview_bounds.x,
+          canvas_y + preview_bounds.y, sprite_colors);
 
       if (drew_preview) {
         gui::DrawOutline(rt, canvas_x, canvas_y, entity_size, entity_size,
@@ -143,7 +178,9 @@ void DungeonCanvasViewer::RenderSprites(const gui::CanvasRuntime& rt,
                       sprite_color);
       }
 
-      std::string full_name = zelda3::GetSpriteLabel(sprite.id());
+      std::string full_name = preview_layout != nullptr
+                                  ? preview_layout->name
+                                  : zelda3::GetSpriteLabel(sprite.id());
       std::string sprite_text;
       if (full_name.length() > 12) {
         sprite_text = absl::StrFormat("%02X %s..", sprite.id(),
@@ -447,6 +484,29 @@ DungeonCanvasViewer::GetCollisionOverlayCache(int room_id) {
 }
 
 gfx::Bitmap* DungeonCanvasViewer::PrepareRoomCompositeBitmap(int room_id) {
+  gfx::Bitmap* composite =
+      PrepareRoomCompositeWithOutput(room_id, primary_composite_output_);
+  zelda3::Room* room = rooms_ ? rooms_->GetIfMaterialized(room_id) : nullptr;
+  if (composite != nullptr && room != nullptr) {
+    zelda3::PaletteDebugger::Get().SetCurrentPresentation(
+        composite, room->rendered_dungeon_palette(), room->rendered_palette());
+  }
+  return composite;
+}
+
+gfx::Bitmap* DungeonCanvasViewer::PrepareConnectedRoomCompositeBitmap(
+    int room_id) {
+  auto& entry = connected_composite_outputs_[room_id];
+  if (!entry.output) {
+    entry.output = std::make_unique<RoomCompositeOutput>();
+  }
+  entry.last_used_frame =
+      ImGui::GetCurrentContext() != nullptr ? ImGui::GetFrameCount() : 0;
+  return PrepareRoomCompositeWithOutput(room_id, *entry.output);
+}
+
+gfx::Bitmap* DungeonCanvasViewer::PrepareRoomCompositeWithOutput(
+    int room_id, RoomCompositeOutput& output) {
   if (room_id < 0 || room_id >= zelda3::kNumberOfRooms || !rooms_ || !rom_ ||
       !rom_->is_loaded()) {
     return nullptr;
@@ -457,17 +517,8 @@ gfx::Bitmap* DungeonCanvasViewer::PrepareRoomCompositeBitmap(int room_id) {
     return nullptr;
   }
   auto& room = *room_ptr;
-  // Connected/compare views revisit already-materialized rooms. Honor Room's
-  // render dirtiness so those cached buffers refresh lazily before compositing.
-  // Do not apply this viewer's active-room entrance override to an arbitrary
-  // connected target; the room retains its own render context.
-  room.PrepareForRender();
-
   auto& layer_mgr = GetRoomLayerManager(room_id);
-  layer_mgr.ApplyLayerMerging(room.layer_merging());
-  layer_mgr.ApplyRoomEffect(room.effect());
-
-  auto& composite = room.GetCompositeBitmap(layer_mgr);
+  auto& composite = output.Prepare(room, layer_mgr);
   if (!composite.is_active() || composite.width() <= 0) {
     return nullptr;
   }
@@ -477,7 +528,7 @@ gfx::Bitmap* DungeonCanvasViewer::PrepareRoomCompositeBitmap(int room_id) {
   // queues UPDATE when RoomLayerManager::CompositeToOutput marked the bitmap
   // modified, and stamps metadata().purpose so canvas_rendering's diagnostic
   // log can identify the bitmap.
-  internal::EnsureCompositeBitmapTextureQueued(composite);
+  gfx::EnsureCompositeBitmapTextureQueued(composite);
   return &composite;
 }
 

@@ -441,8 +441,8 @@ void ObjectDimensionTable::InitializeDefaults() {
   // 0x4B: Decor 2x2 spaced 12 - spacing 14 tiles
   dimensions_[0x4B] = {2, 2, Dir::Horizontal, 14, false};
 
-  // 0x4C: Bar 4x3 - count=(size+1), step=4
-  dimensions_[0x4C] = {4, 3, Dir::Horizontal, 4, false};
+  // 0x4C: two 1x3 caps around 2*(size+1) middle columns ($0194BD).
+  dimensions_[0x4C] = {4, 3, Dir::Horizontal, 2, false};
 
   // 0x4D-0x4F: Shelf 4x4 - count=(size+1), step=4
   for (int id = 0x4D; id <= 0x4F; id++) {
@@ -769,9 +769,9 @@ void ObjectDimensionTable::InitializeDefaults() {
   // ============================================================================
   // Subtype 2 objects (0x100-0x13F)
   // ============================================================================
-  // Layout corners - 4x4 repeated horizontally
+  // Fixed layout corners: RoomDraw_4x4 does not read a size field.
   for (int id = 0x100; id <= 0x107; id++) {
-    dimensions_[id] = {4, 4, Dir::Horizontal, 4, false};
+    dimensions_[id] = {4, 4, Dir::None, 0, false};
   }
 
   // Other 4x4 patterns
@@ -790,8 +790,8 @@ void ObjectDimensionTable::InitializeDefaults() {
   for (int id = 0x118; id <= 0x11B; id++) {
     dimensions_[id] = {2, 2, Dir::Horizontal, 2, false};
   }
-  // 0x11C: Rightwards 4x4 (repeatable)
-  dimensions_[0x11C] = {4, 4, Dir::Horizontal, 4, false};
+  // 0x11C: fixed RoomDraw_4x4 alias
+  dimensions_[0x11C] = {4, 4, Dir::None, 0, false};
   // 0x11D: 2x3 pillar (repeated)
   dimensions_[0x11D] = {2, 3, Dir::Horizontal, 4, false};
   // 0x11E: Single 2x2
@@ -806,16 +806,16 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0x122] = {4, 5, Dir::None, 0, false};  // Bed
   dimensions_[0x123] = {4, 3, Dir::Horizontal, 8,
                         false};  // Table (8-tile spacing)
-  // 0x124-0x125: 4x4
-  dimensions_[0x124] = {4, 4, Dir::Horizontal, 4, false};
-  dimensions_[0x125] = {4, 4, Dir::Horizontal, 4, false};
+  // 0x124-0x125: fixed RoomDraw_4x4 aliases
+  dimensions_[0x124] = {4, 4, Dir::None, 0, false};
+  dimensions_[0x125] = {4, 4, Dir::None, 0, false};
   // 0x126: 2x3 pillar (repeated)
   dimensions_[0x126] = {2, 3, Dir::Horizontal, 4, false};
   // 0x127: Rightwards 2x2 (repeatable)
   dimensions_[0x127] = {2, 2, Dir::Horizontal, 2, false};
   dimensions_[0x128] = {4, 5, Dir::None, 0, false};  // Bed variant
-  // 0x129: 4x4
-  dimensions_[0x129] = {4, 4, Dir::Horizontal, 4, false};
+  // 0x129: fixed RoomDraw_4x4 alias
+  dimensions_[0x129] = {4, 4, Dir::None, 0, false};
   // 0x12A: Mario portrait (fixed 4x2)
   dimensions_[0x12A] = {4, 2, Dir::None, 0, false};
   // 0x12B: Rightwards 2x2 (repeatable)
@@ -836,8 +836,8 @@ void ObjectDimensionTable::InitializeDefaults() {
   for (int id = 0x138; id <= 0x13B; id++) {
     dimensions_[id] = {4, 3, Dir::None, 0, false};
   }
-  // 0x13C: Sanctuary wall (repeatable 4x4)
-  dimensions_[0x13C] = {4, 4, Dir::Horizontal, 4, false};
+  // 0x13C: fixed Sanctuary facade; bottom-center 4x3 remains empty.
+  dimensions_[0x13C] = {24, 6, Dir::None, 0, false};
   // 0x13D: Table 4x3 (repeatable with 8-tile spacing)
   dimensions_[0x13D] = {4, 3, Dir::Horizontal, 8, false};
   dimensions_[0x13E] = {6, 3, Dir::None, 0, false};  // Utility 6x3

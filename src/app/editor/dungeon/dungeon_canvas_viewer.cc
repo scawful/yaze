@@ -22,6 +22,8 @@ bool HasSameObjectIdentity(const zelda3::RoomObject& lhs,
 
 }  // namespace
 
+DungeonCanvasViewer::~DungeonCanvasViewer() = default;
+
 void DungeonCanvasViewer::RecordVisitedRoom(int room_id) {
   if (room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
     return;
@@ -38,8 +40,32 @@ void DungeonCanvasViewer::RecordVisitedRoom(int room_id) {
 }
 
 void DungeonCanvasViewer::SetProject(const project::YazeProject* project) {
+  if (project_ != project) {
+    InvalidateExternalSpriteResources();
+  }
   project_ = project;
   ApplyTrackCollisionConfig();
+}
+
+void DungeonCanvasViewer::InvalidateExternalSpriteResources() {
+  sprite_preview_resources_.SetContext({}, {}, {});
+  sprite_preview_cache_.Clear();
+}
+
+zelda3::RoomLayerManager& DungeonCanvasViewer::GetRoomLayerManager(
+    int room_id) {
+  auto& state = room_layer_managers_[room_id];
+  const auto* room = rooms_ ? rooms_->GetIfMaterialized(room_id) : nullptr;
+  // Initialize before controls can edit the manager. Reapply room defaults only
+  // when the header changes, not on every draw, so manual blend choices persist.
+  if (room && (!state.room_settings ||
+               state.room_settings->first != room->layer_merging() ||
+               state.room_settings->second != room->effect())) {
+    state.manager.ApplyLayerMerging(room->layer_merging());
+    state.manager.ApplyRoomEffect(room->effect());
+    state.room_settings = std::make_pair(room->layer_merging(), room->effect());
+  }
+  return state.manager;
 }
 
 void DungeonCanvasViewer::TriggerChangePing() {
@@ -172,6 +198,10 @@ void DungeonCanvasViewer::RefreshRomBackedState(Rom* rom,
                                                 zelda3::GameData* game_data,
                                                 DungeonRoomStore* rooms,
                                                 int room_id) {
+  // Refresh can replace Room values in place while all backing pointers stay
+  // identical. Discard presentation stamps before those replacements occur.
+  ResetRoomCompositeOutputs();
+  InvalidateExternalSpriteResources();
   ClearPreviewObject();
   object_interaction_.CancelPlacement();
   object_interaction_.mode_manager().CancelCurrentMode();
@@ -197,12 +227,38 @@ void DungeonCanvasViewer::RefreshRomBackedState(Rom* rom,
   change_ping_start_time_ = -1.0;
 }
 
+void DungeonCanvasViewer::ResetRoomCompositeOutputs() {
+  primary_composite_output_.Retire();
+  connected_composite_outputs_.clear();
+  connected_composite_prune_frame_ = -1;
+}
+
+void DungeonCanvasViewer::PruneConnectedRoomCompositeOutputs() {
+  if (ImGui::GetCurrentContext() == nullptr) {
+    return;
+  }
+  const int frame = ImGui::GetFrameCount();
+  if (connected_composite_prune_frame_ == frame) {
+    return;
+  }
+  connected_composite_prune_frame_ = frame;
+
+  // Keep one completed-frame grace period. This bounds the cache to the union
+  // of recently visible rooms without retiring a texture still referenced by
+  // another deferred ImGui draw in this frame.
+  std::erase_if(connected_composite_outputs_, [frame](const auto& item) {
+    return item.second.last_used_frame >= 0 &&
+           item.second.last_used_frame < frame - 1;
+  });
+}
+
 void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   current_room_id_ = room_id;
   if (!ValidateRoomCanvasRequest(room_id)) {
     return;
   }
   RecordVisitedRoom(room_id);
+  PruneConnectedRoomCompositeOutputs();
 
   ImGui::BeginGroup();
   const auto frame_opts = BuildRoomCanvasFrameOptions();
@@ -210,6 +266,13 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   zelda3::Room* active_room = PrepareActiveRoomForCanvasFrame(room_id);
   DrawCompactLayerToggles(room_id);
   ImGui::EndGroup();
+
+  // BeginCanvas renders context-menu callbacks before the room draw pass. Bind
+  // this viewer's bitmap and palette first so issue capture cannot sample a
+  // compare viewer or auxiliary preview left active by the previous frame.
+  if (active_room != nullptr) {
+    PrepareRoomCompositeBitmap(room_id);
+  }
 
   PopulateCanvasContextMenu(room_id);
 

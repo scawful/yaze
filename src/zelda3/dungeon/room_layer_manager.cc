@@ -192,7 +192,7 @@ void RoomLayerManager::CompositeToOutput(Room& room,
         dst_data[idx] = lower_pixel;
       }
     }
-  } else if (use_priority_compositing_) {
+  } else if (use_priority_compositing_ || current_merge_type_id_ == 0x07) {
     // Priority compositing (SNES Mode 1):
     // - BG2 priority=0 is behind BG1 priority=0.
     // - BG2 priority=1 can appear above BG1 priority=0.
@@ -200,8 +200,10 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     //
     // We first combine Layout+Objects for each BG (objects overwrite layout),
     // then resolve BG1 vs BG2 per-pixel using the stored priority buffers.
-    // When BG2 is translucent (water rooms, color math), we blend colors
-    // using the SDL palette instead of simple overwrite.
+    // Mode 7 needs palette-aware full addition even with tile priority off.
+    // In that case rank_for below retains the simple upper-over-lower order.
+    // Other translucent modes retain the existing half-add approximation.
+    const bool full_add_color_math = current_merge_type_id_ == 0x07;
     // Ensure the output palette matches the room's SDL palette.
     if (layer_enabled(LayerType::BG1_Layout, bg1_layout)) {
       CopyPaletteIfNeeded(bg1_layout.bitmap());
@@ -217,17 +219,20 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     }
 
     // Check if BG2 uses translucent blending (water rooms, color math effects).
-    // The editor approximates half-add color math by averaging overlapping
-    // BG1+BG2 RGB values and mapping the result back into the indexed palette.
-    const bool bg2_translucent = (GetLayerBlendMode(LayerType::BG2_Layout) ==
-                                  LayerBlendMode::Translucent) ||
-                                 (GetLayerBlendMode(LayerType::BG2_Objects) ==
-                                  LayerBlendMode::Translucent);
+    // The editor maps color-math results back into the indexed palette. This
+    // remains an approximation when the resulting RGB color is absent.
+    const bool bg2_layout_translucent =
+        bg2_layout_on &&
+        GetLayerBlendMode(LayerType::BG2_Layout) == LayerBlendMode::Translucent;
+    const bool bg2_objects_translucent =
+        bg2_obj_on && GetLayerBlendMode(LayerType::BG2_Objects) ==
+                          LayerBlendMode::Translucent;
 
     // Build palette lookup table for color blending (only when needed).
     // Extract from the output bitmap's SDL palette so we can do RGB math.
     std::vector<SDL_Color> pal_lut;
-    if (bg2_translucent && output.surface() && output.surface()->format &&
+    if ((bg2_layout_translucent || bg2_objects_translucent) &&
+        output.surface() && output.surface()->format &&
         output.surface()->format->palette) {
       SDL_Palette* sdl_pal = output.surface()->format->palette;
       int n = std::min(sdl_pal->ncolors, 256);
@@ -238,7 +243,7 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     }
 
     // Nearest-color lookup for blended result.
-    // Searches within the same 16-color bank as the BG1 pixel to preserve
+    // Searches within the same 16-color bank as the winning pixel to preserve
     // palette coherence (avoids cross-bank color artifacts).
     auto find_nearest_in_bank = [&](uint8_t base_idx, uint8_t r, uint8_t g,
                                     uint8_t b) -> uint8_t {
@@ -265,9 +270,20 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     // for the same winner/other palette pair in this frame.
     std::array<uint8_t, 256 * 256> blend_cache{};
     std::array<uint8_t, 256 * 256> blend_cache_valid{};
+    auto blend_channel = [&](uint8_t first, uint8_t second) -> uint8_t {
+      if (!full_add_color_math) {
+        return static_cast<uint8_t>((first + second) / 2);
+      }
+      // USDASM $02:A20C selects CGADSUB=$32 for mode 7 (full add),
+      // whereas $02:A212 selects $62 for mode 4 (half add). Saturate in
+      // five-bit color space, then expand to the room's SDL palette format.
+      const int sum = std::min(31, (first >> 3) + (second >> 3));
+      return static_cast<uint8_t>((sum << 3) | (sum >> 2));
+    };
     auto resolve_blended_index = [&](uint8_t winner_idx,
                                      uint8_t other_idx) -> uint8_t {
-      if (pal_lut.empty() || winner_idx == other_idx) {
+      if (pal_lut.empty() ||
+          (!full_add_color_math && winner_idx == other_idx)) {
         return winner_idx;
       }
       const size_t key = (static_cast<size_t>(winner_idx) << 8) |
@@ -278,9 +294,9 @@ void RoomLayerManager::CompositeToOutput(Room& room,
 
       const SDL_Color& c1 = pal_lut[winner_idx];
       const SDL_Color& c2 = pal_lut[other_idx];
-      const uint8_t blend_r = static_cast<uint8_t>((c1.r + c2.r) / 2);
-      const uint8_t blend_g = static_cast<uint8_t>((c1.g + c2.g) / 2);
-      const uint8_t blend_b = static_cast<uint8_t>((c1.b + c2.b) / 2);
+      const uint8_t blend_r = blend_channel(c1.r, c2.r);
+      const uint8_t blend_g = blend_channel(c1.g, c2.g);
+      const uint8_t blend_b = blend_channel(c1.b, c2.b);
       const uint8_t resolved =
           find_nearest_in_bank(winner_idx, blend_r, blend_g, blend_b);
       blend_cache[key] = resolved;
@@ -294,7 +310,7 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     };
 
     auto rank_for = [&](bool is_bg1, uint8_t pri) -> int {
-      pri = normalize_pri(pri);
+      pri = use_priority_compositing_ ? normalize_pri(pri) : 0;
       if (is_bg1) {
         return pri ? 3 : 1;
       }
@@ -334,6 +350,7 @@ void RoomLayerManager::CompositeToOutput(Room& room,
 
       uint8_t bg2_pixel = 255;
       uint8_t bg2_pri = 0;
+      bool bg2_pixel_translucent = false;
       const bool bg2_obj_wrote =
           bg2_obj_on && ((idx < static_cast<int>(bg2_obj_cov.size()) &&
                           bg2_obj_cov[idx] != 0) ||
@@ -341,9 +358,11 @@ void RoomLayerManager::CompositeToOutput(Room& room,
       if (bg2_obj_wrote) {
         bg2_pixel = bg2_obj_px[idx];
         bg2_pri = bg2_obj_pri[idx];
+        bg2_pixel_translucent = bg2_objects_translucent;
       } else if (bg2_layout_on && !IsTransparent(bg2_layout_px[idx])) {
         bg2_pixel = bg2_layout_px[idx];
         bg2_pri = bg2_layout_pri[idx];
+        bg2_pixel_translucent = bg2_layout_translucent;
       }
 
       if (IsTransparent(bg1_pixel)) {
@@ -361,10 +380,11 @@ void RoomLayerManager::CompositeToOutput(Room& room,
       const int r1 = rank_for(/*is_bg1=*/true, bg1_pri);
       const int r2 = rank_for(/*is_bg1=*/false, bg2_pri);
 
-      // SNES color math: when BG2 is translucent and both layers are visible,
-      // blend the two pixel colors using (main + sub) / 2 formula.
-      // This matches the SNES half-color-math used for water rooms.
-      if (bg2_translucent && !pal_lut.empty()) {
+      // Resolve overlapping colors using mode 7 full add or the existing
+      // half-add approximation. Indexed output still quantizes to a palette.
+      // Blend only the selected BG2 source. Hidden or overwritten sources do
+      // not participate in this pixel's color math.
+      if (bg2_pixel_translucent && !pal_lut.empty()) {
         const bool bg1_wins = (r1 >= r2);
         const uint8_t winner = bg1_wins ? bg1_pixel : bg2_pixel;
         const uint8_t other = bg1_wins ? bg2_pixel : bg1_pixel;

@@ -26,9 +26,8 @@ struct TemplateDescriptor {
   int skill_level;  // 1 beginner, 2 intermediate, 3 advanced
 };
 
-// Mirror of the catalog the welcome screen's template section uses. Kept
-// inline here so the dialog doesn't depend on welcome_screen internals; both
-// lists are short and stable, duplication is cheaper than plumbing.
+// Canonical visual catalog for guided project creation. Command-palette
+// actions use the same stable template IDs.
 constexpr TemplateDescriptor kTemplates[] = {
     {"Vanilla ROM Hack", ICON_MD_COTTAGE, "Vanilla ROM Hack",
      "Edit rooms, sprites, or graphics without custom code.",

@@ -338,15 +338,14 @@ void Controller::DoRender() const {
   // This MUST be called even in headless mode to end the ImGui frame
   window_backend_->RenderImGui(renderer_.get());
 
+  // Capture the rendered backbuffer before Present invalidates its contents.
+  ProcessScreenshotRequests();
   renderer_->Present();
   gfx::Arena::Get().DrainRetiredBitmaps(renderer_.get());
 
 #if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
   test::TestManager::Get().OnPostSwap();
 #endif
-
-  // Process any pending screenshot requests on the main thread after present
-  ProcessScreenshotRequests();
 
   // Get delta time AFTER render for accurate measurement
   float delta_time = TimingManager::Get().Update();
@@ -405,16 +404,30 @@ void Controller::RequestScreenshot(const ScreenshotRequest& request) {
 
 void Controller::ProcessScreenshotRequests() const {
 #ifdef YAZE_WITH_GRPC
-  std::lock_guard<std::mutex> lock(screenshot_mutex_);
-  while (!screenshot_requests_.empty()) {
-    auto request = screenshot_requests_.front();
-    screenshot_requests_.pop();
+  std::queue<ScreenshotRequest> requests;
+  {
+    std::lock_guard<std::mutex> lock(screenshot_mutex_);
+    requests.swap(screenshot_requests_);
+  }
+  while (!requests.empty()) {
+    auto request = std::move(requests.front());
+    requests.pop();
 
-    // Perform capture on main thread
-    auto result = test::CaptureHarnessScreenshot(request.preferred_path,
-                                                 request.reveal_to_user);
+    absl::StatusOr<test::ScreenshotArtifact> result =
+        absl::FailedPreconditionError(
+            "Screenshots require a rendered GUI frame; use service mode "
+            "instead of headless mode");
+    if (!Application::Instance().GetConfig().headless) {
+      result = request.window_title.empty()
+                   ? test::CaptureHarnessScreenshot(request.preferred_path,
+                                                    request.reveal_to_user,
+                                                    request.format)
+                   : test::CaptureWindowByName(
+                         request.window_title, request.preferred_path,
+                         request.reveal_to_user, request.format);
+    }
     if (request.callback) {
-      request.callback(result);
+      request.callback(std::move(result));
     }
   }
 #endif

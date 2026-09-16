@@ -10,6 +10,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/gui/widgets/empty_state.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/door_position.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
@@ -721,16 +722,7 @@ void ObjectEditorContent::DrawSelectedItemInfo() {
 }
 
 void ObjectEditorContent::DrawEmptyState() {
-  const auto& theme = AgentUI::GetTheme();
-
-  ImGui::Spacing();
-  ImGui::TextColored(theme.text_secondary_gray, ICON_MD_MOUSE
-                     " Click any room object, door, sprite, or item in the "
-                     "canvas to inspect it here.");
-  ImGui::TextColored(theme.text_secondary_gray, ICON_MD_OPEN_WITH
-                     " Use Shift-click and drag in the room to edit multiple "
-                     "objects together. Use the placement panels to browse "
-                     "new objects, doors, sprites, and items.");
+  gui::DrawEmptyState(gui::EmptySelectInCanvas());
 }
 
 void ObjectEditorContent::DrawKeyboardShortcutHelp() {

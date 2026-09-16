@@ -183,17 +183,23 @@ class ObjectGeometry {
     int routine_id;
     int16_t object_id;
     uint8_t size;
+    uint64_t custom_asset_generation;
     bool operator==(const CacheKey& o) const {
       return routine_id == o.routine_id && object_id == o.object_id &&
-             size == o.size;
+             size == o.size &&
+             custom_asset_generation == o.custom_asset_generation;
     }
   };
   struct CacheKeyHash {
     size_t operator()(const CacheKey& k) const {
-      return std::hash<uint64_t>()(
+      const size_t object_hash = std::hash<uint64_t>()(
           (static_cast<uint64_t>(k.routine_id) << 32) |
           (static_cast<uint64_t>(static_cast<uint16_t>(k.object_id)) << 8) |
           k.size);
+      const size_t generation_hash =
+          std::hash<uint64_t>()(k.custom_asset_generation);
+      return object_hash ^ (generation_hash + 0x9e3779b9 + (object_hash << 6) +
+                            (object_hash >> 2));
     }
   };
 

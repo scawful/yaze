@@ -6,6 +6,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "absl/strings/string_view.h"
+
 // Must define before including imgui.h
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
@@ -27,6 +29,14 @@ struct Shortcut {
 std::vector<ImGuiKey> ParseShortcut(const std::string& shortcut);
 
 std::string PrintShortcut(const std::vector<ImGuiKey>& keys);
+
+/**
+ * @brief Menu-IA group for a shortcut/command name (File, View, Drawers, …).
+ *
+ * Used by the shortcuts browser and any UI that wants the same buckets as the
+ * menu bar without hard-coding every action.
+ */
+std::string InferShortcutGroup(absl::string_view name);
 
 class ShortcutManager {
  public:

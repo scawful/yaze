@@ -108,6 +108,8 @@ ObjectSelectorContent::ObjectSelectorContent(
           object_editor_->SetCurrentObjectType(obj.id_);
         }
       });
+  object_selector_.SetPlacementInvalidatedCallback(
+      [this]() { CancelPlacement(); });
 }
 
 DungeonCanvasViewer* ObjectSelectorContent::ResolveCanvasViewer() {
@@ -396,6 +398,16 @@ void ObjectSelectorContent::CancelPlacement() {
     canvas_viewer_->ClearPreviewObject();
     canvas_viewer_->object_interaction().CancelPlacement();
   }
+}
+
+void ObjectSelectorContent::DetachRuntimeContext() {
+  CancelPlacement();
+  canvas_viewer_ = nullptr;
+  canvas_viewer_provider_ = {};
+  open_object_editor_callback_ = {};
+  rom_ = nullptr;
+  object_editor_.reset();
+  object_selector_.DetachRuntimeContext();
 }
 
 }  // namespace editor

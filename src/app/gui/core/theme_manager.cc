@@ -32,6 +32,29 @@ Color RGBA(int r, int g, int b, int a = 255) {
   return {r / 255.0f, g / 255.0f, b / 255.0f, a / 255.0f};
 }
 
+// Scales the spacing metrics already present in ImGui's style by `factor`.
+// Used only after ColorsYaze(), whose values are Classic YAZE's identity and
+// must be scaled in place rather than recomputed from the shared base.
+void ScaleCurrentStyleSpacing(float factor) {
+  if (factor == 1.0f) {
+    return;
+  }
+  ImGuiStyle* style = &ImGui::GetStyle();
+  style->WindowPadding.x *= factor;
+  style->WindowPadding.y *= factor;
+  style->FramePadding.x *= factor;
+  style->FramePadding.y *= factor;
+  style->CellPadding.x *= factor;
+  style->CellPadding.y *= factor;
+  style->ItemSpacing.x *= factor;
+  style->ItemSpacing.y *= factor;
+  style->ItemInnerSpacing.x *= factor;
+  style->ItemInnerSpacing.y *= factor;
+  style->IndentSpacing *= factor;
+  style->ScrollbarSize *= factor;
+  style->GrabMinSize *= factor;
+}
+
 Theme BuildClassicYazeTheme() {
   Theme classic_theme;
   classic_theme.name = "Classic YAZE";
@@ -139,6 +162,7 @@ Theme BuildClassicYazeTheme() {
   classic_theme.window_rounding = 0.0f;
   classic_theme.frame_rounding = 5.0f;
   classic_theme.scrollbar_rounding = 5.0f;
+  classic_theme.grab_rounding = 5.0f;
   classic_theme.tab_rounding = 0.0f;
   classic_theme.enable_glow_effects = false;
 
@@ -244,7 +268,11 @@ void Theme::ApplyToImGui() const {
   style->FrameBorderSize = frame_border_size;
   style->TabBorderSize = frame_border_size;
 
-  // Apply density-based sizing
+  ApplyDensitySizingToImGui();
+}
+
+void Theme::ApplyDensitySizingToImGui() const {
+  ImGuiStyle* style = &ImGui::GetStyle();
   float base_spacing = 8.0f * compact_factor;
   style->WindowPadding = ImVec2(base_spacing, base_spacing);
   style->FramePadding = ImVec2(base_spacing * 0.5f, base_spacing * 0.375f);
@@ -509,7 +537,7 @@ void ThemeManager::CreateFallbackYazeClassic() {
 
   theme.agent.panel_bg = theme.child_bg;
   theme.agent.panel_bg_darker = RGBA(0, 0, 0, 50);
-  theme.agent.panel_border = theme.border;
+  theme.agent.panel_border = RGBA(92, 115, 92, 115);
   theme.agent.accent = theme.accent;
 
   theme.agent.status_active = theme.success;
@@ -626,7 +654,8 @@ absl::Status ThemeManager::LoadThemeFromFile(const std::string& filepath) {
   }
 
   Theme theme;
-  auto parse_status = ParseThemeFile(content, theme);
+  std::set<std::string> declared_keys;
+  auto parse_status = ParseThemeFile(content, theme, &declared_keys);
   if (!parse_status.ok()) {
     return absl::InvalidArgumentError(
         absl::StrFormat("Failed to parse theme file %s: %s", successful_path,
@@ -638,8 +667,9 @@ absl::Status ThemeManager::LoadThemeFromFile(const std::string& filepath) {
         absl::StrFormat("Theme file missing name: %s", successful_path));
   }
 
-  // Fill in any missing properties with smart defaults
-  ApplySmartDefaults(theme);
+  // Fill in any missing properties with smart defaults, leaving alone every
+  // field the file named — including ones it deliberately set to black.
+  ApplySmartDefaults(theme, declared_keys);
 
   themes_[theme.name] = theme;
   // Remember where the theme came from. Display-name-derived paths won't round-
@@ -684,6 +714,14 @@ void ThemeManager::ApplyTheme(const std::string& theme_name) {
     // default, not the experimental file-backed theme.
     ApplyClassicYazeTheme();
   }
+}
+
+void ThemeManager::ReapplyTheme(const Theme& theme) {
+  if (theme.name == "Classic YAZE") {
+    ApplyClassicYazeTheme(theme.density_preset);
+    return;
+  }
+  ApplyTheme(theme);
 }
 
 void ThemeManager::ApplyTheme(const Theme& theme) {
@@ -969,8 +1007,9 @@ void ThemeManager::ShowThemeSelector(bool* p_open) {
   ImGui::End();
 }
 
-absl::Status ThemeManager::ParseThemeFile(const std::string& content,
-                                          Theme& theme) {
+absl::Status ThemeManager::ParseThemeFile(
+    const std::string& content, Theme& theme,
+    std::set<std::string>* declared_keys) {
   std::istringstream stream(content);
   std::string line;
   std::string current_section;
@@ -1006,6 +1045,12 @@ absl::Status ThemeManager::ParseThemeFile(const std::string& content,
       value = value.substr(0, comment_pos);
     }
     value.erase(value.find_last_not_of(" \t") + 1);
+
+    // Record what the file actually named, before any section dispatch. Keys
+    // are unique across sections here, so one set is enough.
+    if (declared_keys != nullptr) {
+      declared_keys->insert(key);
+    }
 
     // Parse based on section
     if (current_section == "colors") {
@@ -1182,26 +1227,36 @@ absl::Status ThemeManager::ParseThemeFile(const std::string& content,
       else if (key == "docking_empty_bg")
         theme.docking_empty_bg = color;
     } else if (current_section == "style") {
+      // A malformed number must not throw: themes load from the ThemeManager
+      // singleton's constructor, where an exception ends the process. Keep the
+      // field's current value instead.
+      auto parse_float = [](const std::string& text, float fallback) -> float {
+        try {
+          return std::stof(text);
+        } catch (const std::exception&) {
+          return fallback;
+        }
+      };
       if (key == "window_rounding")
-        theme.window_rounding = std::stof(value);
+        theme.window_rounding = parse_float(value, theme.window_rounding);
       else if (key == "frame_rounding")
-        theme.frame_rounding = std::stof(value);
+        theme.frame_rounding = parse_float(value, theme.frame_rounding);
       else if (key == "scrollbar_rounding")
-        theme.scrollbar_rounding = std::stof(value);
+        theme.scrollbar_rounding = parse_float(value, theme.scrollbar_rounding);
       else if (key == "grab_rounding")
-        theme.grab_rounding = std::stof(value);
+        theme.grab_rounding = parse_float(value, theme.grab_rounding);
       else if (key == "tab_rounding")
-        theme.tab_rounding = std::stof(value);
+        theme.tab_rounding = parse_float(value, theme.tab_rounding);
       else if (key == "window_border_size")
-        theme.window_border_size = std::stof(value);
+        theme.window_border_size = parse_float(value, theme.window_border_size);
       else if (key == "frame_border_size")
-        theme.frame_border_size = std::stof(value);
+        theme.frame_border_size = parse_float(value, theme.frame_border_size);
       else if (key == "enable_animations")
         theme.enable_animations = (value == "true");
       else if (key == "enable_glow_effects")
         theme.enable_glow_effects = (value == "true");
       else if (key == "animation_speed")
-        theme.animation_speed = std::stof(value);
+        theme.animation_speed = parse_float(value, theme.animation_speed);
     } else if (current_section == "" || current_section == "metadata") {
       // Top-level metadata
       if (key == "name")
@@ -1216,21 +1271,65 @@ absl::Status ThemeManager::ParseThemeFile(const std::string& content,
   return absl::OkStatus();
 }
 
-void ThemeManager::ApplySmartDefaults(Theme& theme) {
-  // Helper to check if a color is uninitialized (all zeros)
-  auto is_unset = [](const Color& color) {
+void ThemeManager::ApplySmartDefaults(
+    Theme& theme, const std::set<std::string>& declared_keys) {
+  // A key absent from a .theme file leaves its field default-constructed, and
+  // Color declares `alpha = 1.0f`, so an omitted field reads as opaque black
+  // rather than transparent black. Detecting "unset" by value alone therefore
+  // cannot distinguish an omitted field from one the author deliberately set
+  // to black — and the parser accepts black for text, backgrounds and borders,
+  // where it is an entirely reasonable choice on a light or OLED theme.
+  //
+  // So the value test only applies to fields the file did NOT declare. Callers
+  // that build a Theme in code (Classic YAZE, GenerateThemeFromAccent) pass no
+  // declared keys, which is correct: nothing was declared, so every field with
+  // a default-looking value is genuinely unset.
+  auto declared = [&declared_keys](const char* key) {
+    return key != nullptr && declared_keys.count(key) != 0;
+  };
+  auto looks_default = [](const Color& color) {
     return color.red == 0.0f && color.green == 0.0f && color.blue == 0.0f &&
-           color.alpha == 0.0f;
+           (color.alpha == 0.0f || color.alpha == 1.0f);
+  };
+  auto is_unset = [&](const Color& color, const char* key = nullptr) {
+    return !declared(key) && looks_default(color);
   };
   // Legacy theme files often omit newer semantic fields, which then remain at
-  // default-constructed opaque black (0,0,0,1). Treat that as "missing" for
+  // default-constructed opaque black. Treat that as "missing" for
   // semantic/interaction colors to avoid black overlays and handles.
-  auto needs_semantic_default = [&](const Color& color) {
-    const bool default_opaque_black = color.red == 0.0f &&
-                                      color.green == 0.0f &&
-                                      color.blue == 0.0f && color.alpha == 1.0f;
-    return is_unset(color) || default_opaque_black;
+  auto needs_semantic_default = [&](const Color& color,
+                                    const char* key = nullptr) {
+    return is_unset(color, key);
   };
+
+  // Seed the five source colors FIRST. Around twenty fields below derive from
+  // accent/error/warning/success/info, but nothing guaranteed those were set:
+  // a theme file that omits `info` handed black to text_link, plot_histogram,
+  // text_highlight, info_light and selection_secondary. Every shipped preset
+  // declares all five, which is why this never surfaced — a minimal or
+  // hand-written theme is not so lucky.
+  //
+  // The status colors are fixed rather than accent-derived on purpose: red
+  // means error and green means success regardless of the theme's hue, which
+  // ThemeGeneratorTest.StatusColorsAreStableAcrossAccents pins. Values match
+  // GenerateThemeFromAccent so both paths agree.
+  if (is_unset(theme.accent, "accent")) {
+    theme.accent = is_unset(theme.primary, "primary")
+                       ? Color{0.35f, 0.70f, 0.95f, 1.0f}
+                       : theme.primary;
+  }
+  if (is_unset(theme.error, "error")) {
+    theme.error = Color{0.90f, 0.30f, 0.30f, 1.0f};
+  }
+  if (is_unset(theme.warning, "warning")) {
+    theme.warning = Color{0.95f, 0.75f, 0.25f, 1.0f};
+  }
+  if (is_unset(theme.success, "success")) {
+    theme.success = Color{0.30f, 0.85f, 0.45f, 1.0f};
+  }
+  if (is_unset(theme.info, "info")) {
+    theme.info = Color{0.35f, 0.70f, 0.95f, 1.0f};
+  }
 
   // Helper to create a color with modified alpha
   auto with_alpha = [](const Color& color, float alpha) {
@@ -1261,132 +1360,148 @@ void ThemeManager::ApplySmartDefaults(Theme& theme) {
   };
 
   // Borders and separators
-  if (is_unset(theme.border)) {
+  if (is_unset(theme.border, "border")) {
     theme.border = theme.primary;
   }
-  if (is_unset(theme.border_shadow)) {
+  if (is_unset(theme.border_shadow, "border_shadow")) {
     theme.border_shadow = RGBA(0, 0, 0, 0);
   }
-  if (is_unset(theme.separator)) {
+  if (is_unset(theme.separator, "separator")) {
     theme.separator = with_alpha(theme.secondary, 0.6f);
   }
-  if (is_unset(theme.separator_hovered)) {
+  if (is_unset(theme.separator_hovered, "separator_hovered")) {
     theme.separator_hovered = with_alpha(theme.primary, 0.8f);
   }
-  if (is_unset(theme.separator_active)) {
+  if (is_unset(theme.separator_active, "separator_active")) {
     theme.separator_active = theme.accent;
   }
 
   // Scrollbars
-  if (is_unset(theme.scrollbar_bg)) {
+  if (is_unset(theme.scrollbar_bg, "scrollbar_bg")) {
     theme.scrollbar_bg = with_alpha(theme.surface, 0.6f);
   }
-  if (is_unset(theme.scrollbar_grab)) {
+  if (is_unset(theme.scrollbar_grab, "scrollbar_grab")) {
     theme.scrollbar_grab = with_alpha(theme.secondary, 0.5f);
   }
-  if (is_unset(theme.scrollbar_grab_hovered)) {
+  if (is_unset(theme.scrollbar_grab_hovered, "scrollbar_grab_hovered")) {
     theme.scrollbar_grab_hovered = with_alpha(theme.secondary, 0.7f);
   }
-  if (is_unset(theme.scrollbar_grab_active)) {
+  if (is_unset(theme.scrollbar_grab_active, "scrollbar_grab_active")) {
     theme.scrollbar_grab_active = with_alpha(theme.secondary, 0.9f);
   }
 
   // Resize grips
-  if (is_unset(theme.resize_grip)) {
+  if (is_unset(theme.resize_grip, "resize_grip")) {
     theme.resize_grip = RGBA(255, 255, 255, 26);
   }
-  if (is_unset(theme.resize_grip_hovered)) {
+  if (is_unset(theme.resize_grip_hovered, "resize_grip_hovered")) {
     theme.resize_grip_hovered = with_alpha(theme.accent, 0.6f);
   }
-  if (is_unset(theme.resize_grip_active)) {
+  if (is_unset(theme.resize_grip_active, "resize_grip_active")) {
     theme.resize_grip_active = with_alpha(theme.accent, 0.9f);
   }
 
   // Controls
-  if (is_unset(theme.check_mark)) {
+  if (is_unset(theme.check_mark, "check_mark")) {
     theme.check_mark = lighten(theme.accent, 0.2f);
   }
-  if (is_unset(theme.slider_grab)) {
+  if (is_unset(theme.slider_grab, "slider_grab")) {
     theme.slider_grab = theme.primary;
   }
-  if (is_unset(theme.slider_grab_active)) {
+  if (is_unset(theme.slider_grab_active, "slider_grab_active")) {
     theme.slider_grab_active = theme.accent;
   }
 
   // Tables
-  if (is_unset(theme.table_header_bg)) {
+  if (is_unset(theme.table_header_bg, "table_header_bg")) {
     theme.table_header_bg = theme.header;
   }
-  if (is_unset(theme.table_border_strong)) {
+  if (is_unset(theme.table_border_strong, "table_border_strong")) {
     theme.table_border_strong = theme.secondary;
   }
-  if (is_unset(theme.table_border_light)) {
+  if (is_unset(theme.table_border_light, "table_border_light")) {
     theme.table_border_light = with_alpha(theme.surface, 0.5f);
   }
-  if (is_unset(theme.table_row_bg)) {
+  if (is_unset(theme.table_row_bg, "table_row_bg")) {
     theme.table_row_bg = RGBA(0, 0, 0, 0);
   }
-  if (is_unset(theme.table_row_bg_alt)) {
+  if (is_unset(theme.table_row_bg_alt, "table_row_bg_alt")) {
     theme.table_row_bg_alt = RGBA(255, 255, 255, 20);
   }
 
   // Links
-  if (is_unset(theme.text_link)) {
+  if (is_unset(theme.text_link, "text_link")) {
     theme.text_link = theme.info;
   }
 
+  // Plots. No .theme file ships these, so without a fallback every preset
+  // draws ImGui plots and histograms in opaque black.
+  if (is_unset(theme.plot_lines, "plot_lines")) {
+    theme.plot_lines = theme.accent;
+  }
+  if (is_unset(theme.plot_lines_hovered, "plot_lines_hovered")) {
+    theme.plot_lines_hovered = lighten(theme.accent, 0.15f);
+  }
+  if (is_unset(theme.plot_histogram, "plot_histogram")) {
+    theme.plot_histogram = theme.info;
+  }
+  if (is_unset(theme.plot_histogram_hovered, "plot_histogram_hovered")) {
+    theme.plot_histogram_hovered = lighten(theme.info, 0.15f);
+  }
+
   // Navigation and special elements
-  if (is_unset(theme.input_text_cursor)) {
+  if (is_unset(theme.input_text_cursor, "input_text_cursor")) {
     theme.input_text_cursor = theme.text_primary;
   }
-  if (is_unset(theme.nav_cursor)) {
+  if (is_unset(theme.nav_cursor, "nav_cursor")) {
     theme.nav_cursor = theme.accent;
   }
-  if (is_unset(theme.nav_windowing_highlight)) {
+  if (is_unset(theme.nav_windowing_highlight, "nav_windowing_highlight")) {
     theme.nav_windowing_highlight = with_alpha(theme.accent, 0.8f);
   }
-  if (is_unset(theme.nav_windowing_dim_bg)) {
+  if (is_unset(theme.nav_windowing_dim_bg, "nav_windowing_dim_bg")) {
     theme.nav_windowing_dim_bg = RGBA(0, 0, 0, 128);
   }
-  if (is_unset(theme.modal_window_dim_bg)) {
+  if (is_unset(theme.modal_window_dim_bg, "modal_window_dim_bg")) {
     theme.modal_window_dim_bg = RGBA(0, 0, 0, 100);
   }
-  if (is_unset(theme.text_selected_bg)) {
+  if (is_unset(theme.text_selected_bg, "text_selected_bg")) {
     theme.text_selected_bg = with_alpha(theme.primary, 0.4f);
   }
-  if (is_unset(theme.drag_drop_target)) {
+  if (is_unset(theme.drag_drop_target, "drag_drop_target")) {
     theme.drag_drop_target = with_alpha(theme.accent, 0.8f);
   }
 
   // Docking
-  if (is_unset(theme.docking_preview)) {
+  if (is_unset(theme.docking_preview, "docking_preview")) {
     theme.docking_preview = with_alpha(theme.primary, 0.7f);
   }
-  if (is_unset(theme.docking_empty_bg)) {
+  if (is_unset(theme.docking_empty_bg, "docking_empty_bg")) {
     theme.docking_empty_bg = theme.header;
   }
 
   // Tree
-  if (is_unset(theme.tree_lines)) {
+  if (is_unset(theme.tree_lines, "tree_lines")) {
     theme.tree_lines = with_alpha(theme.separator, 0.6f);
   }
 
   // Tab variations
-  if (is_unset(theme.tab_dimmed)) {
+  if (is_unset(theme.tab_dimmed, "tab_dimmed")) {
     theme.tab_dimmed = darken(theme.tab, 0.1f);
   }
-  if (is_unset(theme.tab_dimmed_selected)) {
+  if (is_unset(theme.tab_dimmed_selected, "tab_dimmed_selected")) {
     theme.tab_dimmed_selected = darken(theme.tab_active, 0.1f);
   }
-  if (is_unset(theme.tab_dimmed_selected_overline)) {
+  if (is_unset(theme.tab_dimmed_selected_overline,
+               "tab_dimmed_selected_overline")) {
     theme.tab_dimmed_selected_overline = theme.accent;
   }
-  if (is_unset(theme.tab_selected_overline)) {
+  if (is_unset(theme.tab_selected_overline, "tab_selected_overline")) {
     theme.tab_selected_overline = theme.accent;
   }
 
   // Surface variants (if missing)
-  if (is_unset(theme.surface)) {
+  if (is_unset(theme.surface, "surface")) {
     theme.surface = theme.background;
   }
   if (is_unset(theme.modal_bg)) {
@@ -1394,63 +1509,65 @@ void ThemeManager::ApplySmartDefaults(Theme& theme) {
   }
 
   // Enhanced semantic colors
-  if (needs_semantic_default(theme.text_highlight)) {
+  if (needs_semantic_default(theme.text_highlight, "text_highlight")) {
     theme.text_highlight = with_alpha(theme.info, 0.25f);
   }
-  if (needs_semantic_default(theme.link_hover)) {
+  if (needs_semantic_default(theme.link_hover, "link_hover")) {
     theme.link_hover = lighten(theme.text_link, 0.12f);
   }
-  if (needs_semantic_default(theme.code_background)) {
+  if (needs_semantic_default(theme.code_background, "code_background")) {
     theme.code_background = darken_with_floor(theme.surface, 0.08f);
   }
-  if (needs_semantic_default(theme.success_light)) {
+  if (needs_semantic_default(theme.success_light, "success_light")) {
     theme.success_light = lighten(theme.success, 0.15f);
   }
-  if (needs_semantic_default(theme.warning_light)) {
+  if (needs_semantic_default(theme.warning_light, "warning_light")) {
     theme.warning_light = lighten(theme.warning, 0.12f);
   }
-  if (needs_semantic_default(theme.error_light)) {
+  if (needs_semantic_default(theme.error_light, "error_light")) {
     theme.error_light = lighten(theme.error, 0.18f);
   }
-  if (needs_semantic_default(theme.info_light)) {
+  if (needs_semantic_default(theme.info_light, "info_light")) {
     theme.info_light = lighten(theme.info, 0.12f);
   }
 
-  // UI state colors
-  if (needs_semantic_default(theme.active_selection)) {
-    theme.active_selection = with_alpha(theme.selection_primary, 0.35f);
-  }
-  if (needs_semantic_default(theme.hover_highlight)) {
-    theme.hover_highlight = with_alpha(theme.selection_secondary, 0.2f);
-  }
-  if (needs_semantic_default(theme.focus_border)) {
-    theme.focus_border = theme.primary;
-  }
-  if (needs_semantic_default(theme.disabled_overlay)) {
-    theme.disabled_overlay = with_alpha(theme.background, 0.5f);
-  }
-
-  // Editor-specific defaults
-  if (needs_semantic_default(theme.editor_background)) {
-    theme.editor_background = theme.background;
-  }
-  if (needs_semantic_default(theme.editor_grid)) {
-    theme.editor_grid = with_alpha(theme.text_secondary, 0.2f);
-  }
-  if (needs_semantic_default(theme.editor_cursor)) {
-    theme.editor_cursor = theme.text_primary;
-  }
-  if (needs_semantic_default(theme.editor_selection)) {
-    theme.editor_selection = with_alpha(theme.primary, 0.3f);
-  }
-
-  // Interaction defaults
+  // Selection sources first: the UI state colors below derive from them.
   if (needs_semantic_default(theme.selection_primary)) {
     theme.selection_primary = theme.warning;
   }
   if (needs_semantic_default(theme.selection_secondary)) {
     theme.selection_secondary = theme.info;
   }
+
+  // UI state colors
+  if (needs_semantic_default(theme.active_selection, "active_selection")) {
+    theme.active_selection = with_alpha(theme.selection_primary, 0.35f);
+  }
+  if (needs_semantic_default(theme.hover_highlight, "hover_highlight")) {
+    theme.hover_highlight = with_alpha(theme.selection_secondary, 0.2f);
+  }
+  if (needs_semantic_default(theme.focus_border, "focus_border")) {
+    theme.focus_border = theme.primary;
+  }
+  if (needs_semantic_default(theme.disabled_overlay, "disabled_overlay")) {
+    theme.disabled_overlay = with_alpha(theme.background, 0.5f);
+  }
+
+  // Editor-specific defaults
+  if (needs_semantic_default(theme.editor_background, "editor_background")) {
+    theme.editor_background = theme.background;
+  }
+  if (needs_semantic_default(theme.editor_grid, "editor_grid")) {
+    theme.editor_grid = with_alpha(theme.text_secondary, 0.2f);
+  }
+  if (needs_semantic_default(theme.editor_cursor, "editor_cursor")) {
+    theme.editor_cursor = theme.text_primary;
+  }
+  if (needs_semantic_default(theme.editor_selection, "editor_selection")) {
+    theme.editor_selection = with_alpha(theme.primary, 0.3f);
+  }
+
+  // Interaction defaults
   if (needs_semantic_default(theme.selection_hover)) {
     theme.selection_hover = with_alpha(theme.text_primary, 0.2f);
   }
@@ -1605,7 +1722,10 @@ void ThemeManager::ApplySmartDefaults(Theme& theme) {
         0.02f);
   }
   if (needs_semantic_default(theme.agent.panel_border)) {
-    theme.agent.panel_border = theme.border;
+    // Editor panels use this compatibility palette too. Keep panel separation
+    // visible without repeating the theme accent around every nested child.
+    theme.agent.panel_border =
+        with_alpha(theme.border, std::min(theme.border.alpha, 0.45f));
   }
   if (needs_semantic_default(theme.agent.accent)) {
     theme.agent.accent = theme.accent;
@@ -1844,6 +1964,11 @@ Theme ThemeManager::GenerateThemeFromAccent(const Color& accent,
   theme.animation_speed = 1.0f;
   theme.enable_glow_effects = false;
 
+  // Hydrate semantic/editor/dungeon/agent fields. Without this they reach
+  // ConvertColorToImVec4 as default-constructed opaque black, unlike every
+  // file-loaded theme, which gets these via LoadThemeFromFile.
+  ApplySmartDefaults(theme);
+
   return theme;
 }
 
@@ -2061,9 +2186,13 @@ std::string ThemeManager::SerializeTheme(const Theme& theme) const {
   ss << "window_rounding=" << theme.window_rounding << "\n";
   ss << "frame_rounding=" << theme.frame_rounding << "\n";
   ss << "scrollbar_rounding=" << theme.scrollbar_rounding << "\n";
+  ss << "grab_rounding=" << theme.grab_rounding << "\n";
   ss << "tab_rounding=" << theme.tab_rounding << "\n";
+  ss << "window_border_size=" << theme.window_border_size << "\n";
+  ss << "frame_border_size=" << theme.frame_border_size << "\n";
   ss << "enable_animations=" << (theme.enable_animations ? "true" : "false")
      << "\n";
+  ss << "animation_speed=" << theme.animation_speed << "\n";
   ss << "enable_glow_effects=" << (theme.enable_glow_effects ? "true" : "false")
      << "\n";
 
@@ -2160,7 +2289,7 @@ absl::Status ThemeManager::SaveThemeToFile(const Theme& theme,
   return absl::OkStatus();
 }
 
-void ThemeManager::ApplyClassicYazeTheme() {
+void ThemeManager::ApplyClassicYazeTheme(std::optional<DensityPreset> density) {
   // Apply the original ColorsYaze() function directly
   ColorsYaze();
   current_theme_name_ = "Classic YAZE";
@@ -2169,6 +2298,15 @@ void ThemeManager::ApplyClassicYazeTheme() {
   // loaded themes get via LoadThemeFromFile → ApplySmartDefaults, so Classic
   // isn't missing fields (selection_primary, dungeon.object_door, agent.*).
   ApplySmartDefaults(classic_theme);
+  // Carry the active Display Density across the switch. ColorsYaze() writes
+  // Classic's OWN metrics (FramePadding 10x2, ItemSpacing 10x5, WindowPadding
+  // 10x10), which are not the shared 8px base that Theme::ApplyToImGui uses.
+  // Scale what ColorsYaze just wrote instead of calling the generic density
+  // sizing, which would substitute that base and change Classic's look at
+  // every density — including Normal, i.e. on every startup.
+  classic_theme.ApplyDensityPreset(
+      density.value_or(current_theme_.density_preset));
+  ScaleCurrentStyleSpacing(classic_theme.compact_factor);
   current_theme_ = classic_theme;
 
   // Mirror the bookkeeping that LoadTheme and ApplyTheme(const Theme&) do:
@@ -2214,7 +2352,7 @@ void ThemeManager::EndPreview() {
   // Re-apply the original theme's colors to ImGui. preview_active_ is still
   // true here, so ApplyTheme's NotifyThemeChanged() is suppressed — we fire
   // once below, after clearing the preview flag, with the restored name.
-  ApplyTheme(current_theme_);
+  ReapplyTheme(current_theme_);
 
   preview_active_ = false;
   NotifyThemeChanged();
@@ -2396,7 +2534,7 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
     // If live preview was just disabled, restore original theme
     static bool prev_live_preview = live_preview;
     if (prev_live_preview && !live_preview && theme_backup_made) {
-      ApplyTheme(original_theme);
+      ReapplyTheme(original_theme);
       theme_backup_made = false;
     }
     prev_live_preview = live_preview;
@@ -3535,8 +3673,11 @@ void ThemeManager::ShowSimpleThemeEditor(bool* p_open) {
       // Reset backup state since we're back to current theme
       if (theme_backup_made) {
         theme_backup_made = false;
-        current_theme_.ApplyToImGui();  // Apply current theme to clear any
-                                        // preview changes
+        // Restore-the-canonical-theme, so it must route through ReapplyTheme:
+        // ApplyToImGui cannot reproduce ColorsYaze() for Classic YAZE. Copy
+        // first — ReapplyTheme reassigns current_theme_.
+        const Theme restored = current_theme_;
+        ReapplyTheme(restored);
       }
     }
 

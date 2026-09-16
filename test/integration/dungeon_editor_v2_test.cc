@@ -4,6 +4,7 @@
 
 #include "app/editor/dungeon/workspace/dungeon_workbench_content.h"
 #include "core/features.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 
 namespace yaze {
 namespace test {
@@ -13,7 +14,12 @@ namespace {
 struct DungeonFeatureFlagsGuard {
   decltype(core::FeatureFlags::get().dungeon) prev =
       core::FeatureFlags::get().dungeon;
-  ~DungeonFeatureFlagsGuard() { core::FeatureFlags::get().dungeon = prev; }
+  bool custom_objects_enabled = core::FeatureFlags::get().kEnableCustomObjects;
+  ~DungeonFeatureFlagsGuard() {
+    core::FeatureFlags::get().dungeon = prev;
+    core::FeatureFlags::get().kEnableCustomObjects = custom_objects_enabled;
+    zelda3::DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
+  }
 };
 
 }  // namespace
@@ -55,6 +61,50 @@ TEST_F(DungeonEditorV2IntegrationTest, LoadSequence) {
 
   // After loading, Update() should work
   (void)dungeon_editor_v2_->Update();
+}
+
+TEST_F(DungeonEditorV2IntegrationTest,
+       LateCustomObjectEnableRegistersMinecartPanelWithoutDungeonReload) {
+  DungeonFeatureFlagsGuard guard;
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  auto& draw_registry = zelda3::DrawRoutineRegistry::Get();
+  draw_registry.RefreshFeatureFlagMappings();
+  ASSERT_EQ(draw_registry.GetRoutineIdForObject(0x31),
+            zelda3::DrawRoutineIds::kNothing);
+
+  dungeon_editor_v2_->Initialize();
+  ASSERT_TRUE(dungeon_editor_v2_->Load().ok());
+  const size_t session_id = window_manager_->GetActiveSessionId();
+  ASSERT_EQ(window_manager_->GetWindowContent(
+                session_id, editor::DungeonEditorV2::kMinecartTrackEditorId),
+            nullptr);
+
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  ASSERT_TRUE(dungeon_editor_v2_->EnsureMinecartTrackEditorPanel().ok());
+
+  auto* minecart_panel = window_manager_->GetWindowContent(
+      session_id, editor::DungeonEditorV2::kMinecartTrackEditorId);
+  ASSERT_NE(minecart_panel, nullptr);
+
+  auto* workbench = dynamic_cast<editor::DungeonWorkbenchContent*>(
+      window_manager_->GetWindowContent(session_id, "dungeon.workbench"));
+  ASSERT_NE(workbench, nullptr);
+  workbench->OpenMinecartTool();
+  EXPECT_TRUE(workbench->IsToolInspectorActiveForTesting());
+  EXPECT_STREQ(workbench->GetActiveToolIdForTesting(), "minecart");
+  EXPECT_TRUE(workbench->PopOutActiveTool())
+      << "Late registration must refresh the Workbench minecart panel pointer";
+
+  ASSERT_TRUE(dungeon_editor_v2_->Update().ok());
+  EXPECT_TRUE(window_manager_->IsWindowOpen(
+      session_id, editor::DungeonEditorV2::kMinecartTrackEditorId));
+  EXPECT_EQ(draw_registry.GetRoutineIdForObject(0x31),
+            zelda3::DrawRoutineIds::kCustomObject);
+
+  core::FeatureFlags::get().kEnableCustomObjects = false;
+  ASSERT_TRUE(dungeon_editor_v2_->Update().ok());
+  EXPECT_EQ(draw_registry.GetRoutineIdForObject(0x31),
+            zelda3::DrawRoutineIds::kNothing);
 }
 
 // ============================================================================

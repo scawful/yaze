@@ -34,6 +34,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "core/features.h"
 #include "rom/rom.h"
+#include "rom/snes.h"
 #include "test_utils.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_state.h"
@@ -525,6 +526,39 @@ TEST_P(RoomObjectRomParityTest,
 // -----------------------------------------------------------------------------
 
 TEST_P(RoomObjectRomParityTest,
+       AnimatedRoomGraphicsFollowRomPointerAndMainGroup) {
+  GameData game_data;
+  ASSERT_TRUE(LoadGameData(*rom_, game_data).ok());
+  // US/OOS LDA.l AnimatedTileSheets,X at $028274, indexed by $0AA1.
+  const auto& data = rom_->vector();
+  const uint32_t table_snes =
+      data[0x10275] | (data[0x10276] << 8) | (data[0x10277] << 16);
+  ASSERT_GE(table_snes & 0xFFFF, 0x8000);
+  const size_t table_pc = SnesToPc(table_snes);
+  for (int room_id : {0x04A, 0x033, 0x08C, 0x0CE}) {
+    Room room = LoadRoomFromRom(rom_.get(), room_id);
+    room.SetGameData(&game_data);
+    // Explicit main groups also cover the case where entrance and room
+    // blocksets differ; the room blockset must not select the animated sheet.
+    for (uint8_t main_group : {0, 7, 11, 17}) {
+      SCOPED_TRACE(absl::StrFormat("room=%03X main=%02X", room_id, main_group));
+      ASSERT_LT(table_pc + main_group, data.size());
+      const size_t sheet = data[table_pc + main_group];
+      ASSERT_LE(sheet * 4096 + 1024, game_data.graphics_buffer.size());
+      room.LoadRoomGraphics(main_group);
+      room.CopyRoomGraphicsToBuffer();
+      const auto& pixels = room.get_gfx_buffer();
+      EXPECT_TRUE(std::equal(pixels.begin() + 0x1B0 * 64,
+                             pixels.begin() + 0x1C0 * 64,
+                             game_data.graphics_buffer.begin() + sheet * 4096));
+      EXPECT_TRUE(std::equal(pixels.begin() + 0x1C0 * 64,
+                             pixels.begin() + 0x1D0 * 64,
+                             game_data.graphics_buffer.begin() + 0x5C * 4096));
+    }
+  }
+}
+
+TEST_P(RoomObjectRomParityTest,
        ResolveDungeonPaletteIdMatchesDirectRomTwoLevelLookup) {
   SCOPED_TRACE(::yaze::test::TestRomManager::GetRomRoleName(GetParam()));
   // Load GameData so paletteset_ids / dungeon_main are populated from ROM.
@@ -626,6 +660,36 @@ TEST_P(RoomObjectRomParityTest, BigKeyLockParserMatchesRawRomWords) {
     EXPECT_TRUE(parsed[i] == expected[i])
         << "tile idx=" << i << " parsed.id=0x" << std::hex << parsed[i].id_
         << " vs expected.id=0x" << expected[i].id_;
+  }
+}
+
+TEST_P(RoomObjectRomParityTest, BarCornerParserMatchesRawRomWordsAndRanges) {
+  SCOPED_TRACE(::yaze::test::TestRomManager::GetRomRoleName(GetParam()));
+  ObjectParser parser(rom_.get());
+  // RoomDraw_Rightwards2x2 consumes one 4-word block per corner. In vanilla
+  // the four blocks (obj09B8..obj09D0) are contiguous, so an 8-word read
+  // would alias the next corner's payload.
+  for (int id = 0xFD6; id <= 0xFD9; ++id) {
+    SCOPED_TRACE(absl::StrFormat("object 0x%03X (BarCorner)", id));
+    const int addr = Subtype3TileDataAddr(*rom_, id);
+    const auto expected = DecodeTilesFromRom(*rom_, addr, /*count=*/4);
+
+    auto parsed_or = parser.ParseObject(static_cast<int16_t>(id));
+    ASSERT_TRUE(parsed_or.ok()) << parsed_or.status();
+    const auto& parsed = parsed_or.value();
+    ASSERT_EQ(parsed.size(), 4u);
+    for (size_t i = 0; i < expected.size(); ++i) {
+      SCOPED_TRACE(absl::StrFormat("tile idx=%zu", i));
+      EXPECT_TRUE(parsed[i] == expected[i])
+          << "parsed.id=0x" << std::hex << parsed[i].id_ << " vs expected.id=0x"
+          << expected[i].id_;
+    }
+
+    auto ranges_or = parser.ResolveTileReadRanges(static_cast<int16_t>(id));
+    ASSERT_TRUE(ranges_or.ok()) << ranges_or.status();
+    ASSERT_EQ(ranges_or->size(), 1u);
+    EXPECT_EQ((*ranges_or)[0].begin, static_cast<uint32_t>(addr));
+    EXPECT_EQ((*ranges_or)[0].end, static_cast<uint32_t>(addr + 8));
   }
 }
 
@@ -857,6 +921,61 @@ TEST_P(RoomObjectRomParityTest,
       EXPECT_EQ(parsed[i].horizontal_mirror_, expected[i].horizontal_mirror_);
       EXPECT_EQ(parsed[i].vertical_mirror_, expected[i].vertical_mirror_);
       EXPECT_EQ(parsed[i].over_, expected[i].over_);
+    }
+  }
+}
+
+TEST_P(RoomObjectRomParityTest, BarPayloadsAndDrawTracesMatchUsdasm) {
+  ScopedCustomObjectsFlag disable_custom(false);
+  ObjectParser parser(rom_.get());
+
+  // bank_00 obj099E/obj09B0 contain nine/four source words. bank_01
+  // $0194BD repeats the horizontal middle column; $0197B5 repeats the
+  // vertical body row. Compare complete attributes, including mirrored caps.
+  for (const int object_id : {0x4C, 0x8F}) {
+    const bool horizontal = object_id == 0x4C;
+    const int payload_count = horizontal ? 9 : 4;
+    const auto expected_tiles = DecodeTilesFromRom(
+        *rom_, Subtype1TileDataAddr(*rom_, object_id), payload_count);
+    const auto parsed = parser.ParseObject(object_id);
+    ASSERT_TRUE(parsed.ok()) << parsed.status();
+    ASSERT_EQ(parsed->size(), expected_tiles.size());
+    for (size_t i = 0; i < expected_tiles.size(); ++i) {
+      EXPECT_EQ(gfx::TileInfoToWord((*parsed)[i]),
+                gfx::TileInfoToWord(expected_tiles[i]));
+    }
+
+    for (uint8_t size : {uint8_t{0}, uint8_t{1}, uint8_t{15}}) {
+      for (const auto layer :
+           {RoomObject::LayerType::BG1, RoomObject::LayerType::BG2}) {
+        SCOPED_TRACE(::testing::Message()
+                     << "object=" << object_id << " size=" << int(size)
+                     << " layer=" << int(layer));
+        constexpr int kX = 4;
+        constexpr int kY = 6;
+        const auto trace = ReplayRomObjectTraceOnLayer(rom_.get(), object_id,
+                                                       kX, kY, size, layer);
+        const int width = horizontal ? 2 * size + 4 : 2;
+        const int height = horizontal ? 3 : 2 * size + 5;
+        ASSERT_EQ(trace.size(), static_cast<size_t>(width * height));
+        size_t index = 0;
+        for (int major = 0; major < (horizontal ? width : height); ++major) {
+          for (int minor = 0; minor < (horizontal ? height : width); ++minor) {
+            const int x = horizontal ? major : minor;
+            const int y = horizontal ? minor : major;
+            const int tile_index = horizontal ? (x == 0           ? 0
+                                                 : x == width - 1 ? 6
+                                                                  : 3) +
+                                                    y
+                                              : (y == 0 ? 0 : 2) + x;
+            const auto& write = trace[index++];
+            EXPECT_EQ(write.x_tile, kX + x);
+            EXPECT_EQ(write.y_tile, kY + y);
+            EXPECT_EQ(write.layer, static_cast<uint8_t>(layer));
+            ExpectTraceTileMatches(write, expected_tiles[tile_index]);
+          }
+        }
+      }
     }
   }
 }

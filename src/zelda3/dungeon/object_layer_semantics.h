@@ -1,9 +1,7 @@
 #ifndef YAZE_ZELDA3_DUNGEON_OBJECT_LAYER_SEMANTICS_H_
 #define YAZE_ZELDA3_DUNGEON_OBJECT_LAYER_SEMANTICS_H_
 
-#include <algorithm>
 #include <cstdint>
-#include <span>
 
 #include "core/features.h"
 #include "zelda3/dungeon/custom_object.h"
@@ -41,33 +39,8 @@ inline bool UsesSpecialLayerSelector(const RoomObject& object) {
   return !UsesRoomObjectStream(object);
 }
 
-inline bool IsTrackCornerAliasObjectId(int object_id) {
-  return object_id >= 0x100 && object_id <= 0x103;
-}
-
-inline bool IsMinecartTrackCustomObject(const RoomObject& object) {
-  if (object.id_ != 0x31) {
-    return false;
-  }
-
-  // Oracle overloads object 0x31's size nibble as a custom subtype. Subtypes
-  // 0..12 and 14 are track pieces; 13 is the sword-house wall decoration and
-  // 15 is the small statue used by Mushroom Grotto. Decorations must not opt
-  // ordinary subtype-2 wall corners into the custom track-corner alias path.
-  const int subtype = object.size_ & 0x1F;
-  return subtype <= 12 || subtype == 14;
-}
-
-inline bool RoomAllowsTrackCornerAliases(
-    std::span<const RoomObject> room_objects) {
-  return std::any_of(room_objects.begin(), room_objects.end(),
-                     IsMinecartTrackCustomObject);
-}
-
-inline bool HasActiveCustomObjectOverride(const RoomObject& object,
-                                          bool allow_track_corner_aliases) {
-  if (!core::FeatureFlags::get().kEnableCustomObjects ||
-      (IsTrackCornerAliasObjectId(object.id_) && !allow_track_corner_aliases)) {
+inline bool HasActiveCustomObjectOverride(const RoomObject& object) {
+  if (!core::FeatureFlags::get().kEnableCustomObjects) {
     return false;
   }
 
@@ -118,6 +91,16 @@ inline ObjectLayerSemantics GetObjectLayerSemantics(const RoomObject& object) {
     return out;
   }
 
+  if (out.routine_id == DrawRoutineIds::kSanctuaryWall) {
+    // The facade is fixed BG1; only its four-column center uses the stream.
+    const bool mixed = object.layer_ == RoomObject::LayerType::BG2;
+    out.effective_bg_layer =
+        mixed ? EffectiveBgLayer::kBothBg1Bg2 : EffectiveBgLayer::kBg1;
+    out.render_routing = mixed ? ObjectRenderRouting::kMixedBg1Bg2
+                               : ObjectRenderRouting::kFixedBg1;
+    return out;
+  }
+
   out.effective_bg_layer = (object.layer_ == RoomObject::LayerType::BG2)
                                ? EffectiveBgLayer::kBg2
                                : EffectiveBgLayer::kBg1;
@@ -127,8 +110,8 @@ inline ObjectLayerSemantics GetObjectLayerSemantics(const RoomObject& object) {
 // Reports the route actually used by ObjectDrawer after custom overrides have
 // had their chance to preempt the built-in routine.
 inline ObjectLayerSemantics GetEffectiveObjectLayerSemantics(
-    const RoomObject& object, bool allow_track_corner_aliases) {
-  if (!HasActiveCustomObjectOverride(object, allow_track_corner_aliases)) {
+    const RoomObject& object) {
+  if (!HasActiveCustomObjectOverride(object)) {
     return GetObjectLayerSemantics(object);
   }
 

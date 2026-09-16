@@ -22,6 +22,7 @@ class Tile16SelectorView : public WindowContent {
 
   // WindowContent interface
   std::string GetId() const override { return "overworld.tile16_selector"; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
   std::string GetDisplayName() const override { return "Tile16 Selector"; }
   std::string GetIcon() const override { return ICON_MD_GRID_ON; }
   std::string GetEditorCategory() const override { return "Overworld"; }

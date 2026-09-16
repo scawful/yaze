@@ -2534,23 +2534,10 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
             }
           });
 
-          // Size
-          gui::LayoutHelpers::PropertyRow("Size", [&]() {
-            uint8_t size = obj.size_ & 0x0F;
-            const bool size_editable =
-                zelda3::IsRoomObjectSizeEditable(obj.id_);
-            if (!size_editable) {
-              ImGui::BeginDisabled();
-            }
-            if (auto res = gui::InputHexByteEx("##SelObjSize", &size, 0x0F,
-                                               60.0f, true);
-                size_editable && res.ShouldApply()) {
-              interaction.SetObjectSize(idx, size);
-            }
-            if (!size_editable) {
-              ImGui::EndDisabled();
-            }
-          });
+          uint8_t requested_size = obj.size_;
+          if (workbench::DrawObjectSizeControls(obj, &requested_size)) {
+            interaction.SetObjectSize(idx, requested_size);
+          }
 
           gui::LayoutHelpers::PropertyRow(
               uses_room_stream ? "Stream" : "Layer", [&]() {

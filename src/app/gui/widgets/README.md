@@ -37,6 +37,13 @@ Call these inside a `BeginTable("grid", 2)` to get auto label/value column routi
 - [`asset_browser.h`](asset_browser.h): filesystem-style asset picker.
 - [`palette_editor_widget.h`](palette_editor_widget.h): SNES palette row/swatch editor.
 
+## Layout
+
+- [`empty_state.h`](empty_state.h): `bool DrawEmptyState(EmptyStateOptions)` —
+  shared empty / disabled panel presentation (icon + title + detail + optional
+  CTA). Prefer presets (`EmptyNoRom`, `EmptyNoSelection`, `EmptySelectInCanvas`,
+  `EmptyNoProject`, `EmptyLoading`) over ad-hoc "No ROM loaded" strings.
+
 ## Canvas
 
 - [`resize_handles.h`](resize_handles.h): `bool ResizeHandles(ImRect*, HandleMask, snap, id, style)` — 8-zone hit-tested resize affordance; returns true on drag release, mutates the rect in place during drag. Corner priority + cursor flips + min-size clamp.

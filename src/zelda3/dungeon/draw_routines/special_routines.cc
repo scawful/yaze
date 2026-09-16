@@ -291,7 +291,7 @@ void DrawNothing([[maybe_unused]] const DrawContext& ctx) {
 }
 
 void CustomDraw(const DrawContext& ctx) {
-  // Pattern: Custom draw routine (objects 0x31-0x32)
+  // Pattern: Custom draw routine for fixed Oracle runtime families.
   // When custom objects are enabled, load tile data from external binary files
   // managed by CustomObjectManager. Each binary encodes SNES tilemap entries
   // with relative x/y positions computed from the buffer stride layout.
@@ -306,12 +306,13 @@ void CustomDraw(const DrawContext& ctx) {
   }
 
   // Look up the custom object by ID and subtype.
-  // ctx.object.id_ is 0x31 or 0x32; ctx.object.size_ encodes the subtype.
+  // ctx.object.id_ is a registered fixed Oracle family (0x31, 0x32, or 0x54);
+  // ctx.object.size_ encodes the subtype.
   auto result = CustomObjectManager::Get().GetObjectInternal(ctx.object.id_,
                                                              ctx.object.size_);
 
-  if (!result.ok() || !result.value() || result.value()->IsEmpty()) {
-    // Custom object not found or empty: fall back to 1x1 draw
+  if (!result.ok() || !result.value()) {
+    // Missing or unreadable custom source: fall back to a visible 1x1 tile.
     if (ctx.tiles.size() >= 1) {
       DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
                                    ctx.tiles[0]);
@@ -320,13 +321,21 @@ void CustomDraw(const DrawContext& ctx) {
   }
 
   const auto& custom_obj = *result.value();
+  if (custom_obj.IsEmpty()) {
+    // A terminator-only asset is an intentional draw-nothing override.
+    return;
+  }
 
   for (const auto& entry : custom_obj.tiles) {
-    // Convert SNES tilemap word (vhopppcc cccccccc) to TileInfo.
-    // Low byte = entry.tile_data & 0xFF, high byte = (entry.tile_data >> 8).
-    uint8_t lo = static_cast<uint8_t>(entry.tile_data & 0xFF);
-    uint8_t hi = static_cast<uint8_t>((entry.tile_data >> 8) & 0xFF);
-    gfx::TileInfo tile_info(lo, hi);
+    // Oracle treats a zero payload word as a no-op. The entry still advances
+    // the decoded cursor, but must preserve any room tile already underneath.
+    if (entry.tile_data == 0) {
+      continue;
+    }
+
+    const uint16_t runtime_word =
+        CustomObjectRuntimeTileWord(ctx.object.id_, entry.tile_data);
+    gfx::TileInfo tile_info = gfx::WordToTileInfo(runtime_word);
 
     // rel_x/rel_y are already decoded as object-relative coordinates from the
     // binary stream's buffer position arithmetic; preserve those offsets.
@@ -888,8 +897,8 @@ void Draw4x4FloorIn4x4SuperSquare(const DrawContext& ctx) {
   if (ctx.tiles.empty())
     return;
   if (ctx.tiles.size() < 8) {
-    // Some hacks provide abbreviated tile payloads for these objects.
-    // Fall back to a visible fill instead of silently skipping draw.
+    // Keep abbreviated preview payloads visible with a solid fill. This
+    // fallback is editor behavior, not the vanilla eight-word floor stamp.
     Draw4x4BlocksIn4x4SuperSquare(ctx);
     return;
   }
@@ -905,46 +914,15 @@ void Draw4x4FloorIn4x4SuperSquare(const DrawContext& ctx) {
 }
 
 void Draw4x4FloorOneIn4x4SuperSquare(const DrawContext& ctx) {
-  // ASM: RoomDraw_4x4FloorOneIn4x4SuperSquare ($018FA2)
-  // Single 4x4 floor pattern (starts at different tile offset in assembly).
-  // For our purposes, same as 4x4FloorIn4x4SuperSquare with offset tiles.
-  int size_x = ((ctx.object.size_ >> 2) & 0x03) + 1;
-  int size_y = (ctx.object.size_ & 0x03) + 1;
-
-  if (ctx.tiles.size() < 8) {
-    Draw4x4FloorIn4x4SuperSquare(ctx);
-    return;
-  }
-
-  for (int sy = 0; sy < size_y; ++sy) {
-    for (int sx = 0; sx < size_x; ++sx) {
-      int base_x = ctx.object.x_ + (sx * 4);
-      int base_y = ctx.object.y_ + (sy * 4);
-
-      DrawMany32x32Block(ctx.target_bg, base_x, base_y, ctx.tiles);
-    }
-  }
+  // $018FA2 loads $046A then falls into $018FA5. ObjectDrawer resolves the
+  // room's Floor 1 pattern into ctx.tiles before dispatching this wrapper.
+  Draw4x4FloorIn4x4SuperSquare(ctx);
 }
 
 void Draw4x4FloorTwoIn4x4SuperSquare(const DrawContext& ctx) {
-  // ASM: RoomDraw_4x4FloorTwoIn4x4SuperSquare ($018F9D)
-  // Two 4x4 floor patterns (uses $0490 offset in assembly).
-  int size_x = ((ctx.object.size_ >> 2) & 0x03) + 1;
-  int size_y = (ctx.object.size_ & 0x03) + 1;
-
-  if (ctx.tiles.size() < 8) {
-    Draw4x4FloorIn4x4SuperSquare(ctx);
-    return;
-  }
-
-  for (int sy = 0; sy < size_y; ++sy) {
-    for (int sx = 0; sx < size_x; ++sx) {
-      int base_x = ctx.object.x_ + (sx * 4);
-      int base_y = ctx.object.y_ + (sy * 4);
-
-      DrawMany32x32Block(ctx.target_bg, base_x, base_y, ctx.tiles);
-    }
-  }
+  // $018F9D loads $0490 then branches to $018FA5. ObjectDrawer resolves the
+  // room's Floor 2 pattern into ctx.tiles before dispatching this wrapper.
+  Draw4x4FloorIn4x4SuperSquare(ctx);
 }
 
 void DrawBigHole4x4_1to16(const DrawContext& ctx) {
@@ -2264,7 +2242,7 @@ void RegisterSpecialRoutines(std::vector<DrawRoutineInfo>& registry) {
       .category = DrawRoutineInfo::Category::Special,
   });
 
-  // Custom Object routine (ID 130) - Oracle of Secrets objects 0x31, 0x32
+  // Custom Object routine (ID 130) - fixed Oracle custom-object families
   // These use external binary files instead of ROM tile data.
   // CustomDraw() handles feature-flag gating and binary file lookup.
   registry.push_back(DrawRoutineInfo{
