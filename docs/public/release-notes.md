@@ -2,23 +2,117 @@
 
 ## v0.8.0
 
-**Type:** Dungeon Rendering + Workbench UX + Release Validation
+**Type:** Dungeon Editor Completion — Rendering Parity + Workbench UX + Save Safety
 **Status:** In development
+**Date:** pending
+**Release SHA:** pending
+
+This is the Dungeon Editor completion milestone. Dungeon rooms now draw from the
+ROM's own semantics rather than editor approximations, the workbench keeps the
+room canvas as the stable center of the layout, every guarded write either
+lands completely or leaves the ROM untouched, and the release gates test what
+users actually download.
 
 ### 🏰 Dungeon Rendering
 - Corrected ROM-driven placement and layer behavior for doors, thin floor and
   wall strips, corners, diagonal walls and ceilings, stairs, moving-floor and
-  moving-wall objects, rails, and floor-copy objects.
+  moving-wall objects, rails, and floor-copy objects. Strip extents, room
+  header floor patterns, and lower-level stair routing now follow the
+  disassembly instead of editor-side guesses.
+- Matched dozens of individual object families against USDASM, including Somaria
+  paths, pushable blocks, torches, hammer pegs, light beams, curtains, rupee
+  and bombable floors, big key locks, prison cells, the Turtle Rock pipe, and
+  bar corners. Canonical payload counts and object sizes were corrected in the
+  process, so fixed-size objects no longer offer meaningless resize handles.
+- Made the object registry the single authority for BG layer routing and
+  dimensions, retiring a hard-coded object-ID heuristic and a duplicate legacy
+  dimension switch that could disagree with it.
+- Fixed dungeon palette slot mapping and made object previews, sprite previews,
+  and the placement ghost use the room's own palette set, so browsing the
+  selector shows what the room will actually look like.
 - Added ROM-backed parser and renderer checks, independent Mesen fixtures for
-  TableRock, BigHole, rails, and a west door, plus structural BG2 validation
-  for vanilla HDMA water-control objects.
+  TableRock, BigHole, rails, bombable floors, and a west door, plus structural
+  BG2 validation for vanilla HDMA water-control objects.
 
 ### 🧰 Dungeon Editor Workflow
-- Kept the room canvas stable while consolidating specialist tools into the
-  right inspector, retaining **Pop out** for traditional floating panels, and
-  making the Object Selector responsive.
-- Corrected Mushroom Grotto wall-corner routing and made object and sprite
-  previews use room-aware palettes.
+- Kept the room canvas vertically stable: transient selection text and dynamic
+  room tabs no longer push it around, and specialist tools moved into a
+  variable-width **Tools** mode in the right inspector. **Pop out** remains for
+  traditional floating panels.
+- Made the toolbar, room navigation, Compare controls, Object Selector, and
+  palette grid responsive, so a narrower window sheds chrome instead of
+  shrinking the room.
+- Made issue capture explicitly local and opt-in — only **Save Report** writes
+  anything — and gave captured reports the selected object's real room-stream,
+  layout, layer, and floor-header context.
+- Gave each room presentation its own composite texture so the canvas, room
+  matrix, issue report, and dungeon map preview can no longer overwrite one
+  another or leak stale rooms into the next dungeon.
+- Added editable dedicated spawn points, room event slot conflict warnings, and
+  stateful chest classification.
+
+### 🧪 Oracle & Custom Dungeon Assets
+- Added a persistent **Custom Assets** mode covering all 21 fixed Oracle runtime
+  slots, grouped into Tracks + Props, Ice Props, and Boss Bodies, with tile
+  layout editing, room placement, and direct minecart route navigation.
+- Removed the incorrect implicit track-corner alias, so ordinary wall corners
+  stay wall corners unless a project supplies an exact same-ID override. This
+  is what was wrong in Mushroom Grotto.
+- Published custom asset and minecart track sources with path confinement,
+  exact-source comparison, atomic replacement, rollback, and decoded readback.
+  WASM fails closed rather than pretending to publish.
+- Added a non-destructive project asset refresh so picking up changed external
+  art no longer discards in-progress edits.
+
+### 🛡️ Save Safety
+- Required Hack Manifest ownership for dungeon palette, Palette Editor, room
+  property, and Object Tile Editor ROM writes, with source provenance and
+  shared-source detection so one edit cannot silently rewrite another hack's
+  bytes.
+- Made room-property, collision JSON, and track-collision writes all-or-nothing,
+  and blocked unsafe Screen Editor, graphics sheet, minecart draft, and
+  unapplied tile-layout saves instead of writing partial state.
+- Included unapplied Object Tile Editor layouts in dirty detection, so Save and
+  Apply Room now wait until those edits are applied or discarded.
+- Hardened ROM backup restoration, added explicit restored-backup discard, and
+  reported project-only session changes separately from ROM changes.
+
+### 🔧 z3ed CLI
+- Added `dungeon-get-palette` for the full room palette-set mapping, raw colors,
+  and every room sharing the selected global US/OOS palette.
+- Added dry-run-first `dungeon-set-palette-color` with mapping/color
+  compare-and-swap, manifest ownership, clean-disk baseline, a two-byte write
+  fence, required backup, atomic save, whole-ROM diff, and external readback.
+  Legacy `palette-set-color --write` is disabled because it could report an
+  in-memory change as persisted; its preview still works.
+- Added manifest-safe dungeon door and pot-item edits, room object description,
+  dedicated spawn-point reporting, idempotent collision imports, and
+  ROM-alias-safe collision export.
+- Added asset-aware `z3ed --self-test` so a packaged CLI proves it can find its
+  runtime assets.
+
+### 🎨 Appearance & Editor Shell
+- Added five verified editor themes: Blood Moon, Catppuccin Mocha, Dracula,
+  Rosé Pine, and Temple of Time, with upstream MIT notices packaged alongside.
+- Made `.theme` files authoritative for the colors they declare. A theme that
+  deliberately asks for black text or background keeps it, while genuinely
+  omitted fields are still filled in — including the five derived color sources
+  that previously handed black to link text, histograms, and highlights.
+- Reworked the welcome screen into a compact start card with Start and Recents
+  readable without scrolling, and Resume, Prototype Research, and Assembly
+  Editor promoted out of a submenu.
+- Repaired the editor chooser dashboard: `--startup_dashboard` now works, cards
+  are legible on the light themes, Display Density has effect, the advertised
+  shortcut matches the real Ctrl+E binding, and the Performance Dashboard no
+  longer draws twice per frame.
+- Renamed Window Finder to **Find Window…** and surfaced its shortcut through
+  Help → **Keyboard Shortcuts**.
+
+### 🖥️ Emulator, iOS & Platform
+- Added TCP endpoint support to the Mesen socket client alongside Unix domain
+  sockets, so debugging no longer requires a local socket path.
+- Restored the iOS device build and the remote desktop and review views.
+- Routed the normal macOS Quit menu item through ordered application shutdown.
 
 ### 🧱 Release Validation
 - Added a dedicated Release-config native test build for Linux, macOS, and
@@ -31,20 +125,55 @@
 - Added portable-package layout, manifest, dependency, executable-version, and
   lifecycle checks: FHS TGZ/DEB payloads, real APT install/purge, relocated
   macOS bundles, and Windows ZIP/NSIS execution.
+- Made nightly installs validate before activation: staged directories, both
+  executables present and running `--version`, macOS signing verified after
+  resource copying, and an atomic `current` symlink swap only on success.
+
+### 📚 Documentation
+- Replaced stale feature percentages with one canonical editor readiness matrix
+  and an evidence-based tester readiness contract that distinguishes component,
+  ROM readback, app-path, GUI smoke, and manual package evidence.
+- Generated the ALTTP quick reference and a SNES hardware reference from pinned
+  usdasm and jpdasm sources, with a check that fails when they go stale.
 
 ### Validation Snapshot
+Figures below are per-checkpoint evidence recorded at merge time. A single
+full-suite run against the final release head is **pending**.
 - ROM parser/drawer parity and room fingerprint tests pass for the covered
   vanilla rooms and objects.
 - `z3ed dungeon-object-validate` reports `0` mismatches across `1190` validated
   objects for the canonical vanilla ROM used by the dungeon parity audit.
 - The Release test gate executes `3286` discovered stable tests locally on
   macOS instead of accepting an empty test run.
+- The most recent full local unit run in this line reported `3610/3610` runnable
+  tests passing on macOS, with one profiling test disabled.
+- Final tag SHA, packaged-candidate digests, and hosted `Release` workflow run
+  links are **pending** until the remaining stabilization pull requests merge.
+
+### Landing Next
+These changes are open and reviewed but not yet merged; nothing above depends on
+them.
+- Portable project bundle compatibility: CRLF descriptors and both the desktop
+  `rom_sha1` and iOS `romChecksum` manifest fields (#207).
+- `dungeon-remove-object` with exact stream-identity guards (#234).
+- Mesen CPU register parsing against the live lowercase socket schema (#235).
+- Draw-routine symbology badges and tooltips in the dungeon object selector
+  (#236).
+- A tracked distributable theme manifest so packages ship only allowlisted
+  themes (#237).
 
 ### Known Limits
 - Full emulator 1:1 parity is not claimed. Static water, ice, bar, remaining
   small-corner objects, and more door families still need independent
   witnesses. Vanilla `0xD8` and `0xDA` remain structural-only because they
   control HDMA.
+- The Custom Assets browser exposes only the 21 fixed Oracle slots. Arbitrary
+  custom object IDs, the externally DMA-loaded Kydreeok and Manhandla pixel
+  graphics, and a general project object catalog are out of scope.
+- Oracle custom source publication requires a subsequent Oracle build and
+  in-game check. `Save ROM` alone cannot prove published assets reached the
+  game. Other ROM hacks need a named compatibility test before being described
+  as supported.
 - Headless package smoke checks do not replace hands-on GUI launch/quit on each
   desktop platform. Windows signing and macOS universal, Developer ID,
   notarization, and Gatekeeper acceptance remain separate release gates.

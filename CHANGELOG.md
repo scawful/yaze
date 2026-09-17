@@ -4,13 +4,91 @@ High-level release summary. For detailed notes, see
 `docs/public/reference/changelog.md`.
 
 ## 0.8.0 (in development)
-- Development line for the Dungeon Editor completion milestone. See
-  `docs/internal/plans/release-ladder-0x-2026.md` for scope.
-- Added room-aware US/OOS dungeon palette inspection and guarded persistent
-  color editing with shared-room fanout, CAS, manifest, clean-file baseline,
-  exact write fence, required backup, atomic save, and external readback.
-  Legacy `palette-set-color --write` now fails closed while preview remains
-  available.
+- Dungeon Editor completion milestone. See
+  `docs/internal/plans/release-ladder-0x-2026.md` for scope. Release date,
+  final merge SHA, and packaged-candidate evidence are pending.
+- **Dungeon Rendering Parity**:
+  - Rebuilt object drawing around the ROM's own draw semantics for thin floor
+    and wall strips, wall corners, diagonal walls and ceilings, stairs, rails,
+    moving walls and floors, floor-copy objects, and explicit door bodies.
+  - Matched USDASM layouts for individual object families including Somaria
+    paths, pushable blocks, torches, hammer pegs, light beams, curtains,
+    bombable and rupee floors, big key locks, prison cells, Fortune Teller,
+    Smithy Furnace, Agahnim's altar, and bar corners.
+  - Made the registry the single authority for object dimensions and BG layer
+    routing, replacing hard-coded object-ID heuristics and a duplicate legacy
+    dimension switch.
+  - Fixed room palette slot mapping, live palette refresh, placement-ghost
+    palettes, and room-aware object/sprite selector previews.
+- **Dungeon Editor Workflow**:
+  - Kept the room canvas vertically stable and moved specialist tools into a
+    variable-width **Tools** mode in the right inspector, retaining **Pop out**
+    for traditional floating panels.
+  - Made the toolbar, room navigation, Compare controls, Object Selector, and
+    palette grid responsive so tighter windows keep the canvas visible.
+  - Made issue capture explicitly local and opt-in, with a stable report dialog
+    and real room-stream context in captured traces.
+  - Gave every room presentation its own composite texture so the canvas,
+    matrix, issue report, and map preview cannot overwrite one another.
+- **Oracle and Custom Dungeon Assets**:
+  - Added a persistent **Custom Assets** mode covering the 21 fixed Oracle
+    runtime slots, with tile-layout editing, room placement, and direct
+    minecart route navigation.
+  - Removed the incorrect implicit track-corner alias so ordinary wall corners
+    stay wall corners unless a project supplies an exact same-ID override.
+  - Published custom asset and minecart-track sources with path confinement,
+    atomic replacement, rollback, and decoded readback; WASM fails closed.
+  - Added non-destructive project asset refresh that no longer discards
+    in-progress edits.
+- **Fail-Closed Save Safety**:
+  - Required Hack Manifest ownership for dungeon palette, Palette Editor, room
+    property, and Object Tile Editor ROM writes.
+  - Made dungeon object, room-property, collision-JSON, and track-collision
+    writes transactional, and blocked unsafe Screen Editor, graphics sheet,
+    minecart draft, and unapplied tile-layout saves.
+  - Hardened ROM backup restoration, legacy Save As backup targets, and
+    project-only session change reporting.
+- **z3ed CLI**:
+  - Added room-aware US/OOS dungeon palette inspection and guarded persistent
+    color editing with shared-room fanout, CAS, manifest, clean-file baseline,
+    exact write fence, required backup, atomic save, and external readback.
+    Legacy `palette-set-color --write` now fails closed while preview remains
+    available.
+  - Added manifest-safe dungeon door and existing pot-item edits, dungeon room
+    object description, dedicated spawn-point reporting, and ROM-alias-safe
+    collision export.
+- **Appearance and Editor Shell**:
+  - Added five verified editor themes (Blood Moon, Catppuccin Mocha, Dracula,
+    Rosé Pine, Temple of Time) with upstream MIT notices.
+  - Made theme files authoritative for the colors they declare, so a
+    deliberately black text, background, or border no longer gets overwritten.
+  - Reworked the welcome screen into a compact start card with flat Start
+    actions and keyboard-activatable recents.
+  - Repaired the editor chooser dashboard: `--startup_dashboard`, light-theme
+    card contrast, Display Density, the advertised shortcut, duplicate
+    rendering, and recent-editor parsing.
+  - Renamed Window Finder to **Find Window…** and surfaced its shortcut through
+    Help → Keyboard Shortcuts.
+- **Emulator, iOS, and Platform**:
+  - Added TCP endpoint support to the Mesen socket client alongside Unix
+    sockets.
+  - Restored the iOS device build and the remote desktop/review views.
+  - Routed the macOS Quit menu item through ordered application shutdown.
+- **Release Engineering**:
+  - Added a Release-config native test gate that fails on zero discovered
+    tests, missing suites, wrong-configuration binaries, or empty JUnit output.
+  - Consolidated pull-request WASM validation into one bounded build and
+    browser smoke gate.
+  - Added portable package layout, manifest, dependency, executable-version,
+    and lifecycle checks across Linux TGZ/DEB, macOS bundles, and Windows
+    ZIP/NSIS.
+  - Validated nightly installs before activation and bounded default build
+    parallelism to four workers.
+- **Documentation**:
+  - Replaced stale feature percentages with an evidence-based tester-readiness
+    matrix and a cross-platform artifact acceptance contract.
+  - Generated the ALTTP quick reference and SNES hardware reference from pinned
+    usdasm/jpdasm sources with a staleness check.
 
 ## 0.7.2 (July 17, 2026)
 - **Dungeon RC Stabilization**:
