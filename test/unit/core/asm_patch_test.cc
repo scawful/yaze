@@ -437,9 +437,11 @@ lorom
 class PatchManagerTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    // Create temp directory structure
+    const auto* test_info =
+        ::testing::UnitTest::GetInstance()->current_test_info();
     temp_dir_ = std::filesystem::temp_directory_path() /
-                ("test_patches_" + std::to_string(rand()));
+                ("yaze_patch_manager_" + std::string(test_info->name()));
+    std::filesystem::remove_all(temp_dir_);
     std::filesystem::create_directories(temp_dir_ / "Misc");
     std::filesystem::create_directories(temp_dir_ / "Sprites");
 
@@ -519,8 +521,12 @@ TEST_F(PatchManagerTest, GetFolders) {
   manager.LoadPatches(temp_dir_.string());
 
   const auto& folders = manager.folders();
-  EXPECT_EQ(folders.size(), 2u);
+  EXPECT_EQ(folders.size(), 5u);
+  EXPECT_NE(std::find(folders.begin(), folders.end(), "Hex Edits"),
+            folders.end());
+  EXPECT_NE(std::find(folders.begin(), folders.end(), "Items"), folders.end());
   EXPECT_NE(std::find(folders.begin(), folders.end(), "Misc"), folders.end());
+  EXPECT_NE(std::find(folders.begin(), folders.end(), "Npcs"), folders.end());
   EXPECT_NE(std::find(folders.begin(), folders.end(), "Sprites"),
             folders.end());
 }
