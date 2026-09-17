@@ -106,9 +106,11 @@ ImVec2 TileSelectorWidget::GetGridContentSize() const {
 
 float TileSelectorWidget::GetPreferredViewportWidth() const {
   const float grid_width = GetGridContentSize().x;
-  // Leave enough room for the jump/range controls before the filter bar wraps,
-  // while still allowing a narrower compact layout when the dock is squeezed.
-  return std::max(grid_width + 18.0f, 332.0f);
+  // Prefer honest grid + scrollbar chrome so docks can auto-size. Filter-bar
+  // controls wrap compactly when the available width is tight (see
+  // DrawFilterBar); they must not inflate the preferred dock width.
+  constexpr float kScrollbarChrome = 18.0f;
+  return grid_width + kScrollbarChrome;
 }
 
 TileSelectorWidget::RenderResult TileSelectorWidget::Render(gfx::Bitmap& atlas,

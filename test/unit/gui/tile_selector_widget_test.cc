@@ -245,12 +245,14 @@ TEST_F(TileSelectorWidgetTest, GridContentSizeMatchesConfigGeometry) {
   EXPECT_FLOAT_EQ(content_size.y, 256.0f);
 }
 
-TEST_F(TileSelectorWidgetTest, PreferredViewportWidthLeavesRoomForControls) {
+TEST_F(TileSelectorWidgetTest, PreferredViewportWidthMatchesGridPlusChrome) {
   gui::TileSelectorWidget widget("test_widget", config_);
   widget.SetTileCount(64);
 
-  EXPECT_GE(widget.GetPreferredViewportWidth(), 332.0f);
-  EXPECT_GE(widget.GetPreferredViewportWidth(), widget.GetGridContentSize().x);
+  // 8 columns * 32px + 4px offset + 18px scrollbar chrome = 278.
+  EXPECT_FLOAT_EQ(widget.GetPreferredViewportWidth(), 278.0f);
+  EXPECT_FLOAT_EQ(widget.GetPreferredViewportWidth(),
+                  widget.GetGridContentSize().x + 18.0f);
 }
 
 // Test render without atlas (should not crash)
