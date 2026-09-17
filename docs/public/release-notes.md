@@ -215,10 +215,11 @@ and every affected command, is in `docs/public/reference/changelog.md` under
   per switchable drawer. The header can also show a context badge: agent status
   for AI Agent, an unread count for Notifications, a lock icon for locked
   Properties, and the active editor's name for Help.
-- The overworld status bar shows the map the cursor was last over, with the
-  selected map alongside it when they differ, and the Tile16 selector's scroll
-  region reports the grid width plus 18px of chrome instead of a 332px floor, so
-  it no longer forces horizontal scroll in a narrow dock.
+- The overworld status bar shows the map under the cursor while the canvas is
+  hovered, with the selected map alongside it when they differ, and falls back
+  to the selected map on leave. The Tile16 selector's scroll region reports the
+  grid width plus 18px of chrome instead of a 332px floor, so it no longer
+  forces horizontal scroll in a narrow dock.
 
 ### 🖥️ Emulator, iOS & Platform
 - Added TCP endpoint support to the Mesen socket client alongside Unix domain

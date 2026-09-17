@@ -783,11 +783,11 @@ or project will notice it.
   now reads **Switch Sidebar Drawer** instead of Panel switcher.
 - Removed three unreferenced dashboards: the agent metrics dashboard panel and
   the z3ed TUI dashboard component and its layout ID.
-- The overworld status bar's **Map** segment follows the cursor: it shows the
-  last map the cursor was over, adding `· sel #XX` (or `· sel LW #XX` across
-  worlds) when that differs from the selected map, and keeps showing it after
-  the cursor leaves the canvas until you hover another map or switch worlds.
-  0.7.2 always showed the selected map.
+- The overworld status bar's **Map** segment follows the cursor: while the
+  canvas is hovered it shows the hovered map, adding `· sel #XX` (or `· sel
+  LW #XX` across worlds) when that differs from the selected map, and it falls back
+  to the selected map when the cursor leaves the canvas. 0.7.2 always showed the
+  selected map.
 - `TileSelectorWidget::GetPreferredViewportWidth` now reports the grid width
   plus 18px of scrollbar chrome instead of at least 332px, so the Tile16 scroll
   region no longer claims a 332px-wide content extent in a narrower dock.
