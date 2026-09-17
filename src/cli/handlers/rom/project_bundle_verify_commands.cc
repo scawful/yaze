@@ -70,14 +70,14 @@ BundleHashMetadata ParseBundleHashMetadata(const nlohmann::json& manifest) {
     return metadata;
   }
 
-  const bool has_rom_checksum = manifest.contains("romChecksum");
-  const bool has_rom_sha1 = manifest.contains("rom_sha1");
-  metadata.available = has_rom_checksum || has_rom_sha1;
-  if (!metadata.available) {
-    return metadata;
-  }
-
+  // A recognized field whose string value is empty after trimming carries no
+  // digest, so it is treated as absent instead of malformed. That lets a
+  // manifest written with a placeholder key fall back to the sibling field, or
+  // to the "no hash available" warning, without reporting a false failure.
   auto read_field = [&](const char* field, std::string* value) {
+    if (!manifest.contains(field)) {
+      return true;
+    }
     const auto& json_value = manifest.at(field);
     if (!json_value.is_string()) {
       metadata.error = absl::StrFormat(
@@ -85,21 +85,32 @@ BundleHashMetadata ParseBundleHashMetadata(const nlohmann::json& manifest) {
           field);
       return false;
     }
-    *value = NormalizeHash(json_value.get<std::string>());
-    if (value->size() != 40 || !IsHexHash(*value)) {
+    const std::string normalized = NormalizeHash(json_value.get<std::string>());
+    if (normalized.empty()) {
+      return true;
+    }
+    if (normalized.size() != 40 || !IsHexHash(normalized)) {
       metadata.error = absl::StrFormat(
           "manifest.json %s must be 40 hexadecimal characters", field);
       return false;
     }
+    *value = normalized;
     return true;
   };
 
   std::string rom_checksum;
   std::string rom_sha1;
-  if (has_rom_checksum && !read_field("romChecksum", &rom_checksum)) {
+  if (!read_field("romChecksum", &rom_checksum)) {
     return metadata;
   }
-  if (has_rom_sha1 && !read_field("rom_sha1", &rom_sha1)) {
+  if (!read_field("rom_sha1", &rom_sha1)) {
+    return metadata;
+  }
+
+  const bool has_rom_checksum = !rom_checksum.empty();
+  const bool has_rom_sha1 = !rom_sha1.empty();
+  metadata.available = has_rom_checksum || has_rom_sha1;
+  if (!metadata.available) {
     return metadata;
   }
   if (has_rom_checksum && has_rom_sha1 && rom_checksum != rom_sha1) {
@@ -451,7 +462,7 @@ absl::Status ProjectBundleVerifyCommandHandler::Execute(
           } else if (!metadata.available) {
             checks.push_back(
                 {"rom_hash_check", "warn",
-                 "No romChecksum or rom_sha1 field in manifest.json"});
+                 "No usable romChecksum or rom_sha1 digest in manifest.json"});
             hash_metadata_ready = false;
           } else {
             raw_expected = metadata.expected;

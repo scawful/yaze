@@ -97,11 +97,26 @@ To verify the ROM file's SHA1 hash against `manifest.json` (if present in the bu
 z3ed project-bundle-verify --project MyProject.yazeproj --check-rom-hash --format=json
 ```
 
-Bundle manifests may use the iOS `romChecksum` field or the legacy
-`rom_sha1` field. If both are present, they must contain the same 40-character
-SHA1 digest after case and surrounding-whitespace normalization. A malformed
-field or disagreement is a failure. If no `manifest.json` exists or neither
-hash field is present, the hash check is reported as a warning (not a failure).
+Bundle manifests may use the iOS `romChecksum` field or the legacy `rom_sha1`
+field. Each recognized field is normalized by lowercasing it and trimming
+surrounding whitespace, then interpreted as follows:
+
+| Manifest state | Result |
+|----------------|--------|
+| One field holds a 40-character SHA1 | Compared against the bundled `rom` file |
+| Both fields hold the same SHA1 | Compared once; the detail reports `romChecksum/rom_sha1` |
+| Both fields hold different SHA1 digests | Failure (fields disagree) |
+| A field is present but empty or whitespace-only | That field is treated as absent |
+| One field is empty, the other holds a SHA1 | The non-empty field is used |
+| Both fields empty, or neither field present | Warning (no hash available) |
+| No `manifest.json` in the bundle | Warning (no hash available) |
+| A field is not a JSON string (number, `null`, object, array) | Failure |
+| A field is a non-empty string that is not 40 hexadecimal characters | Failure |
+
+An empty field is therefore a statement that no digest was recorded, not a
+malformed manifest — a writer that emits `"romChecksum": ""` as a placeholder
+still verifies cleanly against a populated `rom_sha1`. Warnings do not affect
+the exit code; failures do.
 
 ### Bundle Pack / Unpack
 
