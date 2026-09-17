@@ -996,8 +996,9 @@ void RightDrawerManager::Draw() {
     if (draw_panel == PanelType::kToolOutput && !tool_output_title_.empty()) {
       panel_title = tool_output_title_.c_str();
     }
-    // Draw enhanced panel header
-    DrawPanelHeader(panel_title, panel_icon);
+    // Draw enhanced panel header and navigation strip
+    DrawPanelHeader(draw_panel, panel_title, panel_icon);
+    DrawDrawerNavStrip(draw_panel);
 
     // Content area with padding and minimum height so content never collapses
     gui::StyleVarGuard content_padding(
@@ -1076,7 +1077,105 @@ void RightDrawerManager::Draw() {
   }
 }
 
-void RightDrawerManager::DrawPanelHeader(const char* title, const char* icon) {
+void RightDrawerManager::DrawHeaderContextBadge(PanelType type) {
+  switch (type) {
+    case PanelType::kAgentChat: {
+#ifdef YAZE_BUILD_AGENT_UI
+      if (agent_chat_) {
+        gui::ColoredText(ICON_MD_CIRCLE, gui::GetSuccessVec4());
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("%s", tr("Agent Ready"));
+        }
+      }
+#endif
+      break;
+    }
+    case PanelType::kNotifications: {
+      if (toast_manager_) {
+        const size_t unread = toast_manager_->GetUnreadCount();
+        if (unread > 0) {
+          const std::string badge = absl::StrFormat("%zu", unread);
+          const ImVec2 badge_size = ImGui::CalcTextSize(badge.c_str());
+          const float pad_x = 5.0f;
+          const float badge_w = badge_size.x + pad_x * 2.0f;
+          const float badge_h = ImGui::GetTextLineHeight() + 2.0f;
+          const ImVec2 p = ImGui::GetCursorScreenPos();
+          ImDrawList* dl = ImGui::GetWindowDrawList();
+          dl->AddRectFilled(p, ImVec2(p.x + badge_w, p.y + badge_h),
+                            ImGui::GetColorU32(gui::GetPrimaryVec4()), 4.0f);
+          dl->AddText(ImVec2(p.x + pad_x, p.y + 1.0f),
+                      ImGui::GetColorU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f)),
+                      badge.c_str());
+          ImGui::Dummy(ImVec2(badge_w, badge_h));
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(tr("%zu unread notifications"), unread);
+          }
+        }
+      }
+      break;
+    }
+    case PanelType::kProperties: {
+      if (properties_locked_) {
+        gui::ColoredText(ICON_MD_LOCK, gui::GetWarningVec4());
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("%s", tr("Selection Locked"));
+        }
+      }
+      break;
+    }
+    case PanelType::kHelp: {
+      const char* editor_name = nullptr;
+      switch (active_editor_type_) {
+        case EditorType::kOverworld:
+          editor_name = "Overworld";
+          break;
+        case EditorType::kDungeon:
+          editor_name = "Dungeon";
+          break;
+        case EditorType::kPalette:
+          editor_name = "Palette";
+          break;
+        case EditorType::kGraphics:
+          editor_name = "Graphics";
+          break;
+        case EditorType::kAssembly:
+          editor_name = "Assembly";
+          break;
+        case EditorType::kMusic:
+          editor_name = "Music";
+          break;
+        case EditorType::kMessage:
+          editor_name = "Messages";
+          break;
+        default:
+          break;
+      }
+      if (editor_name) {
+        const ImVec4 tag_bg = gui::GetSurfaceContainerHighestVec4();
+        const ImVec2 text_sz = ImGui::CalcTextSize(editor_name);
+        const float pad = 5.0f;
+        const ImVec2 p = ImGui::GetCursorScreenPos();
+        ImDrawList* dl = ImGui::GetWindowDrawList();
+        dl->AddRectFilled(
+            p, ImVec2(p.x + text_sz.x + pad * 2.0f, p.y + text_sz.y + 2.0f),
+            ImGui::GetColorU32(tag_bg), 4.0f);
+        dl->AddText(ImVec2(p.x + pad, p.y + 1.0f),
+                    ImGui::GetColorU32(gui::GetPrimaryVec4()), editor_name);
+        ImGui::Dummy(ImVec2(text_sz.x + pad * 2.0f, text_sz.y + 2.0f));
+      }
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+void RightDrawerManager::DrawHeaderActions(PanelType type [[maybe_unused]]) {
+  // Panel-specific actions are handled inline within DrawPanelHeader.
+}
+
+void RightDrawerManager::DrawPanelHeader(PanelType type, const char* title,
+                                         const char* icon) {
   const float header_height = gui::UIConfig::kPanelHeaderHeight;
   const float padding = gui::UIConfig::kPanelPaddingLarge;
 
@@ -1093,116 +1192,242 @@ void RightDrawerManager::DrawPanelHeader(const char* title, const char* icon) {
                      ImVec2(header_max.x, header_max.y),
                      ImGui::GetColorU32(gui::GetOutlineVec4()), 1.0f);
 
-  const ImVec2 chrome_button_size = gui::IconSize::Toolbar();
-  const float button_size = chrome_button_size.x;
-  const bool show_lock = (active_panel_ == PanelType::kProperties);
-  const float chrome_width =
-      button_size + padding + (show_lock ? (button_size + 4.0f) : 0.0f);
+  // Icon chip with semi-transparent primary background
+  const float icon_chip_size = 24.0f;
+  const float chip_y = header_min.y + (header_height - icon_chip_size) * 0.5f;
+  ImVec2 chip_min(header_min.x + padding, chip_y);
+  ImVec2 chip_max(chip_min.x + icon_chip_size, chip_min.y + icon_chip_size);
+  ImVec4 chip_bg = gui::GetPrimaryVec4();
+  chip_bg.w = 0.16f;
+  draw_list->AddRectFilled(chip_min, chip_max, ImGui::GetColorU32(chip_bg),
+                           4.0f);
+  const ImVec2 icon_sz = ImGui::CalcTextSize(icon);
+  draw_list->AddText(ImVec2(chip_min.x + (icon_chip_size - icon_sz.x) * 0.5f,
+                            chip_min.y + (icon_chip_size - icon_sz.y) * 0.5f),
+                     ImGui::GetColorU32(gui::GetPrimaryVec4()), icon);
 
-  // Title row
-  ImGui::SetCursorPosX(padding);
+  // Title text positioned right after chip
+  const float title_x = padding + icon_chip_size + 6.0f;
+  ImGui::SetCursorPosX(title_x);
   ImGui::SetCursorPosY(ImGui::GetCursorPosY() +
                        (header_height - ImGui::GetTextLineHeight()) * 0.5f);
-
-  gui::ColoredText(icon, gui::GetPrimaryVec4());
-  ImGui::SameLine();
   gui::ColoredText(title, ImGui::GetStyleColorVec4(ImGuiCol_Text));
 
-  const PanelType current_panel =
-      (active_panel_ != PanelType::kNone) ? active_panel_ : closing_panel_;
+  // Contextual badge next to title
+  ImGui::SameLine(0.0f, 6.0f);
+  DrawHeaderContextBadge(type);
 
-  const ImVec2 tab_size = gui::IconSize::Small();
-  const float tab_gap = gui::UIConfig::kHeaderButtonGap;
-  const float tab_count = static_cast<float>(GetDrawerCatalog().size());
-  const float tabs_width =
-      tab_count * tab_size.x + std::max(0.0f, tab_count - 1.0f) * tab_gap;
-  // Text advances the cursor to the next line; its item rectangle retains the
-  // rendered title's actual right edge.
-  const float title_end = ImGui::GetItemRectMax().x - ImGui::GetWindowPos().x;
-  const float available_for_tabs = ImGui::GetWindowWidth() - chrome_width -
-                                   tab_gap - title_end -
-                                   gui::UIConfig::kHeaderButtonSpacing;
+  // Right-aligned chrome buttons (right → left)
+  const ImVec2 chrome_btn_size(24.0f, 24.0f);
+  const float btn_y = header_min.y + (header_height - chrome_btn_size.y) * 0.5f;
+  float current_x = ImGui::GetWindowWidth() - chrome_btn_size.x - padding;
 
-  if (available_for_tabs >= tabs_width) {
-    ImGui::SameLine(0.0f, gui::UIConfig::kHeaderButtonSpacing);
-    for (const DrawerCatalogEntry& entry : GetDrawerCatalog()) {
-      const bool is_active = current_panel == entry.type;
-      std::string tooltip = entry.name ? entry.name : "";
-      if (entry.shortcut_action && entry.shortcut_action[0] != '\0') {
-        const std::string shortcut =
-            GetShortcutLabel(entry.shortcut_action, "");
-        if (!shortcut.empty() && shortcut != "Unassigned") {
-          tooltip = absl::StrFormat("%s (%s)", entry.name, shortcut.c_str());
-        }
-      }
-      const std::string widget_id =
-          absl::StrFormat("drawer_tab_%s", entry.name ? entry.name : "x");
-      if (gui::TransparentIconButton(
-              entry.icon, tab_size, tooltip.c_str(), is_active,
-              is_active ? gui::GetPrimaryVec4() : gui::GetTextSecondaryVec4(),
-              "right_sidebar", widget_id.c_str())) {
-        if (is_active) {
-          CloseDrawer();
-        } else {
-          OpenDrawer(entry.type);
-        }
-      }
-      ImGui::SameLine(0.0f, tab_gap);
-    }
-  } else {
-    ImGui::SameLine(0.0f, gui::UIConfig::kHeaderButtonSpacing);
-    if (gui::TransparentIconButton(ICON_MD_SWAP_HORIZ, gui::IconSize::Small(),
-                                   "Switch drawer", false,
-                                   gui::GetTextSecondaryVec4(), "right_sidebar",
-                                   "switch_panel_menu")) {
-      ImGui::OpenPopup("##RightPanelSwitcher");
-    }
-    if (ImGui::BeginPopup("##RightPanelSwitcher")) {
-      for (const DrawerCatalogEntry& entry : GetDrawerCatalog()) {
-        std::string label = absl::StrFormat("%s %s", entry.icon, entry.name);
-        std::string shortcut;
-        if (entry.shortcut_action && entry.shortcut_action[0] != '\0') {
-          shortcut = GetShortcutLabel(entry.shortcut_action, "");
-          if (shortcut == "Unassigned") {
-            shortcut.clear();
-          }
-        }
-        if (ImGui::MenuItem(label.c_str(),
-                            shortcut.empty() ? nullptr : shortcut.c_str(),
-                            current_panel == entry.type)) {
-          OpenDrawer(entry.type);
-        }
-      }
-      ImGui::EndPopup();
-    }
-  }
-
-  // Right-aligned close / lock
-  const float button_y =
-      header_min.y + (header_height - chrome_button_size.y) * 0.5f;
-  float current_x = ImGui::GetWindowWidth() - button_size - padding;
-
-  ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, button_y));
+  // 1. Close Button
+  ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, btn_y));
   if (gui::TransparentIconButton(
-          ICON_MD_CANCEL, chrome_button_size, "Close Drawer (Esc)", false,
+          ICON_MD_CANCEL, chrome_btn_size, "Close Drawer (Esc)", false,
           ImVec4(0, 0, 0, 0), "right_sidebar", "close_panel")) {
     CloseDrawer();
   }
 
-  if (show_lock) {
-    current_x -= (button_size + 4.0f);
-    ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, button_y));
+  // 2. Switcher popup button
+  current_x -= (chrome_btn_size.x + 4.0f);
+  ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, btn_y));
+  if (gui::TransparentIconButton(
+          ICON_MD_SWAP_HORIZ, chrome_btn_size, "Switch Sidebar Drawer", false,
+          gui::GetTextSecondaryVec4(), "right_sidebar", "switch_panel_menu")) {
+    ImGui::OpenPopup("##RightPanelSwitcher");
+  }
+  if (ImGui::BeginPopup("##RightPanelSwitcher")) {
+    for (const DrawerCatalogEntry& entry : GetDrawerCatalog()) {
+      std::string label = absl::StrFormat("%s  %s", entry.icon, entry.name);
+      std::string shortcut;
+      if (entry.shortcut_action && entry.shortcut_action[0] != '\0') {
+        shortcut = GetShortcutLabel(entry.shortcut_action, "");
+        if (shortcut == "Unassigned") {
+          shortcut.clear();
+        }
+      }
+      if (ImGui::MenuItem(label.c_str(),
+                          shortcut.empty() ? nullptr : shortcut.c_str(),
+                          type == entry.type)) {
+        OpenDrawer(entry.type);
+      }
+    }
+    ImGui::EndPopup();
+  }
+
+  // 3. Panel-specific quick actions (right of switcher)
+  if (type == PanelType::kProperties) {
+    current_x -= (chrome_btn_size.x + 4.0f);
+    ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, btn_y));
     if (gui::TransparentIconButton(
             properties_locked_ ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN,
-            chrome_button_size,
+            chrome_btn_size,
             properties_locked_ ? "Unlock Selection" : "Lock Selection",
             properties_locked_, ImVec4(0, 0, 0, 0), "right_sidebar",
             "lock_selection")) {
       properties_locked_ = !properties_locked_;
     }
+  } else if (type == PanelType::kAgentChat) {
+#ifdef YAZE_BUILD_AGENT_UI
+    if (agent_chat_) {
+      current_x -= (chrome_btn_size.x + 4.0f);
+      ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, btn_y));
+      if (gui::TransparentIconButton(
+              ICON_MD_DELETE_SWEEP, chrome_btn_size, "Clear Chat History",
+              false, ImVec4(0, 0, 0, 0), "right_sidebar", "agent_clear_chat")) {
+        agent_chat_->ClearHistory();
+      }
+      current_x -= (chrome_btn_size.x + 4.0f);
+      ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, btn_y));
+      if (gui::TransparentIconButton(
+              ICON_MD_SAVE_ALT, chrome_btn_size, "Save Chat History", false,
+              ImVec4(0, 0, 0, 0), "right_sidebar", "agent_save_chat")) {
+        agent_chat_->SaveHistory(ResolveAgentChatHistoryPath());
+      }
+      if (proposal_drawer_) {
+        current_x -= (chrome_btn_size.x + 4.0f);
+        ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, btn_y));
+        if (gui::TransparentIconButton(
+                ICON_MD_DESCRIPTION, chrome_btn_size, "Open Proposals", false,
+                ImVec4(0, 0, 0, 0), "right_sidebar", "agent_open_proposals")) {
+          OpenDrawer(PanelType::kProposals);
+        }
+      }
+    }
+#endif
+  } else if (type == PanelType::kNotifications) {
+    if (toast_manager_) {
+      current_x -= (chrome_btn_size.x + 4.0f);
+      ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, btn_y));
+      if (gui::TransparentIconButton(
+              ICON_MD_DELETE_SWEEP, chrome_btn_size, "Clear All Notifications",
+              false, ImVec4(0, 0, 0, 0), "right_sidebar", "notif_clear_all")) {
+        toast_manager_->ClearHistory();
+      }
+      current_x -= (chrome_btn_size.x + 4.0f);
+      ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, btn_y));
+      if (gui::TransparentIconButton(ICON_MD_DONE_ALL, chrome_btn_size,
+                                     "Mark All Read", false, ImVec4(0, 0, 0, 0),
+                                     "right_sidebar", "notif_mark_read")) {
+        toast_manager_->MarkAllRead();
+      }
+    }
+  } else if (type == PanelType::kToolOutput) {
+    if (!tool_output_content_.empty()) {
+      current_x -= (chrome_btn_size.x + 4.0f);
+      ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, btn_y));
+      if (gui::TransparentIconButton(ICON_MD_CONTENT_COPY, chrome_btn_size,
+                                     "Copy Output", false, ImVec4(0, 0, 0, 0),
+                                     "right_sidebar", "tool_copy_out")) {
+        ImGui::SetClipboardText(tool_output_content_.c_str());
+      }
+    }
+  } else if (type == PanelType::kHelp) {
+    current_x -= (chrome_btn_size.x + 4.0f);
+    ImGui::SetCursorScreenPos(ImVec2(header_min.x + current_x, btn_y));
+    if (gui::TransparentIconButton(
+            ICON_MD_OPEN_IN_NEW, chrome_btn_size, "Open Online Documentation",
+            false, ImVec4(0, 0, 0, 0), "right_sidebar", "help_open_docs")) {
+      gui::OpenUrl("https://github.com/scawful/yaze/wiki");
+    }
   }
 
-  ImGui::SetCursorPosY(header_height + 8.0f);
+  ImGui::SetCursorPosY(header_height);
+}
+
+void RightDrawerManager::DrawDrawerNavStrip(PanelType current_panel) {
+  const float nav_height = 32.0f;
+  const float padding = 6.0f;
+  const float gap = 3.0f;
+
+  const ImVec2 nav_min = ImGui::GetCursorScreenPos();
+  const ImVec2 nav_max =
+      ImVec2(nav_min.x + ImGui::GetWindowWidth(), nav_min.y + nav_height);
+
+  ImDrawList* draw_list = ImGui::GetWindowDrawList();
+  draw_list->AddRectFilled(nav_min, nav_max,
+                           ImGui::GetColorU32(gui::GetSurfaceContainerVec4()));
+  draw_list->AddLine(ImVec2(nav_min.x, nav_max.y), ImVec2(nav_max.x, nav_max.y),
+                     ImGui::GetColorU32(gui::GetOutlineVec4()), 1.0f);
+
+  const auto catalog = GetDrawerCatalog();
+  const size_t count = catalog.size();
+  if (count == 0) {
+    ImGui::SetCursorPosY(ImGui::GetCursorPosY() + nav_height + 4.0f);
+    return;
+  }
+
+  const float avail_w = ImGui::GetWindowWidth() - padding * 2.0f;
+  const float tab_w =
+      std::max(24.0f, std::floor((avail_w - (count - 1) * gap) / count));
+  const float tab_h = 24.0f;
+  const float tab_y = nav_min.y + (nav_height - tab_h) * 0.5f;
+
+  for (size_t i = 0; i < count; ++i) {
+    const DrawerCatalogEntry& entry = catalog[i];
+    const bool is_active = (current_panel == entry.type);
+    const float tab_x = nav_min.x + padding + i * (tab_w + gap);
+
+    const ImVec2 tab_rect_min(tab_x, tab_y);
+    const ImVec2 tab_rect_max(tab_x + tab_w, tab_y + tab_h);
+
+    ImGui::SetCursorScreenPos(tab_rect_min);
+    const std::string tab_id = absl::StrFormat("##drawer_nav_%zu_%s", i,
+                                               entry.name ? entry.name : "x");
+    if (ImGui::InvisibleButton(tab_id.c_str(), ImVec2(tab_w, tab_h))) {
+      if (is_active) {
+        CloseDrawer();
+      } else {
+        OpenDrawer(entry.type);
+      }
+    }
+    const bool hovered = ImGui::IsItemHovered();
+
+    if (is_active) {
+      draw_list->AddRectFilled(
+          tab_rect_min, tab_rect_max,
+          ImGui::GetColorU32(gui::GetSurfaceContainerHighestVec4()), 4.0f);
+      draw_list->AddLine(ImVec2(tab_rect_min.x + 3.0f, tab_rect_max.y - 1.0f),
+                         ImVec2(tab_rect_max.x - 3.0f, tab_rect_max.y - 1.0f),
+                         ImGui::GetColorU32(gui::GetPrimaryVec4()), 2.0f);
+    } else if (hovered) {
+      draw_list->AddRectFilled(
+          tab_rect_min, tab_rect_max,
+          ImGui::GetColorU32(gui::GetSurfaceContainerHighVec4()), 4.0f);
+    }
+
+    const ImVec2 icon_sz = ImGui::CalcTextSize(entry.icon);
+    const ImVec2 icon_pos(tab_rect_min.x + (tab_w - icon_sz.x) * 0.5f,
+                          tab_rect_min.y + (tab_h - icon_sz.y) * 0.5f);
+    const ImVec4 icon_col = is_active ? gui::GetPrimaryVec4()
+                                      : (hovered ? gui::GetTextPrimaryVec4()
+                                                 : gui::GetTextSecondaryVec4());
+    draw_list->AddText(icon_pos, ImGui::GetColorU32(icon_col), entry.icon);
+
+    // Unread badge dot on Notifications tab
+    if (entry.type == PanelType::kNotifications && toast_manager_ &&
+        toast_manager_->GetUnreadCount() > 0) {
+      draw_list->AddCircleFilled(
+          ImVec2(tab_rect_max.x - 4.0f, tab_rect_min.y + 4.0f), 3.0f,
+          ImGui::GetColorU32(gui::GetPrimaryVec4()));
+    }
+
+    if (hovered) {
+      std::string tip = entry.name ? entry.name : "";
+      if (entry.shortcut_action && entry.shortcut_action[0] != '\0') {
+        const std::string sc = GetShortcutLabel(entry.shortcut_action, "");
+        if (!sc.empty() && sc != "Unassigned") {
+          tip = absl::StrFormat("%s (%s)", entry.name, sc.c_str());
+        }
+      }
+      ImGui::SetTooltip("%s", tip.c_str());
+    }
+  }
+
+  // Advance cursor past the nav strip + small gap
+  ImGui::SetCursorPosY(gui::UIConfig::kPanelHeaderHeight + nav_height + 4.0f);
 }
 
 // =============================================================================
@@ -1320,41 +1545,11 @@ void RightDrawerManager::DrawAgentChatPanel() {
 
   agent_chat_->set_active(true);
 
-  const float action_bar_height = ImGui::GetFrameHeightWithSpacing() + 8.0f;
-  const float content_height =
-      std::max(gui::UIConfig::kContentMinHeightChat,
-               ImGui::GetContentRegionAvail().y - action_bar_height);
-
-  if (ImGui::BeginChild("AgentChatBody", ImVec2(0, content_height), true)) {
+  // Actions (clear/save/proposals) have moved to the panel header.
+  if (ImGui::BeginChild("AgentChatBody", ImVec2(0, 0), false)) {
     agent_chat_->Draw(0.0f);
   }
   ImGui::EndChild();
-
-  gui::StyleVarGuard action_spacing(ImGuiStyleVar_ItemSpacing, ImVec2(6, 6));
-  const ImVec2 action_size = gui::IconSize::Toolbar();
-  const ImVec4 transparent_bg(0, 0, 0, 0);
-
-  if (proposal_drawer_) {
-    if (gui::TransparentIconButton(ICON_MD_DESCRIPTION, action_size,
-                                   "Open Proposals", false, transparent_bg,
-                                   "agent_sidebar", "open_proposals")) {
-      OpenDrawer(PanelType::kProposals);
-    }
-    ImGui::SameLine();
-  }
-
-  if (gui::TransparentIconButton(ICON_MD_DELETE_FOREVER, action_size,
-                                 "Clear Chat History", false, transparent_bg,
-                                 "agent_sidebar", "clear_history")) {
-    agent_chat_->ClearHistory();
-  }
-  ImGui::SameLine();
-
-  if (gui::TransparentIconButton(ICON_MD_FILE_DOWNLOAD, action_size,
-                                 "Save Chat History", false, transparent_bg,
-                                 "agent_sidebar", "save_history")) {
-    agent_chat_->SaveHistory(ResolveAgentChatHistoryPath());
-  }
 #else
   gui::ColoredText(ICON_MD_SMART_TOY " AI Agent Not Available",
                    gui::GetTextSecondaryVec4());
@@ -1815,48 +2010,33 @@ void RightDrawerManager::DrawQuickActionButtons() {
   const float button_width = ImGui::GetContentRegionAvail().x;
 
   gui::StyleVarGuard button_vars({
-      {ImGuiStyleVar_FramePadding, ImVec2(8.0f, 6.0f)},
-      {ImGuiStyleVar_FrameRounding, 4.0f},
+      {ImGuiStyleVar_FramePadding, ImVec2(10.0f, 7.0f)},
+      {ImGuiStyleVar_FrameRounding, 6.0f},
+      {ImGuiStyleVar_FrameBorderSize, 1.0f},
   });
 
-  // Documentation button
-  {
+  auto draw_link_button = [&](const char* icon, const char* label,
+                              const char* url) {
     gui::StyleColorGuard btn_colors({
         {ImGuiCol_Button, gui::GetSurfaceContainerHighVec4()},
         {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighestVec4()},
+        {ImGuiCol_Border, gui::GetOutlineVec4()},
     });
-    if (ImGui::Button(ICON_MD_DESCRIPTION " Open Documentation",
-                      ImVec2(button_width, 0))) {
-      gui::OpenUrl("https://github.com/scawful/yaze/wiki");
+    const std::string text =
+        absl::StrFormat("%s  %s  " ICON_MD_OPEN_IN_NEW, icon, label);
+    if (ImGui::Button(text.c_str(), ImVec2(button_width, 0))) {
+      gui::OpenUrl(url);
     }
-  }
+  };
 
+  draw_link_button(ICON_MD_DESCRIPTION, "Open Documentation",
+                   "https://github.com/scawful/yaze/wiki");
   ImGui::Spacing();
-
-  // GitHub Issues button
-  {
-    gui::StyleColorGuard btn_colors({
-        {ImGuiCol_Button, gui::GetSurfaceContainerHighVec4()},
-        {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighestVec4()},
-    });
-    if (ImGui::Button(ICON_MD_BUG_REPORT " Report Issue",
-                      ImVec2(button_width, 0))) {
-      gui::OpenUrl("https://github.com/scawful/yaze/issues/new");
-    }
-  }
-
+  draw_link_button(ICON_MD_BUG_REPORT, "Report Issue",
+                   "https://github.com/scawful/yaze/issues/new");
   ImGui::Spacing();
-
-  // Discord button
-  {
-    gui::StyleColorGuard btn_colors({
-        {ImGuiCol_Button, gui::GetSurfaceContainerHighVec4()},
-        {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighestVec4()},
-    });
-    if (ImGui::Button(ICON_MD_FORUM " Join Discord", ImVec2(button_width, 0))) {
-      gui::OpenUrl("https://discord.gg/zU5qDm8MZg");
-    }
-  }
+  draw_link_button(ICON_MD_FORUM, "Join Discord",
+                   "https://discord.gg/zU5qDm8MZg");
 }
 
 void RightDrawerManager::DrawAboutSection() {
