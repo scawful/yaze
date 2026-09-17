@@ -908,10 +908,12 @@ def run(dry_run: bool, cmake_only: bool, includes_only: bool, iwyu_mode: bool, a
     elif not dry_run and not changed:
         print("\n✅ No changes required")
     elif dry_run:
-        print("\n✅ Dry-run complete - use without --dry-run to apply changes")
+        # CI/pre-push run with --dry-run and must fail closed when drift exists.
+        print("\n❌ Dry-run found required updates - re-run without --dry-run to apply")
+        return 1
     else:
         print("\n✅ All changes applied successfully")
-    
+
     return 0
 
 
