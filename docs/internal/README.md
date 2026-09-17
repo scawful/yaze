@@ -1,6 +1,6 @@
 # YAZE Internal Documentation
 
-**Last Updated**: 2026-04-19
+**Last Updated**: 2026-09-16
 
 Internal documentation for architecture, AI agent coordination, and development planning.
 
@@ -9,8 +9,10 @@ Internal documentation for architecture, AI agent coordination, and development 
 | What | Where |
 |------|-------|
 | Active task tracking | `scripts/agents/coord task-list` ([universe coordination](agents/universe-coordination-spec.md)) |
-| Refactoring plan | [agents/refactoring-plan-0.7.md](agents/refactoring-plan-0.7.md) |
-| Latest handoff | [agents/dungeon-editor-claude-briefing-2026-04-25.md](agents/dungeon-editor-claude-briefing-2026-04-25.md) |
+| Refactoring work | Tracked as universe tasks. The 0.7 plan is closed: [archive/plans/refactoring-plan-0.7-2026-02.md](archive/plans/refactoring-plan-0.7-2026-02.md) |
+| Handoffs | Dated `*-handoff-*.md` files in [agents/](agents/) (newest date wins) |
+| Testing docs | [testing/README.md](testing/README.md) |
+| Script classification | [scripts/README.md](../../scripts/README.md) |
 | Release test checklist | [agents/oracle-morning-test-checklist.org](agents/oracle-morning-test-checklist.org) |
 | Goron Mines regression tracker | [oracle/goron-mines-minecart-regression-tracker-2026-02-26.md](oracle/goron-mines-minecart-regression-tracker-2026-02-26.md) |
 | Doc + code hygiene rules | [agents/doc-hygiene.md](agents/doc-hygiene.md) |

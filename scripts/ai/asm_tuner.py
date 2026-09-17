@@ -1,16 +1,60 @@
 #!/usr/bin/env python3
+"""ROMHack ASM tuner: syntax-verify, style-check, apply, and revert z3asm patches.
+
+Environment overrides:
+    Z3ASM_BIN   Explicit path to the z3asm binary.
+    Z3DK_ROOT   Root of a z3dk checkout (default: the yaze repo's sibling ../z3dk).
+
+Resolution order for z3asm is --z3asm, then Z3ASM_BIN, then PATH, then the
+usual build outputs under Z3DK_ROOT.
+"""
 import argparse
 import subprocess
 import os
 import re
+import shutil
 import sys
 import tempfile
-from typing import List, Dict, Tuple
+from typing import Any, Dict, List, Optional
 
-import shutil
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+Z3DK_ROOT = os.environ.get(
+    "Z3DK_ROOT", os.path.abspath(os.path.join(REPO_ROOT, "..", "z3dk"))
+)
+
+# Mirrors the candidate layout used by scripts/z3disasm.
+_Z3ASM_CANDIDATES = (
+    os.path.join("build", "src", "z3asm", "bin", "z3asm"),
+    os.path.join("build", "bin", "z3asm"),
+    os.path.join("build", "bin", "Debug", "z3asm"),
+    os.path.join("build", "bin", "RelWithDebInfo", "z3asm"),
+    os.path.join("build", "bin", "Release", "z3asm"),
+)
+
+
+def resolve_z3asm(explicit: Optional[str] = None) -> Optional[str]:
+    """Return the z3asm binary path, or None when it cannot be located."""
+    if explicit:
+        return explicit
+
+    from_env = os.environ.get("Z3ASM_BIN")
+    if from_env:
+        return from_env
+
+    on_path = shutil.which("z3asm")
+    if on_path:
+        return on_path
+
+    for relative in _Z3ASM_CANDIDATES:
+        candidate = os.path.join(Z3DK_ROOT, relative)
+        if os.access(candidate, os.X_OK):
+            return candidate
+
+    return None
+
 
 class AsmTuner:
-    def __init__(self, z3asm_path: str, rom_path: str = None):
+    def __init__(self, z3asm_path: Optional[str], rom_path: Optional[str] = None):
         self.z3asm_path = z3asm_path
         self.rom_path = rom_path
 
@@ -143,13 +187,21 @@ class AsmTuner:
         return violations
 
 def main():
-    parser = argparse.ArgumentParser(description="ROMHack ASM Tuner")
+    parser = argparse.ArgumentParser(
+        description="ROMHack ASM Tuner",
+        epilog=(
+            "z3asm is resolved from --z3asm, then $Z3ASM_BIN, then PATH, then "
+            f"build outputs under $Z3DK_ROOT (currently {Z3DK_ROOT})."
+        ),
+    )
     subparsers = parser.add_subparsers(dest="command")
+
+    z3asm_help = "Path to z3asm binary (default: $Z3ASM_BIN, PATH, then $Z3DK_ROOT)"
 
     verify_p = subparsers.add_parser("verify")
     verify_p.add_argument("file", help="Path to ASM file")
     verify_p.add_argument("--rom", help="Path to base ROM (optional)", default=None)
-    verify_p.add_argument("--z3asm", help="Path to z3asm binary", default="/Users/scawful/src/hobby/z3dk/build/src/z3asm/bin/z3asm")
+    verify_p.add_argument("--z3asm", help=z3asm_help, default=None)
 
     style_p = subparsers.add_parser("style")
     style_p.add_argument("file", help="Path to ASM file")
@@ -157,19 +209,22 @@ def main():
     apply_p = subparsers.add_parser("apply")
     apply_p.add_argument("file", help="Path to ASM file")
     apply_p.add_argument("--rom", help="Path to ROM file", required=True)
-    apply_p.add_argument("--z3asm", help="Path to z3asm binary", default="/Users/scawful/src/hobby/z3dk/build/src/z3asm/bin/z3asm")
+    apply_p.add_argument("--z3asm", help=z3asm_help, default=None)
 
     revert_p = subparsers.add_parser("revert")
     revert_p.add_argument("--rom", help="Path to ROM file", required=True)
 
     args = parser.parse_args()
 
-    # Use defaults if not provided but configured (naive env var or hardcode?)
-    # For now relying on args.
-    
-    # Common args
-    z3asm = getattr(args, 'z3asm', "/Users/scawful/src/hobby/z3dk/build/src/z3asm/bin/z3asm")
     rom = getattr(args, 'rom', None)
+    z3asm = resolve_z3asm(getattr(args, 'z3asm', None))
+    if z3asm is None and args.command in ("verify", "apply"):
+        print(
+            "z3asm not found. Set Z3ASM_BIN, put z3asm on PATH, or build it:\n"
+            f"  cmake --build {os.path.join(Z3DK_ROOT, 'build')} --target z3asm",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
     tuner = AsmTuner(z3asm, rom)
 
@@ -219,6 +274,9 @@ def main():
     elif args.command == "revert":
         tuner.revert_rom()
 
+    else:
+        parser.print_help()
+
+
 if __name__ == "__main__":
-    from typing import Any # Fix import
     main()
