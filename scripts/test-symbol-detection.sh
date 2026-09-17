@@ -96,7 +96,7 @@ else
 fi
 
 # Check for expected fields
-if python3 << PYTHON_EOF
+if python3 << PYTHON_EOF; then
 import json
 with open("${DB_FILE}") as f:
     data = json.load(f)
@@ -115,7 +115,6 @@ for field in required_meta:
 print("  ${GREEN}✓${NC} JSON structure is correct")
 exit(0)
 PYTHON_EOF
-; then
     : # Already printed
 else
     echo -e "  ${RED}✗${NC} JSON structure validation failed"
