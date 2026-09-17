@@ -39,6 +39,7 @@
 #include "app/editor/overworld/map_texture_coordinator.h"
 #include "app/editor/overworld/overworld_entity_renderer.h"
 #include "app/editor/overworld/overworld_map_metadata.h"
+#include "app/editor/overworld/overworld_map_status.h"
 #include "app/editor/overworld/overworld_sidebar.h"
 #include "app/editor/overworld/overworld_toolbar.h"
 #include "app/editor/overworld/overworld_undo_actions.h"
@@ -1722,23 +1723,8 @@ void OverworldEditor::CycleTileSelection(int delta) {
 void OverworldEditor::ContributeStatus(StatusBar* status_bar) {
   if (!status_bar)
     return;
-  const char* world_label = "LW";
-  switch (current_world_) {
-    case 0:
-      world_label = "LW";
-      break;
-    case 1:
-      world_label = "DW";
-      break;
-    case 2:
-      world_label = "SW";
-      break;
-    default:
-      world_label = "??";
-      break;
-  }
   status_bar->SetCustomSegment(
-      "Map", absl::StrFormat("%s #%02X", world_label, current_map_ & 0xFF));
+      "Map", FormatOverworldMapStatusSegment(current_map_, hovered_map_));
   status_bar->SetCustomSegment("Tile16",
                                absl::StrFormat("0x%03X", current_tile16_));
 

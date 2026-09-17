@@ -886,6 +886,33 @@ void SettingsPanel::DrawAppearanceSettings() {
     ImGui::SetTooltip(
         tr("Display ROM, session, cursor, and zoom info at bottom of window"));
   }
+
+  ImGui::Spacing();
+  ImGui::Text(tr("%s Editor Behavior"), ICON_MD_TUNE);
+  ImGui::Separator();
+
+  bool keep_emu_bg =
+      user_settings_->prefs().emulator_keep_running_in_background;
+  if (ImGui::Checkbox(tr("Keep Emulator Running in Background"),
+                      &keep_emu_bg)) {
+    user_settings_->prefs().emulator_keep_running_in_background = keep_emu_bg;
+    user_settings_->Save();
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(tr(
+        "When off (default), hiding emulator panels pauses the SNES tick and "
+        "audio. Music playback still drives its own frames."));
+  }
+
+  bool show_experimental = user_settings_->prefs().show_experimental_editors;
+  if (ImGui::Checkbox(tr("Show Experimental Editors"), &show_experimental)) {
+    user_settings_->prefs().show_experimental_editors = show_experimental;
+    user_settings_->Save();
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        tr("Enable Screen, Music, and Agent editors marked in development."));
+  }
 }
 
 void SettingsPanel::DrawWorkspaceSettings() {
