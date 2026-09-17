@@ -1,62 +1,64 @@
 # YAZE ROM Editor - clang-tidy configuration
 # Optimized for Google C++ style, Abseil/gRPC, and ROM hacking workflows
+#
+# Checks below is a YAML folded scalar, so a '#' inside it is part of the check
+# list rather than a comment, and it silently swallows the globs that follow it
+# on the same line. Keep the scalar to globs only and keep rationale up here.
+#
+# Enabled suites: clang-analyzer (core static analysis), performance (ROM
+# emulation hot paths), readability, modernize, bugprone, misc, abseil, google.
+#
+# The suppressions below are ROM hacking concessions: magic numbers, explicit
+# integer sizing, C arrays, deliberate narrowing conversions, and ROM-specific
+# identifier naming all show up constantly in this codebase.
+#
+# misc-include-cleaner, readability-identifier-length, and
+# readability-implicit-bool-conversion postdate this config and fire on nearly
+# every file here; the last of them is already suppressed in .clangd.
 
 Checks: >
-  -*-,
-  # Core static analysis
+  -*,
   clang-analyzer-*,
   -clang-analyzer-alpha*,
   -clang-analyzer-deadcode.DeadStores,
-  
-  # Performance checks (critical for ROM emulation)
   performance-*,
   -performance-unnecessary-value-param,
   -performance-for-range-copy,
   -performance-move-const-arg,
-  
-  # Readability (adapted for ROM hacking)
   readability-*,
-  -readability-magic-numbers,  # ROM hacking uses many magic numbers
+  -readability-magic-numbers,
   -readability-braces-around-statements,
   -readability-named-parameter,
   -readability-function-cognitive-complexity,
   -readability-avoid-const-params-in-decls,
-  -readability-identifier-naming,  # Allow ROM-specific naming patterns
+  -readability-identifier-naming,
+  -readability-identifier-length,
+  -readability-implicit-bool-conversion,
   -readability-uppercase-literal-suffix,
   -readability-function-size,
-  
-  # Modernize (selective for ROM compatibility)
   modernize-*,
   -modernize-use-trailing-return-type,
-  -modernize-use-auto,  # ROM hacking needs explicit types
-  -modernize-avoid-c-arrays,  # ROM data structures use C arrays
+  -modernize-use-auto,
+  -modernize-avoid-c-arrays,
   -modernize-use-default-member-init,
   -modernize-use-nodiscard,
   -modernize-use-override,
   -modernize-use-equals-default,
   -modernize-use-equals-delete,
-  
-  # Bug-prone checks (ROM-specific exceptions)
   bugprone-*,
   -bugprone-easily-swappable-parameters,
   -bugprone-exception-escape,
-  -bugprone-narrowing-conversions,  # ROM data often requires narrowing
+  -bugprone-narrowing-conversions,
   -bugprone-implicit-widening-of-multiplication-result,
   -bugprone-signed-char-misuse,
   -bugprone-branch-clone,
-  
-  # Miscellaneous checks
   misc-*,
+  -misc-include-cleaner,
   -misc-no-recursion,
   -misc-non-private-member-variables-in-classes,
   -misc-const-correctness,
-  -misc-no-recursion,
   -misc-redundant-expression,
-  
-  # Abseil-specific checks
   abseil-*,
-  
-  # Google C++ style enforcement
   google-*,
   -google-readability-casting,
   -google-readability-todo,
@@ -121,8 +123,11 @@ CheckOptions:
     value: 64
 
 WarningsAsErrors: ''
-HeaderFilterRegex: '(src|test|incl)\/.*\.(h|hpp|hxx)$'
-FormatStyle: google
+# Our first-party headers live in src/, test/, and the public C API in inc/.
+HeaderFilterRegex: '(src|test|inc)\/.*\.(h|hpp|hxx)$'
+# 'file' keeps --fix output identical to the checked-in .clang-format, which is
+# what every other entry point uses.
+FormatStyle: file
 
 # Additional ROM hacking specific configurations
 UseColor: true
