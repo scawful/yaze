@@ -79,8 +79,10 @@ and every affected command, is in `docs/public/reference/changelog.md` under
   floor-copy objects. The `_plus3` solid strips and `_plus13`/`_plus12` rail
   walls now draw from the object's own origin instead of 3, 13, or 12 tiles
   away. Conditional edge and cap routines check whether a layout or object tile
-  owns each position. Lower straight stairs and spiral stairs now raise adjacent
-  BG1 tile priority without painting over tiles.
+  owns each position. Lower straight stairs now raise the priority of a BG1
+  column next to the staircase, and spiral stairs raise the priority of the
+  tiles just left and right of the staircase (BG1 for upper spirals, BG2 for
+  lower spirals). Neither paints over tiles.
 - Matched dozens of individual object families against USDASM, including Somaria
   paths, pushable blocks, torch codecs, hammer pegs, light beams, curtains,
   rupee and bombable floors, big key locks, prison cells, moving walls, the
@@ -196,7 +198,8 @@ and every affected command, is in `docs/public/reference/changelog.md` under
 - Reworked the welcome screen into a compact start card whose Start and Recent
   panes never scroll: the Recent list is cut to what fits, and optional Start
   rows drop on small windows. The Release History card became a Release notes
-  link, and the resume button now names the last project.
+  link, and the resume button now names the most recent available ROM or
+  project.
 - Repaired the editor chooser dashboard: `--startup_dashboard=hide` now also
   suppresses the chooser on most automatic opens after a ROM or project loads
   (it can still appear when opening from the welcome screen), cards are legible
@@ -206,8 +209,9 @@ and every affected command, is in `docs/public/reference/changelog.md` under
   **Keyboard Shortcuts** now opens the shortcuts browser instead of Settings
   and is bound to Ctrl+Shift+/.
 - The right sidebar drawer shows an icon strip below its header with one icon
-  per switchable drawer, and the header shows a context badge for the open
-  drawer.
+  per switchable drawer. The header can also show a context badge: agent status
+  for AI Agent, an unread count for Notifications, a lock icon for locked
+  Properties, and the active editor's name for Help.
 
 ### 🖥️ Emulator, iOS & Platform
 - Added TCP endpoint support to the Mesen socket client alongside Unix domain
