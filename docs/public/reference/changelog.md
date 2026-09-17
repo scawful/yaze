@@ -308,6 +308,17 @@ or project will notice it.
   still appear when you open a ROM or project from the welcome screen, or close
   the welcome screen with a ROM loaded. `show` and `auto` are unchanged and
   `Ctrl+E` still opens the chooser.
+- **The emulator pauses while its panels are hidden.** Switching to another
+  editor now stops SNES frames and audio. 0.7.2 kept advancing them in the
+  background. Turn on Settings > Appearance > Editor Behavior > **Keep Emulator
+  Running in Background** (default off, saved as
+  `emulator.keep_running_in_background` in `settings.json`, or
+  `emulator_keep_running_in_background` in the legacy `yaze_settings.ini`) to
+  get the old behaviour.
+- **A saved `Emulator` category is restored at startup.** 0.7.2 ignored a saved
+  `Emulator` category and opened the first non-Emulator category instead. With
+  no saved category, Emulator is still never chosen, and the emulator does not
+  run until its panel is visible.
 
 #### Themes
 - **Hand-written `.theme` files are filled in and preserved differently.** Keys
@@ -772,6 +783,14 @@ or project will notice it.
   now reads **Switch Sidebar Drawer** instead of Panel switcher.
 - Removed three unreferenced dashboards: the agent metrics dashboard panel and
   the z3ed TUI dashboard component and its layout ID.
+- The overworld status bar's **Map** segment follows the cursor: it shows the
+  last map the cursor was over, adding `· sel #XX` (or `· sel LW #XX` across
+  worlds) when that differs from the selected map, and keeps showing it after
+  the cursor leaves the canvas until you hover another map or switch worlds.
+  0.7.2 always showed the selected map.
+- `TileSelectorWidget::GetPreferredViewportWidth` now reports the grid width
+  plus 18px of scrollbar chrome instead of at least 332px, so the Tile16 scroll
+  region no longer claims a 332px-wide content extent in a narrower dock.
 
 ### Emulator, iOS, and platform
 - Added TCP endpoint support to the Mesen socket client alongside Unix domain
@@ -780,6 +799,10 @@ or project will notice it.
   the CMake iOS presets, included the remote desktop and review Swift views in
   the iOS target, and replaced an iOS-unavailable directory-creation path.
 - Routed the normal macOS Quit menu item through ordered application shutdown.
+- Hidden emulator panels no longer advance SNES frames or audio unless **Keep
+  Emulator Running in Background** is enabled in Settings > Appearance > Editor
+  Behavior. The startup category policy now honours a saved `Emulator` category
+  and still never falls back to Emulator when no category is saved.
 - Mesen2-OOS CPU registers are read from the server's lowercase JSON keys.
   0.7.2 looked for uppercase keys, so every register read as `0` in the Mesen
   Debug panel, ASM follow, and `z3ed mesen-*` commands.
