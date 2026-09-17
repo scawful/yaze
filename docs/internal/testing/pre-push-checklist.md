@@ -320,8 +320,8 @@ After running all checks:
 
 ## Related Documentation
 
-- **Testing Strategy**: `docs/internal/testing/testing-strategy.md`
-- **Gap Analysis**: `docs/internal/testing/gap-analysis.md`
+- **Testing Docs Index**: `docs/internal/testing/README.md`
+- **CI Strategy**: `docs/internal/testing/overview.md`
 - **Build Quick Reference**: `docs/public/build/quick-reference.md`
 - **Troubleshooting**: `docs/public/build/troubleshooting.md`
 

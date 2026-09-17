@@ -1,18 +1,36 @@
 #!/usr/bin/env python3
-import json
+"""Unit tests for scripts/ai/navigator.py.
+
+The world graph is a generated artifact (see scripts/ai/map_compiler.py) and is
+gitignored, so these tests skip when it is absent.
+
+Run: python3 -m unittest discover -s scripts/ai
+Override the graph location with YAZE_WORLD_GRAPH.
+"""
+
+import os
+import sys
 import unittest
-from navigator import Locator, PathFinder
+from pathlib import Path
 
-class MockMCP:
-    def __init__(self, ram_values):
-        self.ram = ram_values
-    def read_ram(self, addresses):
-        return {addr: self.ram.get(addr, 0) for addr in addresses}
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+from navigator import Locator, PathFinder  # noqa: E402
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
+GRAPH_PATH = os.environ.get(
+    "YAZE_WORLD_GRAPH", str(REPO_ROOT / "world_graph.json")
+)
+
+
+@unittest.skipUnless(
+    os.path.exists(GRAPH_PATH),
+    f"world graph not found at {GRAPH_PATH}; "
+    "generate it with scripts/ai/map_compiler.py or set YAZE_WORLD_GRAPH",
+)
 class TestNavigator(unittest.TestCase):
     def setUp(self):
-        self.graph_path = "/Users/scawful/src/hobby/yaze/world_graph.json"
-        self.locator = Locator(self.graph_path)
+        self.locator = Locator(GRAPH_PATH)
         self.pf = PathFinder(self.locator.graph)
 
     def test_localization_indoors(self):
@@ -42,22 +60,17 @@ class TestNavigator(unittest.TestCase):
         self.assertEqual(loc["screen_id"], 0)
 
     def test_pathfinding_connectivity(self):
-        # Test finding neighbors for Room 0x1B (should have West door to 0x1A)
+        # Room 0x1B (27) is expected to have a West door to Room 0x1A (26).
         neighbors = self.pf.get_room_neighbors(0x1B)
-        print(f"Neighbors of 0x1B: {neighbors}")
-        
-        # Verify West door connection (Room 27 -> Room 26)
-        has_west_connection = any(n[0] == 0x1A for n in neighbors)
-        # Note: 0x1B is 27. West is 26 (0x1A).
-        if has_west_connection:
-            print("Found West connection to 0x1A")
-            
-        # Test pathfinding
-        if has_west_connection:
-            path = self.pf.find_room_path(0x1B, 0x1A)
-            print(f"Path 0x1B -> 0x1A: {path}")
-            self.assertTrue(len(path) > 1)
-            self.assertEqual(path[-1][0], 0x1A)
+        self.assertTrue(
+            any(n[0] == 0x1A for n in neighbors),
+            f"expected a 0x1B -> 0x1A connection, got {neighbors}",
+        )
+
+        path = self.pf.find_room_path(0x1B, 0x1A)
+        self.assertGreater(len(path), 1)
+        self.assertEqual(path[-1][0], 0x1A)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,8 +1,25 @@
-# Yaze Refactoring Plan: 0.6.1 → 0.7.0
+# Yaze Refactoring Plan: 0.6.1 → 0.7.0 (ARCHIVED)
 
-Status: DRAFT
+Status: ARCHIVE
+Archived: 2026-09-16
 Owner: ai-infra-architect + codex (joint review)
 Created: 2026-02-24
+
+> Archived: the 0.7.0 release window closed (repository `VERSION` is now 0.8.0) and this
+> plan was never re-reviewed. Active refactoring work is tracked through the universe
+> coordination log (`scripts/agents/coord task-list --status active`), not this file.
+>
+> State at archive time:
+> - Phase 0 landed: the seven `.bak` files and `src/lib/` are gone, and only two
+>   `DISABLED_` tests remain.
+> - Phase 0.3/0.4 did not land: there is no `dependencies.lock` and no
+>   `docs/internal/testing/imgui-test-engine-guide.md`.
+> - Phase 1 did not land and regressed: `src/app/editor/editor_manager.cc` is ~7,055 LOC
+>   against a target of <1,200.
+> - Phases 2-4 were not executed as written.
+>
+> Re-open any still-wanted item as a fresh universe task with its own exit criteria
+> rather than reviving this document.
 
 ## Phasing Strategy
 
