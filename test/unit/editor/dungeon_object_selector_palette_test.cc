@@ -18,6 +18,7 @@
 #include "gtest/gtest.h"
 #include "imgui/imgui_internal.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_symbology.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/room_layer_manager.h"
 
@@ -1444,6 +1445,193 @@ TEST(DungeonObjectCategoryTest, FallbackSymbolsDescribeActualObjectFamilies) {
     EXPECT_EQ(selector.object_type_symbol_for_testing(id), expected)
         << "object " << id;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Routine symbology tests (post-PR #233 integration)
+//
+// These exercise GetSymbologyForObject() directly — a free function in the
+// zelda3 namespace — so they do not require an ImGui context or a ROM file.
+// They are placed here because they pin the badge and tooltip contract that
+// the selector exposes through DrawObjectAssetBrowser.
+// ---------------------------------------------------------------------------
+
+TEST(DungeonObjectRoutineSymbologyTest, Extensible4x4BadgeIsRightwards) {
+  // Object 0x33 (Carpet) maps to kRightwards4x4_1to16 (routine 16).
+  // The routine is extensible (repeats rightwards) with a 4x4 base pattern.
+  const auto sym = zelda3::GetSymbologyForObject(0x33);
+  EXPECT_EQ(sym.badge, ">") << "Rightwards category glyph must be '>'";
+  EXPECT_NE(sym.family.find("4x4"), std::string::npos)
+      << "Family string must encode the 4x4 base dimensions";
+  EXPECT_NE(sym.family.find("Rightwards"), std::string::npos)
+      << "Family string must name the Rightwards family";
+  EXPECT_EQ(sym.base_width, 4);
+  EXPECT_EQ(sym.base_height, 4);
+  EXPECT_FALSE(sym.dual_layer)
+      << "Rightwards4x4_1to16 does not write to both BG layers";
+}
+
+TEST(DungeonObjectRoutineSymbologyTest, CornerBothBGBadgeIsL2) {
+  // Objects 0x108-0x10F map to kCorner4x4_BothBG (routine 35):
+  //   Corner category, base 4x4, draws_to_both_bgs=true.
+  // Badge = 'L' (Corner glyph) + '2' (BothBG suffix) = "L2".
+  for (int obj_id = 0x108; obj_id <= 0x10F; ++obj_id) {
+    SCOPED_TRACE(obj_id);
+    const auto sym =
+        zelda3::GetSymbologyForObject(static_cast<int16_t>(obj_id));
+    EXPECT_EQ(sym.badge, "L2") << "Corner-BothBG badge must be 'L2'";
+    EXPECT_TRUE(sym.dual_layer) << "kCorner4x4_BothBG writes to both BG layers";
+    EXPECT_NE(sym.family.find("Corner"), std::string::npos)
+        << "Family must name the Corner family";
+    EXPECT_NE(sym.family.find("BothBG"), std::string::npos)
+        << "Family must include the BothBG qualifier";
+    EXPECT_NE(sym.family.find("4x4"), std::string::npos)
+        << "Family must encode the 4x4 base dimensions";
+    EXPECT_EQ(sym.base_width, 4);
+    EXPECT_EQ(sym.base_height, 4);
+  }
+}
+
+TEST(DungeonObjectRoutineSymbologyTest, BothBGNonCornerBadgeHasTwoSuffix) {
+  // Objects 0x63-0x64 map to kDownwards4x2_1to16_BothBG (routine 9):
+  //   Downwards category, base 4x2, draws_to_both_bgs=true.
+  // Badge = 'v' (Downwards glyph) + '2' (BothBG suffix) = "v2".
+  for (int obj_id = 0x63; obj_id <= 0x64; ++obj_id) {
+    SCOPED_TRACE(obj_id);
+    const auto sym =
+        zelda3::GetSymbologyForObject(static_cast<int16_t>(obj_id));
+    EXPECT_EQ(sym.badge, "v2") << "Downwards-BothBG badge must be 'v2'";
+    EXPECT_TRUE(sym.dual_layer);
+    EXPECT_NE(sym.family.find("Downwards"), std::string::npos);
+    EXPECT_NE(sym.family.find("BothBG"), std::string::npos);
+    EXPECT_EQ(sym.base_width, 4);
+    EXPECT_EQ(sym.base_height, 2);
+  }
+}
+
+TEST(DungeonObjectRoutineSymbologyTest,
+     NamedSpecialsBadgesAreDistinctAndStable) {
+  // The four named specials earn their own single-character badge that is
+  // deliberately decoupled from the direction glyph.
+  //
+  //  0xF99 -> kChest (routine 39)       => "C" / "Chest"
+  //  0xF98 -> kBigKeyLock (routine 92)  => "K" / "Big key lock"
+  //  0xFC7 -> kBombableFloor (93)       => "B" / "Bombable floor"
+  //  0xF8D -> kPrisonCell (97)          => "P" / "Prison cell"
+  struct NamedCase {
+    int16_t object_id;
+    const char* expected_badge;
+    const char* expected_family;
+  };
+  for (const auto& tc : {
+           NamedCase{0xF99, "C", "Chest"},
+           NamedCase{0xF98, "K", "Big key lock"},
+           NamedCase{0xFC7, "B", "Bombable floor"},
+           NamedCase{0xF8D, "P", "Prison cell"},
+       }) {
+    SCOPED_TRACE(tc.object_id);
+    const auto sym = zelda3::GetSymbologyForObject(tc.object_id);
+    EXPECT_EQ(sym.badge, tc.expected_badge);
+    EXPECT_EQ(sym.family, tc.expected_family);
+    EXPECT_FALSE(sym.dual_layer)
+        << "Named specials do not write to both BG layers";
+  }
+}
+
+TEST(DungeonObjectRoutineSymbologyTest, ChestGroupingCategoryVsRoutine) {
+  // The "Chests" category groups objects that are related to chests in the
+  // game world — but the draw *routine* badge tracks how each object is
+  // rendered, which is a separate dimension.
+  //
+  // Primary chest objects (0xF99, 0xF9A) use the Chest draw routine → "C".
+  // Platform/decor variants (0xFB1, 0xFB2, 0xFF5) use fixed-size Special
+  // routines — "S" with dimensions — because they are rendered as a fixed
+  // 4x3 or 2x2 block rather than through the chest-slot dispatch.
+  //
+  // This test pins both truths so a future registry change can't silently
+  // move a chest object to the wrong routine.
+  const auto chest_ids_or =
+      zelda3::ObjectCategories::GetObjectsInCategory("Chests");
+  ASSERT_TRUE(chest_ids_or.ok()) << chest_ids_or.status();
+  EXPECT_EQ(chest_ids_or->size(), 5u) << "Chests category must have 5 members";
+
+  // Primary slot objects: use the Chest draw routine.
+  for (const int obj_id : {0xF99, 0xF9A}) {
+    SCOPED_TRACE(obj_id);
+    const auto sym =
+        zelda3::GetSymbologyForObject(static_cast<int16_t>(obj_id));
+    EXPECT_EQ(sym.badge, "C")
+        << "Primary chest objects must have the Chest routine badge";
+    EXPECT_EQ(sym.family, "Chest");
+  }
+
+  // Platform/decor variants: use fixed-size Special routines, NOT kChest.
+  for (const int obj_id : {0xFB1, 0xFB2, 0xFF5}) {
+    SCOPED_TRACE(obj_id);
+    const auto sym =
+        zelda3::GetSymbologyForObject(static_cast<int16_t>(obj_id));
+    EXPECT_NE(sym.badge, "C")
+        << "Chest platform/decor variants use non-Chest render routines";
+    EXPECT_NE(sym.family, "Chest")
+        << "Chest platform/decor variants use non-Chest render routines";
+    // They are Special-category routines with fixed dimensions.
+    EXPECT_EQ(sym.badge, "S");
+    EXPECT_NE(sym.family.find("Special"), std::string::npos);
+  }
+}
+
+TEST(DungeonObjectRoutineSymbologyTest,
+     RoutineBadgeAndCategorySymbolAreSeparateSystems) {
+  // The fallback tile label (GetObjectTypeSymbol, category-based: "|","_",…)
+  // and the routine-overlay badge (GetSymbologyForObject, routine-based:
+  // ">","v","L",…) are intentionally distinct systems.  An object can share
+  // the same letter in both (e.g. "C" for Chests in both systems) but the
+  // symbols for non-chest directional families never coincide.
+  //
+  // This test pins that contract for the selector's two presentation paths:
+  //   fallback path:   object_type_symbol_for_testing() (category symbol)
+  //   badge path:      GetSymbologyForObject().badge    (routine symbol)
+  DungeonObjectSelector selector;
+
+  // Walls use "|" in the category system but ">" or "v" or "L" in routine.
+  {
+    const std::string category_sym =
+        selector.object_type_symbol_for_testing(0x001);
+    const auto routine_sym = zelda3::GetSymbologyForObject(0x001);
+    EXPECT_EQ(category_sym, "|");
+    EXPECT_NE(routine_sym.badge, "|")
+        << "Routine badge must not duplicate the category symbol for walls";
+  }
+  // Floors use "_" in category; 0x033 (Carpet) is Rightwards in routine.
+  {
+    const std::string category_sym =
+        selector.object_type_symbol_for_testing(0x033);
+    const auto routine_sym = zelda3::GetSymbologyForObject(0x033);
+    EXPECT_EQ(category_sym, "_");
+    EXPECT_NE(routine_sym.badge, "_")
+        << "Routine badge must not duplicate the category symbol for floors";
+  }
+  // Chests: both systems happen to return "C" — that is intentional.
+  {
+    const std::string category_sym =
+        selector.object_type_symbol_for_testing(0xF99);
+    const auto routine_sym = zelda3::GetSymbologyForObject(0xF99);
+    EXPECT_EQ(category_sym, "C");
+    EXPECT_EQ(routine_sym.badge, "C")
+        << "Chest badge must be 'C' in both systems";
+  }
+}
+
+TEST(DungeonObjectRoutineSymbologyTest, UnmappedObjectBadgeIsQuestionMark) {
+  // Any object ID not in the registry's object→routine mapping returns
+  // badge "?" so the card overlay code can suppress it for visual cleanliness.
+  //
+  // 0x0140 is just above the Type 2 codec range (0x100-0x13F) and has no
+  // individual entry in the registry mapping, so it returns "Unmapped".
+  // (0x0F8 is NOT a valid choice here: it maps to the Chest routine, 39.)
+  const auto sym = zelda3::GetSymbologyForObject(0x0140);
+  EXPECT_EQ(sym.badge, "?");
+  EXPECT_EQ(sym.family, "Unmapped");
 }
 
 }  // namespace
