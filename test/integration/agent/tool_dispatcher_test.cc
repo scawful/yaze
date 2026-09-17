@@ -31,8 +31,10 @@ using ::testing::Not;
 class ToolDispatcherTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    // Create test directories and files for filesystem tests
-    test_dir_ = std::filesystem::temp_directory_path() / "yaze_dispatcher_test";
+    // Filesystem tools are intentionally sandboxed to the project tree. CTest
+    // runs from the build directory, so keep fixtures inside that sandbox.
+    test_dir_ =
+        std::filesystem::current_path() / "test_temp" / "yaze_dispatcher_test";
     std::filesystem::create_directories(test_dir_);
 
     // Create a test file
@@ -70,9 +72,7 @@ class ToolDispatcherTest : public ::testing::Test {
 // =============================================================================
 
 TEST_F(ToolDispatcherTest, FilesystemListDispatch) {
-  auto call = CreateToolCall("filesystem-list", {
-      {"path", test_dir_.string()}
-  });
+  auto call = CreateToolCall("filesystem-list", {{"path", test_dir_.string()}});
 
   auto result = dispatcher_.Dispatch(call);
 
@@ -86,9 +86,8 @@ TEST_F(ToolDispatcherTest, FilesystemListDispatch) {
 }
 
 TEST_F(ToolDispatcherTest, FilesystemReadDispatch) {
-  auto call = CreateToolCall("filesystem-read", {
-      {"path", (test_dir_ / "test.txt").string()}
-  });
+  auto call = CreateToolCall("filesystem-read",
+                             {{"path", (test_dir_ / "test.txt").string()}});
 
   auto result = dispatcher_.Dispatch(call);
 
@@ -100,9 +99,8 @@ TEST_F(ToolDispatcherTest, FilesystemReadDispatch) {
 }
 
 TEST_F(ToolDispatcherTest, FilesystemExistsDispatch) {
-  auto call = CreateToolCall("filesystem-exists", {
-      {"path", (test_dir_ / "test.txt").string()}
-  });
+  auto call = CreateToolCall("filesystem-exists",
+                             {{"path", (test_dir_ / "test.txt").string()}});
 
   auto result = dispatcher_.Dispatch(call);
 
@@ -110,9 +108,8 @@ TEST_F(ToolDispatcherTest, FilesystemExistsDispatch) {
 }
 
 TEST_F(ToolDispatcherTest, FilesystemInfoDispatch) {
-  auto call = CreateToolCall("filesystem-info", {
-      {"path", (test_dir_ / "test.txt").string()}
-  });
+  auto call = CreateToolCall("filesystem-info",
+                             {{"path", (test_dir_ / "test.txt").string()}});
 
   auto result = dispatcher_.Dispatch(call);
 
@@ -139,16 +136,16 @@ TEST_F(ToolDispatcherTest, BuildStatusDispatch) {
 }
 
 TEST_F(ToolDispatcherTest, BuildConfigureDispatch) {
-  auto call = CreateToolCall("build-configure", {
-      {"preset", "mac-dbg"}
-  });
+  auto call = CreateToolCall("build-configure", {{"preset", "mac-dbg"}});
 
   auto result = dispatcher_.Dispatch(call);
 
-  // Build tools may not be fully implemented yet
+  // Build tools may not be fully implemented or authorized in this test
+  // configuration.
   if (!result.ok()) {
     EXPECT_TRUE(absl::IsInternal(result.status()) ||
-                absl::IsUnimplemented(result.status()))
+                absl::IsUnimplemented(result.status()) ||
+                absl::IsPermissionDenied(result.status()))
         << "Unexpected error: " << result.status().message();
   }
 }
@@ -163,9 +160,7 @@ TEST_F(ToolDispatcherTest, ToolPreferencesDisableFilesystem) {
 
   dispatcher_.SetToolPreferences(prefs);
 
-  auto call = CreateToolCall("filesystem-list", {
-      {"path", test_dir_.string()}
-  });
+  auto call = CreateToolCall("filesystem-list", {{"path", test_dir_.string()}});
 
   auto result = dispatcher_.Dispatch(call);
 
@@ -197,9 +192,7 @@ TEST_F(ToolDispatcherTest, ToolPreferencesDisableDungeon) {
 
   dispatcher_.SetToolPreferences(prefs);
 
-  auto call = CreateToolCall("dungeon-describe-room", {
-      {"room", "0"}
-  });
+  auto call = CreateToolCall("dungeon-describe-room", {{"room", "0"}});
 
   auto result = dispatcher_.Dispatch(call);
 
@@ -215,9 +208,7 @@ TEST_F(ToolDispatcherTest, ToolPreferencesDisableOverworld) {
 
   dispatcher_.SetToolPreferences(prefs);
 
-  auto call = CreateToolCall("overworld-describe-map", {
-      {"map", "0"}
-  });
+  auto call = CreateToolCall("overworld-describe-map", {{"map", "0"}});
 
   auto result = dispatcher_.Dispatch(call);
 
@@ -237,16 +228,13 @@ TEST_F(ToolDispatcherTest, ToolPreferencesEnableMultipleCategories) {
   dispatcher_.SetToolPreferences(prefs);
 
   // Filesystem should work
-  auto fs_call = CreateToolCall("filesystem-exists", {
-      {"path", test_dir_.string()}
-  });
+  auto fs_call =
+      CreateToolCall("filesystem-exists", {{"path", test_dir_.string()}});
   auto fs_result = dispatcher_.Dispatch(fs_call);
   EXPECT_TRUE(fs_result.ok()) << fs_result.status().message();
 
   // Dungeon should be disabled
-  auto dungeon_call = CreateToolCall("dungeon-describe-room", {
-      {"room", "0"}
-  });
+  auto dungeon_call = CreateToolCall("dungeon-describe-room", {{"room", "0"}});
   auto dungeon_result = dispatcher_.Dispatch(dungeon_call);
   EXPECT_FALSE(dungeon_result.ok());
   EXPECT_TRUE(absl::IsFailedPrecondition(dungeon_result.status()));
@@ -301,14 +289,13 @@ TEST_F(ToolDispatcherTest, MissingRequiredArgumentsHandled) {
   auto result = dispatcher_.Dispatch(call);
 
   // Should fail due to missing required argument
-  EXPECT_FALSE(result.ok())
-      << "Expected error for missing required argument";
+  EXPECT_FALSE(result.ok()) << "Expected error for missing required argument";
 }
 
 TEST_F(ToolDispatcherTest, InvalidArgumentValuesHandled) {
-  auto call = CreateToolCall("filesystem-read", {
-      {"path", "/definitely/nonexistent/path/to/file.txt"}
-  });
+  auto call =
+      CreateToolCall("filesystem-read",
+                     {{"path", "/definitely/nonexistent/path/to/file.txt"}});
 
   auto result = dispatcher_.Dispatch(call);
 
@@ -323,9 +310,7 @@ TEST_F(ToolDispatcherTest, InvalidArgumentValuesHandled) {
 TEST_F(ToolDispatcherTest, DispatchWithoutRomContextFails) {
   ToolDispatcher dispatcher;  // No ROM context set
 
-  auto call = CreateToolCall("dungeon-describe-room", {
-      {"room", "0"}
-  });
+  auto call = CreateToolCall("dungeon-describe-room", {{"room", "0"}});
 
   auto result = dispatcher.Dispatch(call);
 
@@ -340,9 +325,8 @@ TEST_F(ToolDispatcherTest, FilesystemToolsWorkWithoutRomData) {
   ToolDispatcher dispatcher;
   dispatcher.SetRomContext(&mock_rom_);
 
-  auto call = CreateToolCall("filesystem-exists", {
-      {"path", test_dir_.string()}
-  });
+  auto call =
+      CreateToolCall("filesystem-exists", {{"path", test_dir_.string()}});
 
   auto result = dispatcher.Dispatch(call);
 
@@ -355,61 +339,23 @@ TEST_F(ToolDispatcherTest, FilesystemToolsWorkWithoutRomData) {
 // =============================================================================
 
 TEST_F(ToolDispatcherTest, ResourceListToolResolves) {
-  auto call = CreateToolCall("resource-list", {
-      {"type", "dungeon"}
-  });
-
-  // This test verifies the tool name resolves correctly
-  // The actual execution might fail if labels aren't loaded
-  auto result = dispatcher_.Dispatch(call);
-  // We just verify it's not "unknown tool"
-  EXPECT_FALSE(absl::IsInvalidArgument(result.status()) &&
-               result.status().message().find("Unknown tool") != std::string::npos)
-      << "resource-list should be a known tool";
+  EXPECT_TRUE(dispatcher_.GetToolInfo("resource-list").has_value());
 }
 
 TEST_F(ToolDispatcherTest, GuiToolResolves) {
-  auto call = CreateToolCall("gui-discover-tool", {});
-
-  auto result = dispatcher_.Dispatch(call);
-
-  // GUI tools should resolve, even if execution fails
-  EXPECT_FALSE(absl::IsInvalidArgument(result.status()) &&
-               result.status().message().find("Unknown tool") != std::string::npos)
-      << "gui-discover-tool should be a known tool";
+  EXPECT_TRUE(dispatcher_.GetToolInfo("gui-discover-tool").has_value());
 }
 
 TEST_F(ToolDispatcherTest, MessageToolResolves) {
-  auto call = CreateToolCall("message-list", {});
-
-  auto result = dispatcher_.Dispatch(call);
-
-  // Message tools should resolve
-  EXPECT_FALSE(absl::IsInvalidArgument(result.status()) &&
-               result.status().message().find("Unknown tool") != std::string::npos)
-      << "message-list should be a known tool";
+  EXPECT_TRUE(dispatcher_.GetToolInfo("message-list").has_value());
 }
 
 TEST_F(ToolDispatcherTest, MusicToolResolves) {
-  auto call = CreateToolCall("music-list", {});
-
-  auto result = dispatcher_.Dispatch(call);
-
-  // Music tools should resolve
-  EXPECT_FALSE(absl::IsInvalidArgument(result.status()) &&
-               result.status().message().find("Unknown tool") != std::string::npos)
-      << "music-list should be a known tool";
+  EXPECT_TRUE(dispatcher_.GetToolInfo("music-list").has_value());
 }
 
 TEST_F(ToolDispatcherTest, SpriteToolResolves) {
-  auto call = CreateToolCall("sprite-list", {});
-
-  auto result = dispatcher_.Dispatch(call);
-
-  // Sprite tools should resolve
-  EXPECT_FALSE(absl::IsInvalidArgument(result.status()) &&
-               result.status().message().find("Unknown tool") != std::string::npos)
-      << "sprite-list should be a known tool";
+  EXPECT_TRUE(dispatcher_.GetToolInfo("sprite-list").has_value());
 }
 
 // =============================================================================
@@ -457,9 +403,8 @@ TEST_F(ToolDispatcherTest, EmulatorEnabledWithGrpc) {
 // =============================================================================
 
 TEST_F(ToolDispatcherTest, OutputIsValidJson) {
-  auto call = CreateToolCall("filesystem-exists", {
-      {"path", test_dir_.string()}
-  });
+  auto call =
+      CreateToolCall("filesystem-exists", {{"path", test_dir_.string()}});
 
   auto result = dispatcher_.Dispatch(call);
 

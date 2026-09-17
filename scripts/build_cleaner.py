@@ -221,6 +221,7 @@ STATIC_CONFIG: Sequence[CMakeSourceBlock] = (
         #  - platform/wasm : platform-conditional, added via list(APPEND) guards
         #  - input/sdl3_*  : SDL3-conditional, added via list(APPEND) guards
         #  - audio/sdl3_*  : SDL3-conditional, added via list(APPEND) guards
+        #  - adapters      : gRPC-conditional, added in emu_library.cmake
         directories=(DirectorySpec(SOURCE_ROOT / "app/emu"),),
         exclude={
             Path("app/emu/emu.cc"),
@@ -230,6 +231,8 @@ STATIC_CONFIG: Sequence[CMakeSourceBlock] = (
             Path("app/emu/platform/wasm/wasm_audio.cc"),
             Path("app/emu/input/sdl3_input_backend.cc"),
             Path("app/emu/audio/sdl3_audio_backend.cc"),
+            Path("app/emu/internal_emulator_adapter.cc"),
+            Path("app/emu/mesen/mesen_emulator_adapter.cc"),
         },
     ),
     # NOTE: YAZE_APP_CORE_SRC / core_library.cmake was dissolved into the main

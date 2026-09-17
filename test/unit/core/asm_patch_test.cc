@@ -75,7 +75,8 @@ lorom
   AsmPatch patch(file.path(), "Test");
 
   EXPECT_TRUE(patch.is_valid());
-  EXPECT_EQ(patch.description(), "This is a multi-line\ndescription of the patch.");
+  EXPECT_EQ(patch.description(),
+            "This is a multi-line\ndescription of the patch.");
 }
 
 TEST(AsmPatchTest, ParseDisabledPatch) {
@@ -386,7 +387,7 @@ TEST(AsmPatchTest, ParseDecimalValue) {
 ;#DEFINE_START
 ;#name=Decimal Value
 ;#type=byte
-;#decimal
+;#decimal=true
 !DEC_VAL = 42
 ;#DEFINE_END
 
@@ -520,7 +521,8 @@ TEST_F(PatchManagerTest, GetFolders) {
   const auto& folders = manager.folders();
   EXPECT_EQ(folders.size(), 2u);
   EXPECT_NE(std::find(folders.begin(), folders.end(), "Misc"), folders.end());
-  EXPECT_NE(std::find(folders.begin(), folders.end(), "Sprites"), folders.end());
+  EXPECT_NE(std::find(folders.begin(), folders.end(), "Sprites"),
+            folders.end());
 }
 
 }  // namespace
