@@ -12,11 +12,11 @@ High-level release summary. For detailed notes, see
   the **Upgrading from 0.7.2** section in `docs/public/reference/changelog.md`
   before upgrading a project or script.
 - **Dungeon Rendering Parity**:
-  - Corrected draw routines against USDASM for thin floor and wall strips
-    (the `_plus3`, `_plus12`, and `_plus13` routines now draw from the object's
-    own origin), wall corners, diagonal walls and ceilings, stair priority,
-    rails, moving walls and floors, floor-copy objects, and explicit door
-    bodies.
+  - Corrected draw routines against USDASM for thin floor and wall strips (the
+    `_plus3` solid strips and the `_plus12`/`_plus13` rail-wall routines now
+    draw from the object's own origin), wall corners, diagonal walls and
+    ceilings, stair priority, rails, moving walls, floor-copy objects, and
+    explicit door bodies.
   - Matched individual object families against the disassembly, including
     Somaria paths, pushable blocks, torch codecs, hammer pegs, light beams,
     archery curtains, bombable and rupee floors, big key locks, prison cells,
@@ -27,9 +27,10 @@ High-level release summary. For detailed notes, see
     fixed facades, and ObjectDrawer's duplicate dimension switch was replaced
     by `DimensionService`.
   - Fixed dungeon graphics Left/Right palette slot mapping, live palette
-    refresh, and placement-ghost palettes. Object selector previews now use the
-    room's palettes, and room sprite previews use the room's palette-set
-    selectors instead of a fixed sprite palette table.
+    refresh, and placement-ghost palettes. Object selector previews now build
+    the room palette in the same CGRAM row layout as the room canvas, and room
+    sprite previews use the room's palette-set selectors instead of a fixed
+    sprite palette table.
 - **Dungeon Editor Workflow**:
   - Kept the room canvas vertically stable by removing the selection action
     shelf and recent-room tab strip above it, replaced the Tools inspector's
@@ -55,9 +56,11 @@ High-level release summary. For detailed notes, see
     slots (`0x31`, `0x32`, and new `0x54` sprite bodies), with **Edit Tile
     Layout** (desktop only), **Place in Room**, and a **Minecart Routes &
     Collision** shortcut on track slots.
-  - Removed the track-corner alias that drew wall corners `0x100`-`0x103`
-    with object `0x31` corner assets whenever a project mapped `0x31`; those
-    IDs now stay wall corners unless the project maps the same ID directly.
+  - Removed the track-corner alias that drew wall corners `0x100`-`0x103` with
+    object `0x31` track-corner assets when a project mapped those `0x31` corner
+    files (for room renders, only when the room also contained a `0x31` object);
+    those IDs now stay wall corners unless the project maps the same ID
+    directly.
   - Published custom asset and minecart-track sources with path confinement,
     atomic replacement, rollback, and decoded readback; WASM fails closed.
   - **Custom Assets > Reload Assets** (formerly Reload Workshop) now also
@@ -78,6 +81,8 @@ High-level release summary. For detailed notes, see
     **Discard Restored Backup** option), made `Rom::SaveSettings::backup` copy
     the existing destination file, and marked sessions Modified when only project
     settings or project drafts are unsaved.
+  - CRLF `project.yaze` files now load their settings, and a lone carriage
+    return is refused on load and on save.
 - **z3ed CLI**:
   - Added `dungeon-get-palette`, which resolves a US/OOS room to its shared
     dungeon palette and lists every room using it, and
@@ -93,29 +98,27 @@ High-level release summary. For detailed notes, see
     resolve to the ROM.
   - Added `dungeon-remove-object` with exact index, ID, position, size, and
     layer guards, and made `project-bundle-verify --check-rom-hash` accept the
-    iOS `romChecksum` manifest field. CRLF `project.yaze` files now load their
-    settings.
+    iOS `romChecksum` manifest field.
 - **Appearance and Editor Shell**:
-  - Added five editor themes (Blood Moon, Catppuccin Mocha, Dracula, Rosé
-    Pine, Temple of Time), with upstream MIT notices for Catppuccin, Dracula,
-    and Rosé Pine kept in `assets/themes/THIRD_PARTY_NOTICES.md`; release
-    bundles include only themes listed in
-    `assets/themes/distributable-themes.txt`.
+  - Added five editor themes (Blood Moon, Catppuccin Mocha, Dracula, Rosé Pine,
+    Temple of Time), with upstream MIT notices for Catppuccin, Dracula, and Rosé
+    Pine kept in `assets/themes/THIRD_PARTY_NOTICES.md`; the macOS app bundle
+    includes only themes listed in `assets/themes/distributable-themes.txt`.
   - Theme files now get smart defaults for borders, scrollbars, table colors,
     links, and modal backgrounds they leave out (0.7.2 left them opaque black),
     while colors a `.theme` file declares are never replaced.
   - Reworked the welcome screen into a compact start card that never scrolls,
-    replaced the What's New release-history card with a Release notes link,
-    and made recent-file cards openable from the keyboard.
-  - Repaired the editor chooser dashboard: `--startup_dashboard`, light-theme
-    card contrast, Display Density, the advertised shortcut, duplicate
-    rendering, and recent-editor parsing.
-  - Renamed the Search menu's Window Finder to **Find Window…** (Ctrl+P), made
-    Help → **Keyboard Shortcuts** open the shortcuts browser (Ctrl+Shift+/)
-    instead of Settings, and removed the Dungeon Workbench's conflicting
-    Ctrl+Shift+W hint.
-  - Added an always-visible drawer icon strip and header context badges to the
-    right sidebar drawer.
+    replaced the Release History card with a Release notes link, and made
+    recent-file cards openable from the keyboard.
+  - Repaired the editor chooser dashboard: `--startup_dashboard=hide`, light-theme
+    card contrast, Display Density, the advertised shortcut, and recent-editor
+    parsing. The Performance Dashboard also no longer renders twice per frame.
+  - Renamed Tools > Window Finder to **Find Window…** (Ctrl+P), made Help →
+    **Keyboard Shortcuts** open the shortcuts browser (Ctrl+Shift+/) instead of
+    Settings, and removed the Dungeon Workbench's conflicting Ctrl+Shift+W
+    toggle and hint (the chord now only closes the session).
+  - Added a drawer icon strip below the right sidebar drawer header, and context
+    badges in the header.
 - **Emulator, iOS, and Platform**:
   - Added TCP endpoint support to the Mesen socket client alongside Unix
     sockets.
@@ -138,9 +141,9 @@ High-level release summary. For detailed notes, see
     macOS app still verifies after relocation with matching bundled assets,
     Windows packaging requires app-local MSVC runtimes, and the NSIS installer
     passes a silent install/uninstall check.
-  - `scripts/install-nightly-local.sh` now validates a nightly before
-    switching `current` to it, and default build parallelism is bounded to four
-    workers.
+  - `scripts/install-nightly-local.sh` now validates a nightly before switching
+    `current` to it. Separately, CMake build presets that used 8 jobs and the
+    local build scripts now default to four build workers.
 - **Documentation**:
   - Replaced stale feature percentages with an evidence-based tester-readiness
     matrix and a cross-platform artifact acceptance contract.

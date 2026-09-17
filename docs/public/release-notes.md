@@ -23,24 +23,30 @@ and every affected command, is in `docs/public/reference/changelog.md` under
 - ROM saves stop while Graphics Editor sheet or Screen Editor edits are pending,
   and dungeon **Save**/**Apply Room** stop while Object Tile Editor edits are
   unapplied or Minecart Track Editor drafts are unpublished.
-- Dungeon object, torch, pushable-block, entrance, and WaterFill saves reject
-  values that 0.7.2 silently capped, truncated, or wrote incorrectly, including
-  `z3ed dungeon-place-object --size 20 --write`.
+- Dungeon object, torch, pushable-block, entrance, and WaterFill saves now fail
+  on data 0.7.2 accepted: object IDs, positions, or sizes that cannot be
+  encoded (0.7.2's writer silently capped Type 1 sizes above 15), a third
+  torch/block layer, an empty or conflicting block table, entrance room IDs
+  outside `0x000`-`0x127`, and WaterFill room IDs `0x100`-`0x127` (0.7.2 kept
+  only the low byte).
 - With a Hack Manifest loaded, many more dungeon and palette writes are checked
   before writing, so `write_policy` `block` can stop saves that 0.7.2 allowed.
 
 **z3ed scripts**
 - `message-write` and `message-import-bundle --apply` require `--project` with a
-  loaded manifest, and `--apply` now exits non-zero on failure.
+  loaded manifest, and `--apply` now exits non-zero when a project, manifest,
+  write-policy, write, save, or readback check fails (a missing ROM or parse
+  errors without `--strict` still exit `0`).
 - `dungeon-import-custom-collision-json` and `dungeon-import-water-fill-json`
   now **write the ROM file** when run without `--dry-run`; 0.7.2 changed only
   memory unless `--sandbox` was used.
 - Dungeon write commands require a completed ROM backup, and
   `dungeon-set-room-property` no longer resets the room's other header bytes.
 - JSON output changed for `--spawn` on `dungeon-get-entrance`/`entrance-info`,
-  `dungeon-object-validate`, `dungeon-place-object`, and
-  `project-bundle-verify --check-rom-hash`. `palette-set-color --write` is
-  disabled; use `dungeon-set-palette-color`.
+  `dungeon-object-validate`, and `dungeon-place-object`. `project-bundle-verify
+  --check-rom-hash` now checks manifests that carry only `romChecksum` and can
+  fail them. `palette-set-color --write` is disabled; use
+  `dungeon-set-palette-color`.
 
 **Projects and manifests**
 - A malformed `protected_regions`, `messages`, or `minecart_tracks` section
@@ -55,11 +61,13 @@ and every affected command, is in `docs/public/reference/changelog.md` under
   track editor needs a manifest `minecart_tracks.source`.
 
 **Editor and packages**
-- First launch closes the standalone Dungeon windows in favour of the
-  Workbench. ROM tools moved from File to Tools > ROM Analysis, and plain-key
-  shortcuts no longer fire with modifiers held.
-- Pushable blocks in rooms `0xA8`, `0x66`, and `0x2C` now load at their real
-  position, and several objects draw with their USDASM footprint.
+- The first launch after upgrading shows the Dungeon Workbench and closes the 10
+  standalone Dungeon windows it replaces, including Room List, Object Selector,
+  and Palette Editor. ROM tools moved from File to Tools > ROM Analysis, and
+  plain-key shortcuts no longer fire with modifiers held.
+- Lower-layer pushable blocks in rooms `0xA8`, `0x66`, and `0x2C` now load 64
+  tiles higher, at their real position on BG2, and several objects draw with
+  their USDASM footprint.
 - `.theme` files keep the colours they declare, and plot colours change in the
   built-in presets.
 - Linux packages use `/usr/bin` and `/usr/share/yaze`, and Windows and Debian
@@ -67,12 +75,12 @@ and every affected command, is in `docs/public/reference/changelog.md` under
 
 ### 🏰 Dungeon Rendering
 - Corrected ROM-driven placement and layer behavior for doors, thin floor and
-  wall strips, corners, diagonal walls and ceilings, moving-floor and
-  moving-wall objects, and floor-copy objects. The `_plus3` solid strips and
-  `_plus13`/`_plus12` rail walls now draw from the object's own origin instead
-  of 3, 13, or 12 tiles away. Conditional edge and cap routines check whether a
-  layout or object tile owns each position. Lower straight stairs and spiral
-  stairs now raise adjacent BG1 tile priority without painting over tiles.
+  wall strips, corners, diagonal walls and ceilings, moving walls, and
+  floor-copy objects. The `_plus3` solid strips and `_plus13`/`_plus12` rail
+  walls now draw from the object's own origin instead of 3, 13, or 12 tiles
+  away. Conditional edge and cap routines check whether a layout or object tile
+  owns each position. Lower straight stairs and spiral stairs now raise adjacent
+  BG1 tile priority without painting over tiles.
 - Matched dozens of individual object families against USDASM, including Somaria
   paths, pushable blocks, torch codecs, hammer pegs, light beams, curtains,
   rupee and bombable floors, big key locks, prison cells, moving walls, the
@@ -144,11 +152,7 @@ and every affected command, is in `docs/public/reference/changelog.md` under
 - Made z3ed `dungeon-set-room-property`, `dungeon-generate-track-collision`,
   `dungeon-import-custom-collision-json`, and `dungeon-import-water-fill-json`
   roll back on a failed write or save, and made Minecart Track Editor collision
-  generation transactional. ROM saves are now refused while Screen Editor or
-  Graphics Editor sheet edits are pending, and dungeon Save/Apply Room are
-  refused while minecart track drafts are unpublished (use **Publish Tracks**).
-- Included unapplied Object Tile Editor layouts in dirty detection, so Save and
-  Apply Room now wait until those edits are applied or discarded.
+  generation transactional.
 - Made ROM backup restore refuse while ROM edits are pending, accept only
   managed backups of the active ROM, and stage the restored ROM as unsaved
   until Save ROM, with a **Discard Restored Backup** button. Session tabs now
@@ -181,8 +185,9 @@ and every affected command, is in `docs/public/reference/changelog.md` under
 ### 🎨 Appearance & Editor Shell
 - Added five editor themes: Blood Moon, Catppuccin Mocha, Dracula, Rosé Pine,
   and Temple of Time, with the upstream MIT notices for Catppuccin, Dracula, and
-  Rosé Pine kept in `assets/themes/THIRD_PARTY_NOTICES.md`. Release bundles
-  include only the themes listed in `assets/themes/distributable-themes.txt`.
+  Rosé Pine kept in `assets/themes/THIRD_PARTY_NOTICES.md`. The macOS app bundle
+  includes only the themes listed in `assets/themes/distributable-themes.txt`,
+  and CI checks that tracked themes match that list.
 - Theme files now get smart defaults for colors they leave out, including
   `accent`, `error`, `warning`, `success`, and `info`. Omitted borders,
   scrollbars, table colors, links, histograms, highlights, and modal backgrounds
@@ -190,18 +195,19 @@ and every affected command, is in `docs/public/reference/changelog.md` under
   are never replaced, so a deliberate black border or highlight is kept.
 - Reworked the welcome screen into a compact start card whose Start and Recent
   panes never scroll: the Recent list is cut to what fits, and optional Start
-  rows drop on small windows. The What's New card became a Release notes link,
-  and the resume button now names the last project.
-- Repaired the editor chooser dashboard: `--startup_dashboard` now controls the
-  chooser that opens after a ROM or project loads, cards are legible on light
-  themes, Display Density has effect, the shortcut hint says Ctrl+E instead of
-  F1, and the Performance Dashboard no longer draws twice per frame.
-- Renamed the Search menu's Window Finder to **Find Window…** (Ctrl+P). Help →
+  rows drop on small windows. The Release History card became a Release notes
+  link, and the resume button now names the last project.
+- Repaired the editor chooser dashboard: `--startup_dashboard=hide` now also
+  suppresses the chooser on most automatic opens after a ROM or project loads
+  (it can still appear when opening from the welcome screen), cards are legible
+  on light themes, Display Density has effect, the shortcut hint says Ctrl+E
+  instead of F1, and the Performance Dashboard no longer draws twice per frame.
+- Renamed Tools > Window Finder to **Find Window…** (Ctrl+P). Help →
   **Keyboard Shortcuts** now opens the shortcuts browser instead of Settings
   and is bound to Ctrl+Shift+/.
-- The right sidebar drawer shows every drawer in an icon strip below its
-  header, with a context badge and a **Switch Sidebar Drawer** button in the
-  header.
+- The right sidebar drawer shows an icon strip below its header with one icon
+  per switchable drawer, and the header shows a context badge for the open
+  drawer.
 
 ### 🖥️ Emulator, iOS & Platform
 - Added TCP endpoint support to the Mesen socket client alongside Unix domain
