@@ -257,6 +257,11 @@ main() {
     exit 5
   fi
   print_ok "Test registration: all sources accounted for"
+  if ! python3 scripts/audit_test_registration.py --self-test; then
+    print_err "Test registration audit self-test failed. See output above."
+    exit 5
+  fi
+  print_ok "Test registration audit self-test passed"
 
   if [[ "$SKIP_BUILD" == false ]]; then
     print_header "Step 1/4: Build Verification"
