@@ -21,6 +21,10 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/clang_tools.sh
+source "${SCRIPT_DIR}/lib/clang_tools.sh"
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -156,28 +160,6 @@ test_filter_selects_tests() {
   return 0
 }
 
-find_clang_format() {
-  local names=(clang-format-18 clang-format-17 clang-format)
-  local n
-  for n in "${names[@]}"; do
-    if command -v "$n" >/dev/null 2>&1; then
-      echo "$n"
-      return 0
-    fi
-  done
-
-  if [[ "$(uname -s)" == "Darwin" ]] && command -v brew >/dev/null 2>&1; then
-    local llvm_prefix
-    llvm_prefix="$(brew --prefix llvm 2>/dev/null || true)"
-    if [[ -n "$llvm_prefix" && -x "$llvm_prefix/bin/clang-format" ]]; then
-      echo "$llvm_prefix/bin/clang-format"
-      return 0
-    fi
-  fi
-
-  return 1
-}
-
 collect_changed_files() {
   local base=""
   local committed=()
@@ -304,11 +286,12 @@ main() {
       print_info "No changed C/C++ files detected; skipping format check"
     else
       local clang_fmt
-      clang_fmt="$(find_clang_format || true)"
+      clang_fmt="$(yaze_find_clang_format || true)"
       if [[ -z "$clang_fmt" ]]; then
         print_err "clang-format not found"
         exit 3
       fi
+      yaze_warn_clang_version "$clang_fmt" clang-format
 
       print_info "Checking formatting for ${#cpp_changed[@]} changed C/C++ files"
       if ! "$clang_fmt" --dry-run --Werror --style=file "${cpp_changed[@]}"; then

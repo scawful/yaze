@@ -294,7 +294,9 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y clang-tidy-14 cppcheck ripgrep
-        python3 -m pip install --user clang-format==22.1.5
+        # .clang-format-version is the single pin shared with .pre-commit-config.yaml,
+        # the CMake format targets, and scripts/lib/clang_tools.sh.
+        python3 -m pip install --user "clang-format==$(cat .clang-format-version)"
         echo "$HOME/.local/bin" >> "$GITHUB_PATH"
         "$HOME/.local/bin/clang-format" --version
 
@@ -342,7 +344,8 @@ jobs:
           echo "No C/C++ sources changed."
           exit 0
         fi
-        echo "${{ steps.changed.outputs.files }}" | xargs clang-format --dry-run --Werror
+        echo "${{ steps.changed.outputs.files }}" |
+          xargs clang-format --dry-run --Werror --style=file
     
     - name: Run cppcheck
       run: |
@@ -350,10 +353,11 @@ jobs:
           --suppress=missingIncludeSystem --suppress=unusedFunction --inconclusive src/
     
     - name: Run clang-tidy
+      # Advisory. Checks and header filtering come from .clang-tidy; clang-tidy-14
+      # is what ubuntu-22.04 ships, so it lags the pinned clang-format major.
       continue-on-error: true
       run: |
-        find src -name "*.cc" -not -path "*/lib/*" | head -20 | \
-          xargs clang-tidy-14 --header-filter='src/.*\.(h|hpp)$'
+        find src -name "*.cc" -not -path "*/lib/*" | head -20 | xargs clang-tidy-14
 
   release-readiness:
     name: "Release Readiness"
