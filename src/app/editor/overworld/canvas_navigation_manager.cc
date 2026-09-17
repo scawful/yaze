@@ -147,6 +147,14 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
     return absl::OkStatus();
   }
 
+  // Leave / no-hover must clear preview state so status falls back to selection.
+  // hover_mouse_pos() can retain the last in-canvas point after the cursor
+  // exits, so do not trust MapFromCanvasPosition unless we are still hovering.
+  if (!ctx_.ow_map_canvas->IsMouseHovering()) {
+    SetHoveredMap(ctx_, -1);
+    return absl::OkStatus();
+  }
+
   const int large_map_size = 1024;
 
   const auto hovered_map =

@@ -10,6 +10,16 @@ TEST(OverworldMapStatusTest, FallsBackToSelectedWhenNotHovering) {
   EXPECT_EQ(FormatOverworldMapStatusSegment(0x45, -1), "DW #45");
 }
 
+TEST(OverworldMapStatusTest, EffectiveHoverClearsWhenCanvasNotHovered) {
+  EXPECT_EQ(EffectiveOverworldHoverMap(0x12, true), 0x12);
+  EXPECT_EQ(EffectiveOverworldHoverMap(0x12, false), -1);
+  EXPECT_EQ(EffectiveOverworldHoverMap(-1, true), -1);
+  EXPECT_EQ(
+      FormatOverworldMapStatusSegment(
+          0x05, EffectiveOverworldHoverMap(0x12, /*canvas_hovered=*/false)),
+      "LW #05");
+}
+
 TEST(OverworldMapStatusTest, SameMapHoverUsesSelectedForm) {
   EXPECT_EQ(FormatOverworldMapStatusSegment(0x05, 0x05), "LW #05");
 }
