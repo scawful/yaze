@@ -1049,16 +1049,16 @@ absl::StatusOr<CpuState> MesenSocketClient::GetCpuState() {
   if (!result.ok())
     return result.status();
 
-  CpuState state;
-  state.A = static_cast<uint16_t>(ExtractJsonInt(*result, "A"));
-  state.X = static_cast<uint16_t>(ExtractJsonInt(*result, "X"));
-  state.Y = static_cast<uint16_t>(ExtractJsonInt(*result, "Y"));
-  state.SP = static_cast<uint16_t>(ExtractJsonInt(*result, "SP"));
-  state.D = static_cast<uint16_t>(ExtractJsonInt(*result, "D"));
-  state.PC = static_cast<uint32_t>(ExtractJsonInt(*result, "PC"));
-  state.K = static_cast<uint8_t>(ExtractJsonInt(*result, "K"));
-  state.DBR = static_cast<uint8_t>(ExtractJsonInt(*result, "DBR"));
-  state.P = static_cast<uint8_t>(ExtractJsonInt(*result, "P"));
+  CpuState state{};
+  state.A = static_cast<uint16_t>(ExtractJsonInt(*result, "a"));
+  state.X = static_cast<uint16_t>(ExtractJsonInt(*result, "x"));
+  state.Y = static_cast<uint16_t>(ExtractJsonInt(*result, "y"));
+  state.SP = static_cast<uint16_t>(ExtractJsonInt(*result, "sp"));
+  state.D = static_cast<uint16_t>(ExtractJsonInt(*result, "d"));
+  state.PC = static_cast<uint32_t>(ExtractJsonInt(*result, "pc"));
+  state.K = static_cast<uint8_t>(ExtractJsonInt(*result, "k"));
+  state.DBR = static_cast<uint8_t>(ExtractJsonInt(*result, "dbr"));
+  state.P = static_cast<uint8_t>(ExtractJsonInt(*result, "p"));
   state.emulation_mode = ExtractJsonBool(*result, "emulationMode");
   return state;
 }
