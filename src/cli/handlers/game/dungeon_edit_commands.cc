@@ -22,6 +22,7 @@
 #include "rom/write_fence.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/dungeon_stream_allocator.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/dungeon/track_collision_generator.h"
@@ -239,6 +240,28 @@ absl::Status PreflightObjectSave(
 
   zelda3::Room scratch_room = zelda3::LoadRoomFromRom(&scratch_rom, room_id);
   RETURN_IF_ERROR(scratch_room.AddObject(object));
+  return scratch_room.SaveObjects(manifest_context != nullptr
+                                      ? &manifest_context->allocator_layout
+                                      : nullptr);
+}
+
+absl::Status PreflightObjectRemoval(
+    const Rom& source_rom, int room_id, int object_vector_index,
+    const zelda3::Room& pending_room,
+    const ObjectSaveManifestContext* manifest_context) {
+  if (manifest_context != nullptr) {
+    RETURN_IF_ERROR(ValidateObjectSaveManifestConflicts(
+        source_rom, room_id, pending_room, *manifest_context));
+  }
+
+  Rom scratch_rom;
+  Rom::LoadOptions options;
+  options.strip_header = false;
+  options.load_resource_labels = false;
+  RETURN_IF_ERROR(scratch_rom.LoadFromData(source_rom.vector(), options));
+
+  zelda3::Room scratch_room = zelda3::LoadRoomFromRom(&scratch_rom, room_id);
+  RETURN_IF_ERROR(scratch_room.RemoveObject(object_vector_index));
   return scratch_room.SaveObjects(manifest_context != nullptr
                                       ? &manifest_context->allocator_layout
                                       : nullptr);
@@ -1473,6 +1496,157 @@ absl::Status DungeonPlaceObjectCommandHandler::Execute(
 
   if (do_write) {
     auto save_status = MutateAndSaveRomWithBackup(
+        rom, formatter, [&room, layout]() { return room.SaveObjects(layout); });
+    if (!save_status.ok()) {
+      formatter.EndObject();
+      return save_status;
+    }
+  }
+
+  formatter.EndObject();
+  return absl::OkStatus();
+}
+
+// ---------------------------------------------------------------------------
+// dungeon-remove-object
+// ---------------------------------------------------------------------------
+
+absl::Status DungeonRemoveObjectCommandHandler::Execute(
+    Rom* rom, const resources::ArgumentParser& parser,
+    resources::OutputFormatter& formatter) {
+  int room_id = 0;
+  ASSIGN_OR_RETURN(room_id, GetRequiredHex(parser, "room"));
+  RETURN_IF_ERROR(ValidateRoomId(room_id));
+
+  int remove_index = 0;
+  ASSIGN_OR_RETURN(remove_index, GetRequiredInt(parser, "index"));
+  if (remove_index < 0) {
+    return absl::InvalidArgumentError("Object index must be non-negative");
+  }
+
+  int expected_id = 0;
+  ASSIGN_OR_RETURN(expected_id, GetRequiredHex(parser, "expect-id"));
+  int expected_x = 0;
+  ASSIGN_OR_RETURN(expected_x, GetRequiredInt(parser, "expect-x"));
+  int expected_y = 0;
+  ASSIGN_OR_RETURN(expected_y, GetRequiredInt(parser, "expect-y"));
+  int expected_size = 0;
+  ASSIGN_OR_RETURN(expected_size, GetRequiredInt(parser, "expect-size"));
+  int expected_layer = 0;
+  ASSIGN_OR_RETURN(expected_layer, GetRequiredInt(parser, "expect-layer"));
+
+  if (expected_id < 0 || expected_id > 0xFFF) {
+    return absl::InvalidArgumentError("Expected object ID must be 0x000-0xFFF");
+  }
+  if (expected_x < 0 || expected_x > 63) {
+    return absl::InvalidArgumentError("Expected X must be 0-63");
+  }
+  if (expected_y < 0 || expected_y > 63) {
+    return absl::InvalidArgumentError("Expected Y must be 0-63");
+  }
+  if (expected_size < 0 || expected_size > 0xFF) {
+    return absl::InvalidArgumentError("Expected size must be 0-255");
+  }
+  if (expected_layer < 0 || expected_layer > 2) {
+    return absl::InvalidArgumentError("Expected layer must be 0, 1, or 2");
+  }
+
+  std::optional<ObjectSaveManifestContext> manifest_context;
+  ASSIGN_OR_RETURN(manifest_context, LoadObjectSaveManifestContext(parser));
+  const zelda3::DungeonStreamLayout* layout =
+      manifest_context.has_value() ? &manifest_context->allocator_layout
+                                   : nullptr;
+
+  zelda3::Room room = zelda3::LoadRoomFromRom(rom, room_id);
+  const auto& objects = room.GetTileObjects();
+  int object_vector_index = -1;
+  int stream_object_count = 0;
+  for (int i = 0; i < static_cast<int>(objects.size()); ++i) {
+    if (!zelda3::UsesRoomObjectStream(objects[i])) {
+      continue;
+    }
+    if (stream_object_count == remove_index) {
+      object_vector_index = i;
+    }
+    ++stream_object_count;
+  }
+  if (object_vector_index < 0) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Object index %d out of range (room has %d objects)",
+                        remove_index, stream_object_count));
+  }
+
+  const auto& target = objects[object_vector_index];
+  if ((target.options() & zelda3::ObjectOption::Chest) !=
+      zelda3::ObjectOption::Nothing) {
+    return absl::FailedPreconditionError(
+        "Removing chest objects requires coordinated chest-table editing");
+  }
+
+  if (target.id_ != expected_id || target.x() != expected_x ||
+      target.y() != expected_y || target.size_ != expected_size ||
+      target.GetLayerValue() != expected_layer) {
+    return absl::FailedPreconditionError(
+        absl::StrFormat("Object guard mismatch at index %d: expected 0x%03X at "
+                        "(%d,%d) size=%d layer=%d; found 0x%03X at (%d,%d) "
+                        "size=%d layer=%d",
+                        remove_index, expected_id, expected_x, expected_y,
+                        expected_size, expected_layer, target.id_, target.x(),
+                        target.y(), target.size_, target.GetLayerValue()));
+  }
+
+  const int object_id = target.id_;
+  const int object_x = target.x();
+  const int object_y = target.y();
+  const int object_size = target.size_;
+  const int object_layer = target.GetLayerValue();
+  const auto encoded = target.EncodeObjectToBytes();
+  const int object_type =
+      zelda3::RoomObject::DetermineObjectType(encoded.b1, encoded.b3);
+
+  formatter.BeginObject("Remove Object");
+  formatter.AddHexField("room_id", room_id, 2);
+  formatter.AddField("removed_index", remove_index);
+  formatter.AddHexField("object_id", object_id, 3);
+  formatter.AddField("object_name", zelda3::GetObjectName(object_id));
+  formatter.AddField("object_type", object_type);
+  formatter.AddField("x", object_x);
+  formatter.AddField("y", object_y);
+  formatter.AddField("size", object_size);
+  formatter.AddField("layer", object_layer);
+  formatter.AddField("objects_before", stream_object_count);
+  if (const auto manifest_path = parser.GetString("manifest");
+      manifest_path.has_value()) {
+    formatter.AddField("manifest", *manifest_path);
+    formatter.AddField("manifest_write_policy", "block");
+  }
+  formatter.AddField("allocator_capability",
+                     layout != nullptr ? "copy_on_write" : "none");
+
+  const absl::Status remove_status = room.RemoveObject(object_vector_index);
+  if (!remove_status.ok()) {
+    formatter.AddField("remove_error", std::string(remove_status.message()));
+    formatter.EndObject();
+    return remove_status;
+  }
+  formatter.AddField("objects_after", stream_object_count - 1);
+  const bool do_write = parser.HasFlag("write");
+  formatter.AddField("mode", do_write ? "write" : "dry-run");
+
+  const absl::Status preflight_status = PreflightObjectRemoval(
+      *rom, room_id, object_vector_index, room,
+      manifest_context.has_value() ? &*manifest_context : nullptr);
+  if (!preflight_status.ok()) {
+    formatter.AddField("preflight_status", "failed");
+    formatter.AddField("preflight_error",
+                       std::string(preflight_status.message()));
+    formatter.EndObject();
+    return preflight_status;
+  }
+  formatter.AddField("preflight_status", "success");
+
+  if (do_write) {
+    const absl::Status save_status = MutateAndSaveRomWithBackup(
         rom, formatter, [&room, layout]() { return room.SaveObjects(layout); });
     if (!save_status.ok()) {
       formatter.EndObject();

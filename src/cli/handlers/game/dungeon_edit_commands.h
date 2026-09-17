@@ -84,6 +84,34 @@ class DungeonPlaceObjectCommandHandler : public resources::CommandHandler {
 };
 
 /**
+ * @brief Remove one ordinary dungeon object with exact identity guards.
+ *
+ * Dry-run by default. Use --write to commit + save ROM.
+ */
+class DungeonRemoveObjectCommandHandler : public resources::CommandHandler {
+ public:
+  std::string GetName() const override { return "dungeon-remove-object"; }
+  std::string GetDescription() const {
+    return "Remove a guarded dungeon object from a room";
+  }
+  std::string GetUsage() const override {
+    return "dungeon-remove-object --room <hex> --index <int> "
+           "--expect-id <hex> --expect-x <int> --expect-y <int> "
+           "--expect-size <int> --expect-layer <0|1|2> "
+           "[--manifest <path>] "
+           "[--write] [--format <json|text>]";
+  }
+
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
+    return parser.RequireArgs({"room", "index", "expect-id", "expect-x",
+                               "expect-y", "expect-size", "expect-layer"});
+  }
+
+  absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
+                       resources::OutputFormatter& formatter) override;
+};
+
+/**
  * @brief Resolve and inspect the shared dungeon palette used by one room.
  *
  * Room headers contain an 8-bit palette-set ID. This command follows the

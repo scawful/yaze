@@ -146,6 +146,20 @@ void CommandRegistry::RegisterHandlers(
             "z3ed dungeon-place-object --room=0x98 --id=0x0031 --x=20 --y=20 "
             "--size=4 --manifest=hack_manifest.json --write "
             "--rom=/tmp/oos-work.sfc --format=json"};
+      } else if (name == "dungeon-remove-object") {
+        metadata.description =
+            "Remove one ordinary dungeon object with exact identity guards "
+            "(dry-run by default)";
+        metadata.examples = {
+            "z3ed dungeon-remove-object --room=0x88 --index=117 "
+            "--expect-id=0x0DD --expect-x=30 --expect-y=12 "
+            "--expect-size=0 --expect-layer=0 "
+            "--rom=/tmp/oos-work.sfc --format=json",
+            "z3ed dungeon-remove-object --room=0x88 --index=117 "
+            "--expect-id=0x0DD --expect-x=30 --expect-y=12 "
+            "--expect-size=0 --expect-layer=0 "
+            "--manifest=hack_manifest.json --write "
+            "--rom=/tmp/oos-work.sfc --format=json"};
       } else if (name == "dungeon-get-palette") {
         metadata.description =
             "Resolve a US/OOS room's full 8-bit palette-set ID to its shared "
