@@ -163,6 +163,7 @@ These commands operate directly on ROM data (no GUI required).
 - `entrance-info --entrance <hex> [--spawn]`
 - `dungeon-export-room --room <hex> --output <file>`
 - `dungeon-place-object --room <hex> --id <hex> --x <int> --y <int> [--size <int>] [--layer <0|1|2>] [--manifest <path>] [--write]`
+- `dungeon-remove-object --room <hex> --index <int> --expect-id <hex> --expect-x <int> --expect-y <int> --expect-size <int> --expect-layer <0|1|2> [--manifest <path>] [--write]`
 - `dungeon-set-door-type --room <hex> --x <int> --y <int> --type <hex> --expect-type <hex> --manifest <path> [--write]`
 - `dungeon-list-pot-items --room <hex>`
 - `dungeon-set-pot-item --room <hex> --index <int> --expect-position <hex> --expect-item <hex> --item <hex> --manifest <path> [--write]`
@@ -183,6 +184,12 @@ an explicit manifest defines `dungeon_stream_regions.objects` with the
 ownership guard: protected current-stream, allocation, object-pointer, or
 door-pointer writes are rejected before either dry-run or write can mutate ROM
 bytes.
+
+`dungeon-remove-object` uses the same dry-run, manifest, allocator, backup, and
+transaction path. It requires the stream index plus the expected ID,
+coordinates, size, and layer so stale automation fails before mutation.
+The command rejects table-backed objects and chest objects because removing
+those requires coordinated edits outside the ordinary room object stream.
 
 `dungeon-set-door-type` changes only the fixed-width type byte of an existing
 door selected by exact tile coordinates. It is a dry-run unless `--write` is

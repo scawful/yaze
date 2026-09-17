@@ -127,20 +127,48 @@ Do NOT use `ImGui::GetWindowWidth()` when calculating fixed positions. The windo
 
 ## Right Panel Styling
 
-### Panel Header
-The panel header uses an elevated background (`SurfaceContainerHigh`) with:
-- Icon in primary color
-- Title in standard text color
-- Compact icon **tab strip** from `GetDrawerCatalog()` (click active tab to close; falls back to a switcher popup when the drawer is too narrow)
-- Optional lock control on the Properties drawer
-- Large close button with rounded corners
-- Keyboard shortcut: **Escape** closes the panel
-- Status bar shows a `Drawer` segment while a right drawer is open
+### Panel Header (`DrawPanelHeader`)
 
-The tab strip measures the title with `GetItemRectMax()`, converted to window
-coordinates. `GetCursorPosX()` after text is not the title's right edge: ImGui
-has already advanced to the next line. Reserve the title gap and close/lock
-controls before choosing tabs versus the overflow popup.
+The panel header (`SurfaceContainerHigh`, `kPanelHeaderHeight` tall) contains
+(left → right):
+
+1. **Icon chip** — 24×24 rounded rect with semi-transparent primary fill, icon
+   centred in `GetPrimaryVec4()`.
+2. **Title text** — standard `ImGuiCol_Text`.
+3. **Context badge** (`DrawHeaderContextBadge`) — type-aware inline widget:
+   - `kAgentChat` → green `ICON_MD_CIRCLE` when agent ready
+   - `kNotifications` → pill badge with unread count
+   - `kProperties` → `ICON_MD_LOCK` in warning color when selection is locked
+   - `kHelp` → editor-context tag chip (`Overworld`, `Dungeon`, etc.)
+4. **Right-aligned chrome** (right → left): Close (`ICON_MD_CANCEL`), Switcher
+   popup (`ICON_MD_SWAP_HORIZ`), panel-specific quick actions (lock toggle for
+   Properties; clear/save/proposals for Agent Chat; clear/mark-read for
+   Notifications; copy for Tool Output; open-docs for Help).
+
+Keyboard shortcut: **Escape** closes the drawer. Status bar shows a `Drawer`
+segment while a right drawer is open.
+
+### Nav Strip (`DrawDrawerNavStrip`)
+
+A 32 px tall icon strip rendered **below** the header, driven by
+`GetDrawerCatalog()`:
+
+- Background: `SurfaceContainerVec4`; bottom border: `OutlineVec4`.
+- Tab cells are equal-width (`max(24, floor((avail − gaps) / count))`), so the
+  strip **always shows all catalog icons** regardless of drawer width (no inline
+  tab-vs-popup toggle).
+- **Active tab**: `SurfaceContainerHighest` fill + `Primary` underline; icon in
+  `Primary`. Clicking the active tab calls `CloseDrawer()`.
+- **Inactive hover**: `SurfaceContainerHigh` fill; icon in `TextPrimary`.
+- **Inactive rest**: icon in `TextSecondary`.
+- `kNotifications` tab shows a 3 px `Primary` dot badge when
+  `GetUnreadCount() > 0`.
+- Tooltips include the shortcut string from `GetDrawerShortcutAction()` when
+  assigned.
+
+All semantic colors (`GetPrimaryVec4`, `GetSuccessVec4`, `GetWarningVec4`,
+`GetTextPrimaryVec4`, `GetSurfaceContainerVec4`, etc.) are resolved through
+`ThemeManager` — do not hardcode `ImVec4` literals in the nav strip or header.
 
 ### Status / context strip
 

@@ -345,7 +345,10 @@ class RightDrawerManager {
  private:
   friend class RightDrawerManagerTestPeer;
 
-  void DrawPanelHeader(const char* title, const char* icon);
+  void DrawPanelHeader(PanelType type, const char* title, const char* icon);
+  void DrawDrawerNavStrip(PanelType current_panel);
+  void DrawHeaderActions(PanelType type);
+  void DrawHeaderContextBadge(PanelType type);
   void DrawAgentChatPanel();
   void DrawProposalsPanel();
   void DrawSettingsPanel();
