@@ -15,15 +15,15 @@ TEST(Spc700ResetTest, ResetVectorExecutesIplSequence) {
   apu.Init();
   apu.Reset();
 
-  // After reset, running some cycles should advance SPC PC from IPL entry
-  uint16_t pc_before = apu.spc700().PC;
-  bool pc_advanced = false;
-  for (int i = 0; i < 64; ++i) {
-    apu.spc700().RunOpcode();
-    apu.Cycle();
-    pc_advanced |= apu.spc700().PC != pc_before;
-  }
-  EXPECT_TRUE(pc_advanced);
+  // Reset vector must point into the IPL ROM. Consuming the pending reset
+  // sequence loads that vector into PC so execution starts at the IPL entry.
+  const uint16_t reset_vector =
+      apu.spc700().read(0xFFFE) | (apu.spc700().read(0xFFFF) << 8);
+  EXPECT_EQ(reset_vector, 0xFFC0);
+
+  apu.spc700().RunOpcode();
+  EXPECT_EQ(apu.spc700().PC, 0xFFC0);
+  EXPECT_EQ(apu.spc700().GetLastOpcodeCycles(), 8);
 }
 
 }  // namespace emu
