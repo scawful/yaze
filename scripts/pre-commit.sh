@@ -10,6 +10,10 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/clang_tools.sh
+source "${SCRIPT_DIR}/lib/clang_tools.sh"
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -125,33 +129,14 @@ for f in "${FILES[@]}"; do
   esac
 done
 
-find_clang_format() {
-  local names=(clang-format-18 clang-format-17 clang-format)
-  local n
-  for n in "${names[@]}"; do
-    if command -v "$n" >/dev/null 2>&1; then
-      echo "$n"
-      return 0
-    fi
-  done
-  if [[ "$(uname -s)" == "Darwin" ]] && command -v brew >/dev/null 2>&1; then
-    local p
-    p="$(brew --prefix llvm 2>/dev/null || true)"
-    if [[ -n "$p" && -x "$p/bin/clang-format" ]]; then
-      echo "$p/bin/clang-format"
-      return 0
-    fi
-  fi
-  return 1
-}
-
 if [[ "$SKIP_FORMAT" == false && ${#CPP_FILES[@]} -gt 0 ]]; then
   print_header "clang-format"
-  CLANG_FORMAT="$(find_clang_format || true)"
+  CLANG_FORMAT="$(yaze_find_clang_format || true)"
   if [[ -z "$CLANG_FORMAT" ]]; then
     print_err "clang-format not found (required for C/C++ staged files)"
     exit 3
   fi
+  yaze_warn_clang_version "$CLANG_FORMAT" clang-format
   "$CLANG_FORMAT" --dry-run --Werror --style=file "${CPP_FILES[@]}"
   print_ok "C/C++ formatting check passed (${#CPP_FILES[@]} files)"
 fi

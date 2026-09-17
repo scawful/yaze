@@ -144,11 +144,13 @@ If the answer to any of these is “no”, revise before expanding the refactor.
 Use the lightest checks that can invalidate the current slice:
 
 1. `scripts/lint.sh check [files...]`
-   Run formatting + `clang-tidy` on changed files when the compile database is
-   available.
-2. `scripts/quality_check.sh`
-   Run a broader local quality pass (`clang-format`, `clang-tidy`, `cppcheck`)
-   before large pushes or PRs.
+   Run formatting + `clang-tidy` on changed files. `clang-tidy` needs the
+   repo-root `compile_commands.json`; create it with
+   `scripts/dev/update_compile_commands.sh <preset>`.
+2. `scripts/quality_check.sh [--advisory|--gate]`
+   Run the whole-repository pass (`clang-format`, `cppcheck`) before large
+   pushes or PRs. It is advisory by default; `--gate` exits non-zero on
+   clang-format violations and cppcheck error-severity findings.
 3. `scripts/dev/editor-guardrails.sh <base-ref> <head-ref>`
    Run architectural heuristics for editor refactors. This catches new
    `panels/`, `*_panel`, concrete editor downcasts, suspicious editor-owned

@@ -190,35 +190,60 @@ To ensure a consistent and polished look and feel, all new UI components must ad
 The repository ships curated `.clangd` and `.clang-tidy` files that mirror our
 Google-style C++23 guidelines while accommodating ROM hacking patterns.
 
-- `.clangd` consumes `build/compile_commands.json`, enumerates `src/`, `inc/`,
-  `third_party/`, generated directories, and sets feature flags such as
+- `.clangd` reads the repository-root `compile_commands.json`, enumerates `src/`,
+  `inc/`, `third_party/`, generated directories, and sets feature flags such as
   `YAZE_WITH_GRPC`, `YAZE_WITH_JSON`, and `Z3ED_AI` so IntelliSense matches the
   active preset.
 - `.clang-tidy` enables the `clang-analyzer`, `performance`, `bugprone`,
   `readability`, `modernize`, `google`, and `abseil` suites, but relaxes common
   ROM hacking pain points (magic numbers, explicit integer sizing, C arrays,
-  carefully scoped narrowing conversions).
+  carefully scoped narrowing conversions). Its `HeaderFilterRegex` covers the
+  first-party headers in `src/`, `test/`, and `inc/`.
 - The `gfx::SnesColor` utilities intentionally return ImVec4 values in 0‑255
   space; rely on the helper converters instead of manual scaling to avoid
   precision loss.
-- Regenerate the compilation database whenever you reconfigure: `cmake --preset
-  mac-dbg` (or the platform equivalent) and ensure the file lives at
-  `build/compile_commands.json`.
-- Spot-check tooling with `clang-tidy path/to/file.cc -p build --quiet` or a
-  batch run via presets before sending larger patches.
 
-Use the following workflow for code-quality checks:
+### Compilation database
+
+Presets write their own database under `build/presets/<preset>/`. The root
+`compile_commands.json` is a symlink to one of them, and it is what `.clangd`,
+`scripts/lint.sh`, and the `clang-tidy` pre-commit hook read. Point it at a
+preset after configuring, and again whenever you switch presets:
 
 ```bash
-# File-focused formatting + clang-tidy
+cmake --preset mac-ai
+scripts/dev/update_compile_commands.sh mac-ai
+```
+
+Spot-check tooling with `clang-tidy path/to/file.cc -p . --quiet` once that
+symlink exists.
+
+### Formatting and quality passes
+
+`.clang-format` is the only style source: every entry point runs clang-format
+with `--style=file` over `src/` and `test/`. `.clang-format-version` pins the
+clang-format major that CI installs, and pre-commit, the CMake `yaze-format`
+targets, and the scripts below all follow that pin. A different major still
+runs locally and only warns, because its output can differ from CI's.
+
+```bash
+# Changed-file fast path: formatting + clang-tidy on the files you name
 scripts/lint.sh check src/path/to/file.cc test/path/to/file_test.cc
 
-# Broader local quality pass (format, tidy, cppcheck)
+# Whole-repository pass: formatting + cppcheck, advisory by default
 scripts/quality_check.sh
+
+# Same pass, non-zero exit on actionable findings
+scripts/quality_check.sh --gate
 
 # Architectural guardrails for editor refactors
 scripts/dev/editor-guardrails.sh <base-ref> <head-ref>
 ```
+
+`scripts/quality_check.sh --gate` fails on clang-format violations and on
+cppcheck error-severity findings; cppcheck warning, style, and performance
+output stays advisory in both modes. Only `scripts/lint.sh` runs clang-tidy,
+since a whole-repository tidy pass costs more than a build.
 
 `scripts/dev/editor-guardrails.sh` complements clang tooling. It is intentionally
 heuristic and checks for architectural drift that normal static analysis will
