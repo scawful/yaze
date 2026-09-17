@@ -545,6 +545,19 @@ inline ImVec4 GetTextSecondaryVec4() {
 inline ImVec4 GetTextDisabledVec4() {
   return ConvertColorToImVec4(GetTextDisabled());
 }
+inline ImVec4 GetTextPrimaryVec4() {
+  return ConvertColorToImVec4(
+      ThemeManager::Get().GetCurrentTheme().text_primary);
+}
+inline ImVec4 GetSuccessVec4() {
+  return ConvertColorToImVec4(ThemeManager::Get().GetCurrentTheme().success);
+}
+inline ImVec4 GetWarningVec4() {
+  return ConvertColorToImVec4(ThemeManager::Get().GetCurrentTheme().warning);
+}
+inline ImVec4 GetErrorVec4() {
+  return ConvertColorToImVec4(ThemeManager::Get().GetCurrentTheme().error);
+}
 inline ImVec4 GetShadowVec4() {
   return ConvertColorToImVec4(GetShadow());
 }
