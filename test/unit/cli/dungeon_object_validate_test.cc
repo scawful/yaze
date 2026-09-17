@@ -10,7 +10,6 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include <gmock/gmock.h>
@@ -20,31 +19,105 @@
 namespace yaze::cli {
 namespace {
 
-class ScopedValidationReport {
- public:
-  explicit ScopedValidationReport(std::string name)
-      : base_path_(std::filesystem::temp_directory_path() / std::move(name)) {
-    Cleanup();
-  }
+TEST(DungeonObjectValidateTest, OmittingReportWritesNoFiles) {
+  DungeonObjectValidateCommandHandler handler;
+  const auto legacy_json =
+      std::filesystem::current_path() / "dungeon_object_validation_report.json";
+  const auto legacy_csv =
+      std::filesystem::current_path() / "dungeon_object_validation_report.csv";
+  ASSERT_FALSE(std::filesystem::exists(legacy_json));
+  ASSERT_FALSE(std::filesystem::exists(legacy_csv));
 
-  ~ScopedValidationReport() { Cleanup(); }
+  std::string output;
+  auto status =
+      handler.Run({"--mock-rom", "--object=0x000", "--size=0", "--format=json"},
+                  nullptr, &output);
 
-  std::string argument() const { return "--report=" + base_path_.string(); }
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_FALSE(std::filesystem::exists(legacy_json));
+  EXPECT_FALSE(std::filesystem::exists(legacy_csv));
 
- private:
-  void Cleanup() const {
-    std::error_code error;
-    std::filesystem::remove(base_path_.string() + ".json", error);
-    error.clear();
-    std::filesystem::remove(base_path_.string() + ".csv", error);
-  }
+  const auto json = nlohmann::json::parse(output);
+  EXPECT_EQ(json.at("test_cases"), 1);
+  EXPECT_EQ(json.at("mismatch_count"), 0);
+  EXPECT_FALSE(json.contains("report_json"));
+  EXPECT_FALSE(json.contains("report_csv"));
+}
 
-  std::filesystem::path base_path_;
-};
+TEST(DungeonObjectValidateTest, ExplicitReportWritesJsonAndCsv) {
+  DungeonObjectValidateCommandHandler handler;
+  const auto report_base = std::filesystem::temp_directory_path() /
+                           "yaze_dungeon_explicit_report_test";
+  const auto json_path = report_base.string() + ".json";
+  const auto csv_path = report_base.string() + ".csv";
+  std::filesystem::remove(json_path);
+  std::filesystem::remove(csv_path);
+
+  std::string output;
+  auto status =
+      handler.Run({"--mock-rom", "--object=0x000", "--size=0", "--format=json",
+                   "--report=" + report_base.string()},
+                  nullptr, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  ASSERT_TRUE(std::filesystem::exists(json_path));
+  ASSERT_TRUE(std::filesystem::exists(csv_path));
+
+  const auto json = nlohmann::json::parse(output);
+  EXPECT_EQ(json.at("report_json"), json_path);
+  EXPECT_EQ(json.at("report_csv"), csv_path);
+
+  std::ifstream report(json_path);
+  const auto report_json = nlohmann::json::parse(report);
+  EXPECT_EQ(report_json.at("summary").at("test_cases"), 1);
+  EXPECT_EQ(report_json.at("summary").at("mismatch_count"), 0);
+  EXPECT_TRUE(report_json.at("mismatches").empty());
+  report.close();
+
+  std::filesystem::remove(json_path);
+  std::filesystem::remove(csv_path);
+}
+
+TEST(DungeonObjectValidateTest, RejectsEmptyReportPath) {
+  DungeonObjectValidateCommandHandler handler;
+
+  std::string output;
+  auto status =
+      handler.Run({"--mock-rom", "--object=0x000", "--size=0", "--report="},
+                  nullptr, &output);
+
+  EXPECT_FALSE(status.ok());
+  EXPECT_EQ(status.code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_THAT(status.message(),
+              ::testing::HasSubstr("--report requires a non-empty path"));
+}
+
+TEST(DungeonObjectValidateTest, TraceOutAloneWritesNoValidationReport) {
+  DungeonObjectValidateCommandHandler handler;
+  const auto trace_path = std::filesystem::temp_directory_path() /
+                          "yaze_dungeon_trace_only_test.json";
+  std::filesystem::remove(trace_path);
+  const auto legacy_json =
+      std::filesystem::current_path() / "dungeon_object_validation_report.json";
+  const auto legacy_csv =
+      std::filesystem::current_path() / "dungeon_object_validation_report.csv";
+
+  std::string output;
+  auto status =
+      handler.Run({"--mock-rom", "--object=0x000", "--size=0", "--trace-out",
+                   trace_path.string(), "--format=json"},
+                  nullptr, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_TRUE(std::filesystem::exists(trace_path));
+  EXPECT_FALSE(std::filesystem::exists(legacy_json));
+  EXPECT_FALSE(std::filesystem::exists(legacy_csv));
+
+  std::filesystem::remove(trace_path);
+}
 
 TEST(DungeonObjectValidateTest, TraceDumpWritesFile) {
   DungeonObjectValidateCommandHandler handler;
-  ScopedValidationReport report("yaze_dungeon_trace_dump_report_test");
   const auto trace_path = std::filesystem::temp_directory_path() /
                           "yaze_dungeon_trace_dump_test.json";
 
@@ -55,7 +128,7 @@ TEST(DungeonObjectValidateTest, TraceDumpWritesFile) {
   std::string output;
   auto status =
       handler.Run({"--mock-rom", "--object=0x000", "--size=0", "--trace-out",
-                   trace_path.string(), "--format=json", report.argument()},
+                   trace_path.string(), "--format=json"},
                   nullptr, &output);
 
   ASSERT_TRUE(status.ok());
@@ -133,12 +206,11 @@ TEST(DungeonObjectValidateTest,
 TEST(DungeonObjectValidateTest,
      NonRoomModeAvoidsFalseMismatchesFromNegativeOffsets) {
   DungeonObjectValidateCommandHandler handler;
-  ScopedValidationReport report("yaze_dungeon_negative_offset_report_test");
 
   std::string output;
-  auto status = handler.Run({"--mock-rom", "--object=0x009", "--size=0",
-                             "--format=json", report.argument()},
-                            nullptr, &output);
+  auto status =
+      handler.Run({"--mock-rom", "--object=0x009", "--size=0", "--format=json"},
+                  nullptr, &output);
 
   ASSERT_TRUE(status.ok());
   const auto json = nlohmann::json::parse(output);
@@ -147,12 +219,11 @@ TEST(DungeonObjectValidateTest,
 
 TEST(DungeonObjectValidateTest, AllSizesValidatesEveryType1SizeNibble) {
   DungeonObjectValidateCommandHandler handler;
-  ScopedValidationReport report("yaze_dungeon_all_sizes_report_test");
 
   std::string output;
-  auto status = handler.Run({"--mock-rom", "--object=0x000", "--all-sizes",
-                             "--format=json", report.argument()},
-                            nullptr, &output);
+  auto status = handler.Run(
+      {"--mock-rom", "--object=0x000", "--all-sizes", "--format=json"}, nullptr,
+      &output);
 
   ASSERT_TRUE(status.ok()) << status;
   const auto json = nlohmann::json::parse(output);
@@ -165,29 +236,27 @@ TEST(DungeonObjectValidateTest, AllSizesValidatesEveryType1SizeNibble) {
 TEST(DungeonObjectValidateTest, AllSizesUsesOnlyFixedSubtypeLegalSizes) {
   struct TestCase {
     const char* object_arg;
-    const char* report_name;
     const char* trace_name;
     int expected_size;
   };
 
   for (const auto& test_case : {
-           TestCase{"--object=0x100", "yaze_dungeon_type2_size_report_test",
-                    "yaze_dungeon_type2_size_trace_test.json", 0},
-           TestCase{"--object=0xF83", "yaze_dungeon_type3_size_report_test",
-                    "yaze_dungeon_type3_size_trace_test.json", 12},
+           TestCase{"--object=0x100", "yaze_dungeon_type2_size_trace_test.json",
+                    0},
+           TestCase{"--object=0xF83", "yaze_dungeon_type3_size_trace_test.json",
+                    12},
        }) {
     SCOPED_TRACE(test_case.object_arg);
     DungeonObjectValidateCommandHandler handler;
-    ScopedValidationReport report(test_case.report_name);
     const auto trace_path =
         std::filesystem::temp_directory_path() / test_case.trace_name;
     std::filesystem::remove(trace_path);
 
     std::string output;
-    auto status = handler.Run(
-        {"--mock-rom", test_case.object_arg, "--all-sizes", "--trace-out",
-         trace_path.string(), "--format=json", report.argument()},
-        nullptr, &output);
+    auto status =
+        handler.Run({"--mock-rom", test_case.object_arg, "--all-sizes",
+                     "--trace-out", trace_path.string(), "--format=json"},
+                    nullptr, &output);
 
     ASSERT_TRUE(status.ok()) << status;
     const auto json = nlohmann::json::parse(output);
@@ -205,16 +274,15 @@ TEST(DungeonObjectValidateTest, AllSizesUsesOnlyFixedSubtypeLegalSizes) {
 
 TEST(DungeonObjectValidateTest, AllStatesReportsDefaultAndActiveProfiles) {
   DungeonObjectValidateCommandHandler handler;
-  ScopedValidationReport report("yaze_dungeon_all_states_report_test");
   const auto trace_path = std::filesystem::temp_directory_path() /
                           "yaze_dungeon_state_trace_test.json";
   std::filesystem::remove(trace_path);
 
   std::string output;
-  auto status = handler.Run(
-      {"--mock-rom", "--object=0xF80", "--all-states", "--trace-out",
-       trace_path.string(), "--format=json", report.argument()},
-      nullptr, &output);
+  auto status =
+      handler.Run({"--mock-rom", "--object=0xF80", "--all-states",
+                   "--trace-out", trace_path.string(), "--format=json"},
+                  nullptr, &output);
 
   ASSERT_TRUE(status.ok()) << status;
   const auto json = nlohmann::json::parse(output);
@@ -252,8 +320,6 @@ TEST(DungeonObjectValidateTest, AllStatesTracksExpectedEmptyBranches) {
        }) {
     SCOPED_TRACE(test_case.object_arg);
     DungeonObjectValidateCommandHandler handler;
-    ScopedValidationReport report(std::string("yaze_dungeon_expected_empty_") +
-                                  test_case.label + "_report_test");
     const auto trace_path = std::filesystem::temp_directory_path() /
                             (std::string("yaze_dungeon_expected_empty_") +
                              test_case.label + "_trace_test.json");
@@ -264,7 +330,7 @@ TEST(DungeonObjectValidateTest, AllStatesTracksExpectedEmptyBranches) {
       args.emplace_back("--size=0");
     }
     args.insert(args.end(), {"--all-states", "--trace-out", trace_path.string(),
-                             "--format=json", report.argument()});
+                             "--format=json"});
 
     std::string output;
     auto status = handler.Run(args, nullptr, &output);
@@ -345,21 +411,11 @@ TEST(DungeonObjectValidateTest,
   for (const char* object_arg : {"--object=0x03C", "--object=0x04C"}) {
     SCOPED_TRACE(object_arg);
     DungeonObjectValidateCommandHandler handler;
-    const auto report_base =
-        std::filesystem::temp_directory_path() /
-        (std::string("yaze_dungeon_payload_count_") + object_arg + "_test");
-    const auto json_report = report_base.string() + ".json";
-    const auto csv_report = report_base.string() + ".csv";
-    std::filesystem::remove(json_report);
-    std::filesystem::remove(csv_report);
 
     std::string output;
     auto status =
-        handler.Run({"--mock-rom", object_arg, "--size=0", "--format=json",
-                     "--report=" + report_base.string()},
+        handler.Run({"--mock-rom", object_arg, "--size=0", "--format=json"},
                     nullptr, &output);
-    std::filesystem::remove(json_report);
-    std::filesystem::remove(csv_report);
 
     ASSERT_TRUE(status.ok()) << status;
     EXPECT_THAT(output, ::testing::HasSubstr("\"test_cases\": 1"));
