@@ -2,9 +2,12 @@
 """
 audit_test_registration.py -- Test source registration integrity audit for YAZE.
 
-For every *_test.cc file discovered under test/ this tool checks that it either:
+For every test suite source discovered under test/ this tool checks that it either:
   1. Appears in at least one compiled source list in test/CMakeLists.txt, OR
   2. Has an explicit entry in the EXCLUSION_LIST below (with a documented reason).
+
+Discovered naming patterns:
+  *_test.cc, *_tests.cc, test_*.cc
 
 Exit codes:
   0  -- all tracked test sources are either registered or explicitly excluded
@@ -30,9 +33,13 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 TEST_ROOT = PROJECT_ROOT / "test"
 TEST_CMAKE = TEST_ROOT / "CMakeLists.txt"
 
+# Naming patterns for suite sources (not helpers like gui_test_utils.cc).
+TEST_SOURCE_GLOBS: tuple[str, ...] = ("*_test.cc", "*_tests.cc", "test_*.cc")
+
 # ---------------------------------------------------------------------------
 # Explicit exclusion list: test files intentionally NOT wired into CMakeLists.
-# Each entry maps (relative-to-test-root path) -> reason string.
+# Prefer full relative-to-test-root paths. Bare filenames are allowed only for
+# unique helper/entry-point names that are never duplicated under test/.
 # ---------------------------------------------------------------------------
 EXCLUSION_LIST: dict[str, str] = {
     # ---------------------------------------------------------------------------
@@ -50,6 +57,10 @@ EXCLUSION_LIST: dict[str, str] = {
     "test_editor.cc": "shared test helper (test_editor.h), not a suite",
     # test_conversation_minimal.cc is an ad-hoc manual probe, not a suite.
     "test_conversation_minimal.cc": "manual probe only; no gtest harness",
+    # standalone/test_sdl3_audio_compile.cc is a manual compile probe, not gtest.
+    "standalone/test_sdl3_audio_compile.cc": (
+        "manual SDL3 compile probe; not a gtest suite"
+    ),
 
     # ---------------------------------------------------------------------------
     # WASM / Emscripten-only -- cannot be compiled in native build
@@ -77,6 +88,15 @@ EXCLUSION_LIST: dict[str, str] = {
         "DEPRECATED Nov 2025; replaced by integration/zelda3/"
         "dungeon_object_rendering_tests.cc"
     ),
+    # e2e dungeon object rendering suite is deprecated for DungeonEditorV2.
+    "e2e/dungeon_object_rendering_e2e_tests.cc": (
+        "DEPRECATED Nov 2025; replaced by e2e/dungeon_editor_smoke_test.cc and "
+        "integration/zelda3/dungeon_object_rendering_tests.cc"
+    ),
+    # Alternate/WIP ObjectDrawer suite kept on disk but not wired into CMake.
+    "integration/zelda3/dungeon_object_rendering_tests_new.cc": (
+        "Unwired WIP duplicate of dungeon_object_rendering_tests.cc"
+    ),
 
     # ---------------------------------------------------------------------------
     # Legacy / removed -- explicitly retired from the build
@@ -90,26 +110,50 @@ EXCLUSION_LIST: dict[str, str] = {
 }
 
 
+def strip_cmake_comments(text: str) -> str:
+    """Remove CMake `#` line comments, preserving `#` inside quotes."""
+    out_lines: list[str] = []
+    for line in text.splitlines():
+        result: list[str] = []
+        in_single = False
+        in_double = False
+        i = 0
+        while i < len(line):
+            ch = line[i]
+            if ch == '"' and not in_single:
+                in_double = not in_double
+                result.append(ch)
+            elif ch == "'" and not in_double:
+                in_single = not in_single
+                result.append(ch)
+            elif ch == "#" and not in_single and not in_double:
+                break
+            else:
+                result.append(ch)
+            i += 1
+        out_lines.append("".join(result))
+    return "\n".join(out_lines)
+
+
 def extract_source_list_from_cmake(cmake_path: Path) -> set[str]:
     """
     Return every relative-to-test-root path that appears as a literal string
     inside a set()/list(APPEND ...) call in cmake_path.
 
-    We parse conservatively: any line that looks like a relative path to a
-    .cc file (not starting with $, not a cmake keyword) is treated as a
-    registered source.
+    Commented-out registrations are ignored so disabling a source in CMake
+    cannot silently keep the integrity audit green.
     """
     if not cmake_path.exists():
         raise FileNotFoundError(f"CMakeLists not found: {cmake_path}")
 
-    text = cmake_path.read_text(encoding="utf-8")
+    text = strip_cmake_comments(cmake_path.read_text(encoding="utf-8"))
     # Match any token that looks like a relative .cc path
     # Examples:
     #   unit/emu/emulator_test.cc
     #   ../src/cli/service/resources/resource_catalog.cc
     #   integration/dungeon_editor_test.cc
     paths: set[str] = set()
-    for m in re.finditer(r'(?<!\$\{)(?<![a-zA-Z_])([\w./]+\.cc)\b', text):
+    for m in re.finditer(r"(?<!\$\{)(?<![a-zA-Z_])([\w./]+\.cc)\b", text):
         candidate = m.group(1)
         # Skip cmake built-in keywords disguised as paths
         if candidate.startswith("${") or "/" not in candidate:
@@ -120,17 +164,28 @@ def extract_source_list_from_cmake(cmake_path: Path) -> set[str]:
 
 def discover_test_sources(test_root: Path) -> list[Path]:
     """
-    Find all *_test.cc files under test_root, excluding build/ directories.
+    Find suite sources under test_root matching TEST_SOURCE_GLOBS.
     Returns paths relative to test_root.
     """
-    results = []
-    for p in sorted(test_root.rglob("*_test.cc")):
-        # Skip any build artefacts
-        parts = p.parts
-        if any(part in {"build", "CMakeFiles", "_deps"} for part in parts):
-            continue
-        results.append(p.relative_to(test_root))
-    return results
+    results: set[Path] = set()
+    for pattern in TEST_SOURCE_GLOBS:
+        for p in test_root.rglob(pattern):
+            parts = p.parts
+            if any(part in {"build", "CMakeFiles", "_deps"} for part in parts):
+                continue
+            results.add(p.relative_to(test_root))
+    return sorted(results)
+
+
+def is_excluded(rel: Path) -> bool:
+    """True if rel is in EXCLUSION_LIST by full path or unique bare filename."""
+    rel_str = str(rel).replace("\\", "/")
+    if rel_str in EXCLUSION_LIST:
+        return True
+    # Bare filename keys only match when the file lives at test/<name>.
+    if rel.name in EXCLUSION_LIST and len(rel.parts) == 1:
+        return True
+    return False
 
 
 def run_audit(verbose: bool = False) -> tuple[list[str], list[str]]:
@@ -144,22 +199,16 @@ def run_audit(verbose: bool = False) -> tuple[list[str], list[str]]:
     excluded: list[str] = []
 
     for rel in all_tests:
-        rel_str = str(rel)
-        # Check the exclusion list first (by filename or full relative path)
-        excl_key = rel.name if rel.name in EXCLUSION_LIST else rel_str
-        if excl_key in EXCLUSION_LIST or rel_str in EXCLUSION_LIST:
+        rel_str = str(rel).replace("\\", "/")
+        if is_excluded(rel):
             excluded.append(rel_str)
             continue
 
-        # Check if any suffix of the path appears in the cmake source list.
-        # CMakeLists uses paths like "unit/emu/emulator_test.cc" which are
-        # relative to the test/ directory itself.
+        # Check if any registered path matches this relative path.
         found = False
         for reg in registered:
-            # Normalize separators
             reg_norm = reg.replace("\\", "/")
-            rel_norm = rel_str.replace("\\", "/")
-            if reg_norm.endswith(rel_norm) or rel_norm.endswith(reg_norm):
+            if reg_norm.endswith(rel_str) or rel_str.endswith(reg_norm):
                 found = True
                 break
 
@@ -184,12 +233,43 @@ def _self_test_extract_source_list() -> None:
         "unit/emu/emulator_test.cc",
         "unit/emu/step_controller_test.cc",
         "unit/emu/spc700_reset_test.cc",
-        "unit/cli/rom_debug_agent_test.cc",
+        "integration/zelda3/dungeon_object_rendering_tests.cc",
         "integration/dungeon_editor_test.cc",
+        "e2e/dungeon_e2e_tests.cc",
     ]
     missing = [r for r in required if not any(s.endswith(r) for s in sources)]
     assert not missing, f"cmake parser missed required sources: {missing}"
     print("  [PASS] cmake parser extracts known sources")
+
+
+def _self_test_ignores_commented_registrations() -> None:
+    """Commented-out .cc paths must not count as registered."""
+    sample = """
+set(YAZE_TEST_SRC
+  unit/emu/emulator_test.cc
+  # unit/emu/spc700_reset_test.cc
+  unit/emu/step_controller_test.cc
+)
+"""
+    tmp = TEST_ROOT / "_audit_comment_probe_CMakeLists.txt"
+    try:
+        tmp.write_text(sample, encoding="utf-8")
+        sources = extract_source_list_from_cmake(tmp)
+    finally:
+        if tmp.exists():
+            tmp.unlink()
+    assert "unit/emu/emulator_test.cc" in sources
+    assert "unit/emu/step_controller_test.cc" in sources
+    assert "unit/emu/spc700_reset_test.cc" not in sources, sources
+    print("  [PASS] commented-out registrations are ignored")
+
+
+def _self_test_discovery_naming_patterns() -> None:
+    """Discovery must include *_tests.cc and test_*.cc, not only *_test.cc."""
+    discovered = {str(p).replace("\\", "/") for p in discover_test_sources(TEST_ROOT)}
+    assert any(p.endswith("_tests.cc") for p in discovered), discovered
+    assert any(Path(p).name.startswith("test_") for p in discovered), discovered
+    print("  [PASS] discovery includes *_tests.cc and test_*.cc")
 
 
 def _self_test_exclusion_list() -> None:
@@ -214,6 +294,8 @@ def run_self_tests() -> int:
     print("Running audit_test_registration self-tests...")
     try:
         _self_test_extract_source_list()
+        _self_test_ignores_commented_registrations()
+        _self_test_discovery_naming_patterns()
         _self_test_exclusion_list()
         _self_test_no_unregistered_after_registration()
     except AssertionError as exc:
