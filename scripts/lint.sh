@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# Unified linting script for yaze
-# Wraps clang-format and clang-tidy with project-specific configuration
+# Changed-file linting fast path for yaze.
+# Wraps clang-format and clang-tidy with project-specific configuration.
 #
 # Usage:
 #   scripts/lint.sh [check|fix] [files...]
@@ -9,6 +9,10 @@
 #   check (default) - Check for issues without modifying files
 #   fix             - Automatically fix formatting and some tidy issues
 #   files...        - Optional list of files to process (defaults to all source files)
+#
+# clang-tidy needs a compile database. The canonical one is the repo-root
+# compile_commands.json maintained by scripts/dev/update_compile_commands.sh.
+# scripts/quality_check.sh is the slower whole-repository pass.
 
 set -e
 
@@ -20,7 +24,10 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 # Configuration
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+# shellcheck source=scripts/lib/clang_tools.sh
+source "${SCRIPT_DIR}/lib/clang_tools.sh"
 cd "$PROJECT_ROOT"
 
 MODE="check"
@@ -32,7 +39,7 @@ elif [[ "$1" == "check" ]]; then
 fi
 
 # Files to process
-FILES="$@"
+FILES="$*"
 if [[ -z "$FILES" ]]; then
     # Find all source files, excluding third-party libraries
     # Using git ls-files if available to respect .gitignore
@@ -43,45 +50,20 @@ if [[ -z "$FILES" ]]; then
     fi
 fi
 
-# Find tools
-find_tool() {
-    local names=("$@")
-    for name in "${names[@]}"; do
-        if command -v "$name" >/dev/null 2>&1; then
-            echo "$name"
-            return 0
-        fi
-    done
-    
-    # Check Homebrew LLVM paths on macOS
-    if [[ "$(uname)" == "Darwin" ]]; then
-        local brew_prefix
-        if command -v brew >/dev/null 2>&1; then
-            brew_prefix=$(brew --prefix llvm 2>/dev/null)
-            if [[ -n "$brew_prefix" ]]; then
-                for name in "${names[@]}"; do
-                    if [[ -x "$brew_prefix/bin/$name" ]]; then
-                        echo "$brew_prefix/bin/$name"
-                        return 0
-                    fi
-                done
-            fi
-        fi
-    fi
-    return 1
-}
-
-CLANG_FORMAT=$(find_tool clang-format-18 clang-format-17 clang-format)
-CLANG_TIDY=$(find_tool clang-tidy-18 clang-tidy-17 clang-tidy)
+CLANG_FORMAT=$(yaze_find_clang_format || true)
+CLANG_TIDY=$(yaze_find_clang_tidy || true)
 
 if [[ -z "$CLANG_FORMAT" ]]; then
     echo -e "${RED}Error: clang-format not found.${NC}"
+    echo -e "Install major $(yaze_clang_pinned_major) to match CI (see .clang-format-version)."
     exit 1
 fi
 
 if [[ -z "$CLANG_TIDY" ]]; then
     echo -e "${YELLOW}Warning: clang-tidy not found. Skipping tidy checks.${NC}"
 fi
+
+yaze_warn_clang_version "$CLANG_FORMAT" clang-format
 
 echo -e "${BLUE}Using clang-format: $CLANG_FORMAT${NC}"
 [[ -n "$CLANG_TIDY" ]] && echo -e "${BLUE}Using clang-tidy: $CLANG_TIDY${NC}"
@@ -110,37 +92,25 @@ fi
 if [[ -n "$CLANG_TIDY" ]]; then
     echo -e "\n${BLUE}=== Running clang-tidy ===${NC}"
     
-    # Build compile_commands.json if missing (needed for clang-tidy)
-    if [[ ! -f "build/compile_commands.json" && ! -f "compile_commands.json" ]]; then
-         echo -e "${YELLOW}compile_commands.json not found. Attempting to generate...${NC}"
-         if command -v cmake >/dev/null; then
-             cmake -S . -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON >/dev/null
-         else
-             echo -e "${RED}cmake not found. Cannot generate compile_commands.json.${NC}"
-         fi
-    fi
-
-    # Find compile_commands.json
+    # The repo-root compile_commands.json is canonical (see .clangd); build/ is
+    # only a fallback for older local layouts.
     BUILD_PATH=""
-    if [[ -f "build/compile_commands.json" ]]; then
-        BUILD_PATH="build"
-    elif [[ -f "compile_commands.json" ]]; then
+    if [[ -f "compile_commands.json" ]]; then
         BUILD_PATH="."
+    elif [[ -f "build/compile_commands.json" ]]; then
+        BUILD_PATH="build"
+    else
+        echo -e "${YELLOW}compile_commands.json not found.${NC}"
+        echo -e "Generate it with: ${YELLOW}cmake --preset mac-ai && scripts/dev/update_compile_commands.sh mac-ai${NC}"
     fi
 
     if [[ -n "$BUILD_PATH" ]]; then
         TIDY_ARGS="-p $BUILD_PATH --quiet"
         [[ "$MODE" == "fix" ]] && TIDY_ARGS="$TIDY_ARGS --fix"
         
-        # Use parallel if available
-        if command -v parallel >/dev/null 2>&1; then
-            # parallel processing would require a different invocation
-            # For now, just run simple xargs
-            echo "$FILES" | xargs "$CLANG_TIDY" $TIDY_ARGS
-        else
-            echo "$FILES" | xargs "$CLANG_TIDY" $TIDY_ARGS
-        fi
-        
+        echo "$FILES" | xargs "$CLANG_TIDY" $TIDY_ARGS
+
+
         echo -e "${GREEN}Clang-tidy finished.${NC}"
     else
         echo -e "${YELLOW}Skipping clang-tidy (compile_commands.json not found).${NC}"

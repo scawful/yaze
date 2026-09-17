@@ -183,9 +183,26 @@ if(YAZE_BUILD_TESTS)
 endif()
 
 # Code quality targets
+#
+# .clang-format-version pins the clang-format major that CI, pre-commit, the git
+# hooks, and these targets all use. Discovery prefers the suffixed binary for
+# that major and falls back to an unsuffixed one, which only warns: a different
+# major can format the same .clang-format differently than CI does.
+set(YAZE_CLANG_FORMAT_VERSION "")
+set(YAZE_CLANG_FORMAT_MAJOR "")
+if(EXISTS "${CMAKE_SOURCE_DIR}/.clang-format-version")
+  file(READ "${CMAKE_SOURCE_DIR}/.clang-format-version" YAZE_CLANG_FORMAT_VERSION)
+  string(STRIP "${YAZE_CLANG_FORMAT_VERSION}" YAZE_CLANG_FORMAT_VERSION)
+  string(REGEX MATCH "^[0-9]+" YAZE_CLANG_FORMAT_MAJOR "${YAZE_CLANG_FORMAT_VERSION}")
+endif()
+
 if(YAZE_ENABLE_CLANG_TIDY)
   if(NOT YAZE_CLANG_TIDY_EXE)
-    find_program(YAZE_CLANG_TIDY_EXE NAMES clang-tidy clang-tidy-18 clang-tidy-17 clang-tidy-16)
+    set(YAZE_CLANG_TIDY_NAMES clang-tidy)
+    if(YAZE_CLANG_FORMAT_MAJOR)
+      list(PREPEND YAZE_CLANG_TIDY_NAMES "clang-tidy-${YAZE_CLANG_FORMAT_MAJOR}")
+    endif()
+    find_program(YAZE_CLANG_TIDY_EXE NAMES ${YAZE_CLANG_TIDY_NAMES})
   endif()
 
   if(YAZE_CLANG_TIDY_EXE)
@@ -196,15 +213,37 @@ if(YAZE_ENABLE_CLANG_TIDY)
   endif()
 endif()
 
+set(YAZE_CLANG_FORMAT_NAMES clang-format)
+if(YAZE_CLANG_FORMAT_MAJOR)
+  list(PREPEND YAZE_CLANG_FORMAT_NAMES "clang-format-${YAZE_CLANG_FORMAT_MAJOR}")
+endif()
+
 find_program(CLANG_FORMAT
-  NAMES clang-format-18 clang-format
+  NAMES ${YAZE_CLANG_FORMAT_NAMES}
   HINTS "${HOMEBREW_LLVM_PREFIX}/bin" # Prefer clang-format from Homebrew LLVM
   NO_DEFAULT_PATH
 )
 if(NOT CLANG_FORMAT) # Fallback to generic search if not found in Homebrew prefix
-  find_program(CLANG_FORMAT NAMES clang-format clang-format-17 clang-format-16 clang-format-15 clang-format-14)
+  find_program(CLANG_FORMAT NAMES ${YAZE_CLANG_FORMAT_NAMES})
 endif()
 if(CLANG_FORMAT)
+  execute_process(
+    COMMAND "${CLANG_FORMAT}" --version
+    OUTPUT_VARIABLE YAZE_CLANG_FORMAT_BANNER
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+  )
+  string(REGEX MATCH "version ([0-9]+)" YAZE_CLANG_FORMAT_MATCH "${YAZE_CLANG_FORMAT_BANNER}")
+  if(YAZE_CLANG_FORMAT_MAJOR AND CMAKE_MATCH_1 AND
+     NOT CMAKE_MATCH_1 STREQUAL YAZE_CLANG_FORMAT_MAJOR)
+    message(WARNING
+      "clang-format major ${CMAKE_MATCH_1} found at ${CLANG_FORMAT}; this repo pins "
+      "major ${YAZE_CLANG_FORMAT_MAJOR} (.clang-format-version). yaze-format output "
+      "may differ from CI.")
+  endif()
+
+  # inc/ is intentionally out of scope: those public C headers are not formatted
+  # to .clang-format yet, and CI only checks src/ and test/.
   file(GLOB_RECURSE ALL_SOURCE_FILES
        "${CMAKE_SOURCE_DIR}/src/*.cc"
        "${CMAKE_SOURCE_DIR}/src/*.h"

@@ -2,6 +2,32 @@
 
 This directory contains build automation and maintenance scripts for the YAZE project.
 
+## Code quality tooling
+
+`lib/clang_tools.sh` resolves clang-format and clang-tidy for `lint.sh`,
+`quality_check.sh`, `pre-commit.sh`, and `pre-push.sh`. It prefers the major
+pinned in `.clang-format-version` (the same pin CI installs and
+`.pre-commit-config.yaml` tracks) and warns, without failing, when only another
+major is installed. `YAZE_CLANG_FORMAT`, `YAZE_CLANG_TIDY`, and `YAZE_CPPCHECK`
+override discovery; setting one to the empty string declares that tool missing.
+
+```bash
+# Changed-file fast path: clang-format + clang-tidy on the files you name
+scripts/lint.sh check src/app/editor/editor_manager.cc
+scripts/lint.sh fix src/app/editor/editor_manager.cc
+
+# Whole-repository pass: clang-format over src/ and test/, plus cppcheck
+scripts/quality_check.sh            # advisory, always exits 0
+scripts/quality_check.sh --gate     # exits 1 on actionable findings
+
+# Point clang-tidy and clangd at a preset's compile database
+cmake --preset mac-ai && scripts/dev/update_compile_commands.sh mac-ai
+```
+
+Every entry point formats with `--style=file`, so `.clang-format` is the only
+style source. `inc/` is out of formatting scope; those public C headers do not
+match `.clang-format` yet.
+
 ## fetch_usdasm.sh
 
 Fetch the usdasm disassembly on demand (not vendored in the repo).

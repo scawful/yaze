@@ -842,6 +842,16 @@ if(YAZE_BUILD_TESTS)
     )
 
     add_test(
+      NAME QualityToolingContract
+      COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/tests/quality_tooling_test.sh
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+    set_tests_properties(QualityToolingContract PROPERTIES
+      LABELS "stable;unit;scripts"
+      TIMEOUT 60
+    )
+
+    add_test(
       NAME oracle_smoke_script_test
       COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/dev/test-oracle-smoke.sh
       WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
