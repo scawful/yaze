@@ -40,6 +40,7 @@ the listed environment variable.
 | `setup-vcpkg-windows.ps1` | canonical | Bootstrap and populate vcpkg on Windows |
 | `agent_build.sh` | canonical | Build AI-enabled targets for agent workflows (`YAZE_BUILD_DIR` overrides the build dir) |
 | `build_cleaner.py` | canonical | Maintain CMake source lists and self-header includes; also a `build_cleaner` CMake target |
+| `audit_test_registration.py` | canonical | Require every `*_test.cc` source to be registered or explicitly excluded with a reason |
 | `fetch_usdasm.sh` | canonical | Fetch the usdasm disassembly on demand (`USDASM_DIR`, `USDASM_REPO_URL`) |
 | `requirements.txt` | canonical | Python dependencies for the scripts in this directory |
 | `gemini_build.sh` | compatibility | Thin wrapper that forwards to `agent_build.sh`; kept for older docs |
