@@ -1623,7 +1623,12 @@ absl::Status DungeonRemoveObjectCommandHandler::Execute(
   formatter.AddField("allocator_capability",
                      layout != nullptr ? "copy_on_write" : "none");
 
-  RETURN_IF_ERROR(room.RemoveObject(object_vector_index));
+  const absl::Status remove_status = room.RemoveObject(object_vector_index);
+  if (!remove_status.ok()) {
+    formatter.AddField("remove_error", std::string(remove_status.message()));
+    formatter.EndObject();
+    return remove_status;
+  }
   formatter.AddField("objects_after", stream_object_count - 1);
   const bool do_write = parser.HasFlag("write");
   formatter.AddField("mode", do_write ? "write" : "dry-run");
