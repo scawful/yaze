@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <fstream>
 #include <ios>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -870,17 +871,133 @@ TEST(ProjectBundleVerifyTest, CheckRomHashRejectsSchemaFieldDisagreement) {
   EXPECT_TRUE(found_disagreement) << out;
 }
 
-TEST(ProjectBundleVerifyTest, CheckRomHashRejectsMalformedSchemaFields) {
-  ScopedTempDir tmp;
-  const fs::path bundle = tmp.path / "MalformedHash.yazeproj";
-  CreateFullBundle(bundle);
+// Exhaustive matrix over the two recognized manifest hash fields. Covers the
+// contract that a recognized field whose trimmed string value is empty means
+// "no digest recorded" rather than "malformed manifest".
 
-  const std::vector<std::pair<nlohmann::json, std::string>> cases = {
-      {nlohmann::json{{"romChecksum", "not-a-sha1"}}, "romChecksum"},
-      {nlohmann::json{{"rom_sha1", 1234}}, "rom_sha1"},
+// Placeholder replaced with the bundled ROM's real SHA1 before the manifest is
+// written, so the table can stay declarative.
+constexpr const char* kActualSha1Token = "<actual-sha1>";
+constexpr const char* kOtherSha1 = "0000000000000000000000000000000000000000";
+
+enum class HashOutcome { kPass, kWarn, kFail };
+
+struct BundleHashFieldCase {
+  const char* name;
+  // nullopt means the key is absent from manifest.json entirely.
+  std::optional<json> rom_checksum;
+  std::optional<json> rom_sha1;
+  HashOutcome outcome;
+  // Substring the rom_hash_check detail must contain.
+  const char* detail_substring;
+};
+
+json ResolveFieldValue(const json& value, const std::string& actual_sha1) {
+  if (value.is_string() && value.get<std::string>() == kActualSha1Token) {
+    return actual_sha1;
+  }
+  return value;
+}
+
+TEST(ProjectBundleVerifyTest, BundleManifestHashFieldMatrix) {
+  ScopedTempDir tmp;
+  const fs::path bundle = tmp.path / "HashMatrix.yazeproj";
+  CreateFullBundle(bundle);
+  const std::string actual_sha1 =
+      yaze::util::ComputeFileSha1Hex((bundle / "rom").string());
+  ASSERT_EQ(actual_sha1.size(), 40u);
+  ASSERT_NE(actual_sha1, kOtherSha1);
+
+  const std::vector<BundleHashFieldCase> cases = {
+      // --- Absent / empty: unavailable, not malformed. ---
+      {"BothAbsent", std::nullopt, std::nullopt, HashOutcome::kWarn,
+       "No usable romChecksum or rom_sha1 digest"},
+      {"RomChecksumEmptyOnly", json(""), std::nullopt, HashOutcome::kWarn,
+       "No usable romChecksum or rom_sha1 digest"},
+      {"RomChecksumWhitespaceOnly", json("  \n\t "), std::nullopt,
+       HashOutcome::kWarn, "No usable romChecksum or rom_sha1 digest"},
+      {"RomSha1EmptyOnly", std::nullopt, json(""), HashOutcome::kWarn,
+       "No usable romChecksum or rom_sha1 digest"},
+      {"RomSha1WhitespaceOnly", std::nullopt, json("\t"), HashOutcome::kWarn,
+       "No usable romChecksum or rom_sha1 digest"},
+      {"BothEmpty", json(""), json(""), HashOutcome::kWarn,
+       "No usable romChecksum or rom_sha1 digest"},
+      {"BothWhitespace", json(" "), json("\n"), HashOutcome::kWarn,
+       "No usable romChecksum or rom_sha1 digest"},
+
+      // --- One valid field, sibling empty: the valid field is used. ---
+      {"RomChecksumValidRomSha1Empty", json(kActualSha1Token), json(""),
+       HashOutcome::kPass, "SHA1 match (romChecksum)"},
+      {"RomChecksumValidRomSha1Whitespace", json(kActualSha1Token),
+       json("   \n"), HashOutcome::kPass, "SHA1 match (romChecksum)"},
+      {"RomSha1ValidRomChecksumEmpty", json(""), json(kActualSha1Token),
+       HashOutcome::kPass, "SHA1 match (rom_sha1)"},
+      {"RomSha1ValidRomChecksumWhitespace", json(" \t "),
+       json(kActualSha1Token), HashOutcome::kPass, "SHA1 match (rom_sha1)"},
+
+      // --- Single populated field, sibling absent. ---
+      {"RomChecksumValidOnly", json(kActualSha1Token), std::nullopt,
+       HashOutcome::kPass, "SHA1 match (romChecksum)"},
+      {"RomSha1ValidOnly", std::nullopt, json(kActualSha1Token),
+       HashOutcome::kPass, "SHA1 match (rom_sha1)"},
+
+      // --- Both populated and in agreement. ---
+      {"MatchingValidPair", json(kActualSha1Token), json(kActualSha1Token),
+       HashOutcome::kPass, "SHA1 match (romChecksum/rom_sha1)"},
+
+      // --- Non-string values still fail, even when the sibling is usable. ---
+      {"RomChecksumNumberFails", json(1234), std::nullopt, HashOutcome::kFail,
+       "manifest.json romChecksum must be a string"},
+      {"RomChecksumNullFails", json(nullptr), json(kActualSha1Token),
+       HashOutcome::kFail, "manifest.json romChecksum must be a string"},
+      {"RomChecksumObjectFails", json::object({{"sha1", "x"}}), json(""),
+       HashOutcome::kFail, "manifest.json romChecksum must be a string"},
+      {"RomSha1NumberFails", std::nullopt, json(1234), HashOutcome::kFail,
+       "manifest.json rom_sha1 must be a string"},
+      {"RomSha1ArrayFails", json(""), json::array({"x"}), HashOutcome::kFail,
+       "manifest.json rom_sha1 must be a string"},
+      {"RomSha1BoolFails", json(kActualSha1Token), json(true),
+       HashOutcome::kFail, "manifest.json rom_sha1 must be a string"},
+
+      // --- Non-empty invalid values still fail. ---
+      {"RomChecksumNonHexFails", json("not-a-sha1"), std::nullopt,
+       HashOutcome::kFail,
+       "manifest.json romChecksum must be 40 hexadecimal characters"},
+      {"RomChecksumShortFails", json(std::string(39, 'a')), json(""),
+       HashOutcome::kFail,
+       "manifest.json romChecksum must be 40 hexadecimal characters"},
+      {"RomSha1LongFails", std::nullopt, json(std::string(41, 'a')),
+       HashOutcome::kFail,
+       "manifest.json rom_sha1 must be 40 hexadecimal characters"},
+      {"RomSha1EmbeddedSpaceFails", json(""),
+       json(std::string(20, 'a') + " " + std::string(19, 'a')),
+       HashOutcome::kFail,
+       "manifest.json rom_sha1 must be 40 hexadecimal characters"},
+
+      // --- Two populated valid fields that disagree. ---
+      {"DisagreementFails", json(kActualSha1Token), json(kOtherSha1),
+       HashOutcome::kFail,
+       "manifest.json romChecksum and rom_sha1 fields disagree"},
+      {"DisagreementReversedFails", json(kOtherSha1), json(kActualSha1Token),
+       HashOutcome::kFail,
+       "manifest.json romChecksum and rom_sha1 fields disagree"},
+
+      // --- Empty sibling must not mask a genuine ROM mismatch. ---
+      {"MismatchWithEmptySiblingFails", json(kOtherSha1), json(""),
+       HashOutcome::kFail, "SHA1 mismatch"},
   };
-  for (const auto& [manifest, field] : cases) {
-    SCOPED_TRACE(field);
+
+  for (const auto& test_case : cases) {
+    SCOPED_TRACE(test_case.name);
+    json manifest = json::object();
+    if (test_case.rom_checksum.has_value()) {
+      manifest["romChecksum"] =
+          ResolveFieldValue(*test_case.rom_checksum, actual_sha1);
+    }
+    if (test_case.rom_sha1.has_value()) {
+      manifest["rom_sha1"] =
+          ResolveFieldValue(*test_case.rom_sha1, actual_sha1);
+    }
     {
       std::ofstream mf(bundle / "manifest.json",
                        std::ios::out | std::ios::binary | std::ios::trunc);
@@ -892,18 +1009,32 @@ TEST(ProjectBundleVerifyTest, CheckRomHashRejectsMalformedSchemaFields) {
     const auto status = handler.Run(
         {"--project=" + bundle.string(), "--check-rom-hash", "--format=json"},
         nullptr, &out);
-    EXPECT_FALSE(status.ok());
+    if (test_case.outcome == HashOutcome::kFail) {
+      EXPECT_FALSE(status.ok()) << out;
+    } else {
+      EXPECT_TRUE(status.ok()) << status.message() << "\n" << out;
+    }
 
     const auto doc = json::parse(out, nullptr, false);
     ASSERT_FALSE(doc.is_discarded()) << out;
-    bool found_format_failure = false;
+    const char* expected_status =
+        test_case.outcome == HashOutcome::kPass
+            ? "pass"
+            : (test_case.outcome == HashOutcome::kWarn ? "warn" : "fail");
+    bool found_expected_check = false;
     for (const auto& chk : GetVerify(doc).value("checks", json::array())) {
-      found_format_failure |=
-          chk.value("name", "") == "rom_hash_check" &&
-          chk.value("status", "") == "fail" &&
-          chk.value("detail", "").find(field) != std::string::npos;
+      if (chk.value("name", "") != "rom_hash_check") {
+        continue;
+      }
+      found_expected_check |=
+          chk.value("status", "") == expected_status &&
+          chk.value("detail", "").find(test_case.detail_substring) !=
+              std::string::npos;
     }
-    EXPECT_TRUE(found_format_failure) << out;
+    EXPECT_TRUE(found_expected_check)
+        << "expected rom_hash_check " << expected_status << " containing \""
+        << test_case.detail_substring << "\"\n"
+        << out;
   }
 }
 
