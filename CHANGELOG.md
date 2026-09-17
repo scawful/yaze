@@ -119,6 +119,8 @@ High-level release summary. For detailed notes, see
     toggle and hint (the chord now only closes the session).
   - Added a drawer icon strip below the right sidebar drawer header, and context
     badges in the header.
+  - Showed the hovered overworld map in the status bar and made the Tile16
+    selector report its real preferred width.
 - **Emulator, iOS, and Platform**:
   - Added TCP endpoint support to the Mesen socket client alongside Unix
     sockets.
@@ -128,6 +130,8 @@ High-level release summary. For detailed notes, see
   - Routed the macOS Quit menu item through ordered application shutdown.
   - Read Mesen2-OOS CPU registers from the server's lowercase JSON keys; 0.7.2
     read every register as `0`.
+  - Paused hidden emulator panels unless **Keep Emulator Running in Background**
+    is enabled, and let a saved `Emulator` category be restored at startup.
 - **Release Engineering**:
   - Hardened the shared native test step used by CI and release builds: it
     runs against the configured build type (Release for release builds) and

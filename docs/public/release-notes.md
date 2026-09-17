@@ -72,6 +72,9 @@ and every affected command, is in `docs/public/reference/changelog.md` under
   built-in presets.
 - Linux packages use `/usr/bin` and `/usr/share/yaze`, and Windows and Debian
   download names changed.
+- The emulator pauses while its panels are hidden; turn on **Keep Emulator
+  Running in Background** for the old behaviour. A saved `Emulator` category is
+  now restored at startup, which 0.7.2 ignored.
 
 ### 🏰 Dungeon Rendering
 - Corrected ROM-driven placement and layer behavior for doors, thin floor and
@@ -212,6 +215,10 @@ and every affected command, is in `docs/public/reference/changelog.md` under
   per switchable drawer. The header can also show a context badge: agent status
   for AI Agent, an unread count for Notifications, a lock icon for locked
   Properties, and the active editor's name for Help.
+- The overworld status bar shows the map the cursor was last over, with the
+  selected map alongside it when they differ, and the Tile16 selector's scroll
+  region reports the grid width plus 18px of chrome instead of a 332px floor, so
+  it no longer forces horizontal scroll in a narrow dock.
 
 ### 🖥️ Emulator, iOS & Platform
 - Added TCP endpoint support to the Mesen socket client alongside Unix domain
@@ -222,6 +229,9 @@ and every affected command, is in `docs/public/reference/changelog.md` under
 - Routed the normal macOS Quit menu item through ordered application shutdown.
 - Mesen2-OOS CPU registers now show real values; 0.7.2 looked for uppercase
   JSON keys the server does not send, so every register read as `0`.
+- Hidden emulator panels no longer keep the game running: frames and audio stop
+  until the panel is visible again, unless **Keep Emulator Running in
+  Background** is enabled.
 
 ### 🧱 Release Validation
 - Added a dedicated Release-config native test build for Linux, macOS, and
