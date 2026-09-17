@@ -89,6 +89,12 @@ multi-iPad deployment.
 | `pre-push-test.sh` / `.ps1` | compatibility | Broader pre-push sweep including symbol checks; see [pre-push-checklist.md](../docs/internal/testing/pre-push-checklist.md) |
 | `find-unsafe-array-access.sh` | deprecated | One-off static scan from the 2025 WASM bounds-checking audit, which is closed |
 
+Formatting entry points share `.clang-format-version`, discover tools through
+`scripts/lib/clang_tools.sh`, and pass `--style=file`. Use
+`scripts/quality_check.sh` for advisory whole-tree reporting or
+`scripts/quality_check.sh --gate` for a failing quality gate. Refresh the
+compile database with `scripts/dev/update_compile_commands.sh <preset>`.
+
 ## Symbol conflict detection
 
 Full documentation: [symbol-conflict-detection.md](../docs/internal/testing/symbol-conflict-detection.md).
