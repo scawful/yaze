@@ -2,9 +2,645 @@
 
 ## 0.8.0 (in development)
 
-### Dungeon Editor completion
-- Opened the post-v0.7.2 development line for dungeon correctness, object
-  parity, persistence stability, and Oracle daily-driver readiness.
+Release date, final merge SHA, and packaged-candidate evidence are pending.
+
+### Upgrading from 0.7.2
+Every item below was checked against the `v0.7.2` tag and current `master`: the
+behaviour is on master, was absent or different in 0.7.2, and a user, script,
+or project will notice it.
+
+#### Saves that used to succeed now stop with an error
+- **Pending editor changes block saves.** A ROM save stops while Graphics Editor
+  sheet edits or Screen Editor edits (dungeon maps, dungeon-map Tile16, title
+  screen, and the **Overworld Map** pause-menu world map) are pending, even when
+  the Save Graphics Sheets or Save Dungeon Maps flag is on. 0.7.2 reported
+  success without those edits: its Save Graphics Sheets path was a stub that
+  wrote nothing even with the flag on, it wrote dungeon maps only when Save
+  Dungeon Maps was on, and it never included Tile16, title-screen, or pause-map
+  edits in a ROM save. Dungeon **Save** and **Apply Room** also stop while the
+  Object Tile Editor has unapplied edits ("Apply or explicitly discard Object
+  Tile Editor changes before using Save or Apply Room") or the Minecart Track
+  Editor has unpublished drafts. That editor's **Save Tracks** button is now
+  **Publish Tracks**.
+- **Dungeon object saves reject encodings that would corrupt on write.** In the
+  GUI and `z3ed dungeon-place-object`, a save fails when an object ID or
+  position would become a different object on write (IDs outside `0x000-0x0F7`,
+  `0x100-0x13F` and `0xF80-0xFFF`, `x=63` for Type 1/3 objects, or a reserved
+  stream prefix), or when an object has a noncanonical size. The 0.7.2 encoder
+  silently capped Type 1 sizes above 15 at 15. `z3ed dungeon-place-object` now
+  rejects a noncanonical `--size` even without `--write` (for example, a nonzero
+  `--size` on a Type 2 object, which 0.7.2 accepted and ignored); omitting
+  `--size` still works.
+- **Special-table objects are validated before writing.** Torch saves fail when
+  a torch has `x` or `y` of `63`. Torches and pushable blocks accept only draw
+  layer selector `0` (upper/BG1) or `1` (lower/BG2); 0.7.2 let you pick a third
+  layer and silently saved it as `0`. Pushable-block saves fail when the
+  ROM-wide block table would be empty, when a room has unsaved block edits but
+  its block table is not loaded (0.7.2 skipped that room and cleared its dirty
+  flag), or when two blocks claim the same table slot.
+- **Regular entrances outside the room range are rejected.** An edited regular
+  entrance whose room ID is outside `0x000`-`0x127` fails with "Regular dungeon
+  entrance 0x.. room ID .. is outside [0, 296)".
+- **WaterFill zones reject room IDs `0x100`-`0x127`.** 0.7.2 accepted them and
+  kept only the low byte.
+- **More dungeon and palette writes are checked against a loaded Hack
+  Manifest.** Dungeon Save and Apply Room now check pot-item and sprite streams,
+  the door-pointer slot, changed chest-table bytes, entrance and spawn-point
+  tables, the room's message-ID slot on header saves, WaterFill and custom
+  collision data, and dungeon palette colors. Palette Editor saves are checked
+  too, and refuse to save from an inactive ROM session. Under `write_policy`
+  `block` a save that 0.7.2 allowed can stop with `Write conflict with Hack
+  Manifest`; under the default `warn` these editor checks show a warning toast
+  and continue (File > Save ROM still pauses at its on-disk write-conflict
+  prompt). 0.7.2 caught most of these bytes only when File > Save ROM compared
+  the file on disk.
+- **Project saves refuse a lone carriage return.** Saving a project whose
+  values contain a CR not followed by LF fails with "Project contains a lone
+  carriage return in a value; refusing to write a descriptor that could not be
+  read back", and the existing file is kept.
+- **Invalid minecart overlay drafts block project saves.** Minecart Tracks >
+  Advanced overlay lists reject empty entries, values above `0xFFFF`, and junk
+  instead of dropping them, and an uncommitted invalid draft makes File > Save
+  Project and Save Project As fail until it is fixed.
+
+#### z3ed commands and scripts
+- **`message-write` and `message-import-bundle --apply` require `--project`.**
+  The project's ROM must be the active, headerless ROM, and its Hack Manifest
+  must load. `message-write` and expanded bundle entries write to the manifest's
+  expanded message region. `--apply` also needs a clean in-memory ROM that
+  matches the file on disk, and WebAssembly builds reject it. `--apply` now
+  exits non-zero when a clean-ROM, project, manifest, write-policy, write, save,
+  or readback check fails; 0.7.2 printed `"status": "error"` and exited `0`. A
+  missing ROM, parse errors without `--strict`, and invalid message IDs still
+  print `"status": "error"` and exit `0`.
+- **Vanilla message imports are checked against the manifest.** The vanilla
+  message count parsed from the ROM must equal the manifest's positive
+  `messages.vanilla_count` (default `397`, unchanged from 0.7.2), or apply fails
+  with `Vanilla message count mismatch: expected N, got M`. The text must contain
+  exactly one standalone `[BANK]`, and the ranges written must pass the project
+  write policy. The Message editor runs the same count check on save when a
+  manifest is loaded. `readback_verified=true` is reported only after the saved
+  ROM is reopened independently and byte-compared.
+- **Message text encodes differently.** Exported raw message strings write
+  dictionary references as `[D:2C]` instead of `[D:$2C]`; import accepts both.
+  `[BANK]` now encodes to byte `0x80` (0.7.2 wrote `0x00`), and vanilla saves no
+  longer treat a command argument byte of `0x80` (for example `[W:80]`) as a bank
+  switch, so written bytes can differ from 0.7.2.
+- **The collision and WaterFill JSON importers now write the ROM file.**
+  `dungeon-import-custom-collision-json` and `dungeon-import-water-fill-json`
+  save to disk when run without `--dry-run` or `--mock-rom`; 0.7.2 changed only
+  the in-memory ROM unless `--sandbox` was used. The save needs a completed
+  backup, and a failed write, backup, or save rolls back and exits with an
+  error. They now reject `--report` without `--dry-run`, `--report` with
+  `--sandbox`, `--mock-rom` with `--sandbox`, an empty `--report`, and a
+  `--report` path that resolves to the ROM. The custom collision importer writes
+  only rooms that change; with `--replace-all`, it now adds to `cleared_rooms`
+  and `replace_all_clears` only for unlisted rooms that had custom collision
+  data (0.7.2 counted every unlisted room).
+- **The collision and WaterFill JSON exporters refuse dangerous paths.**
+  `dungeon-export-custom-collision-json` and `dungeon-export-water-fill-json`
+  refuse an empty `--out` or `--report`, a path that resolves to the active or
+  sandbox source ROM, and `--out` and `--report` pointing at the same file.
+  0.7.2 truncated whatever path it was given, including the loaded ROM.
+- **Dungeon write commands require a backup.** `dungeon-place-sprite`,
+  `dungeon-remove-sprite`, `dungeon-place-object`, `dungeon-set-collision-tile`,
+  and `dungeon-generate-track-collision` with `--write`, and
+  `dungeon-set-room-property`, abort without saving when the backup of the
+  existing file cannot be made. 0.7.2 logged a warning and saved anyway.
+  `dungeon-generate-track-collision --write` now exits with an error when a
+  write or save fails; 0.7.2 printed `save_error` (and, for a single room,
+  `write_error`) and exited `0`.
+- **`dungeon-place-object` preflights every run.** A dry run exits non-zero when
+  the save would fail, for example when the stream outgrows its space and no
+  `--manifest` copy-on-write layout is given. Output adds
+  `allocator_capability`, `preflight_status`, and `preflight_error`. Without
+  `--size`, Type 3 objects get their ID-encoded size instead of `0`.
+- **`dungeon-set-room-property` edits only the requested property.** 0.7.2
+  started from an empty room, so every run also reset the room's other header
+  bytes and its dungeon message ID to `0`. `layout`/`layout_id` (`0`-`7`) and
+  `floor1`/`floor2` (`0`-`15`) are range-checked and now actually written;
+  0.7.2 reported success without writing them. `--manifest` is now honoured.
+- **`--spawn` output uses the spawn-point record.** `dungeon-get-entrance
+  --spawn` and `entrance-info --spawn` accept only IDs `0x00`-`0x06`. Their JSON
+  adds `spawn_id`, makes `entrance_id` the linked entrance, and replaces
+  `exit_id`, `blockset`, `door`, `ladder_bg`, `scrolling`, `scroll_quadrant`,
+  `music`, and `camera.x`/`camera.y` with the spawn-point fields.
+  `dungeon-get-entrance --spawn` also moves `dungeon_id` from `properties` to
+  the top level, and `entrance-info --spawn` drops `room_id_full`.
+  `dungeon-group` now scans only those 7 spawn-point records (0.7.2 scanned
+  `0x14` entrance records as spawns), so its room-to-dungeon mapping can differ.
+- **`palette-set-color --write` is disabled.** With `--write` it fails argument
+  validation; without it the command only previews and reports `status:
+  dry_run`. Use `dungeon-set-palette-color` for dungeon palettes. Other palette
+  groups have no CLI write replacement. `dungeon-room-header` reports
+  `decoded.palette` as the full 8-bit value.
+- **`dungeon-object-validate` output changed.** Invalid argument combinations
+  are rejected, Type 2 and Type 3 objects are tested only at their encoded
+  size, the `--report` CSV gains `state_profile` and `expected_has_tiles`
+  columns, and JSON mismatches gain the same fields. It no longer writes
+  `dungeon_object_validation_report.json` and `.csv` to the working directory
+  unless `--report <path>` is given.
+- **Other z3ed output changes.** `dungeon-doctor` `chest_count` now counts real
+  stateful chests (0.7.2 always reported `0`) and no longer reports "Too many
+  BG3 objects". `dungeon-render --scale` fails outside `0.25`-`8.0` instead of
+  clamping, and `--output` refuses a path that resolves to the ROM.
+  `dungeon-room-graph` no longer emits edges for layer-swap or dungeon-swap
+  marker doors. When custom objects are disabled,
+  `dungeon-generate-track-collision` stamps every `0x31` as 2x2 (with custom
+  objects enabled, it falls back to 2x2 only for pieces that measure 1x1). It
+  ignores subtypes 13 and 15, which `dungeon-minecart-audit` also no longer
+  counts. `mesen-*` commands return the real connect status code instead of
+  always `UNAVAILABLE`.
+- **Oracle checks.** `oracle-smoke-check` fails D4 when rooms `0x25` or `0x27`
+  are missing from the WaterFill table. `dungeon-oracle-preflight` failures now
+  carry the first issue's status and message. `scripts/oracle_smoke.sh` needs
+  `python3` and passes `--skip-collision-maps` to every preflight.
+- **`project-bundle-verify --check-rom-hash` reads `romChecksum`.** A bundle
+  whose manifest has only the iOS `romChecksum` field is now hash-checked and
+  can fail. Disagreeing `romChecksum` and `rom_sha1`, or a non-string field,
+  fail. Empty fields count as absent, digests are only trimmed and lowercased
+  (a hash with internal whitespace now fails), and the warning and pass detail
+  strings changed.
+- **Vanilla message saves reject malformed streams.** The Message editor and CLI
+  now refuse a vanilla message containing a raw `0x7F` or `0xFF` byte outside a
+  command argument ("contains reserved stream marker") or ending with a command
+  missing its argument; 0.7.2 wrote them.
+
+#### Hack manifests
+- **`protected_regions` is validated strictly for every manifest version.** It
+  must be an object with a `regions` array whose entries have
+  hexadecimal-string `start` and `end`, with `end > start`. In 0.7.2 a missing
+  endpoint defaulted to `0x000000` and a malformed section was skipped. Now the
+  whole manifest fails to load: yaze logs `Failed to load hack manifest ...` and
+  opens the project without it.
+- **`messages` and `minecart_tracks` are validated.** A manifest fails to load
+  when `messages` counts are negative, fractional, or not numbers, when
+  `expanded_range.count` exceeds `65536`, or when `messages.source` is
+  malformed. A manifest containing `minecart_tracks` fails unless it has exactly
+  a `source` with `format: "yaze-minecart-track-table"`, `version: 1`, and a
+  portable project-relative `path`. 0.7.2 read `messages` without checking these
+  counts and ignored `messages.source` and `minecart_tracks`.
+- **Hook regions now take precedence over bank ownership.** Address
+  classification checks protected (hook) regions, then `editor_managed_regions`,
+  before `owned_banks`. An address inside a hook region is now `hook_patched` in
+  every bank, so writes into hooks in `shared`, `vanilla_safe`, or `ram` banks
+  may now warn or be blocked, depending on `write_policy`.
+- Manifests at `manifest_version` 2 still load. Version 3 is only required to
+  use the new `editor_managed_regions` block, and a v3 manifest must use mapped
+  LoROM addresses for protected endpoints.
+
+#### Projects, sessions, and backups
+- **One ROM file backs only one loaded session, on every open path.** In 0.7.2
+  only the File > Open ROM dialog blocked a duplicate, and only on an exact
+  path-string match. Recent files, drag-and-drop, command-line and startup
+  opens, and project files now fail with `ROM backing file '...' is already open
+  in session N ('...')`. Paths are compared after resolution, and Save As onto a
+  file another session has open is rejected too.
+- **New Project uses the guided dialog and writes its file immediately.** File >
+  New Project and the welcome screen open the ROM-plus-name dialog, and
+  `<name>.yaze` is written next to the source ROM on create. Creation, and the
+  Project File editor's Save As, fail with `Project file already exists:
+  <path>`; File > Save Project As still replaces an existing file, via a
+  temporary file and atomic rename. New Project is refused while any session has
+  unsaved work.
+- **Project File editor and ROM swaps protect unsaved work.** The Project File
+  editor refuses New and Open while its draft is unsaved, and refuses to save
+  over the open project when the draft would change the session's ROM or
+  cannot be parsed. Project Management > Swap ROM now loads the new ROM
+  immediately; Swap ROM and Reload ROM are refused while the session has
+  unsaved ROM, graphics, screen, dungeon, or palette edits.
+- **Restoring a backup stages it.** Tools > ROM Analysis > ROM Backups... >
+  Restore loads the backup as unsaved changes; only Save ROM writes it, and the
+  dialog can discard it. It is refused while edits are pending or for files that
+  are not managed backups of the active ROM. 0.7.2 loaded the backup straight
+  into the open session, replacing any unsaved edits without a check.
+- **Closing the window asks about unsaved work.** The title-bar close and
+  system quit requests go through the same prompt as File > Quit and can be
+  cancelled; 0.7.2 exited immediately.
+- **`project.yaze` line endings.** CRLF files now load their settings; in 0.7.2
+  every setting in a CRLF file, including write-policy flags, was ignored, so a
+  Windows-edited project may now enforce policies it silently skipped. A file
+  with a lone carriage return fails to open with "Project file contains
+  unsupported lone carriage returns".
+- **Custom object paths are confined to the project.** Custom object filenames
+  must be forward-slash relative `.bin` paths inside `custom_objects_folder`.
+  Absolute paths, `..` components, backslash separators, and symlinked targets
+  are rejected on load and on apply. In `[custom_objects]`, an empty entry now
+  keeps its position (`a.bin,,c.bin` maps `c.bin` to subtype 2), and entries
+  past the fixed slot counts for `0x31` (16), `0x32` (3), and `0x54` (2) are
+  ignored.
+- **Wall corners `0x100`-`0x103` always draw as wall corners.** 0.7.2 replaced
+  them with minecart track corner assets when a project mapped `0x31` track
+  corner files (in room renders, only when the room also contained a `0x31`
+  object).
+- **The minecart track editor requires a manifest source.** It no longer reads
+  and writes the fixed `Sprites/Objects/data/minecart_tracks.asm`. It needs a
+  loaded Hack Manifest defining `minecart_tracks.source`, and refuses a source
+  that is a symlink or resolves outside the project root.
+- **Water Fill saving follows the project.** The Workbench Apply Scope **Water
+  Fill** checkbox is read-only and set from the new `.yaze` key
+  `save_dungeon_water_fill_zones` (default `true`). When it is `false`, the
+  Water Fill panel is read-only.
+- **Best-effort ROM backups copy the file being overwritten.** With
+  `Rom::SaveSettings::backup` (used by the `yaze_save_rom()` C API), 0.7.2
+  copied the originally loaded ROM, so saving to a different existing file did
+  not keep that file's previous contents. A destination that does not exist yet
+  gets no backup file. The GUI Save As path already did this in 0.7.2.
+
+#### Dungeon data read or drawn differently
+- **Pushable blocks decode differently.** Word bit 13 is the draw layer and bit
+  14 a separate behaviour bit preserved on save; 0.7.2 read bit 13 as part of
+  the Y coordinate. The lower-layer blocks in vanilla rooms `0xA8`, `0x66`, and
+  `0x2C` now load 64 tiles higher and render on BG2.
+- **Several objects draw and select with their USDASM footprint**, so their
+  renders, selection boxes, and dimensions differ from 0.7.2: Somaria paths
+  (`0xF83`-`0xF8C`, `0xF8E`, `0xF8F`), moving walls `0xCD`/`0xCE`, hammer peg
+  `0xF96`, jump ledges `0x8B`/`0x8C`, floor light `0xFF4`, Weird 2x4 `0xB5`, and
+  rupee floor `0xF92`. Light beam `0xFF0` keeps its footprint but now draws its
+  bottom block with its own USDASM tiles; 0.7.2 repeated the top block's tiles
+  there. Full room renders no longer draw the big light beam `0xFF1` unless the
+  room `0x065` bombed-floor state is set.
+- **Custom collision is rewritten in place when it fits.** A room whose new
+  collision encoding fits its existing, unshared span keeps its pointer, so the
+  written ROM bytes differ from 0.7.2, which always appended and repointed.
+- **The object browser offers only encodable IDs.** It no longer lists
+  `0x0F8`-`0x0FF` or `0x140`-`0x141`, new Type 1 placements start at size `2`
+  instead of `0x12`, and the category filters use the shared object category
+  table. The 128-object limit on the third object stream, and its validation
+  error that blocked room saves, are gone.
+
+#### Editor layout, menus, and shortcuts
+- **The first launch after upgrading rearranges the Dungeon editor.** Settings
+  migrations make the Dungeon Workbench visible and close the standalone Room
+  List, Room Matrix, Object Selector, Sprite Editor, Item Editor, Room Graphics,
+  Door Editor, Palette Editor, Entrance List, and Entrance Properties windows,
+  and collapse the activity bar's side panel when Dungeon is the active
+  category. Pinned panels and named layouts are untouched.
+- **Menu items moved.** ROM Information, Create Backup, ROM Backups..., Validate
+  ROM, Export BPS Patch..., and Apply BPS Patch... are no longer in File; they
+  are under Tools > ROM Analysis. View > Layout is gone (use Windows > Layout).
+  Tools > Development > Agent Workspace and Agent Proposals are gone; toggle the
+  AI Agent and Proposals drawers from View > Drawers. Tools > Window Finder is
+  now **Find Window…**. It is still bound to `Ctrl+P`, but it now opens the
+  Command Palette with a `window:` filter instead of a separate finder window.
+- **Shortcuts.** A shortcut bound to a plain key no longer fires while Ctrl,
+  Shift, Alt, or Cmd is held. `Ctrl+Shift+W` is only Close Session and no longer
+  toggles the Workbench.
+- **Dungeon layer controls are renamed.** "Layer 1/2/3" is now **Object
+  Stream: Primary / BG2 Overlay / BG1 Overlay** for room objects and **Upper
+  Layer (BG1)** / **Lower Layer (BG2)** for torches and pushable blocks. Stored
+  value `2`, formerly labelled BG3, is the BG1 overlay stream.
+- **Issue reports are saved only on request.** The dungeon canvas no longer
+  appends issue reports to the local issue log on open, copy, screenshot, or
+  close; only **Save to Issue Log** writes one. The context menu's **Report**
+  is **Capture Issue**, and **Sample Object** is **Use Object as Brush**.
+- **Removed UI.** The welcome screen's Release History panel and its theme
+  switcher (use Settings > Appearance), the Object Selector's **New Custom
+  Object** button, and the Minecart Tracks **Generate** buttons (replaced by
+  **Preview** and **Apply Preview**) are gone. Settings > Project
+  Configuration > Dungeon Overlay is read-only; edit those lists in Minecart Tracks >
+  Advanced, which reads unprefixed values as decimal and does not accept ranges.
+- **Spawn points are edited only in Entrance Properties.** The Entrance List
+  property table is read-only for slots `0x00`-`0x06`.
+- **`--startup_dashboard=hide` also suppresses the editor chooser on some later
+  automatic opens**: after a ROM or project finishes loading through the editor
+  (for example File > Open) or ROM load options are applied. The chooser can
+  still appear when you open a ROM or project from the welcome screen, or close
+  the welcome screen with a ROM loaded. `show` and `auto` are unchanged and
+  `Ctrl+E` still opens the chooser.
+- **The emulator pauses while its panels are hidden.** Switching to another
+  editor now stops SNES frames and audio. 0.7.2 kept advancing them in the
+  background. Turn on Settings > Appearance > Editor Behavior > **Keep Emulator
+  Running in Background** (default off, saved as
+  `emulator.keep_running_in_background` in `settings.json`, or
+  `emulator_keep_running_in_background` in the legacy `yaze_settings.ini`) to
+  get the old behaviour.
+- **A saved `Emulator` category is restored at startup.** 0.7.2 ignored a saved
+  `Emulator` category and opened the first non-Emulator category instead. With
+  no saved category, Emulator is still never chosen, and the emulator does not
+  run until its panel is visible.
+
+#### Themes
+- **Hand-written `.theme` files are filled in and preserved differently.** Keys
+  a file declares are no longer overwritten by smart defaults: in 0.7.2 a
+  declared opaque black was replaced for semantic keys such as `text_highlight`,
+  `active_selection`, `focus_border` and the `editor_*` colours, and a declared
+  transparent black for keys such as `border`, `separator` and `text_link`.
+  Omitted `error`, `warning`, `success` and `info` are now seeded with fixed
+  colours, and an omitted `accent` falls back to `primary` (or a fixed blue when
+  `primary` is also unset). Omitted keys such as `border`, `separator`, the
+  scrollbar colours and `text_link` are now derived from the theme's other
+  colours when omitted instead of staying opaque black. Omitted `plot_lines` and
+  `plot_histogram` now come from `accent` and `info`. No shipped theme declares
+  them, so plot colours change in the built-in presets too. An omitted agent
+  `panel_border` is derived from `border` with alpha capped at `0.45`.
+- **Theme discovery paths.** yaze no longer searches
+  `/usr/local/share/yaze/themes/`, `/usr/share/yaze/themes/`, or
+  `<app bundle>/Contents/Resources/themes/`; move themes kept only there to the
+  user themes folder. The macOS app bundle ships only themes listed in
+  `assets/themes/distributable-themes.txt`.
+- **The Settings > Appearance theme picker no longer previews on hover.** It is
+  a dropdown that applies a theme only when you pick it, and Display Density is
+  a dropdown too. The separate Theme Selector window opened from Display
+  Settings still previews on hover.
+
+#### Packages and source builds
+- **Linux packages use a standard filesystem layout.** The `.deb` installs
+  `/usr/bin/yaze`, `/usr/bin/z3ed`, and `/usr/share/yaze/assets/`; 0.7.2 put
+  them directly in `/usr`. The `.tar.gz` has the same `usr/` tree, so scripts
+  that ran `./yaze` from the extracted folder must use `usr/bin/yaze`.
+- **Release asset names changed.** Windows downloads are
+  `yaze-<version>-windows-x64.exe` and `.zip` instead of
+  `yaze-<version>-win64.*`, and the `.deb` is `yaze_<version>_<arch>.deb`
+  instead of `yaze-<version>-Linux.deb`. The Linux `.tar.gz` name is unchanged.
+- **Source builds.** CMake build presets that used 8 jobs now use 4. The iOS
+  XcodeGen project reads the preset build directories
+  (`build/presets/ios-debug`, `ios-release`, `ios-sim-debug`) instead of
+  `build-ios/` and `build-ios-sim/`.
+
+### Dungeon object rendering
+- Fixed thin strip routines whose name suffix is a minimum length, not a
+  position offset: `_plus3` solid strips (carpet trim `0x34`/`0x71`) and the
+  `_plus13`/`_plus12` rail-wall routines (`0x2F`/`0x30`, `0x6C`/`0x6D`) now draw
+  from the object's own origin instead of 3, 13, or 12 tiles away, with the
+  USDASM opening and closing caps.
+- Matched USDASM geometry for wall corners, diagonal walls, and all four
+  diagonal-ceiling orientations.
+- Used Room Header `Floor1`/`Floor2` patterns for the `0xC4`/`0xDB` floor-copy
+  objects instead of the subtype payload.
+- Lower straight inter-room stairs (`0xFA6`-`0xFA9`) now promote the adjacent
+  BG1 column to high priority, and spiral stairs promote their left and right
+  flank tiles, matching USDASM. Both change priority only, without painting
+  over tiles already in the layout or object buffers.
+- Conditional edge and cap routines (rails, rail-wall corners) now check the
+  tile that actually owns each position, layout or object, before skipping a
+  corner. Layout objects now record their own BG2 reveal requests, separate
+  from room objects.
+- Kept explicit door bodies above room wall-guidance objects while preserving
+  ROM object-stream order, layout ownership, reveal masks, and SNES priority
+  bits.
+- Deferred BG2 reveal masks to compositing instead of punching transparent
+  pixels into raw BG1, and copied object-layer bitmaps to their SDL surfaces
+  row by row using the surface pitch instead of one flat copy that could
+  shear rows when pitch exceeded width.
+- Matched individual object families against the disassembly: Somaria paths,
+  pushable blocks, torch codecs, hammer pegs, vertical jump ledges, light beams
+  (including attic-state gating for the big beam), unconditional floor lights,
+  archery curtains, rupee and bombable floors, big key locks, prison cells,
+  moving walls, the enabled star tile and lit torch drawn as 2x2, the Mario
+  portrait drawn as 4x2, BothBG wall size semantics, Big Wall Decor,
+  TableBowl, BigGrayRock, Smithy Furnace, Agahnim's altar, the Fortune Teller
+  room, the full 24-tile payload for Turtle Rock pipe `0xFDC`, and exact
+  4-word bar-corner payloads (`0xFD6`-`0xFD9`).
+- Corrected canonical object payload counts and canonicalized room object
+  sizes, disabling resize controls for fixed-size objects.
+- Removed the hard-coded `IsAllBgsObjectId` list that set `all_bgs_` from the
+  object ID. BothBG routing now comes from draw-routine registry metadata plus
+  explicit object-specific routing for stairs and fixed facades. ObjectDrawer's
+  duplicate dimension switch was replaced by `DimensionService`.
+- The dungeon object selector now shows a draw-routine badge on visible object
+  cards: a direction or category glyph (`>`, `v`, `/`, `L`, `S`), or
+  `C`/`K`/`B`/`P` for chests, big key locks, bombable floors, and prison cells.
+  Objects with no mapped routine get no badge. BothBG routines get a `2` suffix
+  and the wall accent color. The tooltip names the routine family, adds the base
+  pattern size when the routine has a fixed one (for example `Corner 4x4`), and
+  notes when a routine writes to both BG1 and BG2.
+- Dungeon sprite previews no longer clip large multi-part sprites (`0x7E`,
+  `0x7F`, `0x80`, `0xC7`, `0x92`). The preview buffer is sized by measuring
+  the sprite's own tile stream, and the canvas places it using those bounds.
+- The Magic Bat altar `0x13F` draws as a fixed 8x7 block and the Vitreous goo
+  damage object `0xFFB` as a 5x2 grid of 4x4 stamps, with matching selection
+  bounds.
+- Horizontal bars repeat their middle columns, subtype-2 corner aliases use the
+  fixed 4x4 routine, the Sanctuary wall facade renders its mixed-layer center,
+  animated tile frames load through the ROM table pointer, and layer mode 7 uses
+  full color addition. Object `0x03C` reads 8 tile words, and BothBG walls
+  `0x63`-`0x64` draw size+1 blocks.
+
+### Dungeon palettes and previews
+- Fixed dungeon graphics palette slot mapping and refreshed cached rooms after
+  palette edits, on global palette apply, and for the active placement ghost.
+- Dungeon sprite previews now take their palettes from the room's palette-set
+  selectors (row 8 left and rows 13/14 left) instead of a fixed sprite palette
+  table, with a fixed Light World environment half-palette in row 8 right and
+  the underworld environment palette in row 14 right. Preview pixels using
+  color index 0xFF are no longer treated as transparent.
+- Fixed the sprite preview dispatch chain so the generic fallback no longer
+  overdraws sprite-specific previews, and normalized palette widget color
+  values.
+- Dungeon room sprite previews are now cached (up to 128 decoded previews, keyed
+  by room graphics revision, sprite ID, subtype and overlord flag), so they are
+  no longer decoded on every frame once the room's graphics are built. Palette,
+  position and zoom still apply live. The cache clears on Reload Assets,
+  ROM-backed state refresh, and project, asset-path, or hack change.
+- Color edits in the dungeon editor's render palette panel (color picker,
+  drag-and-drop, and **Reset to Original**) now go through the palette manager,
+  so File > Save ROM writes them. In 0.7.2 they were silently skipped, and
+  lazily opening another editor could clear pending palette edits.
+
+### Dungeon editor workflow
+- Kept the room canvas vertically stable by removing the selection action
+  shelf and the recent-room tab strip from above it; recent rooms moved to a
+  toolbar popup and the status-bar selection entry opens the Selection
+  inspector.
+- Replaced the Tools inspector's two-row icon strip with a single tool chooser.
+  The chooser is grouped into Edit (Object Selector, Door Tools, Sprite Tools,
+  Item Tools), Room (Room Graphics, Palette), and Review (Room Tags, Custom
+  Collision, Water Fill, Minecart Tracks), and it has a **Pop out** button next
+  to it.
+- Added **Pop out** (or **Show window** when the tool's window is already open)
+  to Workbench tools, and a tool is now drawn in one place at a time: while its
+  standalone window is open, the inspector points to that window instead of
+  drawing the tool a second time. Leaving the Workbench still opens Room List,
+  Room Matrix, and the current room, and now also reopens the other unpinned
+  navigation windows it closed on entry.
+- Workbench toolbar actions that do not fit at narrow widths now move into an
+  overflow menu (tooltip "More dungeon actions") instead of disappearing.
+  NESW room navigation stays inline.
+- When the toolbar is too narrow for the Compare button, Compare is still
+  reachable from the overflow menu: **Start Compare**, or during an active
+  compare the searchable room picker, direct room ID entry, **Swap Rooms**,
+  **Sync View**, and **End Compare**.
+- Streamlined Object Selector controls into search, category, a new object
+  stream filter, and a **More** menu (Clear filters, Show thumbnails, Card
+  size Compact/Medium/Large). Previews now keep their aspect ratio above a
+  reserved hex ID footer, and the dungeon palette grid adapts to 16/8/4/2/1
+  columns.
+- Stabilized the canvas right-click menu: selection actions moved into a
+  **Selection** submenu that always starts with **Use Object as Brush**
+  (disabled when no object is under the cursor; replaces the conditional
+  Sample Object row), layer actions use stream-aware labels, and **Report**
+  was renamed **Capture Issue**.
+- Made issue capture local and opt-in: reports are no longer auto-saved on
+  open, copy, screenshot, or close. Only **Save to Issue Log** writes the
+  report. The object drawer trace now replays the room-stream objects before
+  the selected one, with layout tilewords, layer, and floor graphics context.
+- Kept the report body independently scrollable with stable footer actions,
+  reserved capture button width, ellipsized long status with a full tooltip,
+  and sized the report within the usable viewport including menu-bar insets.
+- Split room composite ownership by presentation so the canvas, room selector,
+  room matrix, and Dungeon Map preview cannot overwrite one another's texture
+  identity (the issue report rebinds the canvas composite before sampling its
+  palette), and retired composite textures through the graphics arena and
+  texture queue.
+- Selecting a vanilla dungeon preset in Dungeon Map now clears the room type
+  badges and stair and holewarp connections left over from a previously loaded
+  project-registry dungeon.
+- Added editable dedicated spawn points in the UI and safe spawn-point
+  persistence.
+- Warned on room event slot conflicts, simulated chest and lock room-event
+  slots, and classified stateful chest usage.
+- Pressing Delete, or object shortcuts such as Ctrl+A, while typing in a text
+  field no longer deletes or selects dungeon objects.
+- Fixed dungeon canvas interaction when zoomed or panned: placement, hit
+  testing, selection, marquee, guides, overlays, drops, paste, and ghost
+  previews share one screen-to-room transform, so clicks land where the room is
+  drawn. Pot-item placement clicks outside the room are ignored and pot-item
+  drags clamp to valid room coordinates.
+- Object Tile Editor ROM writes are limited to the audited standard objects
+  `0x11F` and `0x120`; the editor refuses to open any other standard object.
+  Each cell is tied to its exact ROM source word, and the write is refused if
+  those bytes changed since capture. Custom objects are still edited through
+  their asset files.
+- Added **Edit Object Tiles...** to the dungeon canvas right-click menu for a
+  single selected `0x11F` or `0x120` object. It opens the Object Tile Editor
+  with the room's palette; edits are global ROM tile edits not covered by
+  Ctrl+Z, and unapplied edits are kept when the window closes.
+- Objects that draw to both BG1 and BG2 can now be moved to any of the three
+  object streams (keys 1/2/3, the context menu, or the inspector). 0.7.2 allowed
+  only stream 0 for them. Room-stream objects still go to the end of the target
+  stream and the selection follows them. Torches and pushable blocks keep their
+  position and accept only placement 0 or 1; a selection that includes one
+  cannot be sent to placement 2.
+- The door placement picker and Selected Door type list offer 32 door types
+  (0.7.2: 20), including lower-layer exits and shutters, lower small-key stairs,
+  the bombable cave exit, and the unopenable big-key door. South and east door
+  hit boxes now match the visible art.
+- Click and marquee selection on the dungeon canvas skip objects on layers that
+  are currently hidden.
+- Fixed the object placement ghost: objects that draw upward or leftward (for
+  example `0x09` and `0xA3`) are no longer clipped, small objects keep their
+  real footprint instead of a 16px minimum, and BG2-stream objects no longer
+  erase themselves in the preview.
+- Dungeon panels gained direct value fields: Door Editor and Item Editor
+  **Selected raw type**, Sprite Editor **Selected position** X/Y (clamped to the
+  sprite grid), dungeon palette **Palette ID** and **Raw BGR555**, and a Room ID
+  jump field in the Workbench inspector header.
+- The Selection inspector shows Width and Height tile dropdowns for packed floor
+  objects and a Variant dropdown for custom objects. The mouse wheel now also
+  resizes the placement ghost, not only selected objects. For packed floor
+  objects, Shift+wheel changes width and the wheel alone changes height.
+- Programmatic scroll-to-tile on the dungeon canvas moves the background,
+  overlays, and input together in the same frame.
+
+### Oracle and custom dungeon assets
+- Replaced the modal Custom Object Workshop with a non-modal **Custom Assets**
+  mode in the object selector covering the 21 fixed Oracle runtime assets: 16
+  slots for object `0x31`, three for `0x32`, and two new sprite-body slots for
+  `0x54`, grouped into Tracks + Props, Ice Props, and Boss Bodies. The browser
+  edits or places existing slots only; new subtypes need an ASM dispatch-table
+  change.
+- Added **Edit Tile Layout** and **Place in Room** actions to Custom Assets,
+  plus a **Minecart Routes & Collision** shortcut on track slots, replacing the
+  blocking workshop popup. Edit Tile Layout is desktop-only.
+- Modeled mapping provenance explicitly so default filenames, configured
+  filenames, and configured-but-unmapped slots are distinguishable, and
+  preserved sparse positional subtype mappings through project save/load.
+- Removed the track-corner alias that routed wall-corner objects `0x100`-`0x103`
+  to object `0x31` corner assets when a project's `0x31` map pointed at existing
+  corner files. Rendering, geometry, previews, diagnostics, and tile editing now
+  keep those IDs as wall corners unless the project maps the same ID directly.
+- Kept `0x54` sprite-body `.bin` files in their raw source form, applying the
+  Oracle page-`0x300` tile transform to nonzero words only when rendering rooms
+  and previews.
+- Published desktop asset edits with path confinement, exact-source comparison,
+  atomic replacement, rollback, and decoded readback, failing closed on WASM,
+  and validated portable forward-slash asset filenames before host path
+  parsing.
+- **Custom Assets > Reload Assets** (formerly Reload Workshop) now also
+  refreshes external Oracle sprite preview art in every open room window
+  (including hidden ones), the Workbench, and the comparison viewer, stays
+  available when Custom Objects is disabled, and keeps unsaved room edits, tile
+  drafts, and selections.
+- Made **Minecart Tracks > Advanced** the only editor for minecart overlay
+  IDs. The project settings **Dungeon Overlay** section is now a read-only
+  summary with an **Open Minecart Tracks** button, which registers the panel on
+  demand when Custom Dungeon Objects was enabled after the dungeon editor
+  loaded.
+- `z3ed oracle-smoke-check` now fails D4 when room `0x25` or `0x27` is missing
+  from the runtime WaterFill table, and `dungeon-oracle-preflight` accepts
+  `--required-water-fill-rooms`.
+- Saving chests keeps the ROM chest table's physical record order instead of
+  regrouping all records by room ID; untouched records keep their exact bytes.
+
+### Save safety and persistence
+- Checked dungeon palette saves (Save and Apply Room), Palette Editor saves, and
+  Object Tile Editor ROM writes against the Hack Manifest when a project
+  manifest is loaded. The new z3ed `dungeon-set-room-property --manifest` check
+  covers layout/floor object-stream headers, room-header properties, and the
+  room's message-ID bytes. Object Tile Editor writes also gained explicit source
+  provenance, cache invalidation after writes, and detection of tile sources
+  shared by several objects.
+- Added an `editor_managed_regions` Hack Manifest section (requires
+  `manifest_version` 3 or newer). It marks exact address ranges inside ASM-owned
+  banks as safe for editor writes. Hook-protected addresses still block writes.
+- Made z3ed `dungeon-set-room-property`, `dungeon-generate-track-collision`,
+  `dungeon-import-custom-collision-json`, and `dungeon-import-water-fill-json`
+  all-or-nothing: a failed write or save rolls back the in-memory ROM changes
+  (ScopedRomTransaction) and returns an error. Also made minecart collision
+  generation in the Minecart Track Editor transactional and undoable.
+- Included unapplied Object Tile Editor layouts in dungeon/session dirty
+  detection and blocked Save or Apply Room until those edits are applied or
+  discarded.
+- Blocked ROM saves while Screen Editor edits (dungeon maps, dungeon-map Tile16,
+  title screen, and the **Overworld Map** pause-menu world map) or Graphics
+  Editor sheet edits are pending, instead of reporting a partial save as
+  successful. Dungeon Save and Apply Room now refuse while Minecart Track Editor
+  drafts are unpublished (use Publish Tracks or discard them). Minecart overlay
+  settings edits now mark the project dirty and are written by project save.
+- Rejected unsafe room object encodings and guarded canonical room-object sizes
+  on save.
+- Saved room layout ID and floor 1/floor 2 changes to the object-stream header
+  from the dungeon editor and from z3ed `dungeon-set-room-property`; 0.7.2
+  silently dropped them. Door moves, nudges, and type changes now mark the room
+  for saving. Room header saves keep the pit target layer bits. Room message-ID
+  bytes are now included in manifest conflict checks. Regular dungeon entrance
+  saves are validated and checked against the Hack Manifest before writing.
+- Counted dungeon entrance, spawn-point, and pit-damage edits as unsaved dungeon
+  work (0.7.2 counted only pending rooms), so unsaved-work checks and
+  restore/discard guards see them. Session tabs and the session manager now mark
+  a session Modified when only project settings or project editor drafts are
+  unsaved.
+- Made ROM backup restore safer: it refuses while ROM edits are pending, accepts
+  only managed backups of the active ROM, and stages the restored ROM as unsaved
+  until Save ROM. A new Discard Restored Backup button abandons a staged restore.
+  `Rom::SaveSettings::backup` (used by the `yaze_save_rom()` C API) now copies
+  the existing destination file instead of the originally loaded ROM.
+- Kept project settings, project-file drafts, and palette edits and undo history
+  per ROM session, so switching between open ROMs no longer loses or mixes
+  unsaved project and palette work. Palette saves reject writes from a different
+  session. Every open path, not only File > Open ROM, now refuses a ROM file
+  already open in another session, and Save As onto such a file is rejected.
+- `project.yaze` files with CRLF line endings now load their settings, and a
+  file or saved value containing a lone carriage return is refused instead of
+  silently falling back to defaults.
+- Duplicating, pasting, or placing a copy of a pushable block loaded from the
+  ROM now saves the copy as a new block table entry. In 0.7.2 the copy claimed
+  the source block's table slot and was silently dropped on save.
+- Dungeon sprite saves now write the hidden key-drop marker records (`FE 00 E4`
+  / `FD 00 E4`) after a sprite that drops a small or big key. 0.7.2 wrote only
+  the sprite records, so key drops were lost when a room's sprites were saved.
+- Room header saves, from the GUI and `z3ed dungeon-set-room-property`, now keep
+  header byte 0 bit 1 and the upper six bits of header byte 8 instead of
+  clearing them.
+- On Windows, ROM saves replace the destination with
+  `MoveFileExW(MOVEFILE_REPLACE_EXISTING)` instead of deleting the existing ROM
+  before renaming the temporary file, so a failed rename no longer leaves no ROM
+  on disk.
+- File > Save ROM no longer runs the Dungeon or Overworld save paths when those
+  editors were never opened in the session, and room object saves keep the
+  existing door pointer's SlowROM/FastROM bank mirror, so unchanged pointers no
+  longer produce ROM diffs.
 
 ### CLI and ROM safety
 - Added `dungeon-get-palette` to resolve the full room palette-set mapping,
@@ -14,12 +650,259 @@
   required backup, atomic save, whole-ROM diff, and external reopen/readback.
 - Disabled legacy `palette-set-color --write` because it could report an
   in-memory mutation as persisted; its read-only preview remains available.
+- Added `dungeon-set-door-type` and `dungeon-set-pot-item` for guarded edits to
+  existing doors and pot items (dry-run by default, expected-value checks,
+  required `--manifest`), plus `dungeon-list-pot-items` to list pot entries.
+- Added `--include-objects` to `dungeon-describe-room` to list encoded room
+  objects (ID, subtype, position, size, stream index), and made `--spawn` on
+  `dungeon-get-entrance` and `entrance-info` report the dedicated spawn-point
+  schema (IDs 0x00-0x06).
+- Added `dungeon-remove-object`, which removes one ordinary room object by
+  stream index only when `--expect-id`, `--expect-x`, `--expect-y`,
+  `--expect-size`, and `--expect-layer` all match. It is a dry run unless
+  `--write` is given, accepts `--manifest`, and refuses table-backed and chest
+  objects.
+- `project-bundle-verify --check-rom-hash` accepts the iOS `romChecksum`
+  manifest field alongside `rom_sha1`, treats empty fields as absent, and fails
+  when the two fields disagree. iOS project manifests now record the ROM
+  checksum.
+- Added `--manifest` to `dungeon-place-object`; shared or growing object
+  streams fail closed unless the manifest allows copy-on-write, and dry-run and
+  write run the same capacity preflight.
 - Reused uniquely owned custom-collision blobs for same-size or smaller
   rewrites, while keeping aliased, overlapping, and growing streams on the
   copy-on-write append path.
-- Included unapplied Object Tile Editor layouts in dungeon/session dirty
-  detection and blocked Save or Apply Room until those edits are applied or
-  discarded.
+- Made custom collision imports idempotent, collision JSON imports
+  transactional, and collision exports ROM-alias-safe.
+- Added Hack Manifest `dungeon_stream_regions` so shared or growing dungeon
+  object and sprite streams can be saved copy-on-write into manifest-owned
+  space, and pot-item streams can be repacked deterministically
+  (`repack_all`).
+- `z3ed --self-test` now checks that two representative runtime assets
+  (`agent/prompt_catalogue.yaml` and `patches/Overworld/TailMapExpansion.asm`)
+  can be found through the CLI's asset search paths.
+- Added read-only `z3ed dungeon-stream-plan --kind <objects|sprites|pot_items>
+  --manifest <path> [--format json|text]`, which reports stream aliases,
+  overlaps, occupied ranges, and free allocation capacity for a
+  `dungeon_stream_regions` layout. It rejects `--write`.
+- `z3ed dungeon-object-validate` gained `--all-sizes` (sweeps Type 1 sizes 0-15)
+  and `--all-states` (adds an `active` dungeon-state profile), with
+  `state_cases` and `expected_empty_traces` summaries.
+- Fixed z3ed agent tool calls from the Anthropic, OpenAI, and Gemini providers:
+  integer arguments arrive as `7` instead of `7.000000`. Boolean flags are now
+  also passed through on the Gemini and OpenAI native function-call paths, which
+  previously dropped them. Agents gained the `dungeon-get-palette` tool and the
+  mutating `dungeon-set-palette-color` tool.
+
+### Messages
+- Message editor saves now write only the dirty domains (font widths, vanilla
+  messages, expanded messages), build the whole write plan and check it against
+  the project's hack manifest write policy before writing any bytes, and no
+  longer treat a command argument byte as a text bank switch.
+  `message-import-bundle --apply` now reopens the saved ROM and verifies the
+  written bytes and vanilla messages by readback.
+- Message dumps now write dictionary tokens as `[D:XX]` (0.7.2 wrote
+  `[D:$XX]`, which could not be imported back); the importer accepts both
+  forms.
+- Added `z3ed message-source-sync --project <path> --file <bundle.json>`,
+  which merges expanded messages into the project's source files without
+  touching the ROM; it is a dry run unless `--write` is given with
+  `--expected-source-sha256`.
+- `z3ed message-write` and `message-import-bundle --apply` now require
+  `--project`; the write is refused unless the project's ROM is the active
+  ROM, the ROM file is headerless, and the project has a loaded hack manifest,
+  and the project's write policy is applied to the planned message writes.
+
+### Appearance and themes
+- Added five editor themes: Blood Moon, Catppuccin Mocha, Dracula, Rosé Pine,
+  and Temple of Time. The upstream MIT notices for Catppuccin, Dracula, and Rosé
+  Pine are kept in `assets/themes/THIRD_PARTY_NOTICES.md`. A unit test loads and
+  applies each of the five new themes through the theme manager. The app's
+  bundled theme resource list now comes from
+  `assets/themes/distributable-themes.txt`, and CI checks that the tracked
+  `.theme` files match that list.
+- Theme files now get smart defaults for colors they leave out. In 0.7.2
+  the unset check looked for transparent black, so omitted borders,
+  scrollbars, table colors, links, and modal backgrounds stayed opaque black
+  on file-loaded themes. Colors that a `.theme` file declares are never
+  replaced, so a deliberate black border or highlight is kept.
+- Themes that leave out `accent`, `error`, `warning`, `success`, or `info`
+  now get defaults. `accent` falls back to `primary`, and the status colors
+  use fixed values. Colors derived from them, such as link text, histogram
+  plots, text highlight, and secondary selection, are no longer black when a
+  file omits them.
+- Switching from a preset theme back to Classic YAZE no longer leaves the
+  preset's docking preview, text cursor, link, tree-line, tab overline, and
+  rounding values behind. Display Density now also works while Classic YAZE
+  is active. Saving a `.theme` file keeps `grab_rounding`,
+  `window_border_size`, `frame_border_size`, and `animation_speed`, and a
+  malformed `[style]` number no longer aborts startup.
+- Retuned Forest and Forest Light so buttons, headers, tabs, and title bars use
+  neutral surfaces, with green kept for hover, active, and selected states.
+  Nested editor-panel borders are fainter: when a theme does not set the agent
+  panel border, the derived border uses the theme border color with its opacity
+  capped at 0.45.
+- Replaced the fixed-height hover-preview theme list with an explicit
+  full-width picker and the cramped density radio buttons with a responsive
+  picker.
+- Fixed theme filename synthesis to pass an unsigned char to `isalnum`.
+
+### Editor shell and navigation
+- Reworked the welcome screen into a compact start card. The Start and Recent
+  panes no longer scroll: the Recent list is cut to what fits, and optional
+  Start rows are dropped on small windows. The Release History card is replaced
+  by a Release notes link in a one-row footer, and the resume button now names
+  the most recent available ROM or project (`Resume <name>`) instead of `Resume
+  Last (<type>)`.
+- Removed the unused second welcome-screen instance and its duplicate
+  callback wiring from `EditorManager`. Removed the fixed-height quick-actions
+  pane that clipped first-run controls. Recent-file cards can now be opened
+  from the keyboard.
+- `gui::OpenUrl` now opens links through ImGui's platform shell opener instead
+  of pasting the URL into an `open` (macOS) or `xdg-open` (Linux) command run
+  through `system()`; in 0.7.2 it did nothing on other platforms. Web
+  (Emscripten) builds open links in a new browser tab with `window.opener`
+  detached. If the browser cannot be opened, the welcome screen's Release notes
+  link shows a message saying so.
+- Repaired the editor chooser dashboard. `--startup_dashboard=hide` now also
+  suppresses the chooser on automatic opens after a ROM or project loads through
+  the editor or ROM load options are applied; it can still appear when opening
+  from the welcome screen, and Ctrl+E is not affected.
+- Renamed the Tools menu's Window Finder item to **Find Window…**. Help →
+  **Keyboard Shortcuts** now opens the shortcuts browser instead of Settings and
+  is bound to Ctrl+Shift+/. The Dungeon Workbench no longer toggles on
+  Ctrl+Shift+W or shows it as its shortcut, because that chord closes the
+  current session.
+- Added an icon strip below the right sidebar drawer header with one icon for
+  each switchable drawer (Project, Properties, AI Agent, Proposals,
+  Notifications, Help, Settings): clicking the active icon closes the drawer,
+  tooltips show assigned shortcuts, and Notifications shows an unread dot. The
+  header gained a context badge (agent ready for AI Agent in agent-UI builds,
+  unread count for Notifications, a lock icon when Properties selection is
+  locked, the current editor for Help), and its drawer switcher button's tooltip
+  now reads **Switch Sidebar Drawer** instead of Panel switcher.
+- Removed three unreferenced dashboards: the agent metrics dashboard panel and
+  the z3ed TUI dashboard component and its layout ID.
+- The overworld status bar's **Map** segment follows the cursor: while the
+  canvas is hovered it shows the hovered map, adding `· sel #XX` (or `· sel
+  LW #XX` across worlds) when that differs from the selected map, and it falls back
+  to the selected map when the cursor leaves the canvas. 0.7.2 always showed the
+  selected map.
+- `TileSelectorWidget::GetPreferredViewportWidth` now reports the grid width
+  plus 18px of scrollbar chrome instead of at least 332px, so the Tile16 scroll
+  region no longer claims a 332px-wide content extent in a narrower dock.
+
+### Emulator, iOS, and platform
+- Added TCP endpoint support to the Mesen socket client alongside Unix domain
+  sockets.
+- Restored the iOS device build by aligning XcodeGen header/library paths with
+  the CMake iOS presets, included the remote desktop and review Swift views in
+  the iOS target, and replaced an iOS-unavailable directory-creation path.
+- Routed the normal macOS Quit menu item through ordered application shutdown.
+- Hidden emulator panels no longer advance SNES frames or audio unless **Keep
+  Emulator Running in Background** is enabled in Settings > Appearance > Editor
+  Behavior. The startup category policy now honours a saved `Emulator` category
+  and still never falls back to Emulator when no category is saved.
+- Mesen2-OOS CPU registers are read from the server's lowercase JSON keys.
+  0.7.2 looked for uppercase keys, so every register read as `0` in the Mesen
+  Debug panel, ASM follow, and `z3ed mesen-*` commands.
+- Mesen2 socket connections are more robust: a closed emulator peer no longer
+  kills yaze with SIGPIPE, large commands are written fully under one deadline,
+  reconnecting no longer leaks sockets, and `z3ed mesen-*` commands append the
+  underlying connection error to "Not connected to Mesen2".
+
+### Release engineering and packaging
+- Added a Release-config native test gate that fails when CTest discovers no
+  real unit or integration suites, resolves wrong multi-config binaries, or
+  produces empty JUnit results, plus a `release-test` preset that enables
+  stable source-level suites without changing package builds.
+- Scoped build caches by configuration and capped shared build actions at four
+  jobs; bounded default local build parallelism to four workers.
+- Release validation now checks that the packaged `manifest.json` version and
+  Git SHA match the release being built. `AssetLoader`, `PromptManager` agent
+  prompts, and the `TailMapExpansion.asm` patch now look up assets through
+  `PlatformPaths::FindAsset` first, and `AssetLoader` still falls back to its
+  old paths relative to the working directory. The theme search list still
+  checks the user themes directory first. After that it uses `FindAsset` instead
+  of the old per-platform bundle and system paths, then falls back to
+  `assets/themes/` and `../assets/themes/`. On Linux, `FindAsset` also checks
+  `../share/yaze/assets` relative to the executable's directory, which matches
+  the FHS `usr/share/yaze/assets` layout.
+- Moved Linux DEB/TGZ payloads to an FHS layout (`/usr/bin`,
+  `/usr/share/yaze/assets`, `/usr/share/doc/yaze`). Release validation now
+  checks that layout, resolves shared libraries with `ldd`, matches the DEB
+  version against the expected version, checks that assets exist, and runs
+  a clean DEB install and purge.
+- Embedded the runtime asset tree in the macOS app bundle under
+  `Contents/Resources/assets` (themes limited to the distributable allowlist).
+  DMG validation now requires a valid signature, verifies it again after
+  copying the app to another location, checks that the bundle's assets match
+  the DMG asset tree and that the manifest version matches, and smoke-tests the
+  DMG executables.
+- Windows Release packaging now fails unless app-local `msvcp`/`vcruntime`
+  DLLs are found, ZIP validation requires them, and release CI runs an
+  isolated NSIS silent install that checks the registry entry and
+  uninstall cleanup.
+- Replaced the two duplicate pull-request WASM debug builds with one
+  Release-derived `wasm-smoke` preset (Emscripten version still 3.1.51, now
+  set in one `EMSDK_VERSION` variable). The job has a 45-minute timeout and 4
+  build jobs, caches CPM at the path the build really uses
+  (`~/.cpm-cache`) with rekeyed CPM/ccache caches, and requires packaged
+  output plus serial (`--workers=1`) Chromium Playwright smoke tests.
+- Fixed the gRPC/CPack install graph in CMake (bundled gRPC is now
+  `EXCLUDE_FROM_ALL`) instead of patching generated `cmake_install.cmake`
+  scripts in the release workflow.
+- `scripts/install-nightly-local.sh` now validates a nightly before
+  activating it. It stages each install in a unique release directory,
+  requires both `yaze` and `z3ed` executables, signs and verifies the macOS
+  bundle after resources are copied, runs `--version` on both executables, and
+  replaces the `current` symlink atomically only after validation passes.
+- `scripts/pre-push.sh` now fails when any positive component of the smoke or UI
+  gtest filter selects zero tests, so a mistyped or stale filter can no longer
+  look like a passing run. The default smoke filter is now
+  `WorkspaceWindowManagerPolicyTest.*`, and the default UI filter uses it in
+  place of `PanelManagerPolicyTest.*`.
+
+### Testing and validation
+- Added independent Mesen ROI baselines and bombable-floor Mesen baselines as
+  witnesses separate from the editor's own renderer.
+- Pinned visual parity for rails, BigHole, TableRock, and the room `0x076` west
+  door with Mesen ROI baselines. Added a structural BG2 object-buffer test for
+  the flood-water overlay `0xD8` in room `0x076`. Neither `0xD8` nor `0xDA` has
+  a Mesen pixel baseline yet, because the vanilla overlay routines are stateful:
+  they depend on saved water state and can change the layer mode. Regenerated
+  the dungeon room regression goldens after the Left/Right dungeon palette-slot
+  mapping fix.
+- Expanded dungeon object validator state coverage and included palette writes
+  in the save preflight.
+- Added `scripts/agents/audit-dungeon-visual-parity.sh`, a tiered dungeon visual
+  parity audit that fails on missing test or `z3ed` binaries, empty, skipped,
+  or failed test selections, invalid or empty `dungeon-object-validate` JSON,
+  nonzero mismatches, or unexpected empty traces.
+- Stopped the test runner from printing its option help unconditionally, which
+  polluted GoogleTest discovery, and added a `TestRunnerDiscoveryContract`
+  CTest that fails if help text reappears in the test inventory.
+- Reformatted selected dungeon editor and Oracle validation sources to the
+  project clang-format style.
+
+### Documentation
+- Replaced stale parity percentages and Stable/Beta/WIP labels with one
+  canonical desktop editor readiness matrix (Tester ready, Conditional, View
+  only, Experimental), rewrote the Beta Testing Guide to match it, and
+  documented the difference between component test, direct ROM readback,
+  app-path test, GUI smoke, and manual acceptance evidence.
+- Rewrote the cross-platform artifact and acceptance contract, and documented
+  all 21 fixed Oracle custom-object slots including `0x54` raw/runtime tilemap
+  semantics.
+- Generated `docs/internal/zelda3/alttp-quick-reference.md` from pinned usdasm
+  (labels, dispatch, vectors) and jpdasm (RAM symbols), and added
+  `docs/internal/zelda3/snes-hardware-reference.md` with register addresses
+  checked against usdasm. `scripts/agents/alttp_reference.py check` fails when
+  a generated section is stale or a table address disagrees with usdasm.
+- Added a cloud agent bootstrap script and setup documentation for ROM-less
+  container work.
+- Updated the dungeon usage guide for the issue-reporting layout and fixed the
+  stale README contributor link.
 
 ## 0.7.2 (July 17, 2026)
 
