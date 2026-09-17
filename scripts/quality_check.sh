@@ -90,12 +90,16 @@ else
 
   SOURCE_FILES=()
   if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    mapfile -t SOURCE_FILES < <(
+    while IFS= read -r source_file; do
+      SOURCE_FILES+=("${source_file}")
+    done < <(
       git ls-files 'src/*.cc' 'src/*.h' 'test/*.cc' 'test/*.h' |
         grep -v '^src/lib/'
     )
   else
-    mapfile -t SOURCE_FILES < <(
+    while IFS= read -r source_file; do
+      SOURCE_FILES+=("${source_file}")
+    done < <(
       find src test \( -name '*.cc' -o -name '*.h' \) -type f |
         grep -v '^src/lib/'
     )
