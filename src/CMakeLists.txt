@@ -54,13 +54,33 @@ if(EMSCRIPTEN)
   list(APPEND YAZE_APP_EMU_SRC app/emu/platform/wasm/wasm_audio.cc)
 endif()
 
-# Define resource files for bundling. A dragged macOS app must be fully
-# self-contained; other development builds keep the smaller deploy list and
-# use their adjacent/source asset lookup paths.
+# Define resource files for bundling. Theme files are allowlisted so local or
+# licensed themes cannot enter release artifacts merely by existing in the
+# source tree.
+file(STRINGS
+  "${CMAKE_SOURCE_DIR}/assets/themes/distributable-themes.txt"
+  YAZE_DISTRIBUTABLE_THEME_NAMES
+)
+set(YAZE_THEME_FILES)
+foreach(THEME_NAME IN LISTS YAZE_DISTRIBUTABLE_THEME_NAMES)
+  if(THEME_NAME STREQUAL "" OR THEME_NAME MATCHES "^#")
+    continue()
+  endif()
+  set(THEME_PATH "${CMAKE_SOURCE_DIR}/assets/themes/${THEME_NAME}")
+  if(NOT EXISTS "${THEME_PATH}")
+    message(FATAL_ERROR "Distributable theme is missing: ${THEME_PATH}")
+  endif()
+  list(APPEND YAZE_THEME_FILES "${THEME_PATH}")
+endforeach()
+
+# A dragged macOS app must be fully self-contained; other development builds
+# keep the smaller deploy list and use their adjacent/source asset lookup paths.
 if(YAZE_PLATFORM_MACOS)
   file(GLOB_RECURSE YAZE_RESOURCE_FILES CONFIGURE_DEPENDS
     LIST_DIRECTORIES false
     "${CMAKE_SOURCE_DIR}/assets/*")
+  list(FILTER YAZE_RESOURCE_FILES EXCLUDE REGEX "/assets/themes/")
+  list(APPEND YAZE_RESOURCE_FILES ${YAZE_THEME_FILES})
 else()
   set(YAZE_RESOURCE_FILES
     ${CMAKE_SOURCE_DIR}/assets/font/Karla-Regular.ttf
@@ -71,7 +91,6 @@ else()
     ${CMAKE_SOURCE_DIR}/assets/font/IBMPlexSansJP-Bold.ttf
     ${CMAKE_SOURCE_DIR}/assets/font/MaterialIcons-Regular.ttf
   )
-  file(GLOB YAZE_THEME_FILES "${CMAKE_SOURCE_DIR}/assets/themes/*.theme")
   list(APPEND YAZE_RESOURCE_FILES ${YAZE_THEME_FILES})
 endif()
 

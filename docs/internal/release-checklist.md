@@ -126,4 +126,9 @@ promotes them.
 
 - Verify GitHub release exists and is published.
 - Verify expected assets and checksums are attached.
+- Track any acceptance path deferred from section 4 as a GitHub issue with
+  explicit hotfix criteria. The v0.7.2 packaged-Windows open, Save As, and
+  reopen smoke is still open as
+  [issue #107](https://github.com/scawful/yaze/issues/107); a confirmed startup
+  or save regression there remains hotfix criteria.
 - Log any known warnings (for example Node runtime deprecation warnings) in follow-up maintenance tasks.
