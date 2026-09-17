@@ -14,6 +14,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/menu/activity_bar_actions_registry.h"
 #include "app/editor/menu/status_bar.h"
+#include "app/editor/system/editor_registry.h"
 #include "app/editor/system/session/user_settings.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/core/icons.h"
@@ -333,6 +334,17 @@ void ActivityBar::DrawActivityBarStrip(
       bool category_enabled =
           rom_loaded || (cat == "Emulator") || (cat == "Agent");
 
+      const EditorType editor_type =
+          EditorRegistry::GetEditorTypeFromCategory(cat);
+      const bool experimental =
+          EditorRegistry::IsExperimentalEditor(editor_type);
+      const bool allow_experimental =
+          user_settings_ && user_settings_->prefs().show_experimental_editors;
+      const bool blocked_experimental = experimental && !allow_experimental;
+      if (blocked_experimental) {
+        category_enabled = false;
+      }
+
       // Get category-specific theme colors for expressive appearance
       auto cat_theme = WorkspaceWindowManager::GetCategoryTheme(cat);
       ImVec4 cat_color(cat_theme.r, cat_theme.g, cat_theme.b, cat_theme.a);
@@ -407,12 +419,12 @@ void ActivityBar::DrawActivityBarStrip(
                                      nullptr, is_selected, icon_color,
                                      "activity_bar", cat.c_str())) {
         if (category_enabled) {
-          if (cat == active_category && panel_expanded) {
+          if (cat == active_category) {
+            // Explicit toggle only — selecting a category must not auto-open
+            // WindowSidebar (ActivityBar-only default).
             window_manager_.ToggleSidebarExpanded();
           } else {
             window_manager_.SetActiveCategory(cat);
-            window_manager_.SetSidebarExpanded(true);
-            // Notify that a category was selected (dismisses dashboard)
             window_manager_.TriggerCategorySelected(cat);
           }
         }
@@ -463,7 +475,11 @@ void ActivityBar::DrawActivityBarStrip(
       if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
         ImGui::BeginTooltip();
         ImGui::Text("%s %s", icon.c_str(), cat.c_str());
-        if (!category_enabled) {
+        if (blocked_experimental) {
+          gui::ColoredText(
+              "In development — enable Experimental Editors in Settings",
+              gui::ConvertColorToImVec4(theme.warning));
+        } else if (!category_enabled) {
           gui::ColoredText("Open ROM required",
                            gui::ConvertColorToImVec4(theme.warning));
         } else if (has_active_editor) {

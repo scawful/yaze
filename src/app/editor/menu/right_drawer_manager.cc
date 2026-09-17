@@ -34,6 +34,7 @@
 #include "app/gui/widgets/empty_state.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 #include "util/json.h"
 #include "util/log.h"
 #include "util/platform_paths.h"
@@ -1206,19 +1207,67 @@ void RightDrawerManager::DrawPanelHeader(PanelType type, const char* title,
                             chip_min.y + (icon_chip_size - icon_sz.y) * 0.5f),
                      ImGui::GetColorU32(gui::GetPrimaryVec4()), icon);
 
-  // Title text positioned right after chip
-  const float title_x = padding + icon_chip_size + 6.0f;
-  ImGui::SetCursorPosX(title_x);
-  ImGui::SetCursorPosY(ImGui::GetCursorPosY() +
-                       (header_height - ImGui::GetTextLineHeight()) * 0.5f);
-  gui::ColoredText(title, ImGui::GetStyleColorVec4(ImGuiCol_Text));
+  // Reserve fixed chrome width so title truncation stays stable as badges /
+  // panel actions appear. Layout (right → left): close, switcher, up to three
+  // panel-specific buttons.
+  const ImVec2 chrome_btn_size(24.0f, 24.0f);
+  const float chrome_gap = 4.0f;
+  int chrome_button_count = 2;  // close + switcher
+  if (type == PanelType::kProperties) {
+    chrome_button_count += 1;
+  } else if (type == PanelType::kAgentChat) {
+#ifdef YAZE_BUILD_AGENT_UI
+    // Must match the draw path below (buttons only appear when agent_chat_).
+    if (agent_chat_) {
+      chrome_button_count += 2;
+      if (proposal_drawer_) {
+        chrome_button_count += 1;
+      }
+    }
+#endif
+  } else if (type == PanelType::kNotifications) {
+    if (toast_manager_) {
+      chrome_button_count += 2;
+    }
+  } else if (type == PanelType::kToolOutput) {
+    if (!tool_output_content_.empty()) {
+      chrome_button_count += 1;
+    }
+  } else if (type == PanelType::kHelp) {
+    chrome_button_count += 1;
+  }
+  const float chrome_reserve =
+      chrome_button_count * chrome_btn_size.x +
+      std::max(0, chrome_button_count - 1) * chrome_gap + padding;
 
-  // Contextual badge next to title
-  ImGui::SameLine(0.0f, 6.0f);
-  DrawHeaderContextBadge(type);
+  // Title: truncate into the remaining space so drawer width no longer breathes
+  // when chrome buttons appear/disappear.
+  const float title_x = padding + icon_chip_size + 6.0f;
+  const float title_y = ImGui::GetCursorPosY() +
+                        (header_height - ImGui::GetTextLineHeight()) * 0.5f;
+  ImGui::SetCursorPos(ImVec2(title_x, title_y));
+  const float title_max_x =
+      std::max(title_x, ImGui::GetWindowWidth() - chrome_reserve - 8.0f);
+  const float title_avail = std::max(0.0f, title_max_x - title_x);
+  ImVec2 title_size = ImGui::CalcTextSize(title);
+  const ImVec2 text_min = ImGui::GetCursorScreenPos();
+  const ImVec2 text_max =
+      ImVec2(text_min.x + title_avail, text_min.y + ImGui::GetTextLineHeight());
+  ImGui::RenderTextEllipsis(draw_list, text_min, text_max, text_max.x, title,
+                            nullptr, &title_size);
+  const float drawn_title_w = std::min(title_size.x, title_avail);
+  ImGui::Dummy(ImVec2(drawn_title_w, ImGui::GetTextLineHeight()));
+  if (title_size.x > title_avail && ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("%s", title);
+  }
+
+  // Contextual badge next to title when space remains.
+  if (ImGui::GetCursorPosX() + 20.0f < title_max_x) {
+    ImGui::SameLine(0.0f, 6.0f);
+    DrawHeaderContextBadge(type);
+  }
 
   // Right-aligned chrome buttons (right → left)
-  const ImVec2 chrome_btn_size(24.0f, 24.0f);
   const float btn_y = header_min.y + (header_height - chrome_btn_size.y) * 0.5f;
   float current_x = ImGui::GetWindowWidth() - chrome_btn_size.x - padding;
 

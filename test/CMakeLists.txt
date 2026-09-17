@@ -289,6 +289,8 @@ if(YAZE_BUILD_TESTS)
     unit/editor/gfx_group_editor_render_test.cc
     unit/editor/palette_controls_panel_layout_test.cc
     unit/editor/user_settings_layout_defaults_test.cc
+    unit/editor/emulator_runtime_policy_test.cc
+    unit/editor/overworld_map_status_test.cc
     unit/editor/sidebar_sort_test.cc
     unit/editor/activity_bar_actions_registry_test.cc
     unit/editor/theme_persistence_test.cc
@@ -672,6 +674,8 @@ if(YAZE_BUILD_TESTS)
     unit/editor/layout/layout_designer_panel_replace_tree_test.cc
     unit/editor/user_settings_named_layouts_test.cc
     unit/editor/user_settings_layout_defaults_test.cc
+    unit/editor/emulator_runtime_policy_test.cc
+    unit/editor/overworld_map_status_test.cc
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_render_commands_test.cc
