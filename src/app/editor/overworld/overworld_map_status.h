@@ -21,6 +21,12 @@ inline const char* OverworldWorldLabelFromMap(int map_id) {
   }
 }
 
+// Effective hover map for status/preview: on leave / no hover, fall back to
+// "not hovering" (-1) so callers show the selected map only.
+inline int EffectiveOverworldHoverMap(int hovered_map, bool canvas_hovered) {
+  return canvas_hovered ? hovered_map : -1;
+}
+
 // Status-bar Map segment: prefer hovered identity while the canvas is hovered.
 // When hover differs from selection, keep both visible and distinct.
 inline std::string FormatOverworldMapStatusSegment(int current_map,

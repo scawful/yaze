@@ -159,9 +159,10 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
       editor_->CheckForOverworldEdits();
     }
 
-    // Use canvas runtime hover state for map detection
+    // Always refresh hover preview: when the canvas is not hovered this clears
+    // hovered_map_ so the status bar falls back to the selected map.
+    editor_->status_ = editor_->CheckForCurrentMap();
     if (canvas_rt.hovered) {
-      editor_->status_ = editor_->CheckForCurrentMap();
       editor_->HandleMapInteraction();
     }
 
