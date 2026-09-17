@@ -665,6 +665,12 @@ void EditorManager::ResetCurrentEditorLayout() {
 
 #ifdef YAZE_BUILD_AGENT_UI
 void EditorManager::ShowAIAgent() {
+  if (!user_settings_.prefs().show_experimental_editors) {
+    toast_manager_.Show(
+        "AI Agent is experimental — enable Experimental Editors in Settings",
+        ToastType::kWarning);
+    return;
+  }
   // Apply saved agent settings from the current project when opening the Agent
   // UI to respect the user's preferred provider/model.
   // TODO: Implement LoadAgentSettingsFromProject in AgentChat or AgentEditor
@@ -2636,7 +2642,18 @@ void EditorManager::ApplyLayoutDefaultsMigrationIfNeeded() {
 std::string EditorManager::GetPreferredStartupCategory(
     const std::string& saved_category,
     const std::vector<std::string>& available_categories) const {
-  return PreferStartupCategory(saved_category, available_categories);
+  const std::string preferred =
+      PreferStartupCategory(saved_category, available_categories);
+  if (preferred.empty()) {
+    return preferred;
+  }
+
+  const EditorType type = EditorRegistry::GetEditorTypeFromCategory(preferred);
+  if (EditorRegistry::IsExperimentalEditor(type) &&
+      !user_settings_.prefs().show_experimental_editors) {
+    return PreferStartupCategory("", available_categories);
+  }
+  return preferred;
 }
 
 void EditorManager::SetAssetLoadMode(AssetLoadMode mode) {
@@ -6818,6 +6835,16 @@ std::string EditorManager::GenerateUniqueEditorTitle(
 
 void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible,
                                    bool from_dialog) {
+  if (EditorRegistry::IsExperimentalEditor(editor_type) &&
+      !user_settings_.prefs().show_experimental_editors) {
+    toast_manager_.Show(
+        absl::StrFormat(
+            "%s is experimental — enable Experimental Editors in Settings",
+            kEditorNames[static_cast<int>(editor_type)]),
+        ToastType::kWarning);
+    return;
+  }
+
   // Special case: Agent editor requires EditorManager-specific handling
 #ifdef YAZE_BUILD_AGENT_UI
   if (editor_type == EditorType::kAgent) {

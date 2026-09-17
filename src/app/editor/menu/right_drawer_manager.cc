@@ -1217,13 +1217,18 @@ void RightDrawerManager::DrawPanelHeader(PanelType type, const char* title,
     chrome_button_count += 1;
   } else if (type == PanelType::kAgentChat) {
 #ifdef YAZE_BUILD_AGENT_UI
-    chrome_button_count += 2;
-    if (proposal_drawer_) {
-      chrome_button_count += 1;
+    // Must match the draw path below (buttons only appear when agent_chat_).
+    if (agent_chat_) {
+      chrome_button_count += 2;
+      if (proposal_drawer_) {
+        chrome_button_count += 1;
+      }
     }
 #endif
   } else if (type == PanelType::kNotifications) {
-    chrome_button_count += 2;
+    if (toast_manager_) {
+      chrome_button_count += 2;
+    }
   } else if (type == PanelType::kToolOutput) {
     if (!tool_output_content_.empty()) {
       chrome_button_count += 1;

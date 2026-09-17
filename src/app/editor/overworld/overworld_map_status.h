@@ -32,7 +32,8 @@ inline std::string FormatOverworldMapStatusSegment(int current_map,
 
   const char* hover_world = OverworldWorldLabelFromMap(hovered_map);
   const char* sel_world = OverworldWorldLabelFromMap(current_map);
-  if (std::strcmp(hover_world, sel_world) == 0) {
+  // Labels are stable string literals from OverworldWorldLabelFromMap.
+  if (hover_world == sel_world) {
     return absl::StrFormat("%s #%02X · sel #%02X", hover_world,
                            hovered_map & 0xFF, current_map & 0xFF);
   }
