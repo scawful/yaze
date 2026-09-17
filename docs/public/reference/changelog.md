@@ -257,8 +257,9 @@ or project will notice it.
   (`0xF83`-`0xF8C`, `0xF8E`, `0xF8F`), moving walls `0xCD`/`0xCE`, hammer peg
   `0xF96`, jump ledges `0x8B`/`0x8C`, floor light `0xFF4`, Weird 2x4 `0xB5`, and
   rupee floor `0xF92`. Light beam `0xFF0` keeps its footprint but now draws its
-  middle block with the USDASM tiles. Full room renders no longer draw the big
-  light beam `0xFF1` unless the room `0x065` bombed-floor state is set.
+  bottom block with its own USDASM tiles; 0.7.2 repeated the top block's tiles
+  there. Full room renders no longer draw the big light beam `0xFF1` unless the
+  room `0x065` bombed-floor state is set.
 - **Custom collision is rewritten in place when it fits.** A room whose new
   collision encoding fits its existing, unshared span keeps its pointer, so the
   written ROM bytes differ from 0.7.2, which always appended and repointed.
@@ -740,7 +741,8 @@ or project will notice it.
   panes no longer scroll: the Recent list is cut to what fits, and optional
   Start rows are dropped on small windows. The Release History card is replaced
   by a Release notes link in a one-row footer, and the resume button now names
-  the last project (`Resume <name>`).
+  the most recent available ROM or project (`Resume <name>`) instead of `Resume
+  Last (<type>)`.
 - Removed the unused second welcome-screen instance and its duplicate
   callback wiring from `EditorManager`. Removed the fixed-height quick-actions
   pane that clipped first-run controls. Recent-file cards can now be opened
