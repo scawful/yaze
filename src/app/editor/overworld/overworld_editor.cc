@@ -1724,7 +1724,10 @@ void OverworldEditor::ContributeStatus(StatusBar* status_bar) {
   if (!status_bar)
     return;
   status_bar->SetCustomSegment(
-      "Map", FormatOverworldMapStatusSegment(current_map_, hovered_map_));
+      "Map",
+      FormatOverworldMapStatusSegment(
+          current_map_, EffectiveOverworldHoverMap(
+                            hovered_map_, ow_map_canvas_.IsMouseHovering())));
   status_bar->SetCustomSegment("Tile16",
                                absl::StrFormat("0x%03X", current_tile16_));
 
