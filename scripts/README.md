@@ -1,753 +1,190 @@
-# YAZE Build Scripts
-
-This directory contains build automation and maintenance scripts for the YAZE project.
-
-## fetch_usdasm.sh
-
-Fetch the usdasm disassembly on demand (not vendored in the repo).
-
-```bash
-scripts/fetch_usdasm.sh
-# or: USDASM_DIR=/path/to/usdasm scripts/fetch_usdasm.sh
-```
-
-## dev/local-workflow.sh
-
-Canonical local workflow for AI builds and runtime deployment.
-
-```bash
-scripts/dev/local-workflow.sh all
-scripts/dev/local-workflow.sh build
-scripts/dev/local-workflow.sh sync
-scripts/dev/local-workflow.sh status
-```
-
-On macOS, `sync` deploys to `/Applications/yaze.app` and refreshes
-`/usr/local/bin/z3ed`. Legacy app aliases (`/Applications/Yaze.app`,
-old Nightly links) are pruned automatically.
-
-See `docs/public/build/quick-reference.md` for full workflow details.
-
-## build-ios.sh
-
-Builds iOS static libraries via CMake and generates a thin Xcode project via XcodeGen.
-
-```bash
-scripts/build-ios.sh           # defaults to ios-debug
-scripts/build-ios.sh ios-release
-```
-
-Requirements:
-- Xcode (iOS SDK installed)
-- XcodeGen (`brew install xcodegen`)
-
-Outputs:
-- `build-ios/ios/libyaze_ios_bundle.a`
-- `src/ios/yaze_ios.xcodeproj`
-
-## xcodebuild-ios.sh
-
-Builds (and optionally archives/exports) the iOS app via `xcodebuild`.
-
-```bash
-# Simulator build (no signing)
-scripts/xcodebuild-ios.sh ios-sim-debug build
-
-# Device build (requires signing)
-scripts/xcodebuild-ios.sh ios-debug build
-
-# Device archive + export development .ipa
-scripts/xcodebuild-ios.sh ios-debug ipa
-
-# Build + install directly to paired device (defaults to "Baby Pad")
-scripts/xcodebuild-ios.sh ios-debug deploy
-scripts/xcodebuild-ios.sh ios-debug deploy "Baby Pad"
-```
-
-If you see `No Accounts` or provisioning errors when building on a headless/CI
-machine, pass an App Store Connect authentication key (avoids Xcode Accounts):
-
-```bash
-export XCODE_AUTH_KEY_PATH=/path/to/AuthKey_XXXXXX.p8
-export XCODE_AUTH_KEY_ID=XXXXXX
-export XCODE_AUTH_KEY_ISSUER_ID=XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
-scripts/xcodebuild-ios.sh ios-debug ipa
-```
-
-If you need to sign with your own Team / bundle ID (recommended for local device
-builds), override these build settings:
-
-```bash
-export YAZE_IOS_TEAM_ID=YOUR_TEAM_ID
-export YAZE_IOS_BUNDLE_ID=com.yourcompany.yaze-ios
-export YAZE_ICLOUD_CONTAINER_ID="iCloud.${YAZE_IOS_BUNDLE_ID}"
-scripts/xcodebuild-ios.sh ios-debug build
-```
-
-If you see iCloud/CloudKit entitlement errors, ensure the App ID has iCloud
-capability enabled and the referenced iCloud container exists under your team.
-
-Tip: put your exports in `scripts/signing.env` (gitignored). `scripts/xcodebuild-ios.sh`
-will auto-source it.
-
-Deploy notes:
-
-- `deploy` installs with `xcrun devicectl device install app`.
-- Device resolution order: `DEVICE` arg -> `$YAZE_IOS_DEVICE` -> `"Baby Pad"`.
-- Set `YAZE_IOS_LAUNCH_AFTER_DEPLOY=0` to skip automatic app launch.
-
-## dev/ios-ipad-workflow.sh
-
-Fast iPad deployment workflow: build once, then install to one or many paired iPads.
-
-```bash
-# List paired+available iPads
-scripts/dev/ios-ipad-workflow.sh list
-
-# Build once and deploy to all available iPads
-scripts/dev/ios-ipad-workflow.sh deploy --all
-
-# Fast redeploy last built app to specific devices (skip build)
-scripts/dev/ios-ipad-workflow.sh redeploy --devices "Baby Pad,iPadothée Chalamet"
-```
-
-Useful flags:
-
-- `--preset ios-debug|ios-release` (default: `ios-debug`)
-- `--all` or `--devices "<name1,name2>"`
-- `--skip-build` (or `redeploy` command)
-- `--retries <n>` to auto-retry transient install failures
-- `--no-launch` to install without launching
-- `--bundle-id <id>` to override launch bundle ID
-
-## build_cleaner.py
-
-Automates CMake source list maintenance and header include management with IWYU-style analysis.
-
-### Features
-
-1. **CMake Source List Maintenance**: Automatically updates source file lists in CMake files
-2. **Self-Header Includes**: Ensures source files include their corresponding headers
-3. **IWYU-Style Analysis**: Suggests missing headers based on symbol usage
-4. **.gitignore Support**: Respects .gitignore patterns when scanning files
-5. **Auto-Discovery**: Can discover CMake libraries that opt-in to auto-maintenance
-
-### Usage
-
-```bash
-# Dry-run to see what would change (recommended first step)
-python3 scripts/build_cleaner.py --dry-run
-
-# Update CMake source lists and header includes
-python3 scripts/build_cleaner.py
-
-# Run IWYU-style header analysis
-python3 scripts/build_cleaner.py --iwyu
-
-# Auto-discover CMake libraries marked for auto-maintenance
-python3 scripts/build_cleaner.py --auto-discover
-
-# Update only CMake source lists
-python3 scripts/build_cleaner.py --cmake-only
-
-# Update only header includes
-python3 scripts/build_cleaner.py --includes-only
-```
-
-### Opting-In to Auto-Maintenance
-
-By default, the script only auto-maintains source lists that are explicitly marked. To mark a CMake variable for auto-maintenance, add a comment above the `set()` statement:
-
-```cmake
-# This list is auto-maintained by scripts/build_cleaner.py
-set(
-  YAZE_APP_EMU_SRC
-  app/emu/audio/apu.cc
-  app/emu/cpu/cpu.cc
-  # ... more files
-)
-```
-
-The script looks for comments containing "auto-maintain" (case-insensitive) within 3 lines above the `set()` statement.
-
-### Excluding Files from Processing
-
-To exclude a specific file from all processing (CMake lists, header includes, IWYU), add this token near the top of the file:
-
-```cpp
-// build_cleaner:ignore
-```
-
-### .gitignore Support
-
-The script automatically respects `.gitignore` patterns. To enable this feature, install the `pathspec` dependency:
-
-```bash
-pip3 install -r scripts/requirements.txt
-# or
-pip3 install pathspec
-```
-
-### IWYU Configuration
-
-The script includes basic IWYU-style analysis that suggests headers based on symbol prefixes. To customize which headers are suggested, edit the `COMMON_HEADERS` dictionary in the script:
-
-```python
-COMMON_HEADERS = {
-    'std::': ['<memory>', '<string>', '<vector>', ...],
-    'absl::': ['<absl/status/status.h>', ...],
-    'ImGui::': ['<imgui.h>'],
-    'SDL_': ['<SDL.h>'],
-}
-```
-
-**Note**: The IWYU analysis is conservative and may suggest headers that are already transitively included. Use with care and review suggestions before applying.
-
-### Integration with CMake
-
-The script is integrated into the CMake build system:
-
-```bash
-# Run as a CMake target
-cmake --build build --target build_cleaner
-```
-
-### Dependencies
-
-- Python 3.7+
-- `pathspec` (optional, for .gitignore support): `pip3 install pathspec`
-
-### How It Works
-
-1. **CMake Maintenance**: Scans directories specified in the configuration and updates `set(VAR_NAME ...)` blocks with the current list of source files
-2. **Self-Headers**: For each `.cc`/`.cpp` file, ensures it includes its corresponding `.h` file
-3. **IWYU Analysis**: Scans source files for symbols and suggests appropriate headers based on prefix matching
-
-### Current Auto-Maintained Variables
-
-The static configuration handles variables whose cmake files use straightforward
-direct file lists. Complex indirect or cross-directory patterns require manual
-maintenance (see comments in `STATIC_CONFIG`).
-
-**Static config (auto-maintained via `--cmake-only`):**
-
-| Variable | cmake File | Notes |
-|---|---|---|
-| `YAZE_APP_EMU_SRC` | `src/CMakeLists.txt` | Excludes `emu.cc` (main), ui/, and platform-conditional files |
-| `YAZE_APP_EDITOR_SRC` | `src/app/editor/editor_library.cmake` | Auto-maintained via file marker |
-| `YAZE_APP_ZELDA3_SRC` | `src/zelda3/zelda3_library.cmake` | Auto-maintained via file marker |
-
-**Auto-discovered (opt-in via `# build_cleaner:auto-maintain` marker in the cmake file):**
-
-- `GFX_*_SRC` variables in `src/app/gfx/gfx_library.cmake`
-- `GUI_*_SRC` / `CANVAS_SRC` variables in `src/app/gui/gui_library.cmake`
-
-**Intentionally excluded from auto-maintenance:**
-
-| Variable | Reason |
-|---|---|
-| `YAZE_NET_SRC` | Uses indirect variable composition (`${YAZE_NET_BASE_SRC}`); manual |
-| `YAZE_UTIL_SRC` | References cross-directory files from `src/core/`; manual |
-| `YAZE_AGENT_SOURCES` | Massive conditional multi-stage list; manual |
-
-The script preserves conditional `if/endif` blocks (platform-specific backends
-like SDL3 and WASM) by detecting them with `extract_conditional_files()` and
-excluding those paths from the expected source set.
-
-## audit_test_registration.py
-
-Ensures every `*_test.cc` file under `test/` is either:
-
-1. Listed in at least one compiled source set in `test/CMakeLists.txt`, **or**
-2. Documented in the script's `EXCLUSION_LIST` with a reason (DEPRECATED, WASM-only, etc.).
-
-This prevents "ghost" test files that exist on disk but are silently never compiled or run.
-
-### Usage
-
-```bash
-# Check for unregistered tests (default — exits non-zero on drift)
-python3 scripts/audit_test_registration.py
-
-# Verbose: show OK/UNREGISTERED status for every file
-python3 scripts/audit_test_registration.py --verbose
-
-# JSON output for tooling
-python3 scripts/audit_test_registration.py --json
-
-# Run built-in self-tests
-python3 scripts/audit_test_registration.py --self-test
-```
-
-### Exclusion List
-
-Files that should **not** be registered get an entry in `EXCLUSION_LIST` inside
-the script. Categories:
-
-- **WASM-only**: tests guarded by `#ifdef __EMSCRIPTEN__`; cannot compile natively
-- **DEPRECATED**: files marked deprecated in their header; superseded by better tests
-- **Legacy/removed**: files intentionally retired with a documented replacement
-- **Entry points / stubs**: `yaze_test.cc`, `app_instance_stub.cc`, etc.
-
-To add a new exclusion, add a dict entry with a clear reason:
-
-```python
-EXCLUSION_LIST: dict[str, str] = {
-    ...
-    "unit/foo/my_experiment_test.cc": "Experimental probe; not a stable suite",
-}
-```
-
-### CI and Pre-Push Integration
-
-- **CI** (`release-readiness` job): runs `python3 scripts/audit_test_registration.py` on every push and PR.
-- **Pre-push hook** (`scripts/pre-push.sh`): runs both the cmake drift check and the test registration audit as **Step 0** (fast, no build required).
-
-## verify-build-environment.\*
-
-`verify-build-environment.ps1` (Windows) and `verify-build-environment.sh` (macOS/Linux) are the primary diagnostics for contributors. They now:
-
-- Check for `clang-cl`, Ninja, NASM, Visual Studio workloads, and VS Code (optional).
-- Validate vcpkg bootstrap status plus `vcpkg/installed` cache contents.
-- Warn about missing ROM assets (`roms/alttp_vanilla.sfc`, etc.).
-- Offer `-FixIssues` and `-CleanCache` switches to repair Git config, resync submodules, and wipe stale build directories.
-
-Run the script once per machine (and rerun after major toolchain updates) to ensure presets such as `win-dbg`, `win-ai`, `mac-ai`, and `ci-windows-ai` have everything they need.
-
-## setup-vcpkg-windows.ps1
-
-Automates the vcpkg bootstrap flow on Windows:
-
-1. Clones and bootstraps vcpkg (if not already present).
-2. Verifies that `git`, `clang-cl`, and Ninja are available, printing friendly instructions when they are missing.
-3. Installs the default triplet (`x64-windows` or `arm64-windows` when detected) and confirms that `vcpkg/installed/<triplet>` is populated.
-4. Reminds you to rerun `.\scripts\verify-build-environment.ps1 -FixIssues` to double-check the environment.
-
-Use it immediately after cloning the repository or whenever you need to refresh your local dependency cache before running `win-ai` or `ci-windows-ai` presets.
-
-## CMake Validation Tools
-
-A comprehensive toolkit for validating CMake configuration and catching dependency issues early. These tools help prevent build failures by detecting configuration problems before compilation.
-
-### validate-cmake-config.cmake
-
-Validates CMake configuration by checking targets, flags, and platform-specific settings.
-
-```bash
-# Validate default build directory
-cmake -P scripts/validate-cmake-config.cmake
-
-# Validate specific build directory
-cmake -P scripts/validate-cmake-config.cmake build
-```
-
-**What it checks:**
-- Required targets exist
-- Feature flag consistency (AI requires gRPC, etc.)
-- Compiler settings (C++23, MSVC runtime on Windows)
-- Abseil configuration on Windows (prevents missing include issues)
-- Output directories
-- Common configuration mistakes
-
-### check-include-paths.sh
-
-Validates include paths in compile_commands.json to catch missing includes before build.
-
-```bash
-# Check default build directory
-./scripts/check-include-paths.sh
-
-# Check specific build
-./scripts/check-include-paths.sh build
-
-# Verbose mode (show all include dirs)
-VERBOSE=1 ./scripts/check-include-paths.sh build
-```
-
-**Requires:** `jq` for better parsing (optional but recommended): `brew install jq`
-
-**What it checks:**
-- Common dependencies (SDL2, ImGui, yaml-cpp)
-- Platform-specific includes
-- Abseil includes from gRPC build (critical on Windows)
-- Suspicious configurations (missing -I flags, relative paths)
-
-### visualize-deps.py
-
-Generates dependency graphs and detects circular dependencies.
-
-```bash
-# Generate GraphViz diagram
-python3 scripts/visualize-deps.py build --format graphviz -o deps.dot
-dot -Tpng deps.dot -o deps.png
-
-# Generate Mermaid diagram
-python3 scripts/visualize-deps.py build --format mermaid -o deps.mmd
-
-# Show statistics
-python3 scripts/visualize-deps.py build --stats
-```
-
-**Formats:**
-- **graphviz**: DOT format for rendering with `dot` command
-- **mermaid**: For embedding in Markdown/documentation
-- **text**: Simple text tree for quick overview
-
-**Features:**
-- Detects circular dependencies (highlighted in red)
-- Shows dependency statistics
-- Color-coded targets (executables, libraries, etc.)
-
-### test-cmake-presets.sh
-
-Tests that all CMake presets can configure successfully.
-
-```bash
-# Test all presets for current platform
-./scripts/test-cmake-presets.sh
-
-# Test specific preset
-./scripts/test-cmake-presets.sh --preset mac-ai
-
-# Test in parallel (faster)
-./scripts/test-cmake-presets.sh --platform mac --parallel 4
-
-# Quick mode (don't clean between tests)
-./scripts/test-cmake-presets.sh --quick
-```
-
-**Options:**
-- `--parallel N`: Test N presets in parallel (default: 4)
-- `--preset NAME`: Test only specific preset
-- `--platform PLATFORM`: Test only mac/win/lin presets
-- `--quick`: Skip cleaning between tests
-- `--verbose`: Show full CMake output
-
-### Usage in Development Workflow
-
-**After configuring CMake:**
-```bash
-cmake --preset mac-ai
-cmake -P scripts/validate-cmake-config.cmake build
-./scripts/check-include-paths.sh build
-```
-
-**Before committing:**
-```bash
-# Test all platform presets configure successfully
-./scripts/test-cmake-presets.sh --platform mac
-```
-
-**When adding new targets:**
-```bash
-# Check for circular dependencies
-python3 scripts/visualize-deps.py build --stats
-```
-
-**For full details**, see [docs/internal/testing/cmake-validation.md](../docs/internal/testing/cmake-validation.md)
-
-## Symbol Conflict Detection
-
-Tools to detect One Definition Rule (ODR) violations and duplicate symbol definitions **before linking fails**.
-
-### Quick Start
-
-```bash
-# Extract symbols from object files
-./scripts/extract-symbols.sh
-
-# Check for conflicts
-./scripts/check-duplicate-symbols.sh
-
-# Run tests
-./scripts/test-symbol-detection.sh
-```
-
-### Scripts
-
-#### extract-symbols.sh
-
-Scans compiled object files and creates a JSON database of all symbols and their locations.
-
-**Features:**
-- Cross-platform: macOS/Linux (nm), Windows (dumpbin)
-- Fast: ~2-3 seconds for typical builds
-- Identifies duplicate definitions across object files
-- Tracks symbol type (text, data, read-only, etc.)
-
-**Usage:**
-```bash
-# Extract from build directory
-./scripts/extract-symbols.sh build
-
-# Custom output file
-./scripts/extract-symbols.sh build symbols.json
-```
-
-**Output:** `build/symbol_database.json` - JSON with symbol conflicts listed
-
-#### check-duplicate-symbols.sh
-
-Analyzes symbol database and reports conflicts in developer-friendly format.
-
-**Usage:**
-```bash
-# Check default database
-./scripts/check-duplicate-symbols.sh
-
-# Verbose output
-./scripts/check-duplicate-symbols.sh --verbose
-
-# Include fix suggestions
-./scripts/check-duplicate-symbols.sh --fix-suggestions
-```
-
-**Exit codes:**
-- `0` = No conflicts found
-- `1` = Conflicts detected (fails in CI/pre-commit)
-
-#### test-symbol-detection.sh
-
-Integration test suite for symbol detection system.
-
-**Usage:**
-```bash
-./scripts/test-symbol-detection.sh
-```
-
-**Validates:**
-- Scripts are executable
-- Build directory and object files exist
-- Symbol extraction works correctly
-- JSON database is valid
-- Duplicate checker runs successfully
-- Pre-commit hook is configured
-
-### Git Hook Integration
-
-**First-time setup:**
-```bash
-git config core.hooksPath .githooks
-chmod +x .githooks/pre-commit
-```
-
-The pre-commit hook automatically runs symbol checks on changed files:
-- Fast: ~1-2 seconds
-- Only checks affected objects
-- Warns about conflicts
-- Can skip with `--no-verify` if needed
-
-### CI/CD Integration
-
-The `symbol-detection.yml` GitHub Actions workflow runs on:
-- All pushes to `master` and `develop`
-- All pull requests affecting C++ files
-- Workflows can be triggered manually
-
-**What it does:**
-1. Builds project
-2. Extracts symbols from all object files
-3. Checks for conflicts
-4. Uploads symbol database as artifact
-5. Fails job if conflicts found
-
-### Common Fixes
-
-**Duplicate global variable:**
-```cpp
-// Bad - defined in both files
-ABSL_FLAG(std::string, rom, "", "ROM path");
-
-// Fix 1: Use static (internal linkage)
-static ABSL_FLAG(std::string, rom, "", "ROM path");
-
-// Fix 2: Use anonymous namespace
-namespace {
-  ABSL_FLAG(std::string, rom, "", "ROM path");
-}
-```
-
-**Duplicate function:**
-```cpp
-// Bad - defined in both files
-void ProcessData() { /* ... */ }
-
-// Fix: Make inline or use static
-inline void ProcessData() { /* ... */ }
-```
-
-### Performance
-
-| Operation | Time |
-|-----------|------|
-| Extract (4000 objects, macOS) | ~3s |
-| Extract (4000 objects, Windows) | ~5-7s |
-| Check duplicates | <100ms |
-| Pre-commit hook | ~1-2s |
-
-### Documentation
-
-Full documentation available in:
-- [docs/internal/testing/symbol-conflict-detection.md](../docs/internal/testing/symbol-conflict-detection.md)
-- [docs/internal/testing/sample-symbol-database.json](../docs/internal/testing/sample-symbol-database.json)
-
-## AI Model Evaluation Suite
-
-Tools for evaluating and comparing AI models used with the z3ed CLI agent system. Located in `scripts/ai/`.
-
-### Quick Start
-
-```bash
-# Run a quick smoke test
-./scripts/ai/run-model-eval.sh --quick
-
-# Evaluate specific models
-./scripts/ai/run-model-eval.sh --models llama3.2,qwen2.5-coder
-
-# Evaluate all available models
-./scripts/ai/run-model-eval.sh --all
-
-# Evaluate with comparison report
-./scripts/ai/run-model-eval.sh --default --compare
-```
-
-### Components
-
-#### run-model-eval.sh
-
-Main entry point script. Handles prerequisites checking, model pulling, and orchestrates the evaluation.
-
-**Options:**
-- `--models, -m LIST` - Comma-separated list of models to evaluate
-- `--all` - Evaluate all available Ollama models
-- `--default` - Evaluate default models from config (llama3.2, qwen2.5-coder, etc.)
-- `--tasks, -t LIST` - Task categories: rom_inspection, code_analysis, tool_calling, conversation
-- `--timeout SEC` - Timeout per task (default: 120)
-- `--quick` - Quick smoke test (single model, fewer tasks)
-- `--compare` - Generate comparison report after evaluation
-- `--dry-run` - Show what would run without executing
-
-#### eval-runner.py
-
-Python evaluation engine that runs tasks against models and scores responses.
-
-**Features:**
-- Multi-model evaluation
-- Pattern-based accuracy scoring
-- Response completeness analysis
-- Tool usage detection
-- Response time measurement
-- JSON output for analysis
-
-**Direct usage:**
-```bash
-python scripts/ai/eval-runner.py \
-  --models llama3.2,qwen2.5-coder \
-  --tasks all \
-  --output results/eval-$(date +%Y%m%d).json
-```
-
-#### compare-models.py
-
-Generates comparison reports from evaluation results.
-
-**Formats:**
-- `--format table` - ASCII table (default)
-- `--format markdown` - Markdown with analysis
-- `--format json` - Machine-readable JSON
-
-**Usage:**
-```bash
-# Compare all recent evaluations
-python scripts/ai/compare-models.py results/eval-*.json
-
-# Generate markdown report
-python scripts/ai/compare-models.py --format markdown --output report.md results/*.json
-
-# Get best model name (for scripting)
-BEST_MODEL=$(python scripts/ai/compare-models.py --best results/eval-*.json)
-```
-
-#### eval-tasks.yaml
-
-Task definitions and scoring configuration. Categories:
-
-| Category | Description | Example Tasks |
-|----------|-------------|---------------|
-| rom_inspection | ROM data structure queries | List dungeons, describe maps |
-| code_analysis | Code understanding tasks | Explain functions, find bugs |
-| tool_calling | Tool usage evaluation | File operations, build commands |
-| conversation | Multi-turn dialog | Follow-ups, clarifications |
-
-**Scoring dimensions:**
-- **Accuracy** (40%): Pattern matching against expected responses
-- **Completeness** (30%): Response depth and structure
-- **Tool Usage** (20%): Appropriate tool selection
-- **Response Time** (10%): Speed (normalized to 0-10)
-
-### Output
-
-Results are saved to `scripts/ai/results/`:
-- `eval-YYYYMMDD-HHMMSS.json` - Individual evaluation results
-- `comparison-YYYYMMDD-HHMMSS.md` - Comparison reports
-
-**Sample output:**
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                    YAZE AI Model Evaluation Report                   │
-├──────────────────────────────────────────────────────────────────────┤
-│ Model                    │ Accuracy   │ Tool Use   │ Speed   │ Runs │
-├──────────────────────────────────────────────────────────────────────┤
-│ qwen2.5-coder:7b         │     8.8/10 │     9.2/10 │    2.1s │     3 │
-│ llama3.2:latest          │     7.9/10 │     7.5/10 │    2.3s │     3 │
-│ codellama:7b             │     7.2/10 │     8.1/10 │    2.8s │     3 │
-├──────────────────────────────────────────────────────────────────────┤
-│ Recommended: qwen2.5-coder:7b (score: 8.7/10)                        │
-└──────────────────────────────────────────────────────────────────────┘
-```
-
-### Prerequisites
-
-- **Ollama**: Install from https://ollama.ai
-- **Python 3.10+** with `requests` and `pyyaml`:
-  ```bash
-  pip install requests pyyaml
-  ```
-- **At least one model pulled**:
-  ```bash
-  ollama pull llama3.2
-  ```
-
-### Adding Custom Tasks
-
-Edit `scripts/ai/eval-tasks.yaml` to add new evaluation tasks:
-
-```yaml
-categories:
-  custom_category:
-    description: "My custom tasks"
-    tasks:
-      - id: "my_task"
-        name: "My Task Name"
-        prompt: "What is the purpose of..."
-        expected_patterns:
-          - "expected|keyword|pattern"
-        required_tool: null
-        scoring:
-          accuracy_criteria: "Must mention X, Y, Z"
-          completeness_criteria: "Should include examples"
-```
-
-### Integration with CI
-
-The evaluation suite can be integrated into CI pipelines:
-
-```yaml
-# .github/workflows/ai-eval.yml
-- name: Run AI Evaluation
-  run: |
-    ollama serve &
-    sleep 5
-    ollama pull llama3.2
-    ./scripts/ai/run-model-eval.sh --models llama3.2 --tasks tool_calling
-```
+# YAZE Scripts Index
+
+Status: ACTIVE
+Last Reviewed: 2026-09-16
+
+Every script in `scripts/` (top level) is listed below exactly once with a
+classification. This file is an index, not a manual: run `<script> --help` for
+options, and follow the linked doc when a script has one.
+
+## Classification
+
+| Class | Meaning |
+|-------|---------|
+| **canonical** | The supported entry point for its job. Keep it working; update it when behaviour changes. |
+| **compatibility** | Still functional and still referenced, but a canonical script covers the same ground. Prefer the canonical one for new work. |
+| **deprecated** | Unreferenced, superseded, or targeting paths/tools that no longer exist. Do not build on these; they are removal candidates. |
+
+Before deleting anything in the deprecated column, re-check references
+(`rg -n "scripts/<name>" .`) and history (`git log -- scripts/<name>`) — several
+entries are only reachable from archived docs.
+
+## Binary wrappers
+
+Each wrapper picks the newest matching build (`build_ai` first). Override with
+the listed environment variable.
+
+| Script | Class | Purpose | Override |
+|--------|-------|---------|----------|
+| `yaze` | canonical | Launch the yaze GUI; supports `--which` and `--doctor` | `YAZE_BIN` |
+| `z3ed` | canonical | Launch the z3ed CLI; supports `--which` and `--doctor` | `Z3ED_BIN` |
+| `z3disasm` | canonical | Launch z3disasm from a z3dk checkout; supports `--which` and `--doctor` | `Z3DISASM_BIN`, `Z3DK_ROOT` |
+| `yaze_test` | compatibility | Launch a test binary. Only works with the override set: the build produces per-suite binaries (`yaze_test_unit`, `yaze_test_integration`, `yaze_test_gui`, ...), not a single `yaze_test` | `YAZE_TEST_BIN` |
+
+## Build and environment
+
+| Script | Class | Purpose |
+|--------|-------|---------|
+| `dev-setup.sh` | canonical | One-command setup for a new developer machine |
+| `verify-build-environment.sh` / `.ps1` | canonical | Per-machine toolchain diagnostics; `--fix` / `-FixIssues` repairs common problems |
+| `setup-vcpkg-windows.ps1` | canonical | Bootstrap and populate vcpkg on Windows |
+| `agent_build.sh` | canonical | Build AI-enabled targets for agent workflows (`YAZE_BUILD_DIR` overrides the build dir) |
+| `build_cleaner.py` | canonical | Maintain CMake source lists and self-header includes; also a `build_cleaner` CMake target |
+| `fetch_usdasm.sh` | canonical | Fetch the usdasm disassembly on demand (`USDASM_DIR`, `USDASM_REPO_URL`) |
+| `requirements.txt` | canonical | Python dependencies for the scripts in this directory |
+| `gemini_build.sh` | compatibility | Thin wrapper that forwards to `agent_build.sh`; kept for older docs |
+| `dev_start_yaze.sh` | compatibility | Build with gRPC and launch yaze; `agent_build.sh` plus `scripts/yaze` does the same |
+| `test-linux-build.sh` | deprecated | Local Docker rehearsal of the Linux CI build. Unreferenced; Linux coverage now comes from CI and `scripts/cloud/bootstrap.sh` |
+
+## Apple platforms
+
+| Script | Class | Purpose |
+|--------|-------|---------|
+| `build-ios.sh` | canonical | Build iOS static libs via CMake and generate the Xcode project with XcodeGen |
+| `xcodebuild-ios.sh` | canonical | Build / archive / export / deploy the iOS app (`build`, `ipa`, `deploy`) |
+| `signing.env.example` | canonical | Template for `scripts/signing.env` (gitignored), auto-sourced by `xcodebuild-ios.sh` |
+| `create-macos-bundle.sh` | deprecated | Standalone `.app` bundler. Unreferenced; macOS packaging lives in `scripts/release/` and the release workflow |
+
+See [docs/public/build/quick-reference.md](../docs/public/build/quick-reference.md)
+for signing and device-deploy details, and `scripts/dev/ios-ipad-workflow.sh` for
+multi-iPad deployment.
+
+## Web and WASM
+
+| Script | Class | Purpose |
+|--------|-------|---------|
+| `build-wasm.sh` | canonical | Build the WASM app (`debug`/`release`/`ai`/`smoke`); used by CI |
+| `package-wasm-assets.sh` | canonical | Stage assets into the WASM dist directory; called by `build-wasm.sh` and CI |
+| `serve-wasm.sh` | canonical | Local dev server with the COOP/COEP headers the build needs |
+| `build_z3ed_wasm.sh` | compatibility | CLI-only z3ed WASM build; `build-wasm.sh` is the maintained path |
+
+## Install and release
+
+| Script | Class | Purpose |
+|--------|-------|---------|
+| `install-nightly.sh` | canonical | Install a nightly build from the remote repository |
+| `install-nightly-local.sh` | canonical | Install a nightly built from the local checkout (`YAZE_NIGHTLY_*` overrides) |
+| `extract_changelog.py` | deprecated | Reads `docs/H1-changelog.md`, which no longer exists. Use `scripts/release/extract-release-notes.sh` |
+| `merge_feature.sh` | deprecated | Opinionated feature → develop → master merge helper. Unreferenced; see [git-workflow.md](../docs/public/developer/git-workflow.md) |
+
+## Lint, hooks, and quality gates
+
+| Script | Class | Purpose |
+|--------|-------|---------|
+| `install-git-hooks.sh` | canonical | Install/uninstall the pre-commit and pre-push hooks |
+| `pre-commit.sh` | canonical | Pre-commit validation (installed by `install-git-hooks.sh`) |
+| `pre-push.sh` | canonical | Pre-push validation, fast by default with change-aware UI regression coverage |
+| `lint.sh` | canonical | clang-format and clang-tidy with the project configuration |
+| `quality_check.sh` | compatibility | Wraps `lint.sh` with extra reporting; referenced from architecture docs |
+| `pre-push-test.sh` / `.ps1` | compatibility | Broader pre-push sweep including symbol checks; see [pre-push-checklist.md](../docs/internal/testing/pre-push-checklist.md) |
+| `find-unsafe-array-access.sh` | deprecated | One-off static scan from the 2025 WASM bounds-checking audit, which is closed |
+
+## Symbol conflict detection
+
+Full documentation: [symbol-conflict-detection.md](../docs/internal/testing/symbol-conflict-detection.md).
+`extract-symbols.sh` and `check-duplicate-symbols.sh` are invoked by
+`.githooks/pre-commit`.
+
+| Script | Class | Purpose |
+|--------|-------|---------|
+| `extract-symbols.sh` | canonical | Build a JSON symbol database from compiled object files |
+| `check-duplicate-symbols.sh` | canonical | Report ODR conflicts from that database (exit 1 on conflict) |
+| `verify-symbols.sh` | canonical | Library-level ODR scan used by pre-push flows (`BUILD_DIR`, `VERBOSE`, `SHOW_ALL`) |
+| `test-symbol-detection.sh` | canonical | Integration test for the symbol detection scripts |
+
+## CMake and configuration validation
+
+| Script | Class | Purpose |
+|--------|-------|---------|
+| `validate-cmake-config.cmake` | canonical | Validate an already-configured build dir (`cmake -P scripts/validate-cmake-config.cmake build`) |
+| `validate-cmake-config.sh` | canonical | Validate a *set of feature flags* for internal consistency before configuring |
+| `check-include-paths.sh` | canonical | Check `compile_commands.json` for missing include paths (`jq` recommended) |
+| `test-cmake-presets.sh` | canonical | Confirm every preset for a platform configures successfully |
+| `test-config-matrix.sh` | canonical | Exercise feature-flag combinations |
+| `visualize-deps.py` | canonical | Emit GraphViz/Mermaid/text dependency graphs and detect cycles |
+
+## Test execution
+
+Test strategy and labels live in [test/README.md](../test/README.md) and
+[docs/internal/testing/](../docs/internal/testing/README.md).
+
+| Script | Class | Purpose |
+|--------|-------|---------|
+| `test_fast.sh` | canonical | High-signal subset of stable unit + integration tests for quick iteration |
+| `test_runner.py` | canonical | Sharded parallel test execution; driven by `cmake/TestInfrastructure.cmake` |
+| `aggregate_test_results.py` | canonical | Merge parallel test results into one report; used by CI |
+| `oracle_smoke.sh` | canonical | Oracle-of-Secrets regression smoke checks, JSON summary on stdout |
+| `rom_safety_preflight.sh` | canonical | ROM write-safety preflight; see [rom-safety-guardrails.md](../docs/internal/agents/rom-safety-guardrails.md) |
+| `validate-yaze.sh` | canonical | Compare a yaze-written ROM against a golden ROM with ZScreamCLI |
+| `agent_test_suite.sh` | compatibility | Ollama/Gemini provider and tool-calling smoke tests |
+| `run_overworld_tests.sh` | compatibility | Overworld-focused test runner; `ctest` labels cover the same suites |
+| `test_dungeon_loading.sh` | deprecated | Ad-hoc dungeon room load check, unreferenced |
+| `test_gui_tools.sh` | deprecated | Ad-hoc GUI automation check, unreferenced |
+| `test_ai_features.sh` / `.ps1` | deprecated | AI feature smoke, unreferenced and overlapping `agent_test_suite.sh` |
+| `demo_agent_gui.sh` | deprecated | Demo recording helper, unreferenced |
+| `start_collab_server.sh` | deprecated | Launcher for the external `yaze-server` repository, unreferenced |
+
+## ROM data tooling (Python)
+
+These shell out to `scripts/z3ed`. All paths come from flags or environment
+variables; there are no machine-specific defaults.
+
+| Script | Class | Purpose |
+|--------|-------|---------|
+| `analyze_room.py` | canonical | Parse dungeon room objects and layer assignment; see [README_analyze_room.md](README_analyze_room.md) |
+| `dump_object_handlers.py` | canonical | Dump the dungeon object handler tables; feeds [alttp-object-handlers.md](../docs/internal/zelda3/alttp-object-handlers.md) |
+| `location_mapper.py` | canonical | Generate docs for dungeons/shrines/caves/houses/shops across ROM profiles (`ALTTP_ROM`, `Z3ED_BIN`) |
+| `discover_rooms.py` | canonical | Auto-discover room layouts from an entrance ID and update profile configs |
+
+`dungeon_overview.py` was removed on 2026-09-16: it was an Oracle-only,
+single-dungeon predecessor of `location_mapper.py` with hardcoded home-directory
+paths, and its Goron Mines data already lives in
+`scripts/profiles/oracle_of_secrets.py`.
+
+## Subdirectories
+
+| Directory | Contents |
+|-----------|----------|
+| `agents/` | Agent coordination (`coord`), protocol audits, CI helpers, reference checkers, and their unit tests — see [agents/README.md](agents/README.md) |
+| `ai/` | Model evaluation suite (`run-model-eval.sh`, `eval-runner.py`, `compare-models.py`, `eval-tasks.yaml`) plus agent research tools (navigator, map compiler, profiler, asm tuner) |
+| `cloud/` | Cloud agent bootstrap and its tests |
+| `dev/` | Local developer workflows: `local-workflow.sh` (canonical build + deploy), iPad deployment, guardrail and smoke loops |
+| `i18n/` | Translation catalog extraction and validation |
+| `package/` | Packaging entry point (`release.sh`) |
+| `profiles/` | ROM profile definitions consumed by `location_mapper.py` and `discover_rooms.py` |
+| `release/` | Release validation: DMG/archive/package smoke checks, release-note extraction |
+
+## Conventions
+
+- **`build_cleaner.py` markers.** A `set()` block is auto-maintained when a
+  comment within three lines above it contains `auto-maintain` (for example
+  `# This list is auto-maintained by scripts/build_cleaner.py`). A source file is
+  skipped entirely when it contains the token `build_cleaner:ignore` near the top.
+  `.gitignore` support needs `pathspec` (`pip3 install -r scripts/requirements.txt`).
+- **No host-specific paths.** Scripts must take paths from a CLI flag or an
+  environment variable with a repository-relative default. This is enforced by
+  `scripts/agents/tests/test_tool_path_defaults.py`
+  (`python3 -m unittest discover -s scripts/agents/tests`).
+
+## Known gaps
+
+Each of these needs its own change; none is fixed by this index.
+
+- `cmake/TestInfrastructure.cmake` references `scripts/smart_test_selector.py`,
+  which does not exist. The target that uses it fails if invoked.
+- Several public docs still describe a single `yaze_test` binary with
+  `--unit` / `--integration` / `--e2e` flags (`docs/public/developer/testing-guide.md`,
+  `docs/public/examples/README.md`, `test/README.md`, `test/e2e/README.md`).
+  The build produces per-suite binaries run through `ctest` labels.
+- Homebrew formulae under `homebrew/Formula/` are out of date; tracked separately
+  in [homebrew/README.md](../homebrew/README.md).

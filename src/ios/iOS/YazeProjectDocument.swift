@@ -62,6 +62,8 @@ final class YazeProjectDocument: UIDocument {
   override func contents(forType typeName: String) throws -> Any {
     let root = FileWrapper(directoryWithFileWrappers: [:])
 
+    synchronizeManifestRomChecksum()
+
     // manifest.json
     if var m = manifest {
       m.lastModifiedAt = ISO8601DateFormatter().string(from: Date())
@@ -149,6 +151,7 @@ final class YazeProjectDocument: UIDocument {
 
   func setRom(_ data: Data) {
     romData = data
+    synchronizeManifestRomChecksum()
     updateChangeCount(.done)
   }
 
@@ -164,7 +167,14 @@ final class YazeProjectDocument: UIDocument {
 
   func setManifest(_ m: YazeDocumentManifest) {
     manifest = m
+    synchronizeManifestRomChecksum()
     updateChangeCount(.done)
+  }
+
+  private func synchronizeManifestRomChecksum() {
+    guard let romData, var updatedManifest = manifest else { return }
+    updatedManifest.romChecksum = YazeRomChecksum.sha1Hex(for: romData)
+    manifest = updatedManifest
   }
 }
 
@@ -196,6 +206,7 @@ extension YazeProjectDocument {
     let romURL = legacyBundleURL.appendingPathComponent("rom")
     if fm.fileExists(atPath: romURL.path) {
       doc.romData = try? Data(contentsOf: romURL)
+      doc.synchronizeManifestRomChecksum()
     }
 
     // Copy project folder

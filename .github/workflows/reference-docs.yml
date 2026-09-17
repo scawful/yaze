@@ -1,7 +1,8 @@
 name: Reference Docs
 
 # Keeps docs/internal/zelda3 address tables in sync with the pinned usdasm
-# disassembly and jpdasm symbol maps, and unit-tests the checker itself.
+# disassembly and jpdasm symbol maps, and runs the scripts/agents/tests suite
+# (the reference checker plus the portable-path guards for scripts/ tooling).
 
 on:
   pull_request:
@@ -9,6 +10,8 @@ on:
       - "docs/internal/zelda3/**"
       - "scripts/agents/alttp_reference.py"
       - "scripts/agents/tests/**"
+      - "scripts/ai/asm_tuner.py"
+      - "scripts/location_mapper.py"
       - "scripts/cloud/bootstrap.sh"
       - ".github/workflows/reference-docs.yml"
   workflow_dispatch:
@@ -27,7 +30,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - name: Unit-test the checker
+      - name: Unit-test the checker and script path defaults
         run: python3 -m unittest discover -s scripts/agents/tests -v
       - name: Clone pinned reference repos
         run: bash scripts/cloud/bootstrap.sh refs

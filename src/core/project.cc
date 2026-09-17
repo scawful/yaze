@@ -667,6 +667,21 @@ std::string YazeProject::MakeStorageKey(absl::string_view suffix) const {
   return absl::StrFormat("%s_%s", base, suffix);
 }
 
+namespace {
+// A '\r' not followed by '\n' is a classic-Mac line ending. The parser can
+// normalize CRLF, but a lone CR would split a line somewhere it does not
+// expect, so both directions refuse it.
+bool ContainsLoneCarriageReturn(const std::string& content) {
+  for (size_t i = 0; i < content.size(); ++i) {
+    if (content[i] == '\r' &&
+        (i + 1 >= content.size() || content[i + 1] != '\n')) {
+      return true;
+    }
+  }
+  return false;
+}
+}  // namespace
+
 absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   std::ostringstream file;
 
@@ -964,15 +979,40 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   }
 
   file << "# End of YAZE Project File\n";
-  return file.str();
+
+  // Refuse to WRITE what ParseFromString refuses to READ. Values are streamed
+  // verbatim — metadata.description and resource labels injected from
+  // hack_manifest.json among them — so a lone CR pasted from an old-Mac
+  // source would round-trip through Save() and leave the project permanently
+  // unopenable, with the previous good file already overwritten. Failing here
+  // keeps that file intact.
+  std::string serialized = file.str();
+  if (ContainsLoneCarriageReturn(serialized)) {
+    return absl::InvalidArgumentError(
+        "Project contains a lone carriage return in a value; refusing to "
+        "write a descriptor that could not be read back");
+  }
+  return serialized;
 }
 
 absl::Status YazeProject::ParseFromString(const std::string& content) {
+  if (ContainsLoneCarriageReturn(content)) {
+    return absl::InvalidArgumentError(
+        "Project file contains unsupported lone carriage returns");
+  }
+
   std::istringstream stream(content);
   std::string line;
   std::string current_section;
 
   while (std::getline(stream, line)) {
+    // std::getline() consumes '\n' but preserves the '\r' in CRLF input.
+    // Normalize that line ending before comment, section, or value parsing so
+    // project safety flags have identical behavior across platforms.
+    if (!line.empty() && line.back() == '\r') {
+      line.pop_back();
+    }
+
     if (line.empty() || line[0] == '#')
       continue;
 
