@@ -29,6 +29,7 @@
 #include "rom/rom.h"
 #include "zelda3/dungeon/custom_object.h"  // For CustomObjectManager
 #include "zelda3/dungeon/dimension_service.h"
+#include "zelda3/dungeon/draw_routines/draw_routine_symbology.h"
 #include "zelda3/dungeon/dungeon_object_editor.h"
 #include "zelda3/dungeon/dungeon_object_registry.h"
 #include "zelda3/dungeon/minecart_object_semantics.h"
@@ -511,6 +512,12 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
           SelectObject(obj_id);
         }
         const bool item_visible = ImGui::IsItemVisible();
+        // Routine symbology — one fast registry lookup per visible card only.
+        // Off-screen items are skipped entirely (no work queued until culled).
+        zelda3::DrawRoutineSymbology sym;
+        if (item_visible) {
+          sym = zelda3::GetSymbologyForObject(static_cast<int16_t>(obj_id));
+        }
         ImVec2 button_pos = ImGui::GetItemRectMin();
         gui::BeginRoomObjectDragSource(
             static_cast<uint16_t>(obj_id), current_room_id_, 0, 0,
@@ -551,6 +558,34 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
               button_pos,
               ImVec2(button_pos.x + item_size, button_pos.y + item_size),
               border_color, 2.0f, 0, is_selected ? 2.0f : 1.0f);
+        }
+
+        // Compact routine symbology badge — top-right corner overlay, drawn
+        // over both graphical thumbnails and fallback tiles.  Only rendered
+        // for visible cards (sym is only populated when item_visible).
+        // Skipped for unmapped objects (badge == "?") to reduce visual noise.
+        if (item_visible && !sym.badge.empty() && sym.badge != "?") {
+          const ImVec2 badge_text_size =
+              ImGui::CalcTextSize(sym.badge.c_str(), nullptr, true);
+          const float badge_pad = 2.0f;
+          const float badge_w = badge_text_size.x + badge_pad * 2.0f;
+          const float badge_h = badge_text_size.y + badge_pad;
+          const ImVec2 badge_tl(button_pos.x + item_size - badge_w,
+                                button_pos.y);
+          const ImVec2 badge_br(button_pos.x + item_size,
+                                button_pos.y + badge_h);
+          draw_list->AddRectFilled(
+              badge_tl, badge_br,
+              ImGui::GetColorU32(WithAlpha(theme.panel_bg_darker, 0.82f)),
+              1.5f);
+          // BothBG routines use the wall-accent color; others use secondary
+          // text so the badge never competes with the thumbnail content.
+          const ImVec4& badge_color = sym.dual_layer
+                                          ? theme.dungeon_object_wall
+                                          : theme.text_secondary_gray;
+          draw_list->AddText(
+              ImVec2(badge_tl.x + badge_pad, badge_tl.y + badge_pad * 0.5f),
+              ImGui::GetColorU32(badge_color), sym.badge.c_str());
         }
 
         if (item_visible && show_id) {
@@ -639,6 +674,30 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
               }
               ImGui::Dummy(ImVec2(layout.bounds_width * cell_size,
                                   layout.bounds_height * cell_size));
+            }
+
+            // Routine symbology context — built here (hover-only) so no
+            // strings are allocated for off-screen or non-hovered items.
+            // sym was computed when the card became visible; accessing it
+            // inside the tooltip block is always safe.
+            if (!sym.family.empty()) {
+              ImGui::Separator();
+              // Named specials (Chest, BigKeyLock, etc.) use item_color so
+              // they stand out; directional families use secondary text.
+              const bool is_named_special =
+                  (sym.badge == "C" || sym.badge == "K" || sym.badge == "B" ||
+                   sym.badge == "P");
+              if (is_named_special) {
+                ImGui::TextColored(theme.item_color, tr("Routine: %s"),
+                                   sym.family.c_str());
+              } else {
+                ImGui::TextColored(theme.text_secondary_gray, tr("Routine: %s"),
+                                   sym.family.c_str());
+              }
+              if (sym.dual_layer) {
+                ImGui::TextColored(theme.dungeon_object_wall,
+                                   tr("  BothBG: writes to BG1 and BG2"));
+              }
             }
 
             ImGui::Separator();

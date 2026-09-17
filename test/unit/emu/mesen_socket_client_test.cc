@@ -692,7 +692,9 @@ TEST(MesenSocketClientTest, UnsubscribeReturnsPromptlyWhileIdle) {
 
 class FakeMesenTcpPingServer {
  public:
-  FakeMesenTcpPingServer() {
+  explicit FakeMesenTcpPingServer(std::string command_type = {},
+                                  std::string command_response = {})
+      : command_type_(command_type), command_response_(command_response) {
     listen_fd_ = socket(AF_INET, SOCK_STREAM, 0);
     if (listen_fd_ < 0) {
       throw std::runtime_error("failed to create TCP listen socket");
@@ -782,6 +784,20 @@ class FakeMesenTcpPingServer {
     }
     const char* pong = "{\"success\":true,\"data\":{\"pong\":true}}\n";
     send(client_fd_, pong, std::strlen(pong), 0);
+    if (!command_type_.empty()) {
+      if (!ReadLine(client_fd_, &line) ||
+          line.find("\"type\":\"" + command_type_ + "\"") ==
+              std::string::npos) {
+        SetError("unexpected TCP command after PING");
+        return;
+      }
+      const std::string response = command_response_ + "\n";
+      if (send(client_fd_, response.c_str(), response.size(), 0) !=
+          static_cast<ssize_t>(response.size())) {
+        SetError("failed to send TCP command response");
+        return;
+      }
+    }
     while (running_) {
       char buf[32];
       if (recv(client_fd_, buf, sizeof(buf), 0) <= 0) {
@@ -804,6 +820,8 @@ class FakeMesenTcpPingServer {
   std::atomic<bool> running_{false};
   mutable std::mutex error_mutex_;
   std::string error_;
+  std::string command_type_;
+  std::string command_response_;
 };
 
 TEST(MesenSocketClientTest, ConnectsToTcpEndpoint) {
@@ -815,6 +833,35 @@ TEST(MesenSocketClientTest, ConnectsToTcpEndpoint) {
   auto status = client.Connect(endpoint);
   ASSERT_TRUE(status.ok()) << status.message();
   EXPECT_EQ(client.GetSocketPath(), endpoint);
+  client.Disconnect();
+  server.Stop();
+  EXPECT_TRUE(server.error().empty()) << server.error();
+}
+
+TEST(MesenSocketClientTest, GetCpuStateParsesLowercaseServerSchema) {
+  FakeMesenTcpPingServer server(
+      "CPU",
+      R"({"success":true,"data":{"pc":"0x128036","flags":"0x32","a":"0xB700","x":"0x1234","y":"0xABCD","sp":"0x01FF","d":"0x4321","k":"0x12","dbr":"0x7E","p":"0x32","cycles":12345,"consoleType":0}})");
+  server.Start();
+
+  MesenSocketClient client;
+  const std::string endpoint =
+      "tcp://127.0.0.1:" + std::to_string(server.port());
+  ASSERT_TRUE(client.Connect(endpoint).ok());
+
+  const auto cpu = client.GetCpuState();
+  ASSERT_TRUE(cpu.ok()) << cpu.status().message();
+  EXPECT_EQ(cpu->A, 0xB700);
+  EXPECT_EQ(cpu->X, 0x1234);
+  EXPECT_EQ(cpu->Y, 0xABCD);
+  EXPECT_EQ(cpu->SP, 0x01FF);
+  EXPECT_EQ(cpu->D, 0x4321);
+  EXPECT_EQ(cpu->PC, 0x128036);
+  EXPECT_EQ(cpu->K, 0x12);
+  EXPECT_EQ(cpu->DBR, 0x7E);
+  EXPECT_EQ(cpu->P, 0x32);
+  EXPECT_FALSE(cpu->emulation_mode);
+
   client.Disconnect();
   server.Stop();
   EXPECT_TRUE(server.error().empty()) << server.error();
