@@ -12,7 +12,6 @@ set(
   app/emu/audio/internal/instructions.cc
   app/emu/audio/spc700.cc
   app/emu/cpu/cpu.cc
-  app/emu/cpu/cpu_serialization.cc
   app/emu/cpu/internal/addressing.cc
   app/emu/cpu/internal/instructions.cc
   app/emu/debug/apu_debugger.cc
@@ -26,11 +25,9 @@ set(
   app/emu/emulator.cc
   app/emu/input/input_backend.cc
   app/emu/input/input_manager.cc
-  app/emu/internal_emulator_adapter.cc
   app/emu/memory/dma.cc
   app/emu/memory/memory.cc
   app/emu/mesen/mesen_client_registry.cc
-  app/emu/mesen/mesen_emulator_adapter.cc
   app/emu/mesen/mesen_socket_client.cc
   app/emu/render/emulator_render_service.cc
   app/emu/render/render_context.cc

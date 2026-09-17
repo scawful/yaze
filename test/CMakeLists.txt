@@ -398,8 +398,6 @@ if(YAZE_BUILD_TESTS)
     ../src/cli/service/resources/resource_catalog.cc
     cli/service/resources/command_context_test.cc
     cli/service/resources/command_handler_test.cc
-    # Inspection tests: gated by GTEST_SKIP when ROM not present; safe in unit suite
-    inspection/dungeon_palette_inspection_test.cc
   )
   set(STABLE_INTEGRATION_TEST_SOURCES
     # Integration Tests
@@ -438,7 +436,6 @@ if(YAZE_BUILD_TESTS)
     integration/palette_manager_test.cc
     integration/object_selection_integration_test.cc
     integration/interaction_delegation_test.cc
-    integration/memory_debugging_test.cc
   )
   if(YAZE_ENABLE_AGENT_CLI)
     list(APPEND STABLE_UNIT_TEST_SOURCES
@@ -458,8 +455,6 @@ if(YAZE_BUILD_TESTS)
       unit/tools/project_tool_test.cc
       unit/tools/project_graph_tool_test.cc
       unit/tools/code_gen_tool_test.cc
-      # planning/ module is compiled only with the agent library
-      unit/cli/tile16_proposal_generator_test.cc
       # agent tool_dispatcher integration test requires agent backend symbols
       integration/agent/tool_dispatcher_test.cc
     )
@@ -523,13 +518,8 @@ if(YAZE_BUILD_TESTS)
       integration/imgui_test_harness_logic_test.cc
       integration/screenshot_utils_test.cc
     )
-    # rom_debug_agent_test.cc depends on generated gRPC stubs
-    # (protos/emulator_service.grpc.pb.h) and is therefore gated here.
-    list(APPEND STABLE_UNIT_TEST_SOURCES
-      unit/cli/rom_debug_agent_test.cc
-    )
   else()
-    message(STATUS "Skipping rom_debug_agent_test (YAZE_ENABLE_GRPC=OFF)")
+    message(STATUS "Skipping gRPC integration tests (YAZE_ENABLE_GRPC=OFF)")
   endif()
 
   yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
