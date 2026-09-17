@@ -506,8 +506,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void InitializeTestSuites();
   void ApplyStartupVisibilityOverrides();
   void ApplyLayoutDefaultsMigrationIfNeeded();
-  // Returns a preferred startup category, skipping "Emulator" to prevent
-  // the emulator panel from auto-opening on project load.
+  // Returns a preferred startup category. Honors the last-active category
+  // (including Emulator). Never defaults to Emulator when nothing was saved.
   std::string GetPreferredStartupCategory(
       const std::string& saved_category,
       const std::vector<std::string>& available_categories) const;

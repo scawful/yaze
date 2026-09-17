@@ -61,6 +61,7 @@
 #include "app/editor/shell/windows/project_management_panel.h"
 #include "app/editor/shell/windows/settings_panel.h"
 #include "app/editor/system/editor_registry.h"
+#include "app/editor/system/emulator_runtime_policy.h"
 #include "app/editor/system/project_workflow_status.h"
 #include "app/editor/system/session/default_editor_factories.h"
 #include "app/editor/system/shortcut_configurator.h"
@@ -664,6 +665,12 @@ void EditorManager::ResetCurrentEditorLayout() {
 
 #ifdef YAZE_BUILD_AGENT_UI
 void EditorManager::ShowAIAgent() {
+  if (!user_settings_.prefs().show_experimental_editors) {
+    toast_manager_.Show(
+        "AI Agent is experimental — enable Experimental Editors in Settings",
+        ToastType::kWarning);
+    return;
+  }
   // Apply saved agent settings from the current project when opening the Agent
   // UI to respect the user's preferred provider/model.
   // TODO: Implement LoadAgentSettingsFromProject in AgentChat or AgentEditor
@@ -2635,23 +2642,18 @@ void EditorManager::ApplyLayoutDefaultsMigrationIfNeeded() {
 std::string EditorManager::GetPreferredStartupCategory(
     const std::string& saved_category,
     const std::vector<std::string>& available_categories) const {
-  // If saved category is valid and not Emulator, use it directly
-  if (!saved_category.empty() && saved_category != "Emulator") {
-    // Validate it exists in available_categories if the list is provided
-    if (available_categories.empty()) {
-      return saved_category;
-    }
-    for (const auto& cat : available_categories) {
-      if (cat == saved_category)
-        return saved_category;
-    }
+  const std::string preferred =
+      PreferStartupCategory(saved_category, available_categories);
+  if (preferred.empty()) {
+    return preferred;
   }
-  // Pick first non-Emulator category from available list
-  for (const auto& cat : available_categories) {
-    if (cat != "Emulator")
-      return cat;
+
+  const EditorType type = EditorRegistry::GetEditorTypeFromCategory(preferred);
+  if (EditorRegistry::IsExperimentalEditor(type) &&
+      !user_settings_.prefs().show_experimental_editors) {
+    return PreferStartupCategory("", available_categories);
   }
-  return {};
+  return preferred;
 }
 
 void EditorManager::SetAssetLoadMode(AssetLoadMode mode) {
@@ -3637,19 +3639,27 @@ void EditorManager::RunEmulator() {
   if (!current_rom)
     return;
 
-  // Visibility gates *rendering*, not *ticking*. Run(rom) is the lazy-init +
-  // render path; the SNES only starts (running_=true, snes_initialized_=true)
-  // after Run(rom) fires while the emulator panel is visible. Once running,
-  // switching to another editor hides the panel but must NOT freeze the game —
-  // the tick-only branch below keeps audio + frame state alive.
+  // Visible emulator: lazy-init + render + tick via Run(rom).
+  // Hidden emulator: pause by default so switching editors does not keep game
+  // audio/frame state advancing. Opt-in background keep-alive is a user pref.
+  // MusicPlayer drives its own RunAudioFrame path when needed.
   if (ui_coordinator_ && ui_coordinator_->IsEmulatorVisible()) {
     emulator_.Run(current_rom);
-  } else if (emulator_.running() && emulator_.is_snes_initialized()) {
-    if (emulator_.is_audio_focus_mode()) {
-      emulator_.RunAudioFrame();
-    } else {
-      emulator_.RunFrameOnly();
-    }
+    return;
+  }
+
+  if (!emulator_.running() || !emulator_.is_snes_initialized()) {
+    return;
+  }
+  if (!ShouldTickEmulatorWhenHidden(
+          user_settings_.prefs().emulator_keep_running_in_background)) {
+    return;
+  }
+
+  if (emulator_.is_audio_focus_mode()) {
+    emulator_.RunAudioFrame();
+  } else {
+    emulator_.RunFrameOnly();
   }
 }
 
@@ -6825,6 +6835,16 @@ std::string EditorManager::GenerateUniqueEditorTitle(
 
 void EditorManager::SwitchToEditor(EditorType editor_type, bool force_visible,
                                    bool from_dialog) {
+  if (EditorRegistry::IsExperimentalEditor(editor_type) &&
+      !user_settings_.prefs().show_experimental_editors) {
+    toast_manager_.Show(
+        absl::StrFormat(
+            "%s is experimental — enable Experimental Editors in Settings",
+            kEditorNames[static_cast<int>(editor_type)]),
+        ToastType::kWarning);
+    return;
+  }
+
   // Special case: Agent editor requires EditorManager-specific handling
 #ifdef YAZE_BUILD_AGENT_UI
   if (editor_type == EditorType::kAgent) {
