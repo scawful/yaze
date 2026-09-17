@@ -23,6 +23,7 @@ Purpose: keep plan/spec documents centralized and up to date.
   - `z3dk-integration-0.8.0.md`
   - `oracle-yaze-integration.md`
   - `ai-infra-improvements.md`
+  - `yaze-beta-feedback-backlog-2026-07-01.md`
 - Archived plans (partially implemented or completed reference documents): see `archive/plans-2025-11/` for historical context.
 
 ## Naming
