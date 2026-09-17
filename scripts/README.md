@@ -225,14 +225,83 @@ cmake --build build --target build_cleaner
 
 ### Current Auto-Maintained Variables
 
-**All 20 library source lists are now auto-maintained by default:**
+The static configuration handles variables whose cmake files use straightforward
+direct file lists. Complex indirect or cross-directory patterns require manual
+maintenance (see comments in `STATIC_CONFIG`).
 
-- Core: `YAZE_APP_EMU_SRC`, `YAZE_APP_CORE_SRC`, `YAZE_APP_EDITOR_SRC`, `YAZE_APP_ZELDA3_SRC`, `YAZE_NET_SRC`, `YAZE_UTIL_SRC`
-- GFX: `GFX_TYPES_SRC`, `GFX_BACKEND_SRC`, `GFX_RESOURCE_SRC`, `GFX_CORE_SRC`, `GFX_UTIL_SRC`, `GFX_RENDER_SRC`, `GFX_DEBUG_SRC`
-- GUI: `GUI_CORE_SRC`, `CANVAS_SRC`, `GUI_WIDGETS_SRC`, `GUI_AUTOMATION_SRC`, `GUI_APP_SRC`
-- Other: `YAZE_AGENT_SOURCES`, `YAZE_TEST_SOURCES`
+**Static config (auto-maintained via `--cmake-only`):**
 
-The script intelligently preserves conditional blocks (if/endif) and excludes conditional files from the main source list.
+| Variable | cmake File | Notes |
+|---|---|---|
+| `YAZE_APP_EMU_SRC` | `src/CMakeLists.txt` | Excludes `emu.cc` (main), ui/, and platform-conditional files |
+| `YAZE_APP_EDITOR_SRC` | `src/app/editor/editor_library.cmake` | Auto-maintained via file marker |
+| `YAZE_APP_ZELDA3_SRC` | `src/zelda3/zelda3_library.cmake` | Auto-maintained via file marker |
+
+**Auto-discovered (opt-in via `# build_cleaner:auto-maintain` marker in the cmake file):**
+
+- `GFX_*_SRC` variables in `src/app/gfx/gfx_library.cmake`
+- `GUI_*_SRC` / `CANVAS_SRC` variables in `src/app/gui/gui_library.cmake`
+
+**Intentionally excluded from auto-maintenance:**
+
+| Variable | Reason |
+|---|---|
+| `YAZE_NET_SRC` | Uses indirect variable composition (`${YAZE_NET_BASE_SRC}`); manual |
+| `YAZE_UTIL_SRC` | References cross-directory files from `src/core/`; manual |
+| `YAZE_AGENT_SOURCES` | Massive conditional multi-stage list; manual |
+
+The script preserves conditional `if/endif` blocks (platform-specific backends
+like SDL3 and WASM) by detecting them with `extract_conditional_files()` and
+excluding those paths from the expected source set.
+
+## audit_test_registration.py
+
+Ensures every `*_test.cc` file under `test/` is either:
+
+1. Listed in at least one compiled source set in `test/CMakeLists.txt`, **or**
+2. Documented in the script's `EXCLUSION_LIST` with a reason (DEPRECATED, WASM-only, etc.).
+
+This prevents "ghost" test files that exist on disk but are silently never compiled or run.
+
+### Usage
+
+```bash
+# Check for unregistered tests (default — exits non-zero on drift)
+python3 scripts/audit_test_registration.py
+
+# Verbose: show OK/UNREGISTERED status for every file
+python3 scripts/audit_test_registration.py --verbose
+
+# JSON output for tooling
+python3 scripts/audit_test_registration.py --json
+
+# Run built-in self-tests
+python3 scripts/audit_test_registration.py --self-test
+```
+
+### Exclusion List
+
+Files that should **not** be registered get an entry in `EXCLUSION_LIST` inside
+the script. Categories:
+
+- **WASM-only**: tests guarded by `#ifdef __EMSCRIPTEN__`; cannot compile natively
+- **DEPRECATED**: files marked deprecated in their header; superseded by better tests
+- **Legacy/removed**: files intentionally retired with a documented replacement
+- **Entry points / stubs**: `yaze_test.cc`, `app_instance_stub.cc`, etc.
+
+To add a new exclusion, add a dict entry with a clear reason:
+
+```python
+EXCLUSION_LIST: dict[str, str] = {
+    ...
+    "unit/foo/my_experiment_test.cc": "Experimental probe; not a stable suite",
+}
+```
+
+### CI and Pre-Push Integration
+
+- **CI** (`release-readiness` job): runs `python3 scripts/audit_test_registration.py` on every push and PR.
+- **Pre-push hook** (`scripts/pre-push.sh`): runs both the cmake drift check and the test registration audit as **Step 0** (fast, no build required).
 
 ## verify-build-environment.\*
 
