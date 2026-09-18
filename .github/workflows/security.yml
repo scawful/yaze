@@ -59,18 +59,16 @@ jobs:
 
     - name: Configure (no gRPC for security scan)
       run: |
-        cmake --preset ci-linux -DYAZE_ENABLE_GRPC=OFF -DYAZE_ENABLE_REMOTE_AUTOMATION=OFF
+        cmake --preset ci-linux -DYAZE_ENABLE_GRPC=OFF -DYAZE_ENABLE_REMOTE_AUTOMATION=OFF -DYAZE_USE_COMPILER_CACHE=OFF
 
     - name: Refuse to build through a compiler cache
-      # Fails closed if a compiler cache reaches PATH by any route, rather than
-      # letting cache hits quietly shrink the CodeQL database.
-      run: |
-        for tool in sccache ccache; do
-          if command -v "$tool" >/dev/null 2>&1; then
-            echo "::error::$tool is on PATH; CMakeLists.txt would use it as the compiler launcher and CodeQL would miss cached files."
-            exit 1
-          fi
-        done
+      # ccache is installed on every Linux runner (linux-ci-packages.txt), so
+      # checking PATH is not enough: CMakeLists.txt falls back to ccache when
+      # sccache is absent. Check what CMake generated instead. ci-linux uses
+      # Ninja Multi-Config, where compile rules live in
+      # CMakeFiles/impl-<Config>.ninja rather than build.ninja, so every
+      # generated .ninja file is checked, and finding none is an error.
+      run: bash scripts/ci/check-no-compiler-launcher.sh build/presets/ci-linux
 
     - name: Build
       run: |
