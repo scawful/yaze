@@ -190,7 +190,6 @@ if(YAZE_BUILD_TESTS)
     unit/deps/dependency_smoke_test.cc
     unit/cli/resource_catalog_test.cc
     unit/cli/tile16_proposal_generator_test.cc
-    unit/cli/rom_debug_agent_test.cc
     unit/cli/command_registry_test.cc
     unit/cli/rom_doctor_water_fill_test.cc
     unit/cli/dungeon_object_validate_test.cc
@@ -442,6 +441,14 @@ if(YAZE_BUILD_TESTS)
     integration/object_selection_integration_test.cc
     integration/interaction_delegation_test.cc
   )
+  # rom_debug_agent.cc is only compiled with YAZE_ENABLE_REMOTE_AUTOMATION, and
+  # its header pulls in app/service/emulator_service_impl.h, which needs the
+  # gRPC headers. Registering it unconditionally breaks presets built without
+  # them.
+  if(YAZE_ENABLE_REMOTE_AUTOMATION AND YAZE_ENABLE_GRPC)
+    list(APPEND STABLE_UNIT_TEST_SOURCES unit/cli/rom_debug_agent_test.cc)
+  endif()
+
   if(YAZE_ENABLE_AGENT_CLI)
     list(APPEND STABLE_UNIT_TEST_SOURCES
       unit/cli/conversational_agent_service_test.cc
