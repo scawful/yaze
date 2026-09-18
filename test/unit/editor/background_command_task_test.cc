@@ -5,6 +5,8 @@
 #include <chrono>
 #include <thread>
 
+#include "absl/strings/str_cat.h"
+
 // BackgroundCommandTask::Start() returns UnimplementedError on Windows,
 // Emscripten, and iOS (see background_command_task.cc:SupportsNative*).
 // Gate the whole suite on POSIX-desktop targets so CI on those platforms
@@ -23,8 +25,8 @@ namespace {
 
 TEST(BackgroundCommandTaskTest, StreamsOutputWhileRunning) {
   BackgroundCommandTask task;
-  ASSERT_TRUE(task.Start("printf 'first\\n'; sleep 0.2; printf 'second\\n'", ".")
-                  .ok());
+  ASSERT_TRUE(
+      task.Start("printf 'first\\n'; sleep 0.2; printf 'second\\n'", ".").ok());
 
   bool saw_first_line = false;
   for (int i = 0; i < 20; ++i) {
@@ -45,16 +47,27 @@ TEST(BackgroundCommandTaskTest, StreamsOutputWhileRunning) {
   EXPECT_NE(final_snapshot.output.find("second"), std::string::npos);
 }
 
+// The command runs through a login shell ("sh -lc"), so the host's startup
+// files run first and may print text. Plain words such as "start" and "done"
+// can appear in that text, which would make this test cancel before the command
+// runs or fail although the command was stopped. The markers below cannot come
+// from startup noise, and a command that kept running after cancel would still
+// print the second one.
+constexpr char kStartMarker[] = "yaze-bg-cancel-start";
+constexpr char kAfterSleepMarker[] = "yaze-bg-cancel-after-sleep";
+
 TEST(BackgroundCommandTaskTest, CancelStopsRunningCommand) {
   BackgroundCommandTask task;
-  ASSERT_TRUE(task.Start(
-                  "printf 'start\\n'; sleep 5; printf 'done\\n'", ".")
+  ASSERT_TRUE(task.Start(absl::StrCat("printf '", kStartMarker,
+                                      "\\n'; sleep 5; printf '",
+                                      kAfterSleepMarker, "\\n'"),
+                         ".")
                   .ok());
 
   bool saw_start = false;
   for (int i = 0; i < 20; ++i) {
     const auto snapshot = task.GetSnapshot();
-    if (snapshot.output.find("start") != std::string::npos) {
+    if (snapshot.output.find(kStartMarker) != std::string::npos) {
       saw_start = true;
       break;
     }
@@ -70,7 +83,9 @@ TEST(BackgroundCommandTaskTest, CancelStopsRunningCommand) {
   EXPECT_TRUE(snapshot.finished);
   EXPECT_FALSE(snapshot.running);
   EXPECT_TRUE(snapshot.cancel_requested);
-  EXPECT_EQ(snapshot.output.find("done"), std::string::npos);
+  EXPECT_EQ(snapshot.output.find(kAfterSleepMarker), std::string::npos)
+      << "the command kept running after cancel; output:\n"
+      << snapshot.output;
 }
 
 }  // namespace
