@@ -92,29 +92,46 @@ void LogManager::configure(LogLevel level, const std::string& file_path,
     // Open in append mode to preserve history.
     log_stream_.open(file_path, std::ios::out | std::ios::app);
     log_file_path_ = file_path;
+  } else if (file_path.empty() && log_stream_.is_open()) {
+    // An empty path means "log to stderr", so release the previous file
+    // instead of quietly continuing to write to it. Leaving it open also kept
+    // a lock on Windows, where an open file cannot be deleted.
+    log_stream_.close();
+    log_file_path_.clear();
   }
+}
+
+bool LogManager::ShouldLog(LogLevel level, absl::string_view category) const {
+  // 1. Filter by log level.
+  if (level < min_level_.load(std::memory_order_relaxed)) {
+    return false;
+  }
+
+  // Fast path: no category filtering configured.
+  if (all_categories_enabled_.load(std::memory_order_relaxed) &&
+      disabled_categories_.empty()) {
+    return true;
+  }
+
+  // 2. Filter by disabled categories (Blocklist).
+  if (disabled_categories_.find(category) != disabled_categories_.end()) {
+    return false;
+  }
+
+  // 3. Filter by enabled categories (Allowlist).
+  if (!all_categories_enabled_.load(std::memory_order_relaxed)) {
+    if (enabled_categories_.find(category) == enabled_categories_.end()) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 void LogManager::log(LogLevel level, absl::string_view category,
                      absl::string_view message) {
-  // 1. Filter by log level.
-  if (level < min_level_.load()) {
+  if (!ShouldLog(level, category)) {
     return;
-  }
-
-  std::string cat_str(category);
-
-  // 2. Filter by disabled categories (Blocklist).
-  if (disabled_categories_.find(cat_str) != disabled_categories_.end()) {
-    return;
-  }
-
-  // 3. Filter by enabled categories (Allowlist).
-  // If allowlist is active (not empty), we must match it.
-  if (!all_categories_enabled_.load()) {
-    if (enabled_categories_.find(cat_str) == enabled_categories_.end()) {
-      return;
-    }
   }
 
   // 3. Format the complete log message.
