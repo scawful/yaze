@@ -120,7 +120,8 @@ class Sprite : public GameEntity {
 
   auto width() const { return width_; }
   auto height() const { return height_; }
-  auto name() { return name_; }
+  // By value so `auto n = sprite.name()` stays an owning copy.
+  auto name() const { return name_; }
   auto deleted() const { return deleted_; }
   auto set_deleted(bool deleted) { deleted_ = deleted; }
   auto set_key_drop(int key) { key_drop_ = key; }
@@ -134,11 +135,11 @@ class Sprite : public GameEntity {
   void set_layer(int layer) { layer_ = layer; }
 
  private:
-  uint8_t map_id_;
-  uint8_t game_state_;
-  uint8_t id_;
-  uint8_t nx_;
-  uint8_t ny_;
+  uint8_t map_id_ = 0;
+  uint8_t game_state_ = 0;
+  uint8_t id_ = 0;
+  uint8_t nx_ = 0;
+  uint8_t ny_ = 0;
   uint8_t overlord_ = 0;
   uint8_t lower_x_ = 32;
   uint8_t lower_y_ = 32;
@@ -154,7 +155,7 @@ class Sprite : public GameEntity {
   int key_drop_ = 0;
 
   bool deleted_ = false;
-  bool overworld_;
+  bool overworld_ = false;
 
   std::string name_;
   static constexpr SDL_Rect kDefaultPreviewBounds = {-16, -16, 64, 64};
