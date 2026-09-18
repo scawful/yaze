@@ -167,6 +167,12 @@ or project will notice it.
   missing its argument; 0.7.2 wrote them.
 
 #### Hack manifests
+- **Hexadecimal addresses must parse completely.** A manifest address with
+  trailing junk, a value past 32 bits, or a sign now fails the load with
+  `Invalid hex address '...'`. 0.7.2 stopped at the first invalid character and
+  cast the result, so `"0x1E80zz"` loaded as `0x001E80`, `"0x100000000"` loaded
+  as `0x000000`, and `"-1"` loaded as `0xFFFFFFFF`. Whitespace around the value,
+  the `0x`, `0X` and `$` prefixes, and bare digits are unchanged.
 - **`protected_regions` is validated strictly for every manifest version.** It
   must be an object with a `regions` array whose entries have
   hexadecimal-string `start` and `end`, with `end > start`. In 0.7.2 a missing
@@ -643,6 +649,10 @@ or project will notice it.
   longer produce ROM diffs.
 
 ### CLI and ROM safety
+- Moved hex parsing into `src/util/hex.h` so core, the editor and the CLI share
+  one strict implementation, and made `src/cli/util/hex_util.h` a shim over it.
+  The shared parser also rejects a value that does not fit the requested type on
+  WebAssembly, where the previous `unsigned long` range check was a no-op.
 - Added `dungeon-get-palette` to resolve the full room palette-set mapping,
   raw colors, and every room sharing the selected global US/OOS palette.
 - Added dry-run-first `dungeon-set-palette-color` with exact mapping/color CAS,

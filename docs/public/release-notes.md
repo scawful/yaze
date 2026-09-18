@@ -49,6 +49,9 @@ and every affected command, is in `docs/public/reference/changelog.md` under
   `dungeon-set-palette-color`.
 
 **Projects and manifests**
+- A Hack Manifest address that does not parse completely -- trailing junk, past
+  32 bits, or signed -- now fails the load instead of quietly loading a
+  different address.
 - A malformed `protected_regions`, `messages`, or `minecart_tracks` section
   makes the whole Hack Manifest fail to load, and hook regions now take
   precedence over `owned_banks`.
