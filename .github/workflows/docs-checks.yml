@@ -1,0 +1,49 @@
+name: Docs Checks
+
+# Build-free checks for documentation-only changes.
+#
+# These paths used to trigger ci.yml, which compiled yaze on Linux, macOS and
+# Windows (plus a 94-minute Memory Sanitizer build) to validate Markdown. They
+# now run the same release-readiness checks ci.yml runs, and nothing else.
+#
+# A change that touches both documentation and code triggers both workflows;
+# the checks are cheap enough that running them twice does not matter.
+
+on:
+  push:
+    branches: [ "master", "develop" ]
+    paths:
+      - 'CHANGELOG.md'
+      - 'docs/public/reference/changelog.md'
+      - 'docs/public/release-notes.md'
+      - 'AGENTS.md'
+      - 'docs/internal/agents/**'
+      - '.github/workflows/docs-checks.yml'
+      - '.github/actions/release-readiness/**'
+  pull_request:
+    branches: [ "master", "develop" ]
+    paths:
+      - 'CHANGELOG.md'
+      - 'docs/public/reference/changelog.md'
+      - 'docs/public/release-notes.md'
+      - 'AGENTS.md'
+      - 'docs/internal/agents/**'
+      - '.github/workflows/docs-checks.yml'
+      - '.github/actions/release-readiness/**'
+  workflow_dispatch:
+
+concurrency:
+  group: docs-checks-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/master' }}
+
+permissions:
+  contents: read
+
+jobs:
+  release-readiness:
+    name: "Release Readiness (docs)"
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/release-readiness
