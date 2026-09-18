@@ -186,6 +186,7 @@ if(YAZE_BUILD_TESTS)
     unit/util/lru_cache_test.cc
     unit/util/bps_test.cc
     unit/util/i18n_test.cc
+    unit/util/hex_test.cc
     unit/deps/dependency_smoke_test.cc
     unit/cli/resource_catalog_test.cc
     unit/cli/command_registry_test.cc
