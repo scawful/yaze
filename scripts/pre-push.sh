@@ -225,6 +225,26 @@ main() {
   mapfile -t CHANGED_FILES < <(collect_changed_files | sed '/^$/d' | sort -u)
   print_info "Changed files considered: ${#CHANGED_FILES[@]}"
 
+  # ── Step 0: Source & test registration audits (fast, no build required) ──
+  print_header "Step 0/4: Registration Integrity"
+  # Use the script's exit status (not stdout grepping). build_cleaner returns
+  # non-zero in --dry-run mode when CMake source lists would change.
+  if ! python3 scripts/build_cleaner.py --dry-run --cmake-only; then
+    print_err "CMake source-list drift detected. Run: python3 scripts/build_cleaner.py --cmake-only"
+    exit 5
+  fi
+  print_ok "CMake source lists: no drift"
+  if ! python3 scripts/audit_test_registration.py; then
+    print_err "Test registration drift detected. See output above."
+    exit 5
+  fi
+  print_ok "Test registration: all sources accounted for"
+  if ! python3 scripts/audit_test_registration.py --self-test; then
+    print_err "Test registration audit self-test failed. See output above."
+    exit 5
+  fi
+  print_ok "Test registration audit self-test passed"
+
   if [[ "$SKIP_BUILD" == false ]]; then
     print_header "Step 1/4: Build Verification"
     local jobs="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"

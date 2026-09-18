@@ -212,6 +212,13 @@ if(YAZE_BUILD_TESTS)
     unit/emu/emulator_test.cc
     unit/emu/mesen_socket_client_test.cc
     unit/emu/input_backend_test.cc
+    unit/emu/step_controller_test.cc
+    unit/emu/spc700_reset_test.cc
+    unit/emu/apu_dsp_test.cc
+    unit/emu/apu_ipl_handshake_test.cc
+    unit/emu/disassembler_test.cc
+    unit/diggable_tiles_test.cc
+    unit/core/asm_patch_test.cc
     unit/gfx/snes_tile_test.cc
     unit/gfx/compression_test.cc
     unit/gfx/snes_palette_test.cc
@@ -450,6 +457,8 @@ if(YAZE_BUILD_TESTS)
       unit/tools/project_tool_test.cc
       unit/tools/project_graph_tool_test.cc
       unit/tools/code_gen_tool_test.cc
+      # agent tool_dispatcher integration test requires agent backend symbols
+      integration/agent/tool_dispatcher_test.cc
     )
   else()
     message(STATUS "Skipping agent CLI/tool tests (YAZE_ENABLE_AGENT_CLI=OFF)")
@@ -511,6 +520,8 @@ if(YAZE_BUILD_TESTS)
       integration/imgui_test_harness_logic_test.cc
       integration/screenshot_utils_test.cc
     )
+  else()
+    message(STATUS "Skipping gRPC integration tests (YAZE_ENABLE_GRPC=OFF)")
   endif()
 
   yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})

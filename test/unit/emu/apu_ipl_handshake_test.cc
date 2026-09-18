@@ -131,20 +131,20 @@ TEST_F(ApuIplHandshakeTest, IplBootSequenceProgresses) {
 
 TEST_F(ApuIplHandshakeTest, AccurateCycleCountsForCommonOpcodes) {
   // Test that specific opcodes return correct cycle counts
+  apu->spc700().RunOpcode();  // Consume the pending reset sequence.
 
   // NOP (0x00) should take 2 cycles
   apu->spc700().PC = 0x0000;
-  apu->ram[0x0000] = 0x00;  // NOP
-  apu->spc700().RunOpcode();
-  apu->spc700().RunOpcode();  // Execute
+  apu->ram[0x0000] = 0x00;    // NOP
+  apu->spc700().RunOpcode();  // Fetch and record the opcode cycle count.
   EXPECT_EQ(apu->spc700().GetLastOpcodeCycles(), 2);
+  apu->spc700().RunOpcode();  // Execute and return to the fetch stage.
 
   // MOV A, #imm (0xE8) should take 2 cycles
   apu->spc700().PC = 0x0002;
-  apu->ram[0x0002] = 0xE8;  // MOV A, #imm
-  apu->ram[0x0003] = 0x42;  // immediate value
-  apu->spc700().RunOpcode();
-  apu->spc700().RunOpcode();
+  apu->ram[0x0002] = 0xE8;    // MOV A, #imm
+  apu->ram[0x0003] = 0x42;    // immediate value
+  apu->spc700().RunOpcode();  // Fetch and record the opcode cycle count.
   EXPECT_EQ(apu->spc700().GetLastOpcodeCycles(), 2);
 }
 
