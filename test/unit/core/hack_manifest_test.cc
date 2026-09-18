@@ -339,6 +339,43 @@ TEST(HackManifestTest, RejectsMalformedEditorManagedRegions) {
   }
 }
 
+// ParseHexAddress used std::stoul, which stopped at the first invalid
+// character and truncated anything past 32 bits. A bank address with trailing
+// junk loaded as a shorter address, "0x100000000" loaded as 0x000000, and "-1"
+// loaded as 0xFFFFFFFF. All three now fail the manifest load.
+TEST(HackManifestTest, RejectsMalformedOwnedBankAddresses) {
+  auto manifest_with_bank_start = [](const char* bank_start) {
+    return absl::StrFormat(
+        R"json({"manifest_version":2,"owned_banks":{"banks":[{"bank":"0x1E","bank_start":"%s","bank_end":"0x1EFFFF","ownership":"asm_owned"}]}})json",
+        bank_start);
+  };
+
+  for (const char* bank_start :
+       {"0x1E80zz", "0x1E8000 ; note", "1E 8000", "0x100000000", "1FFFFFFFF",
+        "-1", "0x-1", "", "0x"}) {
+    SCOPED_TRACE(bank_start);
+    ExpectManifestLoadFailure(manifest_with_bank_start(bank_start),
+                              "Invalid hex address");
+  }
+}
+
+// Forms that parsed before must keep parsing: surrounding whitespace, an
+// uppercase prefix, a "$" prefix, and bare digits.
+TEST(HackManifestTest, AcceptsWhitespacePaddedAndUppercasePrefixAddresses) {
+  for (const char* bank_start :
+       {" 0x1E8000", "0x1E8000 ", "0X1E8000", "$1E8000", "1E8000"}) {
+    SCOPED_TRACE(bank_start);
+    const std::string json = absl::StrFormat(
+        R"json({"manifest_version":2,"owned_banks":{"banks":[{"bank":"0x1E","bank_start":"%s","bank_end":"0x1EFFFF","ownership":"asm_owned"}]}})json",
+        bank_start);
+
+    HackManifest manifest;
+    const absl::Status status = manifest.LoadFromString(json);
+    ASSERT_TRUE(status.ok()) << status;
+    EXPECT_TRUE(manifest.loaded());
+  }
+}
+
 TEST(HackManifestTest,
      RejectsMalformedProtectedRegionsBeforeActivatingEditorExemption) {
   const std::pair<const char*, const char*> invalid_manifests[] = {
