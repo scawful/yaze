@@ -14,6 +14,9 @@ name: CI/CD Pipeline
 # - gui: GUI/E2E tests with ImGuiTestEngine (nightly only)
 # - benchmark: Performance benchmarks (nightly only)
 
+# Documentation-only changes (CHANGELOG.md, release notes, AGENTS.md,
+# docs/internal/agents/**) are not listed below: they run the same build-free
+# checks in docs-checks.yml and no longer compile yaze on three platforms.
 on:
   push:
     branches: [ "master", "develop" ]
@@ -23,17 +26,12 @@ on:
       - 'cmake/**'
       - 'CMakeLists.txt'
       - 'VERSION'
-      - 'CHANGELOG.md'
-      - 'docs/public/reference/changelog.md'
-      - 'docs/public/release-notes.md'
       - '.github/workflows/**'
       - 'scripts/dev/release-version-check.sh'
       - 'scripts/release/**'
       - 'scripts/agents/**'
       - 'scripts/audit_test_registration.py'
       - 'scripts/build_cleaner.py'
-      - 'AGENTS.md'
-      - 'docs/internal/agents/**'
       - 'ext/imgui'
   pull_request:
     branches: [ "master", "develop" ]
@@ -43,17 +41,12 @@ on:
       - 'cmake/**'
       - 'CMakeLists.txt'
       - 'VERSION'
-      - 'CHANGELOG.md'
-      - 'docs/public/reference/changelog.md'
-      - 'docs/public/release-notes.md'
       - '.github/workflows/**'
       - 'scripts/dev/release-version-check.sh'
       - 'scripts/release/**'
       - 'scripts/agents/**'
       - 'scripts/audit_test_registration.py'
       - 'scripts/build_cleaner.py'
-      - 'AGENTS.md'
-      - 'docs/internal/agents/**'
       - 'ext/imgui'
   workflow_dispatch:
     inputs:
@@ -372,30 +365,17 @@ jobs:
       github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
-      - name: Verify VERSION / CHANGELOG hygiene
-        run: bash scripts/dev/release-version-check.sh
-      - name: Verify distributable theme manifest
-        run: bash scripts/dev/theme-package-check.sh
-      - name: Verify bounded build parallelism
-        run: bash scripts/agents/test-build-parallelism-policy.sh
-      - name: Verify local nightly provenance
-        run: bash scripts/agents/test-nightly-local-provenance.sh
-      - name: Protocol audit
-        run: bash scripts/agents/protocol-audit.sh
-      - name: Universe coordination tests
-        run: bash scripts/agents/test-universe-coord.sh
-      - name: Source registration drift check (cmake)
-        run: python3 scripts/build_cleaner.py --dry-run --cmake-only
-      - name: Test registration audit
-        run: python3 scripts/audit_test_registration.py
-      - name: Test registration audit self-test
-        run: python3 scripts/audit_test_registration.py --self-test
+      - uses: ./.github/actions/release-readiness
 
   memory-sanitizer:
     name: "Memory Sanitizer"
     runs-on: ubuntu-22.04
+    # Runs after merge, not on pull requests. At about 94 minutes it was more
+    # than twice the next-slowest job, so on PRs it set the wait for every
+    # change. It now runs on each push to master/develop that touches code, and
+    # on demand via workflow_dispatch with run_sanitizers=true.
     if: |
-      github.event_name == 'pull_request' || 
+      github.event_name == 'push' ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.run_sanitizers == 'true')
     
     steps:
