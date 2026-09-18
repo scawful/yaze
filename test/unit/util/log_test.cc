@@ -5,6 +5,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <system_error>
 
 #include "absl/strings/str_cat.h"
 #include "gtest/gtest.h"
@@ -25,12 +26,14 @@ class LogManagerTest : public ::testing::Test {
             "yaze_log_test_",
             ::testing::UnitTest::GetInstance()->current_test_info()->name(),
             ".log");
-    std::filesystem::remove(log_path_);
+    std::error_code ec;
+    std::filesystem::remove(log_path_, ec);
   }
 
   void TearDown() override {
     LogManager::instance().configure(LogLevel::INFO, "", {});
-    std::filesystem::remove(log_path_);
+    std::error_code ec;
+    std::filesystem::remove(log_path_, ec);
   }
 
   void ConfigureToFile(LogLevel level,
@@ -118,6 +121,28 @@ TEST_F(LogManagerTest, CategoryAllowlistAndBlocklist) {
   ConfigureToFile(LogLevel::ERROR, {"Alpha"});
   EXPECT_FALSE(log.ShouldLog(LogLevel::INFO, "Alpha"));
   EXPECT_TRUE(log.ShouldLog(LogLevel::ERROR, "Alpha"));
+}
+
+// configure() documents an empty path as "log to stderr", so it must release
+// the file it was writing to. It previously kept the stream open, which also
+// held a Windows file lock.
+TEST_F(LogManagerTest, ReconfiguringToStderrReleasesTheLogFile) {
+  ConfigureToFile(LogLevel::INFO);
+  LOG_INFO("Test", "before %d", 1);
+  ASSERT_NE(ReadLog().find("before 1"), std::string::npos);
+
+  LogManager::instance().configure(LogLevel::INFO, "", {});
+  LOG_INFO("Test", "after %d", 2);
+
+  const std::string contents = ReadLog();
+  EXPECT_EQ(contents.find("after 2"), std::string::npos)
+      << "log contents: " << contents;
+
+  // On Windows an open file cannot be removed, so this also proves the handle
+  // was released.
+  std::error_code ec;
+  std::filesystem::remove(log_path_, ec);
+  EXPECT_FALSE(ec) << ec.message();
 }
 
 // A blocked category must not reach the sink even though the level passes.
