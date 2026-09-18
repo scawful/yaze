@@ -458,7 +458,11 @@ if(YAZE_BUILD_TESTS)
       unit/tools/project_tool_test.cc
       unit/tools/project_graph_tool_test.cc
       unit/tools/code_gen_tool_test.cc
-      # agent tool_dispatcher integration test requires agent backend symbols
+      # agent tool_dispatcher integration test requires agent backend symbols.
+      # Only the "Windows Agent (Full Stack)" CI job configures an agent-enabled
+      # preset (ci-windows-ai), and that job runs with
+      # `if: github.event_name != 'pull_request'`, so this suite is exercised
+      # after merge rather than on pull requests.
       integration/agent/tool_dispatcher_test.cc
     )
   else()
