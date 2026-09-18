@@ -19,7 +19,9 @@
 #include <gtest/gtest.h>
 
 #include "absl/status/status.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
+#include "absl/strings/string_view.h"
 #include "cli/handlers/game/dungeon_collision_commands.h"
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
