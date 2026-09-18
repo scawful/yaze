@@ -52,10 +52,25 @@ jobs:
         platform: linux
         preset: ci-linux
         cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
+        # CodeQL's extractor traces real compiler calls. CMakeLists.txt enables
+        # any sccache on PATH as the launcher, and a cache hit skips the
+        # compiler, so the file would silently drop out of the analysis.
+        compiler-cache: 'false'
 
     - name: Configure (no gRPC for security scan)
       run: |
         cmake --preset ci-linux -DYAZE_ENABLE_GRPC=OFF -DYAZE_ENABLE_REMOTE_AUTOMATION=OFF
+
+    - name: Refuse to build through a compiler cache
+      # Fails closed if a compiler cache reaches PATH by any route, rather than
+      # letting cache hits quietly shrink the CodeQL database.
+      run: |
+        for tool in sccache ccache; do
+          if command -v "$tool" >/dev/null 2>&1; then
+            echo "::error::$tool is on PATH; CMakeLists.txt would use it as the compiler launcher and CodeQL would miss cached files."
+            exit 1
+          fi
+        done
 
     - name: Build
       run: |
