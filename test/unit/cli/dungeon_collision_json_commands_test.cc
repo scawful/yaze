@@ -30,6 +30,7 @@
 
 #if defined(__APPLE__)
 #include <sys/stat.h>
+#include "unique_temp_path.h"
 #endif
 
 ABSL_DECLARE_FLAG(bool, sandbox);
@@ -255,10 +256,10 @@ TEST(DungeonCollisionJsonCommandsTest, CustomCollisionImportExportRoundTrip) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
 
-  const auto in_path = std::filesystem::temp_directory_path() /
-                       "yaze_custom_collision_import_test.json";
-  const auto out_path = std::filesystem::temp_directory_path() /
-                        "yaze_custom_collision_export_test.json";
+  const auto in_path = ::yaze::test::UniqueTempPath(
+      "yaze_custom_collision_import_test", ".json");
+  const auto out_path = ::yaze::test::UniqueTempPath(
+      "yaze_custom_collision_export_test", ".json");
 
   WriteFile(
       in_path,
@@ -303,8 +304,8 @@ TEST(DungeonCollisionJsonCommandsTest,
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x100000, 0x00)).ok());
 
-  const auto in_path = std::filesystem::temp_directory_path() /
-                       "yaze_custom_collision_import_fail.json";
+  const auto in_path = ::yaze::test::UniqueTempPath(
+      "yaze_custom_collision_import_fail", ".json");
   WriteFile(in_path,
             "{\n"
             "  \"version\": 1,\n"
@@ -328,8 +329,8 @@ TEST(DungeonCollisionJsonCommandsTest, WaterFillImportNormalizesMasks) {
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
   SeedCustomCollisionRooms(&rom, {0x25, 0x27});
 
-  const auto in_path = std::filesystem::temp_directory_path() /
-                       "yaze_water_fill_import_test.json";
+  const auto in_path =
+      ::yaze::test::UniqueTempPath("yaze_water_fill_import_test", ".json");
   WriteFile(
       in_path,
       "{\n"
@@ -368,8 +369,8 @@ TEST(DungeonCollisionJsonCommandsTest, WaterFillExportRespectsRoomFilter) {
       .room_id = 0x27, .sram_bit_mask = 0x02, .fill_offsets = {10, 11}});
   ASSERT_TRUE(zelda3::WriteWaterFillTable(&rom, zones).ok());
 
-  const auto out_path = std::filesystem::temp_directory_path() /
-                        "yaze_water_fill_export_test.json";
+  const auto out_path =
+      ::yaze::test::UniqueTempPath("yaze_water_fill_export_test", ".json");
   handlers::DungeonExportWaterFillJsonCommandHandler handler;
   std::string output;
   const auto status =
@@ -392,8 +393,8 @@ TEST(DungeonCollisionJsonCommandsTest,
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
 
-  const auto in_path = std::filesystem::temp_directory_path() /
-                       "yaze_custom_collision_import_dry_run.json";
+  const auto in_path = ::yaze::test::UniqueTempPath(
+      "yaze_custom_collision_import_dry_run", ".json");
   WriteFile(in_path,
             "{\n"
             "  \"version\": 1,\n"
@@ -1800,8 +1801,8 @@ TEST(DungeonCollisionJsonCommandsTest, CustomCollisionReplaceAllRequiresForce) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
 
-  const auto in_path = std::filesystem::temp_directory_path() /
-                       "yaze_custom_collision_replace_all_requires_force.json";
+  const auto in_path = ::yaze::test::UniqueTempPath(
+      "yaze_custom_collision_replace_all_requires_force", ".json");
   WriteFile(in_path,
             "{\n"
             "  \"version\": 1,\n"
@@ -1829,7 +1830,7 @@ TEST(DungeonCollisionJsonCommandsTest, WaterFillImportDryRunDoesNotWrite) {
   SeedCustomCollisionRooms(&rom, {0x27});
 
   const auto in_path =
-      std::filesystem::temp_directory_path() / "yaze_water_fill_dry_run.json";
+      ::yaze::test::UniqueTempPath("yaze_water_fill_dry_run", ".json");
   WriteFile(
       in_path,
       "{\n"
@@ -1858,10 +1859,10 @@ TEST(DungeonCollisionJsonCommandsTest,
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0x00)).ok());
 
-  const auto in_path = std::filesystem::temp_directory_path() /
-                       "yaze_water_fill_required_room.json";
-  const auto report_path = std::filesystem::temp_directory_path() /
-                           "yaze_water_fill_required_room.report.json";
+  const auto in_path =
+      ::yaze::test::UniqueTempPath("yaze_water_fill_required_room", ".json");
+  const auto report_path = ::yaze::test::UniqueTempPath(
+      "yaze_water_fill_required_room", ".report.json");
   WriteFile(
       in_path,
       "{\n"
@@ -1904,9 +1905,9 @@ TEST(DungeonCollisionJsonCommandsTest,
   SeedCustomCollisionRooms(&rom, {0x25, 0x27});
 
   const auto in_path =
-      std::filesystem::temp_directory_path() / "yaze_water_fill_strict.json";
-  const auto report_path = std::filesystem::temp_directory_path() /
-                           "yaze_water_fill_strict.report.json";
+      ::yaze::test::UniqueTempPath("yaze_water_fill_strict", ".json");
+  const auto report_path =
+      ::yaze::test::UniqueTempPath("yaze_water_fill_strict", ".report.json");
   WriteFile(
       in_path,
       "{\n"
@@ -1962,9 +1963,9 @@ TEST(DungeonCollisionJsonCommandsTest,
   ASSERT_TRUE(rom.WriteVector(zelda3::kWaterFillTableStart, region).ok());
 
   const auto in_path =
-      std::filesystem::temp_directory_path() / "yaze_water_fill_preflight.json";
-  const auto report_path = std::filesystem::temp_directory_path() /
-                           "yaze_water_fill_preflight.report.json";
+      ::yaze::test::UniqueTempPath("yaze_water_fill_preflight", ".json");
+  const auto report_path =
+      ::yaze::test::UniqueTempPath("yaze_water_fill_preflight", ".report.json");
   WriteFile(
       in_path,
       "{\n"
@@ -2012,9 +2013,9 @@ TEST(DungeonCollisionJsonCommandsTest, ZoraTempleProfileBothRoomsRoundtrip) {
   SeedCustomCollisionRooms(&rom, {0x25, 0x27});
 
   const auto in_path =
-      std::filesystem::temp_directory_path() / "yaze_d4_profile_import.json";
+      ::yaze::test::UniqueTempPath("yaze_d4_profile_import", ".json");
   const auto out_path =
-      std::filesystem::temp_directory_path() / "yaze_d4_profile_export.json";
+      ::yaze::test::UniqueTempPath("yaze_d4_profile_export", ".json");
 
   WriteFile(in_path,
             "{\n"
@@ -2078,7 +2079,7 @@ TEST(DungeonCollisionJsonCommandsTest,
   SeedCustomCollisionRooms(&rom, {0x25, 0x27});
 
   const auto in_path =
-      std::filesystem::temp_directory_path() / "yaze_d4_mask_norm.json";
+      ::yaze::test::UniqueTempPath("yaze_d4_mask_norm", ".json");
   WriteFile(
       in_path,
       "{\n"
@@ -2122,8 +2123,8 @@ TEST(DungeonCollisionJsonCommandsTest,
       {.room_id = 0x27, .sram_bit_mask = 0x01, .fill_offsets = {3, 4}});
   ASSERT_TRUE(zelda3::WriteWaterFillTable(&rom, zones).ok());
 
-  const auto out_path = std::filesystem::temp_directory_path() /
-                        "yaze_d4_single_room_export.json";
+  const auto out_path =
+      ::yaze::test::UniqueTempPath("yaze_d4_single_room_export", ".json");
   handlers::DungeonExportWaterFillJsonCommandHandler handler;
   std::string output;
   ASSERT_TRUE(

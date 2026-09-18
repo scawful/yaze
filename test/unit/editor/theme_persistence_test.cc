@@ -3,6 +3,7 @@
 
 #include "app/editor/system/session/user_settings.h"
 #include "gtest/gtest.h"
+#include "unique_temp_path.h"
 
 namespace yaze::editor {
 namespace {
@@ -10,7 +11,7 @@ namespace {
 // Minimal filesystem helper: builds a unique path inside the OS temp dir so
 // tests can round-trip settings without touching the user's real config file.
 std::filesystem::path TempSettingsPath(const std::string& slug) {
-  auto dir = std::filesystem::temp_directory_path() / "yaze_theme_persist";
+  auto dir = ::yaze::test::UniqueTempPath("yaze_theme_persist");
   std::filesystem::create_directories(dir);
   return dir / (slug + "_settings.json");
 }
