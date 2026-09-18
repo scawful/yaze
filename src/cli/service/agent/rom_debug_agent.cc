@@ -869,10 +869,14 @@ std::string RomDebugAgent::IdentifyDataType(uint32_t address) const {
     type = "ppu";
   } else if (address >= APU_PORT0 && address <= APU_PORT3) {
     type = "audio";
+  } else if (address >= INVENTORY_START && address < INVENTORY_START + 0x40) {
+    // Checked before the SRAM range that contains it: INVENTORY_START
+    // (0x7EF340) lies inside [SRAM_START, SRAM_END], so testing "save" first
+    // made this branch unreachable. DescribeMemoryLocation nests the same check
+    // inside its SRAM branch.
+    type = "inventory";
   } else if (address >= SRAM_START && address <= SRAM_END) {
     type = "save";
-  } else if (address >= INVENTORY_START && address < INVENTORY_START + 0x40) {
-    type = "inventory";
   } else if (address >= 0x008000 && address < 0x7E0000) {
     type = "code";
   } else if (address >= WRAM_START && address <= WRAM_END) {
