@@ -95,26 +95,37 @@ void LogManager::configure(LogLevel level, const std::string& file_path,
   }
 }
 
-void LogManager::log(LogLevel level, absl::string_view category,
-                     absl::string_view message) {
+bool LogManager::ShouldLog(LogLevel level, absl::string_view category) const {
   // 1. Filter by log level.
-  if (level < min_level_.load()) {
-    return;
+  if (level < min_level_.load(std::memory_order_relaxed)) {
+    return false;
   }
 
-  std::string cat_str(category);
+  // Fast path: no category filtering configured.
+  if (all_categories_enabled_.load(std::memory_order_relaxed) &&
+      disabled_categories_.empty()) {
+    return true;
+  }
 
   // 2. Filter by disabled categories (Blocklist).
-  if (disabled_categories_.find(cat_str) != disabled_categories_.end()) {
-    return;
+  if (disabled_categories_.find(category) != disabled_categories_.end()) {
+    return false;
   }
 
   // 3. Filter by enabled categories (Allowlist).
-  // If allowlist is active (not empty), we must match it.
-  if (!all_categories_enabled_.load()) {
-    if (enabled_categories_.find(cat_str) == enabled_categories_.end()) {
-      return;
+  if (!all_categories_enabled_.load(std::memory_order_relaxed)) {
+    if (enabled_categories_.find(category) == enabled_categories_.end()) {
+      return false;
     }
+  }
+
+  return true;
+}
+
+void LogManager::log(LogLevel level, absl::string_view category,
+                     absl::string_view message) {
+  if (!ShouldLog(level, category)) {
+    return;
   }
 
   // 3. Format the complete log message.
