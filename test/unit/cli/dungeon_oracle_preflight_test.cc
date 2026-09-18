@@ -6,6 +6,8 @@
 
 #include "cli/handlers/game/oracle_menu_commands.h"
 
+#include <atomic>
+#include <chrono>
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
@@ -34,14 +36,27 @@ constexpr int kFullRomSize = 0x200000;   // water-fill region present
 
 // Injects a stop tile into a room via the import handler so the
 // required-room check can succeed on a blank ROM.
+// Temp paths must be unique per process: CI runs `ctest ... 4 jobs` and
+// gtest_discover_tests gives each case its own process, so a constant filename
+// under the shared temp directory is written and deleted by several tests at
+// once.
+std::string UniqueTempPath(absl::string_view stem) {
+  static std::atomic<int> counter{0};
+  const auto* info = ::testing::UnitTest::GetInstance()->current_test_info();
+  const std::string test_name = info ? info->name() : "unknown_test";
+  const auto stamp =
+      std::chrono::steady_clock::now().time_since_epoch().count();
+  return (std::filesystem::temp_directory_path() /
+          absl::StrCat(stem, "_", test_name, "_", stamp, "_", counter++))
+      .string();
+}
+
 absl::Status InjectCollisionTile(Rom* rom, int room_id, int offset,
                                  int tile_value) {
   const std::string json = absl::StrFormat(
       R"({"version":1,"rooms":[{"room_id":"0x%02X","tiles":[[%d,%d]]}]})",
       room_id, offset, tile_value);
-  auto tmp = (std::filesystem::temp_directory_path() /
-              "yaze_oracle_preflight_inject.json")
-                 .string();
+  auto tmp = UniqueTempPath("yaze_oracle_preflight_inject");
   {
     std::ofstream f(tmp, std::ios::out | std::ios::binary | std::ios::trunc);
     f << json;
@@ -372,9 +387,8 @@ TEST(DungeonOraclePreflightTest, InvalidRequiredRoomsDoesNotClobberReportFile) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
 
-  const auto report_path = (std::filesystem::temp_directory_path() /
-                            "yaze_oracle_preflight_no_clobber_report.json")
-                               .string();
+  const auto report_path =
+      UniqueTempPath("yaze_oracle_preflight_no_clobber_report");
   const std::string sentinel = "SENTINEL_REPORT_CONTENT\n";
   {
     std::ofstream f(report_path,
@@ -409,9 +423,7 @@ TEST(DungeonOraclePreflightTest, ReportWriteSucceedsAndContainsFullJson) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
 
-  const auto report_path = (std::filesystem::temp_directory_path() /
-                            "yaze_oracle_preflight_report.json")
-                               .string();
+  const auto report_path = UniqueTempPath("yaze_oracle_preflight_report");
 
   handlers::DungeonOraclePreflightCommandHandler handler;
   std::string out;
