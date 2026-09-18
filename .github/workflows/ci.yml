@@ -380,6 +380,12 @@ jobs:
         run: bash scripts/agents/protocol-audit.sh
       - name: Universe coordination tests
         run: bash scripts/agents/test-universe-coord.sh
+      - name: Source registration drift check (cmake)
+        run: python3 scripts/build_cleaner.py --dry-run --cmake-only
+      - name: Test registration audit
+        run: python3 scripts/audit_test_registration.py
+      - name: Test registration audit self-test
+        run: python3 scripts/audit_test_registration.py --self-test
 
   memory-sanitizer:
     name: "Memory Sanitizer"

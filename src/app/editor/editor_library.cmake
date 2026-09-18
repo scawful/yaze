@@ -3,17 +3,10 @@ set(
   app/editor/agent/agent_chat_history_codec.cc
   app/editor/code/assembly_editor.cc
   app/editor/code/diagnostics_panel.cc
-  app/editor/registry/content_registry.cc
-  app/editor/registry/undo_manager.cc
-  app/editor/hack/workflow/hack_workflow_backend_factory.cc
-  app/editor/hack/workflow/manifest_only_hack_workflow_backend.cc
-  app/editor/hack/workflow/project_workflow_output_panel.cc
-  app/editor/hack/workflow/workflow_activity_widgets.cc
-  app/editor/system/session/background_command_task.cc
   app/editor/code/memory_editor.cc
   app/editor/code/project_file_editor.cc
-  app/editor/dungeon/dungeon_canvas_connected_view.cc
   app/editor/dungeon/dungeon_canvas_connected_matrix.cc
+  app/editor/dungeon/dungeon_canvas_connected_view.cc
   app/editor/dungeon/dungeon_canvas_context_menu.cc
   app/editor/dungeon/dungeon_canvas_debug.cc
   app/editor/dungeon/dungeon_canvas_issue_report.cc
@@ -22,47 +15,42 @@ set(
   app/editor/dungeon/dungeon_canvas_room_frame.cc
   app/editor/dungeon/dungeon_canvas_room_render.cc
   app/editor/dungeon/dungeon_canvas_viewer.cc
-  app/editor/dungeon/dungeon_rendering_helpers.cc
-  app/editor/dungeon/dungeon_room_composite.cc
-  app/editor/dungeon/dungeon_overlay_controls.cc
   app/editor/dungeon/dungeon_editor_v2.cc
   app/editor/dungeon/dungeon_editor_v2_persistence.cc
   app/editor/dungeon/dungeon_editor_v2_undo.cc
   app/editor/dungeon/dungeon_object_interaction.cc
   app/editor/dungeon/dungeon_object_selector.cc
-  app/editor/dungeon/minecart_track_source.cc
-  app/editor/dungeon/object_selection.cc
+  app/editor/dungeon/dungeon_overlay_controls.cc
+  app/editor/dungeon/dungeon_rendering_helpers.cc
+  app/editor/dungeon/dungeon_room_composite.cc
   app/editor/dungeon/dungeon_room_loader.cc
   app/editor/dungeon/dungeon_room_selector.cc
   app/editor/dungeon/dungeon_toolset.cc
   app/editor/dungeon/dungeon_usage_tracker.cc
-  app/editor/dungeon/ui/reporting/dungeon_issue_report_storage.cc
-  app/editor/dungeon/widgets/dungeon_room_nav_widget.cc
-  app/editor/dungeon/widgets/dungeon_workbench_toolbar.cc
-  app/editor/dungeon/widgets/dungeon_status_bar.cc
+  app/editor/dungeon/inspectors/door_editor_content.cc
+  app/editor/dungeon/inspectors/object_editor_content.cc
   app/editor/dungeon/interaction/door_interaction_handler.cc
+  app/editor/dungeon/interaction/interaction_coordinator.cc
+  app/editor/dungeon/interaction/interaction_mode.cc
   app/editor/dungeon/interaction/item_interaction_handler.cc
   app/editor/dungeon/interaction/sprite_interaction_handler.cc
   app/editor/dungeon/interaction/tile_object_handler.cc
-  app/editor/dungeon/interaction/interaction_coordinator.cc
-  app/editor/dungeon/interaction/interaction_mode.cc
-  app/editor/dungeon/workspace/room_graphics_content.cc
+  app/editor/dungeon/minecart_track_source.cc
+  app/editor/dungeon/object_selection.cc
+  app/editor/dungeon/selectors/object_selector_content.cc
+  app/editor/dungeon/ui/reporting/dungeon_issue_report_storage.cc
+  app/editor/dungeon/ui/window/minecart_track_editor_panel.cc
+  app/editor/dungeon/ui/window/object_tile_editor_panel.cc
+  app/editor/dungeon/ui/window/room_tag_editor_panel.cc
+  app/editor/dungeon/widgets/dungeon_room_nav_widget.cc
+  app/editor/dungeon/widgets/dungeon_status_bar.cc
+  app/editor/dungeon/widgets/dungeon_workbench_toolbar.cc
   app/editor/dungeon/workspace/dungeon_pit_damage_view_model.cc
   app/editor/dungeon/workspace/dungeon_workbench_content.cc
   app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.cc
   app/editor/dungeon/workspace/dungeon_workbench_layout.cc
-  app/editor/dungeon/inspectors/door_editor_content.cc
-  app/editor/dungeon/inspectors/object_editor_content.cc
-  app/editor/dungeon/selectors/object_selector_content.cc
-  app/editor/dungeon/ui/window/object_tile_editor_panel.cc
-  app/editor/dungeon/ui/window/minecart_track_editor_panel.cc
-  app/editor/dungeon/ui/window/room_tag_editor_panel.cc
+  app/editor/dungeon/workspace/room_graphics_content.cc
   app/editor/editor_manager.cc
-  app/editor/session_types.cc
-  app/editor/system/session/default_editor_factories.cc
-  app/editor/system/session/hack_manifest_save_validation.cc
-  app/editor/graphics/ui/browser/sheet_browser_view.cc
-  app/editor/graphics/ui/editing/pixel_editor_view.cc
   app/editor/graphics/gfx_group_editor.cc
   app/editor/graphics/graphics_editor.cc
   app/editor/graphics/link_sprite_panel.cc
@@ -70,25 +58,61 @@ set(
   app/editor/graphics/paletteset_editor_panel.cc
   app/editor/graphics/pixel_editor_panel.cc
   app/editor/graphics/polyhedral_editor_panel.cc
+  app/editor/graphics/screen_editor.cc
   app/editor/graphics/sheet_browser_panel.cc
+  app/editor/graphics/ui/browser/sheet_browser_view.cc
+  app/editor/graphics/ui/editing/pixel_editor_view.cc
   app/editor/graphics/ui/palette/palette_controls_view.cc
   app/editor/graphics/ui/palette/paletteset_editor_view.cc
-  app/editor/graphics/ui/research/prototype_research_view.cc
   app/editor/graphics/ui/research/polyhedral_editor_view.cc
-  app/editor/graphics/screen_editor.cc
+  app/editor/graphics/ui/research/prototype_research_view.cc
   app/editor/graphics/ui/sprite/link_sprite_view.cc
+  app/editor/hack/workflow/hack_workflow_backend_factory.cc
+  app/editor/hack/workflow/manifest_only_hack_workflow_backend.cc
+  app/editor/hack/workflow/project_workflow_output_panel.cc
+  app/editor/hack/workflow/workflow_activity_widgets.cc
+  app/editor/layout/layout_coordinator.cc
+  app/editor/layout/layout_designer/dock_tree.cc
+  app/editor/layout/layout_designer/dock_tree_hit_test.cc
+  app/editor/layout/layout_designer/dock_tree_json.cc
+  app/editor/layout/layout_designer/dock_tree_renderer.cc
+  app/editor/layout/layout_designer/drop_zone_suggester.cc
+  app/editor/layout/layout_designer/layout_designer_panel.cc
+  app/editor/layout/layout_designer/panel_palette.cc
+  app/editor/layout/layout_designer/split_boundary_drag.cc
+  app/editor/layout/layout_designer/tree_undo_stack.cc
+  app/editor/layout/layout_manager.cc
+  app/editor/layout/layout_orchestrator.cc
+  app/editor/layout/layout_presets.cc
+  app/editor/layout/window_delegate.cc
+  app/editor/menu/activity_bar.cc
+  app/editor/menu/activity_bar_actions_registry.cc
+  app/editor/menu/menu_builder.cc
+  app/editor/menu/menu_orchestrator.cc
+  app/editor/menu/right_drawer_manager.cc
+  app/editor/menu/status_bar.cc
+  app/editor/menu/window_browser.cc
+  app/editor/menu/window_sidebar.cc
   app/editor/message/message_data.cc
   app/editor/message/message_editor.cc
   app/editor/message/message_preview.cc
   app/editor/message/message_source_sync.cc
+  app/editor/music/instrument_editor_view.cc
   app/editor/music/music_editor.cc
   app/editor/music/music_player.cc
-  app/editor/music/instrument_editor_view.cc
   app/editor/music/piano_roll_view.cc
   app/editor/music/sample_editor_view.cc
   app/editor/music/song_browser_view.cc
   app/editor/music/tracker_view.cc
+  app/editor/oracle/oracle_hack_workflow_backend.cc
+  app/editor/oracle/panels/annotation_overlay_panel.cc
+  app/editor/oracle/panels/menu_inspector_panel.cc
+  app/editor/oracle/panels/oracle_validation_panel.cc
+  app/editor/oracle/panels/oracle_validation_view_model.cc
+  app/editor/oracle/panels/progression_dashboard_panel.cc
+  app/editor/oracle/panels/story_event_graph_panel.cc
   app/editor/overworld/automation.cc
+  app/editor/overworld/canvas_navigation_manager.cc
   app/editor/overworld/core/interaction_coordinator.cc
   app/editor/overworld/debug_window_card.cc
   app/editor/overworld/entity.cc
@@ -96,69 +120,76 @@ set(
   app/editor/overworld/entity/entity_workbench.cc
   app/editor/overworld/entity_operations.cc
   app/editor/overworld/map_properties.cc
-  app/editor/overworld/canvas_navigation_manager.cc
   app/editor/overworld/map_refresh_coordinator.cc
   app/editor/overworld/map_texture_coordinator.cc
-  app/editor/overworld/overworld_map_metadata.cc
-  app/editor/overworld/overworld_property_edit.cc
   app/editor/overworld/overworld_canvas_renderer.cc
   app/editor/overworld/overworld_editor.cc
   app/editor/overworld/overworld_entity_renderer.cc
+  app/editor/overworld/overworld_map_metadata.cc
   app/editor/overworld/overworld_navigation.cc
+  app/editor/overworld/overworld_property_edit.cc
   app/editor/overworld/overworld_sidebar.cc
   app/editor/overworld/overworld_toolbar.cc
   app/editor/overworld/panels/area_graphics_panel.cc
-  app/editor/overworld/ui/tiles/tile16_selector_view.cc
-  app/editor/overworld/panels/map_properties_panel.cc
-  app/editor/overworld/ui/canvas/overworld_canvas_view.cc
-  app/editor/overworld/panels/scratch_space_panel.cc
-  app/editor/overworld/panels/usage_statistics_panel.cc
-  app/editor/overworld/panels/overworld_item_list_panel.cc
-  app/editor/overworld/ui/tiles/tile8_selector_view.cc
   app/editor/overworld/panels/debug_window_panel.cc
   app/editor/overworld/panels/gfx_groups_panel.cc
+  app/editor/overworld/panels/map_properties_panel.cc
+  app/editor/overworld/panels/overworld_item_list_panel.cc
+  app/editor/overworld/panels/scratch_space_panel.cc
+  app/editor/overworld/panels/usage_statistics_panel.cc
   app/editor/overworld/panels/v3_settings_panel.cc
-  app/editor/overworld/ui/tiles/tile16_editor_view.cc
   app/editor/overworld/scratch_space.cc
   app/editor/overworld/tile16_editor.cc
   app/editor/overworld/tile_painting_manager.cc
+  app/editor/overworld/ui/canvas/overworld_canvas_view.cc
+  app/editor/overworld/ui/tiles/tile16_editor_view.cc
+  app/editor/overworld/ui/tiles/tile16_selector_view.cc
+  app/editor/overworld/ui/tiles/tile8_selector_view.cc
   app/editor/overworld/usage_statistics_card.cc
   app/editor/palette/palette_editor.cc
   app/editor/palette/palette_group_panel.cc
   app/editor/palette/palette_utility.cc
-  app/editor/sprite/sprite_drawer.cc
-  app/editor/sprite/sprite_editor.cc
-  app/editor/menu/menu_orchestrator.cc
-  app/editor/shell/feedback/popup_manager.cc
-  app/editor/layout/layout_designer/layout_designer_panel.cc
-  app/editor/shell/windows/about_panel.cc
-  app/editor/shell/windows/dashboard_panel.cc
-  app/editor/shell/dialogs/editor_selection_dialog.cc
-  app/editor/menu/right_drawer_manager.cc
-  app/editor/menu/status_bar.cc
-  app/editor/menu/window_browser.cc
-  app/editor/menu/window_sidebar.cc
-  app/editor/shell/windows/settings_panel.cc
-  app/editor/shell/windows/selection_properties_panel.cc
-  app/editor/shell/windows/project_management_panel.cc
-  app/editor/menu/menu_builder.cc
-  app/editor/menu/activity_bar.cc
-  app/editor/menu/activity_bar_actions_registry.cc
-  app/editor/oracle/panels/annotation_overlay_panel.cc
-  app/editor/oracle/panels/menu_inspector_panel.cc
-  app/editor/oracle/panels/progression_dashboard_panel.cc
-  app/editor/oracle/panels/story_event_graph_panel.cc
-  app/editor/oracle/panels/oracle_validation_view_model.cc
-  app/editor/oracle/panels/oracle_validation_panel.cc
-  app/editor/oracle/oracle_hack_workflow_backend.cc
-  app/editor/shell/dialogs/new_project_dialog.cc
+  app/editor/registry/content_registry.cc
+  app/editor/registry/undo_manager.cc
+  app/editor/session_types.cc
   app/editor/shell/coordinator/recent_projects_model.cc
-  app/editor/shell/dialogs/rom_load_options_dialog.cc
   app/editor/shell/coordinator/ui_coordinator.cc
   app/editor/shell/coordinator/welcome_screen.cc
   app/editor/shell/coordinator/workspace_manager.cc
+  app/editor/shell/dialogs/editor_selection_dialog.cc
+  app/editor/shell/dialogs/new_project_dialog.cc
+  app/editor/shell/dialogs/rom_load_options_dialog.cc
+  app/editor/shell/feedback/popup_manager.cc
+  app/editor/shell/windows/about_panel.cc
+  app/editor/shell/windows/dashboard_panel.cc
+  app/editor/shell/windows/project_management_panel.cc
+  app/editor/shell/windows/selection_properties_panel.cc
+  app/editor/shell/windows/settings_panel.cc
+  app/editor/sprite/sprite_drawer.cc
+  app/editor/sprite/sprite_editor.cc
+  app/editor/system/commands/command_manager.cc
+  app/editor/system/commands/command_palette.cc
+  app/editor/system/commands/command_palette_providers.cc
+  app/editor/system/commands/shortcut_configurator.cc
+  app/editor/system/commands/shortcut_manager.cc
+  app/editor/system/session/background_command_task.cc
+  app/editor/system/session/default_editor_factories.cc
+  app/editor/system/session/extension_manager.cc
+  app/editor/system/session/hack_manifest_save_validation.cc
+  app/editor/system/session/project_manager.cc
+  app/editor/system/session/rom_file_manager.cc
+  app/editor/system/session/rom_lifecycle_manager.cc
+  app/editor/system/session/session_coordinator.cc
+  app/editor/system/session/user_settings.cc
+  app/editor/system/workspace/editor_activator.cc
+  app/editor/system/workspace/editor_registry.cc
+  app/editor/system/workspace/file_browser.cc
+  app/editor/system/workspace/panel_host.cc
+  app/editor/system/workspace/proposal_drawer.cc
+  app/editor/system/workspace/workspace_window_manager.cc
+  app/editor/system/workspace/workspace_window_manager_state.cc
+  app/editor/system/workspace/workspace_window_manager_support.cc
 
-  yaze.cc
 )
 
 set(
