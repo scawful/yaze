@@ -92,6 +92,12 @@ void LogManager::configure(LogLevel level, const std::string& file_path,
     // Open in append mode to preserve history.
     log_stream_.open(file_path, std::ios::out | std::ios::app);
     log_file_path_ = file_path;
+  } else if (file_path.empty() && log_stream_.is_open()) {
+    // An empty path means "log to stderr", so release the previous file
+    // instead of quietly continuing to write to it. Leaving it open also kept
+    // a lock on Windows, where an open file cannot be deleted.
+    log_stream_.close();
+    log_file_path_.clear();
   }
 }
 
