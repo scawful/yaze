@@ -427,8 +427,7 @@ absl::StatusOr<std::string> RomDebugAgent::ExplainExecutionTrace(
           entry.address < DMA0_CONTROL + 0x80) {
         if (i > 0 && trace[i - 1].address >= DMA0_CONTROL &&
             trace[i - 1].address < DMA0_CONTROL + 0x80) {
-          explanation << indent
-                      << "  ⚠️  RAPID DMA OPERATIONS - CHECK TIMING\n";
+          explanation << indent << "  ⚠️  RAPID DMA OPERATIONS - CHECK TIMING\n";
         }
       }
     }
@@ -1332,8 +1331,8 @@ absl::StatusOr<emu::mesen::GameState> RomDebugAgent::GetLiveGameState() {
   return mesen_client_->GetGameState();
 }
 
-absl::StatusOr<std::vector<emu::mesen::SpriteInfo>> RomDebugAgent::GetLiveSprites(
-    bool all) {
+absl::StatusOr<std::vector<emu::mesen::SpriteInfo>>
+RomDebugAgent::GetLiveSprites(bool all) {
   if (!IsMesenConnected()) {
     return absl::UnavailableError("Mesen2 not connected");
   }
@@ -1397,15 +1396,15 @@ RomDebugAgent::AnalyzeLiveBreakpoint(uint32_t address) {
 
 absl::StatusOr<std::string> RomDebugAgent::ExplainCurrentGameState() {
   auto state_or = GetLiveGameState();
-  if (!state_or.ok()) return state_or.status();
+  if (!state_or.ok())
+    return state_or.status();
 
   const auto& state = *state_or;
   std::stringstream ss;
   ss << "Current Game State Analysis:\n";
-  ss << absl::StrFormat("- Link is at (%d, %d) in area 0x%02X\n", state.link.x,
-                        state.link.y,
-                        state.game.indoors ? state.game.room_id
-                                           : state.game.overworld_area);
+  ss << absl::StrFormat(
+      "- Link is at (%d, %d) in area 0x%02X\n", state.link.x, state.link.y,
+      state.game.indoors ? state.game.room_id : state.game.overworld_area);
   ss << absl::StrFormat("- Mode: %d (Submode: %d)\n", state.game.mode,
                         state.game.submode);
   ss << absl::StrFormat("- Direction: %d, Health: %d/%d\n",
@@ -1424,12 +1423,11 @@ absl::StatusOr<std::string> RomDebugAgent::ExplainCurrentGameState() {
   // Analyze sprites
   auto sprites_or = GetLiveSprites(false);
   if (sprites_or.ok() && !sprites_or->empty()) {
-    ss << absl::StrFormat("- %zu active sprites nearby.\n",
-                          sprites_or->size());
+    ss << absl::StrFormat("- %zu active sprites nearby.\n", sprites_or->size());
     for (const auto& sprite : *sprites_or) {
       if (sprite.health > 0) {
         ss << absl::StrFormat("  * Sprite 0x%02X at (%d,%d) HP=%d\n",
-                             sprite.type, sprite.x, sprite.y, sprite.health);
+                              sprite.type, sprite.x, sprite.y, sprite.health);
       }
     }
   }
@@ -1440,7 +1438,8 @@ absl::StatusOr<std::string> RomDebugAgent::ExplainCurrentGameState() {
 std::vector<std::string> RomDebugAgent::AnalyzeSpriteAnomalies() {
   std::vector<std::string> anomalies;
   auto sprites_or = GetLiveSprites(true);
-  if (!sprites_or.ok()) return anomalies;
+  if (!sprites_or.ok())
+    return anomalies;
 
   for (const auto& sprite : *sprites_or) {
     if (sprite.state != 0) {
@@ -1453,9 +1452,9 @@ std::vector<std::string> RomDebugAgent::AnalyzeSpriteAnomalies() {
 
       // Check for unusual health
       if (sprite.health > 200 && sprite.health != 255) {
-        anomalies.push_back(absl::StrFormat(
-            "Sprite %d has unusually high health: %d", sprite.slot,
-            sprite.health));
+        anomalies.push_back(
+            absl::StrFormat("Sprite %d has unusually high health: %d",
+                            sprite.slot, sprite.health));
       }
     }
   }
