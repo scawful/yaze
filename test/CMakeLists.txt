@@ -187,6 +187,7 @@ if(YAZE_BUILD_TESTS)
     unit/util/bps_test.cc
     unit/util/i18n_test.cc
     unit/util/hex_test.cc
+    unit/util/log_test.cc
     unit/deps/dependency_smoke_test.cc
     unit/cli/resource_catalog_test.cc
     unit/cli/tile16_proposal_generator_test.cc
@@ -348,6 +349,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/object_parser_test.cc
     unit/zelda3/object_parser_structs_test.cc
     unit/zelda3/sprite_builder_test.cc
+    unit/zelda3/sprite_value_init_test.cc
     unit/zelda3/music_parser_test.cc
     unit/zelda3/dungeon_component_unit_test.cc
     unit/zelda3/dungeon/dungeon_limits_test.cc
