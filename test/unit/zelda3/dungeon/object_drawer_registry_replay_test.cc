@@ -36,6 +36,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "core/features.h"
 #include "rom/rom.h"
+#include "unique_temp_path.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/dungeon_state.h"
@@ -2227,7 +2228,7 @@ TEST(ObjectDrawerRegistryReplayTest,
   auto& manager = CustomObjectManager::Get();
   const std::string previous_base = manager.GetBasePath();
   std::filesystem::path temp_dir =
-      std::filesystem::temp_directory_path() / "yaze_custom_draw_offset_test";
+      ::yaze::test::UniqueTempPath("yaze_custom_draw_offset_test");
   struct RestoreCustomObjectManagerState {
     CustomObjectManager& manager;
     std::string previous_base;

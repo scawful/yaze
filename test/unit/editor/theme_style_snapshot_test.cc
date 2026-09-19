@@ -20,6 +20,7 @@
 #include "app/gui/core/ui_helpers.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui.h"
+#include "unique_temp_path.h"
 
 namespace yaze::gui {
 namespace {
@@ -222,9 +223,9 @@ TEST_F(ThemeStyleSnapshotTest, SaveThemeToFileRecordsPathForRenamedTheme) {
   Theme renamed = *base;
   renamed.name = "YazeThemeSnapshotRenamed";
 
-  // Write it to a deterministic temp path.
-  fs::path tmp_dir = fs::temp_directory_path();
-  fs::path tmp_path = tmp_dir / "yaze_theme_snapshot_renamed.theme";
+  // Write it to a path no other test process uses.
+  fs::path tmp_path =
+      ::yaze::test::UniqueTempPath("yaze_theme_snapshot_renamed", ".theme");
   std::error_code ec;
   fs::remove(tmp_path, ec);  // ignore absent-file error
 
@@ -751,7 +752,7 @@ TEST_F(ThemeStyleSnapshotTest,
   theme.editor_selection = {0.24f, 0.44f, 0.64f, 0.34f};
 
   const auto temp_path =
-      std::filesystem::temp_directory_path() / "yaze_theme_roundtrip.theme";
+      ::yaze::test::UniqueTempPath("yaze_theme_roundtrip", ".theme");
   ASSERT_TRUE(mgr.SaveThemeToFile(theme, temp_path.string()).ok());
   ASSERT_TRUE(mgr.LoadThemeFromFile(temp_path.string()).ok());
   const Theme* parsed = mgr.GetTheme(theme.name);

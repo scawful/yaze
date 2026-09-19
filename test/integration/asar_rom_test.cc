@@ -8,10 +8,11 @@
 #include <filesystem>
 #include <fstream>
 
-#include "rom/rom.h"
 #include "core/asar_wrapper.h"
+#include "rom/rom.h"
 #include "test_utils.h"
 #include "testing.h"
+#include "unique_temp_path.h"
 
 namespace yaze {
 namespace test {
@@ -30,7 +31,7 @@ class AsarRomIntegrationTest : public RomDependentTest {
     ASSERT_OK(wrapper_->Initialize());
 
     // Create test directory
-    test_dir_ = std::filesystem::temp_directory_path() / "yaze_asar_rom_test";
+    test_dir_ = ::yaze::test::UniqueTempPath("yaze_asar_rom_test");
     std::filesystem::create_directories(test_dir_);
 
     CreateTestPatches();

@@ -19,6 +19,7 @@
 #include "nlohmann/json.hpp"
 #include "oracle_rom_fixture.h"
 #include "rom/rom.h"
+#include "unique_temp_path.h"
 
 namespace yaze::test {
 namespace {
@@ -140,8 +141,8 @@ TEST_F(OracleSmokeCheckIntegrationTest,
 }
 
 TEST_F(OracleSmokeCheckIntegrationTest, ReportFileContainsAllCheckKeys) {
-  const auto report_path = (std::filesystem::temp_directory_path() /
-                            "yaze_smoke_check_integration_report.json")
+  const auto report_path = ::yaze::test::UniqueTempPath(
+                               "yaze_smoke_check_integration_report", ".json")
                                .string();
 
   cli::handlers::OracleSmokeCheckCommandHandler handler;

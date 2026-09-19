@@ -15,6 +15,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
+#include "unique_temp_path.h"
 
 namespace yaze::cli {
 namespace {
@@ -46,8 +47,8 @@ TEST(DungeonObjectValidateTest, OmittingReportWritesNoFiles) {
 
 TEST(DungeonObjectValidateTest, ExplicitReportWritesJsonAndCsv) {
   DungeonObjectValidateCommandHandler handler;
-  const auto report_base = std::filesystem::temp_directory_path() /
-                           "yaze_dungeon_explicit_report_test";
+  const auto report_base =
+      ::yaze::test::UniqueTempPath("yaze_dungeon_explicit_report_test");
   const auto json_path = report_base.string() + ".json";
   const auto csv_path = report_base.string() + ".csv";
   std::filesystem::remove(json_path);
@@ -94,8 +95,8 @@ TEST(DungeonObjectValidateTest, RejectsEmptyReportPath) {
 
 TEST(DungeonObjectValidateTest, TraceOutAloneWritesNoValidationReport) {
   DungeonObjectValidateCommandHandler handler;
-  const auto trace_path = std::filesystem::temp_directory_path() /
-                          "yaze_dungeon_trace_only_test.json";
+  const auto trace_path =
+      ::yaze::test::UniqueTempPath("yaze_dungeon_trace_only_test", ".json");
   std::filesystem::remove(trace_path);
   const auto legacy_json =
       std::filesystem::current_path() / "dungeon_object_validation_report.json";
@@ -118,8 +119,8 @@ TEST(DungeonObjectValidateTest, TraceOutAloneWritesNoValidationReport) {
 
 TEST(DungeonObjectValidateTest, TraceDumpWritesFile) {
   DungeonObjectValidateCommandHandler handler;
-  const auto trace_path = std::filesystem::temp_directory_path() /
-                          "yaze_dungeon_trace_dump_test.json";
+  const auto trace_path =
+      ::yaze::test::UniqueTempPath("yaze_dungeon_trace_dump_test", ".json");
 
   if (std::filesystem::exists(trace_path)) {
     std::filesystem::remove(trace_path);
@@ -274,8 +275,8 @@ TEST(DungeonObjectValidateTest, AllSizesUsesOnlyFixedSubtypeLegalSizes) {
 
 TEST(DungeonObjectValidateTest, AllStatesReportsDefaultAndActiveProfiles) {
   DungeonObjectValidateCommandHandler handler;
-  const auto trace_path = std::filesystem::temp_directory_path() /
-                          "yaze_dungeon_state_trace_test.json";
+  const auto trace_path =
+      ::yaze::test::UniqueTempPath("yaze_dungeon_state_trace_test", ".json");
   std::filesystem::remove(trace_path);
 
   std::string output;
