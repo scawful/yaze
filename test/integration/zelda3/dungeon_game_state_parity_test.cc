@@ -114,7 +114,10 @@ TEST_F(DungeonGameStateParityTest, DefaultMainBlocksetMatchesCapture) {
   int matching = 0;
   for (const auto& room : CapturedRooms()) {
     const std::string method = EntranceMethod(room.room_id);
-    if (method.empty() || method == "fixed") {
+    // "retried" rooms fell back to entrance 0x34 in the harness, so their
+    // main set is 0x34's, not the room's own.
+    if (method.empty() || method == "fixed" ||
+        method.find("retried") != std::string::npos) {
       continue;
     }
     ++compared;
@@ -149,7 +152,8 @@ TEST_F(DungeonGameStateParityTest, BackgroundTileGraphicsMatchCapture) {
     zelda3::Room room = zelda3::LoadRoomFromRom(rom_.get(), captured.room_id);
     room.SetGameData(&game_data_);
     const std::string method = EntranceMethod(captured.room_id);
-    if (method.empty() || method == "fixed") {
+    if (method.empty() || method == "fixed" ||
+        method.find("retried") != std::string::npos) {
       // A fixed-entrance capture: render with the same main set it used.
       room.SetRenderEntranceBlockset(main_blockset);
       room.LoadRoomGraphics(main_blockset);
@@ -250,6 +254,103 @@ TEST_F(DungeonGameStateParityTest, BackgroundPaletteMatchesCapture) {
   }
   std::cout << absl::StrFormat("BG palette: %d/%d rooms exact\n", rooms_exact,
                                rooms);
+}
+
+// The game loads every sprite of a room at once (Underworld_LoadSprites):
+// slot N holds the Nth non-overlord entry and overlords fill overlord slots
+// 7, 6, ... A slot still holds a room-list sprite when $0DD0 != 0 and
+// $0BC0 == N. Type, layer and key drop are stable after load except for the
+// SpritePrep rewrites below; positions can move a little from init offsets
+// and AI, so they get a 3-tile tolerance.
+TEST_F(DungeonGameStateParityTest, SpritesMatchCapture) {
+  constexpr size_t kState = 0x0DD0, kSlotMarker = 0x0BC0, kType = 0x0E20;
+  constexpr size_t kLayer = 0x0F20, kDrop = 0x0CBA;
+  constexpr size_t kYLo = 0x0D00, kXLo = 0x0D10, kYHi = 0x0D20, kXHi = 0x0D30;
+  constexpr size_t kOverlordType = 0x0B00, kOverlordXLo = 0x0B08;
+  constexpr size_t kOverlordXHi = 0x0B10, kOverlordYLo = 0x0B18;
+  constexpr size_t kOverlordYHi = 0x0B20, kOverlordLayer = 0x0B40;
+  int rooms = 0, rooms_exact = 0, sprites_checked = 0, overlords_checked = 0;
+  int sprites_not_loaded = 0;
+  for (const auto& captured : CapturedRooms()) {
+    const auto& w = captured.wram;
+    zelda3::Room room = zelda3::LoadRoomFromRom(rom_.get(), captured.room_id);
+    room.LoadSprites();
+    const int base_x = (captured.room_id & 0x0F) * 0x200;
+    const int base_y = (captured.room_id >> 4) * 0x200;
+    int slot = 0;
+    int overlord_slot = 7;
+    int differences = 0;
+    for (const auto& sprite : room.GetSprites()) {
+      const int x = base_x + sprite.x() * 16;
+      const int y = base_y + sprite.y() * 16;
+      if (sprite.IsOverlord()) {
+        if (overlord_slot < 0) {
+          continue;
+        }
+        const size_t s = static_cast<size_t>(overlord_slot--);
+        int game_x = w[kOverlordXLo + s] | (w[kOverlordXHi + s] << 8);
+        const int game_y = w[kOverlordYLo + s] | (w[kOverlordYHi + s] << 8);
+        if (w[kOverlordType + s] == 0x03) {
+          game_x += 8;  // Underworld_LoadSingleOverlord moves type 3 by -8.
+        }
+        ++overlords_checked;
+        if (w[kOverlordType + s] != sprite.id() || game_x != x || game_y != y ||
+            w[kOverlordLayer + s] != sprite.layer()) {
+          ++differences;
+          ADD_FAILURE() << absl::StrFormat(
+              "room 0x%03X overlord slot %zu: game type %02X (%d,%d) layer %d, "
+              "yaze %02X (%d,%d) layer %d",
+              captured.room_id, s, w[kOverlordType + s], game_x, game_y,
+              w[kOverlordLayer + s], sprite.id(), x, y, sprite.layer());
+        }
+        continue;
+      }
+      const size_t s = static_cast<size_t>(slot++);
+      if (s >= 16) {
+        continue;
+      }
+      if (w[kState + s] == 0 || w[kSlotMarker + s] != s) {
+        ++sprites_not_loaded;  // Removed by game state or replaced at runtime.
+        continue;
+      }
+      ++sprites_checked;
+      // SpritePrep code that rewrites the loaded values (usdasm bank_06):
+      // SpritePrep_Debirando turns 0x64 into its pit 0x63 and spawns the 0x64
+      // separately; SpritePrep_BonkItem puts bonk items (0x3B) on layer 2
+      // indoors.
+      int expected_type = sprite.id();
+      int expected_layer = sprite.layer();
+      if (expected_type == 0x64) {
+        expected_type = 0x63;
+      }
+      if (expected_type == 0x3B) {
+        expected_layer = 2;
+      }
+      const int game_x = w[kXLo + s] | (w[kXHi + s] << 8);
+      const int game_y = w[kYLo + s] | (w[kYHi + s] << 8);
+      const bool near =
+          std::abs(game_x - x) <= 48 && std::abs(game_y - y) <= 48;
+      if (w[kType + s] != expected_type || w[kLayer + s] != expected_layer ||
+          w[kDrop + s] != sprite.key_drop() || !near) {
+        ++differences;
+        ADD_FAILURE() << absl::StrFormat(
+            "room 0x%03X slot %zu: game type %02X (%d,%d) layer %d drop %d, "
+            "yaze %02X (%d,%d) layer %d drop %d",
+            captured.room_id, s, w[kType + s], game_x, game_y, w[kLayer + s],
+            w[kDrop + s], sprite.id(), x, y, sprite.layer(), sprite.key_drop());
+      }
+    }
+    ++rooms;
+    rooms_exact += differences == 0;
+  }
+  if (rooms == 0) {
+    GTEST_SKIP() << "No --full captures in " << capture_dir_;
+  }
+  std::cout << absl::StrFormat(
+      "sprites: %d/%d rooms exact; %d sprites and %d overlords checked, %d "
+      "not loaded by the game in this state\n",
+      rooms_exact, rooms, sprites_checked, overlords_checked,
+      sprites_not_loaded);
 }
 
 }  // namespace
