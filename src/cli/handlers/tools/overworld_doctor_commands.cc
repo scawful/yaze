@@ -30,14 +30,6 @@ uint32_t SnesToPc(uint32_t snes_addr) {
   return ((snes_addr & 0x7F0000) >> 1) | (snes_addr & 0x7FFF);
 }
 
-// Check if a tile16 entry looks valid
-bool IsTile16Valid(uint16_t tile_info) {
-  // Tile info format: tttttttt ttttpppp hvf00000
-  // Bits 8-12 (0x1F00) should be 0 for valid tiles (unless flip bits are set)
-  // Returns false if reserved bits are set without flip bits
-  return (tile_info & 0x1F00) == 0 || (tile_info & 0xE000) != 0;
-}
-
 // =============================================================================
 // Feature Detection
 // =============================================================================
@@ -194,48 +186,10 @@ void ValidateMapPointers(Rom* rom, DiagnosticReport& report) {
 // Tile16 Corruption Check
 // =============================================================================
 
-void CheckTile16Corruption(Rom* rom, DiagnosticReport& report) {
+void CheckTile16Region(DiagnosticReport& report) {
+  // Report the layout only. A zeroed or odd-looking entry can be a real edit,
+  // and an earlier heuristic here zeroed valid Oracle of Secrets tiles.
   report.tile16_status.uses_expanded = report.features.has_expanded_tile16;
-
-  if (!report.features.has_expanded_tile16) {
-    return;
-  }
-
-  for (uint32_t addr : kProblemAddresses) {
-    if (addr >= kMap16TilesExpanded && addr < kMap16TilesExpandedEnd) {
-      int tile_offset = addr - kMap16TilesExpanded;
-      int tile_index = tile_offset / 8;
-
-      uint16_t tile_data[4];
-      for (int i = 0; i < 4 && (addr + i * 2 + 1) < rom->size(); ++i) {
-        tile_data[i] =
-            rom->data()[addr + i * 2] | (rom->data()[addr + i * 2 + 1] << 8);
-      }
-
-      bool looks_valid = true;
-      for (int i = 0; i < 4; ++i) {
-        if (!IsTile16Valid(tile_data[i])) {
-          looks_valid = false;
-          break;
-        }
-      }
-
-      if (!looks_valid) {
-        report.tile16_status.corruption_detected = true;
-        report.tile16_status.corrupted_addresses.push_back(addr);
-        report.tile16_status.corrupted_tile_count++;
-
-        DiagnosticFinding finding;
-        finding.id = "tile16_corruption";
-        finding.severity = DiagnosticSeverity::kError;
-        finding.message = absl::StrFormat("Corrupted tile16 #%d", tile_index);
-        finding.location = absl::StrFormat("0x%06X", addr);
-        finding.suggested_action = "Run with --fix to zero corrupted entries";
-        finding.fixable = true;
-        report.AddFinding(finding);
-      }
-    }
-  }
 }
 
 // =============================================================================
@@ -308,23 +262,6 @@ absl::StatusOr<std::vector<zelda3::OverworldMap>> BuildOverworldMaps(Rom* rom) {
 // =============================================================================
 // Repair Functions
 // =============================================================================
-
-absl::Status RepairTile16Region(Rom* rom, const DiagnosticReport& report,
-                                bool dry_run) {
-  if (!report.tile16_status.corruption_detected) {
-    return absl::OkStatus();
-  }
-
-  for (uint32_t addr : report.tile16_status.corrupted_addresses) {
-    if (!dry_run) {
-      for (int i = 0; i < 8 && addr + i < rom->size(); ++i) {
-        (*rom)[addr + i] = 0x00;
-      }
-    }
-  }
-
-  return absl::OkStatus();
-}
 
 // Apply tail map expansion ASM patch
 absl::Status ApplyTailExpansion(Rom* rom, bool dry_run, bool verbose) {
@@ -519,19 +456,8 @@ void OutputTextSummary(const DiagnosticReport& report) {
   if (report.tile16_status.uses_expanded) {
     std::cout << "╠════════════════════════════════════════════════════════════"
                  "═══╣\n";
-    if (report.tile16_status.corruption_detected) {
-      std::cout << absl::StrFormat(
-          "║  Tile16 Corruption: DETECTED (%zu addresses)%-17s ║\n",
-          report.tile16_status.corrupted_addresses.size(), "");
-      for (uint32_t addr : report.tile16_status.corrupted_addresses) {
-        int tile_idx = (addr - kMap16TilesExpanded) / 8;
-        std::cout << absl::StrFormat("║    - 0x%06X (tile #%d)%-36s ║\n", addr,
-                                     tile_idx, "");
-      }
-    } else {
-      std::cout << "║  Tile16 Corruption: None detected                        "
-                   "     ║\n";
-    }
+    std::cout << "║  Tile16 Data: not checked (compare with a backup)         "
+                 "    ║\n";
   }
 
   std::cout
@@ -583,7 +509,7 @@ absl::Status OverworldDoctorCommandHandler::Execute(
   report.rom_path = rom->filename();
   report.features = DetectRomFeatures(rom);
   ValidateMapPointers(rom, report);
-  CheckTile16Corruption(rom, report);
+  CheckTile16Region(report);
 
   // Load baseline if provided
   std::string resolved_baseline;
@@ -711,37 +637,11 @@ absl::Status OverworldDoctorCommandHandler::Execute(
     if (dry_run) {
       if (!is_json) {
         std::cout << "\n=== Dry Run - Planned Fixes ===\n";
-        if (report.tile16_status.corruption_detected) {
-          std::cout << absl::StrFormat(
-              "  Would zero %zu corrupted tile16 entries\n",
-              report.tile16_status.corrupted_addresses.size());
-          for (uint32_t addr : report.tile16_status.corrupted_addresses) {
-            std::cout << absl::StrFormat("    - 0x%06X\n", addr);
-          }
-        } else {
-          std::cout << "  No fixes needed.\n";
-        }
+        std::cout << "  No fixes needed.\n";
         std::cout << "\nNo changes made (dry run).\n";
       }
-      formatter.AddField(
-          "dry_run_fixes_planned",
-          static_cast<int>(report.tile16_status.corrupted_addresses.size()));
+      formatter.AddField("dry_run_fixes_planned", 0);
     } else {
-      // Actually apply fixes
-      if (report.tile16_status.corruption_detected) {
-        RETURN_IF_ERROR(RepairTile16Region(rom, report, false));
-        if (!is_json) {
-          std::cout << "\n=== Fixes Applied ===\n";
-          std::cout << absl::StrFormat(
-              "  Zeroed %zu corrupted tile16 entries\n",
-              report.tile16_status.corrupted_addresses.size());
-        }
-        formatter.AddField("fixes_applied", true);
-        formatter.AddField(
-            "tile16_entries_fixed",
-            static_cast<int>(report.tile16_status.corrupted_addresses.size()));
-      }
-
       // Save if output path provided
       if (output_path.has_value()) {
         Rom::SaveSettings settings;
