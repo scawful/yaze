@@ -84,6 +84,13 @@ TEST_F(DungeonGameTilemapParityTest, CompareCapturedRooms) {
     const auto check =
         zelda3::CompareRoomTilemaps(room_id, *game, yaze, owners, objects);
 
+    if (std::getenv("YAZE_GAME_TILEMAP_VERBOSE") != nullptr) {
+      std::cout << absl::StrFormat(
+          "hdr room=%03X merge=%d effect=%d tag1=%d tag2=%d diffs=%zu\n",
+          room_id, room.layer_merging().ID, static_cast<int>(room.effect()),
+          static_cast<int>(room.tag1()), static_cast<int>(room.tag2()),
+          check.differences.size());
+    }
     ++rooms_compared;
     const int matching = check.bg1_matching + check.bg2_matching;
     tiles_matching += matching;
