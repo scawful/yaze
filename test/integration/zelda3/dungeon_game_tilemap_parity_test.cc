@@ -24,6 +24,7 @@
 #include "rom/rom.h"
 #include "test_utils.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/editor_dungeon_state.h"
 #include "zelda3/dungeon/game_tilemap_comparison.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/game_data.h"
@@ -76,14 +77,33 @@ TEST_F(DungeonGameTilemapParityTest, CompareCapturedRooms) {
 
     zelda3::Room room = zelda3::LoadRoomFromRom(rom_.get(), room_id);
     room.SetGameData(&game_data_);
+    // YAZE_GAME_ROOM_FLAGS=0xFFFF matches a capture made with
+    // --room-flags 0xFF,0xFF: every chest, door, floor and wall flag set.
+    const bool all_flags = std::getenv("YAZE_GAME_ROOM_FLAGS") != nullptr;
+    if (all_flags) {
+      if (auto* state = dynamic_cast<zelda3::EditorDungeonState*>(
+              room.GetDungeonState())) {
+        for (int i = 0; i < 16; ++i) {
+          state->SetChestOpen(room_id, i, true);
+          state->SetDoorOpen(room_id, i, true);
+        }
+        state->SetBigChestOpen(true);
+        state->SetDoorSwitchActive(room_id, true);
+        state->SetWaterFaceActive(room_id, true);
+        state->SetDamFloodgateOpen(room_id, true);
+        state->SetWallMoved(room_id, true);
+        state->SetFloorBombable(room_id, true);
+        state->SetRupeeFloorCleared(room_id, true);
+      }
+    }
     room.RenderRoomGraphics();
     const auto yaze = zelda3::ComposeYazeRoomTilemaps(room);
     const auto& objects = room.GetTileObjects();
     std::vector<bool> hidden(objects.size());
     for (size_t i = 0; i < objects.size(); ++i) {
-      hidden[i] = zelda3::GameHidesObjectOnRoomLoad(
-          static_cast<int>(room.tag1()), static_cast<int>(room.tag2()),
-          objects[i]);
+      hidden[i] = !all_flags && zelda3::GameHidesObjectOnRoomLoad(
+                                    static_cast<int>(room.tag1()),
+                                    static_cast<int>(room.tag2()), objects[i]);
     }
     const auto owners = zelda3::ComputeObjectTileOwners(rom_.get(), room_id,
                                                         objects, yaze, hidden);
