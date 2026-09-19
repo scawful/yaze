@@ -193,6 +193,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/tile16_proposal_generator_test.cc
     unit/cli/command_registry_test.cc
     unit/cli/rom_doctor_water_fill_test.cc
+    unit/cli/overworld_doctor_tile16_test.cc
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
     unit/cli/dungeon_render_commands_test.cc
