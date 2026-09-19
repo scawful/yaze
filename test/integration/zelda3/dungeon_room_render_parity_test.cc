@@ -129,7 +129,9 @@ TEST_F(DungeonRoomRenderParityTest, Room00FingerprintSmoke) {
   // settings. Independent visual truth remains in the Mesen ROI suite.
   // Floor-copy object 0xC4 now resolves its effective tile payload from this
   // room's Floor1 header value, matching the vanilla room-draw path.
-  EXPECT_EQ(fingerprint.checksum, 14786764279995352503ull);
+  // Ganon's triforce floor (0xFF8) now draws its bottom blocks at x-2 and x+2;
+  // room 0x000's tilemap then matches the game capture tile for tile.
+  EXPECT_EQ(fingerprint.checksum, 11838603172490691807ull);
   EXPECT_EQ(fingerprint.non_backdrop_pixels, 262144);
 }
 
