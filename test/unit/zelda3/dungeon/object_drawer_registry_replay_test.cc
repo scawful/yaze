@@ -6208,6 +6208,51 @@ TEST(ObjectDrawerRegistryReplayTest, LampConesUseFixedBg2Blocks) {
   }
 }
 
+// USDASM RoomDraw_AgahnimsWindows (type-3 0xFAE) is a fixed stamp relative
+// to the object's tilemap offset: sections a-f store 359 words on BG1, and the
+// room tilemaps of 0x00D and 0x020 captured from the game match it.
+TEST(ObjectDrawerRegistryReplayTest, AgahnimsWindowsStoresTheFixedStamp) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  auto trace = ReplayObjectTrace(0x0FAE, /*x=*/0, /*y=*/32, /*size=*/11,
+                                 RoomObject::LayerType::BG1, {});
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+  EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG2).empty());
+  ASSERT_EQ(bg1.size(), 359u);
+  // Leftmost store is .next_b at $7E2504 (column 2); rightmost is .next_c's
+  // mirrored edge at $7E25BA (column 29); rows span $220E..$2BBA+5*$80.
+  ExpectTraceBounds(bg1, 2, 32 + 4, 29, 32 + 28);
+}
+
+// USDASM RoomDraw_VitreousGooGraphics (type-3 0xFE2) always stores to BG2:
+// 22x11 from obj20F6 plus a 3x2 block at column +9, rows +11..+12.
+TEST(ObjectDrawerRegistryReplayTest, VitreousGooDrawsOnBg2) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  auto trace = ReplayObjectTrace(0x0FE2, /*x=*/5, /*y=*/6, /*size=*/2,
+                                 RoomObject::LayerType::BG1, {});
+  const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+  EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG1).empty());
+  ASSERT_EQ(bg2.size(), 22u * 11u + 6u);
+  ExpectTraceBounds(bg2, 5, 6, 5 + 21, 6 + 12);
+}
+
+// USDASM RoomDraw_SomeBigDecors: Kholdstare's (0xF95) and Trinexx's (0xFF2)
+// shells are 10x8 blocks on the object's own layer.
+TEST(ObjectDrawerRegistryReplayTest, BossShellsDrawTenByEightOnTheirLayer) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  for (int16_t object_id : {0x0F95, 0x0FF2}) {
+    SCOPED_TRACE(object_id);
+    auto trace = ReplayObjectTrace(object_id, /*x=*/11, /*y=*/38, /*size=*/8,
+                                   RoomObject::LayerType::BG2, {});
+    const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+    EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG1).empty());
+    ASSERT_EQ(bg2.size(), 80u);
+    ExpectTraceBounds(bg2, 11, 38, 20, 45);
+  }
+}
+
 // 0xFC8 and 0xFFA are RoomDraw_4x4: one column-major 4x4 block.
 TEST(ObjectDrawerRegistryReplayTest, Subtype3Single4x4DrawsOnce) {
   ScopedCustomObjectsFlag disable_custom(false);
