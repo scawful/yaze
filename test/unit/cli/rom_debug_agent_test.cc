@@ -88,13 +88,10 @@ TEST_F(RomDebugAgentTest, IdentifyDataType) {
   EXPECT_EQ(agent_->IdentifyDataType(0x002100), "ppu");
   EXPECT_EQ(agent_->IdentifyDataType(0x002140), "audio");
   EXPECT_EQ(agent_->IdentifyDataType(0x7EF000), "save");
-  // Pinned to current behaviour, which is a bug: the "inventory" branch tests
-  // INVENTORY_START (0x7EF340) + 0x40 *after* the SRAM range 0x7EF000-0x7EF4FF
-  // that contains it, so it is unreachable and inventory addresses report
-  // "save". DescribeMemoryLocation nests the same check inside its SRAM branch
-  // and does report inventory slots. Fixed separately, because this file is not
-  // clang-format clean and the fix would arrive buried in a whole-file reformat.
-  EXPECT_EQ(agent_->IdentifyDataType(0x7EF340), "save");
+  // Inventory slots sit inside the SRAM range but report their own type.
+  EXPECT_EQ(agent_->IdentifyDataType(0x7EF340), "inventory");
+  EXPECT_EQ(agent_->IdentifyDataType(0x7EF37F), "inventory");
+  EXPECT_EQ(agent_->IdentifyDataType(0x7EF380), "save");
   EXPECT_EQ(agent_->IdentifyDataType(0x008000), "code");
   EXPECT_EQ(agent_->IdentifyDataType(0x7E2000), "ram");
 }
