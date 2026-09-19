@@ -30,6 +30,7 @@
 #include "test_utils.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_layer_registers.h"
 #include "zelda3/game_data.h"
 
 namespace yaze::test {
@@ -351,6 +352,39 @@ TEST_F(DungeonGameStateParityTest, SpritesMatchCapture) {
       "not loaded by the game in this state\n",
       rooms_exact, rooms, sprites_checked, overlords_checked,
       sprites_not_loaded);
+}
+
+// The layer settings the game used ($1C TM, $1D TS, $9A CGADSUB) must follow
+// from the room header as DeriveRoomLayerRegisters models it.
+TEST_F(DungeonGameStateParityTest, LayerRegistersMatchCapture) {
+  int rooms = 0;
+  int rooms_exact = 0;
+  for (const auto& captured : CapturedRooms()) {
+    zelda3::Room room = zelda3::LoadRoomFromRom(rom_.get(), captured.room_id);
+    const auto derived = zelda3::DeriveRoomLayerRegisters(
+        room.layer2_mode(), room.layer_merging().ID == 8,
+        static_cast<int>(room.effect()), static_cast<int>(room.tag2()),
+        room.GetTileObjects());
+    const uint8_t tm = captured.wram[0x1C];
+    const uint8_t ts = captured.wram[0x1D];
+    const uint8_t cgadsub = captured.wram[0x9A];
+    ++rooms;
+    if (derived.tm == tm && derived.ts == ts && derived.cgadsub == cgadsub) {
+      ++rooms_exact;
+    } else {
+      ADD_FAILURE() << absl::StrFormat(
+          "room 0x%03X (bgact %d, effect %d, dark %d): game TM %02X TS %02X "
+          "CGADSUB %02X, derived %02X %02X %02X",
+          captured.room_id, room.layer2_mode(), static_cast<int>(room.effect()),
+          room.layer_merging().ID == 8, tm, ts, cgadsub, derived.tm, derived.ts,
+          derived.cgadsub);
+    }
+  }
+  if (rooms == 0) {
+    GTEST_SKIP() << "No --full captures in " << capture_dir_;
+  }
+  std::cout << absl::StrFormat("layer registers: %d/%d rooms exact\n",
+                               rooms_exact, rooms);
 }
 
 }  // namespace
