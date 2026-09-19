@@ -186,6 +186,7 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
   std::function<void()> edit_selected_graphics;
   bool can_edit_selected_tiles = false;
   std::function<void()> edit_selected_tiles;
+  std::function<void()> check_selected_coverage;
   if (single_selection && valid_room) {
     auto& room = (*rooms_)[room_id];
     const auto& objects = room.GetTileObjects();
@@ -208,6 +209,11 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
           edit_object_tiles_callback_(room_id, object);
         }
       };
+      if (check_object_coverage_callback_) {
+        check_selected_coverage = [this, room_id, object]() {
+          check_object_coverage_callback_(room_id, object);
+        };
+      }
     }
   }
 
@@ -327,6 +333,10 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
   if (can_edit_selected_tiles) {
     items.emplace_back("Edit Object Tiles...", ICON_MD_GRID_ON,
                        std::move(edit_selected_tiles));
+  }
+  if (check_selected_coverage) {
+    items.emplace_back("Check in Object Coverage", ICON_MD_FACT_CHECK,
+                       std::move(check_selected_coverage));
   }
 
   const bool has_entity_selection = interaction.HasEntitySelection();

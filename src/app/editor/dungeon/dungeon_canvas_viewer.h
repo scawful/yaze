@@ -544,6 +544,11 @@ class DungeonCanvasViewer {
       std::function<void(int, const zelda3::RoomObject&)> callback) {
     edit_object_tiles_callback_ = std::move(callback);
   }
+  // Opens Object Coverage on the selected object's ID.
+  void SetCheckObjectCoverageCallback(
+      std::function<void(int, const zelda3::RoomObject&)> callback) {
+    check_object_coverage_callback_ = std::move(callback);
+  }
   void SetMinecartTrackPanel(MinecartTrackEditorPanel* panel) {
     minecart_track_panel_ = panel;
   }
@@ -1107,6 +1112,8 @@ class DungeonCanvasViewer {
   double change_ping_start_time_ = -1.0;
   std::function<void(int, const zelda3::RoomObject&)>
       edit_object_tiles_callback_;
+  std::function<void(int, const zelda3::RoomObject&)>
+      check_object_coverage_callback_;
 };
 
 }  // namespace editor

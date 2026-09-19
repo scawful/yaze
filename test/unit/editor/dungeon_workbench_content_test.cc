@@ -572,6 +572,7 @@ TEST(DungeonWorkbenchContentLayoutTest,
       {&DungeonWorkbenchContent::OpenCustomCollisionTool, "custom_collision"},
       {&DungeonWorkbenchContent::OpenWaterFillTool, "water_fill"},
       {&DungeonWorkbenchContent::OpenMinecartTool, "minecart"},
+      {&DungeonWorkbenchContent::OpenObjectCoverageTool, "object_coverage"},
   };
 
   for (const auto& step : steps) {

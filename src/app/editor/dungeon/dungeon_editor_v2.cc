@@ -204,6 +204,7 @@ absl::Status DungeonEditorV2::EnsureMinecartTrackEditorPanel() {
     workbench_panel_->SetEmbeddedToolPanels(
         room_tag_editor_panel_, custom_collision_panel_, water_fill_panel_,
         minecart_track_editor_panel_);
+    workbench_panel_->SetObjectCoverageContent(object_coverage_panel_);
   }
 
   return absl::OkStatus();
@@ -1146,6 +1147,7 @@ absl::Status DungeonEditorV2::Load() {
     workbench_panel_->SetEmbeddedToolPanels(
         room_tag_editor_panel_, custom_collision_panel_, water_fill_panel_,
         minecart_track_editor_panel_);
+    workbench_panel_->SetObjectCoverageContent(object_coverage_panel_);
     workbench_panel_->SetEmbeddedEditorPanels(
         object_selector_panel_, door_editor_panel_, sprite_editor_panel_,
         item_editor_panel_, room_graphics_panel_, palette_editor_panel_);
@@ -2511,6 +2513,19 @@ void DungeonEditorV2::WireViewerPanelCallbacks(DungeonCanvasViewer* viewer) {
     }
     OpenWindow(kRoomGraphicsId);
   });
+  viewer->SetCheckObjectCoverageCallback(
+      [this](int room_id, const zelda3::RoomObject& object) {
+        if (object_coverage_panel_ == nullptr) {
+          return;
+        }
+        object_coverage_panel_->FocusObject(object.id_, room_id);
+        if (IsWorkbenchWorkflowEnabled() && workbench_panel_) {
+          workbench_panel_->OpenObjectCoverageTool();
+          OpenWindow("dungeon.workbench");
+          return;
+        }
+        OpenWindow("dungeon.object_coverage");
+      });
   viewer->SetShowDoorEditorCallback([this]() {
     if (IsWorkbenchWorkflowEnabled() && workbench_panel_) {
       workbench_panel_->OpenDoorTool();
