@@ -108,7 +108,8 @@ std::pair<int, int> ObjectDimensionTable::GetDimensions(int object_id,
     int size_x = ((size >> 2) & 0x03);
     int size_y = (size & 0x03);
     int width = (size_x + 2) * 4;
-    int height = (size_y + 2) * 4;
+    // 0xDA draws 2*size_y+3 two-row chunks (RoomDraw_WaterOverlayB8x8).
+    int height = object_id == 0xDA ? 4 * size_y + 6 : (size_y + 2) * 4;
     return {width, height};
   }
   if (object_id == 0xDD) {
@@ -188,7 +189,8 @@ std::pair<int, int> ObjectDimensionTable::GetSelectionDimensions(
     int size_x = ((size >> 2) & 0x03);
     int size_y = (size & 0x03);
     int width = (size_x + 2) * 4;
-    int height = (size_y + 2) * 4;
+    // 0xDA draws 2*size_y+3 two-row chunks (RoomDraw_WaterOverlayB8x8).
+    int height = object_id == 0xDA ? 4 * size_y + 6 : (size_y + 2) * 4;
     return {width, height};
   }
   if (object_id == 0xDD) {
@@ -288,6 +290,12 @@ ObjectDimensionTable::SelectionBounds ObjectDimensionTable::GetSelectionBounds(
     // Moving wall west grows its fill left from the three-column platform.
     case 0xCD:
       bounds.offset_x = -moving_wall::ObjectCountForSize(size);
+      break;
+
+    // Ganon's triforce floor: bottom blocks start two columns left of the
+    // anchor (RoomDraw_GanonTriforceFloorDecor, ADC #$01FC).
+    case 0xFF8:
+      bounds.offset_x = -2;
       break;
 
     default:
@@ -413,8 +421,9 @@ void ObjectDimensionTable::InitializeDefaults() {
     dimensions_[id] = {4, 3, Dir::Horizontal, 8, false};
   }
 
-  // 0x3C: Doubled 2x2 (rendered as 4x2) with 6-tile horizontal step
-  dimensions_[0x3C] = {4, 2, Dir::Horizontal, 6, false};
+  // 0x3C: two 2x2 blocks six rows apart per repeat, four columns per step
+  // (RoomDraw_RightwardsDoubled2x2spaced2_1to16): width 4*(size+1)-2, height 8.
+  dimensions_[0x3C] = {2, 8, Dir::Horizontal, 4, false};
 
   // 0x3D: Pillar 2x4 spaced 4 - step is 6 tiles between starts
   dimensions_[0x3D] = {2, 4, Dir::Horizontal, 6, false};
@@ -444,9 +453,10 @@ void ObjectDimensionTable::InitializeDefaults() {
   // 0x4C: two 1x3 caps around 2*(size+1) middle columns ($0194BD).
   dimensions_[0x4C] = {4, 3, Dir::Horizontal, 2, false};
 
-  // 0x4D-0x4F: Shelf 4x4 - count=(size+1), step=4
+  // 0x4D-0x4F: shelf = opening column, (size+1) two-column middles, closing
+  // column (RoomDraw_RightwardsShelf4x4_1to16): width 2*(size+1)+2.
   for (int id = 0x4D; id <= 0x4F; id++) {
-    dimensions_[id] = {4, 4, Dir::Horizontal, 4, false};
+    dimensions_[id] = {4, 4, Dir::Horizontal, 2, false};
   }
 
   // 0x50: Line 1x1 +1 (count = size + 2)

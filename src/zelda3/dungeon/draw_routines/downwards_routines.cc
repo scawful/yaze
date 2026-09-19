@@ -495,34 +495,28 @@ void DrawDownwardsBlock2x2spaced2_1to16(const DrawContext& ctx) {
 }
 
 void DrawDownwardsCannonHole3x4_1to16(const DrawContext& ctx) {
-  const int size = ctx.object.size_ & 0x0F;
-  const int repeat_count = size + 1;
-  if (ctx.tiles.size() < 12) {
+  // USDASM RoomDraw_DownwardsCannonHole3x4_1to16 ($01:9CEB), objects
+  // 0x85/0x86. size+1 segments of two row-major 3-tile rows: the first from
+  // words 0..5, the middle ones from words 6..11 (PHX/PLX), and a closing
+  // segment from words 12..17 (ADC #$000C). Height is 2*size+4.
+  if (ctx.tiles.size() < 18) {
     return;
   }
-
-  auto draw_segment = [&](int base_y, int tile_base) {
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 0, base_y + 0,
-                                 ctx.tiles[tile_base + 0]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, base_y + 0,
-                                 ctx.tiles[tile_base + 1]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 2, base_y + 0,
-                                 ctx.tiles[tile_base + 2]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 0, base_y + 1,
-                                 ctx.tiles[tile_base + 3]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 1, base_y + 1,
-                                 ctx.tiles[tile_base + 4]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 2, base_y + 1,
-                                 ctx.tiles[tile_base + 5]);
+  const int count = (ctx.object.size_ & 0x0F) + 1;  // GetSize_1to16
+  auto draw_segment = [&](int segment, int first) {
+    for (int y = 0; y < 2; ++y) {
+      for (int x = 0; x < 3; ++x) {
+        DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + x,
+                                     ctx.object.y_ + segment * 2 + y,
+                                     ctx.tiles[first + y * 3 + x]);
+      }
+    }
   };
-
-  // USDASM $01:9CEB:
-  // - Repeat the left 3x2 segment (tiles 0..5) size+1 times
-  // - Append one 3x2 edge segment (tiles 6..11)
-  for (int s = 0; s < repeat_count; ++s) {
-    draw_segment(ctx.object.y_ + (s * 2), /*tile_base=*/0);
+  draw_segment(0, 0);
+  for (int s = 1; s < count; ++s) {
+    draw_segment(s, 6);
   }
-  draw_segment(ctx.object.y_ + (repeat_count * 2), /*tile_base=*/6);
+  draw_segment(count, 12);
 }
 
 void DrawDownwardsBar2x5_1to16(const DrawContext& ctx) {
