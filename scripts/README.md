@@ -88,6 +88,7 @@ multi-iPad deployment.
 | `lint.sh` | canonical | clang-format and clang-tidy with the project configuration |
 | `quality_check.sh` | compatibility | Wraps `lint.sh` with extra reporting; referenced from architecture docs |
 | `pre-push-test.sh` / `.ps1` | compatibility | Broader pre-push sweep including symbol checks; see [pre-push-checklist.md](../docs/internal/testing/pre-push-checklist.md) |
+| `ci/check-no-compiler-launcher.sh` | canonical | Fail if a configured CMake build routes compiles through ccache or sccache; guards CodeQL, whose extractor misses cache hits |
 | `find-unsafe-array-access.sh` | deprecated | One-off static scan from the 2025 WASM bounds-checking audit, which is closed |
 
 Formatting entry points share `.clang-format-version`, discover tools through
