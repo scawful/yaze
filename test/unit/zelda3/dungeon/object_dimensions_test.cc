@@ -878,12 +878,17 @@ TEST_F(ObjectDimensionTableTest,
   auto& table = ObjectDimensionTable::Get();
   table.LoadFromRom(rom_.get());
 
-  // RoomDraw_RightwardsDecor4x3spaced4_1to16 advances to the next 4x3 stamp
-  // every eight tile columns. Object 0xFF9 appeared in an editor issue report
-  // with the old six-tile stride.
-  auto [decor_w, decor_h] = table.GetDimensions(0xFF9, 2);
+  // RoomDraw_RightwardsDecor4x3spaced4_1to16 (type-1 0x03A/0x03B) advances
+  // to the next 4x3 stamp every eight tile columns.
+  auto [decor_w, decor_h] = table.GetDimensions(0x03A, 2);
   EXPECT_EQ(decor_w, 20);
   EXPECT_EQ(decor_h, 3);
+
+  // 0xFF9, which appeared in an editor issue report, is RoomDraw_TableRock4x3
+  // and draws one 4x3 block whatever its size bits (game tilemap captures).
+  auto [rock_w, rock_h] = table.GetDimensions(0xFF9, 2);
+  EXPECT_EQ(rock_w, 4);
+  EXPECT_EQ(rock_h, 3);
 
   // Chest platforms use subtype-1's packed 2-bit size fields:
   // size_x=(size>>2)&3, size_y=size&3.
