@@ -94,7 +94,7 @@ void RoomLayerManager::CompositeToOutput(Room& room,
 
   auto layer_enabled = [&](LayerType type,
                            const gfx::BackgroundBuffer& buffer) {
-    if (!IsLayerVisible(type) ||
+    if (!IsLayerVisible(type) || IsHiddenByGame(type) ||
         GetLayerBlendMode(type) == LayerBlendMode::Off) {
       return false;
     }

@@ -31,7 +31,8 @@ TEST(RoomLayerRegistersTest, BgactSelectsSubscreenAndColorMath) {
   }
   EXPECT_FALSE(Derive(0).LowerTilemapShown());
   EXPECT_TRUE(Derive(3).TilemapsShareMainScreen());
-  EXPECT_TRUE(Derive(4).LowerTilemapBlended());
+  EXPECT_TRUE(Derive(4).UpperTilemapBlended());
+  EXPECT_FALSE(Derive(1).UpperTilemapBlended());
   EXPECT_TRUE(Derive(4).BlendHalves());
 }
 

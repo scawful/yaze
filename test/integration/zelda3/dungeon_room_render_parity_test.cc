@@ -66,6 +66,7 @@ void ExpectHeadlessPngMatchesRoomComposite(app::service::RenderService& service,
   RoomLayerManager layers;
   layers.ApplyLayerMerging(room.layer_merging());
   layers.ApplyRoomEffect(room.effect());
+  layers.ApplyGameLayerRegisters(room.GameLayerRegisters());
   const auto& composite = room.GetCompositeBitmap(layers);
   ASSERT_TRUE(composite.is_active());
   ASSERT_NE(composite.surface(), nullptr);

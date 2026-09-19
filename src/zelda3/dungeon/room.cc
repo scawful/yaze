@@ -873,6 +873,16 @@ int Room::ResolveDungeonPaletteId() const {
   return id;
 }
 
+RoomLayerRegisters Room::GameLayerRegisters(uint16_t room_flags) const {
+  // The merge type is what the editor edits; for dark rooms it is the
+  // placeholder 8 and layer2_mode_ keeps the header's BGACT.
+  const bool dark = layer_merging_.ID == 8;
+  const uint8_t bgact = dark ? layer2_mode_ : layer_merging_.ID;
+  return DeriveRoomLayerRegisters(bgact, dark, static_cast<int>(effect_),
+                                  static_cast<int>(tag2_), tile_objects_,
+                                  room_flags);
+}
+
 void Room::LoadRoomGraphics(std::optional<uint8_t> entrance_blockset) {
   if (!game_data_) {
     LOG_DEBUG("Room", "GameData not set for room %d", room_id_);

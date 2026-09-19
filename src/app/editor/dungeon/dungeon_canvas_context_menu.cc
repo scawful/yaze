@@ -559,6 +559,21 @@ gui::CanvasMenuItem DungeonCanvasViewer::BuildLayerVisibilityContextMenu(
   };
   layers_menu.subitems.push_back(std::move(bg2_objects_item));
 
+  // The game hides the lower tilemap (BG2 here) in rooms whose layer settings
+  // put it on neither the main nor the sub screen; show it anyway for editing.
+  gui::CanvasMenuItem hidden_layers_item(
+      "Show Layers the Game Hides", ICON_MD_VISIBILITY_OFF, [this, room_id]() {
+        auto& mgr = GetRoomLayerManager(room_id);
+        mgr.SetShowHiddenLayers(!mgr.ShowHiddenLayers());
+      });
+  hidden_layers_item.enabled_condition = [this, room_id]() {
+    return GetRoomLayerManager(room_id).GameHidesLowerTilemap();
+  };
+  hidden_layers_item.checked_condition = [this, room_id]() {
+    return GetRoomLayerManager(room_id).ShowHiddenLayers();
+  };
+  layers_menu.subitems.push_back(std::move(hidden_layers_item));
+
   gui::CanvasMenuItem sprites_item("Sprites", ICON_MD_PERSON, [this]() {
     entity_visibility_.show_sprites = !entity_visibility_.show_sprites;
   });
