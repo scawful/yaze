@@ -421,6 +421,8 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/room_integration_test.cc
     integration/zelda3/dungeon_object_inventory_rom_test.cc
     integration/zelda3/dungeon_game_tilemap_parity_test.cc
+    integration/zelda3/dungeon_game_state_parity_test.cc
+    integration/zelda3/room_default_entrance_rom_test.cc
     integration/zelda3/dungeon/pit_damage_table_test.cc
     integration/zelda3/dungeon_save_region_test.cc
     integration/zelda3/dungeon_pot_repack_oos_integration_test.cc
