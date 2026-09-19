@@ -1,5 +1,6 @@
 #include "object_drawer.h"
 
+#include <algorithm>
 #include <array>
 #include <cstdio>
 #include <cstring>
@@ -78,8 +79,21 @@ void SyncModifiedBitmapToSurface(gfx::Bitmap& bitmap, const char* layer_name) {
   SDL_UnlockSurface(surface);
 }
 
+// Sets the priority bit of the tile word already stored at (tile_x, tile_y),
+// as USDASM's ORA #$2000 does. An empty word means this buffer did not draw
+// the tile, so it is left empty; the other buffer's word is what shows there.
+void PromoteTileWordPriority(gfx::BackgroundBuffer& target, int tile_x,
+                             int tile_y) {
+  constexpr uint16_t kPriorityBit = 0x2000;
+  const uint16_t word = target.GetTileAt(tile_x, tile_y);
+  if (word != 0) {
+    target.SetTileAt(tile_x, tile_y, word | kPriorityBit);
+  }
+}
+
 void PromoteTilePriorityOnly(gfx::BackgroundBuffer& target, int tile_x,
                              int tile_y) {
+  PromoteTileWordPriority(target, tile_x, tile_y);
   for (int py = 0; py < 8; ++py) {
     for (int px = 0; px < 8; ++px) {
       target.SetPriorityAt(tile_x * 8 + px, tile_y * 8 + py, 1);
@@ -1833,6 +1847,13 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
           gfx::BackgroundBuffer* layout_buffer, int start_tile_x,
           int start_tile_y, int width_tiles, int height_tiles) {
         auto promote_target = [&](gfx::BackgroundBuffer& target) {
+          for (int tile_y = start_tile_y; tile_y < start_tile_y + height_tiles;
+               ++tile_y) {
+            for (int tile_x = start_tile_x; tile_x < start_tile_x + width_tiles;
+                 ++tile_x) {
+              PromoteTileWordPriority(target, tile_x, tile_y);
+            }
+          }
           for (int y = start_tile_y * 8; y < (start_tile_y + height_tiles) * 8;
                ++y) {
             for (int x = start_tile_x * 8; x < (start_tile_x + width_tiles) * 8;
@@ -1853,8 +1874,20 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
 
   auto promote_upper_priority_rect = [&](int start_tile_x, int start_tile_y,
                                          int width_tiles, int height_tiles) {
+    // USDASM writes these through $7E2000,X. BG2's map ($7E4000) directly
+    // follows BG1's, so rows past 63 continue on BG2 at row-64 (for example
+    // the exit-light span under a south door at row 55).
+    constexpr int kRows = 64;
+    const int bg1_rows =
+        std::max(0, std::min(height_tiles, kRows - start_tile_y));
     promote_priority_rect_on_layer(bg1, layout_bg1, start_tile_x, start_tile_y,
-                                   width_tiles, height_tiles);
+                                   width_tiles, bg1_rows);
+    if (bg1_rows < height_tiles) {
+      const int bg2_start = std::max(0, start_tile_y - kRows);
+      promote_priority_rect_on_layer(
+          bg2, layout_bg2, start_tile_x, bg2_start, width_tiles,
+          start_tile_y + height_tiles - kRows - bg2_start);
+    }
   };
 
   auto promote_lower_priority_rect = [&](int start_tile_x, int start_tile_y,
