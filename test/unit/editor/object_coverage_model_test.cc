@@ -207,5 +207,99 @@ TEST(ObjectCoverageModelTest, NextObjectSkipsCheckedAndUnplacedAndWraps) {
   EXPECT_FALSE(NextObjectToCheck(order, evidence, usage, std::nullopt));
 }
 
+TEST(ObjectCoverageModelTest, CaptureDirRoundTripsThroughJson) {
+  ObjectEvidenceStore store;
+  store.set_capture_dir("/tmp/captures");
+  auto loaded = ObjectEvidenceStore::FromJson(store.ToJson());
+  ASSERT_TRUE(loaded.ok()) << loaded.status();
+  EXPECT_EQ(loaded->capture_dir(), "/tmp/captures");
+  EXPECT_EQ(ObjectEvidenceStore{}.ToJson().find("capture_dir"),
+            std::string::npos);
+}
+
+TEST(ObjectCoverageModelTest, ManifestListsOnlyCapturedRooms) {
+  const std::filesystem::path dir =
+      ::yaze::test::UniqueTempPath("object_capture_manifest");
+  std::filesystem::create_directories(dir);
+  {
+    std::ofstream out(dir / "manifest.json");
+    out << R"({"version": 1, "rom_sha1": "93fb2bd3",
+               "rooms": {"0x042": {"status": "ok"},
+                         "0x001": {"status": "ok"},
+                         "0x002": {"status": "loaded-room-0x003"}}})";
+  }
+  auto manifest = LoadGameCaptureManifest(dir);
+  ASSERT_TRUE(manifest.ok()) << manifest.status();
+  EXPECT_EQ(manifest->rom_sha1, "93fb2bd3");
+  EXPECT_EQ(manifest->captured_rooms, (std::vector<int>{0x001, 0x042}));
+  EXPECT_EQ(GameCaptureRoomPath(dir, 0x042).filename(), "room_042.tilemap");
+
+  {
+    std::ofstream out(dir / "manifest.json");
+    out << R"({"rooms": {}})";
+  }
+  EXPECT_FALSE(LoadGameCaptureManifest(dir).ok()) << "no rom_sha1";
+  std::error_code ec;
+  std::filesystem::remove_all(dir, ec);
+  EXPECT_FALSE(LoadGameCaptureManifest(dir).ok()) << "missing folder";
+}
+
+TEST(ObjectCoverageModelTest, AutoResultsSummarizePlacementsPerObject) {
+  ObjectAutoCheckResults results;
+  PlacementAutoResult match{.tiles_owned = 4};
+  PlacementAutoResult differ{
+      .tiles_owned = 4, .tiles_different = 1, .difference_bits = 0x2000};
+  PlacementAutoResult hidden{};  // no owned tiles: not a checked placement
+  results.Record(0x001, 0, 0x04C, match);
+  results.Record(0x001, 3, 0x04C, match);
+  results.Record(0x042, 1, 0x04C, differ);
+  results.Record(0x042, 2, 0x001, hidden);
+  results.RecordRoom(true);
+  results.RecordRoom(false);
+
+  const auto* bars = results.Summary(0x04C);
+  ASSERT_NE(bars, nullptr);
+  EXPECT_EQ(bars->placements_checked, 3);
+  EXPECT_EQ(bars->placements_different, 1);
+  EXPECT_EQ(bars->difference_bits, 0x2000);
+  EXPECT_EQ(bars->first_room_different, 0x042);
+  EXPECT_EQ(bars->rooms_checked, (std::vector<int>{0x001, 0x042}));
+  EXPECT_EQ(results.Summary(0x001), nullptr);
+  ASSERT_NE(results.Find(0x042, 1), nullptr);
+  EXPECT_EQ(results.Find(0x042, 1)->object_id, 0x04C);
+  EXPECT_EQ(results.rooms_compared(), 2);
+  EXPECT_EQ(results.rooms_exact(), 1);
+
+  results.Clear();
+  EXPECT_EQ(results.Summary(0x04C), nullptr);
+  EXPECT_EQ(results.rooms_compared(), 0);
+}
+
+// Automatic verdicts only fill in objects nobody has judged.
+TEST(ObjectCoverageModelTest, ProposalsSkipJudgedObjects) {
+  ObjectAutoCheckResults results;
+  results.Record(0x001, 0, 0x033, {.tiles_owned = 4});
+  results.Record(
+      0x002, 0, 0x04C,
+      {.tiles_owned = 2, .tiles_different = 2, .difference_bits = 0x0400});
+  results.Record(0x003, 0, 0x001, {.tiles_owned = 1});
+
+  ObjectEvidenceStore evidence;
+  ObjectEvidence judged;
+  judged.state = ObjectEvidenceState::kReproduced;
+  evidence.Set(0x001, judged);
+
+  const auto proposals =
+      ProposeAutomaticVerdicts(results, evidence, "93fb2bd3e19c96c5");
+  ASSERT_EQ(proposals.size(), 2u);
+  EXPECT_EQ(proposals.count(0x001), 0u);
+  EXPECT_EQ(proposals.at(0x033).state, ObjectEvidenceState::kVerified);
+  EXPECT_EQ(proposals.at(0x033).room_id, 0x001);
+  EXPECT_NE(proposals.at(0x033).note.find("93fb2bd3"), std::string::npos);
+  EXPECT_EQ(proposals.at(0x04C).state, ObjectEvidenceState::kReproduced);
+  EXPECT_EQ(proposals.at(0x04C).room_id, 0x002);
+  EXPECT_NE(proposals.at(0x04C).note.find("palette"), std::string::npos);
+}
+
 }  // namespace
 }  // namespace yaze::editor

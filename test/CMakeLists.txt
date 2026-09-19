@@ -356,6 +356,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/dungeon_limits_test.cc
     unit/zelda3/dungeon/draw_routine_symbology_test.cc
     unit/zelda3/dungeon/draw_routine_registry_ids_test.cc
+    unit/zelda3/dungeon/game_tilemap_comparison_test.cc
     unit/zelda3/dungeon/room_limit_regression_test.cc
     unit/zelda3/dungeon/dungeon_validator_test.cc
     unit/zelda3/dungeon/door_position_test.cc
@@ -419,6 +420,7 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/dungeon_editor_system_integration_test.cc
     integration/zelda3/room_integration_test.cc
     integration/zelda3/dungeon_object_inventory_rom_test.cc
+    integration/zelda3/dungeon_game_tilemap_parity_test.cc
     integration/zelda3/dungeon/pit_damage_table_test.cc
     integration/zelda3/dungeon_save_region_test.cc
     integration/zelda3/dungeon_pot_repack_oos_integration_test.cc

@@ -8,6 +8,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -60,6 +61,10 @@ class ObjectEvidenceStore {
   void Set(int object_id, ObjectEvidence evidence);
   const std::map<int, ObjectEvidence>& entries() const { return entries_; }
 
+  // Folder of game tilemap captures used by the automatic check, or empty.
+  const std::string& capture_dir() const { return capture_dir_; }
+  void set_capture_dir(std::string dir) { capture_dir_ = std::move(dir); }
+
   std::string ToJson() const;
   static absl::StatusOr<ObjectEvidenceStore> FromJson(std::string_view json);
 
@@ -71,6 +76,7 @@ class ObjectEvidenceStore {
 
  private:
   std::map<int, ObjectEvidence> entries_;
+  std::string capture_dir_;
 };
 
 // One placed object in one room.
@@ -118,6 +124,69 @@ std::optional<int> NextObjectToCheck(const std::vector<int>& review_order,
                                      const ObjectEvidenceStore& evidence,
                                      const ObjectUsageIndex& usage,
                                      std::optional<int> after_object_id);
+
+// A folder written by scripts/agents/capture-game-room-tilemaps.py.
+struct GameCaptureManifest {
+  std::string rom_sha1;
+  std::vector<int> captured_rooms;  // rooms with status "ok", ascending
+};
+
+// Reads <dir>/manifest.json.
+absl::StatusOr<GameCaptureManifest> LoadGameCaptureManifest(
+    const std::filesystem::path& dir);
+
+// <dir>/room_XXX.tilemap
+std::filesystem::path GameCaptureRoomPath(const std::filesystem::path& dir,
+                                          int room_id);
+
+// Automatic check result for one placement.
+struct PlacementAutoResult {
+  int object_id = -1;
+  int tiles_owned = 0;
+  int tiles_different = 0;
+  uint16_t difference_bits = 0;
+};
+
+// Automatic check results, keyed by room and object index.
+class ObjectAutoCheckResults {
+ public:
+  void Clear();
+  void Record(int room_id, size_t object_index, int object_id,
+              const PlacementAutoResult& result);
+  void RecordRoom(bool exact) {
+    ++rooms_compared_;
+    rooms_exact_ += exact ? 1 : 0;
+  }
+
+  const PlacementAutoResult* Find(int room_id, size_t object_index) const;
+
+  struct ObjectSummary {
+    int placements_checked = 0;  // placements with at least one owned tile
+    int placements_different = 0;
+    uint16_t difference_bits = 0;
+    int first_room_different = -1;
+    std::vector<int> rooms_checked;  // ascending, unique
+  };
+  // Null when no placement of the object was checked.
+  const ObjectSummary* Summary(int object_id) const;
+  const std::map<int, ObjectSummary>& summaries() const { return summaries_; }
+
+  int rooms_compared() const { return rooms_compared_; }
+  int rooms_exact() const { return rooms_exact_; }
+
+ private:
+  std::map<std::pair<int, size_t>, PlacementAutoResult> placements_;
+  std::map<int, ObjectSummary> summaries_;
+  int rooms_compared_ = 0;
+  int rooms_exact_ = 0;
+};
+
+// Verdicts the automatic check supports for objects nobody has judged yet:
+// kVerified when every checked placement matches, kReproduced when any
+// differs. Objects that already have a verdict are never included.
+std::map<int, ObjectEvidence> ProposeAutomaticVerdicts(
+    const ObjectAutoCheckResults& results, const ObjectEvidenceStore& evidence,
+    const std::string& rom_sha1);
 
 // "0x04C" for type 1, "0x12D" for type 2, "0xFD6" for type 3.
 std::string FormatObjectId(int object_id);
