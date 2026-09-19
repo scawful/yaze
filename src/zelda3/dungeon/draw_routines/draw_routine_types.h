@@ -35,7 +35,8 @@ struct DrawContext {
   gfx::BackgroundBuffer*
       secondary_bg;  // Secondary BG for dual-layer routines (nullable)
   const gfx::BackgroundBuffer* target_layout_bg =
-      nullptr;  // Matching layout owner for logical tilemap reads
+      nullptr;         // Matching layout owner for logical tilemap reads
+  int room_tag2 = -1;  // Room header tag2 ($AF); -1 when not drawing a room
 
   // Canvas dimensions
   static constexpr int kMaxTilesX = 64;

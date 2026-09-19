@@ -4490,6 +4490,19 @@ TEST(ObjectDrawerRegistryReplayTest,
   EXPECT_EQ(trace[19].x_tile, 13);
   EXPECT_EQ(trace[19].y_tile, 24);
   EXPECT_EQ(trace[19].tile_id, 31);
+
+  // In a room, only tag2 0x1B or 0x19 lets the face spit (room 0x066 has
+  // tag2 0 and stays empty with its flags set).
+  for (const auto& [tag2, spits] :
+       {std::pair{0x00, false}, std::pair{0x1B, true}, std::pair{0x19, true},
+        std::pair{0x1A, false}}) {
+    SCOPED_TRACE(::testing::Message() << "tag2=" << tag2);
+    drawer.SetRoomTag2(tag2);
+    trace.clear();
+    ASSERT_TRUE(
+        drawer.DrawObject(water_face, bg1, bg2, palette_group, &state).ok());
+    EXPECT_EQ(trace.size(), spits ? 20u : 12u);
+  }
 }
 
 TEST(ObjectDrawerRegistryReplayTest, SpittingWaterFaceDraws4x5RowMajor) {

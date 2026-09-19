@@ -116,6 +116,10 @@ class ObjectDrawer {
   }
   // Room objects 0xC4/0xDB copy the active Floor 1/Floor 2 pattern rather than
   // reading a normal object tile payload.
+  // Room header tag2 ($AF), read by state-dependent routines such as
+  // RoomDraw_EmptyWaterFace. -1 (default) means no room context.
+  void SetRoomTag2(int tag2) { room_tag2_ = tag2; }
+
   void SetRoomFloorGraphics(uint8_t floor1, uint8_t floor2) {
     floor1_graphics_ = floor1 & 0x0F;
     floor2_graphics_ = floor2 & 0x0F;
@@ -341,6 +345,7 @@ class ObjectDrawer {
   mutable int current_chest_index_ = 0;
   mutable int current_room_event_index_ = 0;
   bool has_room_floor_graphics_ = false;
+  int room_tag2_ = -1;
   uint8_t floor1_graphics_ = 0;
   uint8_t floor2_graphics_ = 0;
   gfx::BackgroundBuffer* registry_secondary_bg_ = nullptr;
