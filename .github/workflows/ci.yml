@@ -88,6 +88,11 @@ jobs:
   build:
     name: "Build - ${{ matrix.name }}"
     runs-on: ${{ matrix.os }}
+    # Skipped on pull requests: the test job builds the same OS, preset, build
+    # type and default target, then runs the tests, so this job only repeated
+    # its compile (about 91 runner-minutes per PR). It still runs on push, where
+    # it uploads the Windows artifact and feeds windows-agent.
+    if: github.event_name != 'pull_request'
     strategy:
       fail-fast: false
       matrix:
@@ -129,7 +134,7 @@ jobs:
         with:
           platform: ${{ matrix.platform }}
           preset: ${{ matrix.preset }}
-          cache-key: ${{ github.sha }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
 
       - name: Build project
         uses: ./.github/actions/build-project
@@ -195,7 +200,7 @@ jobs:
         with:
           platform: ${{ matrix.platform }}
           preset: ${{ matrix.preset }}
-          cache-key: ${{ github.sha }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
 
       - name: Build project
         uses: ./.github/actions/build-project
@@ -260,7 +265,7 @@ jobs:
         with:
           platform: windows
           preset: ci-windows-ai
-          cache-key: ${{ github.sha }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
 
       - name: Build project
         uses: ./.github/actions/build-project
@@ -497,7 +502,7 @@ jobs:
         with:
           platform: macos
           preset: ci-macos
-          cache-key: oracle-smoke-${{ github.sha }}
+          cache-key: oracle-smoke-${{ hashFiles('cmake/dependencies.lock') }}
 
       # Fix: configure CMake before building. setup-build only installs deps;
       # cmake --preset is required to populate the build/ cache directory.

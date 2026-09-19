@@ -57,19 +57,35 @@ if(YAZE_ENABLE_GRPC AND NOT EMSCRIPTEN AND NOT WIN32)
     enable_language(ASM)
 endif()
 
-# Enable sccache/ccache for faster rebuilds if available
-find_program(SCCACHE_FOUND sccache)
-if(SCCACHE_FOUND)
-    message(STATUS "✓ sccache found, enabling for faster builds")
-    set(CMAKE_CXX_COMPILER_LAUNCHER sccache)
-    set(CMAKE_C_COMPILER_LAUNCHER sccache)
+# Enable sccache/ccache for faster rebuilds if available.
+# Turn this off for CodeQL: its extractor traces real compiler calls, and a
+# cache hit skips the compiler, so the file drops out of the analysis. The
+# launcher is set with set() below, so -DCMAKE_CXX_COMPILER_LAUNCHER= on the
+# command line cannot override it; this option is the switch.
+option(YAZE_USE_COMPILER_CACHE
+       "Use sccache or ccache as the compiler launcher when one is found" ON)
+# SDL2 finds ccache and sets launchers for its own targets (SDL_CCACHE,
+# default ON), so the option has to reach it as well. Mirroring it in both
+# directions keeps a reconfigured build dir consistent.
+set(SDL_CCACHE ${YAZE_USE_COMPILER_CACHE}
+    CACHE BOOL "Use ccache for SDL2's targets (follows YAZE_USE_COMPILER_CACHE)"
+    FORCE)
+if(YAZE_USE_COMPILER_CACHE)
+  find_program(SCCACHE_FOUND sccache)
+  if(SCCACHE_FOUND)
+      message(STATUS "✓ sccache found, enabling for faster builds")
+      set(CMAKE_CXX_COMPILER_LAUNCHER sccache)
+      set(CMAKE_C_COMPILER_LAUNCHER sccache)
+  else()
+      find_program(CCACHE_FOUND ccache)
+      if(CCACHE_FOUND)
+          message(STATUS "✓ ccache found, enabling for faster builds")
+          set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
+          set(CMAKE_C_COMPILER_LAUNCHER ccache)
+      endif()
+  endif()
 else()
-    find_program(CCACHE_FOUND ccache)
-    if(CCACHE_FOUND)
-        message(STATUS "✓ ccache found, enabling for faster builds")
-        set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
-        set(CMAKE_C_COMPILER_LAUNCHER ccache)
-    endif()
+  message(STATUS "Compiler cache disabled (YAZE_USE_COMPILER_CACHE=OFF)")
 endif()
 
 # Version is defined in project() above - use those variables

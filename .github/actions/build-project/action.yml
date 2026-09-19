@@ -23,11 +23,19 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    # Windows only. Checkout resets source mtimes, so a restored build tree
+    # still recompiles nearly all of yaze (measured on macOS: 1082 of 1153
+    # objects), while the tree cost 1.1-3.7 GB per commit of the 10 GB cache
+    # budget. On Windows the tree also holds the gRPC objects CPM builds from
+    # source, whose sources are not reset by checkout, so it is kept there and
+    # keyed on the dependency lock: an unchanged lock hits exactly, and
+    # actions/cache does not save on an exact hit.
     - name: Cache build artifacts
+      if: inputs.platform == 'windows'
       uses: actions/cache@v4
       with:
         path: build/presets/${{ inputs.preset }}
-        key: build-${{ inputs.platform }}-${{ inputs.preset }}-${{ inputs.build-type }}-${{ github.sha }}
+        key: build-${{ inputs.platform }}-${{ inputs.preset }}-${{ inputs.build-type }}-${{ hashFiles('cmake/dependencies.lock') }}
         restore-keys: |
           build-${{ inputs.platform }}-${{ inputs.preset }}-${{ inputs.build-type }}-
 

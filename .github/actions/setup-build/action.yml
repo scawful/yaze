@@ -8,9 +8,19 @@ inputs:
     description: 'CMake preset to use'
     required: true
   cache-key:
-    description: 'Cache key for dependencies'
+    description: >
+      Dependency cache key. Pass a hash of the dependency declarations (for
+      example hashFiles('cmake/dependencies.lock')), not github.sha: a per-commit
+      key never hits exactly, so every run uploads a fresh multi-GB CPM cache.
     required: false
     default: ''
+  compiler-cache:
+    description: >
+      Install sccache and use it as the compiler launcher. Set to 'false' for
+      CodeQL: CMakeLists.txt enables any sccache found on PATH, and a cache hit
+      skips the compiler call that CodeQL's extractor traces.
+    required: false
+    default: 'true'
 
 runs:
   using: 'composite'
@@ -20,9 +30,14 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~/.cpm-cache
-        key: cpm-${{ inputs.platform }}-${{ inputs.cache-key }}
+        # The preset is part of the key: CodeQL configures ci-linux with gRPC
+        # off, and sharing an entry would let whichever job saved first decide
+        # which packages every later ci-linux run starts with.
+        # "deps-" ends the preset segment for the same reason: without it the
+        # restore prefix "cpm-windows-ci-windows-" also matches ci-windows-ai.
+        key: cpm-${{ inputs.platform }}-${{ inputs.preset }}-deps-${{ inputs.cache-key }}
         restore-keys: |
-          cpm-${{ inputs.platform }}-
+          cpm-${{ inputs.platform }}-${{ inputs.preset }}-deps-
 
     - name: Setup build environment (Linux)
       if: inputs.platform == 'linux'
@@ -57,14 +72,29 @@ runs:
         git config --global core.longpaths true
         git config --global --add safe.directory '*'
 
+    # ccache-action prefixes every key with "sccache-" and, with
+    # append-timestamp (the default), appends "-" to each restore key. The
+    # previous restore key "${platform}-" therefore became "sccache-linux--",
+    # which can never prefix-match a saved "sccache-linux-<sha>-<timestamp>",
+    # and the primary key embedded github.sha, so it only matched a re-run of
+    # the same commit. Every pull request compiled cold.
+    #
+    # Only pushes to master save: pull requests may restore their base branch's
+    # caches but not each other's, so PR saves only spent the 10 GB repository
+    # budget and evicted master's entries.
     - name: Setup sccache
+      if: inputs.compiler-cache == 'true'
       uses: hendrikmuhs/ccache-action@v1.2
       with:
-        key: ${{ inputs.platform }}-${{ github.sha }}
+        # "-v2" ends the prefix, so ci-windows cannot restore ci-windows-ai's
+        # entry: ccache-action appends "-" to restore keys, and
+        # "sccache-windows-ci-windows-" is a prefix of both presets' keys.
+        key: ${{ inputs.platform }}-${{ inputs.preset }}-v2
         restore-keys: |
-          ${{ inputs.platform }}-
-        max-size: 500M
+          ${{ inputs.platform }}-${{ inputs.preset }}-v2
+        max-size: 1G
         variant: sccache
+        save: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
 
     - name: Setup MSVC Dev Cmd (Windows)
       if: inputs.platform == 'windows'
