@@ -149,6 +149,8 @@ absl::Status LoadGameData(Rom& rom, GameData& data,
 
   RETURN_IF_ERROR(PitDamageTable::LoadFromRom(&rom, &data.pit_damage_table));
 
+  data.room_default_entrances = ComputeRoomDefaultEntrances(rom);
+
   return absl::OkStatus();
 }
 

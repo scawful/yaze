@@ -884,9 +884,21 @@ void Room::LoadRoomGraphics(std::optional<uint8_t> entrance_blockset) {
   const uint8_t requested_main_blockset =
       entrance_blockset.value_or(render_entrance_blockset_);
   uint8_t main_blockset = 0;
+  // The game takes the main blockset ($0AA1) from the entrance the dungeon
+  // was entered through, never from the room header. Without an explicit
+  // entrance, use the room's dungeon default (room_default_entrance.h); the
+  // header byte ($0AA2, the room's secondary set) is the last resort.
+  const uint8_t dungeon_main_blockset =
+      room_id_ >= 0 && room_id_ < static_cast<int>(
+                                      game_data_->room_default_entrances.size())
+          ? game_data_->room_default_entrances[room_id_].main_blockset
+          : 0xFF;
   if (requested_main_blockset != 0xFF &&
       requested_main_blockset < game_data_->main_blockset_ids.size()) {
     main_blockset = requested_main_blockset;
+  } else if (dungeon_main_blockset != 0xFF &&
+             dungeon_main_blockset < game_data_->main_blockset_ids.size()) {
+    main_blockset = dungeon_main_blockset;
   } else if (blockset_ < game_data_->main_blockset_ids.size()) {
     main_blockset = blockset_;
   } else {
