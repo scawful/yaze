@@ -344,6 +344,8 @@ class ObjectDrawer {
   uint8_t floor1_graphics_ = 0;
   uint8_t floor2_graphics_ = 0;
   gfx::BackgroundBuffer* registry_secondary_bg_ = nullptr;
+  // Object BG2 buffer: receives upper-tilemap writes past row 63.
+  gfx::BackgroundBuffer* registry_bg2_ = nullptr;
   const gfx::BackgroundBuffer* registry_primary_layout_bg_ = nullptr;
   RoomObject::LayerType registry_primary_layer_ = RoomObject::LayerType::BG1;
   RoomObject::LayerType registry_secondary_layer_ = RoomObject::LayerType::BG2;
