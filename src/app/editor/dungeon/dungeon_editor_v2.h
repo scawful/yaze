@@ -53,6 +53,7 @@ class DungeonEditorV2ShortcutTestPeer;
 class DungeonEditorV2SpawnPointTestPeer;
 class DungeonEditorV2SpawnRejectionTestPeer;
 class MinecartTrackEditorPanel;
+class ObjectCoveragePanel;
 class ObjectTileEditorPanel;
 class OverlayManagerPanel;
 class PaletteEditorContent;
@@ -316,6 +317,9 @@ class DungeonEditorV2 : public Editor {
   // changed since the index was built, falls back to the first object with
   // `object_id`.
   void NavigateToPlacedObject(int room_id, size_t object_index, int object_id);
+  // Object Coverage wiring, in dungeon_editor_v2_object_coverage.cc.
+  std::unique_ptr<ObjectCoveragePanel> CreateObjectCoveragePanel();
+  void FocusObjectCoverage(int room_id, const zelda3::RoomObject& object);
   void OnEntranceSelected(int entrance_id);
   int ResolveEntranceRoomId(int entrance_id) const;
 

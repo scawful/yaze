@@ -19,6 +19,7 @@ set(
   app/editor/dungeon/object_coverage_model.cc
   app/editor/dungeon/dungeon_editor_v2_persistence.cc
   app/editor/dungeon/dungeon_editor_v2_undo.cc
+  app/editor/dungeon/dungeon_editor_v2_object_coverage.cc
   app/editor/dungeon/dungeon_object_interaction.cc
   app/editor/dungeon/dungeon_object_selector.cc
   app/editor/dungeon/dungeon_overlay_controls.cc
