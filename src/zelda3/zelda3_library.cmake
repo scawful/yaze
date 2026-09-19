@@ -22,6 +22,7 @@ set(
   zelda3/dungeon/object_dimensions.cc
   zelda3/dungeon/game_tilemap_comparison.cc
   zelda3/dungeon/room_default_entrance.cc
+  zelda3/dungeon/room_layer_registers.cc
   zelda3/dungeon/object_drawer.cc
   zelda3/dungeon/object_parser.cc
   zelda3/dungeon/object_templates.cc
