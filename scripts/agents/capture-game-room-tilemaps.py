@@ -15,6 +15,13 @@ Output directory:
   room_XXX.tilemap  16384 bytes: TILEMAPA (BG1) then TILEMAPB (BG2),
                     little-endian 16-bit tile words, row-major 64x64 each.
   manifest.json     ROM SHA-1, entrance, and a status for every room.
+With --full, also the whole machine state each room loaded into:
+  room_XXX.wram     131072 bytes, $7E0000-$7FFFFF
+  room_XXX.vram     65536 bytes
+  room_XXX.cgram    512 bytes
+  room_XXX.oam      544 bytes
+With --pre-write ADDR=VALUE (repeatable), those bytes are written before each
+room loads, e.g. to capture rooms with persistent room flags set.
 
 Use an isolated Mesen instance loaded with the same ROM yaze will compare
 against, for example:
@@ -78,13 +85,20 @@ class Mesen:
             {"type": "READBLOCK", "addr": hex(addr), "len": str(length)})
         return bytes.fromhex(data)
 
+    def read_memtype(self, memtype, length):
+        data = self.send({"type": "READBLOCK", "addr": "0x0",
+                          "len": str(length), "memtype": memtype})
+        return bytes.fromhex(data)
+
     def frame(self):
         return self.send({"type": "STATE"})["frame"]
 
 
-def load_room(mesen, room):
+def load_room(mesen, room, pre_writes=()):
     """Loads `room`; returns (status, frames_run)."""
     mesen.send({"type": "PAUSE"})
+    for addr, value in pre_writes:
+        mesen.write(addr, value)
     mesen.send({"type": "CHEAT", "action": "clear"})
     table = ENTRANCE_ROOM_TABLE + 2 * ENTRANCE
     for offset, byte in ((0, room & 0xFF), (1, room >> 8)):
@@ -130,6 +144,11 @@ def main():
     parser.add_argument("--out", required=True, help="output directory")
     parser.add_argument("--rooms", default="all",
                         help="'all' or comma-separated room IDs (0x001,...)")
+    parser.add_argument("--full", action="store_true",
+                        help="also save WRAM, VRAM, CGRAM and OAM per room")
+    parser.add_argument("--pre-write", action="append", default=[],
+                        metavar="ADDR=VALUE",
+                        help="byte to write before each room loads")
     args = parser.parse_args()
 
     rooms = (range(ROOM_COUNT) if args.rooms == "all" else
@@ -151,12 +170,18 @@ def main():
         "source": "Mesen2-OOS",
     })
 
+    pre_writes = []
+    for item in args.pre_write:
+        addr, value = item.split("=")
+        pre_writes.append((int(addr, 0), int(value, 0)))
+    if pre_writes:
+        manifest["pre_writes"] = args.pre_write
     mesen = Mesen(args.socket)
     for room in rooms:
         key = f"0x{room:03X}"
         path = out / f"room_{room:03X}.tilemap"
         try:
-            status, frames = load_room(mesen, room)
+            status, frames = load_room(mesen, room, pre_writes)
         except (RuntimeError, OSError) as err:
             status, frames = f"error: {err}", 0
         entry = {"status": status, "frames": frames,
@@ -168,6 +193,16 @@ def main():
             path.write_bytes(data)
             entry["file"] = path.name
             entry["sha1"] = hashlib.sha1(data).hexdigest()
+            if args.full:
+                wram = mesen.read(0x7E0000, 0x10000) + mesen.read(0x7F0000, 0x10000)
+                dumps = {
+                    "wram": wram,
+                    "vram": mesen.read_memtype("vram", 0x10000),
+                    "cgram": mesen.read_memtype("cgram", 512),
+                    "oam": mesen.read_memtype("oam", 544),
+                }
+                for kind, blob in dumps.items():
+                    (out / f"room_{room:03X}.{kind}").write_bytes(blob)
         elif path.exists():
             path.unlink()
         manifest["rooms"][key] = entry
