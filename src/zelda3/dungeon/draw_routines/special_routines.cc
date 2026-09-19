@@ -1464,8 +1464,13 @@ void DrawEmptyWaterFace(const DrawContext& ctx) {
   //
   // IMPORTANT: this uses dedicated water-face state, not door state. Tying
   // this branch to IsDoorOpen created cross-feature rendering regressions.
-  const bool water_active =
-      (ctx.state != nullptr) && ctx.state->IsWaterFaceActive(ctx.room_id);
+  // RoomDraw_EmptyWaterFace only switches to the spitting face for tag2
+  // 0x1B (room word bit $0100) or 0x19 ('s' bit); any other room keeps the
+  // empty face. Previews without a room (room_tag2 < 0) follow the state.
+  const bool tag_allows_water =
+      ctx.room_tag2 < 0 || ctx.room_tag2 == 0x1B || ctx.room_tag2 == 0x19;
+  const bool water_active = tag_allows_water && (ctx.state != nullptr) &&
+                            ctx.state->IsWaterFaceActive(ctx.room_id);
 
   const int row_count = water_active ? 5 : 3;
   const int tile_offset = water_active ? 12 : 0;  // 0x162C - 0x1614 = 24 bytes

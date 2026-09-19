@@ -234,6 +234,7 @@ void ObjectDrawer::DrawUsingRegistryRoutine(
       .room_gfx_buffer = room_gfx_buffer_,
       .secondary_bg = registry_secondary_bg_,
       .target_layout_bg = registry_primary_layout_bg_,
+      .room_tag2 = room_tag2_,
   };
   info->function(ctx);
 
