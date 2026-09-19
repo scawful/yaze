@@ -2465,9 +2465,15 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   // 4. Actual tile data = 0x1B52 + offset_from_table
   const bool north_explicit_door = door.direction == DoorDirection::North &&
                                    door.type == DoorType::ExplicitRoomDoor;
+  // Closed north key stairs take .not_open's `CMP #$0024 / BCC
+  // RoomDraw_OneSidedShutters_North` and never reach the ranged-door writer
+  // that mirrors a counterpart south door (rooms 0x00E, 0x099, 0x0AB).
+  const bool north_key_stairs = door.direction == DoorDirection::North &&
+                                (door.type == DoorType::SmallKeyStairsUp ||
+                                 door.type == DoorType::SmallKeyStairsDown);
   if ((door.direction == DoorDirection::North ||
        door.direction == DoorDirection::West) &&
-      position_index >= 6 && !north_explicit_door) {
+      position_index >= 6 && !north_explicit_door && !north_key_stairs) {
     const DoorDirection counterpart_direction =
         door.direction == DoorDirection::North ? DoorDirection::South
                                                : DoorDirection::East;
