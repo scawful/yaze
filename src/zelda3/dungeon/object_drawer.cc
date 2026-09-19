@@ -168,7 +168,7 @@ void ObjectDrawer::TraceHookThunk(gfx::BackgroundBuffer* /*bg*/, int tile_x,
                                   int tile_y, const gfx::TileInfo& tile_info,
                                   void* user_data) {
   auto* drawer = static_cast<ObjectDrawer*>(user_data);
-  if (!drawer) {
+  if (!drawer || tile_y >= DrawContext::kMaxTilesY) {
     return;
   }
   drawer->PushTrace(tile_x, tile_y, tile_info);
@@ -240,13 +240,26 @@ void ObjectDrawer::DrawUsingRegistryRoutine(
   DrawRoutineUtils::ClearTraceHook();
 
   for (const auto& w : writes) {
+    gfx::BackgroundBuffer* target = &bg;
+    RoomObject::LayerType layer = registry_primary_layer_;
     if (w.secondary && registry_secondary_bg_ != nullptr) {
-      SetTraceContext(obj, registry_secondary_layer_);
-      WriteTile8(*registry_secondary_bg_, w.x, w.y, w.tile);
-      continue;
+      target = registry_secondary_bg_;
+      layer = registry_secondary_layer_;
     }
-    SetTraceContext(obj, registry_primary_layer_);
-    WriteTile8(bg, w.x, w.y, w.tile);
+    int tile_y = w.y;
+    if (tile_y >= DrawContext::kMaxTilesY) {
+      // $7E2000 row 64+ is $7E4000 (BG2) row - 64, e.g. a size-0 0x60
+      // column from row 4 in room 0x10C. BG2 rows past 63 leave the
+      // tilemaps entirely.
+      if (layer != RoomObject::LayerType::BG1 || registry_bg2_ == nullptr) {
+        continue;
+      }
+      target = registry_bg2_;
+      layer = RoomObject::LayerType::BG2;
+      tile_y -= DrawContext::kMaxTilesY;
+    }
+    SetTraceContext(obj, layer);
+    WriteTile8(*target, w.x, tile_y, w.tile);
   }
 }
 
@@ -433,6 +446,7 @@ absl::Status ObjectDrawer::DrawObject(
                                   !is_both_bg && !use_rectangular_bg1_mask;
 
   registry_secondary_bg_ = nullptr;
+  registry_bg2_ = &bg2;
   registry_primary_layout_bg_ =
       use_bg2 ? static_cast<const gfx::BackgroundBuffer*>(layout_bg2)
               : static_cast<const gfx::BackgroundBuffer*>(layout_bg1);
@@ -533,6 +547,7 @@ absl::Status ObjectDrawer::DrawObject(
   active_layout_bg1_mask_ = nullptr;
   active_mask_source_bg_ = nullptr;
   registry_secondary_bg_ = nullptr;
+  registry_bg2_ = nullptr;
   registry_primary_layout_bg_ = nullptr;
 
   // BG2 mask propagation is deferred to compositing so raw BG1 stays intact.
