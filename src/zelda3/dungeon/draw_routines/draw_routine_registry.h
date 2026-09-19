@@ -221,6 +221,12 @@ class DrawRoutineRegistry {
   // Look up draw routine ID for an object ID. Returns -1 if unmapped.
   int GetRoutineIdForObject(int16_t object_id) const;
 
+  // Every object ID with a routine mapping, ascending. This is the supported
+  // object inventory; callers should use it instead of hard-coding the
+  // 0x00-0xF7 / 0x100-0x13F / 0xF80-0xFFF ranges. The result follows the
+  // current feature flags, like GetRoutineIdForObject().
+  std::vector<int16_t> GetMappedObjectIds() const;
+
  private:
   DrawRoutineRegistry() = default;
   void BuildRegistry();

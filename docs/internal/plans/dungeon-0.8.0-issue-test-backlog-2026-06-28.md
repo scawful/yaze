@@ -1175,6 +1175,15 @@ not close every ID. A reported symptom is not proof of a current renderer bug.
 | Doors and room composition | Focused door rules, room `0x001` guidance-wall/door test, one west NormalDoorLower Mesen ROI | Key/shutter/bombable/exploding family evidence; candidates `0x024/0x0B2/0x0BC/0x0C1/0x0C2`. Protect room `0x001` upper/lower overlap and lower stair. |
 | Sprite preview palettes | Synthetic aux/CGRAM/transparency tests | Mushroom Grotto/ice witnesses using actual runtime sprite graphics and CGRAM. Separate generic palettes from custom external graphics. |
 
+The Dungeon editor's **Object Coverage** window (`dungeon.object_coverage`)
+is the working copy of this checklist. It lists
+`DrawRoutineRegistry::GetMappedObjectIds()`, shows which rooms place each ID,
+opens a room with the object selected, and records one of the five states per
+ID. It orders the families above first. Verdicts are saved to
+`<app data>/dungeon_object_evidence/<project or rom_sha1>.json` with the room,
+ROM SHA-1, and time, so vanilla and Oracle results stay separate. A verdict
+there is step 3 evidence only; it does not replace steps 1, 2, 4, or 5 below.
+
 Witness rooms are investigation starting points, not newly verified matches.
 Use the canonical vanilla ROM control and a recorded Oracle ROM digest. Do not
 substitute a different hack's object payload or room header without labeling it.
