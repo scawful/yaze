@@ -19,6 +19,11 @@ the choice made for a neighbouring room (16-wide room grid). The manifest
 records the entrance, how it was chosen, and its main_GFX per room.
 --entrance 0x34 reproduces the earlier fixed-entrance captures.
 
+--oracle captures Oracle of Secrets ROMs: Oracle reads EntranceData from
+relocated tables (room word at $0F8000 + 2*entrance), and with $1B = 0 its
+LoadDarkWorldIntro hook sends the load to the overworld, so this writes
+$1B = 1 and the progress bytes the load needs, and uses entrance 0x34.
+
 Output directory:
   room_XXX.tilemap  16384 bytes: TILEMAPA (BG1) then TILEMAPB (BG2),
                     little-endian 16-bit tile words, row-major 64x64 each.
@@ -70,6 +75,7 @@ ROOM_COUNT = 296
 MODULE_UNDERWORLD = 0x07
 SETTLE_POLLS = 10          # consecutive settled polls before capture
 MAX_FRAMES_PER_ROOM = 900
+FINAL_STEP_HOLD_POLLS = 100  # ~2 s in submodule 0x0F
 
 
 class Mesen:
@@ -165,9 +171,20 @@ def choose_entrances(rom):
     return choice
 
 
+ORACLE_ENTRANCE_ROOM_TABLE = 0x0F8000
+ORACLE_PRE_WRITES = ((0x7EF3C8, 0x00), (0x7EF3CA, 0x00), (0x7EF3C5, 0x01),
+                     (0x7E04AA, 0x00))
+
+
 def load_room(mesen, room, pre_writes=(), entrance=ENTRANCE, room_flags=None,
-              extra_par=()):
+              extra_par=(), oracle=False):
     """Loads `room`; returns (status, frames_run)."""
+    if oracle:
+        # After one Oracle room loads, the next module 0x05 load stalls; a
+        # reset and two seconds of running first make every load start clean.
+        mesen.send({"type": "RESET"})
+        mesen.send({"type": "RESUME"})
+        time.sleep(2)
     mesen.send({"type": "PAUSE"})
     if room_flags is not None:
         lo, hi = room_flags
@@ -179,7 +196,11 @@ def load_room(mesen, room, pre_writes=(), entrance=ENTRANCE, room_flags=None,
     for code in extra_par:
         mesen.send({"type": "CHEAT", "action": "add", "code": code,
                     "format": "par"})
-    table = ENTRANCE_ROOM_TABLE + 2 * entrance
+    table = (ORACLE_ENTRANCE_ROOM_TABLE if oracle else ENTRANCE_ROOM_TABLE) + (
+        2 * entrance)
+    if oracle:
+        for addr, value in ORACLE_PRE_WRITES:
+            mesen.write(addr, value)
     for offset, byte in ((0, room & 0xFF), (1, room >> 8)):
         mesen.send({"type": "CHEAT", "action": "add",
                     "code": f"{table + offset:06X}{byte:02X}",
@@ -188,10 +209,11 @@ def load_room(mesen, room, pre_writes=(), entrance=ENTRANCE, room_flags=None,
     mesen.write(0x7E010E, entrance)
     mesen.write(0x7E0010, 0x05)       # module: load, then underworld
     mesen.write(0x7E0011, 0x00)
-    mesen.write(0x7E001B, 0x00)
+    mesen.write(0x7E001B, 0x01 if oracle else 0x00)
 
     start = mesen.frame()
     settled = 0
+    held_in_final_step = 0
     loaded = -1
     mesen.send({"type": "RESUME"})
     try:
@@ -204,10 +226,22 @@ def load_room(mesen, room, pre_writes=(), entrance=ENTRANCE, room_flags=None,
                     break
             else:
                 settled = 0
+            # Submodule 0x0F is the load's last step; the tilemaps are built
+            # by then. Some rooms (Oracle) stay there, so accept a long hold.
+            if module == MODULE_UNDERWORLD and submodule == 0x0F:
+                held_in_final_step += 1
+                if held_in_final_step >= FINAL_STEP_HOLD_POLLS:
+                    break
+            else:
+                held_in_final_step = 0
             time.sleep(0.02)
     finally:
         mesen.send({"type": "PAUSE"})
     frames = mesen.frame() - start
+    if settled < SETTLE_POLLS and held_in_final_step >= FINAL_STEP_HOLD_POLLS:
+        if loaded != room:
+            return f"loaded-room-0x{loaded:03X}", frames
+        return "ok-held-in-0F", frames
     if settled < SETTLE_POLLS:
         return "not-settled", frames
     if loaded != room:
@@ -225,6 +259,8 @@ def main():
                         help="'all' or comma-separated room IDs (0x001,...)")
     parser.add_argument("--entrance", default="auto",
                         help="'auto' (per-room, see above) or a fixed entrance")
+    parser.add_argument("--oracle", action="store_true",
+                        help="Oracle of Secrets ROM (relocated entrance tables)")
     parser.add_argument("--full", action="store_true",
                         help="also save WRAM, VRAM, CGRAM and OAM per room")
     parser.add_argument("--room-flags", default=None, metavar="LO,HI",
@@ -246,6 +282,9 @@ def main():
         manifest = json.loads(manifest_path.read_text())
     rom_bytes = Path(args.rom).read_bytes()
     rom_sha1 = hashlib.sha1(rom_bytes).hexdigest()
+    if args.oracle:
+        args.entrance = f"0x{ENTRANCE:02X}"
+        manifest["oracle"] = True
     if args.entrance == "auto":
         entrance_for = choose_entrances(rom_bytes)
     else:
@@ -281,12 +320,12 @@ def main():
         try:
             entrance, method = entrance_for[room]
             status, frames = load_room(mesen, room, pre_writes, entrance,
-                                       room_flags, args.par)
-            if status != "ok" and entrance != ENTRANCE:
+                                       room_flags, args.par, args.oracle)
+            if not status.startswith("ok") and entrance != ENTRANCE:
                 method = f"{method}; {status} -> retried with 0x{ENTRANCE:02X}"
                 entrance = ENTRANCE
                 status, frames = load_room(mesen, room, pre_writes, entrance,
-                                           room_flags, args.par)
+                                           room_flags, args.par, args.oracle)
         except (RuntimeError, OSError) as err:
             status, frames = f"error: {err}", 0
         entry = {"status": status, "frames": frames,
@@ -294,7 +333,7 @@ def main():
                  "main_gfx": rom_bytes[snes_to_pc(ENTRANCE_MAIN_GFX + entrance)],
                  "captured_utc": datetime.datetime.now(
                      datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}
-        if status == "ok":
+        if status.startswith("ok"):
             data = mesen.read(TILEMAP_BG1, TILEMAP_BYTES) + mesen.read(
                 TILEMAP_BG2, TILEMAP_BYTES)
             path.write_bytes(data)
@@ -316,7 +355,8 @@ def main():
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n")
         print(f"{key} {status} ({frames} frames)", flush=True)
     mesen.send({"type": "CHEAT", "action": "clear"})
-    ok = sum(1 for e in manifest["rooms"].values() if e["status"] == "ok")
+    ok = sum(1 for e in manifest["rooms"].values()
+             if e["status"].startswith("ok"))
     print(f"{ok}/{len(manifest['rooms'])} rooms captured in {out}")
 
 

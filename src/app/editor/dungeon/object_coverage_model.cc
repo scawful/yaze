@@ -397,7 +397,7 @@ absl::StatusOr<GameCaptureManifest> LoadGameCaptureManifest(
     const std::optional<int> room_id = ParseObjectIdKey(key);
     if (!room_id || !entry.is_object() || !entry.contains("status") ||
         !entry["status"].is_string() ||
-        entry["status"].get<std::string>() != "ok") {
+        entry["status"].get<std::string>().rfind("ok", 0) != 0) {
       continue;
     }
     manifest.captured_rooms.push_back(*room_id);
