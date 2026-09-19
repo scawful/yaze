@@ -433,6 +433,10 @@ void DungeonWorkbenchContent::OpenMinecartTool() {
   OpenTool(WorkbenchTool::MinecartTracks);
 }
 
+void DungeonWorkbenchContent::OpenObjectCoverageTool() {
+  OpenTool(WorkbenchTool::ObjectCoverage);
+}
+
 bool DungeonWorkbenchContent::IsToolInspectorActiveForTesting() const {
   return inspector_mode_ == InspectorMode::Tools;
 }
@@ -1447,6 +1451,8 @@ WindowContent* DungeonWorkbenchContent::GetWorkbenchToolContent(
       return water_fill_panel_;
     case WorkbenchTool::MinecartTracks:
       return minecart_track_panel_;
+    case WorkbenchTool::ObjectCoverage:
+      return object_coverage_content_;
     case WorkbenchTool::ObjectSelector:
       return object_selector_content_;
     case WorkbenchTool::DoorEditor:
@@ -1512,6 +1518,8 @@ const char* DungeonWorkbenchContent::GetWorkbenchToolId(
       return "water_fill";
     case WorkbenchTool::MinecartTracks:
       return "minecart";
+    case WorkbenchTool::ObjectCoverage:
+      return "object_coverage";
     case WorkbenchTool::ObjectSelector:
       return "object_selector";
     case WorkbenchTool::DoorEditor:
@@ -1541,6 +1549,8 @@ const char* DungeonWorkbenchContent::GetWorkbenchToolShortLabel(
       return "Water Fill";
     case WorkbenchTool::MinecartTracks:
       return "Minecart Tracks";
+    case WorkbenchTool::ObjectCoverage:
+      return "Object Coverage";
     case WorkbenchTool::ObjectSelector:
       return "Object Selector";
     case WorkbenchTool::DoorEditor:
@@ -1570,6 +1580,8 @@ const char* DungeonWorkbenchContent::GetWorkbenchToolUnavailableMessage(
       return "Water fill tools are not available.";
     case WorkbenchTool::MinecartTracks:
       return "Minecart track tools are not available.";
+    case WorkbenchTool::ObjectCoverage:
+      return "Object coverage is not available.";
     case WorkbenchTool::ObjectSelector:
       return "Object selector is not available.";
     case WorkbenchTool::DoorEditor:
@@ -1635,6 +1647,10 @@ void DungeonWorkbenchContent::DrawWorkbenchTool(DungeonCanvasViewer& viewer,
       }
       minecart_track_panel_->Draw(nullptr);
       break;
+    case WorkbenchTool::ObjectCoverage:
+      draw_window_content(object_coverage_content_,
+                          GetWorkbenchToolUnavailableMessage(tool));
+      break;
     case WorkbenchTool::ObjectSelector:
       draw_window_content(object_selector_content_,
                           GetWorkbenchToolUnavailableMessage(tool));
@@ -1667,12 +1683,13 @@ void DungeonWorkbenchContent::DrawWorkbenchTool(DungeonCanvasViewer& viewer,
 }
 
 void DungeonWorkbenchContent::DrawInspectorToolPicker() {
-  static constexpr std::array<WorkbenchTool, 10> kTools = {
+  static constexpr std::array<WorkbenchTool, 11> kTools = {
       WorkbenchTool::ObjectSelector, WorkbenchTool::DoorEditor,
       WorkbenchTool::SpriteEditor,   WorkbenchTool::ItemEditor,
       WorkbenchTool::RoomGraphics,   WorkbenchTool::Palette,
       WorkbenchTool::RoomTags,       WorkbenchTool::CustomCollision,
       WorkbenchTool::WaterFill,      WorkbenchTool::MinecartTracks,
+      WorkbenchTool::ObjectCoverage,
   };
 
   const ImGuiStyle& style = ImGui::GetStyle();

@@ -78,6 +78,31 @@ const char* ObjectListLabel(int list_index) {
   return "list ?";
 }
 
+// Continues the current line when `width` more pixels fit before
+// `right_edge` (screen X); otherwise the next item starts a new line. The
+// Workbench inspector is narrow, so rows of controls must wrap.
+void SameLineIfFits(float width, float right_edge) {
+  const float line_end =
+      ImGui::GetItemRectMax().x + ImGui::GetStyle().ItemSpacing.x + width;
+  if (line_end <= right_edge) {
+    ImGui::SameLine();
+  }
+}
+
+float RowRightEdge() {
+  return ImGui::GetCursorScreenPos().x + ImGui::GetContentRegionAvail().x;
+}
+
+float ButtonWidth(const char* label) {
+  return ImGui::CalcTextSize(label, nullptr, true).x +
+         ImGui::GetStyle().FramePadding.x * 2.0f;
+}
+
+float CheckboxWidth(const char* label) {
+  return ImGui::GetFrameHeight() + ImGui::GetStyle().ItemInnerSpacing.x +
+         ImGui::CalcTextSize(label, nullptr, true).x;
+}
+
 std::string NowUtc() {
   return absl::FormatTime("%Y-%m-%dT%H:%M:%SZ", absl::Now(),
                           absl::UTCTimeZone());
@@ -194,6 +219,19 @@ void ObjectCoveragePanel::SetVerdict(int object_id, ObjectEvidenceState state) {
   SaveEvidence();
 }
 
+void ObjectCoveragePanel::FocusObject(int object_id, int room_id) {
+  selected_object_ = object_id;
+  if (room_id >= 0) {
+    last_room_for_object_[object_id] = room_id;
+  }
+  // Clear filters that could hide the row being focused.
+  filter_text_[0] = '\0';
+  state_filter_ = -1;
+  only_focus_ = false;
+  only_placed_ = false;
+  scroll_to_selected_ = true;
+}
+
 void ObjectCoveragePanel::GoToOccurrence(int object_id,
                                          const ObjectOccurrence& occurrence) {
   last_room_for_object_[object_id] = occurrence.room_id;
@@ -211,6 +249,7 @@ void ObjectCoveragePanel::GoToNextObject() {
     return;
   }
   selected_object_ = *next;
+  scroll_to_selected_ = true;
   if (const auto* occurrences = usage_.Find(*next);
       occurrences != nullptr && !occurrences->empty()) {
     GoToOccurrence(*next, occurrences->front());
@@ -273,30 +312,33 @@ void ObjectCoveragePanel::DrawSummary() {
   const int checked =
       placed - counts[static_cast<int>(ObjectEvidenceState::kUntriaged)];
 
-  ImGui::Text(tr("Checked %d of %d objects placed in this ROM"), checked,
-              placed);
-  ImGui::SameLine();
-  ImGui::TextDisabled(tr("(%d rooms scanned)"), usage_.rooms_scanned());
+  ImGui::TextWrapped(tr("Checked %d of %d objects placed in this ROM (%d "
+                        "rooms scanned)"),
+                     checked, placed, usage_.rooms_scanned());
   ImGui::ProgressBar(placed > 0 ? static_cast<float>(checked) / placed : 0.0f,
                      ImVec2(-1.0f, 0.0f));
 
+  const float right_edge = RowRightEdge();
   bool first = true;
   for (ObjectEvidenceState state : kAllObjectEvidenceStates) {
     if (state == ObjectEvidenceState::kUntriaged) {
       continue;
     }
+    const std::string label =
+        absl::StrFormat("%s %d", ObjectEvidenceStateLabel(state),
+                        counts[static_cast<int>(state)]);
     if (!first) {
-      ImGui::SameLine();
+      SameLineIfFits(ImGui::CalcTextSize(label.c_str()).x, right_edge);
     }
     first = false;
-    ImGui::TextColored(StateColor(state), "%s %d",
-                       ObjectEvidenceStateLabel(state),
-                       counts[static_cast<int>(state)]);
+    ImGui::TextColored(StateColor(state), "%s", label.c_str());
   }
 
-  if (ImGui::Button(
-          absl::StrCat(ICON_MD_SKIP_NEXT " ", tr("Next object to check"))
-              .c_str())) {
+  const std::string next_label =
+      absl::StrCat(ICON_MD_SKIP_NEXT " ", tr("Next object to check"));
+  const std::string rescan_label =
+      absl::StrCat(ICON_MD_REFRESH " ", tr("Rescan rooms"));
+  if (ImGui::Button(next_label.c_str())) {
     GoToNextObject();
   }
   if (ImGui::IsItemHovered()) {
@@ -304,16 +346,17 @@ void ObjectCoveragePanel::DrawSummary() {
         "%s", tr("Opens the next unchecked object in release-focus order, in "
                  "a room that uses it, with the object selected."));
   }
-  ImGui::SameLine();
-  if (ImGui::Button(
-          absl::StrCat(ICON_MD_REFRESH " ", tr("Rescan rooms")).c_str())) {
+  SameLineIfFits(ButtonWidth(rescan_label.c_str()), right_edge);
+  if (ImGui::Button(rescan_label.c_str())) {
     index_dirty_ = true;
   }
 
   if (!status_message_.empty()) {
-    ImGui::TextColored(
-        status_is_error_ ? gui::GetErrorColor() : gui::GetInfoColor(), "%s",
-        status_message_.c_str());
+    ImGui::PushStyleColor(ImGuiCol_Text, status_is_error_
+                                             ? gui::GetErrorColor()
+                                             : gui::GetInfoColor());
+    ImGui::TextWrapped("%s", status_message_.c_str());
+    ImGui::PopStyleColor();
   }
   if (!evidence_path_.empty() && ImGui::IsItemHovered()) {
     ImGui::SetTooltip("%s", evidence_path_.string().c_str());
@@ -321,11 +364,21 @@ void ObjectCoveragePanel::DrawSummary() {
 }
 
 void ObjectCoveragePanel::DrawFilters() {
-  ImGui::SetNextItemWidth(160.0f);
+  const float right_edge = RowRightEdge();
+  const float available = ImGui::GetContentRegionAvail().x;
+  const float spacing = ImGui::GetStyle().ItemSpacing.x;
+  // Two fields share a line when there is room for both at a usable width.
+  const bool fields_share_line = available >= 300.0f + spacing;
+  const float search_width =
+      fields_share_line ? std::min(200.0f, available - 140.0f - spacing)
+                        : available;
+  ImGui::SetNextItemWidth(search_width);
   ImGui::InputTextWithHint("##ObjectCoverageFilter", tr("Search ID or name"),
                            filter_text_, sizeof(filter_text_));
-  ImGui::SameLine();
-  ImGui::SetNextItemWidth(140.0f);
+  if (fields_share_line) {
+    ImGui::SameLine();
+  }
+  ImGui::SetNextItemWidth(fields_share_line ? 140.0f : available);
   const char* preview =
       state_filter_ < 0 ? tr("Any status")
                         : ObjectEvidenceStateLabel(
@@ -343,9 +396,9 @@ void ObjectCoveragePanel::DrawFilters() {
     }
     ImGui::EndCombo();
   }
-  ImGui::SameLine();
+  SameLineIfFits(CheckboxWidth(tr("Placed only")), right_edge);
   ImGui::Checkbox(tr("Placed only"), &only_placed_);
-  ImGui::SameLine();
+  SameLineIfFits(CheckboxWidth(tr("Release focus only")), right_edge);
   ImGui::Checkbox(tr("Release focus only"), &only_focus_);
 }
 
@@ -362,15 +415,20 @@ void ObjectCoveragePanel::DrawObjectTable(float height) {
       ImGuiTableFlags_RowBg | ImGuiTableFlags_BordersInnerV |
       ImGuiTableFlags_ScrollY | ImGuiTableFlags_Resizable |
       ImGuiTableFlags_SizingStretchProp;
-  if (!ImGui::BeginTable("##ObjectCoverageTable", 5, kFlags,
-                         ImVec2(0.0f, std::max(height, 80.0f)))) {
+  // The Workbench inspector is narrow; there the details pane shows the
+  // focus family instead of a column.
+  const bool show_focus_column = ImGui::GetContentRegionAvail().x >= 420.0f;
+  if (!ImGui::BeginTable("##ObjectCoverageTable", show_focus_column ? 5 : 4,
+                         kFlags, ImVec2(0.0f, std::max(height, 80.0f)))) {
     return;
   }
   ImGui::TableSetupScrollFreeze(0, 1);
   ImGui::TableSetupColumn(tr("ID"), ImGuiTableColumnFlags_WidthFixed, 48.0f);
   ImGui::TableSetupColumn(tr("Name"), ImGuiTableColumnFlags_WidthStretch, 3.0f);
-  ImGui::TableSetupColumn(tr("Focus"), ImGuiTableColumnFlags_WidthStretch,
-                          1.5f);
+  if (show_focus_column) {
+    ImGui::TableSetupColumn(tr("Focus"), ImGuiTableColumnFlags_WidthStretch,
+                            1.5f);
+  }
   ImGui::TableSetupColumn(tr("Rooms"), ImGuiTableColumnFlags_WidthFixed, 44.0f);
   ImGui::TableSetupColumn(tr("Status"), ImGuiTableColumnFlags_WidthStretch,
                           1.5f);
@@ -379,6 +437,15 @@ void ObjectCoveragePanel::DrawObjectTable(float height) {
   const auto& groups = ReleaseFocusGroups();
   ImGuiListClipper clipper;
   clipper.Begin(static_cast<int>(rows.size()));
+  int scroll_row = -1;
+  if (scroll_to_selected_ && selected_object_) {
+    auto it = std::find(rows.begin(), rows.end(), *selected_object_);
+    if (it != rows.end()) {
+      scroll_row = static_cast<int>(it - rows.begin());
+      clipper.IncludeItemByIndex(scroll_row);
+    }
+    scroll_to_selected_ = false;
+  }
   while (clipper.Step()) {
     for (int row = clipper.DisplayStart; row < clipper.DisplayEnd; ++row) {
       const int object_id = rows[static_cast<size_t>(row)];
@@ -391,24 +458,35 @@ void ObjectCoveragePanel::DrawObjectTable(float height) {
                             ImGuiSelectableFlags_SpanAllColumns)) {
         selected_object_ = object_id;
       }
+      if (row == scroll_row) {
+        ImGui::SetScrollHereY(0.3f);
+      }
       ImGui::TableSetColumnIndex(1);
       ImGui::TextUnformatted(zelda3::GetObjectName(object_id).c_str());
-      ImGui::TableSetColumnIndex(2);
-      const int group = ReleaseFocusGroupFor(object_id);
-      if (group >= 0) {
-        ImGui::TextUnformatted(groups[static_cast<size_t>(group)].name);
+      int column = 2;
+      if (show_focus_column) {
+        ImGui::TableSetColumnIndex(column++);
+        const int group = ReleaseFocusGroupFor(object_id);
+        if (group >= 0) {
+          ImGui::TextUnformatted(groups[static_cast<size_t>(group)].name);
+        }
       }
-      ImGui::TableSetColumnIndex(3);
+      ImGui::TableSetColumnIndex(column++);
       const int room_count = usage_.RoomCountFor(object_id);
       if (room_count > 0) {
         ImGui::Text("%d", room_count);
       } else {
         ImGui::TextDisabled("-");
       }
-      ImGui::TableSetColumnIndex(4);
+      ImGui::TableSetColumnIndex(column);
       const ObjectEvidenceState state = evidence_.StateOf(object_id);
-      ImGui::TextColored(StateColor(state), "%s",
-                         ObjectEvidenceStateLabel(state));
+      if (selected) {
+        // State colors are unreadable on the selection highlight.
+        ImGui::TextUnformatted(ObjectEvidenceStateLabel(state));
+      } else {
+        ImGui::TextColored(StateColor(state), "%s",
+                           ObjectEvidenceStateLabel(state));
+      }
       ImGui::PopID();
     }
   }
@@ -439,10 +517,11 @@ void ObjectCoveragePanel::DrawDetails() {
 
   ImGui::Text("%s  %s", FormatObjectId(object_id).c_str(),
               zelda3::GetObjectName(object_id).c_str());
-  ImGui::TextDisabled("%s: %s", tr("Routine"),
-                      routine != nullptr ? routine->name.c_str() : "-");
-  ImGui::SameLine();
-  ImGui::TextDisabled("| %s", symbology.family.c_str());
+  ImGui::PushStyleColor(ImGuiCol_Text, gui::GetDisabledColor());
+  ImGui::TextWrapped("%s: %s | %s", tr("Routine"),
+                     routine != nullptr ? routine->name.c_str() : "-",
+                     symbology.family.c_str());
+  ImGui::PopStyleColor();
 
   const int group = ReleaseFocusGroupFor(object_id);
   if (group >= 0) {
@@ -454,8 +533,15 @@ void ObjectCoveragePanel::DrawDetails() {
 
   // Verdict buttons, current one highlighted.
   const ObjectEvidenceState current = evidence_.StateOf(object_id);
+  const float verdict_right_edge = RowRightEdge();
+  bool first_verdict = true;
   for (ObjectEvidenceState state : kAllObjectEvidenceStates) {
     const bool is_current = state == current;
+    if (!first_verdict) {
+      SameLineIfFits(ButtonWidth(ObjectEvidenceStateLabel(state)),
+                     verdict_right_edge);
+    }
+    first_verdict = false;
     if (is_current) {
       ImGui::PushStyleColor(ImGuiCol_Button, StateColor(state));
     }
@@ -465,9 +551,7 @@ void ObjectCoveragePanel::DrawDetails() {
     if (is_current) {
       ImGui::PopStyleColor();
     }
-    ImGui::SameLine();
   }
-  ImGui::NewLine();
 
   // Note, saved when the field loses focus.
   if (note_buffer_object_ != object_id) {

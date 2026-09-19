@@ -111,6 +111,9 @@ class DungeonWorkbenchContent : public WindowContent {
                              CustomCollisionPanel* custom_collision,
                              WaterFillPanel* water_fill,
                              MinecartTrackEditorPanel* minecart_tracks);
+  void SetObjectCoverageContent(WindowContent* object_coverage) {
+    object_coverage_content_ = object_coverage;
+  }
   void SetEmbeddedEditorPanels(WindowContent* object_selector,
                                WindowContent* door_editor,
                                WindowContent* sprite_editor,
@@ -145,6 +148,7 @@ class DungeonWorkbenchContent : public WindowContent {
   void OpenCustomCollisionTool();
   void OpenWaterFillTool();
   void OpenMinecartTool();
+  void OpenObjectCoverageTool();
   bool PopOutActiveTool();
 
   // Mirror toggle: when true, the inspector renders on the LEFT and the
@@ -208,6 +212,7 @@ class DungeonWorkbenchContent : public WindowContent {
     CustomCollision,
     WaterFill,
     MinecartTracks,
+    ObjectCoverage,
     ObjectSelector,
     DoorEditor,
     SpriteEditor,
@@ -316,6 +321,7 @@ class DungeonWorkbenchContent : public WindowContent {
   CustomCollisionPanel* custom_collision_panel_ = nullptr;
   WaterFillPanel* water_fill_panel_ = nullptr;
   MinecartTrackEditorPanel* minecart_track_panel_ = nullptr;
+  WindowContent* object_coverage_content_ = nullptr;
   WindowContent* object_selector_content_ = nullptr;
   WindowContent* door_editor_content_ = nullptr;
   WindowContent* sprite_editor_content_ = nullptr;

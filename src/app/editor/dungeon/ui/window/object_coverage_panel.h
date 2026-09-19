@@ -55,6 +55,9 @@ class ObjectCoveragePanel : public WindowContent {
   void SetNavigateCallback(NavigateCallback callback) {
     navigate_ = std::move(callback);
   }
+  // Selects `object_id` and remembers `room_id` as where it was seen, so a
+  // verdict set next is recorded against that room.
+  void FocusObject(int object_id, int room_id);
   // Rooms changed on disk or a different ROM was loaded.
   void MarkRoomsDirty() { index_dirty_ = true; }
 
@@ -91,6 +94,7 @@ class ObjectCoveragePanel : public WindowContent {
   bool status_is_error_ = false;
 
   std::optional<int> selected_object_;
+  bool scroll_to_selected_ = false;
   // Last room opened for each object, recorded with its verdict.
   std::map<int, int> last_room_for_object_;
   char note_buffer_[512] = {};
