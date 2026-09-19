@@ -1208,7 +1208,7 @@ void ApplyDoorAttributes(const Rom& rom, LowWram& w, AttributeWriter& out) {
       }
     } else {
       const uint16_t mask_index =
-          (type == 0x18 || type == 0x44) ? (y & 0xFF) : (y & 0x0F);
+          type == 0x18 ? (y & 0xFF) : (y & 0x0F);  // 0x44 is handled above.
       if (open_mask & tables.DungeonMask(mask_index)) {
         doorway();
       } else {

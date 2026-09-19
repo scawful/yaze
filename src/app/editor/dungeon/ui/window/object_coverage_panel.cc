@@ -498,6 +498,8 @@ void ObjectCoveragePanel::DrawSummary() {
   }
 }
 
+// Compares yaze's tilemaps with the captured game tilemaps, a few rooms per
+// frame, and offers to record the matching objects as verdicts.
 void ObjectCoveragePanel::DrawAutomaticCheck() {
   if (!ImGui::CollapsingHeader(tr("Automatic check against the game"))) {
     return;
@@ -770,6 +772,7 @@ void ObjectCoveragePanel::DrawObjectTable(float height) {
   ImGui::EndTable();
 }
 
+// Shows the selected object's routine, check hint, rooms and verdict editor.
 void ObjectCoveragePanel::DrawDetails() {
   if (!ImGui::BeginChild("##ObjectCoverageDetails", ImVec2(0, 0), false)) {
     ImGui::EndChild();
