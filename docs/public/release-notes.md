@@ -135,7 +135,13 @@ and every affected command, is in `docs/public/reference/changelog.md` under
   check** opens a room with the next unchecked object selected. Each object
   can be marked **Matches game**, **Broken**, **Fixed, recheck**, or
   **Preview limit**, with a note. Results are saved per project, or per ROM
-  when no project is open.
+  when no project is open. Open it from the Workbench inspector (**Tools >
+  Review**) or right-click a selected object (**Selection > Check in Object
+  Coverage**). **Automatic check against the game** compares each room's
+  tilemaps with ones captured from Mesen2-OOS by
+  `scripts/agents/capture-game-room-tilemaps.py` and reports, per object,
+  whether every placement matches the game's tiles, flips, palette rows, and
+  priority.
 - Object Selector cards show a draw-routine badge: a direction or category
   glyph, or `C`/`K`/`B`/`P` for chests, big key locks, bombable floors, and
   prison cells, with the routine family and base pattern size in the tooltip.

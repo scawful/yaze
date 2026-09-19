@@ -11,6 +11,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
 #include "nlohmann/json.hpp"
+#include "zelda3/dungeon/game_tilemap_comparison.h"
 
 namespace yaze::editor {
 namespace {
@@ -148,6 +149,9 @@ std::string ObjectEvidenceStore::ToJson() const {
   nlohmann::json root;
   root["version"] = kEvidenceFileVersion;
   root["objects"] = std::move(objects);
+  if (!capture_dir_.empty()) {
+    root["capture_dir"] = capture_dir_;
+  }
   return root.dump(2) + "\n";
 }
 
@@ -164,6 +168,9 @@ absl::StatusOr<ObjectEvidenceStore> ObjectEvidenceStore::FromJson(
         "Object evidence file version must be ", kEvidenceFileVersion));
   }
   ObjectEvidenceStore store;
+  if (root.contains("capture_dir") && root["capture_dir"].is_string()) {
+    store.capture_dir_ = root["capture_dir"].get<std::string>();
+  }
   if (!root.contains("objects")) {
     return store;
   }
@@ -364,6 +371,122 @@ std::optional<int> NextObjectToCheck(const std::vector<int>& review_order,
     }
   }
   return std::nullopt;
+}
+
+absl::StatusOr<GameCaptureManifest> LoadGameCaptureManifest(
+    const std::filesystem::path& dir) {
+  const std::filesystem::path path = dir / "manifest.json";
+  std::ifstream in(path, std::ios::binary);
+  if (!in) {
+    return absl::NotFoundError(
+        absl::StrCat("No manifest.json in ", dir.string()));
+  }
+  std::ostringstream contents;
+  contents << in.rdbuf();
+  nlohmann::json root = nlohmann::json::parse(contents.str(), nullptr,
+                                              /*allow_exceptions=*/false);
+  if (root.is_discarded() || !root.is_object() || !root.contains("rom_sha1") ||
+      !root["rom_sha1"].is_string() || !root.contains("rooms") ||
+      !root["rooms"].is_object()) {
+    return absl::InvalidArgumentError(
+        absl::StrCat(path.string(), " is not a room tilemap capture manifest"));
+  }
+  GameCaptureManifest manifest;
+  manifest.rom_sha1 = root["rom_sha1"].get<std::string>();
+  for (const auto& [key, entry] : root["rooms"].items()) {
+    const std::optional<int> room_id = ParseObjectIdKey(key);
+    if (!room_id || !entry.is_object() || !entry.contains("status") ||
+        !entry["status"].is_string() ||
+        entry["status"].get<std::string>() != "ok") {
+      continue;
+    }
+    manifest.captured_rooms.push_back(*room_id);
+  }
+  std::sort(manifest.captured_rooms.begin(), manifest.captured_rooms.end());
+  return manifest;
+}
+
+std::filesystem::path GameCaptureRoomPath(const std::filesystem::path& dir,
+                                          int room_id) {
+  return dir / absl::StrFormat("room_%03X.tilemap", room_id);
+}
+
+void ObjectAutoCheckResults::Clear() {
+  placements_.clear();
+  summaries_.clear();
+  rooms_compared_ = 0;
+  rooms_exact_ = 0;
+}
+
+void ObjectAutoCheckResults::Record(int room_id, size_t object_index,
+                                    int object_id,
+                                    const PlacementAutoResult& result) {
+  PlacementAutoResult stored = result;
+  stored.object_id = object_id;
+  placements_[{room_id, object_index}] = stored;
+  if (result.tiles_owned == 0) {
+    return;
+  }
+  ObjectSummary& summary = summaries_[object_id];
+  ++summary.placements_checked;
+  if (summary.rooms_checked.empty() ||
+      summary.rooms_checked.back() != room_id) {
+    summary.rooms_checked.push_back(room_id);
+  }
+  if (result.tiles_different > 0) {
+    ++summary.placements_different;
+    summary.difference_bits |= result.difference_bits;
+    if (summary.first_room_different < 0) {
+      summary.first_room_different = room_id;
+    }
+  }
+}
+
+const PlacementAutoResult* ObjectAutoCheckResults::Find(
+    int room_id, size_t object_index) const {
+  auto it = placements_.find({room_id, object_index});
+  return it == placements_.end() ? nullptr : &it->second;
+}
+
+const ObjectAutoCheckResults::ObjectSummary* ObjectAutoCheckResults::Summary(
+    int object_id) const {
+  auto it = summaries_.find(object_id);
+  return it == summaries_.end() ? nullptr : &it->second;
+}
+
+std::map<int, ObjectEvidence> ProposeAutomaticVerdicts(
+    const ObjectAutoCheckResults& results, const ObjectEvidenceStore& evidence,
+    const std::string& rom_sha1) {
+  std::map<int, ObjectEvidence> proposals;
+  const std::string rom_label = rom_sha1.substr(0, 8);
+  for (const auto& [object_id, summary] : results.summaries()) {
+    if (summary.placements_checked == 0 ||
+        evidence.Find(object_id) != nullptr) {
+      continue;
+    }
+    ObjectEvidence proposal;
+    proposal.rom_sha1 = rom_sha1;
+    if (summary.placements_different == 0) {
+      proposal.state = ObjectEvidenceState::kVerified;
+      proposal.room_id = summary.rooms_checked.front();
+      proposal.note = absl::StrFormat(
+          "Automatic: tilemap matches the game in all %d placements across %d "
+          "rooms (Mesen capture, ROM %s). Colors and graphics not compared.",
+          summary.placements_checked,
+          static_cast<int>(summary.rooms_checked.size()), rom_label);
+    } else {
+      proposal.state = ObjectEvidenceState::kReproduced;
+      proposal.room_id = summary.first_room_different;
+      proposal.note = absl::StrFormat(
+          "Automatic: %d of %d placements differ from the game (%s); first in "
+          "room 0x%03X (Mesen capture, ROM %s).",
+          summary.placements_different, summary.placements_checked,
+          zelda3::DescribeTileWordDifference(summary.difference_bits),
+          summary.first_room_different, rom_label);
+    }
+    proposals[object_id] = std::move(proposal);
+  }
+  return proposals;
 }
 
 std::string FormatObjectId(int object_id) {

@@ -2,10 +2,13 @@
 
 #include <algorithm>
 #include <cctype>
+#include <chrono>
 #include <cstdio>
 #include <cstring>
+#include <fstream>
 #include <iterator>
 #include <string>
+#include <vector>
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_format.h"
@@ -15,11 +18,13 @@
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
+#include "util/file_util.h"
 #include "util/i18n/tr.h"
 #include "util/platform_paths.h"
 #include "util/rom_hash.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_symbology.h"
+#include "zelda3/dungeon/game_tilemap_comparison.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -157,6 +162,11 @@ void ObjectCoveragePanel::RebuildIndex() {
     room.EnsureObjectsLoaded();
     usage_.AddRoom(room_id, room.GetTileObjects());
   }
+  // The ROM may have changed; recheck that the captures still belong to it.
+  if (!loaded_context_.empty()) {
+    auto_results_.Clear();
+    ReloadManifest();
+  }
 }
 
 void ObjectCoveragePanel::EnsureEvidenceLoaded() {
@@ -187,6 +197,117 @@ void ObjectCoveragePanel::EnsureEvidenceLoaded() {
   evidence_ = *std::move(loaded);
   status_message_.clear();
   status_is_error_ = false;
+  auto_results_.Clear();
+  ReloadManifest();
+}
+
+void ObjectCoveragePanel::SetCaptureDir(const std::string& dir) {
+  evidence_.set_capture_dir(dir);
+  SaveEvidence();
+  auto_results_.Clear();
+  ReloadManifest();
+}
+
+void ObjectCoveragePanel::ReloadManifest() {
+  manifest_.reset();
+  manifest_error_.clear();
+  manifest_dir_ = evidence_.capture_dir();
+  if (manifest_dir_.empty()) {
+    return;
+  }
+  auto manifest = LoadGameCaptureManifest(manifest_dir_);
+  if (!manifest.ok()) {
+    manifest_error_ = std::string(manifest.status().message());
+    return;
+  }
+  if (manifest->rom_sha1 != rom_sha1_) {
+    manifest_error_ = absl::StrFormat(
+        "These captures are for ROM %s; the open ROM is %s. Capture this ROM "
+        "or choose another folder.",
+        manifest->rom_sha1.substr(0, 12), rom_sha1_.substr(0, 12));
+    return;
+  }
+  manifest_ = *std::move(manifest);
+}
+
+void ObjectCoveragePanel::StartAutomaticCheck() {
+  if (!manifest_) {
+    return;
+  }
+  auto_results_.Clear();
+  auto_room_errors_.clear();
+  auto_queue_ = manifest_->captured_rooms;
+  auto_next_ = 0;
+  auto_running_ = !auto_queue_.empty();
+}
+
+void ObjectCoveragePanel::StepAutomaticCheck() {
+  if (!auto_running_) {
+    return;
+  }
+  // Rendering a room takes tens of milliseconds, so spread the rooms over
+  // frames and keep the editor responsive.
+  const auto start = std::chrono::steady_clock::now();
+  constexpr auto kFrameBudget = std::chrono::milliseconds(12);
+  while (auto_next_ < auto_queue_.size()) {
+    CheckRoomAgainstGame(auto_queue_[auto_next_++]);
+    if (std::chrono::steady_clock::now() - start > kFrameBudget) {
+      break;
+    }
+  }
+  if (auto_next_ >= auto_queue_.size()) {
+    auto_running_ = false;
+  }
+}
+
+void ObjectCoveragePanel::CheckRoomAgainstGame(int room_id) {
+  const auto path = GameCaptureRoomPath(manifest_dir_, room_id);
+  std::ifstream in(path, std::ios::binary);
+  const std::vector<uint8_t> bytes((std::istreambuf_iterator<char>(in)),
+                                   std::istreambuf_iterator<char>());
+  auto game = zelda3::ParseGameRoomTilemaps(bytes);
+  if (!game.ok()) {
+    auto_room_errors_.push_back(absl::StrFormat(
+        "Room 0x%03X: %s", room_id, std::string(game.status().message())));
+    return;
+  }
+  // Compare the ROM as saved; captures come from the saved ROM too.
+  zelda3::Room room = zelda3::LoadRoomFromRom(rooms_->rom(), room_id);
+  room.SetGameData(rooms_->game_data());
+  room.RenderRoomGraphics();
+  const auto yaze = zelda3::ComposeYazeRoomTilemaps(room);
+  const auto& objects = room.GetTileObjects();
+  const auto owners =
+      zelda3::ComputeObjectTileOwners(rooms_->rom(), room_id, objects, yaze);
+  const auto check =
+      zelda3::CompareRoomTilemaps(room_id, *game, yaze, owners, objects);
+  auto_results_.RecordRoom(check.differences.empty());
+  for (const auto& placement : check.placements) {
+    PlacementAutoResult result;
+    result.tiles_owned = placement.tiles_owned;
+    result.tiles_different = placement.tiles_different;
+    result.difference_bits = placement.difference_bits;
+    auto_results_.Record(room_id, placement.object_index, placement.object_id,
+                         result);
+  }
+}
+
+void ObjectCoveragePanel::ApplyAutomaticVerdicts(ObjectEvidenceState state) {
+  int applied = 0;
+  for (auto& [object_id, proposal] :
+       ProposeAutomaticVerdicts(auto_results_, evidence_, rom_sha1_)) {
+    if (proposal.state != state) {
+      continue;
+    }
+    proposal.updated_utc = NowUtc();
+    evidence_.Set(object_id, std::move(proposal));
+    ++applied;
+  }
+  SaveEvidence();
+  if (status_message_.empty()) {
+    status_message_ = absl::StrFormat("Marked %d objects as \"%s\".", applied,
+                                      ObjectEvidenceStateLabel(state));
+  }
 }
 
 void ObjectCoveragePanel::SaveEvidence() {
@@ -263,6 +384,12 @@ bool ObjectCoveragePanel::PassesFilters(int object_id) const {
   if (only_focus_ && ReleaseFocusGroupFor(object_id) < 0) {
     return false;
   }
+  if (only_auto_differences_) {
+    const auto* summary = auto_results_.Summary(object_id);
+    if (summary == nullptr || summary->placements_different == 0) {
+      return false;
+    }
+  }
   if (state_filter_ >= 0 &&
       static_cast<int>(evidence_.StateOf(object_id)) != state_filter_) {
     return false;
@@ -289,7 +416,9 @@ void ObjectCoveragePanel::Draw(bool* /*p_open*/) {
   }
   EnsureEvidenceLoaded();
 
+  StepAutomaticCheck();
   DrawSummary();
+  DrawAutomaticCheck();
   ImGui::Separator();
   DrawFilters();
 
@@ -363,6 +492,111 @@ void ObjectCoveragePanel::DrawSummary() {
   }
 }
 
+void ObjectCoveragePanel::DrawAutomaticCheck() {
+  if (!ImGui::CollapsingHeader(tr("Automatic check against the game"))) {
+    return;
+  }
+  ImGui::PushID("ObjectCoverageAuto");
+  const std::string& dir = evidence_.capture_dir();
+  ImGui::TextWrapped("%s %s", tr("Game captures:"),
+                     dir.empty() ? tr("none chosen") : dir.c_str());
+  if (ImGui::Button(
+          absl::StrCat(ICON_MD_FOLDER_OPEN " ", tr("Choose capture folder"))
+              .c_str())) {
+    const std::string chosen = util::FileDialogWrapper::ShowOpenFolderDialog();
+    if (!chosen.empty()) {
+      SetCaptureDir(chosen);
+    }
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "%s",
+        tr("A folder written by scripts/agents/capture-game-room-tilemaps.py "
+           "from Mesen2-OOS running this same ROM. It holds each room's "
+           "tilemaps as the game built them."));
+  }
+
+  if (!manifest_error_.empty()) {
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetErrorColor());
+    ImGui::TextWrapped("%s", manifest_error_.c_str());
+    ImGui::PopStyleColor();
+  } else if (manifest_) {
+    ImGui::TextWrapped(tr("%zu rooms captured from the game for this ROM."),
+                       manifest_->captured_rooms.size());
+    if (auto_running_) {
+      const float fraction =
+          auto_queue_.empty()
+              ? 1.0f
+              : static_cast<float>(auto_next_) / auto_queue_.size();
+      ImGui::ProgressBar(
+          fraction, ImVec2(-1.0f, 0.0f),
+          absl::StrFormat("%zu / %zu rooms", auto_next_, auto_queue_.size())
+              .c_str());
+    } else if (ImGui::Button(absl::StrCat(ICON_MD_PLAY_ARROW " ",
+                                          tr("Run automatic check"))
+                                 .c_str())) {
+      StartAutomaticCheck();
+    }
+  }
+
+  if (!auto_running_ && auto_results_.rooms_compared() > 0) {
+    int objects_matching = 0;
+    int objects_differing = 0;
+    for (const auto& [object_id, summary] : auto_results_.summaries()) {
+      (summary.placements_different == 0 ? objects_matching
+                                         : objects_differing)++;
+    }
+    ImGui::TextWrapped(
+        tr("Compared %d rooms (%d exact). Objects matching the game in every "
+           "placement: %d. Objects with differences: %d."),
+        auto_results_.rooms_compared(), auto_results_.rooms_exact(),
+        objects_matching, objects_differing);
+    ImGui::TextDisabled(
+        "%s", tr("Compares tiles, flips, palette rows and priority. Colors and "
+                 "graphics sheets are not compared."));
+    for (const std::string& error : auto_room_errors_) {
+      ImGui::TextColored(gui::GetErrorColor(), "%s", error.c_str());
+    }
+
+    int propose_verified = 0;
+    int propose_broken = 0;
+    for (const auto& [object_id, proposal] :
+         ProposeAutomaticVerdicts(auto_results_, evidence_, rom_sha1_)) {
+      (proposal.state == ObjectEvidenceState::kVerified ? propose_verified
+                                                        : propose_broken)++;
+    }
+    const float right_edge = RowRightEdge();
+    const std::string verified_label = absl::StrFormat(
+        "%s %s (%d)", ICON_MD_CHECK, tr("Mark matches"), propose_verified);
+    const std::string broken_label =
+        absl::StrFormat("%s %s (%d)", ICON_MD_CLOSE,
+                        tr("Mark differences as Broken"), propose_broken);
+    ImGui::BeginDisabled(propose_verified == 0);
+    if (ImGui::Button(verified_label.c_str())) {
+      ApplyAutomaticVerdicts(ObjectEvidenceState::kVerified);
+    }
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      ImGui::SetTooltip(
+          "%s", tr("Sets \"Matches game\" on unchecked objects whose every "
+                   "checked placement matches. Objects you already judged are "
+                   "left alone."));
+    }
+    SameLineIfFits(ButtonWidth(broken_label.c_str()), right_edge);
+    ImGui::BeginDisabled(propose_broken == 0);
+    if (ImGui::Button(broken_label.c_str())) {
+      ApplyAutomaticVerdicts(ObjectEvidenceState::kReproduced);
+    }
+    ImGui::EndDisabled();
+    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+      ImGui::SetTooltip(
+          "%s", tr("Sets \"Broken\" on unchecked objects with any differing "
+                   "placement, with a note naming what differs."));
+    }
+  }
+  ImGui::PopID();
+}
+
 void ObjectCoveragePanel::DrawFilters() {
   const float right_edge = RowRightEdge();
   const float available = ImGui::GetContentRegionAvail().x;
@@ -400,6 +634,10 @@ void ObjectCoveragePanel::DrawFilters() {
   ImGui::Checkbox(tr("Placed only"), &only_placed_);
   SameLineIfFits(CheckboxWidth(tr("Release focus only")), right_edge);
   ImGui::Checkbox(tr("Release focus only"), &only_focus_);
+  if (auto_results_.rooms_compared() > 0) {
+    SameLineIfFits(CheckboxWidth(tr("Differs from game")), right_edge);
+    ImGui::Checkbox(tr("Differs from game"), &only_auto_differences_);
+  }
 }
 
 void ObjectCoveragePanel::DrawObjectTable(float height) {
@@ -418,8 +656,11 @@ void ObjectCoveragePanel::DrawObjectTable(float height) {
   // The Workbench inspector is narrow; there the details pane shows the
   // focus family instead of a column.
   const bool show_focus_column = ImGui::GetContentRegionAvail().x >= 420.0f;
-  if (!ImGui::BeginTable("##ObjectCoverageTable", show_focus_column ? 5 : 4,
-                         kFlags, ImVec2(0.0f, std::max(height, 80.0f)))) {
+  const bool show_auto_column = auto_results_.rooms_compared() > 0;
+  const int column_count =
+      4 + (show_focus_column ? 1 : 0) + (show_auto_column ? 1 : 0);
+  if (!ImGui::BeginTable("##ObjectCoverageTable", column_count, kFlags,
+                         ImVec2(0.0f, std::max(height, 80.0f)))) {
     return;
   }
   ImGui::TableSetupScrollFreeze(0, 1);
@@ -430,6 +671,10 @@ void ObjectCoveragePanel::DrawObjectTable(float height) {
                             1.5f);
   }
   ImGui::TableSetupColumn(tr("Rooms"), ImGuiTableColumnFlags_WidthFixed, 44.0f);
+  if (show_auto_column) {
+    ImGui::TableSetupColumn(tr("Game"), ImGuiTableColumnFlags_WidthFixed,
+                            56.0f);
+  }
   ImGui::TableSetupColumn(tr("Status"), ImGuiTableColumnFlags_WidthStretch,
                           1.5f);
   ImGui::TableHeadersRow();
@@ -477,6 +722,32 @@ void ObjectCoveragePanel::DrawObjectTable(float height) {
         ImGui::Text("%d", room_count);
       } else {
         ImGui::TextDisabled("-");
+      }
+      if (show_auto_column) {
+        ImGui::TableSetColumnIndex(column++);
+        if (const auto* summary = auto_results_.Summary(object_id)) {
+          if (summary->placements_different == 0) {
+            ImGui::TextColored(gui::GetSuccessColor(), "%s %d", ICON_MD_CHECK,
+                               summary->placements_checked);
+          } else {
+            ImGui::TextColored(gui::GetErrorColor(), "%s %d/%d", ICON_MD_CLOSE,
+                               summary->placements_different,
+                               summary->placements_checked);
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(
+                "%s",
+                summary->placements_different == 0
+                    ? tr("Every checked placement matches the game's tilemap.")
+                    : absl::StrFormat(
+                          "%d of %d placements differ from the game: %s",
+                          summary->placements_different,
+                          summary->placements_checked,
+                          zelda3::DescribeTileWordDifference(
+                              summary->difference_bits))
+                          .c_str());
+          }
+        }
       }
       ImGui::TableSetColumnIndex(column);
       const ObjectEvidenceState state = evidence_.StateOf(object_id);
@@ -529,6 +800,25 @@ void ObjectCoveragePanel::DrawDetails() {
     ImGui::TextColored(gui::GetInfoColor(), "%s:", focus.name);
     ImGui::SameLine();
     ImGui::TextWrapped("%s", focus.what_to_check);
+  }
+
+  if (const auto* summary = auto_results_.Summary(object_id)) {
+    if (summary->placements_different == 0) {
+      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetSuccessColor());
+      ImGui::TextWrapped(
+          tr(ICON_MD_CHECK " Matches the game in all %d checked placements"),
+          summary->placements_checked);
+    } else {
+      ImGui::PushStyleColor(ImGuiCol_Text, gui::GetErrorColor());
+      const std::string what =
+          zelda3::DescribeTileWordDifference(summary->difference_bits);
+      ImGui::TextWrapped(
+          tr(ICON_MD_CLOSE " %d of %d checked placements differ from the "
+                           "game: %s"),
+          summary->placements_different, summary->placements_checked,
+          what.c_str());
+    }
+    ImGui::PopStyleColor();
   }
 
   // Verdict buttons, current one highlighted.
@@ -602,6 +892,21 @@ void ObjectCoveragePanel::DrawDetails() {
     ImGui::Text("0x%03X %s  (%d,%d) size %d, %s", occurrence.room_id,
                 label.c_str(), occurrence.x, occurrence.y, occurrence.size,
                 ObjectListLabel(occurrence.layer));
+    const PlacementAutoResult* result =
+        auto_results_.Find(occurrence.room_id, occurrence.object_index);
+    if (result != nullptr && result->object_id == object_id &&
+        result->tiles_owned > 0) {
+      ImGui::SameLine();
+      if (result->tiles_different == 0) {
+        ImGui::TextColored(gui::GetSuccessColor(), "%s", ICON_MD_CHECK);
+      } else {
+        ImGui::TextColored(
+            gui::GetErrorColor(), "%s %d/%d tiles: %s", ICON_MD_CLOSE,
+            result->tiles_different, result->tiles_owned,
+            zelda3::DescribeTileWordDifference(result->difference_bits)
+                .c_str());
+      }
+    }
     ImGui::PopID();
   }
   ImGui::EndChild();

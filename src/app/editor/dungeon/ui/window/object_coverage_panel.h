@@ -69,6 +69,16 @@ class ObjectCoveragePanel : public WindowContent {
   void GoToOccurrence(int object_id, const ObjectOccurrence& occurrence);
   void GoToNextObject();
 
+  // Automatic check against game tilemap captures (see
+  // scripts/agents/capture-game-room-tilemaps.py).
+  void DrawAutomaticCheck();
+  void SetCaptureDir(const std::string& dir);
+  void ReloadManifest();
+  void StartAutomaticCheck();
+  void StepAutomaticCheck();
+  void CheckRoomAgainstGame(int room_id);
+  void ApplyAutomaticVerdicts(ObjectEvidenceState state);
+
   void DrawSummary();
   void DrawFilters();
   void DrawObjectTable(float height);
@@ -99,6 +109,16 @@ class ObjectCoveragePanel : public WindowContent {
   std::map<int, int> last_room_for_object_;
   char note_buffer_[512] = {};
   std::optional<int> note_buffer_object_;
+
+  std::optional<GameCaptureManifest> manifest_;
+  std::string manifest_error_;
+  std::string manifest_dir_;
+  ObjectAutoCheckResults auto_results_;
+  std::vector<int> auto_queue_;
+  size_t auto_next_ = 0;
+  bool auto_running_ = false;
+  std::vector<std::string> auto_room_errors_;
+  bool only_auto_differences_ = false;
 
   char filter_text_[64] = {};
   int state_filter_ = -1;  // -1 = all, else ObjectEvidenceState value.
