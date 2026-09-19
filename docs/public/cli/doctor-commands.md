@@ -41,7 +41,7 @@ z3ed overworld-doctor --rom zelda3.sfc --format json
 - ZSCustomOverworld version (Vanilla, v2, v3)
 - Expanded tile16/tile32 regions
 - Expanded pointer tables (tail map support)
-- Tile16 corruption at known problem addresses
+- Tile16 layout (vanilla or expanded). The doctor does not judge tile16 entries: every 16-bit value is a legal tile word, so damage cannot be told apart from edits. Compare against a backup with `rom-compare` instead.
 - Map pointer validity for all 160+ maps
 
 ## dungeon-doctor
@@ -148,12 +148,12 @@ All doctor commands produce findings with consistent structure:
 {
   "findings": [
     {
-      "id": "tile16_corruption",
+      "id": "invalid_map_pointer",
       "severity": "error",
-      "message": "Corrupted tile16 at 0x1E878B",
-      "location": "0x1E878B",
-      "suggested_action": "Run with --fix to zero corrupted entries",
-      "fixable": true
+      "message": "Map 0x12 has invalid pointer",
+      "location": "0x1794D",
+      "suggested_action": "Restore from baseline ROM",
+      "fixable": false
     }
   ],
   "summary": {
@@ -162,7 +162,7 @@ All doctor commands produce findings with consistent structure:
     "errors": 1,
     "warnings": 0,
     "info": 0,
-    "fixable": 1
+    "fixable": 0
   }
 }
 ```
