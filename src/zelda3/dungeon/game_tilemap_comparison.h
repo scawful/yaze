@@ -51,11 +51,18 @@ struct TileOwners {
   std::vector<int> bg2;
 };
 
+// True when the game does not draw `object` as the room first loads, so a
+// capture cannot judge it: RoomDraw_Chest (0xF99) skips closed chests in rooms
+// whose tag1 or tag2 is 0x27, 0x3C, 0x3E or 0x29-0x32 until they are revealed.
+bool GameHidesObjectOnRoomLoad(int tag1, int tag2, const RoomObject& object);
+
 // Draws each object alone, in the room's draw order, to find which tiles it
 // writes, then keeps an owner only where its word equals `yaze`'s final word.
+// Objects with `hidden[i]` set get no tiles, so they count as unchecked.
 TileOwners ComputeObjectTileOwners(Rom* rom, int room_id,
                                    const std::vector<RoomObject>& objects,
-                                   const RoomTilemaps& yaze);
+                                   const RoomTilemaps& yaze,
+                                   const std::vector<bool>& hidden = {});
 
 struct TileDifference {
   int layer = 1;  // 1 = BG1, 2 = BG2

@@ -79,8 +79,14 @@ TEST_F(DungeonGameTilemapParityTest, CompareCapturedRooms) {
     room.RenderRoomGraphics();
     const auto yaze = zelda3::ComposeYazeRoomTilemaps(room);
     const auto& objects = room.GetTileObjects();
-    const auto owners =
-        zelda3::ComputeObjectTileOwners(rom_.get(), room_id, objects, yaze);
+    std::vector<bool> hidden(objects.size());
+    for (size_t i = 0; i < objects.size(); ++i) {
+      hidden[i] = zelda3::GameHidesObjectOnRoomLoad(
+          static_cast<int>(room.tag1()), static_cast<int>(room.tag2()),
+          objects[i]);
+    }
+    const auto owners = zelda3::ComputeObjectTileOwners(rom_.get(), room_id,
+                                                        objects, yaze, hidden);
     const auto check =
         zelda3::CompareRoomTilemaps(room_id, *game, yaze, owners, objects);
 

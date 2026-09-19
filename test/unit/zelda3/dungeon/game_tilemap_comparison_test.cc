@@ -95,6 +95,21 @@ TEST(GameTilemapComparisonTest, DifferencesAreChargedToTheOwningPlacement) {
   EXPECT_EQ(check.placements[1].tiles_different, 0);
 }
 
+// RoomDraw_Chest skips closed chests in rooms whose tag1 or tag2 is 0x27,
+// 0x3C, 0x3E or 0x29-0x32, so a capture of the room on load cannot judge them.
+TEST(GameTilemapComparisonTest, HiddenChestTagsMatchRoomDrawChest) {
+  const RoomObject chest(0xF99, 4, 4, 0, 0);
+  for (int tag : {0x27, 0x29, 0x32, 0x3C, 0x3E}) {
+    EXPECT_TRUE(GameHidesObjectOnRoomLoad(tag, 0, chest)) << tag;
+    EXPECT_TRUE(GameHidesObjectOnRoomLoad(0, tag, chest)) << tag;
+  }
+  for (int tag : {0x00, 0x28, 0x33, 0x3D, 0x3F}) {
+    EXPECT_FALSE(GameHidesObjectOnRoomLoad(tag, tag, chest)) << tag;
+  }
+  EXPECT_FALSE(
+      GameHidesObjectOnRoomLoad(0x27, 0, RoomObject(0xF9A, 4, 4, 0, 0)));
+}
+
 TEST(GameTilemapComparisonTest, DescribesEachTileWordField) {
   EXPECT_EQ(DescribeTileWordDifference(0x0000), "none");
   EXPECT_EQ(DescribeTileWordDifference(0x2000), "priority");
