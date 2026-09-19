@@ -311,6 +311,33 @@ absl::Status ObjectDrawer::DrawObject(
   if (object.id_ == 0xFAA) {
     return DrawLampCones(object, bg2);
   }
+  if (object.id_ == 0xFAE) {
+    return DrawAgahnimsWindows(object, bg1, bg2, layout_bg1, layout_bg2);
+  }
+  if (object.id_ == 0xFE2) {
+    return DrawVitreousGoo(object, bg2);
+  }
+  if (object.id_ == 0xF95 || object.id_ == 0xFF2) {
+    // Kholdstare's shell reads fixed data (obj1DFA); Trinexx's shell reads
+    // its own payload (TXY). Both skip drawing once $0402 bit 15 is set in
+    // the game; the editor shows the room as first entered.
+    int data_pc = kRoomObjectTileAddress + 0x1DFA;
+    if (object.id_ == 0xFF2) {
+      // The object's own data: .type1_subtype_3_data_offset[id - 0xF80].
+      const auto& rom_data = rom_->vector();
+      const int entry = kRoomObjectSubtype3 + (object.id_ - 0xF80) * 2;
+      if (entry < 0 || entry + 1 >= static_cast<int>(rom_data.size())) {
+        return absl::OutOfRangeError("Trinexx shell data offset out of range");
+      }
+      data_pc =
+          kRoomObjectTileAddress +
+          static_cast<int16_t>(rom_data[entry] | (rom_data[entry + 1] << 8));
+    }
+    return DrawBigDecor10x8(
+        object, target_bg,
+        use_bg2 ? RoomObject::LayerType::BG2 : RoomObject::LayerType::BG1,
+        data_pc);
+  }
 
   std::array<gfx::TileInfo, 8> room_floor_tiles;
   std::span<const gfx::TileInfo> render_tiles = mutable_obj.tiles();
@@ -3064,6 +3091,168 @@ absl::Status ObjectDrawer::DrawLampCones(const RoomObject& object,
                    gfx::WordToTileInfo(word));
       }
     }
+  }
+  return absl::OkStatus();
+}
+
+absl::Status ObjectDrawer::DrawAgahnimsWindows(
+    const RoomObject& object, gfx::BackgroundBuffer& bg1,
+    gfx::BackgroundBuffer& bg2, gfx::BackgroundBuffer* layout_bg1,
+    gfx::BackgroundBuffer* layout_bg2) {
+  // Literal port of USDASM RoomDraw_AgahnimsWindows (bank_01 table entry
+  // 0x22E). X starts at $08, the object's tilemap byte offset; each
+  // `STA.l $7E2xxx,X` stores to byte (xxx + X) of the upper tilemap. Offsets
+  // past $2000 bytes continue into the lower tilemap at $7E4000, as in WRAM.
+  const auto& rom_data = rom_->vector();
+  const int anchor = object.y_ * 0x80 + object.x_ * 2;
+  auto read_word = [&](int data_offset) -> uint16_t {
+    const int address = kRoomObjectTileAddress + data_offset;
+    if (address < 0 || address + 1 >= static_cast<int>(rom_data.size())) {
+      return 0;
+    }
+    return static_cast<uint16_t>(rom_data[address] |
+                                 (rom_data[address + 1] << 8));
+  };
+  auto tile_at = [&](int store, int x) -> std::pair<int, int> {
+    return {((store - 0x2000 + x) / 2) % 64, ((store - 0x2000 + x) / 2) / 64};
+  };
+  auto store = [&](int address, int x, uint16_t word) {
+    auto [tile_x, tile_y] = tile_at(address, x);
+    if (tile_y < 64) {
+      SetTraceContext(object, RoomObject::LayerType::BG1);
+      WriteTile8(bg1, tile_x, tile_y, gfx::WordToTileInfo(word));
+    } else if (tile_y < 128) {
+      SetTraceContext(object, RoomObject::LayerType::BG2);
+      WriteTile8(bg2, tile_x, tile_y - 64, gfx::WordToTileInfo(word));
+    }
+  };
+  constexpr uint16_t kHFlip = 0x4000;
+
+  // .next_a: 6 columns x 4 rows from obj1BF2, three copies.
+  for (int i = 0, x = anchor, y = 0x1BF2; i < 6; ++i, x += 2, y += 8) {
+    for (int row = 0; row < 4; ++row) {
+      const uint16_t word = read_word(y + row * 2);
+      for (int base : {0x220E, 0x221A, 0x2226}) {
+        store(base + row * 0x80, x, word);
+      }
+    }
+  }
+  // .next_b: 5 rows from obj1C22, two mirrored diagonals.
+  for (int i = 0, x = anchor, y = 0x1C22; i < 5; ++i, x += 0x80, y += 2) {
+    const uint16_t word = read_word(y);
+    for (int base : {0x2504, 0x2486, 0x2408, 0x238A, 0x230C, 0x228E, 0x2210}) {
+      store(base, x, word);
+    }
+    for (int base : {0x222E, 0x22B0, 0x2332, 0x23B4, 0x2436, 0x24B8, 0x253A}) {
+      store(base, x, word | kHFlip);
+    }
+  }
+  // .next_c: 6 rows from obj1C2C, left edge and mirrored right edge, three
+  // copies 6 rows apart.
+  for (int i = 0, x = anchor, y = 0x1C2C; i < 6; ++i, x += 0x80, y += 8) {
+    for (int k = 0; k < 4; ++k) {
+      const uint16_t word = read_word(y + k * 2);
+      for (int base : {0x2584, 0x2884, 0x2B84}) {
+        store(base + k * 2, x, word);
+      }
+      for (int base : {0x25BA, 0x28BA, 0x2BBA}) {
+        store(base - k * 2, x, word | kHFlip);
+      }
+    }
+  }
+  // .next_d: 6 columns from obj1C5C, two rows, two copies.
+  for (int i = 0, x = anchor, y = 0x1C5C; i < 6; ++i, x += 2, y += 2) {
+    const uint16_t top = read_word(y);
+    const uint16_t bottom = read_word(y + 12);
+    store(0x2498, x, top);
+    store(0x24A4, x, top);
+    store(0x2518, x, bottom);
+    store(0x2524, x, bottom);
+  }
+  // .next_e: 6 rows from obj1C74, two columns, two copies.
+  for (int i = 0, x = anchor, y = 0x1C74; i < 6; ++i, x += 0x80, y += 4) {
+    store(0x270E, x, read_word(y));
+    store(0x2A0E, x, read_word(y));
+    store(0x2710, x, read_word(y + 2));
+    store(0x2A10, x, read_word(y + 2));
+  }
+  // .next_f: 5 columns x 5 rows from obj1C8C, column-major.
+  for (int i = 0, x = anchor, y = 0x1C8C; i < 5; ++i, x += 2, y += 10) {
+    for (int row = 0; row < 5; ++row) {
+      store(0x248E + row * 0x80, x, read_word(y + row * 2));
+    }
+  }
+  // .next_g: ORA #$2000 into four tiles of two rows.
+  if (!trace_only_) {
+    for (int i = 0, x = anchor; i < 4; ++i, x += 2) {
+      for (int base : {0x2E1C, 0x2E9C}) {
+        auto [tile_x, tile_y] = tile_at(base, x);
+        if (tile_y < 64) {
+          PromoteTilePriorityOnOwners(bg1, layout_bg1, tile_x, tile_y);
+        } else if (tile_y < 128) {
+          PromoteTilePriorityOnOwners(bg2, layout_bg2, tile_x, tile_y - 64);
+        }
+      }
+    }
+  }
+  return absl::OkStatus();
+}
+
+absl::Status ObjectDrawer::DrawBigDecor10x8(const RoomObject& object,
+                                            gfx::BackgroundBuffer& target_bg,
+                                            RoomObject::LayerType layer,
+                                            int data_pc) {
+  // USDASM RoomDraw_SomeBigDecors ($01:9D9B area): 8 rows of 10 words,
+  // row-major, stored at the object's position on the current list's layer.
+  constexpr int kColumns = 10;
+  constexpr int kRows = 8;
+  const auto& rom_data = rom_->vector();
+  if (data_pc < 0 ||
+      data_pc + kColumns * kRows * 2 > static_cast<int>(rom_data.size())) {
+    return absl::OutOfRangeError(
+        absl::StrFormat("Big decor data out of range: 0x%X", data_pc));
+  }
+  SetTraceContext(object, layer);
+  for (int row = 0; row < kRows; ++row) {
+    for (int column = 0; column < kColumns; ++column) {
+      const int address = data_pc + (row * kColumns + column) * 2;
+      const uint16_t word = static_cast<uint16_t>(rom_data[address] |
+                                                  (rom_data[address + 1] << 8));
+      WriteTile8(target_bg, object.x_ + column, object.y_ + row,
+                 gfx::WordToTileInfo(word));
+    }
+  }
+  return absl::OkStatus();
+}
+
+absl::Status ObjectDrawer::DrawVitreousGoo(const RoomObject& object,
+                                           gfx::BackgroundBuffer& bg2) {
+  // USDASM RoomDraw_VitreousGooGraphics (bank_01 table entry 0x262): 22
+  // columns of 11 rows from obj20F6 (11 words per column) stored with
+  // STA.l $7E4000,X, i.e. always BG2, then a 3x2 block from obj22DA at
+  // $4592/$4612 (column +9, rows +11 and +12).
+  const auto& rom_data = rom_->vector();
+  auto read_word = [&](int data_offset) -> uint16_t {
+    const int address = kRoomObjectTileAddress + data_offset;
+    if (address < 0 || address + 1 >= static_cast<int>(rom_data.size())) {
+      return 0;
+    }
+    return static_cast<uint16_t>(rom_data[address] |
+                                 (rom_data[address + 1] << 8));
+  };
+  SetTraceContext(object, RoomObject::LayerType::BG2);
+  for (int column = 0; column < 22; ++column) {
+    for (int row = 0; row < 11; ++row) {
+      WriteTile8(
+          bg2, object.x_ + column, object.y_ + row,
+          gfx::WordToTileInfo(read_word(0x20F6 + column * 22 + row * 2)));
+    }
+  }
+  for (int column = 0; column < 3; ++column) {
+    WriteTile8(bg2, object.x_ + 9 + column, object.y_ + 11,
+               gfx::WordToTileInfo(read_word(0x22DA + column * 2)));
+    WriteTile8(bg2, object.x_ + 9 + column, object.y_ + 12,
+               gfx::WordToTileInfo(read_word(0x22DA + 6 + column * 2)));
   }
   return absl::OkStatus();
 }
