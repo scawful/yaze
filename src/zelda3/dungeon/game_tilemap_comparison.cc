@@ -79,9 +79,21 @@ RoomTilemaps ComposeYazeRoomTilemaps(const Room& room) {
   return maps;
 }
 
+bool GameHidesObjectOnRoomLoad(int tag1, int tag2, const RoomObject& object) {
+  if (object.id_ != 0xF99) {
+    return false;
+  }
+  auto hides = [](int tag) {
+    return tag == 0x27 || tag == 0x3C || tag == 0x3E ||
+           (tag >= 0x29 && tag <= 0x32);
+  };
+  return hides(tag1) || hides(tag2);
+}
+
 TileOwners ComputeObjectTileOwners(Rom* rom, int room_id,
                                    const std::vector<RoomObject>& objects,
-                                   const RoomTilemaps& yaze) {
+                                   const RoomTilemaps& yaze,
+                                   const std::vector<bool>& hidden) {
   TileOwners owners;
   owners.bg1.assign(kRoomTilemapWords, -1);
   owners.bg2.assign(kRoomTilemapWords, -1);
@@ -105,7 +117,8 @@ TileOwners ComputeObjectTileOwners(Rom* rom, int room_id,
   for (int list = 0; list < 3; ++list) {
     for (size_t index = 0; index < objects.size(); ++index) {
       const RoomObject& source = objects[index];
-      if (IsSpecialTableObject(source)) {
+      if (IsSpecialTableObject(source) ||
+          (index < hidden.size() && hidden[index])) {
         continue;
       }
       int list_index = source.GetLayerValue();
