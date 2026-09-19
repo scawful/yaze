@@ -83,6 +83,12 @@ class ObjectDrawer {
   absl::Status DrawVitreousGoo(const RoomObject& object,
                                gfx::BackgroundBuffer& bg2);
 
+  // USDASM RoomTag_ChestHoles0 (tag 0x22) / RoomTag_ChestHoles8 (tag 0x3B):
+  // once chest 0 is open, Underworld_ApplyRoomOverlay draws that overlay's
+  // pits onto BG1 ($7E2000). Draws nothing for other tags or a closed chest.
+  void DrawChestHoleOverlay(int tag1, int tag2, const DungeonState* state,
+                            gfx::BackgroundBuffer& bg1);
+
   struct DoorDef {
     DoorType type;
     DoorDirection direction;

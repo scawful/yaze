@@ -3281,6 +3281,73 @@ absl::Status ObjectDrawer::DrawVitreousGoo(const RoomObject& object,
   return absl::OkStatus();
 }
 
+void ObjectDrawer::DrawChestHoleOverlay(int tag1, int tag2,
+                                        const DungeonState* state,
+                                        gfx::BackgroundBuffer& bg1) {
+  constexpr int kChestHoles0Tag = 0x22;
+  constexpr int kChestHoles8Tag = 0x3B;
+  constexpr int kOverlayDataPointers = 0x026CC0;  // $04:ECC0, 3-byte pointers
+  constexpr uint8_t kPitObjectId = 0xA4;
+  if (state == nullptr || rom_ == nullptr || !state->IsChestOpen(room_id_, 0)) {
+    return;
+  }
+  int overlay = -1;
+  if (tag1 == kChestHoles0Tag || tag2 == kChestHoles0Tag) {
+    overlay = 0x00;
+  } else if (tag1 == kChestHoles8Tag || tag2 == kChestHoles8Tag) {
+    overlay = 0x12;
+  } else {
+    return;
+  }
+
+  const auto& rom_data = rom_->vector();
+  auto read_byte = [&](int address) -> int {
+    return address >= 0 && address < static_cast<int>(rom_data.size())
+               ? rom_data[address]
+               : -1;
+  };
+  auto read_word = [&](int data_offset) -> uint16_t {
+    const int address = kRoomObjectTileAddress + data_offset;
+    const int lo = read_byte(address);
+    const int hi = read_byte(address + 1);
+    return lo < 0 || hi < 0 ? 0 : static_cast<uint16_t>(lo | (hi << 8));
+  };
+  const int pointer = kOverlayDataPointers + (overlay * 3);
+  const int b0 = read_byte(pointer);
+  const int b1 = read_byte(pointer + 1);
+  const int b2 = read_byte(pointer + 2);
+  if (b0 < 0 || b1 < 0 || b2 < 0) {
+    return;
+  }
+  int entry = static_cast<int>(SnesToPc((b2 << 16) | (b1 << 8) | b0));
+
+  // Underworld_DrawRoomOverlay .draw_hole: row 0 obj063C+2, rows 1-2
+  // obj05AA+0, row 3 obj0642+2, each four tiles wide.
+  const gfx::TileInfo row_tiles[4] = {
+      gfx::WordToTileInfo(read_word(0x063C + 2)),
+      gfx::WordToTileInfo(read_word(0x05AA)),
+      gfx::WordToTileInfo(read_word(0x05AA)),
+      gfx::WordToTileInfo(read_word(0x0642 + 2)),
+  };
+  for (;; entry += 3) {
+    const int x_byte = read_byte(entry);
+    const int y_byte = read_byte(entry + 1);
+    const int id = read_byte(entry + 2);
+    if (x_byte < 0 || y_byte < 0 || (x_byte == 0xFF && y_byte == 0xFF)) {
+      return;
+    }
+    if (id != kPitObjectId) {
+      continue;  // .draw_solid_floor needs the runtime $046A floor pointer.
+    }
+    for (int row = 0; row < 4; ++row) {
+      for (int col = 0; col < 4; ++col) {
+        WriteTile8(bg1, (x_byte >> 2) + col, (y_byte >> 2) + row,
+                   row_tiles[row]);
+      }
+    }
+  }
+}
+
 absl::Status ObjectDrawer::DrawRoomDrawObjectData2x2(
     uint16_t object_id, int tile_x, int tile_y, RoomObject::LayerType layer,
     uint16_t room_draw_object_data_offset, gfx::BackgroundBuffer& bg1,
