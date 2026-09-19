@@ -1830,6 +1830,7 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
         target.ClearBG1RevealMaskRect(bg1_reveal_mask_source_, pixel_x, pixel_y,
                                       8, 8);
         DrawTileToBitmap(bitmap, tile_info, pixel_x, pixel_y, room_gfx_buffer_);
+        target.SetTileAt(start_tile_x + dx, start_tile_y + dy, tile_word);
 
         const uint8_t priority = tile_info.over_ ? 1 : 0;
         const auto& bitmap_data = bitmap.vector();
@@ -1860,7 +1861,7 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
 
   auto tilemap_offset_to_tile_coords = [](uint16_t offset) {
     return std::pair<int, int>{static_cast<int>((offset % 0x80) / 2),
-                               static_cast<int>(offset / 0x80) - 4};
+                               static_cast<int>(offset / 0x80)};
   };
   const int position_index = std::min<int>(door.position & 0x0F, 11);
 
@@ -2390,8 +2391,11 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
       const uint16_t tile_offset =
           rom_data[table_entry_addr] | (rom_data[table_entry_addr + 1] << 8);
       const int tile_data_addr = kRoomDrawObjectDataBase + tile_offset;
+      // RoomDraw_ExplodingWallSegment: a 2x6 column (words 0-11), an 18x6
+      // fill of word 12, then a 2x6 column (words 13-24) at x+20.
       constexpr int kFillWordIndex = 12;
-      const int min_data_size = (kFillWordIndex + 1) * 2;
+      constexpr int kRightColumnWordIndex = 13;
+      const int min_data_size = (kRightColumnWordIndex + 12) * 2;
       if (tile_data_addr < 0 ||
           tile_data_addr + min_data_size > static_cast<int>(rom_->size())) {
         return false;
@@ -2404,6 +2408,9 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
           (rom_data[tile_data_addr + (kFillWordIndex * 2) + 1] << 8);
       draw_repeated_tile(bg1, explosion_tile_x + 2, segment_tile_y,
                          /*width=*/18, /*height=*/6, fill_word);
+      draw_from_object_data(bg1, explosion_tile_x + 20, segment_tile_y,
+                            /*width=*/2, /*height=*/6,
+                            tile_data_addr + (kRightColumnWordIndex * 2));
       return true;
     };
 

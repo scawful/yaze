@@ -1040,7 +1040,7 @@ TEST(ObjectDrawerRegistryReplayTest,
   constexpr int kDoorGfxSouthTableBase = 0x4E06;
   constexpr int kExplodingWallReplacementType = 0x54;
   constexpr int kSouthSegmentObjectOffset = 0x0900;
-  constexpr int kNorthSegmentObjectOffset = 0x0920;
+  constexpr int kNorthSegmentObjectOffset = 0x0940;
 
   Rom rom;
   std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
@@ -1051,10 +1051,10 @@ TEST(ObjectDrawerRegistryReplayTest,
             kNorthSegmentObjectOffset);
   WriteDoorObjectDataWords(dummy_rom,
                            /*object_offset=*/kSouthSegmentObjectOffset,
-                           /*start_word=*/0x0600, /*word_count=*/13);
+                           /*start_word=*/0x0600, /*word_count=*/25);
   WriteDoorObjectDataWords(dummy_rom,
                            /*object_offset=*/kNorthSegmentObjectOffset,
-                           /*start_word=*/0x0700, /*word_count=*/13);
+                           /*start_word=*/0x0700, /*word_count=*/25);
   rom.LoadFromData(dummy_rom);
 
   auto gfx = MakeOpaqueDoorGfx();
@@ -1080,13 +1080,19 @@ TEST(ObjectDrawerRegistryReplayTest,
 
   drawer.DrawDoor(door, /*door_index=*/0, bg1, bg2, &state);
 
-  EXPECT_TRUE(TileHasCoverage(bg1, 5, 23));
-  EXPECT_TRUE(TileHasCoverage(bg1, 7, 23));
-  EXPECT_TRUE(TileHasCoverage(bg1, 22, 28));
-  EXPECT_TRUE(TileHasCoverage(bg1, 5, 29));
-  EXPECT_TRUE(TileHasCoverage(bg1, 22, 34));
+  // $0D8A is tile (5, 27); matches game tilemaps of rooms 0x058 and 0x07C.
+  // Each segment: 2x6 column, 18x6 fill of word 12, 2x6 column at x+20.
+  EXPECT_FALSE(TileHasCoverage(bg1, 5, 23));
+  EXPECT_TRUE(TileHasCoverage(bg1, 5, 27));
+  EXPECT_EQ(bg1.GetTileAt(7, 27), 0x060C);
+  EXPECT_EQ(bg1.GetTileAt(24, 32), 0x060C);
+  EXPECT_EQ(bg1.GetTileAt(25, 27), 0x060D);
+  EXPECT_EQ(bg1.GetTileAt(26, 32), 0x0618);
+  EXPECT_TRUE(TileHasCoverage(bg1, 5, 33));
+  EXPECT_EQ(bg1.GetTileAt(22, 38), 0x070C);
+  EXPECT_EQ(bg1.GetTileAt(26, 38), 0x0718);
   EXPECT_FALSE(TileHasCoverage(bg1, 14, 0));
-  EXPECT_FALSE(TileHasCoverage(bg2, 5, 23));
+  EXPECT_FALSE(TileHasCoverage(bg2, 5, 27));
 }
 
 TEST(ObjectDrawerRegistryReplayTest, NorthMiddleDoorsRenderBothSidesOfTheSeam) {
