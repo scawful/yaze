@@ -93,6 +93,8 @@ TEST_F(DungeonGameTilemapParityTest, CompareCapturedRooms) {
         state->SetDamFloodgateOpen(room_id, true);
         state->SetWallMoved(room_id, true);
         state->SetFloorBombable(room_id, true);
+        // RoomDraw_BigLightBeamOnFloor (room 0x0AC) reads room 0x065's word.
+        state->SetFloorBombable(0x065, true);
         state->SetRupeeFloorCleared(room_id, true);
         state->SetBossShellCleared(room_id, true);
       }

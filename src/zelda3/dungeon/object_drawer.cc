@@ -453,6 +453,13 @@ absl::Status ObjectDrawer::DrawObject(
   } else if (!is_both_bg && (routine_id == DrawRoutineIds::kAutoStairs ||
                              routine_id == DrawRoutineIds::kSanctuaryWall)) {
     registry_secondary_bg_ = &other_bg;
+  } else if (!is_both_bg && routine_id == DrawRoutineIds::kDamFloodGate) {
+    // The open gate's water flooring goes to $7E4000.
+    registry_secondary_bg_ = &bg2;
+  } else if (!is_both_bg &&
+             routine_id == DrawRoutineIds::kWaterOverlay8x8_1to16) {
+    // The water-on stamp goes to $7E2000.
+    registry_secondary_bg_ = &bg1;
   } else if (!is_both_bg &&
              routine_id == DrawRoutineIds::kStraightInterRoomStairs) {
     dispatch_bg = &bg1;
