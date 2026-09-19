@@ -317,6 +317,10 @@ absl::Status ObjectDrawer::DrawObject(
   if (object.id_ == 0xFE2) {
     return DrawVitreousGoo(object, bg2);
   }
+  if ((object.id_ == 0xF95 || object.id_ == 0xFF2) && state != nullptr &&
+      state->IsBossShellCleared(room_id_)) {
+    return absl::OkStatus();  // $0402 bit 15: shell already gone.
+  }
   if (object.id_ == 0xF95 || object.id_ == 0xFF2) {
     // Kholdstare's shell reads fixed data (obj1DFA); Trinexx's shell reads
     // its own payload (TXY). Both skip drawing once $0402 bit 15 is set in

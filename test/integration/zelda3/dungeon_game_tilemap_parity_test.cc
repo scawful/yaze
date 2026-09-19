@@ -94,6 +94,7 @@ TEST_F(DungeonGameTilemapParityTest, CompareCapturedRooms) {
         state->SetWallMoved(room_id, true);
         state->SetFloorBombable(room_id, true);
         state->SetRupeeFloorCleared(room_id, true);
+        state->SetBossShellCleared(room_id, true);
       }
     }
     room.RenderRoomGraphics();
