@@ -29,7 +29,12 @@ With --full, also the whole machine state each room loaded into:
   room_XXX.cgram    512 bytes
   room_XXX.oam      544 bytes
 With --pre-write ADDR=VALUE (repeatable), those bytes are written before each
-room loads, e.g. to capture rooms with persistent room flags set.
+room loads. --room-flags LO,HI fills every room's persistent flag word
+($7EF000 + 2*room, 296 words) before each load; Module05_LoadFile keeps them
+(it never copies SRAM), but every load writes the visited room's word back,
+so the whole table is rewritten each time. --par CODE (repeatable) adds Pro
+Action Replay codes, e.g. 01B6B300 (draw shutters open) or 01C30080 (skip room
+tags). Capture each state variant into its own --out folder.
 
 Use an isolated Mesen instance loaded with the same ROM yaze will compare
 against, for example:
@@ -160,12 +165,20 @@ def choose_entrances(rom):
     return choice
 
 
-def load_room(mesen, room, pre_writes=(), entrance=ENTRANCE):
+def load_room(mesen, room, pre_writes=(), entrance=ENTRANCE, room_flags=None,
+              extra_par=()):
     """Loads `room`; returns (status, frames_run)."""
     mesen.send({"type": "PAUSE"})
+    if room_flags is not None:
+        lo, hi = room_flags
+        mesen.send({"type": "WRITEBLOCK", "addr": hex(0x7EF000),
+                    "hex": (f"{lo:02X}{hi:02X}" * ROOM_COUNT)})
     for addr, value in pre_writes:
         mesen.write(addr, value)
     mesen.send({"type": "CHEAT", "action": "clear"})
+    for code in extra_par:
+        mesen.send({"type": "CHEAT", "action": "add", "code": code,
+                    "format": "par"})
     table = ENTRANCE_ROOM_TABLE + 2 * entrance
     for offset, byte in ((0, room & 0xFF), (1, room >> 8)):
         mesen.send({"type": "CHEAT", "action": "add",
@@ -214,6 +227,10 @@ def main():
                         help="'auto' (per-room, see above) or a fixed entrance")
     parser.add_argument("--full", action="store_true",
                         help="also save WRAM, VRAM, CGRAM and OAM per room")
+    parser.add_argument("--room-flags", default=None, metavar="LO,HI",
+                        help="fill every room's flag word, e.g. 0xFF,0xFF")
+    parser.add_argument("--par", action="append", default=[],
+                        help="extra Pro Action Replay code (repeatable)")
     parser.add_argument("--pre-write", action="append", default=[],
                         metavar="ADDR=VALUE",
                         help="byte to write before each room loads")
@@ -250,17 +267,26 @@ def main():
         pre_writes.append((int(addr, 0), int(value, 0)))
     if pre_writes:
         manifest["pre_writes"] = args.pre_write
+    room_flags = None
+    if args.room_flags:
+        lo, hi = (int(v, 0) for v in args.room_flags.split(","))
+        room_flags = (lo, hi)
+        manifest["room_flags"] = args.room_flags
+    if args.par:
+        manifest["par"] = args.par
     mesen = Mesen(args.socket)
     for room in rooms:
         key = f"0x{room:03X}"
         path = out / f"room_{room:03X}.tilemap"
         try:
             entrance, method = entrance_for[room]
-            status, frames = load_room(mesen, room, pre_writes, entrance)
+            status, frames = load_room(mesen, room, pre_writes, entrance,
+                                       room_flags, args.par)
             if status != "ok" and entrance != ENTRANCE:
                 method = f"{method}; {status} -> retried with 0x{ENTRANCE:02X}"
                 entrance = ENTRANCE
-                status, frames = load_room(mesen, room, pre_writes, entrance)
+                status, frames = load_room(mesen, room, pre_writes, entrance,
+                                           room_flags, args.par)
         except (RuntimeError, OSError) as err:
             status, frames = f"error: {err}", 0
         entry = {"status": status, "frames": frames,
