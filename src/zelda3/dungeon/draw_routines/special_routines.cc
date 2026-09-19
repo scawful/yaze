@@ -118,6 +118,50 @@ void DrawWaterHopStairsB(const DrawContext& ctx) {
   DrawWaterHopStairsA(ctx);
 }
 
+// Reads 8 RoomDrawObjectData words at `object_data_offset` (usdasm objXXXX).
+std::array<gfx::TileInfo, 16> LoadRoomDrawObjectTiles(const DrawContext& ctx,
+                                                      int object_data_offset,
+                                                      int count) {
+  std::array<gfx::TileInfo, 16> tiles{};
+  for (int i = 0; i < count && i < 16; ++i) {
+    const auto word = ctx.rom->ReadWord(kRoomObjectTileAddress +
+                                        object_data_offset + (i * 2));
+    tiles[i] = gfx::WordToTileInfo(word.ok() ? *word : 0);
+  }
+  return tiles;
+}
+
+// RoomTag_OperateWaterFlooring over WaterOverlayData ($04:F1CD): each 3-byte
+// entry is a type-1 object header (x, y, size); every 4x4 block is two 4x2
+// obj0110 stamps written to $7E4000 (yaze BG2).
+void DrawDamWaterFlooring(const DrawContext& ctx, gfx::BackgroundBuffer& bg2) {
+  constexpr int kWaterOverlayData = 0x271CD;
+  constexpr int kFloorTiles = 0x0110;
+  const auto tiles = LoadRoomDrawObjectTiles(ctx, kFloorTiles, 8);
+  for (int entry = kWaterOverlayData;; entry += 3) {
+    const auto b0 = ctx.rom->ReadByte(entry);
+    const auto b1 = ctx.rom->ReadByte(entry + 1);
+    if (!b0.ok() || !b1.ok() || (*b0 == 0xFF && *b1 == 0xFF)) {
+      return;
+    }
+    const int x = *b0 >> 2;
+    const int y = *b1 >> 2;
+    const int blocks_x = (*b0 & 0x03) + 1;
+    const int blocks_y = (*b1 & 0x03) + 1;
+    for (int by = 0; by < blocks_y; ++by) {
+      for (int bx = 0; bx < blocks_x; ++bx) {
+        for (int row = 0; row < 4; ++row) {
+          for (int col = 0; col < 4; ++col) {
+            DrawRoutineUtils::WriteTile8(bg2, x + (bx * 4) + col,
+                                         y + (by * 4) + row,
+                                         tiles[((row & 1) * 4) + col]);
+          }
+        }
+      }
+    }
+  }
+}
+
 void DrawDamFloodGate(const DrawContext& ctx) {
   // ASM: RoomDraw_DamFloodGate ($019BF8) stamps a 10x4 column-major tile block
   // from the closed tile span by default, and swaps to the alternate water-open
@@ -132,6 +176,9 @@ void DrawDamFloodGate(const DrawContext& ctx) {
 
   DrawColumnMajor(ctx.target_bg, ctx.object.x_, ctx.object.y_, 10, 4, ctx.tiles,
                   start_index);
+  if (use_open_tiles && ctx.rom != nullptr && ctx.secondary_bg != nullptr) {
+    DrawDamWaterFlooring(ctx, *ctx.secondary_bg);
+  }
 }
 
 void WritePlatformTile(const DrawContext& ctx, int dx, int dy, size_t index) {
@@ -1057,6 +1104,25 @@ void DrawWaterOverlay8x8_1to16(const DrawContext& ctx) {
                                          tile);
           }
         }
+      }
+    }
+    return;
+  }
+
+  if (ctx.object.id_ == 0xD8 && ctx.state != nullptr && ctx.rom != nullptr &&
+      ctx.secondary_bg != nullptr &&
+      ctx.state->IsDamFloodgateOpen(ctx.room_id)) {
+    // RoomDraw_WaterOverlayA8x8_1to16 with the room's 's' bit set skips
+    // RoomDraw_NoWater and writes one 4x4 of obj1438 (row-major) to $7E2000
+    // (yaze BG1) at (x + 2*(size_x+1), y + 2*(size_y+1)).
+    constexpr int kWaterOnTiles = 0x1438;
+    const auto tiles = LoadRoomDrawObjectTiles(ctx, kWaterOnTiles, 16);
+    const int base_x = ctx.object.x_ + (2 * (size_x + 1));
+    const int base_y = ctx.object.y_ + (2 * (size_y + 1));
+    for (int row = 0; row < 4; ++row) {
+      for (int col = 0; col < 4; ++col) {
+        DrawRoutineUtils::WriteTile8(*ctx.secondary_bg, base_x + col,
+                                     base_y + row, tiles[(row * 4) + col]);
       }
     }
     return;
