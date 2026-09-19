@@ -1754,7 +1754,7 @@ void Room::LoadAnimatedGraphics() {
 
 void Room::LoadObjects() {
   LOG_DEBUG("[LoadObjects]", "Starting LoadObjects for room %d", room_id_);
-  auto rom_data = rom()->vector();
+  const auto& rom_data = rom()->vector();
 
   // Enhanced object loading with comprehensive validation
   int object_pointer = (rom_data[kRoomObjectPointer + 2] << 16) +
@@ -1819,7 +1819,7 @@ void Room::LoadObjects() {
 }
 
 void Room::ParseObjectsFromLocation(int objects_location) {
-  auto rom_data = rom()->vector();
+  const auto& rom_data = rom()->vector();
 
   // Clear existing objects before parsing to prevent accumulation on reload
   tile_objects_.clear();
