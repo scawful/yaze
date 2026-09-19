@@ -23,6 +23,7 @@
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "unique_temp_path.h"
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/track_collision_generator.h"
@@ -30,7 +31,6 @@
 
 #if defined(__APPLE__)
 #include <sys/stat.h>
-#include "unique_temp_path.h"
 #endif
 
 ABSL_DECLARE_FLAG(bool, sandbox);
