@@ -357,6 +357,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/draw_routine_symbology_test.cc
     unit/zelda3/dungeon/draw_routine_registry_ids_test.cc
     unit/zelda3/dungeon/game_tilemap_comparison_test.cc
+    unit/zelda3/dungeon/room_collision_test.cc
     unit/zelda3/dungeon/room_layer_registers_test.cc
     unit/zelda3/dungeon/room_limit_regression_test.cc
     unit/zelda3/dungeon/dungeon_validator_test.cc
