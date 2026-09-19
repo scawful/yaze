@@ -179,25 +179,6 @@ void CheckCorruptionHeuristics(Rom* rom, DiagnosticReport& report, bool deep) {
   const auto* data = rom->data();
   size_t size = rom->size();
 
-  // Check known problematic addresses
-  for (uint32_t addr : kProblemAddresses) {
-    if (addr < size) {
-      if (data[addr] == 0x00) {
-        DiagnosticFinding finding;
-        finding.id = "known_corruption_pattern";
-        finding.severity = DiagnosticSeverity::kWarning;
-        finding.message = absl::StrFormat(
-            "Potential corruption detected at known problematic address 0x%06X",
-            addr);
-        finding.location = absl::StrFormat("0x%06X", addr);
-        finding.suggested_action =
-            "Check if this byte should be 0x00. If not, restore from backup.";
-        finding.fixable = false;
-        report.AddFinding(finding);
-      }
-    }
-  }
-
   // Check for zero-filled blocks in critical code regions (Bank 00)
   int zero_run = 0;
   for (uint32_t i = 0x0000; i < 0x1000; ++i) {
@@ -229,7 +210,8 @@ void CheckCorruptionHeuristics(Rom* rom, DiagnosticReport& report, bool deep) {
         finding.id = "low_entropy_bank";
         finding.severity = DiagnosticSeverity::kWarning;
         finding.message = absl::StrFormat(
-            "Very low entropy (%.2f) detected in Bank %02X. Region might be erased or uninitialized.",
+            "Very low entropy (%.2f) detected in Bank %02X. Region might be "
+            "erased or uninitialized.",
             entropy, bank);
         finding.location = absl::StrFormat("Bank %02X", bank);
         finding.suggested_action = "Verify if this bank should contain data.";
@@ -239,23 +221,27 @@ void CheckCorruptionHeuristics(Rom* rom, DiagnosticReport& report, bool deep) {
     }
 
     // Check for pointer chain integrity in overworld maps
-    uint32_t high_table =
-        report.features.has_expanded_pointer_tables ? kExpandedPtrTableHigh : kPtrTableHighBase;
-    uint32_t low_table =
-        report.features.has_expanded_pointer_tables ? kExpandedPtrTableLow : kPtrTableLowBase;
-    int map_count =
-        report.features.has_expanded_pointer_tables ? kExpandedMapCount : kVanillaMapCount;
+    uint32_t high_table = report.features.has_expanded_pointer_tables
+                              ? kExpandedPtrTableHigh
+                              : kPtrTableHighBase;
+    uint32_t low_table = report.features.has_expanded_pointer_tables
+                             ? kExpandedPtrTableLow
+                             : kPtrTableLowBase;
+    int map_count = report.features.has_expanded_pointer_tables
+                        ? kExpandedMapCount
+                        : kVanillaMapCount;
 
     if (high_table + map_count < size && low_table + map_count < size) {
       for (int i = 0; i < map_count; ++i) {
         uint8_t high = data[high_table + i];
-        uint16_t low = data[low_table + i] | (data[low_table + i + map_count] << 8);
+        uint16_t low =
+            data[low_table + i] | (data[low_table + i + map_count] << 8);
         uint32_t target = (high << 16) | low;
 
         // LoROM address translation (simplified check)
         uint32_t pc_addr = 0;
         if ((target & 0x7FFF) >= 0 && target < 0xFF0000) {
-            pc_addr = ((target & 0x7F0000) >> 1) | (target & 0x7FFF);
+          pc_addr = ((target & 0x7F0000) >> 1) | (target & 0x7FFF);
         }
 
         if (pc_addr >= size && target != 0) {

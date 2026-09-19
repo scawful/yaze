@@ -38,15 +38,14 @@ class OverworldDoctorCommandHandler : public resources::CommandHandler {
   Descriptor Describe() const override {
     Descriptor d;
     d.display_name = "overworld-doctor";
-    d.summary = "Diagnose and repair overworld data corruption including "
-                "tile16 corruption, map pointer issues, and ZSCustomOverworld "
-                "feature detection.";
+    d.summary =
+        "Diagnose overworld data: map pointer issues, tile16 layout, "
+        "and ZSCustomOverworld feature detection.";
     d.todo_reference = "todo#overworld-doctor";
     return d;
   }
 
-  absl::Status ValidateArgs(
-      const resources::ArgumentParser& parser) override {
+  absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {
     // No required args - ROM is loaded via context
     // Optional: baseline, output, fix, dry-run, verbose, format
     return absl::OkStatus();
