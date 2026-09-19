@@ -1095,6 +1095,49 @@ TEST(ObjectDrawerRegistryReplayTest,
   EXPECT_FALSE(TileHasCoverage(bg2, 5, 27));
 }
 
+TEST(ObjectDrawerRegistryReplayTest, ChestHoleOverlayDrawsPitsOnceChestOpens) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kRoomDrawObjectDataBase = 0x1B52;
+  constexpr int kOverlayDataPointers = 0x026CC0;  // $04:ECC0
+  constexpr int kOverlay0 = 0x026CF9;             // $04:ECF9
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  dummy_rom[kOverlayDataPointers + 0] = 0xF9;
+  dummy_rom[kOverlayDataPointers + 1] = 0xEC;
+  dummy_rom[kOverlayDataPointers + 2] = 0x04;
+  const uint8_t overlay[] = {0xAC, 0x38, 0xA4,  // pit at (0x2B, 0x0E)
+                             0x20, 0x20, 0xA5,  // not a pit: skipped
+                             0xFF, 0xFF};
+  std::copy(std::begin(overlay), std::end(overlay),
+            dummy_rom.begin() + kOverlay0);
+  WriteWord(dummy_rom, kRoomDrawObjectDataBase + 0x063C + 2, 0x0111);
+  WriteWord(dummy_rom, kRoomDrawObjectDataBase + 0x05AA, 0x0222);
+  WriteWord(dummy_rom, kRoomDrawObjectDataBase + 0x0642 + 2, 0x0333);
+  rom.LoadFromData(dummy_rom);
+
+  auto gfx = MakeOpaqueDoorGfx();
+  ObjectDrawer drawer(&rom, /*room_id=*/0x67, gfx.data());
+  gfx::BackgroundBuffer bg1(512, 512);
+  bg1.EnsureBitmapInitialized();
+
+  FakeDungeonState state;
+  drawer.DrawChestHoleOverlay(/*tag1=*/0x00, /*tag2=*/0x22, &state, bg1);
+  EXPECT_EQ(bg1.GetTileAt(0x2B, 0x0E), 0);  // Chest 0 still closed.
+
+  state.open_chest_slots.insert({0x67, 0});
+  drawer.DrawChestHoleOverlay(/*tag1=*/0x00, /*tag2=*/0x05, &state, bg1);
+  EXPECT_EQ(bg1.GetTileAt(0x2B, 0x0E), 0);  // Not a chest-hole tag.
+
+  drawer.DrawChestHoleOverlay(/*tag1=*/0x00, /*tag2=*/0x22, &state, bg1);
+  EXPECT_EQ(bg1.GetTileAt(0x2B, 0x0E), 0x0111);
+  EXPECT_EQ(bg1.GetTileAt(0x2E, 0x0F), 0x0222);
+  EXPECT_EQ(bg1.GetTileAt(0x2E, 0x10), 0x0222);
+  EXPECT_EQ(bg1.GetTileAt(0x2E, 0x11), 0x0333);
+  EXPECT_EQ(bg1.GetTileAt(0x2B, 0x12), 0);
+  EXPECT_EQ(bg1.GetTileAt(0x08, 0x08), 0);
+}
+
 TEST(ObjectDrawerRegistryReplayTest, NorthMiddleDoorsRenderBothSidesOfTheSeam) {
   ScopedCustomObjectsFlag disable_custom(false);
 

@@ -1639,6 +1639,10 @@ void Room::RenderObjectsToBackground() {
     drawer.DrawDoor(door_def, i, object_bg1_buffer_, object_bg2_buffer_,
                     dungeon_state_.get(), &bg1_buffer_, &bg2_buffer_);
   }
+  // RoomTag_OperateChestHoles applies its overlay after the room is drawn.
+  drawer.DrawChestHoleOverlay(static_cast<int>(tag1_), static_cast<int>(tag2_),
+                              dungeon_state_.get(), object_bg1_buffer_);
+
   // Mark object buffer as modified so texture gets updated
   if (!doors_.empty()) {
     object_bg1_buffer_.bitmap().set_modified(true);
