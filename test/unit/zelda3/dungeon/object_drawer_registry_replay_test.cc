@@ -5776,8 +5776,7 @@ TEST(ObjectDrawerRegistryReplayTest,
   }
 }
 
-TEST(ObjectDrawerCannonHoleTest,
-     RightwardsRepeatsLeftSegmentAndDrawsRightEdgeOnce) {
+TEST(ObjectDrawerCannonHoleTest, RightwardsDrawsFirstMiddleAndClosingSegments) {
   ScopedCustomObjectsFlag disable_custom(false);
 
   Rom rom;
@@ -5790,16 +5789,16 @@ TEST(ObjectDrawerCannonHoleTest,
   gfx::BackgroundBuffer bg2(512, 512);
   gfx::PaletteGroup palette_group;
 
-  // Objects 0x51/0x52 use RoomDraw_RightwardsCannonHole4x3_1to16:
-  // - Repeat left 2 columns (6 tiles) "count" times (count = size + 1)
-  // - Then draw right 2-column edge once.
+  // Objects 0x51/0x52 use RoomDraw_RightwardsCannonHole4x3_1to16 ($01:9CC6):
+  // size+1 two-column segments from words 0..5 (first) and 6..11 (middle,
+  // PHX/PLX), then one closing segment from words 12..17 (ADC #$000C). Game
+  // tilemap captures of rooms 0x0B9 and 0x0D9 show this layout.
   //
-  // With size=1 => count=2 => total columns = 2*count + 2 = 6 columns
-  // Total tiles = 6 cols * 3 rows = 18 writes.
+  // size=1 => first + one middle + closing = 3 segments = 6 columns.
   RoomObject obj(0x0051, /*x=*/10, /*y=*/20, /*size=*/1, /*layer=*/0);
   obj.tiles_loaded_ = true;
   obj.tiles_.clear();
-  for (int i = 0; i < 12; ++i) {
+  for (int i = 0; i < 18; ++i) {
     obj.tiles_.push_back(gfx::TileInfo(static_cast<uint16_t>(i), /*pal=*/2,
                                        false, false, false));
   }
@@ -5810,41 +5809,17 @@ TEST(ObjectDrawerCannonHoleTest,
   ASSERT_TRUE(drawer.DrawObject(obj, bg1, bg2, palette_group).ok());
   ASSERT_EQ(trace.size(), 18u);
 
-  struct Expected {
-    int x = 0;
-    int y = 0;
-    uint16_t tile_id = 0;
-  };
-
-  const std::vector<Expected> expected = {
-      // Segment 0 (left 2 columns)
-      {10, 20, 0},
-      {10, 21, 1},
-      {10, 22, 2},
-      {11, 20, 3},
-      {11, 21, 4},
-      {11, 22, 5},
-      // Segment 1 (repeat left 2 columns)
-      {12, 20, 0},
-      {12, 21, 1},
-      {12, 22, 2},
-      {13, 20, 3},
-      {13, 21, 4},
-      {13, 22, 5},
-      // Right edge (last 2 columns)
-      {14, 20, 6},
-      {14, 21, 7},
-      {14, 22, 8},
-      {15, 20, 9},
-      {15, 21, 10},
-      {15, 22, 11},
-  };
-
-  ASSERT_EQ(trace.size(), expected.size());
-  for (size_t i = 0; i < expected.size(); ++i) {
-    EXPECT_EQ(trace[i].x_tile, expected[i].x) << "trace idx=" << i;
-    EXPECT_EQ(trace[i].y_tile, expected[i].y) << "trace idx=" << i;
-    EXPECT_EQ(trace[i].tile_id, expected[i].tile_id) << "trace idx=" << i;
+  // Column-major within each segment: column x holds words first+3x..+2.
+  for (int segment = 0; segment < 3; ++segment) {
+    const int first = segment * 6;
+    for (int x = 0; x < 2; ++x) {
+      for (int y = 0; y < 3; ++y) {
+        const auto& t = trace[static_cast<size_t>(first + x * 3 + y)];
+        EXPECT_EQ(t.x_tile, 10 + segment * 2 + x);
+        EXPECT_EQ(t.y_tile, 20 + y);
+        EXPECT_EQ(t.tile_id, first + x * 3 + y);
+      }
+    }
   }
 }
 
@@ -5907,45 +5882,32 @@ std::vector<SnapshotTileWrite> MakeBigHoleSnapshot(int x, int y, uint8_t size) {
 
 std::vector<SnapshotTileWrite> MakeTableRockSnapshot(int x, int y,
                                                      uint8_t size) {
+  // RoomDraw_TableRock4x4_1to16 ($01:93DC): rows of [left, (A, B) x
+  // size_x+1, right] from payload row 0, then row 1 repeated 2*size_y+1
+  // times, then rows 2 and 3.
   const int size_x = (size >> 2) & 0x03;
   const int size_y = size & 0x03;
-  const int right_x = x + (3 + (size_x * 2));
-  const int bottom_y = y + (3 + (size_y * 2));
 
   std::vector<SnapshotTileWrite> out;
-  out.reserve(16);
-
-  for (int xx = 0; xx < size_x + 1; ++xx) {
-    for (int yy = 0; yy < size_y + 1; ++yy) {
-      const int base_x = x + (xx * 2);
-      const int base_y = y + (yy * 2);
-      out.push_back({base_x + 1, base_y + 1, 5});
-      out.push_back({base_x + 2, base_y + 1, 6});
-      out.push_back({base_x + 1, base_y + 2, 9});
-      out.push_back({base_x + 2, base_y + 2, 10});
+  auto add_row = [&](int row_y, int payload_row) {
+    const uint16_t first = static_cast<uint16_t>(payload_row * 4);
+    out.push_back({x, row_y, first});
+    for (int pair = 0; pair <= size_x; ++pair) {
+      out.push_back(
+          {x + 1 + pair * 2, row_y, static_cast<uint16_t>(first + 1)});
+      out.push_back(
+          {x + 2 + pair * 2, row_y, static_cast<uint16_t>(first + 2)});
     }
+    out.push_back(
+        {x + 3 + size_x * 2, row_y, static_cast<uint16_t>(first + 3)});
+  };
+  int row_y = y;
+  add_row(row_y++, 0);
+  for (int i = 0; i < 2 * size_y + 1; ++i) {
+    add_row(row_y++, 1);
   }
-
-  for (int yy = 0; yy < size_y + 1; ++yy) {
-    const int base_y = y + (yy * 2);
-    out.push_back({x, base_y + 1, 4});
-    out.push_back({x, base_y + 2, 8});
-    out.push_back({right_x, base_y + 1, 7});
-    out.push_back({right_x, base_y + 2, 11});
-  }
-
-  for (int xx = 0; xx < size_x + 1; ++xx) {
-    const int base_x = x + (xx * 2);
-    out.push_back({base_x + 1, y, 1});
-    out.push_back({base_x + 2, y, 2});
-    out.push_back({base_x + 1, bottom_y, 13});
-    out.push_back({base_x + 2, bottom_y, 14});
-  }
-
-  out.push_back({x, y, 0});
-  out.push_back({x, bottom_y, 12});
-  out.push_back({right_x, y, 3});
-  out.push_back({right_x, bottom_y, 15});
+  add_row(row_y++, 2);
+  add_row(row_y, 3);
   return out;
 }
 
@@ -5971,6 +5933,25 @@ std::vector<SnapshotTileWrite> MakeWaterOverlaySnapshot(int x, int y,
             {base_x + tile_x, base_y + 1, static_cast<uint16_t>(4 + tile_x)});
         out.push_back(
             {base_x + tile_x, base_y + 3, static_cast<uint16_t>(4 + tile_x)});
+      }
+    }
+  }
+  return out;
+}
+
+// 0xDA (RoomDraw_WaterOverlayB8x8_1to16): 2*size_y+3 two-row chunks.
+std::vector<SnapshotTileWrite> MakeFloodWaterBSnapshot(int x, int y,
+                                                       uint8_t size) {
+  const int count_x = ((size >> 2) & 0x03) + 2;
+  const int chunks = 2 * (size & 0x03) + 3;
+  std::vector<SnapshotTileWrite> out;
+  for (int chunk = 0; chunk < chunks; ++chunk) {
+    for (int xx = 0; xx < count_x; ++xx) {
+      for (int tile_x = 0; tile_x < 4; ++tile_x) {
+        out.push_back({x + xx * 4 + tile_x, y + chunk * 2,
+                       static_cast<uint16_t>(tile_x)});
+        out.push_back({x + xx * 4 + tile_x, y + chunk * 2 + 1,
+                       static_cast<uint16_t>(4 + tile_x)});
       }
     }
   }
@@ -6028,7 +6009,9 @@ TEST(ObjectDrawerRegistryReplayTest,
                           MakeSequentialTiles(/*count=*/8));
     const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
 
-    ExpectTraceMatchesSnapshot(bg2, MakeWaterOverlaySnapshot(kX, kY, kSize));
+    ExpectTraceMatchesSnapshot(
+        bg2, object_id == 0x00DA ? MakeFloodWaterBSnapshot(kX, kY, kSize)
+                                 : MakeWaterOverlaySnapshot(kX, kY, kSize));
     EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG1).empty());
   }
 }
@@ -6109,37 +6092,25 @@ TEST(ObjectDrawerRegistryReplayTest,
 
   constexpr int kX = 8;
   constexpr int kY = 9;
-  constexpr uint8_t kSize = 1;  // repeat left segment size+1 times.
+  constexpr uint8_t kSize = 1;  // first + one middle + closing segment.
 
+  // RoomDraw_DownwardsCannonHole3x4_1to16 ($01:9CEB): first segment from
+  // words 0..5, middle segments from 6..11 (PHX/PLX), closing from 12..17.
+  // Room 0x0D9's game tilemap shows this layout for 0x85/0x86.
   auto trace = ReplayObjectTrace(
       /*object_id=*/0x0085, kX, kY, kSize, RoomObject::LayerType::BG1,
-      MakeSequentialTiles(/*count=*/12));
+      MakeSequentialTiles(/*count=*/18));
   const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
 
-  const std::vector<SnapshotTileWrite> expected = {
-      // Repeated left segment #0 (3x2, row-major).
-      {kX + 0, kY + 0, 0},
-      {kX + 1, kY + 0, 1},
-      {kX + 2, kY + 0, 2},
-      {kX + 0, kY + 1, 3},
-      {kX + 1, kY + 1, 4},
-      {kX + 2, kY + 1, 5},
-      // Repeated left segment #1.
-      {kX + 0, kY + 2, 0},
-      {kX + 1, kY + 2, 1},
-      {kX + 2, kY + 2, 2},
-      {kX + 0, kY + 3, 3},
-      {kX + 1, kY + 3, 4},
-      {kX + 2, kY + 3, 5},
-      // Final edge segment.
-      {kX + 0, kY + 4, 6},
-      {kX + 1, kY + 4, 7},
-      {kX + 2, kY + 4, 8},
-      {kX + 0, kY + 5, 9},
-      {kX + 1, kY + 5, 10},
-      {kX + 2, kY + 5, 11},
-  };
-
+  std::vector<SnapshotTileWrite> expected;
+  for (int segment = 0; segment < 3; ++segment) {
+    for (int y = 0; y < 2; ++y) {
+      for (int x = 0; x < 3; ++x) {
+        expected.push_back({kX + x, kY + segment * 2 + y,
+                            static_cast<uint16_t>(segment * 6 + y * 3 + x)});
+      }
+    }
+  }
   ExpectTraceMatchesSnapshot(bg1, expected);
 }
 
@@ -6151,8 +6122,9 @@ TEST(ObjectDrawerRegistryReplayTest,
   constexpr int kY = 7;
   constexpr uint8_t kSize = 2;  // count = size + 1 = 3 stamps.
 
+  // 0x03A and 0x03B use this routine (usdasm type-1 table entries 03A/03B).
   auto trace = ReplayObjectTrace(
-      /*object_id=*/0x0FF9, kX, kY, kSize, RoomObject::LayerType::BG1,
+      /*object_id=*/0x003A, kX, kY, kSize, RoomObject::LayerType::BG1,
       MakeSequentialTiles(/*count=*/12));
   const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
 
@@ -6168,6 +6140,134 @@ TEST(ObjectDrawerRegistryReplayTest,
   EXPECT_TRUE(TraceHasWriteAt(bg1, kX + 16, kY));
   EXPECT_FALSE(TraceHasWriteAt(bg1, kX + 6, kY));
   EXPECT_FALSE(TraceHasWriteAt(bg1, kX + 12, kY));
+}
+
+// Subtype-3 table rocks draw one 4x3 block: USDASM maps 0xF94, 0xFCE, 0xFE7,
+// 0xFE8 and 0xFF9 to RoomDraw_TableRock4x3, and a type-3 object's size bits
+// are part of its ID, so nothing repeats. Room tilemaps captured from the game
+// show a single block for every vanilla placement.
+TEST(ObjectDrawerRegistryReplayTest, Subtype3TableRockDrawsOnce) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 5;
+  constexpr int kY = 7;
+  for (int16_t object_id : {0x0F94, 0x0FCE, 0x0FE7, 0x0FE8, 0x0FF9}) {
+    SCOPED_TRACE(object_id);
+    auto trace = ReplayObjectTrace(object_id, kX, kY, /*size=*/13,
+                                   RoomObject::LayerType::BG1,
+                                   MakeSequentialTiles(/*count=*/12));
+    const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+    ASSERT_EQ(bg1.size(), 12u);
+    ExpectTraceBounds(bg1, kX, kY, kX + 3, kY + 2);
+  }
+}
+
+// USDASM RoomDraw_BG2MaskFull (type-3 0xFF3) fills the whole layer of the
+// object's list with $01EC, the tilemap erase word, whatever its position.
+TEST(ObjectDrawerRegistryReplayTest, BG2MaskFullErasesTheWholeLayer) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  auto trace = ReplayObjectTrace(0x0FF3, /*x=*/20, /*y=*/30, /*size=*/0,
+                                 RoomObject::LayerType::BG2, {});
+  const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+  EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG1).empty());
+  ASSERT_EQ(bg2.size(), 64u * 64u);
+  ExpectTraceBounds(bg2, 0, 0, 63, 63);
+  for (const auto& tile : bg2) {
+    ASSERT_EQ(tile.tile_id, 0x1EC);
+    ASSERT_EQ(tile.flags, 0);
+  }
+}
+
+// USDASM RoomDraw_LampCones (type-3 0xFAA) writes four 12x12 row-major blocks
+// from RoomDrawObjectData straight to BG2 at fixed tilemap offsets, ignoring
+// the object's position, size and list.
+TEST(ObjectDrawerRegistryReplayTest, LampConesUseFixedBg2Blocks) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kDataBase = 0x1B52;  // RoomDrawObjectData
+  // First word of the first cone and last word of the fourth cone.
+  const std::vector<std::pair<int, uint16_t>> words = {
+      {kDataBase + 0x16DC, 0x1234}, {kDataBase + 0x1A2A + 143 * 2, 0x4321}};
+  auto trace = ReplayObjectTrace(0x0FAA, /*x=*/3, /*y=*/5, /*size=*/7,
+                                 RoomObject::LayerType::BG1, {},
+                                 /*state=*/nullptr, words);
+  const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+  EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG1).empty());
+  ASSERT_EQ(bg2.size(), 4u * 12u * 12u);
+  ExpectTraceBounds(bg2, 10, 10, 53, 53);
+  EXPECT_TRUE(TraceHasWriteAt(bg2, 21, 21));
+  EXPECT_FALSE(TraceHasWriteAt(bg2, 22, 22));  // gap between cones
+  for (const auto& tile : bg2) {
+    if (tile.x_tile == 10 && tile.y_tile == 10) {
+      EXPECT_EQ(tile.tile_id, 0x234);
+    }
+    if (tile.x_tile == 53 && tile.y_tile == 53) {
+      EXPECT_EQ(tile.tile_id, 0x321);
+    }
+  }
+}
+
+// USDASM RoomDraw_AgahnimsWindows (type-3 0xFAE) is a fixed stamp relative
+// to the object's tilemap offset: sections a-f store 359 words on BG1, and the
+// room tilemaps of 0x00D and 0x020 captured from the game match it.
+TEST(ObjectDrawerRegistryReplayTest, AgahnimsWindowsStoresTheFixedStamp) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  auto trace = ReplayObjectTrace(0x0FAE, /*x=*/0, /*y=*/32, /*size=*/11,
+                                 RoomObject::LayerType::BG1, {});
+  const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+  EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG2).empty());
+  ASSERT_EQ(bg1.size(), 359u);
+  // Leftmost store is .next_b at $7E2504 (column 2); rightmost is .next_c's
+  // mirrored edge at $7E25BA (column 29); rows span $220E..$2BBA+5*$80.
+  ExpectTraceBounds(bg1, 2, 32 + 4, 29, 32 + 28);
+}
+
+// USDASM RoomDraw_VitreousGooGraphics (type-3 0xFE2) always stores to BG2:
+// 22x11 from obj20F6 plus a 3x2 block at column +9, rows +11..+12.
+TEST(ObjectDrawerRegistryReplayTest, VitreousGooDrawsOnBg2) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  auto trace = ReplayObjectTrace(0x0FE2, /*x=*/5, /*y=*/6, /*size=*/2,
+                                 RoomObject::LayerType::BG1, {});
+  const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+  EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG1).empty());
+  ASSERT_EQ(bg2.size(), 22u * 11u + 6u);
+  ExpectTraceBounds(bg2, 5, 6, 5 + 21, 6 + 12);
+}
+
+// USDASM RoomDraw_SomeBigDecors: Kholdstare's (0xF95) and Trinexx's (0xFF2)
+// shells are 10x8 blocks on the object's own layer.
+TEST(ObjectDrawerRegistryReplayTest, BossShellsDrawTenByEightOnTheirLayer) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  for (int16_t object_id : {0x0F95, 0x0FF2}) {
+    SCOPED_TRACE(object_id);
+    auto trace = ReplayObjectTrace(object_id, /*x=*/11, /*y=*/38, /*size=*/8,
+                                   RoomObject::LayerType::BG2, {});
+    const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+    EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG1).empty());
+    ASSERT_EQ(bg2.size(), 80u);
+    ExpectTraceBounds(bg2, 11, 38, 20, 45);
+  }
+}
+
+// 0xFC8 and 0xFFA are RoomDraw_4x4: one column-major 4x4 block.
+TEST(ObjectDrawerRegistryReplayTest, Subtype3Single4x4DrawsOnce) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 5;
+  constexpr int kY = 7;
+  for (int16_t object_id : {0x0FC8, 0x0FFA}) {
+    SCOPED_TRACE(object_id);
+    auto trace = ReplayObjectTrace(object_id, kX, kY, /*size=*/6,
+                                   RoomObject::LayerType::BG1,
+                                   MakeSequentialTiles(/*count=*/16));
+    const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+    ASSERT_EQ(bg1.size(), 16u);
+    ExpectTraceBounds(bg1, kX, kY, kX + 3, kY + 3);
+  }
 }
 
 TEST(ObjectDrawerRegistryReplayTest,

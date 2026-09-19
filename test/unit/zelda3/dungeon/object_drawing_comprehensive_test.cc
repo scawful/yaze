@@ -467,14 +467,19 @@ TEST_F(ObjectDrawingComprehensiveTest,
     int expected_routine;
     int expected_writes;
     int expected_max_y;
+    int expected_last_x;
   };
 
   for (const auto& test_case : {
+           // USDASM $0193B7 draws a 2x2 from words 0..3 and a second 2x2
+           // from words 4..7 six rows lower (game tilemap captures agree),
+           // so size zero ends at (x+1, y+7).
            TestCase{0x3C, 8, DrawRoutineIds::kRightwardsDoubled2x2spaced2_1to16,
-                    8, 10},
+                    8, 16, 9},
            // USDASM $0194BD repeats the middle 1x3 source column twice at
            // size zero: nine payload words produce twelve tile writes.
-           TestCase{0x4C, 9, DrawRoutineIds::kRightwardsBar4x3_1to16, 12, 11},
+           TestCase{0x4C, 9, DrawRoutineIds::kRightwardsBar4x3_1to16, 12, 11,
+                    11},
        }) {
     SCOPED_TRACE(::testing::Message()
                  << "object_id=0x" << std::hex << test_case.object_id);
@@ -500,7 +505,7 @@ TEST_F(ObjectDrawingComprehensiveTest,
     ASSERT_EQ(trace.size(), static_cast<size_t>(test_case.expected_writes));
     EXPECT_EQ(trace.front().x_tile, 8);
     EXPECT_EQ(trace.front().y_tile, 9);
-    EXPECT_EQ(trace.back().x_tile, 11);
+    EXPECT_EQ(trace.back().x_tile, test_case.expected_last_x);
     EXPECT_EQ(trace.back().y_tile, test_case.expected_max_y);
   }
 }

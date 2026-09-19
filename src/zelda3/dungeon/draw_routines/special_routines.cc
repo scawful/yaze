@@ -696,13 +696,15 @@ void DrawArcheryGameTargetDoor(const DrawContext& ctx) {
 
 void DrawGanonTriforceFloorDecor(const DrawContext& ctx) {
   // ASM: RoomDraw_GanonTriforceFloorDecor ($01A7F0)
-  // Top block uses 0..15 at +2 X, then two bottom 4x4 blocks use 16..31.
+  // The top 4x4 (words 0..15) is at the anchor. The two bottom 4x4 blocks
+  // (words 16..31, PHX/PLX) are at $08+$01FC and $08+$0204: four rows down,
+  // two columns left and two columns right.
   if (ctx.tiles.empty())
     return;
 
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/2, /*y_offset=*/0, /*start_index=*/0);
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/4, /*start_index=*/16);
-  Draw4x4ColumnMajor(ctx, /*x_offset=*/4, /*y_offset=*/4, /*start_index=*/16);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/0, /*y_offset=*/0, /*start_index=*/0);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/-2, /*y_offset=*/4, /*start_index=*/16);
+  Draw4x4ColumnMajor(ctx, /*x_offset=*/2, /*y_offset=*/4, /*start_index=*/16);
 }
 
 void DrawSingle2x2(const DrawContext& ctx) {
@@ -992,68 +994,38 @@ void DrawSpike2x2In4x4SuperSquare(const DrawContext& ctx) {
 }
 
 void DrawTableRock4x4_1to16(const DrawContext& ctx) {
-  // ASM: Object 0xDD - Table rock pattern
-  int size_x = ((ctx.object.size_ >> 2) & 0x03);
-  int size_y = (ctx.object.size_ & 0x03);
-
-  if (ctx.tiles.size() < 16)
+  // USDASM RoomDraw_TableRock4x4_1to16 ($01:93DC), object 0xDD. The payload
+  // is four row-major rows of [left, middle A, middle B, right]. Each drawn
+  // row is left, (A, B) repeated size_x+1 times, right. Rows: payload row 0
+  // once, payload row 1 2*size_y+1 times, then rows 2 and 3 once each (the
+  // final JSR falls through .draw_rock_segment_with_advance a second time).
+  const int size_x = (ctx.object.size_ >> 2) & 0x03;
+  const int size_y = ctx.object.size_ & 0x03;
+  if (ctx.tiles.size() < 16) {
     return;
+  }
 
-  int right_x = ctx.object.x_ + (3 + (size_x * 2));
-  int bottom_y = ctx.object.y_ + (3 + (size_y * 2));
-
-  // Interior
-  for (int xx = 0; xx < size_x + 1; ++xx) {
-    for (int yy = 0; yy < size_y + 1; ++yy) {
-      int base_x = ctx.object.x_ + (xx * 2);
-      int base_y = ctx.object.y_ + (yy * 2);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, base_y + 1,
-                                   ctx.tiles[5]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 2, base_y + 1,
-                                   ctx.tiles[6]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, base_y + 2,
-                                   ctx.tiles[9]);
-      DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 2, base_y + 2,
-                                   ctx.tiles[10]);
+  auto draw_row = [&](int y, int payload_row) {
+    const int first = payload_row * 4;
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, y,
+                                 ctx.tiles[first]);
+    for (int pair = 0; pair <= size_x; ++pair) {
+      const int x = ctx.object.x_ + 1 + pair * 2;
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, x, y, ctx.tiles[first + 1]);
+      DrawRoutineUtils::WriteTile8(ctx.target_bg, x + 1, y,
+                                   ctx.tiles[first + 2]);
     }
+    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_ + 3 + size_x * 2,
+                                 y, ctx.tiles[first + 3]);
+  };
+
+  int y = ctx.object.y_;
+  draw_row(y++, 0);
+  for (int row = 0; row < 2 * size_y + 1; ++row) {
+    draw_row(y++, 1);
   }
-
-  // Left/right borders
-  for (int yy = 0; yy < size_y + 1; ++yy) {
-    int base_y = ctx.object.y_ + (yy * 2);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, base_y + 1,
-                                 ctx.tiles[4]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, base_y + 2,
-                                 ctx.tiles[8]);
-
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, base_y + 1,
-                                 ctx.tiles[7]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, base_y + 2,
-                                 ctx.tiles[11]);
-  }
-
-  // Top/bottom borders
-  for (int xx = 0; xx < size_x + 1; ++xx) {
-    int base_x = ctx.object.x_ + (xx * 2);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, ctx.object.y_,
-                                 ctx.tiles[1]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 2, ctx.object.y_,
-                                 ctx.tiles[2]);
-
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 1, bottom_y,
-                                 ctx.tiles[13]);
-    DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + 2, bottom_y,
-                                 ctx.tiles[14]);
-  }
-
-  // Corners
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, ctx.object.y_,
-                               ctx.tiles[0]);
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, ctx.object.x_, bottom_y,
-                               ctx.tiles[12]);
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, ctx.object.y_,
-                               ctx.tiles[3]);
-  DrawRoutineUtils::WriteTile8(ctx.target_bg, right_x, bottom_y, ctx.tiles[15]);
+  draw_row(y++, 2);
+  draw_row(y, 3);
 }
 
 void DrawWaterOverlay8x8_1to16(const DrawContext& ctx) {
@@ -1084,6 +1056,28 @@ void DrawWaterOverlay8x8_1to16(const DrawContext& ctx) {
             DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + y,
                                          tile);
           }
+        }
+      }
+    }
+    return;
+  }
+
+  if (ctx.object.id_ == 0xDA) {
+    // RoomDraw_WaterOverlayB8x8_1to16: WaterOverlayObjectCount gives
+    // 2*size_y+3 two-row chunks (3, 5, 7 or 9), so the overlay is 4*size_y+6
+    // rows tall, not 4*(size_y+2). Both the drained and filled branches reach
+    // the same drawing loop. Confirmed against game tilemaps of rooms 0x035
+    // and 0x037.
+    const int chunks = 2 * size_y + 3;
+    for (int chunk = 0; chunk < chunks; ++chunk) {
+      for (int xx = 0; xx < count_x; ++xx) {
+        const int base_x = ctx.object.x_ + (xx * 4);
+        const int base_y = ctx.object.y_ + (chunk * 2);
+        for (int x = 0; x < 4; ++x) {
+          DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y,
+                                       ctx.tiles[x]);
+          DrawRoutineUtils::WriteTile8(ctx.target_bg, base_x + x, base_y + 1,
+                                       ctx.tiles[4 + x]);
         }
       }
     }

@@ -34,6 +34,7 @@
 #include "app/editor/dungeon/ui/window/dungeon_entrances_panel.h"
 #include "app/editor/dungeon/ui/window/item_editor_panel.h"
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
+#include "app/editor/dungeon/ui/window/object_coverage_panel.h"
 #include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
 #include "app/editor/dungeon/ui/window/overlay_manager_panel.h"
 #include "app/editor/dungeon/ui/window/room_tag_editor_panel.h"
@@ -203,6 +204,7 @@ absl::Status DungeonEditorV2::EnsureMinecartTrackEditorPanel() {
     workbench_panel_->SetEmbeddedToolPanels(
         room_tag_editor_panel_, custom_collision_panel_, water_fill_panel_,
         minecart_track_editor_panel_);
+    workbench_panel_->SetObjectCoverageContent(object_coverage_panel_);
   }
 
   return absl::OkStatus();
@@ -508,6 +510,10 @@ absl::Status DungeonEditorV2::RefreshRomBackedState() {
   }
   if (room_tag_editor_panel_) {
     room_tag_editor_panel_->SetRooms(&rooms_);
+  }
+  if (object_coverage_panel_) {
+    object_coverage_panel_->SetProject(dependencies_.project);
+    object_coverage_panel_->SetRooms(&rooms_);
   }
   if (minecart_track_editor_panel_) {
     minecart_track_editor_panel_->SetRooms(&rooms_);
@@ -1017,6 +1023,9 @@ absl::Status DungeonEditorV2::Load() {
   room_tag_panel->SetCurrentRoomId(current_room_id_);
   room_tag_editor_panel_ = room_tag_panel.get();
 
+  auto object_coverage_panel = CreateObjectCoveragePanel();
+  object_coverage_panel_ = object_coverage_panel.get();
+
   // Register the ObjectSelectorContent directly (it inherits from WindowContent)
   // Panel manager takes ownership
   if (dependencies_.window_manager) {
@@ -1047,6 +1056,8 @@ absl::Status DungeonEditorV2::Load() {
         std::move(water_fill_panel));
     dependencies_.window_manager->RegisterWindowContent(
         std::move(room_tag_panel));
+    dependencies_.window_manager->RegisterWindowContent(
+        std::move(object_coverage_panel));
     // Object Tile Editor Panel
     {
       auto tile_editor_panel =
@@ -1110,6 +1121,7 @@ absl::Status DungeonEditorV2::Load() {
     owned_custom_collision_panel_ = std::move(custom_collision_panel);
     owned_water_fill_panel_ = std::move(water_fill_panel);
     owned_room_tag_editor_panel_ = std::move(room_tag_panel);
+    owned_object_coverage_panel_ = std::move(object_coverage_panel);
   }
 
   if (core::FeatureFlags::get().kEnableCustomObjects) {
@@ -1129,6 +1141,7 @@ absl::Status DungeonEditorV2::Load() {
     workbench_panel_->SetEmbeddedToolPanels(
         room_tag_editor_panel_, custom_collision_panel_, water_fill_panel_,
         minecart_track_editor_panel_);
+    workbench_panel_->SetObjectCoverageContent(object_coverage_panel_);
     workbench_panel_->SetEmbeddedEditorPanels(
         object_selector_panel_, door_editor_panel_, sprite_editor_panel_,
         item_editor_panel_, room_graphics_panel_, palette_editor_panel_);
@@ -2494,6 +2507,10 @@ void DungeonEditorV2::WireViewerPanelCallbacks(DungeonCanvasViewer* viewer) {
     }
     OpenWindow(kRoomGraphicsId);
   });
+  viewer->SetCheckObjectCoverageCallback(
+      [this](int room_id, const zelda3::RoomObject& object) {
+        FocusObjectCoverage(room_id, object);
+      });
   viewer->SetShowDoorEditorCallback([this]() {
     if (IsWorkbenchWorkflowEnabled() && workbench_panel_) {
       workbench_panel_->OpenDoorTool();

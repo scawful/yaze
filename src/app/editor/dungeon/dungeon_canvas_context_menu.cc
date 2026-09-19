@@ -186,6 +186,7 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
   std::function<void()> edit_selected_graphics;
   bool can_edit_selected_tiles = false;
   std::function<void()> edit_selected_tiles;
+  std::function<void()> check_selected_coverage;
   if (single_selection && valid_room) {
     auto& room = (*rooms_)[room_id];
     const auto& objects = room.GetTileObjects();
@@ -208,6 +209,11 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
           edit_object_tiles_callback_(room_id, object);
         }
       };
+      if (check_object_coverage_callback_) {
+        check_selected_coverage = [this, room_id, object]() {
+          check_object_coverage_callback_(room_id, object);
+        };
+      }
     }
   }
 
@@ -327,6 +333,10 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
   if (can_edit_selected_tiles) {
     items.emplace_back("Edit Object Tiles...", ICON_MD_GRID_ON,
                        std::move(edit_selected_tiles));
+  }
+  if (check_selected_coverage) {
+    items.emplace_back("Check in Object Coverage", ICON_MD_FACT_CHECK,
+                       std::move(check_selected_coverage));
   }
 
   const bool has_entity_selection = interaction.HasEntitySelection();
@@ -548,6 +558,21 @@ gui::CanvasMenuItem DungeonCanvasViewer::BuildLayerVisibilityContextMenu(
         zelda3::LayerType::BG2_Objects);
   };
   layers_menu.subitems.push_back(std::move(bg2_objects_item));
+
+  // The game hides the lower tilemap (BG2 here) in rooms whose layer settings
+  // put it on neither the main nor the sub screen; show it anyway for editing.
+  gui::CanvasMenuItem hidden_layers_item(
+      "Show Layers the Game Hides", ICON_MD_VISIBILITY_OFF, [this, room_id]() {
+        auto& mgr = GetRoomLayerManager(room_id);
+        mgr.SetShowHiddenLayers(!mgr.ShowHiddenLayers());
+      });
+  hidden_layers_item.enabled_condition = [this, room_id]() {
+    return GetRoomLayerManager(room_id).GameHidesLowerTilemap();
+  };
+  hidden_layers_item.checked_condition = [this, room_id]() {
+    return GetRoomLayerManager(room_id).ShowHiddenLayers();
+  };
+  layers_menu.subitems.push_back(std::move(hidden_layers_item));
 
   gui::CanvasMenuItem sprites_item("Sprites", ICON_MD_PERSON, [this]() {
     entity_visibility_.show_sprites = !entity_visibility_.show_sprites;

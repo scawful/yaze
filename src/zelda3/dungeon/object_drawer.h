@@ -55,6 +55,34 @@ class ObjectDrawer {
                           gfx::BackgroundBuffer* layout_bg1 = nullptr,
                           gfx::BackgroundBuffer* layout_bg2 = nullptr);
 
+  // USDASM RoomDraw_BG2MaskFull (type-3 0xFF3): fills the object's whole
+  // layer with the tilemap erase word $01EC.
+  absl::Status DrawLayerMaskFull(const RoomObject& object,
+                                 gfx::BackgroundBuffer& target_bg,
+                                 RoomObject::LayerType layer);
+  // USDASM RoomDraw_LampCones (type-3 0xFAA): four fixed 12x12 blocks on BG2,
+  // independent of the object's position, size and list.
+  absl::Status DrawLampCones(const RoomObject& object,
+                             gfx::BackgroundBuffer& bg2);
+
+  // USDASM RoomDraw_AgahnimsWindows (type-3 0xFAE): fixed stores relative to
+  // the object's tilemap offset, then a priority-only pass.
+  absl::Status DrawAgahnimsWindows(const RoomObject& object,
+                                   gfx::BackgroundBuffer& bg1,
+                                   gfx::BackgroundBuffer& bg2,
+                                   gfx::BackgroundBuffer* layout_bg1,
+                                   gfx::BackgroundBuffer* layout_bg2);
+
+  // USDASM RoomDraw_SomeBigDecors (Kholdstare 0xF95, Trinexx 0xFF2 shells):
+  // a 10x8 row-major block on the object's layer from ROM offset data_pc.
+  absl::Status DrawBigDecor10x8(const RoomObject& object,
+                                gfx::BackgroundBuffer& target_bg,
+                                RoomObject::LayerType layer, int data_pc);
+  // USDASM RoomDraw_VitreousGooGraphics (0xFE2): 22x11 column-major on BG2
+  // plus a 3x2 block.
+  absl::Status DrawVitreousGoo(const RoomObject& object,
+                               gfx::BackgroundBuffer& bg2);
+
   struct DoorDef {
     DoorType type;
     DoorDirection direction;

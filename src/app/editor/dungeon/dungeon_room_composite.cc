@@ -70,6 +70,7 @@ gfx::Bitmap& PrepareCanonicalRoomComposite(zelda3::Room& room,
   zelda3::RoomLayerManager layer_manager;
   layer_manager.ApplyLayerMerging(room.layer_merging());
   layer_manager.ApplyRoomEffect(room.effect());
+  layer_manager.ApplyGameLayerRegisters(room.GameLayerRegisters());
   return output.Prepare(room, layer_manager);
 }
 

@@ -9,6 +9,7 @@
 | `test-build-parallelism-policy.sh` | Verifies that build presets and agent helpers default to four workers while preserving explicit overrides. |
 | `test-nightly-local-provenance.sh` | Verifies linked-worktree provenance, staged signing and loader checks, and preservation of the selected nightly when installation fails. |
 | `test-installed-macos-quit.sh` | Repeats installed macOS Cocoa Quit and fails on nonzero exit, crashes, stale status/process state, or project/ROM mutation. |
+| `capture-game-room-tilemaps.py` | Loads each dungeon room in an isolated Mesen2-OOS and saves the game's BG1/BG2 tilemaps (`$7E2000`/`$7E4000`) plus a manifest, for Object Coverage's automatic check. Output is ROM-derived: never commit it. |
 | `run-tests.sh` | Configures the preset (if needed), builds `yaze_test`, and runs `ctest` with optional args. |
 | `test-http-api.sh` | Smoke-checks HTTP API endpoints (health/models/symbols + core POSTs) via curl; defaults to localhost:8080. |
 | `test-grpc-api.sh` | Smoke-checks gRPC automation API via grpcurl; defaults to localhost:50052 and the ImGui test harness Ping. |
