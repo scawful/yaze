@@ -6151,8 +6151,9 @@ TEST(ObjectDrawerRegistryReplayTest,
   constexpr int kY = 7;
   constexpr uint8_t kSize = 2;  // count = size + 1 = 3 stamps.
 
+  // 0x03A and 0x03B use this routine (usdasm type-1 table entries 03A/03B).
   auto trace = ReplayObjectTrace(
-      /*object_id=*/0x0FF9, kX, kY, kSize, RoomObject::LayerType::BG1,
+      /*object_id=*/0x003A, kX, kY, kSize, RoomObject::LayerType::BG1,
       MakeSequentialTiles(/*count=*/12));
   const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
 
@@ -6168,6 +6169,89 @@ TEST(ObjectDrawerRegistryReplayTest,
   EXPECT_TRUE(TraceHasWriteAt(bg1, kX + 16, kY));
   EXPECT_FALSE(TraceHasWriteAt(bg1, kX + 6, kY));
   EXPECT_FALSE(TraceHasWriteAt(bg1, kX + 12, kY));
+}
+
+// Subtype-3 table rocks draw one 4x3 block: USDASM maps 0xF94, 0xFCE, 0xFE7,
+// 0xFE8 and 0xFF9 to RoomDraw_TableRock4x3, and a type-3 object's size bits
+// are part of its ID, so nothing repeats. Room tilemaps captured from the game
+// show a single block for every vanilla placement.
+TEST(ObjectDrawerRegistryReplayTest, Subtype3TableRockDrawsOnce) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 5;
+  constexpr int kY = 7;
+  for (int16_t object_id : {0x0F94, 0x0FCE, 0x0FE7, 0x0FE8, 0x0FF9}) {
+    SCOPED_TRACE(object_id);
+    auto trace = ReplayObjectTrace(object_id, kX, kY, /*size=*/13,
+                                   RoomObject::LayerType::BG1,
+                                   MakeSequentialTiles(/*count=*/12));
+    const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+    ASSERT_EQ(bg1.size(), 12u);
+    ExpectTraceBounds(bg1, kX, kY, kX + 3, kY + 2);
+  }
+}
+
+// USDASM RoomDraw_BG2MaskFull (type-3 0xFF3) fills the whole layer of the
+// object's list with $01EC, the tilemap erase word, whatever its position.
+TEST(ObjectDrawerRegistryReplayTest, BG2MaskFullErasesTheWholeLayer) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  auto trace = ReplayObjectTrace(0x0FF3, /*x=*/20, /*y=*/30, /*size=*/0,
+                                 RoomObject::LayerType::BG2, {});
+  const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+  EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG1).empty());
+  ASSERT_EQ(bg2.size(), 64u * 64u);
+  ExpectTraceBounds(bg2, 0, 0, 63, 63);
+  for (const auto& tile : bg2) {
+    ASSERT_EQ(tile.tile_id, 0x1EC);
+    ASSERT_EQ(tile.flags, 0);
+  }
+}
+
+// USDASM RoomDraw_LampCones (type-3 0xFAA) writes four 12x12 row-major blocks
+// from RoomDrawObjectData straight to BG2 at fixed tilemap offsets, ignoring
+// the object's position, size and list.
+TEST(ObjectDrawerRegistryReplayTest, LampConesUseFixedBg2Blocks) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kDataBase = 0x1B52;  // RoomDrawObjectData
+  // First word of the first cone and last word of the fourth cone.
+  const std::vector<std::pair<int, uint16_t>> words = {
+      {kDataBase + 0x16DC, 0x1234}, {kDataBase + 0x1A2A + 143 * 2, 0x4321}};
+  auto trace = ReplayObjectTrace(0x0FAA, /*x=*/3, /*y=*/5, /*size=*/7,
+                                 RoomObject::LayerType::BG1, {},
+                                 /*state=*/nullptr, words);
+  const auto bg2 = FilterTraceByLayer(trace, RoomObject::LayerType::BG2);
+  EXPECT_TRUE(FilterTraceByLayer(trace, RoomObject::LayerType::BG1).empty());
+  ASSERT_EQ(bg2.size(), 4u * 12u * 12u);
+  ExpectTraceBounds(bg2, 10, 10, 53, 53);
+  EXPECT_TRUE(TraceHasWriteAt(bg2, 21, 21));
+  EXPECT_FALSE(TraceHasWriteAt(bg2, 22, 22));  // gap between cones
+  for (const auto& tile : bg2) {
+    if (tile.x_tile == 10 && tile.y_tile == 10) {
+      EXPECT_EQ(tile.tile_id, 0x234);
+    }
+    if (tile.x_tile == 53 && tile.y_tile == 53) {
+      EXPECT_EQ(tile.tile_id, 0x321);
+    }
+  }
+}
+
+// 0xFC8 and 0xFFA are RoomDraw_4x4: one column-major 4x4 block.
+TEST(ObjectDrawerRegistryReplayTest, Subtype3Single4x4DrawsOnce) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  constexpr int kX = 5;
+  constexpr int kY = 7;
+  for (int16_t object_id : {0x0FC8, 0x0FFA}) {
+    SCOPED_TRACE(object_id);
+    auto trace = ReplayObjectTrace(object_id, kX, kY, /*size=*/6,
+                                   RoomObject::LayerType::BG1,
+                                   MakeSequentialTiles(/*count=*/16));
+    const auto bg1 = FilterTraceByLayer(trace, RoomObject::LayerType::BG1);
+    ASSERT_EQ(bg1.size(), 16u);
+    ExpectTraceBounds(bg1, kX, kY, kX + 3, kY + 3);
+  }
 }
 
 TEST(ObjectDrawerRegistryReplayTest,

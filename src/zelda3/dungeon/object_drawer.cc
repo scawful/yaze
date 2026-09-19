@@ -287,6 +287,17 @@ absl::Status ObjectDrawer::DrawObject(
     return absl::OkStatus();
   }
 
+  // Type-3 routines that write fixed tilemap data regardless of the object's
+  // position and size. Checked against tilemaps captured from the game.
+  if (object.id_ == 0xFF3) {
+    return DrawLayerMaskFull(
+        object, target_bg,
+        use_bg2 ? RoomObject::LayerType::BG2 : RoomObject::LayerType::BG1);
+  }
+  if (object.id_ == 0xFAA) {
+    return DrawLampCones(object, bg2);
+  }
+
   std::array<gfx::TileInfo, 8> room_floor_tiles;
   std::span<const gfx::TileInfo> render_tiles = mutable_obj.tiles();
   if (has_room_floor_graphics_ &&
@@ -2967,6 +2978,61 @@ void ObjectDrawer::DrawTileToBitmap(gfx::Bitmap& bitmap,
   if (any_pixels_changed) {
     bitmap.set_modified(true);
   }
+}
+
+absl::Status ObjectDrawer::DrawLayerMaskFull(const RoomObject& object,
+                                             gfx::BackgroundBuffer& target_bg,
+                                             RoomObject::LayerType layer) {
+  // USDASM RoomDraw_BG2MaskFull (bank_01 table entry 0x273) runs
+  // RoomDraw_FloorChunks with obj00E0, eight words of $01EC, over the whole
+  // map of the current list's layer. $01EC is the game's tilemap erase value
+  // (EraseTilemaps). Vanilla places it only in the BG2 object list, where it
+  // erases the floor and the BothBG walls drawn before it. The transparent
+  // erase tile also marks object coverage, so compositing hides the layout.
+  constexpr uint16_t kTilemapEraseWord = 0x01EC;
+  const gfx::TileInfo erase = gfx::WordToTileInfo(kTilemapEraseWord);
+  SetTraceContext(object, layer);
+  for (int y = 0; y < DrawContext::kMaxTilesY; ++y) {
+    for (int x = 0; x < DrawContext::kMaxTilesX; ++x) {
+      WriteTile8(target_bg, x, y, erase);
+    }
+  }
+  return absl::OkStatus();
+}
+
+absl::Status ObjectDrawer::DrawLampCones(const RoomObject& object,
+                                         gfx::BackgroundBuffer& bg2) {
+  // USDASM RoomDraw_LampCones / RoomDraw_SingleLampCone (bank_01 table entry
+  // 0x22A): four 12x12 row-major blocks from RoomDrawObjectData stored with
+  // STA.l $7E4000,X, i.e. always BG2, at fixed tilemap offsets.
+  struct Cone {
+    int data_offset;     // relative to RoomDrawObjectData
+    int tilemap_offset;  // byte offset into the 64x64 tilemap
+  };
+  constexpr Cone kCones[] = {
+      {0x16DC, 0x0514}, {0x17F6, 0x0554}, {0x1914, 0x1514}, {0x1A2A, 0x1554}};
+  constexpr int kConeSize = 12;
+  const auto& rom_data = rom_->vector();
+  SetTraceContext(object, RoomObject::LayerType::BG2);
+  for (const Cone& cone : kCones) {
+    const int base = kRoomObjectTileAddress + cone.data_offset;
+    if (base < 0 ||
+        base + kConeSize * kConeSize * 2 > static_cast<int>(rom_data.size())) {
+      return absl::OutOfRangeError(
+          absl::StrFormat("Lamp cone data out of range: 0x%X", base));
+    }
+    const int origin = cone.tilemap_offset / 2;
+    for (int row = 0; row < kConeSize; ++row) {
+      for (int column = 0; column < kConeSize; ++column) {
+        const int word_address = base + (row * kConeSize + column) * 2;
+        const uint16_t word = static_cast<uint16_t>(
+            rom_data[word_address] | (rom_data[word_address + 1] << 8));
+        WriteTile8(bg2, origin % 64 + column, origin / 64 + row,
+                   gfx::WordToTileInfo(word));
+      }
+    }
+  }
+  return absl::OkStatus();
 }
 
 absl::Status ObjectDrawer::DrawRoomDrawObjectData2x2(

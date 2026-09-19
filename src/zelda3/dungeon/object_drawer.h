@@ -55,6 +55,16 @@ class ObjectDrawer {
                           gfx::BackgroundBuffer* layout_bg1 = nullptr,
                           gfx::BackgroundBuffer* layout_bg2 = nullptr);
 
+  // USDASM RoomDraw_BG2MaskFull (type-3 0xFF3): fills the object's whole
+  // layer with the tilemap erase word $01EC.
+  absl::Status DrawLayerMaskFull(const RoomObject& object,
+                                 gfx::BackgroundBuffer& target_bg,
+                                 RoomObject::LayerType layer);
+  // USDASM RoomDraw_LampCones (type-3 0xFAA): four fixed 12x12 blocks on BG2,
+  // independent of the object's position, size and list.
+  absl::Status DrawLampCones(const RoomObject& object,
+                             gfx::BackgroundBuffer& bg2);
+
   struct DoorDef {
     DoorType type;
     DoorDirection direction;

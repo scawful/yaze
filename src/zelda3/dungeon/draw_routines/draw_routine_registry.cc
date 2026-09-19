@@ -429,7 +429,11 @@ void DrawRoutineRegistry::BuildObjectMapping() {
   object_to_routine_map_[0xF91] = 110;
   object_to_routine_map_[0xF92] = 115;
   object_to_routine_map_[0xF93] = 110;
-  object_to_routine_map_[0xF94] = 30;
+  // USDASM draws 0xF94, 0xFCE, 0xFE7, 0xFE8 and 0xFF9 once with
+  // RoomDraw_TableRock4x3, and 0xFC8 and 0xFFA once with RoomDraw_4x4. A
+  // type-3 object's size bits are part of its ID, so repeating routines drew
+  // extra copies (confirmed against tilemaps captured from the game).
+  object_to_routine_map_[0xF94] = DrawRoutineIds::kSingle4x3;
   object_to_routine_map_[0xF95] = 106;
   object_to_routine_map_[0xF96] = DrawRoutineIds::kSingle2x2;
   object_to_routine_map_[0xF97] = 97;
@@ -469,13 +473,13 @@ void DrawRoutineRegistry::BuildObjectMapping() {
     object_to_routine_map_[id] = 110;
   }
   object_to_routine_map_[0xFC7] = 93;
-  object_to_routine_map_[0xFC8] = 16;
+  object_to_routine_map_[0xFC8] = DrawRoutineIds::kSingle4x4;
   object_to_routine_map_[0xFC9] = 110;
   object_to_routine_map_[0xFCA] = 110;
   object_to_routine_map_[0xFCB] = DrawRoutineIds::kBigWallDecor;
   object_to_routine_map_[0xFCC] = DrawRoutineIds::kSmithyFurnace;
   object_to_routine_map_[0xFCD] = 100;
-  object_to_routine_map_[0xFCE] = 30;
+  object_to_routine_map_[0xFCE] = DrawRoutineIds::kSingle4x3;
   for (int id = 0xFCF; id <= 0xFD3; id++) {
     object_to_routine_map_[id] = 110;
   }
@@ -497,8 +501,8 @@ void DrawRoutineRegistry::BuildObjectMapping() {
     object_to_routine_map_[id] = 110;
   }
   object_to_routine_map_[0xFE6] = 116;
-  object_to_routine_map_[0xFE7] = 30;
-  object_to_routine_map_[0xFE8] = 30;
+  object_to_routine_map_[0xFE7] = DrawRoutineIds::kSingle4x3;
+  object_to_routine_map_[0xFE8] = DrawRoutineIds::kSingle4x3;
   object_to_routine_map_[0xFE9] = 107;
   object_to_routine_map_[0xFEA] = 107;
   object_to_routine_map_[0xFEB] = 113;
@@ -515,8 +519,8 @@ void DrawRoutineRegistry::BuildObjectMapping() {
   object_to_routine_map_[0xFF6] = DrawRoutineIds::kBigWallDecor;
   object_to_routine_map_[0xFF7] = DrawRoutineIds::kBigWallDecor;
   object_to_routine_map_[0xFF8] = 109;
-  object_to_routine_map_[0xFF9] = 30;
-  object_to_routine_map_[0xFFA] = 16;
+  object_to_routine_map_[0xFF9] = DrawRoutineIds::kSingle4x3;
+  object_to_routine_map_[0xFFA] = DrawRoutineIds::kSingle4x4;
   object_to_routine_map_[0xFFB] = DrawRoutineIds::kVitreousGooDamage;
   for (int id = 0xFFC; id <= 0xFFE; id++) {
     object_to_routine_map_[id] = 110;

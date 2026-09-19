@@ -875,7 +875,8 @@ void ObjectDimensionTable::InitializeDefaults() {
   // Rupee floor pattern
   dimensions_[0xF92] = {5, 8, Dir::None, 0, false};
   // Table/rock 4x3 repeated with 8-tile spacing
-  dimensions_[0xF94] = {4, 3, Dir::Horizontal, 8, false};
+  dimensions_[0xF94] = {4, 3, Dir::None, 0,
+                        false};  // RoomDraw_TableRock4x3, once
   // Single hammer peg (fixed 2x2)
   dimensions_[0xF96] = {2, 2, Dir::None, 0, false};
   // Bombable floor (fixed 4x4 in both intact and open states)
@@ -933,15 +934,19 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xFF4] = {8, 8, Dir::None, 0, false};
   dimensions_[0xFF8] = {8, 8, Dir::None, 0, false};
   // Table rock 4x3 (repeatable with 8-tile spacing)
-  dimensions_[0xFF9] = {4, 3, Dir::Horizontal, 8, false};
+  dimensions_[0xFF9] = {4, 3, Dir::None, 0,
+                        false};  // RoomDraw_TableRock4x3, once
   // Rightwards 4x4 repeated
-  dimensions_[0xFC8] = {4, 4, Dir::Horizontal, 4, false};
+  dimensions_[0xFC8] = {4, 4, Dir::None, 0, false};  // RoomDraw_4x4, once
   // Table/rock 4x3 repeated with 8-tile spacing
-  dimensions_[0xFCE] = {4, 3, Dir::Horizontal, 8, false};
+  dimensions_[0xFCE] = {4, 3, Dir::None, 0,
+                        false};  // RoomDraw_TableRock4x3, once
   // Actual 4x4 (no repetition)
   dimensions_[0xFE6] = {4, 4, Dir::None, 0, false};
-  dimensions_[0xFE7] = {4, 3, Dir::Horizontal, 8, false};
-  dimensions_[0xFE8] = {4, 3, Dir::Horizontal, 8, false};
+  dimensions_[0xFE7] = {4, 3, Dir::None, 0,
+                        false};  // RoomDraw_TableRock4x3, once
+  dimensions_[0xFE8] = {4, 3, Dir::None, 0,
+                        false};  // RoomDraw_TableRock4x3, once
   // Single 4x4 tile8 (large decor)
   dimensions_[0xFEB] = {4, 4, Dir::None, 0, false};
   // Single 4x3
@@ -954,7 +959,7 @@ void ObjectDimensionTable::InitializeDefaults() {
   dimensions_[0xFBD] = {6, 4, Dir::None, 0, false};
   dimensions_[0xFDC] = {6, 4, Dir::None, 0, false};
   // Rightwards 4x4 repeated
-  dimensions_[0xFFA] = {4, 4, Dir::Horizontal, 4, false};
+  dimensions_[0xFFA] = {4, 4, Dir::None, 0, false};  // RoomDraw_4x4, once
   // 0xFB1-0xFB2: Big Chest 4x3
   dimensions_[0xFB1] = {4, 3, Dir::None, 0, false};
   dimensions_[0xFB2] = {4, 3, Dir::None, 0, false};
