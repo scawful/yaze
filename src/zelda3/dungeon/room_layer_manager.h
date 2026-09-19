@@ -110,7 +110,23 @@ class RoomLayerManager {
   // lower tilemap (yaze's BG2 buffers) is not on screen in game, and the
   // composite hides it unless ShowHiddenLayers is on.
   void ApplyGameLayerRegisters(const RoomLayerRegisters& registers) {
+    game_registers_applied_ = true;
     game_hides_lower_tilemap_ = !registers.LowerTilemapShown();
+    lower_tilemap_on_main_ = registers.TilemapsShareMainScreen();
+    upper_tilemap_blended_ = registers.UpperTilemapBlended();
+  }
+  // Opaque upper-tilemap pixels always cover the lower tilemap: it is only on
+  // the sub screen and the upper tilemap does not blend with it.
+  bool UpperTilemapCoversLower(int layer2_mode) const {
+    if (!game_registers_applied_) {
+      return layer2_mode == 0x06;
+    }
+    return !lower_tilemap_on_main_ && !upper_tilemap_blended_;
+  }
+  // Both tilemaps are on the main screen; the lower one (hardware BG1) wins
+  // ties at equal tile priority.
+  bool LowerTilemapWinsTies() const {
+    return game_registers_applied_ && lower_tilemap_on_main_;
   }
   bool GameHidesLowerTilemap() const { return game_hides_lower_tilemap_; }
   // Editing aid: draw layers the game hides.
@@ -582,6 +598,9 @@ class RoomLayerManager {
   // This controls whether BG2 participates in sub-screen color math effects.
   bool bg2_on_top_ = false;
   bool game_hides_lower_tilemap_ = false;
+  bool game_registers_applied_ = false;
+  bool lower_tilemap_on_main_ = false;
+  bool upper_tilemap_blended_ = false;
   bool show_hidden_layers_ = false;
 
   // Merge state tracking

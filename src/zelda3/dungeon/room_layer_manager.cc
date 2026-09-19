@@ -132,7 +132,7 @@ void RoomLayerManager::CompositeToOutput(Room& room,
     }
   };
 
-  if (room.layer2_mode() == 0x06) {
+  if (UpperTilemapCoversLower(room.layer2_mode())) {
     // Header layer mode 6 uses the upper dungeon tilemap on the SNES main
     // screen and the lower tilemap on the sub screen. Ignoring OBJ/BG3, an
     // opaque upper pixel wins regardless of either tile's priority bit; the
@@ -309,9 +309,14 @@ void RoomLayerManager::CompositeToOutput(Room& room,
       return (pri == 0xFF) ? 0 : (pri ? 1 : 0);
     };
 
+    // Mode 1 order: hardware BG1 p1 > BG2 p1 > BG1 p0 > BG2 p0. When both
+    // tilemaps are on the main screen the lower one is hardware BG1 and wins
+    // ties; otherwise keep the historic upper-first order.
+    const bool lower_wins_ties = LowerTilemapWinsTies();
     auto rank_for = [&](bool is_bg1, uint8_t pri) -> int {
       pri = use_priority_compositing_ ? normalize_pri(pri) : 0;
-      if (is_bg1) {
+      const bool first = lower_wins_ties ? !is_bg1 : is_bg1;
+      if (first) {
         return pri ? 3 : 1;
       }
       return pri ? 2 : 0;

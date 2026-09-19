@@ -766,5 +766,30 @@ TEST_F(RoomLayerManagerTest, GameHiddenLowerTilemapIsOffUnlessShown) {
   EXPECT_FALSE(shown.IsHiddenByGame(LayerType::BG2_Layout));
 }
 
+// Sub-screen-only lower tilemaps never cover opaque upper pixels; when both
+// tilemaps share the main screen (BGACT 3) the lower one wins priority ties.
+TEST_F(RoomLayerManagerTest, GameStackingFollowsLayerRegisters) {
+  RoomLayerManager unapplied;
+  EXPECT_TRUE(unapplied.UpperTilemapCoversLower(/*layer2_mode=*/6));
+  EXPECT_FALSE(unapplied.UpperTilemapCoversLower(/*layer2_mode=*/1));
+  EXPECT_FALSE(unapplied.LowerTilemapWinsTies());
+
+  RoomLayerManager parallax;  // BGACT 1: sub screen, no blend
+  parallax.ApplyGameLayerRegisters(
+      DeriveRoomLayerRegisters(1, false, 0, 0, {}));
+  EXPECT_TRUE(parallax.UpperTilemapCoversLower(1));
+  EXPECT_FALSE(parallax.LowerTilemapWinsTies());
+
+  RoomLayerManager translucent;  // BGACT 4: upper blends
+  translucent.ApplyGameLayerRegisters(
+      DeriveRoomLayerRegisters(4, false, 0, 0, {}));
+  EXPECT_FALSE(translucent.UpperTilemapCoversLower(4));
+
+  RoomLayerManager on_top;  // BGACT 3: both on the main screen
+  on_top.ApplyGameLayerRegisters(DeriveRoomLayerRegisters(3, false, 0, 0, {}));
+  EXPECT_FALSE(on_top.UpperTilemapCoversLower(3));
+  EXPECT_TRUE(on_top.LowerTilemapWinsTies());
+}
+
 }  // namespace zelda3
 }  // namespace yaze

@@ -1377,8 +1377,12 @@ TEST_F(DungeonEditorPaletteRefreshTest,
   room.MarkCompositeDirty();
 
   RoomCompositeOutput canonical_output;
+  // BGACT 1 puts the lower tilemap on the sub screen with CGADSUB $20
+  // (backdrop only), and the moving-water effect only scrolls
+  // (Underworld_HandleLayerEffect), so the game does not blend an opaque
+  // upper pixel: it shows 33, not the half-add 36 yaze used to approximate.
   EXPECT_EQ(PrepareCanonicalRoomComposite(room, canonical_output).data()[0],
-            36);
+            33);
 }
 
 TEST_F(DungeonEditorPaletteRefreshTest,
