@@ -58,7 +58,8 @@ constexpr int kPrisonCellTileOffset = 0x1488;
 // Oracle of Secrets relocates this room-specific behavior from vanilla room
 // 0x65 to room 0xAD. Keep the preview test keyed to the current room supplied
 // to the drawer rather than baking in the vanilla room number.
-constexpr int kBombableFloorPreviewRoomId = 0xAD;
+// Vanilla RoomDraw_BombableFloor opens only in room 0x65 (CMP at $01:B3E3).
+constexpr int kBombableFloorPreviewRoomId = 0x65;
 
 // Wall corner variants: USDASM RoomDraw_4x4Corner_BothBG dispatches these.
 // All 8 IDs share the same 4x4 column-major routine; they differ in flip flags.
