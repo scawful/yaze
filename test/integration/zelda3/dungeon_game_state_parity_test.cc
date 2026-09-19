@@ -1,6 +1,7 @@
 // Compares what yaze loads for each dungeon room with the full machine state
 // the real game had right after loading it: graphics (VRAM tile data), BG
-// palette (the $7EC300 target buffer) and sprites (the sprite slot tables).
+// palette (the $7EC300 target buffer), sprites (the sprite slot tables),
+// layer registers and collision maps ($7F2000 / $7F3000).
 //
 // Needs a vanilla ROM and a folder written by
 //   scripts/agents/capture-game-room-tilemaps.py --full
@@ -29,7 +30,9 @@
 #include "rom/rom.h"
 #include "test_utils.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/game_tilemap_comparison.h"
 #include "zelda3/dungeon/room.h"
+#include "zelda3/dungeon/room_collision.h"
 #include "zelda3/dungeon/room_layer_registers.h"
 #include "zelda3/game_data.h"
 
@@ -385,6 +388,237 @@ TEST_F(DungeonGameStateParityTest, LayerRegistersMatchCapture) {
   }
   std::cout << absl::StrFormat("layer registers: %d/%d rooms exact\n",
                                rooms_exact, rooms);
+}
+
+// Names what a collision byte means in the game (for reports).
+std::string CollisionValueKind(uint8_t value) {
+  if (value == 0x3B)
+    return "star";
+  if ((value >= 0x30 && value <= 0x39) || value == 0x26 || value == 0x5E ||
+      value == 0x5F)
+    return "stairs";
+  if (value >= 0x1D && value <= 0x1F)
+    return "north layer stairs";
+  if (value >= 0x3D && value <= 0x3F)
+    return "south layer stairs";
+  if (value >= 0x58 && value <= 0x5D)
+    return "chest/lock";
+  if (value >= 0x70 && value <= 0x7F)
+    return "pot/block";
+  if (value >= 0xC0 && value <= 0xCF)
+    return "torch";
+  if (value >= 0x80 && value <= 0x8F)
+    return "door";
+  if (value >= 0x90 && value <= 0xAF)
+    return "toggle door";
+  if (value >= 0xF0)
+    return "locked door";
+  if (value == 0x66 || value == 0x67)
+    return "peg";
+  return absl::StrFormat("type %02X", value);
+}
+
+// The game's collision maps (COLMAPA $7F2000 from BG1, COLMAPB $7F3000 from
+// BG2) and its tile attribute table ($7EFE00) must follow from the room's
+// tilemaps, objects, doors, blocks and torches as ComputeRoomCollisionMaps
+// models Underworld_LoadAttributeTable. Each room is checked twice:
+//   rules:  from the captured tilemaps, so only the attribute rules count;
+//   yaze:   from yaze's own tilemaps, the editor's real input.
+// Rooms whose "yaze" maps differ only where yaze's tilemap differs from the
+// game's are reported but not failed; the tilemap parity test owns those.
+TEST_F(DungeonGameStateParityTest, CollisionMatchesCapture) {
+  constexpr size_t kTileAttributeTable = 0xFE00;  // $7EFE00
+  constexpr size_t kCollisionMaps = 0x12000;      // $7F2000
+  constexpr size_t kTilemapA = 0x2000;            // $7E2000
+  constexpr size_t kRoomSaveFlags = 0xF000;       // $7EF000
+  constexpr size_t kCrystalPegs = 0xC172;         // $7EC172
+  constexpr size_t kDoorOpenMask = 0x068C;        // $068C
+  constexpr size_t kShutterController = 0x0468;   // $0468
+  constexpr size_t kDoorTypes = 0x1980;           // $1980
+  constexpr size_t kDoorPositions = 0x19A0;       // $19A0
+  constexpr int kDungeonMaskPc = 0x18C0;          // DungeonMask, $00:98C0
+  int rooms = 0, tables_exact = 0, rules_exact = 0, yaze_exact = 0;
+  int rules_runtime_shutters = 0, yaze_explained = 0;
+  std::map<std::string, int> rule_kinds;
+  for (const auto& captured : CapturedRooms()) {
+    const auto& w = captured.wram;
+    zelda3::Room room = zelda3::LoadRoomFromRom(rom_.get(), captured.room_id);
+    room.SetGameData(&game_data_);
+    room.RenderRoomGraphics();
+    ++rooms;
+
+    const auto table =
+        zelda3::LoadUnderworldTileAttributeTable(*rom_, room.blockset());
+    int table_differences = 0;
+    for (size_t i = 0; i < table.size(); ++i) {
+      table_differences += table[i] != w[kTileAttributeTable + i];
+    }
+    if (table_differences == 0) {
+      ++tables_exact;
+    } else {
+      ADD_FAILURE() << absl::StrFormat(
+          "room 0x%03X (blockset %d): %d of 512 tile attributes differ",
+          captured.room_id, room.blockset(), table_differences);
+    }
+
+    zelda3::UnderworldRoomLoadState state;
+    state.room_save_flags = Word(w, kRoomSaveFlags + captured.room_id * 2);
+    state.crystal_pegs_swapped = w[kCrystalPegs] != 0;
+
+    zelda3::RoomTilemaps game_tilemaps;
+    game_tilemaps.bg1.resize(zelda3::kRoomTilemapWords);
+    game_tilemaps.bg2.resize(zelda3::kRoomTilemapWords);
+    for (size_t i = 0; i < zelda3::kRoomTilemapWords; ++i) {
+      game_tilemaps.bg1[i] = Word(w, kTilemapA + i * 2);
+      game_tilemaps.bg2[i] = Word(w, kTilemapA + 0x2000 + i * 2);
+    }
+    const auto yaze_tilemaps = zelda3::ComposeYazeRoomTilemaps(room);
+    const auto game_input = zelda3::MakeRoomCollisionInput(room, game_tilemaps);
+
+    auto differences = [&](const zelda3::RoomCollisionMaps& maps) {
+      int count = 0;
+      for (size_t i = 0; i < zelda3::kRoomCollisionBytes; ++i) {
+        count += maps.attributes[i] != w[kCollisionMaps + i];
+      }
+      return count;
+    };
+    const auto rules =
+        zelda3::ComputeRoomCollisionMaps(*rom_, game_input, state);
+    int rule_differences = differences(rules);
+    // Shutters that opened after the room loaded are runtime state: the tag
+    // routine clears $0468, sets the door's $068C bit and rewrites the door's
+    // tiles and attributes with its own patterns. A difference counts as
+    // explained by that when it lies around a door that is open in the
+    // captured $068C but closed in the load-time one.
+    const uint16_t load_open_mask =
+        static_cast<uint16_t>((state.room_save_flags & 0xF000) | 0x0F00);
+    const uint16_t captured_open_mask = Word(w, kDoorOpenMask);
+    std::vector<int> opened_doors;  // collision index of the door anchor
+    for (int slot = 0; slot < 16; ++slot) {
+      const uint16_t position = Word(w, kDoorPositions + slot * 2);
+      if (position == 0) {
+        continue;
+      }
+      const uint16_t type = Word(w, kDoorTypes + slot * 2) & 0xFE;
+      const int mask_index =
+          (type == 0x18 || type == 0x44) ? slot * 2 : (slot * 2) & 0x0F;
+      const uint16_t mask = static_cast<uint16_t>(
+          rom_->data()[kDungeonMaskPc + mask_index] |
+          (rom_->data()[kDungeonMaskPc + mask_index + 1] << 8));
+      if ((captured_open_mask & mask) && !(load_open_mask & mask)) {
+        opened_doors.push_back((position & 0x3FFF) >> 1);
+      }
+    }
+    auto near_opened_door = [&](size_t i) {
+      for (int anchor : opened_doors) {
+        if ((anchor & 0x1000) != static_cast<int>(i & 0x1000)) {
+          continue;
+        }
+        const int dx = static_cast<int>(i % 64) - (anchor % 64);
+        const int dy =
+            static_cast<int>((i & 0xFFF) / 64) - ((anchor & 0xFFF) / 64);
+        // North doors snap their attributes to row 0/32 and west doors to
+        // column 0/32 (AND #$783F / #$FFE0), up to 6 tiles from the anchor.
+        if (dx >= -6 && dx <= 10 && dy >= -6 && dy <= 12) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    bool runtime_shutters = false;
+    if (rule_differences > 0) {
+      auto runtime = state;
+      runtime.door_open_mask = captured_open_mask;
+      runtime.shutter_controller = Word(w, kShutterController);
+      if (differences(zelda3::ComputeRoomCollisionMaps(*rom_, game_input,
+                                                       runtime)) == 0) {
+        runtime_shutters = true;
+        state = runtime;
+      }
+    }
+    const auto yaze = zelda3::ComputeRoomCollisionMaps(
+        *rom_, zelda3::MakeRoomCollisionInput(room, yaze_tilemaps), state);
+
+    std::map<std::string, int> kinds;
+    int rule_unexplained = 0, yaze_differences = 0, yaze_unexplained = 0;
+    for (size_t i = 0; i < zelda3::kRoomCollisionBytes; ++i) {
+      const uint8_t game = w[kCollisionMaps + i];
+      if (rules.attributes[i] != game && !runtime_shutters) {
+        ++kinds[absl::StrFormat("%s -> game %s",
+                                zelda3::CollisionSourceName(rules.sources[i]),
+                                CollisionValueKind(game))];
+        rule_unexplained += !near_opened_door(i);
+        if (std::getenv("YAZE_COLLISION_VERBOSE") != nullptr) {
+          const size_t tile = i % zelda3::kCollisionMapTiles;
+          std::cout << absl::StrFormat(
+              "diff room=%03X map=%s x=%d y=%d yaze=%02X (%s) game=%02X%s\n",
+              captured.room_id,
+              i >= zelda3::kCollisionMapTiles ? "lower" : "upper", tile % 64,
+              tile / 64, rules.attributes[i],
+              zelda3::CollisionSourceName(rules.sources[i]), game,
+              near_opened_door(i) ? " (door opened after load)" : "");
+        }
+      }
+      if (yaze.attributes[i] != game) {
+        ++yaze_differences;
+        const size_t tile = i % zelda3::kCollisionMapTiles;
+        const bool lower = i >= zelda3::kCollisionMapTiles;
+        const auto& ours = lower ? yaze_tilemaps.bg2 : yaze_tilemaps.bg1;
+        const auto& theirs = lower ? game_tilemaps.bg2 : game_tilemaps.bg1;
+        if (ours[tile] == theirs[tile] && !near_opened_door(i)) {
+          ++yaze_unexplained;
+        }
+      }
+    }
+    if (rule_differences == 0) {
+      ++rules_exact;
+    } else if (runtime_shutters || rule_unexplained == 0) {
+      ++rules_runtime_shutters;
+      std::cout << absl::StrFormat(
+          "  room 0x%03X: %d collision bytes differ, all at doors that opened "
+          "after load ($0468 %d, $068C %04X, load-time %04X)%s\n",
+          captured.room_id, rule_differences, Word(w, kShutterController),
+          captured_open_mask, load_open_mask,
+          runtime_shutters ? "; exact with the captured $068C/$0468" : "");
+    }
+    yaze_exact += yaze_differences == 0;
+    if (yaze_differences > 0 && yaze_unexplained == 0) {
+      ++yaze_explained;
+    }
+    for (const auto& [kind, count] : kinds) {
+      rule_kinds[kind] += count;
+    }
+    if (rule_unexplained > 0 || yaze_unexplained > 0) {
+      std::string detail;
+      for (const auto& [kind, count] : kinds) {
+        detail += absl::StrFormat(" [%s: %d]", kind, count);
+      }
+      ADD_FAILURE() << absl::StrFormat(
+          "room 0x%03X: %d collision bytes differ from the captured tilemaps "
+          "(%d unexplained), %d from yaze's (%d unexplained)%s",
+          captured.room_id, rule_differences, rule_unexplained,
+          yaze_differences, yaze_unexplained, detail);
+    } else if (yaze_differences > 0 && rule_differences == 0) {
+      std::cout << absl::StrFormat(
+          "  room 0x%03X: %d collision bytes differ, all under tilemap "
+          "differences\n",
+          captured.room_id, yaze_differences);
+    }
+  }
+  if (rooms == 0) {
+    GTEST_SKIP() << "No --full captures in " << capture_dir_;
+  }
+  std::cout << absl::StrFormat(
+      "collision: attribute table %d/%d rooms exact; maps from captured "
+      "tilemaps %d/%d exact (+%d differ only at doors opened after load); "
+      "maps from yaze tilemaps %d/%d exact (+%d differ only under tilemap "
+      "differences or doors opened after load)\n",
+      tables_exact, rooms, rules_exact, rooms, rules_runtime_shutters,
+      yaze_exact, rooms, yaze_explained);
+  for (const auto& [kind, count] : rule_kinds) {
+    std::cout << absl::StrFormat("  %s: %d bytes\n", kind, count);
+  }
 }
 
 }  // namespace
