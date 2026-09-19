@@ -3558,9 +3558,12 @@ TEST(ObjectDrawerRegistryReplayTest,
      BombableFloorMatchesUsdasmFourByFourStateMatrices) {
   ScopedCustomObjectsFlag disable_custom(false);
 
-  // Oracle of Secrets relocates this floor from vanilla room 0x65 to 0xAD.
-  // The preview state must therefore follow the current room ID.
-  constexpr int kBombableFloorRoomId = 0xAD;
+  // RoomDraw_BombableFloor opens only in the room named by its
+  // `CMP.w #$0065` operand at $01:B3E3. Oracle of Secrets patches it to 0xAD.
+  constexpr int kVanillaRoomId = 0x65;
+  constexpr int kPatchedRoomId = 0xAD;
+  const std::vector<std::pair<int, uint16_t>> kOraclePatch = {
+      {0xB3E3, 0xADC9}};  // C9 AD 00: CMP.w #$00AD
   constexpr int kX = 9;
   constexpr int kY = 11;
   constexpr std::array<int, 16> kPayloadIndexByPosition = {
@@ -3580,23 +3583,26 @@ TEST(ObjectDrawerRegistryReplayTest,
       }
     }
   };
+  auto replay = [&](int room_id,
+                    const std::vector<std::pair<int, uint16_t>>& rom_words) {
+    return ReplayObjectTrace(/*object_id=*/0x0FC7, kX, kY, /*size=*/0,
+                             RoomObject::LayerType::BG1, tiles, &state,
+                             rom_words, room_id);
+  };
 
-  auto trace = ReplayObjectTrace(
-      /*object_id=*/0x0FC7, kX, kY, /*size=*/0, RoomObject::LayerType::BG1,
-      tiles, &state, {}, kBombableFloorRoomId);
-  assert_state(trace, /*state_offset=*/0);
+  // Flag clear: intact floor.
+  assert_state(replay(kPatchedRoomId, kOraclePatch), /*state_offset=*/0);
 
-  state.bombed_floor_room_id = kBombableFloorRoomId;
-  trace = ReplayObjectTrace(/*object_id=*/0x0FC7, kX, kY, /*size=*/0,
-                            RoomObject::LayerType::BG1, tiles, &state, {},
-                            kBombableFloorRoomId);
-  assert_state(trace, /*state_offset=*/16);
+  // Patched ROM: the floor opens in 0xAD only.
+  state.bombed_floor_room_id = kPatchedRoomId;
+  assert_state(replay(kPatchedRoomId, kOraclePatch), /*state_offset=*/16);
+  assert_state(replay(kPatchedRoomId - 1, kOraclePatch), /*state_offset=*/0);
+  // Without the patch the same room keeps the intact floor.
+  assert_state(replay(kPatchedRoomId, {}), /*state_offset=*/0);
 
-  trace = ReplayObjectTrace(
-      /*object_id=*/0x0FC7, kX, kY, /*size=*/0, RoomObject::LayerType::BG1,
-      tiles, &state, {},
-      /*room_id=*/kBombableFloorRoomId - 1);
-  assert_state(trace, /*state_offset=*/0);
+  // No CMP at $01:B3E3 falls back to vanilla room 0x65.
+  state.bombed_floor_room_id = kVanillaRoomId;
+  assert_state(replay(kVanillaRoomId, {}), /*state_offset=*/16);
 }
 
 TEST(ObjectDrawerRegistryReplayTest,

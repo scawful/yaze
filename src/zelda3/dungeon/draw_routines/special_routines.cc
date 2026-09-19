@@ -20,6 +20,38 @@ namespace {
 
 constexpr int kThievesTownEastAtticRoomId = 0x65;
 
+// RoomDraw_BombableFloor opens only in the room named by `CMP.w #$0065` at
+// $01:B3E3. ROM hacks patch that operand (Oracle of Secrets: 0xAD), so read
+// it; fall back to vanilla when the instruction is not there.
+int BombableFloorRoomId(const Rom* rom) {
+  constexpr int kCmpPc = 0xB3E3;  // $01:B3E3
+  if (rom != nullptr) {
+    const auto opcode = rom->ReadByte(kCmpPc);
+    const auto operand = rom->ReadWord(kCmpPc + 1);
+    if (opcode.ok() && *opcode == 0xC9 && operand.ok()) {
+      return *operand;
+    }
+  }
+  return kThievesTownEastAtticRoomId;
+}
+
+// RoomDraw_BigLightBeamOnFloor reads `LDA.l $7EF0CA` at $01:A7D3: the save
+// word of the room whose floor was bombed ($7EF000 + 2 * room).
+int LightBeamFloorRoomId(const Rom* rom) {
+  constexpr int kLdaPc = 0xA7D3;  // $01:A7D3
+  if (rom != nullptr) {
+    const auto opcode = rom->ReadByte(kLdaPc);
+    const auto address = rom->ReadWord(kLdaPc + 1);
+    const auto bank = rom->ReadByte(kLdaPc + 3);
+    if (opcode.ok() && *opcode == 0xAF && address.ok() && bank.ok() &&
+        *bank == 0x7E && *address >= 0xF000 && *address < 0xF250 &&
+        (*address & 1) == 0) {
+      return (*address - 0xF000) / 2;
+    }
+  }
+  return kThievesTownEastAtticRoomId;
+}
+
 const gfx::TileInfo& TileAtWrapped(std::span<const gfx::TileInfo> tiles,
                                    size_t index) {
   return tiles[index % tiles.size()];
@@ -690,12 +722,12 @@ void DrawLightBeamOnFloor(const DrawContext& ctx) {
 
 void DrawBigLightBeamOnFloor(const DrawContext& ctx) {
   // ASM: RoomDraw_BigLightBeamOnFloor ($01A7D3) reads the persisted
-  // bombed-floor flag for fixed room 0x065 ($7EF0CA & $0100), then falls
-  // through to RoomDraw_FloorLight when it is active. Do not use ctx.room_id.
-  // Null state is reserved for object/geometry previews, which keep the beam
-  // visible and measurable.
+  // bombed-floor flag of a fixed room (vanilla 0x065: $7EF0CA & $0100), then
+  // falls through to RoomDraw_FloorLight when it is active. Do not use
+  // ctx.room_id. Null state is reserved for object/geometry previews, which
+  // keep the beam visible and measurable.
   if (ctx.state != nullptr &&
-      !ctx.state->IsFloorBombable(kThievesTownEastAtticRoomId)) {
+      !ctx.state->IsFloorBombable(LightBeamFloorRoomId(ctx.rom))) {
     return;
   }
   DrawFloorLightGrid(ctx);
@@ -1335,12 +1367,11 @@ void DrawBombableFloor(const DrawContext& ctx) {
     return;
   }
 
-  // Vanilla persists this state for room 0x65, while ROM hacks can relocate
-  // the floor (Oracle of Secrets uses 0xAD). Keep preview selection keyed to
-  // the current room instead of hardcoding a vanilla room ID.
-  const bool is_open = ctx.state != nullptr &&
-                       ctx.state->IsFloorBombable(ctx.room_id) &&
-                       ctx.tiles.size() >= 32;
+  // Only the room named by the routine's CMP operand opens (vanilla 0x065);
+  // every other room draws the intact floor even with its flag set.
+  const bool is_open =
+      ctx.state != nullptr && ctx.room_id == BombableFloorRoomId(ctx.rom) &&
+      ctx.state->IsFloorBombable(ctx.room_id) && ctx.tiles.size() >= 32;
   const size_t state_offset = is_open ? 16 : 0;
 
   for (int block_y = 0; block_y < 2; ++block_y) {
