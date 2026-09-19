@@ -63,6 +63,7 @@ zelda3::RoomLayerManager& DungeonCanvasViewer::GetRoomLayerManager(
                state.room_settings->second != room->effect())) {
     state.manager.ApplyLayerMerging(room->layer_merging());
     state.manager.ApplyRoomEffect(room->effect());
+    state.manager.ApplyGameLayerRegisters(room->GameLayerRegisters());
     state.room_settings = std::make_pair(room->layer_merging(), room->effect());
   }
   return state.manager;

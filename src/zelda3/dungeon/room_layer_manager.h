@@ -105,6 +105,23 @@ class RoomLayerManager {
     return use_priority_compositing_;
   }
 
+  // The game's own layer settings for the room (room_layer_registers.h).
+  // When the game shows neither tilemap bit 0 on main nor sub screen, the
+  // lower tilemap (yaze's BG2 buffers) is not on screen in game, and the
+  // composite hides it unless ShowHiddenLayers is on.
+  void ApplyGameLayerRegisters(const RoomLayerRegisters& registers) {
+    game_hides_lower_tilemap_ = !registers.LowerTilemapShown();
+  }
+  bool GameHidesLowerTilemap() const { return game_hides_lower_tilemap_; }
+  // Editing aid: draw layers the game hides.
+  void SetShowHiddenLayers(bool show) { show_hidden_layers_ = show; }
+  bool ShowHiddenLayers() const { return show_hidden_layers_; }
+  // True when `layer` is hidden only because the game hides it.
+  bool IsHiddenByGame(LayerType layer) const {
+    return game_hides_lower_tilemap_ && !show_hidden_layers_ &&
+           (layer == LayerType::BG2_Layout || layer == LayerType::BG2_Objects);
+  }
+
   // Layer visibility
   void SetLayerVisible(LayerType layer, bool visible) {
     layer_visible_[static_cast<int>(layer)] = visible;
@@ -564,6 +581,8 @@ class RoomLayerManager {
   // NOTE: Does NOT affect draw order - BG1 is always above BG2 per SNES Mode 1.
   // This controls whether BG2 participates in sub-screen color math effects.
   bool bg2_on_top_ = false;
+  bool game_hides_lower_tilemap_ = false;
+  bool show_hidden_layers_ = false;
 
   // Merge state tracking
   bool layers_merged_ = false;

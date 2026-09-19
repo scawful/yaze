@@ -23,6 +23,7 @@
 #include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/room_layer_registers.h"
 #include "zelda3/dungeon/room_layout.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/game_data.h"
@@ -938,6 +939,9 @@ class Room {
   CollisionKey collision() const { return collision_; }
   const LayerMergeType& layer_merging() const { return layer_merging_; }
   uint8_t layer2_mode() const { return layer2_mode_; }
+  // The PPU layer settings the game uses for this room on entry, given the
+  // room's persistent flags (0: as first entered). See room_layer_registers.h.
+  RoomLayerRegisters GameLayerRegisters(uint16_t room_flags = 0) const;
   uint8_t staircase_plane(int index) const {
     return (index >= 0 && index < 4) ? staircase_plane_[index] : 0;
   }

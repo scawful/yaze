@@ -24,8 +24,12 @@ struct RoomLayerRegisters {
   // Both tilemaps are on the main screen and interleave by tile priority,
   // with the lower tilemap (hardware BG1) winning ties.
   bool TilemapsShareMainScreen() const { return (tm & 0x03) == 0x03; }
-  // The lower tilemap is blended onto the upper one through color math.
-  bool LowerTilemapBlended() const {
+  // Upper-tilemap pixels (hardware BG2, CGADSUB bit 1) are blended with the
+  // sub screen, i.e. the lower tilemap, through color math. Where the upper
+  // tilemap is transparent the lower one shows normally either way, because
+  // the backdrop (CGADSUB bit 5) adds the sub screen (confirmed on room 0x001
+  // against a Mesen frame).
+  bool UpperTilemapBlended() const {
     return (ts & 0x01) != 0 && (cgadsub & 0x02) != 0;
   }
   bool BlendSubtracts() const { return (cgadsub & 0x80) != 0; }

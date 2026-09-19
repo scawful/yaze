@@ -746,5 +746,25 @@ TEST_F(RoomLayerManagerTest,
       << "Changing layer visibility must invalidate cached composites";
 }
 
+// In rooms whose layer settings put hardware BG1 on neither screen (BGACT 0),
+// the game never shows the lower tilemap, which yaze keeps in its BG2
+// buffers. The composite hides those layers unless ShowHiddenLayers is on.
+TEST_F(RoomLayerManagerTest, GameHiddenLowerTilemapIsOffUnlessShown) {
+  RoomLayerManager manager;
+  manager.ApplyGameLayerRegisters(DeriveRoomLayerRegisters(0, false, 0, 0, {}));
+  EXPECT_TRUE(manager.GameHidesLowerTilemap());
+  EXPECT_TRUE(manager.IsHiddenByGame(LayerType::BG2_Layout));
+  EXPECT_TRUE(manager.IsHiddenByGame(LayerType::BG2_Objects));
+  EXPECT_FALSE(manager.IsHiddenByGame(LayerType::BG1_Layout));
+
+  manager.SetShowHiddenLayers(true);
+  EXPECT_FALSE(manager.IsHiddenByGame(LayerType::BG2_Layout));
+
+  RoomLayerManager shown;
+  shown.ApplyGameLayerRegisters(DeriveRoomLayerRegisters(1, false, 0, 0, {}));
+  EXPECT_FALSE(shown.GameHidesLowerTilemap());
+  EXPECT_FALSE(shown.IsHiddenByGame(LayerType::BG2_Layout));
+}
+
 }  // namespace zelda3
 }  // namespace yaze

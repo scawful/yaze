@@ -126,6 +126,7 @@ absl::StatusOr<RenderResult> RenderService::RenderDungeonRoom(
   zelda3::RoomLayerManager layer_mgr;
   layer_mgr.ApplyLayerMerging(room.layer_merging());
   layer_mgr.ApplyRoomEffect(room.effect());
+  layer_mgr.ApplyGameLayerRegisters(room.GameLayerRegisters());
   auto& composite = room.GetCompositeBitmap(layer_mgr);
 
   if (!composite.is_active() || composite.width() <= 0 ||
