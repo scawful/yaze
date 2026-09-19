@@ -34,6 +34,7 @@
 #include "app/editor/dungeon/ui/window/dungeon_entrances_panel.h"
 #include "app/editor/dungeon/ui/window/item_editor_panel.h"
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
+#include "app/editor/dungeon/ui/window/object_coverage_panel.h"
 #include "app/editor/dungeon/ui/window/object_tile_editor_panel.h"
 #include "app/editor/dungeon/ui/window/overlay_manager_panel.h"
 #include "app/editor/dungeon/ui/window/room_tag_editor_panel.h"
@@ -508,6 +509,10 @@ absl::Status DungeonEditorV2::RefreshRomBackedState() {
   }
   if (room_tag_editor_panel_) {
     room_tag_editor_panel_->SetRooms(&rooms_);
+  }
+  if (object_coverage_panel_) {
+    object_coverage_panel_->SetProject(dependencies_.project);
+    object_coverage_panel_->SetRooms(&rooms_);
   }
   if (minecart_track_editor_panel_) {
     minecart_track_editor_panel_->SetRooms(&rooms_);
@@ -1017,6 +1022,15 @@ absl::Status DungeonEditorV2::Load() {
   room_tag_panel->SetCurrentRoomId(current_room_id_);
   room_tag_editor_panel_ = room_tag_panel.get();
 
+  auto object_coverage_panel = std::make_unique<ObjectCoveragePanel>();
+  object_coverage_panel->SetProject(dependencies_.project);
+  object_coverage_panel->SetRooms(&rooms_);
+  object_coverage_panel->SetNavigateCallback(
+      [this](int room_id, size_t object_index, int object_id) {
+        NavigateToPlacedObject(room_id, object_index, object_id);
+      });
+  object_coverage_panel_ = object_coverage_panel.get();
+
   // Register the ObjectSelectorContent directly (it inherits from WindowContent)
   // Panel manager takes ownership
   if (dependencies_.window_manager) {
@@ -1047,6 +1061,8 @@ absl::Status DungeonEditorV2::Load() {
         std::move(water_fill_panel));
     dependencies_.window_manager->RegisterWindowContent(
         std::move(room_tag_panel));
+    dependencies_.window_manager->RegisterWindowContent(
+        std::move(object_coverage_panel));
     // Object Tile Editor Panel
     {
       auto tile_editor_panel =
@@ -1110,6 +1126,7 @@ absl::Status DungeonEditorV2::Load() {
     owned_custom_collision_panel_ = std::move(custom_collision_panel);
     owned_water_fill_panel_ = std::move(water_fill_panel);
     owned_room_tag_editor_panel_ = std::move(room_tag_panel);
+    owned_object_coverage_panel_ = std::move(object_coverage_panel);
   }
 
   if (core::FeatureFlags::get().kEnableCustomObjects) {
@@ -2547,6 +2564,32 @@ void DungeonEditorV2::WireViewerPanelCallbacks(DungeonCanvasViewer* viewer) {
 
   viewer->SetMinecartTrackPanel(minecart_track_editor_panel_);
   viewer->SetProject(dependencies_.project);
+}
+
+void DungeonEditorV2::NavigateToPlacedObject(int room_id, size_t object_index,
+                                             int object_id) {
+  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size())) {
+    return;
+  }
+  OnRoomSelected(room_id, /*request_focus=*/true);
+  auto* viewer = GetViewerForRoom(room_id);
+  auto* room = rooms_.GetIfMaterialized(room_id);
+  if (viewer == nullptr || room == nullptr) {
+    return;
+  }
+  const auto& objects = room->GetTileObjects();
+  size_t target = object_index;
+  if (target >= objects.size() || objects[target].id_ != object_id) {
+    auto it = std::find_if(
+        objects.begin(), objects.end(),
+        [object_id](const auto& object) { return object.id_ == object_id; });
+    if (it == objects.end()) {
+      return;
+    }
+    target = static_cast<size_t>(it - objects.begin());
+  }
+  viewer->object_interaction().SetSelectedObjects({target});
+  viewer->ScrollToTile(objects[target].x(), objects[target].y());
 }
 
 DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {

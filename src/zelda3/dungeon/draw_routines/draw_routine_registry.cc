@@ -1,5 +1,7 @@
 #include "draw_routine_registry.h"
 
+#include <algorithm>
+
 #include "core/features.h"
 #include "zelda3/dungeon/draw_routines/corner_routines.h"
 #include "zelda3/dungeon/draw_routines/diagonal_routines.h"
@@ -85,6 +87,16 @@ int DrawRoutineRegistry::GetRoutineIdForObject(int16_t object_id) const {
     return it->second;
   }
   return -1;
+}
+
+std::vector<int16_t> DrawRoutineRegistry::GetMappedObjectIds() const {
+  std::vector<int16_t> ids;
+  ids.reserve(object_to_routine_map_.size());
+  for (const auto& [object_id, routine_id] : object_to_routine_map_) {
+    ids.push_back(object_id);
+  }
+  std::sort(ids.begin(), ids.end());
+  return ids;
 }
 
 void DrawRoutineRegistry::BuildObjectMapping() {

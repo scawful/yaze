@@ -312,6 +312,10 @@ class DungeonEditorV2 : public Editor {
   // Room selection callback
   void OnRoomSelected(int room_id, bool request_focus = true);
   void OnRoomSelected(int room_id, RoomSelectionIntent intent);
+  // Opens `room_id` and selects its placed object `object_index`. If the room
+  // changed since the index was built, falls back to the first object with
+  // `object_id`.
+  void NavigateToPlacedObject(int room_id, size_t object_index, int object_id);
   void OnEntranceSelected(int entrance_id);
   int ResolveEntranceRoomId(int entrance_id) const;
 
@@ -423,6 +427,7 @@ class DungeonEditorV2 : public Editor {
   class ItemEditorPanel* item_editor_panel_ = nullptr;
   class MinecartTrackEditorPanel* minecart_track_editor_panel_ = nullptr;
   class RoomTagEditorPanel* room_tag_editor_panel_ = nullptr;
+  class ObjectCoveragePanel* object_coverage_panel_ = nullptr;
   class CustomCollisionPanel* custom_collision_panel_ = nullptr;
   class WaterFillPanel* water_fill_panel_ = nullptr;
   ObjectTileEditorPanel* object_tile_editor_panel_ = nullptr;
@@ -434,6 +439,7 @@ class DungeonEditorV2 : public Editor {
   std::unique_ptr<ObjectEditorContent> owned_object_editor_content_;
   std::unique_ptr<DoorEditorContent> owned_door_editor_panel_;
   std::unique_ptr<RoomTagEditorPanel> owned_room_tag_editor_panel_;
+  std::unique_ptr<ObjectCoveragePanel> owned_object_coverage_panel_;
   std::unique_ptr<CustomCollisionPanel> owned_custom_collision_panel_;
   std::unique_ptr<WaterFillPanel> owned_water_fill_panel_;
   std::unique_ptr<MinecartTrackEditorPanel> owned_minecart_track_editor_panel_;

@@ -130,6 +130,12 @@ and every affected command, is in `docs/public/reference/changelog.md` under
   when a stateful chest comes after a big-key lock in the object stream or when
   a room uses more chest/lock event slots than the engine supports, replacing
   the old chest-count error.
+- Added an **Object Coverage** window to the Dungeon editor. It lists every
+  object the renderer supports and the rooms that place it. **Next object to
+  check** opens a room with the next unchecked object selected. Each object
+  can be marked **Matches game**, **Broken**, **Fixed, recheck**, or
+  **Preview limit**, with a note. Results are saved per project, or per ROM
+  when no project is open.
 - Object Selector cards show a draw-routine badge: a direction or category
   glyph, or `C`/`K`/`B`/`P` for chests, big key locks, bombable floors, and
   prison cells, with the routine family and base pattern size in the tooltip.
