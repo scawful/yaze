@@ -202,6 +202,7 @@ static const std::map<zelda3_version, zelda3_version_pointers>
 ## Related Documentation
 
 - `dungeon-spec.md` - Dungeon data format specification
+- `dungeon-game-parity.md` - Comparing dungeon rendering with captures from the game
 - `overworld-tail-expansion.md` - ZSOW expansion details
 - `alttp-object-handlers.md` - Object behavior tables
 - `alttp-wram-state.md` - WRAM touches found by an object-handler scan
