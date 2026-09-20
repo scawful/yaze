@@ -489,6 +489,35 @@ std::map<int, ObjectEvidence> ProposeAutomaticVerdicts(
   return proposals;
 }
 
+std::map<int, ObjectCustomDrawCode> FindObjectsWithCustomDrawCode(
+    const std::vector<zelda3::ObjectDrawCode>& draw_code,
+    const std::vector<core::ProtectedRegion>& hooks) {
+  std::map<int, ObjectCustomDrawCode> out;
+  for (const auto& code : draw_code) {
+    ObjectCustomDrawCode custom;
+    bool found = false;
+    if (code.jumps_to_expanded_code) {
+      custom.replaced = true;
+      custom.address = code.jump_target;
+      found = true;
+    }
+    for (const auto& hook : hooks) {
+      if (hook.start < code.routine_end && code.routine_start < hook.end) {
+        if (!found) {
+          custom.address = std::max(hook.start, code.routine_start);
+        }
+        custom.module = hook.module;
+        found = true;
+        break;
+      }
+    }
+    if (found) {
+      out.emplace(code.object_id, std::move(custom));
+    }
+  }
+  return out;
+}
+
 std::string FormatObjectId(int object_id) {
   return absl::StrFormat("0x%03X", object_id);
 }

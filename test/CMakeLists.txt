@@ -395,6 +395,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/room_graphics_palette_test.cc
     unit/zelda3/dungeon/room_header_palette_test.cc
     unit/zelda3/dungeon/object_drawer_registry_replay_test.cc
+    unit/zelda3/dungeon/object_draw_code_test.cc
     unit/zelda3/dungeon/custom_object_room_render_test.cc
     unit/zelda3/dungeon/room_object_rom_parity_test.cc
     unit/dungeon_object_drawer_test.cc
@@ -425,6 +426,7 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/dungeon_game_tilemap_parity_test.cc
     integration/zelda3/dungeon_game_state_parity_test.cc
     integration/zelda3/room_default_entrance_rom_test.cc
+    integration/zelda3/object_draw_code_rom_test.cc
     integration/zelda3/dungeon_edit_save_fixture_test.cc
     integration/zelda3/dungeon/pit_damage_table_test.cc
     integration/zelda3/dungeon_save_region_test.cc
