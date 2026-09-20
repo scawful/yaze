@@ -1160,6 +1160,61 @@ TEST(ObjectDrawerRegistryReplayTest,
   EXPECT_EQ(lower2.GetTileAt(34, 1), 0);
 }
 
+TEST(ObjectDrawerRegistryReplayTest, EyeWatchDoorDrawsItsOpenReplacement) {
+  ScopedCustomObjectsFlag disable_custom(false);
+
+  // RoomDraw_FlagDoorsAndGetFinalType ($01B152) flags an eye-watch door's
+  // own $068C bit at room load, so it draws DoorwayReplacementDoorGFX[0x1A]
+  // (type 0x00, a plain doorway) instead of its closed art. Confirmed in the
+  // game capture of room 0x0D6.
+  constexpr int kDoorGfxNorthTableBase = 0x4D9E;
+  constexpr int kReplacementTableBase = 0x1A02;
+  constexpr int kEyeWatchType = 0x1A;
+  constexpr int kOpenObjectOffset = 0x0B00;
+  constexpr int kClosedObjectOffset = 0x0B40;
+
+  Rom rom;
+  std::vector<uint8_t> dummy_rom(1024 * 1024, 0);
+  WriteWord(dummy_rom, kReplacementTableBase + kEyeWatchType, 0x0000);
+  WriteWord(dummy_rom, kDoorGfxNorthTableBase + 0x00, kOpenObjectOffset);
+  WriteWord(dummy_rom, kDoorGfxNorthTableBase + kEyeWatchType,
+            kClosedObjectOffset);
+  WriteDoorObjectDataWords(dummy_rom, /*object_offset=*/kOpenObjectOffset,
+                           /*start_word=*/0x0300, /*word_count=*/12);
+  WriteDoorObjectDataWords(dummy_rom, /*object_offset=*/kClosedObjectOffset,
+                           /*start_word=*/0x0400, /*word_count=*/12);
+  rom.LoadFromData(dummy_rom);
+
+  auto gfx = MakeOpaqueDoorGfx();
+  ObjectDrawer drawer(&rom, /*room_id=*/0x0D6, gfx.data());
+  gfx::BackgroundBuffer bg1(512, 512);
+  gfx::BackgroundBuffer bg2(512, 512);
+  bg1.EnsureBitmapInitialized();
+  bg2.EnsureBitmapInitialized();
+
+  ObjectDrawer::DoorDef door{
+      .type = DoorType::EyeWatchDoor,
+      .direction = DoorDirection::North,
+      .position = 0,
+  };
+  // No dungeon state at all: the door still draws its open replacement.
+  drawer.DrawDoor(door, /*door_index=*/0, bg1, bg2, /*state=*/nullptr);
+
+  const auto [tile_x, tile_y] = door.GetTileCoords();
+  bool drew_open = false;
+  for (int x = 0; x < 4 && !drew_open; ++x) {
+    for (int y = 0; y < 3 && !drew_open; ++y) {
+      const uint16_t word = bg1.GetTileAt(tile_x + x, tile_y + y);
+      if (word != 0) {
+        EXPECT_GE(word & 0x3FF, 0x300);
+        EXPECT_LT(word & 0x3FF, 0x30C) << "closed art at " << x << "," << y;
+        drew_open = true;
+      }
+    }
+  }
+  EXPECT_TRUE(drew_open);
+}
+
 TEST(ObjectDrawerRegistryReplayTest, ChestHoleOverlayDrawsPitsOnceChestOpens) {
   ScopedCustomObjectsFlag disable_custom(false);
 

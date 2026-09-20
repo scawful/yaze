@@ -1723,9 +1723,14 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
   constexpr int kCaveExitLightObjectOffset = 0x26F6;
   const auto& rom_data = rom_->data();
 
+  // RoomDraw_FlagDoorsAndGetFinalType ($01B152): an eye-watch door sets its
+  // own $068C bit at room load unless it is the door the player just came
+  // through, so it draws as a plain doorway. The editor has no player.
+  const bool always_open = door.type == DoorType::EyeWatchDoor;
+
   auto resolve_effective_door_type = [&]() -> uint16_t {
     const auto stored_type = static_cast<uint16_t>(door.type);
-    if (!is_door_open) {
+    if (!is_door_open && !always_open) {
       return stored_type;
     }
 
@@ -1735,7 +1740,8 @@ void ObjectDrawer::DrawDoor(const DoorDef& door, int door_index,
     const bool is_controlled_shutter =
         door.type == DoorType::DoubleSidedShutter ||
         door.type == DoorType::DoubleSidedShutterLower;
-    if (is_controlled_shutter && state->IsDoorSwitchActive(room_id_)) {
+    if (is_controlled_shutter && state != nullptr &&
+        state->IsDoorSwitchActive(room_id_)) {
       return stored_type;
     }
 
