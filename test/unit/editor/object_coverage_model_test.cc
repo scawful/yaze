@@ -301,5 +301,47 @@ TEST(ObjectCoverageModelTest, ProposalsSkipJudgedObjects) {
   EXPECT_NE(proposals.at(0x04C).note.find("palette"), std::string::npos);
 }
 
+TEST(ObjectCoverageModelTest, CustomDrawCodeFlagsReplacedAndPatchedRoutines) {
+  std::vector<zelda3::ObjectDrawCode> draw_code = {
+      // Vanilla: no jump, no hook.
+      {.object_id = 0x010, .routine_start = 0x019000, .routine_end = 0x019020},
+      // Replaced: jumps into the hack's expanded code (Oracle's 0x31).
+      {.object_id = 0x031,
+       .routine_start = 0x01B53C,
+       .routine_end = 0x01B541,
+       .jumps_to_expanded_code = true,
+       .jump_target = 0x2C8000},
+      // Patched: a hook sits inside the routine (Oracle's 0xFC7).
+      {.object_id = 0xFC7, .routine_start = 0x01B3E1, .routine_end = 0x01B420},
+  };
+  const std::vector<core::ProtectedRegion> hooks = {
+      {.start = 0x01B3E3,
+       .end = 0x01B3E7,
+       .hook_count = 1,
+       .module = "Sprites"},
+      {.start = 0x01C000,
+       .end = 0x01C004,
+       .hook_count = 1,
+       .module = "Dungeons"},
+  };
+
+  const auto custom = FindObjectsWithCustomDrawCode(draw_code, hooks);
+
+  ASSERT_EQ(custom.size(), 2u);
+  EXPECT_FALSE(custom.contains(0x010));
+  ASSERT_TRUE(custom.contains(0x031));
+  EXPECT_TRUE(custom.at(0x031).replaced);
+  EXPECT_EQ(custom.at(0x031).address, 0x2C8000u);
+  ASSERT_TRUE(custom.contains(0xFC7));
+  EXPECT_FALSE(custom.at(0xFC7).replaced);
+  EXPECT_EQ(custom.at(0xFC7).address, 0x01B3E3u);
+  EXPECT_EQ(custom.at(0xFC7).module, "Sprites");
+
+  // Without a manifest only the replacement is visible.
+  const auto without_hooks = FindObjectsWithCustomDrawCode(draw_code, {});
+  ASSERT_EQ(without_hooks.size(), 1u);
+  EXPECT_TRUE(without_hooks.contains(0x031));
+}
+
 }  // namespace
 }  // namespace yaze::editor

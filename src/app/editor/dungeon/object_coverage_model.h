@@ -13,6 +13,8 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "core/hack_manifest.h"
+#include "zelda3/dungeon/object_draw_code.h"
 #include "zelda3/dungeon/room_object.h"
 
 namespace yaze::editor {
@@ -190,6 +192,20 @@ std::map<int, ObjectEvidence> ProposeAutomaticVerdicts(
 
 // "0x04C" for type 1, "0x12D" for type 2, "0xFD6" for type 3.
 std::string FormatObjectId(int object_id);
+
+// An object whose draw code a ROM hack changed, so the game (and a capture of
+// it) may draw it differently from yaze's vanilla routine.
+struct ObjectCustomDrawCode {
+  bool replaced = false;  // The routine jumps straight into the hack's code.
+  uint32_t address = 0;   // Jump target, or the first hooked address.
+  std::string module;     // Hack module that hooks the routine, if known.
+};
+
+// Flags objects whose routine starts with a long jump into expanded code, or
+// whose routine bytes overlap a hook region from the hack manifest.
+std::map<int, ObjectCustomDrawCode> FindObjectsWithCustomDrawCode(
+    const std::vector<zelda3::ObjectDrawCode>& draw_code,
+    const std::vector<core::ProtectedRegion>& hooks);
 
 }  // namespace yaze::editor
 

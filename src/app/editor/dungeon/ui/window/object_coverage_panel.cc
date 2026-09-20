@@ -25,6 +25,7 @@
 #include "zelda3/dungeon/draw_routines/draw_routine_registry.h"
 #include "zelda3/dungeon/draw_routines/draw_routine_symbology.h"
 #include "zelda3/dungeon/game_tilemap_comparison.h"
+#include "zelda3/dungeon/object_draw_code.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -137,6 +138,7 @@ std::string ObjectCoveragePanel::EvidenceContextName() const {
 
 void ObjectCoveragePanel::RebuildIndex() {
   usage_ = ObjectUsageIndex{};
+  custom_code_.clear();
   rom_sha1_.clear();
   auto& registry = zelda3::DrawRoutineRegistry::Get();
   registry.Initialize();
@@ -149,6 +151,12 @@ void ObjectCoveragePanel::RebuildIndex() {
   }
   const auto& rom_bytes = rooms_->rom()->vector();
   rom_sha1_ = util::ComputeSha1Hex(rom_bytes.data(), rom_bytes.size());
+  const std::vector<core::ProtectedRegion> no_hooks;
+  custom_code_ = FindObjectsWithCustomDrawCode(
+      zelda3::ReadObjectDrawCode(*rooms_->rom()),
+      project_ != nullptr && project_->hack_manifest.loaded()
+          ? project_->hack_manifest.protected_regions()
+          : no_hooks);
 
   // Opened rooms carry unsaved edits, so they win over the ROM copy; other
   // rooms are parsed into a temporary, as the minecart audit does.
@@ -716,6 +724,14 @@ void ObjectCoveragePanel::DrawObjectTable(float height) {
       }
       ImGui::TableSetColumnIndex(1);
       ImGui::TextUnformatted(zelda3::GetObjectName(object_id).c_str());
+      if (custom_code_.contains(object_id)) {
+        ImGui::SameLine();
+        ImGui::TextColored(gui::GetWarningColor(), ICON_MD_CODE);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("%s",
+                            tr("Your ROM changes this object's draw code"));
+        }
+      }
       int column = 2;
       if (show_focus_column) {
         ImGui::TableSetColumnIndex(column++);
@@ -802,6 +818,26 @@ void ObjectCoveragePanel::DrawDetails() {
                      routine != nullptr ? routine->name.c_str() : "-",
                      symbology.family.c_str());
   ImGui::PopStyleColor();
+
+  if (auto it = custom_code_.find(object_id); it != custom_code_.end()) {
+    const auto& custom = it->second;
+    const std::string where =
+        custom.module.empty()
+            ? absl::StrFormat("$%06X", custom.address)
+            : absl::StrFormat("$%06X (%s)", custom.address, custom.module);
+    ImGui::PushStyleColor(ImGuiCol_Text, gui::GetWarningColor());
+    ImGui::TextWrapped(
+        custom.replaced
+            ? tr(ICON_MD_CODE " Your ROM replaces this object's draw routine "
+                              "with its own code at %s. yaze may not draw it "
+                              "the way the game does; a mismatch here is not "
+                              "necessarily a yaze bug.")
+            : tr(ICON_MD_CODE " Your ROM patches this object's draw routine "
+                              "at %s. A mismatch with the game may come from "
+                              "that patch, not from yaze."),
+        where.c_str());
+    ImGui::PopStyleColor();
+  }
 
   const int group = ReleaseFocusGroupFor(object_id);
   if (group >= 0) {

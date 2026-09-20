@@ -93,6 +93,8 @@ class ObjectCoveragePanel : public WindowContent {
 
   // Rebuilt by RebuildIndex().
   ObjectUsageIndex usage_;
+  // Objects whose draw code the loaded ROM hack changed.
+  std::map<int, ObjectCustomDrawCode> custom_code_;
   std::vector<int> review_order_;
   std::string rom_sha1_;
   bool index_dirty_ = true;
