@@ -26,6 +26,7 @@
 #include <gtest/gtest.h>
 
 #include "absl/strings/str_format.h"
+#include "app/editor/dungeon/object_coverage_model.h"
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "test_utils.h"
@@ -68,7 +69,9 @@ class DungeonGameStateParityTest : public ::testing::Test {
     if (dir == nullptr) {
       GTEST_SKIP() << "Set YAZE_GAME_CAPTURE_DIR to a --full capture folder.";
     }
-    capture_dir_ = dir;
+    capture_dir_ = std::filesystem::path(dir).lexically_normal();
+    ASSERT_TRUE(editor::IsPlainCaptureDir(capture_dir_))
+        << "YAZE_GAME_CAPTURE_DIR must not contain \"..\": " << dir;
     YAZE_SKIP_IF_ROM_MISSING(RomRole::kVanilla, "DungeonGameStateParityTest");
     rom_ = std::make_unique<Rom>();
     ASSERT_TRUE(

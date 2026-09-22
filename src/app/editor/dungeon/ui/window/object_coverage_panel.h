@@ -72,6 +72,7 @@ class ObjectCoveragePanel : public WindowContent {
   // Automatic check against game tilemap captures (see
   // scripts/agents/capture-game-room-tilemaps.py).
   void DrawAutomaticCheck();
+  void DrawAutomaticCheckResults();
   void SetCaptureDir(const std::string& dir);
   void ReloadManifest();
   void StartAutomaticCheck();
@@ -83,6 +84,8 @@ class ObjectCoveragePanel : public WindowContent {
   void DrawFilters();
   void DrawObjectTable(float height);
   void DrawDetails();
+  void DrawVerdictEditor(int object_id);
+  void DrawObjectOccurrences(int object_id);
 
   bool PassesFilters(int object_id) const;
   std::string EvidenceContextName() const;

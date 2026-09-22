@@ -373,8 +373,36 @@ std::optional<int> NextObjectToCheck(const std::vector<int>& review_order,
   return std::nullopt;
 }
 
+std::string SafeEvidenceFileName(std::string_view name) {
+  std::string out;
+  out.reserve(name.size());
+  for (const char ch : name) {
+    if (ch >= 'A' && ch <= 'Z') {
+      out.push_back(static_cast<char>(ch - 'A' + 'a'));
+      continue;
+    }
+    const bool keep = (ch >= 'a' && ch <= 'z') || (ch >= '0' && ch <= '9') ||
+                      ch == '_' || ch == '-';
+    out.push_back(keep ? ch : '_');
+  }
+  return out.empty() ? std::string("unnamed") : out;
+}
+
+bool IsPlainCaptureDir(const std::filesystem::path& dir) {
+  for (const auto& part : dir) {
+    if (part == "..") {
+      return false;
+    }
+  }
+  return true;
+}
+
 absl::StatusOr<GameCaptureManifest> LoadGameCaptureManifest(
     const std::filesystem::path& dir) {
+  if (!IsPlainCaptureDir(dir)) {
+    return absl::InvalidArgumentError(
+        absl::StrCat(dir.string(), " must not contain \"..\""));
+  }
   const std::filesystem::path path = dir / "manifest.json";
   std::ifstream in(path, std::ios::binary);
   if (!in) {

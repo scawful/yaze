@@ -193,6 +193,14 @@ std::map<int, ObjectEvidence> ProposeAutomaticVerdicts(
 // "0x04C" for type 1, "0x12D" for type 2, "0xFD6" for type 3.
 std::string FormatObjectId(int object_id);
 
+// Lowercases letters and keeps only [a-z0-9_-], so a name taken from a
+// project or ROM can never walk out of the folder it is joined onto.
+std::string SafeEvidenceFileName(std::string_view name);
+
+// True when every component of `dir` is a plain name, i.e. the path contains
+// no ".." that could climb out of the folder the user picked.
+bool IsPlainCaptureDir(const std::filesystem::path& dir);
+
 // An object whose draw code a ROM hack changed, so the game (and a capture of
 // it) may draw it differently from yaze's vanilla routine.
 struct ObjectCustomDrawCode {
