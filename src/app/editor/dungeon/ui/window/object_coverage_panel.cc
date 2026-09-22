@@ -944,7 +944,6 @@ void ObjectCoveragePanel::DrawObjectOccurrences(int object_id) {
     ImGui::TextDisabled(
         "%s", tr("Not placed in any room of this ROM. Place it in a scratch "
                  "room to check it."));
-    ImGui::EndChild();
     return;
   }
   ImGui::Text(tr("Placed %zu times in %d rooms:"), occurrences->size(),

@@ -89,6 +89,11 @@ class RoomLayerManager {
     }
     object_translucency_.clear();
     bg2_on_top_ = false;
+    game_hides_lower_tilemap_ = false;
+    game_registers_applied_ = false;
+    lower_tilemap_on_main_ = false;
+    upper_tilemap_blended_ = false;
+    show_hidden_layers_ = false;
     layers_merged_ = false;
     current_merge_type_id_ = 0;
     use_priority_compositing_ =
@@ -362,6 +367,11 @@ class RoomLayerManager {
     }
 
     mix(bg2_on_top_ ? 1u : 0u);
+    mix(game_hides_lower_tilemap_ ? 1u : 0u);
+    mix(game_registers_applied_ ? 1u : 0u);
+    mix(lower_tilemap_on_main_ ? 1u : 0u);
+    mix(upper_tilemap_blended_ ? 1u : 0u);
+    mix(show_hidden_layers_ ? 1u : 0u);
     mix(layers_merged_ ? 1u : 0u);
     mix(current_merge_type_id_);
     mix(use_priority_compositing_ ? 1u : 0u);

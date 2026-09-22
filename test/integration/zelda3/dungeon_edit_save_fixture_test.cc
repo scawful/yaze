@@ -8,6 +8,8 @@
 //      YAZE_TEST_ROM_VANILLA=<rom> and the capture folder.
 // If yaze saves an edit wrongly, the game renders the edited ROM differently
 // from what yaze shows. The edited ROM is ROM-derived data: never commit it.
+// The output must be a new scratch filename. Existing files (including the
+// source ROM and links to it) are rejected; publication requires hard links.
 
 #include <cstdlib>
 #include <iostream>
@@ -17,6 +19,7 @@
 #include <gtest/gtest.h>
 
 #include "absl/strings/str_format.h"
+#include "fresh_rom_fixture_output.h"
 #include "rom/rom.h"
 #include "test_utils.h"
 #include "zelda3/dungeon/room.h"
@@ -37,6 +40,8 @@ TEST(DungeonEditSaveFixture, WriteEditedRom) {
   if (out == nullptr) {
     GTEST_SKIP() << "Set YAZE_EDIT_FIXTURE_OUT to write the edited ROM.";
   }
+  const auto output_status = ValidateFreshFixtureOutput(out);
+  ASSERT_TRUE(output_status.ok()) << output_status;
   YAZE_SKIP_IF_ROM_MISSING(RomRole::kVanilla, "DungeonEditSaveFixture");
   auto rom = std::make_unique<Rom>();
   ASSERT_TRUE(
@@ -92,10 +97,8 @@ TEST(DungeonEditSaveFixture, WriteEditedRom) {
     }
   }
 
-  Rom::SaveSettings settings;
-  settings.filename = out;
-  settings.save_new = false;
-  ASSERT_TRUE(rom->SaveToFile(settings).ok());
+  const auto saved = SaveFreshFixtureRom(*rom, out);
+  ASSERT_TRUE(saved.ok()) << saved;
   std::cout << "Wrote " << out << "\n";
 }
 

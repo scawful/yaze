@@ -766,6 +766,60 @@ TEST_F(RoomLayerManagerTest, GameHiddenLowerTilemapIsOffUnlessShown) {
   EXPECT_FALSE(shown.IsHiddenByGame(LayerType::BG2_Layout));
 }
 
+TEST_F(RoomLayerManagerTest, HiddenLayerToggleInvalidatesCachedComposite) {
+  Room room(/*room_id=*/0, /*rom=*/nullptr);
+  PrepareColorMathRoom(room);
+  room.bg2_buffer().bitmap().mutable_data()[0] = 33;
+  manager_.ApplyGameLayerRegisters(
+      DeriveRoomLayerRegisters(0, false, 0, 0, {}));
+
+  EXPECT_EQ(room.GetCompositeBitmap(manager_).data()[0], 0);
+  ASSERT_FALSE(room.IsCompositeDirty());
+  const auto revision = room.composite_source_revision();
+
+  manager_.SetShowHiddenLayers(true);
+  EXPECT_EQ(room.GetCompositeBitmap(manager_).data()[0], 33);
+  manager_.SetShowHiddenLayers(false);
+  EXPECT_EQ(room.GetCompositeBitmap(manager_).data()[0], 0);
+  EXPECT_EQ(room.composite_source_revision(), revision);
+}
+
+TEST_F(RoomLayerManagerTest, GameRegistersInvalidateCachedComposite) {
+  Room room(/*room_id=*/0, /*rom=*/nullptr);
+  PrepareColorMathRoom(room);
+  room.bg1_buffer().bitmap().mutable_data()[0] = 33;
+  room.bg2_buffer().bitmap().mutable_data()[0] = 34;
+  room.bg2_buffer().bitmap().mutable_data()[1] = 34;
+
+  manager_.ApplyGameLayerRegisters(
+      DeriveRoomLayerRegisters(0, false, 0, 0, {}));
+  EXPECT_EQ(room.GetCompositeBitmap(manager_).data()[1], 0);
+  const auto revision = room.composite_source_revision();
+
+  manager_.ApplyGameLayerRegisters(
+      DeriveRoomLayerRegisters(1, false, 0, 0, {}));
+  EXPECT_EQ(room.GetCompositeBitmap(manager_).data()[0], 33);
+  EXPECT_EQ(room.GetCompositeBitmap(manager_).data()[1], 34);
+
+  manager_.ApplyGameLayerRegisters(
+      DeriveRoomLayerRegisters(3, false, 0, 0, {}));
+  EXPECT_EQ(room.GetCompositeBitmap(manager_).data()[0], 34);
+  EXPECT_EQ(room.composite_source_revision(), revision);
+}
+
+TEST_F(RoomLayerManagerTest, ResetClearsGameRegistersAndHiddenLayerOverride) {
+  const RoomLayerManager fresh;
+  manager_.ApplyGameLayerRegisters(
+      DeriveRoomLayerRegisters(0, false, 0, 0, {}));
+  manager_.SetShowHiddenLayers(true);
+  manager_.Reset();
+  EXPECT_FALSE(manager_.GameHidesLowerTilemap());
+  EXPECT_FALSE(manager_.ShowHiddenLayers());
+  EXPECT_FALSE(manager_.UpperTilemapCoversLower(1));
+  EXPECT_EQ(manager_.CompositeStateSignature(),
+            fresh.CompositeStateSignature());
+}
+
 // Sub-screen-only lower tilemaps never cover opaque upper pixels; when both
 // tilemaps share the main screen (BGACT 3) the lower one wins priority ties.
 TEST_F(RoomLayerManagerTest, GameStackingFollowsLayerRegisters) {
