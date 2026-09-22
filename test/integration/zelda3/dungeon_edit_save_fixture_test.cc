@@ -4,7 +4,7 @@
 //          --gtest_filter='DungeonEditSaveFixture.*'
 //   2. Capture the edited rooms from that ROM in Mesen
 //      (scripts/agents/capture-game-room-tilemaps.py --rom <rom> --rooms ...).
-//   3. Run DungeonGameTilemapParityTest / DungeonGameStateParityTest with
+//   3. Run DungeonGameTilemapParityReport / DungeonGameStateParityTest with
 //      YAZE_TEST_ROM_VANILLA=<rom> and the capture folder.
 // If yaze saves an edit wrongly, the game renders the edited ROM differently
 // from what yaze shows. The edited ROM is ROM-derived data: never commit it.

@@ -28,12 +28,37 @@ so the script resumes, polls, then pauses.
 
 | Test | Environment |
 |---|---|
-| `DungeonGameTilemapParityTest` | `YAZE_GAME_TILEMAP_DIR`, plus `YAZE_GAME_ROOM_FLAGS=1` for an all-flags capture and `YAZE_GAME_TILEMAP_VERBOSE=1` for per-tile output |
+| `DungeonGameParityGate` | `YAZE_GAME_TILEMAP_DIR` and `YAZE_PARITY_BASELINE` (a reviewed file in `test/fixtures/dungeon_parity/`). Pass/fail: see below |
+| `DungeonGameTilemapParityReport` | `YAZE_GAME_TILEMAP_DIR`, plus `YAZE_GAME_ROOM_FLAGS=1` for an all-flags capture and `YAZE_GAME_TILEMAP_VERBOSE=1` for per-tile output. Report only |
+| `DungeonParityBaselineCandidate` | `YAZE_PARITY_STATE` and `YAZE_PARITY_CANDIDATE_OUT` (a new file). Writes an unreviewed candidate baseline |
 | `DungeonGameStateParityTest` | `YAZE_GAME_CAPTURE_DIR` (graphics, palettes, sprites, layer registers, collision) |
 | `DungeonEditSaveFixture` | `YAZE_EDIT_FIXTURE_OUT` writes an edited ROM to capture and compare |
 
-Both need `YAZE_TEST_ROM_VANILLA` pointing at the ROM the capture was made
+All need `YAZE_TEST_ROM_VANILLA` pointing at the ROM the capture was made
 from.
+
+### The gate
+
+`DungeonGameParityGate` passes only when every difference between yaze and
+the capture is listed in a reviewed baseline. It fails on:
+
+- a ROM whose identity (SHA-1 after zero-padding to 2 MB) is not the
+  baseline's,
+- a capture whose manifest does not match the baseline's ROM, entrance and
+  room flags, or whose required room files are missing, unsettled, the wrong
+  size or do not match their SHA-1,
+- a difference that is new, changed (different digest), stale (yaze now
+  matches), duplicated, or in a group that is not reviewed or has no evidence.
+
+Three self-tests run the real pipeline to prove it fails for a changed
+captured tile, the wrong ROM and a missing capture. Running the tests never
+writes a baseline; see `test/fixtures/dungeon_parity/README.md` for how a
+candidate is generated and reviewed.
+
+| Baseline | Capture | Result |
+|---|---|---|
+| `vanilla_us.default.json` | `_full` (entrance `0x34`) | 296 rooms, 344 expected differences |
+| `vanilla_us.all_flags.json` | `_flags_all` | 292 rooms, 100 expected differences |
 
 ## Facts the comparisons established
 
