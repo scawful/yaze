@@ -1,0 +1,2596 @@
+{
+  "capture": {
+    "entrance": "0x34",
+    "required_rooms": [
+      "0x000",
+      "0x001",
+      "0x002",
+      "0x003",
+      "0x004",
+      "0x005",
+      "0x006",
+      "0x007",
+      "0x008",
+      "0x009",
+      "0x00A",
+      "0x00B",
+      "0x00C",
+      "0x00D",
+      "0x00E",
+      "0x00F",
+      "0x010",
+      "0x011",
+      "0x012",
+      "0x013",
+      "0x014",
+      "0x015",
+      "0x016",
+      "0x017",
+      "0x018",
+      "0x019",
+      "0x01A",
+      "0x01B",
+      "0x01C",
+      "0x01D",
+      "0x01E",
+      "0x01F",
+      "0x020",
+      "0x021",
+      "0x022",
+      "0x023",
+      "0x024",
+      "0x025",
+      "0x026",
+      "0x027",
+      "0x028",
+      "0x029",
+      "0x02A",
+      "0x02B",
+      "0x02C",
+      "0x02D",
+      "0x02E",
+      "0x02F",
+      "0x030",
+      "0x031",
+      "0x032",
+      "0x033",
+      "0x034",
+      "0x035",
+      "0x036",
+      "0x037",
+      "0x038",
+      "0x039",
+      "0x03A",
+      "0x03B",
+      "0x03C",
+      "0x03D",
+      "0x03E",
+      "0x03F",
+      "0x040",
+      "0x041",
+      "0x042",
+      "0x043",
+      "0x044",
+      "0x045",
+      "0x046",
+      "0x047",
+      "0x048",
+      "0x049",
+      "0x04A",
+      "0x04B",
+      "0x04C",
+      "0x04D",
+      "0x04E",
+      "0x04F",
+      "0x050",
+      "0x051",
+      "0x052",
+      "0x053",
+      "0x054",
+      "0x055",
+      "0x056",
+      "0x057",
+      "0x058",
+      "0x059",
+      "0x05A",
+      "0x05B",
+      "0x05C",
+      "0x05D",
+      "0x05E",
+      "0x05F",
+      "0x060",
+      "0x061",
+      "0x062",
+      "0x063",
+      "0x064",
+      "0x065",
+      "0x066",
+      "0x067",
+      "0x068",
+      "0x069",
+      "0x06A",
+      "0x06B",
+      "0x06C",
+      "0x06D",
+      "0x06E",
+      "0x06F",
+      "0x070",
+      "0x071",
+      "0x072",
+      "0x073",
+      "0x074",
+      "0x075",
+      "0x076",
+      "0x077",
+      "0x078",
+      "0x079",
+      "0x07A",
+      "0x07B",
+      "0x07C",
+      "0x07D",
+      "0x07E",
+      "0x07F",
+      "0x080",
+      "0x081",
+      "0x082",
+      "0x083",
+      "0x084",
+      "0x085",
+      "0x086",
+      "0x087",
+      "0x088",
+      "0x089",
+      "0x08A",
+      "0x08B",
+      "0x08C",
+      "0x08D",
+      "0x08E",
+      "0x08F",
+      "0x090",
+      "0x091",
+      "0x092",
+      "0x093",
+      "0x094",
+      "0x095",
+      "0x096",
+      "0x097",
+      "0x098",
+      "0x099",
+      "0x09A",
+      "0x09B",
+      "0x09C",
+      "0x09D",
+      "0x09E",
+      "0x09F",
+      "0x0A0",
+      "0x0A1",
+      "0x0A2",
+      "0x0A3",
+      "0x0A4",
+      "0x0A5",
+      "0x0A6",
+      "0x0A7",
+      "0x0A8",
+      "0x0A9",
+      "0x0AA",
+      "0x0AB",
+      "0x0AC",
+      "0x0AD",
+      "0x0AE",
+      "0x0AF",
+      "0x0B0",
+      "0x0B1",
+      "0x0B2",
+      "0x0B3",
+      "0x0B4",
+      "0x0B5",
+      "0x0B6",
+      "0x0B7",
+      "0x0B8",
+      "0x0B9",
+      "0x0BA",
+      "0x0BB",
+      "0x0BC",
+      "0x0BD",
+      "0x0BE",
+      "0x0BF",
+      "0x0C0",
+      "0x0C1",
+      "0x0C2",
+      "0x0C3",
+      "0x0C4",
+      "0x0C5",
+      "0x0C6",
+      "0x0C7",
+      "0x0C8",
+      "0x0C9",
+      "0x0CA",
+      "0x0CB",
+      "0x0CC",
+      "0x0CD",
+      "0x0CE",
+      "0x0CF",
+      "0x0D0",
+      "0x0D1",
+      "0x0D2",
+      "0x0D3",
+      "0x0D4",
+      "0x0D5",
+      "0x0D6",
+      "0x0D7",
+      "0x0D8",
+      "0x0D9",
+      "0x0DA",
+      "0x0DB",
+      "0x0DC",
+      "0x0DD",
+      "0x0DE",
+      "0x0DF",
+      "0x0E0",
+      "0x0E1",
+      "0x0E2",
+      "0x0E3",
+      "0x0E4",
+      "0x0E5",
+      "0x0E6",
+      "0x0E7",
+      "0x0E8",
+      "0x0E9",
+      "0x0EA",
+      "0x0EB",
+      "0x0EC",
+      "0x0ED",
+      "0x0EE",
+      "0x0EF",
+      "0x0F0",
+      "0x0F1",
+      "0x0F2",
+      "0x0F3",
+      "0x0F4",
+      "0x0F5",
+      "0x0F6",
+      "0x0F7",
+      "0x0F8",
+      "0x0F9",
+      "0x0FA",
+      "0x0FB",
+      "0x0FC",
+      "0x0FD",
+      "0x0FE",
+      "0x0FF",
+      "0x100",
+      "0x101",
+      "0x102",
+      "0x103",
+      "0x104",
+      "0x105",
+      "0x106",
+      "0x107",
+      "0x108",
+      "0x109",
+      "0x10A",
+      "0x10B",
+      "0x10C",
+      "0x10D",
+      "0x10E",
+      "0x10F",
+      "0x110",
+      "0x111",
+      "0x112",
+      "0x113",
+      "0x114",
+      "0x115",
+      "0x116",
+      "0x117",
+      "0x118",
+      "0x119",
+      "0x11A",
+      "0x11B",
+      "0x11C",
+      "0x11D",
+      "0x11E",
+      "0x11F",
+      "0x120",
+      "0x121",
+      "0x122",
+      "0x123",
+      "0x124",
+      "0x125",
+      "0x126",
+      "0x127"
+    ],
+    "rom_sha1": "93fb2bd3e19c96c50f124f1dd02144bca7f0af78"
+  },
+  "groups": [
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x27 tag2=0x00; the chest at (24,22) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x009",
+      "tiles": [
+        {
+          "digest": "30df64e31998",
+          "layer": 1,
+          "x": 24,
+          "y": 22
+        },
+        {
+          "digest": "bca185045664",
+          "layer": 1,
+          "x": 25,
+          "y": 22
+        },
+        {
+          "digest": "e36d484aee36",
+          "layer": 1,
+          "x": 24,
+          "y": 23
+        },
+        {
+          "digest": "7db7991f2c0b",
+          "layer": 1,
+          "x": 25,
+          "y": 23
+        }
+      ]
+    },
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x27 tag2=0x00; the chest at (30,23) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x00A",
+      "tiles": [
+        {
+          "digest": "44cd2b713bb0",
+          "layer": 1,
+          "x": 30,
+          "y": 23
+        },
+        {
+          "digest": "0bbb23e5302c",
+          "layer": 1,
+          "x": 31,
+          "y": 23
+        },
+        {
+          "digest": "3bc38c0aea2e",
+          "layer": 1,
+          "x": 30,
+          "y": 24
+        },
+        {
+          "digest": "deddc5f097cb",
+          "layer": 1,
+          "x": 31,
+          "y": 24
+        }
+      ]
+    },
+    {
+      "evidence": "Doors changed after the room loaded. The capture's WRAM has $0468=0000 (shutter controller idle) and $068C=4F40, which has open-door bits beyond the load-time mask 0F00; CollisionMatchesCapture independently finds the game's collision differs only at these doors. yaze draws the load-time state.",
+      "reason": "door-state-after-load",
+      "reviewed": true,
+      "room": "0x00E",
+      "tiles": [
+        {
+          "digest": "31d02224b731",
+          "layer": 1,
+          "x": 27,
+          "y": 47
+        },
+        {
+          "digest": "0d8d642a4c76",
+          "layer": 1,
+          "x": 28,
+          "y": 47
+        },
+        {
+          "digest": "9f2313d692c9",
+          "layer": 1,
+          "x": 29,
+          "y": 47
+        },
+        {
+          "digest": "e78eb6347453",
+          "layer": 1,
+          "x": 34,
+          "y": 47
+        },
+        {
+          "digest": "8b0141148571",
+          "layer": 1,
+          "x": 35,
+          "y": 47
+        },
+        {
+          "digest": "24af3fb8a54d",
+          "layer": 1,
+          "x": 36,
+          "y": 47
+        },
+        {
+          "digest": "4a08e45aa139",
+          "layer": 1,
+          "x": 27,
+          "y": 48
+        },
+        {
+          "digest": "d0a52c7bfd86",
+          "layer": 1,
+          "x": 28,
+          "y": 48
+        },
+        {
+          "digest": "62cc5525ef86",
+          "layer": 1,
+          "x": 29,
+          "y": 48
+        },
+        {
+          "digest": "49f346f866b7",
+          "layer": 1,
+          "x": 34,
+          "y": 48
+        },
+        {
+          "digest": "879b32b2ce72",
+          "layer": 1,
+          "x": 35,
+          "y": 48
+        },
+        {
+          "digest": "5e3e13c6f906",
+          "layer": 1,
+          "x": 36,
+          "y": 48
+        },
+        {
+          "digest": "cc27942042de",
+          "layer": 1,
+          "x": 27,
+          "y": 49
+        },
+        {
+          "digest": "4f268728ddfc",
+          "layer": 1,
+          "x": 28,
+          "y": 49
+        },
+        {
+          "digest": "906e9212baa7",
+          "layer": 1,
+          "x": 29,
+          "y": 49
+        },
+        {
+          "digest": "b028a60b884f",
+          "layer": 1,
+          "x": 34,
+          "y": 49
+        },
+        {
+          "digest": "e9f3ec8cda05",
+          "layer": 1,
+          "x": 35,
+          "y": 49
+        },
+        {
+          "digest": "2f7b216ce960",
+          "layer": 1,
+          "x": 36,
+          "y": 49
+        },
+        {
+          "digest": "50091421618e",
+          "layer": 1,
+          "x": 27,
+          "y": 50
+        },
+        {
+          "digest": "4b7ffd6e55d3",
+          "layer": 1,
+          "x": 28,
+          "y": 50
+        },
+        {
+          "digest": "a0d5be752c6f",
+          "layer": 1,
+          "x": 29,
+          "y": 50
+        },
+        {
+          "digest": "d504214f53bf",
+          "layer": 1,
+          "x": 34,
+          "y": 50
+        },
+        {
+          "digest": "729167c37b7b",
+          "layer": 1,
+          "x": 35,
+          "y": 50
+        },
+        {
+          "digest": "27002786a523",
+          "layer": 1,
+          "x": 36,
+          "y": 50
+        }
+      ]
+    },
+    {
+      "evidence": "Doors changed after the room loaded. The capture's WRAM has $0468=0000 (shutter controller idle) and $068C=CF40, which has open-door bits beyond the load-time mask 0F00; CollisionMatchesCapture independently finds the game's collision differs only at these doors. yaze draws the load-time state.",
+      "reason": "door-state-after-load",
+      "reviewed": true,
+      "room": "0x01C",
+      "tiles": [
+        {
+          "digest": "e2c90bf716e2",
+          "layer": 1,
+          "x": 46,
+          "y": 36
+        },
+        {
+          "digest": "cd4e3dd1763b",
+          "layer": 1,
+          "x": 47,
+          "y": 36
+        },
+        {
+          "digest": "5b47868b32e3",
+          "layer": 1,
+          "x": 48,
+          "y": 36
+        },
+        {
+          "digest": "4de0d512c47e",
+          "layer": 1,
+          "x": 49,
+          "y": 36
+        },
+        {
+          "digest": "90fba00f0d66",
+          "layer": 1,
+          "x": 46,
+          "y": 37
+        },
+        {
+          "digest": "f0f7d900c3c5",
+          "layer": 1,
+          "x": 47,
+          "y": 37
+        },
+        {
+          "digest": "08afd95019a0",
+          "layer": 1,
+          "x": 48,
+          "y": 37
+        },
+        {
+          "digest": "0b656550065f",
+          "layer": 1,
+          "x": 49,
+          "y": 37
+        },
+        {
+          "digest": "d2e21f96335e",
+          "layer": 1,
+          "x": 46,
+          "y": 38
+        },
+        {
+          "digest": "7c997f45d2fc",
+          "layer": 1,
+          "x": 47,
+          "y": 38
+        },
+        {
+          "digest": "f79c2124fe89",
+          "layer": 1,
+          "x": 48,
+          "y": 38
+        },
+        {
+          "digest": "37424446d38b",
+          "layer": 1,
+          "x": 49,
+          "y": 38
+        },
+        {
+          "digest": "31d02224b731",
+          "layer": 1,
+          "x": 27,
+          "y": 47
+        },
+        {
+          "digest": "0d8d642a4c76",
+          "layer": 1,
+          "x": 28,
+          "y": 47
+        },
+        {
+          "digest": "9f2313d692c9",
+          "layer": 1,
+          "x": 29,
+          "y": 47
+        },
+        {
+          "digest": "e78eb6347453",
+          "layer": 1,
+          "x": 34,
+          "y": 47
+        },
+        {
+          "digest": "8b0141148571",
+          "layer": 1,
+          "x": 35,
+          "y": 47
+        },
+        {
+          "digest": "24af3fb8a54d",
+          "layer": 1,
+          "x": 36,
+          "y": 47
+        },
+        {
+          "digest": "4a08e45aa139",
+          "layer": 1,
+          "x": 27,
+          "y": 48
+        },
+        {
+          "digest": "d0a52c7bfd86",
+          "layer": 1,
+          "x": 28,
+          "y": 48
+        },
+        {
+          "digest": "62cc5525ef86",
+          "layer": 1,
+          "x": 29,
+          "y": 48
+        },
+        {
+          "digest": "49f346f866b7",
+          "layer": 1,
+          "x": 34,
+          "y": 48
+        },
+        {
+          "digest": "879b32b2ce72",
+          "layer": 1,
+          "x": 35,
+          "y": 48
+        },
+        {
+          "digest": "5e3e13c6f906",
+          "layer": 1,
+          "x": 36,
+          "y": 48
+        },
+        {
+          "digest": "cc27942042de",
+          "layer": 1,
+          "x": 27,
+          "y": 49
+        },
+        {
+          "digest": "4f268728ddfc",
+          "layer": 1,
+          "x": 28,
+          "y": 49
+        },
+        {
+          "digest": "906e9212baa7",
+          "layer": 1,
+          "x": 29,
+          "y": 49
+        },
+        {
+          "digest": "b028a60b884f",
+          "layer": 1,
+          "x": 34,
+          "y": 49
+        },
+        {
+          "digest": "e9f3ec8cda05",
+          "layer": 1,
+          "x": 35,
+          "y": 49
+        },
+        {
+          "digest": "2f7b216ce960",
+          "layer": 1,
+          "x": 36,
+          "y": 49
+        },
+        {
+          "digest": "50091421618e",
+          "layer": 1,
+          "x": 27,
+          "y": 50
+        },
+        {
+          "digest": "4b7ffd6e55d3",
+          "layer": 1,
+          "x": 28,
+          "y": 50
+        },
+        {
+          "digest": "a0d5be752c6f",
+          "layer": 1,
+          "x": 29,
+          "y": 50
+        },
+        {
+          "digest": "d504214f53bf",
+          "layer": 1,
+          "x": 34,
+          "y": 50
+        },
+        {
+          "digest": "729167c37b7b",
+          "layer": 1,
+          "x": 35,
+          "y": 50
+        },
+        {
+          "digest": "27002786a523",
+          "layer": 1,
+          "x": 36,
+          "y": 50
+        }
+      ]
+    },
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x32 tag2=0x1B; the chest at (22,12) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x028",
+      "tiles": [
+        {
+          "digest": "c5a3536a8674",
+          "layer": 1,
+          "x": 22,
+          "y": 12
+        },
+        {
+          "digest": "fe123f92935d",
+          "layer": 1,
+          "x": 23,
+          "y": 12
+        },
+        {
+          "digest": "e311d63aa393",
+          "layer": 1,
+          "x": 22,
+          "y": 13
+        },
+        {
+          "digest": "1a9c36d06133",
+          "layer": 1,
+          "x": 23,
+          "y": 13
+        }
+      ]
+    },
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x2A tag2=0x00; the chest at (46,20) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x02E",
+      "tiles": [
+        {
+          "digest": "73aa15f1f052",
+          "layer": 1,
+          "x": 46,
+          "y": 20
+        },
+        {
+          "digest": "62bcbbddbb96",
+          "layer": 1,
+          "x": 47,
+          "y": 20
+        },
+        {
+          "digest": "a78d9bbba6d3",
+          "layer": 1,
+          "x": 46,
+          "y": 21
+        },
+        {
+          "digest": "3b4e04cb8bcf",
+          "layer": 1,
+          "x": 47,
+          "y": 21
+        }
+      ]
+    },
+    {
+      "evidence": "Doors changed after the room loaded. The capture's WRAM has $0468=0000 (shutter controller idle) and $068C=4F00, which has open-door bits beyond the load-time mask 0F00; CollisionMatchesCapture independently finds the game's collision differs only at these doors. yaze draws the load-time state.",
+      "reason": "door-state-after-load",
+      "reviewed": true,
+      "room": "0x031",
+      "tiles": [
+        {
+          "digest": "e78eb6347453",
+          "layer": 1,
+          "x": 34,
+          "y": 47
+        },
+        {
+          "digest": "8b0141148571",
+          "layer": 1,
+          "x": 35,
+          "y": 47
+        },
+        {
+          "digest": "24af3fb8a54d",
+          "layer": 1,
+          "x": 36,
+          "y": 47
+        },
+        {
+          "digest": "49f346f866b7",
+          "layer": 1,
+          "x": 34,
+          "y": 48
+        },
+        {
+          "digest": "879b32b2ce72",
+          "layer": 1,
+          "x": 35,
+          "y": 48
+        },
+        {
+          "digest": "5e3e13c6f906",
+          "layer": 1,
+          "x": 36,
+          "y": 48
+        },
+        {
+          "digest": "b028a60b884f",
+          "layer": 1,
+          "x": 34,
+          "y": 49
+        },
+        {
+          "digest": "e9f3ec8cda05",
+          "layer": 1,
+          "x": 35,
+          "y": 49
+        },
+        {
+          "digest": "2f7b216ce960",
+          "layer": 1,
+          "x": 36,
+          "y": 49
+        },
+        {
+          "digest": "d504214f53bf",
+          "layer": 1,
+          "x": 34,
+          "y": 50
+        },
+        {
+          "digest": "729167c37b7b",
+          "layer": 1,
+          "x": 35,
+          "y": 50
+        },
+        {
+          "digest": "27002786a523",
+          "layer": 1,
+          "x": 36,
+          "y": 50
+        }
+      ]
+    },
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x27 tag2=0x14; the chest at (22,54) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x03F",
+      "tiles": [
+        {
+          "digest": "f392a838e30f",
+          "layer": 1,
+          "x": 22,
+          "y": 54
+        },
+        {
+          "digest": "3b0a2836ac84",
+          "layer": 1,
+          "x": 23,
+          "y": 54
+        },
+        {
+          "digest": "f8aec51c9cb5",
+          "layer": 1,
+          "x": 22,
+          "y": 55
+        },
+        {
+          "digest": "1803a741b841",
+          "layer": 1,
+          "x": 23,
+          "y": 55
+        }
+      ]
+    },
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x3C tag2=0x00; the chest at (14,10) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x046",
+      "tiles": [
+        {
+          "digest": "ce7bb23e56fd",
+          "layer": 1,
+          "x": 14,
+          "y": 10
+        },
+        {
+          "digest": "5baf8b14bef4",
+          "layer": 1,
+          "x": 15,
+          "y": 10
+        },
+        {
+          "digest": "323aa4dc541a",
+          "layer": 1,
+          "x": 14,
+          "y": 11
+        },
+        {
+          "digest": "63fba44c2ff8",
+          "layer": 1,
+          "x": 15,
+          "y": 11
+        }
+      ]
+    },
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x32 tag2=0x3F; the chest at (35,46) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x04D",
+      "tiles": [
+        {
+          "digest": "4419b74001f2",
+          "layer": 1,
+          "x": 35,
+          "y": 46
+        },
+        {
+          "digest": "e53f9c31c54c",
+          "layer": 1,
+          "x": 36,
+          "y": 46
+        },
+        {
+          "digest": "8859750b6d0a",
+          "layer": 1,
+          "x": 35,
+          "y": 47
+        },
+        {
+          "digest": "1d9278d2ca78",
+          "layer": 1,
+          "x": 36,
+          "y": 47
+        }
+      ]
+    },
+    {
+      "evidence": "Doors changed after the room loaded. The capture's WRAM has $0468=0000 (shutter controller idle) and $068C=EFA0, which has open-door bits beyond the load-time mask 0F00; CollisionMatchesCapture independently finds the game's collision differs only at these doors. yaze draws the load-time state.",
+      "reason": "door-state-after-load",
+      "reviewed": true,
+      "room": "0x05D",
+      "tiles": [
+        {
+          "digest": "31d02224b731",
+          "layer": 1,
+          "x": 27,
+          "y": 15
+        },
+        {
+          "digest": "0d8d642a4c76",
+          "layer": 1,
+          "x": 28,
+          "y": 15
+        },
+        {
+          "digest": "9f2313d692c9",
+          "layer": 1,
+          "x": 29,
+          "y": 15
+        },
+        {
+          "digest": "e78eb6347453",
+          "layer": 1,
+          "x": 34,
+          "y": 15
+        },
+        {
+          "digest": "8b0141148571",
+          "layer": 1,
+          "x": 35,
+          "y": 15
+        },
+        {
+          "digest": "24af3fb8a54d",
+          "layer": 1,
+          "x": 36,
+          "y": 15
+        },
+        {
+          "digest": "4a08e45aa139",
+          "layer": 1,
+          "x": 27,
+          "y": 16
+        },
+        {
+          "digest": "d0a52c7bfd86",
+          "layer": 1,
+          "x": 28,
+          "y": 16
+        },
+        {
+          "digest": "62cc5525ef86",
+          "layer": 1,
+          "x": 29,
+          "y": 16
+        },
+        {
+          "digest": "49f346f866b7",
+          "layer": 1,
+          "x": 34,
+          "y": 16
+        },
+        {
+          "digest": "879b32b2ce72",
+          "layer": 1,
+          "x": 35,
+          "y": 16
+        },
+        {
+          "digest": "5e3e13c6f906",
+          "layer": 1,
+          "x": 36,
+          "y": 16
+        },
+        {
+          "digest": "cc27942042de",
+          "layer": 1,
+          "x": 27,
+          "y": 17
+        },
+        {
+          "digest": "4f268728ddfc",
+          "layer": 1,
+          "x": 28,
+          "y": 17
+        },
+        {
+          "digest": "906e9212baa7",
+          "layer": 1,
+          "x": 29,
+          "y": 17
+        },
+        {
+          "digest": "b028a60b884f",
+          "layer": 1,
+          "x": 34,
+          "y": 17
+        },
+        {
+          "digest": "e9f3ec8cda05",
+          "layer": 1,
+          "x": 35,
+          "y": 17
+        },
+        {
+          "digest": "2f7b216ce960",
+          "layer": 1,
+          "x": 36,
+          "y": 17
+        },
+        {
+          "digest": "50091421618e",
+          "layer": 1,
+          "x": 27,
+          "y": 18
+        },
+        {
+          "digest": "4b7ffd6e55d3",
+          "layer": 1,
+          "x": 28,
+          "y": 18
+        },
+        {
+          "digest": "a0d5be752c6f",
+          "layer": 1,
+          "x": 29,
+          "y": 18
+        },
+        {
+          "digest": "d504214f53bf",
+          "layer": 1,
+          "x": 34,
+          "y": 18
+        },
+        {
+          "digest": "729167c37b7b",
+          "layer": 1,
+          "x": 35,
+          "y": 18
+        },
+        {
+          "digest": "27002786a523",
+          "layer": 1,
+          "x": 36,
+          "y": 18
+        },
+        {
+          "digest": "e15526ef1de5",
+          "layer": 1,
+          "x": 14,
+          "y": 27
+        },
+        {
+          "digest": "9e2f097d926b",
+          "layer": 1,
+          "x": 15,
+          "y": 27
+        },
+        {
+          "digest": "bc5bdcffd49d",
+          "layer": 1,
+          "x": 16,
+          "y": 27
+        },
+        {
+          "digest": "5791bef64c1f",
+          "layer": 1,
+          "x": 17,
+          "y": 27
+        },
+        {
+          "digest": "8e121e89258e",
+          "layer": 1,
+          "x": 14,
+          "y": 28
+        },
+        {
+          "digest": "c91a0027af20",
+          "layer": 1,
+          "x": 15,
+          "y": 28
+        },
+        {
+          "digest": "db147aafc5c3",
+          "layer": 1,
+          "x": 16,
+          "y": 28
+        },
+        {
+          "digest": "34f5ba8f6a93",
+          "layer": 1,
+          "x": 17,
+          "y": 28
+        },
+        {
+          "digest": "f6f73d97028d",
+          "layer": 1,
+          "x": 14,
+          "y": 29
+        },
+        {
+          "digest": "40e3019afb90",
+          "layer": 1,
+          "x": 15,
+          "y": 29
+        },
+        {
+          "digest": "95e7fa9f87f9",
+          "layer": 1,
+          "x": 16,
+          "y": 29
+        },
+        {
+          "digest": "2e2e11ca48a9",
+          "layer": 1,
+          "x": 17,
+          "y": 29
+        },
+        {
+          "digest": "e2c90bf716e2",
+          "layer": 1,
+          "x": 14,
+          "y": 36
+        },
+        {
+          "digest": "cd4e3dd1763b",
+          "layer": 1,
+          "x": 15,
+          "y": 36
+        },
+        {
+          "digest": "5b47868b32e3",
+          "layer": 1,
+          "x": 16,
+          "y": 36
+        },
+        {
+          "digest": "4de0d512c47e",
+          "layer": 1,
+          "x": 17,
+          "y": 36
+        },
+        {
+          "digest": "90fba00f0d66",
+          "layer": 1,
+          "x": 14,
+          "y": 37
+        },
+        {
+          "digest": "f0f7d900c3c5",
+          "layer": 1,
+          "x": 15,
+          "y": 37
+        },
+        {
+          "digest": "08afd95019a0",
+          "layer": 1,
+          "x": 16,
+          "y": 37
+        },
+        {
+          "digest": "0b656550065f",
+          "layer": 1,
+          "x": 17,
+          "y": 37
+        },
+        {
+          "digest": "d2e21f96335e",
+          "layer": 1,
+          "x": 14,
+          "y": 38
+        },
+        {
+          "digest": "7c997f45d2fc",
+          "layer": 1,
+          "x": 15,
+          "y": 38
+        },
+        {
+          "digest": "f79c2124fe89",
+          "layer": 1,
+          "x": 16,
+          "y": 38
+        },
+        {
+          "digest": "37424446d38b",
+          "layer": 1,
+          "x": 17,
+          "y": 38
+        },
+        {
+          "digest": "e15526ef1de5",
+          "layer": 1,
+          "x": 14,
+          "y": 59
+        },
+        {
+          "digest": "9e2f097d926b",
+          "layer": 1,
+          "x": 15,
+          "y": 59
+        },
+        {
+          "digest": "bc5bdcffd49d",
+          "layer": 1,
+          "x": 16,
+          "y": 59
+        },
+        {
+          "digest": "5791bef64c1f",
+          "layer": 1,
+          "x": 17,
+          "y": 59
+        },
+        {
+          "digest": "8e121e89258e",
+          "layer": 1,
+          "x": 14,
+          "y": 60
+        },
+        {
+          "digest": "c91a0027af20",
+          "layer": 1,
+          "x": 15,
+          "y": 60
+        },
+        {
+          "digest": "db147aafc5c3",
+          "layer": 1,
+          "x": 16,
+          "y": 60
+        },
+        {
+          "digest": "34f5ba8f6a93",
+          "layer": 1,
+          "x": 17,
+          "y": 60
+        },
+        {
+          "digest": "f6f73d97028d",
+          "layer": 1,
+          "x": 14,
+          "y": 61
+        },
+        {
+          "digest": "40e3019afb90",
+          "layer": 1,
+          "x": 15,
+          "y": 61
+        },
+        {
+          "digest": "95e7fa9f87f9",
+          "layer": 1,
+          "x": 16,
+          "y": 61
+        },
+        {
+          "digest": "2e2e11ca48a9",
+          "layer": 1,
+          "x": 17,
+          "y": 61
+        }
+      ]
+    },
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x27 tag2=0x00; the chest at (8,54) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x05F",
+      "tiles": [
+        {
+          "digest": "f392a838e30f",
+          "layer": 1,
+          "x": 8,
+          "y": 54
+        },
+        {
+          "digest": "3b0a2836ac84",
+          "layer": 1,
+          "x": 9,
+          "y": 54
+        },
+        {
+          "digest": "f8aec51c9cb5",
+          "layer": 1,
+          "x": 8,
+          "y": 55
+        },
+        {
+          "digest": "1803a741b841",
+          "layer": 1,
+          "x": 9,
+          "y": 55
+        }
+      ]
+    },
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x3C tag2=0x00; the chest at (34,48) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x066",
+      "tiles": [
+        {
+          "digest": "520383dff110",
+          "layer": 2,
+          "x": 34,
+          "y": 48
+        },
+        {
+          "digest": "9373f20e6a7d",
+          "layer": 2,
+          "x": 35,
+          "y": 48
+        },
+        {
+          "digest": "413e2415285a",
+          "layer": 2,
+          "x": 34,
+          "y": 49
+        },
+        {
+          "digest": "63fba44c2ff8",
+          "layer": 2,
+          "x": 35,
+          "y": 49
+        }
+      ]
+    },
+    {
+      "evidence": "Doors changed after the room loaded. The capture's WRAM has $0468=0000 (shutter controller idle) and $068C=7F30, which has open-door bits beyond the load-time mask 0F00; CollisionMatchesCapture independently finds the game's collision differs only at these doors. yaze draws the load-time state.",
+      "reason": "door-state-after-load",
+      "reviewed": true,
+      "room": "0x06B",
+      "tiles": [
+        {
+          "digest": "e15526ef1de5",
+          "layer": 1,
+          "x": 14,
+          "y": 27
+        },
+        {
+          "digest": "9e2f097d926b",
+          "layer": 1,
+          "x": 15,
+          "y": 27
+        },
+        {
+          "digest": "bc5bdcffd49d",
+          "layer": 1,
+          "x": 16,
+          "y": 27
+        },
+        {
+          "digest": "5791bef64c1f",
+          "layer": 1,
+          "x": 17,
+          "y": 27
+        },
+        {
+          "digest": "8e121e89258e",
+          "layer": 1,
+          "x": 14,
+          "y": 28
+        },
+        {
+          "digest": "c91a0027af20",
+          "layer": 1,
+          "x": 15,
+          "y": 28
+        },
+        {
+          "digest": "db147aafc5c3",
+          "layer": 1,
+          "x": 16,
+          "y": 28
+        },
+        {
+          "digest": "34f5ba8f6a93",
+          "layer": 1,
+          "x": 17,
+          "y": 28
+        },
+        {
+          "digest": "f6f73d97028d",
+          "layer": 1,
+          "x": 14,
+          "y": 29
+        },
+        {
+          "digest": "40e3019afb90",
+          "layer": 1,
+          "x": 15,
+          "y": 29
+        },
+        {
+          "digest": "95e7fa9f87f9",
+          "layer": 1,
+          "x": 16,
+          "y": 29
+        },
+        {
+          "digest": "2e2e11ca48a9",
+          "layer": 1,
+          "x": 17,
+          "y": 29
+        },
+        {
+          "digest": "e2c90bf716e2",
+          "layer": 1,
+          "x": 14,
+          "y": 36
+        },
+        {
+          "digest": "cd4e3dd1763b",
+          "layer": 1,
+          "x": 15,
+          "y": 36
+        },
+        {
+          "digest": "5b47868b32e3",
+          "layer": 1,
+          "x": 16,
+          "y": 36
+        },
+        {
+          "digest": "4de0d512c47e",
+          "layer": 1,
+          "x": 17,
+          "y": 36
+        },
+        {
+          "digest": "e2c90bf716e2",
+          "layer": 1,
+          "x": 46,
+          "y": 36
+        },
+        {
+          "digest": "cd4e3dd1763b",
+          "layer": 1,
+          "x": 47,
+          "y": 36
+        },
+        {
+          "digest": "5b47868b32e3",
+          "layer": 1,
+          "x": 48,
+          "y": 36
+        },
+        {
+          "digest": "4de0d512c47e",
+          "layer": 1,
+          "x": 49,
+          "y": 36
+        },
+        {
+          "digest": "90fba00f0d66",
+          "layer": 1,
+          "x": 14,
+          "y": 37
+        },
+        {
+          "digest": "f0f7d900c3c5",
+          "layer": 1,
+          "x": 15,
+          "y": 37
+        },
+        {
+          "digest": "08afd95019a0",
+          "layer": 1,
+          "x": 16,
+          "y": 37
+        },
+        {
+          "digest": "0b656550065f",
+          "layer": 1,
+          "x": 17,
+          "y": 37
+        },
+        {
+          "digest": "90fba00f0d66",
+          "layer": 1,
+          "x": 46,
+          "y": 37
+        },
+        {
+          "digest": "f0f7d900c3c5",
+          "layer": 1,
+          "x": 47,
+          "y": 37
+        },
+        {
+          "digest": "08afd95019a0",
+          "layer": 1,
+          "x": 48,
+          "y": 37
+        },
+        {
+          "digest": "0b656550065f",
+          "layer": 1,
+          "x": 49,
+          "y": 37
+        },
+        {
+          "digest": "d2e21f96335e",
+          "layer": 1,
+          "x": 14,
+          "y": 38
+        },
+        {
+          "digest": "7c997f45d2fc",
+          "layer": 1,
+          "x": 15,
+          "y": 38
+        },
+        {
+          "digest": "f79c2124fe89",
+          "layer": 1,
+          "x": 16,
+          "y": 38
+        },
+        {
+          "digest": "37424446d38b",
+          "layer": 1,
+          "x": 17,
+          "y": 38
+        },
+        {
+          "digest": "d2e21f96335e",
+          "layer": 1,
+          "x": 46,
+          "y": 38
+        },
+        {
+          "digest": "7c997f45d2fc",
+          "layer": 1,
+          "x": 47,
+          "y": 38
+        },
+        {
+          "digest": "f79c2124fe89",
+          "layer": 1,
+          "x": 48,
+          "y": 38
+        },
+        {
+          "digest": "37424446d38b",
+          "layer": 1,
+          "x": 49,
+          "y": 38
+        },
+        {
+          "digest": "31d02224b731",
+          "layer": 1,
+          "x": 27,
+          "y": 47
+        },
+        {
+          "digest": "0d8d642a4c76",
+          "layer": 1,
+          "x": 28,
+          "y": 47
+        },
+        {
+          "digest": "9f2313d692c9",
+          "layer": 1,
+          "x": 29,
+          "y": 47
+        },
+        {
+          "digest": "e78eb6347453",
+          "layer": 1,
+          "x": 34,
+          "y": 47
+        },
+        {
+          "digest": "8b0141148571",
+          "layer": 1,
+          "x": 35,
+          "y": 47
+        },
+        {
+          "digest": "24af3fb8a54d",
+          "layer": 1,
+          "x": 36,
+          "y": 47
+        },
+        {
+          "digest": "4a08e45aa139",
+          "layer": 1,
+          "x": 27,
+          "y": 48
+        },
+        {
+          "digest": "d0a52c7bfd86",
+          "layer": 1,
+          "x": 28,
+          "y": 48
+        },
+        {
+          "digest": "62cc5525ef86",
+          "layer": 1,
+          "x": 29,
+          "y": 48
+        },
+        {
+          "digest": "49f346f866b7",
+          "layer": 1,
+          "x": 34,
+          "y": 48
+        },
+        {
+          "digest": "879b32b2ce72",
+          "layer": 1,
+          "x": 35,
+          "y": 48
+        },
+        {
+          "digest": "5e3e13c6f906",
+          "layer": 1,
+          "x": 36,
+          "y": 48
+        },
+        {
+          "digest": "cc27942042de",
+          "layer": 1,
+          "x": 27,
+          "y": 49
+        },
+        {
+          "digest": "4f268728ddfc",
+          "layer": 1,
+          "x": 28,
+          "y": 49
+        },
+        {
+          "digest": "906e9212baa7",
+          "layer": 1,
+          "x": 29,
+          "y": 49
+        },
+        {
+          "digest": "b028a60b884f",
+          "layer": 1,
+          "x": 34,
+          "y": 49
+        },
+        {
+          "digest": "e9f3ec8cda05",
+          "layer": 1,
+          "x": 35,
+          "y": 49
+        },
+        {
+          "digest": "2f7b216ce960",
+          "layer": 1,
+          "x": 36,
+          "y": 49
+        },
+        {
+          "digest": "50091421618e",
+          "layer": 1,
+          "x": 27,
+          "y": 50
+        },
+        {
+          "digest": "4b7ffd6e55d3",
+          "layer": 1,
+          "x": 28,
+          "y": 50
+        },
+        {
+          "digest": "a0d5be752c6f",
+          "layer": 1,
+          "x": 29,
+          "y": 50
+        },
+        {
+          "digest": "d504214f53bf",
+          "layer": 1,
+          "x": 34,
+          "y": 50
+        },
+        {
+          "digest": "729167c37b7b",
+          "layer": 1,
+          "x": 35,
+          "y": 50
+        },
+        {
+          "digest": "27002786a523",
+          "layer": 1,
+          "x": 36,
+          "y": 50
+        }
+      ]
+    },
+    {
+      "evidence": "Doors changed after the room loaded. The capture's WRAM has $0468=0000 (shutter controller idle) and $068C=6F20, which has open-door bits beyond the load-time mask 0F00; CollisionMatchesCapture independently finds the game's collision differs only at these doors. yaze draws the load-time state. The frame column on the lower tilemap comes from the closed shutter art: in the all-flags capture the same door stays open and the game's lower tilemap there holds the wall tile, exactly as yaze draws.",
+      "reason": "door-state-after-load",
+      "reviewed": true,
+      "room": "0x071",
+      "tiles": [
+        {
+          "digest": "1aac7b0a4adf",
+          "layer": 2,
+          "x": 24,
+          "y": 47
+        },
+        {
+          "digest": "0d8d642a4c76",
+          "layer": 2,
+          "x": 25,
+          "y": 47
+        },
+        {
+          "digest": "ae087912f3e1",
+          "layer": 2,
+          "x": 26,
+          "y": 47
+        },
+        {
+          "digest": "f43bfde9930f",
+          "layer": 2,
+          "x": 37,
+          "y": 47
+        },
+        {
+          "digest": "8b0141148571",
+          "layer": 2,
+          "x": 38,
+          "y": 47
+        },
+        {
+          "digest": "b4e77caa4eb1",
+          "layer": 2,
+          "x": 39,
+          "y": 47
+        },
+        {
+          "digest": "4a08e45aa139",
+          "layer": 2,
+          "x": 24,
+          "y": 48
+        },
+        {
+          "digest": "d0a52c7bfd86",
+          "layer": 2,
+          "x": 25,
+          "y": 48
+        },
+        {
+          "digest": "aae71177b0c8",
+          "layer": 2,
+          "x": 26,
+          "y": 48
+        },
+        {
+          "digest": "e60ca6449cd0",
+          "layer": 2,
+          "x": 37,
+          "y": 48
+        },
+        {
+          "digest": "879b32b2ce72",
+          "layer": 2,
+          "x": 38,
+          "y": 48
+        },
+        {
+          "digest": "5e3e13c6f906",
+          "layer": 2,
+          "x": 39,
+          "y": 48
+        },
+        {
+          "digest": "cc27942042de",
+          "layer": 2,
+          "x": 24,
+          "y": 49
+        },
+        {
+          "digest": "4f268728ddfc",
+          "layer": 2,
+          "x": 25,
+          "y": 49
+        },
+        {
+          "digest": "220d4c6f4235",
+          "layer": 2,
+          "x": 26,
+          "y": 49
+        },
+        {
+          "digest": "17cbc1ccae4e",
+          "layer": 2,
+          "x": 37,
+          "y": 49
+        },
+        {
+          "digest": "e9f3ec8cda05",
+          "layer": 2,
+          "x": 38,
+          "y": 49
+        },
+        {
+          "digest": "2f7b216ce960",
+          "layer": 2,
+          "x": 39,
+          "y": 49
+        },
+        {
+          "digest": "951c20253450",
+          "layer": 2,
+          "x": 24,
+          "y": 50
+        },
+        {
+          "digest": "4b7ffd6e55d3",
+          "layer": 2,
+          "x": 25,
+          "y": 50
+        },
+        {
+          "digest": "2470ea8c58ae",
+          "layer": 2,
+          "x": 26,
+          "y": 50
+        },
+        {
+          "digest": "6b3a1fd598b2",
+          "layer": 2,
+          "x": 37,
+          "y": 50
+        },
+        {
+          "digest": "729167c37b7b",
+          "layer": 2,
+          "x": 38,
+          "y": 50
+        },
+        {
+          "digest": "60395012c2aa",
+          "layer": 2,
+          "x": 39,
+          "y": 50
+        },
+        {
+          "digest": "f3fa3a7f32da",
+          "layer": 2,
+          "x": 14,
+          "y": 56
+        },
+        {
+          "digest": "9e2f097d926b",
+          "layer": 2,
+          "x": 15,
+          "y": 56
+        },
+        {
+          "digest": "bc5bdcffd49d",
+          "layer": 2,
+          "x": 16,
+          "y": 56
+        },
+        {
+          "digest": "7755d3c89e76",
+          "layer": 2,
+          "x": 17,
+          "y": 56
+        },
+        {
+          "digest": "8e121e89258e",
+          "layer": 2,
+          "x": 14,
+          "y": 57
+        },
+        {
+          "digest": "c91a0027af20",
+          "layer": 2,
+          "x": 15,
+          "y": 57
+        },
+        {
+          "digest": "db147aafc5c3",
+          "layer": 2,
+          "x": 16,
+          "y": 57
+        },
+        {
+          "digest": "34f5ba8f6a93",
+          "layer": 2,
+          "x": 17,
+          "y": 57
+        },
+        {
+          "digest": "c748fe820b9f",
+          "layer": 2,
+          "x": 14,
+          "y": 58
+        },
+        {
+          "digest": "abe0cf2e7410",
+          "layer": 2,
+          "x": 15,
+          "y": 58
+        },
+        {
+          "digest": "133b3de4c2a6",
+          "layer": 2,
+          "x": 16,
+          "y": 58
+        },
+        {
+          "digest": "feb4f12dc881",
+          "layer": 2,
+          "x": 17,
+          "y": 58
+        }
+      ]
+    },
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x27 tag2=0x00; the chest at (31,15) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x074",
+      "tiles": [
+        {
+          "digest": "4073f80cbb4e",
+          "layer": 1,
+          "x": 31,
+          "y": 15
+        },
+        {
+          "digest": "e6ee2fa4d038",
+          "layer": 1,
+          "x": 32,
+          "y": 15
+        },
+        {
+          "digest": "b3165fee1129",
+          "layer": 1,
+          "x": 31,
+          "y": 16
+        },
+        {
+          "digest": "c8d6d3bf7c1a",
+          "layer": 1,
+          "x": 32,
+          "y": 16
+        }
+      ]
+    },
+    {
+      "evidence": "Doors changed after the room loaded. The capture's WRAM has $0468=0000 (shutter controller idle) and $068C=8F00, which has open-door bits beyond the load-time mask 0F00; CollisionMatchesCapture independently finds the game's collision differs only at these doors. yaze draws the load-time state.",
+      "reason": "door-state-after-load",
+      "reviewed": true,
+      "room": "0x07D",
+      "tiles": [
+        {
+          "digest": "e15526ef1de5",
+          "layer": 1,
+          "x": 46,
+          "y": 59
+        },
+        {
+          "digest": "9e2f097d926b",
+          "layer": 1,
+          "x": 47,
+          "y": 59
+        },
+        {
+          "digest": "bc5bdcffd49d",
+          "layer": 1,
+          "x": 48,
+          "y": 59
+        },
+        {
+          "digest": "5791bef64c1f",
+          "layer": 1,
+          "x": 49,
+          "y": 59
+        },
+        {
+          "digest": "8e121e89258e",
+          "layer": 1,
+          "x": 46,
+          "y": 60
+        },
+        {
+          "digest": "c91a0027af20",
+          "layer": 1,
+          "x": 47,
+          "y": 60
+        },
+        {
+          "digest": "db147aafc5c3",
+          "layer": 1,
+          "x": 48,
+          "y": 60
+        },
+        {
+          "digest": "34f5ba8f6a93",
+          "layer": 1,
+          "x": 49,
+          "y": 60
+        },
+        {
+          "digest": "f6f73d97028d",
+          "layer": 1,
+          "x": 46,
+          "y": 61
+        },
+        {
+          "digest": "40e3019afb90",
+          "layer": 1,
+          "x": 47,
+          "y": 61
+        },
+        {
+          "digest": "95e7fa9f87f9",
+          "layer": 1,
+          "x": 48,
+          "y": 61
+        },
+        {
+          "digest": "2e2e11ca48a9",
+          "layer": 1,
+          "x": 49,
+          "y": 61
+        }
+      ]
+    },
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x04 tag2=0x3C; the chest at (14,16) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x07D",
+      "tiles": [
+        {
+          "digest": "f392a838e30f",
+          "layer": 1,
+          "x": 14,
+          "y": 16
+        },
+        {
+          "digest": "3b0a2836ac84",
+          "layer": 1,
+          "x": 15,
+          "y": 16
+        },
+        {
+          "digest": "f8aec51c9cb5",
+          "layer": 1,
+          "x": 14,
+          "y": 17
+        },
+        {
+          "digest": "1803a741b841",
+          "layer": 1,
+          "x": 15,
+          "y": 17
+        }
+      ]
+    },
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x2B tag2=0x17; the chest at (14,48) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x07E",
+      "tiles": [
+        {
+          "digest": "f392a838e30f",
+          "layer": 1,
+          "x": 14,
+          "y": 48
+        },
+        {
+          "digest": "3b0a2836ac84",
+          "layer": 1,
+          "x": 15,
+          "y": 48
+        },
+        {
+          "digest": "f8aec51c9cb5",
+          "layer": 1,
+          "x": 14,
+          "y": 49
+        },
+        {
+          "digest": "1803a741b841",
+          "layer": 1,
+          "x": 15,
+          "y": 49
+        }
+      ]
+    },
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x3E tag2=0x01; the chest at (47,52) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x087",
+      "tiles": [
+        {
+          "digest": "44cd2b713bb0",
+          "layer": 1,
+          "x": 47,
+          "y": 52
+        },
+        {
+          "digest": "0bbb23e5302c",
+          "layer": 1,
+          "x": 48,
+          "y": 52
+        },
+        {
+          "digest": "3bc38c0aea2e",
+          "layer": 1,
+          "x": 47,
+          "y": 53
+        },
+        {
+          "digest": "deddc5f097cb",
+          "layer": 1,
+          "x": 48,
+          "y": 53
+        }
+      ]
+    },
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x33 tag2=0x29; the chest at (16,8) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x08D",
+      "tiles": [
+        {
+          "digest": "f91f5c2015c3",
+          "layer": 1,
+          "x": 16,
+          "y": 8
+        },
+        {
+          "digest": "5763b542b2ee",
+          "layer": 1,
+          "x": 17,
+          "y": 8
+        },
+        {
+          "digest": "780f53d83f73",
+          "layer": 1,
+          "x": 16,
+          "y": 9
+        },
+        {
+          "digest": "e7c6300be84e",
+          "layer": 1,
+          "x": 17,
+          "y": 9
+        }
+      ]
+    },
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x27 tag2=0x00; the chest at (40,22) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x0AE",
+      "tiles": [
+        {
+          "digest": "f392a838e30f",
+          "layer": 1,
+          "x": 40,
+          "y": 22
+        },
+        {
+          "digest": "3b0a2836ac84",
+          "layer": 1,
+          "x": 41,
+          "y": 22
+        },
+        {
+          "digest": "f8aec51c9cb5",
+          "layer": 1,
+          "x": 40,
+          "y": 23
+        },
+        {
+          "digest": "1803a741b841",
+          "layer": 1,
+          "x": 41,
+          "y": 23
+        }
+      ]
+    },
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x27 tag2=0x00; the chest at (18,48) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x0B3",
+      "tiles": [
+        {
+          "digest": "489b38bea613",
+          "layer": 1,
+          "x": 18,
+          "y": 48
+        },
+        {
+          "digest": "a794018468c3",
+          "layer": 1,
+          "x": 19,
+          "y": 48
+        },
+        {
+          "digest": "dcbe6c87d69f",
+          "layer": 1,
+          "x": 18,
+          "y": 49
+        },
+        {
+          "digest": "cac4927121c7",
+          "layer": 1,
+          "x": 19,
+          "y": 49
+        }
+      ]
+    },
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x04 tag2=0x3C; the chest at (15,10) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x0B6",
+      "tiles": [
+        {
+          "digest": "d76af1918ada",
+          "layer": 1,
+          "x": 15,
+          "y": 10
+        },
+        {
+          "digest": "9c4aad6f55cf",
+          "layer": 1,
+          "x": 16,
+          "y": 10
+        },
+        {
+          "digest": "164d1afddf90",
+          "layer": 1,
+          "x": 15,
+          "y": 11
+        },
+        {
+          "digest": "1ceaee249e3a",
+          "layer": 1,
+          "x": 16,
+          "y": 11
+        }
+      ]
+    },
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x27 tag2=0x00; the chest at (48,16) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x0B8",
+      "tiles": [
+        {
+          "digest": "3184d9b1e5e9",
+          "layer": 1,
+          "x": 48,
+          "y": 16
+        },
+        {
+          "digest": "703908e8ac01",
+          "layer": 1,
+          "x": 49,
+          "y": 16
+        },
+        {
+          "digest": "5d7268b8cdef",
+          "layer": 1,
+          "x": 48,
+          "y": 17
+        },
+        {
+          "digest": "d9e7dc36f0a5",
+          "layer": 1,
+          "x": 49,
+          "y": 17
+        }
+      ]
+    },
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x27 tag2=0x00; the chest at (36,8) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x0C2",
+      "tiles": [
+        {
+          "digest": "f392a838e30f",
+          "layer": 1,
+          "x": 36,
+          "y": 8
+        },
+        {
+          "digest": "3b0a2836ac84",
+          "layer": 1,
+          "x": 37,
+          "y": 8
+        },
+        {
+          "digest": "f8aec51c9cb5",
+          "layer": 1,
+          "x": 36,
+          "y": 9
+        },
+        {
+          "digest": "1803a741b841",
+          "layer": 1,
+          "x": 37,
+          "y": 9
+        }
+      ]
+    },
+    {
+      "evidence": "Doors changed after the room loaded. The capture's WRAM has $0468=0000 (shutter controller idle) and $068C=CF00, which has open-door bits beyond the load-time mask 0F00; CollisionMatchesCapture independently finds the game's collision differs only at these doors. yaze draws the load-time state.",
+      "reason": "door-state-after-load",
+      "reviewed": true,
+      "room": "0x0D8",
+      "tiles": [
+        {
+          "digest": "e2c90bf716e2",
+          "layer": 1,
+          "x": 46,
+          "y": 4
+        },
+        {
+          "digest": "cd4e3dd1763b",
+          "layer": 1,
+          "x": 47,
+          "y": 4
+        },
+        {
+          "digest": "5b47868b32e3",
+          "layer": 1,
+          "x": 48,
+          "y": 4
+        },
+        {
+          "digest": "4de0d512c47e",
+          "layer": 1,
+          "x": 49,
+          "y": 4
+        },
+        {
+          "digest": "90fba00f0d66",
+          "layer": 1,
+          "x": 46,
+          "y": 5
+        },
+        {
+          "digest": "f0f7d900c3c5",
+          "layer": 1,
+          "x": 47,
+          "y": 5
+        },
+        {
+          "digest": "08afd95019a0",
+          "layer": 1,
+          "x": 48,
+          "y": 5
+        },
+        {
+          "digest": "0b656550065f",
+          "layer": 1,
+          "x": 49,
+          "y": 5
+        },
+        {
+          "digest": "d2e21f96335e",
+          "layer": 1,
+          "x": 46,
+          "y": 6
+        },
+        {
+          "digest": "7c997f45d2fc",
+          "layer": 1,
+          "x": 47,
+          "y": 6
+        },
+        {
+          "digest": "f79c2124fe89",
+          "layer": 1,
+          "x": 48,
+          "y": 6
+        },
+        {
+          "digest": "37424446d38b",
+          "layer": 1,
+          "x": 49,
+          "y": 6
+        },
+        {
+          "digest": "e2c90bf716e2",
+          "layer": 1,
+          "x": 46,
+          "y": 36
+        },
+        {
+          "digest": "cd4e3dd1763b",
+          "layer": 1,
+          "x": 47,
+          "y": 36
+        },
+        {
+          "digest": "5b47868b32e3",
+          "layer": 1,
+          "x": 48,
+          "y": 36
+        },
+        {
+          "digest": "4de0d512c47e",
+          "layer": 1,
+          "x": 49,
+          "y": 36
+        },
+        {
+          "digest": "90fba00f0d66",
+          "layer": 1,
+          "x": 46,
+          "y": 37
+        },
+        {
+          "digest": "f0f7d900c3c5",
+          "layer": 1,
+          "x": 47,
+          "y": 37
+        },
+        {
+          "digest": "08afd95019a0",
+          "layer": 1,
+          "x": 48,
+          "y": 37
+        },
+        {
+          "digest": "0b656550065f",
+          "layer": 1,
+          "x": 49,
+          "y": 37
+        },
+        {
+          "digest": "d2e21f96335e",
+          "layer": 1,
+          "x": 46,
+          "y": 38
+        },
+        {
+          "digest": "7c997f45d2fc",
+          "layer": 1,
+          "x": 47,
+          "y": 38
+        },
+        {
+          "digest": "f79c2124fe89",
+          "layer": 1,
+          "x": 48,
+          "y": 38
+        },
+        {
+          "digest": "37424446d38b",
+          "layer": 1,
+          "x": 49,
+          "y": 38
+        }
+      ]
+    },
+    {
+      "evidence": "RoomDraw_Chest ($01:9905-$01:993F) makes chest 0xF99 invisible when tag1 ($AE) or tag2 ($AF) is 0x27, 0x29-0x32, 0x3C or 0x3E. This room has tag1=0x01 tag2=0x2A; the chest at (54,22) is hidden at load. yaze draws it so it can be edited.",
+      "reason": "hidden-at-load",
+      "reviewed": true,
+      "room": "0x0E0",
+      "tiles": [
+        {
+          "digest": "f392a838e30f",
+          "layer": 1,
+          "x": 54,
+          "y": 22
+        },
+        {
+          "digest": "3b0a2836ac84",
+          "layer": 1,
+          "x": 55,
+          "y": 22
+        },
+        {
+          "digest": "f8aec51c9cb5",
+          "layer": 1,
+          "x": 54,
+          "y": 23
+        },
+        {
+          "digest": "1803a741b841",
+          "layer": 1,
+          "x": 55,
+          "y": 23
+        }
+      ]
+    }
+  ],
+  "state": "default",
+  "version": 1
+}
