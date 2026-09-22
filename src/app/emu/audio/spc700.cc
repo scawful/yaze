@@ -24,7 +24,18 @@ void Spc700::Reset(bool hard) {
     SP = 0x00;
     PSW = ByteToFlags(0x00);
   }
+  // Discard any partial instruction, including state restored from a snapshot.
+  // RunOpcode must fetch a fresh opcode after the reset sequence.
+  opcode = 0;
   step = 0;
+  bstep = 0;
+  adr = 0;
+  adr1 = 0;
+  dat = 0;
+  dat16 = 0;
+  param = 0;
+  extra_cycles_ = 0;
+  last_opcode_cycles_ = 0;
   stopped_ = false;
   reset_wanted_ = true;
 }
@@ -77,7 +88,7 @@ void Spc700::RunOpcode() {
   // step 0: Fetch opcode and initialize instruction (only if previous instruction complete)
   // step 1: Execute instruction logic (may require multiple calls/cycles for complex ops)
   // bstep: Tracks sub-steps within a single instruction execution (e.g., read low byte, read high byte)
-  
+
   static int entry_log = 0;
   if ((PC >= 0xFFF0 && PC <= 0xFFFF) && entry_log++ < 5) {
     LOG_DEBUG("SPC", "RunOpcode ENTRY: PC=$%04X step=%d bstep=%d", PC, step,
@@ -1473,8 +1484,9 @@ void Spc700::LogInstruction(uint16_t initial_pc, uint8_t opcode) {
 
 void Spc700::SaveState(std::ostream& stream) {
   stream.write(reinterpret_cast<const char*>(&stopped_), sizeof(stopped_));
-  stream.write(reinterpret_cast<const char*>(&reset_wanted_), sizeof(reset_wanted_));
-  
+  stream.write(reinterpret_cast<const char*>(&reset_wanted_),
+               sizeof(reset_wanted_));
+
   stream.write(reinterpret_cast<const char*>(&opcode), sizeof(opcode));
   stream.write(reinterpret_cast<const char*>(&step), sizeof(step));
   stream.write(reinterpret_cast<const char*>(&bstep), sizeof(bstep));
@@ -1483,9 +1495,11 @@ void Spc700::SaveState(std::ostream& stream) {
   stream.write(reinterpret_cast<const char*>(&dat), sizeof(dat));
   stream.write(reinterpret_cast<const char*>(&dat16), sizeof(dat16));
   stream.write(reinterpret_cast<const char*>(&param), sizeof(param));
-  stream.write(reinterpret_cast<const char*>(&extra_cycles_), sizeof(extra_cycles_));
-  stream.write(reinterpret_cast<const char*>(&last_opcode_cycles_), sizeof(last_opcode_cycles_));
-  
+  stream.write(reinterpret_cast<const char*>(&extra_cycles_),
+               sizeof(extra_cycles_));
+  stream.write(reinterpret_cast<const char*>(&last_opcode_cycles_),
+               sizeof(last_opcode_cycles_));
+
   stream.write(reinterpret_cast<const char*>(&A), sizeof(A));
   stream.write(reinterpret_cast<const char*>(&X), sizeof(X));
   stream.write(reinterpret_cast<const char*>(&Y), sizeof(Y));
@@ -1498,7 +1512,7 @@ void Spc700::SaveState(std::ostream& stream) {
 void Spc700::LoadState(std::istream& stream) {
   stream.read(reinterpret_cast<char*>(&stopped_), sizeof(stopped_));
   stream.read(reinterpret_cast<char*>(&reset_wanted_), sizeof(reset_wanted_));
-  
+
   stream.read(reinterpret_cast<char*>(&opcode), sizeof(opcode));
   stream.read(reinterpret_cast<char*>(&step), sizeof(step));
   stream.read(reinterpret_cast<char*>(&bstep), sizeof(bstep));
@@ -1508,8 +1522,9 @@ void Spc700::LoadState(std::istream& stream) {
   stream.read(reinterpret_cast<char*>(&dat16), sizeof(dat16));
   stream.read(reinterpret_cast<char*>(&param), sizeof(param));
   stream.read(reinterpret_cast<char*>(&extra_cycles_), sizeof(extra_cycles_));
-  stream.read(reinterpret_cast<char*>(&last_opcode_cycles_), sizeof(last_opcode_cycles_));
-  
+  stream.read(reinterpret_cast<char*>(&last_opcode_cycles_),
+              sizeof(last_opcode_cycles_));
+
   stream.read(reinterpret_cast<char*>(&A), sizeof(A));
   stream.read(reinterpret_cast<char*>(&X), sizeof(X));
   stream.read(reinterpret_cast<char*>(&Y), sizeof(Y));
