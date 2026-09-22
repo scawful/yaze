@@ -211,6 +211,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/project_bundle_archive_test.cc
     unit/rom/rom_diff_test.cc
     unit/rom/rom_test.cc
+    unit/rom/fresh_rom_fixture_output_test.cc
     unit/rom/write_fence_test.cc
     unit/emu/emulator_test.cc
     unit/emu/mesen_socket_client_test.cc
@@ -315,6 +316,8 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_canvas_viewer_navigation_test.cc
     unit/editor/dungeon_workbench_content_test.cc
     unit/editor/dungeon_issue_report_storage_test.cc
+    unit/editor/object_coverage_model_test.cc
+    unit/editor/object_coverage_panel_test.cc
     unit/editor/dungeon_usage_tracker_test.cc
     unit/editor/dungeon_entrance_edit_policy_test.cc
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
@@ -354,6 +357,10 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon_component_unit_test.cc
     unit/zelda3/dungeon/dungeon_limits_test.cc
     unit/zelda3/dungeon/draw_routine_symbology_test.cc
+    unit/zelda3/dungeon/draw_routine_registry_ids_test.cc
+    unit/zelda3/dungeon/game_tilemap_comparison_test.cc
+    unit/zelda3/dungeon/room_collision_test.cc
+    unit/zelda3/dungeon/room_layer_registers_test.cc
     unit/zelda3/dungeon/room_limit_regression_test.cc
     unit/zelda3/dungeon/dungeon_validator_test.cc
     unit/zelda3/dungeon/door_position_test.cc
@@ -390,6 +397,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/room_graphics_palette_test.cc
     unit/zelda3/dungeon/room_header_palette_test.cc
     unit/zelda3/dungeon/object_drawer_registry_replay_test.cc
+    unit/zelda3/dungeon/object_draw_code_test.cc
     unit/zelda3/dungeon/custom_object_room_render_test.cc
     unit/zelda3/dungeon/room_object_rom_parity_test.cc
     unit/dungeon_object_drawer_test.cc
@@ -416,6 +424,12 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/overworld_integration_test.cc
     integration/zelda3/dungeon_editor_system_integration_test.cc
     integration/zelda3/room_integration_test.cc
+    integration/zelda3/dungeon_object_inventory_rom_test.cc
+    integration/zelda3/dungeon_game_tilemap_parity_test.cc
+    integration/zelda3/dungeon_game_state_parity_test.cc
+    integration/zelda3/room_default_entrance_rom_test.cc
+    integration/zelda3/object_draw_code_rom_test.cc
+    integration/zelda3/dungeon_edit_save_fixture_test.cc
     integration/zelda3/dungeon/pit_damage_table_test.cc
     integration/zelda3/dungeon_save_region_test.cc
     integration/zelda3/dungeon_pot_repack_oos_integration_test.cc
@@ -673,6 +687,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/dungeon_workbench_content_test.cc
     unit/editor/object_tile_editor_panel_test.cc
+    unit/editor/object_coverage_panel_test.cc
     unit/editor/minecart_track_source_test.cc
     unit/editor/minecart_track_editor_panel_test.cc
     unit/editor/project_manager_validator_test.cc

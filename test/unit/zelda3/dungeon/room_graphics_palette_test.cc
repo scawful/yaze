@@ -657,6 +657,8 @@ TEST_F(RoomRenderLifecycleTest, RemovingSpiralStairsRestoresLayoutPriority) {
     auto& layout = lower ? room_->bg2_buffer() : room_->bg1_buffer();
     ASSERT_EQ(layout.GetPriorityAt(11 * 8, 12 * 8), 1);
     ASSERT_EQ(layout.GetPriorityAt(0, 0), 1);
+    // USDASM ORs $2000 into the tile word itself, so the word carries it too.
+    ASSERT_NE(layout.GetTileAt(11, 12) & 0x2000, 0);
     const uint64_t graphics_revision = room_->graphics_revision();
 
     room_->RemoveTileObject(0);
@@ -664,6 +666,8 @@ TEST_F(RoomRenderLifecycleTest, RemovingSpiralStairsRestoresLayoutPriority) {
 
     EXPECT_EQ(layout.GetPriorityAt(11 * 8, 12 * 8), 0);
     EXPECT_EQ(layout.GetPriorityAt(0, 0), 1);
+    // The promoted bit must not outlive the stairs.
+    EXPECT_EQ(layout.GetTileAt(11, 12) & 0x2000, 0);
     EXPECT_EQ(room_->graphics_revision(), graphics_revision);
   }
 }

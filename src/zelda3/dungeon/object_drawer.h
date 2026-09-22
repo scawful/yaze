@@ -55,6 +55,40 @@ class ObjectDrawer {
                           gfx::BackgroundBuffer* layout_bg1 = nullptr,
                           gfx::BackgroundBuffer* layout_bg2 = nullptr);
 
+  // USDASM RoomDraw_BG2MaskFull (type-3 0xFF3): fills the object's whole
+  // layer with the tilemap erase word $01EC.
+  absl::Status DrawLayerMaskFull(const RoomObject& object,
+                                 gfx::BackgroundBuffer& target_bg,
+                                 RoomObject::LayerType layer);
+  // USDASM RoomDraw_LampCones (type-3 0xFAA): four fixed 12x12 blocks on BG2,
+  // independent of the object's position, size and list.
+  absl::Status DrawLampCones(const RoomObject& object,
+                             gfx::BackgroundBuffer& bg2);
+
+  // USDASM RoomDraw_AgahnimsWindows (type-3 0xFAE): fixed stores relative to
+  // the object's tilemap offset, then a priority-only pass.
+  absl::Status DrawAgahnimsWindows(const RoomObject& object,
+                                   gfx::BackgroundBuffer& bg1,
+                                   gfx::BackgroundBuffer& bg2,
+                                   gfx::BackgroundBuffer* layout_bg1,
+                                   gfx::BackgroundBuffer* layout_bg2);
+
+  // USDASM RoomDraw_SomeBigDecors (Kholdstare 0xF95, Trinexx 0xFF2 shells):
+  // a 10x8 row-major block on the object's layer from ROM offset data_pc.
+  absl::Status DrawBigDecor10x8(const RoomObject& object,
+                                gfx::BackgroundBuffer& target_bg,
+                                RoomObject::LayerType layer, int data_pc);
+  // USDASM RoomDraw_VitreousGooGraphics (0xFE2): 22x11 column-major on BG2
+  // plus a 3x2 block.
+  absl::Status DrawVitreousGoo(const RoomObject& object,
+                               gfx::BackgroundBuffer& bg2);
+
+  // USDASM RoomTag_ChestHoles0 (tag 0x22) / RoomTag_ChestHoles8 (tag 0x3B):
+  // once chest 0 is open, Underworld_ApplyRoomOverlay draws that overlay's
+  // pits onto BG1 ($7E2000). Draws nothing for other tags or a closed chest.
+  void DrawChestHoleOverlay(int tag1, int tag2, const DungeonState* state,
+                            gfx::BackgroundBuffer& bg1);
+
   struct DoorDef {
     DoorType type;
     DoorDirection direction;
@@ -82,6 +116,10 @@ class ObjectDrawer {
   }
   // Room objects 0xC4/0xDB copy the active Floor 1/Floor 2 pattern rather than
   // reading a normal object tile payload.
+  // Room header tag2 ($AF), read by state-dependent routines such as
+  // RoomDraw_EmptyWaterFace. -1 (default) means no room context.
+  void SetRoomTag2(int tag2) { room_tag2_ = tag2; }
+
   void SetRoomFloorGraphics(uint8_t floor1, uint8_t floor2) {
     floor1_graphics_ = floor1 & 0x0F;
     floor2_graphics_ = floor2 & 0x0F;
@@ -307,9 +345,12 @@ class ObjectDrawer {
   mutable int current_chest_index_ = 0;
   mutable int current_room_event_index_ = 0;
   bool has_room_floor_graphics_ = false;
+  int room_tag2_ = -1;
   uint8_t floor1_graphics_ = 0;
   uint8_t floor2_graphics_ = 0;
   gfx::BackgroundBuffer* registry_secondary_bg_ = nullptr;
+  // Object BG2 buffer: receives upper-tilemap writes past row 63.
+  gfx::BackgroundBuffer* registry_bg2_ = nullptr;
   const gfx::BackgroundBuffer* registry_primary_layout_bg_ = nullptr;
   RoomObject::LayerType registry_primary_layer_ = RoomObject::LayerType::BG1;
   RoomObject::LayerType registry_secondary_layer_ = RoomObject::LayerType::BG2;

@@ -16,8 +16,10 @@ set(
   app/editor/dungeon/dungeon_canvas_room_render.cc
   app/editor/dungeon/dungeon_canvas_viewer.cc
   app/editor/dungeon/dungeon_editor_v2.cc
+  app/editor/dungeon/object_coverage_model.cc
   app/editor/dungeon/dungeon_editor_v2_persistence.cc
   app/editor/dungeon/dungeon_editor_v2_undo.cc
+  app/editor/dungeon/dungeon_editor_v2_object_coverage.cc
   app/editor/dungeon/dungeon_object_interaction.cc
   app/editor/dungeon/dungeon_object_selector.cc
   app/editor/dungeon/dungeon_overlay_controls.cc
@@ -42,6 +44,7 @@ set(
   app/editor/dungeon/ui/window/minecart_track_editor_panel.cc
   app/editor/dungeon/ui/window/object_tile_editor_panel.cc
   app/editor/dungeon/ui/window/room_tag_editor_panel.cc
+  app/editor/dungeon/ui/window/object_coverage_panel.cc
   app/editor/dungeon/widgets/dungeon_room_nav_widget.cc
   app/editor/dungeon/widgets/dungeon_status_bar.cc
   app/editor/dungeon/widgets/dungeon_workbench_toolbar.cc

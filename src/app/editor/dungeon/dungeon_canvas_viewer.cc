@@ -65,6 +65,12 @@ zelda3::RoomLayerManager& DungeonCanvasViewer::GetRoomLayerManager(
     state.manager.ApplyRoomEffect(room->effect());
     state.room_settings = std::make_pair(room->layer_merging(), room->effect());
   }
+  if (room) {
+    // Objects and tag2 can change the game's layer registers without changing
+    // the merge mode or effect. Refresh only this derived state so manual
+    // visibility and blend settings survive object edits.
+    state.manager.ApplyGameLayerRegisters(room->GameLayerRegisters());
+  }
   return state.manager;
 }
 

@@ -873,6 +873,16 @@ int Room::ResolveDungeonPaletteId() const {
   return id;
 }
 
+RoomLayerRegisters Room::GameLayerRegisters(uint16_t room_flags) const {
+  // The merge type is what the editor edits; for dark rooms it is the
+  // placeholder 8 and layer2_mode_ keeps the header's BGACT.
+  const bool dark = layer_merging_.ID == 8;
+  const uint8_t bgact = dark ? layer2_mode_ : layer_merging_.ID;
+  return DeriveRoomLayerRegisters(bgact, dark, static_cast<int>(effect_),
+                                  static_cast<int>(tag2_), tile_objects_,
+                                  room_flags);
+}
+
 void Room::LoadRoomGraphics(std::optional<uint8_t> entrance_blockset) {
   if (!game_data_) {
     LOG_DEBUG("Room", "GameData not set for room %d", room_id_);
@@ -884,9 +894,21 @@ void Room::LoadRoomGraphics(std::optional<uint8_t> entrance_blockset) {
   const uint8_t requested_main_blockset =
       entrance_blockset.value_or(render_entrance_blockset_);
   uint8_t main_blockset = 0;
+  // The game takes the main blockset ($0AA1) from the entrance the dungeon
+  // was entered through, never from the room header. Without an explicit
+  // entrance, use the room's dungeon default (room_default_entrance.h); the
+  // header byte ($0AA2, the room's secondary set) is the last resort.
+  const uint8_t dungeon_main_blockset =
+      room_id_ >= 0 && room_id_ < static_cast<int>(
+                                      game_data_->room_default_entrances.size())
+          ? game_data_->room_default_entrances[room_id_].main_blockset
+          : 0xFF;
   if (requested_main_blockset != 0xFF &&
       requested_main_blockset < game_data_->main_blockset_ids.size()) {
     main_blockset = requested_main_blockset;
+  } else if (dungeon_main_blockset != 0xFF &&
+             dungeon_main_blockset < game_data_->main_blockset_ids.size()) {
+    main_blockset = dungeon_main_blockset;
   } else if (blockset_ < game_data_->main_blockset_ids.size()) {
     main_blockset = blockset_;
   } else {
@@ -1500,6 +1522,7 @@ void Room::RenderObjectsToBackground() {
   // correct tiles
   ObjectDrawer drawer(rom_, room_id_, current_gfx16_.data());
   drawer.SetRoomFloorGraphics(floor1_graphics_, floor2_graphics_);
+  drawer.SetRoomTag2(static_cast<int>(tag2_));
   drawer.SetBG1RevealMaskSource(gfx::BG1RevealMaskSource::kBG2Objects);
   // NOTE: Routines marked draws_to_both_bgs explicitly write both tilemaps.
   // Object-specific stair routing is handled inside the registered routines.
@@ -1617,6 +1640,10 @@ void Room::RenderObjectsToBackground() {
     drawer.DrawDoor(door_def, i, object_bg1_buffer_, object_bg2_buffer_,
                     dungeon_state_.get(), &bg1_buffer_, &bg2_buffer_);
   }
+  // RoomTag_OperateChestHoles applies its overlay after the room is drawn.
+  drawer.DrawChestHoleOverlay(static_cast<int>(tag1_), static_cast<int>(tag2_),
+                              dungeon_state_.get(), object_bg1_buffer_);
+
   // Mark object buffer as modified so texture gets updated
   if (!doors_.empty()) {
     object_bg1_buffer_.bitmap().set_modified(true);
@@ -1754,7 +1781,7 @@ void Room::LoadAnimatedGraphics() {
 
 void Room::LoadObjects() {
   LOG_DEBUG("[LoadObjects]", "Starting LoadObjects for room %d", room_id_);
-  auto rom_data = rom()->vector();
+  const auto& rom_data = rom()->vector();
 
   // Enhanced object loading with comprehensive validation
   int object_pointer = (rom_data[kRoomObjectPointer + 2] << 16) +
@@ -1819,7 +1846,7 @@ void Room::LoadObjects() {
 }
 
 void Room::ParseObjectsFromLocation(int objects_location) {
-  auto rom_data = rom()->vector();
+  const auto& rom_data = rom()->vector();
 
   // Clear existing objects before parsing to prevent accumulation on reload
   tile_objects_.clear();

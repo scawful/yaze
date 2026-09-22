@@ -125,6 +125,14 @@ class EditorDungeonState : public DungeonState {
     rupee_floor_cleared_states_[room_id] = cleared;
   }
 
+  bool IsBossShellCleared(int room_id) const override {
+    auto it = boss_shell_cleared_states_.find(room_id);
+    return it != boss_shell_cleared_states_.end() && it->second;
+  }
+  void SetBossShellCleared(int room_id, bool cleared) {
+    boss_shell_cleared_states_[room_id] = cleared;
+  }
+
   // General Flags
   bool IsCrystalSwitchBlue() const override { return crystal_switch_blue_; }
   void SetCrystalSwitchBlue(bool blue) { crystal_switch_blue_ = blue; }
@@ -138,6 +146,7 @@ class EditorDungeonState : public DungeonState {
     water_face_active_states_.clear();
     dam_floodgate_open_states_.clear();
     wall_moved_states_.clear();
+    boss_shell_cleared_states_.clear();
     floor_bombable_states_.clear();
     rupee_floor_cleared_states_.clear();
     crystal_switch_blue_ = true;  // Default blue
@@ -159,6 +168,7 @@ class EditorDungeonState : public DungeonState {
   std::map<int, bool> wall_moved_states_;
   std::map<int, bool> floor_bombable_states_;
   std::map<int, bool> rupee_floor_cleared_states_;
+  std::map<int, bool> boss_shell_cleared_states_;
 
   bool crystal_switch_blue_ = true;
 };

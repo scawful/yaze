@@ -1175,6 +1175,34 @@ not close every ID. A reported symptom is not proof of a current renderer bug.
 | Doors and room composition | Focused door rules, room `0x001` guidance-wall/door test, one west NormalDoorLower Mesen ROI | Key/shutter/bombable/exploding family evidence; candidates `0x024/0x0B2/0x0BC/0x0C1/0x0C2`. Protect room `0x001` upper/lower overlap and lower stair. |
 | Sprite preview palettes | Synthetic aux/CGRAM/transparency tests | Mushroom Grotto/ice witnesses using actual runtime sprite graphics and CGRAM. Separate generic palettes from custom external graphics. |
 
+The Dungeon editor's **Object Coverage** window (`dungeon.object_coverage`)
+is the working copy of this checklist. It lists
+`DrawRoutineRegistry::GetMappedObjectIds()`, shows which rooms place each ID,
+opens a room with the object selected, and records one of the five states per
+ID. It orders the families above first. Verdicts are saved to
+`<app data>/dungeon_object_evidence/<project or rom_sha1>.json` with the room,
+ROM SHA-1, and time, so vanilla and Oracle results stay separate. A verdict
+there is step 3 evidence only; it does not replace steps 1, 2, 4, or 5 below.
+Open it from the Workbench inspector (Tools > Review > Object Coverage) or
+from a selected object's canvas menu (Selection > Check in Object Coverage).
+
+**Automatic tilemap check.** When the game loads a room it builds both 64x64
+tilemaps in WRAM: TILEMAPA (`$7E2000`) is BG1 and TILEMAPB (`$7E4000`) is BG2
+(`usdasm/wram.asm`; the BG assignment was confirmed against yaze on room
+`0x001`). `scripts/agents/capture-game-room-tilemaps.py` loads every room in
+an isolated headless Mesen2-OOS with the entrance `0x34` room-word PAR
+bootstrap above and saves both maps. It takes about 3 seconds per room. In
+Object Coverage, **Automatic check against the game** takes that folder,
+renders each captured room, and compares tile words. It charges each differing
+tile to the object whose own drawing produced yaze's word there, then marks
+each object "matches in every placement" or "N of M placements differ", with
+the differing fields (tile, palette, priority, flip). It can mark unjudged
+objects **Matches game** or **Broken** with a note. This proves tile choice,
+geometry, flips, palette row, and priority against the real game; it does not
+compare CGRAM colors or graphics sheets, and runtime-state objects need their
+state set before capture. Captures are ROM-derived data: keep them out of the
+repository.
+
 Witness rooms are investigation starting points, not newly verified matches.
 Use the canonical vanilla ROM control and a recorded Oracle ROM digest. Do not
 substitute a different hack's object payload or room header without labeling it.
