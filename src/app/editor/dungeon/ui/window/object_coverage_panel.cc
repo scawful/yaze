@@ -191,7 +191,10 @@ void ObjectCoveragePanel::EnsureEvidenceLoaded() {
     status_is_error_ = true;
     return;
   }
-  evidence_path_ = *app_data / kEvidenceSubdir / (context + ".json");
+  // The context name comes from the project name or the ROM hash. Both are
+  // sanitized already; pin that here so nothing can escape the folder.
+  evidence_path_ =
+      *app_data / kEvidenceSubdir / (SafeEvidenceFileName(context) + ".json");
   auto loaded = ObjectEvidenceStore::LoadFromFile(evidence_path_);
   if (!loaded.ok()) {
     // Keep the unreadable file untouched: saving would overwrite it.
@@ -210,6 +213,11 @@ void ObjectCoveragePanel::EnsureEvidenceLoaded() {
 }
 
 void ObjectCoveragePanel::SetCaptureDir(const std::string& dir) {
+  if (!IsPlainCaptureDir(std::filesystem::path(dir))) {
+    status_message_ = absl::StrCat(dir, " must not contain \"..\"");
+    status_is_error_ = true;
+    return;
+  }
   evidence_.set_capture_dir(dir);
   SaveEvidence();
   auto_results_.Clear();
@@ -555,6 +563,13 @@ void ObjectCoveragePanel::DrawAutomaticCheck() {
     }
   }
 
+  DrawAutomaticCheckResults();
+  ImGui::PopID();
+}
+
+// Summary of the last automatic check, its errors, and the buttons that turn
+// its results into verdicts.
+void ObjectCoveragePanel::DrawAutomaticCheckResults() {
   if (!auto_running_ && auto_results_.rooms_compared() > 0) {
     int objects_matching = 0;
     int objects_differing = 0;
@@ -610,7 +625,6 @@ void ObjectCoveragePanel::DrawAutomaticCheck() {
                    "placement, with a note naming what differs."));
     }
   }
-  ImGui::PopID();
 }
 
 void ObjectCoveragePanel::DrawFilters() {
@@ -866,6 +880,13 @@ void ObjectCoveragePanel::DrawDetails() {
     ImGui::PopStyleColor();
   }
 
+  DrawVerdictEditor(object_id);
+  DrawObjectOccurrences(object_id);
+  ImGui::EndChild();
+}
+
+// Verdict buttons, the note field, and when the verdict was last set.
+void ObjectCoveragePanel::DrawVerdictEditor(int object_id) {
   // Verdict buttons, current one highlighted.
   const ObjectEvidenceState current = evidence_.StateOf(object_id);
   const float verdict_right_edge = RowRightEdge();
@@ -914,7 +935,10 @@ void ObjectCoveragePanel::DrawDetails() {
     ImGui::TextDisabled(tr("Last verdict in room 0x%03X at %s"),
                         evidence->room_id, evidence->updated_utc.c_str());
   }
+}
 
+// Lists the rooms that place this object, each one a link that opens it.
+void ObjectCoveragePanel::DrawObjectOccurrences(int object_id) {
   const auto* occurrences = usage_.Find(object_id);
   if (occurrences == nullptr) {
     ImGui::TextDisabled(
@@ -954,7 +978,6 @@ void ObjectCoveragePanel::DrawDetails() {
     }
     ImGui::PopID();
   }
-  ImGui::EndChild();
 }
 
 }  // namespace editor

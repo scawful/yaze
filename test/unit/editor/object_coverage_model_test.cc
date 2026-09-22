@@ -343,5 +343,17 @@ TEST(ObjectCoverageModelTest, CustomDrawCodeFlagsReplacedAndPatchedRoutines) {
   EXPECT_TRUE(without_hooks.contains(0x031));
 }
 
+TEST(ObjectCoverageModelTest, PathHelpersRefuseToEscapeTheirFolder) {
+  EXPECT_EQ(SafeEvidenceFileName("rom_93fb2bd3e19c"), "rom_93fb2bd3e19c");
+  EXPECT_EQ(SafeEvidenceFileName("../../etc/passwd"), "______etc_passwd");
+  EXPECT_EQ(SafeEvidenceFileName("Project Name"), "project_name");
+  EXPECT_EQ(SafeEvidenceFileName(""), "unnamed");
+
+  EXPECT_TRUE(IsPlainCaptureDir("/Users/me/.yaze/dungeon_game_captures/rom"));
+  EXPECT_TRUE(IsPlainCaptureDir("captures/rom_93fb2bd3e19c"));
+  EXPECT_FALSE(IsPlainCaptureDir("captures/../../etc"));
+  EXPECT_FALSE(IsPlainCaptureDir(".."));
+}
+
 }  // namespace
 }  // namespace yaze::editor
