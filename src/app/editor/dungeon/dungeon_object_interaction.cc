@@ -27,6 +27,13 @@ namespace {
 
 constexpr int kRoomPixelMax = 511;
 
+float ObjectResizeWheelDelta(const ImGuiIO& io) {
+  // macOS converts Shift+vertical wheel into horizontal input before SDL
+  // delivers it. Other platforms retain the vertical delta. Prefer that delta
+  // when both axes are present so one wheel event only resizes once.
+  return io.MouseWheel != 0.0f || !io.KeyShift ? io.MouseWheel : io.MouseWheelH;
+}
+
 uint16_t EncodePotItemPosition(int pixel_x, int pixel_y) {
   const int clamped_x = std::clamp(pixel_x, 0, kRoomPixelMax);
   const int clamped_y = std::clamp(pixel_y, 0, kRoomPixelMax);
@@ -74,7 +81,7 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
 
   if (hovered) {
     if (pointer_within_room &&
-        entity_coordinator_.HandleMouseWheel(io.MouseWheel)) {
+        entity_coordinator_.HandleMouseWheel(ObjectResizeWheelDelta(io))) {
       return;
     }
     HandleLayerKeyboardShortcuts();
@@ -887,7 +894,7 @@ void DungeonObjectInteraction::DrawGhostPreview() {
 
 void DungeonObjectInteraction::HandleScrollWheelResize() {
   const ImGuiIO& io = ImGui::GetIO();
-  entity_coordinator_.HandleMouseWheel(io.MouseWheel);
+  entity_coordinator_.HandleMouseWheel(ObjectResizeWheelDelta(io));
 }
 
 bool DungeonObjectInteraction::SetObjectId(size_t index, int16_t id) {

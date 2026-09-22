@@ -1085,6 +1085,148 @@ TEST_F(TileObjectHandlerTest, PlacementWheelResizesPreviewWithoutRoomMutation) {
 }
 
 TEST_F(TileObjectHandlerTest,
+       PlacementWheelChangesWallAndTrimSpanBeforePlacement) {
+  struct TestCase {
+    int16_t id;
+    bool vertical;
+    int step_pixels;
+  };
+  // Walls and trim have one length axis determined by their object ID.
+  constexpr std::array<TestCase, 4> kCases{{
+      {0x01, false, 16},  // North wall
+      {0x34, false, 8},   // Horizontal carpet trim
+      {0x61, true, 16},   // West wall
+      {0x71, true, 8},    // Vertical carpet trim
+  }};
+  AddTestObjects({CreateTestObject(5, 5, 7, 0x01)});
+  selection_.SelectObject(0);
+
+  for (const auto& test_case : kCases) {
+    for (bool shift : {false, true}) {
+      SCOPED_TRACE(::testing::Message()
+                   << "object_id=" << test_case.id << ", shift=" << shift);
+      ImGui::GetIO().KeyShift = shift;
+      handler_.SetPreviewObject(CreateTestObject(0, 0, 2, test_case.id));
+      handler_.BeginPlacement();
+      rooms_[0].ClearSaveDirtyState();
+      mutation_count_ = 0;
+      invalidate_count_ = 0;
+      const auto original = TileObjectHandler::CalculateGhostPreviewGeometry(
+          handler_.GetPreviewObject());
+
+      ASSERT_TRUE(handler_.HandleMouseWheel(1.0f));
+      EXPECT_EQ(handler_.GetPreviewObject().size_, 3);
+      const auto grown = TileObjectHandler::CalculateGhostPreviewGeometry(
+          handler_.GetPreviewObject());
+      EXPECT_EQ(grown.width_pixels,
+                original.width_pixels +
+                    (test_case.vertical ? 0 : test_case.step_pixels));
+      EXPECT_EQ(grown.height_pixels,
+                original.height_pixels +
+                    (test_case.vertical ? test_case.step_pixels : 0));
+
+      ASSERT_TRUE(handler_.HandleMouseWheel(-1.0f));
+      EXPECT_EQ(handler_.GetPreviewObject().size_, 2);
+      const auto shrunk = TileObjectHandler::CalculateGhostPreviewGeometry(
+          handler_.GetPreviewObject());
+      EXPECT_EQ(shrunk.width_pixels, original.width_pixels);
+      EXPECT_EQ(shrunk.height_pixels, original.height_pixels);
+      ASSERT_TRUE(handler_.HandleMouseWheel(1.0f));
+
+      // Preview sizing must not edit the selected object or capture undo.
+      EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 7);
+      EXPECT_EQ(selection_.GetSelectedIndices(), (std::vector<size_t>{0}));
+      EXPECT_EQ(mutation_count_, 0);
+      EXPECT_EQ(invalidate_count_, 0);
+      EXPECT_FALSE(rooms_[0].object_stream_dirty());
+
+      const size_t count_before = rooms_[0].GetTileObjects().size();
+      ASSERT_TRUE(handler_.HandleClick(80, 80));
+      ASSERT_EQ(rooms_[0].GetTileObjects().size(), count_before + 1);
+      const auto& placed = rooms_[0].GetTileObjects().back();
+      EXPECT_EQ(placed.id_, test_case.id);
+      EXPECT_EQ(placed.size_, 3);
+      const auto placed_geometry =
+          TileObjectHandler::CalculateGhostPreviewGeometry(placed);
+      EXPECT_EQ(placed_geometry.width_pixels, grown.width_pixels);
+      EXPECT_EQ(placed_geometry.height_pixels, grown.height_pixels);
+      EXPECT_EQ(mutation_count_, 1);
+      EXPECT_EQ(invalidate_count_, 1);
+      handler_.CancelPlacement();
+    }
+  }
+}
+
+TEST_F(TileObjectHandlerTest,
+       PlacementCanvasRoutesMacShiftHorizontalWheelToPreviewWidth) {
+  AddTestObjects({CreateTestObject(5, 5, 7, 0x01)});
+  DungeonObjectInteraction interaction(canvas_.get());
+  interaction.SetContext(ctx_);
+  interaction.SetCurrentRoom(&rooms_, 0);
+  interaction.SetSelectedObjects({0});
+  interaction.SetPreviewObject(CreateTestObject(0, 0, 0x05, 0xD1), true);
+  rooms_[0].ClearSaveDirtyState();
+  mutation_count_ = 0;
+  invalidate_count_ = 0;
+
+  ImGuiIO& io = ImGui::GetIO();
+  io.ConfigMacOSXBehaviors = true;
+  const auto draw_canvas = [&]() {
+    ImGui::SetNextWindowPos(ImVec2(10.0f, 10.0f), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(700.0f, 650.0f), ImGuiCond_Always);
+    ImGui::Begin(
+        "PlacementWheelHost", nullptr,
+        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoScrollWithMouse);
+    canvas_->DrawBackground(ImVec2(512, 512));
+  };
+  // Establish the hovered window before sending wheel input.
+  io.AddMousePosEvent(100.0f, 100.0f);
+  ImGui::NewFrame();
+  draw_canvas();
+  ImGui::End();
+  ImGui::Render();
+
+  struct WheelEvent {
+    bool shift;
+    float horizontal;
+    float vertical;
+    uint8_t expected_size;
+  };
+  constexpr std::array<WheelEvent, 5> kEvents{{
+      {false, 0.0f, 1.0f, 0x06},  // Plain wheel adjusts packed height.
+      {true, 1.0f, 0.0f, 0x0A},   // macOS delivers Shift+wheel horizontally.
+      {true, -1.0f, 0.0f, 0x06},  // Reverse wheel shrinks the same axis.
+      {false, 1.0f, 0.0f, 0x06},  // Plain horizontal scrolling is not resize.
+      {true, 1.0f, 1.0f, 0x0A},   // Two axes still produce one resize.
+  }};
+  for (const auto& event : kEvents) {
+    SCOPED_TRACE(::testing::Message() << "shift=" << event.shift
+                                      << ", horizontal=" << event.horizontal
+                                      << ", vertical=" << event.vertical);
+    io.AddKeyEvent(ImGuiMod_Shift, event.shift);
+    io.AddMouseWheelEvent(event.horizontal, event.vertical);
+    ImGui::NewFrame();
+    draw_canvas();
+    EXPECT_TRUE(canvas_->IsMouseHovering());
+    interaction.HandleCanvasMouseInput();
+    EXPECT_EQ(interaction.entity_coordinator()
+                  .tile_handler()
+                  .GetPreviewObject()
+                  .size_,
+              event.expected_size);
+    ImGui::End();
+    ImGui::Render();
+  }
+
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].size_, 7);
+  EXPECT_EQ(interaction.GetSelectedObjectIndices(), (std::vector<size_t>{0}));
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+  interaction.CancelPlacement();
+}
+
+TEST_F(TileObjectHandlerTest,
        CustomPlacementWheelPreservesPreviewAndSelection) {
   ScopedCustomObjectSelectionState custom_state;
   AddTestObjects({CreateTestObject(5, 5, 0x02, 0x01)});
