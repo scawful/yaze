@@ -62,6 +62,8 @@ class ObjectCoveragePanel : public WindowContent {
   void MarkRoomsDirty() { index_dirty_ = true; }
 
  private:
+  friend class ObjectCoveragePanelTestPeer;
+
   void RebuildIndex();
   void EnsureEvidenceLoaded();
   void SetVerdict(int object_id, ObjectEvidenceState state);

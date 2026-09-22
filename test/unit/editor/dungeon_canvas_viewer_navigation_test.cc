@@ -531,6 +531,48 @@ TEST(DungeonCanvasViewerNavigationTest, CanNavigateRoomsReflectsCallbacks) {
   EXPECT_TRUE(viewer.CanNavigateRooms());
 }
 
+TEST(DungeonCanvasViewerLayerTest,
+     GameLayerVisibilityFollowsObjectEditsWithoutResettingOverrides) {
+  DungeonRoomStore rooms;
+  auto& room = rooms[0];
+  room.SetLayerMerging(zelda3::LayerMerge01);
+  room.SetTileObjects({});
+  DungeonCanvasViewer viewer;
+  viewer.SetRooms(&rooms);
+  auto& manager = viewer.GetRoomLayerManager(0);
+  ASSERT_FALSE(manager.GameHidesLowerTilemap());
+  manager.SetLayerBlendMode(zelda3::LayerType::BG1_Objects,
+                            zelda3::LayerBlendMode::Off);
+  manager.SetLayerVisible(zelda3::LayerType::BG2_Objects, false);
+  manager.SetShowHiddenLayers(true);
+
+  room.SetTileObjects({zelda3::RoomObject(0xDA, 8, 8, 0, 1)});
+  EXPECT_TRUE(viewer.GetRoomLayerManager(0).GameHidesLowerTilemap());
+  room.SetTileObjects({});
+  EXPECT_FALSE(viewer.GetRoomLayerManager(0).GameHidesLowerTilemap());
+
+  EXPECT_EQ(manager.GetLayerBlendMode(zelda3::LayerType::BG1_Objects),
+            zelda3::LayerBlendMode::Off);
+  EXPECT_FALSE(manager.IsLayerVisible(zelda3::LayerType::BG2_Objects));
+  EXPECT_TRUE(manager.ShowHiddenLayers());
+}
+
+TEST(DungeonCanvasViewerLayerTest, GameLayerVisibilityFollowsTagEdits) {
+  DungeonRoomStore rooms;
+  auto& room = rooms[0];
+  room.SetLayerMerging(zelda3::LayerMerge01);
+  room.SetTileObjects({zelda3::RoomObject(0x133, 8, 8, 0, 0)});
+  room.SetTag2(static_cast<zelda3::TagKey>(0));
+  DungeonCanvasViewer viewer;
+  viewer.SetRooms(&rooms);
+  ASSERT_FALSE(viewer.GetRoomLayerManager(0).GameHidesLowerTilemap());
+
+  room.SetTag2(static_cast<zelda3::TagKey>(0x1B));
+  EXPECT_TRUE(viewer.GetRoomLayerManager(0).GameHidesLowerTilemap());
+  room.SetTag2(static_cast<zelda3::TagKey>(0));
+  EXPECT_FALSE(viewer.GetRoomLayerManager(0).GameHidesLowerTilemap());
+}
+
 TEST(DungeonCanvasViewerNavigationTest, NavigateToRoomIgnoresInvalidTargets) {
   DungeonCanvasViewer viewer;
   int nav_calls = 0;

@@ -211,6 +211,7 @@ if(YAZE_BUILD_TESTS)
     unit/cli/project_bundle_archive_test.cc
     unit/rom/rom_diff_test.cc
     unit/rom/rom_test.cc
+    unit/rom/fresh_rom_fixture_output_test.cc
     unit/rom/write_fence_test.cc
     unit/emu/emulator_test.cc
     unit/emu/mesen_socket_client_test.cc
@@ -316,6 +317,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_workbench_content_test.cc
     unit/editor/dungeon_issue_report_storage_test.cc
     unit/editor/object_coverage_model_test.cc
+    unit/editor/object_coverage_panel_test.cc
     unit/editor/dungeon_usage_tracker_test.cc
     unit/editor/dungeon_entrance_edit_policy_test.cc
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
@@ -685,6 +687,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/dungeon_workbench_content_test.cc
     unit/editor/object_tile_editor_panel_test.cc
+    unit/editor/object_coverage_panel_test.cc
     unit/editor/minecart_track_source_test.cc
     unit/editor/minecart_track_editor_panel_test.cc
     unit/editor/project_manager_validator_test.cc
