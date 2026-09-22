@@ -71,17 +71,17 @@ class Spc700 {
   ApuCallbacks callbacks_;
   std::vector<std::string> log_;
 
-  bool stopped_;
-  bool reset_wanted_;
+  bool stopped_ = false;
+  bool reset_wanted_ = false;
   // single-cycle
-  uint8_t opcode;
+  uint8_t opcode = 0;
   uint32_t step = 0;
-  uint32_t bstep;
-  uint16_t adr;
-  uint16_t adr1;
-  uint8_t dat;
-  uint16_t dat16;
-  uint8_t param;
+  uint32_t bstep = 0;
+  uint16_t adr = 0;
+  uint16_t adr1 = 0;
+  uint8_t dat = 0;
+  uint16_t dat16 = 0;
+  uint8_t param = 0;
   int extra_cycles_ = 0;
 
   // Cycle tracking for accurate APU synchronization
@@ -116,7 +116,7 @@ class Spc700 {
     bool Z : 1;  // Zero flag
     bool C : 1;  // Carry flag
   };
-  Flags PSW;  // Processor status word
+  Flags PSW{};  // Processor status word
 
   uint8_t FlagsToByte(Flags flags) {
     return (flags.N << 7) | (flags.V << 6) | (flags.P << 5) | (flags.B << 4) |
@@ -137,7 +137,7 @@ class Spc700 {
   }
 
   void Reset(bool hard = false);
-  
+
   void SaveState(std::ostream& stream);
   void LoadState(std::istream& stream);
 
