@@ -398,6 +398,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/room_header_palette_test.cc
     unit/zelda3/dungeon/object_drawer_registry_replay_test.cc
     unit/zelda3/dungeon/object_draw_code_test.cc
+    unit/zelda3/dungeon/game_parity_gate_test.cc
     unit/zelda3/dungeon/custom_object_room_render_test.cc
     unit/zelda3/dungeon/room_object_rom_parity_test.cc
     unit/dungeon_object_drawer_test.cc
