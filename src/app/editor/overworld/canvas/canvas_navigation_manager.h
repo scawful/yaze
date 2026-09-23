@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
-#include "app/editor/overworld/ui_constants.h"
+#include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gui/canvas/canvas.h"

@@ -1,11 +1,11 @@
-#ifndef YAZE_APP_EDITOR_OVERWORLD_TILE_PAINTING_MANAGER_H
-#define YAZE_APP_EDITOR_OVERWORLD_TILE_PAINTING_MANAGER_H
+#ifndef YAZE_APP_EDITOR_OVERWORLD_PAINTING_TILE_PAINTING_MANAGER_H
+#define YAZE_APP_EDITOR_OVERWORLD_PAINTING_TILE_PAINTING_MANAGER_H
 
 #include <array>
 #include <functional>
 #include <vector>
 
-#include "app/editor/overworld/ui_constants.h"
+#include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gui/canvas/canvas.h"
@@ -91,4 +91,4 @@ class TilePaintingManager {
 }  // namespace editor
 }  // namespace yaze
 
-#endif  // YAZE_APP_EDITOR_OVERWORLD_TILE_PAINTING_MANAGER_H
+#endif  // YAZE_APP_EDITOR_OVERWORLD_PAINTING_TILE_PAINTING_MANAGER_H

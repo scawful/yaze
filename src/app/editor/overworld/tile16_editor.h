@@ -13,7 +13,7 @@
 
 #include "absl/status/status.h"
 #include "app/editor/core/undo_manager.h"
-#include "app/editor/overworld/tile16_undo_actions.h"
+#include "app/editor/overworld/tile16/tile16_undo_actions.h"
 #include "app/editor/palette/palette_editor.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/types/snes_palette.h"

@@ -7,8 +7,8 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "app/editor/overworld/overworld_property_edit.h"
-#include "app/editor/overworld/ui_constants.h"
+#include "app/editor/overworld/maps/overworld_property_edit.h"
+#include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gui/canvas/canvas.h"
 #include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"

@@ -2,7 +2,7 @@
 #include "util/i18n/tr.h"
 
 #include "app/editor/core/panel_registration.h"
-#include "app/editor/overworld/entity.h"
+#include "app/editor/overworld/entity/entity.h"
 #include "app/editor/overworld/entity/entity_mutation_service.h"
 #include "app/editor/overworld/panels/overworld_panel_access.h"
 #include "app/gui/core/popup_id.h"

@@ -1,5 +1,5 @@
 // Related header
-#include "app/editor/overworld/overworld_canvas_renderer.h"
+#include "app/editor/overworld/canvas/overworld_canvas_renderer.h"
 #include "util/i18n/tr.h"
 
 #ifndef IM_PI
@@ -17,14 +17,14 @@
 
 // Project headers
 #include "app/editor/agent/agent_ui_theme.h"
-#include "app/editor/overworld/entity.h"
-#include "app/editor/overworld/map_properties.h"
+#include "app/editor/overworld/entity/entity.h"
+#include "app/editor/overworld/entity/overworld_entity_renderer.h"
+#include "app/editor/overworld/maps/map_properties.h"
 #include "app/editor/overworld/overworld_editor.h"
-#include "app/editor/overworld/overworld_entity_renderer.h"
-#include "app/editor/overworld/overworld_sidebar.h"
-#include "app/editor/overworld/overworld_toolbar.h"
 #include "app/editor/overworld/tile16_editor.h"
-#include "app/editor/overworld/ui_constants.h"
+#include "app/editor/overworld/ui/navigation/overworld_sidebar.h"
+#include "app/editor/overworld/ui/navigation/overworld_toolbar.h"
+#include "app/editor/overworld/ui/ui_constants.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"

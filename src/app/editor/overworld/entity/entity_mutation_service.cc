@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#include "app/editor/overworld/entity_operations.h"
+#include "app/editor/overworld/entity/entity_operations.h"
 #include "zelda3/overworld/overworld.h"
 
 namespace yaze {

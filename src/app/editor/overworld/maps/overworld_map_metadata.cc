@@ -1,4 +1,4 @@
-#include "app/editor/overworld/overworld_map_metadata.h"
+#include "app/editor/overworld/maps/overworld_map_metadata.h"
 
 #include <algorithm>
 #include <array>

@@ -1,4 +1,4 @@
-#include "app/editor/overworld/entity.h"
+#include "app/editor/overworld/entity/entity.h"
 #include "util/i18n/tr.h"
 
 #include <fstream>

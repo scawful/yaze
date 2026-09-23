@@ -1,4 +1,4 @@
-#include "app/editor/overworld/map_properties.h"
+#include "app/editor/overworld/maps/map_properties.h"
 #include "util/i18n/tr.h"
 
 #include <algorithm>
@@ -8,9 +8,9 @@
 
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
+#include "app/editor/overworld/maps/overworld_map_metadata.h"
 #include "app/editor/overworld/overworld_editor.h"
-#include "app/editor/overworld/overworld_map_metadata.h"
-#include "app/editor/overworld/ui_constants.h"
+#include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/core/color.h"

@@ -1,8 +1,8 @@
 #include "app/editor/overworld/panels/debug_window_panel.h"
 
 #include "app/editor/core/panel_registration.h"
-#include "app/editor/overworld/debug_window_card.h"
 #include "app/editor/overworld/panels/overworld_panel_access.h"
+#include "app/editor/overworld/ui/debug/debug_window_card.h"
 
 namespace yaze::editor {
 

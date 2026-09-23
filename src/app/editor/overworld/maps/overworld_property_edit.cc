@@ -1,4 +1,4 @@
-#include "app/editor/overworld/overworld_property_edit.h"
+#include "app/editor/overworld/maps/overworld_property_edit.h"
 
 #include "absl/strings/str_format.h"
 

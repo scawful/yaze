@@ -1,4 +1,4 @@
-#include "app/editor/overworld/overworld_toolbar.h"
+#include "app/editor/overworld/ui/navigation/overworld_toolbar.h"
 #include "util/i18n/tr.h"
 
 #include <algorithm>
@@ -8,8 +8,8 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/editor.h"
-#include "app/editor/overworld/map_properties.h"
-#include "app/editor/overworld/overworld_map_metadata.h"
+#include "app/editor/overworld/maps/map_properties.h"
+#include "app/editor/overworld/maps/overworld_map_metadata.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/core/agent_theme.h"
 #include "app/gui/core/input.h"

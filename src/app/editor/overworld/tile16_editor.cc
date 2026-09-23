@@ -7,9 +7,9 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "app/editor/overworld/tile16_editor_action_state.h"
-#include "app/editor/overworld/tile16_editor_shortcuts.h"
-#include "app/editor/overworld/tile8_source_interaction.h"
+#include "app/editor/overworld/tile16/tile16_editor_action_state.h"
+#include "app/editor/overworld/tile16/tile16_editor_shortcuts.h"
+#include "app/editor/overworld/tile16/tile8_source_interaction.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"

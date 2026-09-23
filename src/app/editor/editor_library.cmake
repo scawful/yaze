@@ -88,40 +88,40 @@ set(
   app/editor/music/song_browser_view.cc
   app/editor/music/tracker_view.cc
   app/editor/overworld/automation.cc
+  app/editor/overworld/canvas/canvas_navigation_manager.cc
+  app/editor/overworld/canvas/overworld_canvas_renderer.cc
+  app/editor/overworld/canvas/overworld_navigation.cc
   app/editor/overworld/core/interaction_coordinator.cc
-  app/editor/overworld/debug_window_card.cc
-  app/editor/overworld/entity.cc
+  app/editor/overworld/entity/entity.cc
   app/editor/overworld/entity/entity_mutation_service.cc
+  app/editor/overworld/entity/entity_operations.cc
   app/editor/overworld/entity/entity_workbench.cc
-  app/editor/overworld/entity_operations.cc
-  app/editor/overworld/map_properties.cc
-  app/editor/overworld/canvas_navigation_manager.cc
-  app/editor/overworld/map_refresh_coordinator.cc
-  app/editor/overworld/map_texture_coordinator.cc
-  app/editor/overworld/overworld_map_metadata.cc
-  app/editor/overworld/overworld_property_edit.cc
-  app/editor/overworld/overworld_canvas_renderer.cc
+  app/editor/overworld/entity/overworld_entity_renderer.cc
+  app/editor/overworld/maps/map_properties.cc
+  app/editor/overworld/maps/map_refresh_coordinator.cc
+  app/editor/overworld/maps/map_texture_coordinator.cc
+  app/editor/overworld/maps/overworld_map_metadata.cc
+  app/editor/overworld/maps/overworld_property_edit.cc
   app/editor/overworld/overworld_editor.cc
-  app/editor/overworld/overworld_entity_renderer.cc
-  app/editor/overworld/overworld_navigation.cc
-  app/editor/overworld/overworld_sidebar.cc
-  app/editor/overworld/overworld_toolbar.cc
+  app/editor/overworld/painting/tile_painting_manager.cc
   app/editor/overworld/panels/area_graphics_panel.cc
-  app/editor/overworld/ui/tiles/tile16_selector_view.cc
-  app/editor/overworld/panels/map_properties_panel.cc
-  app/editor/overworld/ui/canvas/overworld_canvas_view.cc
-  app/editor/overworld/panels/scratch_space_panel.cc
-  app/editor/overworld/panels/usage_statistics_panel.cc
-  app/editor/overworld/panels/overworld_item_list_panel.cc
-  app/editor/overworld/ui/tiles/tile8_selector_view.cc
   app/editor/overworld/panels/debug_window_panel.cc
   app/editor/overworld/panels/gfx_groups_panel.cc
+  app/editor/overworld/panels/map_properties_panel.cc
+  app/editor/overworld/panels/overworld_item_list_panel.cc
+  app/editor/overworld/panels/scratch_space_panel.cc
+  app/editor/overworld/panels/usage_statistics_panel.cc
   app/editor/overworld/panels/v3_settings_panel.cc
-  app/editor/overworld/ui/tiles/tile16_editor_view.cc
-  app/editor/overworld/scratch_space.cc
   app/editor/overworld/tile16_editor.cc
-  app/editor/overworld/tile_painting_manager.cc
-  app/editor/overworld/usage_statistics_card.cc
+  app/editor/overworld/ui/canvas/overworld_canvas_view.cc
+  app/editor/overworld/ui/debug/debug_window_card.cc
+  app/editor/overworld/ui/debug/usage_statistics_card.cc
+  app/editor/overworld/ui/navigation/overworld_sidebar.cc
+  app/editor/overworld/ui/navigation/overworld_toolbar.cc
+  app/editor/overworld/ui/tiles/scratch_space.cc
+  app/editor/overworld/ui/tiles/tile16_editor_view.cc
+  app/editor/overworld/ui/tiles/tile16_selector_view.cc
+  app/editor/overworld/ui/tiles/tile8_selector_view.cc
   app/editor/palette/palette_editor.cc
   app/editor/palette/palette_group_panel.cc
   app/editor/palette/palette_utility.cc

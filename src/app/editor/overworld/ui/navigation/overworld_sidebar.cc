@@ -1,10 +1,10 @@
-#include "app/editor/overworld/overworld_sidebar.h"
+#include "app/editor/overworld/ui/navigation/overworld_sidebar.h"
 #include "util/i18n/tr.h"
 
 #include <algorithm>
 
 #include "absl/strings/str_format.h"
-#include "app/editor/overworld/ui_constants.h"
+#include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/ui_helpers.h"

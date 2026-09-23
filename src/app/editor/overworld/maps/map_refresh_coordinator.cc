@@ -1,5 +1,5 @@
 // Related header
-#include "app/editor/overworld/map_refresh_coordinator.h"
+#include "app/editor/overworld/maps/map_refresh_coordinator.h"
 
 #include <algorithm>
 

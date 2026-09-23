@@ -1,4 +1,4 @@
-#include "app/editor/overworld/debug_window_card.h"
+#include "app/editor/overworld/ui/debug/debug_window_card.h"
 #include "util/i18n/tr.h"
 
 #include "app/gui/core/icons.h"

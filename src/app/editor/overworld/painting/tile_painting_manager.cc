@@ -1,12 +1,12 @@
 // Related header
-#include "app/editor/overworld/tile_painting_manager.h"
+#include "app/editor/overworld/painting/tile_painting_manager.h"
 
 #include <algorithm>
 #include <cmath>
 #include <vector>
 
 #include "app/editor/overworld/tile16_editor.h"
-#include "app/editor/overworld/ui_constants.h"
+#include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gfx/render/tilemap.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/canvas/canvas.h"

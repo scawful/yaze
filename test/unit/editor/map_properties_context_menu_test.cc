@@ -1,4 +1,4 @@
-#include "app/editor/overworld/map_properties.h"
+#include "app/editor/overworld/maps/map_properties.h"
 
 #include <gtest/gtest.h>
 
