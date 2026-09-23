@@ -147,6 +147,33 @@ TEST_F(DungeonConnectionEditTest, RejectsSourceMarkerInEitherWallDepth) {
   }
 }
 
+TEST_F(DungeonConnectionEditTest,
+       VanillaRoom55ExitMarkerBlocksOnlyItsSouthPassage) {
+  // Vanilla room 055 has a normal south slot-6 door plus a slot-6 exit marker.
+  // USDASM $01BF2A..$01BF3E changes that doorway to collision 8E; the engine
+  // leaves for the overworld at $02B7A7..$02B7AE instead of entering room 065.
+  source_.GetDoors() = {MakeDoor(DoorDirection::South, 6),
+                        MakeDoor(DoorDirection::South, 6, DoorType::ExitMarker),
+                        MakeDoor(DoorDirection::East, 7)};
+  zelda3::Room south(0x65, nullptr);
+  const auto before = source_.GetDoors();
+  for (const auto layer :
+       {DungeonConnectionLayer::kUpper, DungeonConnectionLayer::kLower}) {
+    const auto exit =
+        PlanDungeonDoorConnection(source_, south, {0x55, 0, layer});
+    ASSERT_FALSE(exit.ok());
+    EXPECT_EQ(exit.status().code(), absl::StatusCode::kFailedPrecondition);
+    EXPECT_TRUE(south.GetDoors().empty());
+    EXPECT_TRUE(SameDungeonDoors(source_.GetDoors(), before));
+
+    const auto internal =
+        PlanDungeonDoorConnection(source_, target_, {0x55, 2, layer});
+    ASSERT_TRUE(internal.ok()) << internal.status();
+    EXPECT_EQ(internal->target_room_id, 0x56);
+    EXPECT_TRUE(internal->creates_return);
+  }
+}
+
 TEST_F(DungeonConnectionEditTest, RejectsTargetMarkerInEitherWallDepth) {
   for (auto type : {DoorType::ExitMarker, DoorType::DungeonSwapMarker,
                     DoorType::LayerSwapMarker}) {

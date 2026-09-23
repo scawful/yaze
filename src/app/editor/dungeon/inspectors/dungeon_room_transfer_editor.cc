@@ -34,6 +34,26 @@ void InvalidatePreview(DungeonRoomTransferEditorState& state) {
   state.preview.reset();
   state.error.clear();
   state.status.clear();
+  state.can_retry_without_properties = false;
+}
+
+void PreviewReplacement(DungeonCanvasViewer& viewer,
+                        DungeonRoomTransferEditorState& state) {
+  InvalidatePreview(state);
+  const auto preview = viewer.PreviewRoomTransfer(
+      state.import_json ? -1 : state.source_room_id, state.json,
+      {state.domains, state.copy_destinations});
+  if (preview.ok()) {
+    state.preview = std::make_shared<DungeonRoomTransferPlan>(*preview);
+  } else {
+    state.error = std::string(preview.status().message());
+    state.can_retry_without_properties =
+        (state.domains & kTransferMetadata) != 0 &&
+        (state.domains & ~kTransferMetadata) != 0 &&
+        preview.status()
+            .GetPayload(kRoomTransferSharedHeaderPayload)
+            .has_value();
+  }
 }
 
 void DrawCounts(const DungeonRoomTransferPlan& plan) {
@@ -192,15 +212,7 @@ void DrawDungeonRoomTransferEditor(DungeonCanvasViewer& viewer) {
                               state.source_room_id != target;
   ImGui::BeginDisabled(!valid_source || state.domains == 0);
   if (ImGui::Button("Preview Replacement", ImVec2(-1, 0))) {
-    InvalidatePreview(state);
-    const auto preview = viewer.PreviewRoomTransfer(
-        state.import_json ? -1 : state.source_room_id, state.json,
-        {state.domains, state.copy_destinations});
-    if (preview.ok()) {
-      state.preview = std::make_shared<DungeonRoomTransferPlan>(*preview);
-    } else {
-      state.error = std::string(preview.status().message());
-    }
+    PreviewReplacement(viewer, state);
   }
   gui::AutoRegisterLastItem("button", "TransferPreview");
   ImGui::EndDisabled();
@@ -246,6 +258,19 @@ void DrawDungeonRoomTransferEditor(DungeonCanvasViewer& viewer) {
       "header data stay in the target room.");
   if (!state.error.empty()) {
     ImGui::TextWrapped("Transfer not applied: %s", state.error.c_str());
+  }
+  if (state.can_retry_without_properties) {
+    ImGui::TextWrapped(
+        "Keep this room's shared properties and preview the other selected "
+        "contents instead.");
+    ImGui::BeginDisabled(!editable || !valid_source);
+    if (ImGui::Button("Preview without room properties", ImVec2(-1, 0))) {
+      state.domains &= ~kTransferMetadata;
+      state.copy_destinations = false;
+      PreviewReplacement(viewer, state);
+    }
+    gui::AutoRegisterLastItem("button", "TransferPreviewWithoutProperties");
+    ImGui::EndDisabled();
   }
   if (!state.status.empty()) {
     ImGui::TextWrapped("%s", state.status.c_str());

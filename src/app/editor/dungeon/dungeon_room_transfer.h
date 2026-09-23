@@ -20,6 +20,9 @@ inline constexpr uint16_t kTransferWater = 64;
 inline constexpr uint16_t kTransferCore = 31;
 inline constexpr uint16_t kTransferAll = 127;
 inline constexpr size_t kMaxDungeonRoomDocumentBytes = 1024 * 1024;
+// UI recovery is keyed by a status payload, not localized error text.
+inline constexpr char kRoomTransferSharedHeaderPayload[] =
+    "yaze.room-transfer.shared-header";
 
 struct DungeonRoomTransferOptions {
   uint16_t domains = kTransferCore;
@@ -55,6 +58,10 @@ DungeonRoomDocument CaptureDungeonRoomDocument(const zelda3::Room& room);
 bool SameDungeonRoomDocument(const DungeonRoomDocument& a,
                              const DungeonRoomDocument& b);
 absl::Status ValidateDungeonRoomDocument(const DungeonRoomDocument& document);
+// Preserve residual vanilla chest records in interchange. Object/chest
+// replacement still requires the stricter mapping validation in the planner.
+absl::Status ValidateDungeonRoomDocumentForInterchange(
+    const DungeonRoomDocument& document);
 absl::StatusOr<std::string> SerializeDungeonRoomDocument(
     const DungeonRoomDocument& document);
 absl::StatusOr<DungeonRoomDocument> ParseDungeonRoomDocument(

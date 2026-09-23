@@ -331,6 +331,34 @@ class DungeonSaveTest : public ::testing::Test {
     rom_->mutable_data()[kBlocksRegion1Pc + 3] = 0xDD;
   }
 
+  void SetupVanillaBlockRegions(int entry_count) {
+    // USDASM $04F1DE..$04F36A: 99 four-byte records immediately precede
+    // SpecialUnderworldObjects_torch, unlike SetupBlockRegions' roomy layout.
+    constexpr int kVanillaBlockDataPc = 0x271DE;
+    static_assert(kTorchData - kVanillaBlockDataPc == 99 * 4);
+    const std::array<int, 4> operands = {kBlocksPointer1, kBlocksPointer2,
+                                         kBlocksPointer3, kBlocksPointer4};
+    for (size_t page = 0; page < operands.size(); ++page) {
+      SeedBlockLoaderOperand(operands[page]);
+      WriteLongPointer(operands[page],
+                       PcToSnes(kVanillaBlockDataPc + page * 0x80));
+    }
+    ASSERT_TRUE(rom_->WriteWord(kBlocksLength, entry_count * 4).ok());
+    for (int index = 0; index < entry_count; ++index) {
+      const auto entry =
+          EncodePushableBlockEntry({0, static_cast<uint8_t>(index % 64),
+                                    static_cast<uint8_t>((index * 3) % 64),
+                                    static_cast<uint8_t>(index % 2), 0});
+      ASSERT_TRUE(rom_->WriteVector(kVanillaBlockDataPc + index * 4,
+                                    {entry.b1, entry.b2, entry.b3, entry.b4})
+                      .ok());
+    }
+    std::fill_n(rom_->mutable_data() + kTorchData, 0x120, 0xD7);
+    ASSERT_TRUE(rom_->WriteWord(kTorchesLengthPointer, 6).ok());
+    ASSERT_TRUE(
+        rom_->WriteVector(kTorchData, {0x43, 0, 0xAA, 3, 0xFF, 0xFF}).ok());
+  }
+
   void SeedBlockLoaderOperand(int operand_pc) {
     rom_->mutable_data()[operand_pc - 1] = 0xBF;  // LDA.l operand,X
     rom_->mutable_data()[operand_pc + 3] = 0x9D;  // STA.w addr,X
@@ -3504,7 +3532,8 @@ TEST_F(DungeonSaveTest,
   EXPECT_TRUE(room.blocks_dirty());
 }
 
-TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_AllowsExactVanillaCapacity) {
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RelocatedPagesAllowFullWramCapacity) {
   SetupBlockRegions();
   rom_->mutable_data()[kBlocksLength] = 0x00;
   rom_->mutable_data()[kBlocksLength + 1] = 0x00;
@@ -3513,8 +3542,8 @@ TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_AllowsExactVanillaCapacity) {
   room.LoadBlocks();
   ASSERT_TRUE(room.AreBlocksLoaded());
 
-  constexpr int kVanillaBlockCapacity = 128;
-  for (int i = 0; i < kVanillaBlockCapacity; ++i) {
+  constexpr int kWramBlockCapacity = 128;
+  for (int i = 0; i < kWramBlockCapacity; ++i) {
     room.AddTileObject(MakePushableBlock(i % 64, (i * 3) % 64, i % 2));
   }
 
@@ -3541,6 +3570,135 @@ TEST_F(DungeonSaveTest, SaveAllBlocks_RoomAware_AllowsExactVanillaCapacity) {
   EXPECT_EQ(rom_->data()[last_entry_pc + 2], last.b3);
   EXPECT_EQ(rom_->data()[last_entry_pc + 3], last.b4);
   EXPECT_FALSE(room.blocks_dirty());
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_VanillaLayoutFits99WithoutTouchingTorches) {
+  SetupVanillaBlockRegions(98);
+  const std::vector<uint8_t> torch_bytes(rom_->data() + kTorchData,
+                                         rom_->data() + kTorchData + 0x120);
+  Room room(0, rom_.get());
+  room.LoadBlocks();
+  ASSERT_TRUE(room.AreBlocksLoaded());
+  ASSERT_EQ(room.GetTileObjects().size(), 98u);
+  room.AddTileObject(MakePushableBlock(22, 24, 1));
+  const auto status = SaveAllBlocks(
+      rom_.get(), 1, [&room](int id) { return id == 0 ? &room : nullptr; });
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(rom_->ReadWord(kBlocksLength).value(), 99 * 4);
+  const auto last = EncodePushableBlockEntry({0, 22, 24, 1, 0});
+  EXPECT_EQ(rom_->data()[kTorchData - 4], last.b1);
+  EXPECT_EQ(rom_->data()[kTorchData - 3], last.b2);
+  EXPECT_EQ(rom_->data()[kTorchData - 2], last.b3);
+  EXPECT_EQ(rom_->data()[kTorchData - 1], last.b4);
+  EXPECT_EQ(std::vector<uint8_t>(rom_->data() + kTorchData,
+                                 rom_->data() + kTorchData + 0x120),
+            torch_bytes);
+  EXPECT_FALSE(room.blocks_dirty());
+  EXPECT_EQ(room.GetTileObjects().back().block_load_order(), 98);
+  const auto saved = rom_->vector();
+  ASSERT_TRUE(SaveAllBlocks(rom_.get()).ok());
+  EXPECT_EQ(rom_->vector(), saved);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_VanillaLayoutRejects100BeforeAnyWrite) {
+  SetupVanillaBlockRegions(99);
+  Room room(0, rom_.get());
+  room.LoadBlocks();
+  ASSERT_TRUE(room.AreBlocksLoaded());
+  ASSERT_EQ(room.GetTileObjects().size(), 99u);
+  room.AddTileObject(MakePushableBlock(22, 24, 1));
+  const auto before = rom_->vector();
+  const auto status = SaveAllBlocks(
+      rom_.get(), 1, [&room](int id) { return id == 0 ? &room : nullptr; });
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  EXPECT_NE(std::string(status.message()).find("overlaps torch data"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_EQ(rom_->ReadWord(kBlocksLength).value(), 99 * 4);
+  EXPECT_TRUE(room.blocks_dirty());
+  EXPECT_EQ(room.GetTileObjects().back().block_load_order(),
+            RoomObject::kBlockLoadOrderNew);
+  EXPECT_EQ(room.GetTileObjects()[98].block_load_order(), 98);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RejectsExistingVanillaLengthIntoTorchesBeforeAnyWrite) {
+  SetupVanillaBlockRegions(99);
+  ASSERT_TRUE(rom_->WriteWord(kBlocksLength, 100 * 4).ok());
+  const auto before = rom_->vector();
+  EXPECT_EQ(SaveAllBlocks(rom_.get()).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(
+      SaveAllBlocks(rom_.get(), 1, [](int) -> const Room* { return nullptr; })
+          .code(),
+      absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(rom_->vector(), before);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RelocatedFourthPageCanGrowPast99) {
+  SetupVanillaBlockRegions(99);
+  constexpr int kVanillaFourthPagePc = 0x271DE + 3 * 0x80;
+  const std::vector<uint8_t> last_original_entries(
+      rom_->data() + kVanillaFourthPagePc, rom_->data() + kTorchData);
+  ASSERT_TRUE(rom_->WriteVector(kBlocksRegion4Pc, last_original_entries).ok());
+  WriteLongPointer(kBlocksPointer4, PcToSnes(kBlocksRegion4Pc));
+  const std::vector<uint8_t> torch_bytes(rom_->data() + kTorchData,
+                                         rom_->data() + kTorchData + 0x120);
+  Room room(0, rom_.get());
+  room.LoadBlocks();
+  ASSERT_EQ(room.GetTileObjects().size(), 99u);
+  for (int index = 99; index < 128; ++index) {
+    room.AddTileObject(
+        MakePushableBlock(index % 64, (index * 3) % 64, index % 2));
+  }
+  const auto status = SaveAllBlocks(
+      rom_.get(), 1, [&room](int id) { return id == 0 ? &room : nullptr; });
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_EQ(rom_->ReadWord(kBlocksLength).value(), 128 * 4);
+  EXPECT_EQ(room.GetTileObjects().back().block_load_order(), 127);
+  EXPECT_FALSE(room.blocks_dirty());
+  EXPECT_EQ(std::vector<uint8_t>(rom_->data() + kTorchData,
+                                 rom_->data() + kTorchData + 0x120),
+            torch_bytes);
+  EXPECT_EQ(std::vector<uint8_t>(rom_->data() + kVanillaFourthPagePc,
+                                 rom_->data() + kTorchData),
+            last_original_entries);
+  Room reopened(0, rom_.get());
+  reopened.LoadBlocks();
+  ASSERT_EQ(reopened.GetTileObjects().size(), 128u);
+  EXPECT_EQ(reopened.GetTileObjects().back().x(), 127 % 64);
+  EXPECT_EQ(reopened.GetTileObjects().back().y(), (127 * 3) % 64);
+}
+
+TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RejectsAnyRelocatedPageInsideTorchAllocation) {
+  const std::array<int, 4> operands = {kBlocksPointer1, kBlocksPointer2,
+                                       kBlocksPointer3, kBlocksPointer4};
+  for (size_t page = 0; page < operands.size(); ++page) {
+    SCOPED_TRACE(page);
+    SetupBlockRegions();
+    ASSERT_TRUE(rom_->WriteWord(kBlocksLength, 0).ok());
+    Room room(0, rom_.get());
+    room.LoadBlocks();
+    ASSERT_TRUE(room.AreBlocksLoaded());
+    WriteLongPointer(operands[page], PcToSnes(kTorchData + 4));
+    for (size_t index = 0; index < page * 32 + 1; ++index) {
+      room.AddTileObject(MakePushableBlock(index % 64, (index * 3) % 64, 0));
+    }
+    const auto before = rom_->vector();
+    const auto status = SaveAllBlocks(
+        rom_.get(), 1, [&room](int id) { return id == 0 ? &room : nullptr; });
+    EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+    EXPECT_NE(std::string(status.message()).find("overlaps torch data"),
+              std::string::npos);
+    EXPECT_EQ(rom_->vector(), before);
+    EXPECT_TRUE(room.blocks_dirty());
+    EXPECT_EQ(room.GetTileObjects().back().block_load_order(),
+              RoomObject::kBlockLoadOrderNew);
+  }
 }
 
 TEST_F(DungeonSaveTest,

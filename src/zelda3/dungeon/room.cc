@@ -3281,6 +3281,47 @@ absl::Status PreflightBlocksLoaderDestinations(
   return absl::OkStatus();
 }
 
+// Loader pages describe a 0x200-byte WRAM buffer, not 0x200 bytes of owned
+// ROM storage. USDASM bank_04 places the vanilla block table at $04F1DE
+// (PC 0x271DE) and the torch table at $04F36A (PC 0x2736A): only 99 four-byte
+// block records fit. The fourth 128-byte loader read deliberately includes
+// unused torch bytes; writes must stop before those bytes. Repointed block
+// pages retain the full WRAM capacity only when their actual payload spans
+// avoid the fixed torch allocation ($04F36A..$04F48A) and its length operand.
+absl::Status PreflightBlocksPayloadDestinations(
+    const std::array<int, 4>& destination_pcs, int byte_length) {
+  if (byte_length < 0 || byte_length > 4 * kBlocksRegionSize ||
+      byte_length % 4 != 0) {
+    return absl::FailedPreconditionError(
+        "Pushable-block length must contain whole four-byte records within "
+        "the 0x200-byte WRAM buffer");
+  }
+  for (size_t page = 0; page < destination_pcs.size(); ++page) {
+    const int offset = static_cast<int>(page) * kBlocksRegionSize;
+    const int length = std::min(kBlocksRegionSize, byte_length - offset);
+    if (length <= 0)
+      break;
+    const int begin = destination_pcs[page];
+    const int end = begin + length;
+    if (HalfOpenRangesOverlap(begin, end, kTorchData,
+                              kTorchData + kTorchesMaxSize)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Pushable-block ROM capacity exceeded: loader page %d payload "
+          "[0x%05X, 0x%05X) overlaps torch data [0x%05X, 0x%05X). "
+          "Repoint the block data to independent ROM storage before growing "
+          "this table.",
+          page + 1, begin, end, kTorchData, kTorchData + kTorchesMaxSize));
+    }
+    if (HalfOpenRangesOverlap(begin, end, kTorchesLengthPointer,
+                              kTorchesLengthPointer + 2)) {
+      return absl::FailedPreconditionError(absl::StrFormat(
+          "Blocks loader page %d payload overlaps torch length metadata",
+          page + 1));
+    }
+  }
+  return absl::OkStatus();
+}
+
 }  // namespace
 
 absl::Status SaveAllBlocks(Rom* rom) {
@@ -3296,6 +3337,8 @@ absl::Status SaveAllBlocks(Rom* rom) {
   std::array<int, 4> destination_pcs{};
   RETURN_IF_ERROR(
       PreflightBlocksLoaderDestinations(rom_data, &destination_pcs));
+  RETURN_IF_ERROR(
+      PreflightBlocksPayloadDestinations(destination_pcs, blocks_count));
   if (blocks_count <= 0) {
     return absl::OkStatus();
   }
@@ -3336,7 +3379,9 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
   // blocks for any room the user hasn't materialized yet.
   const int original_count_word =
       (rom_data[kBlocksLength + 1] << 8) | rom_data[kBlocksLength];
-  const int original_byte_len = std::max(0, original_count_word);
+  const int original_byte_len = original_count_word;
+  RETURN_IF_ERROR(
+      PreflightBlocksPayloadDestinations(destination_pcs, original_byte_len));
   std::vector<uint8_t> original_buffer(original_byte_len, 0);
   for (int r = 0; r < 4; ++r) {
     const int pc = destination_pcs[r];
@@ -3483,14 +3528,13 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
         "entry.");
   }
 
-  // Capacity check against the vanilla 128-entry cap.
+  // The runtime buffer has 128 slots; the ROM layout may have fewer.
   const int kMaxEntries = (4 * kBlocksRegionSize) / 4;
   if (static_cast<int>(output.size() / 4) > kMaxEntries) {
     return absl::FailedPreconditionError(absl::StrCat(
         "Pushable-block table overflow: ", output.size() / 4,
-        " entries exceeds the vanilla cap of ", kMaxEntries,
-        " (expand layout requires repointing all 4 LDA.l operand slots; "
-        "out of scope for this encoder)."));
+        " entries exceeds the runtime WRAM cap of ", kMaxEntries,
+        " (a larger table requires runtime buffer and loader changes)."));
   }
 
   // Build the write plan from the four destinations preflighted above. Doing
@@ -3498,6 +3542,8 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
   // this public API in a transaction cannot discover a bad later page only
   // after an earlier page has already been written.
   const int total_bytes = static_cast<int>(output.size());
+  RETURN_IF_ERROR(
+      PreflightBlocksPayloadDestinations(destination_pcs, total_bytes));
   struct BlockWriteDestination {
     int pc;
     int output_offset;

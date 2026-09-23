@@ -14,6 +14,7 @@
 #include "gtest/gtest.h"
 #include "imgui/imgui.h"
 #include "rom/snes.h"
+#include "zelda3/dungeon/dungeon_block_codec.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/water_fill_zone.h"
@@ -247,7 +248,7 @@ TEST_P(DungeonRoomTransferLifecycleTest,
   ASSERT_TRUE(exported.ok()) << exported.status();
   const auto parsed = ParseDungeonRoomDocument(*exported);
   ASSERT_TRUE(parsed.ok()) << parsed.status();
-  EXPECT_TRUE(SameDungeonRoomDocument(*parsed, source));
+  EXPECT_TRUE(SameDungeonRoomDocument(*parsed, WithoutBlockSlots(source)));
   const auto clone = Preview();
   ASSERT_TRUE(clone.ok()) << clone.status();
   const auto imported = editor_->PreviewRoomTransfer(1, -1, *exported, {});
@@ -387,6 +388,37 @@ TEST_P(DungeonRoomTransferLifecycleTest,
 }
 
 TEST_P(DungeonRoomTransferLifecycleTest,
+       VanillaBlockGrowthCannotOverwriteTorchesDuringPreview) {
+  constexpr int native_blocks = 0x271DE;
+  const std::array<int, 4> operands{
+      zelda3::kBlocksPointer1, zelda3::kBlocksPointer2, zelda3::kBlocksPointer3,
+      zelda3::kBlocksPointer4};
+  for (size_t page = 0; page < operands.size(); ++page)
+    WritePointer(rom_, operands[page], native_blocks + page * 0x80);
+  ASSERT_TRUE(rom_.WriteWord(zelda3::kBlocksLength, 99 * 4).ok());
+  for (int slot = 0; slot < 99; ++slot) {
+    const uint16_t room = slot < 5 ? 0 : slot < 9 ? 1 : 2;
+    const auto encoded = zelda3::EncodePushableBlockEntry(
+        {room, static_cast<uint8_t>(slot % 32), 10, 0, 0});
+    ASSERT_TRUE(
+        rom_.WriteVector(native_blocks + slot * 4,
+                         {encoded.b1, encoded.b2, encoded.b3, encoded.b4})
+            .ok());
+  }
+  for (int id = 0; id < 3; ++id) {
+    editor_->rooms()[id] = zelda3::LoadRoomFromRom(&rom_, id);
+    editor_->rooms()[id].LoadSprites();
+  }
+  const auto rejected = Preview({kTransferObjects});
+  ASSERT_FALSE(rejected.ok());
+  EXPECT_NE(std::string(rejected.status().message()).find("torch"),
+            std::string::npos)
+      << rejected.status();
+  ExpectRejectedWithoutChanges(
+      [&] { return Preview({kTransferObjects}).status(); });
+}
+
+TEST_P(DungeonRoomTransferLifecycleTest,
        ProtectedDestinationRejectsDetachedSaveWithoutWritingLiveRom) {
   project::YazeProject project;
   ASSERT_TRUE(project.hack_manifest
@@ -421,8 +453,12 @@ TEST_P(DungeonRoomTransferLifecycleTest,
     EXPECT_EQ(plan.status().code(), absl::StatusCode::kFailedPrecondition);
     EXPECT_NE(std::string(plan.status().message()).find("header overlaps"),
               std::string::npos);
+    EXPECT_TRUE(plan.status().GetPayload(kRoomTransferSharedHeaderPayload));
     ExpectRejectedWithoutChanges(
         [&] { return Preview({kTransferMetadata}).status(); });
+    const auto contents_only = Preview({kTransferCore & ~kTransferMetadata});
+    ASSERT_TRUE(contents_only.ok()) << contents_only.status();
+    EXPECT_EQ(contents_only->after.metadata, contents_only->before.metadata);
   }
 }
 
@@ -442,6 +478,28 @@ TEST_P(DungeonRoomTransferLifecycleTest,
   Source().MarkChestsDirty();
   ExpectRejectedWithoutChanges(
       [&] { return Preview({kTransferObjects}).status(); });
+}
+
+TEST_P(DungeonRoomTransferLifecycleTest,
+       LazyPotExportAcceptsTerminatorSharedWithEmptyRoom) {
+  Source() = zelda3::LoadRoomHeaderFromRom(&rom_, 0);
+  ASSERT_TRUE(
+      rom_.WriteVector(kPotPc, {0xCC, 0x13, 0x0A, 0x60, 0x26, 0x0B, 0xFF, 0xFF})
+          .ok());
+  ASSERT_TRUE(rom_.WriteWord(zelda3::kRoomItemsPointers + 8 * 2,
+                             PcToSnes(kPotPc + 6) & 0xFFFF)
+                  .ok());
+  const auto before = rom_.vector();
+  const auto exported = editor_->ExportRoomDocument(0);
+  ASSERT_TRUE(exported.ok()) << exported.status();
+  const auto document = ParseDungeonRoomDocument(*exported);
+  ASSERT_TRUE(document.ok()) << document.status();
+  ASSERT_EQ(document->contents.items.size(), 2u);
+  EXPECT_EQ(document->contents.items[1].position, 0x2660);
+  const auto preview = Preview({kTransferItems});
+  ASSERT_TRUE(preview.ok()) << preview.status();
+  EXPECT_EQ(rom_.vector(), before);
+  EXPECT_EQ(UndoDepth(), 0u);
 }
 
 TEST_P(DungeonRoomTransferLifecycleTest,
@@ -569,7 +627,7 @@ TEST_P(DungeonRoomTransferLifecycleTest,
   ASSERT_TRUE(document.ok()) << document.status();
   const auto parsed = ParseDungeonRoomDocument(*document);
   ASSERT_TRUE(parsed.ok()) << parsed.status();
-  EXPECT_TRUE(SameDungeonRoomDocument(*parsed, expected));
+  EXPECT_TRUE(SameDungeonRoomDocument(*parsed, WithoutBlockSlots(expected)));
   EXPECT_TRUE(Source().AreObjectsLoaded());
   EXPECT_TRUE(Source().AreSpritesLoaded());
   EXPECT_TRUE(Source().ArePotItemsLoaded());
