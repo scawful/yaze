@@ -630,8 +630,11 @@ int DungeonCanvasViewer::ApplyConnectedStaircaseIssueAutoFixes(
     connected_graph_cache_start_room_id_ = center_room_id;
   }
 
-  int fixed_count = 0;
-  for (const auto& issue : connected_graph_cache_.staircase_issues) {
+  // Applying the batch refreshes the connected graph. Own the diagnostics
+  // before invoking a callback that invalidates the cache they came from.
+  const auto issues = connected_graph_cache_.staircase_issues;
+  std::vector<RoomMetadataRequest> requests;
+  for (const auto& issue : issues) {
     if (issue.kind != DungeonStaircaseIssueKind::UnusedHeader ||
         issue.slot_index < 0 || issue.slot_index >= 4 ||
         issue.header_room_id <= 0) {
@@ -642,9 +645,20 @@ int DungeonCanvasViewer::ApplyConnectedStaircaseIssueAutoFixes(
                      static_cast<uint8_t>(issue.header_room_id)) {
       continue;
     }
-    room->SetStaircaseRoom(issue.slot_index, 0);
-    ++fixed_count;
+    requests.push_back(
+        {issue.from_room_id,
+         {RoomMetadataField::kStaircaseRoom, 0, issue.slot_index}});
   }
+  if (!requests.empty()) {
+    const auto status = EditRoomMetadataBatch(requests);
+    if (!status.ok()) {
+      connected_action_status_message_ =
+          absl::StrFormat("Staircase repair not applied: %s", status.message());
+      connected_action_status_is_error_ = true;
+      return 0;
+    }
+  }
+  const int fixed_count = static_cast<int>(requests.size());
 
   if (fixed_count > 0) {
     connected_action_status_message_ =

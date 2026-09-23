@@ -74,8 +74,7 @@
 
 namespace yaze::editor {
 
-absl::Status DungeonEditorV2::Undo() {
-  // Finalize any in-progress edit before undoing.
+void DungeonEditorV2::FinalizePendingUndoActions() {
   if (pending_undo_.room_id >= 0) {
     FinalizeUndoAction(pending_undo_.room_id);
   }
@@ -86,6 +85,10 @@ absl::Status DungeonEditorV2::Undo() {
     FinalizeWaterFillUndoAction(pending_water_fill_undo_.room_id);
   }
   FinalizePendingEntityUndoActions();
+}
+
+absl::Status DungeonEditorV2::Undo() {
+  FinalizePendingUndoActions();
   const std::string description = undo_manager_.GetUndoDescription();
   undo_restore_triggered_ping_ = false;
   auto status = undo_manager_.Undo();
@@ -107,17 +110,7 @@ absl::Status DungeonEditorV2::Undo() {
 }
 
 absl::Status DungeonEditorV2::Redo() {
-  // Finalize any in-progress edit before redoing.
-  if (pending_undo_.room_id >= 0) {
-    FinalizeUndoAction(pending_undo_.room_id);
-  }
-  if (pending_collision_undo_.room_id >= 0) {
-    FinalizeCollisionUndoAction(pending_collision_undo_.room_id);
-  }
-  if (pending_water_fill_undo_.room_id >= 0) {
-    FinalizeWaterFillUndoAction(pending_water_fill_undo_.room_id);
-  }
-  FinalizePendingEntityUndoActions();
+  FinalizePendingUndoActions();
   const std::string description = undo_manager_.GetRedoDescription();
   undo_restore_triggered_ping_ = false;
   auto status = undo_manager_.Redo();
@@ -207,6 +200,18 @@ std::vector<SelectedEntity> ValidEntitySelection(
 }  // namespace
 
 void DungeonEditorV2::ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer) {
+  viewer->SetMetadataEditCallback(
+      [this](int room_id, const RoomMetadataEdit& edit) {
+        return EditRoomMetadata(room_id, edit);
+      });
+  viewer->SetMetadataBatchEditCallback(
+      [this](const std::vector<RoomMetadataRequest>& requests) {
+        return EditRoomMetadataBatch(requests);
+      });
+  viewer->SetChestEditCallback(
+      [this](int room_id, size_t index, uint8_t item_id, bool big_chest) {
+        return EditChest(room_id, index, item_id, big_chest);
+      });
   // The interaction context is the mutation source of truth. A retained viewer
   // can change rooms, so do not capture the room ID from its creation time.
   viewer->object_interaction().SetMutationCallback([this, viewer]() {

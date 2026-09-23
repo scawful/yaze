@@ -13,6 +13,8 @@
 #include <vector>
 
 #include "app/editor/dungeon/dungeon_room_composite.h"
+#include "app/editor/dungeon/dungeon_room_edit.h"
+#include "app/editor/dungeon/inspectors/dungeon_chest_editor.h"
 #include "app/editor/editor.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/types/snes_palette.h"
@@ -273,6 +275,31 @@ class DungeonCanvasViewer {
   void DrawConnectedToolbarControls(int center_room_id);
   void Draw(int room_id);
   void TriggerChangePing();
+  using MetadataEditCallback =
+      std::function<absl::Status(int, const RoomMetadataEdit&)>;
+  using MetadataBatchEditCallback =
+      std::function<absl::Status(const std::vector<RoomMetadataRequest>&)>;
+  using ChestEditCallback =
+      std::function<absl::Status(int, size_t, uint8_t, bool)>;
+  void SetMetadataEditCallback(MetadataEditCallback callback) {
+    metadata_edit_callback_ = std::move(callback);
+  }
+  void SetMetadataBatchEditCallback(MetadataBatchEditCallback callback) {
+    metadata_batch_edit_callback_ = std::move(callback);
+  }
+  void SetChestEditCallback(ChestEditCallback callback) {
+    chest_edit_callback_ = std::move(callback);
+  }
+  absl::Status EditRoomMetadata(int room_id, const RoomMetadataEdit& edit);
+  absl::Status EditRoomMetadataBatch(
+      const std::vector<RoomMetadataRequest>& requests);
+  absl::Status EditChest(int room_id, size_t index, uint8_t item_id,
+                         bool big_chest);
+  DungeonChestEditorState& chest_editor_state() { return chest_editor_state_; }
+  void InvalidateConnectedRoomGraph() {
+    connected_graph_cache_start_room_id_ = -1;
+    connected_graph_cache_ = ConnectedRoomGraphData{};
+  }
   void TriggerCanvasPingRect(int pixel_x, int pixel_y, int pixel_w,
                              int pixel_h);
   void TriggerObjectChangePing(
@@ -786,6 +813,7 @@ class DungeonCanvasViewer {
 
  private:
   friend class DungeonCanvasViewerTestPeer;
+  friend class DungeonRoomEditsTestPeer;
   friend class DungeonEditorPaletteRefreshTestPeer;
   friend class
       DungeonEditorPaletteRefreshTest_CachedRoomRefreshesThroughViewerCompositePreparation_Test;
@@ -1023,6 +1051,10 @@ class DungeonCanvasViewer {
   bool show_custom_collision_overlay_ = false;
   bool show_water_fill_overlay_ = false;
   bool show_room_details_ = false;
+  MetadataEditCallback metadata_edit_callback_;
+  MetadataBatchEditCallback metadata_batch_edit_callback_;
+  ChestEditCallback chest_edit_callback_;
+  DungeonChestEditorState chest_editor_state_;
   bool compact_header_mode_ = false;
   bool header_read_only_ = false;
   bool header_visible_ = true;

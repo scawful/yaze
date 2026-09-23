@@ -19,6 +19,8 @@ set(
   app/editor/dungeon/object_coverage_model.cc
   app/editor/dungeon/dungeon_editor_v2_persistence.cc
   app/editor/dungeon/dungeon_editor_v2_undo.cc
+  app/editor/dungeon/dungeon_editor_v2_room_edits.cc
+  app/editor/dungeon/dungeon_room_edit.cc
   app/editor/dungeon/dungeon_editor_v2_object_coverage.cc
   app/editor/dungeon/dungeon_object_interaction.cc
   app/editor/dungeon/dungeon_object_selector.cc
@@ -30,6 +32,7 @@ set(
   app/editor/dungeon/dungeon_toolset.cc
   app/editor/dungeon/dungeon_usage_tracker.cc
   app/editor/dungeon/inspectors/dungeon_entity_inspector.cc
+  app/editor/dungeon/inspectors/dungeon_chest_editor.cc
   app/editor/dungeon/inspectors/door_editor_content.cc
   app/editor/dungeon/inspectors/object_editor_content.cc
   app/editor/dungeon/interaction/door_interaction_handler.cc
@@ -52,6 +55,7 @@ set(
   app/editor/dungeon/widgets/dungeon_workbench_toolbar.cc
   app/editor/dungeon/workspace/dungeon_pit_damage_view_model.cc
   app/editor/dungeon/workspace/dungeon_workbench_content.cc
+  app/editor/dungeon/workspace/dungeon_workbench_room_inspector.cc
   app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.cc
   app/editor/dungeon/workspace/dungeon_workbench_layout.cc
   app/editor/dungeon/workspace/room_graphics_content.cc

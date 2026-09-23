@@ -2807,6 +2807,26 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
 
   DungeonCanvasViewer viewer(&rom);
   viewer.SetRooms(&rooms);
+  int batch_calls = 0;
+  viewer.SetMetadataBatchEditCallback(
+      [&](const std::vector<RoomMetadataRequest>& requests) {
+        ++batch_calls;
+        for (const auto& request : requests) {
+          const auto status = ValidateRoomMetadataEdit(request.edit);
+          if (!status.ok()) {
+            return status;
+          }
+        }
+        for (const auto& request : requests) {
+          const auto status =
+              ApplyRoomMetadataEdit(rooms[request.room_id], request.edit);
+          if (!status.ok()) {
+            return status;
+          }
+        }
+        viewer.InvalidateConnectedRoomGraph();
+        return absl::OkStatus();
+      });
 
   const auto before =
       DungeonCanvasViewerTestPeer::BuildConnectedRoomGraph(viewer, 0x10);
@@ -2820,6 +2840,7 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
   EXPECT_EQ(start.staircase_room(0), 0x40);
   EXPECT_EQ(start.staircase_room(1), 0);
   EXPECT_TRUE(start.header_dirty());
+  EXPECT_EQ(batch_calls, 1);
 
   const auto after =
       DungeonCanvasViewerTestPeer::BuildConnectedRoomGraph(viewer, 0x10);

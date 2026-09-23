@@ -851,6 +851,64 @@ Room::~Room() = default;
 Room::Room(Room&&) = default;
 Room& Room::operator=(Room&&) = default;
 
+Room::MetadataSnapshot Room::CaptureMetadataSnapshot() const {
+  return {.palette = palette_,
+          .blockset = blockset_,
+          .spriteset = spriteset_,
+          .layout = layout_id_,
+          .floor1 = floor1_graphics_,
+          .floor2 = floor2_graphics_,
+          .message = message_id_,
+          .bg2 = bg2_,
+          .layer2_mode = layer2_mode_,
+          .layer_merging = layer_merging_,
+          .is_dark = is_dark_,
+          .is_light = is_light_,
+          .collision = collision_,
+          .effect = effect_,
+          .tag1 = tag1_,
+          .tag2 = tag2_,
+          .holewarp = holewarp_,
+          .staircase_rooms = {staircase_rooms_[0], staircase_rooms_[1],
+                              staircase_rooms_[2], staircase_rooms_[3]},
+          .staircase_planes = {staircase_plane_[0], staircase_plane_[1],
+                               staircase_plane_[2], staircase_plane_[3]}};
+}
+
+void Room::RestoreMetadataSnapshot(const MetadataSnapshot& snapshot) {
+  SetPalette(snapshot.palette);
+  SetBlockset(snapshot.blockset);
+  SetSpriteset(snapshot.spriteset);
+  SetLayoutId(snapshot.layout);
+  set_floor1(snapshot.floor1);
+  set_floor2(snapshot.floor2);
+  SetMessageId(snapshot.message);
+
+  // SetBg2 intentionally normalizes the authoring choice. Undo restores the
+  // original state instead, including the BG2 mode hidden by the dark flag.
+  if (bg2_ != snapshot.bg2 || layer2_mode_ != snapshot.layer2_mode ||
+      layer_merging_ != snapshot.layer_merging ||
+      is_dark_ != snapshot.is_dark || is_light_ != snapshot.is_light) {
+    bg2_ = snapshot.bg2;
+    layer2_mode_ = snapshot.layer2_mode;
+    layer_merging_ = snapshot.layer_merging;
+    is_dark_ = snapshot.is_dark;
+    is_light_ = snapshot.is_light;
+    MarkHeaderDirty();
+    MarkGraphicsDirty();
+  }
+
+  SetCollision(snapshot.collision);
+  SetEffect(snapshot.effect);
+  SetTag1(snapshot.tag1);
+  SetTag2(snapshot.tag2);
+  SetHolewarp(snapshot.holewarp);
+  for (int index = 0; index < 4; ++index) {
+    SetStaircaseRoom(index, snapshot.staircase_rooms[index]);
+    SetStaircasePlane(index, snapshot.staircase_planes[index]);
+  }
+}
+
 int Room::ResolveDungeonPaletteId() const {
   if (!game_data_ || !rom_)
     return 0;

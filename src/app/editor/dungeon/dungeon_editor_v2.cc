@@ -1024,6 +1024,10 @@ absl::Status DungeonEditorV2::Load() {
   room_tag_panel->SetProject(dependencies_.project);
   room_tag_panel->SetRooms(&rooms_);
   room_tag_panel->SetCurrentRoomId(current_room_id_);
+  room_tag_panel->SetMetadataEditCallback(
+      [this](int room_id, const RoomMetadataEdit& edit) {
+        return EditRoomMetadata(room_id, edit);
+      });
   room_tag_editor_panel_ = room_tag_panel.get();
 
   auto object_coverage_panel = CreateObjectCoveragePanel();

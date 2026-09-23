@@ -150,6 +150,12 @@ class DungeonEditorV2 : public Editor {
   void CommitSaveTransaction() override;
   void ContributeStatus(StatusBar* status_bar) override;
   absl::Status SaveRoom(int room_id);
+  // Discrete room property edits share the dungeon undo history in both views.
+  absl::Status EditRoomMetadata(int room_id, const RoomMetadataEdit& edit);
+  absl::Status EditRoomMetadataBatch(
+      const std::vector<RoomMetadataRequest>& requests);
+  absl::Status EditChest(int room_id, size_t index, uint8_t item_id,
+                         bool big_chest);
   int LoadedRoomCount() const;
   // Room-specific pending state used by room counts and room-level UI.
   int PendingRoomCount() const;
@@ -273,6 +279,7 @@ class DungeonEditorV2 : public Editor {
   friend class DungeonCanvasViewerTestPeer;
   friend class DungeonEditorPaletteRefreshTestPeer;
   friend class DungeonEditorEntityUndoTestPeer;
+  friend class DungeonRoomEditsTestPeer;
   friend class DungeonEditorV2MinecartTrackTestPeer;
   friend class DungeonEditorV2ObjectTileEditorTestPeer;
   friend class DungeonEditorV2RegularEntranceTestPeer;
@@ -542,6 +549,12 @@ class DungeonEditorV2 : public Editor {
                           const std::vector<size_t>& selected_indices);
 
   void ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer);
+  void FinalizePendingUndoActions();
+  absl::Status RestoreRoomMetadataBatch(
+      const std::vector<std::pair<int, zelda3::Room::MetadataSnapshot>>&
+          states);
+  absl::Status RestoreChest(int room_id, size_t index, chest_data chest);
+  void RefreshRoomMetadataViews(int room_id);
   DungeonEntitySnapshot CaptureRoomEntities(int room_id, MutationDomain domain);
   void BeginEntityUndoSnapshot(int room_id, MutationDomain domain);
   void FinalizeEntityUndoAction(int room_id, MutationDomain domain);
