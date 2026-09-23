@@ -268,9 +268,9 @@ void DrawItem(DungeonCanvasViewer& viewer, size_t index,
       ImGui::EndCombo();
     }
     position_changed |=
-        IntegerProperty("X (pixel)", "ItemX", x, 508, 4, identity);
+        IntegerProperty("X (pixel)", "ItemX", x, 504, 8, identity);
     position_changed |=
-        IntegerProperty("Y (pixel)", "ItemY", y, 496, 16, identity);
+        IntegerProperty("Y (pixel)", "ItemY", y, 504, 8, identity);
     ImGui::EndTable();
   }
   if (position_changed) {
@@ -283,7 +283,8 @@ void DrawItem(DungeonCanvasViewer& viewer, size_t index,
         .MutateItemType(index, type);
   }
   ImGui::TextWrapped(
-      "Position snaps to 4 pixels horizontally and 16 vertically.");
+      "Position snaps to an 8-pixel grid; layer and control flags are "
+      "preserved.");
 }
 
 }  // namespace

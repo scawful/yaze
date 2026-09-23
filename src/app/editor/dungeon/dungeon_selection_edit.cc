@@ -175,11 +175,14 @@ absl::Status TranslateSprite(DungeonSpriteSnapshot& sprite, int dx, int dy) {
 }
 
 absl::Status TranslateItem(zelda3::PotItem& item, int dx, int dy) {
-  ASSIGN_OR_RETURN(const int x, TranslateCoordinate(item.GetPixelX(), dx, 4,
-                                                    508, "Pot item X"));
-  ASSIGN_OR_RETURN(const int y, TranslateCoordinate(item.GetPixelY(), dy, 16,
-                                                    496, "Pot item Y"));
-  item.position = static_cast<uint16_t>(((y / 16) << 8) | (x / 4));
+  ASSIGN_OR_RETURN(const int x, TranslateCoordinate(item.GetPixelX(), dx, 8,
+                                                    504, "Pot item X"));
+  ASSIGN_OR_RETURN(const int y, TranslateCoordinate(item.GetPixelY(), dy, 8,
+                                                    504, "Pot item Y"));
+  const auto encoded = zelda3::EncodePotItemPosition(x, y, item.position);
+  if (!encoded)
+    return absl::InvalidArgumentError("Invalid pot item position");
+  item.position = *encoded;
   return absl::OkStatus();
 }
 

@@ -614,7 +614,7 @@ Implementation boundaries:
 The same candidate includes review corrections for flagged pot-item type edits,
 coupled chest/object saves, object-only Delete controls, and the dungeon
 spriteset authoring limit. The handoff records their regression scope and the
-remaining pot-coordinate codec audit.
+pot-coordinate codec repair and its synthetic verification.
 
 **Verification:** `1000` tests across
 `49` suites; `all passed, zero failures and zero skipped`. Exact commands,

@@ -68,15 +68,16 @@ void ItemInteractionHandler::HandleRelease() {
   const int pixel_y = std::clamp(static_cast<int>(drag_current_pos_.y), 0,
                                  dungeon_coords::kRoomPixelHeight - 1);
 
-  // PotItem position encoding:
-  // high byte * 16 = Y, low byte * 4 = X
-  const int encoded_x = pixel_x / 4;
-  const int encoded_y = pixel_y / 16;
-  const uint16_t next_position =
-      static_cast<uint16_t>((encoded_y << 8) | encoded_x);
-
   auto& pot_items = room->GetPotItems();
   if (*selected_item_index_ < pot_items.size()) {
+    const auto encoded = zelda3::EncodePotItemPosition(
+        pixel_x / 8 * 8, pixel_y / 8 * 8,
+        pot_items[*selected_item_index_].position);
+    if (!encoded) {
+      is_dragging_ = false;
+      return;
+    }
+    const uint16_t next_position = *encoded;
     if (pot_items[*selected_item_index_].position == next_position) {
       is_dragging_ = false;
       return;
@@ -283,10 +284,11 @@ bool ItemInteractionHandler::NudgeSelected(int delta_pixel_x,
       std::clamp(pot_item.GetPixelX() + delta_pixel_x, 0, kRoomPixelMax);
   const int next_pixel_y =
       std::clamp(pot_item.GetPixelY() + delta_pixel_y, 0, kRoomPixelMax);
-  const int encoded_x = std::clamp(next_pixel_x / 4, 0, 255);
-  const int encoded_y = std::clamp(next_pixel_y / 16, 0, 255);
-  const uint16_t next_position =
-      static_cast<uint16_t>((encoded_y << 8) | encoded_x);
+  const auto encoded = zelda3::EncodePotItemPosition(
+      next_pixel_x / 8 * 8, next_pixel_y / 8 * 8, pot_item.position);
+  if (!encoded)
+    return false;
+  const uint16_t next_position = *encoded;
   if (next_position == pot_item.position) {
     return false;
   }
@@ -335,12 +337,11 @@ bool ItemInteractionHandler::UpdateItem(size_t index, uint8_t type, int pixel_x,
   if (pixel_x == item.GetPixelX() && pixel_y == item.GetPixelY()) {
     return MutateItemType(index, type);
   }
-  if (pixel_x < 0 || pixel_x >= 512 || pixel_y < 0 || pixel_y >= 512 ||
-      pixel_x % 4 != 0 || pixel_y % 16 != 0) {
+  const auto encoded =
+      zelda3::EncodePotItemPosition(pixel_x, pixel_y, item.position);
+  if (!encoded)
     return false;
-  }
-  const uint16_t position =
-      static_cast<uint16_t>(((pixel_y / 16) << 8) | (pixel_x / 4));
+  const uint16_t position = *encoded;
   if (item.item == type && item.position == position) {
     return false;
   }
@@ -361,23 +362,14 @@ void ItemInteractionHandler::PlaceItemAtPosition(int canvas_x, int canvas_y) {
   if (!room)
     return;
 
-  int pixel_x = canvas_x;
-  int pixel_y = canvas_y;
-
-  // PotItem position encoding:
-  // high byte * 16 = Y, low byte * 4 = X
-  int encoded_x = pixel_x / 4;
-  int encoded_y = pixel_y / 16;
-
-  // Clamp to valid range
-  encoded_x = std::clamp(encoded_x, 0, 255);
-  encoded_y = std::clamp(encoded_y, 0, 255);
-
+  const auto encoded =
+      zelda3::EncodePotItemPosition(std::clamp(canvas_x, 0, 511) / 8 * 8,
+                                    std::clamp(canvas_y, 0, 511) / 8 * 8);
+  if (!encoded)
+    return;
   ctx_->NotifyMutation(MutationDomain::kItems);
-
-  // Create the pot item
   zelda3::PotItem new_item;
-  new_item.position = static_cast<uint16_t>((encoded_y << 8) | encoded_x);
+  new_item.position = *encoded;
   new_item.item = preview_item_id_;
 
   // Add item to room

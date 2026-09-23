@@ -2188,6 +2188,25 @@ TEST_F(DungeonSaveTest, SaveAllPotItems_ReloadedRoomMatchesSerializedState) {
   EXPECT_EQ(reloaded_room.GetPotItems()[1].item, 0x9A);
 }
 
+TEST_F(DungeonSaveTest, SaveAllPotItems_MovedFlaggedPositionReloadsExactly) {
+  SetupPotItemTable();
+  std::vector<Room> rooms(kNumberOfRooms);
+  rooms[0].SetLoaded(true);
+  const auto position = EncodePotItemPosition(304, 312, 0xA660);
+  ASSERT_TRUE(position);
+  rooms[0].GetPotItems().push_back({*position, 7});
+  rooms[0].MarkPotItemsDirty();
+  ASSERT_TRUE(SaveAllPotItems(rom_.get(), rooms).ok());
+  Room reloaded(0, rom_.get());
+  reloaded.LoadPotItems();
+  ASSERT_EQ(reloaded.GetPotItems().size(), 1);
+  const auto& item = reloaded.GetPotItems()[0];
+  EXPECT_EQ(item.position, 0xB3CC);
+  EXPECT_EQ(item.GetPixelX(), 304);
+  EXPECT_EQ(item.GetPixelY(), 312);
+  EXPECT_EQ(item.item, 7);
+}
+
 TEST_F(DungeonSaveTest, SaveAllPotItems_UnloadedRoomPreservesExistingRomData) {
   SetupPotItemTable();
   SeedPotItemBytes(kPotRoom0Pc, {0x34, 0x12, 0x56, 0xFF, 0xFF});

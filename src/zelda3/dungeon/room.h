@@ -2,6 +2,7 @@
 #define YAZE_APP_ZELDA3_DUNGEON_ROOM_H
 
 #include <yaze.h>
+#include "zelda3/dungeon/pot_item_position.h"
 
 #include <array>
 #include <cstdint>
@@ -134,11 +135,9 @@ struct PotItem {
   uint16_t position = 0;  // Raw position word from ROM
   uint8_t item = 0;       // Item type (0 = nothing)
 
-  // Legacy canvas projection, not a lossless tilemap-position codec. The raw
-  // word also has layer/control bits; type edits and interchange must retain
-  // position verbatim rather than validating/re-encoding through these helpers.
-  int GetPixelX() const { return (position & 0xFF) * 4; }
-  int GetPixelY() const { return ((position >> 8) & 0xFF) * 16; }
+  // Coordinates occupy bits 1..12; layer/control bits do not affect pixels.
+  int GetPixelX() const { return PotItemPixelX(position); }
+  int GetPixelY() const { return PotItemPixelY(position); }
 
   // Get tile coordinates (8-pixel tiles)
   int GetTileX() const { return GetPixelX() / 8; }

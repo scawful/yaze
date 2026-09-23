@@ -8,6 +8,52 @@ The user requested substantial implementation work
 from Codex and delegated extended validation to Claude. Avoid asking the user
 to repeat a sequence of manual tests before continuing development.
 
+## Pot-item position repair and branch reconciliation (2026-09-23)
+
+The next source increment after `eb795570f` closes the legacy pot-coordinate
+codec audit. `PotItem` now decodes a 64x64 tilemap byte offset: X in bits 1..6,
+Y in bits 7..12, eight pixels per tile. Movement preserves bits 0 and 13..15;
+`FFFF` remains a terminator, never an authored item. Placement, dragging,
+inspector controls, arrow nudges, mixed movement and paste use the shared codec.
+Item-only nudges use 8 pixels; selections containing sprites retain their
+16-pixel movement constraint. Raw room JSON positions remain compatible.
+
+Engine evidence: USDASM `RoomDraw_SinglePot` at `$01B3AA..$01B3B9` stores the
+Y tilemap byte index in `$0540` and ORs `$2000` for the lower tilemap.
+`RevealPotItem` at `$01E6DD` masks `$8000` before comparison. A row is 128 bytes.
+ZScream's `Rooms/Room.cs` decoder independently matches this layout. Some
+USDASM XYZ annotations omit the odd-row bit; executable addressing is authority.
+
+Example: raw `$13CC` is pixel `(304,312)`, not `(816,304)`; `$2660` is
+`(384,96)` with its layer bit retained, not Y=608. Moving `$A660` to `(304,312)`
+produces `$B3CC`; Undo restores `$A660` exactly.
+
+Validation: 138 focused tests passed, then all 1,024 tests across 50 affected
+authoring suites passed with zero failures/skips. Results are recorded in
+`/tmp/yaze-pot-authoring-final-tests.log`; the filter adds `PotItemPositionTest.*`
+and `DungeonSaveTest.*Pot*` to the existing 1,000-test candidate selection below.
+The original broader run had one stale 16-pixel nudge expectation; that test
+now asserts the audited 8-pixel step. Application/unit builds passed. Scoped
+clang-tidy analyzer checks passed for `item_interaction_handler.cc` and
+`dungeon_selection_edit.cc`, including the codec header. This is synthetic
+in-memory save/reload evidence, not native UI, ROM-file, or emulator acceptance.
+
+**Integration boundary:** main checkout `codex/dungeon-workbench-bottom-drawer`
+has the consolidated overworld changes through `06343577b`, but lacks this
+branch's chest, mixed-selection, connection and room-transfer increments.
+Do not claim these dungeon features are in that checkout or its installed app.
+A non-mutating merge preview of those branches found 15 conflicted files,
+including overworld save code, sprite metadata, widgets, Mesen integration,
+CI, and protocol/status docs. The preview is `/tmp/yaze-dungeon-integration-preview.txt`.
+No merge or remote synchronization occurred during this repair.
+
+**Next:** integrate the branches in an isolated checkout, preserving both the
+new overworld sprite writer and reviewed dungeon authoring paths. Resolve
+ownership for non-editor conflicts explicitly, build the merged result, and run
+both focused verification sets before changing the user's main source checkout.
+Keep manual checks deferred: flagged pot selection, odd-row movement,
+Undo/Redo, save/reopen, and layer display are added to the user's checklist.
+
 ## Current Oracle interchange repair candidate (2026-09-23)
 
 Source: **`339cc9cdf`** on `codex/editor-parity-dungeon-authoring`, following
@@ -265,8 +311,8 @@ before final verification. Recheck these paths during independent acceptance:
 
 1. Pot-item type-only edits retain the exact encoded position word and use the
    existing mutation/undo path. Raw position flags are preserved by room
-   transfer. The broader legacy pot-coordinate display/drag codec still needs
-   an independent engine-format audit; this fix does not qualify it.
+   transfer. The follow-up pot-coordinate repair above audits the engine format
+   and corrects display/drag/mixed movement with shared, flag-preserving encoding.
 2. Pending chest object and reward edits cannot save with split feature flags.
    Apply Room also refuses to publish another room's rewards without that
    room's pending objects. Reward-only changes remain independently saveable;
