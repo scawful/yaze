@@ -15,6 +15,11 @@ class DungeonWorkbenchContentTestPeer {
                                 DungeonCanvasViewer& viewer) {
     content.DrawInspectorShelfRoom(viewer);
   }
+  static void DrawSelectedObjectActions(DungeonWorkbenchContent& content,
+                                        DungeonCanvasViewer& viewer,
+                                        size_t index) {
+    content.DrawSelectedObjectActions(viewer, index);
+  }
 };
 
 }  // namespace yaze::editor

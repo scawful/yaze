@@ -26,7 +26,7 @@ int MetadataMaximum(RoomMetadataField field) {
     case RoomMetadataField::kPalette:
       return 0x47;
     case RoomMetadataField::kSpriteset:
-      return 0x8F;
+      return zelda3::kMaxDungeonSpriteset;
     case RoomMetadataField::kMessage:
       return 0x0FFF;
     case RoomMetadataField::kBg2:

@@ -3323,6 +3323,46 @@ TEST_F(DungeonSaveTest,
 }
 
 TEST_F(DungeonSaveTest,
+       SaveAllBlocks_RoomAware_RejectsDuplicateCurrentSlotClaim) {
+  SetupBlockRegions();
+  const auto entry =
+      EncodePushableBlockEntry({/*room_id=*/0, /*px=*/10, /*py=*/20,
+                                /*draw_layer=*/0, /*behavior_layer=*/0});
+  rom_->mutable_data()[kBlocksRegion1Pc + 0] = entry.b1;
+  rom_->mutable_data()[kBlocksRegion1Pc + 1] = entry.b2;
+  rom_->mutable_data()[kBlocksRegion1Pc + 2] = entry.b3;
+  rom_->mutable_data()[kBlocksRegion1Pc + 3] = entry.b4;
+
+  Room room(0, rom_.get());
+  room.LoadBlocks();
+  ASSERT_TRUE(room.AreBlocksLoaded());
+  ASSERT_EQ(room.GetTileObjects().size(), 1u);
+  ASSERT_EQ(room.GetTileObjects()[0].block_load_order(), 0);
+  auto duplicate = room.GetTileObjects()[0];
+  duplicate.set_x(12);
+  room.AddTileObject(duplicate);
+  rom_->ClearDirty();
+  const auto before = rom_->vector();
+
+  const auto status =
+      SaveAllBlocks(rom_.get(), 1, [&room](int room_id) -> const Room* {
+        return room_id == 0 ? &room : nullptr;
+      });
+
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_NE(std::string(status.message()).find("multiple pushable blocks"),
+            std::string::npos);
+  EXPECT_NE(std::string(status.message()).find("load-order slot 0"),
+            std::string::npos);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_FALSE(rom_->dirty());
+  EXPECT_TRUE(room.blocks_dirty());
+  ASSERT_EQ(room.GetTileObjects().size(), 2u);
+  EXPECT_EQ(room.GetTileObjects()[0].block_load_order(), 0);
+  EXPECT_EQ(room.GetTileObjects()[1].block_load_order(), 0);
+}
+
+TEST_F(DungeonSaveTest,
        SaveAllBlocks_RoomAware_RejectsDuplicateStaleSlotClaim) {
   SetupBlockRegions();
   const auto entry =

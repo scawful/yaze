@@ -479,6 +479,81 @@ absl::StatusOr<uint32_t> ParseStream(std::span<const uint8_t> bytes,
   return absl::InvalidArgumentError("Unknown dungeon stream kind");
 }
 
+absl::StatusOr<DungeonStreamRecord> ReadFixedBankRoomStream(
+    const Rom& rom, int room_id, DungeonStreamKind kind) {
+  if (room_id < 0 || room_id >= kNumberOfRooms) {
+    return absl::OutOfRangeError(
+        "Dungeon stream room is outside the room table");
+  }
+  if (!rom.is_loaded()) {
+    return absl::InvalidArgumentError("ROM not loaded");
+  }
+  if (rom.size() > std::numeric_limits<uint32_t>::max()) {
+    return absl::OutOfRangeError("ROM is too large for PC-native stream reads");
+  }
+  DungeonStreamLayout layout;
+  layout.kind = kind;
+  layout.pointer_encoding = DungeonPointerEncoding::kFixedBank16;
+  if (kind == DungeonStreamKind::kSprite) {
+    layout.pointer_bank = 0x09;
+    layout.pointer_table_pc = kRoomsSpritePointer;
+    ASSIGN_OR_RETURN(layout.pointer_table_pc, DecodePointer(rom, layout, 0));
+  } else {
+    layout.pointer_bank = 0x01;
+    layout.pointer_table_pc = kRoomItemsPointers;
+  }
+  const uint32_t table_end = layout.pointer_table_pc + kNumberOfRooms * 2;
+  const uint32_t table_bank_end =
+      ((layout.pointer_table_pc / kLoRomBankSize) + 1) * kLoRomBankSize;
+  if (table_end > rom.size() || table_end > table_bank_end) {
+    return absl::OutOfRangeError(
+        "Dungeon stream pointer table is truncated or crosses its bank");
+  }
+  const DungeonStreamPcRange pointer_table{layout.pointer_table_pc, table_end};
+  const auto pointer_source = KnownPointerSourceRange(kind);
+  if (Intersects(pointer_table, pointer_source)) {
+    return absl::FailedPreconditionError(
+        "Dungeon stream pointer table overlaps its live pointer source");
+  }
+  ASSIGN_OR_RETURN(const uint32_t start, DecodePointer(rom, layout, room_id));
+  uint32_t limit =
+      std::min<uint32_t>(static_cast<uint32_t>(rom.size()),
+                         ((start / kLoRomBankSize) + 1) * kLoRomBankSize);
+  if (kind == DungeonStreamKind::kSprite && start >= kSpritesDataEmptyRoom &&
+      start < kSpritesDataEndExclusive) {
+    limit = std::min(limit, static_cast<uint32_t>(kSpritesDataEndExclusive));
+  }
+  if (kind == DungeonStreamKind::kPotItem && start >= table_end &&
+      start < kRoomItemsDataEnd) {
+    limit = std::min(limit, static_cast<uint32_t>(kRoomItemsDataEnd));
+  }
+  for (const auto& metadata : {pointer_table, pointer_source}) {
+    if (ContainsAddress(metadata, start)) {
+      return absl::FailedPreconditionError(
+          "Dungeon stream pointer resolves inside pointer metadata");
+    }
+    if (metadata.begin > start) {
+      limit = std::min(limit, metadata.begin);
+    }
+  }
+  for (int other = 0; other < kNumberOfRooms; ++other) {
+    const auto address = DecodePointer(rom, layout, other);
+    if (address.ok() && *address > start) {
+      limit = std::min(limit, *address);
+    }
+  }
+  const std::span<const uint8_t> bytes(rom.data(), rom.size());
+  ASSIGN_OR_RETURN(const uint32_t end, ParseStream(bytes, kind, start, limit));
+  DungeonStreamRecord record;
+  record.room_id = room_id;
+  record.pointer_slot_pc = layout.pointer_table_pc + room_id * 2;
+  record.data_pc = start;
+  record.logical_end_pc = end;
+  record.valid = true;
+  record.encoded_stream.assign(bytes.begin() + start, bytes.begin() + end);
+  return record;
+}
+
 absl::Status ValidateCompleteEncodedStream(
     DungeonStreamKind kind, const std::vector<uint8_t>& encoded) {
   if (encoded.empty()) {
@@ -919,6 +994,16 @@ absl::StatusOr<DungeonStreamRecord> ReadDungeonObjectStream(const Rom& rom,
   record.valid = true;
   record.encoded_stream.assign(bytes.begin() + start, bytes.begin() + end);
   return record;
+}
+
+absl::StatusOr<DungeonStreamRecord> ReadDungeonSpriteStream(const Rom& rom,
+                                                            int room_id) {
+  return ReadFixedBankRoomStream(rom, room_id, DungeonStreamKind::kSprite);
+}
+
+absl::StatusOr<DungeonStreamRecord> ReadDungeonPotItemStream(const Rom& rom,
+                                                             int room_id) {
+  return ReadFixedBankRoomStream(rom, room_id, DungeonStreamKind::kPotItem);
 }
 
 absl::StatusOr<DungeonStreamInventory> InventoryDungeonStreams(

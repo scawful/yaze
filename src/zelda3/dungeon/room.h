@@ -134,8 +134,9 @@ struct PotItem {
   uint16_t position = 0;  // Raw position word from ROM
   uint8_t item = 0;       // Item type (0 = nothing)
 
-  // Decode pixel coordinates from position word
-  // Format: high byte * 16 = Y, low byte * 4 = X
+  // Legacy canvas projection, not a lossless tilemap-position codec. The raw
+  // word also has layer/control bits; type edits and interchange must retain
+  // position verbatim rather than validating/re-encoding through these helpers.
   int GetPixelX() const { return (position & 0xFF) * 4; }
   int GetPixelY() const { return ((position >> 8) & 0xFF) * 16; }
 
@@ -242,6 +243,7 @@ class Room {
     TagKey tag1 = Nothing;
     TagKey tag2 = Nothing;
     uint8_t holewarp = 0;
+    uint8_t pit_target_layer = 0;
     std::array<uint8_t, 4> staircase_rooms{};
     std::array<uint8_t, 4> staircase_planes{};
 

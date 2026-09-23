@@ -154,6 +154,11 @@ class DungeonEditorV2 : public Editor {
   absl::StatusOr<DungeonConnectionPlan> PreviewDoorConnection(
       const DungeonConnectionRequest& request);
   absl::Status ApplyDoorConnection(const DungeonConnectionPlan& plan);
+  absl::StatusOr<std::string> ExportRoomDocument(int room_id);
+  absl::StatusOr<DungeonRoomTransferPlan> PreviewRoomTransfer(
+      int target_room_id, int source_room_id, const std::string& json,
+      const DungeonRoomTransferOptions& options);
+  absl::Status ApplyRoomTransfer(const DungeonRoomTransferPlan& plan);
   absl::Status EditRoomMetadata(int room_id, const RoomMetadataEdit& edit);
   absl::Status EditRoomMetadataBatch(
       const std::vector<RoomMetadataRequest>& requests);
@@ -286,6 +291,7 @@ class DungeonEditorV2 : public Editor {
   friend class DungeonRoomEditsTestPeer;
   friend class DungeonSelectionEditsTestPeer;
   friend class DungeonConnectionEditsTestPeer;
+  friend class DungeonRoomTransferTestPeer;
   friend class DungeonEditorV2MinecartTrackTestPeer;
   friend class DungeonEditorV2ObjectTileEditorTestPeer;
   friend class DungeonEditorV2RegularEntranceTestPeer;
@@ -376,6 +382,7 @@ class DungeonEditorV2 : public Editor {
   void RemoveViewerFromLru(int room_id);
 
   absl::Status SaveRoomData(int room_id);
+  absl::Status SaveRoomImpl(int room_id, bool room_data_only);
   absl::Status RunWithSaveTransaction(
       const std::function<absl::Status()>& operation);
 
@@ -575,6 +582,10 @@ class DungeonEditorV2 : public Editor {
   absl::Status RestoreSelectionEditBatch(
       const std::vector<DungeonSelectionEditPlan>& plans, bool after);
   absl::Status EnsureConnectionRoomLoaded(int room_id);
+  absl::Status EnsureRoomTransferLoaded(int room_id);
+  absl::Status PreflightRoomTransfer(const DungeonRoomTransferPlan& plan);
+  absl::Status RestoreRoomTransfer(int room_id,
+                                   const DungeonRoomDocument& document);
   void RefreshSelectionEditViews(int room_id,
                                  const DungeonSelectionEditState* selection);
   void PushSelectionUndoAction(DungeonSelectionEditPlan plan);

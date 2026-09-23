@@ -232,6 +232,24 @@ TEST_P(DungeonEntityUndoLifecycleTest, DoorAndItemEditsRestoreOnlyTheirDomain) {
 }
 
 TEST_P(DungeonEntityUndoLifecycleTest,
+       FlaggedPotTypeEditUndoRetainsRawPosition) {
+  room_->GetPotItems().push_back({0x2660, 1});
+  coordinator().SelectEntity(EntityType::Item, 0);
+  ASSERT_TRUE(coordinator().item_handler().MutateItemType(0, 6));
+  ASSERT_EQ(UndoDepth(), 1u);
+  EXPECT_EQ(room_->GetPotItems()[0].position, 0x2660);
+  EXPECT_EQ(room_->GetPotItems()[0].item, 6);
+  room_->ClearPotItemsDirty();
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->GetPotItems()[0].position, 0x2660);
+  EXPECT_EQ(room_->GetPotItems()[0].item, 1);
+  EXPECT_TRUE(room_->pot_items_dirty());
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(room_->GetPotItems()[0].position, 0x2660);
+  EXPECT_EQ(room_->GetPotItems()[0].item, 6);
+}
+
+TEST_P(DungeonEntityUndoLifecycleTest,
        SpritePlacementDragAndDeleteHaveSeparateUndoActions) {
   auto& handler = coordinator().sprite_handler();
   handler.SetSpriteId(0x09);

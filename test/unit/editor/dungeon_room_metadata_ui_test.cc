@@ -195,6 +195,27 @@ TEST_F(DungeonRoomMetadataUiTest, DestinationEditPreservesCorrectSlot) {
   EXPECT_EQ(rooms_[0].staircase_room(0), 0);
 }
 
+TEST_F(DungeonRoomMetadataUiTest,
+       DungeonSpriteGraphicsRejectFirstMissingGroup) {
+  Type("RoomHeaderSpriteset", "50");
+  Enter();
+  ASSERT_EQ(edits_.size(), 1);
+  EXPECT_EQ(edits_[0].request.field, RoomMetadataField::kSpriteset);
+  EXPECT_EQ(edits_[0].request.value, 0x50);
+  EXPECT_EQ(rooms_[0].spriteset(), 0);
+  EXPECT_FALSE(rooms_[0].HasUnsavedChanges());
+  EXPECT_NE(logged_text_.find("Edit not applied"), std::string::npos);
+}
+
+TEST_F(DungeonRoomMetadataUiTest,
+       DungeonSpriteGraphicsAcceptLastExistingGroup) {
+  Type("RoomHeaderSpriteset", "4F");
+  Enter();
+  ASSERT_EQ(edits_.size(), 1);
+  EXPECT_EQ(rooms_[0].spriteset(), 0x4F);
+  EXPECT_TRUE(rooms_[0].header_dirty());
+}
+
 TEST_F(DungeonRoomMetadataUiTest, NamedBg2ChoiceUsesMetadataBoundary) {
   DrawFrame();
   DrawFrame();

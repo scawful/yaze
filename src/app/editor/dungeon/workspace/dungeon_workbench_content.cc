@@ -2039,7 +2039,7 @@ void DungeonWorkbenchContent::DrawSelectedObjectActions(
       (void)interaction.HandleDuplicateSelected();
     }
     if (action(ICON_MD_DELETE " Delete", "delete_object")) {
-      (void)interaction.HandleDeleteSelected();
+      handler.DeleteObjects(room_id, indices);
     }
     if (action(ICON_MD_FLIP_TO_FRONT " To front", "object_to_front")) {
       handler.SendToFront(room_id, indices);
@@ -2235,7 +2235,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
               {ImGuiCol_Button, theme.status_error},
           });
           if (ImGui::Button(ICON_MD_DELETE " Confirm##BulkDelConfirm")) {
-            (void)interaction.HandleDeleteSelected();
+            tile_handler.DeleteObjects(room_id, selection_copy);
             ImGui::CloseCurrentPopup();
           }
         }

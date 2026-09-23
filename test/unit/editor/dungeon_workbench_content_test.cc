@@ -428,6 +428,51 @@ TEST_F(DungeonWorkbenchPlacementUiTest,
   EXPECT_EQ(ImGui::GetCurrentContext()->ColorStack.Size, 0);
 }
 
+TEST_F(DungeonWorkbenchPlacementUiTest,
+       ObjectDeleteButtonPreservesSelectedDoorsSpritesAndItems) {
+  auto& interaction = viewer_.object_interaction();
+  interaction.CancelPlacement();
+  rooms_[0].SetTileObjects({object_});
+  rooms_[0].GetDoors().push_back(zelda3::Room::Door::FromRomBytes(0x63, 0));
+  rooms_[0].GetSprites().emplace_back(9, 6, 8, 0, 0);
+  rooms_[0].GetPotItems().push_back({0x0A20, 6});
+  interaction.SetSelectedObjects({0});
+  const std::vector<SelectedEntity> entities{
+      {EntityType::Door, 0}, {EntityType::Sprite, 0}, {EntityType::Item, 0}};
+  interaction.entity_coordinator().SetSelectedEntities(entities);
+  auto draw = [&] {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(320, 240), ImGuiCond_Always);
+    ImGui::Begin("ObjectActionsHost", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    DungeonWorkbenchContentTestPeer::DrawSelectedObjectActions(content_,
+                                                               viewer_, 0);
+    ImGui::End();
+    ImGui::Render();
+  };
+  draw();
+  draw();
+  const auto widget = Widget("button:delete_object");
+  ASSERT_TRUE(widget.has_value());
+  ASSERT_TRUE(widget->bounds.valid);
+  auto& io = ImGui::GetIO();
+  io.AddMousePosEvent((widget->bounds.min_x + widget->bounds.max_x) / 2,
+                      (widget->bounds.min_y + widget->bounds.max_y) / 2);
+  draw();
+  io.AddMouseButtonEvent(0, true);
+  draw();
+  io.AddMouseButtonEvent(0, false);
+  draw();
+  EXPECT_TRUE(rooms_[0].GetTileObjects().empty());
+  EXPECT_EQ(rooms_[0].GetDoors().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetSprites().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetPotItems().size(), 1u);
+  EXPECT_EQ(interaction.entity_coordinator().SelectedEntitiesForEdit(),
+            entities);
+}
+
 class DungeonWorkbenchEntityInspectorUiTest
     : public DungeonWorkbenchObjectSizeUiTest {
  protected:
@@ -595,6 +640,23 @@ TEST_F(DungeonWorkbenchEntityInspectorUiTest,
   EXPECT_EQ(entity_changes_, 1);
   EXPECT_TRUE(rooms_[0].pot_items_dirty());
   EXPECT_FALSE(rooms_[0].sprites_dirty());
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+}
+
+TEST_F(DungeonWorkbenchEntityInspectorUiTest,
+       ItemTypeChoicePreservesFlaggedVanillaPosition) {
+  rooms_[0].GetPotItems().front() = {0x2660, 1};
+  rooms_[0].ClearSaveDirtyState();
+  SelectEntity(EntityType::Item);
+  ClickEntityWidget("ItemType");
+  ClickEntityWidget("ItemType/6");
+
+  const auto& item = rooms_[0].GetPotItems().front();
+  EXPECT_EQ(item.position, 0x2660);
+  EXPECT_EQ(item.item, 6);
+  EXPECT_EQ(mutations_, 1);
+  EXPECT_EQ(entity_changes_, 1);
+  EXPECT_TRUE(rooms_[0].pot_items_dirty());
   EXPECT_FALSE(rooms_[0].object_stream_dirty());
 }
 
