@@ -232,6 +232,30 @@ TEST_P(DungeonEntityUndoLifecycleTest, DoorAndItemEditsRestoreOnlyTheirDomain) {
 }
 
 TEST_P(DungeonEntityUndoLifecycleTest,
+       FlaggedPotMoveUndoRedoRetainsPositionBits) {
+  room_->GetPotItems() = {{0xA660, 1}};
+  coordinator().SelectEntity(EntityType::Item, 0);
+  ASSERT_TRUE(coordinator().item_handler().UpdateItem(0, 7, 304, 312));
+  ASSERT_EQ(UndoDepth(), 1u);
+  EXPECT_EQ(room_->GetPotItems()[0].position, 0xB3CC);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->GetPotItems()[0].position, 0xA660);
+  EXPECT_EQ(room_->GetPotItems()[0].item, 1);
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(room_->GetPotItems()[0].position, 0xB3CC);
+  EXPECT_EQ(room_->GetPotItems()[0].item, 7);
+}
+
+TEST_P(DungeonEntityUndoLifecycleTest, ItemOnlyArrowNudgeUsesEightPixelGrid) {
+  room_->GetPotItems() = {{0xA660, 1}};
+  coordinator().SelectEntity(EntityType::Item, 0);
+  ASSERT_TRUE(coordinator().NudgeSelected(1, 1));
+  EXPECT_EQ(room_->GetPotItems()[0].position, 0xA6E2);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->GetPotItems()[0].position, 0xA660);
+}
+
+TEST_P(DungeonEntityUndoLifecycleTest,
        FlaggedPotTypeEditUndoRetainsRawPosition) {
   room_->GetPotItems().push_back({0x2660, 1});
   coordinator().SelectEntity(EntityType::Item, 0);

@@ -633,7 +633,7 @@ TEST_F(DungeonWorkbenchEntityInspectorUiTest,
   ClickEntityWidget("ItemXIncrease");
 
   const auto& item = rooms_[0].GetPotItems().front();
-  EXPECT_EQ(item.GetPixelX(), before.GetPixelX() + 4);
+  EXPECT_EQ(item.GetPixelX(), before.GetPixelX() + 8);
   EXPECT_EQ(item.GetPixelY(), before.GetPixelY());
   EXPECT_EQ(item.item, before.item);
   EXPECT_EQ(mutations_, 1);

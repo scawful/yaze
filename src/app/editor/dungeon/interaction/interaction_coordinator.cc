@@ -553,8 +553,7 @@ int InteractionCoordinator::SelectionMoveStepPixels() const {
   const auto entities = SelectedEntitiesForEdit();
   return std::any_of(entities.begin(), entities.end(),
                      [](const auto entity) {
-                       return entity.type == EntityType::Sprite ||
-                              entity.type == EntityType::Item;
+                       return entity.type == EntityType::Sprite;
                      })
              ? dungeon_coords::kSpriteTileSize
              : dungeon_coords::kTileSize;

@@ -927,8 +927,8 @@ TEST_F(ItemInteractionHandlerTest, DragReleaseClampsToRoomAndMarksMutation) {
   handler_.HandleRelease();
 
   ASSERT_EQ(rooms_[0].GetPotItems().size(), 1u);
-  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelX(), 508);
-  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelY(), 496);
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelX(), 504);
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelY(), 504);
   EXPECT_EQ(mutation_count_, 1);
   EXPECT_EQ(invalidate_count_, 1);
 }
@@ -973,6 +973,24 @@ TEST_F(ItemInteractionHandlerTest, DeleteAllClearsItemsAndFiresCallbacks) {
   EXPECT_FALSE(handler_.HasSelection());
   EXPECT_EQ(mutation_count_, mutations_before + 1);
   EXPECT_EQ(invalidate_count_, invalidations_before + 1);
+}
+
+TEST_F(ItemInteractionHandlerTest, DragPreservesLayerAndControlBits) {
+  rooms_[0].GetPotItems() = {{0xA660, 1}};
+  ASSERT_TRUE(handler_.HandleClick(384, 96));
+  handler_.HandleDrag(ImVec2(304, 312), ImVec2(0, 0));
+  handler_.HandleRelease();
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].position, 0xB3CC);
+  EXPECT_EQ(mutation_count_, 1);
+}
+
+TEST_F(ItemInteractionHandlerTest, InspectorPositionUsesEightPixelGrid) {
+  rooms_[0].GetPotItems() = {{0xA660, 1}};
+  EXPECT_FALSE(handler_.UpdateItem(0, 7, 4, 16));
+  EXPECT_EQ(mutation_count_, 0);
+  ASSERT_TRUE(handler_.UpdateItem(0, 7, 8, 8));
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].position, 0xA082);
+  EXPECT_EQ(mutation_count_, 1);
 }
 
 TEST_F(ItemInteractionHandlerTest, TypeOnlyEditsPreserveFlaggedRawPositions) {

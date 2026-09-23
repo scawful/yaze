@@ -20,7 +20,7 @@ zelda3::Room::Door Door(uint8_t position = 0) {
 }
 
 zelda3::PotItem Item(int x = 64, int y = 64, uint8_t id = 0xFE) {
-  return {static_cast<uint16_t>(((y / 16) << 8) | (x / 4)), id};
+  return {*zelda3::EncodePotItemPosition(x, y), id};
 }
 
 class DungeonSelectionEditTest : public ::testing::Test {
@@ -282,6 +282,23 @@ TEST_F(DungeonSelectionEditTest, RefusesCopyWithBrokenChestMapping) {
   EXPECT_TRUE(CopyDungeonSelection(room_, {1}, {{EntityType::Sprite, 0}}).ok());
 }
 
+TEST_F(DungeonSelectionEditTest, ItemMovePreservesFlagsAndAllowsOddTileRows) {
+  room_.GetPotItems() = {{0xA660, 7}};
+  auto request = Request(DungeonSelectionEditKind::kMove);
+  request.objects.clear();
+  request.entities = {{EntityType::Item, 0}};
+  request.delta_x_pixels = 8;
+  request.delta_y_pixels = 8;
+  const auto plan = PlanDungeonSelectionEdit(room_, request);
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_EQ(plan->after.items[0].position, 0xA6E2);
+  EXPECT_EQ(room_.GetPotItems()[0].position, 0xA660);
+  ApplyDungeonSelectionEditState(room_, plan->after, plan->domains);
+  EXPECT_EQ(room_.GetPotItems()[0].GetPixelY(), 104);
+  ApplyDungeonSelectionEditState(room_, plan->before, plan->domains);
+  EXPECT_EQ(room_.GetPotItems()[0].position, 0xA660);
+}
+
 TEST_F(DungeonSelectionEditTest, UnrelatedEditsPreserveBrokenChestMapping) {
   room_.GetChests().clear();
   room_.GetTileObjects()[0].layer_ =
@@ -289,7 +306,7 @@ TEST_F(DungeonSelectionEditTest, UnrelatedEditsPreserveBrokenChestMapping) {
   auto request = Request(DungeonSelectionEditKind::kMove);
   request.objects.clear();
   request.entities = {{EntityType::Item, 0}};
-  request.delta_x_pixels = 4;
+  request.delta_x_pixels = 8;
   const auto plan = PlanDungeonSelectionEdit(room_, request);
   ASSERT_TRUE(plan.ok()) << plan.status();
   EXPECT_EQ(plan->domains, kSelectionItems);

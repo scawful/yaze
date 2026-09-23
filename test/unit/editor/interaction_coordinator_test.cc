@@ -288,8 +288,8 @@ TEST_F(InteractionCoordinatorTest, NudgeSelectedItemUsesEncodableGrid) {
 
   ASSERT_TRUE(coordinator_.NudgeSelected(1, 1));
   const auto& moved = rooms_[0].GetPotItems()[0];
-  EXPECT_EQ(moved.GetPixelX(), 96);
-  EXPECT_EQ(moved.GetPixelY(), 96);
+  EXPECT_EQ(moved.GetPixelX(), 88);
+  EXPECT_EQ(moved.GetPixelY(), 88);
   EXPECT_TRUE(rooms_[0].pot_items_dirty());
 }
 
