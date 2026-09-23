@@ -44,8 +44,19 @@ combined chest/big-key-lock slots, chest-before-lock order, the global 168-recor
 table including dirty/unopened rooms, and exact chest-region manifest policy.
 Object-stream allocation remains a Save-time check.
 
-DA-1/DA-2 remain partial. General atomic mixed-selection operations are next,
-followed by DA-3 connections, DA-4 room reuse, and final acceptance.
+The current mixed-selection candidate `eac49e2bd` adds one operation
+and undo across tile objects, doors, sprites, pot items, and paired chest rewards.
+Delete/duplicate/cut/copy/paste/nudge/group drag use shared validation; rejected
+operations publish no partial edits, and no-op drags preserve redo history.
+Movement uses a common grid and exact door slots; door duplication and paste
+without a canvas target retain the source anchors. Save closes pending gestures.
+Source + Focused evidence: **640 tests across 39
+suites passed with zero failures and zero skips**. Allocation remains Save-time;
+author-time manifest preflight currently covers chest ranges only.
+
+DA-1/DA-2 remain partial for broader authoring domains and qualification. Next
+implement bounded DA-3 reciprocal connection authoring through existing
+transactions, then DA-4 complete room cloning and final acceptance.
 Synthetic persistence checks do not qualify 0.8.0 or replace application/runtime
 validation. Vanilla/Oracle GUI-to-disk and game behavior, manual UX, CI, and
 packaged acceptance remain unqualified for this candidate. See the canonical
