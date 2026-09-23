@@ -41,8 +41,12 @@ The Overworld Editor is the primary tool for editing the Legend of Zelda: A Link
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| `overworld_editor.h/cc` | ~3,750 | Main editor class, coordinates all subsystems |
-| `tile16_editor.h/cc` | ~3,400 | Tile16 editing with pending changes workflow |
+| `overworld_editor.h/cc` | ~1,750 | Main editor class, coordinates all subsystems |
+| `tile16_editor.h/cc` | ~430 | Tile16 editor shell (init, blockset selector, shortcuts) |
+| `tile16/tile16_edit_session.h/cc` | ~800 | Tile16 domain session (pending changes, ROM I/O) |
+| `ui/tiles/tile16_workbench.cc` | ~1,450 | Floating workbench layout and paint UI |
+| `ui/tiles/tile16_editor_view.cc` | ~30 | `WindowContent` wrapper (`PrefersFloating`) |
+| `ui/tiles/tile16_selector_view.cc` | ~120 | Paint-mode tile16 palette panel |
 | `map_properties.h/cc` | ~1,900 | Toolbar, context menus, property panels |
 | `entity.h/cc` | ~820 | Entity popup rendering and editing |
 | `entity_operations.h/cc` | ~370 | Entity insertion helper functions |
@@ -56,22 +60,16 @@ The Overworld Editor is the primary tool for editing the Legend of Zelda: A Link
 | `usage_statistics_card.h/cc` | ~130 | Tile usage tracking |
 | `debug_window_card.h/cc` | ~100 | Debug information display |
 
-### Panels Subdirectory (`panels/`)
+### UI views (`ui/`)
 
-Thin wrappers implementing `EditorPanel` interface that delegate to main editor methods:
+`WindowContent` panels registered with `WorkspaceWindowManager`:
 
-| Panel | Purpose |
-|-------|---------|
-| `overworld_canvas_panel` | Main map canvas display |
-| `tile16_selector_panel` | Tile palette for painting |
-| `tile8_selector_panel` | Individual tile8 selector |
-| `area_graphics_panel` | Current area graphics display |
-| `map_properties_panel` | Map property editing |
-| `scratch_space_panel` | Tile layout workspace |
-| `gfx_groups_panel` | Graphics group editor |
-| `usage_statistics_panel` | Tile usage analytics |
-| `v3_settings_panel` | ZScustom v3 feature settings |
-| `debug_window_panel` | Debug information |
+| View | ID | Purpose |
+|------|-----|---------|
+| `ui/tiles/tile16_editor_view` | `overworld.tile16_editor` | Edit-first floating workbench (double-click blockset, context menu, automation) |
+| `ui/tiles/tile16_selector_view` | `overworld.tile16_selector` | Blockset atlas for paint mode (replaces in-workbench blockset column) |
+
+Other overworld views live under `ui/` (canvas, properties, etc.); legacy `panels/tile16_*` paths were removed in favor of `ui/tiles/`.
 
 ### Data Layer (`src/zelda3/overworld/`)
 
@@ -101,8 +99,12 @@ The tile16 editing system uses a **pending changes** pattern to prevent accident
 ```
 
 **Key Files:**
-- `tile16_editor.cc` - Main editing logic
-- `overworld_editor.cc` - Integration with overworld
+- `tile16/tile16_edit_session.cc` - Pending changes, ROM commit, tile data
+- `ui/tiles/tile16_workbench.cc` - Workbench layout and painting UI
+- `tile16_editor.cc` - Initialization and overworld blockset selector
+- `overworld_editor.cc` - Integration (`OnTile16ChangesCommitted`, selection)
+
+**Opening the editor:** Double-click a tile in the overworld blockset, use the map context menu, or automation calls `OpenWindowFloating("overworld.tile16_editor")` so the workbench undocks. Ctrl+T still toggles visibility without forcing float. If the current tile has staged edits, `RequestTile16Selection` auto-opens the editor so the unsaved-changes dialog can run.
 
 **Pending Changes System:**
 ```cpp
@@ -130,7 +132,7 @@ held-preview recoloring must map every source pixel to
 `(selected_row * 16) + (pixel & 0x0F)` without adding a graphics-sheet base
 row.
 
-Key palette methods in `tile16_editor.cc`:
+Key palette methods (session API, used from workbench):
 ```cpp
 // Get actual CGRAM row for a palette button; sheet_index is diagnostic only
 int GetActualPaletteSlot(int palette_button, int sheet_index) const;

@@ -13,13 +13,8 @@
 
 // C++ standard library headers
 #include <algorithm>
-#include <exception>
-#include <filesystem>
-#include <iostream>
 #include <memory>
-#include <ostream>
 #include <string>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -31,6 +26,7 @@
 // Project headers
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/core/undo_manager.h"
+#include "app/editor/menu/status_bar.h"
 #include "app/editor/overworld/canvas_navigation_manager.h"
 #include "app/editor/overworld/debug_window_card.h"
 #include "app/editor/overworld/entity.h"
@@ -42,11 +38,6 @@
 #include "app/editor/overworld/overworld_sidebar.h"
 #include "app/editor/overworld/overworld_toolbar.h"
 #include "app/editor/overworld/overworld_undo_actions.h"
-// Note: All overworld panels now self-register via REGISTER_PANEL macro:
-// AreaGraphicsPanel, DebugWindowPanel, GfxGroupsPanel, MapPropertiesPanel,
-// OverworldCanvasPanel, ScratchSpacePanel, Tile16EditorPanel, Tile16SelectorPanel,
-// Tile8SelectorPanel, UsageStatisticsPanel, V3SettingsPanel, OverworldItemListPanel
-#include "app/editor/menu/status_bar.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/editor/overworld/ui_constants.h"
 #include "app/editor/overworld/usage_statistics_card.h"
@@ -490,26 +481,9 @@ absl::Status OverworldEditor::Load() {
   tile16_editor_.set_on_current_tile_changed(
       [this](int id) { current_tile16_ = id; });
 
-  // Set up callback for when tile16 changes are committed
   tile16_editor_.set_on_changes_committed(
       [this](const std::vector<Tile16Commit>& commits) -> absl::Status {
-        auto* tiles16 = overworld_.mutable_tiles16();
-        for (const auto& commit : commits) {
-          if (commit.tile_id >= 0 &&
-              commit.tile_id < static_cast<int>(tiles16->size())) {
-            (*tiles16)[commit.tile_id] = commit.tile_data;
-          }
-        }
-
-        // Regenerate the overworld editor's tile16 blockset
-        RETURN_IF_ERROR(RefreshTile16Blockset());
-
-        // Force refresh of the current overworld map to show changes
-        RefreshOverworldMap();
-
-        LOG_DEBUG("OverworldEditor",
-                  "Overworld editor refreshed after Tile16 changes");
-        return absl::OkStatus();
+        return OnTile16ChangesCommitted(commits);
       });
 
   // Set up entity insertion callback for MapPropertiesSystem
@@ -1652,6 +1626,24 @@ void OverworldEditor::ScrollBlocksetCanvasToCurrentTile() {
     canvas_nav_->ScrollBlocksetCanvasToCurrentTile();
 }
 
+absl::Status OverworldEditor::OnTile16ChangesCommitted(
+    const std::vector<Tile16Commit>& commits) {
+  auto* tiles16 = overworld_.mutable_tiles16();
+  for (const auto& commit : commits) {
+    if (commit.tile_id >= 0 &&
+        commit.tile_id < static_cast<int>(tiles16->size())) {
+      (*tiles16)[commit.tile_id] = commit.tile_data;
+    }
+  }
+
+  RETURN_IF_ERROR(RefreshTile16Blockset());
+  RefreshOverworldMap();
+
+  LOG_DEBUG("OverworldEditor",
+            "Overworld editor refreshed after Tile16 changes");
+  return absl::OkStatus();
+}
+
 void OverworldEditor::RequestTile16Selection(int tile_id) {
   if (tile_id < 0 || tile_id >= zelda3::kNumTile16Individual) {
     return;
@@ -1681,8 +1673,8 @@ void OverworldEditor::RequestTile16Selection(int tile_id) {
   if (had_staged_on_current && dependencies_.window_manager) {
     const size_t session_id =
         dependencies_.window_manager->GetActiveSessionId();
-    dependencies_.window_manager->OpenWindow(session_id,
-                                             OverworldPanelIds::kTile16Editor);
+    dependencies_.window_manager->OpenWindowFloating(
+        session_id, OverworldPanelIds::kTile16Editor);
     dependencies_.window_manager->MarkWindowRecentlyUsed(
         OverworldPanelIds::kTile16Editor);
   }

@@ -5,6 +5,7 @@
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/canvas/canvas_automation_api.h"
 #include "app/gui/core/popup_id.h"
+#include "util/log.h"
 
 namespace yaze {
 namespace editor {
@@ -227,8 +228,8 @@ void OverworldEditor::HandleTile16Edit() {
   if (dependencies_.window_manager) {
     const size_t session_id =
         dependencies_.window_manager->GetActiveSessionId();
-    dependencies_.window_manager->OpenWindow(session_id,
-                                             OverworldPanelIds::kTile16Editor);
+    dependencies_.window_manager->OpenWindowFloating(
+        session_id, OverworldPanelIds::kTile16Editor);
     dependencies_.window_manager->MarkWindowRecentlyUsed(
         OverworldPanelIds::kTile16Editor);
   }

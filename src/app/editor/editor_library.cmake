@@ -118,7 +118,9 @@ set(
   app/editor/overworld/panels/gfx_groups_panel.cc
   app/editor/overworld/panels/v3_settings_panel.cc
   app/editor/overworld/ui/tiles/tile16_editor_view.cc
+  app/editor/overworld/ui/tiles/tile16_workbench.cc
   app/editor/overworld/scratch_space.cc
+  app/editor/overworld/tile16/tile16_edit_session.cc
   app/editor/overworld/tile16_editor.cc
   app/editor/overworld/tile_painting_manager.cc
   app/editor/overworld/usage_statistics_card.cc

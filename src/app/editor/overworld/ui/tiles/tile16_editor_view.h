@@ -29,6 +29,7 @@ class Tile16EditorView : public WindowContent {
   int GetPriority() const override { return 15; }  // After selector (10)
   float GetPreferredWidth() const override { return 1180.0f; }
   float GetPreferredHeight() const override { return 760.0f; }
+  bool PrefersFloating() const override { return true; }
 
   void Draw(bool* p_open) override;
 };
