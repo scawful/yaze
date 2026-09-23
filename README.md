@@ -44,7 +44,7 @@ graphics, screens, and audio milestones. Follow the
 
 | Component | Implementation status | Notes |
 |-----------|---------------|-------|
-| Dungeon Editor | Partial; placement Candidate | Guarded room saving exists. Complete entity undo, unified properties, room operations, and release acceptance remain. |
+| Dungeon Editor | Partial; authoring slices Candidate | Placement controls plus door/sprite/pot-item undo and shared properties are implemented in candidates. Headers, chests, compound operations, room reuse, and acceptance remain. |
 | Overworld Editor | Partial | Maps, entrances, exits, items, and enabled properties have save paths. Sprite edits are not serialized. |
 | Message Editor | Partial | Valid text uses coordinated save; full application/runtime acceptance remains. |
 | Palette Editor | Partial | Use Palette **Save to ROM**, then File > Save ROM; JSON exchange is implemented when enabled. |
@@ -59,10 +59,13 @@ graphics, screens, and audio milestones. Follow the
 
 See [`docs/public/reference/feature-coverage-report.md`](docs/public/reference/feature-coverage-report.md)
 for status definitions, source anchors, and separate Source / Focused / ROM /
-Runtime / Release evidence. The September 22 placement candidate `7ba7d76ce`
-passed its local build and focused tests; it is not an installed or qualified
-0.8.0 release. See the [capability assessment](docs/public/reference/capability-assessment.md)
-for the pinned comparison baseline.
+Runtime / Release evidence. Building on the September 22 placement candidate
+`7ba7d76ce`, entity candidate `a730d6557` adds door/sprite/pot-item undo and shared
+Workbench/standalone properties. Its app and unit-test builds succeeded, with
+150 selected tests passing and no skips. ROM save/reopen, runtime, CI, and
+installation qualification remain pending. See the
+[capability assessment](docs/public/reference/capability-assessment.md) for the
+pinned comparison baseline.
 
 ## Quick Start
 

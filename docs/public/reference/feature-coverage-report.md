@@ -8,11 +8,16 @@ owns implementation order and acceptance gates. The
 [capability assessment](capability-assessment.md) summarizes the Hyrule Magic /
 ZScream comparison. No whole-editor percentage establishes parity.
 
-The audited mainline baseline is `d609e6254`. The placement/inspector work at
-`7ba7d76ce` is a separate local candidate: app build and 43 focused tests passed,
-but publication, installed-app acceptance, ROM roundtrip, and release
-qualification were not claimed. Verify current Git and artifact state before
-updating these recorded facts.
+The September 22 audit baseline is mainline `d609e6254` and placement candidate
+`7ba7d76ce`; the latter's app build and 43 focused tests passed without a
+publication, installation, or release claim. Subsequent candidate `a730d6557`
+adds door/sprite/pot-item undo and shared property controls, following plan
+commit `5fc5af950`. Its app and unit-test builds succeeded; 150 selected tests
+across 21 suites passed with no skips, including 22 entity lifecycle and five
+shared inspector UI cases. The only post-test changes were formatting
+whitespace, verified through whitespace-normalized staged content. These are
+Source + Focused results; ROM save/reopen, Runtime, CI, installation, and Release
+qualification remain pending. Verify Git and artifact state before promotion.
 
 ## Status and evidence are separate
 
@@ -45,8 +50,9 @@ used for promotion.
 
 | Editor / workflow | Status | Existing path | Remaining boundary |
 | --- | --- | --- | --- |
-| Dungeon room authoring | **Partial** | Objects, doors, sprites, items, headers, collision, chests, and guarded save | Workbench entity properties are read-only summaries at baseline; shared undo does not cover doors/sprites/items/headers. Complete room operations and GUI-to-disk/runtime acceptance remain. |
+| Dungeon room authoring | **Partial** | Existing room elements and guarded save, plus the candidate slices below | Header/chest undo, atomic mixed-domain operations, clipboard capacity handling, complete room operations, and GUI-to-disk/runtime acceptance remain. DA-1 and DA-2 are not complete. |
 | Workbench tile-object placement improvements | **Candidate** | `7ba7d76ce`: live placement controls, once/repeat, selected inserted object, Place another, physical sizes; Source + Focused | Isolated candidate ROM and runtime validation, integration, and packaged acceptance remain. See the [validation handoff](../../internal/agents/dungeon-workbench-placement-handoff-2026-09-22.md). |
+| Door/sprite/pot-item undo and shared properties | **Candidate** | `a730d6557`: DA-1 domain snapshots/restore and DA-2 shared Workbench/standalone inspector; render invalidation, reserved-sprite validation, paste selection, and deferred input isolation have focused checks | Context-mismatched connected-view editing is gated. ROM save/reopen, runtime, CI, installation, and release qualification remain; other DA-1/DA-2 domains are open. |
 | Overworld map/entrance/exit/item/property editing | **Partial** | Domain-specific save methods called by `OverworldEditor::Save()` when their flags are enabled | Entity undo and full application acceptance need completion. Save support must be checked per domain and ROM layout. |
 | Overworld sprite persistence | **Missing** | Editing and three game-state collections exist | The application save path does not call a sprite serializer. Do not report sprite edits as saved because Save ROM succeeds. |
 | Message | **Partial** | Transactional save of valid parsed text through coordinated save when enabled | GUI-to-disk reopen and runtime acceptance for the advertised ROM profile. |
@@ -92,8 +98,9 @@ Important exceptions:
 
 | Claim / task | Source entry point |
 | --- | --- |
-| Dungeon shared undo currently covers tile objects, collision, and water-fill | [`DungeonEditorV2::GetWorkbenchViewer()`](../../../src/app/editor/dungeon/dungeon_editor_v2.cc), mutation and invalidation callbacks |
-| Existing inspector and entity summaries | [`DungeonWorkbenchContent::DrawInspectorShelfSelection()`](../../../src/app/editor/dungeon/workspace/dungeon_workbench_content.cc) |
+| Dungeon shared mutation/undo hooks, including candidate door/sprite/pot-item domains | [`DungeonEditorV2::ConfigureViewerUndoHooks()` / `RestoreRoomEntities()`](../../../src/app/editor/dungeon/dungeon_editor_v2_undo.cc) |
+| Shared entity property controls and connected-view context guard | [`DrawDungeonEntityInspector()`](../../../src/app/editor/dungeon/inspectors/dungeon_entity_inspector.cc), called by the Workbench and standalone inspector |
+| Candidate lifecycle and shared-inspector evidence | [`dungeon_undo_actions_test.cc`](../../../test/unit/editor/dungeon_undo_actions_test.cc), [`dungeon_workbench_content_test.cc`](../../../test/unit/editor/dungeon_workbench_content_test.cc) |
 | Overworld paste/paint undo | [`OverworldEditor` undo and clipboard paths](../../../src/app/editor/overworld/overworld_editor.cc) |
 | Persistent overworld scratch space | [`LoadScratchPad`, `SaveScratchPad`, `FlushScratchPadIfDirty`](../../../src/app/editor/overworld/scratch_space.cc) |
 | Palette JSON exchange | [`PaletteGroupPanel::ExportToJson()` / `ImportFromJson()`](../../../src/app/editor/palette/palette_group_panel.cc) |
