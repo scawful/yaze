@@ -1,17 +1,18 @@
 # AGENTS.md (Protocol Router)
 
-Purpose: route agents to the minimum correct context for the current task.
-Do not treat this file as a repo overview or style dump.
+Purpose: route agents to the minimum correct context. Not a repo overview.
 
-## Core Principle
-- Prefer hierarchical context loading over monolithic prompts.
-- Load only what is needed for the current task surface.
-- If a file is discoverable from code search, do not duplicate it here.
+## Core Rules
+1. Hierarchical context only — load what the task needs.
+2. Prefer existing scripts/tools; keep edits minimal and task-scoped.
+3. Validate with focused tests/build checks; never claim unverified results.
+4. Escalate ambiguity quickly.
+5. If discoverable via search, do not duplicate it here.
 
 ## Layer 1: Protocol Router
 
 ### 1) Task Classification
-Classify the task into one dominant surface:
+One dominant surface:
 - `ui_ux_editor`
 - `build_ci_release`
 - `ai_agent_cli`
@@ -20,82 +21,54 @@ Classify the task into one dominant surface:
 - `testing_harness`
 - `docs_process`
 
-### 2) Persona Selection (Primary Owner)
-Use one primary owner from `docs/internal/agents/personas.md`:
-- `imgui-frontend-engineer`: ImGui/editor UX, panel behavior, interaction patterns.
-- `backend-infra-engineer`: CMake/toolchains, packaging, CI/CD, release plumbing.
-- `ai-infra-architect`: z3ed CLI/TUI, agent workflows, model/provider plumbing.
-- `snes-emulator-expert`: emulator runtime, performance, rendering correctness.
-- `zelda3-hacking-expert`: ROM/gameplay logic, dungeon/overworld data behavior.
-- `test-infrastructure-expert`: test architecture, flakes, harness reliability.
-- `docs-janitor`: docs, process hygiene, onboarding and migration docs.
+### 2) Persona Selection
+Primary owner from `docs/internal/agents/personas.md` (ids: `imgui-frontend-engineer`,
+`backend-infra-engineer`, `ai-infra-architect`, `snes-emulator-expert`,
+`zelda3-hacking-expert`, `test-infrastructure-expert`, `docs-janitor`).
 
 ### 3) Focused Context Loading
-Load only:
 1. `.claude/agents/<agent-id>.md`
 2. `docs/internal/agents/routing-personas.md`
 3. Relevant entries in `docs/internal/agents/routing-skills-tools.md`
 
 ### 4) Tool Routing
-Use tool classes intentionally:
-- Code/search/build/test: shell + project scripts.
-- Universe coordination: `scripts/agents/coord`.
-- Legacy import/migration: `scripts/agents/import-coordination-board.sh`, `scripts/agents/migrate-coordination-board.sh`.
+- Code/build/test: shell + project scripts
+- Universe coordination: `scripts/agents/coord`
+- Legacy board migration: `scripts/agents/import-coordination-board.sh`,
+  `scripts/agents/migrate-coordination-board.sh`
 
-### 5) Essential Repo Facts (non-discoverable defaults)
-- Build presets commonly used for agent work: `build_ai`.
-- Build command: `cmake --preset mac-ai && cmake --build --preset mac-ai`
-- Repository-provided build/test presets and helpers cap their defaults at 4
-  workers (some use fewer). Override intentionally with `--parallel <jobs>` or
-  `YAZE_BUILD_JOBS=<jobs>` when the user requests it.
+### 5) Essential Repo Facts
+- Build: `cmake --preset mac-ai && cmake --build --preset mac-ai` (agent preset: `build_ai`)
+- Jobs: presets default ≤4 workers; override with `--parallel` / `YAZE_BUILD_JOBS`
 - Unit tests: `ctest --preset mac-ai-unit`
-- Coordination source of truth: `~/.context/agent-universe/{events.jsonl,state.json}`.
-- Generated human snapshot: `docs/internal/agents/coordination-board.generated.md`.
-- Legacy board file is history-only: `docs/internal/agents/coordination-board.md`.
+- Coord SoT: `~/.context/agent-universe/{events.jsonl,state.json}`
+- Snapshot: `docs/internal/agents/coordination-board.generated.md` (legacy board = history only)
+- Status / roadmap / changelog: `docs/internal/status.md`, `docs/internal/roadmap.md`,
+  `docs/CHANGELOG.md`
+- Knowledge base: `~/.context/knowledge/` (`hobby/yaze.md`, `hobby/oracle-of-secrets.md`,
+  `alttp/*`, `snes/*`, `hobby/usdasm.md`, `hobby/mesen2-oos.md`, `hobby/z3dk.md`)
 
-### 5a) Oracle of Secrets Integration
-- `oos<VERSION>.sfc` = edit target, `oos<VERSION>x.sfc` = patched/emulator only
-- `z3ed --write` targets the base ROM (`oos168.sfc`), never `oos168x.sfc`
-- Oracle context: `../oracle-of-secrets/.context/scratchpad/agent_handoff.md`
+### 5a) Oracle of Secrets
+- `oos<VERSION>.sfc` = edit target; `oos<VERSION>x.sfc` = patched/emulator only
+- `z3ed --write` → base ROM (`oos168.sfc`), never `oos168x.sfc`
+- Handoff: `../oracle-of-secrets/.context/scratchpad/agent_handoff.md`
 
 ### 6) Dependency Graph
-`Task Class` -> `Primary Persona` -> `Focused Context Files` -> `Tools/Scripts` -> `Validation`.
-
-Concretely:
-- `AGENTS.md` -> `.claude/agents/<id>.md` + routing docs -> scripts/tools -> tests/build checks.
-- Coordination state flows through universe events/state; markdown snapshot is derived output only.
+`Task Class` → `Primary Persona` → focused context → tools → validation.
+Coordination flows through universe events; markdown snapshot is derived only.
 
 ## Layer 2: Focused Persona/Skill Context
-- Persona routing rules: `docs/internal/agents/routing-personas.md`.
-- Skill/tool routing rules: `docs/internal/agents/routing-skills-tools.md`.
-- Persona definitions: `docs/internal/agents/personas.md`.
-
-Load the smallest subset that can complete the task.
+Load the smallest subset from `routing-personas.md`, `routing-skills-tools.md`,
+and `personas.md`.
 
 ## Layer 3: Maintenance Agent
-Owner: `ai-infra-architect` (with `docs-janitor` support).
+Owner: `ai-infra-architect` (+ `docs-janitor`). Keep routing current; run
+`scripts/agents/protocol-audit.sh` and `scripts/agents/test-universe-coord.sh`.
 
-Maintenance responsibilities:
-- Keep protocol routing files current when scripts/personas/tools change.
-- Prevent stale references to archived/legacy workflows.
-- Run protocol checks:
-  - `scripts/agents/protocol-audit.sh`
-  - `scripts/agents/test-universe-coord.sh`
-
-## Coordination Contract (Universe Log)
-Use project wrapper:
-- `scripts/agents/coord task-add --title "..."`
-- `scripts/agents/coord task-claim --id <task_id> --agent <agent-id>`
-- `scripts/agents/coord task-heartbeat --id <task_id> --agent <agent-id>`
-- `scripts/agents/coord task-handoff --id <task_id> --agent <agent-id> --to <agent-id>`
-- `scripts/agents/coord task-complete --id <task_id> --agent <agent-id>`
-- `scripts/agents/coord task-list --status active`
-
-Generate markdown snapshot only when humans need it:
-- `scripts/agents/coord task-generate-board --out docs/internal/agents/coordination-board.generated.md`
+## Coordination Contract
+`scripts/agents/coord task-{add,claim,heartbeat,handoff,complete,list}`;
+snapshot: `scripts/agents/coord task-generate-board --out docs/internal/agents/coordination-board.generated.md`
 
 ## Delivery Contract
-At completion, report:
-- What changed.
-- What was validated (exact commands).
-- Residual risks and next follow-ups.
+What changed · exact validation commands · residual risks / follow-ups.
+Reference: `.context/knowledge/agent-reference.md`, `README.md`, `docs/`.

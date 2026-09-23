@@ -156,4 +156,4 @@ ctest --test-dir build -R platform -j4
 
 - [graphics_system_architecture.md](graphics_system_architecture.md) - Graphics rendering pipeline
 - [editor_card_layout_system.md](editor_card_layout_system.md) - UI layout system
-- [../../CLAUDE.md](../../CLAUDE.md) - Project overview
+- [../../AGENTS.md](../../AGENTS.md) - Agent protocol and project guidelines

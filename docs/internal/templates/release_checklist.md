@@ -155,7 +155,7 @@ Test critical preset combinations:
 ### 8. Documentation Validation
 
 - [ ] **README.md up to date**: Reflects current version and features
-- [ ] **CHANGELOG.md updated**: All changes since last release documented
+- [ ] **docs/CHANGELOG.md updated**: All changes since last release documented
 - [ ] **Build docs accurate**: Instructions work on all platforms
 - [ ] **API docs current**: Doxygen builds without errors
 - [ ] **User guides updated**: New features documented
@@ -193,7 +193,7 @@ Test critical preset combinations:
      - [ ] `docs/public/reference/changelog.md` (new entry)
      - [ ] `docs/public/release-notes.md` (new section)
      - [ ] `docs/public/release/README.md` (release header)
-   - [ ] CHANGELOG.md updated with release notes
+   - [ ] docs/CHANGELOG.md updated with release notes
    - [ ] Documentation updated
 
 2. **Final Testing**
@@ -227,7 +227,7 @@ Test critical preset combinations:
    - [ ] Go to https://github.com/scawful/yaze/releases/new
    - [ ] Select tag `vX.Y.Z`
    - [ ] Title: "yaze vX.Y.Z - [Brief Description]"
-   - [ ] Description: Copy from CHANGELOG.md + add highlights
+   - [ ] Description: Copy from docs/CHANGELOG.md + add highlights
    - [ ] Attach binaries (if not auto-uploaded)
    - [ ] Mark as "Latest Release"
    - [ ] Publish release

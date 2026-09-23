@@ -6,7 +6,7 @@ This is the canonical pre-release checklist referenced by internal testing and a
 
 - Confirm `VERSION` matches intended release version.
 - Confirm release sections exist and are aligned:
-  - `CHANGELOG.md`
+  - `docs/CHANGELOG.md`
   - `docs/public/reference/changelog.md`
   - `docs/public/release-notes.md`
 - Run:
