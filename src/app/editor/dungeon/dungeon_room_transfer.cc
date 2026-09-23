@@ -23,7 +23,8 @@ bool SameWater(const zelda3::WaterFillZoneMap& a,
 }
 
 absl::Status ValidateDomains(const DungeonRoomDocument& document,
-                             uint16_t domains) {
+                             uint16_t domains,
+                             bool require_chest_mapping = true) {
   if (document.source_room_id < 0 ||
       document.source_room_id >= zelda3::kNumberOfRooms) {
     return absl::InvalidArgumentError(
@@ -60,15 +61,17 @@ absl::Status ValidateDomains(const DungeonRoomDocument& document,
             "Special object metadata is out of range");
       }
     }
-    RETURN_IF_ERROR(
-        zelda3::ValidateChestObjectMapping(contents.objects, contents.chests));
-    // Treat the candidate as newly placed objects so the shared chest planner
-    // validates six-slot ordering instead of taking its unchanged fast path.
-    std::vector<std::optional<size_t>> origins(contents.objects.size());
-    auto chest_plan =
-        zelda3::PlanChestObjectEdit({}, {}, contents.objects, origins);
-    if (!chest_plan.ok())
-      return chest_plan.status();
+    if (require_chest_mapping) {
+      RETURN_IF_ERROR(zelda3::ValidateChestObjectMapping(contents.objects,
+                                                         contents.chests));
+      // Treat the candidate as newly placed objects so the shared chest planner
+      // validates six-slot ordering instead of taking its unchanged fast path.
+      std::vector<std::optional<size_t>> origins(contents.objects.size());
+      auto chest_plan =
+          zelda3::PlanChestObjectEdit({}, {}, contents.objects, origins);
+      if (!chest_plan.ok())
+        return chest_plan.status();
+    }
   }
   if (domains & kTransferDoors) {
     if (contents.doors.size() > zelda3::kMaxDoors) {
@@ -194,6 +197,11 @@ bool DungeonRoomTransferPlan::changed() const {
 
 absl::Status ValidateDungeonRoomDocument(const DungeonRoomDocument& document) {
   return ValidateDomains(document, kTransferAll);
+}
+
+absl::Status ValidateDungeonRoomDocumentForInterchange(
+    const DungeonRoomDocument& document) {
+  return ValidateDomains(document, kTransferAll, false);
 }
 
 absl::StatusOr<DungeonRoomTransferPlan> PlanDungeonRoomTransfer(

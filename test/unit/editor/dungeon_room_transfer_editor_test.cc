@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/strings/cord.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_transfer.h"
 #include "app/gui/automation/widget_id_registry.h"
@@ -48,6 +49,13 @@ class DungeonRoomTransferEditorTest : public ::testing::Test {
           last_target_ = target;
           if (reject_preview_) {
             return absl::FailedPreconditionError("Test preview rejection");
+          }
+          if (shared_header_ && (options.domains & kTransferMetadata)) {
+            auto status =
+                absl::FailedPreconditionError("Shared room properties");
+            status.SetPayload(kRoomTransferSharedHeaderPayload,
+                              absl::Cord("1"));
+            return status;
           }
           if (source >= 0) {
             return PlanDungeonRoomTransfer(
@@ -159,6 +167,7 @@ class DungeonRoomTransferEditorTest : public ::testing::Test {
   int last_source_ = -2;
   int last_target_ = -1;
   bool reject_preview_ = false;
+  bool shared_header_ = false;
   bool reject_apply_ = false;
   bool popup_ = false;
 };
@@ -269,6 +278,28 @@ TEST_F(DungeonRoomTransferEditorTest, PreviewRejectionPreservesRoom) {
   EXPECT_FALSE(Widget("TransferApply"));
   EXPECT_EQ(rooms_[0].GetTileObjects().size(), 1);
   EXPECT_NE(logged_text_.find("Test preview rejection"), std::string::npos);
+}
+
+TEST_F(DungeonRoomTransferEditorTest,
+       SharedHeaderOffersExplicitPreviewRecovery) {
+  shared_header_ = true;
+  Prepare();
+  Click("TransferDestinations");
+  Click("TransferPreview");
+  EXPECT_FALSE(viewer_.room_transfer_state().preview);
+  EXPECT_EQ(viewer_.room_transfer_state().domains, kTransferCore);
+  EXPECT_EQ(changes_, 0);
+  Click("TransferPreviewWithoutProperties");
+  const auto& state = viewer_.room_transfer_state();
+  ASSERT_TRUE(state.preview);
+  EXPECT_FALSE(state.copy_destinations);
+  EXPECT_FALSE(state.can_retry_without_properties);
+  EXPECT_EQ(state.domains, kTransferCore & ~kTransferMetadata);
+  EXPECT_EQ(state.preview->options.domains, state.domains);
+  EXPECT_EQ(previews_, 2);
+  EXPECT_EQ(changes_, 0);
+  Click("TransferApply");
+  EXPECT_EQ(changes_, 1);
 }
 
 TEST_F(DungeonRoomTransferEditorTest, ApplyRejectionRequiresNewPreview) {

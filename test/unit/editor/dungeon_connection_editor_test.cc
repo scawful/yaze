@@ -256,6 +256,55 @@ TEST_F(DungeonConnectionEditorTest, UnsupportedDoorShowsReasonWithoutAction) {
   EXPECT_FALSE(Widget("ConnectionLayer")->enabled);
 }
 
+TEST_F(DungeonConnectionEditorTest,
+       VanillaRoom55ExitMarkerNeverOffersReturnDoorOrRoomNavigation) {
+  for (const int id : {0x55, 0x65, 0x56}) {
+    rooms_[id] = zelda3::Room(id, &rom_);
+    rooms_[id].SetLoaded(true);
+  }
+  rooms_[0x55].GetDoors() = {MakeDoor(6, Type::NormalDoor, Direction::South),
+                             MakeDoor(6, Type::ExitMarker, Direction::South),
+                             MakeDoor(7, Type::NormalDoor, Direction::East)};
+  viewer_.RefreshRomBackedState(&rom_, nullptr, &rooms_, 0x55);
+  Prepare();
+  EXPECT_NE(logged_text_.find("Connection unavailable"), std::string::npos);
+  EXPECT_EQ(logged_text_.find("Create Return Door"), std::string::npos);
+  EXPECT_FALSE(Widget("ConnectionApply"));
+  EXPECT_FALSE(Widget("ConnectionOpenTarget"));
+  EXPECT_EQ(attempts_, 0);
+  EXPECT_EQ(opened_room_, -1);
+  EXPECT_TRUE(rooms_[0x65].GetDoors().empty());
+
+  // An exit elsewhere in the room does not disable a separate internal door.
+  door_index_ = 2;
+  Prepare();
+  ASSERT_TRUE(Widget("ConnectionApply"));
+  EXPECT_TRUE(Widget("ConnectionApply")->enabled);
+  ASSERT_TRUE(Widget("ConnectionOpenTarget"));
+  EXPECT_TRUE(Widget("ConnectionOpenTarget")->enabled);
+  EXPECT_NE(logged_text_.find("Return · room 056"), std::string::npos);
+}
+
+TEST_F(DungeonConnectionEditorTest,
+       ExplicitExitTypesNeverOfferReturnDoorOrRoomNavigation) {
+  for (const auto type :
+       {Type::ExitLower, Type::UnusedCaveExit, Type::WaterfallDoor,
+        Type::FancyDungeonExit, Type::FancyDungeonExitLower, Type::CaveExit,
+        Type::LitCaveExitLower, Type::BombableCaveExit, Type::ExitMarker}) {
+    SCOPED_TRACE(static_cast<int>(type));
+    rooms_[0x11].GetDoors() = {MakeDoor(6, type, Direction::South)};
+    Prepare();
+    EXPECT_NE(logged_text_.find("Connection unavailable"), std::string::npos);
+    EXPECT_EQ(logged_text_.find("Create Return Door"), std::string::npos);
+    EXPECT_FALSE(Widget("ConnectionApply"));
+    EXPECT_FALSE(Widget("ConnectionOpenTarget"));
+    ASSERT_TRUE(Widget("ConnectionLayer"));
+    EXPECT_FALSE(Widget("ConnectionLayer")->enabled);
+    EXPECT_EQ(attempts_, 0);
+    EXPECT_EQ(opened_room_, -1);
+  }
+}
+
 TEST_F(DungeonConnectionEditorTest, ReadOnlyViewCanInspectAndOpenTarget) {
   viewer_.SetHeaderReadOnly(true);
   Prepare();

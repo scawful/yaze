@@ -20,6 +20,7 @@ struct DungeonRoomTransferEditorState {
   std::string json;
   std::shared_ptr<DungeonRoomTransferPlan> preview;
   std::string error;
+  bool can_retry_without_properties = false;
   std::string status;
   bool request_popup = false;
   bool popup_open = false;

@@ -4,6 +4,7 @@
 #include <memory>
 #include <utility>
 
+#include "absl/strings/cord.h"
 #include "app/editor/system/session/hack_manifest_save_validation.h"
 #include "core/features.h"
 #include "rom/snes.h"
@@ -145,10 +146,12 @@ absl::Status ValidateTransferHeaderOwnership(const Rom& rom, int room_id) {
         static_cast<uint64_t>(other_pc) + 14 > rom.size())
       continue;
     if (header_pc < other_pc + 14 && other_pc < header_pc + 14) {
-      return absl::FailedPreconditionError(absl::StrFormat(
+      auto status = absl::FailedPreconditionError(absl::StrFormat(
           "Room %03X header overlaps room %03X; exclude room properties or "
           "give the destination independent header storage before replacing it",
           room_id, other_id));
+      status.SetPayload(kRoomTransferSharedHeaderPayload, absl::Cord("1"));
+      return status;
     }
   }
   return absl::OkStatus();
@@ -321,15 +324,17 @@ absl::Status DungeonEditorV2::PreflightRoomTransfer(
   Rom scratch(*rom_);
   // Only a detached model is visible to serializers: no live renderer, palette
   // state, history, source files or borrowed room buffers can be mutated here.
-  zelda3::GameData scratch_game;
+  // GameData is roughly 1.8 MB; keep it off small worker/WebAssembly stacks.
+  // Declare it before the editor so borrowed state outlives editor teardown.
+  auto scratch_game = std::make_unique<zelda3::GameData>();
   auto shadow = std::make_unique<DungeonEditorV2>(&scratch);
   if (game_data_)
-    scratch_game.version = game_data_->version;
-  shadow->SetGameData(&scratch_game);
+    scratch_game->version = game_data_->version;
+  shadow->SetGameData(scratch_game.get());
   shadow->dependencies_.project = dependencies_.project;
   rooms_.ForEachMaterialized([&](int id, const zelda3::Room& original) {
     auto& copy = shadow->rooms_[id];
-    copy = zelda3::Room(id, &scratch, &scratch_game);
+    copy = zelda3::Room(id, &scratch, scratch_game.get());
     if (original.AreTorchesLoaded())
       copy.LoadTorches();
     if (original.AreBlocksLoaded())

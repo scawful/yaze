@@ -226,6 +226,56 @@ TEST_F(DungeonStreamAllocatorTest,
   EXPECT_EQ(rom_->vector(), before);
 }
 
+TEST_F(DungeonStreamAllocatorTest, PotReadAcceptsSharedEmptyListTerminator) {
+  const auto layout = PotLayout(kNumberOfRooms, {}, {});
+  SetPointersFrom(layout, 0, kPotData + 6);
+  SetPointer(layout, 4, kPotData);
+  const std::vector<uint8_t> encoded{0xCC, 0x13, 0x0A, 0x60,
+                                     0x26, 0x0B, 0xFF, 0xFF};
+  WriteBytes(kPotData, encoded);
+  const auto before = rom_->vector();
+  const auto record = ReadDungeonPotItemStream(*rom_, 4);
+  ASSERT_TRUE(record.ok()) << record.status();
+  EXPECT_EQ(record->encoded_stream, encoded);
+  EXPECT_EQ(record->logical_end_pc, kPotData + 8);
+  const auto empty = ReadDungeonPotItemStream(*rom_, 5);
+  ASSERT_TRUE(empty.ok()) << empty.status();
+  EXPECT_EQ(empty->encoded_stream, (std::vector<uint8_t>{0xFF, 0xFF}));
+  EXPECT_EQ(rom_->vector(), before);
+}
+
+TEST_F(DungeonStreamAllocatorTest, PotReadDoesNotConsumeNextRoomsRecords) {
+  const auto layout = PotLayout(kNumberOfRooms, {}, {});
+  SetPointersFrom(layout, 0, kPotData + 3);
+  SetPointer(layout, 0, kPotData);
+  WriteBytes(kPotData, {0xCC, 0x13, 0x0A, 0x60, 0x26, 0x0B, 0xFF, 0xFF});
+  EXPECT_FALSE(ReadDungeonPotItemStream(*rom_, 0).ok());
+  EXPECT_TRUE(ReadDungeonPotItemStream(*rom_, 1).ok());
+}
+
+TEST_F(DungeonStreamAllocatorTest,
+       PotSharedTerminatorCannotFinishPartialRecord) {
+  const auto layout = PotLayout(kNumberOfRooms, {}, {});
+  SetPointersFrom(layout, 0, kPotData + 2);
+  SetPointer(layout, 0, kPotData);
+  WriteBytes(kPotData, {0xCC, 0x13, 0xFF, 0xFF});
+  EXPECT_FALSE(ReadDungeonPotItemStream(*rom_, 0).ok());
+  EXPECT_TRUE(ReadDungeonPotItemStream(*rom_, 1).ok());
+}
+
+TEST_F(DungeonStreamAllocatorTest, PotSharedTerminatorCannotCrossStorageEnd) {
+  const auto layout = PotLayout(kNumberOfRooms, {}, {});
+  for (const uint32_t end : {uint32_t(kRoomItemsDataEnd), 0x10000u}) {
+    // The bank-end pointer cannot be encoded in the same bank, so room 1
+    // points to the final byte instead, leaving a truncated shared terminator.
+    const uint32_t next = end == 0x10000u ? end - 1 : end;
+    SetPointersFrom(layout, 0, next);
+    SetPointer(layout, 0, next - 3);
+    WriteBytes(next - 3, {0xCC, 0x13, 0x0A, 0xFF, 0xFF});
+    EXPECT_FALSE(ReadDungeonPotItemStream(*rom_, 0).ok());
+  }
+}
+
 class DungeonFixedStreamReadTest
     : public DungeonStreamAllocatorTest,
       public ::testing::WithParamInterface<DungeonStreamKind> {

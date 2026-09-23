@@ -154,7 +154,7 @@ zelda3::Room::MetadataSnapshot MetadataFromJson(const Json& j) {
 
 absl::StatusOr<std::string> SerializeDungeonRoomDocument(
     const DungeonRoomDocument& document) {
-  RETURN_IF_ERROR(ValidateDungeonRoomDocument(document));
+  RETURN_IF_ERROR(ValidateDungeonRoomDocumentForInterchange(document));
   try {
     Json j{{"format", "yaze.room"},
            {"version", 1},
@@ -182,7 +182,8 @@ absl::StatusOr<std::string> SerializeDungeonRoomDocument(
            {"options", static_cast<int>(o.options())},
            {"all_bgs", o.all_bgs_},
            {"lit", o.lit_},
-           {"block_load_order", o.block_load_order()},
+           // Physical table slots are save provenance, not portable content.
+           {"block_load_order", zelda3::RoomObject::kBlockLoadOrderNew},
            {"block_behavior_layer", o.block_behavior_layer()},
            {"torch_reserved_bit", o.torch_reserved_bit()}});
     }
@@ -264,7 +265,9 @@ absl::StatusOr<DungeonRoomDocument> ParseDungeonRoomDocument(
           static_cast<zelda3::ObjectOption>(Integer(o.at("options"), 0, 63)));
       object.all_bgs_ = Boolean(o.at("all_bgs"));
       object.lit_ = Boolean(o.at("lit"));
-      object.set_block_load_order(Integer(o.at("block_load_order"), -1, 65535));
+      // Accept older v1 documents but never import a foreign physical slot.
+      (void)Integer(o.at("block_load_order"), -1, 65535);
+      object.set_block_load_order(zelda3::RoomObject::kBlockLoadOrderNew);
       object.set_block_behavior_layer(
           Integer(o.at("block_behavior_layer"), 0, 1));
       object.set_torch_reserved_bit(Integer(o.at("torch_reserved_bit"), 0, 1));
@@ -308,7 +311,7 @@ absl::StatusOr<DungeonRoomDocument> ParseDungeonRoomDocument(
     document.water.has_data = Boolean(water.at("has_data"));
     document.water.sram_bit_mask = Integer(water.at("sram_bit_mask"), 0, 255);
     document.water.tiles = ByteArray<4096>(water.at("tiles"), 1);
-    RETURN_IF_ERROR(ValidateDungeonRoomDocument(document));
+    RETURN_IF_ERROR(ValidateDungeonRoomDocumentForInterchange(document));
     return document;
   } catch (const Json::exception& error) {
     return absl::InvalidArgumentError(std::string("Invalid room document: ") +

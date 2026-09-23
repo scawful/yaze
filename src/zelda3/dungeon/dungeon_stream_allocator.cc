@@ -536,6 +536,7 @@ absl::StatusOr<DungeonStreamRecord> ReadFixedBankRoomStream(
       limit = std::min(limit, metadata.begin);
     }
   }
+  const uint32_t storage_limit = limit;
   for (int other = 0; other < kNumberOfRooms; ++other) {
     const auto address = DecodePointer(rom, layout, other);
     if (address.ok() && *address > start) {
@@ -543,6 +544,15 @@ absl::StatusOr<DungeonStreamRecord> ReadFixedBankRoomStream(
     }
   }
   const std::span<const uint8_t> bytes(rom.data(), rom.size());
+  // Vanilla pot lists may end at another room's empty list. That shared
+  // terminator is readable, but no record belonging to the next room is.
+  // Keep bank, ROM, region and metadata limits strict, and require a complete
+  // sequence of three-byte records before the two-byte terminator.
+  if (kind == DungeonStreamKind::kPotItem && limit < storage_limit &&
+      limit + 2 <= storage_limit && (limit - start) % 3 == 0 &&
+      bytes[limit] == 0xFF && bytes[limit + 1] == 0xFF) {
+    limit += 2;
+  }
   ASSIGN_OR_RETURN(const uint32_t end, ParseStream(bytes, kind, start, limit));
   DungeonStreamRecord record;
   record.room_id = room_id;

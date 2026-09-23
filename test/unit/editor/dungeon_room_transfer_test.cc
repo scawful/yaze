@@ -65,13 +65,32 @@ TEST(DungeonRoomTransferTest, JsonRoundTripPreservesSpecialFieldsAndRawValues) {
   ASSERT_TRUE(serialized.ok()) << serialized.status();
   const auto parsed = ParseDungeonRoomDocument(*serialized);
   ASSERT_TRUE(parsed.ok()) << parsed.status();
-  EXPECT_TRUE(SameDungeonRoomDocument(document, *parsed));
+  auto portable = document;
+  portable.contents.objects[3].set_block_load_order(-1);
+  EXPECT_TRUE(SameDungeonRoomDocument(portable, *parsed));
   EXPECT_EQ(parsed->source_room_id, 5);
-  EXPECT_EQ(parsed->contents.objects[3].block_load_order(), 17);
+  EXPECT_EQ(parsed->contents.objects[3].block_load_order(), -1);
   EXPECT_EQ(parsed->contents.objects[2].torch_reserved_bit(), 1);
   EXPECT_TRUE(parsed->contents.sprites[0].deleted);
   EXPECT_EQ(parsed->metadata.pit_target_layer, 2);
   EXPECT_EQ(parsed->contents.objects[0].rom(), nullptr);
+}
+
+TEST(DungeonRoomTransferTest, PortableJsonIgnoresCommittedBlockSlotNumbers) {
+  auto first = Document();
+  auto second = first;
+  second.contents.objects[3].set_block_load_order(99);
+  const auto a = SerializeDungeonRoomDocument(first);
+  const auto b = SerializeDungeonRoomDocument(second);
+  ASSERT_TRUE(a.ok()) << a.status();
+  ASSERT_TRUE(b.ok()) << b.status();
+  EXPECT_EQ(*a, *b);
+  EXPECT_EQ(first.contents.objects[3].block_load_order(), 17);
+  auto legacy = Json::parse(*a);
+  legacy["objects"][3]["block_load_order"] = 99;
+  const auto parsed = ParseDungeonRoomDocument(legacy.dump());
+  ASSERT_TRUE(parsed.ok()) << parsed.status();
+  EXPECT_EQ(parsed->contents.objects[3].block_load_order(), -1);
 }
 
 TEST(DungeonRoomTransferTest, CaptureDetachesObjectCachesAndBorrowedRom) {
@@ -315,6 +334,31 @@ TEST(DungeonRoomTransferTest, RejectsChestMappingAndSharedSlotOrder) {
   EXPECT_FALSE(ValidateDungeonRoomDocument(source).ok());
 }
 
+TEST(DungeonRoomTransferTest,
+     PreservesResidualChestsWithoutAuthoringAmbiguity) {
+  for (const bool has_chest_object : {false, true}) {
+    auto source = Document();
+    source.contents.objects =
+        has_chest_object ? std::vector<zelda3::RoomObject>{Object(0xF99)}
+                         : std::vector<zelda3::RoomObject>{};
+    source.contents.chests = {{0x24, false}, {0x24, false}};
+    const auto encoded = SerializeDungeonRoomDocument(source);
+    ASSERT_TRUE(encoded.ok()) << encoded.status();
+    const auto decoded = ParseDungeonRoomDocument(*encoded);
+    ASSERT_TRUE(decoded.ok()) << decoded.status();
+    EXPECT_TRUE(SameDungeonRoomDocument(source, *decoded));
+    zelda3::Room target(7, nullptr);
+    const auto before = CaptureDungeonRoomDocument(target);
+    EXPECT_FALSE(
+        PlanDungeonRoomTransfer(target, *decoded, {kTransferObjects}).ok());
+    const auto unrelated =
+        PlanDungeonRoomTransfer(target, *decoded, {kTransferSprites});
+    ASSERT_TRUE(unrelated.ok()) << unrelated.status();
+    EXPECT_TRUE(
+        SameDungeonRoomDocument(before, CaptureDungeonRoomDocument(target)));
+  }
+}
+
 TEST(DungeonRoomTransferTest, RejectsCapacityWithoutChangingTarget) {
   zelda3::Room target(7, nullptr);
   const auto before = CaptureDungeonRoomDocument(target);
@@ -430,7 +474,7 @@ TEST_P(DungeonRoomDocumentInvalidTest, RejectsMalformedFieldWithoutNarrowing) {
       j["water"]["has_data"] = false;
       break;
     case 27:
-      j["objects"] = Json::array();
+      j["chests"][0]["id"] = 256;
       break;
     case 28:
       j["source_room_id"] = 296;

@@ -318,6 +318,57 @@ TEST_P(DungeonConnectionEditsLifecycleTest,
 }
 
 TEST_P(DungeonConnectionEditsLifecycleTest,
+       VanillaRoom55ExitMarkerRejectsPreviewAndStaleApplyWithoutMutation) {
+  for (const int id : {0x55, 0x65, 0x56}) {
+    auto& room = editor_->rooms()[id];
+    room = zelda3::LoadRoomHeaderFromRom(&rom_, id);
+    room.SetLoaded(true);
+    room.SetTileObjects({});
+    room.ClearSaveDirtyState();
+  }
+  auto& source = editor_->rooms()[0x55];
+  auto& south = editor_->rooms()[0x65];
+  source.GetDoors() = {Door(6, zelda3::DoorDirection::South)};
+  viewer_ = DungeonConnectionEditsTestPeer::Viewer(*editor_, 0x55);
+  const DungeonConnectionRequest request{0x55, 0,
+                                         DungeonConnectionLayer::kLower};
+  const auto before_marker = editor_->PreviewDoorConnection(request);
+  ASSERT_TRUE(before_marker.ok()) << before_marker.status();
+  source.GetDoors().push_back(
+      Door(6, zelda3::DoorDirection::South, zelda3::DoorType::ExitMarker));
+  source.GetDoors().push_back(Door(7, zelda3::DoorDirection::East));
+  const auto source_before = CaptureDungeonSelectionEditState(source);
+  const auto south_before = CaptureDungeonSelectionEditState(south);
+  const auto source_dirty = DirtyFields(source);
+  const auto south_dirty = DirtyFields(south);
+  const auto bytes = rom_.vector();
+  const auto undo = UndoDepth();
+  const auto redo = RedoDepth();
+
+  const auto preview = editor_->PreviewDoorConnection(request);
+  EXPECT_EQ(preview.status().code(), absl::StatusCode::kFailedPrecondition);
+  const auto apply = editor_->ApplyDoorConnection(*before_marker);
+  EXPECT_EQ(apply.code(), absl::StatusCode::kFailedPrecondition);
+  EXPECT_EQ(ChangedDungeonSelectionDomains(
+                source_before, CaptureDungeonSelectionEditState(source)),
+            0);
+  EXPECT_EQ(ChangedDungeonSelectionDomains(
+                south_before, CaptureDungeonSelectionEditState(south)),
+            0);
+  EXPECT_EQ(DirtyFields(source), source_dirty);
+  EXPECT_EQ(DirtyFields(south), south_dirty);
+  EXPECT_EQ(rom_.vector(), bytes);
+  EXPECT_EQ(UndoDepth(), undo);
+  EXPECT_EQ(RedoDepth(), redo);
+
+  const auto internal =
+      editor_->PreviewDoorConnection({0x55, 2, DungeonConnectionLayer::kUpper});
+  ASSERT_TRUE(internal.ok()) << internal.status();
+  EXPECT_EQ(internal->target_room_id, 0x56);
+  EXPECT_TRUE(internal->creates_return);
+}
+
+TEST_P(DungeonConnectionEditsLifecycleTest,
        StaleSourceAndTargetPreviewsRejectWithoutPartialPublication) {
   const auto plan = editor_->PreviewDoorConnection(Request());
   ASSERT_TRUE(plan.ok()) << plan.status();
