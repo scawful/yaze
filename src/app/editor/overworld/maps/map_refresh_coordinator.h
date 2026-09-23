@@ -74,6 +74,9 @@ class MapRefreshCoordinator {
   /// @param map_id The map to invalidate (-1 to invalidate all maps)
   void InvalidateGraphicsCache(int map_id = -1);
 
+  /// Shared Tile16 definitions affect maps in every world, including hidden maps.
+  void InvalidateTile16Definitions();
+
   /// @brief Refresh a child map's graphics pipeline (legacy full rebuild)
   void RefreshChildMap(int map_index);
 

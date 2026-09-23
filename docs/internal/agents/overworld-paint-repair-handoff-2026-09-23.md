@@ -5,8 +5,9 @@
 These bounded repairs follow the source/history audit of Tile16 painting,
 selection, and map targeting at `55ada11d7`. Branch:
 `codex/overworld-paint-regression-fixes`, based on `55ada11d7`.
-The active Cursor Tile16 extraction is separate and was not copied into this
-worktree. Qualify the combined source after integration.
+Cursor’s Tile16 session/workbench extraction is now selectively integrated in
+this branch, with immediate document edits and shared Undo/Redo. The main
+checkout remains untouched; unrelated Cursor changes are not imported.
 
 Keep Tile16 domain rules in `overworld/tile16/tile16_edit_session.*`, layout in
 `overworld/ui/tiles/tile16_workbench.cc`, and the façade in `tile16_editor.*`.
@@ -23,8 +24,69 @@ The local source commits are:
 - `bb69ee4a9`: stable context-menu targets (OW-R4), menu organization, and
   parent-relative item/sprite insertion coordinates.
 
-The main checkout's uncommitted Cursor changes remain separate. These commits
+The main checkout's other uncommitted Cursor changes remain separate. These commits
 have not been pushed or installed as the user's application.
+
+## Immediate Tile16 editing and shared history candidate
+
+This increment selectively integrates Cursor's `tile16_editor.h/.cc`,
+`tile16/tile16_edit_types.h`, `tile16/tile16_edit_session.h/.cc`, and
+`ui/tiles/tile16_workbench.cc`, adapting their includes to the organized tree.
+It does not import unrelated main-checkout changes or the separate floating
+window-manager changes.
+
+- Tile16 definitions publish to the document immediately. The normal panel has
+  no Write Pending/Discard controls or tile-switch dialog. Manual quadrant
+  properties use the same transaction as paint, palette, flip, clear, paste,
+  and scratch recall.
+- `tile16/tile16_edit_history.cc` owns complete before/after metadata batches.
+  It uses the overworld editor's history, finalizes an open map stroke first,
+  avoids history entries for no-op/invalid mutations, and clears Redo on edits.
+  Four-definition stamps are atomic history steps; edge clipping retains the
+  existing stamp policy and records every in-range definition.
+- `MapRefreshCoordinator::InvalidateTile16Definitions` invalidates all worlds.
+  The selected map refreshes immediately, other maps use deferred refresh.
+  Undo regenerates previews from current graphics, not captured old pixels.
+- Single and rectangular map strokes use release boundaries, with time-based
+  merging disabled for production actions. Shared Undo shortcuts are handled
+  once by the application. Standalone Tile16 test/tool sessions keep local
+  history and legacy serialization adapters, which bound sessions reject.
+- ImGui workbench errors accumulate until child/group/table scopes are closed.
+  Three panel sources now include their logging dependency directly. The Clang
+  analyzer's padding diagnostic was resolved by grouping session fields.
+
+Validation: **120 unit tests across 16 suites and 19 synthetic Tile16 panel
+cases passed; no failures or skips.** All three targets built:
+
+```sh
+cmake --build --preset mac-ai --target yaze yaze_test_unit yaze_test_integration --parallel 4
+yaze_history_filter='Tile16DocumentHistoryTest.*:*TilePaintingManager*:OverworldTilePaintActionTest.*:OverworldPaintRefreshTest.*:MapRefreshCoordinatorTest.*:CanvasNavigationManagerTest.*:OverworldEditorStateTest.*:Tile16EditorActionStateTest.*:Tile16EditorShortcutsTest.*:Tile8SourceInteractionTest.*:MapPropertiesContextMenuTest.*:OverworldContextTargetTest.*:CanvasContextMenuOpenTest.*:CanvasContextMenuRoleTest.*'
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_list_tests --gtest_filter="$yaze_history_filter"
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter="$yaze_history_filter" --gtest_output=xml:/tmp/yaze-immediate-tests.xml
+build/presets/mac-ai/bin/Debug/yaze_test_integration --gtest_filter='Tile16EditorSyntheticFixture.*' --gtest_list_tests
+build/presets/mac-ai/bin/Debug/yaze_test_integration --gtest_filter='Tile16EditorSyntheticFixture.*' --gtest_output=xml:/tmp/yaze-immediate-ui.xml
+```
+
+The final rebuild used `--parallel 2` alongside one analyzer process. Scoped
+`clang-analyzer-*` checks passed with warnings treated as errors for six units:
+`tile16_edit_history.cc`, `tile16_edit_session.cc`, `tile16_workbench.cc`,
+`tile16_editor.cc`, `map_refresh_coordinator.cc`, and `tile_painting_manager.cc`.
+The temporary Debug compilation database is `/tmp/yaze-immediate-analysis`,
+prepared with the SDK/PCH procedure described below. Logs use the
+`/tmp/yaze-immediate-` prefix (`final-build.log`, `analyzer.log`, `tests.log`,
+`ui.log`); XML evidence records selection and skip counts.
+
+The new history tests cover definition/paint interleaving, normal in-memory
+`SaveMap16Tiles` serialization followed by Undo/Redo, complete stamps, invalid
+and no-op edits, shared Redo invalidation, manual properties, clipboard/scratch,
+and rendering after a source-graphics change. These are synthetic ROM bytes,
+not qualification of a personal ROM, expanded-format round trip, native GPU
+rendering, or the installed Barista-launched app. No ROM files were modified.
+
+Next acceptance: identify the packaged source, then use a disposable ROM for
+edit → paint → Undo/Redo → Save → independent reopen, including map/palette
+changes and narrow/wide layouts. The owner can defer this review; do not ask
+for repeated manual tests while implementing the next bounded source task.
 
 ## Repairs
 
@@ -265,12 +327,12 @@ save is written.
 
 ## Remaining work, in order
 
-1. **OW-R5 / OW-R6: Tile16 publication and recovery.** Commit must invalidate
-   affected map/atlas caches before publishing rebuilt graphics. Discard must
-   restore all staged atlas regions. A four-definition stamp needs one undo
-   snapshot covering all touched definitions, including pending state and
-   presentation. Integrate with Cursor's new session/workbench boundary rather
-   than recreating rules in the façade or layout.
+1. **OW-R5 / OW-R6 implemented: qualify the immediate-edit candidate.** The
+   requested UX replaces staging/commit/discard with document edits and shared
+   Undo/Redo. The candidate imports Cursor's session/workbench boundary, adds
+   complete metadata-batch history, and invalidates caches across all worlds.
+   Follow [the document contract](../../../src/app/editor/overworld/README.md#tile16-document-contract).
+   Native/palette/ROM qualification remains distinct from synthetic evidence.
 2. **Overworld sprite persistence.** `Overworld::Save` currently calls no sprite
    serializer. This increment corrects sprite insertion values only. Implement
    and qualify a bounded serializer before claiming persistent sprite authoring;

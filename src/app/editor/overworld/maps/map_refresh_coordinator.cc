@@ -107,6 +107,16 @@ void MapRefreshCoordinator::InvalidateGraphicsCache(int map_id) {
   }
 }
 
+void MapRefreshCoordinator::InvalidateTile16Definitions() {
+  InvalidateGraphicsCache();
+  for (int id = 0; id < zelda3::kNumOverworldMaps; ++id) {
+    if (auto* map = ctx_.overworld->mutable_overworld_map(id)) {
+      map->SetNotBuilt();
+    }
+    (*ctx_.maps_bmp)[id].set_modified(true);
+  }
+}
+
 void MapRefreshCoordinator::RefreshChildMap(int map_index) {
   auto* map = ctx_.overworld->mutable_overworld_map(map_index);
   if (!map) {

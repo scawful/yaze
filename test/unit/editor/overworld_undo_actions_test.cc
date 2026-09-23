@@ -136,6 +136,20 @@ TEST_F(OverworldTilePaintActionTest, LegacyRefreshCallbackRemainsSupported) {
   EXPECT_EQ(refreshes, 2);
 }
 
+TEST_F(OverworldTilePaintActionTest, ExplicitStrokeBoundariesNeverMerge) {
+  UndoManager history;
+  for (int id = 1; id <= 2; ++id) {
+    history.Push(std::make_unique<OverworldTilePaintAction>(
+        0, 0, std::vector<OverworldTileChange>{{0, 0, id - 1, id}},
+        overworld_.get(), std::function<void()>{}, RefreshCallback(), false));
+  }
+  EXPECT_EQ(history.UndoStackSize(), 2u);
+  ASSERT_TRUE(history.Undo().ok());
+  EXPECT_EQ(overworld_->GetMapTiles(0)[0][0], 1);
+  ASSERT_TRUE(history.Undo().ok());
+  EXPECT_EQ(overworld_->GetMapTiles(0)[0][0], 0);
+}
+
 TEST_F(OverworldTilePaintActionTest, DifferentWorldsAndModelsDoNotMerge) {
   OverworldTilePaintAction first(0, 0, {}, overworld_.get(), {});
   OverworldTilePaintAction other_world(0x40, 1, {}, overworld_.get(), {});

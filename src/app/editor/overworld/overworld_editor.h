@@ -780,8 +780,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // ===========================================================================
 
   std::optional<OverworldUndoPoint> current_paint_operation_;
-  std::chrono::steady_clock::time_point last_paint_time_;
-  static constexpr auto kPaintBatchTimeout = std::chrono::milliseconds(500);
 
   // ===========================================================================
   // Event Listeners

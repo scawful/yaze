@@ -480,6 +480,8 @@ absl::Status OverworldEditor::Load() {
   undo_manager_.Clear();
 
   RETURN_IF_ERROR(LoadGraphics());
+  tile16_editor_.BindDocument(overworld_.mutable_tiles16(), &undo_manager_,
+                              [this]() { FinalizePaintOperation(); });
   RETURN_IF_ERROR(
       tile16_editor_.Initialize(tile16_blockset_bmp_, current_gfx_bmp_,
                                 *overworld_.mutable_all_tiles_types()));
@@ -490,26 +492,13 @@ absl::Status OverworldEditor::Load() {
   tile16_editor_.set_on_current_tile_changed(
       [this](int id) { current_tile16_ = id; });
 
-  // Set up callback for when tile16 changes are committed
-  tile16_editor_.set_on_changes_committed(
-      [this](const std::vector<Tile16Commit>& commits) -> absl::Status {
-        auto* tiles16 = overworld_.mutable_tiles16();
-        for (const auto& commit : commits) {
-          if (commit.tile_id >= 0 &&
-              commit.tile_id < static_cast<int>(tiles16->size())) {
-            (*tiles16)[commit.tile_id] = commit.tile_data;
-          }
+  tile16_editor_.set_on_document_changed(
+      [this](const std::vector<Tile16Commit>&) {
+        if (map_refresh_) {
+          map_refresh_->InvalidateTile16Definitions();
+          RefreshOverworldMap();
+          status_ = RefreshTile16Blockset();
         }
-
-        // Regenerate the overworld editor's tile16 blockset
-        RETURN_IF_ERROR(RefreshTile16Blockset());
-
-        // Force refresh of the current overworld map to show changes
-        RefreshOverworldMap();
-
-        LOG_DEBUG("OverworldEditor",
-                  "Overworld editor refreshed after Tile16 changes");
-        return absl::OkStatus();
       });
 
   // Set up entity insertion callback for MapPropertiesSystem
@@ -588,12 +577,6 @@ absl::Status OverworldEditor::Update() {
 
   // Process deferred textures for smooth loading
   ProcessDeferredTextures();
-
-  // Update blockset atlas with any pending tile16 changes for live preview
-  // Tile cache now uses copy semantics so this is safe to enable
-  if (tile16_editor_.has_pending_changes() && map_blockset_loaded_) {
-    UpdateBlocksetWithPendingTileChanges();
-  }
 
   // Early return if window_manager is not available
   // (panels won't be drawn without it, so no point continuing)
@@ -1212,10 +1195,9 @@ void OverworldEditor::CreateUndoPoint(int map_id, int world, int x, int y,
   auto now = std::chrono::steady_clock::now();
 
   // A stroke can cross screen boundaries. Keep one batch within the same world
-  // and timeout; the undo action refreshes every screen touched by its tiles.
+  // until release; the undo action refreshes every screen touched by its tiles.
   if (current_paint_operation_.has_value() &&
-      current_paint_operation_->world == world &&
-      (now - last_paint_time_) < kPaintBatchTimeout) {
+      current_paint_operation_->world == world) {
     // Add to existing operation
     current_paint_operation_->tile_changes.emplace_back(std::make_pair(x, y),
                                                         old_tile_id);
@@ -1230,8 +1212,6 @@ void OverworldEditor::CreateUndoPoint(int map_id, int world, int x, int y,
                            .tile_changes = {{{x, y}, old_tile_id}},
                            .timestamp = now};
   }
-
-  last_paint_time_ = now;
 }
 
 void OverworldEditor::FinalizePaintOperation() {
@@ -1255,7 +1235,8 @@ void OverworldEditor::FinalizePaintOperation() {
       [this](int map_id) {
         maps_bmp_[map_id].set_modified(true);
         RefreshOverworldMapOnDemand(map_id);
-      });
+      },
+      /*allow_merge=*/false);
   undo_manager_.Push(std::move(action));
 
   current_paint_operation_.reset();
@@ -1414,6 +1395,7 @@ absl::Status OverworldEditor::Undo() {
 }
 
 absl::Status OverworldEditor::Redo() {
+  FinalizePaintOperation();
   return undo_manager_.Redo();
 }
 
@@ -1598,17 +1580,6 @@ void OverworldEditor::RequestTile16Selection(int tile_id) {
                tile_id, status.message().data());
     }
     return;
-  }
-
-  const int from_tile = tile16_editor_.current_tile16();
-  const bool had_staged_on_current = tile16_editor_.is_tile_modified(from_tile);
-  if (had_staged_on_current && dependencies_.window_manager) {
-    const size_t session_id =
-        dependencies_.window_manager->GetActiveSessionId();
-    dependencies_.window_manager->OpenWindow(session_id,
-                                             OverworldPanelIds::kTile16Editor);
-    dependencies_.window_manager->MarkWindowRecentlyUsed(
-        OverworldPanelIds::kTile16Editor);
   }
 
   tile16_editor_.RequestTileSwitch(tile_id);

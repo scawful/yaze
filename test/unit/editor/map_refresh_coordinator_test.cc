@@ -92,6 +92,13 @@ class MapRefreshCoordinatorTest : public ::testing::Test {
 // ForceRefreshGraphics
 // ===========================================================================
 
+TEST_F(MapRefreshCoordinatorTest, DefinitionEditsInvalidateAllWorlds) {
+  coordinator_->InvalidateTile16Definitions();
+  for (int id = 0; id < zelda3::kNumOverworldMaps; ++id) {
+    EXPECT_TRUE(maps_bmp_[id].modified()) << id;
+  }
+}
+
 TEST_F(MapRefreshCoordinatorTest, ForceRefreshGraphicsValidIndexMarksModified) {
   ASSERT_FALSE(maps_bmp_[5].modified());
   coordinator_->ForceRefreshGraphics(5);

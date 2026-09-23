@@ -106,7 +106,7 @@ void TilePaintingManager::CheckForOverworldEdits() {
   if (selected) {
     if (can_paint && (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
                       ImGui::IsMouseDragging(ImGuiMouseButton_Left))) {
-      PaintPattern(*selected, anchor, selected->width, selected->height);
+      PaintPattern(*selected, anchor, selected->width, selected->height, false);
     }
   } else if (single.valid() &&
              canvas.DrawTilemapPainter(*deps_.tile16_blockset,
