@@ -281,6 +281,7 @@ class DungeonCanvasViewer {
       std::function<absl::Status(const std::vector<RoomMetadataRequest>&)>;
   using ChestEditCallback =
       std::function<absl::Status(int, size_t, uint8_t, bool)>;
+  using ChestDeleteCallback = std::function<absl::Status(int, size_t)>;
   void SetMetadataEditCallback(MetadataEditCallback callback) {
     metadata_edit_callback_ = std::move(callback);
   }
@@ -290,11 +291,15 @@ class DungeonCanvasViewer {
   void SetChestEditCallback(ChestEditCallback callback) {
     chest_edit_callback_ = std::move(callback);
   }
+  void SetChestDeleteCallback(ChestDeleteCallback callback) {
+    chest_delete_callback_ = std::move(callback);
+  }
   absl::Status EditRoomMetadata(int room_id, const RoomMetadataEdit& edit);
   absl::Status EditRoomMetadataBatch(
       const std::vector<RoomMetadataRequest>& requests);
   absl::Status EditChest(int room_id, size_t index, uint8_t item_id,
                          bool big_chest);
+  absl::Status DeleteChest(int room_id, size_t index);
   DungeonChestEditorState& chest_editor_state() { return chest_editor_state_; }
   void InvalidateConnectedRoomGraph() {
     connected_graph_cache_start_room_id_ = -1;
@@ -1054,6 +1059,7 @@ class DungeonCanvasViewer {
   MetadataEditCallback metadata_edit_callback_;
   MetadataBatchEditCallback metadata_batch_edit_callback_;
   ChestEditCallback chest_edit_callback_;
+  ChestDeleteCallback chest_delete_callback_;
   DungeonChestEditorState chest_editor_state_;
   bool compact_header_mode_ = false;
   bool header_read_only_ = false;

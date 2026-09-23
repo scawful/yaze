@@ -55,6 +55,14 @@ absl::Status DungeonCanvasViewer::EditChest(int room_id, size_t index,
   return chest_edit_callback_(room_id, index, item_id, big_chest);
 }
 
+absl::Status DungeonCanvasViewer::DeleteChest(int room_id, size_t index) {
+  if (header_read_only_ || !chest_delete_callback_ || !rooms_ ||
+      !rooms_->GetIfLoaded(room_id)) {
+    return absl::FailedPreconditionError("Chests are not editable");
+  }
+  return chest_delete_callback_(room_id, index);
+}
+
 void DungeonCanvasViewer::RecordVisitedRoom(int room_id) {
   if (room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
     return;

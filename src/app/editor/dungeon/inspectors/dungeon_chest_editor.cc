@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <optional>
 #include <string>
 
 #include "absl/strings/ascii.h"
@@ -11,7 +12,9 @@
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/input.h"
 #include "imgui/imgui.h"
+#include "zelda3/dungeon/chest_edit.h"
 #include "zelda3/dungeon/dungeon_limits.h"
+#include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/resource_labels.h"
 
@@ -110,6 +113,93 @@ void ApplyEdit(DungeonCanvasViewer& viewer, DungeonChestEditorState& state,
   state.error = status.ok() ? "" : std::string(status.message());
 }
 
+std::optional<size_t> FindChestObject(const zelda3::Room& room,
+                                      size_t ordinal) {
+  const auto& objects = room.GetTileObjects();
+  for (size_t i = 0; i < objects.size(); ++i) {
+    if (zelda3::ChestIndexForObject(objects, i) == ordinal) {
+      return i;
+    }
+  }
+  return std::nullopt;
+}
+
+void DrawChestPlacement(int room_id, bool has_mapping,
+                        DungeonCanvasViewer& viewer,
+                        DungeonChestEditorState& state) {
+  const bool active_room = viewer.current_room_id() == room_id;
+  ImGui::BeginDisabled(viewer.header_read_only() || !active_room ||
+                       !has_mapping);
+  const bool inline_buttons =
+      ImGui::GetContentRegionAvail().x >=
+      ImGui::CalcTextSize("Add small chestAdd big chest").x +
+          ImGui::GetStyle().FramePadding.x * 4 +
+          ImGui::GetStyle().ItemSpacing.x;
+  const float width = inline_buttons ? (ImGui::GetContentRegionAvail().x -
+                                        ImGui::GetStyle().ItemSpacing.x) /
+                                           2
+                                     : -1;
+  for (int big = 0; big <= 1; ++big) {
+    if (big && inline_buttons) {
+      ImGui::SameLine();
+    }
+    if (ImGui::Button(big ? "Add big chest" : "Add small chest",
+                      ImVec2(width, 0))) {
+      const int id = big ? 0xFB1 : 0xF99;
+      viewer.SetPreviewObject(
+          zelda3::RoomObject(id, 0, 0, zelda3::CanonicalRoomObjectSize(id, 0)));
+      viewer.SetObjectInteractionEnabled(true);
+      state.error.clear();
+    }
+    gui::AutoRegisterLastItem("button", big ? "ChestAddBig" : "ChestAddSmall");
+  }
+  ImGui::EndDisabled();
+  const auto* preview = viewer.object_interaction().GetPlacementPreview();
+  if (active_room && preview && zelda3::IsStatefulChestObjectId(preview->id_)) {
+    ImGui::TextWrapped(
+        "Click in the canvas to place a %s chest. Escape cancels.",
+        preview->id_ == 0xFB1 ? "big" : "small");
+  } else if (!active_room) {
+    ImGui::TextWrapped(
+        "Open this room in the canvas to place or select a chest.");
+  }
+  ImGui::TextWrapped(
+      "New chests start with 1 Rupee. Choose a chest below to change its "
+      "reward.");
+}
+
+bool DrawChestActions(int room_id, size_t index, bool has_mapping,
+                      zelda3::Room& room, DungeonCanvasViewer& viewer,
+                      DungeonChestEditorState& state) {
+  const auto object_index =
+      has_mapping ? FindChestObject(room, index) : std::nullopt;
+  ImGui::BeginDisabled(!object_index || viewer.current_room_id() != room_id);
+  if (ImGui::Button("Select in canvas", ImVec2(-1, 0))) {
+    const auto& object = room.GetTileObjects()[*object_index];
+    viewer.object_interaction().CancelPlacement();
+    viewer.object_interaction().SetSelectedObjects({*object_index});
+    viewer.ScrollToTile(object.x_, object.y_);
+    viewer.TriggerCanvasPingRect(object.x_ * 8, object.y_ * 8, object.width_,
+                                 object.height_);
+  }
+  gui::AutoRegisterLastItem("button", "ChestSelect");
+  ImGui::EndDisabled();
+  ImGui::BeginDisabled(viewer.header_read_only() || !object_index);
+  bool deleted = false;
+  if (ImGui::Button("Delete chest", ImVec2(-1, 0))) {
+    const auto status = viewer.DeleteChest(room_id, index);
+    state.error = status.ok() ? "" : std::string(status.message());
+    deleted = status.ok();
+  }
+  gui::AutoRegisterLastItem("button", "ChestDelete");
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        "Remove the chest object and its reward. Undo restores both.");
+  }
+  ImGui::EndDisabled();
+  return deleted;
+}
+
 void DrawItemChoice(int room_id, size_t index, const chest_data chest,
                     DungeonCanvasViewer& viewer,
                     DungeonChestEditorState& state) {
@@ -186,7 +276,7 @@ std::string GetDungeonChestItemLabel(uint8_t item_id) {
 
 void DrawDungeonChestEditor(int room_id, zelda3::Room& room,
                             DungeonCanvasViewer& viewer) {
-  ImGui::TextUnformatted("Chest Contents");
+  ImGui::TextUnformatted("Chests");
   if (!viewer.rooms() || viewer.rooms()->GetIfLoaded(room_id) != &room ||
       !room.AreChestsLoaded()) {
     ImGui::TextWrapped(
@@ -203,40 +293,53 @@ void DrawDungeonChestEditor(int room_id, zelda3::Room& room,
   ImGui::PushID(room_id);
   const auto& chests = room.GetChests();
   size_t chest_objects = 0;
-  size_t big_objects = 0;
   for (const auto& object : room.GetTileObjects()) {
     chest_objects += zelda3::IsStatefulChestObjectId(object.id_);
-    big_objects += object.id_ == 0xFB1;
   }
+  const auto mapping_status =
+      zelda3::ValidateChestObjectMapping(room.GetTileObjects(), chests);
+  const bool has_mapping = mapping_status.ok();
   ImGui::TextWrapped("%zu contents records · %zu chest objects", chests.size(),
                      chest_objects);
-  ImGui::TextWrapped(
-      "Contents follow the room's chest order. These controls change rewards "
-      "and record types; choose the visible chest object in the canvas.");
-  if (chests.size() != chest_objects) {
+  if (!has_mapping) {
     ImGui::TextWrapped(
-        "Record and object counts differ. Review the room's chest objects "
-        "before saving.");
+        "Chest objects and contents do not match in room order. Rewards remain "
+        "editable; adding, deleting, and changing chest type require a "
+        "matching "
+        "object for each record.");
+    ImGui::TextWrapped("%s", std::string(mapping_status.message()).c_str());
   }
   if (chests.size() > zelda3::kMaxChests) {
     ImGui::TextWrapped("This room exceeds the standard six-chest limit.");
   }
+  DrawChestPlacement(room_id, has_mapping, viewer, state);
   if (chests.empty()) {
-    ImGui::TextWrapped(
-        "No chest contents records in this room. Adding a chest object does "
-        "not yet create its reward record automatically.");
+    ImGui::TextWrapped("No chest contents records in this room.");
     state.selected_index = 0;
+    state.last_canvas_selection.reset();
     state.error.clear();
     ImGui::PopID();
     ImGui::PopID();
     return;
   }
-  const size_t big_records = std::count_if(
-      chests.begin(), chests.end(), [](auto chest) { return chest.size; });
-  if (big_records != big_objects) {
-    ImGui::TextWrapped(
-        "Big-chest record and object counts differ. The record type does not "
-        "change the chest graphic.");
+  if (viewer.current_room_id() == room_id) {
+    const auto selection =
+        viewer.object_interaction().GetSelectedObjectIndices();
+    const auto canvas_selection = selection.size() == 1
+                                      ? std::optional<size_t>(selection.front())
+                                      : std::nullopt;
+    if (canvas_selection != state.last_canvas_selection) {
+      state.last_canvas_selection = canvas_selection;
+      if (has_mapping && canvas_selection) {
+        const auto ordinal = zelda3::ChestIndexForObject(room.GetTileObjects(),
+                                                         *canvas_selection);
+        if (ordinal) {
+          state.selected_index = static_cast<int>(*ordinal);
+          state.search.fill(0);
+          state.error.clear();
+        }
+      }
+    }
   }
   state.selected_index =
       std::clamp(state.selected_index, 0, static_cast<int>(chests.size()) - 1);
@@ -261,16 +364,25 @@ void DrawDungeonChestEditor(int room_id, zelda3::Room& room,
     ImGui::EndCombo();
   }
   const size_t index = static_cast<size_t>(state.selected_index);
+  if (DrawChestActions(room_id, index, has_mapping, room, viewer, state)) {
+    state.search.fill(0);
+    ImGui::PopID();
+    ImGui::PopID();
+    return;
+  }
   ImGui::PushID(state.selected_index);
   // The mutation callback may replace the vector. Do not keep a record
   // reference across calls into the editor's undo-backed mutation path.
   const auto chest = chests[index];
+  ImGui::BeginDisabled(viewer.header_read_only());
   DrawItemChoice(room_id, index, chest, viewer, state);
   bool big = room.GetChests()[index].size;
-  if (ImGui::Checkbox("Big chest record", &big)) {
+  ImGui::BeginDisabled(!has_mapping);
+  if (ImGui::Checkbox("Big chest", &big)) {
     ApplyEdit(viewer, state, room_id, index, room.GetChests()[index].id, big);
   }
   gui::AutoRegisterLastItem("checkbox", "ChestBig");
+  ImGui::EndDisabled();
   if (ImGui::TreeNode("Advanced##ChestAdvanced")) {
     int item_id = room.GetChests()[index].id;
     ImGui::SetNextItemWidth(-1);
@@ -292,6 +404,7 @@ void DrawDungeonChestEditor(int room_id, zelda3::Room& room,
         "Raw item ID (hex). Unknown hack-specific values are kept.");
     ImGui::TreePop();
   }
+  ImGui::EndDisabled();
   if (!state.error.empty()) {
     ImGui::TextWrapped("Edit not applied: %s", state.error.c_str());
   }

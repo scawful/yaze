@@ -359,6 +359,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/sprite_value_init_test.cc
     unit/zelda3/music_parser_test.cc
     unit/zelda3/dungeon_component_unit_test.cc
+    unit/zelda3/dungeon/chest_edit_test.cc
     unit/zelda3/dungeon/dungeon_limits_test.cc
     unit/zelda3/dungeon/draw_routine_symbology_test.cc
     unit/zelda3/dungeon/draw_routine_registry_ids_test.cc
@@ -739,6 +740,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/save_all_collision_rom_presence_test.cc
     unit/zelda3/dungeon/room_water_fill_state_test.cc
     unit/zelda3/dungeon/dungeon_rom_addresses_guardrail_test.cc
+    unit/zelda3/dungeon/chest_edit_test.cc
     unit/zelda3/dungeon/room_object_set_id_test.cc
     unit/zelda3/dungeon/dungeon_limits_test.cc
     unit/zelda3/dungeon/dungeon_block_codec_test.cc

@@ -2,8 +2,11 @@
 #define YAZE_APP_EDITOR_DUNGEON_INTERACTION_TILE_OBJECT_HANDLER_H
 
 #include <functional>
+#include <optional>
+
 #include <utility>
 #include <vector>
+#include "absl/status/status.h"
 #include "app/editor/dungeon/interaction/base_entity_handler.h"
 #include "app/editor/dungeon/interaction/ghost_preview_feedback.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
@@ -37,6 +40,7 @@ class TileObjectHandler : public BaseEntityHandler {
     kNone = 0,
     kInvalidRoom,
     kObjectLimit,
+    kChestValidation,
   };
 
   enum class PlacementPolicy { kRepeat, kOnce };
@@ -90,18 +94,17 @@ class TileObjectHandler : public BaseEntityHandler {
    */
   std::vector<size_t> DuplicateObjects(int room_id,
                                        const std::vector<size_t>& indices,
-                                       int delta_x, int delta_y,
-                                       bool notify_mutation = true);
+                                       int delta_x, int delta_y);
 
   /**
    * @brief Delete objects by indices.
    */
-  void DeleteObjects(int room_id, std::vector<size_t> indices);
+  bool DeleteObjects(int room_id, std::vector<size_t> indices);
 
   /**
    * @brief Delete all objects in a room.
    */
-  void DeleteAllObjects(int room_id);
+  bool DeleteAllObjects(int room_id);
 
   /**
    * @brief Reorder objects.
@@ -129,6 +132,18 @@ class TileObjectHandler : public BaseEntityHandler {
     placement_policy_ = policy;
   }
   PlacementPolicy GetPlacementPolicy() const { return placement_policy_; }
+  using ObjectMutationPreflight =
+      std::function<absl::Status(int, const std::vector<zelda3::RoomObject>&,
+                                 const std::vector<chest_data>&)>;
+  void SetObjectMutationPreflight(ObjectMutationPreflight callback) {
+    object_mutation_preflight_ = std::move(callback);
+  }
+  const absl::Status& mutation_status() const { return mutation_status_; }
+  void SetMutationErrorCallback(
+      std::function<void(const absl::Status&)> callback) {
+    mutation_error_callback_ = std::move(callback);
+  }
+
   void SetPlacementCallback(
       std::function<void(const zelda3::RoomObject&)> callback) {
     placement_callback_ = std::move(callback);
@@ -211,7 +226,11 @@ class TileObjectHandler : public BaseEntityHandler {
   /**
    * @brief Clear the clipboard.
    */
-  void ClearClipboard() { clipboard_.clear(); }
+  void ClearClipboard() {
+    clipboard_.clear();
+    clipboard_chests_.clear();
+    clipboard_status_ = absl::OkStatus();
+  }
 
  private:
   // Placement state
@@ -228,6 +247,18 @@ class TileObjectHandler : public BaseEntityHandler {
 
   // Clipboard
   std::vector<zelda3::RoomObject> clipboard_;
+  std::vector<std::optional<chest_data>> clipboard_chests_;
+  absl::Status clipboard_status_;
+  absl::Status mutation_status_;
+  ObjectMutationPreflight object_mutation_preflight_;
+  std::function<void(const absl::Status&)> mutation_error_callback_;
+  bool RejectMutation(absl::Status status);
+
+  bool CommitCandidate(
+      int room_id, std::vector<zelda3::RoomObject> candidate,
+      const std::vector<std::optional<size_t>>& sources,
+      const std::vector<std::optional<chest_data>>& chest_overrides = {},
+      std::optional<std::vector<size_t>> selection = std::nullopt);
 
   void RenderGhostPreviewBitmap();
 

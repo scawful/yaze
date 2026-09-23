@@ -6,10 +6,13 @@
 
 #include "app/gfx/resource/arena.h"
 #include "core/features.h"
+#include "core/project.h"
 #include "gtest/gtest.h"
 #include "imgui/imgui.h"
 #include "rom/snes.h"
+#include "zelda3/dungeon/chest_edit.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/object_dimensions.h"
 
 namespace yaze::editor {
 
@@ -103,6 +106,26 @@ class DungeonRoomEditsLifecycleTest : public ::testing::TestWithParam<bool> {
     core::FeatureFlags::get().dungeon = previous_flags_;
     ImGui::DestroyContext(context_);
     ImGui::SetCurrentContext(previous_context_);
+  }
+  static zelda3::RoomObject Chest(bool big = false, int layer = 0) {
+    const int id = big ? 0xFB1 : 0xF99;
+    zelda3::RoomObject object(id, 8, 8, zelda3::CanonicalRoomObjectSize(id, 0),
+                              layer);
+    object.set_options(zelda3::ObjectOption::Chest);
+    return object;
+  }
+  void SeedChestObjects() {
+    room_->SetTileObjects({Chest(), Chest()});
+    room_->ClearSaveDirtyState();
+  }
+  TileObjectHandler& Handler() {
+    return viewer_->object_interaction().entity_coordinator().tile_handler();
+  }
+  void FillGlobalChests(int count) {
+    for (int i = 3; i < count; ++i) {
+      ASSERT_TRUE(rom_.WriteVector(kChestPc + i * 3, {0xFF, 0x7F, 0xF0}).ok());
+    }
+    ASSERT_TRUE(rom_.WriteWord(zelda3::kChestsLengthPointer, count * 3).ok());
   }
   size_t UndoDepth() const { return editor_->undo_manager().UndoStackSize(); }
   Rom rom_;
@@ -198,7 +221,7 @@ TEST_P(DungeonRoomEditsLifecycleTest, DarkRoomUndoPreservesUnderlyingMode) {
 TEST_P(DungeonRoomEditsLifecycleTest,
        ChestUndoPreservesOtherRecordsAndDomains) {
   const auto metadata = room_->CaptureMetadataSnapshot();
-  ASSERT_TRUE(viewer_->EditChest(0, 0, 9, true).ok());
+  ASSERT_TRUE(viewer_->EditChest(0, 0, 9, false).ok());
   ASSERT_EQ(UndoDepth(), 1u);
   EXPECT_TRUE(room_->chests_dirty());
   EXPECT_FALSE(room_->header_dirty());
@@ -210,7 +233,7 @@ TEST_P(DungeonRoomEditsLifecycleTest,
   EXPECT_TRUE(room_->chests_dirty());
   ASSERT_TRUE(editor_->Redo().ok());
   EXPECT_EQ(room_->GetChests()[0].id, 9);
-  EXPECT_TRUE(room_->GetChests()[0].size);
+  EXPECT_FALSE(room_->GetChests()[0].size);
   EXPECT_EQ(room_->GetChests()[1].id, 0x24);
   EXPECT_EQ(editor_->rooms()[1].GetChests()[0].id, 0x32);
   EXPECT_EQ(room_->CaptureMetadataSnapshot(), metadata);
@@ -221,7 +244,7 @@ TEST_P(DungeonRoomEditsLifecycleTest,
   ASSERT_TRUE(
       viewer_->EditRoomMetadata(0, {RoomMetadataField::kStaircaseRoom, 7, 2})
           .ok());
-  ASSERT_TRUE(viewer_->EditChest(0, 0, 9, true).ok());
+  ASSERT_TRUE(viewer_->EditChest(0, 0, 9, false).ok());
   auto* other_viewer = DungeonRoomEditsTestPeer::Viewer(*editor_, 1);
   auto& other = editor_->rooms()[1];
   other.GetSprites().emplace_back(1, 2, 3, 0, 0);
@@ -271,7 +294,7 @@ TEST_P(DungeonRoomEditsLifecycleTest,
   ASSERT_TRUE(
       viewer_->EditRoomMetadata(0, {RoomMetadataField::kStaircaseRoom, 0x7A, 2})
           .ok());
-  ASSERT_TRUE(viewer_->EditChest(0, 0, 9, true).ok());
+  ASSERT_TRUE(viewer_->EditChest(0, 0, 9, false).ok());
   auto saved = editor_->SaveRoom(0);
   ASSERT_TRUE(saved.ok()) << saved;
   EXPECT_FALSE(room_->HasUnsavedChanges());
@@ -281,7 +304,7 @@ TEST_P(DungeonRoomEditsLifecycleTest,
   EXPECT_EQ(reopened.staircase_room(2), 0x7A);
   ASSERT_EQ(reopened.GetChests().size(), 2u);
   EXPECT_EQ(reopened.GetChests()[0].id, 9);
-  EXPECT_TRUE(reopened.GetChests()[0].size);
+  EXPECT_FALSE(reopened.GetChests()[0].size);
   EXPECT_EQ(rom_.vector()[kHeaderPc] & 0x02, 0x02);
   EXPECT_EQ(rom_.vector()[kHeaderPc + 8] & 0xFC, 0xFC);
   for (size_t i = 0; i < before.size(); ++i) {
@@ -466,6 +489,319 @@ TEST_P(DungeonRoomEditsLifecycleTest,
   EXPECT_EQ(room_->staircase_room(0), 0x12);
   EXPECT_FALSE(room_->HasUnsavedChanges());
   EXPECT_EQ(UndoDepth(), 0u);
+}
+
+TEST_P(DungeonRoomEditsLifecycleTest,
+       ChestPlacementAndDeletionAreCompoundUndo) {
+  SeedChestObjects();
+  const auto rom_before = rom_.vector();
+  ASSERT_TRUE(Handler().PlaceObjectAt(0, Chest(true), 12, 14));
+  ASSERT_EQ(UndoDepth(), 1u);
+  ASSERT_EQ(room_->GetTileObjects().size(), 3u);
+  ASSERT_EQ(room_->GetChests().size(), 3u);
+  EXPECT_EQ(room_->GetChests()[2].id, 0x34);
+  EXPECT_TRUE(room_->GetChests()[2].size);
+  EXPECT_TRUE(room_->object_stream_dirty());
+  EXPECT_TRUE(room_->chests_dirty());
+  EXPECT_EQ(rom_.vector(), rom_before);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->GetTileObjects().size(), 2u);
+  EXPECT_EQ(room_->GetChests().size(), 2u);
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(viewer_->object_interaction().GetSelectedObjectIndices(),
+            (std::vector<size_t>{2}));
+  ASSERT_TRUE(viewer_->DeleteChest(0, 0).ok());
+  ASSERT_EQ(UndoDepth(), 2u);
+  EXPECT_EQ(room_->GetChests()[0].id, 0x24);
+  EXPECT_EQ(room_->GetChests()[1].id, 0x34);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->GetTileObjects().size(), 3u);
+  EXPECT_EQ(room_->GetChests()[0].id, 0xF1);
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(room_->GetTileObjects().size(), 2u);
+  EXPECT_EQ(room_->GetChests()[0].id, 0x24);
+}
+
+TEST_P(DungeonRoomEditsLifecycleTest, ChestTypeAndRewardChangeRestoreTogether) {
+  SeedChestObjects();
+  ASSERT_TRUE(viewer_->EditChest(0, 0, 9, true).ok());
+  EXPECT_EQ(UndoDepth(), 1u);
+  EXPECT_EQ(room_->GetTileObjects()[0].id_, 0xFB1);
+  EXPECT_EQ(room_->GetTileObjects()[0].size_,
+            zelda3::CanonicalRoomObjectSize(0xFB1, 0));
+  EXPECT_EQ(room_->GetChests()[0].id, 9);
+  EXPECT_TRUE(room_->GetChests()[0].size);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->GetTileObjects()[0].id_, 0xF99);
+  EXPECT_EQ(room_->GetChests()[0].id, 0xF1);
+  EXPECT_FALSE(room_->GetChests()[0].size);
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(room_->GetTileObjects()[0].id_, 0xFB1);
+  EXPECT_TRUE(room_->GetChests()[0].size);
+}
+
+TEST_P(DungeonRoomEditsLifecycleTest,
+       ReorderingAndLayerChangesKeepChestRewards) {
+  SeedChestObjects();
+  room_->GetTileObjects()[1].x_ = 20;
+  Handler().SendToFront(0, {0});
+  ASSERT_EQ(UndoDepth(), 1u);
+  EXPECT_EQ(room_->GetTileObjects()[0].x_, 20);
+  EXPECT_EQ(room_->GetChests()[0].id, 0x24);
+  EXPECT_EQ(room_->GetChests()[1].id, 0xF1);
+  ASSERT_TRUE(editor_->Undo().ok());
+  ASSERT_TRUE(Handler().UpdateObjectsLayer(0, {0}, 1));
+  EXPECT_EQ(room_->GetChests()[0].id, 0x24);
+  EXPECT_EQ(room_->GetChests()[1].id, 0xF1);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->GetChests()[0].id, 0xF1);
+}
+
+TEST_P(DungeonRoomEditsLifecycleTest,
+       DuplicateAndCrossRoomPasteKeepUnknownReward) {
+  SeedChestObjects();
+  ASSERT_EQ(Handler().DuplicateObjects(0, {0}, 2, 2), (std::vector<size_t>{2}));
+  EXPECT_EQ(room_->GetChests()[2].id, 0xF1);
+  ASSERT_TRUE(editor_->Undo().ok());
+  Handler().CopyObjectsToClipboard(0, {0});
+  auto& other = editor_->rooms()[1];
+  other.SetTileObjects({Chest(true)});
+  other.ClearSaveDirtyState();
+  // Reuse the originating canvas after navigation so the clipboard remains
+  // available in either presentation mode, while callbacks target room 1.
+  viewer_->RefreshRomBackedState(&rom_, nullptr, &editor_->rooms(), 1);
+  const auto pasted = Handler().PasteFromClipboard(1, 4, 4);
+  ASSERT_EQ(pasted.size(), 1u) << Handler().mutation_status();
+  ASSERT_EQ(other.GetChests().size(), 2u);
+  EXPECT_EQ(other.GetChests()[0].id, 0x32);
+  EXPECT_EQ(other.GetChests()[1].id, 0xF1);
+  EXPECT_FALSE(other.GetChests()[1].size);
+}
+
+TEST_P(DungeonRoomEditsLifecycleTest,
+       FullGlobalChestTableRejectsBeforeMutation) {
+  SeedChestObjects();
+  FillGlobalChests(zelda3::kChestTableCapacityRecords);
+  const auto before = rom_.vector();
+  viewer_->object_interaction().SetSelectedObjects({1});
+  EXPECT_FALSE(Handler().PlaceObjectAt(0, Chest(), 10, 10));
+  EXPECT_TRUE(absl::IsResourceExhausted(Handler().mutation_status()));
+  EXPECT_EQ(UndoDepth(), 0u);
+  EXPECT_EQ(room_->GetTileObjects().size(), 2u);
+  EXPECT_EQ(room_->GetChests().size(), 2u);
+  EXPECT_FALSE(room_->HasUnsavedChanges());
+  EXPECT_EQ(viewer_->object_interaction().GetSelectedObjectIndices(),
+            (std::vector<size_t>{1}));
+  EXPECT_EQ(rom_.vector(), before);
+}
+
+TEST_P(DungeonRoomEditsLifecycleTest, GlobalCapacityIncludesOtherDirtyRooms) {
+  SeedChestObjects();
+  FillGlobalChests(zelda3::kChestTableCapacityRecords - 1);
+  auto& other = editor_->rooms()[1];
+  other.GetChests().push_back({0x33, false});
+  other.MarkChestsDirty();
+  EXPECT_FALSE(Handler().PlaceObjectAt(0, Chest(), 10, 10));
+  EXPECT_TRUE(absl::IsResourceExhausted(Handler().mutation_status()));
+  EXPECT_EQ(UndoDepth(), 0u);
+  EXPECT_FALSE(room_->HasUnsavedChanges());
+  EXPECT_EQ(other.GetChests().size(), 2u);
+}
+
+TEST_P(DungeonRoomEditsLifecycleTest,
+       MismatchedChestsRejectStructuralEditsOnly) {
+  const auto before = rom_.vector();
+  EXPECT_FALSE(Handler().PlaceObjectAt(0, Chest(), 10, 10));
+  EXPECT_FALSE(viewer_->DeleteChest(0, 0).ok());
+  EXPECT_FALSE(viewer_->EditChest(0, 0, 9, true).ok());
+  EXPECT_EQ(UndoDepth(), 0u);
+  EXPECT_FALSE(room_->HasUnsavedChanges());
+  EXPECT_EQ(rom_.vector(), before);
+  ASSERT_TRUE(viewer_->EditChest(0, 0, 9, false).ok());
+  EXPECT_EQ(UndoDepth(), 1u);
+  EXPECT_FALSE(room_->object_stream_dirty());
+}
+
+TEST_P(DungeonRoomEditsLifecycleTest,
+       ChestUndoOffscreenPreservesCurrentSelection) {
+  SeedChestObjects();
+  ASSERT_TRUE(viewer_->DeleteChest(0, 0).ok());
+  auto* other_viewer = DungeonRoomEditsTestPeer::Viewer(*editor_, 1);
+  auto& other = editor_->rooms()[1];
+  other.SetTileObjects({Chest(true)});
+  other.ClearSaveDirtyState();
+  other_viewer->object_interaction().SetSelectedObjects({0});
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->GetChests().size(), 2u);
+  EXPECT_EQ(room_->GetTileObjects().size(), 2u);
+  EXPECT_EQ(other_viewer->current_room_id(), 1);
+  EXPECT_EQ(other_viewer->object_interaction().GetSelectedObjectIndices(),
+            (std::vector<size_t>{0}));
+  EXPECT_FALSE(other.HasUnsavedChanges());
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(room_->GetChests().size(), 1u);
+  EXPECT_EQ(other_viewer->current_room_id(), 1);
+}
+
+TEST_P(DungeonRoomEditsLifecycleTest,
+       ChestUndoFailsBeforeChangingUnavailableRoom) {
+  SeedChestObjects();
+  ASSERT_TRUE(viewer_->DeleteChest(0, 0).ok());
+  room_->SetLoaded(false);
+  EXPECT_FALSE(editor_->Undo().ok());
+  EXPECT_EQ(UndoDepth(), 1u);
+  EXPECT_EQ(room_->GetChests().size(), 1u);
+  EXPECT_EQ(room_->GetTileObjects().size(), 1u);
+  room_->SetLoaded(true);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->GetChests().size(), 2u);
+}
+
+TEST_P(DungeonRoomEditsLifecycleTest, ChestCreateSaveReloadUndoResave) {
+  SeedChestObjects();
+  WritePointer(rom_, zelda3::kRoomObjectPointer, 0x0F8000);
+  for (int id = 0; id < 3; ++id) {
+    const int pc = 0x100000 + id * 0x100;
+    WritePointer(rom_, 0x0F8000 + id * 3, pc);
+    ASSERT_TRUE(rom_.WriteVector(pc, {0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xF0, 0xFF,
+                                      0xFF, 0xFF})
+                    .ok());
+  }
+  ASSERT_TRUE(room_->SaveObjects().ok());
+  room_->ClearSaveDirtyState();
+  core::FeatureFlags::get().dungeon.kSaveObjects = true;
+  const auto before = rom_.vector();
+  ASSERT_TRUE(Handler().PlaceObjectAt(0, Chest(true, 1), 12, 16));
+  ASSERT_TRUE(viewer_->EditChest(0, 2, 0x09, true).ok());
+  ASSERT_TRUE(editor_->SaveRoom(0).ok());
+  auto reopened = zelda3::LoadRoomHeaderFromRom(&rom_, 0);
+  reopened.LoadObjects();
+  ASSERT_EQ(reopened.GetTileObjects().size(), 3u);
+  ASSERT_EQ(reopened.GetChests().size(), 3u);
+  EXPECT_EQ(reopened.GetTileObjects()[2].id_, 0xFB1);
+  EXPECT_EQ(reopened.GetChests()[2].id, 9);
+  EXPECT_TRUE(reopened.GetChests()[2].size);
+  EXPECT_TRUE(zelda3::ValidateChestObjectMapping(reopened.GetTileObjects(),
+                                                 reopened.GetChests())
+                  .ok());
+  for (size_t i = 0; i < before.size(); ++i) {
+    if ((i >= 0x100000 && i < 0x100100) ||
+        (i >= zelda3::kDoorPointers && i < zelda3::kDoorPointers + 3) ||
+        (i >= kChestPc && i < kChestPc + zelda3::kChestTableCapacityBytes) ||
+        (i >= zelda3::kChestsLengthPointer &&
+         i < zelda3::kChestsLengthPointer + 2))
+      continue;
+    ASSERT_EQ(rom_.vector()[i], before[i]) << "Unexpected write at " << i;
+  }
+  ASSERT_TRUE(editor_->Undo().ok());
+  ASSERT_TRUE(editor_->Undo().ok());
+  ASSERT_TRUE(editor_->SaveRoom(0).ok());
+  auto undone = zelda3::LoadRoomHeaderFromRom(&rom_, 0);
+  undone.LoadObjects();
+  ASSERT_EQ(undone.GetTileObjects().size(), 2u);
+  ASSERT_EQ(undone.GetChests().size(), 2u);
+  EXPECT_EQ(undone.GetChests()[0].id, 0xF1);
+  EXPECT_EQ(undone.GetChests()[1].id, 0x24);
+  ASSERT_TRUE(editor_->Redo().ok());
+  ASSERT_TRUE(editor_->Redo().ok());
+  ASSERT_TRUE(editor_->SaveRoom(0).ok());
+  auto redone = zelda3::LoadRoomHeaderFromRom(&rom_, 0);
+  redone.LoadObjects();
+  ASSERT_EQ(redone.GetChests().size(), 3u);
+  EXPECT_EQ(redone.GetChests()[2].id, 9);
+}
+
+TEST_P(DungeonRoomEditsLifecycleTest, ChestManifestRejectionPreservesAllState) {
+  SeedChestObjects();
+  project::YazeProject project;
+  ASSERT_TRUE(project.hack_manifest
+                  .LoadFromString(R"json({
+    "manifest_version": 3,
+    "protected_regions": {"total_hooks": 1, "regions": [{
+      "start": "0x228000", "end": "0x2281F8", "size": 504,
+      "hook_count": 1, "module": "ChestAuthoringGuard"
+    }]}
+  })json")
+                  .ok());
+  project.rom_metadata.write_policy = project::RomWritePolicy::kBlock;
+  EditorDependencies dependencies;
+  dependencies.rom = &rom_;
+  dependencies.project = &project;
+  editor_->SetDependencies(dependencies);
+  viewer_->object_interaction().SetSelectedObjects({1});
+  const auto before = rom_.vector();
+  EXPECT_FALSE(Handler().PlaceObjectAt(0, Chest(), 12, 12));
+  EXPECT_FALSE(viewer_->DeleteChest(0, 0).ok());
+  EXPECT_FALSE(viewer_->EditChest(0, 0, 9, true).ok());
+  EXPECT_FALSE(viewer_->EditChest(0, 0, 9, false).ok());
+  EXPECT_EQ(UndoDepth(), 0u);
+  EXPECT_EQ(room_->GetTileObjects().size(), 2u);
+  EXPECT_EQ(room_->GetChests().size(), 2u);
+  EXPECT_EQ(room_->GetChests()[0].id, 0xF1);
+  EXPECT_FALSE(room_->HasUnsavedChanges());
+  EXPECT_EQ(viewer_->object_interaction().GetSelectedObjectIndices(),
+            (std::vector<size_t>{1}));
+  EXPECT_EQ(rom_.vector(), before);
+  dependencies.project = nullptr;
+  editor_->SetDependencies(dependencies);
+}
+
+TEST_P(DungeonRoomEditsLifecycleTest,
+       ChestCommandFinishesDragBeforeCompoundUndo) {
+  SeedChestObjects();
+  auto& interaction = viewer_->object_interaction();
+  interaction.SetSelectedObjects({0});
+  interaction.mode_manager().SetMode(InteractionMode::DraggingObjects);
+  Handler().InitDrag(ImVec2(64, 64));
+  Handler().HandleDrag(ImVec2(80, 64), ImVec2(16, 0));
+  EXPECT_EQ(room_->GetTileObjects()[0].x_, 10);
+  EXPECT_EQ(UndoDepth(), 0u);
+  ASSERT_TRUE(viewer_->EditChest(0, 0, 9, true).ok());
+  EXPECT_EQ(UndoDepth(), 2u);
+  Handler().HandleDrag(ImVec2(96, 64), ImVec2(16, 0));
+  EXPECT_EQ(room_->GetTileObjects()[0].x_, 10);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->GetTileObjects()[0].id_, 0xF99);
+  EXPECT_EQ(room_->GetTileObjects()[0].x_, 10);
+  EXPECT_EQ(room_->GetChests()[0].id, 0xF1);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->GetTileObjects()[0].x_, 8);
+}
+
+TEST_P(DungeonRoomEditsLifecycleTest, ChestPlacementFinishesEarlierDrag) {
+  SeedChestObjects();
+  auto& interaction = viewer_->object_interaction();
+  interaction.SetSelectedObjects({0});
+  interaction.mode_manager().SetMode(InteractionMode::DraggingObjects);
+  Handler().InitDrag(ImVec2(64, 64));
+  Handler().HandleDrag(ImVec2(80, 64), ImVec2(16, 0));
+  ASSERT_TRUE(Handler().PlaceObjectAt(0, Chest(true), 20, 20));
+  EXPECT_EQ(UndoDepth(), 2u);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->GetTileObjects().size(), 2u);
+  EXPECT_EQ(room_->GetChests().size(), 2u);
+  EXPECT_EQ(room_->GetTileObjects()[0].x_, 10);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->GetTileObjects()[0].x_, 8);
+}
+
+TEST_P(DungeonRoomEditsLifecycleTest, RejectedChestPlacementKeepsPendingDrag) {
+  SeedChestObjects();
+  FillGlobalChests(zelda3::kChestTableCapacityRecords);
+  auto& interaction = viewer_->object_interaction();
+  interaction.SetSelectedObjects({0});
+  interaction.mode_manager().SetMode(InteractionMode::DraggingObjects);
+  Handler().InitDrag(ImVec2(64, 64));
+  Handler().HandleDrag(ImVec2(80, 64), ImVec2(16, 0));
+  EXPECT_FALSE(Handler().PlaceObjectAt(0, Chest(), 20, 20));
+  EXPECT_EQ(UndoDepth(), 0u);
+  Handler().HandleDrag(ImVec2(96, 64), ImVec2(16, 0));
+  EXPECT_EQ(room_->GetTileObjects()[0].x_, 12);
+  interaction.HandleMouseRelease();
+  EXPECT_EQ(UndoDepth(), 1u);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->GetTileObjects()[0].x_, 8);
+  EXPECT_EQ(room_->GetChests().size(), 2u);
 }
 
 INSTANTIATE_TEST_SUITE_P(ViewerModes, DungeonRoomEditsLifecycleTest,

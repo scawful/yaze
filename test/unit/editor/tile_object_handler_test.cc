@@ -2467,5 +2467,399 @@ TEST_F(TileObjectHandlerTest, DragMovesObject) {
   handler_.HandleRelease();
 }
 
+TEST_F(TileObjectHandlerTest, ChestPlacementCreatesContentsBeforeInvalidation) {
+  ctx_.on_invalidate_cache = [this]() {
+    ++invalidate_count_;
+    ASSERT_EQ(rooms_[0].GetChests().size(), 1u);
+    EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x34);
+    EXPECT_FALSE(rooms_[0].GetChests()[0].size);
+    EXPECT_EQ(selection_.GetSelectedIndices(), (std::vector<size_t>{0}));
+  };
+  ASSERT_TRUE(
+      handler_.PlaceObjectAt(0, CreateTestObject(0, 0, 0, 0xF99), 4, 6));
+  ASSERT_EQ(rooms_[0].GetTileObjects().size(), 1u);
+  EXPECT_TRUE(rooms_[0].chests_dirty());
+  EXPECT_EQ(
+      rooms_[0].GetTileObjects()[0].options() & zelda3::ObjectOption::Chest,
+      zelda3::ObjectOption::Chest);
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_EQ(invalidate_count_, 1);
+}
+
+TEST_F(TileObjectHandlerTest, ChestPlacementRejectsSeventhWithoutDirtying) {
+  for (int i = 0; i < 6; ++i) {
+    AddTestObjects({CreateTestObject(i * 4, 0, 0, 0xF99)});
+    rooms_[0].GetChests().push_back({static_cast<uint8_t>(i), false});
+  }
+  rooms_[0].ClearSaveDirtyState();
+  selection_.SelectObject(2);
+  handler_.SetPlacementPolicy(TileObjectHandler::PlacementPolicy::kOnce);
+  handler_.BeginPlacement();
+  EXPECT_FALSE(
+      handler_.PlaceObjectAt(0, CreateTestObject(0, 0, 0, 0xF99), 32, 0));
+  EXPECT_FALSE(handler_.mutation_status().ok());
+  EXPECT_TRUE(handler_.IsPlacementActive());
+  EXPECT_EQ(rooms_[0].GetTileObjects().size(), 6u);
+  EXPECT_EQ(rooms_[0].GetChests().size(), 6u);
+  EXPECT_FALSE(rooms_[0].chests_dirty());
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+  EXPECT_EQ(selection_.GetSelectedIndices(), (std::vector<size_t>{2}));
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+}
+
+TEST_F(TileObjectHandlerTest, ChestDuplicatePreservesRewardAndBigType) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xFB1)});
+  rooms_[0].GetChests() = {{0xFE, true}};
+  EXPECT_EQ(handler_.DuplicateObjects(0, {0}, 2, 3), (std::vector<size_t>{1}));
+  ASSERT_EQ(rooms_[0].GetChests().size(), 2u);
+  EXPECT_EQ(rooms_[0].GetChests()[1].id, 0xFE);
+  EXPECT_TRUE(rooms_[0].GetChests()[1].size);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[1].x_, 6);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[1].y_, 7);
+  EXPECT_EQ(mutation_count_, 1);
+}
+
+TEST_F(TileObjectHandlerTest,
+       ChestDeleteDeduplicatesIndicesAndPreservesOtherReward) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99),
+                  CreateTestObject(8, 4, 0, 0xF99),
+                  CreateTestObject(12, 4, 0, 0xFB1)});
+  rooms_[0].GetChests() = {{0x01, false}, {0x02, false}, {0x03, true}};
+  ASSERT_TRUE(handler_.DeleteObjects(0, {0, 0, 2}));
+  ASSERT_EQ(rooms_[0].GetTileObjects().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].x_, 8);
+  ASSERT_EQ(rooms_[0].GetChests().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x02);
+  EXPECT_EQ(mutation_count_, 1);
+}
+
+TEST_F(TileObjectHandlerTest, ChestDeleteAllClearsBothCollections) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99), CreateTestObject(8, 4)});
+  rooms_[0].GetChests() = {{0x19, false}};
+  rooms_[0].ClearSaveDirtyState();
+  ASSERT_TRUE(handler_.DeleteAllObjects(0));
+  EXPECT_TRUE(rooms_[0].GetTileObjects().empty());
+  EXPECT_TRUE(rooms_[0].GetChests().empty());
+  EXPECT_TRUE(rooms_[0].chests_dirty());
+  EXPECT_TRUE(rooms_[0].object_stream_dirty());
+  EXPECT_EQ(mutation_count_, 1);
+}
+
+TEST_F(TileObjectHandlerTest,
+       ChestIdConversionPreservesRewardAndSynchronizesType) {
+  AddTestObjects({CreateTestObject(4, 4)});
+  handler_.UpdateObjectsId(0, {0}, 0xF99);
+  ASSERT_EQ(rooms_[0].GetChests().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x34);
+  rooms_[0].GetChests()[0].id = 0xAD;
+  handler_.UpdateObjectsId(0, {0}, 0xFB1);
+  ASSERT_TRUE(handler_.mutation_status().ok());
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0xAD);
+  EXPECT_TRUE(rooms_[0].GetChests()[0].size);
+  handler_.UpdateObjectsId(0, {0}, 0x01);
+  EXPECT_TRUE(rooms_[0].GetChests().empty());
+  EXPECT_EQ(mutation_count_, 3);
+}
+
+TEST_F(TileObjectHandlerTest,
+       ChestOrderingUsesIdentityForVisuallyEqualObjects) {
+  using Reorder = void (TileObjectHandler::*)(int, const std::vector<size_t>&);
+  const Reorder reorder[] = {
+      &TileObjectHandler::SendToFront, &TileObjectHandler::MoveForward,
+      &TileObjectHandler::SendToBack, &TileObjectHandler::MoveBackward};
+  for (size_t operation = 0; operation < 4; ++operation) {
+    SCOPED_TRACE(operation);
+    rooms_[0].SetTileObjects(
+        {CreateTestObject(4, 4, 0, 0xF99), CreateTestObject(4, 4, 0, 0xF99)});
+    rooms_[0].GetChests() = {{0x01, false}, {0x02, false}};
+    const size_t selected = operation < 2 ? 0 : 1;
+    (handler_.*reorder[operation])(0, {selected});
+    ASSERT_TRUE(handler_.mutation_status().ok());
+    EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x02);
+    EXPECT_EQ(rooms_[0].GetChests()[1].id, 0x01);
+    EXPECT_EQ(selection_.GetSelectedIndices(),
+              (std::vector<size_t>{1 - selected}));
+  }
+  EXPECT_EQ(mutation_count_, 4);
+}
+
+TEST_F(TileObjectHandlerTest, ChestLayerChangeKeepsRewardWithMovedObject) {
+  AddTestObjects(
+      {CreateTestObject(4, 4, 0, 0xF99), CreateTestObject(8, 4, 0, 0xFB1)});
+  rooms_[0].GetChests() = {{0x01, false}, {0x02, true}};
+  ASSERT_TRUE(handler_.UpdateObjectsLayer(0, {0}, 1));
+  ASSERT_EQ(rooms_[0].GetChests().size(), 2u);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].id_, 0xFB1);
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x02);
+  EXPECT_TRUE(rooms_[0].GetChests()[0].size);
+  EXPECT_EQ(rooms_[0].GetChests()[1].id, 0x01);
+  EXPECT_FALSE(rooms_[0].GetChests()[1].size);
+  EXPECT_EQ(selection_.GetSelectedIndices(), (std::vector<size_t>{1}));
+}
+
+TEST_F(TileObjectHandlerTest, ChestClipboardKeepsRewardAfterSourceChanges) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xFB1)});
+  rooms_[0].GetChests() = {{0xFE, true}};
+  handler_.CopyObjectsToClipboard(0, {0});
+  rooms_[0].GetChests()[0].id = 0x11;
+  ctx_.current_room_id = 1;
+  EXPECT_EQ(handler_.PasteFromClipboard(1, 2, 3), (std::vector<size_t>{0}));
+  ASSERT_EQ(rooms_[1].GetChests().size(), 1u);
+  EXPECT_EQ(rooms_[1].GetChests()[0].id, 0xFE);
+  EXPECT_TRUE(rooms_[1].GetChests()[0].size);
+  EXPECT_EQ(rooms_[1].GetTileObjects()[0].x_, 6);
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x11);
+}
+
+TEST_F(TileObjectHandlerTest, ChestClipboardRejectsMissingSourceContents) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99)});
+  handler_.CopyObjectsToClipboard(0, {0});
+  EXPECT_TRUE(handler_.HasClipboardData());
+  ctx_.current_room_id = 1;
+  EXPECT_TRUE(handler_.PasteFromClipboard(1, 2, 3).empty());
+  EXPECT_FALSE(handler_.mutation_status().ok());
+  EXPECT_TRUE(rooms_[1].GetTileObjects().empty());
+  EXPECT_TRUE(rooms_[1].GetChests().empty());
+  EXPECT_EQ(mutation_count_, 0);
+}
+
+TEST_F(TileObjectHandlerTest,
+       ChestPreflightRejectionPreservesStateAndSelection) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99)});
+  rooms_[0].GetChests() = {{0xAD, false}};
+  rooms_[0].ClearSaveDirtyState();
+  selection_.SelectObject(0);
+  int preflight_count = 0;
+  handler_.SetObjectMutationPreflight(
+      [&](int room_id, const auto& objects, const auto& chests) {
+        ++preflight_count;
+        EXPECT_EQ(room_id, 0);
+        EXPECT_TRUE(objects.empty());
+        EXPECT_TRUE(chests.empty());
+        EXPECT_EQ(rooms_[0].GetTileObjects().size(), 1u);
+        EXPECT_EQ(rooms_[0].GetChests().size(), 1u);
+        EXPECT_EQ(mutation_count_, 0);
+        return absl::FailedPreconditionError("Protected chest table");
+      });
+  EXPECT_FALSE(handler_.DeleteObjects(0, {0}));
+  EXPECT_EQ(handler_.mutation_status().message(), "Protected chest table");
+  EXPECT_EQ(preflight_count, 1);
+  EXPECT_EQ(rooms_[0].GetTileObjects().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetChests().size(), 1u);
+  EXPECT_FALSE(rooms_[0].chests_dirty());
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+  EXPECT_EQ(selection_.GetSelectedIndices(), (std::vector<size_t>{0}));
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+}
+
+TEST_F(TileObjectHandlerTest,
+       ChestInvalidMappingRejectsDeleteWithoutNotification) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99)});
+  rooms_[0].ClearSaveDirtyState();
+  EXPECT_FALSE(handler_.DeleteObjects(0, {0}));
+  EXPECT_FALSE(handler_.mutation_status().ok());
+  EXPECT_EQ(rooms_[0].GetTileObjects().size(), 1u);
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+  EXPECT_EQ(mutation_count_, 0);
+}
+
+TEST_F(TileObjectHandlerTest, DuplicateOnlyReadsOriginalDeduplicatedIndices) {
+  AddTestObjects({CreateTestObject(4, 4)});
+  EXPECT_EQ(handler_.DuplicateObjects(0, {0, 0, 1}, 1, 1),
+            (std::vector<size_t>{1}));
+  EXPECT_EQ(rooms_[0].GetTileObjects().size(), 2u);
+  EXPECT_EQ(mutation_count_, 1);
+}
+
+TEST_F(TileObjectHandlerTest, ChestMoveDoesNotDirtyContents) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99)});
+  rooms_[0].GetChests() = {{0x34, false}};
+  rooms_[0].ClearSaveDirtyState();
+  handler_.MoveObjects(0, {0}, 2, 3);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].x_, 6);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].y_, 7);
+  EXPECT_FALSE(rooms_[0].chests_dirty());
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x34);
+}
+
+TEST_F(TileObjectHandlerTest, ChestUnchangedOrderCreatesNoMutation) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99)});
+  rooms_[0].GetChests() = {{0x34, false}};
+  rooms_[0].ClearSaveDirtyState();
+  handler_.SendToFront(0, {0});
+  EXPECT_TRUE(handler_.mutation_status().ok());
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+  EXPECT_FALSE(rooms_[0].chests_dirty());
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+}
+
+TEST_F(TileObjectHandlerTest,
+       RejectedChestDeletionPreservesInteractionSelection) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99)});
+  DungeonObjectInteraction interaction(canvas_.get());
+  interaction.SetContext(ctx_);
+  interaction.SetCurrentRoom(&rooms_, 0);
+  interaction.SetSelectedObjects({0});
+  interaction.HandleDeleteSelected();
+  EXPECT_EQ(interaction.GetSelectedObjectIndices(), (std::vector<size_t>{0}));
+  EXPECT_EQ(rooms_[0].GetTileObjects().size(), 1u);
+  EXPECT_FALSE(
+      interaction.entity_coordinator().tile_handler().mutation_status().ok());
+}
+
+TEST_F(TileObjectHandlerTest, ChestStructuralPathsAllPreflightBeforeMutation) {
+  const std::vector<std::function<void()>> operations = {
+      [&] {
+        handler_.PlaceObjectAt(0, CreateTestObject(0, 0, 0, 0xF99), 12, 4);
+      },
+      [&] { handler_.DuplicateObjects(0, {0}, 1, 1); },
+      [&] { handler_.DeleteObjects(0, {0}); },
+      [&] { handler_.DeleteAllObjects(0); },
+      [&] { handler_.UpdateObjectsId(0, {0}, 0xFB1); },
+      [&] { handler_.UpdateObjectsLayer(0, {0}, 1); },
+      [&] { handler_.SendToFront(0, {0}); },
+      [&] { handler_.SendToBack(0, {1}); },
+      [&] { handler_.MoveForward(0, {0}); },
+      [&] { handler_.MoveBackward(0, {1}); },
+      [&] { handler_.PasteFromClipboard(0, 1, 1); }};
+  int preflights = 0;
+  int error_messages = 0;
+  handler_.SetObjectMutationPreflight([&](int, const auto&, const auto&) {
+    ++preflights;
+    return absl::PermissionDeniedError("Chest table is protected");
+  });
+  handler_.SetMutationErrorCallback([&](const absl::Status& status) {
+    EXPECT_TRUE(absl::IsPermissionDenied(status));
+    ++error_messages;
+  });
+  for (size_t operation = 0; operation < operations.size(); ++operation) {
+    SCOPED_TRACE(operation);
+    rooms_[0].SetTileObjects(
+        {CreateTestObject(4, 4, 0, 0xF99), CreateTestObject(8, 4, 0, 0xF99)});
+    rooms_[0].GetChests() = {{0x01, false}, {0x02, false}};
+    rooms_[0].ClearSaveDirtyState();
+    handler_.CopyObjectsToClipboard(0, {0});
+    selection_.ClearSelection();
+    selection_.SelectObject(0);
+    operations[operation]();
+    EXPECT_FALSE(handler_.mutation_status().ok());
+    EXPECT_EQ(rooms_[0].GetTileObjects().size(), 2u);
+    EXPECT_EQ(rooms_[0].GetTileObjects()[0].id_, 0xF99);
+    EXPECT_EQ(rooms_[0].GetTileObjects()[0].x_, 4);
+    EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x01);
+    EXPECT_EQ(rooms_[0].GetChests()[1].id, 0x02);
+    EXPECT_EQ(selection_.GetSelectedIndices(), (std::vector<size_t>{0}));
+    EXPECT_FALSE(rooms_[0].chests_dirty());
+    EXPECT_FALSE(rooms_[0].object_stream_dirty());
+    EXPECT_EQ(mutation_count_, 0);
+    EXPECT_EQ(invalidate_count_, 0);
+  }
+  EXPECT_EQ(preflights, operations.size());
+  EXPECT_EQ(error_messages, operations.size());
+}
+
+TEST_F(TileObjectHandlerTest, ChestMutationRejectsMismatchedInteractionRoom) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99)});
+  rooms_[0].GetChests() = {{0x34, false}};
+  ctx_.current_room_id = 1;
+  EXPECT_FALSE(handler_.DeleteObjects(0, {0}));
+  EXPECT_EQ(rooms_[0].GetTileObjects().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetChests().size(), 1u);
+  EXPECT_TRUE(absl::IsFailedPrecondition(handler_.mutation_status()));
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+}
+
+TEST_F(TileObjectHandlerTest, ChestCopyRejectsUnrelatedAmbiguousSourceRecord) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99)});
+  rooms_[0].GetChests() = {{0x34, false}, {0x35, false}};
+  handler_.CopyObjectsToClipboard(0, {0});
+  ctx_.current_room_id = 1;
+  EXPECT_TRUE(handler_.PasteFromClipboard(1, 1, 1).empty());
+  EXPECT_TRUE(absl::IsFailedPrecondition(handler_.mutation_status()));
+  EXPECT_TRUE(rooms_[1].GetTileObjects().empty());
+  EXPECT_EQ(mutation_count_, 0);
+}
+
+TEST_F(TileObjectHandlerTest, RejectedChestPasteDoesNotPasteSelectedSprite) {
+  AddTestObjects({CreateTestObject(4, 4, 0, 0xF99)});
+  rooms_[0].GetChests() = {{0x34, false}};
+  rooms_[0].GetSprites().emplace_back(0x09, 4, 4, 0, 0);
+  DungeonObjectInteraction interaction(canvas_.get());
+  interaction.SetContext(ctx_);
+  interaction.SetCurrentRoom(&rooms_, 0);
+  interaction.SetSelectedObjects({0});
+  interaction.entity_coordinator().SetSelectedEntities(
+      {{EntityType::Sprite, 0}});
+  interaction.HandleCopySelected();
+  interaction.entity_coordinator().tile_handler().SetObjectMutationPreflight(
+      [](int, const auto&, const auto&) {
+        return absl::PermissionDeniedError("Chest table is protected");
+      });
+  ImGui::GetIO().MousePos = ImVec2(-100, -100);
+  interaction.HandlePasteObjects();
+  EXPECT_EQ(rooms_[0].GetTileObjects().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetChests().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetSprites().size(), 1u);
+  EXPECT_EQ(interaction.GetSelectedObjectIndices(), (std::vector<size_t>{0}));
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+}
+
+TEST_F(TileObjectHandlerTest, ChestIdChangeSynchronizesDerivedChestOption) {
+  AddTestObjects({CreateTestObject(4, 4)});
+  handler_.UpdateObjectsId(0, {0}, 0xF99);
+  EXPECT_EQ(
+      rooms_[0].GetTileObjects()[0].options() & zelda3::ObjectOption::Chest,
+      zelda3::ObjectOption::Chest);
+  handler_.UpdateObjectsId(0, {0}, 0x01);
+  EXPECT_EQ(
+      rooms_[0].GetTileObjects()[0].options() & zelda3::ObjectOption::Chest,
+      zelda3::ObjectOption::Nothing);
+  EXPECT_TRUE(rooms_[0].GetChests().empty());
+}
+
+TEST_F(TileObjectHandlerTest,
+       ChestIdChangeRejectsWholeBatchContainingSpecialTable) {
+  for (auto option :
+       {zelda3::ObjectOption::Torch, zelda3::ObjectOption::Block}) {
+    SCOPED_TRACE(static_cast<int>(option));
+    auto special = CreateTestObject(
+        8, 4, 0, option == zelda3::ObjectOption::Torch ? 0x150 : 0xE00);
+    special.set_options(option);
+    rooms_[0].SetTileObjects({CreateTestObject(4, 4), special});
+    rooms_[0].ClearSaveDirtyState();
+    handler_.UpdateObjectsId(0, {0, 1}, 0xF99);
+    EXPECT_TRUE(absl::IsFailedPrecondition(handler_.mutation_status()));
+    EXPECT_EQ(rooms_[0].GetTileObjects()[0].id_, 0x01);
+    EXPECT_EQ(rooms_[0].GetTileObjects()[1].id_, special.id_);
+    EXPECT_EQ(rooms_[0].GetTileObjects()[1].options(), option);
+    EXPECT_TRUE(rooms_[0].GetChests().empty());
+    EXPECT_FALSE(rooms_[0].object_stream_dirty());
+    EXPECT_EQ(mutation_count_, 0);
+    EXPECT_EQ(invalidate_count_, 0);
+  }
+}
+
+TEST_F(TileObjectHandlerTest, ChestIdChangeRejectsPushableBlockSentinel) {
+  auto chest = CreateTestObject(4, 4, 0, 0xF99);
+  chest.set_options(zelda3::ObjectOption::Chest);
+  AddTestObjects({chest});
+  rooms_[0].GetChests() = {{0x34, false}};
+  rooms_[0].ClearSaveDirtyState();
+  handler_.UpdateObjectsId(0, {0}, 0xE00);
+  EXPECT_TRUE(absl::IsFailedPrecondition(handler_.mutation_status()));
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].id_, 0xF99);
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].options(),
+            zelda3::ObjectOption::Chest);
+  ASSERT_EQ(rooms_[0].GetChests().size(), 1u);
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x34);
+  EXPECT_EQ(mutation_count_, 0);
+  EXPECT_EQ(invalidate_count_, 0);
+}
+
 }  // namespace
 }  // namespace yaze::editor

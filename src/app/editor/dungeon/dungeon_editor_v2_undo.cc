@@ -75,6 +75,17 @@
 namespace yaze::editor {
 
 void DungeonEditorV2::FinalizePendingUndoActions() {
+  // Closing history alone leaves a handler's drag/paint gesture running, so its
+  // next movement could bypass the before-snapshot. End gestures first.
+  room_viewers_.ForEach([](int, std::unique_ptr<DungeonCanvasViewer>& viewer) {
+    if (viewer)
+      viewer->object_interaction().HandleMouseRelease();
+  });
+  for (auto* viewer :
+       {workbench_viewer_.get(), workbench_compare_viewer_.get()}) {
+    if (viewer)
+      viewer->object_interaction().HandleMouseRelease();
+  }
   if (pending_undo_.room_id >= 0) {
     FinalizeUndoAction(pending_undo_.room_id);
   }
@@ -211,6 +222,35 @@ void DungeonEditorV2::ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer) {
   viewer->SetChestEditCallback(
       [this](int room_id, size_t index, uint8_t item_id, bool big_chest) {
         return EditChest(room_id, index, item_id, big_chest);
+      });
+  viewer->SetChestDeleteCallback([this](int room_id, size_t index) {
+    return DeleteChest(room_id, index);
+  });
+  viewer->object_interaction()
+      .entity_coordinator()
+      .tile_handler()
+      .SetObjectMutationPreflight(
+          [this, viewer](int room_id,
+                         const std::vector<zelda3::RoomObject>& objects,
+                         const std::vector<chest_data>& chests) {
+            const auto status =
+                PreflightObjectMutation(room_id, objects, chests);
+            if (status.ok()) {
+              // Preserve rejected gestures, but finish an accepted command's
+              // preceding drag before the handler captures its next snapshot.
+              viewer->object_interaction().HandleMouseRelease();
+            }
+            return status;
+          });
+  viewer->object_interaction()
+      .entity_coordinator()
+      .tile_handler()
+      .SetMutationErrorCallback([this](const absl::Status& status) {
+        if (dependencies_.toast_manager) {
+          dependencies_.toast_manager->Show(
+              absl::StrFormat("Edit not applied: %s", status.message()),
+              ToastType::kWarning, 4.0f);
+        }
       });
   // The interaction context is the mutation source of truth. A retained viewer
   // can change rooms, so do not capture the room ID from its creation time.
@@ -453,6 +493,7 @@ void DungeonEditorV2::BeginUndoSnapshot(int room_id) {
 
   pending_undo_.room_id = room_id;
   pending_undo_.before_objects = rooms_[room_id].GetTileObjects();
+  pending_undo_.before_chests = rooms_[room_id].GetChests();
   pending_undo_.before_selection.clear();
   if (auto* viewer = GetViewerForRoom(room_id);
       viewer &&
@@ -480,10 +521,12 @@ void DungeonEditorV2::FinalizeUndoAction(int room_id) {
   auto action = std::make_unique<DungeonObjectsAction>(
       room_id, std::move(pending_undo_.before_objects),
       std::move(pending_undo_.before_selection), std::move(after_objects),
-      std::move(after_selection),
+      std::move(after_selection), std::move(pending_undo_.before_chests),
+      rooms_[room_id].GetChests(),
       [this](int rid, const std::vector<zelda3::RoomObject>& objects,
-             const std::vector<size_t>& selected_indices) {
-        RestoreRoomObjects(rid, objects, selected_indices);
+             const std::vector<size_t>& selected_indices,
+             const std::vector<chest_data>& chests) {
+        return RestoreRoomObjects(rid, objects, selected_indices, chests);
       });
   undo_manager_.Push(std::move(action));
   if (minecart_track_editor_panel_) {
@@ -492,36 +535,48 @@ void DungeonEditorV2::FinalizeUndoAction(int room_id) {
 
   pending_undo_.room_id = -1;
   pending_undo_.before_objects.clear();
+  pending_undo_.before_chests.clear();
   pending_undo_.before_selection.clear();
   has_pending_undo_ = false;
 }
 
-void DungeonEditorV2::RestoreRoomObjects(
+absl::Status DungeonEditorV2::RestoreRoomObjects(
     int room_id, const std::vector<zelda3::RoomObject>& objects,
-    const std::vector<size_t>& selected_indices) {
-  if (room_id < 0 || room_id >= static_cast<int>(rooms_.size()))
-    return;
-
-  auto& room = rooms_[room_id];
+    const std::vector<size_t>& selected_indices,
+    const std::vector<chest_data>& chests) {
+  auto* loaded_room = rooms_.GetIfLoaded(room_id);
+  if (!loaded_room || loaded_room->rom() != rom_) {
+    return absl::FailedPreconditionError("Room objects are not loaded");
+  }
+  auto& room = *loaded_room;
+  if (room.GetChests().size() != chests.size() ||
+      !std::equal(
+          chests.begin(), chests.end(), room.GetChests().begin(),
+          [](auto a, auto b) { return a.id == b.id && a.size == b.size; })) {
+    room.GetChests() = chests;
+    room.MarkChestsDirty();
+  }
   const auto previous_objects = room.GetTileObjects();
   room.SetTileObjects(objects);
   room.RenderRoomGraphics();
-  if (auto* viewer = GetViewerForRoom(room_id)) {
+  if (auto* viewer = GetViewerForRoom(room_id);
+      viewer &&
+      (!IsWorkbenchWorkflowEnabled() || viewer->current_room_id() == room_id)) {
     std::vector<size_t> valid_selection;
     for (size_t index : selected_indices) {
       if (index < objects.size()) {
         valid_selection.push_back(index);
       }
     }
-    if (!IsWorkbenchWorkflowEnabled() || viewer->current_room_id() == room_id) {
-      viewer->object_interaction().SetSelectedObjects(valid_selection);
-    }
+    viewer->object_interaction().SetSelectedObjects(valid_selection);
     viewer->TriggerObjectChangePing(previous_objects, objects);
     undo_restore_triggered_ping_ = true;
   }
   if (minecart_track_editor_panel_) {
     minecart_track_editor_panel_->InvalidateRoomAudit();
   }
+  undo_restore_triggered_ping_ = true;
+  return absl::OkStatus();
 }
 
 void DungeonEditorV2::BeginCollisionUndoSnapshot(int room_id) {

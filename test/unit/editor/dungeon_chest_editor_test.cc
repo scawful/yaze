@@ -13,6 +13,7 @@
 #include "app/gui/automation/widget_id_registry.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
+#include "zelda3/dungeon/chest_edit.h"
 #include "zelda3/resource_labels.h"
 
 namespace yaze::editor {
@@ -38,11 +39,38 @@ class DungeonChestEditorTest : public ::testing::Test {
           auto& chest = rooms_[room_id].GetChests()[index];
           if (chest.id != item || chest.size != big) {
             chest = {item, big};
+            for (size_t object_index = 0;
+                 object_index < rooms_[room_id].GetTileObjects().size();
+                 ++object_index) {
+              if (zelda3::ChestIndexForObject(rooms_[room_id].GetTileObjects(),
+                                              object_index) == index) {
+                rooms_[room_id].GetTileObjects()[object_index].id_ =
+                    big ? 0xFB1 : 0xF99;
+              }
+            }
             ++changes_;
             last_room_id_ = room_id;
           }
           return absl::OkStatus();
         });
+    viewer_.SetChestDeleteCallback([this](int room_id, size_t index) {
+      if (reject_) {
+        return absl::FailedPreconditionError("Test rejection");
+      }
+      auto& room = rooms_[room_id];
+      auto& objects = room.GetTileObjects();
+      for (size_t object_index = 0; object_index < objects.size();
+           ++object_index) {
+        if (zelda3::ChestIndexForObject(objects, object_index) == index) {
+          objects.erase(objects.begin() + object_index);
+          room.GetChests().erase(room.GetChests().begin() + index);
+          ++deletions_;
+          last_room_id_ = room_id;
+          return absl::OkStatus();
+        }
+      }
+      return absl::FailedPreconditionError("No matching chest object");
+    });
     ImGui::CreateContext();
     auto& io = ImGui::GetIO();
     io.IniFilename = nullptr;
@@ -116,6 +144,7 @@ class DungeonChestEditorTest : public ::testing::Test {
   zelda3::ResourceLabelProvider old_labels_;
   std::string logged_text_;
   int changes_ = 0;
+  int deletions_ = 0;
   int last_room_id_ = -1;
   bool reject_ = false;
 };
@@ -175,8 +204,8 @@ TEST_F(DungeonChestEditorTest, UnknownRewardSurvivesTypeEdit) {
   EXPECT_EQ(rooms_[0].GetChests()[0].id, 0xE0);
   EXPECT_TRUE(rooms_[0].GetChests()[0].size);
   EXPECT_EQ(changes_, 1);
-  EXPECT_EQ(rooms_[0].GetTileObjects()[0].id_, 0xF99);
-  EXPECT_NE(logged_text_.find("record and object counts differ"),
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].id_, 0xFB1);
+  EXPECT_EQ(logged_text_.find("Chest objects and contents do not match"),
             std::string::npos);
 }
 
@@ -196,11 +225,165 @@ TEST_F(DungeonChestEditorTest, EmptyRoomHasNoRecordMutationControls) {
   DrawFrame();
   DrawFrame();
   EXPECT_NE(logged_text_.find("No chest contents records"), std::string::npos);
-  EXPECT_NE(logged_text_.find("Record and object counts differ"),
+  EXPECT_NE(logged_text_.find("Chest objects and contents do not match"),
             std::string::npos);
   EXPECT_FALSE(Widget("ChestReward").has_value());
   EXPECT_FALSE(Widget("ChestBig").has_value());
   EXPECT_EQ(changes_, 0);
+}
+
+TEST_F(DungeonChestEditorTest,
+       AddChestStartsCanvasPlacementWithoutMutatingRoom) {
+  rooms_[0].GetChests().clear();
+  rooms_[0].GetTileObjects().clear();
+  DrawFrame();
+  DrawFrame();
+  Click("ChestAddSmall");
+  ASSERT_NE(viewer_.object_interaction().GetPlacementPreview(), nullptr);
+  EXPECT_EQ(viewer_.object_interaction().GetPlacementPreview()->id_, 0xF99);
+  EXPECT_TRUE(zelda3::ValidateRoomObjectStreamEntryForSave(
+                  *viewer_.object_interaction().GetPlacementPreview())
+                  .ok());
+  EXPECT_TRUE(viewer_.object_interaction().IsObjectLoaded());
+  EXPECT_TRUE(viewer_.IsObjectInteractionEnabled());
+  EXPECT_TRUE(rooms_[0].GetChests().empty());
+  EXPECT_TRUE(rooms_[0].GetTileObjects().empty());
+  EXPECT_NE(logged_text_.find("Click in the canvas to place a small chest"),
+            std::string::npos);
+  Click("ChestAddBig");
+  ASSERT_NE(viewer_.object_interaction().GetPlacementPreview(), nullptr);
+  EXPECT_EQ(viewer_.object_interaction().GetPlacementPreview()->id_, 0xFB1);
+  EXPECT_TRUE(zelda3::ValidateRoomObjectStreamEntryForSave(
+                  *viewer_.object_interaction().GetPlacementPreview())
+                  .ok());
+  EXPECT_NE(logged_text_.find("Click in the canvas to place a big chest"),
+            std::string::npos);
+  EXPECT_EQ(changes_, 0);
+  EXPECT_EQ(deletions_, 0);
+}
+
+TEST_F(DungeonChestEditorTest, SelectInCanvasUsesChestStreamOrderAcrossLayers) {
+  rooms_[0].GetTileObjects() = {zelda3::RoomObject(0xF99, 20, 22, 0, 2),
+                                zelda3::RoomObject(0x000, 1, 1, 0, 0),
+                                zelda3::RoomObject(0xFB1, 8, 10, 0, 0)};
+  rooms_[0].GetChests() = {{0x32, true}, {0x24, false}};
+  DrawFrame();
+  DrawFrame();
+  Click("ChestAddSmall");
+  Click("ChestSelect");
+  EXPECT_EQ(viewer_.object_interaction().GetSelectedObjectIndices(),
+            std::vector<size_t>({2}));
+  EXPECT_EQ(viewer_.GetPendingScrollTarget(), std::make_pair(8, 10));
+  EXPECT_EQ(viewer_.object_interaction().GetPlacementPreview(), nullptr);
+  EXPECT_EQ(changes_, 0);
+  EXPECT_EQ(deletions_, 0);
+}
+
+TEST_F(DungeonChestEditorTest,
+       CanvasSelectionFollowsChestWithoutOverridingRecordChoice) {
+  rooms_[0].GetTileObjects().emplace_back(0xF99, 20, 22, 0, 0);
+  rooms_[0].GetChests().push_back({0x09, false});
+  DrawFrame();
+  viewer_.object_interaction().SetSelectedObjects({1});
+  DrawFrame();
+  EXPECT_EQ(viewer_.chest_editor_state().selected_index, 1);
+  // Choosing a record remains stable while the canvas selection is unchanged.
+  viewer_.chest_editor_state().selected_index = 0;
+  DrawFrame();
+  EXPECT_EQ(viewer_.chest_editor_state().selected_index, 0);
+  viewer_.object_interaction().ClearSelection();
+  DrawFrame();
+  viewer_.object_interaction().SetSelectedObjects({1});
+  DrawFrame();
+  EXPECT_EQ(viewer_.chest_editor_state().selected_index, 1);
+}
+
+TEST_F(DungeonChestEditorTest,
+       DeleteLastChestRemovesBothPartsAndKeepsUiBalanced) {
+  DrawFrame();
+  DrawFrame();
+  Click("ChestDelete");
+  EXPECT_TRUE(rooms_[0].GetTileObjects().empty());
+  EXPECT_TRUE(rooms_[0].GetChests().empty());
+  EXPECT_EQ(deletions_, 1);
+  EXPECT_EQ(last_room_id_, 0);
+  EXPECT_FALSE(Widget("ChestReward").has_value());
+  ASSERT_TRUE(Widget("ChestAddSmall").has_value());
+  EXPECT_TRUE(Widget("ChestAddSmall")->enabled);
+  EXPECT_EQ(viewer_.chest_editor_state().selected_index, 0);
+}
+
+TEST_F(DungeonChestEditorTest, RejectedDeleteKeepsBothPartsAndDisplaysReason) {
+  reject_ = true;
+  DrawFrame();
+  DrawFrame();
+  Click("ChestDelete");
+  ASSERT_EQ(rooms_[0].GetTileObjects().size(), 1);
+  ASSERT_EQ(rooms_[0].GetChests().size(), 1);
+  EXPECT_EQ(rooms_[0].GetChests()[0].id, 0x24);
+  EXPECT_EQ(deletions_, 0);
+  EXPECT_NE(logged_text_.find("Edit not applied: Test rejection"),
+            std::string::npos);
+}
+
+TEST_F(DungeonChestEditorTest, MismatchedDataAllowsRewardEditOnly) {
+  rooms_[0].GetTileObjects()[0].id_ = 0xFB1;
+  DrawFrame();
+  DrawFrame();
+  for (const char* control : {"ChestAddSmall", "ChestAddBig", "ChestSelect",
+                              "ChestDelete", "ChestBig"}) {
+    ASSERT_TRUE(Widget(control).has_value()) << control;
+    EXPECT_FALSE(Widget(control)->enabled) << control;
+  }
+  ASSERT_TRUE(Widget("ChestReward").has_value());
+  EXPECT_TRUE(Widget("ChestReward")->enabled);
+  EXPECT_NE(logged_text_.find("Rewards remain editable"), std::string::npos);
+  EXPECT_EQ(changes_, 0);
+  EXPECT_EQ(deletions_, 0);
+}
+
+TEST_F(DungeonChestEditorTest, ReadOnlyRoomDisablesAllChestMutations) {
+  viewer_.SetHeaderReadOnly(true);
+  DrawFrame();
+  DrawFrame();
+  for (const char* control : {"ChestAddSmall", "ChestAddBig", "ChestDelete",
+                              "ChestBig", "ChestReward"}) {
+    ASSERT_TRUE(Widget(control).has_value()) << control;
+    EXPECT_FALSE(Widget(control)->enabled) << control;
+  }
+  ASSERT_TRUE(Widget("ChestSelect").has_value());
+  EXPECT_TRUE(Widget("ChestSelect")->enabled);
+  EXPECT_FALSE(viewer_.DeleteChest(0, 0).ok());
+  EXPECT_EQ(deletions_, 0);
+}
+
+TEST_F(DungeonChestEditorTest, OffscreenRoomCannotChangePlacementOrSelection) {
+  rooms_[1] = zelda3::Room(1, &rom_);
+  rooms_[1].SetLoaded(true);
+  rooms_[1].LoadChests();
+  rooms_[1].GetChests().push_back({0x32, true});
+  rooms_[1].GetTileObjects().emplace_back(0xFB1, 2, 4, 0, 0);
+  viewer_.SetPreviewObject(zelda3::RoomObject(0x001, 0, 0, 0));
+  viewer_.object_interaction().SetSelectedObjects({0});
+  DrawFrame(1);
+  DrawFrame(1);
+  for (const char* control : {"ChestAddSmall", "ChestAddBig", "ChestSelect"}) {
+    ASSERT_TRUE(Widget(control).has_value()) << control;
+    EXPECT_FALSE(Widget(control)->enabled) << control;
+  }
+  EXPECT_EQ(viewer_.object_interaction().GetPlacementPreview()->id_, 0x001);
+  EXPECT_EQ(viewer_.object_interaction().GetSelectedObjectIndices(),
+            std::vector<size_t>({0}));
+  EXPECT_FALSE(viewer_.HasPendingScrollTarget());
+}
+
+TEST_F(DungeonChestEditorTest, DeleteRequiresLoadedRoomAndEditorCallback) {
+  EXPECT_FALSE(viewer_.DeleteChest(1, 0).ok());
+  viewer_.SetChestDeleteCallback({});
+  EXPECT_FALSE(viewer_.DeleteChest(0, 0).ok());
+  EXPECT_EQ(deletions_, 0);
+  ASSERT_EQ(rooms_[0].GetChests().size(), 1);
+  ASSERT_EQ(rooms_[0].GetTileObjects().size(), 1);
 }
 
 TEST_F(DungeonChestEditorTest, ForeignRoomReferenceCannotExposeEditableFields) {

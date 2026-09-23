@@ -1,6 +1,7 @@
 set(
   YAZE_APP_ZELDA3_SRC
   zelda3/common.cc
+  zelda3/dungeon/chest_edit.cc
   zelda3/dungeon/custom_collision.cc
   zelda3/dungeon/custom_object.cc
   zelda3/dungeon/dimension_service.cc
