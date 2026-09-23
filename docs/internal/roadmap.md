@@ -44,6 +44,13 @@ Do not transfer those results to later commits. Current PR heads and their
 separate evidence are recorded in the canonical plan; an open PR is not a
 merged or qualified release.
 
+The next local increment, `a730d6557`, implements door/sprite/pot-item undo
+and shared entity properties in both room views. App/unit builds and 150
+focused tests passed; it remains a Candidate without new ROM/runtime or
+release qualification. DA-1 now proceeds to metadata/chests and compound edits;
+DA-2 retains the remaining contextual-control work. See the canonical plan for
+the exact commands and boundaries.
+
 Execute the dungeon work packages in this order:
 
 1. `DA-1`: shared room-edit undo for every supported mutable room domain.

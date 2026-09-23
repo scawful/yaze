@@ -20,6 +20,13 @@ Stable/Beta/WIP labels.
 - Dungeon placement candidate: `7ba7d76ce`, built on the reviewed PR #256 repairs
   and placement fixes. Its local app build and 43 focused tests passed; it was
   unpublished and had not replaced the installed app at this review.
+- Subsequent entity-authoring candidate: `a730d6557`, following plan commit
+  `5fc5af950`. It adds DA-1 door/sprite/pot-item undo and DA-2 shared entity
+  properties. App and unit-test builds succeeded; 150 selected tests across
+  21 suites passed with no skips, including 22 entity lifecycle and five shared
+  inspector UI cases. Only formatting whitespace changed after that run, checked
+  through whitespace-normalized staged content. ROM save/reopen, runtime, CI,
+  installation, and release qualification remain pending.
 - Reference-source snapshots used in the audit: Hyrule Magic `7d17cc2` and
   ZScream `0f6812d`. These are source comparison pins, not a statement that the
   two checkouts represent every published feature.
@@ -45,7 +52,8 @@ separately as **Source**, **Focused**, **ROM**, **Runtime**, or **Release**.
 | Workflow | Status at this review | Existing capability | Required completion |
 | --- | --- | --- | --- |
 | Place and resize dungeon tile objects | **Candidate** for the new Workbench workflow | Preview controls, physical dimensions, repeat/once placement, inserted-object selection, Place another, and uniform area resizing in `7ba7d76ce`; Source + Focused evidence | Qualify on disposable vanilla and Oracle base ROMs; verify undo, save/reopen, and game behavior before release promotion. |
-| Edit every dungeon entity in place | **Partial** | Door, sprite, and item handlers and separate property editors exist. Workbench entity summaries are read-only at the baseline. | Unified entity inspector and domain-aware undo for doors, sprites, items, room headers, and compound edits. Tile-object undo does not prove entity undo. |
+| Edit doors, sprites, and pot items in place | **Candidate** | `a730d6557`: shared Workbench/standalone property controls, domain-aware undo/redo, render refresh, reserved-sprite validation, and paste-selection restoration; Source + Focused evidence | ROM save/reopen, runtime, CI, and packaged acceptance remain. Inspector edits are blocked when connected-view and interaction room contexts differ. |
+| Complete editing of every dungeon element | **Partial** | The original `d609e6254` / `7ba7d76ce` audit had read-only Workbench entity summaries and tile/collision/water undo; the candidate above closes only the door/sprite/pot-item slice. | Header and chest transactions, atomic mixed-domain operations, clipboard capacity handling, and remaining room workflows keep DA-1 and DA-2 open. |
 | Build and reuse complete rooms | **Partial** | Room-template helpers, export, destination fields, and connected-room browsing | Complete template schema and room cloning/import, including doors, chests, and headers; reusable selections; destination previews with engine adjacency constraints. |
 | Edit overworld maps and entities | **Partial** | Tile editing, paste undo, persistent scratchpad, entrances, exits, items, properties, graphics groups, and state-specific sprites | Serialize sprites for every supported game state; unify entity undo and verify each saved domain. Existing map save does not persist sprite edits. |
 | Edit graphics and graphics groups | **Blocked** for coordinated pixel-sheet persistence; other workflows **Partial** | Pixel editing, undo, graphics-group tools, import surfaces, and polyhedral editing | Safe compression and allocation, write boundaries, import/export roundtrip, and coordinated save. Preserve the current graphics save block until these are proved. |

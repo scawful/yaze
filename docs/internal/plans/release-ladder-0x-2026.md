@@ -28,6 +28,11 @@ The candidate is not merged, published, or installed. Its 43 focused tests do
 not qualify a release. Do not infer capabilities or readiness from the version
 number alone.
 
+The subsequent `a730d6557` candidate adds shared entity properties and
+per-domain door/sprite/pot-item undo, with an app/unit build and 150 focused
+passing tests. It does not close DA-1/DA-2 or qualify 0.8.0. Metadata/chests,
+compound actions, connections, room reuse, and final acceptance remain.
+
 The primary release train is completion of the main ALTTP editors:
 - Dungeon
 - Overworld

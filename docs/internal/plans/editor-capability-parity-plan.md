@@ -95,10 +95,10 @@ Do not publish estimated parity percentages.
 
 ## Work packages and dependencies
 
-| ID | Deliverable | Baseline status | Depends on | Primary owner |
+| ID | Deliverable | Current implementation state | Depends on | Primary owner |
 |---|---|---|---|---|
-| DA-1 | Complete dungeon edit undo across domains | Partial; entity slice in progress | Existing mutation hooks and undo actions | imgui-frontend-engineer |
-| DA-2 | One editable inspector for every room element | Partial; tile controls candidate, entity summaries read-only in Workbench | DA-1 for added edits | imgui-frontend-engineer |
+| DA-1 | Complete dungeon edit undo across domains | Partial; door/sprite/pot-item slice Candidate at `a730d6557` | Existing mutation hooks and undo actions | imgui-frontend-engineer |
+| DA-2 | One editable inspector for every room element | Partial; tile controls and shared entity inspector Candidate | DA-1 for added edits | imgui-frontend-engineer |
 | DA-3 | Visual room connection authoring | Partial; navigation/diagnostics exist | DA-1 header/compound coverage | zelda3-hacking-expert |
 | DA-4 | Complete room clone/import and reusable selections | Partial; model helpers and limited export exist | DA-1 compound coverage | zelda3-hacking-expert |
 | DA-5 | Dungeon render, persistence, and packaged-candidate qualification | Partial; independent active lane | Exact candidate from DA-1–DA-4 | test-infrastructure-expert |
@@ -143,6 +143,58 @@ or removed where allowed, and undone/redone with exact state restoration.
 Property controls agree across presentations. Named choices explain values;
 raw fields remain only when useful and validated. A real editor-level test
 must exercise hook-to-history-to-restore, not only an isolated action object.
+
+### Current DA-1 / DA-2 increment (2026-09-22)
+
+**Candidate:** `a730d6557`, branch `codex/editor-parity-dungeon-authoring`,
+following plan commit `5fc5af950`. This supersedes the read-only Workbench
+entity-summary limitation of the audited `7ba7d76ce` baseline on this branch.
+It does not change the status of mainline, an open PR, or an installed app.
+
+Implemented:
+
+- Shared door/sprite/pot-item property controls in the Workbench and standalone
+  selection inspector, through `inspectors/dungeon_entity_inspector.*` and the
+  existing interaction handlers. Door type/direction/slot, sprite identity,
+  position/subtype/layer/key drop, and pot-item type/position are editable.
+- Per-domain undo/redo for those three entity collections in both viewer modes,
+  preserving room identity, selection, encoded metadata, and save dirtiness.
+  A same-domain group drag is one history entry. Paste redo selects the inserted
+  entities. Text entry commits through `InputScalarDeferred`; combos and step
+  buttons make discrete edits.
+- Runtime object-buffer refresh for pot icons and sprite key-drop annotations,
+  including undo/redo. Sprite/item edits do not dirty the tile-object save stream.
+- Reserved sprite terminator/key-marker encodings are rejected before property,
+  movement, or translated entity-paste mutation. The inspector refuses to edit
+  when the displayed room and interaction context target different rooms.
+
+**Evidence:** Source + Focused. App and unit targets built with four workers.
+**150 selected tests across 21 suites passed; zero skipped.** This includes
+22 editor lifecycle cases across both viewer modes and five shared-inspector
+UI cases. The pixel tests use generated ROM/graphics data; they are not vanilla
+or Oracle runtime/parity evidence. The final commit hook passed formatting,
+build-worker policy, and release-version checks. Only formatting whitespace
+changed between the passing test run and source commit.
+
+Exact focused commands, from the configured worktree:
+
+```sh
+cmake --build build/presets/mac-ai --target yaze_test_unit yaze --parallel 4
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_list_tests --gtest_filter='*DungeonEntityUndoLifecycleTest*:*DungeonUndoActionsTest*:*DungeonWorkbench*:*InteractionCoordinatorTest*:*SpriteInteractionHandlerTest*:*DoorInteractionHandlerTest*:*ItemInteractionHandlerTest*:*DungeonSelectionSnapshot*'
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter='*DungeonEntityUndoLifecycleTest*:*DungeonUndoActionsTest*:*DungeonWorkbench*:*InteractionCoordinatorTest*:*SpriteInteractionHandlerTest*:*DoorInteractionHandlerTest*:*ItemInteractionHandlerTest*:*DungeonSelectionSnapshot*'
+```
+
+**Still open:** header/tag/destination and chest undo; atomic mixed-domain
+operations; capacity-aware clipboard completion; sprite sort-mode editing;
+full contextual controls for the remaining room elements. The connected-view
+context guard prevents wrong-room writes; it does not complete connected-view
+authoring. Source/handler validation does not replace serializer validation for
+other mutation callers. No new application save/reopen, game runtime, CI,
+installation, or release qualification is claimed.
+
+**Next implementation:** extend DA-1 to room metadata and chests through the
+existing undo path, then introduce compound transactions before DA-3 connections
+or DA-4 cloning/import. Do not reimplement the three completed entity inspectors.
 
 ### DA-3: visual connections
 

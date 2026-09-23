@@ -31,6 +31,18 @@ that ROM save/reopen and in-game acceptance passed. Current implementation
 status and save boundaries are in the
 [coverage report](reference/feature-coverage-report.md).
 
+Subsequent candidate `a730d6557`, following plan commit `5fc5af950`, implements
+door, sprite, and pot-item undo/redo plus shared Workbench/standalone properties.
+It refreshes baked entity graphics, rejects reserved sprite encodings, preserves
+paste selection through redo, and blocks inspector edits when the connected
+view's room differs from the interaction context. App and unit-test builds
+succeeded; 150 selected tests across 21 suites passed with no skips, including
+22 entity lifecycle and five shared inspector UI cases. Only formatting
+whitespace changed afterward, verified through whitespace-normalized staged
+content. This remains **Candidate**: ROM save/reopen, runtime, CI, installation,
+and release qualification are pending. DA-1 and DA-2 remain open for their
+remaining domains and acceptance requirements.
+
 ### ⚠️ Upgrading from 0.7.2
 Read this before upgrading a project or a script. Each item was checked against
 the `v0.7.2` tag and current `master`. The full list, with exact error messages
@@ -312,10 +324,12 @@ against the final release head, which is **pending**.
   and a full-suite run against the release head are **pending**.
 
 ### Known Limits
-- Dungeon authoring is Partial at the audited baseline. Tile-object undo does
-  not cover doors, sprites, items, headers, and mixed operations; Workbench
-  entity properties still need editable controls. Existing room templates are
-  not a complete-room interchange format.
+- Dungeon authoring remains Partial. Candidate `a730d6557` covers
+  door/sprite/pot-item undo and shared properties, but header/chest transactions,
+  atomic mixed-domain operations, clipboard capacity handling, and ROM/runtime
+  acceptance remain. Connected-view inspector edits are blocked if their room
+  context is not synchronized. Existing room templates are not a complete-room
+  interchange format.
 - Overworld sprite edits are not serialized by the current save path. Map,
   entrance, exit, item, and property save support does not establish sprite
   persistence.
