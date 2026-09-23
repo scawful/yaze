@@ -1,5 +1,7 @@
 #include <gtest/gtest.h>
 
+#include <vector>
+
 #include "app/editor/dungeon/dungeon_object_interaction.h"
 #include "app/editor/dungeon/dungeon_selection_snapshot.h"
 #include "app/gui/canvas/canvas.h"
@@ -134,6 +136,49 @@ TEST_F(DungeonSelectionSnapshotTest,
   const auto snapshot = BuildDungeonSelectionSnapshot(interaction_, &rooms_, 0);
   EXPECT_EQ(snapshot.kind, DungeonSelectionKind::ObjectSingle);
   EXPECT_EQ(snapshot.count, 1u);
+}
+
+// Selections are indices, so a selection kept across a room change names an
+// unrelated object in the new room.
+TEST_F(DungeonSelectionSnapshotTest, RoomChangeClearsObjectAndEntitySelection) {
+  rooms_[1].AddTileObject(zelda3::RoomObject{0x03, 4, 4, 0x00, 0});
+  rooms_[1].AddTileObject(zelda3::RoomObject{0x04, 8, 8, 0x00, 0});
+  interaction_.SetSelectedObjects({1});
+
+  // The canvas binds the same room every frame; that keeps the selection.
+  interaction_.SetCurrentRoom(&rooms_, 0);
+  EXPECT_EQ(interaction_.GetSelectedObjectIndices(), std::vector<size_t>{1});
+
+  interaction_.SetCurrentRoom(&rooms_, 1);
+  EXPECT_TRUE(interaction_.GetSelectedObjectIndices().empty());
+
+  interaction_.SetCurrentRoom(&rooms_, 0);
+  interaction_.SelectEntity(EntityType::Sprite, 0);
+  ASSERT_TRUE(interaction_.HasEntitySelection());
+  interaction_.SetCurrentRoom(&rooms_, 1);
+  EXPECT_FALSE(interaction_.HasEntitySelection());
+}
+
+TEST_F(DungeonSelectionSnapshotTest, RoomChangeKeepsObjectPlacementActive) {
+  interaction_.SetPreviewObject(zelda3::RoomObject{0x01, 0, 0, 0x12, 0},
+                                /*loaded=*/true);
+  ASSERT_NE(interaction_.GetPlacementPreview(), nullptr);
+
+  interaction_.SetCurrentRoom(&rooms_, 1);
+
+  EXPECT_NE(interaction_.GetPlacementPreview(), nullptr);
+}
+
+// Cross-room navigation binds the room before selecting, so the next frame's
+// bind of the same room keeps the selection.
+TEST_F(DungeonSelectionSnapshotTest, SelectionMadeAfterBindingSurvivesRedraw) {
+  rooms_[1].AddTileObject(zelda3::RoomObject{0x03, 4, 4, 0x00, 0});
+  interaction_.SetCurrentRoom(&rooms_, 1);
+  interaction_.SetSelectedObjects({0});
+
+  interaction_.SetCurrentRoom(&rooms_, 1);
+
+  EXPECT_EQ(interaction_.GetSelectedObjectIndices(), std::vector<size_t>{0});
 }
 
 }  // namespace

@@ -986,6 +986,8 @@ absl::Status DungeonEditorV2::Load() {
     }
     OnRoomSelected(neighbor_room_id, true);
     if (auto* viewer = GetViewerForRoom(neighbor_room_id)) {
+      // Bind before selecting; see NavigateToPlacedObject.
+      viewer->object_interaction().SetCurrentRoom(&rooms_, neighbor_room_id);
       viewer->object_interaction()
           .entity_coordinator()
           .door_handler()

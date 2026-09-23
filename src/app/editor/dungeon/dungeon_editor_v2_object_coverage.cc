@@ -58,6 +58,9 @@ void DungeonEditorV2::NavigateToPlacedObject(int room_id, size_t object_index,
     }
     target = static_cast<size_t>(it - objects.begin());
   }
+  // Bind the interaction to the new room now; the next draw would otherwise
+  // treat it as a room change and clear this selection.
+  viewer->object_interaction().SetCurrentRoom(&rooms_, room_id);
   viewer->object_interaction().SetSelectedObjects({target});
   viewer->ScrollToTile(objects[target].x(), objects[target].y());
 }
