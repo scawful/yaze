@@ -1,6 +1,6 @@
 # YAZE Internal Documentation
 
-**Last Updated**: 2026-04-19
+**Last Updated**: 2026-09-22
 
 Internal documentation for architecture, AI agent coordination, and development planning.
 
@@ -8,13 +8,16 @@ Internal documentation for architecture, AI agent coordination, and development 
 
 | What | Where |
 |------|-------|
+| Editor completion baseline and instructions | [Editor capability parity plan](plans/editor-capability-parity-plan.md) — begin with `DA-1` / `DA-2` for dungeon authoring |
+| Product priority and release sequencing | [Roadmap](roadmap.md) and [0.x release ladder](plans/release-ladder-0x-2026.md) |
+| Current editor readiness | [Feature coverage report](../public/reference/feature-coverage-report.md) and [capability assessment](../public/reference/capability-assessment.md) |
 | Active task tracking | `scripts/agents/coord task-list` ([universe coordination](agents/universe-coordination-spec.md)) |
-| Roadmap | [roadmap.md](roadmap.md) |
-| Status | [status.md](status.md) |
-| Changelog | [../CHANGELOG.md](../CHANGELOG.md) |
-| Refactoring plan | [agents/refactoring-plan-0.7.md](agents/refactoring-plan-0.7.md) |
-| Latest handoff | [agents/dungeon-editor-claude-briefing-2026-04-25.md](agents/dungeon-editor-claude-briefing-2026-04-25.md) |
-| Release test checklist | [agents/oracle-morning-test-checklist.org](agents/oracle-morning-test-checklist.org) |
+| Refactoring work | Tracked as universe tasks. The 0.7 plan is closed: [archive/plans/refactoring-plan-0.7-2026-02.md](archive/plans/refactoring-plan-0.7-2026-02.md) |
+| Handoffs | Dated `*-handoff-*.md` files in [agents/](agents/); match the task, branch, and exact source SHA |
+| Testing docs | [testing/README.md](testing/README.md) |
+| Script classification | [scripts/README.md](../../scripts/README.md) |
+| Release acceptance | [Release checklist](release-checklist.md) and [dungeon evidence backlog](plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md) |
+| Oracle runtime checks | [agents/oracle-morning-test-checklist.org](agents/oracle-morning-test-checklist.org) |
 | Goron Mines regression tracker | [oracle/goron-mines-minecart-regression-tracker-2026-02-26.md](oracle/goron-mines-minecart-regression-tracker-2026-02-26.md) |
 | Doc + code hygiene rules | [agents/doc-hygiene.md](agents/doc-hygiene.md) |
 | Agent scripts | [scripts/agents/README.md](../../scripts/agents/README.md) |
@@ -25,6 +28,7 @@ Internal documentation for architecture, AI agent coordination, and development 
 |-----------|---------|
 | `agents/` | Agent coordination, personas, routing rules, active plans |
 | `agents/archive/` | Retired initiatives, handoffs, and drafts (do not edit) |
+| `plans/` | Canonical capability plan, release ladder, and bounded initiative plans |
 | `architecture/` | System design docs (editor, dungeon, overworld, ROM, graphics, etc.) |
 | `archive/` | Completed features, closed investigations, old plans |
 | `oracle/` | Oracle-of-Secrets dungeon/collision runtime docs and regression tracking |
@@ -32,6 +36,14 @@ Internal documentation for architecture, AI agent coordination, and development 
 | `gui/` | Canvas system and widget layer reference |
 | `wasm/` | Web/WASM port documentation |
 | `testing/` | Test infrastructure and strategy |
+
+## Status and evidence
+
+Use the canonical capability plan for current package status and exact source
+baselines. Preserve dated handoffs as evidence for their own commits. A newer
+file date does not supersede the canonical plan, establish a merge, or prove
+which app is installed. Update readiness only with evidence for the named
+workflow and candidate.
 
 ## Key Architecture Docs
 

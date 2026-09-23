@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <cstddef>
 #include <cstdint>
 #include <deque>
 #include <filesystem>
@@ -34,6 +35,7 @@ struct RecentProject {
   std::string thumbnail_path;  // Optional screenshot
   bool unavailable = false;    // platform permission gate (iOS)
   int days_ago = 0;
+  std::size_t recent_index = 0;  // 0 is the most recently opened entry.
 
   // --- Forward-looking (populated in later tasks) ---
   bool is_missing = false;

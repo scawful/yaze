@@ -65,6 +65,32 @@ TEST_F(DungeonObjectEditorDirtyTest, BatchMutatorsMarkObjectStreamDirty) {
   EXPECT_TRUE(room_->object_stream_dirty());
 }
 
+TEST_F(DungeonObjectEditorDirtyTest, ScrollResizeUsesPersistedSizeSteps) {
+  editor_->SetMode(DungeonObjectEditor::Mode::kEdit);
+  ASSERT_TRUE(editor_->AddToSelection(0).ok());
+  ASSERT_TRUE(editor_->HandleScrollWheel(1, 0, 0, false).ok());
+  EXPECT_EQ(room_->GetTileObject(0).size(), 1);
+  EXPECT_TRUE(room_->object_stream_dirty());
+  ASSERT_TRUE(editor_->HandleScrollWheel(-1, 0, 0, false).ok());
+  EXPECT_EQ(room_->GetTileObject(0).size(), 0);
+
+  room_->ClearSaveDirtyState();
+  ASSERT_TRUE(editor_->HandleScrollWheel(-1, 0, 0, false).ok());
+  EXPECT_FALSE(room_->object_stream_dirty());
+}
+
+TEST_F(DungeonObjectEditorDirtyTest, PreviewFloorResizePreservesOtherAxis) {
+  editor_->SetMode(DungeonObjectEditor::Mode::kInsert);
+  editor_->SetCurrentObjectType(0xD1);
+  const int initial = editor_->GetEditingState().preview_size;
+  ASSERT_EQ(initial & 3, 2);
+  ASSERT_TRUE(editor_->HandleScrollWheel(1, 0, 0, false).ok());
+  EXPECT_EQ(editor_->GetEditingState().preview_size, (initial & 12) | 3);
+  ASSERT_TRUE(editor_->HandleScrollWheel(1, 0, 0, false).ok());
+  EXPECT_EQ(editor_->GetEditingState().preview_size, (initial & 12) | 3);
+  EXPECT_FALSE(room_->object_stream_dirty());
+}
+
 TEST_F(DungeonObjectEditorDirtyTest,
        ResizeMutatorsSkipFixedSizesAndClampType1Batch) {
   ASSERT_TRUE(room_->AddObject(RoomObject(0x100, 10, 10, /*size=*/0, 0)).ok());

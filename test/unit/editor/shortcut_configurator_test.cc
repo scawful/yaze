@@ -12,12 +12,22 @@
 #include "app/editor/system/shortcut_manager.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gfx/backend/null_renderer.h"
+#include "core/features.h"
 #include "imgui/imgui.h"
 
 namespace yaze::editor {
 
 class DungeonEditorV2ShortcutTestPeer {
  public:
+  static void MarkLoadedWithoutRooms(DungeonEditorV2& editor) {
+    editor.is_loaded_ = true;
+    editor.current_room_id_ = -1;
+  }
+
+  static bool HasQueuedWorkflowChange(const DungeonEditorV2& editor) {
+    return editor.pending_workflow_mode_.pending;
+  }
+
   static bool HasQueuedDelete(const DungeonEditorV2& editor) {
     return editor.room_canvas_delete_shortcut_frame_.has_value();
   }
@@ -37,6 +47,13 @@ class DungeonEditorV2ShortcutTestPeer {
 };
 
 namespace {
+
+struct DungeonWorkbenchFlagGuard {
+  bool previous = core::FeatureFlags::get().dungeon.kUseWorkbench;
+  ~DungeonWorkbenchFlagGuard() {
+    core::FeatureFlags::get().dungeon.kUseWorkbench = previous;
+  }
+};
 
 class ShortcutConfiguratorTest : public ::testing::Test {
  protected:
@@ -133,6 +150,106 @@ TEST_F(ShortcutConfiguratorTest, RegistersWindowBrowserAndDrawerAliases) {
   EXPECT_NE(shortcuts.FindShortcut("View: Toggle Project Drawer"), nullptr);
   EXPECT_NE(shortcuts.FindShortcut("View: Show Window Browser"), nullptr);
 }
+
+TEST_F(ShortcutConfiguratorTest, WorkbenchHasNoDefaultCloseSessionChord) {
+  DungeonWorkbenchFlagGuard guard;
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+  DungeonEditorV2 dungeon_editor;
+  EditorDependencies editor_deps;
+  editor_deps.window_manager = editor_manager_->GetWindowManager();
+  dungeon_editor.SetDependencies(editor_deps);
+  dungeon_editor.Initialize();
+
+  const auto* descriptor =
+      editor_deps.window_manager->GetWindowDescriptor(0, "dungeon.workbench");
+  ASSERT_NE(descriptor, nullptr);
+  EXPECT_TRUE(descriptor->shortcut_hint.empty());
+
+  ShortcutManager shortcuts;
+  ShortcutDependencies deps;
+  deps.editor_manager = editor_manager_.get();
+  deps.window_manager = editor_deps.window_manager;
+  ConfigureMenuShortcuts(deps, &shortcuts);
+  ConfigurePanelShortcuts(deps, &shortcuts);
+
+  const auto* close_session = shortcuts.FindShortcut("Close Session");
+  ASSERT_NE(close_session, nullptr);
+  EXPECT_EQ(close_session->keys,
+            (std::vector<ImGuiKey>{ImGuiMod_Ctrl, ImGuiMod_Shift, ImGuiKey_W}));
+  EXPECT_EQ(shortcuts.FindShortcut("view.toggle.dungeon.workbench"), nullptr);
+}
+
+class DungeonCloseSessionShortcutTest
+    : public ShortcutConfiguratorTest,
+      public ::testing::WithParamInterface<bool> {};
+
+TEST_P(DungeonCloseSessionShortcutTest,
+       CloseSessionChordDoesNotQueueOrToggleWorkbench) {
+  DungeonWorkbenchFlagGuard guard;
+  core::FeatureFlags::get().dungeon.kUseWorkbench = true;
+  DungeonEditorV2 dungeon_editor;
+  EditorDependencies editor_deps;
+  editor_deps.window_manager = editor_manager_->GetWindowManager();
+  dungeon_editor.SetDependencies(editor_deps);
+  dungeon_editor.Initialize();
+  // Exercise the active editor's keyboard path without loading room assets or
+  // invoking a real close/save operation.
+  DungeonEditorV2ShortcutTestPeer::MarkLoadedWithoutRooms(dungeon_editor);
+  const bool workbench_enabled = GetParam();
+  dungeon_editor.SetWorkbenchWorkflowMode(workbench_enabled,
+                                          /*show_toast=*/false);
+  ASSERT_EQ(dungeon_editor.IsWorkbenchWorkflowEnabled(), workbench_enabled);
+
+  ShortcutManager shortcuts;
+  ShortcutDependencies deps;
+  deps.editor_manager = editor_manager_.get();
+  deps.window_manager = editor_deps.window_manager;
+  ConfigureMenuShortcuts(deps, &shortcuts);
+  ConfigurePanelShortcuts(deps, &shortcuts);
+  const auto* close_session = shortcuts.FindShortcut("Close Session");
+  ASSERT_NE(close_session, nullptr);
+  const auto close_keys = close_session->keys;
+  const auto close_scope = close_session->scope;
+  int close_requests = 0;
+  shortcuts.RegisterShortcut(
+      "Close Session", close_keys, [&]() { ++close_requests; }, close_scope);
+
+  auto run_frame = [&]() {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowFocus();
+    ImGui::Begin("##DungeonCloseSessionShortcutHost", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    ExecuteShortcuts(shortcuts);
+    EXPECT_TRUE(dungeon_editor.Update().ok());
+    ImGui::End();
+    ImGui::Render();
+  };
+  run_frame();
+
+  ImGuiIO& io = ImGui::GetIO();
+  const ImGuiKey primary =
+      io.ConfigMacOSXBehaviors ? ImGuiMod_Super : ImGuiMod_Ctrl;
+  io.AddKeyEvent(primary, true);
+  io.AddKeyEvent(ImGuiMod_Shift, true);
+  io.AddKeyEvent(ImGuiKey_W, true);
+  run_frame();
+  EXPECT_EQ(close_requests, 1);
+  EXPECT_FALSE(
+      DungeonEditorV2ShortcutTestPeer::HasQueuedWorkflowChange(dungeon_editor));
+  EXPECT_EQ(dungeon_editor.IsWorkbenchWorkflowEnabled(), workbench_enabled);
+
+  io.AddKeyEvent(ImGuiKey_W, false);
+  io.AddKeyEvent(ImGuiMod_Shift, false);
+  io.AddKeyEvent(primary, false);
+  run_frame();
+  EXPECT_EQ(close_requests, 1);
+  EXPECT_FALSE(
+      DungeonEditorV2ShortcutTestPeer::HasQueuedWorkflowChange(dungeon_editor));
+  EXPECT_EQ(dungeon_editor.IsWorkbenchWorkflowEnabled(), workbench_enabled);
+}
+
+INSTANTIATE_TEST_SUITE_P(WorkflowModes, DungeonCloseSessionShortcutTest,
+                         ::testing::Bool());
 
 TEST_F(ShortcutConfiguratorTest,
        RegistersWindowCommandsAndExecutesDrawerAlias) {

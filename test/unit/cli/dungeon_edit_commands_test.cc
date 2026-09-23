@@ -24,6 +24,7 @@
 #include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/dungeon_torch_codec.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/oracle_rom_safety_preflight.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
@@ -43,6 +44,7 @@ constexpr int kObjectDataPc = 0x060000;
 constexpr int kObjectAllocationPc = 0x060100;
 constexpr int kObjectDataEndPc = 0x060200;
 constexpr int kSyntheticPotTerminatorPc = 0x00F000;
+constexpr int kChestTableDataPc = 0x00F100;
 constexpr int kRoomHeaderPointerTablePc = 0x020000;
 constexpr int kRoomHeaderDataPc = 0x021000;
 constexpr std::array<uint8_t, 14> kRoomHeaderSentinel = {
@@ -156,6 +158,45 @@ void WriteRomFile(const Rom& rom, const std::filesystem::path& path) {
   output.write(reinterpret_cast<const char*>(rom.data()),
                static_cast<std::streamsize>(rom.size()));
   ASSERT_TRUE(output.good());
+}
+
+// Everything a fail-closed dungeon edit must leave exactly as it found it.
+struct RomFailClosedBaseline {
+  std::vector<uint8_t> bytes;
+  size_t size = 0;
+  bool dirty = false;
+  std::string filename;
+  std::vector<uint8_t> disk_bytes;
+  std::filesystem::path rom_path;
+};
+
+RomFailClosedBaseline CaptureRomFailClosedBaseline(
+    const Rom& rom, const std::filesystem::path& rom_path) {
+  return RomFailClosedBaseline{.bytes = rom.vector(),
+                               .size = rom.size(),
+                               .dirty = rom.dirty(),
+                               .filename = rom.filename(),
+                               .disk_bytes = ReadFile(rom_path),
+                               .rom_path = rom_path};
+}
+
+// Asserts the documented fail-closed contract: the command still emits
+// balanced, parseable JSON, and neither the caller's ROM, its file, nor any
+// backup artifact changed. Returns the parsed output so callers can assert on
+// the structured diagnostics the failing command reported.
+nlohmann::json ExpectRomFailedClosed(const std::string& output, const Rom& rom,
+                                     const RomFailClosedBaseline& baseline) {
+  auto result = nlohmann::json::parse(output, nullptr,
+                                      /*allow_exceptions=*/false);
+  EXPECT_FALSE(result.is_discarded()) << output;
+  EXPECT_EQ(rom.vector(), baseline.bytes);
+  EXPECT_EQ(rom.size(), baseline.size);
+  EXPECT_EQ(rom.dirty(), baseline.dirty);
+  EXPECT_EQ(rom.filename(), baseline.filename);
+  EXPECT_EQ(ReadFile(baseline.rom_path), baseline.disk_bytes);
+  EXPECT_EQ(CountBackupArtifacts(baseline.rom_path), 0);
+  EXPECT_FALSE(std::filesystem::exists(baseline.rom_path.string() + ".tmp"));
+  return result;
 }
 
 void WriteLong(Rom* rom, int address, uint32_t value) {
@@ -422,6 +463,39 @@ void InitializeDescribeRoomObjectsRom(Rom* rom) {
   rom->set_dirty(false);
 }
 
+// Room 0 gets an ordinary object followed by a stateful small chest (0xF99),
+// plus the matching global chest-table record so LoadObjects tags the chest
+// object with ObjectOption::Chest.
+void InitializeStatefulChestObjectRom(Rom* rom) {
+  InitializeTightObjectRom(rom);
+
+  constexpr int kOtherRoomsObjectDataPc = kObjectDataPc + 0x40;
+  for (int room_id = 1; room_id < zelda3::kNumberOfRooms; ++room_id) {
+    SetRoomObjectPointer(rom, room_id, kOtherRoomsObjectDataPc);
+  }
+  WriteEmptyObjectStream(rom, kOtherRoomsObjectDataPc);
+
+  std::vector<uint8_t> stream = {0x00, 0x00};
+  for (const auto& object : {zelda3::RoomObject(0x031, 1, 2, 6, 0),
+                             zelda3::RoomObject(0xF99, 3, 4, 6, 0)}) {
+    const auto bytes = object.EncodeObjectToBytes();
+    stream.push_back(bytes.b1);
+    stream.push_back(bytes.b2);
+    stream.push_back(bytes.b3);
+  }
+  stream.insert(stream.end(), {0xFF, 0xFF, 0xFF, 0xFF, 0xF0, 0xFF, 0xFF, 0xFF});
+  ASSERT_TRUE(rom->WriteVector(kObjectDataPc, std::move(stream)).ok());
+
+  WriteLong(rom, zelda3::kChestsDataPointer1, PcToSnes(kChestTableDataPc));
+  rom->mutable_data()[zelda3::kChestsLengthPointer] =
+      zelda3::kChestTableRecordSize;
+  rom->mutable_data()[zelda3::kChestsLengthPointer + 1] = 0x00;
+  rom->mutable_data()[kChestTableDataPc] = 0x00;
+  rom->mutable_data()[kChestTableDataPc + 1] = 0x00;
+  rom->mutable_data()[kChestTableDataPc + 2] = 0x24;
+  rom->set_dirty(false);
+}
+
 void WriteObjectCowManifest(const std::filesystem::path& path,
                             bool protect_allocation = false,
                             int protected_pc = -1,
@@ -678,6 +752,237 @@ TEST(DungeonEditCommandsTest, RemoveSpriteRejectsOutOfRangeCoordinates) {
       nullptr, &output);
 
   ExpectInvalidArgument(status, "X must be 0-31");
+}
+
+TEST(DungeonEditCommandsTest, RemoveObjectRejectsInvalidIndex) {
+  handlers::DungeonRemoveObjectCommandHandler handler;
+  std::string output;
+  const auto status =
+      handler.Run({"--mock-rom", "--room=0x00", "--index=nope",
+                   "--expect-id=0x031", "--expect-x=1", "--expect-y=2",
+                   "--expect-size=6", "--expect-layer=0", "--format=json"},
+                  nullptr, &output);
+
+  ExpectInvalidArgument(status, "Invalid integer for '--index'");
+}
+
+TEST(DungeonEditCommandsTest, RemoveObjectRejectsGuardMismatch) {
+  Rom rom;
+  InitializeDescribeRoomObjectsRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  WriteRomFile(rom, cleanup.rom_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+
+  handlers::DungeonRemoveObjectCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--room=0x00", "--index=0", "--expect-id=0x032",
+                   "--expect-x=1", "--expect-y=2", "--expect-size=6",
+                   "--expect-layer=0", "--write", "--format=json"},
+                  &rom, &output);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("Object guard mismatch at index 0"));
+  const auto result = ExpectRomFailedClosed(output, rom, baseline);
+  // The guard runs before any structured removal report is opened.
+  EXPECT_FALSE(result.contains("Remove Object"));
+}
+
+TEST(DungeonEditCommandsTest, RemoveObjectRejectsStatefulChest) {
+  Rom rom;
+  InitializeStatefulChestObjectRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  WriteRomFile(rom, cleanup.rom_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+
+  // Derive the guards from the loaded room so the rejection can only come from
+  // the chest guard, never from an incidental identity mismatch.
+  const zelda3::Room room = zelda3::LoadRoomFromRom(&rom, 0);
+  ASSERT_EQ(room.GetTileObjects().size(), 2u);
+  const auto& chest = room.GetTileObjects()[1];
+  ASSERT_TRUE(zelda3::UsesRoomObjectStream(chest));
+  ASSERT_TRUE((chest.options() & zelda3::ObjectOption::Chest) !=
+              zelda3::ObjectOption::Nothing);
+
+  const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+
+  handlers::DungeonRemoveObjectCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--room=0x00", "--index=1",
+                   absl::StrFormat("--expect-id=0x%03X", chest.id_),
+                   absl::StrFormat("--expect-x=%d", chest.x()),
+                   absl::StrFormat("--expect-y=%d", chest.y()),
+                   absl::StrFormat("--expect-size=%d", chest.size_),
+                   absl::StrFormat("--expect-layer=%d", chest.GetLayerValue()),
+                   "--write", "--format=json"},
+                  &rom, &output);
+
+  EXPECT_TRUE(absl::IsFailedPrecondition(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("Removing chest objects requires coordinated "
+                        "chest-table editing"));
+  const auto result = ExpectRomFailedClosed(output, rom, baseline);
+  EXPECT_FALSE(result.contains("Remove Object"));
+}
+
+TEST(DungeonEditCommandsTest, RemoveObjectIndexExcludesTableBackedObjects) {
+  Rom rom;
+  InitializeDescribeRoomObjectsRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  WriteRomFile(rom, cleanup.rom_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+
+  // The room holds three stream objects plus one table-backed torch, which the
+  // command's stream index must never be able to address.
+  const zelda3::Room room = zelda3::LoadRoomFromRom(&rom, 0);
+  ASSERT_EQ(room.GetTileObjects().size(), 4u);
+  const auto& torch = room.GetTileObjects()[3];
+  ASSERT_FALSE(zelda3::UsesRoomObjectStream(torch));
+
+  const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+
+  // Asking for the torch's own vector index and exact identity still fails as
+  // an out-of-range stream index.
+  handlers::DungeonRemoveObjectCommandHandler handler;
+  std::string torch_output;
+  const absl::Status torch_status =
+      handler.Run({"--room=0x00", "--index=3",
+                   absl::StrFormat("--expect-id=0x%03X", torch.id_),
+                   absl::StrFormat("--expect-x=%d", torch.x()),
+                   absl::StrFormat("--expect-y=%d", torch.y()),
+                   absl::StrFormat("--expect-size=%d", torch.size_),
+                   absl::StrFormat("--expect-layer=%d", torch.GetLayerValue()),
+                   "--write", "--format=json"},
+                  &rom, &torch_output);
+
+  EXPECT_TRUE(absl::IsOutOfRange(torch_status)) << torch_status;
+  EXPECT_THAT(std::string(torch_status.message()),
+              HasSubstr("Object index 3 out of range (room has 3 objects)"));
+  const auto torch_result = ExpectRomFailedClosed(torch_output, rom, baseline);
+  EXPECT_FALSE(torch_result.contains("Remove Object"));
+
+  // The last addressable stream index still resolves to the last stream
+  // object, proving the exclusion is not an off-by-one.
+  std::string last_output;
+  const absl::Status last_status = handler.Run(
+      {"--room=0x00", "--index=2", "--expect-id=0xF92", "--expect-x=3",
+       "--expect-y=4", "--expect-size=8", "--expect-layer=2", "--format=json"},
+      &rom, &last_output);
+
+  ASSERT_TRUE(last_status.ok()) << last_status;
+  const auto last_result = nlohmann::json::parse(last_output);
+  const auto& removal = last_result.at("Remove Object");
+  EXPECT_EQ(removal.at("object_id"), "0xF92");
+  EXPECT_EQ(removal.at("objects_before"), 3);
+  EXPECT_EQ(removal.at("objects_after"), 2);
+  EXPECT_EQ(removal.at("mode"), "dry-run");
+  EXPECT_EQ(removal.at("preflight_status"), "success");
+  EXPECT_EQ(rom.vector(), baseline.bytes);
+  EXPECT_FALSE(rom.dirty());
+  EXPECT_EQ(ReadFile(cleanup.rom_path), baseline.disk_bytes);
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 0);
+}
+
+TEST(DungeonEditCommandsTest,
+     RemoveObjectManifestConflictFailsClosedWithBalancedJson) {
+  Rom rom;
+  InitializeDescribeRoomObjectsRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  WriteRomFile(rom, cleanup.rom_path);
+  rom.set_filename(cleanup.rom_path.string());
+  rom.set_dirty(false);
+  ScopedFileCleanup manifest_cleanup(cleanup.rom_path.string() +
+                                     ".manifest.json");
+  WriteObjectCowManifest(manifest_cleanup.file_path,
+                         /*protect_allocation=*/true);
+  const auto baseline = CaptureRomFailClosedBaseline(rom, cleanup.rom_path);
+
+  handlers::DungeonRemoveObjectCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--index=0", "--expect-id=0x031", "--expect-x=1",
+       "--expect-y=2", "--expect-size=6", "--expect-layer=0",
+       "--manifest=" + manifest_cleanup.file_path.string(), "--write",
+       "--format=json"},
+      &rom, &output);
+
+  EXPECT_TRUE(absl::IsPermissionDenied(status)) << status;
+  EXPECT_THAT(std::string(status.message()),
+              HasSubstr("Write conflict with Hack Manifest"));
+
+  // The preflight failure happens after the removal report is opened, so the
+  // nested object must still be closed for the JSON to stay parseable.
+  const auto result = ExpectRomFailedClosed(output, rom, baseline);
+  ASSERT_TRUE(result.contains("Remove Object"));
+  const auto& removal = result.at("Remove Object");
+  EXPECT_EQ(removal.at("allocator_capability"), "copy_on_write");
+  EXPECT_EQ(removal.at("manifest_write_policy"), "block");
+  EXPECT_EQ(removal.at("objects_before"), 3);
+  EXPECT_EQ(removal.at("objects_after"), 2);
+  EXPECT_EQ(removal.at("mode"), "write");
+  EXPECT_EQ(removal.at("preflight_status"), "failed");
+  EXPECT_THAT(removal.at("preflight_error").get<std::string>(),
+              HasSubstr("Write conflict with Hack Manifest"));
+  EXPECT_FALSE(removal.contains("write_status"));
+  EXPECT_FALSE(removal.contains("save_status"));
+}
+
+TEST(DungeonEditCommandsTest, RemoveObjectDryRunPreflightsAndPreservesRom) {
+  Rom rom;
+  InitializeDescribeRoomObjectsRom(&rom);
+  const std::vector<uint8_t> before = rom.vector();
+
+  handlers::DungeonRemoveObjectCommandHandler handler;
+  std::string output;
+  const absl::Status status = handler.Run(
+      {"--room=0x00", "--index=0", "--expect-id=0x031", "--expect-x=1",
+       "--expect-y=2", "--expect-size=6", "--expect-layer=0", "--format=json"},
+      &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  const auto result = nlohmann::json::parse(output);
+  const auto& removal = result.at("Remove Object");
+  EXPECT_EQ(removal.at("object_id"), "0x031");
+  EXPECT_EQ(removal.at("objects_before"), 3);
+  EXPECT_EQ(removal.at("objects_after"), 2);
+  EXPECT_EQ(removal.at("mode"), "dry-run");
+  EXPECT_EQ(removal.at("preflight_status"), "success");
+  EXPECT_EQ(rom.vector(), before);
+}
+
+TEST(DungeonEditCommandsTest, RemoveObjectWriteSavesAndReopens) {
+  Rom rom;
+  InitializeDescribeRoomObjectsRom(&rom);
+  ScopedRomArtifactsCleanup cleanup(MakeUniqueTempRomPath());
+  WriteRomFile(rom, cleanup.rom_path);
+  rom.set_filename(cleanup.rom_path.string());
+
+  handlers::DungeonRemoveObjectCommandHandler handler;
+  std::string output;
+  const absl::Status status =
+      handler.Run({"--room=0x00", "--index=0", "--expect-id=0x031",
+                   "--expect-x=1", "--expect-y=2", "--expect-size=6",
+                   "--expect-layer=0", "--write", "--format=json"},
+                  &rom, &output);
+
+  ASSERT_TRUE(status.ok()) << status;
+  EXPECT_THAT(output, HasSubstr("\"preflight_status\": \"success\""));
+  EXPECT_THAT(output, HasSubstr("\"write_status\": \"success\""));
+  EXPECT_THAT(output, HasSubstr("\"save_status\": \"saved\""));
+  EXPECT_EQ(CountBackupArtifacts(cleanup.rom_path), 1);
+
+  Rom reopened;
+  ASSERT_TRUE(reopened.LoadFromFile(cleanup.rom_path.string()).ok());
+  const zelda3::Room room = zelda3::LoadRoomFromRom(&reopened, 0);
+  ASSERT_EQ(room.GetTileObjects().size(), 3u);
+  EXPECT_EQ(room.GetTileObjects()[0].id_, 0x112);
+  EXPECT_EQ(room.GetTileObjects()[1].id_, 0xF92);
 }
 
 TEST(DungeonEditCommandsTest, PlaceObjectRejectsInvalidSize) {

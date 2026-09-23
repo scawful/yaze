@@ -29,12 +29,17 @@ void ClearTraceHook() {
 
 void WriteTile8(gfx::BackgroundBuffer& bg, int tile_x, int tile_y,
                 const gfx::TileInfo& tile_info) {
-  if (!IsValidTilePosition(tile_x, tile_y)) {
+  // Rows 64-127 reach only a trace hook: the game's upper tilemap ($7E2000)
+  // runs straight into the lower one ($7E4000), so ObjectDrawer moves those
+  // writes to BG2 at row - 64.
+  const bool overflow_row = g_trace_state.hook != nullptr && tile_x >= 0 &&
+                            tile_x < 64 && tile_y >= 64 && tile_y < 128;
+  if (!IsValidTilePosition(tile_x, tile_y) && !overflow_row) {
     return;
   }
   if (g_trace_state.hook) {
     g_trace_state.hook(&bg, tile_x, tile_y, tile_info, g_trace_state.user_data);
-    if (g_trace_state.trace_only) {
+    if (g_trace_state.trace_only || overflow_row) {
       return;
     }
   }

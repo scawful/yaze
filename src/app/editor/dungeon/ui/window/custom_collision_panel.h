@@ -30,6 +30,7 @@ class CustomCollisionPanel : public WindowContent {
       : viewer_(viewer), interaction_(interaction) {}
 
   std::string GetId() const override { return "dungeon.custom_collision"; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
   std::string GetDisplayName() const override { return "Custom Collision"; }
   std::string GetIcon() const override { return ICON_MD_GRID_ON; }
   std::string GetEditorCategory() const override { return "Dungeon"; }

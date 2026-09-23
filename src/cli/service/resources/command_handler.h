@@ -8,6 +8,8 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/string_view.h"
 #include "cli/service/resources/command_context.h"
 #include "core/asar_wrapper.h"  // For AsarWrapper
 #include "core/project.h"       // For YazeProject
@@ -25,6 +27,16 @@ struct CommandInvocationContext {
   std::optional<std::filesystem::path> active_rom_path;
   bool sandbox_enabled = false;
 };
+
+// Resolve an artifact destination once and reject aliases of either ROM used
+// by the invocation, including the original source when sandboxing is enabled.
+absl::StatusOr<std::filesystem::path> ResolveStableArtifactPath(
+    const std::filesystem::path& path);
+absl::StatusOr<bool> PathsAlias(const std::filesystem::path& lhs,
+                                const std::filesystem::path& rhs);
+absl::Status RejectArtifactRomAliases(
+    absl::string_view option_name, const std::filesystem::path& artifact_path,
+    const CommandInvocationContext& invocation_context);
 
 /**
  * @class CommandHandler

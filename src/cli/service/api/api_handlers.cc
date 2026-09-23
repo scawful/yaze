@@ -2,9 +2,10 @@
 
 #include <algorithm>
 #include <cctype>
-#include <sstream>
-
+#include <filesystem>
 #include <fstream>
+#include <sstream>
+#include <system_error>
 
 #include "absl/status/status.h"
 #include "app/emu/debug/symbol_provider.h"
@@ -376,16 +377,19 @@ void HandleRenderDungeon(const httplib::Request& req, httplib::Response& res,
     }
   }
 
-  // Parse scale (clamped 0.25–8.0, default 1.0).
+  // Parse scale strictly; malformed requests must not silently render at 1x.
   float scale = 1.0f;
   if (req.has_param("scale")) {
-    try {
-      scale = std::stof(req.get_param_value("scale"));
-      if (scale < 0.25f)
-        scale = 0.25f;
-      if (scale > 8.0f)
-        scale = 8.0f;
-    } catch (...) {}
+    const auto scale_or =
+        yaze::app::service::ParseRenderScale(req.get_param_value("scale"));
+    if (!scale_or.ok()) {
+      json j;
+      j["error"] = std::string(scale_or.status().message());
+      res.status = 400;
+      res.set_content(j.dump(), "application/json");
+      return;
+    }
+    scale = *scale_or;
   }
 
   yaze::app::service::RenderRequest render_req;
@@ -590,13 +594,14 @@ bool SaveAnnotationsFile(const std::string& path, const json& data) {
   if (path.empty())
     return false;
 
-  // Ensure parent directory exists
-  auto last_slash = path.find_last_of('/');
-  if (last_slash != std::string::npos) {
-    std::string dir = path.substr(0, last_slash);
-    // Use mkdir -p equivalent (simple approach)
-    std::string cmd = "mkdir -p '" + dir + "'";
-    (void)system(cmd.c_str());
+  const std::filesystem::path parent =
+      std::filesystem::path(path).parent_path();
+  if (!parent.empty()) {
+    std::error_code error;
+    std::filesystem::create_directories(parent, error);
+    if (error) {
+      return false;
+    }
   }
 
   std::ofstream file(path);

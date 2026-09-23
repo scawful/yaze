@@ -9,6 +9,9 @@
 // If any write fails before Commit, subsequent operations are skipped and
 // Commit() will Rollback() previously applied writes in reverse order.
 
+#ifndef YAZE_ROM_TRANSACTION_H_
+#define YAZE_ROM_TRANSACTION_H_
+
 #include <cstdint>
 #include <string>
 #include <variant>
@@ -207,3 +210,5 @@ class ScopedRomTransaction {
 };
 
 }  // namespace yaze
+
+#endif  // YAZE_ROM_TRANSACTION_H_

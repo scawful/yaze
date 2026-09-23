@@ -15,6 +15,8 @@
 namespace yaze {
 namespace zelda3 {
 
+struct SpriteOamLayout;
+
 // Sprite names defined in sprite.cc to avoid static initialization order issues
 extern const std::string kSpriteDefaultNames[256];
 // Expanded names (from hmagic sprname.dat, 0x11c entries). Might differ in
@@ -85,7 +87,10 @@ class Sprite : public GameEntity {
   }
 
   void Draw();
-  void RenderPreviewGraphics(std::span<const uint8_t> graphics);
+  // Optional source-backed static layout; omitted layouts keep vanilla drawing.
+  void RenderPreviewGraphics(std::span<const uint8_t> graphics,
+                             const SpriteOamLayout* layout_override = nullptr,
+                             std::span<const uint8_t> graphics_resource = {});
   void ClearPreviewGraphics();
   void DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
                       bool mirror_x = false, bool mirror_y = false,
@@ -96,6 +101,9 @@ class Sprite : public GameEntity {
   void UpdateCoordinates(int map_x, int map_y);
 
   auto preview_graphics() const { return &preview_gfx_; }
+  // Pixel-buffer extent relative to the sprite's room anchor. External
+  // previews may grow beyond the legacy 64x64 extent; use w as the row stride.
+  SDL_Rect preview_bounds() const { return preview_bounds_; }
   auto id() const { return id_; }
   auto set_id(uint8_t id) { id_ = id; }
   auto x() const { return x_; }
@@ -119,7 +127,8 @@ class Sprite : public GameEntity {
 
   auto width() const { return width_; }
   auto height() const { return height_; }
-  auto name() { return name_; }
+  // By value so `auto n = sprite.name()` stays an owning copy.
+  auto name() const { return name_; }
   auto deleted() const { return deleted_; }
   auto set_deleted(bool deleted) { deleted_ = deleted; }
   auto set_key_drop(int key) { key_drop_ = key; }
@@ -135,11 +144,11 @@ class Sprite : public GameEntity {
  private:
   uint8_t overworld_x_flags_ = 0;
   uint8_t overworld_y_flags_ = 0;
-  uint8_t map_id_;
-  uint8_t game_state_;
-  uint8_t id_;
-  uint8_t nx_;
-  uint8_t ny_;
+  uint8_t map_id_ = 0;
+  uint8_t game_state_ = 0;
+  uint8_t id_ = 0;
+  uint8_t nx_ = 0;
+  uint8_t ny_ = 0;
   uint8_t overlord_ = 0;
   uint8_t lower_x_ = 32;
   uint8_t lower_y_ = 32;
@@ -155,15 +164,18 @@ class Sprite : public GameEntity {
   int key_drop_ = 0;
 
   bool deleted_ = false;
-  bool overworld_;
+  bool overworld_ = false;
 
   std::string name_;
+  static constexpr SDL_Rect kDefaultPreviewBounds = {-16, -16, 64, 64};
+  SDL_Rect preview_bounds_ = kDefaultPreviewBounds;
+  bool measuring_preview_bounds_ = false;
   std::vector<uint8_t> preview_gfx_;
   std::vector<uint8_t> current_gfx_;
   const uint8_t* external_gfx_ = nullptr;
   size_t external_gfx_size_ = 0;
 
-  SDL_Rect bounding_box_;
+  SDL_Rect bounding_box_{};
 };
 
 }  // namespace zelda3

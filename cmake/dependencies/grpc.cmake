@@ -492,6 +492,7 @@ CPMAddPackage(
   GIT_TAG v${GRPC_VERSION_TO_USE}
   GIT_SUBMODULES ""
   GIT_SHALLOW TRUE
+  EXCLUDE_FROM_ALL TRUE
 )
 
 # Re-enable installation rules after gRPC is loaded

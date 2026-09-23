@@ -7,7 +7,6 @@
 ## What Changed
 
 - `CMakePresets.json` now routes configure presets into `build/presets/${presetName}`.
-- `CMakePresets-simple.json` follows the same centralized layout.
 - `CMakeUserPresets.json.example` now uses `$env{YAZE_BUILD_ROOT}/${presetName}`.
 - `.clangd` now points at `build/presets/mac-ai` for the compile database.
 - Editor/shell helpers were updated outside this repo to use presets instead of hardcoded `build_ai` and `build_test` paths.
@@ -78,7 +77,6 @@ ctest --preset fast --output-on-failure
 ## Reference Files
 
 - `CMakePresets.json`
-- `CMakePresets-simple.json`
 - `CMakeUserPresets.json.example`
 - `.clangd`
 - `docs/internal/hand-off/HANDOFF_PRESET_BUILD_ROOT_2026-04-06.md`

@@ -99,7 +99,6 @@ absl::Status RoomLayout::Draw(int room_id, const uint8_t* gfx_data,
   }
 
   ObjectDrawer drawer(rom_, room_id, gfx_data);
-  drawer.SetAllowTrackCornerAliases(false);
   drawer.SetBG1RevealMaskSource(gfx::BG1RevealMaskSource::kBG2Layout);
   drawer.SetRoomFloorGraphics(floor1_graphics, floor2_graphics);
 
@@ -110,8 +109,7 @@ absl::Status RoomLayout::Draw(int room_id, const uint8_t* gfx_data,
 
   // ALTTP enters the room-layout stream with the upper tilemap pointer active.
   // Object IDs do not reroute the destination tilemap; their draw routines use
-  // the current stream pointer. Keep track-corner aliases disabled so vanilla
-  // structural wall corners survive.
+  // the current stream pointer.
   return drawer.DrawObjectList(render_objects, bg1, bg2, palette_group, state);
 }
 

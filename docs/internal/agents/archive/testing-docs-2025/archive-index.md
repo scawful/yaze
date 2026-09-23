@@ -2,6 +2,16 @@
 
 This directory contains testing-related documentation that was archived during a comprehensive cleanup of `/docs/internal/testing/` to reduce duplication and improve maintainability.
 
+## Later additions
+
+- **master-testing-doc-2026-04-06.md** — archived 2026-09-16. Was
+  `docs/internal/testing/README.md`. Its commands (`./build/bin/yaze_test --unit`,
+  `--e2e`, `--benchmark`, `ctest --preset dev`) and `CLAUDE_*` ownership no longer
+  matched the repository. Canonical replacements: `test/README.md` for how to run
+  tests, `docs/internal/testing/overview.md` for CI strategy, and
+  `docs/internal/testing/configuration.md` for suite gating. The current
+  `docs/internal/testing/README.md` is now a thin index over those.
+
 ## Archive Rationale
 
 The testing directory contained 25 markdown files with significant duplication of content from:

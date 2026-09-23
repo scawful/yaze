@@ -22,6 +22,7 @@ class MapPropertiesPanel : public EditorPanel {
 
   // EditorPanel interface
   std::string GetId() const override { return "overworld.properties"; }
+  std::string GetWorkflowGroup() const override { return "Core"; }
   std::string GetDisplayName() const override { return "Map Properties"; }
   std::string GetIcon() const override { return ICON_MD_TUNE; }
   std::string GetEditorCategory() const override { return "Overworld"; }

@@ -72,6 +72,17 @@ bool EditorRegistry::UpdateAllowedWithoutLoadedRom(EditorType type) {
   }
 }
 
+bool EditorRegistry::IsExperimentalEditor(EditorType type) {
+  switch (type) {
+    case EditorType::kScreen:
+    case EditorType::kMusic:
+    case EditorType::kAgent:
+      return true;
+    default:
+      return false;
+  }
+}
+
 std::string EditorRegistry::GetEditorName(EditorType type) {
   auto it = kEditorNames.find(type);
   if (it != kEditorNames.end()) {

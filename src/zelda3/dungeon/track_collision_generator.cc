@@ -254,10 +254,9 @@ absl::StatusOr<TrackCollisionResult> GenerateTrackCollision(
     return absl::InvalidArgumentError("Room pointer is null");
   }
 
-  // Ensure objects are loaded
-  if (room->GetTileObjects().empty()) {
-    room->LoadObjects();
-  }
+  // An empty object list can be a valid unsaved edit. The explicit loaded flag
+  // is the only safe authority for deciding whether ROM data must be parsed.
+  room->EnsureObjectsLoaded();
 
   TrackCollisionResult result;
   result.room_id = room->id();
@@ -272,6 +271,10 @@ absl::StatusOr<TrackCollisionResult> GenerateTrackCollision(
 
   for (const auto& obj : room->GetTileObjects()) {
     if (obj.id_ != static_cast<int16_t>(options.track_object_id)) {
+      continue;
+    }
+    const int subtype = obj.size_ & 0x1F;
+    if (!IsMinecartTrackGraphicsSubtype(options.track_object_id, subtype)) {
       continue;
     }
 

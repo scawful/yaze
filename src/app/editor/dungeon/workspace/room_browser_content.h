@@ -51,13 +51,15 @@ class RoomBrowserContent : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_LIST; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 20; }
+  std::string GetWorkflowGroup() const override { return "Core"; }
 
   // ==========================================================================
   // WindowContent Drawing
   // ==========================================================================
 
   void Draw(bool* p_open) override {
-    if (!selector_) return;
+    if (!selector_)
+      return;
 
     // Draw just the room selector (no tabs)
     selector_->DrawRoomSelector(RoomSelectionIntent::kOpenStandalone);

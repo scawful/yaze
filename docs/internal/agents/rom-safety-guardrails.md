@@ -23,13 +23,18 @@ This repo is used to edit ROM hacks (including Oracle of Secrets). Treat ROM wri
   has no previous bytes to back up. A completed required backup is retained if
   the later target write fails, so recovery bytes remain available.
 - `dungeon-place-sprite`, `dungeon-remove-sprite`, `dungeon-place-object`,
-  `dungeon-set-palette-color`, `dungeon-set-door-type`,
+  `dungeon-remove-object`, `dungeon-set-palette-color`, `dungeon-set-door-type`,
   `dungeon-set-pot-item`,
   `dungeon-set-collision-tile`, and `dungeon-set-room-property` wrap their
   serializer or fixed-width write,
   required backup, and disk commit in `ScopedRomTransaction`. Any failure
   before a successful disk commit restores the caller's ROM bytes, filename,
   size, and dirty state.
+- `dungeon-remove-object` requires exact stream-index, ID, coordinate, size,
+  and layer guards. Both dry-run and write exercise the same object-stream
+  save path; shared or relocation-requiring streams need a `copy_on_write`
+  manifest. Table-backed torch/block objects and chest objects fail closed
+  because their removal requires coordinated non-stream edits.
 - `dungeon-get-palette` follows the room header's full 8-bit palette-set ID
   through `0x75460` and `0xDEC4B`, rejects malformed referenced mappings, and
   reports every room resolving to the same shared global palette. It proves

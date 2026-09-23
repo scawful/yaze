@@ -1,9 +1,9 @@
 # Forest Light Theme
-# Light-mode companion to Forest. Warm cream background with deep forest greens.
+# Light-mode companion to Forest with calm parchment surfaces.
 name=Forest Light
-description=Forest's green palette in light mode — warm parchment feel
+description=Calm parchment workspace with forest-green accents
 author=YAZE Team
-version=1.0
+version=2.0
 
 [colors]
 # Primary colors — deeper forest greens for light-bg contrast
@@ -29,10 +29,10 @@ window_bg=250,245,232,250
 child_bg=240,233,215,220
 popup_bg=252,248,238,255
 
-# Interactive elements
-button=225,215,195,255
-button_hovered=195,210,180,255
-button_active=145,180,140,255
+# Neutral controls reserve green for hover and active states.
+button=232,226,211,255
+button_hovered=211,220,201,255
+button_active=174,198,168,255
 frame_bg=235,228,210,240
 frame_bg_hovered=220,215,195,245
 frame_bg_active=190,195,170,255
@@ -50,9 +50,9 @@ title_bg_active=215,220,195,255
 title_bg_collapsed=232,225,207,255
 
 # Borders and separators
-border=55,110,75,255
+border=72,102,80,110
 border_shadow=0,0,0,0
-separator=150,160,135,180
+separator=132,143,124,120
 separator_hovered=105,140,110,220
 separator_active=35,95,60,255
 
@@ -74,8 +74,8 @@ slider_grab_active=35,95,60,255
 
 # Tables
 table_header_bg=230,225,205,255
-table_border_strong=150,160,135,255
-table_border_light=225,215,195,255
+table_border_strong=118,136,116,150
+table_border_light=202,196,181,120
 table_row_bg=0,0,0,0
 table_row_bg_alt=0,0,0,15
 
@@ -96,7 +96,7 @@ docking_preview=55,110,75,180
 docking_empty_bg=240,233,215,255
 
 # Tree lines
-tree_lines=170,180,150,153
+tree_lines=132,143,124,105
 
 # Tab variations
 tab_dimmed=240,232,214,255

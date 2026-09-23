@@ -13,6 +13,7 @@
 #include "cli/handlers/game/dungeon_collision_commands.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "unique_temp_path.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/water_fill_zone.h"
 
@@ -120,9 +121,9 @@ TEST(OracleRomSafetyPreflightTest, SucceedsWhenRequiredRoomHasCollisionData) {
   {
     const std::string json =
         R"({"version":1,"rooms":[{"room_id":"0x32","tiles":[[100,184]]}]})";
-    const auto tmp = (std::filesystem::temp_directory_path() /
-                      "yaze_prison_preflight_ok.json")
-                         .string();
+    const auto tmp =
+        ::yaze::test::UniqueTempPath("yaze_prison_preflight_ok", ".json")
+            .string();
     std::ofstream out_file(tmp,
                            std::ios::out | std::ios::binary | std::ios::trunc);
     out_file << json;

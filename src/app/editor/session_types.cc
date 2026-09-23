@@ -95,6 +95,17 @@ void EditorSet::ApplyDependencies(const EditorDependencies& dependencies) {
   }
 }
 
+void EditorSet::PrepareForSessionTeardown() {
+  if (session_teardown_prepared_) {
+    return;
+  }
+  session_teardown_prepared_ = true;
+  for (auto& [type, editor] : editors_) {
+    (void)type;
+    editor->PrepareForSessionTeardown();
+  }
+}
+
 Editor* EditorSet::GetEditor(EditorType type) const {
   return EnsureEditorCreated(type);
 }

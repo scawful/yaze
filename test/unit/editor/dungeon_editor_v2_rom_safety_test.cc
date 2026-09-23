@@ -1228,6 +1228,62 @@ TEST(DungeonEditorV2RomSafetyTest,
   EXPECT_EQ(zones[0].fill_offsets[0], 65u);
 }
 
+TEST(DungeonEditorV2RomSafetyTest,
+     SaveRejectsSplitChestObjectAndRewardFlagsBeforeMutation) {
+  for (const bool save_objects : {false, true}) {
+    for (const bool apply_room : {false, true}) {
+      SCOPED_TRACE(::testing::Message() << "objects=" << save_objects
+                                        << " apply_room=" << apply_room);
+      Rom rom;
+      ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+      SetupRoomObjectPointers(rom);
+      SetupChestTable(rom);
+      auto editor = std::make_unique<DungeonEditorV2>(&rom);
+      auto& room = editor->rooms()[0];
+      room.SetLoaded(true);
+      room.MarkObjectStreamDirty();
+      room.MarkChestsDirty();
+      DungeonSaveFlagsGuard guard;
+      ConfigureMinimalDungeonSave();
+      auto& flags = core::FeatureFlags::get().dungeon;
+      flags.kSaveObjects = save_objects;
+      flags.kSaveChests = !save_objects;
+      const auto before = rom.vector();
+      const auto status = apply_room ? editor->SaveRoom(0) : editor->Save();
+      EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+      EXPECT_NE(std::string(status.message()).find("chest object and reward"),
+                std::string::npos);
+      EXPECT_EQ(rom.vector(), before);
+      EXPECT_TRUE(room.object_stream_dirty());
+      EXPECT_TRUE(room.chests_dirty());
+    }
+  }
+}
+
+TEST(DungeonEditorV2RomSafetyTest,
+     ApplyRoomRejectsOtherRoomsPendingChestObjectAndRewardEdit) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  SetupRoomObjectPointers(rom);
+  SetupChestTable(rom);
+  auto editor = std::make_unique<DungeonEditorV2>(&rom);
+  auto& other = editor->rooms()[1];
+  other.SetLoaded(true);
+  other.MarkObjectStreamDirty();
+  other.MarkChestsDirty();
+  DungeonSaveFlagsGuard guard;
+  ConfigureMinimalDungeonSave();
+  core::FeatureFlags::get().dungeon.kSaveChests = true;
+  const auto before = rom.vector();
+  const auto status = editor->SaveRoom(0);
+  EXPECT_EQ(status.code(), absl::StatusCode::kFailedPrecondition) << status;
+  EXPECT_NE(std::string(status.message()).find("Room 0x001"),
+            std::string::npos);
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_TRUE(other.object_stream_dirty());
+  EXPECT_TRUE(other.chests_dirty());
+}
+
 TEST(DungeonEditorV2RomSafetyTest, SaveWritesChestsWhenEnabled) {
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());

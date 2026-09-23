@@ -37,6 +37,7 @@
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_entrance.h"
 #include "zelda3/dungeon/room_object.h"
+#include "zelda3/dungeon/track_collision_generator.h"
 #include "zelda3/game_data.h"
 
 namespace yaze {
@@ -52,6 +53,7 @@ class DungeonEditorV2ShortcutTestPeer;
 class DungeonEditorV2SpawnPointTestPeer;
 class DungeonEditorV2SpawnRejectionTestPeer;
 class MinecartTrackEditorPanel;
+class ObjectCoveragePanel;
 class ObjectTileEditorPanel;
 class OverlayManagerPanel;
 class PaletteEditorContent;
@@ -103,6 +105,7 @@ class DungeonEditorV2 : public Editor {
   explicit DungeonEditorV2(Rom* rom = nullptr);
 
   ~DungeonEditorV2() override;
+  void PrepareForSessionTeardown() override;
 
   void SetGameData(zelda3::GameData* game_data) override {
     game_data_ = game_data;
@@ -147,6 +150,21 @@ class DungeonEditorV2 : public Editor {
   void CommitSaveTransaction() override;
   void ContributeStatus(StatusBar* status_bar) override;
   absl::Status SaveRoom(int room_id);
+  // Discrete room property edits share the dungeon undo history in both views.
+  absl::StatusOr<DungeonConnectionPlan> PreviewDoorConnection(
+      const DungeonConnectionRequest& request);
+  absl::Status ApplyDoorConnection(const DungeonConnectionPlan& plan);
+  absl::StatusOr<std::string> ExportRoomDocument(int room_id);
+  absl::StatusOr<DungeonRoomTransferPlan> PreviewRoomTransfer(
+      int target_room_id, int source_room_id, const std::string& json,
+      const DungeonRoomTransferOptions& options);
+  absl::Status ApplyRoomTransfer(const DungeonRoomTransferPlan& plan);
+  absl::Status EditRoomMetadata(int room_id, const RoomMetadataEdit& edit);
+  absl::Status EditRoomMetadataBatch(
+      const std::vector<RoomMetadataRequest>& requests);
+  absl::Status EditChest(int room_id, size_t index, uint8_t item_id,
+                         bool big_chest);
+  absl::Status DeleteChest(int room_id, size_t index);
   int LoadedRoomCount() const;
   // Room-specific pending state used by room counts and room-level UI.
   int PendingRoomCount() const;
@@ -211,6 +229,10 @@ class DungeonEditorV2 : public Editor {
     }
   }
 
+  // Create and register the project-only Minecart Tracks surface on demand.
+  // This supports enabling custom objects after the Dungeon editor has loaded.
+  absl::Status EnsureMinecartTrackEditorPanel();
+
   // Explicit workflow toggle between integrated Workbench and standalone panels.
   void SetWorkbenchWorkflowMode(bool enabled, bool show_toast = true);
   // Queue a workflow mode change to run at a safe point in the next update.
@@ -233,6 +255,8 @@ class DungeonEditorV2 : public Editor {
   static constexpr const char* kObjectToolsId = kObjectSelectorId;
   static constexpr const char* kDoorEditorId = "dungeon.door_editor";
   static constexpr const char* kPaletteEditorId = "dungeon.palette_editor";
+  static constexpr const char* kMinecartTrackEditorId =
+      "dungeon.minecart_tracks";
 
   // Public accessors for WASM API and automation
   int current_room_id() const { return room_selector_.current_room_id(); }
@@ -261,7 +285,13 @@ class DungeonEditorV2 : public Editor {
   const std::deque<int>& GetRecentRooms() const { return recent_rooms_; }
 
  private:
+  friend class DungeonCanvasViewerTestPeer;
   friend class DungeonEditorPaletteRefreshTestPeer;
+  friend class DungeonEditorEntityUndoTestPeer;
+  friend class DungeonRoomEditsTestPeer;
+  friend class DungeonSelectionEditsTestPeer;
+  friend class DungeonConnectionEditsTestPeer;
+  friend class DungeonRoomTransferTestPeer;
   friend class DungeonEditorV2MinecartTrackTestPeer;
   friend class DungeonEditorV2ObjectTileEditorTestPeer;
   friend class DungeonEditorV2RegularEntranceTestPeer;
@@ -303,6 +333,13 @@ class DungeonEditorV2 : public Editor {
   // Room selection callback
   void OnRoomSelected(int room_id, bool request_focus = true);
   void OnRoomSelected(int room_id, RoomSelectionIntent intent);
+  // Opens `room_id` and selects its placed object `object_index`. If the room
+  // changed since the index was built, falls back to the first object with
+  // `object_id`.
+  void NavigateToPlacedObject(int room_id, size_t object_index, int object_id);
+  // Object Coverage wiring, in dungeon_editor_v2_object_coverage.cc.
+  std::unique_ptr<ObjectCoveragePanel> CreateObjectCoveragePanel();
+  void FocusObjectCoverage(int room_id, const zelda3::RoomObject& object);
   void OnEntranceSelected(int entrance_id);
   int ResolveEntranceRoomId(int entrance_id) const;
 
@@ -318,6 +355,7 @@ class DungeonEditorV2 : public Editor {
   void ConfigureViewerRenderContext(DungeonCanvasViewer* viewer, int room_id);
   void WireViewerPanelCallbacks(DungeonCanvasViewer* viewer);
   void ConfigureMinecartProjectCallbacks();
+  void SynchronizeCustomObjectAssets();
 
   // Show or create a standalone room panel
   void ShowRoomPanel(int room_id);
@@ -344,6 +382,7 @@ class DungeonEditorV2 : public Editor {
   void RemoveViewerFromLru(int room_id);
 
   absl::Status SaveRoomData(int room_id);
+  absl::Status SaveRoomImpl(int room_id, bool room_data_only);
   absl::Status RunWithSaveTransaction(
       const std::function<absl::Status()>& operation);
 
@@ -413,6 +452,7 @@ class DungeonEditorV2 : public Editor {
   class ItemEditorPanel* item_editor_panel_ = nullptr;
   class MinecartTrackEditorPanel* minecart_track_editor_panel_ = nullptr;
   class RoomTagEditorPanel* room_tag_editor_panel_ = nullptr;
+  class ObjectCoveragePanel* object_coverage_panel_ = nullptr;
   class CustomCollisionPanel* custom_collision_panel_ = nullptr;
   class WaterFillPanel* water_fill_panel_ = nullptr;
   ObjectTileEditorPanel* object_tile_editor_panel_ = nullptr;
@@ -424,6 +464,7 @@ class DungeonEditorV2 : public Editor {
   std::unique_ptr<ObjectEditorContent> owned_object_editor_content_;
   std::unique_ptr<DoorEditorContent> owned_door_editor_panel_;
   std::unique_ptr<RoomTagEditorPanel> owned_room_tag_editor_panel_;
+  std::unique_ptr<ObjectCoveragePanel> owned_object_coverage_panel_;
   std::unique_ptr<CustomCollisionPanel> owned_custom_collision_panel_;
   std::unique_ptr<WaterFillPanel> owned_water_fill_panel_;
   std::unique_ptr<MinecartTrackEditorPanel> owned_minecart_track_editor_panel_;
@@ -431,6 +472,8 @@ class DungeonEditorV2 : public Editor {
   std::unique_ptr<emu::render::EmulatorRenderService> render_service_;
 
   bool is_loaded_ = false;
+  uint64_t observed_custom_object_generation_ = 0;
+  bool observed_custom_objects_enabled_ = false;
 
   // Docking class for room windows to dock together
   ImGuiWindowClass room_window_class_;
@@ -453,11 +496,26 @@ class DungeonEditorV2 : public Editor {
   struct PendingUndo {
     int room_id = -1;
     std::vector<zelda3::RoomObject> before_objects;
+    std::vector<chest_data> before_chests;
     std::vector<size_t> before_selection;
   };
   PendingUndo pending_undo_;
   bool has_pending_undo_ = false;
   bool undo_restore_triggered_ping_ = false;
+
+  struct PendingSelectionUndo {
+    std::optional<DungeonSelectionEditPlan> plan;
+    zelda3::Room::SaveDirtySnapshot dirty_before;
+  };
+  PendingSelectionUndo pending_selection_undo_;
+
+  struct PendingEntityUndo {
+    int room_id = -1;
+    DungeonEntitySnapshot before;
+  };
+  // Doors, sprites and pot items can be dragged together; keep each domain's
+  // original snapshot until its corresponding completion notification.
+  std::array<PendingEntityUndo, 3> pending_entity_undo_;
 
   struct PendingCollisionUndo {
     int room_id = -1;
@@ -506,14 +564,56 @@ class DungeonEditorV2 : public Editor {
   // FinalizeUndoAction captures state after mutation and pushes the action.
   void BeginUndoSnapshot(int room_id);
   void FinalizeUndoAction(int room_id);
-  void RestoreRoomObjects(int room_id,
-                          const std::vector<zelda3::RoomObject>& objects,
-                          const std::vector<size_t>& selected_indices);
+  absl::Status RestoreRoomObjects(
+      int room_id, const std::vector<zelda3::RoomObject>& objects,
+      const std::vector<size_t>& selected_indices,
+      const std::vector<chest_data>& chests);
+  absl::Status PreflightObjectMutation(
+      int room_id, const std::vector<zelda3::RoomObject>& objects,
+      const std::vector<chest_data>& chests);
+  absl::Status ApplyChestObjectEdit(
+      int room_id, const std::vector<zelda3::RoomObject>& objects,
+      const std::vector<chest_data>& chests,
+      const std::vector<size_t>& selection);
+
+  absl::Status CommitSelectionEdit(const DungeonSelectionEditPlan& plan,
+                                   bool continuous);
+  void FinalizeSelectionUndoAction();
+  absl::Status RestoreSelectionEditBatch(
+      const std::vector<DungeonSelectionEditPlan>& plans, bool after);
+  absl::Status EnsureConnectionRoomLoaded(int room_id);
+  absl::Status EnsureRoomTransferLoaded(int room_id);
+  absl::Status PreflightRoomTransfer(const DungeonRoomTransferPlan& plan);
+  absl::Status RestoreRoomTransfer(int room_id,
+                                   const DungeonRoomDocument& document);
+  void RefreshSelectionEditViews(int room_id,
+                                 const DungeonSelectionEditState* selection);
+  void PushSelectionUndoAction(DungeonSelectionEditPlan plan);
+  void PushSelectionUndoBatch(std::vector<DungeonSelectionEditPlan> plans,
+                              std::string description);
+  void ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer);
+  void FinalizePendingUndoActions();
+  absl::Status RestoreRoomMetadataBatch(
+      const std::vector<std::pair<int, zelda3::Room::MetadataSnapshot>>&
+          states);
+  absl::Status RestoreChest(int room_id, size_t index, chest_data chest);
+  void RefreshRoomMetadataViews(int room_id);
+  DungeonEntitySnapshot CaptureRoomEntities(int room_id, MutationDomain domain);
+  void BeginEntityUndoSnapshot(int room_id, MutationDomain domain);
+  void FinalizeEntityUndoAction(int room_id, MutationDomain domain);
+  void FinalizePendingEntityUndoActions();
+  absl::Status RestoreRoomEntities(int room_id, MutationDomain domain,
+                                   const DungeonEntitySnapshot& snapshot);
 
   void BeginCollisionUndoSnapshot(int room_id);
   void FinalizeCollisionUndoAction(int room_id);
   void RestoreRoomCustomCollision(int room_id,
                                   const zelda3::CustomCollisionMap& map);
+  absl::Status ApplyMinecartCollisionBatch(
+      const std::vector<zelda3::TrackCollisionResult>& preview,
+      const zelda3::GeneratorOptions& options);
+  absl::Status RestoreRoomCustomCollisionBatch(
+      const std::vector<DungeonCustomCollisionSnapshot>& snapshots);
 
   void BeginWaterFillUndoSnapshot(int room_id);
   void FinalizeWaterFillUndoAction(int room_id);

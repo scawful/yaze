@@ -53,6 +53,8 @@ constexpr int kRoomItemsPointers = 0xDB69;      // JP 0xDB67
 constexpr int kRoomItemsDataEnd = 0xE6B2;       // Exclusive PC boundary
 constexpr int kRoomsSpritePointer = 0x4C298;    // JP Same (2-byte bank 09D62E)
 constexpr int kSpriteBlocksetPointer = 0x5B57;  // Sprite graphics pointer
+// Dungeon IDs index the 144-entry graphics table after its first 64 groups.
+constexpr int kMaxDungeonSpriteset = 0x4F;
 
 // === Graphics Data ===
 constexpr int kGfxGroupsPointer = 0x6237;    // Graphics group table

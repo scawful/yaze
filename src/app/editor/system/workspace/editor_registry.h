@@ -35,6 +35,11 @@ class EditorRegistry {
    * is loaded (e.g. Graphics prototype lab, Assembly folder editing).
    */
   static bool UpdateAllowedWithoutLoadedRom(EditorType type);
+  /**
+   * Editors still marked experimental / in-development. Gated behind
+   * Preferences::show_experimental_editors unless already active.
+   */
+  static bool IsExperimentalEditor(EditorType type);
   static std::string GetEditorName(EditorType type);
   static std::string GetEditorCategory(EditorType type);
   static EditorType GetEditorTypeFromCategory(const std::string& category);

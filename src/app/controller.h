@@ -12,6 +12,7 @@
 #include "app/editor/editor_manager.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/platform/iwindow.h"
+#include "app/service/screenshot_utils.h"
 #include "rom/rom.h"
 
 int main(int argc, char** argv);
@@ -34,6 +35,8 @@ class Controller {
  public:
   struct ScreenshotRequest {
     std::string preferred_path;
+    std::string window_title;
+    test::ScreenshotFormat format = test::ScreenshotFormat::kAuto;
     bool reveal_to_user = false;
     std::function<void(absl::StatusOr<test::ScreenshotArtifact>)> callback;
   };

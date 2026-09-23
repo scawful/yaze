@@ -52,6 +52,10 @@ class PaletteDebugger {
   void SetCurrentPalette(const gfx::SnesPalette& palette);
   void SetCurrentRenderPalette(const std::vector<SDL_Color>& palette);
   void SetCurrentBitmap(gfx::Bitmap* bitmap);
+  void SetCurrentPresentation(gfx::Bitmap* bitmap,
+                              const gfx::SnesPalette& palette,
+                              const std::vector<SDL_Color>& render_palette);
+  void ClearCurrentBitmapIf(const gfx::Bitmap* bitmap);
 
   // Pixel sampling for debugging
   ColorComparison SamplePixelAt(int x, int y) const;

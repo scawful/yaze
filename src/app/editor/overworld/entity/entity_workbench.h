@@ -37,6 +37,7 @@ class OverworldEntityWorkbench : public WindowContent {
 
   // WindowContent interface
   std::string GetId() const override { return "overworld.entity_workbench"; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
   std::string GetDisplayName() const override { return "Entity Properties"; }
   std::string GetIcon() const override { return ICON_MD_EDIT; }
   std::string GetEditorCategory() const override { return "Overworld"; }

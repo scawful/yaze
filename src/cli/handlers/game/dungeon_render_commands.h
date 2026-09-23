@@ -28,6 +28,10 @@ class DungeonRenderCommandHandler : public resources::CommandHandler {
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override;
   absl::Status Execute(Rom* rom, const resources::ArgumentParser& parser,
                        resources::OutputFormatter& formatter) override;
+  absl::Status ExecuteWithContext(
+      Rom* rom, const resources::ArgumentParser& parser,
+      resources::OutputFormatter& formatter,
+      const resources::CommandInvocationContext& invocation_context) override;
 
  private:
   std::string GetDefaultFormat() const override { return "json"; }

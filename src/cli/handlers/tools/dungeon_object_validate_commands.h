@@ -41,7 +41,8 @@ class DungeonObjectValidateCommandHandler : public resources::CommandHandler {
     desc.display_name = "dungeon-object-validate";
     desc.summary =
         "Trace dungeon object draws and compare bounds to selection "
-        "dimensions.";
+        "dimensions. JSON/CSV reports are only written when --report names a "
+        "path.";
     desc.todo_reference = "todo#dungeon-object-validate";
     return desc;
   }

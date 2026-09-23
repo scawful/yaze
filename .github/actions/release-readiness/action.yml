@@ -1,0 +1,37 @@
+name: Release readiness checks
+description: >
+  Build-free repository checks: release metadata, packaging manifests, agent
+  protocol, and source/test registration. Shared by ci.yml and docs-checks.yml
+  so a documentation-only change runs exactly the checks a code change runs,
+  without compiling anything.
+
+runs:
+  using: composite
+  steps:
+    - name: Verify VERSION / CHANGELOG hygiene
+      shell: bash
+      run: bash scripts/dev/release-version-check.sh
+    - name: Verify distributable theme manifest
+      shell: bash
+      run: bash scripts/dev/theme-package-check.sh
+    - name: Verify bounded build parallelism
+      shell: bash
+      run: bash scripts/agents/test-build-parallelism-policy.sh
+    - name: Verify local nightly provenance
+      shell: bash
+      run: bash scripts/agents/test-nightly-local-provenance.sh
+    - name: Protocol audit
+      shell: bash
+      run: bash scripts/agents/protocol-audit.sh
+    - name: Universe coordination tests
+      shell: bash
+      run: bash scripts/agents/test-universe-coord.sh
+    - name: Source registration drift check (cmake)
+      shell: bash
+      run: python3 scripts/build_cleaner.py --dry-run --cmake-only
+    - name: Test registration audit
+      shell: bash
+      run: python3 scripts/audit_test_registration.py
+    - name: Test registration audit self-test
+      shell: bash
+      run: python3 scripts/audit_test_registration.py --self-test

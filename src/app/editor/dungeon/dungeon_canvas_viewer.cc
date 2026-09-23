@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_connection_edit.h"
 #include "app/gui/core/agent_theme.h"
 #include "zelda3/dungeon/dimension_service.h"
 
@@ -22,6 +23,111 @@ bool HasSameObjectIdentity(const zelda3::RoomObject& lhs,
 
 }  // namespace
 
+DungeonCanvasViewer::~DungeonCanvasViewer() = default;
+
+absl::StatusOr<std::string> DungeonCanvasViewer::ExportRoomDocument(
+    int room_id) {
+  if (!room_document_export_callback_ || !rooms_ || room_id < 0 ||
+      room_id >= static_cast<int>(rooms_->size())) {
+    return absl::FailedPreconditionError("Room export is unavailable");
+  }
+  return room_document_export_callback_(room_id);
+}
+
+absl::StatusOr<DungeonRoomTransferPlan>
+DungeonCanvasViewer::PreviewRoomTransfer(
+    int source_room_id, const std::string& json,
+    const DungeonRoomTransferOptions& options) {
+  const auto* context =
+      object_interaction_.entity_coordinator().tile_handler().context();
+  if (header_read_only_ || !room_transfer_preview_callback_ || !context ||
+      context->current_room_id != current_room_id_) {
+    return absl::FailedPreconditionError(
+        "Room replacement is not editable in this view");
+  }
+  return room_transfer_preview_callback_(current_room_id_, source_room_id, json,
+                                         options);
+}
+
+absl::Status DungeonCanvasViewer::ApplyRoomTransfer(
+    const DungeonRoomTransferPlan& plan) {
+  const auto* context =
+      object_interaction_.entity_coordinator().tile_handler().context();
+  if (header_read_only_ || !room_transfer_apply_callback_ || !context ||
+      context->current_room_id != current_room_id_ ||
+      plan.target_room_id != current_room_id_) {
+    return absl::FailedPreconditionError(
+        "Room replacement is not editable in this view");
+  }
+  return room_transfer_apply_callback_(plan);
+}
+
+absl::StatusOr<DungeonConnectionPlan>
+DungeonCanvasViewer::PreviewDoorConnection(
+    const DungeonConnectionRequest& request) {
+  const auto* context =
+      object_interaction_.entity_coordinator().tile_handler().context();
+  if (!door_connection_preview_callback_ || !context ||
+      request.source_room_id != current_room_id_ ||
+      context->current_room_id != current_room_id_) {
+    return absl::FailedPreconditionError(
+        "Open this room in the canvas to preview its connection");
+  }
+  return door_connection_preview_callback_(request);
+}
+
+absl::Status DungeonCanvasViewer::ApplyDoorConnection(
+    const DungeonConnectionPlan& plan) {
+  const auto* context =
+      object_interaction_.entity_coordinator().tile_handler().context();
+  if (header_read_only_ || !door_connection_apply_callback_ || !context ||
+      plan.request.source_room_id != current_room_id_ ||
+      context->current_room_id != current_room_id_) {
+    return absl::FailedPreconditionError(
+        "Door connections are not editable in this view");
+  }
+  return door_connection_apply_callback_(plan);
+}
+
+absl::Status DungeonCanvasViewer::EditRoomMetadata(
+    int room_id, const RoomMetadataEdit& edit) {
+  if (header_read_only_ || !metadata_edit_callback_ || !rooms_ ||
+      !rooms_->GetIfLoaded(room_id)) {
+    return absl::FailedPreconditionError("Room properties are not editable");
+  }
+  return metadata_edit_callback_(room_id, edit);
+}
+
+absl::Status DungeonCanvasViewer::EditRoomMetadataBatch(
+    const std::vector<RoomMetadataRequest>& requests) {
+  if (header_read_only_ || !metadata_batch_edit_callback_ || !rooms_) {
+    return absl::FailedPreconditionError("Room properties are not editable");
+  }
+  for (const auto& request : requests) {
+    if (!rooms_->GetIfLoaded(request.room_id)) {
+      return absl::FailedPreconditionError("Room properties are not loaded");
+    }
+  }
+  return metadata_batch_edit_callback_(requests);
+}
+
+absl::Status DungeonCanvasViewer::EditChest(int room_id, size_t index,
+                                            uint8_t item_id, bool big_chest) {
+  if (header_read_only_ || !chest_edit_callback_ || !rooms_ ||
+      !rooms_->GetIfLoaded(room_id)) {
+    return absl::FailedPreconditionError("Chest contents are not editable");
+  }
+  return chest_edit_callback_(room_id, index, item_id, big_chest);
+}
+
+absl::Status DungeonCanvasViewer::DeleteChest(int room_id, size_t index) {
+  if (header_read_only_ || !chest_delete_callback_ || !rooms_ ||
+      !rooms_->GetIfLoaded(room_id)) {
+    return absl::FailedPreconditionError("Chests are not editable");
+  }
+  return chest_delete_callback_(room_id, index);
+}
+
 void DungeonCanvasViewer::RecordVisitedRoom(int room_id) {
   if (room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
     return;
@@ -38,8 +144,38 @@ void DungeonCanvasViewer::RecordVisitedRoom(int room_id) {
 }
 
 void DungeonCanvasViewer::SetProject(const project::YazeProject* project) {
+  if (project_ != project) {
+    InvalidateExternalSpriteResources();
+  }
   project_ = project;
   ApplyTrackCollisionConfig();
+}
+
+void DungeonCanvasViewer::InvalidateExternalSpriteResources() {
+  sprite_preview_resources_.SetContext({}, {}, {});
+  sprite_preview_cache_.Clear();
+}
+
+zelda3::RoomLayerManager& DungeonCanvasViewer::GetRoomLayerManager(
+    int room_id) {
+  auto& state = room_layer_managers_[room_id];
+  const auto* room = rooms_ ? rooms_->GetIfMaterialized(room_id) : nullptr;
+  // Initialize before controls can edit the manager. Reapply room defaults only
+  // when the header changes, not on every draw, so manual blend choices persist.
+  if (room && (!state.room_settings ||
+               state.room_settings->first != room->layer_merging() ||
+               state.room_settings->second != room->effect())) {
+    state.manager.ApplyLayerMerging(room->layer_merging());
+    state.manager.ApplyRoomEffect(room->effect());
+    state.room_settings = std::make_pair(room->layer_merging(), room->effect());
+  }
+  if (room) {
+    // Objects and tag2 can change the game's layer registers without changing
+    // the merge mode or effect. Refresh only this derived state so manual
+    // visibility and blend settings survive object edits.
+    state.manager.ApplyGameLayerRegisters(room->GameLayerRegisters());
+  }
+  return state.manager;
 }
 
 void DungeonCanvasViewer::TriggerChangePing() {
@@ -172,6 +308,12 @@ void DungeonCanvasViewer::RefreshRomBackedState(Rom* rom,
                                                 zelda3::GameData* game_data,
                                                 DungeonRoomStore* rooms,
                                                 int room_id) {
+  // Refresh can replace Room values in place while all backing pointers stay
+  // identical. Discard presentation stamps before those replacements occur.
+  ResetRoomCompositeOutputs();
+  connection_editor_state_ = {};
+  room_transfer_state_ = {};
+  InvalidateExternalSpriteResources();
   ClearPreviewObject();
   object_interaction_.CancelPlacement();
   object_interaction_.mode_manager().CancelCurrentMode();
@@ -197,12 +339,38 @@ void DungeonCanvasViewer::RefreshRomBackedState(Rom* rom,
   change_ping_start_time_ = -1.0;
 }
 
+void DungeonCanvasViewer::ResetRoomCompositeOutputs() {
+  primary_composite_output_.Retire();
+  connected_composite_outputs_.clear();
+  connected_composite_prune_frame_ = -1;
+}
+
+void DungeonCanvasViewer::PruneConnectedRoomCompositeOutputs() {
+  if (ImGui::GetCurrentContext() == nullptr) {
+    return;
+  }
+  const int frame = ImGui::GetFrameCount();
+  if (connected_composite_prune_frame_ == frame) {
+    return;
+  }
+  connected_composite_prune_frame_ = frame;
+
+  // Keep one completed-frame grace period. This bounds the cache to the union
+  // of recently visible rooms without retiring a texture still referenced by
+  // another deferred ImGui draw in this frame.
+  std::erase_if(connected_composite_outputs_, [frame](const auto& item) {
+    return item.second.last_used_frame >= 0 &&
+           item.second.last_used_frame < frame - 1;
+  });
+}
+
 void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   current_room_id_ = room_id;
   if (!ValidateRoomCanvasRequest(room_id)) {
     return;
   }
   RecordVisitedRoom(room_id);
+  PruneConnectedRoomCompositeOutputs();
 
   ImGui::BeginGroup();
   const auto frame_opts = BuildRoomCanvasFrameOptions();
@@ -210,6 +378,13 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
   zelda3::Room* active_room = PrepareActiveRoomForCanvasFrame(room_id);
   DrawCompactLayerToggles(room_id);
   ImGui::EndGroup();
+
+  // BeginCanvas renders context-menu callbacks before the room draw pass. Bind
+  // this viewer's bitmap and palette first so issue capture cannot sample a
+  // compare viewer or auxiliary preview left active by the previous frame.
+  if (active_room != nullptr) {
+    PrepareRoomCompositeBitmap(room_id);
+  }
 
   PopulateCanvasContextMenu(room_id);
 
@@ -240,6 +415,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
   gui::EndCanvas(canvas_, canvas_rt, frame_opts);
   SyncViewerStateFromCanvasConfig();
+  DrawDungeonRoomTransferPopup(*this);
 }
 
 void DungeonCanvasViewer::UpdateRoomCanvasShortcutFocus(bool hovered,

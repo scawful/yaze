@@ -1,0 +1,119 @@
+# Dracula Theme
+# The classic high-contrast dark theme with vibrant purple and cyan
+# Palette spec: draculatheme.com
+# License notice: THIRD_PARTY_NOTICES.md
+name=Dracula
+description=Dracula — iconic dark theme with vibrant purple, pink, cyan, and green accents
+author=YAZE Team (palette: Zeno Rocha)
+version=1.0
+
+[colors]
+# Primary colors
+primary=189,147,249,255          # Purple (#bd93f9)
+secondary=255,121,198,255        # Pink (#ff79c6)
+accent=139,233,253,255           # Cyan (#8be9fd)
+background=40,42,54,255          # Background (#282a36)
+surface=33,34,44,255             # Darker bg (#21222c)
+
+# Status colors
+error=255,85,85,255              # Red (#ff5555)
+warning=241,250,140,255          # Yellow (#f1fa8c)
+success=80,250,123,255           # Green (#50fa7b)
+info=139,233,253,255             # Cyan (#8be9fd)
+
+# Text colors
+text_primary=248,248,242,255     # Foreground (#f8f8f2)
+text_secondary=189,147,249,255   # Purple tint
+text_disabled=98,114,164,255     # Comment (#6272a4)
+
+# Window colors
+window_bg=40,42,54,240
+child_bg=33,34,44,200
+popup_bg=68,71,90,250            # Current line / selection (#44475a)
+
+# Interactive elements
+button=68,71,90,255
+button_hovered=189,147,249,200   # Purple
+button_active=255,121,198,255    # Pink
+frame_bg=68,71,90,200
+frame_bg_hovered=98,114,164,220
+frame_bg_active=189,147,249,180
+
+# Navigation
+header=68,71,90,255
+header_hovered=98,114,164,255
+header_active=189,147,249,200
+tab=40,42,54,255
+tab_hovered=68,71,90,255
+tab_active=189,147,249,180
+menu_bar_bg=33,34,44,255
+title_bg=68,71,90,255
+title_bg_active=98,114,164,255
+title_bg_collapsed=40,42,54,200
+
+# Borders and separators
+border=139,233,253,255           # Cyan
+border_shadow=0,0,0,0
+separator=98,114,164,180
+separator_hovered=139,233,253,220
+separator_active=189,147,249,255
+
+# Scrollbars
+scrollbar_bg=40,42,54,180
+scrollbar_grab=68,71,90,200
+scrollbar_grab_hovered=98,114,164,230
+scrollbar_grab_active=189,147,249,255
+
+# Resize grips
+resize_grip=255,255,255,26
+resize_grip_hovered=139,233,253,153
+resize_grip_active=139,233,253,230
+
+# Controls
+check_mark=80,250,123,255        # Green
+slider_grab=189,147,249,255
+slider_grab_active=139,233,253,255
+
+# Tables
+table_header_bg=68,71,90,255
+table_border_strong=98,114,164,255
+table_border_light=68,71,90,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=255,255,255,18
+
+# Links
+text_link=139,233,253,255        # Cyan
+
+# Navigation and special
+input_text_cursor=248,248,242,255
+nav_cursor=139,233,253,255
+nav_windowing_highlight=139,233,253,200
+nav_windowing_dim_bg=0,0,0,128
+modal_window_dim_bg=0,0,0,100
+text_selected_bg=189,147,249,100
+drag_drop_target=255,184,108,200 # Orange (#ffb86c)
+
+# Docking
+docking_preview=139,233,253,180
+docking_empty_bg=68,71,90,255
+
+# Tree lines
+tree_lines=98,114,164,153
+
+# Tab variations
+tab_dimmed=33,34,44,255
+tab_dimmed_selected=68,71,90,255
+tab_dimmed_selected_overline=189,147,249,255
+tab_selected_overline=189,147,249,255
+
+[style]
+window_rounding=6.0
+frame_rounding=4.0
+scrollbar_rounding=6.0
+grab_rounding=3.0
+tab_rounding=4.0
+window_border_size=0.0
+frame_border_size=0.0
+enable_animations=true
+enable_glow_effects=true
+animation_speed=1.0

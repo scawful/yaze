@@ -926,9 +926,9 @@ yaze::ios::IOSHost g_ios_host;
   if (gesture.state == UIGestureRecognizerStateBegan) {
     previous_pinch_scale_ = gesture.scale;
     pinch_velocity_ = 0.0f;
-    io.AddKeyEvent(ImGuiKey_ModCtrl, true);
+    io.AddKeyEvent(ImGuiMod_Ctrl, true);
   } else if (gesture.state == UIGestureRecognizerStateChanged) {
-    io.AddKeyEvent(ImGuiKey_ModCtrl, true);
+    io.AddKeyEvent(ImGuiMod_Ctrl, true);
     float raw_delta = gesture.scale - previous_pinch_scale_;
 
     // Exponential moving average for smoother zoom
@@ -940,7 +940,7 @@ yaze::ios::IOSHost g_ios_host;
     previous_pinch_scale_ = gesture.scale;
   } else if (gesture.state == UIGestureRecognizerStateEnded ||
              gesture.state == UIGestureRecognizerStateCancelled) {
-    io.AddKeyEvent(ImGuiKey_ModCtrl, false);
+    io.AddKeyEvent(ImGuiMod_Ctrl, false);
     previous_pinch_scale_ = 1.0f;
     pinch_velocity_ = 0.0f;
   }

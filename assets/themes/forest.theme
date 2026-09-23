@@ -1,17 +1,17 @@
 # Forest Theme
-# Deep forest theme with enhanced readability
+# Deep forest theme with calm editor chrome and clear interaction states
 name=Forest
-description=Deep forest theme with natural greens and earth tones
+description=Calm dark workspace with forest-green accents
 author=YAZE Team
-version=2.0
+version=3.0
 
 [colors]
-# Primary colors (enhanced forest with better contrast)
-primary=100,180,120,255          # Brighter forest green
-secondary=70,130,85,255          # Mid forest green
-accent=130,220,150,255           # Light accent green
-background=15,25,15,255          # Darker background for contrast
-surface=25,35,25,255
+# Brand accents stay green; structural surfaces stay neutral and quiet.
+primary=100,180,120,255
+secondary=70,130,85,255
+accent=130,220,150,255
+background=13,18,15,255
+surface=21,27,23,255
 
 # Status colors
 error=255,120,120,255
@@ -20,47 +20,47 @@ success=100,180,120,255
 info=120,200,180,255
 
 # Text colors (enhanced for readability)
-text_primary=250,255,250,255     # Very light for contrast
-text_secondary=220,240,220,255   # Light green tint
-text_disabled=150,170,150,255    # Brighter disabled text
+text_primary=238,244,239,255
+text_secondary=180,196,185,255
+text_disabled=112,128,117,255
 
 # Window colors (better contrast)
-window_bg=20,30,20,240
-child_bg=15,25,15,200
-popup_bg=25,35,25,250
+window_bg=15,20,17,248
+child_bg=19,25,21,245
+popup_bg=24,31,26,255
 
-# Interactive elements (better visibility)
-button=70,110,80,255
-button_hovered=100,150,115,255
-button_active=130,180,145,255
-frame_bg=40,60,45,200
-frame_bg_hovered=55,80,60,220
-frame_bg_active=70,110,80,240
+# Neutral controls reserve green for hover, selection, and confirmation.
+button=37,49,41,255
+button_hovered=50,68,56,255
+button_active=67,94,75,255
+frame_bg=28,37,31,240
+frame_bg_hovered=38,52,43,250
+frame_bg_active=48,69,56,255
 
 # Navigation (better contrast)
-header=55,85,60,255
-header_hovered=100,150,115,255
-header_active=130,180,145,255
-tab=45,75,50,255
-tab_hovered=70,110,80,255
-tab_active=100,150,115,255
-menu_bar_bg=40,70,45,255
-title_bg=50,80,55,255
-title_bg_active=55,85,60,255
-title_bg_collapsed=45,75,50,255
+header=31,42,35,255
+header_hovered=43,59,49,255
+header_active=52,74,60,255
+tab=23,31,26,255
+tab_hovered=38,52,43,255
+tab_active=52,74,60,255
+menu_bar_bg=19,26,22,255
+title_bg=23,31,26,255
+title_bg_active=31,42,35,255
+title_bg_collapsed=19,26,22,255
 
 # Borders and separators
-border=100,180,120,255           # Primary green
+border=74,91,79,115
 border_shadow=0,0,0,0
-separator=120,160,130,180
-separator_hovered=150,200,160,220
-separator_active=180,240,190,255
+separator=88,105,94,105
+separator_hovered=100,180,120,180
+separator_active=130,220,150,225
 
 # Scrollbars
-scrollbar_bg=40,60,45,180
-scrollbar_grab=80,120,90,200
-scrollbar_grab_hovered=100,150,115,230
-scrollbar_grab_active=130,180,145,255
+scrollbar_bg=13,18,15,160
+scrollbar_grab=52,68,57,190
+scrollbar_grab_hovered=70,96,79,225
+scrollbar_grab_active=100,180,120,245
 
 # Resize grips
 resize_grip=255,255,255,26
@@ -73,9 +73,9 @@ slider_grab=100,180,120,255
 slider_grab_active=130,220,150,255
 
 # Tables
-table_header_bg=55,85,60,255
-table_border_strong=70,130,85,255
-table_border_light=50,70,55,255
+table_header_bg=31,42,35,255
+table_border_strong=74,91,79,150
+table_border_light=52,64,56,105
 table_row_bg=0,0,0,0
 table_row_bg_alt=255,255,255,20
 
@@ -96,20 +96,20 @@ docking_preview=100,180,120,180
 docking_empty_bg=40,70,45,255
 
 # Tree lines
-tree_lines=120,160,130,153
+tree_lines=88,105,94,95
 
 # Tab variations
-tab_dimmed=35,55,40,255
-tab_dimmed_selected=55,90,65,255
+tab_dimmed=18,24,20,255
+tab_dimmed_selected=31,42,35,255
 tab_dimmed_selected_overline=130,220,150,255
 tab_selected_overline=130,220,150,255
 
 [style]
-window_rounding=6.0
+window_rounding=4.0
 frame_rounding=4.0
 scrollbar_rounding=6.0
 grab_rounding=3.0
-tab_rounding=3.0
+tab_rounding=4.0
 window_border_size=0.0
 frame_border_size=0.0
 enable_animations=true

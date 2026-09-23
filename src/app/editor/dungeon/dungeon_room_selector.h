@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_room_composite.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/editor.h"
 #include "imgui/imgui.h"
@@ -168,6 +169,7 @@ class DungeonRoomSelector {
   std::vector<int> filtered_entrance_indices_;
   std::string last_room_filter_;
   std::string last_entrance_filter_;
+  RoomCompositeOutput room_tooltip_composite_;
 
   void RebuildRoomFilterCache();
   void RebuildEntranceFilterCache();

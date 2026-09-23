@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "absl/status/statusor.h"
+#include "absl/strings/string_view.h"
 #include "app/gfx/core/bitmap.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/room.h"
@@ -32,8 +33,12 @@ constexpr uint32_t kAll = ~0u;
 struct RenderRequest {
   int room_id = 0;
   uint32_t overlay_flags = RenderOverlay::kNone;
-  float scale = 1.0f;  // Output pixel scale (1.0 = 512×512 native)
+  float scale = 1.0f;  // Finite [0.25, 8.0]; 1.0 = 512×512 native.
 };
+
+// Shared strict parser for CLI/API scale input. Rejects malformed, non-finite,
+// and out-of-range values instead of silently clamping or using a default.
+absl::StatusOr<float> ParseRenderScale(absl::string_view value);
 
 struct RenderResult {
   std::vector<uint8_t> png_data;

@@ -138,9 +138,45 @@ void StatusBar::HandleStatusUpdate(const StatusUpdateEvent& event) {
   }
 }
 
-void StatusBar::SetSessionInfo(size_t session_id, size_t total_sessions) {
+void StatusBar::SetSessionInfo(size_t session_id, size_t total_sessions,
+                               const std::string& display_name) {
   session_id_ = session_id;
   total_sessions_ = total_sessions;
+  session_display_name_ = display_name;
+}
+
+void StatusBar::SetActiveEditor(const std::string& name) {
+  SetActiveEditor(name, StatusBarSegmentOptions{});
+}
+
+void StatusBar::SetActiveEditor(const std::string& name,
+                                StatusBarSegmentOptions options) {
+  has_active_editor_ = !name.empty();
+  active_editor_ = name;
+  active_editor_options_ = std::move(options);
+}
+
+void StatusBar::ClearActiveEditor() {
+  has_active_editor_ = false;
+  active_editor_.clear();
+  active_editor_options_ = {};
+}
+
+void StatusBar::SetDirtyScope(const std::string& short_label) {
+  SetDirtyScope(short_label, StatusBarSegmentOptions{});
+}
+
+void StatusBar::SetDirtyScope(const std::string& short_label,
+                              StatusBarSegmentOptions options) {
+  has_dirty_scope_ = !short_label.empty();
+  dirty_scope_ = short_label;
+  dirty_scope_options_ = std::move(options);
+}
+
+void StatusBar::ClearDirtyScope() {
+  has_dirty_scope_ = false;
+  dirty_scope_.clear();
+  dirty_scope_options_ = {};
 }
 
 void StatusBar::SetCursorPosition(int x, int y, const char* label) {
@@ -242,6 +278,8 @@ void StatusBar::ClearAllContext() {
   ClearSelection();
   ClearZoom();
   ClearEditorMode();
+  ClearActiveEditor();
+  ClearDirtyScope();
   custom_segments_.clear();
 }
 
@@ -303,12 +341,22 @@ void StatusBar::Draw() {
                       extra_flags);
 
   if (bar) {
-    // Left section: ROM info, Session, Dirty status
+    // Left section: ROM | DirtyScope | Session | Editor | Cursor | Selection | Custom
     DrawRomSegment();
+
+    if (has_dirty_scope_) {
+      DrawSeparator();
+      DrawDirtyScopeSegment();
+    }
 
     if (total_sessions_ > 1) {
       DrawSeparator();
       DrawSessionSegment();
+    }
+
+    if (has_active_editor_) {
+      DrawSeparator();
+      DrawActiveEditorSegment();
     }
 
     // Middle section: Editor context (cursor, selection)
@@ -322,7 +370,7 @@ void StatusBar::Draw() {
       DrawSelectionSegment();
     }
 
-    // Custom segments
+    // Custom segments (Room / Map / Drawer / …)
     DrawCustomSegments();
 
     // Right section: Zoom, Mode (right-aligned)
@@ -476,7 +524,11 @@ void StatusBar::DrawRomSegment() {
                        gui::ConvertColorToImVec4(theme.warning));
 
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(tr("Unsaved changes"));
+        if (has_dirty_scope_ && !dirty_scope_options_.tooltip.empty()) {
+          ImGui::SetTooltip("%s", dirty_scope_options_.tooltip.c_str());
+        } else {
+          ImGui::SetTooltip(tr("Unsaved changes"));
+        }
       }
     }
   } else {
@@ -486,13 +538,35 @@ void StatusBar::DrawRomSegment() {
 }
 
 void StatusBar::DrawSessionSegment() {
-  gui::ColoredTextF(gui::GetTextSecondaryVec4(), "%s S%zu/%zu", ICON_MD_LAYERS,
-                    session_id_ + 1, total_sessions_);
+  if (!session_display_name_.empty()) {
+    gui::ColoredTextF(gui::GetTextSecondaryVec4(), "%s %s", ICON_MD_LAYERS,
+                      session_display_name_.c_str());
+  } else {
+    gui::ColoredTextF(gui::GetTextSecondaryVec4(), "%s S%zu/%zu",
+                      ICON_MD_LAYERS, session_id_ + 1, total_sessions_);
+  }
 
   if (ImGui::IsItemHovered()) {
     ImGui::SetTooltip(tr("Session %zu of %zu"), session_id_ + 1,
                       total_sessions_);
   }
+}
+
+void StatusBar::DrawActiveEditorSegment() {
+  gui::ColoredTextF(gui::GetTextSecondaryVec4(), "%s %s", ICON_MD_EDIT,
+                    active_editor_.c_str());
+  ApplySegmentInteraction(active_editor_options_);
+  if (active_editor_options_.tooltip.empty() &&
+      !active_editor_options_.on_click && ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(tr("Active editor"));
+  }
+}
+
+void StatusBar::DrawDirtyScopeSegment() {
+  const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
+  gui::ColoredTextF(gui::ConvertColorToImVec4(theme.warning), "%s %s",
+                    ICON_MD_WARNING_AMBER, dirty_scope_.c_str());
+  ApplySegmentInteraction(dirty_scope_options_);
 }
 
 void StatusBar::DrawCursorSegment() {

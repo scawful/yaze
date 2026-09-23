@@ -35,11 +35,14 @@ struct StatusBarSegmentOptions {
  *
  * The StatusBar sits outside the ImGui dockspace (like the sidebars) and displays:
  * - ROM filename and dirty status indicator
- * - Session number (when multiple ROMs open)
+ * - Session number / display name (when multiple ROMs open)
+ * - Active editor (context strip; clickable to switch)
+ * - Dirty-scope summary (ROM / Project / Rooms / …)
  * - Cursor position (context-aware based on active editor)
  * - Selection info (count, dimensions)
  * - Zoom level
  * - Current editor mode/tool
+ * - Custom segments from editors (Room, Map, Drawer, …)
  *
  * Each editor can update its relevant segments by calling the Set* methods or 
  * publishing StatusUpdateEvents to the event bus.
@@ -77,8 +80,40 @@ class StatusBar {
    * @brief Set session information
    * @param session_id Current session index (0-based)
    * @param total_sessions Total number of open sessions
+   * @param display_name Optional friendly name (shown when total_sessions > 1)
    */
-  void SetSessionInfo(size_t session_id, size_t total_sessions);
+  void SetSessionInfo(size_t session_id, size_t total_sessions,
+                      const std::string& display_name = {});
+
+  /**
+   * @brief Set the active editor category/name for the context strip.
+   *
+   * Shown between session and location/cursor segments. Optional click opens
+   * the editor switcher (Ctrl+E).
+   */
+  void SetActiveEditor(const std::string& name);
+  void SetActiveEditor(const std::string& name,
+                       StatusBarSegmentOptions options);
+  void ClearActiveEditor();
+
+  /**
+   * @brief Compact dirty-scope chip (ROM / Project / Rooms / …).
+   *
+   * Complements the ROM filename dirty dot with an explicit scope summary.
+   */
+  void SetDirtyScope(const std::string& short_label);
+  void SetDirtyScope(const std::string& short_label,
+                     StatusBarSegmentOptions options);
+  void ClearDirtyScope();
+
+  // Test / introspection helpers (display state only).
+  const std::string& active_editor_for_test() const { return active_editor_; }
+  bool has_active_editor_for_test() const { return has_active_editor_; }
+  const std::string& dirty_scope_for_test() const { return dirty_scope_; }
+  bool has_dirty_scope_for_test() const { return has_dirty_scope_; }
+  const std::string& session_display_name_for_test() const {
+    return session_display_name_;
+  }
 
   // ============================================================================
   // Context Setters (called by active editor)
@@ -174,7 +209,9 @@ class StatusBar {
   void SetBuildStatus(const ProjectWorkflowStatus& status) {
     build_status_ = status;
   }
-  void SetRunStatus(const ProjectWorkflowStatus& status) { run_status_ = status; }
+  void SetRunStatus(const ProjectWorkflowStatus& status) {
+    run_status_ = status;
+  }
   void ClearProjectWorkflowStatus() {
     build_status_ = ProjectWorkflowStatus{};
     run_status_ = ProjectWorkflowStatus{};
@@ -209,6 +246,8 @@ class StatusBar {
 
   void DrawRomSegment();
   void DrawSessionSegment();
+  void DrawActiveEditorSegment();
+  void DrawDirtyScopeSegment();
   void DrawCursorSegment();
   void DrawSelectionSegment();
   void DrawZoomSegment();
@@ -226,6 +265,17 @@ class StatusBar {
   // Session info
   size_t session_id_ = 0;
   size_t total_sessions_ = 1;
+  std::string session_display_name_;
+
+  // Active editor (manager-owned context strip)
+  bool has_active_editor_ = false;
+  std::string active_editor_;
+  StatusBarSegmentOptions active_editor_options_;
+
+  // Dirty scope summary (manager-owned)
+  bool has_dirty_scope_ = false;
+  std::string dirty_scope_;
+  StatusBarSegmentOptions dirty_scope_options_;
 
   // Cursor position
   bool has_cursor_ = false;

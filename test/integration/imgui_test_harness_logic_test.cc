@@ -7,10 +7,62 @@
 #include <string>
 
 #include "app/gui/automation/widget_id_registry.h"
+#include "app/service/imgui_test_harness_service.h"
 #include "app/testing/test_manager.h"
+#include "protos/imgui_test_harness.pb.h"
 
 namespace yaze::test {
 namespace {
+
+TEST(ImGuiTestHarnessLogicTest,
+     ScreenshotRejectsUnsupportedFormatsBeforeQueue) {
+  ImGuiTestHarnessServiceImpl service(nullptr);
+  ScreenshotRequest request;
+  ScreenshotResponse response;
+  request.set_format(ScreenshotRequest::IMAGE_FORMAT_JPEG);
+  response.set_success(true);
+  response.set_file_path("stale-result.bmp");
+  EXPECT_EQ(service.Screenshot(&request, &response).code(),
+            absl::StatusCode::kUnimplemented);
+  EXPECT_FALSE(response.success());
+  EXPECT_TRUE(response.file_path().empty());
+
+  request.set_format(static_cast<ScreenshotRequest::ImageFormat>(99));
+  EXPECT_EQ(service.Screenshot(&request, &response).code(),
+            absl::StatusCode::kInvalidArgument);
+}
+
+TEST(ImGuiTestHarnessLogicTest, ScreenshotRejectsMislabeledOutputBeforeQueue) {
+  ImGuiTestHarnessServiceImpl service(nullptr);
+  ScreenshotRequest request;
+  ScreenshotResponse response;
+  request.set_format(ScreenshotRequest::IMAGE_FORMAT_BMP);
+  request.set_output_path("must-not-write.png");
+  EXPECT_EQ(service.Screenshot(&request, &response).code(),
+            absl::StatusCode::kInvalidArgument);
+  EXPECT_FALSE(response.success());
+  EXPECT_TRUE(response.file_path().empty());
+}
+
+TEST(ImGuiTestHarnessLogicTest, ScreenshotWithoutControllerFailsImmediately) {
+  // The non-GUI test binary has no Controller. A valid request must fail
+  // explicitly instead of dereferencing it or waiting for a nonexistent frame.
+  ImGuiTestHarnessServiceImpl service(nullptr);
+  ScreenshotRequest request;
+  ScreenshotResponse response;
+  request.set_format(ScreenshotRequest::IMAGE_FORMAT_BMP);
+  EXPECT_EQ(service.Screenshot(&request, &response).code(),
+            absl::StatusCode::kFailedPrecondition);
+  EXPECT_FALSE(response.success());
+  EXPECT_TRUE(response.file_path().empty());
+}
+
+TEST(ImGuiTestHarnessLogicTest, ScreenshotRequiresResponse) {
+  ImGuiTestHarnessServiceImpl service(nullptr);
+  ScreenshotRequest request;
+  EXPECT_EQ(service.Screenshot(&request, nullptr).code(),
+            absl::StatusCode::kInvalidArgument);
+}
 
 class WidgetRegistryReset {
  public:

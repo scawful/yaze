@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <filesystem>
 #include <optional>
 #include <string>
 #include <utility>
@@ -124,14 +125,13 @@ struct ObjectTileLayout {
   int tile_data_address = -1;
   std::optional<ObjectTileSourceProvenance> source_provenance;
   bool is_custom = false;
+  int custom_subtype = -1;
   std::string custom_filename;
+  std::filesystem::path custom_resolved_path;
+  std::vector<uint8_t> custom_source_bytes;
 
   static ObjectTileLayout FromTraces(
       const std::vector<ObjectDrawer::TileTrace>& traces);
-
-  // Create an empty layout for new custom object creation
-  static ObjectTileLayout CreateEmpty(int width, int height, int16_t object_id,
-                                      const std::string& filename);
 
   Cell* FindCell(int rel_x, int rel_y);
   const Cell* FindCell(int rel_x, int rel_y) const;
@@ -214,6 +214,11 @@ class ObjectTileEditor {
   absl::StatusOr<ObjectTileLayout> CaptureEditableObjectLayout(
       int16_t object_id, const Room& room, const gfx::PaletteGroup& palette);
 
+  // Load one existing fixed runtime custom-object asset directly from its
+  // binary source, including no-op words and exact bytes for stale-write CAS.
+  absl::StatusOr<ObjectTileLayout> LoadCustomObjectLayout(int16_t object_id,
+                                                          int subtype);
+
   static bool IsEditableStandardObject(int16_t object_id);
 
   // Render: draw layout to preview bitmap using room's gfx buffer
@@ -222,14 +227,18 @@ class ObjectTileEditor {
                                     const uint8_t* room_gfx_buffer,
                                     const gfx::PaletteGroup& palette);
 
-  // Build tile8 atlas from room graphics buffer.
-  absl::Status BuildTile8Atlas(gfx::Bitmap& atlas,
-                               const uint8_t* room_gfx_buffer,
-                               const gfx::PaletteGroup& palette,
-                               int display_palette = 2);
+  // Build a source-ID atlas from room graphics. Custom objects show the
+  // runtime-effective tile at each raw source ID without changing saved words.
+  // Retained H/V/priority attributes affect zero-word detection only; atlas
+  // images remain unflipped so their orientation is consistent when browsing.
+  absl::Status BuildTile8Atlas(
+      gfx::Bitmap& atlas, const uint8_t* room_gfx_buffer,
+      const gfx::PaletteGroup& palette, int display_palette = 2,
+      std::optional<int16_t> custom_object_id = std::nullopt,
+      uint16_t retained_attributes = 0);
 
   // Write-back: standard objects patch ROM, custom objects write .bin
-  absl::Status WriteBack(const ObjectTileLayout& layout);
+  absl::Status WriteBack(ObjectTileLayout& layout);
 
   // Resolve and validate all standard-object writes before any ROM mutation.
   absl::StatusOr<ObjectTileWritePlan> BuildStandardWritePlan(

@@ -443,9 +443,7 @@ bool EndsWith(const std::string& value, const std::string& suffix) {
          0;
 }
 
-ReportPaths ResolveReportPaths(const std::string& report_base) {
-  std::string base =
-      report_base.empty() ? "dungeon_object_validation_report" : report_base;
+ReportPaths ResolveReportPaths(const std::string& base) {
   ReportPaths paths{};
   if (EndsWith(base, ".json")) {
     paths.json_path = base;
@@ -670,6 +668,10 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
     return absl::InvalidArgumentError(
         "--size requires a Type 1 --object (0x000-0x0F7)");
   }
+  const bool write_report = report_arg.has_value();
+  if (write_report && report_arg->empty()) {
+    return absl::InvalidArgumentError("--report requires a non-empty path");
+  }
 
   // Initialize ObjectDimensionTable so DimensionService's fallback path works.
   auto& dimension_table = zelda3::ObjectDimensionTable::Get();
@@ -717,8 +719,10 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
     }
   }
 
-  ReportPaths report_paths = ResolveReportPaths(
-      report_arg.has_value() ? report_arg.value() : std::string());
+  ReportPaths report_paths;
+  if (write_report) {
+    report_paths = ResolveReportPaths(report_arg.value());
+  }
   const bool write_trace_dump = trace_out_arg.has_value();
   if (write_trace_dump) {
     trace_cases.reserve(object_ids.size() * size_case_count *
@@ -964,18 +968,20 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
 
   const int object_count =
       room_mode ? room_object_count : static_cast<int>(object_ids.size());
-  auto json_status = WriteJsonReport(
-      report_paths, room_mode, object_count, size_case_count,
-      static_cast<int>(state_profiles.size()), total_tests, mismatch_count,
-      empty_trace_count, expected_empty_trace_count, negative_offset_count,
-      skipped_nothing, mismatches);
-  if (!json_status.ok()) {
-    return json_status;
-  }
+  if (write_report) {
+    auto json_status = WriteJsonReport(
+        report_paths, room_mode, object_count, size_case_count,
+        static_cast<int>(state_profiles.size()), total_tests, mismatch_count,
+        empty_trace_count, expected_empty_trace_count, negative_offset_count,
+        skipped_nothing, mismatches);
+    if (!json_status.ok()) {
+      return json_status;
+    }
 
-  auto csv_status = WriteCsvReport(report_paths, room_mode, mismatches);
-  if (!csv_status.ok()) {
-    return csv_status;
+    auto csv_status = WriteCsvReport(report_paths, room_mode, mismatches);
+    if (!csv_status.ok()) {
+      return csv_status;
+    }
   }
 
   if (write_trace_dump) {
@@ -1000,8 +1006,10 @@ absl::Status DungeonObjectValidateCommandHandler::Execute(
   if (room_mode) {
     formatter.AddField("room_id", room_id);
   }
-  formatter.AddField("report_json", report_paths.json_path);
-  formatter.AddField("report_csv", report_paths.csv_path);
+  if (write_report) {
+    formatter.AddField("report_json", report_paths.json_path);
+    formatter.AddField("report_csv", report_paths.csv_path);
+  }
 
   formatter.BeginArray("mismatches");
   for (const auto& result : mismatches) {

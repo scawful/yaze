@@ -71,6 +71,7 @@ class DungeonRoomPanel : public ResourceWindowContent {
   std::string GetIcon() const override { return ICON_MD_GRID_ON; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 100 + room_id_; }
+  std::string GetWorkflowGroup() const override { return "Rooms"; }
 
   // ==========================================================================
   // WindowContent Drawing

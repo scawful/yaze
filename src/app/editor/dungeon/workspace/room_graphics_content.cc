@@ -15,6 +15,12 @@
 namespace yaze {
 namespace editor {
 
+RoomGraphicsContent::~RoomGraphicsContent() {
+  for (auto& preview : sheet_previews_) {
+    gfx::Arena::Get().RetireBitmap(preview);
+  }
+}
+
 void RoomGraphicsContent::RefreshSheetPreviews(const zelda3::Room& room) {
   const auto blocks = room.blocks();
   if (blocks.size() < sheet_previews_.size()) {
@@ -22,8 +28,9 @@ void RoomGraphicsContent::RefreshSheetPreviews(const zelda3::Room& room) {
     return;
   }
 
-  bool needs_refresh =
-      palette_dirty_ || !preview_cache_valid_ || preview_room_id_ != room.id();
+  bool needs_refresh = palette_dirty_ || !preview_cache_valid_ ||
+                       preview_room_id_ != room.id() ||
+                       preview_graphics_revision_ != room.graphics_revision();
   if (!needs_refresh) {
     for (size_t i = 0; i < preview_block_ids_.size(); ++i) {
       if (preview_block_ids_[i] != blocks[i]) {
@@ -54,6 +61,7 @@ void RoomGraphicsContent::RefreshSheetPreviews(const zelda3::Room& room) {
     meta.block_id = blocks[i];
     meta.source_offset = offset;
     if (offset + kSheetBytes > gfx_buffer.size()) {
+      gfx::Arena::Get().RetireBitmap(sheet_previews_[i]);
       sheet_previews_[i] = gfx::Bitmap();
       continue;
     }
@@ -69,7 +77,14 @@ void RoomGraphicsContent::RefreshSheetPreviews(const zelda3::Room& room) {
     if (!palette_colors.empty()) {
       sheet_previews_[i].SetPalette(palette_colors);
     }
-    sheet_previews_[i].CreateTexture();
+    // Bitmap::Create keeps an existing texture and advances its generation,
+    // superseding pending commands. Updating preserves handles that may already
+    // appear in this frame's draw list instead of destroying them during Draw.
+    if (sheet_previews_[i].texture() != nullptr) {
+      sheet_previews_[i].UpdateTexture();
+    } else {
+      sheet_previews_[i].CreateTexture();
+    }
     meta.width = sheet_previews_[i].width();
     meta.height = sheet_previews_[i].height();
     meta.bitmap_active = sheet_previews_[i].is_active();
@@ -79,6 +94,7 @@ void RoomGraphicsContent::RefreshSheetPreviews(const zelda3::Room& room) {
   }
 
   preview_room_id_ = room.id();
+  preview_graphics_revision_ = room.graphics_revision();
   preview_cache_valid_ = true;
   palette_dirty_ = false;
 }

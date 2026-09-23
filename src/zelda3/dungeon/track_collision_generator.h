@@ -11,6 +11,7 @@
 #include "absl/status/statusor.h"
 #include "rom/rom.h"
 #include "zelda3/dungeon/custom_collision.h"
+#include "zelda3/dungeon/minecart_object_semantics.h"
 #include "zelda3/dungeon/room.h"
 
 namespace yaze {

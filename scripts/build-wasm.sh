@@ -3,12 +3,12 @@ set -e
 
 usage() {
     cat <<'EOF'
-Usage: scripts/build-wasm.sh [debug|release|ai] [--incremental] [--clean]
+Usage: scripts/build-wasm.sh [debug|release|ai|smoke] [--incremental] [--clean]
 Options:
-  debug|release|ai  Build mode (default: release). Use 'ai' for agent-enabled web build.
+  debug|release|ai|smoke  Build mode (default: release). Use 'smoke' for CI validation.
   --incremental     Skip cleaning CMake cache/files to speed up incremental builds
   --clean           Completely remove build directory and start fresh
-Note: debug/release/ai share the same build-wasm directory.
+Each mode uses the build directory declared by its CMake preset.
 EOF
 }
 
@@ -20,7 +20,7 @@ BUILD_JOBS="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
 
 for arg in "$@"; do
     case "$arg" in
-        debug|release|ai)
+        debug|release|ai|smoke)
             BUILD_MODE="$arg"
             ;;
         --incremental)
@@ -51,6 +51,8 @@ if [ "$BUILD_MODE" = "debug" ]; then
     CMAKE_PRESET="wasm-debug"
 elif [ "$BUILD_MODE" = "ai" ]; then
     CMAKE_PRESET="wasm-ai"
+elif [ "$BUILD_MODE" = "smoke" ]; then
+    CMAKE_PRESET="wasm-smoke"
 else
     CMAKE_PRESET="wasm-release"
 fi

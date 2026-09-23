@@ -1,10 +1,13 @@
 #include "sprite.h"
 #include "sprite_names.h"
 
+#include <algorithm>
 #include <cstdint>
 #include <iostream>
 
+#include "app/gfx/types/snes_tile.h"
 #include "zelda3/resource_labels.h"
+#include "zelda3/sprite/sprite_oam_tables.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -1030,11 +1033,15 @@ void Sprite::Draw() {
     DrawSpriteTile((x * 16) + 8, (y * 16) + 16, 8, 27, 12, false, false, 1, 1);
   } else if (id_ == 0x91)  // Stalfos knight
   {
-    DrawSpriteTile((x * 16) - 2, (y * 16) + 12, 4, 22, 12, false, false, 1, 2);
-    DrawSpriteTile((x * 16) + 10, (y * 16) + 12, 4, 22, 12, true, false, 1, 2);
-    DrawSpriteTile((x * 16) - 4, (y * 16) + 4, 1, 22, 12);
-    DrawSpriteTile((x * 16) + 12, (y * 16) + 4, 3, 22, 12, false, false, 1, 2);
-    DrawSpriteTile((x * 16), (y * 16) - 8, 6, 20, 12);
+    // USDASM $1EACEC frame 0, head direction 2 and SprMiscB=0: a chosen
+    // visible static pose, not the initial hidden state. Paint reverse OAM
+    // order so earlier entries win overlaps. OBJ palette 5 is unchanged.
+    DrawSpriteTile((x * 16) + 11, (y * 16) + 16, 4, 23, 12, true, false, 1, 1);
+    DrawSpriteTile((x * 16) - 3, (y * 16) + 16, 4, 23, 12, false, false, 1, 1);
+    DrawSpriteTile((x * 16) + 4, (y * 16), 2, 22, 12);
+    DrawSpriteTile((x * 16) - 4, (y * 16), 1, 22, 12);
+    DrawSpriteTile((x * 16) - 4, (y * 16) - 8, 4, 22, 12, false, false, 1, 1);
+    DrawSpriteTile((x * 16), (y * 16) - 12, 6, 20, 12);
   } else if (id_ == 0x92)  // Helmaking
   {
     DrawSpriteTile((x * 16), (y * 16) + 32, 14, 26, 14);
@@ -1083,10 +1090,12 @@ void Sprite::Draw() {
   {
     DrawSpriteTile((x * 16), (y * 16), 12, 22, 11);
     DrawSpriteTile((x * 16) + 16, (y * 16), 13, 22, 11, false, false, 1, 2);
-  } else if (id_ == 0x9D)  // Water bubble kyameron
+  } else if (id_ == 0x9D)  // Babasu, visible upward frame
   {
-    DrawSpriteTile((x * 16), (y * 16), 14, 21, 11);
-    DrawSpriteTile((x * 16), (y * 16) - 16, 14, 20, 11, false, false, 2, 1);
+    // USDASM $0DBCA0: two overlapping 16x16 tiles, properties $0A XOR $01
+    // (OBJ page 1, palette 5). Draw the earlier OAM entry last.
+    DrawSpriteTile((x * 16), (y * 16), 14, 21, 12);
+    DrawSpriteTile((x * 16), (y * 16) - 8, 14, 20, 12);
   } else if (id_ == 0xA1) {
     DrawSpriteTile((x * 16) - 8, (y * 16) + 8, 6, 26, 14);
     DrawSpriteTile((x * 16) + 8, (y * 16) + 8, 6, 26, 14, true);
@@ -1098,9 +1107,11 @@ void Sprite::Draw() {
   } else if (id_ == 0xA6) {
     DrawSpriteTile((x * 16), (y * 16), 0, 26, 8, false, false, 3, 2);
     DrawSpriteTile((x * 16) + 4, (y * 16) - 8, 0, 24, 8);
-  } else if (id_ == 0xA7) {
-    DrawSpriteTile((x * 16), (y * 16) + 12, 12, 16, 10);
-    DrawSpriteTile((x * 16), (y * 16), 0, 16, 10);
+  } else if (id_ == 0xA7) {  // Stalfos, grounded front-facing static pose
+    // USDASM $0DC0F3 frame 0, head direction 2. The body entry is duplicated
+    // in OAM; draw it once, then the higher-priority head. OBJ palette 4 stays.
+    DrawSpriteTile((x * 16), (y * 16), 6, 16, 10);
+    DrawSpriteTile((x * 16), (y * 16) - 10, 0, 16, 10);
   } else if (id_ == 0xAC) {
     DrawSpriteTile((x * 16), (y * 16), 5, 14, 4);
   } else if (id_ == 0xAD) {
@@ -1180,16 +1191,37 @@ void Sprite::Draw() {
   bounding_box_.h = height_;
 }
 
-void Sprite::RenderPreviewGraphics(std::span<const uint8_t> graphics) {
+void Sprite::RenderPreviewGraphics(std::span<const uint8_t> graphics,
+                                   const SpriteOamLayout* layout_override,
+                                   std::span<const uint8_t> graphics_resource) {
+  ClearPreviewGraphics();
   if (graphics.empty()) {
-    preview_gfx_.clear();
     return;
   }
 
-  // External dungeon previews emit only non-zero CGRAM indices (0x71..0xFF),
-  // so index 0 is an unambiguous transparency sentinel. 0xFF is a visible
-  // armor-palette color and must remain available to sprites such as 0xE7.
-  preview_gfx_.assign(64 * 64, 0);
+  std::vector<uint8_t> resource_graphics;
+  if (layout_override != nullptr && layout_override->sprite_id == id_ &&
+      layout_override->graphics_resource != nullptr) {
+    // Dynamic graphics are preview-local: never replace the room's sheets or
+    // use unrelated room art when the external OBJ page is unavailable.
+    constexpr size_t kObjPageBytes = 0x2000;
+    constexpr size_t kPageOneOffset = 0x300 * 64;
+    if (graphics_resource.size() != kObjPageBytes ||
+        graphics.size() < kPageOneOffset + kObjPageBytes * 2) {
+      return;
+    }
+    resource_graphics.assign(graphics.begin(), graphics.end());
+    for (size_t tile_id = 0; tile_id < 256; ++tile_id) {
+      const auto tile = gfx::UnpackBppTile(graphics_resource, tile_id * 32, 4);
+      const size_t tile_offset =
+          kPageOneOffset + (tile_id / 16) * 1024 + (tile_id % 16) * 8;
+      for (size_t row = 0; row < 8; ++row) {
+        std::copy_n(tile.data + row * 8, 8,
+                    resource_graphics.begin() + tile_offset + row * 128);
+      }
+    }
+    graphics = resource_graphics;
+  }
 
   external_gfx_ = graphics.data();
   external_gfx_size_ = graphics.size();
@@ -1201,13 +1233,40 @@ void Sprite::RenderPreviewGraphics(std::span<const uint8_t> graphics) {
   const SDL_Rect old_bounding_box = bounding_box_;
 
   // Sprite::Draw() was written around room/map coordinates. Normalize to the
-  // preview origin so the caller can place the 64x64 preview at the sprite's
-  // room anchor instead of baking absolute room coordinates into the buffer.
+  // preview origin instead of baking absolute room coordinates into the buffer.
   nx_ = 0;
   ny_ = 0;
   x_ = 0;
   y_ = 0;
-  Draw();
+  const auto draw_preview = [&]() {
+    if (layout_override != nullptr && layout_override->sprite_id == id_) {
+      // Layout entries are in OAM order: the first entry has highest priority.
+      for (auto tile = layout_override->tiles.rbegin();
+           tile != layout_override->tiles.rend(); ++tile) {
+        if (tile->tile_id > 0x1FF || tile->palette > 7) {
+          continue;
+        }
+        const int size = tile->size_16x16 ? 2 : 1;
+        // Convert the OBJ palette to its CGRAM row using DrawSpriteTile's
+        // half-palette selectors with base 112.
+        DrawSpriteTile(tile->x_offset, tile->y_offset, tile->tile_id % 16,
+                       tile->tile_id / 16, 2 + tile->palette * 2, tile->flip_x,
+                       tile->flip_y, size, size);
+      }
+    } else {
+      Draw();
+    }
+  };
+
+  // Measure the same tile stream we render, without decoding pixels or keeping
+  // a second sprite-size table. Union with the legacy extent so ordinary
+  // previews retain their 64x64 layout and (16,16) anchor.
+  measuring_preview_bounds_ = true;
+  draw_preview();
+  measuring_preview_bounds_ = false;
+  // Index 0 is transparent; 0xFF remains a visible armor-palette color.
+  preview_gfx_.assign(preview_bounds_.w * preview_bounds_.h, 0);
+  draw_preview();
 
   nx_ = old_nx;
   ny_ = old_ny;
@@ -1221,6 +1280,7 @@ void Sprite::RenderPreviewGraphics(std::span<const uint8_t> graphics) {
 
 void Sprite::ClearPreviewGraphics() {
   preview_gfx_.clear();
+  preview_bounds_ = kDefaultPreviewBounds;
 }
 
 void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
@@ -1236,11 +1296,6 @@ void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
     return;
   }
 
-  // Lazy allocate preview buffer on first use (saves ~1.4MB during load)
-  if (preview_gfx_.empty()) {
-    preview_gfx_.resize(64 * 64, 0xFF);
-  }
-
   // Validate input parameters
   if (sizex <= 0 || sizey <= 0) {
     return;
@@ -1250,13 +1305,36 @@ void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
     return;
   }
 
-  x += 16;
-  y += 16;
   int drawid_ = (srcx + (srcy * 16)) + 512;
 
   // Validate drawid_ is within reasonable bounds
   if (drawid_ < 0 || drawid_ > 4096) {
     return;
+  }
+
+  if (measuring_preview_bounds_) {
+    const int left = std::min(preview_bounds_.x, x);
+    const int top = std::min(preview_bounds_.y, y);
+    const int right =
+        std::max(preview_bounds_.x + preview_bounds_.w, x + sizex * 8);
+    const int bottom =
+        std::max(preview_bounds_.y + preview_bounds_.h, y + sizey * 8);
+    preview_bounds_ = {left, top, right - left, bottom - top};
+    return;
+  }
+
+  if (use_external_8bpp) {
+    x -= preview_bounds_.x;
+    y -= preview_bounds_.y;
+  } else {
+    // Packed overworld drawing keeps its fixed buffer and sentinel. Restore
+    // that storage if an external preview previously enlarged this Sprite.
+    preview_bounds_ = kDefaultPreviewBounds;
+    if (preview_gfx_.size() != 64 * 64) {
+      preview_gfx_.assign(64 * 64, 0xFF);
+    }
+    x += 16;
+    y += 16;
   }
 
   if (use_external_8bpp) {
@@ -1297,11 +1375,11 @@ void Sprite::DrawSpriteTile(int x, int y, int srcx, int srcy, int pal,
 
         const int preview_x = x + dest_x;
         const int preview_y = y + dest_y;
-        if (preview_x < 0 || preview_x >= 64 || preview_y < 0 ||
-            preview_y >= 64) {
+        if (preview_x < 0 || preview_x >= preview_bounds_.w || preview_y < 0 ||
+            preview_y >= preview_bounds_.h) {
           continue;
         }
-        const int index = preview_x + (preview_y * 64);
+        const int index = preview_x + (preview_y * preview_bounds_.w);
         if (index >= 0 && index < static_cast<int>(preview_gfx_.size())) {
           preview_gfx_[index] =
               static_cast<uint8_t>((pixel & 0x0F) + 112 + (pal * 8));

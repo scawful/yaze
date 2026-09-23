@@ -536,8 +536,8 @@ void ValidateAssemblyComponent(ftxui::ScreenInteractive& screen) {
         output_message = "✅ Assembly file is valid!";
         output_color = Color::Green;
       } else {
-        output_message =
-            absl::StrCat("❌ Validation failed:\n", validation_status.message());
+        output_message = absl::StrCat("❌ Validation failed:\n",
+                                      validation_status.message());
         output_color = Color::Red;
       }
 
@@ -800,77 +800,6 @@ void HelpComponent(ftxui::ScreenInteractive& screen) {
   });
 
   screen.Loop(renderer);
-}
-
-void DashboardComponent(ftxui::ScreenInteractive& screen) {
-  static int selected = 0;
-  MenuOption option;
-  option.focused_entry = &selected;
-  auto menu = Menu(&kMainMenuEntries, &selected, option);
-
-  auto content_renderer = ftxui::Renderer([&] {
-    return vbox({
-        text(GetColoredLogo()) | center,
-        separator(),
-        text("Welcome to the z3ed Dashboard!") | center,
-        text("Select a tool from the menu to begin.") | center | dim,
-    });
-  });
-
-  auto main_container = Container::Horizontal({menu, content_renderer});
-
-  auto layout = Renderer(main_container, [&] {
-    std::string rom_info =
-        app_context.rom.is_loaded() ? app_context.rom.title() : "No ROM";
-    return vbox({hbox({menu->Render() | size(WIDTH, EQUAL, 30) | border,
-                       (content_renderer->Render() | center | flex) | border}),
-                 hbox({text(rom_info) | bold, filler(),
-                       text("q: Quit | ↑/↓: Navigate | Enter: Select")}) |
-                     border});
-  });
-
-  auto event_handler = CatchEvent(layout, [&](const Event& event) {
-    if (event == Event::Character('q')) {
-      SwitchComponents(screen, LayoutID::kExit);
-      return true;
-    }
-    if (event == Event::Return) {
-      // Still use SwitchComponents for now to maintain old behavior
-      switch ((MainMenuEntry)selected) {
-        case MainMenuEntry::kLoadRom:
-          SwitchComponents(screen, LayoutID::kLoadRom);
-          break;
-        case MainMenuEntry::kAIAgentChat:
-          SwitchComponents(screen, LayoutID::kAIAgentChat);
-          break;
-        case MainMenuEntry::kTodoManager:
-          SwitchComponents(screen, LayoutID::kTodoManager);
-          break;
-        case MainMenuEntry::kRomTools:
-          SwitchComponents(screen, LayoutID::kRomTools);
-          break;
-        case MainMenuEntry::kGraphicsTools:
-          SwitchComponents(screen, LayoutID::kGraphicsTools);
-          break;
-        case MainMenuEntry::kTestingTools:
-          SwitchComponents(screen, LayoutID::kTestingTools);
-          break;
-        case MainMenuEntry::kSettings:
-          SwitchComponents(screen, LayoutID::kSettings);
-          break;
-        case MainMenuEntry::kHelp:
-          SwitchComponents(screen, LayoutID::kHelp);
-          break;
-        case MainMenuEntry::kExit:
-          SwitchComponents(screen, LayoutID::kExit);
-          break;
-      }
-      return true;
-    }
-    return false;
-  });
-
-  screen.Loop(event_handler);
 }
 
 void MainMenuComponent(ftxui::ScreenInteractive& screen) {

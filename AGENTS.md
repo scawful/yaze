@@ -27,7 +27,8 @@ Primary owner from `docs/internal/agents/personas.md` (ids: `imgui-frontend-engi
 `zelda3-hacking-expert`, `test-infrastructure-expert`, `docs-janitor`).
 
 ### 3) Focused Context Loading
-1. `.claude/agents/<agent-id>.md`
+Load only:
+1. The selected persona entry in `docs/internal/agents/personas.md`
 2. `docs/internal/agents/routing-personas.md`
 3. Relevant entries in `docs/internal/agents/routing-skills-tools.md`
 
@@ -53,9 +54,23 @@ Primary owner from `docs/internal/agents/personas.md` (ids: `imgui-frontend-engi
 - `z3ed --write` → base ROM (`oos168.sfc`), never `oos168x.sfc`
 - Handoff: `../oracle-of-secrets/.context/scratchpad/agent_handoff.md`
 
+### 5b) Cloud / ROM-less Sessions
+- Linux cloud agents (Claude Code web, Codex, Cursor): follow
+  `docs/internal/agents/cloud-agents.md` instead of the macOS defaults above.
+- Setup and verification: `scripts/cloud/bootstrap.sh [configure build test]`.
+- No ROMs, local MCP servers, or universe coordination in cloud sessions.
+
 ### 6) Dependency Graph
-`Task Class` → `Primary Persona` → focused context → tools → validation.
-Coordination flows through universe events; markdown snapshot is derived only.
+For editor capability, parity, or milestone work, first read
+`docs/internal/plans/editor-capability-parity-plan.md`. It defines the reference
+baseline, work-package dependencies, and completion evidence. Use its package
+IDs; dated handoffs and archived parity estimates are historical context.
+
+`Task Class` -> `Primary Persona` -> `Focused Context Files` -> `Tools/Scripts` -> `Validation`.
+
+Concretely:
+- `AGENTS.md` -> persona catalog + routing docs -> scripts/tools -> tests/build checks.
+- Coordination state flows through universe events/state; markdown snapshot is derived output only.
 
 ## Layer 2: Focused Persona/Skill Context
 Load the smallest subset from `routing-personas.md`, `routing-skills-tools.md`,

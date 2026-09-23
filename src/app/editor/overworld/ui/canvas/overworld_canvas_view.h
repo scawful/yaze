@@ -25,7 +25,10 @@ class OverworldCanvasView : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_MAP; }
   std::string GetEditorCategory() const override { return "Overworld"; }
   std::string GetShortcutHint() const override { return "Ctrl+Shift+O"; }
-  int GetPriority() const override { return 5; }  // Show first
+  int GetPriority() const override { return 5; }
+  std::string GetWorkflowGroup() const override {
+    return "Core";
+  }  // Show first
   bool PreferAutoHideTabBar() const override { return true; }
   bool IsVisibleByDefault() const override { return true; }
 

@@ -13,9 +13,12 @@
 #include "util/i18n/tr.h"
 
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/editor/dungeon/dungeon_room_composite.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/editor_panel.h"
+#include "app/gfx/resource/arena.h"
+#include "app/gfx/resource/bitmap_texture_queue.h"
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
 #include "zelda3/dungeon/room.h"
@@ -67,6 +70,7 @@ class RoomMatrixContent : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_GRID_VIEW; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 30; }
+  std::string GetWorkflowGroup() const override { return "Core"; }
   float GetPreferredWidth() const override { return 440.0f; }
 
   void SetRoomIntentCallback(
@@ -306,10 +310,10 @@ class RoomMatrixContent : public WindowContent {
                                     loaded_room->blockset());
 
                 // Show thumbnail preview of the room
-                auto& room = *loaded_room;
-                zelda3::RoomLayerManager layer_mgr;
-                layer_mgr.ApplyLayerMerging(room.layer_merging());
-                auto& preview_bitmap = room.GetCompositeBitmap(layer_mgr);
+                auto& preview_bitmap = PrepareCanonicalRoomComposite(
+                    *loaded_room, tooltip_composite_output_);
+                gfx::EnsureCompositeBitmapTextureQueued(preview_bitmap);
+                gfx::Arena::Get().ProcessTextureQueue(nullptr);
                 if (preview_bitmap.is_active() &&
                     preview_bitmap.texture() != 0) {
                   ImGui::Separator();
@@ -343,7 +347,14 @@ class RoomMatrixContent : public WindowContent {
         ImVec2(panel_width, std::max(grid_height + y_offset, panel_height)));
   }
 
-  void SetRooms(DungeonRoomStore* rooms) { rooms_ = rooms; }
+  void SetRooms(DungeonRoomStore* rooms) {
+    if (rooms_ != rooms) {
+      rooms_ = rooms;
+      room_color_cache_.clear();
+      tooltip_composite_output_.Retire();
+      color_sample_composite_output_.Retire();
+    }
+  }
 
  private:
   void DrawMatrixSummary(const AgentUITheme& theme, int total_rooms) const {
@@ -539,12 +550,22 @@ class RoomMatrixContent : public WindowContent {
     if (rooms_) {
       auto* room = rooms_->GetIfLoaded(room_id);
       if (room != nullptr) {
-        zelda3::RoomLayerManager layer_mgr;
-        layer_mgr.ApplyLayerMerging(room->layer_merging());
-        auto& composite = room->GetCompositeBitmap(layer_mgr);
-        if (auto composite_color = sample_dominant_color(composite);
-            composite_color.has_value()) {
-          return soften_color(composite_color.value());
+        room->PrepareForRender();
+        const uint64_t source_revision = room->composite_source_revision();
+        auto cache_it = room_color_cache_.find(room_id);
+        if (cache_it == room_color_cache_.end() ||
+            cache_it->second.source_revision != source_revision) {
+          auto& composite = PrepareCanonicalRoomComposite(
+              *room, color_sample_composite_output_);
+          cache_it = room_color_cache_
+                         .insert_or_assign(
+                             room_id,
+                             CachedRoomColor{room->composite_source_revision(),
+                                             sample_dominant_color(composite)})
+                         .first;
+        }
+        if (cache_it->second.color.has_value()) {
+          return soften_color(cache_it->second.color.value());
         }
 
         if (auto bg1_color = sample_dominant_color(room->bg1_buffer().bitmap());
@@ -585,6 +606,13 @@ class RoomMatrixContent : public WindowContent {
   std::function<void(int)> on_room_selected_;
   std::function<void(int, int)> on_room_swap_;
   std::function<void(int, RoomSelectionIntent)> on_room_intent_;
+  struct CachedRoomColor {
+    uint64_t source_revision = 0;
+    std::optional<ImU32> color;
+  };
+  std::unordered_map<int, CachedRoomColor> room_color_cache_;
+  RoomCompositeOutput tooltip_composite_output_;
+  RoomCompositeOutput color_sample_composite_output_;
   char search_filter_[64] = "";
 };
 

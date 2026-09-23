@@ -13,6 +13,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "rom/snes.h"
+#include "util/hex.h"
 #include "util/json.h"
 #include "util/log.h"
 #include "util/macro.h"
@@ -41,16 +42,17 @@ std::string AddressOwnershipToString(AddressOwnership ownership) {
 
 namespace {
 
-absl::StatusOr<uint32_t> ParseHexAddress(const std::string& str) {
-  try {
-    if (str.size() >= 2 && str[0] == '0' && (str[1] == 'x' || str[1] == 'X')) {
-      return static_cast<uint32_t>(std::stoul(str.substr(2), nullptr, 16));
-    }
-    return static_cast<uint32_t>(std::stoul(str, nullptr, 16));
-  } catch (const std::exception& exc) {
+absl::StatusOr<uint32_t> ParseHexAddress(absl::string_view str) {
+  // util::ParseHexString requires the whole string to be a hexadecimal number.
+  // The previous std::stoul call stopped at the first invalid character, so
+  // "0x1E80zz" loaded as 0x1E80, a value past 32 bits wrapped to a plausible
+  // address, and "-1" became 0xFFFFFFFF.
+  uint32_t value = 0;
+  if (!util::ParseHexString(str, &value)) {
     return absl::InvalidArgumentError(
-        absl::StrFormat("Invalid hex address '%s': %s", str, exc.what()));
+        absl::StrFormat("Invalid hex address '%s'", str));
   }
+  return value;
 }
 
 absl::StatusOr<AddressOwnership> ParseOwnership(const std::string& str) {
@@ -168,19 +170,16 @@ absl::StatusOr<uint32_t> ParseStrictHexValue(const Json& value,
     }
   }
 
-  try {
-    const uint64_t parsed =
-        std::stoull(input.substr(digits_begin), nullptr, 16);
-    if (parsed > maximum) {
-      return absl::InvalidArgumentError(
-          absl::StrFormat("%s value '%s' exceeds 0x%X", field, input, maximum));
-    }
-    return static_cast<uint32_t>(parsed);
-  } catch (const std::exception& exc) {
-    return absl::InvalidArgumentError(
-        absl::StrFormat("Invalid hexadecimal value for %s ('%s'): %s", field,
-                        input, exc.what()));
+  uint64_t parsed = 0;
+  if (!util::ParseHexString(input.substr(digits_begin), &parsed)) {
+    return absl::InvalidArgumentError(absl::StrFormat(
+        "%s contains an invalid hexadecimal value '%s'", field, input));
   }
+  if (parsed > maximum) {
+    return absl::InvalidArgumentError(
+        absl::StrFormat("%s value '%s' exceeds 0x%X", field, input, maximum));
+  }
+  return static_cast<uint32_t>(parsed);
 }
 
 absl::StatusOr<int> ParseManifestVersion(const Json& root) {

@@ -1,5 +1,6 @@
 // Related header
 #include "app/editor/overworld/overworld_editor.h"
+#include "app/editor/overworld/overworld_map_status.h"
 #include "rom/transaction.h"
 #include "util/i18n/tr.h"
 
@@ -69,6 +70,7 @@
 #include "app/gui/core/style.h"
 #include "app/gui/core/ui_helpers.h"
 #include "app/gui/imgui_memory_editor.h"
+#include "app/gui/widgets/empty_state.h"
 #include "app/gui/widgets/tile_selector_widget.h"
 #include "core/asar_wrapper.h"
 #include "core/features.h"
@@ -565,12 +567,12 @@ absl::Status OverworldEditor::Update() {
 
   // Safety check: Ensure ROM is loaded and graphics are ready
   if (!rom_ || !rom_->is_loaded()) {
-    gui::CenterText("No ROM loaded");
+    gui::DrawEmptyState(gui::EmptyNoRom());
     return absl::OkStatus();
   }
 
   if (!all_gfx_loaded_) {
-    gui::CenterText("Loading graphics...");
+    gui::DrawEmptyState(gui::EmptyLoading("Loading overworld graphics…"));
     return absl::OkStatus();
   }
 
@@ -1117,7 +1119,7 @@ absl::Status OverworldEditor::UpdateGfxGroupEditor() {
   if (rom_ && rom_->is_loaded()) {
     return gfx_group_editor_.Update();
   } else {
-    gui::CenterText("No ROM loaded");
+    gui::DrawEmptyState(gui::EmptyNoRom(/*compact=*/true));
     return absl::OkStatus();
   }
 }
@@ -1634,23 +1636,11 @@ void OverworldEditor::CycleTileSelection(int delta) {
 void OverworldEditor::ContributeStatus(StatusBar* status_bar) {
   if (!status_bar)
     return;
-  const char* world_label;
-  switch (current_world_) {
-    case 0:
-      world_label = "LW";
-      break;
-    case 1:
-      world_label = "DW";
-      break;
-    case 2:
-      world_label = "SW";
-      break;
-    default:
-      world_label = "??";
-      break;
-  }
   status_bar->SetCustomSegment(
-      "Map", absl::StrFormat("%s #%02X", world_label, current_map_ & 0xFF));
+      "Map",
+      FormatOverworldMapStatusSegment(
+          current_map_, EffectiveOverworldHoverMap(
+                            hovered_map_, ow_map_canvas_.IsMouseHovering())));
   status_bar->SetCustomSegment("Tile16",
                                absl::StrFormat("0x%03X", current_tile16_));
 

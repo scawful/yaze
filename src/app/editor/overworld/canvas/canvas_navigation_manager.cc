@@ -4,6 +4,7 @@
 #include <optional>
 
 #include "absl/status/status.h"
+#include "app/editor/overworld/overworld_map_status.h"
 #include "app/gfx/resource/arena.h"
 #include "imgui/imgui.h"
 #include "util/log.h"
@@ -146,6 +147,14 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
     return absl::OkStatus();
   }
 
+  // Leave / no-hover must clear preview state so status falls back to selection.
+  // hover_mouse_pos() can retain the last in-canvas point after the cursor
+  // exits, so do not trust MapFromCanvasPosition unless we are still hovering.
+  if (!ctx_.ow_map_canvas->IsMouseHovering()) {
+    SetHoveredMap(ctx_, -1);
+    return absl::OkStatus();
+  }
+
   const int large_map_size = 1024;
 
   const auto hovered_map =
@@ -155,6 +164,14 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
     return absl::OkStatus();
   }
   SetHoveredMap(ctx_, *hovered_map);
+
+  // Lightweight hover identity near the cursor when it differs from selection.
+  if (ctx_.current_map && *hovered_map != *ctx_.current_map &&
+      ctx_.ow_map_canvas && ctx_.ow_map_canvas->IsMouseHovering()) {
+    ImGui::SetTooltip(
+        "%s", FormatOverworldMapStatusSegment(*ctx_.current_map, *hovered_map)
+                  .c_str());
+  }
 
   // Hover is only a preview/loading signal. The editable map is changed by
   // explicit click selection so toolbar/sidebar fields do not retarget while

@@ -29,6 +29,7 @@
 #include "cli/handlers/game/dungeon_collision_commands.h"
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
+#include "unique_temp_path.h"
 #include "zelda3/dungeon/water_fill_zone.h"
 
 namespace yaze::cli {
@@ -44,9 +45,9 @@ absl::Status InjectCollisionTile(Rom* rom, int room_id, int offset) {
   const std::string body = absl::StrFormat(
       R"({"version":1,"rooms":[{"room_id":"0x%02X","tiles":[[%d,184]]}]})",
       room_id, offset);
-  auto tmp = (std::filesystem::temp_directory_path() /
-              "yaze_smoke_inject_collision.json")
-                 .string();
+  auto tmp =
+      ::yaze::test::UniqueTempPath("yaze_smoke_inject_collision", ".json")
+          .string();
   {
     std::ofstream f(tmp, std::ios::out | std::ios::binary | std::ios::trunc);
     f << body;
@@ -322,9 +323,9 @@ TEST(OracleSmokeCheckTest, ReportWriteSucceedsAndContainsAllCheckKeys) {
   ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(kFullRomSize, 0)).ok());
   ASSERT_TRUE(WriteD4WaterFillTable(&rom).ok());
 
-  const auto report_path = (std::filesystem::temp_directory_path() /
-                            "yaze_oracle_smoke_check_report.json")
-                               .string();
+  const auto report_path =
+      ::yaze::test::UniqueTempPath("yaze_oracle_smoke_check_report", ".json")
+          .string();
 
   handlers::OracleSmokeCheckCommandHandler handler;
   std::string out;

@@ -50,6 +50,7 @@ class ItemEditorPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_INVENTORY; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 66; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
 
   // ==========================================================================
   // WindowContent Drawing

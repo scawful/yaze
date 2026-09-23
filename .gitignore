@@ -38,6 +38,10 @@ src/ios/yaze.xcodeproj/xcuserdata/
 src/ios/yaze.xcodeproj/project.xcworkspace/xcuserdata/
 src/ios/build/
 
+# Legacy dungeon-object-validate outputs (reports are opt-in via --report)
+/dungeon_object_validation_report.json
+/dungeon_object_validation_report.csv
+
 # Test outputs
 test_screenshots/
 test_temp/

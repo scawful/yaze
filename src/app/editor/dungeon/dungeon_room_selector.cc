@@ -8,7 +8,10 @@
 #include "app/editor/core/content_registry.h"
 #include "app/editor/dungeon/dungeon_entrance_edit_policy.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
+#include "app/editor/dungeon/dungeon_room_composite.h"
 #include "app/editor/events/core_events.h"
+#include "app/gfx/resource/arena.h"
+#include "app/gfx/resource/bitmap_texture_queue.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
 #include "app/gui/core/layout_helpers.h"
@@ -257,10 +260,10 @@ void DungeonRoomSelector::DrawRoomSelectorInternal(
               ImGui::TextDisabled(tr("Blockset: %d | Palette: %d"),
                                   loaded_room->blockset(),
                                   loaded_room->palette());
-              auto& room = *loaded_room;
-              zelda3::RoomLayerManager layer_mgr;
-              layer_mgr.ApplyLayerMerging(room.layer_merging());
-              auto& bmp = room.GetCompositeBitmap(layer_mgr);
+              auto& bmp = PrepareCanonicalRoomComposite(
+                  *loaded_room, room_tooltip_composite_);
+              gfx::EnsureCompositeBitmapTextureQueued(bmp);
+              gfx::Arena::Get().ProcessTextureQueue(nullptr);
               if (bmp.is_active() && bmp.texture() != 0) {
                 ImGui::Image((ImTextureID)(intptr_t)bmp.texture(),
                              ImVec2(64, 64));
@@ -666,10 +669,10 @@ void DungeonRoomSelector::DrawGroupedRoomList(
               ImGui::TextDisabled(tr("Blockset: %d | Palette: %d"),
                                   loaded_room->blockset(),
                                   loaded_room->palette());
-              auto& room = *loaded_room;
-              zelda3::RoomLayerManager layer_mgr;
-              layer_mgr.ApplyLayerMerging(room.layer_merging());
-              auto& bmp = room.GetCompositeBitmap(layer_mgr);
+              auto& bmp = PrepareCanonicalRoomComposite(
+                  *loaded_room, room_tooltip_composite_);
+              gfx::EnsureCompositeBitmapTextureQueued(bmp);
+              gfx::Arena::Get().ProcessTextureQueue(nullptr);
               if (bmp.is_active() && bmp.texture() != 0) {
                 ImGui::Image((ImTextureID)(intptr_t)bmp.texture(),
                              ImVec2(64, 64));

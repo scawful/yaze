@@ -127,6 +127,46 @@ TEST_F(EmptyStateTest, DrawEmptyStateNoopsWhenEmpty) {
   ImGui::Render();
 }
 
+TEST_F(EmptyStateTest, ActionActivationReturnsTrueAndInvokesCallbackOnce) {
+  int calls = 0;
+  EmptyStateOptions opts;
+  opts.title = "Open a ROM";
+  opts.action_label = "Open##EmptyStateAction";
+  opts.on_action = [&]() {
+    ++calls;
+  };
+  ImGuiID action_id = 0;
+  auto draw_frame = [&]() {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(300, 240), ImGuiCond_Always);
+    ImGui::Begin("EmptyStateActionHost", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    action_id = ImGui::GetID(opts.action_label);
+    const bool activated = DrawEmptyState(opts);
+    ImGui::End();
+    ImGui::Render();
+    return activated;
+  };
+
+  EXPECT_FALSE(draw_frame());
+  EXPECT_FALSE(draw_frame());
+  EXPECT_EQ(calls, 0);
+
+  // Exercise the actual ImGui button activation path, not the callback alone.
+  ImGui::ActivateItemByID(action_id);
+  EXPECT_TRUE(draw_frame());
+  EXPECT_EQ(calls, 1);
+  EXPECT_FALSE(draw_frame());
+  EXPECT_EQ(calls, 1);
+
+  // A caller may use the returned result without supplying a callback.
+  opts.on_action = {};
+  ImGui::ActivateItemByID(action_id);
+  EXPECT_TRUE(draw_frame());
+  EXPECT_EQ(calls, 1);
+}
+
 }  // namespace
 }  // namespace gui
 }  // namespace yaze

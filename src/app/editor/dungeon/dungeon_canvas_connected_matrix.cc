@@ -856,6 +856,7 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
     ImGui::TextDisabled(tr("Room data unavailable"));
     return std::nullopt;
   }
+  PruneConnectedRoomCompositeOutputs();
 
   if (!connected_canvas_initialized_) {
     connected_canvas_.set_global_scale(kConnectedCanvasDefaultScale);
@@ -1099,7 +1100,7 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
     }
 
     visible_rooms.push_back(room_id);
-    (void)PrepareRoomCompositeBitmap(room_id);
+    (void)PrepareConnectedRoomCompositeBitmap(room_id);
   }
 
   if (renderer_) {
@@ -1173,7 +1174,7 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
         screen_min.x + (kDungeonRoomPixelSize * canvas_rt.scale),
         screen_min.y + (kDungeonRoomPixelSize * canvas_rt.scale));
 
-    if (gfx::Bitmap* composite = PrepareRoomCompositeBitmap(room_id);
+    if (gfx::Bitmap* composite = PrepareConnectedRoomCompositeBitmap(room_id);
         composite && composite->texture()) {
       canvas_rt.draw_list->AddImage((ImTextureID)(intptr_t)composite->texture(),
                                     screen_min, screen_max, ImVec2(0, 0),
@@ -1386,7 +1387,8 @@ std::optional<int> DungeonCanvasViewer::DrawConnectedRoomMatrix(
   }
 
   if (show_connected_current_room_preview_) {
-    if (gfx::Bitmap* current_room = PrepareRoomCompositeBitmap(center_room_id);
+    if (gfx::Bitmap* current_room =
+            PrepareConnectedRoomCompositeBitmap(center_room_id);
         current_room && current_room->texture()) {
       const float preview_scale =
           kConnectedCurrentRoomPreviewWidth /

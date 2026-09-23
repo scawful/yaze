@@ -199,6 +199,20 @@ void PaletteDebugger::SetCurrentBitmap(gfx::Bitmap* bitmap) {
   current_bitmap_ = bitmap;
 }
 
+void PaletteDebugger::SetCurrentPresentation(
+    gfx::Bitmap* bitmap, const gfx::SnesPalette& palette,
+    const std::vector<SDL_Color>& render_palette) {
+  current_bitmap_ = bitmap;
+  current_palette_ = palette;
+  current_render_palette_ = render_palette;
+}
+
+void PaletteDebugger::ClearCurrentBitmapIf(const gfx::Bitmap* bitmap) {
+  if (current_bitmap_ == bitmap) {
+    current_bitmap_ = nullptr;
+  }
+}
+
 ColorComparison PaletteDebugger::SamplePixelAt(int x, int y) const {
   ColorComparison comp;
   comp.x = x;

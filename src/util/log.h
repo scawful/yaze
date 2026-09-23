@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <fstream>
+#include <functional>
 #include <set>
 #include <string>
 #include <utility>
@@ -59,6 +60,18 @@ class LogManager {
            absl::string_view message);
 
   /**
+   * @brief Fast inline check if logging is enabled for the given level.
+   */
+  bool ShouldLog(LogLevel level) const {
+    return level >= min_level_.load(std::memory_order_relaxed);
+  }
+
+  /**
+   * @brief Check if logging is enabled for both level and category.
+   */
+  bool ShouldLog(LogLevel level, absl::string_view category) const;
+
+  /**
    * @brief Runtime log level control (for debug card)
    */
   void SetLogLevel(LogLevel level) { min_level_.store(level); }
@@ -79,8 +92,9 @@ class LogManager {
 
   // Configuration state
   std::atomic<LogLevel> min_level_;
-  std::set<std::string> enabled_categories_;
-  std::set<std::string> disabled_categories_;
+  // Transparent comparator: lookup with absl::string_view without allocating.
+  std::set<std::string, std::less<>> enabled_categories_;
+  std::set<std::string, std::less<>> disabled_categories_;
   std::atomic<bool> all_categories_enabled_;
 
   // Output sink
@@ -94,10 +108,20 @@ class LogManager {
 // The level check avoids the cost of string formatting if the message won't be
 // logged.
 
-#define YAZE_LOG_IMPL(level, category, format, ...)               \
-  do {                                                            \
-    yaze::util::LogManager::instance().log(                       \
-        level, category, absl::StrFormat(format, ##__VA_ARGS__)); \
+// `category` is bound once, so the guard and the log call never evaluate the
+// caller's expression twice. It is bound with `auto&&` rather than
+// absl::string_view: callers may pass a std::string temporary (for example
+// absl::StrCat(...)), and a string_view would dangle for the rest of the block.
+// The formatted message is built only when the message will be emitted, so
+// arguments with side effects do not run for a filtered level or category.
+#define YAZE_LOG_IMPL(level, category, format, ...)                  \
+  do {                                                               \
+    auto&& yaze_log_category_ = (category);                          \
+    auto& yaze_log_manager_ = ::yaze::util::LogManager::instance();  \
+    if (yaze_log_manager_.ShouldLog(level, yaze_log_category_)) {    \
+      yaze_log_manager_.log(level, yaze_log_category_,               \
+                            absl::StrFormat(format, ##__VA_ARGS__)); \
+    }                                                                \
   } while (0)
 
 #define LOG_DEBUG(category, format, ...)                            \

@@ -99,12 +99,15 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
             .expected_layer_merge_id = 0,
             // IDs 0x0D-0x10 use USDASM's single-layer diagonal routines;
             // their old duplicated BG2 raster was an editor-only artifact.
-            .composite_checksum = 18354950681794196905ull,
-            .object_bg1_checksum = 11901466281411276978ull,
+            // 0xFF9 (TableRock4x3) now draws once, as in the game capture;
+            // it used to repeat size+1 times. Its closed north key stairs no
+            // longer draw a mirrored south door (12 tiles).
+            .composite_checksum = 6243348999885400532ull,
+            .object_bg1_checksum = 9988774537533147080ull,
             .object_bg2_checksum = 11028269878064776067ull,
             .layout_bg1_checksum = 7897614742461255965ull,
             .composite_non_backdrop_pixels = 262144,
-            .object_bg1_non_backdrop_pixels = 77824,
+            .object_bg1_non_backdrop_pixels = 76672,
             .object_bg2_non_backdrop_pixels = 0,
         },
         {
@@ -116,15 +119,17 @@ inline constexpr DungeonRoomRegressionFixture kDungeonRoomRegressionFixtures[] =
                      "case for intentional half-color compositing.",
             .required_object_id = 0x108,
             .expected_layer_merge_id = 4,
-            // FF1 now honors the inactive room-0x065 bombed-floor state, so
-            // the default room render correctly omits the big light beam.
-            .composite_checksum = 16184705480853915451ull,
+            // Refreshed 2026-09-14: follow the animated-table operand to
+            // sheet $5D, not the old misindexed $94. The counterfactual test
+            // reproduces the old hashes and confines pixel changes to the
+            // BG2 water tiles $1B0/$1B1. This remains a self-fingerprint.
+            .composite_checksum = 15016426039182598051ull,
             .object_bg1_checksum = 10182215693742640491ull,
-            .object_bg2_checksum = 10480448132206945203ull,
+            .object_bg2_checksum = 18329464225895248363ull,
             .layout_bg1_checksum = 10260335362238553655ull,
-            .composite_non_backdrop_pixels = 231372,
+            .composite_non_backdrop_pixels = 251392,
             .object_bg1_non_backdrop_pixels = 152256,
-            .object_bg2_non_backdrop_pixels = 26572,
+            .object_bg2_non_backdrop_pixels = 46592,
         },
         {
             .room_id = 0x004,

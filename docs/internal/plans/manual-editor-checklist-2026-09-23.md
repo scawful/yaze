@@ -5,9 +5,11 @@ Manual checks are deferred at the user's request; continue development meanwhile
 
 ## Test later: consolidated overworld and Tile16
 
-Source candidate: `f5df9c7fb`. Record the actual build commit when testing a
-later build. The Barista launcher has not been updated by this consolidation.
-Use a copy of a ROM, keeping the working original untouched.
+Combined candidate branch: `codex/combined-editor-candidate`. It integrates
+`0f3855d6f` (overworld/Tile16) and `804b32eea` (dungeon authoring).
+Record the final merge commit from the candidate provenance file when testing. The Barista launcher
+has not been updated. Use the combined candidate app and a copy of a ROM,
+keeping the working original untouched.
 
 - [ ] Open Tile16 by double-click and by Edit. Confirm useful initial size,
   dock it narrow, then reopen it. Check layout and controls remain usable.
@@ -35,31 +37,33 @@ These checks remain deferred. Automated tests use synthetic in-memory ROM data.
 
 ## Test later: dungeon pot-item coordinates
 
-Candidate: `804b32eea` on `codex/editor-parity-dungeon-authoring`; this code is
-not yet integrated into the main checkout. Test the eventual combined build.
-
 - [ ] Select and move pot items on odd tile rows and the lower layer. Confirm
   canvas position, hit testing, inspector coordinates, and 8-pixel arrow nudges.
 - [ ] Undo/Redo, then save/reopen a test ROM copy. Check positions and item types.
 
-## Integration priority before another feature
+## Test later: dungeon authoring in the same app
 
-The authoring checkout contains the chest, mixed-selection, reciprocal-door,
-and room clone/import work. The main checkout contains the consolidated
-Tile16/overworld work through `06343577b`. They are separate branches, not one
-qualified application. Review the isolated merge before claiming combined support.
+- [ ] Place, resize and inspect objects, including walls/trim and masks. Confirm
+  the placed result matches the hover preview, including after Undo/Redo.
+- [ ] Add a chest, choose its reward, move it, and delete it. Undo/Redo should
+  restore the object and reward together. Save/reopen the test copy and verify both.
+- [ ] Select objects alongside sprites, doors and pot items. Check an
+  object-only Delete affects only objects; mixed edits should undo together.
+- [ ] Connect ordinary doors between two rooms. Inspect both endpoints;
+  Undo/Redo should remove/restore both. Save/reopen and check both rooms.
+- [ ] Clone a room into a disposable destination and export/import room JSON.
+  Confirm the source is unchanged, rejected imports leave the destination
+  unchanged, and accepted operations survive Undo/Redo and save/reopen.
+- [ ] Check supported spriteset choices and invalid/capacity errors. Rejected
+  operations must preserve the room and history.
 
-A read-only merge preview before `804b32eea` found 15 conflict paths: CI,
-AGENTS.md, internal index/roadmap/status, Tile16 data-flow documentation,
-editor_library.cmake, overworld_editor.cc, Mesen socket client/header/handler
-and tests, empty_state.cc and tests, and sprite.h. The branches differ across
-hundreds of files beyond those conflicts; a conflict-free file is not proof of
-semantic compatibility. Preserve the overworld sprite save path, session-safe
-floating panels, immediate Tile16 history, and all dungeon authoring fixes.
+## Integration status
 
-Next bounded task: create an integration checkout, resolve those conflicts,
-review interactions, build it, and run both focused test sets before adopting
-it in the main checkout. Manual tests remain deferred.
+The two source branches are combined in an isolated checkout. Build and automated
+qualification results are recorded in the combined candidate handoff. Manual
+checks above remain open regardless of automated results. Concurrent sprite-catalog
+work in the main checkout is separate and must not be overwritten or silently
+included in this candidate.
 
 ## Requested work to continue
 
@@ -70,8 +74,8 @@ it in the main checkout. Manual tests remain deferred.
    [sprite persistence handoff](../agents/overworld-sprite-persistence-2026-09-23.md).
 2. **Dungeon authoring for 0.8.0.** Resume completion against the release ladder:
    object identification/previews, placement/resize, room workbench save paths,
-   and editable pits/blocks. Reconcile existing chest, reciprocal-door, and room
-   clone/import work before adding or duplicating features.
+   and editable pits/blocks. Use the integrated chest, reciprocal-door, and room
+   clone/import paths rather than adding duplicate implementations.
 3. **Useful UI and readable source.** Continue selector/context-menu workflows
    and bounded cleanup. Profile overworld loading before further optimization;
    keep correctness changes separate from performance changes.

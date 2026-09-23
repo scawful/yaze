@@ -3,9 +3,13 @@
 
 #include <array>
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
+#include "absl/status/status.h"
+#include "app/editor/dungeon/dungeon_room_edit.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/editor/system/workspace/editor_panel.h"
 #include "app/gui/core/icons.h"
@@ -45,6 +49,7 @@ class RoomTagEditorPanel : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_LABEL; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 45; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
 
   // ==========================================================================
   // WindowContent Drawing
@@ -61,7 +66,17 @@ class RoomTagEditorPanel : public WindowContent {
     rooms_ = rooms;
     cache_dirty_ = true;
   }
-  void SetCurrentRoomId(int room_id) { current_room_id_ = room_id; }
+  void SetCurrentRoomId(int room_id) {
+    if (current_room_id_ != room_id) {
+      edit_error_.clear();
+    }
+    current_room_id_ = room_id;
+  }
+  void SetMetadataEditCallback(
+      std::function<absl::Status(int, const RoomMetadataEdit&)> callback) {
+    on_metadata_edit_ = std::move(callback);
+  }
+  void InvalidateUsageCache() { cache_dirty_ = true; }
 
  private:
   void DrawTagTable();
@@ -71,6 +86,8 @@ class RoomTagEditorPanel : public WindowContent {
   project::YazeProject* project_ = nullptr;
   DungeonRoomStore* rooms_ = nullptr;
   int current_room_id_ = -1;
+  std::function<absl::Status(int, const RoomMetadataEdit&)> on_metadata_edit_;
+  std::string edit_error_;
 
   // Cache: tag_index -> count of rooms using it
   std::unordered_map<int, int> tag_usage_count_;

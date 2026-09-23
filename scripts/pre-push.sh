@@ -21,6 +21,10 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/lib/clang_tools.sh
+source "${SCRIPT_DIR}/lib/clang_tools.sh"
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -156,28 +160,6 @@ test_filter_selects_tests() {
   return 0
 }
 
-find_clang_format() {
-  local names=(clang-format-18 clang-format-17 clang-format)
-  local n
-  for n in "${names[@]}"; do
-    if command -v "$n" >/dev/null 2>&1; then
-      echo "$n"
-      return 0
-    fi
-  done
-
-  if [[ "$(uname -s)" == "Darwin" ]] && command -v brew >/dev/null 2>&1; then
-    local llvm_prefix
-    llvm_prefix="$(brew --prefix llvm 2>/dev/null || true)"
-    if [[ -n "$llvm_prefix" && -x "$llvm_prefix/bin/clang-format" ]]; then
-      echo "$llvm_prefix/bin/clang-format"
-      return 0
-    fi
-  fi
-
-  return 1
-}
-
 collect_changed_files() {
   local base=""
   local committed=()
@@ -243,6 +225,26 @@ main() {
   mapfile -t CHANGED_FILES < <(collect_changed_files | sed '/^$/d' | sort -u)
   print_info "Changed files considered: ${#CHANGED_FILES[@]}"
 
+  # ── Step 0: Source & test registration audits (fast, no build required) ──
+  print_header "Step 0/4: Registration Integrity"
+  # Use the script's exit status (not stdout grepping). build_cleaner returns
+  # non-zero in --dry-run mode when CMake source lists would change.
+  if ! python3 scripts/build_cleaner.py --dry-run --cmake-only; then
+    print_err "CMake source-list drift detected. Run: python3 scripts/build_cleaner.py --cmake-only"
+    exit 5
+  fi
+  print_ok "CMake source lists: no drift"
+  if ! python3 scripts/audit_test_registration.py; then
+    print_err "Test registration drift detected. See output above."
+    exit 5
+  fi
+  print_ok "Test registration: all sources accounted for"
+  if ! python3 scripts/audit_test_registration.py --self-test; then
+    print_err "Test registration audit self-test failed. See output above."
+    exit 5
+  fi
+  print_ok "Test registration audit self-test passed"
+
   if [[ "$SKIP_BUILD" == false ]]; then
     print_header "Step 1/4: Build Verification"
     local jobs="${YAZE_BUILD_JOBS:-${CMAKE_BUILD_PARALLEL_LEVEL:-4}}"
@@ -304,11 +306,12 @@ main() {
       print_info "No changed C/C++ files detected; skipping format check"
     else
       local clang_fmt
-      clang_fmt="$(find_clang_format || true)"
+      clang_fmt="$(yaze_find_clang_format || true)"
       if [[ -z "$clang_fmt" ]]; then
         print_err "clang-format not found"
         exit 3
       fi
+      yaze_warn_clang_version "$clang_fmt" clang-format
 
       print_info "Checking formatting for ${#cpp_changed[@]} changed C/C++ files"
       if ! "$clang_fmt" --dry-run --Werror --style=file "${cpp_changed[@]}"; then

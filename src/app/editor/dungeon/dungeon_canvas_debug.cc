@@ -349,7 +349,7 @@ void DungeonCanvasViewer::DrawRoomCanvasOverlays(const gui::CanvasRuntime& rt,
     const ImU32 text_bg_color = ImGui::GetColorU32(ImVec4(0, 0, 0, 0.6f));
 
     auto is_custom = [](int id) {
-      return id == 0x31 || id == 0x32;
+      return zelda3::CustomObjectManager::RuntimeSubtypeCountForObject(id) > 0;
     };
 
     for (const auto& obj : room.GetTileObjects()) {

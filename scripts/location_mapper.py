@@ -17,6 +17,11 @@ Usage:
     python3 location_mapper.py --json --room 0x78               # JSON output for a room
 
 Output files are written to: <docs_subdir>/<Category>/<LocationName>_Map.md
+
+Environment overrides (all optional, all defaulting to repository-relative paths):
+    ALTTP_ROM   Default ROM when --rom is omitted (default: <repo>/roms/alttp_vanilla.sfc)
+    Z3ED_BIN    Path to the z3ed binary (default: <repo>/scripts/z3ed wrapper)
+    Z3ED_PATH   Legacy alias for Z3ED_BIN
 """
 
 import argparse
@@ -36,18 +41,22 @@ from profiles import (
 )
 from profiles.detect import get_profile_by_name, list_profiles
 
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
 # Path to z3ed binary
 # Prefer the repo wrapper script which selects the newest build (build_ai first).
 Z3ED = os.environ.get(
     "Z3ED_BIN",
     os.environ.get(
         "Z3ED_PATH",
-        os.path.join(os.path.dirname(__file__), "z3ed"),
+        os.path.join(REPO_ROOT, "scripts", "z3ed"),
     ),
 )
 
-# Default ROM path (used if --rom not specified and detection fails)
-DEFAULT_ROM = os.environ.get("ALTTP_ROM", "/Users/scawful/src/hobby/oracle-of-secrets/Roms/oos168x.sfc")
+# Default ROM path (used if --rom not specified and detection fails).
+DEFAULT_ROM = os.environ.get(
+    "ALTTP_ROM", os.path.join(REPO_ROOT, "roms", "alttp_vanilla.sfc")
+)
 
 
 # =============================================================================
@@ -492,9 +501,18 @@ def list_locations(profile: RomProfile, filter_type: Optional[str] = None):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Generate location documentation for ALTTP ROMs (multi-ROM support)"
+        description="Generate location documentation for ALTTP ROMs (multi-ROM support)",
+        epilog=(
+            "Environment: ALTTP_ROM overrides the default ROM, "
+            "Z3ED_BIN (or Z3ED_PATH) overrides the z3ed binary. "
+            f"Defaults resolve inside the repository at {REPO_ROOT}."
+        ),
     )
-    parser.add_argument("--rom", default=DEFAULT_ROM, help="Path to ROM file")
+    parser.add_argument(
+        "--rom",
+        default=DEFAULT_ROM,
+        help=f"Path to ROM file (default: $ALTTP_ROM or {DEFAULT_ROM})",
+    )
     parser.add_argument("--profile", help="Use specific profile (vanilla, oracle)")
     parser.add_argument("--profiles", action="store_true", help="List available profiles")
     parser.add_argument("--location", help="Location key to generate")

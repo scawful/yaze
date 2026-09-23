@@ -42,3 +42,24 @@ brew install --formula homebrew/Formula/yaze.rb
 |---------|-------------|
 | `yaze` | Full GUI editor (SDL2 + ImGui) |
 | `z3ed` | CLI-only ROM hacking tool |
+
+## Open follow-up: formulae are stale (raised 2026-09-16)
+
+Both formulae still pin `v0.5.6` (`url` and `sha256`) while the repository `VERSION`
+is `0.8.0`, and nothing in this repository references them — the tap described above
+has to be created by hand. They were deliberately left untouched during the
+2026-09-16 maintenance-surface cleanup because updating them is a release-packaging
+decision, not a documentation one.
+
+Resolving this needs a separate slice that decides between:
+
+1. **Refresh** — bump `url`/`sha256` to the current tag, re-check the `depends_on`
+   lists against the present CMake options, build both formulae locally, and create
+   the tap repository.
+2. **Retire** — delete `homebrew/` and point macOS users at the release DMG and
+   `scripts/install-nightly.sh` instead.
+
+Until then, treat `homebrew/Formula/*.rb` as unmaintained. The Homebrew section of
+[docs/public/build/install-options.md](../docs/public/build/install-options.md)
+should be revisited in the same slice. Cross-referenced from
+[scripts/README.md](../scripts/README.md).

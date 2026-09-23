@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_DUNGEON_WORKSPACE_ROOM_GRAPHICS_CONTENT_H_
 
 #include <array>
+#include <cstdint>
 #include <string>
 
 #include "app/editor/dungeon/dungeon_room_store.h"
@@ -43,6 +44,8 @@ class RoomGraphicsContent : public WindowContent {
         renderer_(renderer),
         room_gfx_canvas_("##RoomGfxCanvasPanel", ImVec2(256 + 1, 256 + 1)) {}
 
+  ~RoomGraphicsContent() override;
+
   /**
    * @brief Set the current palette group for graphics rendering
    * @param group The palette group from the current room
@@ -61,6 +64,7 @@ class RoomGraphicsContent : public WindowContent {
   std::string GetIcon() const override { return ICON_MD_IMAGE; }
   std::string GetEditorCategory() const override { return "Dungeon"; }
   int GetPriority() const override { return 50; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
   float GetPreferredWidth() const override { return 440.0f; }
 
   // ==========================================================================
@@ -70,6 +74,8 @@ class RoomGraphicsContent : public WindowContent {
   void Draw(bool* p_open) override;
 
  private:
+  friend struct RoomGraphicsContentTestAccess;
+
   struct SheetPreviewMetadata {
     uint8_t block_id = 0;
     size_t source_offset = 0;
@@ -92,6 +98,7 @@ class RoomGraphicsContent : public WindowContent {
   std::array<SheetPreviewMetadata, 16> sheet_preview_metadata_{};
   std::array<uint8_t, 16> preview_block_ids_{};
   int preview_room_id_ = -1;
+  uint64_t preview_graphics_revision_ = 0;
   bool preview_cache_valid_ = false;
   bool show_source_trace_ = false;
 

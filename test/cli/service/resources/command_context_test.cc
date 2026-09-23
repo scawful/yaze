@@ -62,7 +62,8 @@ class CommandContextTest : public ::testing::Test {
     std::filesystem::path custom_dir = temp_root_ / project_name / "custom";
     std::filesystem::create_directories(custom_dir);
     {
-      // Minimal custom object binary payload: immediate terminator.
+      // Oracle permits a terminator-only custom object as an intentional
+      // draw-nothing runtime slot.
       std::ofstream out(custom_dir / "track_LR.bin",
                         std::ios::out | std::ios::binary | std::ios::trunc);
       out.put('\0');

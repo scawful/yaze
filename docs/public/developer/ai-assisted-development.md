@@ -13,7 +13,9 @@ Both modes use the same underlying AI service (Ollama, Gemini, OpenAI, or
 Anthropic) and tool infrastructure, but target different workflows.
 
 ## Choosing the right agent persona
-- Personas live in `.claude/agents/<agent-id>.md`; open the matching file as your system prompt before a session (available to all agents, not just Claude).
+- Personas live in the canonical
+  [`docs/internal/agents/personas.md`](../../internal/agents/personas.md)
+  catalog; select the matching row before a session.
 - **ai-infra-architect**: AI/agent infra, MCP/gRPC, z3ed tooling, model plumbing.
 - **backend-infra-engineer**: Build/packaging/toolchains, CI reliability, release plumbing.
 - **imgui-frontend-engineer**: ImGui/editor UI, renderer/backends, canvas/docking UX.

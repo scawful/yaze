@@ -60,6 +60,9 @@ class DungeonState {
   // True once the room's rupee-floor reward has been collected. USDASM's
   // RoomDraw_RupeeFloor suppresses the object while this room flag is set.
   virtual bool IsRupeeFloorCleared(int room_id) const = 0;
+  // True once the room's boss flag ($0402 bit 15, room word bit 'b') is set;
+  // RoomDraw_KholdstareShell and RoomDraw_TrinexxShell then draw nothing.
+  virtual bool IsBossShellCleared(int room_id) const { return false; }
 
   // General Flags
   virtual bool IsCrystalSwitchBlue() const = 0;

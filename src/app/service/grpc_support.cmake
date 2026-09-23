@@ -63,6 +63,16 @@ target_link_libraries(yaze_grpc_support PUBLIC
   ${YAZE_SDL2_TARGETS}
 )
 
+# Keep screenshot encoding optional and target-local. Without libpng, PNG
+# requests fail explicitly; BMP remains available through SDL.
+if(NOT TARGET PNG::PNG)
+  find_package(PNG QUIET)
+endif()
+if(TARGET PNG::PNG)
+  target_link_libraries(yaze_grpc_support PRIVATE PNG::PNG)
+  target_compile_definitions(yaze_grpc_support PRIVATE YAZE_SCREENSHOT_HAS_PNG=1)
+endif()
+
 # The remote GUI harness must compile its real ImGui Test Engine path in
 # developer/test builds. Without this target-local definition the service
 # silently compiles the success-returning stub path even though the engine is
