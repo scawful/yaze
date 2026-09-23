@@ -7,9 +7,12 @@ selected-object inspector. The user requested substantial implementation work
 from Codex and delegated extended validation to Claude. Avoid asking the user
 to repeat a sequence of manual tests before continuing development.
 
-## Current State
+## Placement baseline
 
-- Branch: `codex/dungeon-placement-feedback`.
+- Validated placement commit: `7ba7d76ce`, originally on
+  `codex/dungeon-placement-feedback`. The integration worktree now uses
+  `codex/editor-parity-dungeon-authoring`; the
+  [capability plan](../plans/editor-capability-parity-plan.md) tracks later work.
 - Worktree: `/Users/scawful/src/hobby/yaze-worktrees/pr256-review-fixes`.
 - Parent commit: `7585a9e27` (macOS Shift-wheel routing and placement regressions).
 - This branch includes PR #256's reviewed repair base `0b6ecdaf3`.
@@ -32,7 +35,7 @@ to repeat a sequence of manual tests before continuing development.
 - Embedded browser suppresses the redundant placement summary and keeps a
   minimum grid height inside the scrollable inspector.
 
-## Verified
+## Original focused verification
 
 - macOS app and unit-test targets build successfully using the command below.
 - 43 focused tests across 7 suites pass, with no skipped tests. They cover the
@@ -60,15 +63,14 @@ to repeat a sequence of manual tests before continuing development.
   and rendering notifications use the target room's existing handler path.
 - No remote CI, merge, alert dismissal, or release claim is made for this slice.
 
-## Next Step
+## Remaining qualification
 
-Validate this exact branch in an isolated candidate, using disposable copies of
-vanilla and Oracle base ROMs. Check one representative object from each family:
-wall/trim, floor area, fixed object, Oracle custom variant, and special-table
-torch/block. Exercise place once/repeat, preview resize/layer, Place another,
-selection edit, undo/redo, room switching, and save/reopen. Report new failures
-with object ID, room, build commit, and exact action; fix them on a follow-up
-branch. Keep parity-gate work independent until both changes are reviewed.
+Claude completed the bounded validation recorded below. Qualify the current
+integrated candidate through the application save transaction with project
+dependencies attached; preserve source inputs and compare declared ROM domains
+after an independent reopen. Retain the wheel/Shift-wheel, Escape, larger-scale
+inspector, and game-runtime gaps. Block placement was not covered by the retained
+round-trip harness. Keep parity-gate work independent until reviewed.
 
 ## Useful Commands
 
@@ -95,3 +97,68 @@ Evidence files:
 Use `YAZE_PREPUSH_BUILD_DIR=build/presets/mac-ai` for repository pre-push checks
 if publication is authorized. Main checkout and Claude's `parity-gate` worktree
 contain independent work and must remain intact.
+
+## Independent validation review (2026-09-22)
+
+Claude's validation worktree is `yaze-worktrees/validate-placement`, at
+`335fdf446`, based on the older placement candidate `7ba7d76ce`. Its local
+`test/CMakeLists.txt`, `dungeon_editor_palette_refresh_test.cc`, and
+`validation_room_readback_test.cc` harness changes remain uncommitted and were
+not imported into the integration branch.
+
+The room-switch fix from `335fdf446` was reviewed and cherry-picked as
+`6e9d52e8c`. It clears index-based selections when the room or store changes and
+binds cross-room navigation before selecting the destination object/door. Review
+also identified unfinished marquee, tile-drag, and paint-stroke state that must
+end against the old room before rebinding; the capability plan records the
+integration follow-up `50d6257ad` and its 289 passing focused tests, including
+seven regression cases that fail with the selection-only transition.
+
+Retained artifacts were inspected read-only under the temporary root:
+`/tmp/claude-501/-Users-scawful-src-hobby-yaze/647c1ae4-27d4-4c4b-9ecc-eba2e612299a/scratchpad/validate`.
+They are local evidence and may expire, not release artifacts. Each
+`harness_vanilla.log` / `harness_oracle.log` records one passing
+`DungeonEditorPaletteRefreshTest.CandidatePlacementSaveReopen` and
+`EDITOR_SAVE OK`. Before/after readback records show:
+
+- Vanilla `0x009`: four appended ordinary object records (`0x0C5`, `0x001`,
+  `0xFEB`, and `0xFEB` on stored layer 1).
+- Vanilla `0x00B`: one torch replaced at `(30,30)`, preserving other printed
+  entries, including an existing block. This does not test placing a block.
+- Oracle `0x0B9`: custom `0x031` and torch copies replace their source records,
+  maintaining the total object count. This proves these selected encodings can
+  survive the tested write/readback, not additional stream or torch capacity.
+
+Current SHA-256 identities of the retained scratch inputs/outputs:
+
+| File relative to artifact root | Bytes | SHA-256 |
+|---|---:|---|
+| `vanilla/harness_in.sfc` | 1048576 | `66871d66be19ad2c34c927d6b14cd8eb6fc3181965b6e517cb361f7316009cfb` |
+| `vanilla/harness_out.sfc` | 2097152 | `61df19cd79f3bdde1991472d589f8c33068cae903fccc0ff9935a263e4b4fcbb` |
+| `oracle/Roms/harness_in.sfc` | 2097152 | `ab518cb201e4d904706f4c1950a82e574c9618ee23fa12845a1ed6c66c59d0fe` |
+| `oracle/Roms/harness_out.sfc` | 2097152 | `d97a9d14e39ff762123a6740b089343ea14a0d40b3a9b2753428178008730354` |
+
+Qualification limits:
+
+1. The harness calls `DungeonEditorV2::Save()` then `Rom::SaveToFile()` directly.
+   It bypasses the application save orchestration and pot-item confirmation.
+   Oracle custom-object context is activated, but the loaded `YazeProject` is
+   not attached to editor dependencies, so manifest/write-policy integration is
+   not qualified.
+2. Fresh-process readback prints index, ID, position, size, layer, and torch/block
+   classification. It does not compare other ROM domains. `allrooms_diff.txt`
+   names only vanilla `0x009` and `0x00B`, but does not retain its invocation,
+   comparison code, or successful-room count. Do not claim an independently
+   verified whole-ROM/no-collateral comparison; the vanilla file also expands
+   from 1 MiB to 2 MiB.
+3. Capacity refusal prevented the observed output-file save. The direct editor
+   save writes room data before checking the torch table, so a late failure can
+   follow in-memory changes. Application rollback remains a separate test.
+4. Claude reported 960 related tests, a mutation check, and a fixed-build GUI
+   room-switch check. Those runs were not reproduced by this artifact audit;
+   current integration tests are recorded separately in the capability plan.
+
+Follow-ups retained from the validation report: advance stream/torch-capacity
+feedback; duplicate selection behavior; the `Floor 3 ?` label; dirty indicator
+after undo to the original state; and the pot-item prompt after a failed Apply
+Room. Reproduce each against the current candidate before assigning a cause.
