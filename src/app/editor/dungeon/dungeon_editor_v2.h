@@ -151,6 +151,9 @@ class DungeonEditorV2 : public Editor {
   void ContributeStatus(StatusBar* status_bar) override;
   absl::Status SaveRoom(int room_id);
   // Discrete room property edits share the dungeon undo history in both views.
+  absl::StatusOr<DungeonConnectionPlan> PreviewDoorConnection(
+      const DungeonConnectionRequest& request);
+  absl::Status ApplyDoorConnection(const DungeonConnectionPlan& plan);
   absl::Status EditRoomMetadata(int room_id, const RoomMetadataEdit& edit);
   absl::Status EditRoomMetadataBatch(
       const std::vector<RoomMetadataRequest>& requests);
@@ -282,6 +285,7 @@ class DungeonEditorV2 : public Editor {
   friend class DungeonEditorEntityUndoTestPeer;
   friend class DungeonRoomEditsTestPeer;
   friend class DungeonSelectionEditsTestPeer;
+  friend class DungeonConnectionEditsTestPeer;
   friend class DungeonEditorV2MinecartTrackTestPeer;
   friend class DungeonEditorV2ObjectTileEditorTestPeer;
   friend class DungeonEditorV2RegularEntranceTestPeer;
@@ -568,12 +572,14 @@ class DungeonEditorV2 : public Editor {
   absl::Status CommitSelectionEdit(const DungeonSelectionEditPlan& plan,
                                    bool continuous);
   void FinalizeSelectionUndoAction();
-  absl::Status RestoreSelectionEdit(int room_id,
-                                    const DungeonSelectionEditState& state,
-                                    uint8_t domains);
+  absl::Status RestoreSelectionEditBatch(
+      const std::vector<DungeonSelectionEditPlan>& plans, bool after);
+  absl::Status EnsureConnectionRoomLoaded(int room_id);
   void RefreshSelectionEditViews(int room_id,
                                  const DungeonSelectionEditState* selection);
   void PushSelectionUndoAction(DungeonSelectionEditPlan plan);
+  void PushSelectionUndoBatch(std::vector<DungeonSelectionEditPlan> plans,
+                              std::string description);
   void ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer);
   void FinalizePendingUndoActions();
   absl::Status RestoreRoomMetadataBatch(

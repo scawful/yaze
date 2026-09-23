@@ -127,6 +127,105 @@ class DungeonStreamAllocatorTest : public ::testing::Test {
   std::unique_ptr<Rom> rom_;
 };
 
+TEST_F(DungeonStreamAllocatorTest, ReadsSingleObjectStreamThroughLiveTable) {
+  const auto layout =
+      ObjectLayout(kNumberOfRooms, {kObjectData, kObjectData + 0x100});
+  const std::vector<uint8_t> encoded{0,    0,    0xFF, 0xFF, 0xFF, 0xFF,
+                                     0xF0, 0xFF, 0x63, 0,    0xFF, 0xFF};
+  SetPointersFrom(layout, 0, kObjectData);
+  SetPointer(layout, 3, kObjectData + 0x40);
+  WriteBytes(kObjectData + 0x40, encoded);
+  const auto before = rom_->vector();
+  const auto dirty = rom_->dirty();
+  const auto record = ReadDungeonObjectStream(*rom_, 3);
+  ASSERT_TRUE(record.ok()) << record.status();
+  EXPECT_TRUE(record->valid);
+  EXPECT_EQ(record->room_id, 3);
+  EXPECT_EQ(record->pointer_slot_pc, kObjectTable + 9);
+  EXPECT_EQ(record->data_pc, kObjectData + 0x40);
+  EXPECT_EQ(record->logical_end_pc, kObjectData + 0x40 + encoded.size());
+  EXPECT_EQ(record->encoded_stream, encoded);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_EQ(rom_->dirty(), dirty);
+}
+
+TEST_F(DungeonStreamAllocatorTest, SingleObjectReadAllowsExactSharedPointers) {
+  const auto layout =
+      ObjectLayout(kNumberOfRooms, {kObjectData, kObjectData + 0x100});
+  SetPointersFrom(layout, 0, kObjectData);
+  WriteBytes(kObjectData, {0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+  const auto first = ReadDungeonObjectStream(*rom_, 0);
+  const auto last = ReadDungeonObjectStream(*rom_, kNumberOfRooms - 1);
+  ASSERT_TRUE(first.ok()) << first.status();
+  ASSERT_TRUE(last.ok()) << last.status();
+  EXPECT_EQ(first->encoded_stream, last->encoded_stream);
+}
+
+TEST_F(DungeonStreamAllocatorTest, SingleObjectReadStopsAtNextRoomPointer) {
+  const auto layout =
+      ObjectLayout(kNumberOfRooms, {kObjectData, kObjectData + 0x100});
+  SetPointersFrom(layout, 0, kObjectData);
+  SetPointer(layout, 1, kObjectData + 8);
+  // First room omits its third list terminator. Without a strict bound the
+  // parser could consume bytes from the next complete room as that terminator.
+  WriteBytes(kObjectData, {0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0, 0, 0, 0xFF, 0xFF,
+                           0xFF, 0xFF, 0xFF, 0xFF});
+  EXPECT_FALSE(ReadDungeonObjectStream(*rom_, 0).ok());
+  EXPECT_TRUE(ReadDungeonObjectStream(*rom_, 1).ok());
+}
+
+TEST_F(DungeonStreamAllocatorTest, SingleObjectReadStopsAtBankEnd) {
+  const auto layout =
+      ObjectLayout(kNumberOfRooms, {kObjectData, kObjectData + 0x100});
+  SetPointersFrom(layout, 0, 0x27FFA);
+  WriteBytes(0x27FFA, {0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+  EXPECT_FALSE(ReadDungeonObjectStream(*rom_, 0).ok());
+}
+
+TEST_F(DungeonStreamAllocatorTest, SingleObjectReadStopsAtKnownRegionEnd) {
+  const auto layout =
+      ObjectLayout(kNumberOfRooms, {kObjectData, kObjectData + 0x100});
+  constexpr uint32_t start = 0x053730 - 6;
+  SetPointersFrom(layout, 0, start);
+  WriteBytes(start, {0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+  EXPECT_FALSE(ReadDungeonObjectStream(*rom_, 0).ok());
+}
+
+TEST_F(DungeonStreamAllocatorTest, SingleObjectReadRejectsInvalidSourceTables) {
+  WriteLong(kRoomObjectPointer, 0x008000 | 0x7E0000);
+  EXPECT_FALSE(ReadDungeonObjectStream(*rom_, 0).ok());
+  WriteLong(kRoomObjectPointer, 0x007FFF);
+  EXPECT_FALSE(ReadDungeonObjectStream(*rom_, 0).ok());
+  WriteLong(kRoomObjectPointer, PcToSnes(kRomSize - 3));
+  EXPECT_FALSE(ReadDungeonObjectStream(*rom_, 0).ok());
+  EXPECT_FALSE(ReadDungeonObjectStream(*rom_, -1).ok());
+  EXPECT_FALSE(ReadDungeonObjectStream(*rom_, kNumberOfRooms).ok());
+}
+
+TEST_F(DungeonStreamAllocatorTest,
+       SingleObjectReadRejectsInvalidStreamPointers) {
+  const auto layout =
+      ObjectLayout(kNumberOfRooms, {kObjectData, kObjectData + 0x100});
+  SetPointersFrom(layout, 0, kObjectData);
+  for (uint32_t pointer :
+       {0x007FFFu, 0x7E8000u, 0x7F8000u, 0xFE8000u, 0xFF8000u,
+        PcToSnes(kRomSize), PcToSnes(kObjectTable), PcToSnes(kDoorPointers)}) {
+    WriteLong(kObjectTable + 3, pointer);
+    EXPECT_FALSE(ReadDungeonObjectStream(*rom_, 1).ok()) << pointer;
+  }
+}
+
+TEST_F(DungeonStreamAllocatorTest,
+       SingleObjectReadRejectsMissingDoorTerminator) {
+  const auto layout =
+      ObjectLayout(kNumberOfRooms, {kObjectData, kObjectData + 0x100});
+  SetPointersFrom(layout, 0, kObjectData);
+  WriteBytes(kObjectData, {0, 0, 0xFF, 0xFF, 0xFF, 0xFF, 0xF0, 0xFF, 0x63, 0});
+  const auto before = rom_->vector();
+  EXPECT_FALSE(ReadDungeonObjectStream(*rom_, 0).ok());
+  EXPECT_EQ(rom_->vector(), before);
+}
+
 TEST_F(DungeonStreamAllocatorTest, InventoriesExactAliasesAndSuffixOverlap) {
   auto layout = PotLayout(3, {{kPotData, kPotData + 0x40}},
                           {{kPotData + 0x20, kPotData + 0x40}});

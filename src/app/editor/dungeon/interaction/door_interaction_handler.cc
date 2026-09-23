@@ -13,6 +13,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/dungeon_connection_edit.h"
 #include "app/editor/dungeon/interaction/ghost_preview_feedback.h"
 #include "zelda3/dungeon/dungeon_limits.h"
 
@@ -394,8 +395,57 @@ DoorInteractionHandler::BuildPairBadgeOverlay(const zelda3::Room::Door& door,
   }
 
   PairBadgeOverlay badge;
-  const int neighbor = NeighborRoomId(ctx_->current_room_id, door.direction);
-  if (neighbor < 0) {
+  const bool ordinary = door.type == zelda3::DoorType::NormalDoor ||
+                        door.type == zelda3::DoorType::NormalDoorLower;
+  if (ordinary) {
+    const auto target =
+        DungeonConnectionTargetRoom(ctx_->current_room_id, door);
+    if (!target.ok()) {
+      return std::nullopt;
+    }
+    const int neighbor = *target;
+    badge.target_room_id = neighbor;
+    const auto opposite = OppositeDir(door.direction);
+    const uint8_t return_position =
+        door.position < 6 ? door.position + 6 : door.position - 6;
+    std::tie(badge.target_tile_x, badge.target_tile_y) =
+        zelda3::DoorPositionManager::PositionToTileCoords(return_position,
+                                                          opposite);
+    // Drawing and hit-testing must not decode unopened rooms. The inspector
+    // loads target data explicitly when it builds an editable preview.
+    const auto* source_room = ctx_->rooms->GetIfLoaded(ctx_->current_room_id);
+    const auto* target_room = ctx_->rooms->GetIfLoaded(neighbor);
+    if (!source_room || !target_room || !source_room->AreObjectsLoaded() ||
+        !target_room->AreObjectsLoaded() || !selected_door_index_) {
+      badge.label = absl::StrFormat("inspect 0x%03X", neighbor);
+      badge.color = IM_COL32(170, 170, 170, 220);
+    } else {
+      const auto layer = door.type == zelda3::DoorType::NormalDoorLower
+                             ? DungeonConnectionLayer::kLower
+                             : DungeonConnectionLayer::kUpper;
+      const auto plan = PlanDungeonDoorConnection(
+          *source_room, *target_room,
+          {ctx_->current_room_id, *selected_door_index_, layer});
+      if (!plan.ok()) {
+        badge.label = absl::StrFormat("blocked 0x%03X", neighbor);
+        badge.color = IM_COL32(255, 200, 90, 235);
+      } else if (plan->creates_return) {
+        badge.label = absl::StrFormat("no pair 0x%03X", neighbor);
+        badge.color = IM_COL32(255, 130, 90, 235);
+      } else {
+        badge.target_door_index = plan->target_door_index;
+        if (plan->changed()) {
+          badge.label = absl::StrFormat("layer mismatch 0x%03X", neighbor);
+          badge.color = IM_COL32(255, 200, 90, 235);
+        } else {
+          badge.label = absl::StrFormat("pair 0x%03X", neighbor);
+          badge.color = IM_COL32(120, 220, 150, 235);
+        }
+      }
+    }
+  } else if (const int neighbor =
+                 NeighborRoomId(ctx_->current_room_id, door.direction);
+             neighbor < 0) {
     badge.label = "edge";
     badge.color = IM_COL32(170, 170, 170, 220);
   } else {
@@ -435,8 +485,8 @@ DoorInteractionHandler::BuildPairBadgeOverlay(const zelda3::Room::Door& door,
 
     if (badge.target_door_index.has_value() &&
         neighbor_doors[*badge.target_door_index].position == door.position) {
-      badge.label = absl::StrFormat("pair 0x%03X", neighbor);
-      badge.color = IM_COL32(120, 220, 150, 235);  // green
+      badge.label = absl::StrFormat("nearby 0x%03X", neighbor);
+      badge.color = IM_COL32(255, 200, 90, 235);  // Unverified special door
     } else if (any_on_opposite) {
       badge.label = absl::StrFormat("~0x%03X", neighbor);
       badge.color = IM_COL32(255, 200, 90, 235);  // amber

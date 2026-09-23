@@ -278,6 +278,17 @@ class DoorInteractionHandlerTest : public ::testing::Test {
     }
   }
 
+  void AddLoadedDoor(int room_id, uint8_t position, zelda3::DoorType type,
+                     zelda3::DoorDirection direction) {
+    if (!rooms_.GetIfLoaded(room_id)) {
+      rooms_[room_id] = zelda3::Room(room_id, nullptr);
+      rooms_[room_id].SetLoaded(true);
+    }
+    const auto [byte1, byte2] =
+        zelda3::DoorPositionManager::EncodeDoorBytes(position, type, direction);
+    rooms_[room_id].AddDoor(zelda3::Room::Door::FromRomBytes(byte1, byte2));
+  }
+
   std::unique_ptr<gui::Canvas> canvas_;
   DungeonRoomStore rooms_;
   InteractionContext ctx_;
@@ -640,18 +651,13 @@ TEST_F(DoorInteractionHandlerTest, NudgeMarksObjectStreamDirty) {
 
 TEST_F(DoorInteractionHandlerTest, PairBadgeClickNavigatesToNeighborDoor) {
   ctx_.current_room_id = 0;
-
-  zelda3::Room::Door door;
-  door.position = 0;
-  door.type = zelda3::DoorType::NormalDoor;
-  door.direction = zelda3::DoorDirection::East;
-  rooms_[0].AddDoor(door);
-
-  zelda3::Room::Door neighbor_door;
-  neighbor_door.position = door.position;
-  neighbor_door.type = zelda3::DoorType::NormalDoor;
-  neighbor_door.direction = zelda3::DoorDirection::West;
-  rooms_[1].AddDoor(neighbor_door);
+  AddLoadedDoor(0, 6, zelda3::DoorType::NormalDoor,
+                zelda3::DoorDirection::East);
+  // The same raw slot faces an internal seam. It is not the return endpoint.
+  AddLoadedDoor(1, 6, zelda3::DoorType::NormalDoor,
+                zelda3::DoorDirection::West);
+  AddLoadedDoor(1, 0, zelda3::DoorType::NormalDoor,
+                zelda3::DoorDirection::West);
 
   int target_room = -1;
   std::optional<size_t> target_door;
@@ -676,9 +682,9 @@ TEST_F(DoorInteractionHandlerTest, PairBadgeClickNavigatesToNeighborDoor) {
   ASSERT_TRUE(handler_.HandleOverlayClick(badge_x, badge_y));
   EXPECT_EQ(target_room, 1);
   ASSERT_TRUE(target_door.has_value());
-  EXPECT_EQ(*target_door, 0u);
+  EXPECT_EQ(*target_door, 1u);
   const auto [expected_tile_x, expected_tile_y] =
-      rooms_[1].GetDoors()[0].GetTileCoords();
+      rooms_[1].GetDoors()[1].GetTileCoords();
   EXPECT_EQ(target_tile_x, expected_tile_x);
   EXPECT_EQ(target_tile_y, expected_tile_y);
 }
@@ -723,18 +729,10 @@ TEST_F(DoorInteractionHandlerTest,
 TEST_F(DoorInteractionHandlerTest,
        ReciprocalPairSearchSkipsControlMarkerTargets) {
   ctx_.current_room_id = 0;
-
-  zelda3::Room::Door source;
-  source.position = 0;
-  source.type = zelda3::DoorType::NormalDoor;
-  source.direction = zelda3::DoorDirection::East;
-  rooms_[0].AddDoor(source);
-
-  zelda3::Room::Door marker;
-  marker.position = source.position;
-  marker.type = zelda3::DoorType::DungeonSwapMarker;
-  marker.direction = zelda3::DoorDirection::West;
-  rooms_[1].AddDoor(marker);
+  AddLoadedDoor(0, 6, zelda3::DoorType::NormalDoor,
+                zelda3::DoorDirection::East);
+  AddLoadedDoor(1, 0, zelda3::DoorType::DungeonSwapMarker,
+                zelda3::DoorDirection::West);
 
   int navigation_count = 0;
   std::optional<size_t> navigated_door = 99;
@@ -752,6 +750,103 @@ TEST_F(DoorInteractionHandlerTest,
       handler_.HandleOverlayClick(door_x + door_w + 8, door_y + door_h / 2));
   EXPECT_EQ(navigation_count, 1);
   EXPECT_FALSE(navigated_door.has_value());
+}
+
+TEST_F(DoorInteractionHandlerTest,
+       OrdinaryPairBadgeDoesNotSelectAnUnrelatedOppositeDoor) {
+  AddLoadedDoor(0, 6, zelda3::DoorType::NormalDoor,
+                zelda3::DoorDirection::East);
+  AddLoadedDoor(1, 1, zelda3::DoorType::NormalDoor,
+                zelda3::DoorDirection::West);
+  std::optional<size_t> target_index = 99;
+  int target_x = -1;
+  int target_y = -1;
+  ctx_.on_door_pair_navigation = [&](int, std::optional<size_t> index, int x,
+                                     int y) {
+    target_index = index;
+    target_x = x;
+    target_y = y;
+  };
+  handler_.SelectDoor(0);
+  const auto [x, y, w, h] = rooms_[0].GetDoors()[0].GetEditorBounds();
+  ASSERT_TRUE(handler_.HandleOverlayClick(x + w + 8, y + h / 2));
+  EXPECT_FALSE(target_index);
+  const auto [expected_x, expected_y] =
+      zelda3::DoorPositionManager::PositionToTileCoords(
+          0, zelda3::DoorDirection::West);
+  EXPECT_EQ(target_x, expected_x);
+  EXPECT_EQ(target_y, expected_y);
+}
+
+TEST_F(DoorInteractionHandlerTest,
+       AmbiguousOrdinaryPairBadgeOpensRoomWithoutChoosingDoor) {
+  AddLoadedDoor(0, 6, zelda3::DoorType::NormalDoor,
+                zelda3::DoorDirection::East);
+  AddLoadedDoor(1, 0, zelda3::DoorType::NormalDoor,
+                zelda3::DoorDirection::West);
+  AddLoadedDoor(1, 0, zelda3::DoorType::NormalDoorLower,
+                zelda3::DoorDirection::West);
+  int target_room = -1;
+  std::optional<size_t> target_index = 99;
+  ctx_.on_door_pair_navigation = [&](int room, std::optional<size_t> index, int,
+                                     int) {
+    target_room = room;
+    target_index = index;
+  };
+  handler_.SelectDoor(0);
+  const auto [x, y, w, h] = rooms_[0].GetDoors()[0].GetEditorBounds();
+  ASSERT_TRUE(handler_.HandleOverlayClick(x + w + 8, y + h / 2));
+  EXPECT_EQ(target_room, 1);
+  EXPECT_FALSE(target_index);
+}
+
+TEST_F(DoorInteractionHandlerTest,
+       OrdinaryPairBadgeDoesNotMaterializeUnopenedNeighbor) {
+  AddLoadedDoor(0, 6, zelda3::DoorType::NormalDoor,
+                zelda3::DoorDirection::East);
+  ASSERT_EQ(rooms_.GetIfMaterialized(1), nullptr);
+  std::optional<size_t> target_index = 99;
+  int target_room = -1;
+  ctx_.on_door_pair_navigation = [&](int room, std::optional<size_t> index, int,
+                                     int) {
+    target_room = room;
+    target_index = index;
+  };
+  handler_.SelectDoor(0);
+  const auto [x, y, w, h] = rooms_[0].GetDoors()[0].GetEditorBounds();
+  ASSERT_TRUE(handler_.HandleOverlayClick(x + w + 8, y + h / 2));
+  EXPECT_EQ(target_room, 1);
+  EXPECT_FALSE(target_index);
+  EXPECT_EQ(rooms_.GetIfMaterialized(1), nullptr);
+}
+
+TEST_F(DoorInteractionHandlerTest,
+       OrdinaryInternalSeamDoesNotAdvertiseAdjacentRoom) {
+  AddLoadedDoor(0, 0, zelda3::DoorType::NormalDoor,
+                zelda3::DoorDirection::East);
+  int navigation_count = 0;
+  ctx_.on_door_pair_navigation = [&](int, std::optional<size_t>, int, int) {
+    ++navigation_count;
+  };
+  handler_.SelectDoor(0);
+  const auto [x, y, w, h] = rooms_[0].GetDoors()[0].GetEditorBounds();
+  EXPECT_FALSE(handler_.HandleOverlayClick(x + w + 8, y + h / 2));
+  EXPECT_EQ(navigation_count, 0);
+}
+
+TEST_F(DoorInteractionHandlerTest,
+       OrdinaryPairBadgeDoesNotCrossRoomPageBoundary) {
+  AddLoadedDoor(0xF0, 6, zelda3::DoorType::NormalDoor,
+                zelda3::DoorDirection::South);
+  ctx_.current_room_id = 0xF0;
+  int navigation_count = 0;
+  ctx_.on_door_pair_navigation = [&](int, std::optional<size_t>, int, int) {
+    ++navigation_count;
+  };
+  handler_.SelectDoor(0);
+  const auto [x, y, w, h] = rooms_[0xF0].GetDoors()[0].GetEditorBounds();
+  EXPECT_FALSE(handler_.HandleOverlayClick(x + 4, y + h + 4));
+  EXPECT_EQ(navigation_count, 0);
 }
 
 TEST_F(DoorInteractionHandlerTest, DeleteAllClearsDoorsAndFiresCallbacks) {

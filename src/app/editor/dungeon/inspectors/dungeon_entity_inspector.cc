@@ -3,12 +3,12 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
-#include <optional>
 #include <string>
 
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_selection_snapshot.h"
+#include "app/editor/dungeon/inspectors/dungeon_connection_editor.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/input.h"
 #include "imgui/imgui.h"
@@ -160,33 +160,9 @@ void DrawDoor(DungeonCanvasViewer& viewer, size_t index,
         index, door.type, door.direction, door.position);
   }
 
-  // Keep the existing standalone navigation affordance. Connection authoring
-  // (including both-room transactions) is a separate work package.
-  if (jump_to_reciprocal) {
-    const int neighbor_id =
-        NeighborRoomId(viewer.current_room_id(), door.direction);
-    std::optional<size_t> reciprocal;
-    if (zelda3::IsRoomConnectionDoorType(door.type) && neighbor_id >= 0 &&
-        neighbor_id < static_cast<int>(viewer.rooms()->size())) {
-      const auto& neighbors = (*viewer.rooms())[neighbor_id].GetDoors();
-      for (size_t i = 0; i < neighbors.size(); ++i) {
-        if (zelda3::IsRoomConnectionDoorType(neighbors[i].type) &&
-            neighbors[i].direction == OppositeDir(door.direction)) {
-          if (!reciprocal || neighbors[i].position == door.position) {
-            reciprocal = i;
-          }
-          if (neighbors[i].position == door.position) {
-            break;
-          }
-        }
-      }
-    }
-    ImGui::BeginDisabled(!reciprocal.has_value());
-    if (ImGui::Button("Jump to Reciprocal", ImVec2(-1, 0)) && reciprocal) {
-      jump_to_reciprocal(neighbor_id, *reciprocal);
-    }
-    ImGui::EndDisabled();
-  }
+  // Re-read accepted room data inside the shared connection controls; the
+  // property mutation above can reject its local candidate.
+  DrawDungeonConnectionEditor(viewer, index, jump_to_reciprocal);
 }
 
 void DrawSprite(DungeonCanvasViewer& viewer, size_t index,
