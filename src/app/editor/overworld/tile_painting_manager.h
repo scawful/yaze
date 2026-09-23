@@ -85,6 +85,7 @@ class TilePaintingManager {
 
   TilePaintingDependencies deps_;
   TilePaintingCallbacks callbacks_;
+  bool paint_gesture_owned_ = false;
 };
 
 }  // namespace editor
