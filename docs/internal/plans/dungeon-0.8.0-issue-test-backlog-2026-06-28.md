@@ -81,14 +81,22 @@ Verification: **807 tests across
 44 suites — passed with zero failures and zero skips**. App/unit builds:
 passed. Scoped analyzer: passed for the six selected implementation files and their explicit header scope.
 
-The current authored-room clone/import candidate `2520aa6b0`
-follows `6a1196218`: `yaze.room` v1 clipboard JSON and same-project clone, seven
+The current authored-room clone/import candidate `bb185d1ae`
+follows authored-room source `2520aa6b0` and documentation `df1cc4f2d`: `yaze.room` v1 clipboard JSON and same-project clone, seven
 selectable domains with Core defaults, preserved target destinations by default,
 detached persistence/capacity/write-policy preflight, stale-source/target checks,
 and one undo. Water masks preserve other rooms; shared water-table persistence
-merges unopened saved zones. Verification: **968 tests
+merges unopened saved zones. Verification: **989 tests
 across 49 suites; all passed, zero failures and zero skipped**. The earlier
 807-test count remains evidence for the connection checkpoint only.
+
+
+The qualification repair enforces native block storage before the torch table,
+accepts shared empty pot terminators, moves preview GameData to the heap, and
+offers explicit recovery without shared room properties. JSON preserves residual
+chest records and normalizes physical block slots. The exit-door report remains
+not reproduced; confirmed exit guards have regression coverage. Independent
+save/reopen qualification must be rerun on this source.
 
 DA-1/DA-2 remain partial for broader domains and controls. DA-3 remains partial
 for stairs, pits, special door families, and runtime traversal. DA-4's authored
@@ -108,7 +116,7 @@ checks before integration. Do not infer merge readiness from this inventory.
 | `DA-1` | Extend coverage only for remaining authoring domains | Existing undo; metadata at `aeb0b1200`; paired chests at `478206247`; atomic mixed selections at `eac49e2bd` | Preserve one action per user command; exact selection/data restoration; rejected/no-op commands preserve prior state |
 | `DA-2` | Complete controls for remaining room elements through `DA-1` | Shared entity inspector, named room controls, and shared chest placement/contents/deletion controls | Inspector and canvas remain synchronized; no independent duplicate state; focused UI and entity lifecycle checks |
 | `DA-3` | Remaining stairs/pits/special families and independent qualification | Normal outer-door pair candidate at `be973563f`; connected browsing and batch undo | Add engine rules per family; preserve intentional one-way links; save/reopen and runtime traversal on the exact candidate |
-| `DA-4` | Project-file/asset compatibility and portable reusable resources | Authored-room transfer candidate `2520aa6b0`; versioned clipboard schema, explicit domains, existing undo and detached save preflight | Compatible numeric references or explicit remapping; no silent asset loss; source-preserving project-file roundtrip and save/reopen |
+| `DA-4` | Project-file/asset compatibility and portable reusable resources | Authored-room transfer candidate `bb185d1ae`; versioned clipboard schema, explicit domains, existing undo and detached save preflight | Compatible numeric references or explicit remapping; no silent asset loss; source-preserving project-file roundtrip and save/reopen |
 | `DA-5` | Next: qualify the combined candidate before broadening features | Object Coverage, parity tools, GUI qualification, release scripts, and current DA-1–DA-4 candidate | Application disk transaction/rollback, edit/undo/save/reopen, independent rendering/runtime, and packaged acceptance |
 
 Route new `DA-2` mutators through the established `DA-1` boundaries. `DA-3` and

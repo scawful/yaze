@@ -53,6 +53,33 @@ The useful path for a sprite chooser is:
 existing undo history → view refresh. A control should call that path rather
 than assign directly into `Room::GetSprites()`.
 
+## Room-transfer constraints for future changes
+
+The qualification repair at `bb185d1ae` protects four boundaries that are easy
+to blur during UI or serializer refactors:
+
+1. **Memory capacity differs from ROM storage.** The game loads up to 128 block
+   records, but the native ROM fits only 99 before the torch table. Validate
+   actual destination byte spans in both preview and save. A count check alone
+   cannot establish capacity for a repointed table.
+2. **A pointer can identify a shared terminator.** Adjacent pot lists may share
+   an empty `FFFF` list. Accept that exact boundary case without borrowing another
+   room's nonempty records or weakening ROM/bank bounds. Test unopened rooms too.
+3. **Export fidelity differs from replacement validity.** Old ROMs can contain
+   chest records with no authored chest object. Interchange retains those
+   records, while object/chest replacement requires valid correspondence. Do not
+   delete residual records or invent rewards to make a preview succeed.
+4. **Internal identity differs from authored content.** Undo and stale checks
+   need exact block-table slots. Portable JSON normalizes those physical slots
+   to `-1` so repacking does not create false room changes. Keep these two
+   comparison purposes explicit when adding fields.
+
+Preview owns a detached ROM/editor and heap-backed GameData. It must not publish
+history or modify the live ROM. A shared-header refusal can offer an explicit
+retry without room properties; never silently omit the user's selected domain.
+See the [qualification handoff](../../internal/agents/dungeon-workbench-placement-handoff-2026-09-22.md#current-qualification-repair-candidate-2026-09-23)
+for the regression scope and independent acceptance cases.
+
 ## Choose a task at the right depth
 
 These are proposed human-owned exercises, not additional release requirements.

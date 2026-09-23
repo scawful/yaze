@@ -8,7 +8,140 @@ The user requested substantial implementation work
 from Codex and delegated extended validation to Claude. Avoid asking the user
 to repeat a sequence of manual tests before continuing development.
 
-## Current authored-room clone/import candidate (2026-09-23)
+## Current qualification repair candidate (2026-09-23)
+
+Source: **`bb185d1ae`**, following `2520aa6b0` / `df1cc4f2d`, on
+`codex/editor-parity-dungeon-authoring`. Worktree:
+`/Users/scawful/src/hobby/yaze-worktrees/pr256-review-fixes`. Universe task:
+`task_20260923T140908Z_16625`. The prior candidate and its evidence remain below
+as history. **Next: rerun the disposable-ROM qualification on this source before
+adding more features.** No merge, runtime, or release readiness is claimed.
+
+### Qualification findings and disposition
+
+1. **Block/torch overlap fixed.** Vanilla ROM has 99 four-byte block records
+   before `kTorchData` at PC `0x2736A`; the loader's 128-record WRAM capacity is
+   not a ROM allocation. Both `SaveAllBlocks` overloads validate existing and
+   replacement payload spans against the torch table and its length pointer
+   before writes or identity/dirty-state changes. Every active page is checked.
+   A separately repointed fourth page can still support 128 records. Synthetic
+   native-layout regressions cover 98 → 99 success, 99 → 100 rejection, malformed
+   existing length, relocated pages, and room-transfer preview rejection in both
+   viewer modes with unchanged ROM/data/history.
+2. **Shared pot terminators fixed.** The strict fixed-bank reader can include
+   the next room's empty `FFFF` list as the current room's terminator only at a
+   complete three-byte record boundary and inside the existing storage/bank/ROM
+   limits. It cannot consume the next nonempty list. Unopened-room export and
+   preview regressions exercise this path; raw position flags remain intact.
+   A separate read-only raw-byte survey found all 67 previously rejected vanilla
+   lists use this exact pattern (296 readable under the corrected rule). This
+   survey is format evidence, not an application export/save test.
+3. **Overworld exit report not reproduced; not claimed fixed.** Existing guards
+   reject explicit exit families and ordinary doors sharing a lane with the
+   vanilla exit marker. Added model, ImGui, and lifecycle regressions verify no
+   Create Return Door / Open Target Room offer for covered exits and rejection
+   through preview/stale apply without mutation. The confirmed vanilla case is
+   room `055`, south slot `6`; another internal door remains connectable. A room
+   having an overworld-exit entry does not identify which of its doors is the
+   exit. If the report persists, supply the exact ROM identity, room, slot, and
+   type so the unsupported pattern can be checked. Production connection rules
+   were not changed in this repair.
+4. **Scratch GameData moved to the heap.** Its approximately 1.77 MB allocation
+   no longer contributes to the preview stack frame. The owner outlives the
+   detached editor. The macOS build passes; WASM execution has not been tested.
+5. **Shared-header recovery added.** A structured shared-header failure offers
+   **Preview without room properties** when at least one other domain is
+   selected. Clicking it explicitly clears room properties/destination copying
+   and reruns preview; it never applies automatically. A properties-only request
+   does not offer an empty replacement. The header-overlap guard remains active.
+6. **Residual chest records preserved for interchange.** Vanilla rooms `005`,
+   `016`, `05B`, and `0B3` have records without corresponding authored chest
+   objects. A raw room/layout survey and the engine's ordinal chest lookup
+   support treating these as residual records, not another missing chest type.
+   JSON serialization/parsing now preserves these records while retaining field
+   validation. Object/chest replacement still requires strict correspondence;
+   unrelated selected domains can transfer. No reward is dropped or inferred.
+7. **Portable block slot normalization added.** JSON emits `block_load_order: -1`; parsing accepts bounded older v1 values and normalizes them to `-1`.
+   Physical slots are save-time identities, not authored room content. Internal
+   snapshots, stale checks, and undo keep exact identities. This prevents table
+   repacking from appearing as unrelated authored-room changes in JSON diffs.
+
+### Qualification repair verification
+
+**989 tests across 49 suites, all passed, zero failures and zero skipped.**
+Both `yaze` and `yaze_test_unit` built successfully. The filter below was
+explicitly discovered before execution; it adds 21 cases to the prior 968-test
+candidate. Full unit-suite and real-ROM application disk qualification were not
+rerun in this repair pass.
+
+```sh
+cmake --build build/presets/mac-ai --target yaze yaze_test_unit --parallel 4 > /tmp/yaze-transfer-qualification-fixes-build.log 2>&1
+yaze_qualification_filter='*DungeonRoomMetadata*:*DungeonRoomEdit*:*DungeonChestEditor*:*DungeonEntityUndoLifecycleTest*:*DungeonUndoActionsTest*:*DungeonWorkbench*:*InteractionCoordinatorTest*:*SpriteInteractionHandlerTest*:*DoorInteractionHandlerTest*:*ItemInteractionHandlerTest*:*DungeonSelectionSnapshot*:TileObjectHandlerTest.*:DungeonCanvasViewerNavigationTest.*:DungeonEditorV2RomSafetyTest.*:DungeonSaveTest.*Chest*:DungeonSaveTest.SaveAllBlocks*:*RoomHeader*:ChestEditTest.*:DungeonSaveTest.LoadObjects*:*DungeonSelectionEdit*:*DungeonConnection*:DungeonStreamAllocatorTest.*:*DungeonRoomTransfer*:*DungeonRoomDocument*:*DungeonFixedStreamReadTest*-*RoomObjectRomParityTest*'
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_list_tests --gtest_filter="$yaze_qualification_filter" > /tmp/yaze-transfer-qualification-fixes-selected.log 2>&1
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter="$yaze_qualification_filter" --gtest_output=xml:/tmp/yaze-transfer-qualification-fixes-tests.xml > /tmp/yaze-transfer-qualification-fixes-tests.log 2>&1
+/opt/homebrew/opt/llvm/bin/clang-tidy -p build/analysis/mac-ai \
+  --checks='-*,clang-analyzer-*' --warnings-as-errors='clang-analyzer-*' \
+  --header-filter='(dungeon_room_transfer|dungeon_editor_v2_room_transfer|dungeon_room_transfer_editor|dungeon_stream_allocator)\.(cc|h)$' \
+  src/app/editor/dungeon/dungeon_room_transfer.cc \
+  src/app/editor/dungeon/dungeon_room_transfer_json.cc \
+  src/app/editor/dungeon/dungeon_editor_v2_room_transfer.cc \
+  src/app/editor/dungeon/inspectors/dungeon_room_transfer_editor.cc \
+  src/zelda3/dungeon/dungeon_stream_allocator.cc \
+  src/zelda3/dungeon/room.cc > /tmp/yaze-transfer-qualification-fixes-analyzer.log 2>&1
+/opt/homebrew/bin/bash scripts/dev/editor-guardrails.sh df1cc4f2d bb185d1ae
+git diff --check df1cc4f2d bb185d1ae
+```
+
+The analysis database uses disabled precompiled headers (configuration command
+in the historical section below). This six-translation-unit analyzer run passed within its
+explicit header filter; eight diagnostics in excluded headers were suppressed.
+After the final properties-only recovery refinement, the UI translation unit
+was analyzed again successfully, with the same analyzer checks and a header
+filter of `(dungeon_room_transfer|dungeon_room_transfer_editor)\.(cc|h)$`;
+output: `/tmp/yaze-transfer-qualification-fixes-ui-analyzer.log`.
+The earlier broader 13-unit scan's two unchanged diagnostics remain recorded
+below. Do not describe the repository or full tidy policy as clean.
+Changed-line formatting, editor guardrails, and pre-commit checks passed.
+
+Local app: `build/presets/mac-ai/bin/Debug/yaze.app`. Executable SHA-256:
+`e0a4136646a709c6370f3c391c667a2d38ccbc73a71e55d99b2eeb83b3d6c3ea`.
+The binary was built from the source committed as `bb185d1ae` before committing,
+so embedded Git metadata may name its parent. It was not installed or substituted
+into Barista. Personal ROM/save files were not modified; no remote CI or emulator
+run is claimed. The read-only two-MiB vanilla survey input had SHA-256
+`b14aff6012f55827b67607e73ea0666269ed97f1053ce958d94296fe04854a72`.
+
+### Independent qualification handoff
+
+Claude reported the prior `df1cc4f2d` candidate passed the 968-test filter and
+positive disposable-ROM save/reopen cases for vanilla chests `01C → 01A`,
+torches `042 → 022`, pot JSON `038 → 026`, and Oracle `01B → 019` core /
+`00A → 00C` sprites. Those are external results for the prior source, not new
+results for this repair. The block overflow and strict pot read were reproduced
+there. The 168-record chest rejection also left the live ROM unchanged.
+
+Rerun in an isolated qualification worktree pinned to `bb185d1ae`:
+
+1. Native block clone `09E → 034`, objects/doors/sprites/pots (`domains 15`),
+   must now fail preview because 99 → 100 records overlaps torches. Assert exact
+   ROM bytes, source/target data, selections/history, and torch bytes unchanged.
+2. Export all 296 vanilla rooms without opening them first, including `004`,
+   `00B`, `011`, `060`, and residual-chest rooms `005`, `016`, `05B`, `0B3`.
+   Preserve the residual records; object-domain replacement with invalid chest
+   correspondence must still fail explicitly.
+3. Repeat the positive vanilla/Oracle cases above through Preview → Apply →
+   Undo → Redo → editor Save → a new disposable file → independent-process
+   reopen. Compare authored domains, including torch/block behavior, and assert
+   source input hashes unchanged. Portable JSON normalizes physical block slots.
+4. Exercise `01A` / `019` shared-header rejection and explicit recovery without
+   properties. Keep the target properties unchanged. Bind the Oracle project,
+   dependencies, feature flags, and protected-write policy in the same order as
+   the application; its `save_dungeon_water_fill_zones=false` is significant.
+5. Recheck capacity/policy refusals and obtain a specific exit-door reproducer
+   if one still exists. Emulator traversal, manual GUI acceptance, packaged
+   delivery, and remote CI remain separate gates.
+
+## Prior authored-room clone/import candidate (2026-09-23)
 
 Candidate: `2520aa6b0` on
 `codex/editor-parity-dungeon-authoring`, following normal-door source

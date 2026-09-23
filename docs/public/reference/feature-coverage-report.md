@@ -69,18 +69,23 @@ DA-3 remains partial for stairs, pits, special doors, and runtime qualification.
 The authored-room transfer candidate below follows this checkpoint. See the
 [connection increment](../../internal/plans/editor-capability-parity-plan.md#reciprocal-normal-door-connection-increment-2026-09-23).
 
-The current authored-room transfer candidate is `2520aa6b0`,
-following documentation `6a1196218`. `yaze.room` v1 adds same-project clone and
+The current authored-room transfer candidate is `bb185d1ae`,
+following authored-room source `2520aa6b0` and documentation `df1cc4f2d`. `yaze.room` v1 adds same-project clone and
 clipboard JSON exchange through shared Room controls, with seven selectable
 domains and Core defaults. Target destinations are preserved unless explicitly
 included; numeric graphics/layout/message IDs are references, not packaged
 assets. Detached persistence preflight checks real capacity, shared tables,
 disabled save flags, and write policy before one undoable replacement. Stale
 source/target plans reject; water masks preserve other rooms, and water saving
-merges unopened saved zones. Verification: **968 tests
+merges unopened saved zones. Verification: **989 tests
 across 49 suites; all passed, zero failures and zero skipped**. See the
-[transfer handoff](../../internal/agents/dungeon-workbench-placement-handoff-2026-09-22.md#room-transfer-verification-commands)
+[transfer handoff](../../internal/agents/dungeon-workbench-placement-handoff-2026-09-22.md#qualification-repair-verification)
 for exact commands and scope. The 807-test connection result is historical.
+The repair enforces native block storage, accepts shared pot terminators, moves
+preview GameData to the heap, and offers explicit shared-header recovery. JSON
+preserves residual chest records and normalizes physical block slots. The
+exit-door report was not reproduced; confirmed exit guards have regression
+coverage. Independent save/reopen must be rerun on this source.
 Next is DA-5 application disk/runtime qualification of the combined candidate.
 DA-4 project-file/asset compatibility and DA-3 remaining connection families
 remain separate work; no native file-picker or complete asset-pack claim is made.
@@ -123,7 +128,7 @@ used for promotion.
 | Compound chest authoring | **Candidate**, Source + Focused at `478206247` | Shared placement, record/reward/type selection, canvas selection, and delete controls; paired object/contents undo; ordinary object clipboard preserves rewards; layer/order remapping; event-slot/global-table/manifest preflight | Save still validates object-stream allocation. This chest-only evidence predates the mixed-selection candidate below. Vanilla/Oracle full-application disk save/reopen, game behavior, manual UX, CI, and packaged acceptance remain unqualified. |
 | Atomic mixed-selection editing | **Candidate**, Source + Focused at `eac49e2bd` | Shared delete/duplicate/cut/copy/paste/nudge/group-drag planner and one undo; chest rewards retained; supported count/encoding/coordinate checks; exact door anchors; no partial publication on rejection | Object-stream allocation remains Save-time. Author-time manifest preflight covers chest ranges only. Full application disk persistence, rendered UX, game behavior, CI, and packaged qualification remain. |
 | Reciprocal normal-door connections | **Candidate** at `be973563f`; verification above | Shared endpoint preview and Create Return Door / Update Pair; exact outer slots and adjacency; guarded target load retaining project WaterFill data; one batch Undo/Redo preserving other domains | Stairs, pits, special door families, internal seams, and arbitrary destinations are outside this slice. Save-time allocation, full application disk persistence, runtime traversal, human UX, CI, and packaged qualification remain. |
-| Authored-room clone/import | **Candidate** at `2520aa6b0`; DA-4 is **Partial** | Versioned clipboard JSON and same-project clone; explicit object/chest/special metadata, door, sprite, pot-item, property, collision, and water domains; preserved destinations by default; detached save preflight and one undo action | Project-file/asset compatibility and portable resource packing remain. Numeric references require compatible assets. Application disk transaction/reopen, runtime, human UX, CI, and packaged acceptance remain separate. |
+| Authored-room clone/import | **Candidate** at `bb185d1ae`; DA-4 is **Partial** | Versioned clipboard JSON and same-project clone; explicit object/chest/special metadata, door, sprite, pot-item, property, collision, and water domains; preserved destinations by default; detached save preflight and one undo action | Project-file/asset compatibility and portable resource packing remain. Numeric references require compatible assets. Application disk transaction/reopen, runtime, human UX, CI, and packaged acceptance remain separate. |
 | Overworld map/entrance/exit/item/property editing | **Partial** | Domain-specific save methods called by `OverworldEditor::Save()` when their flags are enabled | Entity undo and full application acceptance need completion. Save support must be checked per domain and ROM layout. |
 | Overworld sprite persistence | **Missing** | Editing and three game-state collections exist | The application save path does not call a sprite serializer. Do not report sprite edits as saved because Save ROM succeeds. |
 | Message | **Partial** | Transactional save of valid parsed text through coordinated save when enabled | GUI-to-disk reopen and runtime acceptance for the advertised ROM profile. |
