@@ -57,9 +57,19 @@ chest-before-lock order, the global 168-record contents table including dirty
 and unopened rooms, and exact manifest-protected chest regions. Object-stream
 allocation remains a Save-time check.
 
-DA-1 next covers general atomic mixed-selection operations; DA-2 retains
-controls for remaining room elements. The earlier synthetic persistence
-checks and this source increment do not qualify vanilla/Oracle GUI-to-disk
+The current mixed-selection candidate `eac49e2bd` stages tile objects,
+doors, sprites, pot items, and chest rewards together for delete/duplicate,
+cut/copy/paste, nudge, and group drag. Mutations use one undo action, rejected
+operations make no partial edit, and no-op drags preserve redo history. Shared
+pixel grids preserve spacing; doors require exact slots. Duplicate and paste
+without a canvas target keep door groups in place. Save finishes pending gestures. Source +
+Focused evidence: **640 tests across 39 suites passed
+with zero failures and zero skips**. Allocation is still checked at Save, and
+author-time manifest checks remain scoped to chest ranges.
+
+DA-1/DA-2 remain partial for broader domains and controls. The next bounded
+package is DA-3 reciprocal connection authoring, followed by DA-4 complete room
+cloning. Synthetic persistence checks do not qualify vanilla/Oracle GUI-to-disk
 save/reopen, game behavior, manual UX, CI, or release acceptance. Exact commands
 and limits are recorded in the canonical plan; do not redo completed sub-slices.
 
@@ -69,14 +79,15 @@ checks before integration. Do not infer merge readiness from this inventory.
 
 | Package | Next bounded implementation | Existing foundation to preserve | Required evidence |
 | --- | --- | --- | --- |
-| `DA-1` | General atomic mixed-selection operations | Existing undo domains; metadata batch at `aeb0b1200`; compound object/chest snapshots and preflight at `478206247` | Preflight every participating domain before publication; undo/redo restores all domains together; rejected/no-op edits leave no partial mutation or history entry |
+| `DA-1` | Extend coverage only for remaining authoring domains | Existing undo; metadata at `aeb0b1200`; paired chests at `478206247`; atomic mixed selections at `eac49e2bd` | Preserve one action per user command; exact selection/data restoration; rejected/no-op commands preserve prior state |
 | `DA-2` | Complete controls for remaining room elements through `DA-1` | Shared entity inspector, named room controls, and shared chest placement/contents/deletion controls | Inspector and canvas remain synchronized; no independent duplicate state; focused UI and entity lifecycle checks |
-| `DA-3` | Visual room destinations and return navigation | Connected-room browsing and stored destination fields | Correct stair/pit destinations and ordinary door adjacency; invalid destinations do not mutate |
+| `DA-3` | Reciprocal connection authoring with both-room preview | Connected-room browsing, room metadata batch, and mixed-selection transaction boundary | Validate both endpoints/slot rules before either changes; one undo for both rooms; preserve intentional one-way links; save/reopen and runtime traversal |
 | `DA-4` | Complete room cloning and reusable selections | Existing room-template/JSON helpers | Explicit domain coverage, atomic validation/apply, undo, and source-preserving copy behavior |
 | `DA-5` | Qualify the final combined candidate | Object Coverage, parity tools, GUI qualification, release scripts | Complete application-path edit/undo/save/reopen plus independent rendering/runtime and packaged acceptance |
 
-Implement `DA-1` before routing new mutators into `DA-2`. `DA-3` and `DA-4`
-use the same transaction contract. `DA-5` qualification may proceed alongside
+Route new `DA-2` mutators through the established `DA-1` boundaries. `DA-3` and
+`DA-4` reuse the same transaction contract; do not rebuild completed selection
+operations. `DA-5` qualification may proceed alongside
 implementation. Use the canonical plan for full prerequisites and exit gates.
 Pits/blocks already have editable models and persistence work; remaining
 qualification and capacity handling must not be described as absent models.

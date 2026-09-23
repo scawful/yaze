@@ -8,7 +8,106 @@ The user requested substantial implementation work
 from Codex and delegated extended validation to Claude. Avoid asking the user
 to repeat a sequence of manual tests before continuing development.
 
-## Current compound chest candidate (2026-09-23)
+## Current mixed-selection candidate (2026-09-23)
+
+Candidate: `eac49e2bd` on `codex/editor-parity-dungeon-authoring`,
+following chest source `478206247`. Worktree:
+`/Users/scawful/src/hobby/yaze-worktrees/pr256-review-fixes`. Universe task:
+`task_20260923T050800Z_19565`. Verification: **640 focused tests
+across 39 suites passed with zero failures and zero skips**. App and unit
+builds, editor guardrails, changed-line formatting, and pre-commit checks passed.
+The new suites contain 34 planner cases and 36 lifecycle runs across both viewer
+modes, plus one net new coordinator case.
+Keep the earlier candidate evidence below as history for its exact source.
+
+- Delete, duplicate, cut, copy, paste, nudge, and group drag cover objects,
+  doors, sprites, and pot items together. A mutation is one undo action across
+  all affected collections. Copy creates no history; duplicate preserves the
+  prior clipboard. Stateful chest objects retain their reward records.
+- Plan every participating domain before applying anything. Stale indices,
+  invalid encodings, unsupported translations, bounds, and supported count
+  limits reject the whole edit. Failed copy retains the previous clipboard;
+  Cut deletes only after successful copy. Reuse the global chest planner and
+  exact chest-region write-policy preflight when objects/chests participate.
+- Objects use an 8-pixel shared movement grid; selections with sprites or pot
+  items use 16 pixels. Preserve relative spacing; do not clamp members
+  independently. Doors require an exact same-direction wall slot. Door-only
+  arrow nudges advance slots; duplicate and paste without a canvas target keep
+  a selection containing doors at its original anchors.
+- Group drag contributes one history action at release. Returning to the start
+  preserves existing redo history and save dirtiness. Save, room navigation,
+  discrete commands, and undo/redo finish active gestures. A stale candidate
+  cannot overwrite a single-entity preview committed while finishing a gesture.
+  `BeginSaveTransaction` and `Save` finish gestures before capturing dirty state.
+- Workbench, standalone inspector, canvas menus, and keyboard commands share
+  these paths. No new parallel inspector or undo manager was introduced.
+
+### Mixed-selection architecture and next implementation
+
+1. [`dungeon_selection_edit.h` / `.cc`](../../../src/app/editor/dungeon/dungeon_selection_edit.h)
+   owns the pure plan and clipboard types. `PlanDungeonSelectionEdit` returns
+   complete before/after state plus actual changed-domain bits;
+   `CopyDungeonSelection` copies authored values and paired chest rewards.
+   `PlanChestObjectEdit` remains the chest correspondence authority.
+2. [`DungeonObjectInteraction`](../../../src/app/editor/dungeon/dungeon_object_interaction.cc)
+   owns the unified clipboard and UI commands.
+   [`InteractionCoordinator::CommitSelectionEdit`](../../../src/app/editor/dungeon/interaction/interaction_coordinator.cc)
+   plans the request and invokes the configured editor publication callback.
+   Continuous drag preserves handler selection until the gesture finishes.
+3. [`DungeonEditorV2::CommitSelectionEdit`](../../../src/app/editor/dungeon/dungeon_editor_v2_selection_edits.cc)
+   preflights global chest state, closes previous history safely, verifies that
+   planned source data is current, publishes all affected collections, and uses
+   the existing undo manager. Restore targets the original room and retains
+   another active room's selection. Sprite snapshots contain authored fields,
+   not borrowed preview buffers.
+4. Keep the standalone handler fallback testable, but production changes go
+   through the configured editor callback. Do not reintroduce sequential
+   per-domain mutation into mixed operations or add a second clipboard.
+
+Next bounded implementation: **DA-3 reciprocal connection authoring**. Reuse
+room metadata and selection transactions to preview both endpoints, validate
+engine adjacency and destination/slot rules, and apply or undo both together.
+Preserve intentional one-way links; a diagnostic is not permission to repair
+another room. Then extend proven transactions to **DA-4 complete room cloning**.
+DA-1/DA-2 remain partial for remaining domains and controls; DA-5 qualification
+continues independently on the exact candidate.
+
+### Mixed-selection verification commands
+
+Run from the integration worktree. Discover the selected suites before running
+this filter; optional ROM parity fixtures remain a separate lane.
+
+```sh
+cmake --build build/presets/mac-ai --target yaze_test_unit yaze --parallel 4 > /tmp/yaze-mixed-final-build.log 2>&1
+yaze_mixed_filter='*DungeonRoomMetadata*:*DungeonRoomEditsLifecycle*:*DungeonChestEditor*'
+yaze_mixed_filter+=':*DungeonEntityUndoLifecycleTest*:*DungeonUndoActionsTest*:*DungeonWorkbench*'
+yaze_mixed_filter+=':*InteractionCoordinatorTest*:*SpriteInteractionHandlerTest*:*DoorInteractionHandlerTest*:*ItemInteractionHandlerTest*'
+yaze_mixed_filter+=':*DungeonSelectionSnapshot*:TileObjectHandlerTest.*:DungeonCanvasViewerNavigationTest.*'
+yaze_mixed_filter+=':DungeonEditorV2RomSafetyTest.*:DungeonSaveTest.*Chest*:*RoomHeader*'
+yaze_mixed_filter+=':ChestEditTest.*:DungeonSaveTest.LoadObjects*:*DungeonSelectionEdit*'
+yaze_mixed_filter+='-*RoomObjectRomParityTest*'
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_list_tests --gtest_filter="$yaze_mixed_filter" > /tmp/yaze-mixed-final-selected-tests.log 2>&1
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter="$yaze_mixed_filter" --gtest_output=xml:/tmp/yaze-mixed-final-tests.xml > /tmp/yaze-mixed-final-tests.log 2>&1
+```
+
+Scoped analysis uses the existing PCH-free database and the two new planner/
+publication translation units:
+
+```sh
+/opt/homebrew/opt/llvm/bin/clang-tidy -p build/analysis/mac-ai --checks='-*,clang-analyzer-*' --warnings-as-errors='clang-analyzer-*' --header-filter='(dungeon_selection_edit|dungeon_editor_v2_selection_edits)\.(cc|h)$' src/app/editor/dungeon/dungeon_selection_edit.cc src/app/editor/dungeon/dungeon_editor_v2_selection_edits.cc > /tmp/yaze-mixed-final-analyzer.log 2>&1
+```
+
+Scoped analyzer checks passed for these two modules; findings outside that
+header scope are not covered. This is not a full-repository tidy claim.
+Focused model/editor lifecycle and synthetic in-memory save/reload tests
+do not establish rendered UI acceptance or a complete application disk workflow.
+Object-stream space/allocation remains a Save-time gate. Author-time manifest
+preflight here covers chest ranges; do not claim every-domain preflight.
+Vanilla/Oracle GUI-to-disk save/reopen, runtime traversal, manual UX, remote CI,
+installation, and packaged Release acceptance remain pending. Preserve the
+user's installed app and active ROM sessions during automated verification.
+
+## Prior compound chest candidate (2026-09-23)
 
 Candidate: `478206247` on
 `codex/editor-parity-dungeon-authoring`, following `aeb0b1200`. Worktree:
@@ -72,13 +171,11 @@ ImGui callback:
    interaction handler, and use the model's mapping rather than raw vector
    position to identify a chest.
 
-Next bounded package: general atomic mixed-selection editing across tile
-objects, doors, sprites, and pot items. Preflight all participating domains
-before publishing any change and record one undo action for the whole operation.
-Retain paired object/contents snapshots when the selection includes chests.
-DA-1/DA-2 stay partial; use this common boundary for DA-3 connections and DA-4
-room clone/import. Do not restart completed chest work or create another
-inspector/transaction system. DA-5 qualification remains independent.
+At this historical checkpoint, mixed-selection atomicity was the next bounded
+package. The current mixed-selection increment above supersedes that assignment
+and retains the chest planner and rewards. Do not restart completed chest work
+or create another inspector/transaction system. DA-5 qualification remains
+independent.
 
 ### Chest authoring verification commands
 

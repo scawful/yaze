@@ -36,7 +36,7 @@ Stable/Beta/WIP labels.
   Synthetic save/decode/byte-preservation tests do not establish vanilla/Oracle
   application-to-disk or game-runtime qualification. Mainline and the installed
   application remain unchanged.
-- Current compound chest candidate: `478206247` on the same
+- Prior compound chest candidate: `478206247` on the same
   integration branch. Placement, deletion, and small/big conversion keep the
   object and contents together in one undo action. Ordinary object copy/paste
   preserves rewards; reorder/layer edits preserve chest correspondence.
@@ -47,6 +47,14 @@ Stable/Beta/WIP labels.
   other dirty and unopened rooms and exact manifest-protected chest regions.
   Object-stream allocation still checks at Save; full application disk/game,
   manual UX, CI, and packaged acceptance remain unqualified.
+- Current mixed-selection candidate: `eac49e2bd` on the same branch.
+  Delete/duplicate/cut/paste, nudge, and group drag stage objects, doors, sprites,
+  pot items, and paired chest rewards together, with one undo action. Copy
+  preserves the prior clipboard on failure. Shared grids preserve spacing;
+  doors require valid wall anchors and duplicate in place. **640
+  focused tests across 39 suites passed with zero failures and
+  zero skips**. Save-time allocation, vanilla/Oracle application/runtime,
+  manual UX, CI, installation, and Release qualification remain separate.
 - Reference-source snapshots used in the audit: Hyrule Magic `7d17cc2` and
   ZScream `0f6812d`. These are source comparison pins, not a statement that the
   two checkouts represent every published feature.
@@ -75,7 +83,8 @@ separately as **Source**, **Focused**, **ROM**, **Runtime**, or **Release**.
 | Edit doors, sprites, and pot items in place | **Candidate** | `a730d6557`: shared Workbench/standalone property controls, domain-aware undo/redo, render refresh, reserved-sprite validation, and paste-selection restoration; Source + Focused evidence | ROM save/reopen, runtime, CI, and packaged acceptance remain. Inspector edits are blocked when connected-view and interaction room contexts differ. |
 | Edit room properties | **Candidate**, Source + Focused at `aeb0b1200` | Typed header/tag/layout/floor/destination edits with undo; named room choices; atomic multiroom metadata batch. | Qualify application persistence/runtime on the exact candidate. |
 | Create, edit, copy, and delete dungeon chests | **Candidate**, Source + Focused at `478206247` | Paired object/contents operations and undo; named rewards; canvas placement/selection; ordinary object clipboard retains rewards; ordering, shared event slots, global contents capacity, and manifest preflight. | Object-stream allocation remains Save-time. Qualify vanilla/Oracle application disk persistence, game behavior, manual UX, and release acceptance. |
-| Complete editing of every dungeon element | **Partial** | Entity editing at `a730d6557`, room metadata at `aeb0b1200`, and the compound chest candidate extend the original `d609e6254` / `7ba7d76ce` audit. | General atomic mixed-domain operations, remaining clipboard capacity work, and remaining room workflows keep DA-1 and DA-2 open. |
+| Edit mixed dungeon selections | **Candidate**, Source + Focused at `eac49e2bd` | One operation and undo across objects, doors, sprites, pot items, and paired chest rewards; validated clipboard; rigid nudge/drag; rejected/no-op edits preserve data/history. | Object-stream space checks at Save; author-time manifest checks currently cover chest regions. Full application/runtime and packaged acceptance remain. |
+| Complete editing of every dungeon element | **Partial** | Entity editing at `a730d6557`, metadata at `aeb0b1200`, paired chests at `478206247`, and mixed selections at `eac49e2bd` extend the original audit. | Remaining authoring domains, reciprocal connections, complete room operations, and exact-candidate qualification keep DA-1 and DA-2 open. |
 | Build and reuse complete rooms | **Partial** | Room-template helpers, export, destination fields, and connected-room browsing | Complete template schema and room cloning/import, including doors, chests, and headers; reusable selections; destination previews with engine adjacency constraints. |
 | Edit overworld maps and entities | **Partial** | Tile editing, paste undo, persistent scratchpad, entrances, exits, items, properties, graphics groups, and state-specific sprites | Serialize sprites for every supported game state; unify entity undo and verify each saved domain. Existing map save does not persist sprite edits. |
 | Edit graphics and graphics groups | **Blocked** for coordinated pixel-sheet persistence; other workflows **Partial** | Pixel editing, undo, graphics-group tools, import surfaces, and polyhedral editing | Safe compression and allocation, write boundaries, import/export roundtrip, and coordinated save. Preserve the current graphics save block until these are proved. |
@@ -91,8 +100,9 @@ separately as **Source**, **Focused**, **ROM**, **Runtime**, or **Release**.
 1. **Complete dungeon authoring for 0.8.0.** Establish shared undo transactions,
    editable entity inspectors, complete room operations, connection editing,
    and bounded save/reopen/runtime acceptance. The next bounded implementation
-   is atomic mixed-selection editing, using the existing chest transaction
-   boundary before DA-3 connection authoring and DA-4 clone/import.
+   is bounded DA-3 reciprocal connection authoring using the existing metadata
+   and mixed-selection transaction boundaries, followed by DA-4 complete room
+   cloning/import. Preserve the implemented selection and chest operations.
 2. **Complete overworld entity persistence.** Add the missing sprite writer and
    state handling before describing all entity editing as durable.
 3. **Complete graphics and screens by data domain.** Keep unsafe writers blocked

@@ -5,7 +5,8 @@
 **Created:** 2026-09-22  
 **Last Reviewed:** 2026-09-23
 **Next Review:** 2026-10-06  
-**Universe Task:** `task_20260923T034804Z_2446` (current compound chest increment);
+**Universe Task:** `task_20260923T050800Z_19565` (current mixed-selection increment);
+prior compound chest task `task_20260923T034804Z_2446`;
 prior room metadata task `task_20260923T025637Z_4379`;
 initial plan task `task_20260923T000806Z_4560`
 
@@ -105,7 +106,7 @@ Do not publish estimated parity percentages.
 
 | ID | Deliverable | Current implementation state | Depends on | Primary owner |
 |---|---|---|---|---|
-| DA-1 | Complete dungeon edit undo across domains | Partial; entity and room metadata slices; compound object/chest Candidate below | Existing mutation hooks and undo actions | imgui-frontend-engineer |
+| DA-1 | Complete dungeon edit undo across domains | Partial; entity/metadata, paired chest, and atomic mixed-selection Candidates below | Existing mutation hooks and undo actions | imgui-frontend-engineer |
 | DA-2 | One editable inspector for every room element | Partial; tile/entity controls, named room properties, shared chest placement/contents/deletion Candidate | DA-1 for added edits | imgui-frontend-engineer |
 | DA-3 | Visual room connection authoring | Partial; navigation/diagnostics exist | DA-1 header/compound coverage | zelda3-hacking-expert |
 | DA-4 | Complete room clone/import and reusable selections | Partial; model helpers and limited export exist | DA-1 compound coverage | zelda3-hacking-expert |
@@ -119,9 +120,10 @@ Do not publish estimated parity percentages.
 | AU-2 | Music event clipboard and editing completion | Partial | Existing song model; AU-1 for sample workflows | imgui-frontend-engineer |
 | CO-1 | Reference-feature and ROM-format compatibility ledger | Partial inventory | Evidence per affected package | zelda3-hacking-expert |
 
-Work-package status must name the completed sub-slice. Entity, room-metadata,
-and paired object/chest undo do not close DA-1 while general atomic mixed-domain
-operations and their qualification remain.
+Work-package status must name the completed sub-slice. The mixed-selection
+candidate covers objects, doors, sprites, pot items, and paired chest contents.
+It does not close DA-1/DA-2 for remaining domains, complete room workflows, or
+full application/runtime qualification.
 
 ### DA-1 and DA-2: edit any room element in place
 
@@ -140,9 +142,9 @@ operations and their qualification remain.
    dirty state, and render invalidation on restore. Handle room switching,
    invalid/no-op edits, and absent selection without creating history entries.
 4. Preserve the implemented header/tag/destination and paired object/chest
-   transaction paths. Add general mixed-selection operations so a single user
-   action can be undone atomically across all participating domains. Do not
-   advertise general atomicity until implemented and covered.
+   transaction paths. Preserve the mixed-selection boundary implemented below
+   when adding domains: plan the whole action, reject before publication, and
+   restore every participating domain through one undo action.
 5. Keep the placement handler authoritative for ghost state. Preview-only
    changes must not dirty the room. Packed area wheel sizing changes axes in
    lockstep; Shift-wheel changes width. Fixed/custom variant semantics differ.
@@ -317,9 +319,9 @@ metadata batch is one data domain; it does not establish general compound
 transactions or complete DA-3 connections / DA-4 clone/import.
 
 **Follow-on implemented below:** paired object/chest creation and deletion use
-the existing undo manager. General mixed-selection operations remain a separate
-next increment before DA-3 connection edits and DA-4 room clone/import. DA-5
-qualification remains an independent lane against the exact candidate.
+the existing undo manager. The later mixed-selection increment follows that
+work before DA-3 connection edits and DA-4 room clone/import. DA-5 qualification
+remains an independent lane against the exact candidate.
 
 ### Compound chest authoring increment (2026-09-23)
 
@@ -378,13 +380,65 @@ general atomic mixed-selection editing. Vanilla/Oracle full-application disk
 save/reopen, game behavior, manual interaction acceptance, remote CI, and
 packaged release qualification remain unqualified for this exact candidate.
 
-**Next implementation:** add one atomic transaction for an ordinary mixed
-selection of tile objects, doors, sprites, and pot items through the existing
-undo manager. Preflight every participating domain, publish none if any domain
-fails, and restore the entire selection through one undo/redo entry. Preserve
-the chest planner and paired object/contents snapshot when tile objects are
-included. Use that shared boundary for DA-3 connection edits and DA-4 complete
-room clone/import; do not introduce another transaction framework or inspector.
+**Follow-on implemented below:** ordinary mixed-selection transactions now use
+this chest planner and the existing undo manager. The chest candidate's tests
+and limits above remain evidence for its own source, not the later increment.
+
+### Atomic mixed-selection increment (2026-09-23)
+
+**Candidate:** `eac49e2bd` on
+`codex/editor-parity-dungeon-authoring`, following `478206247`. Universe task:
+`task_20260923T050800Z_19565`.
+
+- Delete, duplicate, cut, copy, paste, nudge, and group drag cover tile objects,
+  doors, sprites, and pot items. A mutation publishes all affected collections
+  together and creates one existing undo-manager action. Copy does not create
+  history; duplicate does not replace the clipboard. Chest objects retain
+  their paired rewards, including unknown reward bytes.
+- The planner rejects stale selections, invalid encodings, bounds violations,
+  and supported count limits before publication. Rejected operations preserve
+  the room and selection; failed copy preserves the prior clipboard. Global
+  chest capacity and exact chest-region manifest checks reuse the existing
+  preflight. This is not author-time manifest coverage for every data domain.
+- Movement preserves relative pixel spacing on a shared 8-pixel grid, or a
+  16-pixel grid when sprites/pot items participate. Doors must land on an exact
+  valid slot without rotating. Door-only arrow nudges advance wall slots;
+  duplication and paste with no canvas target retain door selections in place.
+- A group drag is one history action. Returning to its starting state preserves
+  redo history and the prior save-dirty state. Room changes, discrete commands,
+  undo/redo, and save boundaries finish pending gestures before proceeding.
+  `BeginSaveTransaction` and `Save` finish them before capturing dirty state.
+- Existing Workbench, inspector, canvas menu, and clipboard routes use the same
+  operation; no parallel inspector or undo manager was added.
+
+**Architecture:** `dungeon_selection_edit.*` builds pure before/after plans and
+clipboard payloads, reusing `PlanChestObjectEdit`. The interaction facade and
+coordinator translate gestures into requests. `dungeon_editor_v2_selection_edits.cc`
+applies global chest preflight, publishes data, and records/restores a
+`DungeonSelectionAction` through the existing manager. Snapshots retain authored
+sprite fields without borrowing preview buffers.
+
+**Evidence:** Source at `eac49e2bd`; **640 focused tests
+across 39 suites passed with zero failures and zero skips**. App and unit
+builds passed. The new suites contribute 34 planner cases and 36 lifecycle runs
+across both viewer modes, plus one net new coordinator case. Changed-line
+formatting, editor guardrails, and repository pre-commit checks passed.
+The exact build, discovery, execution filter, and artifacts are recorded in the
+[mixed-selection handoff](../agents/dungeon-workbench-placement-handoff-2026-09-22.md#mixed-selection-verification-commands).
+Scoped Clang analyzer checks passed on the two new planner/publication modules;
+this is not a full-repository tidy pass. Artifacts use `/tmp/yaze-mixed-final-*`.
+Synthetic model/editor lifecycle and
+in-memory persistence checks are distinct from rendered application acceptance.
+
+**Limits and next implementation:** object-stream allocation and serialized
+space remain Save-time checks. This candidate does not establish every-domain
+manifest preflight, complete room authoring, vanilla/Oracle GUI-to-disk or game
+behavior, manual UX, remote CI, installation, or packaged acceptance. DA-1/DA-2
+remain partial. Next implement a bounded DA-3 reciprocal connection edit through
+existing room metadata/selection transactions: preview the two affected rooms,
+validate both endpoints and engine adjacency/slot rules, apply both or neither,
+and undo both together. Then extend that boundary to DA-4 complete room cloning.
+Do not silently repair diagnostic findings or add a second transaction system.
 
 ### Supporting cleanup and human UI ownership
 
@@ -410,7 +464,7 @@ Suggested division for the next UI slice:
 | Maintainer | Implement a searchable named sprite-type chooser in `inspectors/dungeon_entity_inspector.cc`, using the existing handler | Finding a type, keyboard selection/cancel, narrow layout, and one undoable committed edit work as designed |
 | Agent | Review the chooser's mutation and selection contracts; prepare only the extraction needed to make the change local | Existing handler/undo coverage, build, targeted analysis, and any new regression for changed behavior |
 | Maintainer | Choose the next layout improvement, such as a responsive `dungeon_status_bar.cc` | Readable status at representative canvas widths and scale |
-| Agent | Continue DA-1 general mixed-selection coverage while preserving existing metadata/chest transactions and the UI feature's ownership | Editor lifecycle and persistence evidence for the declared domains |
+| Agent | Continue bounded DA-3 reciprocal connection authoring using the metadata/mixed-selection transaction boundaries | Both endpoints validate before mutation; one undo; focused lifecycle and persistence evidence |
 
 These are proposed human tasks, not an instruction for agents to implement them
 preemptively. For future cleanup, name one responsibility and its callers, move
