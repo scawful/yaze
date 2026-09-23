@@ -61,9 +61,6 @@ class ObjectEditorContent : public WindowContent {
   void DrawSelectionSummary();
   void DrawSelectionActions();
   void DrawSelectedObjectInfo();
-  void DrawSelectedDoorInfo();
-  void DrawSelectedSpriteInfo();
-  void DrawSelectedItemInfo();
   void DrawKeyboardShortcutHelp();
 
   void HandleKeyboardShortcuts();

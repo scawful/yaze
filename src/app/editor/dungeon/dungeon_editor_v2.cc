@@ -416,6 +416,7 @@ absl::Status DungeonEditorV2::RefreshRomBackedState() {
   has_pending_undo_ = false;
   pending_collision_undo_ = {};
   pending_water_fill_undo_ = {};
+  pending_entity_undo_ = {};
   pending_swap_ = {};
   pending_workflow_mode_ = {};
   pending_standalone_tool_window_ = {};
@@ -2619,62 +2620,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetViewerForRoom(int room_id) {
     ConfigureViewerRenderContext(viewer_ptr, room_id);
     ApplyEntranceRenderContext(room_id);
 
-    // These hooks must remain correct even when a room panel swaps rooms while
-    // keeping the same viewer instance (to preserve canvas pan/zoom + UI
-    // state). Use the viewer's best-effort current room context instead of
-    // capturing room_id at creation time.
-    viewer->object_interaction().SetMutationCallback([this, viewer_ptr]() {
-      const int rid = viewer_ptr ? viewer_ptr->current_room_id() : -1;
-      if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
-        const auto domain =
-            viewer_ptr->object_interaction().last_mutation_domain();
-        if (domain == MutationDomain::kTileObjects) {
-          BeginUndoSnapshot(rid);
-        } else if (domain == MutationDomain::kCustomCollision) {
-          BeginCollisionUndoSnapshot(rid);
-        } else if (domain == MutationDomain::kWaterFill) {
-          BeginWaterFillUndoSnapshot(rid);
-        }
-      }
-    });
-
-    viewer->object_interaction().SetCacheInvalidationCallback([this,
-                                                               viewer_ptr]() {
-      const int rid = viewer_ptr ? viewer_ptr->current_room_id() : -1;
-      if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
-        const auto domain =
-            viewer_ptr->object_interaction().last_invalidation_domain();
-        if (domain == MutationDomain::kTileObjects) {
-          rooms_[rid].MarkObjectsDirty();
-          rooms_[rid].RenderRoomGraphics();
-          // Drag edits invalidate incrementally; finalize once the drag ends
-          // (TileObjectHandler emits an extra invalidation on release).
-          const auto mode =
-              viewer_ptr->object_interaction().mode_manager().GetMode();
-          if (mode != InteractionMode::DraggingObjects) {
-            FinalizeUndoAction(rid);
-          }
-        } else if (domain == MutationDomain::kCustomCollision) {
-          const auto mode =
-              viewer_ptr->object_interaction().mode_manager().GetMode();
-          const auto& st =
-              viewer_ptr->object_interaction().mode_manager().GetModeState();
-          if (mode == InteractionMode::PaintCollision && st.is_painting) {
-            return;
-          }
-          FinalizeCollisionUndoAction(rid);
-        } else if (domain == MutationDomain::kWaterFill) {
-          const auto mode =
-              viewer_ptr->object_interaction().mode_manager().GetMode();
-          const auto& st =
-              viewer_ptr->object_interaction().mode_manager().GetModeState();
-          if (mode == InteractionMode::PaintWaterFill && st.is_painting) {
-            return;
-          }
-          FinalizeWaterFillUndoAction(rid);
-        }
-      }
-    });
+    ConfigureViewerUndoHooks(viewer_ptr);
 
     viewer->object_interaction().SetObjectPlacedCallback(
         [this](const zelda3::RoomObject& obj) { HandleObjectPlaced(obj); });
@@ -2753,55 +2699,7 @@ DungeonCanvasViewer* DungeonEditorV2::GetWorkbenchViewer() {
     viewer->SetCurrentPaletteId(current_palette_id_);
     viewer->SetGameData(game_data_);
 
-    // Workbench uses a single viewer; these hooks use the viewer's current room
-    // context (set at DrawDungeonCanvas start) so room switching stays correct.
-    viewer->object_interaction().SetMutationCallback([this, viewer]() {
-      const int rid = viewer ? viewer->current_room_id() : -1;
-      if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
-        const auto domain = viewer->object_interaction().last_mutation_domain();
-        if (domain == MutationDomain::kTileObjects) {
-          BeginUndoSnapshot(rid);
-        } else if (domain == MutationDomain::kCustomCollision) {
-          BeginCollisionUndoSnapshot(rid);
-        } else if (domain == MutationDomain::kWaterFill) {
-          BeginWaterFillUndoSnapshot(rid);
-        }
-      }
-    });
-    viewer->object_interaction().SetCacheInvalidationCallback([this, viewer]() {
-      const int rid = viewer ? viewer->current_room_id() : -1;
-      if (rid >= 0 && rid < static_cast<int>(rooms_.size())) {
-        const auto domain =
-            viewer->object_interaction().last_invalidation_domain();
-        if (domain == MutationDomain::kTileObjects) {
-          rooms_[rid].MarkObjectsDirty();
-          rooms_[rid].RenderRoomGraphics();
-          const auto mode =
-              viewer->object_interaction().mode_manager().GetMode();
-          if (mode != InteractionMode::DraggingObjects) {
-            FinalizeUndoAction(rid);
-          }
-        } else if (domain == MutationDomain::kCustomCollision) {
-          const auto mode =
-              viewer->object_interaction().mode_manager().GetMode();
-          const auto& st =
-              viewer->object_interaction().mode_manager().GetModeState();
-          if (mode == InteractionMode::PaintCollision && st.is_painting) {
-            return;
-          }
-          FinalizeCollisionUndoAction(rid);
-        } else if (domain == MutationDomain::kWaterFill) {
-          const auto mode =
-              viewer->object_interaction().mode_manager().GetMode();
-          const auto& st =
-              viewer->object_interaction().mode_manager().GetModeState();
-          if (mode == InteractionMode::PaintWaterFill && st.is_painting) {
-            return;
-          }
-          FinalizeWaterFillUndoAction(rid);
-        }
-      }
-    });
+    ConfigureViewerUndoHooks(viewer);
 
     viewer->object_interaction().SetObjectPlacedCallback(
         [this](const zelda3::RoomObject& obj) { HandleObjectPlaced(obj); });

@@ -272,6 +272,7 @@ class DungeonEditorV2 : public Editor {
  private:
   friend class DungeonCanvasViewerTestPeer;
   friend class DungeonEditorPaletteRefreshTestPeer;
+  friend class DungeonEditorEntityUndoTestPeer;
   friend class DungeonEditorV2MinecartTrackTestPeer;
   friend class DungeonEditorV2ObjectTileEditorTestPeer;
   friend class DungeonEditorV2RegularEntranceTestPeer;
@@ -481,6 +482,14 @@ class DungeonEditorV2 : public Editor {
   bool has_pending_undo_ = false;
   bool undo_restore_triggered_ping_ = false;
 
+  struct PendingEntityUndo {
+    int room_id = -1;
+    DungeonEntitySnapshot before;
+  };
+  // Doors, sprites and pot items can be dragged together; keep each domain's
+  // original snapshot until its corresponding completion notification.
+  std::array<PendingEntityUndo, 3> pending_entity_undo_;
+
   struct PendingCollisionUndo {
     int room_id = -1;
     zelda3::CustomCollisionMap before;
@@ -531,6 +540,14 @@ class DungeonEditorV2 : public Editor {
   void RestoreRoomObjects(int room_id,
                           const std::vector<zelda3::RoomObject>& objects,
                           const std::vector<size_t>& selected_indices);
+
+  void ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer);
+  DungeonEntitySnapshot CaptureRoomEntities(int room_id, MutationDomain domain);
+  void BeginEntityUndoSnapshot(int room_id, MutationDomain domain);
+  void FinalizeEntityUndoAction(int room_id, MutationDomain domain);
+  void FinalizePendingEntityUndoActions();
+  absl::Status RestoreRoomEntities(int room_id, MutationDomain domain,
+                                   const DungeonEntitySnapshot& snapshot);
 
   void BeginCollisionUndoSnapshot(int room_id);
   void FinalizeCollisionUndoAction(int room_id);

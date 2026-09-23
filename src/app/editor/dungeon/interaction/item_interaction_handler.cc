@@ -238,8 +238,8 @@ void ItemInteractionHandler::DeleteSelected() {
   pot_items.erase(pot_items.begin() +
                   static_cast<ptrdiff_t>(*selected_item_index_));
   room->MarkPotItemsDirty();
-  ctx_->NotifyInvalidateCache(MutationDomain::kItems);
   ClearSelection();
+  ctx_->NotifyInvalidateCache(MutationDomain::kItems);
   ctx_->NotifyEntityChanged();
 }
 
@@ -256,8 +256,8 @@ void ItemInteractionHandler::DeleteAll() {
   ctx_->NotifyMutation(MutationDomain::kItems);
   room->GetPotItems().clear();
   room->MarkPotItemsDirty();
-  ctx_->NotifyInvalidateCache(MutationDomain::kItems);
   ClearSelection();
+  ctx_->NotifyInvalidateCache(MutationDomain::kItems);
   ctx_->NotifyEntityChanged();
 }
 
@@ -300,22 +300,33 @@ bool ItemInteractionHandler::NudgeSelected(int delta_pixel_x,
 }
 
 bool ItemInteractionHandler::MutateItemType(size_t index, uint8_t new_type) {
-  if (!HasValidContext()) {
-    return false;
-  }
-
   auto* room = GetCurrentRoom();
-  if (!room) {
+  if (!room || index >= room->GetPotItems().size()) {
     return false;
   }
+  const auto& item = room->GetPotItems()[index];
+  return UpdateItem(index, new_type, item.GetPixelX(), item.GetPixelY());
+}
 
-  auto& pot_items = room->GetPotItems();
-  if (index >= pot_items.size() || pot_items[index].item == new_type) {
+bool ItemInteractionHandler::UpdateItem(size_t index, uint8_t type, int pixel_x,
+                                        int pixel_y) {
+  if (!HasValidContext() || pixel_x < 0 || pixel_x >= 512 || pixel_y < 0 ||
+      pixel_y >= 512 || pixel_x % 4 != 0 || pixel_y % 16 != 0) {
     return false;
   }
-
+  auto* room = GetCurrentRoom();
+  if (!room || index >= room->GetPotItems().size()) {
+    return false;
+  }
+  auto& item = room->GetPotItems()[index];
+  const uint16_t position =
+      static_cast<uint16_t>(((pixel_y / 16) << 8) | (pixel_x / 4));
+  if (item.item == type && item.position == position) {
+    return false;
+  }
   ctx_->NotifyMutation(MutationDomain::kItems);
-  pot_items[index].item = new_type;
+  item.item = type;
+  item.position = position;
   room->MarkPotItemsDirty();
   ctx_->NotifyInvalidateCache(MutationDomain::kItems);
   ctx_->NotifyEntityChanged();

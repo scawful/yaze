@@ -11,6 +11,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/core/undo_action.h"
+#include "app/editor/dungeon/interaction/interaction_context.h"
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/room_object.h"
 
@@ -82,6 +83,71 @@ class DungeonObjectsAction : public UndoAction {
   std::vector<size_t> before_selection_;
   std::vector<zelda3::RoomObject> after_;
   std::vector<size_t> after_selection_;
+  RestoreFn restore_;
+};
+
+// Store authored sprite fields, not preview buffers or borrowed graphics pointers.
+struct DungeonSpriteSnapshot {
+  uint8_t id;
+  int x, y, subtype, layer, key_drop;
+  bool deleted;
+  bool operator==(const DungeonSpriteSnapshot&) const = default;
+};
+
+// Only the vector named by domain is populated. Keeping domains independent
+// prevents a door undo from reverting a later sprite or item edit.
+struct DungeonEntitySnapshot {
+  std::vector<zelda3::Room::Door> doors;
+  std::vector<DungeonSpriteSnapshot> sprites;
+  std::vector<zelda3::PotItem> items;
+  std::vector<SelectedEntity> entities;
+  std::vector<size_t> objects;
+};
+
+class DungeonEntitiesAction : public UndoAction {
+ public:
+  using RestoreFn = std::function<absl::Status(int, MutationDomain,
+                                               const DungeonEntitySnapshot&)>;
+  DungeonEntitiesAction(int room_id, MutationDomain domain,
+                        DungeonEntitySnapshot before,
+                        DungeonEntitySnapshot after, RestoreFn restore)
+      : room_id_(room_id),
+        domain_(domain),
+        before_(std::move(before)),
+        after_(std::move(after)),
+        restore_(std::move(restore)) {}
+  absl::Status Undo() override {
+    return restore_ ? restore_(room_id_, domain_, before_)
+                    : absl::InternalError(
+                          "DungeonEntitiesAction: no restore callback");
+  }
+  absl::Status Redo() override {
+    return restore_ ? restore_(room_id_, domain_, after_)
+                    : absl::InternalError(
+                          "DungeonEntitiesAction: no restore callback");
+  }
+  std::string Description() const override {
+    const char* label = domain_ == MutationDomain::kDoors     ? "doors"
+                        : domain_ == MutationDomain::kSprites ? "sprites"
+                                                              : "pot items";
+    return absl::StrFormat("Edit room %03X %s", room_id_, label);
+  }
+  size_t MemoryUsage() const override {
+    auto bytes = [](const DungeonEntitySnapshot& state) {
+      return state.doors.size() * sizeof(zelda3::Room::Door) +
+             state.sprites.size() * sizeof(DungeonSpriteSnapshot) +
+             state.items.size() * sizeof(zelda3::PotItem) +
+             state.entities.size() * sizeof(SelectedEntity) +
+             state.objects.size() * sizeof(size_t);
+    };
+    return bytes(before_) + bytes(after_);
+  }
+  bool CanMergeWith(const UndoAction&) const override { return false; }
+
+ private:
+  int room_id_;
+  MutationDomain domain_;
+  DungeonEntitySnapshot before_, after_;
   RestoreFn restore_;
 };
 

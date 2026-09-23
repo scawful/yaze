@@ -524,8 +524,8 @@ void DoorInteractionHandler::DeleteSelected() {
   ctx_->NotifyMutation(MutationDomain::kDoors);
   doors.erase(doors.begin() + static_cast<ptrdiff_t>(*selected_door_index_));
   room->MarkObjectStreamDirty();
-  ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
   ClearSelection();
+  ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
   ctx_->NotifyEntityChanged();
 }
 
@@ -542,8 +542,8 @@ void DoorInteractionHandler::DeleteAll() {
   ctx_->NotifyMutation(MutationDomain::kDoors);
   room->GetDoors().clear();
   room->MarkObjectStreamDirty();
-  ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
   ClearSelection();
+  ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
   ctx_->NotifyEntityChanged();
 }
 
@@ -601,32 +601,42 @@ bool DoorInteractionHandler::NudgeSelected(int delta_x, int delta_y) {
 
 bool DoorInteractionHandler::MutateDoorType(size_t index,
                                             zelda3::DoorType new_type) {
-  if (!HasValidContext())
-    return false;
-
-  const uint8_t raw_type = static_cast<uint8_t>(new_type);
-  if ((raw_type & 0x01) != 0 || raw_type > 0x66)
-    return false;
-
   auto* room = GetCurrentRoom();
-  if (!room)
+  if (!room || index >= room->GetDoors().size()) {
     return false;
+  }
+  const auto& door = room->GetDoors()[index];
+  return UpdateDoor(index, new_type, door.direction, door.position);
+}
 
-  auto& doors = room->GetDoors();
-  if (index >= doors.size())
+bool DoorInteractionHandler::UpdateDoor(size_t index, zelda3::DoorType type,
+                                        zelda3::DoorDirection direction,
+                                        uint8_t position) {
+  if (!HasValidContext()) {
     return false;
-
-  auto& door = doors[index];
-  if (door.type == new_type)
+  }
+  const auto raw_type = static_cast<uint8_t>(type);
+  if ((raw_type & 1) != 0 || raw_type > 0x66 ||
+      static_cast<unsigned>(direction) > 3 ||
+      !zelda3::DoorPositionManager::IsValidPosition(position, direction)) {
     return false;
-
+  }
+  auto* room = GetCurrentRoom();
+  if (!room || index >= room->GetDoors().size()) {
+    return false;
+  }
+  auto& door = room->GetDoors()[index];
+  if (door.type == type && door.direction == direction &&
+      door.position == position) {
+    return false;
+  }
   ctx_->NotifyMutation(MutationDomain::kDoors);
-
-  door.type = new_type;
-  auto [b1, b2] = door.EncodeBytes();
+  door.type = type;
+  door.direction = direction;
+  door.position = position;
+  const auto [b1, b2] = door.EncodeBytes();
   door.byte1 = b1;
   door.byte2 = b2;
-
   room->MarkObjectStreamDirty();
   ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
   ctx_->NotifyEntityChanged();

@@ -83,14 +83,11 @@ void SpriteInteractionHandler::HandleRelease() {
   tile_x = std::clamp(tile_x, 0, dungeon_coords::kSpriteGridMax);
   tile_y = std::clamp(tile_y, 0, dungeon_coords::kSpriteGridMax);
 
-  auto& sprites = room->GetSprites();
+  const auto& sprites = room->GetSprites();
   if (*selected_sprite_index_ < sprites.size()) {
-    ctx_->NotifyMutation(MutationDomain::kSprites);
-
-    sprites[*selected_sprite_index_].set_x(tile_x);
-    sprites[*selected_sprite_index_].set_y(tile_y);
-
-    ctx_->NotifyEntityChanged();
+    const auto& sprite = sprites[*selected_sprite_index_];
+    UpdateSprite(*selected_sprite_index_, sprite.id(), tile_x, tile_y,
+                 sprite.subtype(), sprite.layer(), sprite.key_drop());
   }
 
   is_dragging_ = false;
@@ -271,8 +268,8 @@ void SpriteInteractionHandler::DeleteSelected() {
   sprites.erase(sprites.begin() +
                 static_cast<ptrdiff_t>(*selected_sprite_index_));
   room->MarkSpritesDirty();
-  ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
   ClearSelection();
+  ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
   ctx_->NotifyEntityChanged();
 }
 
@@ -289,8 +286,8 @@ void SpriteInteractionHandler::DeleteAll() {
   ctx_->NotifyMutation(MutationDomain::kSprites);
   room->GetSprites().clear();
   room->MarkSpritesDirty();
-  ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
   ClearSelection();
+  ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
   ctx_->NotifyEntityChanged();
 }
 
@@ -320,9 +317,62 @@ bool SpriteInteractionHandler::NudgeSelected(int delta_x, int delta_y) {
     return false;
   }
 
+  return UpdateSprite(*selected_sprite_index_, sprite.id(), next_x, next_y,
+                      sprite.subtype(), sprite.layer(), sprite.key_drop());
+}
+
+absl::Status SpriteInteractionHandler::ValidateSpriteProperties(
+    uint8_t id, int x, int y, int subtype, int layer, int key_drop) {
+  if (x < 0 || x > 31 || y < 0 || y > 31 || subtype < 0 || subtype > 31 ||
+      layer < 0 || layer > 1 || key_drop < 0 || key_drop > 2) {
+    return absl::InvalidArgumentError(
+        "Sprite fields are outside their ROM ranges");
+  }
+  // EncodeSprites writes Y, the high subtype bits and layer to the first
+  // byte. 0xFF terminates the stream even when the remaining fields are valid.
+  const int first_byte = y | ((subtype & 0x18) << 2) | (layer << 7);
+  if (first_byte == 0xFF) {
+    return absl::InvalidArgumentError(
+        "Lower-layer sprites with subtype 24-31 cannot use Y 31: the ROM "
+        "reads that encoding as the end of the sprite list");
+  }
+  // LoadSprites folds these exact records into the preceding sprite. Authors
+  // should use its key-drop property instead of placing an ambiguous marker.
+  if (id == 0xE4 && x == 0 && (y == 29 || y == 30) && subtype == 24 &&
+      layer == 1) {
+    return absl::InvalidArgumentError(
+        "This E4 position/subtype/layer encodes a hidden key marker; use "
+        "the owning sprite's Key drop property");
+  }
+  return absl::OkStatus();
+}
+
+bool SpriteInteractionHandler::UpdateSprite(size_t index, uint8_t id, int x,
+                                            int y, int subtype, int layer,
+                                            int key_drop) {
+  if (!HasValidContext() ||
+      !ValidateSpriteProperties(id, x, y, subtype, layer, key_drop).ok()) {
+    return false;
+  }
+  auto* room = GetCurrentRoom();
+  if (!room || index >= room->GetSprites().size()) {
+    return false;
+  }
+  auto& sprite = room->GetSprites()[index];
+  if (sprite.id() == id && sprite.x() == x && sprite.y() == y &&
+      sprite.subtype() == subtype && sprite.layer() == layer &&
+      sprite.key_drop() == key_drop) {
+    return false;
+  }
+  // Rebuild identity metadata and invalidate cached previews when changing
+  // between ordinary sprites and overlords; raw setters leave those stale.
+  zelda3::Sprite updated(id, static_cast<uint8_t>(x), static_cast<uint8_t>(y),
+                         static_cast<uint8_t>(subtype),
+                         static_cast<uint8_t>(layer));
+  updated.set_key_drop(key_drop);
+  updated.set_deleted(sprite.deleted());
   ctx_->NotifyMutation(MutationDomain::kSprites);
-  sprite.set_x(next_x);
-  sprite.set_y(next_y);
+  sprite = std::move(updated);
   room->MarkSpritesDirty();
   ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
   ctx_->NotifyEntityChanged();

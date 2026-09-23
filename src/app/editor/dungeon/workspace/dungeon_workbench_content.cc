@@ -16,6 +16,7 @@
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/dungeon_selection_snapshot.h"
+#include "app/editor/dungeon/inspectors/dungeon_entity_inspector.h"
 #include "app/editor/dungeon/selectors/object_selector_content.h"
 #include "app/editor/dungeon/ui/window/custom_collision_panel.h"
 #include "app/editor/dungeon/ui/window/dungeon_map_panel.h"
@@ -101,21 +102,6 @@ const char* GetCollisionName(int value) {
                                            "Moving Floor", "Moving Water"};
   constexpr int kNameCount = sizeof(kNames) / sizeof(kNames[0]);
   return (value >= 0 && value < kNameCount) ? kNames[value] : "Unknown";
-}
-
-// Pot item names for the inspector
-const char* GetPotItemName(uint8_t item) {
-  static const char* kNames[] = {
-      "Nothing",       "Green Rupee",  "Rock",         "Bee",
-      "Heart (4)",     "Bomb (4)",     "Heart",        "Blue Rupee",
-      "Key",           "Arrow (5)",    "Bomb (1)",     "Heart",
-      "Magic (Small)", "Full Magic",   "Cucco",        "Green Soldier",
-      "Bush Stal",     "Blue Soldier", "Landmine",     "Heart",
-      "Fairy",         "Heart",        "Nothing (22)", "Hole",
-      "Warp",          "Staircase",    "Bombable",     "Switch",
-  };
-  constexpr size_t kCount = sizeof(kNames) / sizeof(kNames[0]);
-  return item < kCount ? kNames[item] : "Unknown";
 }
 
 float ClampWorkbenchPaneWidth(float desired_width, float min_width,
@@ -2757,76 +2743,10 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
     }
   }
 
-  // ── Entity Selection (Doors, Sprites, Items) ──
-  if (has_entity && room_id >= 0 && viewer.rooms()) {
-    const auto sel = interaction.GetSelectedEntity();
-    auto& room = (*viewer.rooms())[room_id];
+  if (has_entity) {
     workbench::DrawInspectorSectionHeader(ICON_MD_SELECT_ALL
                                           " Entity Selection");
-
-    switch (sel.type) {
-      case EntityType::Door: {
-        const auto& doors = room.GetDoors();
-        if (sel.index < doors.size()) {
-          const auto& door = doors[sel.index];
-          std::string type_name(zelda3::GetDoorTypeName(door.type));
-          std::string dir_name(zelda3::GetDoorDirectionName(door.direction));
-
-          ImGui::TextColored(theme.text_primary, ICON_MD_DOOR_FRONT " %s",
-                             type_name.c_str());
-          ImGui::TextDisabled(tr("Direction: %s  Position: 0x%02X"),
-                              dir_name.c_str(), door.position);
-
-          auto [tile_x, tile_y] = door.GetTileCoords();
-          auto [pixel_x, pixel_y] = door.GetPixelCoords();
-          ImGui::TextDisabled(tr("Tile: (%d, %d)  Pixel: (%d, %d)"), tile_x,
-                              tile_y, pixel_x, pixel_y);
-        }
-        break;
-      }
-      case EntityType::Sprite: {
-        const auto& sprites = room.GetSprites();
-        if (sel.index < sprites.size()) {
-          const auto& sprite = sprites[sel.index];
-          std::string sprite_name = zelda3::GetSpriteLabel(sprite.id());
-
-          ImGui::TextColored(theme.text_primary, ICON_MD_PERSON " %s",
-                             sprite_name.c_str());
-          ImGui::TextDisabled(tr("ID: 0x%02X  Subtype: %d  Layer: %d"),
-                              sprite.id(), sprite.subtype(), sprite.layer());
-          ImGui::TextDisabled(tr("Pos: (%d, %d)  Pixel: (%d, %d)"), sprite.x(),
-                              sprite.y(), sprite.x() * 16, sprite.y() * 16);
-
-          // Overlord check
-          if (sprite.subtype() == 0x07 && sprite.id() >= 0x01 &&
-              sprite.id() <= 0x1A) {
-            std::string overlord_name = zelda3::GetOverlordLabel(sprite.id());
-            ImGui::TextColored(theme.text_warning_yellow,
-                               ICON_MD_STAR " Overlord: %s",
-                               overlord_name.c_str());
-          }
-        }
-        break;
-      }
-      case EntityType::Item: {
-        const auto& items = room.GetPotItems();
-        if (sel.index < items.size()) {
-          const auto& pot_item = items[sel.index];
-          const char* item_name = GetPotItemName(pot_item.item);
-
-          ImGui::TextColored(theme.text_primary, ICON_MD_INVENTORY_2 " %s",
-                             item_name);
-          ImGui::TextDisabled(tr("Item ID: 0x%02X  Raw Pos: 0x%04X"),
-                              pot_item.item, pot_item.position);
-          ImGui::TextDisabled(tr("Pixel: (%d, %d)  Tile: (%d, %d)"),
-                              pot_item.GetPixelX(), pot_item.GetPixelY(),
-                              pot_item.GetTileX(), pot_item.GetTileY());
-        }
-        break;
-      }
-      default:
-        break;
-    }
+    DrawDungeonEntityInspector(viewer);
   }
 }
 

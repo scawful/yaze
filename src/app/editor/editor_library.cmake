@@ -29,6 +29,7 @@ set(
   app/editor/dungeon/dungeon_room_selector.cc
   app/editor/dungeon/dungeon_toolset.cc
   app/editor/dungeon/dungeon_usage_tracker.cc
+  app/editor/dungeon/inspectors/dungeon_entity_inspector.cc
   app/editor/dungeon/inspectors/door_editor_content.cc
   app/editor/dungeon/inspectors/object_editor_content.cc
   app/editor/dungeon/interaction/door_interaction_handler.cc
