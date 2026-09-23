@@ -2,14 +2,117 @@
 
 ## Context
 
-The next 0.8.0 editing slice connects the object browser, pending preview, and
-selected-object inspector. The user requested substantial implementation work
+The 0.8.0 editing work connects the object browser, pending preview, and
+selected-object inspector, then completes the remaining authoring domains.
+The user requested substantial implementation work
 from Codex and delegated extended validation to Claude. Avoid asking the user
 to repeat a sequence of manual tests before continuing development.
 
-## Current room authoring candidate (2026-09-22)
+## Current compound chest candidate (2026-09-23)
 
-The integration branch now extends the placement/entity work with room metadata
+Candidate: `478206247` on
+`codex/editor-parity-dungeon-authoring`, following `aeb0b1200`. Worktree:
+`/Users/scawful/src/hobby/yaze-worktrees/pr256-review-fixes`. Universe task:
+`task_20260923T034804Z_2446`. Verification: **569 tests across 37 suites passed, with zero failures and zero skips**.
+App and unit builds passed. Scoped Clang analyzer checks passed for the two new mutation
+modules. Preserve the earlier evidence below as history for its exact source.
+
+- Add small chest / Add big chest starts the canvas placement tool using the
+  object's canonical encoded size. A placed `F99`/`FB1` object receives a
+  matching contents record, initially receipt ID `34` (1 Rupee). Preview-only
+  actions do not mutate the room.
+- Delete and small/big conversion change the object and contents together.
+  Each operation uses one existing object undo action, now extended to include
+  chest contents. Unknown reward bytes survive edits and undo.
+- Ordinary object duplicate/copy/paste preserves reward bytes. Reordering
+  objects and changing room-list layers remaps records without exchanging their
+  rewards. Open/minigame chest graphics are not ordinary stateful chests.
+- The shared inspector follows a changed canvas chest selection and can select
+  its corresponding object. A manually chosen record remains selected until
+  the canvas selection changes. Existing mapping mismatches retain reward-only
+  editing and reject structural operations with an explanation.
+- Structural edits validate six shared chest/big-key-lock (`F98`) event slots,
+  with chests before locks in encoded room-list order. The existing global
+  168-record planner includes unopened physical records and other rooms' dirty
+  contents, and preflight applies manifest policy to its exact write ranges.
+- Object loading no longer consumes persistent contents records and preserves
+  unsaved contents during object-graphics reload. Undo affects the original
+  room without changing another active room's selection.
+
+Object-stream allocator capacity is still validated by Save. A successful
+placement is not a guarantee that stream growth fits or that allocator-owned
+space is available. Full vanilla/Oracle GUI-to-disk save/reopen, game behavior,
+manual interaction acceptance, remote CI, and packaged acceptance remain
+unqualified for this exact candidate. Do not install over the user's app or
+interrupt an active ROM session as part of automated verification.
+
+### Architecture and next implementation
+
+Read this path in order to understand the transaction without tracing every
+ImGui callback:
+
+1. [`chest_edit.h` / `.cc`](../../../src/zelda3/dungeon/chest_edit.h) defines the
+   pure planner. `ChestIndexForObject` maps objects through encoded list order;
+   `PlanChestObjectEdit` combines candidate objects, source indices, and optional
+   clipboard rewards into a candidate contents vector. It writes no ROM bytes.
+2. [`TileObjectHandler::CommitCandidate`](../../../src/app/editor/dungeon/interaction/tile_object_handler.cc)
+   stages the full object edit and asks the planner for contents before emitting
+   mutation hooks. Failure leaves both domains and history unchanged.
+3. [`DungeonEditorV2::PreflightObjectMutation`](../../../src/app/editor/dungeon/dungeon_editor_v2_chest_edits.cc)
+   applies global table capacity and manifest checks. `EditChest` and
+   `DeleteChest` use the same boundary; reward-only edits remain available when
+   an existing object/contents mapping cannot be established.
+4. [`DungeonObjectsAction`](../../../src/app/editor/dungeon/dungeon_undo_actions.h)
+   stores object and contents snapshots together. The existing
+   [viewer undo hooks](../../../src/app/editor/dungeon/dungeon_editor_v2_undo.cc)
+   capture before publication and restore both domains on undo/redo. This
+   extends the current undo manager; it does not add a second framework.
+5. [`DrawDungeonChestEditor`](../../../src/app/editor/dungeon/inspectors/dungeon_chest_editor.cc)
+   is the shared UI for both presentations. Keep preview state owned by the
+   interaction handler, and use the model's mapping rather than raw vector
+   position to identify a chest.
+
+Next bounded package: general atomic mixed-selection editing across tile
+objects, doors, sprites, and pot items. Preflight all participating domains
+before publishing any change and record one undo action for the whole operation.
+Retain paired object/contents snapshots when the selection includes chests.
+DA-1/DA-2 stay partial; use this common boundary for DA-3 connections and DA-4
+room clone/import. Do not restart completed chest work or create another
+inspector/transaction system. DA-5 qualification remains independent.
+
+### Chest authoring verification commands
+
+Run from the integration worktree. Discover the exact selected suites before
+execution; optional ROM parity fixtures remain a separate qualification lane.
+
+```sh
+cmake --build build/presets/mac-ai --target yaze_test_unit yaze --parallel 4 > /tmp/yaze-chest-authoring-final-build.log 2>&1
+yaze_chest_authoring_filter='*DungeonRoomMetadata*:*DungeonRoomEditsLifecycle*:*DungeonChestEditor*'
+yaze_chest_authoring_filter+=':*DungeonEntityUndoLifecycleTest*:*DungeonUndoActionsTest*:*DungeonWorkbench*'
+yaze_chest_authoring_filter+=':*InteractionCoordinatorTest*:*SpriteInteractionHandlerTest*:*DoorInteractionHandlerTest*:*ItemInteractionHandlerTest*'
+yaze_chest_authoring_filter+=':*DungeonSelectionSnapshot*:TileObjectHandlerTest.*:DungeonCanvasViewerNavigationTest.*'
+yaze_chest_authoring_filter+=':DungeonEditorV2RomSafetyTest.*:DungeonSaveTest.*Chest*:*RoomHeader*'
+yaze_chest_authoring_filter+=':ChestEditTest.*:DungeonSaveTest.LoadObjects*'
+yaze_chest_authoring_filter+='-*RoomObjectRomParityTest*'
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_list_tests --gtest_filter="$yaze_chest_authoring_filter" > /tmp/yaze-chest-authoring-final-selected-tests.log 2>&1
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter="$yaze_chest_authoring_filter" --gtest_output=xml:/tmp/yaze-chest-authoring-final-tests.xml > /tmp/yaze-chest-authoring-final-tests.log 2>&1
+```
+
+Scoped static analysis uses the PCH-free database, with the scope limited to the
+pure planner and editor chest transaction translation units:
+
+```sh
+cmake --preset mac-ai -B build/analysis/mac-ai -G Ninja -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON -DYAZE_ENABLE_CLANG_TIDY=OFF
+clang-tidy -p build/analysis/mac-ai --checks='-*,clang-analyzer-*' --warnings-as-errors='clang-analyzer-*' --header-filter='(chest_edit|dungeon_editor_v2_chest_edits)\.(cc|h)$' src/zelda3/dungeon/chest_edit.cc src/app/editor/dungeon/dungeon_editor_v2_chest_edits.cc > /tmp/yaze-chest-authoring-final-analyzer.log 2>&1
+```
+
+Report the actual build/test/analyzer outcomes from these artifacts before
+promoting the evidence. The earlier full-checker/PCH limitations below still
+apply; a scoped analyzer result is not a full-repository tidy pass.
+
+## Prior room authoring candidate (2026-09-22)
+
+The prior integration increment extended the placement/entity work with room metadata
 and existing chest-content editing at `aeb0b1200`, following `a893d0ef5`.
 App/unit builds and 475 tests across 36 suites passed, with zero failures/skips.
 Scoped Clang analyzer checks passed for the two new mutation modules. Details
@@ -29,10 +132,11 @@ and qualification boundaries are recorded in the
   create/delete chest objects or synchronize object and record types.
 - Connected-view Clear stale validates the complete metadata batch before
   changing any room and contributes one undo entry for the whole operation.
-- The next implementation package is compound chest creation/deletion with
+- At this checkpoint, the next implementation package was compound chest creation/deletion with
   synchronized object/contents order and capacity preflight, followed by the
   remaining mixed-domain operations. Do not infer complete DA-1 or DA-2 from
-  existing-record editing or the single-domain metadata batch.
+  existing-record editing or the single-domain metadata batch. The current
+  compound chest increment above supersedes that assignment.
 
 Review the built candidate tomorrow when convenient. Do not install it over
 `/Applications/yaze.app` or interrupt an active ROM session as part of automated

@@ -3,9 +3,10 @@
 **Status:** IN_PROGRESS  
 **Owner:** codex-imgui-frontend-engineer (integration); domain owners below  
 **Created:** 2026-09-22  
-**Last Reviewed:** 2026-09-22  
+**Last Reviewed:** 2026-09-23
 **Next Review:** 2026-10-06  
-**Universe Task:** `task_20260923T025637Z_4379` (current room/chest increment);
+**Universe Task:** `task_20260923T034804Z_2446` (current compound chest increment);
+prior room metadata task `task_20260923T025637Z_4379`;
 initial plan task `task_20260923T000806Z_4560`
 
 ## Summary
@@ -104,8 +105,8 @@ Do not publish estimated parity percentages.
 
 | ID | Deliverable | Current implementation state | Depends on | Primary owner |
 |---|---|---|---|---|
-| DA-1 | Complete dungeon edit undo across domains | Partial; entity slice at `a730d6557`; room metadata and existing chest-content Candidate below | Existing mutation hooks and undo actions | imgui-frontend-engineer |
-| DA-2 | One editable inspector for every room element | Partial; tile/entity controls, named room properties and shared existing chest-content Candidate | DA-1 for added edits | imgui-frontend-engineer |
+| DA-1 | Complete dungeon edit undo across domains | Partial; entity and room metadata slices; compound object/chest Candidate below | Existing mutation hooks and undo actions | imgui-frontend-engineer |
+| DA-2 | One editable inspector for every room element | Partial; tile/entity controls, named room properties, shared chest placement/contents/deletion Candidate | DA-1 for added edits | imgui-frontend-engineer |
 | DA-3 | Visual room connection authoring | Partial; navigation/diagnostics exist | DA-1 header/compound coverage | zelda3-hacking-expert |
 | DA-4 | Complete room clone/import and reusable selections | Partial; model helpers and limited export exist | DA-1 compound coverage | zelda3-hacking-expert |
 | DA-5 | Dungeon render, persistence, and packaged-candidate qualification | Partial; independent active lane | Exact candidate from DA-1–DA-4 | test-infrastructure-expert |
@@ -119,8 +120,8 @@ Do not publish estimated parity percentages.
 | CO-1 | Reference-feature and ROM-format compatibility ledger | Partial inventory | Evidence per affected package | zelda3-hacking-expert |
 
 Work-package status must name the completed sub-slice. Entity, room-metadata,
-and existing chest-content undo do not close DA-1 while chest creation/deletion,
-atomic mixed-domain operations, and their qualification remain.
+and paired object/chest undo do not close DA-1 while general atomic mixed-domain
+operations and their qualification remain.
 
 ### DA-1 and DA-2: edit any room element in place
 
@@ -138,10 +139,10 @@ atomic mixed-domain operations, and their qualification remain.
 3. Preserve exact room identity, collection metadata, encoded values, selection,
    dirty state, and render invalidation on restore. Handle room switching,
    invalid/no-op edits, and absent selection without creating history entries.
-4. Add header/tag/destination and chest edits to the transaction model in a
-   follow-on sub-slice. Add compound mixed-selection operations so a single user
-   action can be undone atomically across domains. Do not advertise this until
-   implemented and covered.
+4. Preserve the implemented header/tag/destination and paired object/chest
+   transaction paths. Add general mixed-selection operations so a single user
+   action can be undone atomically across all participating domains. Do not
+   advertise general atomicity until implemented and covered.
 5. Keep the placement handler authoritative for ghost state. Preview-only
    changes must not dirty the room. Packed area wheel sizing changes axes in
    lockstep; Shift-wheel changes width. Fixed/custom variant semantics differ.
@@ -306,21 +307,84 @@ record the exact build, test discovery/filter, and analyzer commands. Artifacts:
 `/tmp/yaze-room-authoring-final-analyzer.log`. No full application save/reopen,
 runtime, remote CI, installation, or Release acceptance is added by these results.
 
-**Still open:** creating or deleting a chest must update its tile object and
-contents record together, with capacity/ordering validation and one undo action.
-The current controls only edit existing records. General mixed-domain compound
-operations, capacity-aware clipboard completion, sprite sort-mode editing, and
+**Open at this historical increment:** creating or deleting a chest must update
+its tile object and contents record together, with capacity/ordering validation
+and one undo action. Those controls only edited existing records. General
+mixed-domain compound operations, capacity-aware clipboard completion,
+sprite sort-mode editing, and
 remaining room-element controls also keep DA-1 / DA-2 partial. The multiroom
 metadata batch is one data domain; it does not establish general compound
 transactions or complete DA-3 connections / DA-4 clone/import.
 
-**Next implementation:** implement compound chest creation/deletion and shared
-mixed-domain transaction support through the existing undo manager. Preserve
-record order and unrelated data, preflight the entire operation, and restore
-all affected domains together on undo. Use that proven boundary for DA-3
-connection edits and DA-4 room clone/import; do not begin a separate inspector
-or parallel transaction framework. DA-5 qualification remains an independent
-lane against the exact candidate.
+**Follow-on implemented below:** paired object/chest creation and deletion use
+the existing undo manager. General mixed-selection operations remain a separate
+next increment before DA-3 connection edits and DA-4 room clone/import. DA-5
+qualification remains an independent lane against the exact candidate.
+
+### Compound chest authoring increment (2026-09-23)
+
+**Candidate:** `478206247` on
+`codex/editor-parity-dungeon-authoring`, following the room metadata and
+contents-only increment `aeb0b1200`. Universe task:
+`task_20260923T034804Z_2446`.
+
+**Implemented scope:**
+
+- Placing a stateful small chest (`F99`) or big chest (`FB1`) creates its visual
+  object and contents record together. New chests start with receipt ID `34`
+  (1 Rupee). Delete removes both parts; changing small/big type updates both.
+  Each operation contributes one existing object undo action that now captures
+  both object and contents snapshots.
+- Ordinary object duplicate/copy/paste retains the source chest reward,
+  including unknown hack IDs. Reorder and layer edits remap records using
+  encoded room-list order, preserving the reward associated with each chest.
+  Open chest graphics and minigame chests do not create ordinary contents.
+- The shared inspector provides Add small chest, Add big chest, Select in
+  canvas, Delete chest, named rewards, and a paired Big chest toggle. Add uses
+  the existing preview tool; selection follows the chest chosen in the canvas.
+  Existing record/object mismatches retain reward-only editing while structural
+  chest edits fail with an explanation rather than guessing a correspondence.
+- Changed chest mappings validate the shared six-slot limit for stateful
+  chests plus big-key locks (`F98`), with chests preceding locks in room-list
+  order. Global preflight uses the existing 168-record save planner, including
+  unopened rooms and pending edits in other loaded rooms, then applies the
+  project's write policy to the exact planned chest-table regions.
+- Object loading annotates chest objects without consuming the persistent
+  contents vector, and it preserves unsaved reward changes when reloading
+  object graphics. Undo restores the original room and keeps another active
+  room's selection intact.
+
+**Evidence:** Source at `478206247`. This increment adds 94 cases: 31 pure
+planner cases, three loader regressions, 23 handler cases, nine headless ImGui
+cases, and 28 lifecycle cases across the two viewer modes. Coverage includes
+protected-region rejection, pending-drag boundaries, and in-memory ROM
+save/reload/undo/resave with unrelated-byte fences. Focused verification:
+**569 tests across 37 suites passed, with zero failures and zero skips**.
+App and unit builds passed on the exact source. Scoped Clang analyzer checks
+passed for the pure planner and editor chest transaction modules. The declared
+filter was discovered and rerun after the final canonical-preview correction.
+Exact commands are in the
+[chest authoring handoff](../agents/dungeon-workbench-placement-handoff-2026-09-22.md#chest-authoring-verification-commands).
+Artifacts: `/tmp/yaze-chest-authoring-final-build.log`,
+`/tmp/yaze-chest-authoring-final-selected-tests.log`,
+`/tmp/yaze-chest-authoring-final-tests.log`,
+`/tmp/yaze-chest-authoring-final-tests.xml`, and
+`/tmp/yaze-chest-authoring-final-analyzer.log`.
+
+**Limits:** object-stream allocation and available serialized bytes are still
+validated by Save. Successful placement does not guarantee that stream growth
+can be saved without allocator-owned space. This increment does not establish
+general atomic mixed-selection editing. Vanilla/Oracle full-application disk
+save/reopen, game behavior, manual interaction acceptance, remote CI, and
+packaged release qualification remain unqualified for this exact candidate.
+
+**Next implementation:** add one atomic transaction for an ordinary mixed
+selection of tile objects, doors, sprites, and pot items through the existing
+undo manager. Preflight every participating domain, publish none if any domain
+fails, and restore the entire selection through one undo/redo entry. Preserve
+the chest planner and paired object/contents snapshot when tile objects are
+included. Use that shared boundary for DA-3 connection edits and DA-4 complete
+room clone/import; do not introduce another transaction framework or inspector.
 
 ### Supporting cleanup and human UI ownership
 
@@ -346,7 +410,7 @@ Suggested division for the next UI slice:
 | Maintainer | Implement a searchable named sprite-type chooser in `inspectors/dungeon_entity_inspector.cc`, using the existing handler | Finding a type, keyboard selection/cancel, narrow layout, and one undoable committed edit work as designed |
 | Agent | Review the chooser's mutation and selection contracts; prepare only the extraction needed to make the change local | Existing handler/undo coverage, build, targeted analysis, and any new regression for changed behavior |
 | Maintainer | Choose the next layout improvement, such as a responsive `dungeon_status_bar.cc` | Readable status at representative canvas widths and scale |
-| Agent | Continue DA-1 metadata/chest/compound coverage while preserving the UI feature's ownership | Editor lifecycle and persistence evidence for the declared domains |
+| Agent | Continue DA-1 general mixed-selection coverage while preserving existing metadata/chest transactions and the UI feature's ownership | Editor lifecycle and persistence evidence for the declared domains |
 
 These are proposed human tasks, not an instruction for agents to implement them
 preemptively. For future cleanup, name one responsibility and its callers, move

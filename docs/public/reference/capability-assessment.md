@@ -1,6 +1,6 @@
 # Yaze capability assessment
 
-Last reviewed: 2026-09-22 for the v0.8.0 development line.
+Last reviewed: 2026-09-23 for the v0.8.0 development line.
 
 The target is complete ALttP authoring workflows covering the capabilities of
 Hyrule Magic and ZScream: **create or edit → preview → undo/redo → save → reopen
@@ -27,7 +27,7 @@ Stable/Beta/WIP labels.
   inspector UI cases. Only formatting whitespace changed after that run, checked
   through whitespace-normalized staged content. ROM save/reopen, runtime, CI,
   installation, and release qualification remain pending.
-- Current room/chest candidate: `aeb0b1200` on
+- Prior room/chest-content candidate: `aeb0b1200` on
   `codex/editor-parity-dungeon-authoring`. It adds room metadata undo, named
   property controls, shared existing chest reward/type editing, and an atomic
   multiroom **Clear stale** action. App and unit builds passed; **475 focused
@@ -36,6 +36,17 @@ Stable/Beta/WIP labels.
   Synthetic save/decode/byte-preservation tests do not establish vanilla/Oracle
   application-to-disk or game-runtime qualification. Mainline and the installed
   application remain unchanged.
+- Current compound chest candidate: `478206247` on the same
+  integration branch. Placement, deletion, and small/big conversion keep the
+  object and contents together in one undo action. Ordinary object copy/paste
+  preserves rewards; reorder/layer edits preserve chest correspondence.
+  The inspector starts canvas placement and follows selected chests. Source
+  implementation is present; focused verification: **569 tests across 37 suites passed, with zero failures and zero skips**.
+  App and unit builds passed. Scoped Clang analyzer checks passed for the two new mutation modules. The shared six-slot
+  chest/big-key-lock limit and global 168-record table are preflighted, including
+  other dirty and unopened rooms and exact manifest-protected chest regions.
+  Object-stream allocation still checks at Save; full application disk/game,
+  manual UX, CI, and packaged acceptance remain unqualified.
 - Reference-source snapshots used in the audit: Hyrule Magic `7d17cc2` and
   ZScream `0f6812d`. These are source comparison pins, not a statement that the
   two checkouts represent every published feature.
@@ -62,8 +73,9 @@ separately as **Source**, **Focused**, **ROM**, **Runtime**, or **Release**.
 | --- | --- | --- | --- |
 | Place and resize dungeon tile objects | **Candidate** for the new Workbench workflow | Preview controls, physical dimensions, repeat/once placement, inserted-object selection, Place another, and uniform area resizing in `7ba7d76ce`; Source + Focused evidence | Qualify on disposable vanilla and Oracle base ROMs; verify undo, save/reopen, and game behavior before release promotion. |
 | Edit doors, sprites, and pot items in place | **Candidate** | `a730d6557`: shared Workbench/standalone property controls, domain-aware undo/redo, render refresh, reserved-sprite validation, and paste-selection restoration; Source + Focused evidence | ROM save/reopen, runtime, CI, and packaged acceptance remain. Inspector edits are blocked when connected-view and interaction room contexts differ. |
-| Edit room properties and existing chest contents | **Candidate**, Source + Focused at `aeb0b1200` | Typed header/tag/layout/floor/destination edits with undo; named room choices; shared chest record/reward/type selector; atomic multiroom metadata batch. | Qualify application persistence/runtime on the exact candidate. Chest creation/deletion and object/record synchronization are not covered. |
-| Complete editing of every dungeon element | **Partial** | Entity editing at `a730d6557` and the room/chest-content candidate extend the original `d609e6254` / `7ba7d76ce` audit. | Compound chest creation/deletion, general atomic mixed-domain operations, clipboard capacity handling, and remaining room workflows keep DA-1 and DA-2 open. |
+| Edit room properties | **Candidate**, Source + Focused at `aeb0b1200` | Typed header/tag/layout/floor/destination edits with undo; named room choices; atomic multiroom metadata batch. | Qualify application persistence/runtime on the exact candidate. |
+| Create, edit, copy, and delete dungeon chests | **Candidate**, Source + Focused at `478206247` | Paired object/contents operations and undo; named rewards; canvas placement/selection; ordinary object clipboard retains rewards; ordering, shared event slots, global contents capacity, and manifest preflight. | Object-stream allocation remains Save-time. Qualify vanilla/Oracle application disk persistence, game behavior, manual UX, and release acceptance. |
+| Complete editing of every dungeon element | **Partial** | Entity editing at `a730d6557`, room metadata at `aeb0b1200`, and the compound chest candidate extend the original `d609e6254` / `7ba7d76ce` audit. | General atomic mixed-domain operations, remaining clipboard capacity work, and remaining room workflows keep DA-1 and DA-2 open. |
 | Build and reuse complete rooms | **Partial** | Room-template helpers, export, destination fields, and connected-room browsing | Complete template schema and room cloning/import, including doors, chests, and headers; reusable selections; destination previews with engine adjacency constraints. |
 | Edit overworld maps and entities | **Partial** | Tile editing, paste undo, persistent scratchpad, entrances, exits, items, properties, graphics groups, and state-specific sprites | Serialize sprites for every supported game state; unify entity undo and verify each saved domain. Existing map save does not persist sprite edits. |
 | Edit graphics and graphics groups | **Blocked** for coordinated pixel-sheet persistence; other workflows **Partial** | Pixel editing, undo, graphics-group tools, import surfaces, and polyhedral editing | Safe compression and allocation, write boundaries, import/export roundtrip, and coordinated save. Preserve the current graphics save block until these are proved. |
@@ -78,7 +90,9 @@ separately as **Source**, **Focused**, **ROM**, **Runtime**, or **Release**.
 
 1. **Complete dungeon authoring for 0.8.0.** Establish shared undo transactions,
    editable entity inspectors, complete room operations, connection editing,
-   and bounded save/reopen/runtime acceptance.
+   and bounded save/reopen/runtime acceptance. The next bounded implementation
+   is atomic mixed-selection editing, using the existing chest transaction
+   boundary before DA-3 connection authoring and DA-4 clone/import.
 2. **Complete overworld entity persistence.** Add the missing sprite writer and
    state handling before describing all entity editing as durable.
 3. **Complete graphics and screens by data domain.** Keep unsafe writers blocked
