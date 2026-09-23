@@ -51,7 +51,7 @@ Version source of truth:
 - `VERSION`
 
 Required updates when version changes:
-- `CHANGELOG.md` must include a section for the new version.
+- `docs/CHANGELOG.md` must include a section for the new version.
 - `docs/public/reference/changelog.md` should be updated in the same PR/commit.
 
 Validation command:

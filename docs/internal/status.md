@@ -1,18 +1,20 @@
 # yaze Status
 
+Companion roadmap: [`roadmap.md`](roadmap.md).
+
 ## Current Development
 - **Version**: v0.8.0 development (latest tagged release: v0.7.2, July 17,
   2026)
 - **Focus**: Dungeon Editor completion, persistence stability, and Oracle
   daily-driver readiness.
 - **Milestone plan**: `0.8.0` dungeon completion — see
-  `docs/internal/plans/release-ladder-0x-2026.md` and
-  `docs/internal/plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md`.
+  `plans/release-ladder-0x-2026.md` and
+  `plans/dungeon-0.8.0-issue-test-backlog-2026-06-28.md`.
 - **Beta-feedback backlog**:
-  `docs/internal/plans/yaze-beta-feedback-backlog-2026-07-01.md`.
+  `plans/yaze-beta-feedback-backlog-2026-07-01.md`.
 
 ## 0.7.0 Completion Tracking
-- See `docs/internal/plans/0.7.0-feature-completion.md` for full task breakdown
+- See `plans/0.7.0-feature-completion.md` for full task breakdown
 - P0 (must-ship): ALL COMPLETE
   - Tile16 palette/render pipeline (DONE)
   - Sprite undo/redo (DONE — 9 tests)
@@ -77,7 +79,7 @@
 - Release workflow packages DMG/NSIS/DEB+TGZ artifacts.
 
 ## Tracking
-- Coordination board snapshot: `docs/internal/agents/coordination-board.generated.md`
-- Canonical roadmap: `docs/internal/roadmap.md`
-- Current release plan: `docs/internal/plans/release-ladder-0x-2026.md`
-- 0.7.0 completion plan: `docs/internal/plans/0.7.0-feature-completion.md`
+- Coordination board snapshot: `agents/coordination-board.generated.md`
+- Canonical roadmap: `roadmap.md`
+- Current release plan: `plans/release-ladder-0x-2026.md`
+- 0.7.0 completion plan: `plans/0.7.0-feature-completion.md`

@@ -34,7 +34,7 @@ Built in C++23 with ImGui, includes a built-in SNES emulator, the Asar 65816 ass
 ## Project Status
 
 v0.8.0 is the current development line; v0.7.2 is the latest tagged release.
-See [`CHANGELOG.md`](CHANGELOG.md) for details.
+See [`docs/CHANGELOG.md`](docs/CHANGELOG.md) for details.
 
 **v0.8.0 focus:** Dungeon Editor completion, including remaining object draw
 parity, stream semantics, persistence stability, and Oracle daily-driver

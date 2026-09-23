@@ -3,6 +3,7 @@
 **Last Updated: July 17, 2026**
 
 This roadmap tracks upcoming releases and major ongoing initiatives.
+Companion status snapshot: [`status.md`](status.md).
 
 ---
 

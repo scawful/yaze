@@ -66,4 +66,7 @@ When refactoring for hygiene, default to this slice structure:
 - No gamified/leaderboard or duplicative status pages in `agents/`—keep status in universe coordination and the canonical spec.
 - Prefer updating `docs/internal/README.md` or the nearest index with short summaries instead of creating new directories.
 - Cap new doc creation per initiative to one spec + one handoff; everything else belongs in comments/PRs or universe task notes.
-- Filenames: avoid ALL-CAPS except established anchors (README, AGENTS, GEMINI, CLAUDE, CONTRIBUTING, etc.); use kebab-case for new docs.
+- Filenames: avoid ALL-CAPS except established anchors (README, AGENTS, GEMINI, CONTRIBUTING, etc.); use kebab-case for new docs.
+- Root stays agent-instruction-only (`AGENTS.md`, `GEMINI.md`, `README.md`). Status,
+  roadmap, and changelog live under `docs/` (`docs/internal/status.md`,
+  `docs/internal/roadmap.md`, `docs/CHANGELOG.md`).

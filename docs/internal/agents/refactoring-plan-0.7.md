@@ -172,7 +172,7 @@ These patterns are well-designed and should be preserved:
 ## Execution Rules
 
 1. Each phase has a clean build + test gate before the next phase starts.
-2. Breaking changes are OK but must be documented in CHANGELOG.md.
+2. Breaking changes are OK but must be documented in docs/CHANGELOG.md.
 3. Each sub-task gets a universe coordination entry (no manual board writes).
 4. Run `scripts/dev/validate-next-pass.sh` before marking any task complete.
 5. Oracle smoke check must pass at every phase gate.

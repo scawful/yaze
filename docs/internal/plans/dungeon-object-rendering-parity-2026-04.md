@@ -178,7 +178,7 @@ Run Phase F early in parallel with A; it reduces future mistakes.
 
 ## Verification commands (for implementers)
 
-Per `AGENTS.md` / `CLAUDE.md`:
+Per `AGENTS.md`:
 
 ```bash
 cmake --preset mac-ai-fast && cmake --build --preset mac-ai-fast
