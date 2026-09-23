@@ -8,23 +8,24 @@
 #include "absl/status/status.h"
 #include "app/editor/editor.h"
 #include "app/editor/graphics/gfx_group_editor.h"
-#include "app/editor/overworld/canvas_navigation_manager.h"
+#include "app/editor/overworld/canvas/canvas_navigation_manager.h"
+#include "app/editor/overworld/canvas/overworld_canvas_renderer.h"
 #include "app/editor/overworld/core/interaction_coordinator.h"
-#include "app/editor/overworld/debug_window_card.h"
 #include "app/editor/overworld/entity/entity_editing_target.h"
+#include "app/editor/overworld/entity/entity_insertion_request.h"
 #include "app/editor/overworld/entity/entity_mutation_service.h"
 #include "app/editor/overworld/entity/entity_workbench.h"
-#include "app/editor/overworld/map_properties.h"
-#include "app/editor/overworld/map_refresh_coordinator.h"
-#include "app/editor/overworld/map_texture_coordinator.h"
-#include "app/editor/overworld/overworld_canvas_renderer.h"
-#include "app/editor/overworld/overworld_entity_renderer.h"
-#include "app/editor/overworld/overworld_sidebar.h"
-#include "app/editor/overworld/overworld_toolbar.h"
+#include "app/editor/overworld/entity/overworld_entity_renderer.h"
+#include "app/editor/overworld/maps/map_properties.h"
+#include "app/editor/overworld/maps/map_refresh_coordinator.h"
+#include "app/editor/overworld/maps/map_texture_coordinator.h"
+#include "app/editor/overworld/painting/tile_painting_manager.h"
 #include "app/editor/overworld/tile16_editor.h"
-#include "app/editor/overworld/tile_painting_manager.h"
-#include "app/editor/overworld/ui_constants.h"
-#include "app/editor/overworld/usage_statistics_card.h"
+#include "app/editor/overworld/ui/debug/debug_window_card.h"
+#include "app/editor/overworld/ui/debug/usage_statistics_card.h"
+#include "app/editor/overworld/ui/navigation/overworld_sidebar.h"
+#include "app/editor/overworld/ui/navigation/overworld_toolbar.h"
+#include "app/editor/overworld/ui/ui_constants.h"
 #include "app/editor/palette/palette_editor.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
@@ -270,8 +271,11 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   zelda3::OverworldItem& edit_item() { return edit_item_; }
   zelda3::Sprite& edit_sprite() { return edit_sprite_; }
 
-  std::string& pending_insert_type() { return pending_insert_type_; }
-  ImVec2& pending_insert_pos() { return pending_insert_pos_; }
+  std::optional<OverworldEntityInsertionRequest> TakePendingEntityInsertion() {
+    auto request = std::move(pending_entity_insertion_);
+    pending_entity_insertion_.reset();
+    return request;
+  }
   std::string& insert_error() { return insert_error_; }
 
   gui::Canvas& ow_map_canvas() { return ow_map_canvas_; }
@@ -286,19 +290,13 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
 
   /// @brief Handle entity insertion from context menu
   /// @param entity_type Type: "entrance", "hole", "exit", "item", "sprite"
-  void HandleEntityInsertion(const std::string& entity_type);
-
-  /// @brief Process any pending entity insertion request
-  /// Called from Update() - needed because ImGui::OpenPopup() doesn't work
-  /// correctly when called from within another popup's callback.
-  void ProcessPendingEntityInsertion();
+  void HandleEntityInsertion(const std::string& entity_type,
+                             const OverworldContextTarget& target);
 
   /// @brief Handle tile16 editing from context menu (MOUSE mode)
-  /// Gets the tile16 under the cursor and opens the Tile16Editor focused on it.
-  void HandleTile16Edit();
-
-  absl::Status OnTile16ChangesCommitted(
-      const std::vector<Tile16Commit>& commits);
+  /// Opens the Tile16 captured at menu-open through the pending-edit guard.
+  void HandleTile16Edit(const OverworldContextTarget& target);
+  bool SampleContextTile16(const OverworldContextTarget& target);
 
   /// @brief Select an overworld item using value identity matching.
   bool SelectItemByIdentity(const zelda3::OverworldItem& item_identity);
@@ -748,8 +746,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   zelda3::Sprite edit_sprite_;
 
   // Deferred entity insertion (needed for popup flow from context menu)
-  std::string pending_insert_type_;
-  ImVec2 pending_insert_pos_ = ImVec2(0.0f, 0.0f);
+  std::optional<OverworldEntityInsertionRequest> pending_entity_insertion_;
   std::string insert_error_;
 
   // ===========================================================================
@@ -783,8 +780,6 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   // ===========================================================================
 
   std::optional<OverworldUndoPoint> current_paint_operation_;
-  std::chrono::steady_clock::time_point last_paint_time_;
-  static constexpr auto kPaintBatchTimeout = std::chrono::milliseconds(500);
 
   // ===========================================================================
   // Event Listeners

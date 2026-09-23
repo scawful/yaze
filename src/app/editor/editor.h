@@ -10,7 +10,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/core/undo_manager.h"
-#include "app/editor/overworld/overworld_property_edit.h"
+#include "app/editor/overworld/maps/overworld_property_edit.h"
 #include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/system/shortcut_manager.h"
 

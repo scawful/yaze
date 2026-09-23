@@ -96,9 +96,15 @@ class Tile16Editor : public gfx::GfxContext {
     return session_.PreviewPaletteChange(palette_id);
   }
 
+  void BindDocument(std::vector<gfx::Tile16>* definitions, UndoManager* history,
+                    std::function<void()> before_edit = {}) {
+    session_.BindDocument(definitions, history, std::move(before_edit));
+  }
+  absl::Status ReplaceCurrentTile(const gfx::Tile16& data) {
+    return session_.ReplaceCurrentTile(data);
+  }
   absl::Status Undo() { return session_.Undo(); }
   absl::Status Redo() { return session_.Redo(); }
-  void SaveUndoState() { session_.SaveUndoState(); }
 
   void EnableLivePreview(bool enable) { session_.EnableLivePreview(enable); }
   absl::Status UpdateLivePreview() { return session_.UpdateLivePreview(); }
@@ -185,6 +191,10 @@ class Tile16Editor : public gfx::GfxContext {
     session_.set_palette(palette);
   }
 
+  void set_on_document_changed(
+      std::function<void(const std::vector<Tile16Commit>&)> callback) {
+    session_.set_on_document_changed(std::move(callback));
+  }
   void set_on_changes_committed(
       std::function<absl::Status(const std::vector<Tile16Commit>&)> callback) {
     session_.set_on_changes_committed(std::move(callback));
@@ -226,10 +236,7 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status DrawTile16EditorWorkbenchColumn(bool show_debug_info,
                                                bool show_advanced_controls);
 
-  absl::Status DrawCompactActionStatusRow(bool has_pending,
-                                          bool current_tile_pending,
-                                          int pending_count,
-                                          bool* show_debug_info,
+  absl::Status DrawCompactActionStatusRow(bool* show_debug_info,
                                           bool* show_advanced_controls);
   absl::Status DrawBrushAndTilePaletteControls(bool show_debug_info);
   absl::Status DrawTile8SourcePanel(float preferred_height = 0.0f);

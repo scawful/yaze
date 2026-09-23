@@ -8,9 +8,9 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "app/editor/overworld/tile16_editor_action_state.h"
-#include "app/editor/overworld/tile16_editor_shortcuts.h"
-#include "app/editor/overworld/tile8_source_interaction.h"
+#include "app/editor/overworld/tile16/tile16_editor_action_state.h"
+#include "app/editor/overworld/tile16/tile16_editor_shortcuts.h"
+#include "app/editor/overworld/tile16/tile8_source_interaction.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -106,21 +106,6 @@ void Tile16Editor::DrawContextMenu() {
       EndMenu();
     }
 
-    if (BeginMenu(tr("File"))) {
-      if (MenuItem(tr("Write Pending to ROM"), "Ctrl+S")) {
-        status_ = CommitAllChanges();
-      }
-      if (MenuItem(tr("Refresh Blockset Preview"), "Ctrl+Shift+S")) {
-        status_ = CommitChangesToBlockset();
-      }
-      Separator();
-      bool live_preview = session_.live_preview_enabled();
-      if (MenuItem(tr("Live Preview"), nullptr, &live_preview)) {
-        EnableLivePreview(live_preview);
-      }
-      EndMenu();
-    }
-
     if (BeginMenu(tr("Scratch Space"))) {
       for (int i = 0; i < 4; i++) {
         std::string slot_name = "Slot " + std::to_string(i + 1);
@@ -149,6 +134,7 @@ void Tile16Editor::DrawContextMenu() {
   }
 }
 absl::Status Tile16Editor::UpdateTile16Edit() {
+  absl::Status draw_status;
   static bool show_advanced_controls = false;
   static bool show_debug_info = false;
 
@@ -156,13 +142,8 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
       {{ImGuiStyleVar_FramePadding, ImVec2(8, 4)},
        {ImGuiStyleVar_ItemSpacing, ImVec2(8, 4)}});
 
-  const bool has_pending = has_pending_changes();
-  const bool current_tile_pending = is_tile_modified(session_.current_tile16());
-  const int pending_count = pending_changes_count();
-
-  RETURN_IF_ERROR(DrawCompactActionStatusRow(has_pending, current_tile_pending,
-                                             pending_count, &show_debug_info,
-                                             &show_advanced_controls));
+  draw_status.Update(
+      DrawCompactActionStatusRow(&show_debug_info, &show_advanced_controls));
 
   ImGui::Separator();
 
@@ -190,31 +171,31 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
       ImGui::TableNextColumn();
       ImGui::BeginGroup();
       gui::LayoutHelpers::SectionHeader(tr("Tile16 Editor"));
-      RETURN_IF_ERROR(DrawTile16NavigationHeader(total_tiles));
-      RETURN_IF_ERROR(DrawTile16EditorWorkbenchColumn(show_debug_info,
-                                                      show_advanced_controls));
+      draw_status.Update(DrawTile16NavigationHeader(total_tiles));
+      draw_status.Update(DrawTile16EditorWorkbenchColumn(
+          show_debug_info, show_advanced_controls));
       ImGui::EndGroup();
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::BeginGroup();
       gui::LayoutHelpers::SectionHeader(tr("Tile8 Source"));
-      RETURN_IF_ERROR(DrawTile8SourcePanel(320.0f));
+      draw_status.Update(DrawTile8SourcePanel(320.0f));
       ImGui::EndGroup();
     } else {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::BeginGroup();
       gui::LayoutHelpers::SectionHeader(tr("Tile8 Source"));
-      RETURN_IF_ERROR(DrawTile8SourcePanel(0.0f));
+      draw_status.Update(DrawTile8SourcePanel(0.0f));
       ImGui::EndGroup();
 
       ImGui::TableNextColumn();
       ImGui::BeginGroup();
       gui::LayoutHelpers::SectionHeader(tr("Tile16 Editor"));
-      RETURN_IF_ERROR(DrawTile16NavigationHeader(total_tiles));
-      RETURN_IF_ERROR(DrawTile16EditorWorkbenchColumn(show_debug_info,
-                                                      show_advanced_controls));
+      draw_status.Update(DrawTile16NavigationHeader(total_tiles));
+      draw_status.Update(DrawTile16EditorWorkbenchColumn(
+          show_debug_info, show_advanced_controls));
       ImGui::EndGroup();
     }
 
@@ -230,7 +211,7 @@ absl::Status Tile16Editor::UpdateTile16Edit() {
   tile16_edit_canvas_.ShowAdvancedCanvasProperties();
   tile16_edit_canvas_.ShowScalingControls();
 
-  return absl::OkStatus();
+  return draw_status;
 }
 
 absl::Status Tile16Editor::DrawTile16NavigationHeader(int total_tiles) {
@@ -356,6 +337,7 @@ absl::Status Tile16Editor::DrawTile16NavigationHeader(int total_tiles) {
 
 absl::Status Tile16Editor::DrawTile16EditorWorkbenchColumn(
     bool show_debug_info, bool show_advanced_controls) {
+  absl::Status draw_status;
   // Fixed size container to prevent canvas expansion
   if (ImGui::BeginChild(
           "##Tile16FixedCanvas", ImVec2(90, 90), true,
@@ -484,8 +466,8 @@ absl::Status Tile16Editor::DrawTile16EditorWorkbenchColumn(
             mouse_pos.x, mouse_pos.y, tile_x, tile_y,
             EditModeLabel(session_.edit_mode()));
 
-        RETURN_IF_ERROR(HandleTile16CanvasClick(ImVec2(tile_x, tile_y),
-                                                left_clicked, right_clicked));
+        draw_status.Update(HandleTile16CanvasClick(
+            ImVec2(tile_x, tile_y), left_clicked, right_clicked));
       }
     }
 
@@ -598,11 +580,11 @@ absl::Status Tile16Editor::DrawTile16EditorWorkbenchColumn(
 
   Separator();
 
-  RETURN_IF_ERROR(DrawBrushAndTilePaletteControls(show_debug_info));
+  draw_status.Update(DrawBrushAndTilePaletteControls(show_debug_info));
 
   Separator();
 
-  RETURN_IF_ERROR(DrawPrimaryActionControls());
+  draw_status.Update(DrawPrimaryActionControls());
 
   // Advanced controls (collapsible)
   if (show_advanced_controls) {
@@ -624,7 +606,7 @@ absl::Status Tile16Editor::DrawTile16EditorWorkbenchColumn(
     }
 
     if (Button(tr("Refresh Blockset"), ImVec2(-1, 0))) {
-      RETURN_IF_ERROR(RefreshTile16Blockset());
+      draw_status.Update(RefreshTile16Blockset());
     }
 
     // Scratch space in compact form
@@ -699,17 +681,13 @@ absl::Status Tile16Editor::DrawTile16EditorWorkbenchColumn(
     }
   }
 
-  return absl::OkStatus();
+  return draw_status;
 }
 
 absl::Status Tile16Editor::DrawCompactActionStatusRow(
-    bool has_pending, bool current_tile_pending, int pending_count,
     bool* show_debug_info, bool* show_advanced_controls) {
-  const Tile16ActionControlState action_state =
-      ComputeTile16ActionControlState(has_pending, current_tile_pending,
-                                      session_.CanUndo(), session_.CanRedo());
   const float available_width = ImGui::GetContentRegionAvail().x;
-  const int action_count = 7;
+  const int action_count = 4;
   const int columns = ComputeTile16CompactActionColumnCount(available_width);
   const int rows = ComputeTile16ActionRowCount(action_count, columns);
   const float row_height = ImGui::GetTextLineHeightWithSpacing() +
@@ -722,26 +700,12 @@ absl::Status Tile16Editor::DrawCompactActionStatusRow(
           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
     ImGui::Text(tr("Tile16 0x%03X"), session_.current_tile16());
     ImGui::SameLine();
-    if (has_pending) {
-      ImGui::TextDisabled(tr("%s, %d pending"),
-                          current_tile_pending ? "dirty" : "clean",
-                          pending_count);
-    } else {
-      ImGui::TextDisabled(tr("clean"));
-    }
-    ImGui::SameLine();
-    ImGui::TextDisabled("| %s", EditModeLabel(session_.edit_mode()));
-    if (show_debug_info != nullptr && *show_debug_info &&
-        session_.has_rom_write_history()) {
-      const auto seconds_since_write =
-          std::chrono::duration_cast<std::chrono::seconds>(
-              std::chrono::steady_clock::now() - session_.last_rom_write_time())
-              .count();
-      ImGui::SameLine();
-      ImGui::TextDisabled(tr("| Last write: %d tile%s, %lds ago"),
-                          session_.last_rom_write_count(),
-                          session_.last_rom_write_count() == 1 ? "" : "s",
-                          static_cast<long>(seconds_since_write));
+    ImGui::TextDisabled("| %s | Live edits",
+                        EditModeLabel(session_.edit_mode()));
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip(
+          "Edits update every use of this Tile16 in the document.\n"
+          "Use Undo/Redo to revise edits and Save to write the ROM.");
     }
 
     if (ImGui::BeginTable("##Tile16CompactActions", columns,
@@ -756,66 +720,26 @@ absl::Status Tile16Editor::DrawCompactActionStatusRow(
       };
 
       next_action_cell();
-      if (!action_state.can_write_pending) {
-        ImGui::BeginDisabled();
-      }
-      if (gui::SuccessButton("Write Pending",
-                             ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-        action_status = CommitAllChanges();
-      }
-      if (!action_state.can_write_pending) {
-        ImGui::EndDisabled();
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip(tr("Write all %d pending Tile16 edits to ROM"),
-                          pending_count);
-      }
-
-      next_action_cell();
-      if (!action_state.can_discard_current) {
-        ImGui::BeginDisabled();
-      }
-      if (ImGui::Button(tr("Discard Current"),
-                        ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-        DiscardCurrentTileChanges();
-      }
-      if (!action_state.can_discard_current) {
-        ImGui::EndDisabled();
-      }
-
-      next_action_cell();
-      if (!action_state.can_discard_all) {
-        ImGui::BeginDisabled();
-      }
-      if (gui::DangerButton("Discard All",
-                            ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
-        DiscardAllChanges();
-      }
-      if (!action_state.can_discard_all) {
-        ImGui::EndDisabled();
-      }
-
-      next_action_cell();
-      if (!action_state.can_undo) {
+      if (!session_.CanUndo()) {
         ImGui::BeginDisabled();
       }
       if (ImGui::Button(tr("Undo"),
                         ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
         action_status = Undo();
       }
-      if (!action_state.can_undo) {
+      if (!session_.CanUndo()) {
         ImGui::EndDisabled();
       }
 
       next_action_cell();
-      if (!action_state.can_redo) {
+      if (!session_.CanRedo()) {
         ImGui::BeginDisabled();
       }
       if (ImGui::Button(tr("Redo"),
                         ImVec2(ImGui::GetContentRegionAvail().x, 0))) {
         action_status = Redo();
       }
-      if (!action_state.can_redo) {
+      if (!session_.CanRedo()) {
         ImGui::EndDisabled();
       }
 
@@ -845,6 +769,7 @@ absl::Status Tile16Editor::DrawCompactActionStatusRow(
 
 absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
     bool show_debug_info) {
+  absl::Status draw_status;
   // Palette selector - this is the paint brush palette for new placements.
   Text(tr("Brush Palette:"));
   if (show_debug_info) {
@@ -909,7 +834,7 @@ absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
 
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         session_.set_current_palette(static_cast<uint8_t>(i));
-        RETURN_IF_ERROR(ApplyPaletteToAll(session_.current_palette()));
+        draw_status.Update(ApplyPaletteToAll(session_.current_palette()));
       }
 
       // Tooltip with palette info
@@ -991,7 +916,8 @@ absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
 
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
         session_.set_active_quadrant(q);
-        RETURN_IF_ERROR(ApplyPaletteToQuadrant(q, session_.current_palette()));
+        draw_status.Update(
+            ApplyPaletteToQuadrant(q, session_.current_palette()));
       }
 
       if (ImGui::IsItemHovered()) {
@@ -1023,8 +949,8 @@ absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
                         active_info.over_ ? "Y" : "N");
 
     if (Button(tr("Apply Brush to Active Quadrant"), ImVec2(-1, 0))) {
-      RETURN_IF_ERROR(ApplyPaletteToQuadrant(session_.active_quadrant(),
-                                             session_.current_palette()));
+      draw_status.Update(ApplyPaletteToQuadrant(session_.active_quadrant(),
+                                                session_.current_palette()));
     }
     HOVER_HINT(
         "Copy the Brush Palette into the selected quadrant metadata.\n"
@@ -1033,16 +959,17 @@ absl::Status Tile16Editor::DrawBrushAndTilePaletteControls(
 
   // Copy the current brush palette into all stored quadrant palette fields.
   if (Button(tr("Apply Brush to All Quadrants"), ImVec2(-1, 0))) {
-    RETURN_IF_ERROR(ApplyPaletteToAll(session_.current_palette()));
+    draw_status.Update(ApplyPaletteToAll(session_.current_palette()));
   }
   HOVER_HINT(
       "Copy the Brush Palette into Tile Palette metadata for all 4 "
       "quadrants.\n"
       "Tip: right-click any brush palette button above for a one-step apply.");
-  return absl::OkStatus();
+  return draw_status;
 }
 
 absl::Status Tile16Editor::DrawTile8SourcePanel(float preferred_height) {
+  absl::Status draw_status;
   *session_.mutable_show_tile_collision_ids() =
       *tile8_source_canvas_.custom_labels_enabled();
   ImGui::Text(tr("Tile8 Source"));
@@ -1106,7 +1033,7 @@ absl::Status Tile16Editor::DrawTile8SourcePanel(float preferred_height) {
         temporary_usage;
 
     if (left_clicked || right_clicked) {
-      RETURN_IF_ERROR(HandleTile8SourceSelection(
+      draw_status.Update(HandleTile8SourceSelection(
           right_clicked, session_.tile8_source_display_scale()));
     }
 
@@ -1119,7 +1046,7 @@ absl::Status Tile16Editor::DrawTile8SourcePanel(float preferred_height) {
   }
   EndChild();
 
-  return absl::OkStatus();
+  return draw_status;
 }
 
 absl::Status Tile16Editor::HandleTile8SourceSelection(bool right_clicked,
@@ -1404,120 +1331,37 @@ void Tile16Editor::DrawScratchSpace() {
 void Tile16Editor::DrawManualTile8Inputs() {
   if (ImGui::BeginPopupModal("ManualTile8Editor", nullptr,
                              ImGuiWindowFlags_AlwaysAutoResize)) {
-    ImGui::Text(tr("Manual Tile8 Configuration for Tile16 %02X"),
+    ImGui::Text("Tile16 0x%03X — quadrant properties",
                 session_.current_tile16());
-    ImGui::Separator();
-
-    auto* tile_data = GetCurrentTile16Data();
-    if (tile_data) {
-      ImGui::Text(tr("Current Tile16 Staged Data:"));
-
-      auto stage_current_tile = [&]() -> absl::Status {
-        SyncTilesInfoArray(tile_data);
-        RETURN_IF_ERROR(RegenerateTile16BitmapFromROM());
-        RETURN_IF_ERROR(UpdateBlocksetBitmap());
-        if (session_.live_preview_enabled()) {
-          RETURN_IF_ERROR(UpdateOverworldTilemap());
-        }
-        MarkCurrentTileModified();
-        return absl::OkStatus();
-      };
-
-      // Display and edit each quadrant using TileInfo structure
-      const char* quadrant_names[] = {"Top-Left", "Top-Right", "Bottom-Left",
-                                      "Bottom-Right"};
-
-      for (int q = 0; q < 4; q++) {
-        ImGui::Text(tr("%s Quadrant:"), quadrant_names[q]);
-        ImGui::TextDisabled(tr("Tile Palette metadata + Tile8/flip flags"));
-
-        // Get the current TileInfo for this quadrant
-        gfx::TileInfo* tile_info = nullptr;
-        switch (q) {
-          case 0:
-            tile_info = &tile_data->tile0_;
-            break;
-          case 1:
-            tile_info = &tile_data->tile1_;
-            break;
-          case 2:
-            tile_info = &tile_data->tile2_;
-            break;
-          case 3:
-            tile_info = &tile_data->tile3_;
-            break;
-        }
-
-        if (tile_info) {
-          // Editable inputs for TileInfo components
-          ImGui::PushID(q);
-
-          int tile_id_int = static_cast<int>(tile_info->id_);
-          if (ImGui::InputInt(tr("Tile8 ID"), &tile_id_int, 1, 10)) {
-            tile_info->id_ =
-                static_cast<uint16_t>(std::max(0, std::min(tile_id_int, 1023)));
-          }
-
-          int palette_int = static_cast<int>(tile_info->palette_);
-          if (ImGui::SliderInt(tr("Tile Palette"), &palette_int, 0, 7)) {
-            tile_info->palette_ = static_cast<uint8_t>(palette_int);
-          }
-
-          ImGui::Checkbox(tr("X Flip"), &tile_info->horizontal_mirror_);
-          ImGui::SameLine();
-          ImGui::Checkbox(tr("Y Flip"), &tile_info->vertical_mirror_);
-          ImGui::SameLine();
-          ImGui::Checkbox(tr("Priority"), &tile_info->over_);
-
-          if (ImGui::Button(tr("Stage Quadrant Edit"))) {
-            auto stage_result = stage_current_tile();
-            if (!stage_result.ok()) {
-              ImGui::Text(tr("Stage Error: %s"), stage_result.message().data());
-            }
-          }
-
-          ImGui::PopID();
-        }
-
-        if (q < 3)
-          ImGui::Separator();
+    auto edited = session_.current_tile16_data();
+    bool changed = false;
+    const char* names[] = {"Top left", "Top right", "Bottom left",
+                           "Bottom right"};
+    for (int q = 0; q < 4; ++q) {
+      ImGui::PushID(q);
+      ImGui::SeparatorText(names[q]);
+      auto& info = TileInfoForQuadrant(&edited, q);
+      int id = info.id_;
+      if (ImGui::InputInt("Tile8", &id)) {
+        info.id_ = std::clamp(id, 0, 1023);
+        changed = true;
       }
-
-      ImGui::Separator();
-      if (ImGui::Button(tr("Stage All Edits"))) {
-        auto stage_result = stage_current_tile();
-        if (!stage_result.ok()) {
-          ImGui::Text(tr("Stage Error: %s"), stage_result.message().data());
-        }
+      int palette = info.palette_;
+      if (ImGui::SliderInt("Palette", &palette, 0, 7)) {
+        info.palette_ = palette;
+        changed = true;
       }
+      changed |= ImGui::Checkbox("X Flip", &info.horizontal_mirror_);
       ImGui::SameLine();
-      if (ImGui::Button(tr("Write Pending to ROM"))) {
-        auto write_result = CommitAllChanges();
-        if (!write_result.ok()) {
-          ImGui::Text(tr("Write Error: %s"), write_result.message().data());
-        }
-      }
+      changed |= ImGui::Checkbox("Y Flip", &info.vertical_mirror_);
       ImGui::SameLine();
-      if (ImGui::Button(tr("Refresh Display"))) {
-        auto refresh_result = SetCurrentTile(session_.current_tile16());
-        if (!refresh_result.ok()) {
-          ImGui::Text(tr("Refresh Error: %s"), refresh_result.message().data());
-        }
-      }
-
-    } else {
-      ImGui::Text(tr("Tile16 data not accessible"));
-      ImGui::Text(tr("Current tile16: %d"), session_.current_tile16());
-      if (session_.rom()) {
-        ImGui::Text(tr("Valid range: 0-4095 (4096 total tiles)"));
-      }
+      changed |= ImGui::Checkbox("Priority", &info.over_);
+      ImGui::PopID();
     }
-
-    ImGui::Separator();
-    if (ImGui::Button(tr("Close"))) {
+    if (changed)
+      status_ = ReplaceCurrentTile(edited);
+    if (ImGui::Button("Close"))
       ImGui::CloseCurrentPopup();
-    }
-
     ImGui::EndPopup();
   }
 }

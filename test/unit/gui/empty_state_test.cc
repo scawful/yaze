@@ -4,6 +4,7 @@
 
 #include "app/gui/core/icons.h"
 #include "imgui/imgui.h"
+#include "imgui/imgui_internal.h"
 
 namespace yaze {
 namespace gui {
@@ -16,6 +17,7 @@ class EmptyStateTest : public ::testing::Test {
     context_ = ImGui::CreateContext();
     ImGui::SetCurrentContext(context_);
     ImGuiIO& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
     io.DisplaySize = ImVec2(800.0f, 600.0f);
     io.DeltaTime = 1.0f / 60.0f;
     io.Fonts->AddFontDefault();
@@ -54,7 +56,7 @@ TEST_F(EmptyStateTest, PresetsHaveSharedCopy) {
   EXPECT_STREQ(loading.detail, "tiles");
 }
 
-TEST_F(EmptyStateTest, DrawEmptyStateInvokesActionCallback) {
+TEST_F(EmptyStateTest, DrawWithoutActivationDoesNotInvokeCallback) {
   ImGui::NewFrame();
   ImGui::Begin("##EmptyStateHarness");
 
@@ -72,6 +74,45 @@ TEST_F(EmptyStateTest, DrawEmptyStateInvokesActionCallback) {
   EXPECT_FALSE(DrawEmptyState(opts));
   EXPECT_FALSE(fired);
 
+  ImGui::End();
+  ImGui::EndFrame();
+  ImGui::Render();
+}
+
+TEST_F(EmptyStateTest, ActivationInvokesCallbackOnce) {
+  int calls = 0;
+  EmptyStateOptions options;
+  options.title = "Nothing selected";
+  options.action_label = "Select item";
+  options.on_action = [&] {
+    ++calls;
+  };
+  for (int frame = 0; frame < 3; ++frame) {
+    ImGui::NewFrame();
+    ImGui::SetNextWindowSize(ImVec2(500, 400));
+    ImGui::Begin("##EmptyStateActionHarness");
+    EXPECT_EQ(DrawEmptyState(options), frame == 1);
+    if (frame == 0)
+      ImGui::ActivateItemByID(ImGui::GetID("Select item"));
+    ImGui::End();
+    ImGui::EndFrame();
+    ImGui::Render();
+  }
+  EXPECT_EQ(calls, 1);
+}
+
+TEST_F(EmptyStateTest, NarrowPanelWrapsTextAndClampsActionWidth) {
+  ImGui::NewFrame();
+  ImGui::SetNextWindowSize(ImVec2(220, 500));
+  ImGui::Begin("##NarrowEmptyState");
+  EmptyStateOptions options;
+  options.title = "A long title that must wrap inside this narrow panel";
+  options.detail =
+      "Select a tile to view its properties and edit the document.";
+  options.action_label = "A long action label that must stay inside the panel";
+  EXPECT_FALSE(DrawEmptyState(options));
+  const auto* window = ImGui::GetCurrentWindow();
+  EXPECT_LE(window->DC.CursorMaxPos.x, window->WorkRect.Max.x + 1.0f);
   ImGui::End();
   ImGui::EndFrame();
   ImGui::Render();

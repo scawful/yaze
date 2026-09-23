@@ -51,9 +51,7 @@ class OverworldEntityWorkbench : public WindowContent {
   void DrawPopups();
 
   // Pending Insertion State
-  void SetPendingInsertion(const std::string& type, ImVec2 pos);
-  void ProcessPendingInsertion(EntityMutationService* mutation_service,
-                               int current_map, int game_state);
+  void ProcessPendingInsertion(EntityMutationService* mutation_service);
 
   // Context Menu Content
   void DrawEntityContextMenu();

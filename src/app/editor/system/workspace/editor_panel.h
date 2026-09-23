@@ -291,7 +291,7 @@ class WindowContent {
    */
   virtual float GetPreferredHeight() const { return 0.0f; }
 
-  /** Prefer a floating (undocked) window when opened via OpenWindowFloating. */
+  /** Prefer floating placement on first use; explicit opens may undock once. */
   virtual bool PrefersFloating() const { return false; }
 
   /**
