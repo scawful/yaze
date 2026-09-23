@@ -6,7 +6,7 @@
 
 **Created:** 2026-04-20
 
-**Last Reviewed:** 2026-09-22 (capability baseline; later version assignments remain proposals)
+**Last Reviewed:** 2026-09-23 (capability baseline; later version assignments remain proposals)
 
 **Next Review:** 2026-10-06
 
@@ -35,10 +35,21 @@ chest-content undo, named property/reward controls, and atomic multiroom
 staircase cleanup. Its app/unit build and 475 focused tests passed with zero
 skips; scoped Clang analyzer checks passed on two new mutation modules.
 
-DA-1/DA-2 remain partial. Compound chest creation/deletion and mixed-domain
-operations are next, followed by connections, room reuse, and final acceptance.
+The compound chest candidate `478206247` now pairs chest objects
+and contents for placement, deletion, type changes, and undo. Ordinary object
+copy/paste retains rewards; reorder/layer edits preserve record correspondence.
+Source + Focused evidence; focused verification: **569 tests across 37 suites passed, with zero failures and zero skips**.
+App and unit builds passed. Scoped Clang analyzer checks passed for the two new mutation modules. Preflight enforces six
+combined chest/big-key-lock slots, chest-before-lock order, the global 168-record
+table including dirty/unopened rooms, and exact chest-region manifest policy.
+Object-stream allocation remains a Save-time check.
+
+DA-1/DA-2 remain partial. General atomic mixed-selection operations are next,
+followed by DA-3 connections, DA-4 room reuse, and final acceptance.
 Synthetic persistence checks do not qualify 0.8.0 or replace application/runtime
-validation. See the canonical plan for exact scope and commands.
+validation. Vanilla/Oracle GUI-to-disk and game behavior, manual UX, CI, and
+packaged acceptance remain unqualified for this candidate. See the canonical
+plan for exact scope and commands.
 
 The primary release train is completion of the main ALTTP editors:
 - Dungeon

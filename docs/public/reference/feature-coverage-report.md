@@ -1,6 +1,6 @@
 # Editor readiness and feature coverage
 
-Last reviewed: 2026-09-22 for the v0.8.0 development line.
+Last reviewed: 2026-09-23 for the v0.8.0 development line.
 
 This is the public capability and persistence ledger. The
 [editor capability parity plan](../../internal/plans/editor-capability-parity-plan.md)
@@ -19,16 +19,29 @@ whitespace, verified through whitespace-normalized staged content. These are
 Source + Focused results; ROM save/reopen, Runtime, CI, installation, and Release
 qualification remain pending. Verify Git and artifact state before promotion.
 
-The current room/chest candidate is `aeb0b1200` on
+The prior room/chest-content candidate is `aeb0b1200` on
 `codex/editor-parity-dungeon-authoring`. Room metadata, existing chest contents,
 named controls, and atomic multiroom **Clear stale** are described in the
-[formal plan's current increment](../../internal/plans/editor-capability-parity-plan.md#room-metadata-and-existing-chest-content-increment-2026-09-22).
+[formal plan's historical increment](../../internal/plans/editor-capability-parity-plan.md#room-metadata-and-existing-chest-content-increment-2026-09-22).
 App and unit builds passed; **475 selected tests across 36 suites passed with
 zero failures and zero skips**, including 94 new cases. Scoped Clang analyzer
 checks passed on two mutation modules. These are Source + Focused results,
 including synthetic editor save/decode/byte-preservation checks; mainline,
 installed app, vanilla/Oracle application-to-disk/runtime qualification, CI, and
 Release status are unchanged.
+
+The current compound chest candidate is `478206247` on the same
+branch. It pairs object and contents mutations for placement, deletion, type
+changes, and undo; ordinary object copy/paste preserves rewards and layer/order
+edits preserve correspondence. Its shared inspector starts placement in the
+canvas and follows selected chests. Source + Focused evidence; focused verification:
+**569 tests across 37 suites passed, with zero failures and zero skips**.
+App and unit builds passed. Scoped Clang analyzer checks passed for the two new mutation modules.
+Preflight validates six shared chest/big-key-lock slots with chests preceding
+locks, global 168-record capacity including dirty/unopened rooms, and exact
+chest-region manifest policy. Object-stream allocation remains a Save-time
+check. See the [current increment](../../internal/plans/editor-capability-parity-plan.md#compound-chest-authoring-increment-2026-09-23)
+for its evidence and residual qualification limits.
 
 ## Status and evidence are separate
 
@@ -61,11 +74,11 @@ used for promotion.
 
 | Editor / workflow | Status | Existing path | Remaining boundary |
 | --- | --- | --- | --- |
-| Dungeon room authoring | **Partial** | Existing room elements and guarded save, plus the candidate slices below | Compound chest creation/deletion, general atomic mixed-domain operations, clipboard capacity handling, complete room operations, and GUI-to-disk/runtime acceptance remain. DA-1 and DA-2 are not complete. |
+| Dungeon room authoring | **Partial** | Existing room elements and guarded save, plus the candidate slices below | General atomic mixed-selection operations, remaining clipboard capacity work, complete room operations, and GUI-to-disk/runtime acceptance remain. DA-1 and DA-2 are not complete. |
 | Workbench tile-object placement improvements | **Candidate** | `7ba7d76ce`: live placement controls, once/repeat, selected inserted object, Place another, physical sizes; Source + Focused | Isolated candidate ROM and runtime validation, integration, and packaged acceptance remain. See the [validation handoff](../../internal/agents/dungeon-workbench-placement-handoff-2026-09-22.md). |
 | Door/sprite/pot-item undo and shared properties | **Candidate** | `a730d6557`: DA-1 domain snapshots/restore and DA-2 shared Workbench/standalone inspector; render invalidation, reserved-sprite validation, paste selection, and deferred input isolation have focused checks | Context-mismatched connected-view editing is gated. ROM save/reopen, runtime, CI, installation, and release qualification remain; other DA-1/DA-2 domains are open. |
 | Room metadata undo and named property controls | **Candidate**, Source + Focused at `aeb0b1200` | Typed header/tag/layout/floor/message/destination edits; room-bound deferred input; snapshots preserve hidden BG2 state and separate layout/floor save dirtiness; atomic multiroom **Clear stale** batch | Full application save/reopen, runtime, and packaged acceptance remain. This single-domain batch does not complete general compound editing. |
-| Existing chest reward/type editing | **Candidate**, Source + Focused at `aeb0b1200` | Shared Workbench/standalone record selector and searchable named rewards, expert raw IDs, normal/big record type, and original-room undo | Only existing records are editable. Creating/deleting a chest must pair its tile object and contents record atomically; record type does not change the visual object. Capacity/ordering and full workflow qualification remain. |
+| Compound chest authoring | **Candidate**, Source + Focused at `478206247` | Shared placement, record/reward/type selection, canvas selection, and delete controls; paired object/contents undo; ordinary object clipboard preserves rewards; layer/order remapping; event-slot/global-table/manifest preflight | Save still validates object-stream allocation. General mixed-selection atomicity is not established. Vanilla/Oracle full-application disk save/reopen, game behavior, manual UX, CI, and packaged acceptance remain unqualified. |
 | Overworld map/entrance/exit/item/property editing | **Partial** | Domain-specific save methods called by `OverworldEditor::Save()` when their flags are enabled | Entity undo and full application acceptance need completion. Save support must be checked per domain and ROM layout. |
 | Overworld sprite persistence | **Missing** | Editing and three game-state collections exist | The application save path does not call a sprite serializer. Do not report sprite edits as saved because Save ROM succeeds. |
 | Message | **Partial** | Transactional save of valid parsed text through coordinated save when enabled | GUI-to-disk reopen and runtime acceptance for the advertised ROM profile. |
@@ -114,9 +127,11 @@ Important exceptions:
 | Dungeon shared mutation/undo hooks, including candidate door/sprite/pot-item domains | [`DungeonEditorV2::ConfigureViewerUndoHooks()` / `RestoreRoomEntities()`](../../../src/app/editor/dungeon/dungeon_editor_v2_undo.cc) |
 | Shared entity property controls and connected-view context guard | [`DrawDungeonEntityInspector()`](../../../src/app/editor/dungeon/inspectors/dungeon_entity_inspector.cc), called by the Workbench and standalone inspector |
 | Candidate lifecycle and shared-inspector evidence | [`dungeon_undo_actions_test.cc`](../../../test/unit/editor/dungeon_undo_actions_test.cc), [`dungeon_workbench_content_test.cc`](../../../test/unit/editor/dungeon_workbench_content_test.cc) |
-| Candidate room metadata and existing chest-record transactions | [`DungeonEditorV2::EditRoomMetadata()` / `EditChest()`](../../../src/app/editor/dungeon/dungeon_editor_v2_room_edits.cc), [`ApplyRoomMetadataEdit()`](../../../src/app/editor/dungeon/dungeon_room_edit.cc), [`Room::MetadataSnapshot`](../../../src/zelda3/dungeon/room.h) |
+| Candidate room metadata transactions | [`DungeonEditorV2::EditRoomMetadata()`](../../../src/app/editor/dungeon/dungeon_editor_v2_room_edits.cc), [`ApplyRoomMetadataEdit()`](../../../src/app/editor/dungeon/dungeon_room_edit.cc), [`Room::MetadataSnapshot`](../../../src/zelda3/dungeon/room.h) |
+| Compound chest planner, authoring preflight, and paired undo | [`PlanChestObjectEdit()`](../../../src/zelda3/dungeon/chest_edit.cc), [`TileObjectHandler::CommitCandidate()`](../../../src/app/editor/dungeon/interaction/tile_object_handler.cc), [`DungeonEditorV2::EditChest()` / `DeleteChest()` / `PreflightObjectMutation()`](../../../src/app/editor/dungeon/dungeon_editor_v2_chest_edits.cc), [`DungeonObjectsAction`](../../../src/app/editor/dungeon/dungeon_undo_actions.h) |
 | Candidate room and chest controls | [`DrawInspectorShelfRoom()`](../../../src/app/editor/dungeon/workspace/dungeon_workbench_room_inspector.cc), [`DrawDungeonChestEditor()`](../../../src/app/editor/dungeon/inspectors/dungeon_chest_editor.cc), [`RoomTagEditorPanel`](../../../src/app/editor/dungeon/ui/window/room_tag_editor_panel.cc) |
 | 94 new passing metadata/chest cases at `aeb0b1200` | [`dungeon_room_edit_test.cc`](../../../test/unit/editor/dungeon_room_edit_test.cc), [`dungeon_room_edits_lifecycle_test.cc`](../../../test/unit/editor/dungeon_room_edits_lifecycle_test.cc), [`dungeon_room_metadata_ui_test.cc`](../../../test/unit/editor/dungeon_room_metadata_ui_test.cc), [`dungeon_chest_editor_test.cc`](../../../test/unit/editor/dungeon_chest_editor_test.cc) |
+| Compound chest candidate verification surface | [`chest_edit_test.cc`](../../../test/unit/zelda3/dungeon/chest_edit_test.cc), [`tile_object_handler_test.cc`](../../../test/unit/editor/tile_object_handler_test.cc), [`dungeon_room_edits_lifecycle_test.cc`](../../../test/unit/editor/dungeon_room_edits_lifecycle_test.cc), [`dungeon_chest_editor_test.cc`](../../../test/unit/editor/dungeon_chest_editor_test.cc); exact commands and artifacts in the [handoff](../../internal/agents/dungeon-workbench-placement-handoff-2026-09-22.md#chest-authoring-verification-commands) |
 | Overworld paste/paint undo | [`OverworldEditor` undo and clipboard paths](../../../src/app/editor/overworld/overworld_editor.cc) |
 | Persistent overworld scratch space | [`LoadScratchPad`, `SaveScratchPad`, `FlushScratchPadIfDirty`](../../../src/app/editor/overworld/scratch_space.cc) |
 | Palette JSON exchange | [`PaletteGroupPanel::ExportToJson()` / `ImportFromJson()`](../../../src/app/editor/palette/palette_group_panel.cc) |

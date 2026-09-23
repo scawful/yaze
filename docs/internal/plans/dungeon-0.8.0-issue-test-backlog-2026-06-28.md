@@ -6,7 +6,7 @@ Owner: backend-infra-engineer (integration), with zelda3-hacking-expert
 
 Created: 2026-06-28
 
-Last Reviewed: 2026-09-22
+Last Reviewed: 2026-09-23
 
 Next Review: 2026-10-06
 
@@ -32,7 +32,7 @@ content, every other editor, and untested compatibility with arbitrary hacks.
 Existing Oracle systems must work through their documented build path. Native
 release readiness and WASM preview readiness are separate claims.
 
-## Current authoring sequence (2026-09-22)
+## Current authoring sequence (2026-09-23)
 
 The reviewed baseline is mainline `d609e6254` plus local Workbench candidate
 `7ba7d76ce`. The candidate adds live placement controls, repeat/once placement,
@@ -48,12 +48,20 @@ named room/reward controls, and atomic multiroom staircase cleanup. Its app/unit
 build and 475 focused tests across 36 suites passed with zero skips, including
 94 new cases. Scoped Clang analyzer checks passed on two mutation modules.
 
-DA-1 next covers compound chest creation/deletion and mixed-domain operations;
-DA-2 retains controls for remaining room elements. Existing chest-content edits
-do not create/delete visual chest objects. These are Source + Focused results,
-including synthetic persistence checks, not full application/ROM/runtime or
-release acceptance. Exact commands and limits are recorded in the canonical
-plan; do not redo these completed sub-slices.
+The newer compound chest candidate `478206247` implements paired
+object/contents placement, deletion, type conversion, and undo. Ordinary object
+copy/paste retains rewards, and layer/reorder edits preserve record order.
+Its shared inspector starts canvas placement and follows selected chests.
+Focused verification: **569 tests across 37 suites passed, with zero failures and zero skips**. App and unit builds and scoped Clang analyzer checks passed. Preflight covers the shared six chest/big-key-lock slots,
+chest-before-lock order, the global 168-record contents table including dirty
+and unopened rooms, and exact manifest-protected chest regions. Object-stream
+allocation remains a Save-time check.
+
+DA-1 next covers general atomic mixed-selection operations; DA-2 retains
+controls for remaining room elements. The earlier synthetic persistence
+checks and this source increment do not qualify vanilla/Oracle GUI-to-disk
+save/reopen, game behavior, manual UX, CI, or release acceptance. Exact commands
+and limits are recorded in the canonical plan; do not redo completed sub-slices.
 
 Open PR heads at this checkpoint: #256 `0b6ecdaf3`, #257 `a1484bab3`,
 #258 `9557ff3bb`, and #259 `5d2ecac28`. Recheck their heads and terminal
@@ -61,8 +69,8 @@ checks before integration. Do not infer merge readiness from this inventory.
 
 | Package | Next bounded implementation | Existing foundation to preserve | Required evidence |
 | --- | --- | --- | --- |
-| `DA-1` | Compound chest create/delete and mixed-domain operations | Existing undo domains; metadata/existing chest contents and atomic metadata batch at `aeb0b1200` | Domain changes restore exactly through undo/redo; rejected/no-op edits leave no partial mutation or history entry |
-| `DA-2` | Complete controls for remaining room elements through `DA-1` | Shared entity inspector and placement controls; named room/chest controls at `aeb0b1200` | Inspector and canvas remain synchronized; no independent duplicate state; focused UI and entity lifecycle checks |
+| `DA-1` | General atomic mixed-selection operations | Existing undo domains; metadata batch at `aeb0b1200`; compound object/chest snapshots and preflight at `478206247` | Preflight every participating domain before publication; undo/redo restores all domains together; rejected/no-op edits leave no partial mutation or history entry |
+| `DA-2` | Complete controls for remaining room elements through `DA-1` | Shared entity inspector, named room controls, and shared chest placement/contents/deletion controls | Inspector and canvas remain synchronized; no independent duplicate state; focused UI and entity lifecycle checks |
 | `DA-3` | Visual room destinations and return navigation | Connected-room browsing and stored destination fields | Correct stair/pit destinations and ordinary door adjacency; invalid destinations do not mutate |
 | `DA-4` | Complete room cloning and reusable selections | Existing room-template/JSON helpers | Explicit domain coverage, atomic validation/apply, undo, and source-preserving copy behavior |
 | `DA-5` | Qualify the final combined candidate | Object Coverage, parity tools, GUI qualification, release scripts | Complete application-path edit/undo/save/reopen plus independent rendering/runtime and packaged acceptance |
