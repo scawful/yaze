@@ -8,14 +8,88 @@ The user requested substantial implementation work
 from Codex and delegated extended validation to Claude. Avoid asking the user
 to repeat a sequence of manual tests before continuing development.
 
-## Current qualification repair candidate (2026-09-23)
+## Current Oracle interchange repair candidate (2026-09-23)
+
+Source: **`339cc9cdf`** on `codex/editor-parity-dungeon-authoring`, following
+`30e5c4681` (documentation) / `bb185d1ae` (source). Universe task:
+`task_20260923T151812Z_31987`. Worktree:
+`/Users/scawful/src/hobby/yaze-worktrees/pr256-review-fixes`.
+
+### Independent qualification received
+
+Claude reported disposable vanilla/Oracle qualification of `30e5c4681` using
+Preview → Apply → Undo → Redo → Save → a new file → independent-process reopen
+and comparison of all 296 exported rooms. This is external evidence for that
+source, not a new real-ROM run by Codex:
+
+- All 296 unopened vanilla rooms export. Pots-only `004 → 011` saves/reopens
+  with only the destination changed; the shared terminator repair holds.
+- Block clone `09E → 034` correctly rejects its physical ROM overlap before
+  mutation. Chest-table and object/sprite stream capacity refusals remain valid.
+- Vanilla chest/torch/pot and Oracle core/sprite cases retain their earlier
+  positive save/reopen results, with unchanged source input hashes.
+- The exit-door finding was retracted after previewing all 81 doors in the
+  25 vanilla exit rooms; none offered Create Return Door.
+- The 989-test filter passed. The reported full unit run had 4,477 passes and
+  three failures: the existing `RomTest.LoadFromFile` fixture issue and two
+  order-dependent theme tests. Do not call that full suite green.
+
+The remaining export rejection affected Oracle `033` (463 objects), `075`
+(425 objects), `123` (21 chest records), and `124` (23 chest records).
+
+### Repair and limits
+
+Interchange now preserves those counts under independent resource bounds:
+4,096 objects, the fixed 168-record shared chest-table capacity, and a 1 MiB
+serialized document cap. These are document limits, not game-authoring limits.
+
+Changed object replacements still use the 400-object authoring limit unless the
+destination already exceeds it; an oversized destination may keep its count or
+shrink. Actual save preflight still checks encoded stream capacity and policy.
+Changed chest mappings still require exact correspondence and at most six
+combined chest/big-key-lock event slots. Exact unchanged object/chest imports
+retain legacy records and destination block identities, including JSON whose
+physical slots normalize to `-1`. Unrelated selected domains can transfer.
+Arbitrary cloning of a 21/23-chest mapping is **not** enabled or qualified.
+
+### Current verification
+
+**1,000 tests across 49 suites passed, zero failures and zero skipped.** Both
+`yaze` and `yaze_test_unit` built. Seven model cases plus two lifecycle cases in
+both Standalone/Workbench modes cover the reported counts, export/parse,
+unrelated domains, growth rejection, exact no-op imports, dirty state/history,
+block identities, and resource limits. The 11 additions use synthetic data.
+
+```sh
+cmake --build build/presets/mac-ai --target yaze yaze_test_unit --parallel 4
+yaze_qualification_filter='*DungeonRoomMetadata*:*DungeonRoomEdit*:*DungeonChestEditor*:*DungeonEntityUndoLifecycleTest*:*DungeonUndoActionsTest*:*DungeonWorkbench*:*InteractionCoordinatorTest*:*SpriteInteractionHandlerTest*:*DoorInteractionHandlerTest*:*ItemInteractionHandlerTest*:*DungeonSelectionSnapshot*:TileObjectHandlerTest.*:DungeonCanvasViewerNavigationTest.*:DungeonEditorV2RomSafetyTest.*:DungeonSaveTest.*Chest*:DungeonSaveTest.SaveAllBlocks*:*RoomHeader*:ChestEditTest.*:DungeonSaveTest.LoadObjects*:*DungeonSelectionEdit*:*DungeonConnection*:DungeonStreamAllocatorTest.*:*DungeonRoomTransfer*:*DungeonRoomDocument*:*DungeonFixedStreamReadTest*-*RoomObjectRomParityTest*'
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_list_tests --gtest_filter="$yaze_qualification_filter"
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter="$yaze_qualification_filter" --gtest_output=xml:/tmp/yaze-oracle-interchange-tests.xml
+/opt/homebrew/bin/bash scripts/dev/editor-guardrails.sh 30e5c4681 339cc9cdf
+git diff --check 30e5c4681 339cc9cdf
+```
+
+Build/selection/result logs: `/tmp/yaze-oracle-interchange-build.log`,
+`/tmp/yaze-oracle-interchange-selected.log`,
+`/tmp/yaze-oracle-interchange-tests.log`. Changed-line formatting and pre-commit
+checks passed. No new real-ROM, emulator, manual GUI, WASM, installed-app, or
+remote-CI result is claimed for `339cc9cdf`.
+
+**Next qualification:** rerun all 296 Oracle exports on disposable copies,
+roundtrip the four reported rooms through JSON, and verify unchanged import
+plus unrelated-domain transfer. Confirm unsupported replacement still refuses
+without mutation. Then qualify representative chests/torches/pots in game.
+Preserve the separate uncommitted `validate-placement` harness.
+
+## Prior qualification repair candidate (2026-09-23)
 
 Source: **`bb185d1ae`**, following `2520aa6b0` / `df1cc4f2d`, on
 `codex/editor-parity-dungeon-authoring`. Worktree:
 `/Users/scawful/src/hobby/yaze-worktrees/pr256-review-fixes`. Universe task:
 `task_20260923T140908Z_16625`. The prior candidate and its evidence remain below
-as history. **Next: rerun the disposable-ROM qualification on this source before
-adding more features.** No merge, runtime, or release readiness is claimed.
+as history. Its requested disposable-ROM requalification was subsequently
+reported by Claude; see the current section above for results and remaining
+checks. No merge, runtime, or release readiness is claimed.
 
 ### Qualification findings and disposition
 

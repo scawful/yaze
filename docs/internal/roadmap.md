@@ -6,7 +6,7 @@ Owner: [`backend-infra-engineer` with editor owners](agents/personas.md)
 
 Created: 2026-09-14
 
-Last reviewed: 2026-09-22
+Last reviewed: 2026-09-23
 
 Next review: 2026-10-06
 
@@ -37,6 +37,26 @@ overdue for a scope refresh; it must not displace dungeon completion. See the
 
 ## Reviewed baseline and immediate sequence
 
+Current dungeon source is `339cc9cdf` on
+`codex/editor-parity-dungeon-authoring`: room clone/import plus qualification
+repairs and lossless interchange for the reported oversized Oracle rooms.
+The app/unit targets build and 1,000 focused tests pass. Claude separately
+reported disposable-ROM save/reopen qualification of the preceding source
+`bb185d1ae` / documentation `30e5c4681`; this is not a new runtime result for
+the current source. See the
+[current handoff](agents/dungeon-workbench-placement-handoff-2026-09-22.md#current-oracle-interchange-repair-candidate-2026-09-23)
+for exact limits and the remaining Oracle export/runtime checks.
+
+The urgent overworld regression lane is independent of new dungeon features.
+Local source `bfcdad775` on `codex/overworld-paint-regression-fixes` repairs
+paint-cache overwrite and canvas gesture ownership, with 46 passing focused
+tests and demonstrated before-fix failures. Cursor's Tile16 domain/workbench
+extraction remains separate. Combined integration, immutable brush/coordinate
+rules, stable map targets, and Tile16 commit/discard/undo still need work;
+do not call the overworld stabilized from this first repair.
+
+### Historical starting point
+
 The 2026-09-22 review used mainline `d609e6254` and the local Workbench
 candidate `7ba7d76ce`. The candidate adds placement/selection controls and has
 43 focused passing tests, but is unpublished and is not the installed app.
@@ -51,7 +71,7 @@ release qualification. DA-1 now proceeds to metadata/chests and compound edits;
 DA-2 retains the remaining contextual-control work. See the canonical plan for
 the exact commands and boundaries.
 
-Execute the dungeon work packages in this order:
+The dungeon dependency order remains:
 
 1. `DA-1`: shared room-edit undo for every supported mutable room domain.
 2. `DA-2`: one contextual entity inspector using that mutation path.
