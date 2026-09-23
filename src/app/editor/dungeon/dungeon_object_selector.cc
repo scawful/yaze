@@ -317,7 +317,7 @@ void DungeonObjectSelector::SelectObject(int obj_id, int subtype) {
   }
 }
 
-void DungeonObjectSelector::DrawObjectAssetBrowser() {
+void DungeonObjectSelector::DrawObjectAssetBrowser(float minimum_grid_height) {
   const auto& theme = AgentUI::GetTheme();
 
   // Object ranges supported by the room-object stream codec.
@@ -446,7 +446,8 @@ void DungeonObjectSelector::DrawObjectAssetBrowser() {
 
   // The grid is the selector's sole scroll owner. Calculate its geometry only
   // after entering the child so themed padding and the scrollbar are included.
-  const float child_height = std::max(ImGui::GetContentRegionAvail().y, 1.0f);
+  const float child_height = std::max(ImGui::GetContentRegionAvail().y,
+                                      std::max(minimum_grid_height, 1.0f));
   if (ImGui::BeginChild("##ObjectGrid", ImVec2(0, child_height), false)) {
     const float item_spacing = control_spacing;
     // GetContentRegionAvail() already excludes the child window's scrollbar

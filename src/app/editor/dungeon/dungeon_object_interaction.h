@@ -47,6 +47,10 @@ class DungeonObjectInteraction {
     interaction_context_.canvas = canvas;
     interaction_context_.selection = &selection_;
     entity_coordinator_.SetContext(&interaction_context_);
+    entity_coordinator_.tile_handler().SetPlacementCallback(
+        [this](const zelda3::RoomObject& object) {
+          CompleteObjectPlacement(object);
+        });
   }
 
   // ========================================================================
@@ -111,6 +115,24 @@ class DungeonObjectInteraction {
   // State management
   void SetCurrentRoom(DungeonRoomStore* rooms, int room_id);
   void SetPreviewObject(const zelda3::RoomObject& object, bool loaded);
+  using PlacementPolicy = TileObjectHandler::PlacementPolicy;
+  void SetPlacementPolicy(PlacementPolicy policy) {
+    entity_coordinator_.tile_handler().SetPlacementPolicy(policy);
+  }
+  PlacementPolicy GetPlacementPolicy() const {
+    return entity_coordinator_.tile_handler().GetPlacementPolicy();
+  }
+  const zelda3::RoomObject* GetPlacementPreview() const {
+    const auto& handler = entity_coordinator_.tile_handler();
+    return handler.IsPlacementActive() ? &handler.GetPreviewObject() : nullptr;
+  }
+  bool SetPlacementPreviewSize(uint8_t size) {
+    return entity_coordinator_.tile_handler().SetPreviewSize(size);
+  }
+  bool SetPlacementPreviewLayer(int layer) {
+    return entity_coordinator_.tile_handler().SetPreviewLayer(layer);
+  }
+  bool BeginPlacementFromSelection();
   void SetCurrentPaletteGroup(const gfx::PaletteGroup& group,
                               bool force_refresh = false) {
     bool palette_changed = current_palette_group_.name() != group.name() ||
@@ -322,6 +344,7 @@ class DungeonObjectInteraction {
   }
 
  private:
+  void CompleteObjectPlacement(const zelda3::RoomObject& object);
   DungeonCanvasTransform GetCanvasTransform() const {
     return DungeonCanvasTransform(canvas_->zero_point(), canvas_->scrolling(),
                                   canvas_->global_scale());

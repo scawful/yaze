@@ -108,7 +108,7 @@ class DungeonObjectSelector {
   bool IsObjectLoaded() const { return object_loaded_; }
 
   // AssetBrowser-style object selection
-  void DrawObjectAssetBrowser();
+  void DrawObjectAssetBrowser(float minimum_grid_height = 1.0f);
 
   // Programmatic selection
   void SelectObject(int obj_id, int subtype = -1);

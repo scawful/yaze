@@ -206,6 +206,7 @@ class DungeonWorkbenchContent : public WindowContent {
   void Draw(bool* p_open) override;
 
  private:
+  friend class DungeonWorkbenchContentTestPeer;
   enum class WorkbenchTool : uint8_t {
     None,
     RoomTags,
@@ -238,6 +239,8 @@ class DungeonWorkbenchContent : public WindowContent {
   void DrawInspectorShelf(DungeonCanvasViewer& viewer, bool compact);
   void DrawInspectorShelfRoom(DungeonCanvasViewer& viewer);
   void DrawInspectorShelfSelection(DungeonCanvasViewer& viewer);
+  bool DrawObjectPlacementInspector(DungeonCanvasViewer& viewer);
+  void DrawSelectedObjectActions(DungeonCanvasViewer& viewer, size_t index);
   void DrawInspectorToolPanel(DungeonCanvasViewer& viewer);
   void DrawInspectorToolPicker();
   void DrawWorkbenchTool(DungeonCanvasViewer& viewer, WorkbenchTool tool);
@@ -292,6 +295,7 @@ class DungeonWorkbenchContent : public WindowContent {
   InspectorMode inspector_mode_ = InspectorMode::Room;
   InspectorMode inspector_mode_before_tools_ = InspectorMode::Room;
   bool inspector_selection_was_active_ = false;
+  bool inspector_placement_was_active_ = false;
   bool compact_inspector_detail_requested_ = false;
   WorkbenchTool active_tool_ = WorkbenchTool::ObjectSelector;
 

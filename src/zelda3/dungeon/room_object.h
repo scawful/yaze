@@ -275,6 +275,10 @@ int RoomObjectSizeAxisTiles(int object_id, uint8_t size,
 // Packed objects resize height by default, width when horizontal is true.
 uint8_t ResizeRoomObjectByDelta(int object_id, uint8_t size, int delta,
                                 bool horizontal = false);
+// Change both packed axes together, stopping when either reaches its bound.
+// Scalar objects retain their ordinary length resize behavior.
+uint8_t ResizeRoomObjectUniformlyByDelta(int object_id, uint8_t size,
+                                         int delta);
 
 // Stateful small and big chests advance the engine's per-room chest-event
 // index. Fixed-open chest graphics (F9A/FB2) and the FF5 minigame chest do not.

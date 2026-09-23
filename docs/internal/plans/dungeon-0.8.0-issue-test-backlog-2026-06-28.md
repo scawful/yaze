@@ -100,9 +100,10 @@ The integration owner runs automated checks; manual acceptance remains a later
 release gate, not a prerequisite for the next object improvement.
 
 - The active Workbench inspector now exposes width and height in tiles for
-  repeating 4x4/3x3 floor and 2x2 spike families. Wheel changes height;
-  Shift+wheel changes width. Each two-bit axis clamps independently instead of
-  carrying into the other dimension. Custom objects expose mapped, named
+  repeating 4x4/3x3 floor and 2x2 spike families. As of the September 22
+  Workbench placement pass, wheel changes both dimensions in lockstep and stops
+  when either axis reaches its limit; Shift+wheel changes width. Independent
+  Width/Height fields remain available. Custom objects expose mapped, named
   variants and are excluded from generic wheel/bulk resizing.
 - Placement wheel events update the pending object, not a previous selection.
   The tile handler owns the preview; palette refresh redraws it without
