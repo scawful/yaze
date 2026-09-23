@@ -58,6 +58,10 @@ These checks remain deferred. Automated tests use synthetic in-memory ROM data.
   Room File...** in another disposable destination. Loading alone must not change
   the room. Preview and apply, then Undo/Redo and save/reopen. Cancel a file dialog
   and try invalid JSON; the prior import form should remain available.
+- [ ] In Workbench and standalone **Destinations**, edit the pit room/arrival
+  layer and each stair header slot. Open the destination (including room 000),
+  Undo/Redo and save/reopen a test copy. Check unrelated slots stay unchanged.
+  An existing plane 03 should remain visible until explicitly changed.
 - [ ] Check supported spriteset choices and invalid/capacity errors. Rejected
   operations must preserve the room and history.
 

@@ -571,6 +571,29 @@ other rooms merely because a diagnostic exists.
 affected rooms, save/reopen with matching headers/objects, and verify traversal
 in the correct runtime ROM. Navigation alone does not close this package.
 
+### DA-3 header-destination controls (2026-09-23)
+
+The combined candidate now uses one shared destination inspector in Workbench
+and standalone room details. Choose pit/warp or one of four explicit stair
+header slots, edit its destination, choose an arrival layer, and open the target
+room. Navigation does not edit the source or create a return link. Room 000 is
+accepted as a stored destination, not treated as an unset sentinel by this UI.
+
+The missing pit-plane field now uses the existing metadata edit/undo boundary.
+USDASM `d53311a`, `bank_01.asm` `$01C31F`/`$01C322`, defines three destination
+plane entries: 00 upper BG1, 01 lower BG1, 02 lower BG2. Typed pit/stair plane
+edits accept 00–02. Existing raw 03 values remain loadable, displayed, and
+restorable by undo; snapshot/interchange paths retain their raw preservation
+contract. No unsupported value is silently coerced.
+
+App/unit builds and 264 focused tests across 21 suites passed, zero skips.
+Coverage includes shared UI controls, readonly navigation, exact header bits,
+whole-buffer preservation outside the changed field, and save/undo/redo.
+These synthetic checks do not prove actual game traversal. Object-to-stair-slot
+mapping and connected-view diagnostics still need engine-backed qualification;
+the new inspector deliberately edits header slots rather than inferred objects.
+See [the destination handoff](../agents/dungeon-destinations-2026-09-23.md).
+
 ### DA-4: room and selection reuse
 
 **Authored-room clone/import candidate (2026-09-23):**

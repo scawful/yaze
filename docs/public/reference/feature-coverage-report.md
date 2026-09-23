@@ -221,3 +221,12 @@ does not promote the corresponding desktop workflow automatically.
 
 The web build uses browser storage/downloads and does not include the emulator.
 It requires separate browser acceptance; see the [Web App guide](../usage/web-app.md).
+
+### Destination header controls (2026-09-23)
+
+The combined candidate shares pit/stair header-slot controls across Workbench and
+standalone room details, including named arrival layers and destination navigation.
+The pit-plane edit now participates in metadata undo/save. Source-backed vanilla
+plane choices are 00–02; existing raw 03 is preserved, not silently changed.
+App/unit build and 264 focused tests passed with no skips. Placed-staircase slot
+mapping, reciprocal stair behavior, human UX and game traversal remain open.

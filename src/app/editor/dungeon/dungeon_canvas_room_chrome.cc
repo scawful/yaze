@@ -1,3 +1,4 @@
+#include "app/editor/dungeon/inspectors/dungeon_destination_editor.h"
 #include "dungeon_canvas_viewer.h"
 #include "util/i18n/tr.h"
 
@@ -128,6 +129,10 @@ void DungeonCanvasViewer::DrawRoomHeader(zelda3::Room& room, int room_id) {
 
   if (header_read_only_) {
     ImGui::EndDisabled();
+  }
+  if ((!compact_header_mode_ || show_room_details_) &&
+      ImGui::CollapsingHeader("Destinations##RoomDestinations")) {
+    DrawDungeonDestinationEditor(*this);
   }
 }
 

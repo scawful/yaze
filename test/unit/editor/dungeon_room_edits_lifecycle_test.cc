@@ -153,7 +153,8 @@ TEST_P(DungeonRoomEditsLifecycleTest, EveryMetadataFieldUsesSharedUndoHistory) {
       {RoomMetadataField::kTag2, 0x3F},
       {RoomMetadataField::kHolewarp, 0xFE},
       {RoomMetadataField::kStaircaseRoom, 0x45, 3},
-      {RoomMetadataField::kStaircasePlane, 3, 3}};
+      {RoomMetadataField::kStaircasePlane, 2, 3},
+      {RoomMetadataField::kPitPlane, 2}};
   std::vector<zelda3::Room::MetadataSnapshot> states{
       room_->CaptureMetadataSnapshot()};
   for (const auto& edit : edits) {
@@ -285,6 +286,51 @@ TEST_P(DungeonRoomEditsLifecycleTest, MixedDomainsUndoChronologically) {
   EXPECT_EQ(room_->GetSprites()[0].id(), 1);
   ASSERT_TRUE(editor_->Undo().ok());
   EXPECT_EQ(room_->GetSprites()[0].id(), 9);
+}
+
+TEST_P(DungeonRoomEditsLifecycleTest,
+       PitPlaneSaveUndoPreservesStairsAndReservedBits) {
+  const auto original = room_->CaptureMetadataSnapshot();
+  const auto bytes = rom_.vector();
+  ASSERT_TRUE(
+      viewer_->EditRoomMetadata(0, {RoomMetadataField::kPitPlane, 2}).ok());
+  ASSERT_TRUE(editor_->SaveRoom(0).ok());
+  auto reopened = zelda3::LoadRoomHeaderFromRom(&rom_, 0);
+  const auto metadata = reopened.CaptureMetadataSnapshot();
+  EXPECT_EQ(metadata.pit_target_layer, 2);
+  EXPECT_EQ(metadata.staircase_planes, original.staircase_planes);
+  EXPECT_EQ(metadata.staircase_rooms, original.staircase_rooms);
+  EXPECT_EQ(metadata.holewarp, original.holewarp);
+  for (size_t i = 0; i < bytes.size(); ++i) {
+    if (i == kHeaderPc + 7) {
+      EXPECT_EQ(rom_.vector()[i] & 0xFC, bytes[i] & 0xFC);
+    } else {
+      ASSERT_EQ(rom_.vector()[i], bytes[i]) << i;
+    }
+  }
+  ASSERT_TRUE(editor_->Undo().ok());
+  ASSERT_TRUE(editor_->SaveRoom(0).ok());
+  EXPECT_EQ(rom_.vector(), bytes);
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(room_->CaptureMetadataSnapshot().pit_target_layer, 2);
+}
+
+TEST_P(DungeonRoomEditsLifecycleTest,
+       UnsupportedPlaneIsPreservedByUndoButCannotBeAuthored) {
+  room_->SetPitsTargetLayer(3);
+  room_->ClearSaveDirtyState();
+  ASSERT_TRUE(
+      viewer_->EditRoomMetadata(0, {RoomMetadataField::kPitPlane, 1}).ok());
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->CaptureMetadataSnapshot().pit_target_layer, 3);
+  const auto depth = UndoDepth();
+  EXPECT_FALSE(
+      viewer_->EditRoomMetadata(0, {RoomMetadataField::kPitPlane, 3}).ok());
+  EXPECT_FALSE(
+      viewer_->EditRoomMetadata(0, {RoomMetadataField::kStaircasePlane, 3, 0})
+          .ok());
+  EXPECT_EQ(UndoDepth(), depth);
+  EXPECT_EQ(room_->CaptureMetadataSnapshot().pit_target_layer, 3);
 }
 
 TEST_P(DungeonRoomEditsLifecycleTest,

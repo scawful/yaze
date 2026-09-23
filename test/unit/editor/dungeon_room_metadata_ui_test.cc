@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/inspectors/dungeon_destination_editor.h"
 #include "app/editor/dungeon/ui/window/room_tag_editor_panel.h"
 #include "app/gui/automation/widget_id_registry.h"
 #include "app/gui/core/icons.h"
@@ -62,10 +63,14 @@ class DungeonRoomMetadataUiTest : public ::testing::Test {
     gui::WidgetIdRegistry::Instance().Clear();
     ImGui::NewFrame();
     ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
-    ImGui::SetNextWindowSize(ImVec2(380, 1300), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(width_, 1300), ImGuiCond_Always);
     ImGui::Begin("MetadataHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
     ImGui::LogToBuffer();
-    if (show_tag_panel_) {
+    if (show_destinations_) {
+      DrawDungeonDestinationEditor(viewer_);
+      EXPECT_LE(ImGui::GetCurrentWindow()->DC.CursorMaxPos.x,
+                ImGui::GetCurrentWindow()->WorkRect.Max.x + 1);
+    } else if (show_tag_panel_) {
       tag_panel_.Draw(nullptr);
     } else {
       ImGui::GetStateStorage()->SetInt(
@@ -84,8 +89,9 @@ class DungeonRoomMetadataUiTest : public ::testing::Test {
     const auto normalized = gui::WidgetIdRegistry::NormalizeLabel(label);
     for (const auto& [path, widget] :
          gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
-      if (path.starts_with(show_tag_panel_ ? "Dungeon/RoomTags/"
-                                           : "Dungeon/Workbench/") &&
+      if ((path.starts_with(show_tag_panel_ ? "Dungeon/RoomTags/"
+                                            : "Dungeon/Workbench/") ||
+           path.starts_with("Dungeon/Destinations/")) &&
           widget.label == normalized) {
         return widget;
       }
@@ -126,6 +132,8 @@ class DungeonRoomMetadataUiTest : public ::testing::Test {
   std::vector<Edit> edits_;
   bool reject_ = false;
   bool show_tag_panel_ = false;
+  bool show_destinations_ = false;
+  float width_ = 380;
   std::string logged_text_;
   int room_id_ = 0;
   std::deque<int> recent_;
@@ -186,7 +194,12 @@ TEST_F(DungeonRoomMetadataUiTest,
 }
 
 TEST_F(DungeonRoomMetadataUiTest, DestinationEditPreservesCorrectSlot) {
-  Type("RoomHeaderStair3", "A5");
+  DrawFrame();
+  DrawFrame();
+  Click("Route");
+  DrawFrame();
+  Click("Route/3");
+  Type("Room", "A5");
   Enter();
   ASSERT_EQ(edits_.size(), 1);
   EXPECT_EQ(edits_[0].request.field, RoomMetadataField::kStaircaseRoom);
@@ -226,6 +239,81 @@ TEST_F(DungeonRoomMetadataUiTest, NamedBg2ChoiceUsesMetadataBoundary) {
   EXPECT_EQ(edits_[0].request.field, RoomMetadataField::kBg2);
   EXPECT_EQ(edits_[0].request.value, 4);
   EXPECT_EQ(static_cast<int>(rooms_[0].bg2()), 4);
+}
+
+TEST_F(DungeonRoomMetadataUiTest,
+       PitLayerUsesSharedEditAndFitsNarrowInspector) {
+  show_destinations_ = true;
+  width_ = 260;
+  DrawFrame();
+  DrawFrame();
+  Click("Plane");
+  DrawFrame();
+  EXPECT_FALSE(Widget("Plane/3"));
+  Click("Plane/2");
+  ASSERT_EQ(edits_.size(), 1);
+  EXPECT_EQ(edits_[0].request.field, RoomMetadataField::kPitPlane);
+  EXPECT_EQ(rooms_[0].CaptureMetadataSnapshot().pit_target_layer, 2);
+  EXPECT_EQ(rooms_[0].staircase_plane(0), 0);
+}
+
+TEST_F(DungeonRoomMetadataUiTest, LegacyPlaneIsDisplayedWithoutMutation) {
+  show_destinations_ = true;
+  rooms_[0].SetPitsTargetLayer(3);
+  rooms_[0].ClearSaveDirtyState();
+  DrawFrame();
+  DrawFrame();
+  EXPECT_NE(logged_text_.find("Unmapped vanilla plane"), std::string::npos);
+  EXPECT_TRUE(edits_.empty());
+  EXPECT_FALSE(rooms_[0].HasUnsavedChanges());
+}
+
+TEST_F(DungeonRoomMetadataUiTest,
+       ReadOnlyAllowsDestinationNavigationIncludingRoomZero) {
+  show_destinations_ = true;
+  viewer_.SetHeaderReadOnly(true);
+  int navigated = -1;
+  viewer_.SetRoomSwapCallback([&](int source, int destination) {
+    EXPECT_EQ(source, 0);
+    navigated = destination;
+  });
+  DrawFrame();
+  DrawFrame();
+  ASSERT_TRUE(Widget("Room"));
+  EXPECT_FALSE(Widget("Room")->enabled);
+  EXPECT_FALSE(Widget("Plane")->enabled);
+  Click("Open");
+  EXPECT_EQ(navigated, 0);
+  EXPECT_TRUE(edits_.empty());
+  EXPECT_FALSE(rooms_[0].HasUnsavedChanges());
+}
+
+TEST_F(DungeonRoomMetadataUiTest, DestinationRejectsOverflowWithoutTruncation) {
+  show_destinations_ = true;
+  Type("Room", "100");
+  Enter();
+  ASSERT_EQ(edits_.size(), 1);
+  EXPECT_EQ(edits_[0].request.value, 0x100);
+  EXPECT_EQ(rooms_[0].holewarp(), 0);
+  EXPECT_NE(logged_text_.find("Destination edit rejected"), std::string::npos);
+}
+
+TEST_F(DungeonRoomMetadataUiTest, StairPlaneEditTargetsOnlySelectedHeaderSlot) {
+  show_destinations_ = true;
+  DrawFrame();
+  DrawFrame();
+  Click("Route");
+  DrawFrame();
+  Click("Route/4");
+  Click("Plane");
+  DrawFrame();
+  Click("Plane/1");
+  ASSERT_EQ(edits_.size(), 1);
+  EXPECT_EQ(edits_[0].request.field, RoomMetadataField::kStaircasePlane);
+  EXPECT_EQ(edits_[0].request.index, 3);
+  EXPECT_EQ(rooms_[0].staircase_plane(3), 1);
+  EXPECT_EQ(rooms_[0].staircase_plane(0), 0);
+  EXPECT_EQ(rooms_[0].CaptureMetadataSnapshot().pit_target_layer, 0);
 }
 
 TEST_F(DungeonRoomMetadataUiTest, TagPanelUsesCallbackAndShowsRejectedEdit) {

@@ -20,7 +20,7 @@ struct MetadataCase {
   bool changes_rendering;
 };
 
-constexpr std::array<MetadataCase, 15> kMetadataCases = {{
+constexpr std::array<MetadataCase, 16> kMetadataCases = {{
     {RoomMetadataField::kLayout, 7, true, true},
     {RoomMetadataField::kBlockset, 0x51, false, true},
     {RoomMetadataField::kFloor1, 0xF, true, true},
@@ -35,7 +35,8 @@ constexpr std::array<MetadataCase, 15> kMetadataCases = {{
     {RoomMetadataField::kTag2, 0x3F, false, true},
     {RoomMetadataField::kHolewarp, 0xFF, false, false},
     {RoomMetadataField::kStaircaseRoom, 0xFF, false, false},
-    {RoomMetadataField::kStaircasePlane, 3, false, false},
+    {RoomMetadataField::kStaircasePlane, 2, false, false},
+    {RoomMetadataField::kPitPlane, 2, false, false},
 }};
 
 void ExpectMetadataDirtyDomain(const zelda3::Room& room, bool object_header) {
@@ -181,14 +182,14 @@ TEST(DungeonRoomMetadataTest, StaircaseSlotsRemainIndependent) {
     ASSERT_TRUE(ApplyRoomMetadataEdit(room, {RoomMetadataField::kStaircaseRoom,
                                              0xFC + index, index})
                     .ok());
-    ASSERT_TRUE(ApplyRoomMetadataEdit(
-                    room, {RoomMetadataField::kStaircasePlane, index, index})
+    ASSERT_TRUE(ApplyRoomMetadataEdit(room, {RoomMetadataField::kStaircasePlane,
+                                             index % 3, index})
                     .ok());
   }
   const auto edited = room.CaptureMetadataSnapshot();
   EXPECT_EQ(edited.staircase_rooms,
             (std::array<uint8_t, 4>{0xFC, 0xFD, 0xFE, 0xFF}));
-  EXPECT_EQ(edited.staircase_planes, (std::array<uint8_t, 4>{0, 1, 2, 3}));
+  EXPECT_EQ(edited.staircase_planes, (std::array<uint8_t, 4>{0, 1, 2, 0}));
   room.RestoreMetadataSnapshot(original);
   EXPECT_EQ(room.CaptureMetadataSnapshot(), original);
   room.RestoreMetadataSnapshot(edited);

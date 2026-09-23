@@ -42,6 +42,7 @@ set(
   app/editor/dungeon/dungeon_usage_tracker.cc
   app/editor/dungeon/inspectors/dungeon_entity_inspector.cc
   app/editor/dungeon/inspectors/dungeon_chest_editor.cc
+  app/editor/dungeon/inspectors/dungeon_destination_editor.cc
   app/editor/dungeon/inspectors/dungeon_connection_editor.cc
   app/editor/dungeon/inspectors/dungeon_room_transfer_editor.cc
   app/editor/dungeon/inspectors/door_editor_content.cc
