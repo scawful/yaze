@@ -348,7 +348,7 @@ absl::Status OverworldCanvasRenderer::DrawTile16Selector() {
     if (editor_->dependencies_.window_manager) {
       const size_t session_id =
           editor_->dependencies_.window_manager->GetActiveSessionId();
-      editor_->dependencies_.window_manager->OpenWindow(
+      editor_->dependencies_.window_manager->OpenWindowFloating(
           session_id, OverworldPanelIds::kTile16Editor);
       editor_->dependencies_.window_manager->MarkWindowRecentlyUsed(
           OverworldPanelIds::kTile16Editor);

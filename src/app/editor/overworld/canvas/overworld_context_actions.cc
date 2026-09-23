@@ -80,8 +80,8 @@ void OverworldEditor::HandleTile16Edit(const OverworldContextTarget& target) {
   if (dependencies_.window_manager) {
     const size_t session_id =
         dependencies_.window_manager->GetActiveSessionId();
-    dependencies_.window_manager->OpenWindow(session_id,
-                                             OverworldPanelIds::kTile16Editor);
+    dependencies_.window_manager->OpenWindowFloating(
+        session_id, OverworldPanelIds::kTile16Editor);
     dependencies_.window_manager->MarkWindowRecentlyUsed(
         OverworldPanelIds::kTile16Editor);
   }

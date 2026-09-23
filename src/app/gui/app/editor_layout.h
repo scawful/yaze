@@ -132,7 +132,9 @@ class PanelWindow {
 
   // Debug: Check if any panel was rendered twice this frame
   static bool HasDuplicateRendering() { return duplicate_detected_; }
-  static const std::string& GetDuplicatePanelName() { return duplicate_panel_name_; }
+  static const std::string& GetDuplicatePanelName() {
+    return duplicate_panel_name_;
+  }
 
  private:
   static int last_frame_count_;
@@ -141,7 +143,6 @@ class PanelWindow {
   static std::string duplicate_panel_name_;
 
  public:
-
   // Set panel properties
   void SetDefaultSize(float width, float height);
   void SetPosition(Position pos);
@@ -160,7 +161,11 @@ class PanelWindow {
 
   // Custom Title Bar Buttons (e.g., Pin, Help, Settings)
   // These will be drawn in the window header or top-right corner.
-  void AddHeaderButton(const char* icon, const char* tooltip, std::function<void()> callback);
+  void AddHeaderButton(const char* icon, const char* tooltip,
+                       std::function<void()> callback);
+
+  /** Next Begin() clears docking so the window opens floating. */
+  void RequestForceUndock() { force_undock_ = true; }
 
   // Begin drawing the panel
   bool Begin(bool* p_open = nullptr);
@@ -210,15 +215,17 @@ class PanelWindow {
   ImVec2 saved_icon_pos_ = ImVec2(10, 100);  // Position when collapsed to icon
   ImVec2 start_offset_ = ImVec2(0, 0);
   bool start_offset_set_ = false;
-  
+
   // Pinning support
   bool pinnable_ = false;
   bool pinned_ = false;
   std::function<void(bool)> on_pin_changed_;
-  
+
   // Settings persistence
-  bool save_settings_ = true;  // If false, uses ImGuiWindowFlags_NoSavedSettings
-  
+  bool save_settings_ =
+      true;  // If false, uses ImGuiWindowFlags_NoSavedSettings
+  bool force_undock_ = false;
+
   // Header buttons
   struct HeaderButton {
     std::string icon;

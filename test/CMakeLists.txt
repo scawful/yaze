@@ -224,6 +224,7 @@ if(YAZE_BUILD_TESTS)
     unit/gui/canvas_zoom_anchor_test.cc
     unit/gui/window_clamp_test.cc
     unit/gui/panel_window_test.cc
+    unit/gui/empty_state_test.cc
     unit/gui/animator_test.cc
     unit/gui/property_inspector_test.cc
     unit/gui/resize_handles_test.cc
@@ -249,6 +250,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/project_manager_validator_test.cc
     unit/editor/panel_system_test.cc
     unit/editor/workspace_window_manager_policy_test.cc
+    unit/editor/workspace_floating_window_test.cc
     unit/editor/background_command_task_test.cc
     unit/editor/content_registry_workflow_history_test.cc
     unit/editor/command_palette_workflow_test.cc
