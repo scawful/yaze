@@ -21,7 +21,9 @@ set(
   app/editor/dungeon/dungeon_editor_v2_undo.cc
   app/editor/dungeon/dungeon_editor_v2_room_edits.cc
   app/editor/dungeon/dungeon_editor_v2_chest_edits.cc
+  app/editor/dungeon/dungeon_editor_v2_selection_edits.cc
   app/editor/dungeon/dungeon_room_edit.cc
+  app/editor/dungeon/dungeon_selection_edit.cc
   app/editor/dungeon/dungeon_editor_v2_object_coverage.cc
   app/editor/dungeon/dungeon_object_interaction.cc
   app/editor/dungeon/dungeon_object_selector.cc

@@ -96,6 +96,7 @@ void DungeonEditorV2::FinalizePendingUndoActions() {
     FinalizeWaterFillUndoAction(pending_water_fill_undo_.room_id);
   }
   FinalizePendingEntityUndoActions();
+  FinalizeSelectionUndoAction();
 }
 
 absl::Status DungeonEditorV2::Undo() {
@@ -144,22 +145,22 @@ absl::Status DungeonEditorV2::Redo() {
 
 absl::Status DungeonEditorV2::Cut() {
   if (auto* viewer = GetViewerForRoom(current_room_id_)) {
-    viewer->object_interaction().HandleCopySelected();
-    viewer->object_interaction().HandleDeleteSelected();
+    RETURN_IF_ERROR(viewer->object_interaction().HandleCopySelected());
+    return viewer->object_interaction().HandleDeleteSelected();
   }
   return absl::OkStatus();
 }
 
 absl::Status DungeonEditorV2::Copy() {
   if (auto* viewer = GetViewerForRoom(current_room_id_)) {
-    viewer->object_interaction().HandleCopySelected();
+    return viewer->object_interaction().HandleCopySelected();
   }
   return absl::OkStatus();
 }
 
 absl::Status DungeonEditorV2::Paste() {
   if (auto* viewer = GetViewerForRoom(current_room_id_)) {
-    viewer->object_interaction().HandlePasteObjects();
+    return viewer->object_interaction().HandlePasteObjects();
   }
   return absl::OkStatus();
 }
@@ -211,6 +212,18 @@ std::vector<SelectedEntity> ValidEntitySelection(
 }  // namespace
 
 void DungeonEditorV2::ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer) {
+  viewer->object_interaction().SetSelectionEditCallbacks(
+      [this](const DungeonSelectionEditPlan& plan, bool continuous) {
+        return CommitSelectionEdit(plan, continuous);
+      },
+      [this]() { FinalizeSelectionUndoAction(); },
+      [this](const absl::Status& status) {
+        if (dependencies_.toast_manager) {
+          dependencies_.toast_manager->Show(
+              absl::StrFormat("Edit not applied: %s", status.message()),
+              ToastType::kWarning, 4.0f);
+        }
+      });
   viewer->SetMetadataEditCallback(
       [this](int room_id, const RoomMetadataEdit& edit) {
         return EditRoomMetadata(room_id, edit);
@@ -255,6 +268,7 @@ void DungeonEditorV2::ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer) {
   // The interaction context is the mutation source of truth. A retained viewer
   // can change rooms, so do not capture the room ID from its creation time.
   viewer->object_interaction().SetMutationCallback([this, viewer]() {
+    FinalizeSelectionUndoAction();
     const auto* ctx = viewer->object_interaction()
                           .entity_coordinator()
                           .tile_handler()
@@ -745,7 +759,8 @@ absl::Status DungeonEditorV2::ApplyMinecartCollisionBatch(
         {room, room->custom_collision(), room->custom_collision_dirty()});
   }
 
-  if (pending_undo_.room_id >= 0 || pending_collision_undo_.room_id >= 0 ||
+  if (pending_selection_undo_.plan || pending_undo_.room_id >= 0 ||
+      pending_collision_undo_.room_id >= 0 ||
       pending_water_fill_undo_.room_id >= 0 ||
       std::any_of(pending_entity_undo_.begin(), pending_entity_undo_.end(),
                   [](const auto& pending) { return pending.room_id >= 0; })) {

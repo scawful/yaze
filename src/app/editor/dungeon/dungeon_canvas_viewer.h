@@ -768,7 +768,9 @@ class DungeonCanvasViewer {
   }
 
   // Object manipulation
-  void DeleteSelectedObjects() { object_interaction_.HandleDeleteSelected(); }
+  void DeleteSelectedObjects() {
+    (void)object_interaction_.HandleDeleteSelected();
+  }
   bool CanHandleRoomCanvasShortcut() const {
     return ImGui::GetCurrentContext() != nullptr &&
            HasRoomCanvasShortcutFocusForFrame(ImGui::GetFrameCount());

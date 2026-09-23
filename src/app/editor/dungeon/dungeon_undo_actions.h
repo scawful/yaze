@@ -11,6 +11,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/core/undo_action.h"
+#include "app/editor/dungeon/dungeon_selection_edit.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
 #include "zelda3/dungeon/custom_collision.h"
 #include "zelda3/dungeon/room_object.h"
@@ -89,14 +90,6 @@ class DungeonObjectsAction : public UndoAction {
   std::vector<size_t> after_selection_;
   std::vector<chest_data> before_chests_, after_chests_;
   RestoreFn restore_;
-};
-
-// Store authored sprite fields, not preview buffers or borrowed graphics pointers.
-struct DungeonSpriteSnapshot {
-  uint8_t id;
-  int x, y, subtype, layer, key_drop;
-  bool deleted;
-  bool operator==(const DungeonSpriteSnapshot&) const = default;
 };
 
 // Only the vector named by domain is populated. Keeping domains independent

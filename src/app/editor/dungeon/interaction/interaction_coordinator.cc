@@ -1,4 +1,5 @@
 #include "app/editor/dungeon/interaction/interaction_coordinator.h"
+#include "app/editor/dungeon/dungeon_selection_edit.h"
 #include "app/editor/dungeon/object_selection.h"
 #include "util/i18n/tr.h"
 
@@ -415,6 +416,7 @@ void InteractionCoordinator::HandleDrag(ImVec2 current_pos, ImVec2 delta) {
   // Forward drag to handlers that have active selections
   if (entity_group_drag_active_) {
     HandleEntityGroupDrag(current_pos);
+    return;
   } else if (door_handler_.HasSelection()) {
     door_handler_.HandleDrag(current_pos, delta);
   }
@@ -444,37 +446,19 @@ void InteractionCoordinator::ResetEntityGroupDragState() {
   entity_group_drag_active_ = false;
   entity_group_drag_last_dx_ = 0;
   entity_group_drag_last_dy_ = 0;
-  entity_group_drag_doors_mutation_started_ = false;
-  entity_group_drag_sprites_mutation_started_ = false;
-  entity_group_drag_items_mutation_started_ = false;
-  entity_group_drag_doors_changed_ = false;
-  entity_group_drag_sprites_changed_ = false;
-  entity_group_drag_items_changed_ = false;
 }
 
 void InteractionCoordinator::FinishEntityGroupDrag() {
-  if (!entity_group_drag_active_) {
-    ResetEntityGroupDragState();
-    return;
-  }
-
-  if (ctx_) {
-    if (entity_group_drag_doors_changed_) {
-      ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
-    }
-    if (entity_group_drag_sprites_changed_) {
-      ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
-    }
-    if (entity_group_drag_items_changed_) {
-      ctx_->NotifyInvalidateCache(MutationDomain::kItems);
-    }
-    if (entity_group_drag_doors_changed_ ||
-        entity_group_drag_sprites_changed_ ||
-        entity_group_drag_items_changed_) {
-      ctx_->NotifyEntityChanged();
-    }
-  }
+  const bool was_active = entity_group_drag_active_;
+  // Clear first: finalization can restore selection or flush other gestures.
   ResetEntityGroupDragState();
+  if (was_active && ctx_ && ctx_->on_selection_edit_finished) {
+    ctx_->on_selection_edit_finished();
+  }
+}
+
+void InteractionCoordinator::FinishSelectionGesture() {
+  FinishEntityGroupDrag();
 }
 
 void InteractionCoordinator::DrawGhostPreviews() {
@@ -554,209 +538,149 @@ bool InteractionCoordinator::HasEntitySelection() const {
          sprite_handler_.HasSelection() || item_handler_.HasSelection();
 }
 
-bool InteractionCoordinator::NudgeSelectedEntities(
-    int delta_x, int delta_y, bool defer_drag_notifications) {
+std::vector<SelectedEntity> InteractionCoordinator::SelectedEntitiesForEdit()
+    const {
+  if (!selected_entities_.empty()) {
+    return selected_entities_;
+  }
+  const auto selected = GetSelectedEntity();
+  return selected.type == EntityType::None
+             ? std::vector<SelectedEntity>{}
+             : std::vector<SelectedEntity>{selected};
+}
+
+int InteractionCoordinator::SelectionMoveStepPixels() const {
+  const auto entities = SelectedEntitiesForEdit();
+  return std::any_of(entities.begin(), entities.end(),
+                     [](const auto entity) {
+                       return entity.type == EntityType::Sprite ||
+                              entity.type == EntityType::Item;
+                     })
+             ? dungeon_coords::kSpriteTileSize
+             : dungeon_coords::kTileSize;
+}
+
+absl::Status InteractionCoordinator::ReportSelectionEditStatus(
+    absl::Status status) {
+  const bool new_error = !status.ok() && status != selection_edit_status_;
+  selection_edit_status_ = std::move(status);
+  if (new_error && ctx_ && ctx_->on_selection_edit_error) {
+    ctx_->on_selection_edit_error(selection_edit_status_);
+  }
+  return selection_edit_status_;
+}
+
+absl::Status InteractionCoordinator::CommitSelectionEdit(
+    const DungeonSelectionEditRequest& request, bool continuous) {
   auto* room = ctx_ ? ctx_->GetCurrentRoom() : nullptr;
   if (!room) {
-    return false;
+    return ReportSelectionEditStatus(absl::FailedPreconditionError(
+        "No room is available for selection editing"));
   }
-
-  // Preflight the complete selection before any domain is changed. A valid
-  // subtype/layer can become a ROM terminator or hidden marker after moving.
-  for (const auto entity : selected_entities_) {
-    if (entity.type != EntityType::Sprite ||
-        entity.index >= room->GetSprites().size()) {
-      continue;
-    }
-    const auto& sprite = room->GetSprites()[entity.index];
-    const int x = static_cast<int>(
-        std::clamp<int64_t>(static_cast<int64_t>(sprite.x()) + delta_x, 0,
-                            dungeon_coords::kSpriteGridMax));
-    const int y = static_cast<int>(
-        std::clamp<int64_t>(static_cast<int64_t>(sprite.y()) + delta_y, 0,
-                            dungeon_coords::kSpriteGridMax));
-    if (!SpriteInteractionHandler::ValidateSpriteProperties(
-             sprite.id(), x, y, sprite.subtype(), sprite.layer(),
-             sprite.key_drop())
-             .ok()) {
-      return false;
-    }
+  auto planned = PlanDungeonSelectionEdit(*room, request);
+  if (!planned.ok()) {
+    return ReportSelectionEditStatus(planned.status());
   }
-
-  bool doors_changed = false;
-  bool sprites_changed = false;
-  bool items_changed = false;
-  bool door_mutation_notified = false;
-  bool sprite_mutation_notified = false;
-  bool item_mutation_notified = false;
-
-  auto notify_once = [&](MutationDomain domain, bool& immediate_flag,
-                         bool& drag_flag) {
-    if (!ctx_) {
-      return;
+  if (!planned->changed()) {
+    return ReportSelectionEditStatus(absl::OkStatus());
+  }
+  if (ctx_->on_selection_edit) {
+    const auto status = ctx_->on_selection_edit(*planned, continuous);
+    if (!status.ok()) {
+      return ReportSelectionEditStatus(status);
     }
-    if (defer_drag_notifications) {
-      if (!drag_flag) {
+  } else {
+    // Standalone handlers retain legacy notifications; the editor callback
+    // stages global constraints and contributes one shared undo action.
+    if (!continuous)
+      FinishSelectionGesture();
+    for (const auto [mask, domain] :
+         {std::pair{kSelectionObjects, MutationDomain::kTileObjects},
+          std::pair{kSelectionDoors, MutationDomain::kDoors},
+          std::pair{kSelectionSprites, MutationDomain::kSprites},
+          std::pair{kSelectionItems, MutationDomain::kItems}}) {
+      if (planned->domains & mask)
         ctx_->NotifyMutation(domain);
-        drag_flag = true;
+    }
+    ApplyDungeonSelectionEditState(*room, planned->after, planned->domains);
+  }
+  // A drag keeps its indices and active state. Re-selecting handlers during
+  // each increment would end their drag and could recursively finalize undo.
+  if (!continuous) {
+    if (ctx_->selection) {
+      ctx_->selection->ClearSelection();
+      for (const auto index : planned->after.selected_objects) {
+        ctx_->selection->SelectObject(index,
+                                      ObjectSelection::SelectionMode::Add);
       }
-      return;
     }
-    if (!immediate_flag) {
-      ctx_->NotifyMutation(domain);
-      immediate_flag = true;
-    }
-  };
-
-  for (const auto entity : selected_entities_) {
-    switch (entity.type) {
-      case EntityType::Door: {
-        auto& doors = room->GetDoors();
-        if (entity.index >= doors.size()) {
-          break;
-        }
-        auto& door = doors[entity.index];
-        int position_delta = 0;
-        switch (door.direction) {
-          case zelda3::DoorDirection::North:
-          case zelda3::DoorDirection::South:
-            position_delta = delta_x;
-            break;
-          case zelda3::DoorDirection::West:
-          case zelda3::DoorDirection::East:
-            position_delta = delta_y;
-            break;
-        }
-        if (position_delta == 0) {
-          break;
-        }
-        const int next_position =
-            std::clamp(static_cast<int>(door.position) + position_delta, 0,
-                       zelda3::DoorPositionManager::kMaxDoorPositions - 1);
-        if (next_position == door.position ||
-            !zelda3::DoorPositionManager::IsValidPosition(
-                static_cast<uint8_t>(next_position), door.direction)) {
-          break;
-        }
-        notify_once(MutationDomain::kDoors, door_mutation_notified,
-                    entity_group_drag_doors_mutation_started_);
-        door.position = static_cast<uint8_t>(next_position);
-        auto [b1, b2] = door.EncodeBytes();
-        door.byte1 = b1;
-        door.byte2 = b2;
-        doors_changed = true;
-        break;
-      }
-      case EntityType::Sprite: {
-        auto& sprites = room->GetSprites();
-        if (entity.index >= sprites.size()) {
-          break;
-        }
-        auto& sprite = sprites[entity.index];
-        const int next_x = static_cast<int>(
-            std::clamp<int64_t>(static_cast<int64_t>(sprite.x()) + delta_x, 0,
-                                dungeon_coords::kSpriteGridMax));
-        const int next_y = static_cast<int>(
-            std::clamp<int64_t>(static_cast<int64_t>(sprite.y()) + delta_y, 0,
-                                dungeon_coords::kSpriteGridMax));
-        if (next_x == sprite.x() && next_y == sprite.y()) {
-          break;
-        }
-        notify_once(MutationDomain::kSprites, sprite_mutation_notified,
-                    entity_group_drag_sprites_mutation_started_);
-        sprite.set_x(next_x);
-        sprite.set_y(next_y);
-        sprites_changed = true;
-        break;
-      }
-      case EntityType::Item: {
-        auto& items = room->GetPotItems();
-        if (entity.index >= items.size()) {
-          break;
-        }
-        auto& item = items[entity.index];
-        constexpr int kRoomPixelMax = 511;
-        constexpr int kItemHorizontalNudgePixels = 8;
-        constexpr int kItemVerticalNudgePixels = 16;
-        const int next_pixel_x =
-            std::clamp(item.GetPixelX() + delta_x * kItemHorizontalNudgePixels,
-                       0, kRoomPixelMax);
-        const int next_pixel_y =
-            std::clamp(item.GetPixelY() + delta_y * kItemVerticalNudgePixels, 0,
-                       kRoomPixelMax);
-        const int encoded_x = std::clamp(next_pixel_x / 4, 0, 255);
-        const int encoded_y = std::clamp(next_pixel_y / 16, 0, 255);
-        const uint16_t next_position =
-            static_cast<uint16_t>((encoded_y << 8) | encoded_x);
-        if (next_position == item.position) {
-          break;
-        }
-        notify_once(MutationDomain::kItems, item_mutation_notified,
-                    entity_group_drag_items_mutation_started_);
-        item.position = next_position;
-        items_changed = true;
-        break;
-      }
-      case EntityType::Object:
-      case EntityType::None:
-      default:
-        break;
-    }
+    SetSelectedEntities(planned->after.selected_entities);
   }
-
-  if (!doors_changed && !sprites_changed && !items_changed) {
-    return false;
-  }
-
-  if (doors_changed) {
-    room->MarkObjectStreamDirty();
-    if (defer_drag_notifications) {
-      entity_group_drag_doors_changed_ = true;
-    } else {
-      ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
+  if (!ctx_->on_selection_edit) {
+    for (const auto [mask, domain] :
+         {std::pair{kSelectionObjects, MutationDomain::kTileObjects},
+          std::pair{kSelectionDoors, MutationDomain::kDoors},
+          std::pair{kSelectionSprites, MutationDomain::kSprites},
+          std::pair{kSelectionItems, MutationDomain::kItems}}) {
+      if (planned->domains & mask)
+        ctx_->NotifyInvalidateCache(domain);
     }
-  }
-  if (sprites_changed) {
-    room->MarkSpritesDirty();
-    if (defer_drag_notifications) {
-      entity_group_drag_sprites_changed_ = true;
-    } else {
-      ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
-    }
-  }
-  if (items_changed) {
-    room->MarkPotItemsDirty();
-    if (defer_drag_notifications) {
-      entity_group_drag_items_changed_ = true;
-    } else {
-      ctx_->NotifyInvalidateCache(MutationDomain::kItems);
-    }
-  }
-  if (!defer_drag_notifications) {
     ctx_->NotifyEntityChanged();
   }
-  return true;
+  return ReportSelectionEditStatus(absl::OkStatus());
 }
 
 bool InteractionCoordinator::NudgeSelected(int delta_x, int delta_y) {
-  if (!selected_entities_.empty()) {
-    return NudgeSelectedEntities(delta_x, delta_y,
-                                 /*defer_drag_notifications=*/false);
+  DungeonSelectionEditRequest request;
+  request.kind = DungeonSelectionEditKind::kMove;
+  if (ctx_ && ctx_->selection)
+    request.objects = ctx_->selection->GetSelectedIndices();
+  request.entities = SelectedEntitiesForEdit();
+  if (request.objects.empty() && request.entities.empty())
+    return false;
+  if (request.objects.empty() && request.entities.size() == 1 &&
+      request.entities.front().type == EntityType::Door) {
+    // A door-only arrow command advances its authored wall slot. Mixed moves
+    // use one physical displacement and may not silently detach the door.
+    const auto* room = ctx_ ? ctx_->GetCurrentRoomConst() : nullptr;
+    const size_t index = request.entities.front().index;
+    if (!room || index >= room->GetDoors().size()) {
+      return CommitSelectionEdit(request).ok();
+    }
+    const auto& door = room->GetDoors()[index];
+    const bool horizontal = door.direction == zelda3::DoorDirection::North ||
+                            door.direction == zelda3::DoorDirection::South;
+    const int64_t next_position =
+        static_cast<int64_t>(door.position) + (horizontal ? delta_x : delta_y);
+    if (next_position == door.position)
+      return false;
+    if (next_position < 0 ||
+        next_position >= zelda3::DoorPositionManager::kMaxDoorPositions ||
+        !zelda3::DoorPositionManager::IsValidPosition(
+            static_cast<uint8_t>(next_position), door.direction)) {
+      ReportSelectionEditStatus(
+          absl::OutOfRangeError("No door slot in that direction"));
+      return false;
+    }
+    auto next = door;
+    next.position = static_cast<uint8_t>(next_position);
+    const auto [old_x, old_y] = door.GetPixelCoords();
+    const auto [new_x, new_y] = next.GetPixelCoords();
+    request.delta_x_pixels = new_x - old_x;
+    request.delta_y_pixels = new_y - old_y;
+    return CommitSelectionEdit(request).ok();
   }
-
-  if (door_handler_.HasSelection()) {
-    return door_handler_.NudgeSelected(delta_x, delta_y);
+  const int step = SelectionMoveStepPixels();
+  const int64_t dx = static_cast<int64_t>(delta_x) * step;
+  const int64_t dy = static_cast<int64_t>(delta_y) * step;
+  if (dx < -512 || dx > 512 || dy < -512 || dy > 512) {
+    ReportSelectionEditStatus(
+        absl::OutOfRangeError("Selection movement leaves the room"));
+    return false;
   }
-  if (sprite_handler_.HasSelection()) {
-    return sprite_handler_.NudgeSelected(delta_x, delta_y);
-  }
-  if (item_handler_.HasSelection()) {
-    constexpr int kItemHorizontalNudgePixels = 8;
-    constexpr int kItemVerticalNudgePixels = 16;
-    return item_handler_.NudgeSelected(delta_x * kItemHorizontalNudgePixels,
-                                       delta_y * kItemVerticalNudgePixels);
-  }
-  return false;
+  request.delta_x_pixels = static_cast<int>(dx);
+  request.delta_y_pixels = static_cast<int>(dy);
+  return CommitSelectionEdit(request).ok();
 }
 
 void InteractionCoordinator::ClearAllEntitySelections() {
@@ -772,91 +696,11 @@ void InteractionCoordinator::ClearAllEntitySelections() {
   }
 }
 
-void InteractionCoordinator::DeleteSelectedEntity() {
-  if (!selected_entities_.empty()) {
-    auto* room = ctx_ ? ctx_->GetCurrentRoom() : nullptr;
-    if (!room) {
-      return;
-    }
-
-    std::vector<size_t> doors;
-    std::vector<size_t> sprites;
-    std::vector<size_t> items;
-    for (const auto entity : selected_entities_) {
-      switch (entity.type) {
-        case EntityType::Door:
-          if (entity.index < room->GetDoors().size()) {
-            doors.push_back(entity.index);
-          }
-          break;
-        case EntityType::Sprite:
-          if (entity.index < room->GetSprites().size()) {
-            sprites.push_back(entity.index);
-          }
-          break;
-        case EntityType::Item:
-          if (entity.index < room->GetPotItems().size()) {
-            items.push_back(entity.index);
-          }
-          break;
-        case EntityType::Object:
-        case EntityType::None:
-        default:
-          break;
-      }
-    }
-
-    auto sort_unique_desc = [](std::vector<size_t>& indices) {
-      std::sort(indices.begin(), indices.end(), std::greater<size_t>());
-      indices.erase(std::unique(indices.begin(), indices.end()), indices.end());
-    };
-    sort_unique_desc(doors);
-    sort_unique_desc(sprites);
-    sort_unique_desc(items);
-
-    if (!doors.empty()) {
-      ctx_->NotifyMutation(MutationDomain::kDoors);
-      auto& room_doors = room->GetDoors();
-      for (size_t index : doors) {
-        room_doors.erase(room_doors.begin() + static_cast<ptrdiff_t>(index));
-      }
-      room->MarkObjectStreamDirty();
-      ctx_->NotifyInvalidateCache(MutationDomain::kDoors);
-    }
-    if (!sprites.empty()) {
-      ctx_->NotifyMutation(MutationDomain::kSprites);
-      auto& room_sprites = room->GetSprites();
-      for (size_t index : sprites) {
-        room_sprites.erase(room_sprites.begin() +
-                           static_cast<ptrdiff_t>(index));
-      }
-      room->MarkSpritesDirty();
-      ctx_->NotifyInvalidateCache(MutationDomain::kSprites);
-    }
-    if (!items.empty()) {
-      ctx_->NotifyMutation(MutationDomain::kItems);
-      auto& room_items = room->GetPotItems();
-      for (size_t index : items) {
-        room_items.erase(room_items.begin() + static_cast<ptrdiff_t>(index));
-      }
-      room->MarkPotItemsDirty();
-      ctx_->NotifyInvalidateCache(MutationDomain::kItems);
-    }
-
-    if (!doors.empty() || !sprites.empty() || !items.empty()) {
-      ClearAllEntitySelections();
-      ctx_->NotifyEntityChanged();
-    }
-    return;
-  }
-
-  if (door_handler_.HasSelection()) {
-    door_handler_.DeleteSelected();
-  } else if (sprite_handler_.HasSelection()) {
-    sprite_handler_.DeleteSelected();
-  } else if (item_handler_.HasSelection()) {
-    item_handler_.DeleteSelected();
-  }
+absl::Status InteractionCoordinator::DeleteSelectedEntity() {
+  DungeonSelectionEditRequest request;
+  request.kind = DungeonSelectionEditKind::kDelete;
+  request.entities = SelectedEntitiesForEdit();
+  return CommitSelectionEdit(request);
 }
 
 InteractionCoordinator::Mode InteractionCoordinator::GetSelectedEntityType()
@@ -1017,12 +861,6 @@ void InteractionCoordinator::BeginSelectionDrag(ImVec2 start_pos) {
   entity_group_drag_current_ = entity_group_drag_start_;
   entity_group_drag_last_dx_ = 0;
   entity_group_drag_last_dy_ = 0;
-  entity_group_drag_doors_mutation_started_ = false;
-  entity_group_drag_sprites_mutation_started_ = false;
-  entity_group_drag_items_mutation_started_ = false;
-  entity_group_drag_doors_changed_ = false;
-  entity_group_drag_sprites_changed_ = false;
-  entity_group_drag_items_changed_ = false;
 }
 
 void InteractionCoordinator::HandleEntityGroupDrag(ImVec2 current_pos) {
@@ -1035,17 +873,22 @@ void InteractionCoordinator::HandleEntityGroupDrag(ImVec2 current_pos) {
       entity_group_drag_current_.x - entity_group_drag_start_.x,
       entity_group_drag_current_.y - entity_group_drag_start_.y);
 
-  constexpr int kEntityDragStepPixels = dungeon_coords::kSpriteTileSize;
-  const int drag_dx = static_cast<int>(drag_delta.x) / kEntityDragStepPixels;
-  const int drag_dy = static_cast<int>(drag_delta.y) / kEntityDragStepPixels;
+  const int step = SelectionMoveStepPixels();
+  const int drag_dx = static_cast<int>(drag_delta.x) / step * step;
+  const int drag_dy = static_cast<int>(drag_delta.y) / step * step;
   const int inc_dx = drag_dx - entity_group_drag_last_dx_;
   const int inc_dy = drag_dy - entity_group_drag_last_dy_;
-  if (inc_dx == 0 && inc_dy == 0) {
+  if (inc_dx == 0 && inc_dy == 0)
     return;
-  }
 
-  if (NudgeSelectedEntities(inc_dx, inc_dy,
-                            /*defer_drag_notifications=*/true)) {
+  DungeonSelectionEditRequest request;
+  request.kind = DungeonSelectionEditKind::kMove;
+  if (ctx_ && ctx_->selection)
+    request.objects = ctx_->selection->GetSelectedIndices();
+  request.entities = SelectedEntitiesForEdit();
+  request.delta_x_pixels = inc_dx;
+  request.delta_y_pixels = inc_dy;
+  if (CommitSelectionEdit(request, true).ok()) {
     entity_group_drag_last_dx_ = drag_dx;
     entity_group_drag_last_dy_ = drag_dy;
   }

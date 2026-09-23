@@ -10,6 +10,7 @@
 #include "app/editor/dungeon/dungeon_canvas_transform.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
+#include "app/editor/dungeon/dungeon_selection_edit.h"
 #include "app/editor/dungeon/dungeon_snapping.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
 #include "app/editor/dungeon/interaction/interaction_coordinator.h"
@@ -258,14 +259,16 @@ class DungeonObjectInteraction {
   // Mixed selections move together so keyboard nudging follows the same grammar
   // as marquee and additive selection.
   bool NudgeSelected(int delta_x, int delta_y);
-  void HandleDeleteSelected();
+  absl::Status HandleDeleteSelected();
   void HandleDeleteAllObjects();
-  void HandleCopySelected();
-  void HandlePasteObjects();
-  bool HasClipboardData() const {
-    return entity_coordinator_.tile_handler().HasClipboardData() ||
-           entity_clipboard_.HasData();
+  absl::Status HandleCopySelected();
+  absl::Status HandlePasteObjects();
+  absl::Status HandleDuplicateSelected();
+  absl::Status HandlePasteAt(int pixel_x, int pixel_y);
+  const absl::Status& selection_edit_status() const {
+    return entity_coordinator_.selection_edit_status();
   }
+  bool HasClipboardData() const { return !selection_clipboard_.empty(); }
 
   // Inspector-friendly mutation helpers (with undo + rerender integration).
   // These are intended for UI panels that want to edit a single object without
@@ -315,6 +318,17 @@ class DungeonObjectInteraction {
   void SetMutationCallback(std::function<void()> callback) {
     interaction_context_.on_mutation = std::move(callback);
     entity_coordinator_.SetContext(&interaction_context_);
+  }
+  void SetSelectionEditCallbacks(
+      std::function<absl::Status(const DungeonSelectionEditPlan&, bool)> edit,
+      std::function<void()> finish,
+      std::function<void(const absl::Status&)> error = {}) {
+    interaction_context_.on_selection_edit = std::move(edit);
+    interaction_context_.on_selection_edit_finished = std::move(finish);
+    interaction_context_.on_selection_edit_error = std::move(error);
+  }
+  void FinishSelectionGesture() {
+    entity_coordinator_.FinishSelectionGesture();
   }
   void SetEditorSystem(zelda3::DungeonEditorSystem* system) {
     editor_system_ = system;
@@ -376,32 +390,9 @@ class DungeonObjectInteraction {
   void FinishPaintStroke();
   bool HandleKeyboardNudge();
 
-  struct EntityClipboard {
-    std::vector<zelda3::Sprite> sprites;
-    std::vector<zelda3::PotItem> items;
-    int origin_pixel_x = 0;
-    int origin_pixel_y = 0;
-    int origin_tile_x = 0;
-    int origin_tile_y = 0;
-
-    bool HasData() const { return !sprites.empty() || !items.empty(); }
-    void Clear() {
-      sprites.clear();
-      items.clear();
-      origin_pixel_x = 0;
-      origin_pixel_y = 0;
-      origin_tile_x = 0;
-      origin_tile_y = 0;
-    }
-  };
-
-  void CopySelectedEntitiesToClipboard(bool clipboard_origin_set);
-  std::vector<SelectedEntity> PasteEntityClipboardAt(int target_pixel_x,
-                                                     int target_pixel_y);
-
   // Ghost preview bitmap (persists across frames for placement preview)
   gfx::PaletteGroup current_palette_group_;
-  EntityClipboard entity_clipboard_;
+  DungeonSelectionClipboard selection_clipboard_;
 
   // Unified selection system - replaces legacy selection state
   ObjectSelection selection_;

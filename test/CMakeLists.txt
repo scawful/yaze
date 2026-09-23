@@ -278,6 +278,8 @@ if(YAZE_BUILD_TESTS)
     unit/editor/screen_editor_undo_test.cc
     unit/editor/dungeon_undo_actions_test.cc
     unit/editor/dungeon_room_edit_test.cc
+    unit/editor/dungeon_selection_edit_test.cc
+    unit/editor/dungeon_selection_edits_lifecycle_test.cc
     unit/editor/dungeon_room_metadata_ui_test.cc
     unit/editor/dungeon_room_edits_lifecycle_test.cc
     unit/editor/dungeon_chest_editor_test.cc
@@ -668,6 +670,8 @@ if(YAZE_BUILD_TESTS)
     unit/editor/command_palette_workflow_test.cc
     unit/editor/dungeon_undo_actions_test.cc
     unit/editor/dungeon_room_edit_test.cc
+    unit/editor/dungeon_selection_edit_test.cc
+    unit/editor/dungeon_selection_edits_lifecycle_test.cc
     unit/editor/dungeon_room_metadata_ui_test.cc
     unit/editor/dungeon_room_edits_lifecycle_test.cc
     unit/editor/dungeon_chest_editor_test.cc

@@ -155,9 +155,10 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
     int room_id, std::optional<zelda3::RoomObject> context_object) {
   auto& interaction = object_interaction_;
   const auto selected = interaction.GetSelectedObjectIndices();
-  const bool has_selection = !selected.empty();
-  const bool single_selection = selected.size() == 1;
-  const bool group_selection = selected.size() > 1;
+  const bool has_entity_selection = interaction.HasEntitySelection();
+  const bool has_selection = !selected.empty() || has_entity_selection;
+  const bool single_selection = selected.size() == 1 && !has_entity_selection;
+  const bool group_selection = selected.size() > 1 || has_entity_selection;
   const bool has_clipboard = interaction.HasClipboardData();
   const bool placing_object = interaction.IsObjectLoaded();
   const bool valid_room =
@@ -225,7 +226,7 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
   auto paste_item = [&]() {
     gui::CanvasMenuItem item(
         "Paste", ICON_MD_CONTENT_PASTE,
-        [&interaction]() { interaction.HandlePasteObjects(); }, "Ctrl+V");
+        [&interaction]() { (void)interaction.HandlePasteObjects(); }, "Ctrl+V");
     item.enabled_condition = enabled_if(has_clipboard);
     return item;
   };
@@ -264,49 +265,53 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
     items.emplace_back(
         "Cut", ICON_MD_CONTENT_CUT,
         [&interaction]() {
-          interaction.HandleCopySelected();
-          interaction.HandleDeleteSelected();
+          if (interaction.HandleCopySelected().ok()) {
+            (void)interaction.HandleDeleteSelected();
+          }
         },
         "Ctrl+X");
     items.emplace_back(
         "Copy", ICON_MD_CONTENT_COPY,
-        [&interaction]() { interaction.HandleCopySelected(); }, "Ctrl+C");
+        [&interaction]() { (void)interaction.HandleCopySelected(); }, "Ctrl+C");
     items.push_back(paste_item());
     items.emplace_back(
         "Delete", ICON_MD_DELETE,
-        [&interaction]() { interaction.HandleDeleteSelected(); }, "Del");
+        [&interaction]() { (void)interaction.HandleDeleteSelected(); }, "Del");
 
-    items.emplace_back(
-        "Bring to Front", ICON_MD_FLIP_TO_FRONT,
-        [&interaction]() { interaction.SendSelectedToFront(); },
-        "Ctrl+Shift+]");
-    items.emplace_back(
-        "Send to Back", ICON_MD_FLIP_TO_BACK,
-        [&interaction]() { interaction.SendSelectedToBack(); }, "Ctrl+Shift+[");
+    if (!selected.empty()) {
+      items.emplace_back(
+          "Bring to Front", ICON_MD_FLIP_TO_FRONT,
+          [&interaction]() { interaction.SendSelectedToFront(); },
+          "Ctrl+Shift+]");
+      items.emplace_back(
+          "Send to Back", ICON_MD_FLIP_TO_BACK,
+          [&interaction]() { interaction.SendSelectedToBack(); },
+          "Ctrl+Shift+[");
 
-    gui::CanvasMenuItem z_order;
-    z_order.label = "Z Order";
-    z_order.icon = ICON_MD_LAYERS;
-    z_order.subitems.emplace_back(
-        "Bring Forward", ICON_MD_ARROW_UPWARD,
-        [&interaction]() { interaction.BringSelectedForward(); }, "Ctrl+]");
-    z_order.subitems.emplace_back(
-        "Send Backward", ICON_MD_ARROW_DOWNWARD,
-        [&interaction]() { interaction.SendSelectedBackward(); }, "Ctrl+[");
-    items.push_back(std::move(z_order));
+      gui::CanvasMenuItem z_order;
+      z_order.label = "Z Order";
+      z_order.icon = ICON_MD_LAYERS;
+      z_order.subitems.emplace_back(
+          "Bring Forward", ICON_MD_ARROW_UPWARD,
+          [&interaction]() { interaction.BringSelectedForward(); }, "Ctrl+]");
+      z_order.subitems.emplace_back(
+          "Send Backward", ICON_MD_ARROW_DOWNWARD,
+          [&interaction]() { interaction.SendSelectedBackward(); }, "Ctrl+[");
+      items.push_back(std::move(z_order));
 
-    if (has_room_stream_object && !has_special_layer_object) {
-      items.push_back(layer_item("Object Stream: Primary", 0, "1"));
-      items.push_back(layer_item("Object Stream: BG2 Overlay", 1, "2"));
-      items.push_back(layer_item("Object Stream: BG1 Overlay", 2, "3"));
-    } else if (has_special_layer_object && !has_room_stream_object) {
-      items.push_back(layer_item("Upper Layer (BG1)", 0, "1"));
-      items.push_back(layer_item("Lower Layer (BG2)", 1, "2"));
-    } else {
-      items.push_back(
-          layer_item("Placement 0: Primary / Upper Layer (BG1)", 0, "1"));
-      items.push_back(
-          layer_item("Placement 1: BG2 Overlay / Lower Layer (BG2)", 1, "2"));
+      if (has_room_stream_object && !has_special_layer_object) {
+        items.push_back(layer_item("Object Stream: Primary", 0, "1"));
+        items.push_back(layer_item("Object Stream: BG2 Overlay", 1, "2"));
+        items.push_back(layer_item("Object Stream: BG1 Overlay", 2, "3"));
+      } else if (has_special_layer_object && !has_room_stream_object) {
+        items.push_back(layer_item("Upper Layer (BG1)", 0, "1"));
+        items.push_back(layer_item("Lower Layer (BG2)", 1, "2"));
+      } else {
+        items.push_back(
+            layer_item("Placement 0: Primary / Upper Layer (BG1)", 0, "1"));
+        items.push_back(
+            layer_item("Placement 1: BG2 Overlay / Lower Layer (BG2)", 1, "2"));
+      }
     }
 
     gui::CanvasMenuItem yaze_more;
@@ -314,10 +319,7 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
     yaze_more.icon = ICON_MD_MORE_HORIZ;
     yaze_more.subitems.emplace_back(
         "Duplicate", ICON_MD_CONTENT_PASTE,
-        [&interaction]() {
-          interaction.HandleCopySelected();
-          interaction.HandlePasteObjects();
-        },
+        [&interaction]() { (void)interaction.HandleDuplicateSelected(); },
         "Ctrl+D");
     if (group_selection) {
       yaze_more.subitems.push_back(
@@ -337,13 +339,6 @@ DungeonCanvasViewer::BuildSelectionContextMenuItems(
   if (check_selected_coverage) {
     items.emplace_back("Check in Object Coverage", ICON_MD_FACT_CHECK,
                        std::move(check_selected_coverage));
-  }
-
-  const bool has_entity_selection = interaction.HasEntitySelection();
-  if (has_entity_selection && !has_selection) {
-    items.emplace_back(
-        "Delete", ICON_MD_DELETE,
-        [&interaction]() { interaction.HandleDeleteSelected(); }, "Del");
   }
 
   if (!has_selection && !has_entity_selection) {

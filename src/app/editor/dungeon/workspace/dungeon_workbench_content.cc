@@ -2036,10 +2036,10 @@ void DungeonWorkbenchContent::DrawSelectedObjectActions(
       return clicked;
     };
     if (action(ICON_MD_CONTENT_COPY " Duplicate", "duplicate_object")) {
-      (void)handler.DuplicateObjects(room_id, indices, 1, 1);
+      (void)interaction.HandleDuplicateSelected();
     }
     if (action(ICON_MD_DELETE " Delete", "delete_object")) {
-      interaction.HandleDeleteSelected();
+      (void)interaction.HandleDeleteSelected();
     }
     if (action(ICON_MD_FLIP_TO_FRONT " To front", "object_to_front")) {
       handler.SendToFront(room_id, indices);
@@ -2121,19 +2121,21 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
       // Nudge grid (arrow buttons around a tile-delta drag).
       static int bulk_nudge_dx = 0;
       static int bulk_nudge_dy = 0;
-      ImGui::TextDisabled(tr("Nudge (tiles)"));
+      ImGui::TextDisabled(
+          tr("Nudge selection (%d px steps)"),
+          interaction.entity_coordinator().SelectionMoveStepPixels());
       ImGui::PushButtonRepeat(true);
       if (ImGui::Button(ICON_MD_ARROW_UPWARD "##BulkNudgeUp"))
-        tile_handler.MoveObjects(room_id, selection_copy, 0, -1);
+        interaction.NudgeSelected(0, -1);
       ImGui::SameLine();
       if (ImGui::Button(ICON_MD_ARROW_DOWNWARD "##BulkNudgeDown"))
-        tile_handler.MoveObjects(room_id, selection_copy, 0, 1);
+        interaction.NudgeSelected(0, 1);
       ImGui::SameLine();
       if (ImGui::Button(ICON_MD_ARROW_BACK "##BulkNudgeLeft"))
-        tile_handler.MoveObjects(room_id, selection_copy, -1, 0);
+        interaction.NudgeSelected(-1, 0);
       ImGui::SameLine();
       if (ImGui::Button(ICON_MD_ARROW_FORWARD "##BulkNudgeRight"))
-        tile_handler.MoveObjects(room_id, selection_copy, 1, 0);
+        interaction.NudgeSelected(1, 0);
       ImGui::PopButtonRepeat();
 
       ImGui::SetNextItemWidth(60);
@@ -2144,8 +2146,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
       ImGui::SameLine();
       if (ImGui::Button(tr("Apply##BulkNudgeApply")) &&
           (bulk_nudge_dx != 0 || bulk_nudge_dy != 0)) {
-        tile_handler.MoveObjects(room_id, selection_copy, bulk_nudge_dx,
-                                 bulk_nudge_dy);
+        interaction.NudgeSelected(bulk_nudge_dx, bulk_nudge_dy);
         bulk_nudge_dx = 0;
         bulk_nudge_dy = 0;
       }
@@ -2207,7 +2208,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
 
       ImGui::Spacing();
       if (ImGui::SmallButton(ICON_MD_CONTENT_COPY " Duplicate##BulkDup"))
-        (void)tile_handler.DuplicateObjects(room_id, selection_copy, 1, 1);
+        (void)interaction.HandleDuplicateSelected();
       ImGui::SameLine();
       {
         gui::StyleColorGuard danger_colors({
@@ -2234,7 +2235,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
               {ImGuiCol_Button, theme.status_error},
           });
           if (ImGui::Button(ICON_MD_DELETE " Confirm##BulkDelConfirm")) {
-            tile_handler.DeleteObjects(room_id, selection_copy);
+            (void)interaction.HandleDeleteSelected();
             ImGui::CloseCurrentPopup();
           }
         }
