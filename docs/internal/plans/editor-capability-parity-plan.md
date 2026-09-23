@@ -5,7 +5,8 @@
 **Created:** 2026-09-22  
 **Last Reviewed:** 2026-09-22  
 **Next Review:** 2026-10-06  
-**Universe Task:** `task_20260923T000806Z_4560`
+**Universe Task:** `task_20260923T025637Z_4379` (current room/chest increment);
+initial plan task `task_20260923T000806Z_4560`
 
 ## Summary
 
@@ -103,8 +104,8 @@ Do not publish estimated parity percentages.
 
 | ID | Deliverable | Current implementation state | Depends on | Primary owner |
 |---|---|---|---|---|
-| DA-1 | Complete dungeon edit undo across domains | Partial; door/sprite/pot-item slice Candidate at `a730d6557` | Existing mutation hooks and undo actions | imgui-frontend-engineer |
-| DA-2 | One editable inspector for every room element | Partial; tile controls and shared entity inspector Candidate | DA-1 for added edits | imgui-frontend-engineer |
+| DA-1 | Complete dungeon edit undo across domains | Partial; entity slice at `a730d6557`; room metadata and existing chest-content Candidate below | Existing mutation hooks and undo actions | imgui-frontend-engineer |
+| DA-2 | One editable inspector for every room element | Partial; tile/entity controls, named room properties and shared existing chest-content Candidate | DA-1 for added edits | imgui-frontend-engineer |
 | DA-3 | Visual room connection authoring | Partial; navigation/diagnostics exist | DA-1 header/compound coverage | zelda3-hacking-expert |
 | DA-4 | Complete room clone/import and reusable selections | Partial; model helpers and limited export exist | DA-1 compound coverage | zelda3-hacking-expert |
 | DA-5 | Dungeon render, persistence, and packaged-candidate qualification | Partial; independent active lane | Exact candidate from DA-1–DA-4 | test-infrastructure-expert |
@@ -117,8 +118,9 @@ Do not publish estimated parity percentages.
 | AU-2 | Music event clipboard and editing completion | Partial | Existing song model; AU-1 for sample workflows | imgui-frontend-engineer |
 | CO-1 | Reference-feature and ROM-format compatibility ledger | Partial inventory | Evidence per affected package | zelda3-hacking-expert |
 
-Work-package status must name the completed sub-slice. Door/sprite/item undo
-does not close all of DA-1 while headers, chests, or mixed operations remain.
+Work-package status must name the completed sub-slice. Entity, room-metadata,
+and existing chest-content undo do not close DA-1 while chest creation/deletion,
+atomic mixed-domain operations, and their qualification remain.
 
 ### DA-1 and DA-2: edit any room element in place
 
@@ -150,7 +152,7 @@ Property controls agree across presentations. Named choices explain values;
 raw fields remain only when useful and validated. A real editor-level test
 must exercise hook-to-history-to-restore, not only an isolated action object.
 
-### Current DA-1 / DA-2 increment (2026-09-22)
+### Entity DA-1 / DA-2 increment (2026-09-22)
 
 **Candidate:** `a730d6557`, branch `codex/editor-parity-dungeon-authoring`,
 following plan commit `5fc5af950`. This supersedes the read-only Workbench
@@ -190,7 +192,7 @@ build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_list_tests --gtest_filter=
 build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter='*DungeonEntityUndoLifecycleTest*:*DungeonUndoActionsTest*:*DungeonWorkbench*:*InteractionCoordinatorTest*:*SpriteInteractionHandlerTest*:*DoorInteractionHandlerTest*:*ItemInteractionHandlerTest*:*DungeonSelectionSnapshot*'
 ```
 
-**Still open:** header/tag/destination and chest undo; atomic mixed-domain
+**Open at this increment:** header/tag/destination and chest undo; atomic mixed-domain
 operations; capacity-aware clipboard completion; sprite sort-mode editing;
 full contextual controls for the remaining room elements. The connected-view
 context guard prevents wrong-room writes; it does not complete connected-view
@@ -198,9 +200,8 @@ authoring. Source/handler validation does not replace serializer validation for
 other mutation callers. No new application save/reopen, game runtime, CI,
 installation, or release qualification is claimed.
 
-**Next implementation:** extend DA-1 to room metadata and chests through the
-existing undo path, then introduce compound transactions before DA-3 connections
-or DA-4 cloning/import. Do not reimplement the three completed entity inspectors.
+**Follow-on:** the room metadata and existing chest-content increment below
+extends this entity slice. Do not reimplement the three shared entity inspectors.
 
 ### Room-transition review and integration (2026-09-22)
 
@@ -235,6 +236,91 @@ The broader feature packages remain partial. This integration adds no app-level
 save/reopen, runtime, remote CI, installation, or release evidence. See DA-5 and
 the placement handoff for the inspected older ROM-validation artifacts and their
 limits.
+
+### Room metadata and existing chest-content increment (2026-09-22)
+
+**Candidate:** `aeb0b1200` on `codex/editor-parity-dungeon-authoring`, following
+`a893d0ef5`. This local increment does not change mainline, an open PR, or the
+installed application.
+
+The candidate extends DA-1 / DA-2 with these bounded operations:
+
+- Room metadata edits use a typed validation boundary and the existing undo
+  manager: header properties, tags, message, layout, BG1/BG2 floors, pit
+  destination, and each staircase destination/plane. Snapshot restoration
+  preserves the dark-room flag and its hidden BG2 mode, encoded values, and
+  unrelated room domains. Layout/floors retain their distinct object-stream
+  header save dirtiness. Existing ROM reserved-bit preservation remains intact. Tag authoring uses
+  `00-3F`; fixed byte-backed tag/effect/collision types preserve unknown loaded
+  values without widening the supported authoring choices.
+- Workbench properties use full labels and named BG2/effect/collision/tag
+  choices. Raw graphics and destination fields remain available with validation.
+  Deferred text is tied to the room identity; preview text does not mutate the
+  room. Standalone property controls and the Room Tags tool use the same edit
+  boundary. Metadata changes refresh room graphics, palette consumers, tag
+  usage, and connected-room graph state without navigating away from the
+  current room.
+- Existing chest contents records have shared Workbench/standalone controls:
+  record selection, searchable named rewards, explicit raw reward IDs, and the
+  normal/big record type. Each edit is undoable in its original room and
+  preserves other records. The panel explains object/record count mismatches.
+  Changing a record type does not replace the visible chest object.
+- Connected-view **Clear stale** validates all affected room metadata first,
+  then publishes one undo action for the complete multiroom edit. Invalid
+  batches cannot partially change rooms; net-zero batches preserve redo history.
+  Undo/redo also validates every target before restoring any room.
+- `DrawInspectorShelfRoom` moves out of the large Workbench source into
+  `workspace/dungeon_workbench_room_inspector.cc`; the old implementation is
+  removed. `inspectors/dungeon_chest_editor.*` is reused by both presentations.
+  This extraction supports feature ownership; file size is not correctness
+  evidence.
+
+**Evidence:** Source + Focused at `aeb0b1200`. App and unit targets built with
+four workers. **475 selected tests across 36 suites passed, zero failures and
+zero skips.** The increment adds 94 cases: 52 metadata model/boundary cases,
+28 editor lifecycle cases across both viewer modes, six metadata ImGui cases,
+and eight chest chooser cases. The final test filter excludes optional
+`RoomObjectRomParityTest` fixtures; an earlier broader run skipped the missing
+expanded-ROM fixture and does not qualify that ROM profile.
+
+The rendered controls tests enter text, change rooms, choose named values,
+filter chest rewards through the actual search field, and verify rejection
+feedback. The synthetic `SaveRoom` lifecycle test saves, independently decodes
+headers/chests, compares all bytes outside the permitted records, then verifies
+undo/save restores the original complete ROM buffer. This does not establish
+vanilla/Oracle application-to-disk or game-runtime qualification.
+
+Scoped Clang analyzer checks passed on `dungeon_room_edit.cc` and
+`dungeon_editor_v2_room_edits.cc`, with `clang-analyzer-*` findings promoted to
+errors and the header filter limited to those new modules. Diagnostics outside
+that scope were suppressed by the filter. This is not a full-repository tidy
+pass. Changed-line clang-format, `git diff --check`, editor guardrails from
+`a893d0ef5`, and the normal pre-commit checks passed.
+
+The [handoff verification commands](../agents/dungeon-workbench-placement-handoff-2026-09-22.md#room-authoring-verification-commands)
+record the exact build, test discovery/filter, and analyzer commands. Artifacts:
+`/tmp/yaze-room-authoring-commit-build.log`,
+`/tmp/yaze-room-authoring-verified-selected-tests.log`,
+`/tmp/yaze-room-authoring-verified-tests.log`,
+`/tmp/yaze-room-authoring-verified-tests.xml`, and
+`/tmp/yaze-room-authoring-final-analyzer.log`. No full application save/reopen,
+runtime, remote CI, installation, or Release acceptance is added by these results.
+
+**Still open:** creating or deleting a chest must update its tile object and
+contents record together, with capacity/ordering validation and one undo action.
+The current controls only edit existing records. General mixed-domain compound
+operations, capacity-aware clipboard completion, sprite sort-mode editing, and
+remaining room-element controls also keep DA-1 / DA-2 partial. The multiroom
+metadata batch is one data domain; it does not establish general compound
+transactions or complete DA-3 connections / DA-4 clone/import.
+
+**Next implementation:** implement compound chest creation/deletion and shared
+mixed-domain transaction support through the existing undo manager. Preserve
+record order and unrelated data, preflight the entire operation, and restore
+all affected domains together on undo. Use that proven boundary for DA-3
+connection edits and DA-4 room clone/import; do not begin a separate inspector
+or parallel transaction framework. DA-5 qualification remains an independent
+lane against the exact candidate.
 
 ### Supporting cleanup and human UI ownership
 
