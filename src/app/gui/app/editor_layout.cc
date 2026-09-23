@@ -308,6 +308,11 @@ bool PanelWindow::Begin(bool* p_open) {
     return false;
   }
 
+  if (force_undock_) {
+    ImGui::SetNextWindowDockID(0, ImGuiCond_Always);
+    force_undock_ = false;
+  }
+
   ImGuiWindowFlags flags = ImGuiWindowFlags_None;
 
   // Apply headless mode

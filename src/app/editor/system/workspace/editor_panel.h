@@ -291,6 +291,9 @@ class WindowContent {
    */
   virtual float GetPreferredHeight() const { return 0.0f; }
 
+  /** Prefer a floating (undocked) window when opened via OpenWindowFloating. */
+  virtual bool PrefersFloating() const { return false; }
+
   /**
    * @brief Whether the dock node hosting this panel should auto-hide its tab bar
    * @return true to prefer ImGuiDockNodeFlags_AutoHideTabBar

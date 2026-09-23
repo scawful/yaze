@@ -297,6 +297,9 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   /// Gets the tile16 under the cursor and opens the Tile16Editor focused on it.
   void HandleTile16Edit();
 
+  absl::Status OnTile16ChangesCommitted(
+      const std::vector<Tile16Commit>& commits);
+
   /// @brief Select an overworld item using value identity matching.
   bool SelectItemByIdentity(const zelda3::OverworldItem& item_identity);
 

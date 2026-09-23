@@ -972,8 +972,17 @@ void WorkspaceWindowManager::DrawAllVisiblePanels() {
     gui::PanelWindow window(display_name.c_str(), icon.c_str(),
                             visibility_flag);
     window.SetStableId(prefixed_panel_id);
-    if (touch_device) {
+    const bool force_float = pending_float_base_ids_.count(base_panel_id) > 0;
+    if (panel->PrefersFloating() || force_float) {
+      window.SetPosition(gui::PanelWindow::Position::Floating);
+    } else if (touch_device) {
       window.SetPosition(gui::PanelWindow::Position::Center);
+    }
+    // Only undock on explicit OpenWindowFloating — PrefersFloating alone sets
+    // the default floating position without blocking user docking.
+    if (force_float) {
+      window.RequestForceUndock();
+      pending_float_base_ids_.erase(base_panel_id);
     }
 
     // Use preferred size from WindowContent if specified.
@@ -1062,6 +1071,13 @@ void WorkspaceWindowManager::OnEditorSwitch(const std::string& from_category,
 // ============================================================================
 // Panel Control (Programmatic, No GUI)
 // ============================================================================
+
+bool WorkspaceWindowManager::OpenWindowFloating(
+    size_t session_id, const std::string& base_window_id) {
+  const std::string canonical_base_id = ResolveBaseWindowId(base_window_id);
+  pending_float_base_ids_.insert(canonical_base_id);
+  return OpenWindowImpl(session_id, base_window_id);
+}
 
 bool WorkspaceWindowManager::OpenWindowImpl(size_t session_id,
                                             const std::string& base_card_id) {

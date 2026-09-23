@@ -304,6 +304,7 @@ class WorkspaceWindowManager {
   bool OpenWindow(size_t session_id, const std::string& base_window_id) {
     return OpenWindowImpl(session_id, base_window_id);
   }
+  bool OpenWindowFloating(size_t session_id, const std::string& base_window_id);
   bool CloseWindow(size_t session_id, const std::string& base_window_id) {
     return CloseWindowImpl(session_id, base_window_id);
   }
@@ -817,6 +818,9 @@ class WorkspaceWindowManager {
   bool OpenWindow(const std::string& base_window_id) {
     return OpenWindowImpl(active_session_, base_window_id);
   }
+  bool OpenWindowFloating(const std::string& base_window_id) {
+    return OpenWindowFloating(active_session_, base_window_id);
+  }
   bool CloseWindow(const std::string& base_window_id) {
     return CloseWindowImpl(active_session_, base_window_id);
   }
@@ -1067,6 +1071,7 @@ class WorkspaceWindowManager {
     // Also included in SerializePinnedState so pins survive a restart even
     // when the user never actually opened the panel in the prior session.
     std::unordered_map<std::string, bool> pending_pinned_base_ids;
+    std::unordered_set<std::string> pending_float_base_ids;
     size_t session_count = 0;
     size_t active_session = 0;
     std::unordered_map<size_t, std::vector<std::string>> session_windows;
@@ -1105,6 +1110,8 @@ class WorkspaceWindowManager {
       session_state_.pinned_windows;
   std::unordered_map<std::string, bool>& pending_pinned_base_ids_ =
       session_state_.pending_pinned_base_ids;
+  std::unordered_set<std::string>& pending_float_base_ids_ =
+      session_state_.pending_float_base_ids;
   size_t& session_count_ = session_state_.session_count;
   size_t& active_session_ = session_state_.active_session;
   std::unordered_map<size_t, std::vector<std::string>>& session_cards_ =
