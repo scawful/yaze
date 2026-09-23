@@ -657,6 +657,11 @@ TEST_F(DungeonWorkbenchEntityInspectorUiTest,
     // The viewer still displays room 0, while handler mutations now target
     // room 1. Both rooms have index 0, so an accidental write would be valid.
     interaction.SetCurrentRoom(&rooms_, 1);
+    ASSERT_FALSE(interaction.HasEntitySelection());
+    // Room changes now clear selection. Deliberately select in the newly bound
+    // room so this still exercises the inspector's independent context guard.
+    interaction.SelectEntity(test_case.type, 0);
+    entity_changes_ = 0;  // Selection itself emits a presentation notification.
     ASSERT_EQ(viewer_.current_room_id(), 0);
     ASSERT_EQ(interaction.entity_coordinator()
                   .tile_handler()

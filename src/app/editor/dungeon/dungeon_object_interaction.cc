@@ -311,29 +311,30 @@ void DungeonObjectInteraction::HandleEmptySpaceClick(
   }
 }
 
-void DungeonObjectInteraction::HandleMouseRelease() {
-  {
-    // End paint strokes on mouse release so a new left-drag creates a new undo
-    // snapshot. Keep the paint mode active (tool stays selected).
-    const auto mode = mode_manager_.GetMode();
-    if (mode == InteractionMode::PaintCollision ||
-        mode == InteractionMode::PaintWaterFill) {
-      auto& state = mode_manager_.GetModeState();
-      const bool had_mutation = state.paint_mutation_started;
-      state.is_painting = false;
-      state.paint_mutation_started = false;
-      state.paint_last_tile_x = -1;
-      state.paint_last_tile_y = -1;
-      // Emit a final invalidation after the stroke ends so domain-specific undo
-      // capture can finalize the action once we're no longer "painting".
-      if (had_mutation) {
-        interaction_context_.NotifyInvalidateCache(
-            (mode == InteractionMode::PaintCollision)
-                ? MutationDomain::kCustomCollision
-                : MutationDomain::kWaterFill);
-      }
-    }
+void DungeonObjectInteraction::FinishPaintStroke() {
+  // End the stroke without deselecting its tool. This also runs before a room
+  // change, while invalidation still addresses the room that was painted.
+  const auto mode = mode_manager_.GetMode();
+  if (mode != InteractionMode::PaintCollision &&
+      mode != InteractionMode::PaintWaterFill) {
+    return;
   }
+  auto& state = mode_manager_.GetModeState();
+  const bool had_mutation = state.paint_mutation_started;
+  state.is_painting = false;
+  state.paint_mutation_started = false;
+  state.paint_last_tile_x = -1;
+  state.paint_last_tile_y = -1;
+  if (had_mutation) {
+    interaction_context_.NotifyInvalidateCache(
+        (mode == InteractionMode::PaintCollision)
+            ? MutationDomain::kCustomCollision
+            : MutationDomain::kWaterFill);
+  }
+}
+
+void DungeonObjectInteraction::HandleMouseRelease() {
+  FinishPaintStroke();
 
   if (mode_manager_.GetMode() == InteractionMode::DraggingObjects) {
     mode_manager_.SetMode(InteractionMode::Select);
@@ -657,8 +658,20 @@ void DungeonObjectInteraction::SetCurrentRoom(DungeonRoomStore* rooms,
   // Duplicate and the inspector would act on them. Placement is not tied to a
   // room, so it continues.
   if (rooms != rooms_ || room_id != current_room_id_) {
-    ClearSelection();
+    FinishPaintStroke();
+    const auto mode = mode_manager_.GetMode();
+    if (mode == InteractionMode::DraggingObjects ||
+        mode == InteractionMode::DraggingEntity ||
+        mode == InteractionMode::RectangleSelect) {
+      mode_manager_.SetMode(InteractionMode::Select);
+    }
+    // Tile and group drags already changed the old room. Finish their undo
+    // actions before rebinding; single-entity drags are previews and are
+    // canceled by clearing their selections below.
+    entity_coordinator_.tile_handler().HandleRelease();
+    selection_.CancelRectangleSelection();
     entity_coordinator_.ClearAllEntitySelections();
+    ClearSelection();
   }
   rooms_ = rooms;
   current_room_id_ = room_id;
