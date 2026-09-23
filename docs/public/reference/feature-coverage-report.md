@@ -43,7 +43,7 @@ chest-region manifest policy. Object-stream allocation remains a Save-time
 check. See the [chest increment](../../internal/plans/editor-capability-parity-plan.md#compound-chest-authoring-increment-2026-09-23)
 for its evidence and residual qualification limits.
 
-The current mixed-selection candidate is `eac49e2bd`. Existing
+The prior mixed-selection candidate is `eac49e2bd`. Existing
 Workbench/inspector/canvas commands now share one validated operation for
 objects, doors, sprites, pot items, and paired chest rewards. Delete, duplicate,
 cut/paste, nudge, and group drag produce one undo action; failed copy preserves
@@ -53,7 +53,22 @@ movement. Source + Focused evidence: **640 tests across
 pending gestures; no-op drags retain redo history and prior save dirtiness.
 This does not add rendered UI, vanilla/Oracle application-to-disk/runtime, CI,
 installation, or Release evidence. See the
-[current increment](../../internal/plans/editor-capability-parity-plan.md#atomic-mixed-selection-increment-2026-09-23).
+[mixed-selection increment](../../internal/plans/editor-capability-parity-plan.md#atomic-mixed-selection-increment-2026-09-23).
+
+The current reciprocal normal-door candidate is `be973563f`.
+The shared inspector previews both rooms, chooses upper/lower layer, and creates
+or updates the ordinary outer-wall return door only through **Create Return Door**
+or **Update Pair**. Lazy target loading preserves clean project WaterFill tiles,
+mask, and count, and rejects dirty partial state. Both
+endpoints validate and undo together through the existing batch action. Exact
+slots, adjacency boundaries, passage conflicts, stale previews, ROM identity,
+and unloaded target parsing are guarded. Verification: **807
+tests across 44 suites — passed with zero failures and zero skips**. App/unit
+builds: passed. Scoped analyzer: passed for the six selected implementation files and their explicit header scope.
+DA-3 remains partial for stairs, pits, special doors, and runtime qualification.
+Next implementation is DA-4 complete room clone/import with explicit inclusion,
+unsupported-data preservation, and capacity preflight. See the
+[connection increment](../../internal/plans/editor-capability-parity-plan.md#reciprocal-normal-door-connection-increment-2026-09-23).
 
 ## Status and evidence are separate
 
@@ -86,12 +101,13 @@ used for promotion.
 
 | Editor / workflow | Status | Existing path | Remaining boundary |
 | --- | --- | --- | --- |
-| Dungeon room authoring | **Partial** | Existing room elements and guarded save, plus the candidate slices below | Remaining authoring domains, reciprocal connections, complete room operations, and GUI-to-disk/runtime acceptance remain. DA-1 and DA-2 are not complete. |
+| Dungeon room authoring | **Partial** | Existing room elements and guarded save, plus the candidate slices below | Remaining authoring domains, connection families, complete room operations, and GUI-to-disk/runtime acceptance remain. DA-1 and DA-2 are not complete. |
 | Workbench tile-object placement improvements | **Candidate** | `7ba7d76ce`: live placement controls, once/repeat, selected inserted object, Place another, physical sizes; Source + Focused | Isolated candidate ROM and runtime validation, integration, and packaged acceptance remain. See the [validation handoff](../../internal/agents/dungeon-workbench-placement-handoff-2026-09-22.md). |
 | Door/sprite/pot-item undo and shared properties | **Candidate** | `a730d6557`: DA-1 domain snapshots/restore and DA-2 shared Workbench/standalone inspector; render invalidation, reserved-sprite validation, paste selection, and deferred input isolation have focused checks | Context-mismatched connected-view editing is gated. ROM save/reopen, runtime, CI, installation, and release qualification remain; other DA-1/DA-2 domains are open. |
 | Room metadata undo and named property controls | **Candidate**, Source + Focused at `aeb0b1200` | Typed header/tag/layout/floor/message/destination edits; room-bound deferred input; snapshots preserve hidden BG2 state and separate layout/floor save dirtiness; atomic multiroom **Clear stale** batch | Full application save/reopen, runtime, and packaged acceptance remain. This single-domain batch does not complete general compound editing. |
 | Compound chest authoring | **Candidate**, Source + Focused at `478206247` | Shared placement, record/reward/type selection, canvas selection, and delete controls; paired object/contents undo; ordinary object clipboard preserves rewards; layer/order remapping; event-slot/global-table/manifest preflight | Save still validates object-stream allocation. This chest-only evidence predates the mixed-selection candidate below. Vanilla/Oracle full-application disk save/reopen, game behavior, manual UX, CI, and packaged acceptance remain unqualified. |
 | Atomic mixed-selection editing | **Candidate**, Source + Focused at `eac49e2bd` | Shared delete/duplicate/cut/copy/paste/nudge/group-drag planner and one undo; chest rewards retained; supported count/encoding/coordinate checks; exact door anchors; no partial publication on rejection | Object-stream allocation remains Save-time. Author-time manifest preflight covers chest ranges only. Full application disk persistence, rendered UX, game behavior, CI, and packaged qualification remain. |
+| Reciprocal normal-door connections | **Candidate** at `be973563f`; verification above | Shared endpoint preview and Create Return Door / Update Pair; exact outer slots and adjacency; guarded target load retaining project WaterFill data; one batch Undo/Redo preserving other domains | Stairs, pits, special door families, internal seams, and arbitrary destinations are outside this slice. Save-time allocation, full application disk persistence, runtime traversal, human UX, CI, and packaged qualification remain. |
 | Overworld map/entrance/exit/item/property editing | **Partial** | Domain-specific save methods called by `OverworldEditor::Save()` when their flags are enabled | Entity undo and full application acceptance need completion. Save support must be checked per domain and ROM layout. |
 | Overworld sprite persistence | **Missing** | Editing and three game-state collections exist | The application save path does not call a sprite serializer. Do not report sprite edits as saved because Save ROM succeeds. |
 | Message | **Partial** | Transactional save of valid parsed text through coordinated save when enabled | GUI-to-disk reopen and runtime acceptance for the advertised ROM profile. |

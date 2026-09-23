@@ -5,7 +5,8 @@
 **Created:** 2026-09-22  
 **Last Reviewed:** 2026-09-23
 **Next Review:** 2026-10-06  
-**Universe Task:** `task_20260923T050800Z_19565` (current mixed-selection increment);
+**Universe Task:** `task_20260923T053944Z_6854` (current normal-door connection increment);
+prior mixed-selection task `task_20260923T050800Z_19565`;
 prior compound chest task `task_20260923T034804Z_2446`;
 prior room metadata task `task_20260923T025637Z_4379`;
 initial plan task `task_20260923T000806Z_4560`
@@ -108,7 +109,7 @@ Do not publish estimated parity percentages.
 |---|---|---|---|---|
 | DA-1 | Complete dungeon edit undo across domains | Partial; entity/metadata, paired chest, and atomic mixed-selection Candidates below | Existing mutation hooks and undo actions | imgui-frontend-engineer |
 | DA-2 | One editable inspector for every room element | Partial; tile/entity controls, named room properties, shared chest placement/contents/deletion Candidate | DA-1 for added edits | imgui-frontend-engineer |
-| DA-3 | Visual room connection authoring | Partial; navigation/diagnostics exist | DA-1 header/compound coverage | zelda3-hacking-expert |
+| DA-3 | Visual room connection authoring | Partial; ordinary outer normal-door pair Candidate below; stairs, pits, special doors, and runtime qualification remain | DA-1 header/compound coverage | zelda3-hacking-expert |
 | DA-4 | Complete room clone/import and reusable selections | Partial; model helpers and limited export exist | DA-1 compound coverage | zelda3-hacking-expert |
 | DA-5 | Dungeon render, persistence, and packaged-candidate qualification | Partial; independent active lane | Exact candidate from DA-1–DA-4 | test-infrastructure-expert |
 | OW-1 | Overworld sprite persistence for all supported states | Missing writer in inspected save paths | Format/capacity inventory | zelda3-hacking-expert |
@@ -434,11 +435,64 @@ in-memory persistence checks are distinct from rendered application acceptance.
 space remain Save-time checks. This candidate does not establish every-domain
 manifest preflight, complete room authoring, vanilla/Oracle GUI-to-disk or game
 behavior, manual UX, remote CI, installation, or packaged acceptance. DA-1/DA-2
-remain partial. Next implement a bounded DA-3 reciprocal connection edit through
-existing room metadata/selection transactions: preview the two affected rooms,
-validate both endpoints and engine adjacency/slot rules, apply both or neither,
-and undo both together. Then extend that boundary to DA-4 complete room cloning.
-Do not silently repair diagnostic findings or add a second transaction system.
+remain partial. The reciprocal normal-door increment below extends this
+transaction boundary; the mixed-selection evidence above remains tied to its
+own source. Do not silently repair diagnostic findings or add a second
+transaction system.
+
+### Reciprocal normal-door connection increment (2026-09-23)
+
+**Candidate:** `be973563f` on
+`codex/editor-parity-dungeon-authoring`, following mixed-selection source
+`eac49e2bd`. Universe task: `task_20260923T053944Z_6854`.
+
+- The shared door inspector previews the source and adjacent destination in a
+  diagram, lets the author choose the upper or lower layer, and commits only on
+  **Create Return Door** or **Update Pair**. Opening the destination is navigation,
+  not an edit.
+- This slice supports ordinary normal doors on outer walls. A missing return
+  door is created, or an existing ordinary pair changes layer together. North
+  and west slots `0..5` pair exactly with south and east slots `6..11` by adding
+  or subtracting six. Adjacency never wraps a room-table row or 256-room page.
+- Conflicting records in the same passage, unsupported door types, internal
+  seams, invalid slots, and unavailable destination capacity reject the edit.
+  Do not invent arbitrary room destinations, silently overwrite a special
+  door, or treat an intentional one-way connection as a repair request.
+- `dungeon_connection_edit.*` plans both door lists without mutation.
+  `dungeon_editor_v2_connection_edits.cc` strictly parses an unopened target's
+  object stream before loading it; a dirty partially loaded room is preserved.
+  Clean project WaterFill tiles, SRAM mask, and cached tile count survive that
+  load, so saving another room's zone cannot remove the target's existing zone.
+  Apply rechecks ROM identity and both lists against the displayed preview,
+  including after finishing an earlier gesture.
+- The existing selection action now accepts a batch of room plans. It validates
+  all rooms, publishes changed door lists before refreshing views, and restores
+  both endpoints through one Undo/Redo. Other authored domains remain intact;
+  only changed endpoints receive object-stream save dirtiness.
+
+**Verification:** **807 tests across 44
+suites — passed with zero failures and zero skips**. App/unit builds: passed.
+Scoped Clang analyzer: passed for the six selected implementation files and their explicit header scope. The
+[connection handoff](../agents/dungeon-workbench-placement-handoff-2026-09-22.md#connection-verification-commands)
+records exact discovery/execution commands. The selected surface includes the
+prior 640-case mixed-selection lane, connection planner/inspector/lifecycle
+tests, and strict stream-reader tests. Three additional lifecycle tests run in
+both viewer modes for real `ReloadWaterFillZones`, clean overlay retention,
+saving another zone, and dirty partial-state rejection. Headless inspector frames
+and synthetic in-memory persistence checks remain separate from human UX and
+game evidence.
+The analyzer scope covers six changed translation units and their own headers;
+known legacy `LayerMergeType` padding findings in `room.h` remain outside that
+scope. No full-repository or blanket clean analyzer claim is made.
+
+**Limits and next implementation:** DA-3 is still partial. Staircase/pit
+authoring, special door families, arbitrary destination rules, application disk
+save/reopen, and runtime traversal require their own work and evidence. Stream
+allocation and serialized space remain Save-time gates. No remote CI,
+installation, or packaged acceptance is implied. Next implement **DA-4 complete
+room clone/import** through the existing batch transaction, with explicit domain
+coverage, unsupported-data preservation, reference policy, and capacity
+preflight. DA-3 runtime qualification can proceed independently.
 
 ### Supporting cleanup and human UI ownership
 
@@ -464,7 +518,7 @@ Suggested division for the next UI slice:
 | Maintainer | Implement a searchable named sprite-type chooser in `inspectors/dungeon_entity_inspector.cc`, using the existing handler | Finding a type, keyboard selection/cancel, narrow layout, and one undoable committed edit work as designed |
 | Agent | Review the chooser's mutation and selection contracts; prepare only the extraction needed to make the change local | Existing handler/undo coverage, build, targeted analysis, and any new regression for changed behavior |
 | Maintainer | Choose the next layout improvement, such as a responsive `dungeon_status_bar.cc` | Readable status at representative canvas widths and scale |
-| Agent | Continue bounded DA-3 reciprocal connection authoring using the metadata/mixed-selection transaction boundaries | Both endpoints validate before mutation; one undo; focused lifecycle and persistence evidence |
+| Agent | Implement DA-4 complete room clone/import using the existing batch transaction | Explicit domain/reference policy; preserve unsupported data; capacity preflight; one undo; save/reload evidence |
 
 These are proposed human tasks, not an instruction for agents to implement them
 preemptively. For future cleanup, name one responsibility and its callers, move
@@ -497,8 +551,10 @@ bounded follow-up. This cleanup does not change installed-app or release status.
 
 Reuse `dungeon_canvas_connected_view.cc`, `dungeon_canvas_connected_matrix.cc`,
 door helpers, entrance panels, and the existing room destination fields.
-The matrix is presently a navigation/diagnostic view. Add source/destination
-previews, valid slot/layer selection, and clear inbound/outbound context.
+The matrix remains a navigation/diagnostic view. The ordinary outer normal-door
+inspector candidate above adds paired previews, upper/lower selection, and an
+explicit transaction through the existing undo manager. Extend connection
+coverage only with the relevant engine rule and persistence evidence.
 Normal doors follow vanilla adjacency; they are not arbitrary teleports.
 Staircase order-to-slot assumptions need ROM proof. Missing reciprocal doors,
 unused slots, and intentional one-way connections must remain distinguishable.
@@ -521,6 +577,15 @@ references; default cloning must not silently redirect the original room.
 Store reusable assets in project/configured user storage, not a fixed machine
 path. Existing `ApplyRoomLayoutTemplate` clears/refills live state and is not
 an atomic import transaction by itself.
+
+This is the next bounded implementation after the reciprocal normal-door
+candidate. Reuse `PushSelectionUndoBatch`/`RestoreSelectionEditBatch` for supported
+collection domains and extend the existing transaction for remaining fields;
+do not add a second history manager. Preview source and destination inclusion
+policies, preserve unsupported destination data unless explicitly included,
+and preflight supported counts, shared tables, serialization, allocation, and
+project write policy before publishing a replacement. A partial schema must be
+labelled partial rather than silently dropping fields during "complete" import.
 
 **Exit criteria:** clone/import previews the affected domains, rejects invalid
 or over-capacity data without mutation, commits as one undo action, and survives
