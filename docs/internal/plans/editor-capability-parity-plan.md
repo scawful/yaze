@@ -5,7 +5,8 @@
 **Created:** 2026-09-22  
 **Last Reviewed:** 2026-09-23
 **Next Review:** 2026-10-06  
-**Universe Task:** `task_20260923T131011Z_25069` (current room clone/import increment);
+**Universe Task:** `task_20260923T151812Z_31987` (current Oracle interchange repair);
+prior room clone/import task `task_20260923T131011Z_25069`;
 prior normal-door connection task `task_20260923T053944Z_6854`;
 prior mixed-selection task `task_20260923T050800Z_19565`;
 prior compound chest task `task_20260923T034804Z_2446`;
@@ -573,8 +574,8 @@ in the correct runtime ROM. Navigation alone does not close this package.
 ### DA-4: room and selection reuse
 
 **Authored-room clone/import candidate (2026-09-23):**
-`bb185d1ae` on `codex/editor-parity-dungeon-authoring`,
-following authored-room source `2520aa6b0` and documentation `df1cc4f2d`.
+`339cc9cdf` on `codex/editor-parity-dungeon-authoring`,
+following qualification source `bb185d1ae` and documentation `30e5c4681`.
 
 The shared Room UI/dialog supports same-project **Clone**, **Copy Room JSON**,
 and clipboard/text **Import JSON**, with **Preview Replacement** before
@@ -615,10 +616,10 @@ coupled chest/object saves, object-only Delete controls, and the dungeon
 spriteset authoring limit. The handoff records their regression scope and the
 remaining pot-coordinate codec audit.
 
-**Verification:** `989` tests across
+**Verification:** `1000` tests across
 `49` suites; `all passed, zero failures and zero skipped`. Exact commands,
 build/analyzer scope, and artifacts belong in the
-[room transfer handoff](../agents/dungeon-workbench-placement-handoff-2026-09-22.md#qualification-repair-verification).
+[room transfer handoff](../agents/dungeon-workbench-placement-handoff-2026-09-22.md#current-verification).
 The prior 807-test connection result remains historical evidence for
 `be973563f`, not this candidate's result. Synthetic persistence and ImGui tests
 remain separate from application-to-disk, human UX, and game-runtime acceptance.
@@ -630,8 +631,20 @@ vanilla chest records, but object/chest replacement still requires a valid
 mapping. Export normalizes physical block slots to `-1`; internal undo keeps
 exact slots. The reported exit-door issue was not reproduced: confirmed vanilla
 exit markers and explicit exit families are blocked by the existing guards and
-now have additional UI/API regressions. The handoff separates external
-real-ROM qualification of the prior candidate from this repair's tests.
+now have additional UI/API regressions. Claude subsequently retracted that
+finding after checking 81 doors in 25 vanilla exit rooms and reported positive
+disposable-ROM save/reopen qualification of `30e5c4681` / `bb185d1ae`.
+
+The current repair separates interchange resource bounds (4,096 objects,
+168 chest records, 1 MiB) from replacement authoring rules. It preserves the
+reported Oracle 463/425-object and 21/23-chest counts in synthetic export/parse
+and lifecycle tests. Changed object replacements above 400 cannot grow the
+destination's count; changed chest mappings retain strict correspondence and
+six chest/lock event slots. Exact object/chest no-op imports preserve legacy
+records and destination block identities. Unrelated domains can transfer.
+This does not enable arbitrary cloning of legacy 21/23-chest mappings. The
+handoff separates external real-ROM qualification of the prior source from
+the current synthetic repair evidence.
 
 **Remaining DA-4 scope:** project-file export/import and asset-compatibility
 checks/remapping, portable reusable selections/assets, and qualified save/reopen.
@@ -643,9 +656,11 @@ future reusable resources in project/configured storage, not a machine path.
 or over-capacity data without mutation, commits as one undo action, and survives
 save/reopen. Selection prefabs preserve type-specific semantics and offsets.
 
-**Next bounded package: DA-5 qualification of this combined candidate.** Prove
-the application disk transaction and rollback, independent reopen/readback,
-and representative game behavior before broadening features. DA-4 project-file
+**Next bounded package: DA-5 qualification of this combined candidate.** Rerun
+all 296 Oracle exports and the four legacy-count JSON roundtrips; qualify
+unchanged imports and unrelated-domain transfers while preserving refusal of
+unsupported replacement. Carry forward earlier application save/reopen evidence
+with its exact source, then check representative game behavior. DA-4 project-file
 compatibility and DA-3 stairs/pits with verified engine rules follow as separate
 bounded tasks. Do not call either entire package complete from this increment.
 
