@@ -14,6 +14,8 @@
 namespace yaze {
 namespace editor {
 
+struct DungeonSelectionEditRequest;
+
 /**
  * @brief Coordinates interaction mode switching and dispatches to handlers
  *
@@ -100,6 +102,15 @@ class InteractionCoordinator {
   void ClearEntitySelection();
   bool HasEntitySelection() const;
   bool NudgeSelected(int delta_x, int delta_y);
+  absl::Status CommitSelectionEdit(const DungeonSelectionEditRequest& request,
+                                   bool continuous = false);
+  std::vector<SelectedEntity> SelectedEntitiesForEdit() const;
+  int SelectionMoveStepPixels() const;
+  void FinishSelectionGesture();
+  const absl::Status& selection_edit_status() const {
+    return selection_edit_status_;
+  }
+  absl::Status ReportSelectionEditStatus(absl::Status status);
   void CancelPlacement();
   const std::vector<SelectedEntity>& GetSelectedEntities() const {
     return selected_entities_;
@@ -165,7 +176,7 @@ class InteractionCoordinator {
   /**
    * @brief Delete currently selected entity
    */
-  void DeleteSelectedEntity();
+  absl::Status DeleteSelectedEntity();
 
   /**
    * @brief Get the type of currently selected entity
@@ -174,6 +185,7 @@ class InteractionCoordinator {
   Mode GetSelectedEntityType() const;
 
  private:
+  absl::Status selection_edit_status_;
   Mode current_mode_ = Mode::Select;
   InteractionContext* ctx_ = nullptr;
 
@@ -194,12 +206,6 @@ class InteractionCoordinator {
   ImVec2 entity_group_drag_current_{0.0f, 0.0f};
   int entity_group_drag_last_dx_ = 0;
   int entity_group_drag_last_dy_ = 0;
-  bool entity_group_drag_doors_mutation_started_ = false;
-  bool entity_group_drag_sprites_mutation_started_ = false;
-  bool entity_group_drag_items_mutation_started_ = false;
-  bool entity_group_drag_doors_changed_ = false;
-  bool entity_group_drag_sprites_changed_ = false;
-  bool entity_group_drag_items_changed_ = false;
 
   /**
    * @brief Get active handler based on current mode
@@ -210,8 +216,6 @@ class InteractionCoordinator {
   bool UpdateEntitySelection(SelectedEntity entity, bool additive, bool toggle);
   bool IsSelectionHitSelected(SelectedEntity entity) const;
   bool HasGroupDragSelection() const;
-  bool NudgeSelectedEntities(int delta_x, int delta_y,
-                             bool defer_drag_notifications);
   void ResetEntityGroupDragState();
   void FinishEntityGroupDrag();
   void HandleEntityGroupDrag(ImVec2 current_pos);

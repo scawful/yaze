@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "app/editor/dungeon/dungeon_room_store.h"
+#include "app/editor/dungeon/dungeon_selection_edit.h"
 #include "app/editor/dungeon/interaction/interaction_context.h"
 #include "app/editor/dungeon/object_selection.h"
 #include "app/gui/canvas/canvas.h"
@@ -287,7 +288,7 @@ TEST_F(InteractionCoordinatorTest, NudgeSelectedItemUsesEncodableGrid) {
 
   ASSERT_TRUE(coordinator_.NudgeSelected(1, 1));
   const auto& moved = rooms_[0].GetPotItems()[0];
-  EXPECT_EQ(moved.GetPixelX(), 88);
+  EXPECT_EQ(moved.GetPixelX(), 96);
   EXPECT_EQ(moved.GetPixelY(), 96);
   EXPECT_TRUE(rooms_[0].pot_items_dirty());
 }
@@ -341,7 +342,8 @@ TEST_F(InteractionCoordinatorTest, SelectEntitiesInRectCapturesMixedEntities) {
   EXPECT_TRUE(coordinator_.HasEntitySelection());
 }
 
-TEST_F(InteractionCoordinatorTest, NudgeSelectedMovesMixedEntitySelection) {
+TEST_F(InteractionCoordinatorTest,
+       NudgeRejectsWholeSelectionWhenDoorCannotTranslate) {
   zelda3::Room::Door door;
   door.position = 1;
   door.type = zelda3::DoorType::NormalDoor;
@@ -359,17 +361,15 @@ TEST_F(InteractionCoordinatorTest, NudgeSelectedMovesMixedEntitySelection) {
   coordinator_.SelectEntitiesInRect({0, 0, 512, 512}, /*additive=*/false,
                                     /*toggle=*/false);
 
-  ASSERT_TRUE(coordinator_.NudgeSelected(1, 1));
-
-  EXPECT_EQ(rooms_[0].GetDoors()[0].position, 2);
-  EXPECT_EQ(rooms_[0].GetSprites()[0].x(), 6);
-  EXPECT_EQ(rooms_[0].GetSprites()[0].y(), 6);
-  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelX(), 88);
-  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelY(), 96);
-  EXPECT_GT(invalidation_count_, 0);
-  EXPECT_TRUE(rooms_[0].object_stream_dirty());
-  EXPECT_TRUE(rooms_[0].sprites_dirty());
-  EXPECT_TRUE(rooms_[0].pot_items_dirty());
+  const int mutations = mutation_count_;
+  EXPECT_FALSE(coordinator_.NudgeSelected(1, 1));
+  EXPECT_EQ(rooms_[0].GetDoors()[0].position, 1);
+  EXPECT_EQ(rooms_[0].GetSprites()[0].x(), 5);
+  EXPECT_EQ(rooms_[0].GetSprites()[0].y(), 5);
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelX(), 80);
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelY(), 80);
+  EXPECT_EQ(mutation_count_, mutations);
+  EXPECT_EQ(coordinator_.GetSelectedEntities().size(), 3u);
 }
 
 TEST_F(InteractionCoordinatorTest, DeleteSelectedEntityDeletesMixedSelection) {
@@ -387,7 +387,7 @@ TEST_F(InteractionCoordinatorTest, DeleteSelectedEntityDeletesMixedSelection) {
   coordinator_.SelectEntitiesInRect({0, 0, 512, 512}, /*additive=*/false,
                                     /*toggle=*/false);
 
-  coordinator_.DeleteSelectedEntity();
+  ASSERT_TRUE(coordinator_.DeleteSelectedEntity().ok());
 
   EXPECT_TRUE(rooms_[0].GetDoors().empty());
   EXPECT_TRUE(rooms_[0].GetSprites().empty());
@@ -454,11 +454,12 @@ TEST_F(InteractionCoordinatorTest, GroupDragMovesMixedEntitySelection) {
 
   EXPECT_EQ(rooms_[0].GetSprites()[0].x(), 6);
   EXPECT_EQ(rooms_[0].GetSprites()[0].y(), 6);
-  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelX(), 88);
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelX(), 96);
   EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelY(), 96);
 }
 
-TEST_F(InteractionCoordinatorTest, GroupDragBatchesEntityNotifications) {
+TEST_F(InteractionCoordinatorTest,
+       GroupDragPublishesOnePlanPerIncrementAndFinishesOnce) {
   rooms_[0].GetSprites().push_back(
       zelda3::Sprite(/*id=*/0x12, /*x=*/5, /*y=*/5, 0, 0));
   zelda3::PotItem item;
@@ -469,26 +470,65 @@ TEST_F(InteractionCoordinatorTest, GroupDragBatchesEntityNotifications) {
                                     /*toggle=*/false);
   ASSERT_EQ(coordinator_.GetSelectedEntities().size(), 2u);
 
+  int publications = 0;
+  int finishes = 0;
+  ctx_.on_selection_edit = [&](const DungeonSelectionEditPlan& plan,
+                               bool continuous) {
+    EXPECT_TRUE(continuous);
+    EXPECT_EQ(plan.domains, kSelectionSprites | kSelectionItems);
+    ApplyDungeonSelectionEditState(rooms_[0], plan.after, plan.domains);
+    ++publications;
+    return absl::OkStatus();
+  };
+  ctx_.on_selection_edit_finished = [&]() {
+    ++finishes;
+  };
   const int initial_mutations = mutation_count_;
   const int initial_invalidations = invalidation_count_;
-  const int initial_entity_changes = entity_changed_count_;
-
   coordinator_.BeginSelectionDrag(ImVec2(80.0f, 80.0f));
   coordinator_.HandleDrag(ImVec2(96.0f, 96.0f), ImVec2(16.0f, 16.0f));
   coordinator_.HandleDrag(ImVec2(112.0f, 112.0f), ImVec2(16.0f, 16.0f));
-
-  EXPECT_EQ(mutation_count_ - initial_mutations, 2);
+  EXPECT_EQ(publications, 2);
+  EXPECT_EQ(finishes, 0);
+  EXPECT_EQ(mutation_count_, initial_mutations);
   EXPECT_EQ(invalidation_count_, initial_invalidations);
-  EXPECT_EQ(entity_changed_count_, initial_entity_changes);
-
   coordinator_.HandleRelease();
-
-  EXPECT_EQ(invalidation_count_ - initial_invalidations, 2);
-  EXPECT_EQ(entity_changed_count_ - initial_entity_changes, 1);
+  coordinator_.HandleRelease();
+  EXPECT_EQ(finishes, 1);
   EXPECT_EQ(rooms_[0].GetSprites()[0].x(), 7);
   EXPECT_EQ(rooms_[0].GetSprites()[0].y(), 7);
-  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelX(), 96);
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelX(), 112);
   EXPECT_EQ(rooms_[0].GetPotItems()[0].GetPixelY(), 112);
+}
+
+TEST_F(InteractionCoordinatorTest, RejectedMixedDragDoesNotRunTileHandler) {
+  rooms_[0].AddTileObject(zelda3::RoomObject{0x01, 20, 20, 0x02, 0});
+  rooms_[0].GetSprites().push_back(zelda3::Sprite(0x12, 5, 5, 0, 0));
+  selection_.SelectObject(0, ObjectSelection::SelectionMode::Add);
+  coordinator_.SetSelectedEntities({{EntityType::Sprite, 0}});
+  int publications = 0;
+  ctx_.on_selection_edit = [&](const DungeonSelectionEditPlan& plan,
+                               bool continuous) {
+    EXPECT_TRUE(continuous);
+    EXPECT_EQ(plan.domains, kSelectionObjects | kSelectionSprites);
+    EXPECT_EQ(plan.after.objects[0].x_, 22);
+    EXPECT_EQ(plan.after.sprites[0].x, 6);
+    ++publications;
+    return absl::PermissionDeniedError("Rejected by project policy");
+  };
+  coordinator_.tile_handler().InitDrag(ImVec2(80, 80));
+  coordinator_.BeginSelectionDrag(ImVec2(80, 80));
+  coordinator_.HandleDrag(ImVec2(96, 96), ImVec2(16, 16));
+  EXPECT_EQ(publications, 1);
+  EXPECT_EQ(coordinator_.selection_edit_status().code(),
+            absl::StatusCode::kPermissionDenied);
+  EXPECT_EQ(coordinator_.selection_edit_status().message(),
+            "Rejected by project policy");
+  EXPECT_EQ(rooms_[0].GetTileObjects()[0].x_, 20);
+  EXPECT_EQ(rooms_[0].GetSprites()[0].x(), 5);
+  EXPECT_TRUE(selection_.IsObjectSelected(0));
+  EXPECT_EQ(coordinator_.GetSelectedEntities().size(), 1u);
+  coordinator_.HandleRelease();
 }
 
 // ============================================================================

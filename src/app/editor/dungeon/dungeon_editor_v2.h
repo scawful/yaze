@@ -281,6 +281,7 @@ class DungeonEditorV2 : public Editor {
   friend class DungeonEditorPaletteRefreshTestPeer;
   friend class DungeonEditorEntityUndoTestPeer;
   friend class DungeonRoomEditsTestPeer;
+  friend class DungeonSelectionEditsTestPeer;
   friend class DungeonEditorV2MinecartTrackTestPeer;
   friend class DungeonEditorV2ObjectTileEditorTestPeer;
   friend class DungeonEditorV2RegularEntranceTestPeer;
@@ -491,6 +492,12 @@ class DungeonEditorV2 : public Editor {
   bool has_pending_undo_ = false;
   bool undo_restore_triggered_ping_ = false;
 
+  struct PendingSelectionUndo {
+    std::optional<DungeonSelectionEditPlan> plan;
+    zelda3::Room::SaveDirtySnapshot dirty_before;
+  };
+  PendingSelectionUndo pending_selection_undo_;
+
   struct PendingEntityUndo {
     int room_id = -1;
     DungeonEntitySnapshot before;
@@ -558,6 +565,15 @@ class DungeonEditorV2 : public Editor {
       const std::vector<chest_data>& chests,
       const std::vector<size_t>& selection);
 
+  absl::Status CommitSelectionEdit(const DungeonSelectionEditPlan& plan,
+                                   bool continuous);
+  void FinalizeSelectionUndoAction();
+  absl::Status RestoreSelectionEdit(int room_id,
+                                    const DungeonSelectionEditState& state,
+                                    uint8_t domains);
+  void RefreshSelectionEditViews(int room_id,
+                                 const DungeonSelectionEditState* selection);
+  void PushSelectionUndoAction(DungeonSelectionEditPlan plan);
   void ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer);
   void FinalizePendingUndoActions();
   absl::Status RestoreRoomMetadataBatch(

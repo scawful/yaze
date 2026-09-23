@@ -527,8 +527,9 @@ TEST_P(DungeonEntityUndoLifecycleTest,
   ASSERT_EQ(UndoDepth(), 1u);
   EXPECT_EQ(coordinator().GetSelectedEntity(),
             (SelectedEntity{EntityType::Item, 1}));
-  EXPECT_EQ(room_->GetPotItems()[1].GetPixelX(), 40);
-  EXPECT_EQ(room_->GetPotItems()[1].GetPixelY(), 64);
+  // Unified clipboard translates both axes on the shared 16px grid.
+  EXPECT_EQ(room_->GetPotItems()[1].GetPixelX(), 48);
+  EXPECT_EQ(room_->GetPotItems()[1].GetPixelY(), 80);
   EXPECT_EQ(room_->GetPotItems()[1].item, 6);
   ASSERT_TRUE(editor_->Undo().ok());
   ASSERT_EQ(room_->GetPotItems().size(), 1u);

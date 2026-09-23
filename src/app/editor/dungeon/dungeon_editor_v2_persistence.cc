@@ -425,6 +425,9 @@ absl::Status DungeonEditorV2::BeginSaveTransaction() {
         "Dungeon save transaction is already active");
   }
 
+  // A save is a history boundary: a later drag increment must not restore
+  // dirty flags captured before the bytes we are about to publish.
+  FinalizePendingUndoActions();
   SaveTransactionSnapshot snapshot;
   auto& palette_manager = gfx::PaletteManager::Get();
   if (core::FeatureFlags::get().dungeon.kSavePalettes &&
@@ -541,6 +544,7 @@ absl::Status DungeonEditorV2::Save() {
         "using Save or Apply Room");
   }
 
+  FinalizePendingUndoActions();
   const auto& flags = core::FeatureFlags::get().dungeon;
   std::optional<zelda3::ChestSavePlan> chest_save_plan;
 

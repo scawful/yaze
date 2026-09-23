@@ -417,6 +417,7 @@ absl::Status DungeonEditorV2::RefreshRomBackedState() {
   pending_collision_undo_ = {};
   pending_water_fill_undo_ = {};
   pending_entity_undo_ = {};
+  pending_selection_undo_ = {};
   pending_swap_ = {};
   pending_workflow_mode_ = {};
   pending_standalone_tool_window_ = {};

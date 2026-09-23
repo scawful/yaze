@@ -6,6 +6,7 @@
 #include <functional>
 #include <optional>
 
+#include "absl/status/status.h"
 #include "app/editor/dungeon/dungeon_coordinates.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
 #include "app/gfx/types/snes_palette.h"
@@ -17,6 +18,7 @@ namespace yaze {
 namespace editor {
 
 class ObjectSelection;
+struct DungeonSelectionEditPlan;
 
 /**
  * @brief Type of entity that can be selected in the dungeon editor
@@ -86,6 +88,13 @@ struct InteractionContext {
   gfx::PaletteGroup current_palette_group;
 
   // Unified callbacks
+  // A complete, validated selection edit is published by the editor as one
+  // undo action. Continuous edits share a gesture until the finish callback.
+  std::function<absl::Status(const DungeonSelectionEditPlan&, bool continuous)>
+      on_selection_edit;
+  std::function<void()> on_selection_edit_finished;
+  std::function<void(const absl::Status&)> on_selection_edit_error;
+
   // Called before any state modification (for undo snapshots)
   std::function<void()> on_mutation;
 

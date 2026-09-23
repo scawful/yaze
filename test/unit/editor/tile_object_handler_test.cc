@@ -2706,8 +2706,7 @@ TEST_F(TileObjectHandlerTest,
   interaction.HandleDeleteSelected();
   EXPECT_EQ(interaction.GetSelectedObjectIndices(), (std::vector<size_t>{0}));
   EXPECT_EQ(rooms_[0].GetTileObjects().size(), 1u);
-  EXPECT_FALSE(
-      interaction.entity_coordinator().tile_handler().mutation_status().ok());
+  EXPECT_FALSE(interaction.selection_edit_status().ok());
 }
 
 TEST_F(TileObjectHandlerTest, ChestStructuralPathsAllPreflightBeforeMutation) {

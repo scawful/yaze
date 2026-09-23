@@ -311,40 +311,24 @@ void ObjectEditorContent::DrawSelectionActions() {
   }
 
   ImGui::Spacing();
-  const bool can_copy_selection = selection_snapshot_.object_count > 0 ||
-                                  selection_snapshot_.sprite_count > 0 ||
-                                  selection_snapshot_.item_count > 0;
+  DrawWrappedInspectorActions(
+      {{ICON_MD_CONTENT_COPY " Copy", [this]() { CopySelectedObjects(); }},
+       {ICON_MD_CONTENT_PASTE " Paste", [this]() { PasteObjects(); }},
+       {ICON_MD_FILTER_NONE " Duplicate",
+        [this]() { DuplicateSelectedObjects(); }},
+       {ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
+       {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }}});
+  if (selection_snapshot_.kind == DungeonSelectionKind::Door ||
+      selection_snapshot_.kind == DungeonSelectionKind::Sprite ||
+      selection_snapshot_.kind == DungeonSelectionKind::Item) {
+    DrawWrappedInspectorActions(
+        {{GetDeleteAllSelectedTypeLabel(selection_snapshot_.kind),
+          [this]() { DeleteAllSelectedTypeInRoom(); }}});
+  }
 
-  if (selection_snapshot_.HasObjectSelection()) {
-    DrawWrappedInspectorActions(
-        {{ICON_MD_CONTENT_COPY " Copy", [this]() { CopySelectedObjects(); }},
-         {ICON_MD_CONTENT_PASTE " Paste", [this]() { PasteObjects(); }},
-         {ICON_MD_FILTER_NONE " Duplicate",
-          [this]() { DuplicateSelectedObjects(); }},
-         {ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
-         {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }}});
-  } else if (selection_snapshot_.kind == DungeonSelectionKind::Sprite) {
-    DrawWrappedInspectorActions(
-        {{ICON_MD_FILTER_NONE " Duplicate",
-          [this]() { DuplicateSelectedSprite(); }},
-         {ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
-         {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }},
-         {GetDeleteAllSelectedTypeLabel(selection_snapshot_.kind),
-          [this]() { DeleteAllSelectedTypeInRoom(); }}});
-  } else if (selection_snapshot_.kind == DungeonSelectionKind::EntityMulti ||
-             selection_snapshot_.kind == DungeonSelectionKind::Mixed) {
-    DrawWrappedInspectorActions(
-        {{ICON_MD_CONTENT_COPY " Copy", [this]() { CopySelectedObjects(); },
-          can_copy_selection},
-         {ICON_MD_CONTENT_PASTE " Paste", [this]() { PasteObjects(); }},
-         {ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
-         {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }}});
-  } else {
-    DrawWrappedInspectorActions(
-        {{ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
-         {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }},
-         {GetDeleteAllSelectedTypeLabel(selection_snapshot_.kind),
-          [this]() { DeleteAllSelectedTypeInRoom(); }}});
+  if (selection_snapshot_.door_count > 0) {
+    ImGui::TextDisabled(
+        tr("Door selections duplicate in place to retain valid wall slots."));
   }
 
   ImGui::Separator();
@@ -437,7 +421,7 @@ void ObjectEditorContent::DrawKeyboardShortcutHelp() {
     ImGui::Spacing();
     ImGui::TextColored(theme.status_success, ICON_MD_OPEN_WITH " Movement");
     ImGui::Separator();
-    shortcut_row("Arrow Keys", "Nudge selected (1px)");
+    shortcut_row("Arrow Keys", "Nudge selection on its shared grid");
   }
   ImGui::End();
 }
@@ -465,12 +449,9 @@ void ObjectEditorContent::HandleKeyboardShortcuts() {
       DeleteCurrentSelection();
     }
   }
-  if (ImGui::IsKeyPressed(ImGuiKey_D) && io.KeyCtrl) {
-    if (selection_snapshot_.HasObjectSelection()) {
-      DuplicateSelectedObjects();
-    } else if (selection_snapshot_.kind == DungeonSelectionKind::Sprite) {
-      DuplicateSelectedSprite();
-    }
+  if (ImGui::IsKeyPressed(ImGuiKey_D) && io.KeyCtrl &&
+      selection_snapshot_.HasSelection()) {
+    DuplicateSelectedObjects();
   }
   if (ImGui::IsKeyPressed(ImGuiKey_C) && io.KeyCtrl) {
     if (selection_snapshot_.HasSelection()) {
@@ -552,29 +533,14 @@ void ObjectEditorContent::DeleteSelectedObjects() {
     return;
   }
 
-  viewer->object_interaction().HandleDeleteSelected();
+  (void)viewer->object_interaction().HandleDeleteSelected();
 }
 
 void ObjectEditorContent::DuplicateSelectedObjects() {
   auto* viewer = ResolveCanvasViewer();
-  if (!object_editor_ || !viewer) {
-    return;
+  if (viewer) {
+    (void)viewer->object_interaction().HandleDuplicateSelected();
   }
-
-  auto& interaction = viewer->object_interaction();
-  const auto& selected = interaction.GetSelectedObjectIndices();
-  if (selected.empty()) {
-    return;
-  }
-
-  std::vector<size_t> new_indices;
-  for (size_t idx : selected) {
-    auto new_idx = object_editor_->DuplicateObject(idx, 1, 1);
-    if (new_idx.has_value()) {
-      new_indices.push_back(*new_idx);
-    }
-  }
-  interaction.SetSelectedObjects(new_indices);
 }
 
 void ObjectEditorContent::DeleteSelectedEntity() {
@@ -582,7 +548,7 @@ void ObjectEditorContent::DeleteSelectedEntity() {
   if (!viewer) {
     return;
   }
-  viewer->object_interaction().entity_coordinator().DeleteSelectedEntity();
+  (void)viewer->object_interaction().HandleDeleteSelected();
 }
 
 void ObjectEditorContent::DeleteCurrentSelection() {
@@ -590,7 +556,7 @@ void ObjectEditorContent::DeleteCurrentSelection() {
   if (!viewer) {
     return;
   }
-  viewer->object_interaction().HandleDeleteSelected();
+  (void)viewer->object_interaction().HandleDeleteSelected();
 }
 
 void ObjectEditorContent::DeleteAllSelectedTypeInRoom() {
@@ -621,29 +587,7 @@ void ObjectEditorContent::DuplicateSelectedSprite() {
     return;
   }
 
-  auto& interaction = viewer->object_interaction();
-  auto& handler = interaction.entity_coordinator().sprite_handler();
-  const auto selected_index = handler.GetSelectedIndex();
-  if (!selected_index.has_value() || viewer->current_room_id() < 0 ||
-      viewer->current_room_id() >= static_cast<int>(viewer->rooms()->size())) {
-    return;
-  }
-
-  auto& room = (*viewer->rooms())[viewer->current_room_id()];
-  auto& sprites = room.GetSprites();
-  if (*selected_index >= sprites.size()) {
-    return;
-  }
-
-  if (auto* ctx = handler.context()) {
-    ctx->NotifyMutation(MutationDomain::kSprites);
-  }
-  sprites.push_back(sprites[*selected_index]);
-  room.MarkSpritesDirty();
-  if (auto* ctx = handler.context()) {
-    ctx->NotifyInvalidateCache(MutationDomain::kSprites);
-  }
-  handler.SelectSprite(sprites.size() - 1);
+  (void)viewer->object_interaction().HandleDuplicateSelected();
 }
 
 void ObjectEditorContent::CopySelectedObjects() {
@@ -651,7 +595,7 @@ void ObjectEditorContent::CopySelectedObjects() {
   if (!viewer) {
     return;
   }
-  viewer->object_interaction().HandleCopySelected();
+  (void)viewer->object_interaction().HandleCopySelected();
 }
 
 void ObjectEditorContent::PasteObjects() {
@@ -660,7 +604,7 @@ void ObjectEditorContent::PasteObjects() {
     return;
   }
 
-  viewer->object_interaction().HandlePasteObjects();
+  (void)viewer->object_interaction().HandlePasteObjects();
 }
 
 void ObjectEditorContent::NudgeCurrentSelection(int dx, int dy) {
