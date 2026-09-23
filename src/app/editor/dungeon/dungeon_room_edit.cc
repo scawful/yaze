@@ -40,7 +40,10 @@ int MetadataMaximum(RoomMetadataField field) {
     case RoomMetadataField::kStaircaseRoom:
       return 0xFF;
     case RoomMetadataField::kStaircasePlane:
-      return 0x03;
+    case RoomMetadataField::kPitPlane:
+      // USDASM LayerOfDestination ($01C31F/$01C322) has three entries.
+      // Raw 03 remains loadable/restorable, but is not a vanilla authoring value.
+      return 0x02;
   }
   return -1;
 }
@@ -118,6 +121,9 @@ absl::Status ApplyRoomMetadataEdit(zelda3::Room& room,
       break;
     case RoomMetadataField::kStaircasePlane:
       room.SetStaircasePlane(edit.index, value);
+      break;
+    case RoomMetadataField::kPitPlane:
+      room.SetPitsTargetLayer(value);
       break;
   }
   return absl::OkStatus();

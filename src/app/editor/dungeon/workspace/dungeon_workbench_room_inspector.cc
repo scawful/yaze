@@ -12,6 +12,7 @@
 #include "app/editor/dungeon/dungeon_room_edit.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/inspectors/dungeon_chest_editor.h"
+#include "app/editor/dungeon/inspectors/dungeon_destination_editor.h"
 #include "app/editor/dungeon/inspectors/dungeon_room_transfer_editor.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
 #include "app/gui/automation/widget_auto_register.h"
@@ -309,23 +310,10 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     }
 
     if (workbench::BeginInspectorSection(ICON_MD_ALT_ROUTE " Destinations",
-                                         false) &&
-        begin_properties("##WorkbenchRoomDestinations")) {
-      draw_hex("Pit destination", "##RoomHeaderPit", room.holewarp(), 0xFF,
-               RoomMetadataField::kHolewarp);
-      for (int index = 0; index < 4; ++index) {
-        const auto label = absl::StrFormat("Stair %d room", index + 1);
-        const auto id = absl::StrFormat("##RoomHeaderStair%d", index + 1);
-        draw_hex(label.c_str(), id.c_str(), room.staircase_room(index), 0xFF,
-                 RoomMetadataField::kStaircaseRoom, index);
-        const auto plane_label = absl::StrFormat("Stair %d plane", index + 1);
-        const auto plane_id =
-            absl::StrFormat("##RoomHeaderStairPlane%d", index + 1);
-        draw_hex(plane_label.c_str(), plane_id.c_str(),
-                 room.staircase_plane(index), 0x03,
-                 RoomMetadataField::kStaircasePlane, index);
-      }
-      ImGui::EndTable();
+                                         false)) {
+      DrawDungeonDestinationEditor(viewer);
+      if (viewer.current_room_id() != room_id)
+        return;
     }
     if (workbench::BeginInspectorSection(ICON_MD_INVENTORY_2 " Chest contents",
                                          false)) {

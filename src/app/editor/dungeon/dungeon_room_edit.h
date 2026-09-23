@@ -25,6 +25,7 @@ enum class RoomMetadataField {
   kHolewarp,
   kStaircaseRoom,
   kStaircasePlane,
+  kPitPlane,
 };
 
 struct RoomMetadataEdit {

@@ -19,3 +19,11 @@ The app/unit build and 128 focused room-document/transfer tests passed with no
 skips. This is incremental evidence after the combined baseline above, not a
 rerun of all 1,303 earlier tests. See the
 [room file handoff](agents/dungeon-room-template-files-2026-09-23.md).
+
+## Pit and staircase destinations
+
+Shared Workbench/standalone destination controls now include pit arrival layer,
+named plane choices, explicit stair header slots and destination navigation.
+App/unit build and 264 focused tests passed with no skips. Runtime traversal and
+placed-staircase mapping remain unqualified. See the
+[destination handoff](agents/dungeon-destinations-2026-09-23.md).
