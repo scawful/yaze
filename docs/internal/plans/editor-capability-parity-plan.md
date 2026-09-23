@@ -202,6 +202,40 @@ installation, or release qualification is claimed.
 existing undo path, then introduce compound transactions before DA-3 connections
 or DA-4 cloning/import. Do not reimplement the three completed entity inspectors.
 
+### Room-transition review and integration (2026-09-22)
+
+**Candidate:** `50d6257ad` on `codex/editor-parity-dungeon-authoring`, following
+`d42ff4d3f`. Claude's validated stale-selection fix `335fdf446` was cherry-picked
+as `6e9d52e8c`; its original branch and dirty validation harness remain intact.
+No PR into the older placement branch is needed for local integration.
+
+Room or store changes now clear index-based object/entity selection. Object
+Coverage navigation and reciprocal-door navigation bind the destination before
+selecting their target. The follow-up ends incremental tile drags and paint
+strokes against the old room before rebinding, cancels unfinished marquee and
+single-entity previews, and preserves selected placement/paint tools. Same-room
+redraw does not cancel an active gesture.
+
+**Evidence:** app/unit targets built; **289 selected tests across 23 suites
+passed, zero skipped**. Seven regression cases fail when the selection-only
+transition from `6e9d52e8c` is substituted, then pass with the follow-up. The
+editor-level cases verify tile-drag completion precedes a later entity edit in
+history and actual Object Coverage navigation preserves destination selection
+through the next binding. The existing mismatched-context inspector test now
+selects deliberately after binding so it still exercises its independent guard.
+
+```sh
+cmake --build build/presets/mac-ai --target yaze_test_unit yaze --parallel 4
+yaze_transition_filter='*DungeonEntityUndoLifecycleTest*:*DungeonUndoActionsTest*:*DungeonWorkbench*:*InteractionCoordinatorTest*:*SpriteInteractionHandlerTest*:*DoorInteractionHandlerTest*:*ItemInteractionHandlerTest*:*DungeonSelectionSnapshot*:TileObjectHandlerTest.*:DungeonCanvasViewerNavigationTest.*'
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_list_tests --gtest_filter="$yaze_transition_filter"
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter="$yaze_transition_filter" --gtest_output=xml:/tmp/yaze-room-transition-tests.xml
+```
+
+The broader feature packages remain partial. This integration adds no app-level
+save/reopen, runtime, remote CI, installation, or release evidence. See DA-5 and
+the placement handoff for the inspected older ROM-validation artifacts and their
+limits.
+
 ### Supporting cleanup and human UI ownership
 
 Cleanup should make the next DA-1/DA-2 change easier to understand. It is not a
@@ -296,6 +330,22 @@ geometry, renderer replay, captured game tilemaps, and actual gameplay as
 separate evidence. Record capture/ROM identity and reviewed expected differences;
 reject new mismatches. Do not dismiss CodeQL alerts from a sink line alone: inspect
 the complete source-to-sink trace, including new test fixture callers.
+
+The [September 22 placement validation review](../agents/dungeon-workbench-placement-handoff-2026-09-22.md#independent-validation-review-2026-09-22)
+records inspected scratch-ROM hashes and targeted object readback. It qualifies
+selected ordinary/custom/torch serialization on the older `7ba7d76ce` candidate;
+it does not close DA-5 for the integrated branch. The harness bypassed app save
+orchestration and did not attach Oracle project dependencies. Promote the next
+save check to the application transaction with project policy active, including
+late failure rollback and the reported pot-item confirmation sequence.
+
+Capacity feedback is a named editing gap: object placement currently can exceed
+room-stream or shared torch-table space before Save refuses. Reuse serializer
+planning/capacity rules for advance feedback; preserve save-time guards. A
+successful replacement at unchanged count does not prove capacity growth.
+Whole-ROM safety claims require comparison beyond the readback helper's object
+fields. Wheel/Shift-wheel, Escape, scaled layout, block placement, and game
+runtime remain separate open qualification items.
 
 ### OW-1 and OW-2: overworld entity completion
 
