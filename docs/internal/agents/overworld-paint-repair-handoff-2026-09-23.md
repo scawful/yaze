@@ -20,6 +20,8 @@ The local source commits are:
 - `b9887bc91`: source organization, canonical includes, and CMake path migration.
 - `c6a843cea`: captured rectangular brush and coordinate repairs (OW-R3/R7),
   including clipboard/scratch transfer and multi-map paint history.
+- `bb69ee4a9`: stable context-menu targets (OW-R4), menu organization, and
+  parent-relative item/sprite insertion coordinates.
 
 The main checkout's uncommitted Cursor changes remain separate. These commits
 have not been pushed or installed as the user's application.
@@ -56,6 +58,36 @@ have not been pushed or installed as the user's application.
    including merged actions, and marks each bitmap modified before refresh.
    Revisited coordinates keep the first old value and last new value.
 
+## Context-menu repair (OW-R4)
+
+The main canvas now builds its menu only when it opens. The captured
+`OverworldContextTarget` contains physical map, parent area, world-pixel
+position, game state, and Tile16 ID. Menu callbacks capture it by value; the
+live Entity Workbench consumes an `OverworldEntityInsertionRequest` containing
+both type and target. It never substitutes the selected map or game state from
+the next frame. Loading clears pending insertion and menu actions. The service
+rejects invalid targets or changed parent mappings before mutation.
+
+The obsolete `ProcessPendingEntityInsertion` implementation and loose mutable
+type/position accessors were removed. Integrations must queue and consume the
+typed request. Tile16 sampling/editing uses the captured ID through
+`RequestTile16Selection`, preserving its pending-edit guard. Area Configuration,
+background, and effects actions select the captured map before opening panels.
+
+The visible hierarchy is: map/tile identity, Select/Pin, Sample/Edit Tile16,
+Insert Entity, Map, Map Info, View. Existing metadata copy/paste, related-map
+navigation, labels, and version-dependent controls remain available. The View
+submenu owns zoom/reset, grid, and labels; shared built-ins are hidden to avoid
+duplicates. Canvas snapshots now preserve configuration fields, including the
+built-in visibility and canvas role. Reset View runs later in the canvas child
+window; the renderer no longer forces Grid Size back to 64 every frame.
+
+Item and sprite creation also had a parent-quadrant defect: child screen `0x09`
+of parent `0x00` at world `(528,544)` produced game coordinates `(1,2)` instead
+of `(33,34)`. Production value builders now validate screen/parent/bounds and
+retain parent-relative coordinates before appending an entity. Item save/load
+is tested through the real serializers in an in-memory synthetic ROM.
+
 ## Source organization
 
 The overworld root now contains six C++ files instead of 43. The mechanical
@@ -87,7 +119,53 @@ claiming the extraction and painting repairs work together.
 
 ## Verification
 
-### Current brush and organization increment
+### Current context-menu increment
+
+`yaze` and `yaze_test_unit` built successfully. **105 tests in 12 suites passed,
+zero failures and zero skipped.** Tests cover value capture, deferred request
+consumption, panel targeting, menu availability/hierarchy, zoom/scroll/world
+coordinates, and the previous brush/navigation/cache regressions. Real ImGui
+frames exercise capture-before-render, popup persistence, reopening, rejection,
+outside clicks/right drags, and built-in menu visibility in rendered text.
+The headless fixture enables keyboard navigation, matching the app, so Escape
+dismisses the popup before the next-open test.
+
+```sh
+cmake --build --preset mac-ai --target yaze yaze_test_unit --parallel 4
+yaze_context_filter='MapPropertiesContextMenuTest.*:OverworldContextTargetTest.*:CanvasContextMenuOpenTest.*:OverworldItemOperationsTest.*:CanvasContextMenuRoleTest.*:CanvasNavigationManagerTest.*:*TilePaintingManager*:OverworldTilePaintActionTest.*:OverworldPaintRefreshTest.*:MapRefreshCoordinatorTest.*'
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_list_tests --gtest_filter="$yaze_context_filter"
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter="$yaze_context_filter" --gtest_output=xml:/tmp/yaze-overworld-context-tests.xml
+/opt/homebrew/bin/bash scripts/dev/editor-guardrails.sh ddc2fb07c bb69ee4a9
+git diff --check
+```
+
+Logs: `/tmp/yaze-overworld-context-build.log`,
+`/tmp/yaze-overworld-context-final-build.log`,
+`/tmp/yaze-overworld-context-selected.log`,
+`/tmp/yaze-overworld-context-tests.log`.
+
+The following scoped analyzer command passed using a Debug compilation database
+prepared as described in the brush section below:
+
+```sh
+/opt/homebrew/opt/llvm/bin/clang-tidy \
+  -p /tmp/yaze-overworld-context-analysis \
+  --checks='-*,clang-analyzer-*' \
+  --warnings-as-errors='clang-analyzer-*' \
+  --header-filter='app/(editor/overworld|gui/canvas)/.*' \
+  src/app/editor/overworld/canvas/overworld_context_actions.cc \
+  src/app/editor/overworld/entity/entity_operations.cc \
+  src/app/editor/overworld/entity/entity_workbench.cc \
+  src/app/editor/overworld/maps/map_properties.cc \
+  src/app/gui/canvas/canvas_context_menu.cc
+```
+
+Two excluded non-user-code warnings were suppressed. Log:
+`/tmp/yaze-overworld-context-analyzer.log`. This does not establish a whole-repo
+clang-tidy result, native UI acceptance, or compatibility with Cursor's dirty
+combined candidate. No personal ROM/save files were modified.
+
+### Earlier brush and organization increment
 
 **99 tests across 14 suites passed, zero failures and zero skipped.** `yaze` and
 `yaze_test_unit` built with `mac-ai`. The filter was enumerated before execution.
@@ -187,18 +265,16 @@ save is written.
 
 ## Remaining work, in order
 
-1. **OW-R4: stable context-menu target.** Deferred entity insertion combines
-   selected-map identity with hovered-map coordinates. Capture map identity,
-   parent context, and position when opening the menu. Keep that target stable
-   while the popup is open. The later local-master hover-clear change
-   `621d15c69` can also make a popup fall back to the selected map; it is absent
-   from this branch. Test selected A / popup B across several frames.
-2. **OW-R5 / OW-R6: Tile16 publication and recovery.** Commit must invalidate
+1. **OW-R5 / OW-R6: Tile16 publication and recovery.** Commit must invalidate
    affected map/atlas caches before publishing rebuilt graphics. Discard must
    restore all staged atlas regions. A four-definition stamp needs one undo
    snapshot covering all touched definitions, including pending state and
    presentation. Integrate with Cursor's new session/workbench boundary rather
    than recreating rules in the façade or layout.
+2. **Overworld sprite persistence.** `Overworld::Save` currently calls no sprite
+   serializer. This increment corrects sprite insertion values only. Implement
+   and qualify a bounded serializer before claiming persistent sprite authoring;
+   do not infer it from the item save/load test.
 3. **ROM and native UI qualification.** Verify Small/Large/Wide/Tall areas and
    Light/Dark/Special World with disposable ROMs. Check source/destination areas
    with different graphics and palettes, Copy and scratch-space transfer, then
