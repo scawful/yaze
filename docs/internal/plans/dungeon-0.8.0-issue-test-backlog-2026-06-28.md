@@ -43,10 +43,17 @@ are not fresh-process save/reopen, runtime, CI, or package acceptance.
 The subsequent local candidate `a730d6557` adds door/sprite/pot-item undo
 and a shared editable entity inspector. The app/unit build and 150 focused
 tests passed, including 22 editor lifecycle cases and five inspector UI cases.
-DA-1 next covers metadata/chests and mixed-domain atomic operations; DA-2
-retains controls for remaining room elements. These are Source + Focused
-results, not ROM/runtime or release acceptance. Exact commands and limits are
-recorded in the canonical plan; do not redo this completed sub-slice.
+The newer `aeb0b1200` candidate adds metadata and existing chest-content undo,
+named room/reward controls, and atomic multiroom staircase cleanup. Its app/unit
+build and 475 focused tests across 36 suites passed with zero skips, including
+94 new cases. Scoped Clang analyzer checks passed on two mutation modules.
+
+DA-1 next covers compound chest creation/deletion and mixed-domain operations;
+DA-2 retains controls for remaining room elements. Existing chest-content edits
+do not create/delete visual chest objects. These are Source + Focused results,
+including synthetic persistence checks, not full application/ROM/runtime or
+release acceptance. Exact commands and limits are recorded in the canonical
+plan; do not redo these completed sub-slices.
 
 Open PR heads at this checkpoint: #256 `0b6ecdaf3`, #257 `a1484bab3`,
 #258 `9557ff3bb`, and #259 `5d2ecac28`. Recheck their heads and terminal
@@ -54,8 +61,8 @@ checks before integration. Do not infer merge readiness from this inventory.
 
 | Package | Next bounded implementation | Existing foundation to preserve | Required evidence |
 | --- | --- | --- | --- |
-| `DA-1` | Metadata/chest undo and compound operations | Object/collision/water-fill undo; door/sprite/pot-item candidate `a730d6557` | Domain changes restore exactly through undo/redo; rejected/no-op edits leave no partial mutation or history entry |
-| `DA-2` | Complete controls for remaining room elements through `DA-1` | Shared door/sprite/pot-item candidate `a730d6557`, placement inspector, existing room properties | Inspector and canvas remain synchronized; no independent duplicate state; focused UI and entity lifecycle checks |
+| `DA-1` | Compound chest create/delete and mixed-domain operations | Existing undo domains; metadata/existing chest contents and atomic metadata batch at `aeb0b1200` | Domain changes restore exactly through undo/redo; rejected/no-op edits leave no partial mutation or history entry |
+| `DA-2` | Complete controls for remaining room elements through `DA-1` | Shared entity inspector and placement controls; named room/chest controls at `aeb0b1200` | Inspector and canvas remain synchronized; no independent duplicate state; focused UI and entity lifecycle checks |
 | `DA-3` | Visual room destinations and return navigation | Connected-room browsing and stored destination fields | Correct stair/pit destinations and ordinary door adjacency; invalid destinations do not mutate |
 | `DA-4` | Complete room cloning and reusable selections | Existing room-template/JSON helpers | Explicit domain coverage, atomic validation/apply, undo, and source-preserving copy behavior |
 | `DA-5` | Qualify the final combined candidate | Object Coverage, parity tools, GUI qualification, release scripts | Complete application-path edit/undo/save/reopen plus independent rendering/runtime and packaged acceptance |

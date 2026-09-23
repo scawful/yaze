@@ -7,6 +7,72 @@ selected-object inspector. The user requested substantial implementation work
 from Codex and delegated extended validation to Claude. Avoid asking the user
 to repeat a sequence of manual tests before continuing development.
 
+## Current room authoring candidate (2026-09-22)
+
+The integration branch now extends the placement/entity work with room metadata
+and existing chest-content editing at `aeb0b1200`, following `a893d0ef5`.
+App/unit builds and 475 tests across 36 suites passed, with zero failures/skips.
+Scoped Clang analyzer checks passed for the two new mutation modules. Details
+and qualification boundaries are recorded in the
+[capability plan](../plans/editor-capability-parity-plan.md#room-metadata-and-existing-chest-content-increment-2026-09-22).
+
+- Workbench Room Properties uses named BG2/effect/collision/tag choices and
+  validated deferred fields. Standalone properties and Room Tags share its undo
+  boundary. Destinations include the pit and four staircase room/plane slots.
+- Metadata snapshots preserve the hidden BG2 mode in dark rooms, distinguish
+  room-header and object-stream-header save state, and refresh dependent views
+  without switching the current room. Invalid and unchanged edits add no history.
+- The shared Chest contents section edits existing rewards and normal/big
+  record types. Its searchable receipt-ID labels are independent of the generic
+  inventory-name table. Search remains visible above a scrolling results list.
+  Unknown hack IDs and project labels are preserved. These controls do not
+  create/delete chest objects or synchronize object and record types.
+- Connected-view Clear stale validates the complete metadata batch before
+  changing any room and contributes one undo entry for the whole operation.
+- The next implementation package is compound chest creation/deletion with
+  synchronized object/contents order and capacity preflight, followed by the
+  remaining mixed-domain operations. Do not infer complete DA-1 or DA-2 from
+  existing-record editing or the single-domain metadata batch.
+
+Review the built candidate tomorrow when convenient. Do not install it over
+`/Applications/yaze.app` or interrupt an active ROM session as part of automated
+validation. Synthetic persistence checks are useful evidence; vanilla/Oracle
+application save transactions, game behavior, packaging, and CI remain separate
+qualification work. The older placement harness evidence below does not qualify
+this new increment.
+
+### Room authoring verification commands
+
+Run from the integration worktree. The negative filter keeps the declared
+Focused run independent of optional ROM fixtures; qualify those separately.
+
+```sh
+cmake --build build/presets/mac-ai --target yaze_test_unit yaze --parallel 4
+yaze_room_authoring_filter='*DungeonRoomMetadata*:*DungeonRoomEditsLifecycle*:*DungeonChestEditor*'
+yaze_room_authoring_filter+=':*DungeonEntityUndoLifecycleTest*:*DungeonUndoActionsTest*:*DungeonWorkbench*'
+yaze_room_authoring_filter+=':*InteractionCoordinatorTest*:*SpriteInteractionHandlerTest*:*DoorInteractionHandlerTest*:*ItemInteractionHandlerTest*'
+yaze_room_authoring_filter+=':*DungeonSelectionSnapshot*:TileObjectHandlerTest.*:DungeonCanvasViewerNavigationTest.*'
+yaze_room_authoring_filter+=':DungeonEditorV2RomSafetyTest.*:DungeonSaveTest.*Chest*:*RoomHeader*'
+yaze_room_authoring_filter+='-*RoomObjectRomParityTest*'
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_list_tests --gtest_filter="$yaze_room_authoring_filter"
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter="$yaze_room_authoring_filter" --gtest_output=xml:/tmp/yaze-room-authoring-verified-tests.xml
+```
+
+Scoped static analysis uses the configured PCH-free analysis database:
+
+```sh
+cmake --preset mac-ai -B build/analysis/mac-ai -G Ninja -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON -DYAZE_ENABLE_CLANG_TIDY=OFF
+clang-tidy -p build/analysis/mac-ai --checks='-*,clang-analyzer-*' --warnings-as-errors='clang-analyzer-*' --header-filter='(dungeon_room_edit|dungeon_editor_v2_room_edits)\.(cc|h)$' src/app/editor/dungeon/dungeon_room_edit.cc src/app/editor/dungeon/dungeon_editor_v2_room_edits.cc
+```
+
+This analyzer result covers two named translation units and their selected
+header diagnostics. It is not a full-repository clang-tidy pass. Existing full
+checker/PCH limitations remain documented in the capability plan. Relevant logs
+are `/tmp/yaze-room-authoring-commit-build.log`,
+`/tmp/yaze-room-authoring-verified-tests.log`,
+`/tmp/yaze-room-authoring-verified-tests.xml`, and
+`/tmp/yaze-room-authoring-final-analyzer.log`.
+
 ## Placement baseline
 
 - Validated placement commit: `7ba7d76ce`, originally on

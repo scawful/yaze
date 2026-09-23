@@ -27,6 +27,15 @@ Stable/Beta/WIP labels.
   inspector UI cases. Only formatting whitespace changed after that run, checked
   through whitespace-normalized staged content. ROM save/reopen, runtime, CI,
   installation, and release qualification remain pending.
+- Current room/chest candidate: `aeb0b1200` on
+  `codex/editor-parity-dungeon-authoring`. It adds room metadata undo, named
+  property controls, shared existing chest reward/type editing, and an atomic
+  multiroom **Clear stale** action. App and unit builds passed; **475 focused
+  tests across 36 suites passed with zero skips**, including 94 new cases.
+  Scoped Clang analyzer checks passed on the two new mutation modules.
+  Synthetic save/decode/byte-preservation tests do not establish vanilla/Oracle
+  application-to-disk or game-runtime qualification. Mainline and the installed
+  application remain unchanged.
 - Reference-source snapshots used in the audit: Hyrule Magic `7d17cc2` and
   ZScream `0f6812d`. These are source comparison pins, not a statement that the
   two checkouts represent every published feature.
@@ -53,7 +62,8 @@ separately as **Source**, **Focused**, **ROM**, **Runtime**, or **Release**.
 | --- | --- | --- | --- |
 | Place and resize dungeon tile objects | **Candidate** for the new Workbench workflow | Preview controls, physical dimensions, repeat/once placement, inserted-object selection, Place another, and uniform area resizing in `7ba7d76ce`; Source + Focused evidence | Qualify on disposable vanilla and Oracle base ROMs; verify undo, save/reopen, and game behavior before release promotion. |
 | Edit doors, sprites, and pot items in place | **Candidate** | `a730d6557`: shared Workbench/standalone property controls, domain-aware undo/redo, render refresh, reserved-sprite validation, and paste-selection restoration; Source + Focused evidence | ROM save/reopen, runtime, CI, and packaged acceptance remain. Inspector edits are blocked when connected-view and interaction room contexts differ. |
-| Complete editing of every dungeon element | **Partial** | The original `d609e6254` / `7ba7d76ce` audit had read-only Workbench entity summaries and tile/collision/water undo; the candidate above closes only the door/sprite/pot-item slice. | Header and chest transactions, atomic mixed-domain operations, clipboard capacity handling, and remaining room workflows keep DA-1 and DA-2 open. |
+| Edit room properties and existing chest contents | **Candidate**, Source + Focused at `aeb0b1200` | Typed header/tag/layout/floor/destination edits with undo; named room choices; shared chest record/reward/type selector; atomic multiroom metadata batch. | Qualify application persistence/runtime on the exact candidate. Chest creation/deletion and object/record synchronization are not covered. |
+| Complete editing of every dungeon element | **Partial** | Entity editing at `a730d6557` and the room/chest-content candidate extend the original `d609e6254` / `7ba7d76ce` audit. | Compound chest creation/deletion, general atomic mixed-domain operations, clipboard capacity handling, and remaining room workflows keep DA-1 and DA-2 open. |
 | Build and reuse complete rooms | **Partial** | Room-template helpers, export, destination fields, and connected-room browsing | Complete template schema and room cloning/import, including doors, chests, and headers; reusable selections; destination previews with engine adjacency constraints. |
 | Edit overworld maps and entities | **Partial** | Tile editing, paste undo, persistent scratchpad, entrances, exits, items, properties, graphics groups, and state-specific sprites | Serialize sprites for every supported game state; unify entity undo and verify each saved domain. Existing map save does not persist sprite edits. |
 | Edit graphics and graphics groups | **Blocked** for coordinated pixel-sheet persistence; other workflows **Partial** | Pixel editing, undo, graphics-group tools, import surfaces, and polyhedral editing | Safe compression and allocation, write boundaries, import/export roundtrip, and coordinated save. Preserve the current graphics save block until these are proved. |

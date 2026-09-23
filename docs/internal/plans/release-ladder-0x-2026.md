@@ -30,8 +30,15 @@ number alone.
 
 The subsequent `a730d6557` candidate adds shared entity properties and
 per-domain door/sprite/pot-item undo, with an app/unit build and 150 focused
-passing tests. It does not close DA-1/DA-2 or qualify 0.8.0. Metadata/chests,
-compound actions, connections, room reuse, and final acceptance remain.
+passing tests. The newer `aeb0b1200` candidate adds room metadata and existing
+chest-content undo, named property/reward controls, and atomic multiroom
+staircase cleanup. Its app/unit build and 475 focused tests passed with zero
+skips; scoped Clang analyzer checks passed on two new mutation modules.
+
+DA-1/DA-2 remain partial. Compound chest creation/deletion and mixed-domain
+operations are next, followed by connections, room reuse, and final acceptance.
+Synthetic persistence checks do not qualify 0.8.0 or replace application/runtime
+validation. See the canonical plan for exact scope and commands.
 
 The primary release train is completion of the main ALTTP editors:
 - Dungeon
