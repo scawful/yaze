@@ -7,6 +7,7 @@
 
 #include "absl/status/statusor.h"
 #include "app/editor/dungeon/dungeon_selection_edit.h"
+#include "zelda3/dungeon/dungeon_rom_addresses.h"
 
 namespace yaze::editor {
 
@@ -20,6 +21,13 @@ inline constexpr uint16_t kTransferWater = 64;
 inline constexpr uint16_t kTransferCore = 31;
 inline constexpr uint16_t kTransferAll = 127;
 inline constexpr size_t kMaxDungeonRoomDocumentBytes = 1024 * 1024;
+// Interchange resource bounds, not permission to author this many entities.
+// The object cap permits existing oversized rooms while bounding JSON/model
+// allocation; the independent 1 MiB serialized-document cap still applies.
+inline constexpr size_t kMaxDungeonRoomDocumentObjects = 4096;
+// A room may retain residual records from the entire fixed shared chest table.
+inline constexpr size_t kMaxDungeonRoomDocumentChestRecords =
+    zelda3::kChestTableCapacityRecords;
 // UI recovery is keyed by a status payload, not localized error text.
 inline constexpr char kRoomTransferSharedHeaderPayload[] =
     "yaze.room-transfer.shared-header";
@@ -58,8 +66,8 @@ DungeonRoomDocument CaptureDungeonRoomDocument(const zelda3::Room& room);
 bool SameDungeonRoomDocument(const DungeonRoomDocument& a,
                              const DungeonRoomDocument& b);
 absl::Status ValidateDungeonRoomDocument(const DungeonRoomDocument& document);
-// Preserve residual vanilla chest records in interchange. Object/chest
-// replacement still requires the stricter mapping validation in the planner.
+// Preserve oversized object lists and residual chest records in interchange.
+// Replacement still requires the stricter authoring validation in the planner.
 absl::Status ValidateDungeonRoomDocumentForInterchange(
     const DungeonRoomDocument& document);
 absl::StatusOr<std::string> SerializeDungeonRoomDocument(
@@ -69,6 +77,9 @@ absl::StatusOr<DungeonRoomDocument> ParseDungeonRoomDocument(
 
 // Pure planning. Allocation, global table capacity and project write policy
 // require the editor's detached persistence preflight before publication.
+// Existing oversized object lists may remain the same size or shrink. An exact
+// object/chest no-op preserves legacy mappings and target block identities;
+// any changed replacement must satisfy the six-slot chest/lock authoring rules.
 absl::StatusOr<DungeonRoomTransferPlan> PlanDungeonRoomTransfer(
     const zelda3::Room& target, const DungeonRoomDocument& source,
     DungeonRoomTransferOptions options = {});

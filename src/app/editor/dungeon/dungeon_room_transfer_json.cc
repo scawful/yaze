@@ -253,7 +253,8 @@ absl::StatusOr<DungeonRoomDocument> ParseDungeonRoomDocument(
     document.source_room_id =
         Integer(j.at("source_room_id"), 0, zelda3::kNumberOfRooms - 1);
     document.metadata = MetadataFromJson(j.at("metadata"));
-    for (const auto& o : Array(j.at("objects"), zelda3::kMaxTileObjects)) {
+    for (const auto& o :
+         Array(j.at("objects"), kMaxDungeonRoomDocumentObjects)) {
       Keys(o,
            {"id", "x", "y", "size", "layer", "options", "all_bgs", "lit",
             "block_load_order", "block_behavior_layer", "torch_reserved_bit"});
@@ -273,7 +274,8 @@ absl::StatusOr<DungeonRoomDocument> ParseDungeonRoomDocument(
       object.set_torch_reserved_bit(Integer(o.at("torch_reserved_bit"), 0, 1));
       document.contents.objects.push_back(std::move(object));
     }
-    for (const auto& c : Array(j.at("chests"), zelda3::kMaxChests)) {
+    for (const auto& c :
+         Array(j.at("chests"), kMaxDungeonRoomDocumentChestRecords)) {
       Keys(c, {"id", "big"});
       document.contents.chests.push_back(
           {static_cast<uint8_t>(Integer(c.at("id"), 0, 255)),

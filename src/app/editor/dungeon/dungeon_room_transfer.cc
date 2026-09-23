@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <utility>
 
+#include "absl/strings/str_format.h"
 #include "app/editor/dungeon/interaction/sprite_interaction_handler.h"
 #include "util/macro.h"
 #include "zelda3/dungeon/chest_edit.h"
@@ -22,9 +23,50 @@ bool SameWater(const zelda3::WaterFillZoneMap& a,
          a.sram_bit_mask == b.sram_bit_mask;
 }
 
+// A portable document intentionally omits physical block-table identities.
+// Retain the destination's exact identities when its authored object/chest
+// contents already match, instead of turning a no-op into a structural edit.
+bool SamePortableObjectContents(const DungeonSelectionEditState& source,
+                                const DungeonSelectionEditState& target) {
+  if (source.objects.size() != target.objects.size())
+    return false;
+  DungeonSelectionEditState normalized;
+  normalized.objects = source.objects;
+  normalized.chests = source.chests;
+  for (size_t i = 0; i < normalized.objects.size(); ++i) {
+    normalized.objects[i].set_block_load_order(
+        target.objects[i].block_load_order());
+  }
+  return (ChangedDungeonSelectionDomains(normalized, target) &
+          kSelectionObjects) == 0;
+}
+
+absl::Status ValidateObjectReplacement(
+    const DungeonSelectionEditState& contents, size_t previous_object_count) {
+  if (contents.objects.size() > zelda3::kMaxTileObjects &&
+      contents.objects.size() > previous_object_count) {
+    return absl::ResourceExhaustedError(absl::StrFormat(
+        "Room replacement has %zu objects; keep at most %zu or do not grow "
+        "the destination's existing %zu objects",
+        contents.objects.size(), zelda3::kMaxTileObjects,
+        previous_object_count));
+  }
+  if (contents.chests.size() > zelda3::kMaxChests) {
+    return absl::ResourceExhaustedError(
+        "Changed room replacements support at most six chest records; "
+        "preserve legacy contents or exclude objects and chest rewards");
+  }
+  RETURN_IF_ERROR(
+      zelda3::ValidateChestObjectMapping(contents.objects, contents.chests));
+  // New room contents must not take the chest planner's unchanged fast path.
+  std::vector<std::optional<size_t>> origins(contents.objects.size());
+  const auto chest_plan =
+      zelda3::PlanChestObjectEdit({}, {}, contents.objects, origins);
+  return chest_plan.status();
+}
+
 absl::Status ValidateDomains(const DungeonRoomDocument& document,
-                             uint16_t domains,
-                             bool require_chest_mapping = true) {
+                             uint16_t domains) {
   if (document.source_room_id < 0 ||
       document.source_room_id >= zelda3::kNumberOfRooms) {
     return absl::InvalidArgumentError(
@@ -32,10 +74,10 @@ absl::Status ValidateDomains(const DungeonRoomDocument& document,
   }
   const auto& contents = document.contents;
   if (domains & kTransferObjects) {
-    if (contents.objects.size() > zelda3::kMaxTileObjects ||
-        contents.chests.size() > zelda3::kMaxChests) {
+    if (contents.objects.size() > kMaxDungeonRoomDocumentObjects ||
+        contents.chests.size() > kMaxDungeonRoomDocumentChestRecords) {
       return absl::ResourceExhaustedError(
-          "Room object or chest limit exceeded");
+          "Room document object or chest-record resource limit exceeded");
     }
     for (const auto& object : contents.objects) {
       const int options = static_cast<int>(object.options());
@@ -60,17 +102,6 @@ absl::Status ValidateDomains(const DungeonRoomDocument& document,
         return absl::InvalidArgumentError(
             "Special object metadata is out of range");
       }
-    }
-    if (require_chest_mapping) {
-      RETURN_IF_ERROR(zelda3::ValidateChestObjectMapping(contents.objects,
-                                                         contents.chests));
-      // Treat the candidate as newly placed objects so the shared chest planner
-      // validates six-slot ordering instead of taking its unchanged fast path.
-      std::vector<std::optional<size_t>> origins(contents.objects.size());
-      auto chest_plan =
-          zelda3::PlanChestObjectEdit({}, {}, contents.objects, origins);
-      if (!chest_plan.ok())
-        return chest_plan.status();
     }
   }
   if (domains & kTransferDoors) {
@@ -196,12 +227,13 @@ bool DungeonRoomTransferPlan::changed() const {
 }
 
 absl::Status ValidateDungeonRoomDocument(const DungeonRoomDocument& document) {
-  return ValidateDomains(document, kTransferAll);
+  RETURN_IF_ERROR(ValidateDomains(document, kTransferAll));
+  return ValidateObjectReplacement(document.contents, 0);
 }
 
 absl::Status ValidateDungeonRoomDocumentForInterchange(
     const DungeonRoomDocument& document) {
-  return ValidateDomains(document, kTransferAll, false);
+  return ValidateDomains(document, kTransferAll);
 }
 
 absl::StatusOr<DungeonRoomTransferPlan> PlanDungeonRoomTransfer(
@@ -228,7 +260,10 @@ absl::StatusOr<DungeonRoomTransferPlan> PlanDungeonRoomTransfer(
   plan.before = CaptureDungeonRoomDocument(target);
   plan.after = plan.before;
   auto& after = plan.after;
-  if (options.domains & kTransferObjects) {
+  if ((options.domains & kTransferObjects) &&
+      !SamePortableObjectContents(source.contents, plan.before.contents)) {
+    RETURN_IF_ERROR(ValidateObjectReplacement(
+        source.contents, plan.before.contents.objects.size()));
     after.contents.objects = source.contents.objects;
     for (auto& object : after.contents.objects) {
       object = object.CopyForNewPlacement();
