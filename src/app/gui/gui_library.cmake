@@ -74,6 +74,7 @@ set(GUI_WIDGETS_SRC
   app/gui/widgets/resize_handles.cc
   app/gui/widgets/text_editor.cc
   app/gui/widgets/themed_widgets.cc
+  app/gui/widgets/empty_state.cc
   app/gui/widgets/tile_selector_widget.cc
 )
 

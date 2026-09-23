@@ -7,9 +7,9 @@
 
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
-#include "app/editor/overworld/tile16_editor_action_state.h"
-#include "app/editor/overworld/tile16_editor_shortcuts.h"
-#include "app/editor/overworld/tile8_source_interaction.h"
+#include "app/editor/overworld/tile16/tile16_editor_action_state.h"
+#include "app/editor/overworld/tile16/tile16_editor_shortcuts.h"
+#include "app/editor/overworld/tile16/tile8_source_interaction.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/debug/performance/performance_profiler.h"
@@ -130,77 +130,13 @@ absl::Status Tile16Editor::UpdateAsPanel() {
     EndPopup();
   }
 
-  // Unsaved changes confirmation dialog
-  if (session_.show_unsaved_changes_dialog()) {
-    OpenPopup("Unsaved Changes##Tile16Editor");
-  }
-  if (BeginPopupModal("Unsaved Changes##Tile16Editor", NULL,
-                      ImGuiWindowFlags_AlwaysAutoResize)) {
-    Text(tr("Tile %d has staged changes."), session_.current_tile16());
-    Text(tr("What would you like to do?"));
-    Separator();
-
-    if (Button(tr("Keep Staged & Continue"), ImVec2(220, 0))) {
-      if (IsItemHovered()) {
-        SetTooltip(tr(
-            "Switch to the requested tile now. Other tiles with staged edits "
-            "stay in the write queue until you use Write Pending or Discard."));
-      }
-      if (session_.pending_tile_switch_target() >= 0) {
-        auto status = SetCurrentTile(session_.pending_tile_switch_target());
-        if (!status.ok()) {
-          util::logf("Failed to switch to tile %d: %s",
-                     session_.pending_tile_switch_target(),
-                     status.message().data());
-        }
-      }
-      session_.set_pending_tile_switch_target(-1);
-      session_.set_show_unsaved_changes_dialog(false);
-      CloseCurrentPopup();
-    }
-
-    if (gui::SuccessButton("Write Pending & Continue", ImVec2(220, 0))) {
-      auto status = CommitAllChanges();
-      if (status.ok() && session_.pending_tile_switch_target() >= 0) {
-        status = SetCurrentTile(session_.pending_tile_switch_target());
-      }
-      if (!status.ok()) {
-        util::logf("Failed to write/switch pending changes: %s",
-                   status.message().data());
-      }
-      session_.set_pending_tile_switch_target(-1);
-      session_.set_show_unsaved_changes_dialog(false);
-      CloseCurrentPopup();
-    }
-
-    if (gui::DangerButton("Discard Current & Continue", ImVec2(220, 0))) {
-      DiscardCurrentTileChanges();
-      if (session_.pending_tile_switch_target() >= 0) {
-        auto status = SetCurrentTile(session_.pending_tile_switch_target());
-        if (!status.ok()) {
-          util::logf("Failed to switch to tile %d: %s",
-                     session_.pending_tile_switch_target(),
-                     status.message().data());
-        }
-      }
-      session_.set_pending_tile_switch_target(-1);
-      session_.set_show_unsaved_changes_dialog(false);
-      CloseCurrentPopup();
-    }
-
-    if (Button(tr("Cancel"), ImVec2(220, 0))) {
-      session_.set_pending_tile_switch_target(-1);
-      session_.set_show_unsaved_changes_dialog(false);
-      CloseCurrentPopup();
-    }
-
-    EndPopup();
-  }
-
   // Handle keyboard shortcuts (shared implementation)
   HandleKeyboardShortcuts();
 
   DrawTile16Editor();
+  if (!status_.ok()) {
+    ImGui::TextWrapped("Tile16 edit failed: %s", status_.message().data());
+  }
   DrawPaletteSettings();
   RETURN_IF_ERROR(UpdateLivePreview());
 
@@ -243,7 +179,7 @@ absl::Status Tile16Editor::UpdateBlockset() {
       blockset_selector_.Render(*session_.tile16_blockset_bmp(), true);
 
   if (result.selection_changed) {
-    // Use RequestTileSwitch to handle pending changes confirmation
+    // Selection does not create an edit or interrupt document history.
     RequestTileSwitch(result.selected_tile);
     util::logf("Selected Tile16 from blockset: %d", result.selected_tile);
   }
@@ -255,7 +191,8 @@ absl::Status Tile16Editor::UpdateBlockset() {
 }
 
 void Tile16Editor::HandleKeyboardShortcuts() {
-  if (!ImGui::IsAnyItemActive()) {
+  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_RootAndChildWindows) &&
+      !ImGui::IsAnyItemActive()) {
     const ImGuiIO& io = ImGui::GetIO();
 #if defined(__APPLE__)
     const bool platform_primary_held = io.KeyCtrl || io.KeySuper;
@@ -328,10 +265,10 @@ void Tile16Editor::HandleKeyboardShortcuts() {
 
     // Ctrl-modified shortcuts
     if (ctrl_held) {
-      if (ImGui::IsKeyPressed(ImGuiKey_Z)) {
-        status_ = Undo();
+      if (!session_.has_shared_history() && ImGui::IsKeyPressed(ImGuiKey_Z)) {
+        status_ = io.KeyShift ? Redo() : Undo();
       }
-      if (ImGui::IsKeyPressed(ImGuiKey_Y)) {
+      if (!session_.has_shared_history() && ImGui::IsKeyPressed(ImGuiKey_Y)) {
         status_ = Redo();
       }
       if (ImGui::IsKeyPressed(ImGuiKey_C)) {
@@ -339,14 +276,6 @@ void Tile16Editor::HandleKeyboardShortcuts() {
       }
       if (ImGui::IsKeyPressed(ImGuiKey_V)) {
         status_ = PasteTile16FromClipboard();
-      }
-      if (ImGui::IsKeyPressed(ImGuiKey_S)) {
-        if (ImGui::IsKeyDown(ImGuiKey_LeftShift) ||
-            ImGui::IsKeyDown(ImGuiKey_RightShift)) {
-          status_ = CommitChangesToBlockset();
-        } else {
-          status_ = CommitAllChanges();
-        }
       }
     }
   }

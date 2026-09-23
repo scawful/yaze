@@ -308,9 +308,11 @@ bool PanelWindow::Begin(bool* p_open) {
     return false;
   }
 
-  if (force_undock_) {
+  const bool force_undock = force_undock_;
+  force_undock_ = false;
+  if (force_undock) {
     ImGui::SetNextWindowDockID(0, ImGuiCond_Always);
-    force_undock_ = false;
+    ImGui::SetNextWindowFocus();
   }
 
   ImGuiWindowFlags flags = ImGuiWindowFlags_None;
@@ -331,6 +333,7 @@ bool PanelWindow::Begin(bool* p_open) {
     flags |= ImGuiWindowFlags_NoSavedSettings;
   }
 
+  const bool was_first_draw = first_draw_;
   // Set initial position based on position enum
   if (first_draw_) {
     float display_width = ImGui::GetIO().DisplaySize.x;
@@ -398,8 +401,14 @@ bool PanelWindow::Begin(bool* p_open) {
         break;
     }
 
-    ImGui::SetNextWindowSize(initial_size, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(
+        initial_size, force_undock ? ImGuiCond_Always : ImGuiCond_FirstUseEver);
     first_draw_ = false;
+  }
+
+  if (force_undock && !was_first_draw && default_size_set_) {
+    // Explicit edit requests restore a usable workbench size after narrow docking.
+    ImGui::SetNextWindowSize(default_size_, ImGuiCond_Always);
   }
 
   // Modern panel styling

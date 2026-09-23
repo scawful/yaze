@@ -1,4 +1,4 @@
-#include "app/editor/overworld/tile8_source_interaction.h"
+#include "app/editor/overworld/tile16/tile8_source_interaction.h"
 
 #include "gtest/gtest.h"
 

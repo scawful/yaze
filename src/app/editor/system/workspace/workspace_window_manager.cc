@@ -438,6 +438,8 @@ void WorkspaceWindowManager::UnregisterPanel(size_t session_id,
     return;
   }
 
+  pending_float_window_ids_.erase(prefixed_id);
+
   auto it = cards_.find(prefixed_id);
   if (it != cards_.end()) {
     LOG_INFO("WorkspaceWindowManager", "Unregistered card: %s",
@@ -510,6 +512,7 @@ void WorkspaceWindowManager::UnregisterPanelsWithPrefix(
                                           info.prefixed_id);
     }
     UntrackResourceWindow(info.prefixed_id);
+    pending_float_window_ids_.erase(info.prefixed_id);
     cards_.erase(info.prefixed_id);
     centralized_visibility_.erase(info.prefixed_id);
     pinned_panels_.erase(info.prefixed_id);
@@ -972,7 +975,8 @@ void WorkspaceWindowManager::DrawAllVisiblePanels() {
     gui::PanelWindow window(display_name.c_str(), icon.c_str(),
                             visibility_flag);
     window.SetStableId(prefixed_panel_id);
-    const bool force_float = pending_float_base_ids_.count(base_panel_id) > 0;
+    const bool force_float =
+        pending_float_window_ids_.count(prefixed_panel_id) > 0;
     if (panel->PrefersFloating() || force_float) {
       window.SetPosition(gui::PanelWindow::Position::Floating);
     } else if (touch_device) {
@@ -982,7 +986,7 @@ void WorkspaceWindowManager::DrawAllVisiblePanels() {
     // the default floating position without blocking user docking.
     if (force_float) {
       window.RequestForceUndock();
-      pending_float_base_ids_.erase(base_panel_id);
+      pending_float_window_ids_.erase(prefixed_panel_id);
     }
 
     // Use preferred size from WindowContent if specified.
@@ -1074,9 +1078,12 @@ void WorkspaceWindowManager::OnEditorSwitch(const std::string& from_category,
 
 bool WorkspaceWindowManager::OpenWindowFloating(
     size_t session_id, const std::string& base_window_id) {
-  const std::string canonical_base_id = ResolveBaseWindowId(base_window_id);
-  pending_float_base_ids_.insert(canonical_base_id);
-  return OpenWindowImpl(session_id, base_window_id);
+  if (!OpenWindowImpl(session_id, base_window_id)) {
+    return false;
+  }
+  pending_float_window_ids_.insert(
+      GetPrefixedWindowId(session_id, ResolveBaseWindowId(base_window_id)));
+  return true;
 }
 
 bool WorkspaceWindowManager::OpenWindowImpl(size_t session_id,
@@ -1119,6 +1126,8 @@ bool WorkspaceWindowManager::CloseWindowImpl(size_t session_id,
     return false;
   }
 
+  pending_float_window_ids_.erase(prefixed_id);
+
   auto* descriptor = FindDescriptorByPrefixedId(prefixed_id);
   if (descriptor) {
     const bool was_visible =
@@ -1155,6 +1164,8 @@ bool WorkspaceWindowManager::ToggleWindowImpl(size_t session_id,
   if (descriptor && descriptor->visibility_flag) {
     bool new_state = !(*descriptor->visibility_flag);
     *descriptor->visibility_flag = new_state;
+    if (!new_state)
+      pending_float_window_ids_.erase(prefixed_id);
 
     if (new_state && descriptor->on_show) {
       descriptor->on_show();
@@ -1231,6 +1242,7 @@ void WorkspaceWindowManager::HideAllWindowsInSession(size_t session_id) {
     for (const auto& prefixed_card_id : *session_windows) {
       if (auto* descriptor = FindDescriptorByPrefixedId(prefixed_card_id)) {
         if (descriptor->visibility_flag) {
+          pending_float_window_ids_.erase(prefixed_card_id);
           *descriptor->visibility_flag = false;
         }
         if (descriptor->on_hide) {
@@ -1269,6 +1281,7 @@ void WorkspaceWindowManager::HideAllWindowsInCategory(
           continue;
         }
         if (descriptor->visibility_flag) {
+          pending_float_window_ids_.erase(prefixed_card_id);
           *descriptor->visibility_flag = false;
         }
         if (descriptor->on_hide) {
@@ -1446,6 +1459,7 @@ bool WorkspaceWindowManager::LoadPreset(const std::string& name) {
   // First hide all cards
   for (auto& [card_id, card_info] : cards_) {
     if (card_info.visibility_flag) {
+      pending_float_window_ids_.erase(card_id);
       *card_info.visibility_flag = false;
     }
   }

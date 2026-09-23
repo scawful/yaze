@@ -49,9 +49,56 @@ void SyncTilesInfoArray(gfx::Tile16* tile) {
 
 }  // namespace
 
+absl::Status Tile16EditSession::PasteTile16FromClipboard() {
+  return RunEdit([&]() { return PasteTile16FromClipboardImpl(); });
+}
+
+absl::Status Tile16EditSession::LoadTile16FromScratchSpace(int slot) {
+  return RunEdit([&]() { return LoadTile16FromScratchSpaceImpl(slot); });
+}
+
+absl::Status Tile16EditSession::FlipTile16Horizontal() {
+  return RunEdit([&]() { return FlipTile16HorizontalImpl(); });
+}
+
+absl::Status Tile16EditSession::FlipTile16Vertical() {
+  return RunEdit([&]() { return FlipTile16VerticalImpl(); });
+}
+
+absl::Status Tile16EditSession::RotateTile16() {
+  return RunEdit([&]() { return RotateTile16Impl(); });
+}
+
+absl::Status Tile16EditSession::FillTile16WithTile8(int tile8_id) {
+  return RunEdit([&]() { return FillTile16WithTile8Impl(tile8_id); });
+}
+
+absl::Status Tile16EditSession::ClearTile16() {
+  return RunEdit([&]() { return ClearTile16Impl(); });
+}
+
+absl::Status Tile16EditSession::ApplyPaletteToAll(uint8_t palette_id) {
+  return RunEdit([&]() { return ApplyPaletteToAllImpl(palette_id); });
+}
+
+absl::Status Tile16EditSession::ApplyPaletteToQuadrant(int quadrant,
+                                                       uint8_t palette_id) {
+  return RunEdit(
+      [&]() { return ApplyPaletteToQuadrantImpl(quadrant, palette_id); });
+}
+
+absl::Status Tile16EditSession::DrawToCurrentTile16(
+    Tile16LocalPos pos, const gfx::Bitmap* source_tile) {
+  return RunEdit([&]() { return DrawToCurrentTile16Impl(pos, source_tile); });
+}
+
 absl::Status Tile16EditSession::InitializeBitmaps(
     gfx::Bitmap& tile16_blockset_bmp, gfx::Bitmap& current_gfx_bmp,
     std::array<uint8_t, 0x200>& all_tiles_types) {
+  document_edits_.clear();
+  edited_tile_bitmaps_.clear();
+  undo_manager_.Clear();
+  tile8_usage_cache_dirty_ = true;
   all_tiles_types_ = all_tiles_types;
   tile16_blockset_bmp_ = &tile16_blockset_bmp;
   current_gfx_bmp_ = &current_gfx_bmp;
@@ -107,6 +154,11 @@ gfx::Tile16* Tile16EditSession::GetCurrentTile16Data() {
 }
 
 absl::Status Tile16EditSession::UpdateROMTile16Data() {
+  if (document_definitions_) {
+    return absl::FailedPreconditionError(
+        "Use document Save or Undo for the shared Tile16 document");
+  }
+
   auto* tile_data = GetCurrentTile16Data();
   if (!tile_data) {
     return absl::FailedPreconditionError("Cannot access current tile16 data");
@@ -226,22 +278,10 @@ absl::Status Tile16EditSession::RegenerateTile16BitmapFromROM() {
   return absl::OkStatus();
 }
 
-absl::Status Tile16EditSession::DrawToCurrentTile16(
+absl::Status Tile16EditSession::DrawToCurrentTile16Impl(
     Tile16LocalPos pos, const gfx::Bitmap* source_tile) {
   constexpr int kTile8Size = 8;
   (void)source_tile;
-
-  // Save undo state before making changes
-  auto now = std::chrono::steady_clock::now();
-  auto time_since_last_edit =
-      std::chrono::duration_cast<std::chrono::milliseconds>(now -
-                                                            last_edit_time_)
-          .count();
-
-  if (time_since_last_edit > 100) {  // 100ms threshold
-    SaveUndoState();
-    last_edit_time_ = now;
-  }
 
   // Validate inputs
   if (current_tile8_ < 0 ||
@@ -277,7 +317,10 @@ absl::Status Tile16EditSession::DrawToCurrentTile16(
   stamp_request.tile8_row_stride = tile8_row_stride;
   stamp_request.tile16_row_stride = kTilesPerRow;
   stamp_request.max_tile8_id = max_tile8_id;
-  stamp_request.max_tile16_id = kTile16Count - 1;
+  stamp_request.max_tile16_id =
+      document_definitions_
+          ? static_cast<int>(document_definitions_->size()) - 1
+          : kTile16Count - 1;
 
   ASSIGN_OR_RETURN(auto staged_tiles,
                    zelda3::BuildTile16StampMutations(stamp_request));
@@ -302,8 +345,8 @@ absl::Status Tile16EditSession::DrawToCurrentTile16(
           gfx::Arena::TextureCommandType::UPDATE, &current_tile16_bmp_);
       MarkCurrentTileModified();
     } else {
-      pending_tile16_changes_[tile16_id] = tile_data;
-      pending_tile16_bitmaps_[tile16_id] = staged_bitmap;
+      document_edits_[tile16_id] = tile_data;
+      edited_tile_bitmaps_[tile16_id] = staged_bitmap;
       preview_dirty_ = true;
     }
 
@@ -325,10 +368,8 @@ absl::Status Tile16EditSession::DrawToCurrentTile16(
     RETURN_IF_ERROR(UpdateOverworldTilemap());
   }
 
-  util::logf(
-      "Local tile16 stamp staged (size=%dx, tiles=%zu). Use 'Write Pending' to "
-      "commit.",
-      tile8_stamp_size_, staged_tiles.size());
+  util::logf("Edited Tile16 stamp (size=%dx, tiles=%zu).", tile8_stamp_size_,
+             staged_tiles.size());
 
   return absl::OkStatus();
 }
@@ -452,30 +493,17 @@ absl::Status Tile16EditSession::SetCurrentTile(int tile_id) {
         "Tile16 blockset or ROM not initialized");
   }
 
-  // Commit any in-progress edits before switching the current tile selection so
-  // undo/redo captures the correct "after" state.
-  FinalizePendingUndo();
-
+  ASSIGN_OR_RETURN(auto definition, ReadDocumentTile(tile_id));
   current_tile16_ = tile_id;
-  jump_to_tile_id_ = tile_id;  // Sync input field with current tile
-  // Load editable tile16 metadata from pending state first, then ROM. The
-  // bitmap cache is derived data and must be rebuilt from the current Tile8
-  // source so map/graphics refreshes cannot resurrect stale preview pixels.
-  auto pending_it = pending_tile16_changes_.find(current_tile16_);
-  const bool loaded_pending_metadata =
-      pending_it != pending_tile16_changes_.end();
-  if (pending_it != pending_tile16_changes_.end()) {
-    current_tile16_data_ = pending_it->second;
-  } else {
-    ASSIGN_OR_RETURN(current_tile16_data_,
-                     rom_->ReadTile16(current_tile16_, zelda3::kTile16Ptr));
-  }
+  jump_to_tile_id_ = tile_id;
+  current_tile16_data_ = definition;
+  const bool loaded_pending_metadata = document_edits_.contains(tile_id);
   SyncTilesInfoArray(&current_tile16_data_);
 
   RETURN_IF_ERROR(RegenerateTile16BitmapFromROM());
 
   if (loaded_pending_metadata) {
-    pending_tile16_bitmaps_[current_tile16_] = current_tile16_bmp_;
+    edited_tile_bitmaps_[current_tile16_] = current_tile16_bmp_;
   }
 
   util::logf("SetCurrentTile: loaded tile %d successfully", tile_id);
@@ -509,21 +537,9 @@ void Tile16EditSession::RequestTileSwitch(int target_tile_id) {
     return;
   }
 
-  // Check if current tile has pending changes
-  if (is_tile_modified(current_tile16_)) {
-    // Store target and show dialog
-    pending_tile_switch_target_ = target_tile_id;
-    show_unsaved_changes_dialog_ = true;
-    util::logf("Tile %d has pending changes, showing confirmation dialog",
-               current_tile16_);
-  } else {
-    // No pending changes, switch directly
-    auto status = SetCurrentTile(target_tile_id);
-    if (!status.ok()) {
-      util::logf("Failed to switch to tile %d: %s", target_tile_id,
-                 status.message().data());
-    }
-  }
+  const auto status = SetCurrentTile(target_tile_id);
+  if (!status.ok())
+    util::logf("Tile selection failed: %s", status.message().data());
 }
 
 absl::Status Tile16EditSession::CopyTile16ToClipboard(int tile_id) {
@@ -534,25 +550,24 @@ absl::Status Tile16EditSession::CopyTile16ToClipboard(int tile_id) {
     return absl::FailedPreconditionError("ROM not available");
   }
 
-  auto pending_tile_it = pending_tile16_changes_.find(tile_id);
+  auto pending_tile_it = document_edits_.find(tile_id);
   if (tile_id == current_tile16_) {
     clipboard_tile16_.tile_data = current_tile16_data_;
-  } else if (pending_tile_it != pending_tile16_changes_.end()) {
+  } else if (pending_tile_it != document_edits_.end()) {
     clipboard_tile16_.tile_data = pending_tile_it->second;
   } else {
-    ASSIGN_OR_RETURN(clipboard_tile16_.tile_data,
-                     rom_->ReadTile16(tile_id, zelda3::kTile16Ptr));
+    ASSIGN_OR_RETURN(clipboard_tile16_.tile_data, ReadDocumentTile(tile_id));
   }
   SyncTilesInfoArray(&clipboard_tile16_.tile_data);
 
   bool bitmap_copied = false;
-  auto pending_bitmap_it = pending_tile16_bitmaps_.find(tile_id);
+  auto pending_bitmap_it = edited_tile_bitmaps_.find(tile_id);
   if (tile_id == current_tile16_ && current_tile16_bmp_.is_active()) {
     clipboard_tile16_.bitmap.Create(kTile16Size, kTile16Size, 8,
                                     current_tile16_bmp_.vector());
     clipboard_tile16_.bitmap.SetPalette(current_tile16_bmp_.palette());
     bitmap_copied = true;
-  } else if (pending_bitmap_it != pending_tile16_bitmaps_.end() &&
+  } else if (pending_bitmap_it != edited_tile_bitmaps_.end() &&
              pending_bitmap_it->second.is_active()) {
     clipboard_tile16_.bitmap.Create(kTile16Size, kTile16Size, 8,
                                     pending_bitmap_it->second.vector());
@@ -576,12 +591,10 @@ absl::Status Tile16EditSession::CopyTile16ToClipboard(int tile_id) {
   return absl::OkStatus();
 }
 
-absl::Status Tile16EditSession::PasteTile16FromClipboard() {
+absl::Status Tile16EditSession::PasteTile16FromClipboardImpl() {
   if (!clipboard_tile16_.has_data) {
     return absl::FailedPreconditionError("Clipboard is empty");
   }
-
-  SaveUndoState();
 
   current_tile16_data_ = clipboard_tile16_.tile_data;
   SyncTilesInfoArray(&current_tile16_data_);
@@ -626,7 +639,7 @@ absl::Status Tile16EditSession::SaveTile16ToScratchSpace(int slot) {
   return absl::OkStatus();
 }
 
-absl::Status Tile16EditSession::LoadTile16FromScratchSpace(int slot) {
+absl::Status Tile16EditSession::LoadTile16FromScratchSpaceImpl(int slot) {
   if (slot < 0 || slot >= kNumScratchSlots) {
     return absl::InvalidArgumentError("Invalid scratch space slot");
   }
@@ -634,8 +647,6 @@ absl::Status Tile16EditSession::LoadTile16FromScratchSpace(int slot) {
   if (!scratch_space_[slot].has_data) {
     return absl::FailedPreconditionError("Scratch space slot is empty");
   }
-
-  SaveUndoState();
 
   current_tile16_data_ = scratch_space_[slot].tile_data;
   SyncTilesInfoArray(&current_tile16_data_);
@@ -669,12 +680,10 @@ absl::Status Tile16EditSession::ClearScratchSpace(int slot) {
 }
 
 // Advanced editing features
-absl::Status Tile16EditSession::FlipTile16Horizontal() {
+absl::Status Tile16EditSession::FlipTile16HorizontalImpl() {
   if (!current_tile16_bmp_.is_active()) {
     return absl::FailedPreconditionError("No active tile16 to flip");
   }
-
-  SaveUndoState();
 
   current_tile16_data_ = zelda3::HorizontalFlipTile16(current_tile16_data_);
 
@@ -684,18 +693,16 @@ absl::Status Tile16EditSession::FlipTile16Horizontal() {
     RETURN_IF_ERROR(UpdateOverworldTilemap());
   }
 
-  // Track this tile as having pending changes
+  // Record metadata for the enclosing document edit transaction.
   MarkCurrentTileModified();
 
   return absl::OkStatus();
 }
 
-absl::Status Tile16EditSession::FlipTile16Vertical() {
+absl::Status Tile16EditSession::FlipTile16VerticalImpl() {
   if (!current_tile16_bmp_.is_active()) {
     return absl::FailedPreconditionError("No active tile16 to flip");
   }
-
-  SaveUndoState();
 
   current_tile16_data_ = zelda3::VerticalFlipTile16(current_tile16_data_);
 
@@ -705,18 +712,16 @@ absl::Status Tile16EditSession::FlipTile16Vertical() {
     RETURN_IF_ERROR(UpdateOverworldTilemap());
   }
 
-  // Track this tile as having pending changes
+  // Record metadata for the enclosing document edit transaction.
   MarkCurrentTileModified();
 
   return absl::OkStatus();
 }
 
-absl::Status Tile16EditSession::RotateTile16() {
+absl::Status Tile16EditSession::RotateTile16Impl() {
   if (!current_tile16_bmp_.is_active()) {
     return absl::FailedPreconditionError("No active tile16 to rotate");
   }
-
-  SaveUndoState();
 
   // Tile16 metadata does not support arbitrary 8x8 rotation flags.
   // Rotate the 2x2 quadrant layout in a persistable way.
@@ -728,13 +733,13 @@ absl::Status Tile16EditSession::RotateTile16() {
     RETURN_IF_ERROR(UpdateOverworldTilemap());
   }
 
-  // Track this tile as having pending changes
+  // Record metadata for the enclosing document edit transaction.
   MarkCurrentTileModified();
 
   return absl::OkStatus();
 }
 
-absl::Status Tile16EditSession::FillTile16WithTile8(int tile8_id) {
+absl::Status Tile16EditSession::FillTile16WithTile8Impl(int tile8_id) {
   if (current_gfx_individual_.empty()) {
     if (!HasCurrentGfxBitmap()) {
       return absl::FailedPreconditionError("Source tile8 bitmap not active");
@@ -746,8 +751,6 @@ absl::Status Tile16EditSession::FillTile16WithTile8(int tile8_id) {
       tile8_id >= static_cast<int>(current_gfx_individual_.size())) {
     return absl::InvalidArgumentError("Invalid tile8 ID");
   }
-
-  SaveUndoState();
 
   const gfx::TileInfo fill_info(static_cast<uint16_t>(tile8_id),
                                 current_palette_, y_flip_, x_flip_,
@@ -763,18 +766,16 @@ absl::Status Tile16EditSession::FillTile16WithTile8(int tile8_id) {
     RETURN_IF_ERROR(UpdateOverworldTilemap());
   }
 
-  // Track this tile as having pending changes
+  // Record metadata for the enclosing document edit transaction.
   MarkCurrentTileModified();
 
   return absl::OkStatus();
 }
 
-absl::Status Tile16EditSession::ClearTile16() {
+absl::Status Tile16EditSession::ClearTile16Impl() {
   if (!current_tile16_bmp_.is_active()) {
     return absl::FailedPreconditionError("No active tile16 to clear");
   }
-
-  SaveUndoState();
 
   const gfx::TileInfo clear_info(0, current_palette_, false, false, false);
   for (int quadrant = 0; quadrant < 4; ++quadrant) {
@@ -788,7 +789,7 @@ absl::Status Tile16EditSession::ClearTile16() {
     RETURN_IF_ERROR(UpdateOverworldTilemap());
   }
 
-  // Track this tile as having pending changes
+  // Record metadata for the enclosing document edit transaction.
   MarkCurrentTileModified();
 
   return absl::OkStatus();
@@ -860,7 +861,7 @@ absl::Status Tile16EditSession::PreviewPaletteChange(uint8_t palette_id) {
   return absl::OkStatus();
 }
 
-absl::Status Tile16EditSession::ApplyPaletteToAll(uint8_t palette_id) {
+absl::Status Tile16EditSession::ApplyPaletteToAllImpl(uint8_t palette_id) {
   if (palette_id >= 8) {
     return absl::InvalidArgumentError("Invalid palette ID");
   }
@@ -870,7 +871,6 @@ absl::Status Tile16EditSession::ApplyPaletteToAll(uint8_t palette_id) {
     return absl::FailedPreconditionError("No current tile16 data");
   }
 
-  SaveUndoState();
   zelda3::SetTile16AllQuadrantPalettes(tile_data, palette_id);
 
   // Update current palette to match
@@ -893,8 +893,8 @@ absl::Status Tile16EditSession::ApplyPaletteToAll(uint8_t palette_id) {
   return absl::OkStatus();
 }
 
-absl::Status Tile16EditSession::ApplyPaletteToQuadrant(int quadrant,
-                                                       uint8_t palette_id) {
+absl::Status Tile16EditSession::ApplyPaletteToQuadrantImpl(int quadrant,
+                                                           uint8_t palette_id) {
   if (palette_id >= 8) {
     return absl::InvalidArgumentError("Invalid palette ID");
   }
@@ -907,7 +907,6 @@ absl::Status Tile16EditSession::ApplyPaletteToQuadrant(int quadrant,
     return absl::FailedPreconditionError("No current tile16 data");
   }
 
-  SaveUndoState();
   if (!zelda3::SetTile16QuadrantPalette(tile_data, quadrant, palette_id)) {
     return absl::InvalidArgumentError("Invalid quadrant index");
   }
@@ -927,80 +926,15 @@ absl::Status Tile16EditSession::ApplyPaletteToQuadrant(int quadrant,
 
 // Undo/Redo system (unified UndoManager framework)
 
-void Tile16EditSession::RestoreFromSnapshot(const Tile16Snapshot& snapshot) {
-  current_tile16_ = snapshot.tile_id;
-  current_tile16_bmp_.Create(16, 16, 8, snapshot.bitmap_data);
-  current_tile16_bmp_.SetPalette(snapshot.bitmap_palette);
-  current_tile16_data_ = snapshot.tile_data;
-  SyncTilesInfoArray(&current_tile16_data_);
-  current_palette_ = snapshot.palette;
-  x_flip_ = snapshot.x_flip;
-  y_flip_ = snapshot.y_flip;
-  priority_tile_ = snapshot.priority;
-  pending_tile16_changes_[current_tile16_] = current_tile16_data_;
-  pending_tile16_bitmaps_[current_tile16_] = current_tile16_bmp_;
-  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
-                                        &current_tile16_bmp_);
-}
-
-void Tile16EditSession::FinalizePendingUndo() {
-  if (!pending_undo_before_.has_value())
-    return;
-  if (!current_tile16_bmp_.is_active()) {
-    pending_undo_before_.reset();
-    return;
-  }
-
-  // Capture the current (post-edit) state as the "after" snapshot
-  Tile16Snapshot after;
-  after.tile_id = current_tile16_;
-  after.bitmap_data = current_tile16_bmp_.vector();
-  after.bitmap_palette = current_tile16_bmp_.palette();
-  after.tile_data = current_tile16_data_;
-  after.palette = current_palette_;
-  after.x_flip = x_flip_;
-  after.y_flip = y_flip_;
-  after.priority = priority_tile_;
-
-  // Build the restore callback that captures `this`
-  auto restore_fn = [this](const Tile16Snapshot& snap) {
-    RestoreFromSnapshot(snap);
-  };
-
-  undo_manager_.Push(std::make_unique<Tile16EditAction>(
-      std::move(*pending_undo_before_), std::move(after), restore_fn));
-
-  pending_undo_before_.reset();
-}
-
-void Tile16EditSession::SaveUndoState() {
-  if (!current_tile16_bmp_.is_active()) {
-    return;
-  }
-
-  // Finalize any previously pending snapshot before starting a new one
-  FinalizePendingUndo();
-
-  Tile16Snapshot before;
-  before.tile_id = current_tile16_;
-  before.bitmap_data = current_tile16_bmp_.vector();
-  before.bitmap_palette = current_tile16_bmp_.palette();
-  before.tile_data = current_tile16_data_;
-  before.palette = current_palette_;
-  before.x_flip = x_flip_;
-  before.y_flip = y_flip_;
-  before.priority = priority_tile_;
-
-  pending_undo_before_ = std::move(before);
-}
-
 absl::Status Tile16EditSession::Undo() {
-  FinalizePendingUndo();
-  return undo_manager_.Undo();
+  if (before_edit_)
+    before_edit_();
+  return history_->Undo();
 }
-
 absl::Status Tile16EditSession::Redo() {
-  return undo_manager_.Redo();
+  if (before_edit_)
+    before_edit_();
+  return history_->Redo();
 }
 
 absl::Status Tile16EditSession::ValidateTile16Data() {
@@ -1025,6 +959,11 @@ bool Tile16EditSession::IsTile16Valid(int tile_id) const {
 
 // Integration with overworld system
 absl::Status Tile16EditSession::SaveTile16ToROM() {
+  if (document_definitions_) {
+    return absl::FailedPreconditionError(
+        "Use document Save or Undo for the shared Tile16 document");
+  }
+
   if (!rom_) {
     return absl::FailedPreconditionError("ROM not available");
   }
@@ -1042,8 +981,8 @@ absl::Status Tile16EditSession::SaveTile16ToROM() {
   // Commit changes to the tile16 blockset
   RETURN_IF_ERROR(CommitChangesToBlockset());
 
-  pending_tile16_changes_.erase(current_tile16_);
-  pending_tile16_bitmaps_.erase(current_tile16_);
+  document_edits_.erase(current_tile16_);
+  edited_tile_bitmaps_.erase(current_tile16_);
 
   // Mark ROM as dirty so changes persist when saving
   rom_->set_dirty(true);
@@ -1092,6 +1031,11 @@ absl::Status Tile16EditSession::CommitChangesToBlockset() {
 }
 
 absl::Status Tile16EditSession::CommitChangesToOverworld() {
+  if (document_definitions_) {
+    return absl::FailedPreconditionError(
+        "Use document Save or Undo for the shared Tile16 document");
+  }
+
   std::vector<Tile16Commit> commits;
   commits.push_back({current_tile16_, current_tile16_data_});
 
@@ -1110,8 +1054,8 @@ absl::Status Tile16EditSession::CommitChangesToOverworld() {
     RETURN_IF_ERROR(on_changes_committed_(commits));
   }
 
-  pending_tile16_changes_.erase(current_tile16_);
-  pending_tile16_bitmaps_.erase(current_tile16_);
+  document_edits_.erase(current_tile16_);
+  edited_tile_bitmaps_.erase(current_tile16_);
   has_rom_write_history_ = true;
   last_rom_write_count_ = 1;
   last_rom_write_time_ = std::chrono::steady_clock::now();
@@ -1123,10 +1067,15 @@ absl::Status Tile16EditSession::CommitChangesToOverworld() {
 }
 
 absl::Status Tile16EditSession::DiscardChanges() {
+  if (document_definitions_) {
+    return absl::FailedPreconditionError(
+        "Use document Save or Undo for the shared Tile16 document");
+  }
+
   // Drop the current tile's staged copy first; SetCurrentTile consults pending
   // state before ROM state.
-  pending_tile16_changes_.erase(current_tile16_);
-  pending_tile16_bitmaps_.erase(current_tile16_);
+  document_edits_.erase(current_tile16_);
+  edited_tile_bitmaps_.erase(current_tile16_);
   tile8_usage_cache_dirty_ = true;
 
   // Reload the current tile16 from ROM to discard any local changes
@@ -1137,18 +1086,23 @@ absl::Status Tile16EditSession::DiscardChanges() {
 }
 
 absl::Status Tile16EditSession::CommitAllChanges() {
-  if (pending_tile16_changes_.empty()) {
+  if (document_definitions_) {
+    return absl::FailedPreconditionError(
+        "Use document Save or Undo for the shared Tile16 document");
+  }
+
+  if (document_edits_.empty()) {
     return absl::OkStatus();  // Nothing to commit
   }
 
-  const int written_count = static_cast<int>(pending_tile16_changes_.size());
+  const int written_count = static_cast<int>(document_edits_.size());
   std::vector<Tile16Commit> commits;
-  commits.reserve(pending_tile16_changes_.size());
+  commits.reserve(document_edits_.size());
   util::logf("Committing %zu pending tile16 changes to ROM",
-             pending_tile16_changes_.size());
+             document_edits_.size());
 
   // Write all pending changes to ROM
-  for (const auto& [tile_id, tile_data] : pending_tile16_changes_) {
+  for (const auto& [tile_id, tile_data] : document_edits_) {
     auto status = rom_->WriteTile16(tile_id, zelda3::kTile16Ptr, tile_data);
     if (!status.ok()) {
       util::logf("Failed to write tile16 %d: %s", tile_id,
@@ -1159,8 +1113,8 @@ absl::Status Tile16EditSession::CommitAllChanges() {
   }
 
   // Clear pending changes before parent refresh (overworld reads committed ROM).
-  pending_tile16_changes_.clear();
-  pending_tile16_bitmaps_.clear();
+  document_edits_.clear();
+  edited_tile_bitmaps_.clear();
 
   // Local atlas hint; full rebuild is typically done in overworld callback.
   RETURN_IF_ERROR(RefreshTile16Blockset());
@@ -1180,15 +1134,17 @@ absl::Status Tile16EditSession::CommitAllChanges() {
 }
 
 void Tile16EditSession::DiscardAllChanges() {
-  if (pending_tile16_changes_.empty()) {
+  if (document_definitions_)
+    return;
+
+  if (document_edits_.empty()) {
     return;
   }
 
-  util::logf("Discarding %zu pending tile16 changes",
-             pending_tile16_changes_.size());
+  util::logf("Discarding %zu pending tile16 changes", document_edits_.size());
 
-  pending_tile16_changes_.clear();
-  pending_tile16_bitmaps_.clear();
+  document_edits_.clear();
+  edited_tile_bitmaps_.clear();
   tile8_usage_cache_dirty_ = true;
 
   // Reload current tile to restore original state
@@ -1200,10 +1156,13 @@ void Tile16EditSession::DiscardAllChanges() {
 }
 
 void Tile16EditSession::DiscardCurrentTileChanges() {
-  auto it = pending_tile16_changes_.find(current_tile16_);
-  if (it != pending_tile16_changes_.end()) {
-    pending_tile16_changes_.erase(it);
-    pending_tile16_bitmaps_.erase(current_tile16_);
+  if (document_definitions_)
+    return;
+
+  auto it = document_edits_.find(current_tile16_);
+  if (it != document_edits_.end()) {
+    document_edits_.erase(it);
+    edited_tile_bitmaps_.erase(current_tile16_);
     tile8_usage_cache_dirty_ = true;
     util::logf("Discarded pending changes for tile %d", current_tile16_);
   }
@@ -1222,13 +1181,13 @@ void Tile16EditSession::MarkCurrentTileModified() {
   }
 
   SyncTilesInfoArray(&current_tile16_data_);
-  pending_tile16_changes_[current_tile16_] = current_tile16_data_;
-  pending_tile16_bitmaps_[current_tile16_] = current_tile16_bmp_;
+  document_edits_[current_tile16_] = current_tile16_data_;
+  edited_tile_bitmaps_[current_tile16_] = current_tile16_bmp_;
   preview_dirty_ = true;
   tile8_usage_cache_dirty_ = true;
 
-  util::logf("Marked tile %d as modified (total pending: %zu)", current_tile16_,
-             pending_tile16_changes_.size());
+  util::logf("Updated Tile16 %d (document edits: %zu)", current_tile16_,
+             document_edits_.size());
 }
 
 absl::Status Tile16EditSession::RebuildTile8UsageCache() {
@@ -1238,11 +1197,11 @@ absl::Status Tile16EditSession::RebuildTile8UsageCache() {
 
   const int total_tiles = zelda3::ComputeTile16Count(tile16_blockset_);
   auto tile_provider = [this](int tile_id) -> absl::StatusOr<gfx::Tile16> {
-    auto pending_it = pending_tile16_changes_.find(tile_id);
-    if (pending_it != pending_tile16_changes_.end()) {
+    auto pending_it = document_edits_.find(tile_id);
+    if (pending_it != document_edits_.end()) {
       return pending_it->second;
     }
-    return rom_->ReadTile16(tile_id, zelda3::kTile16Ptr);
+    return ReadDocumentTile(tile_id);
   };
 
   RETURN_IF_ERROR(zelda3::BuildTile8UsageIndex(total_tiles, tile_provider,

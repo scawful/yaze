@@ -1,8 +1,10 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLD_UNDO_ACTIONS_H_
 #define YAZE_APP_EDITOR_OVERWORLD_UNDO_ACTIONS_H_
 
+#include <array>
 #include <chrono>
 #include <cstddef>
+#include <cstdint>
 #include <functional>
 #include <optional>
 #include <string>
@@ -13,7 +15,7 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/core/undo_action.h"
-#include "app/editor/overworld/overworld_property_edit.h"
+#include "app/editor/overworld/maps/overworld_property_edit.h"
 #include "util/macro.h"
 #include "zelda3/overworld/overworld.h"
 #include "zelda3/overworld/overworld_item.h"
@@ -39,7 +41,7 @@ struct OverworldTileChange {
  * rectangle fill) with both old and new values so that Undo() and
  * Redo() are fully self-contained.
  *
- * Consecutive paint actions on the same map within kMergeWindowMs
+ * Consecutive paint actions in the same world within kMergeWindowMs
  * are merged into a single undo step via CanMergeWith/MergeWith.
  */
 class OverworldTilePaintAction : public UndoAction {
@@ -53,16 +55,22 @@ class OverworldTilePaintAction : public UndoAction {
    * @param tile_changes Vector of individual tile changes with old+new values
    * @param overworld    Non-owning pointer to the Overworld data layer
    * @param refresh_fn   Callback to refresh map visuals after undo/redo
+   * @param refresh_map_fn Optional callback for each changed map; supersedes
+   *                       refresh_fn when provided
    */
   OverworldTilePaintAction(int map_id, int world,
                            std::vector<OverworldTileChange> tile_changes,
                            zelda3::Overworld* overworld,
-                           std::function<void()> refresh_fn)
-      : map_id_(map_id),
+                           std::function<void()> refresh_fn,
+                           std::function<void(int)> refresh_map_fn = {},
+                           bool allow_merge = true)
+      : allow_merge_(allow_merge),
+        map_id_(map_id),
         world_(world),
-        tile_changes_(std::move(tile_changes)),
+        tile_changes_(NormalizeChanges(std::move(tile_changes))),
         overworld_(overworld),
         refresh_fn_(std::move(refresh_fn)),
+        refresh_map_fn_(std::move(refresh_map_fn)),
         timestamp_(std::chrono::steady_clock::now()) {}
 
   absl::Status Undo() override {
@@ -73,9 +81,7 @@ class OverworldTilePaintAction : public UndoAction {
     for (const auto& change : tile_changes_) {
       world_tiles[change.x][change.y] = change.old_tile_id;
     }
-    if (refresh_fn_) {
-      refresh_fn_();
-    }
+    RefreshChangedMaps();
     return absl::OkStatus();
   }
 
@@ -87,9 +93,7 @@ class OverworldTilePaintAction : public UndoAction {
     for (const auto& change : tile_changes_) {
       world_tiles[change.x][change.y] = change.new_tile_id;
     }
-    if (refresh_fn_) {
-      refresh_fn_();
-    }
+    RefreshChangedMaps();
     return absl::OkStatus();
   }
 
@@ -103,11 +107,15 @@ class OverworldTilePaintAction : public UndoAction {
   }
 
   bool CanMergeWith(const UndoAction& prev) const override {
+    if (!allow_merge_)
+      return false;
     const auto* prev_paint =
         dynamic_cast<const OverworldTilePaintAction*>(&prev);
     if (!prev_paint)
       return false;
-    if (prev_paint->map_id_ != map_id_)
+    if (!prev_paint->allow_merge_)
+      return false;
+    if (prev_paint->overworld_ != overworld_)
       return false;
     if (prev_paint->world_ != world_)
       return false;
@@ -123,22 +131,21 @@ class OverworldTilePaintAction : public UndoAction {
     // Build a map of (x,y) -> index in our tile_changes_ for fast lookup
     // so we can keep the earliest old_tile_id for coordinates that appear
     // in both actions.
-    std::unordered_map<int64_t, size_t> coord_index;
+    std::unordered_map<uint64_t, size_t> coord_index;
     for (size_t i = 0; i < tile_changes_.size(); ++i) {
-      int64_t key = (static_cast<int64_t>(tile_changes_[i].x) << 32) |
-                    static_cast<int64_t>(tile_changes_[i].y);
+      const uint64_t key = CoordinateKey(tile_changes_[i]);
       coord_index[key] = i;
     }
 
     for (const auto& prev_change : prev_paint.tile_changes_) {
-      int64_t key = (static_cast<int64_t>(prev_change.x) << 32) |
-                    static_cast<int64_t>(prev_change.y);
+      const uint64_t key = CoordinateKey(prev_change);
       auto it = coord_index.find(key);
       if (it != coord_index.end()) {
         // Same coordinate exists in both: keep the older old_tile_id
         tile_changes_[it->second].old_tile_id = prev_change.old_tile_id;
       } else {
         // Coordinate only in prev: adopt it as-is
+        coord_index[key] = tile_changes_.size();
         tile_changes_.push_back(prev_change);
       }
     }
@@ -155,11 +162,56 @@ class OverworldTilePaintAction : public UndoAction {
   }
 
  private:
+  static uint64_t CoordinateKey(const OverworldTileChange& change) {
+    return (static_cast<uint64_t>(static_cast<uint32_t>(change.x)) << 32) |
+           static_cast<uint32_t>(change.y);
+  }
+
+  static std::vector<OverworldTileChange> NormalizeChanges(
+      std::vector<OverworldTileChange> changes) {
+    std::unordered_map<uint64_t, size_t> coordinate_indices;
+    std::vector<OverworldTileChange> normalized;
+    normalized.reserve(changes.size());
+    for (const auto& change : changes) {
+      const auto [it, inserted] =
+          coordinate_indices.emplace(CoordinateKey(change), normalized.size());
+      if (inserted) {
+        normalized.push_back(change);
+      } else {
+        // A drag can revisit a tile. Undo restores its value before the stroke,
+        // while redo restores the final value from that stroke.
+        normalized[it->second].new_tile_id = change.new_tile_id;
+      }
+    }
+    return normalized;
+  }
+
+  void RefreshChangedMaps() const {
+    if (!refresh_map_fn_) {
+      if (refresh_fn_)
+        refresh_fn_();
+      return;
+    }
+    // Derive this set at replay time: MergeWith can add changes on other maps.
+    std::array<bool, zelda3::kNumOverworldMaps> changed_maps{};
+    for (const auto& change : tile_changes_) {
+      const int map_id = world_ * 0x40 + change.x / 32 + (change.y / 32) * 8;
+      if (map_id >= 0 && map_id < zelda3::kNumOverworldMaps)
+        changed_maps[map_id] = true;
+    }
+    for (int map_id = 0; map_id < zelda3::kNumOverworldMaps; ++map_id) {
+      if (changed_maps[map_id])
+        refresh_map_fn_(map_id);
+    }
+  }
+
+  bool allow_merge_;
   int map_id_;
   int world_;
   std::vector<OverworldTileChange> tile_changes_;
   zelda3::Overworld* overworld_;      // non-owning
   std::function<void()> refresh_fn_;  // callback to refresh map visuals
+  std::function<void(int)> refresh_map_fn_;
   std::chrono::steady_clock::time_point timestamp_;
 };
 
