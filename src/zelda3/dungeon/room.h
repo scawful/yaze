@@ -107,7 +107,9 @@ const static LayerMergeType kLayerMergeTypeList[] = {
     LayerMerge00, LayerMerge01, LayerMerge02, LayerMerge03, LayerMerge04,
     LayerMerge05, LayerMerge06, LayerMerge07, LayerMerge08};
 
-enum CollisionKey {
+// Fixed byte storage keeps unnamed ROM values representable for lossless
+// load/save and undo. Authoring controls validate their supported subset.
+enum CollisionKey : uint8_t {
   One_Collision,
   Both,
   Both_With_Scroll,
@@ -115,7 +117,7 @@ enum CollisionKey {
   Moving_Water_Collision,
 };
 
-enum EffectKey {
+enum EffectKey : uint8_t {
   Effect_Nothing,
   One,
   Moving_Floor,
@@ -142,7 +144,7 @@ struct PotItem {
   int GetTileY() const { return GetPixelY() / 8; }
 };
 
-enum TagKey {
+enum TagKey : uint8_t {
   Nothing,
   NW_Kill_Enemy_to_Open,
   NE_Kill_Enemy_to_Open,
@@ -220,6 +222,35 @@ struct WaterFillZoneMap {
 
 class Room {
  public:
+  // Authoring state only: restoring metadata never replaces entity collections,
+  // room load state, ROM bytes, or dirty flags for unrelated save domains.
+  struct MetadataSnapshot {
+    uint8_t palette = 0;
+    uint8_t blockset = 0;
+    uint8_t spriteset = 0;
+    uint8_t layout = 0;
+    uint8_t floor1 = 0;
+    uint8_t floor2 = 0;
+    uint16_t message = 0;
+    background2 bg2{};
+    uint8_t layer2_mode = 0;
+    LayerMergeType layer_merging = LayerMerge00;
+    bool is_dark = false;
+    bool is_light = false;
+    CollisionKey collision = One_Collision;
+    EffectKey effect = Effect_Nothing;
+    TagKey tag1 = Nothing;
+    TagKey tag2 = Nothing;
+    uint8_t holewarp = 0;
+    std::array<uint8_t, 4> staircase_rooms{};
+    std::array<uint8_t, 4> staircase_planes{};
+
+    bool operator==(const MetadataSnapshot&) const = default;
+  };
+
+  MetadataSnapshot CaptureMetadataSnapshot() const;
+  void RestoreMetadataSnapshot(const MetadataSnapshot& snapshot);
+
   struct SaveDirtySnapshot {
     struct BlockLoadOrder {
       size_t tile_object_index;
@@ -1137,8 +1168,8 @@ class Room {
   int room_id_ = 0;
   int animated_frame_ = 0;
 
-  uint8_t staircase_plane_[4];
-  uint8_t staircase_rooms_[4];
+  uint8_t staircase_plane_[4]{};
+  uint8_t staircase_rooms_[4]{};
 
   // Room header properties (formerly public)
   uint8_t blockset_ = 0;

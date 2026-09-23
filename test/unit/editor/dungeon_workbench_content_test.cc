@@ -21,19 +21,13 @@
 #include "app/gui/automation/widget_id_registry.h"
 #include "core/features.h"
 #include "core/project.h"
+#include "dungeon_workbench_test_peer.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/pit_damage_table.h"
 
 namespace yaze::editor {
-class DungeonWorkbenchContentTestPeer {
- public:
-  static void DrawInspector(DungeonWorkbenchContent& content,
-                            DungeonCanvasViewer& viewer) {
-    content.DrawInspectorShelf(viewer, false);
-  }
-};
 
 namespace {
 

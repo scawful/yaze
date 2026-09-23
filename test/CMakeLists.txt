@@ -277,6 +277,10 @@ if(YAZE_BUILD_TESTS)
     unit/editor/sprite_editor_preview_test.cc
     unit/editor/screen_editor_undo_test.cc
     unit/editor/dungeon_undo_actions_test.cc
+    unit/editor/dungeon_room_edit_test.cc
+    unit/editor/dungeon_room_metadata_ui_test.cc
+    unit/editor/dungeon_room_edits_lifecycle_test.cc
+    unit/editor/dungeon_chest_editor_test.cc
     unit/editor/assembly_editor_symbol_jump_test.cc
     unit/editor/editor_activator_test.cc
     unit/editor/editor_manager_test.cc
@@ -662,6 +666,10 @@ if(YAZE_BUILD_TESTS)
     unit/editor/content_registry_workflow_history_test.cc
     unit/editor/command_palette_workflow_test.cc
     unit/editor/dungeon_undo_actions_test.cc
+    unit/editor/dungeon_room_edit_test.cc
+    unit/editor/dungeon_room_metadata_ui_test.cc
+    unit/editor/dungeon_room_edits_lifecycle_test.cc
+    unit/editor/dungeon_chest_editor_test.cc
     unit/editor/editor_registry_test.cc
     unit/editor/sidebar_sort_test.cc
     unit/editor/activity_bar_actions_registry_test.cc

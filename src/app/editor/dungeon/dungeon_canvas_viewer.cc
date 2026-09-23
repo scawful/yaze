@@ -24,6 +24,37 @@ bool HasSameObjectIdentity(const zelda3::RoomObject& lhs,
 
 DungeonCanvasViewer::~DungeonCanvasViewer() = default;
 
+absl::Status DungeonCanvasViewer::EditRoomMetadata(
+    int room_id, const RoomMetadataEdit& edit) {
+  if (header_read_only_ || !metadata_edit_callback_ || !rooms_ ||
+      !rooms_->GetIfLoaded(room_id)) {
+    return absl::FailedPreconditionError("Room properties are not editable");
+  }
+  return metadata_edit_callback_(room_id, edit);
+}
+
+absl::Status DungeonCanvasViewer::EditRoomMetadataBatch(
+    const std::vector<RoomMetadataRequest>& requests) {
+  if (header_read_only_ || !metadata_batch_edit_callback_ || !rooms_) {
+    return absl::FailedPreconditionError("Room properties are not editable");
+  }
+  for (const auto& request : requests) {
+    if (!rooms_->GetIfLoaded(request.room_id)) {
+      return absl::FailedPreconditionError("Room properties are not loaded");
+    }
+  }
+  return metadata_batch_edit_callback_(requests);
+}
+
+absl::Status DungeonCanvasViewer::EditChest(int room_id, size_t index,
+                                            uint8_t item_id, bool big_chest) {
+  if (header_read_only_ || !chest_edit_callback_ || !rooms_ ||
+      !rooms_->GetIfLoaded(room_id)) {
+    return absl::FailedPreconditionError("Chest contents are not editable");
+  }
+  return chest_edit_callback_(room_id, index, item_id, big_chest);
+}
+
 void DungeonCanvasViewer::RecordVisitedRoom(int room_id) {
   if (room_id < 0 || room_id >= zelda3::kNumberOfRooms) {
     return;
