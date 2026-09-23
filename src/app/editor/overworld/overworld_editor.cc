@@ -1,5 +1,6 @@
 // Related header
 #include "app/editor/overworld/overworld_editor.h"
+#include "rom/transaction.h"
 #include "util/i18n/tr.h"
 
 #ifndef IM_PI
@@ -1126,6 +1127,21 @@ absl::Status OverworldEditor::UpdateGfxGroupEditor() {
 // DrawMapProperties - now in OverworldCanvasRenderer
 
 absl::Status OverworldEditor::Save() {
+  // Validate sprite capacity before any editor serializer changes ROM bytes.
+  ASSIGN_OR_RETURN(auto sprite_plan, overworld_.PrepareSpriteSave());
+  if (!sprite_plan.empty() && dependencies_.project &&
+      dependencies_.project->hack_manifest.loaded()) {
+    std::vector<std::pair<uint32_t, uint32_t>> ranges;
+    for (const auto& write : sprite_plan) {
+      ranges.emplace_back(write.address, write.address + write.bytes.size());
+    }
+    RETURN_IF_ERROR(ValidateHackManifestSaveConflicts(
+        dependencies_.project->hack_manifest,
+        dependencies_.project->rom_metadata.write_policy, ranges,
+        "overworld sprites", "OverworldEditor", dependencies_.toast_manager));
+  }
+
+  ScopedRomTransaction save_transaction(*rom_);
   // HACK MANIFEST VALIDATION
   const bool saving_maps =
       core::FeatureFlags::get().overworld.kSaveOverworldMaps;
@@ -1172,6 +1188,8 @@ absl::Status OverworldEditor::Save() {
     RETURN_IF_ERROR(overworld_.SaveMusic());
     RETURN_IF_ERROR(overworld_.SaveCustomOverworldData());
   }
+  RETURN_IF_ERROR(zelda3::ApplyOverworldSpriteSave(*rom_, sprite_plan));
+  save_transaction.Commit();
   return absl::OkStatus();
 }
 

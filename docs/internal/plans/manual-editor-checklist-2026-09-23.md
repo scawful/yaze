@@ -24,14 +24,22 @@ Repeat relevant painting checks across Light/Dark/Special worlds and supported
 Small/Large/Wide/Tall maps, including areas with different graphics and palettes.
 Record build commit, ROM type, map ID, action, expected result, actual result.
 
+## Test later: overworld sprites
+
+- [ ] On a test ROM copy, insert, move, change the type, and delete sprites in
+  supported game states. Save/reopen and check positions and types.
+- [ ] Check parent-area child screens and switch ROM sessions. Save an insertion,
+  undo it, save again, and reopen to confirm the sprite is removed.
+
+These checks remain deferred. Automated tests use synthetic in-memory ROM data.
+
 ## Requested work to continue
 
-1. **Overworld editing reliability.** Next bounded investigation: sprite save
-   persistence. On `f5df9c7fb`, `Overworld::Save` has no sprite serializer call.
-   Trace all save entry points before implementation; preserve vanilla and
-   supported expanded formats, reject invalid/overflow data before writing,
-   and add synthetic save/reload coverage. This is a follow-up found during
-   the overworld repair, not a user-reported sprite failure.
+1. **Overworld sprite persistence implemented; manual check deferred.** Both
+   model and editor saves now serialize loaded sprite edits, preserve other
+   lists, and reject invalid/overflow data before publication. Synthetic
+   vanilla/expanded save/reload and failure tests passed. Follow-up evidence:
+   [sprite persistence handoff](../agents/overworld-sprite-persistence-2026-09-23.md).
 2. **Dungeon authoring for 0.8.0.** Resume completion against the release ladder:
    object identification/previews, placement/resize, room workbench save paths,
    and editable pits/blocks. Reconcile existing chest, reciprocal-door, and room

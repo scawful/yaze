@@ -75,7 +75,11 @@ void MoveEntityOnGrid(zelda3::GameEntity* entity, ImVec2 canvas_p0,
   float world_y = mouse_pos.y / scale;
 
   // Calculate the new position on the 16x16 or 8x8 grid (in world coordinates)
-  int grid_size = free_movement ? 8 : 16;
+  // Overworld sprite records encode positions in 16-pixel units, even when
+  // the general entity free-movement modifier is held.
+  int grid_size =
+      free_movement && entity->entity_type_ != zelda3::GameEntity::kSprite ? 8
+                                                                           : 16;
   int new_x = static_cast<int>(world_x) / grid_size * grid_size;
   int new_y = static_cast<int>(world_y) / grid_size * grid_size;
 

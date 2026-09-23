@@ -105,6 +105,13 @@ class Sprite : public GameEntity {
   auto map_id() const { return map_id_; }
   auto map_x() const { return map_x_; }
   auto map_y() const { return map_y_; }
+  // Preserve packed coordinate bits not exposed by the overworld editor.
+  uint8_t overworld_x_flags() const { return overworld_x_flags_; }
+  uint8_t overworld_y_flags() const { return overworld_y_flags_; }
+  void set_overworld_coordinate_flags(uint8_t x, uint8_t y) {
+    overworld_x_flags_ = x & 0xC0;
+    overworld_y_flags_ = y & 0xC0;
+  }
   auto game_state() const { return game_state_; }
 
   auto layer() const { return layer_; }
@@ -126,6 +133,8 @@ class Sprite : public GameEntity {
   void set_layer(int layer) { layer_ = layer; }
 
  private:
+  uint8_t overworld_x_flags_ = 0;
+  uint8_t overworld_y_flags_ = 0;
   uint8_t map_id_;
   uint8_t game_state_;
   uint8_t id_;
