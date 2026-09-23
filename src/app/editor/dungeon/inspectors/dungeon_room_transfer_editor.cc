@@ -4,12 +4,15 @@
 #include <array>
 #include <cstring>
 
+#include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
+#include "app/editor/dungeon/dungeon_room_document_file.h"
 #include "app/editor/dungeon/dungeon_room_transfer.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/input.h"
 #include "imgui/imgui.h"
 #include "imgui/misc/cpp/imgui_stdlib.h"
+#include "util/file_util.h"
 
 namespace yaze::editor {
 namespace {
@@ -93,6 +96,22 @@ void DrawCounts(const DungeonRoomTransferPlan& plan) {
 
 }  // namespace
 
+void LoadDungeonRoomTransferFile(DungeonRoomTransferEditorState& state,
+                                 const std::string& path) {
+  if (path.empty())
+    return;  // Native dialog cancellation leaves the form alone.
+  const auto document = ReadDungeonRoomDocumentFile(path);
+  if (!document.ok()) {
+    state.error = std::string(document.status().message());
+    state.status.clear();
+    return;
+  }
+  InvalidatePreview(state);
+  state.json = *document;
+  state.import_json = true;
+  state.status = "Room file loaded. Preview Replacement before applying.";
+}
+
 void DrawDungeonRoomTransferEditor(DungeonCanvasViewer& viewer) {
   auto& state = viewer.room_transfer_state();
   const int target = viewer.current_room_id();
@@ -134,6 +153,25 @@ void DrawDungeonRoomTransferEditor(DungeonCanvasViewer& viewer) {
   }
   gui::AutoRegisterLastItem("button", "TransferExport");
 
+#ifndef __EMSCRIPTEN__
+  if (ImGui::Button("Save Room File...", ImVec2(-1, 0))) {
+    const auto json = viewer.ExportRoomDocument(target);
+    if (!json.ok()) {
+      state.error = std::string(json.status().message());
+      state.status.clear();
+    } else {
+      const auto path = util::FileDialogWrapper::ShowSaveFileDialog(
+          absl::StrFormat("room_%03X.yaze-room.json", target), "json");
+      if (!path.empty()) {
+        const auto result = WriteDungeonRoomDocumentFile(path, *json);
+        state.error = result.ok() ? "" : std::string(result.message());
+        state.status = result.ok() ? "Room template saved to " + path : "";
+      }
+    }
+  }
+  gui::AutoRegisterLastItem("button", "TransferSaveFile");
+#endif
+
   const bool editable =
       !viewer.header_read_only() && viewer.IsObjectInteractionEnabled();
   ImGui::BeginDisabled(!editable);
@@ -149,6 +187,15 @@ void DrawDungeonRoomTransferEditor(DungeonCanvasViewer& viewer) {
   }
   gui::AutoRegisterLastItem("radio", "TransferImportMode");
   if (state.import_json) {
+#ifndef __EMSCRIPTEN__
+    if (ImGui::Button("Open Room File...", ImVec2(-1, 0))) {
+      util::FileDialogOptions options;
+      options.filters.push_back({"Yaze room template", "json"});
+      LoadDungeonRoomTransferFile(
+          state, util::FileDialogWrapper::ShowOpenFileDialog(options));
+    }
+    gui::AutoRegisterLastItem("button", "TransferOpenFile");
+#endif
     if (ImGui::Button("Paste JSON", ImVec2(-1, 0))) {
       const char* clipboard = ImGui::GetClipboardText();
       InvalidatePreview(state);
@@ -242,7 +289,7 @@ void DrawDungeonRoomTransferEditor(DungeonCanvasViewer& viewer) {
   }
   if (!editable) {
     ImGui::TextWrapped(
-        "This view is read-only. Room JSON can still be copied.");
+        "This view is read-only. Room JSON can still be copied or exported.");
   }
   if (!valid_source && !state.import_json) {
     ImGui::TextWrapped("Choose a different source room between 000 and 127.");
@@ -257,7 +304,7 @@ void DrawDungeonRoomTransferEditor(DungeonCanvasViewer& viewer) {
       "Entrances, incoming links, pit damage, sprite sort mode and reserved "
       "header data stay in the target room.");
   if (!state.error.empty()) {
-    ImGui::TextWrapped("Transfer not applied: %s", state.error.c_str());
+    ImGui::TextWrapped("Room transfer: %s", state.error.c_str());
   }
   if (state.can_retry_without_properties) {
     ImGui::TextWrapped(

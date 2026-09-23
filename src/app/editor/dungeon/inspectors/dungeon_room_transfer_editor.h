@@ -27,6 +27,11 @@ struct DungeonRoomTransferEditorState {
   int popup_room_id = -1;
 };
 
+// A successful load invalidates any preview but does not apply the document.
+// A failed load keeps the prior document/preview available for recovery.
+void LoadDungeonRoomTransferFile(DungeonRoomTransferEditorState& state,
+                                 const std::string& path);
+
 void DrawDungeonRoomTransferEditor(DungeonCanvasViewer& viewer);
 void DrawDungeonRoomTransferPopup(DungeonCanvasViewer& viewer);
 

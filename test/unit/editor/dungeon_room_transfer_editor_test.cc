@@ -331,6 +331,27 @@ TEST_F(DungeonRoomTransferEditorTest, ReadOnlyViewAllowsExportOnly) {
   EXPECT_EQ(attempts_, 0);
 }
 
+#ifndef __EMSCRIPTEN__
+TEST_F(DungeonRoomTransferEditorTest,
+       FileControlsRespectReadOnlyAndImportMode) {
+  width_ = 260;
+  Prepare();
+  ASSERT_TRUE(Widget("TransferSaveFile"));
+  EXPECT_TRUE(Widget("TransferSaveFile")->enabled);
+  EXPECT_FALSE(Widget("TransferOpenFile"));
+  Click("TransferImportMode");
+  ASSERT_TRUE(Widget("TransferOpenFile"));
+  EXPECT_TRUE(Widget("TransferOpenFile")->enabled);
+  viewer_.SetHeaderReadOnly(true);
+  DrawFrame();
+  EXPECT_FALSE(Widget("TransferOpenFile")->enabled);
+  EXPECT_TRUE(Widget("TransferSaveFile")->enabled);
+  EXPECT_EQ(exports_, 0);
+  EXPECT_EQ(previews_, 0);
+  EXPECT_EQ(attempts_, 0);
+}
+#endif
+
 TEST_F(DungeonRoomTransferEditorTest, RefreshClearsPlanAndDestinationDraft) {
   Prepare();
   Click("TransferDestinations");
