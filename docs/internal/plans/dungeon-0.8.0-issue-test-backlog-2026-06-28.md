@@ -57,7 +57,7 @@ chest-before-lock order, the global 168-record contents table including dirty
 and unopened rooms, and exact manifest-protected chest regions. Object-stream
 allocation remains a Save-time check.
 
-The current mixed-selection candidate `eac49e2bd` stages tile objects,
+The prior mixed-selection candidate `eac49e2bd` stages tile objects,
 doors, sprites, pot items, and chest rewards together for delete/duplicate,
 cut/copy/paste, nudge, and group drag. Mutations use one undo action, rejected
 operations make no partial edit, and no-op drags preserve redo history. Shared
@@ -67,9 +67,25 @@ Focused evidence: **640 tests across 39 suites passed
 with zero failures and zero skips**. Allocation is still checked at Save, and
 author-time manifest checks remain scoped to chest ranges.
 
-DA-1/DA-2 remain partial for broader domains and controls. The next bounded
-package is DA-3 reciprocal connection authoring, followed by DA-4 complete room
-cloning. Synthetic persistence checks do not qualify vanilla/Oracle GUI-to-disk
+The current reciprocal normal-door candidate `be973563f`
+previews both endpoints in the shared door inspector and applies only on an
+explicit **Create Return Door** or **Update Pair** command. It creates an ordinary
+outer-wall return or changes both layers together through one batch Undo/Redo.
+Exact slots differ by six;
+adjacency never wraps rows/pages, and conflicting passages reject. Strict
+target-stream parsing precedes lazy loading; Apply rejects stale door lists or
+foreign ROM identity. Loading retains clean project WaterFill tiles, mask, and
+cached count and refuses dirty partial state. Added lifecycle cases cover real
+`ReloadWaterFillZones` and saving another zone without dropping the target.
+Verification: **807 tests across
+44 suites — passed with zero failures and zero skips**. App/unit builds:
+passed. Scoped analyzer: passed for the six selected implementation files and their explicit header scope.
+
+DA-1/DA-2 remain partial for broader domains and controls. DA-3 remains partial
+for stairs, pits, special door families, and runtime traversal. The next bounded
+package is DA-4 complete room clone/import with explicit inclusion/reference
+policy, unsupported-data preservation, and capacity preflight. DA-3 qualification
+continues independently. Synthetic persistence checks do not qualify vanilla/Oracle GUI-to-disk
 save/reopen, game behavior, manual UX, CI, or release acceptance. Exact commands
 and limits are recorded in the canonical plan; do not redo completed sub-slices.
 
@@ -81,8 +97,8 @@ checks before integration. Do not infer merge readiness from this inventory.
 | --- | --- | --- | --- |
 | `DA-1` | Extend coverage only for remaining authoring domains | Existing undo; metadata at `aeb0b1200`; paired chests at `478206247`; atomic mixed selections at `eac49e2bd` | Preserve one action per user command; exact selection/data restoration; rejected/no-op commands preserve prior state |
 | `DA-2` | Complete controls for remaining room elements through `DA-1` | Shared entity inspector, named room controls, and shared chest placement/contents/deletion controls | Inspector and canvas remain synchronized; no independent duplicate state; focused UI and entity lifecycle checks |
-| `DA-3` | Reciprocal connection authoring with both-room preview | Connected-room browsing, room metadata batch, and mixed-selection transaction boundary | Validate both endpoints/slot rules before either changes; one undo for both rooms; preserve intentional one-way links; save/reopen and runtime traversal |
-| `DA-4` | Complete room cloning and reusable selections | Existing room-template/JSON helpers | Explicit domain coverage, atomic validation/apply, undo, and source-preserving copy behavior |
+| `DA-3` | Remaining stairs/pits/special families and independent qualification | Normal outer-door pair candidate at `be973563f`; connected browsing and batch undo | Add engine rules per family; preserve intentional one-way links; save/reopen and runtime traversal on the exact candidate |
+| `DA-4` | Next: complete room clone/import and reusable selections | Existing room-template/JSON helpers and batch selection transaction | Explicit domain/reference policy; preserve unsupported data; capacity/write-policy preflight; atomic apply/undo; source-preserving copy and save/reload |
 | `DA-5` | Qualify the final combined candidate | Object Coverage, parity tools, GUI qualification, release scripts | Complete application-path edit/undo/save/reopen plus independent rendering/runtime and packaged acceptance |
 
 Route new `DA-2` mutators through the established `DA-1` boundaries. `DA-3` and

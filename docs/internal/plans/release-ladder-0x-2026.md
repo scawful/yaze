@@ -44,7 +44,7 @@ combined chest/big-key-lock slots, chest-before-lock order, the global 168-recor
 table including dirty/unopened rooms, and exact chest-region manifest policy.
 Object-stream allocation remains a Save-time check.
 
-The current mixed-selection candidate `eac49e2bd` adds one operation
+The prior mixed-selection candidate `eac49e2bd` adds one operation
 and undo across tile objects, doors, sprites, pot items, and paired chest rewards.
 Delete/duplicate/cut/copy/paste/nudge/group drag use shared validation; rejected
 operations publish no partial edits, and no-op drags preserve redo history.
@@ -54,9 +54,23 @@ Source + Focused evidence: **640 tests across 39
 suites passed with zero failures and zero skips**. Allocation remains Save-time;
 author-time manifest preflight currently covers chest ranges only.
 
-DA-1/DA-2 remain partial for broader authoring domains and qualification. Next
-implement bounded DA-3 reciprocal connection authoring through existing
-transactions, then DA-4 complete room cloning and final acceptance.
+The current reciprocal normal-door candidate `be973563f` adds
+paired endpoint previews and explicit **Create Return Door** / **Update Pair**
+commands for ordinary outer-wall doors.
+Creating a return or changing both layers uses one existing batch Undo/Redo;
+exact slot pairing, room-table boundaries, passage conflicts, stale previews,
+ROM identity, and unopened target parsing are validated. Lazy loading retains
+clean project WaterFill tiles, mask, and count and rejects dirty partial state.
+Verification:
+**807 tests across 44 suites —
+passed with zero failures and zero skips**. App/unit builds: passed. Scoped
+analyzer: passed for the six selected implementation files and their explicit header scope.
+
+DA-1/DA-2 remain partial for broader authoring domains and qualification. DA-3
+remains partial for stairs, pits, special door families, and runtime traversal.
+Next implement DA-4 complete room clone/import through the existing batch
+transaction, with explicit domain/reference policy, unsupported-data
+preservation, and capacity preflight. DA-3 qualification continues independently.
 Synthetic persistence checks do not qualify 0.8.0 or replace application/runtime
 validation. Vanilla/Oracle GUI-to-disk and game behavior, manual UX, CI, and
 packaged acceptance remain unqualified for this candidate. See the canonical

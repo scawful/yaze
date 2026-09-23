@@ -8,7 +8,122 @@ The user requested substantial implementation work
 from Codex and delegated extended validation to Claude. Avoid asking the user
 to repeat a sequence of manual tests before continuing development.
 
-## Current mixed-selection candidate (2026-09-23)
+## Current reciprocal normal-door candidate (2026-09-23)
+
+Candidate: `be973563f` on
+`codex/editor-parity-dungeon-authoring`, following mixed-selection source
+`eac49e2bd` and documentation `0815b405c`. Worktree:
+`/Users/scawful/src/hobby/yaze-worktrees/pr256-review-fixes`. Universe task:
+`task_20260923T053944Z_6854`.
+
+Verification: **807 tests across 44
+suites — passed with zero failures and zero skips**. App/unit builds: passed.
+Scoped Clang analyzer: passed for the six selected implementation files and their explicit header scope. Retain the prior 640-case
+mixed-selection evidence below as history for its exact source; do not treat
+those results as fresh evidence for this increment.
+
+1. Select an ordinary normal door on an outer wall. The shared Workbench and
+   standalone door inspector draws both endpoints, offers upper/lower layer,
+   and commits only on **Create Return Door** or **Update Pair**. Opening the
+   destination is separate navigation. Preview itself creates no history or save
+   dirtiness. "Apply" below describes the operation, not a button label.
+2. Create a missing return door or change an existing normal pair's layer
+   together. North/west slots `0..5` pair with south/east `6..11` by exactly six.
+   Reject row/page wrap, ambiguous passage records, unsupported types, internal
+   seams, invalid slots, and exhausted destination door capacity.
+3. Reuse the selection transaction's batch undo. Validate both rooms before
+   publishing either, retain all unrelated authored domains, and dirty only
+   changed door streams. Undo targets the original rooms without navigating.
+4. Keep intentional one-way links intact until the author applies a connection.
+   This slice does not repair staircase/pit diagnostics, special doors, internal
+   seams, or arbitrary destination mappings. DA-3 remains partial.
+
+### Connection architecture and next implementation
+
+- [`dungeon_connection_edit.h` / `.cc`](../../../src/app/editor/dungeon/dungeon_connection_edit.h)
+  owns the pure request/plan, exact slot pairing, adjacency constraints, and
+  passage-conflict checks. Normal-door adjacency is engine behavior, not an
+  arbitrary room-link field.
+- [`dungeon_editor_v2_connection_edits.cc`](../../../src/app/editor/dungeon/dungeon_editor_v2_connection_edits.cc)
+  checks ROM and room identity, strictly reads an unopened destination stream
+  before loading it, and refuses to overwrite a partially loaded dirty room.
+  Clean WaterFill overlays attached by `ReloadWaterFillZones` survive loading:
+  tile contents, SRAM mask, and cached tile count remain intact. Three additional
+  lifecycle tests run in both viewer modes, including saving another zone and
+  confirming that the target's clean zone remains in the shared table, plus
+  rejection of a dirty partial WaterFill state.
+  It recomputes the preview before Apply and after finishing any older gesture.
+  Stale source or destination lists reject instead of overwriting newer edits.
+- [`dungeon_editor_v2_selection_edits.cc`](../../../src/app/editor/dungeon/dungeon_editor_v2_selection_edits.cc)
+  extends the existing selection action to a batch. `RestoreSelectionEditBatch`
+  validates every endpoint before publishing any list, then refreshes existing
+  views. There is no second undo manager or independent connection document.
+- [`dungeon_connection_editor.cc`](../../../src/app/editor/dungeon/inspectors/dungeon_connection_editor.cc)
+  provides the shared inspector and diagram. Its headless tests exercise Apply,
+  rejection, read-only behavior, and context changes; these are not human visual
+  acceptance or runtime traversal evidence.
+- [`ReadDungeonObjectStream`](../../../src/zelda3/dungeon/dungeon_stream_allocator.h)
+  reuses the strict object-stream parser for read-only lazy-load validation.
+  Keep its malformed-pointer/stream tests in the connection verification lane.
+
+**Next bounded implementation: DA-4 complete room clone/import.** Inventory and
+declare every included domain, preserve unsupported destination data, state the
+reference/remapping policy, and preflight supported counts, shared tables,
+serialized space/allocation, and project write policy before publication. Reuse
+the batch transaction and existing metadata/chest planners; do not resurrect
+direct clear-and-refill template mutation. A partial interchange schema must be
+labelled partial. DA-3 stairs/pits/special-family work and runtime qualification
+remain independent follow-ups.
+
+### Connection verification commands
+
+Run from the integration worktree. Confirm discovery is nonempty and includes
+the new suites before executing this filter. These commands passed on the source
+candidate above. Discovery selected all
+807 cases before execution; the XML reports 44 suites, zero failures, and zero
+skips. Connection-specific coverage comprises 67 planner cases, 16 ImGui cases,
+and 38 lifecycle cases across both viewer modes. The lane also includes all 41
+stream allocator tests, including eight new strict-reader cases.
+
+```sh
+cmake --build build/presets/mac-ai --target yaze_test_unit yaze --parallel 4 > /tmp/yaze-connection-final-build.log 2>&1
+yaze_connection_filter='*DungeonRoomMetadata*:*DungeonRoomEditsLifecycle*:*DungeonChestEditor*'
+yaze_connection_filter+=':*DungeonEntityUndoLifecycleTest*:*DungeonUndoActionsTest*:*DungeonWorkbench*'
+yaze_connection_filter+=':*InteractionCoordinatorTest*:*SpriteInteractionHandlerTest*:*DoorInteractionHandlerTest*:*ItemInteractionHandlerTest*'
+yaze_connection_filter+=':*DungeonSelectionSnapshot*:TileObjectHandlerTest.*:DungeonCanvasViewerNavigationTest.*'
+yaze_connection_filter+=':DungeonEditorV2RomSafetyTest.*:DungeonSaveTest.*Chest*:*RoomHeader*'
+yaze_connection_filter+=':ChestEditTest.*:DungeonSaveTest.LoadObjects*:*DungeonSelectionEdit*'
+yaze_connection_filter+=':*DungeonConnection*:DungeonStreamAllocatorTest.*'
+yaze_connection_filter+='-*RoomObjectRomParityTest*'
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_list_tests --gtest_filter="$yaze_connection_filter" > /tmp/yaze-connection-final-selected-tests.log 2>&1
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter="$yaze_connection_filter" --gtest_output=xml:/tmp/yaze-connection-final-tests.xml > /tmp/yaze-connection-final-tests.log 2>&1
+```
+
+Scoped analysis passed with a PCH-free compilation database:
+
+```sh
+cmake --preset mac-ai -B build/analysis/mac-ai -G Ninja -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON -DYAZE_ENABLE_CLANG_TIDY=OFF
+/opt/homebrew/opt/llvm/bin/clang-tidy -p build/analysis/mac-ai --checks='-*,clang-analyzer-*' --warnings-as-errors='clang-analyzer-*' --header-filter='(dungeon_connection_edit|dungeon_editor_v2_connection_edits|dungeon_editor_v2_selection_edits|dungeon_connection_editor|door_interaction_handler|dungeon_stream_allocator)\.(cc|h)$' src/app/editor/dungeon/dungeon_connection_edit.cc src/app/editor/dungeon/dungeon_editor_v2_connection_edits.cc src/app/editor/dungeon/dungeon_editor_v2_selection_edits.cc src/app/editor/dungeon/inspectors/dungeon_connection_editor.cc src/app/editor/dungeon/interaction/door_interaction_handler.cc src/zelda3/dungeon/dungeon_stream_allocator.cc > /tmp/yaze-connection-final-analyzer.log 2>&1
+```
+
+The six selected translation units are
+`dungeon_connection_edit.cc`, `dungeon_editor_v2_connection_edits.cc`,
+`dungeon_editor_v2_selection_edits.cc`, `dungeon_connection_editor.cc`,
+`door_interaction_handler.cc`, and `dungeon_stream_allocator.cc`. The own-header
+filter is
+`(dungeon_connection_edit|dungeon_editor_v2_connection_edits|dungeon_editor_v2_selection_edits|dungeon_connection_editor|door_interaction_handler|dungeon_stream_allocator)\.(cc|h)$`.
+The initial wider analyzer scope reports known `LayerMergeType` padding debt in
+`room.h`; this legacy-header finding remains excluded by the explicit scope,
+not fixed or covered by a blanket clean claim. This is not a full-repository
+tidy result. Editor guardrails, changed-line formatting, and source pre-commit
+checks passed. Guardrail output: `/tmp/yaze-connection-final-guardrails.log`.
+
+Object-stream allocation remains Save-time for ordinary connection edits. This
+candidate does not establish a vanilla/Oracle full application disk workflow,
+game traversal, manual UX, remote CI, installed-app delivery, or packaged release
+acceptance. Preserve the user's installed app, ROMs, and active sessions.
+
+## Prior mixed-selection candidate (2026-09-23)
 
 Candidate: `eac49e2bd` on `codex/editor-parity-dungeon-authoring`,
 following chest source `478206247`. Worktree:
@@ -42,7 +157,7 @@ Keep the earlier candidate evidence below as history for its exact source.
 - Workbench, standalone inspector, canvas menus, and keyboard commands share
   these paths. No new parallel inspector or undo manager was introduced.
 
-### Mixed-selection architecture and next implementation
+### Mixed-selection architecture and historical next implementation
 
 1. [`dungeon_selection_edit.h` / `.cc`](../../../src/app/editor/dungeon/dungeon_selection_edit.h)
    owns the pure plan and clipboard types. `PlanDungeonSelectionEdit` returns
@@ -64,11 +179,10 @@ Keep the earlier candidate evidence below as history for its exact source.
    through the configured editor callback. Do not reintroduce sequential
    per-domain mutation into mixed operations or add a second clipboard.
 
-Next bounded implementation: **DA-3 reciprocal connection authoring**. Reuse
-room metadata and selection transactions to preview both endpoints, validate
-engine adjacency and destination/slot rules, and apply or undo both together.
-Preserve intentional one-way links; a diagnostic is not permission to repair
-another room. Then extend proven transactions to **DA-4 complete room cloning**.
+At this historical checkpoint, the next bounded implementation was reciprocal
+connection authoring. The ordinary normal-door slice is recorded above. Its
+next implementation is DA-4 complete room clone/import. Preserve intentional
+one-way links; a diagnostic is not permission to repair another room.
 DA-1/DA-2 remain partial for remaining domains and controls; DA-5 qualification
 continues independently on the exact candidate.
 
@@ -172,7 +286,7 @@ ImGui callback:
    position to identify a chest.
 
 At this historical checkpoint, mixed-selection atomicity was the next bounded
-package. The current mixed-selection increment above supersedes that assignment
+package. The later mixed-selection increment above supersedes that assignment
 and retains the chest planner and rewards. Do not restart completed chest work
 or create another inspector/transaction system. DA-5 qualification remains
 independent.

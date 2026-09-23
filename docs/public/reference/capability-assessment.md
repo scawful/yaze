@@ -47,7 +47,7 @@ Stable/Beta/WIP labels.
   other dirty and unopened rooms and exact manifest-protected chest regions.
   Object-stream allocation still checks at Save; full application disk/game,
   manual UX, CI, and packaged acceptance remain unqualified.
-- Current mixed-selection candidate: `eac49e2bd` on the same branch.
+- Prior mixed-selection candidate: `eac49e2bd` on the same branch.
   Delete/duplicate/cut/paste, nudge, and group drag stage objects, doors, sprites,
   pot items, and paired chest rewards together, with one undo action. Copy
   preserves the prior clipboard on failure. Shared grids preserve spacing;
@@ -55,6 +55,17 @@ Stable/Beta/WIP labels.
   focused tests across 39 suites passed with zero failures and
   zero skips**. Save-time allocation, vanilla/Oracle application/runtime,
   manual UX, CI, installation, and Release qualification remain separate.
+- Current reciprocal normal-door candidate: `be973563f` on the
+  same branch. The shared door inspector previews both endpoints, creates a
+  missing return with **Create Return Door** or changes both layers with
+  **Update Pair**, and uses one existing Undo/Redo action. Lazy loading preserves
+  clean project WaterFill tiles, mask, and count, and rejects dirty partial state.
+  Exact outer-wall slots, row/page boundaries, passage conflicts,
+  capacity, stale previews, and ROM identity are checked. Verification:
+  **807 tests across 44 suites —
+  passed with zero failures and zero skips**. App/unit builds: passed. Scoped
+  analyzer: passed for the six selected implementation files and their explicit header scope. DA-3 remains partial for stairs, pits,
+  special doors, and application/runtime qualification.
 - Reference-source snapshots used in the audit: Hyrule Magic `7d17cc2` and
   ZScream `0f6812d`. These are source comparison pins, not a statement that the
   two checkouts represent every published feature.
@@ -84,7 +95,8 @@ separately as **Source**, **Focused**, **ROM**, **Runtime**, or **Release**.
 | Edit room properties | **Candidate**, Source + Focused at `aeb0b1200` | Typed header/tag/layout/floor/destination edits with undo; named room choices; atomic multiroom metadata batch. | Qualify application persistence/runtime on the exact candidate. |
 | Create, edit, copy, and delete dungeon chests | **Candidate**, Source + Focused at `478206247` | Paired object/contents operations and undo; named rewards; canvas placement/selection; ordinary object clipboard retains rewards; ordering, shared event slots, global contents capacity, and manifest preflight. | Object-stream allocation remains Save-time. Qualify vanilla/Oracle application disk persistence, game behavior, manual UX, and release acceptance. |
 | Edit mixed dungeon selections | **Candidate**, Source + Focused at `eac49e2bd` | One operation and undo across objects, doors, sprites, pot items, and paired chest rewards; validated clipboard; rigid nudge/drag; rejected/no-op edits preserve data/history. | Object-stream space checks at Save; author-time manifest checks currently cover chest regions. Full application/runtime and packaged acceptance remain. |
-| Complete editing of every dungeon element | **Partial** | Entity editing at `a730d6557`, metadata at `aeb0b1200`, paired chests at `478206247`, and mixed selections at `eac49e2bd` extend the original audit. | Remaining authoring domains, reciprocal connections, complete room operations, and exact-candidate qualification keep DA-1 and DA-2 open. |
+| Author reciprocal normal-door connections | **Candidate** at `be973563f`; verification above | Shared endpoint diagram, upper/lower choice, explicit Create Return Door / Update Pair, strict target loading with WaterFill retention, stale-preview rejection, and atomic pair Undo/Redo. | Ordinary outer normal doors only; stairs, pits, special types, runtime traversal, and application save/reopen remain. Stream allocation remains Save-time. |
+| Complete editing of every dungeon element | **Partial** | Entity editing at `a730d6557`, metadata at `aeb0b1200`, paired chests at `478206247`, mixed selections at `eac49e2bd`, and the normal-door pair candidate extend the original audit. | Remaining authoring domains, connection families, complete room operations, and exact-candidate qualification keep DA-1 and DA-2 open. |
 | Build and reuse complete rooms | **Partial** | Room-template helpers, export, destination fields, and connected-room browsing | Complete template schema and room cloning/import, including doors, chests, and headers; reusable selections; destination previews with engine adjacency constraints. |
 | Edit overworld maps and entities | **Partial** | Tile editing, paste undo, persistent scratchpad, entrances, exits, items, properties, graphics groups, and state-specific sprites | Serialize sprites for every supported game state; unify entity undo and verify each saved domain. Existing map save does not persist sprite edits. |
 | Edit graphics and graphics groups | **Blocked** for coordinated pixel-sheet persistence; other workflows **Partial** | Pixel editing, undo, graphics-group tools, import surfaces, and polyhedral editing | Safe compression and allocation, write boundaries, import/export roundtrip, and coordinated save. Preserve the current graphics save block until these are proved. |
@@ -100,9 +112,11 @@ separately as **Source**, **Focused**, **ROM**, **Runtime**, or **Release**.
 1. **Complete dungeon authoring for 0.8.0.** Establish shared undo transactions,
    editable entity inspectors, complete room operations, connection editing,
    and bounded save/reopen/runtime acceptance. The next bounded implementation
-   is bounded DA-3 reciprocal connection authoring using the existing metadata
-   and mixed-selection transaction boundaries, followed by DA-4 complete room
-   cloning/import. Preserve the implemented selection and chest operations.
+   is DA-4 complete room cloning/import using the existing batch transaction,
+   with explicit domain coverage, unsupported-data preservation, reference
+   policy, and capacity preflight. Preserve the implemented selection, chest,
+   and normal-door pair operations. DA-3's remaining connection families and
+   runtime qualification continue independently.
 2. **Complete overworld entity persistence.** Add the missing sprite writer and
    state handling before describing all entity editing as durable.
 3. **Complete graphics and screens by data domain.** Keep unsafe writers blocked
