@@ -5,7 +5,8 @@
 **Created:** 2026-09-22  
 **Last Reviewed:** 2026-09-23
 **Next Review:** 2026-10-06  
-**Universe Task:** `task_20260923T053944Z_6854` (current normal-door connection increment);
+**Universe Task:** `task_20260923T131011Z_25069` (current room clone/import increment);
+prior normal-door connection task `task_20260923T053944Z_6854`;
 prior mixed-selection task `task_20260923T050800Z_19565`;
 prior compound chest task `task_20260923T034804Z_2446`;
 prior room metadata task `task_20260923T025637Z_4379`;
@@ -110,7 +111,7 @@ Do not publish estimated parity percentages.
 | DA-1 | Complete dungeon edit undo across domains | Partial; entity/metadata, paired chest, and atomic mixed-selection Candidates below | Existing mutation hooks and undo actions | imgui-frontend-engineer |
 | DA-2 | One editable inspector for every room element | Partial; tile/entity controls, named room properties, shared chest placement/contents/deletion Candidate | DA-1 for added edits | imgui-frontend-engineer |
 | DA-3 | Visual room connection authoring | Partial; ordinary outer normal-door pair Candidate below; stairs, pits, special doors, and runtime qualification remain | DA-1 header/compound coverage | zelda3-hacking-expert |
-| DA-4 | Complete room clone/import and reusable selections | Partial; model helpers and limited export exist | DA-1 compound coverage | zelda3-hacking-expert |
+| DA-4 | Complete room clone/import and reusable selections | Partial; versioned authored-room clone/clipboard import Candidate below; asset compatibility and portable project resources remain | DA-1 compound coverage | zelda3-hacking-expert |
 | DA-5 | Dungeon render, persistence, and packaged-candidate qualification | Partial; independent active lane | Exact candidate from DA-1–DA-4 | test-infrastructure-expert |
 | OW-1 | Overworld sprite persistence for all supported states | Missing writer in inspected save paths | Format/capacity inventory | zelda3-hacking-expert |
 | OW-2 | Consistent overworld entity editing and undo | Partial | Existing entity workbench; OW-1 for full sprite loop | imgui-frontend-engineer |
@@ -489,12 +490,16 @@ scope. No full-repository or blanket clean analyzer claim is made.
 authoring, special door families, arbitrary destination rules, application disk
 save/reopen, and runtime traversal require their own work and evidence. Stream
 allocation and serialized space remain Save-time gates. No remote CI,
-installation, or packaged acceptance is implied. Next implement **DA-4 complete
-room clone/import** through the existing batch transaction, with explicit domain
-coverage, unsupported-data preservation, reference policy, and capacity
-preflight. DA-3 runtime qualification can proceed independently.
+installation, or packaged acceptance is implied. The next implementation at
+this checkpoint was DA-4 room clone/import, recorded below. Its later evidence
+does not retroactively qualify this connection checkpoint for runtime use.
 
 ### Supporting cleanup and human UI ownership
+
+Use the [dungeon editor contribution guide](../../public/developer/dungeon-editor-contribution-guide.md)
+for a small first coding task, source entry points, graded UI exercises, focused
+build/analysis commands, and bounded agent assignments. This plan remains the
+roadmap and evidence authority.
 
 Cleanup should make the next DA-1/DA-2 change easier to understand. It is not a
 separate parity milestone, and reduced line counts do not prove fewer defects.
@@ -518,7 +523,7 @@ Suggested division for the next UI slice:
 | Maintainer | Implement a searchable named sprite-type chooser in `inspectors/dungeon_entity_inspector.cc`, using the existing handler | Finding a type, keyboard selection/cancel, narrow layout, and one undoable committed edit work as designed |
 | Agent | Review the chooser's mutation and selection contracts; prepare only the extraction needed to make the change local | Existing handler/undo coverage, build, targeted analysis, and any new regression for changed behavior |
 | Maintainer | Choose the next layout improvement, such as a responsive `dungeon_status_bar.cc` | Readable status at representative canvas widths and scale |
-| Agent | Implement DA-4 complete room clone/import using the existing batch transaction | Explicit domain/reference policy; preserve unsupported data; capacity preflight; one undo; save/reload evidence |
+| Agent | Qualify the combined DA-1–DA-4 candidate through DA-5 before another broad feature | Exact build/ROM identity; application save/reopen, undo, failure rollback, and runtime evidence; preserve the existing transactions |
 
 These are proposed human tasks, not an instruction for agents to implement them
 preemptively. For future cleanup, name one responsibility and its callers, move
@@ -567,29 +572,72 @@ in the correct runtime ROM. Navigation alone does not close this package.
 
 ### DA-4: room and selection reuse
 
-Reuse `src/zelda3/dungeon/dungeon_editor_system.*` and `object_templates.*`.
-Existing room JSON contains objects, sprites, pot items, and four graphics
-properties; it is not a complete-room interchange format. Define a versioned
-schema with explicit inclusion policy for doors, chests, headers, destinations,
-special-table entries, collision, and project-owned assets. Parse and validate
-into a draft before touching live collections. Preserve or explicitly remap
-references; default cloning must not silently redirect the original room.
-Store reusable assets in project/configured user storage, not a fixed machine
-path. Existing `ApplyRoomLayoutTemplate` clears/refills live state and is not
-an atomic import transaction by itself.
+**Authored-room clone/import candidate (2026-09-23):**
+`2520aa6b0` on `codex/editor-parity-dungeon-authoring`,
+following source `be973563f` and documentation `6a1196218`.
 
-This is the next bounded implementation after the reciprocal normal-door
-candidate. Reuse `PushSelectionUndoBatch`/`RestoreSelectionEditBatch` for supported
-collection domains and extend the existing transaction for remaining fields;
-do not add a second history manager. Preview source and destination inclusion
-policies, preserve unsupported destination data unless explicitly included,
-and preflight supported counts, shared tables, serialization, allocation, and
-project write policy before publishing a replacement. A partial schema must be
-labelled partial rather than silently dropping fields during "complete" import.
+The shared Room UI/dialog supports same-project **Clone**, **Copy Room JSON**,
+and clipboard/text **Import JSON**, with **Preview Replacement** before
+**Apply Replacement**. The new `yaze.room` version 1 document has seven selectable
+domains: objects with chest rewards and special-object metadata, doors, sprites,
+pot items, room properties, custom collision, and water fill zones. Core defaults
+select the first five; collision and water require explicit inclusion.
+
+Destination room/plane fields stay with the target by default. **Copy destination
+links** is an explicit option; it does not create reciprocal links or remap
+incoming connections. The document includes the pit destination plane and
+special-object fields, but references graphics, layouts, and messages by numeric
+ID. It does not package those assets, entrances, global pit-damage membership,
+palette data, project source, or other external resources. Destination reserved
+header bits and the sprite stream's sort byte remain destination-owned.
+
+Implementation boundaries:
+
+1. `dungeon_room_transfer.*` owns authored snapshots, selected-domain planning,
+   and publication; `dungeon_room_transfer_json.cc` validates the versioned
+   document before any live replacement. Legacy room-template JSON and
+   `ApplyRoomLayoutTemplate` remain separate; do not route this UI through their
+   direct clear/refill path.
+2. `dungeon_editor_v2_room_transfer.cc` rejects stale source/target previews,
+   finishes prior gestures, and publishes one replacement through the existing
+   `UndoManager`. Undo restores the target without rewriting the source.
+3. Preflight serializes a detached ROM/editor copy through the existing room
+   save path. It includes dirty/materialized shared-table state, actual stream
+   capacity/allocation, disabled domain-save flags, and project write policy.
+   Actual changed byte ranges supplement estimated manifest ranges. No disk
+   file, live ROM bytes, palette state, or undo history is published by preview.
+4. Water-mask assignment retains other rooms' masks and gives a new zone a free
+   bit. Water-table persistence merges saved zones from unmaterialized rooms;
+   replacing one zone cannot drop an unopened room's saved zone.
+
+The same candidate includes review corrections for flagged pot-item type edits,
+coupled chest/object saves, object-only Delete controls, and the dungeon
+spriteset authoring limit. The handoff records their regression scope and the
+remaining pot-coordinate codec audit.
+
+**Verification:** `968` tests across
+`49` suites; `all passed, zero failures and zero skipped`. Exact commands,
+build/analyzer scope, and artifacts belong in the
+[room transfer handoff](../agents/dungeon-workbench-placement-handoff-2026-09-22.md#room-transfer-verification-commands).
+The prior 807-test connection result remains historical evidence for
+`be973563f`, not this candidate's result. Synthetic persistence and ImGui tests
+remain separate from application-to-disk, human UX, and game-runtime acceptance.
+
+**Remaining DA-4 scope:** project-file export/import and asset-compatibility
+checks/remapping, portable reusable selections/assets, and qualified save/reopen.
+The clipboard document is authored room data, not a complete portable asset pack.
+No native file-picker or cross-project asset compatibility is claimed. Store
+future reusable resources in project/configured storage, not a machine path.
 
 **Exit criteria:** clone/import previews the affected domains, rejects invalid
 or over-capacity data without mutation, commits as one undo action, and survives
 save/reopen. Selection prefabs preserve type-specific semantics and offsets.
+
+**Next bounded package: DA-5 qualification of this combined candidate.** Prove
+the application disk transaction and rollback, independent reopen/readback,
+and representative game behavior before broadening features. DA-4 project-file
+compatibility and DA-3 stairs/pits with verified engine rules follow as separate
+bounded tasks. Do not call either entire package complete from this increment.
 
 ### DA-5: independent qualification lane
 

@@ -8,7 +8,186 @@ The user requested substantial implementation work
 from Codex and delegated extended validation to Claude. Avoid asking the user
 to repeat a sequence of manual tests before continuing development.
 
-## Current reciprocal normal-door candidate (2026-09-23)
+## Current authored-room clone/import candidate (2026-09-23)
+
+Candidate: `2520aa6b0` on
+`codex/editor-parity-dungeon-authoring`, following normal-door source
+`be973563f` and documentation `6a1196218`. Worktree:
+`/Users/scawful/src/hobby/yaze-worktrees/pr256-review-fixes`. Universe task:
+`task_20260923T131011Z_25069`.
+
+Verification: **968 tests across 49 suites; all passed, zero failures and
+zero skipped**. Both `yaze` and `yaze_test_unit` built successfully. Expanded
+scoped analysis examined 13 translation units and exited 1 on two existing
+diagnostics, detailed below. The older 807-test connection result remains
+history for its exact commit, not new transfer evidence.
+
+The shared Room controls/dialog expose **Clone**, **Copy Room JSON**, and
+**Import JSON** from text/clipboard. Use **Preview Replacement** to inspect
+selected-domain counts/policy, then **Apply Replacement** for one Undo/Redo
+action. Read-only views may copy JSON but cannot replace data.
+
+1. The versioned document is `format: "yaze.room"`, `version: 1`, bounded to
+   1 MiB. Seven selectable domains are objects/chest rewards, doors, sprites,
+   pot items, room properties, custom collision, and water fill. Core defaults
+   select the first five; collision/water require explicit inclusion.
+2. Default clone preserves target destination room/plane fields. **Copy
+   destination links** opts into their numeric values. It does not redirect
+   incoming links or create returns. Properties include the pit destination
+   plane; objects carry chest correspondence and torch/block metadata.
+3. Graphics, layout, and message references stay numeric. Referenced assets,
+   entrances, global pit-damage membership, palettes, project source, and runtime
+   state are not packaged. Destination reserved header bits and sprite sort
+   byte remain destination-owned. This is authored-room data exchange, not a
+   complete portable project asset pack.
+4. Preview validates detached data and serializes a scratch ROM/editor through
+   the real room save path. Shared tables include current materialized/dirty
+   state. Capacity/allocation, disabled-save domains, and actual changed-byte
+   manifest policy are checked before live publication. Apply rejects stale
+   source or target data, checks again after gesture finalization, then uses the
+   existing undo manager. Preview writes no live ROM bytes, disk file, or history.
+5. Cloned water uses a valid target/free SRAM bit without changing other rooms'
+   assignments. Shared water-table saves merge unmaterialized saved zones.
+   Preserve these regressions: a lower-numbered destination cannot take its
+   source's mask, and editing one zone cannot delete an unopened saved zone.
+
+### Review corrections included with this candidate
+
+The external review's four blocking reports were treated as correctness work
+before final verification. Recheck these paths during independent acceptance:
+
+1. Pot-item type-only edits retain the exact encoded position word and use the
+   existing mutation/undo path. Raw position flags are preserved by room
+   transfer. The broader legacy pot-coordinate display/drag codec still needs
+   an independent engine-format audit; this fix does not qualify it.
+2. Pending chest object and reward edits cannot save with split feature flags.
+   Apply Room also refuses to publish another room's rewards without that
+   room's pending objects. Reward-only changes remain independently saveable;
+   enable both domains and save/apply the owning room for structural edits.
+3. Object-specific Delete controls affect objects only. Mixed keyboard Delete
+   keeps the existing mixed-selection behavior. Test both with an object,
+   sprite, door, and pot item selected together.
+4. New dungeon spriteset choices stop at `0x4F`, because the shared sprite table
+   includes a 64-entry prefix. Preserve existing unknown values on undo or when
+   excluding room properties; do not silently clamp loaded data.
+
+The room-only preflight deliberately skips the live rollback transaction:
+`Rom scratch(*rom_)` and a detached editor own every serializer mutation, and
+both are discarded on any outcome. The private `SaveRoomImpl(..., true)` path
+has no live caller. Actual Apply Room still uses `RunWithSaveTransaction`.
+Do not reuse the room-only path for live saves or weaken that ownership boundary.
+
+Additional transfer regressions cover header storage aliases, malformed torch
+framing, water-bit ownership, and Save → Undo → Save after block-table compaction.
+Block slot numbers are current serialization identities: historical slots from
+another room must be reconciled, while duplicate claims within one room reject.
+
+### Room transfer architecture
+
+- [`dungeon_room_transfer.h`](../../../src/app/editor/dungeon/dungeon_room_transfer.h)
+  and [implementation](../../../src/app/editor/dungeon/dungeon_room_transfer.cc):
+  authored snapshots, comparison, domain options, pure planning, publication.
+- [`dungeon_room_transfer_json.cc`](../../../src/app/editor/dungeon/dungeon_room_transfer_json.cc):
+  strict version/field/count validation before mutation. Legacy template JSON
+  is a different format; do not silently accept it as this document.
+- [`dungeon_editor_v2_room_transfer.cc`](../../../src/app/editor/dungeon/dungeon_editor_v2_room_transfer.cc):
+  complete source hydration, scratch persistence preflight, stale checks, and
+  target-bound undo. Detached snapshots contain authored fields rather than
+  borrowed graphics buffers. Keep scratch dependencies alive through destruction.
+- [`dungeon_room_transfer_editor.cc`](../../../src/app/editor/dungeon/inspectors/dungeon_room_transfer_editor.cc):
+  shared clone/import UI and preview invalidation. Context/source/options changes
+  discard a preview; room navigation must not apply a draft to another room.
+- [`dungeon_stream_allocator.h`](../../../src/zelda3/dungeon/dungeon_stream_allocator.h):
+  strict object/sprite/pot stream reads before legacy lazy loaders. Exact shared
+  starts are allowed; missing terminators cannot borrow another room's bytes.
+  No allocator-policy expansion is implied by these read APIs.
+
+### Room transfer verification commands
+
+The final discovery selected 968 tests from 49 suites, including strict JSON
+parameterized cases, transfer lifecycle/UI, all block-save cases, and existing
+undo/selection/connection/room-save regressions. All 968 ran and passed with
+zero skipped. The app/unit build and editor guardrails passed.
+
+```sh
+cmake --build build/presets/mac-ai --target yaze yaze_test_unit --parallel 4 > /tmp/yaze-room-transfer-final-build.log 2>&1
+yaze_room_transfer_filter='*DungeonRoomMetadata*:*DungeonRoomEdit*:*DungeonChestEditor*:*DungeonEntityUndoLifecycleTest*:*DungeonUndoActionsTest*:*DungeonWorkbench*:*InteractionCoordinatorTest*:*SpriteInteractionHandlerTest*:*DoorInteractionHandlerTest*:*ItemInteractionHandlerTest*:*DungeonSelectionSnapshot*:TileObjectHandlerTest.*:DungeonCanvasViewerNavigationTest.*:DungeonEditorV2RomSafetyTest.*:DungeonSaveTest.*Chest*:DungeonSaveTest.SaveAllBlocks*:*RoomHeader*:ChestEditTest.*:DungeonSaveTest.LoadObjects*:*DungeonSelectionEdit*:*DungeonConnection*:DungeonStreamAllocatorTest.*:*DungeonRoomTransfer*:*DungeonRoomDocument*:*DungeonFixedStreamReadTest*-*RoomObjectRomParityTest*'
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_list_tests --gtest_filter="$yaze_room_transfer_filter" > /tmp/yaze-room-transfer-final-selected-tests.log 2>&1
+build/presets/mac-ai/bin/Debug/yaze_test_unit --gtest_filter="$yaze_room_transfer_filter" --gtest_output=xml:/tmp/yaze-room-transfer-final-tests.xml > /tmp/yaze-room-transfer-final-tests.log 2>&1
+cmake --preset mac-ai -B build/analysis/mac-ai -G Ninja \
+  -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON -DYAZE_ENABLE_CLANG_TIDY=OFF
+/opt/homebrew/opt/llvm/bin/clang-tidy -p build/analysis/mac-ai \
+  --checks='-*,clang-analyzer-*' --warnings-as-errors='clang-analyzer-*' \
+  --header-filter='(dungeon_room_transfer|dungeon_editor_v2_room_transfer|dungeon_room_transfer_editor|dungeon_stream_allocator|dungeon_editor_v2_persistence|dungeon_room_edit|item_interaction_handler|dungeon_entity_inspector|dungeon_workbench_content|dungeon_workbench_room_inspector|object_editor_content|room)\.(cc|h)$' \
+  src/app/editor/dungeon/dungeon_room_transfer.cc \
+  src/app/editor/dungeon/dungeon_room_transfer_json.cc \
+  src/app/editor/dungeon/dungeon_editor_v2_room_transfer.cc \
+  src/app/editor/dungeon/inspectors/dungeon_room_transfer_editor.cc \
+  src/zelda3/dungeon/dungeon_stream_allocator.cc \
+  src/app/editor/dungeon/dungeon_editor_v2_persistence.cc \
+  src/app/editor/dungeon/dungeon_room_edit.cc \
+  src/app/editor/dungeon/interaction/item_interaction_handler.cc \
+  src/app/editor/dungeon/inspectors/dungeon_entity_inspector.cc \
+  src/app/editor/dungeon/workspace/dungeon_workbench_content.cc \
+  src/app/editor/dungeon/workspace/dungeon_workbench_room_inspector.cc \
+  src/app/editor/dungeon/inspectors/object_editor_content.cc \
+  src/zelda3/dungeon/room.cc > /tmp/yaze-room-transfer-final-analyzer.log 2>&1
+/opt/homebrew/bin/bash scripts/dev/editor-guardrails.sh 6a1196218 2520aa6b0
+git diff --check 6a1196218 2520aa6b0
+```
+
+The 13-translation-unit analyzer run reports two existing diagnostics in
+unchanged code (confirmed against parent `6a1196218`):
+
+- `dungeon_workbench_content.cc:257`: `clang-analyzer-deadcode.DeadStores` on
+  the final `deficit -= shrink` assignment.
+- `room.h:71`: `clang-analyzer-optin.performance.Padding` on `LayerMergeType`.
+
+The command exits 1 with warnings-as-errors. No analyzer diagnostic points to
+changed code; this is not a clean full-tidy result. A later mechanical cleanup
+can remove the dead store and review field-layout/ABI implications before
+reordering the struct. Do not disable checks or change the tidy policy to hide
+these findings. The earlier five-file analyzer pass preceded the review fixes
+and is not the final candidate's full analysis result.
+
+Source + Focused/synthetic persistence evidence does not establish the complete
+application disk transaction, vanilla/Oracle game behavior, manual UX, remote
+CI, installed delivery, or packaged acceptance. No native file-picker or
+cross-project asset compatibility is claimed. Preserve installed apps and all
+personal ROM/save files; qualification uses identified disposable copies.
+
+The local app is `build/presets/mac-ai/bin/Debug/yaze.app`. Its executable
+SHA-256 for this run is `8a81ce9280a0e67bb50aec403adc87392421c5d1dc7768418c6c250e3ce75195`. It was built from the source tree committed as
+`2520aa6b0` before the commit was created, so embedded Git metadata may name
+the parent. It has not been installed or substituted into the Barista launcher.
+No personal ROM/save file was modified and no remote CI run is claimed.
+
+### Next bounded assignments
+
+1. **DA-5 qualification first.** Pin source and built artifact, discover selected
+   tests, then exercise the application save-to-disk path on disposable supported
+   ROM profiles. Check clone/import → undo/redo → Save → independent reopen;
+   compare decoded domains and unrelated byte ranges. Include rejected capacity,
+   project policy, and save-failure rollback. Record runtime room traversal,
+   sprites, chests, and any included collision/water behavior separately from
+   successful serialization. Stop at a concrete defect, fix it with focused
+   evidence, then resume the same qualification packet.
+2. **DA-4 project-file/asset compatibility follows.** Specify project-relative
+   storage and resource identity/remapping before adding file import/export or
+   claiming cross-project reuse. Reuse the versioned document, planner, and
+   preflight; no direct clear/refill or second history system.
+3. **DA-3 stairs/pits follow verified rules.** Audit each engine rule and supported
+   ROM layout, preserve intentional one-way connections, and require persistence
+   plus runtime evidence per family. Normal-door adjacency is not a staircase
+   routing rule.
+
+The maintainer's [coding entry guide](../../public/developer/dungeon-editor-contribution-guide.md)
+provides bounded status-bar/selector exercises and agent assignment templates.
+Those proposed human-owned UI tasks remain available; agents should not absorb
+them during qualification or mechanical cleanup. Update this handoff and the
+canonical plan instead of adding another roadmap.
+
+## Prior reciprocal normal-door candidate (2026-09-23)
 
 Candidate: `be973563f` on
 `codex/editor-parity-dungeon-authoring`, following mixed-selection source
@@ -66,14 +245,10 @@ those results as fresh evidence for this increment.
   reuses the strict object-stream parser for read-only lazy-load validation.
   Keep its malformed-pointer/stream tests in the connection verification lane.
 
-**Next bounded implementation: DA-4 complete room clone/import.** Inventory and
-declare every included domain, preserve unsupported destination data, state the
-reference/remapping policy, and preflight supported counts, shared tables,
-serialized space/allocation, and project write policy before publication. Reuse
-the batch transaction and existing metadata/chest planners; do not resurrect
-direct clear-and-refill template mutation. A partial interchange schema must be
-labelled partial. DA-3 stairs/pits/special-family work and runtime qualification
-remain independent follow-ups.
+At this historical checkpoint, the next implementation was DA-4 room
+clone/import. The authored-room transfer increment above implements its bounded
+data-exchange slice; portable asset compatibility and full qualification remain.
+DA-3 stairs/pits/special-family work still requires its own engine rules.
 
 ### Connection verification commands
 
@@ -180,8 +355,8 @@ Keep the earlier candidate evidence below as history for its exact source.
    per-domain mutation into mixed operations or add a second clipboard.
 
 At this historical checkpoint, the next bounded implementation was reciprocal
-connection authoring. The ordinary normal-door slice is recorded above. Its
-next implementation is DA-4 complete room clone/import. Preserve intentional
+connection authoring. The ordinary normal-door and authored-room transfer slices
+are now recorded above. Preserve intentional
 one-way links; a diagnostic is not permission to repair another room.
 DA-1/DA-2 remain partial for remaining domains and controls; DA-5 qualification
 continues independently on the exact candidate.
@@ -495,9 +670,9 @@ end against the old room before rebinding; the capability plan records the
 integration follow-up `50d6257ad` and its 289 passing focused tests, including
 seven regression cases that fail with the selection-only transition.
 
-Retained artifacts were inspected read-only under the temporary root:
-`/tmp/claude-501/-Users-scawful-src-hobby-yaze/647c1ae4-27d4-4c4b-9ecc-eba2e612299a/scratchpad/validate`.
-They are local evidence and may expire, not release artifacts. Each
+Retained artifacts were inspected read-only in the reviewer’s temporary
+validation directory. They were local evidence that may expire, not release
+artifacts or a reusable checkout path. Each
 `harness_vanilla.log` / `harness_oracle.log` records one passing
 `DungeonEditorPaletteRefreshTest.CandidatePlacementSaveReopen` and
 `EDITOR_SAVE OK`. Before/after readback records show:

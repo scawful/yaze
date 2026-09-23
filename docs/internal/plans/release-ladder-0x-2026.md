@@ -54,7 +54,7 @@ Source + Focused evidence: **640 tests across 39
 suites passed with zero failures and zero skips**. Allocation remains Save-time;
 author-time manifest preflight currently covers chest ranges only.
 
-The current reciprocal normal-door candidate `be973563f` adds
+The prior reciprocal normal-door candidate `be973563f` adds
 paired endpoint previews and explicit **Create Return Door** / **Update Pair**
 commands for ordinary outer-wall doors.
 Creating a return or changing both layers uses one existing batch Undo/Redo;
@@ -66,15 +66,26 @@ Verification:
 passed with zero failures and zero skips**. App/unit builds: passed. Scoped
 analyzer: passed for the six selected implementation files and their explicit header scope.
 
+The current authored-room clone/import candidate `2520aa6b0`
+follows `6a1196218`. It adds `yaze.room` v1 clipboard exchange and same-project
+clone, seven selectable domains with Core defaults, preserved target destinations
+unless explicitly included, detached persistence/capacity/write-policy preflight,
+stale-source/target rejection, and one undo action. Other rooms retain their
+water masks, and the shared water table preserves unopened saved zones.
+Verification: **968 tests across 49
+suites; all passed, zero failures and zero skipped**. The prior 807-test result belongs to the
+connection checkpoint, not this candidate.
+
 DA-1/DA-2 remain partial for broader authoring domains and qualification. DA-3
 remains partial for stairs, pits, special door families, and runtime traversal.
-Next implement DA-4 complete room clone/import through the existing batch
-transaction, with explicit domain/reference policy, unsupported-data
-preservation, and capacity preflight. DA-3 qualification continues independently.
-Synthetic persistence checks do not qualify 0.8.0 or replace application/runtime
-validation. Vanilla/Oracle GUI-to-disk and game behavior, manual UX, CI, and
-packaged acceptance remain unqualified for this candidate. See the canonical
-plan for exact scope and commands.
+DA-4 now has the authored-room transfer increment; project-file/asset
+compatibility and portable resources remain. Numeric graphics/layout/message
+references are not an asset pack, and native file selection is not included.
+**Next qualify the combined candidate through DA-5 before broadening features:**
+application disk transaction/rollback, independent reopen, and game behavior.
+Synthetic persistence checks do not qualify 0.8.0. Vanilla/Oracle GUI-to-disk,
+runtime, manual UX, CI, and packaged acceptance remain separate gates. See the
+canonical plan and its handoff for exact commands and evidence scope.
 
 The primary release train is completion of the main ALTTP editors:
 - Dungeon

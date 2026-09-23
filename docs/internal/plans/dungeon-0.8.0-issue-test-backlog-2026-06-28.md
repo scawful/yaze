@@ -67,7 +67,7 @@ Focused evidence: **640 tests across 39 suites passed
 with zero failures and zero skips**. Allocation is still checked at Save, and
 author-time manifest checks remain scoped to chest ranges.
 
-The current reciprocal normal-door candidate `be973563f`
+The prior reciprocal normal-door candidate `be973563f`
 previews both endpoints in the shared door inspector and applies only on an
 explicit **Create Return Door** or **Update Pair** command. It creates an ordinary
 outer-wall return or changes both layers together through one batch Undo/Redo.
@@ -81,13 +81,23 @@ Verification: **807 tests across
 44 suites — passed with zero failures and zero skips**. App/unit builds:
 passed. Scoped analyzer: passed for the six selected implementation files and their explicit header scope.
 
+The current authored-room clone/import candidate `2520aa6b0`
+follows `6a1196218`: `yaze.room` v1 clipboard JSON and same-project clone, seven
+selectable domains with Core defaults, preserved target destinations by default,
+detached persistence/capacity/write-policy preflight, stale-source/target checks,
+and one undo. Water masks preserve other rooms; shared water-table persistence
+merges unopened saved zones. Verification: **968 tests
+across 49 suites; all passed, zero failures and zero skipped**. The earlier
+807-test count remains evidence for the connection checkpoint only.
+
 DA-1/DA-2 remain partial for broader domains and controls. DA-3 remains partial
-for stairs, pits, special door families, and runtime traversal. The next bounded
-package is DA-4 complete room clone/import with explicit inclusion/reference
-policy, unsupported-data preservation, and capacity preflight. DA-3 qualification
-continues independently. Synthetic persistence checks do not qualify vanilla/Oracle GUI-to-disk
-save/reopen, game behavior, manual UX, CI, or release acceptance. Exact commands
-and limits are recorded in the canonical plan; do not redo completed sub-slices.
+for stairs, pits, special door families, and runtime traversal. DA-4's authored
+data transfer does not package project assets or provide project-file
+compatibility/native file selection. **Next: DA-5 qualification of this combined
+candidate before broader features.** Synthetic persistence checks do not qualify
+vanilla/Oracle application disk transactions, save/reopen, game behavior, manual
+UX, CI, or release acceptance. Exact commands and limits remain in the canonical
+plan and handoff; preserve completed sub-slices.
 
 Open PR heads at this checkpoint: #256 `0b6ecdaf3`, #257 `a1484bab3`,
 #258 `9557ff3bb`, and #259 `5d2ecac28`. Recheck their heads and terminal
@@ -98,13 +108,13 @@ checks before integration. Do not infer merge readiness from this inventory.
 | `DA-1` | Extend coverage only for remaining authoring domains | Existing undo; metadata at `aeb0b1200`; paired chests at `478206247`; atomic mixed selections at `eac49e2bd` | Preserve one action per user command; exact selection/data restoration; rejected/no-op commands preserve prior state |
 | `DA-2` | Complete controls for remaining room elements through `DA-1` | Shared entity inspector, named room controls, and shared chest placement/contents/deletion controls | Inspector and canvas remain synchronized; no independent duplicate state; focused UI and entity lifecycle checks |
 | `DA-3` | Remaining stairs/pits/special families and independent qualification | Normal outer-door pair candidate at `be973563f`; connected browsing and batch undo | Add engine rules per family; preserve intentional one-way links; save/reopen and runtime traversal on the exact candidate |
-| `DA-4` | Next: complete room clone/import and reusable selections | Existing room-template/JSON helpers and batch selection transaction | Explicit domain/reference policy; preserve unsupported data; capacity/write-policy preflight; atomic apply/undo; source-preserving copy and save/reload |
-| `DA-5` | Qualify the final combined candidate | Object Coverage, parity tools, GUI qualification, release scripts | Complete application-path edit/undo/save/reopen plus independent rendering/runtime and packaged acceptance |
+| `DA-4` | Project-file/asset compatibility and portable reusable resources | Authored-room transfer candidate `2520aa6b0`; versioned clipboard schema, explicit domains, existing undo and detached save preflight | Compatible numeric references or explicit remapping; no silent asset loss; source-preserving project-file roundtrip and save/reopen |
+| `DA-5` | Next: qualify the combined candidate before broadening features | Object Coverage, parity tools, GUI qualification, release scripts, and current DA-1–DA-4 candidate | Application disk transaction/rollback, edit/undo/save/reopen, independent rendering/runtime, and packaged acceptance |
 
 Route new `DA-2` mutators through the established `DA-1` boundaries. `DA-3` and
 `DA-4` reuse the same transaction contract; do not rebuild completed selection
-operations. `DA-5` qualification may proceed alongside
-implementation. Use the canonical plan for full prerequisites and exit gates.
+operations. Prioritize `DA-5` qualification now; keep later implementations
+bounded by their specific format evidence. Use the canonical plan for full prerequisites and exit gates.
 Pits/blocks already have editable models and persistence work; remaining
 qualification and capacity handling must not be described as absent models.
 

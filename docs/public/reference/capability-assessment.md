@@ -55,7 +55,7 @@ Stable/Beta/WIP labels.
   focused tests across 39 suites passed with zero failures and
   zero skips**. Save-time allocation, vanilla/Oracle application/runtime,
   manual UX, CI, installation, and Release qualification remain separate.
-- Current reciprocal normal-door candidate: `be973563f` on the
+- Prior reciprocal normal-door candidate: `be973563f` on the
   same branch. The shared door inspector previews both endpoints, creates a
   missing return with **Create Return Door** or changes both layers with
   **Update Pair**, and uses one existing Undo/Redo action. Lazy loading preserves
@@ -66,6 +66,18 @@ Stable/Beta/WIP labels.
   passed with zero failures and zero skips**. App/unit builds: passed. Scoped
   analyzer: passed for the six selected implementation files and their explicit header scope. DA-3 remains partial for stairs, pits,
   special doors, and application/runtime qualification.
+- Current authored-room clone/import candidate: `2520aa6b0`,
+  following `6a1196218` on the same integration branch. A versioned `yaze.room`
+  document supports same-project clone and clipboard JSON exchange with explicit
+  domain choices, preserved target destinations by default, scratch persistence
+  preflight, stale-preview rejection, and one undo action. Water-mask assignment
+  preserves other rooms; water-table saving retains unopened saved zones.
+  Verification: **968 tests across 49
+  suites; all passed, zero failures and zero skipped**. See the
+  [handoff](../../internal/agents/dungeon-workbench-placement-handoff-2026-09-22.md#room-transfer-verification-commands)
+  for build/analyzer scope and commands. Portable asset packaging, project-file
+  compatibility, native file selection, full application disk/runtime, and
+  packaged acceptance remain unqualified. The prior 807-test result is history.
 - Reference-source snapshots used in the audit: Hyrule Magic `7d17cc2` and
   ZScream `0f6812d`. These are source comparison pins, not a statement that the
   two checkouts represent every published feature.
@@ -97,7 +109,7 @@ separately as **Source**, **Focused**, **ROM**, **Runtime**, or **Release**.
 | Edit mixed dungeon selections | **Candidate**, Source + Focused at `eac49e2bd` | One operation and undo across objects, doors, sprites, pot items, and paired chest rewards; validated clipboard; rigid nudge/drag; rejected/no-op edits preserve data/history. | Object-stream space checks at Save; author-time manifest checks currently cover chest regions. Full application/runtime and packaged acceptance remain. |
 | Author reciprocal normal-door connections | **Candidate** at `be973563f`; verification above | Shared endpoint diagram, upper/lower choice, explicit Create Return Door / Update Pair, strict target loading with WaterFill retention, stale-preview rejection, and atomic pair Undo/Redo. | Ordinary outer normal doors only; stairs, pits, special types, runtime traversal, and application save/reopen remain. Stream allocation remains Save-time. |
 | Complete editing of every dungeon element | **Partial** | Entity editing at `a730d6557`, metadata at `aeb0b1200`, paired chests at `478206247`, mixed selections at `eac49e2bd`, and the normal-door pair candidate extend the original audit. | Remaining authoring domains, connection families, complete room operations, and exact-candidate qualification keep DA-1 and DA-2 open. |
-| Build and reuse complete rooms | **Partial** | Room-template helpers, export, destination fields, and connected-room browsing | Complete template schema and room cloning/import, including doors, chests, and headers; reusable selections; destination previews with engine adjacency constraints. |
+| Clone/import authored room data | **Candidate** at `2520aa6b0`; DA-4 remains **Partial** | `yaze.room` v1; Clone/Copy Room JSON/Import JSON; seven selectable domains, Core defaults; count/policy preview, detached capacity/write-policy preflight, source/target stale checks, and one Undo/Redo. Objects retain chest rewards and special metadata; properties include pit target plane. | Numeric asset IDs only; target destinations preserved unless explicitly included. Project-file/asset compatibility, portable resources, application disk/runtime, and packaged acceptance remain. |
 | Edit overworld maps and entities | **Partial** | Tile editing, paste undo, persistent scratchpad, entrances, exits, items, properties, graphics groups, and state-specific sprites | Serialize sprites for every supported game state; unify entity undo and verify each saved domain. Existing map save does not persist sprite edits. |
 | Edit graphics and graphics groups | **Blocked** for coordinated pixel-sheet persistence; other workflows **Partial** | Pixel editing, undo, graphics-group tools, import surfaces, and polyhedral editing | Safe compression and allocation, write boundaries, import/export roundtrip, and coordinated save. Preserve the current graphics save block until these are proved. |
 | Edit screens and maps | **Blocked** for coordinated save with pending Screen edits | Dungeon-map, title, pause-map, and Tile16 editing surfaces; partial inventory UI | Complete and qualify each writer; naming-screen implementation is empty. Credits/ending screen authoring was not found in the reviewed surface and needs a specific audit. |
@@ -111,12 +123,12 @@ separately as **Source**, **Focused**, **ROM**, **Runtime**, or **Release**.
 
 1. **Complete dungeon authoring for 0.8.0.** Establish shared undo transactions,
    editable entity inspectors, complete room operations, connection editing,
-   and bounded save/reopen/runtime acceptance. The next bounded implementation
-   is DA-4 complete room cloning/import using the existing batch transaction,
-   with explicit domain coverage, unsupported-data preservation, reference
-   policy, and capacity preflight. Preserve the implemented selection, chest,
-   and normal-door pair operations. DA-3's remaining connection families and
-   runtime qualification continue independently.
+   and bounded save/reopen/runtime acceptance. **Next qualify the combined
+   candidate through DA-5**: application disk transaction/rollback, independent
+   reopen, and representative runtime behavior. Preserve implemented selection,
+   chest, normal-door pair, and authored-room transfer operations. DA-4
+   project-file/asset compatibility and DA-3 stairs/pits with verified engine
+   rules are separate follow-ups; the entire packages remain partial.
 2. **Complete overworld entity persistence.** Add the missing sprite writer and
    state handling before describing all entity editing as durable.
 3. **Complete graphics and screens by data domain.** Keep unsafe writers blocked
