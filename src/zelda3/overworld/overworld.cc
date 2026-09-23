@@ -22,6 +22,7 @@
 #include "core/features.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
+#include "rom/transaction.h"
 #include "util/hex.h"
 #include "util/log.h"
 #include "util/macro.h"
@@ -1341,46 +1342,92 @@ absl::Status Overworld::LoadSprites() {
 absl::Status Overworld::LoadSpritesFromMap(int sprites_per_gamestate_ptr,
                                            int num_maps_per_gamestate,
                                            int game_state) {
-  for (int i = 0; i < num_maps_per_gamestate; i++) {
+  if (!rom_ || game_state < 0 || game_state >= 3 ||
+      num_maps_per_gamestate < 0 || num_maps_per_gamestate > 160 ||
+      overworld_maps_.size() < static_cast<size_t>(num_maps_per_gamestate)) {
+    return absl::FailedPreconditionError(
+        "Sprite loading requires initialized maps");
+  }
+  std::vector<Sprite> loaded;
+  std::array<bool, 160> loaded_maps{};
+  for (int i = 0; i < num_maps_per_gamestate; ++i) {
     if (map_parent_[i] != i)
       continue;
-
-    int current_spr_ptr = sprites_per_gamestate_ptr + (i * 2);
-    ASSIGN_OR_RETURN(auto word_addr, rom()->ReadWord(current_spr_ptr));
-    int sprite_address = SnesToPc((0x09 << 0x10) | word_addr);
-    while (true) {
-      ASSIGN_OR_RETURN(uint8_t b1, rom()->ReadByte(sprite_address));
-      ASSIGN_OR_RETURN(uint8_t b2, rom()->ReadByte(sprite_address + 1));
-      ASSIGN_OR_RETURN(uint8_t b3, rom()->ReadByte(sprite_address + 2));
-      if (b1 == 0xFF)
-        break;
-
-      int editor_map_index = i;
-      if (game_state != 0) {
-        if (editor_map_index >= 128)
-          editor_map_index -= 128;
-        else if (editor_map_index >= 64)
-          editor_map_index -= 64;
-      }
-      int mapY = (editor_map_index / 8);
-      int mapX = (editor_map_index % 8);
-
-      int realX = ((b2 & 0x3F) * 16) + mapX * 512;
-      int realY = ((b1 & 0x3F) * 16) + mapY * 512;
-      all_sprites_[game_state].emplace_back(
-          *overworld_maps_[i].mutable_current_graphics(), (uint8_t)i, b3,
-          (uint8_t)(b2 & 0x3F), (uint8_t)(b1 & 0x3F), realX, realY);
-      all_sprites_[game_state].back().Draw();
-
-      sprite_address += 3;
+    ASSIGN_OR_RETURN(auto bytes, ReadOverworldSpriteList(
+                                     *rom_, sprites_per_gamestate_ptr + i * 2));
+    loaded_maps[i] = true;
+    const int screen = i % 64;
+    for (size_t pos = 0; pos + 1 < bytes.size(); pos += 3) {
+      const auto y = bytes[pos];
+      const auto x = bytes[pos + 1];
+      loaded.emplace_back(*overworld_maps_[i].mutable_current_graphics(),
+                          static_cast<uint8_t>(i), bytes[pos + 2], x & 0x3F,
+                          y & 0x3F, (x & 0x3F) * 16 + (screen % 8) * 512,
+                          (y & 0x3F) * 16 + (screen / 8) * 512);
+      loaded.back().set_overworld_coordinate_flags(x, y);
+      if (!overworld_maps_[i].current_graphics().empty())
+        loaded.back().Draw();
     }
   }
-
+  all_sprites_[game_state] = std::move(loaded);
+  sprite_maps_loaded_[game_state] = loaded_maps;
   return absl::OkStatus();
+}
+
+absl::StatusOr<OverworldSpriteSavePlan> Overworld::PrepareSpriteSave() const {
+  if (!rom_)
+    return absl::FailedPreconditionError("No ROM for overworld sprites");
+  OverworldSpriteEdits edits;
+  bool loaded = false;
+  for (int state = 0; state < 3; ++state) {
+    for (int map = 0; map < 160; ++map) {
+      if (sprite_maps_loaded_[state][map]) {
+        edits[state][map] = OverworldSpriteBytes{};
+        loaded = true;
+      }
+    }
+    for (const auto& sprite : all_sprites_[state]) {
+      if (sprite.deleted())
+        continue;
+      const int map = sprite.map_id();
+      if (map >= 160 || !edits[state][map]) {
+        return absl::FailedPreconditionError(
+            "Sprite belongs to an unloaded or unsupported map/game state");
+      }
+      // World-space position is authoritative: drag/property edits do not
+      // update Sprite::nx()/ny(). Encode relative to the owning parent map.
+      const int x = sprite.x() - (map % 8) * 512;
+      const int y = sprite.y() - ((map % 64) / 8) * 512;
+      if (x < 0 || x >= 1024 || y < 0 || y >= 1024 || x % 16 || y % 16) {
+        return absl::InvalidArgumentError(
+            "Overworld sprite must be on a 16-pixel grid within its parent "
+            "area");
+      }
+      auto& bytes = *edits[state][map];
+      bytes.push_back(static_cast<uint8_t>(y / 16) |
+                      sprite.overworld_y_flags());
+      bytes.push_back(static_cast<uint8_t>(x / 16) |
+                      sprite.overworld_x_flags());
+      bytes.push_back(sprite.id());
+    }
+    for (auto& bytes : edits[state])
+      if (bytes)
+        bytes->push_back(0xFF);
+  }
+  if (!loaded)
+    return OverworldSpriteSavePlan{};
+  return PlanOverworldSpriteSave(*rom_, edits);
+}
+
+absl::Status Overworld::SaveSprites() {
+  ASSIGN_OR_RETURN(auto plan, PrepareSpriteSave());
+  return ApplyOverworldSpriteSave(*rom_, plan);
 }
 
 absl::Status Overworld::Save(Rom* rom) {
   rom_ = rom;
+  ASSIGN_OR_RETURN(auto sprite_plan, PrepareSpriteSave());
+  ScopedRomTransaction transaction(*rom_);
   RETURN_IF_ERROR(CreateTile32Tilemap())
   if (expanded_tile16_) {
     RETURN_IF_ERROR(SaveMap16Expanded())
@@ -1396,11 +1443,13 @@ absl::Status Overworld::Save(Rom* rom) {
   RETURN_IF_ERROR(SaveEntrances())
   RETURN_IF_ERROR(SaveExits())
   RETURN_IF_ERROR(SaveItems())
+  RETURN_IF_ERROR(ApplyOverworldSpriteSave(*rom_, sprite_plan))
   RETURN_IF_ERROR(SaveMapOverlays())
   RETURN_IF_ERROR(SaveOverworldTilesType())
   RETURN_IF_ERROR(SaveDiggableTiles())
   RETURN_IF_ERROR(SaveMusic())
   RETURN_IF_ERROR(SaveCustomOverworldData())
+  transaction.Commit();
   return absl::OkStatus();
 }
 

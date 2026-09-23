@@ -334,10 +334,10 @@ save is written.
    complete metadata-batch history, and invalidates caches across all worlds.
    Follow [the document contract](../../../src/app/editor/overworld/README.md#tile16-document-contract).
    Native/palette/ROM qualification remains distinct from synthetic evidence.
-2. **Overworld sprite persistence.** `Overworld::Save` currently calls no sprite
-   serializer. This increment corrects sprite insertion values only. Implement
-   and qualify a bounded serializer before claiming persistent sprite authoring;
-   do not infer it from the item save/load test.
+2. **Overworld sprite persistence implemented.** The follow-up connects both
+   save paths to a bounded, atomic serializer with independent sprite tests.
+   See [the sprite persistence handoff](overworld-sprite-persistence-2026-09-23.md).
+   Native UI and ROM-file checks remain deferred in the manual checklist.
 3. **ROM and native UI qualification.** Verify Small/Large/Wide/Tall areas and
    Light/Dark/Special World with disposable ROMs. Check source/destination areas
    with different graphics and palettes, Copy and scratch-space transfer, then

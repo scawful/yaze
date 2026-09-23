@@ -116,6 +116,24 @@ that destination with the next frame's selected map or game state. Item and
 sprite game coordinates are relative to the parent area's origin, including
 child-screen offsets; modulo 512 discards those offsets.
 
+## Overworld sprite persistence
+
+`src/zelda3/overworld/overworld_sprite_io.*` owns pointer/list encoding. Both
+`Overworld::Save` and `OverworldEditor::Save` prepare the sprite plan before
+mutating ROM data. The editor checks actual sprite write ranges against the
+project hack manifest. Publication is fenced and rolls back on failure.
+
+Only successfully loaded parent-map lists are replaced. Other lists are read
+from the ROM and preserved, including expanded entries outside current loader
+coverage. Exact ordered streams share storage; duplicate sprites and coordinate
+flag bits are retained. Unchanged lists produce no save plan. Sprite movement
+uses world coordinates relative to the owning parent, on a 16-pixel grid.
+This does not implement cross-area sprite reassignment or expand loader coverage.
+
+Do not add a second serializer in UI code, silently truncate positions, advance
+an original-load baseline after save, or allocate past the reserved region.
+Unsupported pointer relocation fails closed and needs an explicit layout extension.
+
 ## Make a bounded contribution
 
 | Task | Scope | Acceptance check |

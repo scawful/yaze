@@ -22,6 +22,7 @@
 #include "zelda3/overworld/overworld_exit.h"
 #include "zelda3/overworld/overworld_item.h"
 #include "zelda3/overworld/overworld_map.h"
+#include "zelda3/overworld/overworld_sprite_io.h"
 #include "zelda3/overworld/overworld_version_helper.h"
 #include "zelda3/sprite/sprite.h"
 
@@ -414,6 +415,8 @@ class Overworld {
 
   /// @brief Load sprite data for all game states
   absl::Status LoadSprites();
+  absl::StatusOr<OverworldSpriteSavePlan> PrepareSpriteSave() const;
+  absl::Status SaveSprites();
 
   /// @brief Load sprites from a specific map range
   absl::Status LoadSpritesFromMap(int sprite_start, int sprite_count,
@@ -627,6 +630,7 @@ class Overworld {
     for (auto& sprites : all_sprites_) {
       sprites.clear();
     }
+    sprite_maps_loaded_ = {};
     tiles16_.clear();
     tiles32_.clear();
     tiles32_unique_.clear();
@@ -848,6 +852,7 @@ class Overworld {
   std::array<uint8_t, kNumOverworldMaps> map_parent_ = {0};
   std::array<uint8_t, kNumTileTypes> all_tiles_types_ = {0};
   std::array<std::vector<Sprite>, 3> all_sprites_;
+  std::array<std::array<bool, 160>, 3> sprite_maps_loaded_{};
   DiggableTiles diggable_tiles_;
   std::array<std::vector<uint8_t>, kNumOverworldMaps> map_data_p1;
   std::array<std::vector<uint8_t>, kNumOverworldMaps> map_data_p2;
