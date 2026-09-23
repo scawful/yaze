@@ -28,6 +28,7 @@ set(
   app/editor/dungeon/dungeon_selection_edit.cc
   app/editor/dungeon/dungeon_connection_edit.cc
   app/editor/dungeon/dungeon_room_transfer.cc
+  app/editor/dungeon/dungeon_room_document_file.cc
   app/editor/dungeon/dungeon_room_transfer_json.cc
   app/editor/dungeon/dungeon_editor_v2_object_coverage.cc
   app/editor/dungeon/dungeon_object_interaction.cc

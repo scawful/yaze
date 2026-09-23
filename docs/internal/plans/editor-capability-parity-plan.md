@@ -646,10 +646,26 @@ This does not enable arbitrary cloning of legacy 21/23-chest mappings. The
 handoff separates external real-ROM qualification of the prior source from
 the current synthetic repair evidence.
 
-**Remaining DA-4 scope:** project-file export/import and asset-compatibility
+**Desktop room-template files (2026-09-23, combined candidate):**
+The shared transfer inspector now exposes **Save Room File...** and
+**Import JSON → Open Room File...** through the existing native dialog wrapper.
+File reads are capped at 1 MiB and schema-validated. A successful open populates
+JSON and invalidates the old preview; it does not publish a room edit. Cancellation
+preserves the form, and failed loads retain the previous document/preview.
+Verification: app and unit builds passed; 128 room-document/transfer tests
+passed with zero skips, including 10 added file/UI cases. Native dialog clicks
+and application save/reopen remain in the deferred manual checklist.
+
+Exports use atomic publication, require `.json`, and refuse unrelated existing
+files or symlinks. Existing valid templates can be replaced. Browser builds
+retain clipboard/text exchange. Asset compatibility/remapping is still open;
+these files contain numeric references, not bundled graphics or palettes.
+
+**Remaining DA-4 scope:** project-managed template catalogs and asset-compatibility
 checks/remapping, portable reusable selections/assets, and qualified save/reopen.
 The clipboard document is authored room data, not a complete portable asset pack.
-No native file-picker or cross-project asset compatibility is claimed. Store
+Native desktop file dialogs are implemented; cross-project asset compatibility
+is not claimed. Store
 future reusable resources in project/configured storage, not a machine path.
 
 **Exit criteria:** clone/import previews the affected domains, rejects invalid

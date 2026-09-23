@@ -11,3 +11,11 @@ Historical test counts are not evidence for the combined candidate.
 
 See the [combined candidate handoff](agents/combined-editor-candidate-2026-09-23.md)
 for evidence and the single manual testing queue.
+
+## Room template files
+
+The combined branch now adds native desktop room JSON file import/export.
+The app/unit build and 128 focused room-document/transfer tests passed with no
+skips. This is incremental evidence after the combined baseline above, not a
+rerun of all 1,303 earlier tests. See the
+[room file handoff](agents/dungeon-room-template-files-2026-09-23.md).

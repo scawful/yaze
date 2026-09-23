@@ -54,6 +54,10 @@ These checks remain deferred. Automated tests use synthetic in-memory ROM data.
 - [ ] Clone a room into a disposable destination and export/import room JSON.
   Confirm the source is unchanged, rejected imports leave the destination
   unchanged, and accepted operations survive Undo/Redo and save/reopen.
+- [ ] Save a room with **Save Room File...**, then choose **Import JSON → Open
+  Room File...** in another disposable destination. Loading alone must not change
+  the room. Preview and apply, then Undo/Redo and save/reopen. Cancel a file dialog
+  and try invalid JSON; the prior import form should remain available.
 - [ ] Check supported spriteset choices and invalid/capacity errors. Rejected
   operations must preserve the room and history.
 
