@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLD_ENTITY_OPERATIONS_H
 #define YAZE_APP_EDITOR_OVERWORLD_ENTITY_OPERATIONS_H
 
+#include <vector>
+
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "imgui/imgui.h"
@@ -101,6 +103,17 @@ absl::StatusOr<zelda3::OverworldItem*> InsertItem(zelda3::Overworld* overworld,
                                                   ImVec2 mouse_pos,
                                                   int current_map,
                                                   uint8_t item_id = 0);
+
+// Construct insertion values from the authored map domain without mutating it.
+// current_map identifies the physical 512-pixel screen under world_position;
+// the resulting entity belongs to that screen's parent and uses parent-relative
+// game coordinates. InsertItem/InsertSprite additionally require a loaded model.
+absl::StatusOr<zelda3::OverworldItem> BuildOverworldItemForInsertion(
+    const std::vector<zelda3::OverworldMap>& maps, ImVec2 world_position,
+    int current_map, uint8_t item_id);
+absl::StatusOr<zelda3::Sprite> BuildOverworldSpriteForInsertion(
+    const std::vector<zelda3::OverworldMap>& maps, ImVec2 world_position,
+    int current_map, uint8_t sprite_id);
 
 /**
  * @brief Remove an item from the overworld item list by pointer identity.

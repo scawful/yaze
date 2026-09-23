@@ -12,6 +12,22 @@ EntityMutationService::EntityMutationService(zelda3::Overworld& overworld)
     : overworld_(overworld) {}
 
 EntityMutationService::MutationResult EntityMutationService::InsertEntity(
+    const std::string& type, const OverworldContextTarget& target) {
+  MutationResult result;
+  const auto* map = overworld_.overworld_map(target.map_id);
+  if (!target.valid() || !map || !overworld_.is_loaded() ||
+      GetParentMapId(map, target.map_id) != target.parent_map_id) {
+    result.status = absl::FailedPreconditionError(
+        "The insertion target is no longer available. Open the map menu "
+        "again.");
+    result.error_message = std::string(result.status.message());
+    return result;
+  }
+  return InsertEntity(type, target.world_position, target.map_id,
+                      target.game_state);
+}
+
+EntityMutationService::MutationResult EntityMutationService::InsertEntity(
     const std::string& type, ImVec2 pos, int map_id, int game_state) {
   MutationResult result;
 

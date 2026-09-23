@@ -193,28 +193,18 @@ void OverworldEntityWorkbench::DrawPopups() {
   }
 }
 
-void OverworldEntityWorkbench::SetPendingInsertion(const std::string& type,
-                                                   ImVec2 pos) {
-  const auto ctx = CurrentOverworldWindowContext();
-  if (!ctx)
-    return;
-  ctx.editor->pending_insert_type() = type;
-  ctx.editor->pending_insert_pos() = pos;
-}
-
 void OverworldEntityWorkbench::ProcessPendingInsertion(
-    EntityMutationService* mutation_service, int current_map, int game_state) {
+    EntityMutationService* mutation_service) {
   const auto ctx = CurrentOverworldWindowContext();
   if (!ctx || !mutation_service)
     return;
 
   auto* editor = ctx.editor;
-  if (editor->pending_insert_type().empty())
+  auto request = editor->TakePendingEntityInsertion();
+  if (!request)
     return;
 
-  auto res = mutation_service->InsertEntity(editor->pending_insert_type(),
-                                            editor->pending_insert_pos(),
-                                            current_map, game_state);
+  auto res = mutation_service->InsertEntity(request->type, request->target);
 
   if (res.ok()) {
     OpenEditorFor(res.entity);
@@ -223,8 +213,6 @@ void OverworldEntityWorkbench::ProcessPendingInsertion(
     editor->insert_error() = res.error_message;
     ImGui::OpenPopup("Entity Insert Error");
   }
-
-  editor->pending_insert_type().clear();
 }
 
 void OverworldEntityWorkbench::DrawEntityContextMenu() {

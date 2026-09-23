@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <array>
 #include <cstring>
+#include <utility>
 #include <vector>
 
 #include "absl/status/statusor.h"
@@ -572,54 +573,153 @@ void MapPropertiesSystem::DrawOverlayEditor(int current_map,
 }
 
 void MapPropertiesSystem::SetupCanvasContextMenu(
-    gui::Canvas& canvas, int current_map, bool& current_map_lock,
-    bool& show_map_properties_panel, bool& show_custom_bg_color_editor,
-    bool& show_overlay_editor, int current_mode, project::YazeProject* project,
+    gui::Canvas& canvas, const OverworldContextTarget& target,
+    bool& current_map_lock, bool& show_map_properties_panel,
+    bool& show_custom_bg_color_editor, bool& show_overlay_editor,
+    int current_mode, project::YazeProject* project,
     SharedClipboard* shared_clipboard) {
-  // Clear any existing context menu items
+  (void)current_mode;  // Explicit context actions are independent of tool mode.
+  const int current_map = target.map_id;
+  const bool valid_map = target.valid();
   canvas.ClearContextMenuItems();
+  // This canvas supplies one complete View menu through editor navigation.
+  canvas.SetShowBuiltinContextMenu(false);
 
-  if (overworld_ && overworld_->is_loaded() && current_map >= 0 &&
-      current_map < zelda3::kNumOverworldMaps &&
-      overworld_->overworld_map(current_map) != nullptr) {
-    const auto metadata = BuildOverworldMapMetadata(
-        *overworld_, rom_, project, current_map, CurrentGameState());
+  const bool has_metadata = overworld_ && overworld_->is_loaded() &&
+                            valid_map && overworld_->overworld_map(current_map);
+  const auto metadata =
+      has_metadata ? BuildOverworldMapMetadata(*overworld_, rom_, project,
+                                               current_map, target.game_state)
+                   : OverworldMapMetadata{};
+  std::string title = "Outside Overworld";
+  if (valid_map)
+    title = absl::StrFormat("Map 0x%02X", current_map);
+  if (has_metadata)
+    title = metadata.map_title;
+  canvas.AddContextMenuItem(
+      gui::CanvasMenuItem::Disabled(ICON_MD_MAP " " + title));
+  if (valid_map && target.tile16_id >= 0) {
+    const int tile_x =
+        static_cast<int>(target.world_position.x / kTile16Size) % 32;
+    const int tile_y =
+        static_cast<int>(target.world_position.y / kTile16Size) % 32;
+    auto position = gui::CanvasMenuItem::Disabled(absl::StrFormat(
+        "Tile (%d, %d)  |  Tile16 0x%03X", tile_x, tile_y, target.tile16_id));
+    position.separator_after = true;
+    canvas.AddContextMenuItem(position);
+  }
 
-    gui::CanvasMenuItem header_item =
-        gui::CanvasMenuItem::Disabled(ICON_MD_MAP " " + metadata.map_title);
-    header_item.separator_after = true;
-    canvas.AddContextMenuItem(header_item);
+  auto select_item = gui::CanvasMenuItem::Conditional(
+      ICON_MD_CHECK " Select This Map",
+      [this, target]() {
+        if (map_selection_callback_ && target.valid())
+          map_selection_callback_(target.map_id, false);
+      },
+      [this, valid_map]() {
+        return valid_map && bool(map_selection_callback_);
+      });
+  canvas.AddContextMenuItem(select_item);
 
-    gui::CanvasMenuItem metadata_menu;
-    metadata_menu.label = ICON_MD_INFO " Map Metadata";
-    metadata_menu.subitems.push_back(
-        gui::CanvasMenuItem::Disabled(metadata.version_label));
-    metadata_menu.subitems.push_back(
-        gui::CanvasMenuItem::Disabled(metadata.area_size_label));
-    metadata_menu.subitems.push_back(
-        gui::CanvasMenuItem::Disabled(metadata.parent_label));
-    metadata_menu.subitems.push_back(
-        gui::CanvasMenuItem::Disabled(metadata.area_gfx_label));
-    metadata_menu.subitems.push_back(
-        gui::CanvasMenuItem::Disabled(metadata.area_palette_label));
-    metadata_menu.subitems.push_back(
-        gui::CanvasMenuItem::Disabled(metadata.sprite_gfx_label));
-    metadata_menu.subitems.push_back(
-        gui::CanvasMenuItem::Disabled(metadata.sprite_palette_label));
-    metadata_menu.subitems.push_back(
-        gui::CanvasMenuItem::Disabled(metadata.music_label));
-    metadata_menu.subitems.push_back(
-        gui::CanvasMenuItem::Disabled(metadata.message_label));
-    metadata_menu.separator_after = true;
-    canvas.AddContextMenuItem(metadata_menu);
+  auto lock_item = gui::CanvasMenuItem::Conditional(
+      current_map_lock ? ICON_MD_LOCK_OPEN " Unpin Map"
+                       : ICON_MD_PUSH_PIN " Pin This Map",
+      [this, target, &current_map_lock]() {
+        if (!target.valid())
+          return;
+        if (current_map_lock) {
+          current_map_lock = false;
+        } else if (map_selection_callback_) {
+          map_selection_callback_(target.map_id, false);
+          current_map_lock = true;
+        }
+      },
+      [this, valid_map, &current_map_lock]() {
+        return valid_map && (current_map_lock || bool(map_selection_callback_));
+      });
+  lock_item.separator_after = true;
+  canvas.AddContextMenuItem(lock_item);
 
+  auto sample_item = gui::CanvasMenuItem::Conditional(
+      ICON_MD_COLORIZE " Sample Tile16",
+      [this, target]() {
+        if (sample_tile16_callback_ && target.valid() && target.tile16_id >= 0)
+          (void)sample_tile16_callback_(target);
+      },
+      [this, target]() {
+        return bool(sample_tile16_callback_) && target.valid() &&
+               target.tile16_id >= 0;
+      });
+  canvas.AddContextMenuItem(sample_item);
+  auto edit_item = gui::CanvasMenuItem::Conditional(
+      ICON_MD_GRID_VIEW " Edit Tile16",
+      [this, target]() {
+        if (edit_tile16_callback_ && target.valid() && target.tile16_id >= 0)
+          edit_tile16_callback_(target);
+      },
+      [this, target]() {
+        return bool(edit_tile16_callback_) && target.valid() &&
+               target.tile16_id >= 0;
+      });
+  edit_item.separator_after = true;
+  canvas.AddContextMenuItem(edit_item);
+
+  gui::CanvasMenuItem entity_menu;
+  entity_menu.label = ICON_MD_ADD_LOCATION " Insert Entity";
+  entity_menu.enabled_condition = [this, valid_map]() {
+    return valid_map && bool(entity_insert_callback_);
+  };
+  const std::pair<const char*, const char*> entity_types[] = {
+      {ICON_MD_DOOR_FRONT " Entrance", "entrance"},
+      {ICON_MD_CYCLONE " Hole", "hole"},
+      {ICON_MD_DOOR_BACK " Exit", "exit"},
+      {ICON_MD_GRASS " Item", "item"},
+      {ICON_MD_PEST_CONTROL_RODENT " Sprite", "sprite"}};
+  for (const auto& [label, type] : entity_types) {
+    entity_menu.subitems.emplace_back(label, [this, target, type]() {
+      if (entity_insert_callback_ && target.valid())
+        entity_insert_callback_(type, target);
+    });
+  }
+  canvas.AddContextMenuItem(entity_menu);
+
+  gui::CanvasMenuItem map_menu;
+  map_menu.label = ICON_MD_MAP " Map";
+  map_menu.enabled_condition = [valid_map]() {
+    return valid_map;
+  };
+  auto add_panel_action = [&](const char* label, bool& show_panel) {
+    map_menu.subitems.push_back(gui::CanvasMenuItem::Conditional(
+        label,
+        [this, target, panel = &show_panel]() {
+          if (!map_selection_callback_ || !target.valid())
+            return;
+          map_selection_callback_(target.map_id, false);
+          *panel = true;
+        },
+        [this, valid_map]() {
+          return valid_map && bool(map_selection_callback_);
+        }));
+  };
+  add_panel_action(ICON_MD_TUNE " Area Configuration",
+                   show_map_properties_panel);
+  if (rom_ && zelda3::OverworldVersionHelper::SupportsAreaEnum(
+                  zelda3::OverworldVersionHelper::GetVersion(*rom_))) {
+    add_panel_action(ICON_MD_FORMAT_COLOR_FILL " Custom Background Color",
+                     show_custom_bg_color_editor);
+    add_panel_action(ICON_MD_LAYERS " Visual Effects", show_overlay_editor);
+  }
+
+  if (has_metadata) {
     if (const auto* current_map_ptr = overworld_->overworld_map(current_map);
         current_map_ptr) {
-      const int parent = IsValidMapId(current_map_ptr->parent())
-                             ? current_map_ptr->parent()
+      const int parent = IsValidMapId(target.parent_map_id)
+                             ? target.parent_map_id
                              : current_map;
       gui::CanvasMenuItem related_maps_menu;
       related_maps_menu.label = ICON_MD_ACCOUNT_TREE " Related Maps";
+      related_maps_menu.enabled_condition = [this]() {
+        return bool(map_selection_callback_);
+      };
 
       if (parent != current_map) {
         gui::CanvasMenuItem select_parent_item;
@@ -657,7 +757,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
       }
 
       if (!related_maps_menu.subitems.empty()) {
-        canvas.AddContextMenuItem(related_maps_menu);
+        map_menu.subitems.push_back(std::move(related_maps_menu));
       }
     }
 
@@ -678,9 +778,9 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
                                       const char* paste_label) {
         gui::CanvasMenuItem copy_item;
         copy_item.label = copy_label;
-        copy_item.callback = [this, current_map, shared_clipboard, scope]() {
+        copy_item.callback = [this, target, shared_clipboard, scope]() {
           shared_clipboard->overworld_map_metadata =
-              CaptureMapMetadataClipboard(*overworld_, current_map);
+              CaptureMapMetadataClipboard(*overworld_, target.map_id);
           shared_clipboard->overworld_map_metadata.scope = scope;
           shared_clipboard->has_overworld_map_metadata =
               shared_clipboard->overworld_map_metadata.valid;
@@ -694,9 +794,9 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
                  CanPasteOverworldMapMetadata(
                      shared_clipboard->overworld_map_metadata, scope);
         };
-        paste_item.callback = [this, current_map, shared_clipboard, scope]() {
+        paste_item.callback = [this, target, shared_clipboard, scope]() {
           const auto edits = BuildOverworldMetadataPasteEdits(
-              current_map, shared_clipboard->overworld_map_metadata, scope);
+              target.map_id, shared_clipboard->overworld_map_metadata, scope);
           (void)ApplyPropertyEdits(
               edits,
               absl::StrFormat(
@@ -723,7 +823,7 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
                            ICON_MD_CONTENT_PASTE
                            " Paste Music/Message Metadata");
 
-      canvas.AddContextMenuItem(metadata_actions_menu);
+      map_menu.subitems.push_back(std::move(metadata_actions_menu));
     }
 
     if (project) {
@@ -731,8 +831,9 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
           absl::StrFormat("RenameOverworldMapLabelContext%02X", current_map);
       gui::CanvasMenuItem rename_item = gui::CanvasMenuItem::WithPopup(
           ICON_MD_EDIT " Rename Map Label", popup_id,
-          [this, project, current_map, initial_label = metadata.map_name,
+          [this, project, target, initial_label = metadata.map_name,
            popup_id]() {
+            const int current_map = target.map_id;
             static std::array<char, 128> label_buffer{};
             static int active_map = -1;
             static std::string error_message;
@@ -787,169 +888,74 @@ void MapPropertiesSystem::SetupCanvasContextMenu(
               ImGui::EndPopup();
             }
           });
-      canvas.AddContextMenuItem(rename_item);
+      map_menu.subitems.push_back(std::move(rename_item));
     }
   }
+  canvas.AddContextMenuItem(map_menu);
 
-  gui::CanvasMenuItem select_item;
-  select_item.label = ICON_MD_CHECK " Select This Map";
-  select_item.callback = [this, current_map]() {
-    if (map_selection_callback_) {
-      map_selection_callback_(current_map, false);
+  if (has_metadata) {
+    gui::CanvasMenuItem info_menu;
+    info_menu.label = ICON_MD_INFO " Map Info";
+    for (const auto* label :
+         {&metadata.version_label, &metadata.area_size_label,
+          &metadata.parent_label, &metadata.area_gfx_label,
+          &metadata.area_palette_label, &metadata.sprite_gfx_label,
+          &metadata.sprite_palette_label, &metadata.music_label,
+          &metadata.message_label}) {
+      info_menu.subitems.push_back(gui::CanvasMenuItem::Disabled(*label));
     }
-  };
-  canvas.AddContextMenuItem(select_item);
-
-  // Add entity insertion submenu (only in MOUSE mode)
-  if (current_mode == 0 && entity_insert_callback_) {  // 0 = EditingMode::MOUSE
-    gui::CanvasMenuItem entity_menu;
-    entity_menu.label = ICON_MD_ADD_LOCATION " Insert Entity";
-
-    // Entrance submenu item
-    gui::CanvasMenuItem entrance_item;
-    entrance_item.label = ICON_MD_DOOR_FRONT " Entrance";
-    entrance_item.callback = [this]() {
-      if (entity_insert_callback_) {
-        entity_insert_callback_("entrance");
-      }
-    };
-    entity_menu.subitems.push_back(entrance_item);
-
-    // Hole submenu item
-    gui::CanvasMenuItem hole_item;
-    hole_item.label = ICON_MD_CYCLONE " Hole";
-    hole_item.callback = [this]() {
-      if (entity_insert_callback_) {
-        entity_insert_callback_("hole");
-      }
-    };
-    entity_menu.subitems.push_back(hole_item);
-
-    // Exit submenu item
-    gui::CanvasMenuItem exit_item;
-    exit_item.label = ICON_MD_DOOR_BACK " Exit";
-    exit_item.callback = [this]() {
-      if (entity_insert_callback_) {
-        entity_insert_callback_("exit");
-      }
-    };
-    entity_menu.subitems.push_back(exit_item);
-
-    // Item submenu item
-    gui::CanvasMenuItem item_item;
-    item_item.label = ICON_MD_GRASS " Item";
-    item_item.callback = [this]() {
-      if (entity_insert_callback_) {
-        entity_insert_callback_("item");
-      }
-    };
-    entity_menu.subitems.push_back(item_item);
-
-    // Sprite submenu item
-    gui::CanvasMenuItem sprite_item;
-    sprite_item.label = ICON_MD_PEST_CONTROL_RODENT " Sprite";
-    sprite_item.callback = [this]() {
-      if (entity_insert_callback_) {
-        entity_insert_callback_("sprite");
-      }
-    };
-    entity_menu.subitems.push_back(sprite_item);
-
-    canvas.AddContextMenuItem(entity_menu);
-
-    if (sample_tile16_callback_) {
-      gui::CanvasMenuItem tile16_sample_item;
-      tile16_sample_item.label = ICON_MD_COLORIZE " Sample Tile16";
-      tile16_sample_item.callback = [this]() {
-        if (sample_tile16_callback_) {
-          (void)sample_tile16_callback_();
-        }
-      };
-      canvas.AddContextMenuItem(tile16_sample_item);
-    }
-
-    if (edit_tile16_callback_) {
-      gui::CanvasMenuItem tile16_edit_item;
-      tile16_edit_item.label = ICON_MD_GRID_VIEW " Edit Tile16";
-      tile16_edit_item.callback = [this]() {
-        if (edit_tile16_callback_) {
-          edit_tile16_callback_();
-        }
-      };
-      canvas.AddContextMenuItem(tile16_edit_item);
-    }
+    canvas.AddContextMenuItem(info_menu);
   }
 
-  // Add overworld-specific context menu items
-  gui::CanvasMenuItem lock_item;
-  lock_item.label = current_map_lock ? ICON_MD_LOCK_OPEN " Unpin Map"
-                                     : ICON_MD_PUSH_PIN " Pin This Map";
-  lock_item.callback = [this, current_map, &current_map_lock]() {
-    if (current_map_lock) {
-      current_map_lock = false;
-      return;
-    }
-    if (map_selection_callback_) {
-      map_selection_callback_(current_map, false);
-    }
-    current_map_lock = true;
+  gui::CanvasMenuItem view_menu;
+  view_menu.label = ICON_MD_VISIBILITY " View";
+  auto add_navigation_action = [&](const char* label,
+                                   const std::function<void()>& callback) {
+    view_menu.subitems.push_back(gui::CanvasMenuItem::Conditional(
+        label,
+        [callback]() {
+          if (callback)
+            callback();
+        },
+        [callback]() { return bool(callback); }));
   };
-  canvas.AddContextMenuItem(lock_item);
+  add_navigation_action(ICON_MD_RESTORE " Reset View", reset_view_callback_);
+  add_navigation_action(ICON_MD_ZOOM_IN " Zoom In", zoom_in_callback_);
+  add_navigation_action(ICON_MD_ZOOM_OUT " Zoom Out", zoom_out_callback_);
+  view_menu.subitems.back().separator_after = true;
 
-  // Area Configuration
-  gui::CanvasMenuItem properties_item;
-  properties_item.label = ICON_MD_TUNE " Area Configuration";
-  properties_item.callback = [&show_map_properties_panel]() {
-    show_map_properties_panel = true;
+  auto add_view_toggle = [&](const char* label,
+                             bool gui::CanvasConfig::* field) {
+    gui::CanvasMenuItem item(label, [&canvas, field]() {
+      auto config = canvas.GetConfig();
+      config.*field = !(config.*field);
+      canvas.ApplyConfigSnapshot(config);
+    });
+    item.checked_condition = [&canvas, field]() {
+      return canvas.GetConfig().*field;
+    };
+    view_menu.subitems.push_back(std::move(item));
   };
-  canvas.AddContextMenuItem(properties_item);
-
-  // Custom overworld features (only show if v3+)
-  auto rom_version = zelda3::OverworldVersionHelper::GetVersion(*rom_);
-  if (zelda3::OverworldVersionHelper::SupportsAreaEnum(rom_version)) {
-    // Custom Background Color
-    gui::CanvasMenuItem bg_color_item;
-    bg_color_item.label = ICON_MD_FORMAT_COLOR_FILL " Custom Background Color";
-    bg_color_item.callback = [&show_custom_bg_color_editor]() {
-      show_custom_bg_color_editor = true;
+  add_view_toggle("Show Grid", &gui::CanvasConfig::enable_grid);
+  add_view_toggle("Show Hex Labels", &gui::CanvasConfig::enable_hex_labels);
+  add_view_toggle("Show Custom Labels",
+                  &gui::CanvasConfig::enable_custom_labels);
+  gui::CanvasMenuItem grid_menu;
+  grid_menu.label = ICON_MD_GRID_ON " Grid Size";
+  for (const float step : {8.0f, 16.0f, 32.0f, 64.0f}) {
+    gui::CanvasMenuItem item(absl::StrFormat("%.0fx%.0f", step, step),
+                             [&canvas, step]() {
+                               auto config = canvas.GetConfig();
+                               config.grid_step = step;
+                               canvas.ApplyConfigSnapshot(config);
+                             });
+    item.checked_condition = [&canvas, step]() {
+      return canvas.GetGridStep() == step;
     };
-    canvas.AddContextMenuItem(bg_color_item);
-
-    // Visual Effects Editor
-    gui::CanvasMenuItem overlay_item;
-    overlay_item.label = ICON_MD_LAYERS " Visual Effects";
-    overlay_item.callback = [&show_overlay_editor]() {
-      show_overlay_editor = true;
-    };
-    canvas.AddContextMenuItem(overlay_item);
+    grid_menu.subitems.push_back(std::move(item));
   }
-
-  // Canvas controls
-  gui::CanvasMenuItem reset_view_item;
-  reset_view_item.label = ICON_MD_RESTORE " Reset View";
-  reset_view_item.callback = [&canvas]() {
-    canvas.set_global_scale(1.0f);
-    canvas.set_scrolling(ImVec2(0, 0));
-  };
-  canvas.AddContextMenuItem(reset_view_item);
-
-  gui::CanvasMenuItem zoom_in_item;
-  zoom_in_item.label = ICON_MD_ZOOM_IN " Zoom In";
-  zoom_in_item.callback = [&canvas]() {
-    float scale =
-        std::min(kOverworldMaxZoom, canvas.global_scale() + kOverworldZoomStep);
-    canvas.set_global_scale(scale);
-  };
-  canvas.AddContextMenuItem(zoom_in_item);
-
-  gui::CanvasMenuItem zoom_out_item;
-  zoom_out_item.label = ICON_MD_ZOOM_OUT " Zoom Out";
-  zoom_out_item.callback = [&canvas]() {
-    float scale =
-        std::max(kOverworldMinZoom, canvas.global_scale() - kOverworldZoomStep);
-    canvas.set_global_scale(scale);
-  };
-  canvas.AddContextMenuItem(zoom_out_item);
+  view_menu.subitems.push_back(std::move(grid_menu));
+  canvas.AddContextMenuItem(view_menu);
 }
 
 // Private method implementations

@@ -260,6 +260,9 @@ void OverworldEditor::Initialize() {
 
   // Initialize OverworldCanvasRenderer for canvas and panel drawing
   canvas_renderer_ = std::make_unique<OverworldCanvasRenderer>(this);
+  map_properties_system_->SetContextNavigationCallbacks(
+      [this]() { canvas_renderer_->RequestResetView(); },
+      [this]() { ZoomIn(); }, [this]() { ZoomOut(); });
 
   InitCanvasNavigationManager();
   InitTilePaintingManager();
@@ -458,6 +461,8 @@ void OverworldEditor::NotifyEntityModified(zelda3::GameEntity*) {
 }
 
 absl::Status OverworldEditor::Load() {
+  pending_entity_insertion_.reset();
+  ow_map_canvas_.ClearContextMenuItems();
   gfx::ScopedTimer timer("OverworldEditor::Load");
 
   LOG_DEBUG("OverworldEditor", "Loading overworld.");
@@ -510,15 +515,20 @@ absl::Status OverworldEditor::Load() {
   // Set up entity insertion callback for MapPropertiesSystem
   if (map_properties_system_) {
     map_properties_system_->SetEntityCallbacks(
-        [this](const std::string& entity_type) {
-          HandleEntityInsertion(entity_type);
+        [this](const std::string& entity_type,
+               const OverworldContextTarget& target) {
+          HandleEntityInsertion(entity_type, target);
         });
 
     // Set up tile16 edit callback for context menu in MOUSE mode
     map_properties_system_->SetTile16SampleCallback(
-        [this]() { return PickTile16FromHoveredCanvas(); });
+        [this](const OverworldContextTarget& target) {
+          return SampleContextTile16(target);
+        });
     map_properties_system_->SetTile16EditCallback(
-        [this]() { HandleTile16Edit(); });
+        [this](const OverworldContextTarget& target) {
+          HandleTile16Edit(target);
+        });
   }
 
   ASSIGN_OR_RETURN(entrance_tiletypes_, zelda3::LoadEntranceTileTypes(rom_));
@@ -639,8 +649,7 @@ absl::Status OverworldEditor::Update() {
   // It uses UpdateAsPanel() which provides a context menu instead of MenuBar
 
   if (auto* workbench = GetWorkbench()) {
-    workbench->ProcessPendingInsertion(entity_mutation_service_.get(),
-                                       current_map_, game_state_);
+    workbench->ProcessPendingInsertion(entity_mutation_service_.get());
     workbench->DrawPopups();
   }
 

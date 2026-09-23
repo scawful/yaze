@@ -85,6 +85,20 @@ before changing palette or graphics ownership.
 
 ### Edit map properties or entities
 
+The canvas menu is prepared once when it opens. Its
+[context target](canvas/overworld_context_target.h) captures the physical map,
+parent area, world position, game state, and Tile16 ID. The
+[context actions](canvas/overworld_context_actions.cc) resolve that value from
+the opening click; menu callbacks must capture it by value. Do not rebuild the
+menu from the hovered or selected map while a popup is open.
+
+Menu layout lives in `MapPropertiesSystem::SetupCanvasContextMenu`. Common
+selection and Tile16 actions stay at the top. Entity placement, map editing,
+read-only map information, and view controls have separate submenus. The main
+canvas supplies its own View menu, so shared built-in controls remain hidden.
+Reset View is deferred to the canvas child window; resetting scroll while
+inside an ImGui popup would affect the popup instead.
+
 Use `maps/overworld_property_edit.h` for a property change and
 `maps/overworld_map_metadata.h` for metadata resolution. Property UI must route
 through the editor's edit callbacks so undo and required refresh remain coupled.
@@ -93,6 +107,13 @@ For entities, begin with `entity/entity_workbench.cc` and
 `entity/entity_mutation_service.cc`. Keep stable entity identity separate from
 vector position when changing selection, deletion, or history. ROM storage
 formats belong under `src/zelda3/overworld/`, not in ImGui drawing code.
+
+Deferred insertion consumes an
+[entity insertion request](entity/entity_insertion_request.h) containing both
+the entity type and captured destination. The Entity Workbench must not replace
+that destination with the next frame's selected map or game state. Item and
+sprite game coordinates are relative to the parent area's origin, including
+child-screen offsets; modulo 512 discards those offsets.
 
 ## Make a bounded contribution
 
