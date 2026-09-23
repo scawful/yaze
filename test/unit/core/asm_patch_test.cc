@@ -2,8 +2,11 @@
 
 #include <gtest/gtest.h>
 
+#include <atomic>
+#include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <string>
 
 #include "core/patch/patch_manager.h"
 
@@ -11,12 +14,24 @@ namespace yaze {
 namespace core {
 namespace {
 
-// Helper to create a temporary patch file
+// Helper to create a temporary patch file.
+//
+// The name must be unique per process: CI runs ctest with 4 jobs, and rand()
+// is never seeded, so every concurrently running test process produced the
+// same "test_patch_<same number>.asm" and they truncated each other's file.
+// That showed up as a different AsmPatch case failing on each run, and as a
+// null dereference when a patch parsed to zero parameters.
 class TempPatchFile {
  public:
   explicit TempPatchFile(const std::string& content) {
+    static std::atomic<int> counter{0};
+    const auto* info = ::testing::UnitTest::GetInstance()->current_test_info();
+    const std::string test_name = info ? info->name() : "unknown_test";
     path_ = std::filesystem::temp_directory_path() /
-            ("test_patch_" + std::to_string(rand()) + ".asm");
+            ("test_patch_" + test_name + "_" +
+             std::to_string(static_cast<long long>(
+                 std::chrono::steady_clock::now().time_since_epoch().count())) +
+             "_" + std::to_string(counter++) + ".asm");
     std::ofstream file(path_);
     file << content;
     file.close();
@@ -75,7 +90,8 @@ lorom
   AsmPatch patch(file.path(), "Test");
 
   EXPECT_TRUE(patch.is_valid());
-  EXPECT_EQ(patch.description(), "This is a multi-line\ndescription of the patch.");
+  EXPECT_EQ(patch.description(),
+            "This is a multi-line\ndescription of the patch.");
 }
 
 TEST(AsmPatchTest, ParseDisabledPatch) {
@@ -386,7 +402,7 @@ TEST(AsmPatchTest, ParseDecimalValue) {
 ;#DEFINE_START
 ;#name=Decimal Value
 ;#type=byte
-;#decimal
+;#decimal=true
 !DEC_VAL = 42
 ;#DEFINE_END
 
@@ -436,9 +452,11 @@ lorom
 class PatchManagerTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    // Create temp directory structure
+    const auto* test_info =
+        ::testing::UnitTest::GetInstance()->current_test_info();
     temp_dir_ = std::filesystem::temp_directory_path() /
-                ("test_patches_" + std::to_string(rand()));
+                ("yaze_patch_manager_" + std::string(test_info->name()));
+    std::filesystem::remove_all(temp_dir_);
     std::filesystem::create_directories(temp_dir_ / "Misc");
     std::filesystem::create_directories(temp_dir_ / "Sprites");
 
@@ -518,9 +536,14 @@ TEST_F(PatchManagerTest, GetFolders) {
   manager.LoadPatches(temp_dir_.string());
 
   const auto& folders = manager.folders();
-  EXPECT_EQ(folders.size(), 2u);
+  EXPECT_EQ(folders.size(), 5u);
+  EXPECT_NE(std::find(folders.begin(), folders.end(), "Hex Edits"),
+            folders.end());
+  EXPECT_NE(std::find(folders.begin(), folders.end(), "Items"), folders.end());
   EXPECT_NE(std::find(folders.begin(), folders.end(), "Misc"), folders.end());
-  EXPECT_NE(std::find(folders.begin(), folders.end(), "Sprites"), folders.end());
+  EXPECT_NE(std::find(folders.begin(), folders.end(), "Npcs"), folders.end());
+  EXPECT_NE(std::find(folders.begin(), folders.end(), "Sprites"),
+            folders.end());
 }
 
 }  // namespace

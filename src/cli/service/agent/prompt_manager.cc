@@ -4,14 +4,19 @@
 #include <sstream>
 
 #include "util/file_util.h"
+#include "util/platform_paths.h"
 
 namespace yaze {
 namespace cli {
 namespace agent {
 
 std::string PromptManager::LoadPrompt(PromptMode mode) {
-  std::string path = GetPromptPath(mode);
-  std::ifstream file(path);
+  auto path = util::PlatformPaths::FindAsset(GetPromptPath(mode));
+  if (!path.ok()) {
+    return "";
+  }
+
+  std::ifstream file(*path);
   if (!file)
     return "";
 
@@ -23,11 +28,11 @@ std::string PromptManager::LoadPrompt(PromptMode mode) {
 std::string PromptManager::GetPromptPath(PromptMode mode) {
   switch (mode) {
     case PromptMode::kStandard:
-      return "assets/agent/system_prompt_v3.txt";
+      return "agent/system_prompt_v3.txt";
     case PromptMode::kOracleOfSecrets:
-      return "assets/agent/oracle_of_secrets_guide.txt";
+      return "agent/oracle_of_secrets_guide.txt";
     case PromptMode::kCustom:
-      return "assets/agent/custom_prompt.txt";
+      return "agent/custom_prompt.txt";
   }
   return "";
 }

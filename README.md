@@ -11,8 +11,8 @@ Built in C++23 with ImGui, includes a built-in SNES emulator, the Asar 65816 ass
 
 - **Overworld Editor** - Edit 160 overworld maps, tiles, entrances, exits
 - **Dungeon Editor** - Edit 296 dungeon rooms, objects, sprites, palettes
-- **Graphics Editor** - View and edit 223 graphics sheets, tilesets
-- **Palette Editor** - Modify color palettes with live preview
+- **Graphics Editor** - Inspect 223 graphics sheets and preview guarded edits
+- **Palette Editor** - Modify color palettes with live preview and explicit ROM-buffer commit
 - **Message Editor** - Edit in-game text and dialogue
 - **Sprite Editor** - View sprite graphics and animations
 - **Music Editor** - (Experimental) View and edit SPC700 music data
@@ -36,26 +36,36 @@ Built in C++23 with ImGui, includes a built-in SNES emulator, the Asar 65816 ass
 v0.8.0 is the current development line; v0.7.2 is the latest tagged release.
 See [`docs/CHANGELOG.md`](docs/CHANGELOG.md) for details.
 
-**v0.8.0 focus:** Dungeon Editor completion, including remaining object draw
-parity, stream semantics, persistence stability, and Oracle daily-driver
-readiness.
+**v0.8.0 focus:** complete dungeon authoring: consistent entity editing and undo,
+room reuse and connections, rendering qualification, and verified save/reopen.
+Full Hyrule Magic / ZScream workflow coverage continues through later overworld,
+graphics, screens, and audio milestones. Follow the
+[editor capability completion plan](docs/internal/plans/editor-capability-parity-plan.md).
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Overworld Editor | Beta | 160 maps, undo/redo, copy/paste; tile16 palette pipeline fixed, item workflow expanded, sprite workflow incomplete |
-| Dungeon Editor | Beta | 296 rooms, entity drag-drop, ROM safety; 12+ unknown object types, visual discrepancies |
-| Graphics Editor | Beta | Sheet editing, undo/redo |
-| Palette Editor | Beta | Live preview; JSON import/export not implemented |
-| Message Editor | Stable | Text editing, bundle import/export |
-| Assembly Editor | Beta | Symbol navigation, Asar integration; project file editor incomplete |
-| Sprite Editor | Beta | Viewing works, editing limited |
-| Music Editor | Beta | Playback and editing, no clipboard ops |
-| Screen Editor | WIP | Load/save + dungeon-map undo/redo; cut/copy/paste/find still unimplemented |
-| Memory Editor | WIP | Hex viewing only, search unimplemented |
-| Emulator | Beta | Functional, save-state UI incomplete |
+| Component | Implementation status | Notes |
+|-----------|---------------|-------|
+| Dungeon Editor | Partial; authoring slices Candidate | Placement controls plus door/sprite/pot-item undo and shared properties are implemented in candidates. Headers, chests, compound operations, room reuse, and acceptance remain. |
+| Overworld Editor | Partial | Maps, entrances, exits, items, and enabled properties have save paths. Sprite edits are not serialized. |
+| Message Editor | Partial | Valid text uses coordinated save; full application/runtime acceptance remains. |
+| Palette Editor | Partial | Use Palette **Save to ROM**, then File > Save ROM; JSON exchange is implemented when enabled. |
+| Assembly Editor | Partial | Source-file save and Asar ROM application are separate workflows. |
+| Sprite Editor | Partial | Custom `.zsm` editing; use Dungeon for room sprite placement. |
+| Settings | Implemented | Configuration-file persistence; verify changes after restart. |
+| Graphics Editor | Blocked sheet save | Pending sheet edits block Save ROM. Graphics groups and polyhedral tools already exist. |
+| Screen Editor | Blocked coordinated save | All pending Screen domains block Save ROM; direct title/pause ROM writes are also disabled. |
+| Music Editor | Partial | Song editing/serialization exists separately; instrument/sample writers and real sample import are missing. |
+| Hex / Memory | Partial | Expert raw tooling without a complete dirty/undo/save contract. |
+| Emulator | Partial | Runtime testing; save-state UI remains incomplete. |
 
 See [`docs/public/reference/feature-coverage-report.md`](docs/public/reference/feature-coverage-report.md)
-for cross-app status, persistence notes, and test coverage.
+for status definitions, source anchors, and separate Source / Focused / ROM /
+Runtime / Release evidence. Building on the September 22 placement candidate
+`7ba7d76ce`, entity candidate `a730d6557` adds door/sprite/pot-item undo and shared
+Workbench/standalone properties. Its app and unit-test builds succeeded, with
+150 selected tests passing and no skips. ROM save/reopen, runtime, CI, and
+installation qualification remain pending. See the
+[capability assessment](docs/public/reference/capability-assessment.md) for the
+pinned comparison baseline.
 
 ## Quick Start
 
@@ -66,7 +76,7 @@ cd yaze
 
 # Build (macOS, AI-enabled editor + CLI)
 cmake --preset mac-ai
-cmake --build build_ai --target yaze z3ed --parallel 4
+cmake --build --preset mac-ai --target yaze z3ed --parallel 4
 
 # Run
 ./scripts/yaze zelda3.sfc
@@ -133,7 +143,8 @@ browser console and run `await window.runWasmDebugApiTests()`.
 
 ## Contributing
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md). Discussion on [Oracle of Secrets Discord](https://discord.gg/MBFkMTPEmk).
+See the [Git workflow guide](docs/public/developer/git-workflow.md). Discussion
+on [Oracle of Secrets Discord](https://discord.gg/MBFkMTPEmk).
 
 ## License
 

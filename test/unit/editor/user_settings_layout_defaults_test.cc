@@ -465,8 +465,7 @@ TEST(UserSettingsLayoutDefaultsTest,
   prefs.pinned_panels["dungeon.object_selector"] = true;
   prefs.saved_layouts["custom"]["dungeon.object_selector"] = true;
 
-  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
-      UserSettings::kLatestPanelLayoutDefaultsRevision));
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(23));
 
   EXPECT_EQ(prefs.panel_layout_defaults_revision, 23);
   EXPECT_TRUE(prefs.sidebar_visible);
@@ -489,11 +488,28 @@ TEST(UserSettingsLayoutDefaultsTest,
   prefs.sidebar_panel_expanded = true;
   prefs.sidebar_active_category = "Graphics";
 
-  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
-      UserSettings::kLatestPanelLayoutDefaultsRevision));
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(23));
 
   EXPECT_EQ(prefs.panel_layout_defaults_revision, 23);
   EXPECT_TRUE(prefs.sidebar_panel_expanded);
+}
+
+TEST(UserSettingsLayoutDefaultsTest,
+     RevisionTwentyFourCollapsesWindowSidebarForActivityBarOnly) {
+  UserSettings settings;
+  auto& prefs = settings.prefs();
+
+  prefs.panel_layout_defaults_revision = 23;
+  prefs.sidebar_visible = true;
+  prefs.sidebar_panel_expanded = true;
+  prefs.sidebar_active_category = "Graphics";
+
+  EXPECT_TRUE(settings.ApplyPanelLayoutDefaultsRevision(
+      UserSettings::kLatestPanelLayoutDefaultsRevision));
+
+  EXPECT_EQ(prefs.panel_layout_defaults_revision, 24);
+  EXPECT_TRUE(prefs.sidebar_visible);
+  EXPECT_FALSE(prefs.sidebar_panel_expanded);
 }
 
 // Default ctor seeds "right". Setter normalizes unrecognized values back to

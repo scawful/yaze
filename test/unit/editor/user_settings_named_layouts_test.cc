@@ -6,6 +6,7 @@
 #include "app/editor/system/session/user_settings.h"
 #include "gtest/gtest.h"
 #include "nlohmann/json.hpp"
+#include "unique_temp_path.h"
 
 namespace yaze::editor {
 namespace {
@@ -18,8 +19,7 @@ using ::yaze::editor::layout_designer::PanelEntry;
 using ::yaze::editor::layout_designer::SplitDirection;
 
 std::filesystem::path TempSettingsPath(const std::string& slug) {
-  auto dir =
-      std::filesystem::temp_directory_path() / "yaze_named_layouts_persist";
+  auto dir = ::yaze::test::UniqueTempPath("yaze_named_layouts_persist");
   std::filesystem::create_directories(dir);
   return dir / (slug + "_settings.json");
 }

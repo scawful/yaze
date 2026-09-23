@@ -20,6 +20,10 @@ Use session-available skill lists as source of truth. Common mappings:
 | `docs_process` | `agentic-context` (if `.context` coordination is required) |
 
 Notes:
+- Editor completion and parity tasks load
+  [the capability plan](../plans/editor-capability-parity-plan.md) before
+  selecting a work package. Current source overrides dated skill examples;
+  repository presets keep the default build parallelism at four workers.
 - If a skill is unavailable in the active session, continue with direct CLI workflows.
 - Do not preload unrelated skills “just in case”.
 

@@ -2,7 +2,6 @@
 #include "util/i18n/tr.h"
 
 #include <algorithm>
-#include <array>
 #include <functional>
 #include <initializer_list>
 #include <string>
@@ -10,11 +9,11 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
+#include "app/editor/dungeon/inspectors/dungeon_entity_inspector.h"
+#include "app/gui/widgets/empty_state.h"
 #include "imgui/imgui.h"
-#include "zelda3/dungeon/door_position.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/room_object.h"
-#include "zelda3/sprite/sprite.h"
 
 namespace yaze::editor {
 
@@ -63,72 +62,6 @@ const char* GetStoredPlacementLabel(const zelda3::RoomObject& object) {
     default:
       return "Unknown";
   }
-}
-
-constexpr auto kInspectorDoorTypes = zelda3::GetPlaceableDoorTypes();
-
-bool MutateSelectedSprite(DungeonCanvasViewer* viewer,
-                          std::function<void(zelda3::Sprite&)> mutator) {
-  if (viewer == nullptr || viewer->rooms() == nullptr) {
-    return false;
-  }
-
-  auto& interaction = viewer->object_interaction();
-  auto& coordinator = interaction.entity_coordinator();
-  auto& handler = coordinator.sprite_handler();
-  const auto selected_index = handler.GetSelectedIndex();
-  if (!selected_index.has_value()) {
-    return false;
-  }
-
-  auto* room = &(*viewer->rooms())[viewer->current_room_id()];
-  auto& sprites = room->GetSprites();
-  if (*selected_index >= sprites.size()) {
-    return false;
-  }
-
-  if (auto* ctx = handler.context()) {
-    ctx->NotifyMutation(MutationDomain::kSprites);
-  }
-  mutator(sprites[*selected_index]);
-  room->MarkSpritesDirty();
-  if (auto* ctx = handler.context()) {
-    ctx->NotifyInvalidateCache(MutationDomain::kSprites);
-    ctx->NotifyEntityChanged();
-  }
-  return true;
-}
-
-bool MutateSelectedItem(DungeonCanvasViewer* viewer,
-                        std::function<void(zelda3::PotItem&)> mutator) {
-  if (viewer == nullptr || viewer->rooms() == nullptr) {
-    return false;
-  }
-
-  auto& interaction = viewer->object_interaction();
-  auto& coordinator = interaction.entity_coordinator();
-  auto& handler = coordinator.item_handler();
-  const auto selected_index = handler.GetSelectedIndex();
-  if (!selected_index.has_value()) {
-    return false;
-  }
-
-  auto* room = &(*viewer->rooms())[viewer->current_room_id()];
-  auto& items = room->GetPotItems();
-  if (*selected_index >= items.size()) {
-    return false;
-  }
-
-  if (auto* ctx = handler.context()) {
-    ctx->NotifyMutation(MutationDomain::kItems);
-  }
-  mutator(items[*selected_index]);
-  room->MarkPotItemsDirty();
-  if (auto* ctx = handler.context()) {
-    ctx->NotifyInvalidateCache(MutationDomain::kItems);
-    ctx->NotifyEntityChanged();
-  }
-  return true;
 }
 
 void DrawInspectorSummaryGrid(const char* table_id,
@@ -311,12 +244,10 @@ void ObjectEditorContent::Draw(bool* p_open) {
     SyncObjectEditorSelectionToCanvas(
         viewer->object_interaction(),
         object_editor_->GetSelection().selected_objects);
-  } else if (selection_snapshot_.kind == DungeonSelectionKind::Door) {
-    DrawSelectedDoorInfo();
-  } else if (selection_snapshot_.kind == DungeonSelectionKind::Sprite) {
-    DrawSelectedSpriteInfo();
-  } else if (selection_snapshot_.kind == DungeonSelectionKind::Item) {
-    DrawSelectedItemInfo();
+  } else if (selection_snapshot_.kind == DungeonSelectionKind::Door ||
+             selection_snapshot_.kind == DungeonSelectionKind::Sprite ||
+             selection_snapshot_.kind == DungeonSelectionKind::Item) {
+    DrawDungeonEntityInspector(*viewer, on_jump_to_reciprocal_door_);
   } else if (selection_snapshot_.kind == DungeonSelectionKind::EntityMulti ||
              selection_snapshot_.kind == DungeonSelectionKind::Mixed) {
     ImGui::TextDisabled(
@@ -380,40 +311,24 @@ void ObjectEditorContent::DrawSelectionActions() {
   }
 
   ImGui::Spacing();
-  const bool can_copy_selection = selection_snapshot_.object_count > 0 ||
-                                  selection_snapshot_.sprite_count > 0 ||
-                                  selection_snapshot_.item_count > 0;
+  DrawWrappedInspectorActions(
+      {{ICON_MD_CONTENT_COPY " Copy", [this]() { CopySelectedObjects(); }},
+       {ICON_MD_CONTENT_PASTE " Paste", [this]() { PasteObjects(); }},
+       {ICON_MD_FILTER_NONE " Duplicate",
+        [this]() { DuplicateSelectedObjects(); }},
+       {ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
+       {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }}});
+  if (selection_snapshot_.kind == DungeonSelectionKind::Door ||
+      selection_snapshot_.kind == DungeonSelectionKind::Sprite ||
+      selection_snapshot_.kind == DungeonSelectionKind::Item) {
+    DrawWrappedInspectorActions(
+        {{GetDeleteAllSelectedTypeLabel(selection_snapshot_.kind),
+          [this]() { DeleteAllSelectedTypeInRoom(); }}});
+  }
 
-  if (selection_snapshot_.HasObjectSelection()) {
-    DrawWrappedInspectorActions(
-        {{ICON_MD_CONTENT_COPY " Copy", [this]() { CopySelectedObjects(); }},
-         {ICON_MD_CONTENT_PASTE " Paste", [this]() { PasteObjects(); }},
-         {ICON_MD_FILTER_NONE " Duplicate",
-          [this]() { DuplicateSelectedObjects(); }},
-         {ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
-         {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }}});
-  } else if (selection_snapshot_.kind == DungeonSelectionKind::Sprite) {
-    DrawWrappedInspectorActions(
-        {{ICON_MD_FILTER_NONE " Duplicate",
-          [this]() { DuplicateSelectedSprite(); }},
-         {ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
-         {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }},
-         {GetDeleteAllSelectedTypeLabel(selection_snapshot_.kind),
-          [this]() { DeleteAllSelectedTypeInRoom(); }}});
-  } else if (selection_snapshot_.kind == DungeonSelectionKind::EntityMulti ||
-             selection_snapshot_.kind == DungeonSelectionKind::Mixed) {
-    DrawWrappedInspectorActions(
-        {{ICON_MD_CONTENT_COPY " Copy", [this]() { CopySelectedObjects(); },
-          can_copy_selection},
-         {ICON_MD_CONTENT_PASTE " Paste", [this]() { PasteObjects(); }},
-         {ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
-         {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }}});
-  } else {
-    DrawWrappedInspectorActions(
-        {{ICON_MD_CLEAR " Clear", [this]() { DeselectAllObjects(); }},
-         {ICON_MD_DELETE " Delete", [this]() { DeleteCurrentSelection(); }},
-         {GetDeleteAllSelectedTypeLabel(selection_snapshot_.kind),
-          [this]() { DeleteAllSelectedTypeInRoom(); }}});
+  if (selection_snapshot_.door_count > 0) {
+    ImGui::TextDisabled(
+        tr("Door selections duplicate in place to retain valid wall slots."));
   }
 
   ImGui::Separator();
@@ -467,270 +382,8 @@ void ObjectEditorContent::DrawSelectedObjectInfo() {
   ImGui::Spacing();
 }
 
-void ObjectEditorContent::DrawSelectedDoorInfo() {
-  auto* viewer = ResolveCanvasViewer();
-  if (!viewer || !viewer->HasRooms()) {
-    return;
-  }
-
-  const auto& theme = AgentUI::GetTheme();
-  const auto entity = viewer->object_interaction().GetSelectedEntity();
-  if (entity.type != EntityType::Door || viewer->current_room_id() < 0 ||
-      viewer->current_room_id() >= static_cast<int>(viewer->rooms()->size())) {
-    return;
-  }
-
-  const auto& room = (*viewer->rooms())[viewer->current_room_id()];
-  const auto& doors = room.GetDoors();
-  if (entity.index >= doors.size()) {
-    return;
-  }
-
-  const auto& door = doors[entity.index];
-  const auto [tile_x, tile_y] = door.GetTileCoords();
-  const auto [pixel_x, pixel_y] = door.GetPixelCoords();
-
-  ImGui::TextColored(theme.status_success, tr("Door #%zu · %s"), entity.index,
-                     std::string(zelda3::GetDoorTypeName(door.type)).c_str());
-  DrawInspectorSummaryGrid(
-      "##SelectedDoorInfo",
-      {{"Direction", std::string(zelda3::GetDoorDirectionName(door.direction))},
-       {"Position", absl::StrFormat("0x%02X", door.position)},
-       {"Tile", absl::StrFormat("(%d, %d)", tile_x, tile_y)},
-       {"Pixel", absl::StrFormat("(%d, %d)", pixel_x, pixel_y)}});
-
-  const std::string current_type_name(zelda3::GetDoorTypeName(door.type));
-  ImGui::SetNextItemWidth(-1);
-  if (ImGui::BeginCombo(tr("Door Type##SelectionDoorType"),
-                        current_type_name.c_str())) {
-    for (const auto door_type : kInspectorDoorTypes) {
-      const bool is_current = door.type == door_type;
-      const std::string entry_label = absl::StrFormat(
-          "0x%02X  %s", static_cast<int>(door_type),
-          std::string(zelda3::GetDoorTypeName(door_type)).c_str());
-      if (ImGui::Selectable(entry_label.c_str(), is_current) && !is_current) {
-        viewer->object_interaction()
-            .entity_coordinator()
-            .door_handler()
-            .MutateDoorType(entity.index, door_type);
-      }
-      if (is_current) {
-        ImGui::SetItemDefaultFocus();
-      }
-    }
-    ImGui::EndCombo();
-  }
-
-  const int neighbor_id =
-      NeighborRoomId(viewer->current_room_id(), door.direction);
-  std::optional<size_t> reciprocal_index;
-  if (zelda3::IsRoomConnectionDoorType(door.type) && neighbor_id >= 0 &&
-      neighbor_id < static_cast<int>(viewer->rooms()->size())) {
-    const auto opposite = OppositeDir(door.direction);
-    const auto& neighbor_doors = (*viewer->rooms())[neighbor_id].GetDoors();
-    for (size_t i = 0; i < neighbor_doors.size(); ++i) {
-      const auto& neighbor_door = neighbor_doors[i];
-      if (zelda3::IsRoomConnectionDoorType(neighbor_door.type) &&
-          neighbor_door.direction == opposite &&
-          neighbor_door.position == door.position) {
-        reciprocal_index = i;
-        break;
-      }
-    }
-    if (!reciprocal_index) {
-      for (size_t i = 0; i < neighbor_doors.size(); ++i) {
-        if (zelda3::IsRoomConnectionDoorType(neighbor_doors[i].type) &&
-            neighbor_doors[i].direction == opposite) {
-          reciprocal_index = i;
-          break;
-        }
-      }
-    }
-  }
-
-  const bool can_jump = reciprocal_index.has_value() &&
-                        static_cast<bool>(on_jump_to_reciprocal_door_);
-  if (!can_jump) {
-    ImGui::BeginDisabled();
-  }
-  if (ImGui::Button(ICON_MD_ARROW_FORWARD " Jump to Reciprocal",
-                    ImVec2(-1, 0)) &&
-      can_jump) {
-    on_jump_to_reciprocal_door_(neighbor_id, *reciprocal_index);
-  }
-  if (!can_jump) {
-    ImGui::EndDisabled();
-  }
-
-  ImGui::Spacing();
-  ImGui::TextColored(theme.text_secondary_gray,
-                     tr("Browse and place additional doors from Door Editor."));
-}
-
-void ObjectEditorContent::DrawSelectedSpriteInfo() {
-  auto* viewer = ResolveCanvasViewer();
-  if (!viewer || !viewer->HasRooms()) {
-    return;
-  }
-
-  const auto& theme = AgentUI::GetTheme();
-  const auto entity = viewer->object_interaction().GetSelectedEntity();
-  if (entity.type != EntityType::Sprite || viewer->current_room_id() < 0 ||
-      viewer->current_room_id() >= static_cast<int>(viewer->rooms()->size())) {
-    return;
-  }
-
-  auto& sprites = (*viewer->rooms())[viewer->current_room_id()].GetSprites();
-  if (entity.index >= sprites.size()) {
-    return;
-  }
-
-  const auto& sprite = sprites[entity.index];
-  ImGui::TextColored(theme.status_success, tr("Sprite #%zu · 0x%02X %s"),
-                     entity.index, sprite.id(),
-                     zelda3::ResolveSpriteName(sprite.id()));
-  if (sprite.IsOverlord()) {
-    ImGui::SameLine();
-    ImGui::TextColored(theme.status_warning, ICON_MD_STAR " OVERLORD");
-  }
-
-  const char* key_drop_label = sprite.key_drop() == 1   ? "Small Key"
-                               : sprite.key_drop() == 2 ? "Big Key"
-                                                        : "None";
-  DrawInspectorSummaryGrid(
-      "##SelectedSpriteInfo",
-      {{"Position", absl::StrFormat("(%d, %d)", sprite.x(), sprite.y())},
-       {"Layer", absl::StrFormat("%d", sprite.layer())},
-       {"Subtype", absl::StrFormat("%d", sprite.subtype())},
-       {"Key Drop", key_drop_label}});
-
-  int subtype = sprite.subtype();
-  ImGui::SetNextItemWidth(120.0f);
-  if (ImGui::Combo(tr("Subtype##SelectionSpriteSubtype"), &subtype,
-                   "0\0001\0002\0003\0004\0005\0006\0007\0")) {
-    (void)MutateSelectedSprite(viewer,
-                               [subtype](zelda3::Sprite& mutable_sprite) {
-                                 mutable_sprite.set_subtype(subtype);
-                               });
-  }
-
-  int layer = sprite.layer();
-  ImGui::SetNextItemWidth(140.0f);
-  if (ImGui::Combo(tr("Layer##SelectionSpriteLayer"), &layer,
-                   "Upper (0)\0Lower (1)\0Both (2)\0")) {
-    (void)MutateSelectedSprite(viewer, [layer](zelda3::Sprite& mutable_sprite) {
-      mutable_sprite.set_layer(layer);
-    });
-  }
-
-  int key_drop = sprite.key_drop();
-  ImGui::Text(tr("Key Drop:"));
-  ImGui::SameLine();
-  if (ImGui::RadioButton(tr("None##SelectionKeyNone"), key_drop == 0)) {
-    (void)MutateSelectedSprite(viewer, [](zelda3::Sprite& mutable_sprite) {
-      mutable_sprite.set_key_drop(0);
-    });
-  }
-  ImGui::SameLine();
-  if (ImGui::RadioButton(ICON_MD_KEY " Small##SelectionKeySmall",
-                         key_drop == 1)) {
-    (void)MutateSelectedSprite(viewer, [](zelda3::Sprite& mutable_sprite) {
-      mutable_sprite.set_key_drop(1);
-    });
-  }
-  ImGui::SameLine();
-  if (ImGui::RadioButton(ICON_MD_VPN_KEY " Big##SelectionKeyBig",
-                         key_drop == 2)) {
-    (void)MutateSelectedSprite(viewer, [](zelda3::Sprite& mutable_sprite) {
-      mutable_sprite.set_key_drop(2);
-    });
-  }
-
-  ImGui::Spacing();
-  ImGui::TextColored(
-      theme.text_secondary_gray,
-      tr("Drag in the canvas to reposition. Browse and place more "
-         "sprites from Sprite Editor."));
-}
-
-void ObjectEditorContent::DrawSelectedItemInfo() {
-  auto* viewer = ResolveCanvasViewer();
-  if (!viewer || !viewer->HasRooms()) {
-    return;
-  }
-
-  const auto& theme = AgentUI::GetTheme();
-  const auto entity = viewer->object_interaction().GetSelectedEntity();
-  if (entity.type != EntityType::Item || viewer->current_room_id() < 0 ||
-      viewer->current_room_id() >= static_cast<int>(viewer->rooms()->size())) {
-    return;
-  }
-
-  auto& items = (*viewer->rooms())[viewer->current_room_id()].GetPotItems();
-  if (entity.index >= items.size()) {
-    return;
-  }
-
-  static constexpr std::array<const char*, 28> kPotItemNames = {{
-      "Nothing",       "Green Rupee", "Rock",         "Bee",        "Health",
-      "Bomb",          "Heart",       "Blue Rupee",   "Key",        "Arrow",
-      "Bomb",          "Heart",       "Magic",        "Full Magic", "Cucco",
-      "Green Soldier", "Bush Stal",   "Blue Soldier", "Landmine",   "Heart",
-      "Fairy",         "Heart",       "Nothing",      "Hole",       "Warp",
-      "Staircase",     "Bombable",    "Switch",
-  }};
-
-  const auto& item = items[entity.index];
-  const char* item_name =
-      item.item < kPotItemNames.size() ? kPotItemNames[item.item] : "Unknown";
-  ImGui::TextColored(theme.status_success, tr("Item #%zu · 0x%02X %s"),
-                     entity.index, item.item, item_name);
-  DrawInspectorSummaryGrid(
-      "##SelectedItemInfo",
-      {{"Tile", absl::StrFormat("(%d, %d)", item.GetTileX(), item.GetTileY())},
-       {"Raw", absl::StrFormat("0x%04X", item.position)},
-       {"Kind", item_name},
-       {"Value", absl::StrFormat("0x%02X", item.item)}});
-
-  int item_type = item.item;
-  ImGui::SetNextItemWidth(-1);
-  if (ImGui::BeginCombo(
-          tr("Item Type##SelectionItemType"),
-          absl::StrFormat("0x%02X %s", item.item, item_name).c_str())) {
-    for (size_t i = 0; i < kPotItemNames.size(); ++i) {
-      const bool is_current = item.item == static_cast<uint8_t>(i);
-      const std::string label =
-          absl::StrFormat("0x%02zX  %s", i, kPotItemNames[i]);
-      if (ImGui::Selectable(label.c_str(), is_current) && !is_current) {
-        (void)MutateSelectedItem(viewer, [i](zelda3::PotItem& mutable_item) {
-          mutable_item.item = static_cast<uint8_t>(i);
-        });
-      }
-      if (is_current) {
-        ImGui::SetItemDefaultFocus();
-      }
-    }
-    ImGui::EndCombo();
-  }
-
-  ImGui::Spacing();
-  ImGui::TextColored(
-      theme.text_secondary_gray,
-      tr("Drag in the canvas to reposition. Browse and place more "
-         "items from Item Editor."));
-}
-
 void ObjectEditorContent::DrawEmptyState() {
-  const auto& theme = AgentUI::GetTheme();
-
-  ImGui::Spacing();
-  ImGui::TextColored(theme.text_secondary_gray, ICON_MD_MOUSE
-                     " Click any room object, door, sprite, or item in the "
-                     "canvas to inspect it here.");
-  ImGui::TextColored(theme.text_secondary_gray, ICON_MD_OPEN_WITH
-                     " Use Shift-click and drag in the room to edit multiple "
-                     "objects together. Use the placement panels to browse "
-                     "new objects, doors, sprites, and items.");
+  gui::DrawEmptyState(gui::EmptySelectInCanvas());
 }
 
 void ObjectEditorContent::DrawKeyboardShortcutHelp() {
@@ -768,7 +421,7 @@ void ObjectEditorContent::DrawKeyboardShortcutHelp() {
     ImGui::Spacing();
     ImGui::TextColored(theme.status_success, ICON_MD_OPEN_WITH " Movement");
     ImGui::Separator();
-    shortcut_row("Arrow Keys", "Nudge selected (1px)");
+    shortcut_row("Arrow Keys", "Nudge selection on its shared grid");
   }
   ImGui::End();
 }
@@ -796,12 +449,9 @@ void ObjectEditorContent::HandleKeyboardShortcuts() {
       DeleteCurrentSelection();
     }
   }
-  if (ImGui::IsKeyPressed(ImGuiKey_D) && io.KeyCtrl) {
-    if (selection_snapshot_.HasObjectSelection()) {
-      DuplicateSelectedObjects();
-    } else if (selection_snapshot_.kind == DungeonSelectionKind::Sprite) {
-      DuplicateSelectedSprite();
-    }
+  if (ImGui::IsKeyPressed(ImGuiKey_D) && io.KeyCtrl &&
+      selection_snapshot_.HasSelection()) {
+    DuplicateSelectedObjects();
   }
   if (ImGui::IsKeyPressed(ImGuiKey_C) && io.KeyCtrl) {
     if (selection_snapshot_.HasSelection()) {
@@ -883,29 +533,16 @@ void ObjectEditorContent::DeleteSelectedObjects() {
     return;
   }
 
-  viewer->object_interaction().HandleDeleteSelected();
+  auto& interaction = viewer->object_interaction();
+  interaction.entity_coordinator().tile_handler().DeleteObjects(
+      viewer->current_room_id(), interaction.GetSelectedObjectIndices());
 }
 
 void ObjectEditorContent::DuplicateSelectedObjects() {
   auto* viewer = ResolveCanvasViewer();
-  if (!object_editor_ || !viewer) {
-    return;
+  if (viewer) {
+    (void)viewer->object_interaction().HandleDuplicateSelected();
   }
-
-  auto& interaction = viewer->object_interaction();
-  const auto& selected = interaction.GetSelectedObjectIndices();
-  if (selected.empty()) {
-    return;
-  }
-
-  std::vector<size_t> new_indices;
-  for (size_t idx : selected) {
-    auto new_idx = object_editor_->DuplicateObject(idx, 1, 1);
-    if (new_idx.has_value()) {
-      new_indices.push_back(*new_idx);
-    }
-  }
-  interaction.SetSelectedObjects(new_indices);
 }
 
 void ObjectEditorContent::DeleteSelectedEntity() {
@@ -913,7 +550,7 @@ void ObjectEditorContent::DeleteSelectedEntity() {
   if (!viewer) {
     return;
   }
-  viewer->object_interaction().entity_coordinator().DeleteSelectedEntity();
+  (void)viewer->object_interaction().HandleDeleteSelected();
 }
 
 void ObjectEditorContent::DeleteCurrentSelection() {
@@ -921,7 +558,7 @@ void ObjectEditorContent::DeleteCurrentSelection() {
   if (!viewer) {
     return;
   }
-  viewer->object_interaction().HandleDeleteSelected();
+  (void)viewer->object_interaction().HandleDeleteSelected();
 }
 
 void ObjectEditorContent::DeleteAllSelectedTypeInRoom() {
@@ -952,29 +589,7 @@ void ObjectEditorContent::DuplicateSelectedSprite() {
     return;
   }
 
-  auto& interaction = viewer->object_interaction();
-  auto& handler = interaction.entity_coordinator().sprite_handler();
-  const auto selected_index = handler.GetSelectedIndex();
-  if (!selected_index.has_value() || viewer->current_room_id() < 0 ||
-      viewer->current_room_id() >= static_cast<int>(viewer->rooms()->size())) {
-    return;
-  }
-
-  auto& room = (*viewer->rooms())[viewer->current_room_id()];
-  auto& sprites = room.GetSprites();
-  if (*selected_index >= sprites.size()) {
-    return;
-  }
-
-  if (auto* ctx = handler.context()) {
-    ctx->NotifyMutation(MutationDomain::kSprites);
-  }
-  sprites.push_back(sprites[*selected_index]);
-  room.MarkSpritesDirty();
-  if (auto* ctx = handler.context()) {
-    ctx->NotifyInvalidateCache(MutationDomain::kSprites);
-  }
-  handler.SelectSprite(sprites.size() - 1);
+  (void)viewer->object_interaction().HandleDuplicateSelected();
 }
 
 void ObjectEditorContent::CopySelectedObjects() {
@@ -982,7 +597,7 @@ void ObjectEditorContent::CopySelectedObjects() {
   if (!viewer) {
     return;
   }
-  viewer->object_interaction().HandleCopySelected();
+  (void)viewer->object_interaction().HandleCopySelected();
 }
 
 void ObjectEditorContent::PasteObjects() {
@@ -991,7 +606,7 @@ void ObjectEditorContent::PasteObjects() {
     return;
   }
 
-  viewer->object_interaction().HandlePasteObjects();
+  (void)viewer->object_interaction().HandlePasteObjects();
 }
 
 void ObjectEditorContent::NudgeCurrentSelection(int dx, int dy) {

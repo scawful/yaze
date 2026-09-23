@@ -32,6 +32,7 @@ class WaterFillPanel : public WindowContent {
       : viewer_(viewer), interaction_(interaction) {}
 
   std::string GetId() const override { return "dungeon.water_fill"; }
+  std::string GetWorkflowGroup() const override { return "Editors"; }
   std::string GetDisplayName() const override { return "Water Fill"; }
   std::string GetIcon() const override { return ICON_MD_WATER_DROP; }
   std::string GetEditorCategory() const override { return "Dungeon"; }

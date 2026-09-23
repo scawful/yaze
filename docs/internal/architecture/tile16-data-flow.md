@@ -17,23 +17,23 @@ changes keep parity with ZScream/Hyrule Magic behavior.
 1. Metadata -> pixel indices
    - Editor delegates rendering to zelda3 core via
      `Tile16Editor::BuildTile16BitmapFromData`
-     ([tile16_editor.cc:640](/Users/scawful/src/hobby/yaze/src/app/editor/overworld/tile16_editor.cc:640)).
+     ([tile16/tile16_edit_session.cc](../../../src/app/editor/overworld/tile16/tile16_edit_session.cc)).
    - Core implementation:
      `RenderTile16PixelsFromMetadata`
-     ([tile16_renderer.cc:28](/Users/scawful/src/hobby/yaze/src/zelda3/overworld/tile16_renderer.cc:28)).
+     ([tile16_renderer.cc](../../../src/zelda3/overworld/tile16_renderer.cc)).
    - Quadrant transform is canonical:
      `(pixel & 0x0F) + (palette_index * 0x10)`
-     ([tile16_renderer.cc:68](/Users/scawful/src/hobby/yaze/src/zelda3/overworld/tile16_renderer.cc:68)).
+     ([tile16_renderer.cc](../../../src/zelda3/overworld/tile16_renderer.cc)).
 
 2. Bitmap assembly
    - Core materializes 16x16 8bpp bitmap:
      `RenderTile16BitmapFromMetadata`
-     ([tile16_renderer.cc:76](/Users/scawful/src/hobby/yaze/src/zelda3/overworld/tile16_renderer.cc:76)).
+     ([tile16_renderer.cc](../../../src/zelda3/overworld/tile16_renderer.cc)).
 
 3. Editor preview palette binding
    - Tile16 preview palette application:
      `ApplyPaletteToCurrentTile16Bitmap`
-     ([tile16_editor.cc:3126](/Users/scawful/src/hobby/yaze/src/app/editor/overworld/tile16_editor.cc:3126)).
+     ([tile16/tile16_edit_session.cc](../../../src/app/editor/overworld/tile16/tile16_edit_session.cc)).
    - Default path applies full 256-color palette when pixels already encode
      row/high-nibble offsets.
    - Fallback path (normalization mode) keeps sub-palette behavior.
@@ -54,9 +54,9 @@ changes keep parity with ZScream/Hyrule Magic behavior.
   `OverworldMap::current_graphics()` before reloading Tile8s. The Tile16 atlas
   and selected-tile preview must be built from the same map graphics buffer, or
   switching maps can leave the editor preview using stale Tile8 source pixels.
-- Pending Tile16 metadata is authoritative. `pending_tile16_bitmaps_` is only a
+- Document Tile16 metadata is authoritative. `edited_tile_bitmaps_` is only a
   derived preview cache and must be regenerated from the current Tile8 source
-  when a pending tile is selected after a graphics refresh.
+  when an edited tile is selected after a graphics refresh.
 - `MapRefreshCoordinator` pushes the current map palette into `Tile16Editor`
   through `set_palette()` whenever map palette or Tile16 blockset state
   changes. `Tile16Editor::set_palette()` owns remapping `current_gfx_bmp` to the
@@ -66,30 +66,30 @@ changes keep parity with ZScream/Hyrule Magic behavior.
 - Tile8 source sheets may shrink their display scale to fit available editor
   width, but palette application must not change with scale.
 
-4. Local staging + atlas preview sync
-   - Edits flow through `DrawToCurrentTile16`
-     ([tile16_editor.cc:723](/Users/scawful/src/hobby/yaze/src/app/editor/overworld/tile16_editor.cc:723)).
-   - Staged tile bitmaps are copied to editor blockset + atlas via
-     `CopyTileBitmapToBlockset`
-     ([tile16_editor.cc:646](/Users/scawful/src/hobby/yaze/src/app/editor/overworld/tile16_editor.cc:646)).
+4. Immediate document edits and shared history
+   - Domain operations run through `Tile16EditSession::RunEdit` and
+     `ApplyDefinitions` in
+     [tile16_edit_history.cc](../../../src/app/editor/overworld/tile16/tile16_edit_history.cc).
+   - Validate/render the whole operation before applying definitions. History
+     stores metadata, so Undo/Redo rebuilds previews with the active map palette.
+   - Finish an active map stroke before adding a definition edit to shared
+     overworld history. The workbench has no Commit/Discard editing step.
 
-5. Commit to ROM/overworld
-   - Batch commit entrypoint:
-     `CommitAllChanges`
-     ([tile16_editor.cc:2731](/Users/scawful/src/hobby/yaze/src/app/editor/overworld/tile16_editor.cc:2731)).
-   - Overworld write entrypoint:
-     `CommitChangesToOverworld`
-     ([tile16_editor.cc:2689](/Users/scawful/src/hobby/yaze/src/app/editor/overworld/tile16_editor.cc:2689)).
+5. Save to ROM
+   - Document edits are visible immediately. ROM publication remains part of
+     the normal editor Save operation; editing a definition is not a disk save.
+   - Legacy methods named `CommitAllChanges`/`CommitChangesToOverworld` remain
+     internal compatibility/save plumbing, not user workflow instructions.
 
 ## Tile8 Source Interaction Flow
 
 - Tile8 source panel UI logic is isolated in:
   - `DrawTile8SourcePanel`
   - `HandleTile8SourceSelection`
-  ([tile16_editor.cc:1777](/Users/scawful/src/hobby/yaze/src/app/editor/overworld/tile16_editor.cc:1777)).
+  ([tile16_workbench.cc](../../../src/app/editor/overworld/ui/tiles/tile16_workbench.cc)).
 - Pure helper rules live in:
   `tile8_source_interaction.h`
-  ([tile8_source_interaction.h:1](/Users/scawful/src/hobby/yaze/src/app/editor/overworld/tile16/tile8_source_interaction.h:1)).
+  ([tile8_source_interaction.h](../../../src/app/editor/overworld/tile16/tile8_source_interaction.h)).
 - This keeps coordinate math and RMB usage-mode behavior testable without ImGui
   frame plumbing.
 
@@ -111,9 +111,8 @@ changes keep parity with ZScream/Hyrule Magic behavior.
 - Palette metadata propagation:
   - `Tile16EditorIntegrationTest.ApplyPaletteToAllSetsAllQuadrantPalettes`
   - `Tile16EditorIntegrationTest.ApplyPaletteToQuadrantUpdatesOnlyTargetQuadrant`
-- Staging/commit semantics:
+- Immediate document/history semantics:
   - `Tile16EditorSyntheticFixture.*`
-  - `Tile16EditorIntegrationTest.DiscardCurrentTileChangesKeepsOtherPendingTiles`
-  - `Tile16EditorIntegrationTest.CommitAllChangesClearsPendingQueue`
+  - `Tile16DocumentHistoryTest.*`
 - Save/reload persistence:
   - `Tile16EditorSaveTest.*` (rom-dependent e2e)

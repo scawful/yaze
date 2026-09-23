@@ -76,13 +76,14 @@ class CustomObjectRoomRenderTest : public ::testing::Test {
     game_data_.palette_groups.dungeon_main.AddPalette(dungeon_palette);
   }
 
-  void EnableCustomObjects(const std::vector<std::string>& file_map) {
+  void EnableCustomObjects(const std::vector<std::string>& file_map,
+                           int object_id = 0x31) {
     core::FeatureFlags::get().kEnableCustomObjects = true;
     DrawRoutineRegistry::Get().RefreshFeatureFlagMappings();
 
     auto& manager = CustomObjectManager::Get();
     manager.Initialize(temp_dir_.string());
-    manager.SetObjectFileMap({{0x31, file_map}});
+    manager.SetObjectFileMap({{object_id, file_map}});
   }
 
   void WriteLayoutObjects(int layout_id,
@@ -176,6 +177,83 @@ TEST_F(CustomObjectRoomRenderTest,
 }
 
 TEST_F(CustomObjectRoomRenderTest,
+       SpriteBodyCustomObjectAppliesOracleRuntimeTilePageMask) {
+  EnableCustomObjects({"kydreeok_body.bin", "manhandla_body_1a.bin"},
+                      /*object_id=*/0x54);
+  WriteSingleTileCustomObjectFile("manhandla_body_1a.bin", 0x1D32);
+
+  Room room = MakeRoomWithObject(
+      RoomObject(/*id=*/0x54, /*x=*/3, /*y=*/4, /*size=*/1, /*layer=*/2));
+  RenderObjectBuffers(room);
+
+  EXPECT_EQ(room.object_bg1_buffer().GetTileAt(3, 4), 0x1F32);
+}
+
+TEST_F(CustomObjectRoomRenderTest,
+       ZeroPayloadPreservesTheRoomTileAlreadyUnderneathIt) {
+  EnableCustomObjects({"track_LR.bin"});
+  const std::vector<uint8_t> binary = {
+      0x02, 0x00,  // Two adjacent positions.
+      0x00, 0x08,  // Visible tile 0, palette 2.
+      0x00, 0x00,  // Runtime no-op: preserve the underlying tile.
+      0x00, 0x00,
+  };
+  {
+    std::ofstream file(temp_dir_ / "track_LR.bin", std::ios::binary);
+    ASSERT_TRUE(file.good());
+    file.write(reinterpret_cast<const char*>(binary.data()), binary.size());
+    ASSERT_TRUE(file.good());
+  }
+
+  RoomObject underlying(/*id=*/0x34, /*x=*/4, /*y=*/4, /*size=*/0,
+                        /*layer=*/2);
+  underlying.tiles_loaded_ = true;
+  underlying.tiles_ = {gfx::TileInfo(/*id=*/0, /*pal=*/3, false, false, false)};
+  const RoomObject custom(/*id=*/0x31, /*x=*/3, /*y=*/4, /*size=*/0,
+                          /*layer=*/2);
+  Room room = MakeRoomWithObjects({underlying, custom});
+
+  RenderObjectBuffers(room);
+
+  const auto& buffer = room.object_bg1_buffer();
+  const int visible_pixel = PixelIndex(buffer.bitmap(), 3 * 8, 4 * 8);
+  const int preserved_pixel = PixelIndex(buffer.bitmap(), 4 * 8, 4 * 8);
+  EXPECT_EQ(buffer.bitmap().data()[visible_pixel], kPaletteTwoRightSlotPixel);
+  EXPECT_EQ(buffer.bitmap().data()[preserved_pixel], 57)
+      << "The zero custom word must leave the palette-3 base tile intact";
+  EXPECT_EQ(buffer.coverage_data()[visible_pixel], 1);
+  EXPECT_EQ(buffer.coverage_data()[preserved_pixel], 1);
+}
+
+TEST_F(CustomObjectRoomRenderTest,
+       TerminatorOnlyAssetDrawsNothingAndPreservesUnderlyingRoomTile) {
+  EnableCustomObjects({"track_LR.bin"});
+  {
+    std::ofstream file(temp_dir_ / "track_LR.bin", std::ios::binary);
+    ASSERT_TRUE(file.good());
+    file.put(0);
+    file.put(0);
+    ASSERT_TRUE(file.good());
+  }
+
+  RoomObject underlying(/*id=*/0x34, /*x=*/3, /*y=*/4, /*size=*/0,
+                        /*layer=*/2);
+  underlying.tiles_loaded_ = true;
+  underlying.tiles_ = {gfx::TileInfo(/*id=*/0, /*pal=*/3, false, false, false)};
+  const RoomObject custom(/*id=*/0x31, /*x=*/3, /*y=*/4, /*size=*/0,
+                          /*layer=*/2);
+  Room room = MakeRoomWithObjects({underlying, custom});
+
+  RenderObjectBuffers(room);
+
+  const auto& buffer = room.object_bg1_buffer();
+  const int pixel = PixelIndex(buffer.bitmap(), 3 * 8, 4 * 8);
+  EXPECT_EQ(buffer.bitmap().data()[pixel], 57)
+      << "A terminator-only override must not stamp the vanilla fallback tile";
+  EXPECT_EQ(buffer.coverage_data()[pixel], 1);
+}
+
+TEST_F(CustomObjectRoomRenderTest,
        ObjectRerenderClearsOnlyObjectOwnedRevealBits) {
   RoomObject lower(/*id=*/0x34, /*x=*/2, /*y=*/3, /*size=*/0, /*layer=*/1);
   lower.tiles_loaded_ = true;
@@ -264,7 +342,7 @@ TEST_F(CustomObjectRoomRenderTest,
 }
 
 TEST_F(CustomObjectRoomRenderTest,
-       CornerAliasCustomObjectRendersOnlyWhenRoomContainsTrackBaseObject) {
+       WallCornerRemainsStructuralWhenRoomContainsMappedTrackObject) {
   EnableCustomObjects({"track_LR.bin", "track_UD.bin", "track_corner_TL.bin",
                        "track_corner_TR.bin", "track_corner_BL.bin",
                        "track_corner_BR.bin"});
@@ -281,15 +359,20 @@ TEST_F(CustomObjectRoomRenderTest,
   const auto& bitmap = room.object_bg1_buffer().bitmap();
   ASSERT_TRUE(bitmap.is_active());
 
-  const int pixel_index = PixelIndex(bitmap, /*x=*/6 * 8, /*y=*/7 * 8);
-  ASSERT_LT(pixel_index, static_cast<int>(bitmap.size()));
-  EXPECT_EQ(bitmap.data()[pixel_index], kPaletteTwoRightSlotPixel)
-      << "Corner alias object should render from its mapped custom bin";
-  EXPECT_EQ(room.object_bg1_buffer().coverage_data()[pixel_index], 1);
+  const auto& coverage = room.object_bg1_buffer().coverage_data();
+  int wall_corner_pixels = 0;
+  for (int y = 7 * 8; y < 11 * 8; ++y) {
+    for (int x = 6 * 8; x < 10 * 8; ++x) {
+      wall_corner_pixels += coverage[PixelIndex(bitmap, x, y)] != 0 ? 1 : 0;
+    }
+  }
+  EXPECT_GT(wall_corner_pixels, 64)
+      << "A mapped track object must not replace the ordinary 4x4 wall "
+         "corner with a one-tile custom asset";
 }
 
 TEST_F(CustomObjectRoomRenderTest,
-       CornerAliasDoesNotHijackVanillaWallCornersWithoutTrackBaseObject) {
+       MappedTrackFilesDoNotHijackWallCornersWithoutTrackObject) {
   EnableCustomObjects({"track_LR.bin", "track_UD.bin", "track_corner_TL.bin",
                        "track_corner_TR.bin", "track_corner_BL.bin",
                        "track_corner_BR.bin"});
@@ -306,12 +389,40 @@ TEST_F(CustomObjectRoomRenderTest,
   const int pixel_index = PixelIndex(bitmap, /*x=*/6 * 8, /*y=*/7 * 8);
   ASSERT_LT(pixel_index, static_cast<int>(bitmap.size()));
   EXPECT_NE(bitmap.data()[pixel_index], kPaletteTwoRightSlotPixel)
-      << "Vanilla wall corners should not be hijacked by track alias files in "
+      << "Vanilla wall corners should not be hijacked by track asset files in "
          "rooms without 0x31";
 }
 
 TEST_F(CustomObjectRoomRenderTest,
-       MushroomStatueDoesNotEnableTrackAliasesForWallCorners) {
+       ExplicitWallCornerMappingOverridesVanillaFourByFourRoutine) {
+  EnableCustomObjects({"wall_corner.bin"}, /*object_id=*/0x100);
+  WriteSingleTileCustomObjectFile("wall_corner.bin",
+                                  /*tile_id=0 pal=2*/ 0x0800);
+
+  Room room = MakeRoomWithObject(
+      RoomObject(/*id=*/0x100, /*x=*/6, /*y=*/7, /*size=*/0, /*layer=*/2));
+  RenderObjectBuffers(room);
+
+  const auto& bitmap = room.object_bg1_buffer().bitmap();
+  ASSERT_TRUE(bitmap.is_active());
+
+  const auto& coverage = room.object_bg1_buffer().coverage_data();
+  int wall_corner_pixels = 0;
+  for (int y = 7 * 8; y < 11 * 8; ++y) {
+    for (int x = 6 * 8; x < 10 * 8; ++x) {
+      wall_corner_pixels += coverage[PixelIndex(bitmap, x, y)] != 0 ? 1 : 0;
+    }
+  }
+
+  EXPECT_EQ(wall_corner_pixels, 64)
+      << "An explicit 0x100 mapping should replace the vanilla 4x4 routine "
+         "with the configured one-tile asset";
+  EXPECT_EQ(bitmap.data()[PixelIndex(bitmap, /*x=*/6 * 8, /*y=*/7 * 8)],
+            kPaletteTwoRightSlotPixel);
+}
+
+TEST_F(CustomObjectRoomRenderTest,
+       MushroomStatueDoesNotChangeVanillaWallCornerIdentity) {
   std::vector<std::string> custom_files = {
       "track_LR.bin",
       "track_UD.bin",
@@ -355,7 +466,7 @@ TEST_F(CustomObjectRoomRenderTest,
 }
 
 TEST_F(CustomObjectRoomRenderTest,
-       LayoutCornerIgnoresTrackAliasFilesWithoutTrackBaseObject) {
+       LayoutWallCornerIgnoresConfiguredTrackFiles) {
   EnableCustomObjects({"track_LR.bin", "track_UD.bin", "track_corner_TL.bin",
                        "track_corner_TR.bin", "track_corner_BL.bin",
                        "track_corner_BR.bin"});
@@ -378,7 +489,7 @@ TEST_F(CustomObjectRoomRenderTest,
       static_cast<int>(std::count(coverage.begin(), coverage.end(), 1));
   EXPECT_GT(covered_pixels, 64)
       << "Vanilla layout corners should keep their full wall footprint instead "
-         "of being replaced by a one-tile custom track alias";
+         "of being replaced by a one-tile custom track asset";
 
   const auto& bg2_coverage = room.bg2_buffer().coverage_data();
   const int bg2_covered_pixels =

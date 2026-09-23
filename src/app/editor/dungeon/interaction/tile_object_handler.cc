@@ -13,10 +13,13 @@
 #include "imgui/imgui.h"
 #include "util/i18n/tr.h"
 #include "util/log.h"
+#include "zelda3/dungeon/chest_edit.h"
+#include "zelda3/dungeon/custom_object.h"
 #include "zelda3/dungeon/dimension_service.h"
 #include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/geometry/object_geometry.h"
 #include "zelda3/dungeon/object_drawer.h"
+#include "zelda3/dungeon/object_layer_semantics.h"
 #include "zelda3/dungeon/object_stream_ordering.h"
 
 #include "app/editor/dungeon/dungeon_snapping.h"
@@ -55,6 +58,7 @@ bool ApplyRoomPaletteToGhost(const zelda3::Room& room, gfx::Bitmap& ghost) {
 struct LayerOrderEntry {
   zelda3::RoomObject object;
   bool selected = false;
+  size_t old_index = 0;
 };
 
 int LayerBucketIndex(const zelda3::RoomObject& object) {
@@ -78,7 +82,7 @@ std::array<std::vector<LayerOrderEntry>, 3> BuildLayerBuckets(
   std::array<std::vector<LayerOrderEntry>, 3> buckets;
   for (size_t i = 0; i < objects.size(); ++i) {
     buckets[LayerBucketIndex(objects[i])].push_back(
-        LayerOrderEntry{objects[i], selected_indices.count(i) > 0});
+        LayerOrderEntry{objects[i], selected_indices.count(i) > 0, i});
   }
   return buckets;
 }
@@ -89,28 +93,69 @@ void RestoreObjectSelection(
   if (!selection) {
     return;
   }
-  selection->ClearSelection();
-  for (size_t index : selected_indices_after_reorder) {
-    selection->SelectObject(index, ObjectSelection::SelectionMode::Add);
+  if (selected_indices_after_reorder.empty()) {
+    selection->ClearSelection();
+    return;
+  }
+  selection->SelectObject(selected_indices_after_reorder.front(),
+                          ObjectSelection::SelectionMode::Single);
+  for (size_t ordinal = 1; ordinal < selected_indices_after_reorder.size();
+       ++ordinal) {
+    selection->SelectObject(selected_indices_after_reorder[ordinal],
+                            ObjectSelection::SelectionMode::Add);
   }
 }
 
 void FlattenLayerBuckets(std::vector<zelda3::RoomObject>& objects,
                          std::array<std::vector<LayerOrderEntry>, 3>& buckets,
-                         ObjectSelection* selection) {
+                         std::vector<std::optional<size_t>>& sources,
+                         std::vector<size_t>& selected_indices_after_reorder) {
   std::vector<zelda3::RoomObject> reordered;
-  std::vector<size_t> selected_indices_after_reorder;
   reordered.reserve(objects.size());
+  sources.clear();
+  sources.reserve(objects.size());
   for (auto& bucket : buckets) {
     for (auto& entry : bucket) {
       if (entry.selected) {
         selected_indices_after_reorder.push_back(reordered.size());
       }
+      sources.push_back(entry.old_index);
       reordered.push_back(std::move(entry.object));
     }
   }
   objects = std::move(reordered);
-  RestoreObjectSelection(selection, selected_indices_after_reorder);
+}
+
+std::vector<std::optional<size_t>> IdentitySources(size_t count) {
+  std::vector<std::optional<size_t>> sources;
+  sources.reserve(count);
+  for (size_t index = 0; index < count; ++index) {
+    sources.push_back(index);
+  }
+  return sources;
+}
+
+bool SameChests(const std::vector<chest_data>& lhs,
+                const std::vector<chest_data>& rhs) {
+  return lhs.size() == rhs.size() &&
+         std::equal(lhs.begin(), lhs.end(), rhs.begin(), [](auto a, auto b) {
+           return a.id == b.id && a.size == b.size;
+         });
+}
+
+bool SameAuthoredObjects(const std::vector<zelda3::RoomObject>& lhs,
+                         const std::vector<zelda3::RoomObject>& rhs) {
+  return lhs.size() == rhs.size() &&
+         std::equal(lhs.begin(), lhs.end(), rhs.begin(),
+                    [](const auto& a, const auto& b) {
+                      return a.id_ == b.id_ && a.x_ == b.x_ && a.y_ == b.y_ &&
+                             a.size_ == b.size_ && a.layer_ == b.layer_ &&
+                             a.options_ == b.options_ &&
+                             a.block_load_order_ == b.block_load_order_ &&
+                             a.block_behavior_layer_ ==
+                                 b.block_behavior_layer_ &&
+                             a.torch_reserved_bit_ == b.torch_reserved_bit_;
+                    });
 }
 
 struct GuideRect {
@@ -359,15 +404,32 @@ ImVec2 TileObjectHandler::ApplyDragModifiers(const ImVec2& delta) const {
 }
 
 bool TileObjectHandler::HandleMouseWheel(float delta) {
-  if (!HasValidContext() || !ctx_ || !ctx_->selection || delta == 0.0f)
+  if (!HasValidContext() || !ctx_ || delta == 0.0f)
     return false;
 
+  const int resize_delta = (delta > 0.0f) ? 1 : -1;
+  const bool horizontal = ImGui::GetCurrentContext() && ImGui::GetIO().KeyShift;
+  if (object_placement_mode_) {
+    const uint8_t size =
+        horizontal
+            ? zelda3::ResizeRoomObjectByDelta(preview_object_.id_,
+                                              preview_object_.size_,
+                                              resize_delta, true)
+            : zelda3::ResizeRoomObjectUniformlyByDelta(
+                  preview_object_.id_, preview_object_.size_, resize_delta);
+    if (size == preview_object_.size_) {
+      return false;
+    }
+    return SetPreviewSize(size);
+  }
+  if (!ctx_->selection)
+    return false;
   auto indices = ctx_->selection->GetSelectedIndices();
   if (indices.empty())
     return false;
 
-  int resize_delta = (delta > 0.0f) ? 1 : -1;
-  return ResizeObjects(ctx_->current_room_id, indices, resize_delta);
+  return ResizeObjects(ctx_->current_room_id, indices, resize_delta, horizontal,
+                       !horizontal);
 }
 
 void TileObjectHandler::DrawGhostPreview() {
@@ -387,6 +449,12 @@ void TileObjectHandler::DrawGhostPreview() {
   if (!IsWithinBounds(canvas_x, canvas_y))
     return;
 
+  zelda3::Room* room = GetRoom(ctx_->current_room_id);
+  if (room && (ghost_preview_room_id_ != ctx_->current_room_id ||
+               ghost_preview_graphics_revision_ != room->graphics_revision())) {
+    RenderGhostPreviewBitmap();
+  }
+
   auto [snap_canvas_x, snap_canvas_y] = RoomToCanvas(room_x, room_y);
   const auto preview_geometry = CalculateGhostPreviewGeometry(preview_object_);
 
@@ -405,7 +473,6 @@ void TileObjectHandler::DrawGhostPreview() {
              static_cast<float>(snap_canvas_y -
                                 preview_geometry.render_anchor_y_tiles * 8)));
 
-  zelda3::Room* room = GetRoom(ctx_->current_room_id);
   const size_t current_obj_count = room ? room->GetTileObjects().size() : 0;
   const auto capacity_state = GetPlacementGhostCapacityState();
 
@@ -628,6 +695,67 @@ void TileObjectHandler::DrawSmartGuides(
 // Mutation Logic
 // ========================================================================
 
+bool TileObjectHandler::RejectMutation(absl::Status status) {
+  mutation_status_ = std::move(status);
+  if (mutation_error_callback_) {
+    mutation_error_callback_(mutation_status_);
+  }
+  return false;
+}
+
+bool TileObjectHandler::CommitCandidate(
+    int room_id, std::vector<zelda3::RoomObject> candidate,
+    const std::vector<std::optional<size_t>>& sources,
+    const std::vector<std::optional<chest_data>>& chest_overrides,
+    std::optional<std::vector<size_t>> selection) {
+  mutation_status_ = absl::OkStatus();
+  auto* room = GetRoom(room_id);
+  if (!room) {
+    return RejectMutation(absl::InvalidArgumentError("Room is unavailable"));
+  }
+  if (ctx_->current_room_id != room_id) {
+    return RejectMutation(absl::FailedPreconditionError(
+        "Select the destination room before changing its objects"));
+  }
+  if (candidate.size() > zelda3::kMaxTileObjects &&
+      candidate.size() > room->GetTileObjects().size()) {
+    return RejectMutation(
+        absl::ResourceExhaustedError("Room object limit reached"));
+  }
+  auto chests =
+      zelda3::PlanChestObjectEdit(room->GetTileObjects(), room->GetChests(),
+                                  candidate, sources, chest_overrides);
+  if (!chests.ok()) {
+    return RejectMutation(chests.status());
+  }
+  const bool chests_changed = !SameChests(room->GetChests(), *chests);
+  if (!chests_changed &&
+      SameAuthoredObjects(room->GetTileObjects(), candidate)) {
+    return true;
+  }
+  if (object_mutation_preflight_) {
+    mutation_status_ = object_mutation_preflight_(room_id, candidate, *chests);
+    if (!mutation_status_.ok()) {
+      return RejectMutation(mutation_status_);
+    }
+  }
+  if (ctx_) {
+    ctx_->NotifyMutation(MutationDomain::kTileObjects);
+  }
+  // SetTileObjects marks domains from both snapshots, including removed special
+  // table objects. Both data planes are complete before invalidation can render.
+  room->SetTileObjects(candidate);
+  if (chests_changed) {
+    room->GetChests() = std::move(*chests);
+    room->MarkChestsDirty();
+  }
+  if (selection && ctx_) {
+    RestoreObjectSelection(ctx_->selection, *selection);
+  }
+  NotifyChange(room);
+  return true;
+}
+
 void TileObjectHandler::MoveObjects(int room_id,
                                     const std::vector<size_t>& indices,
                                     int delta_x, int delta_y,
@@ -654,31 +782,33 @@ void TileObjectHandler::MoveObjects(int room_id,
 void TileObjectHandler::UpdateObjectsId(int room_id,
                                         const std::vector<size_t>& indices,
                                         int16_t new_id) {
+  mutation_status_ = absl::OkStatus();
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return;
-
-  auto& objects = room->GetTileObjects();
-  const bool has_change =
-      std::any_of(indices.begin(), indices.end(), [&](size_t index) {
-        return index < objects.size() && objects[index].id_ != new_id;
-      });
-  if (!has_change) {
-    return;
-  }
-  if (ctx_)
-    ctx_->NotifyMutation(MutationDomain::kTileObjects);
-
+  auto candidate = room->GetTileObjects();
   for (size_t index : indices) {
-    if (index < objects.size() && objects[index].id_ != new_id) {
-      const uint8_t canonical_size =
-          zelda3::CanonicalRoomObjectSize(new_id, objects[index].size_);
-      // Use the setter so derived flags + tile caches stay coherent.
-      objects[index].set_id(new_id);
-      objects[index].set_size(canonical_size);
+    if (index >= candidate.size() || candidate[index].id_ == new_id) {
+      continue;
     }
+    if (zelda3::UsesSpecialLayerSelector(candidate[index]) || new_id == 0xE00) {
+      RejectMutation(absl::FailedPreconditionError(
+          "Use the dedicated torch or pushable-block controls to change "
+          "special-table objects"));
+      return;
+    }
+    const uint8_t canonical_size =
+        zelda3::CanonicalRoomObjectSize(new_id, candidate[index].size_);
+    candidate[index].set_id(new_id);
+    candidate[index].set_size(canonical_size);
+    auto options = candidate[index].options() & ~zelda3::ObjectOption::Chest;
+    if (zelda3::IsStatefulChestObjectId(new_id)) {
+      options = options | zelda3::ObjectOption::Chest;
+    }
+    candidate[index].set_options(options);
   }
-  NotifyChange(room);
+  CommitCandidate(room_id, std::move(candidate),
+                  IdentitySources(room->GetTileObjects().size()));
 }
 
 void TileObjectHandler::UpdateObjectsSize(int room_id,
@@ -689,10 +819,21 @@ void TileObjectHandler::UpdateObjectsSize(int room_id,
     return;
 
   auto& objects = room->GetTileObjects();
+  const auto can_update_size = [&](const zelda3::RoomObject& object) {
+    if (!zelda3::IsRoomObjectSizeEditable(object.id_)) {
+      return false;
+    }
+    if (!zelda3::IsRoomObjectResizable(object.id_)) {
+      const auto& manager = zelda3::CustomObjectManager::Get();
+      return new_size <= 0x0F &&
+             new_size < manager.GetSubtypeCount(object.id_) &&
+             !manager.ResolveFilename(object.id_, new_size).empty();
+    }
+    return true;
+  };
   const bool has_change =
       std::any_of(indices.begin(), indices.end(), [&](size_t index) {
-        if (index >= objects.size() ||
-            !zelda3::IsRoomObjectSizeEditable(objects[index].id_)) {
+        if (index >= objects.size() || !can_update_size(objects[index])) {
           return false;
         }
         return objects[index].size_ !=
@@ -705,8 +846,7 @@ void TileObjectHandler::UpdateObjectsSize(int room_id,
     ctx_->NotifyMutation(MutationDomain::kTileObjects);
 
   for (size_t index : indices) {
-    if (index < objects.size() &&
-        zelda3::IsRoomObjectSizeEditable(objects[index].id_)) {
+    if (index < objects.size() && can_update_size(objects[index])) {
       const uint8_t canonical_size =
           zelda3::CanonicalRoomObjectSize(objects[index].id_, new_size);
       if (objects[index].size_ == canonical_size) {
@@ -722,10 +862,13 @@ void TileObjectHandler::UpdateObjectsSize(int room_id,
 bool TileObjectHandler::UpdateObjectsLayer(int room_id,
                                            const std::vector<size_t>& indices,
                                            int new_layer) {
+  mutation_status_ = absl::OkStatus();
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return false;
   if (new_layer < 0 || new_layer > 2) {
+    mutation_status_ =
+        absl::InvalidArgumentError("Invalid object stream target");
     LOG_WARN("TileObjectHandler",
              "Rejected layer update with invalid target layer: %d", new_layer);
     return false;
@@ -747,6 +890,8 @@ bool TileObjectHandler::UpdateObjectsLayer(int room_id,
   }
 
   if (deduped_indices.size() > kMaxLayerBatchMutation) {
+    mutation_status_ =
+        absl::ResourceExhaustedError("Object stream batch is too large");
     LOG_WARN("TileObjectHandler",
              "Rejected layer batch mutation of %zu objects (max %zu)",
              deduped_indices.size(), kMaxLayerBatchMutation);
@@ -757,6 +902,7 @@ bool TileObjectHandler::UpdateObjectsLayer(int room_id,
   auto mutation = zelda3::ReassignObjectStorage(candidate_objects,
                                                 deduped_indices, new_layer);
   if (!mutation.ok()) {
+    mutation_status_ = mutation.status();
     LOG_WARN("TileObjectHandler", "Rejected object stream mutation: %s",
              std::string(mutation.status().message()).c_str());
     return false;
@@ -765,80 +911,84 @@ bool TileObjectHandler::UpdateObjectsLayer(int room_id,
     return true;
   }
 
-  if (ctx_)
-    ctx_->NotifyMutation(MutationDomain::kTileObjects);
-  objects = std::move(candidate_objects);
-  RestoreObjectSelection(ctx_ ? ctx_->selection : nullptr,
+  std::vector<std::optional<size_t>> sources(objects.size());
+  for (size_t old_index = 0; old_index < objects.size(); ++old_index) {
+    sources[mutation->old_to_new_index[old_index]] = old_index;
+  }
+  return CommitCandidate(room_id, std::move(candidate_objects), sources, {},
                          mutation->selected_indices);
-  NotifyChange(room);
-  return true;
 }
 
 std::vector<size_t> TileObjectHandler::DuplicateObjects(
-    int room_id, const std::vector<size_t>& indices, int delta_x, int delta_y,
-    bool notify_mutation) {
+    int room_id, const std::vector<size_t>& indices, int delta_x, int delta_y) {
+  mutation_status_ = absl::OkStatus();
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return {};
-  if (notify_mutation && ctx_)
-    ctx_->NotifyMutation(MutationDomain::kTileObjects);
-
-  auto& objects = room->GetTileObjects();
+  const auto& objects = room->GetTileObjects();
+  auto candidate = objects;
+  auto sources = IdentitySources(objects.size());
   std::vector<size_t> new_indices;
-
-  const size_t base_index = objects.size();
+  std::unordered_set<size_t> seen;
   for (size_t index : indices) {
-    if (index < objects.size()) {
+    if (index < objects.size() && seen.insert(index).second) {
       auto clone = objects[index].CopyForNewPlacement();
+      if (zelda3::UsesRoomObjectStream(clone) &&
+          zelda3::IsStatefulChestObjectId(clone.id_)) {
+        clone.set_options(clone.options() | zelda3::ObjectOption::Chest);
+      }
       clone.x_ = std::clamp(static_cast<int>(clone.x_ + delta_x), 0, 63);
       clone.y_ = std::clamp(static_cast<int>(clone.y_ + delta_y), 0, 63);
-      objects.push_back(clone);
-      new_indices.push_back(base_index + (new_indices.size()));
+      new_indices.push_back(candidate.size());
+      candidate.push_back(std::move(clone));
+      sources.push_back(index);
     }
   }
-
-  NotifyChange(room);
+  if (new_indices.empty() || !CommitCandidate(room_id, std::move(candidate),
+                                              sources, {}, new_indices)) {
+    return {};
+  }
   return new_indices;
 }
 
-void TileObjectHandler::DeleteObjects(int room_id,
+bool TileObjectHandler::DeleteObjects(int room_id,
                                       std::vector<size_t> indices) {
+  mutation_status_ = absl::OkStatus();
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
-    return;
-  if (ctx_)
-    ctx_->NotifyMutation(MutationDomain::kTileObjects);
-
-  std::sort(indices.rbegin(), indices.rend());
-  for (size_t index : indices) {
-    room->RemoveTileObject(index);
+    return false;
+  const auto& objects = room->GetTileObjects();
+  const auto removed = MakeValidIndexSet(indices, objects.size());
+  if (removed.empty()) {
+    return false;
   }
-
-  NotifyChange(room);
+  std::vector<zelda3::RoomObject> candidate;
+  std::vector<std::optional<size_t>> sources;
+  for (size_t index = 0; index < objects.size(); ++index) {
+    if (!removed.contains(index)) {
+      candidate.push_back(objects[index]);
+      sources.push_back(index);
+    }
+  }
+  return CommitCandidate(room_id, std::move(candidate), sources, {},
+                         std::vector<size_t>{});
 }
 
-void TileObjectHandler::DeleteAllObjects(int room_id) {
-  auto* room = GetRoom(room_id);
-  if (!room)
-    return;
-  if (ctx_)
-    ctx_->NotifyMutation(MutationDomain::kTileObjects);
-  room->ClearTileObjects();
-  NotifyChange(room);
+bool TileObjectHandler::DeleteAllObjects(int room_id) {
+  return CommitCandidate(room_id, {}, {}, {}, std::vector<size_t>{});
 }
 
 void TileObjectHandler::SendToFront(int room_id,
                                     const std::vector<size_t>& indices) {
+  mutation_status_ = absl::OkStatus();
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return;
-  auto& objects = room->GetTileObjects();
+  auto objects = room->GetTileObjects();
   auto selected_set = MakeValidIndexSet(indices, objects.size());
   if (selected_set.empty()) {
     return;
   }
-  if (ctx_)
-    ctx_->NotifyMutation(MutationDomain::kTileObjects);
   auto buckets = BuildLayerBuckets(objects, selected_set);
   for (auto& bucket : buckets) {
     std::vector<LayerOrderEntry> other;
@@ -856,22 +1006,23 @@ void TileObjectHandler::SendToFront(int room_id,
     bucket.insert(bucket.end(), std::make_move_iterator(selected.begin()),
                   std::make_move_iterator(selected.end()));
   }
-  FlattenLayerBuckets(objects, buckets, ctx_ ? ctx_->selection : nullptr);
-  NotifyChange(room);
+  std::vector<std::optional<size_t>> sources;
+  std::vector<size_t> selected_indices;
+  FlattenLayerBuckets(objects, buckets, sources, selected_indices);
+  CommitCandidate(room_id, std::move(objects), sources, {}, selected_indices);
 }
 
 void TileObjectHandler::SendToBack(int room_id,
                                    const std::vector<size_t>& indices) {
+  mutation_status_ = absl::OkStatus();
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return;
-  auto& objects = room->GetTileObjects();
+  auto objects = room->GetTileObjects();
   auto selected_set = MakeValidIndexSet(indices, objects.size());
   if (selected_set.empty()) {
     return;
   }
-  if (ctx_)
-    ctx_->NotifyMutation(MutationDomain::kTileObjects);
   auto buckets = BuildLayerBuckets(objects, selected_set);
   for (auto& bucket : buckets) {
     std::vector<LayerOrderEntry> selected;
@@ -889,22 +1040,23 @@ void TileObjectHandler::SendToBack(int room_id,
     bucket.insert(bucket.end(), std::make_move_iterator(other.begin()),
                   std::make_move_iterator(other.end()));
   }
-  FlattenLayerBuckets(objects, buckets, ctx_ ? ctx_->selection : nullptr);
-  NotifyChange(room);
+  std::vector<std::optional<size_t>> sources;
+  std::vector<size_t> selected_indices;
+  FlattenLayerBuckets(objects, buckets, sources, selected_indices);
+  CommitCandidate(room_id, std::move(objects), sources, {}, selected_indices);
 }
 
 void TileObjectHandler::MoveForward(int room_id,
                                     const std::vector<size_t>& indices) {
+  mutation_status_ = absl::OkStatus();
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return;
-  auto& objects = room->GetTileObjects();
+  auto objects = room->GetTileObjects();
   auto selected_set = MakeValidIndexSet(indices, objects.size());
   if (selected_set.empty()) {
     return;
   }
-  if (ctx_)
-    ctx_->NotifyMutation(MutationDomain::kTileObjects);
   auto buckets = BuildLayerBuckets(objects, selected_set);
   for (auto& bucket : buckets) {
     if (bucket.size() < 2) {
@@ -917,22 +1069,23 @@ void TileObjectHandler::MoveForward(int room_id,
       }
     }
   }
-  FlattenLayerBuckets(objects, buckets, ctx_ ? ctx_->selection : nullptr);
-  NotifyChange(room);
+  std::vector<std::optional<size_t>> sources;
+  std::vector<size_t> selected_indices;
+  FlattenLayerBuckets(objects, buckets, sources, selected_indices);
+  CommitCandidate(room_id, std::move(objects), sources, {}, selected_indices);
 }
 
 void TileObjectHandler::MoveBackward(int room_id,
                                      const std::vector<size_t>& indices) {
+  mutation_status_ = absl::OkStatus();
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return;
-  auto& objects = room->GetTileObjects();
+  auto objects = room->GetTileObjects();
   auto selected_set = MakeValidIndexSet(indices, objects.size());
   if (selected_set.empty()) {
     return;
   }
-  if (ctx_)
-    ctx_->NotifyMutation(MutationDomain::kTileObjects);
   auto buckets = BuildLayerBuckets(objects, selected_set);
   for (auto& bucket : buckets) {
     if (bucket.size() < 2) {
@@ -945,26 +1098,30 @@ void TileObjectHandler::MoveBackward(int room_id,
       }
     }
   }
-  FlattenLayerBuckets(objects, buckets, ctx_ ? ctx_->selection : nullptr);
-  NotifyChange(room);
+  std::vector<std::optional<size_t>> sources;
+  std::vector<size_t> selected_indices;
+  FlattenLayerBuckets(objects, buckets, sources, selected_indices);
+  CommitCandidate(room_id, std::move(objects), sources, {}, selected_indices);
 }
 
 bool TileObjectHandler::ResizeObjects(int room_id,
                                       const std::vector<size_t>& indices,
-                                      int delta) {
+                                      int delta, bool horizontal,
+                                      bool uniform) {
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return false;
   auto& objects = room->GetTileObjects();
   const auto resized_size = [&](const zelda3::RoomObject& object) {
-    const int requested_size = static_cast<int>(object.size_) + delta;
-    return zelda3::CanonicalRoomObjectSize(
-        object.id_, static_cast<uint8_t>(std::clamp(requested_size, 0, 255)));
+    return uniform ? zelda3::ResizeRoomObjectUniformlyByDelta(
+                         object.id_, object.size_, delta)
+                   : zelda3::ResizeRoomObjectByDelta(object.id_, object.size_,
+                                                     delta, horizontal);
   };
   const bool has_change =
       std::any_of(indices.begin(), indices.end(), [&](size_t index) {
         return index < objects.size() &&
-               zelda3::IsRoomObjectSizeEditable(objects[index].id_) &&
+               zelda3::IsRoomObjectResizable(objects[index].id_) &&
                objects[index].size_ != resized_size(objects[index]);
       });
   if (!has_change) {
@@ -975,7 +1132,7 @@ bool TileObjectHandler::ResizeObjects(int room_id,
 
   for (size_t index : indices) {
     if (index < objects.size() &&
-        zelda3::IsRoomObjectSizeEditable(objects[index].id_)) {
+        zelda3::IsRoomObjectResizable(objects[index].id_)) {
       const uint8_t new_size = resized_size(objects[index]);
       if (objects[index].size_ == new_size) {
         continue;
@@ -991,32 +1148,92 @@ bool TileObjectHandler::ResizeObjects(int room_id,
 bool TileObjectHandler::PlaceObjectAt(int room_id,
                                       const zelda3::RoomObject& object, int x,
                                       int y) {
+  mutation_status_ = absl::OkStatus();
   auto* room = GetRoom(room_id);
   if (!room) {
     placement_block_reason_ = PlacementBlockReason::kInvalidRoom;
-    return false;
+    return RejectMutation(absl::InvalidArgumentError("Room is unavailable"));
   }
 
   // Hard-stop: enforce ROM object limit before committing placement.
   if (room->GetTileObjects().size() >= zelda3::kMaxTileObjects) {
     placement_block_reason_ = PlacementBlockReason::kObjectLimit;
-    return false;
+    return RejectMutation(
+        absl::ResourceExhaustedError("Room object limit reached"));
   }
 
   placement_block_reason_ = PlacementBlockReason::kNone;
-  if (ctx_)
-    ctx_->NotifyMutation(MutationDomain::kTileObjects);
   auto new_obj = object.CopyForNewPlacement();
+  if (zelda3::UsesRoomObjectStream(new_obj) &&
+      zelda3::IsStatefulChestObjectId(new_obj.id_)) {
+    new_obj.set_options(new_obj.options() | zelda3::ObjectOption::Chest);
+  }
   new_obj.x_ = std::clamp(x, 0, 63);
   new_obj.y_ = std::clamp(y, 0, 63);
-  room->AddTileObject(new_obj);
-  NotifyChange(room);
+  const size_t placed_index = room->GetTileObjects().size();
+  auto candidate = room->GetTileObjects();
+  auto sources = IdentitySources(candidate.size());
+  candidate.push_back(new_obj);
+  sources.push_back(std::nullopt);
+  if (!CommitCandidate(room_id, std::move(candidate), sources, {},
+                       std::vector<size_t>{placed_index})) {
+    placement_block_reason_ = PlacementBlockReason::kChestValidation;
+    return false;
+  }
+  if (placement_policy_ == PlacementPolicy::kOnce) {
+    CancelPlacement();
+  }
+  if (ctx_ && ctx_->selection) {
+    ctx_->NotifySelectionChanged();
+  }
   TriggerSuccessToast();
+  if (placement_callback_) {
+    placement_callback_(new_obj);
+  }
   return true;
 }
 
 void TileObjectHandler::SetPreviewObject(const zelda3::RoomObject& object) {
   preview_object_ = object;
+  RefreshPreviewGraphics();
+}
+
+bool TileObjectHandler::SetPreviewSize(uint8_t size) {
+  if (!object_placement_mode_ ||
+      !zelda3::IsRoomObjectSizeEditable(preview_object_.id_)) {
+    return false;
+  }
+  if (!zelda3::IsRoomObjectResizable(preview_object_.id_)) {
+    const auto& manager = zelda3::CustomObjectManager::Get();
+    if (size > 0x0F || size >= manager.GetSubtypeCount(preview_object_.id_) ||
+        manager.ResolveFilename(preview_object_.id_, size).empty()) {
+      return false;
+    }
+  }
+  const uint8_t canonical_size =
+      zelda3::CanonicalRoomObjectSize(preview_object_.id_, size);
+  if (preview_object_.size_ != canonical_size) {
+    preview_object_.size_ = canonical_size;
+    preview_object_.tiles_loaded_ = false;
+    RefreshPreviewGraphics();
+  }
+  return true;
+}
+
+bool TileObjectHandler::SetPreviewLayer(int layer) {
+  if (!object_placement_mode_ || layer < 0 || layer > 2 ||
+      (layer == 2 && zelda3::UsesSpecialLayerSelector(preview_object_))) {
+    return false;
+  }
+  if (preview_object_.GetLayerValue() != layer) {
+    preview_object_.layer_ = static_cast<zelda3::RoomObject::LayerType>(layer);
+    preview_object_.tiles_loaded_ = false;
+    RefreshPreviewGraphics();
+  }
+  return true;
+}
+
+void TileObjectHandler::RefreshPreviewGraphics() {
   if (object_placement_mode_) {
     RenderGhostPreviewBitmap();
   }
@@ -1084,6 +1301,8 @@ void TileObjectHandler::RenderGhostPreviewBitmap() {
       ghost_preview_create_queued_ = false;
     }
     ghost_preview_bitmap_ready_ = true;
+    ghost_preview_room_id_ = ctx_->current_room_id;
+    ghost_preview_graphics_revision_ = room->graphics_revision();
   }
 }
 
@@ -1123,38 +1342,71 @@ void TileObjectHandler::CopyObjectsToClipboard(
   if (!room || indices.empty())
     return;
 
-  clipboard_.clear();
+  ClearClipboard();
   const auto& objects = room->GetTileObjects();
-
-  for (size_t idx : indices) {
-    if (idx < objects.size()) {
-      clipboard_.push_back(objects[idx]);
+  const bool includes_chest =
+      std::any_of(indices.begin(), indices.end(), [&](size_t index) {
+        return index < objects.size() &&
+               zelda3::IsStatefulChestObjectId(objects[index].id_);
+      });
+  if (includes_chest) {
+    clipboard_status_ =
+        zelda3::ValidateChestObjectMapping(objects, room->GetChests());
+  }
+  for (size_t index : indices) {
+    if (index >= objects.size()) {
+      continue;
     }
+    clipboard_.push_back(objects[index]);
+    std::optional<chest_data> chest;
+    if (zelda3::IsStatefulChestObjectId(objects[index].id_)) {
+      const auto chest_index = zelda3::ChestIndexForObject(objects, index);
+      if (!chest_index || *chest_index >= room->GetChests().size() ||
+          room->GetChests()[*chest_index].size !=
+              (objects[index].id_ == 0xFB1)) {
+        clipboard_status_ = absl::FailedPreconditionError(
+            "Cannot copy a chest with missing or mismatched contents");
+      } else {
+        chest = room->GetChests()[*chest_index];
+      }
+    }
+    clipboard_chests_.push_back(chest);
   }
 }
 
 std::vector<size_t> TileObjectHandler::PasteFromClipboard(int room_id,
                                                           int offset_x,
                                                           int offset_y) {
+  mutation_status_ = clipboard_status_;
   auto* room = GetRoom(room_id);
   if (!room || clipboard_.empty())
     return {};
-  if (ctx_)
-    ctx_->NotifyMutation(MutationDomain::kTileObjects);
-
-  std::vector<size_t> new_indices;
-  size_t base_index = room->GetTileObjects().size();
-
-  for (auto obj : clipboard_) {
-    obj = obj.CopyForNewPlacement();
-    obj.x_ = std::clamp(obj.x_ + offset_x, 0, 63);
-    obj.y_ = std::clamp(obj.y_ + offset_y, 0, 63);
-    obj.tiles_loaded_ = false;
-    room->AddTileObject(obj);
-    new_indices.push_back(base_index++);
+  if (!mutation_status_.ok()) {
+    RejectMutation(mutation_status_);
+    return {};
   }
-
-  NotifyChange(room);
+  auto candidate = room->GetTileObjects();
+  auto sources = IdentitySources(candidate.size());
+  std::vector<std::optional<chest_data>> overrides(candidate.size());
+  std::vector<size_t> new_indices;
+  for (size_t index = 0; index < clipboard_.size(); ++index) {
+    auto object = clipboard_[index].CopyForNewPlacement();
+    if (zelda3::UsesRoomObjectStream(object) &&
+        zelda3::IsStatefulChestObjectId(object.id_)) {
+      object.set_options(object.options() | zelda3::ObjectOption::Chest);
+    }
+    object.x_ = std::clamp(object.x_ + offset_x, 0, 63);
+    object.y_ = std::clamp(object.y_ + offset_y, 0, 63);
+    object.tiles_loaded_ = false;
+    new_indices.push_back(candidate.size());
+    candidate.push_back(std::move(object));
+    sources.push_back(std::nullopt);
+    overrides.push_back(clipboard_chests_[index]);
+  }
+  if (!CommitCandidate(room_id, std::move(candidate), sources, overrides,
+                       new_indices)) {
+    return {};
+  }
   return new_indices;
 }
 

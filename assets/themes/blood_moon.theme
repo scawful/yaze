@@ -1,0 +1,118 @@
+# Blood Moon Theme
+# Zelda BotW dramatic Calamity dark theme with crimson glow and malice accents
+# Original palette for YAZE
+name=Blood Moon
+description=Blood Moon — Zelda-inspired Calamity dark palette with malice obsidian, crimson red, and ember spark accents
+author=YAZE Team
+version=1.0
+
+[colors]
+# Primary colors
+primary=230,57,70,255            # Crimson (#e63946)
+secondary=255,117,143,255        # Malice Rose (#ff758f)
+accent=244,162,97,255            # Ember Flame (#f4a261)
+background=23,19,23,255          # Obsidian Ash (#171317)
+surface=17,13,17,255             # Abyss (#110d11)
+
+# Status colors
+error=217,4,41,255               # Crimson Strike (#d90429)
+warning=231,111,81,255           # Calamity Glow (#e76f51)
+success=42,157,143,255           # Ancient Tech Cyan (#2a9d8f)
+info=230,57,70,255               # Blood Moon Red
+
+# Text colors
+text_primary=248,249,250,255     # Ghost White (#f8f9fa)
+text_secondary=167,139,159,255   # Ash Rose Gray (#a78b9f)
+text_disabled=100,80,95,255      # Muted Malice
+
+# Window colors
+window_bg=23,19,23,240
+child_bg=17,13,17,200
+popup_bg=44,30,40,250            # Crimson Twilight
+
+# Interactive elements
+button=44,30,40,255
+button_hovered=230,57,70,200     # Crimson
+button_active=255,117,143,255    # Malice Rose
+frame_bg=44,30,40,220
+frame_bg_hovered=65,42,58,240
+frame_bg_active=230,57,70,180
+
+# Navigation
+header=44,30,40,255
+header_hovered=65,42,58,255
+header_active=230,57,70,200
+tab=23,19,23,255
+tab_hovered=44,30,40,255
+tab_active=230,57,70,180
+menu_bar_bg=17,13,17,255
+title_bg=44,30,40,255
+title_bg_active=65,42,58,255
+title_bg_collapsed=23,19,23,200
+
+# Borders and separators
+border=230,57,70,255             # Crimson
+border_shadow=0,0,0,0
+separator=65,42,58,180
+separator_hovered=255,117,143,220
+separator_active=230,57,70,255
+
+# Scrollbars
+scrollbar_bg=23,19,23,180
+scrollbar_grab=65,42,58,200
+scrollbar_grab_hovered=100,80,95,230
+scrollbar_grab_active=230,57,70,255
+
+# Resize grips
+resize_grip=255,255,255,26
+resize_grip_hovered=244,162,97,153
+resize_grip_active=244,162,97,230
+
+# Controls
+check_mark=255,117,143,255       # Malice Rose
+slider_grab=230,57,70,255
+slider_grab_active=244,162,97,255
+
+# Tables
+table_header_bg=44,30,40,255
+table_border_strong=65,42,58,255
+table_border_light=44,30,40,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=255,255,255,18
+
+# Links
+text_link=244,162,97,255         # Ember Flame
+
+# Navigation and special
+input_text_cursor=248,249,250,255
+nav_cursor=230,57,70,255
+nav_windowing_highlight=230,57,70,200
+nav_windowing_dim_bg=0,0,0,128
+modal_window_dim_bg=0,0,0,100
+text_selected_bg=230,57,70,100
+drag_drop_target=244,162,97,200  # Ember
+
+# Docking
+docking_preview=230,57,70,180
+docking_empty_bg=44,30,40,255
+
+# Tree lines
+tree_lines=65,42,58,153
+
+# Tab variations
+tab_dimmed=17,13,17,255
+tab_dimmed_selected=44,30,40,255
+tab_dimmed_selected_overline=230,57,70,255
+tab_selected_overline=230,57,70,255
+
+[style]
+window_rounding=6.0
+frame_rounding=4.0
+scrollbar_rounding=6.0
+grab_rounding=3.0
+tab_rounding=4.0
+window_border_size=0.0
+frame_border_size=0.0
+enable_animations=true
+enable_glow_effects=true
+animation_speed=1.0

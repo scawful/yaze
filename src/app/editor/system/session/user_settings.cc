@@ -335,6 +335,10 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
     // Status Bar
     else if (key == "show_status_bar") {
       prefs->show_status_bar = (val == "1");
+    } else if (key == "emulator_keep_running_in_background") {
+      prefs->emulator_keep_running_in_background = (val == "1");
+    } else if (key == "show_experimental_editors") {
+      prefs->show_experimental_editors = (val == "1");
     }
     // Panel Visibility State (format: panel_visibility.EditorType.panel_id=1)
     else if (key.substr(0, 17) == "panel_visibility.") {
@@ -466,6 +470,10 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
 
   // Status Bar
   ss << "show_status_bar=" << (prefs.show_status_bar ? 1 : 0) << "\n";
+  ss << "emulator_keep_running_in_background="
+     << (prefs.emulator_keep_running_in_background ? 1 : 0) << "\n";
+  ss << "show_experimental_editors="
+     << (prefs.show_experimental_editors ? 1 : 0) << "\n";
 
   // Panel Visibility State
   for (const auto& [editor_type, panel_state] : prefs.panel_visibility_state) {
@@ -979,6 +987,19 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
         status_bar.value("visible", prefs->show_status_bar);
   }
 
+  if (root.contains("emulator")) {
+    const auto& emulator = root["emulator"];
+    prefs->emulator_keep_running_in_background =
+        emulator.value("keep_running_in_background",
+                       prefs->emulator_keep_running_in_background);
+  }
+
+  if (root.contains("editors")) {
+    const auto& editors = root["editors"];
+    prefs->show_experimental_editors =
+        editors.value("show_experimental", prefs->show_experimental_editors);
+  }
+
   if (root.contains("layouts")) {
     const auto& layouts = root["layouts"];
     prefs->panel_layout_defaults_revision = layouts.value(
@@ -1174,6 +1195,14 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
 
   root["status_bar"] = {
       {"visible", prefs.show_status_bar},
+  };
+
+  root["emulator"] = {
+      {"keep_running_in_background", prefs.emulator_keep_running_in_background},
+  };
+
+  root["editors"] = {
+      {"show_experimental", prefs.show_experimental_editors},
   };
 
   // Emit named_layouts as an object of parsed JSON objects so the settings
@@ -1653,6 +1682,14 @@ bool UserSettings::ApplyPanelLayoutDefaultsRevision(int target_revision) {
     }
 
     prefs_.panel_layout_defaults_revision = 23;
+    applied = true;
+  }
+
+  // Revision 24: ActivityBar-only left chrome. Keep the thin category rail, but
+  // collapse WindowSidebar by default so Tile16 / canvas editors reclaim width.
+  if (prefs_.panel_layout_defaults_revision < 24 && target_revision >= 24) {
+    prefs_.sidebar_panel_expanded = false;
+    prefs_.panel_layout_defaults_revision = 24;
     applied = true;
   }
 

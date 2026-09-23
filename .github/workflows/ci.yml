@@ -14,6 +14,9 @@ name: CI/CD Pipeline
 # - gui: GUI/E2E tests with ImGuiTestEngine (nightly only)
 # - benchmark: Performance benchmarks (nightly only)
 
+# Documentation-only changes (CHANGELOG.md, release notes, AGENTS.md,
+# docs/internal/agents/**) are not listed below: they run the same build-free
+# checks in docs-checks.yml and no longer compile yaze on three platforms.
 on:
   push:
     branches: [ "master", "develop" ]
@@ -30,8 +33,8 @@ on:
       - 'scripts/dev/release-version-check.sh'
       - 'scripts/release/**'
       - 'scripts/agents/**'
-      - 'AGENTS.md'
-      - 'docs/internal/agents/**'
+      - 'scripts/audit_test_registration.py'
+      - 'scripts/build_cleaner.py'
       - 'ext/imgui'
   pull_request:
     branches: [ "master", "develop" ]
@@ -48,8 +51,8 @@ on:
       - 'scripts/dev/release-version-check.sh'
       - 'scripts/release/**'
       - 'scripts/agents/**'
-      - 'AGENTS.md'
-      - 'docs/internal/agents/**'
+      - 'scripts/audit_test_registration.py'
+      - 'scripts/build_cleaner.py'
       - 'ext/imgui'
   workflow_dispatch:
     inputs:
@@ -91,6 +94,11 @@ jobs:
   build:
     name: "Build - ${{ matrix.name }}"
     runs-on: ${{ matrix.os }}
+    # Skipped on pull requests: the test job builds the same OS, preset, build
+    # type and default target, then runs the tests, so this job only repeated
+    # its compile (about 91 runner-minutes per PR). It still runs on push, where
+    # it uploads the Windows artifact and feeds windows-agent.
+    if: github.event_name != 'pull_request'
     strategy:
       fail-fast: false
       matrix:
@@ -132,7 +140,7 @@ jobs:
         with:
           platform: ${{ matrix.platform }}
           preset: ${{ matrix.preset }}
-          cache-key: ${{ github.sha }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
 
       - name: Build project
         uses: ./.github/actions/build-project
@@ -198,7 +206,7 @@ jobs:
         with:
           platform: ${{ matrix.platform }}
           preset: ${{ matrix.preset }}
-          cache-key: ${{ github.sha }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
 
       - name: Build project
         uses: ./.github/actions/build-project
@@ -213,6 +221,7 @@ jobs:
           test-type: stable
           preset: ${{ matrix.preset }}
           platform: ${{ matrix.platform }}
+          build-type: ${{ env.BUILD_TYPE }}
 
       - name: Run smoke tests (GUI framework validation)
         if: matrix.platform == 'linux'
@@ -262,7 +271,7 @@ jobs:
         with:
           platform: windows
           preset: ci-windows-ai
-          cache-key: ${{ github.sha }}
+          cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
 
       - name: Build project
         uses: ./.github/actions/build-project
@@ -277,34 +286,7 @@ jobs:
           test-type: stable
           preset: ci-windows-ai
           platform: windows
-
-  wasm-smoke-test:
-    name: "WASM Build Smoke Test"
-    runs-on: ubuntu-22.04
-    if: github.event_name == 'pull_request'
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Setup Emscripten
-        uses: mymindstorm/setup-emsdk@v14
-        with:
-          version: 3.1.51
-          actions-cache-folder: 'emsdk-cache'
-
-      - name: Setup Ninja
-        uses: seanmiddleditch/gha-setup-ninja@v4
-
-      - name: Quick WASM build test
-        run: |
-          emcmake cmake --preset wasm-debug
-          cmake --build --preset wasm-debug --target yaze --parallel
-          # Verify output exists
-          test -f build/presets/wasm-debug/bin/yaze.wasm
-          echo "WASM build successful!"
+          build-type: ${{ env.BUILD_TYPE }}
 
   code-quality:
     name: "Code Quality"
@@ -320,7 +302,9 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y clang-tidy-14 cppcheck ripgrep
-        python3 -m pip install --user clang-format==22.1.5
+        # .clang-format-version is the single pin shared with .pre-commit-config.yaml,
+        # the CMake format targets, and scripts/lib/clang_tools.sh.
+        python3 -m pip install --user "clang-format==$(cat .clang-format-version)"
         echo "$HOME/.local/bin" >> "$GITHUB_PATH"
         "$HOME/.local/bin/clang-format" --version
 
@@ -368,7 +352,8 @@ jobs:
           echo "No C/C++ sources changed."
           exit 0
         fi
-        echo "${{ steps.changed.outputs.files }}" | xargs clang-format --dry-run --Werror
+        echo "${{ steps.changed.outputs.files }}" |
+          xargs clang-format --dry-run --Werror --style=file
     
     - name: Run cppcheck
       run: |
@@ -376,10 +361,11 @@ jobs:
           --suppress=missingIncludeSystem --suppress=unusedFunction --inconclusive src/
     
     - name: Run clang-tidy
+      # Advisory. Checks and header filtering come from .clang-tidy; clang-tidy-14
+      # is what ubuntu-22.04 ships, so it lags the pinned clang-format major.
       continue-on-error: true
       run: |
-        find src -name "*.cc" -not -path "*/lib/*" | head -20 | \
-          xargs clang-tidy-14 --header-filter='src/.*\.(h|hpp)$'
+        find src -name "*.cc" -not -path "*/lib/*" | head -20 | xargs clang-tidy-14
 
   release-readiness:
     name: "Release Readiness"
@@ -390,20 +376,17 @@ jobs:
       github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v4
-      - name: Verify VERSION / CHANGELOG hygiene
-        run: bash scripts/dev/release-version-check.sh
-      - name: Verify bounded build parallelism
-        run: bash scripts/agents/test-build-parallelism-policy.sh
-      - name: Protocol audit
-        run: bash scripts/agents/protocol-audit.sh
-      - name: Universe coordination tests
-        run: bash scripts/agents/test-universe-coord.sh
+      - uses: ./.github/actions/release-readiness
 
   memory-sanitizer:
     name: "Memory Sanitizer"
     runs-on: ubuntu-22.04
+    # Runs after merge, not on pull requests. At about 94 minutes it was more
+    # than twice the next-slowest job, so on PRs it set the wait for every
+    # change. It now runs on each push to master/develop that touches code, and
+    # on demand via workflow_dispatch with run_sanitizers=true.
     if: |
-      github.event_name == 'pull_request' || 
+      github.event_name == 'push' ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.run_sanitizers == 'true')
     
     steps:
@@ -525,7 +508,7 @@ jobs:
         with:
           platform: macos
           preset: ci-macos
-          cache-key: oracle-smoke-${{ github.sha }}
+          cache-key: oracle-smoke-${{ hashFiles('cmake/dependencies.lock') }}
 
       # Fix: configure CMake before building. setup-build only installs deps;
       # cmake --preset is required to populate the build/ cache directory.

@@ -42,6 +42,20 @@ void Arena::QueueTextureCommand(TextureCommandType type, Bitmap* bitmap) {
   texture_command_queue_.push_back({type, bitmap, gen});
 }
 
+bool Arena::HasPendingTextureCommand(TextureCommandType type,
+                                     const Bitmap* bitmap) const {
+  if (bitmap == nullptr) {
+    return false;
+  }
+  const uint32_t generation = bitmap->generation();
+  return std::any_of(
+      texture_command_queue_.begin(), texture_command_queue_.end(),
+      [type, bitmap, generation](const TextureCommand& command) {
+        return command.type == type && command.bitmap == bitmap &&
+               command.generation == generation;
+      });
+}
+
 void Arena::ClearTextureQueue() {
   texture_command_queue_.clear();
 }

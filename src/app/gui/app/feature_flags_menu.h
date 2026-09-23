@@ -113,7 +113,7 @@ struct FlagsMenu {
     if (ImGui::BeginPopup("CustomObjectsHelp")) {
       ImGui::Text(tr("Enables custom dungeon object support:"));
       ImGui::BulletText(tr("Minecart track editor panel"));
-      ImGui::BulletText(tr("Custom object graphics (0x31, 0x32)"));
+      ImGui::BulletText(tr("Registered custom object graphics"));
       ImGui::Spacing();
       ImGui::TextColored(ConvertColorToImVec4(theme.warning), tr("REQUIRES:"));
       ImGui::BulletText(tr("custom_objects_folder set in project file"));

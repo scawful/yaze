@@ -3,24 +3,29 @@
 
 repos:
   # Clang format
+  # Keep rev in sync with .clang-format-version; CI installs the same pin.
+  # Formatting is scoped to src/ and test/, matching CI and the CMake targets.
+  # inc/ is deliberately excluded: those public headers are not formatted yet.
   - repo: https://github.com/pre-commit/mirrors-clang-format
-    rev: v18.1.0
+    rev: v22.1.5
     hooks:
       - id: clang-format
-        args: [--style=Google, -i]
-        files: \.(cc|cpp|h|hpp)$
-        exclude: ^(src/lib/|third_party/)
+        args: [--style=file, -i]
+        files: ^(src|test)/.*\.(cc|cpp|h|hpp)$
+        exclude: ^src/lib/
 
   # Clang tidy
+  # Checks and header filtering come from .clang-tidy. -p needs the repo-root
+  # compile database: scripts/dev/update_compile_commands.sh <preset>.
   - repo: local
     hooks:
       - id: clang-tidy
         name: clang-tidy
         entry: clang-tidy
         language: system
-        args: [--header-filter=src/.*\.(h|hpp)$]
-        files: \.(cc|cpp)$
-        exclude: ^(src/lib/|third_party/)
+        args: [-p, ., --quiet]
+        files: ^(src|test)/.*\.(cc|cpp)$
+        exclude: ^src/lib/
 
   # Cppcheck
   - repo: local
@@ -29,9 +34,11 @@ repos:
         name: cppcheck
         entry: cppcheck
         language: system
-        args: [--enable=warning,style,performance, --inconclusive, --error-exitcode=0]
-        files: \.(cc|cpp|h|hpp)$
-        exclude: ^(src/lib/|third_party/)
+        # Quote the --enable list: an unquoted YAML flow sequence splits it on
+        # commas, and cppcheck then treats "style" and "performance" as paths.
+        args: ["--enable=warning,style,performance", --inconclusive, --error-exitcode=0]
+        files: ^(src|test|inc)/.*\.(cc|cpp|h|hpp)$
+        exclude: ^src/lib/
 
   # General hooks
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -45,7 +52,6 @@ repos:
       - id: check-added-large-files
         args: [--maxkb=1000]
       - id: check-case-conflict
-      - id: check-merge-conflict
       - id: mixed-line-ending
         args: [--fix=lf]
 

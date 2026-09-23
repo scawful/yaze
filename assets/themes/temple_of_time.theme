@@ -1,0 +1,118 @@
+# Temple of Time Theme
+# Zelda Ocarina of Time sacred navy stone and radiant Master Sword gold
+# Original palette for YAZE
+name=Temple of Time
+description=Temple of Time — Zelda-inspired sacred stone slate navy with radiant Triforce gold and Master Sword cyan
+author=YAZE Team
+version=1.0
+
+[colors]
+# Primary colors
+primary=230,195,67,255          # Triforce Gold (#e6c343)
+secondary=78,168,222,255         # Master Sword Cyan (#4ea8de)
+accent=100,223,223,255           # Goddess Light (#64dfdf)
+background=20,25,35,255          # Sacred Slate (#141923)
+surface=14,18,25,255             # Chamber Shadow (#0e1219)
+
+# Status colors
+error=230,57,70,255              # Fire Temple Crimson (#e63946)
+warning=244,162,97,255           # Goron Amber (#f4a261)
+success=82,183,136,255           # Kokiri Emerald (#52b788)
+info=78,168,222,255              # Water Temple Azure (#4ea8de)
+
+# Text colors
+text_primary=237,242,244,255     # Ancient Inscription White (#edf2f4)
+text_secondary=141,153,174,255   # Slate Gray (#8d99ae)
+text_disabled=90,100,115,255     # Muted Stone
+
+# Window colors
+window_bg=20,25,35,240
+child_bg=14,18,25,200
+popup_bg=30,38,56,250            # Pedestal Slate
+
+# Interactive elements
+button=30,38,56,255
+button_hovered=230,195,67,200   # Triforce Gold
+button_active=78,168,222,255    # Master Sword Cyan
+frame_bg=30,38,56,220
+frame_bg_hovered=45,55,78,240
+frame_bg_active=78,168,222,180
+
+# Navigation
+header=30,38,56,255
+header_hovered=45,55,78,255
+header_active=230,195,67,200
+tab=20,25,35,255
+tab_hovered=30,38,56,255
+tab_active=230,195,67,180
+menu_bar_bg=14,18,25,255
+title_bg=30,38,56,255
+title_bg_active=45,55,78,255
+title_bg_collapsed=20,25,35,200
+
+# Borders and separators
+border=230,195,67,255           # Triforce Gold
+border_shadow=0,0,0,0
+separator=45,55,78,180
+separator_hovered=78,168,222,220
+separator_active=230,195,67,255
+
+# Scrollbars
+scrollbar_bg=20,25,35,180
+scrollbar_grab=45,55,78,200
+scrollbar_grab_hovered=78,168,222,230
+scrollbar_grab_active=230,195,67,255
+
+# Resize grips
+resize_grip=255,255,255,26
+resize_grip_hovered=100,223,223,153
+resize_grip_active=100,223,223,230
+
+# Controls
+check_mark=82,183,136,255        # Kokiri Emerald
+slider_grab=230,195,67,255
+slider_grab_active=100,223,223,255
+
+# Tables
+table_header_bg=30,38,56,255
+table_border_strong=45,55,78,255
+table_border_light=30,38,56,255
+table_row_bg=0,0,0,0
+table_row_bg_alt=255,255,255,18
+
+# Links
+text_link=100,223,223,255        # Goddess Light
+
+# Navigation and special
+input_text_cursor=237,242,244,255
+nav_cursor=230,195,67,255
+nav_windowing_highlight=230,195,67,200
+nav_windowing_dim_bg=0,0,0,128
+modal_window_dim_bg=0,0,0,100
+text_selected_bg=230,195,67,100
+drag_drop_target=244,162,97,200  # Goron Amber
+
+# Docking
+docking_preview=230,195,67,180
+docking_empty_bg=30,38,56,255
+
+# Tree lines
+tree_lines=45,55,78,153
+
+# Tab variations
+tab_dimmed=14,18,25,255
+tab_dimmed_selected=30,38,56,255
+tab_dimmed_selected_overline=230,195,67,255
+tab_selected_overline=230,195,67,255
+
+[style]
+window_rounding=6.0
+frame_rounding=4.0
+scrollbar_rounding=6.0
+grab_rounding=3.0
+tab_rounding=4.0
+window_border_size=0.0
+frame_border_size=0.0
+enable_animations=true
+enable_glow_effects=true
+animation_speed=1.0

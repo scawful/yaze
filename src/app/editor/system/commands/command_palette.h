@@ -45,6 +45,7 @@ struct CommandCategory {
   static constexpr const char* kTools = "Tools";
   static constexpr const char* kWorkflow = "Workflow";
   static constexpr const char* kHelp = "Help";
+  static constexpr const char* kDrawer = "Drawers";
 };
 
 struct CommandEntry {
@@ -159,6 +160,17 @@ class CommandPalette {
    * label (when available). Commands publish JumpToRoomRequestEvent.
    */
   void RegisterDungeonRoomCommands(size_t session_id);
+
+  /**
+   * @brief Register right-drawer toggle commands from GetDrawerCatalog().
+   *
+   * Names use a "drawer: " prefix so palette search (`drawer:`) groups them.
+   * @param toggle_callback Receives RightDrawerManager::DrawerType as int.
+   */
+  void RegisterDrawerCommands(
+      std::function<void(int drawer_type)> toggle_callback,
+      std::function<void()> cycle_next = {},
+      std::function<void()> cycle_prev = {});
 
   /**
    * @brief Register hack workflow commands from workflow-aware panels/actions.

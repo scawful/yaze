@@ -104,12 +104,16 @@ class DungeonWorkbenchContent : public WindowContent {
   std::string GetIcon() const override;
   std::string GetEditorCategory() const override;
   int GetPriority() const override;
+  std::string GetWorkflowGroup() const override { return "Core"; }
 
   void SetRom(Rom* rom);
   void SetEmbeddedToolPanels(RoomTagEditorPanel* room_tags,
                              CustomCollisionPanel* custom_collision,
                              WaterFillPanel* water_fill,
                              MinecartTrackEditorPanel* minecart_tracks);
+  void SetObjectCoverageContent(WindowContent* object_coverage) {
+    object_coverage_content_ = object_coverage;
+  }
   void SetEmbeddedEditorPanels(WindowContent* object_selector,
                                WindowContent* door_editor,
                                WindowContent* sprite_editor,
@@ -144,6 +148,7 @@ class DungeonWorkbenchContent : public WindowContent {
   void OpenCustomCollisionTool();
   void OpenWaterFillTool();
   void OpenMinecartTool();
+  void OpenObjectCoverageTool();
   bool PopOutActiveTool();
 
   // Mirror toggle: when true, the inspector renders on the LEFT and the
@@ -201,12 +206,14 @@ class DungeonWorkbenchContent : public WindowContent {
   void Draw(bool* p_open) override;
 
  private:
+  friend class DungeonWorkbenchContentTestPeer;
   enum class WorkbenchTool : uint8_t {
     None,
     RoomTags,
     CustomCollision,
     WaterFill,
     MinecartTracks,
+    ObjectCoverage,
     ObjectSelector,
     DoorEditor,
     SpriteEditor,
@@ -232,6 +239,8 @@ class DungeonWorkbenchContent : public WindowContent {
   void DrawInspectorShelf(DungeonCanvasViewer& viewer, bool compact);
   void DrawInspectorShelfRoom(DungeonCanvasViewer& viewer);
   void DrawInspectorShelfSelection(DungeonCanvasViewer& viewer);
+  bool DrawObjectPlacementInspector(DungeonCanvasViewer& viewer);
+  void DrawSelectedObjectActions(DungeonCanvasViewer& viewer, size_t index);
   void DrawInspectorToolPanel(DungeonCanvasViewer& viewer);
   void DrawInspectorToolPicker();
   void DrawWorkbenchTool(DungeonCanvasViewer& viewer, WorkbenchTool tool);
@@ -286,6 +295,7 @@ class DungeonWorkbenchContent : public WindowContent {
   InspectorMode inspector_mode_ = InspectorMode::Room;
   InspectorMode inspector_mode_before_tools_ = InspectorMode::Room;
   bool inspector_selection_was_active_ = false;
+  bool inspector_placement_was_active_ = false;
   bool compact_inspector_detail_requested_ = false;
   WorkbenchTool active_tool_ = WorkbenchTool::ObjectSelector;
 
@@ -315,6 +325,7 @@ class DungeonWorkbenchContent : public WindowContent {
   CustomCollisionPanel* custom_collision_panel_ = nullptr;
   WaterFillPanel* water_fill_panel_ = nullptr;
   MinecartTrackEditorPanel* minecart_track_panel_ = nullptr;
+  WindowContent* object_coverage_content_ = nullptr;
   WindowContent* object_selector_content_ = nullptr;
   WindowContent* door_editor_content_ = nullptr;
   WindowContent* sprite_editor_content_ = nullptr;

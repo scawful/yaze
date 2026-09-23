@@ -46,7 +46,15 @@
       "displayName": "Release Build",
       "jobs": 4,
       "name": "release",
-      "configurePreset": "release"
+      "configurePreset": "release",
+      "configuration": "Release"
+    },
+    {
+      "displayName": "Release Test Build",
+      "jobs": 4,
+      "name": "release-test",
+      "configurePreset": "release-test",
+      "configuration": "Release"
     },
     {
       "displayName": "Minimal Build",
@@ -65,6 +73,12 @@
       "jobs": 4,
       "name": "wasm-release",
       "configurePreset": "wasm-release"
+    },
+    {
+      "displayName": "Web Assembly CI Smoke",
+      "jobs": 4,
+      "name": "wasm-smoke",
+      "configurePreset": "wasm-smoke"
     },
     {
       "displayName": "Web Assembly with AI",
@@ -939,6 +953,16 @@
       "description": "Optimized release build"
     },
     {
+      "inherits": "release",
+      "cacheVariables": {
+        "YAZE_BUILD_TESTS": "ON",
+        "YAZE_ENABLE_ROM_TESTS": "OFF"
+      },
+      "displayName": "Release Test Build",
+      "name": "release-test",
+      "description": "Optimized release configuration with stable tests enabled"
+    },
+    {
       "inherits": "base",
       "cacheVariables": {
         "YAZE_ENABLE_AI": "OFF",
@@ -971,7 +995,7 @@
         "YAZE_BUILD_GUI": "ON",
         "CMAKE_C_FLAGS": "-pthread -s USE_PTHREADS=1 -s ASYNCIFY -g",
         "YAZE_WITH_IMGUI": "ON",
-        "CMAKE_EXE_LINKER_FLAGS": "-pthread -s USE_SDL=2 -s USE_FREETYPE=1 -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4 -s PTHREAD_POOL_SIZE_STRICT=0 -s PTHREAD_POOL_DELAY_LOAD=1 -s NO_DISABLE_EXCEPTION_CATCHING -s FORCE_FILESYSTEM=1 -s SAFE_HEAP=1 -s ASSERTIONS=0 -s USE_OFFSET_CONVERTER=1 -s OFFSCREENCANVAS_SUPPORT=1 -s ASYNCIFY -s ASYNCIFY_STACK_SIZE=1048576 -s ASYNCIFY_IMPORTS=['idb_open_database','idb_save_binary','idb_load_binary','idb_save_string','idb_load_string','idb_delete_entry','idb_list_keys','idb_get_storage_usage','mq_save_queue','mq_load_queue','mq_clear_queue'] -g -lidbfs.js --preload-file ${sourceDir}/assets@/assets",
+        "CMAKE_EXE_LINKER_FLAGS": "-pthread -s USE_SDL=2 -s USE_FREETYPE=1 -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4 -s PTHREAD_POOL_SIZE_STRICT=0 -s PTHREAD_POOL_DELAY_LOAD=1 -s NO_DISABLE_EXCEPTION_CATCHING -s FORCE_FILESYSTEM=1 -s SAFE_HEAP=1 -s ASSERTIONS=0 -s OFFSCREENCANVAS_SUPPORT=1 -s ASYNCIFY -s ASYNCIFY_STACK_SIZE=1048576 -s ASYNCIFY_IMPORTS=['idb_open_database','idb_save_binary','idb_load_binary','idb_save_string','idb_load_string','idb_delete_entry','idb_list_keys','idb_get_storage_usage','mq_save_queue','mq_load_queue','mq_clear_queue'] -g -lidbfs.js --preload-file ${sourceDir}/assets@/assets",
         "YAZE_ENABLE_AI_RUNTIME": "OFF",
         "YAZE_BUILD_EMU": "ON",
         "YAZE_ENABLE_GRPC": "OFF",
@@ -1008,7 +1032,7 @@
         "YAZE_BUILD_GUI": "ON",
         "CMAKE_C_FLAGS": "-pthread -s USE_PTHREADS=1 -O3 -s ASSERTIONS=0 -s ASYNCIFY",
         "YAZE_WITH_IMGUI": "ON",
-        "CMAKE_EXE_LINKER_FLAGS": "-pthread -s USE_SDL=2 -s USE_FREETYPE=1 -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4 -s PTHREAD_POOL_SIZE_STRICT=0 -s PTHREAD_POOL_DELAY_LOAD=1 -s NO_DISABLE_EXCEPTION_CATCHING -s FORCE_FILESYSTEM=1 -O3 -s USE_OFFSET_CONVERTER=1 -s ASSERTIONS=0 -s OFFSCREENCANVAS_SUPPORT=1 -s ASYNCIFY -s ASYNCIFY_STACK_SIZE=1048576 -s ASYNCIFY_IMPORTS=['idb_open_database','idb_save_binary','idb_load_binary','idb_save_string','idb_load_string','idb_delete_entry','idb_list_keys','idb_get_storage_usage','mq_save_queue','mq_load_queue','mq_clear_queue'] -lidbfs.js --preload-file ${sourceDir}/assets@/assets",
+        "CMAKE_EXE_LINKER_FLAGS": "-pthread -s USE_SDL=2 -s USE_FREETYPE=1 -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4 -s PTHREAD_POOL_SIZE_STRICT=0 -s PTHREAD_POOL_DELAY_LOAD=1 -s NO_DISABLE_EXCEPTION_CATCHING -s FORCE_FILESYSTEM=1 -O3 -s ASSERTIONS=0 -s OFFSCREENCANVAS_SUPPORT=1 -s ASYNCIFY -s ASYNCIFY_STACK_SIZE=1048576 -s ASYNCIFY_IMPORTS=['idb_open_database','idb_save_binary','idb_load_binary','idb_save_string','idb_load_string','idb_delete_entry','idb_list_keys','idb_get_storage_usage','mq_save_queue','mq_load_queue','mq_clear_queue'] -lidbfs.js --preload-file ${sourceDir}/assets@/assets",
         "YAZE_ENABLE_AI_RUNTIME": "OFF",
         "YAZE_BUILD_EMU": "ON",
         "YAZE_ENABLE_GRPC": "OFF",
@@ -1029,7 +1053,20 @@
     {
       "inherits": "wasm-release",
       "cacheVariables": {
-        "CMAKE_EXE_LINKER_FLAGS": "-pthread -s USE_SDL=2 -s USE_FREETYPE=1 -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4 -s PTHREAD_POOL_SIZE_STRICT=0 -s PTHREAD_POOL_DELAY_LOAD=1 -s NO_DISABLE_EXCEPTION_CATCHING -s FORCE_FILESYSTEM=1 -O3 -s USE_OFFSET_CONVERTER=1 -s ASSERTIONS=0 -s SAFE_HEAP=1 -s OFFSCREENCANVAS_SUPPORT=1 -s ASYNCIFY -s ASYNCIFY_STACK_SIZE=1048576 -s ASYNCIFY_IMPORTS=['idb_open_database','idb_save_binary','idb_load_binary','idb_save_string','idb_load_string','idb_delete_entry','idb_list_keys','idb_get_storage_usage','mq_save_queue','mq_load_queue','mq_clear_queue'] -lidbfs.js --preload-file ${sourceDir}/assets@/assets",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "OFF",
+        "CMAKE_C_FLAGS_RELEASE": "-O1 -DNDEBUG -g0",
+        "CMAKE_CXX_FLAGS_RELEASE": "-O1 -DNDEBUG -g0",
+        "CMAKE_EXE_LINKER_FLAGS_RELEASE": "-O1 -g0"
+      },
+      "displayName": "Web Assembly CI Smoke",
+      "description": "Release-like WebAssembly build optimized for CI feedback time",
+      "binaryDir": "${sourceDir}/build/presets/${presetName}",
+      "name": "wasm-smoke"
+    },
+    {
+      "inherits": "wasm-release",
+      "cacheVariables": {
+        "CMAKE_EXE_LINKER_FLAGS": "-pthread -s USE_SDL=2 -s USE_FREETYPE=1 -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4 -s PTHREAD_POOL_SIZE_STRICT=0 -s PTHREAD_POOL_DELAY_LOAD=1 -s NO_DISABLE_EXCEPTION_CATCHING -s FORCE_FILESYSTEM=1 -O3 -s ASSERTIONS=0 -s SAFE_HEAP=1 -s OFFSCREENCANVAS_SUPPORT=1 -s ASYNCIFY -s ASYNCIFY_STACK_SIZE=1048576 -s ASYNCIFY_IMPORTS=['idb_open_database','idb_save_binary','idb_load_binary','idb_save_string','idb_load_string','idb_delete_entry','idb_list_keys','idb_get_storage_usage','mq_save_queue','mq_load_queue','mq_clear_queue'] -lidbfs.js --preload-file ${sourceDir}/assets@/assets",
         "CMAKE_CXX_FLAGS": "-pthread -s USE_SDL=2 -s USE_FREETYPE=1 -s USE_PTHREADS=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_DISABLE_EXCEPTION_CATCHING -O3 -s ASSERTIONS=0 -s SAFE_HEAP=1 -msimd128 -s ASYNCIFY",
         "CMAKE_C_FLAGS": "-pthread -s USE_PTHREADS=1 -O3 -s ASSERTIONS=0 -s SAFE_HEAP=1 -s ASYNCIFY"
       },

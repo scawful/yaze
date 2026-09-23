@@ -7,7 +7,9 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_format.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
+#include "app/editor/dungeon/dungeon_room_edit.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
+#include "app/editor/dungeon/inspectors/dungeon_chest_editor.h"
 #include "app/gui/animation/animator.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/input.h"
@@ -232,7 +234,14 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
   ImGui::SameLine();
   DrawRecentRoomBreadcrumbs(room_id);
 
-  auto hex_input = [&](const char* label, const char* icon, uint8_t* val,
+  const ImGuiID error_id =
+      ImGui::GetID(absl::StrFormat("RoomMetadataError/%d", room_id).c_str());
+  auto apply = [&](RoomMetadataField field, int value) {
+    const auto status =
+        EditRoomMetadata(room_id, {.field = field, .value = value});
+    ImGui::GetStateStorage()->SetBool(error_id, !status.ok());
+  };
+  auto hex_input = [&](const char* label, const char* icon, int* val,
                        uint8_t max, const char* tooltip) {
     ImGui::TextDisabled("%s", icon);
     ImGui::SameLine(0, 2);
@@ -245,8 +254,11 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
       ImGui::PushStyleColor(ImGuiCol_FrameBg, flash_color);
     }
 
-    auto res = gui::InputHexByteEx(label, val, max, 32.f, true);
-    const bool changed = res.ShouldApply();
+    ImGui::SetNextItemWidth(40.f);
+    const bool changed = gui::InputScalarDeferred(
+        label, ImGuiDataType_S32, val, "%02X",
+        ImGuiInputTextFlags_CharsHexadecimal,
+        {reinterpret_cast<uintptr_t>(rooms_), static_cast<uint64_t>(room_id)});
 
     if (flash_color.w > 0.01f) {
       ImGui::PopStyleColor();
@@ -258,52 +270,48 @@ void DungeonCanvasViewer::DrawRoomPropertyTable(zelda3::Room& room,
       return true;
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("%s", tooltip);
+      ImGui::SetTooltip("%s (hex 00-%02X)", tooltip, max);
     }
     return false;
   };
 
-  uint8_t bs = room.blockset();
+  int bs = room.blockset();
   if (hex_input("##BS", ICON_MD_VIEW_MODULE, &bs, 81, "Blockset")) {
-    room.SetBlockset(bs);
-    if (room.rom() && room.rom()->is_loaded()) {
-      room.RenderRoomGraphics();
-    }
+    apply(RoomMetadataField::kBlockset, bs);
   }
   ImGui::SameLine(0, 2);
-  ImGui::TextDisabled("(%s)", DungeonRoomSelector::GetBlocksetGroupName(bs));
+  ImGui::TextDisabled(
+      "(%s)", DungeonRoomSelector::GetBlocksetGroupName(room.blockset()));
   ImGui::SameLine();
 
-  uint8_t pal = room.palette();
+  int pal = room.palette();
   if (hex_input("##Pal", ICON_MD_PALETTE, &pal, 71, "Palette")) {
-    room.SetPalette(pal);
-    if (room.rom() && room.rom()->is_loaded()) {
-      room.RenderRoomGraphics();
-    }
+    apply(RoomMetadataField::kPalette, pal);
   }
   ImGui::SameLine();
 
-  uint8_t lyr = room.layout_id();
+  int lyr = room.layout_id();
   if (hex_input("##Lyr", ICON_MD_GRID_VIEW, &lyr, 7, "Layout")) {
-    room.SetLayoutId(lyr);
-    room.MarkLayoutDirty();
-    if (room.rom() && room.rom()->is_loaded()) {
-      room.RenderRoomGraphics();
-    }
+    apply(RoomMetadataField::kLayout, lyr);
   }
   ImGui::SameLine();
 
-  uint8_t ss = room.spriteset();
+  int ss = room.spriteset();
   if (hex_input("##SS", ICON_MD_PEST_CONTROL, &ss, 143, "Spriteset")) {
-    room.SetSpriteset(ss);
-    if (room.rom() && room.rom()->is_loaded()) {
-      room.RenderRoomGraphics();
-    }
+    apply(RoomMetadataField::kSpriteset, ss);
+  }
+  if (ImGui::GetStateStorage()->GetBool(error_id)) {
+    ImGui::TextWrapped(
+        "Edit not applied. Check that this room is editable and the value is "
+        "within the field's supported range. Hover the field for its range.");
   }
 
   if (show_room_details_) {
     ImGui::TextDisabled(tr("Floor: %d | Effect: %d | Tag1: %d | Tag2: %d"),
                         room.floor1(), room.effect(), room.tag1(), room.tag2());
+    if (ImGui::CollapsingHeader(tr("Chest contents"))) {
+      DrawDungeonChestEditor(room_id, room, *this);
+    }
   }
 }
 

@@ -31,14 +31,13 @@ if(NOT DEFINED YAZE_VERSION_SUFFIX)
     set(YAZE_VERSION_SUFFIX "")
 endif()
 
-if(APPLE)
-    project(yaze VERSION ${YAZE_VERSION}
-                 DESCRIPTION "Yet Another Zelda3 Editor"
-                 LANGUAGES CXX C OBJC OBJCXX)
-else()
-    project(yaze VERSION ${YAZE_VERSION}
-                 DESCRIPTION "Yet Another Zelda3 Editor"
-                 LANGUAGES CXX C)
+project(yaze VERSION ${YAZE_VERSION}
+             DESCRIPTION "Yet Another Zelda3 Editor"
+             LANGUAGES CXX C)
+
+if(APPLE AND NOT EMSCRIPTEN)
+    enable_language(OBJC)
+    enable_language(OBJCXX)
 endif()
 
 # Set language standards early so dependencies (e.g., Abseil) build with them.
@@ -51,19 +50,42 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 # Include build options first
 include(cmake/options.cmake)
 
-# Enable sccache/ccache for faster rebuilds if available
-find_program(SCCACHE_FOUND sccache)
-if(SCCACHE_FOUND)
-    message(STATUS "✓ sccache found, enabling for faster builds")
-    set(CMAKE_CXX_COMPILER_LAUNCHER sccache)
-    set(CMAKE_C_COMPILER_LAUNCHER sccache)
+# Bundled gRPC links BoringSSL assembly targets into native binaries. Enable
+# ASM at the top level so CMake initializes the language rules before those
+# transitive targets are generated. Windows BoringSSL uses ASM_NASM instead.
+if(YAZE_ENABLE_GRPC AND NOT EMSCRIPTEN AND NOT WIN32)
+    enable_language(ASM)
+endif()
+
+# Enable sccache/ccache for faster rebuilds if available.
+# Turn this off for CodeQL: its extractor traces real compiler calls, and a
+# cache hit skips the compiler, so the file drops out of the analysis. The
+# launcher is set with set() below, so -DCMAKE_CXX_COMPILER_LAUNCHER= on the
+# command line cannot override it; this option is the switch.
+option(YAZE_USE_COMPILER_CACHE
+       "Use sccache or ccache as the compiler launcher when one is found" ON)
+# SDL2 finds ccache and sets launchers for its own targets (SDL_CCACHE,
+# default ON), so the option has to reach it as well. Mirroring it in both
+# directions keeps a reconfigured build dir consistent.
+set(SDL_CCACHE ${YAZE_USE_COMPILER_CACHE}
+    CACHE BOOL "Use ccache for SDL2's targets (follows YAZE_USE_COMPILER_CACHE)"
+    FORCE)
+if(YAZE_USE_COMPILER_CACHE)
+  find_program(SCCACHE_FOUND sccache)
+  if(SCCACHE_FOUND)
+      message(STATUS "✓ sccache found, enabling for faster builds")
+      set(CMAKE_CXX_COMPILER_LAUNCHER sccache)
+      set(CMAKE_C_COMPILER_LAUNCHER sccache)
+  else()
+      find_program(CCACHE_FOUND ccache)
+      if(CCACHE_FOUND)
+          message(STATUS "✓ ccache found, enabling for faster builds")
+          set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
+          set(CMAKE_C_COMPILER_LAUNCHER ccache)
+      endif()
+  endif()
 else()
-    find_program(CCACHE_FOUND ccache)
-    if(CCACHE_FOUND)
-        message(STATUS "✓ ccache found, enabling for faster builds")
-        set(CMAKE_CXX_COMPILER_LAUNCHER ccache)
-        set(CMAKE_C_COMPILER_LAUNCHER ccache)
-    endif()
+  message(STATUS "Compiler cache disabled (YAZE_USE_COMPILER_CACHE=OFF)")
 endif()
 
 # Version is defined in project() above - use those variables
@@ -177,9 +199,26 @@ if(YAZE_BUILD_TESTS)
 endif()
 
 # Code quality targets
+#
+# .clang-format-version pins the clang-format major that CI, pre-commit, the git
+# hooks, and these targets all use. Discovery prefers the suffixed binary for
+# that major and falls back to an unsuffixed one, which only warns: a different
+# major can format the same .clang-format differently than CI does.
+set(YAZE_CLANG_FORMAT_VERSION "")
+set(YAZE_CLANG_FORMAT_MAJOR "")
+if(EXISTS "${CMAKE_SOURCE_DIR}/.clang-format-version")
+  file(READ "${CMAKE_SOURCE_DIR}/.clang-format-version" YAZE_CLANG_FORMAT_VERSION)
+  string(STRIP "${YAZE_CLANG_FORMAT_VERSION}" YAZE_CLANG_FORMAT_VERSION)
+  string(REGEX MATCH "^[0-9]+" YAZE_CLANG_FORMAT_MAJOR "${YAZE_CLANG_FORMAT_VERSION}")
+endif()
+
 if(YAZE_ENABLE_CLANG_TIDY)
   if(NOT YAZE_CLANG_TIDY_EXE)
-    find_program(YAZE_CLANG_TIDY_EXE NAMES clang-tidy clang-tidy-18 clang-tidy-17 clang-tidy-16)
+    set(YAZE_CLANG_TIDY_NAMES clang-tidy)
+    if(YAZE_CLANG_FORMAT_MAJOR)
+      list(PREPEND YAZE_CLANG_TIDY_NAMES "clang-tidy-${YAZE_CLANG_FORMAT_MAJOR}")
+    endif()
+    find_program(YAZE_CLANG_TIDY_EXE NAMES ${YAZE_CLANG_TIDY_NAMES})
   endif()
 
   if(YAZE_CLANG_TIDY_EXE)
@@ -190,15 +229,37 @@ if(YAZE_ENABLE_CLANG_TIDY)
   endif()
 endif()
 
+set(YAZE_CLANG_FORMAT_NAMES clang-format)
+if(YAZE_CLANG_FORMAT_MAJOR)
+  list(PREPEND YAZE_CLANG_FORMAT_NAMES "clang-format-${YAZE_CLANG_FORMAT_MAJOR}")
+endif()
+
 find_program(CLANG_FORMAT
-  NAMES clang-format-18 clang-format
+  NAMES ${YAZE_CLANG_FORMAT_NAMES}
   HINTS "${HOMEBREW_LLVM_PREFIX}/bin" # Prefer clang-format from Homebrew LLVM
   NO_DEFAULT_PATH
 )
 if(NOT CLANG_FORMAT) # Fallback to generic search if not found in Homebrew prefix
-  find_program(CLANG_FORMAT NAMES clang-format clang-format-17 clang-format-16 clang-format-15 clang-format-14)
+  find_program(CLANG_FORMAT NAMES ${YAZE_CLANG_FORMAT_NAMES})
 endif()
 if(CLANG_FORMAT)
+  execute_process(
+    COMMAND "${CLANG_FORMAT}" --version
+    OUTPUT_VARIABLE YAZE_CLANG_FORMAT_BANNER
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+  )
+  string(REGEX MATCH "version ([0-9]+)" YAZE_CLANG_FORMAT_MATCH "${YAZE_CLANG_FORMAT_BANNER}")
+  if(YAZE_CLANG_FORMAT_MAJOR AND CMAKE_MATCH_1 AND
+     NOT CMAKE_MATCH_1 STREQUAL YAZE_CLANG_FORMAT_MAJOR)
+    message(WARNING
+      "clang-format major ${CMAKE_MATCH_1} found at ${CLANG_FORMAT}; this repo pins "
+      "major ${YAZE_CLANG_FORMAT_MAJOR} (.clang-format-version). yaze-format output "
+      "may differ from CI.")
+  endif()
+
+  # inc/ is intentionally out of scope: those public C headers are not formatted
+  # to .clang-format yet, and CI only checks src/ and test/.
   file(GLOB_RECURSE ALL_SOURCE_FILES
        "${CMAKE_SOURCE_DIR}/src/*.cc"
        "${CMAKE_SOURCE_DIR}/src/*.h"

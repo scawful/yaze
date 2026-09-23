@@ -29,7 +29,6 @@
 #include "app/editor/menu/status_bar.h"
 #include "app/editor/session_types.h"
 #include "app/editor/shell/coordinator/ui_coordinator.h"
-#include "app/editor/shell/coordinator/welcome_screen.h"
 #include "app/editor/shell/coordinator/workspace_manager.h"
 #include "app/editor/shell/feedback/popup_manager.h"
 #include "app/editor/shell/feedback/toast_manager.h"
@@ -507,8 +506,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void InitializeTestSuites();
   void ApplyStartupVisibilityOverrides();
   void ApplyLayoutDefaultsMigrationIfNeeded();
-  // Returns a preferred startup category, skipping "Emulator" to prevent
-  // the emulator panel from auto-opening on project load.
+  // Returns a preferred startup category. Honors the last-active category
+  // (including Emulator). Never defaults to Emulator when nothing was saved.
   std::string GetPreferredStartupCategory(
       const std::string& saved_category,
       const std::vector<std::string>& available_categories) const;
@@ -526,7 +525,6 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void InitializeServices();
   void SetupComponentCallbacks();
   void SetupDialogCallbacks();
-  void SetupWelcomeScreenCallbacks();
   void SetupSidebarCallbacks();
   void InitializeShortcutSystem();
   void ProcessInput();
@@ -567,10 +565,8 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   // Project file editor
   ProjectFileEditor project_file_editor_;
 
-  // Note: Editor selection dialog and welcome screen are now managed by
-  // UICoordinator Kept here for backward compatibility during transition
+  // Editor selection and the Welcome screen are managed by UICoordinator.
   std::unique_ptr<DashboardPanel> dashboard_panel_;
-  WelcomeScreen welcome_screen_;
   RomLoadOptionsDialog rom_load_options_dialog_;
   bool show_rom_load_options_ = false;
   StartupVisibility welcome_mode_override_ = StartupVisibility::kAuto;
@@ -728,6 +724,7 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   size_t PendingPaletteColorCountForSession(size_t session_index) const;
   int ModifiedSessionCount() const;
   std::string DescribePendingUnsavedWork(size_t session_index) const;
+  std::string CompactPendingUnsavedWorkLabel(size_t session_index) const;
   std::string DescribeAllPendingUnsavedWork() const;
 
   float autosave_timer_ = 0.0f;

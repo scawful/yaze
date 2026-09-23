@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <gtest/gtest.h>
+#include "unique_temp_path.h"
 
 namespace yaze::test {
 namespace {
@@ -29,7 +30,7 @@ TEST(RomHashTest, ComputeFileSha1HexMatchesBufferHash) {
       util::ComputeSha1Hex(kBytes.data(), kBytes.size());
 
   const fs::path path =
-      fs::temp_directory_path() / "yaze_rom_hash_test_buffer.bin";
+      ::yaze::test::UniqueTempPath("yaze_rom_hash_test_buffer", ".bin");
   {
     std::ofstream file(path, std::ios::binary | std::ios::trunc);
     ASSERT_TRUE(file.is_open());
@@ -46,7 +47,7 @@ TEST(RomHashTest, ComputeFileSha1HexMatchesBufferHash) {
 
 TEST(RomHashTest, ComputeFileSha1HexHandlesEmptyFile) {
   const fs::path path =
-      fs::temp_directory_path() / "yaze_rom_hash_test_empty.bin";
+      ::yaze::test::UniqueTempPath("yaze_rom_hash_test_empty", ".bin");
   {
     std::ofstream file(path, std::ios::binary | std::ios::trunc);
     ASSERT_TRUE(file.is_open());

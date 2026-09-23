@@ -2,6 +2,7 @@
 #define YAZE_APP_ZELDA3_DUNGEON_ROOM_H
 
 #include <yaze.h>
+#include "zelda3/dungeon/pot_item_position.h"
 
 #include <array>
 #include <cstdint>
@@ -23,6 +24,7 @@
 #include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_limits.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
+#include "zelda3/dungeon/room_layer_registers.h"
 #include "zelda3/dungeon/room_layout.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/game_data.h"
@@ -106,7 +108,9 @@ const static LayerMergeType kLayerMergeTypeList[] = {
     LayerMerge00, LayerMerge01, LayerMerge02, LayerMerge03, LayerMerge04,
     LayerMerge05, LayerMerge06, LayerMerge07, LayerMerge08};
 
-enum CollisionKey {
+// Fixed byte storage keeps unnamed ROM values representable for lossless
+// load/save and undo. Authoring controls validate their supported subset.
+enum CollisionKey : uint8_t {
   One_Collision,
   Both,
   Both_With_Scroll,
@@ -114,7 +118,7 @@ enum CollisionKey {
   Moving_Water_Collision,
 };
 
-enum EffectKey {
+enum EffectKey : uint8_t {
   Effect_Nothing,
   One,
   Moving_Floor,
@@ -131,17 +135,16 @@ struct PotItem {
   uint16_t position = 0;  // Raw position word from ROM
   uint8_t item = 0;       // Item type (0 = nothing)
 
-  // Decode pixel coordinates from position word
-  // Format: high byte * 16 = Y, low byte * 4 = X
-  int GetPixelX() const { return (position & 0xFF) * 4; }
-  int GetPixelY() const { return ((position >> 8) & 0xFF) * 16; }
+  // Coordinates occupy bits 1..12; layer/control bits do not affect pixels.
+  int GetPixelX() const { return PotItemPixelX(position); }
+  int GetPixelY() const { return PotItemPixelY(position); }
 
   // Get tile coordinates (8-pixel tiles)
   int GetTileX() const { return GetPixelX() / 8; }
   int GetTileY() const { return GetPixelY() / 8; }
 };
 
-enum TagKey {
+enum TagKey : uint8_t {
   Nothing,
   NW_Kill_Enemy_to_Open,
   NE_Kill_Enemy_to_Open,
@@ -219,6 +222,36 @@ struct WaterFillZoneMap {
 
 class Room {
  public:
+  // Authoring state only: restoring metadata never replaces entity collections,
+  // room load state, ROM bytes, or dirty flags for unrelated save domains.
+  struct MetadataSnapshot {
+    uint8_t palette = 0;
+    uint8_t blockset = 0;
+    uint8_t spriteset = 0;
+    uint8_t layout = 0;
+    uint8_t floor1 = 0;
+    uint8_t floor2 = 0;
+    uint16_t message = 0;
+    background2 bg2{};
+    uint8_t layer2_mode = 0;
+    LayerMergeType layer_merging = LayerMerge00;
+    bool is_dark = false;
+    bool is_light = false;
+    CollisionKey collision = One_Collision;
+    EffectKey effect = Effect_Nothing;
+    TagKey tag1 = Nothing;
+    TagKey tag2 = Nothing;
+    uint8_t holewarp = 0;
+    uint8_t pit_target_layer = 0;
+    std::array<uint8_t, 4> staircase_rooms{};
+    std::array<uint8_t, 4> staircase_planes{};
+
+    bool operator==(const MetadataSnapshot&) const = default;
+  };
+
+  MetadataSnapshot CaptureMetadataSnapshot() const;
+  void RestoreMetadataSnapshot(const MetadataSnapshot& snapshot);
+
   struct SaveDirtySnapshot {
     struct BlockLoadOrder {
       size_t tile_object_index;
@@ -431,7 +464,7 @@ class Room {
   void MarkObjectsDirty() {
     dirty_state_.objects = true;
     dirty_state_.textures = true;
-    dirty_state_.composite = true;
+    MarkCompositeDirty();
   }
   void MarkObjectStreamDirty() {
     save_dirty_state_.object_stream = true;
@@ -472,12 +505,12 @@ class Room {
   void MarkGraphicsDirty() {
     dirty_state_.graphics = true;
     dirty_state_.textures = true;
-    dirty_state_.composite = true;
+    MarkCompositeDirty();
   }
   void MarkLayoutDirty() {
     dirty_state_.layout = true;
     dirty_state_.textures = true;
-    dirty_state_.composite = true;
+    MarkCompositeDirty();
   }
   void RemoveTileObject(size_t index) {
     if (index < tile_objects_.size()) {
@@ -938,6 +971,9 @@ class Room {
   CollisionKey collision() const { return collision_; }
   const LayerMergeType& layer_merging() const { return layer_merging_; }
   uint8_t layer2_mode() const { return layer2_mode_; }
+  // The PPU layer settings the game uses for this room on entry, given the
+  // room's persistent flags (0: as first entered). See room_layer_registers.h.
+  RoomLayerRegisters GameLayerRegisters(uint16_t room_flags = 0) const;
   uint8_t staircase_plane(int index) const {
     return (index >= 0 && index < 4) ? staircase_plane_[index] : 0;
   }
@@ -1019,6 +1055,21 @@ class Room {
   const std::array<uint8_t, 0x10000>& get_gfx_buffer() const {
     return current_gfx16_;
   }
+  // Identifies the assembled pixels, including animated frame reloads. The
+  // token survives moves and cannot collide with another room's reload count.
+  uint64_t graphics_revision() const { return graphics_revision_; }
+  // Identifies every source change that can alter a composed room image.
+  // Unlike graphics_revision(), this also advances for object-only, layout,
+  // palette, and direct composite invalidations.
+  uint64_t composite_source_revision() const {
+    return composite_source_revision_;
+  }
+  const gfx::SnesPalette& rendered_dungeon_palette() const {
+    return rendered_dungeon_palette_;
+  }
+  const std::vector<SDL_Color>& rendered_palette() const {
+    return rendered_palette_;
+  }
 
   // Per-room background buffers (not shared via arena!)
   auto& bg1_buffer() { return bg1_buffer_; }
@@ -1032,10 +1083,13 @@ class Room {
 
   /// Get a composite bitmap of all layers merged
   gfx::Bitmap& GetCompositeBitmap(RoomLayerManager& layer_mgr);
+  /// Compose into storage owned by the caller. Live editor views use this path
+  /// so deferred draws retain stable bitmap and texture identity.
+  void RenderComposite(const RoomLayerManager& layer_mgr, gfx::Bitmap& output);
   const gfx::Bitmap& composite_bitmap() const { return composite_bitmap_; }
 
   /// Mark composite bitmap as needing regeneration
-  void MarkCompositeDirty() { dirty_state_.composite = true; }
+  void MarkCompositeDirty();
   bool IsCompositeDirty() const { return dirty_state_.composite; }
 
   DungeonState* GetDungeonState() { return dungeon_state_.get(); }
@@ -1046,6 +1100,10 @@ class Room {
   GameData* game_data_ = nullptr;
 
   std::array<uint8_t, 0x10000> current_gfx16_;
+  uint64_t graphics_revision_ = 0;
+  uint64_t composite_source_revision_ = 0;
+  gfx::SnesPalette rendered_dungeon_palette_;
+  std::vector<SDL_Color> rendered_palette_;
 
   // Each room has its OWN background buffers and bitmaps
   // Each room has its OWN background buffers and bitmaps
@@ -1080,6 +1138,7 @@ class Room {
   // Composite bitmap for merged layer output
   mutable gfx::Bitmap composite_bitmap_;
   mutable uint64_t composite_signature_ = 0;
+  mutable uint64_t composite_rendered_source_revision_ = 0;
   mutable bool has_composite_signature_ = false;
   DirtyState dirty_state_;
   SaveDirtyState save_dirty_state_;
@@ -1110,8 +1169,8 @@ class Room {
   int room_id_ = 0;
   int animated_frame_ = 0;
 
-  uint8_t staircase_plane_[4];
-  uint8_t staircase_rooms_[4];
+  uint8_t staircase_plane_[4]{};
+  uint8_t staircase_rooms_[4]{};
 
   // Room header properties (formerly public)
   uint8_t blockset_ = 0;

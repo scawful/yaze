@@ -215,13 +215,28 @@ STATIC_CONFIG: Sequence[CMakeSourceBlock] = (
     CMakeSourceBlock(
         variable="YAZE_APP_EMU_SRC",
         cmake_path=SOURCE_ROOT / "CMakeLists.txt",
+        # Scan the emu tree but exclude:
+        #  - emu.cc        : standalone executable entry point (has main())
+        #  - ui/           : covered by the separate YAZE_EMU_GUI_SRC variable
+        #  - platform/wasm : platform-conditional, added via list(APPEND) guards
+        #  - input/sdl3_*  : SDL3-conditional, added via list(APPEND) guards
+        #  - audio/sdl3_*  : SDL3-conditional, added via list(APPEND) guards
+        #  - adapters      : gRPC-conditional, added in emu_library.cmake
         directories=(DirectorySpec(SOURCE_ROOT / "app/emu"),),
+        exclude={
+            Path("app/emu/emu.cc"),
+            Path("app/emu/ui/debugger_ui.cc"),
+            Path("app/emu/ui/emulator_ui.cc"),
+            Path("app/emu/ui/input_handler.cc"),
+            Path("app/emu/platform/wasm/wasm_audio.cc"),
+            Path("app/emu/input/sdl3_input_backend.cc"),
+            Path("app/emu/audio/sdl3_audio_backend.cc"),
+            Path("app/emu/internal_emulator_adapter.cc"),
+            Path("app/emu/mesen/mesen_emulator_adapter.cc"),
+        },
     ),
-    CMakeSourceBlock(
-        variable="YAZE_APP_CORE_SRC",
-        cmake_path=SOURCE_ROOT / "app/core/core_library.cmake",
-        directories=(DirectorySpec(SOURCE_ROOT / "app/core", recursive=False),),
-    ),
+    # NOTE: YAZE_APP_CORE_SRC / core_library.cmake was dissolved into the main
+    # modular cmake layout. No static entry is needed here.
     CMakeSourceBlock(
         variable="YAZE_APP_EDITOR_SRC",
         cmake_path=SOURCE_ROOT / "app/editor/editor_library.cmake",
@@ -232,17 +247,20 @@ STATIC_CONFIG: Sequence[CMakeSourceBlock] = (
         cmake_path=SOURCE_ROOT / "zelda3/zelda3_library.cmake",
         directories=(DirectorySpec(SOURCE_ROOT / "zelda3"),),
     ),
-    CMakeSourceBlock(
-        variable="YAZE_NET_SRC",
-        cmake_path=SOURCE_ROOT / "app/net/net_library.cmake",
-        directories=(DirectorySpec(SOURCE_ROOT / "app/net"),),
-        exclude={Path("app/net/rom_service_impl.cc")},
-    ),
-    CMakeSourceBlock(
-        variable="YAZE_UTIL_SRC",
-        cmake_path=SOURCE_ROOT / "util/util.cmake",
-        directories=(DirectorySpec(SOURCE_ROOT / "util"),),
-    ),
+    # NOTE: YAZE_NET_SRC is intentionally excluded from static auto-maintenance.
+    # net_library.cmake uses indirect variable composition:
+    #   set(YAZE_NET_SRC ${YAZE_NET_BASE_SRC} ${YAZE_NET_PLATFORM_SRC})
+    # The simple set()-block parser cannot resolve multi-variable expansion
+    # without executing CMake, and would corrupt the cmake file.
+    # Maintain YAZE_NET_BASE_SRC and YAZE_NET_PLATFORM_SRC manually in
+    # src/app/net/net_library.cmake.
+
+    # NOTE: YAZE_UTIL_SRC is intentionally excluded from static auto-maintenance.
+    # src/util/util.cmake deliberately lists core/source_artifact_publisher.cc
+    # (a cross-directory reference from src/core/) that the directory scanner
+    # would not find when scanning only src/util/, causing a false removal.
+    # Maintain src/util/util.cmake manually.
+
     # Note: These are commented out in favor of auto-discovery via markers
     # CMakeSourceBlock(
     #     variable="GFX_TYPES_SRC",
@@ -305,24 +323,17 @@ STATIC_CONFIG: Sequence[CMakeSourceBlock] = (
     #     cmake_path=SOURCE_ROOT / "app/gui/gui_library.cmake",
     #     directories=(DirectorySpec(SOURCE_ROOT / "app/gui/app"),),
     # ),
-    CMakeSourceBlock(
-        variable="YAZE_AGENT_SOURCES",
-        cmake_path=SOURCE_ROOT / "cli/agent.cmake",
-        directories=(
-            DirectorySpec(SOURCE_ROOT / "cli", recursive=False),  # For flags.cc
-            DirectorySpec(SOURCE_ROOT / "cli/service"),
-            DirectorySpec(SOURCE_ROOT / "cli/handlers"),
-        ),
-        exclude={
-            Path("cli/cli.cc"),  # Part of z3ed executable
-            Path("cli/cli_main.cc"),  # Part of z3ed executable
-        },
-    ),
-    CMakeSourceBlock(
-        variable="YAZE_TEST_SOURCES",
-        cmake_path=SOURCE_ROOT / "app/test/test.cmake",
-        directories=(DirectorySpec(SOURCE_ROOT / "app/test"),),
-    ),
+    # NOTE: YAZE_AGENT_SOURCES is intentionally excluded from static auto-maintenance.
+    # cli/agent.cmake uses multi-stage variable composition:
+    #   set(YAZE_AGENT_SOURCES ${YAZE_AGENT_CORE_SOURCES})
+    #   list(APPEND YAZE_AGENT_SOURCES ...)  # conditional blocks
+    # Scanning the full cli/service and cli/handlers trees would attempt to add
+    # hundreds of files that are gated behind YAZE_ENABLE_AGENT_CLI or other
+    # feature flags, causing massive false rewrites.
+    # Maintain src/cli/agent.cmake manually or via focused per-subdir review.
+    # NOTE: YAZE_TEST_SOURCES / app/test/test.cmake was dissolved when the test
+    # harness was migrated to test/CMakeLists.txt with per-suite source lists.
+    # No static entry is needed here.
 )
 
 
@@ -628,6 +639,12 @@ def update_cmake_block(block: CMakeSourceBlock, dry_run: bool, gitignore_spec: A
 
     if dry_run:
         print(f"[DRY-RUN] Would update {block.cmake_path.relative_to(PROJECT_ROOT)} :: {block.variable}")
+        missing_for_report = sorted(expected_set - set(existing_entries))
+        removed_for_report = sorted(set(existing_entries) - expected_set)
+        if missing_for_report:
+            print(f"  Would add:    {', '.join(missing_for_report)}")
+        if removed_for_report:
+            print(f"  Would remove: {', '.join(removed_for_report)}")
         return True
 
     cmake_lines[start_idx + 1 : end_idx] = rebuilt_block
@@ -891,10 +908,12 @@ def run(dry_run: bool, cmake_only: bool, includes_only: bool, iwyu_mode: bool, a
     elif not dry_run and not changed:
         print("\n✅ No changes required")
     elif dry_run:
-        print("\n✅ Dry-run complete - use without --dry-run to apply changes")
+        # CI/pre-push run with --dry-run and must fail closed when drift exists.
+        print("\n❌ Dry-run found required updates - re-run without --dry-run to apply")
+        return 1
     else:
         print("\n✅ All changes applied successfully")
-    
+
     return 0
 
 

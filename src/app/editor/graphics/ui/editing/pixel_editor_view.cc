@@ -14,6 +14,7 @@
 #include "app/gui/core/style_guard.h"
 #include "app/gui/core/theme_manager.h"
 #include "app/gui/core/ui_helpers.h"
+#include "app/gui/widgets/empty_state.h"
 #include "app/gui/widgets/themed_widgets.h"
 #include "imgui/imgui.h"
 
@@ -172,8 +173,12 @@ void PixelEditorView::DrawViewControls() {
 
 void PixelEditorView::DrawCanvas() {
   if (state_->open_sheets.empty()) {
-    ImGui::TextDisabled(
-        tr("No sheet selected. Select a sheet from the browser."));
+    gui::EmptyStateOptions opts;
+    opts.icon = ICON_MD_TEXTURE;
+    opts.title = "Select a sheet";
+    opts.detail = "Open a graphics sheet from the browser to edit pixels here.";
+    opts.compact = true;
+    gui::DrawEmptyState(opts);
     return;
   }
 

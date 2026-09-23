@@ -14,6 +14,7 @@
 #include "rom/rom_diagnostics.h"
 #include "zelda.h"
 #include "zelda3/dungeon/pit_damage_table.h"
+#include "zelda3/dungeon/room_default_entrance.h"
 
 namespace yaze {
 namespace zelda3 {
@@ -107,7 +108,12 @@ struct GameData {
   // Global RoomsWithPitDamage membership table (bank $07).
   PitDamageTable pit_damage_table;
 
+  // Per-room default entrance and the main graphics set it selects; see
+  // room_default_entrance.h. Empty until LoadGameData runs.
+  std::vector<RoomDefaultEntrance> room_default_entrances;
+
   void Clear() {
+    room_default_entrances.clear();
     graphics_buffer.clear();
     for (auto& sheet : raw_gfx_sheets)
       sheet.clear();

@@ -52,10 +52,23 @@ jobs:
         platform: linux
         preset: ci-linux
         cache-key: ${{ hashFiles('cmake/dependencies.lock') }}
+        # CodeQL's extractor traces real compiler calls. CMakeLists.txt enables
+        # any sccache on PATH as the launcher, and a cache hit skips the
+        # compiler, so the file would silently drop out of the analysis.
+        compiler-cache: 'false'
 
     - name: Configure (no gRPC for security scan)
       run: |
-        cmake --preset ci-linux -DYAZE_ENABLE_GRPC=OFF -DYAZE_ENABLE_REMOTE_AUTOMATION=OFF
+        cmake --preset ci-linux -DYAZE_ENABLE_GRPC=OFF -DYAZE_ENABLE_REMOTE_AUTOMATION=OFF -DYAZE_USE_COMPILER_CACHE=OFF
+
+    - name: Refuse to build through a compiler cache
+      # ccache is installed on every Linux runner (linux-ci-packages.txt), so
+      # checking PATH is not enough: CMakeLists.txt falls back to ccache when
+      # sccache is absent. Check what CMake generated instead. ci-linux uses
+      # Ninja Multi-Config, where compile rules live in
+      # CMakeFiles/impl-<Config>.ninja rather than build.ninja, so every
+      # generated .ninja file is checked, and finding none is an error.
+      run: bash scripts/ci/check-no-compiler-launcher.sh build/presets/ci-linux
 
     - name: Build
       run: |

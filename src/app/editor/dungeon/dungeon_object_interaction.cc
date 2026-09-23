@@ -25,14 +25,11 @@ namespace yaze::editor {
 
 namespace {
 
-constexpr int kRoomPixelMax = 511;
-
-uint16_t EncodePotItemPosition(int pixel_x, int pixel_y) {
-  const int clamped_x = std::clamp(pixel_x, 0, kRoomPixelMax);
-  const int clamped_y = std::clamp(pixel_y, 0, kRoomPixelMax);
-  const int encoded_x = std::clamp(clamped_x / 4, 0, 255);
-  const int encoded_y = std::clamp(clamped_y / 16, 0, 255);
-  return static_cast<uint16_t>((encoded_y << 8) | encoded_x);
+float ObjectResizeWheelDelta(const ImGuiIO& io) {
+  // macOS converts Shift+vertical wheel into horizontal input before SDL
+  // delivers it. Other platforms retain the vertical delta. Prefer that delta
+  // when both axes are present so one wheel event only resizes once.
+  return io.MouseWheel != 0.0f || !io.KeyShift ? io.MouseWheel : io.MouseWheelH;
 }
 
 }  // namespace
@@ -74,7 +71,7 @@ void DungeonObjectInteraction::HandleCanvasMouseInput() {
 
   if (hovered) {
     if (pointer_within_room &&
-        entity_coordinator_.HandleMouseWheel(io.MouseWheel)) {
+        entity_coordinator_.HandleMouseWheel(ObjectResizeWheelDelta(io))) {
       return;
     }
     HandleLayerKeyboardShortcuts();
@@ -120,11 +117,12 @@ void DungeonObjectInteraction::HandleLeftClick(const ImVec2& canvas_mouse_pos) {
   int canvas_y = static_cast<int>(std::floor(canvas_mouse_pos.y));
 
   // Try to handle click via entity coordinator (handles placement, entity selection, and object selection)
+  const bool was_placing = entity_coordinator_.IsPlacementActive();
   if (entity_coordinator_.HandleClick(canvas_x, canvas_y)) {
     // If a selected room element was clicked, prime drag state. Plain clicks on
     // selected mixed members preserve the whole selection; movement begins only
     // if the mouse actually drags.
-    if (!entity_coordinator_.IsPlacementActive() &&
+    if (!was_placing && !entity_coordinator_.IsPlacementActive() &&
         (selection_.HasSelection() || HasEntitySelection())) {
       HandleObjectSelectionStart(canvas_mouse_pos);
     }
@@ -303,29 +301,30 @@ void DungeonObjectInteraction::HandleEmptySpaceClick(
   }
 }
 
-void DungeonObjectInteraction::HandleMouseRelease() {
-  {
-    // End paint strokes on mouse release so a new left-drag creates a new undo
-    // snapshot. Keep the paint mode active (tool stays selected).
-    const auto mode = mode_manager_.GetMode();
-    if (mode == InteractionMode::PaintCollision ||
-        mode == InteractionMode::PaintWaterFill) {
-      auto& state = mode_manager_.GetModeState();
-      const bool had_mutation = state.paint_mutation_started;
-      state.is_painting = false;
-      state.paint_mutation_started = false;
-      state.paint_last_tile_x = -1;
-      state.paint_last_tile_y = -1;
-      // Emit a final invalidation after the stroke ends so domain-specific undo
-      // capture can finalize the action once we're no longer "painting".
-      if (had_mutation) {
-        interaction_context_.NotifyInvalidateCache(
-            (mode == InteractionMode::PaintCollision)
-                ? MutationDomain::kCustomCollision
-                : MutationDomain::kWaterFill);
-      }
-    }
+void DungeonObjectInteraction::FinishPaintStroke() {
+  // End the stroke without deselecting its tool. This also runs before a room
+  // change, while invalidation still addresses the room that was painted.
+  const auto mode = mode_manager_.GetMode();
+  if (mode != InteractionMode::PaintCollision &&
+      mode != InteractionMode::PaintWaterFill) {
+    return;
   }
+  auto& state = mode_manager_.GetModeState();
+  const bool had_mutation = state.paint_mutation_started;
+  state.is_painting = false;
+  state.paint_mutation_started = false;
+  state.paint_last_tile_x = -1;
+  state.paint_last_tile_y = -1;
+  if (had_mutation) {
+    interaction_context_.NotifyInvalidateCache(
+        (mode == InteractionMode::PaintCollision)
+            ? MutationDomain::kCustomCollision
+            : MutationDomain::kWaterFill);
+  }
+}
+
+void DungeonObjectInteraction::HandleMouseRelease() {
+  FinishPaintStroke();
 
   if (mode_manager_.GetMode() == InteractionMode::DraggingObjects) {
     mode_manager_.SetMode(InteractionMode::Select);
@@ -376,23 +375,7 @@ bool DungeonObjectInteraction::HandleKeyboardNudge() {
 }
 
 bool DungeonObjectInteraction::NudgeSelected(int delta_x, int delta_y) {
-  if (!rooms_ || current_room_id_ < 0 ||
-      current_room_id_ >= static_cast<int>(rooms_->size())) {
-    return false;
-  }
-
-  bool handled = false;
-  if (selection_.HasSelection()) {
-    entity_coordinator_.tile_handler().MoveObjects(
-        current_room_id_, selection_.GetSelectedIndices(), delta_x, delta_y);
-    handled = true;
-  }
-
-  if (entity_coordinator_.HasEntitySelection()) {
-    handled = entity_coordinator_.NudgeSelected(delta_x, delta_y) || handled;
-  }
-
-  return handled;
+  return entity_coordinator_.NudgeSelected(delta_x, delta_y);
 }
 
 void DungeonObjectInteraction::CheckForObjectSelection() {
@@ -490,11 +473,23 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
       }
       tooltip += " | Pos: (" + std::to_string(object.x_) + ", " +
                  std::to_string(object.y_) + ")";
-      tooltip += "\nSize: " + std::to_string(object.size_) + " (0x" +
-                 absl::StrFormat("%02X", object.size_) + ")";
+      const int axis_step = zelda3::RoomObjectSizeAxisStep(object.id_);
+      if (axis_step > 0) {
+        tooltip += absl::StrFormat(
+            "\nSize: %d x %d tiles",
+            zelda3::RoomObjectSizeAxisTiles(object.id_, object.size_, true),
+            zelda3::RoomObjectSizeAxisTiles(object.id_, object.size_));
+      } else if (zelda3::IsRoomObjectResizable(object.id_)) {
+        tooltip += absl::StrFormat("\nSize: 0x%02X", object.size_);
+      }
 
       if (selection_.IsObjectSelected(*hovered_index)) {
-        tooltip += "\n" ICON_MD_MOUSE " Scroll wheel to resize";
+        if (axis_step > 0) {
+          tooltip +=
+              "\n" ICON_MD_MOUSE " Wheel: grow/shrink | Shift+wheel: width";
+        } else if (zelda3::IsRoomObjectResizable(object.id_)) {
+          tooltip += "\n" ICON_MD_MOUSE " Scroll wheel to resize";
+        }
         tooltip += "\n" ICON_MD_DRAG_INDICATOR " Drag to move";
       } else {
         tooltip += "\n" ICON_MD_TOUCH_APP " Click to select";
@@ -575,15 +570,42 @@ void DungeonObjectInteraction::DrawHoverHighlight(
 }
 
 void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {
-  entity_coordinator_.tile_handler().PlaceObjectAt(
-      current_room_id_, preview_object_, room_x, room_y);
-
-  if (object_placed_callback_) {
-    object_placed_callback_(preview_object_);
+  auto& tile_handler = entity_coordinator_.tile_handler();
+  if (!tile_handler.IsPlacementActive()) {
+    return;
   }
+  auto object = tile_handler.GetPreviewObject().CopyForNewPlacement();
+  object.x_ = std::clamp(room_x, 0, 63);
+  object.y_ = std::clamp(room_y, 0, 63);
+  if (!tile_handler.PlaceObjectAt(interaction_context_.current_room_id, object,
+                                  room_x, room_y)) {
+    return;
+  }
+  if (object_placed_callback_) {
+    object_placed_callback_(object);
+  }
+}
 
-  interaction_context_.NotifyInvalidateCache(MutationDomain::kTileObjects);
-  CancelPlacement();
+void DungeonObjectInteraction::CompleteObjectPlacement(
+    const zelda3::RoomObject& /*object*/) {
+  entity_coordinator_.ClearEntitySelection();
+  if (!entity_coordinator_.tile_handler().IsPlacementActive() &&
+      mode_manager_.GetMode() == InteractionMode::PlaceObject) {
+    mode_manager_.SetMode(InteractionMode::Select);
+  }
+}
+
+bool DungeonObjectInteraction::BeginPlacementFromSelection() {
+  const auto indices = selection_.GetSelectedIndices();
+  const auto* room = interaction_context_.GetCurrentRoomConst();
+  if (!room || indices.size() != 1 || HasEntitySelection() ||
+      indices.front() >= room->GetTileObjects().size()) {
+    return false;
+  }
+  const auto object =
+      room->GetTileObjects()[indices.front()].CopyForNewPlacement();
+  SetPreviewObject(object, true);
+  return true;
 }
 
 std::pair<int, int> DungeonObjectInteraction::RoomToCanvasCoordinates(
@@ -605,6 +627,26 @@ bool DungeonObjectInteraction::IsWithinCanvasBounds(int canvas_x, int canvas_y,
 
 void DungeonObjectInteraction::SetCurrentRoom(DungeonRoomStore* rooms,
                                               int room_id) {
+  // Selections are indices into the current room's lists. After a room change
+  // they would point at unrelated objects in the new room, where Delete,
+  // Duplicate and the inspector would act on them. Placement is not tied to a
+  // room, so it continues.
+  if (rooms != rooms_ || room_id != current_room_id_) {
+    FinishPaintStroke();
+    const auto mode = mode_manager_.GetMode();
+    if (mode == InteractionMode::DraggingObjects ||
+        mode == InteractionMode::DraggingEntity ||
+        mode == InteractionMode::RectangleSelect) {
+      mode_manager_.SetMode(InteractionMode::Select);
+    }
+    // Tile and group drags already changed the old room. Finish their undo
+    // actions before rebinding; single-entity drags are previews and are
+    // canceled by clearing their selections below.
+    entity_coordinator_.tile_handler().HandleRelease();
+    selection_.CancelRectangleSelection();
+    entity_coordinator_.ClearAllEntitySelections();
+    ClearSelection();
+  }
   rooms_ = rooms;
   current_room_id_ = room_id;
   interaction_context_.rooms = rooms;
@@ -615,21 +657,18 @@ void DungeonObjectInteraction::SetCurrentRoom(DungeonRoomStore* rooms,
 
 void DungeonObjectInteraction::SetPreviewObject(
     const zelda3::RoomObject& object, bool loaded) {
-  preview_object_ = object;
-
   if (loaded && object.id_ >= 0) {
     // Cancel other placement modes (doors/sprites/items) before entering object
     // placement. We re-enable tile placement below.
-    entity_coordinator_.CancelPlacement();
+    entity_coordinator_.CancelCurrentMode();
 
     // Enter object placement mode
     mode_manager_.SetMode(InteractionMode::PlaceObject);
-    mode_manager_.GetModeState().preview_object = object;
 
     // Ensure tile placement mode is active so ghost preview can render and
     // clicks place the object.
     auto& tile_handler = entity_coordinator_.tile_handler();
-    tile_handler.SetPreviewObject(preview_object_);
+    tile_handler.SetPreviewObject(object);
     if (!tile_handler.IsPlacementActive()) {
       tile_handler.BeginPlacement();
     }
@@ -648,228 +687,98 @@ void DungeonObjectInteraction::ClearSelection() {
   }
 }
 
-void DungeonObjectInteraction::HandleDeleteSelected() {
-  auto indices = selection_.GetSelectedIndices();
-  if (!indices.empty()) {
-    entity_coordinator_.tile_handler().DeleteObjects(current_room_id_, indices);
-    selection_.ClearSelection();
-  }
-
-  if (entity_coordinator_.HasEntitySelection()) {
-    entity_coordinator_.DeleteSelectedEntity();
-  }
+absl::Status DungeonObjectInteraction::HandleDeleteSelected() {
+  DungeonSelectionEditRequest request;
+  request.kind = DungeonSelectionEditKind::kDelete;
+  request.objects = selection_.GetSelectedIndices();
+  request.entities = entity_coordinator_.SelectedEntitiesForEdit();
+  return entity_coordinator_.CommitSelectionEdit(request);
 }
 
 void DungeonObjectInteraction::HandleDeleteAllObjects() {
-  entity_coordinator_.tile_handler().DeleteAllObjects(current_room_id_);
-  selection_.ClearSelection();
-}
-
-void DungeonObjectInteraction::HandleCopySelected() {
-  if (!rooms_ || current_room_id_ < 0 ||
-      current_room_id_ >= static_cast<int>(rooms_->size())) {
-    return;
-  }
-
-  const auto selected_objects = selection_.GetSelectedIndices();
-  const bool has_object_selection = !selected_objects.empty();
-  const bool has_entity_selection = entity_coordinator_.HasEntitySelection();
-  if (!has_object_selection && !has_entity_selection) {
-    return;
-  }
-
-  entity_clipboard_.Clear();
-  bool clipboard_origin_set = false;
-
-  if (has_object_selection) {
-    entity_coordinator_.tile_handler().CopyObjectsToClipboard(current_room_id_,
-                                                              selected_objects);
-    const auto& objects = (*rooms_)[current_room_id_].GetTileObjects();
-    for (size_t index : selected_objects) {
-      if (index >= objects.size()) {
-        continue;
-      }
-      entity_clipboard_.origin_tile_x = objects[index].x_;
-      entity_clipboard_.origin_tile_y = objects[index].y_;
-      entity_clipboard_.origin_pixel_x =
-          entity_clipboard_.origin_tile_x * dungeon_coords::kTileSize;
-      entity_clipboard_.origin_pixel_y =
-          entity_clipboard_.origin_tile_y * dungeon_coords::kTileSize;
-      clipboard_origin_set = true;
-      break;
-    }
-  } else {
-    entity_coordinator_.tile_handler().ClearClipboard();
-  }
-
-  CopySelectedEntitiesToClipboard(clipboard_origin_set);
-}
-
-void DungeonObjectInteraction::CopySelectedEntitiesToClipboard(
-    bool clipboard_origin_set) {
-  if (!rooms_ || current_room_id_ < 0 ||
-      current_room_id_ >= static_cast<int>(rooms_->size())) {
-    return;
-  }
-
-  const auto& room = (*rooms_)[current_room_id_];
-  auto selected_entities = entity_coordinator_.GetSelectedEntities();
-  if (selected_entities.empty() && entity_coordinator_.HasEntitySelection()) {
-    const SelectedEntity selected = entity_coordinator_.GetSelectedEntity();
-    if (selected.type != EntityType::None) {
-      selected_entities.push_back(selected);
-    }
-  }
-
-  for (const auto entity : selected_entities) {
-    switch (entity.type) {
-      case EntityType::Sprite: {
-        const auto& sprites = room.GetSprites();
-        if (entity.index >= sprites.size()) {
-          break;
-        }
-        const auto& sprite = sprites[entity.index];
-        if (!clipboard_origin_set && !entity_clipboard_.HasData()) {
-          entity_clipboard_.origin_pixel_x =
-              sprite.x() * dungeon_coords::kSpriteTileSize;
-          entity_clipboard_.origin_pixel_y =
-              sprite.y() * dungeon_coords::kSpriteTileSize;
-          entity_clipboard_.origin_tile_x =
-              entity_clipboard_.origin_pixel_x / dungeon_coords::kTileSize;
-          entity_clipboard_.origin_tile_y =
-              entity_clipboard_.origin_pixel_y / dungeon_coords::kTileSize;
-        }
-        entity_clipboard_.sprites.push_back(sprite);
-        break;
-      }
-      case EntityType::Item: {
-        const auto& items = room.GetPotItems();
-        if (entity.index >= items.size()) {
-          break;
-        }
-        const auto& item = items[entity.index];
-        if (!clipboard_origin_set && !entity_clipboard_.HasData()) {
-          entity_clipboard_.origin_pixel_x = item.GetPixelX();
-          entity_clipboard_.origin_pixel_y = item.GetPixelY();
-          entity_clipboard_.origin_tile_x =
-              entity_clipboard_.origin_pixel_x / dungeon_coords::kTileSize;
-          entity_clipboard_.origin_tile_y =
-              entity_clipboard_.origin_pixel_y / dungeon_coords::kTileSize;
-        }
-        entity_clipboard_.items.push_back(item);
-        break;
-      }
-      case EntityType::Door:
-      case EntityType::Object:
-      case EntityType::None:
-      default:
-        break;
-    }
-  }
-}
-
-std::vector<SelectedEntity> DungeonObjectInteraction::PasteEntityClipboardAt(
-    int target_pixel_x, int target_pixel_y) {
-  std::vector<SelectedEntity> pasted_entities;
-  if (!entity_clipboard_.HasData() || !rooms_ || current_room_id_ < 0 ||
-      current_room_id_ >= static_cast<int>(rooms_->size())) {
-    return pasted_entities;
-  }
-
-  auto& room = (*rooms_)[current_room_id_];
-  const int delta_pixel_x = target_pixel_x - entity_clipboard_.origin_pixel_x;
-  const int delta_pixel_y = target_pixel_y - entity_clipboard_.origin_pixel_y;
-
-  if (!entity_clipboard_.sprites.empty()) {
-    interaction_context_.NotifyMutation(MutationDomain::kSprites);
-    auto& sprites = room.GetSprites();
-    for (auto sprite : entity_clipboard_.sprites) {
-      const int next_x = std::clamp(
-          (sprite.x() * dungeon_coords::kSpriteTileSize + delta_pixel_x) /
-              dungeon_coords::kSpriteTileSize,
-          0, dungeon_coords::kSpriteGridMax);
-      const int next_y = std::clamp(
-          (sprite.y() * dungeon_coords::kSpriteTileSize + delta_pixel_y) /
-              dungeon_coords::kSpriteTileSize,
-          0, dungeon_coords::kSpriteGridMax);
-      sprite.set_x(next_x);
-      sprite.set_y(next_y);
-      sprites.push_back(sprite);
-      pasted_entities.push_back(
-          SelectedEntity{EntityType::Sprite, sprites.size() - 1});
-    }
-    room.MarkSpritesDirty();
-    interaction_context_.NotifyInvalidateCache(MutationDomain::kSprites);
-  }
-
-  if (!entity_clipboard_.items.empty()) {
-    interaction_context_.NotifyMutation(MutationDomain::kItems);
-    auto& items = room.GetPotItems();
-    for (auto item : entity_clipboard_.items) {
-      item.position = EncodePotItemPosition(item.GetPixelX() + delta_pixel_x,
-                                            item.GetPixelY() + delta_pixel_y);
-      items.push_back(item);
-      pasted_entities.push_back(
-          SelectedEntity{EntityType::Item, items.size() - 1});
-    }
-    room.MarkPotItemsDirty();
-    interaction_context_.NotifyInvalidateCache(MutationDomain::kItems);
-  }
-
-  if (!pasted_entities.empty()) {
-    interaction_context_.NotifyEntityChanged();
-  }
-  return pasted_entities;
-}
-
-void DungeonObjectInteraction::HandlePasteObjects() {
-  if (!HasClipboardData()) {
-    return;
-  }
-
-  if (!rooms_ || current_room_id_ < 0 ||
-      current_room_id_ >= static_cast<int>(rooms_->size())) {
-    return;
-  }
-
-  auto& handler = entity_coordinator_.tile_handler();
-  const ImGuiIO& io = ImGui::GetIO();
-  const auto [canvas_mouse_x, canvas_mouse_y] =
-      GetCanvasTransform().ScreenToRoomPixelCoordinates(io.MousePos);
-  auto [paste_x, paste_y] =
-      CanvasToRoomCoordinates(canvas_mouse_x, canvas_mouse_y);
-  int paste_pixel_x = paste_x * dungeon_coords::kTileSize;
-  int paste_pixel_y = paste_y * dungeon_coords::kTileSize;
-
-  if (!IsWithinCanvasBounds(canvas_mouse_x, canvas_mouse_y, 0)) {
-    const int fallback_delta = entity_clipboard_.sprites.empty()
-                                   ? dungeon_coords::kTileSize
-                                   : dungeon_coords::kSpriteTileSize;
-    paste_pixel_x =
-        std::clamp(entity_clipboard_.origin_pixel_x + fallback_delta, 0,
-                   dungeon_coords::kRoomPixelWidth - dungeon_coords::kTileSize);
-    paste_pixel_y = std::clamp(
-        entity_clipboard_.origin_pixel_y + fallback_delta, 0,
-        dungeon_coords::kRoomPixelHeight - dungeon_coords::kTileSize);
-    paste_x = paste_pixel_x / dungeon_coords::kTileSize;
-    paste_y = paste_pixel_y / dungeon_coords::kTileSize;
-  }
-
-  std::vector<size_t> new_indices;
-  if (handler.HasClipboardData()) {
-    new_indices = handler.PasteFromClipboard(
-        current_room_id_, paste_x - entity_clipboard_.origin_tile_x,
-        paste_y - entity_clipboard_.origin_tile_y);
-  }
-  auto new_entities = PasteEntityClipboardAt(paste_pixel_x, paste_pixel_y);
-
-  if (!new_indices.empty() || !new_entities.empty()) {
+  if (entity_coordinator_.tile_handler().DeleteAllObjects(current_room_id_)) {
     selection_.ClearSelection();
-    for (size_t idx : new_indices) {
-      selection_.SelectObject(idx, ObjectSelection::SelectionMode::Add);
-    }
-    entity_coordinator_.SetSelectedEntities(std::move(new_entities));
   }
+}
+
+absl::Status DungeonObjectInteraction::HandleCopySelected() {
+  const auto* room = interaction_context_.GetCurrentRoomConst();
+  if (!room) {
+    return entity_coordinator_.ReportSelectionEditStatus(
+        absl::FailedPreconditionError("No room is available to copy"));
+  }
+  const auto objects = selection_.GetSelectedIndices();
+  const auto entities = entity_coordinator_.SelectedEntitiesForEdit();
+  if (objects.empty() && entities.empty())
+    return absl::OkStatus();
+  auto copied = CopyDungeonSelection(*room, objects, entities);
+  if (!copied.ok()) {
+    return entity_coordinator_.ReportSelectionEditStatus(copied.status());
+  }
+  // Only replace the clipboard after the complete selection is copyable.
+  selection_clipboard_ = std::move(*copied);
+  return entity_coordinator_.ReportSelectionEditStatus(absl::OkStatus());
+}
+
+absl::Status DungeonObjectInteraction::HandleDuplicateSelected() {
+  DungeonSelectionEditRequest request;
+  request.kind = DungeonSelectionEditKind::kDuplicate;
+  request.objects = selection_.GetSelectedIndices();
+  request.entities = entity_coordinator_.SelectedEntitiesForEdit();
+  const bool includes_door = std::any_of(
+      request.entities.begin(), request.entities.end(),
+      [](const auto entity) { return entity.type == EntityType::Door; });
+  // Doors occupy fixed wall slots: keep that group in place, then let the
+  // author choose a valid shared destination explicitly.
+  request.delta_x_pixels =
+      includes_door ? 0 : entity_coordinator_.SelectionMoveStepPixels();
+  request.delta_y_pixels = request.delta_x_pixels;
+  // Duplicate does not disturb the user's clipboard.
+  return entity_coordinator_.CommitSelectionEdit(request);
+}
+
+absl::Status DungeonObjectInteraction::HandlePasteAt(int pixel_x, int pixel_y) {
+  if (!HasClipboardData())
+    return absl::OkStatus();
+  if (!dungeon_coords::IsWithinBounds(pixel_x, pixel_y)) {
+    return entity_coordinator_.ReportSelectionEditStatus(
+        absl::OutOfRangeError("Paste anchor is outside the room"));
+  }
+  DungeonSelectionEditRequest request;
+  request.kind = DungeonSelectionEditKind::kPaste;
+  request.objects = selection_.GetSelectedIndices();
+  request.entities = entity_coordinator_.SelectedEntitiesForEdit();
+  request.clipboard = &selection_clipboard_;
+  request.delta_x_pixels = pixel_x - selection_clipboard_.origin_pixel_x;
+  request.delta_y_pixels = pixel_y - selection_clipboard_.origin_pixel_y;
+  return entity_coordinator_.CommitSelectionEdit(request);
+}
+
+absl::Status DungeonObjectInteraction::HandlePasteObjects() {
+  if (!HasClipboardData())
+    return absl::OkStatus();
+  int target_x = selection_clipboard_.origin_pixel_x;
+  int target_y = selection_clipboard_.origin_pixel_y;
+  const int step = !selection_clipboard_.sprites.empty() ||
+                           !selection_clipboard_.items.empty()
+                       ? dungeon_coords::kSpriteTileSize
+                       : dungeon_coords::kTileSize;
+  if (canvas_ && ImGui::GetCurrentContext()) {
+    const auto [mouse_x, mouse_y] =
+        GetCanvasTransform().ScreenToRoomPixelCoordinates(
+            ImGui::GetIO().MousePos);
+    if (dungeon_coords::IsWithinBounds(mouse_x, mouse_y)) {
+      // Snap the translation, rather than the target, so a copied group keeps
+      // each member's relative position on its original encoding grid.
+      target_x += (mouse_x - target_x) / step * step;
+      target_y += (mouse_y - target_y) / step * step;
+      return HandlePasteAt(target_x, target_y);
+    }
+  }
+  // With no canvas target, doors retain their exact source wall slots.
+  // An automatic diagonal offset cannot represent a valid wall destination.
+  const int fallback_offset = selection_clipboard_.doors.empty() ? step : 0;
+  return HandlePasteAt(target_x + fallback_offset, target_y + fallback_offset);
 }
 
 void DungeonObjectInteraction::DrawGhostPreview() {
@@ -878,7 +787,7 @@ void DungeonObjectInteraction::DrawGhostPreview() {
 
 void DungeonObjectInteraction::HandleScrollWheelResize() {
   const ImGuiIO& io = ImGui::GetIO();
-  entity_coordinator_.HandleMouseWheel(io.MouseWheel);
+  entity_coordinator_.HandleMouseWheel(ObjectResizeWheelDelta(io));
 }
 
 bool DungeonObjectInteraction::SetObjectId(size_t index, int16_t id) {

@@ -92,6 +92,7 @@ constexpr int kAgahnimsAltar = 129;
 constexpr int kFortuneTellerRoom = 131;
 constexpr int kMagicBatAltar = 132;
 constexpr int kVitreousGooDamage = 133;
+constexpr int kSanctuaryWall = 134;
 
 // Corner routines (19, 35-37, 75-78)
 constexpr int kCorner4x4 = 19;
@@ -219,6 +220,12 @@ class DrawRoutineRegistry {
 
   // Look up draw routine ID for an object ID. Returns -1 if unmapped.
   int GetRoutineIdForObject(int16_t object_id) const;
+
+  // Every object ID with a routine mapping, ascending. This is the supported
+  // object inventory; callers should use it instead of hard-coding the
+  // 0x00-0xF7 / 0x100-0x13F / 0xF80-0xFFF ranges. The result follows the
+  // current feature flags, like GetRoutineIdForObject().
+  std::vector<int16_t> GetMappedObjectIds() const;
 
  private:
   DrawRoutineRegistry() = default;

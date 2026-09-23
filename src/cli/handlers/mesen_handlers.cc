@@ -401,7 +401,8 @@ void AddSavestateFreshnessFields(resources::OutputFormatter& formatter,
     auto status =
         socket_path.empty() ? client->Connect() : client->Connect(socket_path);
     if (!status.ok()) {
-      return ::absl::UnavailableError(
+      return ::absl::Status(
+          status.code(),
           ::absl::StrCat("Not connected to Mesen2. Is Mesen2-OoS running? ",
                          status.message()));
     }

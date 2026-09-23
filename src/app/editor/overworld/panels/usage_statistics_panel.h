@@ -22,6 +22,7 @@ class UsageStatisticsPanel : public EditorPanel {
 
   // EditorPanel interface
   std::string GetId() const override { return "overworld.usage_stats"; }
+  std::string GetWorkflowGroup() const override { return "Advanced"; }
   std::string GetDisplayName() const override { return "Usage Statistics"; }
   std::string GetIcon() const override { return ICON_MD_ANALYTICS; }
   std::string GetEditorCategory() const override { return "Overworld"; }

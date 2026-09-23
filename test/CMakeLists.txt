@@ -124,14 +124,17 @@ if(YAZE_BUILD_TESTS)
     # tokens and breaks the prop/value pairing (and ctest won't be able to
     # filter by the missing labels).
     #
-    # NOTE: GoogleTestAddTests.cmake forwards TEST_PROPERTIES through another
-    # helper function call without quoting. That forwarding step will split on
-    # literal ';' again, so we must *double escape* label separators here. This
-    # ensures the discovery script ultimately emits:
-    #   LABELS "stable;unit"
-    # rather than the broken:
-    #   LABELS stable unit
-    string(REPLACE ";" "\\\\;" _suite_labels "${label}")
+    # CMake 4.4 bracket-quotes each PROPERTIES argument before generating the
+    # discovery script, removing one of the list-expansion boundaries present
+    # in older GoogleTest.cmake versions. Older versions therefore need two
+    # escape levels while 4.4+ needs one. In both cases the generated test must
+    # receive LABELS "stable;unit", not separate property tokens or one literal
+    # "stable\;unit" label.
+    if(CMAKE_VERSION VERSION_GREATER_EQUAL "4.4")
+      string(REPLACE ";" "\\;" _suite_labels "${label}")
+    else()
+      string(REPLACE ";" "\\\\;" _suite_labels "${label}")
+    endif()
     # Avoid duplicate CTest names across multiple suites that compile the same
     # gtest sources (e.g. quick vs stable). Only the quick suites need a prefix.
     set(_test_prefix "")
@@ -183,12 +186,16 @@ if(YAZE_BUILD_TESTS)
     unit/util/lru_cache_test.cc
     unit/util/bps_test.cc
     unit/util/i18n_test.cc
+    unit/util/hex_test.cc
+    unit/util/log_test.cc
     unit/deps/dependency_smoke_test.cc
     unit/cli/resource_catalog_test.cc
+    unit/cli/tile16_proposal_generator_test.cc
     unit/cli/command_registry_test.cc
     unit/cli/rom_doctor_water_fill_test.cc
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
+    unit/cli/dungeon_render_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
     unit/cli/dungeon_track_collision_commands_test.cc
     unit/cli/dungeon_spawn_report_commands_test.cc
@@ -204,10 +211,18 @@ if(YAZE_BUILD_TESTS)
     unit/cli/project_bundle_archive_test.cc
     unit/rom/rom_diff_test.cc
     unit/rom/rom_test.cc
+    unit/rom/fresh_rom_fixture_output_test.cc
     unit/rom/write_fence_test.cc
     unit/emu/emulator_test.cc
     unit/emu/mesen_socket_client_test.cc
     unit/emu/input_backend_test.cc
+    unit/emu/step_controller_test.cc
+    unit/emu/spc700_reset_test.cc
+    unit/emu/apu_dsp_test.cc
+    unit/emu/apu_ipl_handshake_test.cc
+    unit/emu/disassembler_test.cc
+    unit/diggable_tiles_test.cc
+    unit/core/asm_patch_test.cc
     unit/gfx/snes_tile_test.cc
     unit/gfx/compression_test.cc
     unit/gfx/snes_palette_test.cc
@@ -227,6 +242,7 @@ if(YAZE_BUILD_TESTS)
     unit/gui/empty_state_test.cc
     unit/gui/animator_test.cc
     unit/gui/property_inspector_test.cc
+    unit/gui/empty_state_test.cc
     unit/gui/resize_handles_test.cc
     unit/gui/font_picker_test.cc
     unit/gui/icon_browser_test.cc
@@ -257,16 +273,31 @@ if(YAZE_BUILD_TESTS)
     unit/editor/workflow_activity_widgets_test.cc
     unit/editor/layout_manager_persistence_test.cc
     unit/editor/right_drawer_manager_test.cc
+    unit/editor/status_bar_context_test.cc
     unit/editor/undo_manager_test.cc
     unit/editor/sprite_editor_undo_test.cc
     unit/editor/sprite_editor_preview_test.cc
     unit/editor/screen_editor_undo_test.cc
     unit/editor/dungeon_undo_actions_test.cc
+    unit/editor/dungeon_room_edit_test.cc
+    unit/editor/dungeon_selection_edit_test.cc
+    unit/editor/dungeon_connection_edit_test.cc
+    unit/editor/dungeon_room_transfer_test.cc
+    unit/editor/dungeon_selection_edits_lifecycle_test.cc
+    unit/editor/dungeon_connection_edits_lifecycle_test.cc
+    unit/editor/dungeon_room_transfer_lifecycle_test.cc
+    unit/editor/dungeon_room_metadata_ui_test.cc
+    unit/editor/dungeon_room_edits_lifecycle_test.cc
+    unit/editor/dungeon_chest_editor_test.cc
+    unit/editor/dungeon_connection_editor_test.cc
+    unit/editor/dungeon_room_transfer_editor_test.cc
     unit/editor/assembly_editor_symbol_jump_test.cc
     unit/editor/editor_activator_test.cc
     unit/editor/editor_manager_test.cc
     unit/editor/story_event_graph_navigation_test.cc
     unit/editor/ui_coordinator_workflow_test.cc
+    unit/editor/welcome_screen_test.cc
+    unit/editor/dashboard_panel_test.cc
     unit/editor/editor_manager_project_actions_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc
     unit/editor/editor_manager_oracle_rom_safety_test.cc
@@ -283,24 +314,31 @@ if(YAZE_BUILD_TESTS)
     unit/editor/gfx_group_editor_render_test.cc
     unit/editor/palette_controls_panel_layout_test.cc
     unit/editor/user_settings_layout_defaults_test.cc
+    unit/editor/emulator_runtime_policy_test.cc
+    unit/editor/overworld_map_status_test.cc
     unit/editor/sidebar_sort_test.cc
     unit/editor/activity_bar_actions_registry_test.cc
     unit/editor/theme_persistence_test.cc
+    unit/editor/settings_panel_test.cc
     unit/editor/theme_style_snapshot_test.cc
     unit/editor/theme_generator_test.cc
     unit/editor/editor_registry_test.cc
     unit/editor/shortcut_manager_test.cc
+    unit/editor/shortcut_group_test.cc
     unit/editor/shortcut_configurator_test.cc
     unit/editor/window_sidebar_test.cc
     unit/editor/dungeon_canvas_viewer_navigation_test.cc
     unit/editor/dungeon_workbench_content_test.cc
     unit/editor/dungeon_issue_report_storage_test.cc
+    unit/editor/object_coverage_model_test.cc
+    unit/editor/object_coverage_panel_test.cc
     unit/editor/dungeon_usage_tracker_test.cc
     unit/editor/dungeon_entrance_edit_policy_test.cc
     unit/editor/dungeon_editor_v2_rom_safety_test.cc
     unit/editor/dungeon_editor_palette_refresh_test.cc
     unit/editor/dungeon_overlay_controls_test.cc
     unit/editor/dungeon_object_selector_palette_test.cc
+    unit/editor/room_graphics_content_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/object_tile_editor_panel_test.cc
     unit/editor/minecart_track_source_test.cc
@@ -331,9 +369,16 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/object_parser_test.cc
     unit/zelda3/object_parser_structs_test.cc
     unit/zelda3/sprite_builder_test.cc
+    unit/zelda3/sprite_value_init_test.cc
     unit/zelda3/music_parser_test.cc
     unit/zelda3/dungeon_component_unit_test.cc
+    unit/zelda3/dungeon/chest_edit_test.cc
     unit/zelda3/dungeon/dungeon_limits_test.cc
+    unit/zelda3/dungeon/draw_routine_symbology_test.cc
+    unit/zelda3/dungeon/draw_routine_registry_ids_test.cc
+    unit/zelda3/dungeon/game_tilemap_comparison_test.cc
+    unit/zelda3/dungeon/room_collision_test.cc
+    unit/zelda3/dungeon/room_layer_registers_test.cc
     unit/zelda3/dungeon/room_limit_regression_test.cc
     unit/zelda3/dungeon/dungeon_validator_test.cc
     unit/zelda3/dungeon/door_position_test.cc
@@ -344,6 +389,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/custom_object_test.cc
     unit/zelda3/dungeon/room_manipulation_test.cc
     unit/zelda3/dungeon/dungeon_object_editor_dirty_test.cc
+    unit/zelda3/dungeon/pot_item_position_test.cc
     unit/zelda3/dungeon/dungeon_save_test.cc
     unit/zelda3/dungeon/dungeon_editor_system_test.cc
     unit/zelda3/dungeon/dungeon_stream_allocator_test.cc
@@ -370,6 +416,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/room_graphics_palette_test.cc
     unit/zelda3/dungeon/room_header_palette_test.cc
     unit/zelda3/dungeon/object_drawer_registry_replay_test.cc
+    unit/zelda3/dungeon/object_draw_code_test.cc
     unit/zelda3/dungeon/custom_object_room_render_test.cc
     unit/zelda3/dungeon/room_object_rom_parity_test.cc
     unit/dungeon_object_drawer_test.cc
@@ -396,6 +443,12 @@ if(YAZE_BUILD_TESTS)
     integration/zelda3/overworld_integration_test.cc
     integration/zelda3/dungeon_editor_system_integration_test.cc
     integration/zelda3/room_integration_test.cc
+    integration/zelda3/dungeon_object_inventory_rom_test.cc
+    integration/zelda3/dungeon_game_tilemap_parity_test.cc
+    integration/zelda3/dungeon_game_state_parity_test.cc
+    integration/zelda3/room_default_entrance_rom_test.cc
+    integration/zelda3/object_draw_code_rom_test.cc
+    integration/zelda3/dungeon_edit_save_fixture_test.cc
     integration/zelda3/dungeon/pit_damage_table_test.cc
     integration/zelda3/dungeon_save_region_test.cc
     integration/zelda3/dungeon_pot_repack_oos_integration_test.cc
@@ -423,6 +476,14 @@ if(YAZE_BUILD_TESTS)
     integration/object_selection_integration_test.cc
     integration/interaction_delegation_test.cc
   )
+  # rom_debug_agent.cc is only compiled with YAZE_ENABLE_REMOTE_AUTOMATION, and
+  # its header pulls in app/service/emulator_service_impl.h, which needs the
+  # gRPC headers. Registering it unconditionally breaks presets built without
+  # them.
+  if(YAZE_ENABLE_REMOTE_AUTOMATION AND YAZE_ENABLE_GRPC)
+    list(APPEND STABLE_UNIT_TEST_SOURCES unit/cli/rom_debug_agent_test.cc)
+  endif()
+
   if(YAZE_ENABLE_AGENT_CLI)
     list(APPEND STABLE_UNIT_TEST_SOURCES
       unit/cli/conversational_agent_service_test.cc
@@ -441,6 +502,12 @@ if(YAZE_BUILD_TESTS)
       unit/tools/project_tool_test.cc
       unit/tools/project_graph_tool_test.cc
       unit/tools/code_gen_tool_test.cc
+      # agent tool_dispatcher integration test requires agent backend symbols.
+      # Only the "Windows Agent (Full Stack)" CI job configures an agent-enabled
+      # preset (ci-windows-ai), and that job runs with
+      # `if: github.event_name != 'pull_request'`, so this suite is exercised
+      # after merge rather than on pull requests.
+      integration/agent/tool_dispatcher_test.cc
     )
   else()
     message(STATUS "Skipping agent CLI/tool tests (YAZE_ENABLE_AGENT_CLI=OFF)")
@@ -500,11 +567,43 @@ if(YAZE_BUILD_TESTS)
     list(APPEND STABLE_INTEGRATION_TEST_SOURCES
       integration/grpc_server_smoke_test.cc
       integration/imgui_test_harness_logic_test.cc
+      integration/screenshot_utils_test.cc
     )
+  else()
+    message(STATUS "Skipping gRPC integration tests (YAZE_ENABLE_GRPC=OFF)")
   endif()
 
   yaze_add_test_suite(yaze_test_unit "stable;unit" OFF ${STABLE_UNIT_TEST_SOURCES})
+  add_test(
+    NAME TestRunnerDiscoveryContract
+    COMMAND ${CMAKE_COMMAND}
+      "-DTEST_EXECUTABLE=$<TARGET_FILE:yaze_test_unit>"
+      -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake/test_runner_discovery.cmake"
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+  )
+  set_tests_properties(TestRunnerDiscoveryContract PROPERTIES
+    LABELS "stable;unit"
+    TIMEOUT 45
+  )
   yaze_add_test_suite(yaze_test_integration "stable;integration" OFF ${STABLE_INTEGRATION_TEST_SOURCES})
+  if(YAZE_WITH_GRPC AND TARGET yaze_grpc_support)
+    # Match the encoder's compiled capability, not sibling-directory visibility
+    # of the imported PNG target. Find it locally only when the encoder uses it.
+    get_target_property(_YAZE_SCREENSHOT_ENCODER_DEFINITIONS
+      yaze_grpc_support COMPILE_DEFINITIONS)
+    if("YAZE_SCREENSHOT_HAS_PNG=1" IN_LIST _YAZE_SCREENSHOT_ENCODER_DEFINITIONS)
+      if(NOT TARGET PNG::PNG)
+        find_package(PNG QUIET)
+      endif()
+      if(NOT TARGET PNG::PNG)
+        message(FATAL_ERROR "PNG-enabled screenshot tests require PNG::PNG")
+      endif()
+      target_link_libraries(yaze_test_integration PRIVATE PNG::PNG)
+      target_compile_definitions(yaze_test_integration PRIVATE
+        YAZE_SCREENSHOT_TEST_HAS_PNG=1
+      )
+    endif()
+  endif()
   target_compile_definitions(yaze_test_integration PRIVATE
     YAZE_TEST_FIXTURE_DIR="${CMAKE_SOURCE_DIR}/test/fixtures"
   )
@@ -582,14 +681,28 @@ if(YAZE_BUILD_TESTS)
     unit/editor/content_registry_workflow_history_test.cc
     unit/editor/command_palette_workflow_test.cc
     unit/editor/dungeon_undo_actions_test.cc
+    unit/editor/dungeon_room_edit_test.cc
+    unit/editor/dungeon_selection_edit_test.cc
+    unit/editor/dungeon_connection_edit_test.cc
+    unit/editor/dungeon_room_transfer_test.cc
+    unit/editor/dungeon_selection_edits_lifecycle_test.cc
+    unit/editor/dungeon_connection_edits_lifecycle_test.cc
+    unit/editor/dungeon_room_transfer_lifecycle_test.cc
+    unit/editor/dungeon_room_metadata_ui_test.cc
+    unit/editor/dungeon_room_edits_lifecycle_test.cc
+    unit/editor/dungeon_chest_editor_test.cc
+    unit/editor/dungeon_connection_editor_test.cc
+    unit/editor/dungeon_room_transfer_editor_test.cc
     unit/editor/editor_registry_test.cc
     unit/editor/sidebar_sort_test.cc
     unit/editor/activity_bar_actions_registry_test.cc
     unit/editor/theme_persistence_test.cc
+    unit/editor/settings_panel_test.cc
     unit/editor/theme_style_snapshot_test.cc
     unit/editor/theme_generator_test.cc
     unit/editor/editor_manager_test.cc
     unit/editor/ui_coordinator_workflow_test.cc
+    unit/editor/welcome_screen_test.cc
     unit/editor/editor_manager_project_actions_test.cc
     unit/editor/editor_manager_rom_write_policy_test.cc
     unit/editor/editor_manager_write_conflict_test.cc
@@ -601,9 +714,11 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_canvas_viewer_navigation_test.cc
     unit/editor/dungeon_editor_palette_refresh_test.cc
     unit/editor/dungeon_object_selector_palette_test.cc
+    unit/editor/room_graphics_content_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/dungeon_workbench_content_test.cc
     unit/editor/object_tile_editor_panel_test.cc
+    unit/editor/object_coverage_panel_test.cc
     unit/editor/minecart_track_source_test.cc
     unit/editor/minecart_track_editor_panel_test.cc
     unit/editor/project_manager_validator_test.cc
@@ -619,6 +734,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/palette_controls_panel_layout_test.cc
     unit/editor/sprite_editor_preview_test.cc
     unit/gui/property_inspector_test.cc
+    unit/gui/empty_state_test.cc
     unit/gui/resize_handles_test.cc
     unit/gui/font_picker_test.cc
     unit/gui/icon_browser_test.cc
@@ -633,8 +749,11 @@ if(YAZE_BUILD_TESTS)
     unit/editor/layout/layout_designer_panel_replace_tree_test.cc
     unit/editor/user_settings_named_layouts_test.cc
     unit/editor/user_settings_layout_defaults_test.cc
+    unit/editor/emulator_runtime_policy_test.cc
+    unit/editor/overworld_map_status_test.cc
     unit/cli/dungeon_object_validate_test.cc
     unit/cli/dungeon_collision_json_commands_test.cc
+    unit/cli/dungeon_render_commands_test.cc
     unit/cli/dungeon_edit_commands_test.cc
     unit/cli/dungeon_track_collision_commands_test.cc
     unit/cli/editor_completion_command_handlers_test.cc
@@ -645,6 +764,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/dungeon/save_all_collision_rom_presence_test.cc
     unit/zelda3/dungeon/room_water_fill_state_test.cc
     unit/zelda3/dungeon/dungeon_rom_addresses_guardrail_test.cc
+    unit/zelda3/dungeon/chest_edit_test.cc
     unit/zelda3/dungeon/room_object_set_id_test.cc
     unit/zelda3/dungeon/dungeon_limits_test.cc
     unit/zelda3/dungeon/dungeon_block_codec_test.cc
@@ -789,8 +909,28 @@ if(YAZE_BUILD_TESTS)
   )
   yaze_add_test_suite(yaze_test_benchmark "benchmark" OFF ${BENCHMARK_TEST_SOURCES})
 
-  # --- z3ed CLI Smoke Test ---
+  # --- Script Contracts and z3ed CLI Smoke Tests ---
   if(UNIX)
+    add_test(
+      NAME DungeonVisualParityAuditContract
+      COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/agents/test-dungeon-visual-parity-audit.sh
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+    set_tests_properties(DungeonVisualParityAuditContract PROPERTIES
+      LABELS "stable;unit;scripts"
+      TIMEOUT 60
+    )
+
+    add_test(
+      NAME QualityToolingContract
+      COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/tests/quality_tooling_test.sh
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    )
+    set_tests_properties(QualityToolingContract PROPERTIES
+      LABELS "stable;unit;scripts"
+      TIMEOUT 60
+    )
+
     add_test(
       NAME oracle_smoke_script_test
       COMMAND bash ${CMAKE_SOURCE_DIR}/scripts/dev/test-oracle-smoke.sh

@@ -110,6 +110,10 @@ class DoorInteractionHandler : public BaseEntityHandler {
    *         range or the context is invalid.
    */
   bool MutateDoorType(size_t index, zelda3::DoorType new_type);
+  // Applies an encodable door edit atomically; invalid and unchanged values
+  // leave both the room and undo history untouched.
+  bool UpdateDoor(size_t index, zelda3::DoorType type,
+                  zelda3::DoorDirection direction, uint8_t position);
 
   /// True if the most recent PlaceDoorAtSnappedPosition was blocked.
   bool was_placement_blocked() const {

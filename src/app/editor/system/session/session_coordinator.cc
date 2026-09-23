@@ -245,6 +245,10 @@ void SessionCoordinator::CloseSession(size_t index) {
   const size_t session_id = GetSessionId(index);
   const bool closing_active_session = index == active_session_index_;
 
+  // Editors retain non-owning references to their session's workspace panels.
+  // Detach those references before UnregisterSession destroys the panels.
+  sessions_[index]->editors.PrepareForSessionTeardown();
+
   // Unregister cards for this stable session identity.
   if (window_manager_) {
     window_manager_->UnregisterSession(session_id);
@@ -989,6 +993,7 @@ absl::Status SessionCoordinator::DiscardProvisionalSession(size_t session_id) {
   const size_t index =
       static_cast<size_t>(std::distance(sessions_.begin(), session_it));
   const bool closing_active_session = index == active_session_index_;
+  (*session_it)->editors.PrepareForSessionTeardown();
   if (window_manager_) {
     window_manager_->UnregisterSession(session_id);
   }
@@ -1046,7 +1051,12 @@ void SessionCoordinator::ClearAllSessions() {
   if (sessions_.empty())
     return;
 
-  // Unregister all session cards
+  // Editors retain non-owning references to session cards. Detach every editor
+  // before unregistering any card so cross-panel callbacks cannot observe a
+  // partially torn-down workspace.
+  for (const auto& session : sessions_) {
+    session->editors.PrepareForSessionTeardown();
+  }
   if (window_manager_) {
     for (const auto& session : sessions_) {
       window_manager_->UnregisterSession(session->session_id());

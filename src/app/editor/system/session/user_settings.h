@@ -130,9 +130,10 @@ class UserSettings {
     std::unordered_map<std::string, std::string> editor_shortcuts;
 
     // Sidebar State
-    bool sidebar_visible = true;         // Controls Activity Bar visibility
-    bool sidebar_panel_expanded = true;  // Controls Side Panel visibility
-    float sidebar_panel_width = 0.0f;    // 0 = responsive default
+    bool sidebar_visible = true;  // Controls Activity Bar visibility
+    bool sidebar_panel_expanded =
+        false;  // WindowSidebar; ActivityBar-only default
+    float sidebar_panel_width = 0.0f;  // 0 = responsive default
     float panel_browser_category_width = 260.0f;
     int panel_layout_defaults_revision = 0;
     std::string sidebar_active_category;  // Last active category
@@ -146,6 +147,13 @@ class UserSettings {
     // Status Bar
     bool show_status_bar =
         false;  // Show status bar at bottom (disabled by default)
+
+    // Emulator: keep ticking/audio when emulator panels are hidden.
+    // Default off — switching editors pauses the SNES.
+    bool emulator_keep_running_in_background = false;
+
+    // Experimental editors (Screen/Music/Agent) stay gated until enabled.
+    bool show_experimental_editors = false;
 
     // Dungeon workbench layout: which side of the workbench window the
     // inspector pane occupies. "right" (default) places selectors on the left
@@ -194,7 +202,7 @@ class UserSettings {
   // must not assume every revision requires rebuilding the whole workspace.
   bool ApplyPanelLayoutDefaultsRevision(int target_revision);
 
-  static constexpr int kLatestPanelLayoutDefaultsRevision = 23;
+  static constexpr int kLatestPanelLayoutDefaultsRevision = 24;
   // Revisions through 21 changed whole-workspace arrangements. Later revisions
   // are targeted preference migrations and must preserve the live ImGui layout.
   static constexpr int kLastWorkspaceResetPanelLayoutDefaultsRevision = 21;

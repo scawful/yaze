@@ -422,16 +422,16 @@ TEST_F(GfxGroupEditorRenderTest,
 }
 
 TEST_F(GfxGroupEditorRenderTest,
-       EnsureCompositeBitmapPinsPurposeAcrossReplacementSafeCreates) {
-  // Repeated calls before the queue drains keep queueing CREATE. Arena safely
-  // replaces the texture for each command, though callers should avoid the
-  // duplicate allocation work when they can. Each call still stamps purpose.
+       EnsureCompositeBitmapDeduplicatesPendingCreateAndPinsPurpose) {
+  // Repeated calls before the queue drains share one generation-keyed CREATE.
+  // This avoids redundant texture allocation while each call still stamps the
+  // bitmap purpose used by canvas diagnostics.
   gfx::Bitmap composite = MakeCompositeBitmap();
 
   internal::EnsureCompositeBitmapTextureQueued(composite);
   internal::EnsureCompositeBitmapTextureQueued(composite);
 
-  EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 2u);
+  EXPECT_EQ(gfx::Arena::Get().texture_command_queue_size(), 1u);
   EXPECT_EQ(composite.metadata().purpose,
             gfx::Bitmap::BitmapPurpose::kCompositeOutput);
 }

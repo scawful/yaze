@@ -106,14 +106,6 @@ UICoordinator::UICoordinator(
   welcome_screen_->SetNewProjectCallback(
       [this]() { new_project_dialog_.Open("Vanilla ROM Hack"); });
 
-  // Template-driven creation now opens the guided dialog instead of chaining
-  // straight into CreateNewProject -> LoadRom. The dialog calls back into
-  // EditorManager once the user has a ROM path and project name picked.
-  welcome_screen_->SetNewProjectWithTemplateCallback(
-      [this](const std::string& template_name) {
-        new_project_dialog_.Open(template_name);
-      });
-
   new_project_dialog_.SetCreateCallback(
       [this](const std::string& template_name, const std::string& rom_path,
              const std::string& project_name) -> absl::Status {
@@ -150,47 +142,11 @@ UICoordinator::UICoordinator(
     }
   });
 
-  welcome_screen_->SetOpenAgentCallback([this]() {
-    if (editor_manager_) {
-#ifdef YAZE_BUILD_AGENT_UI
-      editor_manager_->ShowAIAgent();
-#endif
-      // Exit welcome so the agent panels can be interacted with
-      SetStartupSurface(StartupSurface::kEditor);
-    }
-  });
-
-  welcome_screen_->SetOpenProjectDialogCallback([this]() {
-    if (editor_manager_) {
-      auto status = editor_manager_->OpenProject();
-      if (!status.ok()) {
-        toast_manager_.Show(
-            absl::StrFormat("Failed to open project: %s", status.message()),
-            ToastType::kError);
-      } else {
-        SetStartupSurface(StartupSurface::kDashboard);
-      }
-    }
-  });
-
   welcome_screen_->SetOpenProjectManagementCallback([this]() {
     if (editor_manager_) {
       editor_manager_->ShowProjectManagement();
       SetStartupSurface(StartupSurface::kDashboard);
     }
-  });
-
-  welcome_screen_->SetOpenProjectFileEditorCallback([this]() {
-    if (!editor_manager_) {
-      return;
-    }
-    const auto* project = editor_manager_->GetCurrentProject();
-    if (!project || project->filepath.empty()) {
-      toast_manager_.Show("No project file to edit", ToastType::kInfo);
-      return;
-    }
-    editor_manager_->ShowProjectFileEditor();
-    SetStartupSurface(StartupSurface::kDashboard);
   });
 
   welcome_screen_->SetOpenPrototypeResearchCallback([this]() {
@@ -278,8 +234,9 @@ void UICoordinator::DrawAllUI() {
   // Draw UI windows and dialogs
   // Session dialogs are drawn by SessionCoordinator separately to avoid
   // duplication
-  DrawCommandPalette();          // Ctrl+Shift+P
-  DrawPanelFinder();             // Ctrl+P
+  DrawCommandPalette();          // Ctrl+Shift+P (+ Window Finder seeds window:)
+  DrawPanelFinder();             // Legacy modal (kept for direct flag use)
+  DrawShortcutsBrowser();        // Help > Keyboard Shortcuts
   DrawGlobalSearch();            // Ctrl+Shift+K
   DrawWorkspacePresetDialogs();  // Save/Load workspace dialogs
   DrawLayoutPresets();           // Layout preset dialogs
@@ -369,16 +326,14 @@ float UICoordinator::GetMenuBarIconButtonWidth() {
 }
 
 void UICoordinator::DrawMenuBarExtras() {
-  // Right-aligned status cluster: Version, dirty indicator, session, bell, panel toggles
-  // Panel toggles are positioned using SCREEN coordinates (from viewport) so they
-  // stay fixed even when the dockspace resizes due to panel open/close.
+  // Right-aligned status cluster: dirty indicator, session, bell, drawers overflow.
+  // Drawers overflow is positioned using SCREEN coordinates (from viewport) so it
+  // stays fixed even when the dockspace resizes due to panel open/close.
   //
-  // Layout: [v0.x.x][●][📄▾][🔔] [panels][⬆]
+  // Layout: [●][📄▾][🔔] [drawers][⬆]
   //         ^^^ shifts with dockspace ^^^  ^^^ fixed screen position ^^^
 
   auto* current_rom = editor_manager_->GetCurrentRom();
-  const std::string full_version =
-      absl::StrFormat("v%s", editor_manager_->version().c_str());
 
   const float item_spacing = 6.0f;
   const float padding = 8.0f;
@@ -394,27 +349,11 @@ void UICoordinator::DrawMenuBarExtras() {
   const ImGuiViewport* viewport = ImGui::GetMainViewport();
   const float true_viewport_right = viewport->WorkPos.x + viewport->WorkSize.x;
 
-  // Calculate panel toggle region width
-  // Keep this in sync with RightDrawerManager::DrawDrawerToggleButtons().
   const bool has_panel_toggles =
       editor_manager_->right_drawer_manager() != nullptr;
   float panel_buttons_width = 0.0f;
   if (has_panel_toggles) {
-    const char* kIcons[] = {
-        ICON_MD_FOLDER_SPECIAL,  // Project
-        ICON_MD_SMART_TOY,       // Agent
-        ICON_MD_HELP_OUTLINE,    // Help
-        ICON_MD_SETTINGS,        // Settings
-        ICON_MD_LIST_ALT,        // Properties
-    };
-    constexpr size_t kIconCount = sizeof(kIcons) / sizeof(kIcons[0]);
-
-    for (size_t i = 0; i < kIconCount; ++i) {
-      panel_buttons_width += CalcSmallButtonWidth(kIcons[i]);
-      if (i + 1 < kIconCount) {
-        panel_buttons_width += item_spacing;
-      }
-    }
+    panel_buttons_width = RightDrawerManager::GetDrawerToggleClusterWidth();
   }
 
   // Reserve only the real button footprint so compact icon toggles do not
@@ -433,8 +372,8 @@ void UICoordinator::DrawMenuBarExtras() {
     panel_screen_x -= editor_manager_->right_drawer_manager()->GetDrawerWidth();
   }
 
-  // Calculate available space for status cluster (version, dirty, session, bell)
-  // This ends where the panel toggle region begins
+  // Available space for status cluster (dirty, session, bell) ends where the
+  // drawers overflow region begins.
   const float window_width = ImGui::GetWindowWidth();
   const float window_screen_x = ImGui::GetWindowPos().x;
   const float menu_items_end = ImGui::GetCursorPosX() + 16.0f;
@@ -444,12 +383,11 @@ void UICoordinator::DrawMenuBarExtras() {
   float region_end =
       std::min(window_width - padding, panel_local_x - item_spacing);
 
-  // Calculate what elements to show - progressive hiding when space is tight
+  // Progressive show/hide when space is tight
   bool has_dirty_rom =
       current_rom && current_rom->is_loaded() && current_rom->dirty();
   bool has_multiple_sessions = session_coordinator_.HasMultipleSessions();
 
-  float version_width = ImGui::CalcTextSize(full_version.c_str()).x;
   float dirty_width =
       ImGui::CalcTextSize(ICON_MD_FIBER_MANUAL_RECORD).x + item_spacing;
   const float session_width = CalcSmallButtonWidth(ICON_MD_LAYERS);
@@ -459,15 +397,7 @@ void UICoordinator::DrawMenuBarExtras() {
   // Minimum required width: just the bell (always visible)
   float required_width = CalcSmallButtonWidth(ICON_MD_NOTIFICATIONS);
 
-  // Progressive show/hide based on available space
-  // Priority (highest to lowest): Bell > Dirty > Session > Version
-
-  // Try to fit version (lowest priority - hide first when tight)
-  bool show_version =
-      (required_width + version_width + item_spacing) <= available_width;
-  if (show_version) {
-    required_width += version_width + item_spacing;
-  }
+  // Priority (highest to lowest): Bell > Dirty > Session
 
   // Try to fit session button (medium priority)
   bool show_session =
@@ -494,13 +424,7 @@ void UICoordinator::DrawMenuBarExtras() {
   gui::StyleVarGuard item_spacing_guard(ImGuiStyleVar_ItemSpacing,
                                         ImVec2(item_spacing, 0.0f));
 
-  // 1. Version - subdued gray text
-  if (show_version) {
-    gui::ColoredText(full_version.c_str(), gui::GetTextDisabledVec4());
-    ImGui::SameLine();
-  }
-
-  // 2. Dirty badge - warning color dot
+  // 1. Dirty badge - warning color dot
   if (show_dirty) {
     const auto& theme = gui::ThemeManager::Get().GetCurrentTheme();
     gui::ColoredText(ICON_MD_FIBER_MANUAL_RECORD,
@@ -512,27 +436,22 @@ void UICoordinator::DrawMenuBarExtras() {
     ImGui::SameLine();
   }
 
-  // 3. Session button - layers icon
+  // 2. Session button - layers icon
   if (show_session) {
     DrawSessionButton();
     ImGui::SameLine();
   }
 
-  // 4. Notification bell (pass visibility flags for enhanced tooltip)
+  // 3. Notification bell (pass visibility flags for enhanced tooltip)
   DrawNotificationBell(show_dirty, has_dirty_rom, show_session,
                        has_multiple_sessions);
 
   // =========================================================================
-  // DRAW PANEL TOGGLES (fixed screen position, unaffected by dockspace resize)
+  // DRAW DRAWERS OVERFLOW (fixed screen position)
   // =========================================================================
   if (has_panel_toggles) {
-    // Get current Y position within menu bar
     float menu_bar_y = ImGui::GetCursorScreenPos().y;
-
-    // Position at fixed screen coordinates
     ImGui::SetCursorScreenPos(ImVec2(panel_screen_x, menu_bar_y));
-
-    // Draw panel toggle buttons
     editor_manager_->right_drawer_manager()->DrawDrawerToggleButtons();
   }
 
@@ -593,23 +512,12 @@ void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
   auto* current_rom = editor_manager_->GetCurrentRom();
   auto* right_panel = editor_manager_->right_drawer_manager();
 
-  // Check if notifications panel is active
   bool is_active =
       right_panel && right_panel->IsDrawerActive(
                          RightDrawerManager::DrawerType::kNotifications);
 
-  // Bell icon with accent color when there are unread notifications or panel is active
-  ImVec4 bell_text_color = (unread > 0 || is_active)
-                               ? gui::GetPrimaryVec4()
-                               : gui::GetTextSecondaryVec4();
-  gui::StyleColorGuard bell_guard(
-      {{ImGuiCol_Text, bell_text_color},
-       {ImGuiCol_Button, ImVec4(0, 0, 0, 0)},
-       {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
-       {ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4()}});
-
-  // Bell button - opens notifications panel in right sidebar
-  if (ImGui::SmallButton(ICON_MD_NOTIFICATIONS)) {
+  if (DrawMenuBarIconButton(ICON_MD_NOTIFICATIONS, nullptr,
+                            unread > 0 || is_active)) {
     if (right_panel) {
       right_panel->ToggleDrawer(RightDrawerManager::DrawerType::kNotifications);
       toast_manager_.MarkAllRead();
@@ -658,29 +566,22 @@ void UICoordinator::DrawNotificationBell(bool show_dirty, bool has_dirty_rom,
 void UICoordinator::DrawSessionButton() {
   auto* current_rom = editor_manager_->GetCurrentRom();
 
-  // Consistent button styling with other menubar buttons
-  gui::StyleColorGuard session_btn_guard(
-      {{ImGuiCol_Button, ImVec4(0, 0, 0, 0)},
-       {ImGuiCol_ButtonHovered, gui::GetSurfaceContainerHighVec4()},
-       {ImGuiCol_ButtonActive, gui::GetSurfaceContainerHighestVec4()},
-       {ImGuiCol_Text, gui::GetTextSecondaryVec4()}});
-
   // Store button position for popup anchoring
   ImVec2 button_min = ImGui::GetCursorScreenPos();
 
-  if (ImGui::SmallButton(ICON_MD_LAYERS)) {
+  std::string tooltip =
+      current_rom && current_rom->is_loaded()
+          ? absl::StrFormat("%s\n%zu sessions open (Ctrl+Tab)",
+                            current_rom->short_name().c_str(),
+                            session_coordinator_.GetActiveSessionCount())
+          : absl::StrFormat("No ROM loaded\n%zu sessions open (Ctrl+Tab)",
+                            session_coordinator_.GetActiveSessionCount());
+
+  if (DrawMenuBarIconButton(ICON_MD_LAYERS, tooltip.c_str(), false)) {
     ImGui::OpenPopup("##SessionSwitcherPopup");
   }
 
   ImVec2 button_max = ImGui::GetItemRectMax();
-
-  if (ImGui::IsItemHovered()) {
-    std::string tooltip = current_rom && current_rom->is_loaded()
-                              ? current_rom->short_name()
-                              : "No ROM loaded";
-    ImGui::SetTooltip(tr("%s\n%zu sessions open (Ctrl+Tab)"), tooltip.c_str(),
-                      session_coordinator_.GetActiveSessionCount());
-  }
 
   // Anchor popup to right edge - position so right edge aligns with button
   const float popup_width = 250.0f;
@@ -753,14 +654,24 @@ void UICoordinator::SetSessionSwitcherVisible(bool visible) {
   }
 }
 
-void UICoordinator::ShowCommandPalette() {
+void UICoordinator::ShowCommandPalette(const char* initial_query) {
   const size_t session_id = session_coordinator_.GetActiveSessionId();
   if (command_palette_initialized_) {
     RefreshCommandPalette(session_id);
   } else {
     InitializeCommandPalette(session_id);
   }
+  if (initial_query != nullptr) {
+    std::snprintf(command_palette_query_, sizeof(command_palette_query_), "%s",
+                  initial_query);
+    command_palette_selected_idx_ = 0;
+  }
   show_command_palette_ = true;
+}
+
+void UICoordinator::ShowPanelFinder() {
+  // Consolidate window discovery into the command palette (`window:` prefix).
+  ShowCommandPalette("window: ");
 }
 
 void UICoordinator::SetCommandPaletteVisible(bool visible) {
@@ -882,9 +793,8 @@ void UICoordinator::DrawWelcomeScreen() {
     return;
   }
 
-  // Provide context state for gating actions
-  welcome_screen_->SetContextState(rom_is_loaded,
-                                   project_manager_.HasActiveProject());
+  // Provide context state for first-run guidance.
+  welcome_screen_->SetContextState(rom_is_loaded);
 
   // Update recent projects before showing (cheap no-op when the
   // RecentFilesManager generation counter hasn't changed).
@@ -1077,8 +987,9 @@ void UICoordinator::DrawCommandPalette() {
 
     bool input_changed = InputTextWithHint(
         "##cmd_query",
-        absl::StrFormat("%s Search commands (fuzzy matching enabled)...",
-                        ICON_MD_SEARCH)
+        absl::StrFormat(
+            "%s Search…  try drawer:  window:  layout:  (or shortcut names)",
+            ICON_MD_SEARCH)
             .c_str(),
         command_palette_query_, IM_ARRAYSIZE(command_palette_query_));
 
@@ -1261,8 +1172,8 @@ void UICoordinator::DrawCommandPalette() {
 
     // Status bar with tips
     Separator();
-    Text(tr("%s %zu commands | Score: fuzzy match"), ICON_MD_INFO,
-         scored_commands.size());
+    Text(tr("%s %zu commands | Prefixes: drawer: window: layout:"),
+         ICON_MD_INFO, scored_commands.size());
     SameLine();
     gui::ColoredText("| ↑↓=Navigate | Enter=Execute | Esc=Close",
                      gui::ConvertColorToImVec4(theme.text_disabled));
@@ -1479,6 +1390,114 @@ void UICoordinator::DrawPanelFinder() {
   }
 }
 
+void UICoordinator::DrawShortcutsBrowser() {
+  if (!show_shortcuts_browser_) {
+    return;
+  }
+
+  using namespace ImGui;
+  const ImGuiViewport* viewport = GetMainViewport();
+  SetNextWindowPos(viewport->GetCenter(), ImGuiCond_Appearing,
+                   ImVec2(0.5f, 0.5f));
+  if (IsCompactLayout()) {
+    SetNextWindowSize(
+        ImVec2(viewport->WorkSize.x * 0.95f, viewport->WorkSize.y * 0.80f),
+        ImGuiCond_Appearing);
+  } else {
+    SetNextWindowSize(ImVec2(720, 520), ImGuiCond_Appearing);
+  }
+
+  bool show = true;
+  if (Begin(absl::StrFormat("%s Keyboard Shortcuts", ICON_MD_KEYBOARD).c_str(),
+            &show, ImGuiWindowFlags_NoCollapse)) {
+    if (IsWindowAppearing()) {
+      SetKeyboardFocusHere();
+    }
+
+    SetNextItemWidth(-180.0f);
+    InputTextWithHint(
+        "##shortcuts_query",
+        ICON_MD_SEARCH " Filter by name, keys, or group (File, Drawers, …)",
+        shortcuts_browser_query_, IM_ARRAYSIZE(shortcuts_browser_query_));
+    SameLine();
+    if (Button(ICON_MD_TUNE " Edit bindings")) {
+      show_shortcuts_browser_ = false;
+      if (editor_manager_) {
+        editor_manager_->SwitchToEditor(EditorType::kSettings);
+      }
+    }
+
+    Separator();
+
+    std::string query = shortcuts_browser_query_;
+    std::transform(query.begin(), query.end(), query.begin(), ::tolower);
+
+    std::map<std::string, std::vector<const Shortcut*>> grouped;
+    static const char* kGroupOrder[] = {"File",    "Edit",  "View",   "Drawers",
+                                        "Windows", "Tools", "Layout", "Editor",
+                                        "Help",    "Other"};
+
+    for (const auto& [name, shortcut] : shortcut_manager_.GetShortcuts()) {
+      const std::string group = InferShortcutGroup(name);
+      const std::string keys = PrintShortcut(shortcut.keys);
+      if (!query.empty()) {
+        std::string hay =
+            absl::AsciiStrToLower(absl::StrCat(name, " ", keys, " ", group));
+        if (hay.find(query) == std::string::npos) {
+          continue;
+        }
+      }
+      grouped[group].push_back(&shortcut);
+    }
+
+    BeginChild("##ShortcutsBrowserList");
+    for (const char* group_name : kGroupOrder) {
+      auto it = grouped.find(group_name);
+      if (it == grouped.end() || it->second.empty()) {
+        continue;
+      }
+      if (!TreeNodeEx(group_name, ImGuiTreeNodeFlags_DefaultOpen)) {
+        continue;
+      }
+      if (BeginTable(
+              absl::StrFormat("##sc_%s", group_name).c_str(), 2,
+              ImGuiTableFlags_RowBg | ImGuiTableFlags_SizingStretchProp)) {
+        TableSetupColumn("Action", ImGuiTableColumnFlags_WidthStretch, 0.65f);
+        TableSetupColumn("Keys", ImGuiTableColumnFlags_WidthStretch, 0.35f);
+        for (const Shortcut* sc : it->second) {
+          TableNextRow();
+          TableNextColumn();
+          if (Selectable(sc->name.c_str(), false,
+                         ImGuiSelectableFlags_SpanAllColumns)) {
+            if (sc->callback) {
+              sc->callback();
+              show_shortcuts_browser_ = false;
+            }
+          }
+          TableNextColumn();
+          const std::string keys = PrintShortcut(sc->keys);
+          TextDisabled("%s", keys.empty() ? "—" : keys.c_str());
+        }
+        EndTable();
+      }
+      TreePop();
+    }
+    EndChild();
+
+    Separator();
+    TextDisabled(
+        "%s Tip: Command Palette (Ctrl+Shift+P) also lists these actions. "
+        "Try drawer: / window: / layout:",
+        ICON_MD_INFO);
+  }
+  End();
+
+  if (!show || IsKeyPressed(ImGuiKey_Escape)) {
+    show_shortcuts_browser_ = false;
+    shortcuts_browser_query_[0] = '\0';
+  }
+}
+
 void UICoordinator::InitializeCommandPalette(size_t session_id) {
   command_palette_.Clear();
   RefreshWorkflowActions();
@@ -1491,6 +1510,17 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
   if (editor_manager_) {
     command_palette_.RegisterProvider(std::make_unique<SidebarCommandsProvider>(
         &window_manager_, &editor_manager_->user_settings(), session_id));
+
+    if (auto* drawers = editor_manager_->right_drawer_manager()) {
+      command_palette_.RegisterProvider(
+          std::make_unique<DrawerCommandsProvider>(
+              [drawers](int drawer_type) {
+                drawers->ToggleDrawer(
+                    static_cast<RightDrawerManager::DrawerType>(drawer_type));
+              },
+              [drawers]() { drawers->CycleToNextDrawer(); },
+              [drawers]() { drawers->CycleToPreviousDrawer(); }));
+    }
   }
 
   // Register editor switch commands
@@ -1502,45 +1532,26 @@ void UICoordinator::InitializeCommandPalette(size_t session_id) {
         }
       }));
 
-  // Register layout/profile commands
-  command_palette_.AddCommand("Apply: Minimal Layout", CommandCategory::kLayout,
-                              "Switch to essential cards only", "", [this]() {
-                                if (editor_manager_) {
-                                  editor_manager_->ApplyLayoutPreset("Minimal");
-                                }
-                              });
-
-  command_palette_.AddCommand(
-      "Apply: Logic Debugger Layout", CommandCategory::kLayout,
-      "Switch to debug and development focused layout", "", [this]() {
-        if (editor_manager_) {
-          editor_manager_->ApplyLayoutPreset("Logic Debugger");
-        }
-      });
-
-  command_palette_.AddCommand(
-      "Apply: Overworld Artist Layout", CommandCategory::kLayout,
-      "Switch to visual and overworld focused layout", "", [this]() {
-        if (editor_manager_) {
-          editor_manager_->ApplyLayoutPreset("Overworld Artist");
-        }
-      });
-
-  command_palette_.AddCommand(
-      "Apply: Dungeon Master Layout", CommandCategory::kLayout,
-      "Switch to comprehensive dungeon editing layout", "", [this]() {
-        if (editor_manager_) {
-          editor_manager_->ApplyLayoutPreset("Dungeon Master");
-        }
-      });
-
-  command_palette_.AddCommand(
-      "Apply: Audio Engineer Layout", CommandCategory::kLayout,
-      "Switch to music and sound editing layout", "", [this]() {
-        if (editor_manager_) {
-          editor_manager_->ApplyLayoutPreset("Audio Engineer");
-        }
-      });
+  // Register layout/profile commands (includes layout: prefixes)
+  if (editor_manager_) {
+    command_palette_.RegisterProvider(
+        std::make_unique<LayoutCommandsProvider>([this](const std::string& id) {
+          if (!editor_manager_) {
+            return;
+          }
+          if (absl::StartsWith(id, "profile:")) {
+            editor_manager_->ApplyLayoutProfile(id.substr(8));
+          } else if (id == "session:capture") {
+            editor_manager_->CaptureTemporaryLayoutSnapshot();
+          } else if (id == "session:restore") {
+            editor_manager_->RestoreTemporaryLayoutSnapshot();
+          } else if (id == "session:clear") {
+            editor_manager_->ClearTemporaryLayoutSnapshot();
+          } else {
+            editor_manager_->ApplyLayoutPreset(id);
+          }
+        }));
+  }
 
   // Register recent files commands
   command_palette_.RegisterProvider(
@@ -1971,16 +1982,16 @@ bool UICoordinator::ShouldShowWelcome() const {
 }
 
 bool UICoordinator::ShouldShowDashboard() const {
-  // Respect CLI overrides
-  if (dashboard_behavior_override_ == StartupVisibility::kHide) {
-    return false;
-  }
-  if (dashboard_behavior_override_ == StartupVisibility::kShow) {
-    return true;
-  }
-
-  // Default: show dashboard only when in dashboard state
-  return current_startup_surface_ == StartupSurface::kDashboard;
+  // Consulted by SetEditorSelectionVisible, the choke point every automatic
+  // entry into the dashboard passes through.
+  //
+  // This used to also require current_startup_surface_ == kDashboard, and
+  // nothing called it at all — so --startup_dashboard=hide did nothing while
+  // its sibling --startup_welcome worked, because ShouldShowWelcome() IS
+  // consulted. The surface test is dropped on purpose: by the time a ROM
+  // finishes loading the surface has already advanced past kDashboard, so
+  // keying on it would suppress the very chooser the flag exists to govern.
+  return dashboard_behavior_override_ != StartupVisibility::kHide;
 }
 
 bool UICoordinator::ShouldShowActivityBar() const {
