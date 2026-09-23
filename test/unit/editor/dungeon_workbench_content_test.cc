@@ -434,6 +434,273 @@ TEST_F(DungeonWorkbenchPlacementUiTest,
   EXPECT_EQ(ImGui::GetCurrentContext()->ColorStack.Size, 0);
 }
 
+class DungeonWorkbenchEntityInspectorUiTest
+    : public DungeonWorkbenchObjectSizeUiTest {
+ protected:
+  void SetUp() override {
+    DungeonWorkbenchObjectSizeUiTest::SetUp();
+    rooms_[0].SetLoaded(true);
+    rooms_[0].GetSprites().emplace_back(0x42, 5, 6, 2, 0);
+    rooms_[0].GetSprites().front().set_key_drop(1);
+    rooms_[0].GetSprites().emplace_back(0x43, 7, 8, 3, 1);
+    rooms_[0].GetDoors().push_back(
+        zelda3::Room::Door::FromRomBytes(0x10, 0x00));
+    rooms_[0].GetPotItems().push_back(zelda3::PotItem{0x0714, 0x09});
+    viewer_.RefreshRomBackedState(nullptr, nullptr, &rooms_, 0);
+    viewer_.object_interaction().SetMutationCallback([this] { ++mutations_; });
+    viewer_.object_interaction().SetEntityChangedCallback(
+        [this] { ++entity_changes_; });
+    content_.FocusSelectionInspector();
+  }
+
+  void DrawEntityInspectorFrame() {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(272, 560), ImGuiCond_Always);
+    ImGui::Begin("EntityInspectorHost", nullptr,
+                 ImGuiWindowFlags_NoSavedSettings);
+    DungeonWorkbenchContentTestPeer::DrawInspector(content_, viewer_);
+    auto* window = ImGui::GetCurrentWindow();
+    EXPECT_LE(window->DC.CursorMaxPos.x, window->WorkRect.Max.x + 1);
+    ImGui::End();
+    ImGui::Render();
+  }
+
+  std::optional<gui::WidgetIdRegistry::WidgetInfo> EntityWidget(
+      const char* name) {
+    const std::string scope = "Dungeon/EntityInspector/";
+    const auto normalized_label = gui::WidgetIdRegistry::NormalizeLabel(name);
+    // AutoRegisterLastItem includes the widget type in its full path. Resolve
+    // the explicit label within this inspector so a same-named control in
+    // another panel cannot satisfy these tests.
+    for (const auto& [path, widget] :
+         gui::WidgetIdRegistry::Instance().GetAllWidgets()) {
+      if (path.starts_with(scope) && widget.label == normalized_label) {
+        return widget;
+      }
+    }
+    return std::nullopt;
+  }
+
+  void ClickEntityWidget(const char* name) {
+    const auto widget = EntityWidget(name);
+    ASSERT_TRUE(widget.has_value()) << name;
+    ASSERT_TRUE(widget->enabled) << name;
+    ASSERT_TRUE(widget->visible) << name;
+    const auto bounds = widget->bounds;
+    ASSERT_TRUE(bounds.valid) << name;
+    const float x = (bounds.min_x + bounds.max_x) / 2.0f;
+    const float y = (bounds.min_y + bounds.max_y) / 2.0f;
+    auto& io = ImGui::GetIO();
+    io.AddMousePosEvent(x, y);
+    DrawEntityInspectorFrame();
+    io.AddMouseButtonEvent(0, true);
+    DrawEntityInspectorFrame();
+    io.AddMouseButtonEvent(0, false);
+    DrawEntityInspectorFrame();
+    DrawEntityInspectorFrame();
+  }
+
+  void SelectEntity(EntityType type, size_t index = 0) {
+    viewer_.object_interaction().SelectEntity(type, index);
+    DrawEntityInspectorFrame();
+    DrawEntityInspectorFrame();
+    mutations_ = 0;
+    entity_changes_ = 0;
+  }
+
+  int room_id_ = 0;
+  int mutations_ = 0;
+  int entity_changes_ = 0;
+  std::deque<int> recent_;
+  DungeonRoomStore rooms_;
+  DungeonCanvasViewer viewer_;
+  DungeonWorkbenchContent content_ =
+      MakeWorkbenchForToolStateTests(room_id_, recent_);
+};
+
+TEST_F(DungeonWorkbenchEntityInspectorUiTest,
+       RendersEditablePropertiesForEachSelectedDomainWithoutMutating) {
+  struct DomainCase {
+    EntityType type;
+    std::vector<const char*> fields;
+  };
+  const std::vector<DomainCase> cases = {
+      {EntityType::Sprite,
+       {"SpriteId", "SpriteX", "SpriteY", "SpriteSubtype", "SpriteLayer",
+        "SpriteKeyDrop"}},
+      {EntityType::Door, {"DoorType", "DoorDirection", "DoorPosition"}},
+      {EntityType::Item, {"ItemType", "ItemX", "ItemY"}},
+  };
+  for (const auto& test_case : cases) {
+    SCOPED_TRACE(static_cast<int>(test_case.type));
+    SelectEntity(test_case.type);
+    for (const char* field : test_case.fields) {
+      SCOPED_TRACE(field);
+      const auto widget = EntityWidget(field);
+      ASSERT_TRUE(widget.has_value());
+      EXPECT_TRUE(widget->visible);
+      EXPECT_TRUE(widget->enabled);
+      EXPECT_TRUE(widget->bounds.valid);
+    }
+    DrawEntityInspectorFrame();
+    EXPECT_EQ(mutations_, 0);
+    EXPECT_EQ(entity_changes_, 0);
+  }
+  EXPECT_FALSE(rooms_[0].sprites_dirty());
+  EXPECT_FALSE(rooms_[0].pot_items_dirty());
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+  EXPECT_EQ(ImGui::GetCurrentContext()->StyleVarStack.Size, 0);
+  EXPECT_EQ(ImGui::GetCurrentContext()->ColorStack.Size, 0);
+}
+
+TEST_F(DungeonWorkbenchEntityInspectorUiTest,
+       SpriteLayerComboChangesOnlySelectedSpriteThroughMutationHook) {
+  SelectEntity(EntityType::Sprite);
+  ClickEntityWidget("SpriteLayer");
+  ASSERT_TRUE(EntityWidget("SpriteLayer/Upper").has_value());
+  ASSERT_TRUE(EntityWidget("SpriteLayer/Lower").has_value());
+  ClickEntityWidget("SpriteLayer/Lower");
+
+  const auto& sprite = rooms_[0].GetSprites().front();
+  EXPECT_EQ(sprite.layer(), 1);
+  EXPECT_EQ(sprite.id(), 0x42);
+  EXPECT_EQ(sprite.x(), 5);
+  EXPECT_EQ(sprite.y(), 6);
+  EXPECT_EQ(sprite.subtype(), 2);
+  EXPECT_EQ(sprite.key_drop(), 1);
+  EXPECT_EQ(rooms_[0].GetSprites()[1].layer(), 1);
+  EXPECT_EQ(mutations_, 1);
+  EXPECT_EQ(entity_changes_, 1);
+  EXPECT_TRUE(rooms_[0].sprites_dirty());
+  EXPECT_FALSE(rooms_[0].pot_items_dirty());
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+
+  // Returning to Upper exercises both legal layer values. There is no third
+  // layer in the dungeon sprite encoding.
+  ClickEntityWidget("SpriteLayer");
+  ClickEntityWidget("SpriteLayer/Upper");
+  EXPECT_EQ(rooms_[0].GetSprites().front().layer(), 0);
+  EXPECT_EQ(rooms_[0].GetSprites()[1].layer(), 1);
+  EXPECT_EQ(mutations_, 2);
+  EXPECT_EQ(entity_changes_, 2);
+}
+
+TEST_F(DungeonWorkbenchEntityInspectorUiTest,
+       ItemXIncrementPreservesYAndItemAndUsesMutationHook) {
+  SelectEntity(EntityType::Item);
+  const auto before = rooms_[0].GetPotItems().front();
+  ClickEntityWidget("ItemXIncrease");
+
+  const auto& item = rooms_[0].GetPotItems().front();
+  EXPECT_EQ(item.GetPixelX(), before.GetPixelX() + 4);
+  EXPECT_EQ(item.GetPixelY(), before.GetPixelY());
+  EXPECT_EQ(item.item, before.item);
+  EXPECT_EQ(mutations_, 1);
+  EXPECT_EQ(entity_changes_, 1);
+  EXPECT_TRUE(rooms_[0].pot_items_dirty());
+  EXPECT_FALSE(rooms_[0].sprites_dirty());
+  EXPECT_FALSE(rooms_[0].object_stream_dirty());
+}
+
+TEST_F(DungeonWorkbenchEntityInspectorUiTest,
+       MultipleAndMixedSelectionsDoNotExposeFirstEntityProperties) {
+  auto& interaction = viewer_.object_interaction();
+  auto& coordinator = interaction.entity_coordinator();
+  const std::vector<std::vector<SelectedEntity>> selections = {
+      {{EntityType::Sprite, 0}, {EntityType::Sprite, 1}},
+      {{EntityType::Sprite, 0}, {EntityType::Item, 0}},
+      {{EntityType::Door, 0}, {EntityType::Sprite, 0}},
+  };
+  for (const auto& selected : selections) {
+    coordinator.SetSelectedEntities(selected);
+    mutations_ = 0;
+    entity_changes_ = 0;
+    DrawEntityInspectorFrame();
+    DrawEntityInspectorFrame();
+    EXPECT_FALSE(EntityWidget("SpriteId").has_value());
+    EXPECT_FALSE(EntityWidget("SpriteLayer").has_value());
+    EXPECT_FALSE(EntityWidget("DoorType").has_value());
+    EXPECT_FALSE(EntityWidget("ItemType").has_value());
+    EXPECT_EQ(mutations_, 0);
+    EXPECT_EQ(entity_changes_, 0);
+  }
+  EXPECT_EQ(rooms_[0].GetSprites().front().layer(), 0);
+  EXPECT_EQ(rooms_[0].GetPotItems().front().position, 0x0714);
+  EXPECT_EQ(rooms_[0].GetDoors().front().type, zelda3::DoorType::NormalDoor);
+}
+
+TEST_F(DungeonWorkbenchEntityInspectorUiTest,
+       MismatchedRoomContextHidesPropertiesWithoutMutationOrHistoryCapture) {
+  rooms_[1].SetLoaded(true);
+  rooms_[1].GetSprites().emplace_back(0x49, 2, 3, 4, 1);
+  rooms_[1].GetPotItems().push_back(zelda3::PotItem{0x0310, 0x04});
+  rooms_[1].GetDoors().push_back(zelda3::Room::Door::FromRomBytes(0x20, 0x02));
+  rooms_[1].MarkHeaderDirty();  // Existing dirty state must also survive.
+  auto& interaction = viewer_.object_interaction();
+  struct DomainCase {
+    EntityType type;
+    const char* control;
+  };
+  const DomainCase cases[] = {
+      {EntityType::Sprite, "SpriteId"},
+      {EntityType::Door, "DoorType"},
+      {EntityType::Item, "ItemType"},
+  };
+  for (const auto& test_case : cases) {
+    SCOPED_TRACE(static_cast<int>(test_case.type));
+    interaction.SetCurrentRoom(&rooms_, 0);
+    SelectEntity(test_case.type);
+    ASSERT_TRUE(EntityWidget(test_case.control).has_value());
+
+    // The viewer still displays room 0, while handler mutations now target
+    // room 1. Both rooms have index 0, so an accidental write would be valid.
+    interaction.SetCurrentRoom(&rooms_, 1);
+    ASSERT_EQ(viewer_.current_room_id(), 0);
+    ASSERT_EQ(interaction.entity_coordinator()
+                  .tile_handler()
+                  .context()
+                  ->current_room_id,
+              1);
+    DrawEntityInspectorFrame();
+    DrawEntityInspectorFrame();
+    for (const auto& domain : cases) {
+      EXPECT_FALSE(EntityWidget(domain.control).has_value());
+    }
+    EXPECT_FALSE(EntityWidget("SpriteXIncrease").has_value());
+    EXPECT_FALSE(EntityWidget("ItemXIncrease").has_value());
+    EXPECT_EQ(mutations_, 0);  // No new undo snapshot may be captured.
+    EXPECT_EQ(entity_changes_, 0);
+    EXPECT_EQ(interaction.GetSelectedEntity(),
+              (SelectedEntity{test_case.type, 0}));
+  }
+
+  ASSERT_EQ(rooms_[0].GetSprites().size(), 2u);
+  EXPECT_EQ(rooms_[0].GetSprites().front().id(), 0x42);
+  EXPECT_EQ(rooms_[0].GetSprites().front().x(), 5);
+  EXPECT_EQ(rooms_[0].GetSprites().front().layer(), 0);
+  EXPECT_EQ(rooms_[0].GetPotItems().front().position, 0x0714);
+  EXPECT_EQ(rooms_[0].GetPotItems().front().item, 0x09);
+  EXPECT_EQ(rooms_[0].GetDoors().front().EncodeBytes(),
+            (std::pair<uint8_t, uint8_t>{0x10, 0x00}));
+  ASSERT_EQ(rooms_[1].GetSprites().size(), 1u);
+  EXPECT_EQ(rooms_[1].GetSprites().front().id(), 0x49);
+  EXPECT_EQ(rooms_[1].GetSprites().front().x(), 2);
+  EXPECT_EQ(rooms_[1].GetSprites().front().layer(), 1);
+  EXPECT_EQ(rooms_[1].GetPotItems().front().position, 0x0310);
+  EXPECT_EQ(rooms_[1].GetPotItems().front().item, 0x04);
+  EXPECT_EQ(rooms_[1].GetDoors().front().EncodeBytes(),
+            (std::pair<uint8_t, uint8_t>{0x20, 0x02}));
+  EXPECT_FALSE(rooms_[0].header_dirty());
+  EXPECT_TRUE(rooms_[1].header_dirty());
+  for (int room_id : {0, 1}) {
+    EXPECT_FALSE(rooms_[room_id].sprites_dirty());
+    EXPECT_FALSE(rooms_[room_id].pot_items_dirty());
+    EXPECT_FALSE(rooms_[room_id].object_stream_dirty());
+  }
+}
+
 TEST_F(DungeonWorkbenchObjectSizeUiTest,
        PlatformControlsShowPhysicalSizesAndPreserveOtherAxis) {
   struct SizeCase {

@@ -824,26 +824,36 @@ std::vector<SelectedEntity> DungeonObjectInteraction::PasteEntityClipboardAt(
   const int delta_pixel_x = target_pixel_x - entity_clipboard_.origin_pixel_x;
   const int delta_pixel_y = target_pixel_y - entity_clipboard_.origin_pixel_y;
 
-  if (!entity_clipboard_.sprites.empty()) {
+  // Validate the translated records before adding any clipboard entities.
+  // A legal source sprite can become a reserved marker at its pasted position.
+  auto translated_sprites = entity_clipboard_.sprites;
+  for (auto& sprite : translated_sprites) {
+    const int next_x = std::clamp(
+        (sprite.x() * dungeon_coords::kSpriteTileSize + delta_pixel_x) /
+            dungeon_coords::kSpriteTileSize,
+        0, dungeon_coords::kSpriteGridMax);
+    const int next_y = std::clamp(
+        (sprite.y() * dungeon_coords::kSpriteTileSize + delta_pixel_y) /
+            dungeon_coords::kSpriteTileSize,
+        0, dungeon_coords::kSpriteGridMax);
+    if (!SpriteInteractionHandler::ValidateSpriteProperties(
+             sprite.id(), next_x, next_y, sprite.subtype(), sprite.layer(),
+             sprite.key_drop())
+             .ok()) {
+      return pasted_entities;
+    }
+    sprite.set_x(next_x);
+    sprite.set_y(next_y);
+  }
+  if (!translated_sprites.empty()) {
     interaction_context_.NotifyMutation(MutationDomain::kSprites);
     auto& sprites = room.GetSprites();
-    for (auto sprite : entity_clipboard_.sprites) {
-      const int next_x = std::clamp(
-          (sprite.x() * dungeon_coords::kSpriteTileSize + delta_pixel_x) /
-              dungeon_coords::kSpriteTileSize,
-          0, dungeon_coords::kSpriteGridMax);
-      const int next_y = std::clamp(
-          (sprite.y() * dungeon_coords::kSpriteTileSize + delta_pixel_y) /
-              dungeon_coords::kSpriteTileSize,
-          0, dungeon_coords::kSpriteGridMax);
-      sprite.set_x(next_x);
-      sprite.set_y(next_y);
-      sprites.push_back(sprite);
+    for (auto& sprite : translated_sprites) {
+      sprites.push_back(std::move(sprite));
       pasted_entities.push_back(
           SelectedEntity{EntityType::Sprite, sprites.size() - 1});
     }
     room.MarkSpritesDirty();
-    interaction_context_.NotifyInvalidateCache(MutationDomain::kSprites);
   }
 
   if (!entity_clipboard_.items.empty()) {
@@ -857,12 +867,8 @@ std::vector<SelectedEntity> DungeonObjectInteraction::PasteEntityClipboardAt(
           SelectedEntity{EntityType::Item, items.size() - 1});
     }
     room.MarkPotItemsDirty();
-    interaction_context_.NotifyInvalidateCache(MutationDomain::kItems);
   }
 
-  if (!pasted_entities.empty()) {
-    interaction_context_.NotifyEntityChanged();
-  }
   return pasted_entities;
 }
 
@@ -912,7 +918,24 @@ void DungeonObjectInteraction::HandlePasteObjects() {
     for (size_t idx : new_indices) {
       selection_.SelectObject(idx, ObjectSelection::SelectionMode::Add);
     }
+    const bool pasted_sprites = std::any_of(
+        new_entities.begin(), new_entities.end(),
+        [](const auto& entity) { return entity.type == EntityType::Sprite; });
+    const bool pasted_items = std::any_of(
+        new_entities.begin(), new_entities.end(),
+        [](const auto& entity) { return entity.type == EntityType::Item; });
     entity_coordinator_.SetSelectedEntities(std::move(new_entities));
+    // Capture the completed operation only after the inserted entities become
+    // selected, so redo restores the same selection the user saw after paste.
+    if (pasted_sprites) {
+      interaction_context_.NotifyInvalidateCache(MutationDomain::kSprites);
+    }
+    if (pasted_items) {
+      interaction_context_.NotifyInvalidateCache(MutationDomain::kItems);
+    }
+    if (pasted_sprites || pasted_items) {
+      interaction_context_.NotifyEntityChanged();
+    }
   }
 }
 

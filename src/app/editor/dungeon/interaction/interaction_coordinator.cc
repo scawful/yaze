@@ -561,6 +561,28 @@ bool InteractionCoordinator::NudgeSelectedEntities(
     return false;
   }
 
+  // Preflight the complete selection before any domain is changed. A valid
+  // subtype/layer can become a ROM terminator or hidden marker after moving.
+  for (const auto entity : selected_entities_) {
+    if (entity.type != EntityType::Sprite ||
+        entity.index >= room->GetSprites().size()) {
+      continue;
+    }
+    const auto& sprite = room->GetSprites()[entity.index];
+    const int x = static_cast<int>(
+        std::clamp<int64_t>(static_cast<int64_t>(sprite.x()) + delta_x, 0,
+                            dungeon_coords::kSpriteGridMax));
+    const int y = static_cast<int>(
+        std::clamp<int64_t>(static_cast<int64_t>(sprite.y()) + delta_y, 0,
+                            dungeon_coords::kSpriteGridMax));
+    if (!SpriteInteractionHandler::ValidateSpriteProperties(
+             sprite.id(), x, y, sprite.subtype(), sprite.layer(),
+             sprite.key_drop())
+             .ok()) {
+      return false;
+    }
+  }
+
   bool doors_changed = false;
   bool sprites_changed = false;
   bool items_changed = false;
@@ -631,10 +653,12 @@ bool InteractionCoordinator::NudgeSelectedEntities(
           break;
         }
         auto& sprite = sprites[entity.index];
-        const int next_x = std::clamp(static_cast<int>(sprite.x()) + delta_x, 0,
-                                      dungeon_coords::kSpriteGridMax);
-        const int next_y = std::clamp(static_cast<int>(sprite.y()) + delta_y, 0,
-                                      dungeon_coords::kSpriteGridMax);
+        const int next_x = static_cast<int>(
+            std::clamp<int64_t>(static_cast<int64_t>(sprite.x()) + delta_x, 0,
+                                dungeon_coords::kSpriteGridMax));
+        const int next_y = static_cast<int>(
+            std::clamp<int64_t>(static_cast<int64_t>(sprite.y()) + delta_y, 0,
+                                dungeon_coords::kSpriteGridMax));
         if (next_x == sprite.x() && next_y == sprite.y()) {
           break;
         }

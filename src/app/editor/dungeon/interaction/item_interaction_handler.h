@@ -83,6 +83,8 @@ class ItemInteractionHandler : public BaseEntityHandler {
    * interactions.
    */
   bool MutateItemType(size_t index, uint8_t new_type);
+  // Pot-item positions encode X in 4-pixel steps and Y in 16-pixel steps.
+  bool UpdateItem(size_t index, uint8_t type, int pixel_x, int pixel_y);
 
  private:
   // Placement state

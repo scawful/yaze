@@ -1,6 +1,7 @@
 #ifndef YAZE_APP_EDITOR_DUNGEON_INTERACTION_SPRITE_INTERACTION_HANDLER_H_
 #define YAZE_APP_EDITOR_DUNGEON_INTERACTION_SPRITE_INTERACTION_HANDLER_H_
 
+#include "absl/status/status.h"
 #include "app/editor/dungeon/interaction/base_entity_handler.h"
 #include "app/editor/dungeon/interaction/ghost_preview_feedback.h"
 #include "zelda3/sprite/sprite.h"
@@ -82,6 +83,13 @@ class SpriteInteractionHandler : public BaseEntityHandler {
   void DeleteSelected();
   void DeleteAll();
   bool NudgeSelected(int delta_x, int delta_y);
+  // ROM sprite fields: 5-bit coordinates/subtype, one-bit layer, key drop 0..2.
+  // Rejects reserved stream terminators and hidden key-marker encodings too.
+  static absl::Status ValidateSpriteProperties(uint8_t id, int x, int y,
+                                               int subtype, int layer,
+                                               int key_drop);
+  bool UpdateSprite(size_t index, uint8_t id, int x, int y, int subtype,
+                    int layer, int key_drop);
 
   /// True if the most recent PlaceSpriteAtPosition was blocked.
   bool was_placement_blocked() const {
