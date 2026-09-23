@@ -64,6 +64,10 @@ apply to the earlier history/painting increment, not the new workspace code.
 
 ## Next
 
+Manual checks are deferred at the user's request. Track them in the
+[manual editor checklist and continuation queue](../plans/manual-editor-checklist-2026-09-23.md).
+Continue development without waiting for those checks; do not mark them passed.
+
 Qualify this exact consolidated source with disposable ROMs and native UI:
 Tile16 double-click → edit → dock narrow → reopen, two ROM sessions, map paint
 and Tile16 edits interleaved with Undo/Redo, then save and independently reopen.
