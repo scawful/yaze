@@ -25,6 +25,10 @@ class DungeonEditorEntityUndoTestPeer {
                               const DungeonEntitySnapshot& snapshot) {
     return editor.RestoreRoomEntities(room_id, domain, snapshot);
   }
+  static void NavigateToObject(DungeonEditorV2& editor, int room_id,
+                               size_t index, int object_id) {
+    editor.NavigateToPlacedObject(room_id, index, object_id);
+  }
 };
 
 namespace {
@@ -332,6 +336,67 @@ TEST_P(DungeonEntityUndoLifecycleTest,
   EXPECT_TRUE(DungeonEditorEntityUndoTestPeer::Restore(
                   *editor_, -1, MutationDomain::kSprites, {})
                   .code() == absl::StatusCode::kInvalidArgument);
+}
+
+TEST_P(DungeonEntityUndoLifecycleTest,
+       RoomChangeFinalizesTileDragBeforeNextEntityEdit) {
+  room_->AddTileObject(zelda3::RoomObject{0x01, 4, 4, 0x00, 0});
+  auto& interaction = viewer_->object_interaction();
+  interaction.SetSelectedObjects({0});
+  interaction.mode_manager().SetMode(InteractionMode::DraggingObjects);
+  coordinator().tile_handler().InitDrag(ImVec2(32, 32));
+  coordinator().tile_handler().HandleDrag(ImVec2(40, 32), ImVec2(8, 0));
+  ASSERT_EQ(room_->GetTileObjects()[0].x(), 5);
+  ASSERT_EQ(UndoDepth(), 0u);
+
+  auto& other = editor_->rooms()[1];
+  other.SetLoaded(true);
+  other.GetSprites().emplace_back(0x0A, 12, 14, 0, 1);
+  // A retained canvas can change its binding before mouse release. Its old
+  // transaction must finish while the callbacks still identify room 0.
+  interaction.SetCurrentRoom(&editor_->rooms(), 1);
+  EXPECT_EQ(UndoDepth(), 1u);
+  coordinator().HandleRelease();
+  EXPECT_EQ(UndoDepth(), 1u);
+  ASSERT_TRUE(
+      coordinator().sprite_handler().UpdateSprite(0, 0x0A, 13, 14, 0, 1, 0));
+  ASSERT_EQ(UndoDepth(), 2u);
+
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(other.GetSprites()[0].x(), 12);
+  EXPECT_EQ(room_->GetTileObjects()[0].x(), 5);
+  ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(room_->GetTileObjects()[0].x(), 4);
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(room_->GetTileObjects()[0].x(), 5);
+  EXPECT_EQ(other.GetSprites()[0].x(), 12);
+  ASSERT_TRUE(editor_->Redo().ok());
+  EXPECT_EQ(other.GetSprites()[0].x(), 13);
+}
+
+TEST_P(DungeonEntityUndoLifecycleTest,
+       CoverageNavigationBindsDestinationBeforeSelecting) {
+  room_->AddTileObject(zelda3::RoomObject{0x01, 4, 4, 0x00, 0});
+  viewer_->object_interaction().SetSelectedObjects({0});
+  auto& destination = editor_->rooms()[1];
+  destination.SetLoaded(true);
+  destination.AddTileObject(zelda3::RoomObject{0x02, 8, 8, 0x00, 0});
+  destination.AddTileObject(zelda3::RoomObject{0x03, 12, 12, 0x00, 0});
+
+  DungeonEditorEntityUndoTestPeer::NavigateToObject(*editor_, 1, 1, 0x03);
+  auto* destination_viewer =
+      DungeonEditorEntityUndoTestPeer::Viewer(*editor_, 1);
+  auto& interaction = destination_viewer->object_interaction();
+  EXPECT_EQ(interaction.entity_coordinator()
+                .tile_handler()
+                .context()
+                ->current_room_id,
+            1);
+  EXPECT_EQ(interaction.GetSelectedObjectIndices(), std::vector<size_t>{1});
+  // The canvas repeats this binding when it draws the destination room.
+  interaction.SetCurrentRoom(&editor_->rooms(), 1);
+  EXPECT_EQ(interaction.GetSelectedObjectIndices(), std::vector<size_t>{1});
+  EXPECT_EQ(UndoDepth(), 0u);
 }
 
 TEST_P(DungeonEntityUndoLifecycleTest,
