@@ -45,6 +45,7 @@ set(
   app/editor/dungeon/ui/window/minecart_track_editor_panel.cc
   app/editor/dungeon/ui/window/object_tile_editor_panel.cc
   app/editor/dungeon/ui/window/room_tag_editor_panel.cc
+  app/editor/dungeon/ui/window/sprite_editor_panel.cc
   app/editor/dungeon/ui/window/object_coverage_panel.cc
   app/editor/dungeon/widgets/dungeon_room_nav_widget.cc
   app/editor/dungeon/widgets/dungeon_status_bar.cc
