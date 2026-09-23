@@ -66,15 +66,23 @@ Verification:
 passed with zero failures and zero skips**. App/unit builds: passed. Scoped
 analyzer: passed for the six selected implementation files and their explicit header scope.
 
-The current authored-room clone/import candidate `2520aa6b0`
-follows `6a1196218`. It adds `yaze.room` v1 clipboard exchange and same-project
+The current authored-room clone/import candidate `bb185d1ae`
+follows authored-room source `2520aa6b0` and documentation `df1cc4f2d`. It adds `yaze.room` v1 clipboard exchange and same-project
 clone, seven selectable domains with Core defaults, preserved target destinations
 unless explicitly included, detached persistence/capacity/write-policy preflight,
 stale-source/target rejection, and one undo action. Other rooms retain their
 water masks, and the shared water table preserves unopened saved zones.
-Verification: **968 tests across 49
+Verification: **989 tests across 49
 suites; all passed, zero failures and zero skipped**. The prior 807-test result belongs to the
 connection checkpoint, not this candidate.
+
+
+The qualification repair enforces native block storage before the torch table,
+accepts shared empty pot terminators, moves preview GameData to the heap, and
+offers explicit recovery without shared room properties. JSON preserves residual
+chest records and normalizes physical block slots. The exit-door report remains
+not reproduced; confirmed exit guards have regression coverage. Independent
+save/reopen qualification must be rerun on this source.
 
 DA-1/DA-2 remain partial for broader authoring domains and qualification. DA-3
 remains partial for stairs, pits, special door families, and runtime traversal.

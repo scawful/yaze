@@ -573,8 +573,8 @@ in the correct runtime ROM. Navigation alone does not close this package.
 ### DA-4: room and selection reuse
 
 **Authored-room clone/import candidate (2026-09-23):**
-`2520aa6b0` on `codex/editor-parity-dungeon-authoring`,
-following source `be973563f` and documentation `6a1196218`.
+`bb185d1ae` on `codex/editor-parity-dungeon-authoring`,
+following authored-room source `2520aa6b0` and documentation `df1cc4f2d`.
 
 The shared Room UI/dialog supports same-project **Clone**, **Copy Room JSON**,
 and clipboard/text **Import JSON**, with **Preview Replacement** before
@@ -615,13 +615,23 @@ coupled chest/object saves, object-only Delete controls, and the dungeon
 spriteset authoring limit. The handoff records their regression scope and the
 remaining pot-coordinate codec audit.
 
-**Verification:** `968` tests across
+**Verification:** `989` tests across
 `49` suites; `all passed, zero failures and zero skipped`. Exact commands,
 build/analyzer scope, and artifacts belong in the
-[room transfer handoff](../agents/dungeon-workbench-placement-handoff-2026-09-22.md#room-transfer-verification-commands).
+[room transfer handoff](../agents/dungeon-workbench-placement-handoff-2026-09-22.md#qualification-repair-verification).
 The prior 807-test connection result remains historical evidence for
 `be973563f`, not this candidate's result. Synthetic persistence and ImGui tests
 remain separate from application-to-disk, human UX, and game-runtime acceptance.
+
+The qualification repair adds physical block-ROM bounds (99 records in the
+native layout), shared empty pot-list terminator support, heap-backed preview
+GameData, and explicit shared-header recovery. Interchange retains residual
+vanilla chest records, but object/chest replacement still requires a valid
+mapping. Export normalizes physical block slots to `-1`; internal undo keeps
+exact slots. The reported exit-door issue was not reproduced: confirmed vanilla
+exit markers and explicit exit families are blocked by the existing guards and
+now have additional UI/API regressions. The handoff separates external
+real-ROM qualification of the prior candidate from this repair's tests.
 
 **Remaining DA-4 scope:** project-file export/import and asset-compatibility
 checks/remapping, portable reusable selections/assets, and qualified save/reopen.
