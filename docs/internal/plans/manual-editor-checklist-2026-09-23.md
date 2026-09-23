@@ -33,6 +33,34 @@ Record build commit, ROM type, map ID, action, expected result, actual result.
 
 These checks remain deferred. Automated tests use synthetic in-memory ROM data.
 
+## Test later: dungeon pot-item coordinates
+
+Candidate: `804b32eea` on `codex/editor-parity-dungeon-authoring`; this code is
+not yet integrated into the main checkout. Test the eventual combined build.
+
+- [ ] Select and move pot items on odd tile rows and the lower layer. Confirm
+  canvas position, hit testing, inspector coordinates, and 8-pixel arrow nudges.
+- [ ] Undo/Redo, then save/reopen a test ROM copy. Check positions and item types.
+
+## Integration priority before another feature
+
+The authoring checkout contains the chest, mixed-selection, reciprocal-door,
+and room clone/import work. The main checkout contains the consolidated
+Tile16/overworld work through `06343577b`. They are separate branches, not one
+qualified application. Review the isolated merge before claiming combined support.
+
+A read-only merge preview before `804b32eea` found 15 conflict paths: CI,
+AGENTS.md, internal index/roadmap/status, Tile16 data-flow documentation,
+editor_library.cmake, overworld_editor.cc, Mesen socket client/header/handler
+and tests, empty_state.cc and tests, and sprite.h. The branches differ across
+hundreds of files beyond those conflicts; a conflict-free file is not proof of
+semantic compatibility. Preserve the overworld sprite save path, session-safe
+floating panels, immediate Tile16 history, and all dungeon authoring fixes.
+
+Next bounded task: create an integration checkout, resolve those conflicts,
+review interactions, build it, and run both focused test sets before adopting
+it in the main checkout. Manual tests remain deferred.
+
 ## Requested work to continue
 
 1. **Overworld sprite persistence implemented; manual check deferred.** Both
