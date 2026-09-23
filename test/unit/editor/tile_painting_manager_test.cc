@@ -1,9 +1,9 @@
-#include "app/editor/overworld/tile_painting_manager.h"
+#include "app/editor/overworld/painting/tile_painting_manager.h"
 
 #include <memory>
 #include <vector>
 
-#include "app/editor/overworld/ui_constants.h"
+#include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/canvas/canvas.h"
 #include "gtest/gtest.h"

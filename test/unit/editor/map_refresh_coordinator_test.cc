@@ -1,5 +1,5 @@
-#include "app/editor/overworld/map_refresh_coordinator.h"
-#include "app/editor/overworld/map_texture_coordinator.h"
+#include "app/editor/overworld/maps/map_refresh_coordinator.h"
+#include "app/editor/overworld/maps/map_texture_coordinator.h"
 
 #include <array>
 #include <memory>

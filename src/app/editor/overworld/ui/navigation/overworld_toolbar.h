@@ -5,8 +5,8 @@
 #include <string>
 
 #include "absl/status/status.h"
-#include "app/editor/overworld/overworld_property_edit.h"
-#include "app/editor/overworld/ui_constants.h"
+#include "app/editor/overworld/maps/overworld_property_edit.h"
+#include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gui/core/icons.h"
 #include "app/gui/core/ui_helpers.h"
 #include "imgui/imgui.h"

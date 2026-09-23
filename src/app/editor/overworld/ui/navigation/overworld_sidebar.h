@@ -1,7 +1,7 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLD_SIDEBAR_H
 #define YAZE_APP_EDITOR_OVERWORLD_SIDEBAR_H
 
-#include "app/editor/overworld/map_properties.h"
+#include "app/editor/overworld/maps/map_properties.h"
 #include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
 
@@ -24,7 +24,7 @@ class OverworldSidebar {
   void DrawSpritePropertiesTab(int current_map, int game_state);
   void DrawGraphicsTab(int current_map, int game_state);
   void DrawMusicTab(int current_map);
-  
+
   // Legacy helpers (kept for internal use if needed, or refactored)
   void DrawMapSelection(int& current_world, int& current_map,
                         bool& current_map_lock);

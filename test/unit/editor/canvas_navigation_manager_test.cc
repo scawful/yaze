@@ -1,8 +1,8 @@
-#include "app/editor/overworld/canvas_navigation_manager.h"
+#include "app/editor/overworld/canvas/canvas_navigation_manager.h"
 
 #include <memory>
 
-#include "app/editor/overworld/ui_constants.h"
+#include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gui/canvas/canvas.h"
 #include "app/gui/widgets/tile_selector_widget.h"
 #include "gtest/gtest.h"
@@ -158,8 +158,7 @@ TEST_F(CanvasNavigationManagerTest, HandleOverworldZoomDoesNotCrash) {
 // ScrollBlocksetCanvasToCurrentTile - null-safety
 // ===========================================================================
 
-TEST_F(CanvasNavigationManagerTest,
-       ScrollBlocksetCanvasToCurrentTileNoWidget) {
+TEST_F(CanvasNavigationManagerTest, ScrollBlocksetCanvasToCurrentTileNoWidget) {
   // blockset_selector_ is nullptr (default) -- should not crash.
   ASSERT_EQ(blockset_selector_, nullptr);
   manager_.ScrollBlocksetCanvasToCurrentTile();

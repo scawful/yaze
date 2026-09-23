@@ -1,7 +1,7 @@
 #include "app/editor/overworld/overworld_editor.h"
 
-#include "app/editor/overworld/entity_operations.h"
-#include "app/editor/overworld/overworld_toolbar.h"
+#include "app/editor/overworld/entity/entity_operations.h"
+#include "app/editor/overworld/ui/navigation/overworld_toolbar.h"
 #include "app/editor/system/workspace/workspace_window_manager.h"
 #include "app/gui/canvas/canvas_automation_api.h"
 #include "app/gui/core/popup_id.h"

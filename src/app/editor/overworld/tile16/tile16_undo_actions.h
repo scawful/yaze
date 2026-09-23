@@ -70,9 +70,7 @@ class Tile16EditAction : public UndoAction {
     return before_.bitmap_data.size() + after_.bitmap_data.size();
   }
 
-  bool CanMergeWith(const UndoAction& /*prev*/) const override {
-    return false;
-  }
+  bool CanMergeWith(const UndoAction& /*prev*/) const override { return false; }
 
  private:
   Tile16Snapshot before_;

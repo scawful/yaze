@@ -89,7 +89,7 @@ changes keep parity with ZScream/Hyrule Magic behavior.
   ([tile16_editor.cc:1777](/Users/scawful/src/hobby/yaze/src/app/editor/overworld/tile16_editor.cc:1777)).
 - Pure helper rules live in:
   `tile8_source_interaction.h`
-  ([tile8_source_interaction.h:1](/Users/scawful/src/hobby/yaze/src/app/editor/overworld/tile8_source_interaction.h:1)).
+  ([tile8_source_interaction.h:1](/Users/scawful/src/hobby/yaze/src/app/editor/overworld/tile16/tile8_source_interaction.h:1)).
 - This keeps coordinate math and RMB usage-mode behavior testable without ImGui
   frame plumbing.
 

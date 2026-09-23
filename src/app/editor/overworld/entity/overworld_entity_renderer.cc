@@ -4,7 +4,7 @@
 
 #include "absl/strings/str_format.h"
 #include "app/editor/agent/agent_ui_theme.h"
-#include "app/editor/overworld/entity.h"
+#include "app/editor/overworld/entity/entity.h"
 #include "app/gui/canvas/canvas.h"
 #include "core/features.h"
 #include "imgui/imgui.h"
@@ -33,7 +33,8 @@ ImVec4 GetSpriteColor() {
 }
 ImVec4 GetDiggableTileColor() {
   const auto& theme = AgentUI::GetTheme();
-  return ImVec4{theme.status_active.x, theme.status_active.y, theme.status_active.z, 0.5f};
+  return ImVec4{theme.status_active.x, theme.status_active.y,
+                theme.status_active.z, 0.5f};
 }
 }  // namespace
 

@@ -3,7 +3,7 @@
 
 #include <functional>
 
-#include "app/editor/overworld/ui_constants.h"
+#include "app/editor/overworld/ui/ui_constants.h"
 
 namespace yaze {
 namespace zelda3 {

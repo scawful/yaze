@@ -1,9 +1,9 @@
-#include "app/editor/overworld/map_texture_coordinator.h"
+#include "app/editor/overworld/maps/map_texture_coordinator.h"
 
 #include <algorithm>
 #include <new>
 
-#include "app/editor/overworld/ui_constants.h"
+#include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/resource/arena.h"
 #include "util/log.h"

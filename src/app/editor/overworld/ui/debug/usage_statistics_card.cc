@@ -1,4 +1,4 @@
-#include "app/editor/overworld/usage_statistics_card.h"
+#include "app/editor/overworld/ui/debug/usage_statistics_card.h"
 #include "util/i18n/tr.h"
 
 #include <algorithm>

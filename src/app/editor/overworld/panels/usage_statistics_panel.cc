@@ -2,7 +2,7 @@
 
 #include "app/editor/core/panel_registration.h"
 #include "app/editor/overworld/panels/overworld_panel_access.h"
-#include "app/editor/overworld/usage_statistics_card.h"
+#include "app/editor/overworld/ui/debug/usage_statistics_card.h"
 
 namespace yaze::editor {
 

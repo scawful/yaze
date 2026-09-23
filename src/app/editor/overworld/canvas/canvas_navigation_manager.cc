@@ -1,4 +1,4 @@
-#include "app/editor/overworld/canvas_navigation_manager.h"
+#include "app/editor/overworld/canvas/canvas_navigation_manager.h"
 
 #include <algorithm>
 #include <optional>

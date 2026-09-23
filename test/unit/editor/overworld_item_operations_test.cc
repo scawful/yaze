@@ -1,4 +1,4 @@
-#include "app/editor/overworld/entity_operations.h"
+#include "app/editor/overworld/entity/entity_operations.h"
 
 #include <algorithm>
 #include <memory>
