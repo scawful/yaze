@@ -37,6 +37,12 @@ rendering and qualification details. Historical plans are not completion proof.
 5. Renderer qualification proceeds independently from new editing features.
    Do not ask the user to repeatedly validate incremental implementation.
    Assigned validation agents run candidate checks on disposable ROM copies.
+6. Keep human ownership of interaction design explicit. Agents may prepare
+   mechanical cleanup and verification, while the maintainer chooses and codes
+   bounded selector/layout features. Follow the
+   [UI guidelines](../architecture/ui-design-guidelines.md) and
+   [refactor guardrails](../architecture/refactor-quality-guardrails.md); do not
+   grow a second architecture or a separate backlog for every extraction.
 
 ## Baseline and evidence contract
 
@@ -195,6 +201,59 @@ installation, or release qualification is claimed.
 **Next implementation:** extend DA-1 to room metadata and chests through the
 existing undo path, then introduce compound transactions before DA-3 connections
 or DA-4 cloning/import. Do not reimplement the three completed entity inspectors.
+
+### Supporting cleanup and human UI ownership
+
+Cleanup should make the next DA-1/DA-2 change easier to understand. It is not a
+separate parity milestone, and reduced line counts do not prove fewer defects.
+The September 22 cleanup slice moves the existing sprite placement selector's
+implementation from a 442-line header into its matching `.cc`; the 75-line
+header retains the interface and state. The drawing stages remain explicit:
+placement controls, type selection, and existing room sprites. Method bodies,
+widget IDs, callbacks, and behavior are preserved.
+
+The same slice adds explicit compilation-database selection and required tidy
+analysis to `scripts/lint.sh`. Formatting, compiler diagnostics, static analysis,
+focused tests, and human interaction acceptance must be reported separately.
+Do not claim a file was analyzed when the tool/database was unavailable or a
+PCH/header parse error stopped analysis. Existing style warnings stay advisory
+unless a specific check family is intentionally gated.
+
+Suggested division for the next UI slice:
+
+| Owner | Bounded task | Completion evidence |
+|---|---|---|
+| Maintainer | Implement a searchable named sprite-type chooser in `inspectors/dungeon_entity_inspector.cc`, using the existing handler | Finding a type, keyboard selection/cancel, narrow layout, and one undoable committed edit work as designed |
+| Agent | Review the chooser's mutation and selection contracts; prepare only the extraction needed to make the change local | Existing handler/undo coverage, build, targeted analysis, and any new regression for changed behavior |
+| Maintainer | Choose the next layout improvement, such as a responsive `dungeon_status_bar.cc` | Readable status at representative canvas widths and scale |
+| Agent | Continue DA-1 metadata/chest/compound coverage while preserving the UI feature's ownership | Editor lifecycle and persistence evidence for the declared domains |
+
+These are proposed human tasks, not an instruction for agents to implement them
+preemptively. For future cleanup, name one responsibility and its callers, move
+and remove the old implementation in one slice, and prove preserved behavior.
+Avoid broad renaming, tree-wide autofixes, or splitting files solely to satisfy
+a line-count budget. The current canvas selection path remains authoritative;
+older selectors can supply design lessons without creating a second selection
+state or resurrecting their old architecture.
+
+**Cleanup evidence:** source candidate `fb02519ea`, following `44aa0ebcc`, on
+`codex/editor-parity-dungeon-authoring`. The 18 moved method bodies are unchanged
+at the C++ token level; direct header includes decreased from 19 to 3. The app
+and unit targets built with the command above; the same discovered 150 tests in
+21 suites passed with zero skips. Those tests exercise downstream interaction,
+inspector, and undo contracts; there is no direct `SpriteEditorPanel` rendering
+test or new human visual acceptance for this extraction.
+
+The tooling contract tests, Bash syntax checks, and ShellCheck pass. Required
+lint exposed incompatible PCH and missing SDK flags in the original analysis
+setup, then an LLVM 22.1.8 Abseil-check crash after a separate no-PCH/single-config
+database with the active SDK was configured. The analyzer-only run parsed both
+`sprite_editor_panel.cc` and `dungeon_entity_inspector.cc`, reporting two existing
+padding findings in dependent types; its warning gate exited 1. Full tidy and a
+clean analyzer gate are **not** claimed. Exact setup and commands are in
+[scripts/README.md](../../../scripts/README.md#lint-hooks-and-quality-gates).
+The CMake/CI tidy integration gaps described in the refactor guardrails remain a
+bounded follow-up. This cleanup does not change installed-app or release status.
 
 ### DA-3: visual connections
 
