@@ -367,15 +367,17 @@ bool TileObjectHandler::HandleMouseWheel(float delta) {
   const int resize_delta = (delta > 0.0f) ? 1 : -1;
   const bool horizontal = ImGui::GetCurrentContext() && ImGui::GetIO().KeyShift;
   if (object_placement_mode_) {
-    const uint8_t size = zelda3::ResizeRoomObjectByDelta(
-        preview_object_.id_, preview_object_.size_, resize_delta, horizontal);
+    const uint8_t size =
+        horizontal
+            ? zelda3::ResizeRoomObjectByDelta(preview_object_.id_,
+                                              preview_object_.size_,
+                                              resize_delta, true)
+            : zelda3::ResizeRoomObjectUniformlyByDelta(
+                  preview_object_.id_, preview_object_.size_, resize_delta);
     if (size == preview_object_.size_) {
       return false;
     }
-    preview_object_.size_ = size;
-    preview_object_.tiles_loaded_ = false;
-    RenderGhostPreviewBitmap();
-    return true;
+    return SetPreviewSize(size);
   }
   if (!ctx_->selection)
     return false;
@@ -383,8 +385,8 @@ bool TileObjectHandler::HandleMouseWheel(float delta) {
   if (indices.empty())
     return false;
 
-  return ResizeObjects(ctx_->current_room_id, indices, resize_delta,
-                       horizontal);
+  return ResizeObjects(ctx_->current_room_id, indices, resize_delta, horizontal,
+                       !horizontal);
 }
 
 void TileObjectHandler::DrawGhostPreview() {
@@ -983,14 +985,17 @@ void TileObjectHandler::MoveBackward(int room_id,
 
 bool TileObjectHandler::ResizeObjects(int room_id,
                                       const std::vector<size_t>& indices,
-                                      int delta, bool horizontal) {
+                                      int delta, bool horizontal,
+                                      bool uniform) {
   auto* room = GetRoom(room_id);
   if (!room || indices.empty())
     return false;
   auto& objects = room->GetTileObjects();
   const auto resized_size = [&](const zelda3::RoomObject& object) {
-    return zelda3::ResizeRoomObjectByDelta(object.id_, object.size_, delta,
-                                           horizontal);
+    return uniform ? zelda3::ResizeRoomObjectUniformlyByDelta(
+                         object.id_, object.size_, delta)
+                   : zelda3::ResizeRoomObjectByDelta(object.id_, object.size_,
+                                                     delta, horizontal);
   };
   const bool has_change =
       std::any_of(indices.begin(), indices.end(), [&](size_t index) {
@@ -1040,15 +1045,62 @@ bool TileObjectHandler::PlaceObjectAt(int room_id,
   auto new_obj = object.CopyForNewPlacement();
   new_obj.x_ = std::clamp(x, 0, 63);
   new_obj.y_ = std::clamp(y, 0, 63);
+  const size_t placed_index = room->GetTileObjects().size();
   room->AddTileObject(new_obj);
   NotifyChange(room);
+  if (placement_policy_ == PlacementPolicy::kOnce) {
+    CancelPlacement();
+  }
+  if (ctx_ && ctx_->selection) {
+    ctx_->selection->SelectObject(placed_index,
+                                  ObjectSelection::SelectionMode::Single);
+    ctx_->NotifySelectionChanged();
+  }
   TriggerSuccessToast();
+  if (placement_callback_) {
+    placement_callback_(new_obj);
+  }
   return true;
 }
 
 void TileObjectHandler::SetPreviewObject(const zelda3::RoomObject& object) {
   preview_object_ = object;
   RefreshPreviewGraphics();
+}
+
+bool TileObjectHandler::SetPreviewSize(uint8_t size) {
+  if (!object_placement_mode_ ||
+      !zelda3::IsRoomObjectSizeEditable(preview_object_.id_)) {
+    return false;
+  }
+  if (!zelda3::IsRoomObjectResizable(preview_object_.id_)) {
+    const auto& manager = zelda3::CustomObjectManager::Get();
+    if (size > 0x0F || size >= manager.GetSubtypeCount(preview_object_.id_) ||
+        manager.ResolveFilename(preview_object_.id_, size).empty()) {
+      return false;
+    }
+  }
+  const uint8_t canonical_size =
+      zelda3::CanonicalRoomObjectSize(preview_object_.id_, size);
+  if (preview_object_.size_ != canonical_size) {
+    preview_object_.size_ = canonical_size;
+    preview_object_.tiles_loaded_ = false;
+    RefreshPreviewGraphics();
+  }
+  return true;
+}
+
+bool TileObjectHandler::SetPreviewLayer(int layer) {
+  if (!object_placement_mode_ || layer < 0 || layer > 2 ||
+      (layer == 2 && zelda3::UsesSpecialLayerSelector(preview_object_))) {
+    return false;
+  }
+  if (preview_object_.GetLayerValue() != layer) {
+    preview_object_.layer_ = static_cast<zelda3::RoomObject::LayerType>(layer);
+    preview_object_.tiles_loaded_ = false;
+    RefreshPreviewGraphics();
+  }
+  return true;
 }
 
 void TileObjectHandler::RefreshPreviewGraphics() {

@@ -121,6 +121,14 @@ DungeonCanvasViewer* ObjectSelectorContent::ResolveCanvasViewer() {
 
 void ObjectSelectorContent::Draw(bool* p_open) {
   (void)p_open;
+  DrawContent(true);
+}
+
+void ObjectSelectorContent::DrawInWorkbench() {
+  DrawContent(false);
+}
+
+void ObjectSelectorContent::DrawContent(bool show_placement_summary) {
   ResolveCanvasViewer();
 
   const int max_objects = static_cast<int>(zelda3::kMaxTileObjects);
@@ -195,8 +203,12 @@ void ObjectSelectorContent::Draw(bool* p_open) {
     }
   }
 
-  DrawInteractionSummary();
-  DrawObjectSelector();
+  DrawInteractionSummary(show_placement_summary);
+  // Let the Workbench's parent scroll when placement controls consume the
+  // viewport; the asset grid must remain large enough to choose another object.
+  DrawObjectSelector(show_placement_summary
+                         ? 1.0f
+                         : ImGui::GetTextLineHeightWithSpacing() * 8.0f);
 }
 
 void ObjectSelectorContent::SelectObject(int obj_id) {
@@ -224,12 +236,13 @@ void ObjectSelectorContent::SetPlacementError(const std::string& message) {
   }
 }
 
-void ObjectSelectorContent::DrawObjectSelector() {
+void ObjectSelectorContent::DrawObjectSelector(float minimum_grid_height) {
   // Delegate to the DungeonObjectSelector component
-  object_selector_.DrawObjectAssetBrowser();
+  object_selector_.DrawObjectAssetBrowser(minimum_grid_height);
 }
 
-void ObjectSelectorContent::DrawInteractionSummary() {
+void ObjectSelectorContent::DrawInteractionSummary(
+    bool show_placement_summary) {
   const auto& theme = AgentUI::GetTheme();
   auto* viewer = ResolveCanvasViewer();
   const auto snapshot = viewer != nullptr
@@ -250,20 +263,20 @@ void ObjectSelectorContent::DrawInteractionSummary() {
     }
   }
 
-  bool is_placing = has_preview_object_ && canvas_viewer_ &&
-                    canvas_viewer_->object_interaction().IsObjectLoaded();
+  const auto* preview =
+      viewer ? viewer->object_interaction().GetPlacementPreview() : nullptr;
+  const bool is_placing = preview != nullptr;
   if (!is_placing && has_preview_object_) {
     has_preview_object_ = false;
   }
 
-  if (is_placing) {
+  if (is_placing && show_placement_summary) {
     if (drew_primary_status) {
       ImGui::Spacing();
     }
     ImGui::TextColored(theme.status_warning,
-                       ICON_MD_ADD_CIRCLE " Queued 0x%03X %s",
-                       preview_object_.id_,
-                       zelda3::GetObjectName(preview_object_.id_).c_str());
+                       ICON_MD_ADD_CIRCLE " Queued 0x%03X %s", preview->id_,
+                       zelda3::GetObjectName(preview->id_).c_str());
     const char* cancel_label = ICON_MD_CANCEL " Cancel";
     const float cancel_width = ImGui::CalcTextSize(cancel_label).x +
                                ImGui::GetStyle().FramePadding.x * 2.0f;

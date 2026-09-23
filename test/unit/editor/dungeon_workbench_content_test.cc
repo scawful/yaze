@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/workspace/dungeon_pit_damage_view_model.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
@@ -26,6 +27,14 @@
 #include "zelda3/dungeon/pit_damage_table.h"
 
 namespace yaze::editor {
+class DungeonWorkbenchContentTestPeer {
+ public:
+  static void DrawInspector(DungeonWorkbenchContent& content,
+                            DungeonCanvasViewer& viewer) {
+    content.DrawInspectorShelf(viewer, false);
+  }
+};
+
 namespace {
 
 constexpr float kMinCanvasWidth = 420.0f;
@@ -321,6 +330,108 @@ TEST_F(DungeonWorkbenchObjectSizeUiTest, WidthAndHeightChangeIndependently) {
   EXPECT_EQ(object_.x_, 8);
   EXPECT_EQ(object_.y_, 9);
   EXPECT_EQ(object_.GetLayerValue(), 1);
+}
+
+class DungeonWorkbenchPlacementUiTest
+    : public DungeonWorkbenchObjectSizeUiTest {
+ protected:
+  void SetUp() override {
+    DungeonWorkbenchObjectSizeUiTest::SetUp();
+    rooms_[0].SetLoaded(true);
+    viewer_.RefreshRomBackedState(nullptr, nullptr, &rooms_, 0);
+    content_.SetEmbeddedEditorPanels(&browser_, nullptr, nullptr, nullptr,
+                                     nullptr, nullptr);
+    content_.OpenObjectSelectorTool();
+    viewer_.object_interaction().SetPreviewObject(object_, true);
+  }
+
+  void DrawInspectorFrame() {
+    gui::WidgetIdRegistry::Instance().Clear();
+    ImGui::NewFrame();
+    ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_Always);
+    ImGui::SetNextWindowSize(ImVec2(272, 560), ImGuiCond_Always);
+    ImGui::Begin("PlacementHost", nullptr, ImGuiWindowFlags_NoSavedSettings);
+    DungeonWorkbenchContentTestPeer::DrawInspector(content_, viewer_);
+    auto* window = ImGui::GetCurrentWindow();
+    EXPECT_LE(window->DC.CursorMaxPos.x, window->WorkRect.Max.x + 1);
+    ImGui::End();
+    ImGui::Render();
+  }
+
+  void ClickInspector(const char* id) {
+    auto widget = Widget(id);
+    ASSERT_TRUE(widget.has_value()) << id;
+    const auto bounds = widget->bounds;
+    ASSERT_TRUE(bounds.valid);
+    auto& io = ImGui::GetIO();
+    io.AddMousePosEvent((bounds.min_x + bounds.max_x) / 2,
+                        (bounds.min_y + bounds.max_y) / 2);
+    DrawInspectorFrame();
+    io.AddMouseButtonEvent(0, true);
+    DrawInspectorFrame();
+    io.AddMouseButtonEvent(0, false);
+    DrawInspectorFrame();
+  }
+
+  int room_id_ = 0;
+  std::deque<int> recent_;
+  DungeonRoomStore rooms_;
+  DungeonCanvasViewer viewer_;
+  FakeWorkbenchToolContent browser_{"dungeon.object_selector"};
+  DungeonWorkbenchContent content_ =
+      MakeWorkbenchForToolStateTests(room_id_, recent_);
+};
+
+TEST_F(DungeonWorkbenchPlacementUiTest,
+       PlaceOnceSelectsResultAndPlaceAnotherRestoresPreviewControls) {
+  auto& interaction = viewer_.object_interaction();
+  DrawInspectorFrame();
+  DrawInspectorFrame();
+  ASSERT_TRUE(Widget("checkbox:repeat_placement").has_value());
+  ASSERT_TRUE(Widget("combo:selected_object_width").has_value());
+  ClickInspector("checkbox:repeat_placement");
+  EXPECT_EQ(interaction.GetPlacementPolicy(),
+            DungeonObjectInteraction::PlacementPolicy::kOnce);
+  ASSERT_NE(interaction.GetPlacementPreview(), nullptr);
+  const auto preview = *interaction.GetPlacementPreview();
+  ASSERT_TRUE(interaction.entity_coordinator().tile_handler().PlaceObjectAt(
+      0, preview, 12, 14));
+  DrawInspectorFrame();
+  EXPECT_STREQ(content_.GetInspectorModeIdForTesting(), "selection");
+  ASSERT_EQ(interaction.GetSelectedObjectIndices(), std::vector<size_t>{0});
+  EXPECT_EQ(interaction.GetPlacementPreview(), nullptr);
+  ClickInspector("button:place_another");
+  DrawInspectorFrame();
+  EXPECT_STREQ(content_.GetInspectorModeIdForTesting(), "tools");
+  ASSERT_NE(interaction.GetPlacementPreview(), nullptr);
+  EXPECT_EQ(interaction.GetPlacementPreview()->size_, preview.size_);
+  EXPECT_EQ(interaction.GetPlacementPreview()->GetLayerValue(),
+            preview.GetLayerValue());
+  EXPECT_EQ(rooms_[0].GetTileObjects().size(), 1);
+  EXPECT_TRUE(Widget("checkbox:repeat_placement").has_value());
+}
+
+TEST_F(DungeonWorkbenchPlacementUiTest,
+       RepeatKeepsBrowserAndDoneSwitchesToSelectionWithoutStackLeaks) {
+  auto& interaction = viewer_.object_interaction();
+  DrawInspectorFrame();
+  DrawInspectorFrame();
+  const auto preview = *interaction.GetPlacementPreview();
+  auto& handler = interaction.entity_coordinator().tile_handler();
+  ASSERT_TRUE(handler.PlaceObjectAt(0, preview, 12, 14));
+  DrawInspectorFrame();
+  ASSERT_TRUE(handler.PlaceObjectAt(0, preview, 16, 18));
+  DrawInspectorFrame();
+  EXPECT_STREQ(content_.GetInspectorModeIdForTesting(), "tools");
+  ASSERT_EQ(interaction.GetSelectedObjectIndices(), std::vector<size_t>{1});
+  ASSERT_NE(interaction.GetPlacementPreview(), nullptr);
+  ClickInspector("button:finish_placement");
+  DrawInspectorFrame();
+  EXPECT_STREQ(content_.GetInspectorModeIdForTesting(), "selection");
+  EXPECT_EQ(interaction.GetPlacementPreview(), nullptr);
+  EXPECT_EQ(rooms_[0].GetTileObjects().size(), 2);
+  EXPECT_EQ(ImGui::GetCurrentContext()->StyleVarStack.Size, 0);
+  EXPECT_EQ(ImGui::GetCurrentContext()->ColorStack.Size, 0);
 }
 
 TEST_F(DungeonWorkbenchObjectSizeUiTest,

@@ -127,11 +127,12 @@ void DungeonObjectInteraction::HandleLeftClick(const ImVec2& canvas_mouse_pos) {
   int canvas_y = static_cast<int>(std::floor(canvas_mouse_pos.y));
 
   // Try to handle click via entity coordinator (handles placement, entity selection, and object selection)
+  const bool was_placing = entity_coordinator_.IsPlacementActive();
   if (entity_coordinator_.HandleClick(canvas_x, canvas_y)) {
     // If a selected room element was clicked, prime drag state. Plain clicks on
     // selected mixed members preserve the whole selection; movement begins only
     // if the mouse actually drags.
-    if (!entity_coordinator_.IsPlacementActive() &&
+    if (!was_placing && !entity_coordinator_.IsPlacementActive() &&
         (selection_.HasSelection() || HasEntitySelection())) {
       HandleObjectSelectionStart(canvas_mouse_pos);
     }
@@ -509,7 +510,8 @@ void DungeonObjectInteraction::DrawSelectionHighlights() {
 
       if (selection_.IsObjectSelected(*hovered_index)) {
         if (axis_step > 0) {
-          tooltip += "\n" ICON_MD_MOUSE " Wheel: height | Shift+wheel: width";
+          tooltip +=
+              "\n" ICON_MD_MOUSE " Wheel: grow/shrink | Shift+wheel: width";
         } else if (zelda3::IsRoomObjectResizable(object.id_)) {
           tooltip += "\n" ICON_MD_MOUSE " Scroll wheel to resize";
         }
@@ -594,15 +596,41 @@ void DungeonObjectInteraction::DrawHoverHighlight(
 
 void DungeonObjectInteraction::PlaceObjectAtPosition(int room_x, int room_y) {
   auto& tile_handler = entity_coordinator_.tile_handler();
-  const auto object = tile_handler.GetPreviewObject();
-  tile_handler.PlaceObjectAt(current_room_id_, object, room_x, room_y);
-
+  if (!tile_handler.IsPlacementActive()) {
+    return;
+  }
+  auto object = tile_handler.GetPreviewObject().CopyForNewPlacement();
+  object.x_ = std::clamp(room_x, 0, 63);
+  object.y_ = std::clamp(room_y, 0, 63);
+  if (!tile_handler.PlaceObjectAt(interaction_context_.current_room_id, object,
+                                  room_x, room_y)) {
+    return;
+  }
   if (object_placed_callback_) {
     object_placed_callback_(object);
   }
+}
 
-  interaction_context_.NotifyInvalidateCache(MutationDomain::kTileObjects);
-  CancelPlacement();
+void DungeonObjectInteraction::CompleteObjectPlacement(
+    const zelda3::RoomObject& /*object*/) {
+  entity_coordinator_.ClearEntitySelection();
+  if (!entity_coordinator_.tile_handler().IsPlacementActive() &&
+      mode_manager_.GetMode() == InteractionMode::PlaceObject) {
+    mode_manager_.SetMode(InteractionMode::Select);
+  }
+}
+
+bool DungeonObjectInteraction::BeginPlacementFromSelection() {
+  const auto indices = selection_.GetSelectedIndices();
+  const auto* room = interaction_context_.GetCurrentRoomConst();
+  if (!room || indices.size() != 1 || HasEntitySelection() ||
+      indices.front() >= room->GetTileObjects().size()) {
+    return false;
+  }
+  const auto object =
+      room->GetTileObjects()[indices.front()].CopyForNewPlacement();
+  SetPreviewObject(object, true);
+  return true;
 }
 
 std::pair<int, int> DungeonObjectInteraction::RoomToCanvasCoordinates(
@@ -637,7 +665,7 @@ void DungeonObjectInteraction::SetPreviewObject(
   if (loaded && object.id_ >= 0) {
     // Cancel other placement modes (doors/sprites/items) before entering object
     // placement. We re-enable tile placement below.
-    entity_coordinator_.CancelPlacement();
+    entity_coordinator_.CancelCurrentMode();
 
     // Enter object placement mode
     mode_manager_.SetMode(InteractionMode::PlaceObject);

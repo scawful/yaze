@@ -16,6 +16,7 @@
 #include "app/editor/dungeon/dungeon_project_labels.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/dungeon_selection_snapshot.h"
+#include "app/editor/dungeon/selectors/object_selector_content.h"
 #include "app/editor/dungeon/ui/window/custom_collision_panel.h"
 #include "app/editor/dungeon/ui/window/dungeon_map_panel.h"
 #include "app/editor/dungeon/ui/window/minecart_track_editor_panel.h"
@@ -1652,8 +1653,13 @@ void DungeonWorkbenchContent::DrawWorkbenchTool(DungeonCanvasViewer& viewer,
                           GetWorkbenchToolUnavailableMessage(tool));
       break;
     case WorkbenchTool::ObjectSelector:
-      draw_window_content(object_selector_content_,
-                          GetWorkbenchToolUnavailableMessage(tool));
+      if (auto* selector =
+              dynamic_cast<ObjectSelectorContent*>(object_selector_content_)) {
+        selector->DrawInWorkbench();
+      } else {
+        draw_window_content(object_selector_content_,
+                            GetWorkbenchToolUnavailableMessage(tool));
+      }
       break;
     case WorkbenchTool::DoorEditor:
       draw_window_content(door_editor_content_,
@@ -1797,6 +1803,9 @@ void DungeonWorkbenchContent::DrawInspectorToolPanel(
   const bool body_open = ImGui::BeginChild("##WorkbenchToolInspectorBody",
                                            ImVec2(0.0f, 0.0f), false);
   if (body_open) {
+    if (active_tool_ == WorkbenchTool::ObjectSelector) {
+      DrawObjectPlacementInspector(viewer);
+    }
     DrawWorkbenchTool(viewer, active_tool_);
   }
   ImGui::EndChild();
@@ -1894,11 +1903,25 @@ void DungeonWorkbenchContent::DrawInspectorShelf(DungeonCanvasViewer& viewer,
   const auto& interaction = viewer.object_interaction();
   const bool has_selection =
       interaction.GetSelectionCount() > 0 || interaction.HasEntitySelection();
+  const bool is_placing = interaction.GetPlacementPreview() != nullptr;
+  // Keep the browser open while stamping. Once placement ends, the newly
+  // selected object becomes the editing target without another inspector click.
+  if (inspector_placement_was_active_ && !is_placing && has_selection &&
+      inspector_mode_ == InspectorMode::Tools &&
+      active_tool_ == WorkbenchTool::ObjectSelector) {
+    FocusSelectionInspector();
+  }
+  inspector_placement_was_active_ = is_placing;
   if (has_selection && !inspector_selection_was_active_ &&
       inspector_mode_ != InspectorMode::Tools) {
     inspector_mode_ = InspectorMode::Selection;
   }
   inspector_selection_was_active_ = has_selection;
+
+  if (is_placing && inspector_mode_ == InspectorMode::Selection) {
+    DrawObjectPlacementInspector(viewer);
+    return;
+  }
 
   compact_inspector_detail_requested_ = ResolveCompactInspectorDetailRequest(
       compact, compact_inspector_detail_requested_);
@@ -2290,6 +2313,133 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
   }
 }
 
+bool DungeonWorkbenchContent::DrawObjectPlacementInspector(
+    DungeonCanvasViewer& viewer) {
+  auto& interaction = viewer.object_interaction();
+  const auto* active_preview = interaction.GetPlacementPreview();
+  if (!active_preview) {
+    return false;
+  }
+  // Setters may invalidate preview caches; draw from a stable value this frame.
+  const auto object = *active_preview;
+  const auto description = workbench::DescribeObjectSize(object);
+  const auto& theme = AgentUI::GetTheme();
+  ImGui::PushID("PlacementInspector");
+  workbench::DrawInspectorSectionHeader(ICON_MD_ADD_CIRCLE " Placing object");
+  ImGui::PushStyleColor(ImGuiCol_Text, theme.text_primary);
+  ImGui::TextWrapped("%s", zelda3::GetObjectName(object.id_).c_str());
+  ImGui::PopStyleColor();
+  ImGui::TextDisabled("0x%03X", object.id_);
+
+  constexpr ImGuiTableFlags kFlags = ImGuiTableFlags_BordersInnerV |
+                                     ImGuiTableFlags_RowBg |
+                                     ImGuiTableFlags_NoPadOuterX;
+  if (ImGui::BeginTable("Properties", 2, kFlags)) {
+    ImGui::TableSetupColumn("Property", ImGuiTableColumnFlags_WidthFixed,
+                            64.0f);
+    ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+    uint8_t requested_size = object.size_;
+    if (workbench::DrawObjectSizeControls(object, &requested_size)) {
+      interaction.SetPlacementPreviewSize(requested_size);
+    }
+    const bool uses_stream = zelda3::UsesRoomObjectStream(object);
+    gui::LayoutHelpers::PropertyRow(uses_stream ? "Stream" : "Layer", [&]() {
+      int layer = object.GetLayerValue();
+      const char* stream_names[] = {"Primary", "BG2 overlay", "BG1 overlay"};
+      const char* layer_names[] = {"Upper layer (BG1)", "Lower layer (BG2)"};
+      ImGui::SetNextItemWidth(-1);
+      if (ImGui::Combo("##Layer", &layer,
+                       uses_stream ? stream_names : layer_names,
+                       uses_stream ? 3 : 2)) {
+        interaction.SetPlacementPreviewLayer(layer);
+      }
+      gui::AutoWidgetScope scope("Dungeon/Workbench");
+      gui::AutoRegisterLastItem("combo", "placement_layer",
+                                "Layer for the next placed object");
+    });
+    ImGui::EndTable();
+  }
+
+  bool repeat = interaction.GetPlacementPolicy() ==
+                DungeonObjectInteraction::PlacementPolicy::kRepeat;
+  if (ImGui::Checkbox(tr("Keep placing copies"), &repeat)) {
+    interaction.SetPlacementPolicy(
+        repeat ? DungeonObjectInteraction::PlacementPolicy::kRepeat
+               : DungeonObjectInteraction::PlacementPolicy::kOnce);
+  }
+  {
+    gui::AutoWidgetScope scope("Dungeon/Workbench");
+    gui::AutoRegisterLastItem("checkbox", "repeat_placement",
+                              "Keep placing copies after each click");
+  }
+  ImGui::TextWrapped("%s", repeat
+                               ? tr("Click the canvas to place each copy.")
+                               : tr("Click the canvas to place, then edit."));
+  if (!description.wheel_hint.empty()) {
+    ImGui::TextWrapped("%s", description.wheel_hint.c_str());
+  }
+  if (workbench::DrawActionButton(ICON_MD_CHECK " Done placing (Esc)",
+                                  ImVec2(-1, 0))) {
+    interaction.CancelPlacement();
+    if (interaction.GetSelectionCount() > 0) {
+      FocusSelectionInspector();
+    }
+  }
+  {
+    gui::AutoWidgetScope scope("Dungeon/Workbench");
+    gui::AutoRegisterLastItem(
+        "button", "finish_placement",
+        "Finish placement and inspect the selected object");
+  }
+  ImGui::Separator();
+  ImGui::PopID();
+  return true;
+}
+
+void DungeonWorkbenchContent::DrawSelectedObjectActions(
+    DungeonCanvasViewer& viewer, size_t index) {
+  auto& interaction = viewer.object_interaction();
+  auto& handler = interaction.entity_coordinator().tile_handler();
+  const int room_id = viewer.current_room_id();
+  const std::vector<size_t> indices = {index};
+  ImGui::Spacing();
+  if (workbench::DrawActionButton(ICON_MD_ADD_CIRCLE " Place another",
+                                  ImVec2(-1, 0))) {
+    if (interaction.BeginPlacementFromSelection()) {
+      OpenObjectSelectorTool();
+    }
+  }
+  {
+    gui::AutoWidgetScope scope("Dungeon/Workbench");
+    gui::AutoRegisterLastItem("button", "place_another",
+                              "Place another object with this size and layer");
+  }
+  constexpr ImGuiTableFlags kFlags =
+      ImGuiTableFlags_SizingStretchSame | ImGuiTableFlags_NoPadOuterX;
+  if (ImGui::BeginTable("##SelectedObjectActions", 2, kFlags)) {
+    auto action = [](const char* label, const char* id) {
+      ImGui::TableNextColumn();
+      const bool clicked = workbench::DrawActionButton(label, ImVec2(-1, 0));
+      gui::AutoWidgetScope scope("Dungeon/Workbench");
+      gui::AutoRegisterLastItem("button", id, label);
+      return clicked;
+    };
+    if (action(ICON_MD_CONTENT_COPY " Duplicate", "duplicate_object")) {
+      (void)handler.DuplicateObjects(room_id, indices, 1, 1);
+    }
+    if (action(ICON_MD_DELETE " Delete", "delete_object")) {
+      interaction.HandleDeleteSelected();
+    }
+    if (action(ICON_MD_FLIP_TO_FRONT " To front", "object_to_front")) {
+      handler.SendToFront(room_id, indices);
+    }
+    if (action(ICON_MD_FLIP_TO_BACK " To back", "object_to_back")) {
+      handler.SendToBack(room_id, indices);
+    }
+    ImGui::EndTable();
+  }
+}
+
 void DungeonWorkbenchContent::DrawInspectorShelfSelection(
     DungeonCanvasViewer& viewer) {
   auto& interaction = viewer.object_interaction();
@@ -2487,7 +2637,9 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
       auto& objects = room.GetTileObjects();
       const size_t idx = indices.front();
       if (idx < objects.size()) {
-        auto& obj = objects[idx];
+        // Stream changes can reorder and replace the room's object vector.
+        // Keep this frame's property values independent of that storage.
+        const auto obj = objects[idx];
         const std::string obj_name = zelda3::GetObjectName(obj.id_);
         const int subtype = zelda3::GetObjectSubtype(obj.id_);
         const bool uses_room_stream = zelda3::UsesRoomObjectStream(obj);
@@ -2590,6 +2742,16 @@ void DungeonWorkbenchContent::DrawInspectorShelfSelection(
           });
 
           ImGui::EndTable();
+        }
+        const auto description = workbench::DescribeObjectSize(obj);
+        if (!description.wheel_hint.empty()) {
+          ImGui::TextWrapped("%s", description.wheel_hint.c_str());
+        }
+        // Actions can reallocate the room's object vector; no object references
+        // are used after this point.
+        const auto current_indices = interaction.GetSelectedObjectIndices();
+        if (current_indices.size() == 1) {
+          DrawSelectedObjectActions(viewer, current_indices.front());
         }
       }
     }

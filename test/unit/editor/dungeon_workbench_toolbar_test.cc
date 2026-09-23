@@ -7,9 +7,12 @@
 
 #include "app/editor/dungeon/dungeon_canvas_viewer.h"
 #include "app/editor/dungeon/dungeon_room_store.h"
+#include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
+#include "core/features.h"
 #include "imgui/imgui.h"
 #include "imgui/imgui_internal.h"
 #include "rom/rom.h"
+#include "zelda3/dungeon/custom_object.h"
 
 namespace yaze::editor {
 namespace {
@@ -158,6 +161,90 @@ TEST(DungeonWorkbenchToolbarLogicTest, InlineRoomNavNeverHides) {
   EXPECT_TRUE(DungeonWorkbenchToolbar::ShouldShowInlineRoomNav(760.0f));
   EXPECT_TRUE(DungeonWorkbenchToolbar::ShouldShowInlineRoomNav(720.0f));
   EXPECT_TRUE(DungeonWorkbenchToolbar::ShouldShowInlineRoomNav(320.0f));
+}
+
+class DungeonWorkbenchSizeDescriptionTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    previous_custom_ = core::FeatureFlags::get().kEnableCustomObjects;
+    previous_manager_ = zelda3::CustomObjectManager::Get().SnapshotState();
+    core::FeatureFlags::get().kEnableCustomObjects = false;
+  }
+
+  void TearDown() override {
+    core::FeatureFlags::get().kEnableCustomObjects = previous_custom_;
+    zelda3::CustomObjectManager::Get().RestoreState(previous_manager_);
+  }
+
+  bool previous_custom_ = false;
+  zelda3::CustomObjectManager::State previous_manager_;
+};
+
+TEST_F(DungeonWorkbenchSizeDescriptionTest,
+       WallLengthUsesRenderedExtentForBothOrientations) {
+  const auto horizontal =
+      workbench::DescribeObjectSize(zelda3::RoomObject(0x00, 12, 9, 3));
+  const auto vertical =
+      workbench::DescribeObjectSize(zelda3::RoomObject(0x60, 12, 9, 3));
+  EXPECT_EQ(horizontal.kind, workbench::ObjectSizeControlKind::kLength);
+  EXPECT_EQ(vertical.kind, workbench::ObjectSizeControlKind::kLength);
+  EXPECT_TRUE(horizontal.length_horizontal);
+  EXPECT_FALSE(vertical.length_horizontal);
+  EXPECT_EQ(horizontal.footprint, "6 x 2 tiles (48 x 16 px)");
+  EXPECT_EQ(vertical.footprint, "2 x 6 tiles (16 x 48 px)");
+  EXPECT_EQ(horizontal.wheel_hint, "Wheel: length.");
+
+  // Encoded zero means the long wall, not an empty object or minimum length.
+  const auto long_wall =
+      workbench::DescribeObjectSize(zelda3::RoomObject(0x00, 12, 9, 0));
+  EXPECT_EQ(long_wall.width_tiles, 64);
+  EXPECT_EQ(long_wall.height_tiles, 2);
+}
+
+TEST_F(DungeonWorkbenchSizeDescriptionTest,
+       PackedAreaExplainsBothAxesWithoutChangingObject) {
+  const zelda3::RoomObject object(0xD1, 12, 9, 0x0B, 1);
+  const auto description = workbench::DescribeObjectSize(object);
+  EXPECT_EQ(description.kind, workbench::ObjectSizeControlKind::kArea);
+  EXPECT_EQ(description.footprint, "12 x 16 tiles (96 x 128 px)");
+  EXPECT_EQ(description.wheel_hint,
+            "Wheel: grow / shrink. Shift + wheel: width.");
+  EXPECT_EQ(object.size_, 0x0B);
+  EXPECT_EQ(object.x_, 12);
+  EXPECT_EQ(object.y_, 9);
+  EXPECT_EQ(object.GetLayerValue(), 1);
+}
+
+TEST_F(DungeonWorkbenchSizeDescriptionTest,
+       FixedAndCustomObjectsDoNotAdvertiseWheelResizing) {
+  const auto fixed =
+      workbench::DescribeObjectSize(zelda3::RoomObject(0x100, 12, 9, 0));
+  EXPECT_EQ(fixed.kind, workbench::ObjectSizeControlKind::kFixed);
+  EXPECT_TRUE(fixed.wheel_hint.empty());
+
+  core::FeatureFlags::get().kEnableCustomObjects = true;
+  zelda3::CustomObjectManager::Get().SetObjectFileMap(
+      {{0xC1, {"closed_a.bin", "closed_b.bin"}}});
+  const auto custom =
+      workbench::DescribeObjectSize(zelda3::RoomObject(0xC1, 12, 9, 1));
+  EXPECT_EQ(custom.kind, workbench::ObjectSizeControlKind::kVariant);
+  EXPECT_TRUE(custom.wheel_hint.empty());
+}
+
+TEST_F(DungeonWorkbenchToolbarTest, WallControlsExposeLengthAndFootprint) {
+  const zelda3::RoomObject object(0x00, 12, 9, 3);
+  uint8_t requested = object.size_;
+  ImGui::LogToBuffer();
+  ASSERT_TRUE(ImGui::BeginTable("ObjectProperties", 2));
+  EXPECT_FALSE(workbench::DrawObjectSizeControls(object, &requested));
+  ImGui::EndTable();
+  const std::string text = ImGui::GetCurrentContext()->LogBuffer.c_str();
+  ImGui::LogFinish();
+  EXPECT_NE(text.find("Length"), std::string::npos);
+  EXPECT_NE(text.find("6 tiles (48 px)"), std::string::npos);
+  EXPECT_NE(text.find("Footprint"), std::string::npos);
+  EXPECT_NE(text.find("6 x 2 tiles"), std::string::npos);
+  EXPECT_EQ(requested, object.size_);
 }
 
 TEST_F(DungeonWorkbenchToolbarTest,
