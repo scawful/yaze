@@ -162,6 +162,8 @@ class DungeonObjectInteraction {
   }
 
   void CancelPlacement();
+  // Finish the active drag or paint stroke before a discrete editor command.
+  void HandleMouseRelease();
 
   // Door placement mode
   void SetDoorPlacementMode(
@@ -372,7 +374,6 @@ class DungeonObjectInteraction {
   void HandleObjectSelectionStart(const ImVec2& canvas_mouse_pos);
   void HandleEmptySpaceClick(const ImVec2& canvas_mouse_pos);
   void FinishPaintStroke();
-  void HandleMouseRelease();
   bool HandleKeyboardNudge();
 
   struct EntityClipboard {

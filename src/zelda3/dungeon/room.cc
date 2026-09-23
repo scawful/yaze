@@ -1885,7 +1885,11 @@ void Room::LoadObjects() {
         static_cast<uint8_t>((rom_data[objects_location + 1] >> 2) & 0x07);
   }
 
-  LoadChests();
+  // Reloading object graphics must not discard unsaved contents edits. Parsing
+  // annotates chest objects but never consumes these persistent records.
+  if (!chests_dirty()) {
+    LoadChests();
+  }
 
   // Parse objects with enhanced error handling
   ParseObjectsFromLocation(objects_location + 2);
@@ -2696,18 +2700,9 @@ void Room::HandleSpecialObjects(short oid, uint8_t posX, uint8_t posY,
   }
 
   // Handle chest objects
-  if (oid == 0xF99) {
-    if (chests_in_room_.size() > 0) {
-      tile_objects_.back().set_options(ObjectOption::Chest |
-                                       tile_objects_.back().options());
-      chests_in_room_.erase(chests_in_room_.begin());
-    }
-  } else if (oid == 0xFB1) {
-    if (chests_in_room_.size() > 0) {
-      tile_objects_.back().set_options(ObjectOption::Chest |
-                                       tile_objects_.back().options());
-      chests_in_room_.erase(chests_in_room_.begin());
-    }
+  if (IsStatefulChestObjectId(oid)) {
+    tile_objects_.back().set_options(ObjectOption::Chest |
+                                     tile_objects_.back().options());
   }
 }
 

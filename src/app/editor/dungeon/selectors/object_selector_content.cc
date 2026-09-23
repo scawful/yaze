@@ -153,6 +153,10 @@ void ObjectSelectorContent::DrawContent(bool show_placement_summary) {
         case TileObjectHandler::PlacementBlockReason::kInvalidRoom:
           SetPlacementError("Invalid room target - placement blocked");
           break;
+        case TileObjectHandler::PlacementBlockReason::kChestValidation:
+          SetPlacementError(
+              std::string(tile_handler.mutation_status().message()));
+          break;
         case TileObjectHandler::PlacementBlockReason::kNone:
         default:
           SetPlacementError("Object placement blocked");

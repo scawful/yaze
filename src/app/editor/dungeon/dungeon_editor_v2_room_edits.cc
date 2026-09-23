@@ -48,33 +48,6 @@ class RoomMetadataAction final : public UndoAction {
   Restore restore_;
 };
 
-// Existing-record edits never reorder the chest table or change its capacity.
-// Keep only the affected record so undo cannot rewrite another chest's contents.
-class ChestContentsAction final : public UndoAction {
- public:
-  using Restore = std::function<absl::Status(int, size_t, chest_data)>;
-  ChestContentsAction(int room_id, size_t index, chest_data before,
-                      chest_data after, Restore restore)
-      : room_id_(room_id),
-        index_(index),
-        before_(before),
-        after_(after),
-        restore_(std::move(restore)) {}
-  absl::Status Undo() override { return restore_(room_id_, index_, before_); }
-  absl::Status Redo() override { return restore_(room_id_, index_, after_); }
-  std::string Description() const override {
-    return absl::StrFormat("Edit room %03X chest %d contents", room_id_,
-                           index_ + 1);
-  }
-  size_t MemoryUsage() const override { return 2 * sizeof(chest_data); }
-
- private:
-  int room_id_;
-  size_t index_;
-  chest_data before_, after_;
-  Restore restore_;
-};
-
 }  // namespace
 
 absl::Status DungeonEditorV2::EditRoomMetadata(int room_id,
@@ -141,47 +114,6 @@ absl::Status DungeonEditorV2::RestoreRoomMetadataBatch(
     RefreshRoomMetadataViews(room_id);
   }
   // Refresh only the edited room, even when undo targets an offscreen room.
-  undo_restore_triggered_ping_ = true;
-  return absl::OkStatus();
-}
-
-absl::Status DungeonEditorV2::EditChest(int room_id, size_t index,
-                                        uint8_t item_id, bool big_chest) {
-  auto* room = rooms_.GetIfLoaded(room_id);
-  if (!room || room->rom() != rom_ || !room->AreChestsLoaded()) {
-    return absl::FailedPreconditionError("Chest contents are not loaded");
-  }
-  if (index >= room->GetChests().size()) {
-    return absl::InvalidArgumentError(
-        "Select an existing chest contents record");
-  }
-  const auto before = room->GetChests()[index];
-  const chest_data after{item_id, big_chest};
-  if (before.id == after.id && before.size == after.size) {
-    return absl::OkStatus();
-  }
-  FinalizePendingUndoActions();
-  RETURN_IF_ERROR(RestoreChest(room_id, index, after));
-  undo_manager_.Push(std::make_unique<ChestContentsAction>(
-      room_id, index, before, after,
-      [this](int id, size_t restored_index, chest_data chest) {
-        return RestoreChest(id, restored_index, chest);
-      }));
-  return absl::OkStatus();
-}
-
-absl::Status DungeonEditorV2::RestoreChest(int room_id, size_t index,
-                                           chest_data chest) {
-  auto* room = rooms_.GetIfLoaded(room_id);
-  if (!room || room->rom() != rom_ || !room->AreChestsLoaded() ||
-      index >= room->GetChests().size()) {
-    return absl::FailedPreconditionError(
-        "Chest contents record is unavailable");
-  }
-  room->GetChests()[index] = chest;
-  room->MarkChestsDirty();
-  // Contents do not alter the visual chest object. Do not flash a different room
-  // or dirty its tile-object stream when this record is restored offscreen.
   undo_restore_triggered_ping_ = true;
   return absl::OkStatus();
 }

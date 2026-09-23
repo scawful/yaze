@@ -156,6 +156,7 @@ class DungeonEditorV2 : public Editor {
       const std::vector<RoomMetadataRequest>& requests);
   absl::Status EditChest(int room_id, size_t index, uint8_t item_id,
                          bool big_chest);
+  absl::Status DeleteChest(int room_id, size_t index);
   int LoadedRoomCount() const;
   // Room-specific pending state used by room counts and room-level UI.
   int PendingRoomCount() const;
@@ -483,6 +484,7 @@ class DungeonEditorV2 : public Editor {
   struct PendingUndo {
     int room_id = -1;
     std::vector<zelda3::RoomObject> before_objects;
+    std::vector<chest_data> before_chests;
     std::vector<size_t> before_selection;
   };
   PendingUndo pending_undo_;
@@ -544,9 +546,17 @@ class DungeonEditorV2 : public Editor {
   // FinalizeUndoAction captures state after mutation and pushes the action.
   void BeginUndoSnapshot(int room_id);
   void FinalizeUndoAction(int room_id);
-  void RestoreRoomObjects(int room_id,
-                          const std::vector<zelda3::RoomObject>& objects,
-                          const std::vector<size_t>& selected_indices);
+  absl::Status RestoreRoomObjects(
+      int room_id, const std::vector<zelda3::RoomObject>& objects,
+      const std::vector<size_t>& selected_indices,
+      const std::vector<chest_data>& chests);
+  absl::Status PreflightObjectMutation(
+      int room_id, const std::vector<zelda3::RoomObject>& objects,
+      const std::vector<chest_data>& chests);
+  absl::Status ApplyChestObjectEdit(
+      int room_id, const std::vector<zelda3::RoomObject>& objects,
+      const std::vector<chest_data>& chests,
+      const std::vector<size_t>& selection);
 
   void ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer);
   void FinalizePendingUndoActions();

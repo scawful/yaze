@@ -716,7 +716,10 @@ void DungeonObjectInteraction::ClearSelection() {
 void DungeonObjectInteraction::HandleDeleteSelected() {
   auto indices = selection_.GetSelectedIndices();
   if (!indices.empty()) {
-    entity_coordinator_.tile_handler().DeleteObjects(current_room_id_, indices);
+    if (!entity_coordinator_.tile_handler().DeleteObjects(current_room_id_,
+                                                          indices)) {
+      return;
+    }
     selection_.ClearSelection();
   }
 
@@ -726,8 +729,9 @@ void DungeonObjectInteraction::HandleDeleteSelected() {
 }
 
 void DungeonObjectInteraction::HandleDeleteAllObjects() {
-  entity_coordinator_.tile_handler().DeleteAllObjects(current_room_id_);
-  selection_.ClearSelection();
+  if (entity_coordinator_.tile_handler().DeleteAllObjects(current_room_id_)) {
+    selection_.ClearSelection();
+  }
 }
 
 void DungeonObjectInteraction::HandleCopySelected() {
@@ -931,6 +935,9 @@ void DungeonObjectInteraction::HandlePasteObjects() {
     new_indices = handler.PasteFromClipboard(
         current_room_id_, paste_x - entity_clipboard_.origin_tile_x,
         paste_y - entity_clipboard_.origin_tile_y);
+    if (!handler.mutation_status().ok()) {
+      return;
+    }
   }
   auto new_entities = PasteEntityClipboardAt(paste_pixel_x, paste_pixel_y);
 

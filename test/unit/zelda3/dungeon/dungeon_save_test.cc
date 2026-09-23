@@ -1374,6 +1374,66 @@ TEST_F(DungeonSaveTest, SaveAllTorches_LoadedRoomCanDeleteLastTorch) {
   EXPECT_FALSE(room.torches_dirty());
 }
 
+TEST_F(DungeonSaveTest, LoadObjectsPreservesAllChestContentsAndAnnotations) {
+  SetupChestTable();
+  SeedChestRecords({{0, 0x11, false}, {1, 0x22, false}, {0, 0xFE, true}});
+  Room stream;
+  stream.AddTileObject(
+      RoomObject(0xF99, 8, 8, CanonicalRoomObjectSize(0xF99, 0), 0));
+  stream.AddTileObject(
+      RoomObject(0xFB1, 12, 12, CanonicalRoomObjectSize(0xFB1, 0), 2));
+  ASSERT_TRUE(rom_->WriteVector(0x100002, stream.EncodeObjects()).ok());
+  const auto original = rom_->vector();
+
+  room_->LoadObjects();
+
+  EXPECT_TRUE(room_->AreChestsLoaded());
+  ASSERT_EQ(room_->GetChests().size(), 2u);
+  EXPECT_EQ(room_->GetChests()[0].id, 0x11);
+  EXPECT_FALSE(room_->GetChests()[0].size);
+  EXPECT_EQ(room_->GetChests()[1].id, 0xFE);
+  EXPECT_TRUE(room_->GetChests()[1].size);
+  ASSERT_EQ(room_->GetTileObjects().size(), 2u);
+  for (const auto& object : room_->GetTileObjects()) {
+    EXPECT_NE(object.options() & ObjectOption::Chest, ObjectOption::Nothing);
+  }
+  EXPECT_FALSE(room_->chests_dirty());
+  EXPECT_EQ(rom_->vector(), original);
+}
+
+TEST_F(DungeonSaveTest, LoadObjectsPreservesUnsavedChestContents) {
+  SetupChestTable();
+  SeedChestEntry(0, 0x11, false);
+  room_->LoadChests();
+  room_->GetChests() = {{0xFE, false}, {0xFF, true}};
+  room_->MarkChestsDirty();
+  const auto original = rom_->vector();
+
+  room_->LoadObjects();
+
+  EXPECT_TRUE(room_->AreChestsLoaded());
+  ASSERT_EQ(room_->GetChests().size(), 2u);
+  EXPECT_EQ(room_->GetChests()[0].id, 0xFE);
+  EXPECT_EQ(room_->GetChests()[1].id, 0xFF);
+  EXPECT_TRUE(room_->GetChests()[1].size);
+  EXPECT_TRUE(room_->chests_dirty());
+  EXPECT_EQ(rom_->vector(), original);
+}
+
+TEST_F(DungeonSaveTest, LoadObjectsDoesNotResurrectUnsavedChestDeletion) {
+  SetupChestTable();
+  SeedChestEntry(0, 0x11, false);
+  room_->LoadChests();
+  room_->GetChests().clear();
+  room_->MarkChestsDirty();
+
+  room_->LoadObjects();
+
+  EXPECT_TRUE(room_->AreChestsLoaded());
+  EXPECT_TRUE(room_->GetChests().empty());
+  EXPECT_TRUE(room_->chests_dirty());
+}
+
 // Loaded/dirty contract for chest + pot save tests
 // -------------------------------------------------
 // `SaveAllChests` / `SaveAllPotItems` preserve header-only rooms by
