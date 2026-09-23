@@ -374,60 +374,32 @@ void OverworldEditor::UpdateScratchBitmapTile(int tile_x, int tile_y,
 absl::Status OverworldEditor::SaveCurrentSelectionToScratch() {
   gfx::ScopedTimer timer("overworld_save_selection_to_scratch");
 
-  if (ow_map_canvas_.select_rect_active() &&
-      !ow_map_canvas_.selected_tiles().empty()) {
-    const auto& selected_points = ow_map_canvas_.selected_points();
-    if (selected_points.size() >= 2) {
-      // selected_points are now stored in world coordinates
-      const auto start = selected_points[0];
-      const auto end = selected_points[1];
+  const auto* brush =
+      tile_painting_ ? tile_painting_->selection_brush() : nullptr;
+  if (brush) {
+    scratch_space_.width = std::min(brush->width, 32);
+    scratch_space_.height = std::min(brush->height, 32);
+    scratch_space_.in_use = true;
+    scratch_space_.name = absl::StrFormat(
+        "Selection %dx%d", scratch_space_.width, scratch_space_.height);
 
-      int selection_width =
-          std::abs(static_cast<int>((end.x - start.x) / 16)) + 1;
-      int selection_height =
-          std::abs(static_cast<int>((end.y - start.y) / 16)) + 1;
-
-      scratch_space_.width = std::max(1, std::min(selection_width, 32));
-      scratch_space_.height = std::max(1, std::min(selection_height, 32));
-      scratch_space_.in_use = true;
-      scratch_space_.name = absl::StrFormat(
-          "Selection %dx%d", scratch_space_.width, scratch_space_.height);
-
-      int bitmap_width = scratch_space_.width * 16;
-      int bitmap_height = scratch_space_.height * 16;
-      std::vector<uint8_t> empty_data(bitmap_width * bitmap_height, 0);
-      scratch_space_.scratch_bitmap.Create(bitmap_width, bitmap_height, 8,
-                                           empty_data);
-      if (all_gfx_loaded_) {
-        palette_ = overworld_.current_area_palette();
-        scratch_space_.scratch_bitmap.SetPalette(palette_);
-        gfx::Arena::Get().QueueTextureCommand(
-            gfx::Arena::TextureCommandType::CREATE,
-            &scratch_space_.scratch_bitmap);
-      }
-
-      overworld_.set_current_world(current_world_);
-      overworld_.set_current_map(current_map_);
-
-      int idx = 0;
-      for (int y = 0;
-           y < scratch_space_.height &&
-           idx < static_cast<int>(ow_map_canvas_.selected_tiles().size());
-           ++y) {
-        for (int x = 0;
-             x < scratch_space_.width &&
-             idx < static_cast<int>(ow_map_canvas_.selected_tiles().size());
-             ++x) {
-          if (idx < static_cast<int>(ow_map_canvas_.selected_tiles().size())) {
-            int tile_id = overworld_.GetTileFromPosition(
-                ow_map_canvas_.selected_tiles()[idx]);
-            if (x < 32 && y < 32) {
-              scratch_space_.tile_data[x][y] = tile_id;
-            }
-            UpdateScratchBitmapTile(x, y, tile_id);
-            idx++;
-          }
-        }
+    const int bitmap_width = scratch_space_.width * 16;
+    const int bitmap_height = scratch_space_.height * 16;
+    scratch_space_.scratch_bitmap.Create(
+        bitmap_width, bitmap_height, 8,
+        std::vector<uint8_t>(bitmap_width * bitmap_height, 0));
+    if (all_gfx_loaded_) {
+      palette_ = overworld_.current_area_palette();
+      scratch_space_.scratch_bitmap.SetPalette(palette_);
+      gfx::Arena::Get().QueueTextureCommand(
+          gfx::Arena::TextureCommandType::CREATE,
+          &scratch_space_.scratch_bitmap);
+    }
+    for (int y = 0; y < scratch_space_.height; ++y) {
+      for (int x = 0; x < scratch_space_.width; ++x) {
+        const int tile_id = brush->at(x, y);
+        scratch_space_.tile_data[x][y] = tile_id;
+        UpdateScratchBitmapTile(x, y, tile_id);
       }
     }
   } else {
