@@ -1,4 +1,3 @@
-// Related header
 #include "app/editor/overworld/painting/tile_painting_manager.h"
 
 #include <algorithm>
@@ -6,34 +5,27 @@
 #include <vector>
 
 #include "app/editor/overworld/tile16_editor.h"
-#include "app/editor/overworld/ui/ui_constants.h"
-#include "app/gfx/render/tilemap.h"
 #include "app/gfx/resource/arena.h"
-#include "app/gui/canvas/canvas.h"
 #include "app/gui/canvas/canvas_usage_tracker.h"
-#include "imgui/imgui.h"
 #include "util/log.h"
-#include "zelda3/overworld/overworld.h"
 
 namespace yaze::editor {
-
 namespace {
 
+constexpr int kTilesPerMap = kOverworldMapSize / kTile16Size;
+
 int AllocatedRowsForWorld(int world) {
-  const int clamped_world = std::clamp(world, 0, 2);
-  const int world_start = clamped_world * 0x40;
-  const int maps_available =
-      std::clamp(zelda3::kNumOverworldMaps - world_start, 0, 0x40);
-  return (maps_available + 7) / 8;
+  const int world_start = std::clamp(world, 0, 2) * 0x40;
+  return (std::clamp(zelda3::kNumOverworldMaps - world_start, 0, 0x40) + 7) / 8;
 }
 
 bool IsValidMapGridPosition(int world, int map_x, int map_y) {
-  return map_x >= 0 && map_x < 8 && map_y >= 0 &&
+  return world >= 0 && world <= 2 && map_x >= 0 && map_x < 8 && map_y >= 0 &&
          map_y < AllocatedRowsForWorld(world);
 }
 
 int MapIndexForGridPosition(int world, int map_x, int map_y) {
-  return (std::clamp(world, 0, 2) * 0x40) + map_x + (map_y * 8);
+  return world * 0x40 + map_x + map_y * 8;
 }
 
 }  // namespace
@@ -42,465 +34,318 @@ TilePaintingManager::TilePaintingManager(const TilePaintingDependencies& deps,
                                          const TilePaintingCallbacks& callbacks)
     : deps_(deps), callbacks_(callbacks) {}
 
-// ---------------------------------------------------------------------------
-// DrawOverworldEdits - single-tile painting on left-click / drag
-// ---------------------------------------------------------------------------
-void TilePaintingManager::DrawOverworldEdits() {
-  // Determine which overworld map the user is currently editing.
-  // drawn_tile_position() returns scaled coordinates, need to unscale
-  auto scaled_position = deps_.ow_map_canvas->drawn_tile_position();
-  float scale = deps_.ow_map_canvas->global_scale();
-  if (scale <= 0.0f)
-    scale = 1.0f;
-
-  // Convert scaled position to world coordinates
-  ImVec2 mouse_position =
-      ImVec2(scaled_position.x / scale, scaled_position.y / scale);
-  if (mouse_position.x < 0.0f || mouse_position.y < 0.0f) {
-    return;
-  }
-
-  int map_x = static_cast<int>(mouse_position.x) / kOverworldMapSize;
-  int map_y = static_cast<int>(mouse_position.y) / kOverworldMapSize;
-  if (!IsValidMapGridPosition(*deps_.current_world, map_x, map_y)) {
-    return;
-  }
-
-  const int target_map =
-      MapIndexForGridPosition(*deps_.current_world, map_x, map_y);
-  // Bounds checking to prevent crashes
-  if (target_map < 0 ||
-      target_map >= static_cast<int>(deps_.maps_bmp->size())) {
-    return;  // Invalid map index, skip drawing
-  }
-  *deps_.current_map = target_map;
-
-  // Validate tile16_blockset_ before calling GetTilemapData
-  if (!deps_.tile16_blockset->atlas.is_active() ||
-      deps_.tile16_blockset->atlas.vector().empty()) {
-    LOG_ERROR("TilePaintingManager",
-              "Error: tile16_blockset is not properly initialized (active: %s, "
-              "size: %zu)",
-              deps_.tile16_blockset->atlas.is_active() ? "true" : "false",
-              deps_.tile16_blockset->atlas.vector().size());
-    return;  // Skip drawing if blockset is invalid
-  }
-
-  // Render the updated map bitmap.
-  auto tile_data =
-      gfx::GetTilemapData(*deps_.tile16_blockset, *deps_.current_tile16);
-  RenderUpdatedMapBitmap(mouse_position, tile_data);
-
-  // Calculate the correct superX and superY values
-  const int world_offset = *deps_.current_world * 0x40;
-  const int local_map = *deps_.current_map - world_offset;
-  const int superY = local_map / 8;
-  const int superX = local_map % 8;
-  int mouse_x_i = static_cast<int>(mouse_position.x);
-  int mouse_y_i = static_cast<int>(mouse_position.y);
-  // Calculate the correct tile16_x and tile16_y positions
-  int tile16_x = (mouse_x_i % kOverworldMapSize) / (kOverworldMapSize / 32);
-  int tile16_y = (mouse_y_i % kOverworldMapSize) / (kOverworldMapSize / 32);
-
-  // Update the overworld map_tiles based on tile16 ID and current world
-  auto& selected_world =
-      (*deps_.current_world == 0)
-          ? deps_.overworld->mutable_map_tiles()->light_world
-      : (*deps_.current_world == 1)
-          ? deps_.overworld->mutable_map_tiles()->dark_world
-          : deps_.overworld->mutable_map_tiles()->special_world;
-
-  int index_x = superX * 32 + tile16_x;
-  int index_y = superY * 32 + tile16_y;
-  if (index_x < 0 || index_y < 0 ||
-      index_x >= static_cast<int>(selected_world.size()) ||
-      index_y >= static_cast<int>(selected_world[index_x].size())) {
-    return;
-  }
-
-  // Get old tile value for undo tracking
-  int old_tile_id = selected_world[index_x][index_y];
-
-  // Only record undo if tile is actually changing
-  if (old_tile_id != *deps_.current_tile16) {
-    callbacks_.create_undo_point(*deps_.current_map, *deps_.current_world,
-                                 index_x, index_y, old_tile_id);
-    deps_.rom->set_dirty(true);
-  }
-
-  selected_world[index_x][index_y] = *deps_.current_tile16;
+std::vector<std::vector<uint16_t>>& TilePaintingManager::WorldTiles() const {
+  return deps_.overworld->GetMapTiles(*deps_.current_world);
 }
 
-// ---------------------------------------------------------------------------
-// RenderUpdatedMapBitmap - update bitmap pixels after tile paint
-// ---------------------------------------------------------------------------
-void TilePaintingManager::RenderUpdatedMapBitmap(
-    const ImVec2& click_position, const std::vector<uint8_t>& tile_data) {
-  // Bounds checking to prevent crashes
-  if (*deps_.current_map < 0 ||
-      *deps_.current_map >= static_cast<int>(deps_.maps_bmp->size())) {
-    LOG_ERROR("TilePaintingManager",
-              "ERROR: RenderUpdatedMapBitmap - Invalid current_map %d "
-              "(maps_bmp size=%zu)",
-              *deps_.current_map, deps_.maps_bmp->size());
-    return;  // Invalid map index, skip rendering
+TilePaintingManager::TilePosition TilePaintingManager::HoveredTile() const {
+  const auto& canvas = *deps_.ow_map_canvas;
+  const float scale = canvas.global_scale() > 0 ? canvas.global_scale() : 1.0f;
+  const ImVec2 origin(canvas.zero_point().x + canvas.scrolling().x,
+                      canvas.zero_point().y + canvas.scrolling().y);
+  const ImVec2 mouse = ImGui::GetIO().MousePos;
+  const float x = (mouse.x - origin.x) / scale / kTile16Size;
+  const float y = (mouse.y - origin.y) / scale / kTile16Size;
+  if (!ImGui::IsMousePosValid(&mouse) || !std::isfinite(x) ||
+      !std::isfinite(y)) {
+    return {-256, -256};  // Outside even the largest valid brush footprint.
   }
-
-  // Calculate the tile index for x and y based on the click_position
-  int tile_index_x =
-      (static_cast<int>(click_position.x) % kOverworldMapSize) / kTile16Size;
-  int tile_index_y =
-      (static_cast<int>(click_position.y) % kOverworldMapSize) / kTile16Size;
-
-  // Calculate the pixel start position based on tile index and tile size
-  ImVec2 start_position;
-  start_position.x = static_cast<float>(tile_index_x * kTile16Size);
-  start_position.y = static_cast<float>(tile_index_y * kTile16Size);
-
-  // Update the bitmap's pixel data based on the start_position and tile_data
-  gfx::Bitmap& current_bitmap = (*deps_.maps_bmp)[*deps_.current_map];
-
-  // Validate bitmap state before writing
-  if (!current_bitmap.is_active() || current_bitmap.size() == 0) {
-    LOG_ERROR(
-        "TilePaintingManager",
-        "ERROR: RenderUpdatedMapBitmap - Bitmap %d is not active or has no "
-        "data (active=%s, size=%zu)",
-        *deps_.current_map, current_bitmap.is_active() ? "true" : "false",
-        current_bitmap.size());
-    return;
-  }
-
-  for (int y = 0; y < kTile16Size; ++y) {
-    for (int x = 0; x < kTile16Size; ++x) {
-      int pixel_index =
-          (start_position.y + y) * kOverworldMapSize + (start_position.x + x);
-
-      // Bounds check for pixel index
-      if (pixel_index < 0 ||
-          pixel_index >= static_cast<int>(current_bitmap.size())) {
-        LOG_ERROR(
-            "TilePaintingManager",
-            "ERROR: RenderUpdatedMapBitmap - pixel_index %d out of bounds "
-            "(bitmap size=%zu)",
-            pixel_index, current_bitmap.size());
-        continue;
-      }
-
-      // Bounds check for tile data
-      int tile_data_index = y * kTile16Size + x;
-      if (tile_data_index < 0 ||
-          tile_data_index >= static_cast<int>(tile_data.size())) {
-        LOG_ERROR(
-            "TilePaintingManager",
-            "ERROR: RenderUpdatedMapBitmap - tile_data_index %d out of bounds "
-            "(tile_data size=%zu)",
-            tile_data_index, tile_data.size());
-        continue;
-      }
-
-      current_bitmap.WriteToPixel(pixel_index, tile_data[tile_data_index]);
-    }
-  }
-
-  current_bitmap.set_modified(true);
-
-  // Immediately update the texture to reflect changes
-  gfx::Arena::Get().QueueTextureCommand(gfx::Arena::TextureCommandType::UPDATE,
-                                        &current_bitmap);
+  // Bound before converting to int; focus loss or extreme scrolling can supply
+  // coordinates outside the integer range. Neither bound reaches a valid tile.
+  return {static_cast<int>(std::floor(std::clamp(x, -256.0f, 512.0f))),
+          static_cast<int>(std::floor(std::clamp(y, -256.0f, 512.0f)))};
 }
 
-// ---------------------------------------------------------------------------
-// CheckForOverworldEdits - main painting entry point
-// ---------------------------------------------------------------------------
+bool TilePaintingManager::IsValidTile(TilePosition position) const {
+  if (position.x < 0 || position.y < 0 ||
+      !IsValidMapGridPosition(*deps_.current_world, position.x / kTilesPerMap,
+                              position.y / kTilesPerMap)) {
+    return false;
+  }
+  const auto& tiles = WorldTiles();
+  return position.x < static_cast<int>(tiles.size()) &&
+         position.y < static_cast<int>(tiles[position.x].size());
+}
+
+const TileBrush* TilePaintingManager::selection_brush() const {
+  return deps_.ow_map_canvas->select_rect_active() && brush_.valid() ? &brush_
+                                                                     : nullptr;
+}
+
 void TilePaintingManager::CheckForOverworldEdits() {
-  LOG_DEBUG("TilePaintingManager", "CheckForOverworldEdits: Frame %d",
-            ImGui::GetFrameCount());
-
   CheckForSelectRectangle();
-
-  // DrawSelectRect updates hover for the canvas item. A held button entering
-  // from another widget must not become a paint gesture, and a canvas gesture
-  // may only write while the cursor is still over that canvas.
-  const bool canvas_hovered = deps_.ow_map_canvas->IsMouseHovering();
+  auto& canvas = *deps_.ow_map_canvas;
+  if (single_paint_pending_ && !ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+    callbacks_.finalize_paint_operation();
+    single_paint_pending_ = false;
+  }
   if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-    paint_gesture_owned_ = canvas_hovered && ImGui::IsItemActive();
+    paint_gesture_owned_ = canvas.IsMouseHovering() && ImGui::IsItemActive();
   } else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
     paint_gesture_owned_ = false;
   }
   const bool can_paint =
-      paint_gesture_owned_ && canvas_hovered && ImGui::IsItemActive();
+      paint_gesture_owned_ && canvas.IsMouseHovering() && ImGui::IsItemActive();
+  const auto anchor = HoveredTile();
+  const auto* selected = selection_brush();
+  const TileBrush single{1, 1, {*deps_.current_tile16}};
 
-  // User has selected a tile they want to draw from the blockset
-  // and clicked on the canvas.
-  if (*deps_.current_mode == EditingMode::DRAW_TILE &&
-      *deps_.current_tile16 >= 0 &&
-      !deps_.ow_map_canvas->select_rect_active() &&
-      deps_.ow_map_canvas->DrawTilemapPainter(*deps_.tile16_blockset,
-                                              *deps_.current_tile16) &&
-      can_paint) {
-    DrawOverworldEdits();
+  if (*deps_.current_mode == EditingMode::FILL_TILE) {
+    if (can_paint && ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
+        IsValidTile(anchor)) {
+      const TilePosition screen{anchor.x / kTilesPerMap * kTilesPerMap,
+                                anchor.y / kTilesPerMap * kTilesPerMap};
+      PaintPattern(selected ? *selected : single, screen, kTilesPerMap,
+                   kTilesPerMap);
+    }
+    return;
   }
-
-  // Fill tool: fill the entire 32x32 tile16 screen under the cursor using the
-  // current selection pattern (if any) or the current tile16.
-  if (*deps_.current_mode == EditingMode::FILL_TILE && can_paint &&
-      ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-    float scale = deps_.ow_map_canvas->global_scale();
-    if (scale <= 0.0f) {
-      scale = 1.0f;
+  if (*deps_.current_mode != EditingMode::DRAW_TILE) {
+    return;
+  }
+  if (selected) {
+    if (can_paint && (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
+                      ImGui::IsMouseDragging(ImGuiMouseButton_Left))) {
+      PaintPattern(*selected, anchor, selected->width, selected->height);
     }
+  } else if (single.valid() &&
+             canvas.DrawTilemapPainter(*deps_.tile16_blockset,
+                                       *deps_.current_tile16) &&
+             can_paint) {
+    PaintPattern(single, anchor, 1, 1, false);
+  }
+}
 
-    const auto scaled_position = deps_.ow_map_canvas->hover_mouse_pos();
-    if (scaled_position.x < 0.0f || scaled_position.y < 0.0f) {
-      return;
-    }
-    const int map_x =
-        static_cast<int>(scaled_position.x / scale) / kOverworldMapSize;
-    const int map_y =
-        static_cast<int>(scaled_position.y / scale) / kOverworldMapSize;
+absl::Status TilePaintingManager::PasteBrush(const TileBrush& brush) {
+  if (!brush.valid()) {
+    return absl::InvalidArgumentError("Clipboard tile pattern is invalid");
+  }
+  if (!deps_.ow_map_canvas->IsMouseHovering()) {
+    return absl::FailedPreconditionError("Hover the overworld canvas to paste");
+  }
+  PaintPattern(brush, HoveredTile(), brush.width, brush.height);
+  return absl::OkStatus();
+}
 
-    // Bounds guard.
-    if (IsValidMapGridPosition(*deps_.current_world, map_x, map_y)) {
-      const int target_map =
-          MapIndexForGridPosition(*deps_.current_world, map_x, map_y);
-      if (target_map >= 0 && target_map < zelda3::kNumOverworldMaps) {
-        // Build pattern from active rectangle selection (if present).
-        std::vector<int> pattern_ids;
-        int pattern_w = 1;
-        int pattern_h = 1;
-
-        if (deps_.ow_map_canvas->select_rect_active() &&
-            deps_.ow_map_canvas->selected_points().size() >= 2) {
-          const auto start = deps_.ow_map_canvas->selected_points()[0];
-          const auto end = deps_.ow_map_canvas->selected_points()[1];
-
-          const int start_x =
-              static_cast<int>(std::floor(std::min(start.x, end.x) / 16.0f));
-          const int end_x =
-              static_cast<int>(std::floor(std::max(start.x, end.x) / 16.0f));
-          const int start_y =
-              static_cast<int>(std::floor(std::min(start.y, end.y) / 16.0f));
-          const int end_y =
-              static_cast<int>(std::floor(std::max(start.y, end.y) / 16.0f));
-
-          pattern_w = std::max(1, end_x - start_x + 1);
-          pattern_h = std::max(1, end_y - start_y + 1);
-          pattern_ids.reserve(pattern_w * pattern_h);
-
-          deps_.overworld->set_current_world(*deps_.current_world);
-          deps_.overworld->set_current_map(target_map);
-          for (int y = start_y; y <= end_y; ++y) {
-            for (int x = start_x; x <= end_x; ++x) {
-              pattern_ids.push_back(deps_.overworld->GetTile(x, y));
-            }
-          }
-        } else {
-          pattern_ids = {*deps_.current_tile16};
-        }
-
-        auto& world_tiles =
-            (*deps_.current_world == 0)
-                ? deps_.overworld->mutable_map_tiles()->light_world
-            : (*deps_.current_world == 1)
-                ? deps_.overworld->mutable_map_tiles()->dark_world
-                : deps_.overworld->mutable_map_tiles()->special_world;
-
-        // Apply the fill (repeat pattern across 32x32).
-        for (int y = 0; y < 32; ++y) {
-          for (int x = 0; x < 32; ++x) {
-            const int pattern_x = x % pattern_w;
-            const int pattern_y = y % pattern_h;
-            const int new_tile_id =
-                pattern_ids[pattern_y * pattern_w + pattern_x];
-
-            const int global_x = map_x * 32 + x;
-            const int global_y = map_y * 32 + y;
-            if (global_x < 0 || global_y < 0 ||
-                global_x >= static_cast<int>(world_tiles.size()) ||
-                global_y >= static_cast<int>(world_tiles[global_x].size())) {
-              continue;
-            }
-
-            const int old_tile_id = world_tiles[global_x][global_y];
-            if (old_tile_id == new_tile_id) {
-              continue;
-            }
-
-            callbacks_.create_undo_point(target_map, *deps_.current_world,
-                                         global_x, global_y, old_tile_id);
-            world_tiles[global_x][global_y] = new_tile_id;
-          }
-        }
-
-        deps_.rom->set_dirty(true);
-        callbacks_.finalize_paint_operation();
-        *deps_.current_map = target_map;
-        callbacks_.refresh_overworld_map_on_demand(target_map);
-      }
+void TilePaintingManager::PaintPattern(const TileBrush& brush,
+                                       TilePosition anchor, int width,
+                                       int height, bool finalize) {
+  if (!brush.valid()) {
+    return;
+  }
+  ChangedMaps changed_maps{};
+  for (int y = 0; y < height; ++y) {
+    for (int x = 0; x < width; ++x) {
+      PaintTile({anchor.x + x, anchor.y + y},
+                brush.at(x % brush.width, y % brush.height), changed_maps);
     }
   }
-
-  // Rectangle selection stamping (brush mode only).
-  if (*deps_.current_mode == EditingMode::DRAW_TILE &&
-      deps_.ow_map_canvas->select_rect_active() && can_paint) {
-    if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
-        ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-      LOG_DEBUG("TilePaintingManager",
-                "CheckForOverworldEdits: About to apply rectangle selection");
-
-      auto& selected_world =
-          (*deps_.current_world == 0)
-              ? deps_.overworld->mutable_map_tiles()->light_world
-          : (*deps_.current_world == 1)
-              ? deps_.overworld->mutable_map_tiles()->dark_world
-              : deps_.overworld->mutable_map_tiles()->special_world;
-      // selected_points are now stored in world coordinates
-      auto start = deps_.ow_map_canvas->selected_points()[0];
-      auto end = deps_.ow_map_canvas->selected_points()[1];
-
-      // Calculate the bounds of the rectangle in terms of 16x16 tile indices
-      int start_x = std::floor(start.x / kTile16Size) * kTile16Size;
-      int start_y = std::floor(start.y / kTile16Size) * kTile16Size;
-      int end_x = std::floor(end.x / kTile16Size) * kTile16Size;
-      int end_y = std::floor(end.y / kTile16Size) * kTile16Size;
-
-      if (start_x > end_x)
-        std::swap(start_x, end_x);
-      if (start_y > end_y)
-        std::swap(start_y, end_y);
-
-      constexpr int local_map_size = 512;  // Size of each local map
-      // Number of tiles per local map (since each tile is 16x16)
-      constexpr int tiles_per_local_map = local_map_size / kTile16Size;
-
-      LOG_DEBUG("TilePaintingManager",
-                "CheckForOverworldEdits: About to fill rectangle with "
-                "current_tile16=%d",
-                *deps_.current_tile16);
-
-      // Apply the selected tiles to each position in the rectangle
-      // CRITICAL FIX: Use pre-computed tile16_ids instead of recalculating
-      // from selected_tiles. This prevents wrapping issues when dragging near
-      // boundaries.
-      int i = 0;
-      for (int y = start_y;
-           y <= end_y &&
-           i < static_cast<int>(deps_.selected_tile16_ids->size());
-           y += kTile16Size) {
-        for (int x = start_x;
-             x <= end_x &&
-             i < static_cast<int>(deps_.selected_tile16_ids->size());
-             x += kTile16Size, ++i) {
-          // Determine which local map (512x512) the tile is in
-          int local_map_x = x / local_map_size;
-          int local_map_y = y / local_map_size;
-
-          // Calculate the tile's position within its local map
-          int tile16_x = (x % local_map_size) / kTile16Size;
-          int tile16_y = (y % local_map_size) / kTile16Size;
-
-          // Calculate the index within the overall map structure
-          int index_x = local_map_x * tiles_per_local_map + tile16_x;
-          int index_y = local_map_y * tiles_per_local_map + tile16_y;
-
-          // FIXED: Use pre-computed tile ID from the ORIGINAL selection
-          int tile16_id = (*deps_.selected_tile16_ids)[i];
-          // Bounds check for the selected world array
-          int rect_width = ((end_x - start_x) / kTile16Size) + 1;
-          int rect_height = ((end_y - start_y) / kTile16Size) + 1;
-
-          // Prevent painting from wrapping around at the edges of large maps
-          int start_local_map_x = start_x / local_map_size;
-          int start_local_map_y = start_y / local_map_size;
-          int end_local_map_x = end_x / local_map_size;
-          int end_local_map_y = end_y / local_map_size;
-
-          bool in_same_local_map = (start_local_map_x == end_local_map_x) &&
-                                   (start_local_map_y == end_local_map_y);
-
-          if (in_same_local_map && index_x >= 0 &&
-              (index_x + rect_width - 1) < 0x200 && index_y >= 0 &&
-              (index_y + rect_height - 1) < 0x200) {
-            // Get old tile value for undo tracking
-            int old_tile_id = selected_world[index_x][index_y];
-            if (old_tile_id != tile16_id) {
-              callbacks_.create_undo_point(*deps_.current_map,
-                                           *deps_.current_world, index_x,
-                                           index_y, old_tile_id);
-            }
-
-            selected_world[index_x][index_y] = tile16_id;
-
-            // CRITICAL FIX: Also update the bitmap directly like single tile
-            // drawing
-            ImVec2 tile_position(x, y);
-            auto tile_data =
-                gfx::GetTilemapData(*deps_.tile16_blockset, tile16_id);
-            if (!tile_data.empty()) {
-              RenderUpdatedMapBitmap(tile_position, tile_data);
-              LOG_DEBUG(
-                  "TilePaintingManager",
-                  "CheckForOverworldEdits: Updated bitmap at position (%d,%d) "
-                  "with tile16_id=%d",
-                  x, y, tile16_id);
-            } else {
-              LOG_ERROR("TilePaintingManager",
-                        "ERROR: Failed to get tile data for tile16_id=%d",
-                        tile16_id);
-            }
-          }
-        }
+  if (std::none_of(changed_maps.begin(), changed_maps.end(),
+                   [](bool changed) { return changed; })) {
+    return;
+  }
+  deps_.rom->set_dirty(true);
+  if (finalize) {
+    callbacks_.finalize_paint_operation();
+    single_paint_pending_ = false;
+  } else {
+    single_paint_pending_ = true;
+  }
+  if (IsValidTile(anchor)) {
+    *deps_.current_map = MapIndexForGridPosition(
+        *deps_.current_world, anchor.x / kTilesPerMap, anchor.y / kTilesPerMap);
+  }
+  for (int map = 0; map < zelda3::kNumOverworldMaps; ++map) {
+    if (changed_maps[map]) {
+      if ((*deps_.maps_bmp)[map].is_active()) {
+        gfx::Arena::Get().QueueTextureCommand(
+            gfx::Arena::TextureCommandType::UPDATE, &(*deps_.maps_bmp)[map]);
       }
-
-      // Finalize the undo batch operation after all tiles are placed
-      callbacks_.finalize_paint_operation();
-
-      deps_.rom->set_dirty(true);
-      callbacks_.refresh_overworld_map();
+      callbacks_.refresh_overworld_map_on_demand(map);
     }
   }
 }
 
-// ---------------------------------------------------------------------------
-// CheckForSelectRectangle - rectangle drag-to-select tiles
-// ---------------------------------------------------------------------------
-void TilePaintingManager::CheckForSelectRectangle() {
-  // Pass the canvas scale for proper zoom handling
-  float scale = deps_.ow_map_canvas->global_scale();
-  if (scale <= 0.0f)
-    scale = 1.0f;
-  deps_.ow_map_canvas->DrawSelectRect(*deps_.current_map, 0x10, scale);
-
-  // Single tile case
-  if (deps_.ow_map_canvas->selected_tile_pos().x != -1) {
-    *deps_.current_tile16 = deps_.overworld->GetTileFromPosition(
-        deps_.ow_map_canvas->selected_tile_pos());
-    deps_.ow_map_canvas->set_selected_tile_pos(ImVec2(-1, -1));
-
-    // Scroll blockset canvas to show the selected tile
-    callbacks_.scroll_blockset_to_current_tile();
+bool TilePaintingManager::PaintTile(TilePosition position, int tile_id,
+                                    ChangedMaps& changed_maps) {
+  if (!IsValidTile(position)) {
+    return false;
   }
+  auto& old_id = WorldTiles()[position.x][position.y];
+  if (old_id == tile_id) {
+    return false;
+  }
+  const int map =
+      MapIndexForGridPosition(*deps_.current_world, position.x / kTilesPerMap,
+                              position.y / kTilesPerMap);
+  callbacks_.create_undo_point(map, *deps_.current_world, position.x,
+                               position.y, old_id);
+  old_id = tile_id;
+  changed_maps[map] = true;
+  (*deps_.maps_bmp)[map].set_modified(true);
+  if (deps_.tile16_blockset->atlas.is_active()) {
+    RenderMapTile(map, position,
+                  gfx::GetTilemapData(*deps_.tile16_blockset, tile_id));
+  }
+  return true;
+}
 
-  // Rectangle selection case - use member variable instead of static local
-  if (deps_.ow_map_canvas->select_rect_active()) {
-    // Get the tile16 IDs from the selected tile ID positions
-    deps_.selected_tile16_ids->clear();
-
-    if (deps_.ow_map_canvas->selected_tiles().size() > 0) {
-      // Set the current world and map in overworld for proper tile lookup
-      deps_.overworld->set_current_world(*deps_.current_world);
-      deps_.overworld->set_current_map(*deps_.current_map);
-      for (auto& each : deps_.ow_map_canvas->selected_tiles()) {
-        deps_.selected_tile16_ids->push_back(
-            deps_.overworld->GetTileFromPosition(each));
+void TilePaintingManager::RenderMapTile(int map_id, TilePosition position,
+                                        const std::vector<uint8_t>& tile_data) {
+  if (map_id < 0 || map_id >= static_cast<int>(deps_.maps_bmp->size())) {
+    return;
+  }
+  auto& bitmap = (*deps_.maps_bmp)[map_id];
+  if (!bitmap.is_active() || tile_data.size() < kTile16Size * kTile16Size) {
+    return;
+  }
+  const int pixel_x = position.x % kTilesPerMap * kTile16Size;
+  const int pixel_y = position.y % kTilesPerMap * kTile16Size;
+  for (int y = 0; y < kTile16Size; ++y) {
+    for (int x = 0; x < kTile16Size; ++x) {
+      const int offset = (pixel_y + y) * kOverworldMapSize + pixel_x + x;
+      if (offset >= 0 && offset < static_cast<int>(bitmap.size())) {
+        bitmap.WriteToPixel(offset, tile_data[y * kTile16Size + x]);
       }
     }
   }
-  // Create a composite image of all the tile16s selected
-  deps_.ow_map_canvas->DrawBitmapGroup(*deps_.selected_tile16_ids,
-                                       *deps_.tile16_blockset, 0x10,
-                                       deps_.ow_map_canvas->global_scale());
+  bitmap.set_modified(true);
+}
+
+void TilePaintingManager::RenderUpdatedMapBitmap(
+    const ImVec2& position, const std::vector<uint8_t>& tile_data) {
+  RenderMapTile(*deps_.current_map,
+                {static_cast<int>(std::floor(position.x / kTile16Size)),
+                 static_cast<int>(std::floor(position.y / kTile16Size))},
+                tile_data);
+  if (*deps_.current_map >= 0 &&
+      *deps_.current_map < zelda3::kNumOverworldMaps &&
+      (*deps_.maps_bmp)[*deps_.current_map].is_active()) {
+    gfx::Arena::Get().QueueTextureCommand(
+        gfx::Arena::TextureCommandType::UPDATE,
+        &(*deps_.maps_bmp)[*deps_.current_map]);
+  }
+}
+
+void TilePaintingManager::CaptureSelection() {
+  auto& canvas = *deps_.ow_map_canvas;
+  const auto points = canvas.selected_points();
+  if (points.size() != 2) {
+    return;
+  }
+  const int left = std::max(
+      0, static_cast<int>(
+             std::floor(std::min(points[0].x, points[1].x) / kTile16Size)));
+  const int top = std::max(
+      0, static_cast<int>(
+             std::floor(std::min(points[0].y, points[1].y) / kTile16Size)));
+  const int right =
+      std::min(8 * kTilesPerMap - 1,
+               static_cast<int>(std::floor(std::max(points[0].x, points[1].x) /
+                                           kTile16Size)));
+  const int bottom =
+      std::min(AllocatedRowsForWorld(*deps_.current_world) * kTilesPerMap - 1,
+               static_cast<int>(std::floor(std::max(points[0].y, points[1].y) /
+                                           kTile16Size)));
+  TileBrush captured{right - left + 1, bottom - top + 1, {}};
+  if (captured.width <= 0 || captured.height <= 0) {
+    canvas.ClearSelection();
+    return;
+  }
+  for (int y = top; y <= bottom; ++y) {
+    for (int x = left; x <= right; ++x) {
+      if (!IsValidTile({x, y})) {
+        canvas.ClearSelection();
+        return;
+      }
+      captured.tile_ids.push_back(WorldTiles()[x][y]);
+    }
+  }
+  brush_ = std::move(captured);
+  *deps_.selected_tile16_ids = brush_.tile_ids;
+}
+
+void TilePaintingManager::CheckForSelectRectangle() {
+  auto& canvas = *deps_.ow_map_canvas;
+  const bool was_active = canvas.select_rect_active();
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+    selection_gesture_owned_ =
+        canvas.IsMouseHovering() && ImGui::IsItemActive();
+  }
+  const float scale = canvas.global_scale() > 0 ? canvas.global_scale() : 1.0f;
+  canvas.DrawSelectRect(*deps_.current_map, kTile16Size, scale);
+  if (canvas.selected_tile_pos().x != -1) {
+    const auto source = HoveredTile();
+    if (selection_gesture_owned_ && IsValidTile(source)) {
+      *deps_.current_tile16 = WorldTiles()[source.x][source.y];
+      callbacks_.scroll_blockset_to_current_tile();
+    }
+    canvas.set_selected_tile_pos(ImVec2(-1, -1));
+  }
+  if (!was_active && canvas.select_rect_active()) {
+    if (selection_gesture_owned_ && canvas.IsMouseHovering()) {
+      CaptureSelection();
+    } else {
+      canvas.ClearSelection();
+    }
+  }
+  if (!ImGui::IsMouseDown(ImGuiMouseButton_Right)) {
+    selection_gesture_owned_ = false;
+  }
+  if (!canvas.select_rect_active()) {
+    brush_ = {};
+    deps_.selected_tile16_ids->clear();
+  }
+  if (selection_brush() && canvas.IsMouseHovering()) {
+    DrawBrushPreview(HoveredTile());
+  }
+}
+
+void TilePaintingManager::DrawBrushPreview(TilePosition anchor) {
+  auto& canvas = *deps_.ow_map_canvas;
+  auto* points = canvas.mutable_selected_points();
+  points->clear();
+  points->push_back(ImVec2(anchor.x * kTile16Size, anchor.y * kTile16Size));
+  points->push_back(ImVec2((anchor.x + brush_.width - 1) * kTile16Size,
+                           (anchor.y + brush_.height - 1) * kTile16Size));
+
+  const auto& atlas = deps_.tile16_blockset->atlas;
+  if (!atlas.is_active() || !atlas.texture() || atlas.width() < kTile16Size ||
+      atlas.height() < kTile16Size) {
+    return;
+  }
+  const int columns = atlas.width() / kTile16Size;
+  const int tile_count = columns * (atlas.height() / kTile16Size);
+  const float scale = canvas.global_scale() > 0 ? canvas.global_scale() : 1.0f;
+  const float size = kTile16Size * scale;
+  const ImVec2 origin(canvas.zero_point().x + canvas.scrolling().x,
+                      canvas.zero_point().y + canvas.scrolling().y);
+  auto* draw = canvas.draw_list();
+  draw->PushClipRect(
+      canvas.zero_point(),
+      ImVec2(canvas.zero_point().x + canvas.canvas_size().x * scale,
+             canvas.zero_point().y + canvas.canvas_size().y * scale),
+      true);
+  for (int y = 0; y < brush_.height; ++y) {
+    for (int x = 0; x < brush_.width; ++x) {
+      const int id = brush_.at(x, y);
+      if (!IsValidTile({anchor.x + x, anchor.y + y}) || id >= tile_count) {
+        continue;
+      }
+      const ImVec2 start(origin.x + (anchor.x + x) * size,
+                         origin.y + (anchor.y + y) * size);
+      const ImVec2 uv0(
+          static_cast<float>(id % columns * kTile16Size) / atlas.width(),
+          static_cast<float>(id / columns * kTile16Size) / atlas.height());
+      const ImVec2 uv1(
+          uv0.x + static_cast<float>(kTile16Size) / atlas.width(),
+          uv0.y + static_cast<float>(kTile16Size) / atlas.height());
+      draw->AddImage((ImTextureID)(intptr_t)atlas.texture(), start,
+                     ImVec2(start.x + size, start.y + size), uv0, uv1,
+                     IM_COL32(255, 255, 255, 180));
+    }
+  }
+  draw->PopClipRect();
 }
 
 // ---------------------------------------------------------------------------

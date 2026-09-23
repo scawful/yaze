@@ -371,9 +371,7 @@ void OverworldEditor::InitTilePaintingManager() {
   deps.selected_tile16_ids = &selected_tile16_ids_;
   deps.current_map = &current_map_;
   deps.current_world = &current_world_;
-  deps.current_parent = &current_parent_;
   deps.current_mode = &current_mode;
-  deps.game_state = &game_state_;
   deps.rom = rom_;
   deps.tile16_editor = &tile16_editor_;
 
@@ -384,9 +382,6 @@ void OverworldEditor::InitTilePaintingManager() {
   };
   callbacks.finalize_paint_operation = [this]() {
     this->FinalizePaintOperation();
-  };
-  callbacks.refresh_overworld_map = [this]() {
-    this->RefreshOverworldMap();
   };
   callbacks.refresh_overworld_map_on_demand = [this](int map_index) {
     this->RefreshOverworldMapOnDemand(map_index);
@@ -1082,37 +1077,14 @@ absl::Status OverworldEditor::Copy() {
   if (!dependencies_.shared_clipboard) {
     return absl::FailedPreconditionError("Clipboard unavailable");
   }
-  // If a rectangle selection exists, copy its tile16 IDs into shared clipboard
-  if (ow_map_canvas_.select_rect_active() &&
-      !ow_map_canvas_.selected_points().empty()) {
-    std::vector<int> ids;
-    // selected_points are now stored in world coordinates
-    const auto start = ow_map_canvas_.selected_points()[0];
-    const auto end = ow_map_canvas_.selected_points()[1];
-    const int start_x =
-        static_cast<int>(std::floor(std::min(start.x, end.x) / 16.0f));
-    const int end_x =
-        static_cast<int>(std::floor(std::max(start.x, end.x) / 16.0f));
-    const int start_y =
-        static_cast<int>(std::floor(std::min(start.y, end.y) / 16.0f));
-    const int end_y =
-        static_cast<int>(std::floor(std::max(start.y, end.y) / 16.0f));
-    const int width = end_x - start_x + 1;
-    const int height = end_y - start_y + 1;
-    ids.reserve(width * height);
-    overworld_.set_current_world(current_world_);
-    overworld_.set_current_map(current_map_);
-    for (int y = start_y; y <= end_y; ++y) {
-      for (int x = start_x; x <= end_x; ++x) {
-        ids.push_back(overworld_.GetTile(x, y));
-      }
+  if (tile_painting_) {
+    if (const auto* brush = tile_painting_->selection_brush()) {
+      dependencies_.shared_clipboard->overworld_tile16_ids = brush->tile_ids;
+      dependencies_.shared_clipboard->overworld_width = brush->width;
+      dependencies_.shared_clipboard->overworld_height = brush->height;
+      dependencies_.shared_clipboard->has_overworld_tile16 = true;
+      return absl::OkStatus();
     }
-
-    dependencies_.shared_clipboard->overworld_tile16_ids = std::move(ids);
-    dependencies_.shared_clipboard->overworld_width = width;
-    dependencies_.shared_clipboard->overworld_height = height;
-    dependencies_.shared_clipboard->has_overworld_tile16 = true;
-    return absl::OkStatus();
   }
   // Single tile copy fallback
   if (current_tile16_ >= 0) {
@@ -1132,73 +1104,13 @@ absl::Status OverworldEditor::Paste() {
   if (!dependencies_.shared_clipboard->has_overworld_tile16) {
     return absl::FailedPreconditionError("Clipboard empty");
   }
-  if (ow_map_canvas_.points().empty() &&
-      ow_map_canvas_.selected_tile_pos().x == -1) {
-    return absl::FailedPreconditionError("No paste target");
+  if (!tile_painting_) {
+    return absl::FailedPreconditionError("Tile painting is unavailable");
   }
-
-  // Determine paste anchor position (use current mouse drawn tile position)
-  // Unscale coordinates to get world position
-  const ImVec2 scaled_anchor = ow_map_canvas_.drawn_tile_position();
-  float scale = ow_map_canvas_.global_scale();
-  if (scale <= 0.0f)
-    scale = 1.0f;
-  const ImVec2 anchor =
-      ImVec2(scaled_anchor.x / scale, scaled_anchor.y / scale);
-
-  // Compute anchor in tile16 grid within the current map
-  const int tile16_x =
-      (static_cast<int>(anchor.x) % kOverworldMapSize) / kTile16Size;
-  const int tile16_y =
-      (static_cast<int>(anchor.y) % kOverworldMapSize) / kTile16Size;
-
-  auto& selected_world =
-      (current_world_ == 0)   ? overworld_.mutable_map_tiles()->light_world
-      : (current_world_ == 1) ? overworld_.mutable_map_tiles()->dark_world
-                              : overworld_.mutable_map_tiles()->special_world;
-
-  const int world_offset = current_world_ * 0x40;
-  const int local_map = current_map_ - world_offset;
-  const int superY = local_map / 8;
-  const int superX = local_map % 8;
-
-  const int width = dependencies_.shared_clipboard->overworld_width;
-  const int height = dependencies_.shared_clipboard->overworld_height;
-  const auto& ids = dependencies_.shared_clipboard->overworld_tile16_ids;
-
-  // Guard
-  if (width * height != static_cast<int>(ids.size())) {
-    return absl::InternalError("Clipboard dimensions mismatch");
-  }
-
-  bool any_changed = false;
-  for (int dy = 0; dy < height; ++dy) {
-    for (int dx = 0; dx < width; ++dx) {
-      const int id = ids[dy * width + dx];
-      const int gx = tile16_x + dx;
-      const int gy = tile16_y + dy;
-
-      const int global_x = superX * 32 + gx;
-      const int global_y = superY * 32 + gy;
-      if (global_x < 0 || global_x >= 256 || global_y < 0 || global_y >= 256)
-        continue;
-      const int old_tile_id = selected_world[global_x][global_y];
-      if (old_tile_id == id) {
-        continue;
-      }
-      CreateUndoPoint(current_map_, current_world_, global_x, global_y,
-                      old_tile_id);
-      selected_world[global_x][global_y] = id;
-      any_changed = true;
-    }
-  }
-
-  if (any_changed) {
-    FinalizePaintOperation();
-    rom_->set_dirty(true);
-    RefreshOverworldMap();
-  }
-  return absl::OkStatus();
+  const auto& clipboard = *dependencies_.shared_clipboard;
+  return tile_painting_->PasteBrush({clipboard.overworld_width,
+                                     clipboard.overworld_height,
+                                     clipboard.overworld_tile16_ids});
 }
 
 absl::Status OverworldEditor::CheckForCurrentMap() {
@@ -1290,10 +1202,9 @@ void OverworldEditor::CreateUndoPoint(int map_id, int world, int x, int y,
                                       int old_tile_id) {
   auto now = std::chrono::steady_clock::now();
 
-  // Check if we should batch with current operation (same map, same world,
-  // within timeout)
+  // A stroke can cross screen boundaries. Keep one batch within the same world
+  // and timeout; the undo action refreshes every screen touched by its tiles.
   if (current_paint_operation_.has_value() &&
-      current_paint_operation_->map_id == map_id &&
       current_paint_operation_->world == world &&
       (now - last_paint_time_) < kPaintBatchTimeout) {
     // Add to existing operation
@@ -1331,7 +1242,11 @@ void OverworldEditor::FinalizePaintOperation() {
   }
   auto action = std::make_unique<OverworldTilePaintAction>(
       current_paint_operation_->map_id, current_paint_operation_->world,
-      std::move(changes), &overworld_, [this]() { RefreshOverworldMap(); });
+      std::move(changes), &overworld_, std::function<void()>{},
+      [this](int map_id) {
+        maps_bmp_[map_id].set_modified(true);
+        RefreshOverworldMapOnDemand(map_id);
+      });
   undo_manager_.Push(std::move(action));
 
   current_paint_operation_.reset();
@@ -1721,7 +1636,7 @@ void OverworldEditor::CycleTileSelection(int delta) {
 void OverworldEditor::ContributeStatus(StatusBar* status_bar) {
   if (!status_bar)
     return;
-  const char* world_label = "LW";
+  const char* world_label;
   switch (current_world_) {
     case 0:
       world_label = "LW";
@@ -1741,7 +1656,7 @@ void OverworldEditor::ContributeStatus(StatusBar* status_bar) {
   status_bar->SetCustomSegment("Tile16",
                                absl::StrFormat("0x%03X", current_tile16_));
 
-  const char* mode_label = "Draw";
+  const char* mode_label;
   switch (entity_edit_mode_) {
     case EntityEditMode::ENTRANCES:
       mode_label = "Entrances";
@@ -1772,7 +1687,13 @@ void OverworldEditor::ContributeStatus(StatusBar* status_bar) {
         case EditingMode::FILL_TILE:
           mode_label = "Fill";
           break;
+        default:
+          mode_label = "Draw";
+          break;
       }
+      break;
+    default:
+      mode_label = "Draw";
       break;
   }
   status_bar->SetEditorMode(mode_label);

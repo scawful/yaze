@@ -5,6 +5,7 @@
 #include <functional>
 #include <vector>
 
+#include "app/editor/overworld/painting/tile_brush.h"
 #include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gfx/core/bitmap.h"
 #include "app/gfx/render/tilemap.h"
@@ -30,9 +31,7 @@ struct TilePaintingDependencies {
   std::vector<int>* selected_tile16_ids = nullptr;
   int* current_map = nullptr;
   int* current_world = nullptr;
-  int* current_parent = nullptr;
   EditingMode* current_mode = nullptr;
-  int* game_state = nullptr;
   Rom* rom = nullptr;
   Tile16Editor* tile16_editor = nullptr;
 };
@@ -42,7 +41,6 @@ struct TilePaintingCallbacks {
   std::function<void(int map_id, int world, int x, int y, int old_tile_id)>
       create_undo_point;
   std::function<void()> finalize_paint_operation;
-  std::function<void()> refresh_overworld_map;
   std::function<void(int map_index)> refresh_overworld_map_on_demand;
   std::function<void()> scroll_blockset_to_current_tile;
   /// When set, eyedropper routes here (guarded `RequestTileSwitch` path).
@@ -51,9 +49,8 @@ struct TilePaintingCallbacks {
 
 /// @brief Manages tile painting, fill, selection, and eyedropper operations.
 ///
-/// Extracted from OverworldEditor to encapsulate the ~349 lines of tile
-/// editing logic. Operates on shared state through TilePaintingDependencies
-/// and delegates undo/refresh through TilePaintingCallbacks.
+/// Owns captured brush contents and canvas gestures. All destinations use
+/// world Tile16 coordinates; callbacks publish undo and refresh affected maps.
 class TilePaintingManager {
  public:
   TilePaintingManager(const TilePaintingDependencies& deps,
@@ -64,6 +61,13 @@ class TilePaintingManager {
 
   /// @brief Draw and create the tile16 IDs that are currently selected.
   void CheckForSelectRectangle();
+
+  /// The captured selection, independent of its source or preview position.
+  const TileBrush* selection_brush() const;
+
+  /// Paste a validated pattern at the current canvas cursor, using the same
+  /// clipping, per-map refresh, and undo path as rectangle painting.
+  absl::Status PasteBrush(const TileBrush& brush);
 
   /// @brief Update bitmap pixels after a single tile paint.
   void RenderUpdatedMapBitmap(const ImVec2& click_position,
@@ -79,13 +83,29 @@ class TilePaintingManager {
   void ActivateFillTool();
 
  private:
-  /// @brief Handle the actual drawing of a single tile (called by
-  /// CheckForOverworldEdits when DrawTilemapPainter triggers).
-  void DrawOverworldEdits();
+  struct TilePosition {
+    int x;
+    int y;
+  };
+  using ChangedMaps = std::array<bool, zelda3::kNumOverworldMaps>;
+
+  TilePosition HoveredTile() const;
+  bool IsValidTile(TilePosition position) const;
+  std::vector<std::vector<uint16_t>>& WorldTiles() const;
+  void CaptureSelection();
+  void DrawBrushPreview(TilePosition anchor);
+  void PaintPattern(const TileBrush& brush, TilePosition anchor, int width,
+                    int height, bool finalize = true);
+  bool PaintTile(TilePosition position, int tile_id, ChangedMaps& changed_maps);
+  void RenderMapTile(int map_id, TilePosition position,
+                     const std::vector<uint8_t>& tile_data);
 
   TilePaintingDependencies deps_;
   TilePaintingCallbacks callbacks_;
   bool paint_gesture_owned_ = false;
+  bool single_paint_pending_ = false;
+  bool selection_gesture_owned_ = false;
+  TileBrush brush_;
 };
 
 }  // namespace editor
