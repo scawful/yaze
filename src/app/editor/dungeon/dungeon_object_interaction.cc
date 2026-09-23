@@ -652,6 +652,14 @@ bool DungeonObjectInteraction::IsWithinCanvasBounds(int canvas_x, int canvas_y,
 
 void DungeonObjectInteraction::SetCurrentRoom(DungeonRoomStore* rooms,
                                               int room_id) {
+  // Selections are indices into the current room's lists. After a room change
+  // they would point at unrelated objects in the new room, where Delete,
+  // Duplicate and the inspector would act on them. Placement is not tied to a
+  // room, so it continues.
+  if (rooms != rooms_ || room_id != current_room_id_) {
+    ClearSelection();
+    entity_coordinator_.ClearAllEntitySelections();
+  }
   rooms_ = rooms;
   current_room_id_ = room_id;
   interaction_context_.rooms = rooms;
