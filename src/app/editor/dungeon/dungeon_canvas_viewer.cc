@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_connection_edit.h"
 #include "app/gui/core/agent_theme.h"
 #include "zelda3/dungeon/dimension_service.h"
 
@@ -23,6 +24,33 @@ bool HasSameObjectIdentity(const zelda3::RoomObject& lhs,
 }  // namespace
 
 DungeonCanvasViewer::~DungeonCanvasViewer() = default;
+
+absl::StatusOr<DungeonConnectionPlan>
+DungeonCanvasViewer::PreviewDoorConnection(
+    const DungeonConnectionRequest& request) {
+  const auto* context =
+      object_interaction_.entity_coordinator().tile_handler().context();
+  if (!door_connection_preview_callback_ || !context ||
+      request.source_room_id != current_room_id_ ||
+      context->current_room_id != current_room_id_) {
+    return absl::FailedPreconditionError(
+        "Open this room in the canvas to preview its connection");
+  }
+  return door_connection_preview_callback_(request);
+}
+
+absl::Status DungeonCanvasViewer::ApplyDoorConnection(
+    const DungeonConnectionPlan& plan) {
+  const auto* context =
+      object_interaction_.entity_coordinator().tile_handler().context();
+  if (header_read_only_ || !door_connection_apply_callback_ || !context ||
+      plan.request.source_room_id != current_room_id_ ||
+      context->current_room_id != current_room_id_) {
+    return absl::FailedPreconditionError(
+        "Door connections are not editable in this view");
+  }
+  return door_connection_apply_callback_(plan);
+}
 
 absl::Status DungeonCanvasViewer::EditRoomMetadata(
     int room_id, const RoomMetadataEdit& edit) {
@@ -246,6 +274,7 @@ void DungeonCanvasViewer::RefreshRomBackedState(Rom* rom,
   // Refresh can replace Room values in place while all backing pointers stay
   // identical. Discard presentation stamps before those replacements occur.
   ResetRoomCompositeOutputs();
+  connection_editor_state_ = {};
   InvalidateExternalSpriteResources();
   ClearPreviewObject();
   object_interaction_.CancelPlacement();

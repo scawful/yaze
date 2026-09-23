@@ -15,6 +15,7 @@
 #include "app/editor/dungeon/dungeon_room_composite.h"
 #include "app/editor/dungeon/dungeon_room_edit.h"
 #include "app/editor/dungeon/inspectors/dungeon_chest_editor.h"
+#include "app/editor/dungeon/inspectors/dungeon_connection_editor.h"
 #include "app/editor/editor.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/types/snes_palette.h"
@@ -33,6 +34,9 @@
 #include "zelda3/dungeon/room_layer_manager.h"
 #include "zelda3/game_data.h"
 #include "zelda3/sprite/sprite_oam_tables.h"
+
+// Room-based plans must follow canvas.h's ImGui math-operator configuration.
+#include "app/editor/dungeon/dungeon_connection_edit.h"
 
 namespace yaze {
 namespace editor {
@@ -224,6 +228,10 @@ class DungeonCanvasViewer {
     object_interaction_.SetDoorPairNavigationCallback(
         [this](int target_room, std::optional<size_t> target_door_index,
                int target_tile_x, int target_tile_y) {
+          if (target_door_index &&
+              NavigateToDoorConnectionTarget(target_room, *target_door_index)) {
+            return;
+          }
           NavigateToRoom(target_room);
           bool focused_target_door = false;
           if (target_door_index.has_value() && rooms_ != nullptr) {
@@ -282,6 +290,11 @@ class DungeonCanvasViewer {
   using ChestEditCallback =
       std::function<absl::Status(int, size_t, uint8_t, bool)>;
   using ChestDeleteCallback = std::function<absl::Status(int, size_t)>;
+  using DoorConnectionPreviewCallback =
+      std::function<absl::StatusOr<DungeonConnectionPlan>(
+          const DungeonConnectionRequest&)>;
+  using DoorConnectionApplyCallback =
+      std::function<absl::Status(const DungeonConnectionPlan&)>;
   void SetMetadataEditCallback(MetadataEditCallback callback) {
     metadata_edit_callback_ = std::move(callback);
   }
@@ -293,6 +306,31 @@ class DungeonCanvasViewer {
   }
   void SetChestDeleteCallback(ChestDeleteCallback callback) {
     chest_delete_callback_ = std::move(callback);
+  }
+  void SetDoorConnectionCallbacks(DoorConnectionPreviewCallback preview,
+                                  DoorConnectionApplyCallback apply) {
+    door_connection_preview_callback_ = std::move(preview);
+    door_connection_apply_callback_ = std::move(apply);
+  }
+  absl::StatusOr<DungeonConnectionPlan> PreviewDoorConnection(
+      const DungeonConnectionRequest& request);
+  absl::Status ApplyDoorConnection(const DungeonConnectionPlan& plan);
+  void SetDoorConnectionNavigationCallback(
+      std::function<void(int, size_t)> callback) {
+    door_connection_navigation_callback_ = std::move(callback);
+  }
+  bool CanNavigateDoorConnectionTarget() const {
+    return static_cast<bool>(door_connection_navigation_callback_);
+  }
+  bool NavigateToDoorConnectionTarget(int room_id, size_t door_index) {
+    if (!door_connection_navigation_callback_) {
+      return false;
+    }
+    door_connection_navigation_callback_(room_id, door_index);
+    return true;
+  }
+  DungeonConnectionEditorState& connection_editor_state() {
+    return connection_editor_state_;
   }
   absl::Status EditRoomMetadata(int room_id, const RoomMetadataEdit& edit);
   absl::Status EditRoomMetadataBatch(
@@ -1063,6 +1101,10 @@ class DungeonCanvasViewer {
   ChestEditCallback chest_edit_callback_;
   ChestDeleteCallback chest_delete_callback_;
   DungeonChestEditorState chest_editor_state_;
+  DoorConnectionPreviewCallback door_connection_preview_callback_;
+  DoorConnectionApplyCallback door_connection_apply_callback_;
+  std::function<void(int, size_t)> door_connection_navigation_callback_;
+  DungeonConnectionEditorState connection_editor_state_;
   bool compact_header_mode_ = false;
   bool header_read_only_ = false;
   bool header_visible_ = true;

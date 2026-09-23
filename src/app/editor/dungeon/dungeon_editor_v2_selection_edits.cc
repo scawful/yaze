@@ -12,31 +12,15 @@ namespace {
 class DungeonSelectionAction final : public UndoAction {
  public:
   using Restore = std::function<absl::Status(
-      int, const DungeonSelectionEditState&, uint8_t)>;
-  DungeonSelectionAction(DungeonSelectionEditPlan plan, Restore restore)
-      : plan_(std::move(plan)), restore_(std::move(restore)) {}
-  absl::Status Undo() override {
-    return restore_(plan_.room_id, plan_.before, plan_.domains);
-  }
-  absl::Status Redo() override {
-    return restore_(plan_.room_id, plan_.after, plan_.domains);
-  }
-  std::string Description() const override {
-    const auto verb = [this]() {
-      switch (plan_.kind) {
-        case DungeonSelectionEditKind::kDelete:
-          return "Delete";
-        case DungeonSelectionEditKind::kDuplicate:
-          return "Duplicate";
-        case DungeonSelectionEditKind::kMove:
-          return "Move";
-        case DungeonSelectionEditKind::kPaste:
-          return "Paste";
-      }
-      return "Edit";
-    }();
-    return absl::StrFormat("%s room %03X selection", verb, plan_.room_id);
-  }
+      const std::vector<DungeonSelectionEditPlan>&, bool)>;
+  DungeonSelectionAction(std::vector<DungeonSelectionEditPlan> plans,
+                         std::string description, Restore restore)
+      : plans_(std::move(plans)),
+        description_(std::move(description)),
+        restore_(std::move(restore)) {}
+  absl::Status Undo() override { return restore_(plans_, false); }
+  absl::Status Redo() override { return restore_(plans_, true); }
+  std::string Description() const override { return description_; }
   size_t MemoryUsage() const override {
     auto bytes = [](const DungeonSelectionEditState& state) {
       return state.objects.size() * sizeof(zelda3::RoomObject) +
@@ -47,11 +31,16 @@ class DungeonSelectionAction final : public UndoAction {
              state.selected_objects.size() * sizeof(size_t) +
              state.selected_entities.size() * sizeof(SelectedEntity);
     };
-    return bytes(plan_.before) + bytes(plan_.after);
+    size_t total = description_.capacity();
+    for (const auto& plan : plans_) {
+      total += bytes(plan.before) + bytes(plan.after);
+    }
+    return total;
   }
 
  private:
-  DungeonSelectionEditPlan plan_;
+  std::vector<DungeonSelectionEditPlan> plans_;
+  std::string description_;
   Restore restore_;
 };
 
@@ -119,11 +108,30 @@ absl::Status DungeonEditorV2::CommitSelectionEdit(
 }
 
 void DungeonEditorV2::PushSelectionUndoAction(DungeonSelectionEditPlan plan) {
+  const auto verb = [&]() {
+    switch (plan.kind) {
+      case DungeonSelectionEditKind::kDelete:
+        return "Delete";
+      case DungeonSelectionEditKind::kDuplicate:
+        return "Duplicate";
+      case DungeonSelectionEditKind::kMove:
+        return "Move";
+      case DungeonSelectionEditKind::kPaste:
+        return "Paste";
+    }
+    return "Edit";
+  }();
+  const auto description =
+      absl::StrFormat("%s room %03X selection", verb, plan.room_id);
+  PushSelectionUndoBatch({std::move(plan)}, description);
+}
+
+void DungeonEditorV2::PushSelectionUndoBatch(
+    std::vector<DungeonSelectionEditPlan> plans, std::string description) {
   undo_manager_.Push(std::make_unique<DungeonSelectionAction>(
-      std::move(plan),
-      [this](int room_id, const DungeonSelectionEditState& state,
-             uint8_t domains) {
-        return RestoreSelectionEdit(room_id, state, domains);
+      std::move(plans), std::move(description),
+      [this](const std::vector<DungeonSelectionEditPlan>& states, bool after) {
+        return RestoreSelectionEditBatch(states, after);
       }));
 }
 
@@ -148,14 +156,24 @@ void DungeonEditorV2::FinalizeSelectionUndoAction() {
   PushSelectionUndoAction(std::move(plan));
 }
 
-absl::Status DungeonEditorV2::RestoreSelectionEdit(
-    int room_id, const DungeonSelectionEditState& state, uint8_t domains) {
-  auto* room = rooms_.GetIfLoaded(room_id);
-  if (!room || room->rom() != rom_) {
-    return absl::FailedPreconditionError("Selection undo room is not loaded");
+absl::Status DungeonEditorV2::RestoreSelectionEditBatch(
+    const std::vector<DungeonSelectionEditPlan>& plans, bool after) {
+  // Validate every endpoint before restoring any. A missing second room must
+  // not leave the first room changed by a failed Undo or Redo.
+  for (const auto& plan : plans) {
+    const auto* room = rooms_.GetIfLoaded(plan.room_id);
+    if (!room || room->rom() != rom_ || room->id() != plan.room_id) {
+      return absl::FailedPreconditionError("Selection undo room is not loaded");
+    }
   }
-  ApplyDungeonSelectionEditState(*room, state, domains);
-  RefreshSelectionEditViews(room_id, &state);
+  for (const auto& plan : plans) {
+    ApplyDungeonSelectionEditState(*rooms_.GetIfLoaded(plan.room_id),
+                                   after ? plan.after : plan.before,
+                                   plan.domains);
+  }
+  for (const auto& plan : plans) {
+    RefreshSelectionEditViews(plan.room_id, after ? &plan.after : &plan.before);
+  }
   undo_restore_triggered_ping_ = true;
   return absl::OkStatus();
 }

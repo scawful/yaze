@@ -149,6 +149,13 @@ struct DungeonStreamWritePlan {
   std::vector<DungeonStreamWrite> auxiliary_pointer_writes;
 };
 
+// Read one object stream through the ROM's live pointer table. This validates
+// structure without imposing allocator ownership ranges or changing ROM data.
+// Parsing stops at the nearest later room pointer, known object-region end,
+// LoROM bank end, or ROM end. Exact shared pointers are permitted.
+absl::StatusOr<DungeonStreamRecord> ReadDungeonObjectStream(const Rom& rom,
+                                                            int room_id);
+
 // Reads and strictly parses every pointer-table entry without modifying rom.
 // Fatal layout/source-table errors are returned as a non-OK status; per-room
 // pointer and stream errors are retained in DungeonStreamInventory::issues.

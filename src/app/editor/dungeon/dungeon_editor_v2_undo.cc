@@ -212,6 +212,32 @@ std::vector<SelectedEntity> ValidEntitySelection(
 }  // namespace
 
 void DungeonEditorV2::ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer) {
+  viewer->SetDoorConnectionNavigationCallback(
+      [this](int room_id, size_t index) {
+        const auto* room = rooms_.GetIfLoaded(room_id);
+        if (!room || room->rom() != rom_ || index >= room->GetDoors().size()) {
+          return;
+        }
+        const auto door = room->GetDoors()[index];
+        OnRoomSelected(room_id, true);
+        if (auto* target = GetViewerForRoom(room_id)) {
+          // Workbench navigation draws the new room on the following frame. Bind
+          // its editing context now so the exact return selection survives that draw.
+          target->object_interaction().SetCurrentRoom(&rooms_, room_id);
+          target->object_interaction().ClearSelection();
+          target->object_interaction().SelectEntity(EntityType::Door, index);
+          const auto [x, y, width, height] = door.GetEditorBounds();
+          target->ScrollToTile((x + width / 2) / 8, (y + height / 2) / 8);
+          target->TriggerCanvasPingRect(x, y, width, height);
+        }
+      });
+  viewer->SetDoorConnectionCallbacks(
+      [this](const DungeonConnectionRequest& request) {
+        return PreviewDoorConnection(request);
+      },
+      [this](const DungeonConnectionPlan& plan) {
+        return ApplyDoorConnection(plan);
+      });
   viewer->object_interaction().SetSelectionEditCallbacks(
       [this](const DungeonSelectionEditPlan& plan, bool continuous) {
         return CommitSelectionEdit(plan, continuous);
