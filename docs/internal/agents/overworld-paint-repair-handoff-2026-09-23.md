@@ -7,7 +7,7 @@ selection, and map targeting at `55ada11d7`. Branch:
 `codex/overworld-paint-regression-fixes`, based on `55ada11d7`.
 Cursor’s Tile16 session/workbench extraction is now selectively integrated in
 this branch, with immediate document edits and shared Undo/Redo. The main
-checkout remains untouched; unrelated Cursor changes are not imported.
+checkout consolidation is documented in [the Cursor integration record](cursor-overworld-consolidation-2026-09-23.md). Unrelated deletions remain outside these commits.
 
 Keep Tile16 domain rules in `overworld/tile16/tile16_edit_session.*`, layout in
 `overworld/ui/tiles/tile16_workbench.cc`, and the façade in `tile16_editor.*`.
@@ -24,16 +24,17 @@ The local source commits are:
 - `bb69ee4a9`: stable context-menu targets (OW-R4), menu organization, and
   parent-relative item/sprite insertion coordinates.
 
-The main checkout's other uncommitted Cursor changes remain separate. These commits
-have not been pushed or installed as the user's application.
+The reviewed Cursor UI changes are integrated in the follow-up consolidation.
+These commits have not been pushed or installed as the user's application.
 
 ## Immediate Tile16 editing and shared history candidate
 
 This increment selectively integrates Cursor's `tile16_editor.h/.cc`,
 `tile16/tile16_edit_types.h`, `tile16/tile16_edit_session.h/.cc`, and
 `ui/tiles/tile16_workbench.cc`, adapting their includes to the organized tree.
-It does not import unrelated main-checkout changes or the separate floating
-window-manager changes.
+This initial increment excluded the floating window-manager changes. The
+follow-up consolidation reviews and integrates those changes with session-safe
+requests and real ImGui frame tests.
 
 - Tile16 definitions publish to the document immediately. The normal panel has
   no Write Pending/Discard controls or tile-switch dialog. Manual quadrant
