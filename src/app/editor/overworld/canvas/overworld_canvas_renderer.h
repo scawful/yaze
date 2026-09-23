@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_OVERWORLD_OVERWORLD_CANVAS_RENDERER_H
 
 #include "absl/status/status.h"
+#include "imgui/imgui.h"
 
 namespace yaze {
 namespace editor {
@@ -34,6 +35,7 @@ class OverworldCanvasRenderer {
   /// @brief Draw the main overworld canvas with toolbar, maps, and entities.
   /// This is the primary entry point called from the OverworldCanvasPanel.
   void DrawOverworldCanvas();
+  void RequestResetView() { reset_view_requested_ = true; }
 
   // =========================================================================
   // Panel Drawing Methods
@@ -64,12 +66,14 @@ class OverworldCanvasRenderer {
 
   /// @brief Render the 64 overworld map bitmaps to the canvas
   void DrawOverworldMaps();
+  bool PrepareContextMenu(const ImVec2& screen_position);
 
   // =========================================================================
   // Data
   // =========================================================================
 
   OverworldEditor* editor_;  ///< Non-owning pointer to the parent editor
+  bool reset_view_requested_ = false;
 };
 
 }  // namespace editor

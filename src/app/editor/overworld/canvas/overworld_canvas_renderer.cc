@@ -42,7 +42,15 @@
 namespace yaze::editor {
 
 OverworldCanvasRenderer::OverworldCanvasRenderer(OverworldEditor* editor)
-    : editor_(editor) {}
+    : editor_(editor) {
+  if (editor_) {
+    editor_->ow_map_canvas_.SetShowBuiltinContextMenu(false);
+    editor_->ow_map_canvas_.SetContextMenuOpenCallback(
+        [this](const ImVec2& position) {
+          return PrepareContextMenu(position);
+        });
+  }
+}
 
 // =============================================================================
 // Main Canvas Drawing
@@ -88,30 +96,14 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   // ==========================================================================
   // PHASE 3: Modern BeginCanvas/EndCanvas Pattern
   // ==========================================================================
-  // Context menu setup MUST happen BEFORE BeginCanvas (lesson from dungeon)
-  bool show_context_menu =
-      (editor_->current_mode == EditingMode::MOUSE) &&
-      (!editor_->entity_renderer_ ||
-       editor_->entity_renderer_->hovered_entity() == nullptr);
-
-  if (editor_->rom_ != nullptr && editor_->rom_->is_loaded() &&
-      editor_->overworld_.is_loaded() && editor_->map_properties_system_) {
-    editor_->ow_map_canvas_.ClearContextMenuItems();
-    const int context_map = editor_->hovered_map_ >= 0 ? editor_->hovered_map_
-                                                       : editor_->current_map_;
-    editor_->map_properties_system_->SetupCanvasContextMenu(
-        editor_->ow_map_canvas_, context_map, editor_->current_map_lock_,
-        editor_->show_map_properties_panel_,
-        editor_->show_custom_bg_color_editor_, editor_->show_overlay_editor_,
-        static_cast<int>(editor_->current_mode), editor_->dependencies_.project,
-        editor_->dependencies_.shared_clipboard);
-  }
+  // Menu actions are captured by PrepareContextMenu only when it opens.
+  // Keep rendering an open menu even after entity hover changes.
+  const bool show_context_menu = editor_->current_mode == EditingMode::MOUSE;
 
   // Configure canvas frame options
   gui::CanvasFrameOptions frame_opts;
   frame_opts.canvas_size = kOverworldCanvasSize;
   frame_opts.draw_grid = true;
-  frame_opts.grid_step = 64.0f;  // Map boundaries (512px / 8 maps)
   frame_opts.draw_context_menu = show_context_menu;
   frame_opts.draw_overlay = true;
   frame_opts.render_popups = true;
@@ -120,6 +112,11 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
   // Wrap in child window for scrollbars
   gui::BeginNoPadding();
   gui::BeginChildBothScrollbars(7);
+  if (reset_view_requested_) {
+    // This must run in the canvas child, not in the popup's window.
+    editor_->ResetOverworldView();
+    reset_view_requested_ = false;
+  }
 
   // Keep canvas scroll at 0 - ImGui's child window handles all scrolling
   // The scrollbars scroll the child window which moves the entire canvas

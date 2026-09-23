@@ -3,10 +3,12 @@
 
 #include <functional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/editor/overworld/canvas/overworld_context_target.h"
 #include "app/editor/overworld/maps/overworld_property_edit.h"
 #include "app/editor/overworld/ui/ui_constants.h"
 #include "app/gui/canvas/canvas.h"
@@ -66,21 +68,32 @@ class MapPropertiesSystem {
 
   // Set callbacks for entity operations
   void SetEntityCallbacks(
-      std::function<void(const std::string&)> insert_callback) {
+      std::function<void(const std::string&, const OverworldContextTarget&)>
+          insert_callback) {
     entity_insert_callback_ = std::move(insert_callback);
   }
 
   // Set callback for tile16 editing from context menu
-  void SetTile16EditCallback(std::function<void()> callback) {
+  void SetTile16EditCallback(
+      std::function<void(const OverworldContextTarget&)> callback) {
     edit_tile16_callback_ = std::move(callback);
   }
 
-  void SetTile16SampleCallback(std::function<bool()> callback) {
+  void SetTile16SampleCallback(
+      std::function<bool(const OverworldContextTarget&)> callback) {
     sample_tile16_callback_ = std::move(callback);
   }
 
   void SetMapSelectionCallback(std::function<void(int, bool)> callback) {
     map_selection_callback_ = std::move(callback);
+  }
+
+  void SetContextNavigationCallbacks(std::function<void()> reset_view,
+                                     std::function<void()> zoom_in,
+                                     std::function<void()> zoom_out) {
+    reset_view_callback_ = std::move(reset_view);
+    zoom_in_callback_ = std::move(zoom_in);
+    zoom_out_callback_ = std::move(zoom_out);
   }
 
   void SetPropertyEditCallback(PropertyEditCallback callback) {
@@ -116,7 +129,8 @@ class MapPropertiesSystem {
                                bool show_overlay_preview);
 
   // Context menu integration
-  void SetupCanvasContextMenu(gui::Canvas& canvas, int current_map,
+  void SetupCanvasContextMenu(gui::Canvas& canvas,
+                              const OverworldContextTarget& target,
                               bool& current_map_lock,
                               bool& show_map_properties_panel,
                               bool& show_custom_bg_color_editor,
@@ -189,11 +203,16 @@ class MapPropertiesSystem {
   ForceRefreshGraphicsCallback force_refresh_graphics_;
 
   // Callback for entity insertion (generic, editor handles entity types)
-  std::function<void(const std::string&)> entity_insert_callback_;
+  std::function<void(const std::string&, const OverworldContextTarget&)>
+      entity_insert_callback_;
 
   // Callback for tile16 editing from context menu
-  std::function<void()> edit_tile16_callback_;
-  std::function<bool()> sample_tile16_callback_;
+  std::function<void(const OverworldContextTarget&)> edit_tile16_callback_;
+  std::function<bool(const OverworldContextTarget&)> sample_tile16_callback_;
+
+  std::function<void()> reset_view_callback_;
+  std::function<void()> zoom_in_callback_;
+  std::function<void()> zoom_out_callback_;
 
   // Callback for explicit map selection/pinning from the context menu.
   std::function<void(int, bool)> map_selection_callback_;

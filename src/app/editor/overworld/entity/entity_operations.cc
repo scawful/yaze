@@ -1,7 +1,9 @@
 #include "entity_operations.h"
 
 #include <algorithm>
+#include <cmath>
 #include <cstdint>
+#include <utility>
 
 #include "absl/strings/str_format.h"
 #include "util/log.h"
@@ -9,6 +11,61 @@
 namespace yaze {
 namespace editor {
 namespace {
+
+struct EntityInsertionPosition {
+  int parent_map;
+  int x;
+  int y;
+  uint8_t game_x;
+  uint8_t game_y;
+};
+
+absl::StatusOr<EntityInsertionPosition> ResolveEntityInsertionPosition(
+    const std::vector<zelda3::OverworldMap>& maps, ImVec2 world_position,
+    int current_map) {
+  if (current_map < 0 || current_map >= zelda3::kNumOverworldMaps ||
+      current_map >= static_cast<int>(maps.size())) {
+    return absl::InvalidArgumentError("Invalid entity insertion map");
+  }
+  if (!std::isfinite(world_position.x) || !std::isfinite(world_position.y) ||
+      world_position.x < 0 || world_position.y < 0 ||
+      world_position.x >= 4096 || world_position.y >= 4096) {
+    return absl::InvalidArgumentError("Invalid entity insertion position");
+  }
+
+  const int x = static_cast<int>(world_position.x) / 16 * 16;
+  const int y = static_cast<int>(world_position.y) / 16 * 16;
+  const int world = current_map / 64;
+  const int screen = world * 64 + x / 512 + (y / 512) * 8;
+  if (screen != current_map) {
+    return absl::InvalidArgumentError(
+        "Entity insertion position does not belong to the selected screen");
+  }
+
+  const int raw_parent = maps[current_map].parent();
+  const int parent = raw_parent == 0xFF ? current_map : raw_parent;
+  if (parent < 0 || parent >= zelda3::kNumOverworldMaps ||
+      parent >= static_cast<int>(maps.size()) || parent / 64 != world) {
+    return absl::InvalidArgumentError("Invalid entity insertion parent map");
+  }
+  const int parent_parent = maps[parent].parent();
+  if (parent_parent != parent && parent_parent != 0xFF) {
+    return absl::InvalidArgumentError(
+        "Entity insertion parent is not a root map");
+  }
+
+  // Game coordinates span the entire parent area, including the other screens
+  // of a large/wide/tall area. Taking world_position modulo 512 loses that
+  // quadrant offset and causes items to move after save/reload.
+  const int game_x = (x - (parent % 8) * 512) / 16;
+  const int game_y = (y - ((parent % 64) / 8) * 512) / 16;
+  if (game_x < 0 || game_x > 63 || game_y < 0 || game_y > 63) {
+    return absl::InvalidArgumentError(
+        "Entity insertion position is outside the parent coordinate range");
+  }
+  return EntityInsertionPosition{parent, x, y, static_cast<uint8_t>(game_x),
+                                 static_cast<uint8_t>(game_y)};
+}
 
 bool MatchesItemIdentity(const zelda3::OverworldItem& lhs,
                          const zelda3::OverworldItem& rhs) {
@@ -18,6 +75,34 @@ bool MatchesItemIdentity(const zelda3::OverworldItem& lhs,
 }
 
 }  // namespace
+
+absl::StatusOr<zelda3::OverworldItem> BuildOverworldItemForInsertion(
+    const std::vector<zelda3::OverworldMap>& maps, ImVec2 world_position,
+    int current_map, uint8_t item_id) {
+  auto position =
+      ResolveEntityInsertionPosition(maps, world_position, current_map);
+  if (!position.ok()) {
+    return position.status();
+  }
+  // This constructor already derives game coordinates from the parent origin.
+  return zelda3::OverworldItem(item_id,
+                               static_cast<uint16_t>(position->parent_map),
+                               position->x, position->y, false);
+}
+
+absl::StatusOr<zelda3::Sprite> BuildOverworldSpriteForInsertion(
+    const std::vector<zelda3::OverworldMap>& maps, ImVec2 world_position,
+    int current_map, uint8_t sprite_id) {
+  auto position =
+      ResolveEntityInsertionPosition(maps, world_position, current_map);
+  if (!position.ok()) {
+    return position.status();
+  }
+  return zelda3::Sprite(maps[current_map].current_graphics(),
+                        static_cast<uint8_t>(position->parent_map), sprite_id,
+                        position->game_x, position->game_y, position->x,
+                        position->y);
+}
 
 absl::StatusOr<zelda3::OverworldEntrance*> InsertEntrance(
     zelda3::Overworld* overworld, ImVec2 mouse_pos, int current_map,
@@ -152,37 +237,16 @@ absl::StatusOr<zelda3::Sprite*> InsertSprite(zelda3::Overworld* overworld,
     return absl::InvalidArgumentError("Invalid game state (must be 0-2)");
   }
 
-  // Snap to 16x16 grid and clamp to bounds (ZScream: SpriteMode.cs similar
-  // logic)
-  ImVec2 snapped_pos = ClampToOverworldBounds(SnapToEntityGrid(mouse_pos));
-
-  // Get parent map ID (ZScream: SpriteMode.cs:90-95)
-  auto* current_ow_map = overworld->overworld_map(current_map);
-  uint8_t map_id = GetParentMapId(current_ow_map, current_map);
-
-  // Calculate map position (ZScream uses mapHover for parent tracking)
-  // For sprites, we need the actual map coordinates within the 512x512 map
-  int map_local_x = static_cast<int>(snapped_pos.x) % 512;
-  int map_local_y = static_cast<int>(snapped_pos.y) % 512;
-
-  // Convert to game coordinates (0-63 for X/Y within map)
-  uint8_t game_x = static_cast<uint8_t>(map_local_x / 16);
-  uint8_t game_y = static_cast<uint8_t>(map_local_y / 16);
+  auto sprite = BuildOverworldSpriteForInsertion(
+      overworld->overworld_maps(), mouse_pos, current_map, sprite_id);
+  if (!sprite.ok()) {
+    return sprite.status();
+  }
 
   // Add new sprite to the game state array (ZScream: SpriteMode.cs:34-35)
   auto& sprites = *overworld->mutable_sprites(game_state);
 
-  // Create new sprite
-  zelda3::Sprite new_sprite(
-      current_ow_map->current_graphics(), static_cast<uint8_t>(map_id),
-      sprite_id,  // Sprite ID (user will configure in popup)
-      game_x,     // X position in map coordinates
-      game_y,     // Y position in map coordinates
-      static_cast<int>(snapped_pos.x),  // Real X (world coordinates)
-      static_cast<int>(snapped_pos.y)   // Real Y (world coordinates)
-  );
-
-  sprites.push_back(new_sprite);
+  sprites.push_back(std::move(*sprite));
 
   // Return pointer to the newly added sprite
   zelda3::Sprite* inserted_sprite = &sprites.back();
@@ -190,7 +254,8 @@ absl::StatusOr<zelda3::Sprite*> InsertSprite(zelda3::Overworld* overworld,
   LOG_DEBUG(
       "EntityOps",
       "Inserted sprite at game_state=%d: pos=(%d,%d) map=0x%02X id=0x%02X",
-      game_state, inserted_sprite->x_, inserted_sprite->y_, map_id, sprite_id);
+      game_state, inserted_sprite->x_, inserted_sprite->y_,
+      inserted_sprite->map_id(), sprite_id);
 
   return inserted_sprite;
 }
@@ -203,47 +268,23 @@ absl::StatusOr<zelda3::OverworldItem*> InsertItem(zelda3::Overworld* overworld,
     return absl::FailedPreconditionError("Overworld not loaded");
   }
 
-  // Snap to 16x16 grid and clamp to bounds (ZScream: ItemMode.cs similar logic)
-  ImVec2 snapped_pos = ClampToOverworldBounds(SnapToEntityGrid(mouse_pos));
-
-  // Get parent map ID (ZScream: ItemMode.cs:60-64)
-  auto* current_ow_map = overworld->overworld_map(current_map);
-  uint8_t map_id = GetParentMapId(current_ow_map, current_map);
-
-  // Calculate game coordinates (0-63 for X/Y within map)
-  // Following LoadItems logic in overworld.cc:840-854
-  int fake_id = current_map % 0x40;
-  int sy = fake_id / 8;
-  int sx = fake_id - (sy * 8);
-
-  // Calculate map-local coordinates
-  int map_local_x = static_cast<int>(snapped_pos.x) % 512;
-  int map_local_y = static_cast<int>(snapped_pos.y) % 512;
-
-  // Game coordinates (0-63 range)
-  uint8_t game_x = static_cast<uint8_t>(map_local_x / 16);
-  uint8_t game_y = static_cast<uint8_t>(map_local_y / 16);
+  auto item = BuildOverworldItemForInsertion(overworld->overworld_maps(),
+                                             mouse_pos, current_map, item_id);
+  if (!item.ok()) {
+    return item.status();
+  }
 
   // Add new item to the all_items array (ZScream: ItemMode.cs:92-108)
   auto& items = *overworld->mutable_all_items();
 
-  // Create new item with calculated coordinates
-  items.emplace_back(item_id,                          // Item ID
-                     static_cast<uint16_t>(map_id),    // Room map ID
-                     static_cast<int>(snapped_pos.x),  // X (world coordinates)
-                     static_cast<int>(snapped_pos.y),  // Y (world coordinates)
-                     false                             // Not deleted
-  );
+  items.push_back(std::move(*item));
 
-  // Set game coordinates
   zelda3::OverworldItem* inserted_item = &items.back();
-  inserted_item->game_x_ = game_x;
-  inserted_item->game_y_ = game_y;
 
   LOG_DEBUG("EntityOps",
             "Inserted item: pos=(%d,%d) game=(%d,%d) map=0x%02X id=0x%02X",
-            inserted_item->x_, inserted_item->y_, game_x, game_y, map_id,
-            item_id);
+            inserted_item->x_, inserted_item->y_, inserted_item->game_x_,
+            inserted_item->game_y_, inserted_item->room_map_id_, item_id);
 
   return inserted_item;
 }

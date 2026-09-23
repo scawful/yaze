@@ -5,6 +5,7 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "app/editor/overworld/canvas/overworld_context_target.h"
 #include "imgui/imgui.h"
 #include "zelda3/overworld/overworld_item.h"
 
@@ -43,6 +44,8 @@ class EntityMutationService {
    */
   MutationResult InsertEntity(const std::string& type, ImVec2 pos, int map_id,
                               int game_state);
+  MutationResult InsertEntity(const std::string& type,
+                              const OverworldContextTarget& target);
 
   MutationResult DeleteItem(const zelda3::OverworldItem& item_identity);
   MutationResult DeleteSprite(zelda3::Sprite* sprite, int game_state);
