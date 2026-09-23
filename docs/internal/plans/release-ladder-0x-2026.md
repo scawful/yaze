@@ -6,20 +6,27 @@
 
 **Created:** 2026-04-20
 
-**Last Reviewed:** 2026-09-14 (0.8.0 scope; later milestones remain proposals)
+**Last Reviewed:** 2026-09-22 (capability baseline; later version assignments remain proposals)
 
-**Next Review:** 2026-09-28
+**Next Review:** 2026-10-06
 
-**Universe Task:** `task_20260914T160613Z_19789`
+**Universe Task:** `task_20260923T000806Z_4560`
 
 ## Summary
 
 This plan defines the intended `0.x` release ladder after `v0.7.1`.
 
-The [roadmap](../roadmap.md) owns current priorities. The
+The [editor capability parity plan](editor-capability-parity-plan.md) owns
+work-package definitions, implementation instructions, and acceptance. The
+[roadmap](../roadmap.md) owns current priorities. The
 [dungeon completion backlog](dungeon-0.8.0-issue-test-backlog-2026-06-28.md)
-owns v0.8.0 work assignments and acceptance; this ladder does not duplicate its
-live test or merge status.
+retains detailed `DA-5` rendering and qualification evidence. This ladder maps
+those packages to release themes; later version assignments are proposals.
+
+The reviewed baseline is mainline `d609e6254` plus local candidate `7ba7d76ce`.
+The candidate is not merged, published, or installed. Its 43 focused tests do
+not qualify a release. Do not infer capabilities or readiness from the version
+number alone.
 
 The primary release train is completion of the main ALTTP editors:
 - Dungeon
@@ -60,7 +67,9 @@ them should be treated as an implied ramp to `1.0`.
 
 ## Release Ladder
 
-### 0.7.2
+### 0.7.2 (historical release scope)
+
+This section preserves the earlier scope; it is not the active work queue.
 
 **Primary goal:** stabilization and release follow-through
 
@@ -89,6 +98,11 @@ previews and verified merges while finishing it; a preview is not the release
 exit criterion.
 
 **Must-ship themes:**
+- `DA-1`: consistent undo across supported room-edit domains
+- `DA-2`: contextual door, sprite, item/chest, and room-property editing
+- `DA-3`: visual destination editing with correct adjacency/stair/pit rules
+- `DA-4`: complete room cloning and reusable selections
+- `DA-5`: qualify the combined dungeon authoring and rendering workflow
 - object selector/browser preview parity
 - verification of the remaining unknown dungeon object types
 - remaining visible object/render discrepancies
@@ -122,12 +136,12 @@ exit criterion.
 **Primary goal:** Overworld Editor completion milestone
 
 **Must-ship themes:**
-- sprite workflow completion
-- paste tracked correctly in undo/redo
-- export dialog / export workflow completion
-- persistent scratch pad
-- dedicated eyedropper flow
-- remaining Tile16 parity checklist items
+- `OW-1`: sprite saving across all three game states
+- `OW-2`: shared entity undo and complete entity editing
+- application-path save/reopen coverage for advertised overworld operations
+- qualify and extend existing paint/paste undo and persistent scratchpad
+- verify export, eyedropper, and remaining Tile16 workflows against the
+  reference baseline before adding new work
 
 **Secondary slices allowed:**
 - `z3dk` M0-M1 class groundwork:
@@ -142,15 +156,16 @@ exit criterion.
 
 ### 0.10.0
 
-**Primary goal:** secondary editor parity release
+**Primary goal:** graphics and screen persistence milestone
 
 **Must-ship themes:**
-- Screen Editor cut/copy/paste/find
-- Sprite Editor copy/paste
-- Graphics Editor clipboard parity
-- Palette JSON import/export
-- deeper workflow coverage for editors that currently only have smoke-level
-  GUI coverage
+- `GF-1`: safe compressed graphics writes, allocation, and import/export
+- `SC-1`: screen/map persistence integrated with coordinated save
+- `SC-2`: secondary-screen and clipboard workflows with named format scope
+- qualified UI-to-disk readback for existing Palette JSON import/export and
+  its two-step save contract
+- deeper workflow coverage for the existing Sprite `.zsm` editor; vanilla
+  sprite room placement remains a Dungeon responsibility
 
 **Secondary slices allowed:**
 - Oracle desktop workflow maturation:
@@ -167,10 +182,10 @@ exit criterion.
 **Primary goal:** Music + Memory completion release
 
 **Must-ship themes:**
-- Music event clipboard
-- `SaveInstruments`
-- `SaveSamples` / BRR pipeline completion
-- Memory Editor search
+- `AU-1`: instrument/sample persistence and real WAV/BRR import
+- `AU-2`: Music event clipboard with undo and validation
+- coordinate existing song saving with the complete audio transaction
+- Memory Editor search and safe write/undo contracts, separately scoped
 
 **Secondary slices allowed:**
 - `z3dk` M2-M3 class work:
@@ -220,6 +235,14 @@ the dominant product risk:
 - larger AI/editor convergence work, including AI-assisted map generation after
   the manual Overworld/Dungeon editors and validators are safe enough to review
   generated output (`docs/internal/plans/ai-map-generation-roadmap-2026-07-03.md`)
+
+## Reference-editor compatibility
+
+`CO-1` tracks named Hyrule Magic / ZScream layout, expansion, and format
+compatibility after the relevant writers are safe. It may land alongside the
+editor it supports. No version assignment promises universal hack support.
+The [legacy HM / Parallel Worlds proposal](hyrule-magic-support-plan.md)
+contains unverified assumptions and is not an implementation recipe.
 
 ## Secondary Train Placement
 
@@ -277,9 +300,10 @@ This plan is doing its job if:
 - secondary trains remain visible, scheduled, and bounded
 - roadmap/status docs stop implying that `0.8.0` is primarily the z3dk release
 
-## Validation
+## Validation and status updates
 
-- Updated the canonical roadmap to point at this plan for `0.8.0+` sequencing.
-- Updated status pointers so current release framing references this ladder.
-- Kept feature-level plans for `z3dk`, Oracle integration, and AI infra as
-  subordinate references rather than duplicating their detailed scopes here.
+Update package status in the canonical capability plan and readiness report.
+Record source SHA, discovered/executed/skipped tests, and ROM/package evidence
+for each promoted workflow. A documentation change or an existing smoke test
+is not implementation or release evidence. Keep z3dk, Oracle integration, and
+AI infrastructure plans subordinate to the editor milestone they support.

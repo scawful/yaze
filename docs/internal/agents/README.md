@@ -14,7 +14,7 @@ This directory is the index for yaze agent protocol and coordination.
 
 ## Quick Start
 1. Choose primary owner persona using `docs/internal/agents/routing-personas.md`.
-2. Load only the selected prompt from `.claude/agents/<agent-id>.md`.
+2. Load the selected persona from `personas.md` and its focused routing files.
 3. Claim work in universe coordination via `scripts/agents/coord`.
 4. Execute task with the smallest relevant context and tool stack.
 5. Validate changes and report exact commands used.
@@ -39,6 +39,10 @@ This directory is the index for yaze agent protocol and coordination.
   [doc-hygiene.md](doc-hygiene.md)
 
 ## Active Domain Briefs
+- Editor capability baseline and implementation instructions:
+  [editor-capability-parity-plan.md](../plans/editor-capability-parity-plan.md).
+  Start here for current package status and evidence requirements; the older
+  handoffs below retain dated context and do not override this plan.
 - Post-0.7.1 cleanup and test-pollution follow-up:
   [post-0.7.1-cleanup-and-flake-fixes-handoff-2026-04-28.md](post-0.7.1-cleanup-and-flake-fixes-handoff-2026-04-28.md)
 - Dungeon editor next-slice briefing:

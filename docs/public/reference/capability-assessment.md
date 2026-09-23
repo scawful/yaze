@@ -1,76 +1,112 @@
 # Yaze capability assessment
 
-Last reviewed: 2026-09-14 for the v0.8.0 development line.
+Last reviewed: 2026-09-22 for the v0.8.0 development line.
 
-Yaze is a cross-platform ALttP editor with modern safety checks, undo-oriented
-workflows, a built-in emulator, and the `z3ed` automation CLI. ZScream and
-Hyrule Magic remain important workflow references because many ROM hackers know
-their object placement and project conventions.
+The target is complete ALttP authoring workflows covering the capabilities of
+Hyrule Magic and ZScream: **create or edit → preview → undo/redo → save → reopen
+→ verify in-game**. A visible panel, a serializer, or a passing synthetic test
+alone does not establish that workflow. There is no percentage-parity claim.
 
-This assessment is job-based. It deliberately avoids percentage-parity claims:
-a feature can look complete while still lacking a safe save/reopen path.
-Current persistence status lives in the
-[editor readiness matrix](feature-coverage-report.md).
+The [editor capability parity plan](../../internal/plans/editor-capability-parity-plan.md)
+defines the implementation sequence and acceptance requirements. The
+[editor readiness matrix](feature-coverage-report.md) records current save
+boundaries and source evidence. These supersede older parity scores and broad
+Stable/Beta/WIP labels.
 
-## Practical comparison
+## Baseline and comparison scope
 
-| Job | Yaze today | Established-editor reference | Main Yaze follow-up |
+- Yaze source baseline: `d609e6254`. This is a development baseline, not a
+  qualified 0.8.0 release.
+- Dungeon placement candidate: `7ba7d76ce`, built on the reviewed PR #256 repairs
+  and placement fixes. Its local app build and 43 focused tests passed; it was
+  unpublished and had not replaced the installed app at this review.
+- Reference-source snapshots used in the audit: Hyrule Magic `7d17cc2` and
+  ZScream `0f6812d`. These are source comparison pins, not a statement that the
+  two checkouts represent every published feature.
+- The published ZScream comparison baseline is
+  [3.2.5](https://github.com/Zarby89/ZScreamDungeon/releases/tag/3.2.5), together
+  with the [3.2.4 feature ledger](https://github.com/Zarby89/ZScreamDungeon/releases/tag/v3.2.4).
+  Expansion, per-area graphics, dungeon hole overlays, Tall/Wide overworld
+  areas, independent world layouts, Special World editing, and tile-usage
+  inspection must be assessed individually. Their appearance in this list
+  does not mean Yaze lacks every one of them.
+
+Comparison covers editing outcomes, supported ROM layouts, and persistence.
+Yaze does not need identical window layouts or shortcuts. Existing Hyrule Magic
+music editing belongs in the baseline; do not characterize music authoring as
+unique to Yaze without a narrower, verified comparison.
+
+## Current capability ledger
+
+Status terms are **Implemented**, **Partial**, **Missing**, **Blocked**, and
+**Candidate**, as defined in the readiness matrix. Evidence is recorded
+separately as **Source**, **Focused**, **ROM**, **Runtime**, or **Release**.
+
+| Workflow | Status at this review | Existing capability | Required completion |
 | --- | --- | --- | --- |
-| Edit dungeon rooms | Broad objects, doors, sprites, headers, collision, items, undo, responsive workbench, and fail-closed ROM checks. Bounded beta. | ZScream and Hyrule Magic provide mature single-room placement conventions. | Finish rare object/layer parity, custom/gameplay object authoring, and full application save/reopen proof. |
-| Edit the playable overworld | Maps, Tile16 painting, entities, properties, clipboard, undo, and version-aware save. Bounded beta. | ZScream provides a mature ALttP-focused overworld workflow. | Close remaining sprite/paste gaps and add full application save/reopen proof. |
-| Edit messages | Parsing, preview, search, bundle/source workflows, and transactional save. Bounded beta. | Older editors provide familiar message-table editing. | Add a focused user guide and complete GUI-to-disk readback. |
-| Edit palettes | Broad palette groups, live preview, undo, JSON exchange, and ROM-buffer commit. Conditional beta. | Palette editing is an established workflow in both older editors. | Replace or fully prove the current two-step save procedure. |
-| Edit graphics and screens | Strong inspection and partial editing UI; persistence is fail-closed when unsafe. | Mature tools may be more appropriate for production graphics/screen edits today. | Prove one serializer domain at a time before enabling general persistence. |
-| Author custom dungeon systems | Project-mapped custom objects, previews, a tile workshop, Oracle water/collision tools, and minecart source/collision utilities exist. | Custom workflows are usually patch- or project-specific. | Consolidate mappings, visuals, collision semantics, source publishing, and validation into one authoring workflow. |
-| Apply ASM patches | Integrated Asar support and project source editing. | External assembler workflows remain common and transparent. | Separate source-file save proof from fenced ROM patch-application proof. |
-| Inspect/test runtime | Built-in emulator and debug panels plus Mesen-oriented validation workflows. | External emulators remain the independent runtime truth. | Complete save-state and conditional-breakpoint workflows; retain independent Mesen checks. |
-| Automate edits | `z3ed` provides structured CLI inspection, validation, guarded edits, and agent workflows. | Older GUI editors generally have less scriptable coverage. | Keep CLI evidence separate from desktop-editor readiness and expand readback checks. |
-| Work across operating systems | Native build/package pipelines for macOS, Windows, and Linux; browser preview through WASM. | Hyrule Magic is Windows-centric; ZScream availability depends on its current distribution. | Finish exact-artifact and hands-on acceptance before each tester release. |
+| Place and resize dungeon tile objects | **Candidate** for the new Workbench workflow | Preview controls, physical dimensions, repeat/once placement, inserted-object selection, Place another, and uniform area resizing in `7ba7d76ce`; Source + Focused evidence | Qualify on disposable vanilla and Oracle base ROMs; verify undo, save/reopen, and game behavior before release promotion. |
+| Edit every dungeon entity in place | **Partial** | Door, sprite, and item handlers and separate property editors exist. Workbench entity summaries are read-only at the baseline. | Unified entity inspector and domain-aware undo for doors, sprites, items, room headers, and compound edits. Tile-object undo does not prove entity undo. |
+| Build and reuse complete rooms | **Partial** | Room-template helpers, export, destination fields, and connected-room browsing | Complete template schema and room cloning/import, including doors, chests, and headers; reusable selections; destination previews with engine adjacency constraints. |
+| Edit overworld maps and entities | **Partial** | Tile editing, paste undo, persistent scratchpad, entrances, exits, items, properties, graphics groups, and state-specific sprites | Serialize sprites for every supported game state; unify entity undo and verify each saved domain. Existing map save does not persist sprite edits. |
+| Edit graphics and graphics groups | **Blocked** for coordinated pixel-sheet persistence; other workflows **Partial** | Pixel editing, undo, graphics-group tools, import surfaces, and polyhedral editing | Safe compression and allocation, write boundaries, import/export roundtrip, and coordinated save. Preserve the current graphics save block until these are proved. |
+| Edit screens and maps | **Blocked** for coordinated save with pending Screen edits | Dungeon-map, title, pause-map, and Tile16 editing surfaces; partial inventory UI | Complete and qualify each writer; naming-screen implementation is empty. Credits/ending screen authoring was not found in the reviewed surface and needs a specific audit. |
+| Edit messages | **Partial** as a full application workflow | Parsing, preview, search, bundle/source workflows, transactional writer | GUI-to-disk save/reopen and runtime acceptance for named ROM profiles. |
+| Edit palettes | **Partial** as a coordinated workflow | Broad palette groups, preview, undo, JSON exchange, explicit ROM-buffer commit | Integrate with coordinated save or qualify and clearly retain the two-step procedure. JSON exchange is already implemented when enabled. |
+| Edit music, instruments, and samples | **Partial**; instrument/sample persistence **Missing** | Tracker, piano roll, playback, and song serialization | Complete instrument/sample writers, real WAV/BRR import, event clipboard, and application save integration. The sample import button currently produces placeholder data. |
+| Author custom dungeon systems | **Partial** | Project mappings, tile workshop, Oracle collision/water tools, custom assets, source publication | Complete authoring and validation across mappings, source build, collision, visuals, and game behavior. A successful ROM save does not prove a source patch reached the game. |
+| Edit global game properties and supported expansions | **Partial**, comparison audit required | Several relevant properties and expanded overworld formats exist | Enumerate the reference editors' settings and layout versions, map them to Yaze, and qualify each supported variant instead of assuming full compatibility. |
 
-## Where Yaze is strongest
+## Development order
 
-- Fail-closed ROM writes, project manifests, write-range conflict checks, and
-  backup/restore policy.
-- Dungeon inspection and diagnostics that expose room IDs, object IDs, streams,
-  layers, geometry, and validation evidence.
-- Cross-platform source and packaging infrastructure.
-- Undo-aware editor architecture and scriptable `z3ed` workflows.
-- A validation ladder that distinguishes synthetic replay, ROM parsing, stored
-  fingerprints, independent Mesen pixels, and structural CLI validation.
+1. **Complete dungeon authoring for 0.8.0.** Establish shared undo transactions,
+   editable entity inspectors, complete room operations, connection editing,
+   and bounded save/reopen/runtime acceptance.
+2. **Complete overworld entity persistence.** Add the missing sprite writer and
+   state handling before describing all entity editing as durable.
+3. **Complete graphics and screens by data domain.** Keep unsafe writers blocked
+   while compression, allocation, transactional writes, and readback are built.
+4. **Complete audio and remaining reference workflows.** Instruments, samples,
+   clipboard, naming/credits/ending, global properties, and expansion coverage
+   need explicit implementation and acceptance records.
 
-## Where another editor may still be safer
+Full cross-editor parity is a sequence of milestones beyond 0.8.0. The
+[formal plan](../../internal/plans/editor-capability-parity-plan.md) owns task
+dependencies and completion criteria; this page is the public summary.
 
-- Production Graphics and Screen persistence.
-- Familiar mature workflows not yet covered by Yaze's complete save/reopen
-  tests.
-- ROM hacks whose custom layout conventions are understood only by an existing
-  project-specific tool.
+## Existing strengths to preserve
 
-Using another editor for one surface is not a failure. Keep a clean base ROM,
-patch sources, and small reproducible changes so output can be compared.
+- ROM/project write policy, range-conflict checks, and backup/restore handling.
+- Dungeon diagnostics for IDs, streams, layers, geometry, and render evidence.
+- Persistent overworld scratch space, undoable paste, palette JSON exchange,
+  graphics-group editing, and polyhedral editing. Do not recreate these because
+  an old feature list calls them missing.
+- Cross-platform build/package infrastructure and scriptable `z3ed` workflows.
+- Validation that distinguishes model behavior, ROM structure, independent
+  Mesen output, and the packaged desktop application.
 
 ## Dungeon visual parity rule
 
-Yaze does not claim full 1:1 dungeon output from synthetic tests alone. Use the
-smallest applicable proof tier:
+Synthetic draw-registry replay, real-ROM parser checks, room fingerprints,
+independent Mesen captures, and structural `z3ed dungeon-object-validate`
+results answer different questions. Record which evidence was collected, the
+exact code and ROM identity, and whether a mismatch actually fails the test.
+Do not call a diagnostic that only prints mismatches a parity gate.
 
-1. Synthetic draw-registry replay.
-2. Real-ROM parser/drawer comparison.
-3. Room fingerprint regression.
-4. Independent Mesen RGBA region.
-5. Structural `z3ed dungeon-object-validate` output.
+Runtime effects such as HDMA water control and moving backgrounds may require
+emulator-state or structural proof beyond a static crop. Maintain explicit
+expected-difference baselines; unexplained new differences fail acceptance.
 
-Runtime-only effects such as HDMA water control and moving BG layers may require
-structural or emulator-state proof rather than a static pixel crop.
+## Choosing a workflow today
 
-## Decision guide
+Use the [readiness matrix](feature-coverage-report.md) to choose a bounded edit
+on a copied ROM. Dungeon, overworld maps/entrances/exits/items, and messages have
+save implementations; their whole-editor status is still Partial. Overworld
+sprite edits are not in the save path. Palette currently requires **Save to
+ROM**, then **File > Save ROM**. Pending Graphics and Screen edits block that
+coordinated save. Music song operations use a separate path and do not establish
+sample or instrument persistence.
 
-- Use **Dungeon, Overworld, or Message** for a small Yaze beta edit on a copied
-  ROM.
-- Use **Palette** only after reading its two-step save procedure.
-- Use **Graphics, Screen, Music, Hex / Memory, and vanilla Sprite** for the
-  supported inspection subset described in the readiness matrix.
-- Use ZScream, Hyrule Magic, source patches, and Mesen as comparison tools when
-  they provide independent evidence or a currently safer production workflow.
-
-See the [Beta Testing guide](../usage/beta-testing.md) for a bounded first pass.
+Hyrule Magic, ZScream, project source patches, and Mesen remain useful independent
+comparison tools. The [Beta Testing guide](../usage/beta-testing.md) describes
+bounded tester procedures; the current matrix takes precedence if an older
+guide describes a broader save capability.

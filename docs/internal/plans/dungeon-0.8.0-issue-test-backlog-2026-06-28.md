@@ -6,11 +6,11 @@ Owner: backend-infra-engineer (integration), with zelda3-hacking-expert
 
 Created: 2026-06-28
 
-Last Reviewed: 2026-09-15
+Last Reviewed: 2026-09-22
 
-Next Review: 2026-09-28
+Next Review: 2026-10-06
 
-Universe task: `task_20260913T233703Z_21853`
+Universe task: `task_20260923T000806Z_4560`
 
 Planning audit: `task_20260914T160613Z_19789`
 
@@ -22,27 +22,62 @@ Continue preview builds and reviewed merges; hold the release tag until the
 requirements are complete. The [roadmap](../roadmap.md) owns product priority,
 the [rendering spec](../agents/dungeon-object-rendering-spec.md) owns behavior,
 and the [release checklist](../release-checklist.md) owns final acceptance.
-This file owns the work breakdown and coverage gaps; do not create another
-parallel object backlog.
+The [editor capability parity plan](editor-capability-parity-plan.md) owns
+active package definitions and implementation instructions. This file retains
+the detailed rendering inventory and evidence under `DA-5`; do not create
+another parallel object backlog.
 
 Scope excludes a universal custom ASM designer, completion of Oracle's dungeon
 content, every other editor, and untested compatibility with arbitrary hacks.
 Existing Oracle systems must work through their documented build path. Native
 release readiness and WASM preview readiness are separate claims.
 
-Current checkpoint (2026-09-15): [PR #219](https://github.com/scawful/yaze/pull/219)
-is merged, and its qualified local macOS preview is installed. Earlier
-implementation sections below retain their historical branch/test status.
-This does not close the remaining object, save/reopen, or distribution gates.
+## Current authoring sequence (2026-09-22)
 
-## Planning baseline, not new test results
+The reviewed baseline is mainline `d609e6254` plus local Workbench candidate
+`7ba7d76ce`. The candidate adds live placement controls, repeat/once placement,
+selection actions, and readable dimensions. Its app/unit targets built and
+43 focused tests passed. It is unpublished and not installed. Those results
+are not fresh-process save/reopen, runtime, CI, or package acceptance.
 
-The September audit inspected mainline `d42785c24` and the clean combined
-preview `75f817d521c0d656a251926916a520f5b44c4b89`. The preview includes draft
-custom-object and UI work that is not yet all on mainline. Recheck each branch
-before implementation. No ROM writes, emulator captures, or runtime tests were
-performed by this planning audit. Existing tests below are evidence locations,
-not newly passed acceptance gates.
+Open PR heads at this checkpoint: #256 `0b6ecdaf3`, #257 `a1484bab3`,
+#258 `9557ff3bb`, and #259 `5d2ecac28`. Recheck their heads and terminal
+checks before integration. Do not infer merge readiness from this inventory.
+
+| Package | Next bounded implementation | Existing foundation to preserve | Required evidence |
+| --- | --- | --- | --- |
+| `DA-1` | Shared room-edit undo for supported entities, metadata, and compound operations | Object/collision/water-fill undo, room models, dirty-state routing | Domain changes restore exactly through undo/redo; rejected/no-op edits leave no partial mutation or history entry |
+| `DA-2` | Contextual entity inspector through `DA-1` mutation paths | Door/sprite/item controls, new placement inspector, room properties | Inspector and canvas remain synchronized; no independent duplicate state; focused UI and entity lifecycle checks |
+| `DA-3` | Visual room destinations and return navigation | Connected-room browsing and stored destination fields | Correct stair/pit destinations and ordinary door adjacency; invalid destinations do not mutate |
+| `DA-4` | Complete room cloning and reusable selections | Existing room-template/JSON helpers | Explicit domain coverage, atomic validation/apply, undo, and source-preserving copy behavior |
+| `DA-5` | Qualify the final combined candidate | Object Coverage, parity tools, GUI qualification, release scripts | Complete application-path edit/undo/save/reopen plus independent rendering/runtime and packaged acceptance |
+
+Implement `DA-1` before routing new mutators into `DA-2`. `DA-3` and `DA-4`
+use the same transaction contract. `DA-5` qualification may proceed alongside
+implementation. Use the canonical plan for full prerequisites and exit gates.
+Pits/blocks already have editable models and persistence work; remaining
+qualification and capacity handling must not be described as absent models.
+
+The older `R1`, `V1`, `C1`, `T1`, and `Q1` packets below are supporting work
+under `DA-5`. They retain useful evidence and witness rooms; they do not replace
+the authoring sequence above. Correctness findings may be fixed in any package
+when the responsible source and a focused regression identify the defect.
+
+## Historical evidence (2026-09-14–15)
+
+The sections through "Layer-state and render-refresh edge fixes" preserve
+results from their dated branches and commits. Their words "current", "now",
+and "remaining" describe those checkpoints, not today's installed application
+or merge queue. Recheck code and evidence before adopting an old assignment.
+
+On 2026-09-15, PR #219 was merged and its qualified local macOS preview was
+installed. That historical deployment does not identify the build a user is
+running today. Subsequent candidate installation requires separate evidence.
+
+The September 14 planning audit inspected mainline `d42785c24` and combined
+preview `75f817d521c0d656a251926916a520f5b44c4b89`. Its results below remain
+attributed to those revisions. No new ROM writes, runtime captures, or release
+qualification were performed by the September 22 documentation alignment.
 
 ## First implementation results (2026-09-14, local integration)
 
@@ -1151,7 +1186,11 @@ separate lower-priority finding because no current production caller disables
 priority compositing. Continue the object audit below with the reported
 water, ice, bar, stair, thin-strip, and corner families.
 
-## Object coverage checklist
+## Object coverage checklist (`DA-5`)
+
+This inventory is a set of investigation and qualification requirements, not
+a claim that each historical symptom is still reproducible. Recheck the
+current Object Coverage data and exact candidate before changing a renderer.
 
 Start by enumerating the supported IDs from `DrawRoutineRegistry` and the room
 codec, not from a hand-maintained count. Expand each family below into the
@@ -1187,8 +1226,8 @@ there is step 3 evidence only; it does not replace steps 1, 2, 4, or 5 below.
 Open it from the Workbench inspector (Tools > Review > Object Coverage) or
 from a selected object's canvas menu (Selection > Check in Object Coverage).
 
-**Automatic tilemap check.** When the game loads a room it builds both 64x64
-tilemaps in WRAM: TILEMAPA (`$7E2000`) is BG1 and TILEMAPB (`$7E4000`) is BG2
+**Automatic tilemap check (diagnostic evidence).** When the game loads a room,
+it builds both 64x64 tilemaps in WRAM: TILEMAPA (`$7E2000`) is BG1 and TILEMAPB (`$7E4000`) is BG2
 (`usdasm/wram.asm`; the BG assignment was confirmed against yaze on room
 `0x001`). `scripts/agents/capture-game-room-tilemaps.py` loads every room in
 an isolated headless Mesen2-OOS with the entrance `0x34` room-word PAR
@@ -1198,11 +1237,18 @@ renders each captured room, and compares tile words. It charges each differing
 tile to the object whose own drawing produced yaze's word there, then marks
 each object "matches in every placement" or "N of M placements differ", with
 the differing fields (tile, palette, priority, flip). It can mark unjudged
-objects **Matches game** or **Broken** with a note. This proves tile choice,
-geometry, flips, palette row, and priority against the real game; it does not
-compare CGRAM colors or graphics sheets, and runtime-state objects need their
-state set before capture. Captures are ROM-derived data: keep them out of the
-repository.
+objects **Matches game** or **Broken** with a note. Those verdicts are
+diagnostics until capture provenance, ROM identity, runtime state, and a
+reviewed expected-difference baseline are validated. The original comparison
+test could print mismatches while passing; a green diagnostic run does not
+close parity. PR #259 tracks the gate follow-up; qualify its actual head before
+relying on it.
+
+With matching provenance and a rejecting gate, tile-word comparison establishes
+tile choice, geometry, flips, palette row, and priority for the captured state.
+It does not compare CGRAM colors or graphics sheets. Runtime-state objects
+need their state set before capture. Captures are ROM-derived data: keep them
+out of the repository.
 
 Witness rooms are investigation starting points, not newly verified matches.
 Use the canonical vanilla ROM control and a recorded Oracle ROM digest. Do not
@@ -1226,9 +1272,10 @@ substitute a different hack's object payload or room header without labeling it.
    HDMA preview limit needs a named contract; deferring a release requirement
    needs an explicit scope decision, not relabeling a bug.
 
-## Agent work packets
+## Supporting qualification packets (`DA-5`)
 
-These are role-based handoffs suitable for Codex, Cursor, or another agent.
+These role-based handoffs support the active `DA-1`–`DA-5` sequence above.
+They are suitable for any model following the canonical capability plan.
 The first implementation slices are recorded above; unlisted acceptance steps
 remain assignments to schedule, not completed work.
 Use one clean `codex/` worktree per implementation packet and record its base
@@ -1317,12 +1364,13 @@ artifact. Preserve both application-path automation and package acceptance.
 
 ## Scheduling and merge contract
 
-1. **Wave 1:** R1 strips/bars, C1 asset/source inventory, and T1 audit-discovery
-   plus one-object save/reopen. The root agent integrates evidence and docs.
-2. **Wave 2:** R1 shared floors, V1 independent scenes, and C1 minecart workflow.
-   Add palette fixes only after V1 isolates the cause; serialize shared files.
-3. **Wave 3:** close confirmed defects, consolidate accepted UI/custom work,
-   and run Q1 on the final combined candidate.
+1. Execute the authoring packages in the canonical plan, beginning with
+   `DA-1` and `DA-2`. Claim bounded file ownership through universe coordination.
+2. Run unfinished `DA-5` source/capture/persistence packets alongside authoring
+   where files and processes do not conflict. Reuse the dated evidence instead
+   of repeating every historical test after every edit.
+3. Integrate reviewed slices, then run Q1 and the release checklist on the
+   exact combined candidate. Package acceptance remains a final release gate.
 
 Use at most three implementation agents plus the integrator at once. Share
 the default four-worker build budget on this Mac rather than launching three
