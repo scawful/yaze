@@ -18,7 +18,7 @@ primary persistence target.
 | Editor | Small first test | Save and verify |
 | --- | --- | --- |
 | Dungeon | Move one small object or sprite in one room. | **File > Save ROM**, close the app, reopen the copied ROM, and revisit the room. |
-| Overworld | Paint one Tile16 or move one entity. | **File > Save ROM**, close, reopen, and revisit the map. |
+| Overworld | Paint one Tile16 or move one entrance, exit, or item. Exclude sprites. | **File > Save ROM**, close, reopen, and revisit the map. Verify the specific domain's save flag is enabled. |
 | Message | Change a short message without parse errors. | **File > Save ROM**, close, reopen, and search for the message. |
 | Palette | Change one obvious color. | Use the Palette panel's **Save to ROM** first, then **File > Save ROM**. Close and reopen. Both steps are required. |
 
@@ -28,6 +28,10 @@ ROM. A custom-ROM failure is valuable when the clean-ROM control is included.
 
 ## Do not persistence-test these yet
 
+- **Overworld sprites:** editing exists, but the save path does not serialize
+  sprites. A successful Save ROM does not preserve these edits. Sprite
+  save/reopen qualification waits for **OW-1** in the
+  [capability completion plan](../../internal/plans/editor-capability-parity-plan.md).
 - **Graphics:** viewing is useful, but a pending graphics edit deliberately
   blocks Save ROM because the serializer is not considered safe.
 - **Screen:** viewing is useful, but any pending Screen edit deliberately blocks

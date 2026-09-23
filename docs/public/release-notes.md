@@ -2,7 +2,7 @@
 
 ## v0.8.0
 
-**Type:** Dungeon Editor Milestone — Rendering Parity + Workbench UX + Save Safety
+**Type:** Dungeon Authoring Milestone — Editing + Undo + Rendering + Save Safety
 **Status:** In development
 **Date:** pending
 **Release SHA:** pending
@@ -12,6 +12,24 @@ USDASM routines, the Workbench keeps the room canvas stable, guarded dungeon,
 message, and palette writes check more before touching the ROM, and release
 packages gained per-platform layout and install checks. Many of those checks
 refuse work that 0.7.2 accepted, so read **Upgrading from 0.7.2** first.
+
+### Completion baseline (2026-09-22)
+
+The [editor capability completion plan](../internal/plans/editor-capability-parity-plan.md)
+defines the remaining 0.8.0 authoring work: shared dungeon undo, editable entity
+inspectors, complete room reuse, visual connections, and ROM/runtime/release
+acceptance. Full Hyrule Magic / ZScream workflow coverage extends beyond 0.8.0
+into overworld, graphics, screens, and audio milestones.
+
+The source audit uses mainline `d609e6254` and local placement candidate
+`7ba7d76ce`. The candidate adds live preview properties, once/repeat placement,
+selection of inserted objects, Place another, physical size controls, and
+uniform wheel resizing for area objects. Its app build and 43 focused tests
+passed, but it was unpublished and had not replaced the installed app at review.
+This is **Candidate** evidence, not a claim that these changes are shipped or
+that ROM save/reopen and in-game acceptance passed. Current implementation
+status and save boundaries are in the
+[coverage report](reference/feature-coverage-report.md).
 
 ### ⚠️ Upgrading from 0.7.2
 Read this before upgrading a project or a script. Each item was checked against
@@ -271,10 +289,11 @@ and every affected command, is in `docs/public/reference/changelog.md` under
   only on success.
 
 ### 📚 Documentation
-- Replaced stale parity percentages and Stable/Beta/WIP labels with one
-  canonical desktop editor readiness matrix (Tester ready, Conditional, View
-  only, Experimental) and a tester guide that distinguishes component test,
-  direct ROM readback, app-path test, GUI smoke, and manual acceptance evidence.
+- Replaced stale parity percentages and broad editor labels with a workflow
+  ledger: Implemented, Partial, Missing, Blocked, and Candidate. Source,
+  Focused, ROM, Runtime, and Release evidence are recorded independently.
+  The capability plan defines the reference-editor baseline, implementation
+  dependencies, existing tools to reuse, and acceptance requirements.
 - Generated the ALTTP quick reference from pinned usdasm and jpdasm sources and
   added a SNES hardware reference whose register addresses are checked against
   usdasm. `scripts/agents/alttp_reference.py check` fails when a generated
@@ -293,6 +312,20 @@ against the final release head, which is **pending**.
   and a full-suite run against the release head are **pending**.
 
 ### Known Limits
+- Dungeon authoring is Partial at the audited baseline. Tile-object undo does
+  not cover doors, sprites, items, headers, and mixed operations; Workbench
+  entity properties still need editable controls. Existing room templates are
+  not a complete-room interchange format.
+- Overworld sprite edits are not serialized by the current save path. Map,
+  entrance, exit, item, and property save support does not establish sprite
+  persistence.
+- Pending Graphics sheet edits and all pending Screen edits block coordinated
+  Save ROM. Direct title/pause-map ROM writers remain disabled. Naming-screen
+  UI is empty and inventory controls are partial; credits/ending screen
+  coverage requires a targeted audit.
+- Music has song serialization, but coordinated save, instrument/sample
+  writers, real sample import, and event clipboard are incomplete. The current
+  WAV-import implementation creates placeholder data.
 - Full emulator 1:1 parity is not claimed. Static water, ice, bar, remaining
   small-corner objects, and more door families still need independent
   witnesses. Vanilla `0xD8` and `0xDA` remain structural-only because they

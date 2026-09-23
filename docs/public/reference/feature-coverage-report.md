@@ -1,121 +1,133 @@
 # Editor readiness and feature coverage
 
-Last reviewed: 2026-09-14 for the v0.8.0 development line.
+Last reviewed: 2026-09-22 for the v0.8.0 development line.
 
-This is the canonical readiness matrix for Yaze's user-facing editors. A status
-describes the complete workflow, not the size of the implementation:
+This is the public capability and persistence ledger. The
+[editor capability parity plan](../../internal/plans/editor-capability-parity-plan.md)
+owns implementation order and acceptance gates. The
+[capability assessment](capability-assessment.md) summarizes the Hyrule Magic /
+ZScream comparison. No whole-editor percentage establishes parity.
 
-- **Tester ready**: a bounded load, edit, **File > Save ROM**, and reopen test is
-  useful now.
-- **Conditional**: only the named subset or save procedure is supported.
-- **View only**: inspection is useful, but ROM persistence is not tester-ready.
-- **Experimental**: availability or behavior depends on the build, provider, or
-  unfinished subsystem.
+The audited mainline baseline is `d609e6254`. The placement/inspector work at
+`7ba7d76ce` is a separate local candidate: app build and 43 focused tests passed,
+but publication, installed-app acceptance, ROM roundtrip, and release
+qualification were not claimed. Verify current Git and artifact state before
+updating these recorded facts.
 
-No editor yet has an automated test for the entire GUI path from a user edit,
-through **File > Save ROM**, to closing and reopening the disk file in the same
-editor. Existing editor, serializer, and ROM readback tests provide good partial
-coverage, but they do not replace that acceptance path.
+## Status and evidence are separate
+
+| Status | Meaning |
+| --- | --- |
+| **Implemented** | The named capability exists. This does not imply a qualified release or completion of adjacent capabilities. |
+| **Partial** | Part of the workflow exists, but a named editing, undo, persistence, or acceptance requirement is incomplete. |
+| **Missing** | The named implementation is absent or an explicit stub. A search that did not locate a feature should be reported as an audit gap rather than an absolute absence. |
+| **Blocked** | The application deliberately refuses the workflow until its required implementation or safety proof exists. |
+| **Candidate** | An implementation exists on a named change or branch and awaits integration or acceptance. |
+
+| Evidence | What must be recorded |
+| --- | --- |
+| **Source** | Exact code commit, entry points, and relevant read/write/undo paths inspected. |
+| **Focused** | Discovered test names, exact command, tested commit, result, and any skips. Includes synthetic ImGui tests; does not imply ROM proof. |
+| **ROM** | ROM profile/hash, disposable input/output, write/reopen/readback comparison, and expected write ranges. Direct serializer and full application save are distinct paths. |
+| **Runtime** | Named emulator/game scenario, capture identity, and observed result. Static pixels do not prove gameplay behavior. |
+| **Release** | Exact packaged artifact and digest, platform, CI, install/launch acceptance, and required workflow checks. A local source build is not this evidence. |
+
+Promote the specific workflow, not every feature in its editor. Prior
+"Tester ready" labels described bounded beta attempts; they did not certify
+all entity types, undo domains, or save paths. A GUI smoke test or a test called
+"E2E" is not automatically a complete **edit → save → close → reopen** test.
 
 ## Desktop editor matrix
 
-| Editor | Readiness | Durable workflow today | Main limitation before promotion |
+All baseline statements below are Source observations. Existing test coverage
+is useful but must be linked to a specific workflow and commit before it is
+used for promotion.
+
+| Editor / workflow | Status | Existing path | Remaining boundary |
 | --- | --- | --- | --- |
-| Dungeon | **Tester ready** | Edit a room, use **File > Save ROM**, close, and reopen a copied ROM. | Known object-rendering and layering exceptions remain; add full GUI-to-disk readback. |
-| Overworld | **Tester ready** | Edit a map or entity, use **File > Save ROM**, close, and reopen a copied ROM. | Add full GUI-to-disk readback and a dedicated user guide. |
-| Message | **Tester ready** | Edit valid message text, use **File > Save ROM**, close, and reopen a copied ROM. | Add full GUI-to-disk readback and a dedicated user guide. |
-| Palette | **Conditional** | First use the Palette panel's **Save to ROM**, then use **File > Save ROM**, close, and reopen. | Integrate Palette with coordinated save or prove and clearly retain the two-step contract. |
-| Assembly | **Conditional** | **Save File** writes the active ASM source. Applying an Asar patch is a separate, explicit ROM operation. | Add dirty-close, source-reopen, and separately fenced patch-application tests. |
-| Sprite | **Conditional** | Custom `.zsm` files can be edited and saved. Vanilla sprites are for viewing here; room sprite placement belongs in Dungeon. | Remove or disable incomplete vanilla edit controls and prove `.zsm` roundtrip. |
-| Settings | **Conditional** | Settings and layouts use application configuration files, not ROM save. Restart and verify each changed setting. | Add Settings-panel-to-disk-to-restart coverage. |
-| Graphics | **View only** | Viewing and preview are useful. Do not make a persistence test edit. | A pending sheet edit deliberately blocks **Save ROM** until the serializer is safe. |
-| Screen | **View only** | Inspect dungeon maps, inventory, title, and world-map screens. | Any pending Screen edit deliberately blocks coordinated save; writers need domain-by-domain readback proof. |
-| Music | **View only** | Browse and play loaded music. Do not rely on ROM persistence. | Music is not in coordinated save; instrument and sample writers are unimplemented. |
-| Hex / Memory | **View only** | Use only for expert inspection in tester builds. | Raw-buffer editing lacks an editor dirty state, undo, and a tested save contract. |
-| Emulator | **Experimental** | Runtime inspection and play testing only. | Save-state UI and conditional breakpoint behavior are incomplete. |
-| Agent | **Experimental** | Build- and provider-specific chat/tool exploration. | Availability depends on build flags and provider configuration; it is not a ROM-save participant. |
+| Dungeon room authoring | **Partial** | Objects, doors, sprites, items, headers, collision, chests, and guarded save | Workbench entity properties are read-only summaries at baseline; shared undo does not cover doors/sprites/items/headers. Complete room operations and GUI-to-disk/runtime acceptance remain. |
+| Workbench tile-object placement improvements | **Candidate** | `7ba7d76ce`: live placement controls, once/repeat, selected inserted object, Place another, physical sizes; Source + Focused | Isolated candidate ROM and runtime validation, integration, and packaged acceptance remain. See the [validation handoff](../../internal/agents/dungeon-workbench-placement-handoff-2026-09-22.md). |
+| Overworld map/entrance/exit/item/property editing | **Partial** | Domain-specific save methods called by `OverworldEditor::Save()` when their flags are enabled | Entity undo and full application acceptance need completion. Save support must be checked per domain and ROM layout. |
+| Overworld sprite persistence | **Missing** | Editing and three game-state collections exist | The application save path does not call a sprite serializer. Do not report sprite edits as saved because Save ROM succeeds. |
+| Message | **Partial** | Transactional save of valid parsed text through coordinated save when enabled | GUI-to-disk reopen and runtime acceptance for the advertised ROM profile. |
+| Palette | **Partial** | Palette **Save to ROM** commits the model to the shared ROM buffer; **File > Save ROM** writes disk | Two-step workflow remains. JSON import/export is Implemented when JSON support is enabled. |
+| Assembly | **Partial** | **Save File** writes active ASM source; Asar patch application is a separate ROM operation | Source reopen/dirty-close and separately fenced patch-application qualification. |
+| Sprite | **Partial** | Custom `.zsm` editing/saving; vanilla sprite viewing | Qualify `.zsm` roundtrip and complete/disable incomplete vanilla controls. Dungeon sprite placement is a separate workflow. |
+| Settings | **Implemented** for configuration-file persistence | Settings/layouts save outside the ROM | Panel-to-restart acceptance is separate from ROM capability and release proof. |
+| Graphics pixel-sheet persistence | **Blocked** | Pixel editing, undo, import surfaces, and a writer implementation exist | Pending sheet edits block coordinated Save ROM. Compression/allocation/write safety and readback must be established before enabling it. |
+| Graphics groups and polyhedral editing | **Partial** | Existing registered editors and model operations | Audit and qualify their specific persistence paths; do not list the tools as missing or assume pixel-sheet proof covers them. |
+| Screen | **Blocked** for coordinated save with any pending domain | Dungeon-map, Tile16, title-screen, and pause-map models; partial inventory UI | All pending Screen domains block central save. Direct title/pause ROM writers also fail closed. Naming screen is empty; credits/ending screen authoring needs a targeted audit. |
+| Music | **Partial**; instrument/sample saving **Missing** | Tracker/piano roll, playback, song serialization, separate editor save path | Not in coordinated Save ROM. `SaveInstruments` and `SaveSamples` return Unimplemented; WAV import is a placeholder; event clipboard is incomplete. |
+| Hex / Memory | **Partial** | Raw-ROM inspection and expert editing surface | No complete editor dirty/undo/save contract; outside the supported tester edit workflow. |
+| Emulator | **Partial** | Play testing and runtime inspection | Save-state UI and conditional-breakpoint workflows remain incomplete; independent emulator evidence is still required. |
+| Agent | **Partial** | Build/provider-specific chat and tools | Not a coordinated ROM-save participant; tool output is not proof of a desktop editing workflow. |
 
 ## What coordinated Save ROM currently covers
 
-`EditorManager::SaveRom()` is the application-level persistence boundary.
-For loaded editors it coordinates:
-
-1. Screen serialization only when its state is valid and has no pending edit.
-2. Dungeon serialization.
-3. Overworld serialization.
-4. Message serialization when message saving is enabled.
-5. ROM safety checks, conflict handling, backup policy, and the final disk write.
+[`EditorManager::SaveRom()`](../../../src/app/editor/editor_manager.cc) is the
+application persistence boundary. Before serializers mutate the ROM, it rejects
+pending Graphics sheet edits and **all** pending Screen edits. For eligible
+loaded editors it then coordinates Screen's allowed unchanged-state path,
+Dungeon, Overworld, and enabled Message serialization, followed by ROM safety
+checks, conflict handling, backup policy, and the disk write.
 
 Important exceptions:
 
-- Palette changes must first be committed to the shared ROM buffer with the
-  Palette panel's **Save to ROM** action.
-- Graphics and dirty Screen edits fail closed before the disk write.
-- Music, Assembly, Sprite, Settings, Emulator, and Agent use separate or partial
-  persistence models and are not invoked by coordinated ROM save.
-- Hex / Memory currently exposes raw ROM data without a complete editor
-  transaction contract and is outside the supported tester lane.
+- [`OverworldEditor::Save()`](../../../src/app/editor/overworld/overworld_editor.cc)
+  covers maps, entrances, exits, items, and enabled properties/music/custom
+  overworld data. It omits overworld sprites.
+- Palette must commit its model through **Save to ROM** before the disk save.
+- A dungeon-map writer existing in `ScreenEditor::Save()` does not bypass the
+  central pending-Screen block. Neither enabling `kSaveDungeonMaps` nor
+  `kSaveGraphicsSheet` establishes safe general persistence.
+- [`ScreenEditor::SaveTitleScreenToRom()` and `SaveOverworldMapToRom()`](../../../src/app/editor/graphics/screen_editor.cc)
+  return errors until their readback requirements are met. A custom-map export
+  is a separate file workflow, not a ROM save.
+- Music, Assembly, Sprite, Settings, Emulator, and Agent have separate or
+  partial persistence models and are not invoked by coordinated ROM save.
+- Hex / Memory modifies raw ROM data without the complete supported editor
+  transaction contract.
 
-## Evidence levels
+## Source anchors for implementation work
 
-Use these terms when updating this report or a pull request:
-
-| Evidence | What it proves |
+| Claim / task | Source entry point |
 | --- | --- |
-| Component test | A model, parser, widget policy, or serializer behaves under a focused test. |
-| Direct ROM readback | A writer's bytes can be reopened and decoded, often without the application editor. |
-| App-path test | An editor object or `EditorManager` participates in the tested save path. |
-| GUI smoke | A panel opens or expected text appears; it does not prove editing or persistence. |
-| Manual acceptance | A packaged app completes a named workflow on a named platform. |
+| Dungeon shared undo currently covers tile objects, collision, and water-fill | [`DungeonEditorV2::GetWorkbenchViewer()`](../../../src/app/editor/dungeon/dungeon_editor_v2.cc), mutation and invalidation callbacks |
+| Existing inspector and entity summaries | [`DungeonWorkbenchContent::DrawInspectorShelfSelection()`](../../../src/app/editor/dungeon/workspace/dungeon_workbench_content.cc) |
+| Overworld paste/paint undo | [`OverworldEditor` undo and clipboard paths](../../../src/app/editor/overworld/overworld_editor.cc) |
+| Persistent overworld scratch space | [`LoadScratchPad`, `SaveScratchPad`, `FlushScratchPadIfDirty`](../../../src/app/editor/overworld/scratch_space.cc) |
+| Palette JSON exchange | [`PaletteGroupPanel::ExportToJson()` / `ImportFromJson()`](../../../src/app/editor/palette/palette_group_panel.cc) |
+| Graphics groups | [`OverworldEditor::UpdateGfxGroupEditor()`](../../../src/app/editor/overworld/overworld_editor.cc) |
+| Existing polyhedral editor | [`PolyhedralEditorPanel`](../../../src/app/editor/graphics/polyhedral_editor_panel.cc) |
+| Empty naming screen and partial inventory | [`ScreenEditor::DrawNamingScreenEditor()` / `DrawInventoryMenuEditor()`](../../../src/app/editor/graphics/screen_editor.cc) |
+| Unimplemented instruments/samples and placeholder WAV import | [`MusicBank::SaveInstruments()`, `SaveSamples()`, `ImportSampleFromWav()`](../../../src/zelda3/music/music_bank.cc) |
+| Placeholder sample import UI and missing event clipboard | [`SampleEditorView`](../../../src/app/editor/music/sample_editor_view.cc), [`MusicEditor::Copy()` / `Paste()`](../../../src/app/editor/music/music_editor.cc) |
 
-Tests named `*_save_test.cc` or “E2E” are not automatically application-path
-tests. Several construct a ROM/data writer directly and then write bytes to a
-temporary file. Keep that evidence, but do not use it to claim GUI save parity.
+Search the current checkout before changing an entry point: these are anchors,
+not permission to replace a newer implementation with an older design.
 
-## Current strengths
+## Promotion requirements
 
-- ROM/project lifecycle, backup policy, conflict detection, and fail-closed
-  save behavior have substantial focused coverage.
-- Dungeon has the broadest editor-specific coverage: room objects, doors,
-  sprites, headers, collision, chests, pot items, palette interaction, and
-  workbench navigation.
-- Overworld has editor-method coverage for save/reload, undo, clipboard, maps,
-  and entities. Its persistent `ScratchPad.dat` workflow is implemented.
-- Message saving is transactional and rejects invalid parsed text.
-- Palette JSON import/export is implemented when JSON support is enabled and
-  has focused validation tests.
+1. Complete the named editing path and shared undo transaction. Preview-only
+   changes must not mutate room data; failed actions must not add undo entries.
+2. Prove the writer and application save integration independently, including
+   refusal/rollback behavior and preservation of unrelated domains.
+3. Save to a disposable copy, close/reopen the disk file, and compare the named
+   domains. Record input identity, output identity, code commit, and write ranges.
+4. Verify the representative game behavior with an independent emulator where
+   applicable. Capture/ROM mismatches invalidate parity evidence.
+5. Complete the platform/artifact acceptance required by the release plan.
 
-## Highest-priority coverage gaps
-
-1. Add one reusable application-path harness for:
-   **GUI action -> File > Save ROM -> close -> reopen disk file -> verify**.
-2. Use that harness first for Dungeon, Overworld, Message, and Palette.
-3. Make ROM-backed GUI tests fail or visibly skip when their required ROM is
-   unavailable; a window-only smoke must not stand in for persistence coverage.
-4. Keep unsafe mutation surfaces disabled or clearly labeled until their writer
-   and readback path exist.
-5. Promote Graphics and Screen one independently verified data domain at a time.
-6. Implement real CRC32 calculation in `AsarWrapper`. Its library and CLI
-   patch paths currently return `0`, so that result field is not ROM-identity
-   evidence yet.
+Existing synthetic, serializer, CLI, and visual tests remain valuable evidence.
+Do not silently upgrade their scope to packaged GUI save acceptance. The
+[formal plan](../../internal/plans/editor-capability-parity-plan.md) lists the
+next implementation slices; do not duplicate its task state here.
 
 ## Other products
 
-### z3ed CLI
+`z3ed` provides scriptable inspection, guarded edits, validation, snapshots, and
+agent workflows. See the [z3ed CLI guide](../usage/z3ed-cli.md). A CLI writer test
+does not promote the corresponding desktop workflow automatically.
 
-`z3ed` provides scriptable ROM inspection, guarded writes, validation,
-snapshots, doctor commands, and agent workflows. Its command-specific status is
-documented in the [z3ed CLI guide](../usage/z3ed-cli.md). CLI serializer tests do
-not promote the corresponding desktop editor automatically.
-
-### Web / WASM preview
-
-The web build is a preview with browser-storage and download workflows. It does
-not include the emulator and is not a substitute for native editor acceptance.
-See the [Web App guide](../usage/web-app.md).
-
-## Updating this matrix
-
-Promote an editor only when the durable workflow is explicit and the evidence
-matches the claim. Record exact commands and the tested commit in the pull
-request or release checklist; avoid embedding volatile test counts here.
+The web build uses browser storage/downloads and does not include the emulator.
+It requires separate browser acceptance; see the [Web App guide](../usage/web-app.md).

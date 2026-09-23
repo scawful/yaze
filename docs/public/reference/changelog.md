@@ -1,5 +1,12 @@
 # Changelog
 
+For current capability and save boundaries, use the
+[coverage report](feature-coverage-report.md) and
+[capability completion plan](../../internal/plans/editor-capability-parity-plan.md).
+They take precedence over broad parity or completion claims in historical
+entries below. Historical entries record changes at their original scope;
+they do not establish current end-to-end or release qualification.
+
 ## 0.8.0 (in development)
 
 Release date, final merge SHA, and packaged-candidate evidence are pending.

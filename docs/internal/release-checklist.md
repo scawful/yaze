@@ -2,6 +2,11 @@
 
 This is the canonical pre-release checklist referenced by internal testing and architecture docs.
 
+Last reviewed: 2026-09-22. The
+[editor capability parity plan](plans/editor-capability-parity-plan.md) defines
+package scope and implementation gates. This checklist records release
+qualification of the final combined candidate.
+
 ## v0.8.0 scope gate
 
 v0.8.0 is the Dungeon Editor completion milestone, not merely a bounded tester
@@ -9,12 +14,25 @@ preview. Use the [dungeon completion backlog](plans/dungeon-0.8.0-issue-test-bac
 for object evidence and agent-owned work. Preview packages and reviewed merges
 may continue while these requirements remain open.
 
+- [ ] `DA-1`: supported entity, metadata, and compound room edits undo/redo
+  exactly. Invalid/no-op edits preserve data and history.
+- [ ] `DA-2`: contextual entity controls and canvas selection agree, using
+  the shared mutation path and existing room data.
+- [ ] `DA-3`: visual staircase/pit destination editing and ordinary door
+  adjacency preserve the actual game routing rules.
+- [ ] `DA-4`: complete room cloning and reusable selections validate before
+  atomic apply, preserve the source, and survive undo/redo and save/reopen.
+- [ ] `DA-5`: the final candidate meets the rendering, persistence, Oracle,
+  and package evidence requirements below.
 - [ ] The supported vanilla registry is inventoried by object ID, routine,
   legal size/state, stream/BG behavior, palette source, and evidence tier.
 - [ ] Remaining strips, water/ice/moving-floor stamps, stairs, bars, corners,
   door families, and sprite-preview palette issues are resolved in that scope.
 - [ ] Independent representative room/state evidence covers each supported
   family; synthetic replay and Yaze fingerprints are not emulator truth.
+- [ ] Any tilemap gate verifies ROM/capture identity and runtime state, uses a
+  reviewed expected-difference baseline, and fails on unexplained new drift.
+  Diagnostic output or an Object Coverage verdict alone does not close parity.
 - [ ] Oracle wall overrides, ice, and minecart editing pass their documented
   source publish / ROM save / rebuild / reopen / runtime sequence on copies.
 - [ ] Dungeon application-path persistence and packaged UI acceptance pass.
@@ -24,6 +42,10 @@ may continue while these requirements remain open.
 Record exact source SHA, ROM digest, test counts/skips, package digest, and
 evidence links for each completed gate. A green earlier commit does not close
 the gate for a changed combined candidate.
+
+The September 22 local placement candidate `7ba7d76ce` has 43 focused test
+passes, but no release qualification or installed-app claim. Open PRs and old
+packaged builds do not check any box above for the final candidate.
 
 ## 1) Version and notes alignment
 
@@ -44,8 +66,12 @@ bash scripts/dev/release-version-check.sh
 
 ```bash
 cmake --preset mac-ai
-cmake --build --preset mac-ai
+cmake --build --preset mac-ai --parallel 4
 ```
+
+These are final release gates. During implementation, build affected targets
+and run the smallest relevant discovered test set first. Do not repeat the
+full matrix after a documentation-only or unrelated change.
 
 - Run fast unit coverage:
 
@@ -99,13 +125,17 @@ Use a disposable ROM copy and record platform, package, version, and exact Git
 SHA. Complete these paths in the packaged application, not a source-tree binary:
 
 - Dungeon: one small object or sprite edit -> Save ROM -> close -> reopen -> verify.
-- Overworld: one Tile16 or entity edit -> Save ROM -> close -> reopen -> verify.
+- Overworld: one Tile16 edit -> Save ROM -> close -> reopen -> verify.
+  Qualify each advertised entity domain separately. Do not include sprite
+  persistence until `OW-1` has a verified writer for all three game states.
 - Message: one valid text edit -> Save ROM -> close -> reopen -> verify.
 - Palette: one color edit -> Palette **Save to ROM** -> File **Save ROM** ->
   close -> reopen -> verify.
 
 For the v0.8.0 Dungeon milestone, expand the Dungeon path to size/position and
-stream edits, undo/redo, doors, room metadata, and supported block/pit changes.
+stream edits, repeat/once placement, doors, sprites, items/chests, room metadata,
+connections, room/prefab reuse, and supported block/pit changes. Check undo/redo
+for every supported domain, including a mixed edit sequence and room switches.
 Verify byte-identical no-op saves and safe rejection of unsupported capacity.
 Also check room `0x001` upper/lower overlaps, a lower-level stair, and the
 Oracle water/ice/bar witnesses from the dungeon backlog. Confirm picker resize,

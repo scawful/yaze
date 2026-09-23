@@ -65,6 +65,11 @@ Use tool classes intentionally:
 - No ROMs, local MCP servers, or universe coordination in cloud sessions.
 
 ### 6) Dependency Graph
+For editor capability, parity, or milestone work, first read
+`docs/internal/plans/editor-capability-parity-plan.md`. It defines the reference
+baseline, work-package dependencies, and completion evidence. Use its package
+IDs; dated handoffs and archived parity estimates are historical context.
+
 `Task Class` -> `Primary Persona` -> `Focused Context Files` -> `Tools/Scripts` -> `Validation`.
 
 Concretely:
