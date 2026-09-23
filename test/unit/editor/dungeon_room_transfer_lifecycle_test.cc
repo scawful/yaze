@@ -5,6 +5,7 @@
 #include <functional>
 #include <memory>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 #include "app/editor/dungeon/dungeon_room_transfer.h"
@@ -258,6 +259,69 @@ TEST_P(DungeonRoomTransferLifecycleTest,
   ExpectDocument(Source(), source);
   ExpectDocument(Target(), target);
   EXPECT_FALSE(Source().HasUnsavedChanges());
+  EXPECT_FALSE(Target().HasUnsavedChanges());
+  EXPECT_EQ(rom_.vector(), bytes);
+  EXPECT_EQ(UndoDepth(), 0u);
+}
+
+TEST_P(DungeonRoomTransferLifecycleTest,
+       OracleSizedLegacyCountsExportAndPreviewUnrelatedDomains) {
+  for (const auto [object_count, chest_count] :
+       {std::pair{463u, 0u}, std::pair{425u, 0u}, std::pair{0u, 21u},
+        std::pair{0u, 23u}}) {
+    SCOPED_TRACE(object_count);
+    SCOPED_TRACE(chest_count);
+    Source().SetTileObjects(std::vector<zelda3::RoomObject>(
+        object_count, zelda3::RoomObject(0x21, 8, 8, 0, 0)));
+    Source().GetChests().assign(chest_count, {0x24, false});
+    Source().ClearSaveDirtyState();
+    const auto source = CaptureDungeonRoomDocument(Source());
+    const auto target = CaptureDungeonRoomDocument(Target());
+    const auto bytes = rom_.vector();
+    const auto exported = editor_->ExportRoomDocument(0);
+    ASSERT_TRUE(exported.ok()) << exported.status();
+    const auto parsed = ParseDungeonRoomDocument(*exported);
+    ASSERT_TRUE(parsed.ok()) << parsed.status();
+    EXPECT_EQ(parsed->contents.objects.size(), object_count);
+    EXPECT_EQ(parsed->contents.chests.size(), chest_count);
+    EXPECT_TRUE(SameDungeonRoomDocument(source, *parsed));
+
+    const auto clone = Preview({kTransferSprites});
+    ASSERT_TRUE(clone.ok()) << clone.status();
+    const auto imported =
+        editor_->PreviewRoomTransfer(1, -1, *exported, {kTransferSprites});
+    ASSERT_TRUE(imported.ok()) << imported.status();
+    EXPECT_TRUE(SameDungeonRoomDocument(clone->after, imported->after));
+    ExpectRejectedWithoutChanges(
+        [&] { return Preview({kTransferObjects}).status(); });
+    ExpectDocument(Source(), source);
+    ExpectDocument(Target(), target);
+    EXPECT_FALSE(Source().HasUnsavedChanges());
+    EXPECT_FALSE(Target().HasUnsavedChanges());
+    EXPECT_EQ(rom_.vector(), bytes);
+    EXPECT_EQ(UndoDepth(), 0u);
+  }
+}
+
+TEST_P(DungeonRoomTransferLifecycleTest,
+       ExactLegacyImportPreservesBlockSlotsDirtyStateAndHistory) {
+  auto objects = Target().GetTileObjects();
+  objects.resize(425, zelda3::RoomObject(0x21, 8, 8, 0, 0));
+  Target().SetTileObjects(objects);
+  Target().GetChests().assign(23, {0x24, false});
+  Target().ClearSaveDirtyState();
+  const auto target = CaptureDungeonRoomDocument(Target());
+  ASSERT_GE(target.contents.objects[3].block_load_order(), 0);
+  const auto bytes = rom_.vector();
+  const auto exported = editor_->ExportRoomDocument(1);
+  ASSERT_TRUE(exported.ok()) << exported.status();
+  const auto plan =
+      editor_->PreviewRoomTransfer(1, -1, *exported, {kTransferAll, true});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_FALSE(plan->changed());
+  EXPECT_TRUE(SameDungeonRoomDocument(target, plan->after));
+  ASSERT_TRUE(editor_->ApplyRoomTransfer(*plan).ok());
+  ExpectDocument(Target(), target);
   EXPECT_FALSE(Target().HasUnsavedChanges());
   EXPECT_EQ(rom_.vector(), bytes);
   EXPECT_EQ(UndoDepth(), 0u);

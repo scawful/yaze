@@ -359,6 +359,211 @@ TEST(DungeonRoomTransferTest,
   }
 }
 
+TEST(DungeonRoomTransferTest, InterchangePreservesOracleSizedObjectLists) {
+  for (const size_t count : {463u, 425u}) {
+    SCOPED_TRACE(count);
+    zelda3::Room room(count == 463 ? 0x33 : 0x75, nullptr);
+    room.SetTileObjects(std::vector<zelda3::RoomObject>(count, Object(0x21)));
+    room.ClearSaveDirtyState();
+    const auto captured = CaptureDungeonRoomDocument(room);
+    EXPECT_FALSE(ValidateDungeonRoomDocument(captured).ok());
+    const auto json = SerializeDungeonRoomDocument(captured);
+    ASSERT_TRUE(json.ok()) << json.status();
+    EXPECT_LE(json->size(), kMaxDungeonRoomDocumentBytes);
+    const auto parsed = ParseDungeonRoomDocument(*json);
+    ASSERT_TRUE(parsed.ok()) << parsed.status();
+    EXPECT_EQ(parsed->contents.objects.size(), count);
+    EXPECT_TRUE(SameDungeonRoomDocument(captured, *parsed));
+    EXPECT_FALSE(room.HasUnsavedChanges());
+  }
+}
+
+TEST(DungeonRoomTransferTest, InterchangePreservesOracleSizedChestRecords) {
+  for (const size_t count : {21u, 23u}) {
+    SCOPED_TRACE(count);
+    zelda3::Room room(count == 21 ? 0x123 : 0x124, nullptr);
+    for (size_t i = 0; i < count; ++i) {
+      room.GetChests().push_back({static_cast<uint8_t>(i + 0x80), i % 2 != 0});
+    }
+    const auto captured = CaptureDungeonRoomDocument(room);
+    EXPECT_FALSE(ValidateDungeonRoomDocument(captured).ok());
+    const auto json = SerializeDungeonRoomDocument(captured);
+    ASSERT_TRUE(json.ok()) << json.status();
+    const auto parsed = ParseDungeonRoomDocument(*json);
+    ASSERT_TRUE(parsed.ok()) << parsed.status();
+    EXPECT_EQ(parsed->contents.chests.size(), count);
+    EXPECT_TRUE(SameDungeonRoomDocument(captured, *parsed));
+  }
+}
+
+TEST(DungeonRoomTransferTest, OversizedObjectReplacementAllowsOnlyNoGrowth) {
+  zelda3::Room target(7, nullptr);
+  target.SetTileObjects(std::vector<zelda3::RoomObject>(463, Object(0x21)));
+  target.ClearSaveDirtyState();
+  const auto before = CaptureDungeonRoomDocument(target);
+  auto source = before;
+
+  const auto unchanged =
+      PlanDungeonRoomTransfer(target, source, {kTransferObjects});
+  ASSERT_TRUE(unchanged.ok()) << unchanged.status();
+  EXPECT_FALSE(unchanged->changed());
+  source.contents.objects[0].x_ = 12;
+  const auto same_count =
+      PlanDungeonRoomTransfer(target, source, {kTransferObjects});
+  ASSERT_TRUE(same_count.ok()) << same_count.status();
+  EXPECT_TRUE(same_count->changed());
+  EXPECT_EQ(same_count->after.contents.objects.size(), 463u);
+  source.contents.objects.resize(425, Object(0x21));
+  const auto smaller =
+      PlanDungeonRoomTransfer(target, source, {kTransferObjects});
+  ASSERT_TRUE(smaller.ok()) << smaller.status();
+  EXPECT_EQ(smaller->after.contents.objects.size(), 425u);
+
+  source.contents.objects.resize(464, Object(0x21));
+  EXPECT_EQ(PlanDungeonRoomTransfer(target, source, {kTransferObjects})
+                .status()
+                .code(),
+            absl::StatusCode::kResourceExhausted);
+  zelda3::Room ordinary_target(8, nullptr);
+  source.contents.objects.resize(425, Object(0x21));
+  EXPECT_EQ(PlanDungeonRoomTransfer(ordinary_target, source, {kTransferObjects})
+                .status()
+                .code(),
+            absl::StatusCode::kResourceExhausted);
+  EXPECT_TRUE(
+      SameDungeonRoomDocument(before, CaptureDungeonRoomDocument(target)));
+  EXPECT_FALSE(target.HasUnsavedChanges());
+}
+
+TEST(DungeonRoomTransferTest, OversizedLegacyDataDoesNotBlockUnrelatedDomains) {
+  zelda3::Room target(7, nullptr);
+  auto legacy = Document();
+  legacy.contents.objects.assign(463, Object(0x21));
+  legacy.contents.chests.assign(23, {0x24, false});
+  ApplyDungeonRoomDocument(target, legacy);
+  target.ClearSaveDirtyState();
+  target.ClearCustomCollisionDirty();
+  target.ClearWaterFillDirty();
+  const auto before = CaptureDungeonRoomDocument(target);
+  auto source = legacy;
+  source.contents.objects.resize(425, Object(0x21));
+  source.contents.chests.resize(21);
+  source.contents.items = {{0x2660, 0x88}};
+  const auto plan = PlanDungeonRoomTransfer(target, source, {kTransferItems});
+  ASSERT_TRUE(plan.ok()) << plan.status();
+  EXPECT_EQ(plan->after.contents.objects.size(), 463u);
+  EXPECT_EQ(plan->after.contents.chests.size(), 23u);
+  ApplyDungeonRoomDocument(target, plan->after);
+  EXPECT_EQ(target.GetPotItems().front().item, 0x88);
+  EXPECT_FALSE(target.object_stream_dirty());
+  EXPECT_FALSE(target.chests_dirty());
+  ApplyDungeonRoomDocument(target, before);
+  EXPECT_TRUE(
+      SameDungeonRoomDocument(before, CaptureDungeonRoomDocument(target)));
+}
+
+TEST(DungeonRoomTransferTest,
+     ExactLegacyObjectDomainNoOpPreservesNormalizedBlockIdentity) {
+  for (const size_t count : {21u, 23u}) {
+    SCOPED_TRACE(count);
+    zelda3::Room target(7, nullptr);
+    auto legacy = Document();
+    legacy.contents.chests.assign(count, {0x24, false});
+    ApplyDungeonRoomDocument(target, legacy);
+    target.ClearSaveDirtyState();
+    target.ClearCustomCollisionDirty();
+    target.ClearWaterFillDirty();
+    const auto before = CaptureDungeonRoomDocument(target);
+    const auto json = SerializeDungeonRoomDocument(before);
+    ASSERT_TRUE(json.ok()) << json.status();
+    const auto parsed = ParseDungeonRoomDocument(*json);
+    ASSERT_TRUE(parsed.ok()) << parsed.status();
+    ASSERT_EQ(parsed->contents.objects[3].block_load_order(), -1);
+    const auto plan =
+        PlanDungeonRoomTransfer(target, *parsed, {kTransferObjects});
+    ASSERT_TRUE(plan.ok()) << plan.status();
+    EXPECT_FALSE(plan->changed());
+    EXPECT_EQ(plan->after.contents.objects[3].block_load_order(), 17);
+    ApplyDungeonRoomDocument(target, plan->after);
+    EXPECT_FALSE(target.HasUnsavedChanges());
+    EXPECT_TRUE(
+        SameDungeonRoomDocument(before, CaptureDungeonRoomDocument(target)));
+
+    auto changed = *parsed;
+    changed.contents.objects[1].x_ = 12;
+    EXPECT_FALSE(
+        PlanDungeonRoomTransfer(target, changed, {kTransferObjects}).ok());
+    changed = *parsed;
+    changed.contents.chests[0].id = 0x25;
+    EXPECT_FALSE(
+        PlanDungeonRoomTransfer(target, changed, {kTransferObjects}).ok());
+    changed.contents.chests.resize(count - 1);
+    EXPECT_FALSE(
+        PlanDungeonRoomTransfer(target, changed, {kTransferObjects}).ok());
+  }
+}
+
+TEST(DungeonRoomTransferTest,
+     LegacyInterchangeCannotAuthorizeNewOverCapacityChestMappings) {
+  zelda3::Room target(7, nullptr);
+  for (const size_t count : {7u, 21u, 23u}) {
+    SCOPED_TRACE(count);
+    auto source = Document();
+    source.contents.objects.assign(count, Object(0xF99));
+    source.contents.chests.assign(count, {0x24, false});
+    const auto json = SerializeDungeonRoomDocument(source);
+    ASSERT_TRUE(json.ok()) << json.status();
+    const auto parsed = ParseDungeonRoomDocument(*json);
+    ASSERT_TRUE(parsed.ok()) << parsed.status();
+    EXPECT_FALSE(
+        PlanDungeonRoomTransfer(target, *parsed, {kTransferObjects}).ok());
+  }
+  auto source = Document();
+  source.contents.objects.assign(6, Object(0xF99));
+  source.contents.chests.assign(6, {0x24, false});
+  ASSERT_TRUE(PlanDungeonRoomTransfer(target, source, {kTransferObjects}).ok());
+  source.contents.objects.push_back(Object(0xF98));
+  EXPECT_FALSE(
+      PlanDungeonRoomTransfer(target, source, {kTransferObjects}).ok());
+  EXPECT_FALSE(target.HasUnsavedChanges());
+}
+
+TEST(DungeonRoomTransferTest, InterchangeRetainsIndependentResourceBounds) {
+  auto document = Document();
+  document.contents.chests.assign(kMaxDungeonRoomDocumentChestRecords,
+                                  {0x24, false});
+  ASSERT_TRUE(SerializeDungeonRoomDocument(document).ok());
+  document.contents.chests.push_back({0x24, false});
+  EXPECT_FALSE(SerializeDungeonRoomDocument(document).ok());
+  auto json = DocumentJson();
+  const auto chest = json["chests"][0];
+  json["chests"] = Json::array();
+  for (size_t i = 0; i <= kMaxDungeonRoomDocumentChestRecords; ++i)
+    json["chests"].push_back(chest);
+  EXPECT_FALSE(ParseDungeonRoomDocument(json.dump()).ok());
+
+  document = Document();
+  document.contents.objects.assign(kMaxDungeonRoomDocumentObjects,
+                                   Object(0x21));
+  EXPECT_TRUE(ValidateDungeonRoomDocumentForInterchange(document).ok());
+  document.contents.objects.push_back(Object(0x21));
+  EXPECT_FALSE(ValidateDungeonRoomDocumentForInterchange(document).ok());
+  EXPECT_FALSE(SerializeDungeonRoomDocument(document).ok());
+  json = DocumentJson();
+  const auto object = json["objects"][0];
+  json["objects"] = Json::array();
+  for (size_t i = 0; i <= kMaxDungeonRoomDocumentObjects; ++i)
+    json["objects"].push_back(object);
+  const auto compact = json.dump();
+  ASSERT_LT(compact.size(), kMaxDungeonRoomDocumentBytes);
+  EXPECT_FALSE(ParseDungeonRoomDocument(compact).ok());
+  EXPECT_EQ(ParseDungeonRoomDocument(
+                std::string(kMaxDungeonRoomDocumentBytes + 1, ' '))
+                .status()
+                .code(),
+            absl::StatusCode::kResourceExhausted);
+}
+
 TEST(DungeonRoomTransferTest, RejectsCapacityWithoutChangingTarget) {
   zelda3::Room target(7, nullptr);
   const auto before = CaptureDungeonRoomDocument(target);
