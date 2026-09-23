@@ -26,7 +26,7 @@ constexpr std::array<MetadataCase, 15> kMetadataCases = {{
     {RoomMetadataField::kFloor1, 0xF, true, true},
     {RoomMetadataField::kFloor2, 0xF, true, true},
     {RoomMetadataField::kPalette, 0x47, false, true},
-    {RoomMetadataField::kSpriteset, 0x8F, false, true},
+    {RoomMetadataField::kSpriteset, 0x4F, false, true},
     {RoomMetadataField::kMessage, 0xFFF, false, false},
     {RoomMetadataField::kBg2, 8, false, true},
     {RoomMetadataField::kEffect, 7, false, true},
@@ -120,7 +120,7 @@ TEST(DungeonRoomMetadataTest, AppliesEachFieldToItsCorrespondingProperty) {
       {RoomMetadataField::kFloor1, 9},
       {RoomMetadataField::kFloor2, 10},
       {RoomMetadataField::kPalette, 0x40},
-      {RoomMetadataField::kSpriteset, 0x8F},
+      {RoomMetadataField::kSpriteset, 0x4F},
       {RoomMetadataField::kMessage, 0xABC},
       {RoomMetadataField::kBg2, 6},
       {RoomMetadataField::kEffect, 4},
@@ -139,7 +139,7 @@ TEST(DungeonRoomMetadataTest, AppliesEachFieldToItsCorrespondingProperty) {
   EXPECT_EQ(room.floor1(), 9);
   EXPECT_EQ(room.floor2(), 10);
   EXPECT_EQ(room.palette(), 0x40);
-  EXPECT_EQ(room.spriteset(), 0x8F);
+  EXPECT_EQ(room.spriteset(), 0x4F);
   EXPECT_EQ(room.message_id(), 0xABC);
   EXPECT_EQ(static_cast<int>(room.bg2()), 6);
   EXPECT_EQ(room.layer2_mode(), 6);

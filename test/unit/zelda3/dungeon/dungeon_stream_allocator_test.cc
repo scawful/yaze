@@ -226,6 +226,172 @@ TEST_F(DungeonStreamAllocatorTest,
   EXPECT_EQ(rom_->vector(), before);
 }
 
+class DungeonFixedStreamReadTest
+    : public DungeonStreamAllocatorTest,
+      public ::testing::WithParamInterface<DungeonStreamKind> {
+ protected:
+  void SetUp() override {
+    DungeonStreamAllocatorTest::SetUp();
+    if (GetParam() == DungeonStreamKind::kSprite) {
+      layout_ =
+          SpriteLayout(kNumberOfRooms, {kSpriteData, kSpriteData + 0x100});
+      start_ = kSpriteData;
+      encoded_ = {7, 0x11, 0x22, 0x33, 0xFF};
+    } else {
+      layout_ = PotLayout(kNumberOfRooms, {{kPotData, kPotData + 0x100}}, {});
+      start_ = kPotData;
+      encoded_ = {0x11, 0x22, 0x33, 0xFF, 0xFF};
+    }
+    SetPointersFrom(layout_, 0, start_);
+    WriteBytes(start_, encoded_);
+  }
+
+  absl::StatusOr<DungeonStreamRecord> Read(int room = 0) const {
+    return GetParam() == DungeonStreamKind::kSprite
+               ? ReadDungeonSpriteStream(*rom_, room)
+               : ReadDungeonPotItemStream(*rom_, room);
+  }
+
+  DungeonStreamLayout layout_;
+  uint32_t start_ = 0;
+  std::vector<uint8_t> encoded_;
+};
+
+TEST_P(DungeonFixedStreamReadTest, ReadsExactBytesWithoutMutation) {
+  SetPointer(layout_, 3, start_ + 0x40);
+  WriteBytes(start_ + 0x40, encoded_);
+  const auto before = rom_->vector();
+  const auto dirty = rom_->dirty();
+  const auto record = Read(3);
+  ASSERT_TRUE(record.ok()) << record.status();
+  EXPECT_TRUE(record->valid);
+  EXPECT_EQ(record->room_id, 3);
+  EXPECT_EQ(record->pointer_slot_pc, layout_.pointer_table_pc + 6);
+  EXPECT_EQ(record->data_pc, start_ + 0x40);
+  EXPECT_EQ(record->logical_end_pc, start_ + 0x40 + encoded_.size());
+  EXPECT_EQ(record->encoded_stream, encoded_);
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_EQ(rom_->dirty(), dirty);
+}
+
+TEST_P(DungeonFixedStreamReadTest, AllowsExactSharedPointers) {
+  const auto first = Read();
+  const auto last = Read(kNumberOfRooms - 1);
+  ASSERT_TRUE(first.ok()) << first.status();
+  ASSERT_TRUE(last.ok()) << last.status();
+  EXPECT_EQ(first->encoded_stream, last->encoded_stream);
+}
+
+TEST_P(DungeonFixedStreamReadTest, RejectsInvalidRoomAndPointer) {
+  EXPECT_FALSE(Read(-1).ok());
+  EXPECT_FALSE(Read(kNumberOfRooms).ok());
+  WriteWord(layout_.pointer_table_pc, 0x7FFF);
+  EXPECT_FALSE(Read().ok());
+}
+
+TEST_P(DungeonFixedStreamReadTest, RejectsMissingTerminatorWithoutMutation) {
+  WriteBytes(start_, std::vector<uint8_t>(encoded_.size(), 0));
+  const auto before = rom_->vector();
+  const auto dirty = rom_->dirty();
+  EXPECT_FALSE(Read().ok());
+  EXPECT_EQ(rom_->vector(), before);
+  EXPECT_EQ(rom_->dirty(), dirty);
+}
+
+TEST_P(DungeonFixedStreamReadTest, StopsAtNextRoomPointer) {
+  // The first stream lacks its terminator. The next room is well formed,
+  // but its terminator cannot supply the missing end of the first stream.
+  WriteBytes(start_, {0, 0, 0, 0});
+  SetPointer(layout_, 1, start_ + 4);
+  WriteBytes(start_ + 4, encoded_);
+  EXPECT_FALSE(Read().ok());
+  EXPECT_TRUE(Read(1).ok());
+}
+
+TEST_P(DungeonFixedStreamReadTest, StopsAtKnownRegionEnd) {
+  const uint32_t region_end = GetParam() == DungeonStreamKind::kSprite
+                                  ? kSpritesDataEndExclusive
+                                  : kRoomItemsDataEnd;
+  const uint32_t stream = region_end - encoded_.size() + 1;
+  SetPointersFrom(layout_, 0, stream);
+  WriteBytes(stream, encoded_);
+  EXPECT_FALSE(Read().ok());
+}
+
+TEST_P(DungeonFixedStreamReadTest, StopsAtBankEnd) {
+  const uint32_t bank_end =
+      GetParam() == DungeonStreamKind::kSprite ? 0x050000 : 0x010000;
+  SetPointersFrom(layout_, 0, bank_end - encoded_.size() + 1);
+  WriteBytes(bank_end - encoded_.size() + 1, encoded_);
+  EXPECT_FALSE(Read().ok());
+}
+
+TEST_P(DungeonFixedStreamReadTest, RejectsPointerInsideTable) {
+  SetPointer(layout_, 0, layout_.pointer_table_pc);
+  EXPECT_FALSE(Read().ok());
+}
+
+TEST_P(DungeonFixedStreamReadTest, StopsBeforePointerTable) {
+  // Read room 1 so writing the deliberately crossing payload cannot change
+  // this room's own pointer slot.
+  if (GetParam() == DungeonStreamKind::kSprite) {
+    // The normal fixture table is at its bank start; move this live table to
+    // leave room for a stream immediately before it.
+    layout_.pointer_table_pc += 0x100;
+    WriteWord(kRoomsSpritePointer, PcToSnes(layout_.pointer_table_pc) & 0xFFFF);
+  }
+  const uint32_t before_table = layout_.pointer_table_pc - encoded_.size() + 1;
+  SetPointersFrom(layout_, 0, before_table);
+  WriteBytes(before_table, encoded_);
+  EXPECT_FALSE(Read(1).ok());
+}
+
+TEST_P(DungeonFixedStreamReadTest, RejectsTruncatedPointerTable) {
+  // Sprite pointer indirection must still be present to isolate table bounds.
+  if (GetParam() == DungeonStreamKind::kSprite) {
+    layout_.pointer_table_pc = kRoomsSpritePointer + 0x10;
+    WriteWord(kRoomsSpritePointer, PcToSnes(layout_.pointer_table_pc) & 0xFFFF);
+  }
+  auto truncated = rom_->vector();
+  truncated.resize(layout_.pointer_table_pc + kNumberOfRooms * 2 - 1);
+  ASSERT_TRUE(rom_->LoadFromData(truncated).ok());
+  EXPECT_FALSE(Read().ok());
+}
+
+TEST_P(DungeonFixedStreamReadTest, RejectsStreamTruncatedAtRomEnd) {
+  // Sprite data must follow the live indirection source in this short ROM.
+  const uint32_t stream =
+      GetParam() == DungeonStreamKind::kSprite ? kSpritesData : start_;
+  SetPointersFrom(layout_, 0, stream);
+  WriteBytes(stream, encoded_);
+  auto truncated = rom_->vector();
+  truncated.resize(stream + encoded_.size() - 1);
+  ASSERT_TRUE(rom_->LoadFromData(truncated).ok());
+  EXPECT_FALSE(Read().ok());
+}
+
+INSTANTIATE_TEST_SUITE_P(SpriteAndPotItems, DungeonFixedStreamReadTest,
+                         ::testing::Values(DungeonStreamKind::kSprite,
+                                           DungeonStreamKind::kPotItem));
+
+TEST_F(DungeonStreamAllocatorTest, SingleSpriteReadRejectsInvalidLiveTable) {
+  WriteWord(kRoomsSpritePointer, 0x7FFF);
+  EXPECT_FALSE(ReadDungeonSpriteStream(*rom_, 0).ok());
+  WriteWord(kRoomsSpritePointer, 0xFFFF);
+  EXPECT_FALSE(ReadDungeonSpriteStream(*rom_, 0).ok());
+  WriteWord(kRoomsSpritePointer, PcToSnes(kRoomsSpritePointer) & 0xFFFF);
+  EXPECT_FALSE(ReadDungeonSpriteStream(*rom_, 0).ok());
+}
+
+TEST_F(DungeonStreamAllocatorTest, SingleSpriteReadRejectsLiveSourceOverlap) {
+  const auto layout =
+      SpriteLayout(kNumberOfRooms, {kSpriteData, kSpriteData + 8});
+  SetPointersFrom(layout, 0, kRoomsSpritePointer);
+  EXPECT_FALSE(ReadDungeonSpriteStream(*rom_, 0).ok());
+  SetPointersFrom(layout, 0, kRoomsSpritePointer - 1);
+  EXPECT_FALSE(ReadDungeonSpriteStream(*rom_, 0).ok());
+}
+
 TEST_F(DungeonStreamAllocatorTest, InventoriesExactAliasesAndSuffixOverlap) {
   auto layout = PotLayout(3, {{kPotData, kPotData + 0x40}},
                           {{kPotData + 0x20, kPotData + 0x40}});

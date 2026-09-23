@@ -368,6 +368,12 @@ gui::CanvasMenuItem DungeonCanvasViewer::BuildRoomContextMenu(int room_id) {
   gui::CanvasMenuItem room_menu;
   room_menu.label = "Room";
   room_menu.icon = ICON_MD_HOME;
+  gui::CanvasMenuItem transfer_item(
+      "Clone / Import Room...", ICON_MD_CONTENT_COPY, [this, room_id]() {
+        room_transfer_state_.popup_room_id = room_id;
+        room_transfer_state_.request_popup = true;
+      });
+  room_menu.subitems.push_back(std::move(transfer_item));
   if (save_room_callback_) {
     room_menu.subitems.emplace_back(
         "Apply Room to ROM", ICON_MD_SAVE,

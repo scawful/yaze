@@ -12,6 +12,7 @@
 #include "app/editor/dungeon/dungeon_room_edit.h"
 #include "app/editor/dungeon/dungeon_room_selector.h"
 #include "app/editor/dungeon/inspectors/dungeon_chest_editor.h"
+#include "app/editor/dungeon/inspectors/dungeon_room_transfer_editor.h"
 #include "app/editor/dungeon/workspace/dungeon_workbench_inspector_helpers.h"
 #include "app/gui/automation/widget_auto_register.h"
 #include "app/gui/core/icons.h"
@@ -178,6 +179,15 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
     DrawLayerCompositingControls(viewer, room_id);
   }
 
+  if (workbench::BeginInspectorSection(
+          ICON_MD_CONTENT_COPY " Clone / Import Room", false)) {
+    if (viewer.room_transfer_state().popup_open) {
+      ImGui::TextWrapped("Room transfer is open in the canvas dialog.");
+    } else {
+      DrawDungeonRoomTransferEditor(viewer);
+    }
+  }
+
   // Room properties share the editor's validated metadata edit boundary. Raw
   // graphics IDs remain available alongside named behavior choices.
   if (auto* rooms = viewer.rooms();
@@ -274,7 +284,7 @@ void DungeonWorkbenchContent::DrawInspectorShelfRoom(
       draw_hex("Palette", "##RoomHeaderPalette", room.palette(), 0x47,
                RoomMetadataField::kPalette);
       draw_hex("Sprite graphics", "##RoomHeaderSpriteset", room.spriteset(),
-               0x8F, RoomMetadataField::kSpriteset);
+               zelda3::kMaxDungeonSpriteset, RoomMetadataField::kSpriteset);
       draw_hex("Message", "##RoomHeaderMessage", room.message_id(), 0x0FFF,
                RoomMetadataField::kMessage);
       draw_choice("BG2 mode", "##RoomHeaderBg2", static_cast<int>(room.bg2()),

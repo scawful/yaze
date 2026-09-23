@@ -16,6 +16,7 @@
 #include "app/editor/dungeon/dungeon_room_edit.h"
 #include "app/editor/dungeon/inspectors/dungeon_chest_editor.h"
 #include "app/editor/dungeon/inspectors/dungeon_connection_editor.h"
+#include "app/editor/dungeon/inspectors/dungeon_room_transfer_editor.h"
 #include "app/editor/editor.h"
 #include "app/gfx/backend/irenderer.h"
 #include "app/gfx/types/snes_palette.h"
@@ -37,6 +38,7 @@
 
 // Room-based plans must follow canvas.h's ImGui math-operator configuration.
 #include "app/editor/dungeon/dungeon_connection_edit.h"
+#include "app/editor/dungeon/dungeon_room_transfer.h"
 
 namespace yaze {
 namespace editor {
@@ -331,6 +333,28 @@ class DungeonCanvasViewer {
   }
   DungeonConnectionEditorState& connection_editor_state() {
     return connection_editor_state_;
+  }
+  using RoomDocumentExportCallback =
+      std::function<absl::StatusOr<std::string>(int)>;
+  using RoomTransferPreviewCallback =
+      std::function<absl::StatusOr<DungeonRoomTransferPlan>(
+          int, int, const std::string&, const DungeonRoomTransferOptions&)>;
+  using RoomTransferApplyCallback =
+      std::function<absl::Status(const DungeonRoomTransferPlan&)>;
+  void SetRoomTransferCallbacks(RoomDocumentExportCallback export_document,
+                                RoomTransferPreviewCallback preview,
+                                RoomTransferApplyCallback apply) {
+    room_document_export_callback_ = std::move(export_document);
+    room_transfer_preview_callback_ = std::move(preview);
+    room_transfer_apply_callback_ = std::move(apply);
+  }
+  absl::StatusOr<std::string> ExportRoomDocument(int room_id);
+  absl::StatusOr<DungeonRoomTransferPlan> PreviewRoomTransfer(
+      int source_room_id, const std::string& json,
+      const DungeonRoomTransferOptions& options);
+  absl::Status ApplyRoomTransfer(const DungeonRoomTransferPlan& plan);
+  DungeonRoomTransferEditorState& room_transfer_state() {
+    return room_transfer_state_;
   }
   absl::Status EditRoomMetadata(int room_id, const RoomMetadataEdit& edit);
   absl::Status EditRoomMetadataBatch(
@@ -858,6 +882,7 @@ class DungeonCanvasViewer {
 
  private:
   friend class DungeonCanvasViewerTestPeer;
+  friend class DungeonRoomTransferEditorTestPeer;
   friend class DungeonRoomEditsTestPeer;
   friend class DungeonEditorPaletteRefreshTestPeer;
   friend class
@@ -1105,6 +1130,10 @@ class DungeonCanvasViewer {
   DoorConnectionApplyCallback door_connection_apply_callback_;
   std::function<void(int, size_t)> door_connection_navigation_callback_;
   DungeonConnectionEditorState connection_editor_state_;
+  RoomDocumentExportCallback room_document_export_callback_;
+  RoomTransferPreviewCallback room_transfer_preview_callback_;
+  RoomTransferApplyCallback room_transfer_apply_callback_;
+  DungeonRoomTransferEditorState room_transfer_state_;
   bool compact_header_mode_ = false;
   bool header_read_only_ = false;
   bool header_visible_ = true;

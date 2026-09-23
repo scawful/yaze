@@ -300,18 +300,7 @@ bool ItemInteractionHandler::NudgeSelected(int delta_pixel_x,
 }
 
 bool ItemInteractionHandler::MutateItemType(size_t index, uint8_t new_type) {
-  auto* room = GetCurrentRoom();
-  if (!room || index >= room->GetPotItems().size()) {
-    return false;
-  }
-  const auto& item = room->GetPotItems()[index];
-  return UpdateItem(index, new_type, item.GetPixelX(), item.GetPixelY());
-}
-
-bool ItemInteractionHandler::UpdateItem(size_t index, uint8_t type, int pixel_x,
-                                        int pixel_y) {
-  if (!HasValidContext() || pixel_x < 0 || pixel_x >= 512 || pixel_y < 0 ||
-      pixel_y >= 512 || pixel_x % 4 != 0 || pixel_y % 16 != 0) {
+  if (!HasValidContext()) {
     return false;
   }
   auto* room = GetCurrentRoom();
@@ -319,6 +308,37 @@ bool ItemInteractionHandler::UpdateItem(size_t index, uint8_t type, int pixel_x,
     return false;
   }
   auto& item = room->GetPotItems()[index];
+  if (item.item == new_type || item.position == 0xFFFF) {
+    return false;
+  }
+  // The ROM position is a tilemap byte offset with layer/control bits, not
+  // two independent pixel-coordinate bytes. A type-only edit must preserve it
+  // exactly, including fields outside the current position editor's subset.
+  ctx_->NotifyMutation(MutationDomain::kItems);
+  item.item = new_type;
+  room->MarkPotItemsDirty();
+  ctx_->NotifyInvalidateCache(MutationDomain::kItems);
+  ctx_->NotifyEntityChanged();
+  return true;
+}
+
+bool ItemInteractionHandler::UpdateItem(size_t index, uint8_t type, int pixel_x,
+                                        int pixel_y) {
+  if (!HasValidContext()) {
+    return false;
+  }
+  auto* room = GetCurrentRoom();
+  if (!room || index >= room->GetPotItems().size()) {
+    return false;
+  }
+  auto& item = room->GetPotItems()[index];
+  if (pixel_x == item.GetPixelX() && pixel_y == item.GetPixelY()) {
+    return MutateItemType(index, type);
+  }
+  if (pixel_x < 0 || pixel_x >= 512 || pixel_y < 0 || pixel_y >= 512 ||
+      pixel_x % 4 != 0 || pixel_y % 16 != 0) {
+    return false;
+  }
   const uint16_t position =
       static_cast<uint16_t>(((pixel_y / 16) << 8) | (pixel_x / 4));
   if (item.item == type && item.position == position) {

@@ -23,9 +23,12 @@ set(
   app/editor/dungeon/dungeon_editor_v2_chest_edits.cc
   app/editor/dungeon/dungeon_editor_v2_selection_edits.cc
   app/editor/dungeon/dungeon_editor_v2_connection_edits.cc
+  app/editor/dungeon/dungeon_editor_v2_room_transfer.cc
   app/editor/dungeon/dungeon_room_edit.cc
   app/editor/dungeon/dungeon_selection_edit.cc
   app/editor/dungeon/dungeon_connection_edit.cc
+  app/editor/dungeon/dungeon_room_transfer.cc
+  app/editor/dungeon/dungeon_room_transfer_json.cc
   app/editor/dungeon/dungeon_editor_v2_object_coverage.cc
   app/editor/dungeon/dungeon_object_interaction.cc
   app/editor/dungeon/dungeon_object_selector.cc
@@ -39,6 +42,7 @@ set(
   app/editor/dungeon/inspectors/dungeon_entity_inspector.cc
   app/editor/dungeon/inspectors/dungeon_chest_editor.cc
   app/editor/dungeon/inspectors/dungeon_connection_editor.cc
+  app/editor/dungeon/inspectors/dungeon_room_transfer_editor.cc
   app/editor/dungeon/inspectors/door_editor_content.cc
   app/editor/dungeon/inspectors/object_editor_content.cc
   app/editor/dungeon/interaction/door_interaction_handler.cc

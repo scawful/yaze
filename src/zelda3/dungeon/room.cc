@@ -869,6 +869,7 @@ Room::MetadataSnapshot Room::CaptureMetadataSnapshot() const {
           .tag1 = tag1_,
           .tag2 = tag2_,
           .holewarp = holewarp_,
+          .pit_target_layer = pits_.target_layer,
           .staircase_rooms = {staircase_rooms_[0], staircase_rooms_[1],
                               staircase_rooms_[2], staircase_rooms_[3]},
           .staircase_planes = {staircase_plane_[0], staircase_plane_[1],
@@ -903,6 +904,7 @@ void Room::RestoreMetadataSnapshot(const MetadataSnapshot& snapshot) {
   SetTag1(snapshot.tag1);
   SetTag2(snapshot.tag2);
   SetHolewarp(snapshot.holewarp);
+  SetPitsTargetLayer(snapshot.pit_target_layer);
   for (int index = 0; index < 4; ++index) {
     SetStaircaseRoom(index, snapshot.staircase_rooms[index]);
     SetStaircasePlane(index, snapshot.staircase_planes[index]);
@@ -3360,7 +3362,6 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
     const RoomObject* source_object;
   };
   std::unordered_set<uint16_t> owned_room_ids;
-  std::unordered_set<int> claimed_load_orders;
   std::unordered_map<int, EncodedBlock> slot_replacements;
   std::vector<EncodedBlock> appended;
   for (int rid = 0; rid < room_count; ++rid) {
@@ -3377,6 +3378,10 @@ absl::Status SaveAllBlocks(Rom* rom, int room_count,
       continue;  // Header-only — preserve its slots verbatim from ROM.
     }
     owned_room_ids.insert(static_cast<uint16_t>(rid));
+    // Historical slots are only identities within their original room. Undo
+    // may restore a slot now occupied by another room after table compaction.
+    // Still reject two blocks in this room claiming the same historical slot.
+    std::unordered_set<int> claimed_load_orders;
     for (const auto& obj : room->GetTileObjects()) {
       if ((obj.options() & ObjectOption::Block) != ObjectOption::Block)
         continue;

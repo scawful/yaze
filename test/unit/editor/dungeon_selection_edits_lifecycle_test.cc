@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "app/editor/dungeon/dungeon_selection_edit.h"
+#include "app/editor/dungeon/inspectors/object_editor_content.h"
 #include "app/gfx/resource/arena.h"
 #include "core/features.h"
 #include "core/project.h"
@@ -265,6 +266,29 @@ TEST_P(DungeonSelectionEditsLifecycleTest,
   EXPECT_TRUE(room_->GetSprites().empty());
   EXPECT_TRUE(room_->GetDoors().empty());
   EXPECT_TRUE(room_->GetPotItems().empty());
+}
+
+TEST_P(DungeonSelectionEditsLifecycleTest,
+       ObjectInspectorDeletePreservesMixedEntitiesAndUndoesChestTogether) {
+  SelectMixed(true);
+  const auto before = CaptureDungeonSelectionEditState(*room_);
+  const auto entities = coordinator().SelectedEntitiesForEdit();
+  ObjectEditorContent inspector;
+  inspector.SetCanvasViewer(viewer_);
+  inspector.DeleteSelectedObjects();
+  EXPECT_TRUE(room_->GetTileObjects().empty());
+  EXPECT_TRUE(room_->GetChests().empty());
+  EXPECT_EQ(room_->GetDoors().size(), before.doors.size());
+  EXPECT_EQ(room_->GetSprites().size(), before.sprites.size());
+  EXPECT_EQ(room_->GetPotItems().size(), before.items.size());
+  EXPECT_EQ(coordinator().SelectedEntitiesForEdit(), entities);
+  EXPECT_EQ(UndoDepth(), 1u);
+  const auto status = editor_->Undo();
+  EXPECT_TRUE(status.ok()) << status;
+  ExpectRoomData(*room_, before);
+  // The local inspector owns these callbacks only until this test returns.
+  interaction().SetSelectionChangeCallback({});
+  interaction().SetEntityChangedCallback({});
 }
 
 TEST_P(DungeonSelectionEditsLifecycleTest,

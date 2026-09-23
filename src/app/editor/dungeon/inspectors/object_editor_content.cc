@@ -533,7 +533,9 @@ void ObjectEditorContent::DeleteSelectedObjects() {
     return;
   }
 
-  (void)viewer->object_interaction().HandleDeleteSelected();
+  auto& interaction = viewer->object_interaction();
+  interaction.entity_coordinator().tile_handler().DeleteObjects(
+      viewer->current_room_id(), interaction.GetSelectedObjectIndices());
 }
 
 void ObjectEditorContent::DuplicateSelectedObjects() {

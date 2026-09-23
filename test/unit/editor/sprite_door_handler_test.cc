@@ -975,5 +975,43 @@ TEST_F(ItemInteractionHandlerTest, DeleteAllClearsItemsAndFiresCallbacks) {
   EXPECT_EQ(invalidate_count_, invalidations_before + 1);
 }
 
+TEST_F(ItemInteractionHandlerTest, TypeOnlyEditsPreserveFlaggedRawPositions) {
+  // USDASM bank_01 $01DDEB/$01E06E: upper/lower-layer vanilla records. The
+  // last value also exercises the high control bit masked by RevealPotItem.
+  for (uint16_t position : {0x13CC, 0x2660, 0xA660}) {
+    rooms_[0].GetPotItems() = {{position, 1}};
+    rooms_[0].ClearSaveDirtyState();
+    const int mutations_before = mutation_count_;
+    ASSERT_TRUE(handler_.MutateItemType(0, 6));
+    EXPECT_EQ(rooms_[0].GetPotItems()[0].position, position);
+    EXPECT_EQ(rooms_[0].GetPotItems()[0].item, 6);
+    EXPECT_TRUE(rooms_[0].pot_items_dirty());
+    EXPECT_EQ(mutation_count_, mutations_before + 1);
+    EXPECT_FALSE(handler_.MutateItemType(0, 6));
+    EXPECT_EQ(mutation_count_, mutations_before + 1);
+  }
+}
+
+TEST_F(ItemInteractionHandlerTest,
+       UnchangedCoordinatesKeepRawPositionOnTypeEdit) {
+  rooms_[0].GetPotItems() = {{0x2660, 1}};
+  const auto original = rooms_[0].GetPotItems()[0];
+  ASSERT_TRUE(
+      handler_.UpdateItem(0, 6, original.GetPixelX(), original.GetPixelY()));
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].position, original.position);
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].item, 6);
+  EXPECT_EQ(mutation_count_, 1);
+  EXPECT_FALSE(handler_.UpdateItem(0, 8, -4, 0));
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].item, 6);
+  EXPECT_EQ(mutation_count_, 1);
+}
+
+TEST_F(ItemInteractionHandlerTest, TypeEditRejectsStreamTerminatorPosition) {
+  rooms_[0].GetPotItems() = {{0xFFFF, 1}};
+  EXPECT_FALSE(handler_.MutateItemType(0, 6));
+  EXPECT_EQ(rooms_[0].GetPotItems()[0].item, 1);
+  EXPECT_EQ(mutation_count_, 0);
+}
+
 }  // namespace
 }  // namespace yaze::editor

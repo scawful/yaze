@@ -25,6 +25,43 @@ bool HasSameObjectIdentity(const zelda3::RoomObject& lhs,
 
 DungeonCanvasViewer::~DungeonCanvasViewer() = default;
 
+absl::StatusOr<std::string> DungeonCanvasViewer::ExportRoomDocument(
+    int room_id) {
+  if (!room_document_export_callback_ || !rooms_ || room_id < 0 ||
+      room_id >= static_cast<int>(rooms_->size())) {
+    return absl::FailedPreconditionError("Room export is unavailable");
+  }
+  return room_document_export_callback_(room_id);
+}
+
+absl::StatusOr<DungeonRoomTransferPlan>
+DungeonCanvasViewer::PreviewRoomTransfer(
+    int source_room_id, const std::string& json,
+    const DungeonRoomTransferOptions& options) {
+  const auto* context =
+      object_interaction_.entity_coordinator().tile_handler().context();
+  if (header_read_only_ || !room_transfer_preview_callback_ || !context ||
+      context->current_room_id != current_room_id_) {
+    return absl::FailedPreconditionError(
+        "Room replacement is not editable in this view");
+  }
+  return room_transfer_preview_callback_(current_room_id_, source_room_id, json,
+                                         options);
+}
+
+absl::Status DungeonCanvasViewer::ApplyRoomTransfer(
+    const DungeonRoomTransferPlan& plan) {
+  const auto* context =
+      object_interaction_.entity_coordinator().tile_handler().context();
+  if (header_read_only_ || !room_transfer_apply_callback_ || !context ||
+      context->current_room_id != current_room_id_ ||
+      plan.target_room_id != current_room_id_) {
+    return absl::FailedPreconditionError(
+        "Room replacement is not editable in this view");
+  }
+  return room_transfer_apply_callback_(plan);
+}
+
 absl::StatusOr<DungeonConnectionPlan>
 DungeonCanvasViewer::PreviewDoorConnection(
     const DungeonConnectionRequest& request) {
@@ -275,6 +312,7 @@ void DungeonCanvasViewer::RefreshRomBackedState(Rom* rom,
   // identical. Discard presentation stamps before those replacements occur.
   ResetRoomCompositeOutputs();
   connection_editor_state_ = {};
+  room_transfer_state_ = {};
   InvalidateExternalSpriteResources();
   ClearPreviewObject();
   object_interaction_.CancelPlacement();
@@ -377,6 +415,7 @@ void DungeonCanvasViewer::DrawDungeonCanvas(int room_id) {
 
   gui::EndCanvas(canvas_, canvas_rt, frame_opts);
   SyncViewerStateFromCanvasConfig();
+  DrawDungeonRoomTransferPopup(*this);
 }
 
 void DungeonCanvasViewer::UpdateRoomCanvasShortcutFocus(bool hovered,

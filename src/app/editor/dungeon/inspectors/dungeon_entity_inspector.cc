@@ -252,6 +252,7 @@ void DrawItem(DungeonCanvasViewer& viewer, size_t index,
       type < kPotItemNames.size() ? kPotItemNames[type] : "Unknown";
   ImGui::TextWrapped("Pot item #%zu · %02X %s", index, type, name);
   bool changed = false;
+  bool position_changed = false;
   if (BeginProperties()) {
     if (BeginChoice("Type", "ItemType",
                     absl::StrFormat("%02X %s", type, name).c_str())) {
@@ -261,16 +262,25 @@ void DrawItem(DungeonCanvasViewer& viewer, size_t index,
           type = static_cast<uint8_t>(i);
           changed = true;
         }
+        gui::AutoRegisterLastItem("selectable",
+                                  absl::StrFormat("ItemType/%zu", i));
       }
       ImGui::EndCombo();
     }
-    changed |= IntegerProperty("X (pixel)", "ItemX", x, 508, 4, identity);
-    changed |= IntegerProperty("Y (pixel)", "ItemY", y, 496, 16, identity);
+    position_changed |=
+        IntegerProperty("X (pixel)", "ItemX", x, 508, 4, identity);
+    position_changed |=
+        IntegerProperty("Y (pixel)", "ItemY", y, 496, 16, identity);
     ImGui::EndTable();
   }
-  if (changed) {
+  if (position_changed) {
     viewer.object_interaction().entity_coordinator().item_handler().UpdateItem(
         index, type, x, y);
+  } else if (changed) {
+    viewer.object_interaction()
+        .entity_coordinator()
+        .item_handler()
+        .MutateItemType(index, type);
   }
   ImGui::TextWrapped(
       "Position snaps to 4 pixels horizontally and 16 vertically.");

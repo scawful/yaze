@@ -212,6 +212,15 @@ std::vector<SelectedEntity> ValidEntitySelection(
 }  // namespace
 
 void DungeonEditorV2::ConfigureViewerUndoHooks(DungeonCanvasViewer* viewer) {
+  viewer->SetRoomTransferCallbacks(
+      [this](int id) { return ExportRoomDocument(id); },
+      [this](int target, int source, const std::string& json,
+             const DungeonRoomTransferOptions& options) {
+        return PreviewRoomTransfer(target, source, json, options);
+      },
+      [this](const DungeonRoomTransferPlan& plan) {
+        return ApplyRoomTransfer(plan);
+      });
   viewer->SetDoorConnectionNavigationCallback(
       [this](int room_id, size_t index) {
         const auto* room = rooms_.GetIfLoaded(room_id);
