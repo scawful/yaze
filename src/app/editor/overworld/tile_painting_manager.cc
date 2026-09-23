@@ -219,20 +219,32 @@ void TilePaintingManager::CheckForOverworldEdits() {
 
   CheckForSelectRectangle();
 
+  // DrawSelectRect updates hover for the canvas item. A held button entering
+  // from another widget must not become a paint gesture, and a canvas gesture
+  // may only write while the cursor is still over that canvas.
+  const bool canvas_hovered = deps_.ow_map_canvas->IsMouseHovering();
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+    paint_gesture_owned_ = canvas_hovered && ImGui::IsItemActive();
+  } else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+    paint_gesture_owned_ = false;
+  }
+  const bool can_paint =
+      paint_gesture_owned_ && canvas_hovered && ImGui::IsItemActive();
+
   // User has selected a tile they want to draw from the blockset
   // and clicked on the canvas.
   if (*deps_.current_mode == EditingMode::DRAW_TILE &&
       *deps_.current_tile16 >= 0 &&
       !deps_.ow_map_canvas->select_rect_active() &&
       deps_.ow_map_canvas->DrawTilemapPainter(*deps_.tile16_blockset,
-                                              *deps_.current_tile16)) {
+                                              *deps_.current_tile16) &&
+      can_paint) {
     DrawOverworldEdits();
   }
 
   // Fill tool: fill the entire 32x32 tile16 screen under the cursor using the
   // current selection pattern (if any) or the current tile16.
-  if (*deps_.current_mode == EditingMode::FILL_TILE &&
-      deps_.ow_map_canvas->IsMouseHovering() &&
+  if (*deps_.current_mode == EditingMode::FILL_TILE && can_paint &&
       ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
     float scale = deps_.ow_map_canvas->global_scale();
     if (scale <= 0.0f) {
@@ -331,7 +343,7 @@ void TilePaintingManager::CheckForOverworldEdits() {
 
   // Rectangle selection stamping (brush mode only).
   if (*deps_.current_mode == EditingMode::DRAW_TILE &&
-      deps_.ow_map_canvas->select_rect_active()) {
+      deps_.ow_map_canvas->select_rect_active() && can_paint) {
     if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) ||
         ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
       LOG_DEBUG("TilePaintingManager",

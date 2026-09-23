@@ -88,7 +88,9 @@ void OverworldMapTextureCoordinator::EnsureMapTexture(int map_index) {
   if (!map) {
     return;
   }
-  const bool needs_bitmap_sync = !was_built || bitmap.modified();
+  // A modified editor bitmap can be newer than a built map's cached pixels.
+  // Preserve it and its dirty flag until the content refresh rebuilds the map.
+  const bool needs_bitmap_sync = !was_built;
 
   if (!bitmap.is_active()) {
     const auto& palette = map->current_palette();
