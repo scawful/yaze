@@ -368,7 +368,7 @@ TEST_F(TilePaintingManagerGestureTest, CanvasClickAndDragStampSelectedTiles) {
   EXPECT_EQ((*maps_)[0].vector()[128 * 512 + 144], 0x22);
   EXPECT_TRUE(rom_.dirty());
   EXPECT_EQ(undo_points_.size(), 4);
-  EXPECT_EQ(finalize_count_, 2);
+  EXPECT_EQ(finalize_count_, 1);
   EXPECT_EQ(refresh_count_, 2);
 }
 
@@ -385,7 +385,7 @@ TEST_F(TilePaintingManagerGestureTest,
   EXPECT_EQ(overworld_->mutable_map_tiles()->light_world, after_click);
   EXPECT_EQ((*maps_)[0].vector(), pixels_after_click);
   EXPECT_EQ(undo_points_.size(), 2);
-  EXPECT_EQ(finalize_count_, 1);
+  EXPECT_EQ(finalize_count_, 0);
   EXPECT_EQ(refresh_count_, 1);
 
   Frame(At(160, 128), true);
@@ -393,6 +393,7 @@ TEST_F(TilePaintingManagerGestureTest,
   EXPECT_EQ(overworld_->mutable_map_tiles()->light_world[10][8], 1);
   EXPECT_EQ(overworld_->mutable_map_tiles()->light_world[11][8], 2);
   EXPECT_EQ(undo_points_.size(), 4);
+  EXPECT_EQ(finalize_count_, 1);
 }
 
 TEST_F(TilePaintingManagerGestureTest,

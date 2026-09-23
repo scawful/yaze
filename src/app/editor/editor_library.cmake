@@ -114,6 +114,9 @@ set(
   app/editor/overworld/panels/usage_statistics_panel.cc
   app/editor/overworld/panels/v3_settings_panel.cc
   app/editor/overworld/tile16_editor.cc
+  app/editor/overworld/tile16/tile16_edit_session.cc
+  app/editor/overworld/tile16/tile16_edit_history.cc
+  app/editor/overworld/ui/tiles/tile16_workbench.cc
   app/editor/overworld/ui/canvas/overworld_canvas_view.cc
   app/editor/overworld/ui/debug/debug_window_card.cc
   app/editor/overworld/ui/debug/usage_statistics_card.cc

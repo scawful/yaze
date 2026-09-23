@@ -130,22 +130,7 @@ void OverworldInteractionCoordinator::Update(
     }
   }
 
-  // 6. Undo/Redo (supports Ctrl+Z, Ctrl+Shift+Z, and Ctrl+Y)
-  if (ctrl_held) {
-    if (ImGui::IsKeyPressed(ImGuiKey_Z, false)) {
-      if (shift_held) {
-        if (sink_.on_redo)
-          sink_.on_redo();
-      } else {
-        if (sink_.on_undo)
-          sink_.on_undo();
-      }
-    }
-    if (ImGui::IsKeyPressed(ImGuiKey_Y, false)) {
-      if (sink_.on_redo)
-        sink_.on_redo();
-    }
-  }
+  // Undo/Redo is dispatched once by the application shortcut manager.
 }
 
 }  // namespace editor

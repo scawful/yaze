@@ -3,6 +3,8 @@
 #include "app/editor/core/panel_registration.h"
 #include "app/editor/overworld/panels/overworld_panel_access.h"
 
+#include "util/log.h"
+
 namespace yaze::editor {
 
 void AreaGraphicsPanel::Draw(bool* p_open) {

@@ -2,7 +2,8 @@
 
 Start with the table below. `OverworldEditor` owns editor lifecycle, shared state,
 service wiring, save dispatch, and undo integration. `Tile16Editor` owns the
-Tile16 definition window and its pending edits. Both remain at this directory's
+Tile16 definition window and canvases. Its session publishes edits directly to
+the open overworld document. Both remain at this directory's
 root so callers and parallel refactors have stable entry points.
 
 ## Directory responsibilities
@@ -10,12 +11,12 @@ root so callers and parallel refactors have stable entry points.
 | Location | Owns | Start here |
 | --- | --- | --- |
 | Root | Editor lifecycle and integration | [overworld_editor.h](overworld_editor.h), [overworld_editor.cc](overworld_editor.cc) |
-| Root | Tile16 definition editing and pending changes | [tile16_editor.h](tile16_editor.h), [tile16_editor.cc](tile16_editor.cc) |
+| Root | Tile16 window wiring and canvases | [tile16_editor.h](tile16_editor.h), [tile16_editor.cc](tile16_editor.cc) |
 | `canvas/` | Hit testing, pan/zoom, map selection, canvas rendering | [canvas_navigation_manager.cc](canvas/canvas_navigation_manager.cc), [overworld_canvas_renderer.cc](canvas/overworld_canvas_renderer.cc) |
 | `painting/` | Captured rectangular brushes, painting, fill, and clipboard placement | [tile_brush.h](painting/tile_brush.h), [tile_painting_manager.cc](painting/tile_painting_manager.cc) |
 | `maps/` | Property edits, metadata, refresh, and texture coordination | [map_properties.cc](maps/map_properties.cc), [map_refresh_coordinator.cc](maps/map_refresh_coordinator.cc), [map_texture_coordinator.cc](maps/map_texture_coordinator.cc) |
 | `entity/` | Entity rendering, editing targets, and mutation services | [entity_workbench.cc](entity/entity_workbench.cc), [entity_mutation_service.cc](entity/entity_mutation_service.cc), [entity_operations.cc](entity/entity_operations.cc) |
-| `tile16/` | Small Tile16 state, shortcut, source-selection, and undo helpers | [tile16_editor_action_state.h](tile16/tile16_editor_action_state.h), [tile8_source_interaction.h](tile16/tile8_source_interaction.h), [tile16_undo_actions.h](tile16/tile16_undo_actions.h) |
+| `tile16/` | Document edits, metadata transactions, palette/graphics coordination, history | [tile16_edit_session.h](tile16/tile16_edit_session.h), [tile16_edit_history.cc](tile16/tile16_edit_history.cc) |
 | `ui/navigation/` | Toolbar and sidebar layout | [overworld_toolbar.cc](ui/navigation/overworld_toolbar.cc), [overworld_sidebar.cc](ui/navigation/overworld_sidebar.cc) |
 | `ui/tiles/` | Tile selector/window content and scratch workspace | [tile16_selector_view.cc](ui/tiles/tile16_selector_view.cc), [tile16_editor_view.cc](ui/tiles/tile16_editor_view.cc), [scratch_space.cc](ui/tiles/scratch_space.cc) |
 | `ui/canvas/` | Canvas window content registration | [overworld_canvas_view.cc](ui/canvas/overworld_canvas_view.cc) |
@@ -120,9 +121,9 @@ child-screen offsets; modulo 512 discards those offsets.
 | Task | Scope | Acceptance check |
 | --- | --- | --- |
 | Improve a toolbar group or sidebar label | `ui/navigation/` | Existing shortcuts, IDs, focus, and disabled behavior remain correct; inspect narrow and wide windows. |
-| Improve tile selector feedback | `ui/tiles/` plus an existing helper if needed | Hover, selection, and pending Tile16 edits remain distinct; compare preview and actual paint. |
+| Improve tile selector feedback | `ui/tiles/` plus an existing helper if needed | Hover, selection, and document edits remain distinct; compare preview and actual paint. |
 | Extract one property validation rule | `maps/overworld_property_edit.*` | Add a focused valid/invalid test; preserve callbacks, undo, and unrelated metadata. |
-| Simplify one Tile16 interaction rule | `tile16/` helper and its caller | Verify commit, discard, and undo boundaries; keep layout changes separate. |
+| Simplify one Tile16 interaction rule | `tile16/` helper and its caller | Verify immediate publication, compound Undo/Redo, and document Save; keep layout changes separate. |
 | Extract one entity operation | `entity/` | Prove identity and history across insert/delete; keep ROM encoding unchanged. |
 
 For a file move, change only location, includes, CMake registration, and affected
@@ -130,10 +131,39 @@ documentation. Preserve function bodies. For behavior changes, state the trigger
 and expected outcome first, then add a regression that observes that outcome.
 Do not combine broad formatting, renaming, and feature work in one patch.
 
-The separate Cursor Tile16 session/workbench refactor is pending integration.
-This layout does not claim that extraction has landed. Reconcile its ownership
-and callbacks explicitly before merging; do not copy its uncommitted files into
-an unrelated cleanup.
+## Tile16 document contract
+
+Cursor's session/workbench split is integrated in this repair branch. Change
+layout in [tile16_workbench.cc](ui/tiles/tile16_workbench.cc), edit rules in
+[tile16_edit_session.cc](tile16/tile16_edit_session.cc), and transaction/history
+rules in [tile16_edit_history.cc](tile16/tile16_edit_history.cc).
+
+1. `Overworld::tiles16()` is the authoritative definition data for a bound
+   session. `BindDocument` gives the session the owning editor's `UndoManager`.
+   The owner clears history when replacing/loading the document.
+2. Every definition mutation enters `RunEdit`. It publishes metadata immediately,
+   marks the document dirty, and records one complete before/after batch. A
+   four-definition stamp must undo all four definitions. No-op/invalid edits
+   must not clear Redo. Use `ReplaceCurrentTile` for property UI; do not mutate
+   the pointer returned by `GetCurrentTile16Data` from new UI code.
+3. `on_document_changed` invalidates shared map/atlas caches after edit, Undo,
+   and Redo. The selected map is rebuilt immediately; other maps use the existing
+   deferred refresh budget. History stores metadata, not graphics tied to the
+   source map's palette. Do not restore stale cached pixels on map changes.
+4. Definition edits, map paint strokes, Fill, and Paste share chronological
+   history. Finish an open paint stroke before another mutation. Single and
+   rectangular brush drags end at mouse release; Fill/Paste are discrete actions.
+   Production paint actions disable time-based merging across separate strokes.
+5. The application shortcut manager owns shared Undo/Redo and Save. The Tile16
+   panel must not dispatch the same history shortcut again. Standalone sessions
+   retain their own history for tests/tools. Normal Tile16 UI has no staging
+   queue, commit/discard controls, or tile-switch confirmation.
+6. `OverworldEditor::Save` serializes definitions through `SaveMap16Tiles` or
+   `SaveMap16Expanded`. Edits/Undo/Redo do not write ROM bytes. Legacy standalone
+   serialization adapters remain for older tooling/tests; bound sessions reject
+   those write/revert paths. Their legacy `pending` accessors describe local edit
+   caches, not an additional user confirmation step.
+
 
 ## Validation and handoff
 
@@ -163,5 +193,5 @@ an unrelated cleanup.
 
 For visual acceptance, use a disposable ROM copy. Check paint/preview agreement,
 fill boundaries, rectangular stamp dimensions, map/world transitions, release
-outside the canvas, and undo/redo. Definition editing additionally needs commit
-and discard checked against both map and selector pixels.
+outside the canvas, and undo/redo. Definition editing additionally needs edit → switch map/palette → Undo/Redo
+checked against both map and selector pixels, plus Save and independent reopen.

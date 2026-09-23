@@ -613,6 +613,29 @@ TEST_F(Tile16EditorSyntheticFixture,
 }
 
 // Basic validation tests (no ROM required)
+TEST_F(Tile16EditorSyntheticFixture,
+       SharedHistoryShortcutIsHandledOnlyByApplication) {
+  UndoManager history;
+  editor_->BindDocument(nullptr, &history);
+  ASSERT_TRUE(editor_->ApplyPaletteToAll(6).ok());
+  ASSERT_EQ(history.UndoStackSize(), 1u);
+  RunPanelFrame([](ImGuiIO& io) {
+    io.AddKeyEvent(
+        io.ConfigMacOSXBehaviors ? ImGuiKey_LeftSuper : ImGuiKey_LeftCtrl,
+        true);
+  });
+  RunPanelFrame([](ImGuiIO& io) { io.AddKeyEvent(ImGuiKey_Z, true); });
+  EXPECT_EQ(history.UndoStackSize(), 1u);
+  ASSERT_TRUE(history.Undo().ok());  // Application dispatches the one command.
+  EXPECT_EQ(history.UndoStackSize(), 0u);
+  RunPanelFrame([](ImGuiIO& io) {
+    io.AddKeyEvent(ImGuiKey_Z, false);
+    io.AddKeyEvent(ImGuiKey_LeftSuper, false);
+    io.AddKeyEvent(ImGuiKey_LeftCtrl, false);
+  });
+  editor_->BindDocument(nullptr, nullptr);
+}
+
 TEST_F(Tile16EditorIntegrationTest, BasicValidation) {
   // Test with invalid tile ID
   EXPECT_FALSE(editor_->IsTile16Valid(-1));

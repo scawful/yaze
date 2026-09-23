@@ -62,8 +62,10 @@ class OverworldTilePaintAction : public UndoAction {
                            std::vector<OverworldTileChange> tile_changes,
                            zelda3::Overworld* overworld,
                            std::function<void()> refresh_fn,
-                           std::function<void(int)> refresh_map_fn = {})
-      : map_id_(map_id),
+                           std::function<void(int)> refresh_map_fn = {},
+                           bool allow_merge = true)
+      : allow_merge_(allow_merge),
+        map_id_(map_id),
         world_(world),
         tile_changes_(NormalizeChanges(std::move(tile_changes))),
         overworld_(overworld),
@@ -105,9 +107,13 @@ class OverworldTilePaintAction : public UndoAction {
   }
 
   bool CanMergeWith(const UndoAction& prev) const override {
+    if (!allow_merge_)
+      return false;
     const auto* prev_paint =
         dynamic_cast<const OverworldTilePaintAction*>(&prev);
     if (!prev_paint)
+      return false;
+    if (!prev_paint->allow_merge_)
       return false;
     if (prev_paint->overworld_ != overworld_)
       return false;
@@ -199,6 +205,7 @@ class OverworldTilePaintAction : public UndoAction {
     }
   }
 
+  bool allow_merge_;
   int map_id_;
   int world_;
   std::vector<OverworldTileChange> tile_changes_;
