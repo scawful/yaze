@@ -1138,6 +1138,18 @@ void SettingsPanel::DrawEditorBehavior() {
         user_settings_->prefs().prefer_hmagic_sprite_names);
     user_settings_->Save();
   }
+
+  ImGui::Spacing();
+  ImGui::Text(tr("%s Testing"), ICON_MD_SCIENCE);
+  ImGui::Separator();
+  if (ImGui::Checkbox(tr("Test mode"), &user_settings_->prefs().test_mode)) {
+    user_settings_->Save();
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip(
+        tr("From the next launch: no welcome screen, no editor picker, and "
+           "the local test server starts on port 50052 (builds with gRPC)."));
+  }
 }
 
 void SettingsPanel::DrawPerformanceSettings() {

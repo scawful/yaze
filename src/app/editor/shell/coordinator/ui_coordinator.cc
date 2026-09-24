@@ -1940,6 +1940,13 @@ void UICoordinator::DrawGlobalSearch() {
 // ============================================================================
 
 void UICoordinator::SetStartupSurface(StartupSurface surface) {
+  // Automatic moves to the dashboard (after a ROM or project load, or when
+  // the welcome screen closes) obey the same rule as
+  // SetEditorSelectionVisible(true): no picker when it is suppressed or an
+  // editor is already open. Ctrl+E uses ShowEditorSelection() instead.
+  if (surface == StartupSurface::kDashboard && !ShouldShowDashboard()) {
+    surface = StartupSurface::kEditor;
+  }
   StartupSurface old_surface = current_startup_surface_;
   current_startup_surface_ = surface;
 
@@ -1991,7 +1998,15 @@ bool UICoordinator::ShouldShowDashboard() const {
   // consulted. The surface test is dropped on purpose: by the time a ROM
   // finishes loading the surface has already advanced past kDashboard, so
   // keying on it would suppress the very chooser the flag exists to govern.
-  return dashboard_behavior_override_ != StartupVisibility::kHide;
+  if (dashboard_behavior_override_ == StartupVisibility::kHide) {
+    return false;
+  }
+  if (dashboard_behavior_override_ == StartupVisibility::kShow) {
+    return true;
+  }
+  // Auto: the picker is for choosing a first editor. Do not cover one that
+  // is already open (for example, File > Open while the Dungeon editor is up).
+  return !(editor_manager_ && editor_manager_->HasOpenEditor());
 }
 
 bool UICoordinator::ShouldShowActivityBar() const {

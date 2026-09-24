@@ -52,6 +52,10 @@ class UserSettings {
     std::string last_rom_path;
     std::string last_project_path;
     bool show_welcome_on_startup = true;
+    // Test mode: launch without the welcome screen or editor picker and start
+    // the local test server (gRPC builds), so an agent that can only
+    // double-click the app gets a quiet, scriptable start. Next launch.
+    bool test_mode = false;
     bool restore_last_session = true;
     bool prefer_hmagic_sprite_names = true;
 
