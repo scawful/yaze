@@ -740,7 +740,15 @@ void OverworldEditor::SelectMapForEditing(int map_id, bool respect_pin) {
     return;
   }
 
-  FinalizePaintOperation();
+  // Cursor tracking may cross screens during one paint stroke. Preserve its
+  // undo batch within the same world; explicit selection still finalizes it.
+  const bool tracking_paint = respect_pin &&
+                              (current_mode == EditingMode::DRAW_TILE ||
+                               current_mode == EditingMode::FILL_TILE) &&
+                              map_id / 0x40 == current_world_;
+  if (!tracking_paint) {
+    FinalizePaintOperation();
+  }
   current_map_ = map_id;
   current_world_ = std::clamp(map_id / 0x40, 0, 2);
   current_parent_ = map->parent();

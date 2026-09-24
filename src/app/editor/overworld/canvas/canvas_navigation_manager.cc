@@ -4,6 +4,7 @@
 #include <optional>
 
 #include "absl/status/status.h"
+#include "app/editor/overworld/canvas/overworld_context_target.h"
 #include "app/editor/overworld/overworld_map_status.h"
 #include "app/gfx/resource/arena.h"
 #include "imgui/imgui.h"
@@ -39,49 +40,20 @@ ImVec2 ClampScrollPosition(ImVec2 scroll, ImVec2 content_size,
   return ImVec2(clamped_x, clamped_y);
 }
 
-int AllocatedRowsForWorld(int world) {
-  const int clamped_world = std::clamp(world, 0, 2);
-  const int world_start = clamped_world * 0x40;
-  const int maps_available =
-      std::clamp(zelda3::kNumOverworldMaps - world_start, 0, 0x40);
-  return (maps_available + 7) / 8;
-}
-
 std::optional<int> MapFromCanvasPosition(const CanvasNavigationContext& ctx,
                                          ImVec2 scaled_position) {
   if (!ctx.ow_map_canvas || !ctx.overworld || !ctx.current_world) {
     return std::nullopt;
   }
-
-  float scale = ctx.ow_map_canvas->global_scale();
-  if (scale <= 0.0f)
-    scale = 1.0f;
-
-  const int map_x =
-      static_cast<int>(scaled_position.x / scale) / kOverworldMapSize;
-  const int map_y =
-      static_cast<int>(scaled_position.y / scale) / kOverworldMapSize;
-
-  if (map_x < 0 || map_x >= 8 || map_y < 0 || map_y >= 8) {
+  // Use the same bounds and scale validation as right-click targeting. Integer
+  // truncation previously mapped small negative positions onto screen zero.
+  const auto target = ResolveOverworldContextTarget(
+      *ctx.current_world, 0, scaled_position, ImVec2(0, 0), ImVec2(0, 0),
+      ctx.ow_map_canvas->global_scale());
+  if (!target || !ctx.overworld->overworld_map(target->map_id)) {
     return std::nullopt;
   }
-
-  if (map_y >= AllocatedRowsForWorld(*ctx.current_world)) {
-    return std::nullopt;
-  }
-
-  int map_id = map_x + map_y * 8;
-  if (*ctx.current_world == 1) {
-    map_id += 0x40;
-  } else if (*ctx.current_world == 2) {
-    map_id += 0x80;
-  }
-
-  if (map_id < 0 || map_id >= zelda3::kNumOverworldMaps ||
-      ctx.overworld->overworld_map(map_id) == nullptr) {
-    return std::nullopt;
-  }
-  return map_id;
+  return target->map_id;
 }
 
 void SetHoveredMap(const CanvasNavigationContext& ctx, int map_id) {
@@ -140,6 +112,18 @@ void CanvasNavigationManager::Initialize(
 // Map Detection and Loading
 // =============================================================================
 
+std::optional<int> CanvasNavigationManager::TrackMapAtCanvasPosition(
+    ImVec2 scaled_position) {
+  const auto hovered_map = MapFromCanvasPosition(ctx_, scaled_position);
+  SetHoveredMap(ctx_, hovered_map.value_or(-1));
+  if (hovered_map && ctx_.current_map && ctx_.current_map_lock &&
+      !*ctx_.current_map_lock && *ctx_.current_map != *hovered_map &&
+      !(ctx_.is_dragging_entity && *ctx_.is_dragging_entity)) {
+    SelectMapForEditing(ctx_, callbacks_, *hovered_map, true);
+  }
+  return hovered_map;
+}
+
 absl::Status CanvasNavigationManager::CheckForCurrentMap() {
   if (!ctx_.ow_map_canvas || !ctx_.overworld || !ctx_.rom ||
       !ctx_.current_map || !ctx_.current_world || !ctx_.current_parent ||
@@ -158,7 +142,7 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
   const int large_map_size = 1024;
 
   const auto hovered_map =
-      MapFromCanvasPosition(ctx_, ctx_.ow_map_canvas->hover_mouse_pos());
+      TrackMapAtCanvasPosition(ctx_.ow_map_canvas->hover_mouse_pos());
   if (!hovered_map.has_value()) {
     SetHoveredMap(ctx_, -1);
     return absl::OkStatus();
@@ -173,9 +157,7 @@ absl::Status CanvasNavigationManager::CheckForCurrentMap() {
                   .c_str());
   }
 
-  // Hover is only a preview/loading signal. The editable map is changed by
-  // explicit click selection so toolbar/sidebar fields do not retarget while
-  // the cursor crosses another area.
+  // Unpinned selection follows the cursor in every editing mode.
   bool should_build = false;
   if (*hovered_map != last_hovered_map_) {
     last_hovered_map_ = *hovered_map;
@@ -374,7 +356,7 @@ void CanvasNavigationManager::HandleMapInteraction() {
     if (ctx_.hovered_map && *ctx_.hovered_map >= 0) {
       return *ctx_.hovered_map;
     }
-    return MapFromCanvasPosition(ctx_, ctx_.ow_map_canvas->hover_mouse_pos());
+    return TrackMapAtCanvasPosition(ctx_.ow_map_canvas->hover_mouse_pos());
   };
 
   const auto hovered_map = map_from_cursor();
@@ -382,24 +364,17 @@ void CanvasNavigationManager::HandleMapInteraction() {
     return;
   }
 
-  if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+  if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) &&
+      *ctx_.current_map != *hovered_map) {
     SelectMapForEditing(ctx_, callbacks_, *hovered_map, true);
   }
 
   if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-    SelectMapForEditing(ctx_, callbacks_, *hovered_map, true);
     *ctx_.show_map_properties_panel = true;
   }
 
-  if (ImGui::IsMouseClicked(ImGuiMouseButton_Middle)) {
-    if (*ctx_.current_map_lock && *ctx_.current_map == *hovered_map) {
-      *ctx_.current_map_lock = false;
-      return;
-    }
-    SelectMapForEditing(ctx_, callbacks_, *hovered_map, false);
-    *ctx_.current_map_lock = true;
-    *ctx_.show_map_properties_panel = true;
-  }
+  // Middle-drag is exclusively navigation. Pinning lives in the toolbar,
+  // Ctrl+L shortcut, and context menu so panning cannot silently freeze tracking.
 }
 
 // =============================================================================

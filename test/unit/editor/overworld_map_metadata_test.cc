@@ -117,5 +117,33 @@ TEST_F(OverworldMapMetadataTest, MetadataUsesEditableProjectResourceLabels) {
   EXPECT_NE(metadata.music_label.find("Oracle Field Cue"), std::string::npos);
 }
 
+TEST_F(OverworldMapMetadataTest, ChildScreenReadsParentAndSelectedSpriteState) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+  auto overworld = BuildMetadataTestOverworld(&rom);
+  overworld->mutable_overworld_map(9)->SetAsLargeMap(0, 3);
+  auto* parent = overworld->mutable_overworld_map(0);
+  parent->set_area_graphics(0x22);
+  parent->set_message_id(0x1234);
+  parent->set_sprite_graphics(0, 0x10);
+  parent->set_sprite_graphics(2, 0x24);
+  parent->set_sprite_palette(0, 1);
+  parent->set_sprite_palette(2, 5);
+  project::YazeProject project;
+  project.resource_labels["graphics"]["34"] = "Parent Terrain";
+  project.resource_labels["graphics"]["36"] = "Later Sprites";
+  project.resource_labels["overworld_sprite_palette"]["5"] = "Later Palette";
+  project.resource_labels["message"]["4660"] = "Parent Sign";
+  const auto metadata =
+      BuildOverworldMapMetadata(*overworld, &rom, &project, 9, 2);
+  EXPECT_EQ(metadata.map_id, 9);
+  EXPECT_EQ(metadata.parent_label, "Parent 0x00");
+  EXPECT_NE(metadata.area_gfx_label.find("Parent Terrain"), std::string::npos);
+  EXPECT_NE(metadata.sprite_gfx_label.find("Later Sprites"), std::string::npos);
+  EXPECT_NE(metadata.sprite_palette_label.find("Later Palette"),
+            std::string::npos);
+  EXPECT_NE(metadata.message_label.find("Parent Sign"), std::string::npos);
+}
+
 }  // namespace
 }  // namespace yaze::editor

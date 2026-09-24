@@ -55,28 +55,126 @@ void OverworldSidebar::Draw(int& current_world, int& current_map,
     Separator();
     ImGui::Spacing();
 
+    const auto* selected = overworld_->overworld_map(current_map);
+    const int parent = selected->parent();
+    const int property_map =
+        overworld_->overworld_map(parent) ? parent : current_map;
+    if (property_map != current_map) {
+      ImGui::TextDisabled("Area properties: parent 0x%02X", property_map);
+    }
+
     // Use CollapsingHeader layout for better visibility and configurability
     if (ImGui::CollapsingHeader(tr("General Settings"),
                                 ImGuiTreeNodeFlags_DefaultOpen)) {
-      DrawBasicPropertiesTab(current_map, game_state,
+      DrawBasicPropertiesTab(property_map, game_state,
                              show_custom_bg_color_editor, show_overlay_editor);
     }
 
     if (ImGui::CollapsingHeader(tr("Graphics"),
                                 ImGuiTreeNodeFlags_DefaultOpen)) {
-      DrawGraphicsTab(current_map, game_state);
+      DrawGraphicsTab(property_map, game_state);
     }
 
     if (ImGui::CollapsingHeader(tr("Sprites"))) {
-      DrawSpritePropertiesTab(current_map, game_state);
+      DrawSpritePropertiesTab(property_map, game_state);
     }
 
     if (ImGui::CollapsingHeader(tr("Music"))) {
-      DrawMusicTab(current_map);
+      DrawMusicTab(property_map);
     }
     ImGui::PopID();
   }
   ImGui::EndChild();
+}
+
+void OverworldSidebar::DrawQuickProperties(int current_map, int& game_state) {
+  if (!overworld_ || !overworld_->is_loaded() || !map_properties_system_ ||
+      current_map < 0 || current_map >= zelda3::kNumOverworldMaps) {
+    return;
+  }
+  const auto* map = overworld_->overworld_map(current_map);
+  if (!map) {
+    return;
+  }
+  const int parent = map->parent();
+  if (parent >= 0 && parent < zelda3::kNumOverworldMaps) {
+    if (const auto* parent_map = overworld_->overworld_map(parent)) {
+      map = parent_map;
+    }
+  }
+  if (quick_property_map_ != current_map) {
+    quick_property_map_ = current_map;
+    quick_property_error_.clear();
+  }
+
+  ImGui::PushID("OverworldQuickProperties");
+  // Size cells in font units so the row wraps with the panel and UI scale.
+  const float cell_width = ImGui::GetFontSize() * 12.0f;
+  const int columns = std::clamp(
+      static_cast<int>(ImGui::GetContentRegionAvail().x / cell_width), 1, 6);
+  if (ImGui::BeginTable("Properties", columns,
+                        ImGuiTableFlags_SizingStretchSame)) {
+    const auto apply = [&](OverworldPropertyField field, int index, int value) {
+      const auto status = map_properties_system_->ApplyPropertyEdit(
+          {current_map, field, index, value});
+      quick_property_error_ = status.ok() ? "" : std::string(status.message());
+    };
+    const auto byte_field = [&](const char* label, const char* hint,
+                                OverworldPropertyField field, int index,
+                                uint8_t value) {
+      ImGui::TableNextColumn();
+      ImGui::PushID(label);
+      ImGui::TextUnformatted(tr(label));
+      if (gui::InputHexByte("##Value", &value, ImGui::GetContentRegionAvail().x,
+                            true)) {
+        apply(field, index, value);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("%s", tr(hint));
+      }
+      ImGui::PopID();
+    };
+
+    ImGui::TableNextColumn();
+    ImGui::TextUnformatted(tr("Game State"));
+    ImGui::SetNextItemWidth(-1);
+    if (ImGui::Combo("##GameState", &game_state, kGameStateNames, 3)) {
+      map_properties_system_->RefreshMapProperties();
+      map_properties_system_->RefreshOverworldMap();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("%s",
+                        tr("Preview state for sprite graphics and palettes"));
+    }
+    byte_field("Area GFX", "Area graphics set (hex)",
+               OverworldPropertyField::kAreaGraphics, 0, map->area_graphics());
+    byte_field("Area Palette", "Area palette set (hex)",
+               OverworldPropertyField::kAreaPalette, 0, map->area_palette());
+    byte_field("Sprite GFX",
+               "Sprite graphics for the selected game state (hex)",
+               OverworldPropertyField::kSpriteGraphics, game_state,
+               map->sprite_graphics(game_state));
+    byte_field("Sprite Palette",
+               "Sprite palette for the selected game state (hex)",
+               OverworldPropertyField::kSpritePalette, game_state,
+               map->sprite_palette(game_state));
+
+    ImGui::TableNextColumn();
+    ImGui::TextUnformatted(tr("Message ID"));
+    uint16_t message_id = map->message_id();
+    if (gui::InputHexWord("##Message", &message_id,
+                          ImGui::GetContentRegionAvail().x, true)) {
+      apply(OverworldPropertyField::kMessageId, 0, message_id);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("%s", tr("Map message ID (hex)"));
+    }
+    ImGui::EndTable();
+  }
+  if (!quick_property_error_.empty()) {
+    ImGui::TextWrapped("%s", quick_property_error_.c_str());
+  }
+  ImGui::PopID();
 }
 
 void OverworldSidebar::DrawBasicPropertiesTab(int current_map, int& game_state,
@@ -153,7 +251,8 @@ void OverworldSidebar::DrawMapSelection(int& current_world, int& current_map,
     current_map_lock = !current_map_lock;
   }
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip(current_map_lock ? "Unlock Map" : "Lock Map");
+    ImGui::SetTooltip(current_map_lock ? "Unpin Map: follow cursor"
+                                       : "Pin Map: hold property target");
   }
   ImGui::EndGroup();
 }

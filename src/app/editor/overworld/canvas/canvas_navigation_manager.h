@@ -4,6 +4,7 @@
 #include <array>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -94,12 +95,16 @@ class CanvasNavigationManager {
   /// the selection outline, and refresh textures if modified.
   absl::Status CheckForCurrentMap();
 
+  // Update hover and unpinned selection using scaled canvas-local coordinates.
+  // Separate from rendering so all edit modes share the same tracking policy.
+  std::optional<int> TrackMapAtCanvasPosition(ImVec2 scaled_position);
+
   // ===========================================================================
   // Map Interaction
   // ===========================================================================
 
-  /// @brief Handle tile-mode right-click (eyedropper) and middle-click
-  /// (lock/properties toggle), plus double-click to open properties.
+  /// @brief Handle tile-mode right-click (eyedropper), click selection,
+  /// and double-click to open properties. Middle-drag only pans.
   void HandleMapInteraction();
 
   // ===========================================================================

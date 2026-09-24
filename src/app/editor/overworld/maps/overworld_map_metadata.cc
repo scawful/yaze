@@ -202,8 +202,12 @@ OverworldMapMetadata BuildOverworldMapMetadata(
     return metadata;
   }
 
-  metadata.area_size_label = AreaSizeLabel(map->area_size());
   metadata.parent_label = absl::StrFormat("Parent 0x%02X", map->parent());
+  if (const auto* parent = overworld.overworld_map(map->parent())) {
+    map = parent;
+  }
+  const int sprite_state = std::clamp(game_state, 0, 2);
+  metadata.area_size_label = AreaSizeLabel(map->area_size());
 
   metadata.area_gfx_label =
       LabelWithId("Area GFX", map->area_graphics(),
@@ -222,15 +226,15 @@ OverworldMapMetadata BuildOverworldMapMetadata(
                                           map->main_palette()));
 
   metadata.sprite_gfx_label =
-      LabelWithId("Sprite GFX", map->sprite_graphics(0),
+      LabelWithId("Sprite GFX", map->sprite_graphics(sprite_state),
                   ProjectOrProviderLabel(project, "graphics",
                                          zelda3::ResourceType::kGraphics,
-                                         map->sprite_graphics(0)));
+                                         map->sprite_graphics(sprite_state)));
 
   metadata.sprite_palette_label =
-      LabelWithId("Sprite Pal", map->sprite_palette(0),
+      LabelWithId("Sprite Pal", map->sprite_palette(sprite_state),
                   GetProjectResourceLabel(project, "overworld_sprite_palette",
-                                          map->sprite_palette(0)));
+                                          map->sprite_palette(sprite_state)));
 
   metadata.animated_gfx_label =
       LabelWithId("Anim GFX", map->animated_gfx(),

@@ -1,6 +1,8 @@
 #ifndef YAZE_APP_EDITOR_OVERWORLD_SIDEBAR_H
 #define YAZE_APP_EDITOR_OVERWORLD_SIDEBAR_H
 
+#include <string>
+
 #include "app/editor/overworld/maps/map_properties.h"
 #include "rom/rom.h"
 #include "zelda3/overworld/overworld.h"
@@ -16,6 +18,9 @@ class OverworldSidebar {
   void Draw(int& current_world, int& current_map, bool& current_map_lock,
             int& game_state, bool& show_custom_bg_color_editor,
             bool& show_overlay_editor);
+
+  // Frequently edited properties, embedded above the map canvas.
+  void DrawQuickProperties(int current_map, int& game_state);
 
  private:
   void DrawBasicPropertiesTab(int current_map, int& game_state,
@@ -33,6 +38,9 @@ class OverworldSidebar {
                            bool& show_custom_bg_color_editor);
   void DrawConfiguration(int current_map, int& game_state,
                          bool& show_overlay_editor);
+
+  std::string quick_property_error_;
+  int quick_property_map_ = -1;
 
   zelda3::Overworld* overworld_;
   Rom* rom_;

@@ -56,8 +56,8 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
   if (!map) {
     return;
   }
-  const auto metadata = BuildOverworldMapMetadata(*overworld, rom, project,
-                                                  current_map, game_state);
+  auto metadata = BuildOverworldMapMetadata(*overworld, rom, project,
+                                            current_map, game_state);
   const auto apply_property_edit =
       [this](const OverworldPropertyEdit& edit) -> absl::Status {
     if (!on_apply_property_edit) {
@@ -120,6 +120,17 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
       }
     }
     ImGui::PopID();
+
+    // World switching can change selection above. Refresh both the physical
+    // screen label and the parent property target before drawing this frame.
+    map = overworld->overworld_map(current_map);
+    metadata = BuildOverworldMapMetadata(*overworld, rom, project, current_map,
+                                         game_state);
+    if (map) {
+      if (const auto* parent = overworld->overworld_map(map->parent())) {
+        map = parent;
+      }
+    }
 
     TableNextColumn();
     ImGui::TextUnformatted(metadata.map_id_label.c_str());
@@ -187,7 +198,9 @@ void OverworldToolbar::Draw(int& current_world, int& current_map,
     TableNextColumn();
     if (gui::ToolbarIconButton(
             current_map_lock ? ICON_MD_LOCK : ICON_MD_LOCK_OPEN,
-            current_map_lock ? "Unpin Map" : "Pin Map")) {
+            current_map_lock ? "Unpin Map (Ctrl+L)\nResume following the cursor"
+                             : "Pin Map (Ctrl+L)\nKeep properties on this map "
+                               "while navigating")) {
       current_map_lock = !current_map_lock;
     }
 

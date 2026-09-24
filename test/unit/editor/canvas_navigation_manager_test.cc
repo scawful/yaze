@@ -1,5 +1,6 @@
 #include "app/editor/overworld/canvas/canvas_navigation_manager.h"
 
+#include <limits>
 #include <memory>
 
 #include "app/editor/overworld/ui/ui_constants.h"
@@ -66,6 +67,115 @@ class CanvasNavigationManagerTest : public ::testing::Test {
   int current_tile16_;
   std::unique_ptr<gui::TileSelectorWidget> blockset_selector_;
 };
+
+class CanvasMapTrackingTest : public CanvasNavigationManagerTest {
+ protected:
+  void SetUp() override {
+    CanvasNavigationManagerTest::SetUp();
+    ASSERT_TRUE(rom_.LoadFromData(std::vector<uint8_t>(0x200000, 0)).ok());
+    overworld_ = std::make_unique<zelda3::Overworld>(&rom_);
+    auto& maps = const_cast<std::vector<zelda3::OverworldMap>&>(
+        overworld_->overworld_maps());
+    maps.reserve(zelda3::kNumOverworldMaps);
+    for (int i = 0; i < zelda3::kNumOverworldMaps; ++i) {
+      maps.emplace_back(i, &rom_);
+      maps.back().SetAsSmallMap(i);
+    }
+    ctx_.overworld = overworld_.get();
+    ctx_.hovered_map = &hovered_map_;
+    manager_.Initialize(ctx_, callbacks_);
+  }
+  Rom rom_;
+  std::unique_ptr<zelda3::Overworld> overworld_;
+  int hovered_map_ = -1;
+};
+
+TEST_F(CanvasMapTrackingTest, UnpinnedMapFollowsCursorInEveryEditMode) {
+  int screen = 1;
+  for (auto mode :
+       {EditingMode::MOUSE, EditingMode::DRAW_TILE, EditingMode::FILL_TILE}) {
+    current_mode_ = mode;
+    ASSERT_EQ(manager_.TrackMapAtCanvasPosition(ImVec2(screen * 512 + 8, 8)),
+              screen);
+    EXPECT_EQ(current_map_, screen);
+    EXPECT_EQ(hovered_map_, screen);
+    EXPECT_EQ(current_parent_, screen);
+    ++screen;
+  }
+}
+
+TEST_F(CanvasMapTrackingTest, PinPreservesSelectionButHoverStillTracks) {
+  current_map_lock_ = true;
+  manager_.TrackMapAtCanvasPosition(ImVec2(520, 8));
+  EXPECT_EQ(current_map_, 0);
+  EXPECT_EQ(hovered_map_, 1);
+  current_map_lock_ = false;
+  manager_.TrackMapAtCanvasPosition(ImVec2(520, 8));
+  EXPECT_EQ(current_map_, 1);
+}
+
+TEST_F(CanvasMapTrackingTest, EntityDragPreservesSelectionUntilRelease) {
+  is_dragging_entity_ = true;
+  manager_.TrackMapAtCanvasPosition(ImVec2(520, 8));
+  EXPECT_EQ(current_map_, 0);
+  EXPECT_EQ(hovered_map_, 1);
+  is_dragging_entity_ = false;
+  manager_.TrackMapAtCanvasPosition(ImVec2(520, 8));
+  EXPECT_EQ(current_map_, 1);
+}
+
+TEST_F(CanvasMapTrackingTest, RepeatedHoverDoesNotRepeatSelectionRefresh) {
+  int selections = 0;
+  callbacks_.select_map_for_editing = [&](int map, bool respect_pin) {
+    EXPECT_TRUE(respect_pin);
+    ++selections;
+    current_map_ = map;
+  };
+  manager_.Initialize(ctx_, callbacks_);
+  manager_.TrackMapAtCanvasPosition(ImVec2(520, 8));
+  manager_.TrackMapAtCanvasPosition(ImVec2(530, 8));
+  EXPECT_EQ(selections, 1);
+}
+
+TEST_F(CanvasMapTrackingTest, ZoomedCoordinatesRespectWorldAndScreenEdges) {
+  canvas_.set_global_scale(0.5f);
+  current_world_ = 1;
+  manager_.TrackMapAtCanvasPosition(ImVec2(255.5f, 1));
+  EXPECT_EQ(current_map_, 0x40);
+  manager_.TrackMapAtCanvasPosition(ImVec2(256, 1));
+  EXPECT_EQ(current_map_, 0x41);
+  current_world_ = 2;
+  manager_.TrackMapAtCanvasPosition(ImVec2(256, 256));
+  EXPECT_EQ(current_map_, 0x89);
+}
+
+TEST_F(CanvasMapTrackingTest, ChildScreenKeepsPhysicalIdentityAndParentArea) {
+  overworld_->mutable_overworld_map(9)->SetAsLargeMap(0, 3);
+  manager_.TrackMapAtCanvasPosition(ImVec2(520, 520));
+  EXPECT_EQ(current_map_, 9);
+  EXPECT_EQ(hovered_map_, 9);
+  EXPECT_EQ(current_parent_, 0);
+}
+
+TEST_F(CanvasMapTrackingTest, InvalidCoordinatesClearHoverWithoutRetargeting) {
+  manager_.TrackMapAtCanvasPosition(ImVec2(520, 8));
+  for (auto pos :
+       {ImVec2(-0.5f, 8), ImVec2(8, -0.5f), ImVec2(4096, 8), ImVec2(8, 4096),
+        ImVec2(std::numeric_limits<float>::quiet_NaN(), 8)}) {
+    EXPECT_FALSE(manager_.TrackMapAtCanvasPosition(pos));
+    EXPECT_EQ(hovered_map_, -1);
+    EXPECT_EQ(current_map_, 1);
+  }
+}
+
+TEST_F(CanvasMapTrackingTest, UnallocatedSpecialWorldRowsDoNotSelectAMap) {
+  current_world_ = 2;
+  manager_.TrackMapAtCanvasPosition(ImVec2(8, 8));
+  ASSERT_EQ(current_map_, 0x80);
+  EXPECT_FALSE(manager_.TrackMapAtCanvasPosition(ImVec2(8, 2048)));
+  EXPECT_EQ(current_map_, 0x80);
+  EXPECT_EQ(hovered_map_, -1);
+}
 
 // ===========================================================================
 // ZoomIn / ZoomOut

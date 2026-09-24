@@ -619,7 +619,7 @@ class OverworldEditor : public Editor, public gfx::GfxContext {
   int current_world_ = 0;   // 0=Light, 1=Dark, 2=Special
   int current_map_ = 0;     // Current map index (0-159)
   int current_parent_ = 0;  // Parent map for multi-area
-  int hovered_map_ = -1;    // Last map under the cursor, preview only
+  int hovered_map_ = -1;    // Physical screen under the cursor, or -1
   int current_blockset_ = 0;
   int game_state_ = 1;      // 0=Beginning, 1=Pendants, 2=Crystals
   int current_tile16_ = 0;  // Selected tile16 for painting
