@@ -1,4 +1,5 @@
 #include "core/project.h"
+#include "core/sprite_asset_json.h"
 
 #include <algorithm>
 #include <atomic>
@@ -718,7 +719,19 @@ absl::StatusOr<std::string> YazeProject::SerializeToString() const {
   file << "custom_objects_folder=" << GetRelativePath(custom_objects_folder)
        << "\n";
   file << "hack_manifest_file=" << GetRelativePath(hack_manifest_file) << "\n";
+  file << "sprite_catalog_file="
+       << GetRelativePath(GetAbsolutePath(sprite_catalog_file)) << "\n";
+  file << "sprite_source_root="
+       << GetRelativePath(GetAbsolutePath(sprite_source_root)) << "\n";
   file << "additional_roms=" << absl::StrJoin(additional_roms, ",") << "\n\n";
+
+  file << "[sprite_assets]\n";
+  for (size_t i = 0; i < sprite_assets.size(); ++i) {
+    auto asset = sprite_assets[i];
+    asset.zsm_path = GetRelativePath(GetAbsolutePath(asset.zsm_path));
+    file << "asset_" << i << "=" << SpriteAssetToJson(asset).dump() << "\n";
+  }
+  file << "\n";
 
   // ROM metadata section
   file << "[rom]\n";
@@ -1001,6 +1014,9 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         "Project file contains unsupported lone carriage returns");
   }
 
+  sprite_catalog_file.clear();
+  sprite_source_root.clear();
+  sprite_assets.clear();
   std::istringstream stream(content);
   std::string line;
   std::string current_section;
@@ -1069,8 +1085,23 @@ absl::Status YazeProject::ParseFromString(const std::string& content) {
         custom_objects_folder = value;
       else if (key == "hack_manifest_file")
         hack_manifest_file = value;
+      else if (key == "sprite_catalog_file")
+        sprite_catalog_file = value;
+      else if (key == "sprite_source_root")
+        sprite_source_root = value;
       else if (key == "additional_roms")
         additional_roms = ParseStringList(value);
+    } else if (current_section == "sprite_assets") {
+      if (key.rfind("asset_", 0) != 0 || value.size() > 65536 ||
+          sprite_assets.size() >= 4096)
+        return absl::InvalidArgumentError("Invalid sprite_assets section");
+      auto asset = ParseSpriteAssetBinding(value);
+      if (!asset.ok())
+        return asset.status();
+      for (const auto& prior : sprite_assets)
+        if (prior.zsm_path == asset->zsm_path)
+          return absl::InvalidArgumentError("Duplicate sprite asset path");
+      sprite_assets.push_back(std::move(*asset));
     } else if (current_section == "rom") {
       if (key == "role")
         rom_metadata.role = ParseRomRole(value);
@@ -1589,6 +1620,10 @@ void YazeProject::NormalizePathsToAbsolute() {
   normalize(&symbols_filename);
   normalize(&custom_objects_folder);
   normalize(&hack_manifest_file);
+  normalize(&sprite_catalog_file);
+  normalize(&sprite_source_root);
+  for (auto& asset : sprite_assets)
+    normalize(&asset.zsm_path);
   normalize(&output_folder);
 
   for (auto& rom_path : additional_roms) {
@@ -1941,6 +1976,9 @@ void YazeProject::TryLoadHackManifest() {
 }
 
 void YazeProject::InitializeDefaults() {
+  sprite_catalog_file.clear();
+  sprite_source_root.clear();
+  sprite_assets.clear();
   if (metadata.project_id.empty()) {
     metadata.project_id = GenerateProjectId();
   }
@@ -2403,10 +2441,10 @@ void ResourceLabelManager::EditLabel(const std::string& type,
 void ResourceLabelManager::SelectableLabelWithNameEdit(
     bool selected, const std::string& type, const std::string& key,
     const std::string& defaultValue) {
-  // Basic implementation
+  const auto custom_label = GetLabel(type, key);
+  const auto& label = custom_label.empty() ? defaultValue : custom_label;
   if (ImGui::Selectable(
-          absl::StrFormat("%s: %s", key.c_str(), GetLabel(type, key).c_str())
-              .c_str(),
+          absl::StrFormat("%s: %s", key.c_str(), label.c_str()).c_str(),
           selected)) {
     // Handle selection
   }
@@ -2591,6 +2629,10 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
     json j;
     file >> j;
 
+    sprite_catalog_file.clear();
+    sprite_source_root.clear();
+    sprite_assets.clear();
+
     // Parse project metadata
     if (j.contains("yaze_project")) {
       auto& proj = j["yaze_project"];
@@ -2627,6 +2669,24 @@ absl::Status YazeProject::LoadFromJsonFormat(const std::string& project_path) {
         symbols_filename = proj["symbols_filename"].get<std::string>();
       if (proj.contains("hack_manifest_file"))
         hack_manifest_file = proj["hack_manifest_file"].get<std::string>();
+      if (proj.contains("sprite_catalog_file"))
+        sprite_catalog_file = proj["sprite_catalog_file"].get<std::string>();
+      if (proj.contains("sprite_source_root"))
+        sprite_source_root = proj["sprite_source_root"].get<std::string>();
+      if (proj.contains("sprite_assets")) {
+        if (!proj["sprite_assets"].is_array() ||
+            proj["sprite_assets"].size() > 4096)
+          return absl::InvalidArgumentError("Invalid sprite_assets array");
+        for (const auto& value : proj["sprite_assets"]) {
+          auto asset = SpriteAssetFromJson(value);
+          if (!asset.ok())
+            return asset.status();
+          for (const auto& prior : sprite_assets)
+            if (prior.zsm_path == asset->zsm_path)
+              return absl::InvalidArgumentError("Duplicate sprite asset path");
+          sprite_assets.push_back(std::move(*asset));
+        }
+      }
 
       if (proj.contains("rom") && proj["rom"].is_object()) {
         auto& rom = proj["rom"];
@@ -2892,6 +2952,15 @@ absl::Status YazeProject::SaveToJsonFormat() {
   proj["labels_filename"] = labels_filename;
   proj["symbols_filename"] = symbols_filename;
   proj["hack_manifest_file"] = hack_manifest_file;
+  proj["sprite_catalog_file"] =
+      GetRelativePath(GetAbsolutePath(sprite_catalog_file));
+  proj["sprite_source_root"] =
+      GetRelativePath(GetAbsolutePath(sprite_source_root));
+  proj["sprite_assets"] = nlohmann::json::array();
+  for (auto asset : sprite_assets) {
+    asset.zsm_path = GetRelativePath(GetAbsolutePath(asset.zsm_path));
+    proj["sprite_assets"].push_back(SpriteAssetToJson(asset));
+  }
   proj["output_folder"] = output_folder;
 
   proj["rom"]["role"] = RomRoleToString(rom_metadata.role);

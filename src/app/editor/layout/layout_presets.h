@@ -239,6 +239,7 @@ class LayoutPresets {
     // Sprite cards (sprite_editor.cc)
     static constexpr const char* kSpriteVanillaEditor = "sprite.vanilla_editor";
     static constexpr const char* kSpriteCustomEditor = "sprite.custom_editor";
+    static constexpr const char* kSpriteCatalog = "sprite.catalog";
 
     // Screen cards (screen_editor.cc)
     static constexpr const char* kScreenDungeonMaps = "screen.dungeon_maps";

@@ -15,6 +15,7 @@
 #include "core/features.h"
 #include "core/hack_manifest.h"
 #include "core/rom_settings.h"
+#include "core/sprite_asset.h"
 #include "zelda3/resource_labels.h"
 
 namespace yaze {
@@ -192,6 +193,10 @@ struct YazeProject {
       custom_objects_folder;  // Folder containing custom object .bin files
   std::string
       hack_manifest_file;  // Path to hack_manifest.json (ASM integration)
+  // Opt-in, read-only sprite catalog. Both paths resolve relative to the project.
+  std::string sprite_catalog_file;
+  std::string sprite_source_root;
+  std::vector<SpriteAssetBinding> sprite_assets;
 
   // Optional custom object file mapping (object_id -> filenames per subtype).
   std::unordered_map<int, std::vector<std::string>> custom_object_files;

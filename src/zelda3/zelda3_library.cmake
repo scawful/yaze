@@ -68,6 +68,7 @@ set(
   zelda3/screen/title_screen.cc
   zelda3/sprite/sprite.cc
   zelda3/sprite/sprite_builder.cc
+  zelda3/sprite/sprite_catalog.cc
   zelda3/sprite/sprite_oam_tables.cc
   zelda3/zelda3_labels.cc
   # Draw routine modules (Phase 2 modularization)

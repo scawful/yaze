@@ -150,11 +150,13 @@ PanelLayoutPreset LayoutPresets::GetDefaultPreset(EditorType type) {
           Panels::kSpriteVanillaEditor,
       };
       preset.panel_positions = {
-          {Panels::kSpriteVanillaEditor, DockPosition::Left},
-          {Panels::kSpriteCustomEditor, DockPosition::Right},
+          {Panels::kSpriteVanillaEditor, DockPosition::Center},
+          {Panels::kSpriteCustomEditor, DockPosition::Center},
+          {Panels::kSpriteCatalog, DockPosition::Center},
       };
       preset.optional_panels = {
           Panels::kSpriteCustomEditor,
+          Panels::kSpriteCatalog,
       };
       break;
 

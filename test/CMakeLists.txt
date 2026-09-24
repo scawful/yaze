@@ -277,6 +277,9 @@ if(YAZE_BUILD_TESTS)
     unit/editor/undo_manager_test.cc
     unit/editor/sprite_editor_undo_test.cc
     unit/editor/sprite_editor_preview_test.cc
+    unit/editor/sprite_authoring_test.cc
+    unit/editor/sprite_behavior_test.cc
+    unit/editor/sprite_catalog_session_test.cc
     unit/editor/screen_editor_undo_test.cc
     unit/editor/dungeon_undo_actions_test.cc
     unit/editor/dungeon_room_edit_test.cc
@@ -367,6 +370,7 @@ if(YAZE_BUILD_TESTS)
     unit/zelda3/tile16_usage_index_test.cc
     unit/zelda3/resource_labels_test.cc
     unit/zelda3/sprite_render_preview_test.cc
+    unit/zelda3/sprite_catalog_test.cc
     unit/zelda3/object_parser_test.cc
     unit/zelda3/object_parser_structs_test.cc
     unit/zelda3/sprite_builder_test.cc
@@ -665,6 +669,7 @@ if(YAZE_BUILD_TESTS)
     unit/gui/canvas_context_menu_role_test.cc
     unit/zelda3/resource_labels_test.cc
     unit/zelda3/sprite_render_preview_test.cc
+    unit/zelda3/sprite_catalog_test.cc
     unit/zelda3/dungeon/dungeon_stream_allocator_test.cc
     unit/cli/dungeon_spawn_report_commands_test.cc
     unit/cli/dungeon_stream_plan_commands_test.cc
@@ -735,6 +740,9 @@ if(YAZE_BUILD_TESTS)
     unit/editor/gfx_group_editor_render_test.cc
     unit/editor/palette_controls_panel_layout_test.cc
     unit/editor/sprite_editor_preview_test.cc
+    unit/editor/sprite_authoring_test.cc
+    unit/editor/sprite_behavior_test.cc
+    unit/editor/sprite_catalog_session_test.cc
     unit/gui/property_inspector_test.cc
     unit/gui/empty_state_test.cc
     unit/gui/resize_handles_test.cc

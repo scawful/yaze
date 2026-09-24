@@ -192,6 +192,9 @@ set(
   app/editor/shell/windows/settings_panel.cc
   app/editor/sprite/sprite_drawer.cc
   app/editor/sprite/sprite_editor.cc
+  app/editor/sprite/sprite_behavior_panel.cc
+  app/editor/sprite/sprite_asset_panel.cc
+  app/editor/sprite/sprite_catalog_panel.cc
   app/editor/system/commands/command_manager.cc
   app/editor/system/commands/command_palette.cc
   app/editor/system/commands/command_palette_providers.cc
