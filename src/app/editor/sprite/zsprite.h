@@ -1,10 +1,14 @@
 #ifndef YAZE_APP_EDITOR_SPRITE_ZSPRITE_H
 #define YAZE_APP_EDITOR_SPRITE_ZSPRITE_H
 
+#include <charconv>
 #include <cstdint>
 #include <fstream>
+#include <sstream>
+
 #include <string>
 #include <vector>
+#include "app/editor/sprite/zsprite_validation.h"
 
 #include "absl/status/status.h"
 #include "util/macro.h"
@@ -30,7 +34,8 @@ inline std::string ReadDotNetString(std::istream& is) {
   int shift = 0;
   do {
     is.read(reinterpret_cast<char*>(&byte), 1);
-    if (!is.good()) return "";
+    if (!is.good())
+      return "";
     length |= (byte & 0x7F) << shift;
     shift += 7;
   } while (byte & 0x80);
@@ -132,10 +137,18 @@ struct ZSprite {
    * @brief Load a ZSM file from disk.
    */
   absl::Status Load(const std::string& filename) {
-    std::ifstream fs(filename, std::ios::binary);
-    if (!fs.is_open()) {
+    std::ifstream input(filename, std::ios::binary);
+    if (!input.is_open()) {
       return absl::NotFoundError("File not found: " + filename);
     }
+
+    std::string content(8 * 1024 * 1024 + 1, '\0');
+    input.read(content.data(), content.size());
+    content.resize(static_cast<size_t>(input.gcount()));
+    if (input.bad())
+      return absl::DataLossError("Cannot read ZSM asset");
+    RETURN_IF_ERROR(ValidateZsmBytes(content));
+    std::istringstream fs(content, std::ios::binary);
 
     // Clear existing data
     Reset();
@@ -244,7 +257,6 @@ struct ZSprite {
       property_sprid.Text = ReadDotNetString(fs);
     }
 
-    fs.close();
     return absl::OkStatus();
   }
 
@@ -252,10 +264,28 @@ struct ZSprite {
    * @brief Save a ZSM file to disk.
    */
   absl::Status Save(const std::string& filename) {
-    std::ofstream fs(filename, std::ios::binary);
-    if (!fs.is_open()) {
-      return absl::InternalError("Failed to open file for writing: " + filename);
+    if (animations.size() > 256 || editor.Frames.size() > 256 ||
+        userRoutines.size() > 1024)
+      return absl::InvalidArgumentError(
+          "ZSM asset exceeds supported authoring counts");
+    for (const auto& frame : editor.Frames)
+      if (frame.Tiles.size() > 128)
+        return absl::InvalidArgumentError("ZSM frame exceeds 128 tiles");
+    for (const auto& value :
+         {property_prize.Text, property_palette.Text, property_oamnbr.Text,
+          property_hitbox.Text, property_health.Text, property_damage.Text}) {
+      if (value.empty())
+        continue;
+      int number = 0;
+      auto parsed =
+          std::from_chars(value.data(), value.data() + value.size(), number);
+      if (parsed.ec != std::errc{} ||
+          parsed.ptr != value.data() + value.size() || number < 0 ||
+          number > 255)
+        return absl::InvalidArgumentError("ZSM stats must be decimal bytes");
     }
+    // Validate the complete serialized snapshot before opening the destination.
+    std::ostringstream fs(std::ios::binary);
 
     // Write animation count
     int32_t anim_count = static_cast<int32_t>(animations.size());
@@ -264,9 +294,11 @@ struct ZSprite {
     // Write animations
     for (const auto& anim : animations) {
       WriteDotNetString(fs, anim.frame_name);
-      fs.write(reinterpret_cast<const char*>(&anim.frame_start), sizeof(uint8_t));
+      fs.write(reinterpret_cast<const char*>(&anim.frame_start),
+               sizeof(uint8_t));
       fs.write(reinterpret_cast<const char*>(&anim.frame_end), sizeof(uint8_t));
-      fs.write(reinterpret_cast<const char*>(&anim.frame_speed), sizeof(uint8_t));
+      fs.write(reinterpret_cast<const char*>(&anim.frame_speed),
+               sizeof(uint8_t));
     }
 
     // Write frame count
@@ -283,7 +315,8 @@ struct ZSprite {
         fs.write(reinterpret_cast<const char*>(&tile.palette), sizeof(uint8_t));
         fs.write(reinterpret_cast<const char*>(&tile.mirror_x), sizeof(bool));
         fs.write(reinterpret_cast<const char*>(&tile.mirror_y), sizeof(bool));
-        fs.write(reinterpret_cast<const char*>(&tile.priority), sizeof(uint8_t));
+        fs.write(reinterpret_cast<const char*>(&tile.priority),
+                 sizeof(uint8_t));
         fs.write(reinterpret_cast<const char*>(&tile.size), sizeof(bool));
         fs.write(reinterpret_cast<const char*>(&tile.x), sizeof(uint8_t));
         fs.write(reinterpret_cast<const char*>(&tile.y), sizeof(uint8_t));
@@ -294,16 +327,22 @@ struct ZSprite {
     // Write 20 sprite boolean properties
     fs.write(reinterpret_cast<const char*>(&property_blockable.IsChecked), 1);
     fs.write(reinterpret_cast<const char*>(&property_canfall.IsChecked), 1);
-    fs.write(reinterpret_cast<const char*>(&property_collisionlayer.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_collisionlayer.IsChecked),
+             1);
     fs.write(reinterpret_cast<const char*>(&property_customdeath.IsChecked), 1);
     fs.write(reinterpret_cast<const char*>(&property_damagesound.IsChecked), 1);
-    fs.write(reinterpret_cast<const char*>(&property_deflectarrows.IsChecked), 1);
-    fs.write(reinterpret_cast<const char*>(&property_deflectprojectiles.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_deflectarrows.IsChecked),
+             1);
+    fs.write(
+        reinterpret_cast<const char*>(&property_deflectprojectiles.IsChecked),
+        1);
     fs.write(reinterpret_cast<const char*>(&property_fast.IsChecked), 1);
     fs.write(reinterpret_cast<const char*>(&property_harmless.IsChecked), 1);
     fs.write(reinterpret_cast<const char*>(&property_impervious.IsChecked), 1);
-    fs.write(reinterpret_cast<const char*>(&property_imperviousarrow.IsChecked), 1);
-    fs.write(reinterpret_cast<const char*>(&property_imperviousmelee.IsChecked), 1);
+    fs.write(reinterpret_cast<const char*>(&property_imperviousarrow.IsChecked),
+             1);
+    fs.write(reinterpret_cast<const char*>(&property_imperviousmelee.IsChecked),
+             1);
     fs.write(reinterpret_cast<const char*>(&property_interaction.IsChecked), 1);
     fs.write(reinterpret_cast<const char*>(&property_isboss.IsChecked), 1);
     fs.write(reinterpret_cast<const char*>(&property_persist.IsChecked), 1);
@@ -314,12 +353,18 @@ struct ZSprite {
     fs.write(reinterpret_cast<const char*>(&property_watersprite.IsChecked), 1);
 
     // Write 6 sprite stat bytes (parse from Text properties)
-    uint8_t prize = static_cast<uint8_t>(std::stoi(property_prize.Text.empty() ? "0" : property_prize.Text));
-    uint8_t palette = static_cast<uint8_t>(std::stoi(property_palette.Text.empty() ? "0" : property_palette.Text));
-    uint8_t oamnbr = static_cast<uint8_t>(std::stoi(property_oamnbr.Text.empty() ? "0" : property_oamnbr.Text));
-    uint8_t hitbox = static_cast<uint8_t>(std::stoi(property_hitbox.Text.empty() ? "0" : property_hitbox.Text));
-    uint8_t health = static_cast<uint8_t>(std::stoi(property_health.Text.empty() ? "0" : property_health.Text));
-    uint8_t damage = static_cast<uint8_t>(std::stoi(property_damage.Text.empty() ? "0" : property_damage.Text));
+    uint8_t prize = static_cast<uint8_t>(
+        std::stoi(property_prize.Text.empty() ? "0" : property_prize.Text));
+    uint8_t palette = static_cast<uint8_t>(
+        std::stoi(property_palette.Text.empty() ? "0" : property_palette.Text));
+    uint8_t oamnbr = static_cast<uint8_t>(
+        std::stoi(property_oamnbr.Text.empty() ? "0" : property_oamnbr.Text));
+    uint8_t hitbox = static_cast<uint8_t>(
+        std::stoi(property_hitbox.Text.empty() ? "0" : property_hitbox.Text));
+    uint8_t health = static_cast<uint8_t>(
+        std::stoi(property_health.Text.empty() ? "0" : property_health.Text));
+    uint8_t damage = static_cast<uint8_t>(
+        std::stoi(property_damage.Text.empty() ? "0" : property_damage.Text));
 
     fs.write(reinterpret_cast<const char*>(&prize), sizeof(uint8_t));
     fs.write(reinterpret_cast<const char*>(&palette), sizeof(uint8_t));
@@ -342,7 +387,15 @@ struct ZSprite {
     // Write sprite ID
     WriteDotNetString(fs, property_sprid.Text);
 
-    fs.close();
+    const std::string content = fs.str();
+    RETURN_IF_ERROR(ValidateZsmBytes(content));
+    std::ofstream output(filename, std::ios::binary);
+    if (!output)
+      return absl::InternalError("Failed to open ZSM for writing: " + filename);
+    output.write(content.data(), content.size());
+    output.close();
+    if (!output)
+      return absl::DataLossError("Failed to write ZSM asset: " + filename);
     return absl::OkStatus();
   }
 

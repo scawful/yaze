@@ -2,7 +2,7 @@
 
 Status: ACTIVE  
 Owner: `ai-infra-architect`  
-Last Reviewed: 2026-02-24
+Last Reviewed: 2026-09-23
 
 This file maps task classes to focused skills and tool stacks.  
 Rule: load only the smallest skill/tool set needed for the current task.
@@ -26,6 +26,9 @@ Notes:
   repository presets keep the default build parallelism at four workers.
 - If a skill is unavailable in the active session, continue with direct CLI workflows.
 - Do not preload unrelated skills “just in case”.
+- For SpriteEditor, sprite catalog, subtype, or custom sprite migration work, read
+  [Sprite catalog and custom sprite standards](../architecture/sprite-catalog.md)
+  before edits. It separates current catalog support from future ASM/placement work.
 
 ## Tool Routing
 

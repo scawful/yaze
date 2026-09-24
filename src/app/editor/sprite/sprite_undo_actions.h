@@ -10,6 +10,7 @@
 #include "absl/strings/str_format.h"
 #include "app/editor/core/undo_action.h"
 #include "app/editor/sprite/zsprite.h"
+#include "core/sprite_asset.h"
 
 namespace yaze {
 namespace editor {
@@ -26,6 +27,7 @@ struct SpriteSnapshot {
   zsprite::ZSprite sprite_data;
   int current_frame = 0;
   int current_animation_index = 0;
+  project::SpriteAssetBinding binding;
 };
 
 /**

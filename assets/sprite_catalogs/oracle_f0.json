@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "profile": "oracle",
+  "families": [
+    {
+      "key": "oracle.mermaid_family",
+      "name": "Mermaid / Maple / Librarian",
+      "main_id": 240,
+      "selector": {
+        "kind": "exact_with_fallback",
+        "fallback_variant": "oracle.mermaid"
+      },
+      "sources": [
+        {
+          "role": "prep",
+          "path": "Sprites/NPCs/mermaid.asm",
+          "label": "Sprite_Mermaid_Prep"
+        },
+        {
+          "role": "main",
+          "path": "Sprites/NPCs/mermaid.asm",
+          "label": "Sprite_Mermaid_Long"
+        }
+      ],
+      "variants": [
+        {
+          "key": "oracle.mermaid",
+          "name": "Mermaid",
+          "authored_subtype": 0,
+          "sources": [
+            {
+              "role": "draw",
+              "path": "Sprites/NPCs/mermaid.asm",
+              "label": "Sprite_Mermaid_Draw"
+            }
+          ]
+        },
+        {
+          "key": "oracle.maple",
+          "name": "Maple",
+          "authored_subtype": 1,
+          "sources": [
+            {
+              "role": "draw",
+              "path": "Sprites/NPCs/mermaid.asm",
+              "label": "Sprite_Maple_Draw",
+              "adapter": "oracle_maple_v1"
+            },
+            {
+              "role": "behavior",
+              "path": "Sprites/NPCs/maple.asm",
+              "label": "MapleHandler"
+            }
+          ]
+        },
+        {
+          "key": "oracle.librarian",
+          "name": "Librarian",
+          "authored_subtype": 2,
+          "sources": [
+            {
+              "role": "draw",
+              "path": "Sprites/NPCs/mermaid.asm",
+              "label": "Sprite_Librarian_Draw"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

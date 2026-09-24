@@ -2,6 +2,7 @@
 #define YAZE_APP_EDITOR_SPRITE_EDITOR_H
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <vector>
 
@@ -15,6 +16,7 @@
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
 #include "rom/rom.h"
+#include "zelda3/sprite/sprite_catalog.h"
 #include "zelda3/sprite/sprite_oam_tables.h"
 
 namespace yaze {
@@ -52,16 +54,81 @@ class SpriteEditor : public Editor {
   absl::Status Update() override;
   absl::Status Undo() override { return undo_manager_.Undo(); }
   absl::Status Redo() override { return undo_manager_.Redo(); }
-  absl::Status Cut() override { return absl::UnimplementedError("Cut"); }
-  absl::Status Copy() override { return absl::UnimplementedError("Copy"); }
-  absl::Status Paste() override { return absl::UnimplementedError("Paste"); }
+  absl::Status Cut() override;
+  absl::Status Copy() override;
+  absl::Status Paste() override;
   absl::Status Find() override { return absl::UnimplementedError("Find"); }
   absl::Status Save() override;
+
+  void SetDependencies(const EditorDependencies& deps) override;
+  // Catalog failures are panel-local and never block unrelated editor loading.
+  absl::Status ReloadSpriteCatalog();
+  absl::Status OpenCatalogSource(const zelda3::SpriteSourceBinding& binding);
+  const std::optional<zelda3::SpriteCatalog>& sprite_catalog() const {
+    return sprite_catalog_;
+  }
+  const std::optional<zelda3::SpriteSourceDocument>& catalog_source() const {
+    return catalog_source_;
+  }
+
+  absl::Status ImportCatalogDraw(const zelda3::SpriteSourceBinding& binding,
+                                 const std::string& catalog_key = "");
+  absl::Status OpenSpriteAsset(const std::string& path);
+  absl::Status SaveSpriteAsset(const std::string& path);
+  absl::Status ReloadProjectSpriteAssets();
+  absl::Status CheckCurrentSpriteSource();
+  absl::StatusOr<std::string> ExportCurrentSpriteDraw();
+  absl::Status SetSpriteBehavior(const project::SpriteBehavior& behavior);
+  absl::Status BindOracleBehaviorProfile();
+  absl::StatusOr<std::string> ExportCurrentSpriteBehavior(
+      const std::string& prefix);
+  absl::Status SetSpriteGraphics(
+      const std::array<uint8_t, 8>& sheets,
+      const std::array<project::SpritePaletteBinding, 8>& rows);
+  const project::SpriteAssetBinding* current_sprite_binding() const;
+
+  const zsprite::ZSprite* current_custom_sprite() const {
+    return current_custom_sprite_index_ >= 0 &&
+                   current_custom_sprite_index_ <
+                       static_cast<int>(custom_sprites_.size())
+               ? &custom_sprites_[current_custom_sprite_index_]
+               : nullptr;
+  }
 
   void set_rom(Rom* rom) { rom_ = rom; }
   Rom* rom() const { return rom_; }
 
  private:
+  std::optional<zsprite::Frame> frame_clipboard_;
+  absl::Status draw_export_status_;
+  void DrawSpriteAssetBindings();
+  void DrawSpriteBehaviorPanel();
+  int selected_behavior_action_ = 0;
+  char behavior_prefix_[65] = "Sprite_CustomBehavior";
+  std::string behavior_candidate_;
+  absl::Status behavior_status_;
+  void ApplyCurrentSpriteBinding();
+  std::vector<project::SpriteAssetBinding> custom_sprite_bindings_;
+  absl::Status asset_load_status_;
+  absl::Status palette_binding_status_;
+  absl::Status graphics_binding_status_;
+  absl::Status source_check_status_;
+  bool source_checked_ = false;
+  void DrawSpriteCatalog();
+  void RefreshCatalogIfChanged();
+  std::optional<zelda3::SpriteCatalog> sprite_catalog_;
+  std::optional<zelda3::SpriteSourceDocument> catalog_source_;
+  absl::Status catalog_status_;
+  absl::Status catalog_source_status_;
+  const project::YazeProject* catalog_project_ = nullptr;
+  size_t catalog_session_id_ = 0;
+  std::string catalog_path_;
+  std::string catalog_source_root_;
+  int catalog_family_index_ = 0;
+  int catalog_raw_subtype_ = 0;
+  ImGuiTextFilter catalog_filter_;
+  bool catalog_scroll_to_label_ = false;
+
   // ============================================================
   // Editor-Level Methods
   // ============================================================
@@ -81,7 +148,6 @@ class SpriteEditor : public Editor {
   // ============================================================
   void DrawCustomSprites();
   void DrawCustomSpritesMetadata();
-  void DrawAnimationFrames();
 
   // File operations
   void CreateNewZSprite();
@@ -112,7 +178,7 @@ class SpriteEditor : public Editor {
 
   // Graphics pipeline
   void LoadSpriteGraphicsBuffer();
-  void LoadSpritePalettes();
+  void LoadSpritePalettes(bool use_asset_binding = true);
   void RenderVanillaSprite(const zelda3::SpriteOamLayout& layout);
   void LoadSheetsForSprite(const std::array<uint8_t, 4>& sheets);
 

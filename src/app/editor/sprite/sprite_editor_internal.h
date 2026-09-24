@@ -28,7 +28,10 @@ inline void EnsureSpritePreviewBitmapReady(
   if (bmp.is_active()) {
     return;
   }
-  bmp.Create(width, height, depth, gfx_buffer);
+  // Graphics sheets are input to the drawer, not initial composite pixels.
+  const std::vector<uint8_t> blank(
+      gfx_buffer.empty() ? 0 : static_cast<size_t>(width) * height, 0);
+  bmp.Create(width, height, depth, blank);
   if (!bmp.is_active()) {
     // Create bailed (empty buffer, surface allocation failed). Don't call
     // Reformat. It would unconditionally allocate a fresh surface and set
@@ -42,6 +45,12 @@ inline void EnsureSpritePreviewBitmapReady(
     bmp.CreateTexture();
   }
   bmp.metadata().purpose = gfx::Bitmap::BitmapPurpose::kCompositeOutput;
+}
+
+// SpriteDrawer writes Bitmap::mutable_data(); the renderer reads the SDL surface.
+inline void PublishSpritePreviewPixels(gfx::Bitmap& bmp) {
+  bmp.UpdateSurfacePixels();
+  bmp.UpdateTexture();
 }
 
 }  // namespace internal
