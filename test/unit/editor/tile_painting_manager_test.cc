@@ -1,4 +1,5 @@
 #include "app/editor/overworld/painting/tile_painting_manager.h"
+#include "app/editor/overworld/painting/tile_brush_preview.h"
 
 #include <algorithm>
 #include <limits>
@@ -14,6 +15,60 @@
 
 namespace yaze::editor {
 namespace {
+
+TEST(TileBrushPreviewTest, CrossingFourMapsUsesEachDestinationGraphicsGroup) {
+  const TileBrush brush{2, 2, {1, 2, 3, 4}};
+  for (int my = 0; my < 2; ++my) {
+    for (int mx = 0; mx < 2; ++mx) {
+      const int group = 1 + mx + my * 2;
+      std::vector<uint8_t> atlas(128 * 16);
+      for (int y = 0; y < 16; ++y) {
+        for (int x = 0; x < 128; ++x) {
+          atlas[y * 128 + x] = group * 16 + x / 16;
+        }
+      }
+      const auto piece = BuildMapBrushPreview(brush, 31, 31, mx, my, atlas);
+      ASSERT_EQ(piece.width, 16);
+      ASSERT_EQ(piece.height, 16);
+      EXPECT_EQ(piece.tile_x, 31 + mx);
+      EXPECT_EQ(piece.tile_y, 31 + my);
+      const uint8_t expected = group * 16 + brush.at(mx, my);
+      EXPECT_TRUE(std::all_of(piece.pixels.begin(), piece.pixels.end(),
+                              [expected](uint8_t p) { return p == expected; }));
+    }
+  }
+}
+
+TEST(TileBrushPreviewTest, ClipsNegativeAnchorAndReadsAtlasRows) {
+  const TileBrush brush{3, 2, {0, 1, 2, 3, 8, 9}};
+  std::vector<uint8_t> atlas(128 * 32);
+  for (int y = 0; y < 32; ++y) {
+    for (int x = 0; x < 128; ++x) {
+      atlas[y * 128 + x] = x / 16 + y / 16 * 8;
+    }
+  }
+  const auto piece = BuildMapBrushPreview(brush, -1, -1, 0, 0, atlas);
+  ASSERT_EQ(piece.width, 32);
+  ASSERT_EQ(piece.height, 16);
+  EXPECT_EQ(piece.tile_x, 0);
+  EXPECT_EQ(piece.tile_y, 0);
+  for (int y = 0; y < 16; ++y) {
+    for (int x = 0; x < 32; ++x)
+      EXPECT_EQ(piece.pixels[y * 32 + x], 8 + x / 16);
+  }
+  EXPECT_TRUE(BuildMapBrushPreview(brush, -1, -1, 1, 0, atlas).pixels.empty());
+}
+
+TEST(TileBrushPreviewTest, InvalidSourceAndBrushAreBounded) {
+  EXPECT_TRUE(BuildMapBrushPreview({}, 0, 0, 0, 0, {}).pixels.empty());
+  const TileBrush brush{1, 1, {0xFFFF}};
+  std::vector<uint8_t> atlas(128 * 16, 7);
+  const auto piece = BuildMapBrushPreview(brush, 0, 0, 0, 0, atlas);
+  ASSERT_EQ(piece.pixels.size(), 256u);
+  EXPECT_TRUE(std::all_of(piece.pixels.begin(), piece.pixels.end(),
+                          [](uint8_t p) { return p == 0; }));
+  EXPECT_TRUE(BuildMapBrushPreview(brush, 0, 0, 0, 0, atlas, 1).pixels.empty());
+}
 
 // ---------------------------------------------------------------------------
 // Test fixture providing minimal TilePaintingDependencies wiring.

@@ -245,6 +245,7 @@ class Tile16Editor : public gfx::GfxContext {
   absl::Status DrawPrimaryActionControls();
 
   Tile16EditSession session_;
+  gfx::Bitmap stamp_preview_bitmap_;
 
   std::vector<int> selected_tiles_;
   int selection_start_tile_ = -1;

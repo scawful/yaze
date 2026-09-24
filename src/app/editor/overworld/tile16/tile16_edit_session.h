@@ -19,6 +19,7 @@
 #include "app/gfx/types/snes_tile.h"
 #include "rom/rom.h"
 #include "zelda3/overworld/tile16_renderer.h"
+#include "zelda3/overworld/tile16_stamp.h"
 #include "zelda3/overworld/tile16_usage_index.h"
 
 namespace yaze {
@@ -137,6 +138,8 @@ class Tile16EditSession {
   absl::Status PickTile8FromTile16(Tile16LocalPos position);
   absl::Status DrawToCurrentTile16(Tile16LocalPos pos,
                                    const gfx::Bitmap* source_tile = nullptr);
+  // Render the exact proposed stamp without changing the document/history.
+  absl::Status BuildStampPreview(Tile16LocalPos pos, gfx::Bitmap* output) const;
   absl::Status HandleTile16CanvasClick(Tile16LocalPos tile_position,
                                        bool left_click, bool right_click);
 
@@ -323,6 +326,8 @@ class Tile16EditSession {
   absl::Status ClearTile16Impl();
   absl::Status ApplyPaletteToAllImpl(uint8_t palette_id);
   absl::Status ApplyPaletteToQuadrantImpl(int quadrant, uint8_t palette_id);
+  absl::StatusOr<std::vector<zelda3::Tile16StampMutation>> BuildStampMutations(
+      Tile16LocalPos pos) const;
   absl::Status DrawToCurrentTile16Impl(Tile16LocalPos pos,
                                        const gfx::Bitmap* source_tile);
   gfx::SnesPalette CreateRemappedPaletteForTile8(const gfx::SnesPalette& source,

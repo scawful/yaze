@@ -106,6 +106,7 @@ class TilePaintingManager {
   bool single_paint_pending_ = false;
   bool selection_gesture_owned_ = false;
   TileBrush brush_;
+  std::array<gfx::Bitmap, zelda3::kNumOverworldMaps> map_brush_previews_;
 };
 
 }  // namespace editor

@@ -6,6 +6,7 @@
 
 #include "absl/status/status.h"
 #include "app/editor/graphics/gfx_group_workspace_state.h"
+#include "app/gfx/types/sheet_role.h"
 #include "app/gfx/types/snes_palette.h"
 #include "app/gui/canvas/canvas.h"
 #include "rom/rom.h"
@@ -61,6 +62,8 @@ class GfxGroupEditor {
 
  private:
   void UpdateCurrentPalette();
+  gfx::Bitmap* PrepareSheetPreview(int sheet_id, gfx::SheetRole role,
+                                   gfx::Bitmap& preview);
 
   GfxGroupWorkspaceState& Ws() { return workspace_ ? *workspace_ : fallback_; }
   const GfxGroupWorkspaceState& Ws() const {
@@ -74,6 +77,10 @@ class GfxGroupEditor {
   std::array<gui::Canvas, 8> blockset_canvases_;
   std::array<gui::Canvas, 4> roomset_canvases_;
   std::array<gui::Canvas, 4> spriteset_canvases_;
+
+  std::array<gfx::Bitmap, 8> blockset_previews_;
+  std::array<gfx::Bitmap, 4> roomset_previews_;
+  std::array<gfx::Bitmap, 4> spriteset_previews_;
 
   Rom* rom_ = nullptr;
   zelda3::GameData* game_data_ = nullptr;

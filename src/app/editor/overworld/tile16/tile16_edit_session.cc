@@ -278,11 +278,8 @@ absl::Status Tile16EditSession::RegenerateTile16BitmapFromROM() {
   return absl::OkStatus();
 }
 
-absl::Status Tile16EditSession::DrawToCurrentTile16Impl(
-    Tile16LocalPos pos, const gfx::Bitmap* source_tile) {
-  constexpr int kTile8Size = 8;
-  (void)source_tile;
-
+absl::StatusOr<std::vector<zelda3::Tile16StampMutation>>
+Tile16EditSession::BuildStampMutations(Tile16LocalPos pos) const {
   // Validate inputs
   if (current_tile8_ < 0 ||
       current_tile8_ >= static_cast<int>(current_gfx_individual_.size())) {
@@ -294,6 +291,10 @@ absl::Status Tile16EditSession::DrawToCurrentTile16Impl(
     return absl::FailedPreconditionError("Target tile16 bitmap not active");
   }
 
+  if (!HasCurrentGfxBitmap()) {
+    return absl::FailedPreconditionError("Tile8 source bitmap not active");
+  }
+
   const int tile8_count =
       static_cast<int>(std::min<size_t>(current_gfx_individual_.size(), 1024));
   const int max_tile8_id = std::max(0, tile8_count - 1);
@@ -302,7 +303,6 @@ absl::Status Tile16EditSession::DrawToCurrentTile16Impl(
   const int quadrant_x = (pos.x >= kTile8Size) ? 1 : 0;
   const int quadrant_y = (pos.y >= kTile8Size) ? 1 : 0;
   const int quadrant_index = quadrant_x + (quadrant_y * 2);
-  active_quadrant_ = std::clamp(quadrant_index, 0, 3);
 
   zelda3::Tile16StampRequest stamp_request;
   stamp_request.current_tile16 = current_tile16_data_;
@@ -322,8 +322,38 @@ absl::Status Tile16EditSession::DrawToCurrentTile16Impl(
           ? static_cast<int>(document_definitions_->size()) - 1
           : kTile16Count - 1;
 
-  ASSIGN_OR_RETURN(auto staged_tiles,
-                   zelda3::BuildTile16StampMutations(stamp_request));
+  return zelda3::BuildTile16StampMutations(stamp_request);
+}
+
+absl::Status Tile16EditSession::BuildStampPreview(Tile16LocalPos pos,
+                                                  gfx::Bitmap* output) const {
+  if (!output) {
+    return absl::InvalidArgumentError("Stamp preview bitmap is null");
+  }
+  ASSIGN_OR_RETURN(const auto mutations, BuildStampMutations(pos));
+  const int size = tile8_stamp_size_ == 4 ? 32 : 16;
+  std::vector<uint8_t> pixels(size * size, 0);
+  for (const auto& mutation : mutations) {
+    const int offset = mutation.tile16_id - current_tile16_;
+    const int x = (offset % kTilesPerRow) * 16;
+    const int y = (offset / kTilesPerRow) * 16;
+    const auto tile = zelda3::RenderTile16PixelsFromMetadata(
+        mutation.tile_data, current_gfx_individual_);
+    for (int row = 0; row < 16 && y + row < size; ++row) {
+      std::copy_n(tile.begin() + row * 16, 16,
+                  pixels.begin() + (y + row) * size + x);
+    }
+  }
+  output->Create(size, size, 8, pixels);
+  output->SetPalette(current_tile16_bmp_.palette());
+  return absl::OkStatus();
+}
+
+absl::Status Tile16EditSession::DrawToCurrentTile16Impl(
+    Tile16LocalPos pos, const gfx::Bitmap* source_tile) {
+  (void)source_tile;
+  ASSIGN_OR_RETURN(auto staged_tiles, BuildStampMutations(pos));
+  active_quadrant_ = (pos.x >= 8 ? 1 : 0) + (pos.y >= 8 ? 2 : 0);
 
   for (const auto& mutation : staged_tiles) {
     const int tile16_id = mutation.tile16_id;
