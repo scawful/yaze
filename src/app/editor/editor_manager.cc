@@ -2077,6 +2077,18 @@ void EditorManager::Initialize(gfx::IRenderer* renderer,
   // Editor), which InitializeServices() loads; opening earlier used the
   // built-in defaults and always showed the editor picker.
   if (!filename.empty()) {
+    // The post-load surface must see --startup_dashboard/--welcome (saved by
+    // SetStartupLoadHints) and Settings > Test mode now; Application applies
+    // them only after this returns.
+    if (user_settings_.prefs().test_mode) {
+      if (welcome_mode_override_ == StartupVisibility::kAuto) {
+        welcome_mode_override_ = StartupVisibility::kHide;
+      }
+      if (dashboard_mode_override_ == StartupVisibility::kAuto) {
+        dashboard_mode_override_ = StartupVisibility::kHide;
+      }
+    }
+    ApplyStartupVisibilityOverrides();
     PRINT_IF_ERROR(OpenRomOrProject(filename));
   }
 }
