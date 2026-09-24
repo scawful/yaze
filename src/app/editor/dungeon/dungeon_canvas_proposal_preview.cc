@@ -157,6 +157,10 @@ void DungeonCanvasViewer::DrawProposalPreview(
   std::vector<gfx::Bitmap*> bitmaps;
   bitmaps.reserve(overlay.rooms.size());
   for (const auto& room : overlay.rooms) {
+    // Rooms the user has not opened are materialized but not loaded; load
+    // them from the ROM the same way the connected-room view does, or the
+    // composite shows placeholder data.
+    EnsureRoomLoadedForConnectedView(room.room_id);
     bitmaps.push_back(PrepareConnectedRoomCompositeBitmap(room.room_id));
   }
   gfx::Arena::Get().ProcessTextureQueue(renderer_);
