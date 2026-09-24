@@ -63,6 +63,8 @@ These checks remain deferred. Automated tests use synthetic in-memory ROM data.
   Undo/Redo and save/reopen a test copy. Check unrelated slots stay unchanged.
   An existing plane 03 should remain visible until explicitly changed. A placed
   staircase targeting room 000 must appear in the connected-room graph.
+  Staircase links/notices must be labeled estimated; no Clear stale action
+  should be offered. Review actual slot use separately in-game.
 - [ ] Check supported spriteset choices and invalid/capacity errors. Rejected
   operations must preserve the room and history.
 

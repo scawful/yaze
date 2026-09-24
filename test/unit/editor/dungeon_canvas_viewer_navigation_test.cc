@@ -2490,7 +2490,7 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
   stair.slot_index = 1;
   stair.object_id = 0x138;
   EXPECT_EQ(FormatDungeonConnectedLinkDescription(stair),
-            "Staircase slot 1 obj 0x138 -> [040]");
+            "Estimated staircase slot 1 obj 0x138 -> [040]");
 
   DungeonConnectedRoomLink warp{};
   warp.from_room_id = 0x10;
@@ -2506,25 +2506,27 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
   unused.kind = DungeonStaircaseIssueKind::UnusedHeader;
   unused.slot_index = 2;
   unused.header_room_id = 0x55;
-  EXPECT_EQ(FormatDungeonStaircaseIssueDescription(unused),
-            "Stale staircase slot 2 -> [055] (no placed interroom-stair "
-            "object consumes this slot)");
+  EXPECT_EQ(
+      FormatDungeonStaircaseIssueDescription(unused),
+      "Possibly unused staircase slot 2 -> [055] (no placed interroom-stair "
+      "object consumes this slot)");
 
   DungeonStaircaseIssue missing_invalid{};
   missing_invalid.kind = DungeonStaircaseIssueKind::MissingDestination;
   missing_invalid.slot_index = 1;
   missing_invalid.header_room_id = 0xFFFF;
   missing_invalid.object_id = 0x138;
-  EXPECT_EQ(FormatDungeonStaircaseIssueDescription(missing_invalid),
-            "Missing staircase destination at slot 1 (placed object 0x138, "
-            "header value 0xFFFF (out of range))");
+  EXPECT_EQ(
+      FormatDungeonStaircaseIssueDescription(missing_invalid),
+      "Estimated missing staircase destination at slot 1 (placed object 0x138, "
+      "header value 0xFFFF (out of range))");
 
   DungeonStaircaseIssue extra{};
   extra.kind = DungeonStaircaseIssueKind::ExtraPlacedObject;
   extra.object_id = 0x138;
   EXPECT_EQ(FormatDungeonStaircaseIssueDescription(extra),
-            "Extra staircase object 0x138 beyond the 4 header slots "
-            "(runtime cannot reach this stair)");
+            "Additional staircase object 0x138 beyond the estimated 4 slots "
+            "(runtime mapping unverified)");
 }
 
 TEST(DungeonCanvasViewerConnectedGraphTest,
@@ -2800,7 +2802,7 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
 }
 
 TEST(DungeonCanvasViewerConnectedGraphTest,
-     ApplyConnectedStaircaseIssueAutoFixesClearsOnlyUnusedHeaders) {
+     ApplyConnectedStaircaseIssueAutoFixesPreservesUnverifiedHeaders) {
   std::vector<uint8_t> rom_data(0x8000, 0);
   Rom rom;
   ASSERT_TRUE(rom.LoadFromData(rom_data).ok());
@@ -2853,16 +2855,16 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
 
   EXPECT_EQ(DungeonCanvasViewerTestPeer::ApplyConnectedStaircaseIssueAutoFixes(
                 viewer, 0x10),
-            1);
+            0);
   EXPECT_EQ(start.staircase_room(0), 0x40);
-  EXPECT_EQ(start.staircase_room(1), 0);
-  EXPECT_TRUE(start.header_dirty());
-  EXPECT_EQ(batch_calls, 1);
+  EXPECT_EQ(start.staircase_room(1), 0x41);
+  EXPECT_FALSE(start.header_dirty());
+  EXPECT_EQ(batch_calls, 0);
 
   const auto after =
       DungeonCanvasViewerTestPeer::BuildConnectedRoomGraph(viewer, 0x10);
-  EXPECT_TRUE(after.staircase_issues.empty());
-  EXPECT_EQ(after.room_count, 2);
+  ASSERT_EQ(after.staircase_issues.size(), before.staircase_issues.size());
+  EXPECT_EQ(after.room_count, before.room_count);
 }
 
 TEST(DungeonCanvasViewerConnectedGraphTest,
