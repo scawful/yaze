@@ -109,6 +109,9 @@ void Application::Initialize(const AppConfig& config) {
           config_.dashboard_mode = StartupVisibility::kHide;
         }
         config_.enable_test_harness = true;
+        // Test mode is for local agents only; do not expose ROM writes to
+        // the network.
+        config_.test_harness_bind_address = "127.0.0.1";
       }
       controller_->editor_manager()->ApplyStartupVisibility(config_);
     }
@@ -125,6 +128,7 @@ void Application::Initialize(const AppConfig& config) {
       canvas_automation_service_ =
           std::make_unique<CanvasAutomationServiceImpl>();
       grpc_server_ = std::make_unique<YazeGRPCServer>();
+      grpc_server_->SetBindAddress(config_.test_harness_bind_address);
 
       auto rom_getter = [this]() {
         return controller_->GetCurrentRom();
