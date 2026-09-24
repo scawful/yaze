@@ -483,7 +483,7 @@ TEST_P(DungeonRoomEditsLifecycleTest,
 }
 
 TEST_P(DungeonRoomEditsLifecycleTest,
-       ConnectedClearStaleIsOneActionAfterEarlierPropertyEdit) {
+       ConnectedClearStalePreservesMetadataAndEarlierPropertyHistory) {
   auto& other = editor_->rooms()[1];
   room_->SetStaircaseRoom(0, 0x12);
   room_->SetStaircaseRoom(1, 0x13);
@@ -500,28 +500,27 @@ TEST_P(DungeonRoomEditsLifecycleTest,
        {0, DungeonStaircaseIssueKind::UnusedHeader, 1, 0x13},
        {1, DungeonStaircaseIssueKind::UnusedHeader, 2, 0x34},
        {1, DungeonStaircaseIssueKind::MissingDestination, 3, 0}});
-  EXPECT_EQ(DungeonRoomEditsTestPeer::ClearStaleStaircases(*viewer_, 0), 3);
-  EXPECT_TRUE(DungeonRoomEditsTestPeer::ConnectedGraphInvalidated(*viewer_));
-  ASSERT_EQ(UndoDepth(), 2u);
-  EXPECT_EQ(room_->staircase_room(0), 0);
-  EXPECT_EQ(room_->staircase_room(1), 0);
-  EXPECT_EQ(other.staircase_room(2), 0);
-  EXPECT_EQ(room_->message_id(), 0x123);
-  ASSERT_TRUE(editor_->Undo().ok());
+  // Estimated diagnostics cannot authorize clearing room-header destinations.
+  EXPECT_EQ(DungeonRoomEditsTestPeer::ClearStaleStaircases(*viewer_, 0), 0);
+  EXPECT_FALSE(DungeonRoomEditsTestPeer::ConnectedGraphInvalidated(*viewer_));
+  ASSERT_EQ(UndoDepth(), 1u);
   EXPECT_EQ(room_->CaptureMetadataSnapshot(), original0);
   EXPECT_EQ(other.CaptureMetadataSnapshot(), original1);
-  EXPECT_EQ(room_->message_id(), 0x123);
+  EXPECT_FALSE(other.header_dirty());
+
+  // Clearing added no command: undo still targets the earlier message edit.
   ASSERT_TRUE(editor_->Undo().ok());
+  EXPECT_EQ(UndoDepth(), 0u);
   EXPECT_EQ(room_->message_id(), 0);
   EXPECT_EQ(room_->staircase_room(0), 0x12);
   EXPECT_EQ(room_->staircase_room(1), 0x13);
-  EXPECT_EQ(other.staircase_room(2), 0x34);
+  EXPECT_EQ(other.CaptureMetadataSnapshot(), original1);
+  EXPECT_FALSE(other.header_dirty());
   ASSERT_TRUE(editor_->Redo().ok());
-  ASSERT_TRUE(editor_->Redo().ok());
-  EXPECT_EQ(room_->staircase_room(0), 0);
-  EXPECT_EQ(room_->staircase_room(1), 0);
-  EXPECT_EQ(other.staircase_room(2), 0);
-  EXPECT_EQ(room_->message_id(), 0x123);
+  EXPECT_EQ(UndoDepth(), 1u);
+  EXPECT_EQ(room_->CaptureMetadataSnapshot(), original0);
+  EXPECT_EQ(other.CaptureMetadataSnapshot(), original1);
+  EXPECT_FALSE(other.header_dirty());
 }
 
 TEST_P(DungeonRoomEditsLifecycleTest,
