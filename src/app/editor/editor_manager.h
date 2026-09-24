@@ -290,6 +290,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
                       bool from_dialog = false) override;
   void DismissEditorSelection() override;
 
+  // True when an editor (not the dashboard picker) is in front of the user.
+  bool HasOpenEditor() const;
+
   // Panel-based editor registry
   static bool IsPanelBasedEditor(EditorType type);
   bool IsSidebarVisible() const {
@@ -524,6 +527,9 @@ class EditorManager : public ISessionConfigurator, public IEditorSwitcher {
   void RegisterEmulatorPanels();
   void InitializeServices();
   void SetupComponentCallbacks();
+  // After a ROM or project loads: stay in the open editor, open the Settings
+  // default editor, or show the editor picker, in that order.
+  void ShowPostLoadSurface();
   void SetupDialogCallbacks();
   void SetupSidebarCallbacks();
   void InitializeShortcutSystem();

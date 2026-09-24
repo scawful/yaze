@@ -97,6 +97,19 @@ void Application::Initialize(const AppConfig& config) {
 #endif
 
     if (controller_->editor_manager()) {
+      // Settings > Test mode stands in for the startup flags, because a GUI
+      // agent that launches the app by double-click cannot pass any.
+      // Explicit flags still win.
+      if (controller_->editor_manager()->user_settings().prefs().test_mode) {
+        LOG_INFO("App", "Test mode: hiding welcome and editor picker");
+        if (config_.welcome_mode == StartupVisibility::kAuto) {
+          config_.welcome_mode = StartupVisibility::kHide;
+        }
+        if (config_.dashboard_mode == StartupVisibility::kAuto) {
+          config_.dashboard_mode = StartupVisibility::kHide;
+        }
+        config_.enable_test_harness = true;
+      }
       controller_->editor_manager()->ApplyStartupVisibility(config_);
     }
 

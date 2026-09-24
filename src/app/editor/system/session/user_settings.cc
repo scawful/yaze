@@ -219,6 +219,8 @@ absl::Status LoadPreferencesFromIni(const std::filesystem::path& path,
       prefs->last_project_path = val;
     } else if (key == "show_welcome_on_startup") {
       prefs->show_welcome_on_startup = (val == "1");
+    } else if (key == "test_mode") {
+      prefs->test_mode = (val == "1");
     } else if (key == "restore_last_session") {
       prefs->restore_last_session = (val == "1");
     } else if (key == "prefer_hmagic_sprite_names") {
@@ -403,6 +405,7 @@ absl::Status SavePreferencesToIni(const std::filesystem::path& path,
   ss << "last_project_path=" << prefs.last_project_path << "\n";
   ss << "show_welcome_on_startup=" << (prefs.show_welcome_on_startup ? 1 : 0)
      << "\n";
+  ss << "test_mode=" << (prefs.test_mode ? 1 : 0) << "\n";
   ss << "restore_last_session=" << (prefs.restore_last_session ? 1 : 0) << "\n";
   ss << "prefer_hmagic_sprite_names="
      << (prefs.prefer_hmagic_sprite_names ? 1 : 0) << "\n";
@@ -786,6 +789,7 @@ absl::Status LoadPreferencesFromJson(const std::filesystem::path& path,
         g.value("last_project_path", prefs->last_project_path);
     prefs->show_welcome_on_startup =
         g.value("show_welcome_on_startup", prefs->show_welcome_on_startup);
+    prefs->test_mode = g.value("test_mode", prefs->test_mode);
     prefs->restore_last_session =
         g.value("restore_last_session", prefs->restore_last_session);
     prefs->prefer_hmagic_sprite_names = g.value(
@@ -1079,6 +1083,7 @@ absl::Status SavePreferencesToJson(const std::filesystem::path& path,
       {"last_rom_path", prefs.last_rom_path},
       {"last_project_path", prefs.last_project_path},
       {"show_welcome_on_startup", prefs.show_welcome_on_startup},
+      {"test_mode", prefs.test_mode},
       {"restore_last_session", prefs.restore_last_session},
       {"prefer_hmagic_sprite_names", prefs.prefer_hmagic_sprite_names},
       {"welcome_triforce_alpha", prefs.welcome_triforce_alpha},

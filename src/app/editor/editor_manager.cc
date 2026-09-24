@@ -2290,6 +2290,65 @@ void EditorManager::SetupComponentCallbacks() {
   }
 }
 
+bool EditorManager::HasOpenEditor() const {
+  return current_editor_ != nullptr &&
+         window_manager_.GetActiveCategory() !=
+             WorkspaceWindowManager::kDashboardCategory;
+}
+
+void EditorManager::ShowPostLoadSurface() {
+  if (ui_coordinator_) {
+    ui_coordinator_->SetWelcomeScreenVisible(false);
+  }
+
+  // 1. Never cover an editor the user already has open. Re-enter the same
+  //    editor type so it binds to the newly loaded session.
+  std::optional<EditorType> target;
+  if (HasOpenEditor()) {
+    target = current_editor_->type();
+  }
+
+  // 2. Settings > Editor Behavior > Default Editor.
+  if (!target.has_value()) {
+    switch (user_settings_.prefs().default_editor) {
+      case 1:
+        target = EditorType::kOverworld;
+        break;
+      case 2:
+        target = EditorType::kDungeon;
+        break;
+      case 3:
+        target = EditorType::kGraphics;
+        break;
+      default:
+        break;
+    }
+  }
+
+  // 3. The editor picker, unless it is suppressed (--startup_dashboard=hide
+  //    or Settings > Test mode). Suppressed with no other choice: open the
+  //    most recently used editor, else Dungeon.
+  if (!target.has_value()) {
+    if (!ui_coordinator_ || ui_coordinator_->ShouldShowDashboard()) {
+      if (ui_coordinator_) {
+        ui_coordinator_->SetEditorSelectionVisible(true);
+      }
+      // Suppress panel drawing until the user picks an editor.
+      window_manager_.SetActiveCategory(
+          WorkspaceWindowManager::kDashboardCategory, /*notify=*/false);
+      return;
+    }
+    target =
+        (dashboard_panel_ ? dashboard_panel_->MostRecentEditor() : std::nullopt)
+            .value_or(EditorType::kDungeon);
+  }
+
+  if (ui_coordinator_) {
+    ui_coordinator_->SetStartupSurface(StartupSurface::kEditor);
+  }
+  SwitchToEditor(*target, /*force_visible=*/true);
+}
+
 void EditorManager::SetupDialogCallbacks() {
   // Initialize ROM load options dialog callbacks
   rom_load_options_dialog_.SetConfirmCallback(
@@ -2325,11 +2384,10 @@ void EditorManager::SetupDialogCallbacks() {
           }
         }
 
-        // Close dialog and show editor selection
+        // Close dialog, then pick the post-load surface again: the options
+        // may have created a project, but an open editor still wins.
         show_rom_load_options_ = false;
-        if (ui_coordinator_) {
-          ui_coordinator_->SetEditorSelectionVisible(true);
-        }
+        ShowPostLoadSurface();
 
         LOG_INFO("EditorManager", "ROM load options applied: preset=%s",
                  options.selected_preset.c_str());
@@ -4569,15 +4627,7 @@ absl::Status EditorManager::OpenRomOrProjectInternal(
       return asset_status;
     }
 
-    // Hide welcome screen and show editor selection when ROM is loaded
-    ui_coordinator_->SetWelcomeScreenVisible(false);
-    // dashboard_panel_->ClearRecentEditors();
-    ui_coordinator_->SetEditorSelectionVisible(true);
-
-    // Set Dashboard category to suppress panel drawing until user selects an editor
-    window_manager_.SetActiveCategory(
-        WorkspaceWindowManager::kDashboardCategory,
-        /*notify=*/false);
+    ShowPostLoadSurface();
   }
   return absl::OkStatus();
 }
@@ -5164,15 +5214,7 @@ absl::Status EditorManager::LoadProjectWithRom() {
     pending_project_rom_selection_.reset();
   }
 
-  // Hide welcome screen and show editor selection when project ROM is loaded
-  if (ui_coordinator_) {
-    ui_coordinator_->SetWelcomeScreenVisible(false);
-    ui_coordinator_->SetEditorSelectionVisible(true);
-  }
-
-  // Set Dashboard category to suppress panel drawing until user selects an editor
-  window_manager_.SetActiveCategory(WorkspaceWindowManager::kDashboardCategory,
-                                    /*notify=*/false);
+  ShowPostLoadSurface();
 
   // Apply workspace settings
   user_settings_.prefs().font_global_scale =
