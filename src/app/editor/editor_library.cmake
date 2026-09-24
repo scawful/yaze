@@ -11,6 +11,7 @@ set(
   app/editor/dungeon/dungeon_canvas_debug.cc
   app/editor/dungeon/dungeon_canvas_issue_report.cc
   app/editor/dungeon/dungeon_canvas_overlays.cc
+  app/editor/dungeon/dungeon_canvas_proposal_preview.cc
   app/editor/dungeon/dungeon_canvas_room_chrome.cc
   app/editor/dungeon/dungeon_canvas_room_frame.cc
   app/editor/dungeon/dungeon_canvas_room_render.cc
@@ -53,6 +54,7 @@ set(
   app/editor/dungeon/interaction/item_interaction_handler.cc
   app/editor/dungeon/interaction/sprite_interaction_handler.cc
   app/editor/dungeon/interaction/tile_object_handler.cc
+  app/editor/dungeon/dungeon_proposal_overlay.cc
   app/editor/dungeon/minecart_track_source.cc
   app/editor/dungeon/object_selection.cc
   app/editor/dungeon/selectors/object_selector_content.cc

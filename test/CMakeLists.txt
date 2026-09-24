@@ -346,6 +346,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/room_graphics_content_test.cc
     unit/editor/dungeon_workbench_toolbar_test.cc
     unit/editor/object_tile_editor_panel_test.cc
+    unit/editor/dungeon_proposal_overlay_test.cc
     unit/editor/minecart_track_source_test.cc
     unit/editor/minecart_track_editor_panel_test.cc
     unit/editor/toast_dedup_test.cc
@@ -728,6 +729,7 @@ if(YAZE_BUILD_TESTS)
     unit/editor/dungeon_workbench_content_test.cc
     unit/editor/object_tile_editor_panel_test.cc
     unit/editor/object_coverage_panel_test.cc
+    unit/editor/dungeon_proposal_overlay_test.cc
     unit/editor/minecart_track_source_test.cc
     unit/editor/minecart_track_editor_panel_test.cc
     unit/editor/project_manager_validator_test.cc

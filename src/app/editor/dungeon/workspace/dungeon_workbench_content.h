@@ -5,10 +5,13 @@
 #include <deque>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
+#include "app/editor/dungeon/dungeon_proposal_overlay.h"
 #include "app/editor/dungeon/dungeon_workbench_state.h"
 #include "app/editor/system/editor_panel.h"
 
@@ -138,6 +141,14 @@ class DungeonWorkbenchContent : public WindowContent {
   void FocusEntranceBrowser();
   void ShowConnectedGraph();
   void RequestDungeonMapPopup();
+  // Opens the read-only Proposal Preview window (room renders + overlay).
+  void RequestProposalPreview();
+  // Loads an overlay file; returns false and records the error on failure.
+  bool LoadProposalOverlay(const std::string& path);
+  const std::optional<DungeonProposalOverlay>& proposal_overlay() const {
+    return proposal_overlay_;
+  }
+  const std::string& proposal_error() const { return proposal_error_; }
   void OpenObjectSelectorTool();
   void OpenDoorTool();
   void OpenSpriteTool();
@@ -256,6 +267,7 @@ class DungeonWorkbenchContent : public WindowContent {
   void DrawPitDamageControls(int room_id);
   void DrawLayerCompositingControls(DungeonCanvasViewer& viewer, int room_id);
   void DrawDungeonMapPopup(DungeonCanvasViewer& viewer);
+  void DrawProposalPreviewWindow(DungeonCanvasViewer& viewer);
   DungeonMapPanel* GetEmbeddedDungeonMap(DungeonCanvasViewer& viewer);
   void SetAllSaveFlags(bool value);
 
@@ -315,6 +327,15 @@ class DungeonWorkbenchContent : public WindowContent {
   std::function<int()> undo_depth_;
 
   bool open_dungeon_map_popup_ = false;
+
+  // Proposal Preview window state (read-only review of layout proposals).
+  bool show_proposal_preview_ = false;
+  char proposal_path_[1024] = {};
+  std::optional<DungeonProposalOverlay> proposal_overlay_;
+  std::string proposal_error_;
+  std::vector<char> proposal_layer_visible_;
+  bool proposal_show_overlay_ = true;
+  float proposal_scale_ = 1.0f;
   uint16_t pit_damage_replacement_room_id_ = 0;
   uint16_t pit_damage_victim_room_id_ = 0;
   std::string pit_damage_status_message_;
