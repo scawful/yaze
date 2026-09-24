@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include "absl/status/status.h"
@@ -59,7 +60,14 @@ class YazeGRPCServer {
     bool enable_emulator_service = true;
     bool enable_canvas_automation = true;
     bool require_approval_for_rom_writes = true;
+    // "0.0.0.0" listens on every interface (the historical default, used by
+    // the iPad remote). Settings > Test mode binds "127.0.0.1" instead.
+    std::string bind_address = "0.0.0.0";
   };
+
+  void SetBindAddress(const std::string& address) {
+    config_.bind_address = address;
+  }
 
   YazeGRPCServer();
   ~YazeGRPCServer();
