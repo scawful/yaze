@@ -2324,6 +2324,33 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
 }
 
 TEST(DungeonCanvasViewerConnectedGraphTest,
+     BuildConnectedRoomGraphReachesRoomZeroThroughStaircase) {
+  Rom rom;
+  ASSERT_TRUE(rom.LoadFromData(std::vector<uint8_t>(0x8000, 0)).ok());
+  DungeonRoomStore rooms(&rom);
+  auto& start = rooms[0x10];
+  ClearRoomLinks(&start);
+  ASSERT_TRUE(start.AddObject(zelda3::RoomObject(0x138, 4, 5, 0, 0)).ok());
+  start.SetStaircaseRoom(0, 0);
+  start.SetLoaded(true);
+  auto& target = rooms[0];
+  ClearRoomLinks(&target);
+  target.SetLoaded(true);
+  DungeonCanvasViewer viewer(&rom);
+  viewer.SetRooms(&rooms);
+
+  const auto graph =
+      DungeonCanvasViewerTestPeer::BuildConnectedRoomGraph(viewer, 0x10);
+  EXPECT_EQ(graph.room_count, 2);
+  EXPECT_TRUE(graph.room_mask[0]);
+  EXPECT_TRUE(graph.room_mask[0x10]);
+  EXPECT_TRUE(graph.staircase_issues.empty());
+  ASSERT_EQ(graph.links.size(), 1u);
+  EXPECT_EQ(graph.links[0].to_room_id, 0);
+  EXPECT_EQ(graph.links[0].type, DungeonConnectedLinkType::Staircase);
+}
+
+TEST(DungeonCanvasViewerConnectedGraphTest,
      CollectDiagnosticsTagsLinksWithProvenanceFields) {
   zelda3::Room room;
   ClearRoomLinks(&room);
@@ -2396,23 +2423,22 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
 }
 
 TEST(DungeonCanvasViewerConnectedGraphTest,
-     CollectDiagnosticsFlagsPlacedObjectWithUnsetHeaderAsMissingDestination) {
+     CollectDiagnosticsPreservesPlacedStaircaseDestinationRoomZero) {
   zelda3::Room room;
   ClearRoomLinks(&room);
-  // Slot 0 header is 0 but a placed interroom-stair object consumes it →
-  // runtime would jump to room 0x000, an invalid destination.
+  // A placed stair consumes slot 0 and targets valid room 000. The remaining
+  // zero-filled, unconsumed header slots must not create links or diagnostics.
   ASSERT_TRUE(room.AddObject(zelda3::RoomObject(0x138, 4, 5, 0, 0)).ok());
 
   const auto diagnostics =
       CollectDungeonConnectedRoomLinkDiagnostics(0x10, room, nullptr);
 
-  EXPECT_TRUE(diagnostics.links.empty());
-  ASSERT_EQ(diagnostics.staircase_issues.size(), 1u);
-  EXPECT_EQ(diagnostics.staircase_issues[0].kind,
-            DungeonStaircaseIssueKind::MissingDestination);
-  EXPECT_EQ(diagnostics.staircase_issues[0].slot_index, 0);
-  EXPECT_EQ(diagnostics.staircase_issues[0].header_room_id, 0);
-  EXPECT_EQ(diagnostics.staircase_issues[0].object_id, 0x138);
+  EXPECT_TRUE(diagnostics.staircase_issues.empty());
+  ASSERT_EQ(diagnostics.links.size(), 1u);
+  EXPECT_EQ(diagnostics.links[0].type, DungeonConnectedLinkType::Staircase);
+  EXPECT_EQ(diagnostics.links[0].slot_index, 0);
+  EXPECT_EQ(diagnostics.links[0].to_room_id, 0);
+  EXPECT_EQ(diagnostics.links[0].object_id, 0x138);
 }
 
 TEST(DungeonCanvasViewerConnectedGraphTest,
@@ -2483,15 +2509,6 @@ TEST(DungeonCanvasViewerConnectedGraphTest,
   EXPECT_EQ(FormatDungeonStaircaseIssueDescription(unused),
             "Stale staircase slot 2 -> [055] (no placed interroom-stair "
             "object consumes this slot)");
-
-  DungeonStaircaseIssue missing_unset{};
-  missing_unset.kind = DungeonStaircaseIssueKind::MissingDestination;
-  missing_unset.slot_index = 0;
-  missing_unset.header_room_id = 0;
-  missing_unset.object_id = 0x138;
-  EXPECT_EQ(FormatDungeonStaircaseIssueDescription(missing_unset),
-            "Missing staircase destination at slot 0 (placed object 0x138, "
-            "header value 0 (unset))");
 
   DungeonStaircaseIssue missing_invalid{};
   missing_invalid.kind = DungeonStaircaseIssueKind::MissingDestination;

@@ -130,18 +130,21 @@ struct AnyCodable: Codable {
 /// REST client for communicating with the desktop yaze HTTP server.
 final class DesktopAPIClient: ObservableObject {
   @Published var isConnected = false
+  @Published private(set) var isConnecting = false
   @Published var lastError: String = ""
   @Published var connectedHost: DiscoveredHost?
 
   private var baseURL: URL?
   private let session: URLSession
   private let decoder: JSONDecoder
+  private var connectionGeneration = UUID()
+  private var connectionTask: Task<Void, Never>?
 
-  init() {
+  init(session: URLSession? = nil) {
     let config = URLSessionConfiguration.default
     config.timeoutIntervalForRequest = 10
     config.timeoutIntervalForResource = 30
-    session = URLSession(configuration: config)
+    self.session = session ?? URLSession(configuration: config)
     decoder = JSONDecoder()
   }
 
@@ -153,15 +156,26 @@ final class DesktopAPIClient: ObservableObject {
       lastError = "Invalid URL: \(urlString)"
       return
     }
+    connectionTask?.cancel()
+    connectionGeneration = UUID()
+    let generation = connectionGeneration
     baseURL = url
     connectedHost = host
+    isConnected = false
+    isConnecting = true
+    lastError = ""
 
-    Task { @MainActor in
+    connectionTask = Task { @MainActor in
+      guard !Task.isCancelled, generation == connectionGeneration else { return }
       do {
         let _: HealthResponse = try await get(path: "/api/v1/health")
+        guard !Task.isCancelled, generation == connectionGeneration else { return }
         isConnected = true
+        isConnecting = false
         lastError = ""
       } catch {
+        guard !Task.isCancelled, generation == connectionGeneration else { return }
+        isConnecting = false
         isConnected = false
         lastError = "Health check failed: \(error.localizedDescription)"
       }
@@ -179,6 +193,10 @@ final class DesktopAPIClient: ObservableObject {
   }
 
   func disconnect() {
+    connectionTask?.cancel()
+    connectionTask = nil
+    connectionGeneration = UUID()
+    isConnecting = false
     isConnected = false
     connectedHost = nil
     baseURL = nil

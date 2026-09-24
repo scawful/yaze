@@ -61,9 +61,32 @@ These checks remain deferred. Automated tests use synthetic in-memory ROM data.
 - [ ] In Workbench and standalone **Destinations**, edit the pit room/arrival
   layer and each stair header slot. Open the destination (including room 000),
   Undo/Redo and save/reopen a test copy. Check unrelated slots stay unchanged.
-  An existing plane 03 should remain visible until explicitly changed.
+  An existing plane 03 should remain visible until explicitly changed. A placed
+  staircase targeting room 000 must appear in the connected-room graph.
 - [ ] Check supported spriteset choices and invalid/capacity errors. Rejected
   operations must preserve the room and history.
+
+## Test later: native iPad dungeon review
+
+Source changes are in the combined candidate. They have not been installed on
+an iPad. The desktop candidate also includes the staircase room-zero correction.
+
+- [ ] Open the native dungeon room sidebar; filter by ID/name, select a room,
+  clear the search and close the sidebar. Check long names and selected state.
+  Repeat in landscape, portrait and a narrow window with larger text.
+- [ ] In Desktop Connection, connect and open Room Viewer. The first room should
+  load without changing a control. Switch rooms/overlays quickly; the title,
+  image and Room Details must agree. Stop the server; loading must end with a
+  recoverable error instead of leaving the previous image visible.
+- [ ] Fit the room, choose a render scale and pan, then Fit again. Refresh after
+  a desktop edit. Check Browse Rooms search, empty results and Done buttons.
+- [ ] Cancel a pending connection, reconnect, and switch desktops. A late
+  response must not reconnect a canceled host. Invalid ports must not connect.
+- [ ] Check VoiceOver labels, large text, light/dark appearance, keyboard and
+  safe areas on a small phone, large phone and iPad when qualifying the build.
+
+See [the iPad review handoff](../agents/ipad-dungeon-review-2026-09-23.md)
+for source checks and the separate native/desktop-connected workflows.
 
 ## Integration status
 

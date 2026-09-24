@@ -87,3 +87,11 @@ After combined acceptance, continue the open dungeon authoring packages in
 [the capability plan](../plans/editor-capability-parity-plan.md). Keep the user
 manual checklist as the single testing queue, and preserve small layout tasks
 for the user's later coding/design pass.
+
+## Native iPad follow-up
+
+The [iPad dungeon review pass](ipad-dungeon-review-2026-09-23.md)
+builds on `e5f84f999`. It improves the native room sidebar and desktop-connected
+room viewer. Its source checks do not replace a linked iOS build or physical
+device acceptance. The accompanying dungeon fix preserves staircase links to room 000; the desktop
+candidate is rebuilt for that C++ change.
