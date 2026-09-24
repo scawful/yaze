@@ -109,3 +109,14 @@ enter `005`, `077`, or `087` and press Enter. Grid arrows are explicitly labeled
 as grid navigation, not verified connections. Candidate rebuilt; 11 toolbar tests
 passed. Native end-to-end Origins acceptance remains blocked by CUA routing
 ambiguity between two live same-bundle-ID apps; see existing manual checklist.
+
+## Combined sprite and overworld integration
+
+Application source `ff0545893` includes sprite integration `7e2f16590` and
+cursor-following overworld properties. App/CLI/unit/quick-editor build passed.
+Combined checks: 87 sprite/project/dungeon-toolbar tests and 104 overworld/editor
+save tests passed, zero failures/skips. Exact hashes remain in candidate provenance.
+The sprite owner's two-frame live acceptance and overworld owner's vanilla hover/
+pin/Brush checks were performed on their separate builds; combined native Origins
+and Oracle save/reopen acceptance remains open. No installed app/session replaced.
+The separate Tile16 multi-select hover/graphics-preview follow-up is not included.
