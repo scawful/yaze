@@ -152,21 +152,31 @@ void PopupManager::DrawPopups() {
   // Draw status popup if needed
   DrawStatusPopup();
 
-  // Draw all registered popups
+  // Draw only the most recently shown popup. All popups open at the same
+  // level, and opening one closes any other open there, so drawing every
+  // visible popup reopened each of them every frame: none stayed on screen,
+  // and the open modal blocked all input. Older popups stay visible and
+  // return when the newer one is hidden.
+  PopupParams* top = nullptr;
   for (auto& [name, params] : popups_) {
-    if (params.is_visible) {
-      OpenPopup(name.c_str());
-
-      // Use allow_resize flag from popup definition
-      ImGuiWindowFlags popup_flags = params.allow_resize
-                                         ? ImGuiWindowFlags_None
-                                         : ImGuiWindowFlags_AlwaysAutoResize;
-
-      if (BeginPopupModal(name.c_str(), nullptr, popup_flags)) {
-        params.draw_function();
-        EndPopup();
-      }
+    if (params.is_visible &&
+        (top == nullptr || params.shown_order > top->shown_order)) {
+      top = &params;
     }
+  }
+  if (top == nullptr) {
+    return;
+  }
+  OpenPopup(top->name.c_str());
+
+  // Use allow_resize flag from popup definition
+  ImGuiWindowFlags popup_flags = top->allow_resize
+                                     ? ImGuiWindowFlags_None
+                                     : ImGuiWindowFlags_AlwaysAutoResize;
+
+  if (BeginPopupModal(top->name.c_str(), nullptr, popup_flags)) {
+    top->draw_function();
+    EndPopup();
   }
 }
 
@@ -178,6 +188,9 @@ void PopupManager::Show(const char* name) {
   std::string name_str(name);
   auto it = popups_.find(name_str);
   if (it != popups_.end()) {
+    if (!it->second.is_visible) {
+      it->second.shown_order = next_shown_order_++;
+    }
     it->second.is_visible = true;
   } else {
     // Log warning for unregistered popup
@@ -202,6 +215,17 @@ void PopupManager::Hide(const char* name) {
     it->second.is_visible = false;
     CloseCurrentPopup();
   }
+}
+
+void PopupManager::RegisterPopup(const std::string& name, PopupType type,
+                                 std::function<void()> draw_function,
+                                 bool allow_resize) {
+  PopupParams params;
+  params.name = name;
+  params.type = type;
+  params.allow_resize = allow_resize;
+  params.draw_function = std::move(draw_function);
+  popups_[name] = std::move(params);
 }
 
 bool PopupManager::IsVisible(const char* name) const {
