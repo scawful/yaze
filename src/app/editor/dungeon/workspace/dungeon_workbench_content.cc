@@ -7,6 +7,8 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <fstream>
+#include <sstream>
 #include <utility>
 #include <vector>
 
@@ -40,6 +42,7 @@
 #include "core/project.h"
 #include "imgui/imgui.h"
 #include "rom/rom.h"
+#include "util/file_util.h"
 #include "zelda3/dungeon/door_types.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
 #include "zelda3/dungeon/object_layer_semantics.h"
@@ -365,6 +368,160 @@ void DungeonWorkbenchContent::RequestDungeonMapPopup() {
   open_dungeon_map_popup_ = true;
 }
 
+void DungeonWorkbenchContent::RequestProposalPreview() {
+  show_proposal_preview_ = true;
+}
+
+bool DungeonWorkbenchContent::LoadProposalOverlay(const std::string& path) {
+  std::snprintf(proposal_path_, sizeof(proposal_path_), "%s", path.c_str());
+  std::ifstream file(path, std::ios::binary);
+  if (!file) {
+    proposal_error_ = absl::StrFormat("Cannot open %s", path);
+    return false;
+  }
+  std::stringstream buffer;
+  buffer << file.rdbuf();
+  auto overlay = ParseDungeonProposalOverlay(buffer.str());
+  if (!overlay.ok()) {
+    // Keep the previously loaded overlay visible; show why the new one failed.
+    proposal_error_ = std::string(overlay.status().message());
+    return false;
+  }
+  proposal_layer_visible_.clear();
+  for (const auto& layer : overlay->layers) {
+    proposal_layer_visible_.push_back(layer.visible ? 1 : 0);
+  }
+  proposal_overlay_ = std::move(*overlay);
+  proposal_error_.clear();
+  return true;
+}
+
+void DungeonWorkbenchContent::DrawProposalPreviewWindow(
+    DungeonCanvasViewer& viewer) {
+  if (!show_proposal_preview_) {
+    return;
+  }
+  ImGui::SetNextWindowSize(ImVec2(1120.0f, 700.0f), ImGuiCond_FirstUseEver);
+  if (!ImGui::Begin(ICON_MD_PREVIEW " Proposal Preview##DungeonProposalPreview",
+                    &show_proposal_preview_)) {
+    ImGui::End();
+    return;
+  }
+
+  // File row.
+  util::FileDialogOptions json_options;
+  json_options.filters.push_back({"Proposal Overlay", "json"});
+  json_options.filters.push_back({"All Files", "*"});
+  if (ImGui::Button(ICON_MD_FOLDER_OPEN " Open...")) {
+    const std::string path =
+        util::FileDialogWrapper::ShowOpenFileDialog(json_options);
+    if (!path.empty()) {
+      (void)LoadProposalOverlay(path);
+    }
+  }
+  ImGui::SameLine();
+  ImGui::BeginDisabled(proposal_path_[0] == '\0');
+  if (ImGui::Button(ICON_MD_REFRESH " Reload")) {
+    (void)LoadProposalOverlay(proposal_path_);
+  }
+  ImGui::EndDisabled();
+  ImGui::SameLine();
+  ImGui::SetNextItemWidth(-1.0f);
+  if (ImGui::InputTextWithHint("##ProposalPath", tr("overlay .json path"),
+                               proposal_path_, sizeof(proposal_path_),
+                               ImGuiInputTextFlags_EnterReturnsTrue)) {
+    (void)LoadProposalOverlay(proposal_path_);
+  }
+  if (!proposal_error_.empty()) {
+    ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 0.45f, 0.4f, 1.0f));
+    ImGui::TextWrapped("%s", proposal_error_.c_str());
+    ImGui::PopStyleColor();
+  }
+
+  if (!proposal_overlay_.has_value()) {
+    ImGui::Spacing();
+    ImGui::TextWrapped(
+        "%s",
+        tr("Open a proposal overlay (.json) to render its rooms from the "
+           "loaded ROM with the proposed changes drawn on top. This window "
+           "is read-only: it never edits rooms or the ROM."));
+    ImGui::End();
+    return;
+  }
+  const DungeonProposalOverlay& overlay = *proposal_overlay_;
+
+  if (!overlay.title.empty()) {
+    ImGui::TextUnformatted(overlay.title.c_str());
+  }
+  if (!overlay.status.empty()) {
+    ImGui::SameLine();
+    ImGui::TextDisabled("(%s)", overlay.status.c_str());
+  }
+  ImGui::TextDisabled("%s",
+                      tr("Read-only preview. Nothing here edits the ROM."));
+
+  // Layer and view controls.
+  ImGui::Checkbox(tr("Show proposal"), &proposal_show_overlay_);
+  ImGui::BeginDisabled(!proposal_show_overlay_);
+  for (size_t i = 0; i < overlay.layers.size(); ++i) {
+    const auto& layer = overlay.layers[i];
+    ImGui::SameLine();
+    const uint32_t c = layer.color_rgba;
+    ImGui::ColorButton(
+        absl::StrFormat("##ProposalLayerSwatch%d", i).c_str(),
+        ImVec4(((c >> 24) & 0xFF) / 255.0f, ((c >> 16) & 0xFF) / 255.0f,
+               ((c >> 8) & 0xFF) / 255.0f, 1.0f),
+        ImGuiColorEditFlags_NoTooltip, ImVec2(12, 12));
+    ImGui::SameLine(0, 4);
+    bool visible =
+        i < proposal_layer_visible_.size() && proposal_layer_visible_[i] != 0;
+    if (ImGui::Checkbox(
+            absl::StrFormat("%s##ProposalLayer%d", layer.label, i).c_str(),
+            &visible) &&
+        i < proposal_layer_visible_.size()) {
+      proposal_layer_visible_[i] = visible ? 1 : 0;
+    }
+  }
+  ImGui::EndDisabled();
+
+  ImGui::SetNextItemWidth(160.0f);
+  ImGui::SliderFloat(tr("Zoom"), &proposal_scale_, 0.5f, 2.0f, "%.2fx");
+  if (on_room_selected_) {
+    for (const auto& room : overlay.rooms) {
+      ImGui::SameLine();
+      if (ImGui::SmallButton(
+              absl::StrFormat("Open $%02X##ProposalOpenRoom", room.room_id)
+                  .c_str())) {
+        on_room_selected_(room.room_id);
+      }
+    }
+  }
+
+  // Rooms with the overlay. Reserve space for notes below.
+  const float notes_height =
+      overlay.notes.empty()
+          ? 0.0f
+          : std::min(140.0f, ImGui::GetTextLineHeightWithSpacing() *
+                                 (overlay.notes.size() + 1.5f));
+  if (ImGui::BeginChild("##ProposalPreviewBody", ImVec2(0.0f, -notes_height),
+                        true, ImGuiWindowFlags_HorizontalScrollbar)) {
+    viewer.DrawProposalPreview(overlay, proposal_layer_visible_,
+                               proposal_show_overlay_, proposal_scale_);
+  }
+  ImGui::EndChild();
+
+  if (!overlay.notes.empty() &&
+      ImGui::BeginChild("##ProposalPreviewNotes", ImVec2(0.0f, 0.0f), false)) {
+    for (const auto& note : overlay.notes) {
+      ImGui::BulletText("%s", note.c_str());
+    }
+  }
+  if (!overlay.notes.empty()) {
+    ImGui::EndChild();
+  }
+  ImGui::End();
+}
+
 void DungeonWorkbenchContent::OpenObjectSelectorTool() {
   OpenTool(WorkbenchTool::ObjectSelector);
 }
@@ -469,6 +626,9 @@ void DungeonWorkbenchContent::DrawSidebarHeader(float button_size,
             }
             if (ImGui::MenuItem(ICON_MD_MAP " Dungeon Map")) {
               RequestDungeonMapPopup();
+            }
+            if (ImGui::MenuItem(ICON_MD_PREVIEW " Proposal Preview...")) {
+              RequestProposalPreview();
             }
             ImGui::Separator();
             const bool can_open_shortcuts =
@@ -787,6 +947,11 @@ void DungeonWorkbenchContent::DrawCanvasPane(
     }
   }
   ImGui::EndChild();
+  // Floating, independent window; drawn here so it stays available while the
+  // navigation sidebar is collapsed.
+  if (primary_viewer) {
+    DrawProposalPreviewWindow(*primary_viewer);
+  }
 }
 
 void DungeonWorkbenchContent::DrawInspectorPane(float width, float height,

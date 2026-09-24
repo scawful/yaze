@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "app/editor/dungeon/dungeon_proposal_overlay.h"
 #include "app/editor/dungeon/dungeon_room_composite.h"
 #include "app/editor/dungeon/dungeon_room_edit.h"
 #include "app/editor/dungeon/inspectors/dungeon_chest_editor.h"
@@ -282,6 +283,13 @@ class DungeonCanvasViewer {
 
   void DrawDungeonCanvas(int room_id);
   std::optional<int> DrawConnectedRoomMatrix(int center_room_id);
+  // Read-only proposal preview: overlay.rooms rendered left to right with the
+  // visible layers drawn on top. Never edits room data.
+  void DrawProposalPreview(const DungeonProposalOverlay& overlay,
+                           const std::vector<char>& layer_visible,
+                           bool show_overlay, float scale);
+  ImVec2 GetProposalPreviewContentSize(const DungeonProposalOverlay& overlay,
+                                       float scale) const;
   void DrawConnectedToolbarControls(int center_room_id);
   void Draw(int room_id);
   void TriggerChangePing();
