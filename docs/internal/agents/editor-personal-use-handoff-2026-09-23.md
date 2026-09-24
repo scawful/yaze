@@ -120,3 +120,13 @@ The sprite owner's two-frame live acceptance and overworld owner's vanilla hover
 pin/Brush checks were performed on their separate builds; combined native Origins
 and Oracle save/reopen acceptance remains open. No installed app/session replaced.
 The separate Tile16 multi-select hover/graphics-preview follow-up is not included.
+
+## Canonical consolidation update
+
+Use application source `699c86326` or its documentation-only successor. This adds
+weekly drawer fit, SPC700 reset initialization, removal of destructive Tile16
+doctor repair, and the Tile16/graphics-preview follow-up (99 focused tests pass).
+The earlier statement that the preview follow-up was absent is superseded.
+See `worktree-consolidation-2026-09-23.md` for included/equivalent/pending worktrees.
+Source-current does not prove a running instance is current or reset its saved
+layout. No installed launcher, app, layout or native iPad deployment was changed.
