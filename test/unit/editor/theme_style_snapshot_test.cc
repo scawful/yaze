@@ -531,7 +531,7 @@ TEST_F(ThemeStyleSnapshotTest,
 TEST_F(ThemeStyleSnapshotTest, NonAsciiThemeNameNormalizesToASafeFilename) {
   auto& mgr = ThemeManager::Get();
   Theme theme = *mgr.GetTheme("YAZE Tre");
-  theme.name = "Rosé Pine";
+  theme.name = "Unicode Filename Test Rosé";
 
   const auto path = TempThemePath("non_ascii_name");
   ASSERT_TRUE(mgr.SaveThemeToFile(theme, path.string()).ok());
@@ -543,7 +543,7 @@ TEST_F(ThemeStyleSnapshotTest, NonAsciiThemeNameNormalizesToASafeFilename) {
   // Applying by value makes this the current theme, which is what the
   // filename synthesis reads.
   mgr.ApplyTheme(theme);
-  ASSERT_EQ(mgr.GetCurrentThemeName(), "Rosé Pine");
+  ASSERT_EQ(mgr.GetCurrentThemeName(), "Unicode Filename Test Rosé");
 
   // The recorded path wins; clear the association so the synthesis path that
   // owns the isalnum call is the one under test.
