@@ -37,6 +37,10 @@ struct Zelda3Labels {
   // Item names (all collectible items)
   static const std::vector<std::string>& GetItemNames();
 
+  // Vanilla item-receipt bytes (chest rewards). ID 00 is Fighter Sword.
+  // Separate from inventory labels; do not index GetItemNames with receipts.
+  static const std::vector<std::string>& GetItemReceiptNames();
+
   // Music track names
   static const std::vector<std::string>& GetMusicTrackNames();
 

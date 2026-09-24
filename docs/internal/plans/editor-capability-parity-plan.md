@@ -876,3 +876,10 @@ without editing it; subsequent changes use the existing metadata undo path.
 This is a model preview, not custom-engine or runtime qualification. Estimated
 connected-graph links and automatic-clearing restrictions remain unchanged.
 See [resolver evidence and next steps](../agents/dungeon-staircase-resolver-2026-09-23.md).
+
+### Chest receipt readback follow-up (2026-09-23)
+
+Chest panels and CLI readback now share a receipt-ID label API, distinct from the
+generic item table. CLI output retains raw IDs and reports label provenance;
+project overrides remain supported. Receipt 00 is counted as Fighter Sword.
+See [receipt-label evidence](../agents/dungeon-receipt-labels-2026-09-23.md).

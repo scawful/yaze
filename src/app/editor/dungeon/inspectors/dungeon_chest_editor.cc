@@ -1,7 +1,6 @@
 #include "app/editor/dungeon/inspectors/dungeon_chest_editor.h"
 
 #include <algorithm>
-#include <array>
 #include <optional>
 #include <string>
 
@@ -17,90 +16,10 @@
 #include "zelda3/dungeon/object_dimensions.h"
 #include "zelda3/dungeon/room.h"
 #include "zelda3/resource_labels.h"
+#include "zelda3/zelda3_labels.h"
 
 namespace yaze::editor {
 namespace {
-
-// Source-Origin: USDASM bank_09.asm, AncillaAdd_ItemReceipt.offset_y
-// ($09836C-$0983B7). These are receipt IDs; the generic GetItemNames table is
-// offset by an extra "None" entry and includes incompatible hack-only items.
-constexpr std::array<const char*, 0x4C> kChestItemNames = {
-    "Fighter Sword",
-    "Master Sword",
-    "Tempered Sword",
-    "Golden Sword",
-    "Fighter Shield",
-    "Fire Shield",
-    "Mirror Shield",
-    "Fire Rod",
-    "Ice Rod",
-    "Hammer",
-    "Hookshot",
-    "Bow",
-    "Boomerang",
-    "Powder",
-    "Bottle Refill (Bee)",
-    "Bombos Medallion",
-    "Ether Medallion",
-    "Quake Medallion",
-    "Lamp",
-    "Shovel",
-    "Flute",
-    "Cane of Somaria",
-    "Bottle",
-    "Piece of Heart",
-    "Cane of Byrna",
-    "Cape",
-    "Magic Mirror",
-    "Power Glove",
-    "Titan's Mitt",
-    "Book of Mudora",
-    "Flippers",
-    "Moon Pearl",
-    "Crystal",
-    "Bug Net",
-    "Blue Mail",
-    "Red Mail",
-    "Small Key",
-    "Compass",
-    "Heart Container (Four Pieces)",
-    "Bomb",
-    "3 Bombs",
-    "Mushroom",
-    "Red Boomerang",
-    "Bottle (Red Potion)",
-    "Bottle (Green Potion)",
-    "Bottle (Blue Potion)",
-    "Red Potion Refill",
-    "Green Potion Refill",
-    "Blue Potion Refill",
-    "10 Bombs",
-    "Big Key",
-    "Map",
-    "1 Rupee",
-    "5 Rupees",
-    "20 Rupees",
-    "Green Pendant",
-    "Blue Pendant",
-    "Red Pendant",
-    "Tossed Bow",
-    "Silver Arrows",
-    "Bottle (Bee)",
-    "Bottle (Fairy)",
-    "Heart Container (Boss)",
-    "Heart Container (Sanctuary)",
-    "100 Rupees",
-    "50 Rupees",
-    "Heart",
-    "1 Arrow",
-    "10 Arrows",
-    "Small Magic",
-    "300 Rupees",
-    "20 Rupees (Green)",
-    "Bottle (Good Bee)",
-    "Tossed Fighter Sword",
-    "Flute (Activated)",
-    "Pegasus Boots"};
 
 std::string ItemPreview(uint8_t item_id) {
   return absl::StrFormat("%02X  %s", item_id,
@@ -231,7 +150,9 @@ void DrawItemChoice(int room_id, size_t index, const chest_data chest,
     for (int id = 0; id <= 0xFF; ++id) {
       // Retain any existing unknown value and explicitly named hack items, but
       // do not suggest unverified high IDs as ordinary vanilla rewards.
-      if (id >= static_cast<int>(kChestItemNames.size()) && id != chest.id &&
+      if (id >= static_cast<int>(
+                    zelda3::Zelda3Labels::GetItemReceiptNames().size()) &&
+          id != chest.id &&
           !labels.HasProjectLabel(zelda3::ResourceType::kItem, id)) {
         continue;
       }
@@ -264,14 +185,7 @@ void DrawItemChoice(int room_id, size_t index, const chest_data chest,
 }  // namespace
 
 std::string GetDungeonChestItemLabel(uint8_t item_id) {
-  auto& labels = zelda3::GetResourceLabels();
-  if (labels.HasProjectLabel(zelda3::ResourceType::kItem, item_id)) {
-    return labels.GetLabel(zelda3::ResourceType::kItem, item_id);
-  }
-  if (item_id < kChestItemNames.size()) {
-    return kChestItemNames[item_id];
-  }
-  return absl::StrFormat("Unknown item %02X", item_id);
+  return zelda3::GetItemReceiptLabel(item_id);
 }
 
 void DrawDungeonChestEditor(int room_id, zelda3::Room& room,

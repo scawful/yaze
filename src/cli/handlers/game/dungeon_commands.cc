@@ -468,7 +468,9 @@ absl::Status DungeonDescribeRoomCommandHandler::Execute(
   for (const auto& chest : room.GetChests()) {
     formatter.BeginObject();
     formatter.AddHexField("item_id", chest.id, 2);
-    formatter.AddField("item_name", zelda3::GetItemLabel(chest.id));
+    formatter.AddField("item_name", zelda3::GetItemReceiptLabel(chest.id));
+    formatter.AddField("item_name_source",
+                       zelda3::GetItemReceiptLabelSource(chest.id));
     formatter.AddField("is_big_chest", chest.size);
     formatter.EndObject();
   }
@@ -528,13 +530,13 @@ absl::Status DungeonListChestsCommandHandler::Execute(
       formatter.BeginObject();
       formatter.AddField("index", chest_index++);
       formatter.AddHexField("item_id", chest.id, 2);
-      formatter.AddField("item_name", zelda3::GetItemLabel(chest.id));
+      formatter.AddField("item_name", zelda3::GetItemReceiptLabel(chest.id));
+      formatter.AddField("item_name_source",
+                         zelda3::GetItemReceiptLabelSource(chest.id));
       formatter.AddField("is_big_chest", chest.size);
       formatter.EndObject();
 
-      if (chest.id != 0) {
-        item_counts[chest.id]++;
-      }
+      item_counts[chest.id]++;
     }
     formatter.EndArray();
     formatter.EndObject();
@@ -554,7 +556,9 @@ absl::Status DungeonListChestsCommandHandler::Execute(
     }
     formatter.BeginObject();
     formatter.AddHexField("item_id", item_id, 2);
-    formatter.AddField("item_name", zelda3::GetItemLabel(item_id));
+    formatter.AddField("item_name", zelda3::GetItemReceiptLabel(item_id));
+    formatter.AddField("item_name_source",
+                       zelda3::GetItemReceiptLabelSource(item_id));
     formatter.AddField("count", count);
     formatter.EndObject();
   }

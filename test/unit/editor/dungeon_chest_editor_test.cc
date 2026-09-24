@@ -152,6 +152,10 @@ class DungeonChestEditorTest : public ::testing::Test {
 TEST_F(DungeonChestEditorTest, NamesUseReceiptIdsRatherThanInventoryIndices) {
   EXPECT_EQ(GetDungeonChestItemLabel(0x00), "Fighter Sword");
   EXPECT_EQ(GetDungeonChestItemLabel(0x09), "Hammer");
+  EXPECT_EQ(zelda3::GetItemReceiptLabel(0x1B), "Power Glove");
+  EXPECT_EQ(zelda3::GetItemReceiptLabel(0x3A), "Tossed Bow");
+  EXPECT_STREQ(zelda3::GetItemReceiptLabelSource(0x32), "vanilla_receipt");
+  EXPECT_STREQ(zelda3::GetItemReceiptLabelSource(0xFF), "unknown");
   EXPECT_EQ(GetDungeonChestItemLabel(0x24), "Small Key");
   EXPECT_EQ(GetDungeonChestItemLabel(0x25), "Compass");
   EXPECT_EQ(GetDungeonChestItemLabel(0x32), "Big Key");
@@ -170,6 +174,8 @@ TEST_F(DungeonChestEditorTest, ProjectSpecificItemLabelsOverrideVanilla) {
   zelda3::GetResourceLabels().SetProjectLabels(&labels);
   EXPECT_EQ(GetDungeonChestItemLabel(0x09), "Magic Hammer");
   EXPECT_EQ(GetDungeonChestItemLabel(0xE0), "Custom Treasure");
+  EXPECT_EQ(zelda3::GetItemReceiptLabel(0xE0), "Custom Treasure");
+  EXPECT_STREQ(zelda3::GetItemReceiptLabelSource(0xE0), "project");
   EXPECT_EQ(GetDungeonChestItemLabel(0x24), "Small Key");
   zelda3::GetResourceLabels().SetProjectLabels(nullptr);
 }
