@@ -271,10 +271,12 @@ The candidate extends DA-1 / DA-2 with these bounded operations:
   normal/big record type. Each edit is undoable in its original room and
   preserves other records. The panel explains object/record count mismatches.
   Changing a record type does not replace the visible chest object.
-- Connected-view **Clear stale** validates all affected room metadata first,
-  then publishes one undo action for the complete multiroom edit. Invalid
-  batches cannot partially change rooms; net-zero batches preserve redo history.
-  Undo/redo also validates every target before restoring any room.
+- Shared multiroom metadata batches validate all targets before publication
+  and preserve undo/redo atomicity. **Connected-view Clear stale is now disabled**:
+  placement-order diagnostics do not prove runtime staircase-slot use. Links and
+  notices are explicitly estimated; edit destinations through the room inspector.
+  See [the staircase mapping audit](../agents/dungeon-staircase-mapping-2026-09-23.md)
+  before restoring any automatic repair.
 - `DrawInspectorShelfRoom` moves out of the large Workbench source into
   `workspace/dungeon_workbench_room_inspector.cc`; the old implementation is
   removed. `inspectors/dungeon_chest_editor.*` is reused by both presentations.
