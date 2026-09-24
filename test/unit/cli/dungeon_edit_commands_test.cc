@@ -29,6 +29,7 @@
 #include "zelda3/dungeon/room.h"
 #include "zelda3/dungeon/room_object.h"
 #include "zelda3/game_data.h"
+#include "zelda3/resource_labels.h"
 
 #if !defined(_WIN32)
 #include <unistd.h>
@@ -1073,6 +1074,97 @@ TEST(DungeonEditCommandsTest, PlaceObjectRejectsRoomIdOutOfRange) {
                                   nullptr, &output);
 
   ExpectInvalidArgument(status, "Room ID out of range");
+}
+
+TEST(DungeonEditCommandsTest,
+     DescribeChestUsesReceiptNamesAndReportsProvenance) {
+  for (const auto& [id, name] : std::vector<std::pair<uint8_t, std::string>>{
+           {0x00, "Fighter Sword"},
+           {0x1B, "Power Glove"},
+           {0x24, "Small Key"},
+           {0x25, "Compass"},
+           {0x32, "Big Key"},
+           {0x3A, "Tossed Bow"},
+           {0xFF, "Unknown item FF"}}) {
+    SCOPED_TRACE(static_cast<int>(id));
+    Rom rom;
+    InitializeStatefulChestObjectRom(&rom);
+    rom.mutable_data()[kChestTableDataPc + 2] = id;
+    rom.set_dirty(false);
+    const auto before = rom.vector();
+    handlers::DungeonDescribeRoomCommandHandler handler;
+    std::string output;
+    ASSERT_TRUE(
+        handler.Run({"--room=0x00", "--format=json"}, &rom, &output).ok());
+    const auto result = nlohmann::json::parse(output);
+    ASSERT_EQ(result.at("chests").size(), 1u);
+    EXPECT_EQ(result.at("chests")[0].at("item_name"), name);
+    EXPECT_EQ(result.at("chests")[0].at("item_name_source"),
+              id == 0xFF ? "unknown" : "vanilla_receipt");
+    EXPECT_EQ(rom.vector(), before);
+    EXPECT_FALSE(rom.dirty());
+  }
+}
+
+TEST(DungeonEditCommandsTest, ChestReadbackHonorsExplicitProjectReceiptLabel) {
+  zelda3::ResourceLabelProvider::ProjectLabels labels;
+  labels["item"]["0x3A"] = "Wolf Mask";
+  struct ResetLabels {
+    ~ResetLabels() { zelda3::GetResourceLabels().SetProjectLabels(nullptr); }
+  } reset;
+  zelda3::GetResourceLabels().SetProjectLabels(&labels);
+  Rom rom;
+  InitializeStatefulChestObjectRom(&rom);
+  rom.mutable_data()[kChestTableDataPc + 2] = 0x3A;
+  handlers::DungeonDescribeRoomCommandHandler handler;
+  std::string output;
+  ASSERT_TRUE(
+      handler.Run({"--room=0x00", "--format=json"}, &rom, &output).ok());
+  const auto result = nlohmann::json::parse(output);
+  EXPECT_EQ(result.at("chests")[0].at("item_id"), "0x3A");
+  EXPECT_EQ(result.at("chests")[0].at("item_name"), "Wolf Mask");
+  EXPECT_EQ(result.at("chests")[0].at("item_name_source"), "project");
+}
+
+TEST(DungeonEditCommandsTest, ChestSummaryCountsReceiptZeroAsReward) {
+  Rom rom;
+  InitializeStatefulChestObjectRom(&rom);
+  rom.mutable_data()[zelda3::kChestsLengthPointer] = 6;
+  for (int i = 0; i < 6; ++i)
+    rom.mutable_data()[kChestTableDataPc + i] = 0;
+  rom.set_dirty(false);
+  const auto before = rom.vector();
+  handlers::DungeonListChestsCommandHandler handler;
+  std::string output;
+  ASSERT_TRUE(
+      handler.Run({"--room=0x00", "--format=json"}, &rom, &output).ok());
+  const auto result = nlohmann::json::parse(output).at("Dungeon Chests");
+  EXPECT_EQ(result.at("summary").at("unique_items"), 1);
+  const auto& duplicates = result.at("summary").at("duplicate_items");
+  ASSERT_EQ(duplicates.size(), 1u);
+  EXPECT_EQ(duplicates[0].at("item_name"), "Fighter Sword");
+  EXPECT_EQ(duplicates[0].at("count"), 2);
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
+TEST(DungeonEditCommandsTest, PotReadbackKeepsOddRowBitOutOfXCoordinate) {
+  Rom rom;
+  InitializePotItemRom(&rom);
+  rom.mutable_data()[kPotDataPc] = 0xCE;
+  rom.mutable_data()[kPotDataPc + 1] = 0x04;
+  rom.set_dirty(false);
+  const auto before = rom.vector();
+  handlers::DungeonListPotItemsCommandHandler handler;
+  std::string output;
+  ASSERT_TRUE(
+      handler.Run({"--room=0x00", "--format=json"}, &rom, &output).ok());
+  const auto result = nlohmann::json::parse(output).at("Dungeon Pot Items");
+  EXPECT_EQ(result.at("items")[0].at("position"), "0x04CE");
+  EXPECT_EQ(result.at("items")[0].at("tile_x"), 39);
+  EXPECT_EQ(result.at("items")[0].at("tile_y"), 9);
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
 }
 
 TEST(DungeonEditCommandsTest,

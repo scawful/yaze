@@ -47,6 +47,9 @@ These checks remain deferred. Automated tests use synthetic in-memory ROM data.
   the placed result matches the hover preview, including after Undo/Redo.
 - [ ] Add a chest, choose its reward, move it, and delete it. Undo/Redo should
   restore the object and reward together. Save/reopen the test copy and verify both.
+  Compare receipt IDs 1B/24/25/32 in the editor and CLI (Glove/Small Key/Compass/
+  Big Key). CLI names should report their source; hack-specific rewards need
+  explicit project labels or handler verification.
 - [ ] Select objects alongside sprites, doors and pot items. Check an
   object-only Delete affects only objects; mixed edits should undo together.
 - [ ] Connect ordinary doors between two rooms. Inspect both endpoints;

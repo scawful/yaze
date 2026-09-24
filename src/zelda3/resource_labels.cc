@@ -611,5 +611,22 @@ absl::Status ResourceLabelProvider::ImportOracleSpriteRegistry(
   return absl::OkStatus();
 }
 
+std::string GetItemReceiptLabel(uint8_t id) {
+  auto& labels = GetResourceLabels();
+  if (labels.HasProjectLabel(ResourceType::kItem, id))
+    return labels.GetLabel(ResourceType::kItem, id);
+  const auto& names = Zelda3Labels::GetItemReceiptNames();
+  if (id < names.size())
+    return names[id];
+  return absl::StrFormat("Unknown item %02X", id);
+}
+
+const char* GetItemReceiptLabelSource(uint8_t id) {
+  if (GetResourceLabels().HasProjectLabel(ResourceType::kItem, id))
+    return "project";
+  return id < Zelda3Labels::GetItemReceiptNames().size() ? "vanilla_receipt"
+                                                         : "unknown";
+}
+
 }  // namespace zelda3
 }  // namespace yaze
