@@ -87,11 +87,36 @@ void DrawScaledSheet(gui::Canvas& canvas, gfx::Bitmap& sheet, int unique_id,
 
 }  // namespace
 
+gfx::Bitmap* GfxGroupEditor::PrepareSheetPreview(int sheet_id,
+                                                 gfx::SheetRole role,
+                                                 gfx::Bitmap& preview) {
+  UpdateCurrentPalette();
+  const auto& sheets = *gfx::Arena::Get().mutable_gfx_sheets();
+  if (sheet_id < 0 || static_cast<size_t>(sheet_id) >= sheets.size()) {
+    Text("Sheet 0x%02X is unavailable", sheet_id);
+    return nullptr;
+  }
+  const auto& source = sheets[sheet_id];
+  if (!source.surface()) {
+    Text("Sheet 0x%02X is not loaded", sheet_id);
+    return nullptr;
+  }
+  const auto* palette = Ws().override_palette && current_palette_
+                            ? current_palette_
+                            : internal::ResolveRoleDefaultPalette(
+                                  role, game_data()->palette_groups);
+  internal::SyncSheetPreview(source, palette ? *palette : source.palette(),
+                             preview);
+  return &preview;
+}
+
 absl::Status GfxGroupEditor::Update() {
   if (!host_surface_hint_.empty()) {
     ImGui::TextDisabled("%s", host_surface_hint_.c_str());
     Separator();
   }
+
+  UpdateCurrentPalette();
 
   // Palette controls at top for all tabs
   DrawPaletteControls();
@@ -172,24 +197,15 @@ void GfxGroupEditor::DrawBlocksetViewer(bool sheet_only) {
     BeginGroup();
     for (int idx = 0; idx < 8; idx++) {
       int sheet_id = game_data()->main_blockset_ids[ws.selected_blockset][idx];
-      auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
-
-      // Make sure the sheet has a GPU texture before the canvas tries to draw
-      // it; otherwise canvas_rendering silently returns and the slot is blank.
-      internal::EnsureSheetTextureQueued(sheet);
-
-      if (ws.override_palette && current_palette_) {
-        sheet.SetPalette(*current_palette_);
-        gfx::Arena::Get().NotifySheetModified(sheet_id);
-      } else if (internal::ApplyRoleDefaultPalette(
-                     sheet, gfx::RoleForBlocksetSlot(idx),
-                     game_data()->palette_groups)) {
-        gfx::Arena::Get().NotifySheetModified(sheet_id);
-      }
+      auto* sheet = PrepareSheetPreview(sheet_id, gfx::RoleForBlocksetSlot(idx),
+                                        blockset_previews_[idx]);
+      if (!sheet)
+        continue;
 
       // Unique ID combining blockset, slot, and sheet
       int unique_id = (ws.selected_blockset << 16) | (idx << 8) | sheet_id;
-      DrawScaledSheet(blockset_canvases_[idx], sheet, unique_id, ws.view_scale);
+      DrawScaledSheet(blockset_canvases_[idx], *sheet, unique_id,
+                      ws.view_scale);
     }
     EndGroup();
     EndTable();
@@ -222,7 +238,7 @@ void GfxGroupEditor::DrawRoomsetViewer() {
     // Roomset list column
     TableNextColumn();
     if (BeginChild("##RoomsetListChild", ImVec2(0, 300))) {
-      for (int idx = 0; idx < 0x51; idx++) {
+      for (int idx = 0; idx < 0x52; idx++) {
         PushID(idx);
         std::string roomset_label = absl::StrFormat("0x%02X", idx);
         bool is_selected = (ws.selected_roomset == static_cast<uint8_t>(idx));
@@ -251,23 +267,15 @@ void GfxGroupEditor::DrawRoomsetViewer() {
     BeginGroup();
     for (int idx = 0; idx < 4; idx++) {
       int sheet_id = game_data()->room_blockset_ids[ws.selected_roomset][idx];
-      auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
-
-      internal::EnsureSheetTextureQueued(sheet);
-
-      if (ws.override_palette && current_palette_) {
-        sheet.SetPalette(*current_palette_);
-        gfx::Arena::Get().NotifySheetModified(sheet_id);
-      } else if (internal::ApplyRoleDefaultPalette(
-                     sheet, gfx::RoleForRoomsetSlot(idx),
-                     game_data()->palette_groups)) {
-        gfx::Arena::Get().NotifySheetModified(sheet_id);
-      }
+      auto* sheet = PrepareSheetPreview(sheet_id, gfx::RoleForRoomsetSlot(idx),
+                                        roomset_previews_[idx]);
+      if (!sheet)
+        continue;
 
       // Unique ID combining roomset, slot, and sheet
       int unique_id =
           (0x1000) | (ws.selected_roomset << 8) | (idx << 4) | sheet_id;
-      DrawScaledSheet(roomset_canvases_[idx], sheet, unique_id, ws.view_scale);
+      DrawScaledSheet(roomset_canvases_[idx], *sheet, unique_id, ws.view_scale);
     }
     EndGroup();
     EndTable();
@@ -315,23 +323,15 @@ void GfxGroupEditor::DrawSpritesetViewer(bool sheet_only) {
     for (int idx = 0; idx < 4; idx++) {
       int sheet_offset = game_data()->spriteset_ids[ws.selected_spriteset][idx];
       int sheet_id = 115 + sheet_offset;
-      auto& sheet = gfx::Arena::Get().mutable_gfx_sheets()->at(sheet_id);
-
-      internal::EnsureSheetTextureQueued(sheet);
-
-      if (ws.override_palette && current_palette_) {
-        sheet.SetPalette(*current_palette_);
-        gfx::Arena::Get().NotifySheetModified(sheet_id);
-      } else if (internal::ApplyRoleDefaultPalette(
-                     sheet, gfx::RoleForSpritesetSlot(idx),
-                     game_data()->palette_groups)) {
-        gfx::Arena::Get().NotifySheetModified(sheet_id);
-      }
+      auto* sheet = PrepareSheetPreview(
+          sheet_id, gfx::RoleForSpritesetSlot(idx), spriteset_previews_[idx]);
+      if (!sheet)
+        continue;
 
       // Unique ID combining spriteset, slot, and sheet
       int unique_id =
           (0x2000) | (ws.selected_spriteset << 8) | (idx << 4) | sheet_offset;
-      DrawScaledSheet(spriteset_canvases_[idx], sheet, unique_id,
+      DrawScaledSheet(spriteset_canvases_[idx], *sheet, unique_id,
                       ws.view_scale);
     }
     EndGroup();

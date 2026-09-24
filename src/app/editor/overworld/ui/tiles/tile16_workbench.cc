@@ -338,13 +338,15 @@ absl::Status Tile16Editor::DrawTile16NavigationHeader(int total_tiles) {
 absl::Status Tile16Editor::DrawTile16EditorWorkbenchColumn(
     bool show_debug_info, bool show_advanced_controls) {
   absl::Status draw_status;
-  // Fixed size container to prevent canvas expansion
+  // The four-tile stamp needs room for its full 2x2 Tile16 footprint.
+  const float preview_size = session_.tile8_stamp_size() == 4 ? 128.0f : 64.0f;
   if (ImGui::BeginChild(
-          "##Tile16FixedCanvas", ImVec2(90, 90), true,
+          "##Tile16FixedCanvas", ImVec2(preview_size + 26, preview_size + 26),
+          true,
           ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse)) {
     // Configure canvas frame options for tile16 editor
     gui::CanvasFrameOptions tile16_edit_frame_opts;
-    tile16_edit_frame_opts.canvas_size = ImVec2(64, 64);
+    tile16_edit_frame_opts.canvas_size = ImVec2(preview_size, preview_size);
     tile16_edit_frame_opts.draw_grid = session_.show_tile_grid();
     tile16_edit_frame_opts.grid_step =
         kTile8Size *
@@ -436,10 +438,27 @@ absl::Status Tile16Editor::DrawTile16EditorWorkbenchColumn(
       gfx::Arena::Get().QueueTextureCommand(
           preview_command, &session_.mutable_tile8_preview_bitmap());
 
-      // CRITICAL FIX: Handle tile painting with simple click instead of
-      // click+drag Draw the preview first
-      tile16_edit_canvas_.DrawTilePainter(
-          session_.mutable_tile8_preview_bitmap(), 8, kTile8DisplayScale);
+      // Preview the same mutations the click will publish. Pick/Usage modes
+      // must keep the actual tile visible rather than cover it with a brush.
+      if (tile16_edit_rt.hovered &&
+          session_.edit_mode() == Tile16EditMode::kPaint) {
+        const ImVec2 origin = tile16_edit_canvas_.zero_point();
+        const auto mouse = ImGui::GetIO().MousePos;
+        const auto preview_status = session_.BuildStampPreview(
+            {(mouse.x - origin.x) / kTile8DisplayScale,
+             (mouse.y - origin.y) / kTile8DisplayScale},
+            &stamp_preview_bitmap_);
+        draw_status.Update(preview_status);
+        if (preview_status.ok()) {
+          gfx::Arena::Get().QueueTextureCommand(
+              stamp_preview_bitmap_.texture()
+                  ? gfx::Arena::TextureCommandType::UPDATE
+                  : gfx::Arena::TextureCommandType::CREATE,
+              &stamp_preview_bitmap_);
+          tile16_edit_canvas_.DrawBitmap(stamp_preview_bitmap_, 0, 0,
+                                         kTile8DisplayScale);
+        }
+      }
 
       const bool left_clicked = ImGui::IsItemClicked(ImGuiMouseButton_Left);
       const bool right_clicked = ImGui::IsItemClicked(ImGuiMouseButton_Right);

@@ -4,6 +4,7 @@
 #include <cmath>
 #include <vector>
 
+#include "app/editor/overworld/painting/tile_brush_preview.h"
 #include "app/editor/overworld/tile16_editor.h"
 #include "app/gfx/resource/arena.h"
 #include "app/gui/canvas/canvas_usage_tracker.h"
@@ -309,13 +310,49 @@ void TilePaintingManager::DrawBrushPreview(TilePosition anchor) {
   points->push_back(ImVec2((anchor.x + brush_.width - 1) * kTile16Size,
                            (anchor.y + brush_.height - 1) * kTile16Size));
 
-  const auto& atlas = deps_.tile16_blockset->atlas;
-  if (!atlas.is_active() || !atlas.texture() || atlas.width() < kTile16Size ||
-      atlas.height() < kTile16Size) {
-    return;
+  // Build each destination piece once. The selected/pinned map's atlas is
+  // only a fallback for synthetic or unavailable map data.
+  std::array<MapBrushPreview, zelda3::kNumOverworldMaps> pieces;
+  std::array<bool, zelda3::kNumOverworldMaps> has_piece{};
+  const int world = *deps_.current_world;
+  const int first_x = std::max(0, anchor.x) / kTilesPerMap;
+  const int first_y = std::max(0, anchor.y) / kTilesPerMap;
+  const int last_x = std::min(255, anchor.x + brush_.width - 1) / kTilesPerMap;
+  const int last_y = std::min(255, anchor.y + brush_.height - 1) / kTilesPerMap;
+  for (int my = first_y; my <= last_y; ++my) {
+    for (int mx = first_x; mx <= last_x; ++mx) {
+      if (!IsValidMapGridPosition(world, mx, my))
+        continue;
+      const int map_id = MapIndexForGridPosition(world, mx, my);
+      const auto* map = deps_.overworld->overworld_map(map_id);
+      if (!map)
+        continue;
+      if (!map->is_built() && !deps_.overworld->EnsureMapBuilt(map_id).ok())
+        continue;
+      const auto& source = map->current_tile16_blockset();
+      if (source.empty())
+        continue;
+      auto& piece = pieces[map_id];
+      piece = BuildMapBrushPreview(brush_, anchor.x, anchor.y, mx, my, source);
+      if (piece.pixels.empty())
+        continue;
+      auto& preview = map_brush_previews_[map_id];
+      const bool pixels_changed = preview.width() != piece.width ||
+                                  preview.height() != piece.height ||
+                                  preview.vector() != piece.pixels;
+      const bool palette_changed =
+          !(preview.palette() == map->current_palette());
+      if (pixels_changed)
+        preview.Create(piece.width, piece.height, 8, piece.pixels);
+      if (pixels_changed || palette_changed)
+        preview.SetPalette(map->current_palette());
+      if (!preview.texture())
+        preview.CreateTexture();
+      else if (pixels_changed || palette_changed)
+        preview.UpdateTexture();
+      has_piece[map_id] = true;
+    }
   }
-  const int columns = atlas.width() / kTile16Size;
-  const int tile_count = columns * (atlas.height() / kTile16Size);
   const float scale = canvas.global_scale() > 0 ? canvas.global_scale() : 1.0f;
   const float size = kTile16Size * scale;
   const ImVec2 origin(canvas.zero_point().x + canvas.scrolling().x,
@@ -329,17 +366,31 @@ void TilePaintingManager::DrawBrushPreview(TilePosition anchor) {
   for (int y = 0; y < brush_.height; ++y) {
     for (int x = 0; x < brush_.width; ++x) {
       const int id = brush_.at(x, y);
-      if (!IsValidTile({anchor.x + x, anchor.y + y}) || id >= tile_count) {
+      const TilePosition position{anchor.x + x, anchor.y + y};
+      if (!IsValidTile(position))
         continue;
-      }
-      const ImVec2 start(origin.x + (anchor.x + x) * size,
-                         origin.y + (anchor.y + y) * size);
-      const ImVec2 uv0(
-          static_cast<float>(id % columns * kTile16Size) / atlas.width(),
-          static_cast<float>(id / columns * kTile16Size) / atlas.height());
-      const ImVec2 uv1(
-          uv0.x + static_cast<float>(kTile16Size) / atlas.width(),
-          uv0.y + static_cast<float>(kTile16Size) / atlas.height());
+      const int map_id = MapIndexForGridPosition(
+          world, position.x / kTilesPerMap, position.y / kTilesPerMap);
+      const auto& atlas = has_piece[map_id] ? map_brush_previews_[map_id]
+                                            : deps_.tile16_blockset->atlas;
+      if (!atlas.is_active() || !atlas.texture() || atlas.width() < 16 ||
+          atlas.height() < 16)
+        continue;
+      const int columns = atlas.width() / 16;
+      const int source_x = has_piece[map_id]
+                               ? (position.x - pieces[map_id].tile_x) * 16
+                               : id % columns * 16;
+      const int source_y = has_piece[map_id]
+                               ? (position.y - pieces[map_id].tile_y) * 16
+                               : id / columns * 16;
+      if (source_y + 16 > atlas.height())
+        continue;
+      const ImVec2 start(origin.x + position.x * size,
+                         origin.y + position.y * size);
+      const ImVec2 uv0(static_cast<float>(source_x) / atlas.width(),
+                       static_cast<float>(source_y) / atlas.height());
+      const ImVec2 uv1(uv0.x + 16.0f / atlas.width(),
+                       uv0.y + 16.0f / atlas.height());
       draw->AddImage((ImTextureID)(intptr_t)atlas.texture(), start,
                      ImVec2(start.x + size, start.y + size), uv0, uv1,
                      IM_COL32(255, 255, 255, 180));

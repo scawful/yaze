@@ -225,5 +225,70 @@ TEST_F(Tile16DocumentHistoryTest, ManualPropertiesPasteAndScratchAreUndoable) {
   ASSERT_TRUE(history_.Undo().ok());
   ExpectDefinition(overworld_.tiles16()[0], initial_);
 }
+TEST_F(Tile16DocumentHistoryTest, StampHoverPreviewMatchesEveryPublishedTile) {
+  for (int size : {1, 2, 4}) {
+    for (int flips = 0; flips < 4; ++flips) {
+      SCOPED_TRACE(size);
+      SCOPED_TRACE(flips);
+      session_.set_tile8_stamp_size(size);
+      session_.set_current_tile8(2);
+      session_.set_current_palette(5);
+      *session_.mutable_x_flip() = (flips & 1) != 0;
+      *session_.mutable_y_flip() = (flips & 2) != 0;
+      const auto before = overworld_.tiles16();
+      const auto history_size = history_.UndoStackSize();
+      const int boundaries = boundaries_;
+      const bool dirty = rom_.dirty();
+      gfx::Bitmap preview;
+      ASSERT_TRUE(session_.BuildStampPreview({8, 8}, &preview).ok());
+      EXPECT_EQ(preview.width(), size == 4 ? 32 : 16);
+      EXPECT_EQ(history_.UndoStackSize(), history_size);
+      EXPECT_EQ(boundaries_, boundaries);
+      EXPECT_EQ(rom_.dirty(), dirty);
+      for (int id : {0, 1, 8, 9}) {
+        ExpectDefinition(overworld_.tiles16()[id], before[id]);
+      }
+      ASSERT_TRUE(session_.DrawToCurrentTile16({8, 8}).ok());
+      const int columns = size == 4 ? 2 : 1;
+      for (int y = 0; y < columns; ++y) {
+        for (int x = 0; x < columns; ++x) {
+          gfx::Bitmap committed;
+          ASSERT_TRUE(session_
+                          .BuildTile16BitmapFromData(
+                              overworld_.tiles16()[x + y * 8], &committed)
+                          .ok());
+          for (int row = 0; row < 16; ++row) {
+            for (int col = 0; col < 16; ++col) {
+              EXPECT_EQ(preview.vector()[(y * 16 + row) * preview.width() +
+                                         x * 16 + col],
+                        committed.vector()[row * 16 + col]);
+            }
+          }
+        }
+      }
+      ASSERT_TRUE(session_.Undo().ok());
+    }
+  }
+}
+
+TEST_F(Tile16DocumentHistoryTest, StampPreviewUsesRefreshedGraphicsSource) {
+  session_.set_tile8_stamp_size(2);
+  session_.set_current_tile8(0);
+  session_.set_current_palette(3);
+  gfx::Bitmap first, second;
+  ASSERT_TRUE(session_.BuildStampPreview({0, 0}, &first).ok());
+  auto& tiles = session_.mutable_current_gfx_individual();
+  tiles[0].fill(0x0D);
+  ASSERT_TRUE(session_.BuildStampPreview({0, 0}, &second).ok());
+  EXPECT_NE(first.vector(), second.vector());
+  EXPECT_EQ(second.vector()[0], 0x3D);
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+}
+
+TEST_F(Tile16DocumentHistoryTest, StampPreviewRejectsMissingOutput) {
+  EXPECT_FALSE(session_.BuildStampPreview({0, 0}, nullptr).ok());
+  EXPECT_EQ(history_.UndoStackSize(), 0u);
+}
+
 }  // namespace
 }  // namespace yaze::editor
