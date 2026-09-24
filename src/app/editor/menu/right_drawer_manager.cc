@@ -1078,11 +1078,13 @@ void RightDrawerManager::Draw() {
   }
 }
 
-void RightDrawerManager::DrawHeaderContextBadge(PanelType type) {
+void RightDrawerManager::DrawHeaderContextBadge(PanelType type,
+                                                float available_width) {
   switch (type) {
     case PanelType::kAgentChat: {
 #ifdef YAZE_BUILD_AGENT_UI
-      if (agent_chat_) {
+      if (agent_chat_ &&
+          ImGui::CalcTextSize(ICON_MD_CIRCLE).x <= available_width) {
         gui::ColoredText(ICON_MD_CIRCLE, gui::GetSuccessVec4());
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("%s", tr("Agent Ready"));
@@ -1099,6 +1101,9 @@ void RightDrawerManager::DrawHeaderContextBadge(PanelType type) {
           const ImVec2 badge_size = ImGui::CalcTextSize(badge.c_str());
           const float pad_x = 5.0f;
           const float badge_w = badge_size.x + pad_x * 2.0f;
+          if (badge_w > available_width) {
+            break;
+          }
           const float badge_h = ImGui::GetTextLineHeight() + 2.0f;
           const ImVec2 p = ImGui::GetCursorScreenPos();
           ImDrawList* dl = ImGui::GetWindowDrawList();
@@ -1116,7 +1121,8 @@ void RightDrawerManager::DrawHeaderContextBadge(PanelType type) {
       break;
     }
     case PanelType::kProperties: {
-      if (properties_locked_) {
+      if (properties_locked_ &&
+          ImGui::CalcTextSize(ICON_MD_LOCK).x <= available_width) {
         gui::ColoredText(ICON_MD_LOCK, gui::GetWarningVec4());
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("%s", tr("Selection Locked"));
@@ -1155,6 +1161,9 @@ void RightDrawerManager::DrawHeaderContextBadge(PanelType type) {
         const ImVec4 tag_bg = gui::GetSurfaceContainerHighestVec4();
         const ImVec2 text_sz = ImGui::CalcTextSize(editor_name);
         const float pad = 5.0f;
+        if (text_sz.x + pad * 2.0f > available_width) {
+          break;
+        }
         const ImVec2 p = ImGui::GetCursorScreenPos();
         ImDrawList* dl = ImGui::GetWindowDrawList();
         dl->AddRectFilled(
@@ -1261,10 +1270,12 @@ void RightDrawerManager::DrawPanelHeader(PanelType type, const char* title,
     ImGui::SetTooltip("%s", title);
   }
 
-  // Contextual badge next to title when space remains.
-  if (ImGui::GetCursorPosX() + 20.0f < title_max_x) {
+  // Dummy() advances to the next line and resets cursor X. Measure from the
+  // title's right edge instead, then require the complete badge to fit.
+  const float badge_x = title_x + drawn_title_w + 6.0f;
+  if (badge_x < title_max_x) {
     ImGui::SameLine(0.0f, 6.0f);
-    DrawHeaderContextBadge(type);
+    DrawHeaderContextBadge(type, title_max_x - badge_x);
   }
 
   // Right-aligned chrome buttons (right → left)
