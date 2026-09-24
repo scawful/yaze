@@ -48,7 +48,8 @@ class DungeonDescribeRoomCommandHandler : public resources::CommandHandler {
   }
   std::string GetUsage() const {
     return "dungeon-describe-room --room <room_id> [--sprite-registry <path>] "
-           "[--include-objects] [--format <json|text>]";
+           "[--include-objects] [--include-staircase-resolution] [--format "
+           "<json|text>]";
   }
 
   absl::Status ValidateArgs(const resources::ArgumentParser& parser) override {

@@ -1,0 +1,932 @@
+{
+  "source_baseline": "0f38046ba",
+  "binary_sha256": "d2c8026fce894b0f047c50124817e8b3fafaf595d7c95483434f1684a8c9b151",
+  "rom_sha256": {
+    "oos168.sfc": "ab518cb201e4d904706f4c1950a82e574c9618ee23fa12845a1ed6c66c59d0fe",
+    "oos168x.sfc": "115d784ad4fd774e213a86cacc9b74218ebdf764cdd80af9b7e4b2dfa6bb85ef"
+  },
+  "roms_unchanged": true,
+  "runtime_qualified": false,
+  "door_records_match_supplied_audit": true,
+  "door_comparisons": 38,
+  "results": [
+    {
+      "rom": "oos168.sfc",
+      "room": "069",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": [
+        {
+          "object_index": 17,
+          "object_id": "0x138",
+          "x": 13,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x079",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        }
+      ]
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "073",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": false,
+      "objects": [
+        {
+          "object_index": 192,
+          "object_id": "0x138",
+          "x": 14,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x084",
+          "vanilla_arrival_plane": 0,
+          "status": "resolved",
+          "slot": 0,
+          "destination_room": "0x084",
+          "arrival_plane": 0
+        }
+      ]
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "074",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": [
+        {
+          "object_index": 234,
+          "object_id": "0x139",
+          "x": 30,
+          "y": 41,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x075",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        }
+      ]
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "075",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": false,
+      "objects": [
+        {
+          "object_index": 412,
+          "object_id": "0x138",
+          "x": 30,
+          "y": 41,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x074",
+          "vanilla_arrival_plane": 0,
+          "status": "resolved",
+          "slot": 0,
+          "destination_room": "0x074",
+          "arrival_plane": 0
+        }
+      ]
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "077",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": [
+        {
+          "object_index": 119,
+          "object_id": "0x139",
+          "x": 7,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x0A8",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        }
+      ]
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "078",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": false,
+      "objects": []
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "079",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": false,
+      "objects": [
+        {
+          "object_index": 73,
+          "object_id": "0x139",
+          "x": 13,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x069",
+          "vanilla_arrival_plane": 0,
+          "status": "resolved",
+          "slot": 0,
+          "destination_room": "0x069",
+          "arrival_plane": 0
+        }
+      ]
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "083",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": [
+        {
+          "object_index": 204,
+          "object_id": "0x138",
+          "x": 14,
+          "y": 4,
+          "stream_index": 2,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x085",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        }
+      ]
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "084",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": [
+        {
+          "object_index": 121,
+          "object_id": "0x138",
+          "x": 46,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x086",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        },
+        {
+          "object_index": 122,
+          "object_id": "0x139",
+          "x": 14,
+          "y": 4,
+          "stream_index": 2,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 1,
+          "vanilla_destination_room": "0x073",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        }
+      ]
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "085",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": false,
+      "objects": [
+        {
+          "object_index": 152,
+          "object_id": "0x139",
+          "x": 14,
+          "y": 4,
+          "stream_index": 2,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x083",
+          "vanilla_arrival_plane": 0,
+          "status": "resolved",
+          "slot": 0,
+          "destination_room": "0x083",
+          "arrival_plane": 0
+        }
+      ]
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "086",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": false,
+      "objects": [
+        {
+          "object_index": 260,
+          "object_id": "0x139",
+          "x": 46,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x074",
+          "vanilla_arrival_plane": 0,
+          "status": "resolved",
+          "slot": 0,
+          "destination_room": "0x074",
+          "arrival_plane": 0
+        }
+      ]
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "087",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": []
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "088",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": []
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "089",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": []
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "097",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": [
+        {
+          "object_index": 85,
+          "object_id": "0x139",
+          "x": 46,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x0B8",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        }
+      ]
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "098",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": []
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "099",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": false,
+      "objects": []
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "0A8",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": [
+        {
+          "object_index": 42,
+          "object_id": "0x138",
+          "x": 7,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x077",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        }
+      ]
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "0A9",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": false,
+      "objects": [
+        {
+          "object_index": 78,
+          "object_id": "0x139",
+          "x": 46,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x0DA",
+          "vanilla_arrival_plane": 0,
+          "status": "resolved",
+          "slot": 0,
+          "destination_room": "0x0DA",
+          "arrival_plane": 0
+        }
+      ]
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "0B8",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": [
+        {
+          "object_index": 130,
+          "object_id": "0x138",
+          "x": 46,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x097",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        }
+      ]
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "0B9",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": []
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "0C8",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": false,
+      "objects": []
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "0D7",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": []
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "0D8",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": []
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "0D9",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": []
+    },
+    {
+      "rom": "oos168.sfc",
+      "room": "0DA",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": [
+        {
+          "object_index": 95,
+          "object_id": "0x138",
+          "x": 46,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x099",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        }
+      ]
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "069",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": [
+        {
+          "object_index": 17,
+          "object_id": "0x138",
+          "x": 13,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x079",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        }
+      ]
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "073",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": false,
+      "objects": [
+        {
+          "object_index": 192,
+          "object_id": "0x138",
+          "x": 14,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x084",
+          "vanilla_arrival_plane": 0,
+          "status": "resolved",
+          "slot": 0,
+          "destination_room": "0x084",
+          "arrival_plane": 0
+        }
+      ]
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "074",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": [
+        {
+          "object_index": 234,
+          "object_id": "0x139",
+          "x": 30,
+          "y": 41,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x075",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        }
+      ]
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "075",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": false,
+      "objects": [
+        {
+          "object_index": 412,
+          "object_id": "0x138",
+          "x": 30,
+          "y": 41,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x074",
+          "vanilla_arrival_plane": 0,
+          "status": "resolved",
+          "slot": 0,
+          "destination_room": "0x074",
+          "arrival_plane": 0
+        }
+      ]
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "077",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": [
+        {
+          "object_index": 119,
+          "object_id": "0x139",
+          "x": 7,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x0A8",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        }
+      ]
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "078",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": false,
+      "objects": []
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "079",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": false,
+      "objects": [
+        {
+          "object_index": 73,
+          "object_id": "0x139",
+          "x": 13,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x069",
+          "vanilla_arrival_plane": 0,
+          "status": "resolved",
+          "slot": 0,
+          "destination_room": "0x069",
+          "arrival_plane": 0
+        }
+      ]
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "083",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": [
+        {
+          "object_index": 204,
+          "object_id": "0x138",
+          "x": 14,
+          "y": 4,
+          "stream_index": 2,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x085",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        }
+      ]
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "084",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": [
+        {
+          "object_index": 121,
+          "object_id": "0x138",
+          "x": 46,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x086",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        },
+        {
+          "object_index": 122,
+          "object_id": "0x139",
+          "x": 14,
+          "y": 4,
+          "stream_index": 2,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 1,
+          "vanilla_destination_room": "0x073",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        }
+      ]
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "085",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": false,
+      "objects": [
+        {
+          "object_index": 152,
+          "object_id": "0x139",
+          "x": 14,
+          "y": 4,
+          "stream_index": 2,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x083",
+          "vanilla_arrival_plane": 0,
+          "status": "resolved",
+          "slot": 0,
+          "destination_room": "0x083",
+          "arrival_plane": 0
+        }
+      ]
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "086",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": false,
+      "objects": [
+        {
+          "object_index": 260,
+          "object_id": "0x139",
+          "x": 46,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x074",
+          "vanilla_arrival_plane": 0,
+          "status": "resolved",
+          "slot": 0,
+          "destination_room": "0x074",
+          "arrival_plane": 0
+        }
+      ]
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "087",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": []
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "088",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": []
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "089",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": []
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "097",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": [
+        {
+          "object_index": 85,
+          "object_id": "0x139",
+          "x": 46,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x0B8",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        }
+      ]
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "098",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": []
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "099",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": false,
+      "objects": []
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "0A8",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": [
+        {
+          "object_index": 42,
+          "object_id": "0x138",
+          "x": 7,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x077",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        }
+      ]
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "0A9",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": false,
+      "objects": [
+        {
+          "object_index": 78,
+          "object_id": "0x139",
+          "x": 46,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x0DA",
+          "vanilla_arrival_plane": 0,
+          "status": "resolved",
+          "slot": 0,
+          "destination_room": "0x0DA",
+          "arrival_plane": 0
+        }
+      ]
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "0B8",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": [
+        {
+          "object_index": 130,
+          "object_id": "0x138",
+          "x": 46,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x097",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        }
+      ]
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "0B9",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": []
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "0C8",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": false,
+      "objects": []
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "0D7",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": []
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "0D8",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": []
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "0D9",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": []
+    },
+    {
+      "rom": "oos168x.sfc",
+      "room": "0DA",
+      "model": "vanilla_collision_preview",
+      "runtime_qualified": false,
+      "layout_loaded": true,
+      "custom_collision": true,
+      "objects": [
+        {
+          "object_index": 95,
+          "object_id": "0x138",
+          "x": 46,
+          "y": 4,
+          "stream_index": 0,
+          "vanilla_status": "resolved",
+          "vanilla_slot": 0,
+          "vanilla_destination_room": "0x099",
+          "vanilla_arrival_plane": 0,
+          "status": "custom_collision"
+        }
+      ]
+    }
+  ]
+}
