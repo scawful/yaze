@@ -1,5 +1,7 @@
 #include "app/editor/overworld/panels/area_graphics_panel.h"
 
+#include <string>
+
 #include "app/editor/core/panel_registration.h"
 #include "app/editor/overworld/panels/overworld_panel_access.h"
 
@@ -13,9 +15,15 @@ void AreaGraphicsPanel::Draw(bool* p_open) {
   if (!ow_editor)
     return;
 
+  // Log a failure once per distinct message; this runs every frame.
+  static std::string last_error;
   if (auto status = ow_editor->DrawAreaGraphics(); !status.ok()) {
-    LOG_ERROR("AreaGraphicsPanel", "Failed to draw: %s",
-              status.ToString().c_str());
+    if (status.ToString() != last_error) {
+      last_error = status.ToString();
+      LOG_ERROR("AreaGraphicsPanel", "Failed to draw: %s", last_error.c_str());
+    }
+  } else {
+    last_error.clear();
   }
 }
 

@@ -36,6 +36,7 @@ class SDL2WindowBackend : public IWindowBackend {
 
   bool PollEvent(WindowEvent& out_event) override;
   void ProcessNativeEvent(void* native_event) override;
+  bool WaitForEvent(int timeout_ms) override;
 
   WindowStatus GetStatus() const override;
   bool IsActive() const override { return active_; }

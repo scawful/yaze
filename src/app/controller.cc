@@ -123,8 +123,35 @@ void Controller::OnInput() {
   if (!window_backend_)
     return;
 
+  // Idle pacing. With nothing to animate and no input for a while, wait for
+  // the next event instead of drawing at the display rate: 10 fps after
+  // kIdleAfter of quiet, 4 fps while the window is hidden or minimized. Any
+  // event (mouse move, key, window change) wakes the loop at once, and work
+  // that needs frames (emulator, music, texture uploads, UI tests,
+  // screenshots) keeps full rate.
+  {
+    constexpr auto kIdleAfter = std::chrono::milliseconds(1500);
+    bool busy = editor_manager_.WantsContinuousFrames();
+    {
+      std::lock_guard<std::mutex> lock(screenshot_mutex_);
+      busy = busy || !screenshot_requests_.empty();
+    }
+#if defined(YAZE_ENABLE_IMGUI_TEST_ENGINE) && YAZE_ENABLE_IMGUI_TEST_ENGINE
+    busy = busy || test::TestManager::Get().IsTestRunning();
+#endif
+    if (!busy) {
+      const auto quiet = std::chrono::steady_clock::now() - last_event_time_;
+      if (window_hidden_) {
+        window_backend_->WaitForEvent(250);
+      } else if (quiet >= kIdleAfter) {
+        window_backend_->WaitForEvent(100);
+      }
+    }
+  }
+
   platform::WindowEvent event;
   while (window_backend_->PollEvent(event)) {
+    last_event_time_ = std::chrono::steady_clock::now();
     switch (event.type) {
       case platform::WindowEventType::Quit:
       case platform::WindowEventType::Close:
@@ -136,6 +163,10 @@ void Controller::OnInput() {
 
       case platform::WindowEventType::Minimized:
       case platform::WindowEventType::Hidden:
+        window_hidden_ = true;
+        editor_manager_.HandleHostVisibilityChanged(false);
+        break;
+
       case platform::WindowEventType::FocusLost:
         editor_manager_.HandleHostVisibilityChanged(false);
         break;
@@ -144,6 +175,7 @@ void Controller::OnInput() {
       case platform::WindowEventType::Shown:
       case platform::WindowEventType::Exposed:
       case platform::WindowEventType::FocusGained:
+        window_hidden_ = false;
         editor_manager_.HandleHostVisibilityChanged(true);
         break;
 
@@ -347,14 +379,16 @@ void Controller::DoRender() const {
   test::TestManager::Get().OnPostSwap();
 #endif
 
-  // Get delta time AFTER render for accurate measurement
-  float delta_time = TimingManager::Get().Update();
-
-  // Gentle frame rate cap to prevent excessive CPU usage
-  // Only delay if we're rendering faster than 144 FPS (< 7ms per frame)
-  if (delta_time < 0.007f) {
+  // Gentle cap for renderers without vsync (software fallback): if the frame
+  // took under 7 ms (> ~144 fps), yield 1 ms. TimingManager is updated once
+  // per frame by EditorManager; updating it here too halved its delta time
+  // and made this check fire almost every frame.
+  const auto frame_end = std::chrono::steady_clock::now();
+  const auto frame_time = frame_end - last_frame_end_;
+  last_frame_end_ = frame_end;
+  if (frame_time < std::chrono::milliseconds(7)) {
 #if TARGET_OS_IPHONE != 1
-    SDL_Delay(1);  // Tiny delay to yield CPU without affecting ImGui timing
+    SDL_Delay(1);
 #endif
   }
 }

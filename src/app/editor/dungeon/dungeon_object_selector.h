@@ -6,6 +6,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <utility>
 
@@ -226,6 +227,7 @@ class DungeonObjectSelector {
   // room graphics context that can change its rendered tiles.
   // Value: BackgroundBuffer with rendered preview
   std::map<uint64_t, std::unique_ptr<gfx::BackgroundBuffer>> preview_cache_;
+  std::set<uint64_t> failed_preview_keys_;  // cleared with preview_cache_
   uint8_t cached_preview_blockset_ = 0xFF;
   uint8_t cached_preview_entrance_blockset_ = 0xFF;
   uint8_t cached_preview_palette_ = 0xFF;

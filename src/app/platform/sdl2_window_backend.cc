@@ -166,6 +166,11 @@ bool SDL2WindowBackend::PollEvent(WindowEvent& out_event) {
   return false;
 }
 
+bool SDL2WindowBackend::WaitForEvent(int timeout_ms) {
+  // A null event pointer waits without removing the event from the queue.
+  return SDL_WaitEventTimeout(nullptr, timeout_ms) == 1;
+}
+
 void SDL2WindowBackend::ProcessNativeEvent(void* native_event) {
   if (native_event && imgui_initialized_) {
     ImGui_ImplSDL2_ProcessEvent(static_cast<SDL_Event*>(native_event));

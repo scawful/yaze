@@ -16,7 +16,8 @@ if(YAZE_USE_SDL3)
 else()
   set(IMGUI_BACKEND_SOURCES
     ${IMGUI_DIR}/backends/imgui_impl_sdl2.cpp
-    ${IMGUI_DIR}/backends/imgui_impl_sdlrenderer2.cpp
+    # yaze copy: passes SDL only each command's vertex range (idle CPU fix).
+    ${CMAKE_SOURCE_DIR}/src/app/platform/imgui_impl_sdlrenderer2_yaze.cpp
   )
   message(STATUS "Using ImGui SDL2 backend")
 endif()
