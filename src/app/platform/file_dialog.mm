@@ -96,7 +96,14 @@ NSArray<UTType*>* BuildAllowedTypes(const yaze::util::FileDialogOptions& options
       }
 
       NSString* ext = [NSString stringWithUTF8String:token.c_str()];
-      UTType* type = [UTType typeWithFilenameExtension:ext];
+      // .yazeproj is a package; an undeclared lookup yields a data type that
+      // greys the bundle out, so use the app's exported identifier.
+      UTType* type = token == "yazeproj"
+                         ? [UTType typeWithIdentifier:@"org.halext.yaze.project"]
+                         : nil;
+      if (!type) {
+        type = [UTType typeWithFilenameExtension:ext];
+      }
       if (!type) {
         NSString* identifier = [NSString stringWithUTF8String:token.c_str()];
         type = [UTType typeWithIdentifier:identifier];
