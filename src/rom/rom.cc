@@ -171,9 +171,15 @@ absl::Status CreateRequiredBackup(
 // Keep the name independent of the destination basename so long ROM filenames
 // still fit the filesystem's component limit. Exclusive creation, rather than
 // the nonce alone, establishes ownership; never reopen this path to write it.
+std::atomic<bool> g_fail_rom_staging_for_testing{false};
+
 absl::StatusOr<std::filesystem::path> WriteExclusiveRomTemp(
     const std::filesystem::path& target_path,
     const std::vector<uint8_t>& bytes) {
+  if (g_fail_rom_staging_for_testing.load(std::memory_order_relaxed)) {
+    return absl::InternalError(
+        "Could not create temp ROM file: staging failure injected for testing");
+  }
   static std::atomic<uint64_t> sequence{0};
   for (int attempt = 0; attempt < 100; ++attempt) {
     const auto tick = static_cast<uint64_t>(
@@ -351,6 +357,10 @@ void BestEffortFsyncParentDir(const std::filesystem::path& file_path) {
 #endif  // !defined(__EMSCRIPTEN__)
 
 }  // namespace
+
+void Rom::SetStagingFailureForTesting(bool fail) {
+  g_fail_rom_staging_for_testing.store(fail, std::memory_order_relaxed);
+}
 
 Rom::Rom(const Rom& other)
     : size_(other.size_),

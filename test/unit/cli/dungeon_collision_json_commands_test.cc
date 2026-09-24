@@ -20,6 +20,7 @@
 #include "absl/flags/flag.h"
 #include "absl/status/status.h"
 #include "cli/service/rom/rom_sandbox_manager.h"
+#include "framework/rom_save_fault.h"
 #include "nlohmann/json.hpp"
 #include "rom/rom.h"
 #include "rom/snes.h"
@@ -1762,7 +1763,7 @@ TEST(DungeonCollisionJsonCommandsTest,
   WriteRomFile(rom, rom_path);
   rom.set_filename(rom_path.string());
   rom.set_dirty(false);
-  ASSERT_TRUE(std::filesystem::create_directory(rom_path.string() + ".tmp"));
+  yaze::test::ScopedRomStagingFailure staging_failure;
 
   WriteFile(
       in_path,
@@ -1785,12 +1786,11 @@ TEST(DungeonCollisionJsonCommandsTest,
 
   EXPECT_TRUE(absl::IsInternal(status)) << status;
   EXPECT_THAT(std::string(status.message()),
-              testing::HasSubstr("Could not open temp ROM file for writing"));
+              testing::HasSubstr("Could not create temp ROM file"));
   EXPECT_EQ(rom.vector(), before);
   EXPECT_EQ(rom.filename(), filename_before);
   EXPECT_EQ(rom.dirty(), dirty_before);
   EXPECT_EQ(ReadFileBytes(rom_path), disk_before);
-  EXPECT_TRUE(std::filesystem::is_directory(rom_path.string() + ".tmp"));
 
   const auto backups = FindBackupArtifacts(rom_path);
   ASSERT_EQ(backups.size(), 1u);

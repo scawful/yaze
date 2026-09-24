@@ -20,6 +20,7 @@
 #include "absl/strings/str_format.h"
 #include "app/gfx/types/snes_palette.h"
 #include "cli/service/command_registry.h"
+#include "framework/rom_save_fault.h"
 #include "rom/rom.h"
 #include "rom/snes.h"
 #include "zelda3/dungeon/dungeon_rom_addresses.h"
@@ -1674,8 +1675,7 @@ TEST(DungeonEditCommandsTest,
   WriteRomFile(rom, cleanup.rom_path);
   rom.set_filename(cleanup.rom_path.string());
   rom.set_dirty(false);
-  ASSERT_TRUE(
-      std::filesystem::create_directory(cleanup.rom_path.string() + ".tmp"));
+  yaze::test::ScopedRomStagingFailure staging_failure;
 
   const std::vector<uint8_t> before = rom.vector();
   const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
@@ -1691,7 +1691,7 @@ TEST(DungeonEditCommandsTest,
 
   EXPECT_TRUE(absl::IsInternal(status)) << status;
   EXPECT_THAT(std::string(status.message()),
-              HasSubstr("Could not open temp ROM file for writing"));
+              HasSubstr("Could not create temp ROM file"));
   EXPECT_THAT(output, HasSubstr("\"status\": \"error\""));
   EXPECT_THAT(output, HasSubstr("\"save_error\""));
   EXPECT_EQ(rom.vector(), before);
@@ -1760,8 +1760,7 @@ TEST(DungeonEditCommandsTest,
   WriteRomFile(rom, cleanup.rom_path);
   rom.set_filename(cleanup.rom_path.string());
   rom.set_dirty(false);
-  ASSERT_TRUE(
-      std::filesystem::create_directory(cleanup.rom_path.string() + ".tmp"));
+  yaze::test::ScopedRomStagingFailure staging_failure;
 
   const std::vector<uint8_t> before = rom.vector();
   const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
@@ -2091,8 +2090,7 @@ TEST(DungeonEditCommandsTest,
   WriteObjectCowManifest(manifest_cleanup.file_path);
   rom.set_filename(cleanup.rom_path.string());
   rom.set_dirty(false);
-  ASSERT_TRUE(
-      std::filesystem::create_directory(cleanup.rom_path.string() + ".tmp"));
+  yaze::test::ScopedRomStagingFailure staging_failure;
 
   const std::vector<uint8_t> before = rom.vector();
   const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
@@ -2110,7 +2108,7 @@ TEST(DungeonEditCommandsTest,
 
   EXPECT_TRUE(absl::IsInternal(status)) << status;
   EXPECT_THAT(std::string(status.message()),
-              HasSubstr("Could not open temp ROM file for writing"));
+              HasSubstr("Could not create temp ROM file"));
   EXPECT_THAT(output, HasSubstr("\"preflight_status\": \"success\""));
   EXPECT_THAT(output, HasSubstr("\"write_status\": \"success\""));
   EXPECT_THAT(output, HasSubstr("\"save_error\""));
@@ -2594,8 +2592,7 @@ TEST(DungeonEditCommandsTest, SetPotItemDiskSaveFailureRollsBackCallerRom) {
   WritePotItemManifest(manifest_cleanup.file_path);
   rom.set_filename(cleanup.rom_path.string());
   rom.set_dirty(false);
-  ASSERT_TRUE(
-      std::filesystem::create_directory(cleanup.rom_path.string() + ".tmp"));
+  yaze::test::ScopedRomStagingFailure staging_failure;
   const std::vector<uint8_t> before = rom.vector();
   const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
   const bool dirty_before = rom.dirty();
@@ -2612,7 +2609,7 @@ TEST(DungeonEditCommandsTest, SetPotItemDiskSaveFailureRollsBackCallerRom) {
 
   EXPECT_TRUE(absl::IsInternal(status)) << status;
   EXPECT_THAT(std::string(status.message()),
-              HasSubstr("Could not open temp ROM file for writing"));
+              HasSubstr("Could not create temp ROM file"));
   EXPECT_THAT(output, HasSubstr("\"readback_status\": \"pre_save_verified\""));
   EXPECT_THAT(output, HasSubstr("\"write_status\": \"success\""));
   EXPECT_THAT(output, HasSubstr("\"save_error\""));
@@ -2968,8 +2965,7 @@ TEST(DungeonEditCommandsTest, SetDoorTypeDiskSaveFailureRollsBackCallerRom) {
   WriteObjectCowManifest(manifest_cleanup.file_path);
   rom.set_filename(cleanup.rom_path.string());
   rom.set_dirty(false);
-  ASSERT_TRUE(
-      std::filesystem::create_directory(cleanup.rom_path.string() + ".tmp"));
+  yaze::test::ScopedRomStagingFailure staging_failure;
   const std::vector<uint8_t> before = rom.vector();
   const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
   const bool dirty_before = rom.dirty();
@@ -2985,7 +2981,7 @@ TEST(DungeonEditCommandsTest, SetDoorTypeDiskSaveFailureRollsBackCallerRom) {
 
   EXPECT_TRUE(absl::IsInternal(status)) << status;
   EXPECT_THAT(std::string(status.message()),
-              HasSubstr("Could not open temp ROM file for writing"));
+              HasSubstr("Could not create temp ROM file"));
   EXPECT_THAT(output, HasSubstr("\"readback_status\": \"pre_save_verified\""));
   EXPECT_THAT(output, HasSubstr("\"write_status\": \"success\""));
   EXPECT_THAT(output, HasSubstr("\"save_error\""));
@@ -3440,8 +3436,7 @@ TEST(DungeonEditCommandsTest,
   WriteOwnershipOnlyManifest(manifest_cleanup.file_path);
   rom.set_filename(cleanup.rom_path.string());
   rom.set_dirty(false);
-  ASSERT_TRUE(
-      std::filesystem::create_directory(cleanup.rom_path.string() + ".tmp"));
+  yaze::test::ScopedRomStagingFailure staging_failure;
   const std::vector<uint8_t> before = rom.vector();
   const std::vector<uint8_t> disk_before = ReadFile(cleanup.rom_path);
   const bool dirty_before = rom.dirty();
@@ -3455,7 +3450,7 @@ TEST(DungeonEditCommandsTest,
 
   EXPECT_TRUE(absl::IsInternal(status)) << status;
   EXPECT_THAT(std::string(status.message()),
-              HasSubstr("Could not open temp ROM file for writing"));
+              HasSubstr("Could not create temp ROM file"));
   EXPECT_THAT(output, HasSubstr("\"whole_rom_diff_status\": \"verified\""));
   EXPECT_THAT(output, HasSubstr("\"save_error\""));
   EXPECT_EQ(rom.vector(), before);
