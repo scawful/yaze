@@ -1106,6 +1106,38 @@ TEST(DungeonEditCommandsTest,
   }
 }
 
+TEST(DungeonEditCommandsTest, StaircaseReportIsOptInAndReadOnly) {
+  Rom rom;
+  InitializeStatefulChestObjectRom(&rom);
+  auto room = zelda3::LoadRoomHeaderFromRom(&rom, 0);
+  const int layout_pc = SnesToPc(zelda3::kRoomLayoutPointers[room.layout_id()]);
+  rom.mutable_data()[layout_pc] = 0xFF;
+  rom.mutable_data()[layout_pc + 1] = 0xFF;
+  // Replace the first object with a spiral stair; preserve stream delimiters.
+  const auto encoded =
+      zelda3::RoomObject(0x138, 10, 10, 0).EncodeObjectToBytes();
+  rom.mutable_data()[kObjectDataPc + 2] = encoded.b1;
+  rom.mutable_data()[kObjectDataPc + 3] = encoded.b2;
+  rom.mutable_data()[kObjectDataPc + 4] = encoded.b3;
+  rom.set_dirty(false);
+  const auto before = rom.vector();
+  handlers::DungeonDescribeRoomCommandHandler handler;
+  std::string output;
+  ASSERT_TRUE(handler
+                  .Run({"--room=0x00", "--include-staircase-resolution",
+                        "--format=json"},
+                       &rom, &output)
+                  .ok());
+  const auto report = nlohmann::json::parse(output).at("staircase_resolution");
+  EXPECT_EQ(report.at("model"), "vanilla_collision_preview");
+  EXPECT_FALSE(report.at("runtime_qualified").get<bool>());
+  ASSERT_EQ(report.at("objects").size(), 1u);
+  EXPECT_EQ(report.at("objects")[0].at("vanilla_slot"), 0);
+  EXPECT_EQ(report.at("objects")[0].at("status"), "resolved");
+  EXPECT_EQ(rom.vector(), before);
+  EXPECT_FALSE(rom.dirty());
+}
+
 TEST(DungeonEditCommandsTest, ChestReadbackHonorsExplicitProjectReceiptLabel) {
   zelda3::ResourceLabelProvider::ProjectLabels labels;
   labels["item"]["0x3A"] = "Wolf Mask";
@@ -1181,6 +1213,7 @@ TEST(DungeonEditCommandsTest,
   ASSERT_TRUE(status.ok()) << status;
   const auto result = nlohmann::json::parse(output);
   EXPECT_FALSE(result.contains("objects"));
+  EXPECT_FALSE(result.contains("staircase_resolution"));
   // The legacy count includes the synthesized lightable-torch table object.
   EXPECT_EQ(result.at("properties").at("object_count"), 4);
   ASSERT_EQ(result.at("doors").size(), 1u);
