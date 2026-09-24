@@ -81,6 +81,10 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
         editor_->dependencies_.project, editor_->game_state_,
         editor_->dependencies_.shared_clipboard);
     editor_->NormalizeCurrentSelectionState();
+    if (editor_->sidebar_) {
+      editor_->sidebar_->DrawQuickProperties(editor_->current_map_,
+                                             editor_->game_state_);
+    }
 
     // Toolbar toggles don't currently update canvas usage mode.
     if (old_mode != editor_->current_mode) {
@@ -151,16 +155,16 @@ void OverworldCanvasRenderer::DrawOverworldCanvas() {
           editor_->show_overlay_preview_);
     }
 
-    if (editor_->current_mode == EditingMode::DRAW_TILE ||
-        editor_->current_mode == EditingMode::FILL_TILE) {
-      editor_->CheckForOverworldEdits();
-    }
-
     // Always refresh hover preview: when the canvas is not hovered this clears
     // hovered_map_ so the status bar falls back to the selected map.
     editor_->status_ = editor_->CheckForCurrentMap();
     if (canvas_rt.hovered) {
       editor_->HandleMapInteraction();
+    }
+
+    if (editor_->current_mode == EditingMode::DRAW_TILE ||
+        editor_->current_mode == EditingMode::FILL_TILE) {
+      editor_->CheckForOverworldEdits();
     }
 
     // --- BEGIN ENTITY DRAG/DROP LOGIC ---

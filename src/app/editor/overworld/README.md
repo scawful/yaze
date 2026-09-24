@@ -100,6 +100,19 @@ canvas supplies its own View menu, so shared built-in controls remain hidden.
 Reset View is deferred to the canvas child window; resetting scroll while
 inside an ImGui popup would affect the popup instead.
 
+The canvas keeps game state, area graphics/palette, sprite graphics/palette,
+and message ID in a quick-properties row above the map. The row wraps with
+the available panel width. Map Properties retains the full configuration,
+including music, custom graphics, and visual effects. Both surfaces use the
+same property callbacks and selected game state. Parent-area properties are
+shown when the selected screen belongs to a multi-screen area.
+
+Unpinned map selection follows the cursor in Mouse, Brush, and Fill modes.
+Pin through the toolbar, Ctrl+L, or the context menu to hold the property target.
+Middle-drag only pans; it does not pin or open properties. Entity dragging holds
+the selected map until release. Hover tracking and right-click targeting share
+the same scaled coordinate validation.
+
 Use `maps/overworld_property_edit.h` for a property change and
 `maps/overworld_map_metadata.h` for metadata resolution. Property UI must route
 through the editor's edit callbacks so undo and required refresh remain coupled.
