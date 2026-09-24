@@ -206,7 +206,7 @@ DungeonConnectedRoomLinkDiagnostics CollectDungeonConnectedRoomLinkDiagnostics(
   // are surfaced as diagnostic entries instead of being silently skipped:
   //
   //   - Slot consumed + valid header  → real Staircase link.
-  //   - Slot consumed + zero/invalid header → MissingDestination diagnostic
+  //   - Slot consumed + invalid header → MissingDestination diagnostic
   //     (placed object would be a dead-end stair at runtime).
   //   - >4 placed objects → ExtraPlacedObject diagnostic per surplus object.
   //   - Header non-zero but no consuming object → UnusedHeader diagnostic.
@@ -246,8 +246,10 @@ DungeonConnectedRoomLinkDiagnostics CollectDungeonConnectedRoomLinkDiagnostics(
 
   for (int slot = 0; slot < 4; ++slot) {
     const int stair_room = static_cast<int>(room.staircase_room(slot));
+    // Room 000 is a valid destination. The runtime reads the header byte
+    // directly; zero is not a sentinel for a consumed slot.
     const bool header_valid =
-        stair_room > 0 && stair_room < zelda3::kNumberOfRooms;
+        stair_room >= 0 && stair_room < zelda3::kNumberOfRooms;
     if (slot_consumed[slot]) {
       if (header_valid) {
         DungeonConnectedRoomLink link;
@@ -267,7 +269,7 @@ DungeonConnectedRoomLinkDiagnostics CollectDungeonConnectedRoomLinkDiagnostics(
         issue.object_id = slot_object_id[slot];
         result.staircase_issues.push_back(issue);
       }
-    } else if (header_valid) {
+    } else if (header_valid && stair_room != 0) {
       DungeonStaircaseIssue issue;
       issue.from_room_id = room_id;
       issue.kind = DungeonStaircaseIssueKind::UnusedHeader;
@@ -361,11 +363,8 @@ std::string FormatDungeonStaircaseIssueDescription(
               ? absl::StrFormat("0x%03X",
                                 static_cast<unsigned>(issue.object_id))
               : std::string("(unknown)");
-      const std::string header_str =
-          (issue.header_room_id == 0)
-              ? std::string("0 (unset)")
-              : absl::StrFormat("0x%03X (out of range)",
-                                static_cast<unsigned>(issue.header_room_id));
+      const std::string header_str = absl::StrFormat(
+          "0x%03X (out of range)", static_cast<unsigned>(issue.header_room_id));
       return absl::StrFormat(
           "Missing staircase destination at slot %d (placed object %s, "
           "header value %s)",
