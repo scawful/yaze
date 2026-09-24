@@ -102,6 +102,7 @@ class Application {
   std::chrono::steady_clock::time_point last_frame_time_;
   float delta_time_ = 0.0f;
   bool first_frame_ = true;
+  bool in_tick_ = false;  // Guards Tick() against nested run loops
 
 #ifndef __EMSCRIPTEN__
   // For non-WASM builds, we need a local queue for ROMs requested before

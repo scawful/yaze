@@ -6,6 +6,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include "absl/cleanup/cleanup.h"
 #include "absl/status/status.h"
 #include "activity_file.h"
 #include "controller.h"
@@ -227,6 +228,15 @@ void Application::Initialize(const AppConfig& config) {
 void Application::Tick() {
   if (!controller_)
     return;
+  // A blocking native dialog (the iOS document picker) runs a nested run loop
+  // from inside a frame, and the display link then calls Tick() again.
+  // Starting an ImGui frame inside another one aborts in NewFrame().
+  if (in_tick_)
+    return;
+  in_tick_ = true;
+  absl::Cleanup end_tick = [this] {
+    in_tick_ = false;
+  };
 
   // Calculate delta time
   auto now = std::chrono::steady_clock::now();
