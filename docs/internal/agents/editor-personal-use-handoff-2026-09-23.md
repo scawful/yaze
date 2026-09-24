@@ -101,3 +101,11 @@ Discover exact test suites with `--gtest_list_tests` before running them. The
 backend owner must identify the actual editor test target; absent suites are not
 passes. Record source commit, binary hash, selected/passed/skipped counts and any
 remaining platform limits. Refresh candidate provenance only after the build.
+
+## Navigation follow-up
+
+The persistent dungeon navigation strip now includes a hexadecimal room field:
+enter `005`, `077`, or `087` and press Enter. Grid arrows are explicitly labeled
+as grid navigation, not verified connections. Candidate rebuilt; 11 toolbar tests
+passed. Native end-to-end Origins acceptance remains blocked by CUA routing
+ambiguity between two live same-bundle-ID apps; see existing manual checklist.
